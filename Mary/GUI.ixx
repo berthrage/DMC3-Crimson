@@ -1355,10 +1355,12 @@ void MeleeWeaponSwitchController()
 		return;
 	}
 
-	if (!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)))
+
+	// HIDE WEAPON UI WHEN NOT HOLDING BUTTON
+	/*if (!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)))
 	{
 		return;
-	}
+	}*/
 
 	auto count = characterData.meleeWeaponCount;
 
@@ -1563,10 +1565,12 @@ void RangedWeaponSwitchController()
 		return;
 	}
 
-	if (!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)))
+
+	//HIDE WEAPON SWITCH UI WHEN NOT HOLDING BUTTON
+	/*if (!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)))
 	{
 		return;
-	}
+	}*/
 
 	auto count = characterData.rangedWeaponCount;
 

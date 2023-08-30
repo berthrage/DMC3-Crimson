@@ -24,8 +24,8 @@ const PATH_STB    = "ThirdParty/stb";
 
 const LOCATION_ZLIB          = "zlib.lib";
 const LOCATION_LIBZIP        = "libzip.lib";
-const LOCATION_HDC           = "D:/__STEAM__/steamapps/common/Devil May Cry HD Collection";
-const LOCATION_4             = "D:/__STEAM__/steamapps/common/Devil May Cry 4";
+const LOCATION_HDC           = "D:/SteamLibrary/steamapps/common/Devil May Cry HD Collection";
+const LOCATION_4             = "D:/SteamLubrary/steamapps/common/Devil May Cry 4";
 const LOCATION_LOADER_X86_64 = LOCATION_HDC + "/dinput8.dll";
 const LOCATION_LOADER_X86_32 = LOCATION_4   + "/dinput8.dll";
 const LOCATION_EVA           = LOCATION_HDC + "/Eva.dll";
@@ -112,9 +112,9 @@ function LoadConfig()
 
 // #region Env
 
-const VISUAL_STUDIO_YEAR    = "2019";
+const VISUAL_STUDIO_YEAR    = "2022";
 const VISUAL_STUDIO_EDITION = "Community";
-const VISUAL_STUDIO_PATH    = "C:/Program Files (x86)/Microsoft Visual Studio/" + VISUAL_STUDIO_YEAR + "/" + VISUAL_STUDIO_EDITION;
+const VISUAL_STUDIO_PATH    = "D:/Program Files/Microsoft Visual Studio/" + VISUAL_STUDIO_YEAR + "/" + VISUAL_STUDIO_EDITION;
 
 
 
@@ -127,7 +127,7 @@ const VISUAL_STUDIO_PATH    = "C:/Program Files (x86)/Microsoft Visual Studio/" 
 14.29.30133
 */
 
-const MSVC_VERSION      = "14.29.30133";
+const MSVC_VERSION      = "14.37.32822";
 const MSVC_PATH         = VISUAL_STUDIO_PATH + "/VC/Tools/MSVC";
 const MSVC_INCLUDE_PATH = MSVC_PATH + "/" + MSVC_VERSION + "/include";
 const MSVC_LIB_PATH     = MSVC_PATH + "/" + MSVC_VERSION + "/lib";
@@ -140,7 +140,7 @@ const MSVC_LIB_PATH     = MSVC_PATH + "/" + MSVC_VERSION + "/lib";
 10.0.19041.0
 */
 
-const WSDK_VERSION      = "10.0.18362.0";
+const WSDK_VERSION      = "10.0.22621.0";
 const WSDK_PATH         = "C:/Program Files (x86)/Windows Kits/10";
 const WSDK_INCLUDE_PATH = WSDK_PATH + "/Include/" + WSDK_VERSION;
 const WSDK_LIB_PATH     = WSDK_PATH + "/Lib/"     + WSDK_VERSION;
@@ -3132,6 +3132,7 @@ let itemsMaryGUI =
 
 let linkerArgsMary =
 [
+	"/FORCE:MULTIPLE",
 	"/NOLOGO",
 	"/DLL",
 	"/MACHINE:X64",
@@ -4880,14 +4881,14 @@ let items =
 		{
 			let items =
 			[
-				[ "ZLib"  , "x86_64", BuildZLib              ],
-				[ "LibZip", "x86_64", BuildLibZip            ],
-				[ "Loader", "x86_64", BuildLoaderFull_x86_64 ],
-				[ "Eva"   , "x86_64", BuildEvaFull           ],
-				[ "Lucia" , "x86_64", BuildLuciaFull         ],
+				//[ "ZLib"  , "x86_64", BuildZLib              ],
+				//[ "LibZip", "x86_64", BuildLibZip            ],
+				//[ "Loader", "x86_64", BuildLoaderFull_x86_64 ],
+				//[ "Eva"   , "x86_64", BuildEvaFull           ],
+				//[ "Lucia" , "x86_64", BuildLuciaFull         ],
 				[ "Mary"  , "x86_64", BuildMaryFull          ],
-				[ "Loader", "x86_32", BuildLoaderFull_x86_32 ],
-				[ "Kyrie" , "x86_32", BuildKyrieFull         ],
+				//[ "Loader", "x86_32", BuildLoaderFull_x86_32 ],
+				//[ "Kyrie" , "x86_32", BuildKyrieFull         ],
 			];
 
 			for (let itemIndex = 0; itemIndex < items.length; itemIndex++)
