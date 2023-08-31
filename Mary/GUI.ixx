@@ -945,8 +945,8 @@ void TextureData::Render
 		(
 			label,
 			&enable,
-			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize |
-			ImGuiWindowFlags_NoMove
+			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize 
+			| ImGuiWindowFlags_NoMove
 		)
 	)
 	{
@@ -1864,30 +1864,31 @@ void WeaponSwitchControllerSettings()
 
 	static float targetWidth = 1280;
 	static float targetHeight = 720;
+	static float scaleMultiplier = 1;
 
 	ImGui::PushItemWidth(200);
 
 	GUI_Input
 	(
-		"Target Width",
-		targetWidth,
-		1.0f,
+		"Scale Multiplier",
+		scaleMultiplier,
+		0.1f,
 		"%g"
 	);
 
-	GUI_Input
+	/*GUI_Input
 	(
 		"Target Height",
 		targetHeight,
 		1.0f,
 		"%g"
-	);
+	);*/
 
 	if (GUI_Button("Update"))
 	{
 		// Melee
 		{
-			const float multiplier = (targetWidth / defaultWidth);
+			const float multiplier = scaleMultiplier;
 
 			CopyMemory
 			(
