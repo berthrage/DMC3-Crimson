@@ -1061,7 +1061,7 @@ void TextureData::SetPosition(Config::TextureData & data)
 {
 	auto & pos = *reinterpret_cast<ImVec2 *>(&data.pos);
 
-	ImGui::SetWindowPos(label, pos);
+	ImGui::SetWindowPos(label, ImVec2(pos.x + activeConfig.weaponWheelHorizontal, pos.y + activeConfig.weaponWheelHeight));
 }
 
 enum
@@ -1361,7 +1361,7 @@ void MeleeWeaponSwitchController()
 		return;
 	}
 
-
+	
 	// HIDE WEAPON UI WHEN NOT HOLDING BUTTON
 	/*if (!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)))
 	{
@@ -1779,6 +1779,7 @@ void WeaponSwitchController()
 
 	MeleeWeaponSwitchController();
 	RangedWeaponSwitchController();
+	
 }
 
 void UpdateWeaponSwitchControllerTexturePositions()
@@ -1864,17 +1865,45 @@ void WeaponSwitchControllerSettings()
 
 	static float targetWidth = 1280;
 	static float targetHeight = 720;
-	static float scaleMultiplier = 1;
 
 	ImGui::PushItemWidth(200);
 
-	GUI_Input
+	GUI_InputDefault2<float>
 	(
-		"Scale Multiplier",
-		scaleMultiplier,
-		0.1f,
-		"%g"
+			"Wheel Scale Multiplier",
+			activeConfig.weaponWheelScaleMultiplier,
+			queuedConfig.weaponWheelScaleMultiplier,
+			defaultConfig.weaponWheelScaleMultiplier,
+			0.1f,
+			"%g",
+			ImGuiInputTextFlags_EnterReturnsTrue
 	);
+
+
+	ImGui::Text("Weapon Wheel HUD Positions");
+	GUI_InputDefault2<float>
+	(
+			"Wheel Horizontal",
+			activeConfig.weaponWheelHorizontal,
+			queuedConfig.weaponWheelHorizontal,
+			defaultConfig.weaponWheelHorizontal,
+			1,
+			"%g",
+			ImGuiInputTextFlags_EnterReturnsTrue
+	);
+
+	GUI_InputDefault2<float>
+	(
+			"Wheel Height",
+			activeConfig.weaponWheelHeight,
+			queuedConfig.weaponWheelHeight,
+			defaultConfig.weaponWheelHeight,
+			1,
+			"%g",
+			ImGuiInputTextFlags_EnterReturnsTrue
+	);
+
+	
 
 	/*GUI_Input
 	(
@@ -1888,7 +1917,7 @@ void WeaponSwitchControllerSettings()
 	{
 		// Melee
 		{
-			const float multiplier = scaleMultiplier;
+			const float multiplier = activeConfig.weaponWheelScaleMultiplier;
 
 			CopyMemory
 			(
@@ -1919,7 +1948,7 @@ void WeaponSwitchControllerSettings()
 
 		// Ranged
 		{
-			const float multiplier = (targetWidth / defaultWidth);
+			const float multiplier = activeConfig.weaponWheelScaleMultiplier;
 
 			CopyMemory
 			(
@@ -1950,8 +1979,10 @@ void WeaponSwitchControllerSettings()
 
 		UpdateWeaponSwitchControllerTexturePositions();
 
-		GUI::save = true;
+		//GUI::save = true;
 	}
+
+	
 	ImGui::Text("");
 
 	ImGui::PopItemWidth();

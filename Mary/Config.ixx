@@ -335,6 +335,8 @@ export struct Config
 		TextureData arrow;
 	};
 
+	
+
 	WeaponSwitchControllerTextureData meleeWeaponSwitchControllerTextureData =
 	{
 		{
@@ -611,7 +613,6 @@ export struct Config
 	bool enableYamatoForceEdgeNewRoundTrip  = (debug) ? true : false;
 
 
-
 	uint8 dergil = 0;
 
 
@@ -680,7 +681,14 @@ export struct Config
 
 	bool rebellionInfiniteShredder = false;
 	bool rebellionHoldDrive        = false;
+
+	float weaponWheelScaleMultiplier = 0.8f;
+	float weaponWheelHeight = 220;
+	float weaponWheelHorizontal = 220;
+	float weaponWheelWidthSeparation;	
 };
+
+
 
 static_assert((offsetof(Config, kalinaAnnHookGrenadeHeight) % 0x10) == 0);
 static_assert((offsetof(Config, kalinaAnnHookGrenadeTime  ) % 0x10) == 0);
