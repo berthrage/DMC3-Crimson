@@ -23,7 +23,7 @@ import Vars;
 const char * directoryName = "configs";
 const char * fileName      = "Mary.json";
 
-char location[64] = {};
+char locationConfig[64] = {};
 
 
 

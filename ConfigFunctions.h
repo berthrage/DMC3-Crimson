@@ -31,7 +31,7 @@ export void SaveConfig()
 	(
 		!SaveFile
 		(
-			location,
+			locationConfig,
 			name,
 			size
 		)
@@ -58,7 +58,7 @@ export void LoadConfig()
 
 
 
-	auto file = LoadFile(location);
+	auto file = LoadFile(locationConfig);
 	if (!file)
 	{
 		Log("LoadFile failed.");
@@ -144,8 +144,8 @@ export void InitConfig()
 
 	snprintf
 	(
-		location,
-		sizeof(location),
+		locationConfig,
+		sizeof(locationConfig),
 		"%s/%s",
 		directoryName,
 		fileName
