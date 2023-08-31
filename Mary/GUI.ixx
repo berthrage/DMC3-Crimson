@@ -1319,6 +1319,7 @@ void MeleeWeaponSwitchController()
 			);
 		}
 
+		// Force Icons to be on top of Highlights, when Main Menu is opened it forces focus on the Main Menu.
 		if (!g_show)
 		{
 			ImGui::SetWindowFocus(textureData.icons[0].label);
@@ -1491,6 +1492,7 @@ void MeleeWeaponSwitchController()
 		);
 	}
 
+	// Force Icons to be on top of Highlights, when Main Menu is opened it forces focus on the Main Menu.
 	if (!g_show)
 	{
 		ImGui::SetWindowFocus(textureData.icons[meleeWeaponIndex].label);
@@ -1562,6 +1564,8 @@ void RangedWeaponSwitchController()
 		}
 
 		//if (activeConfig.forceIconFocus && !g_show)
+
+		// Force Icons to be on top of Highlights, when Main Menu is opened it forces focus on the Main Menu.
 		if (!g_show)
 		{
 			ImGui::SetWindowFocus(textureData.icons[0].label);
@@ -1667,6 +1671,7 @@ void RangedWeaponSwitchController()
 		);
 	}
 
+	// Force Icons to be on top of Highlights, when Main Menu is opened it forces focus on the Main Menu.
 	if (!g_show)
 	{
 		ImGui::SetWindowFocus(textureData.icons[rangedWeaponIndex].label);
@@ -10285,9 +10290,9 @@ void Teleporter()
 
 #pragma region Textures
 
-void Textures()
+void WeaponWheel()
 {
-	if (ImGui::CollapsingHeader("Textures"))
+	if (ImGui::CollapsingHeader("Weapon Wheel"))
 	{
 		ImGui::Text("");
 
@@ -11072,7 +11077,7 @@ void Main()
 		SpeedSection();
 		System();
 		Teleporter();
-		Textures();
+		WeaponWheel();
 		TrainingSection();
 		Vergil();
 
