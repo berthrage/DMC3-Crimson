@@ -945,7 +945,8 @@ void TextureData::Render
 		(
 			label,
 			&enable,
-			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize
+			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize |
+			ImGuiWindowFlags_NoMove
 		)
 	)
 	{
@@ -1321,6 +1322,8 @@ void MeleeWeaponSwitchController()
 		if (!g_show)
 		{
 			ImGui::SetWindowFocus(textureData.icons[0].label);
+		} else {
+			ImGui::SetWindowFocus(DMC3U_TITLE);
 		}
 		
 
@@ -1491,6 +1494,8 @@ void MeleeWeaponSwitchController()
 	if (!g_show)
 	{
 		ImGui::SetWindowFocus(textureData.icons[meleeWeaponIndex].label);
+	} else {
+		ImGui::SetWindowFocus(DMC3U_TITLE);
 	}
 	
 }
@@ -1560,6 +1565,8 @@ void RangedWeaponSwitchController()
 		if (!g_show)
 		{
 			ImGui::SetWindowFocus(textureData.icons[0].label);
+		} else {
+			ImGui::SetWindowFocus(DMC3U_TITLE);
 		}
 		
 
@@ -1663,6 +1670,8 @@ void RangedWeaponSwitchController()
 	if (!g_show)
 	{
 		ImGui::SetWindowFocus(textureData.icons[rangedWeaponIndex].label);
+	} else {
+		ImGui::SetWindowFocus(DMC3U_TITLE);
 	}
 	
 }
