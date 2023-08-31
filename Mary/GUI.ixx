@@ -1185,8 +1185,8 @@ void CreateTextures()
 struct WeaponSwitchControllerTextureData
 {
 	TextureData backgrounds[5];
-	TextureData icons[5];
 	TextureData highlights[5];
+	TextureData icons[5];
 	TextureData arrow;
 };
 
@@ -1201,14 +1201,6 @@ const char * meleeWeaponSwitchControllerBackgroundNames[5] =
 	"MeleeWeaponSwitchControllerBackground4",
 };
 
-const char * meleeWeaponSwitchControllerIconNames[5] =
-{
-	"MeleeWeaponSwitchControllerIcon0",
-	"MeleeWeaponSwitchControllerIcon1",
-	"MeleeWeaponSwitchControllerIcon2",
-	"MeleeWeaponSwitchControllerIcon3",
-	"MeleeWeaponSwitchControllerIcon4",
-};
 
 const char * meleeWeaponSwitchControllerHighlightNames[5] =
 {
@@ -1217,6 +1209,15 @@ const char * meleeWeaponSwitchControllerHighlightNames[5] =
 	"MeleeWeaponSwitchControllerHighlight2",
 	"MeleeWeaponSwitchControllerHighlight3",
 	"MeleeWeaponSwitchControllerHighlight4",
+};
+
+const char * meleeWeaponSwitchControllerIconNames[5] =
+{
+	"MeleeWeaponSwitchControllerIcon0",
+	"MeleeWeaponSwitchControllerIcon1",
+	"MeleeWeaponSwitchControllerIcon2",
+	"MeleeWeaponSwitchControllerIcon3",
+	"MeleeWeaponSwitchControllerIcon4",
 };
 
 const char * meleeWeaponSwitchControllerArrowName = "MeleeWeaponSwitchControllerArrow";
@@ -1317,10 +1318,11 @@ void MeleeWeaponSwitchController()
 			);
 		}
 
-		if (activeConfig.forceIconFocus)
+		if (!g_show)
 		{
 			ImGui::SetWindowFocus(textureData.icons[0].label);
 		}
+		
 
 		return;
 	}
@@ -1378,6 +1380,22 @@ void MeleeWeaponSwitchController()
 		);
 	}
 
+	auto meleeWeaponIndex = characterData.meleeWeaponIndex;
+	if (meleeWeaponIndex >= 5)
+	{
+		meleeWeaponIndex = 0;
+	}
+
+	
+	textureData.highlights[meleeWeaponIndex].Render
+	(
+		activeConfigTextureData.highlights[meleeWeaponIndex],
+		queuedConfigTextureData.highlights[meleeWeaponIndex]
+	);
+
+	
+
+
 	{
 		old_for_all(uint8, index, count)
 		{
@@ -1431,25 +1449,25 @@ void MeleeWeaponSwitchController()
 
 			textureData.icons[index].textureAddr = textureAddrs[textureId];
 
-			textureData.icons[index].Render
-			(
-				activeConfigTextureData.icons[index],
-				queuedConfigTextureData.icons[index]
-			);
+			if (index != meleeWeaponIndex) {
+				textureData.icons[index].Render
+				(
+					activeConfigTextureData.icons[index],
+					queuedConfigTextureData.icons[index]
+				);
+			}
+			
 		}
+
+		
+		
+		
+		
+		
+		
 	}
 
-	auto meleeWeaponIndex = characterData.meleeWeaponIndex;
-	if (meleeWeaponIndex >= 5)
-	{
-		meleeWeaponIndex = 0;
-	}
-
-	textureData.highlights[meleeWeaponIndex].Render
-	(
-		activeConfigTextureData.highlights[meleeWeaponIndex],
-		queuedConfigTextureData.highlights[meleeWeaponIndex]
-	);
+	
 
 	{
 		auto textureId = textureArrowMap[meleeWeaponIndex];
@@ -1461,12 +1479,20 @@ void MeleeWeaponSwitchController()
 			activeConfigTextureData.arrow,
 			queuedConfigTextureData.arrow
 		);
+
+
+		textureData.icons[meleeWeaponIndex].Render
+		(
+			activeConfigTextureData.icons[meleeWeaponIndex],
+			queuedConfigTextureData.icons[meleeWeaponIndex]
+		);
 	}
 
-	if (activeConfig.forceIconFocus)
+	if (!g_show)
 	{
 		ImGui::SetWindowFocus(textureData.icons[meleeWeaponIndex].label);
 	}
+	
 }
 
 void RangedWeaponSwitchController()
@@ -1530,10 +1556,12 @@ void RangedWeaponSwitchController()
 			);
 		}
 
-		if (activeConfig.forceIconFocus)
+		//if (activeConfig.forceIconFocus && !g_show)
+		if (!g_show)
 		{
 			ImGui::SetWindowFocus(textureData.icons[0].label);
 		}
+		
 
 		return;
 	}
@@ -1632,10 +1660,11 @@ void RangedWeaponSwitchController()
 		);
 	}
 
-	if (activeConfig.forceIconFocus)
+	if (!g_show)
 	{
 		ImGui::SetWindowFocus(textureData.icons[rangedWeaponIndex].label);
 	}
+	
 }
 
 void WeaponSwitchController()
@@ -10926,7 +10955,7 @@ void Main()
 	(
 		ImGui::Begin
 		(
-			DDMK_TITLE_MARY,
+			DMC3U_TITLE,
 			&g_showMain
 		)
 	)

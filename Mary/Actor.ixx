@@ -4268,6 +4268,7 @@ void LinearRangedWeaponSwitchController(T &actorData)
 	auto &characterData = GetCharacterData(actorData);
 
 	bool update = false;
+	
 
 	{
 		bool condition = (actorData.buttons[0] & playerData.button);
@@ -4387,6 +4388,9 @@ void ArbitraryMeleeWeaponSwitchController(T &actorData)
 
 	bool update = false;
 
+	bool forward = false;
+	bool back = false;
+
 	auto Forward = [&]()
 	{
 		if (characterData.meleeWeaponIndex == (meleeWeaponCount - 1))
@@ -4398,7 +4402,29 @@ void ArbitraryMeleeWeaponSwitchController(T &actorData)
 			characterData.meleeWeaponIndex++;
 		}
 		update = true;
+
+		forward = true;
 	};
+
+	auto Back = [&]()
+	{
+		if (characterData.meleeWeaponIndex == 0)
+		{
+			characterData.meleeWeaponIndex = (meleeWeaponCount - 1);
+		}
+		else
+		{
+			characterData.meleeWeaponIndex--;
+		}
+		update = true;
+
+		back = true;
+	};
+
+	//JUST A TEST
+	/*if(actorData.styleData.rank == 1) {
+		PlaySound(0, 13);
+	}*/
 
 	if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)))
 	{
@@ -4457,19 +4483,47 @@ void ArbitraryMeleeWeaponSwitchController(T &actorData)
 		}
 	}
 
-	if (gamepad.buttons[2] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))
+	if (actorData.buttons[2] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))
 	{
 
 		Forward();
+	}
+	else if (actorData.buttons[2] & GetBinding(BINDING::CHANGE_GUN))
+	{
+		if constexpr (TypeMatch<T, PlayerActorDataVergil>::value)
+		{
+			Back();
+		}
 	}
 
 	
 
 	// @Research: Consider !leftStick.
 
-	if (IsNeroAngelo(actorData))
+
+	
+	/*if (IsNeroAngelo(actorData))
 	{
 		characterData.meleeWeaponIndex = 2;
+	}*/
+
+	// Nero Angelo Fix
+	{
+		auto weapon = GetMeleeWeapon(actorData);
+
+		if (
+			IsNeroAngelo(actorData) &&
+			(weapon == WEAPON::YAMATO_FORCE_EDGE))
+		{
+			if (forward)
+			{
+				Forward();
+			}
+			else if (back)
+			{
+				Back();
+			}
+		}
 	}
 
 

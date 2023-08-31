@@ -440,7 +440,6 @@ export void OpenMain()
 	g_showMain = true;
 
 
-
 	// Required here since g_show could be false, but we still need the data.
 	// Otherwise the menu could auto-close.
 
@@ -527,8 +526,8 @@ void OverlayFunction
 			label,
 			&activeData.enable,
 			ImGuiWindowFlags_NoTitleBar         |
-			ImGuiWindowFlags_AlwaysAutoResize   |
-			ImGuiWindowFlags_NoFocusOnAppearing
+			ImGuiWindowFlags_AlwaysAutoResize   
+			//ImGuiWindowFlags_NoFocusOnAppearing
 		)
 	)
 	{
