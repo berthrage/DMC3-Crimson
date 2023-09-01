@@ -1682,6 +1682,122 @@ void RangedWeaponSwitchController()
 	
 }
 
+void UpdateWeaponSwitchControllerTexturePositions()
+{
+	// Melee
+	{
+		auto & textureData = meleeWeaponSwitchControllerTextureData;
+		auto & configTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
+
+		old_for_all(uint8, index, 5)
+		{
+			textureData.backgrounds[index].SetPosition(configTextureData.backgrounds[index]);
+		}
+
+		old_for_all(uint8, index, 5)
+		{
+			textureData.highlights[index].SetPosition(configTextureData.highlights[index]);
+		}
+
+
+		old_for_all(uint8, index, 5)
+		{
+			textureData.icons[index].SetPosition(configTextureData.icons[index]);
+		}
+
+		textureData.arrow.SetPosition(configTextureData.arrow);
+	}
+
+	// Ranged
+	{
+		auto & textureData = rangedWeaponSwitchControllerTextureData;
+		auto & configTextureData = activeConfig.rangedWeaponSwitchControllerTextureData;
+
+		old_for_all(uint8, index, 5)
+		{
+			textureData.backgrounds[index].SetPosition(configTextureData.backgrounds[index]);
+		}
+
+		old_for_all(uint8, index, 5)
+		{
+			textureData.icons[index].SetPosition(configTextureData.icons[index]);
+		}
+
+		old_for_all(uint8, index, 5)
+		{
+			textureData.highlights[index].SetPosition(configTextureData.highlights[index]);
+		}
+
+		textureData.arrow.SetPosition(configTextureData.arrow);
+	}
+}
+
+void UpdateWeaponWheelPos()
+{
+	{
+			const float multiplier = activeConfig.weaponWheelScaleMultiplier;
+
+			CopyMemory
+			(
+				&queuedConfig.meleeWeaponSwitchControllerTextureData,
+				&defaultConfig.meleeWeaponSwitchControllerTextureData,
+				sizeof(queuedConfig.meleeWeaponSwitchControllerTextureData)
+			);
+
+			auto & configTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
+
+			auto values = reinterpret_cast<float *>(&configTextureData);
+			uint32 count = (sizeof(configTextureData) / 4);
+
+			old_for_all(uint32, index, count)
+			{
+				auto & value = values[index];
+
+				value *= multiplier;
+			}
+
+			CopyMemory
+			(
+				&activeConfig.meleeWeaponSwitchControllerTextureData,
+				&queuedConfig.meleeWeaponSwitchControllerTextureData,
+				sizeof(activeConfig.meleeWeaponSwitchControllerTextureData)
+			);
+		}
+
+		// Ranged
+		{
+			const float multiplier = activeConfig.weaponWheelScaleMultiplier;
+
+			CopyMemory
+			(
+				&queuedConfig.rangedWeaponSwitchControllerTextureData,
+				&defaultConfig.rangedWeaponSwitchControllerTextureData,
+				sizeof(queuedConfig.rangedWeaponSwitchControllerTextureData)
+			);
+
+			auto & configTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
+
+			auto values = reinterpret_cast<float *>(&configTextureData);
+			uint32 count = (sizeof(configTextureData) / 4);
+
+			old_for_all(uint32, index, count)
+			{
+				auto & value = values[index];
+
+				value *= multiplier;
+			}
+
+			CopyMemory
+			(
+				&activeConfig.rangedWeaponSwitchControllerTextureData,
+				&queuedConfig.rangedWeaponSwitchControllerTextureData,
+				sizeof(activeConfig.rangedWeaponSwitchControllerTextureData)
+			);
+		}
+
+		UpdateWeaponSwitchControllerTexturePositions();
+}
+
 void WeaponSwitchController()
 {
 	static bool run = false;
@@ -1778,60 +1894,13 @@ void WeaponSwitchController()
 		}
 	}
 
+	UpdateWeaponWheelPos();
 	MeleeWeaponSwitchController();
 	RangedWeaponSwitchController();
 	
 }
 
-void UpdateWeaponSwitchControllerTexturePositions()
-{
-	// Melee
-	{
-		auto & textureData = meleeWeaponSwitchControllerTextureData;
-		auto & configTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
 
-		old_for_all(uint8, index, 5)
-		{
-			textureData.backgrounds[index].SetPosition(configTextureData.backgrounds[index]);
-		}
-
-		old_for_all(uint8, index, 5)
-		{
-			textureData.highlights[index].SetPosition(configTextureData.highlights[index]);
-		}
-
-
-		old_for_all(uint8, index, 5)
-		{
-			textureData.icons[index].SetPosition(configTextureData.icons[index]);
-		}
-
-		textureData.arrow.SetPosition(configTextureData.arrow);
-	}
-
-	// Ranged
-	{
-		auto & textureData = rangedWeaponSwitchControllerTextureData;
-		auto & configTextureData = activeConfig.rangedWeaponSwitchControllerTextureData;
-
-		old_for_all(uint8, index, 5)
-		{
-			textureData.backgrounds[index].SetPosition(configTextureData.backgrounds[index]);
-		}
-
-		old_for_all(uint8, index, 5)
-		{
-			textureData.icons[index].SetPosition(configTextureData.icons[index]);
-		}
-
-		old_for_all(uint8, index, 5)
-		{
-			textureData.highlights[index].SetPosition(configTextureData.highlights[index]);
-		}
-
-		textureData.arrow.SetPosition(configTextureData.arrow);
-	}
-}
 
 void WeaponSwitchControllerSettings()
 {
@@ -1916,68 +1985,7 @@ void WeaponSwitchControllerSettings()
 
 	
 		// Melee
-		{
-			const float multiplier = activeConfig.weaponWheelScaleMultiplier;
-
-			CopyMemory
-			(
-				&queuedConfig.meleeWeaponSwitchControllerTextureData,
-				&defaultConfig.meleeWeaponSwitchControllerTextureData,
-				sizeof(queuedConfig.meleeWeaponSwitchControllerTextureData)
-			);
-
-			auto & configTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
-
-			auto values = reinterpret_cast<float *>(&configTextureData);
-			uint32 count = (sizeof(configTextureData) / 4);
-
-			old_for_all(uint32, index, count)
-			{
-				auto & value = values[index];
-
-				value *= multiplier;
-			}
-
-			CopyMemory
-			(
-				&activeConfig.meleeWeaponSwitchControllerTextureData,
-				&queuedConfig.meleeWeaponSwitchControllerTextureData,
-				sizeof(activeConfig.meleeWeaponSwitchControllerTextureData)
-			);
-		}
-
-		// Ranged
-		{
-			const float multiplier = activeConfig.weaponWheelScaleMultiplier;
-
-			CopyMemory
-			(
-				&queuedConfig.rangedWeaponSwitchControllerTextureData,
-				&defaultConfig.rangedWeaponSwitchControllerTextureData,
-				sizeof(queuedConfig.rangedWeaponSwitchControllerTextureData)
-			);
-
-			auto & configTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
-
-			auto values = reinterpret_cast<float *>(&configTextureData);
-			uint32 count = (sizeof(configTextureData) / 4);
-
-			old_for_all(uint32, index, count)
-			{
-				auto & value = values[index];
-
-				value *= multiplier;
-			}
-
-			CopyMemory
-			(
-				&activeConfig.rangedWeaponSwitchControllerTextureData,
-				&queuedConfig.rangedWeaponSwitchControllerTextureData,
-				sizeof(activeConfig.rangedWeaponSwitchControllerTextureData)
-			);
-		}
-
-		UpdateWeaponSwitchControllerTexturePositions();
+		UpdateWeaponWheelPos();
 
 		//GUI::save = true;
 	
@@ -10990,68 +10998,7 @@ void Main()
 			ImGui::SetNextWindowPos(ImVec2(0, 0));
 		}
 
-		{
-			const float multiplier = activeConfig.weaponWheelScaleMultiplier;
-
-			CopyMemory
-			(
-				&queuedConfig.meleeWeaponSwitchControllerTextureData,
-				&defaultConfig.meleeWeaponSwitchControllerTextureData,
-				sizeof(queuedConfig.meleeWeaponSwitchControllerTextureData)
-			);
-
-			auto & configTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
-
-			auto values = reinterpret_cast<float *>(&configTextureData);
-			uint32 count = (sizeof(configTextureData) / 4);
-
-			old_for_all(uint32, index, count)
-			{
-				auto & value = values[index];
-
-				value *= multiplier;
-			}
-
-			CopyMemory
-			(
-				&activeConfig.meleeWeaponSwitchControllerTextureData,
-				&queuedConfig.meleeWeaponSwitchControllerTextureData,
-				sizeof(activeConfig.meleeWeaponSwitchControllerTextureData)
-			);
-		}
-
-		// Ranged
-		{
-			const float multiplier = activeConfig.weaponWheelScaleMultiplier;
-
-			CopyMemory
-			(
-				&queuedConfig.rangedWeaponSwitchControllerTextureData,
-				&defaultConfig.rangedWeaponSwitchControllerTextureData,
-				sizeof(queuedConfig.rangedWeaponSwitchControllerTextureData)
-			);
-
-			auto & configTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
-
-			auto values = reinterpret_cast<float *>(&configTextureData);
-			uint32 count = (sizeof(configTextureData) / 4);
-
-			old_for_all(uint32, index, count)
-			{
-				auto & value = values[index];
-
-				value *= multiplier;
-			}
-
-			CopyMemory
-			(
-				&activeConfig.rangedWeaponSwitchControllerTextureData,
-				&queuedConfig.rangedWeaponSwitchControllerTextureData,
-				sizeof(activeConfig.rangedWeaponSwitchControllerTextureData)
-			);
-		}
-
-		UpdateWeaponSwitchControllerTexturePositions();
+		
 
 		//ImGuiIO & io = ImGui::GetIO();
 		//io.FontDefault = io.Fonts->Fonts[FONT::MAIN];

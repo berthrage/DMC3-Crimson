@@ -1027,6 +1027,8 @@ uint8 GetNextStyleAction(
 	return action;
 }
 
+
+
 uint8 GetNextStyleAction(
 	CharacterData &activeCharacterData,
 	NewActorData &activeNewActorData,
@@ -9727,6 +9729,70 @@ float ApplyDamage(
 
 #pragma endregion
 
+export void ToggleRoyalguardForceJustFrameRelease(bool enable)
+{
+	LogFunction(enable);
+
+	static bool run = false;
+
+	// Release
+	{
+		auto addr = (appBaseAddr + 0x20B714);
+		constexpr uint32 size = 7;
+		/*
+		dmc3.exe+20B714 - C6 83 103E0000 01 - mov byte ptr [rbx+00003E10],01
+		dmc3.exe+20B71B - 0F2F BB 30400000  - comiss xmm7,[rbx+00004030]
+		*/
+
+		if (!run)
+		{
+			backupHelper.Save(addr, size);
+		}
+
+		if (enable)
+		{
+			protectionHelper.Push(addr, size);
+			Write<uint32>((addr + 2), offsetof(PlayerActorData, action));
+			Write<uint8>((addr + 6), ACTION_DANTE::ROYALGUARD_RELEASE_2);
+			protectionHelper.Pop();
+		}
+		else
+		{
+			backupHelper.Restore(addr);
+		}
+	}
+
+	// Air Release
+	{
+		auto addr = (appBaseAddr + 0x20BCF8);
+		constexpr uint32 size = 7;
+		/*
+		dmc3.exe+20BCF8 - C6 83 103E0000 01 - mov byte ptr [rbx+00003E10],01
+		dmc3.exe+20BCFF - 0F2F BB 30400000  - comiss xmm7,[rbx+00004030]
+		*/
+
+		if (!run)
+		{
+			backupHelper.Save(addr, size);
+		}
+
+		if (enable)
+		{
+			protectionHelper.Push(addr, size);
+			Write<uint32>((addr + 2), offsetof(PlayerActorData, action));
+			Write<uint8>((addr + 6), ACTION_DANTE::ROYALGUARD_AIR_RELEASE_2);
+			protectionHelper.Pop();
+		}
+		else
+		{
+			backupHelper.Restore(addr);
+		}
+	}
+
+	run = true;
+}
+
+
 // @Todo: Recheck and move to Toggle.
 void ToggleMainActorFixes(bool enable)
 {
@@ -10451,6 +10517,7 @@ void SetAction(byte8 *actorBaseAddr)
 	case CHARACTER::DANTE:
 	{
 		using namespace ACTION_DANTE;
+		using namespace ACTION_VERGIL;
 
 		actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = File_staticFiles[pl000_00_3];
 
@@ -10471,12 +10538,12 @@ void SetAction(byte8 *actorBaseAddr)
 			lockOn &&
 			(tiltDirection == TILT_DIRECTION::LEFT))
 		{
-			actorData.action = REBELLION_DRIVE_1;
+			actorData.action = CERBERUS_MILLION_CARATS;
 		}
 		else if (
 			activeConfig.enableRebellionQuickDrive &&
 			(demo_pl000_00_3 != 0) &&
-			(actorData.action == REBELLION_COMBO_1_PART_2) &&
+			(actorData.action == REBELLION_COMBO_1_PART_1) &&
 			(actorData.style == STYLE::SWORDMASTER) &&
 			(actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)))
 		{
@@ -10502,6 +10569,37 @@ void SetAction(byte8 *actorBaseAddr)
 		{
 			actorData.action = NEVAN_VORTEX;
 		}
+		
+		//Just Frame Release in Air with Taunt
+		/*if ((actorData.state & STATE::IN_AIR) ) 
+		{
+			ToggleRoyalguardForceJustFrameRelease(true);
+			actorData.action = ROYALGUARD_AIR_RELEASE_1;
+		}*/
+		
+		// Swap Sword Pierce and Dance Macabre
+		/*if ((actorData.action == REBELLION_SWORD_PIERCE) &&
+			(actorData.style == STYLE::SWORDMASTER) &&
+			lockOn && 
+			(actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
+			(tiltDirection == TILT_DIRECTION::UP))
+		{
+			actorData.action = REBELLION_DANCE_MACABRE_PART_1;
+			actorData.bufferedAction = REBELLION_DANCE_MACABRE_PART_2;
+
+			
+			
+		}
+
+
+		if ((actorData.action == REBELLION_DANCE_MACABRE_PART_1) &&
+			(actorData.style == STYLE::SWORDMASTER) &&
+			lockOn && 
+			(actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
+			(tiltDirection == TILT_DIRECTION::DOWN))
+		{
+			actorData.action = REBELLION_SWORD_PIERCE;
+		}*/
 
 		break;
 	}
@@ -14396,68 +14494,6 @@ export void ToggleAirHikeCoreAbility(bool enable)
 	*/
 }
 
-export void ToggleRoyalguardForceJustFrameRelease(bool enable)
-{
-	LogFunction(enable);
-
-	static bool run = false;
-
-	// Release
-	{
-		auto addr = (appBaseAddr + 0x20B714);
-		constexpr uint32 size = 7;
-		/*
-		dmc3.exe+20B714 - C6 83 103E0000 01 - mov byte ptr [rbx+00003E10],01
-		dmc3.exe+20B71B - 0F2F BB 30400000  - comiss xmm7,[rbx+00004030]
-		*/
-
-		if (!run)
-		{
-			backupHelper.Save(addr, size);
-		}
-
-		if (enable)
-		{
-			protectionHelper.Push(addr, size);
-			Write<uint32>((addr + 2), offsetof(PlayerActorData, action));
-			Write<uint8>((addr + 6), ACTION_DANTE::ROYALGUARD_RELEASE_2);
-			protectionHelper.Pop();
-		}
-		else
-		{
-			backupHelper.Restore(addr);
-		}
-	}
-
-	// Air Release
-	{
-		auto addr = (appBaseAddr + 0x20BCF8);
-		constexpr uint32 size = 7;
-		/*
-		dmc3.exe+20BCF8 - C6 83 103E0000 01 - mov byte ptr [rbx+00003E10],01
-		dmc3.exe+20BCFF - 0F2F BB 30400000  - comiss xmm7,[rbx+00004030]
-		*/
-
-		if (!run)
-		{
-			backupHelper.Save(addr, size);
-		}
-
-		if (enable)
-		{
-			protectionHelper.Push(addr, size);
-			Write<uint32>((addr + 2), offsetof(PlayerActorData, action));
-			Write<uint8>((addr + 6), ACTION_DANTE::ROYALGUARD_AIR_RELEASE_2);
-			protectionHelper.Pop();
-		}
-		else
-		{
-			backupHelper.Restore(addr);
-		}
-	}
-
-	run = true;
-}
 
 // @Update
 export void ToggleRebellionInfiniteSwordPierce(bool enable)

@@ -60,6 +60,7 @@ export inline uint8 GetRelativeTiltDirection(PlayerActorData & actorData)
 {
 	auto & gamepad = GetGamepad(0);
 	uint16 relativeTilt = 0;
+	using namespace ACTION_DANTE;
 
 	if (gamepad.leftStickRadius < LEFT_STICK_DEADZONE)
 	{
@@ -70,7 +71,7 @@ export inline uint8 GetRelativeTiltDirection(PlayerActorData & actorData)
 
 	{
 		uint16 value = (relativeTilt - 0x6000);
-		if (value <= 0x4000)
+		if (value <= 0x4000 && (actorData.action != REBELLION_DANCE_MACABRE_PART_1))
 		{
 			return TILT_DIRECTION::UP;
 		}
@@ -95,6 +96,10 @@ export inline uint8 GetRelativeTiltDirection(PlayerActorData & actorData)
 		{
 			return TILT_DIRECTION::LEFT;
 		}
+	}
+
+	if (actorData.action == REBELLION_DANCE_MACABRE_PART_1) {
+		TILT_DIRECTION::NEUTRAL;
 	}
 
 	return TILT_DIRECTION::NEUTRAL;
