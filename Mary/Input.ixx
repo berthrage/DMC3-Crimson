@@ -71,7 +71,7 @@ export inline uint8 GetRelativeTiltDirection(PlayerActorData & actorData)
 
 	{
 		uint16 value = (relativeTilt - 0x6000);
-		if (value <= 0x4000 && (actorData.action != REBELLION_DANCE_MACABRE_PART_1))
+		if (value <= 0x4000)
 		{
 			return TILT_DIRECTION::UP;
 		}

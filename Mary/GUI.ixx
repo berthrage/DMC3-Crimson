@@ -4,6 +4,10 @@ module;
 
 #include <stdio.h>
 #include <intrin.h>
+#include <string>
+#include <sstream>
+#include <iostream>
+#include <format>
 export module GUI;
 
 import Core;
@@ -899,7 +903,7 @@ struct TextureData
 		Config::TextureData & activeData,
 		Config::TextureData & queuedData
 	);
-	void SetPosition(Config::TextureData & data);
+	void SetPosition(Config::TextureData & data, bool ranged);
 };
 
 void TextureData::Render
@@ -1058,11 +1062,16 @@ void TextureData::Settings
 	ImGui::PopItemWidth();
 }
 
-void TextureData::SetPosition(Config::TextureData & data)
+void TextureData::SetPosition(Config::TextureData & data, bool ranged)
 {
 	auto & pos = *reinterpret_cast<ImVec2 *>(&data.pos);
 
-	ImGui::SetWindowPos(label, ImVec2(pos.x + activeConfig.weaponWheelHorizontal, pos.y + activeConfig.weaponWheelHeight));
+	if(!ranged) {
+		ImGui::SetWindowPos(label, ImVec2(pos.x + activeConfig.weaponWheelHorizontalMelee, pos.y + activeConfig.weaponWheelHeight));
+	} else {
+		ImGui::SetWindowPos(label, ImVec2(pos.x + activeConfig.weaponWheelHorizontalRanged, pos.y + activeConfig.weaponWheelHeight));
+	}
+	
 }
 
 enum
@@ -1691,21 +1700,21 @@ void UpdateWeaponSwitchControllerTexturePositions()
 
 		old_for_all(uint8, index, 5)
 		{
-			textureData.backgrounds[index].SetPosition(configTextureData.backgrounds[index]);
+			textureData.backgrounds[index].SetPosition(configTextureData.backgrounds[index], false);
 		}
 
 		old_for_all(uint8, index, 5)
 		{
-			textureData.highlights[index].SetPosition(configTextureData.highlights[index]);
+			textureData.highlights[index].SetPosition(configTextureData.highlights[index], false);
 		}
 
 
 		old_for_all(uint8, index, 5)
 		{
-			textureData.icons[index].SetPosition(configTextureData.icons[index]);
+			textureData.icons[index].SetPosition(configTextureData.icons[index], false);
 		}
 
-		textureData.arrow.SetPosition(configTextureData.arrow);
+		textureData.arrow.SetPosition(configTextureData.arrow, false);
 	}
 
 	// Ranged
@@ -1715,20 +1724,20 @@ void UpdateWeaponSwitchControllerTexturePositions()
 
 		old_for_all(uint8, index, 5)
 		{
-			textureData.backgrounds[index].SetPosition(configTextureData.backgrounds[index]);
+			textureData.backgrounds[index].SetPosition(configTextureData.backgrounds[index], true);
 		}
 
 		old_for_all(uint8, index, 5)
 		{
-			textureData.icons[index].SetPosition(configTextureData.icons[index]);
+			textureData.icons[index].SetPosition(configTextureData.icons[index], true);
 		}
 
 		old_for_all(uint8, index, 5)
 		{
-			textureData.highlights[index].SetPosition(configTextureData.highlights[index]);
+			textureData.highlights[index].SetPosition(configTextureData.highlights[index], true);
 		}
 
-		textureData.arrow.SetPosition(configTextureData.arrow);
+		textureData.arrow.SetPosition(configTextureData.arrow, true);
 	}
 }
 
@@ -1938,6 +1947,8 @@ void WeaponSwitchControllerSettings()
 
 	ImGui::PushItemWidth(200);
 
+	ImGui::Text("Weapon Wheel HUD Configurations");
+
 	GUI_InputDefault2<float>
 	(
 			"Wheel Scale Multiplier",
@@ -1949,18 +1960,29 @@ void WeaponSwitchControllerSettings()
 			ImGuiInputTextFlags_EnterReturnsTrue
 	);
 
-
-	ImGui::Text("Weapon Wheel HUD Positions");
 	GUI_InputDefault2<float>
 	(
-			"Wheel Horizontal",
-			activeConfig.weaponWheelHorizontal,
-			queuedConfig.weaponWheelHorizontal,
-			defaultConfig.weaponWheelHorizontal,
+			"Melee Wheel Horizontal",
+			activeConfig.weaponWheelHorizontalMelee,
+			queuedConfig.weaponWheelHorizontalMelee,
+			defaultConfig.weaponWheelHorizontalMelee,
 			1,
 			"%g",
 			ImGuiInputTextFlags_EnterReturnsTrue
 	);
+
+	
+	GUI_InputDefault2<float>
+	(
+			"Ranged Wheel Horizontal",
+			activeConfig.weaponWheelHorizontalRanged,
+			queuedConfig.weaponWheelHorizontalRanged,
+			defaultConfig.weaponWheelHorizontalRanged,
+			1,
+			"%g",
+			ImGuiInputTextFlags_EnterReturnsTrue
+	);
+
 
 	GUI_InputDefault2<float>
 	(
@@ -10982,20 +11004,23 @@ void Main()
 
 		ImGui::SetNextWindowSize(ImVec2(width, height));
 
+		//((g_renderSize.x - width) / 3)
+
 		if constexpr (debug)
 		{
 			ImGui::SetNextWindowPos
 			(
 				ImVec2
 				(
-					((g_renderSize.x - width) / 3),
+					((g_renderSize.x) / 2),
 					100
 				)
 			);
 		}
 		else
 		{
-			ImGui::SetNextWindowPos(ImVec2(0, 0));
+			//CENTER MAIN SCREEN
+			ImGui::SetNextWindowPos(ImVec2(g_renderSize.x * 0.5f, g_renderSize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f,0.5f));
 		}
 
 		
@@ -11018,13 +11043,22 @@ void Main()
 		)
 	)
 	{
-		ImGui::Text("");
-
-
-
-
 		
+		ImGui::Text("");
+		
+		std::stringstream sstm;
+		sstm << "WINDOWSIZE X: " << g_renderSize.x;
+		std::string windowSizeX = sstm.str();
 
+		std::stringstream sstm2;
+		sstm2 << "WINDOWSIZE Y: " << g_renderSize.y;
+		std::string windowSizeY = sstm2.str();
+		const char* var1 = windowSizeX.c_str();
+		const char* var2 = windowSizeY.c_str();
+
+
+		ImGui::Text(var1);
+		ImGui::Text(var2);
 
 
 		GamepadClose

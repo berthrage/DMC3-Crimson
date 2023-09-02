@@ -682,9 +682,10 @@ export struct Config
 	bool rebellionInfiniteShredder = false;
 	bool rebellionHoldDrive        = false;
 
-	float weaponWheelScaleMultiplier = 0.8f;
-	float weaponWheelHeight = 220;
-	float weaponWheelHorizontal = 220;
+	float weaponWheelScaleMultiplier = 0.7f;
+	float weaponWheelHeight = 335;
+	float weaponWheelHorizontalMelee = 495;
+	float weaponWheelHorizontalRanged = 80;
 	float weaponWheelWidthSeparation;	
 };
 

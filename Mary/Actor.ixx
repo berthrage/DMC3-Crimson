@@ -10543,7 +10543,7 @@ void SetAction(byte8 *actorBaseAddr)
 		else if (
 			activeConfig.enableRebellionQuickDrive &&
 			(demo_pl000_00_3 != 0) &&
-			(actorData.action == REBELLION_COMBO_1_PART_1) &&
+			(actorData.action == REBELLION_COMBO_1_PART_2) &&
 			(actorData.style == STYLE::SWORDMASTER) &&
 			(actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)))
 		{
