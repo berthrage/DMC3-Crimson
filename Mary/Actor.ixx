@@ -4485,6 +4485,66 @@ void ArbitraryMeleeWeaponSwitchController(T &actorData)
 		}
 	}
 
+	if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)))
+	{
+		if (TypeMatch<T, PlayerActorDataVergil>::value) 
+		{
+			g_disableCameraRotation = true;
+
+			if (!(radius < RIGHT_STICK_DEADZONE))
+			{
+
+				if (
+					(
+					(pos <= -26214) &&
+					(pos >= -32768)) ||
+					((pos <= 32767) &&
+					(pos >= 26214)))
+				{
+
+					characterData.meleeWeaponIndex = 0;
+				}
+				else if (
+					(pos < 26214) &&
+					(pos >= 13107))
+				{
+					if (meleeWeaponCount > 1)
+					{
+						characterData.meleeWeaponIndex = 1;
+					}
+				}
+				else if (
+					(pos < 13107) &&
+					(pos >= 0))
+				{
+					if (meleeWeaponCount > 2)
+					{
+						characterData.meleeWeaponIndex = 2;
+					}
+				}
+				else if (
+					(pos <= -1) &&
+					(pos > -13107))
+				{
+					if (meleeWeaponCount > 3)
+					{
+						characterData.meleeWeaponIndex = 3;
+					}
+				}
+				else if (
+					(pos <= -13107) &&
+					(pos > -26214))
+				{
+					if (meleeWeaponCount > 4)
+					{
+						characterData.meleeWeaponIndex = 4;
+					}
+				}
+			}
+		}
+		
+	}
+
 	if (actorData.buttons[2] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))
 	{
 
@@ -10508,6 +10568,7 @@ void SetAction(byte8 *actorBaseAddr)
 
 	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
 
+
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
 
 	DebugLog("%s %llX %u", FUNC_NAME, actorBaseAddr, actorData.action);
@@ -10762,7 +10823,7 @@ void UpdateLockOns(byte8 *dataAddr)
 		return;
 	}
 
-	// IntroduceMainActorData(mainActorBaseAddr, mainActorData, return);
+	IntroduceMainActorData(mainActorBaseAddr, mainActorData, return);
 
 	/*
 
@@ -10772,28 +10833,28 @@ void UpdateLockOns(byte8 *dataAddr)
 	*/
 
 	// // Artemis Fix
-	// {
-	// 	auto & actorData = *reinterpret_cast<PlayerActorDataDante *>(mainActorBaseAddr);
+	/*{
+	auto & actorData = *reinterpret_cast<PlayerActorDataDante *>(mainActorBaseAddr);
 
-	// 	auto rangedWeapon = actorData.newWeapons[actorData.rangedWeaponIndex];
+	auto rangedWeapon = actorData.newWeapons[actorData.rangedWeaponIndex];
 
-	// 	if
-	// 	(
-	// 		(actorData.character == CHARACTER::DANTE) &&
-	// 		(rangedWeapon == WEAPON::ARTEMIS) &&
-	// 		(actorData.artemisStatus != 0)
-	// 		// (
-	// 		// 	(actorData.buttons[0] & GAMEPAD::X) ||
-	// 		// 	(
-	// 		// 		(actorData.style == STYLE::GUNSLINGER) &&
-	// 		// 		(actorData.buttons[0] & GAMEPAD::B)
-	// 		// 	)
-	// 		// )
-	// 	)
-	// 	{
-	// 		return;
-	// 	}
-	// }
+	 	if
+	 	(
+			(actorData.character == CHARACTER::DANTE) &&
+	 		(rangedWeapon == WEAPON::ARTEMIS) &&
+			(actorData.artemisStatus != 0) &&
+	 (
+	 	(actorData.buttons[0] & GetBinding(BINDING::SHOOT)) ||
+	 	(
+	 		(actorData.style == STYLE::GUNSLINGER) &&
+	 		(actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION))
+	 	)
+	 )
+		)
+		{
+	 		return;
+	 	}
+	 }*/
 
 	for_all(actorIndex, g_playerActorBaseAddrs.count)
 	{

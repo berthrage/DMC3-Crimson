@@ -4310,6 +4310,18 @@ export struct BossHelper
 	const char * track;
 };
 
+export struct WeaponWheelTiming {
+	bool wheelAppear = false;
+	bool wheelRunning = false;
+	int wheelCooldown = 50;
+	int wheelTime = wheelCooldown;
+};
+
+export WeaponWheelTiming meleeWeaponWheelTiming;
+export WeaponWheelTiming rangedWeaponWheelTiming;
+
+
+
 export constexpr BossHelper bossHelpers[] =
 {
 	{ 6  , 2, "afs/sound/Boss_01.adx"    }, // Cerberus

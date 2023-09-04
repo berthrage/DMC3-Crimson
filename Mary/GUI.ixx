@@ -8,6 +8,8 @@ module;
 #include <sstream>
 #include <iostream>
 #include <format>
+#include <thread>
+#include <chrono>
 export module GUI;
 
 import Core;
@@ -1266,6 +1268,39 @@ const char * rangedWeaponSwitchControllerHighlightNames[5] =
 
 const char * rangedWeaponSwitchControllerArrowName = "RangedWeaponSwitchControllerArrow";
 
+void MeleeWeaponWheelTimeTracker() 
+{
+	meleeWeaponWheelTiming.wheelRunning = true;
+	while (meleeWeaponWheelTiming.wheelTime > 0) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		meleeWeaponWheelTiming.wheelTime--;
+	}
+    
+
+	if (meleeWeaponWheelTiming.wheelTime == 0) 
+	{
+		meleeWeaponWheelTiming.wheelAppear = false;
+   		meleeWeaponWheelTiming.wheelRunning = false;
+	}
+}
+
+void RangedWeaponWheelTimeTracker() 
+{
+	rangedWeaponWheelTiming.wheelRunning = true;
+	while (rangedWeaponWheelTiming.wheelTime > 0) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		rangedWeaponWheelTiming.wheelTime--;
+	}
+    
+
+	if (rangedWeaponWheelTiming.wheelTime == 0) 
+	{
+		rangedWeaponWheelTiming.wheelAppear = false;
+   		rangedWeaponWheelTiming.wheelRunning = false;
+	}
+}
+
+
 
 // @Todo: Templates.
 void MeleeWeaponSwitchController()
@@ -1371,11 +1406,54 @@ void MeleeWeaponSwitchController()
 		return;
 	}
 
+	// HIDE WEAPON UI WHEN NOT HOLDING BUTTON, WITH DELAY
+	if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))) {
+		meleeWeaponWheelTiming.wheelAppear = true;
+		meleeWeaponWheelTiming.wheelTime = meleeWeaponWheelTiming.wheelCooldown;
+	}
+
+	if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)) && meleeWeaponWheelTiming.wheelAppear)) {
+		if (!meleeWeaponWheelTiming.wheelRunning) {
+                std::thread meleewheeltracker(MeleeWeaponWheelTimeTracker);
+                meleewheeltracker.detach();
+        }
+	}
+
+	if (characterData.character == CHARACTER::VERGIL)
+	{
+		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
+			meleeWeaponWheelTiming.wheelAppear = true;
+			meleeWeaponWheelTiming.wheelTime = meleeWeaponWheelTiming.wheelCooldown;
+		}
+
+		if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)) && meleeWeaponWheelTiming.wheelAppear)) {
+			if (!meleeWeaponWheelTiming.wheelRunning) {
+                std::thread meleewheeltracker(MeleeWeaponWheelTimeTracker);
+                meleewheeltracker.detach();
+        	}
+		}
+	}
 	
+	
+	if (!meleeWeaponWheelTiming.wheelAppear) {
+		return;
+	}
+
+
 	// HIDE WEAPON UI WHEN NOT HOLDING BUTTON
 	/*if (!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)))
 	{
-		return;
+		if (!wheelRunning) {
+                std::thread wheeltracker(WeaponWheelTimeTracker);
+                wheeltracker.detach();
+        }
+		
+		if(!wheelInCooldown) {
+			wheelInCooldown = true;
+			return;
+		}
+		
+		
 	}*/
 
 	auto count = characterData.meleeWeaponCount;
@@ -1611,6 +1689,24 @@ void RangedWeaponSwitchController()
 		(characterData.character != CHARACTER::DANTE)
 	)
 	{
+		return;
+	}
+
+	//HIDE WEAPON SWITCH UI WHEN NOT HOLDING BUTTON, WITH DELAY
+	if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
+		rangedWeaponWheelTiming.wheelAppear = true;
+		rangedWeaponWheelTiming.wheelTime = rangedWeaponWheelTiming.wheelCooldown;
+	}
+
+	if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)) && rangedWeaponWheelTiming.wheelAppear)) {
+		if (!rangedWeaponWheelTiming.wheelRunning) {
+                std::thread rangedwheeltracker(RangedWeaponWheelTimeTracker);
+                rangedwheeltracker.detach();
+        }
+	}
+	
+	
+	if (!rangedWeaponWheelTiming.wheelAppear) {
 		return;
 	}
 
@@ -9119,6 +9215,10 @@ void MainOverlayWindow()
 				ImGui::Text("Z        %g", actorData.position.z);
 				ImGui::Text("Rotation %u", actorData.rotation  );
 			}();
+
+			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
+			ImGui::Text("Wheel Running %u", meleeWeaponWheelTiming.wheelRunning);
+			ImGui::Text("Wheel Time %u", meleeWeaponWheelTiming.wheelTime);
 
 			ImGui::Text("");
 		}

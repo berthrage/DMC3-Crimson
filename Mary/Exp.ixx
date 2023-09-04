@@ -533,7 +533,7 @@ export void UpdatePlayerActorExp(byte8 * actorBaseAddr)
 
 
 	// Reset
-	{
+	/*{
 		actorData.styleLevel     = 0;
 		actorData.styleExpPoints = 0;
 
@@ -565,8 +565,7 @@ export void UpdatePlayerActorExp(byte8 * actorBaseAddr)
 			actorData.newWeaponLevels,
 			0,
 			sizeof(actorData.newWeaponLevels)
-		);
-	}
+		);*/
 
 
 
