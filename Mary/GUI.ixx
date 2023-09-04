@@ -9220,6 +9220,9 @@ void MainOverlayWindow()
 			ImGui::Text("Wheel Running %u", meleeWeaponWheelTiming.wheelRunning);
 			ImGui::Text("Wheel Time %u", meleeWeaponWheelTiming.wheelTime);
 
+			IntroduceEnemyVectorData(return);
+			ImGui::Text("Enemy Count %u", enemyVectorData.count);
+
 			ImGui::Text("");
 		}
 

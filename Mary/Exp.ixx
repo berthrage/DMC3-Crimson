@@ -578,6 +578,7 @@ export void UpdatePlayerActorExp(byte8 * actorBaseAddr)
 		)
 		{
 			actorData.styleLevel = 2;
+			actorData.styleExpPoints = 100000;
 		}
 
 		SetMemory
