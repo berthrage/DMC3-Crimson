@@ -10799,12 +10799,12 @@ void SetAction(byte8 *actorBaseAddr)
 			lockOn &&
 			(tiltDirection == TILT_DIRECTION::LEFT))
 		{
-			actorData.action = REBELLION_DRIVE_2;
+			//actorData.action = REBELLION_DRIVE_2;
 			/*ActivateDevil(actorData);
 			actorData.devil = 1;
 			UpdateForm(actorData);*/
-			std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
-            devilvfxtrigger.detach();
+			//std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
+            //devilvfxtrigger.detach();
 			
 			
 			
