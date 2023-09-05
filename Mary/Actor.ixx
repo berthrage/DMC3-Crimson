@@ -3960,11 +3960,13 @@ void ResetPermissionsController(byte8 *actorBaseAddr)
 	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
 
+	//Royalguard Cancels Everything
 	if (
 			(actorData.style == STYLE::ROYALGUARD) &&
 			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
 	{
-		if(actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT) // Exceptions, these cancels are way too OP.
+		if(actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT &&
+		actorData.action != EBONY_IVORY_AIR_NORMAL_SHOT && actorData.action != SHOTGUN_AIR_NORMAL_SHOT) // Exceptions, these cancels are way too OP or buggy in the cases of E&I and Shotgun.
 			actorData.permissions = 0x1C1B;
 	}
 
