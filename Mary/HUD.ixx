@@ -24,11 +24,13 @@ struct HUDIconHelper
 
 HUDIconHelper styleIcons[STYLE::MAX] = {};
 HUDIconHelper darkSlayerIcon = {};
+HUDIconHelper quicksilverVergilIcon = {};
+HUDIconHelper doppelgangerVergilIcon = {};
 HUDIconHelper weaponIcons[WEAPON::MAX] = {};
 
 void InitIcons()
 {
-	// Style Icons
+	// Style Icons DAnte
 	{
 		constexpr uint8 fileIndices[STYLE::MAX] =
 		{
@@ -49,6 +51,10 @@ void InitIcons()
 
 		darkSlayerIcon.modelFile   = File_staticFiles[id100V][(18 + 1)];
 		darkSlayerIcon.textureFile = File_staticFiles[id100V][(18 + 0)];
+		quicksilverVergilIcon.modelFile = File_staticFiles[id100V][(26 + 1)];
+		quicksilverVergilIcon.textureFile = File_staticFiles[id100V][(26 + 0)];
+		doppelgangerVergilIcon.modelFile  = File_staticFiles[id100V][(28 + 1)];
+		doppelgangerVergilIcon.textureFile = File_staticFiles[id100V][(28 + 0)];
 	}
 
 	// Weapon Icons Dante
@@ -116,25 +122,35 @@ export void HUD_UpdateStyleIcon
 		LogFunction();
 	}
 
-	auto & modelData = *reinterpret_cast<ModelData *>(hudTop + hudTopOffs[HUD_TOP::STYLE_ICON]);
-
-	ResetModel(modelData);
+	
 
 	auto modelFile   = styleIcons[style].modelFile;
 	auto textureFile = styleIcons[style].textureFile;
 
-	if
-	(
-		(
-			(character == CHARACTER::BOB   ) ||
-			(character == CHARACTER::VERGIL)
-		) &&
-		(style == STYLE::DARK_SLAYER)
-	)
-	{
-		modelFile   = darkSlayerIcon.modelFile;
-		textureFile = darkSlayerIcon.textureFile;
+	if (
+		((character == CHARACTER::BOB   ) ||
+		(character == CHARACTER::VERGIL))) {
+			if (style == STYLE::DARK_SLAYER) {
+				modelFile   = darkSlayerIcon.modelFile;
+				textureFile = darkSlayerIcon.textureFile;
+			}
+			else if (style == STYLE::QUICKSILVER) {
+				modelFile   = quicksilverVergilIcon.modelFile;
+				textureFile = quicksilverVergilIcon.textureFile;
+			}
+			else if (style == STYLE::DOPPELGANGER) {
+				modelFile   = doppelgangerVergilIcon.modelFile;
+				textureFile = doppelgangerVergilIcon.textureFile;
+			}
+			
+	} else {
+		styleIcons[style].modelFile;
+		styleIcons[style].textureFile;
 	}
+
+	auto & modelData = *reinterpret_cast<ModelData *>(hudTop + hudTopOffs[HUD_TOP::STYLE_ICON]);
+
+	ResetModel(modelData);
 
 	func_89960(modelData, modelFile, textureFile);
 	func_89E30(modelData, 1);

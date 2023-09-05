@@ -689,7 +689,18 @@ export struct Config
 	float weaponWheelHorizontalRanged = 80;
 	float weaponWheelWidthSeparation;	
 
-	uint8 trickStyle[4] = { 59, 42, 2, 57 };
+	struct
+	{
+			
+		uint8 sword[4] = { 59, 2, 2, 255 };
+		uint8 gun[4] = { 2, 27, 59, 255 };
+		uint8 trick[4] = { 59, 42, 2, 255 };
+		uint8 royal[4] = { 5, 59, 2, 255 };
+		uint8 quick[4] = { 59, 2, 54, 255 };
+		uint8 dopp[4] = { 56, 56, 56, 255 };
+	}
+	StyleColor;
+	//doppOrange = { 59, 25, 2, 255 }
 	
 };
 

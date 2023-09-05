@@ -187,10 +187,10 @@ namespaceEnd();
 export namespaceStart(BINDING);
 enum
 {
-	ITEM_SCREEN,
-	EQUIP_SCREEN,
-	MAP_SCREEN,
-	FILE_SCREEN,
+	ITEM_SCREEN, //UP
+	EQUIP_SCREEN, //DOWN
+	MAP_SCREEN, //RIGHT
+	FILE_SCREEN, //LEFT
 	MELEE_ATTACK,
 	JUMP,
 	STYLE_ACTION,
@@ -4323,6 +4323,10 @@ export WeaponWheelTiming rangedWeaponWheelTiming;
 export bool ebonyIvoryCancel = true;
 
 export bool triggerVFX = false;
+
+export bool styleChanged[6] = { false, false,
+								false, false, 
+								false, false };
 
 export bool InCombat;
 

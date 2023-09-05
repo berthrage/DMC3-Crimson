@@ -9222,10 +9222,21 @@ void MainOverlayWindow()
 
 			IntroduceEnemyVectorData(return);
 			IntroduceMainActorData(actorData, return);
+			auto &characterData = GetCharacterData(actorData);
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
 			ImGui::Text("State %u", actorData.state);
 			ImGui::Text("IsDevil %u", actorData.activeDevil);
 			ImGui::Text("IsDevil2 %u", actorData.devil);
+			ImGui::Text("Style %u", actorData.style);
+			ImGui::Text("Character %u", actorData.character);
+			/*
+			ImGui::Text("Style Indice 0 %u", characterData.styleButtons[0]);
+			ImGui::Text("Style Indice 1 %u", characterData.styleButtons[1]);
+			ImGui::Text("Style Indice 2 %u", characterData.styleButtons[2]);
+			ImGui::Text("Style Indice 3 %u", characterData.styleButtons[3]);
+			ImGui::Text("Style Indice 4 %u", characterData.styleButtons[4]);
+			ImGui::Text("Style Indice 5 %u", characterData.styleButtons[5]);*/
+	
 			
 
 			ImGui::Text("");

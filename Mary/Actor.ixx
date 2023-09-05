@@ -1928,11 +1928,24 @@ bool IsMeleeWeaponReady(
 void DevilVFXTrigger(byte8 *actorBaseAddr) {
 
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
-	activeConfig.Color.Aura.dante[0] = activeConfig.trickStyle;
+	//activeConfig.Color.Aura.dante[0] = activeConfig.trickStyle;
 	func_1F94D0(actorData, DEVIL_FLUX::START);
 	std::this_thread::sleep_for(std::chrono::milliseconds(8));
-	activeConfig.Color.Aura.dante[0] = { 128,   0,   0, 200 };
+	//activeConfig.Color.Aura.dante[0] = { 128,   0,   0, 200 };
 	func_1F94D0(actorData, 4);
+}
+
+void DevilVFXTriggerStyle(byte8 *actorBaseAddr, int style) {
+
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+	//activeConfig.Color.Aura.dante[0] = activeConfig.trickStyle;
+	styleChanged[style] = true;
+	std::this_thread::sleep_for(std::chrono::milliseconds(2));
+	func_1F94D0(actorData, DEVIL_FLUX::START);
+	std::this_thread::sleep_for(std::chrono::milliseconds(20));
+	//activeConfig.Color.Aura.dante[0] = { 128,   0,   0, 200 };
+	func_1F94D0(actorData, 4);
+	styleChanged[style] = false;
 }
 
 bool IsMeleeWeaponReady(WeaponData &weaponData)
@@ -4101,6 +4114,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 	bool update = false;
 
 	{
+		//Doppelganger StyleSwitch
 		bool condition = (actorData.buttons[0] & playerData.button);
 
 		if (actorData.newEntityIndex == ENTITY::MAIN)
@@ -4119,7 +4133,37 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 		}
 	}
 
-	old_for_all(uint8, styleButtonIndex, STYLE_COUNT)
+	if (actorData.character == CHARACTER::DANTE) {
+		if(actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN)) {
+			
+			actorData.style = 2; // TRICKSTER
+			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 2);
+            devilvfxtriggerstyle.detach();
+		}
+
+		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN)) {
+			actorData.style = 0; // SWORDMASTER
+			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 0);
+            devilvfxtriggerstyle.detach();
+		}
+
+		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN)) {
+			actorData.style = 1; // GUNSLINGER
+			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 1);
+            devilvfxtriggerstyle.detach();
+		}
+
+		if(actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN)) {
+			actorData.style = 3; // ROYALGUARD
+			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 3);
+            devilvfxtriggerstyle.detach();
+		}
+		update = true;
+	}
+
+	//actorData.style = 0;
+
+	/*old_for_all(uint8, styleButtonIndex, STYLE_COUNT)
 	{
 		auto &styleButton = characterData.styleButtons[styleButtonIndex];
 		auto &styleIndex = characterData.styleIndices[styleButtonIndex];
@@ -4147,9 +4191,10 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 				styleIndex = 0;
 			}
 
-			auto style = characterData.styles[styleButtonIndex][styleIndex];
+			//auto style = characterData.styles[styleButtonIndex][styleIndex];
 
-			switch (style)
+			//Doppelganger Style Switching
+			/*switch (style)
 			{
 			case STYLE::QUICKSILVER:
 			{
@@ -4158,7 +4203,8 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 					(actorData.newCharacterIndex != 0) ||
 					(actorData.newEntityIndex != ENTITY::MAIN))
 				{
-					
+					std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
+            		devilvfxtrigger.detach();
 					styleIndex = lastStyleIndex;
 
 					goto LoopContinue;
@@ -4179,9 +4225,9 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 
 				break;
 			}
-			}
+			}*/
 
-			characterData.styleButtonIndex = styleButtonIndex;
+			/*characterData.styleButtonIndex = styleButtonIndex;
 
 			update = true;
 
@@ -4189,14 +4235,14 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 		}
 
 	LoopContinue:;
-	}
+	}*/
 
 	if (!update)
 	{
 		return;
 	}
 
-	UpdateStyle(actorData);
+	//UpdateStyle(actorData);
 
 	// if (activeConfig.removeBusyFlag)
 	// {
@@ -4218,7 +4264,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 	}
 
 	HUD_UpdateStyleIcon(
-		GetStyle(actorData),
+		actorData.style,
 		characterData.character);
 }
 
@@ -9117,7 +9163,29 @@ void SetDevilAuraColor(
 				meleeWeaponIndex = 0;
 			}
 
-			CopyMemory(dest, activeConfig.Color.Aura.dante[meleeWeaponIndex], 4);
+			if(styleChanged[0]) {
+				CopyMemory(dest, activeConfig.StyleColor.sword, 4);
+			}
+			else if (styleChanged[1]){
+				CopyMemory(dest, activeConfig.StyleColor.gun, 4);
+			}
+			else if (styleChanged[2]){
+				CopyMemory(dest, activeConfig.StyleColor.trick, 4);
+			}
+			else if (styleChanged[3]){
+				CopyMemory(dest, activeConfig.StyleColor.royal, 4);
+			}
+			else if (styleChanged[4]){
+				CopyMemory(dest, activeConfig.StyleColor.quick, 4);
+			}
+			else if (styleChanged[5]){
+				CopyMemory(dest, activeConfig.StyleColor.dopp, 4);
+			}
+			else {
+				CopyMemory(dest, activeConfig.Color.Aura.dante[meleeWeaponIndex], 4);
+			}
+
+			
 		}
 		break;
 	}
