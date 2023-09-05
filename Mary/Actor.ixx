@@ -1932,7 +1932,9 @@ void DevilVFXTrigger(byte8 *actorBaseAddr) {
 	func_1F94D0(actorData, DEVIL_FLUX::START);
 	std::this_thread::sleep_for(std::chrono::milliseconds(8));
 	//activeConfig.Color.Aura.dante[0] = { 128,   0,   0, 200 };
-	func_1F94D0(actorData, 4);
+	if(actorData.devil != 1) {
+		func_1F94D0(actorData, 4);
+	}
 }
 
 void DevilVFXTriggerStyle(byte8 *actorBaseAddr, int style) {
@@ -1946,6 +1948,7 @@ void DevilVFXTriggerStyle(byte8 *actorBaseAddr, int style) {
 	//activeConfig.Color.Aura.dante[0] = { 128,   0,   0, 200 };
 	func_1F94D0(actorData, 4);
 	styleChanged[style] = false;
+	
 }
 
 bool IsMeleeWeaponReady(WeaponData &weaponData)
@@ -4116,20 +4119,13 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 		//Doppelganger StyleSwitch
 		bool condition = (actorData.buttons[2] & playerData.button);
 
-		if (actorData.newEntityIndex == ENTITY::MAIN)
+		
+		if (condition)
 		{
-			if (condition)
-			{
-				return;
-			}
+			return;
 		}
-		else
-		{
-			if (!condition)
-			{
-				return;
-			}
-		}
+		
+		
 	}
 
 	if (actorData.character == CHARACTER::DANTE) {
@@ -4138,25 +4134,68 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 			actorData.style = 2; // TRICKSTER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 2);
             devilvfxtriggerstyle.detach();
+			HUD_UpdateStyleIcon(
+			actorData.style,
+			characterData.character);
 		}
 
 		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN)) {
 			actorData.style = 0; // SWORDMASTER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 0);
             devilvfxtriggerstyle.detach();
+			HUD_UpdateStyleIcon(
+			actorData.style,
+			characterData.character);
 		}
 
 		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN)) {
 			actorData.style = 1; // GUNSLINGER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 1);
             devilvfxtriggerstyle.detach();
+			HUD_UpdateStyleIcon(
+			actorData.style,
+			characterData.character);
 		}
 
 		if(actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN)) {
 			actorData.style = 3; // ROYALGUARD
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 3);
             devilvfxtriggerstyle.detach();
+			HUD_UpdateStyleIcon(
+			actorData.style,
+			characterData.character);
 		}
+		
+	} 
+	else if (actorData.character == CHARACTER::VERGIL) {
+		if(actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN)) {
+			
+			actorData.style = 2; // DARK SLAYER
+			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 2);
+            devilvfxtriggerstyle.detach();
+			HUD_UpdateStyleIcon(
+			actorData.style,
+			characterData.character);
+		}
+
+		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN)) {
+			actorData.style = 4; // QUICKSILVER
+			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 4);
+            devilvfxtriggerstyle.detach();
+			HUD_UpdateStyleIcon(
+			actorData.style,
+			characterData.character);
+		}
+
+		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN)) {
+			actorData.style = 5; // DOPPELGANGER
+			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 5);
+            devilvfxtriggerstyle.detach();
+			HUD_UpdateStyleIcon(
+			actorData.style,
+			characterData.character);
+		}
+
 		
 	}
 
@@ -4250,9 +4289,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 	// }
 
 
-	HUD_UpdateStyleIcon(
-		actorData.style,
-		characterData.character);
+	
 }
 
 // @Todo: Update Nero Angelo fix.
