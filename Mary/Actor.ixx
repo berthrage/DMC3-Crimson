@@ -4111,11 +4111,10 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 	auto &playerData = GetPlayerData(actorData);
 	auto &characterData = GetCharacterData(actorData);
 
-	bool update = false;
-
+	
 	{
 		//Doppelganger StyleSwitch
-		bool condition = (actorData.buttons[0] & playerData.button);
+		bool condition = (actorData.buttons[2] & playerData.button);
 
 		if (actorData.newEntityIndex == ENTITY::MAIN)
 		{
@@ -4158,7 +4157,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 3);
             devilvfxtriggerstyle.detach();
 		}
-		update = true;
+		
 	}
 
 	//actorData.style = 0;
@@ -4237,11 +4236,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 	LoopContinue:;
 	}*/
 
-	if (!update)
-	{
-		return;
-	}
-
+	
 	//UpdateStyle(actorData);
 
 	// if (activeConfig.removeBusyFlag)
@@ -4254,14 +4249,6 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 	// 	}
 	// }
 
-	if (actorData.newPlayerIndex != 0)
-	{
-		return;
-	}
-	else if (actorData.newEntityIndex != ENTITY::MAIN)
-	{
-		return;
-	}
 
 	HUD_UpdateStyleIcon(
 		actorData.style,
