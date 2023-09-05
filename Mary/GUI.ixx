@@ -9221,7 +9221,10 @@ void MainOverlayWindow()
 			ImGui::Text("Wheel Time %u", meleeWeaponWheelTiming.wheelTime);
 
 			IntroduceEnemyVectorData(return);
+			IntroduceMainActorData(actorData, return);
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
+			ImGui::Text("State %u", actorData.state);
+			
 
 			ImGui::Text("");
 		}
@@ -9892,7 +9895,7 @@ void SpeedSection()
 		);
 		ImGui::Text("");
 
-		GUI_InputDefault2Speed
+		/*GUI_InputDefault2Speed
 		(
 			"Human",
 			activeConfig.Speed.human,
@@ -9901,7 +9904,7 @@ void SpeedSection()
 			0.1f,
 			"%g",
 			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+		);*/
 		//ImGui::Text("");
 
 		ImGui::Text("Devil Dante");
