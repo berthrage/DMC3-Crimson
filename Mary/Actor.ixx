@@ -4,12 +4,16 @@
 
 // @Clean
 // @Remove: File_dynamicFiles
+module;
+#include <thread>
+#include <chrono>
 
 export module Actor;
 
 import Core;
 
 #include "../Core/Macros.h"
+
 
 import Windows;
 
@@ -3934,11 +3938,11 @@ void ResetPermissionsController(byte8 *actorBaseAddr)
 			(actorData.style == STYLE::ROYALGUARD) &&
 			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
 	{
-		if(actorData.action != SPIRAL_NORMAL_SHOT || actorData.action != KALINA_ANN_NORMAL_SHOT) // Exceptions, these cancels are way too OP.
+		if(actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT) // Exceptions, these cancels are way too OP.
 			actorData.permissions = 0x1C1B;
 	}
 
-	if (	(actorData.action != TRICKSTER_AIR_TRICK) &&
+	/*if (	(actorData.action != TRICKSTER_AIR_TRICK) &&
 			(actorData.style == STYLE::TRICKSTER) &&
 			lockOn &&
 			(tiltDirection == TILT_DIRECTION::UP) &&
@@ -3946,15 +3950,17 @@ void ResetPermissionsController(byte8 *actorBaseAddr)
 			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
 	{
 			actorData.permissions = 0x1C1B;
-	}
+	}*/
 
-	/*if (	
+	/*if (	(actorData.action != EBONY_IVORY_RAIN_STORM) &&
 			(actorData.style == STYLE::GUNSLINGER) &&
 			((actorData.state & STATE::IN_AIR)) &&
 			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
 	{
 			actorData.permissions = 0x1C1B;
 	}*/
+
+	
 
 	/*if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
 	{
@@ -3964,6 +3970,9 @@ void ResetPermissionsController(byte8 *actorBaseAddr)
 
 void RemoveBusyFlagController(byte8 *actorBaseAddr)
 {
+	using namespace ACTION_DANTE;
+	using namespace ACTION_VERGIL;
+
 	if (
 		!actorBaseAddr ||
 		(actorBaseAddr == g_playerActorBaseAddrs[0]) ||
@@ -3973,6 +3982,8 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 	}
 
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
 
 	auto playerIndex = actorData.newPlayerIndex;
 	if (playerIndex >= PLAYER_COUNT)
@@ -4002,6 +4013,45 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 	{
 		return;
 	}
+
+	if (	
+			(actorData.style == STYLE::SWORDMASTER) &&
+			((actorData.state & STATE::IN_AIR)) &&
+			(actorData.buttons[2] & GetBinding(BINDING::SHOOT)) && 
+			(ebonyIvoryCancel))
+	{
+			
+			actorData.action = EBONY_IVORY_AIR_NORMAL_SHOT;
+			//ebonyIvoryCancel = false;
+	}
+
+	/*if (	
+			(actorData.style == STYLE::SWORDMASTER) &&
+			((actorData.state & STATE::IN_AIR)) &&
+			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
+	{
+			
+			ebonyIvoryCancel = true;
+	}*/
+
+	if (
+			(actorData.style == STYLE::TRICKSTER) &&
+			lockOn &&
+			(tiltDirection == TILT_DIRECTION::UP) &&
+			(!(actorData.state & STATE::IN_AIR)) &&
+			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
+	{
+			actorData.action = TRICKSTER_AIR_TRICK;
+	}
+
+	/*if (	
+			(actorData.style == STYLE::GUNSLINGER) &&
+			((actorData.state & STATE::IN_AIR)) &&
+			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
+	{
+			actorData.action = EBONY_IVORY_RAIN_STORM;
+	}*/
+
 
 	old_for_all(uint8, buttonIndex, 4)
 	{
@@ -4067,6 +4117,8 @@ void StyleSwitchController(T &actorData)
 
 		if (actorData.buttons[2] & styleButton)
 		{
+			std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
+            devilvfxtrigger.detach();
 			if (characterData.styleButtonIndex == styleButtonIndex)
 			{
 				styleIndex++;
@@ -10620,6 +10672,16 @@ uint32 GetYamatoJudgementCutCount(PlayerActorData &actorData)
 	return static_cast<uint32>(activeConfig.Yamato.judgementCutCount[index]);
 }
 
+
+void DevilVFXTrigger(byte8 *actorBaseAddr) {
+
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+
+	func_1F94D0(actorData, DEVIL_FLUX::START);
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	func_1F94D0(actorData, 4);
+}
+
 void SetAction(byte8 *actorBaseAddr)
 {
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
@@ -10661,7 +10723,19 @@ void SetAction(byte8 *actorBaseAddr)
 			lockOn &&
 			(tiltDirection == TILT_DIRECTION::LEFT))
 		{
-			actorData.action = TRICKSTER_AIR_TRICK;
+			actorData.action = REBELLION_DRIVE_2;
+			/*ActivateDevil(actorData);
+			actorData.devil = 1;
+			UpdateForm(actorData);*/
+			std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
+            devilvfxtrigger.detach();
+			
+			
+			
+			/*old_for_all(uint8, index, 5)
+			{
+				UpdateDevilModel(actorData, (DEVIL::REBELLION + index), index);
+			}*/
 		}
 		else if (
 			activeConfig.enableRebellionQuickDrive &&
@@ -10693,6 +10767,7 @@ void SetAction(byte8 *actorBaseAddr)
 			actorData.action = NEVAN_VORTEX;
 		}
 
+		
 		
 		// THIS WORKS BETTER THAN PREVIOUS
 		/*if (	

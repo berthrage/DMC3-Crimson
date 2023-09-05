@@ -4320,6 +4320,13 @@ export struct WeaponWheelTiming {
 export WeaponWheelTiming meleeWeaponWheelTiming;
 export WeaponWheelTiming rangedWeaponWheelTiming;
 
+export bool ebonyIvoryCancel = true;
+
+export bool triggerVFX = false;
+
+export bool InCombat;
+
+
 
 
 export constexpr BossHelper bossHelpers[] =

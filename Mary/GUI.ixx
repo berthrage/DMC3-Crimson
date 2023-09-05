@@ -9224,6 +9224,8 @@ void MainOverlayWindow()
 			IntroduceMainActorData(actorData, return);
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
 			ImGui::Text("State %u", actorData.state);
+			ImGui::Text("IsDevil %u", actorData.activeDevil);
+			ImGui::Text("IsDevil2 %u", actorData.devil);
 			
 
 			ImGui::Text("");
