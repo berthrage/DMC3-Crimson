@@ -1925,6 +1925,16 @@ bool IsMeleeWeaponReady(
 	return false;
 }
 
+void DevilVFXTrigger(byte8 *actorBaseAddr) {
+
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+	activeConfig.Color.Aura.dante[0] = activeConfig.trickStyle;
+	func_1F94D0(actorData, DEVIL_FLUX::START);
+	std::this_thread::sleep_for(std::chrono::milliseconds(8));
+	activeConfig.Color.Aura.dante[0] = { 128,   0,   0, 200 };
+	func_1F94D0(actorData, 4);
+}
+
 bool IsMeleeWeaponReady(WeaponData &weaponData)
 {
 	IntroducePlayerActorData(actorBaseAddr, weaponData.actorBaseAddr, actorData, return true);
@@ -4081,9 +4091,10 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 	}
 }
 
-template <typename T>
-void StyleSwitchController(T &actorData)
+
+void StyleSwitchController(byte8 *actorBaseAddr)
 {
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
 	auto &playerData = GetPlayerData(actorData);
 	auto &characterData = GetCharacterData(actorData);
 
@@ -4117,19 +4128,22 @@ void StyleSwitchController(T &actorData)
 
 		if (actorData.buttons[2] & styleButton)
 		{
-			std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
-            devilvfxtrigger.detach();
 			if (characterData.styleButtonIndex == styleButtonIndex)
 			{
+				
 				styleIndex++;
 
 				if (styleIndex >= 2)
 				{
+					std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
+            		devilvfxtrigger.detach();
 					styleIndex = 0;
 				}
 			}
 			else
 			{
+				std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
+            	devilvfxtrigger.detach();
 				styleIndex = 0;
 			}
 
@@ -4144,6 +4158,7 @@ void StyleSwitchController(T &actorData)
 					(actorData.newCharacterIndex != 0) ||
 					(actorData.newEntityIndex != ENTITY::MAIN))
 				{
+					
 					styleIndex = lastStyleIndex;
 
 					goto LoopContinue;
@@ -4155,6 +4170,8 @@ void StyleSwitchController(T &actorData)
 			{
 				if (actorData.newEntityIndex != ENTITY::MAIN)
 				{
+					std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
+            		devilvfxtrigger.detach();
 					styleIndex = lastStyleIndex;
 
 					goto LoopContinue;
@@ -4852,7 +4869,7 @@ bool WeaponSwitchController(byte8 *actorBaseAddr)
 		return false;
 	}
 
-	StyleSwitchController(actorData);
+	StyleSwitchController(actorBaseAddr);
 
 	if (
 		(actorData.newPlayerIndex == 0) &&
@@ -10672,15 +10689,6 @@ uint32 GetYamatoJudgementCutCount(PlayerActorData &actorData)
 	return static_cast<uint32>(activeConfig.Yamato.judgementCutCount[index]);
 }
 
-
-void DevilVFXTrigger(byte8 *actorBaseAddr) {
-
-	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
-
-	func_1F94D0(actorData, DEVIL_FLUX::START);
-	std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	func_1F94D0(actorData, 4);
-}
 
 void SetAction(byte8 *actorBaseAddr)
 {

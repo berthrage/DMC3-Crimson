@@ -121,6 +121,7 @@ export struct Config
 			{ 112,  64, 160, 200 },
 			{ 128, 128, 128, 200 },
 		};
+		
 		struct
 		{
 			uint8 skyStar[4] = { 255, 0, 0, 200 };
@@ -687,6 +688,9 @@ export struct Config
 	float weaponWheelHorizontalMelee = 495;
 	float weaponWheelHorizontalRanged = 80;
 	float weaponWheelWidthSeparation;	
+
+	uint8 trickStyle[4] = { 59, 42, 2, 57 };
+	
 };
 
 
