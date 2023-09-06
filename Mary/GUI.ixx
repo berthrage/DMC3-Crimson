@@ -9219,6 +9219,8 @@ void MainOverlayWindow()
 			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
 			ImGui::Text("Wheel Running %u", meleeWeaponWheelTiming.wheelRunning);
 			ImGui::Text("Wheel Time %u", meleeWeaponWheelTiming.wheelTime);
+			ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap.buffer);
+			ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap.buffer);
 
 			IntroduceEnemyVectorData(return);
 			IntroduceMainActorData(actorData, return);

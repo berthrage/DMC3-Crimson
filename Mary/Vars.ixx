@@ -4324,10 +4324,16 @@ export bool ebonyIvoryCancel = true;
 
 export bool triggerVFX = false;
 
-export int quickDoubleTapBufferDuration = 50;
-export int quickDoubleTapBuffer = quickDoubleTapBufferDuration;
-export bool quickCanChange = false;
-export bool quickDoubleTapRunning = false;
+export struct DoubleTap {
+	int bufferDuration = 20;
+	int buffer = bufferDuration;
+	bool canChange = false;
+	bool trackerRunning = false;
+};
+
+export DoubleTap quickDoubleTap;
+export DoubleTap doppDoubleTap;
+
 
 export bool styleChanged[6] = { false, false,
 								false, false, 

@@ -4110,22 +4110,38 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 }
 
 void doubleTapQuickTracker() {
-	quickDoubleTapRunning = true;
-	quickCanChange = true;
-	while (quickDoubleTapBuffer > 0) {
+	quickDoubleTap.trackerRunning = true;
+	quickDoubleTap.canChange = true;
+	while (quickDoubleTap.buffer > 0) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		quickDoubleTapBuffer--;
+		quickDoubleTap.buffer--;
 	}
     
 
-	if (quickDoubleTapBuffer == 0) 
+	if (quickDoubleTap.buffer == 0) 
 	{	
-		quickDoubleTapBuffer = quickDoubleTapBufferDuration;
-		quickCanChange = false;
-   		quickDoubleTapRunning = false;
+		quickDoubleTap.buffer = quickDoubleTap.bufferDuration;
+		quickDoubleTap.canChange = false;
+   		quickDoubleTap.trackerRunning = false;
 	}
 }
 
+void doubleTapDoppTracker() {
+	doppDoubleTap.trackerRunning = true;
+	doppDoubleTap.canChange = true;
+	while (doppDoubleTap.buffer > 0) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		doppDoubleTap.buffer--;
+	}
+    
+
+	if (doppDoubleTap.buffer == 0) 
+	{	
+		doppDoubleTap.buffer = doppDoubleTap.bufferDuration;
+		doppDoubleTap.canChange = false;
+   		doppDoubleTap.trackerRunning = false;
+	}
+}
 
 void StyleSwitchController(byte8 *actorBaseAddr)
 {
@@ -4158,7 +4174,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 			characterData.character);
 		}
 
-		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 0 && !quickCanChange) {
+		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 0 && !quickDoubleTap.canChange) {
 			actorData.style = 0; // SWORDMASTER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 0);
             devilvfxtriggerstyle.detach();
@@ -4167,7 +4183,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 			characterData.character);
 		}
 
-		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 1) {
+		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 1 && !doppDoubleTap.canChange) {
 			actorData.style = 1; // GUNSLINGER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 1);
             devilvfxtriggerstyle.detach();
@@ -4185,17 +4201,36 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 			characterData.character);
 		}
 
+		//START QUICKSILVER DOUBLE TAP BUFFER
 		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN)) {
-			if(!quickDoubleTapRunning) {
+			if(!quickDoubleTap.trackerRunning) {
 				std::thread doubletapquicktracker(doubleTapQuickTracker);
 				doubletapquicktracker.detach();
 			}
             
 		}
 
-		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 4 && quickCanChange) {
+		//START DOPPELGANGER DOUBLE TAP BUFFER
+		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN)) {
+			if(!doppDoubleTap.trackerRunning) {
+				std::thread doubletapdopptracker(doubleTapDoppTracker);
+				doubletapdopptracker.detach();
+			}
+            
+		}
+
+		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 4 && quickDoubleTap.canChange) {
 			actorData.style = 4; // QUICKSILVER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 4);
+            devilvfxtriggerstyle.detach();
+			HUD_UpdateStyleIcon(
+			actorData.style,
+			characterData.character);
+		}
+
+		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5 && doppDoubleTap.canChange) {
+			actorData.style = 5; // DOPPELGANGER
+			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 5);
             devilvfxtriggerstyle.detach();
 			HUD_UpdateStyleIcon(
 			actorData.style,
