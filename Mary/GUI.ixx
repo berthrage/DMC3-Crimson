@@ -9221,6 +9221,9 @@ void MainOverlayWindow()
 			ImGui::Text("Wheel Time %u", meleeWeaponWheelTiming.wheelTime);
 			ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap.buffer);
 			ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap.buffer);
+			ImGui::Text("DoppCanChange %u", doppDoubleTap.canChange);
+			ImGui::Text("QuickCanChange %u", quickDoubleTap.canChange);
+			ImGui::Text("styleVFXCount %u", styleVFXCount);
 
 			IntroduceEnemyVectorData(return);
 			IntroduceMainActorData(actorData, return);
@@ -9231,6 +9234,7 @@ void MainOverlayWindow()
 			ImGui::Text("IsDevil2 %u", actorData.devil);
 			ImGui::Text("Style %u", actorData.style);
 			ImGui::Text("Character %u", actorData.character);
+			
 			/*
 			ImGui::Text("Style Indice 0 %u", characterData.styleButtons[0]);
 			ImGui::Text("Style Indice 1 %u", characterData.styleButtons[1]);

@@ -1928,7 +1928,9 @@ bool IsMeleeWeaponReady(
 void DevilVFXTrigger(byte8 *actorBaseAddr) {
 
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+	
 	//activeConfig.Color.Aura.dante[0] = activeConfig.trickStyle;
+	
 	func_1F94D0(actorData, DEVIL_FLUX::START);
 	std::this_thread::sleep_for(std::chrono::milliseconds(8));
 	//activeConfig.Color.Aura.dante[0] = { 128,   0,   0, 200 };
@@ -1942,19 +1944,27 @@ void DevilVFXTriggerStyle(byte8 *actorBaseAddr, int style) {
 
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
 	if (!actorData.cloneActorBaseAddr)
-	{
-		return;
+	{		
+		return;								// RULES OUT DOPPELGANGER OUT OF THE VFX
 	}
-	//activeConfig.Color.Aura.dante[0] = activeConfig.trickStyle;
+
+	
+	styleVFXCount++;
+	
+
+	
 	styleChanged[style] = true;
 	std::this_thread::sleep_for(std::chrono::milliseconds(2));
-	func_1F94D0(actorData, DEVIL_FLUX::START);
-	std::this_thread::sleep_for(std::chrono::milliseconds(30));
-	//activeConfig.Color.Aura.dante[0] = { 128,   0,   0, 200 };
+	if(styleVFXCount <= 1) {
+		func_1F94D0(actorData, DEVIL_FLUX::START);
+	}
+	std::this_thread::sleep_for(std::chrono::milliseconds(18));
+	styleVFXCount--;
 	func_1F94D0(actorData, 4);
+		
+	
 	styleChanged[style] = false;
-	
-	
+
 }
 
 bool IsMeleeWeaponReady(WeaponData &weaponData)
@@ -4226,6 +4236,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 		}
 
 		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 4 && quickDoubleTap.canChange) {
+			
 			actorData.style = 4; // QUICKSILVER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 4);
             devilvfxtriggerstyle.detach();
@@ -4235,6 +4246,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 		}
 
 		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5 && doppDoubleTap.canChange) {
+			
 			actorData.style = 5; // DOPPELGANGER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 5);
             devilvfxtriggerstyle.detach();
@@ -9264,9 +9276,27 @@ void SetDevilAuraColor(
 				meleeWeaponIndex = 0;
 			}
 
-			
-			CopyMemory(dest, activeConfig.Color.Aura.dante[meleeWeaponIndex], 4);
-			
+			if(styleChanged[0]) {
+				CopyMemory(dest, activeConfig.StyleColor.sword, 4);
+			}
+			else if (styleChanged[1]){
+				CopyMemory(dest, activeConfig.StyleColor.gun, 4);
+			} 
+			else if (styleChanged[2]){
+				CopyMemory(dest, activeConfig.StyleColor.trick, 4);
+			}
+			else if (styleChanged[3]){
+				CopyMemory(dest, activeConfig.StyleColor.royal, 4);
+			}
+			else if (styleChanged[4]){
+				CopyMemory(dest, activeConfig.StyleColor.quick, 4);
+			}
+			else if (styleChanged[5]){
+				CopyMemory(dest, activeConfig.StyleColor.dopp, 4);
+			}
+			else {
+				CopyMemory(dest, activeConfig.Color.Aura.dante[meleeWeaponIndex], 4);
+			}
 
 			
 		}

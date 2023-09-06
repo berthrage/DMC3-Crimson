@@ -4324,6 +4324,9 @@ export bool ebonyIvoryCancel = true;
 
 export bool triggerVFX = false;
 
+export int styleVFXCount = 0;
+export int styleVFXCountMax = 1;
+
 export struct DoubleTap {
 	int bufferDuration = 20;
 	int buffer = bufferDuration;
