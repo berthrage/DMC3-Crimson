@@ -4109,6 +4109,23 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 	}
 }
 
+void doubleTapQuickTracker() {
+	quickDoubleTapRunning = true;
+	quickCanChange = true;
+	while (quickDoubleTapBuffer > 0) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		quickDoubleTapBuffer--;
+	}
+    
+
+	if (quickDoubleTapBuffer == 0) 
+	{	
+		quickDoubleTapBuffer = quickDoubleTapBufferDuration;
+		quickCanChange = false;
+   		quickDoubleTapRunning = false;
+	}
+}
+
 
 void StyleSwitchController(byte8 *actorBaseAddr)
 {
@@ -4131,7 +4148,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 	}
 
 	if (actorData.character == CHARACTER::DANTE) {
-		if(actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN)) {
+		if(actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN) && actorData.style != 2) {
 			
 			actorData.style = 2; // TRICKSTER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 2);
@@ -4141,7 +4158,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 			characterData.character);
 		}
 
-		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN)) {
+		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 0 && !quickCanChange) {
 			actorData.style = 0; // SWORDMASTER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 0);
             devilvfxtriggerstyle.detach();
@@ -4150,7 +4167,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 			characterData.character);
 		}
 
-		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN)) {
+		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 1) {
 			actorData.style = 1; // GUNSLINGER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 1);
             devilvfxtriggerstyle.detach();
@@ -4159,9 +4176,26 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 			characterData.character);
 		}
 
-		if(actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN)) {
+		if(actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 3) {
 			actorData.style = 3; // ROYALGUARD
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 3);
+            devilvfxtriggerstyle.detach();
+			HUD_UpdateStyleIcon(
+			actorData.style,
+			characterData.character);
+		}
+
+		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN)) {
+			if(!quickDoubleTapRunning) {
+				std::thread doubletapquicktracker(doubleTapQuickTracker);
+				doubletapquicktracker.detach();
+			}
+            
+		}
+
+		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 4 && quickCanChange) {
+			actorData.style = 4; // QUICKSILVER
+			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 4);
             devilvfxtriggerstyle.detach();
 			HUD_UpdateStyleIcon(
 			actorData.style,
@@ -4170,7 +4204,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 		
 	} 
 	else if (actorData.character == CHARACTER::VERGIL) {
-		if(actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN)) {
+		if(actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN) && actorData.style != 2) {
 			
 			actorData.style = 2; // DARK SLAYER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 2);
@@ -4180,7 +4214,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 			characterData.character);
 		}
 
-		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN)) {
+		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 4) {
 			actorData.style = 4; // QUICKSILVER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 4);
             devilvfxtriggerstyle.detach();
@@ -4189,7 +4223,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 			characterData.character);
 		}
 
-		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN)) {
+		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5) {
 			actorData.style = 5; // DOPPELGANGER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 5);
             devilvfxtriggerstyle.detach();

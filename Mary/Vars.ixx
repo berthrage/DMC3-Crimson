@@ -4324,6 +4324,11 @@ export bool ebonyIvoryCancel = true;
 
 export bool triggerVFX = false;
 
+export int quickDoubleTapBufferDuration = 50;
+export int quickDoubleTapBuffer = quickDoubleTapBufferDuration;
+export bool quickCanChange = false;
+export bool quickDoubleTapRunning = false;
+
 export bool styleChanged[6] = { false, false,
 								false, false, 
 								false, false };
