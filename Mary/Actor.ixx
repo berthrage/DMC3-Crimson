@@ -4125,7 +4125,13 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 	}
 }
 
-void doubleTapQuickTracker() {
+void doubleTapQuickTracker(byte8 *actorBaseAddr) {
+
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+	if (!actorData.cloneActorBaseAddr)
+	{		
+		return;								// RULES OUT DOPPELGANGER OUT 
+	}
 	quickDoubleTap.trackerRunning = true;
 	quickDoubleTap.canChange = true;
 	while (quickDoubleTap.buffer > 0) {
@@ -4142,7 +4148,13 @@ void doubleTapQuickTracker() {
 	}
 }
 
-void doubleTapDoppTracker() {
+void doubleTapDoppTracker(byte8 *actorBaseAddr) {
+
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+	if (!actorData.cloneActorBaseAddr)
+	{		
+		return;								// RULES OUT DOPPELGANGER OUT 
+	}
 	doppDoubleTap.trackerRunning = true;
 	doppDoubleTap.canChange = true;
 	while (doppDoubleTap.buffer > 0) {
@@ -4220,7 +4232,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 		//START QUICKSILVER DOUBLE TAP BUFFER
 		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN)) {
 			if(!quickDoubleTap.trackerRunning) {
-				std::thread doubletapquicktracker(doubleTapQuickTracker);
+				std::thread doubletapquicktracker(doubleTapQuickTracker, actorBaseAddr);
 				doubletapquicktracker.detach();
 			}
             
@@ -4229,7 +4241,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 		//START DOPPELGANGER DOUBLE TAP BUFFER
 		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN)) {
 			if(!doppDoubleTap.trackerRunning) {
-				std::thread doubletapdopptracker(doubleTapDoppTracker);
+				std::thread doubletapdopptracker(doubleTapDoppTracker, actorBaseAddr);
 				doubletapdopptracker.detach();
 			}
             
