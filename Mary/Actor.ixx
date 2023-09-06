@@ -1938,16 +1938,22 @@ void DevilVFXTrigger(byte8 *actorBaseAddr) {
 }
 
 void DevilVFXTriggerStyle(byte8 *actorBaseAddr, int style) {
+	
 
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+	if (!actorData.cloneActorBaseAddr)
+	{
+		return;
+	}
 	//activeConfig.Color.Aura.dante[0] = activeConfig.trickStyle;
 	styleChanged[style] = true;
 	std::this_thread::sleep_for(std::chrono::milliseconds(2));
 	func_1F94D0(actorData, DEVIL_FLUX::START);
-	std::this_thread::sleep_for(std::chrono::milliseconds(20));
+	std::this_thread::sleep_for(std::chrono::milliseconds(30));
 	//activeConfig.Color.Aura.dante[0] = { 128,   0,   0, 200 };
 	func_1F94D0(actorData, 4);
 	styleChanged[style] = false;
+	
 	
 }
 
@@ -4174,7 +4180,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 			characterData.character);
 		}
 
-		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 0 && !quickDoubleTap.canChange) {
+		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 0) {
 			actorData.style = 0; // SWORDMASTER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 0);
             devilvfxtriggerstyle.detach();
@@ -4183,7 +4189,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 			characterData.character);
 		}
 
-		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 1 && !doppDoubleTap.canChange) {
+		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 1) {
 			actorData.style = 1; // GUNSLINGER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 1);
             devilvfxtriggerstyle.detach();
@@ -9258,27 +9264,9 @@ void SetDevilAuraColor(
 				meleeWeaponIndex = 0;
 			}
 
-			if(styleChanged[0]) {
-				CopyMemory(dest, activeConfig.StyleColor.sword, 4);
-			}
-			else if (styleChanged[1]){
-				CopyMemory(dest, activeConfig.StyleColor.gun, 4);
-			}
-			else if (styleChanged[2]){
-				CopyMemory(dest, activeConfig.StyleColor.trick, 4);
-			}
-			else if (styleChanged[3]){
-				CopyMemory(dest, activeConfig.StyleColor.royal, 4);
-			}
-			else if (styleChanged[4]){
-				CopyMemory(dest, activeConfig.StyleColor.quick, 4);
-			}
-			else if (styleChanged[5]){
-				CopyMemory(dest, activeConfig.StyleColor.dopp, 4);
-			}
-			else {
-				CopyMemory(dest, activeConfig.Color.Aura.dante[meleeWeaponIndex], 4);
-			}
+			
+			CopyMemory(dest, activeConfig.Color.Aura.dante[meleeWeaponIndex], 4);
+			
 
 			
 		}
