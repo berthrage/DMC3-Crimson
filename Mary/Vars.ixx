@@ -4337,12 +4337,19 @@ export struct DoubleTap {
 export DoubleTap quickDoubleTap;
 export DoubleTap doppDoubleTap;
 
+export struct TrickUpCancel {
+	int cooldownDuration = 300;
+	int cooldown = cooldownDuration;
+	bool canTrickUp = true;
+	bool trackerRunning = false;
+} trickUpCancel;
+
 
 export bool styleChanged[6] = { false, false,
 								false, false, 
 								false, false };
 
-export bool InCombat;
+export bool inCombat = false;
 
 
 

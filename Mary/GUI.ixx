@@ -9221,8 +9221,8 @@ void MainOverlayWindow()
 			ImGui::Text("Wheel Time %u", meleeWeaponWheelTiming.wheelTime);
 			ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap.buffer);
 			ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap.buffer);
-			ImGui::Text("DoppCanChange %u", doppDoubleTap.canChange);
-			ImGui::Text("QuickCanChange %u", quickDoubleTap.canChange);
+			ImGui::Text("trickUpCanTrickUp %u", trickUpCancel.canTrickUp);
+			ImGui::Text("trickUpCooldown %u", trickUpCancel.cooldown);
 			ImGui::Text("styleVFXCount %u", styleVFXCount);
 
 			IntroduceEnemyVectorData(return);

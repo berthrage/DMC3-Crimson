@@ -4046,6 +4046,26 @@ void ResetPermissionsController(byte8 *actorBaseAddr)
 	}*/
 }
 
+void TrickUpCancelCooldownTracker() {
+
+
+	trickUpCancel.trackerRunning = true;
+	trickUpCancel.canTrickUp = false;
+	trickUpCancel.cooldown = trickUpCancel.cooldownDuration;
+	while (trickUpCancel.cooldown > 0) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		trickUpCancel.cooldown--;
+	}
+    
+
+	if (trickUpCancel.cooldown == 0) 
+	{
+		
+		trickUpCancel.canTrickUp = true; 
+   		trickUpCancel.trackerRunning = false;
+	}
+}
+
 void RemoveBusyFlagController(byte8 *actorBaseAddr)
 {
 	using namespace ACTION_DANTE;
@@ -4141,6 +4161,10 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 			actorData.action = EBONY_IVORY_RAIN_STORM;
 	}*/
 
+	/*if(actorData.state & STATE::IN_AIR) {
+		trickUpCancel.cooldown = 0;
+	}*/
+
 
 	old_for_all(uint8, buttonIndex, 4)
 	{
@@ -4167,9 +4191,15 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 
 		if((actorData.character == CHARACTER::DANTE) && 
 			(actorData.style == STYLE::TRICKSTER) && 
-			!(actorData.state & STATE::IN_AIR)) {
-			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))
+			!(actorData.state & STATE::IN_AIR) &&
+			(trickUpCancel.canTrickUp)) {
+			if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
 			{
+				if(!trickUpCancel.trackerRunning && actorData.style == STYLE::TRICKSTER) {
+					std::thread trickupcancelcooldowntracker(TrickUpCancelCooldownTracker);
+                	trickupcancelcooldowntracker.detach();
+				}
+
 				if (execute)
 				{
 					execute = false;
