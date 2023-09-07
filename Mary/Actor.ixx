@@ -4189,9 +4189,9 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 			}
 		}
 
+		//Dante's Trickster Actions Cancels Everything (w/ cooldown)
 		if((actorData.character == CHARACTER::DANTE) && 
 			(actorData.style == STYLE::TRICKSTER) && 
-			!(actorData.state & STATE::IN_AIR) &&
 			(trickUpCancel.canTrickUp)) {
 			if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
 			{
