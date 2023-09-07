@@ -4006,6 +4006,20 @@ void ResetPermissionsController(byte8 *actorBaseAddr)
 			actorData.permissions = 0x1C1B;
 	}
 
+	/*if(actorData.action == 60) 
+	{
+		actorData.permissions = 0x1C1B;
+	}
+
+	if((actorData.character == CHARACTER::VERGIL) &&
+		(actorData.style) == STYLE::DARK_SLAYER &&
+		((actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))) 
+	{
+		actorData.action = 60;
+	}*/
+
+
+
 	/*if (	(actorData.action != TRICKSTER_AIR_TRICK) &&
 			(actorData.style == STYLE::TRICKSTER) &&
 			lockOn &&
@@ -4089,6 +4103,17 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 			//ebonyIvoryCancel = false;
 	}
 
+	/*if((actorData.character == CHARACTER::VERGIL) &&
+		(actorData.style) == STYLE::DARK_SLAYER &&
+		((actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))) 
+	{
+		actorData.action = 60;
+	}*/
+
+
+	
+
+
 	/*if (	
 			(actorData.style == STYLE::SWORDMASTER) &&
 			((actorData.state & STATE::IN_AIR)) &&
@@ -4098,7 +4123,7 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 			ebonyIvoryCancel = true;
 	}*/
 
-	if (
+	/*if (
 			(actorData.style == STYLE::TRICKSTER) &&
 			lockOn &&
 			(tiltDirection == TILT_DIRECTION::UP) &&
@@ -4106,7 +4131,7 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
 	{
 			actorData.action = TRICKSTER_AIR_TRICK;
-	}
+	}*/
 
 	/*if (	
 			(actorData.style == STYLE::GUNSLINGER) &&
@@ -4122,6 +4147,42 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 		auto &execute = executes[playerIndex][characterIndex][entityIndex][buttonIndex];
 
 		auto &button = playerData.removeBusyFlagButtons[buttonIndex];
+
+		//Darkslayer Trick Cancels Everything
+		if(actorData.character == CHARACTER::VERGIL) {
+			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))
+			{
+				if (execute)
+				{
+					execute = false;
+
+					actorData.state &= ~STATE::BUSY;
+				}
+			}
+			else
+			{
+				execute = true;
+			}
+		}
+
+		if((actorData.character == CHARACTER::DANTE) && 
+			(actorData.style == STYLE::TRICKSTER) && 
+			!(actorData.state & STATE::IN_AIR)) {
+			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))
+			{
+				if (execute)
+				{
+					execute = false;
+
+					actorData.state &= ~STATE::BUSY;
+
+				}
+			}
+			else
+			{
+				execute = true;
+			}
+		}
 
 		if (gamepad.buttons[0] & button)
 		{
@@ -4142,6 +4203,7 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 		{
 			execute = true;
 		}
+		
 	}
 }
 

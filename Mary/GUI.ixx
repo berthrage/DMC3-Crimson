@@ -9233,7 +9233,7 @@ void MainOverlayWindow()
 			ImGui::Text("IsDevil %u", actorData.activeDevil);
 			ImGui::Text("IsDevil2 %u", actorData.devil);
 			ImGui::Text("Style %u", actorData.style);
-			ImGui::Text("Character %u", actorData.character);
+			ImGui::Text("Character %u", actorData.action);
 			
 			/*
 			ImGui::Text("Style Indice 0 %u", characterData.styleButtons[0]);
