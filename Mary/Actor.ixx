@@ -3189,7 +3189,7 @@ void UpdateModelPartitions(PlayerActorData &actorData)
 	}
 }
 
-void UpdateActorDante(PlayerActorData &actorData)
+void UpdateActorDante(PlayerActorDataDante &actorData)
 {
 	LogFunction(actorData.operator byte8 *());
 
@@ -3358,6 +3358,16 @@ void UpdateForm(T &actorData)
 	actorData.queuedModelIndex = 0;
 	actorData.activeModelIndexMirror = 0;
 	actorData.airRaid = 0;
+
+	if(actorData.newIsClone) {
+		
+		auto weapon = (WEAPON::REBELLION);
+		actorData.queuedModelIndex = (1 + weapon);
+		actorData.activeModelIndexMirror = (1 + weapon);
+		actorData.activeDevil = static_cast<uint32>(weaponDevilIds[weapon]);
+		actorData.airRaid = 1;
+		
+	}
 
 	if (actorData.devil)
 	{
@@ -4257,7 +4267,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
             
 		}
 
-		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 4 && quickDoubleTap.canChange) {
+		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 4 && quickDoubleTap.canChange && !actorData.newIsClone) {
 			
 			actorData.style = 4; // QUICKSILVER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 4);
@@ -4267,7 +4277,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 			characterData.character);
 		}
 
-		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5 && doppDoubleTap.canChange) {
+		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5 && doppDoubleTap.canChange && !actorData.newIsClone) {
 			
 			actorData.style = 5; // DOPPELGANGER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 5);
@@ -4289,7 +4299,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 			characterData.character);
 		}
 
-		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 4) {
+		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 4 && !actorData.newIsClone) {
 			actorData.style = 4; // QUICKSILVER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 4);
             devilvfxtriggerstyle.detach();
@@ -4298,7 +4308,7 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 			characterData.character);
 		}
 
-		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5) {
+		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5 && !actorData.newIsClone) {
 			actorData.style = 5; // DOPPELGANGER
 			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 5);
             devilvfxtriggerstyle.detach();
@@ -10345,7 +10355,9 @@ void ActivateDevil(PlayerActorData &actorData)
 	}
 	}
 
-	func_1F94D0(actorData, DEVIL_FLUX::START);
+	if(!actorData.newIsClone) {
+		func_1F94D0(actorData, DEVIL_FLUX::START);
+	}
 }
 
 void DeactivateDevil(PlayerActorData &actorData)
@@ -10513,6 +10525,7 @@ void DeactivateQuicksilver(byte8 *actorBaseAddr)
 		false);
 }
 
+
 void ActivateDoppelganger(PlayerActorData &actorData)
 {
 	LogFunction(actorData.operator byte8 *());
@@ -10533,8 +10546,9 @@ void ActivateDoppelganger(PlayerActorData &actorData)
 	*/
 
 	actorData.cloneRate = 0;
-	ActivateDevil(cloneActorData);
-	cloneActorData.devil = 1;
+	
+	//ActivateDevil(cloneActorData);
+	//cloneActorData.devil = 1;
 	
 
 	func_1EAE60(actorData, 0);
@@ -10545,8 +10559,8 @@ void ActivateDoppelganger(PlayerActorData &actorData)
 	*/
 
 	ToggleActor(cloneActorData, true);
-	UpdateForm(cloneActorData);
-	func_1F94D0(cloneActorData, 4);
+	ActivateDevil(cloneActorData);
+	
 }
 
 void DeactivateDoppelganger(PlayerActorData &actorData)
@@ -10905,13 +10919,12 @@ void SetAction(byte8 *actorBaseAddr)
 	uint8 index = (actorData.devil) ? 1 : 0;
 
 	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
-
+	
 
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
 
 	DebugLog("%s %llX %u", FUNC_NAME, actorBaseAddr, actorData.action);
 
-	
 
 	switch (actorData.character)
 	{
@@ -10941,11 +10954,11 @@ void SetAction(byte8 *actorBaseAddr)
 		{
 			actorData.action = TRICKSTER_AIR_TRICK;
 			//actorData.action = REBELLION_DRIVE_2;
-			ActivateDevil(actorData);
-			actorData.devil = 1;
-			func_1F97F0(actorData, true);
-			UpdateDevilModel(actorData, (DEVIL::REBELLION + 0), 0);
-			UpdateForm(actorData);
+			//ActivateDevil(actorData);
+			//actorData.devil = 1;
+			
+			//func_1F94D0(actorData, DEVIL_FLUX::START);
+			
 			//std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
             //devilvfxtrigger.detach();
 			
@@ -10964,6 +10977,7 @@ void SetAction(byte8 *actorBaseAddr)
 			(actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)))
 		{
 			actorData.action = REBELLION_DRIVE_1;
+			
 
 			actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = demo_pl000_00_3;
 
@@ -12374,6 +12388,7 @@ export void Toggle(bool enable)
 			func = old_CreateFunction(ActivateDoppelganger, jumpAddr, true, true, size, sizeof(sect1));
 			CopyMemory(func.sect0, addr, size, MemoryFlags_VirtualProtectSource);
 			CopyMemory(func.sect1, sect1, sizeof(sect1));
+			
 		}
 
 		if (enable)
