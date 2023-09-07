@@ -1027,6 +1027,16 @@ uint8 GetNextStyleAction(
 		}
 		}
 	}
+	else if (actorData.style == STYLE::TRICKSTER) {
+		if (lockOn)
+		{
+			if (tiltDirection == TILT_DIRECTION::UP)
+			{
+				action = TRICKSTER_AIR_TRICK;
+			}
+		}
+	}
+	
 
 	return action;
 }
@@ -3179,7 +3189,7 @@ void UpdateModelPartitions(PlayerActorData &actorData)
 	}
 }
 
-void UpdateActorDante(PlayerActorDataDante &actorData)
+void UpdateActorDante(PlayerActorData &actorData)
 {
 	LogFunction(actorData.operator byte8 *());
 
@@ -10523,6 +10533,9 @@ void ActivateDoppelganger(PlayerActorData &actorData)
 	*/
 
 	actorData.cloneRate = 0;
+	ActivateDevil(cloneActorData);
+	cloneActorData.devil = 1;
+	
 
 	func_1EAE60(actorData, 0);
 	/*
@@ -10532,6 +10545,8 @@ void ActivateDoppelganger(PlayerActorData &actorData)
 	*/
 
 	ToggleActor(cloneActorData, true);
+	UpdateForm(cloneActorData);
+	func_1F94D0(cloneActorData, 4);
 }
 
 void DeactivateDoppelganger(PlayerActorData &actorData)
@@ -10924,10 +10939,13 @@ void SetAction(byte8 *actorBaseAddr)
 			lockOn &&
 			(tiltDirection == TILT_DIRECTION::LEFT))
 		{
+			actorData.action = TRICKSTER_AIR_TRICK;
 			//actorData.action = REBELLION_DRIVE_2;
-			/*ActivateDevil(actorData);
+			ActivateDevil(actorData);
 			actorData.devil = 1;
-			UpdateForm(actorData);*/
+			func_1F97F0(actorData, true);
+			UpdateDevilModel(actorData, (DEVIL::REBELLION + 0), 0);
+			UpdateForm(actorData);
 			//std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
             //devilvfxtrigger.detach();
 			
@@ -14121,7 +14139,7 @@ export void Toggle(bool enable)
 	ToggleMainActorFixes(enable);
 	ToggleStyleFixes(enable);
 	ToggleIsWeaponReady(enable);
-	ToggleMobility(enable);
+	ToggleMobility(!enable);
 	ToggleColor(enable);
 	ToggleSpeed(enable);
 	ToggleFixWeaponShadows(enable);

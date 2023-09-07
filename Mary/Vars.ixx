@@ -3367,6 +3367,7 @@ export struct PlayerActorData : PlayerActorDataBase
 	RecoveryData newRecoveryData[6]; // 0x12B10
 	uint32 newDevilModels[6]; // 0x12DB0
 	_(8);
+	DevilModelMetadataDante devilModelMetadata; // 0xB600
 	BodyPartData newBodyPartData[7][2]; // 0x12DD0
 	ModelData newSubmodelData[11]; // 0x13D90
 	bool newSubmodelInit[11]; // 0x19010
