@@ -9228,11 +9228,22 @@ void MainOverlayWindow()
 			IntroduceEnemyVectorData(return);
 			IntroduceMainActorData(actorData, return);
 			auto &characterData = GetCharacterData(actorData);
+			auto &cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
+
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
 			ImGui::Text("State %u", actorData.state);
 			ImGui::Text("IsDevil %u", actorData.activeDevil);
 			ImGui::Text("IsDevil2 %u", actorData.devil);
 			ImGui::Text("Style %u", actorData.style);
+			ImGui::Text("StyleRank %u", actorData.styleData.rank);
+			ImGui::Text("StyleRank Meter %g", actorData.styleData.meter);
+			ImGui::Text("StyleRank Quotient %g", actorData.styleData.quotient);
+			if(actorData.cloneActorBaseAddr) {
+				ImGui::Text("StyleRankClone %u", cloneActorData.styleData.rank);
+				ImGui::Text("StyleRankClone Meter %g", cloneActorData.styleData.meter);
+				ImGui::Text("StyleRankClone Quotient %g", cloneActorData.styleData.quotient);
+			}
+			
 			ImGui::Text("Character %u", actorData.action);
 			
 			/*

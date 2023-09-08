@@ -4112,7 +4112,7 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 		return;
 	}
 
-	if (	
+	/*if (	
 			(actorData.style == STYLE::SWORDMASTER) &&
 			((actorData.state & STATE::IN_AIR)) &&
 			(actorData.buttons[2] & GetBinding(BINDING::SHOOT)) && 
@@ -4121,7 +4121,7 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 			
 			actorData.action = EBONY_IVORY_AIR_NORMAL_SHOT;
 			//ebonyIvoryCancel = false;
-	}
+	}*/
 
 	/*if((actorData.character == CHARACTER::VERGIL) &&
 		(actorData.style) == STYLE::DARK_SLAYER &&
@@ -10028,7 +10028,7 @@ void UpdateActorSpeed(byte8 *baseAddr)
 
 				// At this point we know that neither our own nor another Quicksilver is on.
 
-				
+				mainActorData.styleData.meter = 200;
 
 
 				//SPRINT ABILITY
@@ -14246,7 +14246,7 @@ export void Toggle(bool enable)
 	ToggleMainActorFixes(enable);
 	ToggleStyleFixes(enable);
 	ToggleIsWeaponReady(enable);
-	ToggleMobility(!enable);
+	ToggleMobility(enable);
 	ToggleColor(enable);
 	ToggleSpeed(enable);
 	ToggleFixWeaponShadows(enable);
