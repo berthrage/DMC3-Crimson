@@ -336,7 +336,7 @@ void CopyState(
 	byte32 flags = 0)
 {
 	actorData.position = activeActorData.position;
-	actorData.verticalPull = activeActorData.verticalPull;
+	actorData.verticalPull = activeActorData.verticalPull / 4.0f;
 	actorData.verticalPullMultiplier = activeActorData.verticalPullMultiplier;
 	actorData.rotation = activeActorData.rotation;
 	actorData.horizontalPull = activeActorData.horizontalPull;
@@ -1028,13 +1028,29 @@ uint8 GetNextStyleAction(
 		}
 	}
 	else if (actorData.style == STYLE::TRICKSTER) {
-		if (lockOn)
-		{
-			if (tiltDirection == TILT_DIRECTION::UP)
+		if(inAir) {
+
+			action = TRICKSTER_SKY_STAR;
+
+			if (lockOn) 
 			{
-				action = TRICKSTER_AIR_TRICK;
+		
+				if (tiltDirection == TILT_DIRECTION::UP)
+				{
+					action = TRICKSTER_AIR_TRICK;
+				}
 			}
 		}
+		else {
+			if (lockOn)
+			{
+				if (tiltDirection == TILT_DIRECTION::UP)
+				{
+					action = TRICKSTER_AIR_TRICK;
+				}
+			}
+		}
+		
 	}
 	
 
@@ -3996,6 +4012,8 @@ void ResetPermissionsController(byte8 *actorBaseAddr)
 	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
 
+	
+
 	//Royalguard Cancels Everything
 	if (
 			(actorData.style == STYLE::ROYALGUARD) &&
@@ -4003,7 +4021,7 @@ void ResetPermissionsController(byte8 *actorBaseAddr)
 	{
 		if(actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT &&
 		actorData.action != EBONY_IVORY_AIR_NORMAL_SHOT && actorData.action != SHOTGUN_AIR_NORMAL_SHOT) // Exceptions, these cancels are way too OP or buggy in the cases of E&I and Shotgun.
-			actorData.permissions = 0x1C1B;
+			actorData.permissions = 3080; // This is a softer version of Reset Permissions, doesn't reset air moves.
 	}
 
 	/*if(actorData.action == 60) 
@@ -4190,29 +4208,75 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 		}
 
 		//Dante's Trickster Actions Cancels Everything (w/ cooldown)
-		if((actorData.character == CHARACTER::DANTE) && 
-			(actorData.style == STYLE::TRICKSTER) && 
+		if(actorData.character == CHARACTER::DANTE) {
+			if ((actorData.style == STYLE::TRICKSTER) && 
 			(trickUpCancel.canTrickUp)) {
-			if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
-			{
-				if(!trickUpCancel.trackerRunning && actorData.style == STYLE::TRICKSTER) {
-					std::thread trickupcancelcooldowntracker(TrickUpCancelCooldownTracker);
-                	trickupcancelcooldowntracker.detach();
-				}
-
-				if (execute)
+				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
 				{
-					execute = false;
+					if(!trickUpCancel.trackerRunning && actorData.style == STYLE::TRICKSTER) {
+						std::thread trickupcancelcooldowntracker(TrickUpCancelCooldownTracker);
+						trickupcancelcooldowntracker.detach();
+					}
 
-					actorData.state &= ~STATE::BUSY;
+					if (execute)
+					{
+						execute = false;
 
+						actorData.state &= ~STATE::BUSY;
+
+					}
+				}
+				else
+				{
+					execute = true;
 				}
 			}
-			else
-			{
-				execute = true;
+
+			if((actorData.style == STYLE::GUNSLINGER)) {
+				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
+				{
+					/*if(!trickUpCancel.trackerRunning && actorData.style == STYLE::TRICKSTER) {
+						std::thread trickupcancelcooldowntracker(TrickUpCancelCooldownTracker);
+						trickupcancelcooldowntracker.detach();
+					}*/
+
+					if (execute)
+					{
+						execute = false;
+
+						actorData.state &= ~STATE::BUSY;
+
+					}
+				}
+				else
+				{
+					execute = true;
+				}
 			}
+
+			/*if ((actorData.style == STYLE::ROYALGUARD) &&
+					(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
+			{
+				if(actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT &&
+				actorData.action != EBONY_IVORY_AIR_NORMAL_SHOT && actorData.action != SHOTGUN_AIR_NORMAL_SHOT) { // Exceptions, these cancels are way too OP or buggy in the cases of E&I and Shotgun.
+					if (execute)
+					{
+						execute = false;
+
+						actorData.state &= ~STATE::BUSY;
+
+					}
+					
+					else
+					{
+						execute = true;
+					}
+				}
+			}*/
+			
 		}
+			
+		
 
 		if (gamepad.buttons[0] & button)
 		{
@@ -10027,8 +10091,58 @@ void UpdateActorSpeed(byte8 *baseAddr)
 				}
 
 				// At this point we know that neither our own nor another Quicksilver is on.
+				
+				
+				
 
-				mainActorData.styleData.meter = 200;
+
+				if(actorData.character == CHARACTER::DANTE) {
+		
+					if (actorData.action == EBONY_IVORY_RAIN_STORM) {
+						actorData.horizontalPull = rainstormMomentum;
+						//actorData.horizontalPullMultiplier = 0.2f;
+					}
+					else if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT) {
+						actorData.horizontalPullMultiplier = 0.05f;
+					}
+					else if (actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_4 ) {
+						actorData.horizontalPull = raveMomentum;
+						actorData.horizontalPullMultiplier = -0.12f;
+					}
+					else if (actorData.action == CERBERUS_AIR_FLICKER) {
+						actorData.horizontalPullMultiplier = -0.18f;
+					}
+					else if (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
+					actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
+					actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) {
+						actorData.horizontalPullMultiplier = -0.16f;
+					}
+					else if (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
+					actorData.action == NEVAN_AIR_SLASH_PART_2) {
+						actorData.horizontalPullMultiplier = 0.4f;
+					}
+					else if (actorData.action == NEVAN_AIR_PLAY) {
+						actorData.horizontalPullMultiplier = 0.2f;
+					}
+					else if (actorData.action == BEOWULF_KILLER_BEE) {
+						actorData.horizontalPullMultiplier = 0.3f;
+					}
+					else if (actorData.action == TRICKSTER_AIR_TRICK) {
+						actorData.horizontalPullMultiplier = 0.2f;
+					}
+					else {
+						actorData.horizontalPullMultiplier = 0;
+						
+					}
+						
+						
+				}
+				
+				//actorData.horizontalPullMultiplier = 0.005f;
+				actorData.styleData.meter = 200;
 
 
 				//SPRINT ABILITY
@@ -15629,6 +15743,7 @@ export void EventDelete()
 		actorData.styleData.quotient = activeActorData.styleData.quotient;
 		actorData.styleData.dividend = activeActorData.styleData.dividend;
 		actorData.styleData.divisor = activeActorData.styleData.divisor;
+		
 
 		DebugLog("EventDelete Copy StyleData");
 	}();

@@ -4334,6 +4334,9 @@ export struct DoubleTap {
 	bool trackerRunning = false;
 };
 
+export float rainstormMomentum = 0;
+export float raveMomentum = 0;
+
 export DoubleTap quickDoubleTap;
 export DoubleTap doppDoubleTap;
 

@@ -9230,14 +9230,31 @@ void MainOverlayWindow()
 			auto &characterData = GetCharacterData(actorData);
 			auto &cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
 
+			using namespace ACTION_DANTE;
+			using namespace ACTION_VERGIL;
+
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
 			ImGui::Text("State %u", actorData.state);
-			ImGui::Text("IsDevil %u", actorData.activeDevil);
+			ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
+			ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
+			if(actorData.action != EBONY_IVORY_RAIN_STORM) {
+				rainstormMomentum = actorData.horizontalPull;
+			}
+
+			if (!(actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_4)) {
+				raveMomentum = actorData.horizontalPull;
+			}
+			
+			ImGui::Text("Rainstorm Horizontal Pull %g", rainstormMomentum);
 			ImGui::Text("IsDevil2 %u", actorData.devil);
 			ImGui::Text("Style %u", actorData.style);
 			ImGui::Text("StyleRank %u", actorData.styleData.rank);
 			ImGui::Text("StyleRank Meter %g", actorData.styleData.meter);
 			ImGui::Text("StyleRank Quotient %g", actorData.styleData.quotient);
+			ImGui::Text("Permissions %u", actorData.permissions);
 			if(actorData.cloneActorBaseAddr) {
 				ImGui::Text("StyleRankClone %u", cloneActorData.styleData.rank);
 				ImGui::Text("StyleRankClone Meter %g", cloneActorData.styleData.meter);
@@ -9925,7 +9942,7 @@ void SpeedSection()
 		);
 		ImGui::Text("");
 
-		/*GUI_InputDefault2Speed
+		GUI_InputDefault2Speed
 		(
 			"Human",
 			activeConfig.Speed.human,
@@ -9934,8 +9951,8 @@ void SpeedSection()
 			0.1f,
 			"%g",
 			ImGuiInputTextFlags_EnterReturnsTrue
-		);*/
-		//ImGui::Text("");
+		);
+		ImGui::Text("");
 
 		ImGui::Text("Devil Dante");
 
