@@ -4316,7 +4316,7 @@ export struct BossHelper
 export struct WeaponWheelTiming {
 	bool wheelAppear = false;
 	bool wheelRunning = false;
-	int wheelCooldown = 50;
+	int wheelCooldown = 1000;
 	int wheelTime = wheelCooldown;
 };
 
@@ -4331,7 +4331,7 @@ export int styleVFXCount = 0;
 export int styleVFXCountMax = 1;
 
 export struct DoubleTap {
-	int bufferDuration = 20;
+	int bufferDuration = 150;
 	int buffer = bufferDuration;
 	bool canChange = false;
 	bool trackerRunning = false;
@@ -4346,14 +4346,14 @@ export DoubleTap quickDoubleTap;
 export DoubleTap doppDoubleTap;
 
 export struct TrickUpCancel {
-	int cooldownDuration = 300;
+	int cooldownDuration = 1300;
 	int cooldown = cooldownDuration;
 	bool canTrickUp = true;
 	bool trackerRunning = false;
 } trickUpCancel;
 
 export struct GunsCancel {
-	int cooldownDuration = 150;
+	int cooldownDuration = 1300;
 	int cooldown = cooldownDuration;
 	bool canGun = true;
 	bool trackerRunning = false;
