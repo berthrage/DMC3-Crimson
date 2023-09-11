@@ -19,13 +19,16 @@ const LinkFlags_Static = 1 << 0;
 
 const PATH_ZLIB   = "ThirdParty/zlib";
 const PATH_LIBZIP = "ThirdParty/libzip";
+const PATH_SDL2 = "ThirdParty/SDL2";
 const PATH_IMGUI  = "ThirdParty/ImGui";
 const PATH_STB    = "ThirdParty/stb";
 
 const LOCATION_ZLIB          = "zlib.lib";
 const LOCATION_LIBZIP        = "libzip.lib";
+const LOCATION_SDL2			 = "SDL2.lib"	
+const LOCATION_SDL2MAIN		 = "SDL2main.lib"	
 const LOCATION_HDC           = "D:/SteamLibrary/steamapps/common/Devil May Cry HD Collection";
-const LOCATION_4             = "D:/SteamLubrary/steamapps/common/Devil May Cry 4";
+const LOCATION_4             = "D:/SteamLibrary/steamapps/common/Special Edition";
 const LOCATION_LOADER_X86_64 = LOCATION_HDC + "/dinput8.dll";
 const LOCATION_LOADER_X86_32 = LOCATION_4   + "/dinput8.dll";
 const LOCATION_EVA           = LOCATION_HDC + "/Eva.dll";
@@ -1517,6 +1520,7 @@ let libs_x86_64 =
 	"d3dcompiler.lib",
 	"dinput8.lib",
 	"dxguid.lib",
+	"SDL2.lib",
 	//"xinput.lib",
 	"Xinput9_1_0.lib",
 ];
@@ -1753,7 +1757,68 @@ let linkerArgsZLib =
 
 // #endregion
 
+// #region SDL2
+let compilerArgsSDL2 =
+[
+	"/nologo",
+	"/c",
+	"/std:c++latest",
+	"/permissive-",
+	"/experimental:module",
+	"/Zc:forScope",
+	"/Zc:inline",
+	"/Zc:preprocessor",
+	"/Zc:wchar_t",
+	"/Zc:externC-",
+	"/W3",
+	"/wd4267", // conversion from 'a' to 'b', possible loss of data
+	"/O2",
+	"/Oi",
+	"/DHAVE_SYS_TYPES_H",
+	"/DHAVE_STDINT_H",
+	"/DHAVE_STDDEF_H",
+	"/DNO_FSEEKO",
+	"/D_CRT_SECURE_NO_DEPRECATE",
+	"/D_CRT_NONSTDC_NO_DEPRECATE",
+];
 
+let itemsSDL2 =
+[
+	[ PATH_SDL2 + "/adler32.c" , "", false, [] ],
+	[ PATH_SDL2 + "/compress.c", "", false, [] ],
+	[ PATH_SDL2 + "/crc32.c"   , "", false, [] ],
+	[ PATH_SDL2 + "/deflate.c" , "", false, [] ],
+	[ PATH_SDL2 + "/gzclose.c" , "", false, [] ],
+	[ PATH_SDL2 + "/gzlib.c"   , "", false, [] ],
+	[ PATH_SDL2 + "/gzread.c"  , "", false, [] ],
+	[ PATH_SDL2 + "/gzwrite.c" , "", false, [] ],
+	[ PATH_SDL2 + "/infback.c" , "", false, [] ],
+	[ PATH_SDL2 + "/inffast.c" , "", false, [] ],
+	[ PATH_SDL2 + "/inflate.c" , "", false, [] ],
+	[ PATH_SDL2 + "/inftrees.c", "", false, [] ],
+	[ PATH_SDL2 + "/trees.c"   , "", false, [] ],
+	[ PATH_SDL2 + "/uncompr.c" , "", false, [] ],
+	[ PATH_SDL2 + "/zutil.c"   , "", false, [] ],
+];
+
+let linkerArgsSDL2 =
+[,
+	"/MACHINE:X64",
+];
+
+let libsSDL2 = [];
+
+libsSDL2 = AddFront
+(
+	libsSDL2,
+	libs_x86_32
+);
+
+let libs_SDL2 =
+[
+	"SDL2.lib",
+];
+// #endregion
 
 // #region LibZip
 
@@ -3094,6 +3159,7 @@ let itemsMary =
 	[ "Mary/HUD.ixx"             , "", true , [] ],
 	[ "Mary/SoundRelocations.ixx", "", true , [] ],
 	[ "Mary/Sound.ixx"           , "", true , [] ],
+	[ "Mary/ExtraSound.ixx"      , "", false , [] ],
 	[ "Mary/Exp.ixx"             , "", true , [] ],
 	[ "Mary/ActorBase.ixx"       , "", true , [] ],
 	[ "Mary/ActorRelocations.ixx", "", true , [] ],
@@ -3804,6 +3870,27 @@ function BuildLibZip()
 	return LinkLibZip();
 }
 
+function CompileSDL2()
+{
+	return CompileLoop
+	(
+		compilerArgsSDL2,
+		[],
+		itemsLibSDL2
+	);
+}
+
+function LinkSDL2()
+{
+	return Link
+	(
+		linkerArgsSDL2,
+		libs_SDL2,
+		LOCATION_SDL2,
+		LinkFlags_Static
+	);
+}
+
 function CompileLoader_x86_64()
 {
 	return CompileLoop
@@ -4475,6 +4562,14 @@ let items =
 	[
 		"buildLibZip",
 		BuildLibZip
+	],
+	[
+		"compileSDL2",
+		CompileLibZip
+	],
+	[
+		"linkSDL2",
+		LinkSDL2
 	],
 	[
 		"compileLoader_x86_64",

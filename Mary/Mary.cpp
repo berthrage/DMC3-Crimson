@@ -30,6 +30,7 @@ import Model;
 import Scene;
 import SoundRelocations;
 import Sound;
+import ExtraSound;
 import Speed;
 import Training;
 import Vars;

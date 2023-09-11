@@ -54,6 +54,15 @@ export inline byte16 GetBinding(uint8 index)
 	return (reinterpret_cast<byte16 *>(appBaseAddr + 0xD6CE80 + 0xA))[index];
 }
 
+export inline uint16 GetRelativeTilt(PlayerActorData & actorData) {
+	auto & gamepad = GetGamepad(0);
+	uint16 relativeTilt = 0;
+
+
+	relativeTilt = (actorData.actorCameraDirection - gamepad.leftStickPosition);
+
+	return relativeTilt;
+}
 
 
 export inline uint8 GetRelativeTiltDirection(PlayerActorData & actorData)

@@ -1,10 +1,13 @@
+module;
+#include <string> 
+
+
 export module Vars;
 
 import Core;
 
+
 #include "../Core/Macros.h"
-
-
 
 export namespaceStart(UNLOCK_DANTE);
 enum
@@ -4336,6 +4339,8 @@ export struct DoubleTap {
 
 export float rainstormMomentum = 0;
 export float raveMomentum = 0;
+export float raveRotation = 0;
+export float highTimeRotation = 0;
 
 export DoubleTap quickDoubleTap;
 export DoubleTap doppDoubleTap;
@@ -4346,6 +4351,32 @@ export struct TrickUpCancel {
 	bool canTrickUp = true;
 	bool trackerRunning = false;
 } trickUpCancel;
+
+export struct GunsCancel {
+	int cooldownDuration = 150;
+	int cooldown = cooldownDuration;
+	bool canGun = true;
+	bool trackerRunning = false;
+} gunsCancel;
+
+export struct Inertia {
+	float cachedPull = 10;
+	float pullHaltDivisor = 2.0f;
+	float pullDuration = 200;
+	bool trackerRunning = false;
+} airRaveInertia;
+
+export uint16 relativeTiltController = 0;
+
+export Inertia rainstormInertia;
+
+
+
+
+/*export struct Sounds {
+	
+} sounds;*/
+
 
 
 export bool styleChanged[6] = { false, false,

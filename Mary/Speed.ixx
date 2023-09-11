@@ -44,7 +44,7 @@ export void Toggle(bool enable)
 
 		if (enable)
 		{
-			Write<float>((addr + 2), activeConfig.Speed.main);
+			Write<float>((addr + 2), activeConfig.Speed.mainSpeed);
 		}
 		else
 		{
@@ -68,7 +68,7 @@ export void Toggle(bool enable)
 
 		if (enable)
 		{
-			Write((addr + 6), activeConfig.Speed.main);
+			Write((addr + 6), activeConfig.Speed.mainSpeed);
 		}
 		else
 		{
@@ -182,7 +182,7 @@ export void Toggle(bool enable)
 	{
 		auto speeds = reinterpret_cast<float *>(appBaseAddr + 0xCF2D90);
 
-		speeds[SPEED::GLOBAL] = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.main;
+		speeds[SPEED::GLOBAL] = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 	}
 
 

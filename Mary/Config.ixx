@@ -194,7 +194,7 @@ export struct Config
 
 	struct
 	{
-		float main  = 1.0f;
+		float mainSpeed  = 1.0f;
 		float turbo = 1.2f;
 		float enemy = 1.0f;
 
@@ -1505,7 +1505,7 @@ void CreateMembers(Config & Prep_arg(config))
 		auto & member = Create<struct_t>(root, "Speed");
 		auto & config = Prep_arg(config).Speed;
 
-		Create<float>(member, "main"                  , config.main                  );
+		Create<float>(member, "mainSpeed"                  , config.mainSpeed                  );
 		Create<float>(member, "turbo"                 , config.turbo                 );
 		Create<float>(member, "enemy"                 , config.enemy                 );
 		Create<float>(member, "quicksilverPlayerActor", config.quicksilverPlayerActor);
@@ -2145,7 +2145,7 @@ void ToJSON(Config & Prep_arg(config))
 		auto & member = root["Speed"];
 		auto & config = Prep_arg(config).Speed;
 
-		Set<float>(member["main"                  ], config.main                  );
+		Set<float>(member["mainSpeed"                  ], config.mainSpeed                  );
 		Set<float>(member["turbo"                 ], config.turbo                 );
 		Set<float>(member["enemy"                 ], config.enemy                 );
 		Set<float>(member["quicksilverPlayerActor"], config.quicksilverPlayerActor);
@@ -2735,7 +2735,7 @@ void ToConfig(Config & Prep_arg(config))
 		auto & config = Prep_arg(config).Speed;
 		auto & member = root["Speed"];
 
-		config.main                   = Get<float>(member["main"                  ]);
+		config.mainSpeed                   = Get<float>(member["mainSpeed"                  ]);
 		config.turbo                  = Get<float>(member["turbo"                 ]);
 		config.enemy                  = Get<float>(member["enemy"                 ]);
 		config.quicksilverPlayerActor = Get<float>(member["quicksilverPlayerActor"]);

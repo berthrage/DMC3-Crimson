@@ -1,8 +1,12 @@
+module; 
+
+
 export module Graphics;
 
 import Core;
 
 #include "../Core/Macros.h"
+
 
 import Config;
 import Global;

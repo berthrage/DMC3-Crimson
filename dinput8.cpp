@@ -147,7 +147,7 @@ void Load()
 
 
 
-	const char * names[][2] =
+	const char * names[][4] =
 	{
 		{
 			"dmc1.exe",
@@ -160,6 +160,8 @@ void Load()
 		{
 			"dmc3.exe",
 			"Mary.dll",
+			"SDL2.dll",
+			"SDL2_mixer.dll"
 		},
 		{
 			"dmc4.exe",

@@ -1,6 +1,10 @@
 module;
+
 #include "../ThirdParty/ImGui/imgui.h"
 #include "../ThirdParty/ImGui/imgui_internal.h"
+#include "../ThirdParty/ImGui/imgui_internal.h"
+
+
 
 #include <stdio.h>
 #include <intrin.h>
@@ -17,6 +21,9 @@ import Core_GUI;
 import Core_ImGui;
 
 #include "../Core/Macros.h"
+
+
+
 
 import Windows;
 import D3D11;
@@ -46,6 +53,7 @@ import Speed;
 import Training;
 import Vars;
 import Window;
+import ExtraSound;
 
 #define debug false
 
@@ -9217,6 +9225,9 @@ void MainOverlayWindow()
 			}();
 
 			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
+			ImGui::Text("SDL2 %s", SDL2Initialization);
+			ImGui::Text("Simple SDL2 Audio:  %u", SSDL2AudioInitialization);
+			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
 			ImGui::Text("Wheel Running %u", meleeWeaponWheelTiming.wheelRunning);
 			ImGui::Text("Wheel Time %u", meleeWeaponWheelTiming.wheelTime);
 			ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap.buffer);
@@ -9229,26 +9240,42 @@ void MainOverlayWindow()
 			IntroduceMainActorData(actorData, return);
 			auto &characterData = GetCharacterData(actorData);
 			auto &cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
+			auto & gamepad = GetGamepad(0);
 
 			using namespace ACTION_DANTE;
 			using namespace ACTION_VERGIL;
 
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
 			ImGui::Text("State %u", actorData.state);
+			ImGui::Text("Position  %g", actorData.position);
+			ImGui::Text("Rotation %g", actorData.rotation);
+			ImGui::Text("Camera Direction %g", actorData.cameraDirection );
+			ImGui::Text("Actor Camera Direction %g", actorData.actorCameraDirection );
+			ImGui::Text("RelativeTilt %g", relativeTiltController );
+			ImGui::Text("LeftStick Position %u", gamepad.leftStickPosition);
 			ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
 			ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
+			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
+			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
 			if(actorData.action != EBONY_IVORY_RAIN_STORM) {
 				rainstormMomentum = actorData.horizontalPull;
+				raveRotation = actorData.rotation;
+			}
+
+			if(!(actorData.action == REBELLION_HIGH_TIME ||
+			actorData.action == REBELLION_HIGH_TIME_LAUNCH)) {
+				highTimeRotation = actorData.rotation;
 			}
 
 			if (!(actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_4)) {
-				raveMomentum = actorData.horizontalPull;
+				airRaveInertia.cachedPull = actorData.horizontalPull;
 			}
 			
 			ImGui::Text("Rainstorm Horizontal Pull %g", rainstormMomentum);
+			ImGui::Text("Air Rave Horizontal Pull %g", airRaveInertia.cachedPull);
 			ImGui::Text("IsDevil2 %u", actorData.devil);
 			ImGui::Text("Style %u", actorData.style);
 			ImGui::Text("StyleRank %u", actorData.styleData.rank);
@@ -9903,9 +9930,9 @@ void SpeedSection()
 		GUI_InputDefault2Speed
 		(
 			"Main",
-			activeConfig.Speed.main,
-			queuedConfig.Speed.main,
-			defaultConfig.Speed.main,
+			activeConfig.Speed.mainSpeed,
+			queuedConfig.Speed.mainSpeed,
+			defaultConfig.Speed.mainSpeed,
 			0.1f,
 			"%g",
 			ImGuiInputTextFlags_EnterReturnsTrue
@@ -11342,7 +11369,7 @@ export void GUI_Render()
 		CreateTextures();
 	}
 
-
+	initSDL();
 
 	::GUI::id = 0;
 

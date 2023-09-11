@@ -7,6 +7,8 @@
 module;
 #include <thread>
 #include <chrono>
+#include "../ThirdParty/glm/glm.hpp"
+
 
 export module Actor;
 
@@ -33,6 +35,7 @@ import Model;
 import SoundRelocations;
 import Sound;
 import Vars;
+import ExtraSound;
 
 #define debug false
 
@@ -336,7 +339,7 @@ void CopyState(
 	byte32 flags = 0)
 {
 	actorData.position = activeActorData.position;
-	actorData.verticalPull = activeActorData.verticalPull / 4.0f;
+	actorData.verticalPull = activeActorData.verticalPull;
 	actorData.verticalPullMultiplier = activeActorData.verticalPullMultiplier;
 	actorData.rotation = activeActorData.rotation;
 	actorData.horizontalPull = activeActorData.horizontalPull;
@@ -4084,6 +4087,24 @@ void TrickUpCancelCooldownTracker() {
 	}
 }
 
+void GunslingerAirCancelCooldownTracker() {
+	gunsCancel.trackerRunning = true;
+	gunsCancel.canGun = false;
+	gunsCancel.cooldown = gunsCancel.cooldownDuration;
+	while (gunsCancel.cooldown > 0) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		gunsCancel.cooldown--;
+	}
+    
+
+	if (gunsCancel.cooldown == 0) 
+	{
+		
+		gunsCancel.canGun = true; 
+   		gunsCancel.trackerRunning = false;
+	}
+}
+
 void RemoveBusyFlagController(byte8 *actorBaseAddr)
 {
 	using namespace ACTION_DANTE;
@@ -4232,13 +4253,16 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 				}
 			}
 
-			if((actorData.style == STYLE::GUNSLINGER)) {
+
+			//Gunslinger Cancels Everything (w/ cooldown)
+			if((actorData.style == STYLE::GUNSLINGER) && 
+				(actorData.state == STATE::IN_AIR || actorData.state == 65538) && (gunsCancel.canGun)) {
 				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
 				{
-					/*if(!trickUpCancel.trackerRunning && actorData.style == STYLE::TRICKSTER) {
-						std::thread trickupcancelcooldowntracker(TrickUpCancelCooldownTracker);
-						trickupcancelcooldowntracker.detach();
-					}*/
+					if(!gunsCancel.trackerRunning) {
+						std::thread gunslingeraircancelcooldowntracker(GunslingerAirCancelCooldownTracker);
+						gunslingeraircancelcooldowntracker.detach();
+					}
 
 					if (execute)
 					{
@@ -5047,7 +5071,9 @@ void ArbitraryMeleeWeaponSwitchController(T &actorData)
 
 		UpdateForm(actorData);
 
-		PlaySound(0, 12);
+		playChangeDevilArm();
+
+		//PlaySound(0, 12);
 	}
 }
 
@@ -9967,6 +9993,16 @@ export void ToggleRoyalguardForceJustFrameRelease(bool enable)
 	run = true;
 }
 
+void AirRaveInertiaTracker() {
+	airRaveInertia.trackerRunning = true;
+	
+	while(airRaveInertia.cachedPull > 0) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		airRaveInertia.cachedPull = airRaveInertia.cachedPull / airRaveInertia.pullHaltDivisor;
+	}
+	airRaveInertia.trackerRunning = false;
+}
+
 void UpdateActorSpeed(byte8 *baseAddr)
 {
 	using namespace ACTION_DANTE;
@@ -9985,6 +10021,8 @@ void UpdateActorSpeed(byte8 *baseAddr)
 
 	auto &quicksilver = player1LeadActorData.quicksilver;
 	auto &quicksilverStage = player1LeadActorData.quicksilverStage;
+
+	
 
 	IntroduceMainActorData(mainActorData, return);
 
@@ -10042,7 +10080,14 @@ void UpdateActorSpeed(byte8 *baseAddr)
 
 				IntroduceData(actorBaseAddr, actorData, PlayerActorData, continue);
 
-				auto value = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.main;
+				auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+				auto tiltDirection = GetRelativeTiltDirection(actorData);
+				auto & gamepad = GetGamepad(0);
+				
+
+				relativeTiltController = (actorData.cameraDirection - (gamepad.leftStickPosition));
+
+				auto value = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 
 
 				if (mainActorData.styleData.rank >= STYLE_RANK::SWEET)
@@ -10095,22 +10140,40 @@ void UpdateActorSpeed(byte8 *baseAddr)
 				
 				
 
-
+				// Inertia implementation
 				if(actorData.character == CHARACTER::DANTE) {
 		
 					if (actorData.action == EBONY_IVORY_RAIN_STORM) {
-						actorData.horizontalPull = rainstormMomentum;
+						
+						rainstormMomentum = glm::clamp(rainstormMomentum, 0.0f, 9.0f);
+						actorData.horizontalPull = rainstormMomentum / airRaveInertia.pullHaltDivisor;
+						
 						//actorData.horizontalPullMultiplier = 0.2f;
 					}
 					else if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT) {
-						actorData.horizontalPullMultiplier = 0.05f;
+						actorData.horizontalPullMultiplier = 0.03f;
 					}
 					else if (actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_4 ) {
-						actorData.horizontalPull = raveMomentum;
-						actorData.horizontalPullMultiplier = -0.12f;
+						/*if(!airRaveInertia.trackerRunning) {
+							std::thread airraveinertiatracker(AirRaveInertiaTracker);
+            				airraveinertiatracker.detach();
+						}*/
+						
+						airRaveInertia.cachedPull = glm::clamp(airRaveInertia.cachedPull, 0.0f, 9.0f);
+						actorData.horizontalPull = (airRaveInertia.cachedPull / 5.0f) * - 1.0f;
+						
+						
+						/*if(actorData.rotation == relativeTiltController) {
+							actorData.rotation = actorData.actorCameraDirection;
+						}*/
+						
+
+						//actorData.horizontalPullMultiplier = 0;
+						//actorData.verticalPullMultiplier = -0.18f;
+						//actorData.horizontalPullMultiplier = -0.12f;
 					}
 					else if (actorData.action == CERBERUS_AIR_FLICKER) {
 						actorData.horizontalPullMultiplier = -0.18f;
@@ -10128,15 +10191,13 @@ void UpdateActorSpeed(byte8 *baseAddr)
 						actorData.horizontalPullMultiplier = 0.2f;
 					}
 					else if (actorData.action == BEOWULF_KILLER_BEE) {
-						actorData.horizontalPullMultiplier = 0.3f;
+						//actorData.horizontalPull = 10;
+						//actorData.horizontalPullMultiplier = 0.0001f;
 					}
 					else if (actorData.action == TRICKSTER_AIR_TRICK) {
 						actorData.horizontalPullMultiplier = 0.2f;
 					}
-					else {
-						actorData.horizontalPullMultiplier = 0;
-						
-					}
+				
 						
 						
 				}
