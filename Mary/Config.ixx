@@ -695,7 +695,8 @@ export struct Config
 	{
 		int changeGunNew = 1;
 		int changeDevilArmNew = 1;
-		int changeWeaponVolume = 50; 
+		int changeWeaponVolume = 40; 
+		int styleChangeVolume = 7;
 	}
 	SFX;
 

@@ -10714,6 +10714,20 @@ void SFX()
 			ImGuiInputTextFlags_EnterReturnsTrue
 		);
 
+		ImGui::Text("");
+		ImGui::Text("Style Switching");
+
+		GUI_InputDefault2
+		(
+			"Style Change Volume",
+			activeConfig.SFX.styleChangeVolume,
+			queuedConfig.SFX.styleChangeVolume,
+			defaultConfig.SFX.styleChangeVolume,
+			1,
+			"%u",
+			ImGuiInputTextFlags_EnterReturnsTrue
+		);
+
 
 		/*if
 		(

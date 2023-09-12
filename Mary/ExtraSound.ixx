@@ -20,6 +20,7 @@ export bool SDL2Init = false;
 export bool cacheAudioFiles = false;
 Mix_Chunk* changeGun;
 Mix_Chunk* changeDevilArm;
+Mix_Chunk* styleChange;
 
 
 
@@ -76,6 +77,7 @@ export void initSDL() {
 
         changeGun = Mix_LoadWAV("sound/changegun.wav");
         changeDevilArm = Mix_LoadWAV("sound/changedevilarm.wav");
+        styleChange = Mix_LoadWAV("sound/stylechange.wav");
 
 
 		cacheAudioFiles = true;
@@ -114,7 +116,19 @@ export void initSDL() {
     FadeOutChannels(channel, initialChannel, numChannels, 150);
 }*/
 
-void PlayChangeWeapon(int initialChannel, int finalChannel, Mix_Chunk* sfx, int volume) {
+void FadeOutChannels(int channelException, int initialChannel, int numChannels, int fadeOutms) {
+   
+    for (int i = initialChannel; i < numChannels; i++) {
+           
+        if (i != channelException) {
+
+            Mix_FadeOutChannel(i, fadeOutms);
+
+        }
+    }
+}
+
+void PlayOnChannels(int initialChannel, int finalChannel, Mix_Chunk* sfx, int volume) {
 
     for(int i = initialChannel; i <= finalChannel; i++) {
         if(!Mix_Playing(i)) {
@@ -126,13 +140,34 @@ void PlayChangeWeapon(int initialChannel, int finalChannel, Mix_Chunk* sfx, int 
             i++;
         }
     }
+}
 
+void PlayOnChannelsFadeOut(int initialChannel, int finalChannel, Mix_Chunk* sfx, int volume, int fadeOutms) {
+    int channelBeingPlayed = 0;
+
+    for(int i = initialChannel; i <= finalChannel; i++) {
+        if(!Mix_Playing(i)) {
+            Mix_Volume(i, volume);
+            Mix_PlayChannel(i, sfx, 0);
+            channelBeingPlayed = i;
+            break;
+        }
+        else {
+            i++;
+        }
+    }
+
+    FadeOutChannels(channelBeingPlayed, initialChannel, finalChannel, fadeOutms);
 }
 
 export void playChangeDevilArm() {
-    PlayChangeWeapon(0, 19, changeDevilArm, activeConfig.SFX.changeWeaponVolume);
+    PlayOnChannels(0, 19, changeDevilArm, activeConfig.SFX.changeWeaponVolume);
 }
 
 export void playChangeGun() {
-    PlayChangeWeapon(20, 39, changeGun, activeConfig.SFX.changeWeaponVolume);
+    PlayOnChannels(20, 39, changeGun, activeConfig.SFX.changeWeaponVolume);
+}
+
+export void playStyleChange() {
+    PlayOnChannelsFadeOut(40, 59, styleChange, activeConfig.SFX.styleChangeVolume, 150);
 }

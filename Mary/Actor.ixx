@@ -4371,6 +4371,25 @@ void doubleTapDoppTracker(byte8 *actorBaseAddr) {
 	}
 }
 
+void StyleSwitch(byte8 *actorBaseAddr, int style) {
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+	auto &characterData = GetCharacterData(actorData);
+
+	actorData.style = style; // Changes the style.
+
+	// Summons Style Switch VFX (leftover from DT In Effect).
+	std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, style);
+    devilvfxtriggerstyle.detach();
+
+	// Updates the HUD icons.
+	HUD_UpdateStyleIcon(
+	actorData.style,
+	characterData.character);	
+
+	// Trigger SFX.
+	playStyleChange();
+}
+
 void StyleSwitchController(byte8 *actorBaseAddr)
 {
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
@@ -4394,39 +4413,19 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 	if (actorData.character == CHARACTER::DANTE) {
 		if(actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN) && actorData.style != 2) {
 			
-			actorData.style = 2; // TRICKSTER
-			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 2);
-            devilvfxtriggerstyle.detach();
-			HUD_UpdateStyleIcon(
-			actorData.style,
-			characterData.character);
+			StyleSwitch(actorBaseAddr, 2); // TRICKSTER
 		}
 
 		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 0) {
-			actorData.style = 0; // SWORDMASTER
-			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 0);
-            devilvfxtriggerstyle.detach();
-			HUD_UpdateStyleIcon(
-			actorData.style,
-			characterData.character);
+			StyleSwitch(actorBaseAddr, 0); // SWORDMASTER
 		}
 
 		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 1) {
-			actorData.style = 1; // GUNSLINGER
-			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 1);
-            devilvfxtriggerstyle.detach();
-			HUD_UpdateStyleIcon(
-			actorData.style,
-			characterData.character);
+			StyleSwitch(actorBaseAddr, 1); // GUNSLINGER
 		}
 
 		if(actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 3) {
-			actorData.style = 3; // ROYALGUARD
-			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 3);
-            devilvfxtriggerstyle.detach();
-			HUD_UpdateStyleIcon(
-			actorData.style,
-			characterData.character);
+			StyleSwitch(actorBaseAddr, 3); // ROYALGUARD
 		}
 
 		//START QUICKSILVER DOUBLE TAP BUFFER
@@ -4449,52 +4448,27 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 
 		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 4 && quickDoubleTap.canChange && !actorData.newIsClone) {
 			
-			actorData.style = 4; // QUICKSILVER
-			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 4);
-            devilvfxtriggerstyle.detach();
-			HUD_UpdateStyleIcon(
-			actorData.style,
-			characterData.character);
+			StyleSwitch(actorBaseAddr, 4); // QUICKSILVER
 		}
 
 		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5 && doppDoubleTap.canChange && !actorData.newIsClone) {
 			
-			actorData.style = 5; // DOPPELGANGER
-			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 5);
-            devilvfxtriggerstyle.detach();
-			HUD_UpdateStyleIcon(
-			actorData.style,
-			characterData.character);
+			StyleSwitch(actorBaseAddr, 5); // DOPPELGANGER
 		}
 		
 	} 
 	else if (actorData.character == CHARACTER::VERGIL) {
 		if(actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN) && actorData.style != 2) {
 			
-			actorData.style = 2; // DARK SLAYER
-			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 2);
-            devilvfxtriggerstyle.detach();
-			HUD_UpdateStyleIcon(
-			actorData.style,
-			characterData.character);
+			StyleSwitch(actorBaseAddr, 2); // DARKSLAYER
 		}
 
 		if(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 4 && !actorData.newIsClone) {
-			actorData.style = 4; // QUICKSILVER
-			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 4);
-            devilvfxtriggerstyle.detach();
-			HUD_UpdateStyleIcon(
-			actorData.style,
-			characterData.character);
+			StyleSwitch(actorBaseAddr, 4); // QUICKSILVER
 		}
 
 		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5 && !actorData.newIsClone) {
-			actorData.style = 5; // DOPPELGANGER
-			std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, 5);
-            devilvfxtriggerstyle.detach();
-			HUD_UpdateStyleIcon(
-			actorData.style,
-			characterData.character);
+			StyleSwitch(actorBaseAddr, 5); // DOPPELGANGER
 		}
 
 		
