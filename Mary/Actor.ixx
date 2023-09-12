@@ -5071,9 +5071,13 @@ void ArbitraryMeleeWeaponSwitchController(T &actorData)
 
 		UpdateForm(actorData);
 
-		playChangeDevilArm();
+		if(activeConfig.SFX.changeDevilArmNew == 1) {
+			playChangeDevilArm();
+		}
+		else {
+			PlaySound(0, 12);
+		}
 
-		//PlaySound(0, 12);
 	}
 }
 
@@ -5212,7 +5216,12 @@ void ArbitraryRangedWeaponSwitchController(T &actorData)
 
 		UpdateRangedWeapon(actorData);
 
-		PlaySound(0, 12);
+		if(activeConfig.SFX.changeGunNew == 1) {
+			playChangeGun();
+		}
+		else {
+			PlaySound(0, 12);
+		}
 	}
 }
 

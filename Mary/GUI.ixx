@@ -9225,14 +9225,15 @@ void MainOverlayWindow()
 			}();
 
 			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
-			ImGui::Text("SDL2 %s", SDL2Initialization);
-			ImGui::Text("Simple SDL2 Audio:  %u", SSDL2AudioInitialization);
+			/*ImGui::Text("SDL2 %s", SDL2Initialization);
+			ImGui::Text("Mixer  %s", MixerInitialization);
+			ImGui::Text("Mixer2  %s", MixerInitialization2);*/
 			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
 			ImGui::Text("Wheel Running %u", meleeWeaponWheelTiming.wheelRunning);
 			ImGui::Text("Wheel Time %u", meleeWeaponWheelTiming.wheelTime);
 			ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap.buffer);
 			ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap.buffer);
-			ImGui::Text("trickUpCanTrickUp %u", trickUpCancel.canTrickUp);
+			
 			ImGui::Text("trickUpCooldown %u", trickUpCancel.cooldown);
 			ImGui::Text("styleVFXCount %u", styleVFXCount);
 
@@ -9245,6 +9246,7 @@ void MainOverlayWindow()
 			using namespace ACTION_DANTE;
 			using namespace ACTION_VERGIL;
 
+			ImGui::Text("royalguardReleaseDamage %g", actorData.royalguardReleaseDamage);
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
 			ImGui::Text("State %u", actorData.state);
 			ImGui::Text("Position  %g", actorData.position);
@@ -10638,6 +10640,147 @@ void TrainingSection()
 
 #pragma endregion
 
+#pragma region Training
+
+void SFX()
+{
+	const char * changeGunNewNames[] =
+	{
+		"DMC3 Default",
+		"New"
+	};
+
+	const char * changeDevilArmNewNames[] =
+	{
+		"DMC3 Default",
+		"New"
+	};
+
+	if (ImGui::CollapsingHeader("SFX"))
+	{
+		ImGui::Text("");
+
+		
+
+
+
+		if (GUI_ResetButton())
+		{
+			ResetConfig(infiniteHitPoints);
+			ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
+
+			ResetConfig(infiniteMagicPoints);
+			ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
+
+			ResetConfig(disableTimer);
+			ToggleDisableTimer(activeConfig.disableTimer);
+
+			ResetConfig(infiniteBullets);
+			ToggleInfiniteBullets(activeConfig.infiniteBullets);
+		}
+		ImGui::Text("");
+
+		ImGui::Text("Weapon Wheel");
+
+		ImGui::PushItemWidth(150.0f);
+		GUI_Combo2<int>
+		(
+			"Change Gun",
+			changeGunNewNames,
+			activeConfig.SFX.changeGunNew,
+			queuedConfig.SFX.changeGunNew
+		);
+		ImGui::PopItemWidth();
+
+
+		ImGui::PushItemWidth(150.0f);
+		GUI_Combo2<int>
+		(
+			"Change Devil Arm",
+			changeDevilArmNewNames,
+			activeConfig.SFX.changeDevilArmNew,
+			queuedConfig.SFX.changeDevilArmNew
+		);
+		ImGui::PopItemWidth();
+
+		GUI_InputDefault2
+		(
+			"Change Weapon Volume",
+			activeConfig.SFX.changeWeaponVolume,
+			queuedConfig.SFX.changeWeaponVolume,
+			defaultConfig.SFX.changeWeaponVolume,
+			1,
+			"%u",
+			ImGuiInputTextFlags_EnterReturnsTrue
+		);
+
+
+		/*if
+		(
+			GUI_Checkbox2
+			(
+				"Infinite Hit Points",
+				activeConfig.infiniteHitPoints,
+				queuedConfig.infiniteHitPoints
+			)
+		)
+		{
+			ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
+		}
+
+		if
+		(
+			GUI_Checkbox2
+			(
+				"Infinite Magic Points",
+				activeConfig.infiniteMagicPoints,
+				queuedConfig.infiniteMagicPoints
+			)
+		)
+		{
+			ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
+		}
+
+		if
+		(
+			GUI_Checkbox2
+			(
+				"Disable Timer",
+				activeConfig.disableTimer,
+				queuedConfig.disableTimer
+			)
+		)
+		{
+			ToggleDisableTimer(activeConfig.disableTimer);
+		}
+
+		if
+		(
+			GUI_Checkbox2
+			(
+				"Infinite Bullets",
+				activeConfig.infiniteBullets,
+				queuedConfig.infiniteBullets
+			)
+		)
+		{
+			ToggleInfiniteBullets(activeConfig.infiniteBullets);
+		}
+		ImGui::SameLine();
+		TooltipHelper
+		(
+			"(?)",
+			"For Boss Lady."
+		);*/
+
+
+
+		ImGui::Text("");
+	}
+}
+
+#pragma endregion
+
 #pragma region Vergil
 
 const char * dergilNames[] =
@@ -11336,6 +11479,7 @@ void Main()
 		System();
 		Teleporter();
 		WeaponWheel();
+		SFX();
 		TrainingSection();
 		Vergil();
 

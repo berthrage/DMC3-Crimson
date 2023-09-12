@@ -688,6 +688,16 @@ export struct Config
 	float weaponWheelHorizontalMelee = 495;
 	float weaponWheelHorizontalRanged = 80;
 	float weaponWheelWidthSeparation;	
+	bool weaponWheelAlwaysAppear = 0;
+	int weaponWheelTimeout = 2000;
+
+	struct 
+	{
+		int changeGunNew = 1;
+		int changeDevilArmNew = 1;
+		int changeWeaponVolume = 50; 
+	}
+	SFX;
 
 	struct
 	{

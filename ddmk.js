@@ -1521,6 +1521,7 @@ let libs_x86_64 =
 	"dinput8.lib",
 	"dxguid.lib",
 	"SDL2.lib",
+	"SDL2_mixer.lib",
 	//"xinput.lib",
 	"Xinput9_1_0.lib",
 ];
