@@ -7,6 +7,7 @@
 module;
 #include <thread>
 #include <chrono>
+#include <math.h>
 #include "../ThirdParty/glm/glm.hpp"
 
 
@@ -1958,7 +1959,7 @@ void DevilVFXTrigger(byte8 *actorBaseAddr) {
 
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
 	
-	//activeConfig.Color.Aura.dante[0] = activeConfig.trickStyle;
+	//activeConfig.Color.Aura.dante[0] = activeConfig.trickStyle; 
 	
 	func_1F94D0(actorData, DEVIL_FLUX::START);
 	std::this_thread::sleep_for(std::chrono::milliseconds(8));
@@ -1983,11 +1984,29 @@ void DevilVFXTriggerStyle(byte8 *actorBaseAddr, int style) {
 
 	
 	styleChanged[style] = true;
-	std::this_thread::sleep_for(std::chrono::milliseconds(2));
+	int delayTime1 = 0;
+	int delayTime2 = 0;
+
+	// Adjusting the effect according to Frame-Rate and Game Speed is tricky, but this should work on most setups.
+	if(g_frameRateMultiplier < 1) {
+		delayTime1 = ceil(2 * g_frameRateMultiplier / activeConfig.Speed.mainSpeed);
+		delayTime2 = ceil(18 * g_frameRateMultiplier / activeConfig.Speed.mainSpeed);
+	}
+	else  if (g_frameRateMultiplier > 1){
+		delayTime1 = ceil(2 * activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
+		delayTime2 = ceil(18 * activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
+	}
+	else {
+		delayTime1 = ceil(2 / activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
+		delayTime2 = ceil(18 / activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
+	}
+	
+	std::this_thread::sleep_for(std::chrono::milliseconds(delayTime1));
 	if(styleVFXCount <= 1) {
 		func_1F94D0(actorData, DEVIL_FLUX::START);
 	}
-	std::this_thread::sleep_for(std::chrono::milliseconds(18));
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(delayTime2));
 	styleVFXCount--;
 	func_1F94D0(actorData, 4);
 		
