@@ -1997,8 +1997,15 @@ void DevilVFXTriggerStyle(byte8 *actorBaseAddr, int style) {
 		delayTime2 = ceil(18 * activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
 	}
 	else {
-		delayTime1 = ceil(2 / activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
-		delayTime2 = ceil(18 / activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
+		if(activeConfig.Speed.mainSpeed < 1) {
+			delayTime1 = ceil(2 / activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
+			delayTime2 = ceil(18 / activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
+		}
+		else {
+			delayTime1 = ceil(2 * activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
+			delayTime2 = ceil(18 * activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
+		}
+		
 	}
 	
 	std::this_thread::sleep_for(std::chrono::milliseconds(delayTime1));
