@@ -4316,8 +4316,7 @@ export struct BossHelper
 export struct WeaponWheelTiming {
 	bool wheelAppear = false;
 	bool wheelRunning = false;
-	int wheelCooldown = 1000;
-	int wheelTime = wheelCooldown;
+	int wheelTime = 0;
 };
 
 export WeaponWheelTiming meleeWeaponWheelTiming;

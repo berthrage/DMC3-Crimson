@@ -1278,6 +1278,7 @@ const char * rangedWeaponSwitchControllerArrowName = "RangedWeaponSwitchControll
 
 void MeleeWeaponWheelTimeTracker() 
 {
+	meleeWeaponWheelTiming.wheelTime = activeConfig.MeleeWeaponWheel.timeout;
 	meleeWeaponWheelTiming.wheelRunning = true;
 	while (meleeWeaponWheelTiming.wheelTime > 0) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -1294,6 +1295,7 @@ void MeleeWeaponWheelTimeTracker()
 
 void RangedWeaponWheelTimeTracker() 
 {
+	rangedWeaponWheelTiming.wheelTime = activeConfig.RangedWeaponWheel.timeout;
 	rangedWeaponWheelTiming.wheelRunning = true;
 	while (rangedWeaponWheelTiming.wheelTime > 0) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -1415,32 +1417,38 @@ void MeleeWeaponSwitchController()
 	}
 
 	// HIDE WEAPON UI WHEN NOT HOLDING BUTTON, WITH DELAY
-	if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))) {
-		meleeWeaponWheelTiming.wheelAppear = true;
-		meleeWeaponWheelTiming.wheelTime = meleeWeaponWheelTiming.wheelCooldown;
-	}
-
-	if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)) && meleeWeaponWheelTiming.wheelAppear)) {
-		if (!meleeWeaponWheelTiming.wheelRunning) {
-                std::thread meleewheeltracker(MeleeWeaponWheelTimeTracker);
-                meleewheeltracker.detach();
-        }
-	}
-
-	if (characterData.character == CHARACTER::VERGIL)
-	{
-		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
+	if(!activeConfig.MeleeWeaponWheel.alwaysShow) {
+		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))) {
 			meleeWeaponWheelTiming.wheelAppear = true;
-			meleeWeaponWheelTiming.wheelTime = meleeWeaponWheelTiming.wheelCooldown;
+			//meleeWeaponWheelTiming.wheelTime = activeConfig.MeleeWeaponWheel.timeout;
 		}
 
-		if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)) && meleeWeaponWheelTiming.wheelAppear)) {
+		if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)) && meleeWeaponWheelTiming.wheelAppear)) {
 			if (!meleeWeaponWheelTiming.wheelRunning) {
-                std::thread meleewheeltracker(MeleeWeaponWheelTimeTracker);
-                meleewheeltracker.detach();
-        	}
+					std::thread meleewheeltracker(MeleeWeaponWheelTimeTracker);
+					meleewheeltracker.detach();
+			}
+		}
+
+		if (characterData.character == CHARACTER::VERGIL)
+		{
+			if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
+				meleeWeaponWheelTiming.wheelAppear = true;
+				//meleeWeaponWheelTiming.wheelTime = activeConfig.MeleeWeaponWheel.timeout;
+			}
+
+			if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)) && meleeWeaponWheelTiming.wheelAppear)) {
+				if (!meleeWeaponWheelTiming.wheelRunning) {
+					std::thread meleewheeltracker(MeleeWeaponWheelTimeTracker);
+					meleewheeltracker.detach();
+				}
+			}
 		}
 	}
+	else {
+		meleeWeaponWheelTiming.wheelAppear = true;
+	}
+	
 	
 	
 	if (!meleeWeaponWheelTiming.wheelAppear) {
@@ -1701,17 +1709,23 @@ void RangedWeaponSwitchController()
 	}
 
 	//HIDE WEAPON SWITCH UI WHEN NOT HOLDING BUTTON, WITH DELAY
-	if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
-		rangedWeaponWheelTiming.wheelAppear = true;
-		rangedWeaponWheelTiming.wheelTime = rangedWeaponWheelTiming.wheelCooldown;
-	}
+	if(!activeConfig.RangedWeaponWheel.alwaysShow) {
+		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
+			rangedWeaponWheelTiming.wheelAppear = true;
+			//rangedWeaponWheelTiming.wheelTime = activeConfig.RangedWeaponWheel.timeout;
+		}
 
-	if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)) && rangedWeaponWheelTiming.wheelAppear)) {
-		if (!rangedWeaponWheelTiming.wheelRunning) {
-                std::thread rangedwheeltracker(RangedWeaponWheelTimeTracker);
-                rangedwheeltracker.detach();
-        }
+		if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)) && rangedWeaponWheelTiming.wheelAppear)) {
+			if (!rangedWeaponWheelTiming.wheelRunning) {
+					std::thread rangedwheeltracker(RangedWeaponWheelTimeTracker);
+					rangedwheeltracker.detach();
+			}
+		}
 	}
+	else {
+		rangedWeaponWheelTiming.wheelAppear = true;
+	}
+	
 	
 	
 	if (!rangedWeaponWheelTiming.wheelAppear) {
@@ -2028,7 +2042,7 @@ void WeaponSwitchControllerSettings()
 	}
 	ImGui::Text("");
 
-	GUI_Checkbox2
+	/*GUI_Checkbox2
 	(
 		"Force Icon Focus",
 		activeConfig.forceIconFocus,
@@ -2041,7 +2055,7 @@ void WeaponSwitchControllerSettings()
 		"Show Textures",
 		g_showTextures
 	);
-	ImGui::Text("");
+	ImGui::Text("");*/
 
 	const float defaultWidth = 1920;
 	const float defaultHeight = 1080;
@@ -2051,7 +2065,45 @@ void WeaponSwitchControllerSettings()
 
 	ImGui::PushItemWidth(200);
 
-	ImGui::Text("Weapon Wheel HUD Configurations");
+
+	GUI_Checkbox2
+	(
+		"Melee Wheel Always Show",
+		activeConfig.MeleeWeaponWheel.alwaysShow,
+		queuedConfig.MeleeWeaponWheel.alwaysShow
+	);
+	GUI_Checkbox2
+	(
+		"Ranged Wheel Always Show",
+		activeConfig.RangedWeaponWheel.alwaysShow,
+		queuedConfig.RangedWeaponWheel.alwaysShow
+	);
+	ImGui::Text("");
+
+
+	GUI_InputDefault2<int>
+	(
+			"Melee Wheel Timeout",
+			activeConfig.MeleeWeaponWheel.timeout,
+			queuedConfig.MeleeWeaponWheel.timeout,
+			defaultConfig.MeleeWeaponWheel.timeout,
+			1,
+			"%u",
+			ImGuiInputTextFlags_EnterReturnsTrue
+	);
+
+	GUI_InputDefault2<int>
+	(
+			"Ranged Wheel Timeout",
+			activeConfig.RangedWeaponWheel.timeout,
+			queuedConfig.RangedWeaponWheel.timeout,
+			defaultConfig.RangedWeaponWheel.timeout,
+			1,
+			"%u",
+			ImGuiInputTextFlags_EnterReturnsTrue
+	);
+	ImGui::Text("");
+
 
 	GUI_InputDefault2<float>
 	(
@@ -9259,6 +9311,8 @@ void MainOverlayWindow()
 			ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
 			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
 			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
+
+			//Storing Momentum
 			if(actorData.action != EBONY_IVORY_RAIN_STORM) {
 				rainstormMomentum = actorData.horizontalPull;
 				raveRotation = actorData.rotation;

@@ -10017,13 +10017,84 @@ void AirRaveInertiaTracker() {
 	airRaveInertia.trackerRunning = false;
 }
 
-void UpdateActorSpeed(byte8 *baseAddr)
-{
+void InertiaController(byte8 *actorBaseAddr) {
+	// Inertia implementation. Momentum (or Pull) is stored before a certain move is executed, then
+	// when it's executed that Pull is preserved and carries over, some moves had their overall momentum
+	// increased a bit as well.
+
 	using namespace ACTION_DANTE;
 	using namespace ACTION_VERGIL;
 
-	
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
 
+	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
+	auto & gamepad = GetGamepad(0);
+
+
+				if(actorData.character == CHARACTER::DANTE) {
+		
+					if (actorData.action == EBONY_IVORY_RAIN_STORM) {
+						
+						rainstormMomentum = glm::clamp(rainstormMomentum, 0.0f, 9.0f);
+						actorData.horizontalPull = rainstormMomentum / airRaveInertia.pullHaltDivisor;
+						
+						//actorData.horizontalPullMultiplier = 0.2f;
+					}
+					else if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT) {
+						actorData.horizontalPullMultiplier = 0.03f;
+					}
+					else if (actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_4 ) {
+						/*if(!airRaveInertia.trackerRunning) {
+							std::thread airraveinertiatracker(AirRaveInertiaTracker);
+            				airraveinertiatracker.detach();
+						}*/
+						
+						airRaveInertia.cachedPull = glm::clamp(airRaveInertia.cachedPull, 0.0f, 9.0f);
+						actorData.horizontalPull = (airRaveInertia.cachedPull / 5.0f) * - 1.0f;
+						
+						
+						/*if(actorData.rotation == relativeTiltController) {
+							actorData.rotation = actorData.actorCameraDirection;
+						}*/
+						
+
+						//actorData.horizontalPullMultiplier = 0;
+						//actorData.verticalPullMultiplier = -0.18f;
+						//actorData.horizontalPullMultiplier = -0.12f;
+					}
+					else if (actorData.action == CERBERUS_AIR_FLICKER) {
+						actorData.horizontalPullMultiplier = -0.18f;
+					}
+					else if (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
+					actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
+					actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) {
+						actorData.horizontalPullMultiplier = -0.16f;
+					}
+					else if (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
+					actorData.action == NEVAN_AIR_SLASH_PART_2) {
+						actorData.horizontalPullMultiplier = 0.4f;
+					}
+					else if (actorData.action == NEVAN_AIR_PLAY) {
+						actorData.horizontalPullMultiplier = 0.2f;
+					}
+					else if (actorData.action == BEOWULF_KILLER_BEE) {
+						//actorData.horizontalPull = 10;
+						//actorData.horizontalPullMultiplier = 0.0001f;
+					}
+					else if (actorData.action == TRICKSTER_AIR_TRICK) {
+						actorData.horizontalPullMultiplier = 0.2f;
+					}
+						
+				}
+}
+
+void UpdateActorSpeed(byte8 *baseAddr)
+{
+	
 	if (!baseAddr)
 	{
 		return;
@@ -10097,6 +10168,15 @@ void UpdateActorSpeed(byte8 *baseAddr)
 				auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
 				auto tiltDirection = GetRelativeTiltDirection(actorData);
 				auto & gamepad = GetGamepad(0);
+
+
+				InertiaController(actorBaseAddr);
+
+				
+
+
+
+				actorData.styleData.meter = 200;
 				
 
 				relativeTiltController = (actorData.cameraDirection - (gamepad.leftStickPosition));
@@ -10154,70 +10234,10 @@ void UpdateActorSpeed(byte8 *baseAddr)
 				
 				
 
-				// Inertia implementation
-				if(actorData.character == CHARACTER::DANTE) {
-		
-					if (actorData.action == EBONY_IVORY_RAIN_STORM) {
-						
-						rainstormMomentum = glm::clamp(rainstormMomentum, 0.0f, 9.0f);
-						actorData.horizontalPull = rainstormMomentum / airRaveInertia.pullHaltDivisor;
-						
-						//actorData.horizontalPullMultiplier = 0.2f;
-					}
-					else if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT) {
-						actorData.horizontalPullMultiplier = 0.03f;
-					}
-					else if (actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_4 ) {
-						/*if(!airRaveInertia.trackerRunning) {
-							std::thread airraveinertiatracker(AirRaveInertiaTracker);
-            				airraveinertiatracker.detach();
-						}*/
-						
-						airRaveInertia.cachedPull = glm::clamp(airRaveInertia.cachedPull, 0.0f, 9.0f);
-						actorData.horizontalPull = (airRaveInertia.cachedPull / 5.0f) * - 1.0f;
-						
-						
-						/*if(actorData.rotation == relativeTiltController) {
-							actorData.rotation = actorData.actorCameraDirection;
-						}*/
-						
-
-						//actorData.horizontalPullMultiplier = 0;
-						//actorData.verticalPullMultiplier = -0.18f;
-						//actorData.horizontalPullMultiplier = -0.12f;
-					}
-					else if (actorData.action == CERBERUS_AIR_FLICKER) {
-						actorData.horizontalPullMultiplier = -0.18f;
-					}
-					else if (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
-					actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
-					actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) {
-						actorData.horizontalPullMultiplier = -0.16f;
-					}
-					else if (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
-					actorData.action == NEVAN_AIR_SLASH_PART_2) {
-						actorData.horizontalPullMultiplier = 0.4f;
-					}
-					else if (actorData.action == NEVAN_AIR_PLAY) {
-						actorData.horizontalPullMultiplier = 0.2f;
-					}
-					else if (actorData.action == BEOWULF_KILLER_BEE) {
-						//actorData.horizontalPull = 10;
-						//actorData.horizontalPullMultiplier = 0.0001f;
-					}
-					else if (actorData.action == TRICKSTER_AIR_TRICK) {
-						actorData.horizontalPullMultiplier = 0.2f;
-					}
 				
-						
-						
-				}
 				
 				//actorData.horizontalPullMultiplier = 0.005f;
-				actorData.styleData.meter = 200;
+				
 
 
 				//SPRINT ABILITY
