@@ -1984,26 +1984,28 @@ void DevilVFXTriggerStyle(byte8 *actorBaseAddr, int style) {
 
 	
 	styleChanged[style] = true;
+
 	int delayTime1 = 0;
 	int delayTime2 = 0;
+	auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 
 	// Adjusting the effect according to Frame-Rate and Game Speed is tricky, but this should work on most setups.
 	if(g_frameRateMultiplier < 1) {
-		delayTime1 = ceil(2 * g_frameRateMultiplier / activeConfig.Speed.mainSpeed);
-		delayTime2 = ceil(18 * g_frameRateMultiplier / activeConfig.Speed.mainSpeed);
+		delayTime1 = ceil(2 * g_frameRateMultiplier / speedValue);
+		delayTime2 = ceil(18 * g_frameRateMultiplier / speedValue);
 	}
 	else  if (g_frameRateMultiplier > 1){
-		delayTime1 = ceil(2 * activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
-		delayTime2 = ceil(18 * activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
+		delayTime1 = ceil(2 * speedValue * g_frameRateMultiplier);
+		delayTime2 = ceil(18 * speedValue * g_frameRateMultiplier);
 	}
 	else {
 		if(activeConfig.Speed.mainSpeed < 1) {
-			delayTime1 = ceil(2 / activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
-			delayTime2 = ceil(18 / activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
+			delayTime1 = ceil(2 / speedValue * g_frameRateMultiplier);
+			delayTime2 = ceil(18 / speedValue * g_frameRateMultiplier);
 		}
 		else {
-			delayTime1 = ceil(2 * activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
-			delayTime2 = ceil(18 * activeConfig.Speed.mainSpeed * g_frameRateMultiplier);
+			delayTime1 = ceil(2 * speedValue * g_frameRateMultiplier);
+			delayTime2 = ceil(18 * speedValue * g_frameRateMultiplier);
 		}
 		
 	}
@@ -4095,10 +4097,11 @@ void ResetPermissionsController(byte8 *actorBaseAddr)
 
 void TrickUpCancelCooldownTracker() {
 
+	auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 
 	trickUpCancel.trackerRunning = true;
 	trickUpCancel.canTrickUp = false;
-	trickUpCancel.cooldown = trickUpCancel.cooldownDuration;
+	trickUpCancel.cooldown = trickUpCancel.cooldownDuration / speedValue;
 	while (trickUpCancel.cooldown > 0) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		trickUpCancel.cooldown--;
@@ -4114,9 +4117,11 @@ void TrickUpCancelCooldownTracker() {
 }
 
 void GunslingerAirCancelCooldownTracker() {
+	auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+
 	gunsCancel.trackerRunning = true;
 	gunsCancel.canGun = false;
-	gunsCancel.cooldown = gunsCancel.cooldownDuration;
+	gunsCancel.cooldown = gunsCancel.cooldownDuration / speedValue;
 	while (gunsCancel.cooldown > 0) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		gunsCancel.cooldown--;
