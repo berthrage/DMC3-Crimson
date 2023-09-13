@@ -9266,24 +9266,29 @@ void MainOverlayWindow()
 				ImGui::Text("Rotation %u", actorData.rotation  );
 			}();
 
-			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
-			/*ImGui::Text("SDL2 %s", SDL2Initialization);
-			ImGui::Text("Mixer  %s", MixerInitialization);
-			ImGui::Text("Mixer2  %s", MixerInitialization2);*/
-			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
-			ImGui::Text("Wheel Running %u", meleeWeaponWheelTiming.wheelRunning);
-			ImGui::Text("Wheel Time %u", meleeWeaponWheelTiming.wheelTime);
-			ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap.buffer);
-			ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap.buffer);
-			
-			ImGui::Text("trickUpCooldown %u", trickUpCancel.cooldown);
-			ImGui::Text("styleVFXCount %u", styleVFXCount);
-
 			IntroduceEnemyVectorData(return);
 			IntroduceMainActorData(actorData, return);
 			auto &characterData = GetCharacterData(actorData);
 			auto &cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
 			auto & gamepad = GetGamepad(0);
+
+			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
+			/*ImGui::Text("SDL2 %s", SDL2Initialization);
+			ImGui::Text("Mixer  %s", MixerInitialization);
+			ImGui::Text("Mixer2  %s", MixerInitialization2);*/
+			/*
+			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
+			ImGui::Text("Wheel Running %u", meleeWeaponWheelTiming.wheelRunning);
+			ImGui::Text("Wheel Time %u", meleeWeaponWheelTiming.wheelTime);
+			ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap.buffer);
+			ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap.buffer);
+			*/
+			
+			ImGui::Text("Doppelganger Active %u", actorData.doppelganger);
+			ImGui::Text("trickUpCooldown %u", trickUpCancel.cooldown);
+			ImGui::Text("styleVFXCount %u", styleVFXCount);
+
+			
 
 			using namespace ACTION_DANTE;
 			using namespace ACTION_VERGIL;

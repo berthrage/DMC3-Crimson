@@ -4308,6 +4308,27 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 					execute = true;
 				}
 			}
+			
+			// Air Revolver Cancelling with Swordmaster moves
+			if((actorData.style == STYLE::SWORDMASTER) && 
+				(actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2)) {
+				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
+				{
+
+					if (execute)
+					{
+						execute = false;
+
+						actorData.state &= ~STATE::BUSY;
+
+					}
+				}
+				else
+				{
+					execute = true;
+				}
+			}
+
 
 			/*if ((actorData.style == STYLE::ROYALGUARD) &&
 					(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
@@ -10092,6 +10113,17 @@ void InertiaController(byte8 *actorBaseAddr) {
 				}
 }
 
+void StyleMeterDoppelganger(byte8 *actorBaseAddr) {
+	IntroduceMainActorData(actorData, return);
+	auto &characterData = GetCharacterData(actorData);
+	auto &cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
+
+	if (actorData.doppelganger) {
+		cloneActorData.styleData.rank = actorData.styleData.rank;
+		actorData.styleData.meter = glm::max(actorData.styleData.meter, cloneActorData.styleData.meter);
+	}
+}
+
 void UpdateActorSpeed(byte8 *baseAddr)
 {
 	
@@ -10172,11 +10204,11 @@ void UpdateActorSpeed(byte8 *baseAddr)
 
 				InertiaController(actorBaseAddr);
 
-				
+				// Doppelganger's attacks can now hold/increase your style meter
+				StyleMeterDoppelganger(actorBaseAddr);
 
 
-
-				actorData.styleData.meter = 200;
+				//actorData.styleData.meter = 200;
 				
 
 				relativeTiltController = (actorData.cameraDirection - (gamepad.leftStickPosition));
