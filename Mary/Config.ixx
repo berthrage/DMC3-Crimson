@@ -693,7 +693,7 @@ export struct Config
 	struct WeaponWheel
 	{
 		bool alwaysShow = false;
-		int timeout = 1000;
+		uint32 timeout = 700;
 	} MeleeWeaponWheel;
 
 	WeaponWheel RangedWeaponWheel;

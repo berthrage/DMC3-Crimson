@@ -1420,7 +1420,6 @@ void MeleeWeaponSwitchController()
 	if(!activeConfig.MeleeWeaponWheel.alwaysShow) {
 		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))) {
 			meleeWeaponWheelTiming.wheelAppear = true;
-			//meleeWeaponWheelTiming.wheelTime = activeConfig.MeleeWeaponWheel.timeout;
 		}
 
 		if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)) && meleeWeaponWheelTiming.wheelAppear)) {
@@ -1434,7 +1433,6 @@ void MeleeWeaponSwitchController()
 		{
 			if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
 				meleeWeaponWheelTiming.wheelAppear = true;
-				//meleeWeaponWheelTiming.wheelTime = activeConfig.MeleeWeaponWheel.timeout;
 			}
 
 			if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)) && meleeWeaponWheelTiming.wheelAppear)) {
@@ -1566,12 +1564,6 @@ void MeleeWeaponSwitchController()
 			}
 			
 		}
-
-		
-		
-		
-		
-		
 		
 	}
 
@@ -1712,7 +1704,7 @@ void RangedWeaponSwitchController()
 	if(!activeConfig.RangedWeaponWheel.alwaysShow) {
 		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
 			rangedWeaponWheelTiming.wheelAppear = true;
-			//rangedWeaponWheelTiming.wheelTime = activeConfig.RangedWeaponWheel.timeout;
+			
 		}
 
 		if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)) && rangedWeaponWheelTiming.wheelAppear)) {
@@ -2081,26 +2073,24 @@ void WeaponSwitchControllerSettings()
 	ImGui::Text("");
 
 
-	GUI_InputDefault2<int>
+	GUI_InputDefault2<uint32>
 	(
 			"Melee Wheel Timeout",
 			activeConfig.MeleeWeaponWheel.timeout,
 			queuedConfig.MeleeWeaponWheel.timeout,
 			defaultConfig.MeleeWeaponWheel.timeout,
 			1,
-			"%u",
-			ImGuiInputTextFlags_EnterReturnsTrue
+			"%u"
 	);
 
-	GUI_InputDefault2<int>
+	GUI_InputDefault2<uint32>
 	(
 			"Ranged Wheel Timeout",
 			activeConfig.RangedWeaponWheel.timeout,
 			queuedConfig.RangedWeaponWheel.timeout,
 			defaultConfig.RangedWeaponWheel.timeout,
 			1,
-			"%u",
-			ImGuiInputTextFlags_EnterReturnsTrue
+			"%u"
 	);
 	ImGui::Text("");
 
