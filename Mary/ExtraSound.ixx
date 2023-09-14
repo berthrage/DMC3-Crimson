@@ -21,7 +21,8 @@ export bool cacheAudioFiles = false;
 Mix_Chunk* changeGun;
 Mix_Chunk* changeDevilArm;
 Mix_Chunk* styleChange;
-
+Mix_Chunk* sprintL1;
+Mix_Chunk* sprintL2;
 
 
 
@@ -78,6 +79,8 @@ export void initSDL() {
         changeGun = Mix_LoadWAV("sound/changegun.wav");
         changeDevilArm = Mix_LoadWAV("sound/changedevilarm.wav");
         styleChange = Mix_LoadWAV("sound/stylechange.wav");
+        sprintL1 = Mix_LoadWAV("sound/sprint_l1.wav");
+        sprintL2 = Mix_LoadWAV("sound/sprint_l1.wav");
 
 
 		cacheAudioFiles = true;
@@ -170,4 +173,12 @@ export void playChangeGun() {
 
 export void playStyleChange() {
     PlayOnChannelsFadeOut(40, 59, styleChange, activeConfig.SFX.styleChangeVolume, 150);
+}
+
+export void playSprint() {
+    
+    Mix_Volume(300, activeConfig.SFX.sprintVolume);
+    Mix_Volume(301, activeConfig.SFX.sprintVolume);
+    Mix_PlayChannel(300, sprintL1, 0);
+    Mix_PlayChannel(301, sprintL2, 0);
 }

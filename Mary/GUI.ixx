@@ -9196,6 +9196,8 @@ void MainOverlayWindow()
 				g_renderSize.y
 			);
 		}
+		
+
 
 		if (activeConfig.mainOverlayData.showFrameRateMultiplier)
 		{
@@ -9223,7 +9225,7 @@ void MainOverlayWindow()
 			{
 				ImGui::Text(sceneNames[g_scene]);
 			}
-
+			
 			[&]()
 			{
 				if (g_scene != SCENE::GAME)
@@ -9247,11 +9249,13 @@ void MainOverlayWindow()
 
 				ImGui::Text("room         %u", eventData.room        );
 				ImGui::Text("position     %u", eventData.position    );
+				ImGui::Text("position     %u", eventData.event  );
 				ImGui::Text("nextRoom     %u", nextEventData.room    );
 				ImGui::Text("nextPosition %u", nextEventData.position);
 			}();
 
 			ImGui::Text("");
+			
 		}
 
 		if (activeConfig.mainOverlayData.showPosition)
@@ -9266,11 +9270,19 @@ void MainOverlayWindow()
 				ImGui::Text("Rotation %u", actorData.rotation  );
 			}();
 
-			IntroduceEnemyVectorData(return);
+			
 			IntroduceMainActorData(actorData, return);
 			auto &characterData = GetCharacterData(actorData);
 			auto &cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
 			auto & gamepad = GetGamepad(0);
+
+			IntroduceEnemyVectorData(return);
+			IntroduceEventData(return);
+
+			ImGui::Text("Enemy Count %u", enemyVectorData.count);
+			ImGui::Text("in Combat %u", inCombat);
+			ImGui::Text("in Combat Time %u", inCombatTime);
+			//ImGui::Text("Track %s", eventData.track);
 
 			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
 			/*ImGui::Text("SDL2 %s", SDL2Initialization);
@@ -9294,7 +9306,7 @@ void MainOverlayWindow()
 			using namespace ACTION_VERGIL;
 
 			ImGui::Text("royalguardReleaseDamage %g", actorData.royalguardReleaseDamage);
-			ImGui::Text("Enemy Count %u", enemyVectorData.count);
+			
 			ImGui::Text("State %u", actorData.state);
 			ImGui::Text("Position  %g", actorData.position);
 			ImGui::Text("Rotation %g", actorData.rotation);

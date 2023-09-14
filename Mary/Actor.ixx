@@ -10120,7 +10120,81 @@ void StyleMeterDoppelganger(byte8 *actorBaseAddr) {
 
 	if (actorData.doppelganger) {
 		cloneActorData.styleData.rank = actorData.styleData.rank;
-		actorData.styleData.meter = glm::max(actorData.styleData.meter, cloneActorData.styleData.meter);
+
+		if(actorData.styleData.meter > 50) {
+			actorData.styleData.meter = glm::max(actorData.styleData.meter, cloneActorData.styleData.meter);
+		}
+		
+	}
+}
+
+void inCombatDetectionTracker() {
+	inCombatTrackerRunning = true;
+	inCombatTime = inCombatDelay;
+	while (inCombatTime > 0) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		inCombatTime--;
+	}
+    
+
+	if (inCombatTime == 0) 
+	{	
+		inCombatTrackerRunning = false;
+		inCombat = false;
+	}
+
+}
+
+void inCombatDetection() {
+	IntroduceEnemyVectorData(return);
+
+	if(g_scene != SCENE::GAME) {
+		inCombat = false;
+	}
+	else {
+		if(enemyVectorData.count >= 1) {
+			inCombat = true;
+		}
+		else if(enemyVectorData.count == 0 && !inCombatTrackerRunning && inCombat) {
+			std::thread incombatdetectiontracker(inCombatDetectionTracker);
+			incombatdetectiontracker.detach();
+		}
+	}
+	
+}
+
+void SprintAbility() {
+	IntroduceMainActorData(actorData, return);
+	
+	if(!sprint.isSprinting) {
+		sprint.storedSpeedHuman = activeConfig.Speed.human;
+		sprint.storedSpeedDevil = activeConfig.Speed.devilDante[0];
+		sprint.SFXPlayed = false;
+	}
+	
+
+	if(actorData.state == 524289 && !inCombat) {
+	
+		
+		float sprintSpeed = sprint.storedSpeedHuman * 1.3f;
+		float sprintSpeedDevil = sprint.storedSpeedDevil * 1.3f;
+
+		activeConfig.Speed.human = sprintSpeed;
+		activeConfig.Speed.devilDante[0] = sprintSpeedDevil;
+		if(!sprint.SFXPlayed) {
+			playSprint();
+			sprint.SFXPlayed = true;
+		}
+
+		sprint.isSprinting = true;
+			
+		
+	} else {
+		activeConfig.Speed.human = sprint.storedSpeedHuman;
+		activeConfig.Speed.devilDante[0] = sprint.storedSpeedDevil;
+		sprint.isSprinting = false;
+
+		
 	}
 }
 
@@ -10206,6 +10280,10 @@ void UpdateActorSpeed(byte8 *baseAddr)
 
 				// Doppelganger's attacks can now hold/increase your style meter
 				StyleMeterDoppelganger(actorBaseAddr);
+
+				inCombatDetection();
+
+				SprintAbility();
 
 
 				//actorData.styleData.meter = 200;

@@ -5,7 +5,9 @@ module;
 export module Vars;
 
 import Core;
+import Windows;
 
+using namespace Windows;
 
 #include "../Core/Macros.h"
 
@@ -4382,8 +4384,20 @@ export bool styleChanged[6] = { false, false,
 								false, false, 
 								false, false };
 
+export bool inCombatTrackerRunning = false;
+export int inCombatDelay = 2000;
+export int inCombatTime = inCombatDelay;
 export bool inCombat = false;
+export DWORD inCombatGameAddress =  0x005F17CC;
 
+export struct Sprint{
+	bool isSprinting = false;
+	bool SFXPlayed = false;
+	float storedSpeedHuman = 0;
+	float storedSpeedDevil = 0;
+	
+
+} sprint;
 
 
 
