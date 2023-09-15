@@ -1278,7 +1278,7 @@ const char * rangedWeaponSwitchControllerArrowName = "RangedWeaponSwitchControll
 
 void MeleeWeaponWheelTimeTracker() 
 {
-	meleeWeaponWheelTiming.wheelTime = activeConfig.MeleeWeaponWheel.timeout;
+	
 	meleeWeaponWheelTiming.wheelRunning = true;
 	while (meleeWeaponWheelTiming.wheelTime > 0) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -1295,7 +1295,6 @@ void MeleeWeaponWheelTimeTracker()
 
 void RangedWeaponWheelTimeTracker() 
 {
-	rangedWeaponWheelTiming.wheelTime = activeConfig.RangedWeaponWheel.timeout;
 	rangedWeaponWheelTiming.wheelRunning = true;
 	while (rangedWeaponWheelTiming.wheelTime > 0) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -1419,6 +1418,7 @@ void MeleeWeaponSwitchController()
 	// HIDE WEAPON UI WHEN NOT HOLDING BUTTON, WITH DELAY
 	if(!activeConfig.MeleeWeaponWheel.alwaysShow) {
 		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))) {
+			meleeWeaponWheelTiming.wheelTime = activeConfig.MeleeWeaponWheel.timeout;
 			meleeWeaponWheelTiming.wheelAppear = true;
 		}
 
@@ -1432,6 +1432,7 @@ void MeleeWeaponSwitchController()
 		if (characterData.character == CHARACTER::VERGIL)
 		{
 			if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
+				meleeWeaponWheelTiming.wheelTime = activeConfig.MeleeWeaponWheel.timeout;
 				meleeWeaponWheelTiming.wheelAppear = true;
 			}
 
@@ -1703,6 +1704,7 @@ void RangedWeaponSwitchController()
 	//HIDE WEAPON SWITCH UI WHEN NOT HOLDING BUTTON, WITH DELAY
 	if(!activeConfig.RangedWeaponWheel.alwaysShow) {
 		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
+			rangedWeaponWheelTiming.wheelTime = activeConfig.RangedWeaponWheel.timeout;
 			rangedWeaponWheelTiming.wheelAppear = true;
 			
 		}
@@ -9284,6 +9286,8 @@ void MainOverlayWindow()
 			ImGui::Text("in Combat Time %u", inCombatTime);
 			//ImGui::Text("Track %s", eventData.track);
 
+			ImGui::Text("Sprint Time %u", sprint.time);
+			ImGui::Text("canSprint %u", sprint.canSprint);
 			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
 			/*ImGui::Text("SDL2 %s", SDL2Initialization);
 			ImGui::Text("Mixer  %s", MixerInitialization);

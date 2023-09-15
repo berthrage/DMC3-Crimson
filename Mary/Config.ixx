@@ -704,7 +704,7 @@ export struct Config
 		int changeDevilArmNew = 1;
 		int changeWeaponVolume = 40; 
 		int styleChangeVolume = 7;
-		int sprintVolume = 30;
+		int sprintVolume = 20;
 	}
 	SFX;
 

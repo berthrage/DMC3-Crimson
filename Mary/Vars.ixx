@@ -4391,10 +4391,15 @@ export bool inCombat = false;
 export DWORD inCombatGameAddress =  0x005F17CC;
 
 export struct Sprint{
+	bool trackerRunning = false;
+	bool canSprint = false;
+	int cooldown = 3000;
+	int time = cooldown;
 	bool isSprinting = false;
 	bool SFXPlayed = false;
 	float storedSpeedHuman = 0;
-	float storedSpeedDevil = 0;
+	float storedSpeedDevilDante[5] = {0};
+	float storedSpeedDevilVergil[4] = {0};
 	
 
 } sprint;

@@ -10163,24 +10163,88 @@ void inCombatDetection() {
 	
 }
 
+void SprintTracker() {
+	sprint.trackerRunning = true;
+	
+	while (sprint.time > 0) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		sprint.time--;
+	}
+    
+
+	if (sprint.time == 0) 
+	{	
+		sprint.trackerRunning = false;
+		sprint.canSprint = true;
+		
+	}
+
+}
+
+
 void SprintAbility() {
 	IntroduceMainActorData(actorData, return);
 	
 	if(!sprint.isSprinting) {
 		sprint.storedSpeedHuman = activeConfig.Speed.human;
-		sprint.storedSpeedDevil = activeConfig.Speed.devilDante[0];
+		for(int i = 0; i < 6; i++) {
+			sprint.storedSpeedDevilDante[i] = activeConfig.Speed.devilDante[i];
+			if(i != 5) {
+				sprint.storedSpeedDevilVergil[i] = activeConfig.Speed.devilVergil[i];
+			}
+		}
+		
 		sprint.SFXPlayed = false;
 	}
 	
-
 	if(actorData.state == 524289 && !inCombat) {
-	
 		
+		if(!sprint.trackerRunning && !sprint.canSprint) {
+			sprint.time = sprint.cooldown;
+			std::thread sprinttracker(SprintTracker);
+			sprinttracker.detach();
+		}
+	}
+	else {
+		
+		sprint.time = 0;
+		sprint.trackerRunning = false;
+		sprint.canSprint = false;
+	}
+
+	if(sprint.canSprint) {
+
 		float sprintSpeed = sprint.storedSpeedHuman * 1.3f;
-		float sprintSpeedDevil = sprint.storedSpeedDevil * 1.3f;
+		float sprintSpeedDevilDante[6];
+		float sprintSpeedDevilVergil[5];
+
+
+		if(actorData.character == CHARACTER::DANTE) {
+
+			for(int i = 0; i < 6; i++){
+				sprintSpeedDevilDante[i] = sprint.storedSpeedDevilDante[i] * 1.3f;
+			}
+		}
+		else if(actorData.character == CHARACTER::VERGIL) {
+			for(int i = 0; i < 5; i++){
+				sprintSpeedDevilVergil[i] = sprint.storedSpeedDevilVergil[i] * 1.3f;
+			}
+		}
+		
 
 		activeConfig.Speed.human = sprintSpeed;
-		activeConfig.Speed.devilDante[0] = sprintSpeedDevil;
+		if(actorData.character == CHARACTER::DANTE) {
+
+			activeConfig.Speed.devilDante[0] = sprintSpeedDevilDante[0] * 1.3f;
+
+			
+		}
+		else if(actorData.character == CHARACTER::VERGIL) {
+			for(int i = 0; i < 5; i++){
+				activeConfig.Speed.devilVergil[i] = sprintSpeedDevilVergil[i] * 1.3f;
+			}
+		}
+	
 		if(!sprint.SFXPlayed) {
 			playSprint();
 			sprint.SFXPlayed = true;
@@ -10191,7 +10255,18 @@ void SprintAbility() {
 		
 	} else {
 		activeConfig.Speed.human = sprint.storedSpeedHuman;
-		activeConfig.Speed.devilDante[0] = sprint.storedSpeedDevil;
+		if(actorData.character == CHARACTER::DANTE) {
+
+			for(int i = 0; i < 6; i++){
+				activeConfig.Speed.devilDante[i] = sprint.storedSpeedDevilDante[i] * 1.3f;
+			}
+		}
+		else if(actorData.character == CHARACTER::VERGIL) {
+			for(int i = 0; i < 5; i++){
+				activeConfig.Speed.devilVergil[i] = sprint.storedSpeedDevilVergil[i] * 1.3f;
+			}
+		}
+	
 		sprint.isSprinting = false;
 
 		
