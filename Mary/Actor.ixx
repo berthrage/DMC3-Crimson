@@ -10186,15 +10186,32 @@ void SprintAbility() {
 	IntroduceMainActorData(actorData, return);
 	
 	if(!sprint.isSprinting) {
+		// Storing the actor's set speed when not sprinting.
 		sprint.storedSpeedHuman = activeConfig.Speed.human;
-		sprint.storedSpeedDevilDante[0] = activeConfig.Speed.devilDante[0];
+
+		if(actorData.character == CHARACTER::DANTE) {
+			sprint.storedSpeedDevilDante[0] = activeConfig.Speed.devilDante[0];
+			sprint.storedSpeedDevilDante[1] = activeConfig.Speed.devilDante[1];
+			sprint.storedSpeedDevilDante[2] = activeConfig.Speed.devilDante[2];
+			sprint.storedSpeedDevilDante[3] = activeConfig.Speed.devilDante[3];
+			sprint.storedSpeedDevilDante[4] = activeConfig.Speed.devilDante[4];
+			sprint.storedSpeedDevilDante[5] = activeConfig.Speed.devilDante[5];
+		}
+		else if (actorData.character == CHARACTER::VERGIL) {
+			sprint.storedSpeedDevilVergil[0] = activeConfig.Speed.devilVergil[0];
+			sprint.storedSpeedDevilVergil[1] = activeConfig.Speed.devilVergil[1];
+			sprint.storedSpeedDevilVergil[2] = activeConfig.Speed.devilVergil[2];
+			sprint.storedSpeedDevilVergil[3] = activeConfig.Speed.devilVergil[3];
+			sprint.storedSpeedDevilVergil[4] = activeConfig.Speed.devilVergil[4];
+		}
+		
 		
 		
 		sprint.SFXPlayed = false;
 	}
 	
 	if(actorData.state == 524289 && !inCombat) {
-		
+		// This adds a delay for sprint.canSprint to trigger in.
 		if(!sprint.trackerRunning && !sprint.canSprint) {
 			sprint.time = sprint.cooldown;
 			std::thread sprinttracker(SprintTracker);
@@ -10209,27 +10226,49 @@ void SprintAbility() {
 	}
 
 	if(sprint.canSprint) {
-
-		float sprintSpeed = sprint.storedSpeedHuman * 1.3f;
-		//float sprintSpeedDevilDante[6];
-		//float sprintSpeedDevilVergil[5];
-
-
-	
-
-
-		//sprintSpeedDevilDante[0] = sprint.storedSpeedDevilDante[0] * 1.3f;
-			
 		
-		/*else if(actorData.character == CHARACTER::VERGIL) {
-			for(int i = 0; i < 5; i++){
-				sprintSpeedDevilVergil[i] = sprint.storedSpeedDevilVergil[i] * 1.3f;
-			}
-		}*/
-		
+		// Setting the sprint speed. Increasing by 30%.
+		float sprintMultiplier = 1.3f;
+		float sprintSpeed = sprint.storedSpeedHuman * sprintMultiplier;
+		float sprintSpeedDevilDante[6];
+		float sprintSpeedDevilVergil[5];
 
+		if(actorData.character == CHARACTER::DANTE) {
+			sprintSpeedDevilDante[0] = sprint.storedSpeedDevilDante[0] * sprintMultiplier;
+			sprintSpeedDevilDante[1] = sprint.storedSpeedDevilDante[1] * sprintMultiplier;
+			sprintSpeedDevilDante[2] = sprint.storedSpeedDevilDante[2] * sprintMultiplier;
+			sprintSpeedDevilDante[3] = sprint.storedSpeedDevilDante[3] * sprintMultiplier;
+			sprintSpeedDevilDante[4] = sprint.storedSpeedDevilDante[4] * sprintMultiplier;
+			sprintSpeedDevilDante[5] = sprint.storedSpeedDevilDante[5] * sprintMultiplier;
+		}
+		else if(actorData.character == CHARACTER::VERGIL) {
+			sprintSpeedDevilVergil[0] = sprint.storedSpeedDevilVergil[0] * sprintMultiplier;
+			sprintSpeedDevilVergil[1] = sprint.storedSpeedDevilVergil[1] * sprintMultiplier;
+			sprintSpeedDevilVergil[2] = sprint.storedSpeedDevilVergil[2] * sprintMultiplier;
+			sprintSpeedDevilVergil[3] = sprint.storedSpeedDevilVergil[3] * sprintMultiplier;
+			sprintSpeedDevilVergil[4] = sprint.storedSpeedDevilVergil[4] * sprintMultiplier;
+		}
+		
+		
+		// Applying the new sprint speed into the Actor.
 		activeConfig.Speed.human = sprintSpeed;
-		//activeConfig.Speed.devilDante[0] = sprintSpeedDevilDante[0] * 1.3f;
+		
+		if(actorData.character == CHARACTER::DANTE) {
+			activeConfig.Speed.devilDante[0] = sprintSpeedDevilDante[0];
+			activeConfig.Speed.devilDante[1] = sprintSpeedDevilDante[1];
+			activeConfig.Speed.devilDante[2] = sprintSpeedDevilDante[2];
+			activeConfig.Speed.devilDante[3] = sprintSpeedDevilDante[3];
+			activeConfig.Speed.devilDante[4] = sprintSpeedDevilDante[4];
+			activeConfig.Speed.devilDante[5] = sprintSpeedDevilDante[5];
+		}
+		else if(actorData.character == CHARACTER::VERGIL) {
+			activeConfig.Speed.devilVergil[0] = sprintSpeedDevilVergil[0];
+			activeConfig.Speed.devilVergil[1] = sprintSpeedDevilVergil[1];
+			activeConfig.Speed.devilVergil[2] = sprintSpeedDevilVergil[2];
+			activeConfig.Speed.devilVergil[3] = sprintSpeedDevilVergil[3];
+			activeConfig.Speed.devilVergil[4] = sprintSpeedDevilVergil[4];
+		}
+		
 
 		
 	
@@ -10242,13 +10281,26 @@ void SprintAbility() {
 			
 		
 	} else {
+		// Restore the original Actor's speed when you can't sprint (either in or out of it).
 		activeConfig.Speed.human = sprint.storedSpeedHuman;
-		//activeConfig.Speed.devilDante[0] = sprint.storedSpeedDevilDante[0] * 1.3f;
-			
-	
-		sprint.isSprinting = false;
 
+		if(actorData.character == CHARACTER::DANTE) {
+			activeConfig.Speed.devilDante[0] = sprint.storedSpeedDevilDante[0];
+			activeConfig.Speed.devilDante[1] = sprint.storedSpeedDevilDante[1];
+			activeConfig.Speed.devilDante[2] = sprint.storedSpeedDevilDante[2];
+			activeConfig.Speed.devilDante[3] = sprint.storedSpeedDevilDante[3];
+			activeConfig.Speed.devilDante[4] = sprint.storedSpeedDevilDante[4];
+			activeConfig.Speed.devilDante[5] = sprint.storedSpeedDevilDante[5];
+		}
+		else if(actorData.character == CHARACTER::VERGIL) {
+			activeConfig.Speed.devilVergil[0] = sprint.storedSpeedDevilVergil[0];
+			activeConfig.Speed.devilVergil[1] = sprint.storedSpeedDevilVergil[1];
+			activeConfig.Speed.devilVergil[2] = sprint.storedSpeedDevilVergil[2];
+			activeConfig.Speed.devilVergil[3] = sprint.storedSpeedDevilVergil[3];
+			activeConfig.Speed.devilVergil[4] = sprint.storedSpeedDevilVergil[4];
+		}
 		
+		sprint.isSprinting = false;
 	}
 }
 
