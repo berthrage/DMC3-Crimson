@@ -10187,12 +10187,8 @@ void SprintAbility() {
 	
 	if(!sprint.isSprinting) {
 		sprint.storedSpeedHuman = activeConfig.Speed.human;
-		for(int i = 0; i < 6; i++) {
-			sprint.storedSpeedDevilDante[i] = activeConfig.Speed.devilDante[i];
-			if(i != 5) {
-				sprint.storedSpeedDevilVergil[i] = activeConfig.Speed.devilVergil[i];
-			}
-		}
+		sprint.storedSpeedDevilDante[0] = activeConfig.Speed.devilDante[0];
+		
 		
 		sprint.SFXPlayed = false;
 	}
@@ -10215,35 +10211,27 @@ void SprintAbility() {
 	if(sprint.canSprint) {
 
 		float sprintSpeed = sprint.storedSpeedHuman * 1.3f;
-		float sprintSpeedDevilDante[6];
-		float sprintSpeedDevilVergil[5];
+		//float sprintSpeedDevilDante[6];
+		//float sprintSpeedDevilVergil[5];
 
 
-		if(actorData.character == CHARACTER::DANTE) {
+	
 
-			for(int i = 0; i < 6; i++){
-				sprintSpeedDevilDante[i] = sprint.storedSpeedDevilDante[i] * 1.3f;
-			}
-		}
-		else if(actorData.character == CHARACTER::VERGIL) {
+
+		//sprintSpeedDevilDante[0] = sprint.storedSpeedDevilDante[0] * 1.3f;
+			
+		
+		/*else if(actorData.character == CHARACTER::VERGIL) {
 			for(int i = 0; i < 5; i++){
 				sprintSpeedDevilVergil[i] = sprint.storedSpeedDevilVergil[i] * 1.3f;
 			}
-		}
+		}*/
 		
 
 		activeConfig.Speed.human = sprintSpeed;
-		if(actorData.character == CHARACTER::DANTE) {
+		//activeConfig.Speed.devilDante[0] = sprintSpeedDevilDante[0] * 1.3f;
 
-			activeConfig.Speed.devilDante[0] = sprintSpeedDevilDante[0] * 1.3f;
-
-			
-		}
-		else if(actorData.character == CHARACTER::VERGIL) {
-			for(int i = 0; i < 5; i++){
-				activeConfig.Speed.devilVergil[i] = sprintSpeedDevilVergil[i] * 1.3f;
-			}
-		}
+		
 	
 		if(!sprint.SFXPlayed) {
 			playSprint();
@@ -10255,17 +10243,8 @@ void SprintAbility() {
 		
 	} else {
 		activeConfig.Speed.human = sprint.storedSpeedHuman;
-		if(actorData.character == CHARACTER::DANTE) {
-
-			for(int i = 0; i < 6; i++){
-				activeConfig.Speed.devilDante[i] = sprint.storedSpeedDevilDante[i] * 1.3f;
-			}
-		}
-		else if(actorData.character == CHARACTER::VERGIL) {
-			for(int i = 0; i < 5; i++){
-				activeConfig.Speed.devilVergil[i] = sprint.storedSpeedDevilVergil[i] * 1.3f;
-			}
-		}
+		//activeConfig.Speed.devilDante[0] = sprint.storedSpeedDevilDante[0] * 1.3f;
+			
 	
 		sprint.isSprinting = false;
 
