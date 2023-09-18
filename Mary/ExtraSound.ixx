@@ -30,6 +30,7 @@ Mix_Chunk* devilTriggerLoop;
 Mix_Chunk* devilTriggerReady;
 Mix_Chunk* doppelgangerIn;
 Mix_Chunk* doppelgangerOut;
+Mix_Chunk* quicksilverIn;
 
 
 
@@ -98,6 +99,7 @@ export void initSDL() {
         devilTriggerLoop = Mix_LoadWAV("sound/dt_loop.wav");
         doppelgangerIn = Mix_LoadWAV("sound/dopp_activation.wav");
         doppelgangerOut = Mix_LoadWAV("sound/dopp_deactivation.wav");
+        quicksilverIn = Mix_LoadWAV("sound/qs_activation.wav");
 
 		cacheAudioFiles = true;
 	}
@@ -231,5 +233,12 @@ export void playDoppelgangerIn() {
 
 export void playDoppelgangerOut() {
     Mix_Volume(307, 50);
-    Mix_PlayChannel(306, doppelgangerOut, 0);
+    Mix_PlayChannel(307, doppelgangerOut, 0);
+}
+
+export void playQuicksilverIn() {
+    
+    Mix_Volume(308, 50);
+    Mix_PlayChannel(308, quicksilverIn, 0);
+
 }

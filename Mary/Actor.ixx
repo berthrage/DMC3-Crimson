@@ -11065,6 +11065,8 @@ void ActivateQuicksilver(byte8 *actorBaseAddr)
 	QuicksilverFunction(
 		actorBaseAddr,
 		true);
+
+	playQuicksilverIn();
 }
 
 void DeactivateQuicksilver(byte8 *actorBaseAddr)
