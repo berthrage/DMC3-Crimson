@@ -9286,7 +9286,7 @@ void MainOverlayWindow()
 			ImGui::Text("in Combat Time %u", inCombatTime);
 			//ImGui::Text("Track %s", eventData.track);
 
-			ImGui::Text("Sprint Time %u", sprint.time);
+			ImGui::Text("Weapon %u", actorData.meleeWeaponIndex);
 			ImGui::Text("canSprint %u", sprint.canSprint);
 			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
 			/*ImGui::Text("SDL2 %s", SDL2Initialization);

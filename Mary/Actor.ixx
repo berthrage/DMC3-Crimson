@@ -10213,7 +10213,8 @@ void SprintAbility() {
 	if(actorData.state == 524289 && !inCombat) {
 		// This adds a delay for sprint.canSprint to trigger in.
 		if(!sprint.trackerRunning && !sprint.canSprint) {
-			sprint.time = sprint.cooldown;
+			auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+			sprint.time = sprint.cooldown / speedValue;
 			std::thread sprinttracker(SprintTracker);
 			sprinttracker.detach();
 		}
@@ -10304,6 +10305,32 @@ void SprintAbility() {
 	}
 }
 
+void FasterDarkslayerTricks() {
+	IntroduceMainActorData(actorData, return);
+
+	if(actorData.character == CHARACTER::VERGIL) {
+		float storedspeedVergil = activeConfig.Speed.human;
+		if(actorData.action == 60 || actorData.action == 61 || actorData.action == 62) {
+			activeConfig.Speed.human = 2.0f;
+		}
+		else {
+			activeConfig.Speed.human = 1.0f;
+		}
+	}
+}
+
+void BackToForwardInputBeforeTracker() {
+
+}
+
+void BackToForwardInputAfterTracker() {
+
+}
+
+void BackToForwardInputs() {
+	
+}
+
 void UpdateActorSpeed(byte8 *baseAddr)
 {
 	
@@ -10390,6 +10417,8 @@ void UpdateActorSpeed(byte8 *baseAddr)
 				inCombatDetection();
 
 				SprintAbility();
+				
+				//FasterDarkslayerTricks();
 
 
 				//actorData.styleData.meter = 200;
@@ -10854,7 +10883,7 @@ bool DevilButtonCheck(PlayerActorData &actorData)
 }
 
 // @Update
-void ActivateDevil(PlayerActorData &actorData)
+void ActivateDevil(PlayerActorData &actorData, bool playSFX)
 {
 	switch (actorData.character)
 	{
@@ -10875,6 +10904,11 @@ void ActivateDevil(PlayerActorData &actorData)
 	if(!actorData.newIsClone) {
 		func_1F94D0(actorData, DEVIL_FLUX::START);
 	}
+
+	if(playSFX) {
+		playDevilTriggerIn();
+	}
+	//playDevilTriggerLoop();
 }
 
 void DeactivateDevil(PlayerActorData &actorData)
@@ -10896,6 +10930,9 @@ void DeactivateDevil(PlayerActorData &actorData)
 	}
 
 	func_1F94D0(actorData, DEVIL_FLUX::END);
+
+	playDevilTriggerOut();
+	//stopDevilTriggerLoop();
 }
 
 void UpdateColorMatrices(PlayerActorData &actorData)
@@ -11046,12 +11083,14 @@ void DeactivateQuicksilver(byte8 *actorBaseAddr)
 void ActivateDoppelganger(PlayerActorData &actorData)
 {
 	LogFunction(actorData.operator byte8 *());
+	auto & characterData = GetCharacterData(actorData);
 
 	if (!actorData.cloneActorBaseAddr)
 	{
 		return;
 	}
 	auto &cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
+	auto & cloneCharacterData = GetCharacterData(cloneActorData);
 
 	SetMemory(actorData.var_6438, 0, (actorData.var_6440 * 46));
 	/*
@@ -11063,6 +11102,8 @@ void ActivateDoppelganger(PlayerActorData &actorData)
 	*/
 
 	actorData.cloneRate = 0;
+	cloneActorData.meleeWeaponIndex = actorData.meleeWeaponIndex;
+	cloneActorData.rangedWeaponIndex = actorData.rangedWeaponIndex;
 	
 	//ActivateDevil(cloneActorData);
 	//cloneActorData.devil = 1;
@@ -11076,7 +11117,8 @@ void ActivateDoppelganger(PlayerActorData &actorData)
 	*/
 
 	ToggleActor(cloneActorData, true);
-	ActivateDevil(cloneActorData);
+	ActivateDevil(cloneActorData, false);
+	playDoppelgangerIn();
 	
 }
 
@@ -11109,6 +11151,8 @@ void DeactivateDoppelganger(PlayerActorData &actorData)
 	ToggleActor(cloneActorData, false);
 
 	EndMotion(cloneActorData);
+
+	playDoppelgangerOut();
 }
 
 bool DeactivateDoppelgangerDeathCheck(PlayerActorData &actorData)

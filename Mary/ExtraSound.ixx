@@ -23,6 +23,17 @@ Mix_Chunk* changeDevilArm;
 Mix_Chunk* styleChange;
 Mix_Chunk* sprintL1;
 Mix_Chunk* sprintL2;
+Mix_Chunk* devilTriggerInL1;
+Mix_Chunk* devilTriggerInL2;
+Mix_Chunk* devilTriggerOut;
+Mix_Chunk* devilTriggerLoop;
+Mix_Chunk* devilTriggerReady;
+Mix_Chunk* doppelgangerIn;
+Mix_Chunk* doppelgangerOut;
+
+
+
+
 
 
 
@@ -80,8 +91,13 @@ export void initSDL() {
         changeDevilArm = Mix_LoadWAV("sound/changedevilarm.wav");
         styleChange = Mix_LoadWAV("sound/stylechange.wav");
         sprintL1 = Mix_LoadWAV("sound/sprint_l1.wav");
-        sprintL2 = Mix_LoadWAV("sound/sprint_l1.wav");
-
+        sprintL2 = Mix_LoadWAV("sound/sprint_l2.wav");
+        devilTriggerInL1 = Mix_LoadWAV("sound/dt_activation_l1.wav");
+        devilTriggerInL2 = Mix_LoadWAV("sound/dt_activation_l2.wav");
+        devilTriggerOut = Mix_LoadWAV("sound/dt_deactivation.wav");
+        devilTriggerLoop = Mix_LoadWAV("sound/dt_loop.wav");
+        doppelgangerIn = Mix_LoadWAV("sound/dopp_activation.wav");
+        doppelgangerOut = Mix_LoadWAV("sound/dopp_deactivation.wav");
 
 		cacheAudioFiles = true;
 	}
@@ -181,4 +197,39 @@ export void playSprint() {
     Mix_Volume(301, activeConfig.SFX.sprintVolume);
     Mix_PlayChannel(300, sprintL1, 0);
     Mix_PlayChannel(301, sprintL2, 0);
+}
+
+export void playDevilTriggerIn() {
+    
+    Mix_Volume(302, 30);
+    Mix_Volume(303, 50);
+    Mix_PlayChannel(302, devilTriggerInL1, 0);
+    Mix_PlayChannel(303, devilTriggerInL2, 0);
+}
+
+export void playDevilTriggerOut() {
+    
+    Mix_Volume(304, 50);
+    Mix_PlayChannel(304, devilTriggerOut, 0);
+}
+
+export void playDevilTriggerLoop() {
+    
+    Mix_Volume(305, 30);
+    Mix_PlayChannel(305, devilTriggerLoop, -1);
+}
+
+export void stopDevilTriggerLoop() {
+    
+    Mix_HaltChannel(305);
+}
+
+export void playDoppelgangerIn() {
+    Mix_Volume(306, 50);
+    Mix_PlayChannel(306, doppelgangerIn, 0);
+}
+
+export void playDoppelgangerOut() {
+    Mix_Volume(307, 50);
+    Mix_PlayChannel(306, doppelgangerOut, 0);
 }
