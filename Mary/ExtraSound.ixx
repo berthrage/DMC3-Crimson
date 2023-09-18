@@ -261,14 +261,14 @@ export void playStyleChangeVO(int style) {
 void SetCurrentStyleRank(int currentStyleRank, bool resetAll) {
 
     for(int i = 0; i < 7; i++) {
-        if(!resetAll) {
-            if(i <= currentStyleRank) {
+        
+        if(i <= currentStyleRank) {
             styleRankCount[i] = 1;
-            }
-            else {
-                styleRankCount[i] = 0;
-            }
         }
+        else {
+            styleRankCount[i] = 0;
+        }
+        
     }
 
 }
@@ -279,16 +279,20 @@ void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank
     if(styleRankTurn[rank - 1] == 0 && styleRankCount[rank - 1] == 0) {
             Mix_PlayChannel(100 + (rank - 1), styleRankWAV, 0);
             styleRankTurn[rank - 1]++;
-            SetCurrentStyleRank(rank - 1, false); 
+            
             
     }
     else if(styleRankTurn[rank - 1] == 1 && styleRankCount[rank - 1] == 0) {
             Mix_PlayChannel(100 + (rank - 1), styleRankWAVAlt, 0);
             styleRankTurn[rank - 1] = 0;
-            SetCurrentStyleRank(rank - 1, false); 
+            
             
     }
+
     
+    SetCurrentStyleRank(rank - 1, false);
+    
+     
 }
 
 export void StyleRankAnnouncerController(int rank) {
@@ -300,13 +304,11 @@ export void StyleRankAnnouncerController(int rank) {
     Mix_Volume(105, 128);
     Mix_Volume(106, 128);
 
-    if(rank == 0 && !resetAllStyleRanks) {
-        styleRankCount[0] = 0;
-        
-    }
-    else if(rank == 1) {
+    
+    if(rank == 1) {
         
         PlayStyleRank(styleRankD1, styleRankD2, 1);
+        
     }
     else if(rank == 2) {
         PlayStyleRank(styleRankC1, styleRankC2, 2);
@@ -327,10 +329,10 @@ export void StyleRankAnnouncerController(int rank) {
         PlayStyleRank(styleRankSSS1, styleRankSSS2, 7);
     }
 
-    /*if(rank == 0) {
+    if(rank == 0) {
         styleRankCount[0] = 0;
         //resetAllStyleRanks = true;
-    }*/
+    }
     
 }
 

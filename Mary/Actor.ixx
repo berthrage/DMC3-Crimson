@@ -10354,7 +10354,7 @@ void UpdateActorSpeed(byte8 *baseAddr)
 	auto &quicksilver = player1LeadActorData.quicksilver;
 	auto &quicksilverStage = player1LeadActorData.quicksilverStage;
 
-	
+	StyleRankAnnouncerController(player1LeadActorData.styleData.rank);
 
 	IntroduceMainActorData(mainActorData, return);
 
@@ -10426,7 +10426,7 @@ void UpdateActorSpeed(byte8 *baseAddr)
 
 				SprintAbility();
 
-				StyleRankAnnouncerController(actorData.styleData.rank);
+				
 				
 				//FasterDarkslayerTricks();
 
