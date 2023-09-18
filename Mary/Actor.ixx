@@ -10425,6 +10425,8 @@ void UpdateActorSpeed(byte8 *baseAddr)
 				inCombatDetection();
 
 				SprintAbility();
+
+				StyleRankAnnouncerController(actorData.styleData.rank);
 				
 				//FasterDarkslayerTricks();
 

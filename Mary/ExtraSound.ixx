@@ -37,6 +37,23 @@ Mix_Chunk* devilTriggerReady;
 Mix_Chunk* doppelgangerIn;
 Mix_Chunk* doppelgangerOut;
 Mix_Chunk* quicksilverIn;
+Mix_Chunk* styleRankD1;
+Mix_Chunk* styleRankD2;
+Mix_Chunk* styleRankC1;
+Mix_Chunk* styleRankC2;
+Mix_Chunk* styleRankB1;
+Mix_Chunk* styleRankB2;
+Mix_Chunk* styleRankA1;
+Mix_Chunk* styleRankA2;
+Mix_Chunk* styleRankS1;
+Mix_Chunk* styleRankS2;
+Mix_Chunk* styleRankSS1;
+Mix_Chunk* styleRankSS2;
+Mix_Chunk* styleRankSSS1;
+Mix_Chunk* styleRankSSS2;
+int styleRankTurn[7] = {0};
+export int styleRankCount[7] = {0};
+bool resetAllStyleRanks = false;
 
 
 
@@ -112,6 +129,20 @@ export void initSDL() {
         doppelgangerIn = Mix_LoadWAV("sound/dopp_activation.wav");
         doppelgangerOut = Mix_LoadWAV("sound/dopp_deactivation.wav");
         quicksilverIn = Mix_LoadWAV("sound/qs_activation.wav");
+        styleRankD1 = Mix_LoadWAV("sound/styleranks/d1.wav");
+        styleRankD2 = Mix_LoadWAV("sound/styleranks/d2.wav");
+        styleRankC1 = Mix_LoadWAV("sound/styleranks/c1.wav");
+        styleRankC2 = Mix_LoadWAV("sound/styleranks/c2.wav");
+        styleRankB1 = Mix_LoadWAV("sound/styleranks/b1.wav");
+        styleRankB2 = Mix_LoadWAV("sound/styleranks/b2.wav");
+        styleRankA1 = Mix_LoadWAV("sound/styleranks/a1.wav");
+        styleRankA2 = Mix_LoadWAV("sound/styleranks/a2.wav");
+        styleRankS1 = Mix_LoadWAV("sound/styleranks/s1.wav");
+        styleRankS2 = Mix_LoadWAV("sound/styleranks/s2.wav");
+        styleRankSS1 = Mix_LoadWAV("sound/styleranks/ss1.wav");
+        styleRankSS2 = Mix_LoadWAV("sound/styleranks/ss2.wav");
+        styleRankSSS1 = Mix_LoadWAV("sound/styleranks/sss1.wav");
+        styleRankSSS2 = Mix_LoadWAV("sound/styleranks/sss2.wav");
 
 		cacheAudioFiles = true;
 	}
@@ -207,23 +238,99 @@ export void playStyleChange() {
 
 export void playStyleChangeVO(int style) {
     if(style == 2) {
-        PlayOnChannelsFadeOut(60, 89, tricksterVO, 128, 150);
+        PlayOnChannelsFadeOut(60, 99, tricksterVO, 128, 150);
     }
     else if(style == 0) {
-        PlayOnChannelsFadeOut(60, 89, swordmasterVO, 128, 150);
+        PlayOnChannelsFadeOut(60, 99, swordmasterVO, 128, 150);
     }
     else if(style == 1) {
-        PlayOnChannelsFadeOut(60, 89, gunslingerVO, 128, 150);
+        PlayOnChannelsFadeOut(60, 99, gunslingerVO, 128, 150);
     }
     else if(style == 3) {
-        PlayOnChannelsFadeOut(60, 89, royalguardVO, 128, 150);
+        PlayOnChannelsFadeOut(60, 99, royalguardVO, 128, 150);
     }
     else if(style == 4) {
-        PlayOnChannelsFadeOut(60, 89, quicksilverVO, 128, 150);
+        PlayOnChannelsFadeOut(60, 99, quicksilverVO, 128, 150);
     }
     else if(style == 5) {
-        PlayOnChannelsFadeOut(60, 89, doppelgangerVO, 128, 150);
+        PlayOnChannelsFadeOut(60, 99, doppelgangerVO, 128, 150);
     }
+    
+}
+
+void SetCurrentStyleRank(int currentStyleRank, bool resetAll) {
+
+    for(int i = 0; i < 7; i++) {
+        if(!resetAll) {
+            if(i <= currentStyleRank) {
+            styleRankCount[i] = 1;
+            }
+            else {
+                styleRankCount[i] = 0;
+            }
+        }
+    }
+
+}
+
+void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank) {
+
+    
+    if(styleRankTurn[rank - 1] == 0 && styleRankCount[rank - 1] == 0) {
+            Mix_PlayChannel(100 + (rank - 1), styleRankWAV, 0);
+            styleRankTurn[rank - 1]++;
+            SetCurrentStyleRank(rank - 1, false); 
+            
+    }
+    else if(styleRankTurn[rank - 1] == 1 && styleRankCount[rank - 1] == 0) {
+            Mix_PlayChannel(100 + (rank - 1), styleRankWAVAlt, 0);
+            styleRankTurn[rank - 1] = 0;
+            SetCurrentStyleRank(rank - 1, false); 
+            
+    }
+    
+}
+
+export void StyleRankAnnouncerController(int rank) {
+    Mix_Volume(100, 128);
+    Mix_Volume(101, 128);
+    Mix_Volume(102, 128);
+    Mix_Volume(103, 128);
+    Mix_Volume(104, 128);
+    Mix_Volume(105, 128);
+    Mix_Volume(106, 128);
+
+    if(rank == 0 && !resetAllStyleRanks) {
+        styleRankCount[0] = 0;
+        
+    }
+    else if(rank == 1) {
+        
+        PlayStyleRank(styleRankD1, styleRankD2, 1);
+    }
+    else if(rank == 2) {
+        PlayStyleRank(styleRankC1, styleRankC2, 2);
+    }
+    else if(rank == 3) {
+        PlayStyleRank(styleRankB1, styleRankB2, 3);
+    }
+    else if(rank == 4) {
+        PlayStyleRank(styleRankA1, styleRankA2, 4);
+    }
+    else if(rank == 5) {
+        PlayStyleRank(styleRankS1, styleRankS2, 5);
+    }
+    else if(rank == 6) {
+        PlayStyleRank(styleRankSS1, styleRankSS2, 6);
+    }
+    else if(rank == 7) {
+        PlayStyleRank(styleRankSSS1, styleRankSSS2, 7);
+    }
+
+    /*if(rank == 0) {
+        styleRankCount[0] = 0;
+        //resetAllStyleRanks = true;
+    }*/
     
 }
 
@@ -238,8 +345,8 @@ export void playSprint() {
 
 export void playDevilTriggerIn() {
     
-    Mix_Volume(302, 30);
-    Mix_Volume(303, 50);
+    Mix_Volume(302, 20);
+    Mix_Volume(303, 40);
     Mix_PlayChannel(302, devilTriggerInL1, 0);
     Mix_PlayChannel(303, devilTriggerInL2, 0);
 }
