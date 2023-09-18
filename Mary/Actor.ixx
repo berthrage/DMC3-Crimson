@@ -1989,7 +1989,7 @@ void DevilVFXTriggerStyle(byte8 *actorBaseAddr, int style) {
 	int delayTime2 = 0;
 	auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 
-	// Adjusting the effect according to Frame-Rate and Game Speed is tricky, but this should work on most setups.
+	// Adjusting the effect according to Framerate and Game Speed is tricky, but this should work on most setups.
 	if(g_frameRateMultiplier < 1) {
 		delayTime1 = ceil(2 * g_frameRateMultiplier / speedValue);
 		delayTime2 = ceil(18 * g_frameRateMultiplier / speedValue);
@@ -4432,6 +4432,11 @@ void StyleSwitch(byte8 *actorBaseAddr, int style) {
 	// Summons Style Switch VFX (leftover from DT In Effect).
 	std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, style);
     devilvfxtriggerstyle.detach();
+	
+	if (!actorData.cloneActorBaseAddr)
+	{		
+		return;								// RULES OUT DOPPELGANGER OUT OF THE SFX
+	}
 
 	// Updates the HUD icons.
 	HUD_UpdateStyleIcon(
@@ -4440,6 +4445,9 @@ void StyleSwitch(byte8 *actorBaseAddr, int style) {
 
 	// Trigger SFX.
 	playStyleChange();
+	if(actorData.character == CHARACTER::DANTE) {
+		playStyleChangeVO(style);
+	}
 }
 
 void StyleSwitchController(byte8 *actorBaseAddr)

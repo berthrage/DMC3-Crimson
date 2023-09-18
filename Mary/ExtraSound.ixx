@@ -21,6 +21,12 @@ export bool cacheAudioFiles = false;
 Mix_Chunk* changeGun;
 Mix_Chunk* changeDevilArm;
 Mix_Chunk* styleChange;
+Mix_Chunk* tricksterVO;
+Mix_Chunk* swordmasterVO;
+Mix_Chunk* gunslingerVO;
+Mix_Chunk* royalguardVO;
+Mix_Chunk* quicksilverVO;
+Mix_Chunk* doppelgangerVO;
 Mix_Chunk* sprintL1;
 Mix_Chunk* sprintL2;
 Mix_Chunk* devilTriggerInL1;
@@ -91,6 +97,12 @@ export void initSDL() {
         changeGun = Mix_LoadWAV("sound/changegun.wav");
         changeDevilArm = Mix_LoadWAV("sound/changedevilarm.wav");
         styleChange = Mix_LoadWAV("sound/stylechange.wav");
+        tricksterVO = Mix_LoadWAV("sound/trickster1.wav");
+        swordmasterVO = Mix_LoadWAV("sound/swordmaster1.wav");
+        gunslingerVO = Mix_LoadWAV("sound/gunslinger1.wav");
+        royalguardVO = Mix_LoadWAV("sound/royalguard1.wav");
+        quicksilverVO = Mix_LoadWAV("sound/quicksilver1.wav");
+        doppelgangerVO = Mix_LoadWAV("sound/doppelganger2.wav");
         sprintL1 = Mix_LoadWAV("sound/sprint_l1.wav");
         sprintL2 = Mix_LoadWAV("sound/sprint_l2.wav");
         devilTriggerInL1 = Mix_LoadWAV("sound/dt_activation_l1.wav");
@@ -192,6 +204,29 @@ export void playChangeGun() {
 export void playStyleChange() {
     PlayOnChannelsFadeOut(40, 59, styleChange, activeConfig.SFX.styleChangeVolume, 150);
 }
+
+export void playStyleChangeVO(int style) {
+    if(style == 2) {
+        PlayOnChannelsFadeOut(60, 89, tricksterVO, 128, 150);
+    }
+    else if(style == 0) {
+        PlayOnChannelsFadeOut(60, 89, swordmasterVO, 128, 150);
+    }
+    else if(style == 1) {
+        PlayOnChannelsFadeOut(60, 89, gunslingerVO, 128, 150);
+    }
+    else if(style == 3) {
+        PlayOnChannelsFadeOut(60, 89, royalguardVO, 128, 150);
+    }
+    else if(style == 4) {
+        PlayOnChannelsFadeOut(60, 89, quicksilverVO, 128, 150);
+    }
+    else if(style == 5) {
+        PlayOnChannelsFadeOut(60, 89, doppelgangerVO, 128, 150);
+    }
+    
+}
+
 
 export void playSprint() {
     
