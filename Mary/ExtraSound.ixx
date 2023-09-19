@@ -6,6 +6,8 @@ module;
 #include "../ThirdParty/Simple-SDL2/audio.c"
 #include "../ThirdParty/Simple-SDL2/audio.h"
 #include <string>
+#include <thread>
+#include <chrono>
 export module ExtraSound;
 
 import Config;
@@ -51,9 +53,6 @@ Mix_Chunk* styleRankSS1;
 Mix_Chunk* styleRankSS2;
 Mix_Chunk* styleRankSSS1;
 Mix_Chunk* styleRankSSS2;
-int styleRankTurn[7] = {0};
-export int styleRankCount[7] = {0};
-bool resetAllStyleRanks = false;
 
 
 
@@ -258,15 +257,23 @@ export void playStyleChangeVO(int style) {
     
 }
 
-void SetCurrentStyleRank(int currentStyleRank, bool resetAll) {
+void StyleRankCooldownTracker(int rank) {
+    rankAnnouncer[rank].trackerRunning = true;
+    rankAnnouncer[rank].offCooldown = false;
+    std::this_thread::sleep_for(std::chrono::seconds(activeConfig.styleRankAnnouncerCooldownSeconds));
+    rankAnnouncer[rank].offCooldown = true;
+    rankAnnouncer[rank].trackerRunning = false;
+}
+
+void SetCurrentStyleRank(int currentStyleRank) {
 
     for(int i = 0; i < 7; i++) {
         
         if(i <= currentStyleRank) {
-            styleRankCount[i] = 1;
+            rankAnnouncer[i].count = 1;
         }
         else {
-            styleRankCount[i] = 0;
+            rankAnnouncer[i].count = 0;
         }
         
     }
@@ -276,21 +283,33 @@ void SetCurrentStyleRank(int currentStyleRank, bool resetAll) {
 void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank) {
 
     
-    if(styleRankTurn[rank - 1] == 0 && styleRankCount[rank - 1] == 0) {
-            Mix_PlayChannel(100 + (rank - 1), styleRankWAV, 0);
-            styleRankTurn[rank - 1]++;
+    if(rankAnnouncer[rank - 1].turn == 0 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
+        Mix_PlayChannel(100 + (rank - 1), styleRankWAV, 0);
+        rankAnnouncer[rank - 1].turn++;
+
+        if(!rankAnnouncer[rank - 1].trackerRunning) {
+            std::thread stylerankcooldowntracker(StyleRankCooldownTracker, rank - 1);
+		    stylerankcooldowntracker.detach();
+        }
             
             
     }
-    else if(styleRankTurn[rank - 1] == 1 && styleRankCount[rank - 1] == 0) {
-            Mix_PlayChannel(100 + (rank - 1), styleRankWAVAlt, 0);
-            styleRankTurn[rank - 1] = 0;
+    else if(rankAnnouncer[rank - 1].turn== 1 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
+        Mix_PlayChannel(100 + (rank - 1), styleRankWAVAlt, 0);
+        rankAnnouncer[rank - 1].turn = 0;
+
+        if(!rankAnnouncer[rank - 1].trackerRunning) {
+            std::thread stylerankcooldowntracker(StyleRankCooldownTracker, rank - 1);
+		    stylerankcooldowntracker.detach();
+        }
             
             
     }
 
     
-    SetCurrentStyleRank(rank - 1, false);
+
+    
+    SetCurrentStyleRank(rank - 1);
     
      
 }
@@ -330,8 +349,7 @@ export void StyleRankAnnouncerController(int rank) {
     }
 
     if(rank == 0) {
-        styleRankCount[0] = 0;
-        //resetAllStyleRanks = true;
+        rankAnnouncer[0].count = 0;
     }
     
 }

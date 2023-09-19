@@ -4367,6 +4367,15 @@ export struct Inertia {
 	bool trackerRunning = false;
 } airRaveInertia;
 
+export struct RankAnnouncer {
+	int turn = 0;
+	int count = 0;
+	bool trackerRunning = false;
+	bool offCooldown = true;
+};
+
+export RankAnnouncer rankAnnouncer[7];
+
 export uint16 relativeTiltController = 0;
 
 export Inertia rainstormInertia;

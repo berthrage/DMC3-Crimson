@@ -9287,8 +9287,10 @@ void MainOverlayWindow()
 			//ImGui::Text("Track %s", eventData.track);
 
 			ImGui::Text("Weapon %u", actorData.meleeWeaponIndex);
-			ImGui::Text("styleRankCount Dismal %u", styleRankCount[0]);
-			ImGui::Text("styleRankCount Crazy %u", styleRankCount[1]);
+			ImGui::Text("styleRankCount Dismal %u", rankAnnouncer[0].count);
+			ImGui::Text("styleRankCount Crazy %u", rankAnnouncer[1].count);
+			ImGui::Text("styleRankCount Dismal Off Cooldown %u", rankAnnouncer[0].offCooldown);
+			ImGui::Text("styleRankCount Crazy Off Cooldown %u", rankAnnouncer[1].offCooldown);
 			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
 			/*ImGui::Text("SDL2 %s", SDL2Initialization);
 			ImGui::Text("Mixer  %s", MixerInitialization);

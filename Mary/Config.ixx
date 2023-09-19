@@ -721,6 +721,7 @@ export struct Config
 	StyleColor;
 	//doppOrange = { 59, 25, 2, 255 }
 	
+	int styleRankAnnouncerCooldownSeconds = 20;
 };
 
 
