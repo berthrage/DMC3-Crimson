@@ -4243,7 +4243,7 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 		auto &button = playerData.removeBusyFlagButtons[buttonIndex];
 
 		//Darkslayer Trick Cancels Everything
-		if(actorData.character == CHARACTER::VERGIL) {
+		if(actorData.character == CHARACTER::VERGIL && actorData.state != STATE::IN_AIR && actorData.state != 65538) {
 			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))
 			{
 				if (execute)

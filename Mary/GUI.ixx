@@ -9288,7 +9288,7 @@ void MainOverlayWindow()
 
 			ImGui::Text("Weapon %u", actorData.meleeWeaponIndex);
 			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
-			ImGui::Text("Event Data 1 %u", actorData.eventData[1]);
+			ImGui::Text("Trick Up Count %u", actorData.newTrickUpCount);
 			/*ImGui::Text("styleRankCount Dismal %u", rankAnnouncer[0].count);
 			ImGui::Text("styleRankCount Crazy %u", rankAnnouncer[1].count);
 			ImGui::Text("styleRankCount Dismal Off Cooldown %u", rankAnnouncer[0].offCooldown);
