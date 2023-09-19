@@ -4381,6 +4381,18 @@ export uint16 relativeTiltController = 0;
 export Inertia rainstormInertia;
 
 
+export struct FasterDarkslayer {
+	float newSpeed = 2.0f;
+	bool newSpeedSet = false;
+	float storedSpeedHuman = 0;
+	float storedSpeedDevil[4] = {0};
+
+} fasterDarkslayer;
+
+export bool setDarkslayerTrickSpeed = false;
+export float storedVergilSpeedHuman = 0;
+
+
 
 
 /*export struct Sounds {

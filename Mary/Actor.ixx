@@ -4329,6 +4329,30 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 				}
 			}
 
+			// Swordmaster moves cancel out Trickster dashes
+			uint32 eventActor = actorData.eventData[0].event;
+
+			if((actorData.style == STYLE::SWORDMASTER) && 
+				(eventActor == ACTOR_EVENT::TRICKSTER_SKY_STAR || eventActor == ACTOR_EVENT::TRICKSTER_DASH)) {
+				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
+				{
+
+					if (execute)
+					{
+						execute = false;
+
+						actorData.state &= ~STATE::BUSY;
+
+					}
+				}
+				else
+				{
+					execute = true;
+				}
+			}
+
+
+
 
 			/*if ((actorData.style == STYLE::ROYALGUARD) &&
 					(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
@@ -10318,11 +10342,37 @@ void FasterDarkslayerTricks() {
 
 	if(actorData.character == CHARACTER::VERGIL) {
 		float storedspeedVergil = activeConfig.Speed.human;
-		if(actorData.action == 60 || actorData.action == 61 || actorData.action == 62) {
-			activeConfig.Speed.human = 2.0f;
+		if((actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK || actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP 
+			|| actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN) && !fasterDarkslayer.newSpeedSet) {
+
+			// Storing the original speeds
+			fasterDarkslayer.storedSpeedHuman = activeConfig.Speed.human;
+			fasterDarkslayer.storedSpeedDevil[0] = activeConfig.Speed.devilVergil[0];
+			fasterDarkslayer.storedSpeedDevil[1] = activeConfig.Speed.devilVergil[1];
+			fasterDarkslayer.storedSpeedDevil[2] = activeConfig.Speed.devilVergil[2];
+			fasterDarkslayer.storedSpeedDevil[3] = activeConfig.Speed.devilVergil[3];
+			
+			// Setting the new speed 
+			activeConfig.Speed.human = fasterDarkslayer.newSpeed;
+			activeConfig.Speed.devilVergil[0] = fasterDarkslayer.newSpeed;
+			activeConfig.Speed.devilVergil[1] = fasterDarkslayer.newSpeed;
+			activeConfig.Speed.devilVergil[2] = fasterDarkslayer.newSpeed;
+			activeConfig.Speed.devilVergil[3] = fasterDarkslayer.newSpeed;
+
+			fasterDarkslayer.newSpeedSet = true;
 		}
-		else {
-			activeConfig.Speed.human = 1.0f;
+		else if (!(actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK || actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP 
+			|| actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN) && fasterDarkslayer.newSpeedSet){
+			
+			// Restoring the original speeds
+			activeConfig.Speed.human = fasterDarkslayer.storedSpeedHuman;
+			activeConfig.Speed.devilVergil[0] = fasterDarkslayer.storedSpeedDevil[0];
+			activeConfig.Speed.devilVergil[1] = fasterDarkslayer.storedSpeedDevil[1];
+			activeConfig.Speed.devilVergil[2] = fasterDarkslayer.storedSpeedDevil[2];
+			activeConfig.Speed.devilVergil[3] = fasterDarkslayer.storedSpeedDevil[3];
+			
+			
+			fasterDarkslayer.newSpeedSet = false;
 		}
 	}
 }
@@ -10354,10 +10404,10 @@ void UpdateActorSpeed(byte8 *baseAddr)
 	auto &quicksilver = player1LeadActorData.quicksilver;
 	auto &quicksilverStage = player1LeadActorData.quicksilverStage;
 
-	StyleRankAnnouncerController(player1LeadActorData.styleData.rank);
+	
 
 	IntroduceMainActorData(mainActorData, return);
-
+	StyleRankAnnouncerController(mainActorData.styleData.rank);
 	// NewActorData
 
 	old_for_all(uint8, playerIndex, PLAYER_COUNT)
@@ -10428,7 +10478,8 @@ void UpdateActorSpeed(byte8 *baseAddr)
 
 				
 				
-				//FasterDarkslayerTricks();
+				FasterDarkslayerTricks();
+				
 
 
 				//actorData.styleData.meter = 200;
@@ -11707,6 +11758,8 @@ void SetAction(byte8 *actorBaseAddr)
 		{
 			actorData.action = YAMATO_FORCE_EDGE_ROUND_TRIP;
 		}
+
+		
 
 		break;
 	}

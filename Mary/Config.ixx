@@ -702,7 +702,7 @@ export struct Config
 	{
 		int changeGunNew = 1;
 		int changeDevilArmNew = 1;
-		int changeWeaponVolume = 40; 
+		int changeWeaponVolume = 30; 
 		int styleChangeVolume = 7;
 		int sprintVolume = 20;
 	}
