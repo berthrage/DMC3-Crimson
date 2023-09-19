@@ -722,6 +722,8 @@ export struct Config
 	//doppOrange = { 59, 25, 2, 255 }
 	
 	int styleRankAnnouncerCooldownSeconds = 20;
+
+	bool playDTReadySFXAtMissionStart = true;
 };
 
 

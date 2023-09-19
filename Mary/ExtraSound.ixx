@@ -128,6 +128,7 @@ export void initSDL() {
         doppelgangerIn = Mix_LoadWAV("sound/dopp_activation.wav");
         doppelgangerOut = Mix_LoadWAV("sound/dopp_deactivation.wav");
         quicksilverIn = Mix_LoadWAV("sound/qs_activation.wav");
+        devilTriggerReady = Mix_LoadWAV("sound/dt_ready.wav");
         styleRankD1 = Mix_LoadWAV("sound/styleranks/d1.wav");
         styleRankD2 = Mix_LoadWAV("sound/styleranks/d2.wav");
         styleRankC1 = Mix_LoadWAV("sound/styleranks/c1.wav");
@@ -402,5 +403,12 @@ export void playQuicksilverIn() {
     
     Mix_Volume(308, 50);
     Mix_PlayChannel(308, quicksilverIn, 0);
+
+}
+
+export void PlayDevilTriggerReady() {
+    
+    Mix_Volume(309, 110);
+    Mix_PlayChannel(309, devilTriggerReady, 0);
 
 }

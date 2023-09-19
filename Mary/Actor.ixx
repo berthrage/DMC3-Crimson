@@ -10377,6 +10377,20 @@ void FasterDarkslayerTricks() {
 	}
 }
 
+void DTReadySFX() {
+	IntroduceSessionData();
+	IntroduceMainActorData(actorData, return);
+
+	
+	if(actorData.magicPoints >= 3000 && !devilTriggerReadyPlayed) {
+		PlayDevilTriggerReady();
+		devilTriggerReadyPlayed = true;
+	}
+	else if(actorData.magicPoints < 3000) {
+		devilTriggerReadyPlayed = false;
+	}
+}
+
 void BackToForwardInputBeforeTracker() {
 
 }
@@ -10408,6 +10422,7 @@ void UpdateActorSpeed(byte8 *baseAddr)
 
 	IntroduceMainActorData(mainActorData, return);
 	StyleRankAnnouncerController(mainActorData.styleData.rank);
+	DTReadySFX();
 	// NewActorData
 
 	old_for_all(uint8, playerIndex, PLAYER_COUNT)
@@ -11140,6 +11155,7 @@ void DeactivateQuicksilver(byte8 *actorBaseAddr)
 	QuicksilverFunction(
 		actorBaseAddr,
 		false);
+
 }
 
 

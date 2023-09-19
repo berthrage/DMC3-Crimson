@@ -4389,11 +4389,6 @@ export struct FasterDarkslayer {
 
 } fasterDarkslayer;
 
-export bool setDarkslayerTrickSpeed = false;
-export float storedVergilSpeedHuman = 0;
-
-
-
 
 /*export struct Sounds {
 	
@@ -4424,6 +4419,8 @@ export struct Sprint{
 	
 
 } sprint;
+
+export bool devilTriggerReadyPlayed = false;
 
 export struct BackToForward {
 	
