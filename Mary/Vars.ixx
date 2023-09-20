@@ -1054,7 +1054,7 @@ enum
 	UNKNOWN_0,
 	UNKNOWN_1,
 	FLUX,
-	UNKNOWN_2,
+	DTEXPLOSION,
 };
 namespaceEnd();
 

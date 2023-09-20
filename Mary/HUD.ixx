@@ -29,8 +29,10 @@ HUDIconHelper doppelgangerVergilIcon = {};
 HUDIconHelper weaponIcons[WEAPON::MAX] = {};
 HUDIconHelper devilTriggerGaugeDante = {};
 HUDIconHelper devilTriggerLightningDante = {};
+HUDIconHelper devilTriggerExplosionDante = {};
 HUDIconHelper devilTriggerGaugeVergil = {};
 HUDIconHelper devilTriggerLightningVergil = {};
+HUDIconHelper devilTriggerExplosionVergil = {};
 
 void InitIcons()
 {
@@ -66,11 +68,17 @@ void InitIcons()
 		devilTriggerLightningDante.modelFile = File_staticFiles[id100][(54)];
 		devilTriggerLightningDante.textureFile = File_staticFiles[id100][(53)];
 
+		devilTriggerExplosionDante.modelFile = File_staticFiles[id100][(57)];
+		devilTriggerExplosionDante.textureFile = File_staticFiles[id100][(0)];
+
 		devilTriggerGaugeVergil.modelFile = File_staticFiles[id100V][(6)];
 		devilTriggerGaugeVergil.textureFile = File_staticFiles[id100V][(0)];
 
 		devilTriggerLightningVergil.modelFile = File_staticFiles[id100V][(54)];
 		devilTriggerLightningVergil.textureFile = File_staticFiles[id100V][(53)];
+
+		devilTriggerExplosionVergil.modelFile = File_staticFiles[id100V][(57)];
+		devilTriggerExplosionVergil.textureFile = File_staticFiles[id100V][(0)];
 
 	}
 
@@ -271,6 +279,58 @@ export void HUD_UpdateDevilTriggerLightning
 	}
 
 	auto & modelData = *reinterpret_cast<ModelData *>(hudTop + hudTopOffs[HUD_TOP::FLUX]);
+
+	ResetModel(modelData);
+
+	func_89960(modelData, modelFile, textureFile);
+	func_89E30(modelData, 1);
+
+	auto map = reinterpret_cast<uint8 *>(appBaseAddr + 0x4E9070);
+	//auto & effect = *reinterpret_cast<uint8 *>(hudTop + 0x690E) = map[style];
+}
+
+export void HUD_UpdateDevilTriggerExplosion
+(
+	uint8 character
+)
+{
+	if
+	(
+		(InCutscene()) ||
+		(InCredits())
+	)
+	{
+		return;
+	}
+
+	IntroduceHUDPointers(return);
+
+	if constexpr (debug)
+	{
+		LogFunction();
+	}
+
+	
+
+	auto modelFile   = devilTriggerExplosionDante.modelFile;
+	auto textureFile = devilTriggerExplosionDante.textureFile;
+
+	if (
+		((character == CHARACTER::BOB   ) ||
+		(character == CHARACTER::VERGIL))) {
+
+			
+			modelFile   = devilTriggerExplosionVergil.modelFile;
+			textureFile = devilTriggerExplosionVergil.textureFile;
+			
+			
+			
+	} else {
+		devilTriggerExplosionDante.modelFile;
+		devilTriggerExplosionDante.textureFile;
+	}
+
+	auto & modelData = *reinterpret_cast<ModelData *>(hudTop + hudTopOffs[HUD_TOP::DTEXPLOSION]);
 
 	ResetModel(modelData);
 

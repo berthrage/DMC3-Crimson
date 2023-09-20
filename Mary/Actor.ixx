@@ -3851,6 +3851,7 @@ byte8 *CreatePlayerActor(
 			characterData.character);
 		HUD_UpdateDevilTriggerGauge(characterData.character);
 		HUD_UpdateDevilTriggerLightning(characterData.character);
+		HUD_UpdateDevilTriggerExplosion(characterData.character);
 	}
 
 	InitWeapons(actorData);
@@ -4470,6 +4471,7 @@ void StyleSwitch(byte8 *actorBaseAddr, int style) {
 	characterData.character);	
 	HUD_UpdateDevilTriggerGauge(characterData.character);
 	HUD_UpdateDevilTriggerLightning(characterData.character);
+	HUD_UpdateDevilTriggerExplosion(characterData.character);
 
 	// Trigger SFX.
 	playStyleChange();
@@ -5652,6 +5654,7 @@ export void CharacterSwitchController()
 
 				HUD_UpdateDevilTriggerGauge(characterData.character);
 				HUD_UpdateDevilTriggerLightning(characterData.character);
+				HUD_UpdateDevilTriggerExplosion(characterData.character);
 	
 			}();
 
