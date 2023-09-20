@@ -27,6 +27,10 @@ HUDIconHelper darkSlayerIcon = {};
 HUDIconHelper quicksilverVergilIcon = {};
 HUDIconHelper doppelgangerVergilIcon = {};
 HUDIconHelper weaponIcons[WEAPON::MAX] = {};
+HUDIconHelper devilTriggerGaugeDante = {};
+HUDIconHelper devilTriggerLightningDante = {};
+HUDIconHelper devilTriggerGaugeVergil = {};
+HUDIconHelper devilTriggerLightningVergil = {};
 
 void InitIcons()
 {
@@ -55,6 +59,19 @@ void InitIcons()
 		quicksilverVergilIcon.textureFile = File_staticFiles[id100V][(26 + 0)];
 		doppelgangerVergilIcon.modelFile  = File_staticFiles[id100V][(28 + 1)];
 		doppelgangerVergilIcon.textureFile = File_staticFiles[id100V][(28 + 0)];
+
+		devilTriggerGaugeDante.modelFile = File_staticFiles[id100][(6)];
+		devilTriggerGaugeDante.textureFile = File_staticFiles[id100][(0)];
+
+		devilTriggerLightningDante.modelFile = File_staticFiles[id100][(54)];
+		devilTriggerLightningDante.textureFile = File_staticFiles[id100][(53)];
+
+		devilTriggerGaugeVergil.modelFile = File_staticFiles[id100V][(6)];
+		devilTriggerGaugeVergil.textureFile = File_staticFiles[id100V][(0)];
+
+		devilTriggerLightningVergil.modelFile = File_staticFiles[id100V][(54)];
+		devilTriggerLightningVergil.textureFile = File_staticFiles[id100V][(53)];
+
 	}
 
 	// Weapon Icons Dante
@@ -130,6 +147,7 @@ export void HUD_UpdateStyleIcon
 	if (
 		((character == CHARACTER::BOB   ) ||
 		(character == CHARACTER::VERGIL))) {
+
 			if (style == STYLE::DARK_SLAYER) {
 				modelFile   = darkSlayerIcon.modelFile;
 				textureFile = darkSlayerIcon.textureFile;
@@ -157,6 +175,110 @@ export void HUD_UpdateStyleIcon
 
 	auto map = reinterpret_cast<uint8 *>(appBaseAddr + 0x4E9070);
 	auto & effect = *reinterpret_cast<uint8 *>(hudTop + 0x690E) = map[style];
+}
+
+export void HUD_UpdateDevilTriggerGauge
+(
+	uint8 character
+)
+{
+	if
+	(
+		(InCutscene()) ||
+		(InCredits())
+	)
+	{
+		return;
+	}
+
+	IntroduceHUDPointers(return);
+
+	if constexpr (debug)
+	{
+		LogFunction();
+	}
+
+	
+
+	auto modelFile   = devilTriggerGaugeDante.modelFile;
+	auto textureFile = devilTriggerGaugeDante.textureFile;
+
+	if (
+		((character == CHARACTER::BOB   ) ||
+		(character == CHARACTER::VERGIL))) {
+
+			
+			modelFile   = devilTriggerGaugeVergil.modelFile;
+			textureFile = devilTriggerGaugeVergil.textureFile;
+			
+			
+			
+	} else {
+		devilTriggerGaugeDante.modelFile;
+		devilTriggerGaugeDante.textureFile;
+	}
+
+	auto & modelData = *reinterpret_cast<ModelData *>(hudTop + hudTopOffs[HUD_TOP::MAGIC_ORBS]);
+
+	ResetModel(modelData);
+
+	func_89960(modelData, modelFile, textureFile);
+	func_89E30(modelData, 1);
+
+	auto map = reinterpret_cast<uint8 *>(appBaseAddr + 0x4E9070);
+	//auto & effect = *reinterpret_cast<uint8 *>(hudTop + 0x690E) = map[style];
+}
+
+export void HUD_UpdateDevilTriggerLightning
+(
+	uint8 character
+)
+{
+	if
+	(
+		(InCutscene()) ||
+		(InCredits())
+	)
+	{
+		return;
+	}
+
+	IntroduceHUDPointers(return);
+
+	if constexpr (debug)
+	{
+		LogFunction();
+	}
+
+	
+
+	auto modelFile   = devilTriggerLightningDante.modelFile;
+	auto textureFile = devilTriggerLightningDante.textureFile;
+
+	if (
+		((character == CHARACTER::BOB   ) ||
+		(character == CHARACTER::VERGIL))) {
+
+			
+			modelFile   = devilTriggerLightningVergil.modelFile;
+			textureFile = devilTriggerLightningVergil.textureFile;
+			
+			
+			
+	} else {
+		devilTriggerLightningDante.modelFile;
+		devilTriggerLightningDante.textureFile;
+	}
+
+	auto & modelData = *reinterpret_cast<ModelData *>(hudTop + hudTopOffs[HUD_TOP::FLUX]);
+
+	ResetModel(modelData);
+
+	func_89960(modelData, modelFile, textureFile);
+	func_89E30(modelData, 1);
+
+	auto map = reinterpret_cast<uint8 *>(appBaseAddr + 0x4E9070);
+	//auto & effect = *reinterpret_cast<uint8 *>(hudTop + 0x690E) = map[style];
 }
 
 export bool HUD_UpdateWeaponIcon

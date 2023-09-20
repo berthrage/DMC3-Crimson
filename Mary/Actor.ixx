@@ -3849,6 +3849,8 @@ byte8 *CreatePlayerActor(
 		HUD_UpdateStyleIcon(
 			GetStyle(actorData),
 			characterData.character);
+		HUD_UpdateDevilTriggerGauge(characterData.character);
+		HUD_UpdateDevilTriggerLightning(characterData.character);
 	}
 
 	InitWeapons(actorData);
@@ -4466,6 +4468,8 @@ void StyleSwitch(byte8 *actorBaseAddr, int style) {
 	HUD_UpdateStyleIcon(
 	actorData.style,
 	characterData.character);	
+	HUD_UpdateDevilTriggerGauge(characterData.character);
+	HUD_UpdateDevilTriggerLightning(characterData.character);
 
 	// Trigger SFX.
 	playStyleChange();
@@ -5645,6 +5649,10 @@ export void CharacterSwitchController()
 				HUD_UpdateStyleIcon(
 					GetStyle(actorData),
 					characterData.character);
+
+				HUD_UpdateDevilTriggerGauge(characterData.character);
+				HUD_UpdateDevilTriggerLightning(characterData.character);
+	
 			}();
 
 			// If Boss enable lead actor's lock-on system.
