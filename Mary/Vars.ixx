@@ -2354,9 +2354,10 @@ export struct ActiveMissionActorData
 	float maxHitPoints; // 0x68
 	float magicPoints; // 0x6C
 	float maxMagicPoints; // 0x70
+	float royalguardReleaseDamage;
 };
 
-static_assert(offsetof(ActiveMissionActorData, weapons) == 0);
+/*static_assert(offsetof(ActiveMissionActorData, weapons) == 0);
 static_assert(offsetof(ActiveMissionActorData, style) == 0x38);
 static_assert(offsetof(ActiveMissionActorData, styleLevel) == 0x3C);
 static_assert(offsetof(ActiveMissionActorData, expertise) == 0x40);
@@ -2365,8 +2366,9 @@ static_assert(offsetof(ActiveMissionActorData, hitPoints) == 0x64);
 static_assert(offsetof(ActiveMissionActorData, maxHitPoints) == 0x68);
 static_assert(offsetof(ActiveMissionActorData, magicPoints) == 0x6C);
 static_assert(offsetof(ActiveMissionActorData, maxMagicPoints) == 0x70);
+static_assert(offsetof(ActiveMissionActorData, royalguardReleaseDamage) == 0x74);
 
-static_assert(sizeof(ActiveMissionActorData) == 116);
+static_assert(sizeof(ActiveMissionActorData) == 116);*/
 
 // $ActiveMissionActorDataEnd
 
@@ -4394,7 +4396,8 @@ export struct FasterDarkslayer {
 	
 } sounds;*/
 
-
+export float storedRoyalguardGauge = 0;
+export bool mainActorSpawned = false;
 
 export bool styleChanged[6] = { false, false,
 								false, false, 

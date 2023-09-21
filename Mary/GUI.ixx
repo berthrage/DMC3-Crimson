@@ -9228,6 +9228,10 @@ void MainOverlayWindow()
 				ImGui::Text(sceneNames[g_scene]);
 				ImGui::Text("SCENE:  %u", g_scene);
 				ImGui::Text("DTReady Played %u", devilTriggerReadyPlayed);
+				IntroduceMainActorData(actorData, return);
+				if(!actorData.newActorLoopRun) {
+					storedRoyalguardGauge = actorData.royalguardReleaseDamage;
+				}
 
 				
 			}
@@ -9293,6 +9297,8 @@ void MainOverlayWindow()
 			ImGui::Text("Weapon %u", actorData.meleeWeaponIndex);
 			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
 			ImGui::Text("Magic Points %g", actorData.magicPoints);
+			ImGui::Text("Haywire NeoGenerator %u", g_haywireNeoGenerator);
+			 
 			/*ImGui::Text("styleRankCount Dismal %u", rankAnnouncer[0].count);
 			ImGui::Text("styleRankCount Crazy %u", rankAnnouncer[1].count);
 			ImGui::Text("styleRankCount Dismal Off Cooldown %u", rankAnnouncer[0].offCooldown);
@@ -9318,8 +9324,13 @@ void MainOverlayWindow()
 			using namespace ACTION_DANTE;
 			using namespace ACTION_VERGIL;
 
-			ImGui::Text("royalguardReleaseDamage %g", actorData.royalguardReleaseDamage);
+			IntroduceMissionActorData(return);
+
 			
+
+			ImGui::Text("RoyalguardReleaseDamage %g", actorData.royalguardReleaseDamage);
+			ImGui::Text("Stored Royal Gauge %g", storedRoyalguardGauge);
+			ImGui::Text("Main Actor Spawned %u", actorData.newActorLoopRun);
 			ImGui::Text("State %u", actorData.state);
 			ImGui::Text("Position  %g", actorData.position);
 			ImGui::Text("Rotation %g", actorData.rotation);

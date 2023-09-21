@@ -2487,6 +2487,7 @@ void InitActor(
 	T &actorData,
 	ActiveMissionActorData &activeMissionActorData)
 {
+	mainActorSpawned = false;
 	if constexpr (TypeMatch<T, PlayerActorDataDante>::value)
 	{
 		func_217B90(actorData, activeMissionActorData);
@@ -3715,12 +3716,20 @@ void UpdateWeapons(T &actorData)
 	UpdateRangedWeapon(actorData);
 }
 
+void StoreRoyalGauge(){
+	IntroduceMainActorData(actorData, return);
+
+	
+	
+}
+
 template <typename T>
 byte8 *CreatePlayerActor(
 	uint8 playerIndex,
 	uint8 characterIndex,
 	uint8 entityIndex)
 {
+	
 	auto &playerData = GetPlayerData(playerIndex);
 	auto &characterData = GetCharacterData(
 		playerIndex,
@@ -3729,6 +3738,8 @@ byte8 *CreatePlayerActor(
 
 	IntroduceSessionData();
 	IntroduceMissionActorData(return 0);
+	
+	
 
 	auto actorBaseAddr = func_1DE820(characterData.character, 0, false);
 	if (!actorBaseAddr)
@@ -3736,14 +3747,17 @@ byte8 *CreatePlayerActor(
 		return 0;
 	}
 	auto &actorData = *reinterpret_cast<T *>(actorBaseAddr);
+	
+	
 
 	UpdateFileData(actorData);
-
+	
 	InitActor(actorData, activeMissionActorData);
 
 	actorData.shadow = 1;
 	actorData.lastShadow = 1;
 	actorData.costume = (characterData.ignoreCostume) ? sessionData.costume : characterData.costume;
+	//actorData.royalguardReleaseDamage = storedRoyalguardGauge;
 
 	// Necessary when for example character is Vergil and session character is Dante.
 	// Since Dante has more costumes, the index could go out of range.
@@ -3839,7 +3853,7 @@ byte8 *CreatePlayerActor(
 
 	UpdateMotionArchives(actorData);
 
-	UpdateStyle(actorData);
+	//UpdateStyle(actorData);
 
 	if (
 		(playerIndex == 0) &&
@@ -3847,7 +3861,7 @@ byte8 *CreatePlayerActor(
 		(entityIndex == ENTITY::MAIN))
 	{
 		HUD_UpdateStyleIcon(
-			GetStyle(actorData),
+			actorData.style,
 			characterData.character);
 		HUD_UpdateDevilTriggerGauge(characterData.character);
 		HUD_UpdateDevilTriggerLightning(characterData.character);
@@ -3871,6 +3885,7 @@ byte8 *CreatePlayerActor(
 
 	CommissionActor(actorData);
 
+	mainActorSpawned = true;
 	return actorBaseAddr;
 }
 
@@ -16180,16 +16195,23 @@ export void EventDelete()
 		IntroduceData(g_newActorData[0][0][0].baseAddr, activeActorData, PlayerActorData, return);
 		IntroduceData(g_defaultNewActorData[0].baseAddr, actorData, PlayerActorData, return);
 
+	
+		
 		actorData.hitPoints = activeActorData.hitPoints;
 		actorData.maxHitPoints = activeActorData.maxHitPoints;
 		actorData.magicPoints = activeActorData.magicPoints;
 		actorData.maxMagicPoints = activeActorData.maxMagicPoints;
+		actorData.style = activeActorData.style;
+		actorData.royalguardReleaseDamage = activeActorData.royalguardReleaseDamage;
 
 		actorData.styleData.rank = activeActorData.styleData.rank;
 		actorData.styleData.meter = activeActorData.styleData.meter;
 		actorData.styleData.quotient = activeActorData.styleData.quotient;
 		actorData.styleData.dividend = activeActorData.styleData.dividend;
 		actorData.styleData.divisor = activeActorData.styleData.divisor;
+
+		
+
 		
 
 		DebugLog("EventDelete Copy StyleData");
@@ -16499,6 +16521,11 @@ export void SceneGame()
 		updateConfig = true;
 		activeConfig.Actor.enable = false;
 	}
+
+	IntroduceMainActorData(actorData, return);
+
+	storedRoyalguardGauge = actorData.royalguardReleaseDamage;
+
 
 	Actor::Toggle(activeConfig.Actor.enable);
 
