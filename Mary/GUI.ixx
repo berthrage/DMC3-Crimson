@@ -9250,7 +9250,7 @@ void MainOverlayWindow()
 			{
 				ImGui::Text(sceneNames[g_scene]);
 				ImGui::Text("SCENE:  %u", g_scene);
-				
+				ImGui::Text("backtoforward Back:  %u", backToForward.back);
 
 				if(isMusicPlaying() == 0) {
 					ImGui::Text("no music playing");

@@ -4426,7 +4426,10 @@ export bool missionClearSongPlayed = false;
 
 export struct BackToForward {
 	
-};
+	bool back = false;
+
+
+} backToForward;
 
 
 

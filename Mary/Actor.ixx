@@ -10104,7 +10104,9 @@ void InertiaController(byte8 *actorBaseAddr) {
 	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
 	auto & gamepad = GetGamepad(0);
-
+	auto cameraDirection = actorData.cameraDirection;
+	uint16 relativeTilt = 0;
+	relativeTilt = (actorData.cameraDirection + gamepad.leftStickPosition);
 
 				if(actorData.character == CHARACTER::DANTE) {
 		
@@ -10131,9 +10133,9 @@ void InertiaController(byte8 *actorBaseAddr) {
 						actorData.horizontalPull = (airRaveInertia.cachedPull / 5.0f) * - 1.0f;
 						
 						
-						/*if(actorData.rotation == relativeTiltController) {
-							actorData.rotation = actorData.actorCameraDirection;
-						}*/
+						uint16 value = (relativeTilt - 0x8000);
+						actorData.rotation = value;
+						
 						
 
 						//actorData.horizontalPullMultiplier = 0;
@@ -10421,7 +10423,21 @@ void BackToForwardInputAfterTracker() {
 }
 
 void BackToForwardInputs() {
-	
+	IntroduceMainActorData(actorData, return);
+
+	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
+	auto & gamepad = GetGamepad(0);
+	auto radius =  gamepad.leftStickRadius;
+	auto pos = gamepad.leftStickPosition;
+
+
+	if(lockOn && tiltDirection == TILT_DIRECTION::DOWN) {
+		backToForward.back = true;
+	}
+	else {
+		backToForward.back = false;
+	}
 }
 
 void UpdateActorSpeed(byte8 *baseAddr)
@@ -10444,6 +10460,7 @@ void UpdateActorSpeed(byte8 *baseAddr)
 	IntroduceMainActorData(mainActorData, return);
 	StyleRankAnnouncerController(mainActorData.styleData.rank);
 	DTReadySFX();
+	BackToForwardInputs();
 	// NewActorData
 
 	old_for_all(uint8, playerIndex, PLAYER_COUNT)
@@ -16201,7 +16218,7 @@ export void EventDelete()
 		
 		actorData.mode = activeActorData.mode;
 		
-		
+		//actorData.devil = activeActorData.devil;
 		actorData.style = activeActorData.style;
 		actorData.royalguardReleaseDamage = activeActorData.royalguardReleaseDamage;
 
