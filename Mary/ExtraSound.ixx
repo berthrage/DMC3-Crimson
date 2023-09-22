@@ -53,6 +53,7 @@ Mix_Chunk* styleRankSS1;
 Mix_Chunk* styleRankSS2;
 Mix_Chunk* styleRankSSS1;
 Mix_Chunk* styleRankSSS2;
+Mix_Music* missionClearSong;
 
 
 
@@ -143,6 +144,8 @@ export void initSDL() {
         styleRankSS2 = Mix_LoadWAV("sound/styleranks/ss2.wav");
         styleRankSSS1 = Mix_LoadWAV("sound/styleranks/sss1.wav");
         styleRankSSS2 = Mix_LoadWAV("sound/styleranks/sss2.wav");
+        missionClearSong = Mix_LoadMUS("sound/music/missionclear.mp3");
+        
 
 		cacheAudioFiles = true;
 	}
@@ -411,4 +414,16 @@ export void PlayDevilTriggerReady() {
     Mix_Volume(309, 110);
     Mix_PlayChannel(309, devilTriggerReady, 0);
 
+}
+
+export void PlayNewMissionClearSong() {
+    Mix_FadeInMusic(missionClearSong, -1, 500);
+}
+
+export void FadeOutNewMissionClearSong() {
+    Mix_FadeOutMusic(500);
+}
+
+export int isMusicPlaying() {
+    return Mix_PlayingMusic();
 }

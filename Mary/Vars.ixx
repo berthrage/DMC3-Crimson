@@ -4396,9 +4396,6 @@ export struct FasterDarkslayer {
 	
 } sounds;*/
 
-export float storedRoyalguardGauge = 0;
-export bool mainActorSpawned = false;
-
 export bool styleChanged[6] = { false, false,
 								false, false, 
 								false, false };
@@ -4424,6 +4421,8 @@ export struct Sprint{
 } sprint;
 
 export bool devilTriggerReadyPlayed = false;
+
+export bool missionClearSongPlayed = false;
 
 export struct BackToForward {
 	

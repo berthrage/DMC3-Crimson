@@ -2487,7 +2487,7 @@ void InitActor(
 	T &actorData,
 	ActiveMissionActorData &activeMissionActorData)
 {
-	mainActorSpawned = false;
+
 	if constexpr (TypeMatch<T, PlayerActorDataDante>::value)
 	{
 		func_217B90(actorData, activeMissionActorData);
@@ -3716,12 +3716,7 @@ void UpdateWeapons(T &actorData)
 	UpdateRangedWeapon(actorData);
 }
 
-void StoreRoyalGauge(){
-	IntroduceMainActorData(actorData, return);
 
-	
-	
-}
 
 template <typename T>
 byte8 *CreatePlayerActor(
@@ -3885,7 +3880,7 @@ byte8 *CreatePlayerActor(
 
 	CommissionActor(actorData);
 
-	mainActorSpawned = true;
+
 	return actorBaseAddr;
 }
 
@@ -10517,7 +10512,9 @@ void UpdateActorSpeed(byte8 *baseAddr)
 
 				SprintAbility();
 
-				
+				if(!g_haywireNeoGenerator){
+					actorData.mode = 0;
+				}
 				
 				FasterDarkslayerTricks();
 				
@@ -16201,6 +16198,10 @@ export void EventDelete()
 		actorData.maxHitPoints = activeActorData.maxHitPoints;
 		actorData.magicPoints = activeActorData.magicPoints;
 		actorData.maxMagicPoints = activeActorData.maxMagicPoints;
+		
+		actorData.mode = activeActorData.mode;
+		
+		
 		actorData.style = activeActorData.style;
 		actorData.royalguardReleaseDamage = activeActorData.royalguardReleaseDamage;
 
@@ -16508,7 +16509,6 @@ export void SceneGame()
 	DebugLog("flags         %X", eventFlags[20]);
 
 	if (
-		g_haywireNeoGenerator ||
 		((sessionData.mission == 18) &&
 		 (nextEventData.room == 403)) ||
 		((sessionData.mission == 19) &&
@@ -16523,8 +16523,6 @@ export void SceneGame()
 	}
 
 	IntroduceMainActorData(actorData, return);
-
-	storedRoyalguardGauge = actorData.royalguardReleaseDamage;
 
 
 	Actor::Toggle(activeConfig.Actor.enable);

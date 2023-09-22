@@ -1919,6 +1919,8 @@ void UpdateWeaponWheelPos()
 		UpdateWeaponSwitchControllerTexturePositions();
 }
 
+
+
 void WeaponSwitchController()
 {
 	static bool run = false;
@@ -9150,7 +9152,26 @@ void Other()
 
 #pragma region Overlays
 
+void NewMissionClearSong() {
+	if(g_scene == SCENE::MISSION_RESULT && !missionClearSongPlayed) {
+		// Mute Music Channel Volume
+		SetVolume(9, 0);
 
+		// Play song
+		PlayNewMissionClearSong();
+		missionClearSongPlayed = true;
+	}
+	else if (g_scene != SCENE::MISSION_RESULT && missionClearSongPlayed){
+		// Fade it out
+		FadeOutNewMissionClearSong();
+
+		// Restore original Channnel Volume
+		SetVolume(9, activeConfig.channelVolumes[9]);
+
+		missionClearSongPlayed = false;
+
+	}	
+}
 
 
 
@@ -9158,8 +9179,11 @@ const char * mainOverlayLabel = "MainOverlay";
 
 void MainOverlayWindow()
 {
+	NewMissionClearSong();
 	auto Function = [&]()
 	{
+		
+		
 		if (activeConfig.mainOverlayData.showFocus)
 		{
 			auto color = ImVec4(0, 1, 0, 1);
@@ -9200,7 +9224,6 @@ void MainOverlayWindow()
 		}
 		
 
-
 		if (activeConfig.mainOverlayData.showFrameRateMultiplier)
 		{
 			ImGui::Text("g_frameRateMultiplier %g", g_frameRateMultiplier);
@@ -9227,13 +9250,14 @@ void MainOverlayWindow()
 			{
 				ImGui::Text(sceneNames[g_scene]);
 				ImGui::Text("SCENE:  %u", g_scene);
-				ImGui::Text("DTReady Played %u", devilTriggerReadyPlayed);
-				IntroduceMainActorData(actorData, return);
-				if(!actorData.newActorLoopRun) {
-					storedRoyalguardGauge = actorData.royalguardReleaseDamage;
-				}
-
 				
+
+				if(isMusicPlaying() == 0) {
+					ImGui::Text("no music playing");
+				}
+				else {
+					ImGui::Text("MUSICPLAYING");
+				}
 			}
 			
 			[&]()
@@ -9329,8 +9353,7 @@ void MainOverlayWindow()
 			
 
 			ImGui::Text("RoyalguardReleaseDamage %g", actorData.royalguardReleaseDamage);
-			ImGui::Text("Stored Royal Gauge %g", storedRoyalguardGauge);
-			ImGui::Text("Main Actor Spawned %u", actorData.newActorLoopRun);
+			ImGui::Text("Actor Mode %u", actorData.mode);
 			ImGui::Text("State %u", actorData.state);
 			ImGui::Text("Position  %g", actorData.position);
 			ImGui::Text("Rotation %g", actorData.rotation);
@@ -9360,6 +9383,8 @@ void MainOverlayWindow()
 					actorData.action == REBELLION_AERIAL_RAVE_PART_4)) {
 				airRaveInertia.cachedPull = actorData.horizontalPull;
 			}
+
+			
 			
 			ImGui::Text("Rainstorm Horizontal Pull %g", rainstormMomentum);
 			ImGui::Text("Air Rave Horizontal Pull %g", airRaveInertia.cachedPull);
@@ -11581,6 +11606,8 @@ void Main()
 		SFX();
 		TrainingSection();
 		Vergil();
+
+		
 
 		ImGui::Text("");
 
