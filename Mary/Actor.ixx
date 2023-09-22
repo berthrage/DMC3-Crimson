@@ -10105,8 +10105,10 @@ void InertiaController(byte8 *actorBaseAddr) {
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
 	auto & gamepad = GetGamepad(0);
 	auto cameraDirection = actorData.cameraDirection;
+	auto radius =  gamepad.leftStickRadius;
 	uint16 relativeTilt = 0;
 	relativeTilt = (actorData.cameraDirection + gamepad.leftStickPosition);
+	uint16 value = (relativeTilt - 0x8000);
 
 				if(actorData.character == CHARACTER::DANTE) {
 		
@@ -10130,16 +10132,38 @@ void InertiaController(byte8 *actorBaseAddr) {
 						}*/
 						
 						airRaveInertia.cachedPull = glm::clamp(airRaveInertia.cachedPull, 0.0f, 9.0f);
-						actorData.horizontalPull = (airRaveInertia.cachedPull / 5.0f) * - 1.0f;
+
+						if(airRaveInertia.cachedDirection == TILT_DIRECTION::UP) {
+							actorData.horizontalPull = (airRaveInertia.cachedPull / 6.0f) * 1.0f;
+						}
+						else if(airRaveInertia.cachedDirection == TILT_DIRECTION::DOWN) {
+							actorData.horizontalPull = (airRaveInertia.cachedPull / 6.0f) * - 1.0f;
+						}
 						
 						
-						uint16 value = (relativeTilt - 0x8000);
-						actorData.rotation = value;
 						
+						if(!lockOn) {
+							if (!(radius < RIGHT_STICK_DEADZONE)) {
+								actorData.rotation = value;
+								raveRotation = actorData.rotation;
+							}
+							else {
+								actorData.rotation = raveRotation;
+							}
+						}
+					
 						
 
 						//actorData.horizontalPullMultiplier = 0;
-						//actorData.verticalPullMultiplier = -0.18f;
+						if(actorData.state == 65538 && actorData.action != REBELLION_AERIAL_RAVE_PART_4) {
+							actorData.verticalPull = -1.0f;
+							actorData.verticalPullMultiplier = 0;
+						}
+						else if (actorData.state == 65538 && actorData.action == REBELLION_AERIAL_RAVE_PART_4) {
+							actorData.verticalPull = -2.0f;
+							actorData.verticalPullMultiplier = 0;
+						}
+						
 						//actorData.horizontalPullMultiplier = -0.12f;
 					}
 					else if (actorData.action == CERBERUS_AIR_FLICKER) {

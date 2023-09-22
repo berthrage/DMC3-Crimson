@@ -4367,6 +4367,7 @@ export struct Inertia {
 	float pullHaltDivisor = 2.0f;
 	float pullDuration = 200;
 	bool trackerRunning = false;
+	uint8 cachedDirection = 0;
 } airRaveInertia;
 
 export struct RankAnnouncer {

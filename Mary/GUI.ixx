@@ -9309,6 +9309,7 @@ void MainOverlayWindow()
 			auto &characterData = GetCharacterData(actorData);
 			auto &cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
 			auto & gamepad = GetGamepad(0);
+			auto tiltDirection = GetRelativeTiltDirection(actorData);
 
 			IntroduceEnemyVectorData(return);
 			IntroduceEventData(return);
@@ -9369,7 +9370,7 @@ void MainOverlayWindow()
 			//Storing Momentum
 			if(actorData.action != EBONY_IVORY_RAIN_STORM) {
 				rainstormMomentum = actorData.horizontalPull;
-				raveRotation = actorData.rotation;
+				
 			}
 
 			if(!(actorData.action == REBELLION_HIGH_TIME ||
@@ -9382,6 +9383,10 @@ void MainOverlayWindow()
 					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_4)) {
 				airRaveInertia.cachedPull = actorData.horizontalPull;
+				raveRotation = actorData.rotation;
+				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
+					airRaveInertia.cachedDirection = tiltDirection;
+				}
 			}
 
 			
