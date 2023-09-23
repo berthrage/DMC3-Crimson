@@ -4341,8 +4341,8 @@ export struct DoubleTap {
 };
 
 export float rainstormMomentum = 0;
-export float raveMomentum = 0;
-export float raveRotation = 0;
+
+
 export float highTimeRotation = 0;
 
 export DoubleTap quickDoubleTap;
@@ -4364,11 +4364,29 @@ export struct GunsCancel {
 
 export struct Inertia {
 	float cachedPull = 10;
-	float pullHaltDivisor = 2.0f;
+	float haltDivisor = 2.0f;
 	float pullDuration = 200;
 	bool trackerRunning = false;
 	uint8 cachedDirection = 0;
 } airRaveInertia;
+
+export float raveRotation = 0;
+
+export Inertia rainstormInertia;
+
+export Inertia airFlickerInertia;
+export float airFlickerRotation;
+
+export Inertia skyDanceInertia;
+export float skyDanceRotation;
+
+export Inertia airSlashInertia;
+export float airSlashRotation;
+
+export float theHammerRotation;
+
+export Inertia yamatoRaveInertia;
+export float yamatoRaveRotation;
 
 export struct RankAnnouncer {
 	int turn = 0;
@@ -4381,7 +4399,7 @@ export RankAnnouncer rankAnnouncer[7];
 
 export uint16 relativeTiltController = 0;
 
-export Inertia rainstormInertia;
+
 
 
 export struct FasterDarkslayer {

@@ -10086,9 +10086,125 @@ void AirRaveInertiaTracker() {
 	
 	while(airRaveInertia.cachedPull > 0) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		airRaveInertia.cachedPull = airRaveInertia.cachedPull / airRaveInertia.pullHaltDivisor;
+		airRaveInertia.cachedPull = airRaveInertia.cachedPull / airRaveInertia.haltDivisor;
 	}
 	airRaveInertia.trackerRunning = false;
+}
+
+
+void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
+	// Allows you to freely rotate in the air while not locked on with aerial Swordmaster moves.
+
+	using namespace ACTION_DANTE;
+	using namespace ACTION_VERGIL;
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+	auto & gamepad = GetGamepad(0);
+	auto radius =  gamepad.leftStickRadius;
+	uint16 relativeTilt = 0;
+	relativeTilt = (actorData.cameraDirection + gamepad.leftStickPosition);
+	uint16 value = (relativeTilt - 0x8000);
+
+	
+	if(actorData.character == CHARACTER::DANTE) {
+		
+		if (actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
+			actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+			actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
+			actorData.action == REBELLION_AERIAL_RAVE_PART_4 ) {
+
+			
+			if(!lockOn) {
+				if (!(radius < RIGHT_STICK_DEADZONE)) {
+					
+					actorData.rotation = value;
+					raveRotation = actorData.rotation;
+				}
+				else {
+					actorData.rotation = raveRotation;
+				}
+			}
+		}
+		else if (actorData.action == CERBERUS_AIR_FLICKER) {
+
+			if(!lockOn) {
+				if (!(radius < RIGHT_STICK_DEADZONE)) {
+					
+					actorData.rotation = value;
+					airFlickerRotation = actorData.rotation;
+				}
+				else {
+					actorData.rotation = airFlickerRotation;
+				}
+			}
+		}
+		else if (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
+				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
+				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) {
+
+			if(!lockOn) {
+				if (!(radius < RIGHT_STICK_DEADZONE)) {
+					
+					actorData.rotation = value;
+					skyDanceRotation = actorData.rotation;
+				}
+				else {
+					actorData.rotation = skyDanceRotation;
+				}
+			}
+		}
+		else if (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
+			actorData.action == NEVAN_AIR_SLASH_PART_2) {
+
+			if(!lockOn) {
+				if (!(radius < RIGHT_STICK_DEADZONE)) {
+					
+					actorData.rotation = value;
+					airSlashRotation = actorData.rotation;
+				}
+				else {
+					actorData.rotation = airSlashRotation;
+				}
+			}
+
+		}
+		else if (actorData.action == BEOWULF_THE_HAMMER) {
+
+			if(!lockOn) {
+				if (!(radius < RIGHT_STICK_DEADZONE)) {
+					
+					actorData.rotation = value;
+					theHammerRotation = actorData.rotation;
+				}
+				else {
+					actorData.rotation = theHammerRotation;
+				}
+			}
+		}
+		else if (actorData.action == NEVAN_AIR_PLAY) {
+			//actorData.horizontalPullMultiplier = 0.2f;
+		}
+	
+	}	
+	else if(actorData.character == CHARACTER::VERGIL) {
+
+		if(actorData.action == YAMATO_AERIAL_RAVE_PART_1 || 
+			actorData.action == YAMATO_AERIAL_RAVE_PART_2) {
+				
+			if(!lockOn) {
+				if (!(radius < RIGHT_STICK_DEADZONE)) {
+					
+					actorData.rotation = value;
+					yamatoRaveRotation = actorData.rotation;
+				}
+				else {
+					actorData.rotation = yamatoRaveRotation;
+				}
+			}
+
+		}
+	}
+
 }
 
 void InertiaController(byte8 *actorBaseAddr) {
@@ -10114,8 +10230,8 @@ void InertiaController(byte8 *actorBaseAddr) {
 		
 					if (actorData.action == EBONY_IVORY_RAIN_STORM) {
 						
-						rainstormMomentum = glm::clamp(rainstormMomentum, 0.0f, 9.0f);
-						actorData.horizontalPull = rainstormMomentum / airRaveInertia.pullHaltDivisor;
+						rainstormInertia.cachedPull = glm::clamp(rainstormMomentum, 0.0f, 9.0f);
+						actorData.horizontalPull = rainstormInertia.cachedPull / airRaveInertia.haltDivisor;
 						
 						//actorData.horizontalPullMultiplier = 0.2f;
 					}
@@ -10131,18 +10247,19 @@ void InertiaController(byte8 *actorBaseAddr) {
             				airraveinertiatracker.detach();
 						}*/
 						
-						airRaveInertia.cachedPull = glm::clamp(airRaveInertia.cachedPull, 0.0f, 9.0f);
+						// Applying inertia
+						/*airRaveInertia.cachedPull = glm::clamp(airRaveInertia.cachedPull, 0.0f, 9.0f);
 
 						if(airRaveInertia.cachedDirection == TILT_DIRECTION::UP) {
 							actorData.horizontalPull = (airRaveInertia.cachedPull / 6.0f) * 1.0f;
 						}
 						else if(airRaveInertia.cachedDirection == TILT_DIRECTION::DOWN) {
 							actorData.horizontalPull = (airRaveInertia.cachedPull / 6.0f) * - 1.0f;
-						}
+						}*/
 						
 						
-						
-						if(!lockOn) {
+						// Allows you to freely move while not lock on (Removes Soft Lock On)
+						/*if(!lockOn) {
 							if (!(radius < RIGHT_STICK_DEADZONE)) {
 								actorData.rotation = value;
 								raveRotation = actorData.rotation;
@@ -10150,11 +10267,9 @@ void InertiaController(byte8 *actorBaseAddr) {
 							else {
 								actorData.rotation = raveRotation;
 							}
-						}
+						}*/
 					
-						
-
-						//actorData.horizontalPullMultiplier = 0;
+						// Reduces gravity while air raving
 						if(actorData.state == 65538 && actorData.action != REBELLION_AERIAL_RAVE_PART_4) {
 							actorData.verticalPull = -1.0f;
 							actorData.verticalPullMultiplier = 0;
@@ -10164,10 +10279,26 @@ void InertiaController(byte8 *actorBaseAddr) {
 							actorData.verticalPullMultiplier = 0;
 						}
 						
+						//actorData.horizontalPullMultiplier = 0;
 						//actorData.horizontalPullMultiplier = -0.12f;
 					}
 					else if (actorData.action == CERBERUS_AIR_FLICKER) {
-						actorData.horizontalPullMultiplier = -0.18f;
+
+						airFlickerInertia.cachedPull = glm::clamp(airFlickerInertia.cachedPull, 0.0f, 9.0f);
+						actorData.horizontalPull = (airFlickerInertia.cachedPull / airFlickerInertia.haltDivisor) * 1.0f;
+						
+						/*if(!lockOn) {
+							if (!(radius < RIGHT_STICK_DEADZONE)) {
+								actorData.rotation = value;
+								airFlickerRotation = actorData.rotation;
+							}
+							else {
+								actorData.rotation = airFlickerRotation;
+							}
+						}*/
+
+						actorData.verticalPullMultiplier = -0.20f;
+						//actorData.horizontalPullMultiplier = -0.18f;
 					}
 					else if (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
 					actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
@@ -10545,6 +10676,7 @@ void UpdateActorSpeed(byte8 *baseAddr)
 
 
 				InertiaController(actorBaseAddr);
+				RemoveSoftLockOnController(actorBaseAddr);
 
 				// Doppelganger's attacks can now hold/increase your style meter
 				StyleMeterDoppelganger(actorBaseAddr);

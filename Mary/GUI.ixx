@@ -9369,7 +9369,7 @@ void MainOverlayWindow()
 
 			//Storing Momentum
 			if(actorData.action != EBONY_IVORY_RAIN_STORM) {
-				rainstormMomentum = actorData.horizontalPull;
+				rainstormInertia.cachedPull = actorData.horizontalPull;
 				
 			}
 
@@ -9382,6 +9382,7 @@ void MainOverlayWindow()
 					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_4)) {
+
 				airRaveInertia.cachedPull = actorData.horizontalPull;
 				raveRotation = actorData.rotation;
 				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
@@ -9389,7 +9390,43 @@ void MainOverlayWindow()
 				}
 			}
 
+			if(actorData.action != CERBERUS_AIR_FLICKER) {
+				airFlickerInertia.cachedPull = actorData.horizontalPull;
+				airFlickerRotation = actorData.rotation;
+				
+			}
+
+			if(!(actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
+				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
+				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3)) {
+
+				skyDanceRotation = actorData.rotation;
+			}
 			
+			if(!(actorData.action == NEVAN_AIR_SLASH_PART_1 ||
+			actorData.action == NEVAN_AIR_SLASH_PART_2)) {
+
+				airSlashRotation = actorData.rotation;
+
+			}
+
+			if(actorData.action != BEOWULF_THE_HAMMER) {
+				theHammerRotation = actorData.rotation;
+			}
+
+			if(actorData.action != BEOWULF_THE_HAMMER) {
+				theHammerRotation = actorData.rotation;
+			}
+
+			if(!(actorData.action == YAMATO_AERIAL_RAVE_PART_1 || 
+				actorData.action == YAMATO_AERIAL_RAVE_PART_2)) {
+				
+				yamatoRaveRotation = actorData.rotation;
+
+			}
+
+	
+
 			
 			ImGui::Text("Rainstorm Horizontal Pull %g", rainstormMomentum);
 			ImGui::Text("Air Rave Horizontal Pull %g", airRaveInertia.cachedPull);
