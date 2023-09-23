@@ -9353,7 +9353,7 @@ void MainOverlayWindow()
 
 			
 
-			ImGui::Text("RoyalguardReleaseDamage %g", actorData.royalguardReleaseDamage);
+			ImGui::Text("Doppelganger active %u", actorData.doppelganger);
 			ImGui::Text("Actor Mode %u", actorData.mode);
 			ImGui::Text("State %u", actorData.state);
 			ImGui::Text("Position  %g", actorData.position);

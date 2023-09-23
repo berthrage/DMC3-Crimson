@@ -51,6 +51,10 @@ bool updateConfig = false;
 
 #pragma region Enemy
 
+float lerp(float x, float y, float t) {
+	return x * (1.f -t) + y * t;
+}
+
 export byte8 *CreateEnemyActor(
 	const CreateEnemyActorData &createEnemyActorData,
 	byte64 flags = 0)
@@ -4460,6 +4464,134 @@ void doubleTapDoppTracker(byte8 *actorBaseAddr) {
 	}
 }
 
+// @Update
+void ActivateDevil(PlayerActorData &actorData, bool playSFX)
+{
+	switch (actorData.character)
+	{
+	case CHARACTER::DANTE:
+	{
+		auto &actorData2 = *reinterpret_cast<PlayerActorDataDante *>(&actorData);
+		UpdateForm(actorData2);
+		break;
+	}
+	case CHARACTER::VERGIL:
+	{
+		auto &actorData2 = *reinterpret_cast<PlayerActorDataVergil *>(&actorData);
+		UpdateForm(actorData2);
+		break;
+	}
+	}
+
+	if(!actorData.newIsClone) {
+		func_1F94D0(actorData, DEVIL_FLUX::START);
+	}
+
+	if(playSFX) {
+		playDevilTriggerIn();
+	}
+	//playDevilTriggerLoop();
+}
+
+void DeactivateDevil(PlayerActorData &actorData)
+{
+	switch (actorData.character)
+	{
+	case CHARACTER::DANTE:
+	{
+		auto &actorData2 = *reinterpret_cast<PlayerActorDataDante *>(&actorData);
+		UpdateForm(actorData2);
+		break;
+	}
+	case CHARACTER::VERGIL:
+	{
+		auto &actorData2 = *reinterpret_cast<PlayerActorDataVergil *>(&actorData);
+		UpdateForm(actorData2);
+		break;
+	}
+	}
+
+	func_1F94D0(actorData, DEVIL_FLUX::END);
+
+	playDevilTriggerOut();
+	//stopDevilTriggerLoop();
+}
+
+void ActivateDoppelganger(PlayerActorData &actorData)
+{
+	LogFunction(actorData.operator byte8 *());
+	auto & characterData = GetCharacterData(actorData);
+
+	if (!actorData.cloneActorBaseAddr)
+	{
+		return;
+	}
+	auto &cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
+	auto & cloneCharacterData = GetCharacterData(cloneActorData);
+
+	SetMemory(actorData.var_6438, 0, (actorData.var_6440 * 46));
+	/*
+	dmc3.exe+1E9222 - 33 D2             - xor edx,edx
+	dmc3.exe+1E92A3 - 48 63 87 40640000 - movsxd rax,dword ptr [rdi+00006440]
+	dmc3.exe+1E92AA - 48 8B 8F 38640000 - mov rcx,[rdi+00006438]
+	dmc3.exe+1E92B1 - 4C 6B C0 2E       - imul r8,rax,2E
+	dmc3.exe+1E92B5 - E8 30D91500       - call dmc3.exe+346BEA
+	*/
+
+	actorData.cloneRate = 2;
+	cloneActorData.meleeWeaponIndex = actorData.meleeWeaponIndex;
+	cloneActorData.rangedWeaponIndex = actorData.rangedWeaponIndex;
+	
+	//ActivateDevil(cloneActorData);
+	//cloneActorData.devil = 1;
+	
+
+	func_1EAE60(actorData, 0);
+	/*
+	dmc3.exe+1E92D7 - 33 D2       - xor edx,edx
+	dmc3.exe+1E92D9 - 48 8B CF    - mov rcx,rdi
+	dmc3.exe+1E92DC - E8 7F1B0000 - call dmc3.exe+1EAE60
+	*/
+
+	ToggleActor(cloneActorData, true);
+	ActivateDevil(cloneActorData, false);
+	playDoppelgangerIn();
+	
+}
+
+void DeactivateDoppelganger(PlayerActorData &actorData)
+{
+	LogFunction(actorData.operator byte8 *());
+
+	// if (!actorData.cloneActorBaseAddr)
+	// {
+	// 	return;
+	// }
+	// auto & cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
+
+	IntroduceData(actorData.cloneActorBaseAddr, cloneActorData, PlayerActorData, return);
+
+	func_1EAE60(actorData, 1);
+	/*
+	dmc3.exe+1E9339 - B2 01       - mov dl,01
+	dmc3.exe+1E9351 - 48 8B CF    - mov rcx,rdi
+	dmc3.exe+1E9354 - E8 071B0000 - call dmc3.exe+1EAE60
+	*/
+
+	if (cloneActorData.devil)
+	{
+		cloneActorData.devil = false;
+
+		DeactivateDevil(cloneActorData);
+	}
+
+	ToggleActor(cloneActorData, false);
+
+	EndMotion(cloneActorData);
+
+	playDoppelgangerOut();
+}
+
 void StyleSwitch(byte8 *actorBaseAddr, int style) {
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
 	auto &characterData = GetCharacterData(actorData);
@@ -4568,7 +4700,18 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 		}
 
 		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5 && !actorData.newIsClone) {
-			StyleSwitch(actorBaseAddr, 5); // DOPPELGANGER
+
+			
+			if(!actorData.doppelganger) {
+				//actorData.magicPoints = lerp(10000.0f, 0, 0.1f);
+				ActivateDoppelganger(actorData);
+				actorData.doppelganger = true;
+			}
+			else {
+				DeactivateDoppelganger(actorData);
+				actorData.doppelganger = false;
+			}
+			
 		}
 
 		
@@ -11156,58 +11299,7 @@ bool DevilButtonCheck(PlayerActorData &actorData)
 	return true;
 }
 
-// @Update
-void ActivateDevil(PlayerActorData &actorData, bool playSFX)
-{
-	switch (actorData.character)
-	{
-	case CHARACTER::DANTE:
-	{
-		auto &actorData2 = *reinterpret_cast<PlayerActorDataDante *>(&actorData);
-		UpdateForm(actorData2);
-		break;
-	}
-	case CHARACTER::VERGIL:
-	{
-		auto &actorData2 = *reinterpret_cast<PlayerActorDataVergil *>(&actorData);
-		UpdateForm(actorData2);
-		break;
-	}
-	}
 
-	if(!actorData.newIsClone) {
-		func_1F94D0(actorData, DEVIL_FLUX::START);
-	}
-
-	if(playSFX) {
-		playDevilTriggerIn();
-	}
-	//playDevilTriggerLoop();
-}
-
-void DeactivateDevil(PlayerActorData &actorData)
-{
-	switch (actorData.character)
-	{
-	case CHARACTER::DANTE:
-	{
-		auto &actorData2 = *reinterpret_cast<PlayerActorDataDante *>(&actorData);
-		UpdateForm(actorData2);
-		break;
-	}
-	case CHARACTER::VERGIL:
-	{
-		auto &actorData2 = *reinterpret_cast<PlayerActorDataVergil *>(&actorData);
-		UpdateForm(actorData2);
-		break;
-	}
-	}
-
-	func_1F94D0(actorData, DEVIL_FLUX::END);
-
-	playDevilTriggerOut();
-	//stopDevilTriggerLoop();
-}
 
 void UpdateColorMatrices(PlayerActorData &actorData)
 {
@@ -11357,80 +11449,7 @@ void DeactivateQuicksilver(byte8 *actorBaseAddr)
 }
 
 
-void ActivateDoppelganger(PlayerActorData &actorData)
-{
-	LogFunction(actorData.operator byte8 *());
-	auto & characterData = GetCharacterData(actorData);
 
-	if (!actorData.cloneActorBaseAddr)
-	{
-		return;
-	}
-	auto &cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
-	auto & cloneCharacterData = GetCharacterData(cloneActorData);
-
-	SetMemory(actorData.var_6438, 0, (actorData.var_6440 * 46));
-	/*
-	dmc3.exe+1E9222 - 33 D2             - xor edx,edx
-	dmc3.exe+1E92A3 - 48 63 87 40640000 - movsxd rax,dword ptr [rdi+00006440]
-	dmc3.exe+1E92AA - 48 8B 8F 38640000 - mov rcx,[rdi+00006438]
-	dmc3.exe+1E92B1 - 4C 6B C0 2E       - imul r8,rax,2E
-	dmc3.exe+1E92B5 - E8 30D91500       - call dmc3.exe+346BEA
-	*/
-
-	actorData.cloneRate = 0;
-	cloneActorData.meleeWeaponIndex = actorData.meleeWeaponIndex;
-	cloneActorData.rangedWeaponIndex = actorData.rangedWeaponIndex;
-	
-	//ActivateDevil(cloneActorData);
-	//cloneActorData.devil = 1;
-	
-
-	func_1EAE60(actorData, 0);
-	/*
-	dmc3.exe+1E92D7 - 33 D2       - xor edx,edx
-	dmc3.exe+1E92D9 - 48 8B CF    - mov rcx,rdi
-	dmc3.exe+1E92DC - E8 7F1B0000 - call dmc3.exe+1EAE60
-	*/
-
-	ToggleActor(cloneActorData, true);
-	ActivateDevil(cloneActorData, false);
-	playDoppelgangerIn();
-	
-}
-
-void DeactivateDoppelganger(PlayerActorData &actorData)
-{
-	LogFunction(actorData.operator byte8 *());
-
-	// if (!actorData.cloneActorBaseAddr)
-	// {
-	// 	return;
-	// }
-	// auto & cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
-
-	IntroduceData(actorData.cloneActorBaseAddr, cloneActorData, PlayerActorData, return);
-
-	func_1EAE60(actorData, 1);
-	/*
-	dmc3.exe+1E9339 - B2 01       - mov dl,01
-	dmc3.exe+1E9351 - 48 8B CF    - mov rcx,rdi
-	dmc3.exe+1E9354 - E8 071B0000 - call dmc3.exe+1EAE60
-	*/
-
-	if (cloneActorData.devil)
-	{
-		cloneActorData.devil = false;
-
-		DeactivateDevil(cloneActorData);
-	}
-
-	ToggleActor(cloneActorData, false);
-
-	EndMotion(cloneActorData);
-
-	playDoppelgangerOut();
-}
 
 bool DeactivateDoppelgangerDeathCheck(PlayerActorData &actorData)
 {
