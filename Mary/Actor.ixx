@@ -10230,8 +10230,8 @@ void InertiaController(byte8 *actorBaseAddr) {
 		
 					if (actorData.action == EBONY_IVORY_RAIN_STORM) {
 						
-						rainstormInertia.cachedPull = glm::clamp(rainstormMomentum, 0.0f, 9.0f);
-						actorData.horizontalPull = rainstormInertia.cachedPull / airRaveInertia.haltDivisor;
+						rainstormInertia.cachedPull = glm::clamp(rainstormInertia.cachedPull, 0.0f, 9.0f);
+						actorData.horizontalPull = rainstormInertia.cachedPull / rainstormInertia.haltDivisor;
 						
 						//actorData.horizontalPullMultiplier = 0.2f;
 					}
@@ -10296,8 +10296,10 @@ void InertiaController(byte8 *actorBaseAddr) {
 								actorData.rotation = airFlickerRotation;
 							}
 						}*/
-
-						actorData.verticalPullMultiplier = -0.20f;
+						if(actorData.state == 65538) {
+							actorData.verticalPullMultiplier = -0.20f;
+						}
+						
 						//actorData.horizontalPullMultiplier = -0.18f;
 					}
 					else if (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
