@@ -9,6 +9,9 @@ module;
 #include <chrono>
 #include <math.h>
 #include "../ThirdParty/glm/glm.hpp"
+#include <ctime>
+#include <iostream>
+#include <cstdio>
 
 
 export module Actor;
@@ -50,6 +53,10 @@ bool lastEnable = false;
 bool updateConfig = false;
 
 #pragma region Enemy
+
+float lerp(float x, float y, float t) {
+	return x * (1.f -t) + y * t;
+}
 
 export byte8 *CreateEnemyActor(
 	const CreateEnemyActorData &createEnemyActorData,
@@ -4064,7 +4071,9 @@ void ResetPermissionsController(byte8 *actorBaseAddr)
 			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
 	{
 		if(actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT &&
-		actorData.action != EBONY_IVORY_AIR_NORMAL_SHOT && actorData.action != SHOTGUN_AIR_NORMAL_SHOT) // Exceptions, these cancels are way too OP or buggy in the cases of E&I and Shotgun.
+		actorData.action != EBONY_IVORY_AIR_NORMAL_SHOT && actorData.action != SHOTGUN_AIR_NORMAL_SHOT &&
+		actorData.action != SPIRAL_TRICK_SHOT) // Exceptions, these cancels are way too OP or buggy in the cases of E&I and Shotgun.
+		
 			actorData.permissions = 3080; // This is a softer version of Reset Permissions, doesn't reset air moves.
 	}
 
@@ -4460,6 +4469,179 @@ void doubleTapDoppTracker(byte8 *actorBaseAddr) {
 	}
 }
 
+// @Update
+void ActivateDevil(PlayerActorData &actorData, bool playSFX)
+{
+	switch (actorData.character)
+	{
+	case CHARACTER::DANTE:
+	{
+		auto &actorData2 = *reinterpret_cast<PlayerActorDataDante *>(&actorData);
+		UpdateForm(actorData2);
+		break;
+	}
+	case CHARACTER::VERGIL:
+	{
+		auto &actorData2 = *reinterpret_cast<PlayerActorDataVergil *>(&actorData);
+		UpdateForm(actorData2);
+		break;
+	}
+	}
+
+	if(!actorData.newIsClone) {
+		func_1F94D0(actorData, DEVIL_FLUX::START);
+	}
+
+	if(playSFX) {
+		PlayDevilTriggerIn();
+	}
+	//playDevilTriggerLoop();
+}
+
+void DeactivateDevil(PlayerActorData &actorData, bool playSFX = true)
+{
+	switch (actorData.character)
+	{
+	case CHARACTER::DANTE:
+	{
+		auto &actorData2 = *reinterpret_cast<PlayerActorDataDante *>(&actorData);
+		UpdateForm(actorData2);
+		break;
+	}
+	case CHARACTER::VERGIL:
+	{
+		auto &actorData2 = *reinterpret_cast<PlayerActorDataVergil *>(&actorData);
+		UpdateForm(actorData2);
+		break;
+	}
+	}
+
+	func_1F94D0(actorData, DEVIL_FLUX::END);
+
+	if(playSFX) {
+		PlayDevilTriggerOut();
+	}
+	//stopDevilTriggerLoop();
+}
+
+void ActivateDoppelganger(PlayerActorData &actorData)
+{
+	LogFunction(actorData.operator byte8 *());
+	auto & characterData = GetCharacterData(actorData);
+
+	if (!actorData.cloneActorBaseAddr)
+	{
+		return;
+	}
+	auto &cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
+	auto & cloneCharacterData = GetCharacterData(cloneActorData);
+
+	SetMemory(actorData.var_6438, 0, (actorData.var_6440 * 46));
+	/*
+	dmc3.exe+1E9222 - 33 D2             - xor edx,edx
+	dmc3.exe+1E92A3 - 48 63 87 40640000 - movsxd rax,dword ptr [rdi+00006440]
+	dmc3.exe+1E92AA - 48 8B 8F 38640000 - mov rcx,[rdi+00006438]
+	dmc3.exe+1E92B1 - 4C 6B C0 2E       - imul r8,rax,2E
+	dmc3.exe+1E92B5 - E8 30D91500       - call dmc3.exe+346BEA
+	*/
+
+	actorData.cloneRate = 0;
+	cloneActorData.meleeWeaponIndex = actorData.meleeWeaponIndex;
+	cloneActorData.rangedWeaponIndex = actorData.rangedWeaponIndex;
+	
+	//ActivateDevil(cloneActorData);
+	//cloneActorData.devil = 1;
+	
+
+	func_1EAE60(actorData, 0);
+	/*
+	dmc3.exe+1E92D7 - 33 D2       - xor edx,edx
+	dmc3.exe+1E92D9 - 48 8B CF    - mov rcx,rdi
+	dmc3.exe+1E92DC - E8 7F1B0000 - call dmc3.exe+1EAE60
+	*/
+
+	ToggleActor(cloneActorData, true);
+	ActivateDevil(cloneActorData, false);
+	playDoppelgangerIn();
+	
+}
+
+void DeactivateDoppelganger(PlayerActorData &actorData)
+{
+	LogFunction(actorData.operator byte8 *());
+
+	// if (!actorData.cloneActorBaseAddr)
+	// {
+	// 	return;
+	// }
+	// auto & cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
+
+	IntroduceData(actorData.cloneActorBaseAddr, cloneActorData, PlayerActorData, return);
+
+	func_1EAE60(actorData, 1);
+	/*
+	dmc3.exe+1E9339 - B2 01       - mov dl,01
+	dmc3.exe+1E9351 - 48 8B CF    - mov rcx,rdi
+	dmc3.exe+1E9354 - E8 071B0000 - call dmc3.exe+1EAE60
+	*/
+
+	if (cloneActorData.devil)
+	{
+		cloneActorData.devil = false;
+
+		DeactivateDevil(cloneActorData);
+	}
+
+	ToggleActor(cloneActorData, false);
+
+	EndMotion(cloneActorData);
+
+	playDoppelgangerOut();
+}
+
+void DoppTimeTracker() {
+	
+	IntroduceMainActorData(actorData, return);
+	doppTimeTrackerRunning = true;
+
+	while(actorData.doppelganger) {
+		IntroduceMainActorData(actorData, return);
+		doppSeconds++;
+		doppSecondsDT++;
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	}
+
+
+	doppTimeTrackerRunning = false;
+	
+	
+}
+
+void DoppDrain() {
+	
+	IntroduceMainActorData(actorData, return);
+	float currentDT = actorData.magicPoints;
+	currentDTDoppOn = actorData.magicPoints;
+	currentDTDoppDTOn = actorData.magicPoints;
+
+	while(actorData.doppelganger && actorData.magicPoints > 50 && doppTimeTrackerRunning) {
+		IntroduceMainActorData(actorData, return);
+		if(!actorData.devil) {
+			actorData.magicPoints = lerp(currentDTDoppOn, 0, doppSeconds / doppDuration);
+			currentDTDoppDTOn = actorData.magicPoints;
+			doppSecondsDT = 0;
+		}
+		else if(actorData.devil) {
+			actorData.magicPoints = lerp(currentDTDoppDTOn, 0, doppSecondsDT / doppDurationDT);
+			currentDTDoppOn = actorData.magicPoints;
+			doppSeconds = 0;
+		}
+		
+	}
+
+}
+	
+
 void StyleSwitch(byte8 *actorBaseAddr, int style) {
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
 	auto &characterData = GetCharacterData(actorData);
@@ -4568,10 +4750,67 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 		}
 
 		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5 && !actorData.newIsClone) {
-			StyleSwitch(actorBaseAddr, 5); // DOPPELGANGER
+			
+			// ACTIVATES DOPPELGANGER WITH ONE BUTTON PRESS FOR VERGIL
+
+			if(!actorData.doppelganger && actorData.magicPoints >= 3000) {
+				ActivateDoppelganger(actorData);
+				
+
+				if(!doppTimeTrackerRunning && !activeConfig.infiniteMagicPoints && 
+					actorData.costume != 2 && actorData.costume != 4) { // if Infinite Magic Points is on or using Super/Super Corrupted Vergil, DT drain doesn't trigger.
+																		   
+					std::thread dopptimetracker(DoppTimeTracker);																	   
+    				dopptimetracker.detach();
+
+					std::thread doppdrain(DoppDrain);
+    				doppdrain.detach();
+				}
+
+				actorData.doppelganger = true;
+			}
+			else if(actorData.doppelganger) {
+				DeactivateDoppelganger(actorData);
+				//actorData.magicPoints = magicPointsDopp;
+				actorData.doppelganger = false;
+				doppTimeTrackerRunning = false;
+				if(!doppTimeTrackerRunning) {
+					doppSeconds = 0;
+					doppSecondsDT = 0;
+				}
+			}
+			
 		}
 
+		if(actorData.doppelganger && actorData.magicPoints <= 50) {
+			DeactivateDoppelganger(actorData);
+			actorData.doppelganger = false;
+			doppTimeTrackerRunning = false;
+			doppSeconds = 0;
+			doppSecondsDT = 0;
+			currentDTDoppOn = 0;
+			currentDTDoppDTOn = 0;
+			DeactivateDevil(actorData, false);
+			UpdateForm(actorData);
+			actorData.devil = 0;
+		} 
+
+		/*if(actorData.doppelganger) {
+			if(actorData.devil) {
+				doppDuration = 3000;
+			} else {
+				doppDuration = 5000;
+			}
+		}
+		else if(!actorData.doppelganger) {
+			currentDTDopp = actorData.magicPoints;
+		}*/
+	
 		
+	}
+
+	if(actorData.devil && actorData.magicPoints < 50) {
+		PlayDevilTriggerOut();
 	}
 
 	//actorData.style = 0;
@@ -5659,12 +5898,12 @@ export void CharacterSwitchController()
 				SetMainActor(actorData);
 
 				HUD_UpdateStyleIcon(
-					GetStyle(actorData),
-					characterData.character);
-
+				actorData.style,
+				characterData.character);	
 				HUD_UpdateDevilTriggerGauge(characterData.character);
 				HUD_UpdateDevilTriggerLightning(characterData.character);
 				HUD_UpdateDevilTriggerExplosion(characterData.character);
+
 	
 			}();
 
@@ -10227,100 +10466,102 @@ void InertiaController(byte8 *actorBaseAddr) {
 	uint16 value = (relativeTilt - 0x8000);
 
 				if(actorData.character == CHARACTER::DANTE) {
-		
-					if (actorData.action == EBONY_IVORY_RAIN_STORM) {
+					if(actorData.state == 65538) {
+						if (actorData.action == EBONY_IVORY_RAIN_STORM) {
 						
-						rainstormInertia.cachedPull = glm::clamp(rainstormInertia.cachedPull, 0.0f, 9.0f);
-						actorData.horizontalPull = rainstormInertia.cachedPull / rainstormInertia.haltDivisor;
-						
-						//actorData.horizontalPullMultiplier = 0.2f;
-					}
-					else if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT) {
-						actorData.horizontalPullMultiplier = 0.03f;
-					}
-					else if (actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_4 ) {
-						/*if(!airRaveInertia.trackerRunning) {
-							std::thread airraveinertiatracker(AirRaveInertiaTracker);
-            				airraveinertiatracker.detach();
-						}*/
-						
-						// Applying inertia
-						/*airRaveInertia.cachedPull = glm::clamp(airRaveInertia.cachedPull, 0.0f, 9.0f);
+							rainstormInertia.cachedPull = glm::clamp(rainstormInertia.cachedPull, 0.0f, 9.0f);
+							actorData.horizontalPull = rainstormInertia.cachedPull / rainstormInertia.haltDivisor;
+							
+							//actorData.horizontalPullMultiplier = 0.2f;
+						}
+						else if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT) {
+							actorData.horizontalPullMultiplier = 0.03f;
+						}
+						else if (actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
+						actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+						actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
+						actorData.action == REBELLION_AERIAL_RAVE_PART_4 ) {
+							/*if(!airRaveInertia.trackerRunning) {
+								std::thread airraveinertiatracker(AirRaveInertiaTracker);
+								airraveinertiatracker.detach();
+							}*/
+							
+							// Applying inertia
+							/*airRaveInertia.cachedPull = glm::clamp(airRaveInertia.cachedPull, 0.0f, 9.0f);
 
-						if(airRaveInertia.cachedDirection == TILT_DIRECTION::UP) {
-							actorData.horizontalPull = (airRaveInertia.cachedPull / 6.0f) * 1.0f;
-						}
-						else if(airRaveInertia.cachedDirection == TILT_DIRECTION::DOWN) {
-							actorData.horizontalPull = (airRaveInertia.cachedPull / 6.0f) * - 1.0f;
-						}*/
-						
-						
-						// Allows you to freely move while not lock on (Removes Soft Lock On)
-						/*if(!lockOn) {
-							if (!(radius < RIGHT_STICK_DEADZONE)) {
-								actorData.rotation = value;
-								raveRotation = actorData.rotation;
+							if(airRaveInertia.cachedDirection == TILT_DIRECTION::UP) {
+								actorData.horizontalPull = (airRaveInertia.cachedPull / 6.0f) * 1.0f;
 							}
-							else {
-								actorData.rotation = raveRotation;
-							}
-						}*/
-					
-						// Reduces gravity while air raving
-						if(actorData.state == 65538 && actorData.action != REBELLION_AERIAL_RAVE_PART_4) {
-							actorData.verticalPull = -1.0f;
-							actorData.verticalPullMultiplier = 0;
-						}
-						else if (actorData.state == 65538 && actorData.action == REBELLION_AERIAL_RAVE_PART_4) {
-							actorData.verticalPull = -2.0f;
-							actorData.verticalPullMultiplier = 0;
-						}
+							else if(airRaveInertia.cachedDirection == TILT_DIRECTION::DOWN) {
+								actorData.horizontalPull = (airRaveInertia.cachedPull / 6.0f) * - 1.0f;
+							}*/
+							
+							
+							// Allows you to freely move while not lock on (Removes Soft Lock On)
+							/*if(!lockOn) {
+								if (!(radius < RIGHT_STICK_DEADZONE)) {
+									actorData.rotation = value;
+									raveRotation = actorData.rotation;
+								}
+								else {
+									actorData.rotation = raveRotation;
+								}
+							}*/
 						
-						//actorData.horizontalPullMultiplier = 0;
-						//actorData.horizontalPullMultiplier = -0.12f;
-					}
-					else if (actorData.action == CERBERUS_AIR_FLICKER) {
+							// Reduces gravity while air raving
+							if(actorData.action != REBELLION_AERIAL_RAVE_PART_4) {
+								actorData.verticalPull = -1.0f;
+								actorData.verticalPullMultiplier = 0;
+							}
+							else if (actorData.action == REBELLION_AERIAL_RAVE_PART_4) {
+								actorData.verticalPull = -2.0f;
+								actorData.verticalPullMultiplier = 0;
+							}
+							
+							//actorData.horizontalPullMultiplier = 0;
+							//actorData.horizontalPullMultiplier = -0.12f;
+						}
+						else if (actorData.action == CERBERUS_AIR_FLICKER) {
 
-						airFlickerInertia.cachedPull = glm::clamp(airFlickerInertia.cachedPull, 0.0f, 9.0f);
-						actorData.horizontalPull = (airFlickerInertia.cachedPull / airFlickerInertia.haltDivisor) * 1.0f;
-						
-						/*if(!lockOn) {
-							if (!(radius < RIGHT_STICK_DEADZONE)) {
-								actorData.rotation = value;
-								airFlickerRotation = actorData.rotation;
-							}
-							else {
-								actorData.rotation = airFlickerRotation;
-							}
-						}*/
-						if(actorData.state == 65538) {
+							airFlickerInertia.cachedPull = glm::clamp(airFlickerInertia.cachedPull, 0.0f, 9.0f);
+							actorData.horizontalPull = (airFlickerInertia.cachedPull / airFlickerInertia.haltDivisor) * 1.0f;
+							
+							/*if(!lockOn) {
+								if (!(radius < RIGHT_STICK_DEADZONE)) {
+									actorData.rotation = value;
+									airFlickerRotation = actorData.rotation;
+								}
+								else {
+									actorData.rotation = airFlickerRotation;
+								}
+							}*/
+							
 							actorData.verticalPullMultiplier = -0.20f;
+							
+							
+							//actorData.horizontalPullMultiplier = -0.18f;
 						}
-						
-						//actorData.horizontalPullMultiplier = -0.18f;
+						else if (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
+						actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
+						actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) {
+							actorData.horizontalPullMultiplier = -0.16f;
+						}
+						else if (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
+						actorData.action == NEVAN_AIR_SLASH_PART_2) {
+							actorData.horizontalPullMultiplier = 0.4f;
+						}
+						else if (actorData.action == NEVAN_AIR_PLAY) {
+							actorData.horizontalPullMultiplier = 0.2f;
+						}
+						else if (actorData.action == BEOWULF_KILLER_BEE) {
+							//actorData.horizontalPull = 10;
+							//actorData.horizontalPullMultiplier = 0.0001f;
+						}
+						else if (actorData.action == TRICKSTER_AIR_TRICK) {
+							actorData.horizontalPullMultiplier = 0.2f;
+						}
 					}
-					else if (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
-					actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
-					actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) {
-						actorData.horizontalPullMultiplier = -0.16f;
-					}
-					else if (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
-					actorData.action == NEVAN_AIR_SLASH_PART_2) {
-						actorData.horizontalPullMultiplier = 0.4f;
-					}
-					else if (actorData.action == NEVAN_AIR_PLAY) {
-						actorData.horizontalPullMultiplier = 0.2f;
-					}
-					else if (actorData.action == BEOWULF_KILLER_BEE) {
-						//actorData.horizontalPull = 10;
-						//actorData.horizontalPullMultiplier = 0.0001f;
-					}
-					else if (actorData.action == TRICKSTER_AIR_TRICK) {
-						actorData.horizontalPullMultiplier = 0.2f;
-					}
+					
 						
 				}
 }
@@ -11156,58 +11397,7 @@ bool DevilButtonCheck(PlayerActorData &actorData)
 	return true;
 }
 
-// @Update
-void ActivateDevil(PlayerActorData &actorData, bool playSFX)
-{
-	switch (actorData.character)
-	{
-	case CHARACTER::DANTE:
-	{
-		auto &actorData2 = *reinterpret_cast<PlayerActorDataDante *>(&actorData);
-		UpdateForm(actorData2);
-		break;
-	}
-	case CHARACTER::VERGIL:
-	{
-		auto &actorData2 = *reinterpret_cast<PlayerActorDataVergil *>(&actorData);
-		UpdateForm(actorData2);
-		break;
-	}
-	}
 
-	if(!actorData.newIsClone) {
-		func_1F94D0(actorData, DEVIL_FLUX::START);
-	}
-
-	if(playSFX) {
-		playDevilTriggerIn();
-	}
-	//playDevilTriggerLoop();
-}
-
-void DeactivateDevil(PlayerActorData &actorData)
-{
-	switch (actorData.character)
-	{
-	case CHARACTER::DANTE:
-	{
-		auto &actorData2 = *reinterpret_cast<PlayerActorDataDante *>(&actorData);
-		UpdateForm(actorData2);
-		break;
-	}
-	case CHARACTER::VERGIL:
-	{
-		auto &actorData2 = *reinterpret_cast<PlayerActorDataVergil *>(&actorData);
-		UpdateForm(actorData2);
-		break;
-	}
-	}
-
-	func_1F94D0(actorData, DEVIL_FLUX::END);
-
-	playDevilTriggerOut();
-	//stopDevilTriggerLoop();
-}
 
 void UpdateColorMatrices(PlayerActorData &actorData)
 {
@@ -11357,80 +11547,7 @@ void DeactivateQuicksilver(byte8 *actorBaseAddr)
 }
 
 
-void ActivateDoppelganger(PlayerActorData &actorData)
-{
-	LogFunction(actorData.operator byte8 *());
-	auto & characterData = GetCharacterData(actorData);
 
-	if (!actorData.cloneActorBaseAddr)
-	{
-		return;
-	}
-	auto &cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
-	auto & cloneCharacterData = GetCharacterData(cloneActorData);
-
-	SetMemory(actorData.var_6438, 0, (actorData.var_6440 * 46));
-	/*
-	dmc3.exe+1E9222 - 33 D2             - xor edx,edx
-	dmc3.exe+1E92A3 - 48 63 87 40640000 - movsxd rax,dword ptr [rdi+00006440]
-	dmc3.exe+1E92AA - 48 8B 8F 38640000 - mov rcx,[rdi+00006438]
-	dmc3.exe+1E92B1 - 4C 6B C0 2E       - imul r8,rax,2E
-	dmc3.exe+1E92B5 - E8 30D91500       - call dmc3.exe+346BEA
-	*/
-
-	actorData.cloneRate = 0;
-	cloneActorData.meleeWeaponIndex = actorData.meleeWeaponIndex;
-	cloneActorData.rangedWeaponIndex = actorData.rangedWeaponIndex;
-	
-	//ActivateDevil(cloneActorData);
-	//cloneActorData.devil = 1;
-	
-
-	func_1EAE60(actorData, 0);
-	/*
-	dmc3.exe+1E92D7 - 33 D2       - xor edx,edx
-	dmc3.exe+1E92D9 - 48 8B CF    - mov rcx,rdi
-	dmc3.exe+1E92DC - E8 7F1B0000 - call dmc3.exe+1EAE60
-	*/
-
-	ToggleActor(cloneActorData, true);
-	ActivateDevil(cloneActorData, false);
-	playDoppelgangerIn();
-	
-}
-
-void DeactivateDoppelganger(PlayerActorData &actorData)
-{
-	LogFunction(actorData.operator byte8 *());
-
-	// if (!actorData.cloneActorBaseAddr)
-	// {
-	// 	return;
-	// }
-	// auto & cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
-
-	IntroduceData(actorData.cloneActorBaseAddr, cloneActorData, PlayerActorData, return);
-
-	func_1EAE60(actorData, 1);
-	/*
-	dmc3.exe+1E9339 - B2 01       - mov dl,01
-	dmc3.exe+1E9351 - 48 8B CF    - mov rcx,rdi
-	dmc3.exe+1E9354 - E8 071B0000 - call dmc3.exe+1EAE60
-	*/
-
-	if (cloneActorData.devil)
-	{
-		cloneActorData.devil = false;
-
-		DeactivateDevil(cloneActorData);
-	}
-
-	ToggleActor(cloneActorData, false);
-
-	EndMotion(cloneActorData);
-
-	playDoppelgangerOut();
-}
 
 bool DeactivateDoppelgangerDeathCheck(PlayerActorData &actorData)
 {
@@ -16358,7 +16475,9 @@ export void EventDelete()
 	{
 		return;
 	}
-
+	doppTimeTrackerRunning = false;
+	doppSeconds = 0;
+	doppSecondsDT = 0;
 	LogFunction();
 
 	// Copy Data

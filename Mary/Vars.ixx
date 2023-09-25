@@ -4399,8 +4399,13 @@ export RankAnnouncer rankAnnouncer[7];
 
 export uint16 relativeTiltController = 0;
 
-
-
+export float doppSeconds = 0;
+export float doppSecondsDT = 0;
+export bool doppTimeTrackerRunning = false;
+export float currentDTDoppOn = 0;
+export float currentDTDoppDTOn = 0;
+export float doppDuration = 8000;
+export float doppDurationDT = 5000;
 
 export struct FasterDarkslayer {
 	float newSpeed = 2.0f;
