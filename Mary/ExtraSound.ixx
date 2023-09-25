@@ -228,11 +228,11 @@ void PlayOnChannelsFadeOut(int initialChannel, int finalChannel, Mix_Chunk* sfx,
 }
 
 export void playChangeDevilArm() {
-    PlayOnChannelsFadeOut(0, 19, changeDevilArm, activeConfig.SFX.changeWeaponVolume, 300);
+    PlayOnChannelsFadeOut(0, 19, changeDevilArm, activeConfig.SFX.changeWeaponVolume, 400);
 }
 
 export void playChangeGun() {
-    PlayOnChannelsFadeOut(20, 39, changeGun, activeConfig.SFX.changeWeaponVolume, 300);
+    PlayOnChannelsFadeOut(20, 39, changeGun, activeConfig.SFX.changeWeaponVolume, 400);
 }
 
 export void playStyleChange() {

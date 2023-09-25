@@ -9315,11 +9315,13 @@ void MainOverlayWindow()
 			IntroduceEventData(return);
 
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
-			ImGui::Text("in Combat %u", inCombat);
+			ImGui::Text("Costume %u", actorData.costume);
 			ImGui::Text("in Combat Time %u", inCombatTime);
 			//ImGui::Text("Track %s", eventData.track);
 
 			ImGui::Text("Weapon %u", actorData.meleeWeaponIndex);
+			ImGui::Text("Weapon Character Data %u", characterData.meleeWeaponIndex);
+			ImGui::Text("Active Weapon %u", actorData.activeWeapon);
 			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
 			ImGui::Text("Magic Points %g", actorData.magicPoints);
 			

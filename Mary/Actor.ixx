@@ -4071,7 +4071,8 @@ void ResetPermissionsController(byte8 *actorBaseAddr)
 			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
 	{
 		if(actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT &&
-		actorData.action != EBONY_IVORY_AIR_NORMAL_SHOT && actorData.action != SHOTGUN_AIR_NORMAL_SHOT) // Exceptions, these cancels are way too OP or buggy in the cases of E&I and Shotgun.
+		actorData.action != EBONY_IVORY_AIR_NORMAL_SHOT && actorData.action != SHOTGUN_AIR_NORMAL_SHOT &&
+		actorData.action != SPIRAL_TRICK_SHOT) // Exceptions, these cancels are way too OP or buggy in the cases of E&I and Shotgun.
 			actorData.permissions = 3080; // This is a softer version of Reset Permissions, doesn't reset air moves.
 	}
 
@@ -4749,15 +4750,16 @@ void StyleSwitchController(byte8 *actorBaseAddr)
 
 		if(actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5 && !actorData.newIsClone) {
 			
-			
+			// ACTIVATES DOPPELGANGER WITH ONE BUTTON PRESS FOR VERGIL
 
 			if(!actorData.doppelganger && actorData.magicPoints >= 3000) {
-				//actorData.magicPoints = lerp(10000.0f, 0, 0.1f);
 				ActivateDoppelganger(actorData);
 				
 
-				if(!doppTimeTrackerRunning) {
-					std::thread dopptimetracker(DoppTimeTracker);
+				if(!doppTimeTrackerRunning && !activeConfig.infiniteMagicPoints && 
+					actorData.costume != 2 && actorData.costume != 4) { // if Infinite Magic Points is on or using Super/Super Corrupted Vergil, DT drain doesn't trigger.
+																		   
+					std::thread dopptimetracker(DoppTimeTracker);																	   
     				dopptimetracker.detach();
 
 					std::thread doppdrain(DoppDrain);
