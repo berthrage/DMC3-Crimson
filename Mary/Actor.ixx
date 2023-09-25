@@ -4073,6 +4073,7 @@ void ResetPermissionsController(byte8 *actorBaseAddr)
 		if(actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT &&
 		actorData.action != EBONY_IVORY_AIR_NORMAL_SHOT && actorData.action != SHOTGUN_AIR_NORMAL_SHOT &&
 		actorData.action != SPIRAL_TRICK_SHOT) // Exceptions, these cancels are way too OP or buggy in the cases of E&I and Shotgun.
+		
 			actorData.permissions = 3080; // This is a softer version of Reset Permissions, doesn't reset air moves.
 	}
 
