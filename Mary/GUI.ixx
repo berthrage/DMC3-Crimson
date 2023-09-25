@@ -9322,6 +9322,7 @@ void MainOverlayWindow()
 			ImGui::Text("Weapon %u", actorData.meleeWeaponIndex);
 			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
 			ImGui::Text("Magic Points %g", actorData.magicPoints);
+			
 			ImGui::Text("Haywire NeoGenerator %u", g_haywireNeoGenerator);
 			 
 			/*ImGui::Text("styleRankCount Dismal %u", rankAnnouncer[0].count);
@@ -9339,9 +9340,11 @@ void MainOverlayWindow()
 			ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap.buffer);
 			ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap.buffer);
 			*/
-			
-			ImGui::Text("Doppelganger Active %u", actorData.doppelganger);
-			ImGui::Text("trickUpCooldown %u", trickUpCancel.cooldown);
+			ImGui::Text("Magic Points Dopp %g", currentDTDoppOn);
+			ImGui::Text("Magic Points Dopp DT %g", currentDTDoppDTOn);
+			ImGui::Text("Dopp Milliseconds %g", doppSeconds);
+			ImGui::Text("Dopp DT Milliseconds %g", doppSecondsDT);
+			ImGui::Text("Dopp Tracker Running %u", doppTimeTrackerRunning);
 			ImGui::Text("styleVFXCount %u", styleVFXCount);
 
 			
