@@ -10560,6 +10560,15 @@ void InertiaController(byte8 *actorBaseAddr) {
 						else if (actorData.action == TRICKSTER_AIR_TRICK) {
 							actorData.horizontalPullMultiplier = 0.2f;
 						}
+						else if (actorData.action == 195) {
+							actorData.position.x = storedSkyLaunchPosX;
+							actorData.position.y = storedSkyLaunchPosY;
+							actorData.position.z = storedSkyLaunchPosZ;
+							actorData.styleData.rank = storedSkyLaunchRank;
+							actorData.horizontalPull = 0;
+							actorData.verticalPullMultiplier = -0.001f;
+							
+						}
 					}
 					
 						
@@ -10812,16 +10821,50 @@ void DTReadySFX() {
 	}
 }
 
-void BackToForwardInputBeforeTracker() {
-
+void BackToForwardInputBackTracker() {
+	backTrackerRunning = true;
+	directionChanged = false;
+	while (backBuffer > 0 && backTrackerRunning == true) {
+		
+		backCommand = true;
+		backTrackerRunning = true;
+		backBuffer--;
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		if(backBuffer == 0) {
+		
+			backCommand = false;
+			backBuffer = backDuration;
+   			backTrackerRunning = false;
+		
+		}
+	}
+	
+	
+	
 }
 
-void BackToForwardInputAfterTracker() {
-
+void BackToForwardInputForwardTracker() {
+	forwardTrackerRunning = true;
+	backBuffer = backDuration;
+	backTrackerRunning = false;
+	while (forwardBuffer > 0 && forwardTrackerRunning == true) {
+		
+		forwardCommand = true;
+		forwardTrackerRunning = true;
+		forwardBuffer--;
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		if(forwardBuffer == 0) {
+			backCommand = false;
+			forwardCommand = false;
+			forwardBuffer = backDuration;
+   			forwardTrackerRunning = false;
+		
+		}
+	}
 }
 
-void BackToForwardInputs() {
-	IntroduceMainActorData(actorData, return);
+void BackToForwardInputs(byte8 *actorBaseAddr) {
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
 
 	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
@@ -10830,12 +10873,31 @@ void BackToForwardInputs() {
 	auto pos = gamepad.leftStickPosition;
 
 
-	if(lockOn && tiltDirection == TILT_DIRECTION::DOWN) {
-		backToForward.back = true;
+	if(lockOn && tiltDirection == TILT_DIRECTION::DOWN && (radius > RIGHT_STICK_DEADZONE) && directionChanged) {
+		if(!backTrackerRunning) {
+			std::thread backtoforwardbacktracker(BackToForwardInputBackTracker);
+            backtoforwardbacktracker.detach();
+		}
 	}
-	else {
-		backToForward.back = false;
+
+	if(tiltDirection != TILT_DIRECTION::DOWN) {
+		directionChanged = true;
 	}
+
+	if(lockOn && tiltDirection == TILT_DIRECTION::UP && (radius > RIGHT_STICK_DEADZONE) && backCommand) {
+		if(!forwardTrackerRunning) {
+			std::thread backtoforwardforwardtracker(BackToForwardInputForwardTracker);
+            backtoforwardforwardtracker.detach();
+		}
+	}
+
+	
+
+	/*if(backToForward.back && !backToForward.backTrackerRunning) {
+			std::thread backtoforwardbacktracker(BackToForwardInputBackTracker);
+            backtoforwardbacktracker.detach();
+	}*/
+
 }
 
 void UpdateActorSpeed(byte8 *baseAddr)
@@ -10858,7 +10920,7 @@ void UpdateActorSpeed(byte8 *baseAddr)
 	IntroduceMainActorData(mainActorData, return);
 	StyleRankAnnouncerController(mainActorData.styleData.rank);
 	DTReadySFX();
-	BackToForwardInputs();
+	BackToForwardInputs(mainActorData);
 	// NewActorData
 
 	old_for_all(uint8, playerIndex, PLAYER_COUNT)
@@ -11902,34 +11964,16 @@ void SetAction(byte8 *actorBaseAddr)
 			actorData.newAirStingerCount++;
 		}
 		else if (
-			activeConfig.enableRebellionNewDrive &&
-			(actorData.action == REBELLION_COMBO_1_PART_1) &&
-			lockOn &&
-			(tiltDirection == TILT_DIRECTION::LEFT))
+			activeConfig.enableRebellionNewDrive && actorData.lastAction != REBELLION_COMBO_1_PART_1 &&
+			(actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) && forwardCommand)
 		{
-			actorData.action = TRICKSTER_AIR_TRICK;
-			//actorData.action = REBELLION_DRIVE_2;
-			//ActivateDevil(actorData);
-			//actorData.devil = 1;
-			
-			//func_1F94D0(actorData, DEVIL_FLUX::START);
-			
-			//std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
-            //devilvfxtrigger.detach();
-			
-			
-			
-			/*old_for_all(uint8, index, 5)
-			{
-				UpdateDevilModel(actorData, (DEVIL::REBELLION + index), index);
-			}*/
+			actorData.action = REBELLION_DRIVE_1;
 		}
 		else if (
-			activeConfig.enableRebellionQuickDrive &&
+			activeConfig.enableRebellionQuickDrive && actorData.lastAction == REBELLION_COMBO_1_PART_1 &&
 			(demo_pl000_00_3 != 0) &&
-			(actorData.action == REBELLION_COMBO_1_PART_2) &&
-			(actorData.style == STYLE::SWORDMASTER) &&
-			(actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)))
+			(actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) &&
+			forwardCommand)
 		{
 			actorData.action = REBELLION_DRIVE_1;
 			
@@ -11973,29 +12017,42 @@ void SetAction(byte8 *actorBaseAddr)
 		//!(actorData.state & STATE::IN_AIR)) &&
 
 		//Just Frame Release in Air with Taunt
-		/*if ((actorData.state & STATE::IN_AIR) ) 
+		if ((actorData.state & STATE::IN_AIR) && (actorData.action == REBELLION_HELM_BREAKER) && 
+			forwardCommand) 
 		{
 			ToggleRoyalguardForceJustFrameRelease(true);
 			actorData.action = ROYALGUARD_AIR_RELEASE_1;
-		}*/
+		}
 		
 		// Swap Sword Pierce and Dance Macabre
+		/*if ((actorData.action == REBELLION_SWORD_PIERCE)) {
+
+			if(actorData.lastAction != REBELLION_DANCE_MACABRE_PART_1) {
+				actorData.action = REBELLION_DANCE_MACABRE_PART_1;
+			}
+			else {
+				actorData.action = REBELLION_DANCE_MACABRE_PART_2;
+			}
+			
+
+
+			
+		}*/
+
 		/*if ((actorData.action == REBELLION_SWORD_PIERCE) &&
 			(actorData.style == STYLE::SWORDMASTER) &&
 			lockOn && 
 			(actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
-			(tiltDirection == TILT_DIRECTION::UP))
-		{
-			actorData.action = REBELLION_DANCE_MACABRE_PART_1;
-			actorData.bufferedAction = REBELLION_DANCE_MACABRE_PART_2;
+			(tiltDirection == TILT_DIRECTION::UP) && actorData.lastAction == REBELLION_DANCE_MACABRE_PART_1) 
+			{
+			actorData.action = REBELLION_DANCE_MACABRE_PART_2;
 
 			
-			
-		}
+		}*/
 
 		
 
-		if ((actorData.action == REBELLION_DANCE_MACABRE_PART_1) &&
+		/*if ((actorData.action == REBELLION_DANCE_MACABRE_PART_1) &&
 			(actorData.style == STYLE::SWORDMASTER) &&
 			lockOn && 
 			(actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
@@ -12033,9 +12090,8 @@ void SetAction(byte8 *actorBaseAddr)
 
 		if (
 			activeConfig.enableYamatoVergilNewJudgementCut &&
-			(actorData.action == YAMATO_COMBO_PART_1) &&
-			lockOn &&
-			(tiltDirection == TILT_DIRECTION::LEFT))
+			(actorData.action == YAMATO_RAPID_SLASH_LEVEL_1 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_2) &&
+			forwardCommand)
 		{
 			actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
 		}
@@ -12083,9 +12139,8 @@ void SetAction(byte8 *actorBaseAddr)
 		}
 		else if (
 			activeConfig.enableYamatoForceEdgeNewRoundTrip &&
-			(actorData.action == YAMATO_FORCE_EDGE_COMBO_PART_1) &&
-			lockOn &&
-			(tiltDirection == TILT_DIRECTION::LEFT))
+			(actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1 || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2) &&
+			forwardCommand)
 		{
 			actorData.action = YAMATO_FORCE_EDGE_ROUND_TRIP;
 		}

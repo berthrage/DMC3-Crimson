@@ -9250,7 +9250,14 @@ void MainOverlayWindow()
 			{
 				ImGui::Text(sceneNames[g_scene]);
 				ImGui::Text("SCENE:  %u", g_scene);
-				ImGui::Text("backtoforward Back:  %u", backToForward.back);
+				/*
+				ImGui::Text("backtoforward Back:  %u", backCommand);
+				ImGui::Text("backtoforward Back Buffer:  %u", backBuffer);
+				ImGui::Text("backtoforward Back Tracker:  %u", backTrackerRunning);
+				ImGui::Text("backtoforward Forward:  %u", forwardCommand);
+				ImGui::Text("backtoforward Forward Buffer:  %u", forwardBuffer);
+				ImGui::Text("backtoforward Direction Changed:  %u", directionChanged);*/
+				
 
 				if(isMusicPlaying() == 0) {
 					ImGui::Text("no music playing");
@@ -9313,12 +9320,14 @@ void MainOverlayWindow()
 
 			IntroduceEnemyVectorData(return);
 			IntroduceEventData(return);
+			IntroduceSessionData();
 
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
 			ImGui::Text("Costume %u", actorData.costume);
 			ImGui::Text("in Combat Time %u", inCombatTime);
 			//ImGui::Text("Track %s", eventData.track);
 
+			ImGui::Text("Weapon Status Rebellion:  %u", actorData.weaponStatus[3]);
 			ImGui::Text("Weapon %u", actorData.meleeWeaponIndex);
 			ImGui::Text("Weapon Character Data %u", characterData.meleeWeaponIndex);
 			ImGui::Text("Active Weapon %u", actorData.activeWeapon);
@@ -9360,6 +9369,7 @@ void MainOverlayWindow()
 
 			ImGui::Text("Doppelganger active %u", actorData.doppelganger);
 			ImGui::Text("Actor Mode %u", actorData.mode);
+			ImGui::Text("Character %u", actorData.action);
 			ImGui::Text("State %u", actorData.state);
 			ImGui::Text("Position  %g", actorData.position);
 			ImGui::Text("Rotation %g", actorData.rotation);
@@ -9430,6 +9440,13 @@ void MainOverlayWindow()
 
 			}
 
+			if(!(actorData.action == 195 && actorData.state == 65538)) {
+				storedSkyLaunchPosX = actorData.position.x;
+				storedSkyLaunchPosY = actorData.position.y;
+				storedSkyLaunchPosZ = actorData.position.z;
+				storedSkyLaunchRank = actorData.styleData.rank;
+			}
+
 	
 
 			
@@ -9447,7 +9464,7 @@ void MainOverlayWindow()
 				ImGui::Text("StyleRankClone Quotient %g", cloneActorData.styleData.quotient);
 			}
 			
-			ImGui::Text("Character %u", actorData.action);
+			
 			
 			/*
 			ImGui::Text("Style Indice 0 %u", characterData.styleButtons[0]);
