@@ -9250,6 +9250,7 @@ void MainOverlayWindow()
 			{
 				ImGui::Text(sceneNames[g_scene]);
 				ImGui::Text("SCENE:  %u", g_scene);
+				ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
 				/*
 				ImGui::Text("backtoforward Back:  %u", backCommand);
 				ImGui::Text("backtoforward Back Buffer:  %u", backBuffer);
@@ -9323,7 +9324,8 @@ void MainOverlayWindow()
 			IntroduceSessionData();
 
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
-			ImGui::Text("Costume %u", actorData.costume);
+			ImGui::Text("gamepad SELECT %u", actorData.buttons[0]);
+			ImGui::Text("gamepad ATTACK %u", actorData.buttons[0]);
 			ImGui::Text("in Combat Time %u", inCombatTime);
 			//ImGui::Text("Track %s", eventData.track);
 
@@ -9445,6 +9447,7 @@ void MainOverlayWindow()
 				storedSkyLaunchPosY = actorData.position.y;
 				storedSkyLaunchPosZ = actorData.position.z;
 				storedSkyLaunchRank = actorData.styleData.rank;
+				appliedSkyLaunchProperties = false;
 			}
 
 	

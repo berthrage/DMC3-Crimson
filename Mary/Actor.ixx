@@ -10560,15 +10560,6 @@ void InertiaController(byte8 *actorBaseAddr) {
 						else if (actorData.action == TRICKSTER_AIR_TRICK) {
 							actorData.horizontalPullMultiplier = 0.2f;
 						}
-						else if (actorData.action == 195) {
-							actorData.position.x = storedSkyLaunchPosX;
-							actorData.position.y = storedSkyLaunchPosY;
-							actorData.position.z = storedSkyLaunchPosZ;
-							actorData.styleData.rank = storedSkyLaunchRank;
-							actorData.horizontalPull = 0;
-							actorData.verticalPullMultiplier = -0.001f;
-							
-						}
 					}
 					
 						
@@ -10900,6 +10891,81 @@ void BackToForwardInputs(byte8 *actorBaseAddr) {
 
 }
 
+void SkyLaunchTracker(byte8 *actorBaseAddr) {
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+	
+	
+	while((actorData.action == 195 || actorData.action == 194) && (actorData.state == 65538 || actorData.state == 589826)) {
+		executingSkyLaunch = true;
+		skyLaunchTrackerRunning = true;
+	}
+	executingSkyLaunch = false;
+	skyLaunchTrackerRunning = false;
+}
+
+void CheckSkyLaunch(byte8 *actorBaseAddr) {
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+
+	if ((actorData.state & STATE::IN_AIR) && (actorData.action == 195) && 
+		forwardCommand && !skyLaunchTrackerRunning) {
+
+		std::thread skylaunchtracker(SkyLaunchTracker, actorBaseAddr);
+        skylaunchtracker.detach();
+	}
+}
+
+void SkyLaunchProperties(byte8 *actorBaseAddr) {
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+
+	if (executingSkyLaunch) {
+		
+		actorData.position.x = storedSkyLaunchPosX;
+		actorData.position.z = storedSkyLaunchPosZ;
+		actorData.styleData.rank = storedSkyLaunchRank;
+		
+		if(!skyLaunchSetVolume) {
+			SetVolume(2, 0);
+			skyLaunchSetVolume = true;	
+		}
+
+		if(!appliedSkyLaunchProperties) {
+			skyLaunchForceJustFrameToggledOff = false;
+			
+
+			actorData.position.y = storedSkyLaunchPosY;
+			appliedSkyLaunchProperties = true;
+		}
+							
+		actorData.horizontalPull = 0;
+		actorData.verticalPullMultiplier = -0.2f;
+
+		actorData.position.x = storedSkyLaunchPosX;
+		actorData.position.z = storedSkyLaunchPosZ;
+
+		actorData.position.x = storedSkyLaunchPosX;
+		actorData.position.z = storedSkyLaunchPosZ;
+							
+	}	
+	else {
+		if(!skyLaunchForceJustFrameToggledOff) {
+			SetVolume(2, activeConfig.channelVolumes[2]);
+			ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+			skyLaunchForceJustFrameToggledOff = true;
+		}
+
+		skyLaunchSetVolume = false;
+		
+	}
+}
+
+void OverrideTauntInAir(byte8 *actorBaseAddr) {
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+
+	if((actorData.state & STATE::IN_AIR) && actorData.buttons[0] & GetBinding(BINDING::TAUNT)) {
+		actorData.buttons[0] = 16;
+	}
+}
+
 void UpdateActorSpeed(byte8 *baseAddr)
 {
 	
@@ -10918,9 +10984,15 @@ void UpdateActorSpeed(byte8 *baseAddr)
 	
 
 	IntroduceMainActorData(mainActorData, return);
-	StyleRankAnnouncerController(mainActorData.styleData.rank);
+	InertiaController(mainActorData);
+	//OverrideTauntInAir(mainActorData);
+	CheckSkyLaunch(mainActorData);
+	SkyLaunchProperties(mainActorData);
 	DTReadySFX();
 	BackToForwardInputs(mainActorData);
+	CheckSkyLaunch(mainActorData);
+	StyleRankAnnouncerController(mainActorData.styleData.rank);
+
 	// NewActorData
 
 	old_for_all(uint8, playerIndex, PLAYER_COUNT)
@@ -10980,7 +11052,7 @@ void UpdateActorSpeed(byte8 *baseAddr)
 				auto & gamepad = GetGamepad(0);
 
 
-				InertiaController(actorBaseAddr);
+				
 				RemoveSoftLockOnController(actorBaseAddr);
 
 				// Doppelganger's attacks can now hold/increase your style meter
@@ -11304,7 +11376,7 @@ float ApplyDamage(
 
 		IntroduceMainActorData(actorData, return value);
 
-		if (actorData.styleData.rank < activeConfig.damageStyleRank)
+		if (actorData.styleData.rank < activeConfig.damageStyleRank || executingSkyLaunch)
 		{
 			return 0;
 		}
@@ -11998,7 +12070,20 @@ void SetAction(byte8 *actorBaseAddr)
 		{
 			actorData.action = NEVAN_VORTEX;
 		}
+		
+		//Sky Launch
+		if ((actorData.state & STATE::IN_AIR) && (actorData.action == REBELLION_HELM_BREAKER) && 
+			forwardCommand) 
+		{
+			//executingSkyLaunch = true;
+			ToggleRoyalguardForceJustFrameRelease(true);
+			actorData.action = ROYALGUARD_AIR_RELEASE_1;
+			
+		}
 
+		if((actorData.action == 19) && actorData.buttons[0] & GetBinding(BINDING::TAUNT)) {
+			actorData.action = REBELLION_HELM_BREAKER;
+		}
 		
 		
 		// THIS WORKS BETTER THAN PREVIOUS
@@ -12016,13 +12101,7 @@ void SetAction(byte8 *actorBaseAddr)
 		
 		//!(actorData.state & STATE::IN_AIR)) &&
 
-		//Just Frame Release in Air with Taunt
-		if ((actorData.state & STATE::IN_AIR) && (actorData.action == REBELLION_HELM_BREAKER) && 
-			forwardCommand) 
-		{
-			ToggleRoyalguardForceJustFrameRelease(true);
-			actorData.action = ROYALGUARD_AIR_RELEASE_1;
-		}
+		
 		
 		// Swap Sword Pierce and Dance Macabre
 		/*if ((actorData.action == REBELLION_SWORD_PIERCE)) {

@@ -4392,6 +4392,11 @@ export float storedSkyLaunchPosX = 0;
 export float storedSkyLaunchPosY = 0;
 export float storedSkyLaunchPosZ = 0;
 export float storedSkyLaunchRank = 0;
+export bool skyLaunchSetVolume = false;
+export bool skyLaunchForceJustFrameToggledOff = false;
+export bool skyLaunchTrackerRunning = false;
+export bool executingSkyLaunch = false;
+export bool appliedSkyLaunchProperties = false;
 
 export struct RankAnnouncer {
 	int turn = 0;
