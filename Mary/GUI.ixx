@@ -9384,71 +9384,7 @@ void MainOverlayWindow()
 			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
 			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
 
-			//Storing Momentum
-			if(actorData.action != EBONY_IVORY_RAIN_STORM) {
-				rainstormInertia.cachedPull = actorData.horizontalPull;
-				
-			}
-
-			if(!(actorData.action == REBELLION_HIGH_TIME ||
-			actorData.action == REBELLION_HIGH_TIME_LAUNCH)) {
-				highTimeRotation = actorData.rotation;
-			}
-
-			if (!(actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_4)) {
-
-				airRaveInertia.cachedPull = actorData.horizontalPull;
-				raveRotation = actorData.rotation;
-				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
-					airRaveInertia.cachedDirection = tiltDirection;
-				}
-			}
-
-			if(actorData.action != CERBERUS_AIR_FLICKER) {
-				airFlickerInertia.cachedPull = actorData.horizontalPull;
-				airFlickerRotation = actorData.rotation;
-				
-			}
-
-			if(!(actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
-				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
-				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3)) {
-
-				skyDanceRotation = actorData.rotation;
-			}
 			
-			if(!(actorData.action == NEVAN_AIR_SLASH_PART_1 ||
-			actorData.action == NEVAN_AIR_SLASH_PART_2)) {
-
-				airSlashRotation = actorData.rotation;
-
-			}
-
-			if(actorData.action != BEOWULF_THE_HAMMER) {
-				theHammerRotation = actorData.rotation;
-			}
-
-			if(actorData.action != BEOWULF_THE_HAMMER) {
-				theHammerRotation = actorData.rotation;
-			}
-
-			if(!(actorData.action == YAMATO_AERIAL_RAVE_PART_1 || 
-				actorData.action == YAMATO_AERIAL_RAVE_PART_2)) {
-				
-				yamatoRaveRotation = actorData.rotation;
-
-			}
-
-			if(!(actorData.action == 195 && actorData.state == 65538)) {
-				storedSkyLaunchPosX = actorData.position.x;
-				storedSkyLaunchPosY = actorData.position.y;
-				storedSkyLaunchPosZ = actorData.position.z;
-				storedSkyLaunchRank = actorData.styleData.rank;
-				appliedSkyLaunchProperties = false;
-			}
 
 	
 

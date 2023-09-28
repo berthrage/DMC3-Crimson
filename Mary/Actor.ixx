@@ -10446,6 +10446,81 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 
 }
 
+void StoreInertia(byte8 *actorBaseAddr) {
+
+	using namespace ACTION_DANTE;
+	using namespace ACTION_VERGIL;
+
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
+
+	//Storing Momentum
+			if(actorData.action != EBONY_IVORY_RAIN_STORM) {
+				rainstormInertia.cachedPull = actorData.horizontalPull;
+				
+			}
+
+			if(!(actorData.action == REBELLION_HIGH_TIME ||
+			actorData.action == REBELLION_HIGH_TIME_LAUNCH)) {
+				highTimeRotation = actorData.rotation;
+			}
+
+			if (!(actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_4)) {
+
+				airRaveInertia.cachedPull = actorData.horizontalPull;
+				raveRotation = actorData.rotation;
+				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
+					airRaveInertia.cachedDirection = tiltDirection;
+				}
+			}
+
+			if(actorData.action != CERBERUS_AIR_FLICKER) {
+				airFlickerInertia.cachedPull = actorData.horizontalPull;
+				airFlickerRotation = actorData.rotation;
+				
+			}
+
+			if(!(actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
+				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
+				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3)) {
+
+				skyDanceRotation = actorData.rotation;
+			}
+			
+			if(!(actorData.action == NEVAN_AIR_SLASH_PART_1 ||
+			actorData.action == NEVAN_AIR_SLASH_PART_2)) {
+
+				airSlashRotation = actorData.rotation;
+
+			}
+
+			if(actorData.action != BEOWULF_THE_HAMMER) {
+				theHammerRotation = actorData.rotation;
+			}
+
+			if(actorData.action != BEOWULF_THE_HAMMER) {
+				theHammerRotation = actorData.rotation;
+			}
+
+			if(!(actorData.action == YAMATO_AERIAL_RAVE_PART_1 || 
+				actorData.action == YAMATO_AERIAL_RAVE_PART_2)) {
+				
+				yamatoRaveRotation = actorData.rotation;
+
+			}
+
+			if(!(actorData.action == 195 && actorData.state == 65538)) {
+				storedSkyLaunchPosX = actorData.position.x;
+				storedSkyLaunchPosY = actorData.position.y;
+				storedSkyLaunchPosZ = actorData.position.z;
+				storedSkyLaunchRank = actorData.styleData.rank;
+				appliedSkyLaunchProperties = false;
+			}
+}
+
 void InertiaController(byte8 *actorBaseAddr) {
 	// Inertia implementation. Momentum (or Pull) is stored before a certain move is executed, then
 	// when it's executed that Pull is preserved and carries over, some moves had their overall momentum
@@ -10895,7 +10970,9 @@ void SkyLaunchTracker(byte8 *actorBaseAddr) {
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
 	
 	
-	while((actorData.action == 195 || actorData.action == 194) && (actorData.state == 65538 || actorData.state == 589826)) {
+	while((actorData.action == 195 || actorData.action == 194) && (actorData.state == 65538 || actorData.state == 589826 || 
+	actorData.state == 720898 || actorData.state == 720897)) {
+		
 		executingSkyLaunch = true;
 		skyLaunchTrackerRunning = true;
 	}
@@ -10906,8 +10983,8 @@ void SkyLaunchTracker(byte8 *actorBaseAddr) {
 void CheckSkyLaunch(byte8 *actorBaseAddr) {
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
 
-	if ((actorData.state & STATE::IN_AIR) && (actorData.action == 195) && 
-		forwardCommand && !skyLaunchTrackerRunning) {
+	if (((actorData.state & STATE::IN_AIR || actorData.state == 65538 || actorData.state == 589826 || actorData.state == 720898 || actorData.state == 720897) && (actorData.action == 195) && 
+		actorData.buttons[0] & GetBinding(BINDING::TAUNT) && actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) && !skyLaunchTrackerRunning)) {
 
 		std::thread skylaunchtracker(SkyLaunchTracker, actorBaseAddr);
         skylaunchtracker.detach();
@@ -10948,6 +11025,7 @@ void SkyLaunchProperties(byte8 *actorBaseAddr) {
 	}	
 	else {
 		if(!skyLaunchForceJustFrameToggledOff) {
+			beginSkyLaunch = false;
 			SetVolume(2, activeConfig.channelVolumes[2]);
 			ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
 			skyLaunchForceJustFrameToggledOff = true;
@@ -10984,10 +11062,12 @@ void UpdateActorSpeed(byte8 *baseAddr)
 	
 
 	IntroduceMainActorData(mainActorData, return);
+	SkyLaunchProperties(mainActorData);
+	CheckSkyLaunch(mainActorData);
+	StoreInertia(mainActorData);
 	InertiaController(mainActorData);
 	//OverrideTauntInAir(mainActorData);
-	CheckSkyLaunch(mainActorData);
-	SkyLaunchProperties(mainActorData);
+
 	DTReadySFX();
 	BackToForwardInputs(mainActorData);
 	CheckSkyLaunch(mainActorData);
@@ -12070,20 +12150,34 @@ void SetAction(byte8 *actorBaseAddr)
 		{
 			actorData.action = NEVAN_VORTEX;
 		}
+
+		// New Nevan Inputs 
+		if(actorData.action == 81) {
+			actorData.action = NEVAN_COMBO_2;
+		}
+
+		if((actorData.action == NEVAN_REVERB_SHOCK_LEVEL_1 || actorData.action == NEVAN_REVERB_SHOCK_LEVEL_2) && forwardCommand) {
+			actorData.action = 81;
+		}
 		
 		//Sky Launch
-		if ((actorData.state & STATE::IN_AIR) && (actorData.action == REBELLION_HELM_BREAKER) && 
-			forwardCommand) 
-		{
+		/*if ((actorData.state & STATE::IN_AIR) && (actorData.action == REBELLION_HELM_BREAKER) && 
+			forwardCommand) */ //Previously Back To Forward + Melee Attack
+
+		if ((actorData.buttons[0] & GetBinding(BINDING::TAUNT)) && (actorData.action == REBELLION_HELM_BREAKER ||
+		actorData.action == CERBERUS_SWING || actorData.action == AGNI_RUDRA_AERIAL_CROSS ||  
+		actorData.action == NEVAN_AIR_PLAY || actorData.action == BEOWULF_KILLER_BEE)) {
 			//executingSkyLaunch = true;
+
+			beginSkyLaunch = true;
 			ToggleRoyalguardForceJustFrameRelease(true);
 			actorData.action = ROYALGUARD_AIR_RELEASE_1;
 			
 		}
 
-		if((actorData.action == 19) && actorData.buttons[0] & GetBinding(BINDING::TAUNT)) {
+		/*if((actorData.action == 19) && actorData.buttons[0] & GetBinding(BINDING::TAUNT)) {
 			actorData.action = REBELLION_HELM_BREAKER;
-		}
+		}*/
 		
 		
 		// THIS WORKS BETTER THAN PREVIOUS
