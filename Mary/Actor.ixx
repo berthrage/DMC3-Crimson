@@ -10971,19 +10971,23 @@ void SkyLaunchTracker(byte8 *actorBaseAddr) {
 	
 	
 	while((actorData.action == 195 || actorData.action == 194) && (actorData.state == 65538 || actorData.state == 589826 || 
-	actorData.state == 720898 || actorData.state == 720897)) {
+	actorData.state == 589825 || actorData.state == 720898 || actorData.state == 720897 || actorData.state == 196610)) {
 		
 		executingSkyLaunch = true;
 		skyLaunchTrackerRunning = true;
 	}
 	executingSkyLaunch = false;
 	skyLaunchTrackerRunning = false;
+
+	executingSkyLaunch = false;
+	executingSkyLaunch = false;
 }
 
 void CheckSkyLaunch(byte8 *actorBaseAddr) {
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
 
-	if (((actorData.state & STATE::IN_AIR || actorData.state == 65538 || actorData.state == 589826 || actorData.state == 720898 || actorData.state == 720897) && (actorData.action == 195) && 
+	if (((actorData.state & STATE::IN_AIR || actorData.state == 65538 || actorData.state == 589826 || actorData.state == 589825 
+	|| actorData.state == 720898 || actorData.state == 720897 || actorData.state == 196610) && (actorData.action == 195) && 
 		actorData.buttons[0] & GetBinding(BINDING::TAUNT) && actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) && !skyLaunchTrackerRunning)) {
 
 		std::thread skylaunchtracker(SkyLaunchTracker, actorBaseAddr);
@@ -11009,7 +11013,7 @@ void SkyLaunchProperties(byte8 *actorBaseAddr) {
 			skyLaunchForceJustFrameToggledOff = false;
 			
 
-			actorData.position.y = storedSkyLaunchPosY;
+			//actorData.position.y = storedSkyLaunchPosY;
 			appliedSkyLaunchProperties = true;
 		}
 							
@@ -11062,15 +11066,15 @@ void UpdateActorSpeed(byte8 *baseAddr)
 	
 
 	IntroduceMainActorData(mainActorData, return);
-	SkyLaunchProperties(mainActorData);
 	CheckSkyLaunch(mainActorData);
+	SkyLaunchProperties(mainActorData);
 	StoreInertia(mainActorData);
 	InertiaController(mainActorData);
 	//OverrideTauntInAir(mainActorData);
 
 	DTReadySFX();
 	BackToForwardInputs(mainActorData);
-	CheckSkyLaunch(mainActorData);
+	//CheckSkyLaunch(mainActorData);
 	StyleRankAnnouncerController(mainActorData.styleData.rank);
 
 	// NewActorData
@@ -12166,10 +12170,9 @@ void SetAction(byte8 *actorBaseAddr)
 
 		if ((actorData.buttons[0] & GetBinding(BINDING::TAUNT)) && (actorData.action == REBELLION_HELM_BREAKER ||
 		actorData.action == CERBERUS_SWING || actorData.action == AGNI_RUDRA_AERIAL_CROSS ||  
-		actorData.action == NEVAN_AIR_PLAY || actorData.action == BEOWULF_KILLER_BEE)) {
-			//executingSkyLaunch = true;
-
-			beginSkyLaunch = true;
+		actorData.action == NEVAN_AIR_PLAY || actorData.action == BEOWULF_KILLER_BEE) && !executingSkyLaunch) {
+			
+			executingSkyLaunch = true;
 			ToggleRoyalguardForceJustFrameRelease(true);
 			actorData.action = ROYALGUARD_AIR_RELEASE_1;
 			
