@@ -4388,6 +4388,17 @@ export float theHammerRotation;
 export Inertia yamatoRaveInertia;
 export float yamatoRaveRotation;
 
+export float storedSkyLaunchPosX = 0;
+export float storedSkyLaunchPosY = 0;
+export float storedSkyLaunchPosZ = 0;
+export float storedSkyLaunchRank = 0;
+export bool beginSkyLaunch = false;
+export bool skyLaunchSetVolume = false;
+export bool skyLaunchForceJustFrameToggledOff = false;
+export bool skyLaunchTrackerRunning = false;
+export bool executingSkyLaunch = false;
+export bool appliedSkyLaunchProperties = false;
+
 export struct RankAnnouncer {
 	int turn = 0;
 	int count = 0;
@@ -4451,10 +4462,27 @@ export bool missionClearSongPlayed = false;
 export struct BackToForward {
 	
 	bool back = false;
+	bool backTrackerRunning = false;
+	int backDuration = 1000;
+	int backBuffer = backDuration;
+	bool forward = false;
+	bool forwardTrackerRunning = false;
+	int forwardDuration = 1000;
+	int forwardBuffer = forwardDuration;
 
 
 } backToForward;
 
+export bool backCommand = false;
+export int backDuration = 1000;
+export int backBuffer = backDuration;
+export bool backTrackerRunning = false;
+export bool directionChanged = true;
+
+export bool forwardCommand = false;
+export int forwardDuration = 1000;
+export int forwardBuffer = forwardDuration;
+export bool forwardTrackerRunning = false;
 
 
 export constexpr BossHelper bossHelpers[] =

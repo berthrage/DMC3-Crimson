@@ -1378,7 +1378,7 @@ void MeleeWeaponSwitchController()
 		{
 			ImGui::SetWindowFocus(textureData.icons[0].label);
 		} else {
-			ImGui::SetWindowFocus(DMC3U_TITLE);
+			ImGui::SetWindowFocus(DMC3C_TITLE);
 		}
 		
 
@@ -1594,7 +1594,7 @@ void MeleeWeaponSwitchController()
 	{
 		ImGui::SetWindowFocus(textureData.icons[meleeWeaponIndex].label);
 	} else {
-		ImGui::SetWindowFocus(DMC3U_TITLE);
+		ImGui::SetWindowFocus(DMC3C_TITLE);
 	}
 	
 }
@@ -1667,7 +1667,7 @@ void RangedWeaponSwitchController()
 		{
 			ImGui::SetWindowFocus(textureData.icons[0].label);
 		} else {
-			ImGui::SetWindowFocus(DMC3U_TITLE);
+			ImGui::SetWindowFocus(DMC3C_TITLE);
 		}
 		
 
@@ -1798,7 +1798,7 @@ void RangedWeaponSwitchController()
 	{
 		ImGui::SetWindowFocus(textureData.icons[rangedWeaponIndex].label);
 	} else {
-		ImGui::SetWindowFocus(DMC3U_TITLE);
+		ImGui::SetWindowFocus(DMC3C_TITLE);
 	}
 	
 }
@@ -9250,7 +9250,15 @@ void MainOverlayWindow()
 			{
 				ImGui::Text(sceneNames[g_scene]);
 				ImGui::Text("SCENE:  %u", g_scene);
-				ImGui::Text("backtoforward Back:  %u", backToForward.back);
+				ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
+				/*
+				ImGui::Text("backtoforward Back:  %u", backCommand);
+				ImGui::Text("backtoforward Back Buffer:  %u", backBuffer);
+				ImGui::Text("backtoforward Back Tracker:  %u", backTrackerRunning);
+				ImGui::Text("backtoforward Forward:  %u", forwardCommand);
+				ImGui::Text("backtoforward Forward Buffer:  %u", forwardBuffer);
+				ImGui::Text("backtoforward Direction Changed:  %u", directionChanged);*/
+				
 
 				if(isMusicPlaying() == 0) {
 					ImGui::Text("no music playing");
@@ -9313,12 +9321,15 @@ void MainOverlayWindow()
 
 			IntroduceEnemyVectorData(return);
 			IntroduceEventData(return);
+			IntroduceSessionData();
 
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
-			ImGui::Text("Costume %u", actorData.costume);
+			ImGui::Text("gamepad SELECT %u", actorData.buttons[0]);
+			ImGui::Text("gamepad ATTACK %u", actorData.buttons[0]);
 			ImGui::Text("in Combat Time %u", inCombatTime);
 			//ImGui::Text("Track %s", eventData.track);
 
+			ImGui::Text("Weapon Status Rebellion:  %u", actorData.weaponStatus[3]);
 			ImGui::Text("Weapon %u", actorData.meleeWeaponIndex);
 			ImGui::Text("Weapon Character Data %u", characterData.meleeWeaponIndex);
 			ImGui::Text("Active Weapon %u", actorData.activeWeapon);
@@ -9360,6 +9371,7 @@ void MainOverlayWindow()
 
 			ImGui::Text("Doppelganger active %u", actorData.doppelganger);
 			ImGui::Text("Actor Mode %u", actorData.mode);
+			ImGui::Text("Character %u", actorData.action);
 			ImGui::Text("State %u", actorData.state);
 			ImGui::Text("Position  %g", actorData.position);
 			ImGui::Text("Rotation %g", actorData.rotation);
@@ -9372,63 +9384,7 @@ void MainOverlayWindow()
 			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
 			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
 
-			//Storing Momentum
-			if(actorData.action != EBONY_IVORY_RAIN_STORM) {
-				rainstormInertia.cachedPull = actorData.horizontalPull;
-				
-			}
-
-			if(!(actorData.action == REBELLION_HIGH_TIME ||
-			actorData.action == REBELLION_HIGH_TIME_LAUNCH)) {
-				highTimeRotation = actorData.rotation;
-			}
-
-			if (!(actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_4)) {
-
-				airRaveInertia.cachedPull = actorData.horizontalPull;
-				raveRotation = actorData.rotation;
-				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
-					airRaveInertia.cachedDirection = tiltDirection;
-				}
-			}
-
-			if(actorData.action != CERBERUS_AIR_FLICKER) {
-				airFlickerInertia.cachedPull = actorData.horizontalPull;
-				airFlickerRotation = actorData.rotation;
-				
-			}
-
-			if(!(actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
-				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
-				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3)) {
-
-				skyDanceRotation = actorData.rotation;
-			}
 			
-			if(!(actorData.action == NEVAN_AIR_SLASH_PART_1 ||
-			actorData.action == NEVAN_AIR_SLASH_PART_2)) {
-
-				airSlashRotation = actorData.rotation;
-
-			}
-
-			if(actorData.action != BEOWULF_THE_HAMMER) {
-				theHammerRotation = actorData.rotation;
-			}
-
-			if(actorData.action != BEOWULF_THE_HAMMER) {
-				theHammerRotation = actorData.rotation;
-			}
-
-			if(!(actorData.action == YAMATO_AERIAL_RAVE_PART_1 || 
-				actorData.action == YAMATO_AERIAL_RAVE_PART_2)) {
-				
-				yamatoRaveRotation = actorData.rotation;
-
-			}
 
 	
 
@@ -9447,7 +9403,7 @@ void MainOverlayWindow()
 				ImGui::Text("StyleRankClone Quotient %g", cloneActorData.styleData.quotient);
 			}
 			
-			ImGui::Text("Character %u", actorData.action);
+			
 			
 			/*
 			ImGui::Text("Style Indice 0 %u", characterData.styleButtons[0]);
@@ -11532,7 +11488,7 @@ void Main()
 	(
 		ImGui::Begin
 		(
-			DMC3U_TITLE,
+			DMC3C_TITLE,
 			&g_showMain
 		)
 	)
