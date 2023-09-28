@@ -9251,6 +9251,7 @@ void MainOverlayWindow()
 				ImGui::Text(sceneNames[g_scene]);
 				ImGui::Text("SCENE:  %u", g_scene);
 				ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
+				ImGui::Text("Sky Launch Tracker Running:  %u", skyLaunchTrackerRunning);
 				/*
 				ImGui::Text("backtoforward Back:  %u", backCommand);
 				ImGui::Text("backtoforward Back Buffer:  %u", backBuffer);
@@ -9323,8 +9324,13 @@ void MainOverlayWindow()
 			IntroduceEventData(return);
 			IntroduceSessionData();
 
+			auto & metadata = enemyVectorData.metadata[0];
+
+			IntroduceData(actorData.lockOnData.targetBaseAddr, enemyData, ActorDataBase, return);
+
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
-			ImGui::Text("gamepad SELECT %u", actorData.buttons[0]);
+			ImGui::Text("enemy vertical Pull %g", enemyData.verticalPull);
+			ImGui::Text("enemy vertical Pull Multiplier %g", enemyData.verticalPullMultiplier);
 			ImGui::Text("gamepad ATTACK %u", actorData.buttons[0]);
 			ImGui::Text("in Combat Time %u", inCombatTime);
 			//ImGui::Text("Track %s", eventData.track);

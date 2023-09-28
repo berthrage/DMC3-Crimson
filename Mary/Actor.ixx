@@ -4332,9 +4332,26 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 			}
 			
 			// Air Revolver Cancelling with Swordmaster moves
-			if((actorData.style == STYLE::SWORDMASTER) && 
-				(actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2)) {
+			if((actorData.style == STYLE::SWORDMASTER) && (actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2)) {
 				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
+				{
+
+					if (execute)
+					{
+						execute = false;
+
+						actorData.state &= ~STATE::BUSY;
+
+					}
+				}
+				else
+				{
+					execute = true;
+				}
+			}
+
+			if (actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2) {
+				if (actorData.buttons[2] & GetBinding(BINDING::MELEE_ATTACK))
 				{
 
 					if (execute)
@@ -10635,6 +10652,11 @@ void InertiaController(byte8 *actorBaseAddr) {
 						else if (actorData.action == TRICKSTER_AIR_TRICK) {
 							actorData.horizontalPullMultiplier = 0.2f;
 						}
+
+						if((actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2) && actorData.state == 65538) {
+							//actorData.verticalPull = 0;
+							//actorData.verticalPullMultiplier = -0.4f;
+						}
 					}
 					
 						
@@ -10966,21 +10988,24 @@ void BackToForwardInputs(byte8 *actorBaseAddr) {
 
 }
 
-void SkyLaunchTracker(byte8 *actorBaseAddr) {
-	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+void SkyLaunchTracker() {
+	IntroduceMainActorData(actorData, return);
 	
 	
-	while((actorData.action == 195 || actorData.action == 194) && (actorData.state == 65538 || actorData.state == 589826 || 
+	if((actorData.action == 195 || actorData.action == 194) && (actorData.state == 65538 || actorData.state == 589826 || 
 	actorData.state == 589825 || actorData.state == 720898 || actorData.state == 720897 || actorData.state == 196610)) {
 		
 		executingSkyLaunch = true;
 		skyLaunchTrackerRunning = true;
-	}
-	executingSkyLaunch = false;
-	skyLaunchTrackerRunning = false;
 
-	executingSkyLaunch = false;
-	executingSkyLaunch = false;
+		/*if(!executingSkyLaunch || !skyLaunchTrackerRunning) {
+			break;
+		}*/
+	}
+	//executingSkyLaunch = false;
+	//skyLaunchTrackerRunning = false;
+
+
 }
 
 void CheckSkyLaunch(byte8 *actorBaseAddr) {
@@ -10990,9 +11015,20 @@ void CheckSkyLaunch(byte8 *actorBaseAddr) {
 	|| actorData.state == 720898 || actorData.state == 720897 || actorData.state == 196610) && (actorData.action == 195) && 
 		actorData.buttons[0] & GetBinding(BINDING::TAUNT) && actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) && !skyLaunchTrackerRunning)) {
 
-		std::thread skylaunchtracker(SkyLaunchTracker, actorBaseAddr);
+		std::thread skylaunchtracker(SkyLaunchTracker);
         skylaunchtracker.detach();
 	}
+
+	if(!((actorData.action == 195 || actorData.action == 194) && (actorData.state == 65538 || actorData.state == 589826 || 
+	actorData.state == 589825 || actorData.state == 720898 || actorData.state == 720897 || actorData.state == 196610))) {
+		executingSkyLaunch = false;
+	}
+
+	if(!skyLaunchTrackerRunning) {
+		executingSkyLaunch = false;
+	}
+
+	
 }
 
 void SkyLaunchProperties(byte8 *actorBaseAddr) {
@@ -12170,7 +12206,7 @@ void SetAction(byte8 *actorBaseAddr)
 
 		if ((actorData.buttons[0] & GetBinding(BINDING::TAUNT)) && (actorData.action == REBELLION_HELM_BREAKER ||
 		actorData.action == CERBERUS_SWING || actorData.action == AGNI_RUDRA_AERIAL_CROSS ||  
-		actorData.action == NEVAN_AIR_PLAY || actorData.action == BEOWULF_KILLER_BEE) && !executingSkyLaunch) {
+		actorData.action == NEVAN_AIR_PLAY || actorData.action == BEOWULF_KILLER_BEE || CERBERUS_REVOLVER_LEVEL_2) && !executingSkyLaunch && actorData.state & STATE::IN_AIR) {
 			
 			executingSkyLaunch = true;
 			ToggleRoyalguardForceJustFrameRelease(true);
@@ -16707,6 +16743,8 @@ export void EventDelete()
 		return;
 	}
 	doppTimeTrackerRunning = false;
+	executingSkyLaunch = false;
+	skyLaunchTrackerRunning = false;
 	doppSeconds = 0;
 	doppSecondsDT = 0;
 	LogFunction();
