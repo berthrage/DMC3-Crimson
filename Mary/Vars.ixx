@@ -641,6 +641,8 @@ enum
 	REBELLION_DANCE_MACABRE_PART_8,
 	REBELLION_CRAZY_DANCE,
 	POLE_PLAY,
+	ROYAL_BLOCK,
+	ROYAL_AIR_BLOCK,
 };
 namespaceEnd();
 
@@ -4374,6 +4376,8 @@ export float raveRotation = 0;
 
 export Inertia rainstormInertia;
 
+export Inertia fireworksInertia;
+
 export Inertia airFlickerInertia;
 export float airFlickerRotation;
 
@@ -4383,10 +4387,15 @@ export float skyDanceRotation;
 export Inertia airSlashInertia;
 export float airSlashRotation;
 
+export Inertia theHammerInertia;
 export float theHammerRotation;
+
+export Inertia royalBlockInertia;
 
 export Inertia yamatoRaveInertia;
 export float yamatoRaveRotation;
+
+export float distanceToEnemy;
 
 export float storedSkyLaunchPosX = 0;
 export float storedSkyLaunchPosY = 0;
@@ -4398,6 +4407,8 @@ export bool skyLaunchForceJustFrameToggledOff = false;
 export bool skyLaunchTrackerRunning = false;
 export bool executingSkyLaunch = false;
 export bool appliedSkyLaunchProperties = false;
+
+export float storedRisingSunTauntPosY = 0;
 
 export struct RankAnnouncer {
 	int turn = 0;
@@ -4425,6 +4436,18 @@ export struct FasterDarkslayer {
 	float storedSpeedDevil[4] = {0};
 
 } fasterDarkslayer;
+
+export struct FasterRapidSlash {
+	float newSpeed = 2.0f;
+	bool newSpeedSet = false;
+	float storedSpeedHuman = 0;
+	float storedSpeedDevil[4] = {0};
+
+} fasterRapidSlash;
+
+export bool inRapidSlash;
+
+
 
 
 /*export struct Sounds {

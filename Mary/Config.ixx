@@ -708,6 +708,13 @@ export struct Config
 	}
 	SFX;
 
+	struct 
+	{
+		bool enable = true;
+		bool enableAerialRaveAnsSkyDance = true;
+	}
+	Inertia;
+
 	struct
 	{
 			

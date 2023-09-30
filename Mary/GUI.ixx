@@ -9326,13 +9326,14 @@ void MainOverlayWindow()
 
 			auto & metadata = enemyVectorData.metadata[0];
 
-			IntroduceData(actorData.lockOnData.targetBaseAddr, enemyData, ActorDataBase, return);
+			IntroduceData(actorData.lockOnData.targetBaseAddr60, enemyData, ActorDataBase, return);
 
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
-			ImGui::Text("enemy vertical Pull %g", enemyData.verticalPull);
+			ImGui::Text("enemy distance %g", distanceToEnemy);
 			ImGui::Text("enemy vertical Pull Multiplier %g", enemyData.verticalPullMultiplier);
 			ImGui::Text("gamepad ATTACK %u", actorData.buttons[0]);
-			ImGui::Text("in Combat Time %u", inCombatTime);
+			ImGui::Text("new speed Set Rapid Slash %u", fasterRapidSlash.newSpeedSet);
+			ImGui::Text("inRapidSlash %u", inRapidSlash);
 			//ImGui::Text("Track %s", eventData.track);
 
 			ImGui::Text("Weapon Status Rebellion:  %u", actorData.weaponStatus[3]);
@@ -9340,7 +9341,9 @@ void MainOverlayWindow()
 			ImGui::Text("Weapon Character Data %u", characterData.meleeWeaponIndex);
 			ImGui::Text("Active Weapon %u", actorData.activeWeapon);
 			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
-			ImGui::Text("Magic Points %g", actorData.magicPoints);
+			ImGui::Text("Trick Up Count %u", actorData.newTrickUpCount);
+			ImGui::Text("Air Rising Sun Count %u", actorData.newAirRisingSunCount);
+			
 			
 			ImGui::Text("Haywire NeoGenerator %u", g_haywireNeoGenerator);
 			 

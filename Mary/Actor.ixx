@@ -1063,6 +1063,24 @@ uint8 GetNextStyleAction(
 		}
 		
 	}
+	else if (actorData.style == STYLE::ROYALGUARD) {
+		if(inAir) {
+
+			if((!(lockOn && tiltDirection == TILT_DIRECTION::UP))) 
+			{
+				action = ROYAL_AIR_BLOCK;
+			}
+
+		}
+		else {
+			if((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN)) ) 
+			{
+				action = ROYAL_BLOCK;
+			}
+
+		}
+		
+	}
 	
 
 	return action;
@@ -4281,6 +4299,42 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 			}
 		}
 
+		// TRICK UP
+		if(actorData.character == CHARACTER::VERGIL && actorData.state == STATE::IN_AIR) {
+			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && lockOn && tiltDirection == TILT_DIRECTION::UP && actorData.newTrickUpCount > 0)
+			{
+				if (execute)
+				{
+					execute = false;
+
+					actorData.state &= ~STATE::BUSY;
+				}
+			}
+			else
+			{
+				execute = true;
+			}
+		}
+
+		// TRICK DOWN
+		if(actorData.character == CHARACTER::VERGIL && actorData.state == STATE::IN_AIR) {
+			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && lockOn && tiltDirection == TILT_DIRECTION::DOWN && actorData.newTrickDownCount > 0)
+			{
+				if (execute)
+				{
+					execute = false;
+
+					actorData.state &= ~STATE::BUSY;
+				}
+			}
+			else
+			{
+				execute = true;
+			}
+		}
+
+
+
 		//Dante's Trickster Actions Cancels Everything (w/ cooldown)
 		if(actorData.character == CHARACTER::DANTE) {
 			if ((actorData.style == STYLE::TRICKSTER) && 
@@ -4350,17 +4404,21 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 				}
 			}
 
-			if (actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2) {
+			if ((actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2) && 
+			actorData.state & STATE::IN_AIR) {
 				if (actorData.buttons[2] & GetBinding(BINDING::MELEE_ATTACK))
 				{
+					if((lockOn && tiltDirection != TILT_DIRECTION::UP) || !lockOn) {
+						if (execute)
+						{
+							execute = false;
 
-					if (execute)
-					{
-						execute = false;
+							actorData.state &= ~STATE::BUSY;
 
-						actorData.state &= ~STATE::BUSY;
-
+						}
 					}
+				
+	
 				}
 				else
 				{
@@ -10463,12 +10521,49 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 
 }
 
+void GetRoyalBlockAction(byte8 *actorBaseAddr) {
+
+	using namespace ACTION_DANTE;
+	using namespace ACTION_VERGIL;
+
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+
+	auto &gamepad = GetGamepad(actorData.newPlayerIndex);
+
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
+
+	auto inAir = (actorData.state & STATE::IN_AIR);
+
+	auto lockOn = (gamepad.buttons[0] & GetBinding(BINDING::LOCK_ON));
+
+	if (actorData.style == STYLE::ROYALGUARD) {
+		if(inAir) {
+
+			if((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && gamepad.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) 
+			{
+				actorData.action = ROYAL_AIR_BLOCK;
+			}
+
+		}
+		else {
+			if((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && gamepad.buttons[2] & GetBinding(BINDING::STYLE_ACTION))) 
+			{
+				actorData.action = ROYAL_BLOCK;
+			}
+
+		}
+		
+	}
+}
+
 void StoreInertia(byte8 *actorBaseAddr) {
 
 	using namespace ACTION_DANTE;
 	using namespace ACTION_VERGIL;
 
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+	auto &gamepad = GetGamepad(actorData.newPlayerIndex);
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
 
 	//Storing Momentum
@@ -10492,6 +10587,9 @@ void StoreInertia(byte8 *actorBaseAddr) {
 				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
 					airRaveInertia.cachedDirection = tiltDirection;
 				}
+				/*else if (tiltDirection == TILT_DIRECTION::NEUTRAL) {
+					airRaveInertia.cachedDirection = TILT_DIRECTION::UP;
+				}*/
 			}
 
 			if(actorData.action != CERBERUS_AIR_FLICKER) {
@@ -10503,24 +10601,41 @@ void StoreInertia(byte8 *actorBaseAddr) {
 			if(!(actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
 				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
 				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3)) {
-
+				
+				skyDanceInertia.cachedPull = actorData.horizontalPull;
 				skyDanceRotation = actorData.rotation;
+				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
+					skyDanceInertia.cachedDirection = tiltDirection;
+				}
+				/*else if (tiltDirection == TILT_DIRECTION::NEUTRAL) {
+					skyDanceInertia.cachedDirection = TILT_DIRECTION::UP;
+				}*/
 			}
 			
 			if(!(actorData.action == NEVAN_AIR_SLASH_PART_1 ||
 			actorData.action == NEVAN_AIR_SLASH_PART_2)) {
 
+				airSlashInertia.cachedPull = actorData.horizontalPull;
 				airSlashRotation = actorData.rotation;
+				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
+					airSlashInertia.cachedDirection = tiltDirection;
+				}
+				/*else if (tiltDirection == TILT_DIRECTION::NEUTRAL) {
+					airSlashInertia.cachedDirection = TILT_DIRECTION::UP;
+				}*/
 
 			}
 
 			if(actorData.action != BEOWULF_THE_HAMMER) {
+
+				theHammerInertia.cachedPull = actorData.horizontalPull;
 				theHammerRotation = actorData.rotation;
 			}
 
-			if(actorData.action != BEOWULF_THE_HAMMER) {
-				theHammerRotation = actorData.rotation;
+			if(actorData.action != SHOTGUN_AIR_FIREWORKS) {
+				fireworksInertia.cachedPull = actorData.horizontalPull;
 			}
+
 
 			if(!(actorData.action == YAMATO_AERIAL_RAVE_PART_1 || 
 				actorData.action == YAMATO_AERIAL_RAVE_PART_2)) {
@@ -10529,12 +10644,23 @@ void StoreInertia(byte8 *actorBaseAddr) {
 
 			}
 
+			bool inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && 
+						gamepad.buttons[2] & GetBinding(BINDING::STYLE_ACTION));
+
+			if(!inRoyalBlock) {
+				royalBlockInertia.cachedPull = actorData.horizontalPull;
+			}
+
 			if(!(actorData.action == 195 && actorData.state == 65538)) {
 				storedSkyLaunchPosX = actorData.position.x;
 				storedSkyLaunchPosY = actorData.position.y;
 				storedSkyLaunchPosZ = actorData.position.z;
 				storedSkyLaunchRank = actorData.styleData.rank;
 				appliedSkyLaunchProperties = false;
+			}
+
+			if (!(actorData.state & STATE::IN_AIR && actorData.action == BEOWULF_RISING_SUN)) {
+				storedRisingSunTauntPosY = actorData.position.y;
 			}
 }
 
@@ -10556,6 +10682,12 @@ void InertiaController(byte8 *actorBaseAddr) {
 	uint16 relativeTilt = 0;
 	relativeTilt = (actorData.cameraDirection + gamepad.leftStickPosition);
 	uint16 value = (relativeTilt - 0x8000);
+	
+	distanceToEnemy = actorData.position.z - actorData.lockOnData.targetPosition.z;
+
+
+	bool inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && 
+						gamepad.buttons[2] & GetBinding(BINDING::STYLE_ACTION));
 
 				if(actorData.character == CHARACTER::DANTE) {
 					if(actorData.state == 65538) {
@@ -10569,6 +10701,15 @@ void InertiaController(byte8 *actorBaseAddr) {
 						else if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT) {
 							actorData.horizontalPullMultiplier = 0.03f;
 						}
+						else if (actorData.action == SHOTGUN_AIR_NORMAL_SHOT) {
+							actorData.horizontalPullMultiplier = 0.05f;
+						}
+						else if (actorData.action == ARTEMIS_AIR_NORMAL_SHOT) {
+							actorData.horizontalPullMultiplier = 0.05f;
+						}
+						else if (actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT) {
+							actorData.horizontalPullMultiplier = 0.05f;
+						}
 						else if (actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
 						actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
 						actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
@@ -10579,26 +10720,17 @@ void InertiaController(byte8 *actorBaseAddr) {
 							}*/
 							
 							// Applying inertia
-							/*airRaveInertia.cachedPull = glm::clamp(airRaveInertia.cachedPull, 0.0f, 9.0f);
+							airRaveInertia.cachedPull = glm::clamp(airRaveInertia.cachedPull, 0.0f, 9.0f);
 
 							if(airRaveInertia.cachedDirection == TILT_DIRECTION::UP) {
-								actorData.horizontalPull = (airRaveInertia.cachedPull / 6.0f) * 1.0f;
+								actorData.horizontalPull = (airRaveInertia.cachedPull / 7.0f) * 1.0f;
 							}
 							else if(airRaveInertia.cachedDirection == TILT_DIRECTION::DOWN) {
-								actorData.horizontalPull = (airRaveInertia.cachedPull / 6.0f) * - 1.0f;
-							}*/
+								actorData.horizontalPull = (airRaveInertia.cachedPull / 7.0f) * - 1.0f;
+							}
 							
 							
-							// Allows you to freely move while not lock on (Removes Soft Lock On)
-							/*if(!lockOn) {
-								if (!(radius < RIGHT_STICK_DEADZONE)) {
-									actorData.rotation = value;
-									raveRotation = actorData.rotation;
-								}
-								else {
-									actorData.rotation = raveRotation;
-								}
-							}*/
+						
 						
 							// Reduces gravity while air raving
 							if(actorData.action != REBELLION_AERIAL_RAVE_PART_4) {
@@ -10615,7 +10747,7 @@ void InertiaController(byte8 *actorBaseAddr) {
 						}
 						else if (actorData.action == CERBERUS_AIR_FLICKER) {
 
-							airFlickerInertia.cachedPull = glm::clamp(airFlickerInertia.cachedPull, 0.0f, 9.0f);
+							airFlickerInertia.cachedPull = glm::clamp(airFlickerInertia.cachedPull, 2.0f, 9.0f);
 							actorData.horizontalPull = (airFlickerInertia.cachedPull / airFlickerInertia.haltDivisor) * 1.0f;
 							
 							/*if(!lockOn) {
@@ -10636,22 +10768,61 @@ void InertiaController(byte8 *actorBaseAddr) {
 						else if (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
 						actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
 						actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) {
-							actorData.horizontalPullMultiplier = -0.16f;
+
+							skyDanceInertia.cachedPull = glm::clamp(skyDanceInertia.cachedPull, 1.0f, 9.0f);
+
+							if(skyDanceInertia.cachedDirection == TILT_DIRECTION::UP) {
+								actorData.horizontalPull = (skyDanceInertia.cachedPull / 5.0f) * 1.0f;
+							}
+							else if(skyDanceInertia.cachedDirection == TILT_DIRECTION::DOWN) {
+								actorData.horizontalPull = (skyDanceInertia.cachedPull / 5.0f) * - 1.0f;
+							}
+							//actorData.horizontalPullMultiplier = -0.16f;
 						}
 						else if (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
 						actorData.action == NEVAN_AIR_SLASH_PART_2) {
-							actorData.horizontalPullMultiplier = 0.4f;
+
+							airSlashInertia.cachedPull = glm::clamp(airSlashInertia.cachedPull, 0.0f, 9.0f);
+
+							if(airSlashInertia.cachedDirection == TILT_DIRECTION::UP) {
+								actorData.horizontalPull = (airSlashInertia.cachedPull / 1.5f) * 1.0f;
+								actorData.horizontalPullMultiplier = 0.4f;
+							}
+							else if(airSlashInertia.cachedDirection == TILT_DIRECTION::DOWN) {
+								actorData.horizontalPull = (airSlashInertia.cachedPull / 2.0f) * - 1.0f;
+								actorData.horizontalPullMultiplier = -0.4f;
+							}
+							//actorData.horizontalPullMultiplier = 0.4f;
 						}
 						else if (actorData.action == NEVAN_AIR_PLAY) {
 							actorData.horizontalPullMultiplier = 0.2f;
 						}
+						else if (actorData.action == BEOWULF_THE_HAMMER) {
+							theHammerInertia.cachedPull = glm::clamp(theHammerInertia.cachedPull, 0.0f, 9.0f);
+							actorData.horizontalPull = (theHammerInertia.cachedPull / 1.5f) * 1.0f;
+
+						}
 						else if (actorData.action == BEOWULF_KILLER_BEE) {
-							//actorData.horizontalPull = 10;
-							//actorData.horizontalPullMultiplier = 0.0001f;
+							actorData.horizontalPull = 24.0f;
 						}
 						else if (actorData.action == TRICKSTER_AIR_TRICK) {
 							actorData.horizontalPullMultiplier = 0.2f;
 						}
+						else if (actorData.action == SHOTGUN_AIR_FIREWORKS) {
+
+							fireworksInertia.cachedPull = glm::clamp(fireworksInertia.cachedPull, 0.0f, 9.0f);
+							actorData.horizontalPull = fireworksInertia.cachedPull / 1.5f;
+						}
+						else if (actorData.style == STYLE::ROYALGUARD &&
+						inRoyalBlock && (distanceToEnemy < 150.0f && distanceToEnemy > -150.0f) && actorData.eventData[0].event != 23) {
+							//actorData.position.x = 0;
+							actorData.horizontalPull = royalBlockInertia.cachedPull * 2.0f;
+							actorData.horizontalPullMultiplier = 2.0f;
+						}
+						
+						
+
+
 
 						if((actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2) && actorData.state == 65538) {
 							//actorData.verticalPull = 0;
@@ -10660,6 +10831,14 @@ void InertiaController(byte8 *actorBaseAddr) {
 					}
 					
 						
+				}
+				else if (actorData.character == CHARACTER::VERGIL) {
+					if(actorData.state == 65538) {
+						if(actorData.state & STATE::IN_AIR && actorData.action == BEOWULF_RISING_SUN) {
+							actorData.verticalPullMultiplier = 0.0f;
+							actorData.position.y = storedRisingSunTauntPosY - 50.0f;
+						}
+					}
 				}
 }
 
@@ -10858,6 +11037,7 @@ void SprintAbility() {
 void FasterDarkslayerTricks() {
 	IntroduceMainActorData(actorData, return);
 
+
 	if(actorData.character == CHARACTER::VERGIL) {
 		float storedspeedVergil = activeConfig.Speed.human;
 		if((actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK || actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP 
@@ -10891,6 +11071,46 @@ void FasterDarkslayerTricks() {
 			
 			
 			fasterDarkslayer.newSpeedSet = false;
+		}
+	}
+}
+
+void FasterRapidSlashDevil(byte8 *actorBaseAddr) {
+	using namespace ACTION_DANTE;
+	using namespace ACTION_VERGIL;
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+	
+	inRapidSlash = ((actorData.action == 5) && actorData.eventData[0].event == 17);
+
+	if(actorData.character == CHARACTER::VERGIL) {
+		
+		if(inRapidSlash && !fasterRapidSlash.newSpeedSet) {
+
+			// Storing the original speeds
+			fasterRapidSlash.storedSpeedDevil[0] = activeConfig.Speed.devilVergil[0];
+			fasterRapidSlash.storedSpeedDevil[1] = activeConfig.Speed.devilVergil[1];
+			fasterRapidSlash.storedSpeedDevil[2] = activeConfig.Speed.devilVergil[2];
+			fasterRapidSlash.storedSpeedDevil[3] = activeConfig.Speed.devilVergil[3];
+
+			// Setting the new speed 
+			activeConfig.Speed.devilVergil[0] = fasterRapidSlash.newSpeed;
+			activeConfig.Speed.devilVergil[1] = fasterRapidSlash.newSpeed;
+			activeConfig.Speed.devilVergil[2] = fasterRapidSlash.newSpeed;
+			activeConfig.Speed.devilVergil[3] = fasterRapidSlash.newSpeed;
+
+			fasterRapidSlash.newSpeedSet = true;
+		}
+		else if (!inRapidSlash && fasterRapidSlash.newSpeedSet){
+
+			
+			// Restoring the original speeds
+			activeConfig.Speed.devilVergil[0] = fasterRapidSlash.storedSpeedDevil[0];
+			activeConfig.Speed.devilVergil[1] = fasterRapidSlash.storedSpeedDevil[1];
+			activeConfig.Speed.devilVergil[2] = fasterRapidSlash.storedSpeedDevil[2];
+			activeConfig.Speed.devilVergil[3] = fasterRapidSlash.storedSpeedDevil[3];
+			
+			
+			fasterRapidSlash.newSpeedSet = false;
 		}
 	}
 }
@@ -11104,9 +11324,11 @@ void UpdateActorSpeed(byte8 *baseAddr)
 	IntroduceMainActorData(mainActorData, return);
 	CheckSkyLaunch(mainActorData);
 	SkyLaunchProperties(mainActorData);
+	GetRoyalBlockAction(mainActorData);
 	StoreInertia(mainActorData);
 	InertiaController(mainActorData);
 	//OverrideTauntInAir(mainActorData);
+	
 
 	DTReadySFX();
 	BackToForwardInputs(mainActorData);
@@ -11187,6 +11409,7 @@ void UpdateActorSpeed(byte8 *baseAddr)
 				}
 				
 				FasterDarkslayerTricks();
+				FasterRapidSlashDevil(actorBaseAddr);
 				
 
 
@@ -12192,13 +12415,13 @@ void SetAction(byte8 *actorBaseAddr)
 		}
 
 		// New Nevan Inputs 
-		if(actorData.action == 81) {
+		/*if(actorData.action == 81) {
 			actorData.action = NEVAN_COMBO_2;
 		}
 
 		if((actorData.action == NEVAN_REVERB_SHOCK_LEVEL_1 || actorData.action == NEVAN_REVERB_SHOCK_LEVEL_2) && forwardCommand) {
 			actorData.action = 81;
-		}
+		}*/
 		
 		//Sky Launch
 		/*if ((actorData.state & STATE::IN_AIR) && (actorData.action == REBELLION_HELM_BREAKER) && 
@@ -12311,12 +12534,15 @@ void SetAction(byte8 *actorBaseAddr)
 		// {
 		// 	actorData.newAirRisingSunCount = 1;
 		// }
+		// Rising Sun Air Taunt
 		else if (
 			activeConfig.enableBeowulfVergilAirRisingSun &&
-			(actorData.action == BEOWULF_STARFALL_LEVEL_2) &&
-			(actorData.newAirRisingSunCount < activeConfig.beowulfVergilAirRisingSunCount[index]) &&
-			lockOn &&
-			(tiltDirection == TILT_DIRECTION::DOWN))
+			(actorData.action == BEOWULF_STARFALL_LEVEL_2 || actorData.action == BEOWULF_STARFALL_LEVEL_1 ||
+			actorData.action == YAMATO_AERIAL_RAVE_PART_1 || actorData.action == YAMATO_AERIAL_RAVE_PART_2 || 
+			actorData.action == YAMATO_FORCE_EDGE_HELM_BREAKER_LEVEL_1 || actorData.action == YAMATO_FORCE_EDGE_HELM_BREAKER_LEVEL_2
+			) &&
+			(actorData.buttons[0] & GetBinding(BINDING::TAUNT)) &&
+			(actorData.newAirRisingSunCount < activeConfig.beowulfVergilAirRisingSunCount[index]))
 		{
 			actorData.action = BEOWULF_RISING_SUN;
 
