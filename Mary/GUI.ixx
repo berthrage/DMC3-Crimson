@@ -9334,6 +9334,7 @@ void MainOverlayWindow()
 			ImGui::Text("gamepad ATTACK %u", actorData.buttons[0]);
 			ImGui::Text("new speed Set Rapid Slash %u", fasterRapidSlash.newSpeedSet);
 			ImGui::Text("inRapidSlash %u", inRapidSlash);
+			ImGui::Text("Motion Data 1: %u", actorData.motionData[0].index);
 			//ImGui::Text("Track %s", eventData.track);
 
 			ImGui::Text("Weapon Status Rebellion:  %u", actorData.weaponStatus[3]);
@@ -9341,7 +9342,8 @@ void MainOverlayWindow()
 			ImGui::Text("Weapon Character Data %u", characterData.meleeWeaponIndex);
 			ImGui::Text("Active Weapon %u", actorData.activeWeapon);
 			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
-			ImGui::Text("Trick Up Count %u", actorData.newTrickUpCount);
+			ImGui::Text("Trick Up Count %u", actorData.trickUpCount);
+			ImGui::Text("Air Trick Count %u", actorData.airTrickCount);
 			ImGui::Text("Air Rising Sun Count %u", actorData.newAirRisingSunCount);
 			
 			

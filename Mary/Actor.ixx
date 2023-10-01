@@ -4300,8 +4300,8 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 		}
 
 		// TRICK UP
-		if(actorData.character == CHARACTER::VERGIL && actorData.state == STATE::IN_AIR) {
-			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && lockOn && tiltDirection == TILT_DIRECTION::UP && actorData.newTrickUpCount > 0)
+		if(actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
+			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && lockOn && tiltDirection == TILT_DIRECTION::UP && actorData.trickUpCount > 0)
 			{
 				if (execute)
 				{
@@ -4317,8 +4317,25 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 		}
 
 		// TRICK DOWN
-		if(actorData.character == CHARACTER::VERGIL && actorData.state == STATE::IN_AIR) {
-			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && lockOn && tiltDirection == TILT_DIRECTION::DOWN && actorData.newTrickDownCount > 0)
+		if(actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
+			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && lockOn && tiltDirection == TILT_DIRECTION::DOWN && actorData.trickDownCount > 0)
+			{
+				if (execute)
+				{
+					execute = false;
+
+					actorData.state &= ~STATE::BUSY;
+				}
+			}
+			else
+			{
+				execute = true;
+			}
+		}
+
+		// AIR TRICK
+		if(actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
+			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && (lockOn && tiltDirection == TILT_DIRECTION::NEUTRAL || !lockOn) && actorData.airTrickCount > 0)
 			{
 				if (execute)
 				{
@@ -5409,10 +5426,17 @@ void ArbitraryMeleeWeaponSwitchController(T &actorData)
 
 	if (actorData.buttons[2] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))
 	{
-
-		Forward();
+		if (actorData.buttons[0] & GetBinding(BINDING::TAUNT))
+		{
+			Back();
+		}
+		else {
+			Forward();
+		}
+		
 	}
-	else if (actorData.buttons[2] & GetBinding(BINDING::CHANGE_GUN))
+
+	if (actorData.buttons[2] & GetBinding(BINDING::CHANGE_GUN))
 	{
 		if constexpr (TypeMatch<T, PlayerActorDataVergil>::value)
 		{
@@ -5484,6 +5508,8 @@ void ArbitraryRangedWeaponSwitchController(T &actorData)
 	uint8 rangedWeaponIndex = 0;
 	uint8 rangedWeaponCount = characterData.rangedWeaponCount;
 	bool update = false;
+	bool forward = false;
+	bool back = false;
 
 	auto Forward = [&]()
 	{
@@ -5496,7 +5522,25 @@ void ArbitraryRangedWeaponSwitchController(T &actorData)
 			characterData.rangedWeaponIndex++;
 		}
 		update = true;
+
+		forward = true;
 	};
+
+	auto Back = [&]()
+	{
+		if (characterData.rangedWeaponIndex == 0)
+		{
+			characterData.rangedWeaponIndex = (rangedWeaponCount - 1);
+		}
+		else
+		{
+			characterData.rangedWeaponIndex--;
+		}
+		update = true;
+
+		back = true;
+	};
+
 
 	if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)))
 	{
@@ -5555,10 +5599,16 @@ void ArbitraryRangedWeaponSwitchController(T &actorData)
 		}
 	}
 
-	if (gamepad.buttons[2] & GetBinding(BINDING::CHANGE_GUN))
+	if (actorData.buttons[2] & GetBinding(BINDING::CHANGE_GUN))
 	{
-
-		Forward();
+		if (actorData.buttons[0] & GetBinding(BINDING::TAUNT))
+		{
+			Back();
+		}
+		else {
+			Forward();
+		}
+		
 	}
 
 
@@ -10723,10 +10773,10 @@ void InertiaController(byte8 *actorBaseAddr) {
 							airRaveInertia.cachedPull = glm::clamp(airRaveInertia.cachedPull, 0.0f, 9.0f);
 
 							if(airRaveInertia.cachedDirection == TILT_DIRECTION::UP) {
-								actorData.horizontalPull = (airRaveInertia.cachedPull / 7.0f) * 1.0f;
+								actorData.horizontalPull = (airRaveInertia.cachedPull / 5.0f) * 1.0f;
 							}
 							else if(airRaveInertia.cachedDirection == TILT_DIRECTION::DOWN) {
-								actorData.horizontalPull = (airRaveInertia.cachedPull / 7.0f) * - 1.0f;
+								actorData.horizontalPull = (airRaveInertia.cachedPull / 5.0f) * - 1.0f;
 							}
 							
 							
@@ -11080,7 +11130,12 @@ void FasterRapidSlashDevil(byte8 *actorBaseAddr) {
 	using namespace ACTION_VERGIL;
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
 	
-	inRapidSlash = ((actorData.action == 5) && actorData.eventData[0].event == 17);
+	if((actorData.motionData[0].index == 8 || actorData.motionData[0].index == 10)) {
+		inRapidSlash = true;
+	}
+	else {
+		inRapidSlash = false;
+	}
 
 	if(actorData.character == CHARACTER::VERGIL) {
 		
