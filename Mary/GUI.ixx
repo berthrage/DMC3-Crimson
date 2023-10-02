@@ -9175,6 +9175,7 @@ void NewMissionClearSong() {
 
 
 
+
 const char * mainOverlayLabel = "MainOverlay";
 
 void MainOverlayWindow()
@@ -9252,6 +9253,8 @@ void MainOverlayWindow()
 				ImGui::Text("SCENE:  %u", g_scene);
 				ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
 				ImGui::Text("Sky Launch Tracker Running:  %u", skyLaunchTrackerRunning);
+
+				
 				/*
 				ImGui::Text("backtoforward Back:  %u", backCommand);
 				ImGui::Text("backtoforward Back Buffer:  %u", backBuffer);
@@ -9326,11 +9329,11 @@ void MainOverlayWindow()
 
 			auto & metadata = enemyVectorData.metadata[0];
 
-			IntroduceData(actorData.lockOnData.targetBaseAddr60, enemyData, ActorDataBase, return);
+			//IntroduceData(actorData.lockOnData.targetBaseAddr60, enemyData, ActorDataBase, return);
 
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
 			ImGui::Text("enemy distance %g", distanceToEnemy);
-			ImGui::Text("enemy vertical Pull Multiplier %g", enemyData.verticalPullMultiplier);
+			//ImGui::Text("enemy vertical Pull Multiplier %g", enemyData.verticalPullMultiplier);
 			ImGui::Text("gamepad ATTACK %u", actorData.buttons[0]);
 			ImGui::Text("new speed Set Rapid Slash %u", fasterRapidSlash.newSpeedSet);
 			ImGui::Text("inRapidSlash %u", inRapidSlash);

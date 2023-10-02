@@ -304,6 +304,7 @@ let itemsPlayerBase =
 	[ "leftStickRadius"             , "uint16"       , [], 0x750A ],
 	[ "actorCameraDirection"        , "uint16"       , [], 0x750C ],
 	[ "leftStickDirection[2]"       , "uint32"       , [], 0x751C ],
+	[ "heightRestrictionRainstorm"  , "float"       , [], 0x40E0 ],
 ];
 
 let itemsPlayerDante =
