@@ -10744,7 +10744,21 @@ void StoreInertia(byte8 *actorBaseAddr) {
 
 			}
 
-			
+			if(actorData.action != EBONY_IVORY_AIR_NORMAL_SHOT) {
+				ebonyIvoryShotInertia.cachedPull = actorData.horizontalPull;
+			}
+
+			if(actorData.action != SHOTGUN_AIR_NORMAL_SHOT) {
+				shotgunAirInertia.cachedPull = actorData.horizontalPull;
+			}
+
+			if(actorData.action != ARTEMIS_AIR_NORMAL_SHOT) {
+				artemisShotInertia.cachedPull = actorData.horizontalPull;
+			}
+
+			if(actorData.action != ARTEMIS_AIR_MULTI_LOCK_SHOT) {
+				artemisMultiLockInertia.cachedPull = actorData.horizontalPull;
+			}
 
 
 			if(!inRoyalBlock) {
@@ -10793,42 +10807,106 @@ void InertiaController(byte8 *actorBaseAddr) {
 
 				if(actorData.character == CHARACTER::DANTE) {
 					if(actorData.state == 65538) {
+
+						// Rainstorm
 						if (actorData.action == EBONY_IVORY_RAIN_STORM) {
+
+							if(rainstormInertia.cachedPull < 0) {
+								rainstormInertia.cachedPull = rainstormInertia.cachedPull * -1.0f;
+							}
 						
-							rainstormInertia.cachedPull = glm::clamp(rainstormInertia.cachedPull, 0.0f, 9.0f);
+							rainstormInertia.cachedPull = glm::clamp(rainstormInertia.cachedPull, -9.0f, 9.0f);
 							actorData.horizontalPull = rainstormInertia.cachedPull / rainstormInertia.haltDivisor;
 							
 							//actorData.horizontalPullMultiplier = 0.2f;
 						}
+
+						// E&I Normal Shot
 						else if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT) {
+							
+							if(ebonyIvoryShotInertia.cachedPull < 0) {
+								ebonyIvoryShotInertia.cachedPull = ebonyIvoryShotInertia.cachedPull * -1.0f;
+							}
+
+							ebonyIvoryShotInertia.cachedPull = glm::clamp(ebonyIvoryShotInertia.cachedPull, -4.0f, 4.0f);
+
+							actorData.horizontalPull = ebonyIvoryShotInertia.cachedPull;
 							actorData.horizontalPullMultiplier = 0.03f;
 						}
+
+						// Shotgun Normal Shot
 						else if (actorData.action == SHOTGUN_AIR_NORMAL_SHOT) {
+							if(shotgunAirInertia.cachedPull < 0) {
+								shotgunAirInertia.cachedPull = shotgunAirInertia.cachedPull * -1.0f;
+							}
+
+							shotgunAirInertia.cachedPull = glm::clamp(shotgunAirInertia.cachedPull, -5.0f, 5.0f);
+							
+							actorData.horizontalPull = shotgunAirInertia.cachedPull;
 							actorData.horizontalPullMultiplier = 0.05f;
 						}
+
+						// Artemis Normal Shot
 						else if (actorData.action == ARTEMIS_AIR_NORMAL_SHOT) {
+							if(artemisShotInertia.cachedPull < 0) {
+								artemisShotInertia.cachedPull = artemisShotInertia.cachedPull * -1.0f;
+							}
+
+							artemisShotInertia.cachedPull = glm::clamp(artemisShotInertia.cachedPull, -5.0f, 5.0f);
+							
+							actorData.horizontalPull = artemisShotInertia.cachedPull;
 							actorData.horizontalPullMultiplier = 0.05f;
 						}
+
+						// Artemis Multi-Lock Shot
 						else if (actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT) {
+							if(artemisMultiLockInertia.cachedPull < 0) {
+								artemisMultiLockInertia.cachedPull = artemisMultiLockInertia.cachedPull * -1.0f;
+							}
+
+							artemisMultiLockInertia.cachedPull = glm::clamp(artemisMultiLockInertia.cachedPull, -5.0f, 5.0f);
+							
+							actorData.horizontalPull = artemisMultiLockInertia.cachedPull;
 							actorData.horizontalPullMultiplier = 0.05f;
+
 						}
+
+						// Aerial Rave
 						else if (actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
 						actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
 						actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
 						actorData.action == REBELLION_AERIAL_RAVE_PART_4 ) {
-							/*if(!airRaveInertia.trackerRunning) {
-								std::thread airraveinertiatracker(AirRaveInertiaTracker);
-								airraveinertiatracker.detach();
-							}*/
 							
-							// Applying inertia
-							airRaveInertia.cachedPull = glm::clamp(airRaveInertia.cachedPull, 0.0f, 9.0f);
+							
+	
+							airRaveInertia.cachedPull = glm::clamp(airRaveInertia.cachedPull, -9.0f, 9.0f);
 
 							if(airRaveInertia.cachedDirection == TILT_DIRECTION::UP || airRaveInertia.cachedDirection == TILT_DIRECTION::NEUTRAL) {
-								actorData.horizontalPull = (airRaveInertia.cachedPull / 2.0f) * 1.0f;
+
+								// If this is any weapon air shot then inertia transfers (almost) completely
+								if(actorData.lastAction != EBONY_IVORY_AIR_NORMAL_SHOT && 
+								actorData.lastAction != SHOTGUN_AIR_NORMAL_SHOT && 
+								actorData.lastAction != ARTEMIS_AIR_NORMAL_SHOT &&
+								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT) {
+
+									actorData.horizontalPull = (airRaveInertia.cachedPull / 3.0f) * 1.0f;
+								}
+								else {
+									actorData.horizontalPull = (airRaveInertia.cachedPull / 1.2f) * 1.0f;
+								}
+								
 							}
 							else if(airRaveInertia.cachedDirection == TILT_DIRECTION::DOWN) {
-								actorData.horizontalPull = (airRaveInertia.cachedPull / 2.0f) * - 1.0f;
+								if(actorData.lastAction != EBONY_IVORY_AIR_NORMAL_SHOT && 
+								actorData.lastAction != SHOTGUN_AIR_NORMAL_SHOT && 
+								actorData.lastAction != ARTEMIS_AIR_NORMAL_SHOT &&
+								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT) {
+
+									actorData.horizontalPull = (airRaveInertia.cachedPull / 3.0f) * -1.0f;
+								}
+								else {
+									actorData.horizontalPull = (airRaveInertia.cachedPull / 1.2f) * -1.0f;
+								}
 							}
 							
 							
@@ -10847,44 +10925,64 @@ void InertiaController(byte8 *actorBaseAddr) {
 							//actorData.horizontalPullMultiplier = 0;
 							//actorData.horizontalPullMultiplier = -0.12f;
 						}
+
+						// Cerberus Flicker
 						else if (actorData.action == CERBERUS_AIR_FLICKER) {
+
+							if(airFlickerInertia.cachedPull < 0) {
+								airFlickerInertia.cachedPull = airFlickerInertia.cachedPull * -1.0f;
+							}
 
 							airFlickerInertia.cachedPull = glm::clamp(airFlickerInertia.cachedPull, 2.0f, 9.0f);
 							actorData.horizontalPull = (airFlickerInertia.cachedPull / airFlickerInertia.haltDivisor) * 1.0f;
 							
-							/*if(!lockOn) {
-								if (!(radius < RIGHT_STICK_DEADZONE)) {
-									actorData.rotation = value;
-									airFlickerRotation = actorData.rotation;
-								}
-								else {
-									actorData.rotation = airFlickerRotation;
-								}
-							}*/
 							
+							// Reduces Gravity Fall-off
 							actorData.verticalPullMultiplier = -0.20f;
 							
 							
 							//actorData.horizontalPullMultiplier = -0.18f;
 						}
+
+						// Sky Dance
 						else if (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
 						actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
 						actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) {
 
-							skyDanceInertia.cachedPull = glm::clamp(skyDanceInertia.cachedPull, 1.0f, 9.0f);
+							skyDanceInertia.cachedPull = glm::clamp(skyDanceInertia.cachedPull, -9.0f, 9.0f);
 
-							if(skyDanceInertia.cachedDirection == TILT_DIRECTION::UP || airRaveInertia.cachedDirection == TILT_DIRECTION::NEUTRAL) {
-								actorData.horizontalPull = (skyDanceInertia.cachedPull / 5.0f) * 1.0f;
+							if(skyDanceInertia.cachedDirection == TILT_DIRECTION::UP || skyDanceInertia.cachedDirection == TILT_DIRECTION::NEUTRAL) {
+								if(actorData.lastAction != EBONY_IVORY_AIR_NORMAL_SHOT && 
+								actorData.lastAction != SHOTGUN_AIR_NORMAL_SHOT && 
+								actorData.lastAction != ARTEMIS_AIR_NORMAL_SHOT &&
+								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT) {
+
+									actorData.horizontalPull = (skyDanceInertia.cachedPull / 4.0f) * 1.0f;
+								}
+								else {
+									actorData.horizontalPull = (skyDanceInertia.cachedPull / 1.2f) * 1.0f;
+								}
 							}
 							else if(skyDanceInertia.cachedDirection == TILT_DIRECTION::DOWN) {
-								actorData.horizontalPull = (skyDanceInertia.cachedPull / 5.0f) * - 1.0f;
+								if(actorData.lastAction != EBONY_IVORY_AIR_NORMAL_SHOT && 
+								actorData.lastAction != SHOTGUN_AIR_NORMAL_SHOT && 
+								actorData.lastAction != ARTEMIS_AIR_NORMAL_SHOT &&
+								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT) {
+
+									actorData.horizontalPull = (skyDanceInertia.cachedPull / 4.0f) * -1.0f;
+								}
+								else {
+									actorData.horizontalPull = (skyDanceInertia.cachedPull / 1.2f) * -1.0f;
+								}
 							}
 							//actorData.horizontalPullMultiplier = -0.16f;
 						}
+
+						// Air Slash
 						else if (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
 						actorData.action == NEVAN_AIR_SLASH_PART_2) {
 
-							airSlashInertia.cachedPull = glm::clamp(airSlashInertia.cachedPull, 0.0f, 9.0f);
+							airSlashInertia.cachedPull = glm::clamp(airSlashInertia.cachedPull, -9.0f, 9.0f);
 
 							if(airSlashInertia.cachedDirection == TILT_DIRECTION::UP || airRaveInertia.cachedDirection == TILT_DIRECTION::NEUTRAL) {
 								actorData.horizontalPull = (airSlashInertia.cachedPull / 1.5f) * 1.0f;
@@ -10896,25 +10994,46 @@ void InertiaController(byte8 *actorBaseAddr) {
 							}
 							//actorData.horizontalPullMultiplier = 0.4f;
 						}
+
+						// Air Play
 						else if (actorData.action == NEVAN_AIR_PLAY) {
 							actorData.horizontalPullMultiplier = 0.2f;
 						}
+
+						// The Hammer
 						else if (actorData.action == BEOWULF_THE_HAMMER) {
-							theHammerInertia.cachedPull = glm::clamp(theHammerInertia.cachedPull, 0.0f, 9.0f);
+							if(theHammerInertia.cachedPull < 0) {
+								theHammerInertia.cachedPull = theHammerInertia.cachedPull * -1.0f;
+							}
+
+							theHammerInertia.cachedPull = glm::clamp(theHammerInertia.cachedPull, -9.0f, 9.0f);
 							actorData.horizontalPull = (theHammerInertia.cachedPull / 1.5f) * 1.0f;
 
 						}
+
+						// Killer Bee
 						else if (actorData.action == BEOWULF_KILLER_BEE) {
+
+							// Makes divekick speed be consistent.
 							actorData.horizontalPull = 24.0f;
 						}
+
+						// Air Trick
 						else if (actorData.action == TRICKSTER_AIR_TRICK) {
 							actorData.horizontalPullMultiplier = 0.2f;
 						}
-						else if (actorData.action == SHOTGUN_AIR_FIREWORKS) {
 
-							fireworksInertia.cachedPull = glm::clamp(fireworksInertia.cachedPull, 0.0f, 9.0f);
+						// Fireworks
+						else if (actorData.action == SHOTGUN_AIR_FIREWORKS) {
+							if(fireworksInertia.cachedPull < 0) {
+								fireworksInertia.cachedPull = fireworksInertia.cachedPull * -1.0f;
+							}
+
+							fireworksInertia.cachedPull = glm::clamp(fireworksInertia.cachedPull, -9.0f, 9.0f);
 							actorData.horizontalPull = fireworksInertia.cachedPull / 1.5f;
 						}
+
+						// GUARDFLY
 						else if (actorData.style == STYLE::ROYALGUARD &&
 						inRoyalBlock && (distanceToEnemy < 150.0f && distanceToEnemy > -150.0f) && (actorData.eventData[0].event != 23 || actorData.eventData[0].event == 33)) {
 							//actorData.position.x = 0;
@@ -11320,7 +11439,8 @@ void SkyLaunchTracker() {
 	
 	
 	if((actorData.action == 195 || actorData.action == 194) && (actorData.state == 65538 || actorData.state == 589826 || 
-	actorData.state == 589825 || actorData.state == 720898 || actorData.state == 720897 || actorData.state == 196610)) {
+	actorData.state == 589825 || actorData.state == 720898 || actorData.state == 720897 || actorData.state == 196610 || 
+	actorData.state == 131073)) {
 		
 		executingSkyLaunch = true;
 		skyLaunchTrackerRunning = true;
@@ -11339,7 +11459,8 @@ void CheckSkyLaunch(byte8 *actorBaseAddr) {
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
 
 	if (((actorData.state & STATE::IN_AIR || actorData.state == 65538 || actorData.state == 589826 || actorData.state == 589825 
-	|| actorData.state == 720898 || actorData.state == 720897 || actorData.state == 196610) && (actorData.action == 195) && 
+	|| actorData.state == 720898 || actorData.state == 720897 || actorData.state == 196610 || actorData.state == 131073) && 
+	(actorData.action == 195) && 
 		actorData.buttons[0] & GetBinding(BINDING::TAUNT) && actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) && !skyLaunchTrackerRunning)) {
 
 		std::thread skylaunchtracker(SkyLaunchTracker);

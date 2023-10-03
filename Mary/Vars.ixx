@@ -4374,11 +4374,16 @@ export struct Inertia {
 	uint8 cachedDirection = 0;
 } airRaveInertia;
 
-export float raveRotation = 0;
+export float raveRotation;
 
 export Inertia rainstormInertia;
+export Inertia ebonyIvoryShotInertia;
 
 export Inertia fireworksInertia;
+export Inertia shotgunAirInertia;
+
+export Inertia artemisShotInertia;
+export Inertia artemisMultiLockInertia;
 
 export Inertia airFlickerInertia;
 export float airFlickerRotation;
