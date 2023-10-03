@@ -4436,6 +4436,11 @@ export float currentDTDoppDTOn = 0;
 export float doppDuration = 8000;
 export float doppDurationDT = 5000;
 
+export int storedTrickUpCount = 0;
+export int storedSkyStarCount = 0;
+export int storedAirHikeCount = 0;
+export bool royalCancelTrackerRunning = false;
+
 export struct FasterDarkslayer {
 	float newSpeed = 2.0f;
 	bool newSpeedSet = false;

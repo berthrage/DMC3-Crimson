@@ -9327,9 +9327,9 @@ void MainOverlayWindow()
 			IntroduceEventData(return);
 			IntroduceSessionData();
 			
-			//IntroduceData(actorData.lockOnData.targetBaseAddr60, enemyData, ActorDataBase, return);
+			
 			auto & metadata = enemyVectorData.metadata[0];
-
+			
 			
 
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
@@ -9346,8 +9346,9 @@ void MainOverlayWindow()
 			ImGui::Text("Weapon Character Data %u", characterData.meleeWeaponIndex);
 			ImGui::Text("Active Weapon %u", actorData.activeWeapon);
 			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
-			ImGui::Text("Trick Up Count %u", actorData.trickUpCount);
-			ImGui::Text("Air Trick Count %u", actorData.airTrickCount);
+			ImGui::Text("Trick Up Count %u", actorData.newTrickUpCount);
+			ImGui::Text("Sky Star Count %u", actorData.newSkyStarCount);
+			ImGui::Text("Air Hike Count %u", actorData.newAirHikeCount);
 			ImGui::Text("Air Rising Sun Count %u", actorData.newAirRisingSunCount);
 			
 			

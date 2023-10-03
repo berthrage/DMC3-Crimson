@@ -4061,6 +4061,21 @@ export void SpawnActors()
 
 #pragma region Controllers
 
+
+void RoyalCancelCountsTracker(byte8 *actorBaseAddr) {
+	IntroducePlayerActorData(actorBaseAddr, actorData, return);
+	
+	// This restores player counts back to what they were before the Royal Cancel
+	royalCancelTrackerRunning = true;
+	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+	actorData.newTrickUpCount = storedTrickUpCount;
+	actorData.newSkyStarCount = storedSkyStarCount;
+	actorData.newAirHikeCount = storedAirHikeCount;
+
+	royalCancelTrackerRunning = false;
+}
+
 // @Todo: Move.
 void ResetPermissionsController(byte8 *actorBaseAddr)
 {
@@ -4090,9 +4105,34 @@ void ResetPermissionsController(byte8 *actorBaseAddr)
 	{
 		if(actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT &&
 		actorData.action != EBONY_IVORY_AIR_NORMAL_SHOT && actorData.action != SHOTGUN_AIR_NORMAL_SHOT &&
-		actorData.action != SPIRAL_TRICK_SHOT) // Exceptions, these cancels are way too OP or buggy in the cases of E&I and Shotgun.
+		actorData.action != SPIRAL_TRICK_SHOT && !royalCancelTrackerRunning) // Exceptions, these cancels are way too OP or buggy in the cases of E&I and Shotgun.
+			
+			storedTrickUpCount = actorData.newTrickUpCount;
+			storedSkyStarCount = actorData.newSkyStarCount;
+			storedAirHikeCount = actorData.newAirHikeCount;
+
+			actorData.permissions = 3080; // This is a softer version of Reset Permissions.
+
+			std::thread royalcountstracker(RoyalCancelCountsTracker, actorBaseAddr);
+			royalcountstracker.detach();
+
+			
+	}
+
+	if (
+			(actorData.style == STYLE::ROYALGUARD) &&
+			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) && actorData.eventData[0].event == 23 && !royalCancelTrackerRunning)
+	{
+		 // Exceptions, these cancels are way too OP or buggy in the cases of E&I and Shotgun.
+
+		 	storedTrickUpCount = actorData.newTrickUpCount;
+			storedSkyStarCount = actorData.newSkyStarCount;
+			storedAirHikeCount = actorData.newAirHikeCount;
 		
-			actorData.permissions = 3080; // This is a softer version of Reset Permissions, doesn't reset air moves.
+			actorData.permissions = 0x1C1B; // This is a hard version of Reset Permissions.
+
+			std::thread royalcountstracker(RoyalCancelCountsTracker, actorBaseAddr);
+			royalcountstracker.detach();
 	}
 
 	/*if(actorData.action == 60) 
@@ -4355,7 +4395,7 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 		//Dante's Trickster Actions Cancels Everything (w/ cooldown)
 		if(actorData.character == CHARACTER::DANTE) {
 			if ((actorData.style == STYLE::TRICKSTER) && 
-			(trickUpCancel.canTrickUp)) {
+			(trickUpCancel.canTrickUp) && actorData.eventData[0].event != 22) {
 				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
 				{
 					if(!trickUpCancel.trackerRunning && actorData.style == STYLE::TRICKSTER) {
@@ -10684,12 +10724,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 
 				airRaveInertia.cachedPull = actorData.horizontalPull;
 				raveRotation = actorData.rotation;
-				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN || tiltDirection == TILT_DIRECTION::NEUTRAL) {
-					airRaveInertia.cachedDirection = tiltDirection;
-				}
-				/*else if (tiltDirection == TILT_DIRECTION::NEUTRAL) {
-					airRaveInertia.cachedDirection = TILT_DIRECTION::UP;
-				}*/
+				
 			}
 
 			if(actorData.action != CERBERUS_AIR_FLICKER) {
@@ -10704,12 +10739,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 				
 				skyDanceInertia.cachedPull = actorData.horizontalPull;
 				skyDanceRotation = actorData.rotation;
-				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN || tiltDirection == TILT_DIRECTION::NEUTRAL) {
-					skyDanceInertia.cachedDirection = tiltDirection;
-				}
-				/*else if (tiltDirection == TILT_DIRECTION::NEUTRAL) {
-					skyDanceInertia.cachedDirection = TILT_DIRECTION::UP;
-				}*/
+
 			}
 			
 			if(!(actorData.action == NEVAN_AIR_SLASH_PART_1 ||
@@ -10720,9 +10750,6 @@ void StoreInertia(byte8 *actorBaseAddr) {
 				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN|| tiltDirection == TILT_DIRECTION::NEUTRAL) {
 					airSlashInertia.cachedDirection = tiltDirection;
 				}
-				/*else if (tiltDirection == TILT_DIRECTION::NEUTRAL) {
-					airSlashInertia.cachedDirection = TILT_DIRECTION::UP;
-				}*/
 
 			}
 
@@ -10777,6 +10804,41 @@ void StoreInertia(byte8 *actorBaseAddr) {
 				storedRisingSunTauntPosY = actorData.position.y;
 			}
 	}
+
+	auto inAirShot = (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == SHOTGUN_AIR_NORMAL_SHOT ||
+	actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT);
+
+	//Storing Direction
+	if ((!(actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_4 )) && 
+					(actorData.eventData[0].event != 33)) {
+
+				
+				if((tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN || tiltDirection == TILT_DIRECTION::NEUTRAL)) {
+					airRaveInertia.cachedDirection = tiltDirection;
+				}
+			}
+
+	if((!(actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
+				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
+				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3 )) && 
+				(actorData.eventData[0].event != 33)) {
+				
+				
+				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN || tiltDirection == TILT_DIRECTION::NEUTRAL) {
+					skyDanceInertia.cachedDirection = tiltDirection;
+				}
+			}
+	
+	if(airShot) {
+		if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
+			airRaveInertia.cachedDirection = tiltDirection;
+			skyDanceInertia.cachedDirection = tiltDirection;
+		}
+	}
+
 			
 }
 
@@ -10876,7 +10938,9 @@ void InertiaController(byte8 *actorBaseAddr) {
 						actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
 						actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
 						actorData.action == REBELLION_AERIAL_RAVE_PART_4 ) {
-							
+							if(airRaveInertia.cachedPull < 0) {
+								airRaveInertia.cachedPull = airRaveInertia.cachedPull * -1.0f;
+							}
 							
 	
 							airRaveInertia.cachedPull = glm::clamp(airRaveInertia.cachedPull, -9.0f, 9.0f);
@@ -10887,7 +10951,10 @@ void InertiaController(byte8 *actorBaseAddr) {
 								if(actorData.lastAction != EBONY_IVORY_AIR_NORMAL_SHOT && 
 								actorData.lastAction != SHOTGUN_AIR_NORMAL_SHOT && 
 								actorData.lastAction != ARTEMIS_AIR_NORMAL_SHOT &&
-								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT) {
+								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT &&
+								actorData.lastAction != AGNI_RUDRA_SKY_DANCE_PART_1 &&
+								actorData.lastAction != AGNI_RUDRA_SKY_DANCE_PART_2 &&
+								actorData.lastAction != AGNI_RUDRA_SKY_DANCE_PART_3) {
 
 									actorData.horizontalPull = (airRaveInertia.cachedPull / 3.0f) * 1.0f;
 								}
@@ -10900,7 +10967,10 @@ void InertiaController(byte8 *actorBaseAddr) {
 								if(actorData.lastAction != EBONY_IVORY_AIR_NORMAL_SHOT && 
 								actorData.lastAction != SHOTGUN_AIR_NORMAL_SHOT && 
 								actorData.lastAction != ARTEMIS_AIR_NORMAL_SHOT &&
-								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT) {
+								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT &&
+								actorData.lastAction != AGNI_RUDRA_SKY_DANCE_PART_1 &&
+								actorData.lastAction != AGNI_RUDRA_SKY_DANCE_PART_2 &&
+								actorData.lastAction != AGNI_RUDRA_SKY_DANCE_PART_3) {
 
 									actorData.horizontalPull = (airRaveInertia.cachedPull / 3.0f) * -1.0f;
 								}
@@ -10949,13 +11019,20 @@ void InertiaController(byte8 *actorBaseAddr) {
 						actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
 						actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) {
 
+							if(skyDanceInertia.cachedPull < 0) {
+								skyDanceInertia.cachedPull = skyDanceInertia.cachedPull * -1.0f;
+							}
+
 							skyDanceInertia.cachedPull = glm::clamp(skyDanceInertia.cachedPull, -9.0f, 9.0f);
 
 							if(skyDanceInertia.cachedDirection == TILT_DIRECTION::UP || skyDanceInertia.cachedDirection == TILT_DIRECTION::NEUTRAL) {
 								if(actorData.lastAction != EBONY_IVORY_AIR_NORMAL_SHOT && 
 								actorData.lastAction != SHOTGUN_AIR_NORMAL_SHOT && 
 								actorData.lastAction != ARTEMIS_AIR_NORMAL_SHOT &&
-								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT) {
+								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT &&
+								actorData.lastAction != REBELLION_AERIAL_RAVE_PART_1 &&
+								actorData.lastAction != REBELLION_AERIAL_RAVE_PART_2 &&
+								actorData.lastAction != REBELLION_AERIAL_RAVE_PART_3) {
 
 									actorData.horizontalPull = (skyDanceInertia.cachedPull / 4.0f) * 1.0f;
 								}
@@ -10967,7 +11044,10 @@ void InertiaController(byte8 *actorBaseAddr) {
 								if(actorData.lastAction != EBONY_IVORY_AIR_NORMAL_SHOT && 
 								actorData.lastAction != SHOTGUN_AIR_NORMAL_SHOT && 
 								actorData.lastAction != ARTEMIS_AIR_NORMAL_SHOT &&
-								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT) {
+								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT &&
+								actorData.lastAction != REBELLION_AERIAL_RAVE_PART_1 &&
+								actorData.lastAction != REBELLION_AERIAL_RAVE_PART_2 &&
+								actorData.lastAction != REBELLION_AERIAL_RAVE_PART_3) {
 
 									actorData.horizontalPull = (skyDanceInertia.cachedPull / 4.0f) * -1.0f;
 								}
@@ -11033,9 +11113,17 @@ void InertiaController(byte8 *actorBaseAddr) {
 							actorData.horizontalPull = fireworksInertia.cachedPull / 1.5f;
 						}
 
-						// GUARDFLY
+						// GUARDFLY on divekick
 						else if (actorData.style == STYLE::ROYALGUARD &&
-						inRoyalBlock && (distanceToEnemy < 150.0f && distanceToEnemy > -150.0f) && (actorData.eventData[0].event != 23 || actorData.eventData[0].event == 33)) {
+						inRoyalBlock && (distanceToEnemy < 150.0f && distanceToEnemy > -150.0f) && (actorData.eventData[0].event != 23)) {
+							//actorData.position.x = 0;
+							actorData.horizontalPull = royalBlockInertia.cachedPull * 2.0f;
+							actorData.horizontalPullMultiplier = 2.0f;
+						}
+
+						// GUARDFLY on sky star
+						else if (actorData.style == STYLE::ROYALGUARD &&
+						inRoyalBlock && (distanceToEnemy < 80.0f && distanceToEnemy > -80.0f) && (actorData.eventData[0].event == 23)) {
 							//actorData.position.x = 0;
 							actorData.horizontalPull = royalBlockInertia.cachedPull * 2.0f;
 							actorData.horizontalPullMultiplier = 2.0f;
