@@ -9326,10 +9326,11 @@ void MainOverlayWindow()
 			IntroduceEnemyVectorData(return);
 			IntroduceEventData(return);
 			IntroduceSessionData();
-
+			
+			//IntroduceData(actorData.lockOnData.targetBaseAddr60, enemyData, ActorDataBase, return);
 			auto & metadata = enemyVectorData.metadata[0];
 
-			//IntroduceData(actorData.lockOnData.targetBaseAddr60, enemyData, ActorDataBase, return);
+			
 
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
 			ImGui::Text("enemy distance %g", distanceToEnemy);

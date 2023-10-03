@@ -5674,11 +5674,18 @@ void DisableHeightRestriction(bool enable) {
 		*(float*)(raveAddr) = 0.0f;
 		*(float*)(rainstormAddr) = 0.0f;
 		*(float*)(airMeleeAddr) = 0.0f;
+
+		_patch((char*)(appBaseAddr + 0x1E62AF), (char*)"\xE9\x2B\xFD\xFF\xFF\x90", 6); // Vergil Yamato and Beowulf
+		_nop((char*)(appBaseAddr + 0x1E61EC), 6); // Vergil Force Edge
 	}
 	else {
 		*(float*)(raveAddr) = 80.0f;
 		*(float*)(rainstormAddr) = 200.0f;
 		*(float*)(airMeleeAddr) = 120.0f;
+
+
+		_patch((char*)(appBaseAddr + 0x1E62AF), (char*)"\x0F\x87\x2A\xFD\xFF\xFF", 6);
+		_patch((char*)(appBaseAddr + 0x1E61EC), (char*)"\x0F\x86\xC3\x00\x00\x00", 6);
 	}
 }
 
