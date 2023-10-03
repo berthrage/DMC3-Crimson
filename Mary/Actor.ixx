@@ -10812,7 +10812,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 	if ((!(actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_4 )) && 
+					actorData.action == REBELLION_AERIAL_RAVE_PART_4 || inAirShot)) && 
 					(actorData.eventData[0].event != 33)) {
 
 				
@@ -10823,7 +10823,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 
 	if((!(actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
 				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
-				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3 )) && 
+				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3 || inAirShot)) && 
 				(actorData.eventData[0].event != 33)) {
 				
 				
@@ -10832,8 +10832,15 @@ void StoreInertia(byte8 *actorBaseAddr) {
 				}
 			}
 	
-	if(airShot) {
-		if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
+	if(inAirShot) {
+		if(tiltDirection == TILT_DIRECTION::UP) {
+			ebonyIvoryShotInertia.cachedDirection = tiltDirection;
+			airRaveInertia.cachedDirection = tiltDirection;
+			skyDanceInertia.cachedDirection = tiltDirection;
+		}
+
+		if(tiltDirection == TILT_DIRECTION::DOWN) {
+			ebonyIvoryShotInertia.cachedDirection = tiltDirection;
 			airRaveInertia.cachedDirection = tiltDirection;
 			skyDanceInertia.cachedDirection = tiltDirection;
 		}
@@ -10889,6 +10896,8 @@ void InertiaController(byte8 *actorBaseAddr) {
 							if(ebonyIvoryShotInertia.cachedPull < 0) {
 								ebonyIvoryShotInertia.cachedPull = ebonyIvoryShotInertia.cachedPull * -1.0f;
 							}
+
+							
 
 							ebonyIvoryShotInertia.cachedPull = glm::clamp(ebonyIvoryShotInertia.cachedPull, -4.0f, 4.0f);
 

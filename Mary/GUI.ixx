@@ -9335,7 +9335,7 @@ void MainOverlayWindow()
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
 			ImGui::Text("enemy distance %g", distanceToEnemy);
 			//ImGui::Text("enemy vertical Pull Multiplier %g", enemyData.verticalPullMultiplier);
-			ImGui::Text("gamepad ATTACK %u", actorData.buttons[0]);
+			ImGui::Text("airRaveInertia.cachedDirection %u", airRaveInertia.cachedDirection);
 			ImGui::Text("new speed Set Rapid Slash %u", fasterRapidSlash.newSpeedSet);
 			ImGui::Text("inRapidSlash %u", inRapidSlash);
 			ImGui::Text("Motion Data 1: %u", actorData.motionData[0].index);
