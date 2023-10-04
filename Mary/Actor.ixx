@@ -4101,7 +4101,7 @@ void ResetPermissionsController(byte8 *actorBaseAddr)
 	//Royalguard Cancels Everything
 	if (
 			(actorData.style == STYLE::ROYALGUARD) &&
-			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
+			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) && actorData.eventData[0].event != 44) // The last condition prevents cancelling recovery
 	{
 		if(actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT &&
 		actorData.action != EBONY_IVORY_AIR_NORMAL_SHOT && actorData.action != SHOTGUN_AIR_NORMAL_SHOT &&
@@ -5729,6 +5729,16 @@ void DisableHeightRestriction(bool enable) {
 	}
 }
 
+void IncreasedJCSpheres(bool enable) {
+
+	if(enable) {
+		_patch((char*)(appBaseAddr + 0x1C1DCB), (char*)"\xF3\x0F\x5E\x0D\xB1\x4F\x31\x00", 8);
+	}
+	else {
+		_patch((char*)(appBaseAddr + 0x1C1DCB), (char*)"\xF3\x0F\x5E\x0D\x81\x42\x30\x00", 8);
+	}
+}
+
 void ImprovedBufferedReversals(bool enable) {
 	uintptr_t danteAddr = 0x201499BC;
 	uintptr_t vergilAddr = 0x21758C1C;
@@ -5773,6 +5783,7 @@ bool WeaponSwitchController(byte8 *actorBaseAddr)
 	StyleSwitchController(actorBaseAddr);
 	DisableHeightRestriction(true);
 	ImprovedBufferedReversals(true);
+	IncreasedJCSpheres(true);
 
 	if (
 		(actorData.newPlayerIndex == 0) &&
@@ -10547,11 +10558,15 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
 	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
 	auto & gamepad = GetGamepad(0);
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
 	auto radius =  gamepad.leftStickRadius;
 	uint16 relativeTilt = 0;
 	relativeTilt = (actorData.cameraDirection + gamepad.leftStickPosition);
 	uint16 value = (relativeTilt - 0x8000);
 
+	bool inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && 
+						gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && (actorData.style == STYLE::ROYALGUARD) && 
+						(actorData.state & STATE::IN_AIR));
 	
 	if(actorData.character == CHARACTER::DANTE) {
 		
@@ -10631,6 +10646,19 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 		else if (actorData.action == NEVAN_AIR_PLAY) {
 			//actorData.horizontalPullMultiplier = 0.2f;
 		}
+		else if (inRoyalBlock) {
+
+			if(!lockOn) {
+				if (!(radius < RIGHT_STICK_DEADZONE)) {
+					
+					actorData.rotation = value;
+					royalBlockRotation = actorData.rotation;
+				}
+				else {
+					actorData.rotation = royalBlockRotation;
+				}
+			}
+		}
 	
 	}	
 	else if(actorData.character == CHARACTER::VERGIL) {
@@ -10672,14 +10700,14 @@ void GetRoyalBlockAction(byte8 *actorBaseAddr) {
 	if (actorData.style == STYLE::ROYALGUARD) {
 		if(inAir) {
 
-			if((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && gamepad.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) 
+			if((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) 
 			{
 				actorData.action = ROYAL_AIR_BLOCK;
 			}
 
 		}
 		else {
-			if((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && gamepad.buttons[2] & GetBinding(BINDING::STYLE_ACTION))) 
+			if((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))) 
 			{
 				actorData.action = ROYAL_BLOCK;
 			}
@@ -10788,7 +10816,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 			}
 
 
-			if(!inRoyalBlock) {
+			if(actorData.action != ROYAL_AIR_BLOCK && actorData.eventData[0].event != 33) {
 				royalBlockInertia.cachedPull = actorData.horizontalPull;
 			}
 
@@ -10813,7 +10841,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_4 || inAirShot)) && 
-					(actorData.eventData[0].event != 33)) {
+					(actorData.eventData[0].event != 33) && actorData.eventData[0].event != 6) {
 
 				
 				if((tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN || tiltDirection == TILT_DIRECTION::NEUTRAL)) {
@@ -10824,7 +10852,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 	if((!(actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
 				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
 				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3 || inAirShot)) && 
-				(actorData.eventData[0].event != 33)) {
+				(actorData.eventData[0].event != 33) && actorData.eventData[0].event != 6) {
 				
 				
 				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN || tiltDirection == TILT_DIRECTION::NEUTRAL) {
@@ -10872,7 +10900,12 @@ void InertiaController(byte8 *actorBaseAddr) {
 
 
 	bool inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && 
-						gamepad.buttons[2] & GetBinding(BINDING::STYLE_ACTION));
+						gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION));
+
+	exceptionShot = ((actorData.lastAction == REBELLION_AERIAL_RAVE_PART_1 
+	|| actorData.lastAction == REBELLION_AERIAL_RAVE_PART_2 ||
+	actorData.lastAction == REBELLION_AERIAL_RAVE_PART_3 ||
+	actorData.lastAction == REBELLION_AERIAL_RAVE_PART_4) && airRaveInertia.cachedDirection == TILT_DIRECTION::UP);
 
 				if(actorData.character == CHARACTER::DANTE) {
 					if(actorData.state == 65538) {
@@ -10892,7 +10925,15 @@ void InertiaController(byte8 *actorBaseAddr) {
 
 						// E&I Normal Shot
 						else if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT) {
-							
+							/*if(exceptionShot) {
+								ebonyIvoryShotInertia.cachedPull = ebonyIvoryShotInertia.cachedPull * -1.0f;
+							}
+							else {
+								if(ebonyIvoryShotInertia.cachedPull < 0) {
+									ebonyIvoryShotInertia.cachedPull = ebonyIvoryShotInertia.cachedPull * -1.0f;
+								}
+							}*/
+
 							if(ebonyIvoryShotInertia.cachedPull < 0) {
 								ebonyIvoryShotInertia.cachedPull = ebonyIvoryShotInertia.cachedPull * -1.0f;
 							}
@@ -11123,16 +11164,15 @@ void InertiaController(byte8 *actorBaseAddr) {
 						}
 
 						// GUARDFLY on divekick
-						else if (actorData.style == STYLE::ROYALGUARD &&
-						inRoyalBlock && (distanceToEnemy < 150.0f && distanceToEnemy > -150.0f) && (actorData.eventData[0].event != 23)) {
+						else if (actorData.action == ROYAL_AIR_BLOCK && 
+						(distanceToEnemy < 150.0f && distanceToEnemy > -150.0f) && (actorData.eventData[0].event != 23)) {
 							//actorData.position.x = 0;
 							actorData.horizontalPull = royalBlockInertia.cachedPull * 2.0f;
 							actorData.horizontalPullMultiplier = 2.0f;
 						}
 
 						// GUARDFLY on sky star
-						else if (actorData.style == STYLE::ROYALGUARD &&
-						inRoyalBlock && (distanceToEnemy < 80.0f && distanceToEnemy > -80.0f) && (actorData.eventData[0].event == 23)) {
+						else if (actorData.action == ROYAL_AIR_BLOCK && (distanceToEnemy < 80.0f && distanceToEnemy > -80.0f) && (actorData.eventData[0].event == 23)) {
 							//actorData.position.x = 0;
 							actorData.horizontalPull = royalBlockInertia.cachedPull * 2.0f;
 							actorData.horizontalPullMultiplier = 2.0f;

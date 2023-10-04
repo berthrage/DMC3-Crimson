@@ -4402,6 +4402,8 @@ export Inertia royalBlockInertia;
 export Inertia yamatoRaveInertia;
 export float yamatoRaveRotation;
 
+export float royalBlockRotation;
+
 export float distanceToEnemy;
 
 export float storedSkyLaunchPosX = 0;
@@ -4475,6 +4477,8 @@ export int inCombatDelay = 2000;
 export int inCombatTime = inCombatDelay;
 export bool inCombat = false;
 export DWORD inCombatGameAddress =  0x005F17CC;
+
+export bool exceptionShot = false;
 
 export struct Sprint{
 	bool trackerRunning = false;

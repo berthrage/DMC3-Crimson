@@ -9341,7 +9341,7 @@ void MainOverlayWindow()
 			ImGui::Text("Motion Data 1: %u", actorData.motionData[0].index);
 			//ImGui::Text("Track %s", eventData.track);
 
-			ImGui::Text("Weapon Status Rebellion:  %u", actorData.weaponStatus[3]);
+			ImGui::Text("Royal Block Inertia  %g", royalBlockInertia.cachedPull);
 			ImGui::Text("Weapon %u", actorData.meleeWeaponIndex);
 			ImGui::Text("Weapon Character Data %u", characterData.meleeWeaponIndex);
 			ImGui::Text("Active Weapon %u", actorData.activeWeapon);
@@ -9405,7 +9405,7 @@ void MainOverlayWindow()
 	
 
 			
-			ImGui::Text("Rainstorm Horizontal Pull %g", rainstormMomentum);
+			ImGui::Text("exception Shot %u", exceptionShot);
 			ImGui::Text("Air Rave Horizontal Pull %g", airRaveInertia.cachedPull);
 			ImGui::Text("IsDevil2 %u", actorData.devil);
 			ImGui::Text("Style %u", actorData.style);
