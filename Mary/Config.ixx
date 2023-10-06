@@ -652,7 +652,7 @@ export struct Config
 
 
 
-	KeyData keyData[3] =
+	KeyData keyData[4] =
 	{
 		{
 			{
@@ -663,6 +663,12 @@ export struct Config
 		},
 		{},
 		{},
+		{
+			{
+				KEY::F1
+			},
+			1
+		}
 	};
 
 

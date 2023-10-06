@@ -9352,7 +9352,7 @@ void MainOverlayWindow()
 			ImGui::Text("Air Rising Sun Count %u", actorData.newAirRisingSunCount);
 			
 			
-			ImGui::Text("Haywire NeoGenerator %u", g_haywireNeoGenerator);
+			ImGui::Text("Config Inf HP: %u", activeConfig.infiniteHitPoints);
 			 
 			/*ImGui::Text("styleRankCount Dismal %u", rankAnnouncer[0].count);
 			ImGui::Text("styleRankCount Crazy %u", rankAnnouncer[1].count);
@@ -10709,7 +10709,7 @@ void TrainingSection()
 			(
 				"Infinite Hit Points",
 				activeConfig.infiniteHitPoints,
-				queuedConfig.infiniteHitPoints
+				activeConfig.infiniteHitPoints
 			)
 		)
 		{
@@ -11346,8 +11346,19 @@ void MoveToMainActor()
 
 
 
+void ToggleInfiniteHealth() {
 
+	if(activeConfig.infiniteHitPoints) {
+		activeConfig.infiniteHitPoints = false;
+	}
+	else {
+		activeConfig.infiniteHitPoints = true;
+	}
+	
+	ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
+	
 
+ }
 
 
 export KeyBinding keyBindings[] =
@@ -11358,7 +11369,6 @@ export KeyBinding keyBindings[] =
 		queuedConfig.keyData[0],
 		defaultConfig.keyData[0],
 		ToggleShowMain,
-		KeyFlags_AtLeastOneKey
 	},
 	{
 		"Reload Room",
@@ -11373,6 +11383,13 @@ export KeyBinding keyBindings[] =
 		queuedConfig.keyData[2],
 		defaultConfig.keyData[2],
 		MoveToMainActor
+	},
+	{
+		"Toggle Infinite Health Points",
+		activeConfig.keyData[3],
+		queuedConfig.keyData[3],
+		defaultConfig.keyData[3],
+		ToggleInfiniteHealth
 	},
 };
 

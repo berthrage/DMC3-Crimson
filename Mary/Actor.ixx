@@ -10586,6 +10586,12 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 					actorData.rotation = raveRotation;
 				}
 			}
+
+			if(lockOn) {
+				if (actorData.eventData[0].event == 33) {
+					actorData.rotation = raveRotation;
+				}
+			}
 		}
 		else if (actorData.action == CERBERUS_AIR_FLICKER) {
 
@@ -10611,6 +10617,12 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 					skyDanceRotation = actorData.rotation;
 				}
 				else {
+					actorData.rotation = skyDanceRotation;
+				}
+			}
+
+			if(lockOn) {
+				if (actorData.eventData[0].event == 33) {
 					actorData.rotation = skyDanceRotation;
 				}
 			}
@@ -10869,6 +10881,14 @@ void StoreInertia(byte8 *actorBaseAddr) {
 
 		if(tiltDirection == TILT_DIRECTION::DOWN) {
 			ebonyIvoryShotInertia.cachedDirection = tiltDirection;
+			airRaveInertia.cachedDirection = tiltDirection;
+			skyDanceInertia.cachedDirection = tiltDirection;
+		}
+	}
+
+	if(actorData.motionData[0].index == 33 
+	|| actorData.motionData[0].index == 38 || actorData.motionData[0].index == 39) {
+		if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN || tiltDirection == TILT_DIRECTION::NEUTRAL) {
 			airRaveInertia.cachedDirection = tiltDirection;
 			skyDanceInertia.cachedDirection = tiltDirection;
 		}
@@ -11575,9 +11595,7 @@ void SkyLaunchTracker() {
 	IntroduceMainActorData(actorData, return);
 	
 	
-	if((actorData.action == 195 || actorData.action == 194) && (actorData.state == 65538 || actorData.state == 589826 || 
-	actorData.state == 589825 || actorData.state == 720898 || actorData.state == 720897 || actorData.state == 196610 || 
-	actorData.state == 131073)) {
+	if((actorData.action == 195 || actorData.action == 194) && (actorData.motionData[0].index == 20)) {
 		
 		executingSkyLaunch = true;
 		skyLaunchTrackerRunning = true;
@@ -11586,8 +11604,8 @@ void SkyLaunchTracker() {
 			break;
 		}*/
 	}
-	//executingSkyLaunch = false;
-	//skyLaunchTrackerRunning = false;
+	
+	
 
 
 }
@@ -11595,8 +11613,7 @@ void SkyLaunchTracker() {
 void CheckSkyLaunch(byte8 *actorBaseAddr) {
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
 
-	if (((actorData.state & STATE::IN_AIR || actorData.state == 65538 || actorData.state == 589826 || actorData.state == 589825 
-	|| actorData.state == 720898 || actorData.state == 720897 || actorData.state == 196610 || actorData.state == 131073) && 
+	if (((actorData.state & STATE::IN_AIR && actorData.motionData[0].index == 20) &&
 	(actorData.action == 195) && 
 		actorData.buttons[0] & GetBinding(BINDING::TAUNT) && actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) && !skyLaunchTrackerRunning)) {
 
@@ -11604,9 +11621,9 @@ void CheckSkyLaunch(byte8 *actorBaseAddr) {
         skylaunchtracker.detach();
 	}
 
-	if(!((actorData.action == 195 || actorData.action == 194) && (actorData.state == 65538 || actorData.state == 589826 || 
-	actorData.state == 589825 || actorData.state == 720898 || actorData.state == 720897 || actorData.state == 196610))) {
+	if(!((actorData.action == 195 || actorData.action == 194) && (actorData.motionData[0].index == 20))) {
 		executingSkyLaunch = false;
+		skyLaunchTrackerRunning = false;
 	}
 
 	if(!skyLaunchTrackerRunning) {
@@ -11661,12 +11678,9 @@ void SkyLaunchProperties(byte8 *actorBaseAddr) {
 	}
 }
 
-void OverrideTauntInAir(byte8 *actorBaseAddr) {
-	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
-
-	if((actorData.state & STATE::IN_AIR) && actorData.buttons[0] & GetBinding(BINDING::TAUNT)) {
-		actorData.buttons[0] = 16;
-	}
+void OverrideTauntInAir() {
+	_nop((char*)(appBaseAddr + 0x1E99F2), 2); 
+	_nop((char*)(appBaseAddr + 0x1E9A0D), 2); 
 }
 
 void DisableJCRestriction(bool enable) {
@@ -11718,8 +11732,7 @@ void UpdateActorSpeed(byte8 *baseAddr)
 	InertiaController(mainActorData);
 	DisableJCRestriction(true);
 	BulletStop(true);
-	
-	//OverrideTauntInAir(mainActorData);
+	//OverrideTauntInAir();
 	
 
 	DTReadySFX();
