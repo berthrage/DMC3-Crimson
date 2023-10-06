@@ -10605,6 +10605,12 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 					actorData.rotation = airFlickerRotation;
 				}
 			}
+
+			if(lockOn) {
+				if (actorData.eventData[0].event == 33) {
+					actorData.rotation = airFlickerRotation;
+				}
+			}
 		}
 		else if (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
 				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
@@ -10658,6 +10664,20 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 		else if (actorData.action == NEVAN_AIR_PLAY) {
 			//actorData.horizontalPullMultiplier = 0.2f;
 		}
+		else if (actorData.action == BEOWULF_KILLER_BEE) {
+			if(!lockOn) {
+				if (radius < RIGHT_STICK_DEADZONE) {
+					actorData.rotation = killerBeeRotation;
+				}
+			}
+			
+			// Keep Player's Rotation intact on jump cancelling, this is important for Inertia Redirection and is used for several moves.
+			if(lockOn) {
+				if (actorData.eventData[0].event == 33) {
+					actorData.rotation = killerBeeRotation;
+				}
+			}
+		}
 		else if (inRoyalBlock) {
 
 			if(!lockOn) {
@@ -10709,7 +10729,17 @@ void GetRoyalBlockAction(byte8 *actorBaseAddr) {
 
 	auto lockOn = (gamepad.buttons[0] & GetBinding(BINDING::LOCK_ON));
 
-	if (actorData.style == STYLE::ROYALGUARD) {
+	bool inSwordmasterAirMove = (((actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_4) || (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
+				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
+				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) || (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
+			actorData.action == NEVAN_AIR_SLASH_PART_2) || (actorData.action == CERBERUS_AIR_FLICKER)) && actorData.eventData[0].event == 17);
+
+	// Keep in mind setting the Royal Block Action cancels out most things, this is a primary function for Guardflying to work.
+
+	if (actorData.style == STYLE::ROYALGUARD && (actorData.motionData[0].index == 12 || actorData.eventData[0].event == 23 || inSwordmasterAirMove)) {
 		if(inAir) {
 
 			if((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) 
@@ -10852,8 +10882,8 @@ void StoreInertia(byte8 *actorBaseAddr) {
 	if ((!(actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_4 || inAirShot)) && 
-					(actorData.eventData[0].event != 33) && actorData.eventData[0].event != 6) {
+					actorData.action == REBELLION_AERIAL_RAVE_PART_4 || inAirShot)) && (actorData.eventData[0].event == 17) && 
+					actorData.eventData[0].event != 6) {
 
 				
 				if((tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN || tiltDirection == TILT_DIRECTION::NEUTRAL)) {
@@ -10863,8 +10893,8 @@ void StoreInertia(byte8 *actorBaseAddr) {
 
 	if((!(actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
 				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
-				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3 || inAirShot)) && 
-				(actorData.eventData[0].event != 33) && actorData.eventData[0].event != 6) {
+				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3 || inAirShot)) && (actorData.eventData[0].event == 17)
+				&& actorData.eventData[0].event != 6) {
 				
 				
 				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN || tiltDirection == TILT_DIRECTION::NEUTRAL) {

@@ -9255,13 +9255,13 @@ void MainOverlayWindow()
 				ImGui::Text("Sky Launch Tracker Running:  %u", skyLaunchTrackerRunning);
 
 				
-				/*
+				
 				ImGui::Text("backtoforward Back:  %u", backCommand);
 				ImGui::Text("backtoforward Back Buffer:  %u", backBuffer);
 				ImGui::Text("backtoforward Back Tracker:  %u", backTrackerRunning);
 				ImGui::Text("backtoforward Forward:  %u", forwardCommand);
 				ImGui::Text("backtoforward Forward Buffer:  %u", forwardBuffer);
-				ImGui::Text("backtoforward Direction Changed:  %u", directionChanged);*/
+				ImGui::Text("backtoforward Direction Changed:  %u", directionChanged);
 				
 
 				if(isMusicPlaying() == 0) {

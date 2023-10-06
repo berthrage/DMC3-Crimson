@@ -4397,6 +4397,8 @@ export float airSlashRotation;
 export Inertia theHammerInertia;
 export float theHammerRotation;
 
+export float killerBeeRotation;
+
 export Inertia royalBlockInertia;
 
 export Inertia yamatoRaveInertia;
@@ -4513,13 +4515,13 @@ export struct BackToForward {
 } backToForward;
 
 export bool backCommand = false;
-export int backDuration = 1000;
+export int backDuration = 300;
 export int backBuffer = backDuration;
 export bool backTrackerRunning = false;
 export bool directionChanged = true;
 
 export bool forwardCommand = false;
-export int forwardDuration = 1000;
+export int forwardDuration = 300;
 export int forwardBuffer = forwardDuration;
 export bool forwardTrackerRunning = false;
 
