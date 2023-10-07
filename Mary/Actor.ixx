@@ -4095,35 +4095,88 @@ void ResetPermissionsController(byte8 *actorBaseAddr)
 	IntroducePlayerActorData(actorBaseAddr, actorData, return);
 	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
+	
+	bool inCancellableActionRebellion = (actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_1 ||
+		actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_2 ||
+		actorData.action == REBELLION_COMBO_1_PART_3 || actorData.action == REBELLION_COMBO_2_PART_2 ||
+		actorData.action == REBELLION_COMBO_2_PART_3 || actorData.action == REBELLION_PROP ||
+		actorData.action == REBELLION_SHREDDER || actorData.action == REBELLION_DRIVE_1 || actorData.action == REBELLION_DRIVE_2 ||
+		actorData.action == REBELLION_MILLION_STAB || actorData.action == REBELLION_DANCE_MACABRE_PART_1 || actorData.action == REBELLION_DANCE_MACABRE_PART_2 ||
+		actorData.action == REBELLION_DANCE_MACABRE_PART_3 || actorData.action == REBELLION_DANCE_MACABRE_PART_4 ||
+		actorData.action == REBELLION_DANCE_MACABRE_PART_5 || actorData.action == REBELLION_DANCE_MACABRE_PART_6 ||
+		actorData.action == REBELLION_DANCE_MACABRE_PART_7 || actorData.action == REBELLION_DANCE_MACABRE_PART_8 ||
+		actorData.action == REBELLION_CRAZY_DANCE || actorData.action == POLE_PLAY);
+
+	bool inCancellableActionCerberus = (actorData.action == CERBERUS_COMBO_1_PART_1 || actorData.action == CERBERUS_COMBO_1_PART_2 ||
+		actorData.action == CERBERUS_COMBO_1_PART_3 || actorData.action == CERBERUS_COMBO_1_PART_4 ||
+		actorData.action == CERBERUS_COMBO_1_PART_5 || actorData.action == CERBERUS_COMBO_2_PART_3 ||
+		actorData.action == CERBERUS_COMBO_2_PART_4 || actorData.action == CERBERUS_WINDMILL ||
+		actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2 ||
+		actorData.action == CERBERUS_SWING || actorData.action == CERBERUS_SATELLITE ||
+		actorData.action == CERBERUS_FLICKER || actorData.action == CERBERUS_CRYSTAL ||
+		actorData.action == CERBERUS_MILLION_CARATS || actorData.action == CERBERUS_ICE_AGE );
+	
+	bool inCancellableActionAgni = (actorData.action == AGNI_RUDRA_COMBO_1_PART_1 || actorData.action == AGNI_RUDRA_COMBO_1_PART_2 ||
+		actorData.action == AGNI_RUDRA_COMBO_1_PART_3 || actorData.action == AGNI_RUDRA_COMBO_1_PART_4 ||
+		actorData.action == AGNI_RUDRA_COMBO_1_PART_5 || actorData.action == AGNI_RUDRA_COMBO_2_PART_2 ||
+		actorData.action == AGNI_RUDRA_COMBO_2_PART_3 || actorData.action == AGNI_RUDRA_COMBO_3_PART_3 ||
+		actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_1 || actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_2 ||
+		actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_3 || actorData.action == AGNI_RUDRA_MILLION_SLASH ||
+		actorData.action == AGNI_RUDRA_TWISTER || actorData.action == AGNI_RUDRA_TEMPEST);
+		
+	
+	bool inCancellableActionNevan = (actorData.action == NEVAN_TUNE_UP || actorData.action == NEVAN_COMBO_1 ||
+		actorData.action == NEVAN_COMBO_2 || actorData.action == NEVAN_JAM_SESSION ||
+		actorData.action == NEVAN_BAT_RIFT_LEVEL_1 || actorData.action == NEVAN_BAT_RIFT_LEVEL_2 ||
+		actorData.action == NEVAN_REVERB_SHOCK_LEVEL_1 || actorData.action == NEVAN_REVERB_SHOCK_LEVEL_2 ||
+		actorData.action == NEVAN_SLASH || actorData.action == NEVAN_FEEDBACK || 
+		actorData.action == NEVAN_CRAZY_ROLL || actorData.action == NEVAN_DISTORTION);
+
+	bool inCancellableActionBeowulf = (actorData.action == BEOWULF_COMBO_1_PART_1 || actorData.action == BEOWULF_COMBO_1_PART_2 ||
+		actorData.action == BEOWULF_COMBO_1_PART_3 || actorData.action == BEOWULF_COMBO_2_PART_3 ||
+		actorData.action == BEOWULF_COMBO_2_PART_4 || actorData.action == BEOWULF_BEAST_UPPERCUT || 
+		actorData.action == BEOWULF_HYPER_FIST);
+	
+	bool inCancellableActionGuns = (actorData.action == ARTEMIS_ACID_RAIN || actorData.action == KALINA_ANN_GRAPPLE);
+
 
 	
 
-	//Royalguard Cancels Everything
+	//Royalguard Cancels Everything (Most things)
 	if (
 			(actorData.style == STYLE::ROYALGUARD) &&
-			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) && actorData.eventData[0].event != 44) // The last condition prevents cancelling recovery
+			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) && actorData.eventData[0].event != 44 && (inCancellableActionRebellion || inCancellableActionCerberus ||
+			inCancellableActionAgni || inCancellableActionNevan || inCancellableActionBeowulf || inCancellableActionGuns || actorData.eventData[0].event == 22)) // The last condition prevents cancelling recovery
 	{
-		if(actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT &&
+
+		/*if(actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT &&
 		actorData.action != EBONY_IVORY_AIR_NORMAL_SHOT && actorData.action != SHOTGUN_AIR_NORMAL_SHOT &&
-		actorData.action != SPIRAL_TRICK_SHOT && !royalCancelTrackerRunning) // Exceptions, these cancels are way too OP or buggy in the cases of E&I and Shotgun.
+		actorData.action != SPIRAL_TRICK_SHOT && !royalCancelTrackerRunning) // Exceptions, these cancels are way too OP or buggy in the cases of E&I and Shotgun.*/
+
+		// Old list of exceptions, easier to list everything that should be cancellable.
+
+		
+		storedTrickUpCount = actorData.newTrickUpCount;
+		storedSkyStarCount = actorData.newSkyStarCount;
+		storedAirHikeCount = actorData.newAirHikeCount;
+
+		actorData.permissions = 3080; // This is a softer version of Reset Permissions.
+
+		std::thread royalcountstracker(RoyalCancelCountsTracker, actorBaseAddr);
+		royalcountstracker.detach();
+		
 			
-			storedTrickUpCount = actorData.newTrickUpCount;
-			storedSkyStarCount = actorData.newSkyStarCount;
-			storedAirHikeCount = actorData.newAirHikeCount;
-
-			actorData.permissions = 3080; // This is a softer version of Reset Permissions.
-
-			std::thread royalcountstracker(RoyalCancelCountsTracker, actorBaseAddr);
-			royalcountstracker.detach();
+			
 
 			
 	}
 
+	// Royal Cancelling Sky Star
 	if (
 			(actorData.style == STYLE::ROYALGUARD) &&
 			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) && actorData.eventData[0].event == 23 && !royalCancelTrackerRunning)
 	{
-		 // Exceptions, these cancels are way too OP or buggy in the cases of E&I and Shotgun.
+		 
 
 		 	storedTrickUpCount = actorData.newTrickUpCount;
 			storedSkyStarCount = actorData.newSkyStarCount;
@@ -10587,11 +10640,11 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 				}
 			}
 
-			if(lockOn) {
+			/*if(lockOn) {
 				if (actorData.eventData[0].event == 33) {
 					actorData.rotation = raveRotation;
 				}
-			}
+			}*/
 		}
 		else if (actorData.action == CERBERUS_AIR_FLICKER) {
 
@@ -10606,11 +10659,11 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 				}
 			}
 
-			if(lockOn) {
+			/*if(lockOn) {
 				if (actorData.eventData[0].event == 33) {
 					actorData.rotation = airFlickerRotation;
 				}
-			}
+			}*/
 		}
 		else if (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
 				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
@@ -10627,11 +10680,11 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 				}
 			}
 
-			if(lockOn) {
+			/*if(lockOn) {
 				if (actorData.eventData[0].event == 33) {
 					actorData.rotation = skyDanceRotation;
 				}
-			}
+			}*/
 		}
 		else if (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
 			actorData.action == NEVAN_AIR_SLASH_PART_2) {
@@ -10672,11 +10725,11 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 			}
 			
 			// Keep Player's Rotation intact on jump cancelling, this is important for Inertia Redirection and is used for several moves.
-			if(lockOn) {
+			/*if(lockOn) {
 				if (actorData.eventData[0].event == 33) {
 					actorData.rotation = killerBeeRotation;
 				}
-			}
+			}*/
 		}
 		else if (inRoyalBlock) {
 
@@ -10748,13 +10801,13 @@ void GetRoyalBlockAction(byte8 *actorBaseAddr) {
 			}
 
 		}
-		else {
+		/*else {
 			if((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))) 
 			{
 				actorData.action = ROYAL_BLOCK;
 			}
 
-		}
+		}*/
 		
 	}
 }
@@ -10882,7 +10935,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 	if ((!(actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_4 || inAirShot)) && (actorData.eventData[0].event == 17) && 
+					actorData.action == REBELLION_AERIAL_RAVE_PART_4 || inAirShot)) && 
 					actorData.eventData[0].event != 6) {
 
 				
@@ -10893,7 +10946,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 
 	if((!(actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
 				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
-				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3 || inAirShot)) && (actorData.eventData[0].event == 17)
+				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3 || inAirShot))
 				&& actorData.eventData[0].event != 6) {
 				
 				
@@ -10918,9 +10971,19 @@ void StoreInertia(byte8 *actorBaseAddr) {
 
 	if(actorData.motionData[0].index == 33 
 	|| actorData.motionData[0].index == 38 || actorData.motionData[0].index == 39) {
-		if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN || tiltDirection == TILT_DIRECTION::NEUTRAL) {
+		if(tiltDirection == TILT_DIRECTION::NEUTRAL) {
 			airRaveInertia.cachedDirection = tiltDirection;
 			skyDanceInertia.cachedDirection = tiltDirection;
+		}
+
+		if(tiltDirection == TILT_DIRECTION::UP) {
+			airRaveInertia.cachedDirection = TILT_DIRECTION::DOWN;
+			skyDanceInertia.cachedDirection = TILT_DIRECTION::DOWN;
+		}
+
+		if(tiltDirection == TILT_DIRECTION::DOWN) {
+			airRaveInertia.cachedDirection = TILT_DIRECTION::UP;
+			skyDanceInertia.cachedDirection = TILT_DIRECTION::UP;
 		}
 	}
 
