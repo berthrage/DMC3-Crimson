@@ -4366,6 +4366,13 @@ export struct GunsCancel {
 	bool trackerRunning = false;
 } gunsCancel;
 
+export struct RainstormCancel {
+	int cooldownDuration = 1700;
+	int cooldown = cooldownDuration;
+	bool canGun = true;
+	bool trackerRunning = false;
+} rainstormCancel;
+
 export struct Inertia {
 	float cachedPull = 10;
 	float haltDivisor = 2.0f;
@@ -4398,6 +4405,9 @@ export Inertia theHammerInertia;
 export float theHammerRotation;
 
 export float killerBeeRotation;
+
+export float skyStarRotation;
+export float jumpCancelRotation;
 
 export Inertia royalBlockInertia;
 

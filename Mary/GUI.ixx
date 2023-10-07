@@ -9335,6 +9335,7 @@ void MainOverlayWindow()
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
 			ImGui::Text("enemy distance %g", distanceToEnemy);
 			//ImGui::Text("enemy vertical Pull Multiplier %g", enemyData.verticalPullMultiplier);
+			ImGui::Text("rainstormCancel Cooldown %u", rainstormCancel.cooldown);
 			ImGui::Text("airRaveInertia.cachedDirection %u", airRaveInertia.cachedDirection);
 			ImGui::Text("new speed Set Rapid Slash %u", fasterRapidSlash.newSpeedSet);
 			ImGui::Text("inRapidSlash %u", inRapidSlash);
@@ -11580,8 +11581,10 @@ void Main()
 		ImGui::PopItemWidth();
 
 		ImGui::Text("");
-
-
+		ImGui::Text("Credits");
+		ImGui::Text("Mia Berth - Project Lead, Programmer, Artist");
+		ImGui::Text("SSSiyan - Reverse Enginnering Researcher, QA, Programmer");
+		ImGui::Text("");
 
 		ImGui::Text(PATREON_TEXT);
 		ImGui::Text("");
