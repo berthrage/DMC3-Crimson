@@ -4619,6 +4619,25 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 					execute = true;
 				}
 			}
+			
+			// Cancel Final Aerial Rave Knockback with Gunshot.
+			if(actorData.action == REBELLION_AERIAL_RAVE_PART_4 && actorData.eventData[0].event == 17) {
+				if (actorData.buttons[2] & GetBinding(BINDING::SHOOT))
+				{
+
+					if (execute)
+					{
+						execute = false;
+
+						actorData.state &= ~STATE::BUSY;
+
+					}
+				}
+				else
+				{
+					execute = true;
+				}
+			}
 
 
 
