@@ -5909,8 +5909,8 @@ void CalculateAirStingerEndTime() {
 	using namespace ACTION_VERGIL;
 
 	IntroduceMainActorData(actorData, return);
-	auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
-	float airStingerEndTime = 150 / (speedValue * (actorData.speed));
+	
+	float airStingerEndTime = 150 / actorData.speed;
 	airStingerEndTimeInt = (int)airStingerEndTime;
 
 	if((actorData.motionData[0].index == 8 || actorData.motionData[0].index == 10) && 
@@ -5932,7 +5932,7 @@ void FasterRapidSlashDevil(byte8 *actorBaseAddr) {
 
 	if(actorData.character == CHARACTER::VERGIL) {
 
-		if(actorData.motionData[0].index == 51 && !inRapidSlash) { // Coudln't figure out a way to not bug this out then to store this out of walking anim
+		if((actorData.motionData[0].index == 51 || actorData.motionData[0].index == 2) && !inRapidSlash) { // Coudln't figure out a way to not bug this out then to store this out of walking anim
 			// Storing the original speeds
 			fasterRapidSlash.storedSpeedDevil[0] = activeConfig.Speed.devilVergil[0];
 			fasterRapidSlash.storedSpeedDevil[1] = activeConfig.Speed.devilVergil[1];
@@ -5941,7 +5941,7 @@ void FasterRapidSlashDevil(byte8 *actorBaseAddr) {
 		}
 
 		if(actorData.devil == 1) {
-			if(inRapidSlash && !fasterRapidSlash.newSpeedSet && !fasterDarkslayer.newSpeedSet) {
+			if(inRapidSlash && !fasterRapidSlash.newSpeedSet) {
 
 
 			// Setting the new speed 
@@ -11762,7 +11762,7 @@ void FasterDarkslayerTricks() {
 	if(actorData.character == CHARACTER::VERGIL) {
 		float storedspeedVergil = activeConfig.Speed.human;
 
-		if(actorData.motionData[0].index == 51 && !(actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK || actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP 
+		if((actorData.motionData[0].index == 51 || actorData.motionData[0].index == 2) && !(actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK || actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP 
 			|| actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN)) {
 			// Storing the original speeds
 			fasterDarkslayer.storedSpeedHuman = activeConfig.Speed.human;

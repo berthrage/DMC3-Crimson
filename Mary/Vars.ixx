@@ -4466,16 +4466,16 @@ export bool royalCancelTrackerRunning = false;
 export struct FasterDarkslayer {
 	float newSpeed = 2.0f;
 	bool newSpeedSet = false;
-	float storedSpeedHuman = 0;
-	float storedSpeedDevil[4] = {0};
+	float storedSpeedHuman = 1;
+	float storedSpeedDevil[4] = {1.2f, 1.2f, 1.2f, 1.2f};
 
 } fasterDarkslayer;
 
 export struct FasterRapidSlash {
 	float newSpeed = 2.0f;
 	bool newSpeedSet = false;
-	float storedSpeedHuman = 0;
-	float storedSpeedDevil[4] = {0};
+	float storedSpeedHuman = 1;
+	float storedSpeedDevil[4] = {1.2f, 1.2f, 1.2f, 1.2f};
 
 } fasterRapidSlash;
 

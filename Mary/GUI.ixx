@@ -9344,6 +9344,7 @@ void MainOverlayWindow()
 			ImGui::Text("Motion Data 1: %u", actorData.motionData[0].index);
 			ImGui::Text("Air Stinger End Timer %u", airStingerEnd.timer);
 			ImGui::Text("Air Stinger End Time Int %u", airStingerEndTimeInt);
+			ImGui::Text("Actor Speed %g", actorData.speed);
 			//ImGui::Text("Track %s", eventData.track);
 
 			ImGui::Text("Royal Block Inertia  %g", royalBlockInertia.cachedPull);
