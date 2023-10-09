@@ -9339,7 +9339,11 @@ void MainOverlayWindow()
 			ImGui::Text("airRaveInertia.cachedDirection %u", airRaveInertia.cachedDirection);
 			ImGui::Text("new speed Set Rapid Slash %u", fasterRapidSlash.newSpeedSet);
 			ImGui::Text("inRapidSlash %u", inRapidSlash);
+			ImGui::Text("fRapidSlash storedSpeedDevil %g", fasterRapidSlash.storedSpeedDevil[0]);
+			ImGui::Text("fDarklasyer storedSpeedDevil %g", fasterDarkslayer.storedSpeedDevil[0]);
 			ImGui::Text("Motion Data 1: %u", actorData.motionData[0].index);
+			ImGui::Text("Air Stinger End Timer %u", airStingerEnd.timer);
+			ImGui::Text("Air Stinger End Time Int %u", airStingerEndTimeInt);
 			//ImGui::Text("Track %s", eventData.track);
 
 			ImGui::Text("Royal Block Inertia  %g", royalBlockInertia.cachedPull);

@@ -4468,7 +4468,23 @@ void RemoveBusyFlagController(byte8 *actorBaseAddr)
 			}
 		}
 
+		/*if(actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
+			if(actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2 && airStingerEnd.timer < 150) {
+				if (execute)
+				{
+					execute = false;
 
+					actorData.state &= ~STATE::BUSY;
+				}
+				
+				
+			}
+			else
+			{
+			execute = true;
+			}
+
+		}*/
 
 		//Dante's Trickster Actions Cancels Most Things (w/ cooldown)
 		if(actorData.character == CHARACTER::DANTE) {
@@ -5888,6 +5904,72 @@ void ImprovedBufferedReversals(bool enable) {
 	}
 }
 
+void CalculateAirStingerEndTime() {
+	using namespace ACTION_DANTE;
+	using namespace ACTION_VERGIL;
+
+	IntroduceMainActorData(actorData, return);
+	auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+	float airStingerEndTime = 150 / (speedValue * (actorData.speed));
+	airStingerEndTimeInt = (int)airStingerEndTime;
+
+	if((actorData.motionData[0].index == 8 || actorData.motionData[0].index == 10) && 
+	(actorData.action == YAMATO_RAPID_SLASH_LEVEL_1 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_2)) {
+
+		inRapidSlash = true;
+	}
+	else {
+		inRapidSlash = false;
+	}
+}
+
+void FasterRapidSlashDevil(byte8 *actorBaseAddr) {
+	using namespace ACTION_DANTE;
+	using namespace ACTION_VERGIL;
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+	
+	
+
+	if(actorData.character == CHARACTER::VERGIL) {
+
+		if(actorData.motionData[0].index == 51 && !inRapidSlash) { // Coudln't figure out a way to not bug this out then to store this out of walking anim
+			// Storing the original speeds
+			fasterRapidSlash.storedSpeedDevil[0] = activeConfig.Speed.devilVergil[0];
+			fasterRapidSlash.storedSpeedDevil[1] = activeConfig.Speed.devilVergil[1];
+			fasterRapidSlash.storedSpeedDevil[2] = activeConfig.Speed.devilVergil[2];
+			fasterRapidSlash.storedSpeedDevil[3] = activeConfig.Speed.devilVergil[3];
+		}
+
+		if(actorData.devil == 1) {
+			if(inRapidSlash && !fasterRapidSlash.newSpeedSet && !fasterDarkslayer.newSpeedSet) {
+
+
+			// Setting the new speed 
+			activeConfig.Speed.devilVergil[0] = fasterRapidSlash.newSpeed;
+			activeConfig.Speed.devilVergil[1] = fasterRapidSlash.newSpeed;
+			activeConfig.Speed.devilVergil[2] = fasterRapidSlash.newSpeed;
+			activeConfig.Speed.devilVergil[3] = fasterRapidSlash.newSpeed;
+
+			fasterRapidSlash.newSpeedSet = true;
+			}
+			else if (!inRapidSlash && fasterRapidSlash.newSpeedSet){
+
+				
+				// Restoring the original speeds
+				activeConfig.Speed.devilVergil[0] = fasterRapidSlash.storedSpeedDevil[0];
+				activeConfig.Speed.devilVergil[1] = fasterRapidSlash.storedSpeedDevil[1];
+				activeConfig.Speed.devilVergil[2] = fasterRapidSlash.storedSpeedDevil[2];
+				activeConfig.Speed.devilVergil[3] = fasterRapidSlash.storedSpeedDevil[3];
+				
+				
+				fasterRapidSlash.newSpeedSet = false;
+			}
+		}
+		
+		
+	}
+}
+
 template <typename T>
 bool WeaponSwitchController(byte8 *actorBaseAddr)
 {
@@ -5918,6 +6000,8 @@ bool WeaponSwitchController(byte8 *actorBaseAddr)
 	DisableHeightRestriction(true);
 	ImprovedBufferedReversals(true);
 	IncreasedJCSpheres(true);
+	CalculateAirStingerEndTime();
+	FasterRapidSlashDevil(actorBaseAddr);
 
 	if (
 		(actorData.newPlayerIndex == 0) &&
@@ -11085,6 +11169,11 @@ void StoreInertia(byte8 *actorBaseAddr) {
 			if (!(actorData.state & STATE::IN_AIR && actorData.action == BEOWULF_RISING_SUN)) {
 				storedRisingSunTauntPosY = actorData.position.y;
 			}
+
+			if (!(actorData.state & STATE::IN_AIR && (actorData.action == BEOWULF_LUNAR_PHASE_LEVEL_1 || actorData.action == BEOWULF_LUNAR_PHASE_LEVEL_2) && 
+			actorData.eventData[0].event == 17)) {
+				storedLunarPhasePosY = actorData.position.y;
+			}
 	}
 
 	auto inAirShot = (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == SHOTGUN_AIR_NORMAL_SHOT ||
@@ -11454,12 +11543,24 @@ void InertiaController(byte8 *actorBaseAddr) {
 				}
 				else if (actorData.character == CHARACTER::VERGIL) {
 					if(actorData.state == 65538) {
+
+						// Adjusts Vergil Pos to be lower when starting Air Rising Sun
 						if(actorData.state & STATE::IN_AIR && actorData.action == BEOWULF_RISING_SUN) {
 							actorData.verticalPullMultiplier = 0.0f;
 							actorData.position.y = storedRisingSunTauntPosY - 50.0f;
 						}
+
+						// Adjusts Vergil Pos to be lower when starting Air Lunar Phase
+						if(actorData.state & STATE::IN_AIR && (actorData.action == BEOWULF_LUNAR_PHASE_LEVEL_1 || actorData.action == BEOWULF_LUNAR_PHASE_LEVEL_2) && 
+						actorData.motionData[0].index != 23) {
+							actorData.verticalPullMultiplier = 0.0f;
+							actorData.position.y = storedLunarPhasePosY - 50.0f;
+						}
 					}
 				}
+
+
+		
 }
 
 void StyleMeterDoppelganger(byte8 *actorBaseAddr) {
@@ -11660,15 +11761,21 @@ void FasterDarkslayerTricks() {
 
 	if(actorData.character == CHARACTER::VERGIL) {
 		float storedspeedVergil = activeConfig.Speed.human;
-		if((actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK || actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP 
-			|| actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN) && !fasterDarkslayer.newSpeedSet) {
 
+		if(actorData.motionData[0].index == 51 && !(actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK || actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP 
+			|| actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN)) {
 			// Storing the original speeds
 			fasterDarkslayer.storedSpeedHuman = activeConfig.Speed.human;
 			fasterDarkslayer.storedSpeedDevil[0] = activeConfig.Speed.devilVergil[0];
 			fasterDarkslayer.storedSpeedDevil[1] = activeConfig.Speed.devilVergil[1];
 			fasterDarkslayer.storedSpeedDevil[2] = activeConfig.Speed.devilVergil[2];
 			fasterDarkslayer.storedSpeedDevil[3] = activeConfig.Speed.devilVergil[3];
+		}
+
+		if((actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK || actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP 
+			|| actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN) && !fasterDarkslayer.newSpeedSet) {
+
+			
 			
 			// Setting the new speed 
 			activeConfig.Speed.human = fasterDarkslayer.newSpeed;
@@ -11695,49 +11802,42 @@ void FasterDarkslayerTricks() {
 	}
 }
 
-void FasterRapidSlashDevil(byte8 *actorBaseAddr) {
-	using namespace ACTION_DANTE;
-	using namespace ACTION_VERGIL;
+
+
+void AirStingerEndTracker(byte8 *actorBaseAddr) {
+	auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
-	
-	if((actorData.motionData[0].index == 8 || actorData.motionData[0].index == 10)) {
-		inRapidSlash = true;
+
+	airStingerEnd.trackerRunning = true;
+	airStingerEnd.timer = 0;
+	while (actorData.motionData[0].index == 11) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		airStingerEnd.timer++;
 	}
-	else {
-		inRapidSlash = false;
+    
+
+	if (actorData.motionData[0].index != 11) 
+	{
+   		airStingerEnd.trackerRunning = false;
 	}
+}
+
+void SetAirStingerEnd(byte8 *actorBaseAddr) {
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
 
 	if(actorData.character == CHARACTER::VERGIL) {
-		
-		if(inRapidSlash && !fasterRapidSlash.newSpeedSet) {
+		if(actorData.motionData[0].index == 11 && !airStingerEnd.trackerRunning) {
 
-			// Storing the original speeds
-			fasterRapidSlash.storedSpeedDevil[0] = activeConfig.Speed.devilVergil[0];
-			fasterRapidSlash.storedSpeedDevil[1] = activeConfig.Speed.devilVergil[1];
-			fasterRapidSlash.storedSpeedDevil[2] = activeConfig.Speed.devilVergil[2];
-			fasterRapidSlash.storedSpeedDevil[3] = activeConfig.Speed.devilVergil[3];
-
-			// Setting the new speed 
-			activeConfig.Speed.devilVergil[0] = fasterRapidSlash.newSpeed;
-			activeConfig.Speed.devilVergil[1] = fasterRapidSlash.newSpeed;
-			activeConfig.Speed.devilVergil[2] = fasterRapidSlash.newSpeed;
-			activeConfig.Speed.devilVergil[3] = fasterRapidSlash.newSpeed;
-
-			fasterRapidSlash.newSpeedSet = true;
+			std::thread airstingerendtracker(AirStingerEndTracker, actorBaseAddr);
+			airstingerendtracker.detach();		
 		}
-		else if (!inRapidSlash && fasterRapidSlash.newSpeedSet){
 
-			
-			// Restoring the original speeds
-			activeConfig.Speed.devilVergil[0] = fasterRapidSlash.storedSpeedDevil[0];
-			activeConfig.Speed.devilVergil[1] = fasterRapidSlash.storedSpeedDevil[1];
-			activeConfig.Speed.devilVergil[2] = fasterRapidSlash.storedSpeedDevil[2];
-			activeConfig.Speed.devilVergil[3] = fasterRapidSlash.storedSpeedDevil[3];
-			
-			
-			fasterRapidSlash.newSpeedSet = false;
+		if(actorData.motionData[0].index != 11) {
+			airStingerEnd.timer = 0;
 		}
 	}
+
+
 }
 
 void DTReadySFX() {
@@ -11974,6 +12074,7 @@ void UpdateActorSpeed(byte8 *baseAddr)
 	InertiaController(mainActorData);
 	DisableJCRestriction(true);
 	BulletStop(true);
+	SetAirStingerEnd(mainActorData);
 	//OverrideTauntInAir();
 	
 
@@ -12056,7 +12157,7 @@ void UpdateActorSpeed(byte8 *baseAddr)
 				}
 				
 				FasterDarkslayerTricks();
-				FasterRapidSlashDevil(actorBaseAddr);
+				//FasterRapidSlashDevil(actorBaseAddr);
 				
 
 
@@ -13239,6 +13340,7 @@ void SetAction(byte8 *actorBaseAddr)
 
 bool AirActionCheck(PlayerActorData &actorData)
 {
+
 	switch (actorData.character)
 	{
 	case CHARACTER::DANTE:
@@ -13265,7 +13367,7 @@ bool AirActionCheck(PlayerActorData &actorData)
 		if (
 			(actorData.state & STATE::IN_AIR) &&
 			(actorData.action == ACTION_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_2) &&
-			(actorData.motionData[1].group == MOTION_GROUP_VERGIL::YAMATO_FORCE_EDGE))
+			(actorData.motionData[1].group == MOTION_GROUP_VERGIL::YAMATO_FORCE_EDGE) && airStingerEnd.timer < airStingerEndTimeInt)
 		{
 			return true;
 		}

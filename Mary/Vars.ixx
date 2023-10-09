@@ -4430,6 +4430,14 @@ export bool executingSkyLaunch = false;
 export bool appliedSkyLaunchProperties = false;
 
 export float storedRisingSunTauntPosY = 0;
+export float storedLunarPhasePosY = 0;
+
+export int airStingerEndTimeInt = 0;
+
+export struct AirStingerEnd {
+	bool trackerRunning = false;
+	int timer = 0;
+} airStingerEnd;
 
 export struct RankAnnouncer {
 	int turn = 0;
