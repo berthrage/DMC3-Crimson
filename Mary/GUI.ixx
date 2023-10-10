@@ -9253,7 +9253,9 @@ void MainOverlayWindow()
 				ImGui::Text("SCENE:  %u", g_scene);
 				ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
 				ImGui::Text("Sky Launch Tracker Running:  %u", skyLaunchTrackerRunning);
-
+				ImGui::Text("Royal Release:  %u", executingRoyalRelease);
+				ImGui::Text("Royal Release Tracker Running:  %u", royalReleaseTrackerRunning);
+				ImGui::Text("Forcing Just Frame Royal Release:  %u", forcingJustFrameRoyalRelease);
 				
 				
 				ImGui::Text("backtoforward Back:  %u", backCommand);

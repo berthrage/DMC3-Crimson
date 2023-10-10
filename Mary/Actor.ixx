@@ -10720,10 +10720,12 @@ export void ToggleRoyalguardForceJustFrameRelease(bool enable)
 			Write<uint32>((addr + 2), offsetof(PlayerActorData, action));
 			Write<uint8>((addr + 6), ACTION_DANTE::ROYALGUARD_RELEASE_2);
 			protectionHelper.Pop();
+			forcingJustFrameRoyalRelease = true;
 		}
 		else
 		{
 			backupHelper.Restore(addr);
+			forcingJustFrameRoyalRelease = false;
 		}
 	}
 
@@ -11933,6 +11935,44 @@ void BackToForwardInputs(byte8 *actorBaseAddr) {
 
 }
 
+void RoyalReleaseTracker() {
+	IntroduceMainActorData(actorData, return);
+	
+	
+	if((actorData.action == 195 || actorData.action == 194 || actorData.action == 196 || actorData.action == 197) && 
+	(actorData.motionData[0].index == 20 || actorData.motionData[0].index == 19)) {
+		
+		executingRoyalRelease = true;
+		royalReleaseTrackerRunning = true;
+	}
+	
+}
+
+void CheckRoyalRelease(byte8 *actorBaseAddr) {
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+
+	if (((actorData.state & STATE::IN_AIR && actorData.motionData[0].index == 20 || actorData.motionData[0].index == 19) &&
+	(actorData.action == 195 || actorData.action == 194 || actorData.action == 196 || actorData.action == 197) && 
+		actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && !royalReleaseTrackerRunning)) {
+
+	
+		std::thread royalreleasetracker(RoyalReleaseTracker);
+        royalreleasetracker.detach();
+	}
+
+	if(!((actorData.action == 195 || actorData.action == 194 || actorData.action == 196 || actorData.action == 197) && 
+	(actorData.motionData[0].index == 20 || actorData.motionData[0].index == 19))) {
+		executingRoyalRelease = false;
+		royalReleaseTrackerRunning = false;
+	}
+
+	if(!royalReleaseTrackerRunning) {
+		executingRoyalRelease = false;
+	}
+
+	
+}
+
 void SkyLaunchTracker() {
 	IntroduceMainActorData(actorData, return);
 	
@@ -11957,9 +11997,9 @@ void CheckSkyLaunch(byte8 *actorBaseAddr) {
 
 	if (((actorData.state & STATE::IN_AIR && actorData.motionData[0].index == 20) &&
 	(actorData.action == 195) && 
-		actorData.buttons[0] & GetBinding(BINDING::TAUNT) && !skyLaunchTrackerRunning)) {
+		actorData.buttons[0] & GetBinding(BINDING::TAUNT) && !skyLaunchTrackerRunning && !executingRoyalRelease)) {
 
-	
+		
 		std::thread skylaunchtracker(SkyLaunchTracker);
         skylaunchtracker.detach();
 	}
@@ -12121,12 +12161,32 @@ void ToggleAirTauntVergil(bool enable) {
 void AirTauntToggleController(byte8 *actorBaseAddr) {
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return); 
 
-	if(actorData.state & STATE::IN_AIR) {
+	if(actorData.character == CHARACTER::DANTE) {
+		
+		if(actorData.state & STATE::IN_AIR && actorData.action != 195 && actorData.action != 196 && actorData.action != 197 && actorData.action != 194) {
+
+			OverrideTauntInAir(true);
+		}	
+		else {
+			OverrideTauntInAir(false);
+		}
+	}
+
+	if(actorData.character == CHARACTER::VERGIL) {
+		if(actorData.state & STATE::IN_AIR && actorData.action != 25) {
+			OverrideTauntInAir(true);
+		}	
+		else {
+			OverrideTauntInAir(false);
+		}
+	}
+
+	/*if(actorData.state & STATE::IN_AIR) {
 		OverrideTauntInAir(true);
 	}	
-	else if ((!(actorData.state & STATE::IN_AIR) || (actorData.character == CHARACTER::DANTE && actorData.action == 195))){
+	else{
 		OverrideTauntInAir(false);
-	}
+	}*/
 
 	if(actorData.character == CHARACTER::DANTE && actorData.state & STATE::IN_AIR) {
 		ToggleAirTaunt(true);
@@ -12186,6 +12246,7 @@ void UpdateActorSpeed(byte8 *baseAddr)
 	
 
 	IntroduceMainActorData(mainActorData, return);
+	CheckRoyalRelease(mainActorData);
 	CheckSkyLaunch(mainActorData);
 	SkyLaunchProperties(mainActorData);
 	GetRoyalBlockAction(mainActorData);
@@ -13404,8 +13465,8 @@ void SetAction(byte8 *actorBaseAddr)
 		// {
 		// 	actorData.newAirRisingSunCount = 1;
 		// }
-		// Rising Sun Air Taunt
-		else if (
+		// Rising Sun Air Taunt // OLD, this is the old Air Taunt that required Taunt + Melee
+		/*else if (
 			activeConfig.enableBeowulfVergilAirRisingSun &&
 			(actorData.action == BEOWULF_STARFALL_LEVEL_2 || actorData.action == BEOWULF_STARFALL_LEVEL_1 ||
 			actorData.action == YAMATO_AERIAL_RAVE_PART_1 || actorData.action == YAMATO_AERIAL_RAVE_PART_2 || 
@@ -13417,7 +13478,7 @@ void SetAction(byte8 *actorBaseAddr)
 			actorData.action = BEOWULF_RISING_SUN;
 
 			actorData.newAirRisingSunCount++;
-		}
+		}*/
 		else if (
 			activeConfig.enableBeowulfVergilAirLunarPhase &&
 			(actorData.action == BEOWULF_STARFALL_LEVEL_2) &&
