@@ -9256,6 +9256,9 @@ void MainOverlayWindow()
 				ImGui::Text("Royal Release:  %u", executingRoyalRelease);
 				ImGui::Text("Royal Release Tracker Running:  %u", royalReleaseTrackerRunning);
 				ImGui::Text("Forcing Just Frame Royal Release:  %u", forcingJustFrameRoyalRelease);
+				ImGui::Text("skyLaunchSetJustFrameTrue:  %u", skyLaunchSetJustFrameTrue);
+				ImGui::Text("Royal Release Executed:  %u", royalReleaseExecuted);
+				
 				
 				
 				ImGui::Text("backtoforward Back:  %u", backCommand);

@@ -4428,10 +4428,14 @@ export bool skyLaunchForceJustFrameToggledOff = false;
 export bool skyLaunchTrackerRunning = false;
 export bool executingSkyLaunch = false;
 export bool appliedSkyLaunchProperties = false;
+export bool skyLaunchSetJustFrameTrue = false;
+export bool skyLaunchSetJustFrameGround = false;
 
 export bool executingRoyalRelease = false;
 export bool royalReleaseTrackerRunning = false;
 export bool forcingJustFrameRoyalRelease = false;
+export bool royalReleaseExecuted = false;
+export bool royalReleaseJustFrameCheck = false;
 
 export float storedRisingSunTauntPosY = 0;
 export float storedLunarPhasePosY = 0;

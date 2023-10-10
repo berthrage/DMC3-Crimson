@@ -10899,11 +10899,7 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 			//actorData.horizontalPullMultiplier = 0.2f;
 		}
 		else if (actorData.action == BEOWULF_KILLER_BEE) {
-			if(!lockOn) {
-				if (radius < RIGHT_STICK_DEADZONE) {
-					actorData.rotation = killerBeeRotation;
-				}
-			}
+			
 			
 			// Keep Player's Rotation intact on jump cancelling, this is important for Inertia Redirection and is used for several moves.
 			if(lockOn) {
@@ -10937,13 +10933,13 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 				if (radius < RIGHT_STICK_DEADZONE) {
 					actorData.rotation = skyStarRotation;
 				}
-			}
+			}*/
 
 			if(lockOn) {
-				if (actorData.eventData[0].event == 33) {
-					actorData.rotation = skyStarRotation;
-				}
-			}*/
+				
+				actorData.rotation = skyStarRotation;
+				
+			}
 		}
 		else if (actorData.motionData[0].index == 33) {
 
@@ -10976,6 +10972,21 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 				
 			
 		}
+
+		if(actorData.action != BEOWULF_KILLER_BEE) {
+			
+			if (radius < RIGHT_STICK_DEADZONE) {
+				killerBeeRotation = actorData.rotation;
+			}
+			
+		}
+
+		if(actorData.eventData[0].event != 23) {
+			if (radius < RIGHT_STICK_DEADZONE) {
+				skyStarRotation = actorData.rotation;
+			}
+		}
+		
 
 	
 	}	
@@ -11092,6 +11103,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 
 				airRaveInertia.cachedPull = actorData.horizontalPull;
 				raveRotation = actorData.rotation;
+
 				
 			}
 
@@ -11186,7 +11198,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_4 || inAirShot)) && 
-					actorData.eventData[0].event != 6) {
+					actorData.eventData[0].event != 6 && actorData.eventData[0].event != 33 && actorData.motionData[0].index != 17 && actorData.motionData[0].index != 33) {
 
 				
 				if((tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN || tiltDirection == TILT_DIRECTION::NEUTRAL)) {
@@ -11220,12 +11232,14 @@ void StoreInertia(byte8 *actorBaseAddr) {
 	}
 
 	if(actorData.motionData[0].index == 33 
-	|| actorData.motionData[0].index == 38 || actorData.motionData[0].index == 39) {
+	|| actorData.motionData[0].index == 38 || actorData.motionData[0].index == 39 || actorData.eventData[0].event == 23 || actorData.action == BEOWULF_KILLER_BEE) {
 		if(tiltDirection == TILT_DIRECTION::NEUTRAL || tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
 			airRaveInertia.cachedDirection = tiltDirection;
 			skyDanceInertia.cachedDirection = tiltDirection;
 		}
 	}
+
+	
 
 			
 }
@@ -11944,8 +11958,9 @@ void RoyalReleaseTracker() {
 		
 		executingRoyalRelease = true;
 		royalReleaseTrackerRunning = true;
+		royalReleaseExecuted = true;
 	}
-	
+	skyLaunchSetJustFrameTrue = false;
 }
 
 void CheckRoyalRelease(byte8 *actorBaseAddr) {
@@ -12018,6 +12033,30 @@ void CheckSkyLaunch(byte8 *actorBaseAddr) {
 
 void SkyLaunchProperties(byte8 *actorBaseAddr) {
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+
+	if(actorData.character == CHARACTER::DANTE) {
+		if(actorData.state & STATE::IN_AIR && !skyLaunchSetJustFrameTrue && !forcingJustFrameRoyalRelease) {
+			ToggleRoyalguardForceJustFrameRelease(true);
+			skyLaunchSetJustFrameTrue = true;
+			skyLaunchSetJustFrameGround = false;
+			royalReleaseJustFrameCheck = false;
+		}
+
+		if(!executingRoyalRelease && skyLaunchSetJustFrameTrue) {
+			skyLaunchSetJustFrameTrue = false;
+			royalReleaseExecuted = false;
+		}
+
+		if(!(actorData.state & STATE::IN_AIR) && !skyLaunchSetJustFrameGround) {
+			ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+			skyLaunchSetJustFrameGround = true;
+		}
+
+		if(executingRoyalRelease && !royalReleaseJustFrameCheck) {
+			ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+			royalReleaseJustFrameCheck = true;
+		}
+	}
 
 	if (executingSkyLaunch) {
 		
@@ -13368,6 +13407,16 @@ void SetAction(byte8 *actorBaseAddr)
 			
 		}*/
 
+
+		if ((actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) 
+		&& actorData.state & STATE::IN_AIR) {
+			
+			//executingSkyLaunch = true;
+			ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+			//actorData.action = REBELLION_SWORD_PIERCE;
+			
+		}
+
 		/*if((actorData.action == 19) && actorData.buttons[0] & GetBinding(BINDING::TAUNT)) {
 			actorData.action = REBELLION_HELM_BREAKER;
 		}*/
@@ -13391,7 +13440,7 @@ void SetAction(byte8 *actorBaseAddr)
 		
 		
 		// Swap Sword Pierce and Dance Macabre
-		/*if ((actorData.action == REBELLION_SWORD_PIERCE)) {
+		if ((actorData.action == REBELLION_SWORD_PIERCE)) {
 
 			if(actorData.lastAction != REBELLION_DANCE_MACABRE_PART_1) {
 				actorData.action = REBELLION_DANCE_MACABRE_PART_1;
@@ -13403,7 +13452,19 @@ void SetAction(byte8 *actorBaseAddr)
 
 
 			
-		}*/
+		}
+		
+		if ((actorData.action == REBELLION_DANCE_MACABRE_PART_1 || actorData.action == REBELLION_DANCE_MACABRE_PART_2 || 
+		actorData.action == REBELLION_DANCE_MACABRE_PART_3 || actorData.action == REBELLION_DANCE_MACABRE_PART_4 || 
+		actorData.action == REBELLION_DANCE_MACABRE_PART_5 || actorData.action == REBELLION_DANCE_MACABRE_PART_6 ||
+		actorData.action == REBELLION_DANCE_MACABRE_PART_7 || actorData.action == REBELLION_DANCE_MACABRE_PART_8) &&
+			(actorData.style == STYLE::SWORDMASTER) &&
+			lockOn && 
+			(actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
+			(tiltDirection == TILT_DIRECTION::DOWN)) {
+
+			actorData.action = REBELLION_SWORD_PIERCE;
+		}
 
 		/*if ((actorData.action == REBELLION_SWORD_PIERCE) &&
 			(actorData.style == STYLE::SWORDMASTER) &&
