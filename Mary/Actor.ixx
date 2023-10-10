@@ -10969,9 +10969,13 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 				else if (actorData.eventData[0].event == 33 && (actorData.action == BEOWULF_KILLER_BEE)) {
 					actorData.rotation = killerBeeRotation;
 				}
+				else if (actorData.eventData[0].lastEvent == 23) {
+					actorData.rotation = skyStarRotation;
+				}
 				
 			
 		}
+		
 		
 
 		if(actorData.action != BEOWULF_KILLER_BEE) {
@@ -11235,8 +11239,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 	}
 
 	if((actorData.motionData[0].index == 33 
-	|| actorData.motionData[0].index == 38 || actorData.motionData[0].index == 39 || actorData.eventData[0].event == 23 || actorData.action == BEOWULF_KILLER_BEE) &&
-	actorData.eventData[0].lastEvent != 23) {
+	|| actorData.motionData[0].index == 38 || actorData.motionData[0].index == 39 || actorData.eventData[0].event == 23 || actorData.action == BEOWULF_KILLER_BEE)) {
 		if(tiltDirection == TILT_DIRECTION::NEUTRAL || tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
 			airRaveInertia.cachedDirection = tiltDirection;
 			skyDanceInertia.cachedDirection = tiltDirection;
