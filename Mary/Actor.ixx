@@ -11937,7 +11937,7 @@ void SkyLaunchTracker() {
 	IntroduceMainActorData(actorData, return);
 	
 	
-	if((actorData.action == 195 || actorData.action == 194) && (actorData.motionData[0].index == 20)) {
+	if((actorData.action == 195 || actorData.action == 194 || actorData.action == 212) && (actorData.motionData[0].index == 20)) {
 		
 		executingSkyLaunch = true;
 		skyLaunchTrackerRunning = true;
@@ -11957,8 +11957,9 @@ void CheckSkyLaunch(byte8 *actorBaseAddr) {
 
 	if (((actorData.state & STATE::IN_AIR && actorData.motionData[0].index == 20) &&
 	(actorData.action == 195) && 
-		actorData.buttons[0] & GetBinding(BINDING::TAUNT) && actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) && !skyLaunchTrackerRunning)) {
+		actorData.buttons[0] & GetBinding(BINDING::TAUNT) && !skyLaunchTrackerRunning)) {
 
+	
 		std::thread skylaunchtracker(SkyLaunchTracker);
         skylaunchtracker.detach();
 	}
@@ -12020,9 +12021,127 @@ void SkyLaunchProperties(byte8 *actorBaseAddr) {
 	}
 }
 
-void OverrideTauntInAir() {
-	_nop((char*)(appBaseAddr + 0x1E99F2), 2); 
-	_nop((char*)(appBaseAddr + 0x1E9A0D), 2); 
+void OverrideTauntInAir(bool enable) {
+	// This allows you to use the taunt button on the air.
+
+	if(enable) {
+		_nop((char*)(appBaseAddr + 0x1E99F2), 2); 
+		_nop((char*)(appBaseAddr + 0x1E9A0D), 2);
+
+	}
+	else {            
+		_patch((char*)(appBaseAddr + 0x1E99F2), (char*)"\x74\x5F", 2); //je dmc3.exe+1E9A53
+		_patch((char*)(appBaseAddr + 0x1E9A0D), (char*)"\x75\x44", 2); //jne dmc3.exe+1E9A53
+	}
+}
+
+void ToggleAirTaunt(bool enable) {
+	// This calls Royal Release on Taunt button.
+
+	static bool run = false;
+
+	auto addr = (appBaseAddr + 0x1E9A46);
+	auto jumpAddr = (appBaseAddr + 0x1E9A4B);
+	constexpr uint32 size = 5;
+		
+
+		static Function func = {};
+
+		constexpr byte8 sect0[] =
+			{
+				0x48, 0xBA, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //mov rdx,Mary.stbi__de_iphone_flag_set+1
+				0x66, 0xC7, 0x81, 0xA4, 0x3F, 0x00, 0x00, 0xC2, 0x00, //mov word ptr [rcx+00003FA4],00C2
+				0xE8, 0xB8, 0x09, 0x1F, 0x00, //call dmc3.exe+1E09D0              
+
+			};
+
+		if (!run)
+		{
+			backupHelper.Save(addr, size);
+			func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
+			CopyMemory(func.sect0, sect0, sizeof(sect0));
+            WriteAddress(func.sect0 + 19, (appBaseAddr + 0x1E09D0), 5);
+
+		}
+
+		if (enable)
+		{
+			WriteJump(addr, func.addr, (size - 5));
+		}
+		else
+		{
+			backupHelper.Restore(addr);
+		}
+
+	run = true;
+}
+
+void ToggleAirTauntVergil(bool enable) {
+	// This calls Beowulf Rising Sun on Taunt button.
+
+	static bool run = false;
+
+	auto addr = (appBaseAddr + 0x1E9A46);
+	auto jumpAddr = (appBaseAddr + 0x1E9A4B);
+	constexpr uint32 size = 5;
+		
+
+		static Function func = {};
+
+		constexpr byte8 sect0[] =
+			{
+				0x48, 0xBA, 0x11, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //mov rdx,Mary.stbi__de_iphone_flag_set+1
+				0x66, 0xC7, 0x81, 0xA4, 0x3F, 0x00, 0x00, 0x19, 0x00, //mov word ptr [rcx+00003FA4],0019
+				0xE8, 0xB8, 0x09, 0x1F, 0x00, //call dmc3.exe+1E09D0              
+
+			};
+
+		if (!run)
+		{
+			backupHelper.Save(addr, size);
+			func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
+			CopyMemory(func.sect0, sect0, sizeof(sect0));
+            WriteAddress(func.sect0 + 19, (appBaseAddr + 0x1E09D0), 5);
+
+		}
+
+		if (enable)
+		{
+			WriteJump(addr, func.addr, (size - 5));
+		}
+		else
+		{
+			backupHelper.Restore(addr);
+		}
+
+	run = true;
+	 
+}
+
+void AirTauntToggleController(byte8 *actorBaseAddr) {
+	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return); 
+
+	if(actorData.state & STATE::IN_AIR) {
+		OverrideTauntInAir(true);
+	}	
+	else if ((!(actorData.state & STATE::IN_AIR) || (actorData.character == CHARACTER::DANTE && actorData.action == 195))){
+		OverrideTauntInAir(false);
+	}
+
+	if(actorData.character == CHARACTER::DANTE && actorData.state & STATE::IN_AIR) {
+		ToggleAirTaunt(true);
+	}
+	else if (actorData.character == CHARACTER::DANTE && !(actorData.state & STATE::IN_AIR)){
+		ToggleAirTaunt(false);
+	}
+
+	if(actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
+		ToggleAirTauntVergil(true);
+	}
+	else if (actorData.character == CHARACTER::VERGIL && !(actorData.state & STATE::IN_AIR)){
+		ToggleAirTaunt(false);
+	}
+
 }
 
 void DisableJCRestriction(bool enable) {
@@ -12075,7 +12194,10 @@ void UpdateActorSpeed(byte8 *baseAddr)
 	DisableJCRestriction(true);
 	BulletStop(true);
 	SetAirStingerEnd(mainActorData);
-	//OverrideTauntInAir();
+	AirTauntToggleController(mainActorData);
+	
+	
+	
 	
 
 	DTReadySFX();
@@ -13175,7 +13297,7 @@ void SetAction(byte8 *actorBaseAddr)
 		/*if ((actorData.state & STATE::IN_AIR) && (actorData.action == REBELLION_HELM_BREAKER) && 
 			forwardCommand) */ //Previously Back To Forward + Melee Attack
 
-		if ((actorData.buttons[0] & GetBinding(BINDING::TAUNT)) && (actorData.action == REBELLION_HELM_BREAKER ||
+		/*if ((actorData.buttons[0] & GetBinding(BINDING::TAUNT)) && (actorData.action == REBELLION_HELM_BREAKER ||
 		actorData.action == CERBERUS_SWING || actorData.action == AGNI_RUDRA_AERIAL_CROSS ||  
 		actorData.action == NEVAN_AIR_PLAY || actorData.action == BEOWULF_KILLER_BEE || CERBERUS_REVOLVER_LEVEL_2) && !executingSkyLaunch && actorData.state & STATE::IN_AIR) {
 			
@@ -13183,7 +13305,7 @@ void SetAction(byte8 *actorBaseAddr)
 			ToggleRoyalguardForceJustFrameRelease(true);
 			actorData.action = ROYALGUARD_AIR_RELEASE_1;
 			
-		}
+		}*/
 
 		/*if((actorData.action == 19) && actorData.buttons[0] & GetBinding(BINDING::TAUNT)) {
 			actorData.action = REBELLION_HELM_BREAKER;
