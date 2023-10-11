@@ -9251,22 +9251,26 @@ void MainOverlayWindow()
 			{
 				ImGui::Text(sceneNames[g_scene]);
 				ImGui::Text("SCENE:  %u", g_scene);
-				ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
+				/*ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
 				ImGui::Text("Sky Launch Tracker Running:  %u", skyLaunchTrackerRunning);
 				ImGui::Text("Royal Release:  %u", executingRoyalRelease);
 				ImGui::Text("Royal Release Tracker Running:  %u", royalReleaseTrackerRunning);
 				ImGui::Text("Forcing Just Frame Royal Release:  %u", forcingJustFrameRoyalRelease);
 				ImGui::Text("skyLaunchSetJustFrameTrue:  %u", skyLaunchSetJustFrameTrue);
-				ImGui::Text("Royal Release Executed:  %u", royalReleaseExecuted);
+				ImGui::Text("Royal Release Executed:  %u", royalReleaseExecuted);*/
+				
+
 				
 				
 				
-				ImGui::Text("backtoforward Back:  %u", backCommand);
+				
+				
+				/*ImGui::Text("backtoforward Back:  %u", backCommand);
 				ImGui::Text("backtoforward Back Buffer:  %u", backBuffer);
 				ImGui::Text("backtoforward Back Tracker:  %u", backTrackerRunning);
 				ImGui::Text("backtoforward Forward:  %u", forwardCommand);
 				ImGui::Text("backtoforward Forward Buffer:  %u", forwardBuffer);
-				ImGui::Text("backtoforward Direction Changed:  %u", directionChanged);
+				ImGui::Text("backtoforward Direction Changed:  %u", directionChanged);*/
 				
 
 				if(isMusicPlaying() == 0) {
@@ -9341,7 +9345,13 @@ void MainOverlayWindow()
 			ImGui::Text("enemy distance %g", distanceToEnemy);
 			//ImGui::Text("enemy vertical Pull Multiplier %g", enemyData.verticalPullMultiplier);
 			ImGui::Text("rainstormCancel Cooldown %u", rainstormCancel.cooldown);
+			ImGui::Text("In Gun Shoot:  %u", inGunShoot);
+			ImGui::Text("Aerial Rave Negative:  %u", airRaveInertia.negative);
+			ImGui::Text("ebonyIvory Cached Direction:  %u", ebonyIvoryShotInertia.cachedDirection);
 			ImGui::Text("airRaveInertia.cachedDirection %u", airRaveInertia.cachedDirection);
+			ImGui::Text("Gun Shoot Inverted %u", gunShootInverted);
+			ImGui::Text("Gun Shoot Normalized %u", gunShootNormalized);
+
 			ImGui::Text("new speed Set Rapid Slash %u", fasterRapidSlash.newSpeedSet);
 			ImGui::Text("inRapidSlash %u", inRapidSlash);
 			ImGui::Text("fRapidSlash storedSpeedDevil %g", fasterRapidSlash.storedSpeedDevil[0]);
@@ -9350,6 +9360,7 @@ void MainOverlayWindow()
 			ImGui::Text("Air Stinger End Timer %u", airStingerEnd.timer);
 			ImGui::Text("Air Stinger End Time Int %u", airStingerEndTimeInt);
 			ImGui::Text("Actor Speed %g", actorData.speed);
+			ImGui::Text("Royal Block Type:  %u", actorData.royalguardBlockType);
 			//ImGui::Text("Track %s", eventData.track);
 
 			ImGui::Text("Royal Block Inertia  %g", royalBlockInertia.cachedPull);

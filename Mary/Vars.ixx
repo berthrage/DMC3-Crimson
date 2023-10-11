@@ -744,7 +744,7 @@ enum
 	MELEE_ATTACK_BLOCKED,
 	UNKNOWN_15,
 	UNKNOWN_16,
-	UNKNOWN_17,
+	JUMP_CANCEL,
 	UNKNOWN_18,
 	UNKNOWN_19,
 	UNKNOWN_20,
@@ -4379,6 +4379,7 @@ export struct Inertia {
 	float pullDuration = 200;
 	bool trackerRunning = false;
 	uint8 cachedDirection = 0;
+	bool negative = false;
 } airRaveInertia;
 
 export float raveRotation;
@@ -4415,6 +4416,10 @@ export Inertia yamatoRaveInertia;
 export float yamatoRaveRotation;
 
 export float royalBlockRotation;
+
+export bool inGunShoot;
+export bool gunShootInverted = false;
+export bool gunShootNormalized = false;
 
 export float distanceToEnemy;
 
