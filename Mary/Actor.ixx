@@ -10846,7 +10846,7 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 			}
 
 			if(lockOn) {
-				if (actorData.eventData[0].event == 33) {
+				if (actorData.eventData[0].event == 33 || actorData.eventData[0].event == 7) {
 					actorData.rotation = raveRotation;
 				}
 			}
@@ -10865,7 +10865,7 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 			}
 
 			if(lockOn) {
-				if (actorData.eventData[0].event == 33) {
+				if (actorData.eventData[0].event == 33 || actorData.eventData[0].event == 7) {
 					actorData.rotation = airFlickerRotation;
 				}
 			}
@@ -10886,7 +10886,7 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 			}
 
 			if(lockOn) {
-				if (actorData.eventData[0].event == 33) {
+				if (actorData.eventData[0].event == 33 || actorData.eventData[0].event == 7) {
 					actorData.rotation = skyDanceRotation;
 				}
 			}
@@ -10906,7 +10906,7 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 			}
 
 			if(lockOn) {
-				if (actorData.eventData[0].event == 33) {
+				if (actorData.eventData[0].event == 33 || actorData.eventData[0].event == 7) {
 					actorData.rotation = airSlashRotation;
 				}
 			}
@@ -10926,7 +10926,7 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 			}
 
 			if(lockOn) {
-				if (actorData.eventData[0].event == 33) {
+				if (actorData.eventData[0].event == 33 || actorData.eventData[0].event == 7) {
 					actorData.rotation = theHammerRotation;
 				}
 			}
@@ -11012,6 +11012,13 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 				
 			
 		}
+		else if (actorData.eventData[0].event == 7) {
+			if(lockOn) {
+				
+				actorData.rotation = airHikeRotation;
+				
+			}
+		}
 		
 		
 
@@ -11026,6 +11033,12 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 		if(actorData.eventData[0].event != 23) {
 			if (radius < RIGHT_STICK_DEADZONE) {
 				skyStarRotation = actorData.rotation;
+			}
+		}
+
+		if(actorData.eventData[0].event != 7) {
+			if (radius < RIGHT_STICK_DEADZONE) {
+				airHikeRotation = actorData.rotation;
 			}
 		}
 
@@ -11129,7 +11142,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 
 	
 	//Storing Momentum
-	if(actorData.eventData[0].event != 33 && actorData.motionData[0].index != 17 && actorData.motionData[0].index != 33) {
+	if(actorData.motionData[0].index != 17 && actorData.motionData[0].index != 33) {
 		if(actorData.action != EBONY_IVORY_RAIN_STORM) {
 				rainstormInertia.cachedPull = actorData.horizontalPull;
 				
@@ -11234,6 +11247,20 @@ void StoreInertia(byte8 *actorBaseAddr) {
 			}
 	}
 
+	if(actorData.eventData[0].event == 33) {
+		airRaveInertia.cachedPull = actorData.horizontalPull;
+		skyDanceInertia.cachedPull = actorData.horizontalPull;
+		airFlickerInertia.cachedPull = actorData.horizontalPull;
+		airSlashInertia.cachedPull = actorData.horizontalPull;
+		theHammerInertia.cachedPull = actorData.horizontalPull;
+		ebonyIvoryShotInertia.cachedPull = actorData.horizontalPull;
+		shotgunAirInertia.cachedPull = actorData.horizontalPull;
+		artemisShotInertia.cachedPull = actorData.horizontalPull;
+		artemisMultiLockInertia.cachedPull = actorData.horizontalPull;
+		skyDanceInertia.cachedPull = actorData.horizontalPull;
+		royalBlockInertia.cachedPull = actorData.horizontalPull;
+	}
+
 	auto inAirShot = (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == SHOTGUN_AIR_NORMAL_SHOT ||
 	actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT);
 
@@ -11242,7 +11269,8 @@ void StoreInertia(byte8 *actorBaseAddr) {
 					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_4 || inAirShot)) && 
-					actorData.eventData[0].event != 6 && actorData.eventData[0].event != 33 && actorData.motionData[0].index != 17 && actorData.motionData[0].index != 33) {
+					actorData.eventData[0].event != 6 && actorData.eventData[0].event != 33 && actorData.motionData[0].index != 17 && 
+					actorData.motionData[0].index != 33 && actorData.eventData[0].event != 7) {
 
 				
 				if((tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN || tiltDirection == TILT_DIRECTION::NEUTRAL)) {
@@ -11253,7 +11281,8 @@ void StoreInertia(byte8 *actorBaseAddr) {
 	if((!(actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
 				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
 				actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3 || inAirShot))
-				&& actorData.eventData[0].event != 6 && actorData.eventData[0].event != 33 && actorData.motionData[0].index != 17 && actorData.motionData[0].index != 33) {
+				&& actorData.eventData[0].event != 6 && actorData.eventData[0].event != 33 && actorData.motionData[0].index != 17 && 
+				actorData.motionData[0].index != 33 && actorData.eventData[0].event != 7) {
 				
 				
 				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN || tiltDirection == TILT_DIRECTION::NEUTRAL) {
@@ -11263,15 +11292,26 @@ void StoreInertia(byte8 *actorBaseAddr) {
 
 	if((!(actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT))
 	&& actorData.eventData[0].event != 6 && actorData.eventData[0].event != 33 
-	&& actorData.motionData[0].index != 17 && actorData.motionData[0].index != 33 && !inGunShoot) {
+	&& actorData.motionData[0].index != 17 && actorData.motionData[0].index != 33 && 
+	actorData.eventData[0].event != 7 && !inGunShoot && !(actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
+					actorData.action == REBELLION_AERIAL_RAVE_PART_4 || 
+					actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
+					actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
+					actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3)) {
 
 		if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
 			ebonyIvoryShotInertia.cachedDirection = tiltDirection;
 		}
 
 	}
+
+	/*if(!inGunShoot && airRaveInertia.cachedDirection != TILT_DIRECTION::NEUTRAL) {
+		ebonyIvoryShotInertia.cachedDirection = airRaveInertia.cachedDirection;
+	}*/
 	
-	if(inAirShot) {
+	if(inAirShot && actorData.eventData[0].event != 7) {
 		if(tiltDirection == TILT_DIRECTION::UP) {
 			
 			airRaveInertia.cachedDirection = tiltDirection;
@@ -11286,33 +11326,51 @@ void StoreInertia(byte8 *actorBaseAddr) {
 	}
 
 	if((actorData.motionData[0].index == 33 
-	|| actorData.motionData[0].index == 38 || actorData.motionData[0].index == 39 || actorData.eventData[0].event == 23 || actorData.action == BEOWULF_KILLER_BEE)) {
+	|| actorData.motionData[0].index == 38 || actorData.motionData[0].index == 39 || actorData.eventData[0].event == 23 || actorData.action == BEOWULF_KILLER_BEE) 
+	&& actorData.eventData[0].event != 7) {
 		if(tiltDirection == TILT_DIRECTION::NEUTRAL || tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
 			airRaveInertia.cachedDirection = tiltDirection;
 			skyDanceInertia.cachedDirection = tiltDirection;
 		}
 	}
 
+	/*if(actorData.eventData[0].event == 7 || actorData.eventData[0].event == 23) {
+		ebonyIvoryShotInertia.cachedDirection = tiltDirection;
+	}*/
+
 	if(((actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
 					actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
-					actorData.action == REBELLION_AERIAL_RAVE_PART_4) && 
+					actorData.action == REBELLION_AERIAL_RAVE_PART_4 ||
+					actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
+					actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
+					actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) && 
 					(actorData.lastAction == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.lastAction == SHOTGUN_AIR_NORMAL_SHOT || 
 					actorData.lastAction == ARTEMIS_AIR_NORMAL_SHOT || actorData.lastAction == ARTEMIS_AIR_MULTI_LOCK_SHOT)) || 
 
 					(actorData.lastAction == REBELLION_AERIAL_RAVE_PART_1 ||
 					actorData.lastAction == REBELLION_AERIAL_RAVE_PART_2 ||
 					actorData.lastAction == REBELLION_AERIAL_RAVE_PART_3 ||
-					actorData.lastAction == REBELLION_AERIAL_RAVE_PART_4) && 
-					(actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == SHOTGUN_AIR_NORMAL_SHOT || 
+					actorData.lastAction == REBELLION_AERIAL_RAVE_PART_4 ||
+					actorData.lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 ||
+					actorData.lastAction == AGNI_RUDRA_SKY_DANCE_PART_2 ||
+					actorData.lastAction == AGNI_RUDRA_SKY_DANCE_PART_3) && 
+					(actorData.lastAction == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == SHOTGUN_AIR_NORMAL_SHOT || 
 					actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT)) {
 
 
 						inGunShoot = true;
 					}
 
-	if(actorData.eventData[0].event == 23 || actorData.eventData[0].event == ACTOR_EVENT::AIR_HIKE || !(actorData.state & STATE::IN_AIR)) {
+	if(!(actorData.state & STATE::IN_AIR)) {
 		inGunShoot = false;
+	}
+
+	if(actorData.eventData[0].event == 7) {
+		if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
+			airRaveInertia.cachedDirection = tiltDirection;
+			skyDanceInertia.cachedDirection = tiltDirection;
+		}
 	}
 
 			
@@ -11376,9 +11434,8 @@ void InertiaController(byte8 *actorBaseAddr) {
 										
 									}
 									else {
-										if(!gunShootInverted) {
+										if(ebonyIvoryShotInertia.cachedPull > 0) {
 											ebonyIvoryShotInertia.cachedPull = ebonyIvoryShotInertia.cachedPull * -1.0f;
-											gunShootInverted = true;
 										}
 									}
 								}
@@ -11653,6 +11710,10 @@ void InertiaController(byte8 *actorBaseAddr) {
 							//actorData.position.x = 0;
 							actorData.horizontalPull = royalBlockInertia.cachedPull * 2.0f;
 							actorData.horizontalPullMultiplier = 2.0f;
+						}
+
+						else if (actorData.eventData[0].event == 33 && actorData.lastAction == BEOWULF_KILLER_BEE) {
+							actorData.horizontalPull = 24;
 						}
 						
 						

@@ -4409,6 +4409,7 @@ export float killerBeeRotation;
 
 export float skyStarRotation;
 export float jumpCancelRotation;
+export float airHikeRotation;
 
 export Inertia royalBlockInertia;
 
