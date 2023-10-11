@@ -9361,6 +9361,7 @@ void MainOverlayWindow()
 			ImGui::Text("Air Stinger End Time Int %u", airStingerEndTimeInt);
 			ImGui::Text("Actor Speed %g", actorData.speed);
 			ImGui::Text("Royal Block Type:  %u", actorData.royalguardBlockType);
+			ImGui::Text("Guardflying:  %u", inGuardfly);
 			//ImGui::Text("Track %s", eventData.track);
 
 			ImGui::Text("Royal Block Inertia  %g", royalBlockInertia.cachedPull);

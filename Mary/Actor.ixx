@@ -10822,7 +10822,7 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 	relativeTilt = (actorData.cameraDirection + gamepad.leftStickPosition);
 	uint16 value = (relativeTilt - 0x8000);
 
-	bool inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && 
+	inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && 
 						gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && (actorData.style == STYLE::ROYALGUARD) && 
 						(actorData.state & STATE::IN_AIR));
 	
@@ -11105,7 +11105,7 @@ void GetRoyalBlockAction(byte8 *actorBaseAddr) {
 
 	// Keep in mind setting the Royal Block Action cancels out most things, this is a primary function for Guardflying to work.
 
-	if (actorData.style == STYLE::ROYALGUARD && (actorData.motionData[0].index == 12 || actorData.eventData[0].event == 23 || inSwordmasterAirMove)) {
+	if (actorData.style == STYLE::ROYALGUARD && (actorData.eventData[0].event == 23 || inSwordmasterAirMove)) {
 		if(inAir) {
 
 			if((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) 
@@ -11258,7 +11258,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 		artemisShotInertia.cachedPull = actorData.horizontalPull;
 		artemisMultiLockInertia.cachedPull = actorData.horizontalPull;
 		skyDanceInertia.cachedPull = actorData.horizontalPull;
-		royalBlockInertia.cachedPull = actorData.horizontalPull;
+		//royalBlockInertia.cachedPull = actorData.horizontalPull;
 	}
 
 	auto inAirShot = (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == SHOTGUN_AIR_NORMAL_SHOT ||
@@ -11370,6 +11370,12 @@ void StoreInertia(byte8 *actorBaseAddr) {
 		if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
 			airRaveInertia.cachedDirection = tiltDirection;
 			skyDanceInertia.cachedDirection = tiltDirection;
+		}
+	}
+
+	if(inRoyalBlock) {
+		if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
+			royalBlockInertia.cachedDirection = tiltDirection;
 		}
 	}
 
@@ -11678,8 +11684,10 @@ void InertiaController(byte8 *actorBaseAddr) {
 						// Killer Bee
 						else if (actorData.action == BEOWULF_KILLER_BEE) {
 
+							
+
 							// Makes divekick speed be consistent.
-							actorData.horizontalPull = 24.0f;
+							actorData.horizontalPull = -24.0f;
 						}
 
 						// Air Trick
@@ -11697,23 +11705,45 @@ void InertiaController(byte8 *actorBaseAddr) {
 							actorData.horizontalPull = fireworksInertia.cachedPull / 1.5f;
 						}
 
-						// GUARDFLY on divekick
+						/*// GUARDFLY on divekick
 						else if (actorData.action == ROYAL_AIR_BLOCK && 
 						(distanceToEnemy < 150.0f && distanceToEnemy > -150.0f) && (actorData.eventData[0].event != 23)) {
 							//actorData.position.x = 0;
 							actorData.horizontalPull = royalBlockInertia.cachedPull * 2.0f;
 							actorData.horizontalPullMultiplier = 2.0f;
-						}
+						}*/
 
 						// GUARDFLY on sky star
-						else if (actorData.action == ROYAL_AIR_BLOCK && (distanceToEnemy < 80.0f && distanceToEnemy > -80.0f) && (actorData.eventData[0].event == 23)) {
+						/*else if (actorData.action == ROYAL_AIR_BLOCK && (distanceToEnemy < 80.0f && distanceToEnemy > -80.0f) && (actorData.eventData[0].event == 23)) {
 							//actorData.position.x = 0;
 							actorData.horizontalPull = royalBlockInertia.cachedPull * 2.0f;
 							actorData.horizontalPullMultiplier = 2.0f;
-						}
+						}*/
 
 						else if (actorData.eventData[0].event == 33 && actorData.lastAction == BEOWULF_KILLER_BEE) {
+
+							actorData.horizontalPull = royalBlockInertia.cachedPull * -2.0f;
+							actorData.verticalPullMultiplier = 0;
+						}
+
+						else if (actorData.eventData[0].event == 7 && actorData.eventData[0].lastEvent == 33) {
 							actorData.horizontalPull = 24;
+						}
+
+						if(actorData.eventData[0].event == 33 && 
+						(actorData.eventData[0].lastEvent == 17 || actorData.eventData[0].lastEvent == 23) &&
+						actorData.horizontalPull > 20.0f) {
+
+							inGuardfly = true;
+						}
+						else {
+							inGuardfly = false;
+						}
+
+						if(inGuardfly) {
+							if(actorData.horizontalPull > 0) {
+								actorData.horizontalPull = -30.0f;
+							}
 						}
 						
 						

@@ -4411,11 +4411,12 @@ export float skyStarRotation;
 export float jumpCancelRotation;
 export float airHikeRotation;
 
-export Inertia royalBlockInertia;
-
 export Inertia yamatoRaveInertia;
 export float yamatoRaveRotation;
 
+export Inertia royalBlockInertia;
+export bool inRoyalBlock;
+export bool inGuardfly;
 export float royalBlockRotation;
 
 export bool inGunShoot;
