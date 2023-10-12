@@ -11687,7 +11687,7 @@ void InertiaController(byte8 *actorBaseAddr) {
 							
 
 							// Makes divekick speed be consistent.
-							actorData.horizontalPull = -24.0f;
+							actorData.horizontalPull = 24.0f;
 						}
 
 						// Air Trick
@@ -11720,7 +11720,7 @@ void InertiaController(byte8 *actorBaseAddr) {
 							actorData.horizontalPullMultiplier = 2.0f;
 						}*/
 
-						else if (actorData.eventData[0].event == 33 && actorData.lastAction == BEOWULF_KILLER_BEE) {
+						/*else if (actorData.eventData[0].event == 33 && actorData.lastAction == BEOWULF_KILLER_BEE) {
 
 							actorData.horizontalPull = royalBlockInertia.cachedPull * -2.0f;
 							actorData.verticalPullMultiplier = 0;
@@ -11728,23 +11728,8 @@ void InertiaController(byte8 *actorBaseAddr) {
 
 						else if (actorData.eventData[0].event == 7 && actorData.eventData[0].lastEvent == 33) {
 							actorData.horizontalPull = 24;
-						}
+						}*/
 
-						if(actorData.eventData[0].event == 33 && 
-						(actorData.eventData[0].lastEvent == 17 || actorData.eventData[0].lastEvent == 23) &&
-						actorData.horizontalPull > 20.0f) {
-
-							inGuardfly = true;
-						}
-						else {
-							inGuardfly = false;
-						}
-
-						if(inGuardfly) {
-							if(actorData.horizontalPull > 0) {
-								actorData.horizontalPull = -30.0f;
-							}
-						}
 						
 						
 
