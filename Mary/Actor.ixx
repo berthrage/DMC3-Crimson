@@ -11317,13 +11317,14 @@ void StoreInertia(byte8 *actorBaseAddr) {
 
 	}*/
 
-	if(!inGunShoot) {
+	if(!inGunShoot && !(actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == SHOTGUN_AIR_NORMAL_SHOT ||
+	actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT)) {
 		
 		ebonyIvoryShotInertia.cachedDirection = airRaveInertia.cachedDirection;
 		
 	}
 	
-	if(inAirShot && actorData.eventData[0].event != 7) {
+	if(inAirShot && actorData.eventData[0].event != 7 && inGunShoot) {
 		if(tiltDirection == TILT_DIRECTION::UP) {
 			
 			airRaveInertia.cachedDirection = tiltDirection;
