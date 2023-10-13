@@ -1405,7 +1405,7 @@ void MeleeWeaponSwitchController()
 		InCutscene() ||
 		InCredits() ||
 		!activeConfig.Actor.enable ||
-		(characterData.meleeWeaponSwitchType != WEAPON_SWITCH_TYPE::ARBITRARY) ||
+		(!activeConfig.weaponWheelEnabled) ||
 		!(
 			(characterData.character == CHARACTER::DANTE ) ||
 			(characterData.character == CHARACTER::VERGIL)
@@ -1694,7 +1694,7 @@ void RangedWeaponSwitchController()
 		InCutscene() ||
 		InCredits() ||
 		!activeConfig.Actor.enable ||
-		(characterData.rangedWeaponSwitchType != WEAPON_SWITCH_TYPE::ARBITRARY) ||
+		(!activeConfig.weaponWheelEnabled) ||
 		(characterData.character != CHARACTER::DANTE)
 	)
 	{
@@ -2061,6 +2061,27 @@ void WeaponSwitchControllerSettings()
 
 	ImGui::PushItemWidth(200);
 
+	GUI_Checkbox2
+	(
+		"Enable New Weapon Wheel",
+		activeConfig.weaponWheelEnabled,
+		queuedConfig.weaponWheelEnabled
+	);
+
+	GUI_Checkbox2
+	(
+		"Enable Analog Weapon Selection",
+		activeConfig.weaponWheelAnalogSelectionEnabled,
+		queuedConfig.weaponWheelAnalogSelectionEnabled 
+	);
+
+	GUI_Checkbox2
+	(
+		"Disable Camera Control While Pressing Change Devil Arm/Gun",
+		activeConfig.weaponWheelDisableCameraRotation,
+		queuedConfig.weaponWheelDisableCameraRotation
+	);
+
 
 	GUI_Checkbox2
 	(
@@ -2170,7 +2191,7 @@ void WeaponSwitchControllerSettings()
 
 
 	// Melee
-	{
+	/*{
 		auto & textureData = meleeWeaponSwitchControllerTextureData;
 		auto & activeConfigTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
 		auto & queuedConfigTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
@@ -2254,7 +2275,7 @@ void WeaponSwitchControllerSettings()
 			activeConfigTextureData.arrow,
 			queuedConfigTextureData.arrow
 		);
-	}
+	}*/
 }
 
 #pragma endregion
@@ -2561,7 +2582,7 @@ void Actor_CharacterTab
 
 
 
-	ImGui::Text("Styles");
+	/*ImGui::Text("Styles");
 
 	old_for_all(uint8, styleIndex, STYLE_COUNT)
 	{
@@ -2645,7 +2666,7 @@ void Actor_CharacterTab
 		}
 	}
 
-	ImGui::PopItemWidth();
+	ImGui::PopItemWidth();*/
 
 
 
@@ -2664,15 +2685,15 @@ void Actor_CharacterTab
 
 
 
-	if
+	/*if
 	(
 		(playerIndex == 0) &&
 		(entityIndex == ENTITY::MAIN)
 	)
 	{
-		ImGui::PushItemWidth(200.0f);
+		//ImGui::PushItemWidth(200.0f);
 
-		GUI_Combo
+		/*GUI_Combo
 		(
 			"",
 			weaponSwitchTypeNames,
@@ -2709,10 +2730,10 @@ void Actor_CharacterTab
 
 				break;
 			}
-		}
+		}*/
 
-		ImGui::PopItemWidth();
-	}
+		//ImGui::PopItemWidth();
+	//}
 
 
 
@@ -2756,7 +2777,7 @@ void Actor_CharacterTab
 
 	ImGui::Text("Ranged Weapons");
 
-	if
+	/*if
 	(
 		(playerIndex == 0) &&
 		(entityIndex == ENTITY::MAIN)
@@ -2801,7 +2822,7 @@ void Actor_CharacterTab
 				break;
 			}
 		}
-	}
+	}*/
 
 	GUI_Slider<uint8>
 	(

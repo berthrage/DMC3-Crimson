@@ -689,6 +689,10 @@ export struct Config
 	bool rebellionInfiniteShredder = false;
 	bool rebellionHoldDrive        = false;
 
+	bool weaponWheelEnabled = true;
+	bool weaponWheelAnalogSelectionEnabled = true;
+	bool weaponWheelAnalogRightStick = true;
+	bool weaponWheelDisableCameraRotation = true;
 	float weaponWheelScaleMultiplier = 0.7f;
 	float weaponWheelHeight = 335;
 	float weaponWheelHorizontalMelee = 495;

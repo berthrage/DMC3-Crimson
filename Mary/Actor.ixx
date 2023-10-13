@@ -5497,67 +5497,10 @@ void ArbitraryMeleeWeaponSwitchController(T &actorData)
 		PlaySound(0, 13);
 	}*/
 
-	if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)))
-	{
-
-		g_disableCameraRotation = true;
-
-		if (!(radius < RIGHT_STICK_DEADZONE))
+	if(activeConfig.weaponWheelAnalogSelectionEnabled) {
+		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)))
 		{
 
-			if (
-				(
-					(pos <= -26214) &&
-					(pos >= -32768)) ||
-				((pos <= 32767) &&
-				 (pos >= 26214)))
-			{
-
-				characterData.meleeWeaponIndex = 0;
-			}
-			else if (
-				(pos < 26214) &&
-				(pos >= 13107))
-			{
-				if (meleeWeaponCount > 1)
-				{
-					characterData.meleeWeaponIndex = 1;
-				}
-			}
-			else if (
-				(pos < 13107) &&
-				(pos >= 0))
-			{
-				if (meleeWeaponCount > 2)
-				{
-					characterData.meleeWeaponIndex = 2;
-				}
-			}
-			else if (
-				(pos <= -1) &&
-				(pos > -13107))
-			{
-				if (meleeWeaponCount > 3)
-				{
-					characterData.meleeWeaponIndex = 3;
-				}
-			}
-			else if (
-				(pos <= -13107) &&
-				(pos > -26214))
-			{
-				if (meleeWeaponCount > 4)
-				{
-					characterData.meleeWeaponIndex = 4;
-				}
-			}
-		}
-	}
-
-	if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)))
-	{
-		if (TypeMatch<T, PlayerActorDataVergil>::value) 
-		{
 			g_disableCameraRotation = true;
 
 			if (!(radius < RIGHT_STICK_DEADZONE))
@@ -5565,8 +5508,8 @@ void ArbitraryMeleeWeaponSwitchController(T &actorData)
 
 				if (
 					(
-					(pos <= -26214) &&
-					(pos >= -32768)) ||
+						(pos <= -26214) &&
+						(pos >= -32768)) ||
 					((pos <= 32767) &&
 					(pos >= 26214)))
 				{
@@ -5611,7 +5554,71 @@ void ArbitraryMeleeWeaponSwitchController(T &actorData)
 				}
 			}
 		}
-		
+	}
+
+	if(activeConfig.weaponWheelAnalogSelectionEnabled) {
+		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)))
+		{
+			if (TypeMatch<T, PlayerActorDataVergil>::value) 
+			{
+				if(activeConfig.weaponWheelDisableCameraRotation) {
+					g_disableCameraRotation = true;
+				}
+				
+
+				if (!(radius < RIGHT_STICK_DEADZONE))
+				{
+
+					if (
+						(
+						(pos <= -26214) &&
+						(pos >= -32768)) ||
+						((pos <= 32767) &&
+						(pos >= 26214)))
+					{
+
+						characterData.meleeWeaponIndex = 0;
+					}
+					else if (
+						(pos < 26214) &&
+						(pos >= 13107))
+					{
+						if (meleeWeaponCount > 1)
+						{
+							characterData.meleeWeaponIndex = 1;
+						}
+					}
+					else if (
+						(pos < 13107) &&
+						(pos >= 0))
+					{
+						if (meleeWeaponCount > 2)
+						{
+							characterData.meleeWeaponIndex = 2;
+						}
+					}
+					else if (
+						(pos <= -1) &&
+						(pos > -13107))
+					{
+						if (meleeWeaponCount > 3)
+						{
+							characterData.meleeWeaponIndex = 3;
+						}
+					}
+					else if (
+						(pos <= -13107) &&
+						(pos > -26214))
+					{
+						if (meleeWeaponCount > 4)
+						{
+							characterData.meleeWeaponIndex = 4;
+						}
+					}
+				}
+			}
+			
+		}
 	}
 
 	if (actorData.buttons[2] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))
@@ -5731,63 +5738,66 @@ void ArbitraryRangedWeaponSwitchController(T &actorData)
 		back = true;
 	};
 
-
-	if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)))
-	{
-
-		g_disableCameraRotation = true;
-
-		if (!(radius < RIGHT_STICK_DEADZONE))
+	if(activeConfig.weaponWheelAnalogSelectionEnabled) {
+		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)))
 		{
+			if(activeConfig.weaponWheelDisableCameraRotation) {
+					g_disableCameraRotation = true;
+				}
 
-			if (
-				(
-					(pos <= -26214) &&
-					(pos >= -32768)) ||
-				((pos <= 32767) &&
-				 (pos >= 26214)))
+			if (!(radius < RIGHT_STICK_DEADZONE))
 			{
 
-				characterData.rangedWeaponIndex = 0;
-			}
-			else if (
-				(pos < 26214) &&
-				(pos >= 13107))
-			{
-				if (rangedWeaponCount > 1)
+				if (
+					(
+						(pos <= -26214) &&
+						(pos >= -32768)) ||
+					((pos <= 32767) &&
+					(pos >= 26214)))
 				{
-					characterData.rangedWeaponIndex = 1;
+
+					characterData.rangedWeaponIndex = 0;
 				}
-			}
-			else if (
-				(pos < 13107) &&
-				(pos >= 0))
-			{
-				if (rangedWeaponCount > 2)
+				else if (
+					(pos < 26214) &&
+					(pos >= 13107))
 				{
-					characterData.rangedWeaponIndex = 2;
+					if (rangedWeaponCount > 1)
+					{
+						characterData.rangedWeaponIndex = 1;
+					}
 				}
-			}
-			else if (
-				(pos <= -1) &&
-				(pos > -13107))
-			{
-				if (rangedWeaponCount > 3)
+				else if (
+					(pos < 13107) &&
+					(pos >= 0))
 				{
-					characterData.rangedWeaponIndex = 3;
+					if (rangedWeaponCount > 2)
+					{
+						characterData.rangedWeaponIndex = 2;
+					}
 				}
-			}
-			else if (
-				(pos <= -13107) &&
-				(pos > -26214))
-			{
-				if (rangedWeaponCount > 4)
+				else if (
+					(pos <= -1) &&
+					(pos > -13107))
 				{
-					characterData.rangedWeaponIndex = 4;
+					if (rangedWeaponCount > 3)
+					{
+						characterData.rangedWeaponIndex = 3;
+					}
+				}
+				else if (
+					(pos <= -13107) &&
+					(pos > -26214))
+				{
+					if (rangedWeaponCount > 4)
+					{
+						characterData.rangedWeaponIndex = 4;
+					}
 				}
 			}
 		}
 	}
+	
 
 	if (actorData.buttons[2] & GetBinding(BINDING::CHANGE_GUN))
 	{
@@ -6010,7 +6020,7 @@ bool WeaponSwitchController(byte8 *actorBaseAddr)
 	{
 		g_disableCameraRotation = false;
 
-		if (characterData.meleeWeaponSwitchType == WEAPON_SWITCH_TYPE::ARBITRARY)
+		if (activeConfig.weaponWheelEnabled)
 		{
 			ArbitraryMeleeWeaponSwitchController(actorData);
 		}
@@ -6021,7 +6031,7 @@ bool WeaponSwitchController(byte8 *actorBaseAddr)
 
 		if constexpr (TypeMatch<T, PlayerActorDataDante>::value)
 		{
-			if (characterData.rangedWeaponSwitchType == WEAPON_SWITCH_TYPE::ARBITRARY)
+			if (activeConfig.weaponWheelEnabled)
 			{
 				ArbitraryRangedWeaponSwitchController(actorData);
 			}
