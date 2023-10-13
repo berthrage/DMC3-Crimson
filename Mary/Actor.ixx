@@ -11300,7 +11300,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 				}
 			}
 
-	if((!(actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT))
+	/*if((!(actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT))
 	&& actorData.eventData[0].event != 6 && actorData.eventData[0].event != 33 
 	&& actorData.motionData[0].index != 17 && actorData.motionData[0].index != 33 && 
 	actorData.eventData[0].event != 7 && !inGunShoot && !(actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
@@ -11315,11 +11315,11 @@ void StoreInertia(byte8 *actorBaseAddr) {
 			ebonyIvoryShotInertia.cachedDirection = tiltDirection;
 		}
 
-	}
-
-	/*if(!inGunShoot && airRaveInertia.cachedDirection != TILT_DIRECTION::NEUTRAL) {
-		ebonyIvoryShotInertia.cachedDirection = airRaveInertia.cachedDirection;
 	}*/
+
+	if(!inGunShoot && airRaveInertia.cachedDirection != TILT_DIRECTION::NEUTRAL) {
+		ebonyIvoryShotInertia.cachedDirection = airRaveInertia.cachedDirection;
+	}
 	
 	if(inAirShot && actorData.eventData[0].event != 7) {
 		if(tiltDirection == TILT_DIRECTION::UP) {
