@@ -2067,6 +2067,12 @@ void WeaponSwitchControllerSettings()
 		activeConfig.weaponWheelEnabled,
 		queuedConfig.weaponWheelEnabled
 	);
+	ImGui::SameLine();
+	TooltipHelper
+	(
+		"(?)",
+		"Enables a Switch Version-like Weapon Wheel with Analog Selection, only works for Player 1."
+	);
 
 	GUI_Checkbox2
 	(

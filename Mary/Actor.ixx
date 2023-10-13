@@ -11317,8 +11317,10 @@ void StoreInertia(byte8 *actorBaseAddr) {
 
 	}*/
 
-	if(!inGunShoot && airRaveInertia.cachedDirection != TILT_DIRECTION::NEUTRAL) {
+	if(!inGunShoot) {
+		
 		ebonyIvoryShotInertia.cachedDirection = airRaveInertia.cachedDirection;
+		
 	}
 	
 	if(inAirShot && actorData.eventData[0].event != 7) {
@@ -11441,7 +11443,7 @@ void InertiaController(byte8 *actorBaseAddr) {
 						// E&I Normal Shot
 						else if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT) {
 							if(inGunShoot) {
-								if(ebonyIvoryShotInertia.cachedDirection == 1) {
+								if(ebonyIvoryShotInertia.cachedDirection == 1 || ebonyIvoryShotInertia.cachedDirection == 0) {
 									if(ebonyIvoryShotInertia.cachedDirection == airRaveInertia.cachedDirection) {
 									
 										ebonyIvoryShotInertia.cachedPull = ebonyIvoryShotInertia.cachedPull * 1.0f;
