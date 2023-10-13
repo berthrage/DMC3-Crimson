@@ -11320,14 +11320,17 @@ void StoreInertia(byte8 *actorBaseAddr) {
 	if(!inGunShoot && !(actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == SHOTGUN_AIR_NORMAL_SHOT ||
 	actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT)) {
 
-		if(airRaveInertia.cachedDirection == TILT_DIRECTION::NEUTRAL) {
+		
+		ebonyIvoryShotInertia.cachedDirection = airRaveInertia.cachedDirection;
+		
+		
+		
+	}
+
+	if(inGunShoot) {
+		if(ebonyIvoryShotInertia.cachedDirection == 0 && airRaveInertia.cachedDirection == 1) {
 			ebonyIvoryShotInertia.cachedDirection = 1;
 		}
-		else {
-			ebonyIvoryShotInertia.cachedDirection = airRaveInertia.cachedDirection;
-		}
-		
-		
 	}
 	
 	if(inAirShot && actorData.eventData[0].event != 7 && inGunShoot) {
@@ -11381,7 +11384,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 						inGunShoot = true;
 					}
 
-	if(!(actorData.state & STATE::IN_AIR)) {
+	if(!(actorData.state & STATE::IN_AIR) || actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK) {
 		inGunShoot = false;
 	}
 
@@ -11450,7 +11453,7 @@ void InertiaController(byte8 *actorBaseAddr) {
 						// E&I Normal Shot
 						else if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT) {
 							if(inGunShoot) {
-								if(ebonyIvoryShotInertia.cachedDirection == 1) {
+								if(ebonyIvoryShotInertia.cachedDirection == 1 || ebonyIvoryShotInertia.cachedDirection == 0) {
 									if(ebonyIvoryShotInertia.cachedDirection == airRaveInertia.cachedDirection) {
 									
 										ebonyIvoryShotInertia.cachedPull = ebonyIvoryShotInertia.cachedPull * 1.0f;
