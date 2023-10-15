@@ -11659,6 +11659,7 @@ void Main()
 		ImGui::Text("Credits");
 		ImGui::Text("Mia Berth - Project Lead, Programmer, Artist");
 		ImGui::Text("SSSiyan - Reverse Enginnering Researcher, QA, Programmer");
+		ImGui::Text("deepdarkkapustka - Reverse Enginnering Researcher, Programmer");
 		ImGui::Text("");
 
 		ImGui::Text(PATREON_TEXT);
