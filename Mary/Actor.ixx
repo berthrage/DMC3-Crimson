@@ -5914,14 +5914,40 @@ void ImprovedBufferedReversals(bool enable) {
 	}
 }
 
+void CameraSensController() {
+
+	//original speed
+	if(activeConfig.cameraSensitivity == 0) { // Low (Vanilla Default)
+		_patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x35\xFA\x8E\x3C", 10); // 0.0174533f
+		_patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x35\xFA\x8E\x3C", 10);
+		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x35\xFA\x8E\x3C", 4);
+	}
+	else if(activeConfig.cameraSensitivity == 1) { // Medium
+		_patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x39\xFA\x0E\x3D", 10); // 0.0349066f
+		_patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x39\xFA\x0E\x3D", 10);
+		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x39\xFA\x0E\x3D", 4); 
+	}
+	else if(activeConfig.cameraSensitivity == 2) { // High
+		_patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x56\x77\x56\x3D", 10); // 0.0523599f
+		_patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x56\x77\x56\x3D", 10);
+		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x56\x77\x56\x3D", 4);
+	}
+	else if(activeConfig.cameraSensitivity == 3) { // Highest
+		_patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\xCD\xCC\xCC\x3D", 10); // 0.1f
+		_patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\xCD\xCC\xCC\x3D", 10);
+		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\xCD\xCC\xCC\x3D", 4);
+	}
+	
+}
+
 void CalculateAirStingerEndTime() {
 	using namespace ACTION_DANTE;
 	using namespace ACTION_VERGIL;
 
 	IntroduceMainActorData(actorData, return);
 	
-	float airStingerEndTime = 150 / actorData.speed;
-	airStingerEndTimeInt = (int)airStingerEndTime;
+	float airStingerEndTime = 100 / actorData.speed;
+	airStingerEndTimeInt = (int)airStingerEndTime + 1;
 
 	if((actorData.motionData[0].index == 8 || actorData.motionData[0].index == 10) && 
 	(actorData.action == YAMATO_RAPID_SLASH_LEVEL_1 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_2)) {
@@ -6012,6 +6038,7 @@ bool WeaponSwitchController(byte8 *actorBaseAddr)
 	IncreasedJCSpheres(true);
 	CalculateAirStingerEndTime();
 	FasterRapidSlashDevil(actorBaseAddr);
+	CameraSensController();
 
 	if (
 		(actorData.newPlayerIndex == 0) &&
@@ -13893,8 +13920,9 @@ void UpdateLockOns(byte8 *dataAddr)
 
 	*/
 
-	// // Artemis Fix
-	/*{
+	// // Artemis Fix // Disables Update Lock-Ons when Charging Artemis (has the downside of 
+	                  //basically breaking doppel/multiplayer lock-on stuff while this is happening).
+	{
 	auto & actorData = *reinterpret_cast<PlayerActorDataDante *>(mainActorBaseAddr);
 
 	auto rangedWeapon = actorData.newWeapons[actorData.rangedWeaponIndex];
@@ -13915,7 +13943,7 @@ void UpdateLockOns(byte8 *dataAddr)
 		{
 	 		return;
 	 	}
-	 }*/
+	 }
 
 	for_all(actorIndex, g_playerActorBaseAddrs.count)
 	{

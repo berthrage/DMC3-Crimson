@@ -700,6 +700,8 @@ export struct Config
 	float weaponWheelWidthSeparation;	
 	int weaponWheelTimeout = 2000;
 
+	int cameraSensitivity = 2;
+
 	struct WeaponWheel
 	{
 		bool alwaysShow = false;
