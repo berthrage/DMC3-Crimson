@@ -11,11 +11,16 @@
 !Lucia/*
 !Mary
 !Mary/*
+!Mary/masm
+!Mary/masm/*
 !Scripts
 !Scripts/*.js
 
 !ThirdParty
 !ThirdParty/*
+
+!ThirdParty/SKinHook
+!ThirdParty/SKinHook/*
 
 !ThirdParty/ImGui
 !ThirdParty/ImGui/*.cpp

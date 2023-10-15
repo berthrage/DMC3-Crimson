@@ -5497,67 +5497,10 @@ void ArbitraryMeleeWeaponSwitchController(T &actorData)
 		PlaySound(0, 13);
 	}*/
 
-	if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)))
-	{
-
-		g_disableCameraRotation = true;
-
-		if (!(radius < RIGHT_STICK_DEADZONE))
+	if(activeConfig.weaponWheelAnalogSelectionEnabled) {
+		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)))
 		{
 
-			if (
-				(
-					(pos <= -26214) &&
-					(pos >= -32768)) ||
-				((pos <= 32767) &&
-				 (pos >= 26214)))
-			{
-
-				characterData.meleeWeaponIndex = 0;
-			}
-			else if (
-				(pos < 26214) &&
-				(pos >= 13107))
-			{
-				if (meleeWeaponCount > 1)
-				{
-					characterData.meleeWeaponIndex = 1;
-				}
-			}
-			else if (
-				(pos < 13107) &&
-				(pos >= 0))
-			{
-				if (meleeWeaponCount > 2)
-				{
-					characterData.meleeWeaponIndex = 2;
-				}
-			}
-			else if (
-				(pos <= -1) &&
-				(pos > -13107))
-			{
-				if (meleeWeaponCount > 3)
-				{
-					characterData.meleeWeaponIndex = 3;
-				}
-			}
-			else if (
-				(pos <= -13107) &&
-				(pos > -26214))
-			{
-				if (meleeWeaponCount > 4)
-				{
-					characterData.meleeWeaponIndex = 4;
-				}
-			}
-		}
-	}
-
-	if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)))
-	{
-		if (TypeMatch<T, PlayerActorDataVergil>::value) 
-		{
 			g_disableCameraRotation = true;
 
 			if (!(radius < RIGHT_STICK_DEADZONE))
@@ -5565,8 +5508,8 @@ void ArbitraryMeleeWeaponSwitchController(T &actorData)
 
 				if (
 					(
-					(pos <= -26214) &&
-					(pos >= -32768)) ||
+						(pos <= -26214) &&
+						(pos >= -32768)) ||
 					((pos <= 32767) &&
 					(pos >= 26214)))
 				{
@@ -5611,7 +5554,71 @@ void ArbitraryMeleeWeaponSwitchController(T &actorData)
 				}
 			}
 		}
-		
+	}
+
+	if(activeConfig.weaponWheelAnalogSelectionEnabled) {
+		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)))
+		{
+			if (TypeMatch<T, PlayerActorDataVergil>::value) 
+			{
+				if(activeConfig.weaponWheelDisableCameraRotation) {
+					g_disableCameraRotation = true;
+				}
+				
+
+				if (!(radius < RIGHT_STICK_DEADZONE))
+				{
+
+					if (
+						(
+						(pos <= -26214) &&
+						(pos >= -32768)) ||
+						((pos <= 32767) &&
+						(pos >= 26214)))
+					{
+
+						characterData.meleeWeaponIndex = 0;
+					}
+					else if (
+						(pos < 26214) &&
+						(pos >= 13107))
+					{
+						if (meleeWeaponCount > 1)
+						{
+							characterData.meleeWeaponIndex = 1;
+						}
+					}
+					else if (
+						(pos < 13107) &&
+						(pos >= 0))
+					{
+						if (meleeWeaponCount > 2)
+						{
+							characterData.meleeWeaponIndex = 2;
+						}
+					}
+					else if (
+						(pos <= -1) &&
+						(pos > -13107))
+					{
+						if (meleeWeaponCount > 3)
+						{
+							characterData.meleeWeaponIndex = 3;
+						}
+					}
+					else if (
+						(pos <= -13107) &&
+						(pos > -26214))
+					{
+						if (meleeWeaponCount > 4)
+						{
+							characterData.meleeWeaponIndex = 4;
+						}
+					}
+				}
+			}
+			
+		}
 	}
 
 	if (actorData.buttons[2] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))
@@ -5731,63 +5738,66 @@ void ArbitraryRangedWeaponSwitchController(T &actorData)
 		back = true;
 	};
 
-
-	if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)))
-	{
-
-		g_disableCameraRotation = true;
-
-		if (!(radius < RIGHT_STICK_DEADZONE))
+	if(activeConfig.weaponWheelAnalogSelectionEnabled) {
+		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)))
 		{
+			if(activeConfig.weaponWheelDisableCameraRotation) {
+					g_disableCameraRotation = true;
+				}
 
-			if (
-				(
-					(pos <= -26214) &&
-					(pos >= -32768)) ||
-				((pos <= 32767) &&
-				 (pos >= 26214)))
+			if (!(radius < RIGHT_STICK_DEADZONE))
 			{
 
-				characterData.rangedWeaponIndex = 0;
-			}
-			else if (
-				(pos < 26214) &&
-				(pos >= 13107))
-			{
-				if (rangedWeaponCount > 1)
+				if (
+					(
+						(pos <= -26214) &&
+						(pos >= -32768)) ||
+					((pos <= 32767) &&
+					(pos >= 26214)))
 				{
-					characterData.rangedWeaponIndex = 1;
+
+					characterData.rangedWeaponIndex = 0;
 				}
-			}
-			else if (
-				(pos < 13107) &&
-				(pos >= 0))
-			{
-				if (rangedWeaponCount > 2)
+				else if (
+					(pos < 26214) &&
+					(pos >= 13107))
 				{
-					characterData.rangedWeaponIndex = 2;
+					if (rangedWeaponCount > 1)
+					{
+						characterData.rangedWeaponIndex = 1;
+					}
 				}
-			}
-			else if (
-				(pos <= -1) &&
-				(pos > -13107))
-			{
-				if (rangedWeaponCount > 3)
+				else if (
+					(pos < 13107) &&
+					(pos >= 0))
 				{
-					characterData.rangedWeaponIndex = 3;
+					if (rangedWeaponCount > 2)
+					{
+						characterData.rangedWeaponIndex = 2;
+					}
 				}
-			}
-			else if (
-				(pos <= -13107) &&
-				(pos > -26214))
-			{
-				if (rangedWeaponCount > 4)
+				else if (
+					(pos <= -1) &&
+					(pos > -13107))
 				{
-					characterData.rangedWeaponIndex = 4;
+					if (rangedWeaponCount > 3)
+					{
+						characterData.rangedWeaponIndex = 3;
+					}
+				}
+				else if (
+					(pos <= -13107) &&
+					(pos > -26214))
+				{
+					if (rangedWeaponCount > 4)
+					{
+						characterData.rangedWeaponIndex = 4;
+					}
 				}
 			}
 		}
 	}
+	
 
 	if (actorData.buttons[2] & GetBinding(BINDING::CHANGE_GUN))
 	{
@@ -6010,7 +6020,7 @@ bool WeaponSwitchController(byte8 *actorBaseAddr)
 	{
 		g_disableCameraRotation = false;
 
-		if (characterData.meleeWeaponSwitchType == WEAPON_SWITCH_TYPE::ARBITRARY)
+		if (activeConfig.weaponWheelEnabled)
 		{
 			ArbitraryMeleeWeaponSwitchController(actorData);
 		}
@@ -6021,7 +6031,7 @@ bool WeaponSwitchController(byte8 *actorBaseAddr)
 
 		if constexpr (TypeMatch<T, PlayerActorDataDante>::value)
 		{
-			if (characterData.rangedWeaponSwitchType == WEAPON_SWITCH_TYPE::ARBITRARY)
+			if (activeConfig.weaponWheelEnabled)
 			{
 				ArbitraryRangedWeaponSwitchController(actorData);
 			}
@@ -10822,7 +10832,7 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 	relativeTilt = (actorData.cameraDirection + gamepad.leftStickPosition);
 	uint16 value = (relativeTilt - 0x8000);
 
-	bool inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && 
+	inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && 
 						gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && (actorData.style == STYLE::ROYALGUARD) && 
 						(actorData.state & STATE::IN_AIR));
 	
@@ -11105,7 +11115,7 @@ void GetRoyalBlockAction(byte8 *actorBaseAddr) {
 
 	// Keep in mind setting the Royal Block Action cancels out most things, this is a primary function for Guardflying to work.
 
-	if (actorData.style == STYLE::ROYALGUARD && (actorData.motionData[0].index == 12 || actorData.eventData[0].event == 23 || inSwordmasterAirMove)) {
+	if (actorData.style == STYLE::ROYALGUARD && (actorData.eventData[0].event == 23 || inSwordmasterAirMove)) {
 		if(inAir) {
 
 			if((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) 
@@ -11258,7 +11268,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 		artemisShotInertia.cachedPull = actorData.horizontalPull;
 		artemisMultiLockInertia.cachedPull = actorData.horizontalPull;
 		skyDanceInertia.cachedPull = actorData.horizontalPull;
-		royalBlockInertia.cachedPull = actorData.horizontalPull;
+		//royalBlockInertia.cachedPull = actorData.horizontalPull;
 	}
 
 	auto inAirShot = (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == SHOTGUN_AIR_NORMAL_SHOT ||
@@ -11290,7 +11300,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 				}
 			}
 
-	if((!(actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT))
+	/*if((!(actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT))
 	&& actorData.eventData[0].event != 6 && actorData.eventData[0].event != 33 
 	&& actorData.motionData[0].index != 17 && actorData.motionData[0].index != 33 && 
 	actorData.eventData[0].event != 7 && !inGunShoot && !(actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
@@ -11305,13 +11315,25 @@ void StoreInertia(byte8 *actorBaseAddr) {
 			ebonyIvoryShotInertia.cachedDirection = tiltDirection;
 		}
 
+	}*/
+
+	if(!inGunShoot && !(actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == SHOTGUN_AIR_NORMAL_SHOT ||
+	actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT)) {
+
+		
+		ebonyIvoryShotInertia.cachedDirection = airRaveInertia.cachedDirection;
+		
+		
+		
 	}
 
-	/*if(!inGunShoot && airRaveInertia.cachedDirection != TILT_DIRECTION::NEUTRAL) {
-		ebonyIvoryShotInertia.cachedDirection = airRaveInertia.cachedDirection;
-	}*/
+	if(inGunShoot) {
+		if(ebonyIvoryShotInertia.cachedDirection == 0 && airRaveInertia.cachedDirection == 1) {
+			ebonyIvoryShotInertia.cachedDirection = 1;
+		}
+	}
 	
-	if(inAirShot && actorData.eventData[0].event != 7) {
+	if(inAirShot && actorData.eventData[0].event != 7 && inGunShoot) {
 		if(tiltDirection == TILT_DIRECTION::UP) {
 			
 			airRaveInertia.cachedDirection = tiltDirection;
@@ -11362,7 +11384,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 						inGunShoot = true;
 					}
 
-	if(!(actorData.state & STATE::IN_AIR)) {
+	if(!(actorData.state & STATE::IN_AIR) || actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK) {
 		inGunShoot = false;
 	}
 
@@ -11370,6 +11392,12 @@ void StoreInertia(byte8 *actorBaseAddr) {
 		if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
 			airRaveInertia.cachedDirection = tiltDirection;
 			skyDanceInertia.cachedDirection = tiltDirection;
+		}
+	}
+
+	if(inRoyalBlock) {
+		if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN) {
+			royalBlockInertia.cachedDirection = tiltDirection;
 		}
 	}
 
@@ -11425,7 +11453,7 @@ void InertiaController(byte8 *actorBaseAddr) {
 						// E&I Normal Shot
 						else if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT) {
 							if(inGunShoot) {
-								if(ebonyIvoryShotInertia.cachedDirection == 1) {
+								if(ebonyIvoryShotInertia.cachedDirection == 1 || ebonyIvoryShotInertia.cachedDirection == 0) {
 									if(ebonyIvoryShotInertia.cachedDirection == airRaveInertia.cachedDirection) {
 									
 										ebonyIvoryShotInertia.cachedPull = ebonyIvoryShotInertia.cachedPull * 1.0f;
@@ -11678,6 +11706,8 @@ void InertiaController(byte8 *actorBaseAddr) {
 						// Killer Bee
 						else if (actorData.action == BEOWULF_KILLER_BEE) {
 
+							
+
 							// Makes divekick speed be consistent.
 							actorData.horizontalPull = 24.0f;
 						}
@@ -11697,24 +11727,31 @@ void InertiaController(byte8 *actorBaseAddr) {
 							actorData.horizontalPull = fireworksInertia.cachedPull / 1.5f;
 						}
 
-						// GUARDFLY on divekick
+						/*// GUARDFLY on divekick
 						else if (actorData.action == ROYAL_AIR_BLOCK && 
 						(distanceToEnemy < 150.0f && distanceToEnemy > -150.0f) && (actorData.eventData[0].event != 23)) {
 							//actorData.position.x = 0;
 							actorData.horizontalPull = royalBlockInertia.cachedPull * 2.0f;
 							actorData.horizontalPullMultiplier = 2.0f;
-						}
+						}*/
 
 						// GUARDFLY on sky star
-						else if (actorData.action == ROYAL_AIR_BLOCK && (distanceToEnemy < 80.0f && distanceToEnemy > -80.0f) && (actorData.eventData[0].event == 23)) {
+						/*else if (actorData.action == ROYAL_AIR_BLOCK && (distanceToEnemy < 80.0f && distanceToEnemy > -80.0f) && (actorData.eventData[0].event == 23)) {
 							//actorData.position.x = 0;
 							actorData.horizontalPull = royalBlockInertia.cachedPull * 2.0f;
 							actorData.horizontalPullMultiplier = 2.0f;
+						}*/
+
+						/*else if (actorData.eventData[0].event == 33 && actorData.lastAction == BEOWULF_KILLER_BEE) {
+
+							actorData.horizontalPull = royalBlockInertia.cachedPull * -2.0f;
+							actorData.verticalPullMultiplier = 0;
 						}
 
-						else if (actorData.eventData[0].event == 33 && actorData.lastAction == BEOWULF_KILLER_BEE) {
+						else if (actorData.eventData[0].event == 7 && actorData.eventData[0].lastEvent == 33) {
 							actorData.horizontalPull = 24;
-						}
+						}*/
+
 						
 						
 
