@@ -319,6 +319,23 @@ const char * characterNames[] =
 	"Vergil",
 };
 
+const char * cameraSensitivityNames[] =
+{
+	"Low (Vanilla Default)",
+	"Medium",
+	"High",
+	"Highest",
+};
+
+const char * cameraSmoothingNames[] =
+{
+	"Highest",
+	"High (Vanilla Default)",
+	"Medium",
+	"Low",
+};
+
+
 const char * newCharacterNames[] =
 {
 	"Dante",
@@ -4032,6 +4049,14 @@ void CameraSection()
 			Camera::ToggleInvertX(activeConfig.cameraInvertX);
 		}
 		ImGui::Text("");
+
+		GUI_Combo2
+		(
+			"Camera Sensitivity",
+			cameraSensitivityNames,
+			activeConfig.cameraSensitivity,
+			queuedConfig.cameraSensitivity
+		);
 
 		ImGui::PushItemWidth(150.0f);
 		GUI_Combo2<uint8>
