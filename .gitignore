@@ -21,6 +21,7 @@
 
 !ThirdParty/SKinHook
 !ThirdParty/SKinHook/*
+!ThirdParty/SKinHook/hde/*
 
 !ThirdParty/ImGui
 !ThirdParty/ImGui/*.cpp
