@@ -4383,6 +4383,7 @@ export struct Inertia {
 } airRaveInertia;
 
 export float raveRotation;
+export bool inertiaFixesEnabled = false;
 
 export Inertia rainstormInertia;
 export Inertia ebonyIvoryShotInertia;
