@@ -11221,9 +11221,6 @@ void StoreInertia(byte8 *actorBaseAddr) {
 
 				airSlashInertia.cachedPull = actorData.horizontalPull;
 				airSlashRotation = actorData.rotation;
-				if(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN|| tiltDirection == TILT_DIRECTION::NEUTRAL) {
-					airSlashInertia.cachedDirection = tiltDirection;
-				}
 
 			}
 
@@ -11284,7 +11281,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 			}
 	}
 
-	if(actorData.eventData[0].event == 33) {
+	/*if(actorData.eventData[0].event == 33) {
 		airRaveInertia.cachedPull = actorData.horizontalPull;
 		skyDanceInertia.cachedPull = actorData.horizontalPull;
 		airFlickerInertia.cachedPull = actorData.horizontalPull;
@@ -11296,7 +11293,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 		artemisMultiLockInertia.cachedPull = actorData.horizontalPull;
 		skyDanceInertia.cachedPull = actorData.horizontalPull;
 		//royalBlockInertia.cachedPull = actorData.horizontalPull;
-	}
+	}*/
 
 	auto inAirShot = (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == SHOTGUN_AIR_NORMAL_SHOT ||
 	actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT);
@@ -11431,6 +11428,130 @@ void StoreInertia(byte8 *actorBaseAddr) {
 			
 }
 
+void AerialRaveInertiaFix(bool enable) {
+	// This makes Aerial Rave (and subquently the Sky Dance and Air Slash "inertia fix" functions) 
+	// behave to world space inertia instead of going forward only.
+	
+	if(enable) {
+		// Rave 1
+		// movzx edx,word ptr [rbx+00003ED0]
+		_patch((char*)(appBaseAddr + 0x20F58C), (char*)"\x0F\xB7\x93\xD0\x3E\x00\x00", 7); // swaps forward with inertia rotation
+		_nop((char*)(appBaseAddr + 0x20F61B), 5); // kills "stop"
+
+		// Rave 2
+		_patch((char*)(appBaseAddr + 0x20F70C), (char*)"\x0F\xB7\x93\xD0\x3E\x00\x00", 7); 
+		_nop((char*)(appBaseAddr + 0x20F79B), 5);
+
+		// Rave 3
+		_patch((char*)(appBaseAddr + 0x20F88C), (char*)"\x0F\xB7\x93\xD0\x3E\x00\x00", 7); 
+		_nop((char*)(appBaseAddr + 0x20F91B), 5);
+
+		// Rave 4
+		_patch((char*)(appBaseAddr + 0x20FA18), (char*)"\x0F\xB7\x93\xD0\x3E\x00\x00", 7); 
+		_nop((char*)(appBaseAddr + 0x20FAB2), 5);
+
+	}
+	else {
+		// Rave 1
+		// movzx edx,word ptr [rbx+000000C0]
+		_patch((char*)(appBaseAddr + 0x20F58C), (char*)"\x0F\xB7\x93\xC0\x00\x00\x00", 7); // restores the forward only momentum
+		// dmc3.exe+20F61B - E8 30DAFEFF           - call dmc3.exe+1FD050
+		_patch((char*)(appBaseAddr + 0x20F61B), (char*)"\xE8\x30\xDA\xFE\xFF", 5);
+
+		// Rave 2
+		_patch((char*)(appBaseAddr + 0x20F70C), (char*)"\x0F\xB7\x93\xC0\x00\x00\x00", 7); 
+		//dmc3.exe+20F79B - E8 B0D8FEFF           - call dmc3.exe+1FD050
+		_patch((char*)(appBaseAddr + 0x20F79B), (char*)"\xE8\xB0\xD8\xFE\xFF", 5);
+
+		// Rave 3
+		_patch((char*)(appBaseAddr + 0x20F88C), (char*)"\x0F\xB7\x93\xC0\x00\x00\x00", 7); 
+		//dmc3.exe+20F91B - E8 30D7FEFF           - call dmc3.exe+1FD050
+		_patch((char*)(appBaseAddr + 0x20F91B), (char*)"\xE8\x30\xD7\xFE\xFF", 5);
+
+		// Rave 4
+		_patch((char*)(appBaseAddr + 0x20FA18), (char*)"\x0F\xB7\x93\xC0\x00\x00\x00", 7); 
+		//dmc3.exe+20FAB2 - E8 99D5FEFF           - call dmc3.exe+1FD050
+		_patch((char*)(appBaseAddr + 0x20FAB2), (char*)"\xE8\x99\xD5\xFE\xFF", 5);
+	}
+
+}
+
+void SkyDanceInertiaFix(bool enable) {
+	
+	if(enable) {
+		// Sky Dance 1
+		// movzx edx,word ptr [rbx+00003ED0]
+		_patch((char*)(appBaseAddr + 0x20978C), (char*)"\x0F\xB7\x93\xD0\x3E\x00\x00", 7); // swaps forward with inertia rotation
+		_nop((char*)(appBaseAddr + 0x209704), 5); // kills "stop"
+
+		// Sky Dance 2
+		_patch((char*)(appBaseAddr + 0x20990C), (char*)"\x0F\xB7\x93\xD0\x3E\x00\x00", 7); 
+
+		// Sky Dance 3
+		_patch((char*)(appBaseAddr + 0x209AFB), (char*)"\x0F\xB7\x93\xD0\x3E\x00\x00", 7); 
+
+
+	}
+	else {
+		// Sky Dance 1
+		// movzx edx,word ptr [rbx+00003ED0]
+		_patch((char*)(appBaseAddr + 0x20978C), (char*)"\x0F\xB7\x93\xC0\x00\x00\x00", 7); // restores the forward only momentum
+		//dmc3.exe+209704 - E8 470DFFFF           - call dmc3.exe+1FA450
+		_patch((char*)(appBaseAddr + 0x209704), (char*)"\xE8\x47\x0D\xFF\xFF", 5); 
+
+		// Sky Dance 2
+		_patch((char*)(appBaseAddr + 0x20990C), (char*)"\x0F\xB7\x93\xC0\x00\x00\x00", 7); 
+
+		// Sky Dance 3
+		_patch((char*)(appBaseAddr + 0x209AFB), (char*)"\x0F\xB7\x93\xC0\x00\x00\x00", 7); 
+	}
+
+}
+
+void AirSlashInertiaFix(bool enable) {
+	
+	if(enable) {
+		// Air Slash 1
+		// movzx edx,word ptr [rbx+00003ED0]
+		_patch((char*)(appBaseAddr + 0x20BE9C), (char*)"\x0F\xB7\x93\xD0\x3E\x00\x00", 7); // swaps forward with inertia rotation
+		// call dmc3.exe+1FB300
+		_patch((char*)(appBaseAddr + 0x20BEA3), (char*)"\xE8\x58\xF4\xFE\xFF", 5); // kills "stop"
+
+		// Air Slash 2
+		//dmc3.exe+20C00C - 0FB7 93 D03E0000      - movzx edx,word ptr [rbx+00003ED0]
+		_patch((char*)(appBaseAddr + 0x20C00C), (char*)"\x0F\xB7\x93\xD0\x3E\x00\x00", 7); 
+		// dmc3.exe+20C013 - E8 E8F2FEFF           - call dmc3.exe+1FB300
+		_patch((char*)(appBaseAddr + 0x20C013), (char*)"\xE8\xE8\xF2\xFE\xFF", 5);
+
+	}
+	else {
+		// Air Slash 1
+		// movzx edx,word ptr [rbx+00003ED0]
+		_patch((char*)(appBaseAddr + 0x20BE9C), (char*)"\x0F\xB7\x93\xC0\x00\x00\x00", 7); // restores the forward only momentum
+		// dmc3.exe+20BEA3 - E8 F804FFFF           - call dmc3.exe+1FC3A0
+		_patch((char*)(appBaseAddr + 0x20BEA3), (char*)"\xE8\xF8\x04\xFF\xFF", 5); 
+
+		// Air Slash 2
+		//dmc3.exe+20C00C - 0FB7 93 C0000000      - movzx edx,word ptr [rbx+000000C0]
+		_patch((char*)(appBaseAddr + 0x20C00C), (char*)"\x0F\xB7\x93\xC0\x00\x00\x00", 7); 
+		// dmc3.exe+20C013 - E8 8803FFFF           - call dmc3.exe+1FC3A0
+		_patch((char*)(appBaseAddr + 0x20C013), (char*)"\xE8\x88\x03\xFF\xFF", 5);
+	}
+
+}
+
+void DisableAirSlashKnockback(bool enable) {
+	// dmc3.exe+5CA0C4 0x00 0x00 0x00 0x00
+	
+	if(enable) {
+		_patch((char*)(appBaseAddr + 0x5CA0C4), (char*)"\x00\x00\x00\x00", 4);
+	}
+	else {
+		//dmc3.exe+5CA0C4 - 00 00                 - add [rax],al
+		_patch((char*)(appBaseAddr + 0x5CA0C4), (char*)"\x00\x00", 2);
+	}
+}
+
 void InertiaController(byte8 *actorBaseAddr) {
 	// Inertia implementation. Momentum (or Pull) is stored before a certain move is executed, then
 	// when it's executed that Pull is preserved and carries over, some moves had their overall momentum
@@ -11440,6 +11561,10 @@ void InertiaController(byte8 *actorBaseAddr) {
 	using namespace ACTION_VERGIL;
 
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
+	AerialRaveInertiaFix(true);
+	SkyDanceInertiaFix(true);
+	AirSlashInertiaFix(true);
+	
 
 	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
@@ -11479,7 +11604,7 @@ void InertiaController(byte8 *actorBaseAddr) {
 
 						// E&I Normal Shot
 						else if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT) {
-							if(inGunShoot) {
+							/*if(inGunShoot) {
 								if(ebonyIvoryShotInertia.cachedDirection == 1 || ebonyIvoryShotInertia.cachedDirection == 0) {
 									if(ebonyIvoryShotInertia.cachedDirection == airRaveInertia.cachedDirection) {
 									
@@ -11506,21 +11631,26 @@ void InertiaController(byte8 *actorBaseAddr) {
 									else {
 										
 										if(ebonyIvoryShotInertia.cachedPull > 0) {
-											ebonyIvoryShotInertia.cachedPull = ebonyIvoryShotInertia.cachedPull * -1.0f;
+											ebonyIvoryShotInertia.cachedPull = ebonyIvoryShotInertia.cachedPull * 1.0f;
 										}
-									}	
-								}
+									}*/
+									
+								//}
 								
 								
 								
 								
-							}
+							/*}
 							else {
 								if(ebonyIvoryShotInertia.cachedPull < 0) {
 									ebonyIvoryShotInertia.cachedPull = ebonyIvoryShotInertia.cachedPull * -1.0f;
 								}
 								gunShootInverted = false;
 								gunShootNormalized = false;
+							}*/
+
+							if(ebonyIvoryShotInertia.cachedPull < 0) {
+								ebonyIvoryShotInertia.cachedPull = ebonyIvoryShotInertia.cachedPull * -1.0f;
 							}
 
 							
@@ -11579,11 +11709,8 @@ void InertiaController(byte8 *actorBaseAddr) {
 							
 	
 							airRaveInertia.cachedPull = glm::clamp(airRaveInertia.cachedPull, -9.0f, 9.0f);
-
-							if(airRaveInertia.cachedDirection == TILT_DIRECTION::UP || airRaveInertia.cachedDirection == TILT_DIRECTION::NEUTRAL) {
-
-								// If this is any weapon air shot then inertia transfers (almost) completely
-								if(actorData.lastAction != EBONY_IVORY_AIR_NORMAL_SHOT && 
+							// If this is any weapon air shot then inertia transfers (almost) completely
+							if(actorData.lastAction != EBONY_IVORY_AIR_NORMAL_SHOT && 
 								actorData.lastAction != SHOTGUN_AIR_NORMAL_SHOT && 
 								actorData.lastAction != ARTEMIS_AIR_NORMAL_SHOT &&
 								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT &&
@@ -11591,35 +11718,14 @@ void InertiaController(byte8 *actorBaseAddr) {
 								actorData.lastAction != AGNI_RUDRA_SKY_DANCE_PART_2 &&
 								actorData.lastAction != AGNI_RUDRA_SKY_DANCE_PART_3) {
 
-									actorData.horizontalPull = (airRaveInertia.cachedPull / 3.0f) * 1.0f;
-									airRaveInertia.negative = false;
-								}
-								else {
-									actorData.horizontalPull = (airRaveInertia.cachedPull / 1.2f) * 1.0f;
-									airRaveInertia.negative = false;
-								}
+								actorData.horizontalPull = (airRaveInertia.cachedPull / 3.0f) * 1.0f;
 								
 							}
-							else if(airRaveInertia.cachedDirection == TILT_DIRECTION::DOWN) {
-								if(actorData.lastAction != EBONY_IVORY_AIR_NORMAL_SHOT && 
-								actorData.lastAction != SHOTGUN_AIR_NORMAL_SHOT && 
-								actorData.lastAction != ARTEMIS_AIR_NORMAL_SHOT &&
-								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT &&
-								actorData.lastAction != AGNI_RUDRA_SKY_DANCE_PART_1 &&
-								actorData.lastAction != AGNI_RUDRA_SKY_DANCE_PART_2 &&
-								actorData.lastAction != AGNI_RUDRA_SKY_DANCE_PART_3) {
-
-									actorData.horizontalPull = (airRaveInertia.cachedPull / 3.0f) * -1.0f;
-									airRaveInertia.negative = true;
-								}
-								else {
-									actorData.horizontalPull = (airRaveInertia.cachedPull / 1.2f) * -1.0f;
-									airRaveInertia.negative = true;
-								}
-							}
-							
-							
+							else {
+								actorData.horizontalPull = (airRaveInertia.cachedPull / 1.2f) * 1.0f;
 						
+							}
+
 						
 							// Reduces gravity while air raving
 							if(actorData.action != REBELLION_AERIAL_RAVE_PART_4) {
@@ -11662,10 +11768,9 @@ void InertiaController(byte8 *actorBaseAddr) {
 								skyDanceInertia.cachedPull = skyDanceInertia.cachedPull * -1.0f;
 							}
 
-							skyDanceInertia.cachedPull = glm::clamp(skyDanceInertia.cachedPull, -9.0f, 9.0f);
+							skyDanceInertia.cachedPull = glm::clamp(skyDanceInertia.cachedPull, 3.0f, 9.0f);
 
-							if(skyDanceInertia.cachedDirection == TILT_DIRECTION::UP || skyDanceInertia.cachedDirection == TILT_DIRECTION::NEUTRAL) {
-								if(actorData.lastAction != EBONY_IVORY_AIR_NORMAL_SHOT && 
+							if(actorData.lastAction != EBONY_IVORY_AIR_NORMAL_SHOT && 
 								actorData.lastAction != SHOTGUN_AIR_NORMAL_SHOT && 
 								actorData.lastAction != ARTEMIS_AIR_NORMAL_SHOT &&
 								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT &&
@@ -11673,26 +11778,10 @@ void InertiaController(byte8 *actorBaseAddr) {
 								actorData.lastAction != REBELLION_AERIAL_RAVE_PART_2 &&
 								actorData.lastAction != REBELLION_AERIAL_RAVE_PART_3) {
 
-									actorData.horizontalPull = (skyDanceInertia.cachedPull / 4.0f) * 1.0f;
-								}
-								else {
-									actorData.horizontalPull = (skyDanceInertia.cachedPull / 1.2f) * 1.0f;
-								}
+								actorData.horizontalPull = (skyDanceInertia.cachedPull / 4.0f) * 1.0f;
 							}
-							else if(skyDanceInertia.cachedDirection == TILT_DIRECTION::DOWN) {
-								if(actorData.lastAction != EBONY_IVORY_AIR_NORMAL_SHOT && 
-								actorData.lastAction != SHOTGUN_AIR_NORMAL_SHOT && 
-								actorData.lastAction != ARTEMIS_AIR_NORMAL_SHOT &&
-								actorData.lastAction != ARTEMIS_AIR_MULTI_LOCK_SHOT &&
-								actorData.lastAction != REBELLION_AERIAL_RAVE_PART_1 &&
-								actorData.lastAction != REBELLION_AERIAL_RAVE_PART_2 &&
-								actorData.lastAction != REBELLION_AERIAL_RAVE_PART_3) {
-
-									actorData.horizontalPull = (skyDanceInertia.cachedPull / 4.0f) * -1.0f;
-								}
-								else {
-									actorData.horizontalPull = (skyDanceInertia.cachedPull / 1.2f) * -1.0f;
-								}
+							else {
+								actorData.horizontalPull = (skyDanceInertia.cachedPull / 1.2f) * 1.0f;
 							}
 							//actorData.horizontalPullMultiplier = -0.16f;
 						}
@@ -11701,16 +11790,15 @@ void InertiaController(byte8 *actorBaseAddr) {
 						else if (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
 						actorData.action == NEVAN_AIR_SLASH_PART_2) {
 
+							if(airSlashInertia.cachedPull < 0) {
+								airSlashInertia.cachedPull = airSlashInertia.cachedPull * -1.0f;
+							}
+
 							airSlashInertia.cachedPull = glm::clamp(airSlashInertia.cachedPull, -9.0f, 9.0f);
 
-							if(airSlashInertia.cachedDirection == TILT_DIRECTION::UP || airRaveInertia.cachedDirection == TILT_DIRECTION::NEUTRAL) {
-								actorData.horizontalPull = (airSlashInertia.cachedPull / 1.5f) * 1.0f;
-								actorData.horizontalPullMultiplier = 0.4f;
-							}
-							else if(airSlashInertia.cachedDirection == TILT_DIRECTION::DOWN) {
-								actorData.horizontalPull = (airSlashInertia.cachedPull / 2.0f) * - 1.0f;
-								actorData.horizontalPullMultiplier = -0.4f;
-							}
+							actorData.horizontalPull = (airSlashInertia.cachedPull / 1.5f) * 1.0f;
+							//actorData.horizontalPullMultiplier = 0.4f;
+
 							//actorData.horizontalPullMultiplier = 0.4f;
 						}
 
@@ -12526,6 +12614,7 @@ void UpdateActorSpeed(byte8 *baseAddr)
 	CheckSkyLaunch(mainActorData);
 	SkyLaunchProperties(mainActorData);
 	GetRoyalBlockAction(mainActorData);
+	DisableAirSlashKnockback(true);
 	StoreInertia(mainActorData);
 	InertiaController(mainActorData);
 	DisableJCRestriction(true);
