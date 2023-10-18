@@ -11561,9 +11561,13 @@ void InertiaController(byte8 *actorBaseAddr) {
 	using namespace ACTION_VERGIL;
 
 	IntroduceData(actorBaseAddr, actorData, PlayerActorData, return);
-	AerialRaveInertiaFix(true);
-	SkyDanceInertiaFix(true);
-	AirSlashInertiaFix(true);
+	if(!inertiaFixesEnabled) {
+		AerialRaveInertiaFix(true);
+		SkyDanceInertiaFix(true);
+		AirSlashInertiaFix(true);
+		inertiaFixesEnabled = true;
+	}
+	
 	
 
 	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
