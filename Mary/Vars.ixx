@@ -4337,6 +4337,8 @@ export bool triggerVFX = false;
 export int styleVFXCount = 0;
 export int styleVFXCountMax = 1;
 
+export float siytimer = 0;
+
 export struct DoubleTap {
 	int bufferDuration = 150;
 	int buffer = bufferDuration;

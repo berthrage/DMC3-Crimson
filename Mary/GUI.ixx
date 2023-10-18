@@ -9390,9 +9390,16 @@ void MainOverlayWindow()
 			
 			
 			auto & metadata = enemyVectorData.metadata[0];
+			if(siytimer > 0) {
+				siytimer -= ImGui::GetIO().DeltaTime;
+			}
+			else if (siytimer < 0) {
+				siytimer = 0;
+			}
 			
 			
-
+			
+			ImGui::Text("SIY TIMER %g", siytimer);
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
 			ImGui::Text("enemy distance %g", distanceToEnemy);
 			//ImGui::Text("enemy vertical Pull Multiplier %g", enemyData.verticalPullMultiplier);
