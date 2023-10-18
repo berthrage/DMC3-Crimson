@@ -9404,7 +9404,7 @@ void MainOverlayWindow()
 			ImGui::Text("enemy distance %g", distanceToEnemy);
 			//ImGui::Text("enemy vertical Pull Multiplier %g", enemyData.verticalPullMultiplier);
 			ImGui::Text("rainstormCancel Cooldown %u", rainstormCancel.cooldown);
-			ImGui::Text("In Gun Shoot:  %u", inGunShoot);
+			ImGui::Text("In Royal Block:  %u", inRoyalBlock);
 			ImGui::Text("Aerial Rave Negative:  %u", airRaveInertia.negative);
 			ImGui::Text("ebonyIvory Cached Direction:  %u", ebonyIvoryShotInertia.cachedDirection);
 			ImGui::Text("airRaveInertia.cachedDirection %u", airRaveInertia.cachedDirection);
