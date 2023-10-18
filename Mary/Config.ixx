@@ -1740,8 +1740,23 @@ void CreateMembers(Config & Prep_arg(config))
 	Create<float>(member, "weaponWheelHeight"                 , config.weaponWheelHeight                 );
 	Create<float>(member, "weaponWheelHorizontalMelee"        , config.weaponWheelHorizontalMelee        );
 	Create<float>(member, "weaponWheelHorizontalRanged"       , config.weaponWheelHorizontalRanged       );
-	Create<uint64>(member, "weaponWheelTimeout"                  , config.weaponWheelTimeout                );
-	Create<uint8>(member, "cameraSensitivity"                   , config.cameraSensitivity                 );
+	Create<uint8>(member, "cameraSensitivity"                 , config.cameraSensitivity                 );
+
+	{
+		auto & member = Create<struct_t>(root, "MeleeWeaponWheel");
+		auto & config = Prep_arg(config).MeleeWeaponWheel;
+
+		Create<bool  >(member, "alwaysShow"    , config.alwaysShow    );
+		Create<uint32>(member, "timeout"       , config.timeout       );
+	}
+
+	{
+		auto & member = Create<struct_t>(root, "RangedWeaponWheel");
+		auto & config = Prep_arg(config).MeleeWeaponWheel;
+
+		Create<bool  >(member, "alwaysShow"    , config.alwaysShow    );
+		Create<uint32>(member, "timeout"       , config.timeout       );
+	}
 
 	CreateArray<uint8, 2>(member, "beowulfVergilAirRisingSunCount", config.beowulfVergilAirRisingSunCount);
 
@@ -2351,8 +2366,25 @@ void ToJSON(Config & Prep_arg(config))
 	Set<float>(member["weaponWheelHeight"                 ], config.weaponWheelHeight                 );
 	Set<float>(member["weaponWheelHorizontalMelee"        ], config.weaponWheelHorizontalMelee        );
 	Set<float>(member["weaponWheelHorizontalRanged"       ], config.weaponWheelHorizontalRanged       );
-	Set<uint64>(member["weaponWheelTimeout"                  ], config.weaponWheelTimeout                );
-	Set<uint8>(member["cameraSensitivity"                   ], config.cameraSensitivity                 );
+	Set<uint8>(member["cameraSensitivity"                   ], config.cameraSensitivity               );
+
+	{
+		auto & member = root["MeleeWeaponWheel"];
+		auto & config = Prep_arg(config).MeleeWeaponWheel;
+
+		Set<bool  >(member["alwaysShow"    ], config.alwaysShow    );
+		Set<uint32>(member["timeout"       ], config.timeout       );
+		
+	}
+
+	{
+		auto & member = root["RangedWeaponWheel"];
+		auto & config = Prep_arg(config).RangedWeaponWheel;
+
+		Set<bool  >(member["alwaysShow"    ], config.alwaysShow    );
+		Set<uint32>(member["timeout"       ], config.timeout       );
+		
+	}
 
 	SetArray<uint8, 2>(member["beowulfVergilAirRisingSunCount"], config.beowulfVergilAirRisingSunCount);
 
@@ -2949,8 +2981,25 @@ void ToConfig(Config & Prep_arg(config))
 	config.weaponWheelHeight                  = Get<float>(member["weaponWheelHeight"                 ]);
 	config.weaponWheelHorizontalMelee         = Get<float>(member["weaponWheelHorizontalMelee"        ]);
 	config.weaponWheelHorizontalRanged        = Get<float>(member["weaponWheelHorizontalRanged"       ]);
-	config.weaponWheelTimeout                 = Get<uint64>(member["weaponWheelTimeout"                  ]);
-	config.cameraSensitivity                  = Get<uint8>(member["cameraSensitivity"                   ]);
+	config.cameraSensitivity                  = Get<uint8>(member["cameraSensitivity"                 ]);
+
+	{
+		auto & config = Prep_arg(config).MeleeWeaponWheel;
+		auto & member = root["MeleeWeaponWheel"];
+
+		config.alwaysShow     = Get<bool  >(member["alwaysShow"    ]);
+		config.timeout        = Get<uint32>(member["timeout"       ]);
+		
+	}
+
+	{
+		auto & config = Prep_arg(config).RangedWeaponWheel;
+		auto & member = root["RangedWeaponWheel"];
+
+		config.alwaysShow     = Get<bool  >(member["alwaysShow"    ]);
+		config.timeout        = Get<uint32>(member["timeout"       ]);
+		
+	}
 
 
 
