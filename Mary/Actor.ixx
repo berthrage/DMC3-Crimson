@@ -11259,7 +11259,7 @@ void StoreInertia(byte8 *actorBaseAddr) {
 			}
 
 
-			if(actorData.action != ROYAL_AIR_BLOCK && actorData.eventData[0].event != 33) {
+			if(actorData.action != ROYAL_AIR_BLOCK && actorData.eventData[0].event != 33 && actorData.eventData[0].event != 7) {
 				royalBlockInertia.cachedPull = actorData.horizontalPull;
 			}
 
@@ -11582,8 +11582,8 @@ void InertiaController(byte8 *actorBaseAddr) {
 	distanceToEnemy = actorData.position.z - actorData.lockOnData.targetPosition.z;
 
 
-	bool inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && 
-						gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION));
+	/*bool inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && 
+						gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION));*/
 
 	exceptionShot = ((actorData.lastAction == REBELLION_AERIAL_RAVE_PART_1 
 	|| actorData.lastAction == REBELLION_AERIAL_RAVE_PART_2 ||
@@ -11591,6 +11591,13 @@ void InertiaController(byte8 *actorBaseAddr) {
 	actorData.lastAction == REBELLION_AERIAL_RAVE_PART_4) && airRaveInertia.cachedDirection == TILT_DIRECTION::UP);
 
 				if(actorData.character == CHARACTER::DANTE) {
+					
+					if (actorData.motionData[0].index == 5 && inRoyalBlock && (actorData.eventData[0].event == 33 || actorData.eventData[0].event == 7)) {
+						actorData.horizontalPull = royalBlockInertia.cachedPull;
+						actorData.verticalPullMultiplier = -2;
+					}
+				
+
 					if(actorData.state == 65538) {
 
 						// Rainstorm
@@ -11845,7 +11852,7 @@ void InertiaController(byte8 *actorBaseAddr) {
 							fireworksInertia.cachedPull = glm::clamp(fireworksInertia.cachedPull, -9.0f, 9.0f);
 							actorData.horizontalPull = fireworksInertia.cachedPull / 1.5f;
 						}
-
+						
 						/*// GUARDFLY on divekick
 						else if (actorData.action == ROYAL_AIR_BLOCK && 
 						(distanceToEnemy < 150.0f && distanceToEnemy > -150.0f) && (actorData.eventData[0].event != 23)) {
