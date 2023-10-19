@@ -21,6 +21,7 @@
 
 !ThirdParty/SKinHook
 !ThirdParty/SKinHook/*
+!ThirdParty/SKinHook/hde/*
 
 !ThirdParty/ImGui
 !ThirdParty/ImGui/*.cpp
@@ -65,3 +66,6 @@
 !/README.md
 !/run.js
 prep_*
+ddmk.js
+ThirdParty/ThirdParty.rar
+Mary/masm.rar

@@ -904,7 +904,24 @@ static_assert(countof(trackFilenames) == countof(trackNames));
 
 #pragma endregion
 
-
+void PauseWhenGUIOpen() {
+	if(!g_show && !pausedGameGUIOpen) {
+		activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed;
+		activeConfig.Speed.turbo = queuedConfig.Speed.turbo;
+		Speed::Toggle(true);
+		Speed::Toggle(false);
+		pausedGameGUIOpen = true;
+		
+	}
+	else if (g_show && pausedGameGUIOpen) {
+		activeConfig.Speed.mainSpeed = 0;
+		activeConfig.Speed.turbo = 0;
+		Speed::Toggle(true);
+		Speed::Toggle(false);
+		pausedGameGUIOpen = false;
+		
+	}
+}
 
 
 
@@ -9390,14 +9407,22 @@ void MainOverlayWindow()
 			
 			
 			auto & metadata = enemyVectorData.metadata[0];
+			if(siytimer > 0) {
+				siytimer -= ImGui::GetIO().DeltaTime;
+			}
+			else if (siytimer < 0) {
+				siytimer = 0;
+			}
 			
 			
-
+			
+			ImGui::Text("SIY TIMER %g", siytimer);
+			ImGui::Text("Show GUI %u", g_show);
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
 			ImGui::Text("enemy distance %g", distanceToEnemy);
 			//ImGui::Text("enemy vertical Pull Multiplier %g", enemyData.verticalPullMultiplier);
 			ImGui::Text("rainstormCancel Cooldown %u", rainstormCancel.cooldown);
-			ImGui::Text("In Gun Shoot:  %u", inGunShoot);
+			ImGui::Text("In Royal Block:  %u", inRoyalBlock);
 			ImGui::Text("Aerial Rave Negative:  %u", airRaveInertia.negative);
 			ImGui::Text("ebonyIvory Cached Direction:  %u", ebonyIvoryShotInertia.cachedDirection);
 			ImGui::Text("airRaveInertia.cachedDirection %u", airRaveInertia.cachedDirection);
@@ -9762,6 +9787,8 @@ void MissionOverlayWindow()
 			timeData.seconds,
 			timeData.milliseconds
 		);
+
+
 		ImGui::Text("Damage         %u", missionData.damage);
 		ImGui::Text("Orbs Collected %u", missionData.orbsCollected);
 		ImGui::Text("Items Used     %u", missionData.itemsUsed);
@@ -11691,7 +11718,7 @@ void Main()
 
 
 
-
+		
 		ActorSection();
 		ArcadeSection();
 		BarsSection();
@@ -11762,7 +11789,7 @@ export void GUI_Render()
 	::GUI::id = 0;
 
 
-
+	
 	Welcome();
 	Main();
 	CreditsWindow();
@@ -11780,7 +11807,7 @@ export void GUI_Render()
 	}
 
 
-
+	PauseWhenGUIOpen();
 	MainOverlayWindow();
 	MissionOverlayWindow();
 	BossLadyActionsOverlayWindow();

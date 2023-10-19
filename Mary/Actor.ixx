@@ -10859,9 +10859,9 @@ void RemoveSoftLockOnController(byte8 *actorBaseAddr) {
 	relativeTilt = (actorData.cameraDirection + gamepad.leftStickPosition);
 	uint16 value = (relativeTilt - 0x8000);
 
-	inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && 
+	inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP))  && 
 						gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && (actorData.style == STYLE::ROYALGUARD) && 
-						(actorData.state & STATE::IN_AIR));
+						(actorData.state & STATE::IN_AIR);
 	
 	if(actorData.character == CHARACTER::DANTE) {
 		
@@ -11174,8 +11174,8 @@ void StoreInertia(byte8 *actorBaseAddr) {
 	bool inAir = (actorData.state & STATE::IN_AIR);
 	bool lastInAir = (actorData.lastState & STATE::IN_AIR);
 
-	bool inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && 
-						gamepad.buttons[2] & GetBinding(BINDING::STYLE_ACTION));
+	/*bool inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && 
+						gamepad.buttons[2] & GetBinding(BINDING::STYLE_ACTION));*/
 
 	
 	//Storing Momentum
@@ -11259,8 +11259,13 @@ void StoreInertia(byte8 *actorBaseAddr) {
 			}
 
 
-			if(actorData.action != ROYAL_AIR_BLOCK && actorData.eventData[0].event != 33) {
-				royalBlockInertia.cachedPull = actorData.horizontalPull;
+			if(!inRoyalBlock && actorData.eventData[0].event != 33 && actorData.eventData[0].event != 7) {
+				if(actorData.eventData[0].event == 23) {
+					royalBlockInertia.cachedPull = 24.0f;
+				}
+				else {
+					royalBlockInertia.cachedPull = actorData.horizontalPull;
+				}
 			}
 
 			if(!(actorData.action == 195 && actorData.state == 65538)) {
@@ -11582,8 +11587,8 @@ void InertiaController(byte8 *actorBaseAddr) {
 	distanceToEnemy = actorData.position.z - actorData.lockOnData.targetPosition.z;
 
 
-	bool inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && 
-						gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION));
+	/*bool inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && 
+						gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION));*/
 
 	exceptionShot = ((actorData.lastAction == REBELLION_AERIAL_RAVE_PART_1 
 	|| actorData.lastAction == REBELLION_AERIAL_RAVE_PART_2 ||
@@ -11591,6 +11596,14 @@ void InertiaController(byte8 *actorBaseAddr) {
 	actorData.lastAction == REBELLION_AERIAL_RAVE_PART_4) && airRaveInertia.cachedDirection == TILT_DIRECTION::UP);
 
 				if(actorData.character == CHARACTER::DANTE) {
+					
+					// Guardfly
+					if (actorData.motionData[0].index == 5 && inRoyalBlock && (actorData.eventData[0].event == 33 || actorData.eventData[0].event == 7)) {
+						actorData.horizontalPull = royalBlockInertia.cachedPull;
+						actorData.verticalPullMultiplier = -2;
+					}
+
+
 					if(actorData.state == 65538) {
 
 						// Rainstorm
@@ -11675,6 +11688,7 @@ void InertiaController(byte8 *actorBaseAddr) {
 							
 							actorData.horizontalPull = shotgunAirInertia.cachedPull;
 							actorData.horizontalPullMultiplier = 0.05f;
+							actorData.verticalPullMultiplier = -1.7f;
 						}
 
 						// Artemis Normal Shot
@@ -11831,10 +11845,6 @@ void InertiaController(byte8 *actorBaseAddr) {
 							actorData.horizontalPull = 24.0f;
 						}
 
-						// Air Trick
-						else if (actorData.action == TRICKSTER_AIR_TRICK) {
-							actorData.horizontalPullMultiplier = 0.2f;
-						}
 
 						// Fireworks
 						else if (actorData.action == SHOTGUN_AIR_FIREWORKS) {
@@ -11845,7 +11855,7 @@ void InertiaController(byte8 *actorBaseAddr) {
 							fireworksInertia.cachedPull = glm::clamp(fireworksInertia.cachedPull, -9.0f, 9.0f);
 							actorData.horizontalPull = fireworksInertia.cachedPull / 1.5f;
 						}
-
+						
 						/*// GUARDFLY on divekick
 						else if (actorData.action == ROYAL_AIR_BLOCK && 
 						(distanceToEnemy < 150.0f && distanceToEnemy > -150.0f) && (actorData.eventData[0].event != 23)) {

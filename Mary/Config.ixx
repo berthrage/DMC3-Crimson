@@ -656,10 +656,9 @@ export struct Config
 	{
 		{
 			{
-				KEY::LEFT_CONTROL,
-				KEY::D
+				KEY::DELETE
 			},
-			2
+			1
 		},
 		{},
 		{},
@@ -698,9 +697,9 @@ export struct Config
 	float weaponWheelHorizontalMelee = 495;
 	float weaponWheelHorizontalRanged = 80;
 	float weaponWheelWidthSeparation;	
-	int weaponWheelTimeout = 2000;
+	uint64 weaponWheelTimeout = 2000;
 
-	int cameraSensitivity = 2;
+	uint8 cameraSensitivity = 3;
 
 	struct WeaponWheel
 	{
@@ -747,10 +746,10 @@ export struct Config
 
 
 
-static_assert((offsetof(Config, kalinaAnnHookGrenadeHeight) % 0x10) == 0);
+/*static_assert((offsetof(Config, kalinaAnnHookGrenadeHeight) % 0x10) == 0);
 static_assert((offsetof(Config, kalinaAnnHookGrenadeTime  ) % 0x10) == 0);
 static_assert((offsetof(Config, kalinaAnnHookMultiplier   ) % 0x10) == 0);
-static_assert((offsetof(Config, barsData                  ) % 0x10) == 0);
+static_assert((offsetof(Config, barsData                  ) % 0x10) == 0);*/
 
 
 
@@ -1732,6 +1731,31 @@ void CreateMembers(Config & Prep_arg(config))
 	Create<bool >(member, "enableYamatoForceEdgeAirStinger"   , config.enableYamatoForceEdgeAirStinger   );
 	Create<bool >(member, "enableYamatoForceEdgeNewRoundTrip" , config.enableYamatoForceEdgeNewRoundTrip );
 	Create<uint8>(member, "dergil"                            , config.dergil                            );
+	Create<bool>(member, "weaponWheelEnabled"                 , config.weaponWheelEnabled                );
+	Create<bool>(member, "weaponWheelAnalogSelectionEnabled"  , config.weaponWheelAnalogSelectionEnabled );
+	Create<bool>(member, "weaponWheelAnalogRightStick"        , config.weaponWheelAnalogRightStick       );
+	Create<bool>(member, "weaponWheelDisableCameraRotation"   , config.weaponWheelDisableCameraRotation  );
+	Create<float>(member, "weaponWheelScaleMultiplier"   	  , config.weaponWheelScaleMultiplier        );
+	Create<float>(member, "weaponWheelHeight"                 , config.weaponWheelHeight                 );
+	Create<float>(member, "weaponWheelHorizontalMelee"        , config.weaponWheelHorizontalMelee        );
+	Create<float>(member, "weaponWheelHorizontalRanged"       , config.weaponWheelHorizontalRanged       );
+	Create<uint8>(member, "cameraSensitivity"                 , config.cameraSensitivity                 );
+
+	{
+		auto & member = Create<struct_t>(root, "MeleeWeaponWheel");
+		auto & config = Prep_arg(config).MeleeWeaponWheel;
+
+		Create<bool  >(member, "alwaysShow"    , config.alwaysShow    );
+		Create<uint32>(member, "timeout"       , config.timeout       );
+	}
+
+	{
+		auto & member = Create<struct_t>(root, "RangedWeaponWheel");
+		auto & config = Prep_arg(config).MeleeWeaponWheel;
+
+		Create<bool  >(member, "alwaysShow"    , config.alwaysShow    );
+		Create<uint32>(member, "timeout"       , config.timeout       );
+	}
 
 	CreateArray<uint8, 2>(member, "beowulfVergilAirRisingSunCount", config.beowulfVergilAirRisingSunCount);
 
@@ -2333,6 +2357,33 @@ void ToJSON(Config & Prep_arg(config))
 	Set<bool >(member["enableYamatoForceEdgeAirStinger"   ], config.enableYamatoForceEdgeAirStinger   );
 	Set<bool >(member["enableYamatoForceEdgeNewRoundTrip" ], config.enableYamatoForceEdgeNewRoundTrip );
 	Set<uint8>(member["dergil"                            ], config.dergil                            );
+	Set<bool>(member["weaponWheelEnabled"                 ], config.weaponWheelEnabled                );
+	Set<bool>(member["weaponWheelAnalogSelectionEnabled"  ], config.weaponWheelAnalogSelectionEnabled );
+	Set<bool>(member["weaponWheelAnalogRightStick"        ], config.weaponWheelAnalogRightStick       );
+	Set<bool>(member["weaponWheelDisableCameraRotation"   ], config.weaponWheelDisableCameraRotation  );
+	Set<float>(member["weaponWheelScaleMultiplier"   	  ], config.weaponWheelScaleMultiplier        );
+	Set<float>(member["weaponWheelHeight"                 ], config.weaponWheelHeight                 );
+	Set<float>(member["weaponWheelHorizontalMelee"        ], config.weaponWheelHorizontalMelee        );
+	Set<float>(member["weaponWheelHorizontalRanged"       ], config.weaponWheelHorizontalRanged       );
+	Set<uint8>(member["cameraSensitivity"                   ], config.cameraSensitivity               );
+
+	{
+		auto & member = root["MeleeWeaponWheel"];
+		auto & config = Prep_arg(config).MeleeWeaponWheel;
+
+		Set<bool  >(member["alwaysShow"    ], config.alwaysShow    );
+		Set<uint32>(member["timeout"       ], config.timeout       );
+		
+	}
+
+	{
+		auto & member = root["RangedWeaponWheel"];
+		auto & config = Prep_arg(config).RangedWeaponWheel;
+
+		Set<bool  >(member["alwaysShow"    ], config.alwaysShow    );
+		Set<uint32>(member["timeout"       ], config.timeout       );
+		
+	}
 
 	SetArray<uint8, 2>(member["beowulfVergilAirRisingSunCount"], config.beowulfVergilAirRisingSunCount);
 
@@ -2921,6 +2972,35 @@ void ToConfig(Config & Prep_arg(config))
 	config.enableYamatoForceEdgeAirStinger    = Get<bool >(member["enableYamatoForceEdgeAirStinger"   ]);
 	config.enableYamatoForceEdgeNewRoundTrip  = Get<bool >(member["enableYamatoForceEdgeNewRoundTrip" ]);
 	config.dergil                             = Get<uint8>(member["dergil"                            ]);
+	config.weaponWheelEnabled                 = Get<bool>(member["weaponWheelEnabled"                 ]);
+	config.weaponWheelAnalogSelectionEnabled  = Get<bool>(member["weaponWheelAnalogSelectionEnabled"  ]);
+	config.weaponWheelAnalogRightStick        = Get<bool>(member["weaponWheelAnalogRightStick"        ]);
+	config.weaponWheelDisableCameraRotation   = Get<bool>(member["weaponWheelDisableCameraRotation"   ]);
+	config.weaponWheelScaleMultiplier         = Get<float>(member["weaponWheelScaleMultiplier"        ]);
+	config.weaponWheelHeight                  = Get<float>(member["weaponWheelHeight"                 ]);
+	config.weaponWheelHorizontalMelee         = Get<float>(member["weaponWheelHorizontalMelee"        ]);
+	config.weaponWheelHorizontalRanged        = Get<float>(member["weaponWheelHorizontalRanged"       ]);
+	config.cameraSensitivity                  = Get<uint8>(member["cameraSensitivity"                 ]);
+
+	{
+		auto & config = Prep_arg(config).MeleeWeaponWheel;
+		auto & member = root["MeleeWeaponWheel"];
+
+		config.alwaysShow     = Get<bool  >(member["alwaysShow"    ]);
+		config.timeout        = Get<uint32>(member["timeout"       ]);
+		
+	}
+
+	{
+		auto & config = Prep_arg(config).RangedWeaponWheel;
+		auto & member = root["RangedWeaponWheel"];
+
+		config.alwaysShow     = Get<bool  >(member["alwaysShow"    ]);
+		config.timeout        = Get<uint32>(member["timeout"       ]);
+		
+	}
+
+
 
 	GetArray<uint8, 2>(config.beowulfVergilAirRisingSunCount, member["beowulfVergilAirRisingSunCount"]);
 

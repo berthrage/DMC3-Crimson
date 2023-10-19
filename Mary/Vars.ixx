@@ -4321,6 +4321,8 @@ export struct BossHelper
 	const char * track;
 };
 
+export bool pausedGameGUIOpen = false;
+
 export struct WeaponWheelTiming {
 	bool wheelAppear = false;
 	bool wheelRunning = false;
@@ -4336,6 +4338,8 @@ export bool triggerVFX = false;
 
 export int styleVFXCount = 0;
 export int styleVFXCountMax = 1;
+
+export float siytimer = 0;
 
 export struct DoubleTap {
 	int bufferDuration = 150;
