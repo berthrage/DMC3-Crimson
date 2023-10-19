@@ -4321,6 +4321,8 @@ export struct BossHelper
 	const char * track;
 };
 
+export bool pausedGameGUIOpen = false;
+
 export struct WeaponWheelTiming {
 	bool wheelAppear = false;
 	bool wheelRunning = false;

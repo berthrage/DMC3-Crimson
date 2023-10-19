@@ -656,10 +656,9 @@ export struct Config
 	{
 		{
 			{
-				KEY::LEFT_CONTROL,
-				KEY::D
+				KEY::DELETE
 			},
-			2
+			1
 		},
 		{},
 		{},
@@ -700,7 +699,7 @@ export struct Config
 	float weaponWheelWidthSeparation;	
 	uint64 weaponWheelTimeout = 2000;
 
-	uint8 cameraSensitivity = 2;
+	uint8 cameraSensitivity = 3;
 
 	struct WeaponWheel
 	{

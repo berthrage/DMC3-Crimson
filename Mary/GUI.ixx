@@ -904,7 +904,22 @@ static_assert(countof(trackFilenames) == countof(trackNames));
 
 #pragma endregion
 
-
+void PauseWhenGUIOpen() {
+	if(!g_show && !pausedGameGUIOpen) {
+		activeConfig.Speed.mainSpeed = 1.0f;
+		Speed::Toggle(true);
+		Speed::Toggle(false);
+		pausedGameGUIOpen = true;
+		
+	}
+	else if (g_show && pausedGameGUIOpen) {
+		activeConfig.Speed.mainSpeed = 0;
+		Speed::Toggle(true);
+		Speed::Toggle(false);
+		pausedGameGUIOpen = false;
+		
+	}
+}
 
 
 
@@ -9400,6 +9415,7 @@ void MainOverlayWindow()
 			
 			
 			ImGui::Text("SIY TIMER %g", siytimer);
+			ImGui::Text("Show GUI %u", g_show);
 			ImGui::Text("Enemy Count %u", enemyVectorData.count);
 			ImGui::Text("enemy distance %g", distanceToEnemy);
 			//ImGui::Text("enemy vertical Pull Multiplier %g", enemyData.verticalPullMultiplier);
@@ -11698,7 +11714,7 @@ void Main()
 
 
 
-
+		
 		ActorSection();
 		ArcadeSection();
 		BarsSection();
@@ -11769,7 +11785,7 @@ export void GUI_Render()
 	::GUI::id = 0;
 
 
-
+	
 	Welcome();
 	Main();
 	CreditsWindow();
@@ -11787,7 +11803,7 @@ export void GUI_Render()
 	}
 
 
-
+	PauseWhenGUIOpen();
 	MainOverlayWindow();
 	MissionOverlayWindow();
 	BossLadyActionsOverlayWindow();

@@ -417,6 +417,7 @@ export void PlayDevilTriggerReady() {
 }
 
 export void PlayNewMissionClearSong() {
+    Mix_VolumeMusic(128 * activeConfig.channelVolumes[9]);
     Mix_FadeInMusic(missionClearSong, -1, 500);
 }
 

@@ -44,7 +44,10 @@ export void Toggle(bool enable)
 
 		if (enable)
 		{
+			
 			Write<float>((addr + 2), activeConfig.Speed.mainSpeed);
+			
+			
 		}
 		else
 		{
@@ -128,7 +131,10 @@ export void Toggle(bool enable)
 
 		if (enable)
 		{
+			
 			Write((addr + 3), activeConfig.Speed.enemy);
+			
+			
 		}
 		else
 		{
