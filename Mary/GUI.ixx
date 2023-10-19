@@ -906,7 +906,8 @@ static_assert(countof(trackFilenames) == countof(trackNames));
 
 void PauseWhenGUIOpen() {
 	if(!g_show && !pausedGameGUIOpen) {
-		activeConfig.Speed.mainSpeed = 1.0f;
+		activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed;
+		activeConfig.Speed.turbo = queuedConfig.Speed.turbo;
 		Speed::Toggle(true);
 		Speed::Toggle(false);
 		pausedGameGUIOpen = true;
@@ -914,6 +915,7 @@ void PauseWhenGUIOpen() {
 	}
 	else if (g_show && pausedGameGUIOpen) {
 		activeConfig.Speed.mainSpeed = 0;
+		activeConfig.Speed.turbo = 0;
 		Speed::Toggle(true);
 		Speed::Toggle(false);
 		pausedGameGUIOpen = false;
@@ -9785,6 +9787,8 @@ void MissionOverlayWindow()
 			timeData.seconds,
 			timeData.milliseconds
 		);
+
+
 		ImGui::Text("Damage         %u", missionData.damage);
 		ImGui::Text("Orbs Collected %u", missionData.orbsCollected);
 		ImGui::Text("Items Used     %u", missionData.itemsUsed);
