@@ -2,23 +2,23 @@
 !.github
 !.github/*
 
-!Mary/src
-!Mary/src/*
+!src
+!src/*
 
-!Mary/src
-!Mary/src/*
+!src
+!src/*
 
-!Mary/src/Core
-!Mary/src//Core*
+!src/Core
+!src//Core*
 
-!Mary/src/images
-!Mary/src/images/*
+!src/images
+!src/images/*
 
-!Mary/src/masm
-!Mary/src/masm/*
+!src/masm
+!src/masm/*
 
-!Mary/srcModule Templates
-!Mary/src/Module Templates/*
+!srcModule Templates
+!src/Module Templates/*
 
 !ThirdParty
 !ThirdParty/*
