@@ -6,7 +6,7 @@
 !src/*
 
 !src/Core
-!src//Core*
+!src/Core/*
 
 !src/images
 !src/images/*
