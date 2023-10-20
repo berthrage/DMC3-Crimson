@@ -76,7 +76,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC ${LIBS}) # Dependencies
 target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC /GS- /GR-)
 
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES 
-OUTPUT_NAME Mary)
+OUTPUT_NAME Crimson)
 
 set(COMPILER_ARGS
     /nologo
