@@ -59,10 +59,10 @@ import ExtraSound;
 
 
 
-bool visibleMain     = false;
+bool visibleMain = false;
 bool lastVisibleMain = false;
 
-bool visibleShop     = false;
+bool visibleShop = false;
 bool lastVisibleShop = false;
 
 bool updateWeaponWheel = false;
@@ -70,7 +70,7 @@ bool updateWeaponWheel = false;
 
 #pragma region Common
 
-const char * saveNamesDante[] =
+const char* saveNamesDante[] =
 {
 	"Dante 0000",
 	"Dante 0001",
@@ -85,7 +85,7 @@ const char * saveNamesDante[] =
 };
 
 
-const char * saveNamesVergil[] =
+const char* saveNamesVergil[] =
 {
 	"Vergil 0000",
 	"Vergil 0001",
@@ -106,7 +106,7 @@ const char * saveNamesVergil[] =
 
 
 
-const char * indexNames[] =
+const char* indexNames[] =
 {
 	"0000",
 	"0001",
@@ -214,7 +214,7 @@ const char * indexNames[] =
 
 
 
-const char * buttonIndexNames[] =
+const char* buttonIndexNames[] =
 {
 	"Button 1",
 	"Button 2",
@@ -222,7 +222,7 @@ const char * buttonIndexNames[] =
 	"Button 4",
 };
 
-const char * dataNames[] =
+const char* dataNames[] =
 {
 	"Data 0",
 	"Data 1",
@@ -234,7 +234,7 @@ const char * dataNames[] =
 	"Data 7",
 };
 
-const char * buttonNames[] =
+const char* buttonNames[] =
 {
 	"Nothing",
 	"Left Trigger",
@@ -276,7 +276,7 @@ constexpr byte16 buttons[] =
 	GAMEPAD::LEFT,
 };
 
-const char * directionNames[] =
+const char* directionNames[] =
 {
 	"Up",
 	"Right",
@@ -284,7 +284,7 @@ const char * directionNames[] =
 	"Left",
 };
 
-const char * playerIndexNames[] =
+const char* playerIndexNames[] =
 {
 	"Player 1",
 	"Player 2",
@@ -292,26 +292,26 @@ const char * playerIndexNames[] =
 	"Player 4",
 };
 
-const char * characterIndexNames[] =
+const char* characterIndexNames[] =
 {
 	"Character 1",
 	"Character 2",
 	"Character 3",
 };
 
-const char * entityNames[] =
+const char* entityNames[] =
 {
 	"Main",
 	"Clone",
 };
 
-const char * entityEnumNames[] =
+const char* entityEnumNames[] =
 {
 	"ENTITY::MAIN",
 	"ENTITY::CLONE",
 };
 
-const char * characterNames[] =
+const char* characterNames[] =
 {
 	"Dante",
 	"Bob",
@@ -319,7 +319,7 @@ const char * characterNames[] =
 	"Vergil",
 };
 
-const char * cameraSensitivityNames[] =
+const char* cameraSensitivityNames[] =
 {
 	"Low (Vanilla Default)",
 	"Medium",
@@ -327,7 +327,7 @@ const char * cameraSensitivityNames[] =
 	"Highest",
 };
 
-const char * cameraSmoothingNames[] =
+const char* cameraSmoothingNames[] =
 {
 	"Highest",
 	"High (Vanilla Default)",
@@ -336,7 +336,7 @@ const char * cameraSmoothingNames[] =
 };
 
 
-const char * newCharacterNames[] =
+const char* newCharacterNames[] =
 {
 	"Dante",
 	"Bob",
@@ -356,7 +356,7 @@ constexpr uint8 newCharacters[] =
 	CHARACTER::BOSS_VERGIL,
 };
 
-const char * collisionGroupNames[] =
+const char* collisionGroupNames[] =
 {
 	"Player",
 	"Enemy"
@@ -368,7 +368,7 @@ constexpr uint8 collisionGroups[] =
 	COLLISION_GROUP::ENEMY,
 };
 
-const char * styleNamesDante[] =
+const char* styleNamesDante[] =
 {
 	"Swordmaster",
 	"Gunslinger",
@@ -388,7 +388,7 @@ constexpr uint8 stylesDante[] =
 	STYLE::DOPPELGANGER,
 };
 
-const char * styleNamesVergil[] =
+const char* styleNamesVergil[] =
 {
 	"Dark Slayer",
 	"Quicksilver",
@@ -402,7 +402,7 @@ constexpr uint8 stylesVergil[] =
 	STYLE::DOPPELGANGER,
 };
 
-const char * meleeWeaponNamesDante[] =
+const char* meleeWeaponNamesDante[] =
 {
 	"Rebellion",
 	"Cerberus",
@@ -420,7 +420,7 @@ constexpr uint8 meleeWeaponsDante[] =
 	WEAPON::BEOWULF_DANTE,
 };
 
-const char * meleeWeaponNamesVergil[] =
+const char* meleeWeaponNamesVergil[] =
 {
 	"Yamato",
 	"Beowulf",
@@ -434,7 +434,7 @@ constexpr uint8 meleeWeaponsVergil[] =
 	WEAPON::YAMATO_FORCE_EDGE,
 };
 
-const char * rangedWeaponNamesDante[] =
+const char* rangedWeaponNamesDante[] =
 {
 	"Ebony & Ivory",
 	"Shotgun",
@@ -452,19 +452,19 @@ constexpr uint8 rangedWeaponsDante[] =
 	WEAPON::KALINA_ANN,
 };
 
-const char * weaponSwitchTypeNames[] =
+const char* weaponSwitchTypeNames[] =
 {
 	"Linear",
 	"Arbitrary",
 };
 
-const char * stickNames[] =
+const char* stickNames[] =
 {
 	"Right Stick",
 	"Left Stick",
 };
 
-const char * styleRankNames[] =
+const char* styleRankNames[] =
 {
 	"None",
 	"Dope",
@@ -476,7 +476,7 @@ const char * styleRankNames[] =
 	"Stylish",
 };
 
-const char * missionNames[] =
+const char* missionNames[] =
 {
 	"Movie",
 	"Mission 1",
@@ -502,7 +502,7 @@ const char * missionNames[] =
 	"Bloody Palace",
 };
 
-const char * modeNames[] =
+const char* modeNames[] =
 {
 	"Easy",
 	"Normal",
@@ -522,7 +522,7 @@ constexpr uint32 modes[] =
 	MODE::HEAVEN_OR_HELL,
 };
 
-const char * floorNames[] =
+const char* floorNames[] =
 {
 	"Floor 1",
 	"Floor 2",
@@ -553,7 +553,7 @@ const char * floorNames[] =
 	"Jester 3",
 };
 
-const char * sceneNames[] =
+const char* sceneNames[] =
 {
 	"SCENE::BOOT",
 	"SCENE::INTRO",
@@ -567,7 +567,7 @@ const char * sceneNames[] =
 	"SCENE::GAME_OVER",
 };
 
-const char * eventNames[] =
+const char* eventNames[] =
 {
 	"EVENT::INIT",
 	"EVENT::MAIN",
@@ -584,7 +584,7 @@ const char * eventNames[] =
 	"EVENT::END",
 };
 
-const char * trackFilenames[] =
+const char* trackFilenames[] =
 {
 	"Battle_00.ogg",
 	"Battle_01.ogg",
@@ -742,7 +742,7 @@ const char * trackFilenames[] =
 	"ZZZ.ogg",
 };
 
-const char * trackNames[] =
+const char* trackNames[] =
 {
 	"Battle_00",
 	"Battle_01",
@@ -904,7 +904,24 @@ static_assert(countof(trackFilenames) == countof(trackNames));
 
 #pragma endregion
 
+void PauseWhenGUIOpen() {
+	if (!g_show && !pausedGameGUIOpen) {
+		activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed;
+		activeConfig.Speed.turbo = queuedConfig.Speed.turbo;
+		Speed::Toggle(true);
+		Speed::Toggle(false);
+		pausedGameGUIOpen = true;
 
+	}
+	else if (g_show && pausedGameGUIOpen) {
+		activeConfig.Speed.mainSpeed = 0;
+		activeConfig.Speed.turbo = 0;
+		Speed::Toggle(true);
+		Speed::Toggle(false);
+		pausedGameGUIOpen = false;
+
+	}
+}
 
 
 
@@ -914,45 +931,45 @@ struct TextureData
 {
 	bool enable;
 	bool run;
-	const char * label;
-	ID3D11ShaderResourceView * textureAddr;
+	const char* label;
+	ID3D11ShaderResourceView* textureAddr;
 
 	uint32 lastX;
 	uint32 lastY;
 
 	void Render
 	(
-		Config::TextureData & activeData,
-		Config::TextureData & queuedData
+		Config::TextureData& activeData,
+		Config::TextureData& queuedData
 	);
 	void Settings
 	(
-		Config::TextureData & activeData,
-		Config::TextureData & queuedData
+		Config::TextureData& activeData,
+		Config::TextureData& queuedData
 	);
-	void SetPosition(Config::TextureData & data, bool ranged);
+	void SetPosition(Config::TextureData& data, bool ranged);
 };
 
 void TextureData::Render
 (
-	Config::TextureData & activeData,
-	Config::TextureData & queuedData
+	Config::TextureData& activeData,
+	Config::TextureData& queuedData
 )
 {
 	if
-	(
-		!enable ||
-		!textureAddr
-	)
+		(
+			!enable ||
+			!textureAddr
+			)
 	{
 		return;
 	}
 
-	auto & activeSize = *reinterpret_cast<ImVec2 *>(&activeData.size);
-	auto & queuedSize = *reinterpret_cast<ImVec2 *>(&queuedData.size);
+	auto& activeSize = *reinterpret_cast<ImVec2*>(&activeData.size);
+	auto& queuedSize = *reinterpret_cast<ImVec2*>(&queuedData.size);
 
-	auto & activePos = *reinterpret_cast<ImVec2 *>(&activeData.pos);
-	auto & queuedPos = *reinterpret_cast<ImVec2 *>(&queuedData.pos);
+	auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
+	auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
 
 	if (!run)
 	{
@@ -972,15 +989,15 @@ void TextureData::Render
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
 
 	if
-	(
-		ImGui::Begin
 		(
-			label,
-			&enable,
-			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize 
-			| ImGuiWindowFlags_NoMove
-		)
-	)
+			ImGui::Begin
+			(
+				label,
+				&enable,
+				ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize
+				| ImGuiWindowFlags_NoMove
+			)
+			)
 	{
 		activePos = queuedPos = ImGui::GetWindowPos();
 
@@ -988,10 +1005,10 @@ void TextureData::Render
 		uint32 y = static_cast<uint32>(activeData.pos.y);
 
 		if
-		(
-			(lastX != x) ||
-			(lastY != y)
-		)
+			(
+				(lastX != x) ||
+				(lastY != y)
+				)
 		{
 			lastX = x;
 			lastY = y;
@@ -1013,15 +1030,15 @@ void TextureData::Render
 
 void TextureData::Settings
 (
-	Config::TextureData & activeData,
-	Config::TextureData & queuedData
+	Config::TextureData& activeData,
+	Config::TextureData& queuedData
 )
 {
-	auto & activeSize = *reinterpret_cast<ImVec2 *>(&activeData.size);
-	auto & queuedSize = *reinterpret_cast<ImVec2 *>(&queuedData.size);
+	auto& activeSize = *reinterpret_cast<ImVec2*>(&activeData.size);
+	auto& queuedSize = *reinterpret_cast<ImVec2*>(&queuedData.size);
 
-	auto & activePos = *reinterpret_cast<ImVec2 *>(&activeData.pos);
-	auto & queuedPos = *reinterpret_cast<ImVec2 *>(&queuedData.pos);
+	auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
+	auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
 
 	ImGui::Text(label);
 
@@ -1037,51 +1054,51 @@ void TextureData::Settings
 	ImGui::PushItemWidth(150);
 
 	GUI_Input2<float>
-	(
-		"Width",
-		activeSize.x,
-		queuedSize.x,
-		1,
-		"%g",
-		ImGuiInputTextFlags_EnterReturnsTrue
-	);
-	GUI_Input2<float>
-	(
-		"Height",
-		activeSize.y,
-		queuedSize.y,
-		1,
-		"%g",
-		ImGuiInputTextFlags_EnterReturnsTrue
-	);
-
-	if
-	(
-		GUI_Input2<float>
 		(
-			"X",
-			activePos.x,
-			queuedPos.x,
+			"Width",
+			activeSize.x,
+			queuedSize.x,
 			1,
 			"%g",
 			ImGuiInputTextFlags_EnterReturnsTrue
-		)
-	)
+		);
+	GUI_Input2<float>
+		(
+			"Height",
+			activeSize.y,
+			queuedSize.y,
+			1,
+			"%g",
+			ImGuiInputTextFlags_EnterReturnsTrue
+		);
+
+	if
+		(
+			GUI_Input2<float>
+			(
+				"X",
+				activePos.x,
+				queuedPos.x,
+				1,
+				"%g",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			)
+			)
 	{
 		ImGui::SetWindowPos(label, activePos);
 	}
 	if
-	(
-		GUI_Input2<float>
 		(
-			"Y",
-			activePos.y,
-			queuedPos.y,
-			1,
-			"%g",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		)
-	)
+			GUI_Input2<float>
+			(
+				"Y",
+				activePos.y,
+				queuedPos.y,
+				1,
+				"%g",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			)
+			)
 	{
 		ImGui::SetWindowPos(label, activePos);
 	}
@@ -1089,16 +1106,17 @@ void TextureData::Settings
 	ImGui::PopItemWidth();
 }
 
-void TextureData::SetPosition(Config::TextureData & data, bool ranged)
+void TextureData::SetPosition(Config::TextureData& data, bool ranged)
 {
-	auto & pos = *reinterpret_cast<ImVec2 *>(&data.pos);
+	auto& pos = *reinterpret_cast<ImVec2*>(&data.pos);
 
-	if(!ranged) {
+	if (!ranged) {
 		ImGui::SetWindowPos(label, ImVec2(pos.x + activeConfig.weaponWheelHorizontalMelee, pos.y + activeConfig.weaponWheelHeight));
-	} else {
+	}
+	else {
 		ImGui::SetWindowPos(label, ImVec2(pos.x + activeConfig.weaponWheelHorizontalRanged, pos.y + activeConfig.weaponWheelHeight));
 	}
-	
+
 }
 
 enum
@@ -1131,7 +1149,7 @@ enum
 	TEXTURE_COUNT,
 };
 
-const char * textureFilenames[] =
+const char* textureFilenames[] =
 {
 	"arrow_0.png",
 	"arrow_72.png",
@@ -1160,7 +1178,7 @@ const char * textureFilenames[] =
 	"weapon_0013.png",
 };
 
-ID3D11ShaderResourceView * textureAddrs[TEXTURE_COUNT] = {};
+ID3D11ShaderResourceView* textureAddrs[TEXTURE_COUNT] = {};
 
 constexpr uint8 textureWeaponMap[WEAPON::MAX] =
 {
@@ -1230,7 +1248,7 @@ struct WeaponSwitchControllerTextureData
 
 WeaponSwitchControllerTextureData meleeWeaponSwitchControllerTextureData = {};
 
-const char * meleeWeaponSwitchControllerBackgroundNames[5] =
+const char* meleeWeaponSwitchControllerBackgroundNames[5] =
 {
 	"MeleeWeaponSwitchControllerBackground0",
 	"MeleeWeaponSwitchControllerBackground1",
@@ -1240,7 +1258,7 @@ const char * meleeWeaponSwitchControllerBackgroundNames[5] =
 };
 
 
-const char * meleeWeaponSwitchControllerHighlightNames[5] =
+const char* meleeWeaponSwitchControllerHighlightNames[5] =
 {
 	"MeleeWeaponSwitchControllerHighlight0",
 	"MeleeWeaponSwitchControllerHighlight1",
@@ -1249,7 +1267,7 @@ const char * meleeWeaponSwitchControllerHighlightNames[5] =
 	"MeleeWeaponSwitchControllerHighlight4",
 };
 
-const char * meleeWeaponSwitchControllerIconNames[5] =
+const char* meleeWeaponSwitchControllerIconNames[5] =
 {
 	"MeleeWeaponSwitchControllerIcon0",
 	"MeleeWeaponSwitchControllerIcon1",
@@ -1258,13 +1276,13 @@ const char * meleeWeaponSwitchControllerIconNames[5] =
 	"MeleeWeaponSwitchControllerIcon4",
 };
 
-const char * meleeWeaponSwitchControllerArrowName = "MeleeWeaponSwitchControllerArrow";
+const char* meleeWeaponSwitchControllerArrowName = "MeleeWeaponSwitchControllerArrow";
 
 
 
 WeaponSwitchControllerTextureData rangedWeaponSwitchControllerTextureData = {};
 
-const char * rangedWeaponSwitchControllerBackgroundNames[5] =
+const char* rangedWeaponSwitchControllerBackgroundNames[5] =
 {
 	"RangedWeaponSwitchControllerBackground0",
 	"RangedWeaponSwitchControllerBackground1",
@@ -1273,7 +1291,7 @@ const char * rangedWeaponSwitchControllerBackgroundNames[5] =
 	"RangedWeaponSwitchControllerBackground4",
 };
 
-const char * rangedWeaponSwitchControllerIconNames[5] =
+const char* rangedWeaponSwitchControllerIconNames[5] =
 {
 	"RangedWeaponSwitchControllerIcon0",
 	"RangedWeaponSwitchControllerIcon1",
@@ -1282,7 +1300,7 @@ const char * rangedWeaponSwitchControllerIconNames[5] =
 	"RangedWeaponSwitchControllerIcon4",
 };
 
-const char * rangedWeaponSwitchControllerHighlightNames[5] =
+const char* rangedWeaponSwitchControllerHighlightNames[5] =
 {
 	"RangedWeaponSwitchControllerHighlight0",
 	"RangedWeaponSwitchControllerHighlight1",
@@ -1291,38 +1309,38 @@ const char * rangedWeaponSwitchControllerHighlightNames[5] =
 	"RangedWeaponSwitchControllerHighlight4",
 };
 
-const char * rangedWeaponSwitchControllerArrowName = "RangedWeaponSwitchControllerArrow";
+const char* rangedWeaponSwitchControllerArrowName = "RangedWeaponSwitchControllerArrow";
 
-void MeleeWeaponWheelTimeTracker() 
+void MeleeWeaponWheelTimeTracker()
 {
-	
+
 	meleeWeaponWheelTiming.wheelRunning = true;
 	while (meleeWeaponWheelTiming.wheelTime > 0) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		meleeWeaponWheelTiming.wheelTime--;
 	}
-    
 
-	if (meleeWeaponWheelTiming.wheelTime == 0) 
+
+	if (meleeWeaponWheelTiming.wheelTime == 0)
 	{
 		meleeWeaponWheelTiming.wheelAppear = false;
-   		meleeWeaponWheelTiming.wheelRunning = false;
+		meleeWeaponWheelTiming.wheelRunning = false;
 	}
 }
 
-void RangedWeaponWheelTimeTracker() 
+void RangedWeaponWheelTimeTracker()
 {
 	rangedWeaponWheelTiming.wheelRunning = true;
 	while (rangedWeaponWheelTiming.wheelTime > 0) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		rangedWeaponWheelTiming.wheelTime--;
 	}
-    
 
-	if (rangedWeaponWheelTiming.wheelTime == 0) 
+
+	if (rangedWeaponWheelTiming.wheelTime == 0)
 	{
 		rangedWeaponWheelTiming.wheelAppear = false;
-   		rangedWeaponWheelTiming.wheelRunning = false;
+		rangedWeaponWheelTiming.wheelRunning = false;
 	}
 }
 
@@ -1331,9 +1349,9 @@ void RangedWeaponWheelTimeTracker()
 // @Todo: Templates.
 void MeleeWeaponSwitchController()
 {
-	auto & textureData = meleeWeaponSwitchControllerTextureData;
-	auto & activeConfigTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
-	auto & queuedConfigTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
+	auto& textureData = meleeWeaponSwitchControllerTextureData;
+	auto& activeConfigTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
+	auto& queuedConfigTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
 
 	if (g_showTextures)
 	{
@@ -1394,17 +1412,18 @@ void MeleeWeaponSwitchController()
 		if (!g_show)
 		{
 			ImGui::SetWindowFocus(textureData.icons[0].label);
-		} else {
+		}
+		else {
 			ImGui::SetWindowFocus(DMC3C_TITLE);
 		}
-		
+
 
 		return;
 	}
 
 
 
-	auto & sessionData = *reinterpret_cast<SessionData *>(appBaseAddr + 0xC8F250);
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 
 	if (!InGame())
@@ -1412,38 +1431,38 @@ void MeleeWeaponSwitchController()
 		return;
 	}
 
-	auto pool_1414 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E28);
+	auto pool_1431 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if
-	(
-		!pool_1414 ||
-		!pool_1414[3]
-	)
+		(
+			!pool_1431 ||
+			!pool_1431[3]
+			)
 	{
 		return;
 	}
-	auto & actorData = *reinterpret_cast<PlayerActorData *>(pool_1414[3]);
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_1431[3]);
 
-	auto & characterData = GetCharacterData(actorData);
+	auto& characterData = GetCharacterData(actorData);
 
-	auto & gamepad = GetGamepad(actorData.newPlayerIndex);
+	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
 
 	if
-	(
-		InCutscene() ||
-		InCredits() ||
-		!activeConfig.Actor.enable ||
-		(!activeConfig.weaponWheelEnabled) ||
-		!(
-			(characterData.character == CHARACTER::DANTE ) ||
-			(characterData.character == CHARACTER::VERGIL)
-		)
-	)
+		(
+			InCutscene() ||
+			InCredits() ||
+			!activeConfig.Actor.enable ||
+			(!activeConfig.weaponWheelEnabled) ||
+			!(
+				(characterData.character == CHARACTER::DANTE) ||
+				(characterData.character == CHARACTER::VERGIL)
+				)
+			)
 	{
 		return;
 	}
 
 	// HIDE WEAPON UI WHEN NOT HOLDING BUTTON, WITH DELAY
-	if(!activeConfig.MeleeWeaponWheel.alwaysShow) {
+	if (!activeConfig.MeleeWeaponWheel.alwaysShow) {
 		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))) {
 			meleeWeaponWheelTiming.wheelTime = activeConfig.MeleeWeaponWheel.timeout;
 			meleeWeaponWheelTiming.wheelAppear = true;
@@ -1451,8 +1470,8 @@ void MeleeWeaponSwitchController()
 
 		if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)) && meleeWeaponWheelTiming.wheelAppear)) {
 			if (!meleeWeaponWheelTiming.wheelRunning) {
-					std::thread meleewheeltracker(MeleeWeaponWheelTimeTracker);
-					meleewheeltracker.detach();
+				std::thread meleewheeltracker(MeleeWeaponWheelTimeTracker);
+				meleewheeltracker.detach();
 			}
 		}
 
@@ -1474,9 +1493,9 @@ void MeleeWeaponSwitchController()
 	else {
 		meleeWeaponWheelTiming.wheelAppear = true;
 	}
-	
-	
-	
+
+
+
 	if (!meleeWeaponWheelTiming.wheelAppear) {
 		return;
 	}
@@ -1486,16 +1505,16 @@ void MeleeWeaponSwitchController()
 	/*if (!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)))
 	{
 		if (!wheelRunning) {
-                std::thread wheeltracker(WeaponWheelTimeTracker);
-                wheeltracker.detach();
-        }
-		
+				std::thread wheeltracker(WeaponWheelTimeTracker);
+				wheeltracker.detach();
+		}
+
 		if(!wheelInCooldown) {
 			wheelInCooldown = true;
 			return;
 		}
-		
-		
+
+
 	}*/
 
 	auto count = characterData.meleeWeaponCount;
@@ -1520,14 +1539,14 @@ void MeleeWeaponSwitchController()
 		meleeWeaponIndex = 0;
 	}
 
-	
+
 	textureData.highlights[meleeWeaponIndex].Render
 	(
 		activeConfigTextureData.highlights[meleeWeaponIndex],
 		queuedConfigTextureData.highlights[meleeWeaponIndex]
 	);
 
-	
+
 
 
 	{
@@ -1547,38 +1566,38 @@ void MeleeWeaponSwitchController()
 
 			switch (weapon)
 			{
-				case WEAPON::REBELLION:
+			case WEAPON::REBELLION:
+			{
+				if (sessionData.unlockDevilTrigger)
 				{
-					if (sessionData.unlockDevilTrigger)
-					{
-						textureId = TEXTURE_WEAPON_REBELLION_2;
-					}
-
-					if (actorData.sparda)
-					{
-						textureId = TEXTURE_WEAPON_FORCE_EDGE;
-					}
-
-					break;
+					textureId = TEXTURE_WEAPON_REBELLION_2;
 				}
-				case WEAPON::YAMATO_VERGIL:
+
+				if (actorData.sparda)
 				{
-					if (IsNeroAngelo(actorData))
-					{
-						textureId = TEXTURE_WEAPON_YAMATO_NERO_ANGELO;
-					}
-
-					break;
+					textureId = TEXTURE_WEAPON_FORCE_EDGE;
 				}
-				case WEAPON::BEOWULF_VERGIL:
+
+				break;
+			}
+			case WEAPON::YAMATO_VERGIL:
+			{
+				if (IsNeroAngelo(actorData))
 				{
-					if (IsNeroAngelo(actorData))
-					{
-						textureId = TEXTURE_WEAPON_BEOWULF_NERO_ANGELO;
-					}
-
-					break;
+					textureId = TEXTURE_WEAPON_YAMATO_NERO_ANGELO;
 				}
+
+				break;
+			}
+			case WEAPON::BEOWULF_VERGIL:
+			{
+				if (IsNeroAngelo(actorData))
+				{
+					textureId = TEXTURE_WEAPON_BEOWULF_NERO_ANGELO;
+				}
+
+				break;
+			}
 			}
 
 			textureData.icons[index].textureAddr = textureAddrs[textureId];
@@ -1590,12 +1609,12 @@ void MeleeWeaponSwitchController()
 					queuedConfigTextureData.icons[index]
 				);
 			}
-			
+
 		}
-		
+
 	}
 
-	
+
 
 	{
 		auto textureId = textureArrowMap[meleeWeaponIndex];
@@ -1620,17 +1639,18 @@ void MeleeWeaponSwitchController()
 	if (!g_show)
 	{
 		ImGui::SetWindowFocus(textureData.icons[meleeWeaponIndex].label);
-	} else {
+	}
+	else {
 		ImGui::SetWindowFocus(DMC3C_TITLE);
 	}
-	
+
 }
 
 void RangedWeaponSwitchController()
 {
-	auto & textureData = rangedWeaponSwitchControllerTextureData;
-	auto & activeConfigTextureData = activeConfig.rangedWeaponSwitchControllerTextureData;
-	auto & queuedConfigTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
+	auto& textureData = rangedWeaponSwitchControllerTextureData;
+	auto& activeConfigTextureData = activeConfig.rangedWeaponSwitchControllerTextureData;
+	auto& queuedConfigTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
 
 	if (g_showTextures)
 	{
@@ -1693,17 +1713,18 @@ void RangedWeaponSwitchController()
 		if (!g_show)
 		{
 			ImGui::SetWindowFocus(textureData.icons[0].label);
-		} else {
+		}
+		else {
 			ImGui::SetWindowFocus(DMC3C_TITLE);
 		}
-		
+
 
 		return;
 	}
 
 
 
-	auto & sessionData = *reinterpret_cast<SessionData *>(appBaseAddr + 0xC8F250);
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 
 	if (!InGame())
@@ -1711,54 +1732,54 @@ void RangedWeaponSwitchController()
 		return;
 	}
 
-	auto pool_1703 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E28);
+	auto pool_1720 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if
-	(
-		!pool_1703 ||
-		!pool_1703[3]
-	)
+		(
+			!pool_1720 ||
+			!pool_1720[3]
+			)
 	{
 		return;
 	}
-	auto & actorData = *reinterpret_cast<PlayerActorData *>(pool_1703[3]);
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_1720[3]);
 
-	auto & characterData = GetCharacterData(actorData);
+	auto& characterData = GetCharacterData(actorData);
 
-	auto & gamepad = GetGamepad(actorData.newPlayerIndex);
+	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
 
 	if
-	(
-		InCutscene() ||
-		InCredits() ||
-		!activeConfig.Actor.enable ||
-		(!activeConfig.weaponWheelEnabled) ||
-		(characterData.character != CHARACTER::DANTE)
-	)
+		(
+			InCutscene() ||
+			InCredits() ||
+			!activeConfig.Actor.enable ||
+			(!activeConfig.weaponWheelEnabled) ||
+			(characterData.character != CHARACTER::DANTE)
+			)
 	{
 		return;
 	}
 
 	//HIDE WEAPON SWITCH UI WHEN NOT HOLDING BUTTON, WITH DELAY
-	if(!activeConfig.RangedWeaponWheel.alwaysShow) {
+	if (!activeConfig.RangedWeaponWheel.alwaysShow) {
 		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
 			rangedWeaponWheelTiming.wheelTime = activeConfig.RangedWeaponWheel.timeout;
 			rangedWeaponWheelTiming.wheelAppear = true;
-			
+
 		}
 
 		if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)) && rangedWeaponWheelTiming.wheelAppear)) {
 			if (!rangedWeaponWheelTiming.wheelRunning) {
-					std::thread rangedwheeltracker(RangedWeaponWheelTimeTracker);
-					rangedwheeltracker.detach();
+				std::thread rangedwheeltracker(RangedWeaponWheelTimeTracker);
+				rangedwheeltracker.detach();
 			}
 		}
 	}
 	else {
 		rangedWeaponWheelTiming.wheelAppear = true;
 	}
-	
-	
-	
+
+
+
 	if (!rangedWeaponWheelTiming.wheelAppear) {
 		return;
 	}
@@ -1834,18 +1855,19 @@ void RangedWeaponSwitchController()
 	if (!g_show)
 	{
 		ImGui::SetWindowFocus(textureData.icons[rangedWeaponIndex].label);
-	} else {
+	}
+	else {
 		ImGui::SetWindowFocus(DMC3C_TITLE);
 	}
-	
+
 }
 
 void UpdateWeaponSwitchControllerTexturePositions()
 {
 	// Melee
 	{
-		auto & textureData = meleeWeaponSwitchControllerTextureData;
-		auto & configTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
+		auto& textureData = meleeWeaponSwitchControllerTextureData;
+		auto& configTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
 
 		old_for_all(uint8, index, 5)
 		{
@@ -1868,8 +1890,8 @@ void UpdateWeaponSwitchControllerTexturePositions()
 
 	// Ranged
 	{
-		auto & textureData = rangedWeaponSwitchControllerTextureData;
-		auto & configTextureData = activeConfig.rangedWeaponSwitchControllerTextureData;
+		auto& textureData = rangedWeaponSwitchControllerTextureData;
+		auto& configTextureData = activeConfig.rangedWeaponSwitchControllerTextureData;
 
 		old_for_all(uint8, index, 5)
 		{
@@ -1893,67 +1915,67 @@ void UpdateWeaponSwitchControllerTexturePositions()
 void UpdateWeaponWheelPos()
 {
 	{
-			const float multiplier = activeConfig.weaponWheelScaleMultiplier;
+		const float multiplier = activeConfig.weaponWheelScaleMultiplier;
 
-			CopyMemory
-			(
-				&queuedConfig.meleeWeaponSwitchControllerTextureData,
-				&defaultConfig.meleeWeaponSwitchControllerTextureData,
-				sizeof(queuedConfig.meleeWeaponSwitchControllerTextureData)
-			);
+		CopyMemory
+		(
+			&queuedConfig.meleeWeaponSwitchControllerTextureData,
+			&defaultConfig.meleeWeaponSwitchControllerTextureData,
+			sizeof(queuedConfig.meleeWeaponSwitchControllerTextureData)
+		);
 
-			auto & configTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
+		auto& configTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
 
-			auto values = reinterpret_cast<float *>(&configTextureData);
-			uint32 count = (sizeof(configTextureData) / 4);
+		auto values = reinterpret_cast<float*>(&configTextureData);
+		uint32 count = (sizeof(configTextureData) / 4);
 
-			old_for_all(uint32, index, count)
-			{
-				auto & value = values[index];
-
-				value *= multiplier;
-			}
-
-			CopyMemory
-			(
-				&activeConfig.meleeWeaponSwitchControllerTextureData,
-				&queuedConfig.meleeWeaponSwitchControllerTextureData,
-				sizeof(activeConfig.meleeWeaponSwitchControllerTextureData)
-			);
-		}
-
-		// Ranged
+		old_for_all(uint32, index, count)
 		{
-			const float multiplier = activeConfig.weaponWheelScaleMultiplier;
+			auto& value = values[index];
 
-			CopyMemory
-			(
-				&queuedConfig.rangedWeaponSwitchControllerTextureData,
-				&defaultConfig.rangedWeaponSwitchControllerTextureData,
-				sizeof(queuedConfig.rangedWeaponSwitchControllerTextureData)
-			);
-
-			auto & configTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
-
-			auto values = reinterpret_cast<float *>(&configTextureData);
-			uint32 count = (sizeof(configTextureData) / 4);
-
-			old_for_all(uint32, index, count)
-			{
-				auto & value = values[index];
-
-				value *= multiplier;
-			}
-
-			CopyMemory
-			(
-				&activeConfig.rangedWeaponSwitchControllerTextureData,
-				&queuedConfig.rangedWeaponSwitchControllerTextureData,
-				sizeof(activeConfig.rangedWeaponSwitchControllerTextureData)
-			);
+			value *= multiplier;
 		}
 
-		UpdateWeaponSwitchControllerTexturePositions();
+		CopyMemory
+		(
+			&activeConfig.meleeWeaponSwitchControllerTextureData,
+			&queuedConfig.meleeWeaponSwitchControllerTextureData,
+			sizeof(activeConfig.meleeWeaponSwitchControllerTextureData)
+		);
+	}
+
+	// Ranged
+	{
+		const float multiplier = activeConfig.weaponWheelScaleMultiplier;
+
+		CopyMemory
+		(
+			&queuedConfig.rangedWeaponSwitchControllerTextureData,
+			&defaultConfig.rangedWeaponSwitchControllerTextureData,
+			sizeof(queuedConfig.rangedWeaponSwitchControllerTextureData)
+		);
+
+		auto& configTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
+
+		auto values = reinterpret_cast<float*>(&configTextureData);
+		uint32 count = (sizeof(configTextureData) / 4);
+
+		old_for_all(uint32, index, count)
+		{
+			auto& value = values[index];
+
+			value *= multiplier;
+		}
+
+		CopyMemory
+		(
+			&activeConfig.rangedWeaponSwitchControllerTextureData,
+			&queuedConfig.rangedWeaponSwitchControllerTextureData,
+			sizeof(activeConfig.rangedWeaponSwitchControllerTextureData)
+		);
+	}
+
+	UpdateWeaponSwitchControllerTexturePositions();
 }
 
 
@@ -1967,7 +1989,7 @@ void WeaponSwitchController()
 
 		// Melee
 		{
-			auto & textureData = meleeWeaponSwitchControllerTextureData;
+			auto& textureData = meleeWeaponSwitchControllerTextureData;
 
 			old_for_all(uint8, index, 5)
 			{
@@ -2011,7 +2033,7 @@ void WeaponSwitchController()
 
 		// Ranged
 		{
-			auto & textureData = rangedWeaponSwitchControllerTextureData;
+			auto& textureData = rangedWeaponSwitchControllerTextureData;
 
 			old_for_all(uint8, index, 5)
 			{
@@ -2057,7 +2079,7 @@ void WeaponSwitchController()
 	UpdateWeaponWheelPos();
 	MeleeWeaponSwitchController();
 	RangedWeaponSwitchController();
-	
+
 }
 
 
@@ -2151,7 +2173,7 @@ void WeaponSwitchControllerSettings()
 	(
 		"Enable Analog Weapon Selection",
 		activeConfig.weaponWheelAnalogSelectionEnabled,
-		queuedConfig.weaponWheelAnalogSelectionEnabled 
+		queuedConfig.weaponWheelAnalogSelectionEnabled
 	);
 
 	GUI_Checkbox2
@@ -2178,29 +2200,29 @@ void WeaponSwitchControllerSettings()
 
 
 	GUI_InputDefault2<uint32>
-	(
+		(
 			"Melee Wheel Timeout",
 			activeConfig.MeleeWeaponWheel.timeout,
 			queuedConfig.MeleeWeaponWheel.timeout,
 			defaultConfig.MeleeWeaponWheel.timeout,
 			1,
 			"%u"
-	);
+		);
 
 	GUI_InputDefault2<uint32>
-	(
+		(
 			"Ranged Wheel Timeout",
 			activeConfig.RangedWeaponWheel.timeout,
 			queuedConfig.RangedWeaponWheel.timeout,
 			defaultConfig.RangedWeaponWheel.timeout,
 			1,
 			"%u"
-	);
+		);
 	ImGui::Text("");
 
 
 	GUI_InputDefault2<float>
-	(
+		(
 			"Wheel Scale Multiplier",
 			activeConfig.weaponWheelScaleMultiplier,
 			queuedConfig.weaponWheelScaleMultiplier,
@@ -2208,10 +2230,10 @@ void WeaponSwitchControllerSettings()
 			0.1f,
 			"%g",
 			ImGuiInputTextFlags_EnterReturnsTrue
-	);
+		);
 
 	GUI_InputDefault2<float>
-	(
+		(
 			"Melee Wheel Horizontal",
 			activeConfig.weaponWheelHorizontalMelee,
 			queuedConfig.weaponWheelHorizontalMelee,
@@ -2219,11 +2241,11 @@ void WeaponSwitchControllerSettings()
 			1,
 			"%g",
 			ImGuiInputTextFlags_EnterReturnsTrue
-	);
+		);
 
-	
+
 	GUI_InputDefault2<float>
-	(
+		(
 			"Ranged Wheel Horizontal",
 			activeConfig.weaponWheelHorizontalRanged,
 			queuedConfig.weaponWheelHorizontalRanged,
@@ -2231,11 +2253,11 @@ void WeaponSwitchControllerSettings()
 			1,
 			"%g",
 			ImGuiInputTextFlags_EnterReturnsTrue
-	);
+		);
 
 
 	GUI_InputDefault2<float>
-	(
+		(
 			"Wheel Height",
 			activeConfig.weaponWheelHeight,
 			queuedConfig.weaponWheelHeight,
@@ -2243,9 +2265,9 @@ void WeaponSwitchControllerSettings()
 			1,
 			"%g",
 			ImGuiInputTextFlags_EnterReturnsTrue
-	);
+		);
 
-	
+
 
 	/*GUI_Input
 	(
@@ -2255,14 +2277,14 @@ void WeaponSwitchControllerSettings()
 		"%g"
 	);*/
 
-	
-		// Melee
-		UpdateWeaponWheelPos();
 
-		//GUI::save = true;
-	
+	// Melee
+	UpdateWeaponWheelPos();
 
-	
+	//GUI::save = true;
+
+
+
 	ImGui::Text("");
 
 	ImGui::PopItemWidth();
@@ -2381,8 +2403,8 @@ void Actor_UpdateIndices()
 {
 	old_for_all(uint8, playerIndex, PLAYER_COUNT)
 	{
-		auto & activePlayerData = GetActivePlayerData(playerIndex);
-		auto & queuedPlayerData = GetQueuedPlayerData(playerIndex);
+		auto& activePlayerData = GetActivePlayerData(playerIndex);
+		auto& queuedPlayerData = GetQueuedPlayerData(playerIndex);
 
 
 
@@ -2400,34 +2422,34 @@ void Actor_UpdateIndices()
 			activePlayerData.button
 		);
 
-		old_for_all(uint8, characterIndex, CHARACTER_COUNT){
-		old_for_all(uint8, entityIndex   , ENTITY_COUNT   )
-		{
-			auto & activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
-			auto & queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
-
-
-
-			UpdateMapIndex
-			(
-				newCharacters,
-				Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
-				queuedCharacterData.character
-			);
-
-
-
-			old_for_all(uint8, styleIndex, STYLE_COUNT)
+		old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
+			old_for_all(uint8, entityIndex, ENTITY_COUNT)
 			{
+				auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
+				auto& queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
+
+
+
 				UpdateMapIndex
 				(
-					buttons,
-					Actor_styleButtonIndices[playerIndex][characterIndex][entityIndex][styleIndex],
-					queuedCharacterData.styleButtons[styleIndex]
+					newCharacters,
+					Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
+					queuedCharacterData.character
 				);
 
-				switch (queuedCharacterData.character)
+
+
+				old_for_all(uint8, styleIndex, STYLE_COUNT)
 				{
+					UpdateMapIndex
+					(
+						buttons,
+						Actor_styleButtonIndices[playerIndex][characterIndex][entityIndex][styleIndex],
+						queuedCharacterData.styleButtons[styleIndex]
+					);
+
+					switch (queuedCharacterData.character)
+					{
 					case CHARACTER::DANTE:
 					{
 						UpdateMapIndex
@@ -2462,34 +2484,35 @@ void Actor_UpdateIndices()
 
 						break;
 					}
+					}
+				}
+
+				if (queuedCharacterData.character != CHARACTER::DANTE)
+				{
+					continue;
+				}
+
+				old_for_all(uint8, meleeWeaponIndex, MELEE_WEAPON_COUNT_DANTE)
+				{
+					UpdateMapIndex
+					(
+						meleeWeaponsDante,
+						Actor_meleeWeaponIndices[playerIndex][characterIndex][entityIndex][meleeWeaponIndex],
+						queuedCharacterData.meleeWeapons[meleeWeaponIndex]
+					);
+				}
+
+				old_for_all(uint8, rangedWeaponIndex, RANGED_WEAPON_COUNT_DANTE)
+				{
+					UpdateMapIndex
+					(
+						rangedWeaponsDante,
+						Actor_rangedWeaponIndices[playerIndex][characterIndex][entityIndex][rangedWeaponIndex],
+						queuedCharacterData.rangedWeapons[rangedWeaponIndex]
+					);
 				}
 			}
-
-			if (queuedCharacterData.character != CHARACTER::DANTE)
-			{
-				continue;
-			}
-
-			old_for_all(uint8, meleeWeaponIndex, MELEE_WEAPON_COUNT_DANTE)
-			{
-				UpdateMapIndex
-				(
-					meleeWeaponsDante,
-					Actor_meleeWeaponIndices[playerIndex][characterIndex][entityIndex][meleeWeaponIndex],
-					queuedCharacterData.meleeWeapons[meleeWeaponIndex]
-				);
-			}
-
-			old_for_all(uint8, rangedWeaponIndex, RANGED_WEAPON_COUNT_DANTE)
-			{
-				UpdateMapIndex
-				(
-					rangedWeaponsDante,
-					Actor_rangedWeaponIndices[playerIndex][characterIndex][entityIndex][rangedWeaponIndex],
-					queuedCharacterData.rangedWeapons[rangedWeaponIndex]
-				);
-			}
-		}}
+		}
 
 
 
@@ -2512,19 +2535,19 @@ void Actor_CharacterTab
 	uint8 entityIndex
 )
 {
-	auto & activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
-	auto & queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
+	auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
+	auto& queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
 
-	auto & mainActiveCharacterData = GetActiveCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
-	auto & mainQueuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
+	auto& mainActiveCharacterData = GetActiveCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
+	auto& mainQueuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
 
 
 
 	if
-	(
-		(entityIndex == ENTITY::CLONE) &&
-		(mainQueuedCharacterData.character >= CHARACTER::MAX)
-	)
+		(
+			(entityIndex == ENTITY::CLONE) &&
+			(mainQueuedCharacterData.character >= CHARACTER::MAX)
+			)
 	{
 		return;
 	}
@@ -2537,22 +2560,22 @@ void Actor_CharacterTab
 	ImGui::PushItemWidth(150);
 
 	if
-	(
-		(playerIndex == 0) &&
-		(characterIndex > 0)
-	)
+		(
+			(playerIndex == 0) &&
+			(characterIndex > 0)
+			)
 	{
 		if
-		(
-			GUI_ComboMap
 			(
-				"Character",
-				newCharacterNames,
-				newCharacters,
-				Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
-				queuedCharacterData.character
-			)
-		)
+				GUI_ComboMap
+				(
+					"Character",
+					newCharacterNames,
+					newCharacters,
+					Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
+					queuedCharacterData.character
+				)
+				)
 		{
 			ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
 
@@ -2562,14 +2585,14 @@ void Actor_CharacterTab
 	else
 	{
 		if
-		(
-			GUI_Combo
 			(
-				"Character",
-				characterNames,
-				queuedCharacterData.character
-			)
-		)
+				GUI_Combo
+				(
+					"Character",
+					characterNames,
+					queuedCharacterData.character
+				)
+				)
 		{
 			ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
 
@@ -2582,12 +2605,12 @@ void Actor_CharacterTab
 
 
 	if
-	(
-		!(
-			(queuedCharacterData.character == CHARACTER::DANTE ) ||
-			(queuedCharacterData.character == CHARACTER::VERGIL)
-		)
-	)
+		(
+			!(
+				(queuedCharacterData.character == CHARACTER::DANTE) ||
+				(queuedCharacterData.character == CHARACTER::VERGIL)
+				)
+			)
 	{
 		return;
 	}
@@ -2750,13 +2773,13 @@ void Actor_CharacterTab
 
 
 	if
-	(
 		(
-			(playerIndex == 0) &&
-			(entityIndex == ENTITY::MAIN)
-		) ||
-		(queuedCharacterData.character == CHARACTER::DANTE)
-	)
+			(
+				(playerIndex == 0) &&
+				(entityIndex == ENTITY::MAIN)
+				) ||
+			(queuedCharacterData.character == CHARACTER::DANTE)
+			)
 	{
 		ImGui::Text("");
 		ImGui::Text("Melee Weapons");
@@ -2826,12 +2849,12 @@ void Actor_CharacterTab
 	ImGui::PushItemWidth(200.0f);
 
 	GUI_Slider<uint8>
-	(
-		"",
-		queuedCharacterData.meleeWeaponCount,
-		1,
-		MELEE_WEAPON_COUNT_DANTE
-	);
+		(
+			"",
+			queuedCharacterData.meleeWeaponCount,
+			1,
+			MELEE_WEAPON_COUNT_DANTE
+		);
 
 	old_for_all(uint8, meleeWeaponIndex, MELEE_WEAPON_COUNT_DANTE)
 	{
@@ -2904,12 +2927,12 @@ void Actor_CharacterTab
 	}*/
 
 	GUI_Slider<uint8>
-	(
-		"",
-		queuedCharacterData.rangedWeaponCount,
-		1,
-		RANGED_WEAPON_COUNT_DANTE
-	);
+		(
+			"",
+			queuedCharacterData.rangedWeaponCount,
+			1,
+			RANGED_WEAPON_COUNT_DANTE
+		);
 
 	old_for_all(uint8, rangedWeaponIndex, RANGED_WEAPON_COUNT_DANTE)
 	{
@@ -2934,8 +2957,8 @@ void Actor_CharacterTab
 
 void Actor_PlayerTab(uint8 playerIndex)
 {
-	auto & activePlayerData = GetActivePlayerData(playerIndex);
-	auto & queuedPlayerData = GetQueuedPlayerData(playerIndex);
+	auto& activePlayerData = GetActivePlayerData(playerIndex);
+	auto& queuedPlayerData = GetQueuedPlayerData(playerIndex);
 
 
 
@@ -2984,12 +3007,12 @@ void Actor_PlayerTab(uint8 playerIndex)
 	ImGui::Text("");
 
 	GUI_Slider<uint8>
-	(
-		"Character Count",
-		queuedPlayerData.characterCount,
-		1,
-		CHARACTER_COUNT
-	);
+		(
+			"Character Count",
+			queuedPlayerData.characterCount,
+			1,
+			CHARACTER_COUNT
+		);
 	ImGui::Text("");
 
 	ImGui::PopItemWidth();
@@ -3288,12 +3311,12 @@ void ActorSection()
 		ImGui::PushItemWidth(200.0f);
 
 		GUI_Slider<uint8>
-		(
-			"Player Count",
-			queuedConfig.Actor.playerCount,
-			1,
-			PLAYER_COUNT
-		);
+			(
+				"Player Count",
+				queuedConfig.Actor.playerCount,
+				1,
+				PLAYER_COUNT
+			);
 		ImGui::Text("");
 
 		ImGui::PopItemWidth();
@@ -3363,27 +3386,27 @@ void ActorSection()
 
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Enable Boss Lady Fixes",
-				activeConfig.enableBossLadyFixes,
-				queuedConfig.enableBossLadyFixes
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Enable Boss Lady Fixes",
+					activeConfig.enableBossLadyFixes,
+					queuedConfig.enableBossLadyFixes
+				)
+				)
 		{
 			ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
 		}
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Enable Boss Vergil Fixes",
-				activeConfig.enableBossVergilFixes,
-				queuedConfig.enableBossVergilFixes
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Enable Boss Vergil Fixes",
+					activeConfig.enableBossVergilFixes,
+					queuedConfig.enableBossVergilFixes
+				)
+				)
 		{
 			ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
 		}
@@ -3427,8 +3450,8 @@ void ActorSection()
 
 #pragma region Arcade
 
-uint8 Arcade_modeIndex                 = 0;
-uint8 Arcade_meleeWeaponIndexDante [2] = {};
+uint8 Arcade_modeIndex = 0;
+uint8 Arcade_meleeWeaponIndexDante[2] = {};
 uint8 Arcade_rangedWeaponIndexDante[2] = {};
 
 
@@ -3481,14 +3504,14 @@ void ArcadeSection()
 		ImGui::Text("");
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Enable",
-				activeConfig.Arcade.enable,
-				queuedConfig.Arcade.enable
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Enable",
+					activeConfig.Arcade.enable,
+					queuedConfig.Arcade.enable
+				)
+				)
 		{
 			Arcade::Toggle(activeConfig.Arcade.enable);
 		}
@@ -3559,10 +3582,10 @@ void ArcadeSection()
 
 
 		if
-		(
-			(activeConfig.Arcade.mission >= 1 ) &&
-			(activeConfig.Arcade.mission <= 20)
-		)
+			(
+				(activeConfig.Arcade.mission >= 1) &&
+				(activeConfig.Arcade.mission <= 20)
+				)
 		{
 			// Room
 			{
@@ -3571,15 +3594,15 @@ void ArcadeSection()
 				GUI_PushDisable(condition);
 
 				GUI_InputDefault2<uint32>
-				(
-					"Room",
-					activeConfig.Arcade.room,
-					queuedConfig.Arcade.room,
-					defaultConfig.Arcade.room,
-					1,
-					"%u",
-					ImGuiInputTextFlags_EnterReturnsTrue
-				);
+					(
+						"Room",
+						activeConfig.Arcade.room,
+						queuedConfig.Arcade.room,
+						defaultConfig.Arcade.room,
+						1,
+						"%u",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
 
 				GUI_PopDisable(condition);
 
@@ -3600,15 +3623,15 @@ void ArcadeSection()
 				GUI_PushDisable(condition);
 
 				GUI_InputDefault2<uint32>
-				(
-					"Position",
-					activeConfig.Arcade.position,
-					queuedConfig.Arcade.position,
-					defaultConfig.Arcade.position,
-					1,
-					"%u",
-					ImGuiInputTextFlags_EnterReturnsTrue
-				);
+					(
+						"Position",
+						activeConfig.Arcade.position,
+						queuedConfig.Arcade.position,
+						defaultConfig.Arcade.position,
+						1,
+						"%u",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
 
 				GUI_PopDisable(condition);
 
@@ -3643,15 +3666,15 @@ void ArcadeSection()
 			);
 
 			GUI_InputDefault2<uint16>
-			(
-				"Level",
-				activeConfig.Arcade.level,
-				queuedConfig.Arcade.level,
-				defaultConfig.Arcade.level,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				(
+					"Level",
+					activeConfig.Arcade.level,
+					queuedConfig.Arcade.level,
+					defaultConfig.Arcade.level,
+					1,
+					"%u",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
 		}
 
 
@@ -3679,26 +3702,26 @@ void ArcadeSection()
 		if (activeConfig.Arcade.mission > 0)
 		{
 			GUI_InputDefault2<float>
-			(
-				"Hit Points",
-				activeConfig.Arcade.hitPoints,
-				queuedConfig.Arcade.hitPoints,
-				defaultConfig.Arcade.hitPoints,
-				1000,
-				"%g",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				(
+					"Hit Points",
+					activeConfig.Arcade.hitPoints,
+					queuedConfig.Arcade.hitPoints,
+					defaultConfig.Arcade.hitPoints,
+					1000,
+					"%g",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
 
 			GUI_InputDefault2<float>
-			(
-				"Magic Points",
-				activeConfig.Arcade.magicPoints,
-				queuedConfig.Arcade.magicPoints,
-				defaultConfig.Arcade.magicPoints,
-				1000,
-				"%g",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				(
+					"Magic Points",
+					activeConfig.Arcade.magicPoints,
+					queuedConfig.Arcade.magicPoints,
+					defaultConfig.Arcade.magicPoints,
+					1000,
+					"%g",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
 		}
 
 		GUI_Combo2
@@ -3714,15 +3737,15 @@ void ArcadeSection()
 		if (activeConfig.Arcade.mission > 0)
 		{
 			GUI_InputDefault2<uint8>
-			(
-				"Costume",
-				activeConfig.Arcade.costume,
-				queuedConfig.Arcade.costume,
-				defaultConfig.Arcade.costume,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				(
+					"Costume",
+					activeConfig.Arcade.costume,
+					queuedConfig.Arcade.costume,
+					defaultConfig.Arcade.costume,
+					1,
+					"%u",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
 		}
 
 
@@ -3732,10 +3755,10 @@ void ArcadeSection()
 
 
 		if
-		(
-			(activeConfig.Arcade.mission > 0) &&
-			(activeConfig.Arcade.character == CHARACTER::DANTE)
-		)
+			(
+				(activeConfig.Arcade.mission > 0) &&
+				(activeConfig.Arcade.character == CHARACTER::DANTE)
+				)
 		{
 			GUI_Combo2
 			(
@@ -3791,7 +3814,7 @@ void ArcadeSection()
 
 #pragma region Bars
 
-const char * barsNames[PLAYER_COUNT] =
+const char* barsNames[PLAYER_COUNT] =
 {
 	"Bars1",
 	"Bars2",
@@ -3807,28 +3830,28 @@ void BarsFunction
 (
 	float hitPoints,
 	float magicPoints,
-	const char * name,
-	const char * label,
-	Config::BarsData & activeData,
-	Config::BarsData & queuedData
+	const char* name,
+	const char* label,
+	Config::BarsData& activeData,
+	Config::BarsData& queuedData
 )
 {
 	if
-	(
-		!showBars &&
-		!activeData.enable
-	)
+		(
+			!showBars &&
+			!activeData.enable
+			)
 	{
 		return;
 	}
 
-	auto & activePos = *reinterpret_cast<ImVec2 *>(&activeData.pos);
-	auto & queuedPos = *reinterpret_cast<ImVec2 *>(&queuedData.pos);
+	auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
+	auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
 
-	auto & lastX = activeData.lastX;
-	auto & lastY = activeData.lastY;
+	auto& lastX = activeData.lastX;
+	auto& lastY = activeData.lastY;
 
-	auto & run = activeData.run;
+	auto& run = activeData.run;
 	if (!run)
 	{
 		run = true;
@@ -3847,14 +3870,14 @@ void BarsFunction
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
 
 	if
-	(
-		ImGui::Begin
 		(
-			label,
-			&activeData.enable,
-			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize
-		)
-	)
+			ImGui::Begin
+			(
+				label,
+				&activeData.enable,
+				ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize
+			)
+			)
 	{
 		activePos = queuedPos = ImGui::GetWindowPos();
 
@@ -3862,10 +3885,10 @@ void BarsFunction
 		auto y = static_cast<uint32>(activeData.pos.y);
 
 		if
-		(
-			(lastX != x) ||
-			(lastY != y)
-		)
+			(
+				(lastX != x) ||
+				(lastY != y)
+				)
 		{
 			lastX = x;
 			lastY = y;
@@ -3878,12 +3901,12 @@ void BarsFunction
 		ImGui::PushStyleColor
 		(
 			ImGuiCol_PlotHistogram,
-			*reinterpret_cast<ImVec4 *>(&activeData.hitColor)
+			*reinterpret_cast<ImVec4*>(&activeData.hitColor)
 		);
 		ImGui::ProgressBar
 		(
 			hitPoints,
-			*reinterpret_cast<ImVec2 *>(&activeData.size)
+			*reinterpret_cast<ImVec2*>(&activeData.size)
 		);
 		ImGui::PopStyleColor();
 
@@ -3892,12 +3915,12 @@ void BarsFunction
 		ImGui::PushStyleColor
 		(
 			ImGuiCol_PlotHistogram,
-			*reinterpret_cast<ImVec4 *>(&activeData.magicColor)
+			*reinterpret_cast<ImVec4*>(&activeData.magicColor)
 		);
 		ImGui::ProgressBar
 		(
 			magicPoints,
-			*reinterpret_cast<ImVec2 *>(&activeData.size)
+			*reinterpret_cast<ImVec2*>(&activeData.size)
 		);
 		ImGui::PopStyleColor();
 
@@ -3913,15 +3936,15 @@ void BarsFunction
 
 void BarsSettingsFunction
 (
-	const char * label,
-	Config::BarsData & activeData,
-	Config::BarsData & queuedData,
-	Config::BarsData & defaultData
+	const char* label,
+	Config::BarsData& activeData,
+	Config::BarsData& queuedData,
+	Config::BarsData& defaultData
 )
 {
-	auto & activePos = *reinterpret_cast<ImVec2 *>(&activeData.pos);
-	auto & queuedPos = *reinterpret_cast<ImVec2 *>(&queuedData.pos);
-	auto & defaultPos = *reinterpret_cast<ImVec2 *>(&defaultData.pos);
+	auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
+	auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
+	auto& defaultPos = *reinterpret_cast<ImVec2*>(&defaultData.pos);
 
 
 
@@ -3996,34 +4019,34 @@ void BarsSettingsFunction
 	);
 
 	if
-	(
-		GUI_InputDefault2<float>
 		(
-			"X",
-			activePos.x,
-			queuedPos.x,
-			defaultPos.x,
-			1,
-			"%g",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		)
-	)
+			GUI_InputDefault2<float>
+			(
+				"X",
+				activePos.x,
+				queuedPos.x,
+				defaultPos.x,
+				1,
+				"%g",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			)
+			)
 	{
 		ImGui::SetWindowPos(label, activePos);
 	}
 	if
-	(
-		GUI_InputDefault2<float>
 		(
-			"Y",
-			activePos.y,
-			queuedPos.y,
-			defaultPos.y,
-			1,
-			"%g",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		)
-	)
+			GUI_InputDefault2<float>
+			(
+				"Y",
+				activePos.y,
+				queuedPos.y,
+				defaultPos.y,
+				1,
+				"%g",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			)
+			)
 	{
 		ImGui::SetWindowPos(label, activePos);
 	}
@@ -4036,13 +4059,13 @@ void BarsSettingsFunction
 void Bars()
 {
 	if
-	(
-		!showBars &&
-		!(
-			activeConfig.Actor.enable &&
-			InGame()
-		)
-	)
+		(
+			!showBars &&
+			!(
+				activeConfig.Actor.enable &&
+				InGame()
+				)
+			)
 	{
 		return;
 	}
@@ -4051,54 +4074,54 @@ void Bars()
 
 	old_for_all(uint8, playerIndex, playerCount)
 	{
-		float hit   = 0.75f;
+		float hit = 0.75f;
 		float magic = 0.5f;
 
 		[&]()
-		{
-			auto & playerData = GetPlayerData(playerIndex);
-
-			auto & characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-			auto & newActorData  = GetNewActorData (playerIndex, playerData.characterIndex, ENTITY::MAIN);
-
-			auto & activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-			auto & activeNewActorData  = GetNewActorData (playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-
-			auto & leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
-			auto & leadNewActorData  = GetNewActorData (playerIndex, 0, ENTITY::MAIN);
-
-			auto & mainCharacterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-			auto & mainNewActorData  = GetNewActorData (playerIndex, playerData.characterIndex, ENTITY::MAIN);
-
-
-
-			if (activeCharacterData.character >= CHARACTER::MAX)
 			{
-				hit   = 1.0f;
-				magic = 1.0f;
+				auto& playerData = GetPlayerData(playerIndex);
 
-				return;
-			}
+				auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+				auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 
-			if (!activeNewActorData.baseAddr)
-			{
-				return;
-			}
-			auto & activeActorData = *reinterpret_cast<PlayerActorData *>(activeNewActorData.baseAddr);
+				auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+				auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
 
-			hit   = (activeActorData.hitPoints   / activeActorData.maxHitPoints  );
-			magic = (activeActorData.magicPoints / activeActorData.maxMagicPoints);
-		}();
+				auto& leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
+				auto& leadNewActorData = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
 
-		BarsFunction
-		(
-			hit,
-			magic,
-			playerIndexNames[playerIndex],
-			barsNames[playerIndex],
-			activeConfig.barsData[playerIndex],
-			queuedConfig.barsData[playerIndex]
-		);
+				auto& mainCharacterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+				auto& mainNewActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+
+
+
+				if (activeCharacterData.character >= CHARACTER::MAX)
+				{
+					hit = 1.0f;
+					magic = 1.0f;
+
+					return;
+				}
+
+				if (!activeNewActorData.baseAddr)
+				{
+					return;
+				}
+				auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+
+				hit = (activeActorData.hitPoints / activeActorData.maxHitPoints);
+				magic = (activeActorData.magicPoints / activeActorData.maxMagicPoints);
+			}();
+
+			BarsFunction
+			(
+				hit,
+				magic,
+				playerIndexNames[playerIndex],
+				barsNames[playerIndex],
+				activeConfig.barsData[playerIndex],
+				queuedConfig.barsData[playerIndex]
+			);
 	}
 }
 
@@ -4148,7 +4171,7 @@ void BarsSection()
 				ImGui::SetWindowPos
 				(
 					barsNames[playerIndex],
-					*reinterpret_cast<ImVec2 *>(&activeConfig.barsData[playerIndex].pos)
+					*reinterpret_cast<ImVec2*>(&activeConfig.barsData[playerIndex].pos)
 				);
 			}
 		}
@@ -4262,7 +4285,7 @@ void BossRush()
 
 #pragma region Camera
 
-const char * cameraAutoAdjustNames[] =
+const char* cameraAutoAdjustNames[] =
 {
 	"Default",
 	"Manual",
@@ -4345,20 +4368,20 @@ void CameraSection()
 			);
 
 
-			Camera::ToggleInvertX          (activeConfig.cameraInvertX    );
+			Camera::ToggleInvertX(activeConfig.cameraInvertX);
 			Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
 		}
 		ImGui::Text("");
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Invert X",
-				activeConfig.cameraInvertX,
-				queuedConfig.cameraInvertX
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Invert X",
+					activeConfig.cameraInvertX,
+					queuedConfig.cameraInvertX
+				)
+				)
 		{
 			Camera::ToggleInvertX(activeConfig.cameraInvertX);
 		}
@@ -4374,12 +4397,12 @@ void CameraSection()
 
 		ImGui::PushItemWidth(150.0f);
 		GUI_Combo2<uint8>
-		(
-			"Auto Adjust",
-			cameraAutoAdjustNames,
-			activeConfig.cameraAutoAdjust,
-			queuedConfig.cameraAutoAdjust
-		);
+			(
+				"Auto Adjust",
+				cameraAutoAdjustNames,
+				activeConfig.cameraAutoAdjust,
+				queuedConfig.cameraAutoAdjust
+			);
 		ImGui::PopItemWidth();
 		ImGui::Text("");
 
@@ -4391,14 +4414,14 @@ void CameraSection()
 		);
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Disable Boss Camera",
-				activeConfig.disableBossCamera,
-				queuedConfig.disableBossCamera
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Disable Boss Camera",
+					activeConfig.disableBossCamera,
+					queuedConfig.disableBossCamera
+				)
+				)
 		{
 			Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
 		}
@@ -4423,117 +4446,117 @@ void CameraSection()
 		GUI_SectionStart("Live");
 
 		[&]()
-		{
-			if (g_scene != SCENE::GAME)
 			{
-				return;
-			}
+				if (g_scene != SCENE::GAME)
+				{
+					return;
+				}
 
-			auto pool_4432 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC8FBD0);
-			if
-			(
-				!pool_4432 ||
-				!pool_4432[147]
-			)
-			{
-				return;
-			}
-			auto & cameraData = *reinterpret_cast<CameraData *>(pool_4432[147]);
-
-
-			ImGui::PushItemWidth(150.0f);
-
-			GUI_Input
-			(
-				"FOV",
-				cameraData.fov,
-				0.1f,
-				"%g",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			ImGui::Text("");
+				auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+				if
+					(
+						!pool_4449 ||
+						!pool_4449[147]
+						)
+				{
+					return;
+				}
+				auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 
 
+				ImGui::PushItemWidth(150.0f);
 
-			old_for_all(uint8, index, countof(cameraData.data))
-			{
-				ImGui::Text(dataNames[index]);
 				GUI_Input
 				(
-					"X",
-					cameraData.data[index].x,
-					10.0f,
-					"%g",
-					ImGuiInputTextFlags_EnterReturnsTrue
-				);
-				GUI_Input
-				(
-					"Y",
-					cameraData.data[index].y,
-					10.0f,
-					"%g",
-					ImGuiInputTextFlags_EnterReturnsTrue
-				);
-				GUI_Input
-				(
-					"Z",
-					cameraData.data[index].z,
-					10.0f,
-					"%g",
-					ImGuiInputTextFlags_EnterReturnsTrue
-				);
-				GUI_Input
-				(
-					"A",
-					cameraData.data[index].a,
-					10.0f,
+					"FOV",
+					cameraData.fov,
+					0.1f,
 					"%g",
 					ImGuiInputTextFlags_EnterReturnsTrue
 				);
 				ImGui::Text("");
-			}
 
 
 
-			GUI_Input
-			(
-				"Height",
-				cameraData.height,
-				10.0f,
-				"%g",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input
-			(
-				"Tilt",
-				cameraData.tilt,
-				0.05f,
-				"%g",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input
-			(
-				"Distance",
-				cameraData.distance,
-				10.0f,
-				"%g",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input
-			(
-				"Distance Lock-On",
-				cameraData.distanceLockOn,
-				10.0f,
-				"%g",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				old_for_all(uint8, index, countof(cameraData.data))
+				{
+					ImGui::Text(dataNames[index]);
+					GUI_Input
+					(
+						"X",
+						cameraData.data[index].x,
+						10.0f,
+						"%g",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+					GUI_Input
+					(
+						"Y",
+						cameraData.data[index].y,
+						10.0f,
+						"%g",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+					GUI_Input
+					(
+						"Z",
+						cameraData.data[index].z,
+						10.0f,
+						"%g",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+					GUI_Input
+					(
+						"A",
+						cameraData.data[index].a,
+						10.0f,
+						"%g",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+					ImGui::Text("");
+				}
 
-			ImGui::PopItemWidth();
-		}();
+
+
+				GUI_Input
+				(
+					"Height",
+					cameraData.height,
+					10.0f,
+					"%g",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
+				GUI_Input
+				(
+					"Tilt",
+					cameraData.tilt,
+					0.05f,
+					"%g",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
+				GUI_Input
+				(
+					"Distance",
+					cameraData.distance,
+					10.0f,
+					"%g",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
+				GUI_Input
+				(
+					"Distance Lock-On",
+					cameraData.distanceLockOn,
+					10.0f,
+					"%g",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
+
+				ImGui::PopItemWidth();
+			}();
 
 
 
-		ImGui::Text("");
+			ImGui::Text("");
 	}
 }
 
@@ -4595,8 +4618,8 @@ void Color_UpdateValues()
 
 	constexpr uint8 itemCount = (sizeof(Color) / 4);
 
-	auto items = reinterpret_cast<uint8 *>(activeConfig.Color.airHike);
-	auto items2 = reinterpret_cast<float32 *>(Color.airHike);
+	auto items = reinterpret_cast<uint8*>(activeConfig.Color.airHike);
+	auto items2 = reinterpret_cast<float32*>(Color.airHike);
 
 	old_for_all(uint8, index, itemCount)
 	{
@@ -4795,14 +4818,14 @@ void Cosmetics()
 			queuedConfig.hideBeowulfVergil
 		);
 		if
-		(
-			GUI_Checkbox2
 			(
-				"No Devil Form",
-				activeConfig.noDevilForm,
-				queuedConfig.noDevilForm
-			)
-		)
+				GUI_Checkbox2
+				(
+					"No Devil Form",
+					activeConfig.noDevilForm,
+					queuedConfig.noDevilForm
+				)
+				)
 		{
 			ToggleNoDevilForm(activeConfig.noDevilForm);
 		}
@@ -4946,17 +4969,17 @@ void Damage()
 template <typename T>
 void ActionData
 (
-	const char * label,
+	const char* label,
 	T(&vars)[2],
 	T(&vars2)[2],
 	T(&defaultVars)[2],
 	T step = 1,
-	const char * format = 0,
+	const char* format = 0,
 	ImGuiInputTextFlags flags = 0,
 	float32 width = 150
 )
 {
-	auto & style = ImGui::GetStyle();
+	auto& style = ImGui::GetStyle();
 
 	ImGui::PushItemWidth(width);
 	GUI_InputDefault2
@@ -5047,7 +5070,7 @@ void Dante()
 				sizeof(activeConfig.Rebellion)
 			);
 
-			ToggleRebellionInfiniteShredder   (activeConfig.rebellionInfiniteShredder    );
+			ToggleRebellionInfiniteShredder(activeConfig.rebellionInfiniteShredder);
 			ToggleRebellionInfiniteSwordPierce(activeConfig.Rebellion.infiniteSwordPierce);
 
 			CopyMemory
@@ -5146,7 +5169,7 @@ void Dante()
 				sizeof(activeConfig.EbonyIvory)
 			);
 
-			ToggleEbonyIvoryFoursomeTime     (activeConfig.EbonyIvory.foursomeTime     );
+			ToggleEbonyIvoryFoursomeTime(activeConfig.EbonyIvory.foursomeTime);
 			ToggleEbonyIvoryInfiniteRainStorm(activeConfig.EbonyIvory.infiniteRainStorm);
 
 			CopyMemory
@@ -5163,7 +5186,7 @@ void Dante()
 			);
 
 			ToggleArtemisSwapNormalShotAndMultiLock(activeConfig.Artemis.swapNormalShotAndMultiLock);
-			ToggleArtemisInstantFullCharge         (activeConfig.Artemis.instantFullCharge         );
+			ToggleArtemisInstantFullCharge(activeConfig.Artemis.instantFullCharge);
 		}
 
 		GUI_SectionEnd();
@@ -5172,14 +5195,14 @@ void Dante()
 		GUI_SectionStart("Air Hike");
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Core Ability",
-				activeConfig.airHikeCoreAbility,
-				queuedConfig.airHikeCoreAbility
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Core Ability",
+					activeConfig.airHikeCoreAbility,
+					queuedConfig.airHikeCoreAbility
+				)
+				)
 		{
 			ToggleAirHikeCoreAbility(activeConfig.airHikeCoreAbility);
 		}
@@ -5196,14 +5219,14 @@ void Dante()
 		GUI_SectionStart("Royalguard");
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Force Just Frame Release",
-				activeConfig.Royalguard.forceJustFrameRelease,
-				queuedConfig.Royalguard.forceJustFrameRelease
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Force Just Frame Release",
+					activeConfig.Royalguard.forceJustFrameRelease,
+					queuedConfig.Royalguard.forceJustFrameRelease
+				)
+				)
 		{
 			ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
 		}
@@ -5217,27 +5240,27 @@ void Dante()
 		ImGui::Text("");
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Infinite Shredder",
-				activeConfig.rebellionInfiniteShredder,
-				queuedConfig.rebellionInfiniteShredder
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Infinite Shredder",
+					activeConfig.rebellionInfiniteShredder,
+					queuedConfig.rebellionInfiniteShredder
+				)
+				)
 		{
 			ToggleRebellionInfiniteShredder(activeConfig.rebellionInfiniteShredder);
 		}
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Infinite Sword Pierce",
-				activeConfig.Rebellion.infiniteSwordPierce,
-				queuedConfig.Rebellion.infiniteSwordPierce
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Infinite Sword Pierce",
+					activeConfig.Rebellion.infiniteSwordPierce,
+					queuedConfig.Rebellion.infiniteSwordPierce
+				)
+				)
 		{
 			ToggleRebellionInfiniteSwordPierce(activeConfig.Rebellion.infiniteSwordPierce);
 		}
@@ -5286,14 +5309,14 @@ void Dante()
 		);
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Hold Drive",
-				activeConfig.rebellionHoldDrive,
-				queuedConfig.rebellionHoldDrive
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Hold Drive",
+					activeConfig.rebellionHoldDrive,
+					queuedConfig.rebellionHoldDrive
+				)
+				)
 		{
 			ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
 		}
@@ -5418,14 +5441,14 @@ void Dante()
 		GUI_SectionStart("Ebony & Ivory");
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Foursome Time",
-				activeConfig.EbonyIvory.foursomeTime,
-				queuedConfig.EbonyIvory.foursomeTime
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Foursome Time",
+					activeConfig.EbonyIvory.foursomeTime,
+					queuedConfig.EbonyIvory.foursomeTime
+				)
+				)
 		{
 			ToggleEbonyIvoryFoursomeTime(activeConfig.EbonyIvory.foursomeTime);
 		}
@@ -5437,14 +5460,14 @@ void Dante()
 		);
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Infinite Rain Storm",
-				activeConfig.EbonyIvory.infiniteRainStorm,
-				queuedConfig.EbonyIvory.infiniteRainStorm
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Infinite Rain Storm",
+					activeConfig.EbonyIvory.infiniteRainStorm,
+					queuedConfig.EbonyIvory.infiniteRainStorm
+				)
+				)
 		{
 			ToggleEbonyIvoryInfiniteRainStorm(activeConfig.EbonyIvory.infiniteRainStorm);
 		}
@@ -5455,27 +5478,27 @@ void Dante()
 		GUI_SectionStart("Artemis");
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Swap Normal Shot and Multi Lock",
-				activeConfig.Artemis.swapNormalShotAndMultiLock,
-				queuedConfig.Artemis.swapNormalShotAndMultiLock
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Swap Normal Shot and Multi Lock",
+					activeConfig.Artemis.swapNormalShotAndMultiLock,
+					queuedConfig.Artemis.swapNormalShotAndMultiLock
+				)
+				)
 		{
 			ToggleArtemisSwapNormalShotAndMultiLock(activeConfig.Artemis.swapNormalShotAndMultiLock);
 		}
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Instant Full Charge",
-				activeConfig.Artemis.instantFullCharge,
-				queuedConfig.Artemis.instantFullCharge
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Instant Full Charge",
+					activeConfig.Artemis.instantFullCharge,
+					queuedConfig.Artemis.instantFullCharge
+				)
+				)
 		{
 			ToggleArtemisInstantFullCharge(activeConfig.Artemis.instantFullCharge);
 		}
@@ -5490,13 +5513,13 @@ void Dante()
 
 // @Order
 
-bool showFileDataWindow    = false;
-bool showRegionDataWindow  = false;
-bool showSoundWindow       = false;
+bool showFileDataWindow = false;
+bool showRegionDataWindow = false;
+bool showSoundWindow = false;
 bool showMissionDataWindow = false;
-bool showActorWindow       = false;
-bool showExpWindow         = false;
-bool showEventDataWindow   = false;
+bool showActorWindow = false;
+bool showExpWindow = false;
+bool showEventDataWindow = false;
 
 
 
@@ -5520,7 +5543,7 @@ enum
 };
 namespaceEnd();
 
-const char * tabNames[] =
+const char* tabNames[] =
 {
 	"Items",
 	"Dante",
@@ -5536,7 +5559,7 @@ const char * tabNames[] =
 
 struct ShopHelper
 {
-	const char * name;
+	const char* name;
 	uint32 price;
 	int64 last;
 	int64 next;
@@ -5603,7 +5626,7 @@ struct ItemHelper
 	const uint8    itemIndex;
 	const uint8    buyIndex;
 	const uint8    itemCount;
-	const uint32 * prices;
+	const uint32* prices;
 	const uint8    priceCount;
 };
 
@@ -5612,12 +5635,12 @@ constexpr ItemHelper itemHelpers[] =
 {
 	{ ITEM::VITAL_STAR_SMALL, BUY::VITAL_STAR_SMALL, 30, itemVitalStarSmallPrices, static_cast<uint8>(countof(itemVitalStarSmallPrices)) },
 	{ ITEM::VITAL_STAR_LARGE, BUY::VITAL_STAR_LARGE, 30, itemVitalStarLargePrices, static_cast<uint8>(countof(itemVitalStarLargePrices)) },
-	{ ITEM::DEVIL_STAR      , BUY::DEVIL_STAR      , 10, itemDevilStarPrices     , static_cast<uint8>(countof(itemDevilStarPrices     )) },
-	{ ITEM::HOLY_WATER      , BUY::HOLY_WATER      , 30, itemHolyWaterPrices     , static_cast<uint8>(countof(itemHolyWaterPrices     )) },
-	{ ITEM::BLUE_ORB        , BUY::BLUE_ORB        , 6 , itemBlueOrbPrices       , static_cast<uint8>(countof(itemBlueOrbPrices       )) },
-	{ ITEM::PURPLE_ORB      , BUY::PURPLE_ORB      , 7 , itemPurpleOrbPrices     , static_cast<uint8>(countof(itemPurpleOrbPrices     )) },
-	{ ITEM::GOLD_ORB        , BUY::GOLD_ORB        , 3 , itemGoldOrbPrices       , static_cast<uint8>(countof(itemGoldOrbPrices       )) },
-	{ ITEM::YELLOW_ORB      , BUY::YELLOW_ORB      , 99, itemYellowOrbPrices     , static_cast<uint8>(countof(itemYellowOrbPrices     )) },
+	{ ITEM::DEVIL_STAR      , BUY::DEVIL_STAR      , 10, itemDevilStarPrices     , static_cast<uint8>(countof(itemDevilStarPrices)) },
+	{ ITEM::HOLY_WATER      , BUY::HOLY_WATER      , 30, itemHolyWaterPrices     , static_cast<uint8>(countof(itemHolyWaterPrices)) },
+	{ ITEM::BLUE_ORB        , BUY::BLUE_ORB        , 6 , itemBlueOrbPrices       , static_cast<uint8>(countof(itemBlueOrbPrices)) },
+	{ ITEM::PURPLE_ORB      , BUY::PURPLE_ORB      , 7 , itemPurpleOrbPrices     , static_cast<uint8>(countof(itemPurpleOrbPrices)) },
+	{ ITEM::GOLD_ORB        , BUY::GOLD_ORB        , 3 , itemGoldOrbPrices       , static_cast<uint8>(countof(itemGoldOrbPrices)) },
+	{ ITEM::YELLOW_ORB      , BUY::YELLOW_ORB      , 99, itemYellowOrbPrices     , static_cast<uint8>(countof(itemYellowOrbPrices)) },
 };
 
 
@@ -5671,20 +5694,20 @@ void ShopWindow()
 
 
 
-	auto name_5664 = *reinterpret_cast<byte8 **>(appBaseAddr + 0xC90E30);
-	if (!name_5664)
+	auto name_5681 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_5681)
 	{
 		return;
 	}
-	auto & missionData = *reinterpret_cast<MissionData *>(name_5664);
+	auto& missionData = *reinterpret_cast<MissionData*>(name_5681);
 
-	auto name_5671 = *reinterpret_cast<byte8 **>(appBaseAddr + 0xC90E30);
-	if (!name_5671)
+	auto name_5688 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_5688)
 	{
 		return;
 	}
-	auto & queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData *>(name_5671 + 0xC0 );
-	auto & activeMissionActorData = *reinterpret_cast<ActiveMissionActorData *>(name_5671 + 0x16C);
+	auto& queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData*>(name_5688 + 0xC0);
+	auto& activeMissionActorData = *reinterpret_cast<ActiveMissionActorData*>(name_5688 + 0x16C);
 
 
 
@@ -5717,7 +5740,7 @@ void ShopWindow()
 
 
 
-		constexpr float width  = 700; // 900
+		constexpr float width = 700; // 900
 		constexpr float height = 700; // 500
 
 
@@ -5734,7 +5757,7 @@ void ShopWindow()
 		(
 			ImVec2
 			(
-				((g_renderSize.x - width ) / 2),
+				((g_renderSize.x - width) / 2),
 				((g_renderSize.y - height) / 2)
 			)
 		);
@@ -5756,15 +5779,15 @@ void ShopWindow()
 
 
 	if
-	(
-		ImGui::Begin
 		(
-			"ShopWindow",
-			0,
-			ImGuiWindowFlags_NoTitleBar |
-			ImGuiWindowFlags_NoResize
-		)
-	)
+			ImGui::Begin
+			(
+				"ShopWindow",
+				0,
+				ImGuiWindowFlags_NoTitleBar |
+				ImGuiWindowFlags_NoResize
+			)
+			)
 	{
 
 
@@ -5809,7 +5832,7 @@ void ShopWindow()
 
 		if (ImGui::BeginTabBar("ShopTabs"))
 		{
-			
+
 
 
 
@@ -5817,138 +5840,137 @@ void ShopWindow()
 			{
 				if (ImGui::BeginTabItem(tabNames[tabIndex]))
 				{
-					
 
-ImGui::Text("");
 
+					ImGui::Text("");
 
 
 
-auto Function = [&]
-(
 
+					auto Function = [&]
+					(
 
 
-	ExpData & expData,
 
-	ShopHelper * helpers,
-	new_size_t helperCount
-)
-{
-	for_all(helperIndex, helperCount)
-	{
-		auto & helper = helpers[helperIndex];
+						ExpData& expData,
 
+						ShopHelper* helpers,
+						new_size_t helperCount
+						)
+						{
+							for_all(helperIndex, helperCount)
+							{
+								auto& helper = helpers[helperIndex];
 
 
-		auto Buy = [&]()
-		{
-			if (missionData.redOrbs < helper.price)
-			{
-				PlaySound
-				(
-					0,
-					19
-				);
 
-				return;
-			}
+								auto Buy = [&]()
+									{
+										if (missionData.redOrbs < helper.price)
+										{
+											PlaySound
+											(
+												0,
+												19
+											);
 
-			missionData.redOrbs -= helper.price;
+											return;
+										}
 
-			PlaySound
-			(
-				0,
-				18
-			);
+										missionData.redOrbs -= helper.price;
 
-			expData.unlocks[helperIndex] = true;
+										PlaySound
+										(
+											0,
+											18
+										);
 
-			UpdatePlayerActorExps();
-		};
+										expData.unlocks[helperIndex] = true;
 
-		auto Sell = [&]()
-		{
-			missionData.redOrbs += helper.price;
+										UpdatePlayerActorExps();
+									};
 
-			PlaySound
-			(
-				0,
-				18
-			);
+								auto Sell = [&]()
+									{
+										missionData.redOrbs += helper.price;
 
-			expData.unlocks[helperIndex] = false;
+										PlaySound
+										(
+											0,
+											18
+										);
 
-			UpdatePlayerActorExps();
-		};
+										expData.unlocks[helperIndex] = false;
 
+										UpdatePlayerActorExps();
+									};
 
 
-		{
-			// Already unlocked or previous action required and not unlocked yet.
-			bool condition =
-			(
-				expData.unlocks[helperIndex] ||
-				(
-					(helper.last > -1) &&
-					!expData.unlocks[helper.last]
-				)
-			);
 
-			GUI_PushDisable(condition);
+								{
+									// Already unlocked or previous action required and not unlocked yet.
+									bool condition =
+										(
+											expData.unlocks[helperIndex] ||
+											(
+												(helper.last > -1) &&
+												!expData.unlocks[helper.last]
+												)
+											);
 
-			ImGui::Text(helper.name);
-			ImGui::SameLine(300);
+									GUI_PushDisable(condition);
 
-			ImGui::Text("%u", helper.price);
+									ImGui::Text(helper.name);
+									ImGui::SameLine(300);
 
-			GUI_PopDisable(condition);
-		}
+									ImGui::Text("%u", helper.price);
 
+									GUI_PopDisable(condition);
+								}
 
 
-		ImGui::SameLine(400);
 
+								ImGui::SameLine(400);
 
-		if (!expData.unlocks[helperIndex])
-		{
-			// Previous action required and not unlocked yet.
-			bool condition =
-			(
-				(helper.last > -1) &&
-				!expData.unlocks[helper.last]
-			);
 
-			GUI_PushDisable(condition);
+								if (!expData.unlocks[helperIndex])
+								{
+									// Previous action required and not unlocked yet.
+									bool condition =
+										(
+											(helper.last > -1) &&
+											!expData.unlocks[helper.last]
+											);
 
-			if (GUI_Button("Buy"))
-			{
-				Buy();
-			}
+									GUI_PushDisable(condition);
 
-			GUI_PopDisable(condition);
-		}
-		else
-		{
-			// Next action available and still unlocked.
-			bool condition =
-			(
-				(helper.next > -1) &&
-				expData.unlocks[helper.next]
-			);
+									if (GUI_Button("Buy"))
+									{
+										Buy();
+									}
 
-			GUI_PushDisable(condition);
+									GUI_PopDisable(condition);
+								}
+								else
+								{
+									// Next action available and still unlocked.
+									bool condition =
+										(
+											(helper.next > -1) &&
+											expData.unlocks[helper.next]
+											);
 
-			if (GUI_Button("Sell"))
-			{
-				Sell();
-			}
+									GUI_PushDisable(condition);
 
-			GUI_PopDisable(condition);
-		}
-	}
-};
+									if (GUI_Button("Sell"))
+									{
+										Sell();
+									}
 
+									GUI_PopDisable(condition);
+								}
+							}
+						};
 
 
 
@@ -5956,202 +5978,206 @@ auto Function = [&]
 
 
 
-	// auto saveIndex = g_saveIndex;
-	// if (saveIndex >= SAVE_COUNT)
-	// {
-	// 	saveIndex = 0;
-	// }
 
+					// auto saveIndex = g_saveIndex;
+					// if (saveIndex >= SAVE_COUNT)
+					// {
+					// 	saveIndex = 0;
+					// }
 
 
 
 
 
 
-if (tabIndex == TAB::ITEMS)
-{
 
+					if (tabIndex == TAB::ITEMS)
+					{
 
 
-	if constexpr (debug)
-	{
-		ImGui::Text("unlockDevilTrigger %u", unlockDevilTrigger);
-		ImGui::Text("");
-	}
 
+						if constexpr (debug)
+						{
+							ImGui::Text("unlockDevilTrigger %u", unlockDevilTrigger);
+							ImGui::Text("");
+						}
 
 
-	auto GetItemCount = [&](const ItemHelper & itemHelper) -> uint8 &
-	{
-		return missionData.itemCounts[itemHelper.itemIndex];
-	};
 
-	auto GetBuyCount = [&](const ItemHelper & itemHelper) -> uint8 &
-	{
-		return missionData.buyCounts[itemHelper.buyIndex];
-	};
+						auto GetItemCount = [&](const ItemHelper& itemHelper) -> uint8&
+							{
+								return missionData.itemCounts[itemHelper.itemIndex];
+							};
 
-	auto GetPrice = [&](const ItemHelper & itemHelper)
-	{
-		uint32 price = 0;
+						auto GetBuyCount = [&](const ItemHelper& itemHelper) -> uint8&
+							{
+								return missionData.buyCounts[itemHelper.buyIndex];
+							};
 
-		auto & buyCount = GetBuyCount(itemHelper);
+						auto GetPrice = [&](const ItemHelper& itemHelper)
+							{
+								uint32 price = 0;
 
-		if (buyCount >= itemHelper.priceCount)
-		{
-			price = itemHelper.prices[(itemHelper.priceCount - 1)];
-		}
-		else
-		{
-			price = itemHelper.prices[buyCount];
-		}
+								auto& buyCount = GetBuyCount(itemHelper);
 
-		return price;
-	};
+								if (buyCount >= itemHelper.priceCount)
+								{
+									price = itemHelper.prices[(itemHelper.priceCount - 1)];
+								}
+								else
+								{
+									price = itemHelper.prices[buyCount];
+								}
 
-	auto BuyItem = [&](uint8 itemHelperIndex)
-	{
-		auto & itemHelper = itemHelpers[itemHelperIndex];
+								return price;
+							};
 
-		auto & itemCount = GetItemCount(itemHelper);
-		auto & buyCount = GetBuyCount(itemHelper);
-		auto price = GetPrice(itemHelper);
+						auto BuyItem = [&](uint8 itemHelperIndex)
+							{
+								auto& itemHelper = itemHelpers[itemHelperIndex];
 
-		if
-		(
-			(itemCount >= itemHelper.itemCount) ||
-			(missionData.redOrbs < price)
-		)
-		{
-			PlaySound
-			(
-				0,
-				19
-			);
+								auto& itemCount = GetItemCount(itemHelper);
+								auto& buyCount = GetBuyCount(itemHelper);
+								auto price = GetPrice(itemHelper);
 
-			return;
-		}
+								if
+									(
+										(itemCount >= itemHelper.itemCount) ||
+										(missionData.redOrbs < price)
+										)
+								{
+									PlaySound
+									(
+										0,
+										19
+									);
 
-		itemCount++;
-		buyCount++;
+									return;
+								}
 
-		if (buyCount > 254)
-		{
-			buyCount = 254;
-		}
+								itemCount++;
+								buyCount++;
 
-		missionData.redOrbs -= price;
+								if (buyCount > 254)
+								{
+									buyCount = 254;
+								}
 
-		PlaySound
-		(
-			0,
-			18
-		);
+								missionData.redOrbs -= price;
 
+								PlaySound
+								(
+									0,
+									18
+								);
 
 
 
-if (itemHelper.itemIndex == ITEM::BLUE_ORB)
-{
-	float value = (activeMissionActorData.maxHitPoints + 1000);
 
-	[&]()
-	{
-		if (!g_defaultNewActorData[0].baseAddr)
-		{
-			return;
-		}
-		auto & actorData = *reinterpret_cast<PlayerActorData *>(g_defaultNewActorData[0].baseAddr);
+								if (itemHelper.itemIndex == ITEM::BLUE_ORB)
+								{
+									float value = (activeMissionActorData.maxHitPoints + 1000);
 
-		value = (actorData.maxHitPoints + 1000);
+									[&]()
+										{
+											if (!g_defaultNewActorData[0].baseAddr)
+											{
+												return;
+											}
+											auto& actorData = *reinterpret_cast<PlayerActorData*>(g_defaultNewActorData[0].baseAddr);
 
-		actorData.hitPoints = actorData.maxHitPoints = value;
-	}();
+											value = (actorData.maxHitPoints + 1000);
 
-	activeMissionActorData.hitPoints = activeMissionActorData.maxHitPoints = value;
+											actorData.hitPoints = actorData.maxHitPoints = value;
+										}();
 
+										activeMissionActorData.hitPoints = activeMissionActorData.maxHitPoints = value;
 
 
-	old_for_all(uint8, playerIndex   , PLAYER_COUNT   ){
-	old_for_all(uint8, characterIndex, CHARACTER_COUNT){
-	old_for_all(uint8, entityIndex   , ENTITY_COUNT   )
-	{
-		auto & playerData = GetPlayerData(playerIndex);
 
-		auto & characterData = GetCharacterData(playerIndex, characterIndex, entityIndex);
-		auto & newActorData  = GetNewActorData (playerIndex, characterIndex, entityIndex);
+										old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+											old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
+												old_for_all(uint8, entityIndex, ENTITY_COUNT)
+												{
+													auto& playerData = GetPlayerData(playerIndex);
 
-		auto & activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-		auto & activeNewActorData  = GetNewActorData (playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+													auto& characterData = GetCharacterData(playerIndex, characterIndex, entityIndex);
+													auto& newActorData = GetNewActorData(playerIndex, characterIndex, entityIndex);
 
-		auto & leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
-		auto & leadNewActorData  = GetNewActorData (playerIndex, 0, ENTITY::MAIN);
+													auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+													auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
 
-		auto & mainCharacterData = GetCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
-		auto & mainNewActorData  = GetNewActorData (playerIndex, characterIndex, ENTITY::MAIN);
+													auto& leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
+													auto& leadNewActorData = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
 
+													auto& mainCharacterData = GetCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
+													auto& mainNewActorData = GetNewActorData(playerIndex, characterIndex, ENTITY::MAIN);
 
 
-		if (!newActorData.baseAddr)
-		{
-			continue;
-		}
-		auto & actorData = *reinterpret_cast<PlayerActorData *>(newActorData.baseAddr);
 
-		actorData.hitPoints = actorData.maxHitPoints = value;
-	}}}
-}
-else if (itemHelper.itemIndex == ITEM::PURPLE_ORB)
-{
-	float value = (activeMissionActorData.maxMagicPoints + 1000);
+													if (!newActorData.baseAddr)
+													{
+														continue;
+													}
+													auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 
-	[&]()
-	{
-		if (!g_defaultNewActorData[0].baseAddr)
-		{
-			return;
-		}
-		auto & actorData = *reinterpret_cast<PlayerActorData *>(g_defaultNewActorData[0].baseAddr);
+													actorData.hitPoints = actorData.maxHitPoints = value;
+												}
+											}
+										}
+								}
+								else if (itemHelper.itemIndex == ITEM::PURPLE_ORB)
+								{
+									float value = (activeMissionActorData.maxMagicPoints + 1000);
 
-		value = (actorData.maxMagicPoints + 1000);
+									[&]()
+										{
+											if (!g_defaultNewActorData[0].baseAddr)
+											{
+												return;
+											}
+											auto& actorData = *reinterpret_cast<PlayerActorData*>(g_defaultNewActorData[0].baseAddr);
 
-		actorData.magicPoints = actorData.maxMagicPoints = value;
-	}();
+											value = (actorData.maxMagicPoints + 1000);
 
-	activeMissionActorData.magicPoints = activeMissionActorData.maxMagicPoints = value;
+											actorData.magicPoints = actorData.maxMagicPoints = value;
+										}();
 
+										activeMissionActorData.magicPoints = activeMissionActorData.maxMagicPoints = value;
 
 
-	old_for_all(uint8, playerIndex   , PLAYER_COUNT   ){
-	old_for_all(uint8, characterIndex, CHARACTER_COUNT){
-	old_for_all(uint8, entityIndex   , ENTITY_COUNT   )
-	{
-		auto & playerData = GetPlayerData(playerIndex);
 
-		auto & characterData = GetCharacterData(playerIndex, characterIndex, entityIndex);
-		auto & newActorData  = GetNewActorData (playerIndex, characterIndex, entityIndex);
+										old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+											old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
+												old_for_all(uint8, entityIndex, ENTITY_COUNT)
+												{
+													auto& playerData = GetPlayerData(playerIndex);
 
-		auto & activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-		auto & activeNewActorData  = GetNewActorData (playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+													auto& characterData = GetCharacterData(playerIndex, characterIndex, entityIndex);
+													auto& newActorData = GetNewActorData(playerIndex, characterIndex, entityIndex);
 
-		auto & leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
-		auto & leadNewActorData  = GetNewActorData (playerIndex, 0, ENTITY::MAIN);
+													auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+													auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
 
-		auto & mainCharacterData = GetCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
-		auto & mainNewActorData  = GetNewActorData (playerIndex, characterIndex, ENTITY::MAIN);
+													auto& leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
+													auto& leadNewActorData = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
 
+													auto& mainCharacterData = GetCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
+													auto& mainNewActorData = GetNewActorData(playerIndex, characterIndex, ENTITY::MAIN);
 
 
-		if (!newActorData.baseAddr)
-		{
-			continue;
-		}
-		auto & actorData = *reinterpret_cast<PlayerActorData *>(newActorData.baseAddr);
 
-		actorData.magicPoints = actorData.maxMagicPoints = value;
-	}}}
-}
+													if (!newActorData.baseAddr)
+													{
+														continue;
+													}
+													auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 
+													actorData.magicPoints = actorData.maxMagicPoints = value;
+												}
+											}
+										}
+								}
 
 
 
@@ -6160,43 +6186,43 @@ else if (itemHelper.itemIndex == ITEM::PURPLE_ORB)
 
 
 
-	};
 
+							};
 
 
 
-	auto SellItem = [&](uint8 itemHelperIndex)
-	{
-		auto & itemHelper = itemHelpers[itemHelperIndex];
 
-		auto & itemCount = GetItemCount(itemHelper);
-		auto & buyCount = GetBuyCount(itemHelper);
-		uint32 price = 0;
+						auto SellItem = [&](uint8 itemHelperIndex)
+							{
+								auto& itemHelper = itemHelpers[itemHelperIndex];
 
+								auto& itemCount = GetItemCount(itemHelper);
+								auto& buyCount = GetBuyCount(itemHelper);
+								uint32 price = 0;
 
 
 
 
-		itemCount--;
 
+								itemCount--;
 
-		if (buyCount > 0)
-		{
-			buyCount--;
-		}
 
+								if (buyCount > 0)
+								{
+									buyCount--;
+								}
 
-		price = GetPrice(itemHelper);
 
+								price = GetPrice(itemHelper);
 
-		missionData.redOrbs += price;
 
-		PlaySound
-		(
-			0,
-			18
-		);
+								missionData.redOrbs += price;
 
+								PlaySound
+								(
+									0,
+									18
+								);
 
 
 
@@ -6204,8 +6230,8 @@ else if (itemHelper.itemIndex == ITEM::PURPLE_ORB)
 
 
 
-	};
 
+							};
 
 
 
@@ -6223,8 +6249,8 @@ else if (itemHelper.itemIndex == ITEM::PURPLE_ORB)
 
 
 
-// Content
 
+						// Content
 
 
 
@@ -6232,69 +6258,69 @@ else if (itemHelper.itemIndex == ITEM::PURPLE_ORB)
 
 
 
-		old_for_all(uint8, itemHelperIndex, countof(itemHelpers))
-		{
-			auto & itemHelper = itemHelpers[itemHelperIndex];
 
-			auto & itemCount = GetItemCount(itemHelper);
-			auto & buyCount = GetBuyCount(itemHelper);
-			auto price = GetPrice(itemHelper);
+						old_for_all(uint8, itemHelperIndex, countof(itemHelpers))
+						{
+							auto& itemHelper = itemHelpers[itemHelperIndex];
 
+							auto& itemCount = GetItemCount(itemHelper);
+							auto& buyCount = GetBuyCount(itemHelper);
+							auto price = GetPrice(itemHelper);
 
 
 
 
 
-			bool mainCondition =
-			(
-				(itemHelperIndex == ITEM_HELPER::PURPLE_ORB) &&
-				!unlockDevilTrigger
-			);
 
-			GUI_PushDisable(mainCondition);
+							bool mainCondition =
+								(
+									(itemHelperIndex == ITEM_HELPER::PURPLE_ORB) &&
+									!unlockDevilTrigger
+									);
 
+							GUI_PushDisable(mainCondition);
 
 
 
 
-			ImGui::Text("%s", itemNames[itemHelper.itemIndex]);
-			ImGui::SameLine(200);
 
+							ImGui::Text("%s", itemNames[itemHelper.itemIndex]);
+							ImGui::SameLine(200);
 
-			ImGui::Text("%.2u / %.2u", itemCount, itemHelper.itemCount);
-			ImGui::SameLine(300);
 
+							ImGui::Text("%.2u / %.2u", itemCount, itemHelper.itemCount);
+							ImGui::SameLine(300);
 
 
 
-			ImGui::Text("%u", price);
-			ImGui::SameLine(400);
 
+							ImGui::Text("%u", price);
+							ImGui::SameLine(400);
 
 
 
 
 
-			#define conditionExpr itemCount >= itemHelper.itemCount
 
-			bool condition = (conditionExpr);
+#define conditionExpr itemCount >= itemHelper.itemCount
 
-			GUI_PushDisable(condition);
+							bool condition = (conditionExpr);
 
-			if (GUI_Button("Buy"))
-			{
-				BuyItem(itemHelperIndex);
+							GUI_PushDisable(condition);
 
-				if (conditionExpr)
-				{
-					ResetNavId();
-				}
-			}
+							if (GUI_Button("Buy"))
+							{
+								BuyItem(itemHelperIndex);
 
-			GUI_PopDisable(condition);
+								if (conditionExpr)
+								{
+									ResetNavId();
+								}
+							}
 
-			#undef conditionExpr
+							GUI_PopDisable(condition);
 
+#undef conditionExpr
 
 
 
@@ -6302,71 +6328,71 @@ else if (itemHelper.itemIndex == ITEM::PURPLE_ORB)
 
 
 
-		[&]()
-		{
 
+							[&]()
+								{
 
-			if
-			(
-				(itemHelperIndex == ITEM_HELPER::BLUE_ORB  ) ||
-				(itemHelperIndex == ITEM_HELPER::PURPLE_ORB)
-			)
-			{
-				return;
-			}
 
+									if
+										(
+											(itemHelperIndex == ITEM_HELPER::BLUE_ORB) ||
+											(itemHelperIndex == ITEM_HELPER::PURPLE_ORB)
+											)
+									{
+										return;
+									}
 
 
-ImGui::SameLine();
 
+									ImGui::SameLine();
 
 
-			#define conditionExpr itemCount < 1
 
-			bool condition = (conditionExpr);
+#define conditionExpr itemCount < 1
 
-			GUI_PushDisable(condition);
+									bool condition = (conditionExpr);
 
-			if (GUI_Button("Sell"))
-			{
-				SellItem(itemHelperIndex);
+									GUI_PushDisable(condition);
 
-				if (conditionExpr)
-				{
-					ResetNavId();
-				}
-			}
+									if (GUI_Button("Sell"))
+									{
+										SellItem(itemHelperIndex);
 
-			GUI_PopDisable(condition);
+										if (conditionExpr)
+										{
+											ResetNavId();
+										}
+									}
 
-			#undef conditionExpr
+									GUI_PopDisable(condition);
 
+#undef conditionExpr
 
 
 
 
-		}();
 
+								}();
 
 
 
 
-			if constexpr (debug)
-			{
-				ImGui::SameLine(500);
-				ImGui::Text("buyCount %u", buyCount);
-			}
 
+								if constexpr (debug)
+								{
+									ImGui::SameLine(500);
+									ImGui::Text("buyCount %u", buyCount);
+								}
 
-GUI_PopDisable(mainCondition);
 
+								GUI_PopDisable(mainCondition);
 
 
 
 
-		}
-		ImGui::Text("");
 
+						}
+						ImGui::Text("");
 
 
 
@@ -6385,39 +6411,40 @@ GUI_PopDisable(mainCondition);
 
 
 
-}
-else if (tabIndex == TAB::DANTE)
-{
 
+					}
+					else if (tabIndex == TAB::DANTE)
+					{
 
 
 
-	Function
-	(
-		missionExpDataDante,
-		shopHelpersDante,
-		countof(shopHelpersDante)
-	);
 
+						Function
+						(
+							missionExpDataDante,
+							shopHelpersDante,
+							countof(shopHelpersDante)
+						);
 
 
-}
-else if (tabIndex == TAB::VERGIL)
-{
 
-	Function
-	(
-		missionExpDataVergil,
-		shopHelpersVergil,
-		countof(shopHelpersVergil)
-	);
+					}
+					else if (tabIndex == TAB::VERGIL)
+					{
 
+						Function
+						(
+							missionExpDataVergil,
+							shopHelpersVergil,
+							countof(shopHelpersVergil)
+						);
 
 
 
 
 
-}
+
+					}
 
 
 
@@ -6452,7 +6479,7 @@ else if (tabIndex == TAB::VERGIL)
 
 					ImGui::EndTabItem();
 				}
-				
+
 			}
 
 			ImGui::EndTabBar();
@@ -6523,7 +6550,7 @@ void ExpWindow()
 		run = true;
 
 
-		constexpr float width  = 700;
+		constexpr float width = 700;
 		constexpr float height = 700;
 
 
@@ -6561,13 +6588,13 @@ void ExpWindow()
 
 
 	if
-	(
-		ImGui::Begin
 		(
-			"Exp Stuff",
-			&showExpWindow
-		)
-	)
+			ImGui::Begin
+			(
+				"Exp Stuff",
+				&showExpWindow
+			)
+			)
 	{
 		ImGui::Text("");
 
@@ -6590,13 +6617,13 @@ void ExpWindow()
 		ImGui::PushItemWidth(150);
 
 		GUI_Input<new_size_t>
-		(
-			"g_saveIndex",
-			g_saveIndex,
-			1,
-			"%llu",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"g_saveIndex",
+				g_saveIndex,
+				1,
+				"%llu",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 		ImGui::Text("");
 
 		ImGui::PopItemWidth();
@@ -6622,69 +6649,69 @@ void ExpWindow()
 
 		auto FunctionOnce = [&]
 		(
-			ExpData & expData,
-			const char * name,
-			ShopHelper * shopHelpers,
+			ExpData& expData,
+			const char* name,
+			ShopHelper* shopHelpers,
 			new_size_t count
-		)
-		{
-			if (!ImGui::CollapsingHeader(name))
+			)
 			{
-				return;
-			}
-			ImGui::Text("");
+				if (!ImGui::CollapsingHeader(name))
+				{
+					return;
+				}
+				ImGui::Text("");
 
-			ImGui::PushItemWidth(200);
-
-
-
-			ImGui::Text("styleLevels");
-			for_all(styleIndex, STYLE::MAX)
-			{
-				GUI_Input<uint32>
-				(
-					indexNames[styleIndex],
-					expData.styleLevels[styleIndex],
-					1,
-					"%u",
-					ImGuiInputTextFlags_EnterReturnsTrue
-				);
-			}
-			ImGui::Text("");
+				ImGui::PushItemWidth(200);
 
 
 
-			ImGui::Text("styleExpPoints");
-			for_all(styleIndex, STYLE::MAX)
-			{
-				GUI_Input<float>
-				(
-					indexNames[styleIndex],
-					expData.styleExpPoints[styleIndex],
-					1,
-					"%g",
-					ImGuiInputTextFlags_EnterReturnsTrue
-				);
-			}
-			ImGui::Text("");
+				ImGui::Text("styleLevels");
+				for_all(styleIndex, STYLE::MAX)
+				{
+					GUI_Input<uint32>
+						(
+							indexNames[styleIndex],
+							expData.styleLevels[styleIndex],
+							1,
+							"%u",
+							ImGuiInputTextFlags_EnterReturnsTrue
+						);
+				}
+				ImGui::Text("");
 
 
 
-			ImGui::Text("unlocks");
-			for_all(index, count)
-			{
-				GUI_Checkbox
-				(
-					shopHelpers[index].name,
-					expData.unlocks[index]
-				);
-			}
-			ImGui::Text("");
+				ImGui::Text("styleExpPoints");
+				for_all(styleIndex, STYLE::MAX)
+				{
+					GUI_Input<float>
+						(
+							indexNames[styleIndex],
+							expData.styleExpPoints[styleIndex],
+							1,
+							"%g",
+							ImGuiInputTextFlags_EnterReturnsTrue
+						);
+				}
+				ImGui::Text("");
 
 
 
-			ImGui::PopItemWidth();
-		};
+				ImGui::Text("unlocks");
+				for_all(index, count)
+				{
+					GUI_Checkbox
+					(
+						shopHelpers[index].name,
+						expData.unlocks[index]
+					);
+				}
+				ImGui::Text("");
+
+
+
+				ImGui::PopItemWidth();
+			};
 
 
 
@@ -6692,25 +6719,25 @@ void ExpWindow()
 
 		auto FunctionLoop = [&]
 		(
-			ExpData * expDataAddr,
-			const char ** saveNames,
-			ShopHelper * shopHelpers,
+			ExpData* expDataAddr,
+			const char** saveNames,
+			ShopHelper* shopHelpers,
 			new_size_t count
-		)
-		{
-			for_all(saveIndex, SAVE_COUNT)
+			)
 			{
-				auto & expData = expDataAddr[saveIndex];
+				for_all(saveIndex, SAVE_COUNT)
+				{
+					auto& expData = expDataAddr[saveIndex];
 
-				FunctionOnce
-				(
-					expData,
-					saveNames[saveIndex],
-					shopHelpers,
-					count
-				);
-			}
-		};
+					FunctionOnce
+					(
+						expData,
+						saveNames[saveIndex],
+						shopHelpers,
+						count
+					);
+				}
+			};
 
 
 
@@ -6771,175 +6798,175 @@ void ExpWindow()
 
 
 
-		auto Content = [&](PlayerActorData & actorData)
-		{
-			ImGui::PushItemWidth(200);
-
-			GUI_Input<uint32>
-			(
-				"character",
-				actorData.character,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-
-
-			GUI_Input<uint32>
-			(
-				"style",
-				actorData.style,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-
-
-
-			GUI_Input<uint32>
-			(
-				"styleLevel",
-				actorData.styleLevel,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-
-			GUI_Input<float>
-			(
-				"styleExpPoints",
-				actorData.styleExpPoints,
-				1,
-				"%g",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-
-
-			ImGui::Text("activeExpertise");
-			for_all(index, countof(actorData.activeExpertise))
+		auto Content = [&](PlayerActorData& actorData)
 			{
-				GUI_Input<byte32>
-				(
-					indexNames[index],
-					actorData.activeExpertise[index],
-					1,
-					"%X",
-					ImGuiInputTextFlags_EnterReturnsTrue |
-					ImGuiInputTextFlags_CharsHexadecimal
-				);
-			}
+				ImGui::PushItemWidth(200);
 
-
-
-
-
-
-			ImGui::Text("newWeaponLevels");
-			for_all(index, countof(actorData.newWeaponLevels))
-			{
 				GUI_Input<uint32>
-				(
-					indexNames[index],
-					actorData.newWeaponLevels[index],
-					1,
-					"%u",
-					ImGuiInputTextFlags_EnterReturnsTrue |
-					ImGuiInputTextFlags_CharsHexadecimal
-				);
-			}
+					(
+						"character",
+						actorData.character,
+						1,
+						"%u",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+
+
+				GUI_Input<uint32>
+					(
+						"style",
+						actorData.style,
+						1,
+						"%u",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+
+
+
+				GUI_Input<uint32>
+					(
+						"styleLevel",
+						actorData.styleLevel,
+						1,
+						"%u",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+
+				GUI_Input<float>
+					(
+						"styleExpPoints",
+						actorData.styleExpPoints,
+						1,
+						"%g",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+
+
+				ImGui::Text("activeExpertise");
+				for_all(index, countof(actorData.activeExpertise))
+				{
+					GUI_Input<byte32>
+						(
+							indexNames[index],
+							actorData.activeExpertise[index],
+							1,
+							"%X",
+							ImGuiInputTextFlags_EnterReturnsTrue |
+							ImGuiInputTextFlags_CharsHexadecimal
+						);
+				}
 
 
 
 
 
-			ImGui::PopItemWidth();
-		};
+
+				ImGui::Text("newWeaponLevels");
+				for_all(index, countof(actorData.newWeaponLevels))
+				{
+					GUI_Input<uint32>
+						(
+							indexNames[index],
+							actorData.newWeaponLevels[index],
+							1,
+							"%u",
+							ImGuiInputTextFlags_EnterReturnsTrue |
+							ImGuiInputTextFlags_CharsHexadecimal
+						);
+				}
+
+
+
+
+
+				ImGui::PopItemWidth();
+			};
 
 
 
 		[&]()
-		{
-			if (!ImGui::CollapsingHeader("Default"))
 			{
-				return;
-			}
-			ImGui::Text("");
-
-			//IntroduceMainActorData(actorData, return);
-
-			if (!g_defaultNewActorData[0].baseAddr)
-			{
-				return;
-			}
-			auto & actorData = *reinterpret_cast<PlayerActorData *>(g_defaultNewActorData[0].baseAddr);
-
-
-
-			Content(actorData);
-			ImGui::Text("");
-		}();
-
-
-
-		old_for_all(uint8, playerIndex, PLAYER_COUNT)
-		{
-			if (!ImGui::CollapsingHeader(playerIndexNames[playerIndex]))
-			{
-				continue;
-			}
-
-			ImGui::Indent(20);
-
-
-
-			old_for_all(uint8, characterIndex, CHARACTER_COUNT)
-			{
-				if (!ImGui::CollapsingHeader(characterIndexNames[characterIndex]))
+				if (!ImGui::CollapsingHeader("Default"))
 				{
-					continue;
+					return;
 				}
 				ImGui::Text("");
 
+				//IntroduceMainActorData(actorData, return);
 
-
-				old_for_all(uint8, entityIndex, ENTITY_COUNT)
+				if (!g_defaultNewActorData[0].baseAddr)
 				{
-					auto & playerData = GetPlayerData(playerIndex);
-
-					auto & characterData = GetCharacterData(playerIndex, characterIndex, entityIndex);
-					auto & newActorData  = GetNewActorData (playerIndex, characterIndex, entityIndex);
-
-					auto & activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-					auto & activeNewActorData  = GetNewActorData (playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-
-					auto & leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
-					auto & leadNewActorData  = GetNewActorData (playerIndex, 0, ENTITY::MAIN);
-
-					auto & mainCharacterData = GetCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
-					auto & mainNewActorData  = GetNewActorData (playerIndex, characterIndex, ENTITY::MAIN);
+					return;
+				}
+				auto& actorData = *reinterpret_cast<PlayerActorData*>(g_defaultNewActorData[0].baseAddr);
 
 
 
-					if (!newActorData.baseAddr)
+				Content(actorData);
+				ImGui::Text("");
+			}();
+
+
+
+			old_for_all(uint8, playerIndex, PLAYER_COUNT)
+			{
+				if (!ImGui::CollapsingHeader(playerIndexNames[playerIndex]))
+				{
+					continue;
+				}
+
+				ImGui::Indent(20);
+
+
+
+				old_for_all(uint8, characterIndex, CHARACTER_COUNT)
+				{
+					if (!ImGui::CollapsingHeader(characterIndexNames[characterIndex]))
 					{
 						continue;
 					}
-					auto & actorData = *reinterpret_cast<PlayerActorData *>(newActorData.baseAddr);
-
-					ImGui::Text(entityNames[entityIndex]);
-					Content(actorData);
 					ImGui::Text("");
+
+
+
+					old_for_all(uint8, entityIndex, ENTITY_COUNT)
+					{
+						auto& playerData = GetPlayerData(playerIndex);
+
+						auto& characterData = GetCharacterData(playerIndex, characterIndex, entityIndex);
+						auto& newActorData = GetNewActorData(playerIndex, characterIndex, entityIndex);
+
+						auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+						auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+
+						auto& leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
+						auto& leadNewActorData = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
+
+						auto& mainCharacterData = GetCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
+						auto& mainNewActorData = GetNewActorData(playerIndex, characterIndex, ENTITY::MAIN);
+
+
+
+						if (!newActorData.baseAddr)
+						{
+							continue;
+						}
+						auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+
+						ImGui::Text(entityNames[entityIndex]);
+						Content(actorData);
+						ImGui::Text("");
+					}
 				}
+
+
+
+				ImGui::Unindent(20);
 			}
 
 
 
-			ImGui::Unindent(20);
-		}
-
-
-
-		ImGui::Text("");
+			ImGui::Text("");
 	}
 
 	ImGui::End();
@@ -6978,27 +7005,27 @@ void MissionDataWindow()
 		return;
 	}
 
-	auto name_6958 = *reinterpret_cast<byte8 **>(appBaseAddr + 0xC90E30);
-	if (!name_6958)
+	auto name_6975 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_6975)
 	{
 		return;
 	}
-	auto & missionData = *reinterpret_cast<MissionData *>(name_6958);
+	auto& missionData = *reinterpret_cast<MissionData*>(name_6975);
 
 
-	auto pool_6979 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E10);
+	auto pool_6996 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if
-	(
-		!pool_6979 ||
-		!pool_6979[8]
-	)
+		(
+			!pool_6996 ||
+			!pool_6996[8]
+			)
 	{
 		return;
 	}
-	auto & eventData = *reinterpret_cast<EventData *>(pool_6979[8]);
+	auto& eventData = *reinterpret_cast<EventData*>(pool_6996[8]);
 
 
-	auto & sessionData = *reinterpret_cast<SessionData *>(appBaseAddr + 0xC8F250);
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 
 
@@ -7040,13 +7067,13 @@ void MissionDataWindow()
 		ImGui::PushItemWidth(200);
 
 		GUI_Input<uint32>
-		(
-			"Red Orbs",
-			missionData.redOrbs,
-			1000,
-			"%u",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"Red Orbs",
+				missionData.redOrbs,
+				1000,
+				"%u",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 
 		ImGui::PopItemWidth();
 
@@ -7064,170 +7091,170 @@ void MissionDataWindow()
 
 
 		[&]()
-		{
-			auto name_7041 = *reinterpret_cast<byte8 **>(appBaseAddr + 0xC90E30);
-			if (!name_7041)
 			{
-				return;
-			}
-			auto & queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData *>(name_7041 + 0xC0 );
-			auto & activeMissionActorData = *reinterpret_cast<ActiveMissionActorData *>(name_7041 + 0x16C);
+				auto name_7058 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+				if (!name_7058)
+				{
+					return;
+				}
+				auto& queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData*>(name_7058 + 0xC0);
+				auto& activeMissionActorData = *reinterpret_cast<ActiveMissionActorData*>(name_7058 + 0x16C);
 
 
-			ImGui::PushItemWidth(200);
+				ImGui::PushItemWidth(200);
 
-			ImGui::Text("Active");
-			GUI_Input<float>
-			(
-				"hitPoints",
-				activeMissionActorData.hitPoints,
-				1000,
-				"%g",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input<float>
-			(
-				"maxHitPoints",
-				activeMissionActorData.maxHitPoints,
-				1000,
-				"%g",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input<float>
-			(
-				"magicPoints",
-				activeMissionActorData.magicPoints,
-				1000,
-				"%g",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input<float>
-			(
-				"maxMagicPoints",
-				activeMissionActorData.maxMagicPoints,
-				1000,
-				"%g",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				ImGui::Text("Active");
+				GUI_Input<float>
+					(
+						"hitPoints",
+						activeMissionActorData.hitPoints,
+						1000,
+						"%g",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+				GUI_Input<float>
+					(
+						"maxHitPoints",
+						activeMissionActorData.maxHitPoints,
+						1000,
+						"%g",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+				GUI_Input<float>
+					(
+						"magicPoints",
+						activeMissionActorData.magicPoints,
+						1000,
+						"%g",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+				GUI_Input<float>
+					(
+						"maxMagicPoints",
+						activeMissionActorData.maxMagicPoints,
+						1000,
+						"%g",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+				ImGui::Text("");
+
+				ImGui::Text("Queued");
+				GUI_Input<float>
+					(
+						"hitPoints",
+						queuedMissionActorData.hitPoints,
+						1000,
+						"%g",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+				GUI_Input<float>
+					(
+						"magicPoints",
+						queuedMissionActorData.magicPoints,
+						1000,
+						"%g",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+
+				ImGui::PopItemWidth();
+
+				ImGui::Text("");
+			}();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			ImGui::Text("Item Count");
 			ImGui::Text("");
 
-			ImGui::Text("Queued");
-			GUI_Input<float>
-			(
-				"hitPoints",
-				queuedMissionActorData.hitPoints,
-				1000,
-				"%g",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input<float>
-			(
-				"magicPoints",
-				queuedMissionActorData.magicPoints,
-				1000,
-				"%g",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+			ImGui::PushItemWidth(150);
+
+			old_for_all(uint8, itemIndex, ITEM::COUNT)
+			{
+				ImGui::Text("%.4u %llX", itemIndex, &missionData.itemCounts[itemIndex]);
+				ImGui::SameLine();
+
+				GUI_Input<uint8>
+					(
+						itemNames[itemIndex],
+						missionData.itemCounts[itemIndex],
+						1,
+						"%u",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+			}
 
 			ImGui::PopItemWidth();
 
 			ImGui::Text("");
-		}();
+
+
+
+
+			ImGui::Text("Buy Count");
+			ImGui::Text("");
+
+			ImGui::PushItemWidth(150);
+
+			old_for_all(uint8, buyIndex, BUY::COUNT)
+			{
+				ImGui::Text("%.4u %llX", buyIndex, &missionData.buyCounts[buyIndex]);
+				ImGui::SameLine();
+
+				GUI_Input<uint8>
+					(
+						buyNames[buyIndex],
+						missionData.buyCounts[buyIndex],
+						1,
+						"%u",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+			}
+
+			ImGui::PopItemWidth();
+
+
+			ImGui::Text("");
+
+			if (GUI_Button("Status"))
+			{
+				eventData.event = EVENT::STATUS;
+			}
+
+			if (GUI_Button("Customize"))
+			{
+				eventData.event = EVENT::CUSTOMIZE;
+			}
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		ImGui::Text("Item Count");
-		ImGui::Text("");
-
-		ImGui::PushItemWidth(150);
-
-		old_for_all(uint8, itemIndex, ITEM::COUNT)
-		{
-			ImGui::Text("%.4u %llX", itemIndex, &missionData.itemCounts[itemIndex]);
-			ImGui::SameLine();
-
-			GUI_Input<uint8>
-			(
-				itemNames[itemIndex],
-				missionData.itemCounts[itemIndex],
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-		}
-
-		ImGui::PopItemWidth();
-
-		ImGui::Text("");
-
-
-
-
-		ImGui::Text("Buy Count");
-		ImGui::Text("");
-
-		ImGui::PushItemWidth(150);
-
-		old_for_all(uint8, buyIndex, BUY::COUNT)
-		{
-			ImGui::Text("%.4u %llX", buyIndex, &missionData.buyCounts[buyIndex]);
-			ImGui::SameLine();
-
-			GUI_Input<uint8>
-			(
-				buyNames[buyIndex],
-				missionData.buyCounts[buyIndex],
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-		}
-
-		ImGui::PopItemWidth();
-
-
-		ImGui::Text("");
-
-		if (GUI_Button("Status"))
-		{
-			eventData.event = EVENT::STATUS;
-		}
-
-		if (GUI_Button("Customize"))
-		{
-			eventData.event = EVENT::CUSTOMIZE;
-		}
-
-
-
-
-
-
-		ImGui::Text("");
+			ImGui::Text("");
 	}
 
 	ImGui::End();
@@ -7251,26 +7278,26 @@ void MissionDataWindow()
 
 struct FileContainer : Container<>
 {
-	const char * operator[](uint32 index);
+	const char* operator[](uint32 index);
 
 	void Push(uint32 size);
 };
 
-const char * FileContainer::operator[](uint32 index)
+const char* FileContainer::operator[](uint32 index)
 {
 	if (index >= count)
 	{
 		return 0;
 	}
 
-	auto & metadata = reinterpret_cast<Metadata *>(metadataAddr)[index];
+	auto& metadata = reinterpret_cast<Metadata*>(metadataAddr)[index];
 
-	return reinterpret_cast<const char *>(dataAddr + metadata.off);
+	return reinterpret_cast<const char*>(dataAddr + metadata.off);
 }
 
 void FileContainer::Push(uint32 size)
 {
-	auto & metadata = reinterpret_cast<Metadata *>(metadataAddr)[count];
+	auto& metadata = reinterpret_cast<Metadata*>(metadataAddr)[count];
 
 	metadata.off = pos;
 	metadata.size = size;
@@ -7303,7 +7330,7 @@ void FileDataWindow()
 		run = true;
 
 		{
-			auto & container = fileDataGroupNames;
+			auto& container = fileDataGroupNames;
 
 			container.Init
 			(
@@ -7313,7 +7340,7 @@ void FileDataWindow()
 
 			old_for_all(uint8, groupIndex, fileDataGroupCount)
 			{
-				auto dest = reinterpret_cast<char *>(container.dataAddr + container.pos);
+				auto dest = reinterpret_cast<char*>(container.dataAddr + container.pos);
 				auto size = (container.dataSize - container.pos);
 
 				snprintf
@@ -7334,8 +7361,8 @@ void FileDataWindow()
 
 		old_for_all(uint8, groupIndex, fileDataGroupCount)
 		{
-			auto & container = fileDataGroupItemNames[groupIndex];
-			auto & itemCount = fileDataGroupItemCounts[groupIndex];
+			auto& container = fileDataGroupItemNames[groupIndex];
+			auto& itemCount = fileDataGroupItemCounts[groupIndex];
 
 			container.Init
 			(
@@ -7345,7 +7372,7 @@ void FileDataWindow()
 
 			old_for_all(uint32, itemIndex, itemCount)
 			{
-				auto dest = reinterpret_cast<char *>(container.dataAddr + container.pos);
+				auto dest = reinterpret_cast<char*>(container.dataAddr + container.pos);
 				auto size = (container.dataSize - container.pos);
 
 				snprintf
@@ -7368,7 +7395,7 @@ void FileDataWindow()
 		{
 			const uint32 itemCount = ENEMY_FILE_DATA_COUNT;
 
-			auto & container = enemyFileDataItemNames;
+			auto& container = enemyFileDataItemNames;
 
 			container.Init
 			(
@@ -7379,7 +7406,7 @@ void FileDataWindow()
 
 			old_for_all(uint32, itemIndex, itemCount)
 			{
-				auto dest = reinterpret_cast<char *>(container.dataAddr + container.pos);
+				auto dest = reinterpret_cast<char*>(container.dataAddr + container.pos);
 				auto size = (container.dataSize - container.pos);
 
 				snprintf
@@ -7398,7 +7425,7 @@ void FileDataWindow()
 		{
 			const uint32 itemCount = ENEMY::COUNT;
 
-			auto & container = enemyFileDataMetadataItemNames;
+			auto& container = enemyFileDataMetadataItemNames;
 
 			container.Init
 			(
@@ -7409,7 +7436,7 @@ void FileDataWindow()
 
 			old_for_all(uint32, itemIndex, itemCount)
 			{
-				auto dest = reinterpret_cast<char *>(container.dataAddr + container.pos);
+				auto dest = reinterpret_cast<char*>(container.dataAddr + container.pos);
 				auto size = (container.dataSize - container.pos);
 
 				snprintf
@@ -7463,144 +7490,144 @@ void FileDataWindow()
 	{
 		ImGui::Text("");
 
-		auto GUI_FileData = [&](FileData & fileData)
-		{
-			ImGui::PushItemWidth(200);
-
-			auto addr = &fileData;
-
-			GUI_Input<uint64>
-			(
-				"this",
-				*reinterpret_cast<uint64 *>(&addr),
-				0,
-				"%.16llX",
-				ImGuiInputTextFlags_ReadOnly
-			);
-			GUI_Input<uint32>
-			(
-				"group",
-				fileData.group,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input<uint32>
-			(
-				"status",
-				fileData.status,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input<uint64>
-			(
-				"typeDataAddr",
-				*reinterpret_cast<uint64 *>(&fileData.typeDataAddr),
-				0,
-				"%.16llX",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			if (fileData.typeDataAddr)
+		auto GUI_FileData = [&](FileData& fileData)
 			{
-				ImGui::Text((*fileData.typeDataAddr).typeName);
-			}
-			GUI_Input<uint64>
-			(
-				"file",
-				*reinterpret_cast<uint64 *>(&fileData.file),
-				0,
-				"%.16llX",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			if (GUI_Button("Reset"))
+				ImGui::PushItemWidth(200);
+
+				auto addr = &fileData;
+
+				GUI_Input<uint64>
+					(
+						"this",
+						*reinterpret_cast<uint64*>(&addr),
+						0,
+						"%.16llX",
+						ImGuiInputTextFlags_ReadOnly
+					);
+				GUI_Input<uint32>
+					(
+						"group",
+						fileData.group,
+						1,
+						"%u",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+				GUI_Input<uint32>
+					(
+						"status",
+						fileData.status,
+						1,
+						"%u",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+				GUI_Input<uint64>
+					(
+						"typeDataAddr",
+						*reinterpret_cast<uint64*>(&fileData.typeDataAddr),
+						0,
+						"%.16llX",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+				if (fileData.typeDataAddr)
+				{
+					ImGui::Text((*fileData.typeDataAddr).typeName);
+				}
+				GUI_Input<uint64>
+					(
+						"file",
+						*reinterpret_cast<uint64*>(&fileData.file),
+						0,
+						"%.16llX",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+				if (GUI_Button("Reset"))
+				{
+					SetMemory
+					(
+						&fileData,
+						0,
+						sizeof(fileData)
+					);
+				}
+
+				ImGui::PopItemWidth();
+			};
+
+		auto GUI_FileDataMetadata = [&](FileDataMetadata& metadata)
 			{
-				SetMemory
-				(
-					&fileData,
-					0,
-					sizeof(fileData)
-				);
-			}
+				ImGui::PushItemWidth(200);
 
-			ImGui::PopItemWidth();
-		};
+				auto addr = &metadata;
 
-		auto GUI_FileDataMetadata = [&](FileDataMetadata & metadata)
-		{
-			ImGui::PushItemWidth(200);
+				GUI_Input<uint64>
+					(
+						"this",
+						*reinterpret_cast<uint64*>(&addr),
+						0,
+						"%.16llX",
+						ImGuiInputTextFlags_ReadOnly
+					);
 
-			auto addr = &metadata;
+				GUI_Input<uint64>
+					(
+						"funcAddrs",
+						*reinterpret_cast<uint64*>(&metadata.funcAddrs),
+						0,
+						"%.16llX",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+				GUI_Input<uint64>
+					(
+						"lastAddr",
+						*reinterpret_cast<uint64*>(&metadata.lastAddr),
+						0,
+						"%.16llX",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+				GUI_Input<uint64>
+					(
+						"nextAddr",
+						*reinterpret_cast<uint64*>(&metadata.nextAddr),
+						0,
+						"%.16llX",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+				GUI_Input<uint64>
+					(
+						"fileDataAddr",
+						*reinterpret_cast<uint64*>(&metadata.fileDataAddr),
+						0,
+						"%.16llX",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+				GUI_Input<uint32>
+					(
+						"category",
+						metadata.category,
+						1,
+						"%u",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+				GUI_Input<uint32>
+					(
+						"fileSetIndex",
+						metadata.fileSetIndex,
+						1,
+						"%u",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+				if (GUI_Button("Reset"))
+				{
+					SetMemory
+					(
+						&metadata,
+						0,
+						sizeof(metadata)
+					);
+				}
 
-			GUI_Input<uint64>
-			(
-				"this",
-				*reinterpret_cast<uint64 *>(&addr),
-				0,
-				"%.16llX",
-				ImGuiInputTextFlags_ReadOnly
-			);
-
-			GUI_Input<uint64>
-			(
-				"funcAddrs",
-				*reinterpret_cast<uint64 *>(&metadata.funcAddrs),
-				0,
-				"%.16llX",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input<uint64>
-			(
-				"lastAddr",
-				*reinterpret_cast<uint64 *>(&metadata.lastAddr),
-				0,
-				"%.16llX",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input<uint64>
-			(
-				"nextAddr",
-				*reinterpret_cast<uint64 *>(&metadata.nextAddr),
-				0,
-				"%.16llX",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input<uint64>
-			(
-				"fileDataAddr",
-				*reinterpret_cast<uint64 *>(&metadata.fileDataAddr),
-				0,
-				"%.16llX",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input<uint32>
-			(
-				"category",
-				metadata.category,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input<uint32>
-			(
-				"fileSetIndex",
-				metadata.fileSetIndex,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			if (GUI_Button("Reset"))
-			{
-				SetMemory
-				(
-					&metadata,
-					0,
-					sizeof(metadata)
-				);
-			}
-
-			ImGui::PopItemWidth();
-		};
+				ImGui::PopItemWidth();
+			};
 
 
 
@@ -7612,21 +7639,21 @@ void FileDataWindow()
 		{
 			auto open = ImGui::CollapsingHeader(fileDataGroupNames[groupIndex]);
 
-			auto & itemCount = fileDataGroupItemCounts[groupIndex];
+			auto& itemCount = fileDataGroupItemCounts[groupIndex];
 
 			ImGui::Indent(20);
 
 			old_for_all(uint32, itemIndex, itemCount)
 			{
 				if
-				(
-					open &&
-					ImGui::CollapsingHeader(fileDataGroupItemNames[groupIndex][itemIndex])
-				)
+					(
+						open &&
+						ImGui::CollapsingHeader(fileDataGroupItemNames[groupIndex][itemIndex])
+						)
 				{
 					ImGui::Indent(20);
 
-					auto & fileData = reinterpret_cast<FileData *>(appBaseAddr + 0xC99D30)[g_itemIndex];
+					auto& fileData = reinterpret_cast<FileData*>(appBaseAddr + 0xC99D30)[g_itemIndex];
 
 					GUI_FileData(fileData);
 
@@ -7727,243 +7754,24 @@ void ActorWindow()
 
 			old_for_all(uint8, entityIndex, ENTITY_COUNT)
 			{
-				auto & newActorData = g_defaultNewActorData[entityIndex];
+				auto& newActorData = g_defaultNewActorData[entityIndex];
 
 				//auto & characterName = characterIndexNames[characterIndex];
-				auto & entityName = entityEnumNames[entityIndex];
+				auto& entityName = entityEnumNames[entityIndex];
 
 				ImGui::Text(entityName);
 
 				ImGui::PushItemWidth(150.0f);
 
 				GUI_Input<byte64>
-				(
-					"baseAddr",
-					*reinterpret_cast<byte64 *>(&newActorData.baseAddr),
-					0,
-					"%llX",
-					ImGuiInputTextFlags_EnterReturnsTrue
-				);
-				GUI_Input<uint8>
-				(
-					"visibility",
-					newActorData.visibility,
-					1,
-					"%u",
-					ImGuiInputTextFlags_EnterReturnsTrue
-				);
-				GUI_Checkbox
-				(
-					"enableCollision",
-					newActorData.enableCollision
-				);
-				[&]()
-				{
-					if (!newActorData.baseAddr)
-					{
-						return;
-					}
-					auto & actorData = *reinterpret_cast<PlayerActorData *>(newActorData.baseAddr);
-
-					GUI_Input
-					(
-						"Speed",
-						actorData.speed,
-						1.0f,
-						"%g",
-						ImGuiInputTextFlags_EnterReturnsTrue
-					);
-					GUI_Input
-					(
-						"Speed Multiplier",
-						actorData.speedMultiplier,
-						1.0f,
-						"%g",
-						ImGuiInputTextFlags_EnterReturnsTrue
-					);
-
-					GUI_Input
-					(
-						"x",
-						actorData.position.x,
-						1.0f,
-						"%g",
-						ImGuiInputTextFlags_EnterReturnsTrue
-					);
-					GUI_Input
-					(
-						"y",
-						actorData.position.y,
-						1.0f,
-						"%g",
-						ImGuiInputTextFlags_EnterReturnsTrue
-					);
-					GUI_Input
-					(
-						"z",
-						actorData.position.z,
-						1.0f,
-						"%g",
-						ImGuiInputTextFlags_EnterReturnsTrue
-					);
-					GUI_Input
-					(
-						"a",
-						actorData.position.a,
-						1.0f,
-						"%g",
-						ImGuiInputTextFlags_EnterReturnsTrue
-					);
-
-					GUI_Input
-					(
-						"Hit Points",
-						actorData.hitPoints,
-						1.0f,
-						"%g",
-						ImGuiInputTextFlags_EnterReturnsTrue
-					);
-					GUI_Input
-					(
-						"Max Hit Points",
-						actorData.maxHitPoints,
-						1.0f,
-						"%g",
-						ImGuiInputTextFlags_EnterReturnsTrue
-					);
-					GUI_Input
-					(
-						"Magic Points",
-						actorData.magicPoints,
-						1.0f,
-						"%g",
-						ImGuiInputTextFlags_EnterReturnsTrue
-					);
-					GUI_Input
-					(
-						"Max Magic Points",
-						actorData.maxMagicPoints,
-						1.0f,
-						"%g",
-						ImGuiInputTextFlags_EnterReturnsTrue
-					);
-				}();
-
-				ImGui::PopItemWidth();
-
-				ImGui::Text("");
-			}
-		}
-
-
-
-		old_for_all(uint8, playerIndex, PLAYER_COUNT)
-		{
-			auto & playerData = GetPlayerData(playerIndex);
-
-			//auto playerName = playerNames[playerIndex];
-
-			if (!ImGui::CollapsingHeader(playerIndexNames[playerIndex]))
-			{
-				continue;
-			}
-
-			ImGui::Text("");
-
-			ImGui::PushItemWidth(150.0f);
-			GUI_Input<uint8>
-			(
-				"characterCount",
-				playerData.characterCount,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input<uint8>
-			(
-				"characterIndex",
-				playerData.characterIndex,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input<uint8>
-			(
-				"lastCharacterIndex",
-				playerData.lastCharacterIndex,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input<uint8>
-			(
-				"activeCharacterIndex",
-				playerData.activeCharacterIndex,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			GUI_Input<uint8>
-			(
-				"collisionGroup",
-				playerData.collisionGroup,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-			ImGui::PopItemWidth();
-			ImGui::Text("");
-
-			ImGui::Indent(20);
-
-			old_for_all(uint8, characterIndex, CHARACTER_COUNT)
-			{
-				auto & characterName = characterIndexNames[characterIndex];
-
-				if (!ImGui::CollapsingHeader(characterName))
-				{
-					continue;
-				}
-
-				ImGui::Text("");
-
-				old_for_all(uint8, entityIndex, ENTITY_COUNT)
-				{
-					auto & characterData = GetCharacterData(playerIndex, characterIndex, entityIndex);
-					auto & newActorData  = GetNewActorData (playerIndex, characterIndex, entityIndex);
-
-					//auto & characterName = characterIndexNames[characterIndex];
-					auto & entityName = entityEnumNames[entityIndex];
-
-					ImGui::Text(entityName);
-
-					ImGui::PushItemWidth(150.0f);
-
-					GUI_Input<uint8>
-					(
-						"character",
-						characterData.character,
-						1,
-						"%u",
-						ImGuiInputTextFlags_EnterReturnsTrue
-					);
-					GUI_Input<uint8>
-					(
-						"costume",
-						characterData.costume,
-						1,
-						"%u",
-						ImGuiInputTextFlags_EnterReturnsTrue
-					);
-					GUI_Input<byte64>
 					(
 						"baseAddr",
-						*reinterpret_cast<byte64 *>(&newActorData.baseAddr),
+						*reinterpret_cast<byte64*>(&newActorData.baseAddr),
 						0,
 						"%llX",
 						ImGuiInputTextFlags_EnterReturnsTrue
 					);
-					GUI_Input<uint8>
+				GUI_Input<uint8>
 					(
 						"visibility",
 						newActorData.visibility,
@@ -7971,18 +7779,18 @@ void ActorWindow()
 						"%u",
 						ImGuiInputTextFlags_EnterReturnsTrue
 					);
-					GUI_Checkbox
-					(
-						"enableCollision",
-						newActorData.enableCollision
-					);
-					[&]()
+				GUI_Checkbox
+				(
+					"enableCollision",
+					newActorData.enableCollision
+				);
+				[&]()
 					{
 						if (!newActorData.baseAddr)
 						{
 							return;
 						}
-						auto & actorData = *reinterpret_cast<PlayerActorData *>(newActorData.baseAddr);
+						auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 
 						GUI_Input
 						(
@@ -8071,6 +7879,225 @@ void ActorWindow()
 					ImGui::PopItemWidth();
 
 					ImGui::Text("");
+			}
+		}
+
+
+
+		old_for_all(uint8, playerIndex, PLAYER_COUNT)
+		{
+			auto& playerData = GetPlayerData(playerIndex);
+
+			//auto playerName = playerNames[playerIndex];
+
+			if (!ImGui::CollapsingHeader(playerIndexNames[playerIndex]))
+			{
+				continue;
+			}
+
+			ImGui::Text("");
+
+			ImGui::PushItemWidth(150.0f);
+			GUI_Input<uint8>
+				(
+					"characterCount",
+					playerData.characterCount,
+					1,
+					"%u",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
+			GUI_Input<uint8>
+				(
+					"characterIndex",
+					playerData.characterIndex,
+					1,
+					"%u",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
+			GUI_Input<uint8>
+				(
+					"lastCharacterIndex",
+					playerData.lastCharacterIndex,
+					1,
+					"%u",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
+			GUI_Input<uint8>
+				(
+					"activeCharacterIndex",
+					playerData.activeCharacterIndex,
+					1,
+					"%u",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
+			GUI_Input<uint8>
+				(
+					"collisionGroup",
+					playerData.collisionGroup,
+					1,
+					"%u",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
+			ImGui::PopItemWidth();
+			ImGui::Text("");
+
+			ImGui::Indent(20);
+
+			old_for_all(uint8, characterIndex, CHARACTER_COUNT)
+			{
+				auto& characterName = characterIndexNames[characterIndex];
+
+				if (!ImGui::CollapsingHeader(characterName))
+				{
+					continue;
+				}
+
+				ImGui::Text("");
+
+				old_for_all(uint8, entityIndex, ENTITY_COUNT)
+				{
+					auto& characterData = GetCharacterData(playerIndex, characterIndex, entityIndex);
+					auto& newActorData = GetNewActorData(playerIndex, characterIndex, entityIndex);
+
+					//auto & characterName = characterIndexNames[characterIndex];
+					auto& entityName = entityEnumNames[entityIndex];
+
+					ImGui::Text(entityName);
+
+					ImGui::PushItemWidth(150.0f);
+
+					GUI_Input<uint8>
+						(
+							"character",
+							characterData.character,
+							1,
+							"%u",
+							ImGuiInputTextFlags_EnterReturnsTrue
+						);
+					GUI_Input<uint8>
+						(
+							"costume",
+							characterData.costume,
+							1,
+							"%u",
+							ImGuiInputTextFlags_EnterReturnsTrue
+						);
+					GUI_Input<byte64>
+						(
+							"baseAddr",
+							*reinterpret_cast<byte64*>(&newActorData.baseAddr),
+							0,
+							"%llX",
+							ImGuiInputTextFlags_EnterReturnsTrue
+						);
+					GUI_Input<uint8>
+						(
+							"visibility",
+							newActorData.visibility,
+							1,
+							"%u",
+							ImGuiInputTextFlags_EnterReturnsTrue
+						);
+					GUI_Checkbox
+					(
+						"enableCollision",
+						newActorData.enableCollision
+					);
+					[&]()
+						{
+							if (!newActorData.baseAddr)
+							{
+								return;
+							}
+							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+
+							GUI_Input
+							(
+								"Speed",
+								actorData.speed,
+								1.0f,
+								"%g",
+								ImGuiInputTextFlags_EnterReturnsTrue
+							);
+							GUI_Input
+							(
+								"Speed Multiplier",
+								actorData.speedMultiplier,
+								1.0f,
+								"%g",
+								ImGuiInputTextFlags_EnterReturnsTrue
+							);
+
+							GUI_Input
+							(
+								"x",
+								actorData.position.x,
+								1.0f,
+								"%g",
+								ImGuiInputTextFlags_EnterReturnsTrue
+							);
+							GUI_Input
+							(
+								"y",
+								actorData.position.y,
+								1.0f,
+								"%g",
+								ImGuiInputTextFlags_EnterReturnsTrue
+							);
+							GUI_Input
+							(
+								"z",
+								actorData.position.z,
+								1.0f,
+								"%g",
+								ImGuiInputTextFlags_EnterReturnsTrue
+							);
+							GUI_Input
+							(
+								"a",
+								actorData.position.a,
+								1.0f,
+								"%g",
+								ImGuiInputTextFlags_EnterReturnsTrue
+							);
+
+							GUI_Input
+							(
+								"Hit Points",
+								actorData.hitPoints,
+								1.0f,
+								"%g",
+								ImGuiInputTextFlags_EnterReturnsTrue
+							);
+							GUI_Input
+							(
+								"Max Hit Points",
+								actorData.maxHitPoints,
+								1.0f,
+								"%g",
+								ImGuiInputTextFlags_EnterReturnsTrue
+							);
+							GUI_Input
+							(
+								"Magic Points",
+								actorData.magicPoints,
+								1.0f,
+								"%g",
+								ImGuiInputTextFlags_EnterReturnsTrue
+							);
+							GUI_Input
+							(
+								"Max Magic Points",
+								actorData.maxMagicPoints,
+								1.0f,
+								"%g",
+								ImGuiInputTextFlags_EnterReturnsTrue
+							);
+						}();
+
+						ImGui::PopItemWidth();
+
+						ImGui::Text("");
 				}
 			}
 
@@ -8096,16 +8123,16 @@ void EventDataWindow()
 		return;
 	}
 
-	auto pool_8079 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E10);
+	auto pool_8096 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if
-	(
-		!pool_8079 ||
-		!pool_8079[8]
-	)
+		(
+			!pool_8096 ||
+			!pool_8096[8]
+			)
 	{
 		return;
 	}
-	auto & eventData = *reinterpret_cast<EventData *>(pool_8079[8]);
+	auto& eventData = *reinterpret_cast<EventData*>(pool_8096[8]);
 
 
 	static EventData eventData2 = {};
@@ -8136,66 +8163,66 @@ void EventDataWindow()
 
 
 	if
-	(
-		ImGui::Begin
 		(
-			"EventData",
-			&showEventDataWindow
-		)
-	)
+			ImGui::Begin
+			(
+				"EventData",
+				&showEventDataWindow
+			)
+			)
 	{
 		ImGui::Text("");
 
 		ImGui::PushItemWidth(150);
 
 		GUI_Input<uint32>
-		(
-			"room",
-			eventData2.room,
-			1,
-			"%u",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"room",
+				eventData2.room,
+				1,
+				"%u",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 		GUI_Input<uint32>
-		(
-			"position",
-			eventData2.position,
-			1,
-			"%u",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"position",
+				eventData2.position,
+				1,
+				"%u",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 		GUI_Input<uint32>
-		(
-			"event",
-			eventData2.event,
-			1,
-			"%u",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"event",
+				eventData2.event,
+				1,
+				"%u",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 		GUI_Input<uint32>
-		(
-			"subevent",
-			eventData2.subevent,
-			1,
-			"%u",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"subevent",
+				eventData2.subevent,
+				1,
+				"%u",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 		GUI_Input<uint32>
-		(
-			"screen",
-			eventData2.screen,
-			1,
-			"%u",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"screen",
+				eventData2.screen,
+				1,
+				"%u",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 		GUI_Input<uint32>
-		(
-			"nextScreen",
-			eventData2.nextScreen,
-			1,
-			"%u",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"nextScreen",
+				eventData2.nextScreen,
+				1,
+				"%u",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 
 		ImGui::PopItemWidth();
 
@@ -8203,11 +8230,11 @@ void EventDataWindow()
 
 		if (GUI_Button("Apply"))
 		{
-			eventData.room       = eventData2.room;
-			eventData.position   = eventData2.position;
-			eventData.event      = eventData2.event;
-			eventData.subevent   = eventData2.subevent;
-			eventData.screen     = eventData2.screen;
+			eventData.room = eventData2.room;
+			eventData.position = eventData2.position;
+			eventData.event = eventData2.event;
+			eventData.subevent = eventData2.subevent;
+			eventData.screen = eventData2.screen;
 			eventData.nextScreen = eventData2.nextScreen;
 		}
 
@@ -8261,75 +8288,75 @@ void RegionDataWindow()
 
 
 
-		auto GUI_RegionData = [&](RegionData & regionData)
-		{
-			ImGui::PushItemWidth(200);
+		auto GUI_RegionData = [&](RegionData& regionData)
+			{
+				ImGui::PushItemWidth(200);
 
-			GUI_Input<uint64>
-			(
-				"metadataAddr",
-				*reinterpret_cast<uint64 *>(&regionData.metadataAddr),
-				0,
-				"%llX",
-				ImGuiInputTextFlags_CharsHexadecimal |
-				ImGuiInputTextFlags_ReadOnly
-			);
-			GUI_Input<uint64>
-			(
-				"dataAddr",
-				*reinterpret_cast<uint64 *>(&regionData.dataAddr),
-				0,
-				"%llX",
-				ImGuiInputTextFlags_CharsHexadecimal |
-				ImGuiInputTextFlags_ReadOnly
-			);
-			GUI_Input<uint32>
-			(
-				"capacity",
-				regionData.capacity,
-				0,
-				"%X",
-				ImGuiInputTextFlags_CharsHexadecimal |
-				ImGuiInputTextFlags_ReadOnly
-			);
-			GUI_Input<uint32>
-			(
-				"boundary",
-				regionData.boundary,
-				0,
-				"%X",
-				ImGuiInputTextFlags_CharsHexadecimal |
-				ImGuiInputTextFlags_ReadOnly
-			);
-			GUI_Input<uint32>
-			(
-				"size",
-				regionData.size,
-				0,
-				"%X",
-				ImGuiInputTextFlags_ReadOnly
-			);
-			GUI_Input<uint32>
-			(
-				"pipe",
-				regionData.pipe,
-				0,
-				"%u",
-				ImGuiInputTextFlags_ReadOnly
-			);
-			GUI_Input<uint32>
-			(
-				"count",
-				regionData.count,
-				0,
-				"%u",
-				ImGuiInputTextFlags_ReadOnly
-			);
+				GUI_Input<uint64>
+					(
+						"metadataAddr",
+						*reinterpret_cast<uint64*>(&regionData.metadataAddr),
+						0,
+						"%llX",
+						ImGuiInputTextFlags_CharsHexadecimal |
+						ImGuiInputTextFlags_ReadOnly
+					);
+				GUI_Input<uint64>
+					(
+						"dataAddr",
+						*reinterpret_cast<uint64*>(&regionData.dataAddr),
+						0,
+						"%llX",
+						ImGuiInputTextFlags_CharsHexadecimal |
+						ImGuiInputTextFlags_ReadOnly
+					);
+				GUI_Input<uint32>
+					(
+						"capacity",
+						regionData.capacity,
+						0,
+						"%X",
+						ImGuiInputTextFlags_CharsHexadecimal |
+						ImGuiInputTextFlags_ReadOnly
+					);
+				GUI_Input<uint32>
+					(
+						"boundary",
+						regionData.boundary,
+						0,
+						"%X",
+						ImGuiInputTextFlags_CharsHexadecimal |
+						ImGuiInputTextFlags_ReadOnly
+					);
+				GUI_Input<uint32>
+					(
+						"size",
+						regionData.size,
+						0,
+						"%X",
+						ImGuiInputTextFlags_ReadOnly
+					);
+				GUI_Input<uint32>
+					(
+						"pipe",
+						regionData.pipe,
+						0,
+						"%u",
+						ImGuiInputTextFlags_ReadOnly
+					);
+				GUI_Input<uint32>
+					(
+						"count",
+						regionData.count,
+						0,
+						"%u",
+						ImGuiInputTextFlags_ReadOnly
+					);
 
-			ImGui::PopItemWidth();
-		};
+				ImGui::PopItemWidth();
+			};
 
-		auto regionDataAddr = reinterpret_cast<RegionData *>(appBaseAddr + 0xCA8910);
+		auto regionDataAddr = reinterpret_cast<RegionData*>(appBaseAddr + 0xCA8910);
 		/*
 		dmc3.exe+2C61BF - 4C 8D 25 4A279E00 - lea r12,[dmc3.exe+CA8910]
 		dmc3.exe+2C61C6 - 44 8B C5          - mov r8d,ebp
@@ -8338,17 +8365,17 @@ void RegionDataWindow()
 		static uint32 count = 3;
 
 		GUI_Input<uint32>
-		(
-			"Count",
-			count,
-			1,
-			"%u",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"Count",
+				count,
+				1,
+				"%u",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 
 		old_for_all(uint32, index, count)
 		{
-			auto & regionData = regionDataAddr[index];
+			auto& regionData = regionDataAddr[index];
 
 			GUI_RegionData(regionData);
 			ImGui::Text("");
@@ -8384,42 +8411,42 @@ void SoundWindow()
 
 
 		static uint32 fmodChannelIndex = 0;
-		static FMOD_CHANNEL * fmodChannelAddr = 0;
+		static FMOD_CHANNEL* fmodChannelAddr = 0;
 		static float volume = 1.0f;
 		static FMOD_RESULT fmodResult = 0;
 
 		ImGui::PushItemWidth(200);
 		if
-		(
-			GUI_Input<uint32>
 			(
-				"FMOD Channel Index",
-				fmodChannelIndex,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			)
-		)
+				GUI_Input<uint32>
+				(
+					"FMOD Channel Index",
+					fmodChannelIndex,
+					1,
+					"%u",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				)
+				)
 		{
-			fmodChannelAddr = reinterpret_cast<FMOD_CHANNEL **>(appBaseAddr + 0x5DE3E0)[fmodChannelIndex];
+			fmodChannelAddr = reinterpret_cast<FMOD_CHANNEL**>(appBaseAddr + 0x5DE3E0)[fmodChannelIndex];
 		}
 		GUI_Input<uint64>
-		(
-			"FMOD Channel Address",
-			*reinterpret_cast<uint64 *>(&fmodChannelAddr),
-			0,
-			"%llX",
-			ImGuiInputTextFlags_CharsHexadecimal |
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"FMOD Channel Address",
+				*reinterpret_cast<uint64*>(&fmodChannelAddr),
+				0,
+				"%llX",
+				ImGuiInputTextFlags_CharsHexadecimal |
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 		GUI_Input<float>
-		(
-			"Volume",
-			volume,
-			0.1f,
-			"%g",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"Volume",
+				volume,
+				0.1f,
+				"%g",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 		ImGui::PopItemWidth();
 		ImGui::Text("");
 
@@ -8436,104 +8463,104 @@ void SoundWindow()
 
 
 
-		static byte8 * headMetadataAddr = 0;
+		static byte8* headMetadataAddr = 0;
 
 		ImGui::PushItemWidth(200);
 		GUI_Input<uint64>
-		(
-			"Head Metadata Address",
-			*reinterpret_cast<uint64 *>(&headMetadataAddr),
-			0,
-			"%llX",
-			ImGuiInputTextFlags_CharsHexadecimal |
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"Head Metadata Address",
+				*reinterpret_cast<uint64*>(&headMetadataAddr),
+				0,
+				"%llX",
+				ImGuiInputTextFlags_CharsHexadecimal |
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 		ImGui::PopItemWidth();
 		ImGui::Text("");
 
 		[&]()
-		{
-			if (!headMetadataAddr)
 			{
-				return;
-			}
-
-			auto & headMetadata = *reinterpret_cast<HeadMetadata *>(headMetadataAddr);
-
-			auto & vagiMetadata = *reinterpret_cast<VagiMetadata *>(headMetadataAddr + headMetadata.vagiMetadataOff);
-
-
-
-			if (ImGui::CollapsingHeader("Vagi"))
-			{
-				ImGui::Text("");
-
-				ImGui::PushItemWidth(200);
-
-				GUI_Input<uint32>
-				(
-					"size",
-					vagiMetadata.size,
-					0,
-					"%X",
-					ImGuiInputTextFlags_CharsHexadecimal |
-					ImGuiInputTextFlags_EnterReturnsTrue
-				);
-				GUI_Input<uint32>
-				(
-					"last",
-					vagiMetadata.last,
-					0
-				);
-
-				ImGui::Text("");
-
-				auto itemCount = (vagiMetadata.last + 1);
-
-				ImGui::Text("itemCount %u", itemCount);
-
-				old_for_all(uint32, itemIndex, itemCount)
+				if (!headMetadataAddr)
 				{
-					auto & item = vagiMetadata.items[itemIndex];
+					return;
+				}
+
+				auto& headMetadata = *reinterpret_cast<HeadMetadata*>(headMetadataAddr);
+
+				auto& vagiMetadata = *reinterpret_cast<VagiMetadata*>(headMetadataAddr + headMetadata.vagiMetadataOff);
+
+
+
+				if (ImGui::CollapsingHeader("Vagi"))
+				{
+					ImGui::Text("");
+
+					ImGui::PushItemWidth(200);
+
+					GUI_Input<uint32>
+						(
+							"size",
+							vagiMetadata.size,
+							0,
+							"%X",
+							ImGuiInputTextFlags_CharsHexadecimal |
+							ImGuiInputTextFlags_EnterReturnsTrue
+						);
+					GUI_Input<uint32>
+						(
+							"last",
+							vagiMetadata.last,
+							0
+						);
 
 					ImGui::Text("");
 
-					ImGui::Text("%u", itemIndex);
-					GUI_Input<uint32>
-					(
-						"off",
-						item.off,
-						0,
-						"%X",
-						ImGuiInputTextFlags_CharsHexadecimal |
-						ImGuiInputTextFlags_EnterReturnsTrue
-					);
-					GUI_Input<uint32>
-					(
-						"size",
-						item.size,
-						0,
-						"%X",
-						ImGuiInputTextFlags_CharsHexadecimal |
-						ImGuiInputTextFlags_EnterReturnsTrue
-					);
-					GUI_Input<uint32>
-					(
-						"sampleRate",
-						item.sampleRate,
-						1000,
-						"%u",
-						ImGuiInputTextFlags_EnterReturnsTrue
-					);
+					auto itemCount = (vagiMetadata.last + 1);
+
+					ImGui::Text("itemCount %u", itemCount);
+
+					old_for_all(uint32, itemIndex, itemCount)
+					{
+						auto& item = vagiMetadata.items[itemIndex];
+
+						ImGui::Text("");
+
+						ImGui::Text("%u", itemIndex);
+						GUI_Input<uint32>
+							(
+								"off",
+								item.off,
+								0,
+								"%X",
+								ImGuiInputTextFlags_CharsHexadecimal |
+								ImGuiInputTextFlags_EnterReturnsTrue
+							);
+						GUI_Input<uint32>
+							(
+								"size",
+								item.size,
+								0,
+								"%X",
+								ImGuiInputTextFlags_CharsHexadecimal |
+								ImGuiInputTextFlags_EnterReturnsTrue
+							);
+						GUI_Input<uint32>
+							(
+								"sampleRate",
+								item.sampleRate,
+								1000,
+								"%u",
+								ImGuiInputTextFlags_EnterReturnsTrue
+							);
+					}
+
+					ImGui::PopItemWidth();
+
+					ImGui::Text("");
 				}
+			}();
 
-				ImGui::PopItemWidth();
-
-				ImGui::Text("");
-			}
-		}();
-
-		ImGui::Text("");
+			ImGui::Text("");
 	}
 	ImGui::End();
 }
@@ -8567,13 +8594,13 @@ void Debug()
 		);
 
 		GUI_Input<float>
-		(
-			"saveTimeout",
-			GUI::saveTimeout,
-			1.0f,
-			"%g",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"saveTimeout",
+				GUI::saveTimeout,
+				1.0f,
+				"%g",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 
 
 
@@ -8583,21 +8610,21 @@ void Debug()
 
 			ImGui::PushItemWidth(150);
 			GUI_Input<int32>
-			(
-				"group",
-				group,
-				1,
-				"%d",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				(
+					"group",
+					group,
+					1,
+					"%d",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
 			GUI_Input<int32>
-			(
-				"index",
-				index,
-				1,
-				"%d",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				(
+					"index",
+					index,
+					1,
+					"%d",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
 			ImGui::PopItemWidth();
 			ImGui::Text("");
 
@@ -8721,19 +8748,19 @@ void Debug()
 
 		if (GUI_Button("Close All"))
 		{
-			showActorWindow       = false;
-			showEventDataWindow   = false;
-			showExpWindow         = false;
-			showFileDataWindow    = false;
+			showActorWindow = false;
+			showEventDataWindow = false;
+			showExpWindow = false;
+			showFileDataWindow = false;
 			showMissionDataWindow = false;
-			showRegionDataWindow  = false;
-			showSoundWindow       = false;
+			showRegionDataWindow = false;
+			showSoundWindow = false;
 		}
 		ImGui::Text("");
 
 
 
-		auto & sessionData = *reinterpret_cast<SessionData *>(appBaseAddr + 0xC8F250);
+		auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 
 		GUI_Checkbox("One Hit Kill", sessionData.oneHitKill);
@@ -8751,28 +8778,28 @@ void Debug()
 
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Force Visible HUD",
-				activeConfig.forceVisibleHUD,
-				queuedConfig.forceVisibleHUD
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Force Visible HUD",
+					activeConfig.forceVisibleHUD,
+					queuedConfig.forceVisibleHUD
+				)
+				)
 		{
 			ToggleForceVisibleHUD(activeConfig.forceVisibleHUD);
 		}
 		ImGui::Text("");
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Disable Player Actor Idle Timer",
-				activeConfig.disablePlayerActorIdleTimer,
-				queuedConfig.disablePlayerActorIdleTimer
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Disable Player Actor Idle Timer",
+					activeConfig.disablePlayerActorIdleTimer,
+					queuedConfig.disablePlayerActorIdleTimer
+				)
+				)
 		{
 			ToggleDisablePlayerActorIdleTimer(activeConfig.disablePlayerActorIdleTimer);
 		}
@@ -8784,52 +8811,52 @@ void Debug()
 
 
 		{
-			static ModelData * modelDataAddr = 0;
-			static BodyPartData * bodyPartDataAddr = 0;
-			static NewArchiveMetadata * archiveAddr = 0;
+			static ModelData* modelDataAddr = 0;
+			static BodyPartData* bodyPartDataAddr = 0;
+			static NewArchiveMetadata* archiveAddr = 0;
 
 			static uint16 cacheFileIndex = em034;
 
 			static char buffer[8];
-			static byte8 * file = 0;
+			static byte8* file = 0;
 			static uint32 fileIndex = 0;
-			
+
 			static char subbuffer[8];
-			static byte8 * subfile = 0;
+			static byte8* subfile = 0;
 			static uint32 subfileIndex = 0;
 
 
 
 
 			GUI_Input<byte64>
-			(
-				"modelDataAddr",
-				*reinterpret_cast<byte64 *>(&modelDataAddr),
-				0,
-				"%llX",
-				ImGuiInputTextFlags_EnterReturnsTrue |
-				ImGuiInputTextFlags_CharsHexadecimal
-			);
+				(
+					"modelDataAddr",
+					*reinterpret_cast<byte64*>(&modelDataAddr),
+					0,
+					"%llX",
+					ImGuiInputTextFlags_EnterReturnsTrue |
+					ImGuiInputTextFlags_CharsHexadecimal
+				);
 
 			GUI_Input<byte64>
-			(
-				"bodyPartDataAddr",
-				*reinterpret_cast<byte64 *>(&bodyPartDataAddr),
-				0,
-				"%llX",
-				ImGuiInputTextFlags_EnterReturnsTrue |
-				ImGuiInputTextFlags_CharsHexadecimal
-			);
+				(
+					"bodyPartDataAddr",
+					*reinterpret_cast<byte64*>(&bodyPartDataAddr),
+					0,
+					"%llX",
+					ImGuiInputTextFlags_EnterReturnsTrue |
+					ImGuiInputTextFlags_CharsHexadecimal
+				);
 
 			GUI_Input<byte64>
-			(
-				"archiveAddr",
-				*reinterpret_cast<byte64 *>(&archiveAddr),
-				0,
-				"%llX",
-				ImGuiInputTextFlags_EnterReturnsTrue |
-				ImGuiInputTextFlags_CharsHexadecimal
-			);
+				(
+					"archiveAddr",
+					*reinterpret_cast<byte64*>(&archiveAddr),
+					0,
+					"%llX",
+					ImGuiInputTextFlags_EnterReturnsTrue |
+					ImGuiInputTextFlags_CharsHexadecimal
+				);
 
 
 
@@ -8837,13 +8864,13 @@ void Debug()
 			// @Todo: Set Archive.
 
 			GUI_Input<uint16>
-			(
-				"cacheFileIndex",
-				cacheFileIndex,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				(
+					"cacheFileIndex",
+					cacheFileIndex,
+					1,
+					"%u",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
 
 
 
@@ -8861,56 +8888,56 @@ void Debug()
 
 			ImGui::PushItemWidth(150);
 			GUI_Input<byte64>
-			(
-				"",
-				*reinterpret_cast<byte64 *>(&file),
-				0,
-				"%llX",
-				ImGuiInputTextFlags_CharsHexadecimal |
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				(
+					"",
+					*reinterpret_cast<byte64*>(&file),
+					0,
+					"%llX",
+					ImGuiInputTextFlags_CharsHexadecimal |
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
 			ImGui::SameLine();
 			GUI_Input<uint32>
-			(
-				"",
-				fileIndex
-			);
+				(
+					"",
+					fileIndex
+				);
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			if (GUI_Button("Set File"))
 			{
 				[&]()
-				{
-					if (!archiveAddr)
 					{
-						return;
-					}
-					auto & archive = *archiveAddr;
+						if (!archiveAddr)
+						{
+							return;
+						}
+						auto& archive = *archiveAddr;
 
 
 
-					file = archive[fileIndex];
+						file = archive[fileIndex];
 
-					SetMemory
-					(
-						buffer,
-						0,
-						sizeof(buffer)
-					);
+						SetMemory
+						(
+							buffer,
+							0,
+							sizeof(buffer)
+						);
 
 
-					if (!file)
-					{
-						return;
-					}
+						if (!file)
+						{
+							return;
+						}
 
-					CopyMemory
-					(
-						buffer,
-						file,
-						4
-					);
-				}();
+						CopyMemory
+						(
+							buffer,
+							file,
+							4
+						);
+					}();
 			}
 
 
@@ -8928,93 +8955,93 @@ void Debug()
 			ImGui::SameLine();
 			ImGui::PushItemWidth(150);
 			GUI_Input<uint64>
-			(
-				"",
-				*reinterpret_cast<uint64 *>(&subfile),
-				0,
-				"%llX",
-				ImGuiInputTextFlags_CharsHexadecimal |
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				(
+					"",
+					*reinterpret_cast<uint64*>(&subfile),
+					0,
+					"%llX",
+					ImGuiInputTextFlags_CharsHexadecimal |
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
 			ImGui::SameLine();
 			GUI_Input<uint32>
-			(
-				"",
-				subfileIndex
-			);
+				(
+					"",
+					subfileIndex
+				);
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			// @Todo: Update.
 			if (GUI_Button("Set Subfile"))
 			{
 				[&]()
-				{
-					auto subarchive = file;
-					if (!subarchive)
 					{
-						return;
-					}
+						auto subarchive = file;
+						if (!subarchive)
+						{
+							return;
+						}
 
-					auto & subarchiveMetadata = *reinterpret_cast<ArchiveMetadata *>(subarchive);
+						auto& subarchiveMetadata = *reinterpret_cast<ArchiveMetadata*>(subarchive);
 
-					if
-					(
-						(subarchiveMetadata.signature[0] != 'P') ||
-						(subarchiveMetadata.signature[1] != 'A') ||
-						(subarchiveMetadata.signature[2] != 'C')
-					)
-					{
-						MessageBoxA
+						if
+							(
+								(subarchiveMetadata.signature[0] != 'P') ||
+								(subarchiveMetadata.signature[1] != 'A') ||
+								(subarchiveMetadata.signature[2] != 'C')
+								)
+						{
+							MessageBoxA
+							(
+								0,
+								"Wrong Signature",
+								0,
+								0
+							);
+
+							return;
+						}
+
+						if (subfileIndex >= subarchiveMetadata.fileCount)
+						{
+							MessageBoxA
+							(
+								0,
+								"Out of range.",
+								0,
+								0
+							);
+
+							return;
+						}
+
+						auto subfileOff = subarchiveMetadata.fileOffs[subfileIndex];
+						if (!subfileOff)
+						{
+							return;
+						}
+
+						subfile = (file + subfileOff);
+
+						SetMemory
 						(
+							subbuffer,
 							0,
-							"Wrong Signature",
-							0,
-							0
+							sizeof(subbuffer)
 						);
 
-						return;
-					}
+						if (!subfile)
+						{
+							return;
+						}
 
-					if (subfileIndex >= subarchiveMetadata.fileCount)
-					{
-						MessageBoxA
+						CopyMemory
 						(
-							0,
-							"Out of range.",
-							0,
-							0
+							subbuffer,
+							(subfile + 4),
+							3
 						);
-
-						return;
-					}
-
-					auto subfileOff = subarchiveMetadata.fileOffs[subfileIndex];
-					if (!subfileOff)
-					{
-						return;
-					}
-
-					subfile = (file + subfileOff);
-
-					SetMemory
-					(
-						subbuffer,
-						0,
-						sizeof(subbuffer)
-					);
-
-					if (!subfile)
-					{
-						return;
-					}
-
-					CopyMemory
-					(
-						subbuffer,
-						(subfile + 4),
-						3
-					);
-				}();
+					}();
 			}
 
 
@@ -9024,68 +9051,68 @@ void Debug()
 			if (GUI_Button("Play File Motion"))
 			{
 				[&]()
-				{
-					//IntroduceMainActorData(actorBaseAddr, actorData, return);
-					if (!modelDataAddr)
 					{
-						return;
-					}
+						//IntroduceMainActorData(actorBaseAddr, actorData, return);
+						if (!modelDataAddr)
+						{
+							return;
+						}
 
-					func_8AC80
-					(
-						//actorData.newModelData[0],
-						*modelDataAddr,
-						UPPER_BODY,
-						file,
-						0,
-						false
-					);
-					func_8AC80
-					(
-						//actorData.newModelData[0],
-						*modelDataAddr,
-						LOWER_BODY,
-						file,
-						0,
-						false
-					);
-				}();
+						func_8AC80
+						(
+							//actorData.newModelData[0],
+							*modelDataAddr,
+							UPPER_BODY,
+							file,
+							0,
+							false
+						);
+						func_8AC80
+						(
+							//actorData.newModelData[0],
+							*modelDataAddr,
+							LOWER_BODY,
+							file,
+							0,
+							false
+						);
+					}();
 			}
 
 			if (GUI_Button("Play Subfile Motion"))
 			{
 				[&]()
-				{
-					if (!modelDataAddr)
 					{
-						return;
-					}
-					//IntroduceMainActorData(actorBaseAddr, actorData, return);
+						if (!modelDataAddr)
+						{
+							return;
+						}
+						//IntroduceMainActorData(actorBaseAddr, actorData, return);
 
-					func_8AC80
-					(
-						//actorData.newModelData[0],
-						*modelDataAddr,
-						UPPER_BODY,
-						subfile,
-						0,
-						false
-					);
-					func_8AC80
-					(
-						//actorData.newModelData[0],
-						*modelDataAddr,
-						LOWER_BODY,
-						subfile,
-						0,
-						false
-					);
+						func_8AC80
+						(
+							//actorData.newModelData[0],
+							*modelDataAddr,
+							UPPER_BODY,
+							subfile,
+							0,
+							false
+						);
+						func_8AC80
+						(
+							//actorData.newModelData[0],
+							*modelDataAddr,
+							LOWER_BODY,
+							subfile,
+							0,
+							false
+						);
 
-					//auto bodyPartData2
+						//auto bodyPartData2
 
-					auto & done1 = *reinterpret_cast<bool *>(reinterpret_cast<byte8 *>(&bodyPartDataAddr[0]) + 0xBA) = false;
-					auto & done2 = *reinterpret_cast<bool *>(reinterpret_cast<byte8 *>(&bodyPartDataAddr[1]) + 0xBA) = false;
-				}();
+						auto& done1 = *reinterpret_cast<bool*>(reinterpret_cast<byte8*>(&bodyPartDataAddr[0]) + 0xBA) = false;
+						auto& done2 = *reinterpret_cast<bool*>(reinterpret_cast<byte8*>(&bodyPartDataAddr[1]) + 0xBA) = false;
+					}();
 			}
 
 
@@ -9105,9 +9132,9 @@ void Debug()
 
 
 		{
-			static vec4   __declspec(align(16)) position   = {};
+			static vec4   __declspec(align(16)) position = {};
 			static vec4   __declspec(align(16)) multiplier = {};
-			static __m128 __declspec(align(16)) height     = {};
+			static __m128 __declspec(align(16)) height = {};
 
 
 
@@ -9239,31 +9266,31 @@ void Debug()
 			static uint64 actorIndex = 0;
 
 			GUI_Input<decltype(actorIndex)>
-			(
-				"actorIndex",
-				actorIndex,
-				1,
-				"%llu",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				(
+					"actorIndex",
+					actorIndex,
+					1,
+					"%llu",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
 
 			GUI_Input<uint32>
-			(
-				"event",
-				event,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				(
+					"event",
+					event,
+					1,
+					"%u",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
 
 			GUI_Input<decltype(action)>
-			(
-				"action",
-				action,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				(
+					"action",
+					action,
+					1,
+					"%u",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
 
 
 
@@ -9271,17 +9298,17 @@ void Debug()
 			{
 
 				[&]()
-				{
-					if (!g_playerActorBaseAddrs[actorIndex])
 					{
-						return;
-					}
-					auto & actorData = *reinterpret_cast<PlayerActorData *>(g_playerActorBaseAddrs[actorIndex]);
+						if (!g_playerActorBaseAddrs[actorIndex])
+						{
+							return;
+						}
+						auto& actorData = *reinterpret_cast<PlayerActorData*>(g_playerActorBaseAddrs[actorIndex]);
 
-					actorData.action = action;
+						actorData.action = action;
 
-					func_1E09D0(actorData, event);
-				}();
+						func_1E09D0(actorData, event);
+					}();
 			}
 		}
 
@@ -9354,13 +9381,13 @@ void Enemy()
 
 
 		GUI_Slider2<uint8>
-		(
-			"Enemy Count",
-			activeConfig.enemyCount,
-			queuedConfig.enemyCount,
-			1,
-			static_cast<uint8>(countof(activeConfig.configCreateEnemyActorData))
-		);
+			(
+				"Enemy Count",
+				activeConfig.enemyCount,
+				queuedConfig.enemyCount,
+				1,
+				static_cast<uint8>(countof(activeConfig.configCreateEnemyActorData))
+			);
 		ImGui::Text("");
 
 		GUI_Checkbox2
@@ -9376,7 +9403,7 @@ void Enemy()
 		{
 			old_for_all(uint8, index, activeConfig.enemyCount)
 			{
-				auto & activeConfigCreateEnemyActorData = activeConfig.configCreateEnemyActorData[index];
+				auto& activeConfigCreateEnemyActorData = activeConfig.configCreateEnemyActorData[index];
 
 				CreateEnemyActor(activeConfigCreateEnemyActorData);
 			}
@@ -9386,45 +9413,45 @@ void Enemy()
 		if (GUI_Button("Kill All Ladies"))
 		{
 			[&]()
-			{
-				auto pool_9330 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E28);
-				if
-				(
-					!pool_9330 ||
-					!pool_9330[8]
-				)
 				{
-					return;
-				}
-				auto & enemyVectorData = *reinterpret_cast<EnemyVectorData *>(pool_9330[8]);
-
-
-				LogFunction();
-
-				old_for_all(uint32, enemyIndex, countof(enemyVectorData.metadata))
-				{
-					auto & metadata = enemyVectorData.metadata[enemyIndex];
-
-					if (!metadata.baseAddr)
-					{
-						continue;
-					}
-					auto & actorData = *reinterpret_cast<EnemyActorDataLady *>(metadata.baseAddr);
-
+					auto pool_9347 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 					if
-					(
-						!actorData.baseAddr ||
-						(actorData.enemy != ENEMY::LADY)
-					)
+						(
+							!pool_9347 ||
+							!pool_9347[8]
+							)
 					{
-						continue;
+						return;
 					}
+					auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_9347[8]);
 
-					actorData.event = EVENT_BOSS_LADY::DEATH;
-					actorData.state = 0;
-					actorData.friendly = false;
-				}
-			}();
+
+					LogFunction();
+
+					old_for_all(uint32, enemyIndex, countof(enemyVectorData.metadata))
+					{
+						auto& metadata = enemyVectorData.metadata[enemyIndex];
+
+						if (!metadata.baseAddr)
+						{
+							continue;
+						}
+						auto& actorData = *reinterpret_cast<EnemyActorDataLady*>(metadata.baseAddr);
+
+						if
+							(
+								!actorData.baseAddr ||
+								(actorData.enemy != ENEMY::LADY)
+								)
+						{
+							continue;
+						}
+
+						actorData.event = EVENT_BOSS_LADY::DEATH;
+						actorData.state = 0;
+						actorData.friendly = false;
+					}
+				}();
 		}
 		ImGui::Text("");
 
@@ -9432,8 +9459,8 @@ void Enemy()
 
 		old_for_all(uint8, index, activeConfig.enemyCount)
 		{
-			auto & activeConfigCreateEnemyActorData = activeConfig.configCreateEnemyActorData[index];
-			auto & queuedConfigCreateEnemyActorData = queuedConfig.configCreateEnemyActorData[index];
+			auto& activeConfigCreateEnemyActorData = activeConfig.configCreateEnemyActorData[index];
+			auto& queuedConfigCreateEnemyActorData = queuedConfig.configCreateEnemyActorData[index];
 
 			ImGui::Text("%u", index);
 
@@ -9449,14 +9476,14 @@ void Enemy()
 			);
 
 			GUI_Input2<uint32>
-			(
-				"Variant",
-				activeConfigCreateEnemyActorData.variant,
-				queuedConfigCreateEnemyActorData.variant,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				(
+					"Variant",
+					activeConfigCreateEnemyActorData.variant,
+					queuedConfigCreateEnemyActorData.variant,
+					1,
+					"%u",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
 
 			GUI_Checkbox2
 			(
@@ -9473,43 +9500,43 @@ void Enemy()
 				GUI_PushDisable(condition);
 
 				GUI_Input2<float>
-				(
-					"X",
-					activeConfigCreateEnemyActorData.position.x,
-					queuedConfigCreateEnemyActorData.position.x,
-					10.0f,
-					"%g",
-					ImGuiInputTextFlags_EnterReturnsTrue
-				);
+					(
+						"X",
+						activeConfigCreateEnemyActorData.position.x,
+						queuedConfigCreateEnemyActorData.position.x,
+						10.0f,
+						"%g",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
 				GUI_Input2<float>
-				(
-					"Y",
-					activeConfigCreateEnemyActorData.position.y,
-					queuedConfigCreateEnemyActorData.position.y,
-					10.0f,
-					"%g",
-					ImGuiInputTextFlags_EnterReturnsTrue
-				);
+					(
+						"Y",
+						activeConfigCreateEnemyActorData.position.y,
+						queuedConfigCreateEnemyActorData.position.y,
+						10.0f,
+						"%g",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
 				GUI_Input2<float>
-				(
-					"Z",
-					activeConfigCreateEnemyActorData.position.z,
-					queuedConfigCreateEnemyActorData.position.z,
-					10.0f,
-					"%g",
-					ImGuiInputTextFlags_EnterReturnsTrue
-				);
+					(
+						"Z",
+						activeConfigCreateEnemyActorData.position.z,
+						queuedConfigCreateEnemyActorData.position.z,
+						10.0f,
+						"%g",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
 
 
 				GUI_Input2<uint16>
-				(
-					"Rotation",
-					activeConfigCreateEnemyActorData.rotation,
-					queuedConfigCreateEnemyActorData.rotation,
-					1,
-					"%u",
-					ImGuiInputTextFlags_EnterReturnsTrue
-				);
+					(
+						"Rotation",
+						activeConfigCreateEnemyActorData.rotation,
+						queuedConfigCreateEnemyActorData.rotation,
+						1,
+						"%u",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
 
 				GUI_PopDisable(condition);
 			}
@@ -9517,14 +9544,14 @@ void Enemy()
 
 
 			GUI_Input2<uint16>
-			(
-				"Spawn Method",
-				activeConfigCreateEnemyActorData.spawnMethod,
-				queuedConfigCreateEnemyActorData.spawnMethod,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
+				(
+					"Spawn Method",
+					activeConfigCreateEnemyActorData.spawnMethod,
+					queuedConfigCreateEnemyActorData.spawnMethod,
+					1,
+					"%u",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				);
 
 			if (GUI_Button("Create"))
 			{
@@ -9578,15 +9605,15 @@ void Jukebox()
 		);
 
 		if
-		(
-			GUI_Combo
 			(
-				"",
-				trackNames,
-				index,
-				ImGuiComboFlags_HeightLarge
-			)
-		)
+				GUI_Combo
+				(
+					"",
+					trackNames,
+					index,
+					ImGuiComboFlags_HeightLarge
+				)
+				)
 		{
 			snprintf
 			(
@@ -9684,67 +9711,67 @@ void Lady()
 		ImGui::PushItemWidth(200.0f);
 
 		GUI_InputDefault2<float>
-		(
-			"Hook Multiplier X",
-			activeConfig.kalinaAnnHookMultiplier.x,
-			queuedConfig.kalinaAnnHookMultiplier.x,
-			defaultConfig.kalinaAnnHookMultiplier.x,
-			1.0f,
-			"%g",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"Hook Multiplier X",
+				activeConfig.kalinaAnnHookMultiplier.x,
+				queuedConfig.kalinaAnnHookMultiplier.x,
+				defaultConfig.kalinaAnnHookMultiplier.x,
+				1.0f,
+				"%g",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 		GUI_InputDefault2<float>
-		(
-			"Hook Multiplier Y",
-			activeConfig.kalinaAnnHookMultiplier.y,
-			queuedConfig.kalinaAnnHookMultiplier.y,
-			defaultConfig.kalinaAnnHookMultiplier.y,
-			1.0f,
-			"%g",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"Hook Multiplier Y",
+				activeConfig.kalinaAnnHookMultiplier.y,
+				queuedConfig.kalinaAnnHookMultiplier.y,
+				defaultConfig.kalinaAnnHookMultiplier.y,
+				1.0f,
+				"%g",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 		GUI_InputDefault2<float>
-		(
-			"Hook Multiplier Z",
-			activeConfig.kalinaAnnHookMultiplier.z,
-			queuedConfig.kalinaAnnHookMultiplier.z,
-			defaultConfig.kalinaAnnHookMultiplier.z,
-			1.0f,
-			"%g",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"Hook Multiplier Z",
+				activeConfig.kalinaAnnHookMultiplier.z,
+				queuedConfig.kalinaAnnHookMultiplier.z,
+				defaultConfig.kalinaAnnHookMultiplier.z,
+				1.0f,
+				"%g",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 		GUI_InputDefault2<float>
-		(
-			"Hook Multiplier A",
-			activeConfig.kalinaAnnHookMultiplier.a,
-			queuedConfig.kalinaAnnHookMultiplier.a,
-			defaultConfig.kalinaAnnHookMultiplier.a,
-			1.0f,
-			"%g",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"Hook Multiplier A",
+				activeConfig.kalinaAnnHookMultiplier.a,
+				queuedConfig.kalinaAnnHookMultiplier.a,
+				defaultConfig.kalinaAnnHookMultiplier.a,
+				1.0f,
+				"%g",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 
 		GUI_InputDefault2<float>
-		(
-			"Hook Grenade Height",
-			activeConfig.kalinaAnnHookGrenadeHeight,
-			queuedConfig.kalinaAnnHookGrenadeHeight,
-			defaultConfig.kalinaAnnHookGrenadeHeight,
-			10.0f,
-			"%g",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"Hook Grenade Height",
+				activeConfig.kalinaAnnHookGrenadeHeight,
+				queuedConfig.kalinaAnnHookGrenadeHeight,
+				defaultConfig.kalinaAnnHookGrenadeHeight,
+				10.0f,
+				"%g",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 
 		GUI_InputDefault2<float>
-		(
-			"Hook Grenade Time",
-			activeConfig.kalinaAnnHookGrenadeTime,
-			queuedConfig.kalinaAnnHookGrenadeTime,
-			defaultConfig.kalinaAnnHookGrenadeTime,
-			10.0f,
-			"%g",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"Hook Grenade Time",
+				activeConfig.kalinaAnnHookGrenadeTime,
+				queuedConfig.kalinaAnnHookGrenadeTime,
+				defaultConfig.kalinaAnnHookGrenadeTime,
+				10.0f,
+				"%g",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 
 		ImGui::PopItemWidth();
 
@@ -9968,7 +9995,7 @@ void Mobility()
 
 #pragma region Other
 
-const char * dotShadowNames[] =
+const char* dotShadowNames[] =
 {
 	"Default",
 	"Disable",
@@ -10125,15 +10152,15 @@ void Other()
 		);
 
 		if
-		(
-			GUI_InputDefault2
 			(
-				"Crazy Combo Level Multiplier",
-				activeConfig.crazyComboLevelMultiplier,
-				queuedConfig.crazyComboLevelMultiplier,
-				defaultConfig.crazyComboLevelMultiplier
-			)
-		)
+				GUI_InputDefault2
+				(
+					"Crazy Combo Level Multiplier",
+					activeConfig.crazyComboLevelMultiplier,
+					queuedConfig.crazyComboLevelMultiplier,
+					defaultConfig.crazyComboLevelMultiplier
+				)
+				)
 		{
 			UpdateCrazyComboLevelMultiplier();
 		}
@@ -10173,7 +10200,7 @@ void Other()
 #pragma region Overlays
 
 void NewMissionClearSong() {
-	if(g_scene == SCENE::MISSION_RESULT && !missionClearSongPlayed) {
+	if (g_scene == SCENE::MISSION_RESULT && !missionClearSongPlayed) {
 		// Mute Music Channel Volume
 		SetVolume(9, 0);
 
@@ -10181,7 +10208,7 @@ void NewMissionClearSong() {
 		PlayNewMissionClearSong();
 		missionClearSongPlayed = true;
 	}
-	else if (g_scene != SCENE::MISSION_RESULT && missionClearSongPlayed){
+	else if (g_scene != SCENE::MISSION_RESULT && missionClearSongPlayed) {
 		// Fade it out
 		FadeOutNewMissionClearSong();
 
@@ -10190,520 +10217,528 @@ void NewMissionClearSong() {
 
 		missionClearSongPlayed = false;
 
-	}	
+	}
 }
 
 
 
 
-const char * mainOverlayLabel = "MainOverlay";
+const char* mainOverlayLabel = "MainOverlay";
 
 void MainOverlayWindow()
 {
 	NewMissionClearSong();
 	auto Function = [&]()
-	{
-		
-		
-		if (activeConfig.mainOverlayData.showFocus)
 		{
-			auto color = ImVec4(0, 1, 0, 1);
-			if (GetForegroundWindow() != appWindow)
+
+
+			if (activeConfig.mainOverlayData.showFocus)
 			{
-				color = ImVec4(1, 0, 0, 1);
-			}
-			ImGui::PushStyleColor(ImGuiCol_Text, color);
-			ImGui::Text("Focus");
-			ImGui::PopStyleColor();
-		}
-
-		if (activeConfig.mainOverlayData.showFPS)
-		{
-			ImGui::Text("%.2f FPS", ImGui::GetIO().Framerate);
-		}
-
-		if (activeConfig.mainOverlayData.showSizes)
-		{
-			ImGui::Text
-			(
-				"g_windowSize %g %g",
-				g_windowSize.x,
-				g_windowSize.y
-			);
-			ImGui::Text
-			(
-				"g_clientSize %g %g",
-				g_clientSize.x,
-				g_clientSize.y
-			);
-			ImGui::Text
-			(
-				"g_renderSize %g %g",
-				g_renderSize.x,
-				g_renderSize.y
-			);
-		}
-		
-
-		if (activeConfig.mainOverlayData.showFrameRateMultiplier)
-		{
-			ImGui::Text("g_frameRateMultiplier %g", g_frameRateMultiplier);
-		}
-
-		if
-		(
-			activeConfig.mainOverlayData.showFocus               ||
-			activeConfig.mainOverlayData.showFPS                 ||
-			activeConfig.mainOverlayData.showSizes               ||
-			activeConfig.mainOverlayData.showFrameRateMultiplier
-		)
-		{
-			ImGui::Text("");
-		}
-
-		if (activeConfig.mainOverlayData.showEventData)
-		{
-			if (g_scene >= SCENE::COUNT)
-			{
-				ImGui::Text("Unknown");
-			}
-			else
-			{
-				ImGui::Text(sceneNames[g_scene]);
-				ImGui::Text("SCENE:  %u", g_scene);
-				/*ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
-				ImGui::Text("Sky Launch Tracker Running:  %u", skyLaunchTrackerRunning);
-				ImGui::Text("Royal Release:  %u", executingRoyalRelease);
-				ImGui::Text("Royal Release Tracker Running:  %u", royalReleaseTrackerRunning);
-				ImGui::Text("Forcing Just Frame Royal Release:  %u", forcingJustFrameRoyalRelease);
-				ImGui::Text("skyLaunchSetJustFrameTrue:  %u", skyLaunchSetJustFrameTrue);
-				ImGui::Text("Royal Release Executed:  %u", royalReleaseExecuted);*/
-				
-
-				
-				
-				
-				
-				
-				/*ImGui::Text("backtoforward Back:  %u", backCommand);
-				ImGui::Text("backtoforward Back Buffer:  %u", backBuffer);
-				ImGui::Text("backtoforward Back Tracker:  %u", backTrackerRunning);
-				ImGui::Text("backtoforward Forward:  %u", forwardCommand);
-				ImGui::Text("backtoforward Forward Buffer:  %u", forwardBuffer);
-				ImGui::Text("backtoforward Direction Changed:  %u", directionChanged);*/
-				
-
-				if(isMusicPlaying() == 0) {
-					ImGui::Text("no music playing");
-				}
-				else {
-					ImGui::Text("MUSICPLAYING");
-				}
-			}
-			
-			[&]()
-			{
-				if (g_scene != SCENE::GAME)
+				auto color = ImVec4(0, 1, 0, 1);
+				if (GetForegroundWindow() != appWindow)
 				{
-					return;
+					color = ImVec4(1, 0, 0, 1);
 				}
+				ImGui::PushStyleColor(ImGuiCol_Text, color);
+				ImGui::Text("Focus");
+				ImGui::PopStyleColor();
+			}
 
-				auto pool_10281 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E10);
-				if
+			if (activeConfig.mainOverlayData.showFPS)
+			{
+				ImGui::Text("%.2f FPS", ImGui::GetIO().Framerate);
+			}
+
+			if (activeConfig.mainOverlayData.showSizes)
+			{
+				ImGui::Text
 				(
-					!pool_10281 ||
-					!pool_10281[8]
-				)
-				{
-					return;
-				}
-				auto & eventData = *reinterpret_cast<EventData *>(pool_10281[8]);
-
-				auto pool_10312 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E10);
-				if
+					"g_windowSize %g %g",
+					g_windowSize.x,
+					g_windowSize.y
+				);
+				ImGui::Text
 				(
-					!pool_10312 ||
-					!pool_10312[12]
-				)
-				{
-					return;
-				}
-				auto & nextEventData = *reinterpret_cast<NextEventData *>(pool_10312[12]);
+					"g_clientSize %g %g",
+					g_clientSize.x,
+					g_clientSize.y
+				);
+				ImGui::Text
+				(
+					"g_renderSize %g %g",
+					g_renderSize.x,
+					g_renderSize.y
+				);
+			}
 
 
-				if (eventData.event >= EVENT::COUNT)
+			if (activeConfig.mainOverlayData.showFrameRateMultiplier)
+			{
+				ImGui::Text("g_frameRateMultiplier %g", g_frameRateMultiplier);
+			}
+
+			if
+				(
+					activeConfig.mainOverlayData.showFocus ||
+					activeConfig.mainOverlayData.showFPS ||
+					activeConfig.mainOverlayData.showSizes ||
+					activeConfig.mainOverlayData.showFrameRateMultiplier
+					)
+			{
+				ImGui::Text("");
+			}
+
+			if (activeConfig.mainOverlayData.showEventData)
+			{
+				if (g_scene >= SCENE::COUNT)
 				{
 					ImGui::Text("Unknown");
 				}
 				else
 				{
-					ImGui::Text(eventNames[eventData.event]);
+					ImGui::Text(sceneNames[g_scene]);
+					ImGui::Text("SCENE:  %u", g_scene);
+					/*ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
+					ImGui::Text("Sky Launch Tracker Running:  %u", skyLaunchTrackerRunning);
+					ImGui::Text("Royal Release:  %u", executingRoyalRelease);
+					ImGui::Text("Royal Release Tracker Running:  %u", royalReleaseTrackerRunning);
+					ImGui::Text("Forcing Just Frame Royal Release:  %u", forcingJustFrameRoyalRelease);
+					ImGui::Text("skyLaunchSetJustFrameTrue:  %u", skyLaunchSetJustFrameTrue);
+					ImGui::Text("Royal Release Executed:  %u", royalReleaseExecuted);*/
+
+
+
+
+
+
+
+					/*ImGui::Text("backtoforward Back:  %u", backCommand);
+					ImGui::Text("backtoforward Back Buffer:  %u", backBuffer);
+					ImGui::Text("backtoforward Back Tracker:  %u", backTrackerRunning);
+					ImGui::Text("backtoforward Forward:  %u", forwardCommand);
+					ImGui::Text("backtoforward Forward Buffer:  %u", forwardBuffer);
+					ImGui::Text("backtoforward Direction Changed:  %u", directionChanged);*/
+
+
+					if (isMusicPlaying() == 0) {
+						ImGui::Text("no music playing");
+					}
+					else {
+						ImGui::Text("MUSICPLAYING");
+					}
 				}
 
+				[&]()
+					{
+						if (g_scene != SCENE::GAME)
+						{
+							return;
+						}
+
+						auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+						if
+							(
+								!pool_10298 ||
+								!pool_10298[8]
+								)
+						{
+							return;
+						}
+						auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+
+						auto pool_10329 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+						if
+							(
+								!pool_10329 ||
+								!pool_10329[12]
+								)
+						{
+							return;
+						}
+						auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_10329[12]);
+
+
+						if (eventData.event >= EVENT::COUNT)
+						{
+							ImGui::Text("Unknown");
+						}
+						else
+						{
+							ImGui::Text(eventNames[eventData.event]);
+						}
+
+						ImGui::Text("");
+
+						ImGui::Text("room         %u", eventData.room);
+						ImGui::Text("position     %u", eventData.position);
+						ImGui::Text("position     %u", eventData.event);
+						ImGui::Text("nextRoom     %u", nextEventData.room);
+						ImGui::Text("nextPosition %u", nextEventData.position);
+					}();
+
+					ImGui::Text("");
+
+			}
+
+			if (activeConfig.mainOverlayData.showPosition)
+			{
+				[&]()
+					{
+						auto pool_10213 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+						if
+							(
+								!pool_10213 ||
+								!pool_10213[3]
+								)
+						{
+							return;
+						}
+						auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_10213[3]);
+
+						ImGui::Text("X        %g", actorData.position.x);
+						ImGui::Text("Y        %g", actorData.position.y);
+						ImGui::Text("Z        %g", actorData.position.z);
+						ImGui::Text("Rotation %u", actorData.rotation);
+					}();
+
+
+					auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+					if
+						(
+							!pool_10222 ||
+							!pool_10222[3]
+							)
+					{
+						return;
+					}
+					auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+					auto& characterData = GetCharacterData(actorData);
+					auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+					auto& gamepad = GetGamepad(0);
+					auto tiltDirection = GetRelativeTiltDirection(actorData);
+
+					auto pool_10320 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+					if
+						(
+							!pool_10320 ||
+							!pool_10320[8]
+							)
+					{
+						return;
+					}
+					auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_10320[8]);
+
+					auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+					if
+						(
+							!pool_10371 ||
+							!pool_10371[8]
+							)
+					{
+						return;
+					}
+					auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
+
+					auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+
+
+					auto& metadata = enemyVectorData.metadata[0];
+					if (siytimer > 0) {
+						siytimer -= ImGui::GetIO().DeltaTime;
+					}
+					else if (siytimer < 0) {
+						siytimer = 0;
+					}
+
+
+
+					ImGui::Text("SIY TIMER %g", siytimer);
+					ImGui::Text("Show GUI %u", g_show);
+					ImGui::Text("Enemy Count %u", enemyVectorData.count);
+					ImGui::Text("enemy distance %g", distanceToEnemy);
+					//ImGui::Text("enemy vertical Pull Multiplier %g", enemyData.verticalPullMultiplier);
+					ImGui::Text("rainstormCancel Cooldown %u", rainstormCancel.cooldown);
+					ImGui::Text("In Royal Block:  %u", inRoyalBlock);
+					ImGui::Text("Aerial Rave Negative:  %u", airRaveInertia.negative);
+					ImGui::Text("ebonyIvory Cached Direction:  %u", ebonyIvoryShotInertia.cachedDirection);
+					ImGui::Text("airRaveInertia.cachedDirection %u", airRaveInertia.cachedDirection);
+					ImGui::Text("Gun Shoot Inverted %u", gunShootInverted);
+					ImGui::Text("Gun Shoot Normalized %u", gunShootNormalized);
+
+					ImGui::Text("new speed Set Rapid Slash %u", fasterRapidSlash.newSpeedSet);
+					ImGui::Text("inRapidSlash %u", inRapidSlash);
+					ImGui::Text("fRapidSlash storedSpeedDevil %g", fasterRapidSlash.storedSpeedDevil[0]);
+					ImGui::Text("fDarklasyer storedSpeedDevil %g", fasterDarkslayer.storedSpeedDevil[0]);
+					ImGui::Text("Motion Data 1: %u", actorData.motionData[0].index);
+					ImGui::Text("Air Stinger End Timer %u", airStingerEnd.timer);
+					ImGui::Text("Air Stinger End Time Int %u", airStingerEndTimeInt);
+					ImGui::Text("Actor Speed %g", actorData.speed);
+					ImGui::Text("Royal Block Type:  %u", actorData.royalguardBlockType);
+					ImGui::Text("Guardflying:  %u", inGuardfly);
+					//ImGui::Text("Track %s", eventData.track);
+
+					ImGui::Text("Royal Block Inertia  %g", royalBlockInertia.cachedPull);
+					ImGui::Text("Weapon %u", actorData.meleeWeaponIndex);
+					ImGui::Text("Weapon Character Data %u", characterData.meleeWeaponIndex);
+					ImGui::Text("Active Weapon %u", actorData.activeWeapon);
+					ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
+					ImGui::Text("Last Event Data %u", actorData.eventData[0].lastEvent);
+					ImGui::Text("Trick Up Count %u", actorData.newTrickUpCount);
+					ImGui::Text("Sky Star Count %u", actorData.newSkyStarCount);
+					ImGui::Text("Air Hike Count %u", actorData.newAirHikeCount);
+					ImGui::Text("Air Rising Sun Count %u", actorData.newAirRisingSunCount);
+
+
+					ImGui::Text("Config Inf HP: %u", activeConfig.infiniteHitPoints);
+
+					/*ImGui::Text("styleRankCount Dismal %u", rankAnnouncer[0].count);
+					ImGui::Text("styleRankCount Crazy %u", rankAnnouncer[1].count);
+					ImGui::Text("styleRankCount Dismal Off Cooldown %u", rankAnnouncer[0].offCooldown);
+					ImGui::Text("styleRankCount Crazy Off Cooldown %u", rankAnnouncer[1].offCooldown);*/
+					ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
+					/*ImGui::Text("SDL2 %s", SDL2Initialization);
+					ImGui::Text("Mixer  %s", MixerInitialization);
+					ImGui::Text("Mixer2  %s", MixerInitialization2);*/
+					/*
+					ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
+					ImGui::Text("Wheel Running %u", meleeWeaponWheelTiming.wheelRunning);
+					ImGui::Text("Wheel Time %u", meleeWeaponWheelTiming.wheelTime);
+					ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap.buffer);
+					ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap.buffer);
+					*/
+					ImGui::Text("Magic Points Dopp %g", currentDTDoppOn);
+					ImGui::Text("Magic Points Dopp DT %g", currentDTDoppDTOn);
+					ImGui::Text("Dopp Milliseconds %g", doppSeconds);
+					ImGui::Text("Dopp DT Milliseconds %g", doppSecondsDT);
+					ImGui::Text("Dopp Tracker Running %u", doppTimeTrackerRunning);
+					ImGui::Text("styleVFXCount %u", styleVFXCount);
+
+
+
+					using namespace ACTION_DANTE;
+					using namespace ACTION_VERGIL;
+
+					auto name_10438 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+					if (!name_10438)
+					{
+						return;
+					}
+					auto& queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData*>(name_10438 + 0xC0);
+					auto& activeMissionActorData = *reinterpret_cast<ActiveMissionActorData*>(name_10438 + 0x16C);
+
+
+
+
+					ImGui::Text("Doppelganger active %u", actorData.doppelganger);
+					ImGui::Text("Actor Mode %u", actorData.mode);
+					ImGui::Text("Character %u", actorData.action);
+					ImGui::Text("State %u", actorData.state);
+					ImGui::Text("Position  %g", actorData.position);
+					ImGui::Text("Rotation %g", actorData.rotation);
+					ImGui::Text("Camera Direction %g", actorData.cameraDirection);
+					ImGui::Text("Actor Camera Direction %g", actorData.actorCameraDirection);
+					ImGui::Text("RelativeTilt %g", relativeTiltController);
+					ImGui::Text("LeftStick Position %u", gamepad.leftStickPosition);
+					ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
+					ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
+					ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
+					ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
+
+
+
+
+
+
+					ImGui::Text("exception Shot %u", exceptionShot);
+					ImGui::Text("Air Rave Horizontal Pull %g", airRaveInertia.cachedPull);
+					ImGui::Text("IsDevil2 %u", actorData.devil);
+					ImGui::Text("Style %u", actorData.style);
+					ImGui::Text("StyleRank %u", actorData.styleData.rank);
+					ImGui::Text("StyleRank Meter %g", actorData.styleData.meter);
+					ImGui::Text("StyleRank Quotient %g", actorData.styleData.quotient);
+					ImGui::Text("Permissions %u", actorData.permissions);
+					if (actorData.cloneActorBaseAddr) {
+						ImGui::Text("StyleRankClone %u", cloneActorData.styleData.rank);
+						ImGui::Text("StyleRankClone Meter %g", cloneActorData.styleData.meter);
+						ImGui::Text("StyleRankClone Quotient %g", cloneActorData.styleData.quotient);
+					}
+
+
+
+					/*
+					ImGui::Text("Style Indice 0 %u", characterData.styleButtons[0]);
+					ImGui::Text("Style Indice 1 %u", characterData.styleButtons[1]);
+					ImGui::Text("Style Indice 2 %u", characterData.styleButtons[2]);
+					ImGui::Text("Style Indice 3 %u", characterData.styleButtons[3]);
+					ImGui::Text("Style Indice 4 %u", characterData.styleButtons[4]);
+					ImGui::Text("Style Indice 5 %u", characterData.styleButtons[5]);*/
+
+
+
+					ImGui::Text("");
+			}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			if (activeConfig.mainOverlayData.showRegionData)
+			{
+				ImGui::Text("Region Data");
+
+				auto Function = [&](RegionData& regionData) -> void
+					{
+						ImGui::Text("metadataAddr %llX", regionData.metadataAddr);
+						ImGui::Text("dataAddr     %llX", regionData.dataAddr);
+						ImGui::Text("capacity     %u", regionData.capacity);
+						ImGui::Text("boundary     %X", regionData.boundary);
+						ImGui::Text("size         %X", regionData.size);
+						ImGui::Text("pipe         %u", regionData.pipe);
+						ImGui::Text("count        %u", regionData.count);
+					};
+
+				auto regionDataAddr = reinterpret_cast<RegionData*>(appBaseAddr + 0xCA8910);
+				/*
+				dmc3.exe+2C61BF - 4C 8D 25 4A279E00 - lea r12,[dmc3.exe+CA8910]
+				dmc3.exe+2C61C6 - 44 8B C5          - mov r8d,ebp
+				*/
+
+				constexpr new_size_t count = 3;
+
+				for_all(index, count)
+				{
+					auto& regionData = regionDataAddr[index];
+
+					ImGui::Text("%.4u", index);
+					Function(regionData);
+					ImGui::Text("");
+				}
+			}
+
+
+
+			if constexpr (!debug)
+			{
+				return;
+			}
+
+			ImGui::Text("g_saveIndex     %llu", g_saveIndex);
+			ImGui::Text("g_lastSaveIndex %llu", g_lastSaveIndex);
+			ImGui::Text("");
+
+			ImGui::Text("g_show     %u", g_show);
+			ImGui::Text("g_lastShow %u", g_lastShow);
+			ImGui::Text("g_showMain %u", g_showMain);
+			ImGui::Text("g_showShop %u", g_showShop);
+
+
+
+			{
+				auto& io = ImGui::GetIO();
+
+				ImGui::Text("io.NavActive  %u", io.NavActive);
+				ImGui::Text("io.NavVisible %u", io.NavVisible);
+
+
+				[&]()
+					{
+						auto contextAddr = ImGui::GetCurrentContext();
+						if (!contextAddr)
+						{
+							return;
+						}
+						auto& context = *contextAddr;
+
+						ImGui::Text("context.NavId %X", context.NavId);
+					}();
+
+
+
+
+
+			}
+
+
+#ifdef SINGLE
+
+			ImGui::Text("visible     %u", visible);
+			ImGui::Text("lastVisible %u", lastVisible);
+#else
+
+
+			ImGui::Text("visibleMain     %u", visibleMain);
+			ImGui::Text("lastVisibleMain %u", lastVisibleMain);
+
+			ImGui::Text("visibleShop     %u", visibleShop);
+			ImGui::Text("lastVisibleShop %u", lastVisibleShop);
+
+#endif
+
+
+			[&]()
+				{
+					auto pool_10480 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+					if
+						(
+							!pool_10480 ||
+							!pool_10480[3]
+							)
+					{
+						return;
+					}
+					auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_10480[3]);
+
+					ImGui::Text("action %u", actorData.action);
+				}();
+
+				ImGui::Text("g_shopTimer   %g", g_shopTimer);
+				ImGui::Text("g_shopTimeout %g", g_shopTimeout);
 				ImGui::Text("");
 
-				ImGui::Text("room         %u", eventData.room        );
-				ImGui::Text("position     %u", eventData.position    );
-				ImGui::Text("position     %u", eventData.event  );
-				ImGui::Text("nextRoom     %u", nextEventData.room    );
-				ImGui::Text("nextPosition %u", nextEventData.position);
-			}();
 
-			ImGui::Text("");
-			
-		}
+				ImGui::Text("g_secretMission %u", g_secretMission);
 
-		if (activeConfig.mainOverlayData.showPosition)
-		{
-			[&]()
-			{
-				auto pool_10196 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E28);
-				if
-				(
-					!pool_10196 ||
-					!pool_10196[3]
-				)
-				{
-					return;
-				}
-				auto & actorData = *reinterpret_cast<PlayerActorData *>(pool_10196[3]);
 
-				ImGui::Text("X        %g", actorData.position.x);
-				ImGui::Text("Y        %g", actorData.position.y);
-				ImGui::Text("Z        %g", actorData.position.z);
-				ImGui::Text("Rotation %u", actorData.rotation  );
-			}();
 
-			
-			auto pool_10205 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E28);
-			if
-			(
-				!pool_10205 ||
-				!pool_10205[3]
-			)
-			{
-				return;
-			}
-			auto & actorData = *reinterpret_cast<PlayerActorData *>(pool_10205[3]);
-			auto &characterData = GetCharacterData(actorData);
-			auto &cloneActorData = *reinterpret_cast<PlayerActorData *>(actorData.cloneActorBaseAddr);
-			auto & gamepad = GetGamepad(0);
-			auto tiltDirection = GetRelativeTiltDirection(actorData);
+				// [&]()
+				// {
+				// 	if (g_scene != SCENE::GAME)
+				// 	{
+				// 		return;
+				// 	}
 
-			auto pool_10303 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E28);
-			if
-			(
-				!pool_10303 ||
-				!pool_10303[8]
-			)
-			{
-				return;
-			}
-			auto & enemyVectorData = *reinterpret_cast<EnemyVectorData *>(pool_10303[8]);
+				// 	IntroduceEventData(return);
+				// 	IntroduceNextEventData(return);
 
-			auto pool_10354 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E10);
-			if
-			(
-				!pool_10354 ||
-				!pool_10354[8]
-			)
-			{
-				return;
-			}
-			auto & eventData = *reinterpret_cast<EventData *>(pool_10354[8]);
+				// 	ImGui::Text("room          %u", eventData.room        );
+				// 	ImGui::Text("position      %u", eventData.position    );
+				// 	ImGui::Text("next room     %u", nextEventData.room    );
+				// 	ImGui::Text("next position %u", nextEventData.position);
+				// }();
 
-			auto & sessionData = *reinterpret_cast<SessionData *>(appBaseAddr + 0xC8F250);
 
-			
-			
-			auto & metadata = enemyVectorData.metadata[0];
-			
-			
 
-			ImGui::Text("Enemy Count %u", enemyVectorData.count);
-			ImGui::Text("enemy distance %g", distanceToEnemy);
-			//ImGui::Text("enemy vertical Pull Multiplier %g", enemyData.verticalPullMultiplier);
-			ImGui::Text("rainstormCancel Cooldown %u", rainstormCancel.cooldown);
-			ImGui::Text("In Gun Shoot:  %u", inGunShoot);
-			ImGui::Text("Aerial Rave Negative:  %u", airRaveInertia.negative);
-			ImGui::Text("ebonyIvory Cached Direction:  %u", ebonyIvoryShotInertia.cachedDirection);
-			ImGui::Text("airRaveInertia.cachedDirection %u", airRaveInertia.cachedDirection);
-			ImGui::Text("Gun Shoot Inverted %u", gunShootInverted);
-			ImGui::Text("Gun Shoot Normalized %u", gunShootNormalized);
-
-			ImGui::Text("new speed Set Rapid Slash %u", fasterRapidSlash.newSpeedSet);
-			ImGui::Text("inRapidSlash %u", inRapidSlash);
-			ImGui::Text("fRapidSlash storedSpeedDevil %g", fasterRapidSlash.storedSpeedDevil[0]);
-			ImGui::Text("fDarklasyer storedSpeedDevil %g", fasterDarkslayer.storedSpeedDevil[0]);
-			ImGui::Text("Motion Data 1: %u", actorData.motionData[0].index);
-			ImGui::Text("Air Stinger End Timer %u", airStingerEnd.timer);
-			ImGui::Text("Air Stinger End Time Int %u", airStingerEndTimeInt);
-			ImGui::Text("Actor Speed %g", actorData.speed);
-			ImGui::Text("Royal Block Type:  %u", actorData.royalguardBlockType);
-			ImGui::Text("Guardflying:  %u", inGuardfly);
-			//ImGui::Text("Track %s", eventData.track);
-
-			ImGui::Text("Royal Block Inertia  %g", royalBlockInertia.cachedPull);
-			ImGui::Text("Weapon %u", actorData.meleeWeaponIndex);
-			ImGui::Text("Weapon Character Data %u", characterData.meleeWeaponIndex);
-			ImGui::Text("Active Weapon %u", actorData.activeWeapon);
-			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
-			ImGui::Text("Last Event Data %u", actorData.eventData[0].lastEvent);
-			ImGui::Text("Trick Up Count %u", actorData.newTrickUpCount);
-			ImGui::Text("Sky Star Count %u", actorData.newSkyStarCount);
-			ImGui::Text("Air Hike Count %u", actorData.newAirHikeCount);
-			ImGui::Text("Air Rising Sun Count %u", actorData.newAirRisingSunCount);
-			
-			
-			ImGui::Text("Config Inf HP: %u", activeConfig.infiniteHitPoints);
-			 
-			/*ImGui::Text("styleRankCount Dismal %u", rankAnnouncer[0].count);
-			ImGui::Text("styleRankCount Crazy %u", rankAnnouncer[1].count);
-			ImGui::Text("styleRankCount Dismal Off Cooldown %u", rankAnnouncer[0].offCooldown);
-			ImGui::Text("styleRankCount Crazy Off Cooldown %u", rankAnnouncer[1].offCooldown);*/
-			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
-			/*ImGui::Text("SDL2 %s", SDL2Initialization);
-			ImGui::Text("Mixer  %s", MixerInitialization);
-			ImGui::Text("Mixer2  %s", MixerInitialization2);*/
-			/*
-			ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
-			ImGui::Text("Wheel Running %u", meleeWeaponWheelTiming.wheelRunning);
-			ImGui::Text("Wheel Time %u", meleeWeaponWheelTiming.wheelTime);
-			ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap.buffer);
-			ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap.buffer);
-			*/
-			ImGui::Text("Magic Points Dopp %g", currentDTDoppOn);
-			ImGui::Text("Magic Points Dopp DT %g", currentDTDoppDTOn);
-			ImGui::Text("Dopp Milliseconds %g", doppSeconds);
-			ImGui::Text("Dopp DT Milliseconds %g", doppSecondsDT);
-			ImGui::Text("Dopp Tracker Running %u", doppTimeTrackerRunning);
-			ImGui::Text("styleVFXCount %u", styleVFXCount);
-
-			
-
-			using namespace ACTION_DANTE;
-			using namespace ACTION_VERGIL;
-
-			auto name_10413 = *reinterpret_cast<byte8 **>(appBaseAddr + 0xC90E30);
-			if (!name_10413)
-			{
-				return;
-			}
-			auto & queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData *>(name_10413 + 0xC0 );
-			auto & activeMissionActorData = *reinterpret_cast<ActiveMissionActorData *>(name_10413 + 0x16C);
-
-
-			
-
-			ImGui::Text("Doppelganger active %u", actorData.doppelganger);
-			ImGui::Text("Actor Mode %u", actorData.mode);
-			ImGui::Text("Character %u", actorData.action);
-			ImGui::Text("State %u", actorData.state);
-			ImGui::Text("Position  %g", actorData.position);
-			ImGui::Text("Rotation %g", actorData.rotation);
-			ImGui::Text("Camera Direction %g", actorData.cameraDirection );
-			ImGui::Text("Actor Camera Direction %g", actorData.actorCameraDirection );
-			ImGui::Text("RelativeTilt %g", relativeTiltController );
-			ImGui::Text("LeftStick Position %u", gamepad.leftStickPosition);
-			ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
-			ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
-			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
-			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
-
-			
-
-	
-
-			
-			ImGui::Text("exception Shot %u", exceptionShot);
-			ImGui::Text("Air Rave Horizontal Pull %g", airRaveInertia.cachedPull);
-			ImGui::Text("IsDevil2 %u", actorData.devil);
-			ImGui::Text("Style %u", actorData.style);
-			ImGui::Text("StyleRank %u", actorData.styleData.rank);
-			ImGui::Text("StyleRank Meter %g", actorData.styleData.meter);
-			ImGui::Text("StyleRank Quotient %g", actorData.styleData.quotient);
-			ImGui::Text("Permissions %u", actorData.permissions);
-			if(actorData.cloneActorBaseAddr) {
-				ImGui::Text("StyleRankClone %u", cloneActorData.styleData.rank);
-				ImGui::Text("StyleRankClone Meter %g", cloneActorData.styleData.meter);
-				ImGui::Text("StyleRankClone Quotient %g", cloneActorData.styleData.quotient);
-			}
-			
-			
-			
-			/*
-			ImGui::Text("Style Indice 0 %u", characterData.styleButtons[0]);
-			ImGui::Text("Style Indice 1 %u", characterData.styleButtons[1]);
-			ImGui::Text("Style Indice 2 %u", characterData.styleButtons[2]);
-			ImGui::Text("Style Indice 3 %u", characterData.styleButtons[3]);
-			ImGui::Text("Style Indice 4 %u", characterData.styleButtons[4]);
-			ImGui::Text("Style Indice 5 %u", characterData.styleButtons[5]);*/
-	
-			
-
-			ImGui::Text("");
-		}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		if (activeConfig.mainOverlayData.showRegionData)
-		{
-			ImGui::Text("Region Data");
-
-			auto Function = [&](RegionData & regionData) -> void
-			{
-				ImGui::Text("metadataAddr %llX", regionData.metadataAddr);
-				ImGui::Text("dataAddr     %llX", regionData.dataAddr    );
-				ImGui::Text("capacity     %u"  , regionData.capacity    );
-				ImGui::Text("boundary     %X"  , regionData.boundary    );
-				ImGui::Text("size         %X"  , regionData.size        );
-				ImGui::Text("pipe         %u"  , regionData.pipe        );
-				ImGui::Text("count        %u"  , regionData.count       );
-			};
-
-			auto regionDataAddr = reinterpret_cast<RegionData *>(appBaseAddr + 0xCA8910);
-			/*
-			dmc3.exe+2C61BF - 4C 8D 25 4A279E00 - lea r12,[dmc3.exe+CA8910]
-			dmc3.exe+2C61C6 - 44 8B C5          - mov r8d,ebp
-			*/
-
-			constexpr new_size_t count = 3;
-
-			for_all(index, count)
-			{
-				auto & regionData = regionDataAddr[index];
-
-				ImGui::Text("%.4u", index);
-				Function(regionData);
-				ImGui::Text("");
-			}
-		}
-
-
-
-		if constexpr (!debug)
-		{
-			return;
-		}
-
-		ImGui::Text("g_saveIndex     %llu", g_saveIndex    );
-		ImGui::Text("g_lastSaveIndex %llu", g_lastSaveIndex);
-		ImGui::Text("");
-
-		ImGui::Text("g_show     %u", g_show    );
-		ImGui::Text("g_lastShow %u", g_lastShow);
-		ImGui::Text("g_showMain %u", g_showMain);
-		ImGui::Text("g_showShop %u", g_showShop);
-
-
-
-		{
-			auto & io = ImGui::GetIO();
-
-			ImGui::Text("io.NavActive  %u", io.NavActive );
-			ImGui::Text("io.NavVisible %u", io.NavVisible);
-
-
-			[&]()
-			{
-				auto contextAddr = ImGui::GetCurrentContext();
-				if (!contextAddr)
-				{
-					return;
-				}
-				auto & context = *contextAddr;
-
-				ImGui::Text("context.NavId %X", context.NavId);
-			}();
-
-
-
-
-
-		}
-
-
-		#ifdef SINGLE
-
-		ImGui::Text("visible     %u", visible    );
-		ImGui::Text("lastVisible %u", lastVisible);
-		#else
-
-
-		ImGui::Text("visibleMain     %u", visibleMain    );
-		ImGui::Text("lastVisibleMain %u", lastVisibleMain);
-
-		ImGui::Text("visibleShop     %u", visibleShop    );
-		ImGui::Text("lastVisibleShop %u", lastVisibleShop);
-
-		#endif
-
-
-		[&]()
-		{
-			auto pool_10455 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E28);
-			if
-			(
-				!pool_10455 ||
-				!pool_10455[3]
-			)
-			{
-				return;
-			}
-			auto & actorData = *reinterpret_cast<PlayerActorData *>(pool_10455[3]);
-
-			ImGui::Text("action %u", actorData.action);
-		}();
-
-		ImGui::Text("g_shopTimer   %g", g_shopTimer  );
-		ImGui::Text("g_shopTimeout %g", g_shopTimeout);
-		ImGui::Text("");
-
-
-		ImGui::Text("g_secretMission %u", g_secretMission);
-
-
-
-		// [&]()
-		// {
-		// 	if (g_scene != SCENE::GAME)
-		// 	{
-		// 		return;
-		// 	}
-
-		// 	IntroduceEventData(return);
-		// 	IntroduceNextEventData(return);
-
-		// 	ImGui::Text("room          %u", eventData.room        );
-		// 	ImGui::Text("position      %u", eventData.position    );
-		// 	ImGui::Text("next room     %u", nextEventData.room    );
-		// 	ImGui::Text("next position %u", nextEventData.position);
-		// }();
-
-
-
-	};
+		};
 
 
 
@@ -10722,50 +10757,50 @@ void MainOverlayWindow()
 void MainOverlaySettings()
 {
 	auto Function = [&]()
-	{
-		GUI_Checkbox2
-		(
-			"Show Focus",
-			activeConfig.mainOverlayData.showFocus,
-			queuedConfig.mainOverlayData.showFocus
-		);
-		GUI_Checkbox2
-		(
-			"Show FPS",
-			activeConfig.mainOverlayData.showFPS,
-			queuedConfig.mainOverlayData.showFPS
-		);
-		GUI_Checkbox2
-		(
-			"Show Sizes",
-			activeConfig.mainOverlayData.showSizes,
-			queuedConfig.mainOverlayData.showSizes
-		);
-		GUI_Checkbox2
-		(
-			"Show Frame Rate Multiplier",
-			activeConfig.mainOverlayData.showFrameRateMultiplier,
-			queuedConfig.mainOverlayData.showFrameRateMultiplier
-		);
-		GUI_Checkbox2
-		(
-			"Show Event Data",
-			activeConfig.mainOverlayData.showEventData,
-			queuedConfig.mainOverlayData.showEventData
-		);
-		GUI_Checkbox2
-		(
-			"Show Position",
-			activeConfig.mainOverlayData.showPosition,
-			queuedConfig.mainOverlayData.showPosition
-		);
-		GUI_Checkbox2
-		(
-			"Show Region Data",
-			activeConfig.mainOverlayData.showRegionData,
-			queuedConfig.mainOverlayData.showRegionData
-		);
-	};
+		{
+			GUI_Checkbox2
+			(
+				"Show Focus",
+				activeConfig.mainOverlayData.showFocus,
+				queuedConfig.mainOverlayData.showFocus
+			);
+			GUI_Checkbox2
+			(
+				"Show FPS",
+				activeConfig.mainOverlayData.showFPS,
+				queuedConfig.mainOverlayData.showFPS
+			);
+			GUI_Checkbox2
+			(
+				"Show Sizes",
+				activeConfig.mainOverlayData.showSizes,
+				queuedConfig.mainOverlayData.showSizes
+			);
+			GUI_Checkbox2
+			(
+				"Show Frame Rate Multiplier",
+				activeConfig.mainOverlayData.showFrameRateMultiplier,
+				queuedConfig.mainOverlayData.showFrameRateMultiplier
+			);
+			GUI_Checkbox2
+			(
+				"Show Event Data",
+				activeConfig.mainOverlayData.showEventData,
+				queuedConfig.mainOverlayData.showEventData
+			);
+			GUI_Checkbox2
+			(
+				"Show Position",
+				activeConfig.mainOverlayData.showPosition,
+				queuedConfig.mainOverlayData.showPosition
+			);
+			GUI_Checkbox2
+			(
+				"Show Region Data",
+				activeConfig.mainOverlayData.showRegionData,
+				queuedConfig.mainOverlayData.showRegionData
+			);
+		};
 
 	OverlaySettings
 	(
@@ -10780,57 +10815,59 @@ void MainOverlaySettings()
 
 
 
-const char * missionOverlayLabel = "MissionOverlay";
+const char* missionOverlayLabel = "MissionOverlay";
 
 void MissionOverlayWindow()
 {
 	auto Function = [&]()
-	{
-		ImGui::Text("Mission");
-
-		auto name_10698 = *reinterpret_cast<byte8 **>(appBaseAddr + 0xC90E30);
-		if (!name_10698)
 		{
-			return;
-		}
-		auto & missionData = *reinterpret_cast<MissionData *>(name_10698);
+			ImGui::Text("Mission");
+
+			auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+			if (!name_10723)
+			{
+				return;
+			}
+			auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
 
 
-		auto timeData = TimeData
-		(
-			static_cast<float>(missionData.frameCount),
-			activeConfig.frameRate
-			// 60.0f // @Update
-		);
+			auto timeData = TimeData
+			(
+				static_cast<float>(missionData.frameCount),
+				activeConfig.frameRate
+				// 60.0f // @Update
+			);
 
-		ImGui::Text
-		(
-			"Time           %02u:%02u:%02u.%03u",
-			timeData.hours,
-			timeData.minutes,
-			timeData.seconds,
-			timeData.milliseconds
-		);
-		ImGui::Text("Damage         %u", missionData.damage);
-		ImGui::Text("Orbs Collected %u", missionData.orbsCollected);
-		ImGui::Text("Items Used     %u", missionData.itemsUsed);
-		ImGui::Text("Kill Count     %u", missionData.killCount);
+			ImGui::Text
+			(
+				"Time           %02u:%02u:%02u.%03u",
+				timeData.hours,
+				timeData.minutes,
+				timeData.seconds,
+				timeData.milliseconds
+			);
 
-		auto pool_10594 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E28);
-		if
-		(
-			!pool_10594 ||
-			!pool_10594[3]
-		)
-		{
-			return;
-		}
-		auto & actorData = *reinterpret_cast<PlayerActorData *>(pool_10594[3]);
 
-		auto stylePoints = (actorData.styleData.quotient * 100.0f);
+			ImGui::Text("Damage         %u", missionData.damage);
+			ImGui::Text("Orbs Collected %u", missionData.orbsCollected);
+			ImGui::Text("Items Used     %u", missionData.itemsUsed);
+			ImGui::Text("Kill Count     %u", missionData.killCount);
 
-		ImGui::Text("Style Points   %.2f", stylePoints);
-	};
+			auto pool_10621 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+			if
+				(
+					!pool_10621 ||
+					!pool_10621[3]
+					)
+			{
+				return;
+			}
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_10621[3]);
+
+			auto stylePoints = (actorData.styleData.quotient * 100.0f);
+
+			ImGui::Text("Style Points   %.2f", stylePoints);
+		};
 
 	OverlayFunction
 	(
@@ -10860,35 +10897,35 @@ void MissionOverlaySettings()
 
 
 
-const char * bossLadyActionsOverlayLabel = "BossLadyActionsOverlay";
+const char* bossLadyActionsOverlayLabel = "BossLadyActionsOverlay";
 
 void BossLadyActionsOverlayWindow()
 {
 	auto Function = [&]()
-	{
-		ImGui::Text
-		(
-			"Boss Lady Actions\n"
-			"\n"
-			"Lock-On + Forward + A: Trooper Roll\n"
-			"Lock-On + Right   + A: Wheel Right\n"
-			"Lock-On + Back    + A: Wheel Back\n"
-			"Lock-On + Left    + A: Wheel Left\n"
-			"\n"
-			"Right Trigger: Reload Pistol\n"
-			"Left  Trigger: Reload SMG\n"
-			"\n"
-			"Lock-On + Back + X: Pistol Fall Back Shoot (hold for crossbow)\n"
-			"\n"
-			"B: SMG Roundhouse\n"
-			"\n"
-			"                    Y: Kalina Ann Hook\n"
-			"Lock-On + Forward + Y: Kalina Ann Charged Shot\n"
-			"Lock-On + Back    + Y: Kalina Ann Hysteric\n"
-			"\n"
-			"Left Shoulder: Grenades\n"
-		);
-	};
+		{
+			ImGui::Text
+			(
+				"Boss Lady Actions\n"
+				"\n"
+				"Lock-On + Forward + A: Trooper Roll\n"
+				"Lock-On + Right   + A: Wheel Right\n"
+				"Lock-On + Back    + A: Wheel Back\n"
+				"Lock-On + Left    + A: Wheel Left\n"
+				"\n"
+				"Right Trigger: Reload Pistol\n"
+				"Left  Trigger: Reload SMG\n"
+				"\n"
+				"Lock-On + Back + X: Pistol Fall Back Shoot (hold for crossbow)\n"
+				"\n"
+				"B: SMG Roundhouse\n"
+				"\n"
+				"                    Y: Kalina Ann Hook\n"
+				"Lock-On + Forward + Y: Kalina Ann Charged Shot\n"
+				"Lock-On + Back    + Y: Kalina Ann Hysteric\n"
+				"\n"
+				"Left Shoulder: Grenades\n"
+			);
+		};
 
 	OverlayFunction
 	(
@@ -10916,32 +10953,32 @@ void BossLadyActionsOverlaySettings()
 
 
 
-const char * bossVergilActionsOverlayLabel = "BossVergilActionsOverlay";
+const char* bossVergilActionsOverlayLabel = "BossVergilActionsOverlay";
 
 void BossVergilActionsOverlayWindow()
 {
 	auto Function = [&]()
-	{
-		ImGui::Text
-		(
-			"Boss Vergil Actions\n"
-			"\n"
-			"                    Y: Yamato Deflect\n"
-			"Lock-On + Forward + Y: Yamato Super Judgement Cut Follow\n"
-			"Lock-On + Back    + Y: Yamato Super Judgement Cut\n"
-			"\n"
-			"B: Block\n"
-			"\n"
-			"                    X: Shield\n"
-			"Lock-On + Forward + X: Strong Shield\n"
-			"Lock-On + Back    + X: Strong Shield 2\n"
-			"\n"
-			"Left Shoulder: Toggle Devil Form\n"
-			"\n"
-			"Left  Trigger: Taunt\n"
-			"Right Trigger: Rest in Peace\n"
-		);
-	};
+		{
+			ImGui::Text
+			(
+				"Boss Vergil Actions\n"
+				"\n"
+				"                    Y: Yamato Deflect\n"
+				"Lock-On + Forward + Y: Yamato Super Judgement Cut Follow\n"
+				"Lock-On + Back    + Y: Yamato Super Judgement Cut\n"
+				"\n"
+				"B: Block\n"
+				"\n"
+				"                    X: Shield\n"
+				"Lock-On + Forward + X: Strong Shield\n"
+				"Lock-On + Back    + X: Strong Shield 2\n"
+				"\n"
+				"Left Shoulder: Toggle Devil Form\n"
+				"\n"
+				"Left  Trigger: Taunt\n"
+				"Right Trigger: Rest in Peace\n"
+			);
+		};
 
 	OverlayFunction
 	(
@@ -11026,10 +11063,10 @@ void Overlays()
 			);
 
 
-			ImGui::SetWindowPos(mainOverlayLabel             , *reinterpret_cast<ImVec2 *>(&activeConfig.mainOverlayData.pos             ));
-			ImGui::SetWindowPos(missionOverlayLabel          , *reinterpret_cast<ImVec2 *>(&activeConfig.missionOverlayData.pos          ));
-			ImGui::SetWindowPos(bossLadyActionsOverlayLabel  , *reinterpret_cast<ImVec2 *>(&activeConfig.bossLadyActionsOverlayData.pos  ));
-			ImGui::SetWindowPos(bossVergilActionsOverlayLabel, *reinterpret_cast<ImVec2 *>(&activeConfig.bossVergilActionsOverlayData.pos));
+			ImGui::SetWindowPos(mainOverlayLabel, *reinterpret_cast<ImVec2*>(&activeConfig.mainOverlayData.pos));
+			ImGui::SetWindowPos(missionOverlayLabel, *reinterpret_cast<ImVec2*>(&activeConfig.missionOverlayData.pos));
+			ImGui::SetWindowPos(bossLadyActionsOverlayLabel, *reinterpret_cast<ImVec2*>(&activeConfig.bossLadyActionsOverlayData.pos));
+			ImGui::SetWindowPos(bossVergilActionsOverlayLabel, *reinterpret_cast<ImVec2*>(&activeConfig.bossVergilActionsOverlayData.pos));
 		}
 
 		GUI_SectionEnd();
@@ -11100,19 +11137,19 @@ void Repair()
 		if (GUI_Button("Reset Weapons"))
 		{
 			[&]()
-			{
-				auto & sessionData = *reinterpret_cast<SessionData *>(appBaseAddr + 0xC8F250);
-
-
-				SetMemory
-				(
-					sessionData.weapons,
-					0,
-					sizeof(sessionData.weapons)
-				);
-
-				switch (sessionData.character)
 				{
+					auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+
+					SetMemory
+					(
+						sessionData.weapons,
+						0,
+						sizeof(sessionData.weapons)
+					);
+
+					switch (sessionData.character)
+					{
 					case CHARACTER::DANTE:
 					{
 						sessionData.weapons[0] = WEAPON::REBELLION;
@@ -11133,11 +11170,11 @@ void Repair()
 
 						break;
 					}
-				}
+					}
 
-				sessionData.meleeWeaponIndex = 0;
-				sessionData.rangedWeaponIndex = 2;
-			}();
+					sessionData.meleeWeaponIndex = 0;
+					sessionData.rangedWeaponIndex = 2;
+				}();
 		}
 
 
@@ -11145,17 +11182,17 @@ void Repair()
 		if (GUI_Button("Reset Weapon Levels"))
 		{
 			[&]()
-			{
-				auto & sessionData = *reinterpret_cast<SessionData *>(appBaseAddr + 0xC8F250);
+				{
+					auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 
-				SetMemory
-				(
-					sessionData.rangedWeaponLevels,
-					0,
-					sizeof(sessionData.rangedWeaponLevels)
-				);
-			}();
+					SetMemory
+					(
+						sessionData.rangedWeaponLevels,
+						0,
+						sizeof(sessionData.rangedWeaponLevels)
+					);
+				}();
 		}
 
 		GUI_PopDisable(condition);
@@ -11170,7 +11207,7 @@ void Repair()
 
 #pragma region Speed
 
-const char * devilSpeedNamesDante[] =
+const char* devilSpeedNamesDante[] =
 {
 	"Rebellion",
 	"Cerberus",
@@ -11180,7 +11217,7 @@ const char * devilSpeedNamesDante[] =
 	"Sparda",
 };
 
-const char * devilSpeedNamesVergil[] =
+const char* devilSpeedNamesVergil[] =
 {
 	"Yamato",
 	"Beowulf",
@@ -11197,12 +11234,12 @@ const char * devilSpeedNamesVergil[] =
 template <typename T>
 bool GUI_InputDefault2Speed
 (
-	const char * label,
-	T & var,
-	T & var2,
-	T & defaultVar,
+	const char* label,
+	T& var,
+	T& var2,
+	T& defaultVar,
 	const T step = 1,
-	const char * format = 0,
+	const char* format = 0,
 	ImGuiInputTextFlags flags = 0
 )
 {
@@ -11377,14 +11414,14 @@ void SpeedSection()
 
 #pragma region System
 
-const char * Graphics_vSyncNames[] =
+const char* Graphics_vSyncNames[] =
 {
 	"Auto",
 	"Force Off",
 	"Force On",
 };
 
-const char * Sound_channelNames[CHANNEL::MAX] =
+const char* Sound_channelNames[CHANNEL::MAX] =
 {
 	"System",
 	"Common",
@@ -11435,7 +11472,7 @@ void System()
 				sizeof(activeConfig.skipCutscenes)
 			);
 
-			ToggleSkipIntro    (activeConfig.skipIntro    );
+			ToggleSkipIntro(activeConfig.skipIntro);
 			ToggleSkipCutscenes(activeConfig.skipCutscenes);
 
 			CopyMemory
@@ -11640,27 +11677,27 @@ void System()
 		GUI_SectionStart("Event");
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Skip Intro",
-				activeConfig.skipIntro,
-				queuedConfig.skipIntro
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Skip Intro",
+					activeConfig.skipIntro,
+					queuedConfig.skipIntro
+				)
+				)
 		{
 			ToggleSkipIntro(activeConfig.skipIntro);
 		}
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Skip Cutscenes",
-				activeConfig.skipCutscenes,
-				queuedConfig.skipCutscenes
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Skip Cutscenes",
+					activeConfig.skipCutscenes,
+					queuedConfig.skipCutscenes
+				)
+				)
 		{
 			ToggleSkipCutscenes(activeConfig.skipCutscenes);
 		}
@@ -11721,18 +11758,18 @@ void System()
 		ImGui::Text("");
 
 		if
-		(
-			GUI_InputDefault2<float>
 			(
-				"Frame Rate",
-				activeConfig.frameRate,
-				queuedConfig.frameRate,
-				defaultConfig.frameRate,
-				1,
-				"%.2f",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			)
-		)
+				GUI_InputDefault2<float>
+				(
+					"Frame Rate",
+					activeConfig.frameRate,
+					queuedConfig.frameRate,
+					defaultConfig.frameRate,
+					1,
+					"%.2f",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				)
+				)
 		{
 			UpdateFrameRate();
 		}
@@ -11755,40 +11792,40 @@ void System()
 		GUI_SectionStart("HUD");
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Hide Main",
-				activeConfig.hideMainHUD,
-				queuedConfig.hideMainHUD
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Hide Main",
+					activeConfig.hideMainHUD,
+					queuedConfig.hideMainHUD
+				)
+				)
 		{
 			ToggleHideMainHUD(activeConfig.hideMainHUD);
 		}
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Hide Lock-On",
-				activeConfig.hideLockOn,
-				queuedConfig.hideLockOn
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Hide Lock-On",
+					activeConfig.hideLockOn,
+					queuedConfig.hideLockOn
+				)
+				)
 		{
 			ToggleHideLockOn(activeConfig.hideLockOn);
 		}
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Hide Boss",
-				activeConfig.hideBossHUD,
-				queuedConfig.hideBossHUD
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Hide Boss",
+					activeConfig.hideBossHUD,
+					queuedConfig.hideBossHUD
+				)
+				)
 		{
 			ToggleHideBossHUD(activeConfig.hideBossHUD);
 		}
@@ -11813,28 +11850,28 @@ void System()
 		ImGui::PushItemWidth(300);
 
 		if
-		(
-			ImGui::InputText
 			(
-				"Gamepad Name",
-				queuedConfig.gamepadName,
-				sizeof(queuedConfig.gamepadName),
-				ImGuiInputTextFlags_EnterReturnsTrue
-			)
-		)
+				ImGui::InputText
+				(
+					"Gamepad Name",
+					queuedConfig.gamepadName,
+					sizeof(queuedConfig.gamepadName),
+					ImGuiInputTextFlags_EnterReturnsTrue
+				)
+				)
 		{
 			::GUI::save = true;
 		}
 
 		GUI_Input2<byte8>
-		(
-			"Gamepad Button",
-			activeConfig.gamepadButton,
-			queuedConfig.gamepadButton,
-			1,
-			"%u",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"Gamepad Button",
+				activeConfig.gamepadButton,
+				queuedConfig.gamepadButton,
+				1,
+				"%u",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 		ImGui::SameLine();
 		TooltipHelper
 		(
@@ -11881,18 +11918,18 @@ void System()
 		old_for_all(uint8, channelIndex, CHANNEL::MAX)
 		{
 			if
-			(
-				GUI_InputDefault2
 				(
-					Sound_channelNames[channelIndex],
-					activeConfig.channelVolumes[channelIndex],
-					queuedConfig.channelVolumes[channelIndex],
-					defaultConfig.channelVolumes[channelIndex],
-					0.1f,
-					"%g",
-					ImGuiInputTextFlags_EnterReturnsTrue
-				)
-			)
+					GUI_InputDefault2
+					(
+						Sound_channelNames[channelIndex],
+						activeConfig.channelVolumes[channelIndex],
+						queuedConfig.channelVolumes[channelIndex],
+						defaultConfig.channelVolumes[channelIndex],
+						0.1f,
+						"%g",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					)
+					)
 			{
 				SetVolume(channelIndex, activeConfig.channelVolumes[channelIndex]);
 			}
@@ -11929,25 +11966,25 @@ void System()
 		ImGui::PushItemWidth(150);
 
 		GUI_InputDefault2<int32>
-		(
-			"X",
-			activeConfig.windowPosX,
-			queuedConfig.windowPosX,
-			defaultConfig.windowPosX,
-			1,
-			"%d",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"X",
+				activeConfig.windowPosX,
+				queuedConfig.windowPosX,
+				defaultConfig.windowPosX,
+				1,
+				"%d",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 		GUI_InputDefault2<int32>
-		(
-			"Y",
-			activeConfig.windowPosY,
-			queuedConfig.windowPosY,
-			defaultConfig.windowPosY,
-			1,
-			"%d",
-			ImGuiInputTextFlags_EnterReturnsTrue
-		);
+			(
+				"Y",
+				activeConfig.windowPosY,
+				queuedConfig.windowPosY,
+				defaultConfig.windowPosY,
+				1,
+				"%d",
+				ImGuiInputTextFlags_EnterReturnsTrue
+			);
 
 		ImGui::PopItemWidth();
 
@@ -11955,14 +11992,14 @@ void System()
 
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Force Focus",
-				activeConfig.forceWindowFocus,
-				queuedConfig.forceWindowFocus
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Force Focus",
+					activeConfig.forceWindowFocus,
+					queuedConfig.forceWindowFocus
+				)
+				)
 		{
 			ToggleForceWindowFocus(activeConfig.forceWindowFocus);
 		}
@@ -11984,122 +12021,122 @@ void Teleporter()
 
 
 		[&]()
-		{
-			if (!InGame())
 			{
-				ImGui::Text("Invalid Pointer");
+				if (!InGame())
+				{
+					ImGui::Text("Invalid Pointer");
 
-				return;
-			}
+					return;
+				}
 
-			auto pool_11935 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E10);
-			if
-			(
-				!pool_11935 ||
-				!pool_11935[8]
-			)
-			{
-				return;
-			}
-			auto & eventData = *reinterpret_cast<EventData *>(pool_11935[8]);
-
-			auto pool_11986 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E10);
-			if
-			(
-				!pool_11986 ||
-				!pool_11986[12]
-			)
-			{
-				return;
-			}
-			auto & nextEventData = *reinterpret_cast<NextEventData *>(pool_11986[12]);
-
-
-
-
-			if (GUI_Button("Clear"))
-			{
-				nextEventData.position = nextEventData.room = 0;
-			}
-			ImGui::SameLine();
-
-			if (GUI_Button("Current"))
-			{
-				nextEventData.room     = static_cast<uint16>(eventData.room    );
-				nextEventData.position = static_cast<uint16>(eventData.position);
-			}
-			ImGui::Text("");
-
-
-
-			constexpr float width = 150.0f;
-
-			ImGui::PushItemWidth(width);
-
-			ImGui::Text("Current");
-
-			GUI_Input<uint32>
-			(
-				"Room",
-				eventData.room,
-				0,
-				"%u",
-				ImGuiInputTextFlags_ReadOnly
-			);
-
-			GUI_Input<uint32>
-			(
-				"Position",
-				eventData.position,
-				0,
-				"%u",
-				ImGuiInputTextFlags_ReadOnly
-			);
-
-			ImGui::Text("Next");
-
-			GUI_Input<uint16>
-			(
-				"Room",
-				nextEventData.room,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-
-			GUI_Input<uint16>
-			(
-				"Position",
-				nextEventData.position,
-				1,
-				"%u",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			);
-
-			if
-			(
-				GUI_Button
-				(
-					"Teleport",
-					ImVec2
+				auto pool_11962 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+				if
 					(
-						width,
-						ImGui::GetFrameHeight()
-					)
-				)
-			)
-			{
-				eventData.event = EVENT::TELEPORT;
-			}
+						!pool_11962 ||
+						!pool_11962[8]
+						)
+				{
+					return;
+				}
+				auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
 
-			ImGui::PopItemWidth();
-		}();
+				auto pool_12013 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+				if
+					(
+						!pool_12013 ||
+						!pool_12013[12]
+						)
+				{
+					return;
+				}
+				auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12013[12]);
+
+
+
+
+				if (GUI_Button("Clear"))
+				{
+					nextEventData.position = nextEventData.room = 0;
+				}
+				ImGui::SameLine();
+
+				if (GUI_Button("Current"))
+				{
+					nextEventData.room = static_cast<uint16>(eventData.room);
+					nextEventData.position = static_cast<uint16>(eventData.position);
+				}
+				ImGui::Text("");
+
+
+
+				constexpr float width = 150.0f;
+
+				ImGui::PushItemWidth(width);
+
+				ImGui::Text("Current");
+
+				GUI_Input<uint32>
+					(
+						"Room",
+						eventData.room,
+						0,
+						"%u",
+						ImGuiInputTextFlags_ReadOnly
+					);
+
+				GUI_Input<uint32>
+					(
+						"Position",
+						eventData.position,
+						0,
+						"%u",
+						ImGuiInputTextFlags_ReadOnly
+					);
+
+				ImGui::Text("Next");
+
+				GUI_Input<uint16>
+					(
+						"Room",
+						nextEventData.room,
+						1,
+						"%u",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+
+				GUI_Input<uint16>
+					(
+						"Position",
+						nextEventData.position,
+						1,
+						"%u",
+						ImGuiInputTextFlags_EnterReturnsTrue
+					);
+
+				if
+					(
+						GUI_Button
+						(
+							"Teleport",
+							ImVec2
+							(
+								width,
+								ImGui::GetFrameHeight()
+							)
+						)
+						)
+				{
+					eventData.event = EVENT::TELEPORT;
+				}
+
+				ImGui::PopItemWidth();
+			}();
 
 
 
 
 
-		ImGui::Text("");
+			ImGui::Text("");
 	}
 }
 
@@ -12196,53 +12233,53 @@ void TrainingSection()
 		ImGui::Text("");
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Infinite Hit Points",
-				activeConfig.infiniteHitPoints,
-				activeConfig.infiniteHitPoints
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Infinite Hit Points",
+					activeConfig.infiniteHitPoints,
+					activeConfig.infiniteHitPoints
+				)
+				)
 		{
 			ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
 		}
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Infinite Magic Points",
-				activeConfig.infiniteMagicPoints,
-				queuedConfig.infiniteMagicPoints
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Infinite Magic Points",
+					activeConfig.infiniteMagicPoints,
+					queuedConfig.infiniteMagicPoints
+				)
+				)
 		{
 			ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
 		}
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Disable Timer",
-				activeConfig.disableTimer,
-				queuedConfig.disableTimer
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Disable Timer",
+					activeConfig.disableTimer,
+					queuedConfig.disableTimer
+				)
+				)
 		{
 			ToggleDisableTimer(activeConfig.disableTimer);
 		}
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Infinite Bullets",
-				activeConfig.infiniteBullets,
-				queuedConfig.infiniteBullets
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Infinite Bullets",
+					activeConfig.infiniteBullets,
+					queuedConfig.infiniteBullets
+				)
+				)
 		{
 			ToggleInfiniteBullets(activeConfig.infiniteBullets);
 		}
@@ -12265,13 +12302,13 @@ void TrainingSection()
 
 void SFX()
 {
-	const char * changeGunNewNames[] =
+	const char* changeGunNewNames[] =
 	{
 		"DMC3 Default",
 		"New"
 	};
 
-	const char * changeDevilArmNewNames[] =
+	const char* changeDevilArmNewNames[] =
 	{
 		"DMC3 Default",
 		"New"
@@ -12281,7 +12318,7 @@ void SFX()
 	{
 		ImGui::Text("");
 
-		
+
 
 
 
@@ -12353,23 +12390,23 @@ void SFX()
 
 		ImGui::PushItemWidth(150.0f);
 		GUI_Combo2<int>
-		(
-			"Change Gun",
-			changeGunNewNames,
-			activeConfig.SFX.changeGunNew,
-			queuedConfig.SFX.changeGunNew
-		);
+			(
+				"Change Gun",
+				changeGunNewNames,
+				activeConfig.SFX.changeGunNew,
+				queuedConfig.SFX.changeGunNew
+			);
 		ImGui::PopItemWidth();
 
 
 		ImGui::PushItemWidth(150.0f);
 		GUI_Combo2<int>
-		(
-			"Change Devil Arm",
-			changeDevilArmNewNames,
-			activeConfig.SFX.changeDevilArmNew,
-			queuedConfig.SFX.changeDevilArmNew
-		);
+			(
+				"Change Devil Arm",
+				changeDevilArmNewNames,
+				activeConfig.SFX.changeDevilArmNew,
+				queuedConfig.SFX.changeDevilArmNew
+			);
 		ImGui::PopItemWidth();
 
 		GUI_InputDefault2
@@ -12466,7 +12503,7 @@ void SFX()
 
 #pragma region Vergil
 
-const char * dergilNames[] =
+const char* dergilNames[] =
 {
 	"Default",
 	"Force Off",
@@ -12751,14 +12788,14 @@ void Vergil()
 		ImGui::Text("");
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Infinite Round Trip",
-				activeConfig.YamatoForceEdge.infiniteRoundTrip,
-				queuedConfig.YamatoForceEdge.infiniteRoundTrip
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Infinite Round Trip",
+					activeConfig.YamatoForceEdge.infiniteRoundTrip,
+					queuedConfig.YamatoForceEdge.infiniteRoundTrip
+				)
+				)
 		{
 			ToggleYamatoForceEdgeInfiniteRoundTrip(activeConfig.YamatoForceEdge.infiniteRoundTrip);
 		}
@@ -12881,14 +12918,14 @@ void Vergil()
 		GUI_SectionStart("Summoned Swords");
 
 		if
-		(
-			GUI_Checkbox2
 			(
-				"Chrono Swords",
-				activeConfig.SummonedSwords.chronoSwords,
-				queuedConfig.SummonedSwords.chronoSwords
-			)
-		)
+				GUI_Checkbox2
+				(
+					"Chrono Swords",
+					activeConfig.SummonedSwords.chronoSwords,
+					queuedConfig.SummonedSwords.chronoSwords
+				)
+				)
 		{
 			ToggleChronoSwords(activeConfig.SummonedSwords.chronoSwords);
 		}
@@ -12909,15 +12946,15 @@ void Vergil()
 		ImGui::PushItemWidth(150.0f);
 
 		if
-		(
-			GUI_Combo2
 			(
-				"Dergil",
-				dergilNames,
-				activeConfig.dergil,
-				queuedConfig.dergil
-			)
-		)
+				GUI_Combo2
+				(
+					"Dergil",
+					dergilNames,
+					activeConfig.dergil,
+					queuedConfig.dergil
+				)
+				)
 		{
 			ToggleDergil(activeConfig.dergil);
 		}
@@ -12948,32 +12985,32 @@ void ReloadRoom()
 		return;
 	}
 
-	auto pool_12871 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E10);
+	auto pool_12898 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if
-	(
-		!pool_12871 ||
-		!pool_12871[8]
-	)
+		(
+			!pool_12898 ||
+			!pool_12898[8]
+			)
 	{
 		return;
 	}
-	auto & eventData = *reinterpret_cast<EventData *>(pool_12871[8]);
+	auto& eventData = *reinterpret_cast<EventData*>(pool_12898[8]);
 
-	auto pool_12932 = *reinterpret_cast<byte8 ***>(appBaseAddr + 0xC90E10);
+	auto pool_12959 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if
-	(
-		!pool_12932 ||
-		!pool_12932[12]
-	)
+		(
+			!pool_12959 ||
+			!pool_12959[12]
+			)
 	{
 		return;
 	}
-	auto & nextEventData = *reinterpret_cast<NextEventData *>(pool_12932[12]);
+	auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12959[12]);
 
 
 
 
-	nextEventData.room     = static_cast<uint16>(eventData.room    );
+	nextEventData.room = static_cast<uint16>(eventData.room);
 	nextEventData.position = static_cast<uint16>(eventData.position);
 
 
@@ -12995,10 +13032,10 @@ void ReloadRoom()
 void MoveToMainActor()
 {
 	if
-	(
-		!activeConfig.Actor.enable ||
-		!InGame()
-	)
+		(
+			!activeConfig.Actor.enable ||
+			!InGame()
+			)
 	{
 		return;
 	}
@@ -13007,22 +13044,22 @@ void MoveToMainActor()
 
 
 
-	byte8 * mainActorBaseAddr = 0;
+	byte8* mainActorBaseAddr = 0;
 
 	{
-		auto & playerData = GetPlayerData(0);
+		auto& playerData = GetPlayerData(0);
 
-		auto & characterData = GetCharacterData(0, playerData.characterIndex, ENTITY::MAIN);
-		auto & newActorData  = GetNewActorData (0, playerData.characterIndex, ENTITY::MAIN);
+		auto& characterData = GetCharacterData(0, playerData.characterIndex, ENTITY::MAIN);
+		auto& newActorData = GetNewActorData(0, playerData.characterIndex, ENTITY::MAIN);
 
-		auto & activeCharacterData = GetCharacterData(0, playerData.activeCharacterIndex, ENTITY::MAIN);
-		auto & activeNewActorData  = GetNewActorData (0, playerData.activeCharacterIndex, ENTITY::MAIN);
+		auto& activeCharacterData = GetCharacterData(0, playerData.activeCharacterIndex, ENTITY::MAIN);
+		auto& activeNewActorData = GetNewActorData(0, playerData.activeCharacterIndex, ENTITY::MAIN);
 
-		auto & leadCharacterData = GetCharacterData(0, 0, ENTITY::MAIN);
-		auto & leadNewActorData  = GetNewActorData (0, 0, ENTITY::MAIN);
+		auto& leadCharacterData = GetCharacterData(0, 0, ENTITY::MAIN);
+		auto& leadNewActorData = GetNewActorData(0, 0, ENTITY::MAIN);
 
-		auto & mainCharacterData = GetCharacterData(0, playerData.characterIndex, ENTITY::MAIN);
-		auto & mainNewActorData  = GetNewActorData (0, playerData.characterIndex, ENTITY::MAIN);
+		auto& mainCharacterData = GetCharacterData(0, playerData.characterIndex, ENTITY::MAIN);
+		auto& mainNewActorData = GetNewActorData(0, playerData.characterIndex, ENTITY::MAIN);
 
 
 
@@ -13033,41 +13070,42 @@ void MoveToMainActor()
 	{
 		return;
 	}
-	auto & mainActorData = *reinterpret_cast<PlayerActorData *>(mainActorBaseAddr);
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(mainActorBaseAddr);
 
 
 
 	old_for_each(uint8, playerIndex, 1, activeConfig.Actor.playerCount)
 	{
-		auto & playerData = GetActivePlayerData(playerIndex);
+		auto& playerData = GetActivePlayerData(playerIndex);
 
-		old_for_all(uint8, characterIndex, playerData.characterCount){
-		old_for_all(uint8, entityIndex   , ENTITY_COUNT             )
-		{
-			auto & playerData = GetPlayerData(playerIndex);
-
-			auto & characterData = GetCharacterData(playerIndex, characterIndex, entityIndex);
-			auto & newActorData  = GetNewActorData (playerIndex, characterIndex, entityIndex);
-
-			auto & activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-			auto & activeNewActorData  = GetNewActorData (playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-
-			auto & leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
-			auto & leadNewActorData  = GetNewActorData (playerIndex, 0, ENTITY::MAIN);
-
-			auto & mainCharacterData = GetCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
-			auto & mainNewActorData  = GetNewActorData (playerIndex, characterIndex, ENTITY::MAIN);
-
-
-
-			if (!newActorData.baseAddr)
+		old_for_all(uint8, characterIndex, playerData.characterCount) {
+			old_for_all(uint8, entityIndex, ENTITY_COUNT)
 			{
-				continue;
-			}
-			auto & actorData = *reinterpret_cast<PlayerActorData *>(newActorData.baseAddr);
+				auto& playerData = GetPlayerData(playerIndex);
 
-			actorData.position = mainActorData.position;
-		}}
+				auto& characterData = GetCharacterData(playerIndex, characterIndex, entityIndex);
+				auto& newActorData = GetNewActorData(playerIndex, characterIndex, entityIndex);
+
+				auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+				auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+
+				auto& leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
+				auto& leadNewActorData = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
+
+				auto& mainCharacterData = GetCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
+				auto& mainNewActorData = GetNewActorData(playerIndex, characterIndex, ENTITY::MAIN);
+
+
+
+				if (!newActorData.baseAddr)
+				{
+					continue;
+				}
+				auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+
+				actorData.position = mainActorData.position;
+			}
+		}
 	}
 }
 
@@ -13076,17 +13114,17 @@ void MoveToMainActor()
 
 void ToggleInfiniteHealth() {
 
-	if(activeConfig.infiniteHitPoints) {
+	if (activeConfig.infiniteHitPoints) {
 		activeConfig.infiniteHitPoints = false;
 	}
 	else {
 		activeConfig.infiniteHitPoints = true;
 	}
-	
-	ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
-	
 
- }
+	ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
+
+
+}
 
 
 export KeyBinding keyBindings[] =
@@ -13138,7 +13176,7 @@ void KeyBindings()
 
 		for_all(index, countof(keyBindings))
 		{
-			auto & keyBinding = keyBindings[index];
+			auto& keyBinding = keyBindings[index];
 
 			if (keyBinding.showPopup)
 			{
@@ -13152,7 +13190,7 @@ void KeyBindings()
 
 		for_all(index, countof(keyBindings))
 		{
-			auto & keyBinding = keyBindings[index];
+			auto& keyBinding = keyBindings[index];
 
 			keyBinding.Main();
 		}
@@ -13210,7 +13248,7 @@ void Main()
 	{
 		run = true;
 
-		constexpr float width  = 800;
+		constexpr float width = 800;
 		constexpr float height = 750;
 
 		ImGui::SetNextWindowSize(ImVec2(width, height));
@@ -13231,10 +13269,10 @@ void Main()
 		else
 		{
 			//CENTER MAIN SCREEN
-			ImGui::SetNextWindowPos(ImVec2(g_renderSize.x * 0.5f, g_renderSize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f,0.5f));
+			ImGui::SetNextWindowPos(ImVec2(g_renderSize.x * 0.5f, g_renderSize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 		}
 
-		
+
 
 		//ImGuiIO & io = ImGui::GetIO();
 		//io.FontDefault = io.Fonts->Fonts[FONT::MAIN];
@@ -13243,20 +13281,20 @@ void Main()
 		//ImGui::SetCurrentFont(io.Fonts->Fonts[FONT::OVERLAY_8]);
 	}
 
-	
+
 
 	if
-	(
-		ImGui::Begin
 		(
-			DMC3C_TITLE,
-			&g_showMain
-		)
-	)
+			ImGui::Begin
+			(
+				DMC3C_TITLE,
+				&g_showMain
+			)
+			)
 	{
-		
+
 		ImGui::Text("");
-		
+
 		std::stringstream sstm;
 		sstm << "WINDOWSIZE X: " << g_renderSize.x;
 		std::string windowSizeX = sstm.str();
@@ -13289,18 +13327,18 @@ void Main()
 		ImGui::PushItemWidth(150);
 
 		if
-		(
-			GUI_InputDefault2
 			(
-				"Global Scale",
-				activeConfig.globalScale,
-				queuedConfig.globalScale,
-				defaultConfig.globalScale,
-				0.1f,
-				"%g",
-				ImGuiInputTextFlags_EnterReturnsTrue
-			)
-		)
+				GUI_InputDefault2
+				(
+					"Global Scale",
+					activeConfig.globalScale,
+					queuedConfig.globalScale,
+					defaultConfig.globalScale,
+					0.1f,
+					"%g",
+					ImGuiInputTextFlags_EnterReturnsTrue
+				)
+				)
 		{
 			UpdateGlobalScale();
 		}
@@ -13374,7 +13412,7 @@ void Main()
 		TrainingSection();
 		Vergil();
 
-		
+
 
 		ImGui::Text("");
 
@@ -13407,7 +13445,7 @@ export void GUI_Render()
 	}
 
 	initSDL();
-	if(g_scene != SCENE::GAME) {
+	if (g_scene != SCENE::GAME) {
 		devilTriggerReadyPlayed = !activeConfig.playDTReadySFXAtMissionStart;
 	}
 
@@ -13432,7 +13470,7 @@ export void GUI_Render()
 	}
 
 
-
+	PauseWhenGUIOpen();
 	MainOverlayWindow();
 	MissionOverlayWindow();
 	BossLadyActionsOverlayWindow();

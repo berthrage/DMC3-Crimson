@@ -99,8 +99,8 @@ namespaceEnd();
 
 export enum
 {
-	CopyStateFlags_EventData      = 1 << 0,
-	CopyStateFlags_Mode           = 1 << 1,
+	CopyStateFlags_EventData = 1 << 0,
+	CopyStateFlags_Mode = 1 << 1,
 	CopyStateFlags_FixPermissions = 1 << 2,
 };
 
@@ -158,23 +158,23 @@ export enum
 export namespaceStart(GAMEPAD);
 enum
 {
-	LEFT_TRIGGER   = 0x1,
-	RIGHT_TRIGGER  = 0x2,
-	LEFT_SHOULDER  = 0x4,
+	LEFT_TRIGGER = 0x1,
+	RIGHT_TRIGGER = 0x2,
+	LEFT_SHOULDER = 0x4,
 	RIGHT_SHOULDER = 0x8,
-	Y              = 0x10,
-	B              = 0x20,
-	A              = 0x40,
-	X              = 0x80,
-	BACK           = 0x100,
-	LEFT_THUMB     = 0x200,
-	RIGHT_THUMB    = 0x400,
-	START          = 0x800,
+	Y = 0x10,
+	B = 0x20,
+	A = 0x40,
+	X = 0x80,
+	BACK = 0x100,
+	LEFT_THUMB = 0x200,
+	RIGHT_THUMB = 0x400,
+	START = 0x800,
 	// Direction ids are the same for dpad, left stick and right stick.
-	UP             = 0x1000,
-	RIGHT          = 0x2000,
-	DOWN           = 0x4000,
-	LEFT           = 0x8000,
+	UP = 0x1000,
+	RIGHT = 0x2000,
+	DOWN = 0x4000,
+	LEFT = 0x8000,
 };
 namespaceEnd();
 
@@ -274,14 +274,14 @@ export namespaceStart(COLLISION_GROUP);
 enum
 {
 	PLAYER = 0,
-	ENEMY  = 2,
+	ENEMY = 2,
 };
 namespaceEnd();
 
 enum
 {
 	CollisionFlags_Player = 0x30443, // dmc3.exe+173B5D - C7 86 D0020000 43040300 - mov [rsi+000002D0],00030443
-	CollisionFlags_Enemy  = 0x3050C, // dmc3.exe+173B76 - C7 86 D0020000 0C050300 - mov [rsi+000002D0],0003050C
+	CollisionFlags_Enemy = 0x3050C, // dmc3.exe+173B76 - C7 86 D0020000 0C050300 - mov [rsi+000002D0],0003050C
 };
 
 export namespaceStart(PLAYER_ACTOR_DATA_SIZE);
@@ -763,15 +763,15 @@ namespaceEnd();
 
 // $ActorEventEnd
 
-static_assert(ACTOR_EVENT::JUMP                   == 5 );
-static_assert(ACTOR_EVENT::TRICKSTER_DASH         == 22);
-static_assert(ACTOR_EVENT::TRICKSTER_SKY_STAR     == 23);
-static_assert(ACTOR_EVENT::TRICKSTER_AIR_TRICK    == 24);
-static_assert(ACTOR_EVENT::DARK_SLAYER_AIR_TRICK  == 27);
-static_assert(ACTOR_EVENT::DARK_SLAYER_TRICK_UP   == 28);
+static_assert(ACTOR_EVENT::JUMP == 5);
+static_assert(ACTOR_EVENT::TRICKSTER_DASH == 22);
+static_assert(ACTOR_EVENT::TRICKSTER_SKY_STAR == 23);
+static_assert(ACTOR_EVENT::TRICKSTER_AIR_TRICK == 24);
+static_assert(ACTOR_EVENT::DARK_SLAYER_AIR_TRICK == 27);
+static_assert(ACTOR_EVENT::DARK_SLAYER_TRICK_UP == 28);
 static_assert(ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN == 29);
-static_assert(ACTOR_EVENT::NEVAN_AIR_RAID         == 40);
-static_assert(ACTOR_EVENT::COUNT                  == 46);
+static_assert(ACTOR_EVENT::NEVAN_AIR_RAID == 40);
+static_assert(ACTOR_EVENT::COUNT == 46);
 
 export namespaceStart(EVENT_ENEMY);
 enum
@@ -1090,19 +1090,19 @@ namespaceEnd();
 
 export enum
 {
-	ARCHIVE_METADATA_SIZE   = 8,
-	HEAD_METADATA_SIZE      = 32,
-	PROG_SECT_ITEM_SIZE     = 14,
+	ARCHIVE_METADATA_SIZE = 8,
+	HEAD_METADATA_SIZE = 32,
+	PROG_SECT_ITEM_SIZE = 14,
 	PROG_SECT_METADATA_SIZE = 8,
-	PROG_METADATA_SIZE      = 16,
-	SMPL_ITEM_SIZE          = 12,
-	SMPL_METADATA_SIZE      = 16,
-	VAGI_ITEM_SIZE          = 16,
-	VAGI_METADATA_SIZE      = 16,
-	WAVE_METADATA_SIZE      = 64,
-	SOUND_DATA_SIZE         = 24,
-	DBST_METADATA_SIZE      = 16,
-	DBST_ITEM_SIZE          = 32,
+	PROG_METADATA_SIZE = 16,
+	SMPL_ITEM_SIZE = 12,
+	SMPL_METADATA_SIZE = 16,
+	VAGI_ITEM_SIZE = 16,
+	VAGI_METADATA_SIZE = 16,
+	WAVE_METADATA_SIZE = 64,
+	SOUND_DATA_SIZE = 24,
+	DBST_METADATA_SIZE = 16,
+	DBST_ITEM_SIZE = 32,
 };
 
 export enum
@@ -1329,8 +1329,8 @@ export enum
 
 export struct CacheFileHelper
 {
-	const char * filename;
-	const char * typeName;
+	const char* filename;
+	const char* typeName;
 };
 
 export constexpr CacheFileHelper cacheFileHelpers[CACHE_FILE_COUNT] =
@@ -1771,7 +1771,7 @@ enum
 };
 namespaceEnd();
 
-export const char * itemNames[] =
+export const char* itemNames[] =
 {
 	"",
 	"",
@@ -1852,7 +1852,7 @@ enum
 };
 namespaceEnd();
 
-export const char * buyNames[] =
+export const char* buyNames[] =
 {
 	"Vital Star Small",
 	"Vital Star Large",
@@ -1939,7 +1939,7 @@ enum
 };
 namespaceEnd();
 
-export const char * enemyNames[] =
+export const char* enemyNames[] =
 {
 	"Pride 1",
 	"Pride 2",
@@ -2404,10 +2404,10 @@ export struct CollisionDataMetadata
 	_(48);
 	vec4 data[8]; // 0x30
 	_(32);
-	void * collisionDataAddr; // 0xD0
+	void* collisionDataAddr; // 0xD0
 	_(8);
 	vec4 data2[3]; // 0xE0
-	byte8 * files[2]; // 0x110
+	byte8* files[2]; // 0x110
 	uint32 mode; // 0x120
 	_(12);
 	vec4 data3; // 0x130
@@ -2433,9 +2433,9 @@ export struct CollisionData
 	_(4);
 	uint32 group; // 4
 	_(128);
-	CollisionDataMetadata * metadataAddr; // 0x88
+	CollisionDataMetadata* metadataAddr; // 0x88
 	_(160);
-	byte8 * baseAddr; // 0x130
+	byte8* baseAddr; // 0x130
 	_(8);
 	byte32 flags; // 0x140
 	_(204);
@@ -2461,7 +2461,7 @@ export struct CameraData
 	_(76);
 	vec4 data[2]; // 0x70
 	_(32);
-	byte8 * targetBaseAddr; // 0xB0
+	byte8* targetBaseAddr; // 0xB0
 	_(24);
 	float height; // 0xD0
 	float tilt; // 0xD4
@@ -2489,14 +2489,14 @@ export struct NewArchiveMetadata
 	uint32 fileCount;
 	uint32 fileOffs[1];
 
-	byte8 * operator[](uint32 fileIndex)
+	byte8* operator[](uint32 fileIndex)
 	{
 		if (fileIndex >= fileCount)
 		{
 			return 0;
 		}
 
-		auto file = reinterpret_cast<byte8 *>(this);
+		auto file = reinterpret_cast<byte8*>(this);
 
 		auto fileOff = fileOffs[fileIndex];
 
@@ -2532,7 +2532,7 @@ static_assert(FILE_DATA_STATUS::IN_USE == 3);
 export struct FileDataTypeData
 {
 	_(8);
-	const char * typeName; // 8
+	const char* typeName; // 8
 };
 
 static_assert(offsetof(FileDataTypeData, typeName) == 8);
@@ -2548,8 +2548,8 @@ export struct FileData
 	uint32 group; // 0
 	uint32 status; // 4
 	_(16);
-	FileDataTypeData * typeDataAddr; // 0x18
-	byte8 * file; // 0x20
+	FileDataTypeData* typeDataAddr; // 0x18
+	byte8* file; // 0x20
 	_(32);
 };
 
@@ -2566,10 +2566,10 @@ static_assert(sizeof(FileData) == 72);
 
 export struct FileDataMetadata
 {
-	void * funcAddrs; // 0
-	void * lastAddr; // 8
-	void * nextAddr; // 0x10
-	FileData * fileDataAddr; // 0x18
+	void* funcAddrs; // 0
+	void* lastAddr; // 8
+	void* nextAddr; // 0x10
+	FileData* fileDataAddr; // 0x18
 	_(4);
 	uint32 category; // 0x24
 	uint32 fileSetIndex; // 0x28
@@ -2589,8 +2589,8 @@ static_assert(sizeof(FileDataMetadata) == 48);
 
 export struct RegionData
 {
-	byte8 * metadataAddr;
-	byte8 * dataAddr;
+	byte8* metadataAddr;
+	byte8* dataAddr;
 	uint32 capacity;
 	uint32 boundary;
 	uint32 size;
@@ -2670,7 +2670,7 @@ export struct PhysicsLinkData
 	_(40);
 	bool32 enable;
 	_(4);
-	PhysicsData * physicsData;
+	PhysicsData* physicsData;
 	_(72);
 	vec4 data[4];
 };
@@ -2683,9 +2683,9 @@ static_assert(sizeof(PhysicsLinkData) == 0xC0);
 export struct PhysicsMetadata
 {
 	_(256);
-	PhysicsLinkData * physicsLinkData;
-	vec4 * vertices;
-	PhysicsData * physicsData;
+	PhysicsLinkData* physicsLinkData;
+	vec4* vertices;
+	PhysicsData* physicsData;
 	_(40);
 };
 
@@ -2705,12 +2705,12 @@ static_assert(sizeof(ModelPartitionData) == 0x380);
 export struct ModelData
 {
 	_(8);
-	byte8 ** funcAddrs; // 8
+	byte8** funcAddrs; // 8
 	_(8);
 	bool visible; // 0x18
 	bool physics; // 0x19
 	_(358);
-	ModelPartitionData * modelPartitionData; // 0x180
+	ModelPartitionData* modelPartitionData; // 0x180
 	_(888);
 	struct
 	{
@@ -2744,8 +2744,8 @@ static_assert(sizeof(ModelData) == 1920);
 export struct BodyPartData
 {
 	_(104);
-	byte8 ** motionArchives; // 0x68
-	ModelData * modelDataAddr; // 0x70
+	byte8** motionArchives; // 0x68
+	ModelData* modelDataAddr; // 0x70
 	_(66);
 	bool busy; // 0xBA
 	_(101);
@@ -2801,7 +2801,7 @@ export struct DevilModelMetadataDante
 	DevilModelMetadata1 Beowulf;
 	DevilModelMetadata1 Sparda;
 
-	DevilModelMetadata2 & operator[](uint8 index)
+	DevilModelMetadata2& operator[](uint8 index)
 	{
 		switch (index)
 		{
@@ -2811,11 +2811,11 @@ export struct DevilModelMetadataDante
 		}
 		case DEVIL::CERBERUS:
 		{
-			return *reinterpret_cast<DevilModelMetadata2 *>(&Cerberus);
+			return *reinterpret_cast<DevilModelMetadata2*>(&Cerberus);
 		}
 		case DEVIL::AGNI_RUDRA:
 		{
-			return *reinterpret_cast<DevilModelMetadata2 *>(&AgniRudra);
+			return *reinterpret_cast<DevilModelMetadata2*>(&AgniRudra);
 		}
 		case DEVIL::NEVAN:
 		{
@@ -2823,11 +2823,11 @@ export struct DevilModelMetadataDante
 		}
 		case DEVIL::BEOWULF:
 		{
-			return *reinterpret_cast<DevilModelMetadata2 *>(&Beowulf);
+			return *reinterpret_cast<DevilModelMetadata2*>(&Beowulf);
 		}
 		case DEVIL::SPARDA:
 		{
-			return *reinterpret_cast<DevilModelMetadata2 *>(&Sparda);
+			return *reinterpret_cast<DevilModelMetadata2*>(&Sparda);
 		}
 		}
 		return Rebellion;
@@ -2838,7 +2838,7 @@ static_assert(sizeof(DevilModelMetadataDante) == 33);
 
 export struct RecoveryData
 {
-	byte8 ** functions;
+	byte8** functions;
 	_(24);
 	bool init;
 	_(15);
@@ -2857,13 +2857,13 @@ export struct WeaponData
 	float speed; // 0x14
 	float speedMultiplier; // 0x18
 	_(44);
-	byte8 * baseAddr; // 0x48
+	byte8* baseAddr; // 0x48
 	_(194);
 	uint8 weapon; // 0x112
 	_(5);
 	uint8 value; // 0x118
 	_(7);
-	byte8 * actorBaseAddr; // 0x120
+	byte8* actorBaseAddr; // 0x120
 };
 
 static_assert(offsetof(WeaponData, speed) == 0x14);
@@ -2880,7 +2880,7 @@ static_assert(sizeof(WeaponData) == 296);
 export struct SummonedSwordsData
 {
 	_(1376);
-	byte8 * actorBaseAddr;
+	byte8* actorBaseAddr;
 };
 
 static_assert(offsetof(SummonedSwordsData, actorBaseAddr) == 0x560);
@@ -2915,18 +2915,18 @@ static_assert(offsetof(SummonedSwordsData, actorBaseAddr) == 0x560);
 
 export struct LockOnData
 {
-	byte8 * var_0; // 0
+	byte8* var_0; // 0
 	_(4096);
-	byte8 * var_1008; // 0x1008
-	byte8 * var_1010; // 0x1010
-	byte8 * var_1018; // 0x1018
+	byte8* var_1008; // 0x1008
+	byte8* var_1010; // 0x1010
+	byte8* var_1018; // 0x1018
 	_(4136);
 	uint32 targetCount; // 0x2048
 	_(244);
 	vec4 targetPosition; // 0x2140
 	_(24);
-	byte8 * targetBaseAddr60; // 0x2168
-	byte8 * var_2170; // 0x2170
+	byte8* targetBaseAddr60; // 0x2168
+	byte8* var_2170; // 0x2170
 };
 
 static_assert(offsetof(LockOnData, var_0) == 0);
@@ -2949,7 +2949,7 @@ static_assert(sizeof(LockOnData) == 8568);
 
 export struct NewActorData
 {
-	byte8 * baseAddr;
+	byte8* baseAddr;
 	uint8 visibility;
 	bool enableCollision;
 };
@@ -3017,10 +3017,10 @@ export struct ActorDataBase
 	float speed; // 0x14
 	float speedMultiplier; // 0x18
 	_(12);
-	byte8 * lastBaseAddr; // 0x28
-	byte8 * nextBaseAddr; // 0x30
+	byte8* lastBaseAddr; // 0x28
+	byte8* nextBaseAddr; // 0x30
 	_(16);
-	byte8 * baseAddr; // 0x48
+	byte8* baseAddr; // 0x48
 	_(13);
 	bool visible; // 0x5D
 	_(26);
@@ -3038,7 +3038,7 @@ export struct ActorDataBase
 	_(24);
 	uint16 rotation; // 0xC0
 	_(6);
-	
+
 };
 
 static_assert(offsetof(ActorDataBase, status) == 8);
@@ -3070,7 +3070,7 @@ export struct PlayerActorDataBase : ActorDataBase
 	float horizontalPullMultiplier; // 0x1C4
 	_(56);
 	ModelData modelData[3]; // 0x200
-	PhysicsMetadata * modelPhysicsMetadataPool[4][24]; // 0x1880
+	PhysicsMetadata* modelPhysicsMetadataPool[4][24]; // 0x1880
 	uint32 modelAllocationDataCount; // 0x1B80
 	_(4);
 	Size_32 modelAllocationData[209]; // 0x1B88
@@ -3078,7 +3078,7 @@ export struct PlayerActorDataBase : ActorDataBase
 	float motionSpeed; // 0x3894
 	float motionSpeedMultiplier; // 0x3898
 	_(4);
-	byte8 * motionArchives[34]; // 0x38A0
+	byte8* motionArchives[34]; // 0x38A0
 	MotionData motionData[2]; // 0x39B0
 	MotionData motionDataMirror[3]; // 0x39B4
 	_(2);
@@ -3094,7 +3094,7 @@ export struct PlayerActorDataBase : ActorDataBase
 	RecoveryData recoveryData[3]; // 0x3B00
 	byte8 var_3C50[2]; // 0x3C50
 	_(382);
-	byte8 * actionData[6]; // 0x3DD0
+	byte8* actionData[6]; // 0x3DD0
 	ActorEventData eventData[2]; // 0x3E00
 	uint8 var_3E10[32]; // 0x3E10
 	_(4);
@@ -3191,13 +3191,13 @@ export struct PlayerActorDataBase : ActorDataBase
 	uint32 quicksilverStage; // 0x63D4
 	_(56);
 	byte8 var_6410[40]; // 0x6410
-	byte8 * var_6438; // 0x6438
+	byte8* var_6438; // 0x6438
 	uint32 var_6440; // 0x6440
 	_(12);
 	uint32 cloneRate; // 0x6450
 	uint32 cloneStatus; // 0x6454
 	byte8 var_6458[32]; // 0x6458
-	byte8 * cloneActorBaseAddr; // 0x6478
+	byte8* cloneActorBaseAddr; // 0x6478
 	bool cloneIsControlledByPlayer; // 0x6480
 	_(3);
 	uint32 activeMeleeWeaponIndex; // 0x6484
@@ -3209,7 +3209,7 @@ export struct PlayerActorDataBase : ActorDataBase
 	uint32 rangedWeaponIndex; // 0x6494
 	uint8 weapons[5]; // 0x6498
 	_(3);
-	WeaponData * weaponDataAddr[5]; // 0x64A0
+	WeaponData* weaponDataAddr[5]; // 0x64A0
 	uint32 weaponStatus[5]; // 0x64C8
 	uint32 weaponLevels[5]; // 0x64DC
 	uint8 activeMeleeWeapon; // 0x64F0
@@ -3237,9 +3237,9 @@ export struct PlayerActorDataBase : ActorDataBase
 	uint32 leftStickDirection[2]; // 0x751C
 	_(28);
 
-	operator byte8 *()
+	operator byte8* ()
 	{
-		return reinterpret_cast<byte8 *>(this);
+		return reinterpret_cast<byte8*>(this);
 	}
 };
 
@@ -3373,7 +3373,7 @@ export struct PlayerActorData : PlayerActorDataBase
 	uint32 newFirstVar; // 0xB8C0
 	_(12);
 	ModelData newModelData[6]; // 0xB8D0
-	PhysicsMetadata * newModelPhysicsMetadataPool[7][24]; // 0xE5D0
+	PhysicsMetadata* newModelPhysicsMetadataPool[7][24]; // 0xE5D0
 	Size_32 newModelAllocationData[512]; // 0xEB10
 	RecoveryData newRecoveryData[6]; // 0x12B10
 	uint32 newDevilModels[6]; // 0x12DB0
@@ -3384,12 +3384,12 @@ export struct PlayerActorData : PlayerActorDataBase
 	_(5);
 	ShadowData newModelShadowData[6]; // 0x19020
 	ShadowData newSubmodelShadowData[11]; // 0x194A0
-	PhysicsMetadata * newDevilModelPhysicsMetadataPool[5][36]; // 0x19CE0
+	PhysicsMetadata* newDevilModelPhysicsMetadataPool[5][36]; // 0x19CE0
 	PhysicsData newDevilSubmodelPhysicsData[10]; // 0x1A280
 	PhysicsLinkData newDevilSubmodelPhysicsLinkData[10][4]; // 0x1ABE0
 	uint8 newWeapons[10]; // 0x1C9E0
 	_(6);
-	WeaponData * newWeaponDataAddr[10]; // 0x1C9F0
+	WeaponData* newWeaponDataAddr[10]; // 0x1C9F0
 	uint32 newWeaponStatus[10]; // 0x1CA40
 	_(8);
 	uint32 newWeaponLevels[10]; // 0x1CA70
@@ -3479,10 +3479,10 @@ export struct PlayerActorDataDante : PlayerActorDataBase
 	_(11);
 	ShadowData modelShadowData[3]; // 0x9AD0
 	ShadowData submodelShadowData[5]; // 0x9D10
-	PhysicsMetadata * submodelPhysicsMetadataPool[39]; // 0xA0D0
+	PhysicsMetadata* submodelPhysicsMetadataPool[39]; // 0xA0D0
 	_(8);
 	PhysicsData submodelPhysicsData; // 0xA210
-	PhysicsMetadata * devilModelPhysicsMetadataPool[2][36]; // 0xA300
+	PhysicsMetadata* devilModelPhysicsMetadataPool[2][36]; // 0xA300
 	PhysicsData devilSubmodelPhysicsData[4]; // 0xA540
 	_(256);
 	PhysicsLinkData devilSubmodelPhysicsLinkData[4][4]; // 0xAA00
@@ -3500,7 +3500,7 @@ export struct PlayerActorDataDante : PlayerActorDataBase
 	uint32 newFirstVar; // 0xB8C0
 	_(12);
 	ModelData newModelData[6]; // 0xB8D0
-	PhysicsMetadata * newModelPhysicsMetadataPool[7][24]; // 0xE5D0
+	PhysicsMetadata* newModelPhysicsMetadataPool[7][24]; // 0xE5D0
 	Size_32 newModelAllocationData[512]; // 0xEB10
 	RecoveryData newRecoveryData[6]; // 0x12B10
 	uint32 newDevilModels[6]; // 0x12DB0
@@ -3511,12 +3511,12 @@ export struct PlayerActorDataDante : PlayerActorDataBase
 	_(5);
 	ShadowData newModelShadowData[6]; // 0x19020
 	ShadowData newSubmodelShadowData[11]; // 0x194A0
-	PhysicsMetadata * newDevilModelPhysicsMetadataPool[5][36]; // 0x19CE0
+	PhysicsMetadata* newDevilModelPhysicsMetadataPool[5][36]; // 0x19CE0
 	PhysicsData newDevilSubmodelPhysicsData[10]; // 0x1A280
 	PhysicsLinkData newDevilSubmodelPhysicsLinkData[10][4]; // 0x1ABE0
 	uint8 newWeapons[10]; // 0x1C9E0
 	_(6);
-	WeaponData * newWeaponDataAddr[10]; // 0x1C9F0
+	WeaponData* newWeaponDataAddr[10]; // 0x1C9F0
 	uint32 newWeaponStatus[10]; // 0x1CA40
 	_(8);
 	uint32 newWeaponLevels[10]; // 0x1CA70
@@ -3620,7 +3620,7 @@ export struct PlayerActorDataBob : PlayerActorDataBase
 	uint32 newFirstVar; // 0xB8C0
 	_(12);
 	ModelData newModelData[6]; // 0xB8D0
-	PhysicsMetadata * newModelPhysicsMetadataPool[7][24]; // 0xE5D0
+	PhysicsMetadata* newModelPhysicsMetadataPool[7][24]; // 0xE5D0
 	Size_32 newModelAllocationData[512]; // 0xEB10
 	RecoveryData newRecoveryData[6]; // 0x12B10
 	uint32 newDevilModels[6]; // 0x12DB0
@@ -3631,12 +3631,12 @@ export struct PlayerActorDataBob : PlayerActorDataBase
 	_(5);
 	ShadowData newModelShadowData[6]; // 0x19020
 	ShadowData newSubmodelShadowData[11]; // 0x194A0
-	PhysicsMetadata * newDevilModelPhysicsMetadataPool[5][36]; // 0x19CE0
+	PhysicsMetadata* newDevilModelPhysicsMetadataPool[5][36]; // 0x19CE0
 	PhysicsData newDevilSubmodelPhysicsData[10]; // 0x1A280
 	PhysicsLinkData newDevilSubmodelPhysicsLinkData[10][4]; // 0x1ABE0
 	uint8 newWeapons[10]; // 0x1C9E0
 	_(6);
-	WeaponData * newWeaponDataAddr[10]; // 0x1C9F0
+	WeaponData* newWeaponDataAddr[10]; // 0x1C9F0
 	uint32 newWeaponStatus[10]; // 0x1CA40
 	_(8);
 	uint32 newWeaponLevels[10]; // 0x1CA70
@@ -3725,7 +3725,7 @@ export struct PlayerActorDataLady : PlayerActorDataBase
 	uint32 newFirstVar; // 0xB8C0
 	_(12);
 	ModelData newModelData[6]; // 0xB8D0
-	PhysicsMetadata * newModelPhysicsMetadataPool[7][24]; // 0xE5D0
+	PhysicsMetadata* newModelPhysicsMetadataPool[7][24]; // 0xE5D0
 	Size_32 newModelAllocationData[512]; // 0xEB10
 	RecoveryData newRecoveryData[6]; // 0x12B10
 	uint32 newDevilModels[6]; // 0x12DB0
@@ -3736,12 +3736,12 @@ export struct PlayerActorDataLady : PlayerActorDataBase
 	_(5);
 	ShadowData newModelShadowData[6]; // 0x19020
 	ShadowData newSubmodelShadowData[11]; // 0x194A0
-	PhysicsMetadata * newDevilModelPhysicsMetadataPool[5][36]; // 0x19CE0
+	PhysicsMetadata* newDevilModelPhysicsMetadataPool[5][36]; // 0x19CE0
 	PhysicsData newDevilSubmodelPhysicsData[10]; // 0x1A280
 	PhysicsLinkData newDevilSubmodelPhysicsLinkData[10][4]; // 0x1ABE0
 	uint8 newWeapons[10]; // 0x1C9E0
 	_(6);
-	WeaponData * newWeaponDataAddr[10]; // 0x1C9F0
+	WeaponData* newWeaponDataAddr[10]; // 0x1C9F0
 	uint32 newWeaponStatus[10]; // 0x1CA40
 	_(8);
 	uint32 newWeaponLevels[10]; // 0x1CA70
@@ -3831,7 +3831,7 @@ export struct PlayerActorDataVergil : PlayerActorDataBase
 	_(43);
 	ShadowData modelShadowData[3]; // 0x9AF0
 	ShadowData submodelShadowData[5]; // 0x9D30
-	PhysicsMetadata * submodelPhysicsMetadataPool[39]; // 0xA0F0
+	PhysicsMetadata* submodelPhysicsMetadataPool[39]; // 0xA0F0
 	_(8);
 	PhysicsData submodelPhysicsData; // 0xA230
 	_(4896);
@@ -3840,7 +3840,7 @@ export struct PlayerActorDataVergil : PlayerActorDataBase
 	uint32 newFirstVar; // 0xB8C0
 	_(12);
 	ModelData newModelData[6]; // 0xB8D0
-	PhysicsMetadata * newModelPhysicsMetadataPool[7][24]; // 0xE5D0
+	PhysicsMetadata* newModelPhysicsMetadataPool[7][24]; // 0xE5D0
 	Size_32 newModelAllocationData[512]; // 0xEB10
 	RecoveryData newRecoveryData[6]; // 0x12B10
 	uint32 newDevilModels[6]; // 0x12DB0
@@ -3851,12 +3851,12 @@ export struct PlayerActorDataVergil : PlayerActorDataBase
 	_(5);
 	ShadowData newModelShadowData[6]; // 0x19020
 	ShadowData newSubmodelShadowData[11]; // 0x194A0
-	PhysicsMetadata * newDevilModelPhysicsMetadataPool[5][36]; // 0x19CE0
+	PhysicsMetadata* newDevilModelPhysicsMetadataPool[5][36]; // 0x19CE0
 	PhysicsData newDevilSubmodelPhysicsData[10]; // 0x1A280
 	PhysicsLinkData newDevilSubmodelPhysicsLinkData[10][4]; // 0x1ABE0
 	uint8 newWeapons[10]; // 0x1C9E0
 	_(6);
-	WeaponData * newWeaponDataAddr[10]; // 0x1C9F0
+	WeaponData* newWeaponDataAddr[10]; // 0x1C9F0
 	uint32 newWeaponStatus[10]; // 0x1CA40
 	_(8);
 	uint32 newWeaponLevels[10]; // 0x1CA70
@@ -4075,11 +4075,11 @@ static_assert(sizeof(CreateEnemyActorData) == 128);
 
 export struct EnemyVectorDataMetadata
 {
-	byte8 * baseAddr;
+	byte8* baseAddr;
 	union
 	{
-		EnemyVectorDataMetadata * lastAddr;
-		EnemyVectorDataMetadata * nextAddr;
+		EnemyVectorDataMetadata* lastAddr;
+		EnemyVectorDataMetadata* nextAddr;
 	};
 };
 
@@ -4094,8 +4094,8 @@ export struct EnemyVectorData
 	_(28);
 	EnemyVectorDataMetadata metadata[50]; // 0x48
 	_(3296);
-	EnemyVectorDataMetadata * lastMetadataAddr; // 0x1048
-	EnemyVectorDataMetadata * nextMetadataAddr; // 0x1050
+	EnemyVectorDataMetadata* lastMetadataAddr; // 0x1048
+	EnemyVectorDataMetadata* nextMetadataAddr; // 0x1050
 };
 
 static_assert(offsetof(EnemyVectorData, count) == 0x28);
@@ -4318,8 +4318,10 @@ export struct BossHelper
 {
 	uint16 room;
 	uint16 position;
-	const char * track;
+	const char* track;
 };
+
+export bool pausedGameGUIOpen = false;
 
 export struct WeaponWheelTiming {
 	bool wheelAppear = false;
@@ -4336,6 +4338,8 @@ export bool triggerVFX = false;
 
 export int styleVFXCount = 0;
 export int styleVFXCountMax = 1;
+
+export float siytimer = 0;
 
 export struct DoubleTap {
 	int bufferDuration = 150;
@@ -4483,7 +4487,7 @@ export struct FasterDarkslayer {
 	float newSpeed = 2.0f;
 	bool newSpeedSet = false;
 	float storedSpeedHuman = 1;
-	float storedSpeedDevil[4] = {1.2f, 1.2f, 1.2f, 1.2f};
+	float storedSpeedDevil[4] = { 1.2f, 1.2f, 1.2f, 1.2f };
 
 } fasterDarkslayer;
 
@@ -4491,7 +4495,7 @@ export struct FasterRapidSlash {
 	float newSpeed = 2.0f;
 	bool newSpeedSet = false;
 	float storedSpeedHuman = 1;
-	float storedSpeedDevil[4] = {1.2f, 1.2f, 1.2f, 1.2f};
+	float storedSpeedDevil[4] = { 1.2f, 1.2f, 1.2f, 1.2f };
 
 } fasterRapidSlash;
 
@@ -4501,22 +4505,22 @@ export bool inRapidSlash;
 
 
 /*export struct Sounds {
-	
+
 } sounds;*/
 
 export bool styleChanged[6] = { false, false,
-								false, false, 
+								false, false,
 								false, false };
 
 export bool inCombatTrackerRunning = false;
 export int inCombatDelay = 2000;
 export int inCombatTime = inCombatDelay;
 export bool inCombat = false;
-export DWORD inCombatGameAddress =  0x005F17CC;
+export DWORD inCombatGameAddress = 0x005F17CC;
 
 export bool exceptionShot = false;
 
-export struct Sprint{
+export struct Sprint {
 	bool trackerRunning = false;
 	bool canSprint = false;
 	int cooldown = 3000;
@@ -4524,9 +4528,9 @@ export struct Sprint{
 	bool isSprinting = false;
 	bool SFXPlayed = false;
 	float storedSpeedHuman = 0;
-	float storedSpeedDevilDante[5] = {0};
-	float storedSpeedDevilVergil[4] = {0};
-	
+	float storedSpeedDevilDante[5] = { 0 };
+	float storedSpeedDevilVergil[4] = { 0 };
+
 
 } sprint;
 
@@ -4535,7 +4539,7 @@ export bool devilTriggerReadyPlayed = false;
 export bool missionClearSongPlayed = false;
 
 export struct BackToForward {
-	
+
 	bool back = false;
 	bool backTrackerRunning = false;
 	int backDuration = 1000;
