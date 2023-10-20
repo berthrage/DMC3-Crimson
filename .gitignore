@@ -3,19 +3,7 @@
 !.github/*
 
 !src
-!src/*
-
-!src/Core
-!src/Core/*
-
-!src/images
-!src/images/*
-
-!src/masm
-!src/masm/*
-
-!srcModule Templates
-!src/Module Templates/*
+!src/**
 
 !ThirdParty
 !ThirdParty/*
