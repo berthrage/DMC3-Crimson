@@ -62,14 +62,14 @@ Mix_Music* missionClearSong;
 
 
 export void initSDL() {
-    if(!SDL2Init) {
-		if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER) == -1) {
-        SDL2Initialization = "SDL2 Error";
-		}
-		else {
-			SDL2Initialization = "SDL2 Success";
-		}
-		
+    if (!SDL2Init) {
+        if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER) == -1) {
+            SDL2Initialization = "SDL2 Error";
+        }
+        else {
+            SDL2Initialization = "SDL2 Success";
+        }
+
         SSDL2AudioInitialization = initAudio();
 
         if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 512) == -1) {
@@ -80,13 +80,13 @@ export void initSDL() {
         }
 
         int flags = MIX_INIT_OGG | MIX_INIT_MP3;
-        if(!Mix_Init(flags)) {
+        if (!Mix_Init(flags)) {
             MixerInitialization2 = "Mixer2 Error";
         }
         else {
             MixerInitialization2 = "Mixer2 Success";
         }
-        
+
         SDL_GameController* controller = NULL;
         for (int i = 0; i < SDL_NumJoysticks(); ++i) {
             controller = SDL_GameControllerOpen(i);
@@ -101,7 +101,7 @@ export void initSDL() {
         SDL_Haptic* styleHaptic = SDL_HapticOpenFromJoystick(joystick);
 
         SDL2Init = true;
-	}
+    }
 
     // CHUNKS OF SOUND
     Mix_AllocateChannels(500);
@@ -109,7 +109,7 @@ export void initSDL() {
     // RESERVES SELECT EFFECT SOUND FOR CHANNELS 100 AND ABOVE
     Mix_ReserveChannels(100);
 
-	if(!cacheAudioFiles) {
+    if (!cacheAudioFiles) {
 
         changeGun = Mix_LoadWAV("sound/changegun.wav");
         changeDevilArm = Mix_LoadWAV("sound/changedevilarm.wav");
@@ -145,10 +145,10 @@ export void initSDL() {
         styleRankSSS1 = Mix_LoadWAV("sound/styleranks/sss1.wav");
         styleRankSSS2 = Mix_LoadWAV("sound/styleranks/sss2.wav");
         missionClearSong = Mix_LoadMUS("sound/music/missionclear.mp3");
-        
 
-		cacheAudioFiles = true;
-	}
+
+        cacheAudioFiles = true;
+    }
 }
 
 
@@ -184,9 +184,9 @@ export void initSDL() {
 }*/
 
 void FadeOutChannels(int channelException, int initialChannel, int numChannels, int fadeOutms) {
-   
+
     for (int i = initialChannel; i < numChannels; i++) {
-           
+
         if (i != channelException) {
 
             Mix_FadeOutChannel(i, fadeOutms);
@@ -197,8 +197,8 @@ void FadeOutChannels(int channelException, int initialChannel, int numChannels, 
 
 void PlayOnChannels(int initialChannel, int finalChannel, Mix_Chunk* sfx, int volume) {
 
-    for(int i = initialChannel; i <= finalChannel; i++) {
-        if(!Mix_Playing(i)) {
+    for (int i = initialChannel; i <= finalChannel; i++) {
+        if (!Mix_Playing(i)) {
             Mix_Volume(i, volume);
             Mix_PlayChannel(i, sfx, 0);
             break;
@@ -212,8 +212,8 @@ void PlayOnChannels(int initialChannel, int finalChannel, Mix_Chunk* sfx, int vo
 void PlayOnChannelsFadeOut(int initialChannel, int finalChannel, Mix_Chunk* sfx, int volume, int fadeOutms) {
     int channelBeingPlayed = 0;
 
-    for(int i = initialChannel; i <= finalChannel; i++) {
-        if(!Mix_Playing(i)) {
+    for (int i = initialChannel; i <= finalChannel; i++) {
+        if (!Mix_Playing(i)) {
             Mix_Volume(i, volume);
             Mix_PlayChannel(i, sfx, 0);
             channelBeingPlayed = i;
@@ -240,25 +240,25 @@ export void playStyleChange() {
 }
 
 export void playStyleChangeVO(int style) {
-    if(style == 2) {
+    if (style == 2) {
         PlayOnChannelsFadeOut(60, 99, tricksterVO, 128, 150);
     }
-    else if(style == 0) {
+    else if (style == 0) {
         PlayOnChannelsFadeOut(60, 99, swordmasterVO, 128, 150);
     }
-    else if(style == 1) {
+    else if (style == 1) {
         PlayOnChannelsFadeOut(60, 99, gunslingerVO, 128, 150);
     }
-    else if(style == 3) {
+    else if (style == 3) {
         PlayOnChannelsFadeOut(60, 99, royalguardVO, 128, 150);
     }
-    else if(style == 4) {
+    else if (style == 4) {
         PlayOnChannelsFadeOut(60, 99, quicksilverVO, 128, 150);
     }
-    else if(style == 5) {
+    else if (style == 5) {
         PlayOnChannelsFadeOut(60, 99, doppelgangerVO, 128, 150);
     }
-    
+
 }
 
 void StyleRankCooldownTracker(int rank) {
@@ -271,51 +271,51 @@ void StyleRankCooldownTracker(int rank) {
 
 void SetCurrentStyleRank(int currentStyleRank) {
 
-    for(int i = 0; i < 7; i++) {
-        
-        if(i <= currentStyleRank) {
+    for (int i = 0; i < 7; i++) {
+
+        if (i <= currentStyleRank) {
             rankAnnouncer[i].count = 1;
         }
         else {
             rankAnnouncer[i].count = 0;
         }
-        
+
     }
 
 }
 
 void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank) {
 
-    
-    if(rankAnnouncer[rank - 1].turn == 0 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
+
+    if (rankAnnouncer[rank - 1].turn == 0 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
         Mix_PlayChannel(100 + (rank - 1), styleRankWAV, 0);
         rankAnnouncer[rank - 1].turn++;
 
-        if(!rankAnnouncer[rank - 1].trackerRunning) {
+        if (!rankAnnouncer[rank - 1].trackerRunning) {
             std::thread stylerankcooldowntracker(StyleRankCooldownTracker, rank - 1);
-		    stylerankcooldowntracker.detach();
+            stylerankcooldowntracker.detach();
         }
-            
-            
+
+
     }
-    else if(rankAnnouncer[rank - 1].turn== 1 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
+    else if (rankAnnouncer[rank - 1].turn == 1 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
         Mix_PlayChannel(100 + (rank - 1), styleRankWAVAlt, 0);
         rankAnnouncer[rank - 1].turn = 0;
 
-        if(!rankAnnouncer[rank - 1].trackerRunning) {
+        if (!rankAnnouncer[rank - 1].trackerRunning) {
             std::thread stylerankcooldowntracker(StyleRankCooldownTracker, rank - 1);
-		    stylerankcooldowntracker.detach();
+            stylerankcooldowntracker.detach();
         }
-            
-            
+
+
     }
 
-    
 
-    
+
+
     SetCurrentStyleRank(rank - 1);
-    
-     
+
+
 }
 
 export void StyleRankAnnouncerController(int rank) {
@@ -327,40 +327,40 @@ export void StyleRankAnnouncerController(int rank) {
     Mix_Volume(105, 128);
     Mix_Volume(106, 128);
 
-    
-    if(rank == 1) {
-        
+
+    if (rank == 1) {
+
         PlayStyleRank(styleRankD1, styleRankD2, 1);
-        
+
     }
-    else if(rank == 2) {
+    else if (rank == 2) {
         PlayStyleRank(styleRankC1, styleRankC2, 2);
     }
-    else if(rank == 3) {
+    else if (rank == 3) {
         PlayStyleRank(styleRankB1, styleRankB2, 3);
     }
-    else if(rank == 4) {
+    else if (rank == 4) {
         PlayStyleRank(styleRankA1, styleRankA2, 4);
     }
-    else if(rank == 5) {
+    else if (rank == 5) {
         PlayStyleRank(styleRankS1, styleRankS2, 5);
     }
-    else if(rank == 6) {
+    else if (rank == 6) {
         PlayStyleRank(styleRankSS1, styleRankSS2, 6);
     }
-    else if(rank == 7) {
+    else if (rank == 7) {
         PlayStyleRank(styleRankSSS1, styleRankSSS2, 7);
     }
 
-    if(rank == 0) {
+    if (rank == 0) {
         rankAnnouncer[0].count = 0;
     }
-    
+
 }
 
 
 export void playSprint() {
-    
+
     Mix_Volume(300, activeConfig.SFX.sprintVolume);
     Mix_Volume(301, activeConfig.SFX.sprintVolume);
     Mix_PlayChannel(300, sprintL1, 0);
@@ -368,7 +368,7 @@ export void playSprint() {
 }
 
 export void PlayDevilTriggerIn() {
-    
+
     Mix_Volume(302, 20);
     Mix_Volume(303, 40);
     Mix_PlayChannel(302, devilTriggerInL1, 0);
@@ -376,19 +376,19 @@ export void PlayDevilTriggerIn() {
 }
 
 export void PlayDevilTriggerOut() {
-    
+
     Mix_Volume(304, 50);
     Mix_PlayChannel(304, devilTriggerOut, 0);
 }
 
 export void playDevilTriggerLoop() {
-    
+
     Mix_Volume(305, 30);
     Mix_PlayChannel(305, devilTriggerLoop, -1);
 }
 
 export void stopDevilTriggerLoop() {
-    
+
     Mix_HaltChannel(305);
 }
 
@@ -403,20 +403,21 @@ export void playDoppelgangerOut() {
 }
 
 export void playQuicksilverIn() {
-    
+
     Mix_Volume(308, 50);
     Mix_PlayChannel(308, quicksilverIn, 0);
 
 }
 
 export void PlayDevilTriggerReady() {
-    
+
     Mix_Volume(309, 110);
     Mix_PlayChannel(309, devilTriggerReady, 0);
 
 }
 
 export void PlayNewMissionClearSong() {
+    Mix_VolumeMusic(128 * activeConfig.channelVolumes[9]);
     Mix_FadeInMusic(missionClearSong, -1, 500);
 }
 
