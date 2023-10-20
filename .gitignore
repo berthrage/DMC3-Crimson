@@ -1,20 +1,24 @@
 *
 !.github
 !.github/*
-!Core
-!Core/*
-!Eva
-!Eva/*
-!Kyrie
-!Kyrie/*
-!Lucia
-!Lucia/*
-!Mary
-!Mary/*
-!Mary/masm
-!Mary/masm/*
-!Scripts
-!Scripts/*.js
+
+!Mary/src
+!Mary/src/*
+
+!Mary/src
+!Mary/src/*
+
+!Mary/src/Core
+!Mary/src//Core*
+
+!Mary/src/images
+!Mary/src/images/*
+
+!Mary/src/masm
+!Mary/src/masm/*
+
+!Mary/srcModule Templates
+!Mary/src/Module Templates/*
 
 !ThirdParty
 !ThirdParty/*
@@ -62,10 +66,5 @@
 !/GlobalBase.ixx
 !/GUIBase.ixx
 !/HooksBase.ixx
-!/LICENSE.txt
-!/README.md
-!/run.js
-prep_*
-ddmk.js
-ThirdParty/ThirdParty.rar
-Mary/masm.rar
+!/VS2022x64.bat
+!/CMakeLists.txt
