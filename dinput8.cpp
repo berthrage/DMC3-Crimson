@@ -159,7 +159,7 @@ void Load()
 		},
 		{
 			"dmc3.exe",
-			"Mary.dll",
+			"Crimson.dll",
 			"SDL2.dll",
 			"SDL2_mixer.dll"
 		},

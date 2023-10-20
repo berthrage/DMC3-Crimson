@@ -9,7 +9,6 @@
 ClearAll();
 
 
-const path = require('path');
 
 const PrepFlags_IgnoreSemicolon = 1 << 0;
 
@@ -18,18 +17,18 @@ const LinkFlags_Static = 1 << 0;
 
 
 
-const PATH_ZLIB    = "ThirdParty/zlib";
-const PATH_LIBZIP  = "ThirdParty/libzip";
-const PATH_SDL2    = "ThirdParty/SDL2";
-const PATH_IMGUI   = "ThirdParty/ImGui";
-const PATH_STB     = "ThirdParty/stb";
-const PATH_MINHOOK = "ThirdParty/SKinHook";
+const PATH_ZLIB   = "ThirdParty/zlib";
+const PATH_LIBZIP = "ThirdParty/libzip";
+const PATH_SDL2 = "ThirdParty/SDL2";
+const PATH_IMGUI  = "ThirdParty/ImGui";
+const PATH_STB    = "ThirdParty/stb";
 
 const LOCATION_ZLIB          = "zlib.lib";
 const LOCATION_LIBZIP        = "libzip.lib";
-const LOCATION_SDL2          = "SDL2.lib";
-const LOCATION_SDL2MAIN      = "SDL2main.lib";
-const LOCATION_MINHOOK       = "SKinHook.lib";
+const LOCATION_SDL2			 = "SDL2.lib"	
+const LOCATION_SDL2MAIN		 = "SDL2main.lib"	
+const LOCATION_HDC           = "D:/SteamLibrary/steamapps/common/Devil May Cry HD Collection";
+const LOCATION_4             = "D:/SteamLibrary/steamapps/common/Special Edition";
 const LOCATION_LOADER_X86_64 = LOCATION_HDC + "/dinput8.dll";
 const LOCATION_LOADER_X86_32 = LOCATION_4   + "/dinput8.dll";
 const LOCATION_EVA           = LOCATION_HDC + "/Eva.dll";
@@ -1237,70 +1236,6 @@ this.Main = function
 
 
 // #region Main
-function AssembleOnce
-(
-	args,
-	helpers,
-	item
-)
-{
-	console.log("AssembleOnce");
-	let sourceLocation = item[0];
-	let objectLocation = item[1];
-	let prep           = item[2];
-	let newArgs        = item[3];
-
-	sourceLocation = 'Mary/masm/' + sourceLocation;
-
-	ClearAll();
-
-	c = "ml64.exe";
-
-	if (newArgs.length > 0)
-	{
-		args = newArgs;
-	}
-
-	for (let index = 0; index < args.length; index++)
-	{
-		let arg = args[index];
-
-		c += " " + arg;
-	}
-
-	//console.log(sourceLocation);
-	//console.log(objectLocation);
-
-	if (objectLocation != "")
-	{
-		c += " /Fo\"" + objectLocation + "\"";
-	}
-
-	c += " \"" + sourceLocation + "\"";
-
-	try
-	{
-		child_process.execSync
-		(
-			c,
-			{
-				stdio: "inherit",
-				encoding: "utf8"
-			}
-		);
-	}
-	catch(error)
-	{
-		return true;
-	}
-	libsMary.push(objectLocation);
-	console.log(libsMary);
-
-	return false;
-}
-
-
-
 
 function CompileOnce
 (
@@ -2147,53 +2082,7 @@ let libsLoader_x86_32 =
 
 // #endregion
 
-// #region Minhook
 
-let compilerArgsMinhook =
-[
-	"/nologo",
-	"/c",
-	"/std:c++latest",
-	"/permissive-",
-	"/Zc:forScope",
-	"/Zc:inline",
-	"/Zc:preprocessor",
-	"/Zc:wchar_t",
-	"/Zc:externC-",
-	"/W3",
-	"/wd5105", // macro expansion producing 'defined' has undefined behavior
-	"/O2",
-	"/Oi",
-	"/D_CRT_SECURE_NO_WARNINGS",
-	"/D_CRT_NONSTDC_NO_DEPRECATE",
-	"/GR",
-	"/cgthreads8",
-	"/Zc:implicitNoexcept",
-	"/Zc:strictStrings-",
-	"/Zf",
-	"/guard:cf-",
-	"/QIntel-jcc-erratum",
-	"/IThirdParty/SKinHook",
-];
-
-let itemsMinhook =
-[
-	[ PATH_MINHOOK + "/buffer.c"              ,"" ,false ,[] ],
-	[ PATH_MINHOOK + "/hde/hde32.c"           ,"" ,false ,[] ],
-	[ PATH_MINHOOK + "/buffer.c"              ,"" ,false ,[] ],
-    [ PATH_MINHOOK + "/hde/hde32.c"           ,"" ,false ,[] ],
-    [ PATH_MINHOOK + "/hde/hde64.c"           ,"" ,false ,[] ],
-    [ PATH_MINHOOK + "/hook.c"                ,"" ,false ,[] ],
-    [ PATH_MINHOOK + "/trampoline.c"          ,"" ,false ,[] ],
-];
-
-let linkerArgsMinhook =
-[
-	"/NOLOGO",
-	"/MACHINE:X64",
-];
-
-// #endregion
 
 // #region Eva
 
@@ -2497,11 +2386,6 @@ libsLucia = AddFront
 
 
 // #region Mary
-
-let assemblerArgsMary =
-[
-	"/c",
-];
 
 let compilerArgsMary =
 [
@@ -3330,7 +3214,6 @@ let libsMary =
 [
 	LOCATION_ZLIB,
 	LOCATION_LIBZIP,
-	LOCATION_MINHOOK,
 ];
 
 libsMary = AddFront
@@ -4009,37 +3892,6 @@ function LinkSDL2()
 	);
 }
 
-function CompileMinhook()
-{
-	return CompileLoop
-	(
-		compilerArgsMinhook,
-		[],
-		itemsMinhook
-	);
-}
-
-function LinkMinhook()
-{
-	return Link
-	(
-		linkerArgsMinhook,
-		[],
-		LOCATION_MINHOOK,
-		LinkFlags_Static
-	);
-}
-
-function BuildMinhook()
-{
-	if (CompileMinhook())
-	{
-		return true;
-	}
-
-	return LinkMinhook();
-}
-
 function CompileLoader_x86_64()
 {
 	return CompileLoop
@@ -4320,44 +4172,8 @@ function CleanPDBLucia()
 	return CleanPDB(LOCATION_LUCIA_PDB);
 }
 
-function AssembleMary() 
-{
-	const dirPath = './Mary/masm';
-	const extension = '.asm';
-
-	var itemsAsmMary = [];
-	let helpersAsmMary = [];
-
-	fs.readdir(dirPath, function(err, files)
-	{
-		if(err) 
-		{
-			console.error("Could not list directory", err);
-			return false;
-		}
-
-		files.forEach(function(file, index)
-		{
-			if(path.extname(file) === extension)
-			{
-				console.log(file);
-				let item = [ file, path.parse(file).name + '.obj', false , [] ];
-				AssembleOnce(assemblerArgsMary, helpersAsmMary, item);
-				//itemsAsmMary.push(file);
-			}
-		})
-	});
-
-	return true;
-}
-
-
 function CompileMary()
 {
-	if (AssembleMary() == false)
-	{
-		return true;
-	}
 	return CompileLoop
 	(
 		compilerArgsMary,
@@ -4394,11 +4210,6 @@ function CompileMaryActorGUI()
 	}
 
 	return CompileMaryGUI();
-}
-
-function AssembleMaryFull()
-{
-	return AssembleMary();
 }
 
 function CompileMaryFull()
@@ -4754,18 +4565,6 @@ let items =
 		BuildLibZip
 	],
 	[
-		"compileMinhook",
-		CompileMinhook
-	],
-	[
-		"linkMinhook",
-		LinkMinhook
-	],
-	[
-		"buildMinhook",
-		BuildMinhook
-	],
-	[
 		"compileSDL2",
 		CompileLibZip
 	],
@@ -4884,10 +4683,6 @@ let items =
 	[
 		"cleanPDBLucia",
 		CleanPDBLucia
-	],
-	[
-		"assembleMary",
-		AssembleMary
 	],
 	[
 		"compileMary",
@@ -5184,11 +4979,10 @@ let items =
 			[
 				//[ "ZLib"  , "x86_64", BuildZLib              ],
 				//[ "LibZip", "x86_64", BuildLibZip            ],
-				//[ "Loader", "x86_64", BuildLoaderFull_x86_64 ],
+				[ "Loader", "x86_64", BuildLoaderFull_x86_64 ],
 				//[ "Eva"   , "x86_64", BuildEvaFull           ],
 				//[ "Lucia" , "x86_64", BuildLuciaFull         ],
-				[ "Minhook"  , "x86_64", BuildMinhook           ],
-				[ "Mary"     , "x86_64", BuildMaryFull          ],
+				[ "Mary"  , "x86_64", BuildMaryFull          ],
 				//[ "Loader", "x86_32", BuildLoaderFull_x86_32 ],
 				//[ "Kyrie" , "x86_32", BuildKyrieFull         ],
 			];
