@@ -1,4 +1,11 @@
-set(LIBS
+set(MASM_SRC
+    masm/SampleMod.asm
+)
+
+set (ASM_LIBS)
+set (ASM_FLAGS)
+
+set(CXX_LIBS
     msvcrt.lib
     vcruntime.lib
     ucrt.lib
@@ -24,7 +31,7 @@ set(LIBS
     SKinHook
 )
 
-set(COMPILER_ARGS
+set(CXX_FLAGS
     /nologo
     /c
     #/std:c++latest
@@ -47,9 +54,11 @@ set(COMPILER_ARGS
     /Gy
     /Zi # make pdb file
     /EHsc
+    /GS-
+    /GR-
 )
 
-project(Crimson)
+project(Crimson LANGUAGES CXX C ASM_MASM)
 
 file(GLOB GLOBAL_MODULES Global/*.ixx)
 
@@ -62,10 +71,12 @@ file(GLOB CORE_HDR Core/*.h)
 source_group("Global" FILES ${GLOBAL_MODULES})
 source_group("Crimson" FILES ${MAIN_MODULES} ${MAIN_SRC})
 source_group("Core" FILES ${CORE_MODULES} ${CORE_HDR})
+source_group("masm" FILES ${MASM_SRC})
 
 add_library(${PROJECT_NAME} SHARED
             ${MAIN_SRC}
-            ${CORE_HDR}        
+            ${CORE_HDR}
+            ${MASM_SRC}     
 )
 
 target_sources(${PROJECT_NAME} PUBLIC
@@ -75,13 +86,14 @@ target_sources(${PROJECT_NAME} PUBLIC
     ${CORE_MODULES}
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ${LIBS}) # Dependencies
-target_compile_options(${PROJECT_NAME} PUBLIC /GS- /GR-)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${CXX_LIBS}) # Dependencies
+target_compile_options(${PROJECT_NAME} PRIVATE
+    $<$<COMPILE_LANGUAGE:CXX>:${CXX_FLAGS}>
+    $<$<COMPILE_LANGUAGE:ASM>:${ASM_FLAGS}>
+)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES 
 OUTPUT_NAME Crimson)
-
-target_compile_options(${PROJECT_NAME} PUBLIC ${COMPILER_ARGS})
 
 project(dinput8)
 
@@ -102,7 +114,7 @@ target_sources(${PROJECT_NAME} PUBLIC
 
 target_compile_options(${PROJECT_NAME} PUBLIC /GS- /GR-)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ${LIBS}) # Dependencies
+target_link_libraries(${PROJECT_NAME} PUBLIC ${CXX_LIBS}) # Dependencies
 target_compile_options(${PROJECT_NAME} PUBLIC /GS- /GR-)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES 

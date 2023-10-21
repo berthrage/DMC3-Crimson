@@ -14,6 +14,12 @@ module;
 #include <format>
 #include <thread>
 #include <chrono>
+
+extern "C" {
+	std::uint64_t g_SampleMod_ReturnAddr1;
+	void SampleModDetour1();
+}
+
 export module GUI;
 
 import Core;
@@ -13283,7 +13289,10 @@ void Main()
 		return;
 	}
 
-
+	//ImGui::InputScalar("Heheheh", ImGuiDataType_U64, &g_SampleMod_ReturnAddr1);
+	if (ImGui::Button("heheh")) {
+		SampleModDetour1();
+	}
 
 	static bool run = false;
 
