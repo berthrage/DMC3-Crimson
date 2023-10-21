@@ -703,6 +703,8 @@ export struct Config
 	uint8 cameraSensitivity = 3;
 	uint8 cameraFollowUpSpeed = 2;
 	uint8 cameraDistance = 1;
+	uint8 cameraTilt = 1;
+	bool cameraLockOff = true;
 
 	struct WeaponWheel
 	{
@@ -1747,6 +1749,8 @@ void CreateMembers(Config& config_)
 	Create<uint8>(member, "cameraSensitivity", config.cameraSensitivity);
 	Create<uint8>(member, "cameraFollowUpSpeed", config.cameraFollowUpSpeed);
 	Create<uint8>(member, "cameraDistance", config.cameraDistance);
+	Create<uint8>(member, "cameraTilt", config.cameraTilt);
+	Create<bool>(member, "cameraLockOff", config.cameraLockOff);
 
 
 	{
@@ -2378,6 +2382,8 @@ void ToJSON(Config& config_)
 	Set<uint8>(member["cameraSensitivity"], config.cameraSensitivity);
 	Set<uint8>(member["cameraFollowUpSpeed"], config.cameraFollowUpSpeed);
 	Set<uint8>(member["cameraDistance"], config.cameraDistance);
+	Set<uint8>(member["cameraTilt"], config.cameraTilt);
+	Set<bool>(member["cameraLockOff"], config.cameraLockOff);
 
 	{
 		auto& member = root["MeleeWeaponWheel"];
@@ -2996,6 +3002,8 @@ void ToConfig(Config& config_)
 	config.cameraSensitivity = Get<uint8>(member["cameraSensitivity"]);
 	config.cameraFollowUpSpeed = Get<uint8>(member["cameraFollowUpSpeed"]);
 	config.cameraDistance = Get<uint8>(member["cameraDistance"]);
+	config.cameraTilt = Get<uint8>(member["cameraTilt"]);
+	config.cameraLockOff = Get<bool>(member["cameraLockOff"]);
 
 	{
 		auto& config = config_.MeleeWeaponWheel;

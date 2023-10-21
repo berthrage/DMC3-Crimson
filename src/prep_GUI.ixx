@@ -346,6 +346,12 @@ const char* cameraDistanceNames[] =
 	"Closer",
 };
 
+const char* cameraTiltNames[] =
+{
+	"Original (Vanilla Default)",
+	"Closer to Ground",
+};
+
 const char* cameraSmoothingNames[] =
 {
 	"Highest",
@@ -4404,6 +4410,20 @@ void CameraSection()
 		{
 			Camera::ToggleInvertX(activeConfig.cameraInvertX);
 		}
+
+		GUI_Checkbox2
+		(
+			"Locked Off Camera",
+			activeConfig.cameraLockOff,
+			queuedConfig.cameraLockOff
+		);
+		ImGui::SameLine();
+		TooltipHelper
+		(
+			"(?)",
+			"Enables you to freely tilt the camera with the right stick in Third Person Camera Sections."
+		);
+
 		ImGui::Text("");
 
 		GUI_Combo2
@@ -4435,6 +4455,17 @@ void CameraSection()
 		);
 
 		ImGui::PushItemWidth(150.0f);
+
+		GUI_Combo2
+		(
+			"Camera Tilt",
+			cameraTiltNames,
+			activeConfig.cameraTilt,
+			queuedConfig.cameraTilt
+		);
+
+		ImGui::PushItemWidth(150.0f);
+
 
 		GUI_Combo2<uint8>
 			(

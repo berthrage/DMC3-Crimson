@@ -6172,10 +6172,96 @@ void CameraDistanceController() {
 		return;
 	}
 
-	if (activeConfig.cameraDistance == 1) { // Close
-		cameraData.distance = 360.0f;
+	if (activeConfig.cameraDistance == 1) { // Closer
+		cameraData.distance = 350.0f;
 	}
 
+}
+
+void CameraTiltController() {
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if
+		(
+			!pool_4449 ||
+			!pool_4449[147]
+			) {
+		return;
+	}
+	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+
+	if (activeConfig.cameraTilt == 0) { // Original (Vanilla Default)
+		return;
+	}
+
+	if (activeConfig.cameraTilt == 1) { // Closer to Ground
+		cameraData.tilt = 0.153073f;
+	}
+
+}
+
+void LockedOffCameraToggle(bool enable) {
+
+	static bool run = false;
+
+	auto addr = (appBaseAddr + 0x5724D);
+	auto jumpAddr = (appBaseAddr + 0x57255);
+	constexpr uint32 size = 8;
+
+	static Function func = {};
+
+	constexpr byte8 sect0[] =
+	{
+		0x53,											 //push rbx
+		0x48, 0x8B, 0x1D, 0xE8, 0x8A, 0xC2, 0x00,		 //mov rbx,[dmc3.exe + C18AF8]
+		0x48, 0x8B, 0x9B, 0x28, 0x0E, 0xC9, 0x00,		 //mov rbx,[rbx + 00C90E28]
+		0x48, 0x8B, 0x5B, 0x18,							 //mov rbx,[rbx + 18]
+		0x80, 0xBB, 0xFA, 0x74, 0x00, 0x00, 0x50,		 //cmp byte ptr[rbx + 000074FA],#80
+		0x0F, 0x82, 0x58, 0x00, 0x00, 0x00,				 //jb originalcodepop
+		0x80, 0xBB, 0xF9, 0x74, 0x00, 0x00, 0x20,		 //cmp byte ptr[rbx + 000074F9],#32 // 38
+		0x0F, 0x86, 0x3E, 0x00, 0x00, 0x00,				 //jbe minus
+		0x80, 0xBB, 0xF9, 0x74, 0x00, 0x00, 0xDF,		 //cmp byte ptr[rbx + 000074F9],#223
+		0x0F, 0x83, 0x31, 0x00, 0x00, 0x00,				 //jae minus // 57
+		0x80, 0xBB, 0xF9, 0x74, 0x00, 0x00, 0x9F,		 //cmp byte ptr [rbx+74f9],#159
+		0x0F, 0x86, 0x05, 0x00, 0x00, 0x00,				 //jbe untouched // 71
+		0xE9, 0x2C, 0x00, 0x00, 0x00,					 //jmp originalcodepop
+		//untouched:									 
+		0x80, 0xBB, 0xF9, 0x74, 0x00, 0x00, 0x60,		 //cmp byte ptr [rbx+74f9],#96 // 83
+		0x0F, 0x83, 0x05, 0x00, 0x00, 0x00,				 //jae plus
+		0xE9, 0x1A, 0x00, 0x00, 0x00,					 //jmp originalcodepop // 94
+		//plus:											 
+		0xF3, 0x0F, 0x10, 0x35, 0x96, 0xFF, 0xFF, 0xFF,  //movss xmm6,[camTiltDown] // 102 
+		0xE9, 0x0D, 0x00, 0x00, 0x00,					 //jmp originalcodepop
+		//minus:
+		0xF3, 0x0F, 0x10, 0x35, 0x85, 0xFF, 0xFF, 0xFF,  //movss xmm6,[camTiltUp]
+		0xE9, 0x00, 0x00, 0x00, 0x00,					 //jmp originalcodepop
+		//originalcodepop:								 
+		0x5B,											 //pop rbx
+		0xF3, 0x0F, 0x11, 0xB7, 0x84, 0x01, 0x00, 0x00,  // movss [rdi+00000184],xmm6
+	};
+
+	constexpr byte8 sect1[] =
+	{
+		0x00, 0x00, 0xc8, 0xc2, // -100.0f // I tried and failed
+		0x00, 0x00, 0x96, 0x43, // 300.0f
+	};
+
+	if (!run) {
+		backupHelper.Save(addr, size);
+		func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0)); // jump at the end of asm
+		CopyMemory(func.sect0, sect0, sizeof(sect0));
+		WriteAddress(func.sect0 + 4, (appBaseAddr + 0xC18AF8), 4); // mov rbx,[dmc3.exe + C18AF8]
+		WriteAddress(func.sect0 + 98, (appBaseAddr + 0x4D1CD4), 4);
+		WriteAddress(func.sect0 + 111, (appBaseAddr + 0x4C6094), 4);
+	}
+
+	if (enable) {
+		WriteJump(addr, func.addr, (size - 5));
+	}
+	else {
+		backupHelper.Restore(addr);
+	}
+
+	run = true;
 }
 
 
@@ -6294,6 +6380,8 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 	CameraSensController();
 	CameraFollowUpSpeedController();
 	CameraDistanceController();
+	CameraTiltController();
+	LockedOffCameraToggle(activeConfig.cameraLockOff);
 
 	if (
 		(actorData.newPlayerIndex == 0) &&
