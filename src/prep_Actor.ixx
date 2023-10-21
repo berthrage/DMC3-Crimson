@@ -14644,15 +14644,22 @@ void SetAction(byte8* actorBaseAddr)
 			actorData.action = REBELLION_SWORD_PIERCE;
 		}
 
+
+		// Alt Tornado
 		if ((actorData.action == BEOWULF_THE_HAMMER) &&
-			(actorData.style == STYLE::SWORDMASTER) &&
-			(actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
-			(tiltDirection != TILT_DIRECTION::DOWN)) {
+			(actorData.style == STYLE::SWORDMASTER) && actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
 
-			actorData.action = BEOWULF_TORNADO;
-
+			if ((lockOn && tiltDirection != TILT_DIRECTION::DOWN) || !lockOn) {
+				
+				actorData.action = BEOWULF_TORNADO;
+				
+			}
 
 		}
+			
+
+
+		
 
 
 
