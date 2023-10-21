@@ -3064,7 +3064,7 @@ namespaceEnd();
 
 
 #define NO_INIT
-#include "../ConfigFunctions.h"
+#include "Global/ConfigFunctions.h"
 
 
 

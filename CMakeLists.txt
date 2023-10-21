@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.28)
 
-project(Crimson)
+project(DMC3Crimson)
 
 set(CMAKE_CXX_STANDARD 20)
 
 #SET(CMAKE_CONFIGURATION_TYPES "Debug;Release")
 SET(CMAKE_CONFIGURATION_TYPES "Release")
 
+include_directories(${CMAKE_SOURCE_DIR}/ThirdParty)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/zlib)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/libzip)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/ImGui)
@@ -43,64 +44,3 @@ set(PROJECT_ROOT ${CMAKE_CURRENT_LIST_DIR})
 
 add_subdirectory(ThirdParty)
 add_subdirectory(src)
-
-set(LIBS
-    msvcrt.lib
-    vcruntime.lib
-    ucrt.lib
-    libcpmt.lib
-    kernel32.lib
-    user32.lib
-    shell32.lib
-    imm32.lib
-    advapi32.lib
-    d3d11.lib
-    d3dcompiler.lib
-    dinput8.lib
-    #xinput.lib
-    Xinput9_1_0.lib
-    dxguid.lib
-
-    #glm.lib
-    #rapidjson.lib
-    SDL2.lib
-    SDL2_mixer.lib
-    libzip.lib
-    zlib.lib
-
-    ImGui
-    SKinHook
-)
-
-target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC ${LIBS}) # Dependencies
-target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC /GS- /GR-)
-
-set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES 
-OUTPUT_NAME Crimson)
-
-set(COMPILER_ARGS
-    /nologo
-    /c
-    #/std:c++latest
-    #/modulesearch
-    /permissive-
-    /experimental:module
-    /Zc:forScope
-    /Zc:inline
-    /Zc:preprocessor
-    /Zc:wchar_t
-    /Zc:externC-
-    /W3
-    /wd4005 # macro redefinition
-    /wd4996 # was declared deprecated
-    /wd5105 # macro expansion producing 'defined' has undefined behavior
-    /wd5202 # a global module fragment can only contain preprocessor directives
-    /wd4244 # float to int conversion
-    #/O2
-    /Oi
-    /Gy
-    /Zi # make pdb file
-    /EHsc
-)
-
-target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC ${COMPILER_ARGS})

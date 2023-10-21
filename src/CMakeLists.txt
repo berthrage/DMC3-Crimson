@@ -1,19 +1,111 @@
-file(GLOB ROOT_MODULES ${PROJECT_ROOT}/*.ixx)
+set(LIBS
+    msvcrt.lib
+    vcruntime.lib
+    ucrt.lib
+    libcpmt.lib
+    kernel32.lib
+    user32.lib
+    shell32.lib
+    imm32.lib
+    advapi32.lib
+    d3d11.lib
+    d3dcompiler.lib
+    dinput8.lib
+    #xinput.lib
+    Xinput9_1_0.lib
+    dxguid.lib
+
+    SDL2.lib
+    SDL2_mixer.lib
+    libzip.lib
+    zlib.lib
+
+    ImGui
+    SKinHook
+)
+
+set(COMPILER_ARGS
+    /nologo
+    /c
+    #/std:c++latest
+    #/modulesearch
+    /permissive-
+    /experimental:module
+    /Zc:forScope
+    /Zc:inline
+    /Zc:preprocessor
+    /Zc:wchar_t
+    /Zc:externC-
+    /W3
+    /wd4005 # macro redefinition
+    /wd4996 # was declared deprecated
+    /wd5105 # macro expansion producing 'defined' has undefined behavior
+    /wd5202 # a global module fragment can only contain preprocessor directives
+    /wd4244 # float to int conversion
+    #/O2
+    /Oi
+    /Gy
+    /Zi # make pdb file
+    /EHsc
+)
+
+project(Crimson)
+
+file(GLOB GLOBAL_MODULES Global/*.ixx)
 
 file(GLOB MAIN_MODULES *.ixx)
-file(GLOB MAIN_SRC *.cpp)
+file(GLOB MAIN_SRC Crimson.cpp)
 
 file(GLOB CORE_MODULES Core/*.ixx)
 file(GLOB CORE_HDR Core/*.h)
 
-source_group("Root" FILES ${ROOT_MODULES})
+source_group("Global" FILES ${GLOBAL_MODULES})
 source_group("Crimson" FILES ${MAIN_MODULES} ${MAIN_SRC})
 source_group("Core" FILES ${CORE_MODULES} ${CORE_HDR})
 
-add_library(${CMAKE_PROJECT_NAME} SHARED
-            ${ROOT_MODULES}
-            ${MAIN_MODULES}
+add_library(${PROJECT_NAME} SHARED
             ${MAIN_SRC}
-            ${CORE_MODULES}
             ${CORE_HDR}        
 )
+
+target_sources(${PROJECT_NAME} PUBLIC
+    FILE_SET crimson_modules TYPE CXX_MODULES FILES
+    ${GLOBAL_MODULES}
+    ${MAIN_MODULES}
+    ${CORE_MODULES}
+)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC ${LIBS}) # Dependencies
+target_compile_options(${PROJECT_NAME} PUBLIC /GS- /GR-)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES 
+OUTPUT_NAME Crimson)
+
+target_compile_options(${PROJECT_NAME} PUBLIC ${COMPILER_ARGS})
+
+project(dinput8)
+
+source_group("Global" FILES ${GLOBAL_MODULES})
+source_group("Core" FILES ${CORE_MODULES} ${CORE_HDR})
+source_group("Source" FILES "dinput8.cpp")
+
+add_library(${PROJECT_NAME} SHARED
+            "dinput8.cpp"
+            ${CORE_HDR}
+)
+
+target_sources(${PROJECT_NAME} PUBLIC
+    FILE_SET dinput8_modules TYPE CXX_MODULES FILES
+    ${GLOBAL_MODULES}
+    ${CORE_MODULES}
+)
+
+target_compile_options(${PROJECT_NAME} PUBLIC /GS- /GR-)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC ${LIBS}) # Dependencies
+target_compile_options(${PROJECT_NAME} PUBLIC /GS- /GR-)
+
+set_target_properties(${PROJECT_NAME} PROPERTIES 
+OUTPUT_NAME dinput8)
+
+target_compile_options(${PROJECT_NAME} PUBLIC ${COMPILER_ARGS})

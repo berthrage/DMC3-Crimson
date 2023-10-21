@@ -17,5 +17,5 @@ typedef unsigned long      SizeType;
 
 
 
-#include "../../ThirdParty/rapidjson/document.h"
-#include "../../ThirdParty/rapidjson/prettywriter.h"
+#include "../ThirdParty/rapidjson/document.h"
+#include "../ThirdParty/rapidjson/prettywriter.h"
