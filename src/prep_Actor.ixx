@@ -4477,7 +4477,7 @@ void RemoveBusyFlagController(byte8* actorBaseAddr)
 	bool inCancellableActionBeowulf = (actorData.action == BEOWULF_COMBO_1_PART_1 || actorData.action == BEOWULF_COMBO_1_PART_2 ||
 		actorData.action == BEOWULF_COMBO_1_PART_3 || actorData.action == BEOWULF_COMBO_2_PART_3 ||
 		actorData.action == BEOWULF_COMBO_2_PART_4 || actorData.action == BEOWULF_BEAST_UPPERCUT ||
-		actorData.action == BEOWULF_HYPER_FIST);
+		actorData.action == BEOWULF_HYPER_FIST || actorData.action == BEOWULF_TORNADO);
 
 	bool inCancellableActionGuns = (actorData.action == EBONY_IVORY_WILD_STOMP || actorData.action == ARTEMIS_ACID_RAIN ||
 		actorData.action == KALINA_ANN_GRAPPLE);
@@ -6155,9 +6155,30 @@ void CameraFollowUpSpeedController() {
 		*(float*)(cameraFollowUpSpeedAddr) = 250.0f;
 	}
 
-	
+}
+
+void CameraDistanceController() {
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if
+		(
+			!pool_4449 ||
+			!pool_4449[147]
+			) {
+		return;
+	}
+	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+
+	if (activeConfig.cameraDistance == 0) { // Far (Vanilla Default)
+		return;
+	}
+
+	if (activeConfig.cameraDistance == 1) { // Close
+		cameraData.distance = 360.0f;
+	}
 
 }
+
+
 
 void CalculateAirStingerEndTime() {
 	using namespace ACTION_DANTE;
@@ -6272,6 +6293,7 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 	FasterRapidSlashDevil(actorBaseAddr);
 	CameraSensController();
 	CameraFollowUpSpeedController();
+	CameraDistanceController();
 
 	if (
 		(actorData.newPlayerIndex == 0) &&
@@ -11571,7 +11593,8 @@ void GetRoyalBlockAction(byte8* actorBaseAddr) {
 		actorData.action == REBELLION_AERIAL_RAVE_PART_4) || (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
 			actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
 			actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) || (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
-				actorData.action == NEVAN_AIR_SLASH_PART_2) || (actorData.action == CERBERUS_AIR_FLICKER)) && actorData.eventData[0].event == 17);
+				actorData.action == NEVAN_AIR_SLASH_PART_2) || (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO)) && 
+					actorData.eventData[0].event == 17);
 
 	// Keep in mind setting the Royal Block Action cancels out most things, this is a primary function for Guardflying to work.
 
@@ -11665,6 +11688,11 @@ void StoreInertia(byte8* actorBaseAddr) {
 
 			theHammerInertia.cachedPull = actorData.horizontalPull;
 			theHammerRotation = actorData.rotation;
+		}
+
+		if (actorData.action != BEOWULF_TORNADO) {
+
+			tornadoInertia.cachedPull = actorData.horizontalPull;
 		}
 
 		if (actorData.action != SHOTGUN_AIR_FIREWORKS) {
@@ -12274,6 +12302,17 @@ void InertiaController(byte8* actorBaseAddr) {
 
 				theHammerInertia.cachedPull = glm::clamp(theHammerInertia.cachedPull, -9.0f, 9.0f);
 				actorData.horizontalPull = (theHammerInertia.cachedPull / 1.5f) * 1.0f;
+
+			}
+
+			// Tornado
+			else if (actorData.action == BEOWULF_TORNADO) {
+				if (tornadoInertia.cachedPull < 0) {
+					tornadoInertia.cachedPull = tornadoInertia.cachedPull * -1.0f;
+				}
+
+				tornadoInertia.cachedPull = glm::clamp(tornadoInertia.cachedPull, -9.0f, 9.0f);
+				actorData.horizontalPull = (tornadoInertia.cachedPull / 1.5f) * 1.0f;
 
 			}
 
@@ -14517,16 +14556,15 @@ void SetAction(byte8* actorBaseAddr)
 			actorData.action = REBELLION_SWORD_PIERCE;
 		}
 
-		/*if ((actorData.action == REBELLION_SWORD_PIERCE) &&
+		if ((actorData.action == BEOWULF_THE_HAMMER) &&
 			(actorData.style == STYLE::SWORDMASTER) &&
-			lockOn &&
 			(actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
-			(tiltDirection == TILT_DIRECTION::UP) && actorData.lastAction == REBELLION_DANCE_MACABRE_PART_1)
-			{
-			actorData.action = REBELLION_DANCE_MACABRE_PART_2;
+			(tiltDirection != TILT_DIRECTION::DOWN)) {
+
+			actorData.action = BEOWULF_TORNADO;
 
 
-		}*/
+		}
 
 
 

@@ -4410,6 +4410,8 @@ export float airSlashRotation;
 export Inertia theHammerInertia;
 export float theHammerRotation;
 
+export Inertia tornadoInertia;
+
 export float killerBeeRotation;
 
 export float skyStarRotation;
@@ -4523,7 +4525,7 @@ export bool exceptionShot = false;
 export struct Sprint {
 	bool trackerRunning = false;
 	bool canSprint = false;
-	int cooldown = 3000;
+	int cooldown = 800;
 	int time = cooldown;
 	bool isSprinting = false;
 	bool SFXPlayed = false;

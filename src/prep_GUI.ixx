@@ -334,6 +334,12 @@ const char* cameraFollowUpSpeedNames[] =
 	"High",
 };
 
+const char* cameraDistanceNames[] =
+{
+	"Far (Vanilla Default)",
+	"Closer",
+};
+
 const char* cameraSmoothingNames[] =
 {
 	"Highest",
@@ -4410,6 +4416,16 @@ void CameraSection()
 			cameraFollowUpSpeedNames,
 			activeConfig.cameraFollowUpSpeed,
 			queuedConfig.cameraFollowUpSpeed
+		);
+
+		ImGui::PushItemWidth(150.0f);
+
+		GUI_Combo2
+		(
+			"Camera Distance",
+			cameraDistanceNames,
+			activeConfig.cameraDistance,
+			queuedConfig.cameraDistance
 		);
 
 		ImGui::PushItemWidth(150.0f);
