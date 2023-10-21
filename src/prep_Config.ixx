@@ -700,7 +700,8 @@ export struct Config
 	float weaponWheelWidthSeparation;
 	uint64 weaponWheelTimeout = 2000;
 
-	uint8 cameraSensitivity = 2;
+	uint8 cameraSensitivity = 3;
+	uint8 cameraFollowUpSpeed = 2;
 
 	struct WeaponWheel
 	{
@@ -1743,6 +1744,7 @@ void CreateMembers(Config& config_)
 	Create<float>(member, "weaponWheelHorizontalMelee", config.weaponWheelHorizontalMelee);
 	Create<float>(member, "weaponWheelHorizontalRanged", config.weaponWheelHorizontalRanged);
 	Create<uint8>(member, "cameraSensitivity", config.cameraSensitivity);
+	Create<uint8>(member, "cameraFollowUpSpeed", config.cameraFollowUpSpeed);
 
 	{
 		auto& member = Create<struct_t>(root, "MeleeWeaponWheel");
@@ -2370,9 +2372,9 @@ void ToJSON(Config& config_)
 	Set<float>(member["weaponWheelHeight"], config.weaponWheelHeight);
 	Set<float>(member["weaponWheelHorizontalMelee"], config.weaponWheelHorizontalMelee);
 	Set<float>(member["weaponWheelHorizontalRanged"], config.weaponWheelHorizontalRanged);
-
-
 	Set<uint8>(member["cameraSensitivity"], config.cameraSensitivity);
+	Set<uint8>(member["cameraFollowUpSpeed"], config.cameraFollowUpSpeed);
+
 	{
 		auto& member = root["MeleeWeaponWheel"];
 		auto& config = config_.MeleeWeaponWheel;
@@ -2988,6 +2990,7 @@ void ToConfig(Config& config_)
 	config.weaponWheelHorizontalMelee = Get<float>(member["weaponWheelHorizontalMelee"]);
 	config.weaponWheelHorizontalRanged = Get<float>(member["weaponWheelHorizontalRanged"]);
 	config.cameraSensitivity = Get<uint8>(member["cameraSensitivity"]);
+	config.cameraFollowUpSpeed = Get<uint8>(member["cameraFollowUpSpeed"]);
 
 	{
 		auto& config = config_.MeleeWeaponWheel;

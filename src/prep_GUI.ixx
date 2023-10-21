@@ -327,6 +327,13 @@ const char* cameraSensitivityNames[] =
 	"Highest",
 };
 
+const char* cameraFollowUpSpeedNames[] =
+{
+	"Low (Vanilla Default)",
+	"Medium",
+	"High",
+};
+
 const char* cameraSmoothingNames[] =
 {
 	"Highest",
@@ -4396,6 +4403,17 @@ void CameraSection()
 		);
 
 		ImGui::PushItemWidth(150.0f);
+
+		GUI_Combo2
+		(
+			"Camera Follow Up Speed",
+			cameraFollowUpSpeedNames,
+			activeConfig.cameraFollowUpSpeed,
+			queuedConfig.cameraFollowUpSpeed
+		);
+
+		ImGui::PushItemWidth(150.0f);
+
 		GUI_Combo2<uint8>
 			(
 				"Auto Adjust",
@@ -10451,10 +10469,19 @@ void MainOverlayWindow()
 						siytimer = 0;
 					}
 
-
+					auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+					if
+						(
+							!pool_12857 ||
+							!pool_12857[3]
+							) {
+						return;
+					}
+					auto& mainActorData = *reinterpret_cast<PlayerActorDataDante*>(pool_12857[3]);
 
 					ImGui::Text("SIY TIMER %g", siytimer);
-					ImGui::Text("Show GUI %u", g_show);
+					ImGui::Text("Artemis Status %u", mainActorData.artemisStatus);
+					ImGui::Text("Update Lock Ons On: %u", activeConfig.updateLockOns);
 					ImGui::Text("Enemy Count %u", enemyVectorData.count);
 					ImGui::Text("enemy distance %g", distanceToEnemy);
 					//ImGui::Text("enemy vertical Pull Multiplier %g", enemyData.verticalPullMultiplier);
@@ -13350,6 +13377,7 @@ void Main()
 		ImGui::Text("Mia Berth - Project Lead, Programmer, Artist");
 		ImGui::Text("SSSiyan - Reverse Enginnering Researcher, QA, Programmer");
 		ImGui::Text("deepdarkkapustka - Reverse Enginnering Researcher, Programmer");
+		ImGui::Text("Darkness - Backend and UI Programmer");
 		ImGui::Text("");
 
 		ImGui::Text(PATREON_TEXT);

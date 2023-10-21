@@ -165,6 +165,7 @@ export byte8* CreateEnemyActor(
 	createEnemyActorData.rotation = configCreateEnemyActorData.rotation;
 	createEnemyActorData.spawnMethod = configCreateEnemyActorData.spawnMethod;
 	createEnemyActorData.variant = configCreateEnemyActorData.variant;
+	
 
 	[&]()
 		{
@@ -6141,6 +6142,23 @@ void CameraSensController() {
 
 }
 
+void CameraFollowUpSpeedController() {
+	uintptr_t cameraFollowUpSpeedAddr = 0x27B74D0;
+
+	if (activeConfig.cameraFollowUpSpeed == 0) { // Low (Vanilla Default)
+		*(float*)(cameraFollowUpSpeedAddr) = 1000.0f;
+	}
+	else if (activeConfig.cameraFollowUpSpeed == 1) { // Medium
+		*(float*)(cameraFollowUpSpeedAddr) = 500.0f;
+	}
+	else if (activeConfig.cameraFollowUpSpeed == 2) { // High
+		*(float*)(cameraFollowUpSpeedAddr) = 250.0f;
+	}
+
+	
+
+}
+
 void CalculateAirStingerEndTime() {
 	using namespace ACTION_DANTE;
 	using namespace ACTION_VERGIL;
@@ -6253,6 +6271,7 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 	CalculateAirStingerEndTime();
 	FasterRapidSlashDevil(actorBaseAddr);
 	CameraSensController();
+	CameraFollowUpSpeedController();
 
 	if (
 		(actorData.newPlayerIndex == 0) &&
@@ -13048,6 +13067,7 @@ void ToggleAirTauntVergil(bool enable) {
 
 }
 
+
 void AirTauntToggleController(byte8* actorBaseAddr) {
 	if (!actorBaseAddr)
 	{
@@ -13065,6 +13085,7 @@ void AirTauntToggleController(byte8* actorBaseAddr) {
 			OverrideTauntInAir(false);
 		}
 	}
+
 
 	if (actorData.character == CHARACTER::VERGIL) {
 		if (actorData.state & STATE::IN_AIR && actorData.action != 25) {
@@ -13120,6 +13141,38 @@ void BulletStop(bool enable) {
 	}
 }
 
+void FixUpdateLockOnsArtemis(byte8* mainActorBaseAddr) {
+	// Artemis Fix // Disables Update Lock-Ons when Charging Artemis (has the downside of 
+					  //basically breaking doppel/multiplayer lock-on stuff while this is happening).
+	
+	auto& actorData = *reinterpret_cast<PlayerActorDataDante*>(mainActorBaseAddr);
+
+	auto rangedWeapon = actorData.newWeapons[actorData.rangedWeaponIndex];
+
+		/*((actorData.character == CHARACTER::DANTE) &&
+				(rangedWeapon == WEAPON::ARTEMIS) &&
+				(actorData.artemisStatus != 0) &&
+				((actorData.buttons[0] & GetBinding(BINDING::SHOOT)) ||
+					(
+						(actorData.style == STYLE::GUNSLINGER) &&
+						(actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION))
+						)
+					)
+				)*/
+
+	if ((actorData.character == CHARACTER::DANTE) &&
+		(rangedWeapon == WEAPON::ARTEMIS) &&
+		(actorData.artemisStatus == 0) && (actorData.buttons[0] & GetBinding(BINDING::SHOOT) || (actorData.style == STYLE::GUNSLINGER &&
+			actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)))) {
+
+		activeConfig.updateLockOns = false;
+	}
+	else {
+		activeConfig.updateLockOns = queuedConfig.updateLockOns;
+	}
+	
+}
+
 
 
 void UpdateActorSpeed(byte8* baseAddr)
@@ -13142,7 +13195,7 @@ void UpdateActorSpeed(byte8* baseAddr)
 	auto& quicksilverStage = player1LeadActorData.quicksilverStage;
 
 
-
+	//IntroduceMainActorData
 	auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if
 		(
@@ -13164,6 +13217,7 @@ void UpdateActorSpeed(byte8* baseAddr)
 	BulletStop(true);
 	SetAirStingerEnd(mainActorData);
 	AirTauntToggleController(mainActorData);
+	FixUpdateLockOnsArtemis(mainActorData);
 
 
 
@@ -14700,7 +14754,7 @@ void UpdateLockOns(byte8* dataAddr)
 
 	// // Artemis Fix // Disables Update Lock-Ons when Charging Artemis (has the downside of 
 					  //basically breaking doppel/multiplayer lock-on stuff while this is happening).
-	{
+	/*{
 		auto& actorData = *reinterpret_cast<PlayerActorDataDante*>(mainActorBaseAddr);
 
 		auto rangedWeapon = actorData.newWeapons[actorData.rangedWeaponIndex];
@@ -14721,7 +14775,7 @@ void UpdateLockOns(byte8* dataAddr)
 		{
 			return;
 		}
-	}
+	}*/
 
 	for_all(actorIndex, g_playerActorBaseAddrs.count)
 	{
