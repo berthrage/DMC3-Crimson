@@ -325,6 +325,14 @@ const char* characterNames[] =
 	"Vergil",
 };
 
+
+const char* costumeRespectsProgressionNames[] =
+{
+	"Off",
+	"Original (Vanilla Default)",
+	"Crimson",
+};
+
 const char* cameraSensitivityNames[] =
 {
 	"Low (Vanilla Default)",
@@ -2658,7 +2666,25 @@ void Actor_CharacterTab
 
 		GUI_PopDisable(condition);
 
+
+		GUI_Combo2
+		(
+			"Costume Respects Game Progression",
+			costumeRespectsProgressionNames,
+			activeConfig.costumeRespectsProgression,
+			queuedConfig.costumeRespectsProgression
+		);
+
 		ImGui::SameLine();
+		TooltipHelper
+		(
+			"(?)",
+			"First Costume updates as the game progresses as in Vanilla.\n"
+			"\n"
+			"Original behaves the same as the Vanilla Game.\n"
+			"Crimson also updates Vergil's First Costume."
+
+		);
 
 		GUI_Checkbox
 		(
@@ -10367,7 +10393,10 @@ void MainOverlayWindow()
 				}
 				else
 				{
+					auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
 					ImGui::Text(sceneNames[g_scene]);
+					ImGui::Text("sessionData mission:  %u", sessionData.mission);
 					ImGui::Text("SCENE:  %u", g_scene);
 					/*ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
 					ImGui::Text("Sky Launch Tracker Running:  %u", skyLaunchTrackerRunning);

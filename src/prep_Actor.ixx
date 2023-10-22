@@ -1429,6 +1429,8 @@ void CharacterModelData::Update(T& actorData)
 			costume = 0;
 		}
 
+		
+
 		costumeFileId = costumeFileIdsDante[costume];
 
 		switch (costume)
@@ -3874,7 +3876,33 @@ byte8* CreatePlayerActor(
 
 	actorData.shadow = 1;
 	actorData.lastShadow = 1;
-	actorData.costume = (characterData.ignoreCostume) ? sessionData.costume : characterData.costume;
+	auto selectedCostume = (characterData.ignoreCostume) ? sessionData.costume : characterData.costume;
+
+	if (characterData.character == CHARACTER::DANTE && (activeConfig.costumeRespectsProgression == 1 || activeConfig.costumeRespectsProgression == 2) 
+		&& selectedCostume == 0) {
+
+		if (sessionData.mission == 1) {
+			actorData.costume = 1;
+		}
+		else if (sessionData.mission >= 2 && sessionData.mission <= 6) {
+			actorData.costume = 0;
+		}
+		else if (sessionData.mission >= 8) {
+			actorData.costume = 2;
+		}
+	}
+	else if (characterData.character == CHARACTER::VERGIL && (activeConfig.costumeRespectsProgression == 2)
+		&& selectedCostume == 0) {
+
+		if (sessionData.mission == 1) {
+			actorData.costume = 1;
+		}
+
+	}
+	else {
+		actorData.costume = selectedCostume;
+	}
+	
 	//actorData.royalguardReleaseDamage = storedRoyalguardGauge;
 
 	// Necessary when for example character is Vergil and session character is Dante.

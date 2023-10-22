@@ -689,6 +689,8 @@ export struct Config
 	bool rebellionInfiniteShredder = false;
 	bool rebellionHoldDrive = false;
 
+	uint8 costumeRespectsProgression = 2;
+
 	bool weaponWheelEnabled = true;
 	bool weaponWheelAnalogSelectionEnabled = true;
 	bool weaponWheelAnalogRightStick = true;
@@ -1738,6 +1740,7 @@ void CreateMembers(Config& config_)
 	Create<bool >(member, "enableYamatoForceEdgeAirStinger", config.enableYamatoForceEdgeAirStinger);
 	Create<bool >(member, "enableYamatoForceEdgeNewRoundTrip", config.enableYamatoForceEdgeNewRoundTrip);
 	Create<uint8>(member, "dergil", config.dergil);
+	Create<uint8>(member, "costumeRespectsProgression", config.costumeRespectsProgression);
 	Create<bool>(member, "weaponWheelEnabled", config.weaponWheelEnabled);
 	Create<bool>(member, "weaponWheelAnalogSelectionEnabled", config.weaponWheelAnalogSelectionEnabled);
 	Create<bool>(member, "weaponWheelAnalogRightStick", config.weaponWheelAnalogRightStick);
@@ -2371,6 +2374,7 @@ void ToJSON(Config& config_)
 	Set<bool >(member["enableYamatoForceEdgeAirStinger"], config.enableYamatoForceEdgeAirStinger);
 	Set<bool >(member["enableYamatoForceEdgeNewRoundTrip"], config.enableYamatoForceEdgeNewRoundTrip);
 	Set<uint8>(member["dergil"], config.dergil);
+	Set<uint8>(member["costumeRespectsProgression"], config.costumeRespectsProgression);
 	Set<bool>(member["weaponWheelEnabled"], config.weaponWheelEnabled);
 	Set<bool>(member["weaponWheelAnalogSelectionEnabled"], config.weaponWheelAnalogSelectionEnabled);
 	Set<bool>(member["weaponWheelAnalogRightStick"], config.weaponWheelAnalogRightStick);
@@ -2991,6 +2995,7 @@ void ToConfig(Config& config_)
 	config.enableYamatoForceEdgeAirStinger = Get<bool >(member["enableYamatoForceEdgeAirStinger"]);
 	config.enableYamatoForceEdgeNewRoundTrip = Get<bool >(member["enableYamatoForceEdgeNewRoundTrip"]);
 	config.dergil = Get<uint8>(member["dergil"]);
+	config.costumeRespectsProgression = Get<uint8>(member["costumeRespectsProgression"]);
 	config.weaponWheelEnabled = Get<bool>(member["weaponWheelEnabled"]);
 	config.weaponWheelAnalogSelectionEnabled = Get<bool>(member["weaponWheelAnalogSelectionEnabled"]);
 	config.weaponWheelAnalogRightStick = Get<bool>(member["weaponWheelAnalogRightStick"]);
