@@ -354,6 +354,14 @@ const char* cameraDistanceNames[] =
 	"Closer",
 };
 
+const char* cameraLockOnDistanceNames[] =
+{
+	"Closer (Vanilla Default)",
+	"Far",
+	"Dynamic",
+};
+
+
 const char* cameraTiltNames[] =
 {
 	"Original (Vanilla Default)",
@@ -4449,6 +4457,8 @@ void CameraSection()
 			"(?)",
 			"Enables you to freely tilt the camera with the right stick in Third Person Camera Sections."
 		);
+  
+
 
 		ImGui::Text("");
 
@@ -4478,6 +4488,22 @@ void CameraSection()
 			cameraDistanceNames,
 			activeConfig.cameraDistance,
 			queuedConfig.cameraDistance
+		);
+
+		GUI_Combo2
+		(
+			"Camera Lock On Distance",
+			cameraLockOnDistanceNames,
+			activeConfig.cameraLockOnDistance,
+			queuedConfig.cameraLockOnDistance
+		);
+		ImGui::SameLine();
+		TooltipHelper
+		(
+			"(?)",
+			"Camera Distance relative to the player when locked on.\n"
+			"\n"
+			"Dynamic gets adjusted based on if airborne."
 		);
 
 		ImGui::PushItemWidth(150.0f);

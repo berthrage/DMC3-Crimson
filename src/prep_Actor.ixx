@@ -6196,6 +6196,16 @@ void CameraDistanceController() {
 	}
 	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 
+	auto pool_166 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if
+		(
+			!pool_166 ||
+			!pool_166[3]
+			) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
+
 	if (activeConfig.cameraDistance == 0) { // Far (Vanilla Default)
 		return;
 	}
@@ -6204,7 +6214,63 @@ void CameraDistanceController() {
 		cameraData.distance = 350.0f;
 	}
 
+	if (activeConfig.cameraLockOnDistance == 2) { // Dynamic
+		if (!(mainActorData.state & STATE::IN_AIR)) {
+			cameraData.distanceLockOn = 350.0f;
+		}
+		else {
+			cameraData.distanceLockOn = 500.0f;
+		}
+
+	}
+
 }
+
+
+void CameraLockOnDistanceController() {
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if
+		(
+			!pool_4449 ||
+			!pool_4449[147]
+			) {
+		return;
+	}
+	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+
+	auto pool_166 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if
+		(
+			!pool_166 ||
+			!pool_166[3]
+			) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
+
+
+	if (activeConfig.cameraLockOnDistance == 0) {
+		return;
+	}
+
+	if (activeConfig.cameraLockOnDistance == 1) {
+		cameraData.distanceLockOn = 500.0f;
+	}
+
+	//mainActorData.position.y > 300.0f
+
+	if (activeConfig.cameraLockOnDistance == 2) {
+		if (!(mainActorData.state & STATE::IN_AIR)) {
+			cameraData.distanceLockOn = 360.0f;
+		}
+		else {
+			cameraData.distanceLockOn = 500.0f;
+		}
+
+	}
+
+}
+
 
 void CameraTiltController() {
 	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
@@ -6226,6 +6292,8 @@ void CameraTiltController() {
 	}
 
 }
+
+
 
 void LockedOffCameraToggle(bool enable) {
 
@@ -6410,6 +6478,7 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 	CameraDistanceController();
 	CameraTiltController();
 	LockedOffCameraToggle(activeConfig.cameraLockOff);
+	CameraLockOnDistanceController();
 
 	if (
 		(actorData.newPlayerIndex == 0) &&

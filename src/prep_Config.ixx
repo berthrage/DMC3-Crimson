@@ -705,6 +705,7 @@ export struct Config
 	uint8 cameraSensitivity = 3;
 	uint8 cameraFollowUpSpeed = 2;
 	uint8 cameraDistance = 1;
+	uint8 cameraLockOnDistance = 2;
 	uint8 cameraTilt = 1;
 	bool cameraLockOff = true;
 
@@ -721,7 +722,7 @@ export struct Config
 		int changeGunNew = 1;
 		int changeDevilArmNew = 1;
 		int changeWeaponVolume = 30;
-		int styleChangeVolume = 7;
+		int styleChangeVolume = 5;
 		int sprintVolume = 20;
 	}
 	SFX;
@@ -1752,8 +1753,11 @@ void CreateMembers(Config& config_)
 	Create<uint8>(member, "cameraSensitivity", config.cameraSensitivity);
 	Create<uint8>(member, "cameraFollowUpSpeed", config.cameraFollowUpSpeed);
 	Create<uint8>(member, "cameraDistance", config.cameraDistance);
+	Create<uint8>(member, "cameraLockOnDistance", config.cameraLockOnDistance);
 	Create<uint8>(member, "cameraTilt", config.cameraTilt);
 	Create<bool>(member, "cameraLockOff", config.cameraLockOff);
+	
+	
 
 
 	{
@@ -2386,8 +2390,11 @@ void ToJSON(Config& config_)
 	Set<uint8>(member["cameraSensitivity"], config.cameraSensitivity);
 	Set<uint8>(member["cameraFollowUpSpeed"], config.cameraFollowUpSpeed);
 	Set<uint8>(member["cameraDistance"], config.cameraDistance);
+	Set<uint8>(member["cameraLockOnDistance"], config.cameraLockOnDistance);
 	Set<uint8>(member["cameraTilt"], config.cameraTilt);
 	Set<bool>(member["cameraLockOff"], config.cameraLockOff);
+	
+	
 
 	{
 		auto& member = root["MeleeWeaponWheel"];
@@ -3007,8 +3014,12 @@ void ToConfig(Config& config_)
 	config.cameraSensitivity = Get<uint8>(member["cameraSensitivity"]);
 	config.cameraFollowUpSpeed = Get<uint8>(member["cameraFollowUpSpeed"]);
 	config.cameraDistance = Get<uint8>(member["cameraDistance"]);
+	config.cameraLockOnDistance = Get<uint8>(member["cameraLockOnDistance"]);
 	config.cameraTilt = Get<uint8>(member["cameraTilt"]);
 	config.cameraLockOff = Get<bool>(member["cameraLockOff"]);
+	
+	
+
 
 	{
 		auto& config = config_.MeleeWeaponWheel;

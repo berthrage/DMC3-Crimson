@@ -241,22 +241,22 @@ export void playStyleChange() {
 
 export void playStyleChangeVO(int style) {
     if (style == 2) {
-        PlayOnChannelsFadeOut(60, 99, tricksterVO, 128, 150);
+        PlayOnChannelsFadeOut(60, 99, tricksterVO, 108, 150);
     }
     else if (style == 0) {
-        PlayOnChannelsFadeOut(60, 99, swordmasterVO, 128, 150);
+        PlayOnChannelsFadeOut(60, 99, swordmasterVO, 108, 150);
     }
     else if (style == 1) {
-        PlayOnChannelsFadeOut(60, 99, gunslingerVO, 128, 150);
+        PlayOnChannelsFadeOut(60, 99, gunslingerVO, 108, 150);
     }
     else if (style == 3) {
-        PlayOnChannelsFadeOut(60, 99, royalguardVO, 128, 150);
+        PlayOnChannelsFadeOut(60, 99, royalguardVO, 108, 150);
     }
     else if (style == 4) {
-        PlayOnChannelsFadeOut(60, 99, quicksilverVO, 128, 150);
+        PlayOnChannelsFadeOut(60, 99, quicksilverVO, 108, 150);
     }
     else if (style == 5) {
-        PlayOnChannelsFadeOut(60, 99, doppelgangerVO, 128, 150);
+        PlayOnChannelsFadeOut(60, 99, doppelgangerVO, 108, 150);
     }
 
 }
