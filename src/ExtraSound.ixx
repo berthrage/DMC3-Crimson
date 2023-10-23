@@ -369,8 +369,8 @@ export void playSprint() {
 
 export void PlayDevilTriggerIn() {
 
-    Mix_Volume(302, 20);
-    Mix_Volume(303, 40);
+    Mix_Volume(302, 50);
+    Mix_Volume(303, 30);
     Mix_PlayChannel(302, devilTriggerInL1, 0);
     Mix_PlayChannel(303, devilTriggerInL2, 0);
 }

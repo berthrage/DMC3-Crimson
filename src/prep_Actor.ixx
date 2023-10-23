@@ -10979,42 +10979,39 @@ void SetDevilAuraColor(
 	{
 		auto& actorData2 = *reinterpret_cast<PlayerActorDataDante*>(&actorData);
 
-		if (actorData2.sparda)
-		{
-			CopyMemory(dest, activeConfig.Color.Aura.sparda, 4);
+		if (styleChanged[0]) {
+			CopyMemory(dest, activeConfig.StyleColor.sword, 4);
 		}
-		else
-		{
-			uint8 meleeWeaponIndex = static_cast<uint8>(actorData2.meleeWeaponIndex);
-			if (meleeWeaponIndex >= MELEE_WEAPON_COUNT_DANTE)
-			{
-				meleeWeaponIndex = 0;
-			}
-
-			if (styleChanged[0]) {
-				CopyMemory(dest, activeConfig.StyleColor.sword, 4);
-			}
-			else if (styleChanged[1]) {
-				CopyMemory(dest, activeConfig.StyleColor.gun, 4);
-			}
-			else if (styleChanged[2]) {
-				CopyMemory(dest, activeConfig.StyleColor.trick, 4);
-			}
-			else if (styleChanged[3]) {
-				CopyMemory(dest, activeConfig.StyleColor.royal, 4);
-			}
-			else if (styleChanged[4]) {
-				CopyMemory(dest, activeConfig.StyleColor.quick, 4);
-			}
-			else if (styleChanged[5]) {
-				CopyMemory(dest, activeConfig.StyleColor.dopp, 4);
+		else if (styleChanged[1]) {
+			CopyMemory(dest, activeConfig.StyleColor.gun, 4);
+		}
+		else if (styleChanged[2]) {
+			CopyMemory(dest, activeConfig.StyleColor.trick, 4);
+		}
+		else if (styleChanged[3]) {
+			CopyMemory(dest, activeConfig.StyleColor.royal, 4);
+		}
+		else if (styleChanged[4]) {
+			CopyMemory(dest, activeConfig.StyleColor.quick, 4);
+		}
+		else if (styleChanged[5]) {
+			CopyMemory(dest, activeConfig.StyleColor.dopp, 4);
+		}
+		else {
+			if (actorData2.sparda) {
+				CopyMemory(dest, activeConfig.Color.Aura.sparda, 4);
 			}
 			else {
+				uint8 meleeWeaponIndex = static_cast<uint8>(actorData2.meleeWeaponIndex);
+				if (meleeWeaponIndex >= MELEE_WEAPON_COUNT_DANTE) {
+					meleeWeaponIndex = 0;
+				}
+
 				CopyMemory(dest, activeConfig.Color.Aura.dante[meleeWeaponIndex], 4);
 			}
-
-
+			
 		}
+
 		break;
 	}
 	case CHARACTER::VERGIL:
