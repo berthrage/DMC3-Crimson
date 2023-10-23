@@ -1,21 +1,11 @@
 set(MASM_SRC
     masm/SampleMod.asm
-    masm/GuardGravity.asm
 )
 
 set (ASM_LIBS)
 set (ASM_FLAGS)
 
 set(CXX_LIBS
-    msvcrt.lib
-    vcruntime.lib
-    ucrt.lib
-    libcpmt.lib
-    kernel32.lib
-    user32.lib
-    shell32.lib
-    imm32.lib
-    advapi32.lib
     d3d11.lib
     d3dcompiler.lib
     dinput8.lib
@@ -23,13 +13,10 @@ set(CXX_LIBS
     Xinput9_1_0.lib
     dxguid.lib
 
-    SDL2.lib
-    SDL2_mixer.lib
-    libzip.lib
-    zlib.lib
-
     ImGui
     SKinHook
+    libzip
+    zlib
 )
 
 set(CXX_FLAGS
@@ -64,7 +51,9 @@ project(Crimson LANGUAGES CXX C ASM_MASM)
 file(GLOB GLOBAL_MODULES Global/*.ixx)
 
 file(GLOB MAIN_MODULES *.ixx)
-file(GLOB MAIN_SRC Crimson.cpp)
+file(GLOB MAIN_SRC 
+    Crimson.cpp
+)
 
 file(GLOB CORE_MODULES Core/*.ixx)
 file(GLOB CORE_HDR Core/*.h)
@@ -98,18 +87,28 @@ OUTPUT_NAME Crimson)
 
 project(dinput8)
 
-source_group("Global" FILES ${GLOBAL_MODULES})
-source_group("Core" FILES ${CORE_MODULES} ${CORE_HDR})
-source_group("Source" FILES "dinput8.cpp")
-
-add_library(${PROJECT_NAME} SHARED
-            "dinput8.cpp"
-            ${CORE_HDR}
+set(DI_SOURCE
+    dinput8.cpp  
 )
 
-target_sources(${PROJECT_NAME} PUBLIC
-    FILE_SET dinput8_modules TYPE CXX_MODULES FILES
-    ${CORE_MODULES}
+set(DI_CORE_SOURCE
+    Core/DI8.ixx
+    Core/Core.ixx
+    Core/DataTypes.ixx
+    Core/Windows.ixx
+)
+
+set(DI_CORE_HEADER
+    Core/Macros.h
+)
+
+source_group("Core" FILES ${DI_CORE_SOURCE} ${DI_CORE_HEADER})
+source_group("Source" FILES ${DI_SOURCE})
+
+add_library(${PROJECT_NAME} SHARED
+            ${DI_SOURCE}
+            ${DI_CORE_SOURCE}
+            ${DI_CORE_HEADER}
 )
 
 target_compile_options(${PROJECT_NAME} PRIVATE

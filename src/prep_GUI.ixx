@@ -18,9 +18,6 @@ module;
 extern "C" {
 	std::uint64_t g_SampleMod_ReturnAddr1;
 	void SampleModDetour1();
-
-	std::uint64_t g_GuardGravity_ReturnAddr1;
-	void GuardGravityDetour();
 }
 
 export module GUI;
@@ -13655,14 +13652,6 @@ export void GUI_Render()
 	// ImGui::ShowDemoWindow(&enable);
 }
 
-
-void InitDetours() {
-	// GuardGravity
-	// static uintptr_t guardGravityJmpRet{ NULL };
-	// std::unique_ptr<FunctionHook> guardGravityHook;
-	// install_hook_offset(0x1EE121, guardGravityHook, &GuardGravityDetour, &guardGravityJmpRet, 7)
-}
-
 export void GUI_Init()
 {
 	LogFunction();
@@ -13676,6 +13665,4 @@ export void GUI_Init()
 	Actor_UpdateIndices();
 	Arcade_UpdateIndices();
 	Color_UpdateValues();
-
-	//InitDetours();
 }

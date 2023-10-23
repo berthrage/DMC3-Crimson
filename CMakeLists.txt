@@ -4,8 +4,7 @@ project(DMC3Crimson)
 
 set(CMAKE_CXX_STANDARD 20)
 
-#SET(CMAKE_CONFIGURATION_TYPES "Debug;Release")
-SET(CMAKE_CONFIGURATION_TYPES "Release")
+SET(CMAKE_CONFIGURATION_TYPES "Debug;Release")
 
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/zlib)
@@ -37,7 +36,6 @@ foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
 endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
 
 link_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/lib)
-link_directories(${CMAKE_CURRENT_LIST_DIR}/ThirdParty/bin)
 
 # Store the root folder
 set(PROJECT_ROOT ${CMAKE_CURRENT_LIST_DIR})
