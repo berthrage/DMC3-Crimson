@@ -1,5 +1,6 @@
 set(MASM_SRC
     masm/SampleMod.asm
+    masm/GuardGravity.asm
 )
 
 set (ASM_LIBS)
