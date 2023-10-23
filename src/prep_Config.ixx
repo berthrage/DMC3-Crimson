@@ -711,7 +711,7 @@ export struct Config
 
 	uint8 cameraSensitivity = 3;
 	uint8 cameraFollowUpSpeed = 2;
-	uint8 cameraDistance = 1;
+	uint8 cameraDistance = 2;
 	uint8 cameraLockOnDistance = 2;
 	uint8 cameraTilt = 1;
 	bool cameraLockOff = true;

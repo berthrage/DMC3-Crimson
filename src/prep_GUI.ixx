@@ -352,6 +352,7 @@ const char* cameraDistanceNames[] =
 {
 	"Far (Vanilla Default)",
 	"Closer",
+	"Dynamic",
 };
 
 const char* cameraLockOnDistanceNames[] =
@@ -4489,6 +4490,14 @@ void CameraSection()
 			activeConfig.cameraDistance,
 			queuedConfig.cameraDistance
 		);
+		ImGui::SameLine();
+		TooltipHelper
+		(
+			"(?)",
+			"Camera Distance relative to the player (when not in lock-on) .\n"
+			"\n"
+			"Dynamic gets adjusted based on if airborne."
+		);
 
 		GUI_Combo2
 		(
@@ -4501,7 +4510,7 @@ void CameraSection()
 		TooltipHelper
 		(
 			"(?)",
-			"Camera Distance relative to the player when locked on.\n"
+			"Camera Distance relative to the player when in lock-on.\n"
 			"\n"
 			"Dynamic gets adjusted based on if airborne."
 		);

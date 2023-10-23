@@ -6277,15 +6277,23 @@ void CameraDistanceController() {
 	}
 
 	if (activeConfig.cameraDistance == 1) { // Closer
-		cameraData.distance = 350.0f;
+		if (cameraData.distance > 350) {
+			cameraData.distance = 350.0f;
+		}
+		
 	}
 
-	if (activeConfig.cameraLockOnDistance == 2) { // Dynamic
+	if (activeConfig.cameraDistance == 2) { // Dynamic
 		if (!(mainActorData.state & STATE::IN_AIR)) {
-			cameraData.distanceLockOn = 350.0f;
+
+			if (cameraData.distance > 350) {
+				cameraData.distance = 350.0f;
+			}
 		}
 		else {
-			cameraData.distanceLockOn = 500.0f;
+			if (cameraData.distance > 340) {
+				cameraData.distance = 500.0f;
+			}
 		}
 
 	}
@@ -6327,10 +6335,15 @@ void CameraLockOnDistanceController() {
 
 	if (activeConfig.cameraLockOnDistance == 2) {
 		if (!(mainActorData.state & STATE::IN_AIR)) {
-			cameraData.distanceLockOn = 360.0f;
+			if (cameraData.distanceLockOn > 360.0f) {
+				cameraData.distanceLockOn = 360.0f;
+			}
 		}
 		else {
-			cameraData.distanceLockOn = 500.0f;
+			if (cameraData.distanceLockOn > 350.0f) {
+				cameraData.distanceLockOn = 500.0f;
+			}
+			
 		}
 
 	}
