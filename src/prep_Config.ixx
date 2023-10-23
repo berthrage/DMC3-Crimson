@@ -702,6 +702,13 @@ export struct Config
 	float weaponWheelWidthSeparation;
 	uint64 weaponWheelTimeout = 2000;
 
+	bool disableHeightRestriction = true;
+	bool improvedBufferedReversals = true;
+	bool increasedJCSpheres = true;
+	bool disableAirSlashKnockback = true;
+	bool disableJCRestriction = true;
+	bool bulletStop = true;
+
 	uint8 cameraSensitivity = 3;
 	uint8 cameraFollowUpSpeed = 2;
 	uint8 cameraDistance = 1;

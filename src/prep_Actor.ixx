@@ -6094,78 +6094,144 @@ void ArbitraryRangedWeaponSwitchController(T& actorData)
 }
 
 
-void DisableHeightRestriction(bool enable) {
+void DisableHeightRestriction() {
 	uintptr_t raveAddr = 0x20149524;
 	uintptr_t rainstormAddr = 0x20149708;
 	uintptr_t airMeleeAddr = 0x2014970C;
 
+	if (toggle.disableHeightRestriction != (int)activeConfig.disableHeightRestriction) {
 
-	if (enable) {
-		*(float*)(raveAddr) = 0.0f;
-		*(float*)(rainstormAddr) = 0.0f;
-		*(float*)(airMeleeAddr) = 0.0f;
+		if (activeConfig.disableHeightRestriction) {
+			*(float*)(raveAddr) = 0.0f;
+			*(float*)(rainstormAddr) = 0.0f;
+			*(float*)(airMeleeAddr) = 0.0f;
 
-		_patch((char*)(appBaseAddr + 0x1E62AF), (char*)"\xE9\x2B\xFD\xFF\xFF\x90", 6); // Vergil Yamato and Beowulf
-		_nop((char*)(appBaseAddr + 0x1E61EC), 6); // Vergil Force Edge
-	}
-	else {
-		*(float*)(raveAddr) = 80.0f;
-		*(float*)(rainstormAddr) = 200.0f;
-		*(float*)(airMeleeAddr) = 120.0f;
+			_patch((char*)(appBaseAddr + 0x1E62AF), (char*)"\xE9\x2B\xFD\xFF\xFF\x90", 6); // Vergil Yamato and Beowulf
+			_nop((char*)(appBaseAddr + 0x1E61EC), 6); // Vergil Force Edge
+
+			toggle.disableHeightRestriction = 1;
+		}
+		else {
+			*(float*)(raveAddr) = 80.0f;
+			*(float*)(rainstormAddr) = 200.0f;
+			*(float*)(airMeleeAddr) = 120.0f;
 
 
-		_patch((char*)(appBaseAddr + 0x1E62AF), (char*)"\x0F\x87\x2A\xFD\xFF\xFF", 6);
-		_patch((char*)(appBaseAddr + 0x1E61EC), (char*)"\x0F\x86\xC3\x00\x00\x00", 6);
-	}
-}
+			_patch((char*)(appBaseAddr + 0x1E62AF), (char*)"\x0F\x87\x2A\xFD\xFF\xFF", 6);
+			_patch((char*)(appBaseAddr + 0x1E61EC), (char*)"\x0F\x86\xC3\x00\x00\x00", 6);
 
-void IncreasedJCSpheres(bool enable) {
-
-	if (enable) {
-		_patch((char*)(appBaseAddr + 0x1C1DCB), (char*)"\xF3\x0F\x5E\x0D\xB1\x4F\x31\x00", 8);
-	}
-	else {
-		_patch((char*)(appBaseAddr + 0x1C1DCB), (char*)"\xF3\x0F\x5E\x0D\x81\x42\x30\x00", 8);
+			toggle.disableHeightRestriction = 0;
+		}
 	}
 }
 
-void ImprovedBufferedReversals(bool enable) {
+void IncreasedJCSpheres() {
+
+	if (toggle.increasedJCSpheres != (int)activeConfig.increasedJCSpheres) {
+
+		if (activeConfig.increasedJCSpheres) {
+			_patch((char*)(appBaseAddr + 0x1C1DCB), (char*)"\xF3\x0F\x5E\x0D\xB1\x4F\x31\x00", 8);
+
+			toggle.increasedJCSpheres = 1;
+		}
+		else {
+			_patch((char*)(appBaseAddr + 0x1C1DCB), (char*)"\xF3\x0F\x5E\x0D\x81\x42\x30\x00", 8);
+
+			toggle.increasedJCSpheres = 0;
+		}
+	}
+}
+
+void ImprovedBufferedReversals() {
 	uintptr_t danteAddr = 0x201499BC;
 	uintptr_t vergilAddr = 0x21758C1C;
 
-	if (enable) {
-		*(float*)(danteAddr) = 24.0f;
-		*(float*)(vergilAddr) = 24.0f;
+	if (toggle.improvedBufferedReversals != (int)activeConfig.improvedBufferedReversals) {
+		if (activeConfig.improvedBufferedReversals) {
+			*(float*)(danteAddr) = 24.0f;
+			*(float*)(vergilAddr) = 24.0f;
 
+			toggle.improvedBufferedReversals = 1;
+		}
+		else {
+			*(float*)(danteAddr) = 4.0f;
+			*(float*)(vergilAddr) = 4.0f;
+
+			toggle.improvedBufferedReversals = 0;
+		}
 	}
-	else {
-		*(float*)(danteAddr) = 4.0f;
-		*(float*)(vergilAddr) = 4.0f;
+}
+
+void DisableJCRestriction() {
+
+	if (toggle.disableJCRestriction != (int)activeConfig.disableJCRestriction) {
+
+		if (activeConfig.disableJCRestriction) {
+			_nop((char*)(appBaseAddr + 0x1E7A9F), 6);
+
+			toggle.disableJCRestriction = 1;
+		}
+		else {
+			_patch((char*)(appBaseAddr + 0x1E7A9F), (char*)"\x66\x0F\x1F\x44\x00\x00", 6);
+
+			toggle.disableJCRestriction = 0;
+		}
+	}
+}
+
+void BulletStop() {
+
+	if (toggle.bulletStop != (int)activeConfig.bulletStop) {
+		if (activeConfig.bulletStop) {
+
+			_nop((char*)(appBaseAddr + 0x77070), 10); // knockback
+			_nop((char*)(appBaseAddr + 0x68C80), 10); // knockback when higher up
+			_nop((char*)(appBaseAddr + 0x82380), 6); // beowulf's hammer
+
+			toggle.bulletStop = 1;
+		}
+		else {
+			_patch((char*)(appBaseAddr + 0x77070), (char*)"\xC7\x81\x20\x01\x00\x00\x01\x00\x00\x00", 10);
+			_patch((char*)(appBaseAddr + 0x68C80), (char*)"\xC7\x81\x20\x01\x00\x00\x01\x00\x00\x00", 10);
+			_patch((char*)(appBaseAddr + 0x82380), (char*)"\x89\xA9\x18\x01\x00\x00", 6);
+
+			toggle.bulletStop = 0;
+		}
 	}
 }
 
 void CameraSensController() {
-
+	
 	//original speed
-	if (activeConfig.cameraSensitivity == 0) { // Low (Vanilla Default)
-		_patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x35\xFA\x8E\x3C", 10); // 0.0174533f
-		_patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x35\xFA\x8E\x3C", 10);
-		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x35\xFA\x8E\x3C", 4);
-	}
-	else if (activeConfig.cameraSensitivity == 1) { // Medium
-		_patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x39\xFA\x0E\x3D", 10); // 0.0349066f
-		_patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x39\xFA\x0E\x3D", 10);
-		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x39\xFA\x0E\x3D", 4);
-	}
-	else if (activeConfig.cameraSensitivity == 2) { // High
-		_patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x56\x77\x56\x3D", 10); // 0.0523599f
-		_patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x56\x77\x56\x3D", 10);
-		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x56\x77\x56\x3D", 4);
-	}
-	else if (activeConfig.cameraSensitivity == 3) { // Highest
-		_patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\xCD\xCC\xCC\x3D", 10); // 0.1f
-		_patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\xCD\xCC\xCC\x3D", 10);
-		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\xCD\xCC\xCC\x3D", 4);
+	if (activeConfig.cameraSensitivity != toggle.cameraSensitivity) {
+		if (activeConfig.cameraSensitivity == 0) { // Low (Vanilla Default)
+			_patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x35\xFA\x8E\x3C", 10); // 0.0174533f
+			_patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x35\xFA\x8E\x3C", 10);
+			_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x35\xFA\x8E\x3C", 4);
+
+			toggle.cameraSensitivity = 0;
+		}
+		else if (activeConfig.cameraSensitivity == 1) { // Medium
+			_patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x39\xFA\x0E\x3D", 10); // 0.0349066f
+			_patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x39\xFA\x0E\x3D", 10);
+			_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x39\xFA\x0E\x3D", 4);
+
+			toggle.cameraSensitivity = 1;
+		}
+		else if (activeConfig.cameraSensitivity == 2) { // High
+			_patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x56\x77\x56\x3D", 10); // 0.0523599f
+			_patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x56\x77\x56\x3D", 10);
+			_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x56\x77\x56\x3D", 4);
+
+			toggle.cameraSensitivity = 2;
+		}
+		else if (activeConfig.cameraSensitivity == 3) { // Highest
+			_patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\xCD\xCC\xCC\x3D", 10); // 0.1f
+			_patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\xCD\xCC\xCC\x3D", 10);
+			_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\xCD\xCC\xCC\x3D", 4);
+
+			toggle.cameraSensitivity = 3;
+		}
 	}
 
 }
@@ -6468,9 +6534,11 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 	}
 
 	StyleSwitchController(actorBaseAddr);
-	DisableHeightRestriction(true);
-	ImprovedBufferedReversals(true);
-	IncreasedJCSpheres(true);
+	DisableHeightRestriction();
+	ImprovedBufferedReversals();
+	IncreasedJCSpheres();
+	DisableJCRestriction();
+	BulletStop();
 	CalculateAirStingerEndTime();
 	FasterRapidSlashDevil(actorBaseAddr);
 	CameraSensController();
@@ -12195,15 +12263,22 @@ void AirSlashInertiaFix(bool enable) {
 
 }
 
-void DisableAirSlashKnockback(bool enable) {
+void DisableAirSlashKnockback() {
 	// dmc3.exe+5CA0C4 0x00 0x00 0x00 0x00
 
-	if (enable) {
-		_patch((char*)(appBaseAddr + 0x5CA0C4), (char*)"\x00\x00\x00\x00", 4);
-	}
-	else {
-		//dmc3.exe+5CA0C4 - 00 00                 - add [rax],al
-		_patch((char*)(appBaseAddr + 0x5CA0C4), (char*)"\x00\x00", 2);
+	if (toggle.disableAirSlashKnockback != (int)activeConfig.disableAirSlashKnockback) {
+
+		if (activeConfig.disableAirSlashKnockback) {
+			_patch((char*)(appBaseAddr + 0x5CA0C4), (char*)"\x00\x00\x00\x00", 4);
+
+			toggle.disableAirSlashKnockback = 1;
+		}
+		else {
+			//dmc3.exe+5CA0C4 - 00 00                 - add [rax],al
+			_patch((char*)(appBaseAddr + 0x5CA0C4), (char*)"\x00\x00", 2);
+
+			toggle.disableAirSlashKnockback = 0;
+		}
 	}
 }
 
@@ -12224,6 +12299,7 @@ void InertiaController(byte8* actorBaseAddr) {
 		AerialRaveInertiaFix(true);
 		SkyDanceInertiaFix(true);
 		AirSlashInertiaFix(true);
+
 		inertiaFixesEnabled = true;
 	}
 
@@ -13343,27 +13419,7 @@ void AirTauntToggleController(byte8* actorBaseAddr) {
 
 }
 
-void DisableJCRestriction(bool enable) {
-	if (enable) {
-		_nop((char*)(appBaseAddr + 0x1E7A9F), 6);
-	}
-	else {
-		_patch((char*)(appBaseAddr + 0x1E7A9F), (char*)"\x66\x0F\x1F\x44\x00\x00", 6);
-	}
-}
 
-void BulletStop(bool enable) {
-	if (enable) {
-		_nop((char*)(appBaseAddr + 0x77070), 10); // knockback
-		_nop((char*)(appBaseAddr + 0x68C80), 10); // knockback when higher up
-		_nop((char*)(appBaseAddr + 0x82380), 6); // beowulf's hammer
-	}
-	else {
-		_patch((char*)(appBaseAddr + 0x77070), (char*)"\xC7\x81\x20\x01\x00\x00\x01\x00\x00\x00", 10);
-		_patch((char*)(appBaseAddr + 0x68C80), (char*)"\xC7\x81\x20\x01\x00\x00\x01\x00\x00\x00", 10);
-		_patch((char*)(appBaseAddr + 0x82380), (char*)"\x89\xA9\x18\x01\x00\x00", 6);
-	}
-}
 
 void FixUpdateLockOnsArtemis(byte8* mainActorBaseAddr) {
 	// Artemis Fix // Disables Update Lock-Ons when Charging Artemis (has the downside of 
@@ -13434,11 +13490,9 @@ void UpdateActorSpeed(byte8* baseAddr)
 	CheckSkyLaunch(mainActorData);
 	SkyLaunchProperties(mainActorData);
 	GetRoyalBlockAction(mainActorData);
-	DisableAirSlashKnockback(true);
+	DisableAirSlashKnockback();
 	StoreInertia(mainActorData);
 	InertiaController(mainActorData);
-	DisableJCRestriction(true);
-	BulletStop(true);
 	SetAirStingerEnd(mainActorData);
 	AirTauntToggleController(mainActorData);
 	FixUpdateLockOnsArtemis(mainActorData);

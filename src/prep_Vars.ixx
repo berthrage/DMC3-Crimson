@@ -4323,6 +4323,16 @@ export struct BossHelper
 
 export bool pausedGameGUIOpen = false;
 
+export struct Toggle {
+	int disableHeightRestriction = 2;
+	int improvedBufferedReversals = 2;
+	int increasedJCSpheres = 2;
+	int disableAirSlashKnockback = 2;
+	int cameraSensitivity = 5;
+	int disableJCRestriction = 2;
+	int bulletStop = 2;
+} toggle;
+
 export struct WeaponWheelTiming {
 	bool wheelAppear = false;
 	bool wheelRunning = false;
