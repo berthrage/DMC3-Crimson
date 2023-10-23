@@ -108,16 +108,14 @@ add_library(${PROJECT_NAME} SHARED
 
 target_sources(${PROJECT_NAME} PUBLIC
     FILE_SET dinput8_modules TYPE CXX_MODULES FILES
-    ${GLOBAL_MODULES}
     ${CORE_MODULES}
 )
 
-target_compile_options(${PROJECT_NAME} PUBLIC /GS- /GR-)
+target_compile_options(${PROJECT_NAME} PRIVATE
+    ${CXX_FLAGS}
+)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC ${CXX_LIBS}) # Dependencies
-target_compile_options(${PROJECT_NAME} PUBLIC /GS- /GR-)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES 
 OUTPUT_NAME dinput8)
-
-target_compile_options(${PROJECT_NAME} PUBLIC ${COMPILER_ARGS})
