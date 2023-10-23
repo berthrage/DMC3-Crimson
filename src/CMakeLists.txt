@@ -15,9 +15,9 @@ set(CXX_LIBS
     dxguid.lib
 
     ImGui
-    SKinHook
     libzip
     zlib
+    Detours
 )
 
 set(CXX_FLAGS
@@ -59,14 +59,23 @@ file(GLOB MAIN_SRC
 file(GLOB CORE_MODULES Core/*.ixx)
 file(GLOB CORE_HDR Core/*.h)
 
+set(UTILITY_SRC
+    Utility/Address.cpp
+    Utility/Address.hpp
+    Utility/Detour.cpp
+    Utility/Detour.hpp
+)
+
 source_group("Global" FILES ${GLOBAL_MODULES})
 source_group("Crimson" FILES ${MAIN_MODULES} ${MAIN_SRC})
 source_group("Core" FILES ${CORE_MODULES} ${CORE_HDR})
-source_group("masm" FILES ${MASM_SRC})
+source_group("Utility" FILES ${UTILITY_SRC})
+source_group("ASM" FILES ${MASM_SRC})
 
 add_library(${PROJECT_NAME} SHARED
             ${MAIN_SRC}
             ${CORE_HDR}
+            ${UTILITY_SRC}
             ${MASM_SRC}     
 )
 
