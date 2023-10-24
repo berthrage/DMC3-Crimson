@@ -13368,15 +13368,12 @@ void KeyBindings()
 
 #pragma endregion
 
+export void InitDetours() {
+	using namespace Utility;
 
-
-
-
-
-void InitDetours() {
 	//GuardGravity
-	static std::unique_ptr<Utility::Detour_t> guardGravityHook = std::make_unique<Utility::Detour_t>((uintptr_t)appBaseAddr + 0x1EE121, &GuardGravityDetour);
-	g_GuardGravity_ReturnAddr1 = guardGravityHook->GetReturnAddress() + 7;
+	static std::unique_ptr<Detour_t> guardGravityHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EE121, &GuardGravityDetour, 7);
+	g_GuardGravity_ReturnAddr1 = guardGravityHook->GetReturnAddress();
 	guardGravityHook->Toggle(true);
 }
 
@@ -13674,6 +13671,4 @@ export void GUI_Init()
 	Actor_UpdateIndices();
 	Arcade_UpdateIndices();
 	Color_UpdateValues();
-
-	InitDetours();
 }

@@ -290,6 +290,7 @@ uint32 DllMain
 
 		Hooks::Init();
 
+		InitDetours();
 
 
 		// Remove FMODGetCodecDescription Label
