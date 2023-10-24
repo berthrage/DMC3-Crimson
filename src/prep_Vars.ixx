@@ -4331,6 +4331,7 @@ export struct Toggle {
 	int cameraSensitivity = 5;
 	int disableJCRestriction = 2;
 	int bulletStop = 2;
+	int rainstormLift = 2;
 } toggle;
 
 export struct WeaponWheelTiming {

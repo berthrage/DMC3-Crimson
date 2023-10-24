@@ -6200,6 +6200,24 @@ void BulletStop() {
 	}
 }
 
+void RainstormLift() {
+	uintptr_t rainstormLiftAddr = 0x20149B00;
+
+	if (toggle.rainstormLift != (int)activeConfig.rainstormLift) {
+		if (activeConfig.rainstormLift) {
+
+			*(float*)(rainstormLiftAddr) = -0.2f;
+
+			toggle.rainstormLift = 1;
+		}
+		else {
+			*(float*)(rainstormLiftAddr) = -0.349999994f;
+
+			toggle.rainstormLift = 0;
+		}
+	}
+}
+
 void CameraSensController() {
 	
 	//original speed
@@ -6552,6 +6570,7 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 	IncreasedJCSpheres();
 	DisableJCRestriction();
 	BulletStop();
+	RainstormLift();
 	CalculateAirStingerEndTime();
 	FasterRapidSlashDevil(actorBaseAddr);
 	CameraSensController();

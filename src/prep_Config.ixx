@@ -707,6 +707,7 @@ export struct Config
 	bool disableAirSlashKnockback = true;
 	bool disableJCRestriction = true;
 	bool bulletStop = true;
+	bool rainstormLift = true;
 
 	uint8 cameraSensitivity = 3;
 	uint8 cameraFollowUpSpeed = 2;
