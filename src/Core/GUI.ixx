@@ -1025,7 +1025,7 @@ export struct KeyBinding
 		bool run = false;
 
 		char buffer[512] = {};
-		off_t pos = 0;
+		offset_t pos = 0;
 
 		uint32 lastKeys32 = 0;
 	};

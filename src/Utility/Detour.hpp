@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mutex>
-#include <windows.h>
 #include <cstdint>
 #include <functional>
 

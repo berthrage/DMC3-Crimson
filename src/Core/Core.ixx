@@ -411,8 +411,8 @@ export byte8 * Alloc
 export byte8 * AllocEx
 (
 	new_size_t size,
-	off_t start,
-	off_t end
+	offset_t start,
+	offset_t end
 )
 {
 	if constexpr (debug)
@@ -464,7 +464,7 @@ export byte8 * AllocEx
 				Log("state      %X", mbi.State);
 			}
 
-			auto remainder = Align<off_t>(pos, systemInfo.dwAllocationGranularity);
+			auto remainder = Align<offset_t>(pos, systemInfo.dwAllocationGranularity);
 			if (!remainder)
 			{
 				match = true;
@@ -529,8 +529,8 @@ export auto HighAlloc(new_size_t size)
 	return AllocEx
 	(
 		size,
-		reinterpret_cast<off_t>(appBaseAddr + appSize),
-		reinterpret_cast<off_t>(appBaseAddr + 0x7FFFFFFF)
+		reinterpret_cast<offset_t>(appBaseAddr + appSize),
+		reinterpret_cast<offset_t>(appBaseAddr + 0x7FFFFFFF)
 	);
 }
 
@@ -707,7 +707,7 @@ export bool LoadFile
 	HANDLE fileHandle,
 	new_size_t size,
 	void * dest,
-	off_t start // Default value unnecessarily complicates overload resolution.
+	offset_t start // Default value unnecessarily complicates overload resolution.
 )
 {
 	if
@@ -732,7 +732,7 @@ export bool LoadFile
 	{
 		LARGE_INTEGER newPos = {};
 
-		*reinterpret_cast<off_t *>(&newPos) = pos;
+		*reinterpret_cast<offset_t *>(&newPos) = pos;
 
 
 
@@ -808,7 +808,7 @@ export byte8 * LoadFile
 (
 	HANDLE fileHandle,
 	new_size_t size,
-	off_t start // Default value unnecessarily complicates overload resolution.
+	offset_t start // Default value unnecessarily complicates overload resolution.
 )
 {
 	auto dest = Alloc(size);
@@ -924,7 +924,7 @@ export bool SaveFile
 
 
 	constexpr new_size_t bufferSize = (1 * 1024 * 1024);
-	off_t pos = 0;
+	offset_t pos = 0;
 	uint32 bytesWritten = 0;
 	LARGE_INTEGER filePointer = {};
 
@@ -1085,7 +1085,7 @@ void Log(const char * format, Args... args)
 
 	char buffer[2048];
 	constexpr new_size_t bufferSize = sizeof(buffer);
-	off_t pos = 0;
+	offset_t pos = 0;
 
 
 
@@ -1245,7 +1245,7 @@ struct Container<>
 {
 	struct Metadata
 	{
-		off_t off;
+		offset_t off;
 		new_size_t size;
 	};
 
@@ -1255,7 +1255,7 @@ struct Container<>
 	byte8 * metadataAddr;
 	new_size_t metadataSize;
 
-	off_t pos;
+	offset_t pos;
 	new_size_t count;
 
 	// @Todo: Add alloc func arg.
@@ -2082,7 +2082,7 @@ void BackupHelper::Restore(void * addr)
 		return;
 	}
 
-	auto off = static_cast<off_t>(reinterpret_cast<byte8 *>(addr) - appBaseAddr);
+	auto off = static_cast<offset_t>(reinterpret_cast<byte8 *>(addr) - appBaseAddr);
 
 	Log("%s failed.", FUNC_NAME);
 
@@ -2271,7 +2271,7 @@ export Function CreateFunction
 
 
 	Function func = {};
-	off_t   pos  = 0;
+	offset_t   pos  = 0;
 
 	auto Feed = [&]
 	(
@@ -2296,7 +2296,7 @@ export Function CreateFunction
 		pos += bufferSize;
 	};
 
-	Align<off_t>(memoryData.pos, 0x10);
+	Align<offset_t>(memoryData.pos, 0x10);
 
 	func.addr = (memoryData.dataAddr + memoryData.pos);
 
@@ -2596,7 +2596,7 @@ export Function CreateFunction
 
 	if (cacheSize)
 	{
-		Align<off_t>(memoryData.pos, 0x10);
+		Align<offset_t>(memoryData.pos, 0x10);
 
 		func.cache = reinterpret_cast<byte8 **>(memoryData.dataAddr + memoryData.pos);
 
@@ -2746,7 +2746,7 @@ export Function CreateFunction
 
 
 	Function func = {};
-	off_t    pos  = 0;
+	offset_t    pos  = 0;
 
 	auto Feed = [&]
 	(
@@ -2770,7 +2770,7 @@ export Function CreateFunction
 		pos += bufferSize;
 	};
 
-	Align<off_t>(memoryData.pos, 0x10);
+	Align<offset_t>(memoryData.pos, 0x10);
 
 	func.addr = (memoryData.dataAddr + memoryData.pos);
 
@@ -2942,7 +2942,7 @@ constexpr byte8 buffer[] =
 
 	if (cacheSize)
 	{
-		Align<off_t>(memoryData.pos, 0x10);
+		Align<offset_t>(memoryData.pos, 0x10);
 
 		func.cache = reinterpret_cast<byte8 **>(memoryData.dataAddr + memoryData.pos);
 

@@ -13656,11 +13656,11 @@ export void GUI_Render()
 }
 
 void InitDetours() {
-	// GuardGravity
-	// WriteJump(baseAddr + 0x1EE121, &GuardGravityDetour, 2)
+	//GuardGravity
+	//WriteJump(baseAddr + 0x1EE121, &GuardGravityDetour, 2)
 
-	// std::unique_ptr<FunctionHook> guardGravityHook;
-	// install_hook_offset(0x1EE121, guardGravityHook, &GuardGravityDetour, &g_GuardGravity_ReturnAddr1, 7)
+	//static std::unique_ptr<Utility::Detour_t> guardGravityHook = std::make_unique<Utility::Detour_t>((uintptr_t)appBaseAddr + 0x1EE12, &GuardGravityDetour);
+	//g_GuardGravity_ReturnAddr1 = (uintptr_t)appBaseAddr + 0x1EE12 + 7;
 }
 
 export void GUI_Init()

@@ -34,12 +34,12 @@ export typedef double float64;
 
 #ifdef _WIN64
 
-export typedef uint64 off_t;
+export typedef uint64 offset_t;
 export typedef uint64 new_size_t;
 
 #else
 
-export typedef uint32 off_t;
+export typedef uint32 offset_t;
 export typedef uint32 new_size_t;
 
 #endif
