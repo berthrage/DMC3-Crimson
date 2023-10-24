@@ -16,11 +16,20 @@ module;
 #include <chrono>
 
 extern "C" {
+	std::uint64_t DetourBaseAddr;
+
 	std::uint64_t g_SampleMod_ReturnAddr1;
 	void SampleModDetour1();
 
 	std::uint64_t g_GuardGravity_ReturnAddr1;
 	void GuardGravityDetour();
+
+	std::uint64_t createEffectRBXMov;
+	std::uint64_t createEffectCallA;
+	std::uint64_t createEffectCallB;
+	int createEffectBank = 3;
+	int createEffectID = 144;
+	void CreateEffectDetour();
 }
 
 export module GUI;
@@ -13370,11 +13379,17 @@ void KeyBindings()
 
 export void InitDetours() {
 	using namespace Utility;
+	DetourBaseAddr = (uintptr_t)appBaseAddr;
 
 	//GuardGravity
 	static std::unique_ptr<Detour_t> guardGravityHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EE121, &GuardGravityDetour, 7);
 	g_GuardGravity_ReturnAddr1 = guardGravityHook->GetReturnAddress();
 	guardGravityHook->Toggle(true);
+
+	//EffectCall
+	createEffectCallA = (uintptr_t)appBaseAddr + 0x2E7CA0;
+	createEffectCallB = (uintptr_t)appBaseAddr + 0x1FAA50;
+	createEffectRBXMov = (uintptr_t)appBaseAddr + 0xC18AF8;
 }
 
 #pragma region Main
@@ -13390,6 +13405,13 @@ void Main()
 	if (ImGui::Button("heheh")) {
 		SampleModDetour1();
 	}
+
+	ImGui::InputInt("Effect Bank", &createEffectBank);
+	ImGui::InputInt("Effect ID", &createEffectID);
+	if (ImGui::Button("CreateEffect")) {
+		CreateEffectDetour();
+	}
+
 
 	//if (ImGui::Button("InitDetours")) { // debug
 	//	InitDetours();
