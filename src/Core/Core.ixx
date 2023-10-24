@@ -17,11 +17,7 @@ import Windows;
 
 using namespace Windows;
 
-#ifdef NDEBUG
 #define debug false
-#else
-#define debug true
-#endif
 
 
 export bool noLog = false;

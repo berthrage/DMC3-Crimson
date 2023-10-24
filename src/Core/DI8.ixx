@@ -1573,11 +1573,11 @@ static_assert(sizeof(LPDIJOYSTATE2) == 8);
 
 #pragma pack(pop)
 
-extern "C" const DIDATAFORMAT c_dfDIMouse{};
-extern "C" const DIDATAFORMAT c_dfDIMouse2{};
-extern "C" const DIDATAFORMAT c_dfDIKeyboard{};
-extern "C" const DIDATAFORMAT c_dfDIJoystick{};
-extern "C" const DIDATAFORMAT c_dfDIJoystick2{};
+extern "C" const DIDATAFORMAT c_dfDIMouse;
+extern "C" const DIDATAFORMAT c_dfDIMouse2;
+extern "C" const DIDATAFORMAT c_dfDIKeyboard;
+extern "C" const DIDATAFORMAT c_dfDIJoystick;
+extern "C" const DIDATAFORMAT c_dfDIJoystick2;
 
 // LPDIENUMDEVICESCALLBACKA
 

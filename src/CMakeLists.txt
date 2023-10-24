@@ -86,7 +86,7 @@ add_library(${PROJECT_NAME} SHARED
             ${CORE_MODULES}
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${CXX_LIBS}) # Dependencies
+target_link_libraries(${PROJECT_NAME} PUBLIC ${CXX_LIBS}) # Dependencies
 target_compile_options(${PROJECT_NAME} PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:${CXX_FLAGS}>
     $<$<COMPILE_LANGUAGE:ASM>:${ASM_FLAGS}>
