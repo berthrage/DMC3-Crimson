@@ -49,6 +49,7 @@ set(CXX_FLAGS
 
 project(Crimson LANGUAGES CXX C ASM_MASM)
 
+file(GLOB FONTS_HDR Fonts/*.hpp)
 file(GLOB GLOBAL_MODULES Global/*.ixx)
 
 file(GLOB MAIN_MODULES *.ixx)
@@ -71,19 +72,18 @@ source_group("Crimson" FILES ${MAIN_MODULES} ${MAIN_SRC})
 source_group("Core" FILES ${CORE_MODULES} ${CORE_HDR})
 source_group("Utility" FILES ${UTILITY_SRC})
 source_group("ASM" FILES ${MASM_SRC})
+source_group("Fonts" FILES ${FONTS_HDR})
 
 add_library(${PROJECT_NAME} SHARED
             ${MAIN_SRC}
             ${CORE_HDR}
             ${UTILITY_SRC}
-            ${MASM_SRC}     
-)
+            ${MASM_SRC}
+            ${FONTS_HDR}
 
-target_sources(${PROJECT_NAME} PUBLIC
-    FILE_SET crimson_modules TYPE CXX_MODULES FILES
-    ${GLOBAL_MODULES}
-    ${MAIN_MODULES}
-    ${CORE_MODULES}
+            ${GLOBAL_MODULES}
+            ${MAIN_MODULES}
+            ${CORE_MODULES}
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CXX_LIBS}) # Dependencies
