@@ -12273,6 +12273,22 @@ void AirSlashInertiaFix(bool enable) {
 
 }
 
+void TatsumakiInertiaFix(bool enable) {
+
+	if (enable) {
+
+		// movzx edx,word ptr [rbx+00003ED0]
+		_patch((char*)(appBaseAddr + 0x20B1D9), (char*)"\x0F\xB7\x83\xD0\x3E\x00\x00", 7); // swaps forward with inertia rotation
+
+	}
+	else {
+
+		// movzx edx,word ptr [rbx+000000C0]
+		_patch((char*)(appBaseAddr + 0x20B1D9), (char*)"\x0F\xB7\x83\xC0\x00\x00\x00", 7); // restores the forward only momentum
+	}
+
+}
+
 void DisableAirSlashKnockback() {
 	// dmc3.exe+5CA0C4 0x00 0x00 0x00 0x00
 
@@ -12309,6 +12325,7 @@ void InertiaController(byte8* actorBaseAddr) {
 		AerialRaveInertiaFix(true);
 		SkyDanceInertiaFix(true);
 		AirSlashInertiaFix(true);
+		TatsumakiInertiaFix(true);
 
 		inertiaFixesEnabled = true;
 	}

@@ -1,6 +1,6 @@
 .DATA
     lowerGuard dd 0.0f
-    higherGuard dd 0.7f
+    higherGuard dd 0.5f
 
 .CODE
 extern g_GuardGravity_ReturnAddr1:QWORD

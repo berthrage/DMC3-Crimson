@@ -656,10 +656,9 @@ export struct Config
 	{
 		{
 			{
-				KEY::LEFT_CONTROL,
-				KEY::D
+				KEY::DELETE,
 			},
-			2
+			1
 		},
 		{},
 		{},
