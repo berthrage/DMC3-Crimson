@@ -15,7 +15,8 @@ namespace Utility {
 		std::scoped_lock _{ m_HookMutex };
 
 		if (Create()) {
-			Hook();
+			LOG_ERROR("[DETOUR] \"{:s}\" Failed to set up a hook on {:p}->{:p}", m_Name.c_str(), target.Ptr(), destination.Ptr());
+			return;
 		}
 
 		LOG_INFO("[DETOUR] \"{:s}\" Setting up a hook on {:p}->{:p}", m_Name.c_str(), target.Ptr(), destination.Ptr());
