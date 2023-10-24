@@ -3,7 +3,7 @@ module;
 #include "../ThirdParty/ImGui/imgui.h"
 #include "../ThirdParty/ImGui/imgui_internal.h"
 #include "../ThirdParty/ImGui/imgui_internal.h"
-
+#include "Utility/Detour.hpp"
 
 
 #include <stdio.h>
@@ -13373,10 +13373,12 @@ void KeyBindings()
 
 
 
-
-
-
-
+void InitDetours() {
+	//GuardGravity
+	static std::unique_ptr<Utility::Detour_t> guardGravityHook = std::make_unique<Utility::Detour_t>((uintptr_t)appBaseAddr + 0x1EE121, &GuardGravityDetour);
+	g_GuardGravity_ReturnAddr1 = guardGravityHook->GetReturnAddress() + 7;
+	guardGravityHook->Toggle(true);
+}
 
 #pragma region Main
 
@@ -13391,6 +13393,10 @@ void Main()
 	if (ImGui::Button("heheh")) {
 		SampleModDetour1();
 	}
+
+	//if (ImGui::Button("InitDetours")) { // debug
+	//	InitDetours();
+	//}
 
 	static bool run = false;
 
@@ -13655,14 +13661,6 @@ export void GUI_Render()
 	// ImGui::ShowDemoWindow(&enable);
 }
 
-void InitDetours() {
-	//GuardGravity
-	//WriteJump(baseAddr + 0x1EE121, &GuardGravityDetour, 2)
-
-	//static std::unique_ptr<Utility::Detour_t> guardGravityHook = std::make_unique<Utility::Detour_t>((uintptr_t)appBaseAddr + 0x1EE12, &GuardGravityDetour);
-	//g_GuardGravity_ReturnAddr1 = (uintptr_t)appBaseAddr + 0x1EE12 + 7;
-}
-
 export void GUI_Init()
 {
 	LogFunction();
@@ -13677,5 +13675,5 @@ export void GUI_Init()
 	Arcade_UpdateIndices();
 	Color_UpdateValues();
 
-	//InitDetours();
+	InitDetours();
 }
