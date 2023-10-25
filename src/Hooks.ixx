@@ -144,14 +144,14 @@ export void Init()
 		::Base::Windows::RegisterClassExW,
 		::Hook::Windows::RegisterClassExW
 	);
-
+#if 0 // TODO(): window message pump gets stuck... uhh investigate further?
 	Install
 	(
 		(appBaseAddr + 0x34F300),
 		::Base::Windows::CreateWindowExW,
 		::Hook::Windows::CreateWindowExW
 	);
-
+#endif
 	::Hook::D3D11::D3D11CreateDeviceAndSwapChain_func = ::Hook::D3D11::D3D11CreateDeviceAndSwapChain_Function;
 
 	Install
