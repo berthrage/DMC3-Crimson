@@ -323,27 +323,27 @@ export void playChangeGun() {
 }
 
 export void playStyleChange() {
-    PlayOnChannelsFadeOut(40, 59, styleChange, activeConfig.SFX.styleChangeVolume, 150);
+    PlayOnChannelsFadeOut(40, 59, styleChange, activeConfig.SFX.styleChangeEffectVolume, 150);
 }
 
 export void playStyleChangeVO(int style) {
     if (style == 2) {
-        PlayOnChannelsFadeOut(60, 99, tricksterVO, 108, 150);
+        PlayOnChannelsFadeOut(60, 99, tricksterVO, activeConfig.SFX.styleChangeVOVolume, 150);
     }
     else if (style == 0) {
-        PlayOnChannelsFadeOut(60, 99, swordmasterVO, 108, 150);
+        PlayOnChannelsFadeOut(60, 99, swordmasterVO, activeConfig.SFX.styleChangeVOVolume, 150);
     }
     else if (style == 1) {
-        PlayOnChannelsFadeOut(60, 99, gunslingerVO, 108, 150);
+        PlayOnChannelsFadeOut(60, 99, gunslingerVO, activeConfig.SFX.styleChangeVOVolume, 150);
     }
     else if (style == 3) {
-        PlayOnChannelsFadeOut(60, 99, royalguardVO, 108, 150);
+        PlayOnChannelsFadeOut(60, 99, royalguardVO, activeConfig.SFX.styleChangeVOVolume, 150);
     }
     else if (style == 4) {
-        PlayOnChannelsFadeOut(60, 99, quicksilverVO, 108, 150);
+        PlayOnChannelsFadeOut(60, 99, quicksilverVO, activeConfig.SFX.styleChangeVOVolume, 150);
     }
     else if (style == 5) {
-        PlayOnChannelsFadeOut(60, 99, doppelgangerVO, 108, 150);
+        PlayOnChannelsFadeOut(60, 99, doppelgangerVO, activeConfig.SFX.styleChangeVOVolume, 150);
     }
 
 }
@@ -375,6 +375,7 @@ void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank
 
 
     if (rankAnnouncer[rank - 1].turn == 0 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
+        fn_Mix_Volume(100 + (rank - 1), activeConfig.SFX.styleRankAnnouncerVolume);
         fn_Mix_PlayChannel(100 + (rank - 1), styleRankWAV, 0);
         rankAnnouncer[rank - 1].turn++;
 
@@ -386,6 +387,7 @@ void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank
 
     }
     else if (rankAnnouncer[rank - 1].turn == 1 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
+        fn_Mix_Volume(100 + (rank - 1), activeConfig.SFX.styleRankAnnouncerVolume);
         fn_Mix_PlayChannel(100 + (rank - 1), styleRankWAVAlt, 0);
         rankAnnouncer[rank - 1].turn = 0;
 
@@ -406,14 +408,6 @@ void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank
 }
 
 export void StyleRankAnnouncerController(int rank) {
-    fn_Mix_Volume(100, 128);
-    fn_Mix_Volume(101, 128);
-    fn_Mix_Volume(102, 128);
-    fn_Mix_Volume(103, 128);
-    fn_Mix_Volume(104, 128);
-    fn_Mix_Volume(105, 128);
-    fn_Mix_Volume(106, 128);
-
 
     if (rank == 1) {
 
@@ -456,15 +450,15 @@ export void playSprint() {
 
 export void PlayDevilTriggerIn() {
 
-    fn_Mix_Volume(302, 50);
-    fn_Mix_Volume(303, 30);
+    fn_Mix_Volume(302, activeConfig.SFX.devilTriggerInL1Volume);
+    fn_Mix_Volume(303, activeConfig.SFX.devilTriggerInL2Volume);
     fn_Mix_PlayChannel(302, devilTriggerInL1, 0);
     fn_Mix_PlayChannel(303, devilTriggerInL2, 0);
 }
 
 export void PlayDevilTriggerOut() {
 
-    fn_Mix_Volume(304, 50);
+    fn_Mix_Volume(304, activeConfig.SFX.devilTriggerOutVolume);
     fn_Mix_PlayChannel(304, devilTriggerOut, 0);
 }
 
@@ -480,25 +474,25 @@ export void stopDevilTriggerLoop() {
 }
 
 export void playDoppelgangerIn() {
-    fn_Mix_Volume(306, 50);
+    fn_Mix_Volume(306, activeConfig.SFX.doppelgangerInVolume);
     fn_Mix_PlayChannel(306, doppelgangerIn, 0);
 }
 
 export void playDoppelgangerOut() {
-    fn_Mix_Volume(307, 50);
+    fn_Mix_Volume(307, activeConfig.SFX.doppelgangerOutVolume);
     fn_Mix_PlayChannel(307, doppelgangerOut, 0);
 }
 
 export void playQuicksilverIn() {
 
-    fn_Mix_Volume(308, 50);
+    fn_Mix_Volume(308, activeConfig.SFX.quicksilverInVolume);
     fn_Mix_PlayChannel(308, quicksilverIn, 0);
 
 }
 
 export void PlayDevilTriggerReady() {
 
-    fn_Mix_Volume(309, 110);
+    fn_Mix_Volume(309, activeConfig.SFX.devilTriggerReadyVolume);
     fn_Mix_PlayChannel(309, devilTriggerReady, 0);
 
 }

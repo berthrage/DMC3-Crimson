@@ -724,13 +724,22 @@ export struct Config
 
 	WeaponWheel RangedWeaponWheel;
 
-	struct
+	struct SFX
 	{
-		int changeGunNew = 1;
-		int changeDevilArmNew = 1;
-		int changeWeaponVolume = 30;
-		int styleChangeVolume = 5;
-		int sprintVolume = 20;
+		uint8 changeGunNew = 1;
+		uint8 changeDevilArmNew = 1;
+		uint32 changeWeaponVolume = 30;
+		uint32 styleChangeEffectVolume = 5;
+		uint32 styleChangeVOVolume = 55;
+		uint32 sprintVolume = 20;
+		uint32 devilTriggerInL1Volume = 40;
+		uint32 devilTriggerInL2Volume = 20;
+		uint32 devilTriggerOutVolume = 50;
+		uint32 devilTriggerReadyVolume = 110;
+		uint32 doppelgangerInVolume = 50;
+		uint32 doppelgangerOutVolume = 50;
+		uint32 quicksilverInVolume = 50;
+		uint32 styleRankAnnouncerVolume = 85;
 	}
 	SFX;
 
@@ -1783,6 +1792,28 @@ void CreateMembers(Config& config_)
 		Create<uint32>(member, "timeout", config.timeout);
 	}
 
+	{
+		auto& member = Create<struct_t>(root, "SFX");
+		auto& config = config_.SFX;
+
+		Create<uint8 >(member, "changeGunNew", config.changeGunNew);
+		Create<uint8>(member, "changeDevilArmNew", config.changeDevilArmNew);
+		Create<uint32>(member, "changeWeaponVolume", config.changeWeaponVolume);
+		Create<uint32>(member, "styleChangeEffectVolume", config.styleChangeEffectVolume);
+		Create<uint32>(member, "styleChangeVOVolume", config.styleChangeVOVolume);
+		Create<uint32>(member, "sprintVolume", config.sprintVolume);
+		Create<uint32>(member, "devilTriggerInL1Volume", config.devilTriggerInL1Volume);
+		Create<uint32>(member, "devilTriggerInL2Volume", config.devilTriggerInL2Volume);
+		Create<uint32>(member, "devilTriggerOutVolume", config.devilTriggerOutVolume);
+		Create<uint32>(member, "devilTriggerReadyVolume", config.devilTriggerReadyVolume);
+		Create<uint32>(member, "doppelgangerInVolume", config.doppelgangerInVolume);
+		Create<uint32>(member, "doppelgangerOutVolume", config.doppelgangerOutVolume);
+		Create<uint32>(member, "quicksilverInVolume", config.quicksilverInVolume);
+		Create<uint32>(member, "styleRankAnnouncerVolume", config.styleRankAnnouncerVolume);
+
+	}
+
+
 
 	CreateArray<uint8, 2>(member, "beowulfVergilAirRisingSunCount", config.beowulfVergilAirRisingSunCount);
 
@@ -2421,6 +2452,29 @@ void ToJSON(Config& config_)
 
 	}
 
+	{
+		auto& member = root["SFX"];
+		auto& config = config_.SFX;
+
+		Set<uint8>(member["changeGunNew"], config.changeGunNew);
+		Set<uint8>(member["changeDevilArmNew"], config.changeDevilArmNew);
+		Set<uint32>(member["changeWeaponVolume"], config.changeWeaponVolume);
+		Set<uint32>(member["styleChangeEffectVolume"], config.styleChangeEffectVolume);
+		Set<uint32>(member["styleChangeVOVolume"], config.styleChangeVOVolume);
+		Set<uint32>(member["sprintVolume"], config.sprintVolume);
+		Set<uint32>(member["devilTriggerInL1Volume"], config.devilTriggerInL1Volume);
+		Set<uint32>(member["devilTriggerInL2Volume"], config.devilTriggerInL2Volume);
+		Set<uint32>(member["devilTriggerOutVolume"], config.devilTriggerOutVolume);
+		Set<uint32>(member["devilTriggerReadyVolume"], config.devilTriggerReadyVolume);
+		Set<uint32>(member["doppelgangerInVolume"], config.doppelgangerInVolume);
+		Set<uint32>(member["doppelgangerOutVolume"], config.doppelgangerOutVolume);
+		Set<uint32>(member["quicksilverInVolume"], config.quicksilverInVolume);
+		Set<uint32>(member["styleRankAnnouncerVolume"], config.styleRankAnnouncerVolume);
+
+	}
+
+
+
 	SetArray<uint8, 2>(member["beowulfVergilAirRisingSunCount"], config.beowulfVergilAirRisingSunCount);
 
 	Set<bool>(member["forceVisibleHUD"], config.forceVisibleHUD);
@@ -3043,6 +3097,27 @@ void ToConfig(Config& config_)
 
 		config.alwaysShow = Get<bool  >(member["alwaysShow"]);
 		config.timeout = Get<uint32>(member["timeout"]);
+
+	}
+
+	{
+		auto& config = config_.SFX;
+		auto& member = root["SFX"];
+
+		config.changeGunNew = Get<uint8>(member["changeGunNew"]);
+		config.changeDevilArmNew = Get<uint8>(member["changeDevilArmNew"]);
+		config.changeWeaponVolume = Get<uint32>(member["changeWeaponVolume"]);
+		config.styleChangeEffectVolume = Get<uint32>(member["styleChangeEffectVolume"]);
+		config.styleChangeVOVolume = Get<uint32>(member["styleChangeVOVolume"]);
+		config.sprintVolume = Get<uint32>(member["sprintVolume"]);
+		config.devilTriggerInL1Volume = Get<uint32>(member["devilTriggerInL1Volume"]);
+		config.devilTriggerInL2Volume = Get<uint32>(member["devilTriggerInL2Volume"]);
+		config.devilTriggerOutVolume = Get<uint32>(member["devilTriggerOutVolume"]);
+		config.devilTriggerReadyVolume = Get<uint32>(member["devilTriggerReadyVolume"]);
+		config.doppelgangerInVolume = Get<uint32>(member["doppelgangerInVolume"]);
+		config.doppelgangerOutVolume = Get<uint32>(member["doppelgangerOutVolume"]);
+		config.quicksilverInVolume = Get<uint32>(member["quicksilverInVolume"]);
+		config.styleRankAnnouncerVolume = Get<uint32>(member["styleRankAnnouncerVolume"]);
 
 	}
 

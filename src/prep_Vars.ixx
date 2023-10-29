@@ -4359,6 +4359,11 @@ export struct DoubleTap {
 	bool trackerRunning = false;
 };
 
+export struct SprintVFX {
+	int bank = 3;
+	int id = 141;
+} sprintVFX;
+
 export float rainstormMomentum = 0;
 
 
@@ -4540,6 +4545,7 @@ export struct Sprint {
 	int time = cooldown;
 	bool isSprinting = false;
 	bool SFXPlayed = false;
+	bool VFXPlayed = false;
 	float storedSpeedHuman = 0;
 	float storedSpeedDevilDante[5] = { 0 };
 	float storedSpeedDevilVergil[4] = { 0 };

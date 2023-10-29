@@ -12,6 +12,7 @@ module;
 #include <ctime>
 #include <iostream>
 #include <cstdio>
+#include "Utility/Detour.hpp"
 
 
 export module Actor;
@@ -28,6 +29,7 @@ using namespace Windows;
 import ActorBase;
 import ActorRelocations;
 import Config;
+import DetourFunctions;
 import Exp;
 import File;
 import Global;
@@ -12826,6 +12828,7 @@ void SprintAbility() {
 
 
 		sprint.SFXPlayed = false;
+		sprint.VFXPlayed = false;
 	}
 
 	if (actorData.state == 524289 && !inCombat) {
@@ -12894,6 +12897,14 @@ void SprintAbility() {
 		if (!sprint.SFXPlayed) {
 			playSprint();
 			sprint.SFXPlayed = true;
+		}
+
+		if (!sprint.VFXPlayed) {
+			createEffectBank = sprintVFX.bank;
+			createEffectID = sprintVFX.id;
+			CreateEffectDetour();
+
+			sprint.VFXPlayed = true;
 		}
 
 		sprint.isSprinting = true;

@@ -3,7 +3,6 @@ module;
 #include "../ThirdParty/ImGui/imgui.h"
 #include "../ThirdParty/ImGui/imgui_internal.h"
 #include "../ThirdParty/ImGui/imgui_internal.h"
-#include "Utility/Detour.hpp"
 
 
 #include <stdio.h>
@@ -15,22 +14,6 @@ module;
 #include <thread>
 #include <chrono>
 
-extern "C" {
-	std::uint64_t DetourBaseAddr;
-
-	std::uint64_t g_SampleMod_ReturnAddr1;
-	void SampleModDetour1();
-
-	std::uint64_t g_GuardGravity_ReturnAddr1;
-	void GuardGravityDetour();
-
-	std::uint64_t createEffectRBXMov;
-	std::uint64_t createEffectCallA;
-	std::uint64_t createEffectCallB;
-	int createEffectBank = 3;
-	int createEffectID = 144;
-	void CreateEffectDetour();
-}
 
 export module GUI;
 
@@ -56,6 +39,7 @@ import Actor;
 import Arcade;
 import Camera;
 import Config;
+import DetourFunctions;
 import Event; // CloseShop
 import Exp;
 import File;
@@ -10656,13 +10640,13 @@ void MainOverlayWindow()
 					/*ImGui::Text("SDL2 %s", SDL2Initialization);
 					ImGui::Text("Mixer  %s", MixerInitialization);
 					ImGui::Text("Mixer2  %s", MixerInitialization2);*/
-					/*
+					
 					ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
 					ImGui::Text("Wheel Running %u", meleeWeaponWheelTiming.wheelRunning);
 					ImGui::Text("Wheel Time %u", meleeWeaponWheelTiming.wheelTime);
 					ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap.buffer);
 					ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap.buffer);
-					*/
+					
 					ImGui::Text("Magic Points Dopp %g", currentDTDoppOn);
 					ImGui::Text("Magic Points Dopp DT %g", currentDTDoppDTOn);
 					ImGui::Text("Dopp Milliseconds %g", doppSeconds);
@@ -12476,76 +12460,12 @@ void SFX()
 
 
 
-
-
-		if (GUI_ResetButton())
-		{
-			CopyMemory
-			(
-				&queuedConfig.infiniteHitPoints,
-				&defaultConfig.infiniteHitPoints,
-				sizeof(queuedConfig.infiniteHitPoints)
-			);
-			CopyMemory
-			(
-				&activeConfig.infiniteHitPoints,
-				&queuedConfig.infiniteHitPoints,
-				sizeof(activeConfig.infiniteHitPoints)
-			);
-
-			ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
-
-			CopyMemory
-			(
-				&queuedConfig.infiniteMagicPoints,
-				&defaultConfig.infiniteMagicPoints,
-				sizeof(queuedConfig.infiniteMagicPoints)
-			);
-			CopyMemory
-			(
-				&activeConfig.infiniteMagicPoints,
-				&queuedConfig.infiniteMagicPoints,
-				sizeof(activeConfig.infiniteMagicPoints)
-			);
-
-			ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
-
-			CopyMemory
-			(
-				&queuedConfig.disableTimer,
-				&defaultConfig.disableTimer,
-				sizeof(queuedConfig.disableTimer)
-			);
-			CopyMemory
-			(
-				&activeConfig.disableTimer,
-				&queuedConfig.disableTimer,
-				sizeof(activeConfig.disableTimer)
-			);
-
-			ToggleDisableTimer(activeConfig.disableTimer);
-
-			CopyMemory
-			(
-				&queuedConfig.infiniteBullets,
-				&defaultConfig.infiniteBullets,
-				sizeof(queuedConfig.infiniteBullets)
-			);
-			CopyMemory
-			(
-				&activeConfig.infiniteBullets,
-				&queuedConfig.infiniteBullets,
-				sizeof(activeConfig.infiniteBullets)
-			);
-
-			ToggleInfiniteBullets(activeConfig.infiniteBullets);
-		}
 		ImGui::Text("");
 
 		ImGui::Text("Weapon Wheel");
 
 		ImGui::PushItemWidth(150.0f);
-		GUI_Combo2<int>
+		GUI_Combo2<uint8>
 			(
 				"Change Gun",
 				changeGunNewNames,
@@ -12556,7 +12476,7 @@ void SFX()
 
 
 		ImGui::PushItemWidth(150.0f);
-		GUI_Combo2<int>
+		GUI_Combo2<uint8>
 			(
 				"Change Devil Arm",
 				changeDevilArmNewNames,
@@ -12565,7 +12485,7 @@ void SFX()
 			);
 		ImGui::PopItemWidth();
 
-		GUI_InputDefault2
+		GUI_InputDefault2<uint32>
 		(
 			"Change Weapon Volume",
 			activeConfig.SFX.changeWeaponVolume,
@@ -12576,82 +12496,132 @@ void SFX()
 			ImGuiInputTextFlags_EnterReturnsTrue
 		);
 
+
+
 		ImGui::Text("");
 		ImGui::Text("Style Switching");
 
-		GUI_InputDefault2
+		GUI_InputDefault2<uint32>
 		(
-			"Style Change Volume",
-			activeConfig.SFX.styleChangeVolume,
-			queuedConfig.SFX.styleChangeVolume,
-			defaultConfig.SFX.styleChangeVolume,
+			"Style Change Effect Volume",
+			activeConfig.SFX.styleChangeEffectVolume,
+			queuedConfig.SFX.styleChangeEffectVolume,
+			defaultConfig.SFX.styleChangeEffectVolume,
+			1,
+			"%u",
+			ImGuiInputTextFlags_EnterReturnsTrue
+		);
+
+		GUI_InputDefault2<uint32>
+		(
+			"Style Change VO Volume",
+			activeConfig.SFX.styleChangeVOVolume,
+			queuedConfig.SFX.styleChangeVOVolume,
+			defaultConfig.SFX.styleChangeVOVolume,
 			1,
 			"%u",
 			ImGuiInputTextFlags_EnterReturnsTrue
 		);
 
 
-		/*if
-		(
-			GUI_Checkbox2
-			(
-				"Infinite Hit Points",
-				activeConfig.infiniteHitPoints,
-				queuedConfig.infiniteHitPoints
-			)
-		)
-		{
-			ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
-		}
 
-		if
-		(
-			GUI_Checkbox2
-			(
-				"Infinite Magic Points",
-				activeConfig.infiniteMagicPoints,
-				queuedConfig.infiniteMagicPoints
-			)
-		)
-		{
-			ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
-		}
+		ImGui::Text("");
+		ImGui::Text("Devil Trigger");
 
-		if
+		GUI_InputDefault2<uint32>
 		(
-			GUI_Checkbox2
-			(
-				"Disable Timer",
-				activeConfig.disableTimer,
-				queuedConfig.disableTimer
-			)
-		)
-		{
-			ToggleDisableTimer(activeConfig.disableTimer);
-		}
+			"DT In Layer 1 Volume",
+			activeConfig.SFX.devilTriggerInL1Volume,
+			queuedConfig.SFX.devilTriggerInL1Volume,
+			defaultConfig.SFX.devilTriggerInL1Volume,
+			1,
+			"%u",
+			ImGuiInputTextFlags_EnterReturnsTrue
+		);
 
-		if
+		GUI_InputDefault2<uint32>
 		(
-			GUI_Checkbox2
-			(
-				"Infinite Bullets",
-				activeConfig.infiniteBullets,
-				queuedConfig.infiniteBullets
-			)
-		)
-		{
-			ToggleInfiniteBullets(activeConfig.infiniteBullets);
-		}
-		ImGui::SameLine();
-		TooltipHelper
+			"DT In Layer 2 Volume",
+			activeConfig.SFX.devilTriggerInL2Volume,
+			queuedConfig.SFX.devilTriggerInL2Volume,
+			defaultConfig.SFX.devilTriggerInL2Volume,
+			1,
+			"%u",
+			ImGuiInputTextFlags_EnterReturnsTrue
+		);
+
+		GUI_InputDefault2<uint32>
 		(
-			"(?)",
-			"For Boss Lady."
-		);*/
+			"DT Ready Volume",
+			activeConfig.SFX.devilTriggerReadyVolume,
+			queuedConfig.SFX.devilTriggerReadyVolume,
+			defaultConfig.SFX.devilTriggerReadyVolume,
+			1,
+			"%u",
+			ImGuiInputTextFlags_EnterReturnsTrue
+		);
 
 
 
 		ImGui::Text("");
+		ImGui::Text("Doppelganger");
+
+		GUI_InputDefault2<uint32>
+		(
+			"Doppelganger In Volume",
+			activeConfig.SFX.doppelgangerInVolume,
+			queuedConfig.SFX.doppelgangerInVolume,
+			defaultConfig.SFX.doppelgangerInVolume,
+			1,
+			"%u",
+			ImGuiInputTextFlags_EnterReturnsTrue
+		);
+
+		GUI_InputDefault2<uint32>
+		(
+			"Doppelganger Out Volume",
+			activeConfig.SFX.doppelgangerOutVolume,
+			queuedConfig.SFX.doppelgangerOutVolume,
+			defaultConfig.SFX.doppelgangerOutVolume,
+			1,
+			"%u",
+			ImGuiInputTextFlags_EnterReturnsTrue
+		);
+
+
+
+		ImGui::Text("");
+		ImGui::Text("Quicksilver");
+
+		GUI_InputDefault2<uint32>
+		(
+			"Quicksilver In Volume",
+			activeConfig.SFX.quicksilverInVolume,
+			queuedConfig.SFX.quicksilverInVolume,
+			defaultConfig.SFX.quicksilverInVolume,
+			1,
+			"%u",
+			ImGuiInputTextFlags_EnterReturnsTrue
+		);
+
+
+
+		ImGui::Text("");
+		ImGui::Text("Style Rank Announcer");
+
+		GUI_InputDefault2<uint32>
+		(
+			"Style Rank Announcer Volume",
+			activeConfig.SFX.styleRankAnnouncerVolume,
+			queuedConfig.SFX.styleRankAnnouncerVolume,
+			defaultConfig.SFX.styleRankAnnouncerVolume,
+			1,
+			"%u",
+			ImGuiInputTextFlags_EnterReturnsTrue
+		);
+;
+
+
 	}
 }
 
@@ -13377,20 +13347,7 @@ void KeyBindings()
 
 #pragma endregion
 
-export void InitDetours() {
-	using namespace Utility;
-	DetourBaseAddr = (uintptr_t)appBaseAddr;
 
-	//GuardGravity
-	static std::unique_ptr<Detour_t> guardGravityHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EE121, &GuardGravityDetour, 7);
-	g_GuardGravity_ReturnAddr1 = guardGravityHook->GetReturnAddress();
-	guardGravityHook->Toggle(true);
-
-	//EffectCall
-	createEffectCallA = (uintptr_t)appBaseAddr + 0x2E7CA0;
-	createEffectCallB = (uintptr_t)appBaseAddr + 0x1FAA50;
-	createEffectRBXMov = (uintptr_t)appBaseAddr + 0xC18AF8;
-}
 
 #pragma region Main
 

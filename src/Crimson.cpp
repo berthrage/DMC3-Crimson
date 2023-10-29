@@ -14,6 +14,7 @@ import Arcade;
 import BossRush;
 import Camera;
 import Config;
+import DetourFunctions;
 import Event;
 import Exp;
 import File;
