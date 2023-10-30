@@ -4460,7 +4460,7 @@ void RemoveBusyFlagController(byte8* actorBaseAddr)
 		actorData.action == REBELLION_DANCE_MACABRE_PART_3 || actorData.action == REBELLION_DANCE_MACABRE_PART_4 ||
 		actorData.action == REBELLION_DANCE_MACABRE_PART_5 || actorData.action == REBELLION_DANCE_MACABRE_PART_6 ||
 		actorData.action == REBELLION_DANCE_MACABRE_PART_7 || actorData.action == REBELLION_DANCE_MACABRE_PART_8 ||
-		actorData.action == REBELLION_CRAZY_DANCE || actorData.action == POLE_PLAY);
+		actorData.action == REBELLION_CRAZY_DANCE || actorData.action == POLE_PLAY || actorData.action == REBELLION_SWORD_PIERCE);
 
 	bool inCancellableActionCerberus = (actorData.action == CERBERUS_COMBO_1_PART_1 || actorData.action == CERBERUS_COMBO_1_PART_2 ||
 		actorData.action == CERBERUS_COMBO_1_PART_3 || actorData.action == CERBERUS_COMBO_1_PART_4 ||
@@ -4477,7 +4477,7 @@ void RemoveBusyFlagController(byte8* actorBaseAddr)
 		actorData.action == AGNI_RUDRA_COMBO_2_PART_3 || actorData.action == AGNI_RUDRA_COMBO_3_PART_3 ||
 		actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_1 || actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_2 ||
 		actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_3 || actorData.action == AGNI_RUDRA_MILLION_SLASH ||
-		actorData.action == AGNI_RUDRA_TWISTER || actorData.action == AGNI_RUDRA_TEMPEST);
+		actorData.action == AGNI_RUDRA_TWISTER || actorData.action == AGNI_RUDRA_TEMPEST || actorData.action == AGNI_RUDRA_WHIRLWIND_LAUNCH);
 
 
 	bool inCancellableActionNevan = (actorData.action == NEVAN_TUNE_UP || actorData.action == NEVAN_COMBO_1 ||
@@ -6543,6 +6543,52 @@ void FasterRapidSlashDevil(byte8* actorBaseAddr) {
 	}
 }
 
+
+void LastEventStateQueue() {
+	//IntroduceMainActorData
+	auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if
+		(
+			!pool_12857 ||
+			!pool_12857[3]
+			) {
+		return;
+	}
+
+
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
+
+	auto lastEvent = mainActorData.eventData[0].lastEvent;
+	auto lastState = mainActorData.lastState;
+
+
+
+	if (lastEvents.back() != lastEvent) {
+		lastEvents.push_back(mainActorData.eventData[0].lastEvent);
+	}
+	if (lastEvents.size() > 2) {
+		lastLastEvent = lastEvents.at(lastEvents.size() - 2);
+	}
+
+	if (lastEvents.size() > 4) {
+		lastEvents.erase(lastEvents.begin());
+	}
+
+	if (lastStates.back() != lastState) {
+		lastStates.push_back(mainActorData.lastState);
+	}
+	if (lastStates.size() > 2) {
+		lastLastState = lastStates.at(lastStates.size() - 2);
+	}
+
+	if (lastStates.size() > 4) {
+		lastStates.erase(lastStates.begin());
+	}
+}
+
+
+
+
 template <typename T>
 bool WeaponSwitchController(byte8* actorBaseAddr)
 {
@@ -6584,6 +6630,7 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 	CameraTiltController();
 	LockedOffCameraToggle(activeConfig.cameraLockOff);
 	CameraLockOnDistanceController();
+	LastEventStateQueue();
 
 	if (
 		(actorData.newPlayerIndex == 0) &&
@@ -6623,10 +6670,13 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 		}
 	}
 
+	auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+
 	RemoveBusyFlagController(actorData);
+	RemoveBusyFlagController(cloneActorData);
 
 	ResetPermissionsController(actorData);
-
+	ResetPermissionsController(cloneActorData);
 
 
 	return true;
@@ -12396,6 +12446,7 @@ void InertiaController(byte8* actorBaseAddr) {
 			actorData.verticalPullMultiplier = -2;
 		}
 
+		// This Mimic's DMC4's Trick Up Inertia Boost behaviour, uses LastEventStateQueue
 		if (actorData.eventData[0].event == ACTOR_EVENT::TRICK_UP_END && lastLastEvent == 17 && lastLastState & STATE::IN_AIR) {
 			actorData.horizontalPull = 7.5f;
 		}
@@ -13562,41 +13613,6 @@ void UpdateActorSpeed(byte8* baseAddr)
 	FixUpdateLockOnsArtemis(mainActorData);
 
 	
-
-	auto lastEvent = mainActorData.eventData[0].lastEvent;
-	auto lastState = mainActorData.lastState;
-
-	if (!firstLastEvent) {
-		lastLastEvent = mainActorData.eventData[0].lastEvent;
-		firstLastEvent = true;
-	}
-
-	/*if (lastLastEvent != lastEvent && !secondLastEvent) {
-		lastEvents.push_back(mainActorData.eventData[0].lastEvent);
-		secondLastEvent = true;
-	}*/
-
-	if (lastEvents.back() != lastEvent) {
-		lastEvents.push_back(mainActorData.eventData[0].lastEvent);
-	}
-	if (lastEvents.size() > 2) {
-		lastLastEvent = lastEvents.at(lastEvents.size() - 2);
-	}
-
-	if (lastEvents.size() > 4) {
-		lastEvents.erase(lastEvents.begin());
-	}
-	
-	if (lastStates.back() != lastState) {
-		lastStates.push_back(mainActorData.lastState);
-	}
-	if (lastStates.size() > 2) {
-		lastLastState = lastStates.at(lastStates.size() - 2);
-	}
-
-	if (lastStates.size() > 4) {
-		lastStates.erase(lastStates.begin());
-	}
 
 
 
