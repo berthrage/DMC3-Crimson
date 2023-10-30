@@ -4399,12 +4399,6 @@ void TrickUpCancelCooldownTracker() {
 	}
 
 
-	if (trickUpCancel.cooldown == 0)
-	{
-
-		trickUpCancel.canTrickUp = true;
-		trickUpCancel.trackerRunning = false;
-	}
 }
 
 void GunslingerAirCancelCooldownTracker() {
@@ -4418,13 +4412,6 @@ void GunslingerAirCancelCooldownTracker() {
 		gunsCancel.cooldown--;
 	}
 
-
-	if (gunsCancel.cooldown == 0)
-	{
-
-		gunsCancel.canGun = true;
-		gunsCancel.trackerRunning = false;
-	}
 }
 
 void RainstormCancelCooldownTracker() {
@@ -4439,12 +4426,7 @@ void RainstormCancelCooldownTracker() {
 	}
 
 
-	if (rainstormCancel.cooldown == 0)
-	{
-
-		rainstormCancel.canGun = true;
-		rainstormCancel.trackerRunning = false;
-	}
+	
 }
 
 void RemoveBusyFlagController(byte8* actorBaseAddr)
@@ -4519,7 +4501,7 @@ void RemoveBusyFlagController(byte8* actorBaseAddr)
 		actorData.action == REBELLION_AERIAL_RAVE_PART_4) || (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
 			actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
 			actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) || (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
-				actorData.action == NEVAN_AIR_SLASH_PART_2) || (actorData.action == CERBERUS_AIR_FLICKER));
+				actorData.action == NEVAN_AIR_SLASH_PART_2) || (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO));
 
 	bool inCancellableActionAirGunslinger = (actorData.action == SHOTGUN_AIR_FIREWORKS ||
 		actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_NORMAL_SHOT);
@@ -4647,6 +4629,25 @@ void RemoveBusyFlagController(byte8* actorBaseAddr)
 
 		}*/
 
+
+		if (trickUpCancel.cooldown <= 0) {
+
+			trickUpCancel.canTrickUp = true;
+			trickUpCancel.trackerRunning = false;
+		}
+
+		if (gunsCancel.cooldown == 0) {
+
+			gunsCancel.canGun = true;
+			gunsCancel.trackerRunning = false;
+		}
+
+		if (rainstormCancel.cooldown == 0) {
+
+			rainstormCancel.canGun = true;
+			rainstormCancel.trackerRunning = false;
+		}
+
 		//Dante's Trickster Actions Cancels Most Things (w/ cooldown)
 		if (actorData.character == CHARACTER::DANTE) {
 			if ((actorData.style == STYLE::TRICKSTER) &&
@@ -4679,7 +4680,8 @@ void RemoveBusyFlagController(byte8* actorBaseAddr)
 			// They can also cancel themselves.
 			if ((actorData.style == STYLE::GUNSLINGER) &&
 				(actorData.state == STATE::IN_AIR || actorData.state == 65538) && (gunsCancel.canGun) && (inCancellableActionAirSwordmaster ||
-					inCancellableActionAirGunslinger || actorData.eventData[0].event == 23)) {
+					inCancellableActionAirGunslinger || actorData.eventData[0].event == 23 || actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK || 
+					actorData.motionData[0].index == 15)) {
 				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
 				{
 					if (!gunsCancel.trackerRunning) {
@@ -12366,6 +12368,17 @@ void InertiaController(byte8* actorBaseAddr) {
 
 	distanceToEnemy = actorData.position.z - actorData.lockOnData.targetPosition.z;
 
+	bool inAirSwordmaster = ((actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
+		actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+		actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
+		actorData.action == REBELLION_AERIAL_RAVE_PART_4) || (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
+			actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
+			actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) || (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
+				actorData.action == NEVAN_AIR_SLASH_PART_2) || (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO));
+
+	bool inAirGunslinger = (actorData.action == SHOTGUN_AIR_FIREWORKS ||
+		actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_NORMAL_SHOT);
+
 
 	/*bool inRoyalBlock = (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) &&
 						gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION));*/
@@ -12383,6 +12396,10 @@ void InertiaController(byte8* actorBaseAddr) {
 			actorData.verticalPullMultiplier = -2;
 		}
 
+		if (actorData.eventData[0].event == ACTOR_EVENT::TRICK_UP_END && lastLastEvent == 17 && lastLastState & STATE::IN_AIR) {
+			actorData.horizontalPull = 7.5f;
+		}
+
 
 		if (actorData.state == 65538) {
 
@@ -12394,7 +12411,11 @@ void InertiaController(byte8* actorBaseAddr) {
 				}
 
 				rainstormInertia.cachedPull = glm::clamp(rainstormInertia.cachedPull, -9.0f, 9.0f);
+				
 				actorData.horizontalPull = rainstormInertia.cachedPull / rainstormInertia.haltDivisor;
+				
+				
+				
 
 				//actorData.horizontalPullMultiplier = 0.2f;
 			}
@@ -13526,6 +13547,8 @@ void UpdateActorSpeed(byte8* baseAddr)
 	{
 		return;
 	}
+
+	
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
 	CheckRoyalRelease(mainActorData);
 	CheckSkyLaunch(mainActorData);
@@ -13538,7 +13561,42 @@ void UpdateActorSpeed(byte8* baseAddr)
 	AirTauntToggleController(mainActorData);
 	FixUpdateLockOnsArtemis(mainActorData);
 
+	
 
+	auto lastEvent = mainActorData.eventData[0].lastEvent;
+	auto lastState = mainActorData.lastState;
+
+	if (!firstLastEvent) {
+		lastLastEvent = mainActorData.eventData[0].lastEvent;
+		firstLastEvent = true;
+	}
+
+	/*if (lastLastEvent != lastEvent && !secondLastEvent) {
+		lastEvents.push_back(mainActorData.eventData[0].lastEvent);
+		secondLastEvent = true;
+	}*/
+
+	if (lastEvents.back() != lastEvent) {
+		lastEvents.push_back(mainActorData.eventData[0].lastEvent);
+	}
+	if (lastEvents.size() > 2) {
+		lastLastEvent = lastEvents.at(lastEvents.size() - 2);
+	}
+
+	if (lastEvents.size() > 4) {
+		lastEvents.erase(lastEvents.begin());
+	}
+	
+	if (lastStates.back() != lastState) {
+		lastStates.push_back(mainActorData.lastState);
+	}
+	if (lastStates.size() > 2) {
+		lastLastState = lastStates.at(lastStates.size() - 2);
+	}
+
+	if (lastStates.size() > 4) {
+		lastStates.erase(lastStates.begin());
+	}
 
 
 

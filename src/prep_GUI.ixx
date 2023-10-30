@@ -10464,12 +10464,13 @@ void MainOverlayWindow()
 
 
 
-					ImGui::Text("backtoforward Back:  %u", b2F.backCommand);
+					/*ImGui::Text("backtoforward Back:  %u", b2F.backCommand);
 					ImGui::Text("backtoforward Back Buffer:  %g", b2F.backBuffer);
 					ImGui::Text("backtoforward Forward:  %u", b2F.forwardCommand);
 					ImGui::Text("backtoforward Forward Buffer:  %g", b2F.forwardBuffer);
 					ImGui::Text("backtoforward Back Direction Changed:  %u", b2F.backDirectionChanged);
-					ImGui::Text("backtoforward Forward Direction Changed:  %u", b2F.backDirectionChanged);
+					ImGui::Text("backtoforward Forward Direction Changed:  %u", b2F.backDirectionChanged);*/
+					ImGui::Text("trickCancel Cooldown:  %u", trickUpCancel.cooldown);
 
 
 					if (isMusicPlaying() == 0) {
@@ -10627,6 +10628,24 @@ void MainOverlayWindow()
 					ImGui::Text("fRapidSlash storedSpeedDevil %g", fasterRapidSlash.storedSpeedDevil[0]);
 					ImGui::Text("fDarklasyer storedSpeedDevil %g", fasterDarkslayer.storedSpeedDevil[0]);
 					ImGui::Text("Motion Data 1: %u", actorData.motionData[0].index);
+					ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
+					ImGui::Text("Last Event Data %u", actorData.eventData[0].lastEvent);
+					ImGui::Text("Last Last Event %u", lastLastEvent);
+					ImGui::Text("State %u", actorData.state);
+					ImGui::Text("Last State %u", actorData.lastState);
+					ImGui::Text("Last Last State %u", lastLastState);
+					ImGui::Text("Character Action %u", actorData.action);
+					ImGui::Text("Character Last Action %u", actorData.lastAction);
+					ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
+					ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
+					ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
+					ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
+					ImGui::Text("Position  %g", actorData.position);
+					ImGui::Text("Rotation %g", actorData.rotation);
+					ImGui::Text("Camera Direction %g", actorData.cameraDirection);
+					ImGui::Text("Actor Camera Direction %g", actorData.actorCameraDirection);
+					ImGui::Text("RelativeTilt %g", relativeTiltController);
+					ImGui::Text("LeftStick Position %u", gamepad.leftStickPosition);
 					ImGui::Text("Air Stinger End Timer %u", airStingerEnd.timer);
 					ImGui::Text("Air Stinger End Time Int %u", airStingerEndTimeInt);
 					ImGui::Text("Actor Speed %g", actorData.speed);
@@ -10638,8 +10657,6 @@ void MainOverlayWindow()
 					ImGui::Text("Weapon %u", actorData.meleeWeaponIndex);
 					ImGui::Text("Weapon Character Data %u", characterData.meleeWeaponIndex);
 					ImGui::Text("Active Weapon %u", actorData.activeWeapon);
-					ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
-					ImGui::Text("Last Event Data %u", actorData.eventData[0].lastEvent);
 					ImGui::Text("Trick Up Count %u", actorData.newTrickUpCount);
 					ImGui::Text("Sky Star Count %u", actorData.newSkyStarCount);
 					ImGui::Text("Air Hike Count %u", actorData.newAirHikeCount);
@@ -10688,18 +10705,7 @@ void MainOverlayWindow()
 
 					ImGui::Text("Doppelganger active %u", actorData.doppelganger);
 					ImGui::Text("Actor Mode %u", actorData.mode);
-					ImGui::Text("Character %u", actorData.action);
-					ImGui::Text("State %u", actorData.state);
-					ImGui::Text("Position  %g", actorData.position);
-					ImGui::Text("Rotation %g", actorData.rotation);
-					ImGui::Text("Camera Direction %g", actorData.cameraDirection);
-					ImGui::Text("Actor Camera Direction %g", actorData.actorCameraDirection);
-					ImGui::Text("RelativeTilt %g", relativeTiltController);
-					ImGui::Text("LeftStick Position %u", gamepad.leftStickPosition);
-					ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
-					ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
-					ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
-					ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
+					
 
 
 

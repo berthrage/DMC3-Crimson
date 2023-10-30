@@ -1,5 +1,6 @@
 module;
 #include <string> 
+#include <vector>
 
 
 export module Vars;
@@ -720,7 +721,7 @@ enum
 	UNKNOWN_5,
 	AIR_HIKE,
 	UNKNOWN_6,
-	UNKNOWN_7,
+	TRICK_UP_END,
 	LOCK_ON,
 	UNKNOWN_8,
 	UNKNOWN_9,
@@ -4568,6 +4569,13 @@ export struct BackToForward {
 	float forwardBuffer = forwardDuration;
 
 } b2F;
+
+export std::vector<int> lastEvents{ 0 };
+export bool firstLastEvent = false;
+export int lastLastEvent = 0;
+
+export std::vector<byte32> lastStates{ 0 };
+export byte32 lastLastState = 0;
 
 export struct GuiPause {
 	bool in = false;
