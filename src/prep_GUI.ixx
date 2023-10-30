@@ -943,20 +943,34 @@ static_assert(countof(trackFilenames) == countof(trackNames));
 #pragma endregion
 
 void PauseWhenGUIOpen() {
-	if (!g_show && !pausedGameGUIOpen) {
+	if (g_scene != SCENE::GAME) {
+		guiPause.timer = 0.5f;
+		guiPause.canPause = false;
+	}
+	else {
+		if (guiPause.timer > 0) {
+			guiPause.timer -= ImGui::GetIO().DeltaTime;
+		}
+	}
+
+	if (guiPause.timer <= 0) {
+		guiPause.canPause = true;
+	}
+
+	if (!g_show) {
 		activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed;
 		activeConfig.Speed.turbo = queuedConfig.Speed.turbo;
 		Speed::Toggle(true);
 		Speed::Toggle(false);
-		pausedGameGUIOpen = true;
+		guiPause.in = true;
 
 	}
-	else if (g_show && pausedGameGUIOpen) {
+	else if (g_show && guiPause.in && guiPause.canPause){
 		activeConfig.Speed.mainSpeed = 0;
 		activeConfig.Speed.turbo = 0;
 		Speed::Toggle(true);
 		Speed::Toggle(false);
-		pausedGameGUIOpen = false;
+		guiPause.in = false;
 
 	}
 }
@@ -10348,7 +10362,14 @@ void NewMissionClearSong() {
 	}
 }
 
-
+void SiyTimerFunc() {
+	if (siytimer > 0) {
+		siytimer -= ImGui::GetIO().DeltaTime;
+	}
+	else if (siytimer < 0) {
+		siytimer = 0;
+	}
+}
 
 
 const char* mainOverlayLabel = "MainOverlay";
@@ -10443,12 +10464,12 @@ void MainOverlayWindow()
 
 
 
-					/*ImGui::Text("backtoforward Back:  %u", backCommand);
-					ImGui::Text("backtoforward Back Buffer:  %u", backBuffer);
-					ImGui::Text("backtoforward Back Tracker:  %u", backTrackerRunning);
-					ImGui::Text("backtoforward Forward:  %u", forwardCommand);
-					ImGui::Text("backtoforward Forward Buffer:  %u", forwardBuffer);
-					ImGui::Text("backtoforward Direction Changed:  %u", directionChanged);*/
+					ImGui::Text("backtoforward Back:  %u", b2F.backCommand);
+					ImGui::Text("backtoforward Back Buffer:  %g", b2F.backBuffer);
+					ImGui::Text("backtoforward Forward:  %u", b2F.forwardCommand);
+					ImGui::Text("backtoforward Forward Buffer:  %g", b2F.forwardBuffer);
+					ImGui::Text("backtoforward Back Direction Changed:  %u", b2F.backDirectionChanged);
+					ImGui::Text("backtoforward Forward Direction Changed:  %u", b2F.backDirectionChanged);
 
 
 					if (isMusicPlaying() == 0) {
@@ -10575,12 +10596,7 @@ void MainOverlayWindow()
 
 
 					auto& metadata = enemyVectorData.metadata[0];
-					if (siytimer > 0) {
-						siytimer -= ImGui::GetIO().DeltaTime;
-					}
-					else if (siytimer < 0) {
-						siytimer = 0;
-					}
+					
 
 					auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 					if
@@ -13609,8 +13625,8 @@ export void GUI_Render()
 	BossLadyActionsOverlayWindow();
 	BossVergilActionsOverlayWindow();
 
-
-
+	BackToForwardTimers();
+	SiyTimerFunc();
 	Bars();
 	WeaponSwitchController();
 

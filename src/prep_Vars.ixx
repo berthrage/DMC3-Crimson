@@ -4321,7 +4321,7 @@ export struct BossHelper
 	const char* track;
 };
 
-export bool pausedGameGUIOpen = false;
+
 
 export struct Toggle {
 	int disableHeightRestriction = 2;
@@ -4558,29 +4558,22 @@ export bool devilTriggerReadyPlayed = false;
 export bool missionClearSongPlayed = false;
 
 export struct BackToForward {
+	bool backCommand = false;
+	float backDuration = 0.3f;
+	float  backBuffer = backDuration;
+	bool backDirectionChanged = true;
+	bool forwardDirectionChanged = true;
+	bool forwardCommand = false;
+	float forwardDuration = 0.3f;
+	float forwardBuffer = forwardDuration;
 
-	bool back = false;
-	bool backTrackerRunning = false;
-	int backDuration = 1000;
-	int backBuffer = backDuration;
-	bool forward = false;
-	bool forwardTrackerRunning = false;
-	int forwardDuration = 1000;
-	int forwardBuffer = forwardDuration;
+} b2F;
 
-
-} backToForward;
-
-export bool backCommand = false;
-export int backDuration = 300;
-export int backBuffer = backDuration;
-export bool backTrackerRunning = false;
-export bool directionChanged = true;
-
-export bool forwardCommand = false;
-export int forwardDuration = 300;
-export int forwardBuffer = forwardDuration;
-export bool forwardTrackerRunning = false;
+export struct GuiPause {
+	bool in = false;
+	float timer = 0.5f;
+	bool canPause = false;
+} guiPause;
 
 
 export constexpr BossHelper bossHelpers[] =

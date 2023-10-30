@@ -9,6 +9,7 @@ module;
 #include <chrono>
 #include <math.h>
 #include "../ThirdParty/glm/glm.hpp"
+#include "../ThirdParty/ImGui/imgui.h"
 #include <ctime>
 #include <iostream>
 #include <cstdio>
@@ -4651,7 +4652,7 @@ void RemoveBusyFlagController(byte8* actorBaseAddr)
 			if ((actorData.style == STYLE::TRICKSTER) &&
 				(trickUpCancel.canTrickUp) && actorData.eventData[0].event != 22 && (inCancellableActionRebellion || inCancellableActionCerberus ||
 					inCancellableActionAgni || inCancellableActionNevan || inCancellableActionBeowulf || inCancellableActionGuns ||
-					inCancellableActionAirSwordmaster || inCancellableActionAirGunslinger || actorData.action == EBONY_IVORY_RAIN_STORM)) {
+					inCancellableActionAirSwordmaster || inCancellableActionAirGunslinger || actorData.action == EBONY_IVORY_RAIN_STORM) || executingSkyLaunch) {
 				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
 				{
 					if (!trickUpCancel.trackerRunning && actorData.style == STYLE::TRICKSTER) {
@@ -11871,18 +11872,19 @@ void GetRoyalBlockAction(byte8* actorBaseAddr) {
 
 	auto lockOn = (gamepad.buttons[0] & GetBinding(BINDING::LOCK_ON));
 
-	bool inSwordmasterAirMove = (((actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
+	bool inCancellableMoves = (((actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
 		actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
 		actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
 		actorData.action == REBELLION_AERIAL_RAVE_PART_4) || (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
 			actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
 			actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) || (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
-				actorData.action == NEVAN_AIR_SLASH_PART_2) || (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO)) && 
+				actorData.action == NEVAN_AIR_SLASH_PART_2) || (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO) ||
+		(actorData.action == CERBERUS_REVOLVER_LEVEL_1) || (actorData.action == CERBERUS_REVOLVER_LEVEL_2)) &&
 					actorData.eventData[0].event == 17);
 
 	// Keep in mind setting the Royal Block Action cancels out most things, this is a primary function for Guardflying to work.
 
-	if (actorData.style == STYLE::ROYALGUARD && (actorData.eventData[0].event == 23 || inSwordmasterAirMove)) {
+	if (actorData.style == STYLE::ROYALGUARD && (actorData.eventData[0].event == 23 || inCancellableMoves)) {
 		if (inAir) {
 
 			if ((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))
@@ -13061,45 +13063,13 @@ void DTReadySFX() {
 	}
 }
 
-void BackToForwardInputBackTracker() {
-	backTrackerRunning = true;
-	directionChanged = false;
-	while (backBuffer > 0 && backTrackerRunning == true) {
-
-		backCommand = true;
-		backTrackerRunning = true;
-		backBuffer--;
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		if (backBuffer == 0) {
-
-			backCommand = false;
-			backBuffer = backDuration;
-			backTrackerRunning = false;
-
-		}
+export void BackToForwardTimers() {
+	if (b2F.backCommand) {
+		b2F.backBuffer -= ImGui::GetIO().DeltaTime;
 	}
 
-
-
-}
-
-void BackToForwardInputForwardTracker() {
-	forwardTrackerRunning = true;
-	backBuffer = backDuration;
-	backTrackerRunning = false;
-	while (forwardBuffer > 0 && forwardTrackerRunning == true) {
-
-		forwardCommand = true;
-		forwardTrackerRunning = true;
-		forwardBuffer--;
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		if (forwardBuffer == 0) {
-			backCommand = false;
-			forwardCommand = false;
-			forwardBuffer = backDuration;
-			forwardTrackerRunning = false;
-
-		}
+	if (b2F.forwardCommand) {
+		b2F.forwardBuffer -= ImGui::GetIO().DeltaTime;
 	}
 }
 
@@ -13116,31 +13086,45 @@ void BackToForwardInputs(byte8* actorBaseAddr) {
 	auto radius = gamepad.leftStickRadius;
 	auto pos = gamepad.leftStickPosition;
 
+	if (b2F.backBuffer <= 0) {
 
-	if (lockOn && tiltDirection == TILT_DIRECTION::DOWN && (radius > RIGHT_STICK_DEADZONE) && directionChanged) {
-		if (!backTrackerRunning) {
-			std::thread backtoforwardbacktracker(BackToForwardInputBackTracker);
-			backtoforwardbacktracker.detach();
+		b2F.backCommand = false;
+
+	}
+
+	if (b2F.backBuffer <= 0 && b2F.backDirectionChanged) {
+		b2F.backBuffer = b2F.backDuration;
+	}
+
+	if (b2F.forwardBuffer <= 0) {
+		b2F.forwardCommand = false;
+	}
+
+	if (b2F.forwardBuffer <= 0 && b2F.forwardDirectionChanged) {
+		b2F.forwardBuffer = b2F.forwardDuration;
+	}
+
+	if (lockOn && tiltDirection == TILT_DIRECTION::DOWN && (radius > RIGHT_STICK_DEADZONE)) {
+		if (b2F.backBuffer > 0) {
+			b2F.backCommand = true;
+			b2F.backDirectionChanged = false;
 		}
 	}
-
-	if (tiltDirection != TILT_DIRECTION::DOWN) {
-		directionChanged = true;
+	else if (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN && (radius > RIGHT_STICK_DEADZONE))) {
+		b2F.backDirectionChanged = true;
 	}
 
-	if (lockOn && tiltDirection == TILT_DIRECTION::UP && (radius > RIGHT_STICK_DEADZONE) && backCommand) {
-		if (!forwardTrackerRunning) {
-			std::thread backtoforwardforwardtracker(BackToForwardInputForwardTracker);
-			backtoforwardforwardtracker.detach();
+
+	if (lockOn && tiltDirection == TILT_DIRECTION::UP && (radius > RIGHT_STICK_DEADZONE) && b2F.backCommand) {
+		if (b2F.forwardBuffer > 0) {
+			b2F.forwardCommand = true;
+			b2F.forwardDirectionChanged = false;
 		}
 	}
+	else if (!(lockOn && tiltDirection == TILT_DIRECTION::UP && (radius > RIGHT_STICK_DEADZONE))) {
+		b2F.forwardDirectionChanged = true;
+	}
 
-
-
-	/*if(backToForward.back && !backToForward.backTrackerRunning) {
-			std::thread backtoforwardbacktracker(BackToForwardInputBackTracker);
-			backtoforwardbacktracker.detach();
-	}*/
 
 }
 
@@ -14736,7 +14720,7 @@ void SetAction(byte8* actorBaseAddr)
 		}
 		else if (
 			activeConfig.enableRebellionNewDrive && actorData.lastAction != REBELLION_COMBO_1_PART_1 &&
-			(actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) && forwardCommand)
+			(actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) && b2F.forwardCommand)
 		{
 			actorData.action = REBELLION_DRIVE_1;
 		}
@@ -14744,7 +14728,7 @@ void SetAction(byte8* actorBaseAddr)
 			activeConfig.enableRebellionQuickDrive && actorData.lastAction == REBELLION_COMBO_1_PART_1 &&
 			(demo_pl000_00_3 != 0) &&
 			(actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) &&
-			forwardCommand)
+			b2F.forwardCommand)
 		{
 			actorData.action = REBELLION_DRIVE_1;
 
@@ -14910,7 +14894,7 @@ void SetAction(byte8* actorBaseAddr)
 		if (
 			activeConfig.enableYamatoVergilNewJudgementCut &&
 			(actorData.action == YAMATO_RAPID_SLASH_LEVEL_1 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_2) &&
-			forwardCommand)
+			b2F.forwardCommand)
 		{
 			actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
 		}
@@ -14962,7 +14946,7 @@ void SetAction(byte8* actorBaseAddr)
 		else if (
 			activeConfig.enableYamatoForceEdgeNewRoundTrip &&
 			(actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1 || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2) &&
-			forwardCommand)
+			b2F.forwardCommand)
 		{
 			actorData.action = YAMATO_FORCE_EDGE_ROUND_TRIP;
 		}
