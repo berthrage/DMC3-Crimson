@@ -6586,6 +6586,10 @@ void LastEventStateQueue() {
 	}
 }
 
+void DelayedComboEffectsController() {
+	//if(actor)
+}
+
 
 
 
@@ -12078,9 +12082,14 @@ void StoreInertia(byte8* actorBaseAddr) {
 			storedSkyLaunchRank = actorData.styleData.rank;
 			appliedSkyLaunchProperties = false;
 		}
+		
 
-		if (!(actorData.state & STATE::IN_AIR && actorData.action == BEOWULF_RISING_SUN)) {
+		// TO-DO: Separate these pos adjustments to another function;
+		auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+
+		if (actorData.action != BEOWULF_RISING_SUN) {
 			storedRisingSunTauntPosY = actorData.position.y;
+			storedRisingSunTauntPosYClone = cloneActorData.position.y;
 		}
 
 		if (!(actorData.state & STATE::IN_AIR && (actorData.action == BEOWULF_LUNAR_PHASE_LEVEL_1 || actorData.action == BEOWULF_LUNAR_PHASE_LEVEL_2) &&
@@ -12763,7 +12772,13 @@ void InertiaController(byte8* actorBaseAddr) {
 			// Adjusts Vergil Pos to be lower when starting Air Rising Sun
 			if (actorData.state & STATE::IN_AIR && actorData.action == BEOWULF_RISING_SUN) {
 				actorData.verticalPullMultiplier = 0.0f;
-				actorData.position.y = storedRisingSunTauntPosY - 50.0f;
+				if (!actorData.newIsClone) {
+					actorData.position.y = storedRisingSunTauntPosY - 50.0f;
+				}
+				else {
+					actorData.position.y = storedRisingSunTauntPosYClone - 50.0f;
+				}
+				
 			}
 
 			// Adjusts Vergil Pos to be lower when starting Air Lunar Phase
@@ -13487,10 +13502,11 @@ void AirTauntToggleController(byte8* actorBaseAddr) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
 
 	if (actorData.character == CHARACTER::DANTE) {
 
-		if (actorData.state & STATE::IN_AIR && actorData.action != 195 && actorData.action != 196 && actorData.action != 197 && actorData.action != 194) {
+		if ((actorData.state & STATE::IN_AIR && actorData.action != 195 && actorData.action != 196 && actorData.action != 197 && actorData.action != 194)) {
 
 			OverrideTauntInAir(true);
 		}
@@ -13501,7 +13517,7 @@ void AirTauntToggleController(byte8* actorBaseAddr) {
 
 
 	if (actorData.character == CHARACTER::VERGIL) {
-		if (actorData.state & STATE::IN_AIR && actorData.action != 25) {
+		if ((actorData.state & STATE::IN_AIR && actorData.action != 25) || (cloneActorData.state & STATE::IN_AIR && cloneActorData.action != 25)) {
 			OverrideTauntInAir(true);
 		}
 		else {
@@ -13523,10 +13539,12 @@ void AirTauntToggleController(byte8* actorBaseAddr) {
 		ToggleAirTaunt(false);
 	}
 
-	if (actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
+	if ((actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) || 
+		(cloneActorData.character == CHARACTER::VERGIL && cloneActorData.state & STATE::IN_AIR)) {
 		ToggleAirTauntVergil(true);
 	}
-	else if (actorData.character == CHARACTER::VERGIL && !(actorData.state & STATE::IN_AIR)) {
+	else if ((actorData.character == CHARACTER::VERGIL && !(actorData.state & STATE::IN_AIR)) || 
+		(cloneActorData.character == CHARACTER::VERGIL && !(cloneActorData.state & STATE::IN_AIR))) {
 		ToggleAirTaunt(false);
 	}
 
@@ -13612,7 +13630,11 @@ void UpdateActorSpeed(byte8* baseAddr)
 	AirTauntToggleController(mainActorData);
 	FixUpdateLockOnsArtemis(mainActorData);
 
-	
+	auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(mainActorData.cloneActorBaseAddr);
+	InertiaController(cloneActorData);
+	GetRoyalBlockAction(cloneActorData);
+	//AirTauntToggleController(cloneActorData);
+	//SkyLaunchProperties(cloneActorData);
 
 
 

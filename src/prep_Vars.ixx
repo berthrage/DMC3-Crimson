@@ -4469,6 +4469,7 @@ export bool royalReleaseExecuted = false;
 export bool royalReleaseJustFrameCheck = false;
 
 export float storedRisingSunTauntPosY = 0;
+export float storedRisingSunTauntPosYClone = 0;
 export float storedLunarPhasePosY = 0;
 
 export int airStingerEndTimeInt = 0;
@@ -4560,12 +4561,12 @@ export bool missionClearSongPlayed = false;
 
 export struct BackToForward {
 	bool backCommand = false;
-	float backDuration = 0.3f;
+	float backDuration = 0.25f;
 	float  backBuffer = backDuration;
 	bool backDirectionChanged = true;
 	bool forwardDirectionChanged = true;
 	bool forwardCommand = false;
-	float forwardDuration = 0.3f;
+	float forwardDuration = 0.2f;
 	float forwardBuffer = forwardDuration;
 
 } b2F;
