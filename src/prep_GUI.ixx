@@ -10470,6 +10470,10 @@ void MainOverlayWindow()
 					ImGui::Text("backtoforward Forward Buffer:  %g", b2F.forwardBuffer);
 					ImGui::Text("backtoforward Back Direction Changed:  %u", b2F.backDirectionChanged);
 					ImGui::Text("backtoforward Forward Direction Changed:  %u", b2F.backDirectionChanged);*/
+
+					ImGui::Text("delayed Combo Effect timer:  %g", delayedComboFX.timer);
+					ImGui::Text("delayed Combo Effect Start Timer:  %u", delayedComboFX.startTimer);
+					ImGui::Text("delayed Combo Effect Can Play:  %u", delayedComboFX.canPlay);
 					ImGui::Text("trickCancel Cooldown:  %u", trickUpCancel.cooldown);
 
 
@@ -10610,6 +10614,9 @@ void MainOverlayWindow()
 					auto& mainActorData = *reinterpret_cast<PlayerActorDataDante*>(pool_12857[3]);
 
 					ImGui::Text("SIY TIMER %g", siytimer);
+					ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
+					ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[0].animTimer);
+					ImGui::Text("Actor Speed %g", actorData.speed);
 					ImGui::Text("Artemis Status %u", mainActorData.artemisStatus);
 					ImGui::Text("Update Lock Ons On: %u", activeConfig.updateLockOns);
 					ImGui::Text("Enemy Count %u", enemyVectorData.count);
@@ -10648,7 +10655,7 @@ void MainOverlayWindow()
 					ImGui::Text("LeftStick Position %u", gamepad.leftStickPosition);
 					ImGui::Text("Air Stinger End Timer %u", airStingerEnd.timer);
 					ImGui::Text("Air Stinger End Time Int %u", airStingerEndTimeInt);
-					ImGui::Text("Actor Speed %g", actorData.speed);
+				
 					ImGui::Text("Royal Block Type:  %u", actorData.royalguardBlockType);
 					ImGui::Text("Guardflying:  %u", inGuardfly);
 					//ImGui::Text("Track %s", eventData.track);
@@ -13632,6 +13639,9 @@ export void GUI_Render()
 	BossVergilActionsOverlayWindow();
 
 	BackToForwardTimers();
+	DelayedComboEffectsTimers();
+	ActionTimersMain();
+	AnimTimersMain();
 	SiyTimerFunc();
 	Bars();
 	WeaponSwitchController();

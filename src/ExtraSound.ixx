@@ -51,6 +51,9 @@ Mix_Chunk* styleRankSS1;
 Mix_Chunk* styleRankSS2;
 Mix_Chunk* styleRankSSS1;
 Mix_Chunk* styleRankSSS2;
+Mix_Chunk* delayedCombo1;
+Mix_Chunk* delayedCombo2;
+Mix_Chunk* delayedDrive;
 Mix_Music* missionClearSong;
 
 #define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
@@ -231,6 +234,9 @@ export void initSDL() {
         styleRankSS2 = fn_Mix_LoadWAV("sound/styleranks/ss2.wav");
         styleRankSSS1 = fn_Mix_LoadWAV("sound/styleranks/sss1.wav");
         styleRankSSS2 = fn_Mix_LoadWAV("sound/styleranks/sss2.wav");
+        delayedCombo1 = fn_Mix_LoadWAV("sound/delayedcombo1.wav");
+		delayedCombo2 = fn_Mix_LoadWAV("sound/delayedcombo2.wav");
+
         missionClearSong = fn_Mix_LoadMUS("sound/music/missionclear.mp3");
 
 
@@ -495,6 +501,16 @@ export void PlayDevilTriggerReady() {
     fn_Mix_Volume(309, activeConfig.SFX.devilTriggerReadyVolume);
     fn_Mix_PlayChannel(309, devilTriggerReady, 0);
 
+}
+
+export void playDelayedCombo1() {
+	fn_Mix_Volume(310, 25);
+	fn_Mix_PlayChannel(310, delayedCombo1, 0);
+}
+
+export void playDelayedCombo2() {
+	fn_Mix_Volume(311, 100);
+	fn_Mix_PlayChannel(311, delayedCombo2, 0);
 }
 
 export void PlayNewMissionClearSong() {

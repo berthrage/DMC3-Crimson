@@ -6586,8 +6586,65 @@ void LastEventStateQueue() {
 	}
 }
 
-void DelayedComboEffectsController() {
+
+
+void DelayedComboEffectsController(byte8* actorBaseAddr) {
+	using namespace ACTION_DANTE;
+
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto inAttack = (actorData.eventData[0].event == 17);
+	auto rebellionCombo1Anim = (actorData.motionData[0].index == 3);
+
+	
+
+	if (!rebellionCombo1Anim) {
+		delayedComboFX.canPlay = false;
+		delayedComboFX.startTimer = false;
+		delayedComboFX.timer = delayedComboFX.duration;
+		delayedComboFX.playCount = 0;
+	}
+	else {
+		delayedComboFX.canPlay = true;
+		
+	}
+
+	if (delayedComboFX.timer <= 0) {
+		playDelayedCombo1();
+		createEffectBank = delayedComboFX.bank;
+		createEffectID = delayedComboFX.id;
+		CreateEffectDetour();
+
+		delayedComboFX.timer = delayedComboFX.duration;
+		delayedComboFX.playCount++;
+	}
+
+	if (actorData.action == REBELLION_COMBO_1_PART_1 && !delayedComboFX.startTimer && inAttack && delayedComboFX.canPlay && delayedComboFX.playCount == 0) {
+		delayedComboFX.timer = 0.5f;
+		delayedComboFX.startTimer = true;
+		
+	}
+
+	
+
+	
+	
+
+	//
 	//if(actor)
+}
+
+export void DelayedComboEffectsTimers() {
+	if (delayedComboFX.timer > 0 && delayedComboFX.startTimer) {
+		delayedComboFX.timer -= ImGui::GetIO().DeltaTime;
+	}
+
+	if (delayedComboFX.timer <= 0) {
+		
+		delayedComboFX.startTimer = false;
+	}
 }
 
 
@@ -6635,6 +6692,7 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 	LockedOffCameraToggle(activeConfig.cameraLockOff);
 	CameraLockOnDistanceController();
 	LastEventStateQueue();
+	
 
 	if (
 		(actorData.newPlayerIndex == 0) &&
@@ -13584,6 +13642,95 @@ void FixUpdateLockOnsArtemis(byte8* mainActorBaseAddr) {
 	
 }
 
+void ActionTimersNonMain(byte8* actorBaseAddr) {
+
+}
+
+export void ActionTimersMain() {
+	//IntroduceMainActorData
+	auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if
+		(
+			!pool_12857 ||
+			!pool_12857[3]
+			) {
+		return;
+	}
+
+
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
+
+	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if
+		(
+			!pool_10371 ||
+			!pool_10371[8]
+			) {
+		return;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
+
+
+	auto inAttack = (mainActorData.eventData[0].event == 17);
+	
+	// ACTIONS
+	if (mainActorData.action != crimsonPlayer[0].currentAction) {
+		crimsonPlayer[0].actionTimer = 0;
+
+		crimsonPlayer[0].currentAction = mainActorData.action;
+	}
+
+	if (inAttack) {
+		if (eventData.event != EVENT::PAUSE) {
+			crimsonPlayer[0].actionTimer += ImGui::GetIO().DeltaTime * mainActorData.speed;
+		}
+	}
+	else {
+		crimsonPlayer[0].actionTimer = 0;
+	}
+
+	
+}
+
+export void AnimTimersMain() {
+	//IntroduceMainActorData
+	auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if
+		(
+			!pool_12857 ||
+			!pool_12857[3]
+			) {
+		return;
+	}
+
+
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
+	
+	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if
+		(
+			!pool_10371 ||
+			!pool_10371[8]
+			) {
+		return;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
+
+	auto inAttack = (mainActorData.eventData[0].event == 17);
+
+	// ANIMATION IDS
+	if (mainActorData.motionData[0].index != crimsonPlayer[0].currentAnim) {
+		crimsonPlayer[0].animTimer = 0;
+
+		crimsonPlayer[0].currentAnim = mainActorData.motionData[0].index;
+	}
+
+	if (eventData.event != EVENT::PAUSE) {
+		crimsonPlayer[0].animTimer += ImGui::GetIO().DeltaTime * mainActorData.speed;
+	}
+	
+
+}
 
 
 void UpdateActorSpeed(byte8* baseAddr)
@@ -13629,6 +13776,8 @@ void UpdateActorSpeed(byte8* baseAddr)
 	SetAirStingerEnd(mainActorData);
 	AirTauntToggleController(mainActorData);
 	FixUpdateLockOnsArtemis(mainActorData);
+	DelayedComboEffectsController(mainActorData);
+	
 
 	auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(mainActorData.cloneActorBaseAddr);
 	InertiaController(cloneActorData);

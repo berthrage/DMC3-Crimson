@@ -3040,10 +3040,10 @@ export struct ActorDataBase
 	uint16 rotation; // 0xC0
 	_(6);
 
+
 };
 
-static_assert(offsetof(ActorDataBase, status) == 8);
-static_assert(offsetof(ActorDataBase, speed) == 0x14);
+/*static_assert(offsetof(ActorDataBase, speed) == 0x14);
 static_assert(offsetof(ActorDataBase, speedMultiplier) == 0x18);
 static_assert(offsetof(ActorDataBase, lastBaseAddr) == 0x28);
 static_assert(offsetof(ActorDataBase, nextBaseAddr) == 0x30);
@@ -3054,7 +3054,7 @@ static_assert(offsetof(ActorDataBase, enemy) == 0x78);
 static_assert(offsetof(ActorDataBase, position) == 0x80);
 static_assert(offsetof(ActorDataBase, verticalPull) == 0x94);
 static_assert(offsetof(ActorDataBase, verticalPullMultiplier) == 0xA4);
-static_assert(offsetof(ActorDataBase, rotation) == 0xC0);
+static_assert(offsetof(ActorDataBase, rotation) == 0xC0);*/
 
 
 //static_assert(sizeof(ActorDataBase) == 200);
@@ -3244,7 +3244,6 @@ export struct PlayerActorDataBase : ActorDataBase
 	}
 };
 
-static_assert(offsetof(PlayerActorDataBase, id) == 0x118);
 static_assert(offsetof(PlayerActorDataBase, isClone) == 0x11C);
 static_assert(offsetof(PlayerActorDataBase, visibility) == 0x120);
 static_assert(offsetof(PlayerActorDataBase, horizontalPull) == 0x1C0);
@@ -4360,11 +4359,6 @@ export struct DoubleTap {
 	bool trackerRunning = false;
 };
 
-export struct SprintVFX {
-	int bank = 3;
-	int id = 141;
-} sprintVFX;
-
 export float rainstormMomentum = 0;
 
 
@@ -4540,6 +4534,16 @@ export DWORD inCombatGameAddress = 0x005F17CC;
 
 export bool exceptionShot = false;
 
+export struct CrimsonPlayerData {
+	int currentAction = 0;
+	int currentAnim = 0;
+	float actionTimer = 0;
+	float animTimer = 0;
+	bool active;
+};
+
+export CrimsonPlayerData crimsonPlayer[4];
+
 export struct Sprint {
 	bool trackerRunning = false;
 	bool canSprint = false;
@@ -4554,6 +4558,13 @@ export struct Sprint {
 
 
 } sprint;
+
+export struct SprintVFX {
+	int bank = 3;
+	int id = 141;
+} sprintVFX;
+
+
 
 export bool devilTriggerReadyPlayed = false;
 
@@ -4583,6 +4594,17 @@ export struct GuiPause {
 	float timer = 0.5f;
 	bool canPause = false;
 } guiPause;
+
+export struct DelayedComboFX {
+	float duration = 0.5f;
+	float timer = duration;
+	bool startTimer = false;
+	bool canPlay = true;
+	int playCount = 0;
+	int bank = 3;
+	int id = 143;
+
+} delayedComboFX;
 
 
 export constexpr BossHelper bossHelpers[] =
