@@ -6588,49 +6588,76 @@ void LastEventStateQueue() {
 
 
 
-void DelayedComboEffectsController(byte8* actorBaseAddr) {
+export void DelayedComboEffectsController() {
 	using namespace ACTION_DANTE;
 
-	if (!actorBaseAddr) {
+	/*if (!actorBaseAddr) {
 		return;
 	}
-	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);*/
+
+	auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if
+		(
+			!pool_12857 ||
+			!pool_12857[3]
+			) {
+		return;
+	}
+
+
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
+
 	auto inAttack = (actorData.eventData[0].event == 17);
 	auto rebellionCombo1Anim = (actorData.motionData[0].index == 3);
+	auto inRebellionCombo1 = (actorData.action == REBELLION_COMBO_1_PART_1 && actorData.motionData[0].index == 3 && inAttack);
+	auto inCerberusCombo2 = (actorData.action == CERBERUS_COMBO_1_PART_2 && actorData.motionData[0].index == 4 && inAttack);
+
 
 	
 
-	if (!rebellionCombo1Anim) {
-		delayedComboFX.canPlay = false;
-		delayedComboFX.startTimer = false;
-		delayedComboFX.timer = delayedComboFX.duration;
-		delayedComboFX.playCount = 0;
-	}
-	else {
-		delayedComboFX.canPlay = true;
-		
+
+	if (actorData.character == CHARACTER::DANTE) {
+		if (delayedComboFX.timer >= 0.5f && (inRebellionCombo1 || inCerberusCombo2) && delayedComboFX.playCount == 0) {
+			playDelayedCombo1();
+			createEffectBank = delayedComboFX.bank;
+			createEffectID = delayedComboFX.id;
+			CreateEffectDetour();
+
+			delayedComboFX.timer = delayedComboFX.duration;
+			delayedComboFX.playCount++;
+		}
+		else if (delayedComboFX.timer < 0.5f) {
+			delayedComboFX.playCount = 0;
+		}
+
+		if (!inRebellionCombo1 && !inCerberusCombo2) {
+			delayedComboFX.timer = 0;
+			delayedComboFX.resetTimer = false;
+		}
+		else {
+			if (!delayedComboFX.resetTimer) {
+				crimsonPlayer[0].actionTimer = 0;
+				delayedComboFX.resetTimer = true;
+			}
+			
+			delayedComboFX.timer = crimsonPlayer[0].actionTimer;
+		}
+
+
 	}
 
-	if (delayedComboFX.timer <= 0) {
-		playDelayedCombo1();
-		createEffectBank = delayedComboFX.bank;
-		createEffectID = delayedComboFX.id;
-		CreateEffectDetour();
-
-		delayedComboFX.timer = delayedComboFX.duration;
-		delayedComboFX.playCount++;
-	}
 
 	if (actorData.action == REBELLION_COMBO_1_PART_1 && !delayedComboFX.startTimer && inAttack && delayedComboFX.canPlay && delayedComboFX.playCount == 0) {
 		delayedComboFX.timer = 0.5f;
 		delayedComboFX.startTimer = true;
-		
+
 	}
 
-	
 
-	
-	
+
+
+
 
 	//
 	//if(actor)
@@ -6642,7 +6669,7 @@ export void DelayedComboEffectsTimers() {
 	}
 
 	if (delayedComboFX.timer <= 0) {
-		
+
 		delayedComboFX.startTimer = false;
 	}
 }
@@ -13673,12 +13700,7 @@ export void ActionTimersMain() {
 
 	auto inAttack = (mainActorData.eventData[0].event == 17);
 	
-	// ACTIONS
-	if (mainActorData.action != crimsonPlayer[0].currentAction) {
-		crimsonPlayer[0].actionTimer = 0;
-
-		crimsonPlayer[0].currentAction = mainActorData.action;
-	}
+	
 
 	if (inAttack) {
 		if (eventData.event != EVENT::PAUSE) {
@@ -13689,7 +13711,12 @@ export void ActionTimersMain() {
 		crimsonPlayer[0].actionTimer = 0;
 	}
 
-	
+	// ACTIONS
+	if (mainActorData.action != crimsonPlayer[0].currentAction) {
+		crimsonPlayer[0].actionTimer = 0;
+
+		crimsonPlayer[0].currentAction = mainActorData.action;
+	}
 }
 
 export void AnimTimersMain() {
@@ -13776,7 +13803,6 @@ void UpdateActorSpeed(byte8* baseAddr)
 	SetAirStingerEnd(mainActorData);
 	AirTauntToggleController(mainActorData);
 	FixUpdateLockOnsArtemis(mainActorData);
-	DelayedComboEffectsController(mainActorData);
 	
 
 	auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(mainActorData.cloneActorBaseAddr);

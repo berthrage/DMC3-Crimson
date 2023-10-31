@@ -13639,6 +13639,7 @@ export void GUI_Render()
 	BossVergilActionsOverlayWindow();
 
 	BackToForwardTimers();
+	DelayedComboEffectsController();
 	DelayedComboEffectsTimers();
 	ActionTimersMain();
 	AnimTimersMain();
