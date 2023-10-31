@@ -2,6 +2,7 @@ set(MASM_SRC
     masm/SampleMod.asm
     masm/GuardGravity.asm
     masm/CreateEffect.asm
+    masm/HoldToCrazyComboAsm.asm
 )
 
 set (ASM_LIBS)

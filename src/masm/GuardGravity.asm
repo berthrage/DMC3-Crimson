@@ -3,7 +3,7 @@
     higherGuard dd 0.5f
 
 .CODE
-extern g_GuardGravity_ReturnAddr1:QWORD
+extern g_GuardGravity_ReturnAddr:QWORD
 GuardGravityDetour PROC
     ; Original code, write air guard 1
     mov byte ptr [rbx+00006378h], 01h
@@ -26,7 +26,7 @@ code2:
     mulss xmm0, higherGuard
     movss dword ptr [rbx+94h], xmm0
 jmpout:
-    jmp g_GuardGravity_ReturnAddr1
+    jmp g_GuardGravity_ReturnAddr
 
 GuardGravityDetour ENDP
 END

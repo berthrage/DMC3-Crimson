@@ -13369,8 +13369,6 @@ void KeyBindings()
 
 #pragma endregion
 
-
-
 #pragma region Main
 
 void Main()
@@ -13385,19 +13383,17 @@ void Main()
 		SampleModDetour1();
 	}
 
+	//if (ImGui::Button("EnableCrazyComboHook")){
+	//	HoldToCrazyComboHook->Toggle(true);
+	//}
+
 	ImGui::InputInt("Effect Bank", &createEffectBank);
 	ImGui::InputInt("Effect ID", &createEffectID);
 	if (ImGui::Button("CreateEffect")) {
 		CreateEffectDetour();
 	}
 
-
-	//if (ImGui::Button("InitDetours")) { // debug
-	//	InitDetours();
-	//}
-
 	static bool run = false;
-
 	if (!run)
 	{
 		run = true;
