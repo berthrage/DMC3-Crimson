@@ -12,35 +12,50 @@ export module DetourFunctions;
 
 extern "C" {
 	std::uint64_t DetourBaseAddr;
+	export float MiaTimer;
 
+	// SampleMod
 	std::uint64_t g_SampleMod_ReturnAddr1;
 	export void SampleModDetour1();
 
-	std::uint64_t g_GuardGravity_ReturnAddr1;
+	// GuardGravity
+	std::uint64_t g_GuardGravity_ReturnAddr;
 	export void GuardGravityDetour();
 
+	// CreateEffect
 	std::uint64_t createEffectRBXMov;
 	std::uint64_t createEffectCallA;
 	std::uint64_t createEffectCallB;
 	export int createEffectBank = 3;
 	export int createEffectID = 144;
 	export void CreateEffectDetour();
+
+	// HoldToCrazyCombo
+	std::uint64_t g_HoldToCrazyCombo_ReturnAddr;
+	export void HoldToCrazyComboDetour();
+	std::uint64_t g_holdToCrazyComboConditionalAddr;
 }
 
 import Core;
-
 
 export void InitDetours() {
 	using namespace Utility;
 	DetourBaseAddr = (uintptr_t)appBaseAddr;
 
-	//GuardGravity
+	// GuardGravity
 	static std::unique_ptr<Detour_t> guardGravityHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EE121, &GuardGravityDetour, 7);
-	g_GuardGravity_ReturnAddr1 = guardGravityHook->GetReturnAddress();
+	g_GuardGravity_ReturnAddr = guardGravityHook->GetReturnAddress();
 	guardGravityHook->Toggle(true);
 
-	//EffectCall
+	// CreateEffect
 	createEffectCallA = (uintptr_t)appBaseAddr + 0x2E7CA0;
 	createEffectCallB = (uintptr_t)appBaseAddr + 0x1FAA50;
 	createEffectRBXMov = (uintptr_t)appBaseAddr + 0xC18AF8;
+
+	// HoldToCrazyCombo
+	std::unique_ptr<Utility::Detour_t> HoldToCrazyComboHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EB7C5, &HoldToCrazyComboDetour, 12);
+	g_HoldToCrazyCombo_ReturnAddr = HoldToCrazyComboHook->GetReturnAddress();
+	g_holdToCrazyComboConditionalAddr = (uintptr_t)appBaseAddr + 0x1EB7FE;
+	//HoldToCrazyComboHook->Toggle(true);
+	MiaTimer = 0.0f;
 }
