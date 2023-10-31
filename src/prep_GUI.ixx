@@ -10473,7 +10473,8 @@ void MainOverlayWindow()
 
 					ImGui::Text("delayed Combo Effect timer:  %g", delayedComboFX.timer);
 					ImGui::Text("delayed Combo Effect Start Timer:  %u", delayedComboFX.startTimer);
-					ImGui::Text("delayed Combo Effect Can Play:  %u", delayedComboFX.canPlay);
+					ImGui::Text("delayed Combo Effect Duration:  %g", delayedComboFX.duration);
+					ImGui::Text("delayed Combo Effect Weapon:  %u", delayedComboFX.weapon);
 					ImGui::Text("trickCancel Cooldown:  %u", trickUpCancel.cooldown);
 
 
@@ -10617,6 +10618,9 @@ void MainOverlayWindow()
 					ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
 					ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[0].animTimer);
 					ImGui::Text("Actor Speed %g", actorData.speed);
+					ImGui::Text("Weapon %u", actorData.newWeapons[actorData.meleeWeaponIndex]);
+					ImGui::Text("Weapon Ranged %u", actorData.newWeapons[actorData.rangedWeaponIndex]);
+					ImGui::Text("Weapon Melee actual %u", characterData.lastMeleeWeaponIndex);
 					ImGui::Text("Artemis Status %u", mainActorData.artemisStatus);
 					ImGui::Text("Update Lock Ons On: %u", activeConfig.updateLockOns);
 					ImGui::Text("Enemy Count %u", enemyVectorData.count);
@@ -10661,7 +10665,6 @@ void MainOverlayWindow()
 					//ImGui::Text("Track %s", eventData.track);
 
 					ImGui::Text("Royal Block Inertia  %g", royalBlockInertia.cachedPull);
-					ImGui::Text("Weapon %u", actorData.meleeWeaponIndex);
 					ImGui::Text("Weapon Character Data %u", characterData.meleeWeaponIndex);
 					ImGui::Text("Active Weapon %u", actorData.activeWeapon);
 					ImGui::Text("Trick Up Count %u", actorData.newTrickUpCount);
