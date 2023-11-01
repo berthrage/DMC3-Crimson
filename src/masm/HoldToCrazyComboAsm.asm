@@ -1,13 +1,13 @@
 .DATA
     moveSwitch    dq 0
-    stingerStart  dd  5.0f
-    stingerEnd    dd 20.0f
-    comboBStart   dd 69.0f
-    comboBEnd     dd 70.0f
+    stingerStart  dd 0.10f ; high enough that 0 range stinger doesn't instantly million stab
+    stingerEnd    dd 0.30f ; high enough that max range stinger still reaches CC frames, but low enough to still stinger->stinger
+    comboBStart   dd 1.00f ; high enough that the CC transition is possible, even with hitstop from hitting multiple enemies
+    comboBEnd     dd 1.01f ; low enough to transition into combo B ender
 
 extern g_HoldToCrazyCombo_ReturnAddr:QWORD
 extern g_holdToCrazyComboConditionalAddr:QWORD
-extern MiaTimer:QWORD
+extern holdToCrazyComboActionTimer:QWORD
 
 .CODE
 HoldToCrazyComboDetour PROC
@@ -35,27 +35,33 @@ ComboBLabel:
 SetCrazyComboTimingLabel:
     push rax
     push rbx
+    push rcx
     xor rax, rax
     xor rbx, rbx
     lea rax, [moveSwitch]
     mov rbx, [moveSwitch]
-    movss xmm0, dword ptr [MiaTimer] ; current anim frame
+    mov rcx, [holdToCrazyComboActionTimer]
+    movss xmm0, dword ptr [rcx] ; current anim frame
     movss xmm1, dword ptr [rax+rbx] ; when can we cancel attack after
     comiss xmm0, xmm1
+    pop rcx
     pop rbx
     pop rax
     jb JmpOutLabel
 
     push rax
     push rbx
+    push rcx
     xor rax, rax
     xor rbx, rbx
     lea rax, [moveSwitch]
     mov rbx, [moveSwitch]
     add rbx, 4
-    movss xmm0, dword ptr [MiaTimer] ; current anim frame
-    movss xmm1, dword ptr [rax + rbx] ; when can we cancel attack before
+    mov rcx, [holdToCrazyComboActionTimer]
+    movss xmm0, dword ptr [rcx] ; current anim frame
+    movss xmm1, dword ptr [rax+rbx] ; when can we cancel attack after
     comiss xmm0, xmm1
+    pop rcx
     pop rbx
     pop rax
     ja JmpOutLabel

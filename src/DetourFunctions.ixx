@@ -1,18 +1,18 @@
 module;
 
-
 #include <stdio.h>
 #include "Utility/Detour.hpp"
 #include <intrin.h>
 #include <string>
 
-
-
 export module DetourFunctions;
+
+import Core;
+import Vars;
 
 extern "C" {
 	std::uint64_t DetourBaseAddr;
-	export float MiaTimer;
+	float* holdToCrazyComboActionTimer{};
 
 	// SampleMod
 	std::uint64_t g_SampleMod_ReturnAddr1;
@@ -36,8 +36,6 @@ extern "C" {
 	std::uint64_t g_holdToCrazyComboConditionalAddr;
 }
 
-import Core;
-
 export void InitDetours() {
 	using namespace Utility;
 	DetourBaseAddr = (uintptr_t)appBaseAddr;
@@ -53,9 +51,9 @@ export void InitDetours() {
 	createEffectRBXMov = (uintptr_t)appBaseAddr + 0xC18AF8;
 
 	// HoldToCrazyCombo
-	std::unique_ptr<Utility::Detour_t> HoldToCrazyComboHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EB7C5, &HoldToCrazyComboDetour, 12);
+	static std::unique_ptr<Utility::Detour_t> HoldToCrazyComboHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EB7C5, &HoldToCrazyComboDetour, 12);
 	g_HoldToCrazyCombo_ReturnAddr = HoldToCrazyComboHook->GetReturnAddress();
 	g_holdToCrazyComboConditionalAddr = (uintptr_t)appBaseAddr + 0x1EB7FE;
-	//HoldToCrazyComboHook->Toggle(true);
-	MiaTimer = 0.0f;
+	HoldToCrazyComboHook->Toggle(true);
+	holdToCrazyComboActionTimer = &crimsonPlayer[0].actionTimer;
 }
