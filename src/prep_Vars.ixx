@@ -4602,9 +4602,7 @@ export struct DelayedComboFX {
 	bool resetTimer = false;
 	bool canPlay = true;
 	int playCount = 0;
-	uint8 weapon = 20;
-	bool changeWeaponResetTimer = false;
-	int action = 300;
+	uint8 weaponThatStartedMove = 20;
 
 	int bank = 3;
 	int id = 143;

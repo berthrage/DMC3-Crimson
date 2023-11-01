@@ -6630,18 +6630,23 @@ export void DelayedComboEffectsController() {
 
 	if (inRebellionCombo1) {
 		delayedComboFX.duration = 0.5f;
+		delayedComboFX.weaponThatStartedMove = 0;
 	}
 	else if (inCerberusCombo2) {
 		delayedComboFX.duration = 0.55f;
+		delayedComboFX.weaponThatStartedMove = 1;
 	}
 	else if (inAgniCombo1) {
 		delayedComboFX.duration = 0.53f;
+		delayedComboFX.weaponThatStartedMove = 2;
 	}
 	else if (inAgniCombo2) {
 		delayedComboFX.duration = 0.70f;
+		delayedComboFX.weaponThatStartedMove = 2;
 	}
 	else if (inBeoCombo1) { 
 		delayedComboFX.duration = 0.55f;  // Beowulf's time can be very inconsistent due to charge time (the more you charge the less you need to wait between delays)
+		delayedComboFX.weaponThatStartedMove = 4;
 	}
 	
 	
@@ -6650,7 +6655,7 @@ export void DelayedComboEffectsController() {
 	if (actorData.character == CHARACTER::DANTE) {
 		if (delayedComboFX.timer >= delayedComboFX.duration && 
 			(inRebellionCombo1 || inCerberusCombo2 || inAgniCombo1 || inAgniCombo2 || inBeoCombo1) && 
-			delayedComboFX.playCount == 0 && weapon == delayedComboFX.weapon) {
+			delayedComboFX.playCount == 0 && weapon == delayedComboFX.weaponThatStartedMove) {
 
 			playDelayedCombo1();
 			createEffectBank = delayedComboFX.bank;
@@ -6665,22 +6670,22 @@ export void DelayedComboEffectsController() {
 			
 		}
 
-		if ((!inRebellionCombo1 && !inCerberusCombo2 && !inAgniCombo1 && !inAgniCombo2 && !inBeoCombo1) || weapon != delayedComboFX.weapon) {
+		if ((!inRebellionCombo1 && !inCerberusCombo2 && !inAgniCombo1 && !inAgniCombo2 && !inBeoCombo1)) {
 			delayedComboFX.timer = 0;
 			delayedComboFX.resetTimer = false;
-			delayedComboFX.weapon = weapon;
-			changeWeaponResetTimer = true;
+			
 			
 		}
-		else if (weapon == delayedComboFX.weapon && (inRebellionCombo1 || inCerberusCombo2 || inAgniCombo1 || inAgniCombo2 || inBeoCombo1)){
+		else {
 			if (!delayedComboFX.resetTimer) {
 				crimsonPlayer[0].actionTimer = 0;
 				delayedComboFX.resetTimer = true;
 			}
 			
-			if (!changeWeaponResetTimer) {
-				delayedComboFX.timer = crimsonPlayer[0].actionTimer;
-			}
+			
+			delayedComboFX.timer = crimsonPlayer[0].actionTimer;
+			
+			
 			
 		}
 

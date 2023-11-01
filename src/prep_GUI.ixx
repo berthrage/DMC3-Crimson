@@ -10474,7 +10474,7 @@ void MainOverlayWindow()
 					ImGui::Text("delayed Combo Effect timer:  %g", delayedComboFX.timer);
 					ImGui::Text("delayed Combo Effect Start Timer:  %u", delayedComboFX.startTimer);
 					ImGui::Text("delayed Combo Effect Duration:  %g", delayedComboFX.duration);
-					ImGui::Text("delayed Combo Effect Weapon:  %u", delayedComboFX.weapon);
+					ImGui::Text("delayed Combo Effect Weapon:  %u", delayedComboFX.weaponThatStartedMove);
 					ImGui::Text("trickCancel Cooldown:  %u", trickUpCancel.cooldown);
 
 
