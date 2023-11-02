@@ -3,6 +3,7 @@ set(MASM_SRC
     masm/GuardGravity.asm
     masm/CreateEffect.asm
     masm/HoldToCrazyComboAsm.asm
+    masm/HudHPSeparation.asm
 )
 
 set (ASM_LIBS)
