@@ -4534,21 +4534,11 @@ export DWORD inCombatGameAddress = 0x005F17CC;
 
 export bool exceptionShot = false;
 
-export struct CrimsonPlayerData {
-	int currentAction = 0;
-	int currentAnim = 0;
-	float actionTimer = 0;
-	float animTimer = 0;
-	bool active;
-};
-
-export CrimsonPlayerData crimsonPlayer[4];
-
 export struct Sprint {
-	bool trackerRunning = false;
 	bool canSprint = false;
-	int cooldown = 800;
-	int time = cooldown;
+	float timeToTrigger = 0.65f;
+	float timer = timeToTrigger;
+	bool runTimer = false;
 	bool isSprinting = false;
 	bool SFXPlayed = false;
 	bool VFXPlayed = false;
@@ -4557,12 +4547,25 @@ export struct Sprint {
 	float storedSpeedDevilVergil[4] = { 0 };
 
 
-} sprint;
+};
 
 export struct SprintVFX {
 	int bank = 3;
 	int id = 141;
 } sprintVFX;
+
+
+export struct CrimsonPlayerData {
+	int currentAction = 0;
+	int currentAnim = 0;
+	float actionTimer = 0;
+	float animTimer = 0;
+	bool active;
+	Sprint sprint;
+};
+
+export CrimsonPlayerData crimsonPlayer[20];
+
 
 
 
@@ -4608,6 +4611,8 @@ export struct DelayedComboFX {
 	int id = 143;
 
 } delayedComboFX;
+
+float frameRateSpeedMultiplier = 0;
 
 
 export constexpr BossHelper bossHelpers[] =

@@ -10472,11 +10472,16 @@ void MainOverlayWindow()
 					ImGui::Text("backtoforward Back Direction Changed:  %u", b2F.backDirectionChanged);
 					ImGui::Text("backtoforward Forward Direction Changed:  %u", b2F.backDirectionChanged);*/
 
-					ImGui::Text("delayed Combo Effect timer:  %g", delayedComboFX.timer);
-					ImGui::Text("delayed Combo Effect Start Timer:  %u", delayedComboFX.startTimer);
-					ImGui::Text("delayed Combo Effect Duration:  %g", delayedComboFX.duration);
-					ImGui::Text("delayed Combo Effect Weapon:  %u", delayedComboFX.weaponThatStartedMove);
-					ImGui::Text("trickCancel Cooldown:  %u", trickUpCancel.cooldown);
+// 					ImGui::Text("delayed Combo Effect timer:  %g", delayedComboFX.timer);
+// 					ImGui::Text("delayed Combo Effect Start Timer:  %u", delayedComboFX.startTimer);
+// 					ImGui::Text("delayed Combo Effect Duration:  %g", delayedComboFX.duration);
+// 					ImGui::Text("delayed Combo Effect Weapon:  %u", delayedComboFX.weaponThatStartedMove);
+// 					ImGui::Text("trickCancel Cooldown:  %u", trickUpCancel.cooldown);
+
+					ImGui::Text("sprint Can Sprint:  %u", crimsonPlayer[0].sprint.canSprint);
+					ImGui::Text("Sprint Timer:  %g", crimsonPlayer[0].sprint.timer);
+					ImGui::Text("Sprint Run Timer:  %u", crimsonPlayer[0].sprint.runTimer);
+					
 
 
 					if (isMusicPlaying() == 0) {
@@ -13643,10 +13648,12 @@ export void GUI_Render()
 
 	// TIMERS
 	BackToForwardTimers();
-	DelayedComboEffectsTimers();
 	ActionTimersMain();
 	AnimTimersMain();
 	SiyTimerFunc();
+	SprintTimer();
+
+	
 
 
 	Bars();

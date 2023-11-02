@@ -8,11 +8,14 @@ export module Timers;
 
 import Core;
 
+#include "Core/Macros.h"
+
 import Actor;
 import ActorBase;
 import ActorRelocations;
 import Config;
 import Exp;
+import Graphics;
 import Vars;
 import ExtraSound;
 
@@ -49,7 +52,7 @@ export void ActionTimersMain() {
 
 	if (inAttack) {
 		if (eventData.event != EVENT::PAUSE) {
-			crimsonPlayer[0].actionTimer += ImGui::GetIO().DeltaTime * mainActorData.speed;
+			crimsonPlayer[0].actionTimer += (ImGui::GetIO().DeltaTime * mainActorData.speed) / g_frameRateMultiplier;
 		}
 	}
 	else {
@@ -99,7 +102,7 @@ export void AnimTimersMain() {
 	}
 
 	if (eventData.event != EVENT::PAUSE) {
-		crimsonPlayer[0].animTimer += ImGui::GetIO().DeltaTime * mainActorData.speed;
+		crimsonPlayer[0].animTimer += (ImGui::GetIO().DeltaTime * mainActorData.speed) / g_frameRateMultiplier;
 	}
 
 
@@ -109,12 +112,34 @@ void ActionTimersNonMain(byte8* actorBaseAddr) {
 
 }
 
+export void SprintTimer() {
+	
+
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+		
+
+		if (crimsonPlayer[playerIndex].sprint.timer > 0 && crimsonPlayer[playerIndex].sprint.runTimer) {
+			crimsonPlayer[playerIndex].sprint.timer -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
+		}
+
+
+
+		if (crimsonPlayer[playerIndex].sprint.timer <= 0 && !crimsonPlayer[playerIndex].sprint.canSprint) {
+			//sprint.timer = sprint.timeToTrigger;
+			crimsonPlayer[playerIndex].sprint.runTimer = false;
+			crimsonPlayer[playerIndex].sprint.canSprint = true;
+		}
+	}
+
+}
+
+
 export void BackToForwardTimers() {
 	if (b2F.backCommand) {
-		b2F.backBuffer -= ImGui::GetIO().DeltaTime;
+		b2F.backBuffer -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
 	}
 
 	if (b2F.forwardCommand) {
-		b2F.forwardBuffer -= ImGui::GetIO().DeltaTime;
+		b2F.forwardBuffer -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
 	}
 }

@@ -41,6 +41,7 @@ import Memory;
 import Model;
 import SoundRelocations;
 import Sound;
+import Speed;
 import Vars;
 import ExtraSound;
 
@@ -4229,29 +4230,36 @@ void RoyalCancelCountsTracker(byte8* actorBaseAddr) {
 	royalCancelTrackerRunning = false;
 }
 
-// @Todo: Move.
-void ResetPermissionsController(byte8* actorBaseAddr)
+
+void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr)
 {
 	using namespace ACTION_DANTE;
 	using namespace ACTION_VERGIL;
 
-
-	if (
+	// This used to be Reset Permissions Controller, which we'll now use for Improved Cancels (Royalguard) - Mia.
+	/*if (
 		!activeConfig.resetPermissions ||
 		!actorBaseAddr ||
 		(actorBaseAddr == g_playerActorBaseAddrs[0]) ||
 		(actorBaseAddr == g_playerActorBaseAddrs[1]))
 	{
 		return;
-	}
+	}*/
 
 	if (!actorBaseAddr)
 	{
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+
+	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
+
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
+
+	auto inAir = (actorData.state & STATE::IN_AIR);
+
+	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+
 
 	bool inCancellableActionRebellion = (actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_1 ||
 		actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_2 ||
@@ -4297,6 +4305,17 @@ void ResetPermissionsController(byte8* actorBaseAddr)
 	bool inCancellableActionGuns = (actorData.action == EBONY_IVORY_WILD_STOMP || actorData.action == ARTEMIS_ACID_RAIN
 		|| actorData.action == KALINA_ANN_GRAPPLE);
 
+	// These are moves used by the Action Set Cancel Method, generally air ones.
+	bool inCancellableMovesActionMethod = (((actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
+		actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+		actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
+		actorData.action == REBELLION_AERIAL_RAVE_PART_4) || (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
+			actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
+			actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) || (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
+				actorData.action == NEVAN_AIR_SLASH_PART_2) || (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO) ||
+		(actorData.action == CERBERUS_REVOLVER_LEVEL_1) || (actorData.action == CERBERUS_REVOLVER_LEVEL_2)) &&
+		actorData.eventData[0].event == 17);
+
 
 
 
@@ -4304,14 +4323,16 @@ void ResetPermissionsController(byte8* actorBaseAddr)
 	if (
 		(actorData.style == STYLE::ROYALGUARD) &&
 		(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) && actorData.eventData[0].event != 44 && (inCancellableActionRebellion || inCancellableActionCerberus ||
-			inCancellableActionAgni || inCancellableActionNevan || inCancellableActionBeowulf || inCancellableActionGuns || actorData.eventData[0].event == 22)) // The last condition prevents cancelling recovery
+			inCancellableActionAgni || inCancellableActionNevan || inCancellableActionBeowulf || inCancellableActionGuns || actorData.eventData[0].event == 22) && !royalCancelTrackerRunning) // The last condition prevents cancelling recovery
 	{
 
-		/*if(actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT &&
+		// Old list of exceptions, easier to list everything that should be cancellable.
+
+		/*/if (actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT &&
 		actorData.action != EBONY_IVORY_AIR_NORMAL_SHOT && actorData.action != SHOTGUN_AIR_NORMAL_SHOT &&
 		actorData.action != SPIRAL_TRICK_SHOT && !royalCancelTrackerRunning) // Exceptions, these cancels are way too OP or buggy in the cases of E&I and Shotgun.*/
 
-		// Old list of exceptions, easier to list everything that should be cancellable.
+		
 
 
 		storedTrickUpCount = actorData.newTrickUpCount;
@@ -4346,41 +4367,41 @@ void ResetPermissionsController(byte8* actorBaseAddr)
 		royalcountstracker.detach();
 	}
 
-	/*if(actorData.action == 60)
-	{
-		actorData.permissions = 0x1C1B;
+
+	
+
+	// This is another method for Royal Cancels that involves setting the Actor's Action to a newly created Air Block one (only sets for a split second). 
+	// It's more reliable for cancelling certain moves (especially air ones). - Mia
+
+	if (actorData.style == STYLE::ROYALGUARD && (actorData.eventData[0].event == 23 || inCancellableMovesActionMethod)) {
+		if (inAir) {
+
+			if ((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
+
+				storedTrickUpCount = actorData.newTrickUpCount;
+				storedSkyStarCount = actorData.newSkyStarCount;
+				storedAirHikeCount = actorData.newAirHikeCount;
+
+				actorData.action = ROYAL_AIR_BLOCK;
+
+				std::thread royalcountstracker(RoyalCancelCountsTracker, actorBaseAddr);
+				royalcountstracker.detach();
+			}
+
+		}
+		/*else {
+			if((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)))
+			{
+				actorData.action = ROYAL_BLOCK;
+			}
+
+		}*/
+
 	}
 
-	if((actorData.character == CHARACTER::VERGIL) &&
-		(actorData.style) == STYLE::DARK_SLAYER &&
-		((actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))))
-	{
-		actorData.action = 60;
-	}*/
 
 
-
-	/*if (	(actorData.action != TRICKSTER_AIR_TRICK) &&
-			(actorData.style == STYLE::TRICKSTER) &&
-			lockOn &&
-			(tiltDirection == TILT_DIRECTION::UP) &&
-			(!(actorData.state & STATE::IN_AIR)) &&
-			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
-	{
-			actorData.permissions = 0x1C1B;
-	}*/
-
-	/*if (	(actorData.action != EBONY_IVORY_RAIN_STORM) &&
-			(actorData.style == STYLE::GUNSLINGER) &&
-			((actorData.state & STATE::IN_AIR)) &&
-			(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
-	{
-			actorData.permissions = 0x1C1B;
-	}*/
-
-
-
-	/*if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
+	/*if (actorData.buttons[2] & GetBinding(BINDING::TAUNT))  // old ddmk Reset Permissions -- Deprecated.
 	{
 		actorData.permissions = 0x1C1B;
 	}*/
@@ -6694,26 +6715,7 @@ export void DelayedComboEffectsController() {
 
 	}
 
-
-
-
-
-
-	//
-	//if(actor)
 }
-
-export void DelayedComboEffectsTimers() {
-	if (delayedComboFX.timer > 0 && delayedComboFX.startTimer) {
-		delayedComboFX.timer -= ImGui::GetIO().DeltaTime;
-	}
-
-	if (delayedComboFX.timer <= 0) {
-
-		delayedComboFX.startTimer = false;
-	}
-}
-
 
 
 
@@ -6804,8 +6806,8 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 	RemoveBusyFlagController(actorData);
 	RemoveBusyFlagController(cloneActorData);
 
-	ResetPermissionsController(actorData);
-	ResetPermissionsController(cloneActorData);
+	ImprovedCancelsRoyalguardController(actorData);
+	ImprovedCancelsRoyalguardController(cloneActorData);
 
 
 	return true;
@@ -12034,56 +12036,7 @@ void RemoveSoftLockOnController(byte8* actorBaseAddr) {
 
 }
 
-void GetRoyalBlockAction(byte8* actorBaseAddr) {
 
-	using namespace ACTION_DANTE;
-	using namespace ACTION_VERGIL;
-
-	if (!actorBaseAddr)
-	{
-		return;
-	}
-	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-
-	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
-
-	auto tiltDirection = GetRelativeTiltDirection(actorData);
-
-	auto inAir = (actorData.state & STATE::IN_AIR);
-
-	auto lockOn = (gamepad.buttons[0] & GetBinding(BINDING::LOCK_ON));
-
-	bool inCancellableMoves = (((actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
-		actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
-		actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
-		actorData.action == REBELLION_AERIAL_RAVE_PART_4) || (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
-			actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
-			actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) || (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
-				actorData.action == NEVAN_AIR_SLASH_PART_2) || (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO) ||
-		(actorData.action == CERBERUS_REVOLVER_LEVEL_1) || (actorData.action == CERBERUS_REVOLVER_LEVEL_2)) &&
-					actorData.eventData[0].event == 17);
-
-	// Keep in mind setting the Royal Block Action cancels out most things, this is a primary function for Guardflying to work.
-
-	if (actorData.style == STYLE::ROYALGUARD && (actorData.eventData[0].event == 23 || inCancellableMoves)) {
-		if (inAir) {
-
-			if ((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))
-			{
-				actorData.action = ROYAL_AIR_BLOCK;
-			}
-
-		}
-		/*else {
-			if((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN) && gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)))
-			{
-				actorData.action = ROYAL_BLOCK;
-			}
-
-		}*/
-
-	}
-}
 
 void StoreInertia(byte8* actorBaseAddr) {
 
@@ -12988,166 +12941,6 @@ void inCombatDetection() {
 
 }
 
-void SprintTracker() {
-	sprint.trackerRunning = true;
-
-	while (sprint.time > 0) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		sprint.time--;
-	}
-
-
-	if (sprint.time == 0)
-	{
-		sprint.trackerRunning = false;
-		sprint.canSprint = true;
-
-	}
-
-}
-
-
-void SprintAbility() {
-	auto pool_12188 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if
-		(
-			!pool_12188 ||
-			!pool_12188[3]
-			)
-	{
-		return;
-	}
-	auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_12188[3]);
-
-	if (!sprint.isSprinting) {
-		// Storing the actor's set speed when not sprinting.
-		sprint.storedSpeedHuman = activeConfig.Speed.human;
-
-		if (actorData.character == CHARACTER::DANTE) {
-			sprint.storedSpeedDevilDante[0] = activeConfig.Speed.devilDante[0];
-			sprint.storedSpeedDevilDante[1] = activeConfig.Speed.devilDante[1];
-			sprint.storedSpeedDevilDante[2] = activeConfig.Speed.devilDante[2];
-			sprint.storedSpeedDevilDante[3] = activeConfig.Speed.devilDante[3];
-			sprint.storedSpeedDevilDante[4] = activeConfig.Speed.devilDante[4];
-			sprint.storedSpeedDevilDante[5] = activeConfig.Speed.devilDante[5];
-		}
-		else if (actorData.character == CHARACTER::VERGIL) {
-			sprint.storedSpeedDevilVergil[0] = activeConfig.Speed.devilVergil[0];
-			sprint.storedSpeedDevilVergil[1] = activeConfig.Speed.devilVergil[1];
-			sprint.storedSpeedDevilVergil[2] = activeConfig.Speed.devilVergil[2];
-			sprint.storedSpeedDevilVergil[3] = activeConfig.Speed.devilVergil[3];
-			sprint.storedSpeedDevilVergil[4] = activeConfig.Speed.devilVergil[4];
-		}
-
-
-
-		sprint.SFXPlayed = false;
-		sprint.VFXPlayed = false;
-	}
-
-	if (actorData.state == 524289 && !inCombat) {
-		// This adds a delay for sprint.canSprint to trigger in.
-		if (!sprint.trackerRunning && !sprint.canSprint) {
-			auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
-			sprint.time = sprint.cooldown / speedValue;
-			std::thread sprinttracker(SprintTracker);
-			sprinttracker.detach();
-		}
-	}
-	else {
-
-		sprint.time = 0;
-		sprint.trackerRunning = false;
-		sprint.canSprint = false;
-	}
-
-	if (sprint.canSprint) {
-
-		// Setting the sprint speed. Increasing by 30%.
-		float sprintMultiplier = 1.3f;
-		float sprintSpeed = sprint.storedSpeedHuman * sprintMultiplier;
-		float sprintSpeedDevilDante[6];
-		float sprintSpeedDevilVergil[5];
-
-		if (actorData.character == CHARACTER::DANTE) {
-			sprintSpeedDevilDante[0] = sprint.storedSpeedDevilDante[0] * sprintMultiplier;
-			sprintSpeedDevilDante[1] = sprint.storedSpeedDevilDante[1] * sprintMultiplier;
-			sprintSpeedDevilDante[2] = sprint.storedSpeedDevilDante[2] * sprintMultiplier;
-			sprintSpeedDevilDante[3] = sprint.storedSpeedDevilDante[3] * sprintMultiplier;
-			sprintSpeedDevilDante[4] = sprint.storedSpeedDevilDante[4] * sprintMultiplier;
-			sprintSpeedDevilDante[5] = sprint.storedSpeedDevilDante[5] * sprintMultiplier;
-		}
-		else if (actorData.character == CHARACTER::VERGIL) {
-			sprintSpeedDevilVergil[0] = sprint.storedSpeedDevilVergil[0] * sprintMultiplier;
-			sprintSpeedDevilVergil[1] = sprint.storedSpeedDevilVergil[1] * sprintMultiplier;
-			sprintSpeedDevilVergil[2] = sprint.storedSpeedDevilVergil[2] * sprintMultiplier;
-			sprintSpeedDevilVergil[3] = sprint.storedSpeedDevilVergil[3] * sprintMultiplier;
-			sprintSpeedDevilVergil[4] = sprint.storedSpeedDevilVergil[4] * sprintMultiplier;
-		}
-
-
-		// Applying the new sprint speed into the Actor.
-		activeConfig.Speed.human = sprintSpeed;
-
-		if (actorData.character == CHARACTER::DANTE) {
-			activeConfig.Speed.devilDante[0] = sprintSpeedDevilDante[0];
-			activeConfig.Speed.devilDante[1] = sprintSpeedDevilDante[1];
-			activeConfig.Speed.devilDante[2] = sprintSpeedDevilDante[2];
-			activeConfig.Speed.devilDante[3] = sprintSpeedDevilDante[3];
-			activeConfig.Speed.devilDante[4] = sprintSpeedDevilDante[4];
-			activeConfig.Speed.devilDante[5] = sprintSpeedDevilDante[5];
-		}
-		else if (actorData.character == CHARACTER::VERGIL) {
-			activeConfig.Speed.devilVergil[0] = sprintSpeedDevilVergil[0];
-			activeConfig.Speed.devilVergil[1] = sprintSpeedDevilVergil[1];
-			activeConfig.Speed.devilVergil[2] = sprintSpeedDevilVergil[2];
-			activeConfig.Speed.devilVergil[3] = sprintSpeedDevilVergil[3];
-			activeConfig.Speed.devilVergil[4] = sprintSpeedDevilVergil[4];
-		}
-
-
-
-
-		if (!sprint.SFXPlayed) {
-			playSprint();
-			sprint.SFXPlayed = true;
-		}
-
-		if (!sprint.VFXPlayed) {
-			createEffectBank = sprintVFX.bank;
-			createEffectID = sprintVFX.id;
-			CreateEffectDetour();
-
-			sprint.VFXPlayed = true;
-		}
-
-		sprint.isSprinting = true;
-
-
-	}
-	else {
-		// Restore the original Actor's speed when you can't sprint (either in or out of it).
-		activeConfig.Speed.human = sprint.storedSpeedHuman;
-
-		if (actorData.character == CHARACTER::DANTE) {
-			activeConfig.Speed.devilDante[0] = sprint.storedSpeedDevilDante[0];
-			activeConfig.Speed.devilDante[1] = sprint.storedSpeedDevilDante[1];
-			activeConfig.Speed.devilDante[2] = sprint.storedSpeedDevilDante[2];
-			activeConfig.Speed.devilDante[3] = sprint.storedSpeedDevilDante[3];
-			activeConfig.Speed.devilDante[4] = sprint.storedSpeedDevilDante[4];
-			activeConfig.Speed.devilDante[5] = sprint.storedSpeedDevilDante[5];
-		}
-		else if (actorData.character == CHARACTER::VERGIL) {
-			activeConfig.Speed.devilVergil[0] = sprint.storedSpeedDevilVergil[0];
-			activeConfig.Speed.devilVergil[1] = sprint.storedSpeedDevilVergil[1];
-			activeConfig.Speed.devilVergil[2] = sprint.storedSpeedDevilVergil[2];
-			activeConfig.Speed.devilVergil[3] = sprint.storedSpeedDevilVergil[3];
-			activeConfig.Speed.devilVergil[4] = sprint.storedSpeedDevilVergil[4];
-		}
-
-		sprint.isSprinting = false;
-	}
-}
 
 void FasterDarkslayerTricks() {
 	auto pool_12311 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
@@ -13701,6 +13494,214 @@ void FixUpdateLockOnsArtemis(byte8* mainActorBaseAddr) {
 }
 
 
+void SprintAbility(byte8* actorBaseAddr) {
+
+
+	// Old iteration of SprintAbility used mainActorData, working only for the mainActor. Now it's supposed to work for all players.
+// 	auto pool_12188 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+// 	if
+// 		(
+// 			!pool_12188 ||
+// 			!pool_12188[3]
+// 			) {
+// 		return;
+// 	}
+// 	auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_12188[3
+
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+
+
+	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
+	auto radius = gamepad.leftStickRadius;
+	auto& playerData = GetPlayerData(actorData);
+
+	auto playerIndex = actorData.newPlayerIndex;
+
+	if ((actorData.newCharacterIndex == playerData.activeCharacterIndex) &&
+		(actorData.newEntityIndex == ENTITY::MAIN)) {
+
+		//auto playerSprint = crimsonPlayer[playerIndex].sprint;
+
+		if (!crimsonPlayer[playerIndex].sprint.isSprinting) {
+			// Storing the actor's set speed when not sprinting for us to calculate sprintSpeed.
+			crimsonPlayer[playerIndex].sprint.storedSpeedHuman = activeConfig.Speed.human;
+
+			if (actorData.character == CHARACTER::DANTE) {
+				crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[0] = activeConfig.Speed.devilDante[0];
+				crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[1] = activeConfig.Speed.devilDante[1];
+				crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[2] = activeConfig.Speed.devilDante[2];
+				crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[3] = activeConfig.Speed.devilDante[3];
+				crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[4] = activeConfig.Speed.devilDante[4];
+				crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[5] = activeConfig.Speed.devilDante[5];
+			}
+			else if (actorData.character == CHARACTER::VERGIL) {
+				crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[0] = activeConfig.Speed.devilVergil[0];
+				crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[1] = activeConfig.Speed.devilVergil[1];
+				crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[2] = activeConfig.Speed.devilVergil[2];
+				crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[3] = activeConfig.Speed.devilVergil[3];
+				crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[4] = activeConfig.Speed.devilVergil[4];
+			}
+
+
+
+			crimsonPlayer[playerIndex].sprint.SFXPlayed = false;
+			crimsonPlayer[playerIndex].sprint.VFXPlayed = false;
+		}
+
+
+		// This ties the ability only to the main actor.
+	// 	if ((actorData.newPlayerIndex == 0) &&
+	// 		(actorData.newCharacterIndex == playerData.activeCharacterIndex) &&
+	// 		(actorData.newEntityIndex == ENTITY::MAIN)) {
+
+
+		if (actorData.state == 524289 && !inCombat && !(radius < 110)) {
+
+
+			if (!crimsonPlayer[playerIndex].sprint.runTimer) {
+				crimsonPlayer[playerIndex].sprint.timer = crimsonPlayer[playerIndex].sprint.timeToTrigger / actorData.speed;
+			}
+
+			if (!crimsonPlayer[playerIndex].sprint.canSprint) {
+				crimsonPlayer[playerIndex].sprint.runTimer = true;
+			}
+
+
+
+
+		}
+		else {
+			crimsonPlayer[playerIndex].sprint.canSprint = false;
+			crimsonPlayer[playerIndex].sprint.runTimer = false;
+
+		}
+
+
+		auto gameSpeedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+
+		if (!crimsonPlayer[playerIndex].sprint.runTimer && crimsonPlayer[playerIndex].sprint.timer <= 0) {
+
+
+		}
+
+
+
+
+		if (crimsonPlayer[playerIndex].sprint.canSprint) {
+
+			// Setting the sprint speed. Increasing by 30%.
+			float sprintMultiplier = 1.3f;
+			float sprintSpeed = crimsonPlayer[playerIndex].sprint.storedSpeedHuman * sprintMultiplier;
+			float sprintSpeedDevilDante[6];
+			float sprintSpeedDevilVergil[5];
+
+			if (actorData.character == CHARACTER::DANTE) {
+				sprintSpeedDevilDante[0] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[0] * sprintMultiplier;
+				sprintSpeedDevilDante[1] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[1] * sprintMultiplier;
+				sprintSpeedDevilDante[2] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[2] * sprintMultiplier;
+				sprintSpeedDevilDante[3] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[3] * sprintMultiplier;
+				sprintSpeedDevilDante[4] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[4] * sprintMultiplier;
+				sprintSpeedDevilDante[5] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[5] * sprintMultiplier;
+			}
+			else if (actorData.character == CHARACTER::VERGIL) {
+				sprintSpeedDevilVergil[0] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[0] * sprintMultiplier;
+				sprintSpeedDevilVergil[1] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[1] * sprintMultiplier;
+				sprintSpeedDevilVergil[2] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[2] * sprintMultiplier;
+				sprintSpeedDevilVergil[3] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[3] * sprintMultiplier;
+				sprintSpeedDevilVergil[4] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[4] * sprintMultiplier;
+			}
+
+
+
+			// Applying the new sprint speed into the Actor.
+
+
+	// 		old_for_all(uint8, weaponIndex, countof(actorData.newWeaponDataAddr)) {
+	// 			auto weaponDataAddr = actorData.newWeaponDataAddr[weaponIndex];
+	// 			if (!weaponDataAddr) {
+	// 				continue;
+	// 			}
+	// 			auto& weaponData = *weaponDataAddr;
+	// 
+	// 			weaponData.speed = 2.0f;
+	// 		}
+
+			// Applying the new Speed
+			if (!actorData.devil) {
+				actorData.speed = sprintSpeed * gameSpeedValue;
+
+			}
+			else {
+				switch (actorData.character) {
+				case CHARACTER::DANTE:
+				{
+					auto devilIndex = actorData.meleeWeaponIndex;
+					if (devilIndex > 4) {
+						devilIndex = 0;
+					}
+
+					if (actorData.sparda) {
+						devilIndex = DEVIL_SPEED::DANTE_SPARDA;
+					}
+
+					actorData.speed = sprintSpeedDevilDante[devilIndex] * gameSpeedValue;
+
+					break;
+				}
+				case CHARACTER::VERGIL:
+				{
+					auto devilIndex = actorData.queuedMeleeWeaponIndex;
+					if (devilIndex > 2) {
+						devilIndex = 0;
+					}
+
+					if (actorData.neroAngelo) {
+						if (devilIndex > 1) {
+							devilIndex = 0;
+						}
+
+						devilIndex += 3;
+					}
+
+					actorData.speed = sprintSpeedDevilVergil[devilIndex] * gameSpeedValue;
+
+					break;
+				}
+				}
+			}
+
+
+			if (!crimsonPlayer[playerIndex].sprint.SFXPlayed) {
+				playSprint();
+				crimsonPlayer[playerIndex].sprint.SFXPlayed = true;
+			}
+
+			if (!crimsonPlayer[playerIndex].sprint.VFXPlayed) {
+				createEffectBank = 3;
+				createEffectID = sprintVFX.id;
+				CreateEffectDetour();
+
+				crimsonPlayer[playerIndex].sprint.VFXPlayed = true;
+			}
+
+			crimsonPlayer[playerIndex].sprint.isSprinting = true;
+			crimsonPlayer[playerIndex].sprint.runTimer = false;
+
+
+
+		}
+		else {
+			// Restore the original Actor's speed when you can't sprint (either in or out of it).
+
+			crimsonPlayer[playerIndex].sprint.isSprinting = false;
+		}
+	}
+}
+
+
 void UpdateActorSpeed(byte8* baseAddr)
 {
 
@@ -13737,7 +13738,6 @@ void UpdateActorSpeed(byte8* baseAddr)
 	CheckRoyalRelease(mainActorData);
 	CheckSkyLaunch(mainActorData);
 	SkyLaunchProperties(mainActorData);
-	GetRoyalBlockAction(mainActorData);
 	DisableAirSlashKnockback();
 	StoreInertia(mainActorData);
 	InertiaController(mainActorData);
@@ -13748,7 +13748,6 @@ void UpdateActorSpeed(byte8* baseAddr)
 
 	auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(mainActorData.cloneActorBaseAddr);
 	InertiaController(cloneActorData);
-	GetRoyalBlockAction(cloneActorData);
 	//AirTauntToggleController(cloneActorData);
 	//SkyLaunchProperties(cloneActorData);
 
@@ -13842,13 +13841,13 @@ void UpdateActorSpeed(byte8* baseAddr)
 
 
 				RemoveSoftLockOnController(actorBaseAddr);
+				SprintAbility(actorBaseAddr);
 
 				// Doppelganger's attacks can now hold/increase your style meter
 				StyleMeterDoppelganger(actorBaseAddr);
 
 				inCombatDetection();
 
-				SprintAbility();
 
 				if (!g_haywireNeoGenerator) {
 					actorData.mode = 0;
@@ -13993,8 +13992,10 @@ void UpdateActorSpeed(byte8* baseAddr)
 				}
 
 			Return:;
-
-				actorData.speed = value;
+				if (!crimsonPlayer[playerIndex].sprint.canSprint) {
+					actorData.speed = value;
+				}
+				
 
 				if (characterData.character >= CHARACTER::MAX)
 				{
