@@ -34,6 +34,11 @@ extern "C" {
 	std::uint64_t g_HoldToCrazyCombo_ReturnAddr;
 	export void HoldToCrazyComboDetour();
 	std::uint64_t g_holdToCrazyComboConditionalAddr;
+
+	// HudHPSeparation
+	std::uint64_t g_HudHPSeparation_ReturnAddr;
+	export void HudHPSeparationDetour();
+
 }
 
 export void InitDetours() {
@@ -56,4 +61,10 @@ export void InitDetours() {
 	g_holdToCrazyComboConditionalAddr = (uintptr_t)appBaseAddr + 0x1EB7FE;
 	HoldToCrazyComboHook->Toggle(true);
 	holdToCrazyComboActionTimer = &crimsonPlayer[0].actionTimer;
+
+
+	// HudHPSeparation
+	static std::unique_ptr<Utility::Detour_t> HudHPSeparationHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27DD64, &HudHPSeparationDetour, 8);
+	g_HudHPSeparation_ReturnAddr = HudHPSeparationHook->GetReturnAddress();
+	HudHPSeparationHook->Toggle(true);
 }
