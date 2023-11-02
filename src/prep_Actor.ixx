@@ -6629,7 +6629,7 @@ export void DelayedComboEffectsController() {
 	auto meleeWeapon = actorData.newWeapons[actorData.meleeWeaponIndex];
 
 	if (inRebellionCombo1) {
-		delayedComboFX.duration = 0.5f;
+		delayedComboFX.duration = 0.495f;
 		delayedComboFX.weaponThatStartedMove = 0;
 	}
 	else if (inCerberusCombo2) {
@@ -6665,7 +6665,7 @@ export void DelayedComboEffectsController() {
 			
 			delayedComboFX.playCount++;
 		}
-		else if (delayedComboFX.timer < 0.5f) {
+		else if (delayedComboFX.timer < 0.495f) {
 			delayedComboFX.playCount = 0;
 			
 		}
@@ -6691,13 +6691,6 @@ export void DelayedComboEffectsController() {
 
 		
 
-
-	}
-
-
-	if (actorData.action == REBELLION_COMBO_1_PART_1 && !delayedComboFX.startTimer && inAttack && delayedComboFX.canPlay && delayedComboFX.playCount == 0) {
-		delayedComboFX.timer = 0.5f;
-		delayedComboFX.startTimer = true;
 
 	}
 
@@ -13282,15 +13275,6 @@ void DTReadySFX() {
 	}
 }
 
-export void BackToForwardTimers() {
-	if (b2F.backCommand) {
-		b2F.backBuffer -= ImGui::GetIO().DeltaTime;
-	}
-
-	if (b2F.forwardCommand) {
-		b2F.forwardBuffer -= ImGui::GetIO().DeltaTime;
-	}
-}
 
 void BackToForwardInputs(byte8* actorBaseAddr) {
 	if (!actorBaseAddr)
@@ -13714,96 +13698,6 @@ void FixUpdateLockOnsArtemis(byte8* mainActorBaseAddr) {
 		activeConfig.updateLockOns = queuedConfig.updateLockOns;
 	}
 	
-}
-
-void ActionTimersNonMain(byte8* actorBaseAddr) {
-
-}
-
-export void ActionTimersMain() {
-	//IntroduceMainActorData
-	auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if
-		(
-			!pool_12857 ||
-			!pool_12857[3]
-			) {
-		return;
-	}
-
-
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
-
-	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-	if
-		(
-			!pool_10371 ||
-			!pool_10371[8]
-			) {
-		return;
-	}
-	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
-
-
-	auto inAttack = (mainActorData.eventData[0].event == 17);
-	
-	
-
-	if (inAttack) {
-		if (eventData.event != EVENT::PAUSE) {
-			crimsonPlayer[0].actionTimer += ImGui::GetIO().DeltaTime * mainActorData.speed;
-		}
-	}
-	else {
-		crimsonPlayer[0].actionTimer = 0;
-	}
-
-	// ACTIONS
-	if (mainActorData.action != crimsonPlayer[0].currentAction) {
-		crimsonPlayer[0].actionTimer = 0;
-
-		crimsonPlayer[0].currentAction = mainActorData.action;
-	}
-}
-
-export void AnimTimersMain() {
-	//IntroduceMainActorData
-	auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if
-		(
-			!pool_12857 ||
-			!pool_12857[3]
-			) {
-		return;
-	}
-
-
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
-	
-	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-	if
-		(
-			!pool_10371 ||
-			!pool_10371[8]
-			) {
-		return;
-	}
-	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
-
-	auto inAttack = (mainActorData.eventData[0].event == 17);
-
-	// ANIMATION IDS
-	if (mainActorData.motionData[0].index != crimsonPlayer[0].currentAnim) {
-		crimsonPlayer[0].animTimer = 0;
-
-		crimsonPlayer[0].currentAnim = mainActorData.motionData[0].index;
-	}
-
-	if (eventData.event != EVENT::PAUSE) {
-		crimsonPlayer[0].animTimer += ImGui::GetIO().DeltaTime * mainActorData.speed;
-	}
-	
-
 }
 
 

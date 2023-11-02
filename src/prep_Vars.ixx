@@ -4572,7 +4572,7 @@ export bool missionClearSongPlayed = false;
 
 export struct BackToForward {
 	bool backCommand = false;
-	float backDuration = 0.25f;
+	float backDuration = 0.2f;
 	float  backBuffer = backDuration;
 	bool backDirectionChanged = true;
 	bool forwardDirectionChanged = true;

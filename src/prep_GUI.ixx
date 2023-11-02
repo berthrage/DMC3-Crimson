@@ -52,6 +52,7 @@ import Internal;
 import Scene;
 import Sound;
 import Speed;
+import Timers;
 import Training;
 import Vars;
 import Window;
@@ -13637,12 +13638,17 @@ export void GUI_Render()
 	BossLadyActionsOverlayWindow();
 	BossVergilActionsOverlayWindow();
 
-	BackToForwardTimers();
+	
 	DelayedComboEffectsController();
+
+	// TIMERS
+	BackToForwardTimers();
 	DelayedComboEffectsTimers();
 	ActionTimersMain();
 	AnimTimersMain();
 	SiyTimerFunc();
+
+
 	Bars();
 	WeaponSwitchController();
 
