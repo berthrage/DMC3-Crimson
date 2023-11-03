@@ -14,7 +14,6 @@ import Input; // tiltdirection
 
 extern "C" {
 	std::uint64_t DetourBaseAddr;
-	float* holdToCrazyComboActionTimer{};
 
 	// SampleMod
 	std::uint64_t g_SampleMod_ReturnAddr1;
@@ -37,7 +36,6 @@ extern "C" {
 	export void HoldToCrazyComboDetour();
 	std::uint64_t g_holdToCrazyComboConditionalAddr;
 	void* holdToCrazyComboCall;
-	bool holdToCrazyCombo_ShouldCC;
 
 	// HudHPSeparation
 	std::uint64_t g_HudHPSeparation_ReturnAddr;
@@ -45,7 +43,7 @@ extern "C" {
 
 }
 
-void g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
+bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
 	// iterate through crimsonPlayers until finding actorData I guess
 	/*int i;
 	for (i = 0; i < sizeof(crimsonPlayer) / sizeof(crimsonPlayer[0]); i++) {
@@ -54,19 +52,20 @@ void g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
 	switch (actorData.action) { // from vars, namespaceStart(ACTION_DANTE); 
 		case ACTION_DANTE::REBELLION_STINGER_LEVEL_1:
 			if (std::clamp<float>(crimsonPlayer[0].actionTimer, 0.2f, 0.3f) == crimsonPlayer[0].actionTimer &&
-				GetRelativeTiltDirection(actorData) == TILT_DIRECTION::NEUTRAL) { holdToCrazyCombo_ShouldCC = true; }
+				GetRelativeTiltDirection(actorData) == TILT_DIRECTION::NEUTRAL) { return true; }
 			break;
 		case ACTION_DANTE::REBELLION_STINGER_LEVEL_2:
 			if (std::clamp<float>(crimsonPlayer[0].actionTimer, 0.2f, 0.3f) == crimsonPlayer[0].actionTimer &&
-				GetRelativeTiltDirection(actorData) == TILT_DIRECTION::NEUTRAL) { holdToCrazyCombo_ShouldCC = true; }
+				GetRelativeTiltDirection(actorData) == TILT_DIRECTION::NEUTRAL) { return true; }
 			break;
 		case ACTION_DANTE::REBELLION_COMBO_2_PART_2:
 			if (std::clamp<float>(crimsonPlayer[0].actionTimer, 0.0f, 0.85f) == crimsonPlayer[0].actionTimer &&
-				GetRelativeTiltDirection(actorData) == TILT_DIRECTION::NEUTRAL) { holdToCrazyCombo_ShouldCC = true; }
+				GetRelativeTiltDirection(actorData) == TILT_DIRECTION::NEUTRAL) { return true; }
 			break;
 		default:
 			break;
 	}
+	return false;
 }
 
 export void InitDetours() {
@@ -88,7 +87,6 @@ export void InitDetours() {
 	g_HoldToCrazyCombo_ReturnAddr = HoldToCrazyComboHook->GetReturnAddress();
 	g_holdToCrazyComboConditionalAddr = (uintptr_t)appBaseAddr + 0x1EB7FE;
 	HoldToCrazyComboHook->Toggle(true);
-	holdToCrazyComboActionTimer = &crimsonPlayer[0].actionTimer;
 	holdToCrazyComboCall = &g_HoldToCrazyComboFuncA;
 
 
