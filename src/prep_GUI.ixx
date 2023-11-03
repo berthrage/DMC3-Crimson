@@ -10650,8 +10650,8 @@ void MainOverlayWindow()
 					ImGui::Text("Last Last Event %u", lastLastEvent);
 					ImGui::Text("State %u", actorData.state);
 					ImGui::Text("Last State %u", actorData.lastState);
-					ImGui::Text("Last Last State %u", lastLastState);
-					ImGui::Text("Character Action %u", actorData.action);
+					ImGui::Text("Last Last State %u", lastLastState);				
+ 					ImGui::Text("Character Action %u", actorData.action);
 					ImGui::Text("Character Last Action %u", actorData.lastAction);
 					ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
 					ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);

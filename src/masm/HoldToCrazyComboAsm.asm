@@ -5,7 +5,7 @@ extern holdToCrazyComboCall:QWORD
 
 .CODE
 HoldToCrazyComboDetour PROC ; player in RDI
-    mov byte ptr [holdToCrazyCombo_ShouldCC], 0
+
     test word ptr [rdi+000074E0h], ax ; is melee held
     je JmpOutLabel
 

@@ -9,6 +9,8 @@ module;
 export module DetourFunctions;
 
 import Core;
+#include "Core/Macros.h" 
+
 import Vars;
 import Input; // tiltdirection
 
@@ -18,7 +20,7 @@ extern "C" {
 	// SampleMod
 	std::uint64_t g_SampleMod_ReturnAddr1;
 	export void SampleModDetour1();
-
+		
 	// GuardGravity
 	std::uint64_t g_GuardGravity_ReturnAddr;
 	export void GuardGravityDetour();
@@ -43,29 +45,174 @@ extern "C" {
 
 }
 
-bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
-	// iterate through crimsonPlayers until finding actorData I guess
-	/*int i;
-	for (i = 0; i < sizeof(crimsonPlayer) / sizeof(crimsonPlayer[0]); i++) {
-		if (actorData != (PlayerActorData&)crimsonPlayer[i]) { return; }
-	}*/
-	switch (actorData.action) { // from vars, namespaceStart(ACTION_DANTE); 
-		case ACTION_DANTE::REBELLION_STINGER_LEVEL_1:
-			if (std::clamp<float>(crimsonPlayer[0].actionTimer, 0.2f, 0.3f) == crimsonPlayer[0].actionTimer &&
-				GetRelativeTiltDirection(actorData) == TILT_DIRECTION::NEUTRAL) { return true; }
-			break;
-		case ACTION_DANTE::REBELLION_STINGER_LEVEL_2:
-			if (std::clamp<float>(crimsonPlayer[0].actionTimer, 0.2f, 0.3f) == crimsonPlayer[0].actionTimer &&
-				GetRelativeTiltDirection(actorData) == TILT_DIRECTION::NEUTRAL) { return true; }
-			break;
-		case ACTION_DANTE::REBELLION_COMBO_2_PART_2:
-			if (std::clamp<float>(crimsonPlayer[0].actionTimer, 0.0f, 0.85f) == crimsonPlayer[0].actionTimer &&
-				GetRelativeTiltDirection(actorData) == TILT_DIRECTION::NEUTRAL) { return true; }
-			break;
-		default:
-			break;
+bool g_HoldToCrazyComboFuncA() {
+	using namespace ACTION_DANTE;
+
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+
+		auto inputException = !(crimsonPlayer[playerIndex].lockOn && 
+			(crimsonPlayer[playerIndex].tiltDirection == TILT_DIRECTION::UP || crimsonPlayer[playerIndex].tiltDirection == TILT_DIRECTION::DOWN));
+
+		auto inputExceptionNevanJamSession = !(crimsonPlayer[playerIndex].tiltDirection == TILT_DIRECTION::LEFT);
+
+		if (crimsonPlayer[playerIndex].character == CHARACTER::DANTE) {
+
+			switch (*crimsonPlayer[playerIndex].action) { // from vars, namespaceStart(ACTION_DANTE); 
+
+			case REBELLION_STINGER_LEVEL_1:
+				if (std::clamp<float>(crimsonPlayer[playerIndex].actionTimer, 0.2f, 0.3f) == crimsonPlayer[playerIndex].actionTimer &&
+					inputException) {
+					return true;
+				}
+				break;
+			case REBELLION_STINGER_LEVEL_2:
+				if (std::clamp<float>(crimsonPlayer[playerIndex].actionTimer, 0.2f, 0.3f) == crimsonPlayer[playerIndex].actionTimer &&
+					inputException) {
+					return true;
+				}
+				break;
+			case REBELLION_MILLION_STAB:
+				if (std::clamp<float>(crimsonPlayer[playerIndex].actionTimer, 0.2f, 10.0f) == crimsonPlayer[playerIndex].actionTimer &&
+					inputException) {
+					return true;
+				}
+				break;
+			case REBELLION_COMBO_2_PART_2:
+				if (std::clamp<float>(crimsonPlayer[playerIndex].actionTimer, 0.0f, 0.85f) == crimsonPlayer[playerIndex].actionTimer &&
+					inputException) {
+					return true;
+				}
+				break;
+			case BEOWULF_COMBO_2_PART_3:
+				if (std::clamp<float>(crimsonPlayer[playerIndex].animTimer, 0.5f, 1.09f) == crimsonPlayer[playerIndex].animTimer &&
+					inputException) {
+					return true;
+				}
+				break;
+			case NEVAN_COMBO_1:
+				if (inputExceptionNevanJamSession) {
+					return true;
+				}
+				break;
+			case CERBERUS_COMBO_2_PART_4:
+				if (std::clamp<float>(crimsonPlayer[playerIndex].actionTimer, 0.0f, 1.0f) == crimsonPlayer[playerIndex].actionTimer &&
+					inputException) {
+					return true;
+				}
+				break;
+			case REBELLION_PROP:
+				return true;
+				
+				break;
+			case REBELLION_SHREDDER:
+				return true;
+
+				break;
+			case REBELLION_DANCE_MACABRE_PART_8:
+				return true;
+
+				break;
+			case REBELLION_CRAZY_DANCE:
+				return true;
+				
+				break;
+			case POLE_PLAY:
+				return true;
+
+				break;
+			case CERBERUS_WINDMILL:
+				return true;
+
+				break;
+			case CERBERUS_CRYSTAL:
+				return true;
+
+				break;
+			case CERBERUS_MILLION_CARATS:
+				return true;
+
+				break;
+			case AGNI_RUDRA_COMBO_3_PART_3:
+				return true;
+
+				break;
+			case AGNI_RUDRA_MILLION_SLASH:
+				return true;
+
+				break;
+			case AGNI_RUDRA_TWISTER:
+				return true;
+
+				break;
+			case AGNI_RUDRA_TEMPEST:
+				return true;
+
+				break;
+			case NEVAN_FEEDBACK:
+				return true;
+
+				break;
+			case NEVAN_CRAZY_ROLL:
+				return true;
+
+				break;
+			case BEOWULF_REAL_IMPACT:
+				return true;
+
+				break;
+			case BEOWULF_TORNADO:
+				return true;
+
+				break;
+			case BEOWULF_HYPER_FIST:
+				return true;
+
+				break;
+			case SHOTGUN_GUN_STINGER:
+				return true;
+
+				break;
+			case SHOTGUN_POINT_BLANK:
+				return true;
+
+				break;
+			case ARTEMIS_SPHERE:
+				return true;
+
+				break;
+			case ARTEMIS_ACID_RAIN:
+				return true;
+
+				break;
+			case EBONY_IVORY_NORMAL_SHOT:
+				return true;
+
+				break;
+			case EBONY_IVORY_CHARGED_SHOT:
+				return true;
+
+				break;
+			case EBONY_IVORY_WILD_STOMP:
+				return true;
+
+				break;
+			case SPIRAL_SNIPER:
+				return true;
+
+				break;
+			default:
+				break;
+			}
+			return false;
+		}
+
+		// Needs testing with multiplayer with Dante & Vergil present if this is needed
+// 		else {
+// 
+// 			return true;
+// 		}
+
 	}
-	return false;
 }
 
 export void InitDetours() {

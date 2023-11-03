@@ -12538,6 +12538,10 @@ void InertiaController(byte8* actorBaseAddr) {
 			actorData.horizontalPull = 7.5f;
 		}
 
+		// Experimental shit: Reverse Shotgun Stinger
+// 		if (actorData.action == 146 && actorData.eventData[0].event == 17) {
+// 			actorData.horizontalPull = -25.0f;
+// 		}
 
 		if (actorData.state == 65538) {
 
@@ -12805,6 +12809,8 @@ void InertiaController(byte8* actorBaseAddr) {
 				fireworksInertia.cachedPull = glm::clamp(fireworksInertia.cachedPull, -9.0f, 9.0f);
 				actorData.horizontalPull = fireworksInertia.cachedPull / 1.5f;
 			}
+
+			
 
 			/*// GUARDFLY on divekick
 			else if (actorData.action == ROYAL_AIR_BLOCK &&
@@ -13701,6 +13707,27 @@ void SprintAbility(byte8* actorBaseAddr) {
 	}
 }
 
+void UpdateCrimsonPlayerData(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
+	auto inAir = (actorData.state & STATE::IN_AIR);
+	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+
+
+	crimsonPlayer[playerIndex].action = &actorData.action;
+	crimsonPlayer[playerIndex].motion = actorData.motionData[0].index;
+	crimsonPlayer[playerIndex].character = actorData.character;
+	crimsonPlayer[playerIndex].gamepad = gamepad;
+	crimsonPlayer[playerIndex].tiltDirection = tiltDirection;
+	crimsonPlayer[playerIndex].lockOn = lockOn;
+
+}
+
 
 void UpdateActorSpeed(byte8* baseAddr)
 {
@@ -13839,7 +13866,7 @@ void UpdateActorSpeed(byte8* baseAddr)
 				auto& gamepad = GetGamepad(0);
 
 
-
+				UpdateCrimsonPlayerData(actorBaseAddr);
 				RemoveSoftLockOnController(actorBaseAddr);
 				SprintAbility(actorBaseAddr);
 

@@ -4556,6 +4556,12 @@ export struct SprintVFX {
 
 
 export struct CrimsonPlayerData {
+	uint8* action = 0;
+	uint8 motion = 0;
+	uint32 character = 0;
+	ENGINE_GAMEPAD gamepad;
+	uint8 tiltDirection;
+	bool lockOn;
 	int currentAction = 0;
 	int currentAnim = 0;
 	float actionTimer = 0;
