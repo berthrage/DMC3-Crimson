@@ -708,6 +708,7 @@ export struct Config
 	bool disableJCRestriction = true;
 	bool bulletStop = true;
 	bool rainstormLift = true;
+	bool quickDriveAndTweaks = true;
 
 	uint8 cameraSensitivity = 3;
 	uint8 cameraFollowUpSpeed = 2;

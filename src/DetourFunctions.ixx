@@ -55,7 +55,7 @@ bool g_HoldToCrazyComboFuncA() {
 
 		auto inputExceptionNevanJamSession = !(crimsonPlayer[playerIndex].tiltDirection == TILT_DIRECTION::LEFT);
 
-		if (crimsonPlayer[playerIndex].character == CHARACTER::DANTE) {
+		
 
 			switch (*crimsonPlayer[playerIndex].action) { // from vars, namespaceStart(ACTION_DANTE); 
 
@@ -212,7 +212,7 @@ bool g_HoldToCrazyComboFuncA() {
 // 			return true;
 // 		}
 
-	}
+	
 }
 
 export void InitDetours() {

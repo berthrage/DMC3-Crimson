@@ -4332,6 +4332,7 @@ export struct Toggle {
 	int disableJCRestriction = 2;
 	int bulletStop = 2;
 	int rainstormLift = 2;
+	int disableDriveHold = 2;
 } toggle;
 
 export struct WeaponWheelTiming {
@@ -4554,11 +4555,24 @@ export struct SprintVFX {
 	int id = 141;
 } sprintVFX;
 
+export int notHoldingMelee = 0;
+
+export struct Drive {
+	int bank = 3;
+	int id = 144;
+	bool level1EffectPlayed = false;
+	bool level2EffectPlayed = false;
+	bool level3EffectPlayed = false;
+	float timer = 0;
+	bool runTimer = false;
+};
+
 
 export struct CrimsonPlayerData {
 	uint8* action = 0;
-	uint8 motion = 0;
-	uint32 character = 0;
+	uint8* motion = 0;
+	float* speed = 0;
+	uint32* character = 0;
 	ENGINE_GAMEPAD gamepad;
 	uint8 tiltDirection;
 	bool lockOn;
@@ -4567,7 +4581,10 @@ export struct CrimsonPlayerData {
 	float actionTimer = 0;
 	float animTimer = 0;
 	bool active;
+	bool inNewDrive = false;
+	bool inQuickDrive = false;
 	Sprint sprint;
+	Drive drive;
 };
 
 export CrimsonPlayerData crimsonPlayer[20];

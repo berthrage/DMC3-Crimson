@@ -4839,6 +4839,10 @@ void RemoveBusyFlagController(byte8* actorBaseAddr)
 				}
 			}
 
+			
+
+			
+
 
 
 
@@ -6716,7 +6720,6 @@ export void DelayedComboEffectsController() {
 	}
 
 }
-
 
 
 template <typename T>
@@ -13564,7 +13567,7 @@ void SprintAbility(byte8* actorBaseAddr) {
 	// 		(actorData.newEntityIndex == ENTITY::MAIN)) {
 
 
-		if (actorData.state == 524289 && !inCombat && !(radius < 110)) {
+		if (actorData.state == 524289 && !inCombat) {
 
 
 			if (!crimsonPlayer[playerIndex].sprint.runTimer) {
@@ -13686,7 +13689,7 @@ void SprintAbility(byte8* actorBaseAddr) {
 			}
 
 			if (!crimsonPlayer[playerIndex].sprint.VFXPlayed) {
-				createEffectBank = 3;
+				createEffectBank = sprintVFX.bank;
 				createEffectID = sprintVFX.id;
 				CreateEffectDetour();
 
@@ -13707,6 +13710,26 @@ void SprintAbility(byte8* actorBaseAddr) {
 	}
 }
 
+
+
+void DisableDriveHold() {
+	// This will disable the game's original way of triggering Drive (through holding the melee attack button).
+
+	if (toggle.disableDriveHold != (int)activeConfig.quickDriveAndTweaks) {
+		if (activeConfig.quickDriveAndTweaks) {
+			_patch((char*)(appBaseAddr + 0x1EB675), (char*)"\xE9\x27\x01\x00\x00\x90", 6); // jmp dmc3.exe+1EB7A1
+			                                                                               // nop
+			toggle.disableDriveHold = 1;
+		}
+		else {
+			_patch((char*)(appBaseAddr + 0x1EB675), (char*)"\x0F\x84\x26\x01\x00\x00", 6); // je dmc3.exe+1EB7A1
+
+			toggle.disableDriveHold = 0;
+		}
+	}
+
+}
+
 void UpdateCrimsonPlayerData(byte8* actorBaseAddr) {
 	if (!actorBaseAddr) {
 		return;
@@ -13720,13 +13743,164 @@ void UpdateCrimsonPlayerData(byte8* actorBaseAddr) {
 
 
 	crimsonPlayer[playerIndex].action = &actorData.action;
-	crimsonPlayer[playerIndex].motion = actorData.motionData[0].index;
-	crimsonPlayer[playerIndex].character = actorData.character;
+	crimsonPlayer[playerIndex].motion = &actorData.motionData[0].index;
+	crimsonPlayer[playerIndex].character = &actorData.character;
 	crimsonPlayer[playerIndex].gamepad = gamepad;
 	crimsonPlayer[playerIndex].tiltDirection = tiltDirection;
 	crimsonPlayer[playerIndex].lockOn = lockOn;
+	crimsonPlayer[playerIndex].speed = &actorData.speed;
 
 }
+
+
+void DriveTweaks(byte8* actorBaseAddr) {
+	// This function alters some of Drive, it alters its damage to accommodate new "Charge Levels", mimicing DMC4/5 Drive behaviour.
+
+	using namespace ACTION_DANTE;
+
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+
+// 	drive physical hit damage dmc3.exe + 5C6D2C, 70.0f
+// 	drive projectile damage dmc3.exe + 5CB1EC, 300.0f
+	uintptr_t drivePhysicalDamageAddr = (uintptr_t)appBaseAddr + 0x5C6D2C;
+	uintptr_t driveProjectileDamageAddr = (uintptr_t)appBaseAddr + 0x5CB1EC;
+
+	// Triggering the Drive Timer
+	if ((actorData.action == ACTION_DANTE::REBELLION_DRIVE_1) && (actorData.motionData[0].index == 17 || actorData.motionData[0].index == 18)) {
+		crimsonPlayer[playerIndex].drive.runTimer = true;
+	}
+
+	// Fuck this shit, resetting has proved to be waaay more difficult than it should, probably due to SetAction things 
+	if (actorData.motionData[0].index == 19 || actorData.motionData[0].index == 1 || actorData.motionData[0].index == 2
+		|| actorData.motionData[0].index == 4 || actorData.motionData[0].index == 5 || actorData.motionData[0].index == 6
+		|| actorData.motionData[0].index == 7 || actorData.motionData[0].index == 8 || actorData.motionData[0].index == 9 || actorData.motionData[0].index == 10) {
+
+		crimsonPlayer[playerIndex].drive.runTimer = false;
+	}
+
+	if (actorData.action == ACTION_DANTE::REBELLION_DRIVE_1 && actorData.eventData[0].event != 17) {
+		crimsonPlayer[playerIndex].drive.runTimer = false;
+	}
+
+	// Setting Quick Drive Damage
+	if ((actorData.action == REBELLION_DRIVE_1) && crimsonPlayer[playerIndex].inQuickDrive && actorData.eventData[0].event == 17) {
+
+		*(float*)(drivePhysicalDamageAddr) = 60.0f;
+		*(float*)(driveProjectileDamageAddr) = 200.0f;
+	}
+	
+	// The actual Drive Tweaks
+	if ((actorData.action == REBELLION_DRIVE_1) && !crimsonPlayer[playerIndex].inQuickDrive && actorData.eventData[0].event == 17) {
+
+		if (crimsonPlayer[playerIndex].drive.timer < 1.0f && crimsonPlayer[playerIndex].drive.level1EffectPlayed) {
+			crimsonPlayer[playerIndex].drive.level1EffectPlayed = false;
+			crimsonPlayer[playerIndex].drive.level2EffectPlayed = false;
+			crimsonPlayer[playerIndex].drive.level3EffectPlayed = false;
+		}
+
+		if (crimsonPlayer[playerIndex].drive.timer >= 1.1f) {
+			if (!crimsonPlayer[playerIndex].drive.level1EffectPlayed) {
+
+				createEffectBank = crimsonPlayer[playerIndex].drive.bank;
+				createEffectID = crimsonPlayer[playerIndex].drive.id;
+				CreateEffectDetour();
+
+				crimsonPlayer[playerIndex].drive.level1EffectPlayed = true;
+			}
+		}
+
+		if (crimsonPlayer[playerIndex].drive.timer < 2.0) {
+			*(float*)(drivePhysicalDamageAddr) = 70.0f;
+			*(float*)(driveProjectileDamageAddr) = 200.0f;
+		}
+
+		if (crimsonPlayer[playerIndex].drive.timer >= 2.0 && crimsonPlayer[playerIndex].drive.timer < 3.0) {
+			*(float*)(drivePhysicalDamageAddr) = 70.0f;
+			*(float*)(driveProjectileDamageAddr) = 300.0f;
+
+			if (!crimsonPlayer[playerIndex].drive.level2EffectPlayed) {
+
+				createEffectBank = crimsonPlayer[playerIndex].drive.bank;
+				createEffectID = crimsonPlayer[playerIndex].drive.id;
+				CreateEffectDetour();
+
+				crimsonPlayer[playerIndex].drive.level2EffectPlayed = true;
+			}
+		}
+
+		if (crimsonPlayer[playerIndex].drive.timer >= 3.0) {
+			*(float*)(drivePhysicalDamageAddr) = 70.0f;
+			*(float*)(driveProjectileDamageAddr) = 700.0f;
+
+			if (!crimsonPlayer[playerIndex].drive.level3EffectPlayed) {
+
+				createEffectBank = crimsonPlayer[playerIndex].drive.bank;
+				createEffectID = crimsonPlayer[playerIndex].drive.id;
+				CreateEffectDetour();
+
+				crimsonPlayer[playerIndex].drive.level3EffectPlayed = true;
+			}
+		}
+
+	}
+	
+// 	if (actorData.action != 13 && actorData.eventData[0].event != 17 ){
+// 		crimsonPlayer[playerIndex].driveVFX.level1EffectPlayed = false;
+// 		crimsonPlayer[playerIndex].driveVFX.level2EffectPlayed = false;
+// 		crimsonPlayer[playerIndex].driveVFX.level3EffectPlayed = false;
+// 	}
+	//notHoldingMelee = (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK));
+	
+
+
+
+	/* ((actorData.action == REBELLION_DRIVE_1) && actorData.eventData[0].event == 17 && notHoldingMelee == 0 && crimsonPlayer[playerIndex].actionTimer < 1.1f &&
+		!crimsonPlayer[playerIndex].inQuickDrive) {
+
+
+
+
+		actorData.state &= ~STATE::BUSY;
+
+
+
+
+	}*/
+}
+
+export void ToggleRebellionHoldDrive(bool enable) {
+	LogFunction(enable);
+
+	static bool run = false;
+
+	{
+		auto addr = (appBaseAddr + 0x211581);
+		auto dest = (appBaseAddr + 0x211583);
+		constexpr new_size_t size = 2;
+		/*
+		dmc3.exe+211581 - 74 15             - je dmc3.exe+211598
+		dmc3.exe+211583 - 80 BE 133E0000 00 - cmp byte ptr [rsi+00003E13],00
+		*/
+
+		if (!run) {
+			backupHelper.Save(addr, size);
+		}
+
+		if (enable) {
+			WriteAddress(addr, dest, size);
+		}
+		else {
+			backupHelper.Restore(addr);
+		}
+	}
+
+	run = true;
+}
+
 
 
 void UpdateActorSpeed(byte8* baseAddr)
@@ -13771,6 +13945,7 @@ void UpdateActorSpeed(byte8* baseAddr)
 	SetAirStingerEnd(mainActorData);
 	AirTauntToggleController(mainActorData);
 	FixUpdateLockOnsArtemis(mainActorData);
+	DisableDriveHold();
 	
 
 	auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(mainActorData.cloneActorBaseAddr);
@@ -13865,10 +14040,16 @@ void UpdateActorSpeed(byte8* baseAddr)
 				auto tiltDirection = GetRelativeTiltDirection(actorData);
 				auto& gamepad = GetGamepad(0);
 
-
+				
 				UpdateCrimsonPlayerData(actorBaseAddr);
 				RemoveSoftLockOnController(actorBaseAddr);
 				SprintAbility(actorBaseAddr);
+				
+
+				
+				DriveTweaks(actorBaseAddr);
+
+				
 
 				// Doppelganger's attacks can now hold/increase your style meter
 				StyleMeterDoppelganger(actorBaseAddr);
@@ -14935,6 +15116,8 @@ void SetAction(byte8* actorBaseAddr)
 
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
 
+	auto playerIndex = actorData.newPlayerIndex;
+
 	DebugLog("%s %llX %u", FUNC_NAME, actorBaseAddr, actorData.action);
 
 
@@ -14944,6 +15127,7 @@ void SetAction(byte8* actorBaseAddr)
 	{
 		using namespace ACTION_DANTE;
 		using namespace ACTION_VERGIL;
+
 
 		actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = File_staticFiles[pl000_00_3];
 
@@ -14959,23 +15143,11 @@ void SetAction(byte8* actorBaseAddr)
 			actorData.newAirStingerCount++;
 		}
 		else if (
-			activeConfig.enableRebellionNewDrive && actorData.lastAction != REBELLION_COMBO_1_PART_1 &&
-			(actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) && b2F.forwardCommand)
-		{
+			activeConfig.quickDriveAndTweaks && actorData.lastAction != REBELLION_COMBO_1_PART_1 &&
+			(actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) && b2F.forwardCommand) {
+
+			ToggleRebellionHoldDrive(true);
 			actorData.action = REBELLION_DRIVE_1;
-		}
-		else if (
-			activeConfig.enableRebellionQuickDrive && actorData.lastAction == REBELLION_COMBO_1_PART_1 &&
-			(demo_pl000_00_3 != 0) &&
-			(actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) &&
-			b2F.forwardCommand)
-		{
-			actorData.action = REBELLION_DRIVE_1;
-
-
-			actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = demo_pl000_00_3;
-
-			actorData.newQuickDrive = true;
 		}
 		else if (
 			activeConfig.enableCerberusAirRevolver &&
@@ -14992,6 +15164,25 @@ void SetAction(byte8* actorBaseAddr)
 			(tiltDirection != TILT_DIRECTION::NEUTRAL))
 		{
 			actorData.action = NEVAN_VORTEX;
+		}
+
+		if (
+			activeConfig.quickDriveAndTweaks && actorData.lastAction == REBELLION_COMBO_1_PART_1 &&
+			(demo_pl000_00_3 != 0) &&
+			(actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) &&
+			b2F.forwardCommand) {
+			actorData.action = REBELLION_DRIVE_1;
+
+			crimsonPlayer[playerIndex].inQuickDrive = true;
+
+			ToggleRebellionHoldDrive(false);
+			actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = demo_pl000_00_3;
+
+			actorData.newQuickDrive = true;
+
+		}
+		else {
+			crimsonPlayer[playerIndex].inQuickDrive = false;
 		}
 
 		// New Nevan Inputs 
@@ -19509,38 +19700,6 @@ export void ToggleRebellionInfiniteShredder(bool enable)
 	run = true;
 }
 
-export void ToggleRebellionHoldDrive(bool enable)
-{
-	LogFunction(enable);
-
-	static bool run = false;
-
-	{
-		auto addr = (appBaseAddr + 0x211581);
-		auto dest = (appBaseAddr + 0x211583);
-		constexpr new_size_t size = 2;
-		/*
-		dmc3.exe+211581 - 74 15             - je dmc3.exe+211598
-		dmc3.exe+211583 - 80 BE 133E0000 00 - cmp byte ptr [rsi+00003E13],00
-		*/
-
-		if (!run)
-		{
-			backupHelper.Save(addr, size);
-		}
-
-		if (enable)
-		{
-			WriteAddress(addr, dest, size);
-		}
-		else
-		{
-			backupHelper.Restore(addr);
-		}
-	}
-
-	run = true;
-}
 
 #pragma region Events
 
