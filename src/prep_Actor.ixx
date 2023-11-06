@@ -5187,14 +5187,16 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
 		return;								// RULES OUT DOPPELGANGER OUT OF THE SFX
 	}
 
-	// Updates the HUD icons.
-	HUD_UpdateStyleIcon(
-		actorData.style,
-		characterData.character);
-	HUD_UpdateDevilTriggerGauge(characterData.character);
-	HUD_UpdateDevilTriggerLightning(characterData.character);
-	HUD_UpdateDevilTriggerExplosion(characterData.character);
-
+	if (actorData.newPlayerIndex == 0) {
+		// Updates the HUD icons.
+		HUD_UpdateStyleIcon(
+			actorData.style,
+			characterData.character);
+		HUD_UpdateDevilTriggerGauge(characterData.character);
+		HUD_UpdateDevilTriggerLightning(characterData.character);
+		HUD_UpdateDevilTriggerExplosion(characterData.character);
+	}
+	
 	// Trigger SFX.
 	playStyleChange();
 	if (actorData.character == CHARACTER::DANTE) {
@@ -13458,11 +13460,11 @@ void AirTauntToggleController(byte8* actorBaseAddr) {
 	}
 
 	if ((actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) || 
-		(cloneActorData.character == CHARACTER::VERGIL && cloneActorData.state & STATE::IN_AIR)) {
+		(actorData.character == CHARACTER::VERGIL && cloneActorData.character == CHARACTER::VERGIL && cloneActorData.state & STATE::IN_AIR)) {
 		ToggleAirTauntVergil(true);
 	}
 	else if ((actorData.character == CHARACTER::VERGIL && !(actorData.state & STATE::IN_AIR)) || 
-		(cloneActorData.character == CHARACTER::VERGIL && !(cloneActorData.state & STATE::IN_AIR))) {
+		(actorData.character == CHARACTER::VERGIL && cloneActorData.character == CHARACTER::VERGIL && !(cloneActorData.state & STATE::IN_AIR))) {
 		ToggleAirTaunt(false);
 	}
 
@@ -13945,7 +13947,7 @@ void UpdateActorSpeed(byte8* baseAddr)
 	SetAirStingerEnd(mainActorData);
 	AirTauntToggleController(mainActorData);
 	FixUpdateLockOnsArtemis(mainActorData);
-	DisableDriveHold();
+	//DisableDriveHold();
 	
 
 	auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(mainActorData.cloneActorBaseAddr);

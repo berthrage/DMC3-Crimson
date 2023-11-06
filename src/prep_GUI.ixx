@@ -10620,17 +10620,17 @@ void MainOverlayWindow()
 					}
 					auto& mainActorData = *reinterpret_cast<PlayerActorDataDante*>(pool_12857[3]);
 
-					
+					crazyComboHold = g_HoldToCrazyComboFuncA();
 					ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[1].actionTimer);
 					ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[1].animTimer);
-					ImGui::Text("drive run timer %u", crimsonPlayer[0].drive.runTimer);
+					ImGui::Text("crazy combo hold:  %u", crazyComboHold);
 					ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
 					ImGui::Text("Actor Speed %g", actorData.speed);
 					ImGui::Text("Weapon %u", actorData.newWeapons[actorData.meleeWeaponIndex]);
 					ImGui::Text("Weapon Ranged %u", actorData.newWeapons[actorData.rangedWeaponIndex]);
 					ImGui::Text("Weapon Melee actual %u", characterData.lastMeleeWeaponIndex);
 					ImGui::Text("Artemis Status %u", mainActorData.artemisStatus);
-					ImGui::Text("lock On: %u", crimsonPlayer[1].lockOn);
+					ImGui::Text("lock On: %u", actorData.lockOn);
 					ImGui::Text("tilt direction %u", crimsonPlayer[1].tiltDirection);
 					ImGui::Text("Enemy Count %u", enemyVectorData.count);
 					ImGui::Text("enemy distance %g", distanceToEnemy);

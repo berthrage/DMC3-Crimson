@@ -4567,6 +4567,7 @@ export struct Drive {
 	bool runTimer = false;
 };
 
+export bool crazyComboHold = false;
 
 export struct CrimsonPlayerData {
 	uint8* action = 0;
