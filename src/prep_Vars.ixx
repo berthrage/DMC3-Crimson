@@ -4368,26 +4368,7 @@ export float highTimeRotation = 0;
 export DoubleTap quickDoubleTap;
 export DoubleTap doppDoubleTap;
 
-export struct TrickUpCancel {
-	int cooldownDuration = 1300;
-	int cooldown = cooldownDuration;
-	bool canTrickUp = true;
-	bool trackerRunning = false;
-} trickUpCancel;
 
-export struct GunsCancel {
-	int cooldownDuration = 1300;
-	int cooldown = cooldownDuration;
-	bool canGun = true;
-	bool trackerRunning = false;
-} gunsCancel;
-
-export struct RainstormCancel {
-	int cooldownDuration = 1700;
-	int cooldown = cooldownDuration;
-	bool canGun = true;
-	bool trackerRunning = false;
-} rainstormCancel;
 
 export struct Inertia {
 	float cachedPull = 10;
@@ -4569,6 +4550,39 @@ export struct Drive {
 
 export bool crazyComboHold = false;
 
+export struct TrickUpCancel {
+	int cooldownDuration = 1300;
+	int cooldown = cooldownDuration;
+	bool canTrickUp = true;
+	bool trackerRunning = false;
+} trickUpCancel;
+
+export struct GunsCancel {
+	int cooldownDuration = 1300;
+	int cooldown = cooldownDuration;
+	bool canGun = true;
+	bool trackerRunning = false;
+} gunsCancel;
+
+export struct RainstormCancel {
+	int cooldownDuration = 1700;
+	int cooldown = cooldownDuration;
+	bool canGun = true;
+	bool trackerRunning = false;
+} rainstormCancel;
+
+export struct ImprovedCancels {
+	float trickCooldownDuration = 0.7f;
+	float gunsCooldownDuration = 0.7f;
+	float rainstormCooldownDuration = 0.75f;
+	float trickCooldown = trickCooldownDuration;
+	float gunsCooldown = gunsCooldownDuration;
+	float rainstormCooldown = rainstormCooldownDuration;
+	bool canTrick = true;
+	bool canGun = true;
+	bool canRainstorm = true;
+};
+
 export struct CrimsonPlayerData {
 	uint8* action = 0;
 	uint8* motion = 0;
@@ -4586,6 +4600,7 @@ export struct CrimsonPlayerData {
 	bool inQuickDrive = false;
 	Sprint sprint;
 	Drive drive;
+	ImprovedCancels cancels;
 };
 
 export CrimsonPlayerData crimsonPlayer[20];

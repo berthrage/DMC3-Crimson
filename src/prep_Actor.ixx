@@ -4242,7 +4242,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr)
 		!actorBaseAddr ||
 		(actorBaseAddr == g_playerActorBaseAddrs[0]) ||
 		(actorBaseAddr == g_playerActorBaseAddrs[1]))
-	{
+	 
 		return;
 	}*/
 
@@ -4407,53 +4407,12 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr)
 	}*/
 }
 
-void TrickUpCancelCooldownTracker() {
-
-	auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
-
-	trickUpCancel.trackerRunning = true;
-	trickUpCancel.canTrickUp = false;
-	trickUpCancel.cooldown = trickUpCancel.cooldownDuration / speedValue;
-	while (trickUpCancel.cooldown > 0) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		trickUpCancel.cooldown--;
-	}
 
 
-}
 
-void GunslingerAirCancelCooldownTracker() {
-	auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
-
-	gunsCancel.trackerRunning = true;
-	gunsCancel.canGun = false;
-	gunsCancel.cooldown = gunsCancel.cooldownDuration / speedValue;
-	while (gunsCancel.cooldown > 0) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		gunsCancel.cooldown--;
-	}
-
-}
-
-void RainstormCancelCooldownTracker() {
-	auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
-
-	rainstormCancel.trackerRunning = true;
-	rainstormCancel.canGun = false;
-	rainstormCancel.cooldown = rainstormCancel.cooldownDuration / speedValue;
-	while (rainstormCancel.cooldown > 0) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		rainstormCancel.cooldown--;
-	}
-
-
-	
-}
-
-void RemoveBusyFlagController(byte8* actorBaseAddr)
+void ImprovedCancelsDanteController(byte8* actorBaseAddr)
 {
 	using namespace ACTION_DANTE;
-	using namespace ACTION_VERGIL;
 
 	if (
 		!actorBaseAddr ||
@@ -4564,123 +4523,17 @@ void RemoveBusyFlagController(byte8* actorBaseAddr)
 
 		auto& button = playerData.removeBusyFlagButtons[buttonIndex];
 
-		//Darkslayer Trick Cancels Everything
-		if (actorData.character == CHARACTER::VERGIL && actorData.state != STATE::IN_AIR && actorData.state != 65538) {
-			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))
-			{
-				if (execute)
-				{
-					execute = false;
 
-					actorData.state &= ~STATE::BUSY;
-				}
-			}
-			else
-			{
-				execute = true;
-			}
-		}
-
-		// TRICK UP
-		if (actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
-			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && lockOn && tiltDirection == TILT_DIRECTION::UP && actorData.trickUpCount > 0)
-			{
-				if (execute)
-				{
-					execute = false;
-
-					actorData.state &= ~STATE::BUSY;
-				}
-			}
-			else
-			{
-				execute = true;
-			}
-		}
-
-		// TRICK DOWN
-		if (actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
-			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && lockOn && tiltDirection == TILT_DIRECTION::DOWN && actorData.trickDownCount > 0)
-			{
-				if (execute)
-				{
-					execute = false;
-
-					actorData.state &= ~STATE::BUSY;
-				}
-			}
-			else
-			{
-				execute = true;
-			}
-		}
-
-		// AIR TRICK
-		if (actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
-			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && (lockOn && tiltDirection == TILT_DIRECTION::NEUTRAL || !lockOn) && actorData.airTrickCount > 0)
-			{
-				if (execute)
-				{
-					execute = false;
-
-					actorData.state &= ~STATE::BUSY;
-				}
-			}
-			else
-			{
-				execute = true;
-			}
-		}
-
-		/*if(actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
-			if(actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2 && airStingerEnd.timer < 150) {
-				if (execute)
-				{
-					execute = false;
-
-					actorData.state &= ~STATE::BUSY;
-				}
-
-
-			}
-			else
-			{
-			execute = true;
-			}
-
-		}*/
-
-
-		if (trickUpCancel.cooldown <= 0) {
-
-			trickUpCancel.canTrickUp = true;
-			trickUpCancel.trackerRunning = false;
-		}
-
-		if (gunsCancel.cooldown == 0) {
-
-			gunsCancel.canGun = true;
-			gunsCancel.trackerRunning = false;
-		}
-
-		if (rainstormCancel.cooldown == 0) {
-
-			rainstormCancel.canGun = true;
-			rainstormCancel.trackerRunning = false;
-		}
 
 		//Dante's Trickster Actions Cancels Most Things (w/ cooldown)
 		if (actorData.character == CHARACTER::DANTE) {
 			if ((actorData.style == STYLE::TRICKSTER) &&
-				(trickUpCancel.canTrickUp) && actorData.eventData[0].event != 22 && (inCancellableActionRebellion || inCancellableActionCerberus ||
+				(crimsonPlayer[playerIndex].cancels.canTrick) && actorData.eventData[0].event != 22 && (inCancellableActionRebellion || inCancellableActionCerberus ||
 					inCancellableActionAgni || inCancellableActionNevan || inCancellableActionBeowulf || inCancellableActionGuns ||
 					inCancellableActionAirSwordmaster || inCancellableActionAirGunslinger || actorData.action == EBONY_IVORY_RAIN_STORM) || executingSkyLaunch) {
 				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
 				{
-					if (!trickUpCancel.trackerRunning && actorData.style == STYLE::TRICKSTER) {
-						std::thread trickupcancelcooldowntracker(TrickUpCancelCooldownTracker);
-						trickupcancelcooldowntracker.detach();
-					}
+					crimsonPlayer[playerIndex].cancels.canTrick = false;
 
 					if (execute)
 					{
@@ -4700,15 +4553,12 @@ void RemoveBusyFlagController(byte8* actorBaseAddr)
 			//Gunslinger Cancels Most Things (w/ cooldown)
 			// They can also cancel themselves.
 			if ((actorData.style == STYLE::GUNSLINGER) &&
-				(actorData.state == STATE::IN_AIR || actorData.state == 65538) && (gunsCancel.canGun) && (inCancellableActionAirSwordmaster ||
+				(actorData.state == STATE::IN_AIR || actorData.state == 65538) && (crimsonPlayer[playerIndex].cancels.canGun) && (inCancellableActionAirSwordmaster ||
 					inCancellableActionAirGunslinger || actorData.eventData[0].event == 23 || actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK || 
-					actorData.motionData[0].index == 15)) {
+					actorData.motionData[0].index == 15) && actorData.action != EBONY_IVORY_RAIN_STORM) {
 				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
 				{
-					if (!gunsCancel.trackerRunning) {
-						std::thread gunslingeraircancelcooldowntracker(GunslingerAirCancelCooldownTracker);
-						gunslingeraircancelcooldowntracker.detach();
-					}
+					crimsonPlayer[playerIndex].cancels.canGun = false;
 
 					if (execute)
 					{
@@ -4726,14 +4576,11 @@ void RemoveBusyFlagController(byte8* actorBaseAddr)
 
 			// but Rainstorm is an exception here since I wanted it to have a longer CD.
 			if ((actorData.style == STYLE::GUNSLINGER) &&
-				(actorData.state == STATE::IN_AIR || actorData.state == 65538) && (rainstormCancel.canGun) &&
+				(actorData.state == STATE::IN_AIR || actorData.state == 65538) && (crimsonPlayer[playerIndex].cancels.canRainstorm) &&
 				(actorData.action == EBONY_IVORY_RAIN_STORM)) {
 				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
 				{
-					if (!rainstormCancel.trackerRunning) {
-						std::thread rainstormcancelcooldowntracker(RainstormCancelCooldownTracker);
-						rainstormcancelcooldowntracker.detach();
-					}
+					crimsonPlayer[playerIndex].cancels.canRainstorm = false;
 
 					if (execute)
 					{
@@ -4750,11 +4597,8 @@ void RemoveBusyFlagController(byte8* actorBaseAddr)
 			}
 
 			// This prevents the double Rainstorm from happening (but I still left it on Fireworks and Artemis Shots).
-			if (actorData.action == EBONY_IVORY_RAIN_STORM && actorData.motionData[0].index == 15 && rainstormCancel.canGun) {
-				if (!rainstormCancel.trackerRunning) {
-					std::thread rainstormcancelcooldowntracker(RainstormCancelCooldownTracker);
-					rainstormcancelcooldowntracker.detach();
-				}
+			if (actorData.action == EBONY_IVORY_RAIN_STORM && actorData.motionData[0].index == 15 && crimsonPlayer[playerIndex].cancels.canRainstorm) {
+				crimsonPlayer[playerIndex].cancels.canRainstorm = false;
 			}
 
 			// Air Revolver Cancelling with Swordmaster moves
@@ -4839,12 +4683,6 @@ void RemoveBusyFlagController(byte8* actorBaseAddr)
 				}
 			}
 
-			
-
-			
-
-
-
 
 			/*if ((actorData.style == STYLE::ROYALGUARD) &&
 					(actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
@@ -4869,7 +4707,7 @@ void RemoveBusyFlagController(byte8* actorBaseAddr)
 		}
 
 
-
+		// Old ddmk's RemoveBusyFlagController, we will keep on Cheats&Debug for legacy keeping reasons.
 		if (gamepad.buttons[0] & button)
 		{
 			if (execute)
@@ -4889,6 +4727,133 @@ void RemoveBusyFlagController(byte8* actorBaseAddr)
 		{
 			execute = true;
 		}
+
+	}
+}
+
+
+void ImprovedCancelsVergilController(byte8* actorBaseAddr) {
+	using namespace ACTION_VERGIL;
+
+	if (
+		!actorBaseAddr ||
+		(actorBaseAddr == g_playerActorBaseAddrs[0]) ||
+		(actorBaseAddr == g_playerActorBaseAddrs[1])) {
+		return;
+	}
+
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
+
+
+
+	auto playerIndex = actorData.newPlayerIndex;
+	if (playerIndex >= PLAYER_COUNT) {
+		playerIndex = 0;
+	}
+
+	auto characterIndex = actorData.newCharacterIndex;
+	if (characterIndex >= CHARACTER_COUNT) {
+		characterIndex = 0;
+	}
+
+	auto entityIndex = actorData.newEntityIndex;
+	if (entityIndex >= ENTITY_COUNT) {
+		entityIndex = 0;
+	}
+
+	auto& playerData = GetPlayerData(playerIndex);
+
+	auto& gamepad = GetGamepad(playerIndex);
+
+	static bool executes[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][4] = {};
+
+	if (!playerData.removeBusyFlag) {
+		return;
+	}
+
+	old_for_all(uint8, buttonIndex, 4) {
+		auto& execute = executes[playerIndex][characterIndex][entityIndex][buttonIndex];
+
+		auto& button = playerData.removeBusyFlagButtons[buttonIndex];
+
+		//Darkslayer Trick Cancels Everything
+		if (actorData.character == CHARACTER::VERGIL && actorData.state != STATE::IN_AIR && actorData.state != 65538) {
+			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
+				if (execute) {
+					execute = false;
+
+					actorData.state &= ~STATE::BUSY;
+				}
+			}
+			else {
+				execute = true;
+			}
+		}
+
+		// TRICK UP
+		if (actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
+			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && lockOn && tiltDirection == TILT_DIRECTION::UP && actorData.trickUpCount > 0) {
+				if (execute) {
+					execute = false;
+
+					actorData.state &= ~STATE::BUSY;
+				}
+			}
+			else {
+				execute = true;
+			}
+		}
+
+		// TRICK DOWN
+		if (actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
+			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && lockOn && tiltDirection == TILT_DIRECTION::DOWN && actorData.trickDownCount > 0) {
+				if (execute) {
+					execute = false;
+
+					actorData.state &= ~STATE::BUSY;
+				}
+			}
+			else {
+				execute = true;
+			}
+		}
+
+		// AIR TRICK
+		if (actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
+			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && (lockOn && tiltDirection == TILT_DIRECTION::NEUTRAL || !lockOn) && actorData.airTrickCount > 0) {
+				if (execute) {
+					execute = false;
+
+					actorData.state &= ~STATE::BUSY;
+				}
+			}
+			else {
+				execute = true;
+			}
+		}
+
+		/*if(actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
+			if(actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2 && airStingerEnd.timer < 150) {
+				if (execute)
+				{
+					execute = false;
+
+					actorData.state &= ~STATE::BUSY;
+				}
+
+
+			}
+			else
+			{
+			execute = true;
+			}
+
+		}*/
 
 	}
 }
@@ -5187,7 +5152,7 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
 		return;								// RULES OUT DOPPELGANGER OUT OF THE SFX
 	}
 
-	if (actorData.newPlayerIndex == 0) {
+	if (actorData.newPlayerIndex == 0) { // Only for player 1
 		// Updates the HUD icons.
 		HUD_UpdateStyleIcon(
 			actorData.style,
@@ -6808,11 +6773,14 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 
 	auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
 
-	RemoveBusyFlagController(actorData);
-	RemoveBusyFlagController(cloneActorData);
+	ImprovedCancelsDanteController(actorData);
+	ImprovedCancelsDanteController(cloneActorData);
 
 	ImprovedCancelsRoyalguardController(actorData);
 	ImprovedCancelsRoyalguardController(cloneActorData);
+
+	ImprovedCancelsVergilController(actorData);
+	ImprovedCancelsVergilController(cloneActorData);
 
 
 	return true;
@@ -12146,6 +12114,10 @@ void StoreInertia(byte8* actorBaseAddr) {
 
 		if (actorData.action != ARTEMIS_AIR_MULTI_LOCK_SHOT) {
 			artemisMultiLockInertia.cachedPull = actorData.horizontalPull;
+		}
+
+		if (!inRoyalBlock) {
+			royalBlockRotation = actorData.rotation;
 		}
 
 

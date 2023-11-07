@@ -22,7 +22,7 @@ import ExtraSound;
 
 
 
-export void ActionTimersMain() {
+export void ActionTimers() {
 	//IntroduceMainActorData
 	auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if
@@ -103,7 +103,7 @@ export void ActionTimersMain() {
 }
 
 
-export void AnimTimersMain() {
+export void AnimTimers() {
 	//IntroduceMainActorData
 	auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if
@@ -162,9 +162,6 @@ export void AnimTimersMain() {
 
 }
 
-void ActionTimersNonMain(byte8* actorBaseAddr) {
-
-}
 
 export void SprintTimer() {
 	
@@ -188,7 +185,6 @@ export void SprintTimer() {
 }
 
 export void DriveTimer() {
-	using namespace ACTION_DANTE;
 
 	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
 
@@ -204,6 +200,49 @@ export void DriveTimer() {
 		
 	}
 
+}
+
+export void ImprovedCancelsTimers() {
+
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+
+
+		// TRICK CANCEL
+		if (!crimsonPlayer[playerIndex].cancels.canTrick) {
+
+			crimsonPlayer[playerIndex].cancels.trickCooldown -= (ImGui::GetIO().DeltaTime * *crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+		}
+		
+		if(crimsonPlayer[playerIndex].cancels.trickCooldown <= 0 && !crimsonPlayer[playerIndex].cancels.canTrick){
+			crimsonPlayer[playerIndex].cancels.trickCooldown = crimsonPlayer[playerIndex].cancels.trickCooldownDuration;
+			crimsonPlayer[playerIndex].cancels.canTrick = true;
+		}
+
+		// GUN CANCEL
+		if (!crimsonPlayer[playerIndex].cancels.canGun) {
+
+			crimsonPlayer[playerIndex].cancels.gunsCooldown -= (ImGui::GetIO().DeltaTime * *crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+		}
+
+		if (crimsonPlayer[playerIndex].cancels.gunsCooldown <= 0 && !crimsonPlayer[playerIndex].cancels.canGun) {
+			crimsonPlayer[playerIndex].cancels.gunsCooldown = crimsonPlayer[playerIndex].cancels.gunsCooldownDuration;
+			crimsonPlayer[playerIndex].cancels.canGun = true;
+		}
+
+
+		// RAINSTORM CANCEL
+		if (!crimsonPlayer[playerIndex].cancels.canRainstorm) {
+
+			crimsonPlayer[playerIndex].cancels.rainstormCooldown -= (ImGui::GetIO().DeltaTime * *crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+		}
+
+		if (crimsonPlayer[playerIndex].cancels.rainstormCooldown <= 0 && !crimsonPlayer[playerIndex].cancels.canRainstorm) {
+			crimsonPlayer[playerIndex].cancels.rainstormCooldown = crimsonPlayer[playerIndex].cancels.rainstormCooldownDuration;
+			crimsonPlayer[playerIndex].cancels.canRainstorm = true;
+		}
+
+
+	}
 }
 
 

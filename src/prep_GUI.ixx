@@ -10626,7 +10626,10 @@ void MainOverlayWindow()
 					ImGui::Text("crazy combo hold:  %u", crazyComboHold);
 					ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
 					ImGui::Text("Actor Speed %g", actorData.speed);
-					ImGui::Text("Weapon %u", actorData.newWeapons[actorData.meleeWeaponIndex]);
+					ImGui::Text("Trick Cooldown %g", crimsonPlayer[0].cancels.trickCooldown);
+					ImGui::Text("Guns Cooldown %g", crimsonPlayer[0].cancels.gunsCooldown);
+					ImGui::Text("Rainstorm Cooldown %g", crimsonPlayer[0].cancels.rainstormCooldown);
+					//ImGui::Text("Weapon %u", actorData.newWeapons[actorData.meleeWeaponIndex]);
 					ImGui::Text("Weapon Ranged %u", actorData.newWeapons[actorData.rangedWeaponIndex]);
 					ImGui::Text("Weapon Melee actual %u", characterData.lastMeleeWeaponIndex);
 					ImGui::Text("Artemis Status %u", mainActorData.artemisStatus);
@@ -13651,11 +13654,12 @@ export void GUI_Render()
 
 	// TIMERS
 	BackToForwardTimers();
-	ActionTimersMain();
-	AnimTimersMain();
+	ActionTimers();
+	AnimTimers();
 	SiyTimerFunc();
 	SprintTimer();
 	DriveTimer();
+	ImprovedCancelsTimers();
 
 	
 
