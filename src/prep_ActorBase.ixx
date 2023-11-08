@@ -1,4 +1,8 @@
+module;
+#include <cstdio>
+
 export module ActorBase;
+
 
 import Core;
 
@@ -11,12 +15,21 @@ import Vars;
 
 
 
-
 export typedef byte8 *(__fastcall * GetPlayerActorBaseAddressByEffectData_t)(byte8 * effectDataAddr);
 
 export GetPlayerActorBaseAddressByEffectData_t GetPlayerActorBaseAddressByEffectData = 0;
 
+export int GetPlayerIndexFromAddr(uintptr_t playerPtr) {
+	int playerIndexFound = 10; // if none is found then it'll return 10.
 
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+		if (playerPtr == crimsonPlayer[playerIndex].playerPtr) {
+			playerIndexFound = playerIndex;
+		}
+	}
+
+	return playerIndexFound;
+}
 
 namespaceStart(Actor);
 

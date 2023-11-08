@@ -36,6 +36,7 @@ import GlobalBase;
 import GUIBase;
 
 import Actor;
+import ActorBase;
 import Arcade;
 import Camera;
 import Config;
