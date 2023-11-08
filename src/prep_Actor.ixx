@@ -4414,13 +4414,13 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr)
 {
 	using namespace ACTION_DANTE;
 
-	if (
+	/*if (
 		!actorBaseAddr ||
 		(actorBaseAddr == g_playerActorBaseAddrs[0]) ||
 		(actorBaseAddr == g_playerActorBaseAddrs[1]))
 	{
 		return;
-	}
+	}*/
 
 	if (!actorBaseAddr)
 	{
@@ -4458,7 +4458,8 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr)
 		actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_1 || actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_2 ||
 		actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_3 || actorData.action == AGNI_RUDRA_MILLION_SLASH ||
 		actorData.action == AGNI_RUDRA_TWISTER || actorData.action == AGNI_RUDRA_TEMPEST || actorData.action == AGNI_RUDRA_WHIRLWIND_LAUNCH);
-
+	
+	// || actorData.action == AGNI_RUDRA_CROSSED_SWORDS || actorData.action == AGNI_RUDRA_CRAWLER
 
 	bool inCancellableActionNevan = (actorData.action == NEVAN_TUNE_UP || actorData.action == NEVAN_COMBO_1 ||
 		actorData.action == NEVAN_COMBO_2 || actorData.action == NEVAN_JAM_SESSION ||
@@ -4484,7 +4485,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr)
 				actorData.action == NEVAN_AIR_SLASH_PART_2) || (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO));
 
 	bool inCancellableActionAirGunslinger = (actorData.action == SHOTGUN_AIR_FIREWORKS ||
-		actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_NORMAL_SHOT);
+		actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT);
 
 
 
@@ -4512,9 +4513,122 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr)
 
 	static bool executes[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][4] = {};
 
-	if (!playerData.removeBusyFlag)
-	{
-		return;
+	if (actorData.character == CHARACTER::DANTE) {
+
+		//Dante's Trickster Actions Cancels Most Things (w/ cooldown)
+		if ((actorData.style == STYLE::TRICKSTER) &&
+			(actorData.eventData[0].event != 22 && (inCancellableActionRebellion || inCancellableActionCerberus ||
+				inCancellableActionAgni || inCancellableActionNevan || inCancellableActionBeowulf || inCancellableActionGuns ||
+				inCancellableActionAirSwordmaster || inCancellableActionAirGunslinger || actorData.action == EBONY_IVORY_RAIN_STORM) || executingSkyLaunch)) {
+			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
+
+
+				if (actorData.newEntityIndex == ENTITY::MAIN) {
+					if (crimsonPlayer[playerIndex].cancels.canTrick) {
+
+						actorData.state &= ~STATE::BUSY;
+
+						crimsonPlayer[playerIndex].cancels.canTrick = false;
+					}
+
+				}
+				else {
+					if (crimsonPlayer[playerIndex].cancelsClone.canTrick) {
+
+						actorData.state &= ~STATE::BUSY;
+
+						crimsonPlayer[playerIndex].cancelsClone.canTrick = false;
+					}
+				}
+
+
+
+			}
+
+		}
+
+		//Gunslinger Cancels Most Things (w/ cooldown)
+		// They can also cancel themselves.
+		if ((actorData.style == STYLE::GUNSLINGER) &&
+			(actorData.state == STATE::IN_AIR || actorData.state == 65538) && (inCancellableActionAirSwordmaster ||
+				inCancellableActionAirGunslinger || actorData.eventData[0].event == 23 || actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK ||
+				actorData.motionData[0].index == 15) && actorData.action != EBONY_IVORY_RAIN_STORM) {
+			if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
+
+				if (actorData.newEntityIndex == ENTITY::MAIN) {
+
+					if (crimsonPlayer[playerIndex].cancels.canGun) {
+
+						actorData.state &= ~STATE::BUSY;
+
+						crimsonPlayer[playerIndex].cancels.canGun = false;
+					}
+
+				}
+				else {
+					if (crimsonPlayer[playerIndex].cancelsClone.canGun) {
+
+						actorData.state &= ~STATE::BUSY;
+
+						crimsonPlayer[playerIndex].cancelsClone.canGun = false;
+					}
+				}
+
+
+			}
+
+		}
+
+		// but Rainstorm is an exception here since I wanted it to have a longer CD.
+		if ((actorData.style == STYLE::GUNSLINGER) &&
+			(actorData.state == STATE::IN_AIR || actorData.state == 65538) && (crimsonPlayer[playerIndex].cancels.canRainstorm) &&
+			(actorData.action == EBONY_IVORY_RAIN_STORM)) {
+			if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) {
+
+
+
+				if (actorData.newEntityIndex == ENTITY::MAIN) {
+
+					if (crimsonPlayer[playerIndex].cancels.canRainstorm) {
+
+						actorData.state &= ~STATE::BUSY;
+
+						crimsonPlayer[playerIndex].cancels.canRainstorm = false;
+					}
+
+				}
+				else {
+					if (crimsonPlayer[playerIndex].cancelsClone.canRainstorm) {
+
+						actorData.state &= ~STATE::BUSY;
+
+						crimsonPlayer[playerIndex].cancelsClone.canRainstorm = false;
+					}
+				}
+			}
+
+		}
+
+		// This prevents the double Rainstorm from happening (but I still left it on Fireworks and Artemis Shots).
+		if (actorData.action == EBONY_IVORY_RAIN_STORM && actorData.motionData[0].index == 15) {
+
+			if (actorData.newEntityIndex == ENTITY::MAIN) {
+
+				if (crimsonPlayer[playerIndex].cancels.canRainstorm) {
+
+					crimsonPlayer[playerIndex].cancels.canRainstorm = false;
+				}
+
+			}
+			else {
+				if (crimsonPlayer[playerIndex].cancelsClone.canRainstorm) {
+
+					crimsonPlayer[playerIndex].cancelsClone.canRainstorm = false;
+				}
+			}
+
+
+		}
 	}
 
 	old_for_all(uint8, buttonIndex, 4)
@@ -4524,82 +4638,8 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr)
 		auto& button = playerData.removeBusyFlagButtons[buttonIndex];
 
 
-
-		//Dante's Trickster Actions Cancels Most Things (w/ cooldown)
 		if (actorData.character == CHARACTER::DANTE) {
-			if ((actorData.style == STYLE::TRICKSTER) &&
-				(crimsonPlayer[playerIndex].cancels.canTrick) && actorData.eventData[0].event != 22 && (inCancellableActionRebellion || inCancellableActionCerberus ||
-					inCancellableActionAgni || inCancellableActionNevan || inCancellableActionBeowulf || inCancellableActionGuns ||
-					inCancellableActionAirSwordmaster || inCancellableActionAirGunslinger || actorData.action == EBONY_IVORY_RAIN_STORM) || executingSkyLaunch) {
-				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
-				{
-					crimsonPlayer[playerIndex].cancels.canTrick = false;
-
-					if (execute)
-					{
-						execute = false;
-
-						actorData.state &= ~STATE::BUSY;
-
-					}
-				}
-				else
-				{
-					execute = true;
-				}
-			}
-
-
-			//Gunslinger Cancels Most Things (w/ cooldown)
-			// They can also cancel themselves.
-			if ((actorData.style == STYLE::GUNSLINGER) &&
-				(actorData.state == STATE::IN_AIR || actorData.state == 65538) && (crimsonPlayer[playerIndex].cancels.canGun) && (inCancellableActionAirSwordmaster ||
-					inCancellableActionAirGunslinger || actorData.eventData[0].event == 23 || actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK || 
-					actorData.motionData[0].index == 15) && actorData.action != EBONY_IVORY_RAIN_STORM) {
-				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
-				{
-					crimsonPlayer[playerIndex].cancels.canGun = false;
-
-					if (execute)
-					{
-						execute = false;
-
-						actorData.state &= ~STATE::BUSY;
-
-					}
-				}
-				else
-				{
-					execute = true;
-				}
-			}
-
-			// but Rainstorm is an exception here since I wanted it to have a longer CD.
-			if ((actorData.style == STYLE::GUNSLINGER) &&
-				(actorData.state == STATE::IN_AIR || actorData.state == 65538) && (crimsonPlayer[playerIndex].cancels.canRainstorm) &&
-				(actorData.action == EBONY_IVORY_RAIN_STORM)) {
-				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION))
-				{
-					crimsonPlayer[playerIndex].cancels.canRainstorm = false;
-
-					if (execute)
-					{
-						execute = false;
-
-						actorData.state &= ~STATE::BUSY;
-
-					}
-				}
-				else
-				{
-					execute = true;
-				}
-			}
-
-			// This prevents the double Rainstorm from happening (but I still left it on Fireworks and Artemis Shots).
-			if (actorData.action == EBONY_IVORY_RAIN_STORM && actorData.motionData[0].index == 15 && crimsonPlayer[playerIndex].cancels.canRainstorm) {
-				crimsonPlayer[playerIndex].cancels.canRainstorm = false;
-			}
+			
 
 			// Air Revolver Cancelling with Swordmaster moves
 			if ((actorData.style == STYLE::SWORDMASTER) && (actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2)) {
@@ -4706,30 +4746,10 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr)
 
 		}
 
-
-		// Old ddmk's RemoveBusyFlagController, we will keep on Cheats&Debug for legacy keeping reasons.
-		if (gamepad.buttons[0] & button)
-		{
-			if (execute)
-			{
-				execute = false;
-
-				actorData.state &= ~STATE::BUSY;
-
-				DebugLog(
-					"%u %X %llX",
-					buttonIndex,
-					button,
-					actorData.baseAddr);
-			}
-		}
-		else
-		{
-			execute = true;
-		}
-
 	}
 }
+
+
 
 
 void ImprovedCancelsVergilController(byte8* actorBaseAddr) {
@@ -4772,9 +4792,6 @@ void ImprovedCancelsVergilController(byte8* actorBaseAddr) {
 
 	static bool executes[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][4] = {};
 
-	if (!playerData.removeBusyFlag) {
-		return;
-	}
 
 	old_for_all(uint8, buttonIndex, 4) {
 		auto& execute = executes[playerIndex][characterIndex][entityIndex][buttonIndex];
@@ -4856,6 +4873,65 @@ void ImprovedCancelsVergilController(byte8* actorBaseAddr) {
 		}*/
 
 	}
+}
+
+
+void RemoveBusyFlagLegacy(byte8* actorBaseAddr) {
+	// Old ddmk's RemoveBusyFlagController, we will keep on Cheats&Debug for legacy keeping reasons.
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+
+// 	if (!playerData.removeBusyFlag) {
+// 		return;
+// 	}
+
+	auto playerIndex = actorData.newPlayerIndex;
+	if (playerIndex >= PLAYER_COUNT) {
+		playerIndex = 0;
+	}
+
+	auto characterIndex = actorData.newCharacterIndex;
+	if (characterIndex >= CHARACTER_COUNT) {
+		characterIndex = 0;
+	}
+
+	auto entityIndex = actorData.newEntityIndex;
+	if (entityIndex >= ENTITY_COUNT) {
+		entityIndex = 0;
+	}
+
+	auto& playerData = GetPlayerData(playerIndex);
+
+	auto& gamepad = GetGamepad(playerIndex);
+
+	static bool executes[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][4] = {};
+
+	old_for_all(uint8, buttonIndex, 4) {
+		auto& execute = executes[playerIndex][characterIndex][entityIndex][buttonIndex];
+
+		auto& button = playerData.removeBusyFlagButtons[buttonIndex];
+
+		if (gamepad.buttons[0] & button) {
+			if (execute) {
+				execute = false;
+
+				actorData.state &= ~STATE::BUSY;
+
+				DebugLog(
+					"%u %X %llX",
+					buttonIndex,
+					button,
+					actorData.baseAddr);
+			}
+		}
+		else {
+			execute = true;
+		}
+
+	}
+
 }
 
 void doubleTapQuickTracker(byte8* actorBaseAddr) {
@@ -6105,9 +6181,9 @@ void DisableHeightRestriction() {
 	uintptr_t rainstormAddr = 0x20149708;
 	uintptr_t airMeleeAddr = 0x2014970C;
 
-	if (toggle.disableHeightRestriction != (int)activeConfig.disableHeightRestriction) {
+	if (toggle.disableHeightRestriction != (int)activeConfig.Gameplay.disableHeightRestriction) {
 
-		if (activeConfig.disableHeightRestriction) {
+		if (activeConfig.Gameplay.disableHeightRestriction) {
 			*(float*)(raveAddr) = 0.0f;
 			*(float*)(rainstormAddr) = 0.0f;
 			*(float*)(airMeleeAddr) = 0.0f;
@@ -6133,9 +6209,9 @@ void DisableHeightRestriction() {
 
 void IncreasedJCSpheres() {
 
-	if (toggle.increasedJCSpheres != (int)activeConfig.increasedJCSpheres) {
+	if (toggle.increasedJCSpheres != (int)activeConfig.Gameplay.increasedJCSpheres) {
 
-		if (activeConfig.increasedJCSpheres) {
+		if (activeConfig.Gameplay.increasedJCSpheres) {
 			_patch((char*)(appBaseAddr + 0x1C1DCB), (char*)"\xF3\x0F\x5E\x0D\xB1\x4F\x31\x00", 8);
 
 			toggle.increasedJCSpheres = 1;
@@ -6152,8 +6228,8 @@ void ImprovedBufferedReversals() {
 	uintptr_t danteAddr = 0x201499BC;
 	uintptr_t vergilAddr = 0x21758C1C;
 
-	if (toggle.improvedBufferedReversals != (int)activeConfig.improvedBufferedReversals) {
-		if (activeConfig.improvedBufferedReversals) {
+	if (toggle.improvedBufferedReversals != (int)activeConfig.Gameplay.improvedBufferedReversals) {
+		if (activeConfig.Gameplay.improvedBufferedReversals) {
 			*(float*)(danteAddr) = 24.0f;
 			*(float*)(vergilAddr) = 24.0f;
 
@@ -6170,9 +6246,9 @@ void ImprovedBufferedReversals() {
 
 void DisableJCRestriction() {
 
-	if (toggle.disableJCRestriction != (int)activeConfig.disableJCRestriction) {
+	if (toggle.disableJCRestriction != (int)activeConfig.Gameplay.disableJCRestriction) {
 
-		if (activeConfig.disableJCRestriction) {
+		if (activeConfig.Gameplay.disableJCRestriction) {
 			_nop((char*)(appBaseAddr + 0x1E7A9F), 6);
 
 			toggle.disableJCRestriction = 1;
@@ -6187,8 +6263,8 @@ void DisableJCRestriction() {
 
 void BulletStop() {
 
-	if (toggle.bulletStop != (int)activeConfig.bulletStop) {
-		if (activeConfig.bulletStop) {
+	if (toggle.bulletStop != (int)activeConfig.Gameplay.bulletStop) {
+		if (activeConfig.Gameplay.bulletStop) {
 
 			_nop((char*)(appBaseAddr + 0x77070), 10); // knockback
 			_nop((char*)(appBaseAddr + 0x68C80), 10); // knockback when higher up
@@ -6209,8 +6285,8 @@ void BulletStop() {
 void RainstormLift() {
 	uintptr_t rainstormLiftAddr = 0x20149B00;
 
-	if (toggle.rainstormLift != (int)activeConfig.rainstormLift) {
-		if (activeConfig.rainstormLift) {
+	if (toggle.rainstormLift != (int)activeConfig.Gameplay.rainstormLift) {
+		if (activeConfig.Gameplay.rainstormLift) {
 
 			*(float*)(rainstormLiftAddr) = -0.2f;
 
@@ -6773,14 +6849,16 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 
 	auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
 
-	ImprovedCancelsDanteController(actorData);
-	ImprovedCancelsDanteController(cloneActorData);
-
-	ImprovedCancelsRoyalguardController(actorData);
-	ImprovedCancelsRoyalguardController(cloneActorData);
-
-	ImprovedCancelsVergilController(actorData);
-	ImprovedCancelsVergilController(cloneActorData);
+	if (activeConfig.Gameplay.improvedCancelsDante) {
+		ImprovedCancelsDanteController(actorBaseAddr);
+		ImprovedCancelsRoyalguardController(actorBaseAddr);
+		ImprovedCancelsRoyalguardController(actorData.cloneActorBaseAddr);
+	}
+	
+	if (activeConfig.Gameplay.darkslayerTrickCancels) {
+		ImprovedCancelsVergilController(actorBaseAddr);
+	}
+	
 
 
 	return true;
@@ -12431,9 +12509,9 @@ void TatsumakiInertiaFix(bool enable) {
 void DisableAirSlashKnockback() {
 	// dmc3.exe+5CA0C4 0x00 0x00 0x00 0x00
 
-	if (toggle.disableAirSlashKnockback != (int)activeConfig.disableAirSlashKnockback) {
+	if (toggle.disableAirSlashKnockback != (int)activeConfig.Gameplay.disableAirSlashKnockback) {
 
-		if (activeConfig.disableAirSlashKnockback) {
+		if (activeConfig.Gameplay.disableAirSlashKnockback) {
 			_patch((char*)(appBaseAddr + 0x5CA0C4), (char*)"\x00\x00\x00\x00", 4);
 
 			toggle.disableAirSlashKnockback = 1;
@@ -13689,8 +13767,8 @@ void SprintAbility(byte8* actorBaseAddr) {
 void DisableDriveHold() {
 	// This will disable the game's original way of triggering Drive (through holding the melee attack button).
 
-	if (toggle.disableDriveHold != (int)activeConfig.quickDriveAndTweaks) {
-		if (activeConfig.quickDriveAndTweaks) {
+	if (toggle.disableDriveHold != (int)activeConfig.Gameplay.quickDriveAndTweaks) {
+		if (activeConfig.Gameplay.quickDriveAndTweaks) {
 			_patch((char*)(appBaseAddr + 0x1EB675), (char*)"\xE9\x27\x01\x00\x00\x90", 6); // jmp dmc3.exe+1EB7A1
 			                                                                               // nop
 			toggle.disableDriveHold = 1;
@@ -13704,26 +13782,51 @@ void DisableDriveHold() {
 
 }
 
-void UpdateCrimsonPlayerData(byte8* actorBaseAddr) {
-	if (!actorBaseAddr) {
+export void UpdateCrimsonPlayerData() {
+	/*if (!actorBaseAddr) {
 		return;
 	}
-	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
-	auto playerIndex = actorData.newPlayerIndex;
-	auto tiltDirection = GetRelativeTiltDirection(actorData);
-	auto inAir = (actorData.state & STATE::IN_AIR);
-	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);*/
 
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
 
-	crimsonPlayer[playerIndex].action = &actorData.action;
-	crimsonPlayer[playerIndex].motion = &actorData.motionData[0].index;
-	crimsonPlayer[playerIndex].character = &actorData.character;
-	crimsonPlayer[playerIndex].gamepad = gamepad;
-	crimsonPlayer[playerIndex].tiltDirection = tiltDirection;
-	crimsonPlayer[playerIndex].lockOn = lockOn;
-	crimsonPlayer[playerIndex].speed = &actorData.speed;
+		auto& newActorData = GetNewActorData(playerIndex, 0, 0);
 
+		auto actorBaseAddr = newActorData.baseAddr;
+
+		if (!actorBaseAddr) {
+			continue;
+		}
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+
+		auto& gamepad = GetGamepad(actorData.newPlayerIndex);
+		auto tiltDirection = GetRelativeTiltDirection(actorData);
+		auto inAir = (actorData.state & STATE::IN_AIR);
+		auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+
+		crimsonPlayer[playerIndex].playerPtr = (uintptr_t)actorData.baseAddr;
+		crimsonPlayer[playerIndex].action = actorData.action;
+		crimsonPlayer[playerIndex].motion = actorData.motionData[0].index;
+		crimsonPlayer[playerIndex].character = actorData.character;
+		crimsonPlayer[playerIndex].gamepad = gamepad;
+		crimsonPlayer[playerIndex].tiltDirection = tiltDirection;
+		crimsonPlayer[playerIndex].lockOn = lockOn;
+		crimsonPlayer[playerIndex].speed = actorData.speed;
+
+	}
+
+}
+
+export int GetPlayerIndexFromAddr(uintptr_t playerPtr) {
+	int playerIndexFound = 10; // if none is found then it'll return 10.
+
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+		if (playerPtr == crimsonPlayer[playerIndex].playerPtr) {
+			playerIndexFound = playerIndex;
+		}
+	}
+
+	return playerIndexFound;
 }
 
 
@@ -14015,7 +14118,6 @@ void UpdateActorSpeed(byte8* baseAddr)
 				auto& gamepad = GetGamepad(0);
 
 				
-				UpdateCrimsonPlayerData(actorBaseAddr);
 				RemoveSoftLockOnController(actorBaseAddr);
 				SprintAbility(actorBaseAddr);
 				
@@ -15117,7 +15219,7 @@ void SetAction(byte8* actorBaseAddr)
 			actorData.newAirStingerCount++;
 		}
 		else if (
-			activeConfig.quickDriveAndTweaks && actorData.lastAction != REBELLION_COMBO_1_PART_1 &&
+			activeConfig.Gameplay.quickDriveAndTweaks && actorData.lastAction != REBELLION_COMBO_1_PART_1 &&
 			(actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) && b2F.forwardCommand) {
 
 			ToggleRebellionHoldDrive(true);
@@ -15141,7 +15243,7 @@ void SetAction(byte8* actorBaseAddr)
 		}
 
 		if (
-			activeConfig.quickDriveAndTweaks && actorData.lastAction == REBELLION_COMBO_1_PART_1 &&
+			activeConfig.Gameplay.quickDriveAndTweaks && actorData.lastAction == REBELLION_COMBO_1_PART_1 &&
 			(demo_pl000_00_3 != 0) &&
 			(actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) &&
 			b2F.forwardCommand) {
@@ -15182,7 +15284,7 @@ void SetAction(byte8* actorBaseAddr)
 
 			}*/
 
-
+		// This is important for Sky Launch/Royal Release switch
 		if ((actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION))
 			&& actorData.state & STATE::IN_AIR) {
 

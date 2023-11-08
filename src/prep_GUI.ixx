@@ -10620,20 +10620,21 @@ void MainOverlayWindow()
 					}
 					auto& mainActorData = *reinterpret_cast<PlayerActorDataDante*>(pool_12857[3]);
 
-					crazyComboHold = g_HoldToCrazyComboFuncA();
+					//crazyComboHold = g_HoldToCrazyComboFuncA();
 					ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[1].actionTimer);
 					ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[1].animTimer);
 					ImGui::Text("crazy combo hold:  %u", crazyComboHold);
 					ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
 					ImGui::Text("Actor Speed %g", actorData.speed);
-					ImGui::Text("Trick Cooldown %g", crimsonPlayer[0].cancels.trickCooldown);
-					ImGui::Text("Guns Cooldown %g", crimsonPlayer[0].cancels.gunsCooldown);
-					ImGui::Text("Rainstorm Cooldown %g", crimsonPlayer[0].cancels.rainstormCooldown);
+					ImGui::Text("Player Index %u", GetPlayerIndexFromAddr((uintptr_t) actorData.baseAddr));
+// 					ImGui::Text("Trick Cooldown %g", crimsonPlayer[1].cancels.trickCooldown);
+// 					ImGui::Text("Guns Cooldown %g", crimsonPlayer[1].cancels.gunsCooldown);
+// 					ImGui::Text("Rainstorm Cooldown %g", crimsonPlayer[1].cancels.rainstormCooldown);
 					//ImGui::Text("Weapon %u", actorData.newWeapons[actorData.meleeWeaponIndex]);
 					ImGui::Text("Weapon Ranged %u", actorData.newWeapons[actorData.rangedWeaponIndex]);
 					ImGui::Text("Weapon Melee actual %u", characterData.lastMeleeWeaponIndex);
 					ImGui::Text("Artemis Status %u", mainActorData.artemisStatus);
-					ImGui::Text("lock On: %u", actorData.lockOn);
+					ImGui::Text("lock On: %u", crimsonPlayer[1].lockOn);
 					ImGui::Text("tilt direction %u", crimsonPlayer[1].tiltDirection);
 					ImGui::Text("Enemy Count %u", enemyVectorData.count);
 					ImGui::Text("enemy distance %g", distanceToEnemy);
@@ -10650,14 +10651,14 @@ void MainOverlayWindow()
 					ImGui::Text("inRapidSlash %u", inRapidSlash);
 					ImGui::Text("fRapidSlash storedSpeedDevil %g", fasterRapidSlash.storedSpeedDevil[0]);
 					ImGui::Text("fDarklasyer storedSpeedDevil %g", fasterDarkslayer.storedSpeedDevil[0]);
-					ImGui::Text("Motion Data 1: %u", actorData.motionData[0].index);
+					ImGui::Text("Motion Data 1: %u", crimsonPlayer[0].motion);
 					ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
 					ImGui::Text("Last Event Data %u", actorData.eventData[0].lastEvent);
 					ImGui::Text("Last Last Event %u", lastLastEvent);
 					ImGui::Text("State %u", actorData.state);
 					ImGui::Text("Last State %u", actorData.lastState);
 					ImGui::Text("Last Last State %u", lastLastState);				
- 					ImGui::Text("Character Action %u", actorData.action);
+ 					ImGui::Text("Character Action %u", crimsonPlayer[0].action);
 					ImGui::Text("Character Last Action %u", actorData.lastAction);
 					ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
 					ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
@@ -12663,11 +12664,76 @@ void SFX()
 			"%u",
 			ImGuiInputTextFlags_EnterReturnsTrue
 		);
+
+		GUI_InputDefault2<uint32>
+		(
+			"Style Rank Announcer Cooldown Seconds",
+			activeConfig.SFX.styleRankAnnouncerCooldownSeconds,
+			queuedConfig.SFX.styleRankAnnouncerCooldownSeconds,
+			defaultConfig.SFX.styleRankAnnouncerCooldownSeconds,
+			1,
+			"%u",
+			ImGuiInputTextFlags_EnterReturnsTrue
+		);
 ;
 
 
 	}
 }
+
+void GameplayOptions() {
+
+	if (ImGui::CollapsingHeader("Gameplay Options (Crimson)")) {
+		ImGui::Text("");
+
+
+
+		ImGui::Text("");
+
+		ImGui::Text("Dante");
+
+		ImGui::PushItemWidth(150.0f);
+		GUI_Checkbox2
+		(
+			"Improved Cancels",
+			activeConfig.Gameplay.improvedCancelsDante,
+			queuedConfig.Gameplay.improvedCancelsDante
+		);
+		ImGui::SameLine();
+		TooltipHelper
+		(
+			"(?)",
+			"Requires Actor System.\n"
+			"\n"
+			"Enables a series of animation cancels for Dante, especially for moves between different styles.\nCheck out the 1.0 Patch Notes for more info. Replaces DDMK's Remove Busy Flag."
+		);
+		ImGui::Text("");
+
+		ImGui::Text("");
+
+		ImGui::Text("Vergil");
+
+		ImGui::PushItemWidth(150.0f);
+		GUI_Checkbox2
+		(
+			"Darkslayer Tricks Cancels Everything",
+			activeConfig.Gameplay.darkslayerTrickCancels,
+			queuedConfig.Gameplay.darkslayerTrickCancels
+		);
+		ImGui::SameLine();
+		TooltipHelper
+		(
+			"(?)",
+			"Requires Actor System.\n"
+			"\n"
+			"Enables Vergil to cancel any move with any Darkslayer Trick at any time."
+		);
+		ImGui::Text("");
+
+
+	}
+}
+
 
 #pragma endregion
 
@@ -13582,6 +13648,7 @@ void Main()
 		Teleporter();
 		WeaponWheel();
 		SFX();
+		GameplayOptions();
 		TrainingSection();
 		Vergil();
 
@@ -13649,7 +13716,7 @@ export void GUI_Render()
 	BossLadyActionsOverlayWindow();
 	BossVergilActionsOverlayWindow();
 
-	
+	UpdateCrimsonPlayerData();
 	DelayedComboEffectsController();
 
 	// TIMERS

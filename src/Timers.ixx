@@ -84,7 +84,7 @@ export void ActionTimers() {
 
 		if (inAttack) {
 			if (eventData.event != EVENT::PAUSE) {
-				crimsonPlayer[playerIndex].actionTimer += (ImGui::GetIO().DeltaTime * *crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+				crimsonPlayer[playerIndex].actionTimer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
 			}
 		}
 		else {
@@ -148,7 +148,7 @@ export void AnimTimers() {
 		}
 
 		if (eventData.event != EVENT::PAUSE) {
-			crimsonPlayer[playerIndex].animTimer += (ImGui::GetIO().DeltaTime * *crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+			crimsonPlayer[playerIndex].animTimer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
 		}
 
 			
@@ -192,7 +192,7 @@ export void DriveTimer() {
 
 		if (crimsonPlayer[playerIndex].drive.runTimer) {
 
-			crimsonPlayer[playerIndex].drive.timer += (ImGui::GetIO().DeltaTime * *crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+			crimsonPlayer[playerIndex].drive.timer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
 		}
 		else {
 			crimsonPlayer[playerIndex].drive.timer = 0;
@@ -210,7 +210,7 @@ export void ImprovedCancelsTimers() {
 		// TRICK CANCEL
 		if (!crimsonPlayer[playerIndex].cancels.canTrick) {
 
-			crimsonPlayer[playerIndex].cancels.trickCooldown -= (ImGui::GetIO().DeltaTime * *crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+			crimsonPlayer[playerIndex].cancels.trickCooldown -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
 		}
 		
 		if(crimsonPlayer[playerIndex].cancels.trickCooldown <= 0 && !crimsonPlayer[playerIndex].cancels.canTrick){
@@ -221,7 +221,7 @@ export void ImprovedCancelsTimers() {
 		// GUN CANCEL
 		if (!crimsonPlayer[playerIndex].cancels.canGun) {
 
-			crimsonPlayer[playerIndex].cancels.gunsCooldown -= (ImGui::GetIO().DeltaTime * *crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+			crimsonPlayer[playerIndex].cancels.gunsCooldown -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
 		}
 
 		if (crimsonPlayer[playerIndex].cancels.gunsCooldown <= 0 && !crimsonPlayer[playerIndex].cancels.canGun) {
@@ -233,12 +233,48 @@ export void ImprovedCancelsTimers() {
 		// RAINSTORM CANCEL
 		if (!crimsonPlayer[playerIndex].cancels.canRainstorm) {
 
-			crimsonPlayer[playerIndex].cancels.rainstormCooldown -= (ImGui::GetIO().DeltaTime * *crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+			crimsonPlayer[playerIndex].cancels.rainstormCooldown -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
 		}
 
 		if (crimsonPlayer[playerIndex].cancels.rainstormCooldown <= 0 && !crimsonPlayer[playerIndex].cancels.canRainstorm) {
 			crimsonPlayer[playerIndex].cancels.rainstormCooldown = crimsonPlayer[playerIndex].cancels.rainstormCooldownDuration;
 			crimsonPlayer[playerIndex].cancels.canRainstorm = true;
+		}
+
+		///
+
+		// TRICK CANCEL CLONE
+		if (!crimsonPlayer[playerIndex].cancelsClone.canTrick) {
+
+			crimsonPlayer[playerIndex].cancelsClone.trickCooldown -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+		}
+
+		if (crimsonPlayer[playerIndex].cancelsClone.trickCooldown <= 0 && !crimsonPlayer[playerIndex].cancelsClone.canTrick) {
+			crimsonPlayer[playerIndex].cancelsClone.trickCooldown = crimsonPlayer[playerIndex].cancelsClone.trickCooldownDuration;
+			crimsonPlayer[playerIndex].cancelsClone.canTrick = true;
+		}
+
+		// GUN CANCEL CLONE
+		if (!crimsonPlayer[playerIndex].cancelsClone.canGun) {
+
+			crimsonPlayer[playerIndex].cancelsClone.gunsCooldown -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+		}
+
+		if (crimsonPlayer[playerIndex].cancelsClone.gunsCooldown <= 0 && !crimsonPlayer[playerIndex].cancelsClone.canGun) {
+			crimsonPlayer[playerIndex].cancelsClone.gunsCooldown = crimsonPlayer[playerIndex].cancelsClone.gunsCooldownDuration;
+			crimsonPlayer[playerIndex].cancelsClone.canGun = true;
+		}
+
+
+		// RAINSTORM CANCEL CLONE
+		if (!crimsonPlayer[playerIndex].cancelsClone.canRainstorm) {
+
+			crimsonPlayer[playerIndex].cancelsClone.rainstormCooldown -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+		}
+
+		if (crimsonPlayer[playerIndex].cancelsClone.rainstormCooldown <= 0 && !crimsonPlayer[playerIndex].cancelsClone.canRainstorm) {
+			crimsonPlayer[playerIndex].cancelsClone.rainstormCooldown = crimsonPlayer[playerIndex].cancelsClone.rainstormCooldownDuration;
+			crimsonPlayer[playerIndex].cancelsClone.canRainstorm = true;
 		}
 
 

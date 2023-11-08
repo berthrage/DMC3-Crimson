@@ -67,7 +67,7 @@ export inline uint16 GetRelativeTilt(PlayerActorData & actorData) {
 
 export inline uint8 GetRelativeTiltDirection(PlayerActorData & actorData)
 {
-	auto & gamepad = GetGamepad(0);
+	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
 	uint16 relativeTilt = 0;
 	using namespace ACTION_DANTE;
 
@@ -107,9 +107,7 @@ export inline uint8 GetRelativeTiltDirection(PlayerActorData & actorData)
 		}
 	}
 
-	if (actorData.action == REBELLION_DANCE_MACABRE_PART_1) {
-		TILT_DIRECTION::NEUTRAL;
-	}
 
 	return TILT_DIRECTION::NEUTRAL;
 }
+

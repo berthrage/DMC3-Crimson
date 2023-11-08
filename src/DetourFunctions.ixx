@@ -46,7 +46,7 @@ extern "C" {
 
 }
 
-export bool g_HoldToCrazyComboFuncA() {
+export bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
 	using namespace ACTION_DANTE;
 
 	old_for_all(uint8, playerIndex, PLAYER_COUNT) {

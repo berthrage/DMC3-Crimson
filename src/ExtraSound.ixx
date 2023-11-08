@@ -357,7 +357,7 @@ export void playStyleChangeVO(int style) {
 void StyleRankCooldownTracker(int rank) {
     rankAnnouncer[rank].trackerRunning = true;
     rankAnnouncer[rank].offCooldown = false;
-    std::this_thread::sleep_for(std::chrono::seconds(activeConfig.styleRankAnnouncerCooldownSeconds));
+    std::this_thread::sleep_for(std::chrono::seconds(activeConfig.SFX.styleRankAnnouncerCooldownSeconds));
     rankAnnouncer[rank].offCooldown = true;
     rankAnnouncer[rank].trackerRunning = false;
 }

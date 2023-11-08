@@ -4584,10 +4584,11 @@ export struct ImprovedCancels {
 };
 
 export struct CrimsonPlayerData {
-	uint8* action = 0;
-	uint8* motion = 0;
-	float* speed = 0;
-	uint32* character = 0;
+	uintptr_t playerPtr;
+	uint8 action = 0;
+	uint8 motion = 0;
+	float speed = 0;
+	uint32 character = 0;
 	ENGINE_GAMEPAD gamepad;
 	uint8 tiltDirection;
 	bool lockOn;
@@ -4601,6 +4602,7 @@ export struct CrimsonPlayerData {
 	Sprint sprint;
 	Drive drive;
 	ImprovedCancels cancels;
+	ImprovedCancels cancelsClone;
 };
 
 export CrimsonPlayerData crimsonPlayer[20];

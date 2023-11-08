@@ -701,15 +701,6 @@ export struct Config
 	float weaponWheelWidthSeparation;
 	uint64 weaponWheelTimeout = 2000;
 
-	bool disableHeightRestriction = true;
-	bool improvedBufferedReversals = true;
-	bool increasedJCSpheres = true;
-	bool disableAirSlashKnockback = true;
-	bool disableJCRestriction = true;
-	bool bulletStop = true;
-	bool rainstormLift = true;
-	bool quickDriveAndTweaks = true;
-
 	uint8 cameraSensitivity = 3;
 	uint8 cameraFollowUpSpeed = 2;
 	uint8 cameraDistance = 2;
@@ -741,15 +732,34 @@ export struct Config
 		uint32 doppelgangerOutVolume = 50;
 		uint32 quicksilverInVolume = 50;
 		uint32 styleRankAnnouncerVolume = 85;
+		uint32 styleRankAnnouncerCooldownSeconds = 20;
 	}
 	SFX;
 
-	struct
-	{
-		bool enable = true;
-		bool enableAerialRaveAnsSkyDance = true;
-	}
-	Inertia;
+
+	struct Gameplay {
+
+		// GENERAL
+		bool inertia = true;
+		bool sprint = true;
+		bool disableHeightRestriction = true;
+		bool improvedBufferedReversals = true;
+		bool increasedJCSpheres = true;
+		bool disableJCRestriction = true;
+		
+
+		// DANTE
+		bool improvedCancelsDante = true;
+		bool bulletStop = true;
+		bool rainstormLift = true;
+		bool quickDriveAndTweaks = true;
+		bool disableAirSlashKnockback = true;
+
+		// VERGIL
+		bool darkslayerTrickCancels = true;
+
+
+	} Gameplay;
 
 	struct
 	{
@@ -764,7 +774,7 @@ export struct Config
 	StyleColor;
 	//doppOrange = { 59, 25, 2, 255 }
 
-	int styleRankAnnouncerCooldownSeconds = 20;
+	
 
 	bool playDTReadySFXAtMissionStart = true;
 };
@@ -1797,7 +1807,7 @@ void CreateMembers(Config& config_)
 		auto& member = Create<struct_t>(root, "SFX");
 		auto& config = config_.SFX;
 
-		Create<uint8 >(member, "changeGunNew", config.changeGunNew);
+		Create<uint8>(member, "changeGunNew", config.changeGunNew);
 		Create<uint8>(member, "changeDevilArmNew", config.changeDevilArmNew);
 		Create<uint32>(member, "changeWeaponVolume", config.changeWeaponVolume);
 		Create<uint32>(member, "styleChangeEffectVolume", config.styleChangeEffectVolume);
@@ -1811,9 +1821,26 @@ void CreateMembers(Config& config_)
 		Create<uint32>(member, "doppelgangerOutVolume", config.doppelgangerOutVolume);
 		Create<uint32>(member, "quicksilverInVolume", config.quicksilverInVolume);
 		Create<uint32>(member, "styleRankAnnouncerVolume", config.styleRankAnnouncerVolume);
-
+		Create<uint32>(member, "styleRankAnnouncerCooldownSeconds", config.styleRankAnnouncerCooldownSeconds);
 	}
 
+	{
+		auto& member = Create<struct_t>(root, "Gameplay");
+		auto& config = config_.Gameplay;
+
+		Create<bool>(member, "inertia", config.inertia);
+		Create<bool>(member, "sprint", config.sprint);
+		Create<bool>(member, "disableHeightRestriction", config.disableHeightRestriction);
+		Create<bool>(member, "improvedBufferedReversals", config.improvedBufferedReversals);
+		Create<bool>(member, "increasedJCSpheres", config.increasedJCSpheres);
+		Create<bool>(member, "disableJCRestriction", config.disableJCRestriction);
+		Create<bool>(member, "improvedCancelsDante", config.improvedCancelsDante);
+		Create<bool>(member, "bulletStop", config.bulletStop);
+		Create<bool>(member, "rainstormLift", config.rainstormLift);
+		Create<bool>(member, "quickDriveAndTweaks", config.quickDriveAndTweaks);
+		Create<bool>(member, "disableAirSlashKnockback", config.disableAirSlashKnockback);
+		Create<bool>(member, "darkslayerTrickCancels", config.darkslayerTrickCancels);
+	}
 
 
 	CreateArray<uint8, 2>(member, "beowulfVergilAirRisingSunCount", config.beowulfVergilAirRisingSunCount);
@@ -2471,7 +2498,25 @@ void ToJSON(Config& config_)
 		Set<uint32>(member["doppelgangerOutVolume"], config.doppelgangerOutVolume);
 		Set<uint32>(member["quicksilverInVolume"], config.quicksilverInVolume);
 		Set<uint32>(member["styleRankAnnouncerVolume"], config.styleRankAnnouncerVolume);
+		Set<uint32>(member["styleRankAnnouncerCooldownSeconds"], config.styleRankAnnouncerCooldownSeconds);
+	}
 
+	{
+		auto& member = root["Gameplay"];
+		auto& config = config_.Gameplay;
+
+		Set<bool>(member["inertia"], config.inertia);
+		Set<bool>(member["sprint"], config.sprint);
+		Set<bool>(member["disableHeightRestriction"], config.disableHeightRestriction);
+		Set<bool>(member["improvedBufferedReversals"], config.improvedBufferedReversals);
+		Set<bool>(member["increasedJCSpheres"], config.increasedJCSpheres);
+		Set<bool>(member["disableJCRestriction"], config.disableJCRestriction);
+		Set<bool>(member["improvedCancelsDante"], config.improvedCancelsDante);
+		Set<bool>(member["bulletStop"], config.bulletStop);
+		Set<bool>(member["rainstormLift"], config.rainstormLift);
+		Set<bool>(member["quickDriveAndTweaks"], config.quickDriveAndTweaks);
+		Set<bool>(member["disableAirSlashKnockback"], config.disableAirSlashKnockback);
+		Set<bool>(member["darkslayerTrickCancels"], config.darkslayerTrickCancels);
 	}
 
 
@@ -3119,8 +3164,29 @@ void ToConfig(Config& config_)
 		config.doppelgangerOutVolume = Get<uint32>(member["doppelgangerOutVolume"]);
 		config.quicksilverInVolume = Get<uint32>(member["quicksilverInVolume"]);
 		config.styleRankAnnouncerVolume = Get<uint32>(member["styleRankAnnouncerVolume"]);
+		config.styleRankAnnouncerCooldownSeconds = Get<uint32>(member["styleRankAnnouncerCooldownSeconds"]);
 
 	}
+
+	{
+		auto& config = config_.Gameplay;
+		auto& member = root["Gameplay"];
+
+		config.inertia = Get<bool>(member["inertia"]);
+		config.sprint = Get<bool>(member["sprint"]);
+		config.disableHeightRestriction = Get<bool>(member["disableHeightRestriction"]);
+		config.improvedBufferedReversals = Get<bool>(member["improvedBufferedReversals"]);
+		config.increasedJCSpheres = Get<bool>(member["increasedJCSpheres"]);
+		config.disableJCRestriction = Get<bool>(member["disableJCRestriction"]);
+		config.improvedCancelsDante = Get<bool>(member["improvedCancelsDante"]);
+		config.bulletStop = Get<bool>(member["bulletStop"]);
+		config.rainstormLift = Get<bool>(member["rainstormLift"]);
+		config.quickDriveAndTweaks = Get<bool>(member["quickDriveAndTweaks"]);
+		config.disableAirSlashKnockback = Get<bool>(member["disableAirSlashKnockback"]);
+		config.darkslayerTrickCancels = Get<bool>(member["darkslayerTrickCancels"]);
+
+	}
+
 
 	GetArray<uint8, 2>(config.beowulfVergilAirRisingSunCount, member["beowulfVergilAirRisingSunCount"]);
 
