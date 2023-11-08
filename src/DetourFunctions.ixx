@@ -105,111 +105,80 @@ export bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
 	case REBELLION_PROP:
 		return true;
 
-		break;
 	case REBELLION_SHREDDER:
 		return true;
 
-		break;
 	case REBELLION_DANCE_MACABRE_PART_8:
 		return true;
 
-		break;
 	case REBELLION_CRAZY_DANCE:
 		return true;
 
-		break;
 	case POLE_PLAY:
 		return true;
 
-		break;
 	case CERBERUS_WINDMILL:
 		return true;
 
-		break;
 	case CERBERUS_CRYSTAL:
 		return true;
 
-		break;
 	case CERBERUS_MILLION_CARATS:
 		return true;
 
-		break;
 	case AGNI_RUDRA_COMBO_3_PART_3:
 		return true;
 
-		break;
 	case AGNI_RUDRA_MILLION_SLASH:
 		return true;
 
-		break;
 	case AGNI_RUDRA_TWISTER:
 		return true;
 
-		break;
 	case AGNI_RUDRA_TEMPEST:
 		return true;
 
-		break;
 	case NEVAN_FEEDBACK:
 		return true;
 
-		break;
 	case NEVAN_CRAZY_ROLL:
 		return true;
 
-		break;
 	case BEOWULF_REAL_IMPACT:
 		return true;
 
-		break;
 	case BEOWULF_TORNADO:
 		return true;
 
-		break;
 	case BEOWULF_HYPER_FIST:
 		return true;
 
-		break;
 	case SHOTGUN_GUN_STINGER:
 		return true;
 
-		break;
 	case SHOTGUN_POINT_BLANK:
 		return true;
 
-		break;
 	case ARTEMIS_SPHERE:
 		return true;
 
-		break;
 	case ARTEMIS_ACID_RAIN:
 		return true;
 
-		break;
 	case EBONY_IVORY_NORMAL_SHOT:
 		return true;
 
-		break;
 	case EBONY_IVORY_CHARGED_SHOT:
 		return true;
 
-		break;
 	case EBONY_IVORY_WILD_STOMP:
 		return true;
 
-		break;
 	case SPIRAL_SNIPER:
 		return true;
 
-		break;
 	}
-	//return false;
-
-// Needs testing with multiplayer with Dante & Vergil present if this is needed
-// 		else {
-// 
-// 			return true;
-// 		}
+	return false;
 
 }
 
