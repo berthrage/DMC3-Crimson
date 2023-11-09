@@ -13789,8 +13789,11 @@ export void UpdateCrimsonPlayerData() {
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);*/
 
 	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+		auto& playerData = GetPlayerData(playerIndex);
 
-		auto& newActorData = GetNewActorData(playerIndex, 0, 0);
+		//auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+
+		auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, 0);
 
 		auto actorBaseAddr = newActorData.baseAddr;
 
