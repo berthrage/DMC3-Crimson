@@ -13801,9 +13801,11 @@ export void UpdateCrimsonPlayerData() {
 			continue;
 		}
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+		auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
 
 		auto& gamepad = GetGamepad(actorData.newPlayerIndex);
 		auto tiltDirection = GetRelativeTiltDirection(actorData);
+		auto tiltDirectionClone = GetRelativeTiltDirection(cloneActorData);
 		auto inAir = (actorData.state & STATE::IN_AIR);
 		auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
 
@@ -13816,6 +13818,11 @@ export void UpdateCrimsonPlayerData() {
 		crimsonPlayer[playerIndex].lockOn = lockOn;
 		crimsonPlayer[playerIndex].speed = actorData.speed;
 
+		crimsonPlayer[playerIndex].clonePtr = (uintptr_t)actorData.cloneActorBaseAddr;
+		crimsonPlayer[playerIndex].actionClone = cloneActorData.action;
+		crimsonPlayer[playerIndex].motionClone = cloneActorData.motionData[0].index;
+		crimsonPlayer[playerIndex].tiltDirectionClone = tiltDirectionClone;
+		crimsonPlayer[playerIndex].speedClone = cloneActorData.speed;
 	}
 
 }

@@ -4602,6 +4602,16 @@ export struct CrimsonPlayerData {
 	Sprint sprint;
 	Drive drive;
 	ImprovedCancels cancels;
+
+	uintptr_t clonePtr;
+	uint8 actionClone = 0;
+	uint8 motionClone = 0;
+	float speedClone = 0;
+	uint8 tiltDirectionClone;
+	int currentActionClone = 0;
+	int currentAnimClone = 0;
+	float actionTimerClone = 0;
+	float animTimerClone = 0;
 	ImprovedCancels cancelsClone;
 };
 

@@ -26,6 +26,8 @@ export int GetPlayerIndexFromAddr(uintptr_t playerPtr) {
 		if (playerPtr == crimsonPlayer[playerIndex].playerPtr) {
 			playerIndexFound = playerIndex;
 		}
+
+		
 	}
 
 	return playerIndexFound;

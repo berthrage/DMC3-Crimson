@@ -60,7 +60,9 @@ export void ActionTimers() {
 			continue;
 		}
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+		auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
 		auto inAttack = (actorData.eventData[0].event == 17);
+		auto inAttackClone = (cloneActorData.eventData[0].event == 17);
 
 		if (inAttack) {
 			if (eventData.event != EVENT::PAUSE) {
@@ -78,7 +80,20 @@ export void ActionTimers() {
 			crimsonPlayer[playerIndex].currentAction = actorData.action;
 		}
 
+		////
 
+		if (inAttackClone) {
+			if (eventData.event != EVENT::PAUSE) {
+				crimsonPlayer[playerIndex].actionTimerClone += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speedClone) / g_frameRateMultiplier;
+			}
+		}
+
+		// ACTIONS CLONE
+		if (cloneActorData.action != crimsonPlayer[playerIndex].currentActionClone) {
+			crimsonPlayer[playerIndex].actionTimerClone = 0;
+
+			crimsonPlayer[playerIndex].currentActionClone = cloneActorData.action;
+		}
 	}
 }
 
@@ -121,7 +136,9 @@ export void AnimTimers() {
 			continue;
 		}
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+		auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
 
+		// ANIMATION IDs 
 		if (actorData.motionData[0].index != crimsonPlayer[playerIndex].currentAnim) {
 			crimsonPlayer[playerIndex].animTimer = 0;
 
@@ -132,6 +149,18 @@ export void AnimTimers() {
 			crimsonPlayer[playerIndex].animTimer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
 		}
 
+		////
+
+		// ANIMATION IDs CLONE
+		if (cloneActorData.motionData[0].index != crimsonPlayer[playerIndex].currentAnimClone) {
+			crimsonPlayer[playerIndex].animTimerClone = 0;
+
+			crimsonPlayer[playerIndex].currentAnimClone = cloneActorData.motionData[0].index;
+		}
+
+		if (eventData.event != EVENT::PAUSE) {
+			crimsonPlayer[playerIndex].animTimerClone += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speedClone) / g_frameRateMultiplier;
+		}
 			
 	}
 

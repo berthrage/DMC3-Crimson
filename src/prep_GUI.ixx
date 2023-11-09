@@ -10622,8 +10622,8 @@ void MainOverlayWindow()
 					auto& mainActorData = *reinterpret_cast<PlayerActorDataDante*>(pool_12857[3]);
 
 					//crazyComboHold = g_HoldToCrazyComboFuncA();
-					ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[1].actionTimer);
-					ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[1].animTimer);
+					ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
+					ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[0].animTimer);
 					ImGui::Text("crazy combo hold:  %u", crazyComboHold);
 					ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
 					ImGui::Text("Actor Speed %g", actorData.speed);
