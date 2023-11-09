@@ -23,7 +23,7 @@ export int GetPlayerIndexFromAddr(uintptr_t playerPtr) {
 	int playerIndexFound = 10; // if none is found then it'll return 10.
 
 	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-		if (playerPtr == crimsonPlayer[playerIndex].playerPtr) {
+		if (playerPtr == crimsonPlayer[playerIndex].playerPtr || playerPtr == crimsonPlayer[playerIndex].clonePtr) {
 			playerIndexFound = playerIndex;
 		}
 

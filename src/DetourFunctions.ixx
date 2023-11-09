@@ -54,148 +54,145 @@ extern "C" {
 export bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
 	using namespace ACTION_DANTE;
 
-	auto playerIndex = GetPlayerIndexFromAddr((uintptr_t)actorData.baseAddr);
+	auto playerIndex = GetPlayerIndexFromAddr((uintptr_t)actorData.baseAddr); // simply using actorData.newPlayerIndex also works here.
 
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
-	auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
-	auto tiltDirectionClone = GetRelativeTiltDirection(cloneActorData);
-	
+
 	auto inputException = !(actorData.lockOn &&
 		(tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN));
 
 	auto inputExceptionNevanJamSession = !(tiltDirection == TILT_DIRECTION::LEFT);
 
- 	auto inputExceptionClone = !(actorData.lockOn &&
- 		(tiltDirectionClone == TILT_DIRECTION::UP || tiltDirectionClone == TILT_DIRECTION::DOWN));
- 
- 	auto inputExceptionNevanJamSessionClone = !(tiltDirectionClone == TILT_DIRECTION::LEFT);
+	// if the player ptr we fetched is a Clone then we use action/animTimers Clone, if not then use the normal ones instead.
+	auto actionTimer = (actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].actionTimerClone : crimsonPlayer[playerIndex].actionTimer;
+	auto animTimer = (actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].animTimerClone : crimsonPlayer[playerIndex].animTimer;
 
+	
+	switch (actorData.action) { // from vars, namespaceStart(ACTION_DANTE); 
 
- 	if (actorData.newEntityIndex == 0) {
-		switch (actorData.action) { // from vars, namespaceStart(ACTION_DANTE); 
-
-		case REBELLION_STINGER_LEVEL_1:
-			if (std::clamp<float>(crimsonPlayer[playerIndex].actionTimer, 0.2f, 0.3f) == crimsonPlayer[playerIndex].actionTimer &&
-				inputException) {
-				return true;
-			}
-			break;
-		case REBELLION_STINGER_LEVEL_2:
-			if (std::clamp<float>(crimsonPlayer[playerIndex].actionTimer, 0.2f, 0.3f) == crimsonPlayer[playerIndex].actionTimer &&
-				inputException) {
-				return true;
-			}
-			break;
-		case REBELLION_MILLION_STAB:
-			if (std::clamp<float>(crimsonPlayer[playerIndex].actionTimer, 0.2f, 10.0f) == crimsonPlayer[playerIndex].actionTimer &&
-				inputException) {
-				return true;
-			}
-			break;
-		case REBELLION_COMBO_2_PART_2:
-			if (std::clamp<float>(crimsonPlayer[playerIndex].actionTimer, 0.0f, 0.85f) == crimsonPlayer[playerIndex].actionTimer &&
-				inputException) {
-				return true;
-			}
-			break;
-		case BEOWULF_COMBO_2_PART_3:
-			if (std::clamp<float>(crimsonPlayer[playerIndex].animTimer, 0.5f, 1.09f) == crimsonPlayer[playerIndex].animTimer &&
-				inputException) {
-				return true;
-			}
-			break;
-		case NEVAN_COMBO_1:
-			if (inputExceptionNevanJamSession) {
-				return true;
-			}
-			break;
-		case CERBERUS_COMBO_2_PART_4:
-			if (std::clamp<float>(crimsonPlayer[playerIndex].actionTimer, 0.0f, 1.0f) == crimsonPlayer[playerIndex].actionTimer &&
-				inputException) {
-				return true;
-			}
-			break;
-		case REBELLION_PROP:
+	case REBELLION_STINGER_LEVEL_1:
+		if (std::clamp<float>(actionTimer, 0.2f, 0.3f) == actionTimer &&
+			inputException) {
 			return true;
-
-		case REBELLION_SHREDDER:
-			return true;
-
-		case REBELLION_DANCE_MACABRE_PART_8:
-			return true;
-
-		case REBELLION_CRAZY_DANCE:
-			return true;
-
-		case POLE_PLAY:
-			return true;
-
-		case CERBERUS_WINDMILL:
-			return true;
-
-		case CERBERUS_CRYSTAL:
-			return true;
-
-		case CERBERUS_MILLION_CARATS:
-			return true;
-
-		case AGNI_RUDRA_COMBO_3_PART_3:
-			return true;
-
-		case AGNI_RUDRA_MILLION_SLASH:
-			return true;
-
-		case AGNI_RUDRA_TWISTER:
-			return true;
-
-		case AGNI_RUDRA_TEMPEST:
-			return true;
-
-		case NEVAN_FEEDBACK:
-			return true;
-
-		case NEVAN_CRAZY_ROLL:
-			return true;
-
-		case BEOWULF_REAL_IMPACT:
-			return true;
-
-		case BEOWULF_TORNADO:
-			return true;
-
-		case BEOWULF_HYPER_FIST:
-			return true;
-
-		case SHOTGUN_GUN_STINGER:
-			return true;
-
-		case SHOTGUN_POINT_BLANK:
-			return true;
-
-		case ARTEMIS_SPHERE:
-			return true;
-
-		case ARTEMIS_ACID_RAIN:
-			return true;
-
-		case EBONY_IVORY_NORMAL_SHOT:
-			return true;
-
-		case EBONY_IVORY_CHARGED_SHOT:
-			return true;
-
-		case EBONY_IVORY_WILD_STOMP:
-			return true;
-
-		case SPIRAL_SNIPER:
-			return true;
-
 		}
-		return false;
+		break;
+	case REBELLION_STINGER_LEVEL_2:
+		if (std::clamp<float>(actionTimer, 0.2f, 0.3f) == actionTimer &&
+			inputException) {
+			return true;
+		}
+		break;
+	case REBELLION_MILLION_STAB:
+		if (std::clamp<float>(actionTimer, 0.2f, 10.0f) == actionTimer &&
+			inputException) {
+			return true;
+		}
+		break;
+	case REBELLION_COMBO_2_PART_2:
+		if (std::clamp<float>(actionTimer, 0.0f, 0.85f) == actionTimer &&
+			inputException) {
+			return true;
+		}
+		break;
+	case BEOWULF_COMBO_2_PART_3:
+		if (std::clamp<float>(animTimer, 0.5f, 1.09f) == animTimer &&
+			inputException) {
+			return true;
+		}
+		break;
+	case NEVAN_COMBO_1:
+		if (inputExceptionNevanJamSession) {
+			return true;
+		}
+		break;
+	case CERBERUS_COMBO_2_PART_4:
+		if (std::clamp<float>(actionTimer, 0.0f, 1.0f) == actionTimer &&
+			inputException) {
+			return true;
+		}
+		break;
+	case REBELLION_PROP:
+		return true;
+
+	case REBELLION_SHREDDER:
+		return true;
+
+	case REBELLION_DANCE_MACABRE_PART_8:
+		return true;
+
+	case REBELLION_CRAZY_DANCE:
+		return true;
+
+	case POLE_PLAY:
+		return true;
+
+	case CERBERUS_WINDMILL:
+		return true;
+
+	case CERBERUS_CRYSTAL:
+		return true;
+
+	case CERBERUS_MILLION_CARATS:
+		return true;
+
+	case AGNI_RUDRA_COMBO_3_PART_3:
+		return true;
+
+	case AGNI_RUDRA_MILLION_SLASH:
+		return true;
+
+	case AGNI_RUDRA_TWISTER:
+		return true;
+
+	case AGNI_RUDRA_TEMPEST:
+		return true;
+
+	case NEVAN_FEEDBACK:
+		return true;
+
+	case NEVAN_CRAZY_ROLL:
+		return true;
+
+	case BEOWULF_REAL_IMPACT:
+		return true;
+
+	case BEOWULF_TORNADO:
+		return true;
+
+	case BEOWULF_HYPER_FIST:
+		return true;
+
+	case SHOTGUN_GUN_STINGER:
+		return true;
+
+	case SHOTGUN_POINT_BLANK:
+		return true;
+
+	case ARTEMIS_SPHERE:
+		return true;
+
+	case ARTEMIS_ACID_RAIN:
+		return true;
+
+	case EBONY_IVORY_NORMAL_SHOT:
+		return true;
+
+	case EBONY_IVORY_CHARGED_SHOT:
+		return true;
+
+	case EBONY_IVORY_WILD_STOMP:
+		return true;
+
+	case SPIRAL_SNIPER:
+		return true;
+
 	}
+	return false;
+	
+}
 	
 
-}
+
 
 export void InitDetours() {
 	using namespace Utility;
