@@ -4,6 +4,7 @@ set(MASM_SRC
     masm/CreateEffect.asm
     masm/HoldToCrazyComboAsm.asm
     masm/HudHPSeparation.asm
+    masm/DisableDriveHoldAsm.asm
 )
 
 set (ASM_LIBS)
