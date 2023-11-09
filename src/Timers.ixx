@@ -47,31 +47,11 @@ export void ActionTimers() {
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
 
 
-	
-
-
-
-// 	if (inAttack) {
-// 		if (eventData.event != EVENT::PAUSE) {
-// 			crimsonPlayer[0].actionTimer += (ImGui::GetIO().DeltaTime * mainActorData.speed) / g_frameRateMultiplier;
-// 		}
-// 	}
-// 	else {
-// 		crimsonPlayer[0].actionTimer = 0;
-// 	}
-// 
-// 	// ACTIONS
-// 	if (mainActorData.action != crimsonPlayer[0].currentAction) {
-// 		crimsonPlayer[0].actionTimer = 0;
-// 
-// 		crimsonPlayer[0].currentAction = mainActorData.action;
-// 	}
-
 
 	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+		auto& playerData = GetPlayerData(playerIndex);
 
-
-		auto& newActorData = GetNewActorData(playerIndex, 0, 0);
+		auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, 0);
 
 		auto actorBaseAddr = newActorData.baseAddr;
 		
@@ -129,10 +109,11 @@ export void AnimTimers() {
 
 	auto inAttack = (mainActorData.eventData[0].event == 17);
 
-	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-		
 
-		auto& newActorData = GetNewActorData(playerIndex, 0, 0);
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+		auto& playerData = GetPlayerData(playerIndex);
+
+		auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, 0);
 
 		auto actorBaseAddr = newActorData.baseAddr;
 
@@ -153,12 +134,6 @@ export void AnimTimers() {
 
 			
 	}
-
-
-
-	// ANIMATION IDS
-	
-
 
 }
 
