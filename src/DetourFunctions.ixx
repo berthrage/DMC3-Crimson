@@ -41,6 +41,10 @@ extern "C" {
 	std::uint64_t g_holdToCrazyComboConditionalAddr;
 	void* holdToCrazyComboCall;
 
+	// DisableDriveHold
+	std::uint64_t g_DisableDriveHold_ReturnAddr;
+	export void DisableDriveHoldDetour();
+
 	// HudHPSeparation
 	std::uint64_t g_HudHPSeparation_ReturnAddr;
 	export void HudHPSeparationDetour();
@@ -203,8 +207,10 @@ export void InitDetours() {
 	HoldToCrazyComboHook->Toggle(true);
 	holdToCrazyComboCall = &g_HoldToCrazyComboFuncA;
 	
-
-
+	// DisableDriveHold
+	static std::unique_ptr<Utility::Detour_t> DisableDriveHoldHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EB6F2, &DisableDriveHoldDetour, 5);
+	g_DisableDriveHold_ReturnAddr = DisableDriveHoldHook->GetReturnAddress();
+	DisableDriveHoldHook->Toggle(true);
 
 	// HudHPSeparation
 	static std::unique_ptr<Utility::Detour_t> HudHPSeparationHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27DD64, &HudHPSeparationDetour, 8);
