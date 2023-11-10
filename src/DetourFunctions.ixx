@@ -192,8 +192,6 @@ export bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
 }
 	
 
-
-
 export void InitDetours() {
 	using namespace Utility;
 	DetourBaseAddr = (uintptr_t)appBaseAddr;

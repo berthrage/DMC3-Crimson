@@ -945,7 +945,17 @@ static_assert(countof(trackFilenames) == countof(trackNames));
 #pragma endregion
 
 void PauseWhenGUIOpen() {
-	if (g_scene != SCENE::GAME) {
+	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if
+		(
+			!pool_10298 ||
+			!pool_10298[8]
+			) {
+		return;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+
+	if (g_scene != SCENE::GAME || eventData.event != EVENT::MAIN) {
 		guiPause.timer = 0.5f;
 		guiPause.canPause = false;
 	}
@@ -959,7 +969,7 @@ void PauseWhenGUIOpen() {
 		guiPause.canPause = true;
 	}
 
-	if (!g_show) {
+	if (!g_show || !guiPause.canPause) {
 		activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed;
 		activeConfig.Speed.turbo = queuedConfig.Speed.turbo;
 		Speed::Toggle(true);
