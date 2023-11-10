@@ -4583,6 +4583,18 @@ export struct ImprovedCancels {
 	bool canRainstorm = true;
 };
 
+export struct BackToForward {
+	bool backCommand = false;
+	float backDuration = 0.2f;
+	float  backBuffer = backDuration;
+	bool backDirectionChanged = true;
+	bool forwardDirectionChanged = true;
+	bool forwardCommand = false;
+	float forwardDuration = 0.2f;
+	float forwardBuffer = forwardDuration;
+
+};
+
 export struct CrimsonPlayerData {
 	uintptr_t playerPtr;
 	uint8 action = 0;
@@ -4602,6 +4614,7 @@ export struct CrimsonPlayerData {
 	Sprint sprint;
 	Drive drive;
 	ImprovedCancels cancels;
+	BackToForward b2F;
 
 	uintptr_t clonePtr;
 	uint8 actionClone = 0;
@@ -4624,17 +4637,6 @@ export bool devilTriggerReadyPlayed = false;
 
 export bool missionClearSongPlayed = false;
 
-export struct BackToForward {
-	bool backCommand = false;
-	float backDuration = 0.2f;
-	float  backBuffer = backDuration;
-	bool backDirectionChanged = true;
-	bool forwardDirectionChanged = true;
-	bool forwardCommand = false;
-	float forwardDuration = 0.2f;
-	float forwardBuffer = forwardDuration;
-
-} b2F;
 
 export std::vector<int> lastEvents{ 0 };
 export bool firstLastEvent = false;

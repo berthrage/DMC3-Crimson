@@ -288,11 +288,14 @@ export void ImprovedCancelsTimers() {
 
 
 export void BackToForwardTimers() {
-	if (b2F.backCommand) {
-		b2F.backBuffer -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
-	}
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
 
-	if (b2F.forwardCommand) {
-		b2F.forwardBuffer -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
+		if (crimsonPlayer[playerIndex].b2F.backCommand) {
+			crimsonPlayer[playerIndex].b2F.backBuffer -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
+		}
+
+		if (crimsonPlayer[playerIndex].b2F.forwardCommand) {
+			crimsonPlayer[playerIndex].b2F.forwardBuffer -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
+		}
 	}
 }

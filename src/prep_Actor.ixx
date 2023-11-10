@@ -13137,49 +13137,50 @@ void BackToForwardInputs(byte8* actorBaseAddr) {
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
 
-	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+	auto lockOn = actorData.lockOn;
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
-	auto& gamepad = GetGamepad(0);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& gamepad = GetGamepad(playerIndex);
 	auto radius = gamepad.leftStickRadius;
 	auto pos = gamepad.leftStickPosition;
 
-	if (b2F.backBuffer <= 0) {
+	if (crimsonPlayer[playerIndex].b2F.backBuffer <= 0) {
 
-		b2F.backCommand = false;
+		crimsonPlayer[playerIndex].b2F.backCommand = false;
 
 	}
 
-	if (b2F.backBuffer <= 0 && b2F.backDirectionChanged) {
-		b2F.backBuffer = b2F.backDuration;
+	if (crimsonPlayer[playerIndex].b2F.backBuffer <= 0 && crimsonPlayer[playerIndex].b2F.backDirectionChanged) {
+		crimsonPlayer[playerIndex].b2F.backBuffer = crimsonPlayer[playerIndex].b2F.backDuration;
 	}
 
-	if (b2F.forwardBuffer <= 0) {
-		b2F.forwardCommand = false;
+	if (crimsonPlayer[playerIndex].b2F.forwardBuffer <= 0) {
+		crimsonPlayer[playerIndex].b2F.forwardCommand = false;
 	}
 
-	if (b2F.forwardBuffer <= 0 && b2F.forwardDirectionChanged) {
-		b2F.forwardBuffer = b2F.forwardDuration;
+	if (crimsonPlayer[playerIndex].b2F.forwardBuffer <= 0 && crimsonPlayer[playerIndex].b2F.forwardDirectionChanged) {
+		crimsonPlayer[playerIndex].b2F.forwardBuffer = crimsonPlayer[playerIndex].b2F.forwardDuration;
 	}
 
 	if (lockOn && tiltDirection == TILT_DIRECTION::DOWN && (radius > RIGHT_STICK_DEADZONE)) {
-		if (b2F.backBuffer > 0) {
-			b2F.backCommand = true;
-			b2F.backDirectionChanged = false;
+		if (crimsonPlayer[playerIndex].b2F.backBuffer > 0) {
+			crimsonPlayer[playerIndex].b2F.backCommand = true;
+			crimsonPlayer[playerIndex].b2F.backDirectionChanged = false;
 		}
 	}
 	else if (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN && (radius > RIGHT_STICK_DEADZONE))) {
-		b2F.backDirectionChanged = true;
+		crimsonPlayer[playerIndex].b2F.backDirectionChanged = true;
 	}
 
 
-	if (lockOn && tiltDirection == TILT_DIRECTION::UP && (radius > RIGHT_STICK_DEADZONE) && b2F.backCommand) {
-		if (b2F.forwardBuffer > 0) {
-			b2F.forwardCommand = true;
-			b2F.forwardDirectionChanged = false;
+	if (lockOn && tiltDirection == TILT_DIRECTION::UP && (radius > RIGHT_STICK_DEADZONE) && crimsonPlayer[playerIndex].b2F.backCommand) {
+		if (crimsonPlayer[playerIndex].b2F.forwardBuffer > 0) {
+			crimsonPlayer[playerIndex].b2F.forwardCommand = true;
+			crimsonPlayer[playerIndex].b2F.forwardDirectionChanged = false;
 		}
 	}
 	else if (!(lockOn && tiltDirection == TILT_DIRECTION::UP && (radius > RIGHT_STICK_DEADZONE))) {
-		b2F.forwardDirectionChanged = true;
+		crimsonPlayer[playerIndex].b2F.forwardDirectionChanged = true;
 	}
 
 
@@ -14032,7 +14033,6 @@ void UpdateActorSpeed(byte8* baseAddr)
 
 
 	DTReadySFX();
-	BackToForwardInputs(mainActorData);
 	//CheckSkyLaunch(mainActorData);
 	StyleRankAnnouncerController(mainActorData.styleData.rank);
 
@@ -14121,7 +14121,7 @@ void UpdateActorSpeed(byte8* baseAddr)
 				SprintAbility(actorBaseAddr);
 				
 
-				
+				BackToForwardInputs(actorBaseAddr);
 				DriveTweaks(actorBaseAddr);
 
 				
@@ -15219,7 +15219,7 @@ void SetAction(byte8* actorBaseAddr)
 		}
 		else if (
 			activeConfig.Gameplay.quickDriveAndTweaks && actorData.lastAction != REBELLION_COMBO_1_PART_1 &&
-			(actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) && b2F.forwardCommand) {
+			(actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) && crimsonPlayer[playerIndex].b2F.forwardCommand) {
 
 			ToggleRebellionHoldDrive(true);
 			actorData.action = REBELLION_DRIVE_1;
@@ -15245,7 +15245,7 @@ void SetAction(byte8* actorBaseAddr)
 			activeConfig.Gameplay.quickDriveAndTweaks && actorData.lastAction == REBELLION_COMBO_1_PART_1 &&
 			(demo_pl000_00_3 != 0) &&
 			(actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) &&
-			b2F.forwardCommand) {
+			crimsonPlayer[playerIndex].b2F.forwardCommand) {
 			actorData.action = REBELLION_DRIVE_1;
 
 			crimsonPlayer[playerIndex].inQuickDrive = true;
@@ -15400,7 +15400,7 @@ void SetAction(byte8* actorBaseAddr)
 		if (
 			activeConfig.enableYamatoVergilNewJudgementCut &&
 			(actorData.action == YAMATO_RAPID_SLASH_LEVEL_1 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_2) &&
-			b2F.forwardCommand)
+			crimsonPlayer[playerIndex].b2F.forwardCommand)
 		{
 			actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
 		}
@@ -15452,7 +15452,7 @@ void SetAction(byte8* actorBaseAddr)
 		else if (
 			activeConfig.enableYamatoForceEdgeNewRoundTrip &&
 			(actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1 || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2) &&
-			b2F.forwardCommand)
+			crimsonPlayer[playerIndex].b2F.forwardCommand)
 		{
 			actorData.action = YAMATO_FORCE_EDGE_ROUND_TRIP;
 		}
