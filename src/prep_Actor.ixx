@@ -13522,40 +13522,6 @@ void AirTauntToggleController(byte8* actorBaseAddr) {
 }
 
 
-
-void FixUpdateLockOnsArtemis(byte8* mainActorBaseAddr) {
-	// Artemis Fix // Disables Update Lock-Ons when Charging Artemis (has the downside of 
-					  //basically breaking doppel/multiplayer lock-on stuff while this is happening).
-	
-	auto& actorData = *reinterpret_cast<PlayerActorDataDante*>(mainActorBaseAddr);
-
-	auto rangedWeapon = actorData.newWeapons[actorData.rangedWeaponIndex];
-
-		/*((actorData.character == CHARACTER::DANTE) &&
-				(rangedWeapon == WEAPON::ARTEMIS) &&
-				(actorData.artemisStatus != 0) &&
-				((actorData.buttons[0] & GetBinding(BINDING::SHOOT)) ||
-					(
-						(actorData.style == STYLE::GUNSLINGER) &&
-						(actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION))
-						)
-					)
-				)*/
-
-	if ((actorData.character == CHARACTER::DANTE) &&
-		(rangedWeapon == WEAPON::ARTEMIS) &&
-		(actorData.artemisStatus == 0) && (actorData.buttons[0] & GetBinding(BINDING::SHOOT) || (actorData.style == STYLE::GUNSLINGER &&
-			actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)))) {
-
-		activeConfig.updateLockOns = false;
-	}
-	else {
-		activeConfig.updateLockOns = queuedConfig.updateLockOns;
-	}
-	
-}
-
-
 void SprintAbility(byte8* actorBaseAddr) {
 
 
@@ -14021,7 +13987,6 @@ void UpdateActorSpeed(byte8* baseAddr)
 	InertiaController(mainActorData);
 	SetAirStingerEnd(mainActorData);
 	AirTauntToggleController(mainActorData);
-	FixUpdateLockOnsArtemis(mainActorData);
 	//DisableDriveHold();
 	
 
@@ -15559,10 +15524,12 @@ bool DecreaseAltitude(byte8* actorBaseAddr)
 
 void UpdateLockOns(byte8* dataAddr)
 {
-	if (!activeConfig.updateLockOns)
-	{
-		return;
-	}
+	// Update Lock Ons will now turn on or off automatically based on if doppelganger is summoned or multiple player actors are in-game.
+
+// 	if (!activeConfig.updateLockOns)
+// 	{
+// 		return;
+// 	}
 
 	auto pool_14299 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if
@@ -15608,21 +15575,24 @@ void UpdateLockOns(byte8* dataAddr)
 		}
 	}*/
 
-	for_all(actorIndex, g_playerActorBaseAddrs.count)
-	{
-		auto actorBaseAddr = g_playerActorBaseAddrs[actorIndex];
-		if (!actorBaseAddr)
-		{
-			continue;
+	if (mainActorData.doppelganger || activeConfig.Actor.playerCount > 1) {
+		for_all(actorIndex, g_playerActorBaseAddrs.count) {
+			auto actorBaseAddr = g_playerActorBaseAddrs[actorIndex];
+			if (!actorBaseAddr) {
+				continue;
+			}
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+
+			// if (actorBaseAddr == mainActorBaseAddr)
+			// {
+			// 	continue;
+			// }
+			if (actorBaseAddr != mainActorBaseAddr) {
+				UpdateLockOn(actorBaseAddr, dataAddr);
+			}
+
+			
 		}
-		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-
-		// if (actorBaseAddr == mainActorBaseAddr)
-		// {
-		// 	continue;
-		// }
-
-		UpdateLockOn(actorBaseAddr, dataAddr);
 	}
 }
 
