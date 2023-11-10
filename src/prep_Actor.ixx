@@ -14,7 +14,9 @@ module;
 #include <iostream>
 #include <cstdio>
 #include "Utility/Detour.hpp"
-
+#include "DebugDrawDX11.hpp"
+#define DEBUG_DRAW_EXPLICIT_CONTEXT
+#include "debug_draw.hpp"
 
 export module Actor;
 
@@ -6790,6 +6792,20 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 	{
 		return false;
 	}
+
+#if 1 // NOTE(deep): Projected text drawing example. Remove?
+	const ddVec3 textWorldPos = { actorData.position.x, actorData.position.y + 190.f, actorData.position.z };
+	const ddVec3 actorWorldPos = { actorData.position.x, actorData.position.y, actorData.position.z };
+	char buffer[256]{};
+	sprintf(buffer, "danter: %f, %f, %f",
+		actorData.position.x,
+		actorData.position.y,
+		actorData.position.z
+	);
+
+	debug_draw_projected_text(buffer, textWorldPos, dd::colors::Pink, 0.65f);
+	dd::sphere(dd_ctx(), actorWorldPos, dd::colors::Red, 15.0f);
+#endif
 
 	StyleSwitchController(actorBaseAddr);
 	DisableHeightRestriction();
