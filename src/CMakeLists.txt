@@ -59,6 +59,8 @@ file(GLOB GLOBAL_MODULES Global/*.ixx)
 file(GLOB MAIN_MODULES *.ixx)
 file(GLOB MAIN_SRC 
     Crimson.cpp
+    DebugDrawDX11.hpp
+    DebugDrawDX11.cpp
 )
 
 file(GLOB CORE_MODULES Core/*.ixx)
@@ -99,7 +101,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 set_target_properties(${PROJECT_NAME} PROPERTIES 
 OUTPUT_NAME Crimson)
 
-project(dinput8)
+project(dinput8_injector)
 
 set(DI_SOURCE
     dinput8.cpp  
@@ -132,4 +134,4 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PUBLIC ${CXX_LIBS}) # Dependencies
 
 set_target_properties(${PROJECT_NAME} PROPERTIES 
-OUTPUT_NAME dinput8)
+OUTPUT_NAME dinput8_injector)

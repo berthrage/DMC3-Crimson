@@ -1,5 +1,7 @@
 module;
 #include "../../ThirdParty/ImGui/imgui.h"
+#include "../DebugDrawDX11.hpp"
+
 export module HooksBase;
 
 import Core;
@@ -1223,8 +1225,6 @@ HRESULT Present
 
 	ImGui::Render();
 
-
-
 	if constexpr (api == API::D3D10)
 	{
 		::D3D10::device->OMSetRenderTargets
@@ -1246,6 +1246,7 @@ HRESULT Present
 		);
 
 		ImGui::D3D11::RenderDrawData(ImGui::GetDrawData());
+		debug_draw_update(ImGui::GetIO().DeltaTime);
 	}
 
 
@@ -1660,7 +1661,7 @@ export HRESULT D3D11CreateDeviceAndSwapChain
 
 	CreateRenderTarget<API::D3D11>();
 
-
+	debug_draw_init((void*)::D3D11::device, (void*)::D3D11::deviceContext, pSwapChainDesc->BufferDesc.Width, pSwapChainDesc->BufferDesc.Height);
 
 	[&]()
 	{
