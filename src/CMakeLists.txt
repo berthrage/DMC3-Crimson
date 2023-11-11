@@ -8,6 +8,7 @@ set(MASM_SRC
     masm/DisableDriveHoldAsm.asm
     masm/SetAirTauntAsm.asm
     masm/InputRemapsAsm.asm
+    masm/VergilTricksAsm.asm
 )
 
 set (ASM_LIBS)
