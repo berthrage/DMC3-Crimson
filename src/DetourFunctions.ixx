@@ -11,7 +11,7 @@ export module DetourFunctions;
 import Core;
 #include "Core/Macros.h" 
 
-import ActorBase;
+import CrimsonUtil;
 import Global;
 import Vars;
 import Input; // tiltdirection

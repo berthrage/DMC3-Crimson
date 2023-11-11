@@ -31,6 +31,7 @@ import Model;
 import Scene;
 import SoundRelocations;
 import Sound;
+import PatchFunctions;
 import ExtraSound;
 import Speed;
 import Training;

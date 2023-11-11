@@ -40,6 +40,8 @@ import ActorBase;
 import Arcade;
 import Camera;
 import Config;
+import CrimsonGameplay;
+import CrimsonUtil;
 import DetourFunctions;
 import Event; // CloseShop
 import Exp;
@@ -53,6 +55,7 @@ import Internal;
 import Scene;
 import Sound;
 import Speed;
+import PatchFunctions;
 import Timers;
 import Training;
 import Vars;
