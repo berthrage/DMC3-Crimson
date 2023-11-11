@@ -27,6 +27,17 @@ extern "C" {
 	std::uint64_t g_GuardGravity_ReturnAddr;
 	export void GuardGravityDetour();
 
+	// EnableAirTaunt
+	std::uint64_t g_EnableAirTaunt_ReturnAddr;
+	std::uint64_t g_EnableAirTaunt_ConditionalAddr;
+	std::uint64_t g_EnableAirTaunt_ConditionalAddr2;
+	export void EnableAirTauntDetour();
+
+	// SetAirTaunt
+	std::uint64_t g_SetAirTaunt_ReturnAddr;
+	std::uint64_t g_SetAirTaunt_Call;
+	export void SetAirTauntDetour();
+
 	// CreateEffect
 	std::uint64_t createEffectRBXMov;
 	std::uint64_t createEffectCallA;
@@ -191,6 +202,14 @@ export bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
 	
 }
 	
+void OverrideTauntInAir(bool enable) {
+	if (enable) {
+		_nop((char*)(appBaseAddr + 0x1E99F2), 2);
+	}
+	else {
+		_patch((char*)(appBaseAddr + 0x1E99F2), (char*)"\x74\x5F", 2); //je dmc3.exe+1E9A53
+	}
+}
 
 export void InitDetours() {
 	using namespace Utility;
@@ -200,6 +219,20 @@ export void InitDetours() {
 	static std::unique_ptr<Detour_t> guardGravityHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EE121, &GuardGravityDetour, 7);
 	g_GuardGravity_ReturnAddr = guardGravityHook->GetReturnAddress();
 	guardGravityHook->Toggle(true);
+
+	// EnableAirTaunt
+	static std::unique_ptr<Detour_t> enableAirTauntHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E99EB, &EnableAirTauntDetour, 9);
+	g_EnableAirTaunt_ReturnAddr = enableAirTauntHook->GetReturnAddress();
+	enableAirTauntHook->Toggle(true);
+	g_EnableAirTaunt_ConditionalAddr = (uintptr_t)appBaseAddr + 0x1E9A53;
+	g_EnableAirTaunt_ConditionalAddr2 = (uintptr_t)appBaseAddr + 0x1E9A0F;
+
+	// SetAirTaunt
+	static std::unique_ptr<Detour_t> setAirTauntHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E9A46, &SetAirTauntDetour, 5);
+	g_SetAirTaunt_ReturnAddr = setAirTauntHook->GetReturnAddress();
+	setAirTauntHook->Toggle(true);
+	g_SetAirTaunt_Call = (uintptr_t)appBaseAddr + 0x1E09D0;
+	OverrideTauntInAir(true);
 
 	// CreateEffect
 	createEffectCallA = (uintptr_t)appBaseAddr + 0x2E7CA0;

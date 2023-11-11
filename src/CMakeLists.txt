@@ -5,6 +5,8 @@ set(MASM_SRC
     masm/HoldToCrazyComboAsm.asm
     masm/HudHPSeparation.asm
     masm/DisableDriveHoldAsm.asm
+    masm/EnableAirTauntAsm.asm
+    masm/SetAirTauntAsm.asm
 )
 
 set (ASM_LIBS)

@@ -13495,6 +13495,21 @@ void Main()
 		CreateEffectDetour();
 	}
 
+	// copypasteable p1 ptr
+	if (appBaseAddr) {
+		uintptr_t player_ptr = *(uintptr_t*)(appBaseAddr + 0x168);
+		if (player_ptr) {
+			player_ptr = *(uintptr_t*)(player_ptr + 0xC90E28);
+			if (player_ptr) {
+				player_ptr = (player_ptr + 0x18);
+				if (player_ptr) {
+					//ImGui::Text("p1 ptr is %x", player_ptr);
+					ImGui::InputInt("p1 ptr", (int*)&player_ptr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal);
+				}
+			}
+		}
+	}
+
 	static bool run = false;
 	if (!run)
 	{
