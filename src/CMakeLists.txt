@@ -4,9 +4,10 @@ set(MASM_SRC
     masm/CreateEffect.asm
     masm/HoldToCrazyComboAsm.asm
     masm/HudHPSeparation.asm
+    masm/HudStyleBarPosAsm.asm
     masm/DisableDriveHoldAsm.asm
-    masm/EnableAirTauntAsm.asm
     masm/SetAirTauntAsm.asm
+    masm/InputRemapsAsm.asm
 )
 
 set (ASM_LIBS)

@@ -60,6 +60,21 @@ extern "C" {
 	std::uint64_t g_HudHPSeparation_ReturnAddr;
 	export void HudHPSeparationDetour();
 
+	// HudStyleBarPos
+	std::uint64_t g_HudStyleBarPos_ReturnAddr;
+	float g_HudStyleBarPosX;
+	float g_HudStyleBarPosY;
+	export void HudStyleBarPosDetour();
+
+	// InputRemapDT
+	std::uint64_t g_DTRemap_ReturnAddr;
+	std::uint16_t g_DTRemap_NewMap;
+	export void DTRemapDetour();
+
+	// InputRemapShoot
+	std::uint64_t g_ShootRemap_ReturnAddr;
+	std::uint16_t g_ShootRemap_NewMap;
+	export void ShootRemapDetour();
 }
 
 export bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -201,15 +216,6 @@ export bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
 	return false;
 	
 }
-	
-void OverrideTauntInAir(bool enable) {
-	if (enable) {
-		_nop((char*)(appBaseAddr + 0x1E99F2), 2);
-	}
-	else {
-		_patch((char*)(appBaseAddr + 0x1E99F2), (char*)"\x74\x5F", 2); //je dmc3.exe+1E9A53
-	}
-}
 
 export void InitDetours() {
 	using namespace Utility;
@@ -230,9 +236,8 @@ export void InitDetours() {
 	// SetAirTaunt
 	static std::unique_ptr<Detour_t> setAirTauntHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E9A46, &SetAirTauntDetour, 5);
 	g_SetAirTaunt_ReturnAddr = setAirTauntHook->GetReturnAddress();
-	setAirTauntHook->Toggle(true);
 	g_SetAirTaunt_Call = (uintptr_t)appBaseAddr + 0x1E09D0;
-	OverrideTauntInAir(true);
+	setAirTauntHook->Toggle(true);
 
 	// CreateEffect
 	createEffectCallA = (uintptr_t)appBaseAddr + 0x2E7CA0;
@@ -255,4 +260,23 @@ export void InitDetours() {
 	static std::unique_ptr<Utility::Detour_t> HudHPSeparationHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27DD64, &HudHPSeparationDetour, 8);
 	g_HudHPSeparation_ReturnAddr = HudHPSeparationHook->GetReturnAddress();
 	HudHPSeparationHook->Toggle(true);
+
+	// HudStyleBarPos
+	static std::unique_ptr<Utility::Detour_t> HudStyleBarPosHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2BB357, &HudStyleBarPosDetour, 16);
+	g_HudStyleBarPos_ReturnAddr = HudStyleBarPosHook->GetReturnAddress();
+	g_HudStyleBarPosX = 580.0f;
+	g_HudStyleBarPosY = 110.0f;
+	HudStyleBarPosHook->Toggle(true);
+
+	// InputRemapDT
+	static std::unique_ptr<Utility::Detour_t> DTRemapHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E7795, &DTRemapDetour, 5);
+	g_DTRemap_ReturnAddr = DTRemapHook->GetReturnAddress();
+	g_DTRemap_NewMap = 0x0080; // maybe some dropdown menu? if not we can swap input addresses but idk how conflicting it might be on some setups
+	DTRemapHook->Toggle(true);
+
+	// InputRemapShoot
+	static std::unique_ptr<Utility::Detour_t> ShootRemapHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E6A62, &ShootRemapDetour, 5);
+	g_ShootRemap_ReturnAddr = ShootRemapHook->GetReturnAddress();
+	g_ShootRemap_NewMap = 0x0001;
+	ShootRemapHook->Toggle(true);
 }
