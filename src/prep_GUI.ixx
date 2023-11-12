@@ -74,6 +74,51 @@ bool lastVisibleShop = false;
 
 bool updateWeaponWheel = false;
 
+// siy stuff to be moved //
+static const std::vector<std::pair<uint16_t, const char*>> buttonPairs = {
+	{0x0000, "Nothing"},
+	{0x0001, "Left Trigger"},
+	{0x0002, "Right Trigger"},
+	{0x0004, "Left Shoulder"},
+	{0x0008, "Right Shoulder"},
+	{0x0010, "Y"},
+	{0x0020, "B"},
+	{0x0040, "A"},
+	{0x0080, "X"},
+	{0x0100, "Back"},
+	{0x0200, "Left Thumb"},
+	{0x0400, "Right Thumb"},
+	{0x0800, "Start"},
+	{0x1000, "Up"},
+	{0x2000, "Right"},
+	{0x4000, "Down"},
+	{0x8000, "Left"}
+};
+
+std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum) {
+	for (const auto& pair : buttonPairs) {
+		if (pair.first == buttonNum) {
+			return pair;
+		}
+	}
+	return buttonPairs[0];
+}
+
+void DrawButtonCombo(const char* label, uint16_t& currentButton) {
+	if (ImGui::BeginCombo(label, getButtonInfo(currentButton).second)) {
+		for (const auto& buttonPair : buttonPairs) {
+			bool is_selected = (currentButton == buttonPair.first);
+			if (ImGui::Selectable(buttonPair.second, is_selected)) {
+				currentButton = buttonPair.first;
+			}
+			if (is_selected) {
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+}
+// siy stuff over //
 
 #pragma region Common
 
@@ -13495,18 +13540,48 @@ void Main()
 		CreateEffectDetour();
 	}
 
-	// copypasteable p1 ptr
+	static int playerID = -1;
+
+	// There is no way this is necessary, find whatever serp uses to get local player and get ID from that
 	if (appBaseAddr) {
-		uintptr_t player_ptr = *(uintptr_t*)(appBaseAddr + 0x168);
-		if (player_ptr) {
-			player_ptr = *(uintptr_t*)(player_ptr + 0xC90E28);
-			if (player_ptr) {
-				player_ptr = (player_ptr + 0x18);
-				if (player_ptr) {
-					//ImGui::Text("p1 ptr is %x", player_ptr);
-					ImGui::InputInt("p1 ptr", (int*)&player_ptr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal);
+		uintptr_t playerPtr = *(uintptr_t*)(appBaseAddr + 0x168);
+		if (playerPtr) {
+			playerPtr = *(uintptr_t*)(playerPtr + 0xC90E28);
+			if (playerPtr) {
+				playerPtr = *(uintptr_t*)(playerPtr + 0x18);
+				if (playerPtr) {
+					ImGui::InputInt("p1 base", (int*)&playerPtr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal);
+					if (playerPtr){
+						playerID = *(int*)(playerPtr + 0x78);
+					}
 				}
 			}
+		}
+	}
+
+	// load these from cfg, here are default values for now
+	static uint16_t danteDTButton = 0x0004;
+	static uint16_t danteShootButton = 0x0080;
+	static uint16_t vergilDTButton = 0x0080;
+	static uint16_t vergilShootButton = 0x0004;
+
+	// put these somewhere appropriate in UI (funcs + values are currently at the top of this file)
+	DrawButtonCombo("Dante DT Button", danteDTButton);
+	DrawButtonCombo("Dante Shoot Button", danteShootButton);
+	DrawButtonCombo("Vergil DT Button", vergilDTButton);
+	DrawButtonCombo("Vergil Shoot Button", vergilShootButton);
+
+	// put this somewhere called on character switch, for this test it only updates when UI is open
+	{
+		static uint16_t* currentDTButton = (uint16_t*)(appBaseAddr + 0xD6CE9A);
+		static uint16_t* currentShootButton = (uint16_t*)(appBaseAddr + 0xD6CE98);
+		if (playerID == 0) {
+			*currentDTButton = danteDTButton;
+			*currentShootButton = danteShootButton;
+		}
+		else if (playerID == 3) {
+			*currentDTButton = vergilDTButton;
+			*currentShootButton = vergilShootButton;
 		}
 	}
 

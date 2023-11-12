@@ -7,7 +7,6 @@ set(MASM_SRC
     masm/HudStyleBarPosAsm.asm
     masm/DisableDriveHoldAsm.asm
     masm/SetAirTauntAsm.asm
-    masm/InputRemapsAsm.asm
     masm/VergilTricksAsm.asm
 )
 

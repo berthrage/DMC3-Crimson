@@ -66,15 +66,20 @@ extern "C" {
 	float g_HudStyleBarPosY;
 	export void HudStyleBarPosDetour();
 
-	// InputRemapDT
-	std::uint64_t g_DTRemap_ReturnAddr;
+	// DTRemapRelease
+	std::uint64_t g_DTRemapRelease_ReturnAddr;
+	export void DTRemapReleaseDetour();
+	// DTRemapHold
+	std::uint64_t g_DTRemapHold_ReturnAddr;
+	export void DTRemapHoldDetour();
 	std::uint16_t g_DTRemap_NewMap;
-	export void DTRemapDetour();
 
-	// InputRemapShoot
-	std::uint64_t g_ShootRemap_ReturnAddr;
+	// ShootRemapDown
+	std::uint64_t g_ShootRemapDown_ReturnAddr;
+	export void ShootRemapDownDetour();
+	std::uint64_t g_ShootRemapHold_ReturnAddr;
+	export void ShootRemapHoldDetour();
 	std::uint16_t g_ShootRemap_NewMap;
-	export void ShootRemapDetour();
 
 	// VergilNeutralTrick
 	std::uint64_t g_VergilNeutralTrick_ReturnAddr;
@@ -271,18 +276,6 @@ export void InitDetours() {
 	g_HudStyleBarPosX = 580.0f;
 	g_HudStyleBarPosY = 110.0f;
 	HudStyleBarPosHook->Toggle(true);
-
-	// InputRemapDT
-	static std::unique_ptr<Utility::Detour_t> DTRemapHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E7795, &DTRemapDetour, 5);
-	g_DTRemap_ReturnAddr = DTRemapHook->GetReturnAddress();
-	g_DTRemap_NewMap = 0x0080; // maybe some dropdown menu? if not we can swap input addresses but idk how conflicting it might be on some setups
-	DTRemapHook->Toggle(true);
-
-	// InputRemapShoot
-	static std::unique_ptr<Utility::Detour_t> ShootRemapHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E6A62, &ShootRemapDetour, 5);
-	g_ShootRemap_ReturnAddr = ShootRemapHook->GetReturnAddress();
-	g_ShootRemap_NewMap = 0x0001;
-	ShootRemapHook->Toggle(true);
 
 	// VergilNeutralTrick // func is already detoured, Crimson.MobilityFunction<27>+B1
 	// static std::unique_ptr<Utility::Detour_t> VergilNeutralTrickHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x0, &VergilNeutralTrickDetour, 5);
