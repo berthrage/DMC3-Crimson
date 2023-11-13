@@ -537,14 +537,14 @@ public:
         deviceContext->PSSetShaderResources(0, 1, &texImpl->d3dTexSRV);
         deviceContext->PSSetSamplers(0, 1, &texImpl->d3dSampler);
 
-        const float blendFactor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        deviceContext->OMSetBlendState(blendStateText, blendFactor, 0xFFFFFFFF);
+        //const float blendFactor[] = { 0.1f, 0.1f, 0.1f, 0.1f };
+        //deviceContext->OMSetBlendState(blendStateText, blendFactor, 0xFFFFFFFF);
 
         // Draw with the current buffer:
         drawHelper(count, glyphShaders, glyphVertexBuffer, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         // Restore default blend state.
-        deviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+       // deviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
     }
 
     void drawPointList(const dd::DrawVertex* points, int count, bool depthEnabled) override
@@ -728,7 +728,7 @@ private:
         D3D11_RASTERIZER_DESC rsDesc = {};
         rsDesc.FillMode = D3D11_FILL_SOLID;
         rsDesc.CullMode = D3D11_CULL_NONE;
-        rsDesc.FrontCounterClockwise = true;
+        rsDesc.FrontCounterClockwise = false;
         rsDesc.DepthBias = 0;
         rsDesc.DepthBiasClamp = 0.0f;
         rsDesc.SlopeScaledDepthBias = 0.0f;
@@ -982,10 +982,10 @@ namespace dd {
             dd::projectedText(ddContext, buffer, toFloatPtr(staticCameraCtrlPtr->pCameraControl->lookat), dd::colors::Gold, toFloatPtr(camera->vpMatrix),
                 0, 0, camera->windowDims.x, camera->windowDims.y, 2.0f);
 #endif
-            drawMiscObjects(ddContext, *camera);
-            drawFrustum(ddContext, *camera);
-            drawText(ddContext);
-            const ddVec3 cols[16] = {
+            //drawMiscObjects(ddContext, *camera);
+            //drawFrustum(ddContext, *camera);
+            //drawText(ddContext);
+           /* const ddVec3 cols[16] = {
                 {1.0f, 0.0f, 0.0f},
                 {0.0f, 1.0f, 0.0f},
                 {0.0f, 0.0f, 1.0f},
@@ -1006,7 +1006,7 @@ namespace dd {
             for (int i = 0; i < 16; i++) {
                 const ddVec3 hehe = { 1800.0f + (100.0f * i), 300.0f + ((sinf(PI / 180.0f + i * 45.0f + g_time)) * 150.0f), 2000.0f};
                 dd::sphere(ddContext, hehe, cols[i], 60.0);
-            }
+            }*/
 
             // Flush the draw queues:
             dd::flush(ddContext);

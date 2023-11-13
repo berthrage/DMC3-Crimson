@@ -66,14 +66,6 @@ extern "C" {
 	float g_HudStyleBarPosY;
 	export void HudStyleBarPosDetour();
 
-	// DTRemapRelease
-	std::uint64_t g_DTRemapRelease_ReturnAddr;
-	export void DTRemapReleaseDetour();
-	// DTRemapHold
-	std::uint64_t g_DTRemapHold_ReturnAddr;
-	export void DTRemapHoldDetour();
-	std::uint16_t g_DTRemap_NewMap;
-
 	// ShootRemapDown
 	std::uint64_t g_ShootRemapDown_ReturnAddr;
 	export void ShootRemapDownDetour();

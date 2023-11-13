@@ -737,6 +737,17 @@ export struct Config
 	SFX;
 
 
+	struct Remaps {
+		uint16_t danteDTButton = 0x0004;
+		uint16_t danteShootButton = 0x0080;
+		uint16_t vergilDTButton = 0x0080;
+		uint16_t vergilShootButton = 0x0004;
+	} Remaps;
+
+	// load these from cfg, here are default values for now
+	
+
+
 	struct Gameplay {
 
 		// GENERAL

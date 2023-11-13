@@ -2246,6 +2246,29 @@ export void SprintAbility(byte8* actorBaseAddr) {
 	}
 }
 
+
+export void GunDTCharacterRemaps() {
+	// this is for Dante/Vergil gun and DT remaps
+	// remaps are global for all controllers and only take into account player 1's current character.
+
+	if (!crimsonPlayer[0].playerPtr) {
+		return;
+	}
+
+	
+	static uint16_t* currentDTButton = (uint16_t*)(appBaseAddr + 0xD6CE9A);
+	static uint16_t* currentShootButton = (uint16_t*)(appBaseAddr + 0xD6CE98);
+	if (crimsonPlayer[0].character == CHARACTER::DANTE) {
+		*currentDTButton = activeConfig.Remaps.danteDTButton;
+		*currentShootButton = activeConfig.Remaps.danteShootButton;
+	}
+	else if (crimsonPlayer[0].character == CHARACTER::VERGIL) {
+		*currentDTButton = activeConfig.Remaps.vergilDTButton;
+		*currentShootButton = activeConfig.Remaps.vergilShootButton;
+	}
+	
+}
+
 #pragma endregion
 
 #pragma region DanteAirTaunt
@@ -2657,4 +2680,78 @@ export void DriveTweaks(byte8* actorBaseAddr) {
 
 
 		}*/
+}
+
+export void StyleSwitchDrawText(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+
+	// This function draws the Style Switching Text near Dante when switching styles.
+	const ddVec3 trickWorldPos = { actorData.position.x, actorData.position.y + 200.f, actorData.position.z };
+	const ddVec3 gunWorldPos = { actorData.position.x - 100.0f, actorData.position.y + 130.f, actorData.position.z };
+	const ddVec3 swordWorldPos = { actorData.position.x + 100.0f, actorData.position.y + 130.f, actorData.position.z };
+	const ddVec3 royalWorldPos = { actorData.position.x - 50.0f, actorData.position.y + 70.f, actorData.position.z };
+	const ddVec3 quickWorldPos = { actorData.position.x + 150.0f, actorData.position.y + 130.f, actorData.position.z };
+	const ddVec3 doppWorldPos = { actorData.position.x - 150.0f, actorData.position.y + 130.f, actorData.position.z };
+	const ddVec3 actorWorldPos = { actorData.position.x, actorData.position.y, actorData.position.z };
+// 	char buffer[256]{};
+// 	sprintf(buffer, "danter: %f, %f, %f",
+// 		actorData.position.x,
+// 		actorData.position.y,
+// 		actorData.position.z
+// 	);
+
+	if (crimsonPlayer[playerIndex].styleSwitchText.trickTime > 0) {
+		debug_draw_projected_text("TRICK", trickWorldPos, dd::colors::Yellow, 2.0f);
+	}
+	
+	if (crimsonPlayer[playerIndex].styleSwitchText.swordTime > 0) {
+		debug_draw_projected_text("SWORD", swordWorldPos, dd::colors::Red, 2.0f);
+	}
+
+	if (crimsonPlayer[playerIndex].styleSwitchText.gunTime > 0) {
+		debug_draw_projected_text("GUN", gunWorldPos, dd::colors::DodgerBlue, 2.0f);
+	}
+	
+	if (crimsonPlayer[playerIndex].styleSwitchText.royalTime > 0) {
+		debug_draw_projected_text("ROYAL", royalWorldPos, dd::colors::LightGreen, 2.0f);
+	}
+	
+	if (crimsonPlayer[playerIndex].styleSwitchText.quickTime > 0) {
+		debug_draw_projected_text("QUICK", quickWorldPos, dd::colors::DeepPink, 2.0f);
+	}
+	
+	if (crimsonPlayer[playerIndex].styleSwitchText.doppTime > 0) {
+		debug_draw_projected_text("DOPP", doppWorldPos, dd::colors::Orange, 2.0f);
+	}
+	
+}
+
+export void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr) {
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+
+	float* drawTextTimes[6] = {
+		&crimsonPlayer[playerIndex].styleSwitchText.swordTime,
+		&crimsonPlayer[playerIndex].styleSwitchText.gunTime,
+		&crimsonPlayer[playerIndex].styleSwitchText.trickTime,
+		&crimsonPlayer[playerIndex].styleSwitchText.royalTime,
+		&crimsonPlayer[playerIndex].styleSwitchText.quickTime,
+		&crimsonPlayer[playerIndex].styleSwitchText.doppTime
+	};
+
+	for (int i = 0; i < 6; i++) {
+		if (i == style) {
+			*drawTextTimes[i] = crimsonPlayer[playerIndex].styleSwitchText.duration;
+		}
+		else {
+			*drawTextTimes[i] = 0;
+		}
+	}
 }

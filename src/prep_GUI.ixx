@@ -10685,7 +10685,7 @@ void MainOverlayWindow()
 					ImGui::Text("crazy combo hold:  %u", crazyComboHold);
 					ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
 					ImGui::Text("Actor Speed %g", actorData.speed);
-					ImGui::Text("Player Index %u", GetPlayerIndexFromAddr((uintptr_t) actorData.baseAddr));
+					ImGui::Text("Character player 1: %u", crimsonPlayer[0].character);
 // 					ImGui::Text("Trick Cooldown %g", crimsonPlayer[1].cancels.trickCooldown);
 // 					ImGui::Text("Guns Cooldown %g", crimsonPlayer[1].cancels.gunsCooldown);
 // 					ImGui::Text("Rainstorm Cooldown %g", crimsonPlayer[1].cancels.rainstormCooldown);
@@ -12789,7 +12789,20 @@ void GameplayOptions() {
 		);
 		ImGui::Text("");
 
+		ImGui::Text("");
 
+		ImGui::Text("Input Remaps");
+		ImGui::SameLine();
+		TooltipHelper
+		(
+			"(?)",
+			"Remaps are global for all controllers, will only take into account Player 1's active Character for the switch."
+		);
+
+		DrawButtonCombo("Dante DT Button", activeConfig.Remaps.danteDTButton);
+		DrawButtonCombo("Dante Shoot Button", activeConfig.Remaps.danteShootButton);
+		DrawButtonCombo("Vergil DT Button", activeConfig.Remaps.vergilDTButton);
+		DrawButtonCombo("Vergil Shoot Button", activeConfig.Remaps.vergilShootButton);
 	}
 }
 
@@ -13540,50 +13553,6 @@ void Main()
 		CreateEffectDetour();
 	}
 
-	static int playerID = -1;
-
-	// There is no way this is necessary, find whatever serp uses to get local player and get ID from that
-	if (appBaseAddr) {
-		uintptr_t playerPtr = *(uintptr_t*)(appBaseAddr + 0x168);
-		if (playerPtr) {
-			playerPtr = *(uintptr_t*)(playerPtr + 0xC90E28);
-			if (playerPtr) {
-				playerPtr = *(uintptr_t*)(playerPtr + 0x18);
-				if (playerPtr) {
-					ImGui::InputInt("p1 base", (int*)&playerPtr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal);
-					if (playerPtr){
-						playerID = *(int*)(playerPtr + 0x78);
-					}
-				}
-			}
-		}
-	}
-
-	// load these from cfg, here are default values for now
-	static uint16_t danteDTButton = 0x0004;
-	static uint16_t danteShootButton = 0x0080;
-	static uint16_t vergilDTButton = 0x0080;
-	static uint16_t vergilShootButton = 0x0004;
-
-	// put these somewhere appropriate in UI (funcs + values are currently at the top of this file)
-	DrawButtonCombo("Dante DT Button", danteDTButton);
-	DrawButtonCombo("Dante Shoot Button", danteShootButton);
-	DrawButtonCombo("Vergil DT Button", vergilDTButton);
-	DrawButtonCombo("Vergil Shoot Button", vergilShootButton);
-
-	// put this somewhere called on character switch, for this test it only updates when UI is open
-	{
-		static uint16_t* currentDTButton = (uint16_t*)(appBaseAddr + 0xD6CE9A);
-		static uint16_t* currentShootButton = (uint16_t*)(appBaseAddr + 0xD6CE98);
-		if (playerID == 0) {
-			*currentDTButton = danteDTButton;
-			*currentShootButton = danteShootButton;
-		}
-		else if (playerID == 3) {
-			*currentDTButton = vergilDTButton;
-			*currentShootButton = vergilShootButton;
-		}
-	}
 
 	static bool run = false;
 	if (!run)
@@ -13753,6 +13722,8 @@ void Main()
 		WeaponWheel();
 		SFX();
 		GameplayOptions();
+		
+
 		TrainingSection();
 		Vergil();
 
@@ -13819,6 +13790,7 @@ export void GUI_Render()
 	MissionOverlayWindow();
 	BossLadyActionsOverlayWindow();
 	BossVergilActionsOverlayWindow();
+	GunDTCharacterRemaps();
 
 	UpdateCrimsonPlayerData();
 	DelayedComboEffectsController();
@@ -13831,6 +13803,7 @@ export void GUI_Render()
 	SprintTimer();
 	DriveTimer();
 	ImprovedCancelsTimers();
+	StyleSwitchTextTimers();
 
 	
 

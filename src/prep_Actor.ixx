@@ -4584,6 +4584,9 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
 	if (actorData.character == CHARACTER::DANTE) {
 		playStyleChangeVO(style);
 	}
+
+	SetStyleSwitchDrawTextTime(style, actorBaseAddr);
+
 }
 
 void StyleSwitchController(byte8* actorBaseAddr)
@@ -4595,6 +4598,8 @@ void StyleSwitchController(byte8* actorBaseAddr)
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
 	auto& playerData = GetPlayerData(actorData);
 	auto& characterData = GetCharacterData(actorData);
+
+	StyleSwitchDrawText(actorBaseAddr);
 
 
 	{
@@ -5550,19 +5555,9 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 		return false;
 	}
 
-#if 1 // NOTE(deep): Projected text drawing example. Remove?
-	const ddVec3 textWorldPos = { actorData.position.x, actorData.position.y + 190.f, actorData.position.z };
-	const ddVec3 actorWorldPos = { actorData.position.x, actorData.position.y, actorData.position.z };
-	char buffer[256]{};
-	sprintf(buffer, "danter: %f, %f, %f",
-		actorData.position.x,
-		actorData.position.y,
-		actorData.position.z
-	);
 
-	debug_draw_projected_text("TRICK", textWorldPos, dd::colors::Yellow, 2.0f);
 	//dd::sphere(dd_ctx(), actorWorldPos, dd::colors::Red, 15.0f);
-#endif
+
 
 	StyleSwitchController(actorBaseAddr);
 	DisableHeightRestriction();
@@ -5580,6 +5575,7 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 	LockedOffCameraToggle(activeConfig.cameraLockOff);
 	CameraLockOnDistanceController();
 	LastEventStateQueue();
+	
 	
 
 	if (
@@ -5956,6 +5952,8 @@ export void CharacterSwitchController()
 					characterData,
 					newActorData,
 					true);
+
+				
 
 				[&]()
 					{
@@ -16354,6 +16352,7 @@ export void EventCreateMainActor(byte8* actorBaseAddr)
 	LogFunction(actorBaseAddr);
 
 	ClearActorData();
+
 
 	g_playerActorBaseAddrs[0] = actorBaseAddr;
 	g_playerActorBaseAddrs.count = 2;

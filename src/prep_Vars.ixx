@@ -4595,6 +4595,16 @@ export struct BackToForward {
 
 };
 
+export struct StyleSwitchText {
+	float duration = 1.2f;
+	float trickTime = 0;
+	float swordTime = 0;
+	float gunTime = 0;
+	float royalTime = 0;
+	float quickTime = 0;
+	float doppTime = 0;
+};
+
 export struct CrimsonPlayerData {
 	uintptr_t playerPtr;
 	uint8 action = 0;
@@ -4626,6 +4636,7 @@ export struct CrimsonPlayerData {
 	float actionTimerClone = 0;
 	float animTimerClone = 0;
 	ImprovedCancels cancelsClone;
+	StyleSwitchText styleSwitchText;
 };
 
 export CrimsonPlayerData crimsonPlayer[20];
