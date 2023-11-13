@@ -2691,11 +2691,11 @@ export void StyleSwitchDrawText(byte8* actorBaseAddr) {
 
 	// This function draws the Style Switching Text near Dante when switching styles.
 	const ddVec3 trickWorldPos = { actorData.position.x, actorData.position.y + 200.f, actorData.position.z };
-	const ddVec3 gunWorldPos = { actorData.position.x - 100.0f, actorData.position.y + 130.f, actorData.position.z };
-	const ddVec3 swordWorldPos = { actorData.position.x + 100.0f, actorData.position.y + 130.f, actorData.position.z };
-	const ddVec3 royalWorldPos = { actorData.position.x - 50.0f, actorData.position.y + 70.f, actorData.position.z };
-	const ddVec3 quickWorldPos = { actorData.position.x + 150.0f, actorData.position.y + 130.f, actorData.position.z };
-	const ddVec3 doppWorldPos = { actorData.position.x - 150.0f, actorData.position.y + 130.f, actorData.position.z };
+	const ddVec3 gunWorldPos = { actorData.position.x, actorData.position.y + 130.f, actorData.position.z };
+	const ddVec3 swordWorldPos = { actorData.position.x, actorData.position.y + 130.f, actorData.position.z };
+	const ddVec3 royalWorldPos = { actorData.position.x, actorData.position.y + 70.f, actorData.position.z };
+	const ddVec3 quickWorldPos = { actorData.position.x, actorData.position.y + 130.f, actorData.position.z };
+	const ddVec3 doppWorldPos = { actorData.position.x, actorData.position.y + 130.f, actorData.position.z };
 	const ddVec3 actorWorldPos = { actorData.position.x, actorData.position.y, actorData.position.z };
 // 	char buffer[256]{};
 // 	sprintf(buffer, "danter: %f, %f, %f",
@@ -2709,11 +2709,11 @@ export void StyleSwitchDrawText(byte8* actorBaseAddr) {
 	}
 	
 	if (crimsonPlayer[playerIndex].styleSwitchText.swordTime > 0) {
-		debug_draw_projected_text("SWORD", swordWorldPos, dd::colors::Red, 2.0f);
+		debug_draw_projected_text("          SWORD", swordWorldPos, dd::colors::Red, 2.0f);
 	}
 
 	if (crimsonPlayer[playerIndex].styleSwitchText.gunTime > 0) {
-		debug_draw_projected_text("GUN", gunWorldPos, dd::colors::DodgerBlue, 2.0f);
+		debug_draw_projected_text("GUN          ", gunWorldPos, dd::colors::DodgerBlue, 2.0f);
 	}
 	
 	if (crimsonPlayer[playerIndex].styleSwitchText.royalTime > 0) {
@@ -2721,11 +2721,11 @@ export void StyleSwitchDrawText(byte8* actorBaseAddr) {
 	}
 	
 	if (crimsonPlayer[playerIndex].styleSwitchText.quickTime > 0) {
-		debug_draw_projected_text("QUICK", quickWorldPos, dd::colors::DeepPink, 2.0f);
+		debug_draw_projected_text("            QUICK", quickWorldPos, dd::colors::DeepPink, 2.0f);
 	}
 	
 	if (crimsonPlayer[playerIndex].styleSwitchText.doppTime > 0) {
-		debug_draw_projected_text("DOPP", doppWorldPos, dd::colors::Orange, 2.0f);
+		debug_draw_projected_text("DOPP            ", doppWorldPos, dd::colors::Orange, 2.0f);
 	}
 	
 }
