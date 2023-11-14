@@ -2705,27 +2705,27 @@ export void StyleSwitchDrawText(byte8* actorBaseAddr) {
 // 	);
 
 	if (crimsonPlayer[playerIndex].styleSwitchText.trickTime > 0) {
-		debug_draw_projected_text("TRICK", trickWorldPos, dd::colors::Yellow, 2.0f);
+		debug_draw_projected_text("TRICK", trickWorldPos, dd::colors::Yellow, 1.0f);
 	}
 	
 	if (crimsonPlayer[playerIndex].styleSwitchText.swordTime > 0) {
-		debug_draw_projected_text("          SWORD", swordWorldPos, dd::colors::Red, 2.0f);
+		debug_draw_projected_text("          SWORD", swordWorldPos, dd::colors::Red, 1.0f);
 	}
 
 	if (crimsonPlayer[playerIndex].styleSwitchText.gunTime > 0) {
-		debug_draw_projected_text("GUN          ", gunWorldPos, dd::colors::DodgerBlue, 2.0f);
+		debug_draw_projected_text("GUN          ", gunWorldPos, dd::colors::DodgerBlue, 1.0f);
 	}
 	
 	if (crimsonPlayer[playerIndex].styleSwitchText.royalTime > 0) {
-		debug_draw_projected_text("ROYAL", royalWorldPos, dd::colors::LightGreen, 2.0f);
+		debug_draw_projected_text("ROYAL", royalWorldPos, dd::colors::LightGreen, 1.0f);
 	}
 	
 	if (crimsonPlayer[playerIndex].styleSwitchText.quickTime > 0) {
-		debug_draw_projected_text("            QUICK", quickWorldPos, dd::colors::DeepPink, 2.0f);
+		debug_draw_projected_text("            QUICK", quickWorldPos, dd::colors::DeepPink, 1.0f);
 	}
 	
 	if (crimsonPlayer[playerIndex].styleSwitchText.doppTime > 0) {
-		debug_draw_projected_text("DOPP            ", doppWorldPos, dd::colors::Orange, 2.0f);
+		debug_draw_projected_text("DOPP            ", doppWorldPos, dd::colors::Orange, 1.0f);
 	}
 	
 }
@@ -2746,12 +2746,15 @@ export void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr) {
 		&crimsonPlayer[playerIndex].styleSwitchText.doppTime
 	};
 
-	for (int i = 0; i < 6; i++) {
-		if (i == style) {
-			*drawTextTimes[i] = crimsonPlayer[playerIndex].styleSwitchText.duration;
-		}
-		else {
-			*drawTextTimes[i] = 0;
+	if (actorData.character == CHARACTER::DANTE) {
+		for (int i = 0; i < 6; i++) {
+			if (i == style) {
+				*drawTextTimes[i] = crimsonPlayer[playerIndex].styleSwitchText.duration;
+			}
+			else {
+				*drawTextTimes[i] = 0;
+			}
 		}
 	}
+	
 }
