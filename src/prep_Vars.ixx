@@ -4596,13 +4596,14 @@ export struct BackToForward {
 };
 
 export struct StyleSwitchText {
-	float duration = 1.2f;
+	float duration = 0.3f;
 	float trickTime = 0;
 	float swordTime = 0;
 	float gunTime = 0;
 	float royalTime = 0;
 	float quickTime = 0;
 	float doppTime = 0;
+	float animSize = 0;
 };
 
 export struct CrimsonPlayerData {

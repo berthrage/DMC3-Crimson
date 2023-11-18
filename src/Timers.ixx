@@ -306,26 +306,32 @@ export void StyleSwitchTextTimers() {
 
 		if (crimsonPlayer[playerIndex].styleSwitchText.trickTime > 0) {
 			crimsonPlayer[playerIndex].styleSwitchText.trickTime -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
+			crimsonPlayer[playerIndex].styleSwitchText.animSize += ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
 		}
 
 		if (crimsonPlayer[playerIndex].styleSwitchText.swordTime > 0) {
 			crimsonPlayer[playerIndex].styleSwitchText.swordTime -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
+			crimsonPlayer[playerIndex].styleSwitchText.animSize += ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
 		}
 		
 		if (crimsonPlayer[playerIndex].styleSwitchText.gunTime > 0) {
 			crimsonPlayer[playerIndex].styleSwitchText.gunTime -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
+			crimsonPlayer[playerIndex].styleSwitchText.animSize += ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
 		}
 
 		if (crimsonPlayer[playerIndex].styleSwitchText.royalTime > 0) {
 			crimsonPlayer[playerIndex].styleSwitchText.royalTime -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
+			crimsonPlayer[playerIndex].styleSwitchText.animSize += ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
 		}
 
 		if (crimsonPlayer[playerIndex].styleSwitchText.quickTime > 0) {
 			crimsonPlayer[playerIndex].styleSwitchText.quickTime -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
+			crimsonPlayer[playerIndex].styleSwitchText.animSize += ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
 		}
 
 		if (crimsonPlayer[playerIndex].styleSwitchText.doppTime > 0) {
 			crimsonPlayer[playerIndex].styleSwitchText.doppTime -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
+			crimsonPlayer[playerIndex].styleSwitchText.animSize += ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
 		}
 	}
 }

@@ -2704,28 +2704,30 @@ export void StyleSwitchDrawText(byte8* actorBaseAddr) {
 // 		actorData.position.z
 // 	);
 
+	// const float yellow[4] = { 1.0f, 1.0f, 0.0f, 0.1f }; // rgba alpha does not work/exist for debugDraw yet
+
 	if (crimsonPlayer[playerIndex].styleSwitchText.trickTime > 0) {
-		debug_draw_projected_text("TRICK", trickWorldPos, dd::colors::Yellow, 1.0f);
+		debug_draw_projected_text("TRICK", trickWorldPos, dd::colors::Yellow, crimsonPlayer[playerIndex].styleSwitchText.animSize);
 	}
 	
 	if (crimsonPlayer[playerIndex].styleSwitchText.swordTime > 0) {
-		debug_draw_projected_text("          SWORD", swordWorldPos, dd::colors::Red, 1.0f);
+		debug_draw_projected_text("        SWORD", swordWorldPos, dd::colors::Red, crimsonPlayer[playerIndex].styleSwitchText.animSize);
 	}
 
 	if (crimsonPlayer[playerIndex].styleSwitchText.gunTime > 0) {
-		debug_draw_projected_text("GUN          ", gunWorldPos, dd::colors::DodgerBlue, 1.0f);
+		debug_draw_projected_text("GUN        ", gunWorldPos, dd::colors::DodgerBlue, crimsonPlayer[playerIndex].styleSwitchText.animSize);
 	}
 	
 	if (crimsonPlayer[playerIndex].styleSwitchText.royalTime > 0) {
-		debug_draw_projected_text("ROYAL", royalWorldPos, dd::colors::LightGreen, 1.0f);
+		debug_draw_projected_text("ROYAL", royalWorldPos, dd::colors::LightGreen, crimsonPlayer[playerIndex].styleSwitchText.animSize);
 	}
 	
 	if (crimsonPlayer[playerIndex].styleSwitchText.quickTime > 0) {
-		debug_draw_projected_text("            QUICK", quickWorldPos, dd::colors::DeepPink, 1.0f);
+		debug_draw_projected_text("          QUICK", quickWorldPos, dd::colors::DeepPink, crimsonPlayer[playerIndex].styleSwitchText.animSize);
 	}
 	
 	if (crimsonPlayer[playerIndex].styleSwitchText.doppTime > 0) {
-		debug_draw_projected_text("DOPP            ", doppWorldPos, dd::colors::Orange, 1.0f);
+		debug_draw_projected_text("DOPP          ", doppWorldPos, dd::colors::Orange, crimsonPlayer[playerIndex].styleSwitchText.animSize);
 	}
 	
 }
@@ -2750,6 +2752,7 @@ export void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr) {
 		for (int i = 0; i < 6; i++) {
 			if (i == style) {
 				*drawTextTimes[i] = crimsonPlayer[playerIndex].styleSwitchText.duration;
+				crimsonPlayer[playerIndex].styleSwitchText.animSize = 1.0f;
 			}
 			else {
 				*drawTextTimes[i] = 0;
