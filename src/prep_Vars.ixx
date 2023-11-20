@@ -3152,9 +3152,12 @@ export struct PlayerActorDataBase : ActorDataBase
 	uint8 lastAction; // 0x3FA5
 	_(2);
 	uint8 bufferedAction; // 0x3FA8
-	_(3);
-	uint8 chainCount; // 0x3FAC
-	_(63);
+	_(2);
+	uint8 airGunAttackCount; // 0x3FAB
+	uint8 airSwordAttackCount; // 0x3FAC
+	_(1);
+	uint8 sumAttackCount; // 0x3FAE
+	_(61);
 	byte32 activeExpertise[8]; // 0x3FEC
 	_(32);
 	byte32 queuedExpertise[8]; // 0x402C
@@ -3304,7 +3307,9 @@ static_assert(offsetof(PlayerActorDataBase, var_3F19) == 0x3F19);
 static_assert(offsetof(PlayerActorDataBase, action) == 0x3FA4);
 static_assert(offsetof(PlayerActorDataBase, lastAction) == 0x3FA5);
 static_assert(offsetof(PlayerActorDataBase, bufferedAction) == 0x3FA8);
-static_assert(offsetof(PlayerActorDataBase, chainCount) == 0x3FAC);
+static_assert(offsetof(PlayerActorDataBase, airGunAttackCount) == 0x3FAB);
+static_assert(offsetof(PlayerActorDataBase, airSwordAttackCount) == 0x3FAC);
+static_assert(offsetof(PlayerActorDataBase, sumAttackCount) == 0x3FAE);
 static_assert(offsetof(PlayerActorDataBase, activeExpertise) == 0x3FEC);
 static_assert(offsetof(PlayerActorDataBase, queuedExpertise) == 0x402C);
 static_assert(offsetof(PlayerActorDataBase, maxHitPoints) == 0x40EC);
@@ -3365,7 +3370,7 @@ static_assert(offsetof(PlayerActorDataBase, leftStickRadius) == 0x750A);
 static_assert(offsetof(PlayerActorDataBase, actorCameraDirection) == 0x750C);
 static_assert(offsetof(PlayerActorDataBase, leftStickDirection) == 0x751C);
 
-//tatic_assert(sizeof(PlayerActorDataBase) == 0x7540);
+static_assert(sizeof(PlayerActorDataBase) == 0x7540);
 
 export struct PlayerActorData : PlayerActorDataBase
 {

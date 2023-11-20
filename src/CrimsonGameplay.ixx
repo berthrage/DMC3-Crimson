@@ -141,8 +141,7 @@ export void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 		actorData.action == REBELLION_AERIAL_RAVE_PART_4) || (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
 			actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
 			actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) || (actorData.action == NEVAN_AIR_SLASH_PART_1 ||
-				actorData.action == NEVAN_AIR_SLASH_PART_2) || (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO) ||
-		(actorData.action == CERBERUS_REVOLVER_LEVEL_1) || (actorData.action == CERBERUS_REVOLVER_LEVEL_2)) &&
+				actorData.action == NEVAN_AIR_SLASH_PART_2) || (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO)) &&
 		actorData.eventData[0].event == 17);
 
 
@@ -463,40 +462,6 @@ export void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
 		if (actorData.character == CHARACTER::DANTE) {
 
 
-			// Air Revolver Cancelling with Swordmaster moves
-			if ((actorData.style == STYLE::SWORDMASTER) && (actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2)) {
-				if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) {
-
-					if (execute) {
-						execute = false;
-
-						actorData.state &= ~STATE::BUSY;
-
-					}
-				}
-				else {
-					execute = true;
-				}
-			}
-
-			if ((actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2) &&
-				actorData.state & STATE::IN_AIR) {
-				if (actorData.buttons[2] & GetBinding(BINDING::MELEE_ATTACK)) {
-					if ((lockOn && tiltDirection != TILT_DIRECTION::UP) || !lockOn) {
-						if (execute) {
-							execute = false;
-
-							actorData.state &= ~STATE::BUSY;
-
-						}
-					}
-
-
-				}
-				else {
-					execute = true;
-				}
-			}
 
 			// Swordmaster moves cancel out Trickster dashes
 			uint32 eventActor = actorData.eventData[0].event;
@@ -1511,7 +1476,6 @@ export void InertiaController(byte8* actorBaseAddr) {
 	relativeTilt = (actorData.cameraDirection + gamepad.leftStickPosition);
 	uint16 value = (relativeTilt - 0x8000);
 
-	distanceToEnemy = actorData.position.z - actorData.lockOnData.targetPosition.z;
 
 	bool inAirSwordmaster = ((actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
 		actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
@@ -1541,7 +1505,7 @@ export void InertiaController(byte8* actorBaseAddr) {
 			actorData.verticalPullMultiplier = -2;
 		}
 
-		// This Mimic's DMC4's Trick Up Inertia Boost behaviour, uses LastEventStateQueue
+		// This mimic's DMC4's Air Trick Inertia Boost behaviour, uses LastEventStateQueue
 		if (actorData.eventData[0].event == ACTOR_EVENT::TRICK_UP_END && lastLastEvent == 17 && lastLastState & STATE::IN_AIR) {
 			actorData.horizontalPull = 7.5f;
 		}
@@ -1687,7 +1651,7 @@ export void InertiaController(byte8* actorBaseAddr) {
 					actorData.lastAction != AGNI_RUDRA_SKY_DANCE_PART_2 &&
 					actorData.lastAction != AGNI_RUDRA_SKY_DANCE_PART_3) {
 
-					actorData.horizontalPull = (airRaveInertia.cachedPull / 3.0f) * 1.0f;
+					actorData.horizontalPull = (airRaveInertia.cachedPull / 3.0) * 1.0f;
 
 				}
 				else {
@@ -1695,16 +1659,6 @@ export void InertiaController(byte8* actorBaseAddr) {
 
 				}
 
-
-				// Reduces gravity while air raving
-				if (actorData.action != REBELLION_AERIAL_RAVE_PART_4) {
-					actorData.verticalPull = -1.0f;
-					actorData.verticalPullMultiplier = 0;
-				}
-				else if (actorData.action == REBELLION_AERIAL_RAVE_PART_4) {
-					actorData.verticalPull = -2.0f;
-					actorData.verticalPullMultiplier = 0;
-				}
 
 				//actorData.horizontalPullMultiplier = 0;
 				//actorData.horizontalPullMultiplier = -0.12f;
@@ -1884,6 +1838,41 @@ export void InertiaController(byte8* actorBaseAddr) {
 
 
 
+}
+
+export void AerialRaveGravityTweaks(byte8* actorBaseAddr) {
+	// Reduces gravity while air raving
+	using namespace ACTION_DANTE;
+
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+
+	bool inAerialRave = (actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
+		actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+		actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
+		actorData.action == REBELLION_AERIAL_RAVE_PART_4);
+
+
+	if (actorData.state == 65538 && actorData.character == CHARACTER::DANTE && inAerialRave) {
+
+		if (actorData.action != REBELLION_AERIAL_RAVE_PART_4) {
+			if (actorData.airSwordAttackCount == 1) {
+				actorData.verticalPull = 0;
+				actorData.verticalPullMultiplier = 0;
+			}
+			else if (actorData.airSwordAttackCount > 1) {
+				actorData.verticalPull = -1.0f + (-0.2f * actorData.airSwordAttackCount);
+				actorData.verticalPullMultiplier = 0;
+			}
+		}
+		else if (actorData.action == REBELLION_AERIAL_RAVE_PART_4) {
+			actorData.verticalPull = -2.0f + (-0.2f * actorData.airSwordAttackCount);
+			actorData.verticalPullMultiplier = 0;
+		}
+	}
+	
 }
 
 #pragma endregion

@@ -5575,6 +5575,10 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 	LockedOffCameraToggle(activeConfig.cameraLockOff);
 	CameraLockOnDistanceController();
 	LastEventStateQueue();
+
+	if (actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
+		actorData.airSwordAttackCount = 0;
+	}
 	
 	
 
@@ -10679,6 +10683,7 @@ void UpdateActorSpeed(byte8* baseAddr)
 
 				BackToForwardInputs(actorBaseAddr);
 				DriveTweaks(actorBaseAddr);
+				AerialRaveGravityTweaks(actorBaseAddr);
 
 				
 
