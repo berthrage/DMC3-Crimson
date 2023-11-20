@@ -2108,26 +2108,9 @@ void DevilVFXTriggerStyle(byte8* actorBaseAddr, int style) {
 	int delayTime2 = 0;
 	auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 
-	// Adjusting the effect according to Framerate and Game Speed is tricky, but this should work on most setups.
-	if (g_frameRateMultiplier < 1) {
-		delayTime1 = ceil(2 * g_frameRateMultiplier / speedValue);
-		delayTime2 = ceil(18 * g_frameRateMultiplier / speedValue);
-	}
-	else  if (g_frameRateMultiplier > 1) {
-		delayTime1 = ceil(2 * speedValue * g_frameRateMultiplier);
-		delayTime2 = ceil(18 * speedValue * g_frameRateMultiplier);
-	}
-	else {
-		if (activeConfig.Speed.mainSpeed < 1) {
-			delayTime1 = ceil(2 / speedValue * g_frameRateMultiplier);
-			delayTime2 = ceil(18 / speedValue * g_frameRateMultiplier);
-		}
-		else {
-			delayTime1 = ceil(2 * speedValue * g_frameRateMultiplier);
-			delayTime2 = ceil(18 * speedValue * g_frameRateMultiplier);
-		}
 
-	}
+	delayTime1 = (2 * actorData.speed) / g_frameRateMultiplier;
+	delayTime2 = (18 * actorData.speed) / g_frameRateMultiplier;
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(delayTime1));
 	if (styleVFXCount <= 1) {
