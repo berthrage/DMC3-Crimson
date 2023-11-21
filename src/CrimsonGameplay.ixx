@@ -1848,28 +1848,52 @@ export void AerialRaveGravityTweaks(byte8* actorBaseAddr) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto *tweak = &crimsonPlayer[playerIndex].airRaveTweak;
 
 	bool inAerialRave = (actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
 		actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
 		actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
 		actorData.action == REBELLION_AERIAL_RAVE_PART_4);
 
+	if (actorData.character == CHARACTER::DANTE) {
+		if (actorData.state & STATE::ON_FLOOR || actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
+			tweak->gravity = 0;
+			tweak->gravityPre4Changed = false;
+			tweak->gravity4Changed = false;
 
-	if (actorData.state == 65538 && actorData.character == CHARACTER::DANTE && inAerialRave) {
-
-		if (actorData.action != REBELLION_AERIAL_RAVE_PART_4) {
-			if (actorData.airSwordAttackCount == 1) {
-				actorData.verticalPull = 0;
-				actorData.verticalPullMultiplier = 0;
-			}
-			else if (actorData.airSwordAttackCount > 1) {
-				actorData.verticalPull = -1.0f + (-0.2f * actorData.airSwordAttackCount);
-				actorData.verticalPullMultiplier = 0;
-			}
 		}
-		else if (actorData.action == REBELLION_AERIAL_RAVE_PART_4) {
-			actorData.verticalPull = -2.0f + (-0.2f * actorData.airSwordAttackCount);
-			actorData.verticalPullMultiplier = 0;
+	}
+
+	if (actorData.state == 65538 && actorData.character == CHARACTER::DANTE) {
+		
+
+		if (inAerialRave) {
+			if (actorData.action != REBELLION_AERIAL_RAVE_PART_4) {
+				if (actorData.airSwordAttackCount == 1) {
+					actorData.verticalPull = 0;
+					actorData.verticalPullMultiplier = 0;
+				}
+				else if (actorData.airSwordAttackCount > 1) {
+					if (!tweak->gravityPre4Changed) {
+
+						tweak->gravity += -1.0f;
+						tweak->gravityPre4Changed = true;
+					}
+					actorData.verticalPull = tweak->gravity + (-0.2f * actorData.airSwordAttackCount);
+					actorData.verticalPullMultiplier = 0;
+					tweak->gravity4Changed = false;
+				}
+			}
+			else if (actorData.action == REBELLION_AERIAL_RAVE_PART_4) {
+				if (!tweak->gravity4Changed) {
+
+					tweak->gravity += -3.0f;
+					tweak->gravity4Changed = true;
+				}
+				actorData.verticalPull = tweak->gravity + (-0.2f * actorData.airSwordAttackCount);
+				actorData.verticalPullMultiplier = 0;
+			}
 		}
 	}
 	

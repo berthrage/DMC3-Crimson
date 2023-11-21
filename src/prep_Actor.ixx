@@ -2101,7 +2101,6 @@ void DevilVFXTriggerStyle(byte8* actorBaseAddr, int style) {
 	styleVFXCount++;
 
 
-
 	styleChanged[style] = true;
 
 	int delayTime1 = 0;
@@ -2110,7 +2109,7 @@ void DevilVFXTriggerStyle(byte8* actorBaseAddr, int style) {
 
 
 	delayTime1 = (2 * actorData.speed) / g_frameRateMultiplier;
-	delayTime2 = (18 * actorData.speed) / g_frameRateMultiplier;
+	delayTime2 = (24 * actorData.speed) / g_frameRateMultiplier;
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(delayTime1));
 	if (styleVFXCount <= 1) {

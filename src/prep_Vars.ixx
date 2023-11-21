@@ -4588,7 +4588,7 @@ export struct ImprovedCancels {
 	bool canRainstorm = true;
 };
 
-export struct BackToForward {
+struct BackToForward {
 	bool backCommand = false;
 	float backDuration = 0.2f;
 	float  backBuffer = backDuration;
@@ -4600,7 +4600,7 @@ export struct BackToForward {
 
 };
 
-export struct StyleSwitchText {
+struct StyleSwitchText {
 	float duration = 0.3f;
 	float trickTime = 0;
 	float swordTime = 0;
@@ -4609,6 +4609,12 @@ export struct StyleSwitchText {
 	float quickTime = 0;
 	float doppTime = 0;
 	float animSize = 0;
+};
+
+struct AirRaveTweak {
+	float gravity = 0;
+	bool gravityPre4Changed = false;
+	bool gravity4Changed = false;
 };
 
 export struct CrimsonPlayerData {
@@ -4643,6 +4649,7 @@ export struct CrimsonPlayerData {
 	float animTimerClone = 0;
 	ImprovedCancels cancelsClone;
 	StyleSwitchText styleSwitchText;
+	AirRaveTweak airRaveTweak;
 };
 
 export CrimsonPlayerData crimsonPlayer[20];

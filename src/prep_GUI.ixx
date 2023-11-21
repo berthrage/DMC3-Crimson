@@ -10684,7 +10684,8 @@ void MainOverlayWindow()
 					ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[0].animTimer);
 					//ImGui::Text("crazy combo hold:  %u", crazyComboHold);
 					ImGui::Text("Chain Count (weight):  %u", actorData.airSwordAttackCount);
-					ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
+					ImGui::Text("Gravity Tweak:  %g", crimsonPlayer[0].airRaveTweak.gravity);
+					//ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
 					ImGui::Text("Actor Speed %g", actorData.speed);
 					ImGui::Text("Character player 1: %u", crimsonPlayer[0].character);
 // 					ImGui::Text("Trick Cooldown %g", crimsonPlayer[1].cancels.trickCooldown);
