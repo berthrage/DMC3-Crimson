@@ -737,10 +737,24 @@ export struct Config
 	SFX;
 
 
+	struct Remaps {
+		uint16_t danteDTButton = 0x0004;
+		uint16_t danteShootButton = 0x0080;
+		uint16_t vergilDTButton = 0x0080;
+		uint16_t vergilShootButton = 0x0004;
+	} Remaps;
+
+	// load these from cfg, here are default values for now
+	
+
+
 	struct Gameplay {
 
 		// GENERAL
 		bool inertia = true;
+		bool aerialRaveTweaks = true;
+		bool airFlickerTweaks = true;
+		bool skyDanceTweaks = true;
 		bool sprint = true;
 		bool disableHeightRestriction = true;
 		bool improvedBufferedReversals = true;
@@ -1829,6 +1843,9 @@ void CreateMembers(Config& config_)
 		auto& config = config_.Gameplay;
 
 		Create<bool>(member, "inertia", config.inertia);
+		Create<bool>(member, "aerialRaveTweaks", config.aerialRaveTweaks);
+		Create<bool>(member, "airFlickerTweaks", config.airFlickerTweaks);
+		Create<bool>(member, "skyDanceTweaks", config.skyDanceTweaks);
 		Create<bool>(member, "sprint", config.sprint);
 		Create<bool>(member, "disableHeightRestriction", config.disableHeightRestriction);
 		Create<bool>(member, "improvedBufferedReversals", config.improvedBufferedReversals);
@@ -2506,6 +2523,9 @@ void ToJSON(Config& config_)
 		auto& config = config_.Gameplay;
 
 		Set<bool>(member["inertia"], config.inertia);
+		Set<bool>(member["aerialRaveTweaks"], config.aerialRaveTweaks);
+		Set<bool>(member["airFlickerTweaks"], config.airFlickerTweaks);
+		Set<bool>(member["skyDanceTweaks"], config.skyDanceTweaks);
 		Set<bool>(member["sprint"], config.sprint);
 		Set<bool>(member["disableHeightRestriction"], config.disableHeightRestriction);
 		Set<bool>(member["improvedBufferedReversals"], config.improvedBufferedReversals);
@@ -3173,6 +3193,9 @@ void ToConfig(Config& config_)
 		auto& member = root["Gameplay"];
 
 		config.inertia = Get<bool>(member["inertia"]);
+		config.aerialRaveTweaks = Get<bool>(member["aerialRaveTweaks"]);
+		config.airFlickerTweaks = Get<bool>(member["airFlickerTweaks"]);
+		config.skyDanceTweaks = Get<bool>(member["skyDanceTweaks"]);
 		config.sprint = Get<bool>(member["sprint"]);
 		config.disableHeightRestriction = Get<bool>(member["disableHeightRestriction"]);
 		config.improvedBufferedReversals = Get<bool>(member["improvedBufferedReversals"]);

@@ -4,7 +4,10 @@ set(MASM_SRC
     masm/CreateEffect.asm
     masm/HoldToCrazyComboAsm.asm
     masm/HudHPSeparation.asm
+    masm/HudStyleBarPosAsm.asm
     masm/DisableDriveHoldAsm.asm
+    masm/SetAirTauntAsm.asm
+    masm/VergilTricksAsm.asm
 )
 
 set (ASM_LIBS)

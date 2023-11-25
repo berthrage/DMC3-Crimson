@@ -11,7 +11,7 @@ export module DetourFunctions;
 import Core;
 #include "Core/Macros.h" 
 
-import ActorBase;
+import CrimsonUtil;
 import Global;
 import Vars;
 import Input; // tiltdirection
@@ -26,6 +26,17 @@ extern "C" {
 	// GuardGravity
 	std::uint64_t g_GuardGravity_ReturnAddr;
 	export void GuardGravityDetour();
+
+	// EnableAirTaunt
+	std::uint64_t g_EnableAirTaunt_ReturnAddr;
+	std::uint64_t g_EnableAirTaunt_ConditionalAddr;
+	std::uint64_t g_EnableAirTaunt_ConditionalAddr2;
+	export void EnableAirTauntDetour();
+
+	// SetAirTaunt
+	std::uint64_t g_SetAirTaunt_ReturnAddr;
+	std::uint64_t g_SetAirTaunt_Call;
+	export void SetAirTauntDetour();
 
 	// CreateEffect
 	std::uint64_t createEffectRBXMov;
@@ -49,6 +60,22 @@ extern "C" {
 	std::uint64_t g_HudHPSeparation_ReturnAddr;
 	export void HudHPSeparationDetour();
 
+	// HudStyleBarPos
+	std::uint64_t g_HudStyleBarPos_ReturnAddr;
+	float g_HudStyleBarPosX;
+	float g_HudStyleBarPosY;
+	export void HudStyleBarPosDetour();
+
+	// ShootRemapDown
+	std::uint64_t g_ShootRemapDown_ReturnAddr;
+	export void ShootRemapDownDetour();
+	std::uint64_t g_ShootRemapHold_ReturnAddr;
+	export void ShootRemapHoldDetour();
+	std::uint16_t g_ShootRemap_NewMap;
+
+	// VergilNeutralTrick
+	std::uint64_t g_VergilNeutralTrick_ReturnAddr;
+	export void VergilNeutralTrickDetour();
 }
 
 export bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -190,7 +217,6 @@ export bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
 	return false;
 	
 }
-	
 
 export void InitDetours() {
 	using namespace Utility;
@@ -200,6 +226,19 @@ export void InitDetours() {
 	static std::unique_ptr<Detour_t> guardGravityHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EE121, &GuardGravityDetour, 7);
 	g_GuardGravity_ReturnAddr = guardGravityHook->GetReturnAddress();
 	guardGravityHook->Toggle(true);
+
+	// EnableAirTaunt
+	static std::unique_ptr<Detour_t> enableAirTauntHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E99EB, &EnableAirTauntDetour, 9);
+	g_EnableAirTaunt_ReturnAddr = enableAirTauntHook->GetReturnAddress();
+	enableAirTauntHook->Toggle(true);
+	g_EnableAirTaunt_ConditionalAddr = (uintptr_t)appBaseAddr + 0x1E9A53;
+	g_EnableAirTaunt_ConditionalAddr2 = (uintptr_t)appBaseAddr + 0x1E9A0F;
+
+	// SetAirTaunt
+	static std::unique_ptr<Detour_t> setAirTauntHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E9A46, &SetAirTauntDetour, 5);
+	g_SetAirTaunt_ReturnAddr = setAirTauntHook->GetReturnAddress();
+	g_SetAirTaunt_Call = (uintptr_t)appBaseAddr + 0x1E09D0;
+	setAirTauntHook->Toggle(true);
 
 	// CreateEffect
 	createEffectCallA = (uintptr_t)appBaseAddr + 0x2E7CA0;
@@ -222,4 +261,16 @@ export void InitDetours() {
 	static std::unique_ptr<Utility::Detour_t> HudHPSeparationHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27DD64, &HudHPSeparationDetour, 8);
 	g_HudHPSeparation_ReturnAddr = HudHPSeparationHook->GetReturnAddress();
 	HudHPSeparationHook->Toggle(true);
+
+	// HudStyleBarPos
+	static std::unique_ptr<Utility::Detour_t> HudStyleBarPosHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2BB357, &HudStyleBarPosDetour, 16);
+	g_HudStyleBarPos_ReturnAddr = HudStyleBarPosHook->GetReturnAddress();
+	g_HudStyleBarPosX = 580.0f;
+	g_HudStyleBarPosY = 110.0f;
+	HudStyleBarPosHook->Toggle(true);
+
+	// VergilNeutralTrick // func is already detoured, Crimson.MobilityFunction<27>+B1
+	// static std::unique_ptr<Utility::Detour_t> VergilNeutralTrickHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x0, &VergilNeutralTrickDetour, 5);
+	// g_VergilNeutralTrick_ReturnAddr = VergilNeutralTrickHook->GetReturnAddress();
+	// VergilNeutralTrickHook->Toggle(true);
 }

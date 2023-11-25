@@ -415,6 +415,27 @@ public:
 
     void beginDraw() override
     {
+        // backup dx11 state
+        backupDxState = {};
+        backupDxState.ScissorRectsCount = backupDxState.ViewportsCount = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+        deviceContext->RSGetScissorRects(&backupDxState.ScissorRectsCount, backupDxState.ScissorRects);
+        deviceContext->RSGetViewports(&backupDxState.ViewportsCount, backupDxState.Viewports);
+        deviceContext->RSGetState(&backupDxState.RS);
+        deviceContext->OMGetBlendState(&backupDxState.BlendState, backupDxState.BlendFactor, &backupDxState.SampleMask);
+        deviceContext->OMGetDepthStencilState(&backupDxState.DepthStencilState, &backupDxState.StencilRef);
+        deviceContext->PSGetShaderResources(0, 1, &backupDxState.PSShaderResource);
+        deviceContext->PSGetSamplers(0, 1, &backupDxState.PSSampler);
+        backupDxState.PSInstancesCount = backupDxState.VSInstancesCount = backupDxState.GSInstancesCount = 256;
+        deviceContext->PSGetShader(&backupDxState.PS, backupDxState.PSInstances, &backupDxState.PSInstancesCount);
+        deviceContext->VSGetShader(&backupDxState.VS, backupDxState.VSInstances, &backupDxState.VSInstancesCount);
+        deviceContext->VSGetConstantBuffers(0, 1, &backupDxState.VSConstantBuffer);
+        deviceContext->GSGetShader(&backupDxState.GS, backupDxState.GSInstances, &backupDxState.GSInstancesCount);
+
+        deviceContext->IAGetPrimitiveTopology(&backupDxState.PrimitiveTopology);
+        deviceContext->IAGetIndexBuffer(&backupDxState.IndexBuffer, &backupDxState.IndexBufferFormat, &backupDxState.IndexBufferOffset);
+        deviceContext->IAGetVertexBuffers(0, 1, &backupDxState.VertexBuffer, &backupDxState.VertexBufferStride, &backupDxState.VertexBufferOffset);
+        deviceContext->IAGetInputLayout(&backupDxState.InputLayout);
+
         // Update and set the constant buffer for this frame
         deviceContext->UpdateSubresource(constantBuffer, 0, nullptr, &constantBufferData, 0, 0);
         deviceContext->VSSetConstantBuffers(0, 1, &constantBuffer);
@@ -425,7 +446,24 @@ public:
 
     void endDraw() override
     {
-        // No work done here at the moment.
+        // Restore modified DX state
+        deviceContext->RSSetScissorRects(backupDxState.ScissorRectsCount, backupDxState.ScissorRects);
+        deviceContext->RSSetViewports(backupDxState.ViewportsCount, backupDxState.Viewports);
+        deviceContext->RSSetState(backupDxState.RS); if (backupDxState.RS) backupDxState.RS->Release();
+        deviceContext->OMSetBlendState(backupDxState.BlendState, backupDxState.BlendFactor, backupDxState.SampleMask); if (backupDxState.BlendState) backupDxState.BlendState->Release();
+        deviceContext->OMSetDepthStencilState(backupDxState.DepthStencilState, backupDxState.StencilRef); if (backupDxState.DepthStencilState) backupDxState.DepthStencilState->Release();
+        deviceContext->PSSetShaderResources(0, 1, &backupDxState.PSShaderResource); if (backupDxState.PSShaderResource) backupDxState.PSShaderResource->Release();
+        deviceContext->PSSetSamplers(0, 1, &backupDxState.PSSampler); if (backupDxState.PSSampler) backupDxState.PSSampler->Release();
+        deviceContext->PSSetShader(backupDxState.PS, backupDxState.PSInstances, backupDxState.PSInstancesCount); if (backupDxState.PS) backupDxState.PS->Release();
+        for (UINT i = 0; i < backupDxState.PSInstancesCount; i++) if (backupDxState.PSInstances[i]) backupDxState.PSInstances[i]->Release();
+        deviceContext->VSSetShader(backupDxState.VS, backupDxState.VSInstances, backupDxState.VSInstancesCount); if (backupDxState.VS) backupDxState.VS->Release();
+        deviceContext->VSSetConstantBuffers(0, 1, &backupDxState.VSConstantBuffer); if (backupDxState.VSConstantBuffer) backupDxState.VSConstantBuffer->Release();
+        deviceContext->GSSetShader(backupDxState.GS, backupDxState.GSInstances, backupDxState.GSInstancesCount); if (backupDxState.GS) backupDxState.GS->Release();
+        for (UINT i = 0; i < backupDxState.VSInstancesCount; i++) if (backupDxState.VSInstances[i]) backupDxState.VSInstances[i]->Release();
+        deviceContext->IASetPrimitiveTopology(backupDxState.PrimitiveTopology);
+        deviceContext->IASetIndexBuffer(backupDxState.IndexBuffer, backupDxState.IndexBufferFormat, backupDxState.IndexBufferOffset); if (backupDxState.IndexBuffer) backupDxState.IndexBuffer->Release();
+        deviceContext->IASetVertexBuffers(0, 1, &backupDxState.VertexBuffer, &backupDxState.VertexBufferStride, &backupDxState.VertexBufferOffset); if (backupDxState.VertexBuffer) backupDxState.VertexBuffer->Release();
+        deviceContext->IASetInputLayout(backupDxState.InputLayout); if (backupDxState.InputLayout) backupDxState.InputLayout->Release();
     }
 
     dd::GlyphTextureHandle createGlyphTexture(int width, int height, const void* pixels) override
@@ -537,14 +575,14 @@ public:
         deviceContext->PSSetShaderResources(0, 1, &texImpl->d3dTexSRV);
         deviceContext->PSSetSamplers(0, 1, &texImpl->d3dSampler);
 
-        const float blendFactor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-        deviceContext->OMSetBlendState(blendStateText, blendFactor, 0xFFFFFFFF);
+        //const float blendFactor[] = { 0.1f, 0.1f, 0.1f, 0.1f };
+        //deviceContext->OMSetBlendState(blendStateText, blendFactor, 0xFFFFFFFF);
 
         // Draw with the current buffer:
         drawHelper(count, glyphShaders, glyphVertexBuffer, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         // Restore default blend state.
-        deviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+       // deviceContext->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
     }
 
     void drawPointList(const dd::DrawVertex* points, int count, bool depthEnabled) override
@@ -656,6 +694,32 @@ private:
     // Local types:
     //
 
+    // stolen from dear_imgui
+    struct BackupDxState
+    {
+        UINT                        ScissorRectsCount, ViewportsCount;
+        D3D11_RECT                  ScissorRects[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+        D3D11_VIEWPORT              Viewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+        ID3D11RasterizerState* RS;
+        ID3D11BlendState* BlendState;
+        FLOAT                       BlendFactor[4];
+        UINT                        SampleMask;
+        UINT                        StencilRef;
+        ID3D11DepthStencilState* DepthStencilState;
+        ID3D11ShaderResourceView* PSShaderResource;
+        ID3D11SamplerState* PSSampler;
+        ID3D11PixelShader* PS;
+        ID3D11VertexShader* VS;
+        ID3D11GeometryShader* GS;
+        UINT                        PSInstancesCount, VSInstancesCount, GSInstancesCount;
+        ID3D11ClassInstance* PSInstances[256], * VSInstances[256], * GSInstances[256];   // 256 is max according to PSSetShader documentation
+        D3D11_PRIMITIVE_TOPOLOGY    PrimitiveTopology;
+        ID3D11Buffer* IndexBuffer, * VertexBuffer, * VSConstantBuffer;
+        UINT                        IndexBufferOffset, VertexBufferStride, VertexBufferOffset;
+        DXGI_FORMAT                 IndexBufferFormat;
+        ID3D11InputLayout* InputLayout;
+    };
+
     struct ConstantBufferData
     {
         DirectX::XMMATRIX mvpMatrix = DirectX::XMMatrixIdentity();
@@ -679,7 +743,7 @@ private:
     //
     // Members:
     //
-
+    BackupDxState          backupDxState;
     ID3D11Device*          d3dDevice;
     ID3D11DeviceContext*   deviceContext;
     ID3D11RasterizerState* rasterizerState;
@@ -980,12 +1044,12 @@ namespace dd {
                 staticCameraCtrlPtr->pCameraControl->lookat.getZ()
             );
             dd::projectedText(ddContext, buffer, toFloatPtr(staticCameraCtrlPtr->pCameraControl->lookat), dd::colors::Gold, toFloatPtr(camera->vpMatrix),
-                0, 0, camera->windowDims.x, camera->windowDims.y, 2.0f);
+                0, 0, camera->windowDims[0], camera->windowDims[1], 0.4f);
 #endif
-            drawMiscObjects(ddContext, *camera);
-            drawFrustum(ddContext, *camera);
-            drawText(ddContext);
-            const ddVec3 cols[16] = {
+            //drawMiscObjects(ddContext, *camera);
+            //drawFrustum(ddContext, *camera);
+            //drawText(ddContext);
+           /* const ddVec3 cols[16] = {
                 {1.0f, 0.0f, 0.0f},
                 {0.0f, 1.0f, 0.0f},
                 {0.0f, 0.0f, 1.0f},
@@ -1006,7 +1070,7 @@ namespace dd {
             for (int i = 0; i < 16; i++) {
                 const ddVec3 hehe = { 1800.0f + (100.0f * i), 300.0f + ((sinf(PI / 180.0f + i * 45.0f + g_time)) * 150.0f), 2000.0f};
                 dd::sphere(ddContext, hehe, cols[i], 60.0);
-            }
+            }*/
 
             // Flush the draw queues:
             dd::flush(ddContext);
