@@ -1,5 +1,6 @@
 module;
 #include <cstdio>
+#include<windows.h>  
 
 export module CrimsonUtil;
 
@@ -43,18 +44,32 @@ export void UpdateCrimsonPlayerData() {
 
 		crimsonPlayer[playerIndex].playerPtr = (uintptr_t)actorData.baseAddr;
 		crimsonPlayer[playerIndex].action = actorData.action;
+		crimsonPlayer[playerIndex].lastAction = actorData.lastAction;
+		crimsonPlayer[playerIndex].event = actorData.eventData[0].event;
+		crimsonPlayer[playerIndex].lastEvent = actorData.eventData[0].lastEvent;
+		crimsonPlayer[playerIndex].state = actorData.state;
+		crimsonPlayer[playerIndex].lastState = actorData.lastState;
 		crimsonPlayer[playerIndex].motion = actorData.motionData[0].index;
 		crimsonPlayer[playerIndex].character = actorData.character;
 		crimsonPlayer[playerIndex].gamepad = gamepad;
 		crimsonPlayer[playerIndex].tiltDirection = tiltDirection;
 		crimsonPlayer[playerIndex].lockOn = lockOn;
 		crimsonPlayer[playerIndex].speed = actorData.speed;
+		crimsonPlayer[playerIndex].horizontalPull = actorData.horizontalPull;
 
 		crimsonPlayer[playerIndex].clonePtr = (uintptr_t)actorData.cloneActorBaseAddr;
 		crimsonPlayer[playerIndex].actionClone = cloneActorData.action;
+		crimsonPlayer[playerIndex].lastActionClone = cloneActorData.lastAction;
 		crimsonPlayer[playerIndex].motionClone = cloneActorData.motionData[0].index;
+		crimsonPlayer[playerIndex].eventClone = cloneActorData.eventData[0].event;
+		crimsonPlayer[playerIndex].lastEventClone = cloneActorData.eventData[0].lastEvent;
+		crimsonPlayer[playerIndex].stateClone = cloneActorData.state;
+		crimsonPlayer[playerIndex].lastStateClone = cloneActorData.lastState;
 		crimsonPlayer[playerIndex].tiltDirectionClone = tiltDirectionClone;
 		crimsonPlayer[playerIndex].speedClone = cloneActorData.speed;
+		crimsonPlayer[playerIndex].horizontalPullClone = cloneActorData.horizontalPull;
+
+
 	}
 
 }

@@ -5540,7 +5540,7 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 
 	//dd::sphere(dd_ctx(), actorWorldPos, dd::colors::Red, 15.0f);
 
-
+	UpdateCrimsonPlayerData();
 	StyleSwitchController(actorBaseAddr);
 	DisableHeightRestriction();
 	ImprovedBufferedReversals();
@@ -5556,7 +5556,8 @@ bool WeaponSwitchController(byte8* actorBaseAddr)
 	CameraTiltController();
 	LockedOffCameraToggle(activeConfig.cameraLockOff);
 	CameraLockOnDistanceController();
-	LastEventStateQueue();
+	
+	LastEventStateQueue(actorBaseAddr);
 
 	if (actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
 		actorData.airSwordAttackCount = 0;
@@ -10560,15 +10561,11 @@ void UpdateActorSpeed(byte8* baseAddr)
 	CheckSkyLaunch(mainActorData);
 	SkyLaunchProperties(mainActorData);
 	DisableAirSlashKnockback();
-	StoreInertia(mainActorData);
-	InertiaController(mainActorData);
 	SetAirStingerEnd(mainActorData);
-	AirTauntToggleController(mainActorData);
-	//DisableDriveHold();
+	InertiaFixes();
 	
 
 	auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(mainActorData.cloneActorBaseAddr);
-	InertiaController(cloneActorData);
 	//AirTauntToggleController(cloneActorData);
 	//SkyLaunchProperties(cloneActorData);
 
@@ -10653,20 +10650,40 @@ void UpdateActorSpeed(byte8* baseAddr)
 					continue;
 				}
 				auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+				auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
 
 				auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
 				auto tiltDirection = GetRelativeTiltDirection(actorData);
 				auto& gamepad = GetGamepad(0);
 
 				
-				RemoveSoftLockOnController(actorBaseAddr);
-				SprintAbility(actorBaseAddr);
+				if (activeConfig.Gameplay.sprint) {
+					SprintAbility(actorBaseAddr);
+				}
 				
-
+				//InertiaController(actorData.cloneActorBaseAddr);
 				BackToForwardInputs(actorBaseAddr);
+				VergilAdjustAirMovesPos(actorBaseAddr);
 				DriveTweaks(actorBaseAddr);
-				AerialRaveGravityTweaks(actorBaseAddr);
 
+				if (activeConfig.Gameplay.aerialRaveTweaks) {
+					AerialRaveGravityTweaks(actorBaseAddr);
+				}
+
+				if (activeConfig.Gameplay.airFlickerTweaks) {
+					AirFlickerGravityTweaks(actorBaseAddr);
+				}
+
+				if (activeConfig.Gameplay.skyDanceTweaks) {
+					SkyDanceGravityTweaks(actorBaseAddr);
+				}
+				
+				
+				if (activeConfig.Gameplay.inertia) {
+					FreeRotationSwordMoves(actorBaseAddr);
+					StoreInertia(actorBaseAddr);
+					InertiaController(actorBaseAddr);
+				}
 				
 
 				// Doppelganger's attacks can now hold/increase your style meter
@@ -11735,6 +11752,7 @@ void SetAction(byte8* actorBaseAddr)
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
 
 	auto playerIndex = actorData.newPlayerIndex;
+	auto actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 
 	DebugLog("%s %llX %u", FUNC_NAME, actorBaseAddr, actorData.action);
 
@@ -11836,27 +11854,6 @@ void SetAction(byte8* actorBaseAddr)
 
 		}
 
-		/*if((actorData.action == 19) && actorData.buttons[0] & GetBinding(BINDING::TAUNT)) {
-			actorData.action = REBELLION_HELM_BREAKER;
-		}*/
-
-
-		// THIS WORKS BETTER THAN PREVIOUS
-		/*if (
-			(actorData.action == REBELLION_SWORD_PIERCE))
-		{
-				actorData.action = REBELLION_DANCE_MACABRE_PART_1;
-		}
-
-		if (
-			(actorData.action == REBELLION_SWORD_PIERCE_RETURN))
-		{
-				actorData.action = REBELLION_DANCE_MACABRE_PART_2;
-		}*/
-
-		//!(actorData.state & STATE::IN_AIR)) &&
-
-
 
 		// Swap Sword Pierce and Dance Macabre
 		if ((actorData.action == REBELLION_SWORD_PIERCE)) {
@@ -11867,9 +11864,6 @@ void SetAction(byte8* actorBaseAddr)
 			else {
 				actorData.action = REBELLION_DANCE_MACABRE_PART_2;
 			}
-
-
-
 
 		}
 
@@ -11898,9 +11892,37 @@ void SetAction(byte8* actorBaseAddr)
 
 		}
 			
+		// Part of SkyDanceTweaks
+		if (activeConfig.Gameplay.skyDanceTweaks) {
+			if ((actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2) &&
+				(actorData.style == STYLE::SWORDMASTER)) {
 
+				if ((lockOn && tiltDirection == TILT_DIRECTION::UP)) {
+					actorData.action = AGNI_RUDRA_SKY_DANCE_PART_3;
+				}
+			}
 
+			if ((actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3)) {
+				if (!(lockOn && tiltDirection == TILT_DIRECTION::UP)) {
+
+					actorData.action = AGNI_RUDRA_SKY_DANCE_PART_1;
+				}
+
+			}
+		}
 		
+
+// 		if ((actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) && 
+// 			(actorData.style == STYLE::SWORDMASTER) && actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
+// 
+// 			
+// 				
+// 			actorData.action = AGNI_RUDRA_SKY_DANCE_PART_1;
+// 				
+// 			
+// 		}
+
+
 
 
 

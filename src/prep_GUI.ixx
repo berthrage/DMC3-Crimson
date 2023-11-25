@@ -10684,9 +10684,11 @@ void MainOverlayWindow()
 					ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[0].animTimer);
 					//ImGui::Text("crazy combo hold:  %u", crazyComboHold);
 					ImGui::Text("Chain Count (weight):  %u", actorData.airSwordAttackCount);
-					ImGui::Text("Gravity Tweak:  %g", crimsonPlayer[0].airRaveTweak.gravity);
+					ImGui::Text("Air Guard:  %u", actorData.airGuard);
+					ImGui::Text("rainstorm cached inertia:  %g", crimsonPlayer[0].inertia.rainstorm.cachedPull);
+					//ImGui::Text("Gravity Tweak:  %g", crimsonPlayer[0].airRaveTweak.gravity);
 					//ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
-					ImGui::Text("Actor Speed %g", actorData.speed);
+					//ImGui::Text("Actor Speed %g", actorData.speed);
 					ImGui::Text("Character player 1: %u", crimsonPlayer[0].character);
 // 					ImGui::Text("Trick Cooldown %g", crimsonPlayer[1].cancels.trickCooldown);
 // 					ImGui::Text("Guns Cooldown %g", crimsonPlayer[1].cancels.gunsCooldown);
@@ -10702,9 +10704,6 @@ void MainOverlayWindow()
 					//ImGui::Text("enemy vertical Pull Multiplier %g", enemyData.verticalPullMultiplier);
 					ImGui::Text("rainstormCancel Cooldown %u", rainstormCancel.cooldown);
 					ImGui::Text("In Royal Block:  %u", inRoyalBlock);
-					ImGui::Text("Aerial Rave Negative:  %u", airRaveInertia.negative);
-					ImGui::Text("ebonyIvory Cached Direction:  %u", ebonyIvoryShotInertia.cachedDirection);
-					ImGui::Text("airRaveInertia.cachedDirection %u", airRaveInertia.cachedDirection);
 					ImGui::Text("Gun Shoot Inverted %u", gunShootInverted);
 					ImGui::Text("Gun Shoot Normalized %u", gunShootNormalized);
 
@@ -10715,10 +10714,10 @@ void MainOverlayWindow()
 					ImGui::Text("Motion Data 1: %u", crimsonPlayer[0].motion);
 					ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
 					ImGui::Text("Last Event Data %u", actorData.eventData[0].lastEvent);
-					ImGui::Text("Last Last Event %u", lastLastEvent);
+					ImGui::Text("Last Last Event %u", crimsonPlayer[0].lastLastEvent);
 					ImGui::Text("State %u", actorData.state);
 					ImGui::Text("Last State %u", actorData.lastState);
-					ImGui::Text("Last Last State %u", lastLastState);				
+					ImGui::Text("Last Last State %u", crimsonPlayer[0].lastLastState);
  					ImGui::Text("Character Action %u", crimsonPlayer[0].action);
 					ImGui::Text("Character Last Action %u", actorData.lastAction);
 					ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
@@ -10738,7 +10737,7 @@ void MainOverlayWindow()
 					ImGui::Text("Guardflying:  %u", inGuardfly);
 					//ImGui::Text("Track %s", eventData.track);
 
-					ImGui::Text("Royal Block Inertia  %g", royalBlockInertia.cachedPull);
+					ImGui::Text("Air Guard Inertia  %g", crimsonPlayer[0].inertia.airGuard.cachedPull);
 					ImGui::Text("Weapon Character Data %u", characterData.meleeWeaponIndex);
 					ImGui::Text("Active Weapon %u", actorData.activeWeapon);
 					ImGui::Text("Trick Up Count %u", actorData.newTrickUpCount);
@@ -10796,8 +10795,6 @@ void MainOverlayWindow()
 
 
 
-					ImGui::Text("exception Shot %u", exceptionShot);
-					ImGui::Text("Air Rave Horizontal Pull %g", airRaveInertia.cachedPull);
 					ImGui::Text("IsDevil2 %u", actorData.devil);
 					ImGui::Text("Style %u", actorData.style);
 					ImGui::Text("StyleRank %u", actorData.styleData.rank);
@@ -12747,7 +12744,38 @@ void GameplayOptions() {
 	if (ImGui::CollapsingHeader("Gameplay Options (Crimson)")) {
 		ImGui::Text("");
 
+		ImGui::Text("");
 
+		ImGui::Text("General");
+		ImGui::PushItemWidth(150.0f);
+		GUI_Checkbox2
+		(
+			"Inertia",
+			activeConfig.Gameplay.inertia,
+			queuedConfig.Gameplay.inertia
+		);
+		ImGui::SameLine();
+		TooltipHelper
+		(
+			"(?)",
+			"Requires Actor System.\n"
+			"\n"
+			"Changes how physics behave during almost all aerial moves. Also allows you to freely rotate performing Swordmaster Air Moves."
+		);
+		GUI_Checkbox2
+		(
+			"Sprint",
+			activeConfig.Gameplay.sprint,
+			queuedConfig.Gameplay.sprint
+		);
+		ImGui::SameLine();
+		TooltipHelper
+		(
+			"(?)",
+			"Requires Actor System.\n"
+			"\n"
+			"Sprints out of combat, similar to DMC4 and 5's Speed Ability."
+		);
 
 		ImGui::Text("");
 
@@ -12767,6 +12795,51 @@ void GameplayOptions() {
 			"Requires Actor System.\n"
 			"\n"
 			"Enables a series of animation cancels for Dante, especially for moves between different styles.\nCheck out the 1.0 Patch Notes for more info. Replaces DDMK's Remove Busy Flag."
+		);
+
+		GUI_Checkbox2
+		(
+			"Aerial Rave Tweaks",
+			activeConfig.Gameplay.aerialRaveTweaks,
+			queuedConfig.Gameplay.aerialRaveTweaks
+		);
+		ImGui::SameLine();
+		TooltipHelper
+		(
+			"(?)",
+			"Requires Actor System.\n"
+			"\n"
+			"Tweaks Aerial Rave Gravity, taking weights into account."
+		);
+
+		GUI_Checkbox2
+		(
+			"Air Flicker Tweaks",
+			activeConfig.Gameplay.airFlickerTweaks,
+			queuedConfig.Gameplay.airFlickerTweaks
+		);
+		ImGui::SameLine();
+		TooltipHelper
+		(
+			"(?)",
+			"Requires Actor System.\n"
+			"\n"
+			"Tweaks Air Flicker Gravity, taking weights into account. Initial windup has less gravity than vanilla."
+		);
+
+		GUI_Checkbox2
+		(
+			"Sky Dance Tweaks",
+			activeConfig.Gameplay.skyDanceTweaks,
+			queuedConfig.Gameplay.skyDanceTweaks
+		);
+		ImGui::SameLine();
+		TooltipHelper
+		(
+			"(?)",
+			"Requires Actor System.\n"
+			"\n"
+			"Sky Dance Part 3 is now a separate ability executed by Lock On + Forward + Style. Tweaks Sky Dance Gravity, taking weights into account."
 		);
 		ImGui::Text("");
 
@@ -13785,8 +13858,8 @@ export void GUI_Render()
 		RegionDataWindow();
 		SoundWindow();
 	}
-
-
+	
+	
 	PauseWhenGUIOpen();
 	MainOverlayWindow();
 	MissionOverlayWindow();
@@ -13794,7 +13867,7 @@ export void GUI_Render()
 	BossVergilActionsOverlayWindow();
 	GunDTCharacterRemaps();
 
-	UpdateCrimsonPlayerData();
+	
 	DelayedComboEffectsController();
 
 	// TIMERS

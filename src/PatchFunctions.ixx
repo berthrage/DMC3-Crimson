@@ -389,7 +389,7 @@ export void LockedOffCameraToggle(bool enable) {
 }
 
 
-export void AerialRaveInertiaFix(bool enable) {
+void AerialRaveInertiaFix(bool enable) {
 	// This makes Aerial Rave (and subquently the Sky Dance and Air Slash "inertia fix" functions) 
 	// behave to world space inertia instead of going forward only.
 
@@ -437,7 +437,7 @@ export void AerialRaveInertiaFix(bool enable) {
 
 }
 
-export void SkyDanceInertiaFix(bool enable) {
+void SkyDanceInertiaFix(bool enable) {
 
 	if (enable) {
 		// Sky Dance 1
@@ -469,7 +469,7 @@ export void SkyDanceInertiaFix(bool enable) {
 
 }
 
-export void AirSlashInertiaFix(bool enable) {
+void AirSlashInertiaFix(bool enable) {
 
 	if (enable) {
 		// Air Slash 1
@@ -501,7 +501,7 @@ export void AirSlashInertiaFix(bool enable) {
 
 }
 
-export void TatsumakiInertiaFix(bool enable) {
+void TatsumakiInertiaFix(bool enable) {
 
 	if (enable) {
 
@@ -513,6 +513,30 @@ export void TatsumakiInertiaFix(bool enable) {
 
 		// movzx edx,word ptr [rbx+000000C0]
 		_patch((char*)(appBaseAddr + 0x20B1D9), (char*)"\x0F\xB7\x83\xC0\x00\x00\x00", 7); // restores the forward only momentum
+	}
+
+}
+
+export void InertiaFixes() {
+
+	if (toggle.inertiaFixes != (int)activeConfig.Gameplay.inertia) {
+
+		if (activeConfig.Gameplay.inertia) {
+			AerialRaveInertiaFix(true);
+			SkyDanceInertiaFix(true);
+			AirSlashInertiaFix(true);
+			TatsumakiInertiaFix(true);
+
+			toggle.inertiaFixes = 1;
+		}
+		else {
+			AerialRaveInertiaFix(false);
+			SkyDanceInertiaFix(false);
+			AirSlashInertiaFix(false);
+			TatsumakiInertiaFix(false);
+
+			toggle.inertiaFixes = 0;
+		}
 	}
 
 }
@@ -535,6 +559,7 @@ export void DisableAirSlashKnockback() {
 		}
 	}
 }
+
 
 #pragma endregion
 

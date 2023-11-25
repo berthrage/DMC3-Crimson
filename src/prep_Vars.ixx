@@ -721,7 +721,7 @@ enum
 	UNKNOWN_5,
 	AIR_HIKE,
 	UNKNOWN_6,
-	TRICK_UP_END,
+	AIR_TRICK_END,
 	LOCK_ON,
 	UNKNOWN_8,
 	UNKNOWN_9,
@@ -3183,7 +3183,9 @@ export struct PlayerActorDataBase : ActorDataBase
 	float styleExpPoints; // 0x6364
 	_(8);
 	uint32 royalguardBlockType; // 0x6370
-	_(12);
+	_(4);
+	bool airGuard; // 0x6378
+	_(7);
 	uint8 royalguardReleaseLevel; // 0x6380
 	uint8 royalguardReleaseEffectIndex; // 0x6381
 	_(2);
@@ -3328,6 +3330,7 @@ static_assert(offsetof(PlayerActorDataBase, quicksilver) == 0x6361);
 static_assert(offsetof(PlayerActorDataBase, doppelganger) == 0x6362);
 static_assert(offsetof(PlayerActorDataBase, styleExpPoints) == 0x6364);
 static_assert(offsetof(PlayerActorDataBase, royalguardBlockType) == 0x6370);
+static_assert(offsetof(PlayerActorDataBase, airGuard) == 0x6378);
 static_assert(offsetof(PlayerActorDataBase, royalguardReleaseLevel) == 0x6380);
 static_assert(offsetof(PlayerActorDataBase, royalguardReleaseEffectIndex) == 0x6381);
 static_assert(offsetof(PlayerActorDataBase, royalguardReleaseDamage) == 0x6384);
@@ -4337,6 +4340,7 @@ export struct Toggle {
 	int disableJCRestriction = 2;
 	int bulletStop = 2;
 	int rainstormLift = 2;
+	int inertiaFixes = 2;
 	int disableDriveHold = 2;
 } toggle;
 
@@ -4375,54 +4379,7 @@ export DoubleTap doppDoubleTap;
 
 
 
-export struct Inertia {
-	float cachedPull = 10;
-	float haltDivisor = 2.0f;
-	float pullDuration = 200;
-	bool trackerRunning = false;
-	uint8 cachedDirection = 0;
-	bool negative = false;
-} airRaveInertia;
 
-export float raveRotation;
-export bool inertiaFixesEnabled = false;
-
-export Inertia rainstormInertia;
-export Inertia ebonyIvoryShotInertia;
-
-export Inertia fireworksInertia;
-export Inertia shotgunAirInertia;
-
-export Inertia artemisShotInertia;
-export Inertia artemisMultiLockInertia;
-
-export Inertia airFlickerInertia;
-export float airFlickerRotation;
-
-export Inertia skyDanceInertia;
-export float skyDanceRotation;
-
-export Inertia airSlashInertia;
-export float airSlashRotation;
-
-export Inertia theHammerInertia;
-export float theHammerRotation;
-
-export Inertia tornadoInertia;
-
-export float killerBeeRotation;
-
-export float skyStarRotation;
-export float jumpCancelRotation;
-export float airHikeRotation;
-
-export Inertia yamatoRaveInertia;
-export float yamatoRaveRotation;
-
-export Inertia royalBlockInertia;
-export bool inRoyalBlock;
-export bool inGuardfly;
-export float royalBlockRotation;
 
 export bool inGunShoot;
 export bool gunShootInverted = false;
@@ -4617,10 +4574,55 @@ struct AirRaveTweak {
 	bool gravity4Changed = false;
 };
 
+export bool inertiaFixesEnabled = false;
+
+struct MoveProperties {
+	float cachedPull;
+	float cachedRotation;
+};
+
+struct Inertia {
+	MoveProperties aerialRave;
+	MoveProperties airFlicker;
+	MoveProperties skyDance;
+	MoveProperties airSlash;
+	MoveProperties theHammer;
+	MoveProperties tornado;
+	MoveProperties killerBee;
+	
+	MoveProperties skyStar;
+	MoveProperties jumpCancel;
+	MoveProperties airHike;
+	MoveProperties airGuard;
+
+	MoveProperties rainstorm;
+	MoveProperties fireworks;
+	MoveProperties artemisShot;
+	MoveProperties artemisMultiLockShot;
+	MoveProperties ebonyShot;
+	MoveProperties shotgunShot;
+
+	MoveProperties yamatoRave;
+};
+
+struct VergilMoveAdjustments {
+	float storedRisingSunPosY;
+	float storedLunarPhasePosY;
+};
+
+export bool inRoyalBlock;
+export bool inGuardfly;
+export float rainstormPull;
+
 export struct CrimsonPlayerData {
 	uintptr_t playerPtr;
 	uint8 action = 0;
+	uint8 lastAction = 0;
 	uint8 motion = 0;
+	uint32 event = 0;
+	uint32 lastEvent = 0;
+	byte32 state;
+	byte32 lastState;
 	float speed = 0;
 	uint32 character = 0;
 	ENGINE_GAMEPAD gamepad;
@@ -4635,39 +4637,51 @@ export struct CrimsonPlayerData {
 	bool inQuickDrive = false;
 	Sprint sprint;
 	Drive drive;
+	std::vector<uint32> lastEvents{ 0 };
+	int lastLastEvent = 0;
+	std::vector<byte32> lastStates{ 0 };
+	byte32 lastLastState = 0;
+	float horizontalPull;
+	VergilMoveAdjustments vergilMoves;
+	Inertia inertia;
 	ImprovedCancels cancels;
 	BackToForward b2F;
+	StyleSwitchText styleSwitchText;
+	
+	AirRaveTweak airRaveTweak;
 
 	uintptr_t clonePtr;
 	uint8 actionClone = 0;
+	uint8 lastActionClone = 0;
 	uint8 motionClone = 0;
+	uint32 eventClone = 0;
+	uint32 lastEventClone = 0;
+	byte32 stateClone;
+	byte32 lastStateClone;
 	float speedClone = 0;
 	uint8 tiltDirectionClone;
 	int currentActionClone = 0;
 	int currentAnimClone = 0;
 	float actionTimerClone = 0;
 	float animTimerClone = 0;
+	std::vector<uint32> lastEventsClone{ 0 };
+	int lastLastEventClone = 0;
+	std::vector<byte32> lastStatesClone{ 0 };
+	byte32 lastLastStateClone = 0;
+	float horizontalPullClone;
+	VergilMoveAdjustments vergilMovesClone;
 	ImprovedCancels cancelsClone;
-	StyleSwitchText styleSwitchText;
-	AirRaveTweak airRaveTweak;
+	Inertia inertiaClone;
+	
 };
 
 export CrimsonPlayerData crimsonPlayer[20];
-
-
 
 
 export bool devilTriggerReadyPlayed = false;
 
 export bool missionClearSongPlayed = false;
 
-
-export std::vector<int> lastEvents{ 0 };
-export bool firstLastEvent = false;
-export int lastLastEvent = 0;
-
-export std::vector<byte32> lastStates{ 0 };
-export byte32 lastLastState = 0;
 
 export struct GuiPause {
 	bool in = false;
