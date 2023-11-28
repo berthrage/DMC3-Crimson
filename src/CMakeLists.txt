@@ -33,7 +33,7 @@ set(CXX_FLAGS
     #/std:c++latest
     #/modulesearch
     /permissive-
-    /experimental:module
+    #/experimental:module
     /Zc:forScope
     /Zc:inline
     /Zc:preprocessor
@@ -43,7 +43,7 @@ set(CXX_FLAGS
     /wd4005 # macro redefinition
     /wd4996 # was declared deprecated
     /wd5105 # macro expansion producing 'defined' has undefined behavior
-    /wd5202 # a global module fragment can only contain preprocessor directives
+    #/wd5202 # a global module fragment can only contain preprocessor directives
     /wd4244 # float to int conversion
     #/O2
     /Oi
@@ -56,18 +56,102 @@ set(CXX_FLAGS
 
 project(Crimson LANGUAGES CXX C ASM_MASM)
 
-file(GLOB FONTS_HDR Fonts/*.hpp)
-file(GLOB GLOBAL_MODULES Global/*.ixx)
+file(GLOB FONTS_HDR Fonts/font_robotomedium.hpp)
+file(GLOB GLOBAL_SRC Global/ConfigFunctions.h
+                     Global/GlobalBase.cpp
+                     Global/GlobalBase.hpp
+                     Global/GUIBase.cpp
+                     Global/GUIBase.hpp
+                     Global/HooksBase.cpp
+                     Global/HooksBase.hpp)
 
-file(GLOB MAIN_MODULES *.ixx)
 file(GLOB MAIN_SRC 
+    Actor.cpp
+    Actor.hpp
+    ActorBase.cpp
+    ActorBase.hpp
+    ActorRelocations.cpp
+    ActorRelocations.hpp
+    Arcade.cpp
+    Arcade.hpp
+    BossRush.cpp
+    BossRush.hpp
+    Camera.cpp
+    Camera.hpp
+    Config.cpp
+    Config.hpp
     Crimson.cpp
-    DebugDrawDX11.hpp
+    CrimsonGameplay.cpp
+    CrimsonGameplay.hpp
+    CrimsonGUI.cpp
+    CrimsonGUI.hpp
+    CrimsonUtil.cpp
+    CrimsonUtil.hpp
     DebugDrawDX11.cpp
+    DebugDrawDX11.hpp
+    DetourFunctions.cpp
+    DetourFunctions.hpp
+    DMC3Input.cpp
+    DMC3Input.hpp
+    Event.cpp
+    Event.hpp
+    Exp.hpp
+    ExtraSound.cpp
+    ExtraSound.hpp
+    File.cpp
+    File.hpp
+    FMOD.cpp
+    FMOD.hpp
+    Global.cpp
+    Global.hpp
+    Graphics.cpp
+    Graphics.hpp
+    Hooks.cpp
+    Hooks.hpp
+    HUD.cpp
+    HUD.hpp
+    Internal.cpp
+    Internal.hpp
+    Memory.cpp
+    Memory.hpp
+    Model.cpp
+    Model.hpp
+    PatchFunctions.cpp
+    PatchFunctions.hpp
+    Scene.cpp
+    Scene.hpp
+    SDL.cpp
+    SDL.hpp
+    Sound.cpp
+    Sound.hpp
+    SoundRelocations.cpp
+    SoundRelocations.hpp
+    Speed.cpp
+    Speed.hpp
+    Timers.cpp
+    Timers.hpp
+    Training.cpp
+    Training.hpp
+    Vars.cpp
+    Vars.hpp
+    Window.cpp
+    Window.hpp
 )
 
-file(GLOB CORE_MODULES Core/*.ixx)
-file(GLOB CORE_HDR Core/*.h)
+file(GLOB CORE_SRC Core/DebugSwitch.hpp
+                   Core/Core.cpp
+                   Core/Core.hpp
+                   Core/Core_ImGui.cpp
+                   Core/Core_ImGui.hpp
+                   Core/DataTypes.hpp
+                   Core/GUI.cpp
+                   Core/GUI.hpp
+                   Core/Input.cpp
+                   Core/Input.hpp
+                   Core/JSON.h
+                   Core/Macros.h
+                   Core/RapidJSON.h
+)
 
 set(UTILITY_SRC
     Utility/Address.cpp
@@ -76,23 +160,21 @@ set(UTILITY_SRC
     Utility/Detour.hpp
 )
 
-source_group("Global" FILES ${GLOBAL_MODULES})
-source_group("Crimson" FILES ${MAIN_MODULES} ${MAIN_SRC})
-source_group("Core" FILES ${CORE_MODULES} ${CORE_HDR})
+source_group("Global" FILES ${GLOBAL_SRC})
+source_group("Crimson" FILES ${MAIN_SRC})
+source_group("Core" FILES ${CORE_SRC})
 source_group("Utility" FILES ${UTILITY_SRC})
 source_group("ASM" FILES ${MASM_SRC})
 source_group("Fonts" FILES ${FONTS_HDR})
 
 add_library(${PROJECT_NAME} SHARED
             ${MAIN_SRC}
-            ${CORE_HDR}
             ${UTILITY_SRC}
             ${MASM_SRC}
             ${FONTS_HDR}
 
-            ${GLOBAL_MODULES}
-            ${MAIN_MODULES}
-            ${CORE_MODULES}
+            ${GLOBAL_SRC}
+            ${CORE_SRC}
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC ${CXX_LIBS}) # Dependencies
@@ -111,10 +193,9 @@ set(DI_SOURCE
 )
 
 set(DI_CORE_SOURCE
-    Core/DI8.ixx
-    Core/Core.ixx
-    Core/DataTypes.ixx
-    Core/Windows.ixx
+    Core/Core.cpp
+    Core/Core.hpp
+    Core/DataTypes.hpp
 )
 
 set(DI_CORE_HEADER

@@ -1,7 +1,7 @@
 #ifdef NO_SAVE
 void SaveConfigFunction()
 #else
-export void SaveConfig()
+void SaveConfig()
 #endif
 {
 	#ifndef NO_SAVE
@@ -46,7 +46,7 @@ export void SaveConfig()
 #ifdef NO_LOAD
 void LoadConfigFunction()
 #else
-export void LoadConfig()
+void LoadConfig()
 #endif
 {
 	#ifndef NO_LOAD
@@ -130,7 +130,7 @@ export void LoadConfig()
 #ifdef NO_INIT
 void InitConfigFunction()
 #else
-export void InitConfig()
+void InitConfig()
 #endif
 {
 	#ifndef NO_INIT

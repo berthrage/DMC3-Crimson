@@ -1,44 +1,40 @@
-import Core;
-import Core_Input;
+// UNSTUPIFY(Disclaimer: by 5%)... POOOF
+#include "Core/Core.hpp"
+#include "Core/Input.hpp"
+#include "DetourFunctions.hpp"
+#include "DMC3Input.hpp"
+#include "ExtraSound.hpp"
+#include "File.hpp"
+#include "FMOD.hpp"
+#include "Graphics.hpp"
+#include "Hooks.hpp"
+#include "Internal.hpp"
+#include "Memory.hpp"
+#include "Model.hpp"
+#include "PatchFunctions.hpp"
+#include "Actor.hpp"
+#include "ActorBase.hpp"
+#include "ActorRelocations.hpp"
+#include "Arcade.hpp"
+#include "BossRush.hpp"
+#include "Config.hpp"
+#include "Event.hpp"
+#include "Exp.hpp"
+#include "Global.hpp"
+#include "Camera.hpp"
+#include "CrimsonGUI.hpp"
+#include "HUD.hpp"
+#include "Scene.hpp"
+#include "Sound.hpp"
+#include "SoundRelocations.hpp"
+#include "Speed.hpp"
+#include "Training.hpp"
+#include "Window.hpp"
+#include "Vars.hpp"
 
 #include "Core/Macros.h"
 
-import Windows;
-
-using namespace Windows;
-
-import ActorBase;
-import ActorRelocations;
-import Actor;
-import Arcade;
-import BossRush;
-import Camera;
-import Config;
-import DetourFunctions;
-import Event;
-import Exp;
-import File;
-import FMOD;
-import Global;
-import Graphics;
-import GUI;
-import Hooks;
-import HUD;
-import Input;
-import Internal;
-import Memory;
-import Model;
-import Scene;
-import SoundRelocations;
-import Sound;
-import PatchFunctions;
-import ExtraSound;
-import Speed;
-import Training;
-import Vars;
-import Window;
-
-#define debug false
+#include "Core/DebugSwitch.hpp"
 
 
 
@@ -106,8 +102,8 @@ uint32 DllMain
 
 
 
-		InitExp();
-		LoadExp();
+		ExpConfig::InitExp();
+		ExpConfig::LoadExp();
 
 
 
@@ -270,12 +266,10 @@ uint32 DllMain
 		ToggleDisableTimer       (activeConfig.disableTimer       );
 		ToggleInfiniteBullets    (activeConfig.infiniteBullets    );
 
-
+		// Why are we calling these with false first????
 
 		ToggleForceWindowFocus(false);
 		ToggleForceWindowFocus(activeConfig.forceWindowFocus);
-
-
 
 		ToggleDisablePlayerActorIdleTimer(false);
 		ToggleDisablePlayerActorIdleTimer(activeConfig.disablePlayerActorIdleTimer);
@@ -286,14 +280,11 @@ uint32 DllMain
 		ToggleRebellionHoldDrive(false);
 		ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
 
-
-
 		XI::new_Init("xinput9_1_0.dll");
 
 		Hooks::Init();
 
 		InitDetours();
-
 
 		// Remove FMODGetCodecDescription Label
 		SetMemory

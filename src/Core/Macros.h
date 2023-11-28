@@ -74,7 +74,7 @@ Log\
 
 // Blacklist
 
-#define size_t __OLD_BUSTED_AF_SIZE_T__
+//#define size_t __OLD_BUSTED_AF_SIZE_T__
 
 
 
@@ -639,17 +639,6 @@ Log\
 #define call      0xE8, 0x00, 0x00, 0x00, 0x00 // call
 #define jmp       0xE9, 0x00, 0x00, 0x00, 0x00 // jmp
 #define jmp_short 0xEB, 0x00                   // jmp
-
-
-
-
-
-
-#define namespaceStart(name) namespace name {
-#define namespaceEnd() }
-
-
-
 
 #define IntroduceSizeStruct(size)\
 struct Size_##size\

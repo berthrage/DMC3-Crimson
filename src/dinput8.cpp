@@ -1,37 +1,36 @@
-import Core;
+// UNSTUPIFY(Disclaimer: by 5%)... POOOF
+#include "Core/Core.hpp"
+#define DIRECTINPUT_VERSION 0x0800
+#include <dinput.h>
+#include <tlhelp32.h>
 
 #include "Core/Macros.h"
 
-import Windows;
-import DI8;
-
-using namespace Windows;
-using namespace DI8;
 
 #include <stdio.h>
 #include <string.h>
 
-#define debug false
+#include "Core/DebugSwitch.hpp"
 
 
 
-namespaceStart(DI8);
+namespace DI8 {
 
 typedef decltype(DirectInput8Create) * DirectInput8Create_t;
 
-namespaceEnd();
+};
 
 
 
-namespaceStart(Base::DI8);
+namespace Base::DI8 {
 
 ::DI8::DirectInput8Create_t DirectInput8Create = 0;
 
-namespaceEnd();
+};
 
 
 
-namespaceStart(Hook::DI8);
+namespace Hook::DI8 {
 
 HRESULT DirectInput8Create
 (
@@ -56,7 +55,7 @@ HRESULT DirectInput8Create
 	);
 }
 
-namespaceEnd();
+};
 
 
 
