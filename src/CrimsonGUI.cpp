@@ -291,7 +291,7 @@ namespace UI {
 		// Add custom ranges to the font
 		ImVector<ImWchar> ranges;
 		ImFontGlyphRangesBuilder builder;
-		builder.AddText("•");
+		builder.AddText((const char*)u8"•");
 		builder.AddRanges(io.Fonts->GetGlyphRangesDefault());
 		builder.BuildRanges(&ranges);
 
@@ -1098,25 +1098,25 @@ namespace UI {
 
 				// Middle footer section
 				{
-					constexpr auto BACKGROUND_FADED_TEXT = "C•Team";
-					constexpr auto CREDIT_TEXT = "Mia Berth • SSSiyan • deepdarkkapustka • Darkness   ";
+					constexpr auto BACKGROUND_FADED_TEXT = u8"C•Team";
+					constexpr auto CREDIT_TEXT = u8"Mia Berth • SSSiyan • deepdarkkapustka • Darkness   ";
 					constexpr auto ABOUT_BUTTON_TEXT = "ABOUT";
 
 					ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
 
-					float creditTextWidth = ImGui::CalcTextSize(CREDIT_TEXT).x;
+					float creditTextWidth = ImGui::CalcTextSize((const char*)CREDIT_TEXT).x;
 					float aboutButtonWidth = ImGui::CalcTextSize(ABOUT_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
 
 					ImVec2 pos{ (wndRect.Min.x + wndRect.Max.x) * 0.5f - (creditTextWidth + aboutButtonWidth) * 0.5f, wndRect.Max.y - g_UIContext.DefaultFontSize * 1.68f };
 
 					// Background faded text
-					ImVec2 bgFadedTextSize = ImGui::CalcTextSize(BACKGROUND_FADED_TEXT);
+					ImVec2 bgFadedTextSize = ImGui::CalcTextSize((const char*)BACKGROUND_FADED_TEXT);
 					window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 4.8f,
 						{ pos.x - g_UIContext.DefaultFontSize * 5.8f,
 						pos.y - g_UIContext.DefaultFontSize * 4.8f * 0.5f },
-						SwapColorEndianness(0xFFFFFF10), BACKGROUND_FADED_TEXT);
+						SwapColorEndianness(0xFFFFFF10), (const char*)BACKGROUND_FADED_TEXT);
 
-					window->DrawList->AddText(pos, SwapColorEndianness(0xFFFFFFFF), CREDIT_TEXT);
+					window->DrawList->AddText(pos, SwapColorEndianness(0xFFFFFFFF), (const char*)CREDIT_TEXT);
 
 					ImGui::PopFont();
 

@@ -38,6 +38,7 @@ set(CXX_FLAGS
     /Zc:inline
     /Zc:preprocessor
     /Zc:wchar_t
+    /Zc:char8_t
     /Zc:externC-
     /W3
     /wd4005 # macro redefinition
