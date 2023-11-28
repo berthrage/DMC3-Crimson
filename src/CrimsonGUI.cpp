@@ -31,6 +31,20 @@
 #include "Timers.hpp"
 #include "Training.hpp"
 #include "Window.hpp"
+#include "UI\Texture2DD3D11.hpp"
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include "UI\EmbdeddedImages.hpp"
+#include <format>
+#include <cmath>
+#include <array>
+
+#include <shellapi.h>
+
+#include <windows.h>
+#include <dxgi.h>
+#include <d3d11.h>
+
 #undef VOID
 
 #include <stdio.h>
@@ -47,6 +61,1130 @@
 
 #include "Core/DebugSwitch.hpp"
 
+static inline ImVec2 operator*(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x * rhs, lhs.y * rhs); }
+static inline ImVec2 operator/(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x / rhs, lhs.y / rhs); }
+static inline ImVec2 operator+(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x + rhs.x, lhs.y + rhs.y); }
+static inline ImVec2 operator-(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x - rhs.x, lhs.y - rhs.y); }
+static inline ImVec2 operator*(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x * rhs.x, lhs.y * rhs.y); }
+static inline ImVec2 operator/(const ImVec2& lhs, const ImVec2& rhs) { return ImVec2(lhs.x / rhs.x, lhs.y / rhs.y); }
+static inline ImVec2& operator*=(ImVec2& lhs, const float rhs) { lhs.x *= rhs; lhs.y *= rhs; return lhs; }
+static inline ImVec2& operator/=(ImVec2& lhs, const float rhs) { lhs.x /= rhs; lhs.y /= rhs; return lhs; }
+static inline ImVec2& operator+=(ImVec2& lhs, const ImVec2& rhs) { lhs.x += rhs.x; lhs.y += rhs.y; return lhs; }
+static inline ImVec2& operator-=(ImVec2& lhs, const ImVec2& rhs) { lhs.x -= rhs.x; lhs.y -= rhs.y; return lhs; }
+static inline ImVec2& operator*=(ImVec2& lhs, const ImVec2& rhs) { lhs.x *= rhs.x; lhs.y *= rhs.y; return lhs; }
+static inline ImVec2& operator/=(ImVec2& lhs, const ImVec2& rhs) { lhs.x /= rhs.x; lhs.y /= rhs.y; return lhs; }
+static inline ImVec4 operator+(const ImVec4& lhs, const ImVec4& rhs) { return ImVec4(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w); }
+static inline ImVec4 operator-(const ImVec4& lhs, const ImVec4& rhs) { return ImVec4(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w); }
+static inline ImVec4 operator*(const ImVec4& lhs, const ImVec4& rhs) { return ImVec4(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z, lhs.w * rhs.w); }
+
+namespace UI {
+	struct UIContext;
+}
+
+void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context);
+
+namespace UI {
+#include "Fonts/RobotoMedium.hpp"
+#include "Fonts/RussoOneRegular.hpp"
+
+	constexpr ImU32 SwapColorEndianness(ImU32 col) {
+		ImU8 r = (ImU8)((col & 0xFF000000) >> 24);
+		ImU8 g = (ImU8)((col & 0x00FF0000) >> 16);
+		ImU8 b = (ImU8)((col & 0x0000FF00) >> 8);
+		ImU8 a = (ImU8)(col & 0x000000FF);
+
+		ImU32 res = 0;
+
+		res |= ImU32(r);
+		res |= ImU32(g) << 8;
+		res |= ImU32(b) << 16;
+		res |= ImU32(a) << 24;
+
+		return res;
+	}
+
+	class {
+	public:
+		auto& operator[](size_t index)
+		{
+			assert(index >= 10);
+			assert(index <= m_FontSizes.size() + 10);
+
+			return m_FontSizes[index - 10];
+		}
+
+	protected:
+		// Starts from soize 10 to 50
+		std::array<ImFont*, 40> m_FontSizes;
+
+		friend void SetStyleCrimson();
+	} g_ImGuiFont_Roboto;
+
+	class {
+	public:
+		auto& operator[](size_t index)
+		{
+			assert(index >= 10);
+			assert(index <= m_FontSizes.size() + 10);
+
+			return m_FontSizes[index - 10];
+		}
+
+	protected:
+		// Starts from soize 10 to 50
+		std::array<ImFont*, 40> m_FontSizes;
+
+		friend void SetStyleCrimson();
+	} g_ImGuiFont_RussoOne;
+
+	ImFont* g_ImGuiFont_RussoOne256 = nullptr;
+
+	struct UIContext {
+		enum class MainTabs {
+			GameMode = 0,
+			Character,
+			Quickplay,
+			MusicSwitcher,
+			Options,
+			CheatsAndDebug,
+
+			Size
+		} SelectedTab{ 0 };
+
+		enum class OptionsSubTabs {
+			Gameplay = 0,
+			Camera,
+			Hotkeys,
+			Overlays,
+			WeaponWheel,
+			SoundOrVisual,
+			System,
+
+			Size
+		} SelectedOptionsSubTab{ 0 };
+
+		enum class CheatsAndDebugSubTabs {
+			Common = 0,
+			Speed,
+			Teleporter,
+			EnemySwapper,
+			JukeBox,
+
+			Size
+		} SelectedCheatsAndDebugSubTab{ 0 };
+
+		enum class GameModes {
+			Vanilla = 0,
+			StyleSwitcher,
+			Crimson,
+
+			Size
+		} SelectedGameMode{ 0 };
+
+		bool NewVersionAvailable = true;
+
+		struct {
+			uint32_t Major = 1;
+			uint32_t Minor = 2;
+		} CurrentVersion;
+
+		struct {
+			uint32_t Day = 99;
+			uint32_t Month = 99;
+			uint32_t Year = 9999;
+		} LatestUpdate;
+
+		size_t DefaultFontSize = 18.0f;
+	} g_UIContext;
+
+	void SetStyleCrimson() {
+		ImGuiStyle& style = ImGui::GetStyle();
+
+		style.Alpha = 1.0f;
+		//style.DisabledAlpha = 0.600f;
+		style.WindowPadding = ImVec2(6.0f, 3.0f);
+		style.WindowRounding = 0.0f;
+		style.WindowBorderSize = 1.0f;
+		style.WindowMinSize = ImVec2(32.0f, 32.0f);
+		style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
+		style.WindowMenuButtonPosition = ImGuiDir_Left;
+		style.ChildRounding = 0.0f;
+		style.ChildBorderSize = 1.0f;
+		style.PopupRounding = 0.0f;
+		style.PopupBorderSize = 1.0f;
+		style.FramePadding = ImVec2(5.0f, 1.0f);
+		style.FrameRounding = 3.0f;
+		style.FrameBorderSize = 1.0f;
+		style.ItemSpacing = ImVec2(8.0f, 4.0f);
+		style.ItemInnerSpacing = ImVec2(4.0f, 4.0f);
+		style.CellPadding = ImVec2(4.0f, 2.0f);
+		style.IndentSpacing = 21.0f;
+		style.ColumnsMinSpacing = 6.0f;
+		style.ScrollbarSize = 13.0f;
+		style.ScrollbarRounding = 16.0f;
+		style.GrabMinSize = 20.0f;
+		style.GrabRounding = 2.0f;
+		style.TabRounding = 4.0f;
+		style.TabBorderSize = 1.0f;
+		style.TabMinWidthForCloseButton = 0.0f;
+		style.ColorButtonPosition = ImGuiDir_Right;
+		style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
+		style.SelectableTextAlign = ImVec2(0.0f, 0.0f);
+
+		style.Colors[ImGuiCol_Text] = ImVec4(0.858f, 0.929f, 0.886f, 1.0f);
+		style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.858f, 0.929f, 0.886f, 0.280f);
+		style.Colors[ImGuiCol_WindowBg] = ImVec4(0.207f, 0.156f, 0.168f, 1.0f);
+		style.Colors[ImGuiCol_ChildBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+		style.Colors[ImGuiCol_PopupBg] = ImVec4(0.200f, 0.219f, 0.266f, 0.899f);
+		style.Colors[ImGuiCol_Border] = ImVec4(0.537f, 0.478f, 0.254f, 0.162f);
+		style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+		style.Colors[ImGuiCol_FrameBg] = ImVec4(0.247f, 0.247f, 0.247f, 1.0f);
+		style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.529f, 0.182f, 0.256f, 0.749f);
+		style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.788f, 0.049f, 0.205f, 0.733f);
+		style.Colors[ImGuiCol_TitleBg] = ImVec4(0.592f, 0.047f, 0.156f, 0.650f);
+		style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.592f, 0.047f, 0.156f, 1.0f);
+		style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.200f, 0.219f, 0.266f, 0.75f);
+		style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+		style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.200f, 0.219f, 0.266f, 0.0f);
+		style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+		style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.772f, 0.215f, 0.215f, 0.780f);
+		style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.788f, 0.062f, 0.211f, 1.0f);
+		style.Colors[ImGuiCol_CheckMark] = ImVec4(0.886f, 0.070f, 0.235f, 1.0f);
+		style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.721f, 0.202f, 0.189f, 1.0f);
+		style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.980f, 0.278f, 0.261f, 1.0f);
+		style.Colors[ImGuiCol_Button] = ImVec4(0.199f, 0.215f, 0.266f, 0.490f);
+		style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.529f, 0.184f, 0.254f, 0.858f);
+		style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.788f, 0.062f, 0.211f, 1.0f);
+		style.Colors[ImGuiCol_Header] = ImVec4(0.690f, 0.054f, 0.184f, 0.494f);
+		style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.690f, 0.054f, 0.184f, 0.654f);
+		style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.690f, 0.054f, 0.184f, 1.0f);
+		style.Colors[ImGuiCol_Separator] = ImVec4(0.870f, 0.109f, 0.298f, 1.0f);
+		style.Colors[ImGuiCol_SeparatorHovered] = ImVec4(0.870f, 0.109f, 0.298f, 1.0f);
+		style.Colors[ImGuiCol_SeparatorActive] = ImVec4(0.870f, 0.109f, 0.298f, 1.0f);
+		style.Colors[ImGuiCol_ResizeGrip] = ImVec4(0.827f, 0.214f, 0.214f, 0.039f);
+		style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.827f, 0.215f, 0.215f, 0.780f);
+		style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.827f, 0.215f, 0.215f, 1.0f);
+		style.Colors[ImGuiCol_Tab] = ImVec4(0.592f, 0.047f, 0.156f, 0.862f);
+		style.Colors[ImGuiCol_TabHovered] = ImVec4(0.803f, 0.043f, 0.203f, 0.823f);
+		style.Colors[ImGuiCol_TabActive] = ImVec4(0.788f, 0.062f, 0.211f, 1.0f);
+		style.Colors[ImGuiCol_TabUnfocused] = ImVec4(0.066f, 0.101f, 0.145f, 0.972f);
+		style.Colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.423f, 0.133f, 0.133f, 1.0f);
+		style.Colors[ImGuiCol_PlotLines] = ImVec4(0.858f, 0.929f, 0.886f, 0.629f);
+		style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+		style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.858f, 0.929f, 0.886f, 0.629f);
+		style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.776f, 0.146f, 0.130f, 1.0f);
+		style.Colors[ImGuiCol_TableHeaderBg] = ImVec4(0.188f, 0.188f, 0.200f, 1.0f);
+		style.Colors[ImGuiCol_TableBorderStrong] = ImVec4(0.309f, 0.309f, 0.349f, 1.0f);
+		style.Colors[ImGuiCol_TableBorderLight] = ImVec4(0.227f, 0.227f, 0.247f, 1.0f);
+		style.Colors[ImGuiCol_TableRowBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+		style.Colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.0f, 1.0f, 1.0f, 0.059f);
+		style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.785f, 0.105f, 0.026f, 0.430f);
+		style.Colors[ImGuiCol_DragDropTarget] = ImVec4(1.0f, 1.0f, 0.0f, 0.899f);
+		style.Colors[ImGuiCol_NavHighlight] = ImVec4(0.976f, 0.295f, 0.258f, 1.0f);
+		style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 0.699f);
+		style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.800f, 0.800f, 0.800f, 0.200f);
+		style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.800f, 0.800f, 0.800f, 0.349f);
+
+		// Fonts
+		auto& io = ImGui::GetIO();
+
+		// Add custom ranges to the font
+		ImVector<ImWchar> ranges;
+		ImFontGlyphRangesBuilder builder;
+		builder.AddText("•");
+		builder.AddRanges(io.Fonts->GetGlyphRangesDefault());
+		builder.BuildRanges(&ranges);
+
+		for (size_t i = 0; i < g_ImGuiFont_Roboto.m_FontSizes.size(); i++) {
+			g_ImGuiFont_Roboto.m_FontSizes[i] = io.Fonts->AddFontFromMemoryCompressedTTF(RobotoMedium_compressed_data, RobotoMedium_compressed_size, float(i + 10), nullptr, ranges.Data);
+		}
+
+		for (size_t i = 0; i < g_ImGuiFont_RussoOne.m_FontSizes.size(); i++) {
+			g_ImGuiFont_RussoOne.m_FontSizes[i] = io.Fonts->AddFontFromMemoryCompressedTTF(RussoOneRegular_compressed_data, RussoOneRegular_compressed_size, float(i + 10), nullptr, ranges.Data);
+		}
+
+		g_ImGuiFont_RussoOne256 = io.Fonts->AddFontFromMemoryCompressedTTF(RussoOneRegular_compressed_data, RussoOneRegular_compressed_size, 256.0f, nullptr, ranges.Data);
+
+		io.FontDefault = g_ImGuiFont_Roboto[18];
+
+		io.Fonts->Build();
+	}
+
+	bool ButtonEx(const char* label, const ImVec2& size_arg, ImU32 hover_text_color, ImGuiButtonFlags flags)
+	{
+		using namespace ImGui;
+
+		ImGuiWindow* window = GetCurrentWindow();
+		if (window->SkipItems)
+			return false;
+
+		ImGuiContext& g = *GImGui;
+		const ImGuiStyle& style = g.Style;
+		const ImGuiID id = window->GetID(label);
+		const ImVec2 label_size = CalcTextSize(label, NULL, true);
+
+		ImVec2 pos = window->DC.CursorPos;
+		if ((flags & ImGuiButtonFlags_AlignTextBaseLine) && style.FramePadding.y < window->DC.CurrLineTextBaseOffset) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
+			pos.y += window->DC.CurrLineTextBaseOffset - style.FramePadding.y;
+		ImVec2 size = CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
+
+		const ImRect bb(pos, pos + size);
+		ItemSize(size, style.FramePadding.y);
+		if (!ItemAdd(bb, id))
+			return false;
+
+		if (window->DC.ItemFlags & ImGuiItemFlags_ButtonRepeat)
+			flags |= ImGuiButtonFlags_Repeat;
+		bool hovered, held;
+		bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
+
+		if (hovered) {
+			PushStyleColor(ImGuiCol_Text, hover_text_color);
+		}
+
+		// Render
+		const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+		RenderNavHighlight(bb, id);
+		RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
+		RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb);
+
+		if (hovered) {
+			PopStyleColor();
+		}
+
+		// Automatically close popups
+		//if (pressed && !(flags & ImGuiButtonFlags_DontClosePopups) && (window->Flags & ImGuiWindowFlags_Popup))
+		//    CloseCurrentPopup();
+
+		IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
+		return pressed;
+	}
+
+	bool TabButton(const char* label, bool isActive, bool isEnabled, bool hasSubtab, const ImVec2& size = ImVec2(0, 0)) {
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, SwapColorEndianness(0xFF6A8FFF));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, isActive ? SwapColorEndianness(0xDE1C4CFF) : SwapColorEndianness(0x2E2E2EFF));
+		ImGui::PushStyleColor(ImGuiCol_Button, isActive ? (hasSubtab ? SwapColorEndianness(0xB3173EFF) : SwapColorEndianness(0xDE1C4CFF)) : 0x00000000);
+		ImGui::PushStyleColor(ImGuiCol_Text, isEnabled ? 0xFFFFFFFF : SwapColorEndianness(0x625F5FFF));
+
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, !isEnabled);
+		bool ret = ButtonEx(label, size, SwapColorEndianness(0xFFFFFFFF), ImGuiButtonFlags_None);
+		ImGui::PopItemFlag();
+
+		ImGui::PopStyleColor(4);
+
+		ImGui::PopStyleVar(2);
+
+		if (isActive && hasSubtab) {
+			ImGui::GetItemID();
+
+			auto window = ImGui::GetCurrentWindowRead();
+
+			const float bCenterX = (window->DC.LastItemRect.Min.x + window->DC.LastItemRect.Max.x) * 0.5f;
+			ImVec2 subTabArrowCenterPos{ bCenterX,  window->DC.LastItemRect.Max.y };
+
+			float triSideLen = 10;
+			float triHeight = std::sinf(60.0f) * triSideLen * 2.0f;
+
+			// Sub tab arrow
+			ImGui::GetWindowDrawList()->AddTriangleFilled(ImVec2{ subTabArrowCenterPos.x - triSideLen * 0.5f,
+																  subTabArrowCenterPos.y + triHeight * 0.5f },
+				ImVec2{ subTabArrowCenterPos.x + triSideLen * 0.5f,
+						subTabArrowCenterPos.y + triHeight * 0.5f },
+				ImVec2{ subTabArrowCenterPos.x,
+						subTabArrowCenterPos.y - triHeight * 0.5f },
+				0xFFFFFFFF);
+		}
+
+		return ret;
+	}
+
+	bool InfoButton(const char* label, const ImVec2& size = ImVec2(0, 0)) {
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, SwapColorEndianness(0xFF6A8FFF));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, SwapColorEndianness(0xDA1B53FF));
+		ImGui::PushStyleColor(ImGuiCol_Button, 0xFFFFFFFF);
+		ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_WindowBg));
+
+		bool ret = ButtonEx(label, size, SwapColorEndianness(0xFFFFFFFF), ImGuiButtonFlags_None);
+
+		ImGui::PopStyleColor(4);
+
+		ImGui::PopStyleVar(1);
+
+		return ret;
+	}
+
+	// Name must be unique because it's used to generate an id for the item
+	bool CloseButton(const char* name, const ImVec2 size) {
+		using namespace ImGui;
+
+		ImGuiWindow* window = GetCurrentWindow();
+		ImGuiID id = window->GetID(name);
+		ImGuiStyle& style = ImGui::GetStyle();
+
+		ImVec2 pos = { window->DC.CursorPos.x, window->DC.CursorPos.y };
+
+		// We intentionally allow interaction when clipped so that a mechanical Alt,Right,Validate sequence close a window.
+		// (this isn't the regular behavior of buttons, but it doesn't affect the user much because navigation tends to keep items visible).
+		const ImRect bb(pos, pos + size);
+		ItemSize(bb.Max - bb.Min, style.FramePadding.y);
+		bool isClipped = !ItemAdd(bb, id);
+
+		bool hovered, held;
+		bool pressed = ButtonBehavior(bb, id, &hovered, &held);
+		if (isClipped)
+			return pressed;
+
+		// Render
+		ImU32 col = GetColorU32(held ? ImGuiCol_ButtonActive : ImGuiCol_ButtonHovered);
+		ImVec2 center = bb.GetCenter();
+
+		if (hovered)
+			window->DrawList->AddRectFilled(bb.Min, bb.Max, col, style.FrameRounding);
+
+		ImU32 crossCol = 0xFFFFFFFF;
+
+		ImVec2 topLeftLeft, topLeftRight, topRightRight, topRightLeft,
+			bottomLeftLeft, bottomLeftRight, bottomRightRight, bottomRightLeft;
+
+		ImVec2 innerPadding = { bb.GetWidth() * 0.1f, bb.GetHeight() * 0.1f };
+
+		float crossLineThickness = (bb.GetHeight() - (innerPadding.y * 2.0)) * 0.2f;
+
+		topLeftLeft = { bb.Min.x + innerPadding.x * 1.5f, bb.Min.y + innerPadding.y };
+		topLeftRight = { topLeftLeft.x + crossLineThickness, topLeftLeft.y };
+
+		topRightRight = { bb.Max.x - innerPadding.x * 1.5f, bb.Min.y + innerPadding.y };
+		topRightLeft = { topRightRight.x - crossLineThickness, topRightRight.y };
+
+		bottomLeftLeft = { bb.Min.x + innerPadding.x * 1.5f , bb.Max.y - innerPadding.y };
+		bottomLeftRight = { bottomLeftLeft.x + crossLineThickness, bottomLeftLeft.y };
+
+		bottomRightRight = { bb.Max.x - innerPadding.x * 1.5f, bb.Max.y - innerPadding.y };
+		bottomRightLeft = { bottomRightRight.x - crossLineThickness, bottomRightRight.y };
+
+		window->DrawList->AddQuadFilled(topLeftLeft, topLeftRight, bottomRightRight, bottomRightLeft, crossCol);
+		window->DrawList->AddQuadFilled(topRightLeft, topRightRight, bottomLeftRight, bottomLeftLeft, crossCol);
+
+		return pressed;
+	}
+
+	static float CalcMaxPopupHeightFromItemCount(int items_count)
+	{
+		ImGuiContext& g = *GImGui;
+		if (items_count <= 0)
+			return FLT_MAX;
+		return (g.FontSize + g.Style.ItemSpacing.y) * items_count - g.Style.ItemSpacing.y + (g.Style.WindowPadding.y * 2);
+	}
+
+	bool BeginCombo(const char* label, const char* preview_value, ImVec2 preview_align = { 0.0f, 0.0f }, float arrow_scale = 1.0f, ImGuiComboFlags flags = 0)
+	{
+		using namespace ImGui;
+
+		// Always consume the SetNextWindowSizeConstraint() call in our early return paths
+		ImGuiContext& g = *GImGui;
+		bool has_window_size_constraint = (g.NextWindowData.Flags & ImGuiNextWindowDataFlags_HasSizeConstraint) != 0;
+		g.NextWindowData.Flags &= ~ImGuiNextWindowDataFlags_HasSizeConstraint;
+
+		ImGuiWindow* window = GetCurrentWindow();
+		if (window->SkipItems)
+			return false;
+
+		IM_ASSERT((flags & (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)) != (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)); // Can't use both flags together
+
+		const ImGuiStyle& style = g.Style;
+		const ImGuiID id = window->GetID(label);
+
+		const float arrow_size = (flags & ImGuiComboFlags_NoArrowButton) ? 0.0f : GetFrameHeight();
+		const ImVec2 label_size = CalcTextSize(label, NULL, true);
+		const float expected_w = CalcItemWidth();
+		const float w = (flags & ImGuiComboFlags_NoPreview) ? arrow_size : expected_w;
+		const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
+		const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
+		ItemSize(total_bb, style.FramePadding.y);
+		if (!ItemAdd(total_bb, id, &frame_bb))
+			return false;
+
+		bool hovered, held;
+		bool pressed = ButtonBehavior(frame_bb, id, &hovered, &held);
+		bool popup_open = IsPopupOpen(id, ImGuiPopupFlags_None);
+
+		const ImU32 frame_col = GetColorU32(hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
+		const float value_x2 = ImMax(frame_bb.Min.x, frame_bb.Max.x - arrow_size);
+		RenderNavHighlight(frame_bb, id);
+		if (!(flags & ImGuiComboFlags_NoPreview))
+			window->DrawList->AddRectFilled(frame_bb.Min, frame_bb.Max, frame_col, style.FrameRounding, ImDrawCornerFlags_All);
+		if (!(flags & ImGuiComboFlags_NoArrowButton))
+		{
+			ImU32 text_col = GetColorU32(ImGuiCol_Text);
+
+			if (value_x2 + arrow_size - style.FramePadding.x <= frame_bb.Max.x)
+			{
+				ImVec2 arrow_pos{ value_x2 + style.FramePadding.y + arrow_size * 0.5f - arrow_size * arrow_scale * 0.5f, frame_bb.Min.y + style.FramePadding.y + arrow_size * 0.5f - arrow_size * arrow_scale * 0.5f };
+				RenderArrow(window->DrawList, arrow_pos, text_col, ImGuiDir_Down, arrow_scale);
+			}
+		}
+		RenderFrameBorder(frame_bb.Min, frame_bb.Max, style.FrameRounding);
+
+		auto frame_center = frame_bb.GetCenter();
+		if (preview_value != NULL && !(flags & ImGuiComboFlags_NoPreview))
+			RenderTextClipped(frame_bb.Min + style.FramePadding, frame_bb.Max - style.FramePadding, preview_value, NULL, NULL, preview_align);
+
+		if (label_size.x > 0)
+			RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, frame_bb.Min.y + style.FramePadding.y), label);
+
+		if ((pressed || g.NavActivateId == id) && !popup_open)
+		{
+			if (window->DC.NavLayerCurrent == 0)
+				window->NavLastIds[0] = id;
+			OpenPopupEx(id, ImGuiPopupFlags_None);
+			popup_open = true;
+		}
+
+		if (!popup_open)
+			return false;
+
+		if (has_window_size_constraint)
+		{
+			g.NextWindowData.Flags |= ImGuiNextWindowDataFlags_HasSizeConstraint;
+			g.NextWindowData.SizeConstraintRect.Min.x = ImMax(g.NextWindowData.SizeConstraintRect.Min.x, w);
+		}
+		else
+		{
+			if ((flags & ImGuiComboFlags_HeightMask_) == 0)
+				flags |= ImGuiComboFlags_HeightRegular;
+			IM_ASSERT(ImIsPowerOfTwo(flags & ImGuiComboFlags_HeightMask_));    // Only one
+			int popup_max_height_in_items = -1;
+			if (flags & ImGuiComboFlags_HeightRegular)     popup_max_height_in_items = 8;
+			else if (flags & ImGuiComboFlags_HeightSmall)  popup_max_height_in_items = 4;
+			else if (flags & ImGuiComboFlags_HeightLarge)  popup_max_height_in_items = 20;
+			SetNextWindowSizeConstraints(ImVec2(w, 0.0f), ImVec2(FLT_MAX, CalcMaxPopupHeightFromItemCount(popup_max_height_in_items)));
+		}
+
+		char name[16];
+		ImFormatString(name, IM_ARRAYSIZE(name), "##Combo_%02d", g.BeginPopupStack.Size); // Recycle windows based on depth
+
+		// Position the window given a custom constraint (peak into expected window size so we can position it)
+		// This might be easier to express with an hypothetical SetNextWindowPosConstraints() function.
+		if (ImGuiWindow* popup_window = FindWindowByName(name))
+			if (popup_window->WasActive)
+			{
+				// Always override 'AutoPosLastDirection' to not leave a chance for a past value to affect us.
+				ImVec2 size_expected = CalcWindowExpectedSize(popup_window);
+				if (flags & ImGuiComboFlags_PopupAlignLeft)
+					popup_window->AutoPosLastDirection = ImGuiDir_Left; // "Below, Toward Left"
+				else
+					popup_window->AutoPosLastDirection = ImGuiDir_Down; // "Below, Toward Right (default)"
+				ImRect r_outer = GetWindowAllowedExtentRect(popup_window);
+				ImVec2 pos = FindBestWindowPosForPopupEx(frame_bb.GetBL(), size_expected, &popup_window->AutoPosLastDirection, r_outer, frame_bb, ImGuiPopupPositionPolicy_ComboBox);
+				SetNextWindowPos(pos);
+			}
+
+		// We don't use BeginPopupEx() solely because we have a custom name string, which we could make an argument to BeginPopupEx()
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_Popup | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove;
+
+		// Horizontally align ourselves with the framed text
+		PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(style.FramePadding.x, style.WindowPadding.y));
+		bool ret = Begin(name, NULL, window_flags);
+		PopStyleVar();
+		if (!ret)
+		{
+			EndPopup();
+			IM_ASSERT(0);   // This should never happen as we tested for IsPopupOpen() above
+			return false;
+		}
+		return true;
+	}
+
+	void SeparatorEx(float length = 0.0f, float align = 0.0f, ImGuiSeparatorFlags flags = ImGuiSeparatorFlags_Horizontal)
+	{
+		using namespace ImGui;
+
+		ImGuiWindow* window = GetCurrentWindow();
+		if (window->SkipItems)
+			return;
+
+		ImGuiContext& g = *GImGui;
+		IM_ASSERT(ImIsPowerOfTwo(flags & (ImGuiSeparatorFlags_Horizontal | ImGuiSeparatorFlags_Vertical)));   // Check that only 1 option is selected
+
+		float thickness_draw = 1.0f;
+		float thickness_layout = 0.0f;
+
+		ImRect content_region = window->ContentRegionRect;
+
+		if (flags & ImGuiSeparatorFlags_Vertical)
+		{
+			// Vertical separator, for menu bars (use current line height). Not exposed because it is misleading and it doesn't have an effect on regular layout.
+			float y1 = 0.0f;
+			float y2 = 0.0f;
+
+			if (length > 0.0f) {
+				y1 = content_region.Min.y + (content_region.GetSize().y - length) * align;
+				y2 = y1 + length;
+			}
+			else {
+				y1 = window->DC.CursorPos.y;
+				y2 = window->DC.CursorPos.y + window->DC.CurrLineSize.y;
+			}
+
+			const ImRect bb(ImVec2(window->DC.CursorPos.x, y1), ImVec2(window->DC.CursorPos.x + thickness_draw, y2));
+			ItemSize(ImVec2(thickness_layout, 0.0f));
+			if (!ItemAdd(bb, 0))
+				return;
+
+			// Draw
+			window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y), ImVec2(bb.Min.x, bb.Max.y), GetColorU32(ImGuiCol_Separator));
+			if (g.LogEnabled)
+				LogText(" |");
+		}
+		else if (flags & ImGuiSeparatorFlags_Horizontal)
+		{
+			// Horizontal Separator
+			float x1 = 0.0f;
+			float x2 = 0.0f;
+
+			if (length > 0.0f) {
+				x1 = content_region.Min.x + (content_region.GetSize().x - length) * align;
+				x2 = x1 + length;
+			}
+			else {
+				x1 = window->DC.CursorPos.x;
+				x2 = window->Pos.x + window->Size.x;
+			}
+
+			// FIXME-WORKRECT: old hack (#205) until we decide of consistent behavior with WorkRect/Indent and Separator
+			if (g.GroupStack.Size > 0 && g.GroupStack.back().WindowID == window->ID)
+				x1 += window->DC.Indent.x;
+
+			ImGuiOldColumns* columns = (flags & ImGuiSeparatorFlags_SpanAllColumns) ? window->DC.CurrentColumns : NULL;
+			if (columns)
+				PushColumnsBackground();
+
+			// We don't provide our width to the layout so that it doesn't get feed back into AutoFit
+			const ImRect bb(ImVec2(x1, window->DC.CursorPos.y), ImVec2(x2, window->DC.CursorPos.y + thickness_draw));
+			ItemSize(ImVec2(0.0f, thickness_layout));
+			const bool item_visible = ItemAdd(bb, 0);
+			if (item_visible)
+			{
+				// Draw
+				window->DrawList->AddLine(bb.Min, ImVec2(bb.Max.x, bb.Min.y), GetColorU32(ImGuiCol_Separator));
+				if (g.LogEnabled)
+					LogRenderedText(&bb.Min, "--------------------------------");
+			}
+			if (columns)
+			{
+				PopColumnsBackground();
+				columns->LineMinY = window->DC.CursorPos.y;
+			}
+		}
+	}
+
+	void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened) {
+		if (pIsOpened != nullptr && *pIsOpened == false)
+			return;
+
+		ID3D11Device* pDevice = nullptr;
+
+		pSwapChain->GetDevice(IID_PPV_ARGS(&pDevice));
+
+		// Todo: move to context
+		static bool uiElementsInitialized = false;
+		if (!uiElementsInitialized) {
+			g_Image_CrimsonHeaderLogo.ResizeByRatioW(size_t(g_UIContext.DefaultFontSize * 12.23f));
+
+			uiElementsInitialized = true;
+		}
+
+		// Default font
+		ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
+		// 6 tab buttons
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, { g_UIContext.DefaultFontSize * 9.38f * 6.0f,  g_UIContext.DefaultFontSize * 35.0f });
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 15.0f);
+		ImGui::Begin(title, nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+		ImGui::PopStyleVar(4);
+		{
+			ImGuiWindow* window = ImGui::GetCurrentWindow();
+			ImRect wndRect = window->Rect();
+			ImGuiStyle& style = ImGui::GetStyle();
+
+			window->ContentRegionRect = ImRect{ window->ContentRegionRect.Min, window->ContentRegionRect.Max - ImVec2{ 0.0f, 70.0f } };
+
+			float contentMinHeightOffsetFromTop;
+			float contentMaxHeightOffsetFromBottom;
+
+			// Draw the main window header graphic
+			{
+				static const Texture2DD3D11 logo(g_Image_CrimsonHeaderLogo.GetRGBAData(), g_Image_CrimsonHeaderLogo.GetWidth(), g_Image_CrimsonHeaderLogo.GetHeight(), pDevice);
+
+				ImVec2 logoPos = { (wndRect.Max.x + wndRect.Min.x) * 0.5f - logo.GetWidth() * 0.5f, wndRect.Min.y + logo.GetHeight() * 0.3f };
+
+				window->DrawList->AddLine({ wndRect.Min.x + g_UIContext.DefaultFontSize * 1.7f, logoPos.y + logo.GetHeight() * 0.5f },
+					{ logoPos.x - g_UIContext.DefaultFontSize * 0.52f, logoPos.y + logo.GetHeight() * 0.5f }, SwapColorEndianness(0xE01D42FF));
+
+				window->DrawList->AddLine({ logoPos.x + logo.GetWidth() + g_UIContext.DefaultFontSize * 0.52f, logoPos.y + logo.GetHeight() * 0.5f },
+					{ wndRect.Max.x - g_UIContext.DefaultFontSize * 1.7f, logoPos.y + logo.GetHeight() * 0.5f }, SwapColorEndianness(0xE01D42FF));
+
+				window->DrawList->AddImage(logo, logoPos, logoPos + logo.GetSize());
+			}
+
+			// Draw the close button
+			{
+				if (pIsOpened != nullptr) {
+					const auto cursorBackUp = ImGui::GetCursorScreenPos();
+					ImGui::SetCursorScreenPos({ wndRect.Max.x - g_UIContext.DefaultFontSize * 1.17f - 10.0f, wndRect.Min.y + g_UIContext.DefaultFontSize * 0.45f });
+
+					if (CloseButton("#Close", { g_UIContext.DefaultFontSize * 1.17f, g_UIContext.DefaultFontSize * 1.17f })) {
+						*pIsOpened = false;
+					}
+
+					ImGui::SetCursorScreenPos(cursorBackUp);
+				}
+			}
+
+			// Selected game mode text
+			{
+				const ImVec2 pos = wndRect.Min + ImVec2{ g_UIContext.DefaultFontSize * 1.33f, g_UIContext.DefaultFontSize * 2.66f };
+
+				window->DrawList->AddText(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize], g_UIContext.DefaultFontSize, pos, SwapColorEndianness(0xFFFFFFFF), "Selected Game Mode: ");
+
+				const float modeTextWidth = ImGui::CalcTextSize("Selected Game Mode: ").x;
+
+				const char* gameModeString = nullptr;
+				ImU32 gameModeStringColor = 0;
+
+				switch (g_UIContext.SelectedGameMode) {
+				case UIContext::GameModes::Vanilla:
+					gameModeString = "Vanilla";
+					gameModeStringColor = 0xFFFFFFFF;
+					break;
+
+				case UIContext::GameModes::StyleSwitcher:
+					gameModeString = "Style Switcher";
+					gameModeStringColor = SwapColorEndianness(0xE8BA18FF);
+					break;
+
+				case UIContext::GameModes::Crimson:
+					gameModeString = "Crimson";
+					gameModeStringColor = SwapColorEndianness(0xDA1B53FF);
+					break;
+
+				default:
+					gameModeString = "Unknown";
+					break;
+				}
+
+				window->DrawList->AddText(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize], g_UIContext.DefaultFontSize, pos + ImVec2{ modeTextWidth, 0.0f }, gameModeStringColor, gameModeString);
+			}
+
+			// Version text
+			{
+				static std::string versionStr = std::format("Ver. {}.{}", g_UIContext.CurrentVersion.Major, g_UIContext.CurrentVersion.Minor).c_str();
+				static std::string lastUpdateStr = std::format("Latest Update: {}/{}/{}", g_UIContext.LatestUpdate.Day, g_UIContext.LatestUpdate.Month, g_UIContext.LatestUpdate.Year);
+
+				const float lastUpdateTextWidth = ImGui::CalcTextSize(lastUpdateStr.c_str()).x;
+
+				const ImVec2 pos = ImVec2{ wndRect.Max.x - lastUpdateTextWidth - g_UIContext.DefaultFontSize * 7.18f,
+											wndRect.Min.y + g_UIContext.DefaultFontSize * 2.66f };
+
+				// Two lines of text without space in between each with the default font size
+				float dateTextAndButtonHeightSum = g_UIContext.DefaultFontSize * 2.0f;
+
+				window->DrawList->AddText(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize], g_UIContext.DefaultFontSize,
+					g_UIContext.NewVersionAvailable ? pos + ImVec2{
+						0.0f,
+						g_UIContext.DefaultFontSize * 0.5f - dateTextAndButtonHeightSum * 0.5f } : pos, SwapColorEndianness(0xFFFFFFFF), lastUpdateStr.c_str());
+
+				auto cursorBackUp = ImGui::GetCursorScreenPos();
+				ImGui::SetCursorScreenPos(pos + ImVec2{ lastUpdateTextWidth + g_UIContext.DefaultFontSize,
+														style.FramePadding.y + g_UIContext.DefaultFontSize * 0.5f - g_UIContext.DefaultFontSize * 0.65f });
+
+				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
+				ImGui::PushFont(g_ImGuiFont_RussoOne[size_t(g_UIContext.DefaultFontSize * 1.45f)]);
+
+				if (InfoButton(versionStr.c_str())) {
+					// TODO: Handle click
+				}
+
+				ImGui::PopFont();
+				ImGui::PopStyleVar();
+
+				if (g_UIContext.NewVersionAvailable) {
+					ImGui::SetCursorScreenPos(pos + ImVec2{ 0.0f, g_UIContext.DefaultFontSize * 0.5f });
+
+					ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 5.0f, 0.0f });
+					ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+
+					ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
+
+					if (InfoButton("NEW VERSION AVAILABLE")) {
+						ShellExecute(0, 0, "https://github.com/berthrage/Devil-May-Cry-3-Crimson/releases/new", 0, 0, SW_SHOW);
+					}
+
+					ImGui::PopFont();
+
+					ImGui::PopStyleVar(2);
+				}
+
+				ImGui::SetCursorScreenPos(cursorBackUp);
+			}
+
+			// Draw main tabs / sub tabs
+			{
+				const ImVec2 tabBtnSize = { g_UIContext.DefaultFontSize * 9.38f, g_UIContext.DefaultFontSize * 2.4f };
+				const ImVec2 subTabBtnSize = { tabBtnSize.x * 0.8f, tabBtnSize.y * 0.8f };
+
+				// The black strip behind tab buttons
+				window->DrawList->AddRectFilled(
+					{ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y },
+					{ wndRect.Max.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y },
+					SwapColorEndianness(0x000000FF)
+				);
+
+				ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
+
+				contentMinHeightOffsetFromTop = 2.0f * tabBtnSize.y + tabBtnSize.y;
+
+				// Sub tabs
+				if (g_UIContext.SelectedTab == UIContext::MainTabs::Options || g_UIContext.SelectedTab == UIContext::MainTabs::CheatsAndDebug) {
+					contentMinHeightOffsetFromTop += subTabBtnSize.y;
+
+					// Grey strip behind the subtabs
+					window->DrawList->AddRectFilled(
+						{ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y },
+						{ wndRect.Max.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y + subTabBtnSize.y },
+						SwapColorEndianness(0x4E4E4EFF)
+					);
+
+					switch (g_UIContext.SelectedTab) {
+					case UIContext::MainTabs::Options:
+					{
+						const float tabBarWidth = wndRect.GetSize().x;
+						const float tabButtonsGap = (tabBarWidth - float(UIContext::OptionsSubTabs::Size) * subTabBtnSize.x) /
+							float((size_t)UIContext::OptionsSubTabs::Size + 1);
+
+						auto cursorPosBackup = ImGui::GetCursorScreenPos();
+						ImGui::SetCursorScreenPos({ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y });
+
+						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + tabButtonsGap);
+						if (TabButton("Gameplay", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Gameplay, true, false, subTabBtnSize)) {
+							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Gameplay;
+						}
+
+						ImGui::SameLine(0.0f, tabButtonsGap);
+						if (TabButton("Camera", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Camera, true, false, subTabBtnSize)) {
+							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Camera;
+						}
+
+						ImGui::SameLine(0.0f, tabButtonsGap);
+						if (TabButton("Hotkeys", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Hotkeys, true, false, subTabBtnSize)) {
+							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Hotkeys;
+						}
+
+						ImGui::SameLine(0.0f, tabButtonsGap);
+						if (TabButton("Overlays", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Overlays, true, false, subTabBtnSize)) {
+							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Overlays;
+						}
+
+						ImGui::SameLine(0.0f, tabButtonsGap);
+						if (TabButton("Weapon Wheel", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::WeaponWheel, true, false, subTabBtnSize)) {
+							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::WeaponWheel;
+						}
+
+						ImGui::SameLine(0.0f, tabButtonsGap);
+						if (TabButton("Sound/Visual", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::SoundOrVisual, true, false, subTabBtnSize)) {
+							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::SoundOrVisual;
+						}
+
+						ImGui::SameLine(0.0f, tabButtonsGap);
+						if (TabButton("System", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::System, true, false, subTabBtnSize)) {
+							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::System;
+						}
+
+						ImGui::SetCursorScreenPos(cursorPosBackup);
+					}
+					break;
+
+					case UIContext::MainTabs::CheatsAndDebug:
+					{
+						const float tabBarWidth = wndRect.GetSize().x;
+						const float tabButtonsGap = (tabBarWidth - float(UIContext::CheatsAndDebugSubTabs::Size) * subTabBtnSize.x) /
+							float((size_t)UIContext::CheatsAndDebugSubTabs::Size + 1);
+
+						auto cursorPosBackup = ImGui::GetCursorScreenPos();
+						ImGui::SetCursorScreenPos({ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y });
+
+						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + tabButtonsGap);
+						if (TabButton("Common", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Common, true, false, subTabBtnSize)) {
+							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::Common;
+						}
+
+						ImGui::SameLine(0.0f, tabButtonsGap);
+						if (TabButton("Speed", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Speed, true, false, subTabBtnSize)) {
+							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::Speed;
+						}
+
+						ImGui::SameLine(0.0f, tabButtonsGap);
+						if (TabButton("Teleporter", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Teleporter, true, false, subTabBtnSize)) {
+							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::Teleporter;
+						}
+
+						ImGui::SameLine(0.0f, tabButtonsGap);
+						if (TabButton("Enemy Swapper", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::EnemySwapper, true, false, subTabBtnSize)) {
+							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::EnemySwapper;
+						}
+
+						ImGui::SameLine(0.0f, tabButtonsGap);
+						if (TabButton("Juke Box", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::JukeBox, true, false, subTabBtnSize)) {
+							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::JukeBox;
+						}
+
+						ImGui::SetCursorScreenPos(cursorPosBackup);
+					}
+					break;
+
+					default:
+						break;
+					}
+
+				}
+
+				ImGui::PopFont();
+
+				ImGui::PushFont(g_ImGuiFont_RussoOne[size_t(g_UIContext.DefaultFontSize * 1.35f)]);
+
+				// Draw main tabs
+				{
+					const float tabBarWidth = wndRect.GetSize().x;
+					const float tabButtonsGap = (tabBarWidth - float(UIContext::MainTabs::Size) * tabBtnSize.x) /
+						float((size_t)UIContext::MainTabs::Size + 2);
+
+					auto cursorPosBackup = ImGui::GetCursorScreenPos();
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2.0f * tabBtnSize.y);
+
+					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + tabButtonsGap);
+					if (TabButton("Game Mode", g_UIContext.SelectedTab == UIContext::MainTabs::GameMode, true, false, tabBtnSize)) {
+						g_UIContext.SelectedTab = UIContext::MainTabs::GameMode;
+					}
+
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					if (TabButton("Character", g_UIContext.SelectedTab == UIContext::MainTabs::Character, true, false, tabBtnSize)) {
+						g_UIContext.SelectedTab = UIContext::MainTabs::Character;
+					}
+
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					if (TabButton("Quickplay", g_UIContext.SelectedTab == UIContext::MainTabs::Quickplay, true, false, tabBtnSize)) {
+						g_UIContext.SelectedTab = UIContext::MainTabs::Quickplay;
+					}
+
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					if (TabButton("Music Switcher", g_UIContext.SelectedTab == UIContext::MainTabs::MusicSwitcher, false, false, tabBtnSize)) {
+						g_UIContext.SelectedTab = UIContext::MainTabs::MusicSwitcher;
+					}
+
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					if (TabButton("Options", g_UIContext.SelectedTab == UIContext::MainTabs::Options, true, true, tabBtnSize)) {
+						g_UIContext.SelectedTab = UIContext::MainTabs::Options;
+					}
+
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					if (TabButton("Cheats & Debug", g_UIContext.SelectedTab == UIContext::MainTabs::CheatsAndDebug, true, true, tabBtnSize)) {
+						g_UIContext.SelectedTab = UIContext::MainTabs::CheatsAndDebug;
+					}
+
+					ImGui::SetCursorScreenPos(cursorPosBackup);
+				}
+
+				ImGui::PopFont();
+
+				// Background faded window name text
+				{
+					ImVec2 pos{ wndRect.Min.x + g_UIContext.DefaultFontSize * 0.1f,
+								wndRect.Min.y + (2.0f * tabBtnSize.y)/*Header Space*/ + g_UIContext.DefaultFontSize * 1.3f };
+
+					switch (g_UIContext.SelectedTab) {
+					case UIContext::MainTabs::GameMode:
+					{
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Game Mode");
+					}
+					break;
+
+					case UIContext::MainTabs::Character:
+					{
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Character");
+					}
+					break;
+
+					case UIContext::MainTabs::Quickplay:
+					{
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Quickplay");
+					}
+					break;
+
+					case UIContext::MainTabs::MusicSwitcher:
+					{
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Music Switcher");
+					}
+					break;
+
+					case UIContext::MainTabs::Options:
+					{
+						// Has subtab buttons
+						pos += ImVec2{ 0.0f, subTabBtnSize.y };
+
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Options");
+					}
+					break;
+
+					case UIContext::MainTabs::CheatsAndDebug:
+					{
+						// Has subtab buttons
+						pos += ImVec2{ 0.0f, subTabBtnSize.y + g_UIContext.DefaultFontSize * 0.3f };
+
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 8.2f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Cheats & Debug");
+					}
+					break;
+
+					default:
+						break;
+					}
+				}
+			}
+
+			// Footer of the window
+			{
+				// Footer background
+				window->DrawList->AddRectFilled({ wndRect.Min.x, wndRect.Max.y - g_UIContext.DefaultFontSize * 2.24f }, { wndRect.Max.x, wndRect.Max.y },
+					SwapColorEndianness(0x4d3A3EFF), window->WindowRounding, ImDrawCornerFlags_Bot);
+
+				contentMaxHeightOffsetFromBottom = g_UIContext.DefaultFontSize * 2.24f;
+
+				ImVec2 footerInfoBtnSize{ 0.0f, g_UIContext.DefaultFontSize * 1.7f };
+
+				// Left footer section
+				{
+					constexpr auto ABOUT_BUTTON_TEXT = "PATREON";
+
+					float aboutButtonWidth = ImGui::CalcTextSize(ABOUT_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
+
+					ImVec2 pos{ wndRect.Min.x + g_UIContext.DefaultFontSize * 1.0f, wndRect.Max.y - g_UIContext.DefaultFontSize * 1.68f };
+
+					auto cursorPosBackup = ImGui::GetCursorScreenPos();
+
+					ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
+					ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
+
+					ImGui::SetCursorScreenPos(pos + ImVec2{ 0.0f, g_UIContext.DefaultFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
+					if (InfoButton(ABOUT_BUTTON_TEXT, footerInfoBtnSize)) {
+						ShellExecute(0, 0, "https://www.patreon.com/miaberth", 0, 0, SW_SHOW);
+					}
+
+					ImGui::PopFont();
+					ImGui::PopStyleVar();
+
+					ImGui::SetCursorScreenPos(cursorPosBackup);
+				}
+
+				// Middle footer section
+				{
+					constexpr auto BACKGROUND_FADED_TEXT = "C•Team";
+					constexpr auto CREDIT_TEXT = "Mia Berth • SSSiyan • deepdarkkapustka • Darkness   ";
+					constexpr auto ABOUT_BUTTON_TEXT = "ABOUT";
+
+					ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
+
+					float creditTextWidth = ImGui::CalcTextSize(CREDIT_TEXT).x;
+					float aboutButtonWidth = ImGui::CalcTextSize(ABOUT_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
+
+					ImVec2 pos{ (wndRect.Min.x + wndRect.Max.x) * 0.5f - (creditTextWidth + aboutButtonWidth) * 0.5f, wndRect.Max.y - g_UIContext.DefaultFontSize * 1.68f };
+
+					// Background faded text
+					ImVec2 bgFadedTextSize = ImGui::CalcTextSize(BACKGROUND_FADED_TEXT);
+					window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 4.8f,
+						{ pos.x - g_UIContext.DefaultFontSize * 5.8f,
+						pos.y - g_UIContext.DefaultFontSize * 4.8f * 0.5f },
+						SwapColorEndianness(0xFFFFFF10), BACKGROUND_FADED_TEXT);
+
+					window->DrawList->AddText(pos, SwapColorEndianness(0xFFFFFFFF), CREDIT_TEXT);
+
+					ImGui::PopFont();
+
+					auto cursorPosBackup = ImGui::GetCursorScreenPos();
+
+					ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
+					ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
+
+					ImGui::SetCursorScreenPos(pos + ImVec2{ creditTextWidth, g_UIContext.DefaultFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
+					if (InfoButton(ABOUT_BUTTON_TEXT, footerInfoBtnSize)) {
+						// TODO: Handle the click
+					}
+
+					ImGui::PopFont();
+					ImGui::PopStyleVar();
+
+					ImGui::SetCursorScreenPos(cursorPosBackup);
+				}
+
+				// Right footer section
+				{
+					constexpr auto CREDIT_TEXT = "Based on serpentiem's ";
+					constexpr auto ABOUT_BUTTON_TEXT = "DDMK";
+
+					ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
+
+					float creditTextWidth = ImGui::CalcTextSize(CREDIT_TEXT).x;
+					float aboutBtnWidth = ImGui::CalcTextSize(ABOUT_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
+
+					ImVec2 pos{ wndRect.Max.x - creditTextWidth - aboutBtnWidth - g_UIContext.DefaultFontSize, wndRect.Max.y - g_UIContext.DefaultFontSize * 1.68f };
+
+					window->DrawList->AddText(pos, SwapColorEndianness(0xFFFFFFFF), CREDIT_TEXT);
+
+					ImGui::PopFont();
+
+					auto cursorPosBackup = ImGui::GetCursorScreenPos();
+
+					ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
+					ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
+
+					ImGui::SetCursorScreenPos(pos + ImVec2{ creditTextWidth, g_UIContext.DefaultFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
+					if (InfoButton(ABOUT_BUTTON_TEXT, footerInfoBtnSize)) {
+						ShellExecute(0, 0, "https://github.com/serpentiem/ddmk/", 0, 0, SW_SHOW);
+					}
+
+					ImGui::PopFont();
+					ImGui::PopStyleVar();
+
+					ImGui::SetCursorScreenPos(cursorPosBackup);
+				}
+			}
+
+			// Actual content
+			{
+				ImVec2 contentMin = { wndRect.Min.x + g_UIContext.DefaultFontSize * 0.3f,
+									  wndRect.Min.y + contentMinHeightOffsetFromTop + g_UIContext.DefaultFontSize * 0.3f };
+
+				ImGui::SetNextWindowPos(contentMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Content Window", window->GetID("Content Window"),
+					window->Size - ImVec2{ g_UIContext.DefaultFontSize * 0.3f * 2.0f, (contentMinHeightOffsetFromTop + g_UIContext.DefaultFontSize * 0.3f + contentMaxHeightOffsetFromBottom) }, false, 0);
+				DrawMainContent(pDevice, g_UIContext);
+				ImGui::EndChild();
+			}
+		}
+		ImGui::End();
+		ImGui::PopFont();
+	}
+}
 
 bool visibleMain     = false;
 bool lastVisibleMain = false;
@@ -7504,7 +8642,7 @@ void KeyBindings() {
 
 #pragma region Main
 
-void Main() {
+void Main(IDXGISwapChain* pSwapChain) {
     if (!g_showMain) {
         return;
     }
@@ -7551,102 +8689,497 @@ void Main() {
         // ImGui::SetCurrentFont(io.Fonts->Fonts[FONT::OVERLAY_8]);
     }
 
+    UI::DrawCrimson(pSwapChain, DMC3C_TITLE, &g_showMain);
+}
 
-    if (ImGui::Begin(DMC3C_TITLE, &g_showMain)) {
+void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
+	ImGuiWindow* cntWindow = ImGui::GetCurrentWindow();
+	const ImRect cntRegion = cntWindow->Rect();
+	const ImGuiStyle& style = ImGui::GetStyle();
 
-        ImGui::Text("");
+	switch (context.SelectedTab) {
+	case UI::UIContext::MainTabs::GameMode:
+	{
+		static bool uiElementsInitialized = false;
+		if (!uiElementsInitialized) {
+			size_t mainLogoWidth = size_t(context.DefaultFontSize * 37.0f);
 
-        std::stringstream sstm;
-        sstm << "WINDOWSIZE X: " << g_renderSize.x;
-        std::string windowSizeX = sstm.str();
+			g_Image_CrimsonMainLogo.ResizeByRatioW(mainLogoWidth);
+			g_Image_VanillaLogo.ResizeByRatioW(mainLogoWidth);
+			g_Image_StyleSwitcherLogo.ResizeByRatioW(mainLogoWidth);
 
-        std::stringstream sstm2;
-        sstm2 << "WINDOWSIZE Y: " << g_renderSize.y;
-        std::string windowSizeY = sstm2.str();
-        const char* var1        = windowSizeX.c_str();
-        const char* var2        = windowSizeY.c_str();
+			uiElementsInitialized = true;
+		}
 
+		constexpr float align = 0.5f; // Center = 0.5f
 
-        ImGui::Text(var1);
-        ImGui::Text(var2);
+		constexpr const char* MODE_SELECTION_TEXT = "Choose your desired Devil May Cry 3 Version!\n"
+			"This will affect the entire Gameplay Options globally and tag you at the Mission End Screen.\n"
+			"If Gameplay Options diverge too much from any preset, 'Custom' Game Mode will be selected instead automatically.";
 
+		float width = ImGui::CalcTextSize(MODE_SELECTION_TEXT).x;
 
-        GamepadClose(visibleMain, lastVisibleMain, CloseMain);
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - width) * align);
 
+		ImGui::TextWrapped(MODE_SELECTION_TEXT);
 
-        ImGui::PushItemWidth(150);
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
 
-        if (GUI_InputDefault2("Global Scale", activeConfig.globalScale, queuedConfig.globalScale, defaultConfig.globalScale, 0.1f, "%g",
-                ImGuiInputTextFlags_EnterReturnsTrue)) {
-            UpdateGlobalScale();
-        }
+		float comboBoxWidth = width * 0.5f;
 
-        ImGui::PopItemWidth();
+		std::array<const char*, 3> modes{ "Vanilla", "Style Switcher", "Crimson Mode" };
 
-        ImGui::Text("");
-        ImGui::Text("Credits");
-        ImGui::Text("Mia Berth - Project Lead, Programmer, Artist");
-        ImGui::Text("SSSiyan - Reverse Enginnering Researcher, QA, Programmer");
-        ImGui::Text("deepdarkkapustka - Reverse Enginnering Researcher, Programmer");
-        ImGui::Text("Darkness - Backend and UI Programmer");
-        ImGui::Text("");
+		ImGui::SetNextItemWidth(comboBoxWidth);
 
-        ImGui::Text(PATREON_TEXT);
-        ImGui::Text("");
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - comboBoxWidth) * align);
 
-        if (GUI_Button("Open Patreon Page")) {
-            ShellExecuteA(0, "open", PATREON_LINK, 0, 0, SW_SHOW);
-        }
-        ImGui::Text("");
+		ImU32 frameBG = 0;
+		ImU32 frameBGHovered = 0;
+		ImU32 textColor = 0;
 
+		switch (context.SelectedGameMode) {
+		case UI::UIContext::GameModes::Vanilla:
+		{
+			frameBG = UI::SwapColorEndianness(0xFFFFFFFF);
+			frameBGHovered = UI::SwapColorEndianness(0xFFFFFFAA);
+			textColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_WindowBg]);
+		}
+		break;
 
-        ActorSection();
-        ArcadeSection();
-        BarsSection();
-        BossRush();
-        CameraSection();
-        Cosmetics();
-        Damage();
-        Dante();
+		case UI::UIContext::GameModes::StyleSwitcher:
+		{
+			frameBG = UI::SwapColorEndianness(0xE8BA18FF);
+			frameBGHovered = UI::SwapColorEndianness(0xE8BA18AA);
+			textColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_WindowBg]);
+		}
+		break;
 
-        if constexpr (debug) {
-            Debug();
-        }
+		case UI::UIContext::GameModes::Crimson:
+		{
+			frameBG = UI::SwapColorEndianness(0xDA1B53FF);
+			frameBGHovered = UI::SwapColorEndianness(0xDA1B53AA);
+			textColor = UI::SwapColorEndianness(0xFFFFFFFF);
+		}
+		break;
 
-        Enemy();
-        Jukebox();
-        KeyBindings();
-        Lady();
-        Mobility();
-        Other();
-        Overlays();
-        Repair();
-        SpeedSection();
-        System();
-        Teleporter();
-        WeaponWheel();
-        SFX();
-        GameplayOptions();
-
-
-        TrainingSection();
-        Vergil();
-
-
-        ImGui::Text("");
-
-        GUI_Checkbox2("Show Credits", activeConfig.showCredits, queuedConfig.showCredits);
+		default:
+		{
+			frameBG = UI::SwapColorEndianness(0xFFFFFFFF);
+			frameBGHovered = UI::SwapColorEndianness(0xFFFFFFAA);
+			textColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_WindowBg]);
+		}
+		break;
+		}
 
 
-        ImGui::Text("");
-    }
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, frameBG);
+		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, frameBGHovered);
+		ImGui::PushStyleColor(ImGuiCol_Text, textColor);;
 
-    ImGui::End();
+		if (UI::BeginCombo("##Game Mode", modes[size_t(context.SelectedGameMode)], { 0.5f, 0.5f }, 0.9f)) {
+			ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
+
+			for (size_t i = 0; i < modes.size(); i++)
+			{
+				ImU32 headerColor = 0;
+				ImU32 headerHoveredColor = 0;
+				ImU32 headerActiveColor = 0;
+				ImU32 headerTextColor = 0;
+
+				switch (UI::UIContext::GameModes(i)) {
+				case UI::UIContext::GameModes::Vanilla:
+				{
+					headerColor = UI::SwapColorEndianness(0x979797FF);
+					headerHoveredColor = UI::SwapColorEndianness(0x979797CC);
+					headerActiveColor = UI::SwapColorEndianness(0x979797FF);
+					headerTextColor = UI::SwapColorEndianness(0xFFFFFFFF);
+				}
+				break;
+
+				case UI::UIContext::GameModes::StyleSwitcher:
+				{
+					headerColor = UI::SwapColorEndianness(0x856E1CFF);
+					headerHoveredColor = UI::SwapColorEndianness(0x856E1CCC);
+					headerActiveColor = UI::SwapColorEndianness(0x856E1CFF);
+					headerTextColor = UI::SwapColorEndianness(0xFFFFFFFF);
+				}
+				break;
+
+				case UI::UIContext::GameModes::Crimson:
+				{
+					headerColor = UI::SwapColorEndianness(0x821031FF);
+					headerHoveredColor = UI::SwapColorEndianness(0x821031CC);
+					headerActiveColor = UI::SwapColorEndianness(0x821031FF);
+					headerTextColor = UI::SwapColorEndianness(0xFFFFFFFF);
+				}
+				break;
+
+				default:
+				{
+					headerColor = UI::SwapColorEndianness(0xB7B7B7FF);
+					headerHoveredColor = UI::SwapColorEndianness(0xB7B7B7CC);
+					headerActiveColor = UI::SwapColorEndianness(0xB7B7B7FF);
+					headerTextColor = UI::SwapColorEndianness(0xFFFFFFFF);
+				}
+				break;
+				}
+
+				ImGui::PushStyleColor(ImGuiCol_Header, headerColor);
+				ImGui::PushStyleColor(ImGuiCol_HeaderHovered, headerHoveredColor);
+				ImGui::PushStyleColor(ImGuiCol_HeaderActive, headerActiveColor);
+				ImGui::PushStyleColor(ImGuiCol_Text, headerTextColor);
+
+				bool isSelected = size_t(context.SelectedGameMode) == i;
+
+				if (ImGui::Selectable(modes[i], isSelected))
+					context.SelectedGameMode = (decltype(context.SelectedGameMode))i;
+
+				if (isSelected)
+					ImGui::SetItemDefaultFocus();
+
+				ImGui::PopStyleColor(4);
+			}
+
+			ImGui::PopStyleVar();
+
+			ImGui::EndCombo();
+		}
+
+		ImGui::PopStyleColor(3);
+
+		const Texture2DD3D11* pMainLogo = nullptr;
+		{
+			static const Texture2DD3D11 vanillaLogo(g_Image_VanillaLogo.GetRGBAData(), g_Image_VanillaLogo.GetWidth(), g_Image_VanillaLogo.GetHeight(), pDevice);
+			static const Texture2DD3D11 styleSwitcherLogo(g_Image_StyleSwitcherLogo.GetRGBAData(), g_Image_StyleSwitcherLogo.GetWidth(), g_Image_StyleSwitcherLogo.GetHeight(), pDevice);
+			static const Texture2DD3D11 crimsonLogo(g_Image_CrimsonMainLogo.GetRGBAData(), g_Image_CrimsonMainLogo.GetWidth(), g_Image_CrimsonMainLogo.GetHeight(), pDevice);
+
+			float heightOffset = 0.0f;
+
+			switch (context.SelectedGameMode) {
+			case UI::UIContext::GameModes::Vanilla:
+				pMainLogo = &vanillaLogo;
+				heightOffset = context.DefaultFontSize * 2.0f;
+				break;
+
+			case UI::UIContext::GameModes::StyleSwitcher:
+				pMainLogo = &styleSwitcherLogo;
+				heightOffset = -(context.DefaultFontSize * 3.2f);
+				break;
+
+			case UI::UIContext::GameModes::Crimson:
+				pMainLogo = &crimsonLogo;
+				heightOffset = context.DefaultFontSize * 2.0f;
+				break;
+
+			default:
+				pMainLogo = &vanillaLogo;
+				break;
+			}
+
+			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2{ (cntRegion.GetWidth() - pMainLogo->GetWidth()) * align, heightOffset });
+
+			ImGui::Image(*pMainLogo, pMainLogo->GetSize());//, { 0.001f, 0.001f }, { 0.999f, 0.999f });
+		}
+
+		// Bottom text
+		{
+			constexpr auto MODE_INFO_TEXT_VANILLA = "Experience the game how it was originally made.";
+			constexpr auto MODE_INFO_TEXT_SW_LINE1 = "This is DMC3 as you are probably familiar with. Closer to how the Switch Version and DDMK plays.";
+			constexpr auto MODE_INFO_TEXT_SW_LINE2 = "Vanilla + Style / Full Weapon Switching.";
+			constexpr auto MODE_INFP_TEXT_CRIMSON = "Enjoy the ultimate DMC3 experience! All new Gameplay Improvements and Expansions enabled.";
+
+			ImGui::PushFont(UI::g_ImGuiFont_Roboto[context.DefaultFontSize]);
+
+			const float vanillaWidth = ImGui::CalcTextSize(MODE_INFO_TEXT_VANILLA).x;
+			const float swWidthLine1 = ImGui::CalcTextSize(MODE_INFO_TEXT_SW_LINE1).x;
+			const float swWidthLine2 = ImGui::CalcTextSize(MODE_INFO_TEXT_SW_LINE2).x;
+			const float crimsonWidth = ImGui::CalcTextSize(MODE_INFP_TEXT_CRIMSON).x;
+
+			switch (context.SelectedGameMode) {
+			case UI::UIContext::GameModes::Vanilla:
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - vanillaWidth) * align);
+				ImGui::Text(MODE_INFO_TEXT_VANILLA);
+				break;
+
+			case UI::UIContext::GameModes::StyleSwitcher:
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() - context.DefaultFontSize * 3.0f);
+
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - swWidthLine1) * align);
+				ImGui::Text(MODE_INFO_TEXT_SW_LINE1);
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - swWidthLine2) * align);
+				ImGui::Text(MODE_INFO_TEXT_SW_LINE2);
+				break;
+
+			case UI::UIContext::GameModes::Crimson:
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 1.0f);
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - crimsonWidth) * align);
+				ImGui::Text(MODE_INFP_TEXT_CRIMSON);
+				break;
+
+			default:
+				break;
+			}
+
+			ImGui::PopFont();
+		}
+
+		ImGui::PopFont();
+	}
+	break;
+
+	case UI::UIContext::MainTabs::Character:
+	{
+		// Widget area
+		{
+			const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+			const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+									 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+			ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+			ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+			ImGui::PopStyleVar();
+			{
+				ImGui::Text("");
+
+				std::stringstream sstm;
+				sstm << "WINDOWSIZE X: " << g_renderSize.x;
+				std::string windowSizeX = sstm.str();
+
+				std::stringstream sstm2;
+				sstm2 << "WINDOWSIZE Y: " << g_renderSize.y;
+				std::string windowSizeY = sstm2.str();
+				const char* var1 = windowSizeX.c_str();
+				const char* var2 = windowSizeY.c_str();
+
+
+				ImGui::Text(var1);
+				ImGui::Text(var2);
+
+
+				GamepadClose(visibleMain, lastVisibleMain, CloseMain);
+
+
+				ImGui::PushItemWidth(150);
+
+				if (GUI_InputDefault2("Global Scale", activeConfig.globalScale, queuedConfig.globalScale, defaultConfig.globalScale, 0.1f, "%g",
+					ImGuiInputTextFlags_EnterReturnsTrue)) {
+					UpdateGlobalScale();
+				}
+
+				ImGui::PopItemWidth();
+
+				ImGui::Text("");
+				ImGui::Text("Credits");
+				ImGui::Text("Mia Berth - Project Lead, Programmer, Artist");
+				ImGui::Text("SSSiyan - Reverse Enginnering Researcher, QA, Programmer");
+				ImGui::Text("deepdarkkapustka - Reverse Enginnering Researcher, Programmer");
+				ImGui::Text("Darkness - Backend and UI Programmer");
+				ImGui::Text("");
+
+				ImGui::Text(PATREON_TEXT);
+				ImGui::Text("");
+
+				if (GUI_Button("Open Patreon Page")) {
+					ShellExecuteA(0, "open", PATREON_LINK, 0, 0, SW_SHOW);
+				}
+				ImGui::Text("");
+
+
+				ActorSection();
+				ArcadeSection();
+				BarsSection();
+				BossRush();
+				CameraSection();
+				Cosmetics();
+				Damage();
+				Dante();
+
+				if constexpr (debug) {
+					Debug();
+				}
+
+				Enemy();
+				Jukebox();
+				KeyBindings();
+				Lady();
+				Mobility();
+				Other();
+				Overlays();
+				Repair();
+				SpeedSection();
+				System();
+				Teleporter();
+				WeaponWheel();
+				SFX();
+				GameplayOptions();
+
+
+				TrainingSection();
+				Vergil();
+
+
+				ImGui::Text("");
+
+				GUI_Checkbox2("Show Credits", activeConfig.showCredits, queuedConfig.showCredits);
+
+
+				ImGui::Text("");
+			}
+			ImGui::EndChild();
+		}
+
+		// Tooltip area
+		{
+			const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+			const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+									 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+			cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+			ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+			ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+			ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+			ImGui::PopStyleVar();
+			{
+
+			}
+			ImGui::EndChild();
+		}
+	}
+	break;
+
+	case UI::UIContext::MainTabs::Quickplay:
+	{
+		// Widget area
+		{
+			const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+			const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+									 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+			ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+			ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+			ImGui::PopStyleVar();
+			{
+				static bool tmp; // Temporary demo, replace with your own code
+				static int index{ 0 }; // Temporary demo, replace with your own code
+				static std::array<char[20], 20> items{}; // Temporary demo, replace with your own code
+				static bool once = false;
+
+				if (!once) {
+					for (size_t i = 0; i < items.size(); i++) { // Temporary demo, replace with your own code
+						strcpy(items[i], std::format("Mission {}", i + 1).c_str());
+					}
+
+					once = true;
+				}
+
+				static size_t diffIdx = 0; // Temporary demo, replace with your own code
+				static std::array diffItems{ "Normal", "Whatever" }; // Temporary demo, replace with your own code
+				const float itemWidth = context.DefaultFontSize * 8.0f; // Temporary demo, replace with your own code
+
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
+
+				ImGui::Checkbox("Arcade", &tmp);
+
+				ImGui::PopFont();
+
+				UI::SeparatorEx(context.DefaultFontSize * 23.35f);
+
+				ImGui::SetNextItemWidth(itemWidth);
+
+				if (UI::BeginCombo("Mission", items[index], { 0.0f, 0.5f }, 0.6f)) {
+					for (size_t i = 0; i < items.size(); i++) {
+						const bool isSelected = i == index;
+
+						if (ImGui::Selectable(items[i], isSelected))
+							index = i;
+
+						if (isSelected)
+							ImGui::SetItemDefaultFocus();
+					}
+
+					ImGui::EndCombo();
+				}
+
+				ImGui::SameLine();
+
+				ImGui::SetNextItemWidth(itemWidth);
+				if (UI::BeginCombo("Difficulty", diffItems[diffIdx], { 0.0f, 0.5f }, 0.6f)) {
+					for (size_t i = 0; i < diffItems.size(); i++) {
+						const bool isSelected = i == diffIdx;
+
+						if (ImGui::Selectable(diffItems[i], isSelected))
+							diffIdx = i;
+
+						if (isSelected)
+							ImGui::SetItemDefaultFocus();
+					}
+
+					ImGui::EndCombo();
+				}
+			}
+			ImGui::EndChild();
+		}
+
+		// Tooltip area
+		{
+			const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+			const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+									 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+			cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+			ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+			ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+			ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+			ImGui::PopStyleVar();
+			{
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.1f)]);
+				ImGui::Text("Arcade");
+				ImGui::PopFont();
+
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+
+				ImGui::TextWrapped("Jumps you directly to a specific point in the game, triggered in the Main Menu. This will tag you at the Mission End Screen.");
+			}
+			ImGui::EndChild();
+		}
+	}
+	break;
+
+	case UI::UIContext::MainTabs::MusicSwitcher:
+	{
+
+	}
+	break;
+
+	case UI::UIContext::MainTabs::Options:
+	{
+
+	}
+	break;
+
+	case UI::UIContext::MainTabs::CheatsAndDebug:
+	{
+
+	}
+	break;
+
+	default:
+		context.SelectedTab = UI::UIContext::MainTabs::GameMode;
+		break;
+	}
 }
 
 #pragma endregion
 
-void GUI_Render() {
+void GUI_Render(IDXGISwapChain* pSwapChain) {
     static bool run = false;
 
     if (!run) {
@@ -7664,7 +9197,7 @@ void GUI_Render() {
 
 
     Welcome();
-    Main();
+    Main(pSwapChain);
     CreditsWindow();
     ShopWindow();
 
@@ -7721,11 +9254,11 @@ void GUI_Render() {
 void GUI_Init() {
     LogFunction();
 
-    BuildFonts();
+    //BuildFonts();
 
     UpdateGlobalScale();
 
-    GUI_UpdateStyle();
+    UI::SetStyleCrimson();
 
     Actor_UpdateIndices();
     Arcade_UpdateIndices();

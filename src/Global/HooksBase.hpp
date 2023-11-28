@@ -200,7 +200,7 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* SwapChain, UINT SyncIn
 
     ImGui::NewFrame();
 
-    GUI_Render();
+    GUI_Render(SwapChain);
 
     ImGui::Render();
 

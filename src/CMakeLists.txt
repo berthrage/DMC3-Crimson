@@ -56,16 +56,21 @@ set(CXX_FLAGS
 
 project(Crimson LANGUAGES CXX C ASM_MASM)
 
-file(GLOB FONTS_HDR Fonts/font_robotomedium.hpp)
-file(GLOB GLOBAL_SRC Global/ConfigFunctions.h
-                     Global/GlobalBase.cpp
-                     Global/GlobalBase.hpp
-                     Global/GUIBase.cpp
-                     Global/GUIBase.hpp
-                     Global/HooksBase.cpp
-                     Global/HooksBase.hpp)
+file(GLOB FONTS_HDR Fonts/RobotoMedium.hpp
+                    Fonts/RussoOneRegular.hpp
+)
 
-file(GLOB MAIN_SRC 
+file(GLOB GLOBAL_SRC 
+    Global/ConfigFunctions.h
+    Global/GlobalBase.cpp
+    Global/GlobalBase.hpp
+    Global/GUIBase.cpp
+    Global/GUIBase.hpp
+    Global/HooksBase.cpp
+    Global/HooksBase.hpp
+)
+
+file(GLOB MAIN_SRC
     Actor.cpp
     Actor.hpp
     ActorBase.cpp
@@ -138,19 +143,20 @@ file(GLOB MAIN_SRC
     Window.hpp
 )
 
-file(GLOB CORE_SRC Core/DebugSwitch.hpp
-                   Core/Core.cpp
-                   Core/Core.hpp
-                   Core/Core_ImGui.cpp
-                   Core/Core_ImGui.hpp
-                   Core/DataTypes.hpp
-                   Core/GUI.cpp
-                   Core/GUI.hpp
-                   Core/Input.cpp
-                   Core/Input.hpp
-                   Core/JSON.h
-                   Core/Macros.h
-                   Core/RapidJSON.h
+file(GLOB CORE_SRC 
+    Core/DebugSwitch.hpp
+    Core/Core.cpp
+    Core/Core.hpp
+    Core/Core_ImGui.cpp
+    Core/Core_ImGui.hpp
+    Core/DataTypes.hpp
+    Core/GUI.cpp
+    Core/GUI.hpp
+    Core/Input.cpp
+    Core/Input.hpp
+    Core/JSON.h
+    Core/Macros.h
+    Core/RapidJSON.h
 )
 
 set(UTILITY_SRC
@@ -160,18 +166,28 @@ set(UTILITY_SRC
     Utility/Detour.hpp
 )
 
+set(UI_SRC 
+    UI/EmbdeddedImages.hpp
+    UI/Texture2DD3D11.cpp
+    UI/Texture2DD3D11.hpp
+    UI/UI.cpp
+    UI/UI.hpp
+)
+
 source_group("Global" FILES ${GLOBAL_SRC})
 source_group("Crimson" FILES ${MAIN_SRC})
 source_group("Core" FILES ${CORE_SRC})
 source_group("Utility" FILES ${UTILITY_SRC})
 source_group("ASM" FILES ${MASM_SRC})
 source_group("Fonts" FILES ${FONTS_HDR})
+source_group("UI" FILES ${UI_SRC})
 
 add_library(${PROJECT_NAME} SHARED
             ${MAIN_SRC}
             ${UTILITY_SRC}
             ${MASM_SRC}
             ${FONTS_HDR}
+            ${UI_SRC}
 
             ${GLOBAL_SRC}
             ${CORE_SRC}
