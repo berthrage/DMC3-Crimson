@@ -13,28 +13,24 @@ extern HMODULE g_SDL2Mixer;
 bool LoadSDLDLL();
 bool LoadSDLMixerDLL();
 
-template<typename F>
-F GetSDLFunction(const char* name)
-{
-	if (g_SDL2 == NULL) {
-		if (!LoadSDLDLL()) {
-			return static_cast<F>(NULL);
-		}
-	}
+template <typename F> F GetSDLFunction(const char* name) {
+    if (g_SDL2 == NULL) {
+        if (!LoadSDLDLL()) {
+            return static_cast<F>(NULL);
+        }
+    }
 
-	return reinterpret_cast<F>(GetProcAddress(g_SDL2, name));
+    return reinterpret_cast<F>(GetProcAddress(g_SDL2, name));
 }
 
-template<typename F>
-F GetSDLMixerFunction(const char* name)
-{
-	if (g_SDL2Mixer == NULL) {
-		if (!LoadSDLMixerDLL()) {
-			return static_cast<F>(NULL);
-		}
-	}
+template <typename F> F GetSDLMixerFunction(const char* name) {
+    if (g_SDL2Mixer == NULL) {
+        if (!LoadSDLMixerDLL()) {
+            return static_cast<F>(NULL);
+        }
+    }
 
-	return reinterpret_cast<F>(GetProcAddress(g_SDL2Mixer, name));
+    return reinterpret_cast<F>(GetProcAddress(g_SDL2Mixer, name));
 }
 
 #pragma endregion

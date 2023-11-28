@@ -4,43 +4,30 @@ void SaveConfigFunction()
 void SaveConfig()
 #endif
 {
-	#ifndef NO_SAVE
-	LogFunction();
-	#endif
+#ifndef NO_SAVE
+    LogFunction();
+#endif
 
-	using namespace rapidjson;
-	using namespace JSON;
-
-
-
-	ToJSON(queuedConfig);
+    using namespace rapidjson;
+    using namespace JSON;
 
 
-
-	StringBuffer stringBuffer;
-	PrettyWriter<StringBuffer> prettyWriter(stringBuffer);
-
-	root.Accept(prettyWriter);
+    ToJSON(queuedConfig);
 
 
+    StringBuffer stringBuffer;
+    PrettyWriter<StringBuffer> prettyWriter(stringBuffer);
 
-	auto name = stringBuffer.GetString();
-	auto size = strlen(name);
+    root.Accept(prettyWriter);
 
-	if
-	(
-		!SaveFile
-		(
-			locationConfig,
-			name,
-			size
-		)
-	)
-	{
-		Log("SaveFile failed.");
-	}
+
+    auto name = stringBuffer.GetString();
+    auto size = strlen(name);
+
+    if (!SaveFile(locationConfig, name, size)) {
+        Log("SaveFile failed.");
+    }
 }
-
 
 
 #ifdef NO_LOAD
@@ -49,82 +36,65 @@ void LoadConfigFunction()
 void LoadConfig()
 #endif
 {
-	#ifndef NO_LOAD
-	LogFunction();
-	#endif
+#ifndef NO_LOAD
+    LogFunction();
+#endif
 
-	using namespace rapidjson;
-	using namespace JSON;
-
-
-
-	auto file = LoadFile(locationConfig);
-	if (!file)
-	{
-		Log("LoadFile failed.");
-
-		CreateMembers(defaultConfig);
-
-		SaveConfig();
-
-		return;
-	}
+    using namespace rapidjson;
+    using namespace JSON;
 
 
+    auto file = LoadFile(locationConfig);
+    if (!file) {
+        Log("LoadFile failed.");
 
-	auto name = const_cast<const char *>(reinterpret_cast<char *>(file));
+        CreateMembers(defaultConfig);
 
-	auto & result = root.Parse(name);
+        SaveConfig();
 
-	if (result.HasParseError())
-	{
-		auto code = result.GetParseError();
-		auto off = result.GetErrorOffset();
-
-		Log
-		(
-			"Parse failed. "
-			#ifdef _WIN64
-			"%u %llu",
-			#else
-			"%u %u",
-			#endif
-			code,
-			off
-		);
-
-		return;
-	}
+        return;
+    }
 
 
+    auto name = const_cast<const char*>(reinterpret_cast<char*>(file));
 
-	CreateMembers(defaultConfig);
+    auto& result = root.Parse(name);
 
-	// At this point all file members have been applied. Extra or obsolete file members can exist.
-	// If members were missing in the file they were created and have their default values.
+    if (result.HasParseError()) {
+        auto code = result.GetParseError();
+        auto off  = result.GetErrorOffset();
 
+        Log("Parse failed. "
+#ifdef _WIN64
+            "%u %llu",
+#else
+              "%u %u",
+#endif
+            code, off);
 
-
-	// The actual configs are still untouched though.
-	// Let's update them!
-
-	ToConfig(queuedConfig);
-
-	CopyMemory
-	(
-		&activeConfig,
-		&queuedConfig,
-		sizeof(activeConfig)
-	);
-
+        return;
+    }
 
 
-	SaveConfig();
+    CreateMembers(defaultConfig);
 
-	// SaveConfig here in case new members were created.
-	// This way we don't have to rely on a later SaveConfig to update the file.
+    // At this point all file members have been applied. Extra or obsolete file members can exist.
+    // If members were missing in the file they were created and have their default values.
+
+
+    // The actual configs are still untouched though.
+    // Let's update them!
+
+    ToConfig(queuedConfig);
+
+    CopyMemory(&activeConfig, &queuedConfig, sizeof(activeConfig));
+
+
+    SaveConfig();
+
+    // SaveConfig here in case new members were created.
+    // This way we don't have to rely on a later SaveConfig to update the file.
 }
-
 
 
 #ifdef NO_INIT
@@ -133,25 +103,18 @@ void InitConfigFunction()
 void InitConfig()
 #endif
 {
-	#ifndef NO_INIT
-	LogFunction();
-	#endif
+#ifndef NO_INIT
+    LogFunction();
+#endif
 
-	using namespace rapidjson;
-	using namespace JSON;
+    using namespace rapidjson;
+    using namespace JSON;
 
-	CreateDirectoryA(directoryName, 0);
+    CreateDirectoryA(directoryName, 0);
 
-	snprintf
-	(
-		locationConfig,
-		sizeof(locationConfig),
-		"%s/%s",
-		directoryName,
-		fileName
-	);
+    snprintf(locationConfig, sizeof(locationConfig), "%s/%s", directoryName, fileName);
 
-	root.SetObject();
+    root.SetObject();
 
-	g_allocator = &root.GetAllocator();
+    g_allocator = &root.GetAllocator();
 }

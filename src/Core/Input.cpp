@@ -10,318 +10,204 @@ using namespace DI8;
 
 #define LogFail(name, value) Log(name " failed. %X", value)
 
-bool InputDevice::CreateInterface()
-{
-	HRESULT result = 0;
+bool InputDevice::CreateInterface() {
+    HRESULT result = 0;
 
 
+    result = DirectInput8Create((HINSTANCE)appBaseAddr, 0x800, IID_IDirectInput8A, reinterpret_cast<void**>(&deviceInterface), 0);
 
-	result = DirectInput8Create
-	(
-		(HINSTANCE)appBaseAddr,
-		0x800,
-		IID_IDirectInput8A,
-		reinterpret_cast<void**>(&deviceInterface),
-		0
-	);
+    if (result != DI_OK) {
+        LogFail("DirectInput8Create", result);
 
-	if (result != DI_OK)
-	{
-		LogFail("DirectInput8Create", result);
-
-		return false;
-	}
+        return false;
+    }
 
 
-
-	return true;
+    return true;
 }
 
-bool InputDevice::Create(const GUID& guid, const DIDATAFORMAT* dataFormat, DWORD setCooperativeLevelFlags)
-{
-	HRESULT result = 0;
+bool InputDevice::Create(const GUID& guid, const DIDATAFORMAT* dataFormat, DWORD setCooperativeLevelFlags) {
+    HRESULT result = 0;
 
 
+    result = deviceInterface->CreateDevice(guid, &device, 0);
 
-	result = deviceInterface->CreateDevice
-	(
-		guid,
-		&device,
-		0
-	);
+    if (result != DI_OK) {
+        LogFail("deviceInterface->CreateDevice", result);
 
-	if (result != DI_OK)
-	{
-		LogFail("deviceInterface->CreateDevice", result);
-
-		return false;
-	}
+        return false;
+    }
 
 
+    result = device->SetCooperativeLevel(appWindow, setCooperativeLevelFlags);
 
-	result = device->SetCooperativeLevel
-	(
-		appWindow,
-		setCooperativeLevelFlags
-	);
+    if (result != DI_OK) {
+        LogFail("device->SetCooperativeLevel", result);
 
-	if (result != DI_OK)
-	{
-		LogFail("device->SetCooperativeLevel", result);
-
-		return false;
-	}
+        return false;
+    }
 
 
+    result = device->SetDataFormat(dataFormat);
 
-	result = device->SetDataFormat(dataFormat);
+    if (result != DI_OK) {
+        LogFail("device->SetDataFormat", result);
 
-	if (result != DI_OK)
-	{
-		LogFail("device->SetDataFormat", result);
-
-		return false;
-	}
+        return false;
+    }
 
 
+    result = device->Acquire();
 
-	result = device->Acquire();
-
-	if (result != DI_OK)
-	{
-		LogFail("device->Acquire", result);
-	}
+    if (result != DI_OK) {
+        LogFail("device->Acquire", result);
+    }
 
 
-
-	init = true;
-
+    init = true;
 
 
-	return true;
+    return true;
 }
 
-void InputDevice::Update(DWORD size, void* addr)
-{
-	if (!init)
-	{
-		return;
-	}
+void InputDevice::Update(DWORD size, void* addr) {
+    if (!init) {
+        return;
+    }
 
 
+    HRESULT result = 0;
 
-	HRESULT result = 0;
-
-	result = device->GetDeviceState
-	(
-		size,
-		addr
-	);
+    result = device->GetDeviceState(size, addr);
 
 
+    if ((GetForegroundWindow() == appWindow) && ((result == DIERR_INPUTLOST) || (result == DIERR_NOTACQUIRED))) {
+        result = device->Acquire();
 
-	if
-		(
-			(GetForegroundWindow() == appWindow) &&
-			(
-				(result == DIERR_INPUTLOST) ||
-				(result == DIERR_NOTACQUIRED)
-				)
-			)
-	{
-		result = device->Acquire();
-
-		Log("device->Acquire");
-	}
+        Log("device->Acquire");
+    }
 }
 
 
-bool Keyboard::Create()
-{
-	if (!CreateInterface())
-	{
-		Log("CreateInterface failed.");
+bool Keyboard::Create() {
+    if (!CreateInterface()) {
+        Log("CreateInterface failed.");
 
-		return false;
-	}
+        return false;
+    }
 
-	if
-		(
-			!InputDevice::Create
-			(
-				GUID_SysKeyboard,
-				&c_dfDIKeyboard,
-				DISCL_NONEXCLUSIVE |
-				DISCL_FOREGROUND
-			)
-			)
-	{
-		Log("InputDevice::Create failed.");
+    if (!InputDevice::Create(GUID_SysKeyboard, &c_dfDIKeyboard, DISCL_NONEXCLUSIVE | DISCL_FOREGROUND)) {
+        Log("InputDevice::Create failed.");
 
-		return false;
-	}
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
-void Keyboard::Update()
-{
-	InputDevice::Update
-	(
-		sizeof(state),
-		&state
-	);
+void Keyboard::Update() {
+    InputDevice::Update(sizeof(state), &state);
 }
 
 
-bool Mouse::Create()
-{
-	if (!CreateInterface())
-	{
-		Log("CreateInterface failed.");
+bool Mouse::Create() {
+    if (!CreateInterface()) {
+        Log("CreateInterface failed.");
 
-		return false;
-	}
+        return false;
+    }
 
-	if
-		(
-			!InputDevice::Create
-			(
-				GUID_SysMouse,
-				&c_dfDIMouse2,
-				DISCL_NONEXCLUSIVE |
-				DISCL_FOREGROUND
-			)
-			)
-	{
-		Log("InputDevice::Create failed.");
+    if (!InputDevice::Create(GUID_SysMouse, &c_dfDIMouse2, DISCL_NONEXCLUSIVE | DISCL_FOREGROUND)) {
+        Log("InputDevice::Create failed.");
 
-		return false;
-	}
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
-void Mouse::Update()
-{
-	InputDevice::Update
-	(
-		sizeof(state),
-		&state
-	);
+void Mouse::Update() {
+    InputDevice::Update(sizeof(state), &state);
 }
 
-bool Gamepad::Create()
-{
-	if (!CreateInterface())
-	{
-		Log("CreateInterface failed.");
+bool Gamepad::Create() {
+    if (!CreateInterface()) {
+        Log("CreateInterface failed.");
 
-		return false;
-	}
+        return false;
+    }
 
 
+    HRESULT result = 0;
 
-	HRESULT result = 0;
+    result = deviceInterface->EnumDevices(0, enumFunc, 0, DIEDFL_ALLDEVICES);
 
-	result = deviceInterface->EnumDevices
-	(
-		0,
-		enumFunc,
-		0,
-		DIEDFL_ALLDEVICES
-	);
+    if (result != DI_OK) {
+        Log("EnumDevices failed.");
 
-	if (result != DI_OK)
-	{
-		Log("EnumDevices failed.");
+        return false;
+    }
 
-		return false;
-	}
+    if (!match) {
+        Log("Gamepad: No Match");
 
-	if (!match)
-	{
-		Log("Gamepad: No Match");
+        return false;
+    }
 
-		return false;
-	}
-
-	// LogGUID("gamepad guid ", deviceInstance.guidInstance);
+    // LogGUID("gamepad guid ", deviceInstance.guidInstance);
 
 
+    if (!InputDevice::Create(deviceInstance.guidInstance, &c_dfDIJoystick, DISCL_NONEXCLUSIVE | DISCL_BACKGROUND)) {
+        Log("InputDevice::Create failed.");
 
-	if
-		(
-			!InputDevice::Create
-			(
-				deviceInstance.guidInstance,
-				&c_dfDIJoystick,
-				DISCL_NONEXCLUSIVE |
-				DISCL_BACKGROUND
-			)
-			)
-	{
-		Log("InputDevice::Create failed.");
+        return false;
+    }
 
-		return false;
-	}
-
-	return true;
+    return true;
 }
 
-void Gamepad::Update()
-{
-	InputDevice::Update
-	(
-		sizeof(state),
-		&state
-	);
+void Gamepad::Update() {
+    InputDevice::Update(sizeof(state), &state);
 }
 
 namespace XI {
-	new_XInputGetState_t new_XInputGetState = 0;
+new_XInputGetState_t new_XInputGetState = 0;
 
-	void new_Init(const char* libName)
-	{
-		LogFunction();
-
+void new_Init(const char* libName) {
+    LogFunction();
 
 
-		byte32 error = 0;
+    byte32 error = 0;
 
 
+    SetLastError(0);
 
-		SetLastError(0);
+    auto lib = LoadLibraryA(libName);
+    if (!lib) {
+        error = GetLastError();
 
-		auto lib = LoadLibraryA(libName);
-		if (!lib)
-		{
-			error = GetLastError();
+        Log("LoadLibraryA failed. %s %X", libName, error);
 
-			Log("LoadLibraryA failed. %s %X", libName, error);
-
-			return;
-		}
+        return;
+    }
 
 
+    // XInputGetState
+    {
+        const char* funcName = "XInputGetState";
 
-		// XInputGetState
-		{
-			const char* funcName = "XInputGetState";
+        SetLastError(0);
 
-			SetLastError(0);
+        auto funcAddr = GetProcAddress(lib, funcName);
+        if (!funcAddr) {
+            error = GetLastError();
 
-			auto funcAddr = GetProcAddress(lib, funcName);
-			if (!funcAddr)
-			{
-				error = GetLastError();
+            Log("GetProcAddress failed. %s %X", funcName, error);
 
-				Log("GetProcAddress failed. %s %X", funcName, error);
+            return;
+        }
 
-				return;
-			}
-
-			new_XInputGetState = reinterpret_cast<new_XInputGetState_t>(funcAddr);
-		}
-	}
-};
+        new_XInputGetState = reinterpret_cast<new_XInputGetState_t>(funcAddr);
+    }
+}
+}; // namespace XI

@@ -1,5 +1,5 @@
 #pragma once
 
 namespace Sound {
-	void ToggleRelocations(bool enable);
+void ToggleRelocations(bool enable);
 }

@@ -3,41 +3,41 @@
 #include "Vars.hpp"
 
 extern "C" {
-	// SampleMod
-	void SampleModDetour1();
+// SampleMod
+void SampleModDetour1();
 
-	// GuardGravity
-	void GuardGravityDetour();
+// GuardGravity
+void GuardGravityDetour();
 
-	// EnableAirTaunt
-	void EnableAirTauntDetour();
+// EnableAirTaunt
+void EnableAirTauntDetour();
 
-	// SetAirTaunt
-	void SetAirTauntDetour();
+// SetAirTaunt
+void SetAirTauntDetour();
 
-	// CreateEffect
-	extern int createEffectBank;
-	extern int createEffectID;
-	void CreateEffectDetour();
+// CreateEffect
+extern int createEffectBank;
+extern int createEffectID;
+void CreateEffectDetour();
 
-	// HoldToCrazyCombo
-	void HoldToCrazyComboDetour();
+// HoldToCrazyCombo
+void HoldToCrazyComboDetour();
 
-	// DisableDriveHold
-	void DisableDriveHoldDetour();
+// DisableDriveHold
+void DisableDriveHoldDetour();
 
-	// HudHPSeparation
-	void HudHPSeparationDetour();
+// HudHPSeparation
+void HudHPSeparationDetour();
 
-	// HudStyleBarPos
-	void HudStyleBarPosDetour();
+// HudStyleBarPos
+void HudStyleBarPosDetour();
 
-	// ShootRemapDown
-	void ShootRemapDownDetour();
-	void ShootRemapHoldDetour();
+// ShootRemapDown
+void ShootRemapDownDetour();
+void ShootRemapHoldDetour();
 
-	// VergilNeutralTrick
-	void VergilNeutralTrickDetour();
+// VergilNeutralTrick
+void VergilNeutralTrickDetour();
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);

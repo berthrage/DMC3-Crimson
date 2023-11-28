@@ -37,264 +37,214 @@
 #include "Core/DebugSwitch.hpp"
 
 
+uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
+    if (reason == DLL_PROCESS_ATTACH) {
+        InitLog("logs", "Mary.txt");
 
-uint32 DllMain
-(
-	HINSTANCE instance,
-	uint32 reason,
-	LPVOID reserved
-)
-{
-	if (reason == DLL_PROCESS_ATTACH)
-	{
-		InitLog("logs", "Mary.txt");
+        Log("Session started.");
 
-		Log("Session started.");
+        if (!Core_Memory_Init()) {
+            Log("Core_Memory_Init failed.");
 
-		if (!Core_Memory_Init())
-		{
-			Log("Core_Memory_Init failed.");
+            return 0;
+        }
 
-			return 0;
-		}
+        if (!memoryData.InitData(64 * 1024 * 1024)) {
+            Log("memoryData.InitData failed.");
 
-		if (!memoryData.InitData(64 * 1024 * 1024))
-		{
-			Log("memoryData.InitData failed.");
+            return 0;
+        }
 
-			return 0;
-		}
+        SetMemory(memoryData.dataAddr, 0xCC, memoryData.dataSize);
 
-		SetMemory
-		(
-			memoryData.dataAddr,
-			0xCC,
-			memoryData.dataSize
-		);
+        if (!protectionHelper.Init(4096)) {
+            Log("protectionHelper.Init failed.");
 
-		if (!protectionHelper.Init(4096))
-		{
-			Log("protectionHelper.Init failed.");
+            return 0;
+        }
 
-			return 0;
-		}
 
+        if (!backupHelper.Init((8 * 1024 * 1024), (1 * 1024 * 1024))) {
+            Log("backupHelper.Init failed.");
 
+            return 0;
+        }
 
-		if
-		(
-			!backupHelper.Init
-			(
-				(8 * 1024 * 1024),
-				(1 * 1024 * 1024)
-			)
-		)
-		{
-			Log("backupHelper.Init failed.");
 
-			return 0;
-		}
+        InitConfig();
+        LoadConfig();
 
 
+        ExpConfig::InitExp();
+        ExpConfig::LoadExp();
 
-		InitConfig();
-		LoadConfig();
 
+        if (!Memory_Init()) {
+            Log("Memory_Init failed.");
 
+            return 0;
+        }
 
-		ExpConfig::InitExp();
-		ExpConfig::LoadExp();
+        Memory_ToggleExtendVectors(true);
 
+        Internal_Init();
 
+        if (!File_Init()) {
+            Log("File_Init failed.");
 
-		if (!Memory_Init())
-		{
-			Log("Memory_Init failed.");
+            return 0;
+        }
 
-			return 0;
-		}
+        if (!FMOD_Init()) {
+            Log("FMOD_Init failed.");
 
-		Memory_ToggleExtendVectors(true);
+            return 0;
+        }
 
-		Internal_Init();
+        if (!Sound_Init()) {
+            Log("Sound_Init failed.");
 
-		if (!File_Init())
-		{
-			Log("File_Init failed.");
+            return 0;
+        }
 
-			return 0;
-		}
 
-		if (!FMOD_Init())
-		{
-			Log("FMOD_Init failed.");
+        /*
+        Tldr: We often run toggle functions twice with false first to ensure that
+        backupHelper gets the correct data.
 
-			return 0;
-		}
+        Toggle and ToggleRelocations share some addresses.
 
-		if (!Sound_Init())
-		{
-			Log("Sound_Init failed.");
+        If ToggleRelocations runs first Toggle will now push the modified data
+        instead of the default one to backupHelper.
 
-			return 0;
-		}
+        This becomes problematic when the data is later restored.
 
+        ToggleRelocations correctly writes the default data, but Toggle will write
+        the modified data and this will likely cause a crash later.
 
+        To avoid this we run the toggle functions twice. The first time with false.
 
-		/*
-		Tldr: We often run toggle functions twice with false first to ensure that
-		backupHelper gets the correct data.
+        This way, ToggleRelocations writes the default data and Toggle will also
+        push the default data to backupHelper.
+        */
 
-		Toggle and ToggleRelocations share some addresses.
+        Actor::Toggle(false);
+        Actor::Toggle(activeConfig.Actor.enable);
 
-		If ToggleRelocations runs first Toggle will now push the modified data
-		instead of the default one to backupHelper.
 
-		This becomes problematic when the data is later restored.
+        ToggleBossLadyFixes(false);
+        ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
 
-		ToggleRelocations correctly writes the default data, but Toggle will write
-		the modified data and this will likely cause a crash later.
+        ToggleBossVergilFixes(false);
+        ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
 
-		To avoid this we run the toggle functions twice. The first time with false.
 
-		This way, ToggleRelocations writes the default data and Toggle will also
-		push the default data to backupHelper.
-		*/
+        ToggleDergil(false);
+        ToggleDergil(activeConfig.dergil);
 
-		Actor::Toggle(false);
-		Actor::Toggle(activeConfig.Actor.enable);
 
+        Camera::Toggle(false);
+        Camera::Toggle(true);
 
+        Camera::ToggleInvertX(false);
+        Camera::ToggleInvertX(activeConfig.cameraInvertX);
 
-		ToggleBossLadyFixes(false);
-		ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
+        Camera::ToggleDisableBossCamera(false);
+        Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
 
-		ToggleBossVergilFixes(false);
-		ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
 
+        ToggleNoDevilForm(false);
+        ToggleNoDevilForm(activeConfig.noDevilForm);
 
-		ToggleDergil(false);
-		ToggleDergil(activeConfig.dergil);
 
+        ToggleDeplete(false);
+        ToggleDeplete(true);
 
+        ToggleOrbReach(false);
+        ToggleOrbReach(true);
 
-		Camera::Toggle(false);
-		Camera::Toggle(true);
+        ToggleDamage(false);
+        ToggleDamage(true);
 
-		Camera::ToggleInvertX(false);
-		Camera::ToggleInvertX(activeConfig.cameraInvertX);
 
-		Camera::ToggleDisableBossCamera(false);
-		Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
+        UpdateCrazyComboLevelMultiplier();
 
+        ToggleAirHikeCoreAbility(activeConfig.airHikeCoreAbility);
+        ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+        ToggleRebellionInfiniteSwordPierce(activeConfig.Rebellion.infiniteSwordPierce);
+        ToggleYamatoForceEdgeInfiniteRoundTrip(activeConfig.YamatoForceEdge.infiniteRoundTrip);
+        ToggleEbonyIvoryFoursomeTime(activeConfig.EbonyIvory.foursomeTime);
+        ToggleEbonyIvoryInfiniteRainStorm(activeConfig.EbonyIvory.infiniteRainStorm);
+        ToggleArtemisSwapNormalShotAndMultiLock(activeConfig.Artemis.swapNormalShotAndMultiLock);
+        ToggleArtemisInstantFullCharge(activeConfig.Artemis.instantFullCharge);
+        ToggleChronoSwords(activeConfig.SummonedSwords.chronoSwords);
 
 
-		ToggleNoDevilForm(false);
-		ToggleNoDevilForm(activeConfig.noDevilForm);
+        Arcade::Toggle(false);
+        Arcade::Toggle(activeConfig.Arcade.enable);
 
 
+        // @Merge
+        Event_Toggle(false);
+        Event_Toggle(true);
 
-		ToggleDeplete(false);
-		ToggleDeplete(true);
+        Event_Init();
 
-		ToggleOrbReach(false);
-		ToggleOrbReach(true);
 
-		ToggleDamage(false);
-		ToggleDamage(true);
+        ToggleSkipIntro(activeConfig.skipIntro);
+        ToggleSkipCutscenes(activeConfig.skipCutscenes);
 
 
+        HUD_Init();
 
-		UpdateCrazyComboLevelMultiplier();
+        ToggleHideMainHUD(false);
+        ToggleHideMainHUD(activeConfig.hideMainHUD);
 
-		ToggleAirHikeCoreAbility               (activeConfig.airHikeCoreAbility                );
-		ToggleRoyalguardForceJustFrameRelease  (activeConfig.Royalguard.forceJustFrameRelease  );
-		ToggleRebellionInfiniteSwordPierce     (activeConfig.Rebellion.infiniteSwordPierce     );
-		ToggleYamatoForceEdgeInfiniteRoundTrip (activeConfig.YamatoForceEdge.infiniteRoundTrip );
-		ToggleEbonyIvoryFoursomeTime           (activeConfig.EbonyIvory.foursomeTime           );
-		ToggleEbonyIvoryInfiniteRainStorm      (activeConfig.EbonyIvory.infiniteRainStorm      );
-		ToggleArtemisSwapNormalShotAndMultiLock(activeConfig.Artemis.swapNormalShotAndMultiLock);
-		ToggleArtemisInstantFullCharge         (activeConfig.Artemis.instantFullCharge         );
-		ToggleChronoSwords                     (activeConfig.SummonedSwords.chronoSwords       );
+        ToggleHideLockOn(false);
+        ToggleHideLockOn(activeConfig.hideLockOn);
 
+        ToggleHideBossHUD(false);
+        ToggleHideBossHUD(activeConfig.hideBossHUD);
 
+        ToggleForceVisibleHUD(false);
+        ToggleForceVisibleHUD(activeConfig.forceVisibleHUD);
 
-		Arcade::Toggle(false);
-		Arcade::Toggle(activeConfig.Arcade.enable);
 
+        Scene::Toggle(false);
+        Scene::Toggle(true);
 
+        Speed::Toggle(false);
+        Speed::Toggle(true);
 
-		// @Merge
-		Event_Toggle(false);
-		Event_Toggle(true);
 
-		Event_Init();
+        ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
+        ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
+        ToggleDisableTimer(activeConfig.disableTimer);
+        ToggleInfiniteBullets(activeConfig.infiniteBullets);
 
+        // Why are we calling these with false first????
 
+        ToggleForceWindowFocus(false);
+        ToggleForceWindowFocus(activeConfig.forceWindowFocus);
 
-		ToggleSkipIntro    (activeConfig.skipIntro    );
-		ToggleSkipCutscenes(activeConfig.skipCutscenes);
+        ToggleDisablePlayerActorIdleTimer(false);
+        ToggleDisablePlayerActorIdleTimer(activeConfig.disablePlayerActorIdleTimer);
 
+        ToggleRebellionInfiniteShredder(false);
+        ToggleRebellionInfiniteShredder(activeConfig.rebellionInfiniteShredder);
 
+        ToggleRebellionHoldDrive(false);
+        ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
 
-		HUD_Init();
+        XI::new_Init("xinput9_1_0.dll");
 
-		ToggleHideMainHUD(false);
-		ToggleHideMainHUD(activeConfig.hideMainHUD);
+        Hooks::Init();
 
-		ToggleHideLockOn(false);
-		ToggleHideLockOn(activeConfig.hideLockOn);
+        InitDetours();
 
-		ToggleHideBossHUD(false);
-		ToggleHideBossHUD(activeConfig.hideBossHUD);
+        // Remove FMODGetCodecDescription Label
+        SetMemory((appBaseAddr + 0x5505B5), 0, 23, MemoryFlags_VirtualProtectDestination);
+    }
 
-		ToggleForceVisibleHUD(false);
-		ToggleForceVisibleHUD(activeConfig.forceVisibleHUD);
-
-
-
-		Scene::Toggle(false);
-		Scene::Toggle(true);
-
-		Speed::Toggle(false);
-		Speed::Toggle(true);
-
-
-
-		ToggleInfiniteHitPoints  (activeConfig.infiniteHitPoints  );
-		ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
-		ToggleDisableTimer       (activeConfig.disableTimer       );
-		ToggleInfiniteBullets    (activeConfig.infiniteBullets    );
-
-		// Why are we calling these with false first????
-
-		ToggleForceWindowFocus(false);
-		ToggleForceWindowFocus(activeConfig.forceWindowFocus);
-
-		ToggleDisablePlayerActorIdleTimer(false);
-		ToggleDisablePlayerActorIdleTimer(activeConfig.disablePlayerActorIdleTimer);
-
-		ToggleRebellionInfiniteShredder(false);
-		ToggleRebellionInfiniteShredder(activeConfig.rebellionInfiniteShredder);
-
-		ToggleRebellionHoldDrive(false);
-		ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
-
-		XI::new_Init("xinput9_1_0.dll");
-
-		Hooks::Init();
-
-		InitDetours();
-
-		// Remove FMODGetCodecDescription Label
-		SetMemory
-		(
-			(appBaseAddr + 0x5505B5),
-			0,
-			23,
-			MemoryFlags_VirtualProtectDestination
-		);
-	}
-
-	return 1;
+    return 1;
 }

@@ -7,63 +7,53 @@
 
 #include "Core/Macros.h"
 
-void ToggleForceWindowFocus(bool enable)
-{
-	LogFunction(enable);
+void ToggleForceWindowFocus(bool enable) {
+    LogFunction(enable);
 
-	static bool run = false;
+    static bool run = false;
 
-	{
-		auto addr = (appBaseAddr + 0x487F6);
-		constexpr uint64 size = 6;
-		/*
-		dmc3.exe+487F6 - 0F85 8D000000     - jne dmc3.exe+48889
-		dmc3.exe+487FC - 48 8B 0D CD5B5900 - mov rcx,[dmc3.exe+5DE3D0]
-		*/
+    {
+        auto addr             = (appBaseAddr + 0x487F6);
+        constexpr uint64 size = 6;
+        /*
+        dmc3.exe+487F6 - 0F85 8D000000     - jne dmc3.exe+48889
+        dmc3.exe+487FC - 48 8B 0D CD5B5900 - mov rcx,[dmc3.exe+5DE3D0]
+        */
 
-		if (!run)
-		{
-			backupHelper.Save(addr, size);
-		}
+        if (!run) {
+            backupHelper.Save(addr, size);
+        }
 
-		if (enable)
-		{
-			Write<byte16>(addr, 0xE990);
-		}
-		else
-		{
-			backupHelper.Restore(addr);
-		}
-	}
+        if (enable) {
+            Write<byte16>(addr, 0xE990);
+        } else {
+            backupHelper.Restore(addr);
+        }
+    }
 
-	// Force gamepad focus.
-	{
-		auto addr = (appBaseAddr + 0x41C0A);
-		auto dest = (appBaseAddr + 0x41C10);
-		constexpr uint64 size = 6;
-		/*
-		dmc3.exe+41C0A - 0F84 06040000 - je dmc3.exe+42016
-		dmc3.exe+41C10 - 8B 4B 04      - mov ecx,[rbx+04]
-		*/
+    // Force gamepad focus.
+    {
+        auto addr             = (appBaseAddr + 0x41C0A);
+        auto dest             = (appBaseAddr + 0x41C10);
+        constexpr uint64 size = 6;
+        /*
+        dmc3.exe+41C0A - 0F84 06040000 - je dmc3.exe+42016
+        dmc3.exe+41C10 - 8B 4B 04      - mov ecx,[rbx+04]
+        */
 
-		if (!run)
-		{
-			backupHelper.Save(addr, size);
-		}
+        if (!run) {
+            backupHelper.Save(addr, size);
+        }
 
-		if (enable)
-		{
-			WriteAddress(addr, dest, size);
-		}
-		else
-		{
-			backupHelper.Restore(addr);
-		}
-	}
+        if (enable) {
+            WriteAddress(addr, dest, size);
+        } else {
+            backupHelper.Restore(addr);
+        }
+    }
 
 
-
-	run = true;
+    run = true;
 }
 
 
@@ -86,9 +76,6 @@ void ToggleForceWindowFocus(bool enable)
 // 		WriteAddress((appBaseAddr + 0x41C0A), (enable) ? (appBaseAddr + 0x41C10) : (appBaseAddr + 0x42016), 6);
 // 	}
 // }
-
-
-
 
 
 // export void UpdateWindowSize

@@ -15,32 +15,32 @@
 
 namespace DXGI {
 
-	extern IDXGISwapChain* swapChain;
+extern IDXGISwapChain* swapChain;
 
 };
 
 namespace D3D10 {
 
-	extern ID3D10Device* device;
-	extern ID3D10RenderTargetView* renderTargetView;
+extern ID3D10Device* device;
+extern ID3D10RenderTargetView* renderTargetView;
 
-};
+}; // namespace D3D10
 
 namespace D3D11 {
 
-	extern ID3D11Device* device;
-	extern ID3D11DeviceContext* deviceContext;
-	extern ID3D11RenderTargetView* renderTargetView;
+extern ID3D11Device* device;
+extern ID3D11DeviceContext* deviceContext;
+extern ID3D11RenderTargetView* renderTargetView;
 
-};
+}; // namespace D3D11
 
 extern Keyboard keyboard;
-extern Mouse    mouse;
-extern Gamepad  gamepad;
+extern Mouse mouse;
+extern Gamepad gamepad;
 
 namespace XI {
 
-	extern XINPUT_STATE state;
+extern XINPUT_STATE state;
 
 };
 
@@ -67,12 +67,7 @@ extern NewActorData g_newActorData[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT];
 
 void ClearActorData();
 
-NewActorData& GetNewActorData
-(
-	uint8 playerIndex,
-	uint8 characterIndex,
-	uint8 entityIndex
-);
+NewActorData& GetNewActorData(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex);
 
 #pragma endregion
 

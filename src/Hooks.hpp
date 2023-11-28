@@ -1,5 +1,5 @@
 #pragma once
 
 namespace Hooks {
-	void Init();
+void Init();
 }

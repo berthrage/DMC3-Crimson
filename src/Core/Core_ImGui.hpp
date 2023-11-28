@@ -8,31 +8,23 @@
 namespace CoreImGui {
 
 #pragma region Windows
-	void UpdateMouseCursor(HWND windowHandle);
+void UpdateMouseCursor(HWND windowHandle);
 #pragma endregion
 
 #pragma region DI8
-	namespace DI8 {
-		void Init();
-		void UpdateKeyboard(::DI8::DIKEYBOARDSTATE* stateAddr);
+namespace DI8 {
+void Init();
+void UpdateKeyboard(::DI8::DIKEYBOARDSTATE* stateAddr);
 
-		extern vec2 mousePositionMultiplier;
+extern vec2 mousePositionMultiplier;
 
-		void UpdateMouse
-		(
-			HWND windowHandle,
-			DIMOUSESTATE2* stateAddr
-		);
-	}
+void UpdateMouse(HWND windowHandle, DIMOUSESTATE2* stateAddr);
+} // namespace DI8
 
-	namespace XI {
-		void UpdateGamepad(XINPUT_STATE* stateAddr);
-	}
+namespace XI {
+void UpdateGamepad(XINPUT_STATE* stateAddr);
+}
 #pragma endregion
 
-	void UpdateDisplaySize
-	(
-		uint32 width,
-		uint32 height
-	);
-}
+void UpdateDisplaySize(uint32 width, uint32 height);
+} // namespace CoreImGui

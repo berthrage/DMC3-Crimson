@@ -2,10 +2,10 @@
 
 #include "Core/DataTypes.hpp"
 
-typedef byte8* (__fastcall* GetPlayerActorBaseAddressByEffectData_t)(byte8* effectDataAddr);
+typedef byte8*(__fastcall* GetPlayerActorBaseAddressByEffectData_t)(byte8* effectDataAddr);
 
 extern GetPlayerActorBaseAddressByEffectData_t GetPlayerActorBaseAddressByEffectData;
 
 namespace Actor {
-	void ToggleBase(bool enable);
+void ToggleBase(bool enable);
 }

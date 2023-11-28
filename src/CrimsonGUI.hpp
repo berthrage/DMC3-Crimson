@@ -4,13 +4,12 @@
 #include <vector>
 
 namespace TAB {
-	enum
-	{
-		ITEMS,
-		DANTE,
-		VERGIL,
-		COUNT,
-	};
+enum {
+    ITEMS,
+    DANTE,
+    VERGIL,
+    COUNT,
+};
 };
 
 extern std::vector<KeyBinding> keyBindings;
