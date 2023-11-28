@@ -193,6 +193,7 @@ set(DI_SOURCE
 )
 
 set(DI_CORE_SOURCE
+    Core/DebugSwitch.hpp
     Core/Core.cpp
     Core/Core.hpp
     Core/DataTypes.hpp
