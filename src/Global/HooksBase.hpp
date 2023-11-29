@@ -204,6 +204,11 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
 
     ImGui_ImplWin32_GetDpiScaleForHwnd(swapDesc.OutputWindow);
 
+    auto& io = ImGui::GetIO();
+
+    io.MousePos.x *= (swapDesc.BufferDesc.Width / g_clientSize.x);
+    io.MousePos.y *= (swapDesc.BufferDesc.Height / g_clientSize.y);
+
     Timestep();
 
     ImGui::NewFrame();

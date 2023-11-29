@@ -9485,7 +9485,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				}
 				ImGui::PopFont();
 
-				ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 0.85f)]);
+				ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
 				{
 					for (const auto& darling : context.patronsDarlings) {
 						ImGui::Text(darling);
@@ -9501,7 +9501,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				}
 				ImGui::PopFont();
 
-				ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 0.85f)]);
+				ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
 				{
 					for (const auto& sweatHeart : context.patronsSweethearts) {
 						ImGui::Text(sweatHeart);
@@ -9529,14 +9529,14 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			{
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 1.4f)]);
 				{
-					ImGui::Text("PATREON SUPPORTERS");
+					ImGui::Text("SPECIAL THANKS");
 					ImGui::Separator();
 				}
 				ImGui::PopFont();
 
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.5f);
 
-				ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 0.85f)]);
+				ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
 				{
 					for (const auto& name : context.specialThanksNames) {
 						ImGui::Text(name);
