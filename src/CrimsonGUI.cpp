@@ -148,7 +148,8 @@ namespace UI {
 			Options,
 			CheatsAndDebug,
 
-			Size
+			Size,
+			None,
 		} SelectedTab{ 0 };
 
 		enum class OptionsSubTabs {
@@ -160,7 +161,8 @@ namespace UI {
 			SoundOrVisual,
 			System,
 
-			Size
+			Size,
+			None,
 		} SelectedOptionsSubTab{ 0 };
 
 		enum class CheatsAndDebugSubTabs {
@@ -170,7 +172,8 @@ namespace UI {
 			EnemySwapper,
 			JukeBox,
 
-			Size
+			Size,
+			None
 		} SelectedCheatsAndDebugSubTab{ 0 };
 
 		enum class GameModes {
@@ -178,7 +181,8 @@ namespace UI {
 			StyleSwitcher,
 			Crimson,
 
-			Size
+			Size,
+			None
 		} SelectedGameMode{ 0 };
 
 		bool NewVersionAvailable = true;
@@ -195,6 +199,30 @@ namespace UI {
 		} LatestUpdate;
 
 		size_t DefaultFontSize = 18.0f;
+
+		std::vector<const char*> patronsDarlings{
+			"Me",
+			"Myself",
+			"I",
+		};
+
+		std::vector<const char*> patronsSweethearts{
+			"Me",
+			"Myself",
+			"I",
+		};
+
+		std::vector<const char*> specialThanksNames{
+			"serpentiem",
+			"Bibic",
+			"Che",
+			"Vainiuss1",
+			"Aleziinah",
+			"Zuzu",
+			"Bini",
+			"Johnny",
+			"Matt",
+		};
 	} g_UIContext;
 
 	void SetStyleCrimson() {
@@ -1074,9 +1102,9 @@ namespace UI {
 
 				// Left footer section
 				{
-					constexpr auto ABOUT_BUTTON_TEXT = "PATREON";
+					constexpr auto PATREON_BUTTON_TEXT = "PATREON";
 
-					float aboutButtonWidth = ImGui::CalcTextSize(ABOUT_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
+					float aboutButtonWidth = ImGui::CalcTextSize(PATREON_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
 
 					ImVec2 pos{ wndRect.Min.x + g_UIContext.DefaultFontSize * 1.0f, wndRect.Max.y - g_UIContext.DefaultFontSize * 1.68f };
 
@@ -1086,7 +1114,7 @@ namespace UI {
 					ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
 
 					ImGui::SetCursorScreenPos(pos + ImVec2{ 0.0f, g_UIContext.DefaultFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
-					if (InfoButton(ABOUT_BUTTON_TEXT, footerInfoBtnSize)) {
+					if (InfoButton(PATREON_BUTTON_TEXT, footerInfoBtnSize)) {
 						ShellExecute(0, 0, "https://www.patreon.com/miaberth", 0, 0, SW_SHOW);
 					}
 
@@ -1127,7 +1155,7 @@ namespace UI {
 
 					ImGui::SetCursorScreenPos(pos + ImVec2{ creditTextWidth, g_UIContext.DefaultFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
 					if (InfoButton(ABOUT_BUTTON_TEXT, footerInfoBtnSize)) {
-						// TODO: Handle the click
+						g_UIContext.SelectedTab = UIContext::MainTabs::None;
 					}
 
 					ImGui::PopFont();
@@ -1139,12 +1167,12 @@ namespace UI {
 				// Right footer section
 				{
 					constexpr auto CREDIT_TEXT = "Based on serpentiem's ";
-					constexpr auto ABOUT_BUTTON_TEXT = "DDMK";
+					constexpr auto DDMK_BUTTON_TEXT = "DDMK";
 
 					ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
 
 					float creditTextWidth = ImGui::CalcTextSize(CREDIT_TEXT).x;
-					float aboutBtnWidth = ImGui::CalcTextSize(ABOUT_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
+					float aboutBtnWidth = ImGui::CalcTextSize(DDMK_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
 
 					ImVec2 pos{ wndRect.Max.x - creditTextWidth - aboutBtnWidth - g_UIContext.DefaultFontSize, wndRect.Max.y - g_UIContext.DefaultFontSize * 1.68f };
 
@@ -1158,7 +1186,7 @@ namespace UI {
 					ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
 
 					ImGui::SetCursorScreenPos(pos + ImVec2{ creditTextWidth, g_UIContext.DefaultFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
-					if (InfoButton(ABOUT_BUTTON_TEXT, footerInfoBtnSize)) {
+					if (InfoButton(DDMK_BUTTON_TEXT, footerInfoBtnSize)) {
 						ShellExecute(0, 0, "https://github.com/serpentiem/ddmk/", 0, 0, SW_SHOW);
 					}
 
@@ -8697,20 +8725,21 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 	const ImRect cntRegion = cntWindow->Rect();
 	const ImGuiStyle& style = ImGui::GetStyle();
 
+	static bool uiElementsInitialized = false;
+	if (!uiElementsInitialized) {
+		size_t mainLogoWidth = size_t(context.DefaultFontSize * 37.0f);
+
+		g_Image_CrimsonMainLogo.ResizeByRatioW(mainLogoWidth);
+		g_Image_VanillaLogo.ResizeByRatioW(mainLogoWidth);
+		g_Image_StyleSwitcherLogo.ResizeByRatioW(mainLogoWidth);
+		g_Image_SocialIcons.ResizeByRatioW(size_t(context.DefaultFontSize * 10.0f));
+
+		uiElementsInitialized = true;
+	}
+
 	switch (context.SelectedTab) {
 	case UI::UIContext::MainTabs::GameMode:
 	{
-		static bool uiElementsInitialized = false;
-		if (!uiElementsInitialized) {
-			size_t mainLogoWidth = size_t(context.DefaultFontSize * 37.0f);
-
-			g_Image_CrimsonMainLogo.ResizeByRatioW(mainLogoWidth);
-			g_Image_VanillaLogo.ResizeByRatioW(mainLogoWidth);
-			g_Image_StyleSwitcherLogo.ResizeByRatioW(mainLogoWidth);
-
-			uiElementsInitialized = true;
-		}
-
 		constexpr float align = 0.5f; // Center = 0.5f
 
 		constexpr const char* MODE_SELECTION_TEXT = "Choose your desired Devil May Cry 3 Version!\n"
@@ -8940,91 +8969,94 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
 			ImGui::PopStyleVar();
 			{
-				ImGui::Text("");
 
-				std::stringstream sstm;
-				sstm << "WINDOWSIZE X: " << g_renderSize.x;
-				std::string windowSizeX = sstm.str();
+				{
+					ImGui::Text("");
 
-				std::stringstream sstm2;
-				sstm2 << "WINDOWSIZE Y: " << g_renderSize.y;
-				std::string windowSizeY = sstm2.str();
-				const char* var1 = windowSizeX.c_str();
-				const char* var2 = windowSizeY.c_str();
+					std::stringstream sstm;
+					sstm << "WINDOWSIZE X: " << g_renderSize.x;
+					std::string windowSizeX = sstm.str();
 
-
-				ImGui::Text(var1);
-				ImGui::Text(var2);
+					std::stringstream sstm2;
+					sstm2 << "WINDOWSIZE Y: " << g_renderSize.y;
+					std::string windowSizeY = sstm2.str();
+					const char* var1 = windowSizeX.c_str();
+					const char* var2 = windowSizeY.c_str();
 
 
-				GamepadClose(visibleMain, lastVisibleMain, CloseMain);
+					ImGui::Text(var1);
+					ImGui::Text(var2);
 
 
-				ImGui::PushItemWidth(150);
+					GamepadClose(visibleMain, lastVisibleMain, CloseMain);
 
-				if (GUI_InputDefault2("Global Scale", activeConfig.globalScale, queuedConfig.globalScale, defaultConfig.globalScale, 0.1f, "%g",
-					ImGuiInputTextFlags_EnterReturnsTrue)) {
-					UpdateGlobalScale();
+
+					ImGui::PushItemWidth(150);
+
+					if (GUI_InputDefault2("Global Scale", activeConfig.globalScale, queuedConfig.globalScale, defaultConfig.globalScale, 0.1f, "%g",
+						ImGuiInputTextFlags_EnterReturnsTrue)) {
+						UpdateGlobalScale();
+					}
+
+					ImGui::PopItemWidth();
+
+					ImGui::Text("");
+					ImGui::Text("Credits");
+					ImGui::Text("Mia Berth - Project Lead, Programmer, Artist");
+					ImGui::Text("SSSiyan - Reverse Enginnering Researcher, QA, Programmer");
+					ImGui::Text("deepdarkkapustka - Reverse Enginnering Researcher, Programmer");
+					ImGui::Text("Darkness - Backend and UI Programmer");
+					ImGui::Text("");
+
+					ImGui::Text(PATREON_TEXT);
+					ImGui::Text("");
+
+					if (GUI_Button("Open Patreon Page")) {
+						ShellExecuteA(0, "open", PATREON_LINK, 0, 0, SW_SHOW);
+					}
+					ImGui::Text("");
+
+
+					ActorSection();
+					ArcadeSection();
+					BarsSection();
+					BossRush();
+					CameraSection();
+					Cosmetics();
+					Damage();
+					Dante();
+
+					if constexpr (debug) {
+						Debug();
+					}
+
+					Enemy();
+					Jukebox();
+					KeyBindings();
+					Lady();
+					Mobility();
+					Other();
+					Overlays();
+					Repair();
+					SpeedSection();
+					System();
+					Teleporter();
+					WeaponWheel();
+					SFX();
+					GameplayOptions();
+
+
+					TrainingSection();
+					Vergil();
+
+
+					ImGui::Text("");
+
+					GUI_Checkbox2("Show Credits", activeConfig.showCredits, queuedConfig.showCredits);
+
+
+					ImGui::Text("");
 				}
-
-				ImGui::PopItemWidth();
-
-				ImGui::Text("");
-				ImGui::Text("Credits");
-				ImGui::Text("Mia Berth - Project Lead, Programmer, Artist");
-				ImGui::Text("SSSiyan - Reverse Enginnering Researcher, QA, Programmer");
-				ImGui::Text("deepdarkkapustka - Reverse Enginnering Researcher, Programmer");
-				ImGui::Text("Darkness - Backend and UI Programmer");
-				ImGui::Text("");
-
-				ImGui::Text(PATREON_TEXT);
-				ImGui::Text("");
-
-				if (GUI_Button("Open Patreon Page")) {
-					ShellExecuteA(0, "open", PATREON_LINK, 0, 0, SW_SHOW);
-				}
-				ImGui::Text("");
-
-
-				ActorSection();
-				ArcadeSection();
-				BarsSection();
-				BossRush();
-				CameraSection();
-				Cosmetics();
-				Damage();
-				Dante();
-
-				if constexpr (debug) {
-					Debug();
-				}
-
-				Enemy();
-				Jukebox();
-				KeyBindings();
-				Lady();
-				Mobility();
-				Other();
-				Overlays();
-				Repair();
-				SpeedSection();
-				System();
-				Teleporter();
-				WeaponWheel();
-				SFX();
-				GameplayOptions();
-
-
-				TrainingSection();
-				Vergil();
-
-
-				ImGui::Text("");
-
-				GUI_Checkbox2("Show Credits", activeConfig.showCredits, queuedConfig.showCredits);
-
-
-				ImGui::Text("");
 			}
 			ImGui::EndChild();
 		}
@@ -9171,8 +9203,400 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 	}
 	break;
 
+	case UI::UIContext::MainTabs::None:
+	{
+		// If none of the tabs are selected, draw the about page
+		static const Texture2DD3D11 socialIcons(g_Image_SocialIcons.GetRGBAData(), g_Image_SocialIcons.GetWidth(), g_Image_SocialIcons.GetWidth(), pDevice);
+
+		const float areaPaddingXRation = 0.326f;
+		const float areaPaddingX = (1.0f - 3.0f * (areaPaddingXRation)) * 0.25f * cntWindow->Size.x;
+
+		// C Team area
+		{
+			const ImVec2 areaSize = cntWindow->Size * ImVec2{ areaPaddingXRation, 0.8f };
+			const ImVec2 areaMin{ cntWindow->Pos.x + areaPaddingX,
+									 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+			//cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x00FF00FF));
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+			ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+			ImGui::BeginChildEx("C Team Area", cntWindow->GetID("C Team Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+			ImGui::PopStyleVar();
+			{
+				auto window = ImGui::GetCurrentWindow();
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 1.4f)]);
+				{
+					ImGui::Text("CREDITS");
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.2f);
+					ImGui::Text((const char*)u8"C•Team");
+				}
+				ImGui::PopFont();
+
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.4f);
+
+				auto fnDrawSocialButton = [window](const void* id, const size_t socialID, const ImVec2 size, const char* tooltip = nullptr)->bool {
+					const auto bbTuple = g_Image_SocialIcons.GetUVRect(socialID);
+
+					const ImRect bbUV{
+						ImVec2{ std::get<0>(std::get<0>(bbTuple)), std::get<1>(std::get<0>(bbTuple)) },
+						ImVec2{ std::get<0>(std::get<1>(bbTuple)), std::get<1>(std::get<1>(bbTuple)) }
+					};
+
+					bool clicked = false;
+
+					ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+					//ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
+					{
+						ImGui::PushID(id);
+						const ImGuiID calcedID = window->GetID("#socialButton");
+						ImGui::PopID();
+
+						clicked = ImGui::ImageButtonEx(calcedID, socialIcons.GetTexture(), size,
+							bbUV.Min, bbUV.Max, ImVec2{ 2.0f, 2.0f },
+							ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f }, ImVec4{ 1.0f , 1.0f, 1.0f, 1.0f });
+					    
+						if (tooltip != nullptr && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+						{
+							ImGui::SetTooltip(tooltip);
+						}
+                    }
+					//ImGui::PopStyleColor();
+					ImGui::PopStyleVar();
+
+					return clicked;
+					};
+
+				// Mia
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+					{
+						ImGui::Text("Project Director, Artist, Gameplay Programmer");
+					}
+					ImGui::PopFont();
+
+					ImGui::Separator();
+
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 0.9f)]);
+					{
+						ImGui::Text("Mia Berth");
+
+						ImGui::SameLine();
+
+						const ImVec2 socialsBBFrameSize{ 6.0f * 4.0f + 6.0f * ImGui::GetFontSize(), 4.0f + ImGui::GetFontSize() };
+						const ImVec2 currentCursorPos = ImGui::GetCursorScreenPos();
+
+						ImGui::SetCursorScreenPos(ImVec2{ window->ContentRegionRect.Max.x - socialsBBFrameSize.x, currentCursorPos.y });
+
+						if (fnDrawSocialButton("miatwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+							ShellExecute(0, 0, "https://twitter.com/MiaBerth", 0, 0, SW_SHOW);
+						}
+
+						ImGui::SameLine(0.0f, 0.0f);
+
+						if (fnDrawSocialButton("miagithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+							ShellExecute(0, 0, "https://github.com/berthrage", 0, 0, SW_SHOW);
+						}
+
+						ImGui::SameLine(0.0f, 0.0f);
+
+						if (fnDrawSocialButton("miayt", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+							ShellExecute(0, 0, "https://www.youtube.com/@MiaBerth", 0, 0, SW_SHOW);
+						}
+
+						ImGui::SameLine(0.0f, 0.0f);
+
+						if (fnDrawSocialButton("miareddit", SocialsIcons::ID_Reddit, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+							ShellExecute(0, 0, "https://www.reddit.com/user/Berthrage", 0, 0, SW_SHOW);
+						}
+
+						ImGui::SameLine(0.0f, 0.0f);
+
+						if (fnDrawSocialButton("miadiscord", SocialsIcons::ID_Discord, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() }, "@miaberth")) {
+							// TODO:: Copy
+						}
+
+						ImGui::SameLine(0.0f, 0.0f);
+
+						if (fnDrawSocialButton("mianexus", SocialsIcons::ID_Nexusmods, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+							ShellExecute(0, 0, "https://www.nexusmods.com/users/95598128", 0, 0, SW_SHOW);
+						}
+					}
+					ImGui::PopFont();
+				}
+
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.4f);
+
+				// Sarah
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+					{
+						ImGui::Text("Reverse Engineering, Gameplay Programmer");
+					}
+					ImGui::PopFont();
+
+					ImGui::Separator();
+
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 0.9f)]);
+					{
+						ImGui::Text("Siyan");
+					}
+					ImGui::PopFont();
+
+					ImGui::SameLine();
+
+					const ImVec2 socialsBBFrameSize{ 4.0f + ImGui::GetFontSize(), 4.0f + ImGui::GetFontSize() };
+					const ImVec2 currentCursorPos = ImGui::GetCursorScreenPos();
+
+					ImGui::SetCursorScreenPos(ImVec2{ window->ContentRegionRect.Max.x - socialsBBFrameSize.x, currentCursorPos.y });
+
+					if (fnDrawSocialButton("sarahtwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+						ShellExecute(0, 0, "https://twitter.com/SSSiyan", 0, 0, SW_SHOW);
+					}
+				}
+
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.4f);
+
+				// Deep
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+					{
+						ImGui::Text("Reverse Engineering, Graphics Programmer");
+					}
+					ImGui::PopFont();
+
+					ImGui::Separator();
+
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 0.9f)]);
+					{
+						ImGui::Text("deepdarkkapustka");
+					}
+					ImGui::PopFont();
+
+					ImGui::SameLine();
+
+					const ImVec2 socialsBBFrameSize{ 4.0f * 2.0f + 2.0f * ImGui::GetFontSize(), 4.0f + ImGui::GetFontSize() };
+					const ImVec2 currentCursorPos = ImGui::GetCursorScreenPos();
+
+					ImGui::SetCursorScreenPos(ImVec2{ window->ContentRegionRect.Max.x - socialsBBFrameSize.x, currentCursorPos.y });
+
+					if (fnDrawSocialButton("deepgit", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+						ShellExecute(0, 0, "https://github.com/muhopensores", 0, 0, SW_SHOW);
+					}
+
+					ImGui::SameLine(0.0f, 0.0f);
+
+					if (fnDrawSocialButton("deepyt", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+						ShellExecute(0, 0, "https://www.youtube.com/@mstislavcapusta7573", 0, 0, SW_SHOW);
+					}
+				}
+
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.4f);
+
+				// My smooth shiny bald ass
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+					{
+						ImGui::Text("Backend Engineering, GUI Programmer");
+					}
+					ImGui::PopFont();
+
+					ImGui::Separator();
+
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 0.9f)]);
+					{
+						ImGui::Text("Darkness");
+					}
+					ImGui::PopFont();
+
+					ImGui::SameLine();
+
+					const ImVec2 socialsBBFrameSize{ 4.0f * 2.0f + 2.0f * ImGui::GetFontSize(), 4.0f + ImGui::GetFontSize() };
+					const ImVec2 currentCursorPos = ImGui::GetCursorScreenPos();
+
+					ImGui::SetCursorScreenPos(ImVec2{ window->ContentRegionRect.Max.x - socialsBBFrameSize.x, currentCursorPos.y });
+
+					if (fnDrawSocialButton("darknesstwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+						ShellExecute(0, 0, "https://twitter.com/Darknes30239448", 0, 0, SW_SHOW);
+					}
+
+					ImGui::SameLine(0.0f, 0.0f);
+
+					if (fnDrawSocialButton("darknessgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+						ShellExecute(0, 0, "https://github.com/amir-120", 0, 0, SW_SHOW);
+					}
+				}
+
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.7f);
+
+				// Serp
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 1.1f)]);
+					{
+						ImGui::Text("Original DDMK Developer");
+					}
+					ImGui::PopFont();
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.2f);
+
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 0.9f)]);
+					{
+						ImGui::Text("serpentiem");
+
+						ImGui::SameLine();
+
+						if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+							ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
+						}
+					}
+					ImGui::PopFont();
+				}
+			}
+			ImGui::EndChild();
+		}
+
+		// Patrons area
+		{
+			const ImVec2 areaSize = cntWindow->Size * ImVec2{ areaPaddingXRation, 0.8f };
+			const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x * areaPaddingXRation + areaPaddingX * 2.0f,
+									 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+			//cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x00FF00FF));
+
+			ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+			ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+			ImGui::BeginChildEx("Patrons Area", cntWindow->GetID("Patrons Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+			ImGui::PopStyleVar();
+			{
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 1.4f)]);
+				{
+					ImGui::Text("PATREON SUPPORTERS");
+					ImGui::Separator();
+				}
+				ImGui::PopFont();
+
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.5f);
+
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
+				{
+					ImGui::Text("DARLINGS");
+				}
+				ImGui::PopFont();
+
+				ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 0.85f)]);
+				{
+					for (const auto& darling : context.patronsDarlings) {
+						ImGui::Text(darling);
+					}
+				}
+				ImGui::PopFont();
+
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.5f);
+
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
+				{
+					ImGui::Text("SWEETHEARTS");
+				}
+				ImGui::PopFont();
+
+				ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 0.85f)]);
+				{
+					for (const auto& sweatHeart : context.patronsSweethearts) {
+						ImGui::Text(sweatHeart);
+					}
+				}
+				ImGui::PopFont();
+			}
+			ImGui::EndChild();
+		}
+
+		// Special Thanks area
+		{
+			const ImVec2 areaSize = cntWindow->Size * ImVec2{ areaPaddingXRation, 0.8f };
+			const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x * areaPaddingXRation * 2.0f + areaPaddingX * 3.0f,
+									 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+			//cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x00FF00FF));
+
+			ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+			ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+			ImGui::BeginChildEx("Special Thanks Area", cntWindow->GetID("Special Thanks Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+			ImGui::PopStyleVar();
+			{
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 1.4f)]);
+				{
+					ImGui::Text("PATREON SUPPORTERS");
+					ImGui::Separator();
+				}
+				ImGui::PopFont();
+
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.5f);
+
+				ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 0.85f)]);
+				{
+					for (const auto& name : context.specialThanksNames) {
+						ImGui::Text(name);
+					}
+				}
+				ImGui::PopFont();
+			}
+			ImGui::EndChild();
+		}
+
+		// Footer area
+		{
+			const ImVec2 areaSize{ cntWindow->Size.x - areaPaddingX * 2.0f, context.DefaultFontSize * 4.4f };
+			const ImVec2 areaMin{ cntWindow->Pos.x + areaPaddingX,
+									 cntWindow->Pos.y + cntWindow->Size.y - cntWindow->Size.y * 0.18f };
+
+			//cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x00FF00FF));
+
+			ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+			ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+			ImGui::BeginChildEx("Footer Area", cntWindow->GetID("Footer Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+			ImGui::PopStyleVar();
+			{
+				auto window = ImGui::GetCurrentWindow();
+				constexpr const char* THX_TEXT = "Thank you all for playing and supporting the project!";
+				constexpr const char* LICENCE_BUTTON_TEXT = "LICENCE";
+				constexpr const char* COPYRIGHT_TEXT = "Copyright (c) 2023 Mia Berth";
+
+				{
+					const float thxTextWidth = ImGui::CalcTextSize(THX_TEXT).x;
+					window->DrawList->AddText(ImVec2{ areaMin.x + (areaSize.x - thxTextWidth) * 0.5f, areaMin.y + context.DefaultFontSize * 0.6f }, 0xFFFFFFFF, THX_TEXT);
+				}
+
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
+				{
+					const float licenceButtonWidth = ImGui::CalcTextSize(LICENCE_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
+
+					ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
+					ImGui::SetCursorScreenPos(ImVec2{ areaMin.x + (areaSize.x - licenceButtonWidth) * 0.5f, areaMin.y + context.DefaultFontSize * 2.0f });
+					UI::InfoButton(LICENCE_BUTTON_TEXT);
+					ImGui::PopStyleVar();
+				}
+				ImGui::PopFont();
+
+				ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 0.8f)]);
+				{
+					const float crTextWidth = ImGui::CalcTextSize(COPYRIGHT_TEXT).x;
+					window->DrawList->AddText(ImVec2{ areaMin.x + (areaSize.x - crTextWidth) * 0.5f, areaMin.y + context.DefaultFontSize * 3.5f }, 0xFFFFFFFF, COPYRIGHT_TEXT);
+				}
+				ImGui::PopFont();
+			}
+			ImGui::EndChild();
+		}
+	}
+	break;
+
 	default:
-		context.SelectedTab = UI::UIContext::MainTabs::GameMode;
+		context.SelectedTab = UI::UIContext::MainTabs::None;
 		break;
 	}
 }

@@ -8,6 +8,7 @@
 #include <d3d11.h>
 #include <d3d10.h>
 #include "GUIBase.hpp"
+#include "../Core/Core_ImGui.hpp"
 #include "../CrimsonGUI.hpp"
 #include "../Config.hpp"
 #include "../DebugDrawDX11.hpp"
@@ -153,7 +154,7 @@ namespace Hook::DXGI {
 typedef void (*Present_func_t)();
 extern Present_func_t Present_func;
 
-template <new_size_t api> HRESULT Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags) {
+template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags) {
     static bool run = false;
     if (!run) {
         run = true;
@@ -170,7 +171,7 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* SwapChain, UINT SyncIn
             "%u "
             "%X",
 #endif
-            FUNC_NAME, SwapChain, SyncInterval, Flags);
+            FUNC_NAME, pSwapChain, SyncInterval, Flags);
     }
 
     if (activeConfig.vSync != 0) {
@@ -195,12 +196,19 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* SwapChain, UINT SyncIn
         ImGui_ImplWin32_NewFrame();
     }
 
+    DXGI_SWAP_CHAIN_DESC swapDesc = {};
+    pSwapChain->GetDesc(&swapDesc);
+
+    UpdateGlobalRenderSize(swapDesc.BufferDesc.Width, swapDesc.BufferDesc.Height);
+    CoreImGui::UpdateDisplaySize(swapDesc.BufferDesc.Width, swapDesc.BufferDesc.Height);
+
+    ImGui_ImplWin32_GetDpiScaleForHwnd(swapDesc.OutputWindow);
 
     Timestep();
 
     ImGui::NewFrame();
 
-    GUI_Render(SwapChain);
+    GUI_Render(pSwapChain);
 
     ImGui::Render();
 
@@ -230,7 +238,7 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* SwapChain, UINT SyncIn
     }();
 
 
-    return ::Base::DXGI::Present(SwapChain, SyncInterval, Flags);
+    return ::Base::DXGI::Present(pSwapChain, SyncInterval, Flags);
 }
 
 template <new_size_t api>

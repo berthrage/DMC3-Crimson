@@ -230,7 +230,7 @@ void UpdateDisplaySize(uint32 width, uint32 height) {
 
     auto& io = ImGui::GetIO();
 
-    io.DisplaySize.x = static_cast<float>(width + 1920);
-    io.DisplaySize.y = static_cast<float>(height + 1080);
+    io.DisplaySize.x = static_cast<float>(width/* + 1920*/);
+    io.DisplaySize.y = static_cast<float>(height/* + 1080*/);
 }
 }; // namespace CoreImGui

@@ -171,8 +171,6 @@ set(UI_SRC
     UI/EmbdeddedImages.hpp
     UI/Texture2DD3D11.cpp
     UI/Texture2DD3D11.hpp
-    UI/UI.cpp
-    UI/UI.hpp
 )
 
 source_group("Global" FILES ${GLOBAL_SRC})
