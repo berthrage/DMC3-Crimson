@@ -1212,7 +1212,7 @@ void DevilVFXTriggerStyle(byte8* actorBaseAddr, int style) {
     auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 
 
-    delayTime1 = (2 * actorData.speed) / g_frameRateMultiplier;
+    delayTime1 = (4 * actorData.speed) / g_frameRateMultiplier;
     delayTime2 = (24 * actorData.speed) / g_frameRateMultiplier;
 
     std::this_thread::sleep_for(std::chrono::milliseconds(delayTime1));

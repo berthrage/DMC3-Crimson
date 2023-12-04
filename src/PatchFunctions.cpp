@@ -268,7 +268,7 @@ void CameraTiltController() {
     }
 
     if (activeConfig.cameraTilt == 1) { // Closer to Ground
-        cameraData.tilt = 0.153073f;
+        cameraData.tilt = 0.103073f;
     }
 }
 

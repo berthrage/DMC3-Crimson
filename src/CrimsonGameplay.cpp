@@ -1725,6 +1725,7 @@ void inCombatDetectionTracker() {
         inCombatTrackerRunning = false;
         inCombat               = false;
     }
+
 }
 
 void inCombatDetection() {
