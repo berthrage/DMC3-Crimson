@@ -1203,9 +1203,9 @@ void StoreInertia(byte8* actorBaseAddr) {
         // Important for Sky Star Guardflying.
         if (!actorData.airGuard && event != ACTOR_EVENT::JUMP_CANCEL && event != ACTOR_EVENT::AIR_HIKE) {
             if (event == ACTOR_EVENT::TRICKSTER_SKY_STAR) {
-                i->airGuard.cachedPull = 24.0f;
+                i->airGuard.cachedPull = 28.0f;
             } else {
-                i->airGuard.cachedPull = horizontalPull;
+                i->airGuard.cachedPull = 28.0f;
             }
         }
 
@@ -1522,11 +1522,11 @@ void InertiaController(byte8* actorBaseAddr) {
             }
 
             // Killer Bee
-            else if (action == BEOWULF_KILLER_BEE) {
-
-                // Makes divekick speed be consistent, important for Guardflying.
-                actorData.horizontalPull = 24.0f;
-            }
+//             else if (action == BEOWULF_KILLER_BEE && state == 65538 && event != 33) {
+// 
+//                 // Makes divekick speed be consistent, important for Guardflying.
+//                 actorData.horizontalPull = 24.0f;
+//             }
         }
     }
 }
