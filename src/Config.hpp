@@ -520,9 +520,9 @@ struct Config {
     bool weaponWheelAnalogSelectionEnabled = true;
     bool weaponWheelAnalogRightStick       = true;
     bool weaponWheelDisableCameraRotation  = true;
-    float weaponWheelScaleMultiplier       = 0.7f;
-    float weaponWheelHeight                = 335;
-    float weaponWheelHorizontalMelee       = 495;
+    float weaponWheelScaleMultiplier       = 0.6f;
+    float weaponWheelHeight                = 447;
+    float weaponWheelHorizontalMelee       = 701;
     float weaponWheelHorizontalRanged      = 80;
     float weaponWheelWidthSeparation;
     uint64 weaponWheelTimeout = 2000;

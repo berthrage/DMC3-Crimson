@@ -2446,12 +2446,6 @@ void MeleeWeaponSwitchController() {
             textureData.arrow.Render(activeConfigTextureData.arrow, queuedConfigTextureData.arrow);
         }
 
-        // Force Icons to be on top of Highlights, when Main Menu is opened it forces focus on the Main Menu.
-        if (!g_show) {
-            ImGui::SetWindowFocus(textureData.icons[0].label);
-        } else {
-            ImGui::SetWindowFocus(DMC3C_TITLE);
-        }
 
 
         return;
@@ -2612,12 +2606,13 @@ void MeleeWeaponSwitchController() {
         activeConfigTextureData.icons[meleeWeaponIndex], queuedConfigTextureData.icons[meleeWeaponIndex]);
 }
 
-// Force Icons to be on top of Highlights, when Main Menu is opened it forces focus on the Main Menu.
+    // Force Icons to be on top of Highlights, when Main Menu is opened it forces focus on the Main Menu.
 if (!g_show) {
-    ImGui::SetWindowFocus(textureData.icons[meleeWeaponIndex].label);
-} else {
-    ImGui::SetWindowFocus(DMC3C_TITLE);
+	ImGui::SetWindowFocus(textureData.icons[meleeWeaponIndex].label);
 }
+//     } else {
+//         ImGui::SetWindowFocus(DMC3C_TITLE); // Calling this on-tick was making it so combo dropdowns couldn't be selected. Refer to this if future problems occur.
+//     }
 }
 
 void RangedWeaponSwitchController() {
@@ -2657,15 +2652,6 @@ void RangedWeaponSwitchController() {
             textureData.arrow.textureAddr = textureAddrs[TEXTURE_ARROW_0];
 
             textureData.arrow.Render(activeConfigTextureData.arrow, queuedConfigTextureData.arrow);
-        }
-
-        // if (activeConfig.forceIconFocus && !g_show)
-
-        // Force Icons to be on top of Highlights, when Main Menu is opened it forces focus on the Main Menu.
-        if (!g_show) {
-            ImGui::SetWindowFocus(textureData.icons[0].label);
-        } else {
-            ImGui::SetWindowFocus(DMC3C_TITLE);
         }
 
 
@@ -2767,9 +2753,10 @@ void RangedWeaponSwitchController() {
     // Force Icons to be on top of Highlights, when Main Menu is opened it forces focus on the Main Menu.
     if (!g_show) {
         ImGui::SetWindowFocus(textureData.icons[rangedWeaponIndex].label);
-    } else {
-        ImGui::SetWindowFocus(DMC3C_TITLE);
     }
+//     } else {
+//         ImGui::SetWindowFocus(DMC3C_TITLE);
+//     }
 }
 
 void UpdateWeaponSwitchControllerTexturePositions() {
