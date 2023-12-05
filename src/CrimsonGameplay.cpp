@@ -1710,6 +1710,9 @@ void StyleMeterDoppelganger(byte8* actorBaseAddr) {
             actorData.styleData.meter = glm::max(actorData.styleData.meter, cloneActorData.styleData.meter);
         }
     }
+
+    actorData.styleData.rank = 1;
+    actorData.styleData.meter = 699.0f;
 }
 
 void inCombatDetectionTracker() {

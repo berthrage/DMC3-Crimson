@@ -1486,6 +1486,7 @@ enum ImGuiCol_
     ImGuiCol_NavWindowingHighlight, // Highlight window when using CTRL+TAB
     ImGuiCol_NavWindowingDimBg,     // Darken/colorize entire screen behind the CTRL+TAB window list, when active
     ImGuiCol_ModalWindowDimBg,      // Darken/colorize entire screen behind a modal window, when one is active
+    ImGuiCol_WindowBgText,          // Text color based on the window bg, we use this to ensure the text will be with alpha 1.0f even if the window's not - Mia
     ImGuiCol_COUNT
 };
 

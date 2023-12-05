@@ -260,8 +260,8 @@ void InitDetours() {
     static std::unique_ptr<Utility::Detour_t> HudStyleBarPosHook =
         std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2BB357, &HudStyleBarPosDetour, 16);
     g_HudStyleBarPos_ReturnAddr = HudStyleBarPosHook->GetReturnAddress();
-    g_HudStyleBarPosX           = 580.0f;
-    g_HudStyleBarPosY           = 110.0f;
+    g_HudStyleBarPosX           = 575.0f;
+    g_HudStyleBarPosY           = 115.0f;
     HudStyleBarPosHook->Toggle(true);
 
     // VergilNeutralTrick // func is already detoured, Crimson.MobilityFunction<27>+B1

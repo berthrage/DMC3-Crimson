@@ -245,10 +245,10 @@ bool GUI_ComboMap(const char* label,
         ::GUI::save = true;
     }
 
-    if constexpr (debug) {
-        ImGui::Text("value %u", var);
-        ImGui::Text("index %u", index);
-    }
+//     if constexpr (debug) {
+//         ImGui::Text("value %u", var);
+//         ImGui::Text("index %u", index);
+//     }
 
     return update;
 }

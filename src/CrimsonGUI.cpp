@@ -259,9 +259,10 @@ namespace UI {
 		style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
 		style.SelectableTextAlign = ImVec2(0.0f, 0.0f);
 
-		style.Colors[ImGuiCol_Text] = ImVec4(0.858f, 0.929f, 0.886f, 1.0f);
+		style.Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 		style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.858f, 0.929f, 0.886f, 0.280f);
-		style.Colors[ImGuiCol_WindowBg] = ImVec4(0.207f, 0.156f, 0.168f, 1.0f);
+		style.Colors[ImGuiCol_WindowBg] = ImVec4(0.207f, 0.156f, 0.168f, 0.5f);
+        style.Colors[ImGuiCol_WindowBgText] = ImVec4(0.207f, 0.156f, 0.168f, 1.0f);
 		style.Colors[ImGuiCol_ChildBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
 		style.Colors[ImGuiCol_PopupBg] = ImVec4(0.200f, 0.219f, 0.266f, 0.899f);
 		style.Colors[ImGuiCol_Border] = ImVec4(0.537f, 0.478f, 0.254f, 0.162f);
@@ -435,7 +436,7 @@ namespace UI {
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, SwapColorEndianness(0xFF6A8FFF));
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, SwapColorEndianness(0xDA1B53FF));
 		ImGui::PushStyleColor(ImGuiCol_Button, 0xFFFFFFFF);
-		ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_WindowBg));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_WindowBgText));
 
 		bool ret = ButtonEx(label, size, SwapColorEndianness(0xFFFFFFFF), ImGuiButtonFlags_None);
 
@@ -984,7 +985,7 @@ namespace UI {
 
 				ImGui::PopFont();
 
-				ImGui::PushFont(g_ImGuiFont_RussoOne[size_t(g_UIContext.DefaultFontSize * 1.35f)]);
+				ImGui::PushFont(g_ImGuiFont_RussoOne[size_t(g_UIContext.DefaultFontSize * 1.15f)]);
 
 				// Draw main tabs
 				{
@@ -996,32 +997,32 @@ namespace UI {
 					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2.0f * tabBtnSize.y);
 
 					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + tabButtonsGap);
-					if (TabButton("Game Mode", g_UIContext.SelectedTab == UIContext::MainTabs::GameMode, true, false, tabBtnSize)) {
+					if (TabButton("GAME MODE", g_UIContext.SelectedTab == UIContext::MainTabs::GameMode, true, false, tabBtnSize)) {
 						g_UIContext.SelectedTab = UIContext::MainTabs::GameMode;
 					}
 
 					ImGui::SameLine(0.0f, tabButtonsGap);
-					if (TabButton("Character", g_UIContext.SelectedTab == UIContext::MainTabs::Character, true, false, tabBtnSize)) {
+					if (TabButton("CHARACTER", g_UIContext.SelectedTab == UIContext::MainTabs::Character, true, false, tabBtnSize)) {
 						g_UIContext.SelectedTab = UIContext::MainTabs::Character;
 					}
 
 					ImGui::SameLine(0.0f, tabButtonsGap);
-					if (TabButton("Quickplay", g_UIContext.SelectedTab == UIContext::MainTabs::Quickplay, true, false, tabBtnSize)) {
+					if (TabButton("QUICKPLAY", g_UIContext.SelectedTab == UIContext::MainTabs::Quickplay, true, false, tabBtnSize)) {
 						g_UIContext.SelectedTab = UIContext::MainTabs::Quickplay;
 					}
 
 					ImGui::SameLine(0.0f, tabButtonsGap);
-					if (TabButton("Music Switcher", g_UIContext.SelectedTab == UIContext::MainTabs::MusicSwitcher, false, false, tabBtnSize)) {
+					if (TabButton("MUSIC SWITCHER", g_UIContext.SelectedTab == UIContext::MainTabs::MusicSwitcher, false, false, tabBtnSize)) {
 						g_UIContext.SelectedTab = UIContext::MainTabs::MusicSwitcher;
 					}
 
 					ImGui::SameLine(0.0f, tabButtonsGap);
-					if (TabButton("Options", g_UIContext.SelectedTab == UIContext::MainTabs::Options, true, true, tabBtnSize)) {
+					if (TabButton("OPTIONS", g_UIContext.SelectedTab == UIContext::MainTabs::Options, true, true, tabBtnSize)) {
 						g_UIContext.SelectedTab = UIContext::MainTabs::Options;
 					}
 
 					ImGui::SameLine(0.0f, tabButtonsGap);
-					if (TabButton("Cheats & Debug", g_UIContext.SelectedTab == UIContext::MainTabs::CheatsAndDebug, true, true, tabBtnSize)) {
+					if (TabButton("CHEATS & DEBUG", g_UIContext.SelectedTab == UIContext::MainTabs::CheatsAndDebug, true, true, tabBtnSize)) {
 						g_UIContext.SelectedTab = UIContext::MainTabs::CheatsAndDebug;
 					}
 
@@ -3790,113 +3791,109 @@ void Arcade_UpdateIndices() {
 }
 
 void ArcadeSection() {
-    if (ImGui::CollapsingHeader("Arcade")) {
-        ImGui::Text("");
-
-        DescriptionHelper("Go to a specific point in the game. Triggered in the main menu.");
-        ImGui::Text("");
-
-        if (GUI_Checkbox2("Enable", activeConfig.Arcade.enable, queuedConfig.Arcade.enable)) {
-            Arcade::Toggle(activeConfig.Arcade.enable);
-        }
-        ImGui::Text("");
-
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.Arcade, &defaultConfig.Arcade, sizeof(queuedConfig.Arcade));
-            CopyMemory(&activeConfig.Arcade, &queuedConfig.Arcade, sizeof(activeConfig.Arcade));
 
 
-            Arcade_UpdateIndices();
+	if (GUI_Checkbox2("Enable", activeConfig.Arcade.enable, queuedConfig.Arcade.enable)) {
+		Arcade::Toggle(activeConfig.Arcade.enable);
+	}
+	ImGui::Text("");
 
-            Arcade::Toggle(activeConfig.Arcade.enable);
-        }
-        ImGui::Text("");
-
-        ImGui::PushItemWidth(200);
-
-        GUI_Combo2("Mission", missionNames, activeConfig.Arcade.mission, queuedConfig.Arcade.mission, ImGuiComboFlags_HeightLargest);
-
-
-        if (activeConfig.Arcade.mission > 0) {
-            GUI_ComboMap2("Mode", modeNames, modes, Arcade_modeIndex, activeConfig.Arcade.mode, queuedConfig.Arcade.mode);
-        }
+	if (GUI_ResetButton()) {
+		CopyMemory(&queuedConfig.Arcade, &defaultConfig.Arcade, sizeof(queuedConfig.Arcade));
+		CopyMemory(&activeConfig.Arcade, &queuedConfig.Arcade, sizeof(activeConfig.Arcade));
 
 
-        if ((activeConfig.Arcade.mission >= 1) && (activeConfig.Arcade.mission <= 20)) {
-            // Room
-            {
-                bool condition = activeConfig.Arcade.ignoreRoom;
+		Arcade_UpdateIndices();
 
-                GUI_PushDisable(condition);
+		Arcade::Toggle(activeConfig.Arcade.enable);
+	}
+	ImGui::Text("");
 
-                GUI_InputDefault2<uint32>("Room", activeConfig.Arcade.room, queuedConfig.Arcade.room, defaultConfig.Arcade.room, 1, "%u",
-                    ImGuiInputTextFlags_EnterReturnsTrue);
+	ImGui::PushItemWidth(200);
 
-                GUI_PopDisable(condition);
-
-                ImGui::SameLine();
-
-                GUI_Checkbox2("Ignore", activeConfig.Arcade.ignoreRoom, queuedConfig.Arcade.ignoreRoom);
-            }
-
-            // Position
-            {
-                bool condition = activeConfig.Arcade.ignorePosition;
-
-                GUI_PushDisable(condition);
-
-                GUI_InputDefault2<uint32>("Position", activeConfig.Arcade.position, queuedConfig.Arcade.position,
-                    defaultConfig.Arcade.position, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-
-                GUI_PopDisable(condition);
-
-                ImGui::SameLine();
-
-                GUI_Checkbox2("Ignore", activeConfig.Arcade.ignorePosition, queuedConfig.Arcade.ignorePosition);
-            }
-        }
+	GUI_Combo2("Mission", missionNames, activeConfig.Arcade.mission, queuedConfig.Arcade.mission, ImGuiComboFlags_HeightLargest);
 
 
-        if (activeConfig.Arcade.mission == MISSION::BLOODY_PALACE) {
-            GUI_Combo2("Floor", floorNames, activeConfig.Arcade.floor, queuedConfig.Arcade.floor, ImGuiComboFlags_HeightLargest);
-
-            GUI_InputDefault2<uint16>("Level", activeConfig.Arcade.level, queuedConfig.Arcade.level, defaultConfig.Arcade.level, 1, "%u",
-                ImGuiInputTextFlags_EnterReturnsTrue);
-        }
+	if (activeConfig.Arcade.mission > 0) {
+		GUI_ComboMap2("Mode", modeNames, modes, Arcade_modeIndex, activeConfig.Arcade.mode, queuedConfig.Arcade.mode);
+	}
 
 
-        if (activeConfig.Arcade.mission > 0) {
-            GUI_InputDefault2<float>("Hit Points", activeConfig.Arcade.hitPoints, queuedConfig.Arcade.hitPoints,
-                defaultConfig.Arcade.hitPoints, 1000, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	if ((activeConfig.Arcade.mission >= 1) && (activeConfig.Arcade.mission <= 20)) {
+		// Room
+		{
+			bool condition = activeConfig.Arcade.ignoreRoom;
 
-            GUI_InputDefault2<float>("Magic Points", activeConfig.Arcade.magicPoints, queuedConfig.Arcade.magicPoints,
-                defaultConfig.Arcade.magicPoints, 1000, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-        }
+			GUI_PushDisable(condition);
 
-        GUI_Combo2("Character", characterNames, activeConfig.Arcade.character, queuedConfig.Arcade.character);
+			GUI_InputDefault2<uint32>("Room", activeConfig.Arcade.room, queuedConfig.Arcade.room, defaultConfig.Arcade.room, 1, "%u",
+				ImGuiInputTextFlags_EnterReturnsTrue);
+
+			GUI_PopDisable(condition);
+
+			ImGui::SameLine();
+
+			GUI_Checkbox2("Ignore", activeConfig.Arcade.ignoreRoom, queuedConfig.Arcade.ignoreRoom);
+		}
+
+		// Position
+		{
+			bool condition = activeConfig.Arcade.ignorePosition;
+
+			GUI_PushDisable(condition);
+
+			GUI_InputDefault2<uint32>("Position", activeConfig.Arcade.position, queuedConfig.Arcade.position,
+				defaultConfig.Arcade.position, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+
+			GUI_PopDisable(condition);
+
+			ImGui::SameLine();
+
+			GUI_Checkbox2("Ignore", activeConfig.Arcade.ignorePosition, queuedConfig.Arcade.ignorePosition);
+		}
+	}
 
 
-        if (activeConfig.Arcade.mission > 0) {
-            GUI_InputDefault2<uint8>("Costume", activeConfig.Arcade.costume, queuedConfig.Arcade.costume, defaultConfig.Arcade.costume, 1,
-                "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-        }
+	if (activeConfig.Arcade.mission == MISSION::BLOODY_PALACE) {
+		GUI_Combo2("Floor", floorNames, activeConfig.Arcade.floor, queuedConfig.Arcade.floor, ImGuiComboFlags_HeightLargest);
+
+		GUI_InputDefault2<uint16>("Level", activeConfig.Arcade.level, queuedConfig.Arcade.level, defaultConfig.Arcade.level, 1, "%u",
+			ImGuiInputTextFlags_EnterReturnsTrue);
+	}
 
 
-        if ((activeConfig.Arcade.mission > 0) && (activeConfig.Arcade.character == CHARACTER::DANTE)) {
-            GUI_Combo2("Style", styleNamesDante, activeConfig.Arcade.style, queuedConfig.Arcade.style);
-            GUI_ComboMap2("Melee Weapon 1", meleeWeaponNamesDante, meleeWeaponsDante, Arcade_meleeWeaponIndexDante[0],
-                activeConfig.Arcade.weapons[0], queuedConfig.Arcade.weapons[0]);
-            GUI_ComboMap2("Melee Weapon 2", meleeWeaponNamesDante, meleeWeaponsDante, Arcade_meleeWeaponIndexDante[1],
-                activeConfig.Arcade.weapons[1], queuedConfig.Arcade.weapons[1]);
-            GUI_ComboMap2("Ranged Weapon 1", rangedWeaponNamesDante, rangedWeaponsDante, Arcade_rangedWeaponIndexDante[0],
-                activeConfig.Arcade.weapons[2], queuedConfig.Arcade.weapons[2]);
-            GUI_ComboMap2("Ranged Weapon 2", rangedWeaponNamesDante, rangedWeaponsDante, Arcade_rangedWeaponIndexDante[1],
-                activeConfig.Arcade.weapons[3], queuedConfig.Arcade.weapons[3]);
-        }
-        ImGui::PopItemWidth();
+	if (activeConfig.Arcade.mission > 0) {
+		GUI_InputDefault2<float>("Hit Points", activeConfig.Arcade.hitPoints, queuedConfig.Arcade.hitPoints,
+			defaultConfig.Arcade.hitPoints, 1000, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
-        ImGui::Text("");
-    }
+		GUI_InputDefault2<float>("Magic Points", activeConfig.Arcade.magicPoints, queuedConfig.Arcade.magicPoints,
+			defaultConfig.Arcade.magicPoints, 1000, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	}
+
+	GUI_Combo2("Character", characterNames, activeConfig.Arcade.character, queuedConfig.Arcade.character);
+
+
+	if (activeConfig.Arcade.mission > 0) {
+		GUI_InputDefault2<uint8>("Costume", activeConfig.Arcade.costume, queuedConfig.Arcade.costume, defaultConfig.Arcade.costume, 1,
+			"%u", ImGuiInputTextFlags_EnterReturnsTrue);
+	}
+
+
+	if ((activeConfig.Arcade.mission > 0) && (activeConfig.Arcade.character == CHARACTER::DANTE)) {
+		GUI_Combo2("Style", styleNamesDante, activeConfig.Arcade.style, queuedConfig.Arcade.style);
+		GUI_ComboMap2("Melee Weapon 1", meleeWeaponNamesDante, meleeWeaponsDante, Arcade_meleeWeaponIndexDante[0],
+			activeConfig.Arcade.weapons[0], queuedConfig.Arcade.weapons[0]);
+		GUI_ComboMap2("Melee Weapon 2", meleeWeaponNamesDante, meleeWeaponsDante, Arcade_meleeWeaponIndexDante[1],
+			activeConfig.Arcade.weapons[1], queuedConfig.Arcade.weapons[1]);
+		GUI_ComboMap2("Ranged Weapon 1", rangedWeaponNamesDante, rangedWeaponsDante, Arcade_rangedWeaponIndexDante[0],
+			activeConfig.Arcade.weapons[2], queuedConfig.Arcade.weapons[2]);
+		GUI_ComboMap2("Ranged Weapon 2", rangedWeaponNamesDante, rangedWeaponsDante, Arcade_rangedWeaponIndexDante[1],
+			activeConfig.Arcade.weapons[3], queuedConfig.Arcade.weapons[3]);
+	}
+	ImGui::PopItemWidth();
+
+	ImGui::Text("");
+    
 }
 
 #pragma endregion
@@ -8674,7 +8671,6 @@ void Main(IDXGISwapChain* pSwapChain) {
     if (!g_showMain) {
         return;
     }
-
     // ImGui::InputScalar("Heheheh", ImGuiDataType_U64, &g_SampleMod_ReturnAddr1);
     if (ImGui::Button("heheh")) {
         SampleModDetour1();
@@ -8702,12 +8698,12 @@ void Main(IDXGISwapChain* pSwapChain) {
 
         //((g_renderSize.x - width) / 3)
 
-        if constexpr (debug) {
-            ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x) / 2), 100));
-        } else {
-            // CENTER MAIN SCREEN
-            ImGui::SetNextWindowPos(ImVec2(g_renderSize.x * 0.5f, g_renderSize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-        }
+//         if constexpr (debug) {
+//             ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x) / 2), 100)); // Don't know why you'd spawn the screen that way
+//         } else {
+// 
+        // CENTER MAIN SCREEN
+        ImGui::SetNextWindowPos(ImVec2(g_renderSize.x * 0.5f, g_renderSize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
 
         // ImGuiIO & io = ImGui::GetIO();
@@ -8771,7 +8767,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		{
 			frameBG = UI::SwapColorEndianness(0xFFFFFFFF);
 			frameBGHovered = UI::SwapColorEndianness(0xFFFFFFAA);
-			textColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_WindowBg]);
+			textColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_WindowBgText]);
 		}
 		break;
 
@@ -8779,7 +8775,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		{
 			frameBG = UI::SwapColorEndianness(0xE8BA18FF);
 			frameBGHovered = UI::SwapColorEndianness(0xE8BA18AA);
-			textColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_WindowBg]);
+			textColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_WindowBgText]);
 		}
 		break;
 
@@ -8795,7 +8791,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		{
 			frameBG = UI::SwapColorEndianness(0xFFFFFFFF);
 			frameBGHovered = UI::SwapColorEndianness(0xFFFFFFAA);
-			textColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_WindowBg]);
+			textColor = ImGui::ColorConvertFloat4ToU32(style.Colors[ImGuiCol_WindowBgText]);
 		}
 		break;
 		}
@@ -9000,25 +8996,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 					ImGui::PopItemWidth();
 
-					ImGui::Text("");
-					ImGui::Text("Credits");
-					ImGui::Text("Mia Berth - Project Lead, Programmer, Artist");
-					ImGui::Text("SSSiyan - Reverse Enginnering Researcher, QA, Programmer");
-					ImGui::Text("deepdarkkapustka - Reverse Enginnering Researcher, Programmer");
-					ImGui::Text("Darkness - Backend and UI Programmer");
-					ImGui::Text("");
-
-					ImGui::Text(PATREON_TEXT);
-					ImGui::Text("");
-
-					if (GUI_Button("Open Patreon Page")) {
-						ShellExecuteA(0, "open", PATREON_LINK, 0, 0, SW_SHOW);
-					}
-					ImGui::Text("");
 
 
 					ActorSection();
-					ArcadeSection();
 					BarsSection();
 					BossRush();
 					CameraSection();
@@ -9049,13 +9029,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					TrainingSection();
 					Vergil();
 
-
-					ImGui::Text("");
-
-					GUI_Checkbox2("Show Credits", activeConfig.showCredits, queuedConfig.showCredits);
-
-
-					ImGui::Text("");
 				}
 			}
 			ImGui::EndChild();
@@ -9115,7 +9088,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
 
-				ImGui::Checkbox("Arcade", &tmp);
+				ImGui::Checkbox("ARCADE", &tmp);
 
 				ImGui::PopFont();
 
@@ -9153,6 +9126,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 					ImGui::EndCombo();
 				}
+
+                ArcadeSection();
 			}
 			ImGui::EndChild();
 		}
@@ -9622,7 +9597,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 
     Welcome();
     Main(pSwapChain);
-    CreditsWindow();
+    //CreditsWindow(); // old ddmk credits
     ShopWindow();
 
     if constexpr (debug) {
