@@ -1200,13 +1200,20 @@ void StoreInertia(byte8* actorBaseAddr) {
             i->airGuard.cachedRotation = actorData.rotation;
         }
 
-        // Important for Sky Star Guardflying.
+        // Important for Guardflying.
         if (!actorData.airGuard && event != ACTOR_EVENT::JUMP_CANCEL && event != ACTOR_EVENT::AIR_HIKE) {
             if (event == ACTOR_EVENT::TRICKSTER_SKY_STAR) {
                 i->airGuard.cachedPull = 28.0f;
-            } else {
-                i->airGuard.cachedPull = 28.0f;
+            } else if (event == ACTOR_EVENT::ATTACK) {
+                if (action == BEOWULF_KILLER_BEE) {
+                    i->airGuard.cachedPull = 28.0f;
+                }
             }
+            else {
+                i->airGuard.cachedPull = horizontalPull;
+            }
+
+            
         }
 
         if (!(actorData.action == YAMATO_AERIAL_RAVE_PART_1 || actorData.action == YAMATO_AERIAL_RAVE_PART_2)) {
