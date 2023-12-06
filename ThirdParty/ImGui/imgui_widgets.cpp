@@ -3309,7 +3309,7 @@ bool ImGui::InputScalar(const char* label, ImGuiDataType data_type, void* p_data
         BeginGroup(); // The only purpose of the group here is to allow the caller to query item data e.g. IsItemActive()
         PushID(label);
         SetNextItemWidth(ImMax(1.0f, CalcItemWidth() - (button_size + style.ItemInnerSpacing.x) * 2));
-        if (InputText("", buf, IM_ARRAYSIZE(buf), flags)) // PushId(label) + "" gives us the expected ID from outside point of view
+        if (InputText("", buf, IM_ARRAYSIZE(buf), flags)) // PushID(label) + "" gives us the expected ID from outside point of view
             value_changed = DataTypeApplyOpFromText(buf, g.InputTextState.InitialTextA.Data, data_type, p_data, format);
 
         // Step buttons

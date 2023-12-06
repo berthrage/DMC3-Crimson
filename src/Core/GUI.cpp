@@ -17,7 +17,6 @@
 using namespace DI8;
 
 namespace GUI {
-int id          = 0;
 bool save       = false;
 float saveTimer = 0;
 
@@ -30,9 +29,9 @@ float saveTimeout = 1000; // in ms
 // float   GUI_hideTimeout = 0;
 
 bool GUI_Button(const char* label, const ImVec2& size) {
-    GUI_PushId();
+    UI::PushID();
     auto update = ImGui::Button(label, size);
-    GUI_PopId();
+    UI::PopID();
     return update;
 }
 
@@ -47,9 +46,9 @@ bool GUI_ResetButton() {
 }
 
 bool GUI_Checkbox(const char* label, bool& var) {
-    GUI_PushId();
+    UI::PushID();
     auto update = ImGui::Checkbox(label, &var);
-    GUI_PopId();
+    UI::PopID();
 
     if (update) {
         ::GUI::save = true;
@@ -68,17 +67,10 @@ bool GUI_Checkbox2(const char* label, bool& var, bool& var2) {
     return update;
 }
 
-bool GUI_Selectable(const char* label, bool* selected, ImGuiSelectableFlags flags) {
-    GUI_PushId();
-    auto update = ImGui::Selectable(label, selected, flags);
-    GUI_PopId();
-    return update;
-}
-
 bool GUI_ColorEdit4(const char* label, uint8 (&var)[4], float (&var2)[4], ImGuiColorEditFlags flags) {
     bool update = false;
 
-    GUI_PushId();
+    UI::PushID();
     if (ImGui::ColorEdit4(label, var2, flags)) {
         update = true;
 
@@ -86,7 +78,7 @@ bool GUI_ColorEdit4(const char* label, uint8 (&var)[4], float (&var2)[4], ImGuiC
             var[index] = static_cast<uint8>(var2[index] * 255);
         }
     }
-    GUI_PopId();
+    UI::PopID();
 
     if (update) {
         ::GUI::save = true;
@@ -127,11 +119,11 @@ bool GUI_Color2(const char* label, uint8 (&var)[4], uint8 (&var2)[4], float (&va
 }
 
 bool GUI_Color(const char* label, float (&var)[4], ImGuiColorEditFlags flags) {
-    GUI_PushId();
+    UI::PushID();
 
     auto update = ImGui::ColorEdit4(label, var, flags);
 
-    GUI_PopId();
+    UI::PopID();
 
     if (update) {
         ::GUI::save = true;

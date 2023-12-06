@@ -5,6 +5,7 @@
 #include "../../ThirdParty/ImGui/imgui_internal.h"
 #include <d3d11.h>
 #include <d3d10.h>
+#include "../ImGuiExtra.hpp"
 
 #include "DebugSwitch.hpp"
 
@@ -37,15 +38,6 @@ enum {
     SectionFlags_NoNewLine = 1 << 0,
 };
 
-inline void GUI_PushId() {
-    ImGui::PushID(::GUI::id);
-    ::GUI::id++;
-}
-
-inline void GUI_PopId() {
-    ImGui::PopID();
-}
-
 bool GUI_Button(const char* label, const ImVec2& size = ImVec2(0, 0));
 
 bool GUI_ResetButton();
@@ -56,10 +48,10 @@ bool GUI_Checkbox2(const char* label, bool& var, bool& var2);
 
 // @Extend
 template <typename T> bool GUI_Input(const char* label, T& var, T step = 1, const char* format = 0, ImGuiInputTextFlags flags = 0) {
-    GUI_PushId();
+    UI::PushID();
     auto update =
         ImGui::InputScalar(label, GetImGuiDataType<T>::value, &var, (step == 0) ? 0 : &step, (step == 0) ? 0 : &step, format, flags);
-    GUI_PopId();
+    UI::PopID();
 
     if (update) {
         ::GUI::save = true;
@@ -94,9 +86,9 @@ bool GUI_InputDefault(const char* label, T& var, T& defaultVar, const T step = 1
         window.DC.ItemWidthStack.back() = window.DC.ItemWidth;
     }
 
-    GUI_PushId();
+    UI::PushID();
     auto update = ImGui::InputScalar("", GetImGuiDataType<T>::value, &var, (step == 0) ? 0 : &step, (step == 0) ? 0 : &step, format, flags);
-    GUI_PopId();
+    UI::PopID();
 
     ImGui::SameLine(0, style.ItemInnerSpacing.x);
     if (GUI_Button("D", buttonSize)) {
@@ -135,7 +127,7 @@ template <typename T> bool GUI_Slider(const char* label, T& var, const T min, co
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImGuiIO& io         = ImGui::GetIO();
 
-    GUI_PushId();
+    UI::PushID();
     auto update = ImGui::SliderScalar(label, GetImGuiDataType<T>::value, &var, &min, &max, "%u");
     if (ImGui::IsItemHovered()) {
         window->Flags |= ImGuiWindowFlags_NoScrollbar;
@@ -152,7 +144,7 @@ template <typename T> bool GUI_Slider(const char* label, T& var, const T min, co
             }
         }
     }
-    GUI_PopId();
+    UI::PopID();
 
     if (update) {
         ::GUI::save = true;
@@ -163,100 +155,6 @@ template <typename T> bool GUI_Slider(const char* label, T& var, const T min, co
 
 template <typename T> bool GUI_Slider2(const char* label, T& var, T& var2, const T min, const T max) {
     auto update = GUI_Slider(label, var2, min, max);
-
-    if (update) {
-        var = var2;
-    }
-
-    return update;
-}
-
-bool GUI_Selectable(const char* label, bool* selected, ImGuiSelectableFlags flags = 0);
-
-template <typename varType, uint8 count>
-bool GUI_Combo(const char* label, const char* (&names)[count], varType& var, ImGuiComboFlags flags = 0) {
-    bool update = false;
-
-    GUI_PushId();
-
-    if (ImGui::BeginCombo(label, names[var], flags)) {
-        old_for_all(varType, index, count) {
-            bool selected = (index == var) ? true : false;
-
-            GUI_PushId();
-
-            if (GUI_Selectable(names[index], &selected)) {
-                update = true;
-                var    = index;
-            }
-
-            GUI_PopId();
-        }
-
-        ImGui::EndCombo();
-    }
-
-    GUI_PopId();
-
-    if (update) {
-        ::GUI::save = true;
-    }
-
-    return update;
-}
-
-template <typename varType, uint8 count>
-bool GUI_Combo2(const char* label, const char* (&names)[count], varType& var, varType& var2, ImGuiComboFlags flags = 0) {
-    auto update = GUI_Combo(label, names, var2, flags);
-
-    if (update) {
-        var = var2;
-    }
-
-    return update;
-}
-
-template <typename varType, uint8 mapItemCount>
-bool GUI_ComboMap(const char* label,
-    const char* (&names)[mapItemCount], // @Todo: Use mapItemNames.
-    const varType (&map)[mapItemCount], // @Todo: Use mapItems.
-    uint8& index, varType& var, ImGuiComboFlags flags = 0) {
-    bool update = false;
-    GUI_PushId();
-    if (ImGui::BeginCombo(label, names[index], flags)) {
-        old_for_all(uint8, mapIndex, mapItemCount) // @Todo: mapItemIndex.
-        {
-            auto& mapItem = map[mapIndex];
-            bool selected = (mapIndex == index) ? true : false; // @Todo: Redundant.
-            // @Todo: Remove Push and Pop.
-            GUI_PushId();
-            if (GUI_Selectable(names[mapIndex], &selected)) {
-                update = true;
-                index  = mapIndex;
-                var    = mapItem;
-            }
-            GUI_PopId();
-        }
-        ImGui::EndCombo();
-    }
-    GUI_PopId();
-
-    if (update) {
-        ::GUI::save = true;
-    }
-
-//     if constexpr (debug) {
-//         ImGui::Text("value %u", var);
-//         ImGui::Text("index %u", index);
-//     }
-
-    return update;
-}
-
-template <typename varType, uint8 mapItemCount>
-bool GUI_ComboMap2(const char* label, const char* (&names)[mapItemCount], const varType (&map)[mapItemCount], uint8& index, varType& var,
-    varType& var2, ImGuiComboFlags flags = 0) {
-    auto update = GUI_ComboMap(label, names, map, index, var2, flags);
 
     if (update) {
         var = var2;
@@ -335,7 +233,7 @@ bool GUI_ColorPalette2(const char* label, uint8 (&vars)[count][4], uint8 (&vars2
 template <typename varType> bool GUI_RadioButton(const char* label, varType& var, varType value) {
     bool update = false;
 
-    GUI_PushId();
+    UI::PushID();
 
     bool selected = (var == value);
 
@@ -344,7 +242,7 @@ template <typename varType> bool GUI_RadioButton(const char* label, varType& var
         var    = value;
     }
 
-    GUI_PopId();
+    UI::PopID();
 
     return update;
 }

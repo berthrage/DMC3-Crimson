@@ -116,6 +116,8 @@ file(GLOB MAIN_SRC
     Hooks.hpp
     HUD.cpp
     HUD.hpp
+    ImGuiExtra.cpp
+    ImGuiExtra.hpp
     Internal.cpp
     Internal.hpp
     Memory.cpp
@@ -168,7 +170,8 @@ set(UTILITY_SRC
 )
 
 set(UI_SRC 
-    UI/EmbdeddedImages.hpp
+    UI/EmbeddedImages.hpp
+    UI/EmbeddedImages.cpp
     UI/Texture2DD3D11.cpp
     UI/Texture2DD3D11.hpp
 )
