@@ -2645,7 +2645,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
                     ImGuiComboFlags_HeightLargest
             );
 
-            if constexpr (debug)
+            if constexpr (!debug)
             {
                     ImGui::SameLine();
             }
@@ -2663,7 +2663,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
                                     queuedCharacterData.styles[styleIndex][0]
                             );
 
-                            if constexpr (debug)
+                            if constexpr (!debug)
                             {
                                     ImGui::SameLine();
                             }
@@ -6619,8 +6619,7 @@ void MainOverlayWindow() {
             }
         }
 
-
-        if constexpr (debug) {
+        if constexpr (!debug) {
             return;
         }
 
