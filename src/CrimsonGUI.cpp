@@ -31,6 +31,7 @@
 #include "Timers.hpp"
 #include "Training.hpp"
 #include "Window.hpp"
+#include "VersionCheck.hpp"
 #include "UI\Texture2DD3D11.hpp"
 
 #include "UI\EmbeddedImages.hpp"
@@ -44,6 +45,7 @@
 #include <windows.h>
 #include <dxgi.h>
 #include <d3d11.h>
+#include <thread>
 
 #undef VOID
 
@@ -66,6 +68,8 @@
 void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context);
 
 namespace UI {
+    VersionCheckResult versionCheckResult = VersionCheckResult::IsChecking;
+
 	void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 	{
 		if (pIsOpened != nullptr && *pIsOpened == false)
@@ -85,8 +89,8 @@ namespace UI {
 
 		// Default font
 		ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
-		// 6 tab buttons
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, { g_UIContext.DefaultFontSize * 9.38f * 6.0f,  g_UIContext.DefaultFontSize * 35.0f });
+		// 6 tab buttons + a bit more for the update when there is new version
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, { g_UIContext.DefaultFontSize * 9.38f * 6.0f + g_UIContext.DefaultFontSize * 3.0f, g_UIContext.DefaultFontSize * 35.0f });
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 15.0f);
@@ -168,12 +172,51 @@ namespace UI {
 
 			// Version text
 			{
-				static std::string versionStr = std::format("Ver. {}.{}", g_UIContext.CurrentVersion.Major, g_UIContext.CurrentVersion.Minor).c_str();
-				static std::string lastUpdateStr = std::format("Latest Update: {}/{}/{}", g_UIContext.LatestUpdate.Day, g_UIContext.LatestUpdate.Month, g_UIContext.LatestUpdate.Year);
+                std::string versionStr{};
+				std::string latestUpdateStr{};
+				std::string newVersionText{};
 
-				const float lastUpdateTextWidth = ImGui::CalcTextSize(lastUpdateStr.c_str()).x;
+				if (g_UIContext.CurrentVersion.PatchLetter == 0) {
+					versionStr = std::format("Ver. {}.{}", g_UIContext.CurrentVersion.Major, g_UIContext.CurrentVersion.Minor);
+                }
+                else {
+					versionStr = std::format("Ver. {}.{}{}", g_UIContext.CurrentVersion.Major, g_UIContext.CurrentVersion.Minor, g_UIContext.CurrentVersion.PatchLetter);
+                }
 
-				const ImVec2 pos = ImVec2{ wndRect.Max.x - lastUpdateTextWidth - g_UIContext.DefaultFontSize * 7.18f,
+                if (g_UIContext.LatestVersion.PatchLetter == 0) {
+                    newVersionText = std::format("NEW VERSION AVAILABLE (Ver. {}.{})", g_UIContext.LatestVersion.Major, g_UIContext.LatestVersion.Minor);
+                }
+                else {
+                    newVersionText = std::format("NEW VERSION AVAILABLE (Ver. {}.{}{})", g_UIContext.LatestVersion.Major, g_UIContext.LatestVersion.Minor, g_UIContext.LatestVersion.PatchLetter);
+                }
+                
+				switch (UI::versionCheckResult) {
+				case VersionCheckResult::Success:
+					latestUpdateStr = std::format("Latest Update: {}/{}/{}", g_UIContext.LatestUpdateDate.Day, g_UIContext.LatestUpdateDate.Month, g_UIContext.LatestUpdateDate.Year);
+					break;
+
+                case VersionCheckResult::IsChecking:
+                    latestUpdateStr = "Latest Update...";
+                    break;
+
+                default:
+                    latestUpdateStr = "";
+                    break;
+                }
+
+				const float latestUpdateTextWidth = ImGui::CalcTextSize(latestUpdateStr.c_str()).x;
+                const float newVersionTextWidth = g_UIContext.NewVersionAvailable ? ImGui::CalcTextSize(newVersionText.c_str()).x : 0.0f;
+                const float maxLenthUpdateSection = latestUpdateTextWidth > newVersionTextWidth ? latestUpdateTextWidth : newVersionTextWidth;
+
+                const float versionButtonFontSize = size_t(g_UIContext.DefaultFontSize * 1.45f);
+
+				ImGui::PushFont(g_ImGuiFont_RussoOne[versionButtonFontSize]);
+
+				const float versionButtonWidth = ImGui::CalcTextSize(versionStr.c_str()).x + style.FramePadding.x * 2.0f;
+
+				ImGui::PopFont();
+
+				const ImVec2 pos = ImVec2{ wndRect.Max.x - maxLenthUpdateSection - versionButtonWidth - g_UIContext.DefaultFontSize * 2.0f,
 											wndRect.Min.y + g_UIContext.DefaultFontSize * 2.66f };
 
 				// Two lines of text without space in between each with the default font size
@@ -182,17 +225,17 @@ namespace UI {
 				window->DrawList->AddText(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize], g_UIContext.DefaultFontSize,
 					g_UIContext.NewVersionAvailable ? pos + ImVec2{
 						0.0f,
-						g_UIContext.DefaultFontSize * 0.5f - dateTextAndButtonHeightSum * 0.5f } : pos, SwapColorEndianness(0xFFFFFFFF), lastUpdateStr.c_str());
+						g_UIContext.DefaultFontSize * 0.5f - dateTextAndButtonHeightSum * 0.5f } : pos, SwapColorEndianness(0xFFFFFFFF), latestUpdateStr.c_str());
 
 				auto cursorBackUp = ImGui::GetCursorScreenPos();
-				ImGui::SetCursorScreenPos(pos + ImVec2{ lastUpdateTextWidth + g_UIContext.DefaultFontSize,
+				ImGui::SetCursorScreenPos(pos + ImVec2{ maxLenthUpdateSection + g_UIContext.DefaultFontSize * 1.0f,
 														style.FramePadding.y + g_UIContext.DefaultFontSize * 0.5f - g_UIContext.DefaultFontSize * 0.65f });
 
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
-				ImGui::PushFont(g_ImGuiFont_RussoOne[size_t(g_UIContext.DefaultFontSize * 1.45f)]);
+				ImGui::PushFont(g_ImGuiFont_RussoOne[versionButtonFontSize]);
 
 				if (InfoButton(versionStr.c_str())) {
-					// TODO: Handle click
+                    // Todo: Redirect to patch notes
 				}
 
 				ImGui::PopFont();
@@ -206,7 +249,7 @@ namespace UI {
 
 					ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
 
-					if (InfoButton("NEW VERSION AVAILABLE")) {
+					if (InfoButton(newVersionText.c_str())) {
 						ShellExecute(0, 0, "https://github.com/berthrage/Devil-May-Cry-3-Crimson/releases/new", 0, 0, SW_SHOW);
 					}
 
@@ -8028,9 +8071,11 @@ void Main(IDXGISwapChain* pSwapChain) {
     }
 
 
-    static bool run = false;
-    if (!run) {
-        run = true;
+    static bool doOnce = false;
+	static std::thread versionCheckerThread;
+
+    if (!doOnce) {
+        doOnce = true;
 
         constexpr float width  = 800;
         constexpr float height = 750;
@@ -8052,6 +8097,48 @@ void Main(IDXGISwapChain* pSwapChain) {
         // ImGui::PushFont(io.Fonts->Fonts[FONT::OVERLAY_8 + activeConfig.Tools.Overlay.fontSizeIndex]);
 
         // ImGui::SetCurrentFont(io.Fonts->Fonts[FONT::OVERLAY_8]);
+
+		VersionTracker::GetInstance().SetCallback([&](VersionCheckResult res, Version_t latestVersion) {
+			    if (res == VersionCheckResult::Success) {
+					UI::g_UIContext.LatestVersion.Major = latestVersion.Major;
+					UI::g_UIContext.LatestVersion.Minor = latestVersion.Minor;
+
+			    	UI::g_UIContext.LatestUpdateDate.Year = latestVersion.PublishTime.Local.tm_year + 1900;
+			    	UI::g_UIContext.LatestUpdateDate.Month = latestVersion.PublishTime.Local.tm_mon + 1;
+			    	UI::g_UIContext.LatestUpdateDate.Day = latestVersion.PublishTime.Local.tm_mday;
+
+                    UI::g_UIContext.LatestVersionURL = latestVersion.DirectURL;
+
+					if (UI::g_UIContext.LatestVersion.Major > UI::g_UIContext.CurrentVersion.Major) 
+                    {
+						UI::g_UIContext.NewVersionAvailable = true;
+					}
+					else if (UI::g_UIContext.LatestVersion.Major == UI::g_UIContext.CurrentVersion.Major &&
+						        UI::g_UIContext.LatestVersion.Minor > UI::g_UIContext.CurrentVersion.Minor) 
+                    {
+						UI::g_UIContext.NewVersionAvailable = true;
+					}
+                    else if (UI::g_UIContext.LatestVersion.Major == UI::g_UIContext.CurrentVersion.Major &&
+                                UI::g_UIContext.LatestVersion.Minor == UI::g_UIContext.CurrentVersion.Minor &&
+                                UI::g_UIContext.LatestVersion.PatchLetter > UI::g_UIContext.CurrentVersion.PatchLetter)
+                    {
+                        UI::g_UIContext.NewVersionAvailable = true;
+                    }
+					else 
+                    {
+						UI::g_UIContext.NewVersionAvailable = false;
+					}
+                }
+
+			    UI::versionCheckResult = res;
+			}
+		);
+
+		versionCheckerThread = std::thread{
+			[&] {
+				VersionTracker::GetInstance().QueueLatestRelease(60000);
+			}
+		};
     }
 
     UI::DrawCrimson(pSwapChain, DMC3C_TITLE, &g_showMain);

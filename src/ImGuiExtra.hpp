@@ -3,6 +3,7 @@
 #include "../ThirdParty/ImGui/imgui_internal.h"
 #include <vector>
 #include <array>
+#include <string>
 
 static inline ImVec2 operator*(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x * rhs, lhs.y * rhs); }
 static inline ImVec2 operator/(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x / rhs, lhs.y / rhs); }
@@ -123,18 +124,27 @@ namespace UI {
 			None
 		} SelectedGameMode{ 0 };
 
-		bool NewVersionAvailable = true;
+		bool NewVersionAvailable = false;
 
 		struct {
-			uint32_t Major = 1;
-			uint32_t Minor = 2;
+			uint32_t Major;
+			uint32_t Minor;
+			char	 PatchLetter;
+		} LatestVersion;
+
+		struct {
+			uint32_t Major = 0;
+			uint32_t Minor = 0;
+			char	 PatchLetter = 0;
 		} CurrentVersion;
 
 		struct {
-			uint32_t Day = 99;
-			uint32_t Month = 99;
-			uint32_t Year = 9999;
-		} LatestUpdate;
+			uint32_t Day = 0;
+			uint32_t Month = 0;
+			uint32_t Year = 0;
+		} LatestUpdateDate;
+
+		std::string LatestVersionURL{};
 
 		size_t DefaultFontSize = 18.0f;
 

@@ -13,6 +13,5 @@ typedef unsigned long SizeType;
 
 // #define RAPIDJSON_PARSE_DEFAULT_FLAGS (kParseCommentsFlag | kParseTrailingCommasFlag)
 
-
 #include "../ThirdParty/rapidjson/document.h"
 #include "../ThirdParty/rapidjson/prettywriter.h"

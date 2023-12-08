@@ -39,6 +39,13 @@
 
 uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
     if (reason == DLL_PROCESS_ATTACH) {
+#ifndef NDEBUG
+		AllocConsole();
+		freopen("CONIN$", "r", stdin);
+		freopen("CONOUT$", "w", stdout);
+		freopen("CONOUT$", "w", stderr);
+#endif
+
         InitLog("logs", "Mary.txt");
 
         Log("Session started.");

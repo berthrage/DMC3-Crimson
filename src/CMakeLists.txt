@@ -25,6 +25,10 @@ set(CXX_LIBS
     libzip
     zlib
     Detours
+
+    debug ${CMAKE_SOURCE_DIR}/ThirdParty/curl/lib/x64-debug/libcurl_a_debug.lib optimized ${CMAKE_SOURCE_DIR}/ThirdParty/curl/lib/x64-release/libcurl_a.lib
+    debug ${CMAKE_SOURCE_DIR}/ThirdParty/openssl/lib/x64-debug/libcrypto_static.lib optimized ${CMAKE_SOURCE_DIR}/ThirdParty/openssl/lib/x64-release/libcrypto_static.lib
+    debug ${CMAKE_SOURCE_DIR}/ThirdParty/openssl/lib/x64-debug/libssl_static.lib optimized ${CMAKE_SOURCE_DIR}/ThirdParty/openssl/lib/x64-release/libssl_static.lib
 )
 
 set(CXX_FLAGS
@@ -142,6 +146,8 @@ file(GLOB MAIN_SRC
     Training.hpp
     Vars.cpp
     Vars.hpp
+    VersionCheck.cpp
+    VersionCheck.hpp
     Window.cpp
     Window.hpp
 )
