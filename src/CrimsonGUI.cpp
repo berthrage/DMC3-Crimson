@@ -32,7 +32,7 @@
 #include "Timers.hpp"
 #include "Training.hpp"
 #include "Window.hpp"
-#include "VersionCheck.hpp"
+#include "WebAPICalls.hpp"
 #include "UI\Texture2DD3D11.hpp"
 
 #include "UI\EmbeddedImages.hpp"
@@ -8171,7 +8171,7 @@ void Main(IDXGISwapChain* pSwapChain) {
 
         // ImGui::SetCurrentFont(io.Fonts->Fonts[FONT::OVERLAY_8]);
 
-		VersionTracker::GetInstance().SetCallback([&](VersionCheckResult res, Version_t latestVersion) {
+		WebAPICalls::GetInstance().SetCallback([&](VersionCheckResult res, Version_t latestVersion) {
 			    if (res == VersionCheckResult::Success) {
 					UI::g_UIContext.LatestVersion.Major = latestVersion.Major;
 					UI::g_UIContext.LatestVersion.Minor = latestVersion.Minor;
@@ -8209,7 +8209,7 @@ void Main(IDXGISwapChain* pSwapChain) {
 
 		versionCheckerThread = std::thread{
 			[&] {
-				VersionTracker::GetInstance().QueueLatestRelease(60000);
+				WebAPICalls::GetInstance().QueueLatestRelease(60000);
 			}
 		};
     }
@@ -8568,12 +8568,10 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
 			ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
 			ImGui::PopStyleVar();
-            
-
-            ArcadeSection(context.DefaultFontSize);
-            BossRushSection(context.DefaultFontSize);
-
-			
+            {
+                ArcadeSection(context.DefaultFontSize);
+                BossRushSection(context.DefaultFontSize);
+            }
 			ImGui::EndChild();
 		}
 

@@ -146,8 +146,8 @@ file(GLOB MAIN_SRC
     Training.hpp
     Vars.cpp
     Vars.hpp
-    VersionCheck.cpp
-    VersionCheck.hpp
+    WebAPICalls.cpp
+    WebAPICalls.hpp
     Window.cpp
     Window.hpp
 )

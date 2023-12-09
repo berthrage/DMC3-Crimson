@@ -32,10 +32,10 @@ enum class VersionCheckResult : uint64_t {
 	UnknownError,
 };
 
-class VersionTracker {
+class WebAPICalls {
 public:
-	static VersionTracker& GetInstance() {
-		static VersionTracker instance;
+	static WebAPICalls& GetInstance() {
+		static WebAPICalls instance;
 		return instance;
 	}
 
@@ -46,8 +46,8 @@ public:
 	void QueueLatestRelease(size_t timeOutMS = 0);
 
 private:
-	VersionTracker();
-	virtual ~VersionTracker();
+	WebAPICalls();
+	virtual ~WebAPICalls();
 
 	static int CurlProgressCallback(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow);
 

@@ -1,4 +1,4 @@
-#include "VersionCheck.hpp"
+#include "WebAPICalls.hpp"
 
 #include <chrono>
 #include <string.h>
@@ -75,7 +75,7 @@ static std::chrono::system_clock::time_point ParseISO8601(std::string iso8601)
 	return result;
 }
 
-int VersionTracker::CurlProgressCallback(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+int WebAPICalls::CurlProgressCallback(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow)
 {
 	auto transferInfo = (ClinetData_t*)clientp;
 
@@ -85,21 +85,21 @@ int VersionTracker::CurlProgressCallback(void* clientp, double dltotal, double d
 	return 1;
 }
 
-VersionTracker::VersionTracker()
+WebAPICalls::WebAPICalls()
 {
 	curl_global_init(CURL_GLOBAL_DEFAULT);
 
 	m_CURLInstance = curl_easy_init();
 }
 
-VersionTracker::~VersionTracker()
+WebAPICalls::~WebAPICalls()
 {
 	curl_easy_cleanup(m_CURLInstance);
 
 	curl_global_cleanup();
 }
 
-void VersionTracker::QueueLatestRelease(size_t timeOutMS /*= 0*/)
+void WebAPICalls::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 {
 	if (m_CURLInstance == nullptr) {
 		if (m_Callback)
@@ -123,9 +123,8 @@ void VersionTracker::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 	struct curl_slist* headers = NULL;
 
 	headers = curl_slist_append(headers, "Accept: application/vnd.github+json");
-	headers = curl_slist_append(headers, "Authorization: Bearer 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");
 	headers = curl_slist_append(headers, "X-GitHub-Api-Version: 2022-11-28");
-	headers = curl_slist_append(headers, "User-Agent: curl");
+	headers = curl_slist_append(headers, "User-Agent: Crimson");
 
 	curl_easy_setopt(m_CURLInstance, CURLOPT_HTTPHEADER, headers);
 
