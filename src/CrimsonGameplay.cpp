@@ -1718,8 +1718,12 @@ void StyleMeterDoppelganger(byte8* actorBaseAddr) {
         }
     }
 
-    actorData.styleData.rank = 1;
-    actorData.styleData.meter = 699.0f;
+//     actorData.styleData.rank = 7;
+//     actorData.styleData.meter = 699.0f;
+
+    if (actorData.royalguardBlockType == 2) {
+        PlayDevilTriggerReady();
+    }
 }
 
 void inCombatDetectionTracker() {

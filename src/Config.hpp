@@ -27,9 +27,9 @@ struct Config {
         uint32 mission      = 17;
         uint32 mode         = MODE::DANTE_MUST_DIE;
         uint32 room         = 900;
-        bool ignoreRoom     = (debug) ? false : true;
+        bool enableRoomSelection     = (debug) ? false : true;
         uint32 position     = 0;
-        bool ignorePosition = (debug) ? false : true;
+        bool enablePositionSelection = (debug) ? false : true;
         uint8 floor         = 0;
         uint16 level        = 0;
         float hitPoints     = 20000;

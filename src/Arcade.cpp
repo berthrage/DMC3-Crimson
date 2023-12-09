@@ -137,11 +137,11 @@ void SetRoom() {
 
 
     if ((sessionData.mission >= 1) && (sessionData.mission <= 20) && !activeConfig.BossRush.enable) {
-        if (!activeConfig.Arcade.ignoreRoom) {
+        if (activeConfig.Arcade.enableRoomSelection) {
             nextEventData.room = static_cast<uint16>(activeConfig.Arcade.room);
         }
 
-        if (!activeConfig.Arcade.ignorePosition) {
+        if (activeConfig.Arcade.enablePositionSelection) {
             nextEventData.position = static_cast<uint16>(activeConfig.Arcade.position);
         }
     }

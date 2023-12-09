@@ -388,9 +388,9 @@ void CreateMembers(Config& config_) {
         Create<uint32>(member, "mission", config.mission);
         Create<uint32>(member, "mode", config.mode);
         Create<uint32>(member, "room", config.room);
-        Create<bool>(member, "ignoreRoom", config.ignoreRoom);
+        Create<bool>(member, "enableRoomSelection", config.enableRoomSelection);
         Create<uint32>(member, "position", config.position);
-        Create<bool>(member, "ignorePosition", config.ignorePosition);
+        Create<bool>(member, "enablePositionSelection", config.enablePositionSelection);
         Create<uint8>(member, "floor", config.floor);
         Create<uint16>(member, "level", config.level);
         Create<float>(member, "hitPoints", config.hitPoints);
@@ -990,9 +990,9 @@ void ToJSON(Config& config_) {
         Set<uint32>(member["mission"], config.mission);
         Set<uint32>(member["mode"], config.mode);
         Set<uint32>(member["room"], config.room);
-        Set<bool>(member["ignoreRoom"], config.ignoreRoom);
+        Set<bool>(member["enableRoomSelection"], config.enableRoomSelection);
         Set<uint32>(member["position"], config.position);
-        Set<bool>(member["ignorePosition"], config.ignorePosition);
+        Set<bool>(member["enablePositionSelection"], config.enablePositionSelection);
         Set<uint8>(member["floor"], config.floor);
         Set<uint16>(member["level"], config.level);
         Set<float>(member["hitPoints"], config.hitPoints);
@@ -1544,9 +1544,9 @@ void ToConfig(Config& config_) {
         config.mission        = Get<uint32>(member["mission"]);
         config.mode           = Get<uint32>(member["mode"]);
         config.room           = Get<uint32>(member["room"]);
-        config.ignoreRoom     = Get<bool>(member["ignoreRoom"]);
+        config.enableRoomSelection = Get<bool>(member["enableRoomSelection"]);
         config.position       = Get<uint32>(member["position"]);
-        config.ignorePosition = Get<bool>(member["ignorePosition"]);
+        config.enablePositionSelection = Get<bool>(member["enablePositionSelection"]);
         config.floor          = Get<uint8>(member["floor"]);
         config.level          = Get<uint16>(member["level"]);
         config.hitPoints      = Get<float>(member["hitPoints"]);
