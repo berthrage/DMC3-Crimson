@@ -3228,19 +3228,22 @@ void ArcadeSection(size_t defaultFontSize) {
 		UI::Combo2("", missionNames, activeConfig.Arcade.mission, queuedConfig.Arcade.mission, ImGuiComboFlags_HeightLargest);
 
 		ImGui::SameLine();
-		ImGui::PushStyleColor(ImGuiCol_Text, highlightColorText);
-		ImGui::Text("Mission");
-		ImGui::PopStyleColor();
+        ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+		ImGui::Text("MISSION");
+        ImGui::PopFont();
+
 
 		ImGui::TableNextColumn();
 
 		if (activeConfig.Arcade.mission > 0) {
             ImGui::PushItemWidth(itemWidth);
 			UI::ComboMap2("", modeNames, modes, Arcade_modeIndex, activeConfig.Arcade.mode, queuedConfig.Arcade.mode);
-			ImGui::SameLine();
-			ImGui::PushStyleColor(ImGuiCol_Text, highlightColorText);
-			ImGui::Text("Difficulty");
-			ImGui::PopStyleColor();
+			
+            ImGui::SameLine();
+            ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+			ImGui::Text("DIFFICULTY");
+            ImGui::PopFont();
+
 		}
 
         ImGui::TableNextRow(0, rowWidth);
