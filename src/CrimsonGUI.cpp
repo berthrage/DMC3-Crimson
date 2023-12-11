@@ -3179,6 +3179,9 @@ void Arcade_UpdateIndices() {
 void ArcadeSection(size_t defaultFontSize) {
 	
 	const float itemWidth = defaultFontSize * 8.0f; 
+    const float columnWidth = 0.5f * queuedConfig.globalScale;
+    const float rowWidth = 40.0f * queuedConfig.globalScale;
+
     ImU32 highlightColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
     ImU32 highlightColorText = UI::SwapColorEndianness(0xFF809FFF);
 
@@ -3210,138 +3213,169 @@ void ArcadeSection(size_t defaultFontSize) {
 	
 
     ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-    
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, highlightColorBg);
 
-	UI::Combo2("", missionNames, activeConfig.Arcade.mission, queuedConfig.Arcade.mission, ImGuiComboFlags_HeightLargest);
+	if (ImGui::BeginTable("ArcadeTable", 2)) {
 
-    ImGui::SameLine();
-    ImGui::PushStyleColor(ImGuiCol_Text, highlightColorText);
-    ImGui::Text("Mission            ");
-    ImGui::PopStyleColor();
-    ImGui::SameLine();
+       // ImGui::TableSetColumnWidth(0, columnWidth);
+        ImGui::TableSetupColumn("c1", 0, columnWidth);
+        ImGui::TableNextRow(0, rowWidth);
+        
+		ImGui::TableNextColumn();
+        
+        ImGui::PushItemWidth(itemWidth);
 
-	if (activeConfig.Arcade.mission > 0) {
-		UI::ComboMap2("", modeNames, modes, Arcade_modeIndex, activeConfig.Arcade.mode, queuedConfig.Arcade.mode);
-        ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Text, highlightColorText);
-        ImGui::Text("Difficulty");
-        ImGui::PopStyleColor();
-	}
+		UI::Combo2("", missionNames, activeConfig.Arcade.mission, queuedConfig.Arcade.mission, ImGuiComboFlags_HeightLargest);
 
-//     ImGui::PopFont();
-// 
-//     
-//     ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+		ImGui::SameLine();
+		ImGui::PushStyleColor(ImGuiCol_Text, highlightColorText);
+		ImGui::Text("Mission");
+		ImGui::PopStyleColor();
+
+		ImGui::TableNextColumn();
+
+		if (activeConfig.Arcade.mission > 0) {
+            ImGui::PushItemWidth(itemWidth);
+			UI::ComboMap2("", modeNames, modes, Arcade_modeIndex, activeConfig.Arcade.mode, queuedConfig.Arcade.mode);
+			ImGui::SameLine();
+			ImGui::PushStyleColor(ImGuiCol_Text, highlightColorText);
+			ImGui::Text("Difficulty");
+			ImGui::PopStyleColor();
+		}
+
+        ImGui::TableNextRow(0, rowWidth);
+        ImGui::TableNextColumn();
 
 
-	if (activeConfig.Arcade.mission > 0) {
-		GUI_InputDefault2<float>("Max HP             ", activeConfig.Arcade.hitPoints, queuedConfig.Arcade.hitPoints,
-			defaultConfig.Arcade.hitPoints, 1000, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+		if (activeConfig.Arcade.mission > 0) {
+			GUI_InputDefault2<float>("Max HP", activeConfig.Arcade.hitPoints, queuedConfig.Arcade.hitPoints,
+				defaultConfig.Arcade.hitPoints, 1000, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
-        ImGui::SameLine();
+            ImGui::TableNextColumn();
 
-		GUI_InputDefault2<float>("Max Devil Trigger", activeConfig.Arcade.magicPoints, queuedConfig.Arcade.magicPoints,
-			defaultConfig.Arcade.magicPoints, 1000, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-	}
+			GUI_InputDefault2<float>("Max Devil Trigger", activeConfig.Arcade.magicPoints, queuedConfig.Arcade.magicPoints,
+				defaultConfig.Arcade.magicPoints, 1000, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+		}
 
-	UI::Combo2("Campaign         ", characterNames, activeConfig.Arcade.character, queuedConfig.Arcade.character);
+		ImGui::TableNextRow(0, rowWidth);
+		ImGui::TableNextColumn();
 
-    ImGui::SameLine();
+        UI::Combo2("Campaign", characterNames, activeConfig.Arcade.character, queuedConfig.Arcade.character);
 
-    {
+		{
+            auto queuedCharacterData = GetQueuedCharacterData(0, 0, 0);
+			bool disableCondition = queuedConfig.Actor.enable;
 
-        bool disableCondition = queuedConfig.Actor.enable;
+            
 
-        GUI_PushDisable(disableCondition);
-
-			if (activeConfig.Arcade.mission > 0) {
+            if (activeConfig.Arcade.mission > 0 && (queuedCharacterData.ignoreCostume || !queuedConfig.Actor.enable)) {
+                ImGui::TableNextColumn();
 				GUI_InputDefault2<uint8>("Costume", activeConfig.Arcade.costume, queuedConfig.Arcade.costume, defaultConfig.Arcade.costume, 1,
 					"%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			}
 
+			
+			if ((activeConfig.Arcade.mission > 0) && (activeConfig.Arcade.character == CHARACTER::DANTE) && !queuedConfig.Actor.enable) {
+				ImGui::TableNextRow(0, rowWidth);
+				ImGui::TableNextColumn();
 
-		if ((activeConfig.Arcade.mission > 0) && (activeConfig.Arcade.character == CHARACTER::DANTE)) {
-			UI::Combo2("Style                  ", styleNamesDante, activeConfig.Arcade.style, queuedConfig.Arcade.style);
+				UI::Combo2("Style                  ", styleNamesDante, activeConfig.Arcade.style, queuedConfig.Arcade.style);
 
-			ImGui::SameLine();
-			UI::ComboMap2("Ranged 1", rangedWeaponNamesDante, rangedWeaponsDante, Arcade_rangedWeaponIndexDante[0],
-				activeConfig.Arcade.weapons[2], queuedConfig.Arcade.weapons[2]);
+                ImGui::TableNextColumn();
+				UI::ComboMap2("Ranged 1", rangedWeaponNamesDante, rangedWeaponsDante, Arcade_rangedWeaponIndexDante[0],
+					activeConfig.Arcade.weapons[2], queuedConfig.Arcade.weapons[2]);
 
-			UI::ComboMap2("Melee 1             ", meleeWeaponNamesDante, meleeWeaponsDante, Arcade_meleeWeaponIndexDante[0],
-				activeConfig.Arcade.weapons[0], queuedConfig.Arcade.weapons[0]);
+				ImGui::TableNextRow(0, rowWidth);
+				ImGui::TableNextColumn();
 
-			ImGui::SameLine();
-			UI::ComboMap2("Ranged 2", rangedWeaponNamesDante, rangedWeaponsDante, Arcade_rangedWeaponIndexDante[1],
-				activeConfig.Arcade.weapons[3], queuedConfig.Arcade.weapons[3]);
+				UI::ComboMap2("Melee 1             ", meleeWeaponNamesDante, meleeWeaponsDante, Arcade_meleeWeaponIndexDante[0],
+					activeConfig.Arcade.weapons[0], queuedConfig.Arcade.weapons[0]);
 
+                ImGui::TableNextColumn();
+				UI::ComboMap2("Ranged 2", rangedWeaponNamesDante, rangedWeaponsDante, Arcade_rangedWeaponIndexDante[1],
+					activeConfig.Arcade.weapons[3], queuedConfig.Arcade.weapons[3]);
 
-			UI::ComboMap2("Melee 2", meleeWeaponNamesDante, meleeWeaponsDante, Arcade_meleeWeaponIndexDante[1],
-				activeConfig.Arcade.weapons[1], queuedConfig.Arcade.weapons[1]);
+				ImGui::TableNextRow(0, rowWidth);
+				ImGui::TableNextColumn();
+				UI::ComboMap2("Melee 2", meleeWeaponNamesDante, meleeWeaponsDante, Arcade_meleeWeaponIndexDante[1],
+					activeConfig.Arcade.weapons[1], queuedConfig.Arcade.weapons[1]);
 
+			}
 
 		}
 
-        GUI_PopDisable(disableCondition);
-    }
+		if ((activeConfig.Arcade.mission >= 1) && (activeConfig.Arcade.mission <= 20)) {
 
-    
-	if ((activeConfig.Arcade.mission >= 1) && (activeConfig.Arcade.mission <= 20)) {
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-		// Room
-		{
-			bool condition = !activeConfig.Arcade.enableRoomSelection;
+			// Room
+			{
+				bool condition = !activeConfig.Arcade.enableRoomSelection;
 
-			GUI_PushDisable(condition);
+				GUI_PushDisable(condition);
 
-			GUI_InputDefault2<uint32>("Room", activeConfig.Arcade.room, queuedConfig.Arcade.room, defaultConfig.Arcade.room, 1, "%u",
+				GUI_InputDefault2<uint32>("", activeConfig.Arcade.room, queuedConfig.Arcade.room, defaultConfig.Arcade.room, 1, "%u",
+					ImGuiInputTextFlags_EnterReturnsTrue);
+
+				GUI_PopDisable(condition);
+
+                ImGui::SameLine();
+                ImGui::Text("Room");
+
+				
+				ImGui::SameLine();
+				GUI_Checkbox2("", activeConfig.Arcade.enableRoomSelection, queuedConfig.Arcade.enableRoomSelection);
+			}
+
+            ImGui::TableNextColumn();
+
+			// Position
+			{
+				bool condition = !activeConfig.Arcade.enablePositionSelection;
+
+				GUI_PushDisable(condition);
+
+				GUI_InputDefault2<uint32>("", activeConfig.Arcade.position, queuedConfig.Arcade.position,
+					defaultConfig.Arcade.position, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+
+				GUI_PopDisable(condition);
+
+				ImGui::SameLine();
+                ImGui::Text("Position");
+
+				ImGui::SameLine();
+				GUI_Checkbox2("", activeConfig.Arcade.enablePositionSelection, queuedConfig.Arcade.enablePositionSelection);
+			}
+		}
+
+		if (activeConfig.Arcade.mission == MISSION::BLOODY_PALACE) {
+
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+			UI::Combo2("Floor", floorNames, activeConfig.Arcade.floor, queuedConfig.Arcade.floor, ImGuiComboFlags_HeightLargest);
+
+            ImGui::TableNextColumn();
+
+			GUI_InputDefault2<uint16>("Level", activeConfig.Arcade.level, queuedConfig.Arcade.level, defaultConfig.Arcade.level, 1, "%u",
 				ImGuiInputTextFlags_EnterReturnsTrue);
-
-			GUI_PopDisable(condition);
-
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, highlightColorBg);
-			ImGui::SameLine();
-			GUI_Checkbox2("        ", activeConfig.Arcade.enableRoomSelection, queuedConfig.Arcade.enableRoomSelection);
-            ImGui::PopStyleColor();
 		}
 
-		ImGui::SameLine();
 
-		// Position
-		{
-			bool condition = !activeConfig.Arcade.enablePositionSelection;
-
-			GUI_PushDisable(condition);
-
-			GUI_InputDefault2<uint32>("Position", activeConfig.Arcade.position, queuedConfig.Arcade.position,
-				defaultConfig.Arcade.position, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-
-			GUI_PopDisable(condition);
-
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, highlightColorBg);
-			ImGui::SameLine();
-			GUI_Checkbox2("", activeConfig.Arcade.enablePositionSelection, queuedConfig.Arcade.enablePositionSelection);
-            ImGui::PopStyleColor();
-		}
-	}
-
-
-	if (activeConfig.Arcade.mission == MISSION::BLOODY_PALACE) {
-
-		UI::Combo2("Floor                  ", floorNames, activeConfig.Arcade.floor, queuedConfig.Arcade.floor, ImGuiComboFlags_HeightLargest);
-
-		ImGui::SameLine();
-
-		GUI_InputDefault2<uint16>("Level", activeConfig.Arcade.level, queuedConfig.Arcade.level, defaultConfig.Arcade.level, 1, "%u",
-			ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::EndTable();
 	}
     
-    //ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+
 	//
     ImGui::PopItemWidth();
     ImGui::PopFont();
+    ImGui::PopStyleColor();
 
 	ImGui::Text("");
-    
+	
 }
 
 #pragma endregion
@@ -3554,6 +3588,10 @@ void BarsSection() {
 void BossRushSection(size_t defaultFontSize) {
 
 	const float itemWidth = defaultFontSize * 8.0f;
+	const float columnWidth = 0.5f * queuedConfig.globalScale;
+	const float rowWidth = 30.0f * queuedConfig.globalScale;
+    const float rowWidth2 = 40.0f * queuedConfig.globalScale;
+    ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
@@ -3567,6 +3605,8 @@ void BossRushSection(size_t defaultFontSize) {
 	ImGui::PushItemWidth(itemWidth);
 
     ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
+
 	ImGui::Text("");
 
 // 	if (GUI_ResetButton()) {
@@ -3574,32 +3614,58 @@ void BossRushSection(size_t defaultFontSize) {
 // 		CopyMemory(&activeConfig.BossRush, &queuedConfig.BossRush, sizeof(activeConfig.BossRush));
 // 	}
 
-	ImGui::Text("Mission 5                                               ");
-    ImGui::SameLine();
-    ImGui::Text("Mission 12");
-	GUI_Checkbox2("Skip Jester                                      ", activeConfig.BossRush.Mission5.skipJester, queuedConfig.BossRush.Mission5.skipJester);
-    ImGui::SameLine();
-	GUI_Checkbox2("Skip Jester", activeConfig.BossRush.Mission12.skipJester, queuedConfig.BossRush.Mission12.skipJester);
+    if (ImGui::BeginTable("BossRushTable", 2)) {
 
-    ImGui::Text("                                                                 ");
-    ImGui::SameLine();
-	GUI_Checkbox2(
-		"Skip Geryon Part 1", activeConfig.BossRush.Mission12.skipGeryonPart1, queuedConfig.BossRush.Mission12.skipGeryonPart1);
-	ImGui::Text("");
+        ImGui::TableSetupColumn("c1", 0, columnWidth);
+        ImGui::TableNextRow(0, rowWidth);
+        ImGui::TableNextColumn();
 
-    ImGui::Text("Mission 17                                              ");
-    ImGui::SameLine();
-    ImGui::Text("Mission 19");
-	GUI_Checkbox2("Skip Jester                                       ", activeConfig.BossRush.Mission17.skipJester, queuedConfig.BossRush.Mission17.skipJester);
-    ImGui::SameLine();
-	GUI_Checkbox2(
-		"Skip Arkham Part 1", activeConfig.BossRush.Mission19.skipArkhamPart1, queuedConfig.BossRush.Mission19.skipArkhamPart1);
+        ImGui::Text("Mission 5");
 
-    ImGui::PopFont();
+        ImGui::TableNextColumn();
+        ImGui::Text("Mission 12");
 
-    ImGui::PopItemWidth();
-	ImGui::Text("");
+        ImGui::TableNextRow(0, rowWidth);
+        ImGui::TableNextColumn();
 
+        GUI_Checkbox2("Skip Jester", activeConfig.BossRush.Mission5.skipJester, queuedConfig.BossRush.Mission5.skipJester);
+
+        ImGui::TableNextColumn();
+        GUI_Checkbox2("Skip Jester", activeConfig.BossRush.Mission12.skipJester, queuedConfig.BossRush.Mission12.skipJester);
+
+		ImGui::TableNextRow(0, rowWidth2);
+		ImGui::TableNextColumn();
+
+        ImGui::TableNextColumn();
+		GUI_Checkbox2(
+			"Skip Geryon Part 1", activeConfig.BossRush.Mission12.skipGeryonPart1, queuedConfig.BossRush.Mission12.skipGeryonPart1);
+
+		ImGui::TableNextRow(0, rowWidth);
+		ImGui::TableNextColumn();
+
+		ImGui::Text("Mission 17");
+
+        ImGui::TableNextColumn();
+		ImGui::Text("Mission 19");
+
+		ImGui::TableNextRow(0, rowWidth);
+		ImGui::TableNextColumn();
+
+        GUI_Checkbox2("Skip Jester", activeConfig.BossRush.Mission17.skipJester, queuedConfig.BossRush.Mission17.skipJester);
+
+        ImGui::TableNextColumn();
+
+		GUI_Checkbox2(
+			"Skip Arkham Part 1", activeConfig.BossRush.Mission19.skipArkhamPart1, queuedConfig.BossRush.Mission19.skipArkhamPart1);
+        
+
+        ImGui::EndTable();
+
+    }
+	
+	ImGui::PopFont();
+	ImGui::PopItemWidth();
+    ImGui::PopStyleColor();
     
 }
 
