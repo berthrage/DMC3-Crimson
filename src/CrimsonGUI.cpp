@@ -2528,7 +2528,7 @@ void Actor_UpdateIndices() {
 
         UpdateMapIndex(collisionGroups, Actor_collisionGroupIndices[playerIndex], queuedPlayerData.collisionGroup);
 
-        UpdateMapIndex(buttons, Actor_buttonIndices[playerIndex], activePlayerData.button);
+        UpdateMapIndex(buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton);
 
         old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
             old_for_all(uint8, entityIndex, ENTITY_COUNT) {
@@ -2931,7 +2931,7 @@ void Actor_PlayerTab(uint8 playerIndex) {
     ImGui::Text("");
 
 
-    UI::ComboMap2("Button", buttonNames, buttons, Actor_buttonIndices[playerIndex], activePlayerData.button, queuedPlayerData.button,
+    UI::ComboMap2("Switch Button", buttonNames, buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton, queuedPlayerData.switchButton,
         ImGuiComboFlags_HeightLargest);
     ImGui::SameLine();
     TooltipHelper("(?)", "Multi-purpose button.\n"
@@ -2980,23 +2980,23 @@ void Actor_PlayerTab(uint8 playerIndex) {
     ImGui::Text("");
 
 
-    if (GUI_Button("Reset")) {
-        CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag, &defaultConfig.Actor.playerData[playerIndex].removeBusyFlag,
-            sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlag));
-        CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlag, &queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
-            sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlag));
-
-        CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-            &defaultConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-            sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
-        CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-            &queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-            sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
-
-
-        Actor_UpdateIndices();
-    }
-    ImGui::Text("");
+//     if (GUI_Button("Reset")) {
+//         CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag, &defaultConfig.Actor.playerData[playerIndex].removeBusyFlag,
+//             sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlag));
+//         CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlag, &queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
+//             sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlag));
+// 
+//         CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+//             &defaultConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+//             sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
+//         CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+//             &queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+//             sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
+// 
+// 
+//         Actor_UpdateIndices();
+//     }
+/*    ImGui::Text("");*/
 
 
     {

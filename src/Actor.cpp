@@ -3210,7 +3210,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 
     {
         // Doppelganger StyleSwitch
-        bool condition = (actorData.buttons[2] & playerData.button);
+        bool condition = (actorData.buttons[2] & playerData.switchButton);
 
 
         if (condition) {
@@ -3436,7 +3436,7 @@ template <typename T> void LinearMeleeWeaponSwitchController(T& actorData) {
     bool back    = false;
 
     {
-        bool condition = (actorData.buttons[0] & playerData.button);
+        bool condition = (actorData.buttons[0] & playerData.switchButton);
 
         // Doppelganger Weapon Switch
         if (actorData.newEntityIndex == ENTITY::MAIN) {
@@ -3545,7 +3545,7 @@ template <typename T> void LinearRangedWeaponSwitchController(T& actorData) {
 
 
     {
-        bool condition = (actorData.buttons[0] & playerData.button);
+        bool condition = (actorData.buttons[0] & playerData.switchButton);
 
         if (actorData.newEntityIndex == ENTITY::MAIN) {
             if (condition) {
@@ -4154,7 +4154,7 @@ void CharacterSwitchController() {
 
             auto& playerData = GetPlayerData(playerIndex);
 
-            if (gamepad.buttons[0] & playerData.button) {
+            if (gamepad.buttons[0] & playerData.switchButton) {
                 if (execute) {
                     execute = false;
 
@@ -8563,7 +8563,7 @@ void ToggleStyleFixes(bool enable) {
 bool DevilButtonCheck(PlayerActorData& actorData) {
     auto& playerData = GetPlayerData(actorData);
 
-    bool condition = (actorData.buttons[0] & playerData.button);
+    bool condition = (actorData.buttons[0] & playerData.switchButton);
 
     if (actorData.newEntityIndex == ENTITY::MAIN) {
         if (condition) {

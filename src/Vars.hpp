@@ -2695,7 +2695,7 @@ struct CharacterData {
 struct PlayerData {
     uint8 collisionGroup;
 
-    byte16 button;
+    byte16 switchButton;
 
     uint8 characterCount;
     uint8 characterIndex;

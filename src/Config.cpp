@@ -181,7 +181,7 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character) {
 }
 
 void ApplyDefaultPlayerData(PlayerData& playerData) {
-    playerData.button = GAMEPAD::RIGHT_THUMB;
+    playerData.switchButton = GAMEPAD::RIGHT_THUMB;
 
     playerData.characterCount = 2;
     playerData.characterIndex = 0;
@@ -240,7 +240,7 @@ void CreateMembers_CharacterDataContent(rapidjson::Value& member, CharacterData&
 
 void CreateMembers_PlayerDataContent(rapidjson::Value& member, PlayerData& config) {
     Create<uint8>(member, "collisionGroup", config.collisionGroup);
-    Create<uint16>(member, "button", config.button);
+    Create<uint16>(member, "button", config.switchButton);
     Create<uint8>(member, "characterCount", config.characterCount);
     Create<uint8>(member, "characterIndex", config.characterIndex);
     Create<uint8>(member, "lastCharacterIndex", config.lastCharacterIndex);
@@ -864,7 +864,7 @@ void ToJSON_CharacterData(rapidjson::Value& member, CharacterData& config) {
 
 void ToJSON_PlayerData(rapidjson::Value& member, PlayerData& config) {
     Set<uint8>(member["collisionGroup"], config.collisionGroup);
-    Set<byte16>(member["button"], config.button);
+    Set<byte16>(member["button"], config.switchButton);
     Set<uint8>(member["characterCount"], config.characterCount);
     Set<uint8>(member["characterIndex"], config.characterIndex);
     Set<uint8>(member["lastCharacterIndex"], config.lastCharacterIndex);
@@ -1411,7 +1411,7 @@ void ToConfig_CharacterData(CharacterData& config, rapidjson::Value& member) {
 
 void ToConfig_PlayerData(PlayerData& config, rapidjson::Value& member) {
     config.collisionGroup       = Get<uint8>(member["collisionGroup"]);
-    config.button               = Get<byte16>(member["button"]);
+    config.switchButton               = Get<byte16>(member["button"]);
     config.characterCount       = Get<uint8>(member["characterCount"]);
     config.characterIndex       = Get<uint8>(member["characterIndex"]);
     config.lastCharacterIndex   = Get<uint8>(member["lastCharacterIndex"]);
