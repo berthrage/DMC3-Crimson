@@ -108,7 +108,7 @@ namespace UI {
 			Common = 0,
 			Speed,
 			Teleporter,
-			EnemySwapper,
+			EnemySpawner,
 			JukeBox,
 
 			Size,

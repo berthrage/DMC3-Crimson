@@ -149,17 +149,17 @@ namespace UI {
 
 				switch (g_UIContext.SelectedGameMode) {
 				case UIContext::GameModes::Vanilla:
-					gameModeString = "Vanilla";
+					gameModeString = "VANILLA MODE";
 					gameModeStringColor = 0xFFFFFFFF;
 					break;
 
 				case UIContext::GameModes::StyleSwitcher:
-					gameModeString = "Style Switcher";
+					gameModeString = "STYLE SWITCHER MODE";
 					gameModeStringColor = SwapColorEndianness(0xE8BA18FF);
 					break;
 
 				case UIContext::GameModes::Crimson:
-					gameModeString = "Crimson";
+					gameModeString = "CRIMSON MODE";
 					gameModeStringColor = SwapColorEndianness(0xDA1B53FF);
 					break;
 
@@ -274,7 +274,7 @@ namespace UI {
 					SwapColorEndianness(0x000000FF)
 				);
 
-				ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
+				ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 0.9f]);
 
 				contentMinHeightOffsetFromTop = 2.0f * tabBtnSize.y + tabBtnSize.y;
 
@@ -300,37 +300,37 @@ namespace UI {
 						ImGui::SetCursorScreenPos({ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y });
 
 						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + tabButtonsGap);
-						if (TabButton("Gameplay", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Gameplay, true, false, subTabBtnSize)) {
+						if (TabButton("GAMEPLAY", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Gameplay, true, false, subTabBtnSize)) {
 							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Gameplay;
 						}
 
 						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("Camera", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Camera, true, false, subTabBtnSize)) {
+						if (TabButton("CAMERA", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Camera, true, false, subTabBtnSize)) {
 							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Camera;
 						}
 
 						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("Hotkeys", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Hotkeys, true, false, subTabBtnSize)) {
+						if (TabButton("HOTKEYS", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Hotkeys, true, false, subTabBtnSize)) {
 							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Hotkeys;
 						}
 
 						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("Overlays", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Overlays, true, false, subTabBtnSize)) {
+						if (TabButton("OVERLAYS", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Overlays, true, false, subTabBtnSize)) {
 							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Overlays;
 						}
 
 						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("Weapon Wheel", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::WeaponWheel, true, false, subTabBtnSize)) {
+						if (TabButton("WEAPON WHEEL", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::WeaponWheel, true, false, subTabBtnSize)) {
 							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::WeaponWheel;
 						}
 
 						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("Sound/Visual", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::SoundOrVisual, true, false, subTabBtnSize)) {
+						if (TabButton("SOUND/VISUAL", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::SoundOrVisual, true, false, subTabBtnSize)) {
 							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::SoundOrVisual;
 						}
 
 						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("System", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::System, true, false, subTabBtnSize)) {
+						if (TabButton("SYSTEM", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::System, true, false, subTabBtnSize)) {
 							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::System;
 						}
 
@@ -348,27 +348,27 @@ namespace UI {
 						ImGui::SetCursorScreenPos({ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y });
 
 						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + tabButtonsGap);
-						if (TabButton("Common", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Common, true, false, subTabBtnSize)) {
+						if (TabButton("COMMON", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Common, true, false, subTabBtnSize)) {
 							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::Common;
 						}
 
 						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("Speed", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Speed, true, false, subTabBtnSize)) {
+						if (TabButton("SPEED", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Speed, true, false, subTabBtnSize)) {
 							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::Speed;
 						}
 
 						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("Teleporter", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Teleporter, true, false, subTabBtnSize)) {
+						if (TabButton("TELEPORTER", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Teleporter, true, false, subTabBtnSize)) {
 							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::Teleporter;
 						}
 
 						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("Enemy Swapper", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::EnemySwapper, true, false, subTabBtnSize)) {
-							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::EnemySwapper;
+						if (TabButton("ENEMY SPAWNER", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::EnemySpawner, true, false, subTabBtnSize)) {
+							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::EnemySpawner;
 						}
 
 						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("Juke Box", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::JukeBox, true, false, subTabBtnSize)) {
+						if (TabButton("JUKEBOX", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::JukeBox, true, false, subTabBtnSize)) {
 							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::JukeBox;
 						}
 
@@ -469,8 +469,16 @@ namespace UI {
 						// Has subtab buttons
 						pos += ImVec2{ 0.0f, subTabBtnSize.y };
 
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-							SwapColorEndianness(0xFFFFFF10), "Options");
+                        if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Gameplay) {
+							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+								SwapColorEndianness(0xFFFFFF10), "Gameplay");
+                        }
+                        else {
+							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+								SwapColorEndianness(0xFFFFFF10), "Options");
+                        }
+
+						
 					}
 					break;
 
@@ -3010,149 +3018,148 @@ void Actor_PlayerTab(uint8 playerIndex) {
     }
 }
 
-void ActorSection() {
-    if (ImGui::CollapsingHeader("Actor")) {
-        ImGui::Text("");
+void ActorSection(size_t defaultFontSize) {
 
-        DescriptionHelper(
-            "Custom actor creation and spawn system. Required for many features like character-, style- and weapon-switching.");
-        ImGui::Text("");
+    
+    ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	GUI_Checkbox("ACTOR SYSTEM", queuedConfig.Actor.enable);
+    ImGui::PopFont();
+    UI::SeparatorEx(defaultFontSize * 23.35f);
 
-
-        GUI_Checkbox("Enable", queuedConfig.Actor.enable);
-        ImGui::Text("");
+	ImGui::Text("");
 
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.Actor, &defaultConfig.Actor, sizeof(queuedConfig.Actor));
+// 	if (GUI_ResetButton()) {
+// 		CopyMemory(&queuedConfig.Actor, &defaultConfig.Actor, sizeof(queuedConfig.Actor));
+// 
+// 		old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].button, &defaultConfig.Actor.playerData[playerIndex].button,
+// 				sizeof(queuedConfig.Actor.playerData[playerIndex].button));
+// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].button, &queuedConfig.Actor.playerData[playerIndex].button,
+// 				sizeof(activeConfig.Actor.playerData[playerIndex].button));
+// 
+// 
+// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
+// 				&defaultConfig.Actor.playerData[playerIndex].removeBusyFlag,
+// 				sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlag));
+// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlag,
+// 				&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
+// 				sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlag));
+// 
+// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+// 				&defaultConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+// 				sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
+// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+// 				&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+// 				sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
+// 		}
+// 
+// 		Actor_UpdateIndices();
+// 
+// 		CopyMemory(&queuedConfig.updateLockOns, &defaultConfig.updateLockOns, sizeof(queuedConfig.updateLockOns));
+// 		CopyMemory(&activeConfig.updateLockOns, &queuedConfig.updateLockOns, sizeof(activeConfig.updateLockOns));
+// 
+// 		CopyMemory(&queuedConfig.forceSyncHitMagicPoints, &defaultConfig.forceSyncHitMagicPoints,
+// 			sizeof(queuedConfig.forceSyncHitMagicPoints));
+// 		CopyMemory(
+// 			&activeConfig.forceSyncHitMagicPoints, &queuedConfig.forceSyncHitMagicPoints, sizeof(activeConfig.forceSyncHitMagicPoints));
+// 
+// 		CopyMemory(&queuedConfig.resetPermissions, &defaultConfig.resetPermissions, sizeof(queuedConfig.resetPermissions));
+// 		CopyMemory(&activeConfig.resetPermissions, &queuedConfig.resetPermissions, sizeof(activeConfig.resetPermissions));
+// 
+// 
+// 		CopyMemory(&queuedConfig.enableBossLadyFixes, &defaultConfig.enableBossLadyFixes, sizeof(queuedConfig.enableBossLadyFixes));
+// 		CopyMemory(&activeConfig.enableBossLadyFixes, &queuedConfig.enableBossLadyFixes, sizeof(activeConfig.enableBossLadyFixes));
+// 
+// 		CopyMemory(
+// 			&queuedConfig.enableBossVergilFixes, &defaultConfig.enableBossVergilFixes, sizeof(queuedConfig.enableBossVergilFixes));
+// 		CopyMemory(
+// 			&activeConfig.enableBossVergilFixes, &queuedConfig.enableBossVergilFixes, sizeof(activeConfig.enableBossVergilFixes));
+// 
+// 		CopyMemory(&queuedConfig.enablePVPFixes, &defaultConfig.enablePVPFixes, sizeof(queuedConfig.enablePVPFixes));
+// 		CopyMemory(&activeConfig.enablePVPFixes, &queuedConfig.enablePVPFixes, sizeof(activeConfig.enablePVPFixes));
+// 
+// 		ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
+// 		ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
+// 
+// 		CopyMemory(&queuedConfig.absoluteUnit, &defaultConfig.absoluteUnit, sizeof(queuedConfig.absoluteUnit));
+// 		CopyMemory(&activeConfig.absoluteUnit, &queuedConfig.absoluteUnit, sizeof(activeConfig.absoluteUnit));
+// 	}
 
-            old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-                CopyMemory(&queuedConfig.Actor.playerData[playerIndex].button, &defaultConfig.Actor.playerData[playerIndex].button,
-                    sizeof(queuedConfig.Actor.playerData[playerIndex].button));
-                CopyMemory(&activeConfig.Actor.playerData[playerIndex].button, &queuedConfig.Actor.playerData[playerIndex].button,
-                    sizeof(activeConfig.Actor.playerData[playerIndex].button));
+    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
+	ImGui::PushItemWidth(200.0f);
 
-                CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
-                    &defaultConfig.Actor.playerData[playerIndex].removeBusyFlag,
-                    sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlag));
-                CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlag,
-                    &queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
-                    sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlag));
+	GUI_Slider<uint8>("Player Count", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT);
+	ImGui::Text("");
 
-                CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-                    &defaultConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-                    sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
-                CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-                    &queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-                    sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
-            }
-
-            Actor_UpdateIndices();
-
-            CopyMemory(&queuedConfig.updateLockOns, &defaultConfig.updateLockOns, sizeof(queuedConfig.updateLockOns));
-            CopyMemory(&activeConfig.updateLockOns, &queuedConfig.updateLockOns, sizeof(activeConfig.updateLockOns));
-
-            CopyMemory(&queuedConfig.forceSyncHitMagicPoints, &defaultConfig.forceSyncHitMagicPoints,
-                sizeof(queuedConfig.forceSyncHitMagicPoints));
-            CopyMemory(
-                &activeConfig.forceSyncHitMagicPoints, &queuedConfig.forceSyncHitMagicPoints, sizeof(activeConfig.forceSyncHitMagicPoints));
-
-            CopyMemory(&queuedConfig.resetPermissions, &defaultConfig.resetPermissions, sizeof(queuedConfig.resetPermissions));
-            CopyMemory(&activeConfig.resetPermissions, &queuedConfig.resetPermissions, sizeof(activeConfig.resetPermissions));
-
-
-            CopyMemory(&queuedConfig.enableBossLadyFixes, &defaultConfig.enableBossLadyFixes, sizeof(queuedConfig.enableBossLadyFixes));
-            CopyMemory(&activeConfig.enableBossLadyFixes, &queuedConfig.enableBossLadyFixes, sizeof(activeConfig.enableBossLadyFixes));
-
-            CopyMemory(
-                &queuedConfig.enableBossVergilFixes, &defaultConfig.enableBossVergilFixes, sizeof(queuedConfig.enableBossVergilFixes));
-            CopyMemory(
-                &activeConfig.enableBossVergilFixes, &queuedConfig.enableBossVergilFixes, sizeof(activeConfig.enableBossVergilFixes));
-
-            CopyMemory(&queuedConfig.enablePVPFixes, &defaultConfig.enablePVPFixes, sizeof(queuedConfig.enablePVPFixes));
-            CopyMemory(&activeConfig.enablePVPFixes, &queuedConfig.enablePVPFixes, sizeof(activeConfig.enablePVPFixes));
-
-            ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
-            ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
-
-            CopyMemory(&queuedConfig.absoluteUnit, &defaultConfig.absoluteUnit, sizeof(queuedConfig.absoluteUnit));
-            CopyMemory(&activeConfig.absoluteUnit, &queuedConfig.absoluteUnit, sizeof(activeConfig.absoluteUnit));
-        }
-        ImGui::Text("");
-
-
-        ImGui::PushItemWidth(200.0f);
-
-        GUI_Slider<uint8>("Player Count", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT);
-        ImGui::Text("");
-
-        ImGui::PopItemWidth();
-
-
-        if (ImGui::BeginTabBar("PlayerTabs")) {
-            old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-                auto condition = (playerIndex >= queuedConfig.Actor.playerCount);
-
-                GUI_PushDisable(condition);
-
-                if (ImGui::BeginTabItem(playerIndexNames[playerIndex])) {
-                    ImGui::Text("");
-
-                    Actor_PlayerTab(playerIndex);
-
-                    ImGui::EndTabItem();
-                }
-
-                GUI_PopDisable(condition);
-            }
-
-            ImGui::EndTabBar();
-        }
-
-        GUI_SectionEnd();
-        ImGui::Text("");
+	ImGui::PopItemWidth();
 
 
-        GUI_Checkbox2("Update Lock-Ons", activeConfig.updateLockOns, queuedConfig.updateLockOns);
+	if (ImGui::BeginTabBar("PlayerTabs")) {
+		old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+			auto condition = (playerIndex >= queuedConfig.Actor.playerCount);
 
-        GUI_Checkbox2("Force Sync Hit & Magic Points", activeConfig.forceSyncHitMagicPoints, queuedConfig.forceSyncHitMagicPoints);
-        ImGui::Text("");
+			GUI_PushDisable(condition);
 
+			if (ImGui::BeginTabItem(playerIndexNames[playerIndex])) {
+				ImGui::Text("");
 
-        GUI_Checkbox2("Reset Permissions", activeConfig.resetPermissions, queuedConfig.resetPermissions);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Press the taunt button to reset the actor's permissions.\n"
-                             "Useful when getting stuck.");
-        ImGui::Text("");
+				Actor_PlayerTab(playerIndex);
 
+				ImGui::EndTabItem();
+			}
 
-        if (GUI_Checkbox2("Enable Boss Lady Fixes", activeConfig.enableBossLadyFixes, queuedConfig.enableBossLadyFixes)) {
-            ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
-        }
+			GUI_PopDisable(condition);
+		}
 
-        if (GUI_Checkbox2("Enable Boss Vergil Fixes", activeConfig.enableBossVergilFixes, queuedConfig.enableBossVergilFixes)) {
-            ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
-        }
+		ImGui::EndTabBar();
+	}
 
-        GUI_Checkbox2("Enable PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
-        ImGui::Text("");
+	ImGui::Text("");
 
 
-        GUI_Checkbox2("Absolute Unit", activeConfig.absoluteUnit, queuedConfig.absoluteUnit);
-        ImGui::SameLine();
-        TooltipHelper("(?)",
-            "I mastered the art of jump-cancelling before I was born.\n"
-            "I beat the game 5000+ times.\n"
-            "Star-raving on 3x turbo amuses me.\n"
-            "Other \"players\" complaining about wrist pain makes me cringe.\n"
-            "I'm a GROWN, ASS, MAN.\n"
-            "I can absolutely, positively, under no circumstances be bothered with leveling up again.",
-            500);
+	GUI_Checkbox2("Update Lock-Ons", activeConfig.updateLockOns, queuedConfig.updateLockOns);
+
+	GUI_Checkbox2("Force Sync Hit & Magic Points", activeConfig.forceSyncHitMagicPoints, queuedConfig.forceSyncHitMagicPoints);
+	ImGui::Text("");
 
 
-        ImGui::Text("");
-    }
+	GUI_Checkbox2("Reset Permissions", activeConfig.resetPermissions, queuedConfig.resetPermissions);
+	ImGui::SameLine();
+	TooltipHelper("(?)", "Press the taunt button to reset the actor's permissions.\n"
+		"Useful when getting stuck.");
+	ImGui::Text("");
+
+
+	if (GUI_Checkbox2("Enable Boss Lady Fixes", activeConfig.enableBossLadyFixes, queuedConfig.enableBossLadyFixes)) {
+		ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
+	}
+
+	if (GUI_Checkbox2("Enable Boss Vergil Fixes", activeConfig.enableBossVergilFixes, queuedConfig.enableBossVergilFixes)) {
+		ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
+	}
+
+	GUI_Checkbox2("Enable PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
+	ImGui::Text("");
+
+
+	GUI_Checkbox2("Absolute Unit", activeConfig.absoluteUnit, queuedConfig.absoluteUnit);
+	ImGui::SameLine();
+	TooltipHelper("(?)",
+		"I mastered the art of jump-cancelling before I was born.\n"
+		"I beat the game 5000+ times.\n"
+		"Star-raving on 3x turbo amuses me.\n"
+		"Other \"players\" complaining about wrist pain makes me cringe.\n"
+		"I'm a GROWN, ASS, MAN.\n"
+		"I can absolutely, positively, under no circumstances be bothered with leveling up again.",
+		500);
+
+
+	ImGui::Text("");
+
+    ImGui::PopFont();
+    
 }
 
 #pragma endregion
@@ -8308,25 +8315,31 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 	{
 		constexpr float align = 0.5f; // Center = 0.5f
 
-		constexpr const char* MODE_SELECTION_TEXT = "Choose your desired Devil May Cry 3 Version!\n"
+		constexpr const char* MODE_SELECTION_TEXT = "Choose your desired Devil May Cry 3 version!\n"
 			"This will affect the entire Gameplay Options globally and tag you at the Mission End Screen.\n"
 			"If Gameplay Options diverge too much from any preset, 'Custom' Game Mode will be selected instead automatically.";
 
 		float width = ImGui::CalcTextSize(MODE_SELECTION_TEXT).x;
 
+        ImGui::Text("");
+        ImGui::Text("");
+        
+
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - width) * align);
 
 		ImGui::TextWrapped(MODE_SELECTION_TEXT);
+        ImGui::Text("");
 
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
 
 		float comboBoxWidth = width * 0.5f;
 
-		std::array<const char*, 3> modes{ "Vanilla", "Style Switcher", "Crimson Mode" };
+		std::array<const char*, 3> modes{ "VANLLA MODE", "STYLE SWITCHER MODE", "CRIMSON MODE" };
 
 		ImGui::SetNextItemWidth(comboBoxWidth);
 
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - comboBoxWidth) * align);
+
 
 		ImU32 frameBG = 0;
 		ImU32 frameBGHovered = 0;
@@ -8535,70 +8548,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
 			ImGui::PopStyleVar();
 			{
-
-				{
-					ImGui::Text("");
-
-					std::stringstream sstm;
-					sstm << "WINDOWSIZE X: " << g_renderSize.x;
-					std::string windowSizeX = sstm.str();
-
-					std::stringstream sstm2;
-					sstm2 << "WINDOWSIZE Y: " << g_renderSize.y;
-					std::string windowSizeY = sstm2.str();
-					const char* var1 = windowSizeX.c_str();
-					const char* var2 = windowSizeY.c_str();
-
-
-					ImGui::Text(var1);
-					ImGui::Text(var2);
-
-
-					GamepadClose(visibleMain, lastVisibleMain, CloseMain);
-
-
-					ImGui::PushItemWidth(150);
-
-					if (GUI_InputDefault2("Global Scale", activeConfig.globalScale, queuedConfig.globalScale, defaultConfig.globalScale, 0.1f, "%g",
-						ImGuiInputTextFlags_EnterReturnsTrue)) {
-						UpdateGlobalScale();
-					}
-
-					ImGui::PopItemWidth();
-
-
-
-					ActorSection();
-					BarsSection();
-					CameraSection();
-					Cosmetics();
-					Damage();
-					Dante();
-
-					if constexpr (debug) {
-						Debug();
-					}
-
-					Enemy();
-					Jukebox();
-					KeyBindings();
-					Lady();
-					Mobility();
-					Other();
-					Overlays();
-					Repair();
-					SpeedSection();
-					System();
-					Teleporter();
-					WeaponWheel();
-					SFX();
-					GameplayOptions();
-
-
-					TrainingSection();
-					Vergil();
-
-				}
+                ActorSection(context.DefaultFontSize);
 			}
 			ImGui::EndChild();
 		}
@@ -8683,6 +8633,112 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 	case UI::UIContext::MainTabs::Options:
 	{
+        if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::Gameplay) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						ImGui::Text("");
+
+						std::stringstream sstm;
+						sstm << "WINDOWSIZE X: " << g_renderSize.x;
+						std::string windowSizeX = sstm.str();
+
+						std::stringstream sstm2;
+						sstm2 << "WINDOWSIZE Y: " << g_renderSize.y;
+						std::string windowSizeY = sstm2.str();
+						const char* var1 = windowSizeX.c_str();
+						const char* var2 = windowSizeY.c_str();
+
+
+						ImGui::Text(var1);
+						ImGui::Text(var2);
+
+
+						GamepadClose(visibleMain, lastVisibleMain, CloseMain);
+
+
+						ImGui::PushItemWidth(150);
+
+						if (GUI_InputDefault2("Global Scale", activeConfig.globalScale, queuedConfig.globalScale, defaultConfig.globalScale, 0.1f, "%g",
+							ImGuiInputTextFlags_EnterReturnsTrue)) {
+							UpdateGlobalScale();
+						}
+
+						ImGui::PopItemWidth();
+
+
+						BarsSection();
+						CameraSection();
+						Cosmetics();
+						Damage();
+						Dante();
+
+						if constexpr (debug) {
+							Debug();
+						}
+
+						Enemy();
+						Jukebox();
+						KeyBindings();
+						Lady();
+						Mobility();
+						Other();
+						Overlays();
+						Repair();
+						SpeedSection();
+						System();
+						Teleporter();
+						WeaponWheel();
+						SFX();
+						GameplayOptions();
+
+
+						TrainingSection();
+						Vergil();
+
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+            {
+                const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+                const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+                                         cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+                cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+                ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+                ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+                ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+                ImGui::PopStyleVar();
+                {
+                    ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+                    ImGui::Text("ARCADE");
+                    ImGui::PopFont();
+
+
+                    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+                    ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+                    ImGui::TextWrapped("Jumps you directly to a specific point in the game, triggered in the Main Menu. This will tag you at the Mission End Screen.");
+                    ImGui::PopFont();
+                }
+                ImGui::EndChild();
+            }
+        }
 
 	}
 	break;
