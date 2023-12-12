@@ -1,15 +1,13 @@
 #pragma once
 
 #include <functional>
+#include <vector>
 #include <memory>
 #include <chrono>
 
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-
-#define CURL_STATICLIB
-#include <curl/curl.h>
 
 struct Version_t {
 	uint8_t Major;
@@ -24,12 +22,27 @@ struct Version_t {
 	std::string DirectURL;
 };
 
-enum class VersionCheckResult : uint64_t {
+enum class PatreonTiers_t : uint64_t {
+	Rich = 0,
+	RichAF,
+
+	Size,
+};
+
+enum class WebAPIResult : uint64_t {
 	Success = 0,
-	IsChecking,
+	Awaiting,
 	Timeout,
 	CURLNotInitialized,
 	UnknownError,
+};
+
+struct Patron_t {
+	std::string UserName;
+	std::string TierName;
+	uint64_t UserID;
+	uint64_t TierID;
+	PatreonTiers_t Tier;
 };
 
 class WebAPICalls {
@@ -39,11 +52,16 @@ public:
 		return instance;
 	}
 
-	void SetCallback(std::function<void(VersionCheckResult res, Version_t latestVersion)> callback) {
-		m_Callback = callback;
+	void SetVersionCallback(std::function<void(WebAPIResult res, Version_t latestVersion)> callback) {
+		m_VersionCallback = callback;
+	}
+
+	void SetPatronsCallback(std::function<void(WebAPIResult res, std::vector<Patron_t> patrons)> callback) {
+		m_PatronsCallback = callback;
 	}
 
 	void QueueLatestRelease(size_t timeOutMS = 0);
+	void QueuePatrons(size_t timeOutMS = 0);
 
 private:
 	WebAPICalls();
@@ -52,6 +70,6 @@ private:
 	static int CurlProgressCallback(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow);
 
 private:
-	std::function<void(VersionCheckResult res, Version_t latestVersion)> m_Callback{};
-	CURL* m_CURLInstance{ nullptr };
+	std::function<void(WebAPIResult res, Version_t latestVersion)> m_VersionCallback{};
+	std::function<void(WebAPIResult res, std::vector<Patron_t> patrons)> m_PatronsCallback{};
 };

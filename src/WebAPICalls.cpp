@@ -3,12 +3,16 @@
 #include <chrono>
 #include <string.h>
 
+#define CURL_STATICLIB
+#include <curl/curl.h>
+
 #include "Core/RapidJSON.h"
 
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "Wldap32.lib")
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "Normaliz.lib")
+
 
 class Timer_t {
 public:
@@ -35,9 +39,10 @@ public:
 private:
 	inline static std::chrono::steady_clock::time_point m_StartingPoint{};
 	inline static std::chrono::steady_clock::time_point m_LastRecord{};
-} g_Timer{};
+};
 
 struct ClinetData_t {
+	std::function<void(void)> TimeoutCallback;
 	size_t MaxTimeMX;
 	Timer_t* pTimer;
 };
@@ -79,45 +84,51 @@ int WebAPICalls::CurlProgressCallback(void* clientp, double dltotal, double dlno
 {
 	auto transferInfo = (ClinetData_t*)clientp;
 
+	printf("%f", (float)transferInfo->pTimer->GetTotalTime());
+
 	if (transferInfo->pTimer->GetTotalTime() <= (double)transferInfo->MaxTimeMX)
 		return CURL_PROGRESSFUNC_CONTINUE;
 	
+	if (transferInfo->TimeoutCallback)
+		transferInfo->TimeoutCallback();
+
 	return 1;
 }
 
 WebAPICalls::WebAPICalls()
 {
 	curl_global_init(CURL_GLOBAL_DEFAULT);
-
-	m_CURLInstance = curl_easy_init();
 }
 
 WebAPICalls::~WebAPICalls()
 {
-	curl_easy_cleanup(m_CURLInstance);
-
 	curl_global_cleanup();
 }
 
 void WebAPICalls::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 {
-	if (m_CURLInstance == nullptr) {
-		if (m_Callback)
-			m_Callback(VersionCheckResult::CURLNotInitialized, {});
+	CURL* curlInstance = curl_easy_init();
+
+	if (curlInstance == nullptr) {
+		if (m_VersionCallback)
+			m_VersionCallback(WebAPIResult::CURLNotInitialized, {});
 
 		return;
 	}
 
 	constexpr char url[] = "https://api.github.com/repos/amir-120/Blender-RE-Engine-Model/releases/latest";
 
-	curl_easy_setopt(m_CURLInstance, CURLOPT_URL, url);
-	curl_easy_setopt(m_CURLInstance, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
+	curl_easy_setopt(curlInstance, CURLOPT_URL, url);
+	curl_easy_setopt(curlInstance, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
 
-	auto customData = ClinetData_t{ timeOutMS, &g_Timer };
+	Timer_t timer;
+	timer.Reset();
+
+	auto customData = ClinetData_t{ [this] { if (m_VersionCallback) m_VersionCallback(WebAPIResult::Timeout, {}); }, timeOutMS, &timer };
 
 	if (timeOutMS > 0) {
-		curl_easy_setopt(m_CURLInstance, CURLOPT_XFERINFODATA, &customData);
-		curl_easy_setopt(m_CURLInstance, CURLOPT_XFERINFOFUNCTION, CurlProgressCallback);
+		curl_easy_setopt(curlInstance, CURLOPT_XFERINFODATA, &customData);
+		curl_easy_setopt(curlInstance, CURLOPT_XFERINFOFUNCTION, CurlProgressCallback);
 	}
 
 	struct curl_slist* headers = NULL;
@@ -126,17 +137,17 @@ void WebAPICalls::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 	headers = curl_slist_append(headers, "X-GitHub-Api-Version: 2022-11-28");
 	headers = curl_slist_append(headers, "User-Agent: Crimson");
 
-	curl_easy_setopt(m_CURLInstance, CURLOPT_HTTPHEADER, headers);
+	curl_easy_setopt(curlInstance, CURLOPT_HTTPHEADER, headers);
 
 	std::string responseJSON;
 
-	curl_easy_setopt(m_CURLInstance, CURLOPT_WRITEFUNCTION, CurlWriteCallback);
-	curl_easy_setopt(m_CURLInstance, CURLOPT_WRITEDATA, &responseJSON);
+	curl_easy_setopt(curlInstance, CURLOPT_WRITEFUNCTION, CurlWriteCallback);
+	curl_easy_setopt(curlInstance, CURLOPT_WRITEDATA, &responseJSON);
 
-	CURLcode res = curl_easy_perform(m_CURLInstance);
+	CURLcode res = curl_easy_perform(curlInstance);
 
 	if (res == CURLE_OK) {
-		if (m_Callback) {
+		if (m_VersionCallback) {
 			rapidjson::Document d;
 			d.Parse(responseJSON.c_str());
 		
@@ -203,14 +214,94 @@ void WebAPICalls::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 					queuedVersion.DirectURL = createdAtValue.GetString();
 				}
 
-				m_Callback(VersionCheckResult::Success, queuedVersion);
+				m_VersionCallback(WebAPIResult::Success, queuedVersion);
 			}
 		}
 	}
 	else {
-		if (m_Callback)
-			m_Callback(VersionCheckResult::UnknownError, {});
+		if (m_VersionCallback)
+			m_VersionCallback(WebAPIResult::UnknownError, {});
 	}
 
 	curl_slist_free_all(headers);
+
+	curl_easy_cleanup(curlInstance);
+}
+
+void WebAPICalls::QueuePatrons(size_t timeOutMS /*= 0*/)
+{
+	CURL* curlInstance = curl_easy_init();
+
+	if (curlInstance == nullptr) {
+		if (m_PatronsCallback)
+			m_PatronsCallback(WebAPIResult::CURLNotInitialized, {});
+
+		return;
+	}
+
+	constexpr char url[] = "https://crimson-api-redirect.vercel.app/patrons";
+
+	curl_easy_setopt(curlInstance, CURLOPT_URL, url);
+	curl_easy_setopt(curlInstance, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
+
+	Timer_t timer;
+	timer.Reset();
+
+	auto customData = ClinetData_t{ [this] { if (m_PatronsCallback) m_PatronsCallback(WebAPIResult::Timeout, {}); }, timeOutMS, &timer };
+
+	if (timeOutMS > 0) {
+		curl_easy_setopt(curlInstance, CURLOPT_XFERINFODATA, &customData);
+		curl_easy_setopt(curlInstance, CURLOPT_XFERINFOFUNCTION, CurlProgressCallback);
+	}
+
+	std::string responseJSON;
+
+	curl_easy_setopt(curlInstance, CURLOPT_WRITEFUNCTION, CurlWriteCallback);
+	curl_easy_setopt(curlInstance, CURLOPT_WRITEDATA, &responseJSON);
+
+	CURLcode res = curl_easy_perform(curlInstance);
+
+	if (res == CURLE_OK) {
+		if (m_PatronsCallback) {
+			rapidjson::Document d;
+			d.Parse(responseJSON.c_str());
+
+			rapidjson::Value& patrons = d["patrons"];
+
+			std::vector<Patron_t> patronsVec{};
+
+			for (size_t i = 0; i < patrons.Size(); i++) {
+				rapidjson::Value& patron = patrons[i];
+
+				PatreonTiers_t tier;
+
+				switch (patron["tier_id"].GetUint64()) {
+				// Rich
+				case 9668149:
+					tier = PatreonTiers_t::Rich;
+					break;
+
+				// Rich AF
+				case 9668242:
+					tier = PatreonTiers_t::RichAF;
+					break;
+
+				default:
+					break;
+				}
+
+				patronsVec.emplace_back(patron["user_name"].GetString(), patron["tier_name"].GetString(), 
+										patron["user_id"].GetUint64(), patron["tier_id"].GetUint64(), tier);
+			}
+
+			if (m_PatronsCallback)
+				m_PatronsCallback(WebAPIResult::Success, patronsVec);
+		}
+	}
+	else {
+		if (m_PatronsCallback)
+			m_PatronsCallback(WebAPIResult::UnknownError, {});
+	}
+
+	curl_easy_cleanup(curlInstance);
 }

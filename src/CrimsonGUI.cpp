@@ -69,7 +69,8 @@
 void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context);
 
 namespace UI {
-    VersionCheckResult versionCheckResult = VersionCheckResult::IsChecking;
+    WebAPIResult versionCheckResult = WebAPIResult::Awaiting;
+    WebAPIResult patronsQueueResult = WebAPIResult::Awaiting;
 
 	void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 	{
@@ -192,11 +193,11 @@ namespace UI {
                 }
                 
 				switch (UI::versionCheckResult) {
-				case VersionCheckResult::Success:
+				case WebAPIResult::Success:
 					latestUpdateStr = std::format("Latest Update: {}/{}/{}", g_UIContext.LatestUpdateDate.Day, g_UIContext.LatestUpdateDate.Month, g_UIContext.LatestUpdateDate.Year);
 					break;
 
-                case VersionCheckResult::IsChecking:
+                case WebAPIResult::Awaiting:
                     latestUpdateStr = "Latest Update...";
                     break;
 
@@ -8247,8 +8248,8 @@ void Main(IDXGISwapChain* pSwapChain) {
 
         // ImGui::SetCurrentFont(io.Fonts->Fonts[FONT::OVERLAY_8]);
 
-		WebAPICalls::GetInstance().SetCallback([&](VersionCheckResult res, Version_t latestVersion) {
-			    if (res == VersionCheckResult::Success) {
+		WebAPICalls::GetInstance().SetVersionCallback([&](WebAPIResult res, Version_t latestVersion) {
+			    if (res == WebAPIResult::Success) {
 					UI::g_UIContext.LatestVersion.Major = latestVersion.Major;
 					UI::g_UIContext.LatestVersion.Minor = latestVersion.Minor;
 
@@ -8283,9 +8284,45 @@ void Main(IDXGISwapChain* pSwapChain) {
 			}
 		);
 
+		WebAPICalls::GetInstance().SetPatronsCallback([&](WebAPIResult res, std::vector<Patron_t> patrons) {
+			    if (res == WebAPIResult::Success) {
+			    	UI::g_UIContext.PatronsRich.clear();
+                    UI::g_UIContext.PatronsRichAF.clear();
+
+                    for (const auto& patron : patrons) {
+                        switch (patron.Tier) {
+                        case PatreonTiers_t::Rich:
+                        {
+                            UI::g_UIContext.PatronsRich.push_back(patron.UserName);
+
+                            // Set the name of the tier to be displayed
+                            UI::g_UIContext.TierNames[(size_t)PatreonTiers_t::Rich] = patron.TierName;
+                        }
+                            break;
+
+                        case PatreonTiers_t::RichAF:
+                        {
+                            UI::g_UIContext.PatronsRichAF.push_back(patron.UserName);
+
+                            // Set the name of the tier to be displayed
+                            UI::g_UIContext.TierNames[(size_t)PatreonTiers_t::RichAF] = patron.TierName;
+                        }
+                            break;
+
+                        default:
+                            break;
+                        }
+                    }
+			    }
+
+			    UI::patronsQueueResult = res;
+			}
+		);
+
 		versionCheckerThread = std::thread{
 			[&] {
 				WebAPICalls::GetInstance().QueueLatestRelease(60000);
+                WebAPICalls::GetInstance().QueuePatrons(60000);
 			}
 		};
     }
@@ -9023,37 +9060,39 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				}
 				ImGui::PopFont();
 
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.5f);
+                if (UI::patronsQueueResult == WebAPIResult::Success || UI::patronsQueueResult == WebAPIResult::Awaiting) {
+                    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.5f);
 
-				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
-				{
-					ImGui::Text("DARLINGS");
-				}
-				ImGui::PopFont();
+                    ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
+                    {
+                        ImGui::Text(UI::g_UIContext.TierNames[(size_t)PatreonTiers_t::RichAF].c_str());
+                    }
+                    ImGui::PopFont();
 
-				ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
-				{
-					for (const auto& darling : context.patronsDarlings) {
-						ImGui::Text(darling);
-					}
-				}
-				ImGui::PopFont();
+                    ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+                    {
+                        for (const auto& richAF : context.PatronsRichAF) {
+                            ImGui::Text(richAF.c_str());
+                        }
+                    }
+                    ImGui::PopFont();
 
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.5f);
+                    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.5f);
 
-				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
-				{
-					ImGui::Text("SWEETHEARTS");
-				}
-				ImGui::PopFont();
+                    ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
+                    {
+                        ImGui::Text(UI::g_UIContext.TierNames[(size_t)PatreonTiers_t::Rich].c_str());
+                    }
+                    ImGui::PopFont();
 
-				ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
-				{
-					for (const auto& sweatHeart : context.patronsSweethearts) {
-						ImGui::Text(sweatHeart);
-					}
-				}
-				ImGui::PopFont();
+                    ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+                    {
+                        for (const auto& rich : context.PatronsRich) {
+                            ImGui::Text(rich.c_str());
+                        }
+                    }
+                    ImGui::PopFont();
+                }
 			}
 			ImGui::EndChild();
 		}
@@ -9084,7 +9123,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
 				{
-					for (const auto& name : context.specialThanksNames) {
+					for (const auto& name : context.SpecialThanksNames) {
 						ImGui::Text(name);
 					}
 				}

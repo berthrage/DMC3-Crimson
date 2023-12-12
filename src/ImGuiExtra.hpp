@@ -1,6 +1,7 @@
 #pragma once
 #include "../ThirdParty/ImGui/imgui.h"
 #include "../ThirdParty/ImGui/imgui_internal.h"
+#include "WebAPICalls.hpp"
 #include <vector>
 #include <array>
 #include <string>
@@ -148,19 +149,17 @@ namespace UI {
 
 		size_t DefaultFontSize = 18.0f;
 
-		std::vector<const char*> patronsDarlings{
-			"Me",
-			"Myself",
-			"I",
+		std::string TierNames[(size_t)PatreonTiers_t::Size]{};
+
+		std::vector<std::string> PatronsRich{
+			"Loading..."
 		};
 
-		std::vector<const char*> patronsSweethearts{
-			"Me",
-			"Myself",
-			"I",
+		std::vector<std::string> PatronsRichAF{
+			"Loading..."
 		};
 
-		std::vector<const char*> specialThanksNames{
+		std::vector<const char*> SpecialThanksNames{
 			"serpentiem",
 			"Bibic",
 			"Che",
