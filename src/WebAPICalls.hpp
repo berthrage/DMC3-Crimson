@@ -67,8 +67,6 @@ private:
 	WebAPICalls();
 	virtual ~WebAPICalls();
 
-	static int CurlProgressCallback(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow);
-
 private:
 	std::function<void(WebAPIResult res, Version_t latestVersion)> m_VersionCallback{};
 	std::function<void(WebAPIResult res, std::vector<Patron_t> patrons)> m_PatronsCallback{};
