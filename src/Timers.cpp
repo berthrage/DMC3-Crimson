@@ -19,21 +19,12 @@
 #include "Core/Macros.h"
 
 void ActionTimers() {
-    // IntroduceMainActorData
-    auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-    if (!pool_12857 || !pool_12857[3]) {
-        return;
-    }
-
-
-    auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
-
-    auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-    if (!pool_10371 || !pool_10371[8]) {
-        return;
-    }
-    auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
-
+    
+	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10371 || !pool_10371[8]) {
+		return;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
 
     old_for_all(uint8, playerIndex, PLAYER_COUNT) {
         auto& playerData = GetPlayerData(playerIndex);
@@ -47,9 +38,8 @@ void ActionTimers() {
             continue;
         }
         auto& actorData      = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-        auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
         auto inAttack        = (actorData.eventData[0].event == 17);
-        auto inAttackClone   = (cloneActorData.eventData[0].event == 17);
+        
 
         if (inAttack) {
             if (eventData.event != EVENT::PAUSE) {
@@ -69,40 +59,38 @@ void ActionTimers() {
 
         ////
 
-        if (inAttackClone) {
-            if (eventData.event != EVENT::PAUSE) {
-                crimsonPlayer[playerIndex].actionTimerClone +=
-                    (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speedClone) / g_frameRateMultiplier;
-            }
-        }
+        // We add this condition because Dante and Vergil are the only character capable of having Doppelgangers, 
+        // fetching data from Clones (such as playing with Boss Vergil) where none exist will crash the game. - Mia
 
-        // ACTIONS CLONE
-        if (cloneActorData.action != crimsonPlayer[playerIndex].currentActionClone) {
-            crimsonPlayer[playerIndex].actionTimerClone = 0;
+        if (actorData.character == CHARACTER::DANTE || actorData.character == CHARACTER::VERGIL) {
+			auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+			auto inAttackClone = (cloneActorData.eventData[0].event == 17);
 
-            crimsonPlayer[playerIndex].currentActionClone = cloneActorData.action;
+			if (inAttackClone) {
+				if (eventData.event != EVENT::PAUSE) {
+					crimsonPlayer[playerIndex].actionTimerClone +=
+						(ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speedClone) / g_frameRateMultiplier;
+				}
+			}
+
+			// ACTIONS CLONE
+			if (cloneActorData.action != crimsonPlayer[playerIndex].currentActionClone) {
+				crimsonPlayer[playerIndex].actionTimerClone = 0;
+
+				crimsonPlayer[playerIndex].currentActionClone = cloneActorData.action;
+			}
         }
     }
 }
 
 
 void AnimTimers() {
-    // IntroduceMainActorData
-    auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-    if (!pool_12857 || !pool_12857[3]) {
-        return;
-    }
-
-
-    auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
 
     auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
     if (!pool_10371 || !pool_10371[8]) {
         return;
     }
     auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
-
-    auto inAttack = (mainActorData.eventData[0].event == 17);
 
 
     old_for_all(uint8, playerIndex, PLAYER_COUNT) {
@@ -116,7 +104,7 @@ void AnimTimers() {
             continue;
         }
         auto& actorData      = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-        auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+        
 
         // ANIMATION IDs
         if (actorData.motionData[0].index != crimsonPlayer[playerIndex].currentAnim) {
@@ -131,17 +119,25 @@ void AnimTimers() {
 
         ////
 
-        // ANIMATION IDs CLONE
-        if (cloneActorData.motionData[0].index != crimsonPlayer[playerIndex].currentAnimClone) {
-            crimsonPlayer[playerIndex].animTimerClone = 0;
+		// We add this condition because Dante and Vergil are the only character capable of having Doppelgangers, 
+		// fetching data from Clones (such as playing with Boss Vergil) where none exist will crash the game. Same as with ActionTimers - Mia
 
-            crimsonPlayer[playerIndex].currentAnimClone = cloneActorData.motionData[0].index;
+        if (actorData.character == CHARACTER::DANTE || actorData.character == CHARACTER::VERGIL) {
+			auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+
+			// ANIMATION IDs CLONE
+			if (cloneActorData.motionData[0].index != crimsonPlayer[playerIndex].currentAnimClone) {
+				crimsonPlayer[playerIndex].animTimerClone = 0;
+
+				crimsonPlayer[playerIndex].currentAnimClone = cloneActorData.motionData[0].index;
+			}
+
+			if (eventData.event != EVENT::PAUSE) {
+				crimsonPlayer[playerIndex].animTimerClone +=
+					(ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speedClone) / g_frameRateMultiplier;
+			}
         }
 
-        if (eventData.event != EVENT::PAUSE) {
-            crimsonPlayer[playerIndex].animTimerClone +=
-                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speedClone) / g_frameRateMultiplier;
-        }
     }
 }
 
