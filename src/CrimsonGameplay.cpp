@@ -1115,6 +1115,10 @@ void StoreInertia(byte8* actorBaseAddr) {
     auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     auto playerIndex = actorData.newPlayerIndex;
 
+    if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) {
+        return;
+    }
+
 
     auto* i = (actorData.newEntityIndex == 0) ? &crimsonPlayer[playerIndex].inertia : &crimsonPlayer[playerIndex].inertiaClone;
 
@@ -1281,6 +1285,7 @@ void InertiaController(byte8* actorBaseAddr) {
     }
     auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     auto playerIndex = actorData.newPlayerIndex;
+
 
 
     auto* i = (actorData.newEntityIndex == 0) ? &crimsonPlayer[playerIndex].inertia : &crimsonPlayer[playerIndex].inertiaClone;
@@ -1795,7 +1800,7 @@ void BackToForwardInputs(byte8* actorBaseAddr) {
     auto radius        = gamepad.leftStickRadius;
     auto pos           = gamepad.leftStickPosition;
 
-    if (actorData.character != CHARACTER::DANTE || actorData.character != CHARACTER::VERGIL) {
+    if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) {
         return;
     }
 
