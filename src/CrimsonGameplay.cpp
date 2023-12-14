@@ -1795,6 +1795,10 @@ void BackToForwardInputs(byte8* actorBaseAddr) {
     auto radius        = gamepad.leftStickRadius;
     auto pos           = gamepad.leftStickPosition;
 
+    if (actorData.character != CHARACTER::DANTE || actorData.character != CHARACTER::VERGIL) {
+        return;
+    }
+
     if (crimsonPlayer[playerIndex].b2F.backBuffer <= 0) {
 
         crimsonPlayer[playerIndex].b2F.backCommand = false;

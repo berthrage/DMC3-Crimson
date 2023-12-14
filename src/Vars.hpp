@@ -4301,7 +4301,6 @@ struct CrimsonPlayerData {
     byte32 stateClone;
     byte32 lastStateClone;
     float speedClone = 0;
-    uint8 tiltDirectionClone;
     int currentActionClone = 0;
     int currentAnimClone   = 0;
     float actionTimerClone = 0;

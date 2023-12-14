@@ -2590,33 +2590,38 @@ void Actor_UpdateIndices() {
     }
 }
 
-void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
+void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex, size_t defaultFontSize) {
     auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
     auto& queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
 
+	auto& activeCharacterDataClone = GetActiveCharacterData(playerIndex, characterIndex, 1);
+	auto& queuedCharacterDataClone = GetQueuedCharacterData(playerIndex, characterIndex, 1);
+
     auto& mainActiveCharacterData = GetActiveCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
     auto& mainQueuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
+
+	const float itemWidth = defaultFontSize * 8.0f;
+	const float columnWidth = 0.8f * queuedConfig.globalScale;
+	const float rowWidth = 40.0f * queuedConfig.globalScale;
 
 
     if ((entityIndex == ENTITY::CLONE) && (mainQueuedCharacterData.character >= CHARACTER::MAX)) {
         return;
     }
+	
 
-
-    ImGui::Text(entityNames[entityIndex]);
-    ImGui::Text("");
-
-    ImGui::PushItemWidth(150);
+    ImGui::PushItemWidth(itemWidth);
+    ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
     if ((playerIndex == 0) && (characterIndex > 0)) {
-        if (UI::ComboMap("Character", newCharacterNames, newCharacters, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
+        if (UI::ComboMap("CHARACTER", newCharacterNames, newCharacters, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
                 queuedCharacterData.character)) {
             ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
 
             Actor_UpdateIndices();
         }
     } else {
-        if (UI::Combo("Character", characterNames, queuedCharacterData.character)) {
+        if (UI::Combo("CHARACTER", characterNames, queuedCharacterData.character)) {
             ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
 
             Actor_UpdateIndices();
@@ -2624,6 +2629,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
     }
 
     ImGui::PopItemWidth();
+    ImGui::PopFont();
 
 
     if (!((queuedCharacterData.character == CHARACTER::DANTE) || (queuedCharacterData.character == CHARACTER::VERGIL))) {
@@ -2631,7 +2637,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
     }
 
 
-    ImGui::PushItemWidth(150.0f);
+    ImGui::PushItemWidth(itemWidth);
 
     // Costume
     {
@@ -2675,8 +2681,15 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
         GUI_PopDisable(condition);
     }
-    ImGui::Text("");
+    
+	if (UI::ComboMap("Doppelganger", newCharacterNames, newCharacters, Actor_newCharacterIndices[playerIndex][characterIndex][1],
+		queuedCharacterDataClone.character)) {
+		ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
 
+		Actor_UpdateIndices();
+	}
+
+    ImGui::Text("");
 
     /*ImGui::Text("Styles");
 
@@ -2764,159 +2777,86 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
     ImGui::PopItemWidth();*/
 
-
-    if (((playerIndex == 0) && (entityIndex == ENTITY::MAIN)) || (queuedCharacterData.character == CHARACTER::DANTE)) {
-        ImGui::Text("");
-        ImGui::Text("Melee Weapons");
-    }
-
-
-    /*if
-    (
-            (playerIndex == 0) &&
-            (entityIndex == ENTITY::MAIN)
-    )
-    {
-            //ImGui::PushItemWidth(200.0f);
-
-            /*UI::Combo
-            (
-                    "",
-                    weaponSwitchTypeNames,
-                    queuedCharacterData.meleeWeaponSwitchType
-            );
-            ImGui::SameLine();
-
-            switch (queuedCharacterData.meleeWeaponSwitchType)
-            {
-                    case WEAPON_SWITCH_TYPE::LINEAR:
-                    {
-                            TooltipHelper
-                            (
-                                    "(?)",
-                                    "Hold the taunt button during the switch to go back."
-                            );
-
-                            break;
-                    }
-                    case WEAPON_SWITCH_TYPE::ARBITRARY:
-                    {
-                            TooltipHelper
-                            (
-                                    "(?)",
-                                    "Hold the weapon switch button and select a weapon with the stick."
-                            );
-
-                            UI::Combo
-                            (
-                                    "",
-                                    stickNames,
-                                    queuedCharacterData.meleeWeaponSwitchStick
-                            );
-
-                            break;
-                    }
-            }*/
-
-    // ImGui::PopItemWidth();
-    //}
-
+    
 
     if (queuedCharacterData.character != CHARACTER::DANTE) {
         return;
     }
 
-
-    ImGui::PushItemWidth(200.0f);
-
-    GUI_Slider<uint8>("", queuedCharacterData.meleeWeaponCount, 1, MELEE_WEAPON_COUNT_DANTE);
-
-    old_for_all(uint8, meleeWeaponIndex, MELEE_WEAPON_COUNT_DANTE) {
-        bool condition = (meleeWeaponIndex >= queuedCharacterData.meleeWeaponCount);
-
-        GUI_PushDisable(condition);
-
-        UI::ComboMap("", meleeWeaponNamesDante, meleeWeaponsDante,
-            Actor_meleeWeaponIndices[playerIndex][characterIndex][entityIndex][meleeWeaponIndex],
-            queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
-
-        GUI_PopDisable(condition);
-    }
-    ImGui::Text("");
-
-
-    ImGui::Text("Ranged Weapons");
-
-    /*if
-    (
-            (playerIndex == 0) &&
-            (entityIndex == ENTITY::MAIN)
-    )
+	
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	ImGui::Text("WEAPON LOADOUT");
+    GUI_SectionEnd(SectionFlags_NoNewLine);
+	ImGui::PopFont();
     {
-            UI::Combo
-            (
-                    "",
-                    weaponSwitchTypeNames,
-                    queuedCharacterData.rangedWeaponSwitchType
-            );
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-            ImGui::SameLine();
+        if (ImGui::BeginTable("WeaponLoadout", 2)) {
 
-            switch (queuedCharacterData.rangedWeaponSwitchType)
-            {
-                    case WEAPON_SWITCH_TYPE::LINEAR:
-                    {
-                            TooltipHelper
-                            (
-                                    "(?)",
-                                    "Hold the taunt button during the switch to go back."
-                            );
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-                            break;
-                    }
-                    case WEAPON_SWITCH_TYPE::ARBITRARY:
-                    {
-                            TooltipHelper
-                            (
-                                    "(?)",
-                                    "Hold the weapon switch button and select a weapon with the stick."
-                            );
+            ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+            ImGui::Text("MELEE");
+            ImGui::PopFont();
 
-                            UI::Combo
-                            (
-                                    "",
-                                    stickNames,
-                                    queuedCharacterData.rangedWeaponSwitchStick
-                            );
+            ImGui::PushItemWidth(itemWidth);
 
-                            break;
-                    }
+            GUI_Slider<uint8>("", queuedCharacterData.meleeWeaponCount, 1, MELEE_WEAPON_COUNT_DANTE);
+
+            old_for_all(uint8, meleeWeaponIndex, MELEE_WEAPON_COUNT_DANTE) {
+                bool condition = (meleeWeaponIndex >= queuedCharacterData.meleeWeaponCount);
+
+                GUI_PushDisable(condition);
+
+                UI::ComboMap("", meleeWeaponNamesDante, meleeWeaponsDante,
+                    Actor_meleeWeaponIndices[playerIndex][characterIndex][entityIndex][meleeWeaponIndex],
+                    queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
+
+                GUI_PopDisable(condition);
             }
-    }*/
 
-    GUI_Slider<uint8>("", queuedCharacterData.rangedWeaponCount, 1, RANGED_WEAPON_COUNT_DANTE);
+            ImGui::TableNextColumn();
 
-    old_for_all(uint8, rangedWeaponIndex, RANGED_WEAPON_COUNT_DANTE) {
-        bool condition = (rangedWeaponIndex >= queuedCharacterData.rangedWeaponCount);
+            ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+            ImGui::Text("RANGED");
+            ImGui::PopFont();
 
-        GUI_PushDisable(condition);
+            GUI_Slider<uint8>("", queuedCharacterData.rangedWeaponCount, 1, RANGED_WEAPON_COUNT_DANTE);
 
-        UI::ComboMap("", rangedWeaponNamesDante, rangedWeaponsDante,
-            Actor_rangedWeaponIndices[playerIndex][characterIndex][entityIndex][rangedWeaponIndex],
-            queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
+            old_for_all(uint8, rangedWeaponIndex, RANGED_WEAPON_COUNT_DANTE) {
+                bool condition = (rangedWeaponIndex >= queuedCharacterData.rangedWeaponCount);
 
-        GUI_PopDisable(condition);
+                GUI_PushDisable(condition);
+
+                UI::ComboMap("", rangedWeaponNamesDante, rangedWeaponsDante,
+                    Actor_rangedWeaponIndices[playerIndex][characterIndex][entityIndex][rangedWeaponIndex],
+                    queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
+
+                GUI_PopDisable(condition);
+            }
+
+            ImGui::PopItemWidth();
+
+            ImGui::EndTable();
+        }
     }
-
-    ImGui::PopItemWidth();
 }
 
-void Actor_PlayerTab(uint8 playerIndex) {
+void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
     auto& activePlayerData = GetActivePlayerData(playerIndex);
     auto& queuedPlayerData = GetQueuedPlayerData(playerIndex);
 
+	const float itemWidth = defaultFontSize * 8.0f;
+	const float columnWidth = 0.5f * queuedConfig.globalScale;
+	const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-    ImGui::PushItemWidth(200.0f);
+
+    ImGui::PushItemWidth(itemWidth);
+    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+
+    GUI_Slider<uint8>("Character Count", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
 
     {
         bool condition = (playerIndex == 0);
@@ -2924,12 +2864,11 @@ void Actor_PlayerTab(uint8 playerIndex) {
 
         GUI_PushDisable(condition);
 
-        UI::ComboMap("Collision Group", collisionGroupNames, collisionGroups, Actor_collisionGroupIndices[playerIndex],
+        UI::ComboMap("Flag (Collision Group)", collisionGroupNames, collisionGroups, Actor_collisionGroupIndices[playerIndex],
             queuedPlayerData.collisionGroup);
 
         GUI_PopDisable(condition);
     }
-    ImGui::Text("");
 
 
     UI::ComboMap2("Switch Button", buttonNames, buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton, queuedPlayerData.switchButton,
@@ -2941,38 +2880,6 @@ void Actor_PlayerTab(uint8 playerIndex) {
                          "Hold the button and switch style or weapon to trigger the action for the clone.\n");
     ImGui::Text("");
 
-    GUI_Slider<uint8>("Character Count", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
-    ImGui::Text("");
-
-    ImGui::PopItemWidth();
-
-
-    if (ImGui::BeginTabBar("CharacterTabs")) {
-        old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
-            auto condition = (characterIndex >= queuedPlayerData.characterCount);
-
-            GUI_PushDisable(condition);
-
-            if (ImGui::BeginTabItem(characterIndexNames[characterIndex])) {
-                ImGui::Text("");
-
-                old_for_all(uint8, entityIndex, ENTITY_COUNT) {
-                    Actor_CharacterTab(playerIndex, characterIndex, entityIndex);
-
-                    ImGui::Text("");
-                }
-
-                ImGui::EndTabItem();
-            }
-
-            GUI_PopDisable(condition);
-        }
-
-        ImGui::EndTabBar();
-    }
-
-    GUI_SectionEnd(SectionFlags_NoNewLine);
-    ImGui::Text("");
 
 
     GUI_Checkbox2("Remove Busy Flag", activePlayerData.removeBusyFlag, queuedPlayerData.removeBusyFlag);
@@ -3005,7 +2912,6 @@ void Actor_PlayerTab(uint8 playerIndex) {
 
         GUI_PushDisable(condition);
 
-        ImGui::PushItemWidth(200.0f);
 
         old_for_all(uint8, buttonIndex, 4) {
             UI::ComboMap2(buttonIndexNames[buttonIndex], buttonNames, buttons, Actor_removeBusyFlagButtonIndices[playerIndex][buttonIndex],
@@ -3013,13 +2919,20 @@ void Actor_PlayerTab(uint8 playerIndex) {
                 ImGuiComboFlags_HeightLargest);
         }
 
-        ImGui::PopItemWidth();
 
         GUI_PopDisable(condition);
+
     }
+
+    ImGui::PopItemWidth();
+    ImGui::PopFont();
 }
 
 void ActorSection(size_t defaultFontSize) {
+
+	const float itemWidth = defaultFontSize * 8.0f;
+	const float columnWidth = 0.8f * queuedConfig.globalScale;
+	const float rowWidth = 40.0f * queuedConfig.globalScale;
 
     
     ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
@@ -3028,6 +2941,7 @@ void ActorSection(size_t defaultFontSize) {
     UI::SeparatorEx(defaultFontSize * 23.35f);
 
 	ImGui::Text("");
+
 
 
 // 	if (GUI_ResetButton()) {
@@ -3087,6 +3001,7 @@ void ActorSection(size_t defaultFontSize) {
 // 		CopyMemory(&activeConfig.absoluteUnit, &queuedConfig.absoluteUnit, sizeof(activeConfig.absoluteUnit));
 // 	}
 
+
     ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
 	ImGui::PushItemWidth(200.0f);
@@ -3096,26 +3011,84 @@ void ActorSection(size_t defaultFontSize) {
 
 	ImGui::PopItemWidth();
 
+     uint8 activePlayerIndex;
 
-	if (ImGui::BeginTabBar("PlayerTabs")) {
-		old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-			auto condition = (playerIndex >= queuedConfig.Actor.playerCount);
 
-			GUI_PushDisable(condition);
+    if (ImGui::BeginTable("CharacterTable", 2)) {
 
-			if (ImGui::BeginTabItem(playerIndexNames[playerIndex])) {
-				ImGui::Text("");
+        // ImGui::TableSetColumnWidth(0, columnWidth);
+        ImGui::TableSetupColumn("c1", 0, columnWidth);
+        ImGui::TableNextRow(0, rowWidth);
+        ImGui::TableNextColumn();
 
-				Actor_PlayerTab(playerIndex);
 
-				ImGui::EndTabItem();
-			}
+		if (ImGui::BeginTabBar("PlayerTabs")) {
+            old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+                auto condition = (playerIndex >= queuedConfig.Actor.playerCount);
 
-			GUI_PopDisable(condition);
+                GUI_PushDisable(condition);
+
+                ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.7f]);
+
+                if (ImGui::BeginTabItem(playerIndexNames[playerIndex])) {
+                    ImGui::Text("");
+
+
+                    Actor_PlayerTab(playerIndex, defaultFontSize);
+                    activePlayerIndex = playerIndex;
+  
+
+                    ImGui::EndTabItem();
+                }
+
+                ImGui::PopFont();
+
+                
+                GUI_PopDisable(condition);
+
+            }
+
+			ImGui::EndTabBar();
 		}
 
-		ImGui::EndTabBar();
-	}
+		ImGui::TableNextColumn();
+
+		if (ImGui::BeginTabBar("CharacterTabs")) {
+
+			auto& activePlayerData = GetActivePlayerData(activePlayerIndex);
+			auto& queuedPlayerData = GetQueuedPlayerData(activePlayerIndex);
+
+
+			old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
+				auto condition = (characterIndex >= queuedPlayerData.characterCount);
+
+				GUI_PushDisable(condition);
+
+				if (ImGui::BeginTabItem(characterIndexNames[characterIndex])) {
+					ImGui::Text("");
+
+					
+					Actor_CharacterTab(activePlayerIndex, characterIndex, 0, defaultFontSize);
+
+					
+
+					ImGui::EndTabItem();
+				}
+
+				GUI_PopDisable(condition);
+			}
+
+			ImGui::EndTabBar();
+		}
+
+        ImGui::EndTable();
+
+    }
+
+
+
+	
+
 
 	ImGui::Text("");
 

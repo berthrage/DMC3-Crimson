@@ -82,7 +82,7 @@ namespace UI {
 		style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.772f, 0.215f, 0.215f, 0.780f);
 		style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.788f, 0.062f, 0.211f, 1.0f);
 		style.Colors[ImGuiCol_CheckMark] = ImVec4(0.886f, 0.070f, 0.235f, 1.0f);
-		style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.721f, 0.202f, 0.189f, 1.0f);
+		style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.855f, 0.106f, 0.325f, 1.0f);
 		style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.980f, 0.278f, 0.261f, 1.0f);
 		style.Colors[ImGuiCol_Button] = ImVec4(0.199f, 0.215f, 0.266f, 0.490f);
 		style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.529f, 0.184f, 0.254f, 0.858f);
@@ -98,7 +98,7 @@ namespace UI {
 		style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.827f, 0.215f, 0.215f, 1.0f);
 		style.Colors[ImGuiCol_Tab] = ImVec4(0.592f, 0.047f, 0.156f, 0.862f);
 		style.Colors[ImGuiCol_TabHovered] = ImVec4(0.803f, 0.043f, 0.203f, 0.823f);
-		style.Colors[ImGuiCol_TabActive] = ImVec4(0.788f, 0.062f, 0.211f, 1.0f);
+		style.Colors[ImGuiCol_TabActive] = ImVec4(0.855f, 0.106f, 0.325f, 1.0f);
 		style.Colors[ImGuiCol_TabUnfocused] = ImVec4(0.066f, 0.101f, 0.145f, 0.972f);
 		style.Colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.423f, 0.133f, 0.133f, 1.0f);
 		style.Colors[ImGuiCol_PlotLines] = ImVec4(0.858f, 0.929f, 0.886f, 0.629f);
