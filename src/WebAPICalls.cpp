@@ -1,6 +1,5 @@
 #include "WebAPICalls.hpp"
 
-#include <chrono>
 #include <string.h>
 
 #define CURL_STATICLIB
@@ -12,40 +11,6 @@
 #pragma comment(lib, "Wldap32.lib")
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "Normaliz.lib")
-
-
-class Timer_t {
-public:
-	static void Reset() {
-		auto now = std::chrono::high_resolution_clock::now();
-		m_StartingPoint = now;
-		m_LastRecord = now;
-	}
-
-	static double GetStep() {
-		auto now = std::chrono::high_resolution_clock::now();
-
-		return std::chrono::duration<float, std::milli>(now - m_LastRecord).count();
-
-		m_LastRecord = now;
-	}
-
-	static double GetTotalTime() {
-		auto now = std::chrono::high_resolution_clock::now();
-
-		return std::chrono::duration<double, std::milli>(now - m_StartingPoint).count();
-	}
-
-private:
-	inline static std::chrono::steady_clock::time_point m_StartingPoint{};
-	inline static std::chrono::steady_clock::time_point m_LastRecord{};
-};
-
-struct ClinetData_t {
-	std::function<void(void)> TimeoutCallback;
-	size_t MaxTimeMX;
-	Timer_t* pTimer;
-};
 
 static size_t CurlWriteCallback(void* data, size_t size, size_t nmemb, void* clientp)
 {
@@ -80,21 +45,6 @@ static std::chrono::system_clock::time_point ParseISO8601(std::string iso8601)
 	return result;
 }
 
-int WebAPICalls::CurlProgressCallback(void* clientp, double dltotal, double dlnow, double ultotal, double ulnow)
-{
-	auto transferInfo = (ClinetData_t*)clientp;
-
-	printf("%f", (float)transferInfo->pTimer->GetTotalTime());
-
-	if (transferInfo->pTimer->GetTotalTime() <= (double)transferInfo->MaxTimeMX)
-		return CURL_PROGRESSFUNC_CONTINUE;
-	
-	if (transferInfo->TimeoutCallback)
-		transferInfo->TimeoutCallback();
-
-	return 1;
-}
-
 WebAPICalls::WebAPICalls()
 {
 	curl_global_init(CURL_GLOBAL_DEFAULT);
@@ -121,14 +71,8 @@ void WebAPICalls::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 	curl_easy_setopt(curlInstance, CURLOPT_URL, url);
 	curl_easy_setopt(curlInstance, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
 
-	Timer_t timer;
-	timer.Reset();
-
-	auto customData = ClinetData_t{ [this] { if (m_VersionCallback) m_VersionCallback(WebAPIResult::Timeout, {}); }, timeOutMS, &timer };
-
 	if (timeOutMS > 0) {
-		curl_easy_setopt(curlInstance, CURLOPT_XFERINFODATA, &customData);
-		curl_easy_setopt(curlInstance, CURLOPT_XFERINFOFUNCTION, CurlProgressCallback);
+		curl_easy_setopt(curlInstance, CURLOPT_CONNECTTIMEOUT_MS, timeOutMS);
 	}
 
 	struct curl_slist* headers = NULL;
@@ -219,8 +163,17 @@ void WebAPICalls::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 		}
 	}
 	else {
-		if (m_VersionCallback)
-			m_VersionCallback(WebAPIResult::UnknownError, {});
+		if (m_VersionCallback) {
+			switch (res) {
+			case CURLE_OPERATION_TIMEDOUT:
+				m_VersionCallback(WebAPIResult::Timeout, {});
+				break;
+
+			default:
+				m_VersionCallback(WebAPIResult::UnknownError, {});
+				break;
+			}
+		}
 	}
 
 	curl_slist_free_all(headers);
@@ -244,14 +197,8 @@ void WebAPICalls::QueuePatrons(size_t timeOutMS /*= 0*/)
 	curl_easy_setopt(curlInstance, CURLOPT_URL, url);
 	curl_easy_setopt(curlInstance, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
 
-	Timer_t timer;
-	timer.Reset();
-
-	auto customData = ClinetData_t{ [this] { if (m_PatronsCallback) m_PatronsCallback(WebAPIResult::Timeout, {}); }, timeOutMS, &timer };
-
 	if (timeOutMS > 0) {
-		curl_easy_setopt(curlInstance, CURLOPT_XFERINFODATA, &customData);
-		curl_easy_setopt(curlInstance, CURLOPT_XFERINFOFUNCTION, CurlProgressCallback);
+		curl_easy_setopt(curlInstance, CURLOPT_CONNECTTIMEOUT_MS, timeOutMS);
 	}
 
 	std::string responseJSON;
@@ -299,8 +246,17 @@ void WebAPICalls::QueuePatrons(size_t timeOutMS /*= 0*/)
 		}
 	}
 	else {
-		if (m_PatronsCallback)
-			m_PatronsCallback(WebAPIResult::UnknownError, {});
+		if (m_PatronsCallback) {
+			switch (res) {
+			case CURLE_OPERATION_TIMEDOUT:
+				m_PatronsCallback(WebAPIResult::Timeout, {});
+				break;
+
+			default:
+				m_PatronsCallback(WebAPIResult::UnknownError, {});
+				break;
+			}
+		}
 	}
 
 	curl_easy_cleanup(curlInstance);
