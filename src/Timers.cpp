@@ -37,8 +37,8 @@ void ActionTimers() {
         if (!actorBaseAddr) {
             continue;
         }
-        auto& actorData      = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-        auto inAttack        = (actorData.eventData[0].event == 17);
+        auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+        auto inAttack = (actorData.eventData[0].event == 17);
         
 
         if (inAttack) {
@@ -103,7 +103,7 @@ void AnimTimers() {
         if (!actorBaseAddr) {
             continue;
         }
-        auto& actorData      = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+        auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
         
 
         // ANIMATION IDs

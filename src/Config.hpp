@@ -490,7 +490,7 @@ struct Config {
 
     BarsData barsData[PLAYER_COUNT];
 
-    bool forceSyncHitMagicPoints = false;
+    bool forceSyncHitMagicPoints = true;
 
     bool updateLockOns = true;
 

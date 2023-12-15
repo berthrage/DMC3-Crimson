@@ -2601,94 +2601,117 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
     auto& mainQueuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
 
 	const float itemWidth = defaultFontSize * 8.0f;
-	const float columnWidth = 0.8f * queuedConfig.globalScale;
-	const float rowWidth = 40.0f * queuedConfig.globalScale;
-
 
     if ((entityIndex == ENTITY::CLONE) && (mainQueuedCharacterData.character >= CHARACTER::MAX)) {
         return;
     }
 	
 
-    ImGui::PushItemWidth(itemWidth);
-    ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-
-    if ((playerIndex == 0) && (characterIndex > 0)) {
-        if (UI::ComboMap("CHARACTER", newCharacterNames, newCharacters, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
-                queuedCharacterData.character)) {
-            ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
-
-            Actor_UpdateIndices();
-        }
-    } else {
-        if (UI::Combo("CHARACTER", characterNames, queuedCharacterData.character)) {
-            ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
-
-            Actor_UpdateIndices();
-        }
-    }
-
-    ImGui::PopItemWidth();
-    ImGui::PopFont();
-
-
-    if (!((queuedCharacterData.character == CHARACTER::DANTE) || (queuedCharacterData.character == CHARACTER::VERGIL))) {
-        return;
-    }
-
-
-    ImGui::PushItemWidth(itemWidth);
-
-    // Costume
-    {
-        bool condition = queuedCharacterData.ignoreCostume;
-
-        GUI_PushDisable(condition);
-
-        GUI_Input("Costume", queuedCharacterData.costume);
-
-        GUI_PopDisable(condition);
-
-
-        UI::Combo2("Costume Respects Game Progression", costumeRespectsProgressionNames, activeConfig.costumeRespectsProgression,
-            queuedConfig.costumeRespectsProgression);
-
-        ImGui::SameLine();
-        TooltipHelper("(?)", "First Costume updates as the game progresses as in Vanilla.\n"
-                             "\n"
-                             "Original behaves the same as the Vanilla Game.\n"
-                             "Crimson also updates Vergil's First Costume."
-
-        );
-
-        GUI_Checkbox("Ignore", queuedCharacterData.ignoreCostume);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Ignores your setting and uses the global value.");
-    }
-
-    GUI_Checkbox("Force Files", queuedCharacterData.forceFiles);
-    ImGui::SameLine();
-    TooltipHelper("(?)", "Forces specific model and textures.");
+   
 
     {
-        bool condition = !queuedCharacterData.forceFiles;
+		const float columnWidth = 0.8f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-        GUI_PushDisable(condition);
+        if (ImGui::BeginTable("CharacterSelection", 1)) {
 
-        UI::Combo("Character", characterNames, queuedCharacterData.forceFilesCharacter);
+            ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+            ImGui::TableSetupColumn("c1", 0, columnWidth);
+            ImGui::TableNextRow(0, rowWidth);
+            ImGui::TableNextColumn();
 
-        GUI_Input("Costume", queuedCharacterData.forceFilesCostume);
+            ImGui::PushItemWidth(itemWidth);
 
-        GUI_PopDisable(condition);
+            if ((playerIndex == 0) && (characterIndex > 0)) {
+                if (UI::ComboMap("CHARACTER", newCharacterNames, newCharacters, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
+                    queuedCharacterData.character)) {
+                    ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
+
+                    if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
+                        queuedCharacterDataClone.character = queuedCharacterData.character;
+                        ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
+                    }
+
+                    Actor_UpdateIndices();
+                }
+            }
+            else {
+                if (UI::Combo("CHARACTER", characterNames, queuedCharacterData.character)) {
+                    ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
+
+                    if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
+                        queuedCharacterDataClone.character = queuedCharacterData.character;
+                        ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
+                    }
+
+                    Actor_UpdateIndices();
+                }
+            }
+
+            ImGui::PopItemWidth();
+            ImGui::PopFont();
+
+            
+
+            if ((queuedCharacterData.character == CHARACTER::DANTE) || (queuedCharacterData.character == CHARACTER::VERGIL)) {
+				ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+
+                ImGui::TableNextRow(0, rowWidth);
+                ImGui::TableNextColumn();
+				ImGui::PushItemWidth(itemWidth);
+
+				// Costume
+				{
+					bool condition = queuedCharacterData.ignoreCostume;
+
+					GUI_PushDisable(condition);
+
+					GUI_Input("Costume", queuedCharacterData.costume);
+
+					GUI_PopDisable(condition);
+
+
+					GUI_Checkbox("Ignore", queuedCharacterData.ignoreCostume);
+					ImGui::SameLine();
+					TooltipHelper("(?)", "Ignores your setting and uses the global value.");
+				}
+
+				ImGui::SameLine();
+
+
+				GUI_Checkbox("Force Specific Model", queuedCharacterData.forceFiles);
+
+
+				if (queuedCharacterData.forceFiles) {
+
+					ImGui::TableNextRow(0, rowWidth);
+					ImGui::TableNextColumn();
+
+					UI::Combo("Force Model Character", characterNames, queuedCharacterData.forceFilesCharacter);
+                    
+                    ImGui::TableNextRow(0, rowWidth);
+					ImGui::TableNextColumn();
+
+					GUI_Input("Force Model Costume", queuedCharacterData.forceFilesCostume);
+
+				}
+
+
+				if (UI::Combo("Doppelganger", characterNames, queuedCharacterDataClone.character)) {
+					ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
+
+					Actor_UpdateIndices();
+				}
+
+                ImGui::PopItemWidth();
+                ImGui::PopFont();
+            }
+
+
+            ImGui::EndTable();
+        }
     }
     
-	if (UI::ComboMap("Doppelganger", newCharacterNames, newCharacters, Actor_newCharacterIndices[playerIndex][characterIndex][1],
-		queuedCharacterDataClone.character)) {
-		ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
-
-		Actor_UpdateIndices();
-	}
-
     ImGui::Text("");
 
     /*ImGui::Text("Styles");
@@ -2786,8 +2809,10 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 	
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 	ImGui::Text("WEAPON LOADOUT");
-    GUI_SectionEnd(SectionFlags_NoNewLine);
+    //GUI_SectionEnd(SectionFlags_NoNewLine);
 	ImGui::PopFont();
+
+    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
     {
 		const float columnWidth = 0.5f * queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale;
@@ -2797,13 +2822,15 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-            ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+            ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
             ImGui::Text("MELEE");
             ImGui::PopFont();
 
             ImGui::PushItemWidth(itemWidth);
 
             GUI_Slider<uint8>("", queuedCharacterData.meleeWeaponCount, 1, MELEE_WEAPON_COUNT_DANTE);
+
+            queuedCharacterDataClone.meleeWeaponCount = queuedCharacterData.meleeWeaponCount;
 
             old_for_all(uint8, meleeWeaponIndex, MELEE_WEAPON_COUNT_DANTE) {
                 bool condition = (meleeWeaponIndex >= queuedCharacterData.meleeWeaponCount);
@@ -2814,12 +2841,15 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
                     Actor_meleeWeaponIndices[playerIndex][characterIndex][entityIndex][meleeWeaponIndex],
                     queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
 
+                // Doppelganger will now have same weapons equipped as Dante - Mia.
+                queuedCharacterDataClone.meleeWeapons[meleeWeaponIndex] = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
+
                 GUI_PopDisable(condition);
             }
 
             ImGui::TableNextColumn();
 
-            ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+            ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
             ImGui::Text("RANGED");
             ImGui::PopFont();
 
@@ -2834,6 +2864,9 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
                     Actor_rangedWeaponIndices[playerIndex][characterIndex][entityIndex][rangedWeaponIndex],
                     queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
 
+				// Doppelganger will now have same weapons equipped as Dante - Mia.
+				queuedCharacterDataClone.rangedWeapons[rangedWeaponIndex] = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
+
                 GUI_PopDisable(condition);
             }
 
@@ -2842,6 +2875,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
             ImGui::EndTable();
         }
     }
+    ImGui::PopFont();
 }
 
 void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
@@ -2858,18 +2892,6 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 
     GUI_Slider<uint8>("Character Count", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
 
-    {
-        bool condition = (playerIndex == 0);
-        // bool condition = false;
-
-        GUI_PushDisable(condition);
-
-        UI::ComboMap("Flag (Collision Group)", collisionGroupNames, collisionGroups, Actor_collisionGroupIndices[playerIndex],
-            queuedPlayerData.collisionGroup);
-
-        GUI_PopDisable(condition);
-    }
-
 
     UI::ComboMap2("Switch Button", buttonNames, buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton, queuedPlayerData.switchButton,
         ImGuiComboFlags_HeightLargest);
@@ -2878,14 +2900,13 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
                          "Main purpose is to switch characters.\n"
                          "While Doppelganger is active it's used to control the clone's state.\n"
                          "Hold the button and switch style or weapon to trigger the action for the clone.\n");
-    ImGui::Text("");
 
+	if (playerIndex != 0) {
 
+		UI::ComboMap("Type (Collision Group)", collisionGroupNames, collisionGroups, Actor_collisionGroupIndices[playerIndex],
+			queuedPlayerData.collisionGroup);
 
-    GUI_Checkbox2("Remove Busy Flag", activePlayerData.removeBusyFlag, queuedPlayerData.removeBusyFlag);
-    ImGui::SameLine();
-    TooltipHelper("(?)", "Removes the actor's busy flag which allows you to do insane combos or just look stupid.");
-    ImGui::Text("");
+	}
 
 
 //     if (GUI_Button("Reset")) {
@@ -2907,22 +2928,28 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 /*    ImGui::Text("");*/
 
 
-    {
-        bool condition = !activePlayerData.removeBusyFlag;
-
-        GUI_PushDisable(condition);
-
-
-        old_for_all(uint8, buttonIndex, 4) {
-            UI::ComboMap2(buttonIndexNames[buttonIndex], buttonNames, buttons, Actor_removeBusyFlagButtonIndices[playerIndex][buttonIndex],
-                activePlayerData.removeBusyFlagButtons[buttonIndex], queuedPlayerData.removeBusyFlagButtons[buttonIndex],
-                ImGuiComboFlags_HeightLargest);
-        }
-
-
-        GUI_PopDisable(condition);
-
-    }
+// 	GUI_Checkbox2("Remove Busy Flag", activePlayerData.removeBusyFlag, queuedPlayerData.removeBusyFlag);
+// 	ImGui::SameLine();
+// 	TooltipHelper("(?)", "Removes the actor's busy flag which allows you to do insane combos or just look stupid.");
+// 	ImGui::Text("");
+// 
+// 
+//     {
+//         bool condition = !activePlayerData.removeBusyFlag;
+// 
+//         GUI_PushDisable(condition);
+// 
+// 
+//         old_for_all(uint8, buttonIndex, 4) {
+//             UI::ComboMap2(buttonIndexNames[buttonIndex], buttonNames, buttons, Actor_removeBusyFlagButtonIndices[playerIndex][buttonIndex],
+//                 activePlayerData.removeBusyFlagButtons[buttonIndex], queuedPlayerData.removeBusyFlagButtons[buttonIndex],
+//                 ImGuiComboFlags_HeightLargest);
+//         }
+// 
+// 
+//         GUI_PopDisable(condition);
+// 
+//     }
 
     ImGui::PopItemWidth();
     ImGui::PopFont();
@@ -2933,14 +2960,6 @@ void ActorSection(size_t defaultFontSize) {
 	const float itemWidth = defaultFontSize * 8.0f;
 	const float columnWidth = 0.8f * queuedConfig.globalScale;
 	const float rowWidth = 40.0f * queuedConfig.globalScale;
-
-    
-    ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-	GUI_Checkbox("ACTOR SYSTEM", queuedConfig.Actor.enable);
-    ImGui::PopFont();
-    UI::SeparatorEx(defaultFontSize * 23.35f);
-
-	ImGui::Text("");
 
 
 
@@ -3002,16 +3021,9 @@ void ActorSection(size_t defaultFontSize) {
 // 	}
 
 
-    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+    
 
-	ImGui::PushItemWidth(200.0f);
-
-	GUI_Slider<uint8>("Player Count", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT);
-	ImGui::Text("");
-
-	ImGui::PopItemWidth();
-
-     uint8 activePlayerIndex;
+    uint8 activePlayerIndex;
 
 
     if (ImGui::BeginTable("CharacterTable", 2)) {
@@ -3064,6 +3076,8 @@ void ActorSection(size_t defaultFontSize) {
 
 				GUI_PushDisable(condition);
 
+                ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+
 				if (ImGui::BeginTabItem(characterIndexNames[characterIndex])) {
 					ImGui::Text("");
 
@@ -3074,6 +3088,8 @@ void ActorSection(size_t defaultFontSize) {
 
 					ImGui::EndTabItem();
 				}
+
+                ImGui::PopFont();
 
 				GUI_PopDisable(condition);
 			}
@@ -3086,52 +3102,72 @@ void ActorSection(size_t defaultFontSize) {
     }
 
 
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	GUI_Checkbox("ACTOR SYSTEM", queuedConfig.Actor.enable);
+	ImGui::PopFont();
+	UI::SeparatorEx(defaultFontSize * 23.35f);
 
+	ImGui::Text("");
 	
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
+	ImGui::PushItemWidth(itemWidth);
 
+	GUI_Slider<uint8>("Player Count", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT);
 	ImGui::Text("");
 
 
-	GUI_Checkbox2("Update Lock-Ons", activeConfig.updateLockOns, queuedConfig.updateLockOns);
+	UI::Combo2("Costume Respects Game Progression", costumeRespectsProgressionNames, activeConfig.costumeRespectsProgression,
+		queuedConfig.costumeRespectsProgression);
 
-	GUI_Checkbox2("Force Sync Hit & Magic Points", activeConfig.forceSyncHitMagicPoints, queuedConfig.forceSyncHitMagicPoints);
-	ImGui::Text("");
-
-
-	GUI_Checkbox2("Reset Permissions", activeConfig.resetPermissions, queuedConfig.resetPermissions);
 	ImGui::SameLine();
-	TooltipHelper("(?)", "Press the taunt button to reset the actor's permissions.\n"
-		"Useful when getting stuck.");
-	ImGui::Text("");
+	TooltipHelper("(?)", "First Costume updates as the game progresses as in Vanilla.\n"
+		"\n"
+		"Original behaves the same as the Vanilla Game.\n"
+		"Crimson also updates Vergil's First Costume."
+
+	);
+
+    // Deprecated DDMK Options
+
+// 	GUI_Checkbox2("Update Lock-Ons", activeConfig.updateLockOns, queuedConfig.updateLockOns);
+// 
+// 	GUI_Checkbox2("Force Sync Hit & Magic Points", activeConfig.forceSyncHitMagicPoints, queuedConfig.forceSyncHitMagicPoints);
+// 
+// 
+// 	GUI_Checkbox2("Reset Permissions", activeConfig.resetPermissions, queuedConfig.resetPermissions);
+// 	ImGui::SameLine();
+// 	TooltipHelper("(?)", "Press the taunt button to reset the actor's permissions.\n"
+// 		"Useful when getting stuck.");
+
+	// 
+// 	GUI_Checkbox2("Unlock Everything (Absolute Unit)", activeConfig.absoluteUnit, queuedConfig.absoluteUnit);
+// 	ImGui::SameLine();
+// 	TooltipHelper("(?)",
+// 		"I mastered the art of jump-cancelling before I was born.\n"
+// 		"I beat the game 5000+ times.\n"
+// 		"Star-raving on 3x turbo amuses me.\n"
+// 		"Other \"players\" complaining about wrist pain makes me cringe.\n"
+// 		"I'm a GROWN, ASS, MAN.\n"
+// 		"I can absolutely, positively, under no circumstances be bothered with leveling up again.",
+// 		500);
 
 
-	if (GUI_Checkbox2("Enable Boss Lady Fixes", activeConfig.enableBossLadyFixes, queuedConfig.enableBossLadyFixes)) {
+	if (GUI_Checkbox2("Boss Lady Fixes", activeConfig.enableBossLadyFixes, queuedConfig.enableBossLadyFixes)) {
 		ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
 	}
 
-	if (GUI_Checkbox2("Enable Boss Vergil Fixes", activeConfig.enableBossVergilFixes, queuedConfig.enableBossVergilFixes)) {
+	if (GUI_Checkbox2("Boss Vergil Fixes", activeConfig.enableBossVergilFixes, queuedConfig.enableBossVergilFixes)) {
 		ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
 	}
 
-	GUI_Checkbox2("Enable PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
+	GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
 	ImGui::Text("");
 
 
-	GUI_Checkbox2("Absolute Unit", activeConfig.absoluteUnit, queuedConfig.absoluteUnit);
-	ImGui::SameLine();
-	TooltipHelper("(?)",
-		"I mastered the art of jump-cancelling before I was born.\n"
-		"I beat the game 5000+ times.\n"
-		"Star-raving on 3x turbo amuses me.\n"
-		"Other \"players\" complaining about wrist pain makes me cringe.\n"
-		"I'm a GROWN, ASS, MAN.\n"
-		"I can absolutely, positively, under no circumstances be bothered with leveling up again.",
-		500);
 
 
-	ImGui::Text("");
-
+    ImGui::PopItemWidth();
     ImGui::PopFont();
     
 }
