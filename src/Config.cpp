@@ -618,8 +618,7 @@ void CreateMembers(Config& config_) {
     Create<int32>(member, "windowPosX", config.windowPosX);
     Create<int32>(member, "windowPosY", config.windowPosY);
     Create<bool>(member, "forceWindowFocus", config.forceWindowFocus);
-    Create<float>(member, "globalScale", config.globalScale);
-
+	Create<float>(member, "globalScale", config.globalScale);
 
     Create<uint8>(member, "enemyCount", config.enemyCount);
 
@@ -718,6 +717,14 @@ void CreateMembers(Config& config_) {
     Create<uint8>(member, "cameraLockOnDistance", config.cameraLockOnDistance);
     Create<uint8>(member, "cameraTilt", config.cameraTilt);
     Create<bool>(member, "cameraLockOff", config.cameraLockOff);
+
+	{
+		auto& member = Create<struct_t>(root, "GUI");
+		auto& config = config_.GUI;
+
+		Create<uint8>(member, "trasnparencyMode", config.transparencyMode);
+		Create<float>(member, "transparencyValue", config.transparencyValue);
+	}
 
 
     {
@@ -1280,6 +1287,14 @@ void ToJSON(Config& config_) {
     Set<uint8>(member["cameraTilt"], config.cameraTilt);
     Set<bool>(member["cameraLockOff"], config.cameraLockOff);
 
+	{
+		auto& member = root["GUI"];
+		auto& config = config_.GUI;
+
+		Set<uint8>(member["trasnparencyMode"], config.transparencyMode);
+		Set<float>(member["transparencyValue"], config.transparencyValue);
+	}
+
 
     {
         auto& member = root["MeleeWeaponWheel"];
@@ -1835,6 +1850,13 @@ void ToConfig(Config& config_) {
     config.cameraTilt                         = Get<uint8>(member["cameraTilt"]);
     config.cameraLockOff                      = Get<bool>(member["cameraLockOff"]);
 
+	{
+		auto& config = config_.GUI;
+		auto& member = root["GUI"];
+
+		config.transparencyMode = Get<uint8>(member["trasnparencyMode"]);
+		config.transparencyValue = Get<float>(member["transparencyValue"]);
+	}
 
     {
         auto& config = config_.MeleeWeaponWheel;

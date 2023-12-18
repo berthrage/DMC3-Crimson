@@ -110,9 +110,9 @@ bool GUI_Color2(const char* label, uint8 (&var)[4], uint8 (&var2)[4], float (&va
     if (update) {
         memcpy(var, var2, sizeof(var2));
 
-        if constexpr (debug) {
-            Log("GUI_Color memcpy size %u", sizeof(var2));
-        }
+		if constexpr (debug) {
+			Log("GUI_Color memcpy size %u", sizeof(var2));
+		}
     }
 
     return update;
@@ -127,13 +127,6 @@ bool GUI_Color(const char* label, float (&var)[4], ImGuiColorEditFlags flags) {
 
     if (update) {
         ::GUI::save = true;
-    }
-
-    if constexpr (debug) {
-        ImGui::Text("var[0] %f", var[0]);
-        ImGui::Text("var[1] %f", var[1]);
-        ImGui::Text("var[2] %f", var[2]);
-        ImGui::Text("var[3] %f", var[3]);
     }
 
     return update;

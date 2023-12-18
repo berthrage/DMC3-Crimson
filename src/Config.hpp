@@ -534,6 +534,11 @@ struct Config {
     uint8 cameraTilt           = 1;
     bool cameraLockOff         = true;
 
+	struct GUI {
+		uint8 transparencyMode = 2;
+		float transparencyValue = 0.5f;
+	} GUI;
+
     struct WeaponWheel {
         bool alwaysShow = false;
         uint32 timeout  = 700;

@@ -212,7 +212,7 @@ namespace UI {
 
                 const float versionButtonFontSize = size_t(g_UIContext.DefaultFontSize * 1.45f);
 
-				ImGui::PushFont(g_ImGuiFont_RussoOne[versionButtonFontSize]);
+				ImGui::PushFont(g_ImGuiFont_RussoOne[versionButtonFontSize * 0.8f]);
 
 				const float versionButtonWidth = ImGui::CalcTextSize(versionStr.c_str()).x + style.FramePadding.x * 2.0f;
 
@@ -224,17 +224,17 @@ namespace UI {
 				// Two lines of text without space in between each with the default font size
 				float dateTextAndButtonHeightSum = g_UIContext.DefaultFontSize * 2.0f;
 
-				window->DrawList->AddText(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize], g_UIContext.DefaultFontSize,
+				window->DrawList->AddText(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize * 0.9f], g_UIContext.DefaultFontSize,
 					g_UIContext.NewVersionAvailable ? pos + ImVec2{
 						0.0f,
 						g_UIContext.DefaultFontSize * 0.5f - dateTextAndButtonHeightSum * 0.5f } : pos, SwapColorEndianness(0xFFFFFFFF), latestUpdateStr.c_str());
 
 				auto cursorBackUp = ImGui::GetCursorScreenPos();
-				ImGui::SetCursorScreenPos(pos + ImVec2{ maxLenthUpdateSection + g_UIContext.DefaultFontSize * 1.0f,
+				ImGui::SetCursorScreenPos(pos + ImVec2{ maxLenthUpdateSection + g_UIContext.DefaultFontSize * 0.3f,
 														style.FramePadding.y + g_UIContext.DefaultFontSize * 0.5f - g_UIContext.DefaultFontSize * 0.65f });
 
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
-				ImGui::PushFont(g_ImGuiFont_RussoOne[versionButtonFontSize]);
+				ImGui::PushFont(g_ImGuiFont_RussoOne[versionButtonFontSize * 1.0f]);
 
 				if (InfoButton(versionStr.c_str())) {
                     // Todo: Redirect to patch notes
@@ -249,7 +249,7 @@ namespace UI {
 					ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 5.0f, 0.0f });
 					ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
 
-					ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
+					ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize * 0.9f]);
 
 					if (InfoButton(newVersionText.c_str())) {
 						ShellExecute(0, 0, "https://github.com/berthrage/Devil-May-Cry-3-Crimson/releases/new", 0, 0, SW_SHOW);
@@ -316,8 +316,8 @@ namespace UI {
 						}
 
 						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("OVERLAYS", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Overlays, true, false, subTabBtnSize)) {
-							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Overlays;
+						if (TabButton("INTERFACE", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Interface, true, false, subTabBtnSize)) {
+							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Interface;
 						}
 
 						ImGui::SameLine(0.0f, tabButtonsGap);
@@ -474,10 +474,30 @@ namespace UI {
 							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
 								SwapColorEndianness(0xFFFFFF10), "Gameplay");
                         }
-                        else {
+                        else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Camera) {
 							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-								SwapColorEndianness(0xFFFFFF10), "Options");
+								SwapColorEndianness(0xFFFFFF10), "Camera");
                         }
+						else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Hotkeys) {
+							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+								SwapColorEndianness(0xFFFFFF10), "Hotkeys");
+						}
+						else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Interface) {
+							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+								SwapColorEndianness(0xFFFFFF10), "Interface");
+						}
+						else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::WeaponWheel) {
+							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+								SwapColorEndianness(0xFFFFFF10), "Weapon Wheel");
+						}
+						else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::SoundOrVisual) {
+							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+								SwapColorEndianness(0xFFFFFF10), "Sound/Visual");
+						}
+						else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::System) {
+							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+								SwapColorEndianness(0xFFFFFF10), "System");
+						}
 
 						
 					}
@@ -488,8 +508,27 @@ namespace UI {
 						// Has subtab buttons
 						pos += ImVec2{ 0.0f, subTabBtnSize.y + g_UIContext.DefaultFontSize * 0.3f };
 
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 8.2f, pos,
-							SwapColorEndianness(0xFFFFFF10), "Cheats & Debug");
+
+						if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Common) {
+							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+								SwapColorEndianness(0xFFFFFF10), "Common Cheats");
+						}
+						else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Speed) {
+							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+								SwapColorEndianness(0xFFFFFF10), "Speed");
+						}
+						else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Teleporter) {
+							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+								SwapColorEndianness(0xFFFFFF10), "Teleporter");
+						}
+						else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::EnemySpawner) {
+							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+								SwapColorEndianness(0xFFFFFF10), "Enemy Spawner");
+						}
+						else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::JukeBox) {
+							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+								SwapColorEndianness(0xFFFFFF10), "Jukebox");
+						}
 					}
 					break;
 
@@ -936,6 +975,12 @@ const char* cameraSmoothingNames[] = {
     "Low",
 };
 
+const char* GUITransparencyNames[] = {
+	"Off",
+	"Static",
+	"Dynamic",
+};
+
 
 const char* newCharacterNames[] = {
     "Dante",
@@ -956,6 +1001,7 @@ constexpr uint8 newCharacters[] = {
 };
 
 const char* collisionGroupNames[] = {"Player", "Enemy"};
+
 
 constexpr uint8 collisionGroups[] = {
     COLLISION_GROUP::PLAYER,
@@ -2601,13 +2647,14 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
     auto& mainQueuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
 
 	const float itemWidth = defaultFontSize * 8.0f;
+    ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
 
     if ((entityIndex == ENTITY::CLONE) && (mainQueuedCharacterData.character >= CHARACTER::MAX)) {
         return;
     }
 	
-
-   
+    ImGui::Text("");
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
 
     {
 		const float columnWidth = 0.8f * queuedConfig.globalScale;
@@ -2666,12 +2713,16 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 					GUI_PushDisable(condition);
 
-					GUI_Input("Costume", queuedCharacterData.costume);
+                    if (GUI_Input("Costume", queuedCharacterData.costume)) {
+                        queuedCharacterDataClone.costume = queuedCharacterData.costume;
+                    }
 
 					GUI_PopDisable(condition);
 
 
-					GUI_Checkbox("Ignore", queuedCharacterData.ignoreCostume);
+                    if (GUI_Checkbox("Ignore", queuedCharacterData.ignoreCostume)) {
+                        queuedCharacterDataClone.ignoreCostume = queuedCharacterData.ignoreCostume;
+                    }
 					ImGui::SameLine();
 					TooltipHelper("(?)", "Ignores your setting and uses the global value.");
 				}
@@ -2679,7 +2730,9 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 				ImGui::SameLine();
 
 
-				GUI_Checkbox("Force Specific Model", queuedCharacterData.forceFiles);
+                if (GUI_Checkbox("Force Specific Model", queuedCharacterData.forceFiles)) {
+                    queuedCharacterDataClone.forceFiles = queuedCharacterData.forceFiles;
+                }
 
 
 				if (queuedCharacterData.forceFiles) {
@@ -2687,12 +2740,16 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 					ImGui::TableNextRow(0, rowWidth);
 					ImGui::TableNextColumn();
 
-					UI::Combo("Force Model Character", characterNames, queuedCharacterData.forceFilesCharacter);
+                    if (UI::Combo("Force Model Character", characterNames, queuedCharacterData.forceFilesCharacter)) {
+                        queuedCharacterDataClone.forceFilesCharacter = queuedCharacterData.forceFilesCharacter;
+                    }
                     
                     ImGui::TableNextRow(0, rowWidth);
 					ImGui::TableNextColumn();
 
-					GUI_Input("Force Model Costume", queuedCharacterData.forceFilesCostume);
+                    if (GUI_Input("Force Model Costume", queuedCharacterData.forceFilesCostume)) {
+                        queuedCharacterDataClone.forceFilesCostume = queuedCharacterData.forceFilesCostume;
+                    }
 
 				}
 
@@ -2800,7 +2857,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
     ImGui::PopItemWidth();*/
 
-    
+    ImGui::PopStyleColor();
 
     if (queuedCharacterData.character != CHARACTER::DANTE) {
         return;
@@ -2886,6 +2943,7 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
 	const float rowWidth = 40.0f * queuedConfig.globalScale;
 
+    ImGui::Text("");
 
     ImGui::PushItemWidth(itemWidth);
     ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
@@ -2960,7 +3018,11 @@ void ActorSection(size_t defaultFontSize) {
 	const float itemWidth = defaultFontSize * 8.0f;
 	const float columnWidth = 0.8f * queuedConfig.globalScale;
 	const float rowWidth = 40.0f * queuedConfig.globalScale;
+    ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
 
+    bool actorCondition = (!queuedConfig.Actor.enable);
+
+    GUI_PushDisable(actorCondition);
 
 
 // 	if (GUI_ResetButton()) {
@@ -3043,7 +3105,7 @@ void ActorSection(size_t defaultFontSize) {
                 ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.7f]);
 
                 if (ImGui::BeginTabItem(playerIndexNames[playerIndex])) {
-                    ImGui::Text("");
+                    //ImGui::Text("");
 
 
                     Actor_PlayerTab(playerIndex, defaultFontSize);
@@ -3079,12 +3141,8 @@ void ActorSection(size_t defaultFontSize) {
                 ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
 				if (ImGui::BeginTabItem(characterIndexNames[characterIndex])) {
-					ImGui::Text("");
-
-					
-					Actor_CharacterTab(activePlayerIndex, characterIndex, 0, defaultFontSize);
-
-					
+		
+					Actor_CharacterTab(activePlayerIndex, characterIndex, 0, defaultFontSize);	
 
 					ImGui::EndTabItem();
 				}
@@ -3101,22 +3159,21 @@ void ActorSection(size_t defaultFontSize) {
 
     }
 
+    GUI_PopDisable(actorCondition);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 	GUI_Checkbox("ACTOR SYSTEM", queuedConfig.Actor.enable);
 	ImGui::PopFont();
 	UI::SeparatorEx(defaultFontSize * 23.35f);
 
-	ImGui::Text("");
-	
-	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+    ImGui::Text("");
 
-	ImGui::PushItemWidth(itemWidth);
+    GUI_PushDisable(actorCondition);
 
-	GUI_Slider<uint8>("Player Count", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT);
-	ImGui::Text("");
-
-
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
+    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+    ImGui::PushItemWidth(itemWidth);
+    GUI_Slider<uint8>("Player Count", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT);
 	UI::Combo2("Costume Respects Game Progression", costumeRespectsProgressionNames, activeConfig.costumeRespectsProgression,
 		queuedConfig.costumeRespectsProgression);
 
@@ -3127,6 +3184,37 @@ void ActorSection(size_t defaultFontSize) {
 		"Crimson also updates Vergil's First Costume."
 
 	);
+
+    {
+		const float columnWidth = 0.7f * queuedConfig.globalScale;
+		const float rowWidth = 30.0f * queuedConfig.globalScale;
+
+        if (ImGui::BeginTable("ActorSystemTable", 3)) {
+
+			ImGui::TableSetupColumn("c2", 0, columnWidth * 1.4f);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+           
+			if (GUI_Checkbox2("Boss Lady Fixes", activeConfig.enableBossLadyFixes, queuedConfig.enableBossLadyFixes)) {
+				ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
+			}
+
+            ImGui::TableNextColumn();
+
+
+            if (GUI_Checkbox2("Boss Vergil Fixes", activeConfig.enableBossVergilFixes, queuedConfig.enableBossVergilFixes)) {
+                ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
+            }
+			
+
+            ImGui::TableNextColumn();
+
+            GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
+
+            ImGui::EndTable();
+        }
+    }
 
     // Deprecated DDMK Options
 
@@ -3153,20 +3241,8 @@ void ActorSection(size_t defaultFontSize) {
 // 		500);
 
 
-	if (GUI_Checkbox2("Boss Lady Fixes", activeConfig.enableBossLadyFixes, queuedConfig.enableBossLadyFixes)) {
-		ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
-	}
-
-	if (GUI_Checkbox2("Boss Vergil Fixes", activeConfig.enableBossVergilFixes, queuedConfig.enableBossVergilFixes)) {
-		ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
-	}
-
-	GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
-	ImGui::Text("");
-
-
-
-
+    GUI_PopDisable(actorCondition);
+    ImGui::PopStyleColor();
     ImGui::PopItemWidth();
     ImGui::PopFont();
     
@@ -3984,7 +4060,7 @@ void Damage() {
         ImGui::Text("");
 
 
-        if constexpr (debug) {
+        {
             static bool toggled = false;
 
             if (GUI_Button("One Hit Kill")) {
@@ -5784,6 +5860,21 @@ void Debug() {
     if (ImGui::CollapsingHeader("Debug")) {
         ImGui::Text("");
 
+		if (ImGui::Button("heheh")) {
+			SampleModDetour1();
+		}
+
+		// if (ImGui::Button("EnableCrazyComboHook")){
+		//	HoldToCrazyComboHook->Toggle(true);
+		// }
+
+		ImGui::InputInt("Effect Bank", &createEffectBank);
+		ImGui::InputInt("Effect ID", &createEffectID);
+		if (ImGui::Button("CreateEffect")) {
+			CreateEffectDetour();
+		}
+
+        ImGui::Text("");
 
         GUI_Checkbox("g_noTeleport", g_noTeleport);
 
@@ -6465,7 +6556,7 @@ void Other() {
 
 #pragma endregion
 
-#pragma region Overlays
+#pragma region Interface
 
 void NewMissionClearSong() {
     if (g_scene == SCENE::MISSION_RESULT && !missionClearSongPlayed) {
@@ -7036,69 +7127,132 @@ void BossVergilActionsOverlaySettings() {
         defaultConfig.bossVergilActionsOverlayData);
 }
 
+void AdjustBackgroundTransparency() {
+// 	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+// 	if (!pool_10298 || !pool_10298[8]) {
+//         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, 1.0f));
+// 		return;
+// 	}
+// 	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 
-void Overlays() {
-    if (ImGui::CollapsingHeader("Overlays")) {
-        ImGui::Text("");
+	
+    switch (queuedConfig.GUI.transparencyMode) {
+        // OFF
+    case 0 :
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, 1.0f));
+        break;
+        
+        // STATIC
+    case 1 :
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, queuedConfig.GUI.transparencyValue));
+        break;
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.mainOverlayData, &defaultConfig.mainOverlayData, sizeof(queuedConfig.mainOverlayData));
-            CopyMemory(&activeConfig.mainOverlayData, &queuedConfig.mainOverlayData, sizeof(activeConfig.mainOverlayData));
+        //DYNAMIC
+    case 2 :
 
-            CopyMemory(&queuedConfig.missionOverlayData, &defaultConfig.missionOverlayData, sizeof(queuedConfig.missionOverlayData));
-            CopyMemory(&activeConfig.missionOverlayData, &queuedConfig.missionOverlayData, sizeof(activeConfig.missionOverlayData));
-
-            CopyMemory(&queuedConfig.bossLadyActionsOverlayData, &defaultConfig.bossLadyActionsOverlayData,
-                sizeof(queuedConfig.bossLadyActionsOverlayData));
-            CopyMemory(&activeConfig.bossLadyActionsOverlayData, &queuedConfig.bossLadyActionsOverlayData,
-                sizeof(activeConfig.bossLadyActionsOverlayData));
-
-            CopyMemory(&queuedConfig.bossVergilActionsOverlayData, &defaultConfig.bossVergilActionsOverlayData,
-                sizeof(queuedConfig.bossVergilActionsOverlayData));
-            CopyMemory(&activeConfig.bossVergilActionsOverlayData, &queuedConfig.bossVergilActionsOverlayData,
-                sizeof(activeConfig.bossVergilActionsOverlayData));
-
-
-            ImGui::SetWindowPos(mainOverlayLabel, *reinterpret_cast<ImVec2*>(&activeConfig.mainOverlayData.pos));
-            ImGui::SetWindowPos(missionOverlayLabel, *reinterpret_cast<ImVec2*>(&activeConfig.missionOverlayData.pos));
-            ImGui::SetWindowPos(bossLadyActionsOverlayLabel, *reinterpret_cast<ImVec2*>(&activeConfig.bossLadyActionsOverlayData.pos));
-            ImGui::SetWindowPos(bossVergilActionsOverlayLabel, *reinterpret_cast<ImVec2*>(&activeConfig.bossVergilActionsOverlayData.pos));
-        }
-
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-        GUI_SectionStart("Main");
-
-        MainOverlaySettings();
-
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-
-        GUI_SectionStart("Mission");
-
-        MissionOverlaySettings();
-
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-
-        GUI_SectionStart("Boss Lady Actions");
-
-        BossLadyActionsOverlaySettings();
-
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-
-        GUI_SectionStart("Boss Vergil Actions");
-
-        BossVergilActionsOverlaySettings();
-
-
-        ImGui::Text("");
+//         if (eventData.event == EVENT::MAIN) {
+//             ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, queuedConfig.GUI.transparencyValue));
+// 
+//             
+//         }
+// 		else {
+// 			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, 1.0f));
+// 		}
+//         
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, queuedConfig.GUI.transparencyValue));
+        
+        break;
     }
+
+}
+
+
+void InterfaceSection(size_t defaultFontSize) {
+    
+	const float itemWidth = defaultFontSize * 8.0f;
+
+	ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
+
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+
+	if (GUI_Checkbox2("GUI OPTIONS", activeConfig.Arcade.enable, queuedConfig.Arcade.enable)) {
+		Arcade::Toggle(activeConfig.Arcade.enable);
+	}
+
+	ImGui::PopFont();
+
+	UI::SeparatorEx(defaultFontSize * 23.35f);
+
+
+	ImGui::PushItemWidth(itemWidth);
+	ImGui::Text("");
+
+	{
+		const float columnWidth = 1.1f * queuedConfig.globalScale;
+		const float rowWidth = 30.0f * queuedConfig.globalScale;
+
+		if (ImGui::BeginTable("GUIOptiomsTable", 2)) {
+
+			ImGui::TableSetupColumn("c1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+			if (GUI_InputDefault2("Global Scale", activeConfig.globalScale, queuedConfig.globalScale, defaultConfig.globalScale, 0.1f, "%g",
+				ImGuiInputTextFlags_EnterReturnsTrue)) {
+				UpdateGlobalScale();
+			}
+
+
+			ImGui::TableNextColumn();
+            UI::Combo2("Transparency Mode", GUITransparencyNames, activeConfig.GUI.transparencyMode, queuedConfig.GUI.transparencyMode);
+
+
+            ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+
+			GUI_Input2<float>("Alpha", activeConfig.GUI.transparencyValue, queuedConfig.GUI.transparencyValue, 0.1f, "%g",
+				ImGuiInputTextFlags_EnterReturnsTrue);
+
+			ImGui::EndTable();
+		}
+	}
+	
+
+	GUI_SectionEnd();
+	ImGui::Text("");
+
+	GUI_SectionStart("Main");
+
+	MainOverlaySettings();
+
+	GUI_SectionEnd();
+	ImGui::Text("");
+
+
+	GUI_SectionStart("Mission");
+
+	MissionOverlaySettings();
+
+	GUI_SectionEnd();
+	ImGui::Text("");
+
+
+	GUI_SectionStart("Boss Lady Actions");
+
+	BossLadyActionsOverlaySettings();
+
+	GUI_SectionEnd();
+	ImGui::Text("");
+
+
+	GUI_SectionStart("Boss Vergil Actions");
+
+	BossVergilActionsOverlaySettings();
+
+
+	ImGui::Text("");
+    ImGui::PopItemWidth();
 }
 
 #pragma endregion
@@ -8215,19 +8369,6 @@ void Main(IDXGISwapChain* pSwapChain) {
         return;
     }
     // ImGui::InputScalar("Heheheh", ImGuiDataType_U64, &g_SampleMod_ReturnAddr1);
-    if (ImGui::Button("heheh")) {
-        SampleModDetour1();
-    }
-
-    // if (ImGui::Button("EnableCrazyComboHook")){
-    //	HoldToCrazyComboHook->Toggle(true);
-    // }
-
-    ImGui::InputInt("Effect Bank", &createEffectBank);
-    ImGui::InputInt("Effect ID", &createEffectID);
-    if (ImGui::Button("CreateEffect")) {
-        CreateEffectDetour();
-    }
 
 
     static bool doOnce = false;
@@ -8236,8 +8377,9 @@ void Main(IDXGISwapChain* pSwapChain) {
     if (!doOnce) {
         doOnce = true;
 
-        constexpr float width  = 800;
-        constexpr float height = 750;
+        // Originally 800x725, or screenWidth / 2.4 x screenHeight / 1.4 for 1080p
+        float width  = g_renderSize.x / 1.5;
+        float height = g_renderSize.y / 1.3;
 
         ImGui::SetNextWindowSize(ImVec2(width, height));
 
@@ -8614,7 +8756,38 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
 			ImGui::PopStyleVar();
 			{
+                constexpr auto ACTOR_SYSTEM_INTRO = u8"Custom Character Creation and Spawning System created by DDMK's Serpentiem.";
+                constexpr auto FEATURE_STYLE_SWITCH = u8"   • Style Switching;";
+                constexpr auto FEATURE_WEAPONS = u8"   • Custom Weapon Loadouts;";
+                constexpr auto FEATURE_CHAR_SWITCH = u8"   • Character Switching;";
+                constexpr auto FEATURE_MULTIPLAYER = u8"   • Local Multiplayer;";
+                constexpr auto FEATURE_DOPPEL_TWEAKS = u8"   • Doppelganger Tweaks;";
 
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+				ImGui::Text("ACTOR SYSTEM");
+				ImGui::PopFont();
+
+
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+				ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+                ImGui::TextWrapped((const char*) ACTOR_SYSTEM_INTRO);
+                ImGui::TextWrapped("Required for almost all Gameplay Options to be enabled.");
+                ImGui::TextWrapped("");
+                ImGui::TextWrapped("Enables:");
+                ImGui::TextWrapped((const char*) FEATURE_STYLE_SWITCH);
+                ImGui::TextWrapped((const char*) FEATURE_WEAPONS);
+                ImGui::TextWrapped((const char*) FEATURE_CHAR_SWITCH);
+                ImGui::TextWrapped((const char*) FEATURE_MULTIPLAYER);
+                ImGui::TextWrapped((const char*) FEATURE_DOPPEL_TWEAKS);
+                ImGui::TextWrapped("");
+                ImGui::TextWrapped("");
+                ImGui::TextWrapped("*Required for Crimson Mode to stay enabled.");
+                ImGui::TextWrapped("**Changes the Divinity Statue (Shop) UI.");
+				ImGui::TextWrapped("(Automatically disables itself during Battle of Brothers and End Credits for stability).");
+
+
+				ImGui::PopFont();
 			}
 			ImGui::EndChild();
 		}
@@ -8663,7 +8836,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
                 ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
 
-				ImGui::TextWrapped("Jumps you directly to a specific point in the game, triggered in the Main Menu. This will tag you at the Mission End Screen.");
+				ImGui::TextWrapped("Jumps you directly to a specific point in the game, triggered in the Main Menu. \n\nThis will tag you at the Mission End Screen.");
                 ImGui::PopFont();
 			}
 			ImGui::EndChild();
@@ -8714,16 +8887,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 						ImGui::PushItemWidth(150);
 
-						if (GUI_InputDefault2("Global Scale", activeConfig.globalScale, queuedConfig.globalScale, defaultConfig.globalScale, 0.1f, "%g",
-							ImGuiInputTextFlags_EnterReturnsTrue)) {
-							UpdateGlobalScale();
-						}
 
 						ImGui::PopItemWidth();
 
-
-						BarsSection();
-						CameraSection();
 						Cosmetics();
 						Damage();
 						Dante();
@@ -8738,7 +8904,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						Lady();
 						Mobility();
 						Other();
-						Overlays();
 						Repair();
 						SpeedSection();
 						System();
@@ -8746,8 +8911,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						WeaponWheel();
 						SFX();
 						GameplayOptions();
-
-
 						TrainingSection();
 						Vergil();
 
@@ -8779,12 +8942,119 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
                     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
                     ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
 
-                    ImGui::TextWrapped("Jumps you directly to a specific point in the game, triggered in the Main Menu. This will tag you at the Mission End Screen.");
+                    ImGui::TextWrapped("Jumps you directly to a specific point in the game, triggered in the Main Menu. \nThis will tag you at the Mission End Screen.");
                     ImGui::PopFont();
                 }
                 ImGui::EndChild();
             }
         }
+        else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::Camera) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+                        CameraSection();
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("GUI OPTIONS");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Change Crimson GUI's settins.");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
+        }
+        else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::Hotkeys) {
+
+        }
+        else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::Interface) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						InterfaceSection(context.DefaultFontSize);
+                        BarsSection();
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("GUI OPTIONS");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Change Crimson GUI's settings.");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
+        }
+        else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::WeaponWheel) {
+        }
+        else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::SoundOrVisual) {
+        }
+        else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::System) {
+        }
+
 
 	}
 	break;
@@ -9213,6 +9483,8 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 
 	UI::ResetID(0);
 
+    AdjustBackgroundTransparency();
+
     Welcome();
     Main(pSwapChain);
     //CreditsWindow(); // old ddmk credits
@@ -9228,7 +9500,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
         SoundWindow();
     }
 
-
+    
     PauseWhenGUIOpen();
     MainOverlayWindow();
     MissionOverlayWindow();
@@ -9262,7 +9534,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     }
 
     HandleSaveTimer(activeConfig.frameRate);
-
+    ImGui::PopStyleColor();
 
     // static bool enable = true;
     // ImGui::ShowDemoWindow(&enable);

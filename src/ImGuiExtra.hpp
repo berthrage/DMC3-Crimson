@@ -96,7 +96,7 @@ namespace UI {
 			Gameplay = 0,
 			Camera,
 			Hotkeys,
-			Overlays,
+			Interface,
 			WeaponWheel,
 			SoundOrVisual,
 			System,
