@@ -248,6 +248,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         Hooks::Init();
 
         InitDetours();
+        ToggleOriginalHUDPositionings(activeConfig.originalHUDpositionings);
 
         // Remove FMODGetCodecDescription Label
         SetMemory((appBaseAddr + 0x5505B5), 0, 23, MemoryFlags_VirtualProtectDestination);

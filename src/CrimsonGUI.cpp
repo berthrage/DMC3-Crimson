@@ -7333,6 +7333,13 @@ void InterfaceSection(size_t defaultFontSize) {
 			}
 			ImGui::PopItemWidth();
 
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+            if (GUI_Checkbox2("Original HUD Positionings", activeConfig.originalHUDpositionings, queuedConfig.originalHUDpositionings)) {
+                ToggleOriginalHUDPositionings(activeConfig.originalHUDpositionings);
+            }
+
 			ImGui::EndTable();
 		}
 	}

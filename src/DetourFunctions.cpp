@@ -250,22 +250,40 @@ void InitDetours() {
     g_DisableDriveHold_ReturnAddr = DisableDriveHoldHook->GetReturnAddress();
     DisableDriveHoldHook->Toggle(true);
 
-    // HudHPSeparation
-    static std::unique_ptr<Utility::Detour_t> HudHPSeparationHook =
-        std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27DD64, &HudHPSeparationDetour, 8);
-    g_HudHPSeparation_ReturnAddr = HudHPSeparationHook->GetReturnAddress();
-    HudHPSeparationHook->Toggle(true);
-
-    // HudStyleBarPos
-    static std::unique_ptr<Utility::Detour_t> HudStyleBarPosHook =
-        std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2BB357, &HudStyleBarPosDetour, 16);
-    g_HudStyleBarPos_ReturnAddr = HudStyleBarPosHook->GetReturnAddress();
-    g_HudStyleBarPosX           = 575.0f;
-    g_HudStyleBarPosY           = 115.0f;
-    HudStyleBarPosHook->Toggle(true);
-
+    
     // VergilNeutralTrick // func is already detoured, Crimson.MobilityFunction<27>+B1
     // static std::unique_ptr<Utility::Detour_t> VergilNeutralTrickHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x0,
     // &VergilNeutralTrickDetour, 5); g_VergilNeutralTrick_ReturnAddr = VergilNeutralTrickHook->GetReturnAddress();
     // VergilNeutralTrickHook->Toggle(true);
+}
+
+void ToggleOriginalHUDPositionings(bool enable) {
+	using namespace Utility;
+	DetourBaseAddr = (uintptr_t)appBaseAddr;
+
+	// HudHPSeparation
+	static std::unique_ptr<Utility::Detour_t> HudHPSeparationHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27DD64, &HudHPSeparationDetour, 8);
+	g_HudHPSeparation_ReturnAddr = HudHPSeparationHook->GetReturnAddress();
+    if (enable) {
+        HudHPSeparationHook->Toggle(false);
+    }
+    else {
+        HudHPSeparationHook->Toggle(true);
+    }
+	
+
+	// HudStyleBarPos
+	static std::unique_ptr<Utility::Detour_t> HudStyleBarPosHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2BB357, &HudStyleBarPosDetour, 16);
+	g_HudStyleBarPos_ReturnAddr = HudStyleBarPosHook->GetReturnAddress();
+	g_HudStyleBarPosX = 575.0f;
+	g_HudStyleBarPosY = 115.0f;
+	
+	if (enable) {
+        HudStyleBarPosHook->Toggle(false);
+	}
+	else {
+        HudStyleBarPosHook->Toggle(true);
+	}
 }

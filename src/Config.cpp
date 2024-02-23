@@ -689,6 +689,7 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "hideMainHUD", config.hideMainHUD);
     Create<bool>(member, "hideLockOn", config.hideLockOn);
     Create<bool>(member, "hideBossHUD", config.hideBossHUD);
+    Create<bool>(member, "originalHUDpositionings", config.originalHUDpositionings);
     Create<bool>(member, "soundIgnoreEnemyData", config.soundIgnoreEnemyData);
     Create<bool>(member, "enableRebellionAirStinger", config.enableRebellionAirStinger);
     Create<bool>(member, "enableRebellionNewDrive", config.enableRebellionNewDrive);
@@ -1261,6 +1262,7 @@ void ToJSON(Config& config_) {
     Set<bool>(member["hideMainHUD"], config.hideMainHUD);
     Set<bool>(member["hideLockOn"], config.hideLockOn);
     Set<bool>(member["hideBossHUD"], config.hideBossHUD);
+    Set<bool>(member["originalHUDpositionings"], config.originalHUDpositionings);
     Set<bool>(member["soundIgnoreEnemyData"], config.soundIgnoreEnemyData);
     Set<bool>(member["enableRebellionAirStinger"], config.enableRebellionAirStinger);
     Set<bool>(member["enableRebellionNewDrive"], config.enableRebellionNewDrive);
@@ -1827,7 +1829,7 @@ void ToConfig(Config& config_) {
     config.enablePVPFixes                     = Get<bool>(member["enablePVPFixes"]);
     config.hideMainHUD                        = Get<bool>(member["hideMainHUD"]);
     config.hideLockOn                         = Get<bool>(member["hideLockOn"]);
-    config.hideBossHUD                        = Get<bool>(member["hideBossHUD"]);
+    config.originalHUDpositionings            = Get<bool>(member["originalHUDpositionings"]);
     config.soundIgnoreEnemyData               = Get<bool>(member["soundIgnoreEnemyData"]);
     config.enableRebellionAirStinger          = Get<bool>(member["enableRebellionAirStinger"]);
     config.enableRebellionNewDrive            = Get<bool>(member["enableRebellionNewDrive"]);

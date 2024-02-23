@@ -493,6 +493,7 @@ struct Config {
 
     bool showAdditionalBars = true;
     bool show1Pbar = false;
+    bool originalHUDpositionings = false;
 
     bool forceSyncHitMagicPoints = true;
 
