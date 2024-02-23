@@ -3739,7 +3739,7 @@ void BarsSection(size_t defaultFontSize) {
 
     GUI_Checkbox2("Show 1P Bar", activeConfig.show1Pbar, queuedConfig.show1Pbar);
 
-	BarsSettings();
+	/*BarsSettings();*/
 
     
 }
