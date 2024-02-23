@@ -24,7 +24,7 @@ struct Config {
 
     struct {
         bool enable         = (debug) ? true : false;
-        uint32 mission      = 17;
+        uint32 mission      = 7;
         uint32 mode         = MODE::DANTE_MUST_DIE;
         uint32 room         = 900;
         bool enableRoomSelection     = (debug) ? false : true;
@@ -35,7 +35,7 @@ struct Config {
         float hitPoints     = 20000;
         float magicPoints   = 10000;
         uint8 character     = CHARACTER::DANTE;
-        uint8 costume       = (debug) ? 1 : 0;
+        uint8 costume       = 0;
         uint32 style        = STYLE::TRICKSTER;
         uint8 weapons[4]    = {
             WEAPON::REBELLION,
@@ -478,17 +478,21 @@ struct Config {
     _(6);
 
     struct BarsData {
-        bool enable         = false;
-        bool run            = false;
+        bool enable         = true;
+        bool run            = true;
         vec2 size           = {200, 30};
         vec2 pos            = {8, 8};
         uint32 lastX        = 0;
         uint32 lastY        = 0;
         float hitColor[4]   = {0, 1, 0, 1};
-        float magicColor[4] = {0, 0, 1, 1};
+        float magicColor[4] = {0.78f, 0.05f, 0.41f, 1.0f};
+        float magicColorVergil[4] = { 0.06f, 0.74f, 0.81f, 1.0f };
     };
 
     BarsData barsData[PLAYER_COUNT];
+
+    bool showAdditionalBars = true;
+    bool show1Pbar = false;
 
     bool forceSyncHitMagicPoints = true;
 

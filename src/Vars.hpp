@@ -4111,6 +4111,7 @@ extern int inCombatDelay;
 extern int inCombatTime;
 extern bool inCombat;
 extern DWORD inCombatGameAddress;
+extern bool inGame;
 
 extern bool exceptionShot;
 

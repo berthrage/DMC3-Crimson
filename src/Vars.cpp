@@ -243,6 +243,7 @@ int inCombatDelay           = 2000;
 int inCombatTime            = inCombatDelay;
 bool inCombat               = false;
 DWORD inCombatGameAddress   = 0x005F17CC;
+bool inGame = false;
 
 bool exceptionShot = false;
 

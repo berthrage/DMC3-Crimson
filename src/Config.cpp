@@ -240,7 +240,7 @@ void CreateMembers_CharacterDataContent(rapidjson::Value& member, CharacterData&
 
 void CreateMembers_PlayerDataContent(rapidjson::Value& member, PlayerData& config) {
     Create<uint8>(member, "collisionGroup", config.collisionGroup);
-    Create<uint16>(member, "button", config.switchButton);
+    Create<uint16>(member, "switchButton", config.switchButton);
     Create<uint8>(member, "characterCount", config.characterCount);
     Create<uint8>(member, "characterIndex", config.characterIndex);
     Create<uint8>(member, "lastCharacterIndex", config.lastCharacterIndex);
@@ -803,6 +803,9 @@ void CreateMembers(Config& config_) {
         }
     }
 
+    Create<bool>(member, "showAdditionalBars", config.showAdditionalBars);
+    Create<bool>(member, "show1Pbar", config.show1Pbar);
+
 
     Create<bool>(member, "forceSyncHitMagicPoints", config.forceSyncHitMagicPoints);
     Create<bool>(member, "updateLockOns", config.updateLockOns);
@@ -871,7 +874,7 @@ void ToJSON_CharacterData(rapidjson::Value& member, CharacterData& config) {
 
 void ToJSON_PlayerData(rapidjson::Value& member, PlayerData& config) {
     Set<uint8>(member["collisionGroup"], config.collisionGroup);
-    Set<byte16>(member["button"], config.switchButton);
+    Set<byte16>(member["switchButton"], config.switchButton);
     Set<uint8>(member["characterCount"], config.characterCount);
     Set<uint8>(member["characterIndex"], config.characterIndex);
     Set<uint8>(member["lastCharacterIndex"], config.lastCharacterIndex);
@@ -1364,6 +1367,10 @@ void ToJSON(Config& config_) {
         ToJSON_BarsData(member["barsData"][playerIndex], config.barsData[playerIndex]);
     }
 
+    Set<bool>(member["showAdditionalBars"], config.showAdditionalBars);
+    Set<bool>(member["show1Pbar"], config.show1Pbar);
+
+    
 
     Set<bool>(member["forceSyncHitMagicPoints"], config.forceSyncHitMagicPoints);
     Set<bool>(member["updateLockOns"], config.updateLockOns);
@@ -1426,7 +1433,7 @@ void ToConfig_CharacterData(CharacterData& config, rapidjson::Value& member) {
 
 void ToConfig_PlayerData(PlayerData& config, rapidjson::Value& member) {
     config.collisionGroup       = Get<uint8>(member["collisionGroup"]);
-    config.switchButton               = Get<byte16>(member["button"]);
+    config.switchButton         = Get<byte16>(member["switchButton"]);
     config.characterCount       = Get<uint8>(member["characterCount"]);
     config.characterIndex       = Get<uint8>(member["characterIndex"]);
     config.lastCharacterIndex   = Get<uint8>(member["lastCharacterIndex"]);
@@ -1925,6 +1932,10 @@ void ToConfig(Config& config_) {
     for_all(playerIndex, PLAYER_COUNT) {
         ToConfig_BarsData(config.barsData[playerIndex], member["barsData"][playerIndex]);
     }
+
+    
+    config.showAdditionalBars = Get<bool>(member["showAdditionalBars"]);
+    config.show1Pbar = Get<bool>(member["show1Pbar"]);
 
 
     config.forceSyncHitMagicPoints = Get<bool>(member["forceSyncHitMagicPoints"]);

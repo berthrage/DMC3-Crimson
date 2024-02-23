@@ -901,11 +901,12 @@ const char* directionNames[] = {
 };
 
 const char* playerIndexNames[] = {
-    "Player 1",
-    "Player 2",
-    "Player 3",
-    "Player 4",
+    "1P",
+    "2P",
+    "3P",
+    "4P",
 };
+
 
 const char* characterIndexNames[] = {
     "Character 1",
@@ -1030,6 +1031,24 @@ const char* styleNamesVergil[] = {
     "Dark Slayer",
     "Quicksilver",
     "Doppelganger",
+};
+
+const char* styleNamesDanteGameplay[] = {
+	"SWORDMASTER",
+	"GUNSLINGER",
+	"TRICKSTER",
+	"ROYALGUARD",
+	"QUICKSILVER",
+	"DOPPELGANGER",
+};
+
+const char* styleNamesVergilGameplay[] = {
+	"PLACEHOLDER",
+	"PLACEHOLDER",
+	"DARK SLAYER",
+    "PLACEHOLDER",
+    "DOPPELGANGER",
+    "QUICKSILVER",
 };
 
 constexpr uint8 stylesVergil[] = {
@@ -1530,18 +1549,26 @@ void PauseWhenGUIOpen() {
     }
     auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 
+  
+
     if (g_scene != SCENE::GAME || eventData.event != EVENT::MAIN) {
         guiPause.timer    = 0.5f;
         guiPause.canPause = false;
+        inGame = false;
     } else {
+        inGame = true;
+        
         if (guiPause.timer > 0) {
             guiPause.timer -= ImGui::GetIO().DeltaTime;
         }
     }
 
+
     if (guiPause.timer <= 0) {
         guiPause.canPause = true;
     }
+
+    
 
     if (!g_show || !guiPause.canPause) {
         activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed;
@@ -3489,8 +3516,8 @@ bool showBars = false;
 
 
 void BarsFunction(
-    float hitPoints, float magicPoints, const char* name, const char* label, Config::BarsData& activeData, Config::BarsData& queuedData) {
-    if (!showBars && !activeData.enable) {
+    float hitPoints, float magicPoints, const char* name, PlayerActorData actorData, const char* label, Config::BarsData& activeData, Config::BarsData& queuedData) {
+    if (!showBars && !activeConfig.showAdditionalBars) {
         return;
     }
 
@@ -3517,7 +3544,7 @@ void BarsFunction(
 
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
 
-    if (ImGui::Begin(label, &activeData.enable, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (ImGui::Begin(label, &activeConfig.showAdditionalBars, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize)) {
         activePos = queuedPos = ImGui::GetWindowPos();
 
         auto x = static_cast<uint32>(activeData.pos.x);
@@ -3529,19 +3556,38 @@ void BarsFunction(
 
             GUI::save = true;
         }
-
-
+        ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 1));
         ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.hitColor));
         ImGui::ProgressBar(hitPoints, *reinterpret_cast<ImVec2*>(&activeData.size));
-        ImGui::PopStyleColor();
+        ImGui::PopStyleColor(2);
 
-
-        ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColor));
+        if (actorData.character != CHARACTER::VERGIL) {
+            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColor));
+        }
+        else {
+            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColorVergil));
+        }
         ImGui::ProgressBar(magicPoints, *reinterpret_cast<ImVec2*>(&activeData.size));
         ImGui::PopStyleColor();
 
 
         ImGui::Text(name);
+        ImGui::SameLine();
+        if (actorData.character == CHARACTER::DANTE || actorData.character == CHARACTER::VERGIL) {
+			ImGui::Text("  ");
+			ImGui::SameLine(0.0f, 0);
+
+            if (actorData.character == CHARACTER::DANTE) {
+                ImGui::Text(styleNamesDanteGameplay[actorData.style]);
+            }
+            else {
+                ImGui::Text(styleNamesVergilGameplay[actorData.style]);
+            }
+        }
+
+        ImGui::PopFont();
+     
     }
 
     ImGui::End();
@@ -3555,15 +3601,15 @@ void BarsSettingsFunction(const char* label, Config::BarsData& activeData, Confi
     auto& defaultPos = *reinterpret_cast<ImVec2*>(&defaultData.pos);
 
 
-    GUI_Checkbox2("Enable", activeData.enable, queuedData.enable);
+    /*GUI_Checkbox2("Enable", activeData.enable, queuedData.enable);*/
     ImGui::Text("");
 
-    if (GUI_ResetButton()) {
-        CopyMemory(&queuedData, &defaultData, sizeof(queuedData));
-        CopyMemory(&activeData, &queuedData, sizeof(activeData));
-
-        ImGui::SetWindowPos(label, activePos);
-    }
+     if (GUI_ResetButton()) {
+         CopyMemory(&queuedData, &defaultData, sizeof(queuedData));
+         CopyMemory(&activeData, &queuedData, sizeof(activeData));
+ 
+         ImGui::SetWindowPos(label, activePos);
+     }
     ImGui::Text("");
 
     bool condition = !activeData.enable;
@@ -3577,9 +3623,9 @@ void BarsSettingsFunction(const char* label, Config::BarsData& activeData, Confi
 
     ImGui::PushItemWidth(150);
 
-    GUI_InputDefault2("Width", activeData.size.x, queuedData.size.x, defaultData.size.x, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-    GUI_InputDefault2("Height", activeData.size.y, queuedData.size.y, defaultData.size.y, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-
+//     GUI_InputDefault2("Width", activeData.size.x, queuedData.size.x, defaultData.size.x, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+//     GUI_InputDefault2("Height", activeData.size.y, queuedData.size.y, defaultData.size.y, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+// 
     if (GUI_InputDefault2<float>("X", activePos.x, queuedPos.x, defaultPos.x, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
         ImGui::SetWindowPos(label, activePos);
     }
@@ -3599,44 +3645,66 @@ void Bars() {
 
     uint8 playerCount = (showBars) ? PLAYER_COUNT : activeConfig.Actor.playerCount;
 
+    int minimum = 1;
+
+	
+
     old_for_all(uint8, playerIndex, playerCount) {
-        float hit   = 0.75f;
-        float magic = 0.5f;
+        
+		if (!activeConfig.show1Pbar) {
+			minimum = 1;
+		}
+		else {
+			minimum = 0;
+		}
 
-        [&]() {
-            auto& playerData = GetPlayerData(playerIndex);
-
-            auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-            auto& newActorData  = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-
-            auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-            auto& activeNewActorData  = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-
-            auto& leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
-            auto& leadNewActorData  = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
-
-            auto& mainCharacterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-            auto& mainNewActorData  = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+        if (playerIndex >= minimum) {
 
 
-            if (activeCharacterData.character >= CHARACTER::MAX) {
-                hit   = 1.0f;
-                magic = 1.0f;
+            float hit = 0.75f;
+            float magic = 0.5f;
 
-                return;
-            }
+            [&]() {
+                auto& playerData = GetPlayerData(playerIndex);
 
-            if (!activeNewActorData.baseAddr) {
-                return;
-            }
-            auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+                auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+                auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 
-            hit   = (activeActorData.hitPoints / activeActorData.maxHitPoints);
-            magic = (activeActorData.magicPoints / activeActorData.maxMagicPoints);
-        }();
+                auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+                auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
 
-        BarsFunction(hit, magic, playerIndexNames[playerIndex], barsNames[playerIndex], activeConfig.barsData[playerIndex],
-            queuedConfig.barsData[playerIndex]);
+                auto& leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
+                auto& leadNewActorData = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
+
+                auto& mainCharacterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+                auto& mainNewActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+
+
+                if (activeCharacterData.character >= CHARACTER::MAX) {
+                    hit = 1.0f;
+                    magic = 1.0f;
+
+                    return;
+                }
+
+                if (!activeNewActorData.baseAddr) {
+                    return;
+                }
+                auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+
+                hit = (activeActorData.hitPoints / activeActorData.maxHitPoints);
+                magic = (activeActorData.magicPoints / activeActorData.maxMagicPoints);
+
+                activeConfig.barsData[playerIndex].pos.x = queuedConfig.barsData[playerIndex].pos.x;
+                activeConfig.barsData[playerIndex].pos.y = queuedConfig.barsData[playerIndex].pos.y;
+
+
+
+                BarsFunction(hit, magic, playerIndexNames[playerIndex], activeActorData, barsNames[playerIndex], activeConfig.barsData[playerIndex],
+                    queuedConfig.barsData[playerIndex]);
+                }();
+        }
+        
     }
 }
 
@@ -3647,34 +3715,33 @@ void BarsSettings() {
 
         GUI_SectionStart(playerIndexNames[playerIndex]);
 
+       
+
         BarsSettingsFunction(barsNames[playerIndex], activeConfig.barsData[playerIndex], queuedConfig.barsData[playerIndex],
             defaultConfig.barsData[playerIndex]);
     }
 }
 
-void BarsSection() {
-    if (ImGui::CollapsingHeader("Bars")) {
-        ImGui::Text("");
+void BarsSection(size_t defaultFontSize) {
+    
+	const float itemWidth = defaultFontSize * 8.0f;
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.barsData, &defaultConfig.barsData, sizeof(queuedConfig.barsData));
-            CopyMemory(&activeConfig.barsData, &queuedConfig.barsData, sizeof(activeConfig.barsData));
+	ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
 
-
-            for_all(playerIndex, PLAYER_COUNT) {
-                ImGui::SetWindowPos(barsNames[playerIndex], *reinterpret_cast<ImVec2*>(&activeConfig.barsData[playerIndex].pos));
-            }
-        }
-        ImGui::Text("");
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
 
-        GUI_Checkbox("Show Bars", showBars);
+    GUI_Checkbox2("ADDITIONAL PLAYER BARS", activeConfig.showAdditionalBars, queuedConfig.showAdditionalBars);
 
-        BarsSettings();
+	ImGui::PopFont();
+    UI::SeparatorEx(defaultFontSize * 23.35f);
+	ImGui::Text("");
 
+    GUI_Checkbox2("Show 1P Bar", activeConfig.show1Pbar, queuedConfig.show1Pbar);
 
-        ImGui::Text("");
-    }
+	BarsSettings();
+
+    
 }
 
 #pragma endregion
@@ -5965,9 +6032,6 @@ void Debug() {
         ImGui::Text("");
 
 
-        if (GUI_Checkbox2("Force Visible HUD", activeConfig.forceVisibleHUD, queuedConfig.forceVisibleHUD)) {
-            ToggleForceVisibleHUD(activeConfig.forceVisibleHUD);
-        }
         ImGui::Text("");
 
         if (GUI_Checkbox2(
@@ -7128,14 +7192,7 @@ void BossVergilActionsOverlaySettings() {
 }
 
 void AdjustBackgroundTransparency() {
-// 	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-// 	if (!pool_10298 || !pool_10298[8]) {
-//         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, 1.0f));
-// 		return;
-// 	}
-// 	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
-
-	
+   	
     switch (queuedConfig.GUI.transparencyMode) {
         // OFF
     case 0 :
@@ -7150,16 +7207,16 @@ void AdjustBackgroundTransparency() {
         //DYNAMIC
     case 2 :
 
-//         if (eventData.event == EVENT::MAIN) {
-//             ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, queuedConfig.GUI.transparencyValue));
-// 
-//             
-//         }
-// 		else {
-// 			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, 1.0f));
-// 		}
-//         
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, queuedConfig.GUI.transparencyValue));
+        if (inGame) {
+            ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, queuedConfig.GUI.transparencyValue));
+
+            
+        }
+		else {
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, 1.0f));
+		}
+        
+        /*ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, 1.0f));*/
         
         break;
     }
@@ -7175,9 +7232,8 @@ void InterfaceSection(size_t defaultFontSize) {
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
-	if (GUI_Checkbox2("GUI OPTIONS", activeConfig.Arcade.enable, queuedConfig.Arcade.enable)) {
-		Arcade::Toggle(activeConfig.Arcade.enable);
-	}
+
+    ImGui::Text("GUI OPTIONS");
 
 	ImGui::PopFont();
 
@@ -7188,24 +7244,21 @@ void InterfaceSection(size_t defaultFontSize) {
 	ImGui::Text("");
 
 	{
-		const float columnWidth = 1.1f * queuedConfig.globalScale;
-		const float rowWidth = 30.0f * queuedConfig.globalScale;
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
 		if (ImGui::BeginTable("GUIOptiomsTable", 2)) {
 
-			ImGui::TableSetupColumn("c1", 0, columnWidth);
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			if (GUI_InputDefault2("Global Scale", activeConfig.globalScale, queuedConfig.globalScale, defaultConfig.globalScale, 0.1f, "%g",
-				ImGuiInputTextFlags_EnterReturnsTrue)) {
-				UpdateGlobalScale();
-			}
-
+            ImGui::PushItemWidth(itemWidth);
+            UI::Combo2("Transparency Mode", GUITransparencyNames, activeConfig.GUI.transparencyMode, queuedConfig.GUI.transparencyMode);
+            ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
-            UI::Combo2("Transparency Mode", GUITransparencyNames, activeConfig.GUI.transparencyMode, queuedConfig.GUI.transparencyMode);
-
+            
 
             ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
@@ -7214,45 +7267,115 @@ void InterfaceSection(size_t defaultFontSize) {
 			GUI_Input2<float>("Alpha", activeConfig.GUI.transparencyValue, queuedConfig.GUI.transparencyValue, 0.1f, "%g",
 				ImGuiInputTextFlags_EnterReturnsTrue);
 
+            ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth);
+			if (GUI_InputDefault2("Global Scale", activeConfig.globalScale, queuedConfig.globalScale, defaultConfig.globalScale, 0.1f, "%g",
+				ImGuiInputTextFlags_EnterReturnsTrue)) {
+				UpdateGlobalScale();
+			}
+			ImGui::PopItemWidth();
+
 			ImGui::EndTable();
 		}
 	}
+
+    ImGui::Text("");
+
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+
+
+	ImGui::Text("HUD OPTIONS");
+
+	ImGui::PopFont();
+
+	UI::SeparatorEx(defaultFontSize * 23.35f);
+
+    ImGui::Text("");
+
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+		if (ImGui::BeginTable("HUDOptiomsTable", 2)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth);
+			if (GUI_Checkbox2("Hide Main", activeConfig.hideMainHUD, queuedConfig.hideMainHUD)) {
+				ToggleHideMainHUD(activeConfig.hideMainHUD);
+			}
+			ImGui::PopItemWidth();
+
+            ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Always Show Main", activeConfig.forceVisibleHUD, queuedConfig.forceVisibleHUD)) {
+				ToggleForceVisibleHUD(activeConfig.forceVisibleHUD);
+			}
+
+
+
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+
+			if (GUI_Checkbox2("Hide Lock-On", activeConfig.hideLockOn, queuedConfig.hideLockOn)) {
+				ToggleHideLockOn(activeConfig.hideLockOn);
+			}
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth);
+			if (GUI_Checkbox2("Hide Boss", activeConfig.hideBossHUD, queuedConfig.hideBossHUD)) {
+				ToggleHideBossHUD(activeConfig.hideBossHUD);
+			}
+			ImGui::PopItemWidth();
+
+			ImGui::EndTable();
+		}
+	}
+
 	
 
-	GUI_SectionEnd();
-	ImGui::Text("");
-
-	GUI_SectionStart("Main");
-
-	MainOverlaySettings();
-
-	GUI_SectionEnd();
-	ImGui::Text("");
-
-
-	GUI_SectionStart("Mission");
-
-	MissionOverlaySettings();
-
-	GUI_SectionEnd();
-	ImGui::Text("");
-
-
-	GUI_SectionStart("Boss Lady Actions");
-
-	BossLadyActionsOverlaySettings();
-
-	GUI_SectionEnd();
-	ImGui::Text("");
-
-
-	GUI_SectionStart("Boss Vergil Actions");
-
-	BossVergilActionsOverlaySettings();
-
-
-	ImGui::Text("");
     ImGui::PopItemWidth();
+	
+// 
+// 	GUI_SectionEnd();
+// 	ImGui::Text("");
+// 
+// 	GUI_SectionStart("Main");
+// 
+// 	MainOverlaySettings();
+// 
+// 	GUI_SectionEnd();
+// 	ImGui::Text("");
+// 
+// 
+// 	GUI_SectionStart("Mission");
+// 
+// 	MissionOverlaySettings();
+// 
+// 	GUI_SectionEnd();
+// 	ImGui::Text("");
+// 
+// 
+// 	GUI_SectionStart("Boss Lady Actions");
+// 
+// 	BossLadyActionsOverlaySettings();
+// 
+// 	GUI_SectionEnd();
+// 	ImGui::Text("");
+// 
+// 
+// 	GUI_SectionStart("Boss Vergil Actions");
+// 
+// 	BossVergilActionsOverlaySettings();
+// 
+// 
+// 	ImGui::Text("");
+
 }
 
 #pragma endregion
@@ -7571,23 +7694,6 @@ void System() {
         GUI_SectionEnd();
         ImGui::Text("");
 
-
-        GUI_SectionStart("HUD");
-
-        if (GUI_Checkbox2("Hide Main", activeConfig.hideMainHUD, queuedConfig.hideMainHUD)) {
-            ToggleHideMainHUD(activeConfig.hideMainHUD);
-        }
-
-        if (GUI_Checkbox2("Hide Lock-On", activeConfig.hideLockOn, queuedConfig.hideLockOn)) {
-            ToggleHideLockOn(activeConfig.hideLockOn);
-        }
-
-        if (GUI_Checkbox2("Hide Boss", activeConfig.hideBossHUD, queuedConfig.hideBossHUD)) {
-            ToggleHideBossHUD(activeConfig.hideBossHUD);
-        }
-
-        GUI_SectionEnd();
-        ImGui::Text("");
 
 
         GUI_SectionStart("Input");
@@ -9013,7 +9119,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				{
 					{
 						InterfaceSection(context.DefaultFontSize);
-                        BarsSection();
+                        ImGui::Text("");
+                        BarsSection(context.DefaultFontSize);
 					}
 				}
 				ImGui::EndChild();
