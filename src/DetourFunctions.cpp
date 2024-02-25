@@ -63,6 +63,10 @@ float g_HudStyleBarPosX;
 float g_HudStyleBarPosY;
 void HudStyleBarPosDetour();
 
+// StyleRankHUDNoFadeout
+std::uint64_t g_StyleRankHudNoFadeout_ReturnAddr;
+void StyleRankHudNoFadeoutDetour();
+
 // ShootRemapDown
 std::uint64_t g_ShootRemapDown_ReturnAddr;
 void ShootRemapDownDetour();
@@ -250,6 +254,7 @@ void InitDetours() {
     g_DisableDriveHold_ReturnAddr = DisableDriveHoldHook->GetReturnAddress();
     DisableDriveHoldHook->Toggle(true);
 
+   
     
     // VergilNeutralTrick // func is already detoured, Crimson.MobilityFunction<27>+B1
     // static std::unique_ptr<Utility::Detour_t> VergilNeutralTrickHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x0,
@@ -286,4 +291,22 @@ void ToggleOriginalHUDPositionings(bool enable) {
 	else {
         HudStyleBarPosHook->Toggle(true);
 	}
+}
+
+void ToggleStyleRankHudNoFadeout(bool enable) {
+    using namespace Utility;
+	DetourBaseAddr = (uintptr_t)appBaseAddr;
+
+	// StyleRankHudNoFadeout 
+	static std::unique_ptr<Utility::Detour_t> StyleRankHudNoFadeoutHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2BAE5D, &StyleRankHudNoFadeoutDetour, 10);
+	g_StyleRankHudNoFadeout_ReturnAddr = StyleRankHudNoFadeoutHook->GetReturnAddress();
+
+    if (enable) {
+        StyleRankHudNoFadeoutHook->Toggle(true);
+    }
+    else {
+        StyleRankHudNoFadeoutHook->Toggle(false);
+    }
+	
 }

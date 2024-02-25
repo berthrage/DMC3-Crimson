@@ -3949,6 +3949,8 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CameraTiltController();
     LockedOffCameraToggle(activeConfig.cameraLockOff);
     CameraLockOnDistanceController();
+    StyleRankHudFadeoutController();
+    
 
     LastEventStateQueue(actorBaseAddr);
 
@@ -3959,6 +3961,8 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
 
     if ((actorData.newPlayerIndex == 0) && (actorData.newCharacterIndex == playerData.activeCharacterIndex) &&
         (actorData.newEntityIndex == ENTITY::MAIN)) {
+
+        
         g_disableCameraRotation = false;
 
         if (activeConfig.weaponWheelEnabled) {

@@ -2500,3 +2500,27 @@ void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr) {
         }
     }
 }
+
+void StyleRankHudFadeoutController() {
+	// This function exists so that the fadeout still occurs if you're D Rank, even with "Disable Style Rank Fadeout" enabled.
+
+	 // IntroduceMainActorData
+	auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_12857 || !pool_12857[3]) {
+		return;
+	}
+
+
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
+
+
+    if (activeConfig.disableStyleRankHudFadeout) {
+        if (mainActorData.styleData.rank <= 0) {
+			ToggleStyleRankHudNoFadeout(false);
+		}
+		else {
+			ToggleStyleRankHudNoFadeout(true);
+		}
+	}
+
+}

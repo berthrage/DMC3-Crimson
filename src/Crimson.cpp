@@ -249,6 +249,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 
         InitDetours();
         ToggleOriginalHUDPositionings(activeConfig.originalHUDpositionings);
+        ToggleStyleRankHudNoFadeout(activeConfig.disableStyleRankHudFadeout);
 
         // Remove FMODGetCodecDescription Label
         SetMemory((appBaseAddr + 0x5505B5), 0, 23, MemoryFlags_VirtualProtectDestination);

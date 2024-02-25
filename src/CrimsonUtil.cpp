@@ -65,6 +65,7 @@ void UpdateCrimsonPlayerData() {
     }
 }
 
+
 int GetPlayerIndexFromAddr(uintptr_t playerPtr) {
     int playerIndexFound = 10; // if none is found then it'll return 10.
 

@@ -32,6 +32,9 @@ void HudHPSeparationDetour();
 // HudStyleBarPos
 void HudStyleBarPosDetour();
 
+// StyleRankHudNoFadeout
+void StyleRankHudNoFadeoutDetour();
+
 // ShootRemapDown
 void ShootRemapDownDetour();
 void ShootRemapHoldDetour();
@@ -43,3 +46,4 @@ void VergilNeutralTrickDetour();
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 void InitDetours();
 void ToggleOriginalHUDPositionings(bool enable);
+void ToggleStyleRankHudNoFadeout(bool enable);

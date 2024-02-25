@@ -3,3 +3,4 @@
 
 void UpdateCrimsonPlayerData();
 int GetPlayerIndexFromAddr(uintptr_t playerPtr);
+void StyleRankHudFadeoutController();

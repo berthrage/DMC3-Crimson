@@ -7340,6 +7340,11 @@ void InterfaceSection(size_t defaultFontSize) {
                 ToggleOriginalHUDPositionings(activeConfig.originalHUDpositionings);
             }
 
+            ImGui::TableNextColumn();
+
+            GUI_Checkbox2("Disable Style Rank Fadeout", activeConfig.disableStyleRankHudFadeout, queuedConfig.disableStyleRankHudFadeout);
+
+
 			ImGui::EndTable();
 		}
 	}
