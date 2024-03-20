@@ -1552,7 +1552,7 @@ void PauseWhenGUIOpen() {
   
 
     if (g_scene != SCENE::GAME || eventData.event != EVENT::MAIN) {
-        guiPause.timer    = 0.5f;
+        guiPause.timer    = 1.0f;
         guiPause.canPause = false;
         inGame = false;
     } else {
@@ -3529,12 +3529,15 @@ void BarsFunction(
 
     auto& run = activeData.run;
     if (!run) {
-        run = true;
+        
+        queuedPos.x = queuedData.lastX;
+        queuedPos.y = queuedData.lastY;
 
         ImGui::SetNextWindowPos(activePos);
 
         lastX = static_cast<uint32>(activeData.pos.x);
         lastY = static_cast<uint32>(activeData.pos.y);
+        run = true;
     }
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -3544,22 +3547,33 @@ void BarsFunction(
 
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
 
-    if (ImGui::Begin(label, &activeConfig.showAdditionalBars, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize)) {
-        activePos = queuedPos = ImGui::GetWindowPos();
-
+    if (ImGui::Begin(label, &activeConfig.showAdditionalBars, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize) && run) {
+  
+        if (guiPause.canPause) { // This prevents the resetting of bars' positions by delaying the queued pos update starting point. - Mia
+            queuedPos = ImGui::GetWindowPos(); // Queued pos updates according to its pos on screen.
+        }
+        activePos = queuedPos;
+        
+        ImGui::SetWindowPos(queuedPos);
+        
+        
         auto x = static_cast<uint32>(activeData.pos.x);
         auto y = static_cast<uint32>(activeData.pos.y);
+
 
         if ((lastX != x) || (lastY != y)) {
             lastX = x;
             lastY = y;
+
+            queuedData.lastX = x;
+            queuedData.lastY = y;
 
             GUI::save = true;
         }
         ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 1));
         ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.hitColor));
-        ImGui::ProgressBar(hitPoints, *reinterpret_cast<ImVec2*>(&activeData.size));
+        ImGui::ProgressBar(hitPoints, *reinterpret_cast<ImVec2*>(&activeData.size), "");
         ImGui::PopStyleColor(2);
 
         if (actorData.character != CHARACTER::VERGIL) {
@@ -3568,7 +3582,7 @@ void BarsFunction(
         else {
             ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColorVergil));
         }
-        ImGui::ProgressBar(magicPoints, *reinterpret_cast<ImVec2*>(&activeData.size));
+        ImGui::ProgressBar(magicPoints, *reinterpret_cast<ImVec2*>(&activeData.size), "");
         ImGui::PopStyleColor();
 
 
@@ -3587,6 +3601,8 @@ void BarsFunction(
         }
 
         ImGui::PopFont();
+
+        
      
     }
 
@@ -3604,32 +3620,32 @@ void BarsSettingsFunction(const char* label, Config::BarsData& activeData, Confi
     /*GUI_Checkbox2("Enable", activeData.enable, queuedData.enable);*/
     ImGui::Text("");
 
-     if (GUI_ResetButton()) {
-         CopyMemory(&queuedData, &defaultData, sizeof(queuedData));
-         CopyMemory(&activeData, &queuedData, sizeof(activeData));
- 
-         ImGui::SetWindowPos(label, activePos);
-     }
-    ImGui::Text("");
+//      if (GUI_ResetButton()) {
+//          CopyMemory(&queuedData, &defaultData, sizeof(queuedData));
+//          CopyMemory(&activeData, &queuedData, sizeof(activeData));
+//  
+//          ImGui::SetWindowPos(label, activePos);
+//      }
+//     ImGui::Text("");
 
     bool condition = !activeData.enable;
 
     GUI_PushDisable(condition);
 
-    GUI_Color2("Hit Color", activeData.hitColor, queuedData.hitColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaPreview);
-    GUI_Color2(
-        "Magic Color", activeData.magicColor, queuedData.magicColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaPreview);
-    ImGui::Text("");
+//     GUI_Color2("Hit Color", activeData.hitColor, queuedData.hitColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaPreview);
+//     GUI_Color2(
+//         "Magic Color", activeData.magicColor, queuedData.magicColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaPreview);
+//     ImGui::Text("");
 
     ImGui::PushItemWidth(150);
 
 //     GUI_InputDefault2("Width", activeData.size.x, queuedData.size.x, defaultData.size.x, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 //     GUI_InputDefault2("Height", activeData.size.y, queuedData.size.y, defaultData.size.y, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 // 
-    if (GUI_InputDefault2<float>("X", activePos.x, queuedPos.x, defaultPos.x, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+    if (GUI_Input2<float>("X", activePos.x, queuedPos.x, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
         ImGui::SetWindowPos(label, activePos);
     }
-    if (GUI_InputDefault2<float>("Y", activePos.y, queuedPos.y, defaultPos.y, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+    if (GUI_Input2<float>("Y", activePos.y, queuedPos.y, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
         ImGui::SetWindowPos(label, activePos);
     }
 
@@ -3695,8 +3711,8 @@ void Bars() {
                 hit = (activeActorData.hitPoints / activeActorData.maxHitPoints);
                 magic = (activeActorData.magicPoints / activeActorData.maxMagicPoints);
 
-                activeConfig.barsData[playerIndex].pos.x = queuedConfig.barsData[playerIndex].pos.x;
-                activeConfig.barsData[playerIndex].pos.y = queuedConfig.barsData[playerIndex].pos.y;
+//                 activeConfig.barsData[playerIndex].pos.x = queuedConfig.barsData[playerIndex].pos.x;
+//                 activeConfig.barsData[playerIndex].pos.y = queuedConfig.barsData[playerIndex].pos.y;
 
 
 
@@ -3739,7 +3755,7 @@ void BarsSection(size_t defaultFontSize) {
 
     GUI_Checkbox2("Show 1P Bar", activeConfig.show1Pbar, queuedConfig.show1Pbar);
 
-	/*BarsSettings();*/
+	BarsSettings();
 
     
 }

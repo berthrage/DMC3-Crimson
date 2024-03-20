@@ -480,12 +480,12 @@ struct Config {
     struct BarsData {
         bool enable         = true;
         bool run            = true;
-        vec2 size           = {200, 30};
+        vec2 size           = {200, 10};
         vec2 pos            = {8, 8};
         uint32 lastX        = 0;
         uint32 lastY        = 0;
-        float hitColor[4]   = {0, 1, 0, 1};
-        float magicColor[4] = {0.78f, 0.05f, 0.41f, 1.0f};
+        float hitColor[4] = { 0.29f , 0.99f, 0.44f, 1.0f };
+        float magicColor[4] = { 0.78f, 0.05f, 0.41f, 1.0f };
         float magicColorVergil[4] = { 0.06f, 0.74f, 0.81f, 1.0f };
     };
 
