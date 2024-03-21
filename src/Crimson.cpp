@@ -216,6 +216,10 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleForceVisibleHUD(false);
         ToggleForceVisibleHUD(activeConfig.forceVisibleHUD);
 
+        // Overriding default additional player bars positions so as not to spawn them together in a mush initially.
+        defaultConfig.barsData[1].pos = { 900, 60 };
+        defaultConfig.barsData[2].pos = { 1180, 60 };
+        defaultConfig.barsData[3].pos = { 1180, 140 };
 
         Scene::Toggle(false);
         Scene::Toggle(true);

@@ -3724,38 +3724,137 @@ void Bars() {
     }
 }
 
-void BarsSettings() {
-    for_all(playerIndex, PLAYER_COUNT) {
-        GUI_SectionEnd();
-        ImGui::Text("");
+void BarsSettings(size_t defaultFontSize) {
 
-        GUI_SectionStart(playerIndexNames[playerIndex]);
+    ImGui::Text("");
 
-       
+    const float itemWidth = defaultFontSize * 6.0f;
+	const float columnWidth = 0.5f * queuedConfig.globalScale;
+	const float rowWidth = 40.0f * queuedConfig.globalScale;
+    const float rowWidth2 = 0.5f * queuedConfig.globalScale;
+    
 
-        BarsSettingsFunction(barsNames[playerIndex], activeConfig.barsData[playerIndex], queuedConfig.barsData[playerIndex],
-            defaultConfig.barsData[playerIndex]);
-    }
+	auto& activePos1P = *reinterpret_cast<ImVec2*>(&activeConfig.barsData[0].pos);
+	auto& queuedPos1P = *reinterpret_cast<ImVec2*>(&queuedConfig.barsData[0].pos);
+
+	auto& activePos2P = *reinterpret_cast<ImVec2*>(&activeConfig.barsData[1].pos);
+	auto& queuedPos2P = *reinterpret_cast<ImVec2*>(&queuedConfig.barsData[1].pos);
+
+	auto& activePos3P = *reinterpret_cast<ImVec2*>(&activeConfig.barsData[2].pos);
+	auto& queuedPos3P = *reinterpret_cast<ImVec2*>(&queuedConfig.barsData[2].pos);
+
+	auto& activePos4P = *reinterpret_cast<ImVec2*>(&activeConfig.barsData[3].pos);
+	auto& queuedPos4P = *reinterpret_cast<ImVec2*>(&queuedConfig.barsData[3].pos);
+
+    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+
+	if (ImGui::BeginTable("BarsSettingsTable", 2)) {
+
+        ImGui::PushItemWidth(itemWidth);
+
+		ImGui::TableSetupColumn("c1", 0, columnWidth);
+		ImGui::TableNextRow(0, rowWidth);
+		ImGui::TableNextColumn();
+        
+		ImGui::Text("1P Position");
+        //ImGui::Text("");
+
+        ImGui::PushItemWidth(itemWidth);
+        if (GUI_Input2<float>("X", activePos1P.x, queuedPos1P.x, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+            ImGui::SetWindowPos(barsNames[0], activePos1P);
+        }
+        if (GUI_Input2<float>("Y", activePos1P.y, queuedPos1P.y, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+            ImGui::SetWindowPos(barsNames[0], activePos1P);
+        }
+        ImGui::PopItemWidth();
+			
+		ImGui::TableNextColumn();
+
+		ImGui::Text("2P Position");
+        //ImGui::Text("");
+
+        ImGui::PushItemWidth(itemWidth);
+		if (GUI_Input2<float>("X", activePos2P.x, queuedPos2P.x, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+			ImGui::SetWindowPos(barsNames[1], activePos2P);
+		}
+		if (GUI_Input2<float>("Y", activePos2P.y, queuedPos2P.y, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+			ImGui::SetWindowPos(barsNames[1], activePos2P);
+		}
+        ImGui::PopItemWidth();
+
+		ImGui::TableNextRow(0, rowWidth);
+        ImGui::TableNextRow(0, rowWidth2);
+        
+		ImGui::TableNextColumn();
+ 
+
+		ImGui::Text("3P Position");
+        //ImGui::Text("");
+
+		if (GUI_Input2<float>("X", activePos3P.x, queuedPos3P.x, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+			ImGui::SetWindowPos(barsNames[2], activePos3P);
+		}
+		if (GUI_Input2<float>("Y", activePos3P.y, queuedPos3P.y, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+			ImGui::SetWindowPos(barsNames[2], activePos3P);
+		}
+
+		ImGui::TableNextColumn();
+
+		ImGui::Text("4P Position");
+        //ImGui::Text("");
+
+		if (GUI_Input2<float>("X", activePos4P.x, queuedPos4P.x, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+			ImGui::SetWindowPos(barsNames[3], activePos4P);
+		}
+		if (GUI_Input2<float>("Y", activePos4P.y, queuedPos4P.y, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+			ImGui::SetWindowPos(barsNames[3], activePos4P);
+		}
+
+        
+
+		ImGui::EndTable();
+
+	}
+
+    ImGui::PopFont();
+
+
+//     for_all(playerIndex, PLAYER_COUNT) {
+//         ImGui::Text("");
+// 
+//         GUI_SectionStart(playerIndexNames[playerIndex]);
+// 
+//        
+// 
+//         BarsSettingsFunction(barsNames[playerIndex], activeConfig.barsData[playerIndex], queuedConfig.barsData[playerIndex],
+//             defaultConfig.barsData[playerIndex]);
+//     }
 }
 
 void BarsSection(size_t defaultFontSize) {
     
 	const float itemWidth = defaultFontSize * 8.0f;
-
-	ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
+    ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
-
     GUI_Checkbox2("ADDITIONAL PLAYER BARS", activeConfig.showAdditionalBars, queuedConfig.showAdditionalBars);
+
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
 	ImGui::PopFont();
     UI::SeparatorEx(defaultFontSize * 23.35f);
 	ImGui::Text("");
 
+
+    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+
     GUI_Checkbox2("Show 1P Bar", activeConfig.show1Pbar, queuedConfig.show1Pbar);
 
-	BarsSettings();
+    ImGui::PopFont();
+    ImGui::PopStyleColor();
+
+	BarsSettings(defaultFontSize);
 
     
 }
@@ -3770,7 +3869,7 @@ void BossRushSection(size_t defaultFontSize) {
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
 	const float rowWidth = 30.0f * queuedConfig.globalScale;
     const float rowWidth2 = 40.0f * queuedConfig.globalScale;
-    ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
+    ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
@@ -3784,7 +3883,7 @@ void BossRushSection(size_t defaultFontSize) {
 	ImGui::PushItemWidth(itemWidth);
 
     ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
 	ImGui::Text("");
 
@@ -7244,7 +7343,7 @@ void InterfaceSection(size_t defaultFontSize) {
     
 	const float itemWidth = defaultFontSize * 8.0f;
 
-	ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
+    ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
@@ -7255,6 +7354,8 @@ void InterfaceSection(size_t defaultFontSize) {
 
 	UI::SeparatorEx(defaultFontSize * 23.35f);
 
+    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::Text("");
@@ -7296,6 +7397,9 @@ void InterfaceSection(size_t defaultFontSize) {
 		}
 	}
 
+    ImGui::PopFont();
+    ImGui::PopStyleColor();
+
     ImGui::Text("");
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
@@ -7306,6 +7410,9 @@ void InterfaceSection(size_t defaultFontSize) {
 	ImGui::PopFont();
 
 	UI::SeparatorEx(defaultFontSize * 23.35f);
+
+    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
     ImGui::Text("");
 
@@ -7365,9 +7472,13 @@ void InterfaceSection(size_t defaultFontSize) {
 		}
 	}
 
-	
-
+    ImGui::PopFont();
+    ImGui::PopStyleColor();
+    
     ImGui::PopItemWidth();
+
+	ImGui::Text("");
+	BarsSection(defaultFontSize);
 	
 // 
 // 	GUI_SectionEnd();
@@ -9147,8 +9258,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				{
 					{
 						InterfaceSection(context.DefaultFontSize);
-                        ImGui::Text("");
-                        BarsSection(context.DefaultFontSize);
 					}
 				}
 				ImGui::EndChild();
