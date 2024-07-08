@@ -3958,130 +3958,242 @@ const char* cameraAutoAdjustNames[] = {
 };
 
 
-void CameraSection() {
-    if (ImGui::CollapsingHeader("Camera")) {
-        ImGui::Text("");
+void CameraSection(size_t defaultFontSize) {
+   
+	const float itemWidth = defaultFontSize * 8.0f;
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.cameraInvertX, &defaultConfig.cameraInvertX, sizeof(queuedConfig.cameraInvertX));
-            CopyMemory(&activeConfig.cameraInvertX, &queuedConfig.cameraInvertX, sizeof(activeConfig.cameraInvertX));
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-            CopyMemory(&queuedConfig.cameraAutoAdjust, &defaultConfig.cameraAutoAdjust, sizeof(queuedConfig.cameraAutoAdjust));
-            CopyMemory(&activeConfig.cameraAutoAdjust, &queuedConfig.cameraAutoAdjust, sizeof(activeConfig.cameraAutoAdjust));
-
-            CopyMemory(&queuedConfig.disableCenterCamera, &defaultConfig.disableCenterCamera, sizeof(queuedConfig.disableCenterCamera));
-            CopyMemory(&activeConfig.disableCenterCamera, &queuedConfig.disableCenterCamera, sizeof(activeConfig.disableCenterCamera));
-
-            CopyMemory(&queuedConfig.disableBossCamera, &defaultConfig.disableBossCamera, sizeof(queuedConfig.disableBossCamera));
-            CopyMemory(&activeConfig.disableBossCamera, &queuedConfig.disableBossCamera, sizeof(activeConfig.disableBossCamera));
-
-            CopyMemory(&queuedConfig.fovMultiplier, &defaultConfig.fovMultiplier, sizeof(queuedConfig.fovMultiplier));
-            CopyMemory(&activeConfig.fovMultiplier, &queuedConfig.fovMultiplier, sizeof(activeConfig.fovMultiplier));
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
 
-            Camera::ToggleInvertX(activeConfig.cameraInvertX);
-            Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
-        }
-        ImGui::Text("");
+	ImGui::Text("CAMERA OPTIONS");
 
-        if (GUI_Checkbox2("Invert X", activeConfig.cameraInvertX, queuedConfig.cameraInvertX)) {
-            Camera::ToggleInvertX(activeConfig.cameraInvertX);
-        }
+	ImGui::PopFont();
 
-        GUI_Checkbox2("Locked Off Camera", activeConfig.cameraLockOff, queuedConfig.cameraLockOff);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Enables you to freely tilt the camera with the right stick in Third Person Camera Sections.");
+	UI::SeparatorEx(defaultFontSize * 23.35f);
 
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
-        ImGui::Text("");
+	ImGui::PushItemWidth(itemWidth);
+	ImGui::Text("");
 
-        UI::Combo2("Camera Sensitivity", cameraSensitivityNames, activeConfig.cameraSensitivity, queuedConfig.cameraSensitivity);
+    float smallerComboMult = 0.6f;
 
-        ImGui::PushItemWidth(150.0f);
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-        UI::Combo2("Camera Follow Up Speed", cameraFollowUpSpeedNames, activeConfig.cameraFollowUpSpeed, queuedConfig.cameraFollowUpSpeed);
+		if (ImGui::BeginTable("CameraOptionsTable", 2)) {
 
-        ImGui::PushItemWidth(150.0f);
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-        UI::Combo2("Camera Distance", cameraDistanceNames, activeConfig.cameraDistance, queuedConfig.cameraDistance);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Camera Distance relative to the player (when not in lock-on) .\n"
-                             "\n"
-                             "Dynamic gets adjusted based on if airborne.");
+			ImGui::PushItemWidth(itemWidth);
+			GUI_InputDefault2("FOV Multiplier", activeConfig.fovMultiplier, queuedConfig.fovMultiplier, defaultConfig.fovMultiplier, 0.1f, "%g",
+				ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
 
-        UI::Combo2(
-            "Camera Lock On Distance", cameraLockOnDistanceNames, activeConfig.cameraLockOnDistance, queuedConfig.cameraLockOnDistance);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Camera Distance relative to the player when in lock-on.\n"
-                             "\n"
-                             "Dynamic gets adjusted based on if airborne.");
+			ImGui::TableNextColumn();
 
-        ImGui::PushItemWidth(150.0f);
-
-        UI::Combo2("Camera Tilt", cameraTiltNames, activeConfig.cameraTilt, queuedConfig.cameraTilt);
-
-        ImGui::PushItemWidth(150.0f);
-
-
-        UI::Combo2<uint8>("Auto Adjust", cameraAutoAdjustNames, activeConfig.cameraAutoAdjust, queuedConfig.cameraAutoAdjust);
-        ImGui::PopItemWidth();
-        ImGui::Text("");
-
-        GUI_Checkbox2("Disable Center Camera", activeConfig.disableCenterCamera, queuedConfig.disableCenterCamera);
-
-        if (GUI_Checkbox2("Disable Boss Camera", activeConfig.disableBossCamera, queuedConfig.disableBossCamera)) {
-            Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
-        }
-        ImGui::Text("");
-
-        GUI_InputDefault2("FOV Multiplier", activeConfig.fovMultiplier, queuedConfig.fovMultiplier, defaultConfig.fovMultiplier, 0.1f, "%g",
-            ImGuiInputTextFlags_EnterReturnsTrue);
-
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-
-        GUI_SectionStart("Live");
-
-        [&]() {
-            if (g_scene != SCENE::GAME) {
-                return;
-            }
-
-            auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
-            if (!pool_4449 || !pool_4449[147]) {
-                return;
-            }
-            auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
-
-
-            ImGui::PushItemWidth(150.0f);
-
-            GUI_Input("FOV", cameraData.fov, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-            ImGui::Text("");
-
-
-            old_for_all(uint8, index, countof(cameraData.data)) {
-                ImGui::Text(dataNames[index]);
-                GUI_Input("X", cameraData.data[index].x, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-                GUI_Input("Y", cameraData.data[index].y, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-                GUI_Input("Z", cameraData.data[index].z, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-                GUI_Input("A", cameraData.data[index].a, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-                ImGui::Text("");
-            }
-
-
-            GUI_Input("Height", cameraData.height, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-            GUI_Input("Tilt", cameraData.tilt, 0.05f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-            GUI_Input("Distance", cameraData.distance, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-            GUI_Input("Distance Lock-On", cameraData.distanceLockOn, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-
+            ImGui::PushItemWidth(itemWidth * smallerComboMult);
+            UI::Combo2("Turning Sensitivity", cameraSensitivityNames, activeConfig.cameraSensitivity, queuedConfig.cameraSensitivity);
             ImGui::PopItemWidth();
-        }();
 
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+            ImGui::PushItemWidth(itemWidth * smallerComboMult);
+            UI::Combo2("Follow-Up Speed", cameraFollowUpSpeedNames, activeConfig.cameraFollowUpSpeed, queuedConfig.cameraFollowUpSpeed);
+            ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth  * smallerComboMult);
+			UI::Combo2("Distance", cameraDistanceNames, activeConfig.cameraDistance, queuedConfig.cameraDistance);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Camera Distance relative to the player outside Lock-On.\n"
+				"\n"
+				"Dynamic Option adjusts based on whether player is airborne.");
+			ImGui::PopItemWidth();
+
+            ImGui::TableNextRow(0, rowWidth);
+            ImGui::TableNextColumn();
+
+            ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			UI::Combo2(
+				"Lock-On Distance", cameraLockOnDistanceNames, activeConfig.cameraLockOnDistance, queuedConfig.cameraLockOnDistance);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Camera Distance relative to the player in Lock-On.\n"
+				"\n"
+				"Dynamic Option adjusts based on whether player is airborne.");
+            ImGui::PopItemWidth();
+
+            ImGui::TableNextColumn();
+
+            ImGui::PushItemWidth(itemWidth);
+            UI::Combo2("Vertical Tilt", cameraTiltNames, activeConfig.cameraTilt, queuedConfig.cameraTilt);
+            ImGui::PopItemWidth();
+
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+            ImGui::PushItemWidth(itemWidth * smallerComboMult);
+            UI::Combo2<uint8>("Auto-Adjust", cameraAutoAdjustNames, activeConfig.cameraAutoAdjust, queuedConfig.cameraAutoAdjust);
+            ImGui::PopItemWidth();
+
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+            
+			GUI_Checkbox2("Locked-Off Camera", activeConfig.cameraLockOff, queuedConfig.cameraLockOff);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Allows you to freely rotate the camera using the right stick in Third-Person View sections.");
+         
+            ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Invert X", activeConfig.cameraInvertX, queuedConfig.cameraInvertX)) {
+				Camera::ToggleInvertX(activeConfig.cameraInvertX);
+			}
+
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+            GUI_Checkbox2("Disable Center Camera", activeConfig.disableCenterCamera, queuedConfig.disableCenterCamera);
+
+            ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Disable Boss Camera", activeConfig.disableBossCamera, queuedConfig.disableBossCamera)) {
+				Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
+			}
+
+            
+
+
+			ImGui::EndTable();
+		}
+
+// 	if (GUI_ResetButton()) {
+// 		CopyMemory(&queuedConfig.cameraInvertX, &defaultConfig.cameraInvertX, sizeof(queuedConfig.cameraInvertX));
+// 		CopyMemory(&activeConfig.cameraInvertX, &queuedConfig.cameraInvertX, sizeof(activeConfig.cameraInvertX));
+// 
+// 		CopyMemory(&queuedConfig.cameraAutoAdjust, &defaultConfig.cameraAutoAdjust, sizeof(queuedConfig.cameraAutoAdjust));
+// 		CopyMemory(&activeConfig.cameraAutoAdjust, &queuedConfig.cameraAutoAdjust, sizeof(activeConfig.cameraAutoAdjust));
+// 
+// 		CopyMemory(&queuedConfig.disableCenterCamera, &defaultConfig.disableCenterCamera, sizeof(queuedConfig.disableCenterCamera));
+// 		CopyMemory(&activeConfig.disableCenterCamera, &queuedConfig.disableCenterCamera, sizeof(activeConfig.disableCenterCamera));
+// 
+// 		CopyMemory(&queuedConfig.disableBossCamera, &defaultConfig.disableBossCamera, sizeof(queuedConfig.disableBossCamera));
+// 		CopyMemory(&activeConfig.disableBossCamera, &queuedConfig.disableBossCamera, sizeof(activeConfig.disableBossCamera));
+// 
+// 		CopyMemory(&queuedConfig.fovMultiplier, &defaultConfig.fovMultiplier, sizeof(queuedConfig.fovMultiplier));
+// 		CopyMemory(&activeConfig.fovMultiplier, &queuedConfig.fovMultiplier, sizeof(activeConfig.fovMultiplier));
+// 
+// 
+// 		Camera::ToggleInvertX(activeConfig.cameraInvertX);
+// 		Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
+	}
+	
+
+
+	ImGui::Text("");
+    ImGui::PopFont();
+
+
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+
+
+	ImGui::Text("LIVE READINGS");
+
+	ImGui::PopFont();
+
+	UI::SeparatorEx(defaultFontSize * 23.35f);
+
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	
+
+	[&]() {
+		if (g_scene != SCENE::GAME) {
+			return;
+		}
+
+		auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+		if (!pool_4449 || !pool_4449[147]) {
+			return;
+		}
+		auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+
+
+		ImGui::PushItemWidth(itemWidth * 0.8f);
+
+        {
+            const float columnWidth = 0.5f * queuedConfig.globalScale;
+            const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+            if (ImGui::BeginTable("LiveCameraReadingsTable", 2)) {
+
+                ImGui::TableSetupColumn("b1", 0, columnWidth);
+                ImGui::TableNextRow(0, rowWidth);
+                ImGui::TableNextColumn();
+                ImGui::PushItemWidth(itemWidth * 0.8f);
+				GUI_Input("FOV", cameraData.fov, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+                ImGui::PopItemWidth();
+				ImGui::Text("");
+
+				ImGui::TableNextRow(0, rowWidth);
+                ImGui::TableNextColumn();
+
+                for (int index = 0; index < countof(cameraData.data); index++) {
+                    if (index > 0) {
+                        ImGui::TableNextColumn();
+                    }
+                    
+                    ImGui::PushItemWidth(itemWidth * 0.8f);
+                    ImGui::Text(dataNames[index]);
+                    GUI_Input("X", cameraData.data[index].x, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+                    GUI_Input("Y", cameraData.data[index].y, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+                    GUI_Input("Z", cameraData.data[index].z, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+                    GUI_Input("A", cameraData.data[index].a, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+                    ImGui::Text("");
+                    ImGui::PopItemWidth();
+                }
+
+                ImGui::TableNextRow(0, rowWidth);
+                ImGui::TableNextColumn();
+
+
+				GUI_Input("Height", cameraData.height, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+
+                ImGui::TableNextColumn();
+
+
+				GUI_Input("Tilt", cameraData.tilt, 0.05f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+
+
+				ImGui::TableNextRow(0, rowWidth);
+				ImGui::TableNextColumn();
+
+				GUI_Input("Distance", cameraData.distance, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+
+                ImGui::TableNextColumn();
+
+
+				GUI_Input("Distance Lock-On", cameraData.distanceLockOn, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+
+
+
+                ImGui::EndTable();
+            }
+        }
+
+		ImGui::PopItemWidth();
+	}();
+        ImGui::PopStyleColor();
+        ImGui::PopFont();
 
         ImGui::Text("");
-    }
+    
 }
 
 #pragma endregion
@@ -9206,7 +9318,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					{
-                        CameraSection();
+                        CameraSection(context.DefaultFontSize);
 					}
 				}
 				ImGui::EndChild();
