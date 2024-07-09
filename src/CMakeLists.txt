@@ -8,6 +8,7 @@ set(MASM_SRC
     masm/DisableDriveHoldAsm.asm
     masm/SetAirTauntAsm.asm
     masm/VergilTricksAsm.asm
+    masm/StyleRankHudNoFadeout.asm
 )
 
 set (ASM_LIBS)
