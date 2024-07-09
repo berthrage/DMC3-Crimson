@@ -10,6 +10,7 @@
 #include "../Core/Macros.h"
 
 #include "../Core/DebugSwitch.hpp"
+#include "../StyleSwitchFX.hpp"
 
 void UpdateMousePositionMultiplier() {
     using namespace CoreImGui::DI8;
@@ -705,6 +706,7 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
 
     CreateRenderTarget<API::D3D11>();
 
+    InitStyleSwitchFxTexture(::D3D11::device);
     debug_draw_init(
         (void*)::D3D11::device, (void*)::D3D11::deviceContext, pSwapChainDesc->BufferDesc.Width, pSwapChainDesc->BufferDesc.Height);
 

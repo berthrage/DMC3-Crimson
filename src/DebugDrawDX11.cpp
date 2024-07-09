@@ -1037,6 +1037,15 @@ struct DebugDrawContext {
 
 dd::DebugDrawContext* g_dd_ctx{nullptr};
 
+SimpleVec3 debug_draw_world_to_screen(const float worldPos[], const float size) {
+    SimpleVec3 retval{};
+    dd::worldToScreen(g_dd_ctx->ddContext, 
+        worldPos, toFloatPtr(g_dd_ctx->camera->vpMatrix), 
+        (float*)&retval, 0, 0, (int)g_dd_ctx->camera->windowDims[0],
+        (int)g_dd_ctx->camera->windowDims[1], size);
+    return retval;
+}
+
 int debug_draw_init(void* device, void* deviceCtx, float width, float height) {
     g_dd_ctx = new dd::DebugDrawContext((ID3D11Device*)device, (ID3D11DeviceContext*)deviceCtx, width, height);
     return 0;

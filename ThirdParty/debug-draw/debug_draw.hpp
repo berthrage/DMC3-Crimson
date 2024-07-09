@@ -512,6 +512,18 @@ void screenText(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,)
                 float scaling = 1.0f,
                 int durationMillis = 0);
 
+
+// Project World space to Screen space
+void worldToScreen(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,)
+    ddVec3_In pos,
+    ddMat4x4_In vpMatrix,
+    ddVec3_Out outScreenPos,
+    int sx, int sy,
+    int sw, int sh,
+    float scaling = 1.0f,
+    int durationMillis = 0);
+
+
 // Add a 3D text label centered at the given world position that
 // gets projected to screen-space. The label always faces the viewer.
 // sx/sy, sw/sh are the viewport coordinates/size, in pixels.
@@ -5862,6 +5874,47 @@ void screenText(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,) const char * const 
     dstr.text             = str;
     dstr.centered         = false;
     vecCopy(dstr.color, color);
+}
+
+void worldToScreen(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx, ) ddVec3_In pos, ddMat4x4_In vpMatrix, ddVec3_Out outScreenPos,
+    const int sx, const int sy, const int sw, const int sh, const float scaling, const int durationMillis)
+{
+
+    if (!isInitialized(DD_EXPLICIT_CONTEXT_ONLY(ctx)))
+    {
+        return;
+    }
+
+    float tempPoint[4];
+    matTransformPointXYZW(tempPoint, pos, vpMatrix);
+
+    // Bail if W ended up as zero.
+    if (floatAbs(tempPoint[W]) < FloatEpsilon)
+    {
+        return;
+    }
+
+    // Bail if point is behind camera.
+    if (tempPoint[Z] < -tempPoint[W] /*|| tempPoint[Z] > tempPoint[W]*/)
+    {
+        return;
+    }
+    
+    // Perspective divide (we only care about the 2D part now):
+    tempPoint[X] /= tempPoint[W];
+    tempPoint[Y] /= tempPoint[W];
+
+    // Map to window coordinates:
+    float scrX = ((tempPoint[X] * 0.5f) + 0.5f) * sw + sx;
+    float scrY = ((tempPoint[Y] * 0.5f) + 0.5f) * sh + sy;
+
+    // Need to invert the direction because on OGL the screen origin is the bottom-left corner.
+    // NOTE: This is not renderer agnostic, I think... Should add a #define or something!
+    scrY = static_cast<float>(sh) - scrY;
+
+    outScreenPos[X] = scrX;
+    outScreenPos[Y] = scrY;
+    outScreenPos[Z] = tempPoint[W];
 }
 
 void projectedText(DD_EXPLICIT_CONTEXT_ONLY(ContextHandle ctx,) const char * const str, ddVec3_In pos, ddVec3_In color,

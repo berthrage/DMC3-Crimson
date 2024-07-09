@@ -16,6 +16,7 @@
 #include "../../ThirdParty/ImGui/Backend/imgui_impl_win32.h"
 #include "../../ThirdParty/ImGui/Backend/imgui_impl_dx10.h"
 #include "../../ThirdParty/ImGui/Backend/imgui_impl_dx11.h"
+#include "../StyleSwitchFX.hpp"
 
 namespace API {
 enum {
@@ -214,6 +215,8 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
     ImGui::NewFrame();
 
     GUI_Render(pSwapChain);
+
+    DrawStyleSwitchFxTexture();
 
     ImGui::Render();
 

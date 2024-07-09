@@ -35,6 +35,7 @@
 #include "SoundRelocations.hpp"
 #include "Speed.hpp"
 #include "Vars.hpp"
+#include "StyleSwitchFX.hpp"
 
 #include "Core/Macros.h"
 
@@ -2453,28 +2454,36 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
     // const float yellow[4] = { 1.0f, 1.0f, 0.0f, 0.1f }; // rgba alpha does not work/exist for debugDraw yet
 
     if (crimsonPlayer[playerIndex].styleSwitchText.trickTime > 0) {
-        debug_draw_projected_text("TRICK", trickWorldPos, dd::colors::Yellow, crimsonPlayer[playerIndex].styleSwitchText.animSize);
+        SetStyleSwitchFxWork(SsFxType::TRICK, trickWorldPos, dd::colors::Yellow, 1.0f, {}, crimsonPlayer[playerIndex].styleSwitchText.trickTime, crimsonPlayer[playerIndex].styleSwitchText.animSize);
     }
 
     if (crimsonPlayer[playerIndex].styleSwitchText.swordTime > 0) {
-        debug_draw_projected_text("        SWORD", swordWorldPos, dd::colors::Red, crimsonPlayer[playerIndex].styleSwitchText.animSize);
+        const float offset[2] = { 200.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize, 0.0f };
+        SetStyleSwitchFxWork(SsFxType::SWORD, swordWorldPos, dd::colors::Red, 1.0f, offset, crimsonPlayer[playerIndex].styleSwitchText.swordTime, crimsonPlayer[playerIndex].styleSwitchText.animSize);
+        //debug_draw_projected_text("        SWORD", swordWorldPos, dd::colors::Red, crimsonPlayer[playerIndex].styleSwitchText.animSize);
     }
 
     if (crimsonPlayer[playerIndex].styleSwitchText.gunTime > 0) {
-        debug_draw_projected_text("GUN        ", gunWorldPos, dd::colors::DodgerBlue, crimsonPlayer[playerIndex].styleSwitchText.animSize);
+        const float offset[2] = { -200.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize, 0.0f };
+        SetStyleSwitchFxWork(SsFxType::GUN, gunWorldPos, dd::colors::DodgerBlue, 1.0f, offset, crimsonPlayer[playerIndex].styleSwitchText.gunTime, crimsonPlayer[playerIndex].styleSwitchText.animSize);
+        //debug_draw_projected_text("GUN        ", gunWorldPos, dd::colors::DodgerBlue, crimsonPlayer[playerIndex].styleSwitchText.animSize);
     }
 
     if (crimsonPlayer[playerIndex].styleSwitchText.royalTime > 0) {
-        debug_draw_projected_text("ROYAL", royalWorldPos, dd::colors::LightGreen, crimsonPlayer[playerIndex].styleSwitchText.animSize);
+        const float offset[2] = { 0.0f, -200.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize };
+        SetStyleSwitchFxWork(SsFxType::ROYAL, royalWorldPos, dd::colors::LightGreen, 1.0f, {}, crimsonPlayer[playerIndex].styleSwitchText.royalTime, crimsonPlayer[playerIndex].styleSwitchText.animSize);
+        //debug_draw_projected_text("ROYAL", royalWorldPos, dd::colors::LightGreen, crimsonPlayer[playerIndex].styleSwitchText.animSize);
     }
 
     if (crimsonPlayer[playerIndex].styleSwitchText.quickTime > 0) {
-        debug_draw_projected_text(
-            "          QUICK", quickWorldPos, dd::colors::DeepPink, crimsonPlayer[playerIndex].styleSwitchText.animSize);
+        SetStyleSwitchFxWork(SsFxType::QUICK, quickWorldPos, dd::colors::DeepPink, 1.0f, {}, crimsonPlayer[playerIndex].styleSwitchText.quickTime, crimsonPlayer[playerIndex].styleSwitchText.animSize);
+        //debug_draw_projected_text(
+        //    "          QUICK", quickWorldPos, dd::colors::DeepPink, crimsonPlayer[playerIndex].styleSwitchText.animSize);
     }
 
     if (crimsonPlayer[playerIndex].styleSwitchText.doppTime > 0) {
-        debug_draw_projected_text("DOPP          ", doppWorldPos, dd::colors::Orange, crimsonPlayer[playerIndex].styleSwitchText.animSize);
+        SetStyleSwitchFxWork(SsFxType::DOPPEL, doppWorldPos, dd::colors::Orange, 1.0f, {}, crimsonPlayer[playerIndex].styleSwitchText.doppTime, crimsonPlayer[playerIndex].styleSwitchText.animSize);
+        //debug_draw_projected_text("DOPP          ", doppWorldPos, dd::colors::Orange, crimsonPlayer[playerIndex].styleSwitchText.animSize);
     }
 }
 

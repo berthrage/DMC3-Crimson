@@ -150,6 +150,8 @@ file(GLOB MAIN_SRC
     WebAPICalls.hpp
     Window.cpp
     Window.hpp
+    StyleSwitchFX.cpp
+    StyleSwitchFX.hpp
 )
 
 file(GLOB CORE_SRC 
