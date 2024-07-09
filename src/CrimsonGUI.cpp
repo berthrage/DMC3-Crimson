@@ -3645,6 +3645,7 @@ void BarsSettingsFunction(const char* label, Config::BarsData& activeData, Confi
     if (GUI_Input2<float>("X", activePos.x, queuedPos.x, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
         ImGui::SetWindowPos(label, activePos);
     }
+    ImGui::SameLine();
     if (GUI_Input2<float>("Y", activePos.y, queuedPos.y, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
         ImGui::SetWindowPos(label, activePos);
     }
@@ -3754,15 +3755,42 @@ void BarsSettings(size_t defaultFontSize) {
 
 		ImGui::TableSetupColumn("c1", 0, columnWidth);
 		ImGui::TableNextRow(0, rowWidth);
-		ImGui::TableNextColumn();
+		//ImGui::TableNextColumn();
+
+        for (int i = 0; i < 4; i++) {
+			if (i == 2) {
+				ImGui::TableNextRow(0, rowWidth);
+				ImGui::TableNextRow(0, rowWidth2);
+			}
+            ImGui::TableNextColumn();
+
+            
+            std::string title = std::to_string(i + 1) + "P Position";
+            ImGui::Text(title.c_str());
+
+            auto& activePos = *reinterpret_cast<ImVec2*>(&activeConfig.barsData[i].pos);
+
+			ImGui::PushItemWidth(itemWidth * 0.85f);
+			if (GUI_Input2<float>("X", activeConfig.barsData[i].pos.x, queuedConfig.barsData[i].pos.x, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+                
+				ImGui::SetWindowPos(barsNames[i], activePos);
+			}
+			ImGui::SameLine();
+			if (GUI_Input2<float>("Y", activeConfig.barsData[i].pos.y, queuedConfig.barsData[i].pos.y, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+				ImGui::SetWindowPos(barsNames[i], activePos);
+			}
+			ImGui::PopItemWidth();
+            
+        }
         
-		ImGui::Text("1P Position");
+		/*ImGui::Text("1P Position");
         //ImGui::Text("");
 
         ImGui::PushItemWidth(itemWidth);
         if (GUI_Input2<float>("X", activePos1P.x, queuedPos1P.x, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
             ImGui::SetWindowPos(barsNames[0], activePos1P);
         }
+        ImGui::SameLine();
         if (GUI_Input2<float>("Y", activePos1P.y, queuedPos1P.y, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
             ImGui::SetWindowPos(barsNames[0], activePos1P);
         }
@@ -3777,6 +3805,7 @@ void BarsSettings(size_t defaultFontSize) {
 		if (GUI_Input2<float>("X", activePos2P.x, queuedPos2P.x, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
 			ImGui::SetWindowPos(barsNames[1], activePos2P);
 		}
+        ImGui::SameLine();
 		if (GUI_Input2<float>("Y", activePos2P.y, queuedPos2P.y, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
 			ImGui::SetWindowPos(barsNames[1], activePos2P);
 		}
@@ -3794,6 +3823,7 @@ void BarsSettings(size_t defaultFontSize) {
 		if (GUI_Input2<float>("X", activePos3P.x, queuedPos3P.x, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
 			ImGui::SetWindowPos(barsNames[2], activePos3P);
 		}
+        ImGui::SameLine();
 		if (GUI_Input2<float>("Y", activePos3P.y, queuedPos3P.y, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
 			ImGui::SetWindowPos(barsNames[2], activePos3P);
 		}
@@ -3806,10 +3836,11 @@ void BarsSettings(size_t defaultFontSize) {
 		if (GUI_Input2<float>("X", activePos4P.x, queuedPos4P.x, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
 			ImGui::SetWindowPos(barsNames[3], activePos4P);
 		}
+        ImGui::SameLine();
 		if (GUI_Input2<float>("Y", activePos4P.y, queuedPos4P.y, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
 			ImGui::SetWindowPos(barsNames[3], activePos4P);
 		}
-
+        */
         
 
 		ImGui::EndTable();
@@ -4248,83 +4279,6 @@ void Color_UpdateValues() {
     }
 }
 
-void Cosmetics() {
-    if (ImGui::CollapsingHeader("Cosmetics")) {
-        ImGui::Text("");
-
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.Color, &defaultConfig.Color, sizeof(queuedConfig.Color));
-            CopyMemory(&activeConfig.Color, &queuedConfig.Color, sizeof(activeConfig.Color));
-
-
-            Color_UpdateValues();
-
-            CopyMemory(&queuedConfig.hideBeowulfDante, &defaultConfig.hideBeowulfDante, sizeof(queuedConfig.hideBeowulfDante));
-            CopyMemory(&activeConfig.hideBeowulfDante, &queuedConfig.hideBeowulfDante, sizeof(activeConfig.hideBeowulfDante));
-
-            CopyMemory(&queuedConfig.hideBeowulfVergil, &defaultConfig.hideBeowulfVergil, sizeof(queuedConfig.hideBeowulfVergil));
-            CopyMemory(&activeConfig.hideBeowulfVergil, &queuedConfig.hideBeowulfVergil, sizeof(activeConfig.hideBeowulfVergil));
-
-
-            CopyMemory(&queuedConfig.noDevilForm, &defaultConfig.noDevilForm, sizeof(queuedConfig.noDevilForm));
-            CopyMemory(&activeConfig.noDevilForm, &queuedConfig.noDevilForm, sizeof(activeConfig.noDevilForm));
-
-            ToggleNoDevilForm(activeConfig.noDevilForm);
-        }
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-        ImGui::Text("Color");
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.");
-        ImGui::Text("");
-
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.Color, &defaultConfig.Color, sizeof(queuedConfig.Color));
-            CopyMemory(&activeConfig.Color, &queuedConfig.Color, sizeof(activeConfig.Color));
-
-
-            Color_UpdateValues();
-        }
-        ImGui::Text("");
-
-        GUI_ColorPalette2("Air Hike", activeConfig.Color.airHike, queuedConfig.Color.airHike, Color.airHike);
-        ImGui::Text("");
-
-        ImGui::Text("Trickster");
-        GUI_Color2("Sky Star", activeConfig.Color.Trickster.skyStar, queuedConfig.Color.Trickster.skyStar, Color.Trickster.skyStar);
-        ImGui::Text("");
-
-        ImGui::Text("Royalguard");
-        GUI_Color2("Ultimate", activeConfig.Color.Royalguard.ultimate, queuedConfig.Color.Royalguard.ultimate, Color.Royalguard.ultimate);
-        ImGui::Text("");
-
-        ImGui::Text("Doppelganger");
-        GUI_Color2("Clone", activeConfig.Color.Doppelganger.clone, queuedConfig.Color.Doppelganger.clone, Color.Doppelganger.clone);
-        ImGui::Text("");
-
-        ImGui::Text("Aura");
-        GUI_ColorPalette2("Dante", activeConfig.Color.Aura.dante, queuedConfig.Color.Aura.dante, Color.Aura.dante);
-        GUI_Color2("Sparda", activeConfig.Color.Aura.sparda, queuedConfig.Color.Aura.sparda, Color.Aura.sparda);
-        GUI_ColorPalette2("Vergil", activeConfig.Color.Aura.vergil, queuedConfig.Color.Aura.vergil, Color.Aura.vergil);
-        GUI_Color2("Nero Angelo", activeConfig.Color.Aura.neroAngelo, queuedConfig.Color.Aura.neroAngelo, Color.Aura.neroAngelo);
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-        ImGui::Text("Other");
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.");
-        ImGui::Text("");
-
-        GUI_Checkbox2("Hide Beowulf Dante", activeConfig.hideBeowulfDante, queuedConfig.hideBeowulfDante);
-        GUI_Checkbox2("Hide Beowulf Vergil", activeConfig.hideBeowulfVergil, queuedConfig.hideBeowulfVergil);
-        if (GUI_Checkbox2("No Devil Form", activeConfig.noDevilForm, queuedConfig.noDevilForm)) {
-            ToggleNoDevilForm(activeConfig.noDevilForm);
-        }
-
-        ImGui::Text("");
-    }
-}
 
 #pragma endregion
 
@@ -7972,32 +7926,7 @@ void System() {
         ImGui::Text("");
 
 
-        GUI_SectionStart("Sound");
-
-        ImGui::Text("Channel Volumes");
-        ImGui::Text("");
-
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.channelVolumes, &defaultConfig.channelVolumes, sizeof(queuedConfig.channelVolumes));
-            CopyMemory(&activeConfig.channelVolumes, &queuedConfig.channelVolumes, sizeof(activeConfig.channelVolumes));
-
-
-            UpdateVolumes();
-        }
-        ImGui::Text("");
-
-        ImGui::PushItemWidth(150);
-
-        old_for_all(uint8, channelIndex, CHANNEL::MAX) {
-            if (GUI_InputDefault2(Sound_channelNames[channelIndex], activeConfig.channelVolumes[channelIndex],
-                    queuedConfig.channelVolumes[channelIndex], defaultConfig.channelVolumes[channelIndex], 0.1f, "%g",
-                    ImGuiInputTextFlags_EnterReturnsTrue)) {
-                SetVolume(channelIndex, activeConfig.channelVolumes[channelIndex]);
-            }
-        }
-
-        ImGui::PopItemWidth();
-        ImGui::Text("");
+        
 
         GUI_Checkbox2("Ignore Enemy Data", activeConfig.soundIgnoreEnemyData, queuedConfig.soundIgnoreEnemyData);
         ImGui::SameLine();
@@ -8175,86 +8104,412 @@ void TrainingSection() {
 
 #pragma region Training
 
-void SFX() {
+void SoundVisualSection(size_t defaultFontSize) {
     const char* changeGunNewNames[] = {"DMC3 Default", "New"};
-
     const char* changeDevilArmNewNames[] = {"DMC3 Default", "New"};
 
-    if (ImGui::CollapsingHeader("SFX")) {
-        ImGui::Text("");
+	const float itemWidth = defaultFontSize * 8.0f;
+    float smallerComboMult = 0.7f;
+
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
+
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
 
-        ImGui::Text("");
+	ImGui::Text("CRIMSON SFX OPTIONS");
 
-        ImGui::Text("Weapon Wheel");
+	ImGui::PopFont();
 
-        ImGui::PushItemWidth(150.0f);
-        UI::Combo2<uint8>("Change Gun", changeGunNewNames, activeConfig.SFX.changeGunNew, queuedConfig.SFX.changeGunNew);
-        ImGui::PopItemWidth();
+	UI::SeparatorEx(defaultFontSize * 23.35f);
 
+    
 
-        ImGui::PushItemWidth(150.0f);
-        UI::Combo2<uint8>(
-            "Change Devil Arm", changeDevilArmNewNames, activeConfig.SFX.changeDevilArmNew, queuedConfig.SFX.changeDevilArmNew);
-        ImGui::PopItemWidth();
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
-        GUI_InputDefault2<uint32>("Change Weapon Volume", activeConfig.SFX.changeWeaponVolume, queuedConfig.SFX.changeWeaponVolume,
-            defaultConfig.SFX.changeWeaponVolume, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+	ImGui::PushItemWidth(itemWidth);
+	ImGui::Text("");
 
 
-        ImGui::Text("");
-        ImGui::Text("Style Switching");
-
-        GUI_InputDefault2<uint32>("Style Change Effect Volume", activeConfig.SFX.styleChangeEffectVolume,
-            queuedConfig.SFX.styleChangeEffectVolume, defaultConfig.SFX.styleChangeEffectVolume, 1, "%u",
-            ImGuiInputTextFlags_EnterReturnsTrue);
-
-        GUI_InputDefault2<uint32>("Style Change VO Volume", activeConfig.SFX.styleChangeVOVolume, queuedConfig.SFX.styleChangeVOVolume,
-            defaultConfig.SFX.styleChangeVOVolume, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
 
-        ImGui::Text("");
-        ImGui::Text("Devil Trigger");
+		if (ImGui::BeginTable("WeaponwheelSFXTable", 2)) {
 
-        GUI_InputDefault2<uint32>("DT In Layer 1 Volume", activeConfig.SFX.devilTriggerInL1Volume, queuedConfig.SFX.devilTriggerInL1Volume,
-            defaultConfig.SFX.devilTriggerInL1Volume, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
+			ImGui::TableNextColumn();
 
-        GUI_InputDefault2<uint32>("DT In Layer 2 Volume", activeConfig.SFX.devilTriggerInL2Volume, queuedConfig.SFX.devilTriggerInL2Volume,
-            defaultConfig.SFX.devilTriggerInL2Volume, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("WEAPON WHEEL SFX");
+			ImGui::PopFont();
 
-        GUI_InputDefault2<uint32>("DT Ready Volume", activeConfig.SFX.devilTriggerReadyVolume, queuedConfig.SFX.devilTriggerReadyVolume,
-            defaultConfig.SFX.devilTriggerReadyVolume, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::TableNextRow(0, rowWidth * 0.1f);
+			ImGui::TableNextColumn();
 
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+            UI::Combo2<uint8>("Change Gun", changeGunNewNames, activeConfig.SFX.changeGunNew, queuedConfig.SFX.changeGunNew);
+			ImGui::PopItemWidth();
 
-        ImGui::Text("");
-        ImGui::Text("Doppelganger");
+			ImGui::TableNextColumn();
 
-        GUI_InputDefault2<uint32>("Doppelganger In Volume", activeConfig.SFX.doppelgangerInVolume, queuedConfig.SFX.doppelgangerInVolume,
-            defaultConfig.SFX.doppelgangerInVolume, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-
-        GUI_InputDefault2<uint32>("Doppelganger Out Volume", activeConfig.SFX.doppelgangerOutVolume, queuedConfig.SFX.doppelgangerOutVolume,
-            defaultConfig.SFX.doppelgangerOutVolume, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-
-
-        ImGui::Text("");
-        ImGui::Text("Quicksilver");
-
-        GUI_InputDefault2<uint32>("Quicksilver In Volume", activeConfig.SFX.quicksilverInVolume, queuedConfig.SFX.quicksilverInVolume,
-            defaultConfig.SFX.quicksilverInVolume, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			UI::Combo2<uint8>(
+				"Change Devil Arm", changeDevilArmNewNames, activeConfig.SFX.changeDevilArmNew, queuedConfig.SFX.changeDevilArmNew);
+			ImGui::PopItemWidth();
 
 
-        ImGui::Text("");
-        ImGui::Text("Style Rank Announcer");
+			ImGui::TableNextRow(0, rowWidth * 0.1f);
+			ImGui::TableNextColumn();
 
-        GUI_InputDefault2<uint32>("Style Rank Announcer Volume", activeConfig.SFX.styleRankAnnouncerVolume,
-            queuedConfig.SFX.styleRankAnnouncerVolume, defaultConfig.SFX.styleRankAnnouncerVolume, 1, "%u",
-            ImGuiInputTextFlags_EnterReturnsTrue);
+            ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<uint32>("Change Weapon Volume", activeConfig.SFX.changeWeaponVolume, queuedConfig.SFX.changeWeaponVolume,
+				defaultConfig.SFX.changeWeaponVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+            ImGui::PopItemWidth();
 
-        GUI_InputDefault2<uint32>("Style Rank Announcer Cooldown Seconds", activeConfig.SFX.styleRankAnnouncerCooldownSeconds,
-            queuedConfig.SFX.styleRankAnnouncerCooldownSeconds, defaultConfig.SFX.styleRankAnnouncerCooldownSeconds, 1, "%u",
-            ImGuiInputTextFlags_EnterReturnsTrue);
-        ;
-    }
+			ImGui::TableNextColumn();
+
+
+			ImGui::EndTable();
+		}
+	}
+
+    ImGui::Text("");
+
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+
+		if (ImGui::BeginTable("StyleSwitchSFXTable", 2)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
+			ImGui::TableNextColumn();
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("STYLE SWITCH SFX");
+			ImGui::PopFont();
+
+			ImGui::TableNextRow(0, rowWidth * 0.1);
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<uint32>("Effect Volume", activeConfig.SFX.styleChangeEffectVolume,
+				queuedConfig.SFX.styleChangeEffectVolume, defaultConfig.SFX.styleChangeEffectVolume, 10, "%u",
+				ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<uint32>("VO Volume", activeConfig.SFX.styleChangeVOVolume, queuedConfig.SFX.styleChangeVOVolume,
+				defaultConfig.SFX.styleChangeVOVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+			ImGui::EndTable();
+		}
+	}
+
+    ImGui::Text("");
+
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+
+		if (ImGui::BeginTable("StyleRankAnnouncerTable", 2)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
+			ImGui::TableNextColumn();
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("STYLE RANK ANNOUNCER");
+			ImGui::PopFont();
+
+			ImGui::TableNextRow(0, rowWidth * 0.1f);
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<uint32>("Volume", activeConfig.SFX.styleRankAnnouncerVolume,
+				queuedConfig.SFX.styleRankAnnouncerVolume, defaultConfig.SFX.styleRankAnnouncerVolume, 10, "%u",
+				ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<uint32>("Cooldown", activeConfig.SFX.styleRankAnnouncerCooldownSeconds,
+				queuedConfig.SFX.styleRankAnnouncerCooldownSeconds, defaultConfig.SFX.styleRankAnnouncerCooldownSeconds, 1, "%u",
+				ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Duration until the Announcer can repeat the same line.\n"
+				"\n"
+				"(in Seconds)");
+			ImGui::PopItemWidth();
+
+
+
+			ImGui::EndTable();
+		}
+	}
+
+
+    ImGui::Text("");
+
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+
+		if (ImGui::BeginTable("DevilTriggerSFXTable", 2)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
+			ImGui::TableNextColumn();
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("DEVIL TRIGGER SFX");
+			ImGui::PopFont();
+
+			ImGui::TableNextRow(0, rowWidth * 0.1f);
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<uint32>("Activation L1 Volume", activeConfig.SFX.devilTriggerInL1Volume, queuedConfig.SFX.devilTriggerInL1Volume,
+				defaultConfig.SFX.devilTriggerInL1Volume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<uint32>("Activation L2 Volume", activeConfig.SFX.devilTriggerInL2Volume, queuedConfig.SFX.devilTriggerInL2Volume,
+				defaultConfig.SFX.devilTriggerInL2Volume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+
+			ImGui::TableNextRow(0, rowWidth * 0.1f);
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<uint32>("DT Ready Volume", activeConfig.SFX.devilTriggerReadyVolume, queuedConfig.SFX.devilTriggerReadyVolume,
+				defaultConfig.SFX.devilTriggerReadyVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+
+
+			ImGui::EndTable();
+		}
+	}
+
+    ImGui::Text("");
+
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+
+		if (ImGui::BeginTable("DoppelgangerSFXTable", 2)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
+			ImGui::TableNextColumn();
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("DOPPELGANGER SFX");
+			ImGui::PopFont();
+
+			ImGui::TableNextRow(0, rowWidth * 0.1);
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<uint32>("Activation Volume", activeConfig.SFX.doppelgangerInVolume, queuedConfig.SFX.doppelgangerInVolume,
+				defaultConfig.SFX.doppelgangerInVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<uint32>("Deactivation Volume", activeConfig.SFX.doppelgangerOutVolume, queuedConfig.SFX.doppelgangerOutVolume,
+				defaultConfig.SFX.doppelgangerOutVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+            ImGui::TableNextColumn();
+
+
+			ImGui::EndTable();
+		}
+	}
+
+    ImGui::Text("");
+
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+
+		if (ImGui::BeginTable("QuicksilverSFXTable", 2)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
+			ImGui::TableNextColumn();
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("QUICKSILVER SFX");
+			ImGui::PopFont();
+
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<uint32>("Activation Volume", activeConfig.SFX.quicksilverInVolume, queuedConfig.SFX.quicksilverInVolume,
+				defaultConfig.SFX.quicksilverInVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+
+
+			ImGui::EndTable();
+		}
+	}
+
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+
+
+	ImGui::Text("IM-GAME SOUND VOLUMES");
+
+	ImGui::PopFont();
+
+    UI::SeparatorEx(defaultFontSize * 23.35f);
+
+	
+	ImGui::Text("");
+
+// 	if (GUI_ResetButton()) {
+// 		CopyMemory(&queuedConfig.channelVolumes, &defaultConfig.channelVolumes, sizeof(queuedConfig.channelVolumes));
+// 		CopyMemory(&activeConfig.channelVolumes, &queuedConfig.channelVolumes, sizeof(activeConfig.channelVolumes));
+// 
+// 
+// 		UpdateVolumes();
+// 	}
+// 	ImGui::Text("");
+
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+
+		if (ImGui::BeginTable("InGameVolumesTable", 2)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+		
+			
+			for (int channelIndex = 0; channelIndex < CHANNEL::MAX; channelIndex++) {
+
+                if (channelIndex % 2 == 0) {
+                    ImGui::TableNextRow(0, rowWidth * 0.1f);
+                }
+
+                ImGui::TableNextColumn();
+
+                ImGui::PushItemWidth(itemWidth* smallerComboMult);
+				if (GUI_InputDefault2(Sound_channelNames[channelIndex], activeConfig.channelVolumes[channelIndex],
+					queuedConfig.channelVolumes[channelIndex], defaultConfig.channelVolumes[channelIndex], 0.1f, "%g",
+					ImGuiInputTextFlags_EnterReturnsTrue)) {
+					SetVolume(channelIndex, activeConfig.channelVolumes[channelIndex]);
+				}
+                ImGui::PopItemWidth();
+
+			}
+			
+
+			ImGui::EndTable();
+		}
+	}
+
+
+	ImGui::Text("");
+
+	if (GUI_ResetButton()) {
+		CopyMemory(&queuedConfig.Color, &defaultConfig.Color, sizeof(queuedConfig.Color));
+		CopyMemory(&activeConfig.Color, &queuedConfig.Color, sizeof(activeConfig.Color));
+
+
+		Color_UpdateValues();
+
+		CopyMemory(&queuedConfig.hideBeowulfDante, &defaultConfig.hideBeowulfDante, sizeof(queuedConfig.hideBeowulfDante));
+		CopyMemory(&activeConfig.hideBeowulfDante, &queuedConfig.hideBeowulfDante, sizeof(activeConfig.hideBeowulfDante));
+
+		CopyMemory(&queuedConfig.hideBeowulfVergil, &defaultConfig.hideBeowulfVergil, sizeof(queuedConfig.hideBeowulfVergil));
+		CopyMemory(&activeConfig.hideBeowulfVergil, &queuedConfig.hideBeowulfVergil, sizeof(activeConfig.hideBeowulfVergil));
+
+
+		CopyMemory(&queuedConfig.noDevilForm, &defaultConfig.noDevilForm, sizeof(queuedConfig.noDevilForm));
+		CopyMemory(&activeConfig.noDevilForm, &queuedConfig.noDevilForm, sizeof(activeConfig.noDevilForm));
+
+		ToggleNoDevilForm(activeConfig.noDevilForm);
+	}
+	GUI_SectionEnd();
+	ImGui::Text("");
+
+	ImGui::Text("Color");
+	ImGui::SameLine();
+	TooltipHelper("(?)", "Requires enabled Actor module.");
+	ImGui::Text("");
+
+	if (GUI_ResetButton()) {
+		CopyMemory(&queuedConfig.Color, &defaultConfig.Color, sizeof(queuedConfig.Color));
+		CopyMemory(&activeConfig.Color, &queuedConfig.Color, sizeof(activeConfig.Color));
+
+
+		Color_UpdateValues();
+	}
+	ImGui::Text("");
+
+	GUI_ColorPalette2("Air Hike", activeConfig.Color.airHike, queuedConfig.Color.airHike, Color.airHike);
+	ImGui::Text("");
+
+	ImGui::Text("Trickster");
+	GUI_Color2("Sky Star", activeConfig.Color.Trickster.skyStar, queuedConfig.Color.Trickster.skyStar, Color.Trickster.skyStar);
+	ImGui::Text("");
+
+	ImGui::Text("Royalguard");
+	GUI_Color2("Ultimate", activeConfig.Color.Royalguard.ultimate, queuedConfig.Color.Royalguard.ultimate, Color.Royalguard.ultimate);
+	ImGui::Text("");
+
+	ImGui::Text("Doppelganger");
+	GUI_Color2("Clone", activeConfig.Color.Doppelganger.clone, queuedConfig.Color.Doppelganger.clone, Color.Doppelganger.clone);
+	ImGui::Text("");
+
+	ImGui::Text("Aura");
+	GUI_ColorPalette2("Dante", activeConfig.Color.Aura.dante, queuedConfig.Color.Aura.dante, Color.Aura.dante);
+	GUI_Color2("Sparda", activeConfig.Color.Aura.sparda, queuedConfig.Color.Aura.sparda, Color.Aura.sparda);
+	GUI_ColorPalette2("Vergil", activeConfig.Color.Aura.vergil, queuedConfig.Color.Aura.vergil, Color.Aura.vergil);
+	GUI_Color2("Nero Angelo", activeConfig.Color.Aura.neroAngelo, queuedConfig.Color.Aura.neroAngelo, Color.Aura.neroAngelo);
+	GUI_SectionEnd();
+	ImGui::Text("");
+
+	ImGui::Text("Other");
+	ImGui::SameLine();
+	TooltipHelper("(?)", "Requires enabled Actor module.");
+	ImGui::Text("");
+
+	GUI_Checkbox2("Hide Beowulf Dante", activeConfig.hideBeowulfDante, queuedConfig.hideBeowulfDante);
+	GUI_Checkbox2("Hide Beowulf Vergil", activeConfig.hideBeowulfVergil, queuedConfig.hideBeowulfVergil);
+	if (GUI_Checkbox2("No Devil Form", activeConfig.noDevilForm, queuedConfig.noDevilForm)) {
+		ToggleNoDevilForm(activeConfig.noDevilForm);
+	}
+
+	ImGui::Text("");
+	
+
+
+    ImGui::PopFont();
+    ImGui::PopStyleColor();	
+    
 }
 
 void GameplayOptions() {
@@ -9247,7 +9502,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 						ImGui::PopItemWidth();
 
-						Cosmetics();
 						Damage();
 						Dante();
 
@@ -9266,7 +9520,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						System();
 						Teleporter();
 						WeaponWheel();
-						SFX();
 						GameplayOptions();
 						TrainingSection();
 						Vergil();
@@ -9340,14 +9593,14 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
-					ImGui::Text("GUI OPTIONS");
+					ImGui::Text("CAMERA OPTIONS");
 					ImGui::PopFont();
 
 
 					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
 					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
 
-					ImGui::TextWrapped("Change Crimson GUI's settins.");
+					ImGui::TextWrapped("Settings related to camera behaviour.");
 					ImGui::PopFont();
 				}
 				ImGui::EndChild();
@@ -9407,6 +9660,52 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
         else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::WeaponWheel) {
         }
         else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::SoundOrVisual) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						SoundVisualSection(context.DefaultFontSize);
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("SOUND/VISUAL OPTIONS");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Settings related to Sound and Visual Effects.");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
         }
         else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::System) {
         }

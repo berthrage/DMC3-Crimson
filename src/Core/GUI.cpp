@@ -84,18 +84,6 @@ bool GUI_ColorEdit4(const char* label, uint8 (&var)[4], float (&var2)[4], ImGuiC
         ::GUI::save = true;
     }
 
-    if constexpr (debug) {
-        ImGui::Text("");
-        ImGui::Text("var [0] %u", var[0]);
-        ImGui::Text("var [1] %u", var[1]);
-        ImGui::Text("var [2] %u", var[2]);
-        ImGui::Text("var [3] %u", var[3]);
-        ImGui::Text("var2[0] %f", var2[0]);
-        ImGui::Text("var2[1] %f", var2[1]);
-        ImGui::Text("var2[2] %f", var2[2]);
-        ImGui::Text("var2[3] %f", var2[3]);
-        ImGui::Text("");
-    }
 
     return update;
 }
