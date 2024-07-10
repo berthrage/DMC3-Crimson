@@ -7,3 +7,4 @@ void DriveTimer();
 void ImprovedCancelsTimers();
 void BackToForwardTimers();
 void StyleSwitchTextTimers();
+void StyleSwitchFluxTimers();

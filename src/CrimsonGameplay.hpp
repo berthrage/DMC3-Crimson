@@ -30,3 +30,4 @@ void DelayedComboEffectsController();
 void DriveTweaks(byte8* actorBaseAddr);
 void StyleSwitchDrawText(byte8* actorBaseAddr);
 void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr);
+void StyleSwitchFlux(byte8* actorBaseAddr);

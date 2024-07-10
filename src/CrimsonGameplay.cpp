@@ -2429,21 +2429,84 @@ void DriveTweaks(byte8* actorBaseAddr) {
     }*/
 }
 
+void StyleSwitchFlux(byte8* actorBaseAddr) {
+    if (!actorBaseAddr) {
+        return;
+    }
+    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    auto playerIndex = actorData.newPlayerIndex;
+    auto* fluxtime = &crimsonPlayer[playerIndex].fluxtime;
+    auto* style = &actorData.style;
+	auto* canStart = &crimsonPlayer[playerIndex].fluxCanStart;
+	auto* canEnd = &crimsonPlayer[playerIndex].fluxCanEnd;
+
+    if (*fluxtime > 0) {
+		
+		
+
+		float delayTime1 = 0.006f;
+		float delayTime2 = 0.001f;
+		//auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+        if (*canStart) {
+			styleVFXCount++;
+			styleChanged[*style] = true;
+            func_1F94D0(actorData, DEVIL_FLUX::START);
+            *canStart = false;
+            *canEnd = true;
+        }
+		
+
+		if (*fluxtime < 0.1f - delayTime2 && *canEnd) {
+			styleVFXCount--;
+			func_1F94D0(actorData, 4);
+			styleChanged[*style] = false;
+			*canEnd = false;
+            *fluxtime = 0;
+            
+		}
+
+	}
+
+    if (*fluxtime <= 0) {
+        *canStart = true;
+    }
+
+    if (actorData.devil == 0 && *fluxtime > 0) {
+//         for (int i = 0; i < 6; i++) {
+//             styleChanged[i] = false;
+//         }
+        func_1F94D0(actorData, 4);
+    }
+}
+
 void StyleSwitchDrawText(byte8* actorBaseAddr) {
     if (!actorBaseAddr) {
         return;
     }
     auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     auto playerIndex = actorData.newPlayerIndex;
+    auto* sstext = &crimsonPlayer[playerIndex].styleSwitchText;
+    
 
     // This function draws the Style Switching Text near Dante when switching styles.
-    const ddVec3 trickWorldPos = {actorData.position.x, actorData.position.y + 200.f, actorData.position.z};
-    const ddVec3 gunWorldPos   = {actorData.position.x, actorData.position.y + 130.f, actorData.position.z};
-    const ddVec3 swordWorldPos = {actorData.position.x, actorData.position.y + 130.f, actorData.position.z};
-    const ddVec3 royalWorldPos = {actorData.position.x, actorData.position.y + 70.f, actorData.position.z};
-    const ddVec3 quickWorldPos = {actorData.position.x, actorData.position.y + 130.f, actorData.position.z};
-    const ddVec3 doppWorldPos  = {actorData.position.x, actorData.position.y + 130.f, actorData.position.z};
-    const ddVec3 actorWorldPos = {actorData.position.x, actorData.position.y, actorData.position.z};
+	const ddVec3 trickWorldPos = { actorData.position.x, actorData.position.y + 200.f, actorData.position.z };
+	const ddVec3 gunWorldPos = { actorData.position.x, actorData.position.y + 130.f, actorData.position.z };
+	const ddVec3 swordWorldPos = { actorData.position.x, actorData.position.y + 130.f, actorData.position.z };
+	const ddVec3 royalWorldPos = { actorData.position.x, actorData.position.y + 70.f, actorData.position.z };
+	const ddVec3 quickWorldPos = { actorData.position.x, actorData.position.y + 130.f, actorData.position.z };
+	const ddVec3 doppWorldPos = { actorData.position.x, actorData.position.y + 130.f, actorData.position.z };
+	const ddVec3 actorWorldPos = { actorData.position.x, actorData.position.y, actorData.position.z };
+
+    const float stylesWorldPos[9][3] = { { actorData.position.x, actorData.position.y + 200.f, actorData.position.z }, // trick
+    { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // sword
+    { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // gun
+    { actorData.position.x, actorData.position.y - 10.f, actorData.position.z }, // royal
+    { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // quick
+    { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // dopp
+    { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // dt
+    { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // dte
+    { actorData.position.x, actorData.position.y + 200.f, actorData.position.z } }; // ready
+
     // 	char buffer[256]{};
     // 	sprintf(buffer, "danter: %f, %f, %f",
     // 		actorData.position.x,
@@ -2453,38 +2516,19 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
 
     // const float yellow[4] = { 1.0f, 1.0f, 0.0f, 0.1f }; // rgba alpha does not work/exist for debugDraw yet
 
-    if (crimsonPlayer[playerIndex].styleSwitchText.trickTime > 0) {
-        SetStyleSwitchFxWork(SsFxType::TRICK, trickWorldPos, dd::colors::Yellow, 1.0f, {}, crimsonPlayer[playerIndex].styleSwitchText.trickTime, crimsonPlayer[playerIndex].styleSwitchText.animSize);
+    for (int styleid = 0; styleid < 9; styleid++) {
+		if (sstext->time[styleid] > 0) {
+            float offset[2] = { 0 };
+            if (styleid == 1) {
+                offset[0] = 200.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize;
+            }
+            else if (styleid == 2) {
+                offset[0] = -200.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize;
+            }
+			SetStyleSwitchFxWork((SsFxType) styleid, stylesWorldPos[styleid], dd::colors::White, sstext->alpha[styleid], offset, sstext->time[styleid], sstext->animSize);
+		}
     }
-
-    if (crimsonPlayer[playerIndex].styleSwitchText.swordTime > 0) {
-        const float offset[2] = { 200.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize, 0.0f };
-        SetStyleSwitchFxWork(SsFxType::SWORD, swordWorldPos, dd::colors::Red, 1.0f, offset, crimsonPlayer[playerIndex].styleSwitchText.swordTime, crimsonPlayer[playerIndex].styleSwitchText.animSize);
-        //debug_draw_projected_text("        SWORD", swordWorldPos, dd::colors::Red, crimsonPlayer[playerIndex].styleSwitchText.animSize);
-    }
-
-    if (crimsonPlayer[playerIndex].styleSwitchText.gunTime > 0) {
-        const float offset[2] = { -200.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize, 0.0f };
-        SetStyleSwitchFxWork(SsFxType::GUN, gunWorldPos, dd::colors::DodgerBlue, 1.0f, offset, crimsonPlayer[playerIndex].styleSwitchText.gunTime, crimsonPlayer[playerIndex].styleSwitchText.animSize);
-        //debug_draw_projected_text("GUN        ", gunWorldPos, dd::colors::DodgerBlue, crimsonPlayer[playerIndex].styleSwitchText.animSize);
-    }
-
-    if (crimsonPlayer[playerIndex].styleSwitchText.royalTime > 0) {
-        const float offset[2] = { 0.0f, -200.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize };
-        SetStyleSwitchFxWork(SsFxType::ROYAL, royalWorldPos, dd::colors::LightGreen, 1.0f, {}, crimsonPlayer[playerIndex].styleSwitchText.royalTime, crimsonPlayer[playerIndex].styleSwitchText.animSize);
-        //debug_draw_projected_text("ROYAL", royalWorldPos, dd::colors::LightGreen, crimsonPlayer[playerIndex].styleSwitchText.animSize);
-    }
-
-    if (crimsonPlayer[playerIndex].styleSwitchText.quickTime > 0) {
-        SetStyleSwitchFxWork(SsFxType::QUICK, quickWorldPos, dd::colors::DeepPink, 1.0f, {}, crimsonPlayer[playerIndex].styleSwitchText.quickTime, crimsonPlayer[playerIndex].styleSwitchText.animSize);
-        //debug_draw_projected_text(
-        //    "          QUICK", quickWorldPos, dd::colors::DeepPink, crimsonPlayer[playerIndex].styleSwitchText.animSize);
-    }
-
-    if (crimsonPlayer[playerIndex].styleSwitchText.doppTime > 0) {
-        SetStyleSwitchFxWork(SsFxType::DOPPEL, doppWorldPos, dd::colors::Orange, 1.0f, {}, crimsonPlayer[playerIndex].styleSwitchText.doppTime, crimsonPlayer[playerIndex].styleSwitchText.animSize);
-        //debug_draw_projected_text("DOPP          ", doppWorldPos, dd::colors::Orange, crimsonPlayer[playerIndex].styleSwitchText.animSize);
-    }
+    
 }
 
 void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr) {
@@ -2493,18 +2537,24 @@ void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr) {
     }
     auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     auto playerIndex = actorData.newPlayerIndex;
+    auto* sstext = &crimsonPlayer[playerIndex].styleSwitchText;
 
-    float* drawTextTimes[6] = {&crimsonPlayer[playerIndex].styleSwitchText.swordTime, &crimsonPlayer[playerIndex].styleSwitchText.gunTime,
-        &crimsonPlayer[playerIndex].styleSwitchText.trickTime, &crimsonPlayer[playerIndex].styleSwitchText.royalTime,
-        &crimsonPlayer[playerIndex].styleSwitchText.quickTime, &crimsonPlayer[playerIndex].styleSwitchText.doppTime};
+    float* drawTextTimes[6] = { &sstext->time[1], &sstext->time[2],
+        &sstext->time[0], &sstext->time[3],
+        &sstext->time[4], &sstext->time[5] };
+
+	float* drawTextAlphas[6] = { &sstext->alpha[1], &sstext->alpha[2],
+		&sstext->alpha[0], &sstext->alpha[3],
+		&sstext->alpha[4], &sstext->alpha[5] };
 
     if (actorData.character == CHARACTER::DANTE) {
         for (int i = 0; i < 6; i++) {
             if (i == style) {
-                *drawTextTimes[i]                                   = crimsonPlayer[playerIndex].styleSwitchText.duration;
+                *drawTextTimes[i] = crimsonPlayer[playerIndex].styleSwitchText.duration;
                 crimsonPlayer[playerIndex].styleSwitchText.animSize = 1.0f;
             } else {
                 *drawTextTimes[i] = 0;
+                *drawTextAlphas[i] = 0.9f;
             }
         }
     }

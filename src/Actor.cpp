@@ -1173,60 +1173,6 @@ bool IsMeleeWeaponReady(PlayerActorData& actorData, uint8 weapon) {
     return false;
 }
 
-void DevilVFXTrigger(byte8* actorBaseAddr) {
-
-    if (!actorBaseAddr) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-
-    // activeConfig.Color.Aura.dante[0] = activeConfig.trickStyle;
-
-    func_1F94D0(actorData, DEVIL_FLUX::START);
-    std::this_thread::sleep_for(std::chrono::milliseconds(8));
-    // activeConfig.Color.Aura.dante[0] = { 128,   0,   0, 200 };
-    if (actorData.devil != 1) {
-        func_1F94D0(actorData, 4);
-    }
-}
-
-void DevilVFXTriggerStyle(byte8* actorBaseAddr, int style) {
-
-
-    if (!actorBaseAddr) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    if (!actorData.cloneActorBaseAddr) {
-        return; // RULES OUT DOPPELGANGER OUT OF THE VFX
-    }
-
-
-    styleVFXCount++;
-
-
-    styleChanged[style] = true;
-
-    int delayTime1  = 0;
-    int delayTime2  = 0;
-    auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
-
-
-    delayTime1 = (6 * actorData.speed) / g_frameRateMultiplier;
-    delayTime2 = (24 * actorData.speed) / g_frameRateMultiplier;
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(delayTime1));
-    if (styleVFXCount <= 1) {
-        func_1F94D0(actorData, DEVIL_FLUX::START);
-    }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(delayTime2));
-    styleVFXCount--;
-    func_1F94D0(actorData, 4);
-
-
-    styleChanged[style] = false;
-}
 
 bool IsMeleeWeaponReady(WeaponData& weaponData) {
     auto actorBaseAddr = weaponData.actorBaseAddr;
@@ -3169,12 +3115,15 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
     }
     auto& actorData     = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     auto& characterData = GetCharacterData(actorData);
+    auto* fluxtime = &crimsonPlayer[actorData.newPlayerIndex].fluxtime;
 
     actorData.style = style; // Changes the style.
 
     // Summons Style Switch VFX (leftover from DT In Effect).
-    std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, style);
-    devilvfxtriggerstyle.detach();
+//     std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, style);
+//     devilvfxtriggerstyle.detach();
+    *fluxtime = 0.1f;
+   
 
     if (!actorData.cloneActorBaseAddr) {
         return; // RULES OUT DOPPELGANGER OUT OF THE SFX
@@ -3206,6 +3155,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
     auto& characterData = GetCharacterData(actorData);
 
     StyleSwitchDrawText(actorBaseAddr);
+    
 
 
     {
@@ -3950,6 +3900,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     LockedOffCameraToggle(activeConfig.cameraLockOff);
     CameraLockOnDistanceController();
     StyleRankHudFadeoutController();
+    StyleSwitchFlux(actorBaseAddr);
     
 
     LastEventStateQueue(actorBaseAddr);

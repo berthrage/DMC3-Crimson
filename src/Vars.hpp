@@ -4201,15 +4201,15 @@ struct BackToForward {
 };
 
 struct StyleSwitchText {
-    float duration  = 0.3f;
-    float trickTime = 0;
-    float swordTime = 0;
-    float gunTime   = 0;
-    float royalTime = 0;
-    float quickTime = 0;
-    float doppTime  = 0;
-    float animSize  = 0;
+    float duration  = 0.4f;
+    float time[9] = { 0 };
+    float alpha[9] = { 0 };
+    float color[9][3];
+    float animSize = 0;
+	
 };
+
+
 
 struct AirRaveTweak {
     float gravity           = 0;
@@ -4290,6 +4290,10 @@ struct CrimsonPlayerData {
     ImprovedCancels cancels;
     BackToForward b2F;
     StyleSwitchText styleSwitchText;
+    float fluxtime = 0;
+    bool fluxCanStart = true;
+    bool fluxCanEnd = false;
+    bool fluxCanEndConfirm = false;
 
     AirRaveTweak airRaveTweak;
 

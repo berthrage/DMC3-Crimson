@@ -7004,7 +7004,9 @@ void MainOverlayWindow() {
             // ImGui::Text("Gravity Tweak:  %g", crimsonPlayer[0].airRaveTweak.gravity);
             // ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
             // ImGui::Text("Actor Speed %g", actorData.speed);
-            ImGui::Text("Character player 1: %u", crimsonPlayer[0].character);
+            ImGui::Text("FLUX TIME: %g", crimsonPlayer[0].fluxtime);
+            ImGui::Text("TRICKSTER TIME: %g", crimsonPlayer[0].styleSwitchText.time[0]);
+            ImGui::Text("TRICKSTER ALPHA: %g", crimsonPlayer[0].styleSwitchText.alpha[0]);
             // 					ImGui::Text("Trick Cooldown %g", crimsonPlayer[1].cancels.trickCooldown);
             // 					ImGui::Text("Guns Cooldown %g", crimsonPlayer[1].cancels.gunsCooldown);
             // 					ImGui::Text("Rainstorm Cooldown %g", crimsonPlayer[1].cancels.rainstormCooldown);
@@ -10175,6 +10177,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     DriveTimer();
     ImprovedCancelsTimers();
     StyleSwitchTextTimers();
+    StyleSwitchFluxTimers();
 
 
     Bars();
