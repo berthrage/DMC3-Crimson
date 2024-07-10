@@ -281,7 +281,7 @@ void StyleSwitchTextTimers() {
         for (int styleid = 0; styleid < 9; styleid++) {
 			if (sstext->time[styleid] > 0) {
                 sstext->time[styleid] -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
-				//sstext->animSize += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier * 0.1f; //animates size
+				sstext->animSize += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier * 0.1f; //animates size
 
 				float rate = 1.0 / 0.1f;
 				i += ImGui::GetIO().DeltaTime;
