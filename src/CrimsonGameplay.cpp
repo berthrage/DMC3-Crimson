@@ -2471,6 +2471,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
         *canStart = true;
     }
 
+    // This guarantees FluxEffect won't 'leak' if it plays in conjunction with DT In/Out
     if (actorData.devil == 0 && *fluxtime > 0) {
 //         for (int i = 0; i < 6; i++) {
 //             styleChanged[i] = false;
@@ -2489,13 +2490,6 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
     
 
     // This function draws the Style Switching Text near Dante when switching styles.
-	const ddVec3 trickWorldPos = { actorData.position.x, actorData.position.y + 200.f, actorData.position.z };
-	const ddVec3 gunWorldPos = { actorData.position.x, actorData.position.y + 130.f, actorData.position.z };
-	const ddVec3 swordWorldPos = { actorData.position.x, actorData.position.y + 130.f, actorData.position.z };
-	const ddVec3 royalWorldPos = { actorData.position.x, actorData.position.y + 70.f, actorData.position.z };
-	const ddVec3 quickWorldPos = { actorData.position.x, actorData.position.y + 130.f, actorData.position.z };
-	const ddVec3 doppWorldPos = { actorData.position.x, actorData.position.y + 130.f, actorData.position.z };
-	const ddVec3 actorWorldPos = { actorData.position.x, actorData.position.y, actorData.position.z };
 
     const float stylesWorldPos[9][3] = { { actorData.position.x, actorData.position.y + 200.f, actorData.position.z }, // trick
     { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // sword
@@ -2506,6 +2500,13 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
     { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // dt
     { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // dte
     { actorData.position.x, actorData.position.y + 200.f, actorData.position.z } }; // ready
+    
+    // Color conversion from ImGui Color (255, 255, 255, 255) to ddColor (1, 1, 1)    
+    for (int style = 0; style < 9; style++) {
+        for (int j = 0; j < 4; j++) {
+            sstext->color[style][j] = (float)activeConfig.StyleSwitchColor.text[style][j] / 255;
+        }
+    }
 
     // 	char buffer[256]{};
     // 	sprintf(buffer, "danter: %f, %f, %f",
@@ -2519,13 +2520,21 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
     for (int styleid = 0; styleid < 9; styleid++) {
 		if (sstext->time[styleid] > 0) {
             float offset[2] = { 0 };
+
+            // Offsets to the sides of danter
             if (styleid == 1) {
                 offset[0] = 200.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize;
             }
             else if (styleid == 2) {
                 offset[0] = -200.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize;
             }
-			SetStyleSwitchFxWork((SsFxType) styleid, stylesWorldPos[styleid], dd::colors::White, sstext->alpha[styleid], offset, sstext->time[styleid], sstext->animSize);
+            else if (styleid == 4) {
+                offset[0] = 250.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize;
+            }
+            else if (styleid == 5) {
+                offset[0] = -250.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize;
+            }
+			SetStyleSwitchFxWork((SsFxType) styleid, stylesWorldPos[styleid], sstext->color[styleid], sstext->alpha[styleid], offset, sstext->time[styleid], sstext->animSize);
 		}
     }
     
@@ -2554,7 +2563,7 @@ void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr) {
                 crimsonPlayer[playerIndex].styleSwitchText.animSize = 1.0f;
             } else {
                 *drawTextTimes[i] = 0;
-                *drawTextAlphas[i] = 0.9f;
+                *drawTextAlphas[i] = activeConfig.styleSwitchTextMaxAlpha;
             }
         }
     }

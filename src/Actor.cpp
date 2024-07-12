@@ -7505,17 +7505,17 @@ void SetDevilAuraColor(PlayerActorData& actorData, byte8* dest) {
         auto& actorData2 = *reinterpret_cast<PlayerActorDataDante*>(&actorData);
 
         if (styleChanged[0]) {
-            CopyMemory(dest, activeConfig.StyleColor.sword, 4);
+            CopyMemory(dest, activeConfig.StyleSwitchColor.flux[1], 4);
         } else if (styleChanged[1]) {
-            CopyMemory(dest, activeConfig.StyleColor.gun, 4);
+            CopyMemory(dest, activeConfig.StyleSwitchColor.flux[2], 4);
         } else if (styleChanged[2]) {
-            CopyMemory(dest, activeConfig.StyleColor.trick, 4);
+            CopyMemory(dest, activeConfig.StyleSwitchColor.flux[0], 4);
         } else if (styleChanged[3]) {
-            CopyMemory(dest, activeConfig.StyleColor.royal, 4);
+            CopyMemory(dest, activeConfig.StyleSwitchColor.flux[3], 4);
         } else if (styleChanged[4]) {
-            CopyMemory(dest, activeConfig.StyleColor.quick, 4);
+            CopyMemory(dest, activeConfig.StyleSwitchColor.flux[4], 4);
         } else if (styleChanged[5]) {
-            CopyMemory(dest, activeConfig.StyleColor.dopp, 4);
+            CopyMemory(dest, activeConfig.StyleSwitchColor.flux[5], 4);
         } else {
             if (actorData2.sparda) {
                 CopyMemory(dest, activeConfig.Color.Aura.sparda, 4);

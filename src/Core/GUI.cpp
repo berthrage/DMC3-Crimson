@@ -32,6 +32,11 @@ bool GUI_Button(const char* label, const ImVec2& size) {
     UI::PushID();
     auto update = ImGui::Button(label, size);
     UI::PopID();
+
+    if (update) {
+        ::GUI::save = true;
+    }
+
     return update;
 }
 

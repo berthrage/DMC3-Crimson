@@ -608,16 +608,82 @@ struct Config {
 
     } Gameplay;
 
-    struct {
 
-        uint8 sword[4] = {59, 2, 2, 255};
-        uint8 gun[4]   = {2, 27, 59, 255};
-        uint8 trick[4] = {59, 42, 2, 255};
-        uint8 royal[4] = {5, 59, 2, 255};
-        uint8 quick[4] = {59, 2, 54, 255};
-        uint8 dopp[4]  = {56, 56, 56, 255};
-    } StyleColor;
-    // doppOrange = { 59, 25, 2, 255 }
+    struct {
+        uint8 flux[6][4] = {
+            // r   g  b  a 
+			{ 29, 29, 0, 255 }, //trick  
+			{ 26, 0, 0, 255 }, //sword  
+			{ 0, 8, 34, 255 }, //gun    
+			{ 0, 35, 6, 255 }, //royal  
+			{ 26, 0, 35, 255 }, //quick  
+			{ 30, 14, 0, 255 }, //doppel 
+        };
+
+		uint8 fluxAllRed[6][4] = {
+			// r   g  b  a 
+			{ 29, 0, 0, 255 }, //trick  
+            { 29, 0, 0, 255 }, //sword  
+            { 29, 0, 0, 255 }, //gun    
+            { 29, 0, 0, 255 }, //royal  
+            { 29, 0, 0, 255 }, //quick  
+            { 29, 0, 0, 255 }, //doppel 
+		};
+
+		uint8 text[9][4] = {
+			// r   g  b  a  // though alpha is used in maxAlpha instead
+			{ 240, 240, 0, 255 }, //trick  
+			{ 255, 1, 1, 255 }, //sword  
+			{ 0, 56, 239, 255 }, //gun    
+			{ 5, 250, 47, 255 }, //royal  
+			{ 189, 0, 255, 255 }, //quick  
+			{ 255, 121, 4, 255 }, //doppel 
+			{ 255, 255, 255, 255 }, //dt     
+			{ 255, 255, 255, 255 }, //dte    
+			{ 255, 255, 255, 255 }, //ready  
+		};
+
+		uint8 textMidnight[9][4] = {
+			{ 155, 85, 250, 255 }, //trick  
+			{ 155, 85, 250, 255 }, //sword  
+			{ 155, 85, 250, 255 }, //gun    
+			{ 155, 85, 250, 255 }, //royal  
+			{ 155, 85, 250, 255 }, //quick  
+			{ 155, 85, 250, 255 }, //doppel 
+			{ 155, 85, 250, 255 }, //dt     
+			{ 155, 85, 250, 255 }, //dte    
+			{ 155, 85, 250, 255 }, //ready  
+		};
+
+		uint8 textAllWhite[9][4] = {
+			{ 255, 255, 255, 255 }, //trick  
+            { 255, 255, 255, 255 }, //sword  
+            { 255, 255, 255, 255 }, //gun    
+            { 255, 255, 255, 255 }, //royal  
+            { 255, 255, 255, 255 }, //quick  
+            { 255, 255, 255, 255 }, //doppel 
+            { 255, 255, 255, 255 }, //dt     
+            { 255, 255, 255, 255 }, //dte    
+            { 255, 255, 255, 255 }, //ready  
+		};
+
+		uint8 textColorful[9][4] = {
+			{ 240, 240, 0, 255 }, //trick  
+			{ 255, 1, 1, 255 }, //sword  
+			{ 0, 56, 239, 255 }, //gun    
+			{ 5, 250, 47, 255 }, //royal  
+			{ 189, 0, 255, 255 }, //quick  
+			{ 255, 121, 4, 255 }, //doppel 
+			{ 255, 255, 255, 255 }, //dt     
+			{ 255, 255, 255, 255 }, //dte    
+			{ 255, 255, 255, 255 }, //ready  
+		};
+    } StyleSwitchColor;
+
+	
+
+    float styleSwitchTextMaxAlpha = 0.7f;
+
 
     bool playDTReadySFXAtMissionStart = true;
 };

@@ -287,7 +287,7 @@ void StyleSwitchTextTimers() {
 				i += ImGui::GetIO().DeltaTime;
 				
                 // animates fade in
-                if (sstext->alpha[styleid] < 0.9f && sstext->time[styleid] > 0.3f) {
+                if (sstext->alpha[styleid] < activeConfig.styleSwitchTextMaxAlpha && sstext->time[styleid] > 0.3f) {
                     sstext->alpha[styleid] += ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier) * 4;
                 
                 }

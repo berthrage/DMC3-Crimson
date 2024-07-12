@@ -788,6 +788,14 @@ void CreateMembers(Config& config_) {
     }
 
 
+	{
+		auto& member2 = Create<struct_t>(member, "StyleSwitchColor");
+		auto& config2 = config_.StyleSwitchColor;
+
+        CreateArray2<uint8, 6, 4>(member2, "flux", config2.flux);
+		CreateArray2<uint8, 9, 4>(member2, "text", config2.text);
+	}
+
     CreateArray<uint8, 2>(member, "beowulfVergilAirRisingSunCount", config.beowulfVergilAirRisingSunCount);
 
     Create<bool>(member, "forceVisibleHUD", config.forceVisibleHUD);
@@ -1362,6 +1370,15 @@ void ToJSON(Config& config_) {
     }
 
 
+	{
+		auto& member2 = member["StyleSwitchColor"];
+		auto& config2 = config_.StyleSwitchColor;
+
+		SetArray2<uint8, 6, 4>(member2["flux"], config2.flux);
+        SetArray2<uint8, 9, 4>(member2["text"], config2.text);
+	}
+
+
     SetArray<uint8, 2>(member["beowulfVergilAirRisingSunCount"], config.beowulfVergilAirRisingSunCount);
 
     Set<bool>(member["forceVisibleHUD"], config.forceVisibleHUD);
@@ -1927,6 +1944,16 @@ void ToConfig(Config& config_) {
         config.disableAirSlashKnockback  = Get<bool>(member["disableAirSlashKnockback"]);
         config.darkslayerTrickCancels    = Get<bool>(member["darkslayerTrickCancels"]);
     }
+
+
+	{
+		auto& config2 = config_.StyleSwitchColor;
+		auto& member2 = member["StyleSwitchColor"];
+
+		GetArray2<uint8, 6, 4>(config2.flux, member2["flux"]);
+        GetArray2<uint8, 9, 4>(config2.text, member2["text"]);
+		
+	}
 
 
     GetArray<uint8, 2>(config.beowulfVergilAirRisingSunCount, member["beowulfVergilAirRisingSunCount"]);

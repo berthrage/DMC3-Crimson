@@ -1018,6 +1018,18 @@ const char* styleNamesDante[] = {
     "Doppelganger",
 };
 
+const char* styleNamesFX[] = {
+    "Trick",
+    "Sword",
+    "Gun",
+    "Royal",
+    "Quick",
+    "Dopp",
+    "DT",
+    "DTE",
+    "Ready!"
+};
+
 constexpr uint8 stylesDante[] = {
     STYLE::SWORDMASTER,
     STYLE::GUNSLINGER,
@@ -4264,6 +4276,43 @@ struct {
         };
         float32 neroAngelo[4] = {64, 0, 255, 200};
     } Aura;
+
+
+    struct {
+		float32 flux[6][4] = {
+			{ 29, 29, 0, 255 }, //trick  
+			{ 26, 0, 0, 255 }, //sword  
+			{ 0, 8, 34, 255 }, //gun    
+			{ 0, 35, 6, 255 }, //royal  
+			{ 26, 0, 35, 255 }, //quick  
+			{ 30, 14, 0, 255 }, //doppel 
+		};
+
+        float32 text[9][4] = {
+			{ 240, 240, 0, 255 }, //trick  
+			{ 255, 1, 1, 255 }, //sword  
+			{ 0, 56, 239, 255 }, //gun    
+			{ 5, 250, 47, 255 }, //royal  
+			{ 189, 0, 255, 255 }, //quick  
+			{ 255, 121, 4, 255 }, //doppel 
+			{ 255, 255, 255, 255 }, //dt     
+			{ 255, 255, 255, 255 }, //dte    
+			{ 255, 255, 255, 255 }, //ready  
+        };
+
+		uint8 textMidnight[9][4] = {
+			{ 155, 85, 250, 255 }, //trick  
+			{ 155, 85, 250, 255 }, //sword  
+			{ 155, 85, 250, 255 }, //gun    
+			{ 155, 85, 250, 255 }, //royal  
+			{ 155, 85, 250, 255 }, //quick  
+			{ 155, 85, 250, 255 }, //doppel 
+			{ 155, 85, 250, 255 }, //dt     
+			{ 155, 85, 250, 255 }, //dte    
+			{ 155, 85, 250, 255 }, //ready  
+		};
+
+    } StyleSwitchColor;
 } Color;
 
 void Color_UpdateValues() {
@@ -4273,10 +4322,25 @@ void Color_UpdateValues() {
 
     auto items  = reinterpret_cast<uint8*>(activeConfig.Color.airHike);
     auto items2 = reinterpret_cast<float32*>(Color.airHike);
+  
 
     old_for_all(uint8, index, itemCount) {
         items2[index] = (static_cast<float32>(items[index]) / 255);
+        
     }
+
+	for (int style = 0; style < 6; style++) {
+		for (int i = 0; i < 4; i++) {
+			Color.StyleSwitchColor.flux[style][i] = (float32)activeConfig.StyleSwitchColor.flux[style][i] / 255;
+		}
+	}
+
+    for (int style = 0; style < 9; style++) {
+        for (int i = 0; i < 4; i++) {
+            Color.StyleSwitchColor.text[style][i] = (float32)activeConfig.StyleSwitchColor.text[style][i] / 255;
+        }
+    }
+
 }
 
 
@@ -8491,8 +8555,83 @@ void SoundVisualSection(size_t defaultFontSize) {
 	GUI_Color2("Sparda", activeConfig.Color.Aura.sparda, queuedConfig.Color.Aura.sparda, Color.Aura.sparda);
 	GUI_ColorPalette2("Vergil", activeConfig.Color.Aura.vergil, queuedConfig.Color.Aura.vergil, Color.Aura.vergil);
 	GUI_Color2("Nero Angelo", activeConfig.Color.Aura.neroAngelo, queuedConfig.Color.Aura.neroAngelo, Color.Aura.neroAngelo);
+
+    
 	GUI_SectionEnd();
 	ImGui::Text("");
+    
+
+	for (int style = 0; style < 6; style++) {
+
+		if (style > 0) {
+			ImGui::SameLine();   
+		}
+		GUI_Color2("", activeConfig.StyleSwitchColor.flux[style], queuedConfig.StyleSwitchColor.flux[style], Color.StyleSwitchColor.flux[style]);
+        ImGui::SameLine();
+        ImGui::Text(styleNamesFX[style]);
+	}
+
+	if (GUI_Button("Colorful")) {
+		CopyMemory(&queuedConfig.StyleSwitchColor.flux, &defaultConfig.StyleSwitchColor.flux, sizeof(queuedConfig.StyleSwitchColor.flux));
+ 		CopyMemory(&activeConfig.StyleSwitchColor.flux, &queuedConfig.StyleSwitchColor.flux, sizeof(activeConfig.StyleSwitchColor.flux));
+		
+        
+
+		Color_UpdateValues();
+	}
+
+	if (GUI_Button("All Red")) {
+		CopyMemory(&queuedConfig.StyleSwitchColor.flux, &activeConfig.StyleSwitchColor.fluxAllRed, sizeof(queuedConfig.StyleSwitchColor.flux));
+		CopyMemory(&activeConfig.StyleSwitchColor.flux, &activeConfig.StyleSwitchColor.fluxAllRed, sizeof(activeConfig.StyleSwitchColor.flux));
+
+
+
+		Color_UpdateValues();
+	}
+
+    for (int style = 0; style < 9; style++) {
+        if (style > 0) {
+            ImGui::SameLine();
+        }
+        GUI_Color2("", activeConfig.StyleSwitchColor.text[style], queuedConfig.StyleSwitchColor.text[style], Color.StyleSwitchColor.text[style]);
+		ImGui::SameLine();
+		ImGui::Text(styleNamesFX[style]);
+    }
+
+
+	GUI_InputDefault2<float>("Alpha", activeConfig.styleSwitchTextMaxAlpha, queuedConfig.styleSwitchTextMaxAlpha,
+		defaultConfig.styleSwitchTextMaxAlpha, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+
+	if (GUI_Button("Midnight")) {
+ 		CopyMemory(&queuedConfig.StyleSwitchColor.text, &activeConfig.StyleSwitchColor.textMidnight, sizeof(queuedConfig.StyleSwitchColor.text));
+ 		CopyMemory(&activeConfig.StyleSwitchColor.text, &activeConfig.StyleSwitchColor.textMidnight, sizeof(activeConfig.StyleSwitchColor.text));
+
+		Color_UpdateValues();
+	}
+
+	if (GUI_Button("All White")) {
+ 		CopyMemory(&queuedConfig.StyleSwitchColor.text, &activeConfig.StyleSwitchColor.textAllWhite, sizeof(queuedConfig.StyleSwitchColor.text));
+		CopyMemory(&activeConfig.StyleSwitchColor.text, &activeConfig.StyleSwitchColor.textAllWhite, sizeof(activeConfig.StyleSwitchColor.text));
+
+		Color_UpdateValues();
+	}
+
+	if (GUI_Button("Colorful")) {
+		CopyMemory(&queuedConfig.StyleSwitchColor.text, &defaultConfig.StyleSwitchColor.text, sizeof(queuedConfig.StyleSwitchColor.text));
+ 		CopyMemory(&activeConfig.StyleSwitchColor.text, &defaultConfig.StyleSwitchColor.text, sizeof(activeConfig.StyleSwitchColor.text));
+
+		Color_UpdateValues();
+	}
+
+	if (GUI_ResetButton()) {
+		CopyMemory(&queuedConfig.Color, &defaultConfig.Color, sizeof(queuedConfig.Color));
+		CopyMemory(&activeConfig.Color, &queuedConfig.Color, sizeof(activeConfig.Color));
+
+
+		Color_UpdateValues();
+	}
+
+    //GUI_Color2("FluxColorTrick", activeConfig.FluxColor.trick, queuedConfig.FluxColor.trick, defaultConfig.FluxColor.trick);
 
 	ImGui::Text("Other");
 	ImGui::SameLine();
