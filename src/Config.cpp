@@ -798,6 +798,9 @@ void CreateMembers(Config& config_) {
 
     Create<float>(member, "styleSwitchTextMaxAlpha", config.styleSwitchTextMaxAlpha);
 
+    Create<bool>(member, "enableStyleSwitchFlux", config.enableStyleSwitchFlux);
+    Create<bool>(member, "enableStyleSwitchText", config.enableStyleSwitchText);
+
     CreateArray<uint8, 2>(member, "beowulfVergilAirRisingSunCount", config.beowulfVergilAirRisingSunCount);
 
     Create<bool>(member, "forceVisibleHUD", config.forceVisibleHUD);
@@ -1382,6 +1385,9 @@ void ToJSON(Config& config_) {
 
     Set<float>(member["styleSwitchTextMaxAlpha"], config.styleSwitchTextMaxAlpha);
 
+    Set<bool>(member["enableStyleSwitchFlux"], config.enableStyleSwitchFlux);
+    Set<bool>(member["enableStyleSwitchText"], config.enableStyleSwitchText);
+
     SetArray<uint8, 2>(member["beowulfVergilAirRisingSunCount"], config.beowulfVergilAirRisingSunCount);
 
     Set<bool>(member["forceVisibleHUD"], config.forceVisibleHUD);
@@ -1959,6 +1965,9 @@ void ToConfig(Config& config_) {
 	}
 
     config.styleSwitchTextMaxAlpha = Get<float>(member["styleSwitchTextMaxAlpha"]);
+
+    config.enableStyleSwitchFlux = Get<bool>(member["enableStyleSwitchFlux"]);
+    config.enableStyleSwitchText = Get<bool>(member["enableStyleSwitchText"]);
 
     GetArray<uint8, 2>(config.beowulfVergilAirRisingSunCount, member["beowulfVergilAirRisingSunCount"]);
 

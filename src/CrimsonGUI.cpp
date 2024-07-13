@@ -8418,7 +8418,7 @@ void SoundVisualSection(size_t defaultFontSize) {
 	ImGui::Text("");
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
-	ImGui::Text("STYLE SWITCH FLUX");
+    GUI_Checkbox2("STYLE SWITCH FLUX", activeConfig.enableStyleSwitchFlux, queuedConfig.enableStyleSwitchFlux);
 	ImGui::PopFont();
 
 	for (int style = 0; style < 6; style++) {
@@ -8454,7 +8454,7 @@ void SoundVisualSection(size_t defaultFontSize) {
 	ImGui::Text("");
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
-	ImGui::Text("STYLE SWITCH TEXT");
+    GUI_Checkbox2("STYLE SWITCH TEXT", activeConfig.enableStyleSwitchText, queuedConfig.enableStyleSwitchText);
 	ImGui::PopFont();
 
 	for (int style = 0; style < 9; style++) {

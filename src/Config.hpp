@@ -719,6 +719,9 @@ struct Config {
 		} Aura;
 	} ColorCrimson;
 
+    bool enableStyleSwitchFlux = true;
+    bool enableStyleSwitchText = true;
+
     bool playDTReadySFXAtMissionStart = true;
 };
 

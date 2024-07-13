@@ -3122,8 +3122,9 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
     // Summons Style Switch VFX (leftover from DT In Effect).
 //     std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, style);
 //     devilvfxtriggerstyle.detach();
-    *fluxtime = 0.1f;
-   
+    if (activeConfig.enableStyleSwitchFlux) {
+        *fluxtime = 0.1f;
+    }
 
     if (!actorData.cloneActorBaseAddr) {
         return; // RULES OUT DOPPELGANGER OUT OF THE SFX
@@ -3143,7 +3144,9 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
         playStyleChangeVO(style);
     }
 
-    SetStyleSwitchDrawTextTime(style, actorBaseAddr);
+    if (activeConfig.enableStyleSwitchText) {
+        SetStyleSwitchDrawTextTime(style, actorBaseAddr);
+    }
 }
 
 void StyleSwitchController(byte8* actorBaseAddr) {
