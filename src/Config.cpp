@@ -796,6 +796,8 @@ void CreateMembers(Config& config_) {
 		CreateArray2<uint8, 9, 4>(member2, "text", config2.text);
 	}
 
+    Create<float>(member, "styleSwitchTextMaxAlpha", config.styleSwitchTextMaxAlpha);
+
     CreateArray<uint8, 2>(member, "beowulfVergilAirRisingSunCount", config.beowulfVergilAirRisingSunCount);
 
     Create<bool>(member, "forceVisibleHUD", config.forceVisibleHUD);
@@ -1378,6 +1380,7 @@ void ToJSON(Config& config_) {
         SetArray2<uint8, 9, 4>(member2["text"], config2.text);
 	}
 
+    Set<float>(member["styleSwitchTextMaxAlpha"], config.styleSwitchTextMaxAlpha);
 
     SetArray<uint8, 2>(member["beowulfVergilAirRisingSunCount"], config.beowulfVergilAirRisingSunCount);
 
@@ -1955,6 +1958,7 @@ void ToConfig(Config& config_) {
 		
 	}
 
+    config.styleSwitchTextMaxAlpha = Get<float>(member["styleSwitchTextMaxAlpha"]);
 
     GetArray<uint8, 2>(config.beowulfVergilAirRisingSunCount, member["beowulfVergilAirRisingSunCount"]);
 

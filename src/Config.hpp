@@ -103,6 +103,7 @@ struct Config {
         } Aura;
     } Color;
 
+
     struct {
         bool foursomeTime      = false;
         bool infiniteRainStorm = false;
@@ -632,12 +633,12 @@ struct Config {
 
 		uint8 text[9][4] = {
 			// r   g  b  a  // though alpha is used in maxAlpha instead
-			{ 240, 240, 0, 255 }, //trick  
-			{ 255, 1, 1, 255 }, //sword  
-			{ 0, 56, 239, 255 }, //gun    
-			{ 5, 250, 47, 255 }, //royal  
-			{ 189, 0, 255, 255 }, //quick  
-			{ 255, 121, 4, 255 }, //doppel 
+			{ 255, 255, 176, 255 }, //trick  
+			{ 248, 153, 153, 255 }, //sword  
+			{ 168, 186, 246, 255 }, //gun    
+			{ 190, 252, 200, 200 }, //royal  
+			{ 237, 195, 252, 255 }, //quick  
+			{ 252, 226, 203, 255 }, //doppel 
 			{ 255, 255, 255, 255 }, //dt     
 			{ 255, 255, 255, 255 }, //dte    
 			{ 255, 255, 255, 255 }, //ready  
@@ -680,10 +681,43 @@ struct Config {
 		};
     } StyleSwitchColor;
 
-	
+    float styleSwitchTextMaxAlpha = 0.9f;
 
-    float styleSwitchTextMaxAlpha = 0.7f;
+	struct {
+		uint8 airHike[5][4] = {
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+		};
 
+		struct {
+			uint8 skyStar[4] = { 128, 0, 16, 200 };
+		} Trickster;
+		struct {
+			uint8 ultimate[4] = { 128, 0, 16, 200 };
+		} Royalguard;
+		struct {
+			uint8 clone[4] = { 16, 16, 16, 48 };
+		} Doppelganger;
+		struct {
+			uint8 dante[5][4] = {
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+			};
+			uint8 sparda[4] = { 128, 0, 0, 200 };
+			uint8 vergil[3][4] = {
+				{32, 64, 128, 200},
+				{32, 64, 128, 200},
+				{32, 64, 128, 200},
+			};
+			uint8 neroAngelo[4] = { 64, 0, 255, 200 };
+		} Aura;
+	} ColorCrimson;
 
     bool playDTReadySFXAtMissionStart = true;
 };

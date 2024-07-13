@@ -123,6 +123,8 @@ bool GUI_InputDefault2(
     return update;
 }
 
+
+
 template <typename T> bool GUI_Slider(const char* label, T& var, const T min, const T max) {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImGuiIO& io         = ImGui::GetIO();

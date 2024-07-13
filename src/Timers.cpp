@@ -288,13 +288,13 @@ void StyleSwitchTextTimers() {
 				
                 // animates fade in
                 if (sstext->alpha[styleid] < activeConfig.styleSwitchTextMaxAlpha && sstext->time[styleid] > 0.3f) {
-                    sstext->alpha[styleid] += ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier) * 4;
+                    sstext->alpha[styleid] += ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier) * 8;
                 
                 }
 
                 //animates fade out
-				if (sstext->time[styleid] < 0.15f) {
-					sstext->alpha[styleid] -= ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier) * 4;
+				if (sstext->time[styleid] < 0.25f) {
+					sstext->alpha[styleid] -= ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier) * 2.5f;
 				}
             
 			}
