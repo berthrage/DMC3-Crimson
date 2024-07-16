@@ -605,7 +605,7 @@ bool File_Init() {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<bool**>(func.sect0 + 2)         = &activeConfig.preferLocalFiles;
+            *reinterpret_cast<bool**>(func.sect0 + 2)         = &activeConfig.enableFileMods;
             *reinterpret_cast<uint32*>(func.sect0 + 0x18 + 1) = FILE_MODE::LOCAL;
             WriteCall((func.sect0 + 0x1D), (appBaseAddr + 0x327430));
             WriteCall((func.sect0 + 0x32), (appBaseAddr + 0x327430));

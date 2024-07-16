@@ -276,6 +276,8 @@ GuiPause guiPause;
 
 DelayedComboFX delayedComboFX;
 
+bool changedFrameRateCorrection = false;
+
 float frameRateSpeedMultiplier = 0;
 
 #pragma endregion

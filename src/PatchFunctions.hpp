@@ -23,6 +23,12 @@ void CameraTiltController();
 
 #pragma endregion
 
+#pragma region GraphicsStuff
+
+void DisableBlendingEffects(bool enable);
+
+#pragma endregion
+
 #pragma region InertiaFixes
 
 void LockedOffCameraToggle(bool enable);

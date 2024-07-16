@@ -1598,6 +1598,27 @@ void PauseWhenGUIOpen() {
     }
 }
 
+void CorrectFrameRateCutscenes() {
+    // Changing frame rate to above or below 60 will alter cutscene speed, this function corrects this behavior
+    // by forcing cutscenes to play at 60 fps. - Mia
+
+    float temp = queuedConfig.frameRate;
+
+    if (g_scene == SCENE::CUTSCENE && !changedFrameRateCorrection) {
+        activeConfig.frameRate = 60.0;
+
+        UpdateFrameRate();
+        changedFrameRateCorrection = true;
+    }
+
+    if (g_scene != SCENE::CUTSCENE && changedFrameRateCorrection) {
+        activeConfig.frameRate = temp;
+
+        UpdateFrameRate();
+        changedFrameRateCorrection = false;
+    }
+}
+
 
 #pragma region Texture
 
@@ -6802,6 +6823,7 @@ void Other() {
     if (ImGui::CollapsingHeader("Other")) {
         ImGui::Text("");
 
+     
 
         if (GUI_ResetButton()) {
             CopyMemory(&queuedConfig.dotShadow, &defaultConfig.dotShadow, sizeof(queuedConfig.dotShadow));
@@ -7842,189 +7864,247 @@ const char* Sound_channelNames[CHANNEL::MAX] = {
 };
 
 
-void System() {
-    if (ImGui::CollapsingHeader("System")) {
-        ImGui::Text("");
+void SystemSection(size_t defaultFontSize) {
+	const float itemWidth = defaultFontSize * 8.0f;
+	float smallerComboMult = 0.7f;
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.skipIntro, &defaultConfig.skipIntro, sizeof(queuedConfig.skipIntro));
-            CopyMemory(&activeConfig.skipIntro, &queuedConfig.skipIntro, sizeof(activeConfig.skipIntro));
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-            CopyMemory(&queuedConfig.skipCutscenes, &defaultConfig.skipCutscenes, sizeof(queuedConfig.skipCutscenes));
-            CopyMemory(&activeConfig.skipCutscenes, &queuedConfig.skipCutscenes, sizeof(activeConfig.skipCutscenes));
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
-            ToggleSkipIntro(activeConfig.skipIntro);
-            ToggleSkipCutscenes(activeConfig.skipCutscenes);
 
-            CopyMemory(&queuedConfig.preferLocalFiles, &defaultConfig.preferLocalFiles, sizeof(queuedConfig.preferLocalFiles));
-            CopyMemory(&activeConfig.preferLocalFiles, &queuedConfig.preferLocalFiles, sizeof(activeConfig.preferLocalFiles));
+	ImGui::Text("GRAPHICS / WINDOW");
 
+	ImGui::PopFont();
 
-            CopyMemory(&queuedConfig.frameRate, &defaultConfig.frameRate, sizeof(queuedConfig.frameRate));
-            CopyMemory(&activeConfig.frameRate, &queuedConfig.frameRate, sizeof(activeConfig.frameRate));
+	UI::SeparatorEx(defaultFontSize * 23.35f);
 
-            CopyMemory(&queuedConfig.vSync, &defaultConfig.vSync, sizeof(queuedConfig.vSync));
-            CopyMemory(&activeConfig.vSync, &queuedConfig.vSync, sizeof(activeConfig.vSync));
 
-            UpdateFrameRate();
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
-            CopyMemory(&queuedConfig.hideMainHUD, &defaultConfig.hideMainHUD, sizeof(queuedConfig.hideMainHUD));
-            CopyMemory(&activeConfig.hideMainHUD, &queuedConfig.hideMainHUD, sizeof(activeConfig.hideMainHUD));
+	ImGui::PushItemWidth(itemWidth * smallerComboMult);
+	ImGui::Text("");
 
-            ToggleHideMainHUD(activeConfig.hideMainHUD);
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-            CopyMemory(&queuedConfig.hideLockOn, &defaultConfig.hideLockOn, sizeof(queuedConfig.hideLockOn));
-            CopyMemory(&activeConfig.hideLockOn, &queuedConfig.hideLockOn, sizeof(activeConfig.hideLockOn));
+		if (ImGui::BeginTable("GraphicsWindowOptionsTable", 2)) {
 
-            ToggleHideLockOn(activeConfig.hideLockOn);
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-            CopyMemory(&queuedConfig.hideBossHUD, &defaultConfig.hideBossHUD, sizeof(queuedConfig.hideBossHUD));
-            CopyMemory(&activeConfig.hideBossHUD, &queuedConfig.hideBossHUD, sizeof(activeConfig.hideBossHUD));
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			if (GUI_InputDefault2<float>("Frame Rate", activeConfig.frameRate, queuedConfig.frameRate, defaultConfig.frameRate, 1, "%.2f",
+				ImGuiInputTextFlags_EnterReturnsTrue)) {
+				UpdateFrameRate();
 
-            ToggleHideBossHUD(activeConfig.hideBossHUD);
+				if (activeConfig.framerateResponsiveGameSpeed) {
 
-            CopyMemory(&queuedConfig.hideMouseCursor, &defaultConfig.hideMouseCursor, sizeof(queuedConfig.hideMouseCursor));
-            CopyMemory(&activeConfig.hideMouseCursor, &queuedConfig.hideMouseCursor, sizeof(activeConfig.hideMouseCursor));
+					activeConfig.Speed.turbo = 1.2 / (activeConfig.frameRate / 60);
+					queuedConfig.Speed.turbo = 1.2 / (activeConfig.frameRate / 60);
 
-            CopyMemory(&queuedConfig.gamepadName, &defaultConfig.gamepadName, sizeof(queuedConfig.gamepadName));
-            CopyMemory(&activeConfig.gamepadName, &queuedConfig.gamepadName, sizeof(activeConfig.gamepadName));
+					activeConfig.Speed.mainSpeed = 1.0 / (activeConfig.frameRate / 60);
+					queuedConfig.Speed.mainSpeed = 1.0 / (activeConfig.frameRate / 60);
 
-            CopyMemory(&queuedConfig.gamepadButton, &defaultConfig.gamepadButton, sizeof(queuedConfig.gamepadButton));
-            CopyMemory(&activeConfig.gamepadButton, &queuedConfig.gamepadButton, sizeof(activeConfig.gamepadButton));
+				}
+			}
+			ImGui::PopItemWidth();
 
+            ImGui::TableNextColumn();
 
-            CopyMemory(&queuedConfig.channelVolumes, &defaultConfig.channelVolumes, sizeof(queuedConfig.channelVolumes));
-            CopyMemory(&activeConfig.channelVolumes, &queuedConfig.channelVolumes, sizeof(activeConfig.channelVolumes));
+			if (GUI_Checkbox2("Disable Blending Effects", activeConfig.disableBlendingEffects, queuedConfig.disableBlendingEffects)) {
+				DisableBlendingEffects(activeConfig.disableBlendingEffects);
+			}
 
-            UpdateVolumes();
-            CopyMemory(&queuedConfig.soundIgnoreEnemyData, &defaultConfig.soundIgnoreEnemyData, sizeof(queuedConfig.soundIgnoreEnemyData));
-            CopyMemory(&activeConfig.soundIgnoreEnemyData, &queuedConfig.soundIgnoreEnemyData, sizeof(activeConfig.soundIgnoreEnemyData));
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
+			UI::Combo2("V-Sync", Graphics_vSyncNames, activeConfig.vSync, queuedConfig.vSync);
 
-            CopyMemory(&queuedConfig.windowPosX, &defaultConfig.windowPosX, sizeof(queuedConfig.windowPosX));
-            CopyMemory(&activeConfig.windowPosX, &queuedConfig.windowPosX, sizeof(activeConfig.windowPosX));
+            ImGui::TableNextColumn();
 
-            CopyMemory(&queuedConfig.windowPosY, &defaultConfig.windowPosY, sizeof(queuedConfig.windowPosY));
-            CopyMemory(&activeConfig.windowPosY, &queuedConfig.windowPosY, sizeof(activeConfig.windowPosY));
+			if (GUI_Checkbox2("Force Focus", activeConfig.forceWindowFocus, queuedConfig.forceWindowFocus)) {
+				ToggleForceWindowFocus(activeConfig.forceWindowFocus);
+			}
 
-            CopyMemory(&queuedConfig.forceWindowFocus, &defaultConfig.forceWindowFocus, sizeof(queuedConfig.forceWindowFocus));
-            CopyMemory(&activeConfig.forceWindowFocus, &queuedConfig.forceWindowFocus, sizeof(activeConfig.forceWindowFocus));
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-            ToggleForceWindowFocus(activeConfig.forceWindowFocus);
-        }
-        GUI_SectionEnd();
-        ImGui::Text("");
+			if (GUI_Checkbox2("Frame Rate-Responsive Game Speed", activeConfig.framerateResponsiveGameSpeed, queuedConfig.framerateResponsiveGameSpeed)) {
+				activeConfig.Speed.turbo = 1.2 / (activeConfig.frameRate / 60);
+				queuedConfig.Speed.turbo = 1.2 / (activeConfig.frameRate / 60);
 
-        GUI_SectionStart("Event");
+				activeConfig.Speed.mainSpeed = 1.0 / (activeConfig.frameRate / 60);
+				queuedConfig.Speed.mainSpeed = 1.0 / (activeConfig.frameRate / 60);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Adjusts Game Speed based on the Frame Rate setting \n"
+				"to ensure gameplay stays consistent across different frame rates. \n\n"
+				"WARNING: Playing at higher frame rates will greatly reduce input lag, but \n"
+				"various gameplay issues may be introduced, such as enemy projectiles being too fast. \n"
+				"Help us fix those issues by reporting them individually on our GitHub's issue tracker \n"
+				"using the 'high frame issue' label: https://github.com/berthrage/Devil-May-Cry-3-Crimson/issues");
 
-        if (GUI_Checkbox2("Skip Intro", activeConfig.skipIntro, queuedConfig.skipIntro)) {
-            ToggleSkipIntro(activeConfig.skipIntro);
-        }
+			ImGui::TableNextColumn();
 
-        if (GUI_Checkbox2("Skip Cutscenes", activeConfig.skipCutscenes, queuedConfig.skipCutscenes)) {
-            ToggleSkipCutscenes(activeConfig.skipCutscenes);
-        }
 
-        GUI_SectionEnd();
-        ImGui::Text("");
+			GUI_Checkbox2("Hide Mouse Cursor", activeConfig.hideMouseCursor, queuedConfig.hideMouseCursor);
 
+			ImGui::EndTable();
+		}
+	}
 
-        GUI_SectionStart("File");
-        GUI_Checkbox2("Prefer Local Files", activeConfig.preferLocalFiles, queuedConfig.preferLocalFiles);
 
-        GUI_SectionEnd();
-        ImGui::Text("");
+	ImGui::Text("");
 
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
-        GUI_SectionStart("Graphics");
 
-        ImGui::PushItemWidth(150);
+	ImGui::Text("MISC");
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.frameRate, &defaultConfig.frameRate, sizeof(queuedConfig.frameRate));
-            CopyMemory(&activeConfig.frameRate, &queuedConfig.frameRate, sizeof(activeConfig.frameRate));
-
-            CopyMemory(&queuedConfig.vSync, &defaultConfig.vSync, sizeof(queuedConfig.vSync));
-            CopyMemory(&activeConfig.vSync, &queuedConfig.vSync, sizeof(activeConfig.vSync));
-
-
-            UpdateFrameRate();
-        }
-        ImGui::Text("");
-
-        if (GUI_InputDefault2<float>("Frame Rate", activeConfig.frameRate, queuedConfig.frameRate, defaultConfig.frameRate, 1, "%.2f",
-                ImGuiInputTextFlags_EnterReturnsTrue)) {
-            UpdateFrameRate();
-        }
-
-        UI::Combo2("V-Sync", Graphics_vSyncNames, activeConfig.vSync, queuedConfig.vSync);
-
-        ImGui::PopItemWidth();
-
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-
-
-        GUI_SectionStart("Input");
-
-        GUI_Checkbox2("Hide Mouse Cursor", activeConfig.hideMouseCursor, queuedConfig.hideMouseCursor);
-        ImGui::Text("");
-
-
-        ImGui::PushItemWidth(300);
-
-        if (ImGui::InputText(
-                "Gamepad Name", queuedConfig.gamepadName, sizeof(queuedConfig.gamepadName), ImGuiInputTextFlags_EnterReturnsTrue)) {
-            ::GUI::save = true;
-        }
-
-        GUI_Input2<byte8>(
-            "Gamepad Button", activeConfig.gamepadButton, queuedConfig.gamepadButton, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Toggle Show Main");
-
-        ImGui::PopItemWidth();
-
-
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-
-        
-
-        GUI_Checkbox2("Ignore Enemy Data", activeConfig.soundIgnoreEnemyData, queuedConfig.soundIgnoreEnemyData);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Do not look at enemy data when updating the global indices.\n"
-                             "Most, if not all enemies will lose their sound effects if enabled.\n"
-                             "Intended as a workaround for playable bosses when the sound effect\n"
-                             "interferences from other enemies get too annoying.");
-
-
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-
-        GUI_SectionStart("Window");
-
-        ImGui::PushItemWidth(150);
-
-        GUI_InputDefault2<int32>(
-            "X", activeConfig.windowPosX, queuedConfig.windowPosX, defaultConfig.windowPosX, 1, "%d", ImGuiInputTextFlags_EnterReturnsTrue);
-        GUI_InputDefault2<int32>(
-            "Y", activeConfig.windowPosY, queuedConfig.windowPosY, defaultConfig.windowPosY, 1, "%d", ImGuiInputTextFlags_EnterReturnsTrue);
-
-        ImGui::PopItemWidth();
-
-        ImGui::Text("");
-
-
-        if (GUI_Checkbox2("Force Focus", activeConfig.forceWindowFocus, queuedConfig.forceWindowFocus)) {
-            ToggleForceWindowFocus(activeConfig.forceWindowFocus);
-        }
-
-        ImGui::Text("");
-    }
+	ImGui::PopFont();
+
+	UI::SeparatorEx(defaultFontSize * 23.35f);
+
+    ImGui::Text("");
+
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+		if (ImGui::BeginTable("GraphicsWindowOptionsTable", 2)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			if (GUI_Checkbox2("Skip Intro", activeConfig.skipIntro, queuedConfig.skipIntro)) {
+				ToggleSkipIntro(activeConfig.skipIntro);
+			}
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Skip Cutscenes", activeConfig.skipCutscenes, queuedConfig.skipCutscenes)) {
+				ToggleSkipCutscenes(activeConfig.skipCutscenes);
+			}
+
+            // Enable File Mods will be a json file only option for now, don't see much need for it in the GUI.
+// 			ImGui::TableNextRow(0, rowWidth);
+// 			ImGui::TableNextColumn();
+// 
+//             GUI_Checkbox2("Enable File Mods", activeConfig.enableFileMods, queuedConfig.enableFileMods);
+//             ImGui::SameLine();
+// 			TooltipHelper("(?)", "WARNING: Necessary for any and all file mods you may have, \n"
+// 				"disabling this will disable any file replacement mod, including custom HUDs and Models.");
+
+		
+			ImGui::EndTable();
+		}
+	}
+
+	
+
+// 	GUI_Checkbox2("Prefer Local Files", activeConfig.enableFileMods, queuedConfig.enableFileMods);
+
+
+
+
+// 	GUI_SectionStart("Input");
+// 
+// 	
+// 
+// 
+// 	ImGui::PushItemWidth(300);
+// 
+// 	if (ImGui::InputText(
+// 		"Gamepad Name", queuedConfig.gamepadName, sizeof(queuedConfig.gamepadName), ImGuiInputTextFlags_EnterReturnsTrue)) {
+// 		::GUI::save = true;
+// 	}
+// 
+// 	GUI_Input2<byte8>(
+// 		"Gamepad Button", activeConfig.gamepadButton, queuedConfig.gamepadButton, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+// 	ImGui::SameLine();
+// 	TooltipHelper("(?)", "Toggle Show Main");
+// 
+// 	ImGui::PopItemWidth();
+
+	
+
+	ImGui::PopFont();
+	ImGui::PopStyleColor();
+
+// 	if (GUI_ResetButton()) {
+// 		CopyMemory(&queuedConfig.skipIntro, &defaultConfig.skipIntro, sizeof(queuedConfig.skipIntro));
+// 		CopyMemory(&activeConfig.skipIntro, &queuedConfig.skipIntro, sizeof(activeConfig.skipIntro));
+// 
+// 		CopyMemory(&queuedConfig.skipCutscenes, &defaultConfig.skipCutscenes, sizeof(queuedConfig.skipCutscenes));
+// 		CopyMemory(&activeConfig.skipCutscenes, &queuedConfig.skipCutscenes, sizeof(activeConfig.skipCutscenes));
+// 
+// 		ToggleSkipIntro(activeConfig.skipIntro);
+// 		ToggleSkipCutscenes(activeConfig.skipCutscenes);
+// 
+// 		CopyMemory(&queuedConfig.enableFileMods, &defaultConfig.enableFileMods, sizeof(queuedConfig.enableFileMods));
+// 		CopyMemory(&activeConfig.enableFileMods, &queuedConfig.enableFileMods, sizeof(activeConfig.enableFileMods));
+// 
+// 
+// 		CopyMemory(&queuedConfig.frameRate, &defaultConfig.frameRate, sizeof(queuedConfig.frameRate));
+// 		CopyMemory(&activeConfig.frameRate, &queuedConfig.frameRate, sizeof(activeConfig.frameRate));
+// 
+// 		CopyMemory(&queuedConfig.vSync, &defaultConfig.vSync, sizeof(queuedConfig.vSync));
+// 		CopyMemory(&activeConfig.vSync, &queuedConfig.vSync, sizeof(activeConfig.vSync));
+// 
+// 		UpdateFrameRate();
+// 
+// 		CopyMemory(&queuedConfig.hideMainHUD, &defaultConfig.hideMainHUD, sizeof(queuedConfig.hideMainHUD));
+// 		CopyMemory(&activeConfig.hideMainHUD, &queuedConfig.hideMainHUD, sizeof(activeConfig.hideMainHUD));
+// 
+// 		ToggleHideMainHUD(activeConfig.hideMainHUD);
+// 
+// 		CopyMemory(&queuedConfig.hideLockOn, &defaultConfig.hideLockOn, sizeof(queuedConfig.hideLockOn));
+// 		CopyMemory(&activeConfig.hideLockOn, &queuedConfig.hideLockOn, sizeof(activeConfig.hideLockOn));
+// 
+// 		ToggleHideLockOn(activeConfig.hideLockOn);
+// 
+// 		CopyMemory(&queuedConfig.hideBossHUD, &defaultConfig.hideBossHUD, sizeof(queuedConfig.hideBossHUD));
+// 		CopyMemory(&activeConfig.hideBossHUD, &queuedConfig.hideBossHUD, sizeof(activeConfig.hideBossHUD));
+// 
+// 		ToggleHideBossHUD(activeConfig.hideBossHUD);
+// 
+// 		CopyMemory(&queuedConfig.hideMouseCursor, &defaultConfig.hideMouseCursor, sizeof(queuedConfig.hideMouseCursor));
+// 		CopyMemory(&activeConfig.hideMouseCursor, &queuedConfig.hideMouseCursor, sizeof(activeConfig.hideMouseCursor));
+// 
+// 		CopyMemory(&queuedConfig.gamepadName, &defaultConfig.gamepadName, sizeof(queuedConfig.gamepadName));
+// 		CopyMemory(&activeConfig.gamepadName, &queuedConfig.gamepadName, sizeof(activeConfig.gamepadName));
+// 
+// 		CopyMemory(&queuedConfig.gamepadButton, &defaultConfig.gamepadButton, sizeof(queuedConfig.gamepadButton));
+// 		CopyMemory(&activeConfig.gamepadButton, &queuedConfig.gamepadButton, sizeof(activeConfig.gamepadButton));
+// 
+// 
+// 		CopyMemory(&queuedConfig.channelVolumes, &defaultConfig.channelVolumes, sizeof(queuedConfig.channelVolumes));
+// 		CopyMemory(&activeConfig.channelVolumes, &queuedConfig.channelVolumes, sizeof(activeConfig.channelVolumes));
+// 
+// 		UpdateVolumes();
+// 		CopyMemory(&queuedConfig.soundIgnoreEnemyData, &defaultConfig.soundIgnoreEnemyData, sizeof(queuedConfig.soundIgnoreEnemyData));
+// 		CopyMemory(&activeConfig.soundIgnoreEnemyData, &queuedConfig.soundIgnoreEnemyData, sizeof(activeConfig.soundIgnoreEnemyData));
+// 
+// 
+// 		CopyMemory(&queuedConfig.windowPosX, &defaultConfig.windowPosX, sizeof(queuedConfig.windowPosX));
+// 		CopyMemory(&activeConfig.windowPosX, &queuedConfig.windowPosX, sizeof(activeConfig.windowPosX));
+// 
+// 		CopyMemory(&queuedConfig.windowPosY, &defaultConfig.windowPosY, sizeof(queuedConfig.windowPosY));
+// 		CopyMemory(&activeConfig.windowPosY, &queuedConfig.windowPosY, sizeof(activeConfig.windowPosY));
+// 
+// 		CopyMemory(&queuedConfig.forceWindowFocus, &defaultConfig.forceWindowFocus, sizeof(queuedConfig.forceWindowFocus));
+// 		CopyMemory(&activeConfig.forceWindowFocus, &queuedConfig.forceWindowFocus, sizeof(activeConfig.forceWindowFocus));
+// 
+// 		ToggleForceWindowFocus(activeConfig.forceWindowFocus);
+// 	}
+    
 }
 
 #pragma endregion
@@ -8383,6 +8463,12 @@ void SoundVisualSection(size_t defaultFontSize) {
 		}
 	}
 
+	GUI_Checkbox2("Ignore Enemy Data", activeConfig.soundIgnoreEnemyData, queuedConfig.soundIgnoreEnemyData);
+	ImGui::SameLine();
+	TooltipHelper("(?)", "Do not look at enemy data when updating the global indices.\n"
+		"Most, if not all enemies will lose their sound effects if enabled.\n"
+		"Intended as a workaround for playable bosses when the sound effect\n"
+		"interferences from other enemies get too annoying. - serpentiem");
 
 	ImGui::Text("");
 
@@ -9658,7 +9744,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						Other();
 						Repair();
 						SpeedSection();
-						System();
 						Teleporter();
 						WeaponWheel();
 						GameplayOptions();
@@ -9849,6 +9934,52 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			}
         }
         else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::System) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						SystemSection(context.DefaultFontSize);
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("SYSTEM OPTIONS");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Settings related to the program's behavior.");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
         }
 
 
@@ -10304,7 +10435,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     BossVergilActionsOverlayWindow();
     GunDTCharacterRemaps();
 
-
+    CorrectFrameRateCutscenes();
     DelayedComboEffectsController();
 
     // TIMERS

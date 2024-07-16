@@ -4349,6 +4349,8 @@ struct DelayedComboFX {
 
 extern DelayedComboFX delayedComboFX;
 
+extern bool changedFrameRateCorrection;
+
 extern float frameRateSpeedMultiplier;
 
 constexpr BossHelper bossHelpers[] = {

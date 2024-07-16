@@ -16,6 +16,7 @@
 
 #pragma region GameplayImprovements
 
+
 void DisableHeightRestriction() {
     uintptr_t raveAddr      = 0x20149524;
     uintptr_t rainstormAddr = 0x20149708;
@@ -270,6 +271,21 @@ void CameraTiltController() {
     if (activeConfig.cameraTilt == 1) { // Closer to Ground
         cameraData.tilt = 0.103073f;
     }
+}
+
+#pragma endregion
+
+#pragma region GraphicsStuff
+
+void DisableBlendingEffects(bool enable) {
+
+	if (enable) {
+		_nop((char*)(appBaseAddr + 0x315BA4), 2);
+	}
+	else {
+		_patch((char*)(appBaseAddr + 0x315BA4), (char*)"\x75\x07", 2); // jne dmc3.exe+315BAD
+	}
+
 }
 
 #pragma endregion

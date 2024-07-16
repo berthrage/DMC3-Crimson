@@ -611,7 +611,7 @@ void CreateMembers(Config& config_) {
     Create<uint32>(member, "damageStyleRank", config.damageStyleRank);
     Create<bool>(member, "skipIntro", config.skipIntro);
     Create<bool>(member, "skipCutscenes", config.skipCutscenes);
-    Create<bool>(member, "preferLocalFiles", config.preferLocalFiles);
+    Create<bool>(member, "enableFileMods", config.enableFileMods);
     Create<float>(member, "frameRate", config.frameRate);
     Create<uint8>(member, "vSync", config.vSync);
     Create<bool>(member, "hideMouseCursor", config.hideMouseCursor);
@@ -800,6 +800,9 @@ void CreateMembers(Config& config_) {
 
     Create<bool>(member, "enableStyleSwitchFlux", config.enableStyleSwitchFlux);
     Create<bool>(member, "enableStyleSwitchText", config.enableStyleSwitchText);
+
+	Create<bool>(member, "disableBlendingEffects", config.disableBlendingEffects);
+	Create<bool>(member, "framerateResponsiveGameSpeed", config.framerateResponsiveGameSpeed);
 
     CreateArray<uint8, 2>(member, "beowulfVergilAirRisingSunCount", config.beowulfVergilAirRisingSunCount);
 
@@ -1238,7 +1241,7 @@ void ToJSON(Config& config_) {
     Set<uint32>(member["damageStyleRank"], config.damageStyleRank);
     Set<bool>(member["skipIntro"], config.skipIntro);
     Set<bool>(member["skipCutscenes"], config.skipCutscenes);
-    Set<bool>(member["preferLocalFiles"], config.preferLocalFiles);
+    Set<bool>(member["enableFileMods"], config.enableFileMods);
     Set<float>(member["frameRate"], config.frameRate);
     Set<uint8>(member["vSync"], config.vSync);
     Set<bool>(member["hideMouseCursor"], config.hideMouseCursor);
@@ -1387,6 +1390,9 @@ void ToJSON(Config& config_) {
 
     Set<bool>(member["enableStyleSwitchFlux"], config.enableStyleSwitchFlux);
     Set<bool>(member["enableStyleSwitchText"], config.enableStyleSwitchText);
+
+	Set<bool>(member["disableBlendingEffects"], config.disableBlendingEffects);
+	Set<bool>(member["framerateResponsiveGameSpeed"], config.framerateResponsiveGameSpeed);
 
     SetArray<uint8, 2>(member["beowulfVergilAirRisingSunCount"], config.beowulfVergilAirRisingSunCount);
 
@@ -1818,7 +1824,7 @@ void ToConfig(Config& config_) {
     config.damageStyleRank             = Get<uint32>(member["damageStyleRank"]);
     config.skipIntro                   = Get<bool>(member["skipIntro"]);
     config.skipCutscenes               = Get<bool>(member["skipCutscenes"]);
-    config.preferLocalFiles            = Get<bool>(member["preferLocalFiles"]);
+    config.enableFileMods            = Get<bool>(member["enableFileMods"]);
     config.frameRate                   = Get<float>(member["frameRate"]);
     config.vSync                       = Get<uint8>(member["vSync"]);
     config.hideMouseCursor             = Get<bool>(member["hideMouseCursor"]);
@@ -1968,6 +1974,9 @@ void ToConfig(Config& config_) {
 
     config.enableStyleSwitchFlux = Get<bool>(member["enableStyleSwitchFlux"]);
     config.enableStyleSwitchText = Get<bool>(member["enableStyleSwitchText"]);
+
+	config.disableBlendingEffects = Get<bool>(member["disableBlendingEffects"]);
+	config.framerateResponsiveGameSpeed = Get<bool>(member["framerateResponsiveGameSpeed"]);
 
     GetArray<uint8, 2>(config.beowulfVergilAirRisingSunCount, member["beowulfVergilAirRisingSunCount"]);
 

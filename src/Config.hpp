@@ -383,10 +383,10 @@ struct Config {
     bool skipIntro     = (debug) ? true : false;
     bool skipCutscenes = (debug) ? true : false;
 
-    bool preferLocalFiles = true;
+    bool enableFileMods = true;
 
     float frameRate = 60;
-    uint8 vSync     = 0;
+    uint8 vSync     = 1;
 
     bool hideMouseCursor = false;
 
@@ -721,6 +721,9 @@ struct Config {
 
     bool enableStyleSwitchFlux = true;
     bool enableStyleSwitchText = true;
+
+    bool disableBlendingEffects = false;
+    bool framerateResponsiveGameSpeed = true;
 
     bool playDTReadySFXAtMissionStart = true;
 };

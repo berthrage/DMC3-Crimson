@@ -233,7 +233,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleDisableTimer(activeConfig.disableTimer);
         ToggleInfiniteBullets(activeConfig.infiniteBullets);
 
-        // Why are we calling these with false first????
+        // Why are we calling these with false first???? - Answer: See Line 119
 
         ToggleForceWindowFocus(false);
         ToggleForceWindowFocus(activeConfig.forceWindowFocus);
@@ -254,6 +254,9 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         InitDetours();
         ToggleOriginalHUDPositionings(activeConfig.originalHUDpositionings);
         ToggleStyleRankHudNoFadeout(activeConfig.disableStyleRankHudFadeout);
+
+        DisableBlendingEffects(false);
+        DisableBlendingEffects(activeConfig.disableBlendingEffects);
 
         // Remove FMODGetCodecDescription Label
         SetMemory((appBaseAddr + 0x5505B5), 0, 23, MemoryFlags_VirtualProtectDestination);
