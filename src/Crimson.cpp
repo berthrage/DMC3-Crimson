@@ -3,7 +3,7 @@
 #include "Core/Input.hpp"
 #include "DetourFunctions.hpp"
 #include "DMC3Input.hpp"
-#include "ExtraSound.hpp"
+#include "SDLStuff.hpp"
 #include "File.hpp"
 #include "FMOD.hpp"
 #include "Graphics.hpp"

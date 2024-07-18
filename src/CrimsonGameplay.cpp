@@ -22,7 +22,7 @@
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "CrimsonGameplay.hpp"
 #include "Core/Core.hpp"
-#include "ExtraSound.hpp"
+#include "SDLStuff.hpp"
 #include "Memory.hpp"
 #include "Model.hpp"
 #include "PatchFunctions.hpp"

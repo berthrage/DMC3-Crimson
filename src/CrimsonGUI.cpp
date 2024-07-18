@@ -1,4 +1,5 @@
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
+#include "../ThirdParty/SDL2/SDL_gamecontroller.h"
 #include "CrimsonGUI.hpp"
 #include "Core/Core.hpp"
 #include "CrimsonGameplay.hpp"
@@ -11,7 +12,7 @@
 #include "CrimsonUtil.hpp"
 #include "DetourFunctions.hpp"
 #include "DMC3Input.hpp"
-#include "ExtraSound.hpp"
+#include "SDLStuff.hpp"
 #include "File.hpp"
 #include "ImGuiExtra.hpp"
 #include "FMOD.hpp"
@@ -63,6 +64,10 @@
 #include "Core/Macros.h"
 
 #include "Core/DebugSwitch.hpp"
+#include <SDL_joystick.h>
+
+#define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
+#define LOAD_SDL_FUNCTION(X) fn_##X = GetSDLFunction<decltype(X)*>(#X)
 
 
 
@@ -7089,6 +7094,7 @@ void MainOverlayWindow() {
             // ImGui::Text("Gravity Tweak:  %g", crimsonPlayer[0].airRaveTweak.gravity);
             // ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
             // ImGui::Text("Actor Speed %g", actorData.speed);
+            ImGui::Text("BUTTON: %u", crimsonPlayer[0].gamepad.buttons[0]);
             ImGui::Text("FLUX TIME: %g", crimsonPlayer[0].fluxtime);
             ImGui::Text("TRICKSTER TIME: %g", crimsonPlayer[0].styleSwitchText.time[0]);
             ImGui::Text("TRICKSTER ALPHA: %g", crimsonPlayer[0].styleSwitchText.alpha[0]);
@@ -7993,7 +7999,7 @@ void SystemSection(size_t defaultFontSize) {
 				ToggleSkipCutscenes(activeConfig.skipCutscenes);
 			}
 
-            // Enable File Mods will be a json file only option for now, don't see much need for it in the GUI.
+            // Enable File Mods will be a json file only option for now, don't see much need for it in the GUI. - Mia
 // 			ImGui::TableNextRow(0, rowWidth);
 // 			ImGui::TableNextColumn();
 // 
@@ -8007,13 +8013,9 @@ void SystemSection(size_t defaultFontSize) {
 		}
 	}
 
-	
-
-// 	GUI_Checkbox2("Prefer Local Files", activeConfig.enableFileMods, queuedConfig.enableFileMods);
 
 
-
-
+// 
 // 	GUI_SectionStart("Input");
 // 
 // 	
@@ -9153,6 +9155,28 @@ void ToggleInfiniteHealth() {
     ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
 }
 
+void GamepadToggleShowMain() {
+
+    //auto combination = (ImGui::IsNavInputDown(ImGuiGamepad::DpadDown) && ImGui::IsNavInputDown(ImGuiGamepad::R1) && ImGui::IsNavInputDown(ImGuiGamepad::B) && ImGui::IsNavInputDown(ImGuiGamepad::Y));
+    auto combination = (IsJoystickButtonDown(joystick, 7) && IsJoystickButtonDown(joystick, 8));
+
+    if (combination && !g_showMain && gamepadCombinationMainRelease) {
+        ToggleShowMain();
+        ImGui::SetWindowFocus(DMC3C_TITLE);
+        gamepadCombinationMainRelease = false;
+    }
+
+    if (!combination && !gamepadCombinationMainRelease) {
+        gamepadCombinationMainRelease = true;
+    }
+
+    if (combination && g_showMain && gamepadCombinationMainRelease) {
+        ToggleShowMain();
+        gamepadCombinationMainRelease = false;
+    }
+
+
+}
 
 std::vector<KeyBinding> keyBindings = {
     {
@@ -10436,6 +10460,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     GunDTCharacterRemaps();
 
     CorrectFrameRateCutscenes();
+    GamepadToggleShowMain();
     DelayedComboEffectsController();
 
     // TIMERS

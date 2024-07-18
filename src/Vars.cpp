@@ -277,6 +277,8 @@ GuiPause guiPause;
 DelayedComboFX delayedComboFX;
 
 bool changedFrameRateCorrection = false;
+bool gamepadCombinationMainRelease = false;
+
 
 float frameRateSpeedMultiplier = 0;
 

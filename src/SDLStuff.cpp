@@ -6,12 +6,15 @@
 #include <chrono>
 
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
-#include "ExtraSound.hpp"
+#include "SDLStuff.hpp"
 #include "Core/Core.hpp"
 #include "Config.hpp"
 #include "SDL.hpp"
 #include "Vars.hpp"
 
+SDL_GameController* controller = NULL;
+SDL_Joystick* joystick;
+SDL_Haptic* styleHaptic;
 std::string SDL2Initialization   = "";
 std::string MixerInitialization  = "";
 std::string MixerInitialization2 = "";
@@ -80,6 +83,7 @@ SDL_FUNCTION_DECLRATION(Mix_VolumeMusic)                  = NULL;
 SDL_FUNCTION_DECLRATION(Mix_FadeInMusic)                  = NULL;
 SDL_FUNCTION_DECLRATION(Mix_FadeOutMusic)                 = NULL;
 SDL_FUNCTION_DECLRATION(Mix_PlayingMusic)                 = NULL;
+SDL_FUNCTION_DECLRATION(SDL_JoystickGetButton) = NULL;
 
 void initSDL() {
     if (!SDL2Init) {
@@ -90,6 +94,7 @@ void initSDL() {
         LOAD_SDL_FUNCTION(SDL_GameControllerGetPlayerIndex);
         LOAD_SDL_FUNCTION(SDL_GameControllerGetJoystick);
         LOAD_SDL_FUNCTION(SDL_HapticOpenFromJoystick);
+        LOAD_SDL_FUNCTION(SDL_JoystickGetButton);
         LOAD_MIXER_FUNCTION(Mix_AllocateChannels);
         LOAD_MIXER_FUNCTION(Mix_ReserveChannels);
         LOAD_MIXER_FUNCTION(Mix_LoadWAV);
@@ -172,7 +177,7 @@ void initSDL() {
             MixerInitialization2 = "Mixer2 Success";
         }
 
-        SDL_GameController* controller = NULL;
+        controller = NULL;
         for (int i = 0; i < fn_SDL_NumJoysticks(); ++i) {
             controller = fn_SDL_GameControllerOpen(i);
             if (controller) {
@@ -183,11 +188,12 @@ void initSDL() {
         int controllerIndex = fn_SDL_GameControllerGetPlayerIndex(controller);
 
 
-        SDL_Joystick* joystick  = fn_SDL_GameControllerGetJoystick(controller);
-        SDL_Haptic* styleHaptic = fn_SDL_HapticOpenFromJoystick(joystick);
+        joystick  = fn_SDL_GameControllerGetJoystick(controller);
+        styleHaptic = fn_SDL_HapticOpenFromJoystick(joystick);
 
         SDL2Init = true;
     }
+
 
     // CHUNKS OF SOUND
     fn_Mix_AllocateChannels(500);
@@ -270,6 +276,11 @@ void initSDL() {
     Mix_PlayChannel(channel, shout, 0);
     FadeOutChannels(channel, initialChannel, numChannels, 150);
 }*/
+
+
+bool IsJoystickButtonDown(SDL_Joystick* joystick, int button) {
+   return fn_SDL_JoystickGetButton(joystick, button);
+}
 
 void FadeOutChannels(int channelException, int initialChannel, int numChannels, int fadeOutms) {
 

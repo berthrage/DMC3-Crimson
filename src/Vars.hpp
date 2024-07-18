@@ -4350,6 +4350,7 @@ struct DelayedComboFX {
 extern DelayedComboFX delayedComboFX;
 
 extern bool changedFrameRateCorrection;
+extern bool gamepadCombinationMainRelease;
 
 extern float frameRateSpeedMultiplier;
 

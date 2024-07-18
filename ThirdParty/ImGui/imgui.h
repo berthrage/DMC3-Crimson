@@ -1340,7 +1340,8 @@ enum ImGuiKey_
     ImGuiKey_X,                 // for text edit CTRL+X: cut
     ImGuiKey_Y,                 // for text edit CTRL+Y: redo
     ImGuiKey_Z,                 // for text edit CTRL+Z: undo
-    ImGuiKey_COUNT
+    ImGuiKey_COUNT,
+    Start = 631,
 };
 
 // To test io.KeyMods (which is a combination of individual fields io.KeyCtrl, io.KeyShift, io.KeyAlt set by user/backend)
@@ -1386,6 +1387,26 @@ enum ImGuiNavInput_
     ImGuiNavInput_KeyDown_,      // move down
     ImGuiNavInput_COUNT,
     ImGuiNavInput_InternalStart_ = ImGuiNavInput_KeyMenu_
+};
+
+// DMC3CRIMSON: Clearer enums for GUI inputs.
+enum ImGuiGamepad {
+    A,
+    B,
+    Y,
+    X,
+    DpadLeft,
+    DpadRight,
+    DpadUp,
+    DpadDown,
+    LStickLeft,
+    LStickRight,
+    LStickUp,
+    LStickDown,
+    L1,
+    R1,
+    L2,
+    R2,
 };
 
 // Configuration flags stored in io.ConfigFlags. Set by user/application.

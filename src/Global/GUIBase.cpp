@@ -15,6 +15,7 @@
 #include "../Core/Macros.h"
 
 #include "../Core/DebugSwitch.hpp"
+#include "../Sound.hpp"
 
 void BuildFonts() {
     auto& io = ImGui::GetIO();
@@ -345,7 +346,7 @@ void OpenMain() {
 
     g_showMain = true;
 
-    // ImGui::SetWindowFocus(DMC3U_TITLE);
+    ImGui::SetWindowFocus(DMC3C_TITLE);
     //  Required here since g_show could be false, but we still need the data.
     //  Otherwise the menu could auto-close.
 
@@ -354,12 +355,15 @@ void OpenMain() {
     new_XInputGetState(0, &state);
 
     ::CoreImGui::XI::UpdateGamepad(&state);
+
+    PlaySound(0, 4);
 }
 
 void CloseMain() {
     DebugLogFunction();
 
     g_showMain = false;
+    PlaySound(0, 3);
 }
 
 void ToggleShowMain() {
@@ -373,7 +377,7 @@ void ToggleShowMain() {
 }
 
 void HandleSaveTimer(float frameRate) {
-
+   
 
     using namespace GUI;
 
