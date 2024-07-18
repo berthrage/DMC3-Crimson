@@ -797,6 +797,7 @@ void CreateMembers(Config& config_) {
 	}
 
     Create<float>(member, "styleSwitchTextMaxAlpha", config.styleSwitchTextMaxAlpha);
+    Create<float>(member, "styleSwitchTextSize", config.styleSwitchTextSize);
 
     Create<bool>(member, "enableStyleSwitchFlux", config.enableStyleSwitchFlux);
     Create<bool>(member, "enableStyleSwitchText", config.enableStyleSwitchText);
@@ -1387,6 +1388,7 @@ void ToJSON(Config& config_) {
 	}
 
     Set<float>(member["styleSwitchTextMaxAlpha"], config.styleSwitchTextMaxAlpha);
+    Set<float>(member["styleSwitchTextSize"], config.styleSwitchTextSize);
 
     Set<bool>(member["enableStyleSwitchFlux"], config.enableStyleSwitchFlux);
     Set<bool>(member["enableStyleSwitchText"], config.enableStyleSwitchText);
@@ -1971,6 +1973,7 @@ void ToConfig(Config& config_) {
 	}
 
     config.styleSwitchTextMaxAlpha = Get<float>(member["styleSwitchTextMaxAlpha"]);
+    config.styleSwitchTextSize = Get<float>(member["styleSwitchTextSize"]);
 
     config.enableStyleSwitchFlux = Get<bool>(member["enableStyleSwitchFlux"]);
     config.enableStyleSwitchText = Get<bool>(member["enableStyleSwitchText"]);

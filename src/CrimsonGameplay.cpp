@@ -2503,11 +2503,12 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
     
     // Color conversion from ImGui Color (255, 255, 255, 255) to ddColor (1, 1, 1)    
     for (int style = 0; style < 9; style++) {
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < 3; j++) {
             sstext->color[style][j] = (float)activeConfig.StyleSwitchColor.text[style][j] / 255;
         }
     }
 
+    //sstext->animSize = activeConfig.styleSwitchTextSize;
     // 	char buffer[256]{};
     // 	sprintf(buffer, "danter: %f, %f, %f",
     // 		actorData.position.x,
@@ -2523,16 +2524,16 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
 
             // Offsets to the sides of danter
             if (styleid == 1) {
-                offset[0] = 200.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize;
+                offset[0] = 200.0f * sstext->animSize;
             }
             else if (styleid == 2) {
-                offset[0] = -200.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize;
+                offset[0] = -200.0f * sstext->animSize;
             }
             else if (styleid == 4) {
-                offset[0] = 250.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize;
+                offset[0] = 250.0f * sstext->animSize;
             }
             else if (styleid == 5) {
-                offset[0] = -250.0f * crimsonPlayer[playerIndex].styleSwitchText.animSize;
+                offset[0] = -250.0f * sstext->animSize;
             }
 			SetStyleSwitchFxWork((SsFxType) styleid, stylesWorldPos[styleid], sstext->color[styleid], sstext->alpha[styleid], offset, sstext->time[styleid], sstext->animSize);
 		}
@@ -2556,14 +2557,17 @@ void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr) {
 		&sstext->alpha[0], &sstext->alpha[3],
 		&sstext->alpha[4], &sstext->alpha[5] };
 
+
     if (actorData.character == CHARACTER::DANTE) {
         for (int i = 0; i < 6; i++) {
             if (i == style) {
                 *drawTextTimes[i] = crimsonPlayer[playerIndex].styleSwitchText.duration;
-                crimsonPlayer[playerIndex].styleSwitchText.animSize = 1.0f;
+                sstext->animSize = activeConfig.styleSwitchTextSize;
+                
             } else {
                 *drawTextTimes[i] = 0;
                 *drawTextAlphas[i] = activeConfig.styleSwitchTextMaxAlpha;
+          
             }
         }
     }

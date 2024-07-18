@@ -7094,7 +7094,7 @@ void MainOverlayWindow() {
             // ImGui::Text("Gravity Tweak:  %g", crimsonPlayer[0].airRaveTweak.gravity);
             // ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
             // ImGui::Text("Actor Speed %g", actorData.speed);
-            ImGui::Text("BUTTON: %u", crimsonPlayer[0].gamepad.buttons[0]);
+            ImGui::Text("TRICKSTER SIZE: %g", crimsonPlayer[0].styleSwitchText.animSize);
             ImGui::Text("FLUX TIME: %g", crimsonPlayer[0].fluxtime);
             ImGui::Text("TRICKSTER TIME: %g", crimsonPlayer[0].styleSwitchText.time[0]);
             ImGui::Text("TRICKSTER ALPHA: %g", crimsonPlayer[0].styleSwitchText.alpha[0]);
@@ -8554,11 +8554,34 @@ void SoundVisualSection(size_t defaultFontSize) {
 		ImGui::Text(styleNamesFX[style]);
 	}
 
-    ImGui::SameLine();
-    ImGui::PushItemWidth(itemWidth * smallerComboMult);
-	GUI_InputDefault2<float>("Alpha", activeConfig.styleSwitchTextMaxAlpha, queuedConfig.styleSwitchTextMaxAlpha,
-		defaultConfig.styleSwitchTextMaxAlpha, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-    ImGui::PopItemWidth();
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+
+		if (ImGui::BeginTable("StyleSwitchTextPropertiesTable", 2)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 0.5f);
+			ImGui::TableNextRow(0, rowWidth * 0.1f);
+
+            ImGui::TableNextColumn();
+			
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<float>("Alpha", activeConfig.styleSwitchTextMaxAlpha, queuedConfig.styleSwitchTextMaxAlpha,
+				defaultConfig.styleSwitchTextMaxAlpha, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+            ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<float>("Size", activeConfig.styleSwitchTextSize, queuedConfig.styleSwitchTextSize,
+				defaultConfig.styleSwitchTextSize, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+			ImGui::EndTable();
+		}
+	}
+	
 
 	if (GUI_Button("Midnight")) {
 		CopyMemory(&queuedConfig.StyleSwitchColor.text, &activeConfig.StyleSwitchColor.textMidnight, sizeof(queuedConfig.StyleSwitchColor.text));

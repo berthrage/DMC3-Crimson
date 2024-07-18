@@ -682,6 +682,7 @@ struct Config {
     } StyleSwitchColor;
 
     float styleSwitchTextMaxAlpha = 0.9f;
+    float styleSwitchTextSize = 1.0f;
 
 	struct {
 		uint8 airHike[5][4] = {
