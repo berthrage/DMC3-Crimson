@@ -107,8 +107,6 @@ file(GLOB MAIN_SRC
     Event.cpp
     Event.hpp
     Exp.hpp
-    ExtraSound.cpp
-    ExtraSound.hpp
     File.cpp
     File.hpp
     FMOD.cpp
@@ -135,6 +133,8 @@ file(GLOB MAIN_SRC
     Scene.hpp
     SDL.cpp
     SDL.hpp
+    SDLStuff.cpp
+    SDLStuff.hpp
     Sound.cpp
     Sound.hpp
     SoundRelocations.cpp
