@@ -3,8 +3,9 @@
 #include "glm/glm.hpp"
 #include <array>
 #include "DebugDrawDX11.hpp"
+#include "CrimsonFileHandling.hpp"
 
-#define TEXTURE_ATLAS_FILENAME "assets\\stylenames.png"
+#define TEXTURE_ATLAS_FILENAME "stylenames.png"
 
 static Texture2DD3D11* g_StyleSwitchAtlasTexture { nullptr };
 
@@ -68,7 +69,7 @@ void InitStyleSwitchFxTexture(ID3D11Device* pd3dDevice) {
     GetCurrentDirectoryA(MAX_PATH, buffer);
     OutputDebugStringA(buffer);
 #endif
-    g_StyleSwitchAtlasTexture = new Texture2DD3D11(TEXTURE_ATLAS_FILENAME, pd3dDevice);
+    g_StyleSwitchAtlasTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + TEXTURE_ATLAS_FILENAME).c_str(), pd3dDevice);
     assert(g_StyleSwitchAtlasTexture);
 }
 

@@ -109,6 +109,8 @@ file(GLOB MAIN_SRC
     Exp.hpp
     File.cpp
     File.hpp
+    CrimsonFileHandling.cpp
+    CrimsonFileHandling.hpp
     FMOD.cpp
     FMOD.hpp
     Global.cpp

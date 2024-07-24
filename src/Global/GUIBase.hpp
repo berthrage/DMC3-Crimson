@@ -54,6 +54,7 @@ template <typename T> void OverlayFunction(const char* label, Config::OverlayDat
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
 
+
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
 
     if (ImGui::Begin(label, &activeData.enable,
@@ -70,10 +71,12 @@ template <typename T> void OverlayFunction(const char* label, Config::OverlayDat
             GUI::save = true;
         }
 
-        auto& io = ImGui::GetIO();
-        ImGui::PushFont(io.Fonts->Fonts[FONT::OVERLAY_16]);
+//         auto& io = ImGui::GetIO();
+//         ImGui::PushFont(io.Fonts->Fonts[FONT::OVERLAY_16]);
+        ImGui::PushFont(UI::g_ImGuiFont_Roboto[UI::g_UIContext.DefaultFontSize * 1.1f]);
 
-        ImGui::PushStyleColor(ImGuiCol_Text, *reinterpret_cast<ImVec4*>(&activeData.color));
+        //ImGui::PushStyleColor(ImGuiCol_Text, *reinterpret_cast<ImVec4*>(&activeData.color));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 1, 0, 1));
 
         func();
 

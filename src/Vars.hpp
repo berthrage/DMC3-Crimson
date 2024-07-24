@@ -5,6 +5,7 @@
 #include "Core/Core.hpp"
 
 #include "Core/Macros.h"
+#include <string>
 
 #pragma push_macro("VOID")
 #pragma push_macro("IGNORE")
@@ -4201,7 +4202,7 @@ struct BackToForward {
 };
 
 struct StyleSwitchText {
-    float duration  = 0.4f;
+    float duration  = 0.45f;
     float time[9] = { 0 };
     float alpha[9] = { 0 };
     float color[9][3];
@@ -4351,6 +4352,8 @@ extern DelayedComboFX delayedComboFX;
 
 extern bool changedFrameRateCorrection;
 extern bool gamepadCombinationMainRelease;
+
+extern std::vector<std::string> HUDdirectories;
 
 extern float frameRateSpeedMultiplier;
 

@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "Core/RapidJSON.h"
+#define RAPIDJSON_HAS_STDSTRING 1
 
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "Config.hpp"
@@ -14,9 +15,10 @@
 using namespace DI8;
 
 #include "Core/DebugSwitch.hpp"
+#include "CrimsonFileHandling.hpp"
 
-inline const char* directoryName = "configs";
-inline const char* fileName      = "Mary.json";
+inline const char* directoryName = Paths::config;
+inline const char* fileName      = "Crimson.json";
 
 char locationConfig[64] = {};
 
@@ -802,6 +804,8 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "enableStyleSwitchFlux", config.enableStyleSwitchFlux);
     Create<bool>(member, "enableStyleSwitchText", config.enableStyleSwitchText);
 
+    CreateString(member, "selectedHUD", config.selectedHUD.c_str());
+
 	Create<bool>(member, "disableBlendingEffects", config.disableBlendingEffects);
 	Create<bool>(member, "framerateResponsiveGameSpeed", config.framerateResponsiveGameSpeed);
 
@@ -1393,6 +1397,8 @@ void ToJSON(Config& config_) {
     Set<bool>(member["enableStyleSwitchFlux"], config.enableStyleSwitchFlux);
     Set<bool>(member["enableStyleSwitchText"], config.enableStyleSwitchText);
 
+    SetString(member["selectedHUD"], config.selectedHUD.c_str());
+
 	Set<bool>(member["disableBlendingEffects"], config.disableBlendingEffects);
 	Set<bool>(member["framerateResponsiveGameSpeed"], config.framerateResponsiveGameSpeed);
 
@@ -1978,6 +1984,11 @@ void ToConfig(Config& config_) {
     config.enableStyleSwitchFlux = Get<bool>(member["enableStyleSwitchFlux"]);
     config.enableStyleSwitchText = Get<bool>(member["enableStyleSwitchText"]);
 
+    config.selectedHUD = Get<std::string>(member["selectedHUD"]);
+
+    //GetString(config.selectedHUD, sizeof(config.selectedHUD), member["selectedHUD"]);
+
+
 	config.disableBlendingEffects = Get<bool>(member["disableBlendingEffects"]);
 	config.framerateResponsiveGameSpeed = Get<bool>(member["framerateResponsiveGameSpeed"]);
 
@@ -2047,8 +2058,8 @@ void InitConfig() {
 
 
 namespace ExpConfig {
-inline const char* directoryName = "configs";
-inline const char* fileName      = "Mary_Exp.json";
+inline const char* directoryName = Paths::config;
+inline const char* fileName      = "Crimson_Exp.json";
 
 char location[64] = {};
 

@@ -543,7 +543,7 @@ struct Config {
 
 	struct GUI {
 		uint8 transparencyMode = 2;
-		float transparencyValue = 0.5f;
+		float transparencyValue = 0.9f;
 	} GUI;
 
     struct WeaponWheel {
@@ -557,8 +557,8 @@ struct Config {
         uint8 changeGunNew                       = 1;
         uint8 changeDevilArmNew                  = 1;
         uint32 changeWeaponVolume                = 30;
-        uint32 styleChangeEffectVolume           = 5;
-        uint32 styleChangeVOVolume               = 55;
+        uint32 styleChangeEffectVolume           = 10;
+        uint32 styleChangeVOVolume               = 50;
         uint32 sprintVolume                      = 20;
         uint32 devilTriggerInL1Volume            = 40;
         uint32 devilTriggerInL2Volume            = 20;
@@ -567,7 +567,7 @@ struct Config {
         uint32 doppelgangerInVolume              = 50;
         uint32 doppelgangerOutVolume             = 50;
         uint32 quicksilverInVolume               = 50;
-        uint32 styleRankAnnouncerVolume          = 85;
+        uint32 styleRankAnnouncerVolume          = 255;
         uint32 styleRankAnnouncerCooldownSeconds = 20;
     } SFX;
 
@@ -722,6 +722,9 @@ struct Config {
 
     bool enableStyleSwitchFlux = true;
     bool enableStyleSwitchText = true;
+
+    std::string selectedHUD = "Crimson HUD";
+    const char* test = "lala";
 
     bool disableBlendingEffects = false;
     bool framerateResponsiveGameSpeed = true;

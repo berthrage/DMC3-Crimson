@@ -10,6 +10,7 @@
 #include "Global/GlobalBase.hpp"
 #include "Global/GUIBase.hpp"
 #include "CrimsonUtil.hpp"
+#include "CrimsonFileHandling.hpp"
 #include "DetourFunctions.hpp"
 #include "DMC3Input.hpp"
 #include "SDLStuff.hpp"
@@ -1814,11 +1815,11 @@ constexpr uint8 textureArrowMap[5] = {
 
 bool g_showTextures = false;
 
-void CreateTextures() {
+void CreateTexturesWeaponWheel() {
     char path[128];
 
     old_for_all(uint8, textureIndex, TEXTURE_COUNT) {
-        snprintf(path, sizeof(path), "images/%s", textureFilenames[textureIndex]);
+        snprintf(path, sizeof(path), ((std::string)Paths::weaponwheel + "/%s").c_str(), textureFilenames[textureIndex]);
 
         textureAddrs[textureIndex] = CreateTexture(path, ::D3D11::device);
     }
@@ -6923,8 +6924,9 @@ void SiyTimerFunc() {
 
 const char* mainOverlayLabel = "MainOverlay";
 
-void MainOverlayWindow() {
+void MainOverlayWindow(size_t defaultFontSize) {
     NewMissionClearSong();
+    
     auto Function = [&]() {
         if (activeConfig.mainOverlayData.showFocus) {
             auto color = ImVec4(0, 1, 0, 1);
@@ -6935,6 +6937,7 @@ void MainOverlayWindow() {
             ImGui::Text("Focus");
             ImGui::PopStyleColor();
         }
+
 
         if (activeConfig.mainOverlayData.showFPS) {
             ImGui::Text("%.2f FPS", ImGui::GetIO().Framerate);
@@ -6961,10 +6964,21 @@ void MainOverlayWindow() {
                 ImGui::Text("Unknown");
             } else {
                 auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+                
 
                 ImGui::Text(sceneNames[g_scene]);
                 ImGui::Text("sessionData mission:  %u", sessionData.mission);
                 ImGui::Text("SCENE:  %u", g_scene);
+                
+                for (int i = 0; i < 14; i++) {
+                    ImGui::Text("sessionData unlock[%u] : %u", i, sessionData.unlocks[i]);
+                }
+                for (int i = 0; i < 8; i++) {
+                    ImGui::Text("sessionData weapon[%u] : %u", i, sessionData.weapons[i]);
+                }
+                ImGui::Text("Unlocked DT: %u", sessionData.unlockDevilTrigger);
+                ImGui::Text("Quicksilver Level: %u", sessionData.styleLevels[4]);
+
                 /*ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
                 ImGui::Text("Sky Launch Tracker Running:  %u", skyLaunchTrackerRunning);
                 ImGui::Text("Royal Release:  %u", executingRoyalRelease);
@@ -7084,6 +7098,13 @@ void MainOverlayWindow() {
             }
             auto& mainActorData = *reinterpret_cast<PlayerActorDataDante*>(pool_12857[3]);
 
+			auto name_7058 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+
+			auto& missionData = *reinterpret_cast<MissionData*>(name_7058);
+            auto& queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData*>(name_7058 + 0xC0);
+			auto& activeMissionActorData = *reinterpret_cast<ActiveMissionActorData*>(name_7058 + 0x16C);
+
+
             // crazyComboHold = g_HoldToCrazyComboFuncA();
             ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
             ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[0].animTimer);
@@ -7094,7 +7115,7 @@ void MainOverlayWindow() {
             // ImGui::Text("Gravity Tweak:  %g", crimsonPlayer[0].airRaveTweak.gravity);
             // ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
             // ImGui::Text("Actor Speed %g", actorData.speed);
-            ImGui::Text("TRICKSTER SIZE: %g", crimsonPlayer[0].styleSwitchText.animSize);
+            ImGui::Text("sessionData WEAPON 0: %u", sessionData.weapons[0]);
             ImGui::Text("FLUX TIME: %g", crimsonPlayer[0].fluxtime);
             ImGui::Text("TRICKSTER TIME: %g", crimsonPlayer[0].styleSwitchText.time[0]);
             ImGui::Text("TRICKSTER ALPHA: %g", crimsonPlayer[0].styleSwitchText.alpha[0]);
@@ -7186,8 +7207,7 @@ void MainOverlayWindow() {
             if (!name_10438) {
                 return;
             }
-            auto& queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData*>(name_10438 + 0xC0);
-            auto& activeMissionActorData = *reinterpret_cast<ActiveMissionActorData*>(name_10438 + 0x16C);
+           
 
 
             ImGui::Text("Doppelganger active %u", actorData.doppelganger);
@@ -7334,7 +7354,7 @@ void MainOverlayWindow() {
         // }();
     };
 
-
+    
     OverlayFunction(mainOverlayLabel, activeConfig.mainOverlayData, queuedConfig.mainOverlayData, Function);
 }
 
@@ -7356,9 +7376,12 @@ void MainOverlaySettings() {
 
 const char* missionOverlayLabel = "MissionOverlay";
 
-void MissionOverlayWindow() {
+void MissionOverlayWindow(size_t defaultFontSize) {
     auto Function = [&]() {
         ImGui::Text("Mission");
+
+        ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 1.1f]);
+
 
         auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
         if (!name_10723) {
@@ -7584,6 +7607,16 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableSetupColumn("b1", 0, columnWidth);
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth);
+            if (UI::Combo2Vector("Select HUD", HUDdirectories, activeConfig.selectedHUD, queuedConfig.selectedHUD)) {
+                copyHUDtoGame();
+            }
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+            
 
 			ImGui::PushItemWidth(itemWidth);
 			if (GUI_Checkbox2("Hide Main", activeConfig.hideMainHUD, queuedConfig.hideMainHUD)) {
@@ -8518,6 +8551,7 @@ void SoundVisualSection(size_t defaultFontSize) {
 		ImGui::SameLine();
 		ImGui::Text(styleNamesFX[style]);
 	}
+
 
 	if (GUI_Button("Colorful")) {
 		CopyMemory(&queuedConfig.StyleSwitchColor.flux, &defaultConfig.StyleSwitchColor.flux, sizeof(queuedConfig.StyleSwitchColor.flux));
@@ -9883,6 +9917,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
         }
         else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::Interface) {
+            getHUDsDirectories();
+
 			// Widget area
 			{
 				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
@@ -10447,7 +10483,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     if (!run) {
         run = true;
 
-        CreateTextures();
+        CreateTexturesWeaponWheel();
     }
 
     initSDL();
@@ -10476,8 +10512,8 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 
     
     PauseWhenGUIOpen();
-    MainOverlayWindow();
-    MissionOverlayWindow();
+    MainOverlayWindow(UI::g_UIContext.DefaultFontSize);
+    MissionOverlayWindow(UI::g_UIContext.DefaultFontSize);
     BossLadyActionsOverlayWindow();
     BossVergilActionsOverlayWindow();
     GunDTCharacterRemaps();

@@ -1,10 +1,11 @@
-#pragma once
+﻿#pragma once
 #include "../ThirdParty/ImGui/imgui.h"
 #include "../ThirdParty/ImGui/imgui_internal.h"
 #include "WebAPICalls.hpp"
 #include <vector>
 #include <array>
 #include <string>
+#include <iostream>
 
 static inline ImVec2 operator*(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x * rhs, lhs.y * rhs); }
 static inline ImVec2 operator/(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x / rhs, lhs.y / rhs); }
@@ -161,7 +162,7 @@ namespace UI {
 
 		std::vector<const char*> SpecialThanksNames{
 			"serpentiem",
-			"Bibic",
+			"Bibic<3",
 			"Che",
 			"Vainiuss1",
 			"Aleziinah",
@@ -238,9 +239,61 @@ namespace UI {
 		return update;
 	}
 
+
 	template <typename varType, uint8_t count>
 	bool Combo2(const char* label, const char* (&names)[count], varType& var, varType& var2, ImGuiComboFlags flags = 0) {
 		auto update = Combo(label, names, var2, flags);
+
+		if (update) {
+			var = var2;
+		}
+
+		return update;
+	}
+
+	template <typename varType>
+	bool ComboVector(const char* label, std::vector<std::string>(&names), varType& var, ImGuiComboFlags flags = 0) {
+		bool update = false;
+
+		std::vector<const char*> namescStr;
+
+		for (const auto& name : names) {
+			namescStr.push_back(name.c_str());
+		}
+
+		PushID();
+
+
+		if (BeginCombo(label, var.c_str(), ImVec2{0.0f, 0.0f}, 0.6f, flags)) {
+			for (int i = 0; i < names.size(); i++) {
+				bool selected = (strcmp(namescStr[i], var.c_str()) == 0) ? true : false;
+
+				PushID();
+
+				if (Selectable(namescStr[i], &selected)) {
+					update = true;
+					var = namescStr[i];
+				}
+
+				PopID();
+			}
+
+			ImGui::EndCombo();
+		}
+		
+
+		PopID();
+
+		if (update) {
+			::GUI::save = true;
+		}
+
+		return update;
+	}
+
+	template <typename varType>
+	bool Combo2Vector(const char* label, std::vector<std::string>(&names), varType& var, varType& var2, ImGuiComboFlags flags = 0) {
+		auto update = ComboVector(label, names, var2, flags);
 
 		if (update) {
 			var = var2;

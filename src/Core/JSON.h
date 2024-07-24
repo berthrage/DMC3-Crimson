@@ -17,10 +17,14 @@ bool IsString(rapidjson::Value& member) {
 }
 
 
-void GetString(char* buffer, new_size_t bufferSize, rapidjson::Value& member) {
+void GetString(std::string buffer, new_size_t bufferSize, rapidjson::Value& member) {
     auto name = member.GetString();
 
-    snprintf(buffer, bufferSize, "%s", name);
+    char * bufferArray = new char[buffer.size() + 1];
+
+    std::strcpy(bufferArray, buffer.c_str());
+
+    snprintf(bufferArray, bufferSize, "%s", name);
 }
 
 
@@ -76,10 +80,12 @@ template <typename T> bool Is(rapidjson::Value& member) {
         return member.IsDouble();
     } else if constexpr (TypeMatch<T, const char*>::value) {
         return member.IsString();
+    } else if constexpr (TypeMatch<T, std::string>::value) {
+        return member.IsInt();
     } else if constexpr (TypeMatch<T, struct_t>::value) {
         return member.IsObject();
     } else if constexpr (TypeMatch<T, array_t>::value) {
-        return member.IsArray();
+        return member.IsString();
     }
 }
 
@@ -111,7 +117,9 @@ template <typename T> T Get(rapidjson::Value& member) {
         return member.GetDouble();
     } else if constexpr (TypeMatch<T, const char*>::value) {
         return member.GetString();
-    }
+	} else if constexpr (TypeMatch<T, std::string>::value) {
+		return member.GetString();
+	}
 }
 
 
@@ -185,8 +193,6 @@ template <typename T> void Set(rapidjson::Value& member, T value) {
         member.SetFloat(value);
     } else if constexpr (TypeMatch<T, double>::value) {
         member.SetDouble(value);
-    } else if constexpr (TypeMatch<T, const char*>::value) {
-        member.SetString(value);
     }
 }
 

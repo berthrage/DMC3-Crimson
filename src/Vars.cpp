@@ -279,6 +279,7 @@ DelayedComboFX delayedComboFX;
 bool changedFrameRateCorrection = false;
 bool gamepadCombinationMainRelease = false;
 
+std::vector<std::string> HUDdirectories;
 
 float frameRateSpeedMultiplier = 0;
 

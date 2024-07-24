@@ -35,6 +35,7 @@
 #include "Core/Macros.h"
 
 #include "Core/DebugSwitch.hpp"
+#include "CrimsonFileHandling.hpp"
 
 
 uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
@@ -46,7 +47,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 		freopen("CONOUT$", "w", stderr);
 #endif
 
-        InitLog("logs", "Mary.txt");
+        InitLog("logs", "Crimson.txt");
 
         Log("Session started.");
 
@@ -85,6 +86,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ExpConfig::InitExp();
         ExpConfig::LoadExp();
 
+        copyHUDtoGame();
 
         if (!Memory_Init()) {
             Log("Memory_Init failed.");
@@ -260,6 +262,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 
         // Remove FMODGetCodecDescription Label
         SetMemory((appBaseAddr + 0x5505B5), 0, 23, MemoryFlags_VirtualProtectDestination);
+
     }
 
     return 1;

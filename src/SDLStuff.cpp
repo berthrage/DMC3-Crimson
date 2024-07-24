@@ -11,6 +11,7 @@
 #include "Config.hpp"
 #include "SDL.hpp"
 #include "Vars.hpp"
+#include "CrimsonFileHandling.hpp"
 
 SDL_GameController* controller = NULL;
 SDL_Joystick* joystick;
@@ -58,6 +59,7 @@ Mix_Chunk* delayedCombo2;
 Mix_Chunk* delayedDrive;
 Mix_Music* missionClearSong;
 
+
 #define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
 #define LOAD_SDL_FUNCTION(X) fn_##X = GetSDLFunction<decltype(X)*>(#X)
 #define LOAD_MIXER_FUNCTION(X) fn_##X = GetSDLMixerFunction<decltype(X)*>(#X)
@@ -84,6 +86,54 @@ SDL_FUNCTION_DECLRATION(Mix_FadeInMusic)                  = NULL;
 SDL_FUNCTION_DECLRATION(Mix_FadeOutMusic)                 = NULL;
 SDL_FUNCTION_DECLRATION(Mix_PlayingMusic)                 = NULL;
 SDL_FUNCTION_DECLRATION(SDL_JoystickGetButton) = NULL;
+
+void loadAllSFX() {
+	if (!cacheAudioFiles) {
+
+		changeGun = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\changegun.wav").c_str());
+		changeDevilArm = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\changedevilarm.wav").c_str());
+		styleChange = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\stylechange.wav").c_str());
+		tricksterVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\trickster1.wav").c_str());
+		swordmasterVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\swordmaster1.wav").c_str());
+		gunslingerVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\gunslinger1.wav").c_str());
+		royalguardVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\royalguard1.wav").c_str());
+		quicksilverVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\quicksilver1.wav").c_str());
+		doppelgangerVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\doppelganger2.wav").c_str());
+		sprintL1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\sprint_l1.wav").c_str());
+		sprintL2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\sprint_l2.wav").c_str());
+		devilTriggerInL1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dt_activation_l1.wav").c_str());
+		devilTriggerInL2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dt_activation_l2.wav").c_str());
+		devilTriggerOut = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dt_deactivation.wav").c_str());
+		devilTriggerLoop = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dt_loop.wav").c_str());
+		doppelgangerIn = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dopp_activation.wav").c_str());
+		doppelgangerOut = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dopp_deactivation.wav").c_str());
+		quicksilverIn = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\qs_activation.wav").c_str());
+		devilTriggerReady = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dt_ready.wav").c_str());
+		styleRankD1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\d1.wav").c_str());
+		styleRankD2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\d2.wav").c_str());
+		styleRankC1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\c1.wav").c_str());
+		styleRankC2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\c2.wav").c_str());
+		styleRankB1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\b1.wav").c_str());
+		styleRankB2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\b2.wav").c_str());
+		styleRankA1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\a1.wav").c_str());
+		styleRankA2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\a2.wav").c_str());
+		styleRankS1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\s1.wav").c_str());
+		styleRankS2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\s2.wav").c_str());
+		styleRankSS1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\ss1.wav").c_str());
+		styleRankSS2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\ss2.wav").c_str());
+		styleRankSSS1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\sss1.wav").c_str());
+		styleRankSSS2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\sss2.wav").c_str());
+		delayedCombo1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\delayedcombo1.wav").c_str());
+		delayedCombo2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\delayedcombo2.wav").c_str());
+
+
+
+		missionClearSong = fn_Mix_LoadMUS(((std::string)Paths::sounds + "\\music\\missionclear.mp3").c_str());
+
+
+		cacheAudioFiles = true;
+	}
+}
 
 void initSDL() {
     if (!SDL2Init) {
@@ -201,49 +251,7 @@ void initSDL() {
     // RESERVES SELECT EFFECT SOUND FOR CHANNELS 100 AND ABOVE
     fn_Mix_ReserveChannels(100);
 
-    if (!cacheAudioFiles) {
-
-        changeGun         = fn_Mix_LoadWAV("sound/changegun.wav");
-        changeDevilArm    = fn_Mix_LoadWAV("sound/changedevilarm.wav");
-        styleChange       = fn_Mix_LoadWAV("sound/stylechange.wav");
-        tricksterVO       = fn_Mix_LoadWAV("sound/trickster1.wav");
-        swordmasterVO     = fn_Mix_LoadWAV("sound/swordmaster1.wav");
-        gunslingerVO      = fn_Mix_LoadWAV("sound/gunslinger1.wav");
-        royalguardVO      = fn_Mix_LoadWAV("sound/royalguard1.wav");
-        quicksilverVO     = fn_Mix_LoadWAV("sound/quicksilver1.wav");
-        doppelgangerVO    = fn_Mix_LoadWAV("sound/doppelganger2.wav");
-        sprintL1          = fn_Mix_LoadWAV("sound/sprint_l1.wav");
-        sprintL2          = fn_Mix_LoadWAV("sound/sprint_l2.wav");
-        devilTriggerInL1  = fn_Mix_LoadWAV("sound/dt_activation_l1.wav");
-        devilTriggerInL2  = fn_Mix_LoadWAV("sound/dt_activation_l2.wav");
-        devilTriggerOut   = fn_Mix_LoadWAV("sound/dt_deactivation.wav");
-        devilTriggerLoop  = fn_Mix_LoadWAV("sound/dt_loop.wav");
-        doppelgangerIn    = fn_Mix_LoadWAV("sound/dopp_activation.wav");
-        doppelgangerOut   = fn_Mix_LoadWAV("sound/dopp_deactivation.wav");
-        quicksilverIn     = fn_Mix_LoadWAV("sound/qs_activation.wav");
-        devilTriggerReady = fn_Mix_LoadWAV("sound/dt_ready.wav");
-        styleRankD1       = fn_Mix_LoadWAV("sound/styleranks/d1.wav");
-        styleRankD2       = fn_Mix_LoadWAV("sound/styleranks/d2.wav");
-        styleRankC1       = fn_Mix_LoadWAV("sound/styleranks/c1.wav");
-        styleRankC2       = fn_Mix_LoadWAV("sound/styleranks/c2.wav");
-        styleRankB1       = fn_Mix_LoadWAV("sound/styleranks/b1.wav");
-        styleRankB2       = fn_Mix_LoadWAV("sound/styleranks/b2.wav");
-        styleRankA1       = fn_Mix_LoadWAV("sound/styleranks/a1.wav");
-        styleRankA2       = fn_Mix_LoadWAV("sound/styleranks/a2.wav");
-        styleRankS1       = fn_Mix_LoadWAV("sound/styleranks/s1.wav");
-        styleRankS2       = fn_Mix_LoadWAV("sound/styleranks/s2.wav");
-        styleRankSS1      = fn_Mix_LoadWAV("sound/styleranks/ss1.wav");
-        styleRankSS2      = fn_Mix_LoadWAV("sound/styleranks/ss2.wav");
-        styleRankSSS1     = fn_Mix_LoadWAV("sound/styleranks/sss1.wav");
-        styleRankSSS2     = fn_Mix_LoadWAV("sound/styleranks/sss2.wav");
-        delayedCombo1     = fn_Mix_LoadWAV("sound/delayedcombo1.wav");
-        delayedCombo2     = fn_Mix_LoadWAV("sound/delayedcombo2.wav");
-
-        missionClearSong = fn_Mix_LoadMUS("sound/music/missionclear.mp3");
-
-
-        cacheAudioFiles = true;
-    }
+    loadAllSFX();
 }
 
 
