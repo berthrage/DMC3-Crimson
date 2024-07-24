@@ -18,7 +18,7 @@ using namespace DI8;
 #include "CrimsonFileHandling.hpp"
 
 inline const char* directoryName = Paths::config;
-inline const char* fileName      = "Crimson.json";
+inline const char* fileName      = "CrimsonConfig.json";
 
 char locationConfig[64] = {};
 
@@ -2059,7 +2059,7 @@ void InitConfig() {
 
 namespace ExpConfig {
 inline const char* directoryName = Paths::config;
-inline const char* fileName      = "Crimson_Exp.json";
+inline const char* fileName      = "CrimsonExp.json";
 
 char location[64] = {};
 
