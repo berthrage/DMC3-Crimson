@@ -6971,7 +6971,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("SCENE:  %u", g_scene);
                 
                 for (int i = 0; i < 14; i++) {
-                    ImGui::Text("sessionData unlock[%u] : %u", i, sessionData.unlocks[i]);
+                    ImGui::Text("sessionData unlock[%u] : %u", i, sessionData.weaponStyleUnlocks[i]);
                 }
                 for (int i = 0; i < 8; i++) {
                     ImGui::Text("sessionData weapon[%u] : %u", i, sessionData.weapons[i]);
@@ -7115,7 +7115,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
             // ImGui::Text("Gravity Tweak:  %g", crimsonPlayer[0].airRaveTweak.gravity);
             // ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
             // ImGui::Text("Actor Speed %g", actorData.speed);
-            ImGui::Text("sessionData WEAPON 0: %u", sessionData.weapons[0]);
+            ImGui::Text("DTECHARGE: %g", actorData.dtExplosionCharge);
             ImGui::Text("FLUX TIME: %g", crimsonPlayer[0].fluxtime);
             ImGui::Text("TRICKSTER TIME: %g", crimsonPlayer[0].styleSwitchText.time[0]);
             ImGui::Text("TRICKSTER ALPHA: %g", crimsonPlayer[0].styleSwitchText.alpha[0]);

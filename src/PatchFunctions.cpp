@@ -13,6 +13,7 @@
 #include "Vars.hpp"
 
 #include "Core/Macros.h"
+#include "CrimsonUtil.hpp"
 
 #pragma region GameplayImprovements
 
@@ -172,15 +173,23 @@ void CameraSensController() {
 }
 
 void CameraFollowUpSpeedController() {
-    uintptr_t cameraFollowUpSpeedAddr = 0x27B74D0;
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449 || !pool_4449[147]) {
+		return;
+	}
+	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 
-    if (activeConfig.cameraFollowUpSpeed == 0) { // Low (Vanilla Default)
-        *(float*)(cameraFollowUpSpeedAddr) = 1000.0f;
-    } else if (activeConfig.cameraFollowUpSpeed == 1) { // Medium
-        *(float*)(cameraFollowUpSpeedAddr) = 500.0f;
-    } else if (activeConfig.cameraFollowUpSpeed == 2) { // High
-        *(float*)(cameraFollowUpSpeedAddr) = 250.0f;
-    }
+    
+	if (activeConfig.cameraFollowUpSpeed == 0) { // Low (Vanilla Default)
+		cameraData.cameraLag = 1000.0f;
+	}
+	else if (activeConfig.cameraFollowUpSpeed == 1) { // Medium
+		cameraData.cameraLag = 500.0f;
+	}
+	else if (activeConfig.cameraFollowUpSpeed == 2) { // High
+		cameraData.cameraLag = 250.0f;
+	}
+    
 }
 
 void CameraDistanceController() {

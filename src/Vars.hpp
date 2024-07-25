@@ -1613,7 +1613,7 @@ constexpr uint32 motionArchivesOffs[] = {
 };
 
 // $ItemStart
-
+// For use within sessionData.itemcounts and missionData.itemCounts
 namespace ITEM {
 enum {
     UNKNOWN_0,
@@ -1639,17 +1639,17 @@ enum {
     UNKNOWN_11,
     UNKNOWN_12,
     UNKNOWN_13,
-    UNKNOWN_14,
-    UNKNOWN_15,
+    CERBERUS,
+    AGNI_RUDRA,
     UNKNOWN_16,
-    UNKNOWN_17,
-    UNKNOWN_18,
+    NEVAN,
+    BEOWULF,
     UNKNOWN_19,
-    UNKNOWN_20,
-    UNKNOWN_21,
-    UNKNOWN_22,
+    SHOTGUN,
+    ARTEMIS,
+    SPIRAL,
     UNKNOWN_23,
-    UNKNOWN_24,
+    KALINA_ANN,
     UNKNOWN_25,
     UNKNOWN_26,
     ASTRONOMICAL_BOARD,
@@ -1683,6 +1683,29 @@ enum {
 };
 
 extern const char* itemNames[ITEM::COUNT];
+
+// For use within sessionData.weaponStyleUnlocks
+namespace WEAPONSTYLEUNLOCKS {
+	enum {
+		UNKNOWN_0,
+        CERBERUS,
+        AGNI_RUDRA,
+        UNKNOWN_1, 
+        NEVAN,
+        BEOWULF,
+        UNKNOWN_2,
+        SHOTGUN,
+        ARTEMIS,
+        SPIRAL,
+        UNKNOWN_3,
+        KALINA_ANN,
+        QUICKSILVER,
+        DOPPELGANGER,
+		COUNT,
+	};
+};
+
+extern const char* weaponStyleUnlocksNames[WEAPONSTYLEUNLOCKS::COUNT];
 
 namespace BUY {
 enum {
@@ -2003,7 +2026,7 @@ struct SessionData {
     uint32 redOrbs;       // 0x2C
     uint8 itemCounts[20]; // 0x30
     _(2);
-    bool unlocks[14]; // 0x46
+    bool weaponStyleUnlocks[14]; // 0x46
     _(48);
     uint8 weapons[8]; // 0x84
     _(20);
@@ -2031,7 +2054,7 @@ static_assert(offsetof(SessionData, character) == 0x14);
 static_assert(offsetof(SessionData, bloodyPalace) == 0x1C);
 static_assert(offsetof(SessionData, redOrbs) == 0x2C);
 static_assert(offsetof(SessionData, itemCounts) == 0x30);
-static_assert(offsetof(SessionData, unlocks) == 0x46);
+static_assert(offsetof(SessionData, weaponStyleUnlocks) == 0x46);
 static_assert(offsetof(SessionData, weapons) == 0x84);
 static_assert(offsetof(SessionData, rangedWeaponLevels) == 0xA0);
 static_assert(offsetof(SessionData, meleeWeaponIndex) == 0xC8);
@@ -2224,7 +2247,9 @@ struct CameraData {
     float distance; // 0xD8
     _(4);
     float distanceLockOn; // 0xE0
-    _(284);
+    _(252);
+    float cameraLag; // 0x1E0
+    _(28);
 };
 
 static_assert(offsetof(CameraData, fov) == 0x20);
@@ -2234,6 +2259,7 @@ static_assert(offsetof(CameraData, height) == 0xD0);
 static_assert(offsetof(CameraData, tilt) == 0xD4);
 static_assert(offsetof(CameraData, distance) == 0xD8);
 static_assert(offsetof(CameraData, distanceLockOn) == 0xE0);
+static_assert(offsetof(CameraData, cameraLag) == 0x1E0);
 
 static_assert(sizeof(CameraData) == 512);
 
@@ -2829,7 +2855,9 @@ struct PlayerActorDataBase : ActorDataBase {
     };                   // 0x3E9F
     _(4);
     bool useHolyWater; // 0x3EA4
-    _(19);
+    _(11);
+    float dtExplosionCharge; // 0x3EB0
+    _(4);
     float magicPoints;    // 0x3EB8
     float maxMagicPoints; // 0x3EBC
     _(4);
@@ -2992,6 +3020,7 @@ static_assert(offsetof(PlayerActorDataBase, costume) == 0x3E9E);
 static_assert(offsetof(PlayerActorDataBase, sparda) == 0x3E9F);
 static_assert(offsetof(PlayerActorDataBase, neroAngelo) == 0x3E9F);
 static_assert(offsetof(PlayerActorDataBase, useHolyWater) == 0x3EA4);
+static_assert(offsetof(PlayerActorDataBase, dtExplosionCharge) == 0x3EB0);
 static_assert(offsetof(PlayerActorDataBase, magicPoints) == 0x3EB8);
 static_assert(offsetof(PlayerActorDataBase, maxMagicPoints) == 0x3EBC);
 static_assert(offsetof(PlayerActorDataBase, var_3EC4) == 0x3EC4);

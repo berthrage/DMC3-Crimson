@@ -77,3 +77,18 @@ int GetPlayerIndexFromAddr(uintptr_t playerPtr) {
 
     return playerIndexFound;
 }
+
+bool IsAddressValidAndWritable(uintptr_t address) {
+    MEMORY_BASIC_INFORMATION mbi;
+    if (VirtualQuery(reinterpret_cast<LPCVOID>(address), &mbi, sizeof(mbi))) {
+        // Check if the address is committed memory and is writable
+        if (mbi.State == MEM_COMMIT &&
+            (mbi.Protect == PAGE_READWRITE ||
+                mbi.Protect == PAGE_WRITECOPY ||
+                mbi.Protect == PAGE_EXECUTE_READWRITE ||
+                mbi.Protect == PAGE_EXECUTE_WRITECOPY)) {
+            return true;
+        }
+    }
+    return false;
+}

@@ -4,3 +4,4 @@
 void UpdateCrimsonPlayerData();
 int GetPlayerIndexFromAddr(uintptr_t playerPtr);
 void StyleRankHudFadeoutController();
+bool IsAddressValidAndWritable(uintptr_t address);
