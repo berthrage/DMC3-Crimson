@@ -1604,6 +1604,10 @@ void PauseWhenGUIOpen() {
     }
 }
 
+void GameTrackDetection() {
+    g_gameTrackPlaying = (std::string)reinterpret_cast<char*>(appBaseAddr + 0xD23906);    
+}
+
 void CorrectFrameRateCutscenes() {
     // Changing frame rate to above or below 60 will alter cutscene speed, this function corrects this behavior
     // by forcing cutscenes to play at 60 fps. - Mia
@@ -6969,6 +6973,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text(sceneNames[g_scene]);
                 ImGui::Text("sessionData mission:  %u", sessionData.mission);
                 ImGui::Text("SCENE:  %u", g_scene);
+                ImGui::Text("TRACK PLAYING: %s", g_gameTrackPlaying.c_str());
                 
 //                 for (int i = 0; i < 14; i++) {
 //                     ImGui::Text("sessionData unlock[%u] : %u", i, sessionData.weaponStyleUnlocks[i]);
@@ -7114,6 +7119,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
             // ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
             // ImGui::Text("Actor Speed %g", actorData.speed);
             ImGui::Text("IN COMBAT: %u", g_inCombat);
+            ImGui::Text("DTE CHARGE: %g", actorData.dtExplosionCharge);
             ImGui::Text("FLUX TIME: %g", crimsonPlayer[0].fluxtime);
             ImGui::Text("TRICKSTER TIME: %g", crimsonPlayer[0].styleSwitchText.time[0]);
             ImGui::Text("TRICKSTER ALPHA: %g", crimsonPlayer[0].styleSwitchText.alpha[0]);
@@ -10510,6 +10516,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 
     
     PauseWhenGUIOpen();
+    GameTrackDetection();
     MainOverlayWindow(UI::g_UIContext.DefaultFontSize);
     MissionOverlayWindow(UI::g_UIContext.DefaultFontSize);
     BossLadyActionsOverlayWindow();

@@ -4140,6 +4140,7 @@ extern bool g_inCombat;
 extern bool g_inBossfight;
 extern int g_bossQuantity;
 extern bool g_inGame;
+extern std::string g_gameTrackPlaying;
 
 extern bool exceptionShot;
 
