@@ -1572,9 +1572,9 @@ void PauseWhenGUIOpen() {
     if (g_scene != SCENE::GAME || eventData.event != EVENT::MAIN) {
         guiPause.timer    = 1.0f;
         guiPause.canPause = false;
-        inGame = false;
+        g_inGame = false;
     } else {
-        inGame = true;
+        g_inGame = true;
         
         if (guiPause.timer > 0) {
             guiPause.timer -= ImGui::GetIO().DeltaTime;
@@ -6970,12 +6970,10 @@ void MainOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("sessionData mission:  %u", sessionData.mission);
                 ImGui::Text("SCENE:  %u", g_scene);
                 
-                for (int i = 0; i < 14; i++) {
-                    ImGui::Text("sessionData unlock[%u] : %u", i, sessionData.weaponStyleUnlocks[i]);
-                }
-                for (int i = 0; i < 8; i++) {
-                    ImGui::Text("sessionData weapon[%u] : %u", i, sessionData.weapons[i]);
-                }
+//                 for (int i = 0; i < 14; i++) {
+//                     ImGui::Text("sessionData unlock[%u] : %u", i, sessionData.weaponStyleUnlocks[i]);
+//                 }
+               
                 ImGui::Text("Unlocked DT: %u", sessionData.unlockDevilTrigger);
                 ImGui::Text("Quicksilver Level: %u", sessionData.styleLevels[4]);
 
@@ -7115,7 +7113,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
             // ImGui::Text("Gravity Tweak:  %g", crimsonPlayer[0].airRaveTweak.gravity);
             // ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
             // ImGui::Text("Actor Speed %g", actorData.speed);
-            ImGui::Text("DTECHARGE: %g", actorData.dtExplosionCharge);
+            ImGui::Text("IN COMBAT: %u", g_inCombat);
             ImGui::Text("FLUX TIME: %g", crimsonPlayer[0].fluxtime);
             ImGui::Text("TRICKSTER TIME: %g", crimsonPlayer[0].styleSwitchText.time[0]);
             ImGui::Text("TRICKSTER ALPHA: %g", crimsonPlayer[0].styleSwitchText.alpha[0]);
@@ -7504,7 +7502,7 @@ void AdjustBackgroundTransparency() {
         //DYNAMIC
     case 2 :
 
-        if (inGame) {
+        if (g_inGame) {
             ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, queuedConfig.GUI.transparencyValue));
 
             

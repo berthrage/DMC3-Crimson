@@ -4136,12 +4136,10 @@ extern bool inRapidSlash;
 
 extern bool styleChanged[6];
 
-extern bool inCombatTrackerRunning;
-extern int inCombatDelay;
-extern int inCombatTime;
-extern bool inCombat;
-extern DWORD inCombatGameAddress;
-extern bool inGame;
+extern bool g_inCombat;
+extern bool g_inBossfight;
+extern int g_bossQuantity;
+extern bool g_inGame;
 
 extern bool exceptionShot;
 

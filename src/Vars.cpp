@@ -238,12 +238,10 @@ bool inRapidSlash;
 
 bool styleChanged[6] = {false, false, false, false, false, false};
 
-bool inCombatTrackerRunning = false;
-int inCombatDelay           = 2000;
-int inCombatTime            = inCombatDelay;
-bool inCombat               = false;
-DWORD inCombatGameAddress   = 0x005F17CC;
-bool inGame = false;
+bool g_inCombat = false;
+bool g_inBossfight = false;
+int g_bossQuantity = 0;
+bool g_inGame = false;
 
 bool exceptionShot = false;
 

@@ -1732,40 +1732,26 @@ void StyleMeterDoppelganger(byte8* actorBaseAddr) {
     }
 }
 
-void inCombatDetectionTracker() {
-    inCombatTrackerRunning = true;
-    inCombatTime           = inCombatDelay;
-    while (inCombatTime > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        inCombatTime--;
-    }
-
-
-    if (inCombatTime == 0) {
-        inCombatTrackerRunning = false;
-        inCombat               = false;
-    }
-
-}
 
 void inCombatDetection() {
-    auto pool_12346 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-    if (!pool_12346 || !pool_12346[8]) {
-        return;
-    }
-    auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_12346[8]);
+    auto inCombatDetector = *reinterpret_cast<int*>(appBaseAddr + 0xD23A80);
+    auto inBossfightDetector = *reinterpret_cast<int*>(appBaseAddr + 0xD5BA88);
 
-
-    if (g_scene != SCENE::GAME) {
-        inCombat = false;
-    } else {
-        if (enemyVectorData.count >= 1) {
-            inCombat = true;
-        } else if (enemyVectorData.count == 0 && !inCombatTrackerRunning && inCombat) {
-            std::thread incombatdetectiontracker(inCombatDetectionTracker);
-            incombatdetectiontracker.detach();
-        }
+	if (inBossfightDetector > 10) {
+		g_inBossfight = true;
+	}
+	else {
+		g_inBossfight = false;
+	}
+    
+    if (inCombatDetector == 1 || g_inBossfight) {
+        g_inCombat = true;
     }
+    else {
+        g_inCombat = false;
+    }
+
+    g_bossQuantity = inBossfightDetector - 10;
 }
 
 
@@ -1904,7 +1890,7 @@ void SprintAbility(byte8* actorBaseAddr) {
         // 		(actorData.newEntityIndex == ENTITY::MAIN)) {
 
 
-        if (actorData.state == 524289 && !inCombat) {
+        if (actorData.state == 524289 && !g_inCombat) {
 
 
             if (!crimsonPlayer[playerIndex].sprint.runTimer) {
@@ -2430,7 +2416,7 @@ void DriveTweaks(byte8* actorBaseAddr) {
 }
 
 void StyleSwitchFlux(byte8* actorBaseAddr) {
-    if (!actorBaseAddr) {
+    if (!actorBaseAddr) {   
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
