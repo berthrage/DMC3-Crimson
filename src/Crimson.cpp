@@ -137,6 +137,8 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         push the default data to backupHelper.
         */
 
+        
+
         Actor::Toggle(false);
         Actor::Toggle(activeConfig.Actor.enable);
 
@@ -254,7 +256,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         Hooks::Init();
 
         InitDetours();
-        ToggleOriginalHUDPositionings(activeConfig.originalHUDpositionings);
+        ToggleClassicHUDPositionings(activeConfig.classicHUDpositionings);
         ToggleStyleRankHudNoFadeout(activeConfig.disableStyleRankHudFadeout);
 
         DisableBlendingEffects(false);

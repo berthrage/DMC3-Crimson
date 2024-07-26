@@ -3774,7 +3774,7 @@ void BarsSettings(size_t defaultFontSize) {
 
     const float itemWidth = defaultFontSize * 6.0f;
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
-	const float rowWidth = 40.0f * queuedConfig.globalScale;
+	const float rowWidth = 20.0f * queuedConfig.globalScale;
     const float rowWidth2 = 0.5f * queuedConfig.globalScale;
     
 
@@ -3812,78 +3812,30 @@ void BarsSettings(size_t defaultFontSize) {
             ImGui::Text(title.c_str());
 
             auto& activePos = *reinterpret_cast<ImVec2*>(&activeConfig.barsData[i].pos);
+            auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedConfig.barsData[i].pos);
+            auto& defaultPos = *reinterpret_cast<ImVec2*>(&defaultConfig.barsData[i].pos);
 
-			ImGui::PushItemWidth(itemWidth * 0.85f);
-			if (GUI_Input2<float>("X", activeConfig.barsData[i].pos.x, queuedConfig.barsData[i].pos.x, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+			ImGui::PushItemWidth(itemWidth);
+			if (GUI_Input2("X", activePos.x, queuedPos.x, 10.0f,"%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
                 
 				ImGui::SetWindowPos(barsNames[i], activePos);
 			}
 			ImGui::SameLine();
-			if (GUI_Input2<float>("Y", activeConfig.barsData[i].pos.y, queuedConfig.barsData[i].pos.y, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+			if (GUI_Input2("Y", activePos.y, queuedPos.y, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
 				ImGui::SetWindowPos(barsNames[i], activePos);
 			}
+            ImGui::SameLine();
+            if(GUI_Button("D")) {
+                CopyMemory(&activePos, &defaultPos, sizeof(activePos));
+                CopyMemory(&queuedPos, &defaultPos, sizeof(queuedPos));
+
+                ImGui::SetWindowPos(barsNames[i], activePos);
+
+            }
 			ImGui::PopItemWidth();
             
         }
         
-		/*ImGui::Text("1P Position");
-        //ImGui::Text("");
-
-        ImGui::PushItemWidth(itemWidth);
-        if (GUI_Input2<float>("X", activePos1P.x, queuedPos1P.x, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-            ImGui::SetWindowPos(barsNames[0], activePos1P);
-        }
-        ImGui::SameLine();
-        if (GUI_Input2<float>("Y", activePos1P.y, queuedPos1P.y, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-            ImGui::SetWindowPos(barsNames[0], activePos1P);
-        }
-        ImGui::PopItemWidth();
-			
-		ImGui::TableNextColumn();
-
-		ImGui::Text("2P Position");
-        //ImGui::Text("");
-
-        ImGui::PushItemWidth(itemWidth);
-		if (GUI_Input2<float>("X", activePos2P.x, queuedPos2P.x, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-			ImGui::SetWindowPos(barsNames[1], activePos2P);
-		}
-        ImGui::SameLine();
-		if (GUI_Input2<float>("Y", activePos2P.y, queuedPos2P.y, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-			ImGui::SetWindowPos(barsNames[1], activePos2P);
-		}
-        ImGui::PopItemWidth();
-
-		ImGui::TableNextRow(0, rowWidth);
-        ImGui::TableNextRow(0, rowWidth2);
-        
-		ImGui::TableNextColumn();
- 
-
-		ImGui::Text("3P Position");
-        //ImGui::Text("");
-
-		if (GUI_Input2<float>("X", activePos3P.x, queuedPos3P.x, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-			ImGui::SetWindowPos(barsNames[2], activePos3P);
-		}
-        ImGui::SameLine();
-		if (GUI_Input2<float>("Y", activePos3P.y, queuedPos3P.y, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-			ImGui::SetWindowPos(barsNames[2], activePos3P);
-		}
-
-		ImGui::TableNextColumn();
-
-		ImGui::Text("4P Position");
-        //ImGui::Text("");
-
-		if (GUI_Input2<float>("X", activePos4P.x, queuedPos4P.x, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-			ImGui::SetWindowPos(barsNames[3], activePos4P);
-		}
-        ImGui::SameLine();
-		if (GUI_Input2<float>("Y", activePos4P.y, queuedPos4P.y, 10, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-			ImGui::SetWindowPos(barsNames[3], activePos4P);
-		}
-        */
         
 
 		ImGui::EndTable();
@@ -7655,8 +7607,8 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-            if (GUI_Checkbox2("Original HUD Positionings", activeConfig.originalHUDpositionings, queuedConfig.originalHUDpositionings)) {
-                ToggleOriginalHUDPositionings(activeConfig.originalHUDpositionings);
+            if (GUI_Checkbox2("Classic HUD Positionings", activeConfig.classicHUDpositionings, queuedConfig.classicHUDpositionings)) {
+                ToggleClassicHUDPositionings(activeConfig.classicHUDpositionings);
             }
 
             ImGui::TableNextColumn();

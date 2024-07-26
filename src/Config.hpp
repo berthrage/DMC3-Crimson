@@ -494,7 +494,7 @@ struct Config {
 
     bool showAdditionalBars = true;
     bool show1Pbar = false;
-    bool originalHUDpositionings = false;
+    bool classicHUDpositionings = false;
     bool disableStyleRankHudFadeout = true;
 
     bool forceSyncHitMagicPoints = true;

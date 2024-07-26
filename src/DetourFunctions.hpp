@@ -45,5 +45,5 @@ void VergilNeutralTrickDetour();
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 void InitDetours();
-void ToggleOriginalHUDPositionings(bool enable);
+void ToggleClassicHUDPositionings(bool enable);
 void ToggleStyleRankHudNoFadeout(bool enable);

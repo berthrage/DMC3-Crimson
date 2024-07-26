@@ -691,7 +691,7 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "hideMainHUD", config.hideMainHUD);
     Create<bool>(member, "hideLockOn", config.hideLockOn);
     Create<bool>(member, "hideBossHUD", config.hideBossHUD);
-    Create<bool>(member, "originalHUDpositionings", config.originalHUDpositionings);
+    Create<bool>(member, "classicHUDpositionings", config.classicHUDpositionings);
     Create<bool>(member, "disableStyleRankHudFadeout", config.disableStyleRankHudFadeout);
     Create<bool>(member, "soundIgnoreEnemyData", config.soundIgnoreEnemyData);
     Create<bool>(member, "enableRebellionAirStinger", config.enableRebellionAirStinger);
@@ -1284,7 +1284,7 @@ void ToJSON(Config& config_) {
     Set<bool>(member["hideMainHUD"], config.hideMainHUD);
     Set<bool>(member["hideLockOn"], config.hideLockOn);
     Set<bool>(member["hideBossHUD"], config.hideBossHUD);
-    Set<bool>(member["originalHUDpositionings"], config.originalHUDpositionings);
+    Set<bool>(member["classicHUDpositionings"], config.classicHUDpositionings);
     Set<bool>(member["disableStyleRankHudFadeout"], config.disableStyleRankHudFadeout);
     Set<bool>(member["soundIgnoreEnemyData"], config.soundIgnoreEnemyData);
     Set<bool>(member["enableRebellionAirStinger"], config.enableRebellionAirStinger);
@@ -1565,6 +1565,10 @@ void ToConfig_MainOverlayData(Config::MainOverlayData& config, rapidjson::Value&
 
 
 void ToConfig_BarsData(Config::BarsData& config, rapidjson::Value& member) {
+	defaultConfig.barsData[1].pos = { 938, 59 };
+	defaultConfig.barsData[2].pos = { 1191, 59 };
+	defaultConfig.barsData[3].pos = { 1191, 129 };
+
     config.enable = Get<bool>(member["enable"]);
     config.run    = Get<bool>(member["run"]);
 
@@ -1871,7 +1875,7 @@ void ToConfig(Config& config_) {
     config.enablePVPFixes                     = Get<bool>(member["enablePVPFixes"]);
     config.hideMainHUD                        = Get<bool>(member["hideMainHUD"]);
     config.hideLockOn                         = Get<bool>(member["hideLockOn"]);
-    config.originalHUDpositionings            = Get<bool>(member["originalHUDpositionings"]);
+    config.classicHUDpositionings            = Get<bool>(member["classicHUDpositionings"]);
     config.disableStyleRankHudFadeout = Get<bool>(member["disableStyleRankHudFadeout"]);
     config.soundIgnoreEnemyData               = Get<bool>(member["soundIgnoreEnemyData"]);
     config.enableRebellionAirStinger          = Get<bool>(member["enableRebellionAirStinger"]);

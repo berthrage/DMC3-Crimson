@@ -262,7 +262,7 @@ void InitDetours() {
     // VergilNeutralTrickHook->Toggle(true);
 }
 
-void ToggleOriginalHUDPositionings(bool enable) {
+void ToggleClassicHUDPositionings(bool enable) {
 	using namespace Utility;
 	DetourBaseAddr = (uintptr_t)appBaseAddr;
 
