@@ -3904,6 +3904,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CameraLockOnDistanceController();
     StyleRankHudFadeoutController();
     StyleSwitchFlux(actorBaseAddr);
+    DTExplosionSFXController(actorBaseAddr);
     
 
     LastEventStateQueue(actorBaseAddr);

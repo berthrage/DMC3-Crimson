@@ -37,6 +37,10 @@ Mix_Chunk* devilTriggerInL2;
 Mix_Chunk* devilTriggerOut;
 Mix_Chunk* devilTriggerLoop;
 Mix_Chunk* devilTriggerReady;
+Mix_Chunk* dtExplosionStart;
+Mix_Chunk* dtExplosionLoop;
+Mix_Chunk* dtExplosionFinish;
+Mix_Chunk* dtExplosionRelease;
 Mix_Chunk* doppelgangerIn;
 Mix_Chunk* doppelgangerOut;
 Mix_Chunk* quicksilverIn;
@@ -105,6 +109,10 @@ void loadAllSFX() {
 		devilTriggerInL2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dt_activation_l2.wav").c_str());
 		devilTriggerOut = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dt_deactivation.wav").c_str());
 		devilTriggerLoop = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dt_loop.wav").c_str());
+		dtExplosionStart = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dte_start.wav").c_str());
+		dtExplosionLoop = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dte_loop.wav").c_str());
+		dtExplosionFinish = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dte_finish.wav").c_str());
+		dtExplosionRelease = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dte_release.wav").c_str());
 		doppelgangerIn = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dopp_activation.wav").c_str());
 		doppelgangerOut = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dopp_deactivation.wav").c_str());
 		quicksilverIn = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\qs_activation.wav").c_str());
@@ -497,6 +505,43 @@ void playDelayedCombo1() {
 void playDelayedCombo2() {
     fn_Mix_Volume(311, 100);
     fn_Mix_PlayChannel(311, delayedCombo2, 0);
+}
+
+bool channelIsPlaying(int channel) {
+    return fn_Mix_Playing(channel);
+}
+
+bool dTEStartIsPlaying(int playerIndex) {
+    return channelIsPlaying(312 + playerIndex);
+}
+
+void playDTExplosionStart(int playerIndex, int volume) {
+    // starts at channel 312, to 315 for 4P
+    fn_Mix_Volume(312 + playerIndex, volume);
+    fn_Mix_PlayChannel(312 + playerIndex, dtExplosionStart, 0);
+}
+
+void playDTExplosionLoop(int playerIndex, int volume) {
+	// starts at channel 316, to 319 for 4P
+	fn_Mix_Volume(316 + playerIndex, volume);
+	fn_Mix_PlayChannel(316 + playerIndex, dtExplosionLoop, -1);
+}
+
+void playDTExplosionFinish(int playerIndex, int volume) {
+    // starts at channel 320, to 323 for 4P
+    fn_Mix_Volume(320 + playerIndex, volume);
+    fn_Mix_PlayChannel(320 + playerIndex, dtExplosionFinish, 0);
+}
+
+void playDTEExplosionRelease(int playerIndex, int volume) {
+    // starts at channel 324, to 327 for 4P
+	fn_Mix_Volume(324 + playerIndex, volume);
+	fn_Mix_PlayChannel(324 + playerIndex, dtExplosionRelease, 0);
+}
+
+void interruptDTExplosionSFX(int playerIndex) {
+    fn_Mix_HaltChannel(312 + playerIndex);
+    fn_Mix_HaltChannel(316 + playerIndex);
 }
 
 void PlayNewMissionClearSong() {

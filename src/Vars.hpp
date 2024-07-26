@@ -4238,7 +4238,12 @@ struct StyleSwitchText {
 	
 };
 
-
+struct DTESFX {
+    bool started = false;
+    bool looped = false;
+    bool finished = false;
+    float releaseVolumeMult = 0;
+};
 
 struct AirRaveTweak {
     float gravity           = 0;
@@ -4319,6 +4324,7 @@ struct CrimsonPlayerData {
     ImprovedCancels cancels;
     BackToForward b2F;
     StyleSwitchText styleSwitchText;
+    DTESFX dTESFX;
     float fluxtime = 0;
     bool fluxCanStart = true;
     bool fluxCanEnd = false;

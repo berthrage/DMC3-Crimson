@@ -7070,6 +7070,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
             // ImGui::Text("Gravity Tweak:  %g", crimsonPlayer[0].airRaveTweak.gravity);
             // ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
             // ImGui::Text("Actor Speed %g", actorData.speed);
+            ImGui::Text("DTE START STARTED: %u", crimsonPlayer[0].dTESFX.started);
             ImGui::Text("IN COMBAT: %u", g_inCombat);
             ImGui::Text("DTE CHARGE: %g", actorData.dtExplosionCharge);
             ImGui::Text("FLUX TIME: %g", crimsonPlayer[0].fluxtime);

@@ -2039,6 +2039,58 @@ void GunDTCharacterRemaps() {
     }
 }
 
+void DTExplosionSFXController(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    auto playerIndex = actorData.newPlayerIndex;
+    auto&dTEStarted = crimsonPlayer[playerIndex].dTESFX.started;
+    auto& dTELooped = crimsonPlayer[playerIndex].dTESFX.looped;
+    auto& dTEFinished = crimsonPlayer[playerIndex].dTESFX.finished;
+    auto& releaseVolumeMult = crimsonPlayer[playerIndex].dTESFX.releaseVolumeMult;
+    auto& gamepad = GetGamepad(playerIndex);
+
+    // SET RELEASE VOLUME MULTIPLIER
+    if (actorData.dtExplosionCharge > 0) {
+        releaseVolumeMult = actorData.dtExplosionCharge / 10000;
+    }
+    
+    // START
+	if (actorData.dtExplosionCharge > 500 && !dTEStarted) {
+		playDTExplosionStart(playerIndex, 200);
+
+        dTEStarted = true;
+	}
+
+    // LOOP
+    if (!dTEStartIsPlaying(playerIndex) && dTEStarted && !dTELooped) {
+        playDTExplosionLoop(playerIndex, 200);
+
+        dTELooped = true;
+    }
+
+    // FINISH
+	if (actorData.dtExplosionCharge >= 10000 && !dTEFinished) {
+		playDTExplosionFinish(playerIndex, 200);
+        interruptDTExplosionSFX(playerIndex);
+
+		dTEFinished = true;
+	}
+    
+    // RELEASE
+    if (!(gamepad.buttons[0] & GetBinding(BINDING::DEVIL_TRIGGER)) && dTEStarted) {
+        interruptDTExplosionSFX(playerIndex);
+        playDTEExplosionRelease(playerIndex, 200 * releaseVolumeMult);
+        dTEStarted = false;
+        dTELooped = false;
+        dTEFinished = false;
+    }
+	
+    
+
+}
+
 #pragma endregion
 
 #pragma region DanteAirTaunt
