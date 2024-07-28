@@ -5,6 +5,8 @@ extern createEffectCallA:QWORD
 extern createEffectCallB:QWORD
 extern createEffectBank:DWORD
 extern createEffectID:DWORD
+extern createEffectBone:DWORD
+extern createEffectPlayerAddr:QWORD
 
 CreateEffectDetour PROC
 	sub rsp,40h
@@ -28,7 +30,25 @@ CreateEffectDetour PROC
 	mov rcx, rbx
 	call createEffectCallB
 	inc eax ; y pos
-	mov rdx, [rbx + rax * 8h + 0000E5D0h] ; get ptr to player
+
+	push r10 ; check player addr was given, temp until all calls are updated
+	mov r10, [createEffectPlayerAddr]
+	test r10, r10
+	pop r10
+	je UseP1
+
+	mov rdx, [createEffectPlayerAddr] ; manual player addr
+	xor rax, rax
+	mov eax, createEffectBone
+
+	mov rdx, [rbx + rax * 8h + 0000E5D0h]
+	jmp Cont
+
+UseP1:
+	mov rdx, [rbx + rax * 8h + 0000E5D0h]
+	jmp Cont
+Cont:
+	mov [createEffectPlayerAddr], 0
 	mov rcx, [rdx + 00000110h]
 	mov [rdi + 000000C0h],rcx ; player xyz
 return:

@@ -41,6 +41,8 @@ std::uint64_t createEffectCallA;
 std::uint64_t createEffectCallB;
 int createEffectBank = 3;
 int createEffectID   = 144;
+int createEffectBone = 1;
+std::uint64_t createEffectPlayerAddr = 0;
 void CreateEffectDetour();
 
 // HoldToCrazyCombo

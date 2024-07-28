@@ -2323,8 +2323,9 @@ void DelayedComboEffectsController() {
             playDelayedCombo1();
             createEffectBank = delayedComboFX.bank;
             createEffectID   = delayedComboFX.id;
+            createEffectBone = 1;
+            createEffectPlayerAddr = crimsonPlayer[0].playerPtr;
             CreateEffectDetour();
-
 
             delayedComboFX.playCount++;
         } else if (delayedComboFX.timer < 0.495f) {

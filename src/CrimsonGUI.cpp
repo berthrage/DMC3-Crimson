@@ -6165,6 +6165,10 @@ void Debug() {
 
 		ImGui::InputInt("Effect Bank", &createEffectBank);
 		ImGui::InputInt("Effect ID", &createEffectID);
+        ImGui::InputInt("Effect Bone", &createEffectBone);
+        static int effectPlayerID = 0;
+        ImGui::InputInt("Player", &effectPlayerID);
+        createEffectPlayerAddr = crimsonPlayer[effectPlayerID].playerPtr;
 		if (ImGui::Button("CreateEffect")) {
 			CreateEffectDetour();
 		}
