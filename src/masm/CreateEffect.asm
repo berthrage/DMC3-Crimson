@@ -37,7 +37,7 @@ CreateEffectDetour PROC
 	pop r10
 	je UseP1
 
-	mov rdx, [createEffectPlayerAddr] ; manual player addr
+	mov rbx, [createEffectPlayerAddr] ; manual player addr
 	xor rax, rax
 	mov eax, createEffectBone
 
