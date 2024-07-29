@@ -6965,7 +6965,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("Sprint Run Timer:  %u", crimsonPlayer[0].sprint.runTimer);
 
 
-                if (isMusicPlaying() == 0) {
+                if (IsMusicPlaying() == 0) {
                     ImGui::Text("no music playing");
                 } else {
                     ImGui::Text("MUSICPLAYING");
@@ -7074,7 +7074,11 @@ void MainOverlayWindow(size_t defaultFontSize) {
             // ImGui::Text("Gravity Tweak:  %g", crimsonPlayer[0].airRaveTweak.gravity);
             // ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
             // ImGui::Text("Actor Speed %g", actorData.speed);
-            ImGui::Text("DTE START STARTED: %u", crimsonPlayer[0].dTESFX.started);
+            ImGui::Text("distance: %u", crimsonPlayer[0].cameraPlayerDistanceClamped);
+            ImGui::Text("releaseVolMult: %g", crimsonPlayer[0].dTESFX.releaseVolumeMult);
+            for (int i = 0; i < 6; i++) {
+                ImGui::Text("styleChanged[%u]: %u", i, styleChanged[i]);
+            }
             ImGui::Text("IN COMBAT: %u", g_inCombat);
             ImGui::Text("DTE CHARGE: %g", actorData.dtExplosionCharge);
             ImGui::Text("FLUX TIME: %g", crimsonPlayer[0].fluxtime);
@@ -10447,7 +10451,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
         CreateTexturesWeaponWheel();
     }
 
-    initSDL();
+    InitSDL();
     if (g_scene != SCENE::GAME) {
         devilTriggerReadyPlayed = !activeConfig.playDTReadySFXAtMissionStart;
     }
@@ -10494,6 +10498,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     ImprovedCancelsTimers();
     StyleSwitchTextTimers();
     StyleSwitchFluxTimers();
+    DTEVFXTimers();
 
 
     Bars();

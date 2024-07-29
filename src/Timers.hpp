@@ -8,3 +8,4 @@ void ImprovedCancelsTimers();
 void BackToForwardTimers();
 void StyleSwitchTextTimers();
 void StyleSwitchFluxTimers();
+void DTEVFXTimers();

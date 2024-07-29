@@ -2950,9 +2950,9 @@ void ActivateDevil(PlayerActorData& actorData, bool playSFX) {
     }
 
     if (playSFX) {
-        PlayDevilTriggerIn();
+        PlayDevilTriggerIn(actorData.newPlayerIndex);
     }
-    // playDevilTriggerLoop();
+    // PlayDevilTriggerLoop();
 }
 
 void DeactivateDevil(PlayerActorData& actorData, bool playSFX = true) {
@@ -2972,9 +2972,9 @@ void DeactivateDevil(PlayerActorData& actorData, bool playSFX = true) {
     func_1F94D0(actorData, DEVIL_FLUX::END);
 
     if (playSFX) {
-        PlayDevilTriggerOut();
+        PlayDevilTriggerOut(actorData.newPlayerIndex);
     }
-    // stopDevilTriggerLoop();
+    // StopDevilTriggerLoop();
 }
 
 void ActivateDoppelganger(PlayerActorData& actorData) {
@@ -3019,7 +3019,7 @@ void ActivateDoppelganger(PlayerActorData& actorData) {
 
     ToggleActor(cloneActorData, true);
     ActivateDevil(cloneActorData, false);
-    playDoppelgangerIn();
+    PlayDoppelgangerIn(actorData.newPlayerIndex);
 }
 
 void DeactivateDoppelganger(PlayerActorData& actorData) {
@@ -3053,7 +3053,7 @@ void DeactivateDoppelganger(PlayerActorData& actorData) {
 
     EndMotion(cloneActorData);
 
-    playDoppelgangerOut();
+    PlayDoppelgangerOut(actorData.newPlayerIndex);
 }
 
 void DoppTimeTracker() {
@@ -3114,8 +3114,17 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
         return;
     }
     auto& actorData     = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449 || !pool_4449[147]) {
+		return;
+	}
+	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+
+    auto playerIndex = actorData.newPlayerIndex;
     auto& characterData = GetCharacterData(actorData);
     auto* fluxtime = &crimsonPlayer[actorData.newPlayerIndex].fluxtime;
+   
 
     actorData.style = style; // Changes the style.
 
@@ -3130,7 +3139,7 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
         return; // RULES OUT DOPPELGANGER OUT OF THE SFX
     }
 
-    if (actorData.newPlayerIndex == 0) { // Only for player 1
+    if (playerIndex == 0) { // Only for player 1
         // Updates the HUD icons.
         HUD_UpdateStyleIcon(actorData.style, characterData.character);
         HUD_UpdateDevilTriggerGauge(characterData.character);
@@ -3138,10 +3147,11 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
         HUD_UpdateDevilTriggerExplosion(characterData.character);
     }
 
+    auto& distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
     // Trigger SFX.
-    playStyleChange();
+    PlayStyleChange(playerIndex);
     if (actorData.character == CHARACTER::DANTE) {
-        playStyleChangeVO(style);
+        PlayStyleChangeVO(playerIndex, style);
     }
 
     if (activeConfig.enableStyleSwitchText) {
@@ -3285,7 +3295,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
     }
 
     if (actorData.devil && actorData.magicPoints < 50) {
-        PlayDevilTriggerOut();
+        PlayDevilTriggerOut(actorData.newPlayerIndex);
     }
 
     // actorData.style = 0;
@@ -3732,7 +3742,7 @@ template <typename T> void ArbitraryMeleeWeaponSwitchController(T& actorData) {
         UpdateForm(actorData);
 
         if (activeConfig.SFX.changeDevilArmNew == 1) {
-            playChangeDevilArm();
+            PlayChangeDevilArm();
         } else {
             PlaySound(0, 12);
         }
@@ -3860,7 +3870,7 @@ template <typename T> void ArbitraryRangedWeaponSwitchController(T& actorData) {
         UpdateRangedWeapon(actorData);
 
         if (activeConfig.SFX.changeGunNew == 1) {
-            playChangeGun();
+            PlayChangeGun();
         } else {
             PlaySound(0, 12);
         }
@@ -3872,6 +3882,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
         return true;
     }
     auto& actorData = *reinterpret_cast<T*>(actorBaseAddr);
+    auto playerIndex = actorData.newPlayerIndex;
 
     auto& playerData = GetPlayerData(actorData);
 
@@ -3904,7 +3915,9 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CameraLockOnDistanceController();
     StyleRankHudFadeoutController();
     StyleSwitchFlux(actorBaseAddr);
-    DTExplosionSFXController(actorBaseAddr);
+    DTExplosionFXController(actorBaseAddr);
+    CalculateCameraPlayerDistance(actorBaseAddr);
+    SetAllSFXDistance(playerIndex, crimsonPlayer[playerIndex].cameraPlayerDistanceClamped);
     
 
     LastEventStateQueue(actorBaseAddr);
@@ -8647,7 +8660,7 @@ void ActivateQuicksilver(byte8* actorBaseAddr) {
 
     QuicksilverFunction(actorBaseAddr, true);
 
-    playQuicksilverIn();
+    PlayQuicksilverIn();
 }
 
 void DeactivateQuicksilver(byte8* actorBaseAddr) {

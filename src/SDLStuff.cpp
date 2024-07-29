@@ -63,6 +63,30 @@ Mix_Chunk* delayedCombo2;
 Mix_Chunk* delayedDrive;
 Mix_Music* missionClearSong;
 
+// Mix Channels used
+namespace CHANNEL {
+    constexpr int initialDevilArm = 0; // to 19
+    constexpr int initialChangeGun = 20; // to 39
+    constexpr int initialStyleChange = 40; // to 119, 20 channels per player
+    constexpr int initialStyleChangeVO = 120; // to 199, 20 channels per player
+    constexpr int initialStyleRank = 200; // to 206
+    constexpr int initialSprint = 300; // to 307, 2 channel per player
+    constexpr int initialDTIn = 307; // to 314, 2 channels per player
+    constexpr int initialDTOut = 315; // to 318, 1 channel per player
+    constexpr int initialDTLoop = 319; // to 322, 1 channel per player
+    constexpr int initialDoppIn = 323; // to 326, 1 channel per player
+    constexpr int initialDoppOut = 327; // to 330, 1 channel per player
+	constexpr int quickIn = 328;
+	constexpr int quickOut = 329;
+	constexpr int initialDTReady = 330; // to 333, 1 channel per player
+	constexpr int initialDelayedCombo1 = 334; // to 337, 1 channel per player
+    constexpr int initialDelayedCombo2 = 338; // to 341, 1 channel per player
+    constexpr int initialDTEStart = 342; // to 345, 1 channel per player
+    constexpr int initialDTELoop = 346; // to 349, 1 channel per player
+    constexpr int initialDTEFinish = 350; // to 353, 1 channel per player
+    constexpr int initialDTERelease = 354; // to 357, 1 channel per player
+
+}
 
 #define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
 #define LOAD_SDL_FUNCTION(X) fn_##X = GetSDLFunction<decltype(X)*>(#X)
@@ -83,6 +107,7 @@ SDL_FUNCTION_DECLRATION(Mix_LoadMUS)                      = NULL;
 SDL_FUNCTION_DECLRATION(Mix_FadeOutChannel)               = NULL;
 SDL_FUNCTION_DECLRATION(Mix_Playing)                      = NULL;
 SDL_FUNCTION_DECLRATION(Mix_Volume)                       = NULL;
+SDL_FUNCTION_DECLRATION(Mix_SetPosition)                  = NULL;
 SDL_FUNCTION_DECLRATION(Mix_PlayChannel)                  = NULL;
 SDL_FUNCTION_DECLRATION(Mix_HaltChannel)                  = NULL;
 SDL_FUNCTION_DECLRATION(Mix_VolumeMusic)                  = NULL;
@@ -91,7 +116,7 @@ SDL_FUNCTION_DECLRATION(Mix_FadeOutMusic)                 = NULL;
 SDL_FUNCTION_DECLRATION(Mix_PlayingMusic)                 = NULL;
 SDL_FUNCTION_DECLRATION(SDL_JoystickGetButton) = NULL;
 
-void loadAllSFX() {
+void LoadAllSFX() {
 	if (!cacheAudioFiles) {
 
 		changeGun = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\changegun.wav").c_str());
@@ -143,7 +168,7 @@ void loadAllSFX() {
 	}
 }
 
-void initSDL() {
+void InitSDL() {
     if (!SDL2Init) {
         // Get the function addresses
         LOAD_SDL_FUNCTION(SDL_Init);
@@ -161,6 +186,7 @@ void initSDL() {
         LOAD_MIXER_FUNCTION(Mix_Playing);
         LOAD_MIXER_FUNCTION(Mix_Volume);
         LOAD_MIXER_FUNCTION(Mix_PlayChannel);
+        LOAD_MIXER_FUNCTION(Mix_SetPosition);
         LOAD_MIXER_FUNCTION(Mix_HaltChannel);
         LOAD_MIXER_FUNCTION(Mix_VolumeMusic);
         LOAD_MIXER_FUNCTION(Mix_FadeInMusic);
@@ -259,39 +285,8 @@ void initSDL() {
     // RESERVES SELECT EFFECT SOUND FOR CHANNELS 100 AND ABOVE
     fn_Mix_ReserveChannels(100);
 
-    loadAllSFX();
+    LoadAllSFX();
 }
-
-
-/*void Shout(int channel, int initialChannel, int numChannels, Mix_Chunk* shout, int fadeOutmsStyle) {
-    int volume;
-
-    if (asVergil == 0) {
-        if (inDevilTrigger == 0 || playDTShoutsWhenDT == 0) {
-            volume = shoutVolume;
-
-        }
-        else if (inDevilTrigger == 1 && playDTShoutsWhenDT == 1) {
-            volume = shoutDTVolume;
-        }
-    }
-    else if (asVergil == 1) {
-        if (vergilShoutLinesEnabled == 1) {
-            if (inDevilTrigger == 0 || playDTShoutsWhenDT == 0) {
-                volume = shoutVergilVolume;
-
-            }
-            else if (inDevilTrigger == 1 && playDTShoutsWhenDT == 1) {
-                volume = shoutVergilDTVolume;
-            }
-        }
-
-    }
-
-    Mix_Volume(channel, volume);
-    Mix_PlayChannel(channel, shout, 0);
-    FadeOutChannels(channel, initialChannel, numChannels, 150);
-}*/
 
 
 bool IsJoystickButtonDown(SDL_Joystick* joystick, int button) {
@@ -339,32 +334,92 @@ void PlayOnChannelsFadeOut(int initialChannel, int finalChannel, Mix_Chunk* sfx,
     FadeOutChannels(channelBeingPlayed, initialChannel, finalChannel, fadeOutms);
 }
 
-void playChangeDevilArm() {
-    PlayOnChannelsFadeOut(0, 19, changeDevilArm, activeConfig.SFX.changeWeaponVolume, 400);
+void PlayOnChannelsFadeOutPosition(int initialChannel, int finalChannel, Mix_Chunk* sfx, int volume, int fadeOutms, int angle, int distance) {
+	int channelBeingPlayed = 0;
+
+
+	for (int i = initialChannel; i <= finalChannel; i++) {
+		if (!fn_Mix_Playing(i)) {
+			fn_Mix_Volume(i, volume);
+            fn_Mix_SetPosition(i, angle, distance);
+			fn_Mix_PlayChannel(i, sfx, 0);
+			channelBeingPlayed = i;
+			break;
+		}
+		else {
+			i++;
+		}
+	}
+
+	FadeOutChannels(channelBeingPlayed, initialChannel, finalChannel, fadeOutms);
 }
 
-void playChangeGun() {
-    PlayOnChannelsFadeOut(20, 39, changeGun, activeConfig.SFX.changeWeaponVolume, 400);
+void PlayChangeDevilArm() {
+    PlayOnChannelsFadeOut(CHANNEL::initialDevilArm, CHANNEL::initialDevilArm + 19, changeDevilArm, activeConfig.SFX.changeWeaponVolume, 400);
 }
 
-void playStyleChange() {
-    PlayOnChannelsFadeOut(40, 59, styleChange, activeConfig.SFX.styleChangeEffectVolume, 150);
+void PlayChangeGun() {
+    PlayOnChannelsFadeOut(CHANNEL::initialChangeGun, CHANNEL::initialChangeGun + 19, changeGun, activeConfig.SFX.changeWeaponVolume, 400);
 }
 
-void playStyleChangeVO(int style) {
+void PlayStyleChange(int playerIndex) {
+    auto initialChannel = CHANNEL::initialStyleChange + (20 * playerIndex);
+   
+    PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, styleChange, activeConfig.SFX.styleChangeEffectVolume, 150);
+}
+
+void PlayStyleChangeVO(int playerIndex, int style) {
+    auto initialChannel = CHANNEL::initialStyleChangeVO + (20 * playerIndex);
+
     if (style == 2) {
-        PlayOnChannelsFadeOut(60, 99, tricksterVO, activeConfig.SFX.styleChangeVOVolume, 150);
+        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, tricksterVO, activeConfig.SFX.styleChangeVOVolume, 150);
     } else if (style == 0) {
-        PlayOnChannelsFadeOut(60, 99, swordmasterVO, activeConfig.SFX.styleChangeVOVolume, 150);
+        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, swordmasterVO, activeConfig.SFX.styleChangeVOVolume, 150);
     } else if (style == 1) {
-        PlayOnChannelsFadeOut(60, 99, gunslingerVO, activeConfig.SFX.styleChangeVOVolume, 150);
+        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, gunslingerVO, activeConfig.SFX.styleChangeVOVolume, 150);
     } else if (style == 3) {
-        PlayOnChannelsFadeOut(60, 99, royalguardVO, activeConfig.SFX.styleChangeVOVolume, 150);
+        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, royalguardVO, activeConfig.SFX.styleChangeVOVolume, 150);
     } else if (style == 4) {
-        PlayOnChannelsFadeOut(60, 99, quicksilverVO, activeConfig.SFX.styleChangeVOVolume, 150);
+        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, quicksilverVO, activeConfig.SFX.styleChangeVOVolume, 150);
     } else if (style == 5) {
-        PlayOnChannelsFadeOut(60, 99, doppelgangerVO, activeConfig.SFX.styleChangeVOVolume, 150);
+        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, doppelgangerVO, activeConfig.SFX.styleChangeVOVolume, 150);
     }
+}
+
+void SetAllSFXDistance(int playerIndex, int distance) {
+    // This will simulate a pseudo 3D effect for the SFX
+
+    auto initialChannelStyleChange = CHANNEL::initialStyleChange + (20 * playerIndex);
+    auto initialChannelStyleChangeVO = CHANNEL::initialStyleChangeVO + (20 * playerIndex);
+
+    for (int i = initialChannelStyleChange; i <= initialChannelStyleChange + 19; i++) {
+        fn_Mix_SetPosition(i, 0, distance);
+    }
+
+	for (int i = initialChannelStyleChangeVO; i <= initialChannelStyleChangeVO + 19; i++) {
+		fn_Mix_SetPosition(i, 0, distance);
+	}
+
+    fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex, 0, distance);
+    fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex + 4, 0, distance); // L2
+    fn_Mix_SetPosition(CHANNEL::initialDTIn + playerIndex, 0, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDTIn + playerIndex + 4, 0, distance); // L2
+    fn_Mix_SetPosition(CHANNEL::initialDTOut + playerIndex, 0, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDTLoop + playerIndex, 0, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDoppIn + playerIndex, 0, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDoppOut + playerIndex, 0, distance);
+    fn_Mix_SetPosition(CHANNEL::quickIn, 0, distance);
+    fn_Mix_SetPosition(CHANNEL::quickOut, 0, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDTReady + playerIndex, 0, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDelayedCombo1 + playerIndex, 0, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDelayedCombo2 + playerIndex, 0, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDTEStart + playerIndex, 0, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDTELoop + playerIndex, 0, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDTEFinish + playerIndex, 0, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDTERelease + playerIndex, 0, distance);
+	fn_Mix_SetPosition(CHANNEL::initialDTEStart + playerIndex, 0, distance);
+	fn_Mix_SetPosition(CHANNEL::initialDTELoop + playerIndex, 0, distance);
+	fn_Mix_SetPosition(CHANNEL::initialDTEFinish + playerIndex, 0, distance);
 }
 
 void StyleRankCooldownTracker(int rank) {
@@ -391,8 +446,8 @@ void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank
 
 
     if (rankAnnouncer[rank - 1].turn == 0 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
-        fn_Mix_Volume(100 + (rank - 1), activeConfig.SFX.styleRankAnnouncerVolume);
-        fn_Mix_PlayChannel(100 + (rank - 1), styleRankWAV, 0);
+        fn_Mix_Volume(CHANNEL::initialStyleRank + (rank - 1), activeConfig.SFX.styleRankAnnouncerVolume);
+        fn_Mix_PlayChannel(CHANNEL::initialStyleRank + (rank - 1), styleRankWAV, 0);
         rankAnnouncer[rank - 1].turn++;
 
         if (!rankAnnouncer[rank - 1].trackerRunning) {
@@ -402,8 +457,8 @@ void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank
 
 
     } else if (rankAnnouncer[rank - 1].turn == 1 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
-        fn_Mix_Volume(100 + (rank - 1), activeConfig.SFX.styleRankAnnouncerVolume);
-        fn_Mix_PlayChannel(100 + (rank - 1), styleRankWAVAlt, 0);
+        fn_Mix_Volume(CHANNEL::initialStyleRank + (rank - 1), activeConfig.SFX.styleRankAnnouncerVolume);
+        fn_Mix_PlayChannel(CHANNEL::initialStyleRank + (rank - 1), styleRankWAVAlt, 0);
         rankAnnouncer[rank - 1].turn = 0;
 
         if (!rankAnnouncer[rank - 1].trackerRunning) {
@@ -442,106 +497,107 @@ void StyleRankAnnouncerController(int rank) {
 }
 
 
-void playSprint() {
+void PlaySprint(int playerIndex) {
 
-    fn_Mix_Volume(300, activeConfig.SFX.sprintVolume);
-    fn_Mix_Volume(301, activeConfig.SFX.sprintVolume);
-    fn_Mix_PlayChannel(300, sprintL1, 0);
-    fn_Mix_PlayChannel(301, sprintL2, 0);
+    fn_Mix_Volume(CHANNEL::initialSprint + playerIndex, activeConfig.SFX.sprintVolume);
+    fn_Mix_Volume(CHANNEL::initialSprint + 4 + playerIndex, activeConfig.SFX.sprintVolume);
+    fn_Mix_PlayChannel(CHANNEL::initialSprint + playerIndex, sprintL1, 0);
+    fn_Mix_PlayChannel(CHANNEL::initialSprint + 4 + playerIndex, sprintL2, 0);
 }
 
-void PlayDevilTriggerIn() {
+void PlayDevilTriggerIn(int playerIndex) {
 
-    fn_Mix_Volume(302, activeConfig.SFX.devilTriggerInL1Volume);
-    fn_Mix_Volume(303, activeConfig.SFX.devilTriggerInL2Volume);
-    fn_Mix_PlayChannel(302, devilTriggerInL1, 0);
-    fn_Mix_PlayChannel(303, devilTriggerInL2, 0);
+    fn_Mix_Volume(CHANNEL::initialDTIn + playerIndex, activeConfig.SFX.devilTriggerInL1Volume);
+    fn_Mix_Volume(CHANNEL::initialDTIn +  4 + playerIndex, activeConfig.SFX.devilTriggerInL2Volume);
+    fn_Mix_PlayChannel(CHANNEL::initialDTIn + playerIndex, devilTriggerInL1, 0);
+    fn_Mix_PlayChannel(CHANNEL::initialDTIn + 4 + playerIndex, devilTriggerInL2, 0);
 }
 
-void PlayDevilTriggerOut() {
+void PlayDevilTriggerOut(int playerIndex) {
 
-    fn_Mix_Volume(304, activeConfig.SFX.devilTriggerOutVolume);
-    fn_Mix_PlayChannel(304, devilTriggerOut, 0);
+    fn_Mix_Volume(CHANNEL::initialDTOut + playerIndex, activeConfig.SFX.devilTriggerOutVolume);
+    fn_Mix_PlayChannel(CHANNEL::initialDTOut + playerIndex, devilTriggerOut, 0);
 }
 
-void playDevilTriggerLoop() {
+void PlayDevilTriggerLoop(int playerIndex) {
+    // Currently unused. - Mia
 
-    fn_Mix_Volume(305, 30);
-    fn_Mix_PlayChannel(305, devilTriggerLoop, -1);
+    fn_Mix_Volume(CHANNEL::initialDTLoop + playerIndex, 30);
+    fn_Mix_PlayChannel(CHANNEL::initialDTLoop + playerIndex, devilTriggerLoop, -1);
 }
 
-void stopDevilTriggerLoop() {
+void StopDevilTriggerLoop(int playerIndex) {
 
-    fn_Mix_HaltChannel(305);
+    fn_Mix_HaltChannel(CHANNEL::initialDTLoop + playerIndex);
 }
 
-void playDoppelgangerIn() {
-    fn_Mix_Volume(306, activeConfig.SFX.doppelgangerInVolume);
-    fn_Mix_PlayChannel(306, doppelgangerIn, 0);
+void PlayDoppelgangerIn(int playerIndex) {
+    fn_Mix_Volume(CHANNEL::initialDoppIn + playerIndex, activeConfig.SFX.doppelgangerInVolume);
+    fn_Mix_PlayChannel(CHANNEL::initialDoppIn + playerIndex, doppelgangerIn, 0);
 }
 
-void playDoppelgangerOut() {
-    fn_Mix_Volume(307, activeConfig.SFX.doppelgangerOutVolume);
-    fn_Mix_PlayChannel(307, doppelgangerOut, 0);
+void PlayDoppelgangerOut(int playerIndex) {
+    fn_Mix_Volume(CHANNEL::initialDoppOut + playerIndex, activeConfig.SFX.doppelgangerOutVolume);
+    fn_Mix_PlayChannel(CHANNEL::initialDoppOut + playerIndex, doppelgangerOut, 0);
 }
 
-void playQuicksilverIn() {
+void PlayQuicksilverIn() {
 
-    fn_Mix_Volume(308, activeConfig.SFX.quicksilverInVolume);
-    fn_Mix_PlayChannel(308, quicksilverIn, 0);
+    fn_Mix_Volume(CHANNEL::quickIn, activeConfig.SFX.quicksilverInVolume);
+    fn_Mix_PlayChannel(CHANNEL::quickIn, quicksilverIn, 0);
 }
 
-void PlayDevilTriggerReady() {
+void PlayDevilTriggerReady(int playerIndex) {
 
-    fn_Mix_Volume(309, activeConfig.SFX.devilTriggerReadyVolume);
-    fn_Mix_PlayChannel(309, devilTriggerReady, 0);
+    fn_Mix_Volume(CHANNEL::initialDTReady + playerIndex, activeConfig.SFX.devilTriggerReadyVolume);
+    fn_Mix_PlayChannel(CHANNEL::initialDTReady + playerIndex, devilTriggerReady, 0);
 }
 
-void playDelayedCombo1() {
-    fn_Mix_Volume(310, 25);
-    fn_Mix_PlayChannel(310, delayedCombo1, 0);
+void PlayDelayedCombo1(int playerIndex) {
+    fn_Mix_Volume(CHANNEL::initialDelayedCombo1 + playerIndex, 25);
+    fn_Mix_PlayChannel(CHANNEL::initialDelayedCombo1 + playerIndex, delayedCombo1, 0);
 }
 
-void playDelayedCombo2() {
-    fn_Mix_Volume(311, 100);
-    fn_Mix_PlayChannel(311, delayedCombo2, 0);
+void PlayDelayedCombo2(int playerIndex) {
+    fn_Mix_Volume(CHANNEL::initialDelayedCombo2 + playerIndex, 100);
+    fn_Mix_PlayChannel(CHANNEL::initialDelayedCombo2 + playerIndex, delayedCombo2, 0);
 }
 
-bool channelIsPlaying(int channel) {
+bool ChannelIsPlaying(int channel) {
     return fn_Mix_Playing(channel);
 }
 
-bool dTEStartIsPlaying(int playerIndex) {
-    return channelIsPlaying(312 + playerIndex);
+bool DTEStartIsPlaying(int playerIndex) {
+    return ChannelIsPlaying(CHANNEL::initialDTEStart + playerIndex);
 }
 
-void playDTExplosionStart(int playerIndex, int volume) {
+void PlayDTExplosionStart(int playerIndex, int volume) {
     // starts at channel 312, to 315 for 4P
-    fn_Mix_Volume(312 + playerIndex, volume);
-    fn_Mix_PlayChannel(312 + playerIndex, dtExplosionStart, 0);
+    fn_Mix_Volume(CHANNEL::initialDTEStart + playerIndex, volume);
+    fn_Mix_PlayChannel(CHANNEL::initialDTEStart + playerIndex, dtExplosionStart, 0);
 }
 
-void playDTExplosionLoop(int playerIndex, int volume) {
+void PlayDTExplosionLoop(int playerIndex, int volume) {
 	// starts at channel 316, to 319 for 4P
-	fn_Mix_Volume(316 + playerIndex, volume);
-	fn_Mix_PlayChannel(316 + playerIndex, dtExplosionLoop, -1);
+	fn_Mix_Volume(CHANNEL::initialDTELoop + playerIndex, volume);
+	fn_Mix_PlayChannel(CHANNEL::initialDTELoop + playerIndex, dtExplosionLoop, -1);
 }
 
-void playDTExplosionFinish(int playerIndex, int volume) {
+void PlayDTExplosionFinish(int playerIndex, int volume) {
     // starts at channel 320, to 323 for 4P
-    fn_Mix_Volume(320 + playerIndex, volume);
-    fn_Mix_PlayChannel(320 + playerIndex, dtExplosionFinish, 0);
+    fn_Mix_Volume(CHANNEL::initialDTEFinish + playerIndex, volume);
+    fn_Mix_PlayChannel(CHANNEL::initialDTEFinish + playerIndex, dtExplosionFinish, 0);
 }
 
-void playDTEExplosionRelease(int playerIndex, int volume) {
+void PlayDTEExplosionRelease(int playerIndex, int volume) {
     // starts at channel 324, to 327 for 4P
-	fn_Mix_Volume(324 + playerIndex, volume);
-	fn_Mix_PlayChannel(324 + playerIndex, dtExplosionRelease, 0);
+	fn_Mix_Volume(CHANNEL::initialDTERelease + playerIndex, volume);
+	fn_Mix_PlayChannel(CHANNEL::initialDTERelease + playerIndex, dtExplosionRelease, 0);
 }
 
-void interruptDTExplosionSFX(int playerIndex) {
-    fn_Mix_HaltChannel(312 + playerIndex);
-    fn_Mix_HaltChannel(316 + playerIndex);
+void InterruptDTExplosionSFX(int playerIndex) {
+    fn_Mix_HaltChannel(CHANNEL::initialDTEStart + playerIndex);
+    fn_Mix_HaltChannel(CHANNEL::initialDTELoop + playerIndex);
 }
 
 void PlayNewMissionClearSong() {
@@ -553,6 +609,6 @@ void FadeOutNewMissionClearSong() {
     fn_Mix_FadeOutMusic(500);
 }
 
-int isMusicPlaying() {
+int IsMusicPlaying() {
     return fn_Mix_PlayingMusic();
 }

@@ -4245,6 +4245,12 @@ struct DTESFX {
     float releaseVolumeMult = 0;
 };
 
+struct DTEVFX {
+    bool started = false;
+    bool finished = false;
+    float time = 0;
+};
+
 struct AirRaveTweak {
     float gravity           = 0;
     bool gravityPre4Changed = false;
@@ -4325,10 +4331,13 @@ struct CrimsonPlayerData {
     BackToForward b2F;
     StyleSwitchText styleSwitchText;
     DTESFX dTESFX;
+    DTEVFX dTEVFX;
     float fluxtime = 0;
     bool fluxCanStart = true;
     bool fluxCanEnd = false;
     bool fluxCanEndConfirm = false;
+    float cameraPlayerDistance = 0;
+    int cameraPlayerDistanceClamped = 0;
 
     AirRaveTweak airRaveTweak;
 

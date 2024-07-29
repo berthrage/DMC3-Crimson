@@ -1727,9 +1727,9 @@ void StyleMeterDoppelganger(byte8* actorBaseAddr) {
 //     actorData.styleData.rank = 7;
 //     actorData.styleData.meter = 699.0f;
 
-    if (actorData.royalguardBlockType == 2) {
-        PlayDevilTriggerReady();
-    }
+//     if (actorData.royalguardBlockType == 2) {
+//         PlayDevilTriggerReady(playerIndex);
+//     }
 }
 
 
@@ -1763,10 +1763,11 @@ void DTReadySFX() {
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_12405[3]);
+    auto playerIndex = actorData.newPlayerIndex;
 
 
     if (actorData.magicPoints >= 3000 && !devilTriggerReadyPlayed) {
-        PlayDevilTriggerReady();
+        PlayDevilTriggerReady(playerIndex);
         devilTriggerReadyPlayed = true;
     } else if (actorData.magicPoints < 3000) {
         devilTriggerReadyPlayed = false;
@@ -1994,13 +1995,15 @@ void SprintAbility(byte8* actorBaseAddr) {
 
 
             if (!crimsonPlayer[playerIndex].sprint.SFXPlayed) {
-                playSprint();
+                PlaySprint(playerIndex);
                 crimsonPlayer[playerIndex].sprint.SFXPlayed = true;
             }
 
             if (!crimsonPlayer[playerIndex].sprint.VFXPlayed) {
                 createEffectBank = sprintVFX.bank;
                 createEffectID   = sprintVFX.id;
+                createEffectBone = 1;
+                createEffectPlayerAddr = (uint64_t)actorBaseAddr; // crimsonPlayer[playerIndex].playerPtr also works
                 CreateEffectDetour();
 
                 crimsonPlayer[playerIndex].sprint.VFXPlayed = true;
@@ -2039,56 +2042,120 @@ void GunDTCharacterRemaps() {
     }
 }
 
-void DTExplosionSFXController(byte8* actorBaseAddr) {
+void CalculateCameraPlayerDistance(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449 || !pool_4449[147]) {
+		return;
+	}
+	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+
+    auto playerIndex = actorData.newPlayerIndex;
+    
+	glm::vec3  playerPosition = { actorData.position.x, actorData.position.y, actorData.position.z };
+	glm::vec3 cameraPosition = { cameraData.data[0].x, cameraData.data[0].y, cameraData.data[0].z };
+    auto& cameraPlayerDistance = crimsonPlayer[playerIndex].cameraPlayerDistance;
+
+    cameraPlayerDistance = glm::distance(playerPosition, cameraPosition);
+	int distance = (int)cameraPlayerDistance / 20;
+	crimsonPlayer[playerIndex].cameraPlayerDistanceClamped = glm::clamp(distance, 0, 255);
+
+
+}
+
+void DTExplosionFXController(byte8* actorBaseAddr) {
 	if (!actorBaseAddr) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     auto playerIndex = actorData.newPlayerIndex;
-    auto&dTEStarted = crimsonPlayer[playerIndex].dTESFX.started;
-    auto& dTELooped = crimsonPlayer[playerIndex].dTESFX.looped;
-    auto& dTEFinished = crimsonPlayer[playerIndex].dTESFX.finished;
+    auto& maxDT = actorData.maxMagicPoints;
+    auto&sfxStarted = crimsonPlayer[playerIndex].dTESFX.started;
+    auto& sfxLooped = crimsonPlayer[playerIndex].dTESFX.looped;
+    auto& sfxFinished = crimsonPlayer[playerIndex].dTESFX.finished;
     auto& releaseVolumeMult = crimsonPlayer[playerIndex].dTESFX.releaseVolumeMult;
+    auto& vfxStarted = crimsonPlayer[playerIndex].dTEVFX.started;
+    auto& vfxFinished = crimsonPlayer[playerIndex].dTEVFX.finished;
     auto& gamepad = GetGamepad(playerIndex);
+    auto& distance = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
+
 
     // SET RELEASE VOLUME MULTIPLIER
-    if (actorData.dtExplosionCharge > 0) {
+    if (actorData.dtExplosionCharge > 3000) {
         releaseVolumeMult = actorData.dtExplosionCharge / 10000;
+    }
+    else if (actorData.dtExplosionCharge > 200 &&  actorData.dtExplosionCharge < 3000) {
+        releaseVolumeMult = 0;
     }
     
     // START
-	if (actorData.dtExplosionCharge > 500 && !dTEStarted) {
-		playDTExplosionStart(playerIndex, 200);
+	if (actorData.dtExplosionCharge > 500 && !sfxStarted) {
+		PlayDTExplosionStart(playerIndex, 120);
 
-        dTEStarted = true;
+        sfxStarted = true;
 	}
 
     // LOOP
-    if (!dTEStartIsPlaying(playerIndex) && dTEStarted && !dTELooped) {
-        playDTExplosionLoop(playerIndex, 200);
+    if (!DTEStartIsPlaying(playerIndex) && sfxStarted && !sfxLooped) {
+        PlayDTExplosionLoop(playerIndex, 120);
 
-        dTELooped = true;
+        sfxLooped = true;
     }
 
     // FINISH
-	if (actorData.dtExplosionCharge >= 10000 && !dTEFinished) {
-		playDTExplosionFinish(playerIndex, 200);
-        interruptDTExplosionSFX(playerIndex);
+	if (actorData.dtExplosionCharge >= maxDT && !sfxFinished) {
+		PlayDTExplosionFinish(playerIndex, 200);
+        InterruptDTExplosionSFX(playerIndex);
 
-		dTEFinished = true;
+		sfxFinished = true;
+	}
+
+	// VFX START
+	if (actorData.dtExplosionCharge > 2500 && !vfxStarted && !vfxFinished) {
+        crimsonPlayer[playerIndex].dTEVFX.time = 0;
+		createEffectBank = 3;
+		createEffectID = 61;
+        createEffectBone = 1;
+        createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
+		CreateEffectDetour();
+
+		vfxStarted = true;
+	}
+
+	// VFX FINISH
+	if (actorData.dtExplosionCharge >= maxDT && !vfxFinished) {
+		createEffectBank = 3;
+		createEffectID = 41;
+		createEffectBone = 1;
+		createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
+		CreateEffectDetour();
+
+		vfxFinished = true;
 	}
     
     // RELEASE
-    if (!(gamepad.buttons[0] & GetBinding(BINDING::DEVIL_TRIGGER)) && dTEStarted) {
-        interruptDTExplosionSFX(playerIndex);
-        playDTEExplosionRelease(playerIndex, 200 * releaseVolumeMult);
-        dTEStarted = false;
-        dTELooped = false;
-        dTEFinished = false;
-    }
-	
-    
+    if (!(gamepad.buttons[0] & GetBinding(BINDING::DEVIL_TRIGGER)) && sfxStarted) {
+        InterruptDTExplosionSFX(playerIndex);
+        PlayDTEExplosionRelease(playerIndex, 200 * releaseVolumeMult);
 
+        if (releaseVolumeMult > 0.4f) {
+			createEffectBank = 3;
+			createEffectID = 61;
+			createEffectBone = 1;
+			createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
+			CreateEffectDetour();
+        }
+
+        sfxStarted = false;
+        sfxLooped = false;
+        sfxFinished = false;
+        vfxStarted = false;
+        vfxFinished = false;
+    }
 }
 
 #pragma endregion
@@ -2320,7 +2387,7 @@ void DelayedComboEffectsController() {
             (inRebellionCombo1 || inCerberusCombo2 || inAgniCombo1 || inAgniCombo2 || inBeoCombo1) && delayedComboFX.playCount == 0 &&
             weapon == delayedComboFX.weaponThatStartedMove) {
 
-            playDelayedCombo1();
+            PlayDelayedCombo1(actorData.newPlayerIndex);
             createEffectBank = delayedComboFX.bank;
             createEffectID   = delayedComboFX.id;
             createEffectBone = 1;
@@ -2478,13 +2545,14 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
     auto* style = &actorData.style;
 	auto* canStart = &crimsonPlayer[playerIndex].fluxCanStart;
 	auto* canEnd = &crimsonPlayer[playerIndex].fluxCanEnd;
-
+    auto& gamepad = GetGamepad(playerIndex);
+    
     if (*fluxtime > 0) {
 		
 		
 
 		float delayTime1 = 0.006f;
-		float delayTime2 = 0.001f;
+		float delayTime2 = 0.05f;
 		//auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
         if (*canStart) {
 			styleVFXCount++;
@@ -2495,7 +2563,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
         }
 		
 
-		if (*fluxtime < 0.1f - delayTime2 && *canEnd) {
+		if (*fluxtime < 0.03f && *canEnd) {
 			styleVFXCount--;
 			func_1F94D0(actorData, 4);
 			styleChanged[*style] = false;
@@ -2506,17 +2574,32 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
 
 	}
 
-    if (*fluxtime <= 0) {
+    if (*fluxtime <= 0 && !*canStart) {
+		for (int i = 0; i < 6; i++) {
+			if (*fluxtime <= 0 && styleChanged[i] == true) {
+                // This guarantess FluxEffects color will be gone by the time the effect ends
+				styleChanged[i] = false;
+			}
+		}
+
         *canStart = true;
     }
 
+
     // This guarantees FluxEffect won't 'leak' if it plays in conjunction with DT In/Out
-    if (actorData.devil == 0 && *fluxtime > 0) {
-//         for (int i = 0; i < 6; i++) {
-//             styleChanged[i] = false;
-//         }
-        func_1F94D0(actorData, 4);
+    // but it can also fuck up with the "Sphere Out" vfx when exiting DT,
+    // if the condition is fluxtime > 0, DTout plays normally, but 2P's flux will play on 1P
+    // if the condition is fluxtime < 0.05f, DTOut doesn't play at all, but each player will have its flux play correctly.
+    // fluxtime > 0.095f seems to be the most effective solution, both things work normally.
+    if (*fluxtime > 0.095f) {
+
+
+        if (((actorData.devil == 0 && actorData.character == CHARACTER::DANTE) || actorData.character == CHARACTER::VERGIL)) {
+            func_1F94D0(actorData, 4);
+        }
+        
     }
+
 }
 
 void StyleSwitchDrawText(byte8* actorBaseAddr) {
@@ -2526,7 +2609,7 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
     auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     auto playerIndex = actorData.newPlayerIndex;
     auto* sstext = &crimsonPlayer[playerIndex].styleSwitchText;
-    
+    auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
 
     // This function draws the Style Switching Text near Dante when switching styles.
 
@@ -2547,15 +2630,8 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
         }
     }
 
-    //sstext->animSize = activeConfig.styleSwitchTextSize;
-    // 	char buffer[256]{};
-    // 	sprintf(buffer, "danter: %f, %f, %f",
-    // 		actorData.position.x,
-    // 		actorData.position.y,
-    // 		actorData.position.z
-    // 	);
-
-    // const float yellow[4] = { 1.0f, 1.0f, 0.0f, 0.1f }; // rgba alpha does not work/exist for debugDraw yet
+    // Adjusts size dynamically based on the distance between Camera and Player
+    auto sizeDistance = sstext->animSize * (1.0f / ((float)distanceClamped / 20));
 
     for (int styleid = 0; styleid < 9; styleid++) {
 		if (sstext->time[styleid] > 0) {
@@ -2563,18 +2639,18 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
 
             // Offsets to the sides of danter
             if (styleid == 1) {
-                offset[0] = 200.0f * sstext->animSize;
+                offset[0] = 200.0f * sizeDistance;
             }
             else if (styleid == 2) {
-                offset[0] = -200.0f * sstext->animSize;
+                offset[0] = -200.0f * sizeDistance;
             }
             else if (styleid == 4) {
-                offset[0] = 250.0f * sstext->animSize;
+                offset[0] = 250.0f * sizeDistance;
             }
             else if (styleid == 5) {
-                offset[0] = -250.0f * sstext->animSize;
+                offset[0] = -250.0f * sizeDistance;
             }
-			SetStyleSwitchFxWork((SsFxType) styleid, stylesWorldPos[styleid], sstext->color[styleid], sstext->alpha[styleid], offset, sstext->time[styleid], sstext->animSize);
+			SetStyleSwitchFxWork((SsFxType) styleid, stylesWorldPos[styleid], sstext->color[styleid], sstext->alpha[styleid], offset, sstext->time[styleid], sizeDistance);
 		}
     }
     
