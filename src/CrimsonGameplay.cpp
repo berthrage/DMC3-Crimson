@@ -2336,84 +2336,90 @@ template <typename T> auto GetMeleeWeapon(T& actorData) {
     return characterData.meleeWeapons[characterData.meleeWeaponIndex];
 }
 
-void DelayedComboEffectsController() {
+void DelayedComboFXController() {
     using namespace ACTION_DANTE;
 
-    /*if (!actorBaseAddr) {
-            return;
+
+    for (int i = 0; i < PLAYER_COUNT; i++) {
+		if (!crimsonPlayer[i].playerPtr || !guiPause.canPause) {
+			return;
+		}
+
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(crimsonPlayer[i].playerPtr);
+
+		auto playerIndex = actorData.newPlayerIndex;
+		auto weapon = GetMeleeWeapon(actorData);
+
+		auto inAttack = (actorData.eventData[0].event == 17);
+		auto rebellionCombo1Anim = (actorData.motionData[0].index == 3);
+		auto inRebellionCombo1 = (actorData.action == REBELLION_COMBO_1_PART_1 && actorData.motionData[0].index == 3 && inAttack);
+		auto inCerberusCombo2 = (actorData.action == CERBERUS_COMBO_1_PART_2 && actorData.motionData[0].index == 4 && inAttack);
+		auto inAgniCombo1 = (actorData.action == AGNI_RUDRA_COMBO_1_PART_1 && actorData.motionData[0].index == 3 && inAttack);
+		auto inAgniCombo2 = (actorData.action == AGNI_RUDRA_COMBO_2_PART_2 && actorData.motionData[0].index == 8 && inAttack);
+		auto inBeoCombo1 = (actorData.action == BEOWULF_COMBO_1_PART_2 && actorData.motionData[0].index == 4 && inAttack);
+		auto meleeWeapon = actorData.newWeapons[actorData.meleeWeaponIndex];
+		auto& delayedComboFX = crimsonPlayer[playerIndex].delayedComboFX;
+
+		if (inRebellionCombo1) {
+			delayedComboFX.duration = 0.495f;
+			delayedComboFX.weaponThatStartedMove = 0;
+		}
+		else if (inCerberusCombo2) {
+			delayedComboFX.duration = 0.55f;
+			delayedComboFX.weaponThatStartedMove = 1;
+		}
+		else if (inAgniCombo1) {
+			delayedComboFX.duration = 0.53f;
+			delayedComboFX.weaponThatStartedMove = 2;
+		}
+		else if (inAgniCombo2) {
+			delayedComboFX.duration = 0.70f;
+			delayedComboFX.weaponThatStartedMove = 2;
+		}
+		else if (inBeoCombo1) {
+			delayedComboFX.duration = 0.55f; // Beowulf's time can be very inconsistent due to charge time (the more you charge the less you
+			// need to wait between delays)
+			delayedComboFX.weaponThatStartedMove = 4;
+		}
+
+
+		if (actorData.character == CHARACTER::DANTE) {
+			if (delayedComboFX.timer >= delayedComboFX.duration &&
+				(inRebellionCombo1 || inCerberusCombo2 || inAgniCombo1 || inAgniCombo2 || inBeoCombo1) && delayedComboFX.playCount == 0 &&
+				weapon == delayedComboFX.weaponThatStartedMove) {
+
+				PlayDelayedCombo1(actorData.newPlayerIndex);
+				createEffectBank = delayedComboFX.bank;
+				createEffectID = delayedComboFX.id;
+				createEffectBone = 1;
+				createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
+				CreateEffectDetour();
+
+				delayedComboFX.playCount++;
+			}
+			else if (delayedComboFX.timer < 0.495f) {
+				delayedComboFX.playCount = 0;
+			}
+
+			if ((!inRebellionCombo1 && !inCerberusCombo2 && !inAgniCombo1 && !inAgniCombo2 && !inBeoCombo1)) {
+				delayedComboFX.timer = 0;
+				delayedComboFX.resetTimer = false;
+
+
+			}
+			else {
+				if (!delayedComboFX.resetTimer) {
+					crimsonPlayer[playerIndex].actionTimer = 0;
+					delayedComboFX.resetTimer = true;
+				}
+
+
+				delayedComboFX.timer = crimsonPlayer[playerIndex].actionTimer;
+			}
+		}
     }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);*/
 
-    // Introduce Main Actor Data
-    auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-    if (!pool_12857 || !pool_12857[3]) {
-        return;
-    }
-
-
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
-    auto weapon     = GetMeleeWeapon(actorData);
-
-    auto inAttack            = (actorData.eventData[0].event == 17);
-    auto rebellionCombo1Anim = (actorData.motionData[0].index == 3);
-    auto inRebellionCombo1   = (actorData.action == REBELLION_COMBO_1_PART_1 && actorData.motionData[0].index == 3 && inAttack);
-    auto inCerberusCombo2    = (actorData.action == CERBERUS_COMBO_1_PART_2 && actorData.motionData[0].index == 4 && inAttack);
-    auto inAgniCombo1        = (actorData.action == AGNI_RUDRA_COMBO_1_PART_1 && actorData.motionData[0].index == 3 && inAttack);
-    auto inAgniCombo2        = (actorData.action == AGNI_RUDRA_COMBO_2_PART_2 && actorData.motionData[0].index == 8 && inAttack);
-    auto inBeoCombo1         = (actorData.action == BEOWULF_COMBO_1_PART_2 && actorData.motionData[0].index == 4 && inAttack);
-    auto meleeWeapon         = actorData.newWeapons[actorData.meleeWeaponIndex];
-
-    if (inRebellionCombo1) {
-        delayedComboFX.duration              = 0.495f;
-        delayedComboFX.weaponThatStartedMove = 0;
-    } else if (inCerberusCombo2) {
-        delayedComboFX.duration              = 0.55f;
-        delayedComboFX.weaponThatStartedMove = 1;
-    } else if (inAgniCombo1) {
-        delayedComboFX.duration              = 0.53f;
-        delayedComboFX.weaponThatStartedMove = 2;
-    } else if (inAgniCombo2) {
-        delayedComboFX.duration              = 0.70f;
-        delayedComboFX.weaponThatStartedMove = 2;
-    } else if (inBeoCombo1) {
-        delayedComboFX.duration = 0.55f; // Beowulf's time can be very inconsistent due to charge time (the more you charge the less you
-                                         // need to wait between delays)
-        delayedComboFX.weaponThatStartedMove = 4;
-    }
-
-
-    if (actorData.character == CHARACTER::DANTE) {
-        if (delayedComboFX.timer >= delayedComboFX.duration &&
-            (inRebellionCombo1 || inCerberusCombo2 || inAgniCombo1 || inAgniCombo2 || inBeoCombo1) && delayedComboFX.playCount == 0 &&
-            weapon == delayedComboFX.weaponThatStartedMove) {
-
-            PlayDelayedCombo1(actorData.newPlayerIndex);
-            createEffectBank = delayedComboFX.bank;
-            createEffectID   = delayedComboFX.id;
-            createEffectBone = 1;
-            createEffectPlayerAddr = crimsonPlayer[0].playerPtr;
-            CreateEffectDetour();
-
-            delayedComboFX.playCount++;
-        } else if (delayedComboFX.timer < 0.495f) {
-            delayedComboFX.playCount = 0;
-        }
-
-        if ((!inRebellionCombo1 && !inCerberusCombo2 && !inAgniCombo1 && !inAgniCombo2 && !inBeoCombo1)) {
-            delayedComboFX.timer      = 0;
-            delayedComboFX.resetTimer = false;
-
-
-        } else {
-            if (!delayedComboFX.resetTimer) {
-                crimsonPlayer[0].actionTimer = 0;
-                delayedComboFX.resetTimer    = true;
-            }
-
-
-            delayedComboFX.timer = crimsonPlayer[0].actionTimer;
-        }
-    }
+   
 }
 
 

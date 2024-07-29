@@ -106,6 +106,7 @@ SDL_FUNCTION_DECLRATION(Mix_LoadWAV)                      = NULL;
 SDL_FUNCTION_DECLRATION(Mix_LoadMUS)                      = NULL;
 SDL_FUNCTION_DECLRATION(Mix_FadeOutChannel)               = NULL;
 SDL_FUNCTION_DECLRATION(Mix_Playing)                      = NULL;
+SDL_FUNCTION_DECLRATION(Mix_Pause)                        = NULL;
 SDL_FUNCTION_DECLRATION(Mix_Volume)                       = NULL;
 SDL_FUNCTION_DECLRATION(Mix_SetPosition)                  = NULL;
 SDL_FUNCTION_DECLRATION(Mix_PlayChannel)                  = NULL;
@@ -184,6 +185,7 @@ void InitSDL() {
         LOAD_MIXER_FUNCTION(Mix_LoadMUS);
         LOAD_MIXER_FUNCTION(Mix_FadeOutChannel);
         LOAD_MIXER_FUNCTION(Mix_Playing);
+        LOAD_MIXER_FUNCTION(Mix_Pause);
         LOAD_MIXER_FUNCTION(Mix_Volume);
         LOAD_MIXER_FUNCTION(Mix_PlayChannel);
         LOAD_MIXER_FUNCTION(Mix_SetPosition);

@@ -4293,6 +4293,19 @@ struct VergilMoveAdjustments {
     float storedLunarPhasePosY;
 };
 
+struct DelayedComboFX {
+	float duration = 0.5f;
+	float timer = duration;
+	bool startTimer = false;
+	bool resetTimer = false;
+	bool canPlay = true;
+	int playCount = 0;
+	uint8 weaponThatStartedMove = 20;
+
+	int bank = 3;
+	int id = 143;
+};
+
 extern bool inRoyalBlock;
 extern bool inGuardfly;
 extern float rainstormPull;
@@ -4332,6 +4345,7 @@ struct CrimsonPlayerData {
     StyleSwitchText styleSwitchText;
     DTESFX dTESFX;
     DTEVFX dTEVFX;
+    DelayedComboFX delayedComboFX;
     float fluxtime = 0;
     bool fluxCanStart = true;
     bool fluxCanEnd = false;
@@ -4377,21 +4391,6 @@ struct GuiPause {
 };
 
 extern GuiPause guiPause;
-
-struct DelayedComboFX {
-    float duration              = 0.5f;
-    float timer                 = duration;
-    bool startTimer             = false;
-    bool resetTimer             = false;
-    bool canPlay                = true;
-    int playCount               = 0;
-    uint8 weaponThatStartedMove = 20;
-
-    int bank = 3;
-    int id   = 143;
-};
-
-extern DelayedComboFX delayedComboFX;
 
 extern bool changedFrameRateCorrection;
 extern bool gamepadCombinationMainRelease;
