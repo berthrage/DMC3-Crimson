@@ -28,7 +28,7 @@ void DTExplosionFXController(byte8* actorBaseAddr);
 void CheckRoyalRelease(byte8* actorBaseAddr);
 void CheckSkyLaunch(byte8* actorBaseAddr);
 void SkyLaunchProperties(byte8* actorBaseAddr);
-void DelayedComboFXController();
+void DelayedComboFXController(byte8* actorBaseAddr);
 void DriveTweaks(byte8* actorBaseAddr);
 void StyleSwitchDrawText(byte8* actorBaseAddr);
 void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr);

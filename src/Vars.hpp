@@ -4295,13 +4295,8 @@ struct VergilMoveAdjustments {
 
 struct DelayedComboFX {
 	float duration = 0.5f;
-	float timer = duration;
-	bool startTimer = false;
-	bool resetTimer = false;
-	bool canPlay = true;
 	int playCount = 0;
 	uint8 weaponThatStartedMove = 20;
-
 	int bank = 3;
 	int id = 143;
 };

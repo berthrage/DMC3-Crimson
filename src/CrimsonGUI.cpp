@@ -7076,7 +7076,6 @@ void MainOverlayWindow(size_t defaultFontSize) {
             // ImGui::Text("Actor Speed %g", actorData.speed);
             ImGui::Text("distance: %u", crimsonPlayer[0].cameraPlayerDistanceClamped);
             ImGui::Text("DELAYED COMBO DURATION: %g", crimsonPlayer[0].delayedComboFX.duration);
-            ImGui::Text("DELAYED COMBO TIMER: %g", crimsonPlayer[0].delayedComboFX.timer);
             ImGui::Text("IN COMBAT: %u", g_inCombat);
             ImGui::Text("DTE CHARGE: %g", actorData.dtExplosionCharge);
             ImGui::Text("FLUX TIME: %g", crimsonPlayer[0].fluxtime);
@@ -10484,7 +10483,6 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 
     CorrectFrameRateCutscenes();
     GamepadToggleShowMain();
-    DelayedComboFXController();
 
     // TIMERS
     BackToForwardTimers();
