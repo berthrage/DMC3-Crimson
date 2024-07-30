@@ -357,11 +357,11 @@ void PlayOnChannelsFadeOutPosition(int initialChannel, int finalChannel, Mix_Chu
 }
 
 void PlayChangeDevilArm() {
-    PlayOnChannelsFadeOut(CHANNEL::initialDevilArm, CHANNEL::initialDevilArm + 19, changeDevilArm, activeConfig.SFX.changeWeaponVolume, 400);
+    PlayOnChannelsFadeOutPosition(CHANNEL::initialDevilArm, CHANNEL::initialDevilArm + 19, changeDevilArm, activeConfig.SFX.changeWeaponVolume, 400, 90, 0);
 }
 
 void PlayChangeGun() {
-    PlayOnChannelsFadeOut(CHANNEL::initialChangeGun, CHANNEL::initialChangeGun + 19, changeGun, activeConfig.SFX.changeWeaponVolume, 400);
+    PlayOnChannelsFadeOutPosition(CHANNEL::initialChangeGun, CHANNEL::initialChangeGun + 19, changeGun, activeConfig.SFX.changeWeaponVolume, 400, 270, 0);
 }
 
 void PlayStyleChange(int playerIndex) {

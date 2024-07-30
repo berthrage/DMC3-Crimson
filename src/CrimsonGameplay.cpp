@@ -2360,7 +2360,7 @@ void DelayedComboFXController(byte8* actorBaseAddr) {
     auto& actionTimer = crimsonPlayer[playerIndex].actionTimer;
 
 	if (inRebellionCombo1) {
-		delayedComboFX.duration = 0.455f;
+		delayedComboFX.duration = 0.485f;
 		delayedComboFX.weaponThatStartedMove = 0;
 	}
 	else if (inCerberusCombo2) {
@@ -2401,7 +2401,7 @@ void DelayedComboFXController(byte8* actorBaseAddr) {
 
 			delayedComboFX.playCount++;
 		}
-		else if (actionTimer < 0.455f) {
+		else if (actionTimer < 0.485f) {
 			delayedComboFX.playCount = 0;
 		}
 
