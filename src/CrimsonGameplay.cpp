@@ -1832,56 +1832,38 @@ void BackToForwardInputs(byte8* actorBaseAddr) {
 
 void SprintAbility(byte8* actorBaseAddr) {
 
-
-    // Old iteration of SprintAbility used mainActorData, working only for the mainActor. Now it's supposed to work for all players.
-    // 	auto pool_12188 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-    // 	if
-    // 		(
-    // 			!pool_12188 ||
-    // 			!pool_12188[3]
-    // 			) {
-    // 		return;
-    // 	}
-    // 	auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_12188[3
-
     if (!actorBaseAddr) {
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-
-
-    auto& gamepad    = GetGamepad(actorData.newPlayerIndex);
-    auto radius      = gamepad.leftStickRadius;
+    auto playerIndex = actorData.newPlayerIndex;
+    auto& sprintData = crimsonPlayer[playerIndex].sprint;
     auto& playerData = GetPlayerData(actorData);
 
-    auto playerIndex = actorData.newPlayerIndex;
+    
+    bool playerRunning = ((actorData.eventData[0].event == 3) && (actorData.motionData[0].index == 2 || actorData.motionData[0].index == 51));
 
     if ((actorData.newCharacterIndex == playerData.activeCharacterIndex) && (actorData.newEntityIndex == ENTITY::MAIN)) {
 
-        // auto playerSprint = crimsonPlayer[playerIndex].sprint;
-
-        if (!crimsonPlayer[playerIndex].sprint.isSprinting) {
-            // Storing the actor's set speed when not sprinting for us to calculate sprintSpeed.
-            crimsonPlayer[playerIndex].sprint.storedSpeedHuman = activeConfig.Speed.human;
+        // Storing the actor's set speed when not sprinting for us to calculate sprintSpeed.
+        if (!sprintData.isSprinting) {
+           
+            sprintData.storedSpeedHuman = activeConfig.Speed.human;
 
             if (actorData.character == CHARACTER::DANTE) {
-                crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[0] = activeConfig.Speed.devilDante[0];
-                crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[1] = activeConfig.Speed.devilDante[1];
-                crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[2] = activeConfig.Speed.devilDante[2];
-                crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[3] = activeConfig.Speed.devilDante[3];
-                crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[4] = activeConfig.Speed.devilDante[4];
-                crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[5] = activeConfig.Speed.devilDante[5];
+                for (int i = 0; i < 5; i++) {
+                    sprintData.storedSpeedDevilDante[i] = activeConfig.Speed.devilDante[i];
+                }
+  
             } else if (actorData.character == CHARACTER::VERGIL) {
-                crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[0] = activeConfig.Speed.devilVergil[0];
-                crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[1] = activeConfig.Speed.devilVergil[1];
-                crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[2] = activeConfig.Speed.devilVergil[2];
-                crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[3] = activeConfig.Speed.devilVergil[3];
-                crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[4] = activeConfig.Speed.devilVergil[4];
+				for (int i = 0; i < 4; i++) {
+					sprintData.storedSpeedDevilVergil[i] = activeConfig.Speed.devilVergil[i];
+				}
             }
 
-
-            crimsonPlayer[playerIndex].sprint.SFXPlayed = false;
-            crimsonPlayer[playerIndex].sprint.VFXPlayed = false;
+            // Resets FX state
+            sprintData.SFXPlayed = false;
+            sprintData.VFXPlayed = false;
         }
 
 
@@ -1890,67 +1872,57 @@ void SprintAbility(byte8* actorBaseAddr) {
         // 		(actorData.newCharacterIndex == playerData.activeCharacterIndex) &&
         // 		(actorData.newEntityIndex == ENTITY::MAIN)) {
 
+        // Set time before sprint sets in
+        if (playerRunning) {
 
-        if (actorData.state == 524289 && !g_inCombat) {
+            if (!sprintData.runTimer) {
+                if (!g_inCombat) {
+                    sprintData.timer = sprintData.duration / actorData.speed; // Out of combat sprint is nearly instant
+                }
+                else {
+					if (!actorData.devil) {
+						sprintData.timer = sprintData.durationCombatHuman / actorData.speed; // In combat it has more wind-up
+					}
+					else {
+						sprintData.timer = sprintData.durationCombatDevil / actorData.speed;
+					}
+                }
 
-
-            if (!crimsonPlayer[playerIndex].sprint.runTimer) {
-                crimsonPlayer[playerIndex].sprint.timer = crimsonPlayer[playerIndex].sprint.timeToTrigger / actorData.speed;
+            }
+            
+            if (!sprintData.canSprint) {
+                sprintData.runTimer = true;
             }
 
-            if (!crimsonPlayer[playerIndex].sprint.canSprint) {
-                crimsonPlayer[playerIndex].sprint.runTimer = true;
-            }
 
-
-        } else {
-            crimsonPlayer[playerIndex].sprint.canSprint = false;
-            crimsonPlayer[playerIndex].sprint.runTimer  = false;
+        } 
+        else {
+            sprintData.canSprint = false;
+            sprintData.runTimer  = false;
         }
-
 
         auto gameSpeedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 
-        if (!crimsonPlayer[playerIndex].sprint.runTimer && crimsonPlayer[playerIndex].sprint.timer <= 0) {
-        }
-
-
-        if (crimsonPlayer[playerIndex].sprint.canSprint) {
+        if (sprintData.canSprint) {
 
             // Setting the sprint speed. Increasing by 30%.
             float sprintMultiplier = 1.3f;
-            float sprintSpeed      = crimsonPlayer[playerIndex].sprint.storedSpeedHuman * sprintMultiplier;
-            float sprintSpeedDevilDante[6];
-            float sprintSpeedDevilVergil[5];
 
+            // Calculating sprint speed
+            float sprintSpeed      = crimsonPlayer[playerIndex].sprint.storedSpeedHuman * sprintMultiplier;
+            float sprintSpeedDevilDante[5] = {};
+            float sprintSpeedDevilVergil[4] = {};
             if (actorData.character == CHARACTER::DANTE) {
-                sprintSpeedDevilDante[0] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[0] * sprintMultiplier;
-                sprintSpeedDevilDante[1] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[1] * sprintMultiplier;
-                sprintSpeedDevilDante[2] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[2] * sprintMultiplier;
-                sprintSpeedDevilDante[3] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[3] * sprintMultiplier;
-                sprintSpeedDevilDante[4] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[4] * sprintMultiplier;
-                sprintSpeedDevilDante[5] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilDante[5] * sprintMultiplier;
+                for (int i = 0; i < 5; i++) {
+                    sprintSpeedDevilDante[i] = sprintData.storedSpeedDevilDante[i] * sprintMultiplier;
+                }
+
             } else if (actorData.character == CHARACTER::VERGIL) {
-                sprintSpeedDevilVergil[0] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[0] * sprintMultiplier;
-                sprintSpeedDevilVergil[1] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[1] * sprintMultiplier;
-                sprintSpeedDevilVergil[2] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[2] * sprintMultiplier;
-                sprintSpeedDevilVergil[3] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[3] * sprintMultiplier;
-                sprintSpeedDevilVergil[4] = crimsonPlayer[playerIndex].sprint.storedSpeedDevilVergil[4] * sprintMultiplier;
+				for (int i = 0; i < 4; i++) {
+					sprintSpeedDevilVergil[i] = sprintData.storedSpeedDevilVergil[i] * sprintMultiplier;
+				}
             }
 
-
-            // Applying the new sprint speed into the Actor.
-
-
-            // 		old_for_all(uint8, weaponIndex, countof(actorData.newWeaponDataAddr)) {
-            // 			auto weaponDataAddr = actorData.newWeaponDataAddr[weaponIndex];
-            // 			if (!weaponDataAddr) {
-            // 				continue;
-            // 			}
-            // 			auto& weaponData = *weaponDataAddr;
-            //
-            // 			weaponData.speed = 2.0f;
-            // 		}
 
             // Applying the new Speed
             if (!actorData.devil) {
@@ -1993,30 +1965,29 @@ void SprintAbility(byte8* actorBaseAddr) {
                 }
             }
 
-
-            if (!crimsonPlayer[playerIndex].sprint.SFXPlayed) {
+            // FX
+            if (!sprintData.SFXPlayed) {
                 PlaySprint(playerIndex);
-                crimsonPlayer[playerIndex].sprint.SFXPlayed = true;
+                sprintData.SFXPlayed = true;
             }
 
-            if (!crimsonPlayer[playerIndex].sprint.VFXPlayed) {
+            if (!sprintData.VFXPlayed) {
                 createEffectBank = sprintVFX.bank;
                 createEffectID   = sprintVFX.id;
                 createEffectBone = 1;
                 createEffectPlayerAddr = (uint64_t)actorBaseAddr; // crimsonPlayer[playerIndex].playerPtr also works
                 CreateEffectDetour();
 
-                crimsonPlayer[playerIndex].sprint.VFXPlayed = true;
+                sprintData.VFXPlayed = true;
             }
 
-            crimsonPlayer[playerIndex].sprint.isSprinting = true;
-            crimsonPlayer[playerIndex].sprint.runTimer    = false;
+            sprintData.isSprinting = true;
+            sprintData.runTimer    = false;
 
 
         } else {
             // Restore the original Actor's speed when you can't sprint (either in or out of it).
-
-            crimsonPlayer[playerIndex].sprint.isSprinting = false;
+            sprintData.isSprinting = false;
         }
     }
 }
@@ -2596,10 +2567,10 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
     // if the condition is fluxtime > 0, DTout plays normally, but 2P's flux will play on 1P
     // if the condition is fluxtime < 0.05f, DTOut doesn't play at all, but each player will have its flux play correctly.
     // fluxtime > 0.095f seems to be the most effective solution, both things work normally.
-    if (*fluxtime > 0.095f) {
+    if (*fluxtime > 0.093f) {
 
 
-        if (((actorData.devil == 0 && actorData.character == CHARACTER::DANTE) || actorData.character == CHARACTER::VERGIL)) {
+        if (actorData.devil == 0) {
             func_1F94D0(actorData, 4);
         }
         

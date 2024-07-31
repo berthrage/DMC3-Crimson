@@ -4146,15 +4146,17 @@ extern bool exceptionShot;
 
 struct Sprint {
     bool canSprint                  = false;
-    float timeToTrigger             = 0.65f;
-    float timer                     = timeToTrigger;
+    float duration                  = 0.65f;
+    float durationCombatHuman       = 3.80f;
+    float durationCombatDevil       = 1.40f;
+    float timer                     = duration;
     bool runTimer                   = false;
     bool isSprinting                = false;
     bool SFXPlayed                  = false;
     bool VFXPlayed                  = false;
     float storedSpeedHuman          = 0;
-    float storedSpeedDevilDante[5]  = {0};
-    float storedSpeedDevilVergil[4] = {0};
+    float storedSpeedDevilDante[5]  = {};
+    float storedSpeedDevilVergil[4] = {};
 };
 
 struct SprintVFX {

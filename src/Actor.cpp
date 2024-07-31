@@ -3156,7 +3156,7 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
     // Trigger SFX.
     PlayStyleChange(playerIndex);
     if (actorData.character == CHARACTER::DANTE) {
-        PlayStyleChangeVO(playerIndex, style);
+        PlayStyleChangeVO(playerIndex, style, actorData.doppelganger);
     }
 
     if (activeConfig.enableStyleSwitchText) {

@@ -32,7 +32,8 @@ Mix_Chunk* swordmasterVO;
 Mix_Chunk* gunslingerVO;
 Mix_Chunk* royalguardVO;
 Mix_Chunk* quicksilverVO;
-Mix_Chunk* doppelgangerVO;
+Mix_Chunk* doppelganger1VO;
+Mix_Chunk* doppelganger2VO;
 Mix_Chunk* sprintL1;
 Mix_Chunk* sprintL2;
 Mix_Chunk* devilTriggerInL1;
@@ -140,7 +141,8 @@ void LoadAllSFX() {
 		gunslingerVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\gunslinger1.wav").c_str());
 		royalguardVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\royalguard1.wav").c_str());
 		quicksilverVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\quicksilver1.wav").c_str());
-		doppelgangerVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\doppelganger2.wav").c_str());
+		doppelganger1VO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\doppelganger1.wav").c_str());
+        doppelganger2VO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\doppelganger2.wav").c_str());
 		sprintL1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\sprint_l1.wav").c_str());
 		sprintL2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\sprint_l2.wav").c_str());
 		devilTriggerInL1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dt_activation_l1.wav").c_str());
@@ -471,7 +473,7 @@ void PlayStyleChange(int playerIndex) {
     PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, styleChange, activeConfig.SFX.styleChangeEffectVolume, 150);
 }
 
-void PlayStyleChangeVO(int playerIndex, int style) {
+void PlayStyleChangeVO(int playerIndex, int style, bool doppActive) {
     auto initialChannel = CHANNEL::initialStyleChangeVO + (20 * playerIndex);
 
     if (style == 2) {
@@ -485,7 +487,13 @@ void PlayStyleChangeVO(int playerIndex, int style) {
     } else if (style == 4) {
         PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, quicksilverVO, activeConfig.SFX.styleChangeVOVolume, 150);
     } else if (style == 5) {
-        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, doppelgangerVO, activeConfig.SFX.styleChangeVOVolume, 150);
+
+        if (doppActive) {
+            PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, doppelganger1VO, activeConfig.SFX.styleChangeVOVolume, 150);
+        }
+        else {
+            PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, doppelganger2VO, activeConfig.SFX.styleChangeVOVolume, 150);
+        }
     }
 }
 

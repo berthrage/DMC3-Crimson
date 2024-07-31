@@ -19,7 +19,7 @@ void VibrateController(int controllerIndex, Uint16 rumbleStrengthLowFreq, Uint16
 void PlayChangeDevilArm();
 void PlayChangeGun();
 void PlayStyleChange(int playerIndex);
-void PlayStyleChangeVO(int playerIndex, int style);
+void PlayStyleChangeVO(int playerIndex, int style, bool doppActive);
 void SetAllSFXDistance(int playerIndex, int distance);
 void StyleRankAnnouncerController(int rank);
 void PlaySprint(int playerIndex);
