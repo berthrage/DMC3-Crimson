@@ -12,10 +12,13 @@
 #include "SDL.hpp"
 #include "Vars.hpp"
 #include "CrimsonFileHandling.hpp"
+#include "CrimsonUtil.hpp"
+#include <iostream>
+#include <unordered_set>
 
-SDL_GameController* controller = NULL;
-SDL_Joystick* joystick;
-SDL_Haptic* styleHaptic;
+SDL_GameController* mainController = NULL;
+std::vector<SDL_GameController*> controllers(4, NULL);
+std::unordered_set<SDL_JoystickID> currentlyConnected;
 std::string SDL2Initialization   = "";
 std::string MixerInitialization  = "";
 std::string MixerInitialization2 = "";
@@ -93,10 +96,12 @@ namespace CHANNEL {
 #define LOAD_MIXER_FUNCTION(X) fn_##X = GetSDLMixerFunction<decltype(X)*>(#X)
 
 SDL_FUNCTION_DECLRATION(SDL_Init)                         = NULL;
+SDL_FUNCTION_DECLRATION(SDL_PollEvent)                    = NULL;
 SDL_FUNCTION_DECLRATION(Mix_OpenAudio)                    = NULL;
 SDL_FUNCTION_DECLRATION(Mix_Init)                         = NULL;
 SDL_FUNCTION_DECLRATION(SDL_NumJoysticks)                 = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GameControllerOpen)           = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GameControllerClose)          = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GameControllerGetPlayerIndex) = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GameControllerGetJoystick)    = NULL;
 SDL_FUNCTION_DECLRATION(SDL_HapticOpenFromJoystick)       = NULL;
@@ -115,7 +120,14 @@ SDL_FUNCTION_DECLRATION(Mix_VolumeMusic)                  = NULL;
 SDL_FUNCTION_DECLRATION(Mix_FadeInMusic)                  = NULL;
 SDL_FUNCTION_DECLRATION(Mix_FadeOutMusic)                 = NULL;
 SDL_FUNCTION_DECLRATION(Mix_PlayingMusic)                 = NULL;
-SDL_FUNCTION_DECLRATION(SDL_JoystickGetButton) = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GameControllerGetButton)      = NULL;
+SDL_FUNCTION_DECLRATION(SDL_JoystickInstanceID)           = NULL;
+SDL_FUNCTION_DECLRATION(SDL_JoystickGetDeviceInstanceID)  = NULL;
+SDL_FUNCTION_DECLRATION(SDL_JoystickUpdate)               = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GameControllerName)           = NULL;
+SDL_FUNCTION_DECLRATION(SDL_IsGameController)             = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GameControllerRumble)         = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GetError)                     = NULL;
 
 void LoadAllSFX() {
 	if (!cacheAudioFiles) {
@@ -169,16 +181,70 @@ void LoadAllSFX() {
 	}
 }
 
+void AddController(int index) {
+	if (fn_SDL_IsGameController(index)) {
+		SDL_GameController* controller = fn_SDL_GameControllerOpen(index);
+		if (controller) {
+			SDL_JoystickID instanceID = fn_SDL_JoystickInstanceID(fn_SDL_GameControllerGetJoystick(controller));
+			currentlyConnected.insert(instanceID);
+			bool assigned = false;
+			for (auto& ctrl : controllers) {
+				if (ctrl == NULL) {
+					ctrl = controller;
+					assigned = true;
+					break;
+				}
+			}
+			if (!assigned) {
+				std::cerr << "Too many controllers connected. Ignoring controller " << index << "\n";
+				fn_SDL_GameControllerClose(controller);
+			}
+			else {
+				std::cout << "Opened controller " << index << ": " << fn_SDL_GameControllerName(controller) << std::endl;
+			}
+		}
+		else {
+			std::cerr << "Could not open controller " << index << ": " << fn_SDL_GetError() << std::endl;
+		}
+	}
+}
+
+void RemoveController(SDL_JoystickID instanceID) {
+	for (int i = 0; i < controllers.size(); ++i) {
+		if (controllers[i] && fn_SDL_JoystickInstanceID(fn_SDL_GameControllerGetJoystick(controllers[i])) == instanceID) {
+			fn_SDL_GameControllerClose(controllers[i]);
+			controllers[i] = NULL;
+			currentlyConnected.erase(instanceID);
+			std::cout << "Closed controller at index " << i << "  instanceID: " << instanceID << "\n";
+			break;
+		}
+	}
+}
+
+void InitControllers() {
+	for (int i = 0; i < fn_SDL_NumJoysticks(); ++i) {
+        AddController(i);
+	}
+}
+
 void InitSDL() {
     if (!SDL2Init) {
         // Get the function addresses
         LOAD_SDL_FUNCTION(SDL_Init);
+        LOAD_SDL_FUNCTION(SDL_PollEvent);
         LOAD_SDL_FUNCTION(SDL_NumJoysticks);
         LOAD_SDL_FUNCTION(SDL_GameControllerOpen);
+        LOAD_SDL_FUNCTION(SDL_GameControllerClose);
         LOAD_SDL_FUNCTION(SDL_GameControllerGetPlayerIndex);
         LOAD_SDL_FUNCTION(SDL_GameControllerGetJoystick);
-        LOAD_SDL_FUNCTION(SDL_HapticOpenFromJoystick);
-        LOAD_SDL_FUNCTION(SDL_JoystickGetButton);
+        LOAD_SDL_FUNCTION(SDL_GameControllerGetButton);
+        LOAD_SDL_FUNCTION(SDL_IsGameController);
+        LOAD_SDL_FUNCTION(SDL_GameControllerName);
+        LOAD_SDL_FUNCTION(SDL_GameControllerRumble);
+        LOAD_SDL_FUNCTION(SDL_JoystickInstanceID);
+        LOAD_SDL_FUNCTION(SDL_JoystickGetDeviceInstanceID);
+        LOAD_SDL_FUNCTION(SDL_JoystickUpdate);
+        LOAD_SDL_FUNCTION(SDL_GetError);
         LOAD_MIXER_FUNCTION(Mix_AllocateChannels);
         LOAD_MIXER_FUNCTION(Mix_ReserveChannels);
         LOAD_MIXER_FUNCTION(Mix_LoadWAV);
@@ -196,6 +262,7 @@ void InitSDL() {
         LOAD_MIXER_FUNCTION(Mix_PlayingMusic);
         LOAD_MIXER_FUNCTION(Mix_OpenAudio);
         LOAD_MIXER_FUNCTION(Mix_Init);
+        
 
         if (fn_SDL_NumJoysticks == NULL) {
             // TODO: Handle the error
@@ -263,19 +330,19 @@ void InitSDL() {
             MixerInitialization2 = "Mixer2 Success";
         }
 
-        controller = NULL;
-        for (int i = 0; i < fn_SDL_NumJoysticks(); ++i) {
-            controller = fn_SDL_GameControllerOpen(i);
-            if (controller) {
+        mainController = NULL;
+        for (int i = 0; i < 4; ++i) {
+            mainController = fn_SDL_GameControllerOpen(i);
+            if (mainController) {
                 break;
             }
         }
 
-        int controllerIndex = fn_SDL_GameControllerGetPlayerIndex(controller);
 
+        int controllerIndex = fn_SDL_GameControllerGetPlayerIndex(mainController);
 
-        joystick  = fn_SDL_GameControllerGetJoystick(controller);
-        styleHaptic = fn_SDL_HapticOpenFromJoystick(joystick);
+        InitControllers();
+        reverseNonNull(controllers);
 
         SDL2Init = true;
     }
@@ -291,8 +358,42 @@ void InitSDL() {
 }
 
 
-bool IsJoystickButtonDown(SDL_Joystick* joystick, int button) {
-   return fn_SDL_JoystickGetButton(joystick, button);
+bool IsControllerButtonDown(int controllerIndex, int button) {
+   return fn_SDL_GameControllerGetButton(controllers[controllerIndex], (SDL_GameControllerButton)button);
+}
+
+
+void CheckAndOpenControllers() {
+	SDL_Event event;
+
+	while (fn_SDL_PollEvent(&event)) {
+		if (event.type == SDL_CONTROLLERDEVICEADDED) {
+            if (controllers[event.cdevice.which] == NULL) {
+                AddController(event.cdevice.which);
+            }
+		}
+		else if (event.type == SDL_CONTROLLERDEVICEREMOVED) {
+            
+            RemoveController(event.cdevice.which);
+            
+		}
+	}
+
+}
+
+void UpdateJoysticks() {
+    fn_SDL_JoystickUpdate();
+}
+
+void VibrateController(int controllerIndex, Uint16 rumbleStrengthLowFreq, Uint16 rumbleStrengthHighFreq, int rumbleDuration) {
+    if (controllers[controllerIndex] != NULL) {
+		if (fn_SDL_GameControllerRumble(controllers[controllerIndex], rumbleStrengthLowFreq, rumbleStrengthHighFreq, rumbleDuration) == 0) {
+			//std::cout << "SWEET VIBRATION " << controllerIndex << std::endl;
+		}
+		else {
+			std::cerr << "Vibration ERROR " << 0 << ": " << fn_SDL_GetError() << std::endl;
+		}
+    }
 }
 
 void FadeOutChannels(int channelException, int initialChannel, int numChannels, int fadeOutms) {

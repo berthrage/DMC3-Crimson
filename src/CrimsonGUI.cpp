@@ -1612,6 +1612,7 @@ void CorrectFrameRateCutscenes() {
     // Changing frame rate to above or below 60 will alter cutscene speed, this function corrects this behavior
     // by forcing cutscenes to play at 60 fps. - Mia
 
+    static bool changedFrameRateCorrection = false;
     float temp = queuedConfig.frameRate;
 
     if (g_scene == SCENE::CUTSCENE && !changedFrameRateCorrection) {
@@ -9176,23 +9177,33 @@ void ToggleInfiniteHealth() {
 
 void GamepadToggleShowMain() {
 
-    //auto combination = (ImGui::IsNavInputDown(ImGuiGamepad::DpadDown) && ImGui::IsNavInputDown(ImGuiGamepad::R1) && ImGui::IsNavInputDown(ImGuiGamepad::B) && ImGui::IsNavInputDown(ImGuiGamepad::Y));
-    auto combination = (IsJoystickButtonDown(joystick, 7) && IsJoystickButtonDown(joystick, 8));
+    static bool gamepadCombinationMainRelease[4] = { false, false, false, false };
 
-    if (combination && !g_showMain && gamepadCombinationMainRelease) {
-        ToggleShowMain();
-        ImGui::SetWindowFocus(DMC3C_TITLE);
-        gamepadCombinationMainRelease = false;
-    }
+	// Loop through each controller
+	for (int i = 0; i < 4; ++i) {
+		if (controllers[i] != NULL) {
+			// Combination of buttons to check
+			bool combination = (IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK) && IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK));
 
-    if (!combination && !gamepadCombinationMainRelease) {
-        gamepadCombinationMainRelease = true;
-    }
+			// Combination pressed and was not pressed before, toggle GUI and set window focus
+			if (combination && !g_showMain && gamepadCombinationMainRelease[i]) {
+				ToggleShowMain();
+				ImGui::SetWindowFocus(DMC3C_TITLE);
+				gamepadCombinationMainRelease[i] = false;
+			}
 
-    if (combination && g_showMain && gamepadCombinationMainRelease) {
-        ToggleShowMain();
-        gamepadCombinationMainRelease = false;
-    }
+			// Combination released, update release state
+			if (!combination && !gamepadCombinationMainRelease[i]) {
+				gamepadCombinationMainRelease[i] = true;
+			}
+
+			// Combination pressed, GUI shown, and was not pressed before, toggle GUI
+			if (combination && g_showMain && gamepadCombinationMainRelease[i]) {
+				ToggleShowMain();
+				gamepadCombinationMainRelease[i] = false;
+			}
+		}
+	}
 
 
 }
@@ -10482,7 +10493,10 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     GunDTCharacterRemaps();
 
     CorrectFrameRateCutscenes();
+    CheckAndOpenControllers();
+    UpdateJoysticks();
     GamepadToggleShowMain();
+   
 
     // TIMERS
     BackToForwardTimers();

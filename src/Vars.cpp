@@ -276,7 +276,6 @@ GuiPause guiPause;
 DelayedComboFX delayedComboFX;
 
 bool changedFrameRateCorrection = false;
-bool gamepadCombinationMainRelease = false;
 
 std::vector<std::string> HUDdirectories;
 

@@ -4387,9 +4387,6 @@ struct GuiPause {
 
 extern GuiPause guiPause;
 
-extern bool changedFrameRateCorrection;
-extern bool gamepadCombinationMainRelease;
-
 extern std::vector<std::string> HUDdirectories;
 
 extern float frameRateSpeedMultiplier;

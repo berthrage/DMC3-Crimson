@@ -2143,6 +2143,10 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
         PlayDTEExplosionRelease(playerIndex, 200 * releaseVolumeMult);
 
         if (releaseVolumeMult > 0.4f) {
+            VibrateController(actorData.newPlayerIndex, 0, 0x5555 * releaseVolumeMult, 800);
+        }
+        
+        if (releaseVolumeMult > 0.4f) {
 			createEffectBank = 3;
 			createEffectID = 61;
 			createEffectBone = 1;
@@ -2344,17 +2348,19 @@ void DelayedComboFXController(byte8* actorBaseAddr) {
 	}
 
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    auto& motionDataIndex = actorData.motionData[0].index;
 
 	auto playerIndex = actorData.newPlayerIndex;
 	auto weapon = GetMeleeWeapon(actorData);
 
 	auto inAttack = (actorData.eventData[0].event == 17);
 	auto rebellionCombo1Anim = (actorData.motionData[0].index == 3);
-	auto inRebellionCombo1 = (actorData.action == REBELLION_COMBO_1_PART_1 && actorData.motionData[0].index == 3 && inAttack);
-	auto inCerberusCombo2 = (actorData.action == CERBERUS_COMBO_1_PART_2 && actorData.motionData[0].index == 4 && inAttack);
-	auto inAgniCombo1 = (actorData.action == AGNI_RUDRA_COMBO_1_PART_1 && actorData.motionData[0].index == 3 && inAttack);
-	auto inAgniCombo2 = (actorData.action == AGNI_RUDRA_COMBO_2_PART_2 && actorData.motionData[0].index == 8 && inAttack);
-	auto inBeoCombo1 = (actorData.action == BEOWULF_COMBO_1_PART_2 && actorData.motionData[0].index == 4 && inAttack);
+	auto inRebellionCombo1 = (actorData.action == REBELLION_COMBO_1_PART_1 && motionDataIndex == 3 && inAttack);
+    auto inRebellionCombo2 = (actorData.action == REBELLION_COMBO_2_PART_2 && motionDataIndex == 6 && inAttack);
+	auto inCerberusCombo2 = (actorData.action == CERBERUS_COMBO_1_PART_2 && motionDataIndex == 4 && inAttack);
+	auto inAgniCombo1 = (actorData.action == AGNI_RUDRA_COMBO_1_PART_1 && motionDataIndex == 3 && inAttack);
+	auto inAgniCombo2 = (actorData.action == AGNI_RUDRA_COMBO_2_PART_2 && motionDataIndex == 8 && inAttack);
+	auto inBeoCombo1 = (actorData.action == BEOWULF_COMBO_1_PART_2 && motionDataIndex == 4 && inAttack);
 	auto meleeWeapon = actorData.newWeapons[actorData.meleeWeaponIndex];
 	auto& delayedComboFX = crimsonPlayer[playerIndex].delayedComboFX;
     auto& actionTimer = crimsonPlayer[playerIndex].actionTimer;
@@ -2363,6 +2369,10 @@ void DelayedComboFXController(byte8* actorBaseAddr) {
 		delayedComboFX.duration = 0.485f;
 		delayedComboFX.weaponThatStartedMove = 0;
 	}
+    else if (inRebellionCombo2) {
+		delayedComboFX.duration = 0.85f;
+		delayedComboFX.weaponThatStartedMove = 0;
+    }
 	else if (inCerberusCombo2) {
 		delayedComboFX.duration = 0.55f;
 		delayedComboFX.weaponThatStartedMove = 1;
@@ -2384,7 +2394,7 @@ void DelayedComboFXController(byte8* actorBaseAddr) {
 
 	if (actorData.character == CHARACTER::DANTE) {
 		if (actionTimer >= delayedComboFX.duration &&
-			(inRebellionCombo1 || inCerberusCombo2 || inAgniCombo1 || inAgniCombo2 || inBeoCombo1) && delayedComboFX.playCount == 0 &&
+			(inRebellionCombo1 || inRebellionCombo2 || inCerberusCombo2 || inAgniCombo1 || inAgniCombo2 || inBeoCombo1) && delayedComboFX.playCount == 0 &&
 			weapon == delayedComboFX.weaponThatStartedMove) {
 
             // SFX
@@ -2397,6 +2407,8 @@ void DelayedComboFXController(byte8* actorBaseAddr) {
 			createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
 			CreateEffectDetour();
 
+            // VIBRATION
+            VibrateController(playerIndex, 0, 0x5555, 130);
 
 
 			delayedComboFX.playCount++;

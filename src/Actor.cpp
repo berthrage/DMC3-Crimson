@@ -2952,6 +2952,9 @@ void ActivateDevil(PlayerActorData& actorData, bool playSFX) {
     if (playSFX) {
         PlayDevilTriggerIn(actorData.newPlayerIndex);
     }
+
+    //VIBRATE
+    VibrateController(actorData.newPlayerIndex, 0, 0x2222, 300);
     // PlayDevilTriggerLoop();
 }
 
@@ -2974,6 +2977,8 @@ void DeactivateDevil(PlayerActorData& actorData, bool playSFX = true) {
     if (playSFX) {
         PlayDevilTriggerOut(actorData.newPlayerIndex);
     }
+
+    VibrateController(actorData.newPlayerIndex, 0, 0x1111, 300);
     // StopDevilTriggerLoop();
 }
 

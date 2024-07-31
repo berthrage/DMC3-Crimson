@@ -92,3 +92,4 @@ bool IsAddressValidAndWritable(uintptr_t address) {
     }
     return false;
 }
+
