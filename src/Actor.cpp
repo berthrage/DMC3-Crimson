@@ -3922,6 +3922,8 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     DelayedComboFXController(actorBaseAddr);
     StyleSwitchFlux(actorBaseAddr);
     DTExplosionFXController(actorBaseAddr);
+    RoyalguardSFX(actorBaseAddr);
+   // RoyalguardNormalBlockRebalance(actorBaseAddr);
     CalculateCameraPlayerDistance(actorBaseAddr);
     SetAllSFXDistance(playerIndex, crimsonPlayer[playerIndex].cameraPlayerDistanceClamped);
     
@@ -8687,7 +8689,7 @@ bool DeactivateDoppelgangerDeathCheck(PlayerActorData& actorData) {
         DeactivateDoppelganger(actorData);
 
         cloneActorData.doppelganger = actorData.doppelganger = false;
-        actorData.var_6340                                   = 0;
+        actorData.guard                                  = 0;
         actorData.cloneStatus                                = CLONE_STATUS::IDLE;
         /*
         dmc3.exe+1E2AD8 - C6 81 62630000 00       - mov byte ptr [rcx+00006362],00

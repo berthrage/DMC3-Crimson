@@ -7076,7 +7076,15 @@ void MainOverlayWindow(size_t defaultFontSize) {
             // ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
             // ImGui::Text("Actor Speed %g", actorData.speed);
             ImGui::Text("distance: %u", crimsonPlayer[0].cameraPlayerDistanceClamped);
-            ImGui::Text("DELAYED COMBO DURATION: %g", crimsonPlayer[0].delayedComboFX.duration);
+            ImGui::Text("Release Damage: %g", actorData.royalguardReleaseDamage);
+            ImGui::Text("Royal Block: %u", actorData.royalBlock);
+            ImGui::Text("HP: %g", actorData.hitPoints);
+            ImGui::Text("storedHP: %g", storedHP);
+            ImGui::Text("storedDT: %g", storedDT);
+            ImGui::Text("missionData DAMAGE: %u", missionData.damage);
+            ImGui::Text("IN ROYAL BLOCK: %u", ((actorData.eventData[0].event == 20 && actorData.motionData[0].index == 32) || (actorData.eventData[0].event == 20 && actorData.motionData[0].index == 34)));
+            ImGui::Text("IN NORMAL BLOCK: %u", ((actorData.eventData[0].event == 20 && actorData.motionData[0].index == 2) || (actorData.eventData[0].event == 20 && actorData.motionData[0].index == 7) || (actorData.eventData[0].event == 20 && actorData.motionData[0].index == 12)));
+            ImGui::Text("IN GUARD: %u", actorData.guard);
             ImGui::Text("IN COMBAT: %u", g_inCombat);
             ImGui::Text("DTE CHARGE: %g", actorData.dtExplosionCharge);
             ImGui::Text("FLUX TIME: %g", crimsonPlayer[0].fluxtime);

@@ -65,6 +65,9 @@ Mix_Chunk* styleRankSSS2;
 Mix_Chunk* delayedCombo1;
 Mix_Chunk* delayedCombo2;
 Mix_Chunk* delayedDrive;
+Mix_Chunk* guard;
+Mix_Chunk* royalBlock;
+Mix_Chunk* normalBlock;
 Mix_Music* missionClearSong;
 
 // Mix Channels used
@@ -89,6 +92,9 @@ namespace CHANNEL {
     constexpr int initialDTELoop = 346; // to 349, 1 channel per player
     constexpr int initialDTEFinish = 350; // to 353, 1 channel per player
     constexpr int initialDTERelease = 354; // to 357, 1 channel per player
+    constexpr int initialGuard = 358; // to 365, 2 channels per player
+    constexpr int initialRoyalBlock = 366; // to 390, 5 channels per player
+    constexpr int initialBlock = 391; // to 410, 5 channels per player
 
 }
 
@@ -173,6 +179,9 @@ void LoadAllSFX() {
 		styleRankSSS2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\sss2.wav").c_str());
 		delayedCombo1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\delayedcombo1.wav").c_str());
 		delayedCombo2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\delayedcombo2.wav").c_str());
+        guard = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\guard.wav").c_str());
+        royalBlock = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\blockroyal.wav").c_str());
+        normalBlock = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\block.wav").c_str());
 
 
 
@@ -497,19 +506,21 @@ void PlayStyleChangeVO(int playerIndex, int style, bool doppActive) {
     }
 }
 
-void SetAllSFXDistance(int playerIndex, int distance) {
-    // This will simulate a pseudo 3D effect for the SFX
+void SetSFXDistanceMultipleChannels(int playerIndex, int initialChannel, int numberChannelsPerPlayer, int distance) {
+    auto initialChannelPlayer = initialChannel + (numberChannelsPerPlayer * playerIndex);
 
-    auto initialChannelStyleChange = CHANNEL::initialStyleChange + (20 * playerIndex);
-    auto initialChannelStyleChangeVO = CHANNEL::initialStyleChangeVO + (20 * playerIndex);
-
-    for (int i = initialChannelStyleChange; i <= initialChannelStyleChange + 19; i++) {
+    for (int i = initialChannelPlayer; i <= (initialChannelPlayer + (numberChannelsPerPlayer - 1)); i++) {
         fn_Mix_SetPosition(i, 0, distance);
     }
 
-	for (int i = initialChannelStyleChangeVO; i <= initialChannelStyleChangeVO + 19; i++) {
-		fn_Mix_SetPosition(i, 0, distance);
-	}
+}
+
+void SetAllSFXDistance(int playerIndex, int distance) {
+    // This will simulate a pseudo 3D effect for the SFX
+
+    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChange, 20, distance);
+    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChangeVO, 20, distance);
+
 
     fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex, 0, distance);
     fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex + 4, 0, distance); // L2
@@ -531,6 +542,10 @@ void SetAllSFXDistance(int playerIndex, int distance) {
 	fn_Mix_SetPosition(CHANNEL::initialDTEStart + playerIndex, 0, distance);
 	fn_Mix_SetPosition(CHANNEL::initialDTELoop + playerIndex, 0, distance);
 	fn_Mix_SetPosition(CHANNEL::initialDTEFinish + playerIndex, 0, distance);
+
+    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialGuard, 2, distance);
+    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialRoyalBlock, 5, distance);
+    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialBlock, 5, distance);
 }
 
 void StyleRankCooldownTracker(int rank) {
@@ -709,6 +724,24 @@ void PlayDTEExplosionRelease(int playerIndex, int volume) {
 void InterruptDTExplosionSFX(int playerIndex) {
     fn_Mix_HaltChannel(CHANNEL::initialDTEStart + playerIndex);
     fn_Mix_HaltChannel(CHANNEL::initialDTELoop + playerIndex);
+}
+
+void PlayGuard(int playerIndex) {
+	auto initialChannel = CHANNEL::initialGuard + (2 * playerIndex);
+
+	PlayOnChannels(initialChannel, initialChannel + 1, guard, 50);
+}
+
+void PlayRoyalBlock(int playerIndex) {
+	auto initialChannel = CHANNEL::initialRoyalBlock + (5 * playerIndex);
+
+	PlayOnChannels(initialChannel, initialChannel + 4, royalBlock, 80);
+}
+
+void PlayNormalBlock(int playerIndex) {
+	auto initialChannel = CHANNEL::initialBlock + (5 * playerIndex);
+
+	PlayOnChannels(initialChannel, initialChannel + 4, normalBlock, 30);
 }
 
 void PlayNewMissionClearSong() {

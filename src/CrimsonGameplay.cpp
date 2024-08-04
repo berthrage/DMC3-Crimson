@@ -38,6 +38,7 @@
 #include "StyleSwitchFX.hpp"
 
 #include "Core/Macros.h"
+#include <deque>
 
 
 #pragma region Cancels
@@ -2132,6 +2133,162 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
         vfxFinished = false;
     }
 }
+
+
+void RoyalguardSFX(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& event = actorData.eventData[0].event;
+	auto& motionDataIndex = actorData.motionData[0].index;
+    auto& playerData = GetPlayerData(actorData);
+	bool inRoyalBlock = ((event == 20 && motionDataIndex == 32) || (event == 20 && motionDataIndex == 34));
+	bool inNormalBlock = ((event == 20 && motionDataIndex == 2) || (event == 20 && motionDataIndex == 7) || (event == 20 && motionDataIndex == 12));
+    bool ensureIsMainPlayer = ((actorData.newCharacterIndex == playerData.activeCharacterIndex) && (actorData.newEntityIndex == ENTITY::MAIN));
+	static bool guardPlayed = false;
+	static bool royalBlockPlayed = false;
+	static bool normalBlockPlayed = false;
+	static auto guardLastChangedTime = std::chrono::steady_clock::now();
+	static auto royalBlockLastChangedTime = std::chrono::steady_clock::now();
+	static auto normalBlockLastChangedTime = std::chrono::steady_clock::now();
+
+	const int guardDebounceTimeMs = 20;   // debounce time for guard SFX in milliseconds
+	const int royalBlockDebounceTimeMs = 80; // debounce time for royal block SFX in milliseconds
+	const int normalBlockDebounceTimeMs = 80; // debounce time for normal block SFX in milliseconds
+
+	auto now = std::chrono::steady_clock::now();
+
+	// GUARD SFX
+// 	if (actorData.guard) {
+// 		if (!guardPlayed) {
+// 			PlayGuard(playerIndex);
+// 			guardPlayed = true;
+// 		}
+// 		// Reset the debounce timer when guard is active
+// 		guardLastChangedTime = now;
+// 	}
+// 	else {
+// 		auto durationSinceGuardChanged = std::chrono::duration_cast<std::chrono::milliseconds>(now - guardLastChangedTime).count();
+// 		if (durationSinceGuardChanged > guardDebounceTimeMs) {
+// 			if (guardPlayed) {
+// 				guardPlayed = false;
+// 			}
+// 		}
+// 	}
+
+    if (ensureIsMainPlayer) {
+        // ROYAL BLOCK SFX
+        if (actorData.royalBlock == 3) {
+
+            if (!royalBlockPlayed) {
+                std::cout << "royal block played" << std::endl;
+                PlayRoyalBlock(playerIndex);
+                royalBlockPlayed = true;
+            }
+
+
+        }
+        else {
+            if (royalBlockPlayed) {
+                royalBlockPlayed = false;
+            }
+        }
+
+        // NORMAL BLOCK SFX
+        if (actorData.royalBlock == 0 || actorData.royalBlock == 4) {
+
+
+            if (!normalBlockPlayed) {
+                PlayNormalBlock(playerIndex);
+                normalBlockPlayed = true;
+            }
+
+
+        }
+        else {
+            if (normalBlockPlayed) {
+                normalBlockPlayed = false;
+            }
+        }
+    }
+}
+constexpr auto DEBOUNCE_TIME_PERIOD = std::chrono::milliseconds(100);
+
+
+const int TEMP_STORAGE_DELAY_MS = 100; // Adjust this delay as needed
+
+void RoyalguardNormalBlockRebalance(byte8* actorBaseAddr) {
+	// This makes normal block consume DT instead of health, when DT is above 0
+	if (!actorBaseAddr) {
+		return;
+	}
+
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& event = actorData.eventData[0].event;
+	auto& motionDataIndex = actorData.motionData[0].index;
+	bool inNormalBlock = (actorData.royalBlock == 0 || actorData.royalBlock == 4);
+	auto& hp = actorData.hitPoints;
+	auto& dt = actorData.magicPoints;
+	static auto normalBlockLastChangedTime = std::chrono::steady_clock::now();
+
+	const int normalBlockDebounceTimeMs = 20; // Debounce time for normal block SFX in milliseconds
+	const int tempStorageDelayMs = 400; // Adjust this delay as needed
+
+	struct TempStorage {
+		float hp;
+		float dt;
+		std::chrono::steady_clock::time_point time;
+	};
+
+	static std::deque<TempStorage> tempStorageQueue;
+
+	auto now = std::chrono::steady_clock::now();
+
+	static bool dtConsumed = false;
+	static std::chrono::steady_clock::time_point blockStartTime;
+
+	// Capture the current HP and DT in the temp storage queue with a timestamp
+	if (!inNormalBlock) {
+		tempStorageQueue.push_back({ hp, dt, now });
+	}
+
+	// Remove old entries from the temp storage queue
+	while (!tempStorageQueue.empty() && std::chrono::duration_cast<std::chrono::milliseconds>(now - tempStorageQueue.front().time).count() > tempStorageDelayMs) {
+		tempStorageQueue.pop_front();
+	}
+
+	// Use the most recent valid stored HP and DT values from the temp storage queue
+	float storedHP = hp;
+	float storedDT = dt;
+	if (!tempStorageQueue.empty()) {
+		storedHP = tempStorageQueue.front().hp;
+		storedDT = tempStorageQueue.front().dt;
+	}
+
+	if (inNormalBlock) {
+		if (!dtConsumed) {
+			blockStartTime = now;
+			dtConsumed = true;
+		}
+
+		if (dt > 0) {
+			actorData.hitPoints = storedHP;
+
+			if (!activeConfig.infiniteMagicPoints) {
+				dt = storedDT - 2000 > 0 ? storedDT - 2000 : 0;
+			}
+		}
+	}
+	else {
+		dtConsumed = false;
+	}
+}
+
+
+
 
 #pragma endregion
 

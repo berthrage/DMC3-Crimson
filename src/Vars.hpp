@@ -2898,8 +2898,8 @@ struct PlayerActorDataBase : ActorDataBase {
     LockOnData lockOnData;    // 0x41C0
     uint32 style;             // 0x6338
     uint32 wallHikeDirection; // 0x633C
-    uint32 var_6340;          // 0x6340
-    _(20);
+    bool guard;          // 0x6340
+    _(23);
     uint32 styleLevel;    // 0x6358
     uint8 dashCount;      // 0x635C
     uint8 skyStarCount;   // 0x635D
@@ -2910,7 +2910,8 @@ struct PlayerActorDataBase : ActorDataBase {
     bool doppelganger;    // 0x6362
     _(1);
     float styleExpPoints; // 0x6364
-    _(8);
+    uint8 royalBlock; //0x6368
+    _(7);
     uint32 royalguardBlockType; // 0x6370
     _(4);
     bool airGuard; // 0x6378
@@ -3046,7 +3047,7 @@ static_assert(offsetof(PlayerActorDataBase, hitPoints) == 0x411C);
 static_assert(offsetof(PlayerActorDataBase, lockOnData) == 0x41C0);
 static_assert(offsetof(PlayerActorDataBase, style) == 0x6338);
 static_assert(offsetof(PlayerActorDataBase, wallHikeDirection) == 0x633C);
-static_assert(offsetof(PlayerActorDataBase, var_6340) == 0x6340);
+static_assert(offsetof(PlayerActorDataBase, guard) == 0x6340);
 static_assert(offsetof(PlayerActorDataBase, styleLevel) == 0x6358);
 static_assert(offsetof(PlayerActorDataBase, dashCount) == 0x635C);
 static_assert(offsetof(PlayerActorDataBase, skyStarCount) == 0x635D);
@@ -3056,6 +3057,7 @@ static_assert(offsetof(PlayerActorDataBase, trickDownCount) == 0x6360);
 static_assert(offsetof(PlayerActorDataBase, quicksilver) == 0x6361);
 static_assert(offsetof(PlayerActorDataBase, doppelganger) == 0x6362);
 static_assert(offsetof(PlayerActorDataBase, styleExpPoints) == 0x6364);
+static_assert(offsetof(PlayerActorDataBase, royalBlock) == 0x6368);
 static_assert(offsetof(PlayerActorDataBase, royalguardBlockType) == 0x6370);
 static_assert(offsetof(PlayerActorDataBase, airGuard) == 0x6378);
 static_assert(offsetof(PlayerActorDataBase, royalguardReleaseLevel) == 0x6380);
@@ -4303,9 +4305,16 @@ struct DelayedComboFX {
 	int id = 143;
 };
 
+struct RoyalguardFX {
+    bool royalBlockSFXPlayed = false;
+};
+
 extern bool inRoyalBlock;
 extern bool inGuardfly;
 extern float rainstormPull;
+
+extern float storedHP;
+extern float storedDT;
 
 struct CrimsonPlayerData {
     uintptr_t playerPtr;
@@ -4343,6 +4352,7 @@ struct CrimsonPlayerData {
     DTESFX dTESFX;
     DTEVFX dTEVFX;
     DelayedComboFX delayedComboFX;
+    RoyalguardFX royalguardFX;
     float fluxtime = 0;
     bool fluxCanStart = true;
     bool fluxCanEnd = false;

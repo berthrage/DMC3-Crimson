@@ -264,6 +264,9 @@ bool inRoyalBlock;
 bool inGuardfly;
 float rainstormPull;
 
+float storedHP = 0;
+float storedDT = 0;
+
 CrimsonPlayerData crimsonPlayer[20];
 
 bool devilTriggerReadyPlayed = false;
