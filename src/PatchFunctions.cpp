@@ -136,6 +136,21 @@ void RainstormLift() {
     }
 }
 
+void DisableStagger(bool enable) {
+    // used for Royalguard Rebalanced
+    uintptr_t patchAddr = (uintptr_t)appBaseAddr + 0x1EC467; 
+
+    if (enable) {
+		_patch((char*)(patchAddr), (char*)"\xE9\x1F\x01\x00\x00", 5); // dmc3.exe+1EC467 - jmp dmc3.exe+1EC58B
+        _nop((char*)(appBaseAddr + 0x1EC46C), 1);
+    }
+    else {
+		_patch((char*)(patchAddr), (char*)"\x0F\x8E\x1E\x01\x00\x00", 6); // dmc3.exe+1EC467 - jng dmc3.exe+1EC58B
+
+    }
+
+}
+
 #pragma endregion
 
 #pragma region CameraStuff

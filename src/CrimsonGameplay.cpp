@@ -39,6 +39,7 @@
 
 #include "Core/Macros.h"
 #include <deque>
+#include "Training.hpp"
 
 
 #pragma region Cancels
@@ -2134,7 +2135,6 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
     }
 }
 
-
 void RoyalguardSFX(byte8* actorBaseAddr) {
 	if (!actorBaseAddr) {
 		return;
@@ -2143,24 +2143,19 @@ void RoyalguardSFX(byte8* actorBaseAddr) {
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& event = actorData.eventData[0].event;
 	auto& motionDataIndex = actorData.motionData[0].index;
-    auto& playerData = GetPlayerData(actorData);
-	bool inRoyalBlock = ((event == 20 && motionDataIndex == 32) || (event == 20 && motionDataIndex == 34));
-	bool inNormalBlock = ((event == 20 && motionDataIndex == 2) || (event == 20 && motionDataIndex == 7) || (event == 20 && motionDataIndex == 12));
-    bool ensureIsMainPlayer = ((actorData.newCharacterIndex == playerData.activeCharacterIndex) && (actorData.newEntityIndex == ENTITY::MAIN));
-	static bool guardPlayed = false;
-	static bool royalBlockPlayed = false;
-	static bool normalBlockPlayed = false;
-	static auto guardLastChangedTime = std::chrono::steady_clock::now();
-	static auto royalBlockLastChangedTime = std::chrono::steady_clock::now();
-	static auto normalBlockLastChangedTime = std::chrono::steady_clock::now();
+	auto& playerData = GetPlayerData(actorData);
+	bool inRoyalBlock = (actorData.royalBlock == 3);
+	bool inNormalBlock = (actorData.royalBlock == 0 || actorData.royalBlock == 4);
+	bool inStaggeredGuardBreak = (actorData.royalBlock == 2 || (actorData.royalBlock == 6 && event == 44 && actorData.guard));
+	bool inGuardBreak = ((event == 20 && motionDataIndex == 2) && !inNormalBlock);
+	bool ensureIsMainPlayer = ((actorData.newCharacterIndex == playerData.activeCharacterIndex) && (actorData.newEntityIndex == ENTITY::MAIN));
 
-	const int guardDebounceTimeMs = 20;   // debounce time for guard SFX in milliseconds
-	const int royalBlockDebounceTimeMs = 80; // debounce time for royal block SFX in milliseconds
-	const int normalBlockDebounceTimeMs = 80; // debounce time for normal block SFX in milliseconds
+	// Convert static variables to arrays
+	static bool guardPlayed[PLAYER_COUNT] = { false };
+	static bool royalBlockPlayed[PLAYER_COUNT] = { false };
+	static bool normalBlockPlayed[PLAYER_COUNT] = { false };
 
-	auto now = std::chrono::steady_clock::now();
-
-	// GUARD SFX
+	// GUARD SFX -- SCRAPPED
 // 	if (actorData.guard) {
 // 		if (!guardPlayed) {
 // 			PlayGuard(playerIndex);
@@ -2178,49 +2173,48 @@ void RoyalguardSFX(byte8* actorBaseAddr) {
 // 		}
 // 	}
 
-    if (ensureIsMainPlayer) {
-        // ROYAL BLOCK SFX
-        if (actorData.royalBlock == 3) {
+	if (ensureIsMainPlayer) {
 
-            if (!royalBlockPlayed) {
-                std::cout << "royal block played" << std::endl;
-                PlayRoyalBlock(playerIndex);
-                royalBlockPlayed = true;
-            }
+		// ROYAL BLOCK SFX
+		if (inRoyalBlock) {
+			if (!royalBlockPlayed[playerIndex]) {
+				std::cout << "royal block played" << std::endl;
+				PlayRoyalBlock(playerIndex);
+				royalBlockPlayed[playerIndex] = true;
+			}
+		}
+		else {
+			royalBlockPlayed[playerIndex] = false;
+		}
 
+		// NORMAL BLOCK SFX
+		if (inNormalBlock) {
+			if (!normalBlockPlayed[playerIndex]) {
+				PlayNormalBlock(playerIndex);
+				normalBlockPlayed[playerIndex] = true;
+			}
+		}
+		else {
+			normalBlockPlayed[playerIndex] = false;
+		}
 
-        }
-        else {
-            if (royalBlockPlayed) {
-                royalBlockPlayed = false;
-            }
-        }
-
-        // NORMAL BLOCK SFX
-        if (actorData.royalBlock == 0 || actorData.royalBlock == 4) {
-
-
-            if (!normalBlockPlayed) {
-                PlayNormalBlock(playerIndex);
-                normalBlockPlayed = true;
-            }
-
-
-        }
-        else {
-            if (normalBlockPlayed) {
-                normalBlockPlayed = false;
-            }
-        }
-    }
+		// GUARD BREAK
+        // for Royalguard Rebalanced only
+		if (inGuardBreak) {
+			if (!guardPlayed[playerIndex]) {
+				PlayNormalBlock(playerIndex);
+				guardPlayed[playerIndex] = true;
+			}
+		}
+		else {
+			guardPlayed[playerIndex] = false;
+		}
+	}
 }
-constexpr auto DEBOUNCE_TIME_PERIOD = std::chrono::milliseconds(100);
 
-
-const int TEMP_STORAGE_DELAY_MS = 100; // Adjust this delay as needed
-
-void RoyalguardNormalBlockRebalance(byte8* actorBaseAddr) {
-	// This makes normal block consume DT instead of health, when DT is above 0
+void RoyalguardRebalanced(byte8* actorBaseAddr) {
+	// This makes normal block consume DT instead of health, when DT is above 0,
+	// guard breaks occur only when DT is exhausted
 	if (!actorBaseAddr) {
 		return;
 	}
@@ -2229,65 +2223,82 @@ void RoyalguardNormalBlockRebalance(byte8* actorBaseAddr) {
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& event = actorData.eventData[0].event;
 	auto& motionDataIndex = actorData.motionData[0].index;
+	auto& playerData = GetPlayerData(actorData);
 	bool inNormalBlock = (actorData.royalBlock == 0 || actorData.royalBlock == 4);
-	auto& hp = actorData.hitPoints;
-	auto& dt = actorData.magicPoints;
-	static auto normalBlockLastChangedTime = std::chrono::steady_clock::now();
+	bool inUltimate = (actorData.royalBlock == 5);
+	bool inGuardBreak = ((event == 20 && motionDataIndex == 2) && !inNormalBlock);
+	bool ensureIsMainPlayer = ((actorData.newCharacterIndex == playerData.activeCharacterIndex) && (actorData.newEntityIndex == ENTITY::MAIN));
+	auto& currentDT = actorData.magicPoints;
 
-	const int normalBlockDebounceTimeMs = 20; // Debounce time for normal block SFX in milliseconds
-	const int tempStorageDelayMs = 400; // Adjust this delay as needed
+	static bool guardPlayed[PLAYER_COUNT] = { false };
+	static bool guardBroke[PLAYER_COUNT] = { false };
+	static bool normalBlocked[PLAYER_COUNT] = { false };
+	static bool toggledCheats[PLAYER_COUNT] = { false };
+	static float storedDT[PLAYER_COUNT] = {};
+	static int activeCheatPlayerIndex = -1; // Track the player who is currently toggling the cheats
 
-	struct TempStorage {
-		float hp;
-		float dt;
-		std::chrono::steady_clock::time_point time;
-	};
-
-	static std::deque<TempStorage> tempStorageQueue;
-
-	auto now = std::chrono::steady_clock::now();
-
-	static bool dtConsumed = false;
-	static std::chrono::steady_clock::time_point blockStartTime;
-
-	// Capture the current HP and DT in the temp storage queue with a timestamp
-	if (!inNormalBlock) {
-		tempStorageQueue.push_back({ hp, dt, now });
-	}
-
-	// Remove old entries from the temp storage queue
-	while (!tempStorageQueue.empty() && std::chrono::duration_cast<std::chrono::milliseconds>(now - tempStorageQueue.front().time).count() > tempStorageDelayMs) {
-		tempStorageQueue.pop_front();
-	}
-
-	// Use the most recent valid stored HP and DT values from the temp storage queue
-	float storedHP = hp;
-	float storedDT = dt;
-	if (!tempStorageQueue.empty()) {
-		storedHP = tempStorageQueue.front().hp;
-		storedDT = tempStorageQueue.front().dt;
-	}
-
-	if (inNormalBlock) {
-		if (!dtConsumed) {
-			blockStartTime = now;
-			dtConsumed = true;
+	if (ensureIsMainPlayer && currentDT > 0) {
+		// Handle normal block
+		if (inNormalBlock) {
+			if (!normalBlocked[playerIndex]) {
+				storedDT[playerIndex] = std::max(storedDT[playerIndex] - 2000, 0.0f);
+				currentDT = storedDT[playerIndex];
+				normalBlocked[playerIndex] = true;
+			}
+		}
+		else {
+			storedDT[playerIndex] = currentDT;
+			normalBlocked[playerIndex] = false;
 		}
 
-		if (dt > 0) {
-			actorData.hitPoints = storedHP;
+		// Handle guard break
+		if (inGuardBreak) {
+			if (!guardBroke[playerIndex]) {
+				storedDT[playerIndex] = std::max(storedDT[playerIndex] - 2000, 0.0f);
+				currentDT = storedDT[playerIndex];
+				guardBroke[playerIndex] = true;
+			}
+		}
+		else {
+			storedDT[playerIndex] = currentDT;
+			guardBroke[playerIndex] = false;
+		}
 
-			if (!activeConfig.infiniteMagicPoints) {
-				dt = storedDT - 2000 > 0 ? storedDT - 2000 : 0;
+		// GUARD BREAKS AND HP LOSS OCCUR ONLY WHEN DT IS BELOW 2000
+		// Toggle cheats when guarding and event is not 44
+		if (actorData.guard && event != 44) {
+			if (!toggledCheats[playerIndex] && activeCheatPlayerIndex == -1) {
+				if (!queuedConfig.infiniteHitPoints) {
+					ToggleInfiniteHitPoints(true);
+				}
+				//DisableStagger(true);
+				toggledCheats[playerIndex] = true;
+				activeCheatPlayerIndex = playerIndex; // Mark the player who toggled the cheats
+			}
+		}
+		else {
+			if (toggledCheats[playerIndex] && activeCheatPlayerIndex == playerIndex) {
+				if (!queuedConfig.infiniteHitPoints) {
+					ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
+				}
+				//DisableStagger(false);
+				toggledCheats[playerIndex] = false;
+				activeCheatPlayerIndex = -1; // Reset the active cheat player index
 			}
 		}
 	}
-	else {
-		dtConsumed = false;
+	else if (currentDT < 2000) {
+		// Reset cheats when DT is below 2000
+		if (activeCheatPlayerIndex == playerIndex) {
+			if (!queuedConfig.infiniteHitPoints) {
+				ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
+			}
+			//DisableStagger(false);
+			toggledCheats[playerIndex] = false;
+			activeCheatPlayerIndex = -1; // Reset the active cheat player index
+		}
 	}
 }
-
-
 
 
 #pragma endregion

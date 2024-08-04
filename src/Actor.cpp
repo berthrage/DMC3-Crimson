@@ -192,7 +192,7 @@ template <typename T1, typename T2> void CopyState(T1& activeActorData, T2& acto
     if (flags & CopyStateFlags_EventData) {
         CopyMemory(actorData.eventData, activeActorData.eventData, sizeof(actorData.eventData));
 
-        CopyMemory(actorData.var_3E10, activeActorData.var_3E10, sizeof(actorData.var_3E10));
+        CopyMemory(actorData.recoverState, activeActorData.recoverState, sizeof(actorData.recoverState));
     }
 
     if (flags & CopyStateFlags_Mode) {
@@ -3923,7 +3923,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     StyleSwitchFlux(actorBaseAddr);
     DTExplosionFXController(actorBaseAddr);
     RoyalguardSFX(actorBaseAddr);
-   // RoyalguardNormalBlockRebalance(actorBaseAddr);
+    RoyalguardRebalanced(actorBaseAddr);
     CalculateCameraPlayerDistance(actorBaseAddr);
     SetAllSFXDistance(playerIndex, crimsonPlayer[playerIndex].cameraPlayerDistanceClamped);
     
@@ -6775,7 +6775,7 @@ uint32 AirTrickDante(PlayerActorData& actorData, uint8 action) {
         return 0;
     }
 
-    actorData.var_3E10[26] = (actorData.state & STATE::ON_FLOOR) ? 1 : 0;
+    actorData.recoverState[26] = (actorData.state & STATE::ON_FLOOR) ? 1 : 0;
 
     return MobilityFunction<ACTOR_EVENT::TRICKSTER_AIR_TRICK>(
         actorData, action, actorData.newAirTrickCount, activeConfig.airTrickCountDante);

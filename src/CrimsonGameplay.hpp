@@ -26,7 +26,7 @@ void GunDTCharacterRemaps();
 void CalculateCameraPlayerDistance(byte8* actorBaseAddr);
 void DTExplosionFXController(byte8* actorBaseAddr);
 void RoyalguardSFX(byte8* actorBaseAddr);
-void RoyalguardNormalBlockRebalance(byte8* actorBaseAddr);
+void RoyalguardRebalanced(byte8* actorBaseAddr);
 void CheckRoyalRelease(byte8* actorBaseAddr);
 void CheckSkyLaunch(byte8* actorBaseAddr);
 void SkyLaunchProperties(byte8* actorBaseAddr);

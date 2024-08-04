@@ -7077,8 +7077,10 @@ void MainOverlayWindow(size_t defaultFontSize) {
             // ImGui::Text("Actor Speed %g", actorData.speed);
             ImGui::Text("distance: %u", crimsonPlayer[0].cameraPlayerDistanceClamped);
             ImGui::Text("Release Damage: %g", actorData.royalguardReleaseDamage);
+            ImGui::Text("Recover State: %u", actorData.recoverState[0]);
             ImGui::Text("Royal Block: %u", actorData.royalBlock);
             ImGui::Text("HP: %g", actorData.hitPoints);
+            ImGui::Text("DT: %g", actorData.magicPoints);
             ImGui::Text("storedHP: %g", storedHP);
             ImGui::Text("storedDT: %g", storedDT);
             ImGui::Text("missionData DAMAGE: %u", missionData.damage);

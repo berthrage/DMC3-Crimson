@@ -2825,7 +2825,7 @@ struct PlayerActorDataBase : ActorDataBase {
     _(382);
     byte8* actionData[6];        // 0x3DD0
     ActorEventData eventData[2]; // 0x3E00
-    uint8 var_3E10[32];          // 0x3E10
+    uint8 recoverState[32];          // 0x3E10
     _(4);
     float motionTimer; // 0x3E34
     float idleTimer;   // 0x3E38
@@ -3000,7 +3000,7 @@ static_assert(offsetof(PlayerActorDataBase, recoveryData) == 0x3B00);
 static_assert(offsetof(PlayerActorDataBase, var_3C50) == 0x3C50);
 static_assert(offsetof(PlayerActorDataBase, actionData) == 0x3DD0);
 static_assert(offsetof(PlayerActorDataBase, eventData) == 0x3E00);
-static_assert(offsetof(PlayerActorDataBase, var_3E10) == 0x3E10);
+static_assert(offsetof(PlayerActorDataBase, recoverState) == 0x3E10);
 static_assert(offsetof(PlayerActorDataBase, motionTimer) == 0x3E34);
 static_assert(offsetof(PlayerActorDataBase, idleTimer) == 0x3E38);
 static_assert(offsetof(PlayerActorDataBase, permissions) == 0x3E60);

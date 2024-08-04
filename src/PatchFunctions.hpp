@@ -10,6 +10,7 @@ void ImprovedBufferedReversals();
 void DisableJCRestriction();
 void BulletStop();
 void RainstormLift();
+void DisableStagger(bool enable);
 
 #pragma endregion
 
