@@ -2271,7 +2271,7 @@ void RoyalguardRebalanced(byte8* actorBaseAddr) {
 				if (!queuedConfig.infiniteHitPoints) {
 					ToggleInfiniteHitPoints(true);
 				}
-				//DisableStagger(true);
+				DisableStagger(true);
 				toggledCheats[playerIndex] = true;
 				activeCheatPlayerIndex = playerIndex; // Mark the player who toggled the cheats
 			}
@@ -2281,7 +2281,7 @@ void RoyalguardRebalanced(byte8* actorBaseAddr) {
 				if (!queuedConfig.infiniteHitPoints) {
 					ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
 				}
-				//DisableStagger(false);
+				DisableStagger(false);
 				toggledCheats[playerIndex] = false;
 				activeCheatPlayerIndex = -1; // Reset the active cheat player index
 			}
@@ -2293,7 +2293,7 @@ void RoyalguardRebalanced(byte8* actorBaseAddr) {
 			if (!queuedConfig.infiniteHitPoints) {
 				ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
 			}
-			//DisableStagger(false);
+			DisableStagger(false);
 			toggledCheats[playerIndex] = false;
 			activeCheatPlayerIndex = -1; // Reset the active cheat player index
 		}
