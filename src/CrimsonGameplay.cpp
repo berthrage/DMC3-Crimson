@@ -2235,7 +2235,7 @@ void RoyalguardRebalanced(byte8* actorBaseAddr) {
 	static bool normalBlocked[PLAYER_COUNT] = { false };
 	static bool toggledCheats[PLAYER_COUNT] = { false };
 	static float storedDT[PLAYER_COUNT] = {};
-	static int activeCheatPlayerIndex = -1; // Track the player who is currently toggling the cheats
+	static int toggleCount = 0; // Track the player who is currently toggling the cheats
 
 	if (ensureIsMainPlayer && currentDT > 0) {
 		// Handle normal block
@@ -2267,37 +2267,39 @@ void RoyalguardRebalanced(byte8* actorBaseAddr) {
 		// GUARD BREAKS AND HP LOSS OCCUR ONLY WHEN DT IS BELOW 2000
 		// Toggle cheats when guarding and event is not 44
 		if (actorData.guard && event != 44) {
-			if (!toggledCheats[playerIndex] && activeCheatPlayerIndex == -1) {
-				if (!queuedConfig.infiniteHitPoints) {
-					ToggleInfiniteHitPoints(true);
-				}
-				DisableStagger(true);
+			if (!toggledCheats[playerIndex]) {
+//                 toggleTakeDamageActorBaseAddr = (uintptr_t)actorBaseAddr;
+//                 toggleTakeDamage = false;
+                
+				
 				toggledCheats[playerIndex] = true;
-				activeCheatPlayerIndex = playerIndex; // Mark the player who toggled the cheats
+				
 			}
 		}
 		else {
-			if (toggledCheats[playerIndex] && activeCheatPlayerIndex == playerIndex) {
-				if (!queuedConfig.infiniteHitPoints) {
-					ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
-				}
-				DisableStagger(false);
+			if (toggledCheats[playerIndex]) {
+// 				toggleTakeDamageActorBaseAddr = (uintptr_t)actorBaseAddr;
+// 				toggleTakeDamage = true;
+				
+               
 				toggledCheats[playerIndex] = false;
-				activeCheatPlayerIndex = -1; // Reset the active cheat player index
+				
 			}
 		}
 	}
 	else if (currentDT < 2000) {
 		// Reset cheats when DT is below 2000
-		if (activeCheatPlayerIndex == playerIndex) {
-			if (!queuedConfig.infiniteHitPoints) {
-				ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
-			}
-			DisableStagger(false);
+		if (toggledCheats[playerIndex]) {
+// 			toggleTakeDamageActorBaseAddr = (uintptr_t)actorBaseAddr;
+// 			toggleTakeDamage = true;
+// 			ToggleTakeDamageDetour();
+			
+
 			toggledCheats[playerIndex] = false;
-			activeCheatPlayerIndex = -1; // Reset the active cheat player index
 		}
 	}
+
+	
 }
 
 

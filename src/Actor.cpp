@@ -3899,7 +3899,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
         return false;
     }
 
-
+    
     // dd::sphere(dd_ctx(), actorWorldPos, dd::colors::Red, 15.0f);
 
     UpdateCrimsonPlayerData();

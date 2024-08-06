@@ -138,14 +138,14 @@ void RainstormLift() {
 
 void DisableStagger(bool enable) {
     // used for Royalguard Rebalanced
-    uintptr_t patchAddr = (uintptr_t)appBaseAddr + 0x1EC467; 
+    uintptr_t patchAddr = (uintptr_t)appBaseAddr + 0x1EC470;
+
 
     if (enable) {
-		_patch((char*)(patchAddr), (char*)"\xE9\x1F\x01\x00\x00", 5); // dmc3.exe+1EC467 - jmp dmc3.exe+1EC58B
-        _nop((char*)(appBaseAddr + 0x1EC46C), 1);
+		_patch((char*)(patchAddr), (char*)"\x0F\x85\x15\x01\x00\x00", 6); // dmc3.exe+1EC470 - jne dmc3.exe+1EC58B
     }
     else {
-		_patch((char*)(patchAddr), (char*)"\x0F\x8E\x1E\x01\x00\x00", 6); // dmc3.exe+1EC467 - jng dmc3.exe+1EC58B
+        _patch((char*)(patchAddr), (char*)"\x0F\x84\xB5\x00\x00\x00", 6); // dmc3.exe+1EC470 - je dmc3.exe+1EC52B
 
     }
 

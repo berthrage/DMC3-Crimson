@@ -25,6 +25,14 @@ void CreateEffectDetour();
 // HoldToCrazyCombo
 void HoldToCrazyComboDetour();
 
+// DisableStaggerRoyalguard
+void DisableStaggerRoyalguardDetour();
+
+// ToggleTakeDamage
+extern std::uint64_t toggleTakeDamageActorBaseAddr;
+extern bool toggleTakeDamage;
+void ToggleTakeDamageDetour();
+
 // DisableDriveHold
 void DisableDriveHoldDetour();
 
@@ -46,6 +54,7 @@ void VergilNeutralTrickDetour();
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
+bool DisableStaggerCheck(PlayerActorData& actorData);
 void InitDetours();
 void ToggleClassicHUDPositionings(bool enable);
 void ToggleStyleRankHudNoFadeout(bool enable);

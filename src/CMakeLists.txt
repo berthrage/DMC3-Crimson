@@ -3,10 +3,12 @@ set(MASM_SRC
     masm/GuardGravity.asm
     masm/CreateEffect.asm
     masm/HoldToCrazyComboAsm.asm
+    masm/DisableStaggerRoyalguard.asm
     masm/HudHPSeparation.asm
     masm/HudStyleBarPosAsm.asm
     masm/DisableDriveHoldAsm.asm
     masm/SetAirTauntAsm.asm
+    masm/ToggleTakeDamage.asm
     masm/VergilTricksAsm.asm
     masm/StyleRankHudNoFadeout.asm
 )

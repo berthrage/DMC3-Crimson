@@ -12,6 +12,8 @@
 #include "Global.hpp"
 
 #include "Core/Macros.h"
+#include "Config.hpp"
+#include <iostream>
 
 extern "C" {
 std::uint64_t DetourBaseAddr;
@@ -50,6 +52,17 @@ std::uint64_t g_HoldToCrazyCombo_ReturnAddr;
 void HoldToCrazyComboDetour();
 std::uint64_t g_holdToCrazyComboConditionalAddr;
 void* holdToCrazyComboCall;
+
+// DisableStaggerRoyalguard
+std::uint64_t g_DisableStagger_ReturnAddr;
+std::uint64_t g_DisableStagger_ConditionalAddr;
+void DisableStaggerRoyalguardDetour();
+void* g_DisableStaggerCheckCall;
+
+// ToggleTakeDamage
+std::uint64_t g_ToggleTakeDamage_ReturnAddr;
+void ToggleTakeDamageDetour();
+void* g_ToggleTakeDamageCheckCall;
 
 // DisableDriveHold
 std::uint64_t g_DisableDriveHold_ReturnAddr;
@@ -213,6 +226,80 @@ bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
     return false;
 }
 
+bool DisableStaggerCheck(PlayerActorData& actorData) {
+	auto playerIndex = actorData.newPlayerIndex;
+    auto& playerData = GetPlayerData(actorData);
+    bool ensureIsActiveActor = ((actorData.newCharacterIndex == playerData.activeCharacterIndex) && (actorData.newEntityIndex == ENTITY::MAIN));
+
+	// All of this will feed into Royalguard Rebalanced (check CrimsonGameplay)
+	if (ensureIsActiveActor) {
+        if (actorData.character != CHARACTER::DANTE) {
+            return false;
+        }
+
+        if (actorData.magicPoints >= 2000) {
+			if (actorData.guard && actorData.eventData[0].event != 44) {
+				return true;
+			}
+            else {
+                return false;
+            }
+        }
+        else if (actorData.magicPoints < 2000) {
+            return false;
+        }
+        
+		
+	}
+	return false;
+}
+
+bool TakeDamageCheck(std::uint64_t addr) {
+
+    auto playerActorAddr = addr - 0x4114;
+    auto& actorData = *reinterpret_cast<PlayerActorData*>(playerActorAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& playerData = GetPlayerData(actorData);
+	bool ensureIsActiveActor = ((actorData.newCharacterIndex == playerData.activeCharacterIndex) && (actorData.newEntityIndex == ENTITY::MAIN));
+
+	// All of this will feed into Royalguard Rebalanced (check CrimsonGameplay)
+    if (actorData.character != CHARACTER::DANTE) {
+        return false;
+    }
+    if (ensureIsActiveActor) {
+        if (actorData.guard) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    return false;
+// 	if (ensureIsActiveActor) {
+// 		if (actorData.character != CHARACTER::DANTE) {
+// 			return false;
+// 		}
+// 
+// 		if (actorData.magicPoints >= 2000) {
+// 			if (actorData.guard && actorData.eventData[0].event != 44) {
+// 				return true;
+// 			}
+// 			else {
+// 				return false;
+// 			}
+// 		}
+// 		else if (actorData.magicPoints < 2000) {
+// 			return false;
+// 		}
+// 
+// 
+// 	}
+// 	return false;
+
+
+    
+}
+
 void InitDetours() {
     using namespace Utility;
     DetourBaseAddr = (uintptr_t)appBaseAddr;
@@ -249,6 +336,24 @@ void InitDetours() {
     g_holdToCrazyComboConditionalAddr = (uintptr_t)appBaseAddr + 0x1EB7FE;
     HoldToCrazyComboHook->Toggle(true);
     holdToCrazyComboCall = &g_HoldToCrazyComboFuncA;
+
+
+    // DisableStaggerRoyalguard
+	static std::unique_ptr<Utility::Detour_t> DisableStaggerRoyalguardHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EC464, &DisableStaggerRoyalguardDetour, 9);
+	g_DisableStagger_ReturnAddr = DisableStaggerRoyalguardHook->GetReturnAddress();
+	g_DisableStagger_ConditionalAddr = (uintptr_t)appBaseAddr + 0x1EC58B;
+    DisableStaggerRoyalguardHook->Toggle(true);
+	//dmc3.exe + 1EC464 - E9 22010000 - jmp dmc3.exe + 1EC58B
+	//dmc3.exe + 1EC467 - 0F8E 1E010000 - jng dmc3.exe + 1EC58B - original code
+	g_DisableStaggerCheckCall = &DisableStaggerCheck;
+
+    // Toggle Take Damage
+	static std::unique_ptr<Utility::Detour_t> takeDamageHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x8851C, &ToggleTakeDamageDetour, 5);
+	g_ToggleTakeDamage_ReturnAddr = takeDamageHook->GetReturnAddress();
+	takeDamageHook->Toggle(true);
+    g_ToggleTakeDamageCheckCall = &TakeDamageCheck;
 
     // DisableDriveHold
     static std::unique_ptr<Utility::Detour_t> DisableDriveHoldHook =
