@@ -10519,6 +10519,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     StyleSwitchTextTimers();
     StyleSwitchFluxTimers();
     DTEVFXTimers();
+    RoyalguardCorrectionTimers();
 
 
     Bars();

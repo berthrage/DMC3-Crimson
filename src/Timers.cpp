@@ -336,4 +336,13 @@ void DTEVFXTimers() {
 	}
 }
 
+void RoyalguardCorrectionTimers() {
+    for (int playerIndex = 0; playerIndex < PLAYER_COUNT; playerIndex++) {
+        auto& correctionTime = crimsonPlayer[playerIndex].royalguardCorrection.time;
+
+        if (correctionTime > 0) {
+            correctionTime -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+        }
+    }
+}
 

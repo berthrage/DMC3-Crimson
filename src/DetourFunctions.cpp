@@ -262,19 +262,22 @@ bool TakeDamageCheck(std::uint64_t addr) {
 	auto& playerData = GetPlayerData(actorData);
 	bool ensureIsActiveActor = ((actorData.newCharacterIndex == playerData.activeCharacterIndex) && (actorData.newEntityIndex == ENTITY::MAIN));
 
-	// All of this will feed into Royalguard Rebalanced (check CrimsonGameplay)
-    if (actorData.character != CHARACTER::DANTE) {
-        return false;
-    }
-    if (ensureIsActiveActor) {
-        if (actorData.guard) {
-            return true;
-        }
-        else {
-            return false;
+    for (int i = 0; i < PLAYER_COUNT; i++) {
+        if (playerActorAddr == crimsonPlayer[i].playerPtr) {
+			if (actorData.character != CHARACTER::DANTE) {
+				return false;
+			}
+			if (ensureIsActiveActor) {
+				if (actorData.guard && actorData.magicPoints >= 2000) {
+					return true;
+				}
+			}
+			
         }
     }
     return false;
+	// All of this will feed into Royalguard Rebalanced (check CrimsonGameplay)
+    
 // 	if (ensureIsActiveActor) {
 // 		if (actorData.character != CHARACTER::DANTE) {
 // 			return false;

@@ -3924,6 +3924,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     DTExplosionFXController(actorBaseAddr);
     RoyalguardSFX(actorBaseAddr);
     RoyalguardRebalanced(actorBaseAddr);
+    CorrectRoyalBlockUpdate(actorBaseAddr);
     CalculateCameraPlayerDistance(actorBaseAddr);
     SetAllSFXDistance(playerIndex, crimsonPlayer[playerIndex].cameraPlayerDistanceClamped);
     

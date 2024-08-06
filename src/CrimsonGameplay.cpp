@@ -2200,7 +2200,7 @@ void RoyalguardSFX(byte8* actorBaseAddr) {
 
 		// GUARD BREAK
         // for Royalguard Rebalanced only
-		if (inGuardBreak) {
+		if (actorData.royalBlock == 1) {
 			if (!guardPlayed[playerIndex]) {
 				PlayNormalBlock(playerIndex);
 				guardPlayed[playerIndex] = true;
@@ -2226,7 +2226,7 @@ void RoyalguardRebalanced(byte8* actorBaseAddr) {
 	auto& playerData = GetPlayerData(actorData);
 	bool inNormalBlock = (actorData.royalBlock == 0 || actorData.royalBlock == 4);
 	bool inUltimate = (actorData.royalBlock == 5);
-	bool inGuardBreak = ((event == 20 && motionDataIndex == 2) && !inNormalBlock);
+	bool inGuardBreak = ((event == 20 && motionDataIndex == 3) && !inNormalBlock);
 	bool ensureIsMainPlayer = ((actorData.newCharacterIndex == playerData.activeCharacterIndex) && (actorData.newEntityIndex == ENTITY::MAIN));
 	auto& currentDT = actorData.magicPoints;
 
@@ -2252,7 +2252,7 @@ void RoyalguardRebalanced(byte8* actorBaseAddr) {
 		}
 
 		// Handle guard break
-		if (inGuardBreak) {
+		if (actorData.royalBlock == 1) {
 			if (!guardBroke[playerIndex]) {
 				storedDT[playerIndex] = std::max(storedDT[playerIndex] - 2000, 0.0f);
 				currentDT = storedDT[playerIndex];
@@ -2300,6 +2300,29 @@ void RoyalguardRebalanced(byte8* actorBaseAddr) {
 	}
 
 	
+}
+
+void CorrectRoyalBlockUpdate(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) {
+		return;
+	}
+
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    auto playerIndex = actorData.newPlayerIndex;
+	auto& event = actorData.eventData[0].event;
+	auto& motionDataIndex = actorData.motionData[0].index;
+    auto& correctionTime = crimsonPlayer[playerIndex].royalguardCorrection.time;
+	bool inNormalBlock = (actorData.royalBlock == 0 || actorData.royalBlock == 4);
+	bool inUltimate = (actorData.royalBlock == 5);
+	bool inGuardBreak = ((event == 20 && motionDataIndex == 2) && !inNormalBlock);
+
+    static bool setRoyalBlockBack[PLAYER_COUNT] = { false };
+
+    if (actorData.royalBlock != 3 && !inNormalBlock && event == 20) {
+        actorData.royalBlock = 1;
+    }
+
+    
 }
 
 

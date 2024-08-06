@@ -4309,6 +4309,11 @@ struct RoyalguardFX {
     bool royalBlockSFXPlayed = false;
 };
 
+struct RoyalguardCorrection {
+    float time = 0;
+};
+
+
 extern bool inRoyalBlock;
 extern bool inGuardfly;
 extern float rainstormPull;
@@ -4353,6 +4358,7 @@ struct CrimsonPlayerData {
     DTEVFX dTEVFX;
     DelayedComboFX delayedComboFX;
     RoyalguardFX royalguardFX;
+    RoyalguardCorrection royalguardCorrection;
     float fluxtime = 0;
     bool fluxCanStart = true;
     bool fluxCanEnd = false;
