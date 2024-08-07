@@ -25,10 +25,10 @@ void CreateEffectDetour();
 // HoldToCrazyCombo
 void HoldToCrazyComboDetour();
 
-// DisableStaggerRoyalguard
+// DisableStaggerRoyalguard: for DT-Infused Royalguard
 void DisableStaggerRoyalguardDetour();
 
-// ToggleTakeDamage
+// ToggleTakeDamage: for DT-Infused Royalguard
 extern std::uint64_t toggleTakeDamageActorBaseAddr;
 extern bool toggleTakeDamage;
 void ToggleTakeDamageDetour();

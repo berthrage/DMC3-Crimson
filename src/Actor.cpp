@@ -14,6 +14,7 @@
 #include "Actor.hpp"
 #include "../ThirdParty/ImGui/imgui.h"
 #include "Core/Core.hpp"
+#include "CrimsonFX.hpp"
 #include "CrimsonGameplay.hpp"
 #include "SDLStuff.hpp"
 #include "Internal.hpp"
@@ -3888,6 +3889,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     }
     auto& actorData = *reinterpret_cast<T*>(actorBaseAddr);
     auto playerIndex = actorData.newPlayerIndex;
+    auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
     auto& playerData = GetPlayerData(actorData);
 
@@ -3921,10 +3923,12 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     StyleRankHudFadeoutController();
     DelayedComboFXController(actorBaseAddr);
     StyleSwitchFlux(actorBaseAddr);
-    DTExplosionFXController(actorBaseAddr);
+    if (sessionData.unlockDevilTrigger) {
+        DTExplosionFXController(actorBaseAddr);
+    }
+    
     RoyalguardSFX(actorBaseAddr);
-    RoyalguardRebalanced(actorBaseAddr);
-    CorrectRoyalBlockUpdate(actorBaseAddr);
+    DTInfusedRoyalguardController(actorBaseAddr);
     CalculateCameraPlayerDistance(actorBaseAddr);
     SetAllSFXDistance(playerIndex, crimsonPlayer[playerIndex].cameraPlayerDistanceClamped);
     

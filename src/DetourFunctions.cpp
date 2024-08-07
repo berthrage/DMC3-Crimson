@@ -53,13 +53,13 @@ void HoldToCrazyComboDetour();
 std::uint64_t g_holdToCrazyComboConditionalAddr;
 void* holdToCrazyComboCall;
 
-// DisableStaggerRoyalguard
+// DisableStaggerRoyalguard: for DT-Infused Royalguard
 std::uint64_t g_DisableStagger_ReturnAddr;
 std::uint64_t g_DisableStagger_ConditionalAddr;
 void DisableStaggerRoyalguardDetour();
 void* g_DisableStaggerCheckCall;
 
-// ToggleTakeDamage
+// ToggleTakeDamage: for DT-Infused Royalguard
 std::uint64_t g_ToggleTakeDamage_ReturnAddr;
 void ToggleTakeDamageDetour();
 void* g_ToggleTakeDamageCheckCall;
@@ -231,7 +231,7 @@ bool DisableStaggerCheck(PlayerActorData& actorData) {
     auto& playerData = GetPlayerData(actorData);
     bool ensureIsActiveActor = ((actorData.newCharacterIndex == playerData.activeCharacterIndex) && (actorData.newEntityIndex == ENTITY::MAIN));
 
-	// All of this will feed into Royalguard Rebalanced (check CrimsonGameplay)
+	// All of this will feed into DT Infused Royalguard (check CrimsonGameplay)
 	if (ensureIsActiveActor) {
         if (actorData.character != CHARACTER::DANTE) {
             return false;
@@ -262,45 +262,31 @@ bool TakeDamageCheck(std::uint64_t addr) {
 	auto& playerData = GetPlayerData(actorData);
 	bool ensureIsActiveActor = ((actorData.newCharacterIndex == playerData.activeCharacterIndex) && (actorData.newEntityIndex == ENTITY::MAIN));
 
+    // All of this will feed into DT Infused Royalguard (check CrimsonGameplay)
+
     for (int i = 0; i < PLAYER_COUNT; i++) {
         if (playerActorAddr == crimsonPlayer[i].playerPtr) {
 			if (actorData.character != CHARACTER::DANTE) {
 				return false;
 			}
 			if (ensureIsActiveActor) {
-				if (actorData.guard && actorData.magicPoints >= 2000) {
-					return true;
+				if (actorData.magicPoints > 0) {
+					if (actorData.guard && actorData.eventData[0].event != 44) {
+						return true;
+					}
+					else {
+						return false;
+					}
+				}
+				else if (actorData.magicPoints < 2000) {
+					return false;
 				}
 			}
 			
         }
     }
     return false;
-	// All of this will feed into Royalguard Rebalanced (check CrimsonGameplay)
-    
-// 	if (ensureIsActiveActor) {
-// 		if (actorData.character != CHARACTER::DANTE) {
-// 			return false;
-// 		}
-// 
-// 		if (actorData.magicPoints >= 2000) {
-// 			if (actorData.guard && actorData.eventData[0].event != 44) {
-// 				return true;
-// 			}
-// 			else {
-// 				return false;
-// 			}
-// 		}
-// 		else if (actorData.magicPoints < 2000) {
-// 			return false;
-// 		}
-// 
-// 
-// 	}
-// 	return false;
 
-
-    
 }
 
 void InitDetours() {

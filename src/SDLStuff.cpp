@@ -741,7 +741,7 @@ void PlayRoyalBlock(int playerIndex) {
 void PlayNormalBlock(int playerIndex) {
 	auto initialChannel = CHANNEL::initialBlock + (5 * playerIndex);
 
-	PlayOnChannels(initialChannel, initialChannel + 4, normalBlock, 30);
+	PlayOnChannels(initialChannel, initialChannel + 4, normalBlock, 20);
 }
 
 void PlayNewMissionClearSong() {

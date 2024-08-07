@@ -1630,6 +1630,19 @@ void CorrectFrameRateCutscenes() {
     }
 }
 
+void CallAllTimers() {
+	BackToForwardTimers();
+	ActionTimers();
+	AnimTimers();
+	SiyTimerFunc();
+	SprintTimer();
+	DriveTimer();
+	ImprovedCancelsTimers();
+	StyleSwitchTextTimers();
+	StyleSwitchFluxTimers();
+	DTEVFXTimers();
+}
+
 
 #pragma region Texture
 
@@ -6874,14 +6887,6 @@ void NewMissionClearSong() {
     }
 }
 
-void SiyTimerFunc() {
-    if (siytimer > 0) {
-        siytimer -= ImGui::GetIO().DeltaTime;
-    } else if (siytimer < 0) {
-        siytimer = 0;
-    }
-}
-
 
 const char* mainOverlayLabel = "MainOverlay";
 
@@ -7084,6 +7089,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("storedHP: %g", storedHP);
             ImGui::Text("storedDT: %g", storedDT);
             ImGui::Text("missionData DAMAGE: %u", missionData.damage);
+            ImGui::Text("missionData FRAME: %u", missionData.frameCount);
             ImGui::Text("IN ROYAL BLOCK: %u", ((actorData.eventData[0].event == 20 && actorData.motionData[0].index == 32) || (actorData.eventData[0].event == 20 && actorData.motionData[0].index == 34)));
             ImGui::Text("IN NORMAL BLOCK: %u", ((actorData.eventData[0].event == 20 && actorData.motionData[0].index == 2) || (actorData.eventData[0].event == 20 && actorData.motionData[0].index == 7) || (actorData.eventData[0].event == 20 && actorData.motionData[0].index == 12)));
             ImGui::Text("IN GUARD: %u", actorData.guard);
@@ -10509,18 +10515,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
    
 
     // TIMERS
-    BackToForwardTimers();
-    ActionTimers();
-    AnimTimers();
-    SiyTimerFunc();
-    SprintTimer();
-    DriveTimer();
-    ImprovedCancelsTimers();
-    StyleSwitchTextTimers();
-    StyleSwitchFluxTimers();
-    DTEVFXTimers();
-    RoyalguardCorrectionTimers();
-
+    CallAllTimers();
 
     Bars();
     WeaponSwitchController();

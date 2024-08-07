@@ -11,12 +11,11 @@ DisableStaggerRoyalguardDetour PROC
     ; Load player data into rcx 
     mov rcx, rsi
 
-    ; Call the C++ function
+    ; Call the C++ function to Check if player's in guard or not
     call qword ptr [g_DisableStaggerCheckCall]
 
     ; Restore registers
     pop rcx
-    
 
     ; Check the result
     cmp al, 1
@@ -24,16 +23,15 @@ DisableStaggerRoyalguardDetour PROC
     jne ContinueOriginalCode
 
     ; Apply the cheat if the function returned true
-     jmp ConditionalJump
+     jmp ConditionalJumpToNoStagger
     
-
 ContinueOriginalCode:
     ; Restore the original code
     cmp eax, 01
-    jng ConditionalJump
+    jng ConditionalJumpToNoStagger
     jmp qword ptr [g_DisableStagger_ReturnAddr]
 
-ConditionalJump:
+ConditionalJumpToNoStagger:
     mov rax, qword ptr [g_DisableStagger_ConditionalAddr]
     jmp rax
 

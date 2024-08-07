@@ -94,6 +94,8 @@ file(GLOB MAIN_SRC
     Config.cpp
     Config.hpp
     Crimson.cpp
+    CrimsonFX.cpp
+    CrimsonFX.hpp
     CrimsonGameplay.cpp
     CrimsonGameplay.hpp
     CrimsonGUI.cpp
