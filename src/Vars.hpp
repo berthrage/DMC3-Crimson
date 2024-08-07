@@ -4305,6 +4305,11 @@ struct DelayedComboFX {
 	int id = 143;
 };
 
+struct VergilDoppelganger {
+    float cooldownTime = 0;
+    float cooldownDuration = 1.0f;
+};
+
 extern bool inRoyalBlock;
 extern bool inGuardfly;
 extern float rainstormPull;
@@ -4322,6 +4327,7 @@ struct CrimsonPlayerData {
     byte32 state;
     byte32 lastState;
     float speed      = 0;
+    float magicPoints = 10000;
     uint32 character = 0;
     ENGINE_GAMEPAD gamepad;
     uint8 tiltDirection;
@@ -4348,6 +4354,7 @@ struct CrimsonPlayerData {
     DTESFX dTESFX;
     DTEVFX dTEVFX;
     DelayedComboFX delayedComboFX;
+    VergilDoppelganger vergilDoppelganger;
     float fluxtime = 0;
     bool fluxCanStart = true;
     bool fluxCanEnd = false;

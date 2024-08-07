@@ -345,4 +345,18 @@ void DTEVFXTimers() {
 	}
 }
 
+void VergilDoppelgangerCooldownTimer() {
+	for (int playerIndex = 0; playerIndex < PLAYER_COUNT; playerIndex++) {
+
+        auto& time = crimsonPlayer[playerIndex].vergilDoppelganger.cooldownTime;
+		auto& started = crimsonPlayer[playerIndex].dTEVFX.started;
+		float i = 0;
+
+		if (time > 0) {
+			time -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+		}
+
+	}
+}
+
 

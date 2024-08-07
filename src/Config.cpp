@@ -786,6 +786,7 @@ void CreateMembers(Config& config_) {
         Create<bool>(member, "rainstormLift", config.rainstormLift);
         Create<bool>(member, "quickDriveAndTweaks", config.quickDriveAndTweaks);
         Create<bool>(member, "disableAirSlashKnockback", config.disableAirSlashKnockback);
+        Create<bool>(member, "enableVergilQuicksilver", config.enableVergilQuicksilver);
         Create<bool>(member, "darkslayerTrickCancels", config.darkslayerTrickCancels);
     }
 
@@ -1379,6 +1380,7 @@ void ToJSON(Config& config_) {
         Set<bool>(member["rainstormLift"], config.rainstormLift);
         Set<bool>(member["quickDriveAndTweaks"], config.quickDriveAndTweaks);
         Set<bool>(member["disableAirSlashKnockback"], config.disableAirSlashKnockback);
+        Set<bool>(member["enableVergilQuicksilver"], config.enableVergilQuicksilver);
         Set<bool>(member["darkslayerTrickCancels"], config.darkslayerTrickCancels);
     }
 
@@ -1969,6 +1971,7 @@ void ToConfig(Config& config_) {
         config.rainstormLift             = Get<bool>(member["rainstormLift"]);
         config.quickDriveAndTweaks       = Get<bool>(member["quickDriveAndTweaks"]);
         config.disableAirSlashKnockback  = Get<bool>(member["disableAirSlashKnockback"]);
+        config.enableVergilQuicksilver   = Get<bool>(member["enableVergilQuicksilver"]);
         config.darkslayerTrickCancels    = Get<bool>(member["darkslayerTrickCancels"]);
     }
 

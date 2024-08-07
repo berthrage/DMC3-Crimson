@@ -10,3 +10,4 @@ void BackToForwardTimers();
 void StyleSwitchTextTimers();
 void StyleSwitchFluxTimers();
 void DTEVFXTimers();
+void VergilDoppelgangerCooldownTimer();

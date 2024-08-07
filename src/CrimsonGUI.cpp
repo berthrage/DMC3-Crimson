@@ -1641,6 +1641,7 @@ void CallAllTimers() {
 	StyleSwitchTextTimers();
 	StyleSwitchFluxTimers();
 	DTEVFXTimers();
+    VergilDoppelgangerCooldownTimer();
 }
 
 
@@ -7082,7 +7083,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
             // ImGui::Text("Actor Speed %g", actorData.speed);
             ImGui::Text("distance: %u", crimsonPlayer[0].cameraPlayerDistanceClamped);
             ImGui::Text("Release Damage: %g", actorData.royalguardReleaseDamage);
-            ImGui::Text("Recover State: %u", actorData.recoverState[0]);
+            ImGui::Text("ACTOR STATUS: %u", actorData.status);
             ImGui::Text("Royal Block: %u", actorData.royalBlock);
             ImGui::Text("HP: %g", actorData.hitPoints);
             ImGui::Text("DT: %g", actorData.magicPoints);
@@ -8932,10 +8933,13 @@ void Vergil() {
 
         GUI_SectionEnd();
         ImGui::Text("");
+		GUI_Checkbox2(
+			"Enable Quicksilver", activeConfig.Gameplay.enableVergilQuicksilver, queuedConfig.Gameplay.enableVergilQuicksilver);
 
 
         ImGui::Text("Yamato");
         ImGui::Text("");
+
 
         GUI_Checkbox2(
             "Enable New Judgement Cut", activeConfig.enableYamatoVergilNewJudgementCut, queuedConfig.enableYamatoVergilNewJudgementCut);

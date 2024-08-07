@@ -1607,11 +1607,11 @@ template <typename T> void InitModel(T& actorData, uint32 modelIndex) {
 
     auto file = File_staticFiles[pl000][5]; // @Update
 
-    func_594B0(actorData.newBodyPartData[modelIndex][UPPER_BODY], file, UPPER_BODY, 0, actorData.motionArchives,
+    InitiateModelFunc(actorData.newBodyPartData[modelIndex][UPPER_BODY], file, UPPER_BODY, 0, actorData.motionArchives,
         &actorData.newModelData[modelIndex].funcAddrs, actorData.newModelPhysicsMetadataPool[modelIndex], &actorData.motionSpeed,
         &actorData.collisionData);
 
-    func_594B0(actorData.newBodyPartData[modelIndex][LOWER_BODY], file, LOWER_BODY, 0, actorData.motionArchives,
+    InitiateModelFunc(actorData.newBodyPartData[modelIndex][LOWER_BODY], file, LOWER_BODY, 0, actorData.motionArchives,
         &actorData.newModelData[modelIndex].funcAddrs, actorData.newModelPhysicsMetadataPool[modelIndex], &actorData.motionSpeed, 0);
 
     auto dest = func_8A520(actorData.newModelData[modelIndex]);
@@ -2337,7 +2337,7 @@ template <typename T> void UpdateForm(T& actorData) {
                     actorData.queuedModelIndex = 0;
                 }
 
-                func_1F97F0(actorData, true);
+                HeadflipAnimation(actorData, true);
             }
         } else if constexpr (TypeMatch<T, PlayerActorDataVergil>::value) {
             if (actorData.neroAngelo) {
@@ -2364,7 +2364,7 @@ template <typename T> void UpdateForm(T& actorData) {
                     actorData.queuedModelIndex = 0;
                 }
 
-                func_1F97F0(actorData, true);
+                HeadflipAnimation(actorData, true);
             }
         }
     }
@@ -2565,7 +2565,7 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
     auto& activeMissionActorData = *reinterpret_cast<ActiveMissionActorData*>(name_3850 + 0x16C);
 
 
-    auto actorBaseAddr = func_1DE820(characterData.character, 0, false);
+    auto actorBaseAddr = CreatePlayerCharFunc(characterData.character, 0, false);
     if (!actorBaseAddr) {
         return 0;
     }
@@ -2784,8 +2784,9 @@ byte8* SpawnActor(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
         break;
     }
     }
-
+    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     newActorData.baseAddr = actorBaseAddr;
+    //actorData.magicPoints = crimsonPlayer[actorData.newPlayerIndex].magicPoints;
 
     return actorBaseAddr;
 }
@@ -2947,7 +2948,7 @@ void ActivateDevil(PlayerActorData& actorData, bool playSFX) {
     }
 
     if (!actorData.newIsClone) {
-        func_1F94D0(actorData, DEVIL_FLUX::START);
+        DevilFluxVFX(actorData, DEVIL_FLUX::START);
     }
 
     if (playSFX) {
@@ -2973,7 +2974,7 @@ void DeactivateDevil(PlayerActorData& actorData, bool playSFX = true) {
     }
     }
 
-    func_1F94D0(actorData, DEVIL_FLUX::END);
+    DevilFluxVFX(actorData, DEVIL_FLUX::END);
 
     if (playSFX) {
         PlayDevilTriggerOut(actorData.newPlayerIndex);
@@ -3010,13 +3011,15 @@ void ActivateDoppelganger(PlayerActorData& actorData) {
     } else if (cloneActorData.character == CHARACTER::VERGIL) {
         cloneActorData.queuedMeleeWeaponIndex = (weapon - WEAPON::YAMATO_VERGIL);
     }
+    cloneActorData.hitPoints = 20000;
+    cloneActorData.dead = 0;
 
 
     // ActivateDevil(cloneActorData);
     // cloneActorData.devil = 1;
 
-
-    func_1EAE60(actorData, 0);
+    HeadflipAnimation(actorData, 0);
+    ActivateDoppelgangerFX(actorData, 0);
     /*
     dmc3.exe+1E92D7 - 33 D2       - xor edx,edx
     dmc3.exe+1E92D9 - 48 8B CF    - mov rcx,rdi
@@ -3024,7 +3027,11 @@ void ActivateDoppelganger(PlayerActorData& actorData) {
     */
 
     ToggleActor(cloneActorData, true);
+    EndMotion(cloneActorData);
+    HeadflipAnimation(cloneActorData, 0);
+    cloneActorData.dead = 0;
     ActivateDevil(cloneActorData, false);
+    DevilFluxVFX(cloneActorData, DEVIL_FLUX::START);
     PlayDoppelgangerIn(actorData.newPlayerIndex);
 }
 
@@ -3042,7 +3049,7 @@ void DeactivateDoppelganger(PlayerActorData& actorData) {
     }
     auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
 
-    func_1EAE60(actorData, 1);
+    ActivateDoppelgangerFX(actorData, 1);
     /*
     dmc3.exe+1E9339 - B2 01       - mov dl,01
     dmc3.exe+1E9351 - 48 8B CF    - mov rcx,rdi
@@ -3054,7 +3061,7 @@ void DeactivateDoppelganger(PlayerActorData& actorData) {
 
         DeactivateDevil(cloneActorData);
     }
-
+    cloneActorData.dead = 0;
     ToggleActor(cloneActorData, false);
 
     EndMotion(cloneActorData);
@@ -3172,6 +3179,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
     auto& actorData     = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     auto& playerData    = GetPlayerData(actorData);
     auto& characterData = GetCharacterData(actorData);
+    auto playerIndex = actorData.newPlayerIndex;
 
     StyleSwitchDrawText(actorBaseAddr);
     
@@ -3239,13 +3247,18 @@ void StyleSwitchController(byte8* actorBaseAddr) {
             StyleSwitch(actorBaseAddr, 2); // DARKSLAYER
         }
 
-        if (actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 4 && !actorData.newIsClone) {
+        if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 4 && !actorData.newIsClone && activeConfig.Gameplay.enableVergilQuicksilver) {
             StyleSwitch(actorBaseAddr, 4); // QUICKSILVER
         }
 
-        if (actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5 && !actorData.newIsClone) {
+        // ACTIVATES DOPPELGANGER WITH ONE BUTTON PRESS FOR VERGIL
+        auto& doppelganger = crimsonPlayer[playerIndex].vergilDoppelganger;
+        if ((actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) || actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN))
+            && actorData.style != 5 && !actorData.newIsClone && doppelganger.cooldownTime <= 0) {
 
-            // ACTIVATES DOPPELGANGER WITH ONE BUTTON PRESS FOR VERGIL
+            doppelganger.cooldownTime = doppelganger.cooldownDuration;
+
+            
 
             if (!actorData.doppelganger && actorData.magicPoints >= 3000) {
                 ActivateDoppelganger(actorData);
@@ -3499,7 +3512,7 @@ template <typename T> void LinearMeleeWeaponSwitchController(T& actorData) {
 
 
         if (HUD_UpdateWeaponIcon(HUD_BOTTOM::MELEE_WEAPON_1, GetMeleeWeapon(actorData))) {
-            func_280120(hudBottom, 1, 0); // @Todo: Enums.
+            ChangeGunHudAnim(hudBottom, 1, 0); // @Todo: Enums.
         }
     }();
 
@@ -3584,7 +3597,7 @@ template <typename T> void LinearRangedWeaponSwitchController(T& actorData) {
 
 
         if (HUD_UpdateWeaponIcon(HUD_BOTTOM::RANGED_WEAPON_1, GetRangedWeapon(actorData))) {
-            func_280120(hudBottom, 0, 0); // @Todo: Enums.
+            ChangeGunHudAnim(hudBottom, 0, 0); // @Todo: Enums.
         }
     }();
 
@@ -8720,7 +8733,7 @@ void DecommissionDoppelgangers() {
             continue;
         }
 
-        actorData.cloneStatus = CLONE_STATUS::DECOMMISSION;
+       // actorData.cloneStatus = CLONE_STATUS::DECOMMISSION;
 
         DeactivateDoppelganger(actorData);
     }
@@ -13073,11 +13086,14 @@ void EventDelete() {
         if (!g_newActorData[0][0][0].baseAddr) {
             return;
         }
-        auto& activeActorData = *reinterpret_cast<PlayerActorData*>(g_newActorData[0][0][0].baseAddr);
+
+        auto& actorData = *reinterpret_cast<PlayerActorData*>(g_defaultNewActorData[0].baseAddr);
+        auto playerIndex = actorData.newPlayerIndex;
+        auto& activeActorData = *reinterpret_cast<PlayerActorData*>(g_newActorData[2][0][0].baseAddr);
         if (!g_defaultNewActorData[0].baseAddr) {
             return;
         }
-        auto& actorData = *reinterpret_cast<PlayerActorData*>(g_defaultNewActorData[0].baseAddr);
+       
 
 
         actorData.hitPoints      = activeActorData.hitPoints;
@@ -13113,6 +13129,7 @@ void EventDelete() {
             continue;
         }
         auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+       
 
         if (actorData.newEntityIndex == ENTITY::MAIN) {
             func_2EDFC0(actorData.var_6410);

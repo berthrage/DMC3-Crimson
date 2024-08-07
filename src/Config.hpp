@@ -604,6 +604,7 @@ struct Config {
         bool disableAirSlashKnockback = true;
 
         // VERGIL
+        bool enableVergilQuicksilver = false;
         bool darkslayerTrickCancels = true;
 
 

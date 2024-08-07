@@ -32,7 +32,7 @@ func_2EE3D0_t func_2EE3D0 = 0; // (byte8 * dest)
 func_1FAF40_t func_1FAF40 = 0; // (byte8 * baseAddr)
 func_1EEF80_t func_1EEF80 = 0; // (byte8 * baseAddr)
 func_2EE060_t func_2EE060 = 0; // (byte8 * dest, uint32 size)
-func_1DE820_t func_1DE820 = 0; // (uint32 character, uint32 id, bool isClone)
+func_1DE820_t CreatePlayerCharFunc = 0; // (uint32 character, uint32 id, bool isClone)
 func_217B90_t func_217B90 = 0; // (byte8 * actorData, ActiveMissionActorData & activeMissionActorData)
 func_226F10_t func_226F10 = 0; // (byte8 * actorData, ActiveMissionActorData & activeMissionActorData)
 func_219660_t func_219660 = 0; // (byte8 * actorData, ActiveMissionActorData & activeMissionActorData)
@@ -56,13 +56,13 @@ func_231A30_t func_231A30 = 0; // (byte8 * actorData, uint32 id)
 func_22D960_t func_22D960 = 0; // (byte8 * actorData, uint32 id)
 func_2298E0_t func_2298E0 = 0; // (byte8 * actorData, uint32 id)
 func_22CF00_t func_22CF00 = 0; // (byte8 * actorData, uint32 id)
-func_280120_t func_280120 = 0; // (byte8 * dest, uint32 side, uint32 index)
+func_280120_t ChangeGunHudAnim = 0; // (byte8 * dest, uint32 side, uint32 index)
 func_280160_t func_280160 = 0; // (byte8 * dest, uint32 group, uint32 index, uint32 motion)
 func_1EB0E0_t func_1EB0E0 = 0; // (byte8 * actorData, uint32 index)
 func_1F92C0_t func_1F92C0 = 0; // (byte8 * actorData, uint32 phase)
-func_1F97F0_t func_1F97F0 = 0; // (byte8 * actorData, bool noMotion)
-func_1F94D0_t func_1F94D0 = 0; // (byte8 * actorData, uint8 index)
-func_1EAE60_t func_1EAE60 = 0; // (byte8 * actorData, uint8 index)
+func_1F97F0_t HeadflipAnimation = 0; // (byte8 * actorData, bool noMotion)
+func_1F94D0_t DevilFluxVFX = 0; // (byte8 * actorData, uint8 index)
+func_1EAE60_t ActivateDoppelgangerFX = 0; // (byte8 * actorData, uint8 index)
 func_1FCA20_t func_1FCA20 = 0; // (byte8 * actorBaseAddr, uint32 visibility)
 func_32E5F0_t func_32E5F0 = 0; // (vec4 & position)
 func_89E30_t func_89E30   = 0; // (ModelData & modelData, uint32 index)
@@ -70,7 +70,7 @@ func_1B9FA0_t func_1B9FA0 = 0; // (byte8 * addr)
 func_223AC0_t func_223AC0 = 0; // (byte8 * actorData)
 func_223F50_t func_223F50 = 0; // (byte8 * actorData, uint32 index)
 func_223BE0_t func_223BE0 = 0; // (byte8 * actorData, uint32 index)
-func_594B0_t func_594B0   = 0; // (BodyPartData & bodyPartData, byte8 * file, uint32 bodyPart, uint32, byte8 ** motionArchives, byte8 ***
+func_594B0_t InitiateModelFunc   = 0; // (BodyPartData & bodyPartData, byte8 * file, uint32 bodyPart, uint32, byte8 ** motionArchives, byte8 ***
                                // modelDataFunctions, PhysicsMetadata ** modelPhysicsMetadataPool, float32 * motionSpeed, void *)
 func_5A290_t func_5A290   = 0; // (byte8 * body, uint32 group, uint32 index, uint16, uint8, uint8)
 func_8AC80_t func_8AC80   = 0; // (ModelData & modelData, uint32 bodyPart, byte8 * motionFile, uint32, bool)
@@ -198,7 +198,7 @@ void Internal_Init() {
     }
     {
         auto func   = old_CreateFunction((appBaseAddr + 0x1DE820), 0, true, false);
-        func_1DE820 = (func_1DE820_t)func.addr;
+        CreatePlayerCharFunc = (func_1DE820_t)func.addr;
     }
     {
         auto func   = old_CreateFunction((appBaseAddr + 0x217B90));
@@ -294,7 +294,7 @@ void Internal_Init() {
     }
     {
         auto func   = old_CreateFunction((appBaseAddr + 0x280120));
-        func_280120 = (func_280120_t)func.addr;
+        ChangeGunHudAnim = (func_280120_t)func.addr;
     }
     {
         auto func   = old_CreateFunction((appBaseAddr + 0x280160));
@@ -310,15 +310,15 @@ void Internal_Init() {
     }
     {
         auto func   = old_CreateFunction((appBaseAddr + 0x1F97F0));
-        func_1F97F0 = (func_1F97F0_t)func.addr;
+        HeadflipAnimation = (func_1F97F0_t)func.addr;
     }
     {
         auto func   = old_CreateFunction((appBaseAddr + 0x1F94D0));
-        func_1F94D0 = (func_1F94D0_t)func.addr;
+        DevilFluxVFX = (func_1F94D0_t)func.addr;
     }
     {
         auto func   = old_CreateFunction((appBaseAddr + 0x1EAE60));
-        func_1EAE60 = (func_1EAE60_t)func.addr;
+        ActivateDoppelgangerFX = (func_1EAE60_t)func.addr;
     }
     {
         auto func   = old_CreateFunction((appBaseAddr + 0x1FCA20));
@@ -350,7 +350,7 @@ void Internal_Init() {
     }
     {
         auto func  = old_CreateFunction((appBaseAddr + 0x594B0), 0, true, true, 0, 0, 0, 0, 5);
-        func_594B0 = (func_594B0_t)func.addr;
+        InitiateModelFunc = (func_594B0_t)func.addr;
     }
     {
         auto func  = old_CreateFunction((appBaseAddr + 0x5A290), 0, true, true, 0, 0, 0, 0, 2);

@@ -409,15 +409,15 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
         if (*canStart) {
 			styleVFXCount++;
 			styleChanged[*style] = true;
-            func_1F94D0(actorData, DEVIL_FLUX::START);
+            DevilFluxVFX(actorData, DEVIL_FLUX::START);
             *canStart = false;
             *canEnd = true;
         }
 		
 
-		if (*fluxtime < 0.03f && *canEnd) {
+		if (*fluxtime < 0.08f && *canEnd) {
 			styleVFXCount--;
-			func_1F94D0(actorData, 4);
+			DevilFluxVFX(actorData, 4);
 			styleChanged[*style] = false;
 			*canEnd = false;
             *fluxtime = 0;
@@ -429,6 +429,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
     if (*fluxtime <= 0 && !*canStart) {
 		for (int i = 0; i < 6; i++) {
 			if (*fluxtime <= 0 && styleChanged[i] == true) {
+				DevilFluxVFX(actorData, 4);
                 // This guarantess FluxEffects color will be gone by the time the effect ends
 				styleChanged[i] = false;
 			}
@@ -443,14 +444,39 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
     // if the condition is fluxtime > 0, DTout plays normally, but 2P's flux will play on 1P
     // if the condition is fluxtime < 0.05f, DTOut doesn't play at all, but each player will have its flux play correctly.
     // fluxtime > 0.095f seems to be the most effective solution, both things work normally.
-    if (*fluxtime > 0.0f) {
+
+	// UPDATE: New checks to ensure leaks or fluxes playing on other players occur as least as possible.
+	if (activeConfig.Actor.playerCount == 1){
+		if (*fluxtime > 0) {
+
+			if (actorData.devil == 0 && !(gamepad.buttons[2] & GetBinding(BINDING::DEVIL_TRIGGER))) {
+				DevilFluxVFX(actorData, 4);
+			}
+
+		}
+	}
+	else {
+		if (actorData.character == CHARACTER::VERGIL && activeConfig.Gameplay.enableVergilQuicksilver) {
+			if (*fluxtime < 0.05f) {
+
+				if (actorData.devil == 0 && !(gamepad.buttons[2] & GetBinding(BINDING::DEVIL_TRIGGER))) {
+					DevilFluxVFX(actorData, 4);
+				}
+
+			}
+		}
+		else {
+			if (*fluxtime > 0.092f) {
 
 
-        if (actorData.devil == 0 && !(gamepad.buttons[2] & GetBinding(BINDING::DEVIL_TRIGGER))) {
-            func_1F94D0(actorData, 4);
-        }
-        
-    }
+				if (actorData.devil == 0 && !(gamepad.buttons[2] & GetBinding(BINDING::DEVIL_TRIGGER))) {
+					DevilFluxVFX(actorData, 4);
+				}
+
+			}
+		}
+	}
+	
 
 }
 

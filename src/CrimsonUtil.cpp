@@ -48,6 +48,7 @@ void UpdateCrimsonPlayerData() {
         crimsonPlayer[playerIndex].tiltDirection  = tiltDirection;
         crimsonPlayer[playerIndex].lockOn         = lockOn;
         crimsonPlayer[playerIndex].speed          = actorData.speed;
+        crimsonPlayer[playerIndex].magicPoints = actorData.magicPoints;
         crimsonPlayer[playerIndex].horizontalPull = actorData.horizontalPull;
 
         if (actorData.character == CHARACTER::DANTE || actorData.character == CHARACTER::VERGIL) {
