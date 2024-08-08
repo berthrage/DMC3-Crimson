@@ -2,7 +2,7 @@
 #include <intrin.h>
 #include <string>
 #include <algorithm>
-#include "PatchFunctions.hpp"
+#include "CrimsonPatches.hpp"
 #include "Core/Core.hpp"
 #include "DMC3Input.hpp"
 #include <stdio.h>
@@ -17,6 +17,7 @@
 
 #pragma region GameplayImprovements
 
+namespace CrimsonPatches {
 
 void DisableHeightRestriction() {
     uintptr_t raveAddr      = 0x20149524;
@@ -731,6 +732,7 @@ void AirTauntToggleController(byte8* actorBaseAddr) {
                    !(cloneActorData.state & STATE::IN_AIR))) {
         ToggleAirTaunt(false);
     }
+}
 }
 
 #pragma endregion

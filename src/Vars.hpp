@@ -2139,10 +2139,9 @@ struct ActiveMissionActorData {
     float maxHitPoints;   // 0x68
     float magicPoints;    // 0x6C
     float maxMagicPoints; // 0x70
-    float royalguardReleaseDamage;
 };
 
-/*static_assert(offsetof(ActiveMissionActorData, weapons) == 0);
+static_assert(offsetof(ActiveMissionActorData, weapons) == 0);
 static_assert(offsetof(ActiveMissionActorData, style) == 0x38);
 static_assert(offsetof(ActiveMissionActorData, styleLevel) == 0x3C);
 static_assert(offsetof(ActiveMissionActorData, expertise) == 0x40);
@@ -2151,9 +2150,8 @@ static_assert(offsetof(ActiveMissionActorData, hitPoints) == 0x64);
 static_assert(offsetof(ActiveMissionActorData, maxHitPoints) == 0x68);
 static_assert(offsetof(ActiveMissionActorData, magicPoints) == 0x6C);
 static_assert(offsetof(ActiveMissionActorData, maxMagicPoints) == 0x70);
-static_assert(offsetof(ActiveMissionActorData, royalguardReleaseDamage) == 0x74);
 
-static_assert(sizeof(ActiveMissionActorData) == 116);*/
+static_assert(sizeof(ActiveMissionActorData) == 116);
 
 // $ActiveMissionActorDataEnd
 
@@ -4327,7 +4325,15 @@ struct CrimsonPlayerData {
     byte32 state;
     byte32 lastState;
     float speed      = 0;
+	float hitPoints = 20000;
+    float maxHitPoints = 20000;
     float magicPoints = 10000;
+    float maxMagicPoints = 10000;
+    uint32 style = 1;
+    float royalguardReleaseDamage = 0;
+    float dtExplosionCharge = 0;
+    StyleData styleData;
+    uint32 actorMode;
     uint32 character = 0;
     ENGINE_GAMEPAD gamepad;
     uint8 tiltDirection;

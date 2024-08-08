@@ -13,7 +13,6 @@
 #include "DebugDrawDX11.hpp"
 #define DEBUG_DRAW_EXPLICIT_CONTEXT
 #include "debug_draw.hpp"
-#include "DetourFunctions.hpp"
 #include "DMC3Input.hpp"
 #include "File.hpp"
 #include "Internal.hpp"
@@ -22,10 +21,8 @@
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "CrimsonGameplay.hpp"
 #include "Core/Core.hpp"
-#include "SDLStuff.hpp"
 #include "Memory.hpp"
 #include "Model.hpp"
-#include "PatchFunctions.hpp"
 #include "ActorRelocations.hpp"
 #include "Config.hpp"
 #include "Exp.hpp"
@@ -36,10 +33,88 @@
 #include "Speed.hpp"
 #include "Vars.hpp"
 #include "StyleSwitchFX.hpp"
-
 #include "Core/Macros.h"
 #include <deque>
 #include "Training.hpp"
+#include "CrimsonDetours.hpp"
+#include "CrimsonSDL.hpp"
+#include "CrimsonPatches.hpp"
+
+namespace CrimsonGameplay {
+
+#pragma region CrimsonPlayers
+
+void UpdateCrimsonPlayerData() {
+    // crimsonPlayer data has a lot of copies from ActorData, we're using this so we can more easily access data from Actors
+    // globally. It also serves to create new player data outside of DDMK legacy stuff or DMC3 itself (like Action/Anim Timers). 
+    // Please note that assigning new values to crimsonPlayer directly might have no effect 
+    // (you still need to call ActorData to change hit points, for exemple).
+    // This function here and PreparePlayersDataBeforeSpawn() from CrimsonOnTick is also important to preserve Players Data in between rooms. - Mia
+
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+		auto& playerData = GetPlayerData(playerIndex);
+
+		// auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+
+		auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, 0);
+		auto actorBaseAddr = newActorData.baseAddr;
+
+		if (!actorBaseAddr) {
+			continue;
+		}
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+		auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+
+		auto& gamepad = GetGamepad(actorData.newPlayerIndex);
+		auto tiltDirection = GetRelativeTiltDirection(actorData);
+		auto inAir = (actorData.state & STATE::IN_AIR);
+		auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+
+		crimsonPlayer[playerIndex].playerPtr = (uintptr_t)actorData.baseAddr;
+		crimsonPlayer[playerIndex].action = actorData.action;
+		crimsonPlayer[playerIndex].lastAction = actorData.lastAction;
+		crimsonPlayer[playerIndex].event = actorData.eventData[0].event;
+		crimsonPlayer[playerIndex].lastEvent = actorData.eventData[0].lastEvent;
+		crimsonPlayer[playerIndex].state = actorData.state;
+		crimsonPlayer[playerIndex].lastState = actorData.lastState;
+		crimsonPlayer[playerIndex].motion = actorData.motionData[0].index;
+		crimsonPlayer[playerIndex].character = actorData.character;
+		crimsonPlayer[playerIndex].gamepad = gamepad;
+		crimsonPlayer[playerIndex].tiltDirection = tiltDirection;
+		crimsonPlayer[playerIndex].lockOn = lockOn;
+		crimsonPlayer[playerIndex].speed = actorData.speed;
+        crimsonPlayer[playerIndex].hitPoints = actorData.hitPoints;
+        crimsonPlayer[playerIndex].maxHitPoints = actorData.maxHitPoints;
+		crimsonPlayer[playerIndex].magicPoints = actorData.magicPoints;
+		crimsonPlayer[playerIndex].maxMagicPoints = actorData.maxMagicPoints;
+        crimsonPlayer[playerIndex].style = actorData.style;
+        crimsonPlayer[playerIndex].actorMode = actorData.mode;
+        crimsonPlayer[playerIndex].royalguardReleaseDamage = actorData.royalguardReleaseDamage;
+        crimsonPlayer[playerIndex].dtExplosionCharge = actorData.dtExplosionCharge;
+        crimsonPlayer[playerIndex].styleData.rank = actorData.styleData.rank;
+        crimsonPlayer[playerIndex].styleData.meter = actorData.styleData.meter;
+        crimsonPlayer[playerIndex].styleData.quotient = actorData.styleData.quotient;
+        crimsonPlayer[playerIndex].styleData.dividend = actorData.styleData.dividend;
+        crimsonPlayer[playerIndex].styleData.divisor = actorData.styleData.divisor;
+
+		crimsonPlayer[playerIndex].horizontalPull = actorData.horizontalPull;
+
+		if (actorData.character == CHARACTER::DANTE || actorData.character == CHARACTER::VERGIL) {
+			crimsonPlayer[playerIndex].clonePtr = (uintptr_t)actorData.cloneActorBaseAddr;
+			crimsonPlayer[playerIndex].actionClone = cloneActorData.action;
+			crimsonPlayer[playerIndex].lastActionClone = cloneActorData.lastAction;
+			crimsonPlayer[playerIndex].motionClone = cloneActorData.motionData[0].index;
+			crimsonPlayer[playerIndex].eventClone = cloneActorData.eventData[0].event;
+			crimsonPlayer[playerIndex].lastEventClone = cloneActorData.eventData[0].lastEvent;
+			crimsonPlayer[playerIndex].stateClone = cloneActorData.state;
+			crimsonPlayer[playerIndex].lastStateClone = cloneActorData.lastState;
+			crimsonPlayer[playerIndex].speedClone = cloneActorData.speed;
+			crimsonPlayer[playerIndex].horizontalPullClone = cloneActorData.horizontalPull;
+		}
+	}
+}
+
+#pragma endregion
 
 
 #pragma region Cancels
@@ -1735,7 +1810,7 @@ void StyleMeterDoppelganger(byte8* actorBaseAddr) {
 }
 
 
-void inCombatDetection() {
+void InCombatDetection() {
     auto inCombatDetector = *reinterpret_cast<int*>(appBaseAddr + 0xD23A80);
     auto inBossfightDetector = *reinterpret_cast<int*>(appBaseAddr + 0xD5BA88);
 
@@ -1949,16 +2024,16 @@ void SprintAbility(byte8* actorBaseAddr) {
 
             // FX
             if (!sprintData.SFXPlayed) {
-                PlaySprint(playerIndex);
+                CrimsonSDL::PlaySprint(playerIndex);
                 sprintData.SFXPlayed = true;
             }
 
             if (!sprintData.VFXPlayed) {
-                createEffectBank = sprintVFX.bank;
-                createEffectID   = sprintVFX.id;
-                createEffectBone = 1;
-                createEffectPlayerAddr = (uint64_t)actorBaseAddr; // crimsonPlayer[playerIndex].playerPtr also works
-                CreateEffectDetour();
+                CrimsonDetours::createEffectBank = sprintVFX.bank;
+                CrimsonDetours::createEffectID   = sprintVFX.id;
+                CrimsonDetours::createEffectBone = 1;
+                CrimsonDetours::createEffectPlayerAddr = (uint64_t)actorBaseAddr; // crimsonPlayer[playerIndex].playerPtr also works
+                CrimsonDetours::CreateEffectDetour();
 
                 sprintData.VFXPlayed = true;
             }
@@ -2208,7 +2283,7 @@ void SkyLaunchProperties(byte8* actorBaseAddr) {
 
 
         if (actorData.state & STATE::IN_AIR && !skyLaunchSetJustFrameTrue && !forcingJustFrameRoyalRelease) {
-            ToggleRoyalguardForceJustFrameRelease(true);
+            CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(true);
             skyLaunchSetJustFrameTrue   = true;
             skyLaunchSetJustFrameGround = false;
             royalReleaseJustFrameCheck  = false;
@@ -2219,12 +2294,12 @@ void SkyLaunchProperties(byte8* actorBaseAddr) {
         }
 
         if (!(actorData.state & STATE::IN_AIR) && !skyLaunchSetJustFrameGround) {
-            ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+            CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
             skyLaunchSetJustFrameGround = true;
         }
 
         if (executingRoyalRelease && !royalReleaseJustFrameCheck) {
-            ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+            CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
             royalReleaseJustFrameCheck = true;
         }
     }
@@ -2261,7 +2336,7 @@ void SkyLaunchProperties(byte8* actorBaseAddr) {
         if (!skyLaunchForceJustFrameToggledOff) {
             beginSkyLaunch = false;
             SetVolume(2, activeConfig.channelVolumes[2]);
-            ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+            CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
             skyLaunchForceJustFrameToggledOff = true;
         }
 
@@ -2327,9 +2402,9 @@ void DriveTweaks(byte8* actorBaseAddr) {
         if (crimsonPlayer[playerIndex].drive.timer >= 1.1f) {
             if (!crimsonPlayer[playerIndex].drive.level1EffectPlayed) {
 
-                createEffectBank = crimsonPlayer[playerIndex].drive.bank;
-                createEffectID   = crimsonPlayer[playerIndex].drive.id;
-                CreateEffectDetour();
+                CrimsonDetours::createEffectBank = crimsonPlayer[playerIndex].drive.bank;
+                CrimsonDetours::createEffectID   = crimsonPlayer[playerIndex].drive.id;
+                CrimsonDetours::CreateEffectDetour();
 
                 crimsonPlayer[playerIndex].drive.level1EffectPlayed = true;
             }
@@ -2346,9 +2421,9 @@ void DriveTweaks(byte8* actorBaseAddr) {
 
             if (!crimsonPlayer[playerIndex].drive.level2EffectPlayed) {
 
-                createEffectBank = crimsonPlayer[playerIndex].drive.bank;
-                createEffectID   = crimsonPlayer[playerIndex].drive.id;
-                CreateEffectDetour();
+                CrimsonDetours::createEffectBank = crimsonPlayer[playerIndex].drive.bank;
+                CrimsonDetours::createEffectID   = crimsonPlayer[playerIndex].drive.id;
+                CrimsonDetours::CreateEffectDetour();
 
                 crimsonPlayer[playerIndex].drive.level2EffectPlayed = true;
             }
@@ -2360,9 +2435,9 @@ void DriveTweaks(byte8* actorBaseAddr) {
 
             if (!crimsonPlayer[playerIndex].drive.level3EffectPlayed) {
 
-                createEffectBank = crimsonPlayer[playerIndex].drive.bank;
-                createEffectID   = crimsonPlayer[playerIndex].drive.id;
-                CreateEffectDetour();
+                CrimsonDetours::createEffectBank = crimsonPlayer[playerIndex].drive.bank;
+                CrimsonDetours::createEffectID   = crimsonPlayer[playerIndex].drive.id;
+                CrimsonDetours::CreateEffectDetour();
 
                 crimsonPlayer[playerIndex].drive.level3EffectPlayed = true;
             }
@@ -2389,4 +2464,6 @@ void DriveTweaks(byte8* actorBaseAddr) {
 
 
     }*/
+}
+
 }

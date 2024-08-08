@@ -1,7 +1,6 @@
 
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include <algorithm>
-#include "DetourFunctions.hpp"
 #include "Core/Core.hpp"
 #include <stdio.h>
 #include "Utility/Detour.hpp"
@@ -14,6 +13,8 @@
 #include "Core/Macros.h"
 #include "Config.hpp"
 #include <iostream>
+
+namespace CrimsonDetours {
 
 extern "C" {
 std::uint64_t DetourBaseAddr;
@@ -405,4 +406,6 @@ void ToggleStyleRankHudNoFadeout(bool enable) {
         StyleRankHudNoFadeoutHook->Toggle(false);
     }
 	
+}
+
 }

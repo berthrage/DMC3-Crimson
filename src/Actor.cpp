@@ -16,17 +16,14 @@
 #include "Core/Core.hpp"
 #include "CrimsonFX.hpp"
 #include "CrimsonGameplay.hpp"
-#include "SDLStuff.hpp"
 #include "Internal.hpp"
 #include "Memory.hpp"
 #include "Model.hpp"
-#include "PatchFunctions.hpp"
 #include "Utility/Detour.hpp"
 #include "DebugDrawDX11.hpp"
 #define DEBUG_DRAW_EXPLICIT_CONTEXT
 #include "debug_draw.hpp"
 #include "CrimsonUtil.hpp"
-#include "DetourFunctions.hpp"
 #include "DMC3Input.hpp"
 #include "ActorBase.hpp"
 #include "ActorRelocations.hpp"
@@ -40,6 +37,9 @@
 #include "Core/Macros.h"
 
 #include "Core/DebugSwitch.hpp"
+#include "CrimsonSDL.hpp"
+#include "CrimsonPatches.hpp"
+#include "CrimsonDetours.hpp"
 
 // @Remove
 #define g_enableLockOnFixes true
@@ -2786,7 +2786,23 @@ byte8* SpawnActor(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     newActorData.baseAddr = actorBaseAddr;
-    //actorData.magicPoints = crimsonPlayer[actorData.newPlayerIndex].magicPoints;
+    auto newPlayerIndex = actorData.newPlayerIndex;
+
+
+    // Pass data to the new actor from UpdateCrimsonPlayerData 
+    actorData.hitPoints = crimsonPlayer[newPlayerIndex].hitPoints;
+    actorData.maxHitPoints = crimsonPlayer[newPlayerIndex].maxHitPoints;
+    actorData.maxMagicPoints = crimsonPlayer[newPlayerIndex].maxMagicPoints;
+    actorData.magicPoints = crimsonPlayer[newPlayerIndex].magicPoints;
+
+    actorData.royalguardReleaseDamage = crimsonPlayer[newPlayerIndex].royalguardReleaseDamage;
+    actorData.dtExplosionCharge = crimsonPlayer[newPlayerIndex].dtExplosionCharge;
+    
+    actorData.styleData.rank = crimsonPlayer[newPlayerIndex].styleData.rank;
+    actorData.styleData.meter = crimsonPlayer[newPlayerIndex].styleData.meter;
+    actorData.styleData.quotient = crimsonPlayer[newPlayerIndex].styleData.quotient;
+    actorData.styleData.dividend = crimsonPlayer[newPlayerIndex].styleData.dividend;
+    actorData.styleData.divisor = crimsonPlayer[newPlayerIndex].styleData.divisor;
 
     return actorBaseAddr;
 }
@@ -2952,11 +2968,11 @@ void ActivateDevil(PlayerActorData& actorData, bool playSFX) {
     }
 
     if (playSFX) {
-        PlayDevilTriggerIn(actorData.newPlayerIndex);
+        CrimsonSDL::PlayDevilTriggerIn(actorData.newPlayerIndex);
     }
 
     //VIBRATE
-    VibrateController(actorData.newPlayerIndex, 0, 0x2222, 300);
+    CrimsonSDL::VibrateController(actorData.newPlayerIndex, 0, 0x2222, 300);
     // PlayDevilTriggerLoop();
 }
 
@@ -2977,10 +2993,10 @@ void DeactivateDevil(PlayerActorData& actorData, bool playSFX = true) {
     DevilFluxVFX(actorData, DEVIL_FLUX::END);
 
     if (playSFX) {
-        PlayDevilTriggerOut(actorData.newPlayerIndex);
+        CrimsonSDL::PlayDevilTriggerOut(actorData.newPlayerIndex);
     }
 
-    VibrateController(actorData.newPlayerIndex, 0, 0x1111, 300);
+    CrimsonSDL::VibrateController(actorData.newPlayerIndex, 0, 0x1111, 300);
     // StopDevilTriggerLoop();
 }
 
@@ -3031,8 +3047,17 @@ void ActivateDoppelganger(PlayerActorData& actorData) {
     HeadflipAnimation(cloneActorData, 0);
     cloneActorData.dead = 0;
     ActivateDevil(cloneActorData, false);
-    DevilFluxVFX(cloneActorData, DEVIL_FLUX::START);
-    PlayDoppelgangerIn(actorData.newPlayerIndex);
+
+    
+
+    CrimsonSDL::PlayDoppelgangerIn(actorData.newPlayerIndex);
+	// Elec Loop VFX on Doppel -- WIP
+// 	createEffectBank = 3;
+// 	createEffectID = 60;
+// 	createEffectBone = 1;
+// 	createEffectPlayerAddr = (uint64_t)cloneActorData.baseAddr;
+//  CreateEffectDetour();
+
 }
 
 void DeactivateDoppelganger(PlayerActorData& actorData) {
@@ -3055,6 +3080,7 @@ void DeactivateDoppelganger(PlayerActorData& actorData) {
     dmc3.exe+1E9351 - 48 8B CF    - mov rcx,rdi
     dmc3.exe+1E9354 - E8 071B0000 - call dmc3.exe+1EAE60
     */
+    DevilFluxVFX(cloneActorData.baseAddr, DEVIL_FLUX::GLOW_OFF);
 
     if (cloneActorData.devil) {
         cloneActorData.devil = false;
@@ -3066,7 +3092,8 @@ void DeactivateDoppelganger(PlayerActorData& actorData) {
 
     EndMotion(cloneActorData);
 
-    PlayDoppelgangerOut(actorData.newPlayerIndex);
+    CrimsonSDL::PlayDoppelgangerOut(actorData.newPlayerIndex);
+    
 }
 
 void DoppTimeTracker() {
@@ -3162,13 +3189,13 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
 
     auto& distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
     // Trigger SFX.
-    PlayStyleChange(playerIndex);
+    CrimsonSDL::PlayStyleChange(playerIndex);
     if (actorData.character == CHARACTER::DANTE) {
-        PlayStyleChangeVO(playerIndex, style, actorData.doppelganger);
+        CrimsonSDL::PlayStyleChangeVO(playerIndex, style, actorData.doppelganger);
     }
 
     if (activeConfig.enableStyleSwitchText) {
-        SetStyleSwitchDrawTextTime(style, actorBaseAddr);
+        CrimsonFX::SetStyleSwitchDrawTextTime(style, actorBaseAddr);
     }
 }
 
@@ -3181,7 +3208,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
     auto& characterData = GetCharacterData(actorData);
     auto playerIndex = actorData.newPlayerIndex;
 
-    StyleSwitchDrawText(actorBaseAddr);
+    CrimsonFX::StyleSwitchDrawText(actorBaseAddr);
     
 
 
@@ -3314,7 +3341,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
     }
 
     if (actorData.devil && actorData.magicPoints < 50) {
-        PlayDevilTriggerOut(actorData.newPlayerIndex);
+        CrimsonSDL::PlayDevilTriggerOut(actorData.newPlayerIndex);
     }
 
     // actorData.style = 0;
@@ -3761,7 +3788,7 @@ template <typename T> void ArbitraryMeleeWeaponSwitchController(T& actorData) {
         UpdateForm(actorData);
 
         if (activeConfig.SFX.changeDevilArmNew == 1) {
-            PlayChangeDevilArm();
+            CrimsonSDL::PlayChangeDevilArm();
         } else {
             PlaySound(0, 12);
         }
@@ -3889,7 +3916,7 @@ template <typename T> void ArbitraryRangedWeaponSwitchController(T& actorData) {
         UpdateRangedWeapon(actorData);
 
         if (activeConfig.SFX.changeGunNew == 1) {
-            PlayChangeGun();
+            CrimsonSDL::PlayChangeGun();
         } else {
             PlaySound(0, 12);
         }
@@ -3914,39 +3941,48 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
         return false;
     }
 
-    
     // dd::sphere(dd_ctx(), actorWorldPos, dd::colors::Red, 15.0f);
 
-    UpdateCrimsonPlayerData();
-    StyleSwitchController(actorBaseAddr);
-    DisableHeightRestriction();
-    ImprovedBufferedReversals();
-    IncreasedJCSpheres();
-    DisableJCRestriction();
-    BulletStop();
-    RainstormLift();
-    CalculateAirStingerEndTime();
-    FasterRapidSlashDevil(actorBaseAddr);
-    CameraSensController();
-    CameraFollowUpSpeedController();
-    CameraDistanceController();
-    CameraTiltController();
-    LockedOffCameraToggle(activeConfig.cameraLockOff);
-    CameraLockOnDistanceController();
-    StyleRankHudFadeoutController();
-    DelayedComboFXController(actorBaseAddr);
-    StyleSwitchFlux(actorBaseAddr);
+	StyleSwitchController(actorBaseAddr);
+
+    CrimsonGameplay::UpdateCrimsonPlayerData();
+    CrimsonPatches::DisableHeightRestriction();
+    CrimsonPatches::ImprovedBufferedReversals();
+    CrimsonPatches::IncreasedJCSpheres();
+    CrimsonPatches::DisableJCRestriction();
+    CrimsonPatches::BulletStop();
+    CrimsonPatches::RainstormLift();
+    CrimsonGameplay::CalculateAirStingerEndTime();
+    CrimsonGameplay::FasterRapidSlashDevil(actorBaseAddr);
+    CrimsonGameplay::LastEventStateQueue(actorBaseAddr);
+    CrimsonGameplay::DTInfusedRoyalguardController(actorBaseAddr);
+    CrimsonPatches::CameraSensController();
+    CrimsonPatches::CameraFollowUpSpeedController();
+    CrimsonPatches::CameraDistanceController();
+    CrimsonPatches::CameraTiltController();
+    CrimsonPatches::LockedOffCameraToggle(activeConfig.cameraLockOff);
+    CrimsonPatches::CameraLockOnDistanceController();
+    CrimsonFX::StyleRankHudFadeoutController();
+    CrimsonFX::DelayedComboFXController(actorBaseAddr);
+    CrimsonFX::StyleSwitchFlux(actorBaseAddr);
     if (sessionData.unlockDevilTrigger) {
-        DTExplosionFXController(actorBaseAddr);
+        CrimsonFX::DTExplosionFXController(actorBaseAddr);
     }
     
-    RoyalguardSFX(actorBaseAddr);
-    DTInfusedRoyalguardController(actorBaseAddr);
-    CalculateCameraPlayerDistance(actorBaseAddr);
-    SetAllSFXDistance(playerIndex, crimsonPlayer[playerIndex].cameraPlayerDistanceClamped);
+    CrimsonFX::RoyalguardSFX(actorBaseAddr);
+    CrimsonFX::CalculateCameraPlayerDistance(actorBaseAddr);
+    CrimsonSDL::SetAllSFXDistance(playerIndex, crimsonPlayer[playerIndex].cameraPlayerDistanceClamped);
     
+	if (activeConfig.Gameplay.improvedCancelsDante) {
+		CrimsonGameplay::ImprovedCancelsDanteController(actorBaseAddr);
+        CrimsonGameplay::ImprovedCancelsRoyalguardController(actorBaseAddr);
+        CrimsonGameplay::ImprovedCancelsRoyalguardController(actorData.cloneActorBaseAddr);
+	}
 
-    LastEventStateQueue(actorBaseAddr);
+	if (activeConfig.Gameplay.darkslayerTrickCancels) {
+        CrimsonGameplay::ImprovedCancelsVergilController(actorBaseAddr);
+	}
+    
 
     if (actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
         actorData.airSwordAttackCount = 0;
@@ -3980,17 +4016,6 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
         }
     }
 
-    auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
-
-    if (activeConfig.Gameplay.improvedCancelsDante) {
-        ImprovedCancelsDanteController(actorBaseAddr);
-        ImprovedCancelsRoyalguardController(actorBaseAddr);
-        ImprovedCancelsRoyalguardController(actorData.cloneActorBaseAddr);
-    }
-
-    if (activeConfig.Gameplay.darkslayerTrickCancels) {
-        ImprovedCancelsVergilController(actorBaseAddr);
-    }
 
 
     return true;
@@ -8031,12 +8056,12 @@ void UpdateActorSpeed(byte8* baseAddr) {
 
 
     auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
-    CheckRoyalRelease(mainActorData);
-    CheckSkyLaunch(mainActorData);
-    SkyLaunchProperties(mainActorData);
-    DisableAirSlashKnockback();
-    SetAirStingerEnd(mainActorData);
-    InertiaFixes();
+    CrimsonGameplay::CheckRoyalRelease(mainActorData);
+    CrimsonGameplay::CheckSkyLaunch(mainActorData);
+    CrimsonGameplay::SkyLaunchProperties(mainActorData);
+    CrimsonPatches::DisableAirSlashKnockback();
+    CrimsonGameplay::SetAirStingerEnd(mainActorData);
+    CrimsonPatches::InertiaFixes();
 
 
     auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(mainActorData.cloneActorBaseAddr);
@@ -8044,9 +8069,9 @@ void UpdateActorSpeed(byte8* baseAddr) {
     // SkyLaunchProperties(cloneActorData);
 
 
-    DTReadySFX();
+    CrimsonFX::DTReadySFX();
     // CheckSkyLaunch(mainActorData);
-    StyleRankAnnouncerController(mainActorData.styleData.rank);
+    CrimsonSDL::StyleRankAnnouncerController(mainActorData.styleData.rank);
 
     // NewActorData
 
@@ -8119,45 +8144,45 @@ void UpdateActorSpeed(byte8* baseAddr) {
 
 
                 if (activeConfig.Gameplay.sprint) {
-                    SprintAbility(actorBaseAddr);
+                    CrimsonGameplay::SprintAbility(actorBaseAddr);
                 }
 
                 // InertiaController(actorData.cloneActorBaseAddr);
-                BackToForwardInputs(actorBaseAddr);
-                VergilAdjustAirMovesPos(actorBaseAddr);
-                DriveTweaks(actorBaseAddr);
+                CrimsonGameplay::BackToForwardInputs(actorBaseAddr);
+                CrimsonGameplay::VergilAdjustAirMovesPos(actorBaseAddr);
+                CrimsonGameplay::DriveTweaks(actorBaseAddr);
 
                 if (activeConfig.Gameplay.aerialRaveTweaks) {
-                    AerialRaveGravityTweaks(actorBaseAddr);
+                    CrimsonGameplay::AerialRaveGravityTweaks(actorBaseAddr);
                 }
 
                 if (activeConfig.Gameplay.airFlickerTweaks) {
-                    AirFlickerGravityTweaks(actorBaseAddr);
+                    CrimsonGameplay::AirFlickerGravityTweaks(actorBaseAddr);
                 }
 
                 if (activeConfig.Gameplay.skyDanceTweaks) {
-                    SkyDanceGravityTweaks(actorBaseAddr);
+                    CrimsonGameplay::SkyDanceGravityTweaks(actorBaseAddr);
                 }
 
 
                 if (activeConfig.Gameplay.inertia) {
-                    FreeRotationSwordMoves(actorBaseAddr);
-                    StoreInertia(actorBaseAddr);
-                    InertiaController(actorBaseAddr);
+                    CrimsonGameplay::FreeRotationSwordMoves(actorBaseAddr);
+                    CrimsonGameplay::StoreInertia(actorBaseAddr);
+                    CrimsonGameplay::InertiaController(actorBaseAddr);
                 }
 
 
                 // Doppelganger's attacks can now hold/increase your style meter
-                StyleMeterDoppelganger(actorBaseAddr);
+                CrimsonGameplay::StyleMeterDoppelganger(actorBaseAddr);
 
-                inCombatDetection();
+                CrimsonGameplay::InCombatDetection();
 
 
                 if (!g_haywireNeoGenerator) {
                     actorData.mode = 0;
                 }
 
-                FasterDarkslayerTricks();
+                CrimsonGameplay::FasterDarkslayerTricks();
                 // FasterRapidSlashDevil(actorBaseAddr);
 
 
@@ -8689,7 +8714,7 @@ void ActivateQuicksilver(byte8* actorBaseAddr) {
 
     QuicksilverFunction(actorBaseAddr, true);
 
-    PlayQuicksilverIn();
+    CrimsonSDL::PlayQuicksilverIn();
 }
 
 void DeactivateQuicksilver(byte8* actorBaseAddr) {
@@ -8698,7 +8723,7 @@ void DeactivateQuicksilver(byte8* actorBaseAddr) {
     }
 
     if (g_quicksilver) {
-        PlayQuicksilverOut();
+        CrimsonSDL::PlayQuicksilverOut();
     }
 
     QuicksilverFunction(actorBaseAddr, false);
@@ -9088,35 +9113,12 @@ void SetAction(byte8* actorBaseAddr) {
             crimsonPlayer[playerIndex].inQuickDrive = false;
         }
 
-        // New Nevan Inputs
-        /*if(actorData.action == 81) {
-                actorData.action = NEVAN_COMBO_2;
-        }
-
-        if((actorData.action == NEVAN_REVERB_SHOCK_LEVEL_1 || actorData.action == NEVAN_REVERB_SHOCK_LEVEL_2) && forwardCommand) {
-                actorData.action = 81;
-        }*/
-
-        // Sky Launch
-        /*if ((actorData.state & STATE::IN_AIR) && (actorData.action == REBELLION_HELM_BREAKER) &&
-                forwardCommand) */ //Previously Back To Forward + Melee Attack
-
-        /*if ((actorData.buttons[0] & GetBinding(BINDING::TAUNT)) && (actorData.action == REBELLION_HELM_BREAKER ||
-        actorData.action == CERBERUS_SWING || actorData.action == AGNI_RUDRA_AERIAL_CROSS ||
-        actorData.action == NEVAN_AIR_PLAY || actorData.action == BEOWULF_KILLER_BEE || CERBERUS_REVOLVER_LEVEL_2) && !executingSkyLaunch &&
-        actorData.state & STATE::IN_AIR) {
-
-                executingSkyLaunch = true;
-                ToggleRoyalguardForceJustFrameRelease(true);
-                actorData.action = ROYALGUARD_AIR_RELEASE_1;
-
-        }*/
 
         // This is important for Sky Launch/Royal Release switch
         if ((actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) && actorData.state & STATE::IN_AIR) {
 
             // executingSkyLaunch = true;
-            ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+            CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
             // actorData.action = REBELLION_SWORD_PIERCE;
         }
 
@@ -9170,48 +9172,6 @@ void SetAction(byte8* actorBaseAddr) {
             }
         }
 
-
-        // 		if ((actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) &&
-        // 			(actorData.style == STYLE::SWORDMASTER) && actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
-        //
-        //
-        //
-        // 			actorData.action = AGNI_RUDRA_SKY_DANCE_PART_1;
-        //
-        //
-        // 		}
-
-
-        /*if ((actorData.action == REBELLION_DANCE_MACABRE_PART_1) &&
-                (actorData.style == STYLE::SWORDMASTER) &&
-                lockOn &&
-                (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
-                (tiltDirection == TILT_DIRECTION::DOWN))
-        {
-                actorData.action = REBELLION_SWORD_PIERCE;
-        }*/
-
-        /*if (
-                (actorData.style == STYLE::TRICKSTER) &&
-                lockOn &&
-                (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
-                (tiltDirection == TILT_DIRECTION::DOWN))
-        {
-                actorData.action = REBELLION_SWORD_PIERCE;
-        }
-
-        if (
-                (actorData.style == STYLE::ROYALGUARD) &&
-                (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
-        {
-                actorData.action = REBELLION_SWORD_PIERCE;
-        }
-
-        if (actorData.buttons[2] & GetBinding(BINDING::TAUNT))
-        {
-                actorData.permissions = 0x1C1B;
-        }*/
-
         break;
     }
     case CHARACTER::VERGIL: {
@@ -9222,24 +9182,6 @@ void SetAction(byte8* actorBaseAddr) {
             crimsonPlayer[playerIndex].b2F.forwardCommand) {
             actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
         }
-        // else if (actorData.action == BEOWULF_RISING_SUN)
-        // {
-        // 	actorData.newAirRisingSunCount = 1;
-        // }
-        // Rising Sun Air Taunt // OLD, this is the old Air Taunt that required Taunt + Melee
-        /*else if (
-                activeConfig.enableBeowulfVergilAirRisingSun &&
-                (actorData.action == BEOWULF_STARFALL_LEVEL_2 || actorData.action == BEOWULF_STARFALL_LEVEL_1 ||
-                actorData.action == YAMATO_AERIAL_RAVE_PART_1 || actorData.action == YAMATO_AERIAL_RAVE_PART_2 ||
-                actorData.action == YAMATO_FORCE_EDGE_HELM_BREAKER_LEVEL_1 || actorData.action == YAMATO_FORCE_EDGE_HELM_BREAKER_LEVEL_2
-                ) &&
-                (actorData.buttons[0] & GetBinding(BINDING::TAUNT)) &&
-                (actorData.newAirRisingSunCount < activeConfig.beowulfVergilAirRisingSunCount[index]))
-        {
-                actorData.action = BEOWULF_RISING_SUN;
-
-                actorData.newAirRisingSunCount++;
-        }*/
         else if (activeConfig.enableBeowulfVergilAirLunarPhase && (actorData.action == BEOWULF_STARFALL_LEVEL_2) && lockOn &&
                  (tiltDirection == TILT_DIRECTION::UP)) {
             actorData.action = BEOWULF_LUNAR_PHASE_LEVEL_2;
@@ -13088,7 +13030,7 @@ void EventDelete() {
     doppSecondsDT           = 0;
     LogFunction();
 
-    // Copy Data
+    // Copy Data - copying of Data has moved to Spawn Actor instead, to preserve data between multiple players.
     [&]() {
         if (!g_newActorData[0][0][0].baseAddr) {
             return;
@@ -13096,29 +13038,29 @@ void EventDelete() {
 
         auto& actorData = *reinterpret_cast<PlayerActorData*>(g_defaultNewActorData[0].baseAddr);
         auto playerIndex = actorData.newPlayerIndex;
-        auto& activeActorData = *reinterpret_cast<PlayerActorData*>(g_newActorData[2][0][0].baseAddr);
+        auto& activeActorData = *reinterpret_cast<PlayerActorData*>(g_newActorData[0][0][0].baseAddr);
         if (!g_defaultNewActorData[0].baseAddr) {
             return;
         }
        
 
 
-        actorData.hitPoints      = activeActorData.hitPoints;
-        actorData.maxHitPoints   = activeActorData.maxHitPoints;
-        actorData.magicPoints    = activeActorData.magicPoints;
-        actorData.maxMagicPoints = activeActorData.maxMagicPoints;
-
-        actorData.mode = activeActorData.mode;
-
-        // actorData.devil = activeActorData.devil;
-        actorData.style                   = activeActorData.style;
-        actorData.royalguardReleaseDamage = activeActorData.royalguardReleaseDamage;
-
-        actorData.styleData.rank     = activeActorData.styleData.rank;
-        actorData.styleData.meter    = activeActorData.styleData.meter;
-        actorData.styleData.quotient = activeActorData.styleData.quotient;
-        actorData.styleData.dividend = activeActorData.styleData.dividend;
-        actorData.styleData.divisor  = activeActorData.styleData.divisor;
+//         actorData.hitPoints      = activeActorData.hitPoints;
+//         actorData.maxHitPoints   = activeActorData.maxHitPoints;
+//         //actorData.magicPoints    = activeActorData.magicPoints;
+//         //actorData.maxMagicPoints = activeActorData.maxMagicPoints;
+// 
+           actorData.mode = activeActorData.mode;
+// 
+//         // actorData.devil = activeActorData.devil;
+//         actorData.style                   = activeActorData.style;
+//         actorData.royalguardReleaseDamage = activeActorData.royalguardReleaseDamage;
+// 
+//         actorData.styleData.rank     = activeActorData.styleData.rank;
+//         actorData.styleData.meter    = activeActorData.styleData.meter;
+//         actorData.styleData.quotient = activeActorData.styleData.quotient;
+//         actorData.styleData.dividend = activeActorData.styleData.dividend;
+//         actorData.styleData.divisor  = activeActorData.styleData.divisor;
 
 
         DebugLog("EventDelete Copy StyleData");

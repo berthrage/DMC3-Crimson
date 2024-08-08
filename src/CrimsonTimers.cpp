@@ -4,9 +4,9 @@
 #include "../ThirdParty/ImGui/imgui.h"
 
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
-#include "Timers.hpp"
+#include "CrimsonTimers.hpp"
 #include "Core/Core.hpp"
-#include "SDLStuff.hpp"
+#include "CrimsonSDL.hpp"
 #include "Graphics.hpp"
 #include "Actor.hpp"
 #include "ActorBase.hpp"
@@ -17,6 +17,8 @@
 #include "Vars.hpp"
 
 #include "Core/Macros.h"
+
+namespace CrimsonTimers {
 
 void ActionTimers() {
     
@@ -359,4 +361,18 @@ void VergilDoppelgangerCooldownTimer() {
 	}
 }
 
+void CallAllTimers() {
+	BackToForwardTimers();
+	ActionTimers();
+	AnimTimers();
+	SiyTimerFunc();
+	SprintTimer();
+	DriveTimer();
+	ImprovedCancelsTimers();
+	StyleSwitchTextTimers();
+	StyleSwitchFluxTimers();
+	DTEVFXTimers();
+	VergilDoppelgangerCooldownTimer();
+}
 
+}

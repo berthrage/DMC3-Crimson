@@ -11,15 +11,12 @@
 #include "Global/GUIBase.hpp"
 #include "CrimsonUtil.hpp"
 #include "CrimsonFileHandling.hpp"
-#include "DetourFunctions.hpp"
 #include "DMC3Input.hpp"
-#include "SDLStuff.hpp"
 #include "File.hpp"
 #include "ImGuiExtra.hpp"
 #include "FMOD.hpp"
 #include "Graphics.hpp"
 #include "Internal.hpp"
-#include "PatchFunctions.hpp"
 #include "Actor.hpp"
 #include "ActorBase.hpp"
 #include "Arcade.hpp"
@@ -31,7 +28,6 @@
 #include "Scene.hpp"
 #include "Sound.hpp"
 #include "Speed.hpp"
-#include "Timers.hpp"
 #include "Training.hpp"
 #include "Window.hpp"
 #include "WebAPICalls.hpp"
@@ -66,6 +62,11 @@
 
 #include "Core/DebugSwitch.hpp"
 #include <SDL_joystick.h>
+#include "CrimsonTimers.hpp"
+#include "CrimsonOnTick.hpp"
+#include "CrimsonSDL.hpp"
+#include "CrimsonPatches.hpp"
+#include "CrimsonDetours.hpp"
 
 #define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
 #define LOAD_SDL_FUNCTION(X) fn_##X = GetSDLFunction<decltype(X)*>(#X)
@@ -1575,7 +1576,7 @@ void PauseWhenGUIOpen() {
 
     static uint32 storedFrameCount = 0;
   
-    // We add this timer so we can safely call when we can pause the game by setting speed to 0.
+    // We add this timer so we can safely (aka no crash) say when we can pause the game by setting speed to 0.
     if (g_scene != SCENE::GAME || eventData.event != EVENT::MAIN) {
         guiPause.timer    = 1.0f;
         guiPause.canPause = false;
@@ -1613,46 +1614,6 @@ void PauseWhenGUIOpen() {
     if (g_showMain) {
         missionData.frameCount = storedFrameCount;  // This pauses the game's timer.
     }
-}
-
-void GameTrackDetection() {
-    g_gameTrackPlaying = (std::string)reinterpret_cast<char*>(appBaseAddr + 0xD23906);    
-}
-
-void CorrectFrameRateCutscenes() {
-    // Changing frame rate to above or below 60 will alter cutscene speed, this function corrects this behavior
-    // by forcing cutscenes to play at 60 fps. - Mia
-
-    static bool changedFrameRateCorrection = false;
-    float temp = queuedConfig.frameRate;
-
-    if (g_scene == SCENE::CUTSCENE && !changedFrameRateCorrection) {
-        activeConfig.frameRate = 60.0;
-
-        UpdateFrameRate();
-        changedFrameRateCorrection = true;
-    }
-
-    if (g_scene != SCENE::CUTSCENE && changedFrameRateCorrection) {
-        activeConfig.frameRate = temp;
-
-        UpdateFrameRate();
-        changedFrameRateCorrection = false;
-    }
-}
-
-void CallAllTimers() {
-	BackToForwardTimers();
-	ActionTimers();
-	AnimTimers();
-	SiyTimerFunc();
-	SprintTimer();
-	DriveTimer();
-	ImprovedCancelsTimers();
-	StyleSwitchTextTimers();
-	StyleSwitchFluxTimers();
-	DTEVFXTimers();
-    VergilDoppelgangerCooldownTimer();
 }
 
 
@@ -4447,7 +4408,7 @@ void Dante() {
             CopyMemory(&queuedConfig.Royalguard, &defaultConfig.Royalguard, sizeof(queuedConfig.Royalguard));
             CopyMemory(&activeConfig.Royalguard, &queuedConfig.Royalguard, sizeof(activeConfig.Royalguard));
 
-            ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+            CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
 
             CopyMemory(&queuedConfig.rebellionInfiniteShredder, &defaultConfig.rebellionInfiniteShredder,
                 sizeof(queuedConfig.rebellionInfiniteShredder));
@@ -4522,7 +4483,7 @@ void Dante() {
 
         if (GUI_Checkbox2(
                 "Force Just Frame Release", activeConfig.Royalguard.forceJustFrameRelease, queuedConfig.Royalguard.forceJustFrameRelease)) {
-            ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+            CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
         }
 
         GUI_SectionEnd();
@@ -6182,21 +6143,21 @@ void Debug() {
         ImGui::Text("");
 
 		if (ImGui::Button("heheh")) {
-			SampleModDetour1();
+			CrimsonDetours::SampleModDetour1();
 		}
 
 		// if (ImGui::Button("EnableCrazyComboHook")){
 		//	HoldToCrazyComboHook->Toggle(true);
 		// }
 
-		ImGui::InputInt("Effect Bank", &createEffectBank);
-		ImGui::InputInt("Effect ID", &createEffectID);
-        ImGui::InputInt("Effect Bone", &createEffectBone);
+		ImGui::InputInt("Effect Bank", &CrimsonDetours::createEffectBank);
+		ImGui::InputInt("Effect ID", &CrimsonDetours::createEffectID);
+        ImGui::InputInt("Effect Bone", &CrimsonDetours::createEffectBone);
         static int effectPlayerID = 0;
         ImGui::InputInt("Player", &effectPlayerID);
-        createEffectPlayerAddr = crimsonPlayer[effectPlayerID].playerPtr;
+        CrimsonDetours::createEffectPlayerAddr = crimsonPlayer[effectPlayerID].playerPtr;
 		if (ImGui::Button("CreateEffect")) {
-			CreateEffectDetour();
+			CrimsonDetours::CreateEffectDetour();
 		}
 
         ImGui::Text("");
@@ -6886,11 +6847,11 @@ void NewMissionClearSong() {
         SetVolume(9, 0);
 
         // Play song
-        PlayNewMissionClearSong();
+        CrimsonSDL::PlayNewMissionClearSong();
         missionClearSongPlayed = true;
     } else if (g_scene != SCENE::MISSION_RESULT && missionClearSongPlayed) {
         // Fade it out
-        FadeOutNewMissionClearSong();
+        CrimsonSDL::FadeOutNewMissionClearSong();
 
         // Restore original Channnel Volume
         SetVolume(9, activeConfig.channelVolumes[9]);
@@ -6952,7 +6913,9 @@ void MainOverlayWindow(size_t defaultFontSize) {
 //                 for (int i = 0; i < 14; i++) {
 //                     ImGui::Text("sessionData unlock[%u] : %u", i, sessionData.weaponStyleUnlocks[i]);
 //                 }
-               
+
+                ImGui::Text("HitPoints: %g", sessionData.hitPoints);
+                ImGui::Text("MagicPoints: %g", sessionData.magicPoints);
                 ImGui::Text("Unlocked DT: %u", sessionData.unlockDevilTrigger);
                 ImGui::Text("Quicksilver Level: %u", sessionData.styleLevels[4]);
 
@@ -6983,7 +6946,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("Sprint Run Timer:  %u", crimsonPlayer[0].sprint.runTimer);
 
 
-                if (IsMusicPlaying() == 0) {
+                if (CrimsonSDL::IsMusicPlaying() == 0) {
                     ImGui::Text("no music playing");
                 } else {
                     ImGui::Text("MUSICPLAYING");
@@ -7643,7 +7606,7 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
             if (GUI_Checkbox2("Classic HUD Positionings", activeConfig.classicHUDpositionings, queuedConfig.classicHUDpositionings)) {
-                ToggleClassicHUDPositionings(activeConfig.classicHUDpositionings);
+                CrimsonDetours::ToggleClassicHUDPositionings(activeConfig.classicHUDpositionings);
             }
 
             ImGui::TableNextColumn();
@@ -7946,7 +7909,7 @@ void SystemSection(size_t defaultFontSize) {
             ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Disable Blending Effects", activeConfig.disableBlendingEffects, queuedConfig.disableBlendingEffects)) {
-				DisableBlendingEffects(activeConfig.disableBlendingEffects);
+                CrimsonPatches::DisableBlendingEffects(activeConfig.disableBlendingEffects);
 			}
 
 			ImGui::TableNextRow(0, rowWidth);
@@ -9208,13 +9171,14 @@ void ToggleInfiniteHealth() {
 
 void GamepadToggleShowMain() {
 
-    static bool gamepadCombinationMainRelease[4] = { false, false, false, false };
+    static bool gamepadCombinationMainRelease[PLAYER_COUNT] = { false };
 
 	// Loop through each controller
 	for (int i = 0; i < 4; ++i) {
-		if (controllers[i] != NULL) {
+		if (CrimsonSDL::controllers[i] != NULL) {
 			// Combination of buttons to check
-			bool combination = (IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK) && IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK));
+			bool combination = (CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK) && 
+                CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK));
 
 			// Combination pressed and was not pressed before, toggle GUI and set window focus
 			if (combination && !g_showMain && gamepadCombinationMainRelease[i]) {
@@ -10490,7 +10454,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
         CreateTexturesWeaponWheel();
     }
 
-    InitSDL();
+    CrimsonSDL::InitSDL();
     if (g_scene != SCENE::GAME) {
         devilTriggerReadyPlayed = !activeConfig.playDTReadySFXAtMissionStart;
     }
@@ -10501,7 +10465,6 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 
     Welcome();
     Main(pSwapChain);
-    //CreditsWindow(); // old ddmk credits
     ShopWindow();
 
     if constexpr (debug) {
@@ -10514,23 +10477,26 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
         SoundWindow();
     }
 
-    
     PauseWhenGUIOpen();
-    GameTrackDetection();
+    GamepadToggleShowMain();
     MainOverlayWindow(UI::g_UIContext.DefaultFontSize);
     MissionOverlayWindow(UI::g_UIContext.DefaultFontSize);
     BossLadyActionsOverlayWindow();
     BossVergilActionsOverlayWindow();
-    GunDTCharacterRemaps();
+    
+	// Calling this from GUI Render is the safest way to ensure this will run on-tick properly
+    // outside of In Game.
+    CrimsonSDL::CheckAndOpenControllers();
+    CrimsonSDL::UpdateJoysticks();
 
-    CorrectFrameRateCutscenes();
-    CheckAndOpenControllers();
-    UpdateJoysticks();
-    GamepadToggleShowMain();
-   
+    
+    CrimsonGameplay::GunDTCharacterRemaps();
+    CrimsonOnTick::GameTrackDetection();
+    CrimsonOnTick::CorrectFrameRateCutscenes();
+    CrimsonOnTick::PreparePlayersDataBeforeSpawn();
 
     // TIMERS
-    CallAllTimers();
+    CrimsonTimers::CallAllTimers();
 
     Bars();
     WeaponSwitchController();

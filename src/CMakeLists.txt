@@ -94,6 +94,10 @@ file(GLOB MAIN_SRC
     Config.cpp
     Config.hpp
     Crimson.cpp
+    CrimsonDetours.cpp
+    CrimsonDetours.hpp
+    CrimsonFileHandling.cpp
+    CrimsonFileHandling.hpp	
     CrimsonFX.cpp
     CrimsonFX.hpp
     CrimsonGameplay.cpp
@@ -102,10 +106,16 @@ file(GLOB MAIN_SRC
     CrimsonGUI.hpp
     CrimsonUtil.cpp
     CrimsonUtil.hpp
+    CrimsonOnTick.cpp
+    CrimsonOnTick.hpp
+    CrimsonPatches.cpp
+    CrimsonPatches.hpp
+    CrimsonSDL.cpp
+    CrimsonSDL.hpp
+    CrimsonTimers.cpp	
+    CrimsonTimers.hpp	
     DebugDrawDX11.cpp
     DebugDrawDX11.hpp
-    DetourFunctions.cpp
-    DetourFunctions.hpp
     DMC3Input.cpp
     DMC3Input.hpp
     Event.cpp
@@ -113,8 +123,6 @@ file(GLOB MAIN_SRC
     Exp.hpp
     File.cpp
     File.hpp
-    CrimsonFileHandling.cpp
-    CrimsonFileHandling.hpp
     FMOD.cpp
     FMOD.hpp
     Global.cpp
@@ -133,22 +141,16 @@ file(GLOB MAIN_SRC
     Memory.hpp
     Model.cpp
     Model.hpp
-    PatchFunctions.cpp
-    PatchFunctions.hpp
     Scene.cpp
     Scene.hpp
     SDL.cpp
     SDL.hpp
-    SDLStuff.cpp
-    SDLStuff.hpp
     Sound.cpp
     Sound.hpp
     SoundRelocations.cpp
     SoundRelocations.hpp
     Speed.cpp
     Speed.hpp
-    Timers.cpp
-    Timers.hpp
     Training.cpp
     Training.hpp
     Vars.cpp

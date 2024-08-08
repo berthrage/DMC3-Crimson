@@ -1,6 +1,4 @@
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
 #include <thread>
 #include <chrono>
 #include <math.h>
@@ -13,27 +11,20 @@
 #include "DebugDrawDX11.hpp"
 #define DEBUG_DRAW_EXPLICIT_CONTEXT
 #include "debug_draw.hpp"
-#include "DetourFunctions.hpp"
+#include "CrimsonDetours.hpp"
 #include "DMC3Input.hpp"
 #include "File.hpp"
 #include "Internal.hpp"
 #include "ActorBase.hpp"
-
-// UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "CrimsonGameplay.hpp"
 #include "Core/Core.hpp"
-#include "SDLStuff.hpp"
+#include "CrimsonSDL.hpp"
 #include "Memory.hpp"
 #include "Model.hpp"
-#include "PatchFunctions.hpp"
-#include "ActorRelocations.hpp"
+#include "CrimsonSDL.hpp"
 #include "Config.hpp"
 #include "Exp.hpp"
 #include "Global.hpp"
-#include "HUD.hpp"
-#include "Sound.hpp"
-#include "SoundRelocations.hpp"
-#include "Speed.hpp"
 #include "Vars.hpp"
 #include "StyleSwitchFX.hpp"
 
@@ -41,7 +32,7 @@
 #include <deque>
 #include "Training.hpp"
 
-
+namespace CrimsonFX {
 
 #pragma region GeneralFX
 
@@ -58,7 +49,7 @@ void DTReadySFX() {
 
 
     if (actorData.magicPoints >= 3000 && !devilTriggerReadyPlayed) {
-        PlayDevilTriggerReady(playerIndex);
+        CrimsonSDL::PlayDevilTriggerReady(playerIndex);
         devilTriggerReadyPlayed = true;
     } else if (actorData.magicPoints < 3000) {
         devilTriggerReadyPlayed = false;
@@ -117,22 +108,22 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
     
     // START
 	if (actorData.dtExplosionCharge > 500 && !sfxStarted) {
-		PlayDTExplosionStart(playerIndex, 120);
+		CrimsonSDL::PlayDTExplosionStart(playerIndex, 120);
 
         sfxStarted = true;
 	}
 
     // LOOP
-    if (!DTEStartIsPlaying(playerIndex) && sfxStarted && !sfxLooped) {
-        PlayDTExplosionLoop(playerIndex, 120);
+    if (!CrimsonSDL::DTEStartIsPlaying(playerIndex) && sfxStarted && !sfxLooped) {
+		CrimsonSDL::PlayDTExplosionLoop(playerIndex, 120);
 
         sfxLooped = true;
     }
 
     // FINISH
 	if (actorData.dtExplosionCharge >= maxDT && !sfxFinished) {
-		InterruptDTExplosionSFX(playerIndex);
-		PlayDTExplosionFinish(playerIndex, 200);
+		CrimsonSDL::InterruptDTExplosionSFX(playerIndex);
+		CrimsonSDL::PlayDTExplosionFinish(playerIndex, 200);
         
 		sfxFinished = true;
 	}
@@ -140,41 +131,41 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
 	// VFX START
 	if (actorData.dtExplosionCharge > 2500 && !vfxStarted && !vfxFinished) {
         crimsonPlayer[playerIndex].dTEVFX.time = 0;
-		createEffectBank = 3;
-		createEffectID = 61;
-        createEffectBone = 1;
-        createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
-		CreateEffectDetour();
+		CrimsonDetours::createEffectBank = 3;
+		CrimsonDetours::createEffectID = 61;
+		CrimsonDetours::createEffectBone = 1;
+		CrimsonDetours::createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
+		CrimsonDetours::CreateEffectDetour();
 
 		vfxStarted = true;
 	}
 
 	// VFX FINISH
 	if (actorData.dtExplosionCharge >= maxDT && !vfxFinished) {
-		createEffectBank = 3;
-		createEffectID = 41;
-		createEffectBone = 1;
-		createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
-		CreateEffectDetour();
+		CrimsonDetours::createEffectBank = 3;
+		CrimsonDetours::createEffectID = 41;
+		CrimsonDetours::createEffectBone = 1;
+		CrimsonDetours::createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
+		CrimsonDetours::CreateEffectDetour();
 
 		vfxFinished = true;
 	}
     
     // RELEASE
     if (!(gamepad.buttons[0] & GetBinding(BINDING::DEVIL_TRIGGER)) && sfxStarted) {
-        InterruptDTExplosionSFX(playerIndex);
-        PlayDTEExplosionRelease(playerIndex, 200 * releaseVolumeMult);
+		CrimsonSDL::InterruptDTExplosionSFX(playerIndex);
+		CrimsonSDL::PlayDTEExplosionRelease(playerIndex, 200 * releaseVolumeMult);
 
         if (releaseVolumeMult > 0.4f) {
-            VibrateController(actorData.newPlayerIndex, 0, 0x5555 * releaseVolumeMult, 800);
+            CrimsonSDL::VibrateController(actorData.newPlayerIndex, 0, 0x5555 * releaseVolumeMult, 800);
         }
         
         if (releaseVolumeMult > 0.4f) {
-			createEffectBank = 3;
-			createEffectID = 61;
-			createEffectBone = 1;
-			createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
-			CreateEffectDetour();
+			CrimsonDetours::createEffectBank = 3;
+			CrimsonDetours::createEffectID = 61;
+			CrimsonDetours::createEffectBone = 1;
+			CrimsonDetours::createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
+			CrimsonDetours::CreateEffectDetour();
         }
 
         sfxStarted = false;
@@ -200,10 +191,10 @@ void StyleRankHudFadeoutController() {
 
 	if (activeConfig.disableStyleRankHudFadeout) {
 		if (mainActorData.styleData.rank <= 0) {
-			ToggleStyleRankHudNoFadeout(false);
+			CrimsonDetours::ToggleStyleRankHudNoFadeout(false);
 		}
 		else {
-			ToggleStyleRankHudNoFadeout(true);
+			CrimsonDetours::ToggleStyleRankHudNoFadeout(true);
 		}
 	}
 
@@ -257,7 +248,7 @@ void RoyalguardSFX(byte8* actorBaseAddr) {
 		if (inRoyalBlock) {
 			if (!royalBlockPlayed[playerIndex]) {
 				std::cout << "royal block played" << std::endl;
-				PlayRoyalBlock(playerIndex);
+				CrimsonSDL::PlayRoyalBlock(playerIndex);
 				royalBlockPlayed[playerIndex] = true;
 			}
 		}
@@ -269,7 +260,7 @@ void RoyalguardSFX(byte8* actorBaseAddr) {
 			// NORMAL BLOCK SFX
 			if (inNormalBlock) {
 				if (!normalBlockPlayed[playerIndex]) {
-					PlayNormalBlock(playerIndex);
+					CrimsonSDL::PlayNormalBlock(playerIndex);
 					normalBlockPlayed[playerIndex] = true;
 				}
 			}
@@ -284,7 +275,7 @@ void RoyalguardSFX(byte8* actorBaseAddr) {
 			// for Royalguard Rebalanced only
 			if (actorData.royalBlock == 1) {
 				if (!guardPlayed[playerIndex]) {
-					PlayNormalBlock(playerIndex);
+					CrimsonSDL::PlayNormalBlock(playerIndex);
 					guardPlayed[playerIndex] = true;
 				}
 			}
@@ -364,17 +355,17 @@ void DelayedComboFXController(byte8* actorBaseAddr) {
 			weapon == delayedComboFX.weaponThatStartedMove) {
 
             // SFX
-			PlayDelayedCombo1(actorData.newPlayerIndex);
+			CrimsonSDL::PlayDelayedCombo1(actorData.newPlayerIndex);
 
             // VFX
-			createEffectBank = delayedComboFX.bank;
-			createEffectID = delayedComboFX.id;
-			createEffectBone = 1;
-			createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
-			CreateEffectDetour();
+			CrimsonDetours::createEffectBank = delayedComboFX.bank;
+			CrimsonDetours::createEffectID = delayedComboFX.id;
+			CrimsonDetours::createEffectBone = 1;
+			CrimsonDetours::createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
+			CrimsonDetours::CreateEffectDetour();
 
             // VIBRATION
-            VibrateController(playerIndex, 0, 0x5555, 130);
+			CrimsonSDL::VibrateController(playerIndex, 0, 0x5555, 130);
 
 
 			delayedComboFX.playCount++;
@@ -450,7 +441,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
 		if (*fluxtime > 0) {
 
 			if (actorData.devil == 0 && !(gamepad.buttons[2] & GetBinding(BINDING::DEVIL_TRIGGER))) {
-				DevilFluxVFX(actorData, 4);
+				DevilFluxVFX(actorData, DEVIL_FLUX::GLOW_OFF);
 			}
 
 		}
@@ -460,7 +451,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
 			if (*fluxtime < 0.05f) {
 
 				if (actorData.devil == 0 && !(gamepad.buttons[2] & GetBinding(BINDING::DEVIL_TRIGGER))) {
-					DevilFluxVFX(actorData, 4);
+					DevilFluxVFX(actorData, DEVIL_FLUX::GLOW_OFF);
 				}
 
 			}
@@ -470,7 +461,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
 
 
 				if (actorData.devil == 0 && !(gamepad.buttons[2] & GetBinding(BINDING::DEVIL_TRIGGER))) {
-					DevilFluxVFX(actorData, 4);
+					DevilFluxVFX(actorData, DEVIL_FLUX::GLOW_OFF);
 				}
 
 			}
@@ -567,3 +558,5 @@ void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr) {
 }
 
 #pragma endregion
+
+}

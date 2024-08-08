@@ -2,6 +2,8 @@
 
 #include "Core/DataTypes.hpp"
 
+namespace CrimsonFX {
+
 #pragma region GeneralFX
 void DTReadySFX();
 void CalculateCameraPlayerDistance(byte8* actorBaseAddr);
@@ -19,3 +21,5 @@ void StyleSwitchDrawText(byte8* actorBaseAddr);
 void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr);
 
 #pragma endregion
+
+}

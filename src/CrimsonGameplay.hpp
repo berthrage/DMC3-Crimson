@@ -2,6 +2,9 @@
 
 #include "Core/DataTypes.hpp"
 
+namespace CrimsonGameplay {
+
+void UpdateCrimsonPlayerData();
 void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr);
 void ImprovedCancelsDanteController(byte8* actorBaseAddr);
 void ImprovedCancelsVergilController(byte8* actorBaseAddr);
@@ -18,7 +21,7 @@ void AerialRaveGravityTweaks(byte8* actorBaseAddr);
 void AirFlickerGravityTweaks(byte8* actorBaseAddr);
 void SkyDanceGravityTweaks(byte8* actorBaseAddr);
 void StyleMeterDoppelganger(byte8* actorBaseAddr);
-void inCombatDetection();
+void InCombatDetection();
 void BackToForwardInputs(byte8* actorBaseAddr);
 void SprintAbility(byte8* actorBaseAddr);
 void GunDTCharacterRemaps();
@@ -27,3 +30,5 @@ void CheckRoyalRelease(byte8* actorBaseAddr);
 void CheckSkyLaunch(byte8* actorBaseAddr);
 void SkyLaunchProperties(byte8* actorBaseAddr);
 void DriveTweaks(byte8* actorBaseAddr);
+
+}

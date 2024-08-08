@@ -4,6 +4,7 @@
 
 #pragma region GameplayImprovements
 
+namespace CrimsonPatches {
 void DisableHeightRestriction();
 void IncreasedJCSpheres();
 void ImprovedBufferedReversals();
@@ -43,5 +44,7 @@ void DisableAirSlashKnockback();
 void ToggleRoyalguardForceJustFrameRelease(bool enable);
 void OverrideTauntInAir(bool enable);
 void AirTauntToggleController(byte8* actorBaseAddr);
+
+}
 
 #pragma endregion

@@ -6,7 +6,6 @@
 #include <chrono>
 
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
-#include "SDLStuff.hpp"
 #include "Core/Core.hpp"
 #include "Config.hpp"
 #include "SDL.hpp"
@@ -15,6 +14,8 @@
 #include "CrimsonUtil.hpp"
 #include <iostream>
 #include <unordered_set>
+
+namespace CrimsonSDL {
 
 SDL_GameController* mainController = NULL;
 std::vector<SDL_GameController*> controllers(4, NULL);
@@ -763,4 +764,6 @@ void FadeOutNewMissionClearSong() {
 
 int IsMusicPlaying() {
     return fn_Mix_PlayingMusic();
+}
+
 }

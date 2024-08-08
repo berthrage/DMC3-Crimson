@@ -2,6 +2,7 @@
 #include <string>
 #include "SDL.h"
 
+namespace CrimsonSDL {
 
 extern std::string SDL2Initialization;
 extern std::string MixerInitialization;
@@ -47,3 +48,5 @@ void PlayNormalBlock(int playerIndex);
 void PlayNewMissionClearSong();
 void FadeOutNewMissionClearSong();
 int IsMusicPlaying();
+
+}

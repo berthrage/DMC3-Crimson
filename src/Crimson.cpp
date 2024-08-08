@@ -1,9 +1,9 @@
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "Core/Core.hpp"
 #include "Core/Input.hpp"
-#include "DetourFunctions.hpp"
+#include "CrimsonDetours.hpp"
 #include "DMC3Input.hpp"
-#include "SDLStuff.hpp"
+#include "CrimsonSDL.hpp"
 #include "File.hpp"
 #include "FMOD.hpp"
 #include "Graphics.hpp"
@@ -11,7 +11,7 @@
 #include "Internal.hpp"
 #include "Memory.hpp"
 #include "Model.hpp"
-#include "PatchFunctions.hpp"
+#include "CrimsonPatches.hpp"
 #include "Actor.hpp"
 #include "ActorBase.hpp"
 #include "ActorRelocations.hpp"
@@ -181,7 +181,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         UpdateCrazyComboLevelMultiplier();
 
         ToggleAirHikeCoreAbility(activeConfig.airHikeCoreAbility);
-        ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+        CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
         ToggleRebellionInfiniteSwordPierce(activeConfig.Rebellion.infiniteSwordPierce);
         ToggleYamatoForceEdgeInfiniteRoundTrip(activeConfig.YamatoForceEdge.infiniteRoundTrip);
         ToggleEbonyIvoryFoursomeTime(activeConfig.EbonyIvory.foursomeTime);
@@ -255,12 +255,12 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 
         Hooks::Init();
 
-        InitDetours();
-        ToggleClassicHUDPositionings(activeConfig.classicHUDpositionings);
-        ToggleStyleRankHudNoFadeout(activeConfig.disableStyleRankHudFadeout);
+        CrimsonDetours::InitDetours();
+        CrimsonDetours::ToggleClassicHUDPositionings(activeConfig.classicHUDpositionings);
+        CrimsonDetours::ToggleStyleRankHudNoFadeout(activeConfig.disableStyleRankHudFadeout);
 
-        DisableBlendingEffects(false);
-        DisableBlendingEffects(activeConfig.disableBlendingEffects);
+        CrimsonPatches::DisableBlendingEffects(false);
+        CrimsonPatches::DisableBlendingEffects(activeConfig.disableBlendingEffects);
 
         // Remove FMODGetCodecDescription Label
         SetMemory((appBaseAddr + 0x5505B5), 0, 23, MemoryFlags_VirtualProtectDestination);

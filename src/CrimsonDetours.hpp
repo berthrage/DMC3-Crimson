@@ -2,6 +2,8 @@
 #include <cstdint>
 #include "Vars.hpp"
 
+namespace CrimsonDetours {
+
 extern "C" {
 // SampleMod
 void SampleModDetour1();
@@ -58,3 +60,5 @@ bool DisableStaggerCheck(PlayerActorData& actorData);
 void InitDetours();
 void ToggleClassicHUDPositionings(bool enable);
 void ToggleStyleRankHudNoFadeout(bool enable);
+
+}
