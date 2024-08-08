@@ -1567,8 +1567,15 @@ void PauseWhenGUIOpen() {
     }
     auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 
-  
+	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_10723) {
+		return;
+	}
+	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
 
+    static uint32 storedFrameCount = 0;
+  
+    // We add this timer so we can safely call when we can pause the game by setting speed to 0.
     if (g_scene != SCENE::GAME || eventData.event != EVENT::MAIN) {
         guiPause.timer    = 1.0f;
         guiPause.canPause = false;
@@ -1581,26 +1588,30 @@ void PauseWhenGUIOpen() {
         }
     }
 
-
     if (guiPause.timer <= 0) {
         guiPause.canPause = true;
     }
-
     
-
     if (!g_show || !guiPause.canPause) {
-        activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed;
+        storedFrameCount = missionData.frameCount; // This stores the game's timer.
+        activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed; // This resumes the game speed
         activeConfig.Speed.turbo     = queuedConfig.Speed.turbo;
-        Speed::Toggle(true);
+        Speed::Toggle(true); // Toggle Speed on and off to set the new speed
         Speed::Toggle(false);
         guiPause.in = true;
 
     } else if (g_show && guiPause.in && guiPause.canPause) {
-        activeConfig.Speed.mainSpeed = 0;
+        activeConfig.Speed.mainSpeed = 0;  // This pauses the game speed
         activeConfig.Speed.turbo     = 0;
         Speed::Toggle(true);
         Speed::Toggle(false);
         guiPause.in = false;
+
+    }
+
+
+    if (g_showMain && guiPause.in) {
+        missionData.frameCount = storedFrameCount;  // This pauses the game's timer.
     }
 }
 
