@@ -1598,19 +1598,19 @@ void PauseWhenGUIOpen() {
         activeConfig.Speed.turbo     = queuedConfig.Speed.turbo;
         Speed::Toggle(true); // Toggle Speed on and off to set the new speed
         Speed::Toggle(false);
-        guiPause.in = true;
+        guiPause.in = false;
 
-    } else if (g_show && guiPause.in && guiPause.canPause) {
+    } else if (g_show && !guiPause.in && guiPause.canPause) {
         activeConfig.Speed.mainSpeed = 0;  // This pauses the game speed
         activeConfig.Speed.turbo     = 0;
         Speed::Toggle(true);
         Speed::Toggle(false);
-        guiPause.in = false;
+        guiPause.in = true;
 
     }
 
 
-    if (g_showMain && guiPause.in) {
+    if (g_showMain) {
         missionData.frameCount = storedFrameCount;  // This pauses the game's timer.
     }
 }
