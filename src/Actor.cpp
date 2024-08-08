@@ -4147,12 +4147,15 @@ void CharacterSwitchController() {
             continue;
         }
 
+
+        // MAKE THE SWITCH
         {
             auto& execute = executes[playerIndex];
 
             auto& playerData = GetPlayerData(playerIndex);
 
-            if (gamepad.buttons[0] & playerData.switchButton) {
+            // Adding Change Target Button (Left Stick) check to prevent Char/Loadout Switching when opening GUI with gamepad (L3 + R3)
+            if (gamepad.buttons[0] & playerData.switchButton && !(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_TARGET))) {
                 if (execute) {
                     execute = false;
 
@@ -8692,6 +8695,10 @@ void ActivateQuicksilver(byte8* actorBaseAddr) {
 void DeactivateQuicksilver(byte8* actorBaseAddr) {
     if constexpr (debug) {
         LogFunction(actorBaseAddr);
+    }
+
+    if (g_quicksilver) {
+        PlayQuicksilverOut();
     }
 
     QuicksilverFunction(actorBaseAddr, false);

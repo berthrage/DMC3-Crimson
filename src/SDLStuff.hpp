@@ -30,6 +30,7 @@ void StopDevilTriggerLoop(int playerIndex);
 void PlayDoppelgangerIn(int playerIndex);
 void PlayDoppelgangerOut(int playerIndex);
 void PlayQuicksilverIn();
+void PlayQuicksilverOut();
 void PlayDevilTriggerReady(int playerIndex);
 void PlayDelayedCombo1(int playerIndex);
 void PlayDelayedCombo2(int playerIndex);

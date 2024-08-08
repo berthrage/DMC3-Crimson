@@ -48,6 +48,7 @@ Mix_Chunk* dtExplosionRelease;
 Mix_Chunk* doppelgangerIn;
 Mix_Chunk* doppelgangerOut;
 Mix_Chunk* quicksilverIn;
+Mix_Chunk* quicksilverOut;
 Mix_Chunk* styleRankD1;
 Mix_Chunk* styleRankD2;
 Mix_Chunk* styleRankC1;
@@ -162,6 +163,7 @@ void LoadAllSFX() {
 		doppelgangerIn = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dopp_activation.wav").c_str());
 		doppelgangerOut = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dopp_deactivation.wav").c_str());
 		quicksilverIn = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\qs_activation.wav").c_str());
+        quicksilverOut = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\qs_deactivation.wav").c_str());
 		devilTriggerReady = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dt_ready.wav").c_str());
 		styleRankD1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\d1.wav").c_str());
 		styleRankD2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\d2.wav").c_str());
@@ -671,6 +673,12 @@ void PlayQuicksilverIn() {
 
     fn_Mix_Volume(CHANNEL::quickIn, activeConfig.SFX.quicksilverInVolume);
     fn_Mix_PlayChannel(CHANNEL::quickIn, quicksilverIn, 0);
+}
+
+void PlayQuicksilverOut() {
+
+	fn_Mix_Volume(CHANNEL::quickOut, activeConfig.SFX.quicksilverInVolume);
+	fn_Mix_PlayChannel(CHANNEL::quickOut, quicksilverOut, 0);
 }
 
 void PlayDevilTriggerReady(int playerIndex) {
