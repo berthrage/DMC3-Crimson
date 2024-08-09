@@ -6913,7 +6913,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
 //                 for (int i = 0; i < 14; i++) {
 //                     ImGui::Text("sessionData unlock[%u] : %u", i, sessionData.weaponStyleUnlocks[i]);
 //                 }
-
+                ImGui::Text("SessionData Hit Points: %g", sessionData.hitPoints);
                 ImGui::Text("Style Levels: %u", sessionData.styleLevels[1]);
                 ImGui::Text("Unlocked DT: %u", sessionData.unlockDevilTrigger);
                 ImGui::Text("Quicksilver Level: %u", sessionData.styleLevels[4]);
@@ -7060,6 +7060,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("Release Damage: %g", actorData.royalguardReleaseDamage);
             ImGui::Text("ACTOR STATUS: %u", actorData.status);
             ImGui::Text("Royal Block: %u", actorData.royalBlock);
+            ImGui::Text("Crimson Player HP: %g", crimsonPlayer[0].hitPoints);
             ImGui::Text("HP: %g", actorData.hitPoints);
             ImGui::Text("DT: %g", actorData.magicPoints);
             ImGui::Text("storedHP: %g", storedHP);

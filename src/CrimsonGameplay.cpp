@@ -69,6 +69,8 @@ void UpdateCrimsonPlayerData() {
 			return;
 		}
 		auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
+        auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+       
 
 		auto& gamepad = GetGamepad(actorData.newPlayerIndex);
 		auto tiltDirection = GetRelativeTiltDirection(actorData);
@@ -88,7 +90,14 @@ void UpdateCrimsonPlayerData() {
 		crimsonPlayer[playerIndex].tiltDirection = tiltDirection;
 		crimsonPlayer[playerIndex].lockOn = lockOn;
 		crimsonPlayer[playerIndex].speed = actorData.speed;
-        crimsonPlayer[playerIndex].hitPoints = actorData.hitPoints;
+        if (eventData.event != EVENT::DEATH) {
+            crimsonPlayer[playerIndex].hitPoints = actorData.hitPoints;
+        }
+        else {
+            actorData.hitPoints = sessionData.hitPoints;
+            crimsonPlayer[playerIndex].hitPoints = sessionData.hitPoints;
+        }
+        
         crimsonPlayer[playerIndex].maxHitPoints = actorData.maxHitPoints;
 		crimsonPlayer[playerIndex].magicPoints = actorData.magicPoints;
 		crimsonPlayer[playerIndex].maxMagicPoints = actorData.maxMagicPoints;

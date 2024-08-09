@@ -2717,6 +2717,8 @@ byte8* SpawnActor(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
 
     auto& characterData = GetCharacterData(playerIndex, characterIndex, entityIndex);
     auto& newActorData  = GetNewActorData(playerIndex, characterIndex, entityIndex);
+    auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+    auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
 
     Log("SpawnActor %u %u %u", playerIndex, characterIndex, entityIndex);
     Log("character %u", characterData.character);
@@ -2790,7 +2792,9 @@ byte8* SpawnActor(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
 
 
     // Pass data to the new actor from UpdateCrimsonPlayerData 
-    actorData.hitPoints = crimsonPlayer[newPlayerIndex].hitPoints;
+    if (eventData.event != EVENT::DEATH) {
+        actorData.hitPoints = crimsonPlayer[newPlayerIndex].hitPoints;
+    }
     actorData.maxHitPoints = crimsonPlayer[newPlayerIndex].maxHitPoints;
     actorData.maxMagicPoints = crimsonPlayer[newPlayerIndex].maxMagicPoints;
     actorData.magicPoints = crimsonPlayer[newPlayerIndex].magicPoints;
@@ -3046,6 +3050,7 @@ void ActivateDoppelganger(PlayerActorData& actorData) {
     cloneActorData.action = 3;
     if (cloneActorData.eventData[0].event == 45 || cloneActorData.eventData[0].event == 43) {
         EndMotion(cloneActorData);
+        cloneActorData.action = 4;
     }
     HeadflipAnimation(cloneActorData, 0);
     cloneActorData.dead = 0;
@@ -13117,6 +13122,7 @@ void EventDeath() {
     }
 
     LogFunction();
+
 
     DecommissionDoppelgangers();
 }

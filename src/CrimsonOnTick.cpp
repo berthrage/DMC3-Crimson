@@ -46,8 +46,13 @@ void CorrectFrameRateCutscenes() {
 
 void PreparePlayersDataBeforeSpawn() {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10371 || !pool_10371[8]) {
+		return;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
 
-	if (g_scene != SCENE::GAME) {
+	if (g_scene != SCENE::GAME || (g_scene == SCENE::GAME && eventData.event == EVENT::DEATH)) {
 		for (int playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {
 
 			crimsonPlayer[playerIndex].hitPoints = sessionData.hitPoints;
