@@ -6914,8 +6914,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
 //                     ImGui::Text("sessionData unlock[%u] : %u", i, sessionData.weaponStyleUnlocks[i]);
 //                 }
 
-                ImGui::Text("HitPoints: %g", sessionData.hitPoints);
-                ImGui::Text("MagicPoints: %g", sessionData.magicPoints);
+                ImGui::Text("Style Levels: %u", sessionData.styleLevels[1]);
                 ImGui::Text("Unlocked DT: %u", sessionData.unlockDevilTrigger);
                 ImGui::Text("Quicksilver Level: %u", sessionData.styleLevels[4]);
 
@@ -7047,6 +7046,8 @@ void MainOverlayWindow(size_t defaultFontSize) {
 
             // crazyComboHold = g_HoldToCrazyComboFuncA();
             ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
+            ImGui::Text("DTE CHARGE: %g", actorData.dtExplosionCharge);
+            ImGui::Text("DTE CHARGE: %g", crimsonPlayer[0].dtExplosionCharge);
             ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[0].animTimer);
             // ImGui::Text("crazy combo hold:  %u", crazyComboHold);
             ImGui::Text("Chain Count (weight):  %u", actorData.airSwordAttackCount);
@@ -7069,7 +7070,6 @@ void MainOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("IN NORMAL BLOCK: %u", ((actorData.eventData[0].event == 20 && actorData.motionData[0].index == 2) || (actorData.eventData[0].event == 20 && actorData.motionData[0].index == 7) || (actorData.eventData[0].event == 20 && actorData.motionData[0].index == 12)));
             ImGui::Text("IN GUARD: %u", actorData.guard);
             ImGui::Text("IN COMBAT: %u", g_inCombat);
-            ImGui::Text("DTE CHARGE: %g", actorData.dtExplosionCharge);
             ImGui::Text("FLUX TIME: %g", crimsonPlayer[0].fluxtime);
             ImGui::Text("TRICKSTER TIME: %g", crimsonPlayer[0].styleSwitchText.time[0]);
             ImGui::Text("TRICKSTER ALPHA: %g", crimsonPlayer[0].styleSwitchText.alpha[0]);

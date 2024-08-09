@@ -64,6 +64,11 @@ void UpdateCrimsonPlayerData() {
 		}
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
 		auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+		auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+		if (!pool_10371 || !pool_10371[8]) {
+			return;
+		}
+		auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
 
 		auto& gamepad = GetGamepad(actorData.newPlayerIndex);
 		auto tiltDirection = GetRelativeTiltDirection(actorData);
@@ -90,7 +95,10 @@ void UpdateCrimsonPlayerData() {
         crimsonPlayer[playerIndex].style = actorData.style;
         crimsonPlayer[playerIndex].actorMode = actorData.mode;
         crimsonPlayer[playerIndex].royalguardReleaseDamage = actorData.royalguardReleaseDamage;
-        crimsonPlayer[playerIndex].dtExplosionCharge = actorData.dtExplosionCharge;
+        if (eventData.event == EVENT::MAIN && actorData.dtExplosionCharge > 300) {
+            crimsonPlayer[playerIndex].dtExplosionCharge = actorData.dtExplosionCharge;
+        }
+        
         crimsonPlayer[playerIndex].styleData.rank = actorData.styleData.rank;
         crimsonPlayer[playerIndex].styleData.meter = actorData.styleData.meter;
         crimsonPlayer[playerIndex].styleData.quotient = actorData.styleData.quotient;
@@ -1898,7 +1906,7 @@ void SprintAbility(byte8* actorBaseAddr) {
     auto& playerData = GetPlayerData(actorData);
 
     
-    bool playerRunning = ((actorData.eventData[0].event == 3) && (actorData.motionData[0].index == 2 || actorData.motionData[0].index == 51));
+    bool playerRunning = ((actorData.eventData[0].event == 3) && (actorData.motionData[0].index == 2 || actorData.motionData[0].index == 51 || actorData.motionData[0].index == 30));
 
     if ((actorData.newCharacterIndex == playerData.activeCharacterIndex) && (actorData.newEntityIndex == ENTITY::MAIN)) {
 
@@ -1908,12 +1916,12 @@ void SprintAbility(byte8* actorBaseAddr) {
             sprintData.storedSpeedHuman = activeConfig.Speed.human;
 
             if (actorData.character == CHARACTER::DANTE) {
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < 6; i++) {
                     sprintData.storedSpeedDevilDante[i] = activeConfig.Speed.devilDante[i];
                 }
   
             } else if (actorData.character == CHARACTER::VERGIL) {
-				for (int i = 0; i < 4; i++) {
+				for (int i = 0; i < 5; i++) {
 					sprintData.storedSpeedDevilVergil[i] = activeConfig.Speed.devilVergil[i];
 				}
             }
@@ -1967,15 +1975,15 @@ void SprintAbility(byte8* actorBaseAddr) {
 
             // Calculating sprint speed
             float sprintSpeed      = crimsonPlayer[playerIndex].sprint.storedSpeedHuman * sprintMultiplier;
-            float sprintSpeedDevilDante[5] = {};
-            float sprintSpeedDevilVergil[4] = {};
+            float sprintSpeedDevilDante[6] = {};
+            float sprintSpeedDevilVergil[5] = {};
             if (actorData.character == CHARACTER::DANTE) {
-                for (int i = 0; i < 5; i++) {
+                for (int i = 0; i < 6; i++) {
                     sprintSpeedDevilDante[i] = sprintData.storedSpeedDevilDante[i] * sprintMultiplier;
                 }
 
             } else if (actorData.character == CHARACTER::VERGIL) {
-				for (int i = 0; i < 4; i++) {
+				for (int i = 0; i < 5; i++) {
 					sprintSpeedDevilVergil[i] = sprintData.storedSpeedDevilVergil[i] * sprintMultiplier;
 				}
             }

@@ -3043,10 +3043,22 @@ void ActivateDoppelganger(PlayerActorData& actorData) {
     */
 
     ToggleActor(cloneActorData, true);
-    EndMotion(cloneActorData);
+    cloneActorData.action = 3;
+    if (cloneActorData.eventData[0].event == 45 || cloneActorData.eventData[0].event == 43) {
+        EndMotion(cloneActorData);
+    }
     HeadflipAnimation(cloneActorData, 0);
     cloneActorData.dead = 0;
     ActivateDevil(cloneActorData, false);
+
+    // Tried deactivating Nelo Angelo doppel but no luck yet.
+//     if (actorData.character == CHARACTER::VERGIL) {
+// 		if (actorData.costume == 3 || actorData.costume == 4 || actorData.costume == 6 || actorData.costume == 7) {
+//             DeactivateDevil(cloneActorData, false);
+//             actorData.neroAngelo = 0;
+// 		}
+//     }
+    
 
     
 

@@ -4155,7 +4155,7 @@ struct Sprint {
     bool SFXPlayed                  = false;
     bool VFXPlayed                  = false;
     float storedSpeedHuman          = 0;
-    float storedSpeedDevilDante[5]  = {};
+    float storedSpeedDevilDante[6]  = {};
     float storedSpeedDevilVergil[4] = {};
 };
 
