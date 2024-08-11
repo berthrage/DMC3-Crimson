@@ -7176,6 +7176,8 @@ void MainOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("StyleRank %u", actorData.styleData.rank);
             ImGui::Text("StyleRank Meter %g", actorData.styleData.meter);
             ImGui::Text("StyleRank Quotient %g", actorData.styleData.quotient);
+            ImGui::Text("StyleRank Divident %g", actorData.styleData.dividend);
+            ImGui::Text("StyleRank Divisor %g", actorData.styleData.divisor);
             ImGui::Text("Permissions %u", actorData.permissions);
             if (actorData.cloneActorBaseAddr) {
                 ImGui::Text("StyleRankClone %u", cloneActorData.styleData.rank);

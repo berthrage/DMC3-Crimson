@@ -64,6 +64,17 @@ void PreparePlayersDataBeforeSpawn() {
 			crimsonPlayer[playerIndex].vergilDoppelganger.maxMiragePoints = sessionData.magicPoints;
 		}
 	}
+
+	// Reset all StyleData between missions
+	if (g_scene != SCENE::GAME) {
+		for (int playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {
+			crimsonPlayer[playerIndex].styleData.rank = 0;
+			crimsonPlayer[playerIndex].styleData.quotient = 0;
+			crimsonPlayer[playerIndex].styleData.dividend = 0;
+			crimsonPlayer[playerIndex].styleData.divisor = 0;
+
+		}
+	}
 }
 
 }

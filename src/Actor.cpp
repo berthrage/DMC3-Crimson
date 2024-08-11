@@ -13060,11 +13060,11 @@ void EventDelete() {
 //         actorData.style                   = activeActorData.style;
 //         actorData.royalguardReleaseDamage = activeActorData.royalguardReleaseDamage;
 // 
-//         actorData.styleData.rank     = activeActorData.styleData.rank;
-//         actorData.styleData.meter    = activeActorData.styleData.meter;
-//         actorData.styleData.quotient = activeActorData.styleData.quotient;
-//         actorData.styleData.dividend = activeActorData.styleData.dividend;
-//         actorData.styleData.divisor  = activeActorData.styleData.divisor;
+        actorData.styleData.rank     = crimsonPlayer[0].styleData.rank;
+        actorData.styleData.meter    = crimsonPlayer[0].styleData.meter;
+        actorData.styleData.quotient = crimsonPlayer[0].styleData.quotient;
+        actorData.styleData.dividend = crimsonPlayer[0].styleData.dividend;
+        actorData.styleData.divisor  = crimsonPlayer[0].styleData.divisor;
 
 
         DebugLog("EventDelete Copy StyleData");
