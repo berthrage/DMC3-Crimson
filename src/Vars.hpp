@@ -2848,7 +2848,7 @@ struct PlayerActorDataBase : ActorDataBase {
     _(2);
     uint8 costume; // 0x3E9E
     union {
-        bool sparda;     // 0x3E9F
+        bool sparda;     // 0x3E9F6
         bool neroAngelo; // 0x3E9F
     };                   // 0x3E9F
     _(4);
@@ -4303,9 +4303,16 @@ struct DelayedComboFX {
 	int id = 143;
 };
 
+constexpr float maxMiragePointsAmount = 10000;
+
 struct VergilDoppelganger {
+    float miragePoints = 0;
+    float maxMiragePoints = 10000;
     float cooldownTime = 0;
     float cooldownDuration = 1.0f;
+    float drainTime = 0;
+    float totalDrainDuration = 10.0f;
+    bool drainStart = false;
 };
 
 extern bool inRoyalBlock;

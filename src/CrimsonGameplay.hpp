@@ -13,6 +13,8 @@ void CalculateAirStingerEndTime();
 void SetAirStingerEnd(byte8* actorBaseAddr);
 void FasterRapidSlashDevil(byte8* actorBaseAddr);
 void FasterDarkslayerTricks();
+float DrainDTBar(float currentDT, float maxDT, float elapsedTime, bool dtOn, float drainTimeDTOn, float drainTimeDTOff);
+float DrainMirageGauge(float currentMP, float elapsedTime, float totalDrainTime);
 void LastEventStateQueue(byte8* actorBaseAddr);
 void FreeRotationSwordMoves(byte8* actorBaseAddr);
 void StoreInertia(byte8* actorBaseAddr);

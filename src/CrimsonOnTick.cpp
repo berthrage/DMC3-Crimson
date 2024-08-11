@@ -60,6 +60,8 @@ void PreparePlayersDataBeforeSpawn() {
 			crimsonPlayer[playerIndex].style = sessionData.style;
 			crimsonPlayer[playerIndex].magicPoints = sessionData.magicPoints;
 			crimsonPlayer[playerIndex].maxMagicPoints = sessionData.magicPoints;
+			crimsonPlayer[playerIndex].vergilDoppelganger.miragePoints = 2000;
+			crimsonPlayer[playerIndex].vergilDoppelganger.maxMiragePoints = sessionData.magicPoints;
 		}
 	}
 }

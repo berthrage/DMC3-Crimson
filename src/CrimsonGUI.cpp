@@ -1048,8 +1048,8 @@ constexpr uint8 stylesDante[] = {
 
 const char* styleNamesVergil[] = {
     "Dark Slayer",
-    "Quicksilver",
     "Doppelganger",
+    "Quicksilver",
 };
 
 const char* styleNamesDanteGameplay[] = {
@@ -1066,14 +1066,14 @@ const char* styleNamesVergilGameplay[] = {
 	"PLACEHOLDER",
 	"DARK SLAYER",
     "PLACEHOLDER",
-    "DOPPELGANGER",
     "QUICKSILVER",
+    "DOPPELGANGER",
 };
 
 constexpr uint8 stylesVergil[] = {
     STYLE::DARK_SLAYER,
-    STYLE::QUICKSILVER,
     STYLE::DOPPELGANGER,
+    STYLE::QUICKSILVER,
 };
 
 const char* meleeWeaponNamesDante[] = {
@@ -7060,7 +7060,9 @@ void MainOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("Release Damage: %g", actorData.royalguardReleaseDamage);
             ImGui::Text("ACTOR STATUS: %u", actorData.status);
             ImGui::Text("Royal Block: %u", actorData.royalBlock);
-            ImGui::Text("Crimson Player HP: %g", crimsonPlayer[0].hitPoints);
+            ImGui::Text("MIRAGE GAUGE: %g", crimsonPlayer[0].vergilDoppelganger.miragePoints);
+            ImGui::Text("Vergil Dopp Timer Start: %u", crimsonPlayer[0].vergilDoppelganger.drainStart);
+            ImGui::Text("Vergil Dopp Timer: %g", crimsonPlayer[0].vergilDoppelganger.drainTime);
             ImGui::Text("HP: %g", actorData.hitPoints);
             ImGui::Text("DT: %g", actorData.magicPoints);
             ImGui::Text("storedHP: %g", storedHP);

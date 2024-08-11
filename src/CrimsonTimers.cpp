@@ -351,7 +351,6 @@ void VergilDoppelgangerCooldownTimer() {
 	for (int playerIndex = 0; playerIndex < PLAYER_COUNT; playerIndex++) {
 
         auto& time = crimsonPlayer[playerIndex].vergilDoppelganger.cooldownTime;
-		auto& started = crimsonPlayer[playerIndex].dTEVFX.started;
 		float i = 0;
 
 		if (time > 0) {
@@ -360,6 +359,25 @@ void VergilDoppelgangerCooldownTimer() {
 
 	}
 }
+
+void VergilDoppelgangerDrainTimer() {
+	for (int playerIndex = 0; playerIndex < PLAYER_COUNT; playerIndex++) {
+
+		auto& time = crimsonPlayer[playerIndex].vergilDoppelganger.drainTime;
+		auto& started = crimsonPlayer[playerIndex].vergilDoppelganger.drainStart;
+		float i = 0;
+
+		if (time >= 0 && started) {
+			time += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+		}
+
+        if (!started) {
+            time = 0;
+        }
+
+	}
+}
+
 
 void CallAllTimers() {
 	BackToForwardTimers();
@@ -373,6 +391,7 @@ void CallAllTimers() {
 	StyleSwitchFluxTimers();
 	DTEVFXTimers();
 	VergilDoppelgangerCooldownTimer();
+    VergilDoppelgangerDrainTimer();
 }
 
 }

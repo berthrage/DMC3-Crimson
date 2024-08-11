@@ -27,6 +27,11 @@ void SampleModDetour1();
 std::uint64_t g_GuardGravity_ReturnAddr;
 void GuardGravityDetour();
 
+// AddToMirageGauge
+std::uint64_t g_AddToMirageGauge_ReturnAddr;
+void AddToMirageGaugeDetour();
+void* g_AddToMirageGaugeCall;
+
 // EnableAirTaunt
 std::uint64_t g_EnableAirTaunt_ReturnAddr;
 std::uint64_t g_EnableAirTaunt_ConditionalAddr;
@@ -290,9 +295,36 @@ bool TakeDamageCheck(std::uint64_t addr) {
 
 }
 
+void AddingToPlayersMirageGauge(PlayerActorData& actorData, std::uint64_t amountToAdduint64) {
+    
+    float amountToAdd = *reinterpret_cast<float*>(&amountToAdduint64);
+    auto playerIndex = actorData.newPlayerIndex;
+
+	int newMiragePoints = crimsonPlayer[playerIndex].vergilDoppelganger.miragePoints + amountToAdd;
+	if (newMiragePoints > maxMiragePointsAmount) {
+        crimsonPlayer[playerIndex].vergilDoppelganger.miragePoints = maxMiragePointsAmount;
+	}
+	else {
+        crimsonPlayer[playerIndex].vergilDoppelganger.miragePoints = newMiragePoints;
+	}
+    return;
+
+}
+
 void InitDetours() {
     using namespace Utility;
     DetourBaseAddr = (uintptr_t)appBaseAddr;
+
+	// AddToMirageGauge
+	//dmc3.exe + 1E0BB2 - F3 0F58 89 B83E0000 - addss xmm1, [rcx + 00003EB8] 
+	//dmc3.exe + 1E0B8E - 80 B9 9B3E0000 01 - cmp byte ptr[rcx + 00003E9B], 01 - original code, 
+    // comparing if DT is on or not to add DT, but still holding the value to add at xmm1
+
+	static std::unique_ptr<Utility::Detour_t> AddToMirageGaugeHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E0B8E, &AddToMirageGaugeDetour, 7);
+	g_AddToMirageGauge_ReturnAddr = AddToMirageGaugeHook->GetReturnAddress();
+	AddToMirageGaugeHook->Toggle(true);
+	g_AddToMirageGaugeCall = &AddingToPlayersMirageGauge;
 
     // GuardGravity
     static std::unique_ptr<Detour_t> guardGravityHook =

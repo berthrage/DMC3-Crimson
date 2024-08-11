@@ -104,7 +104,7 @@ void UpdateCrimsonPlayerData() {
         crimsonPlayer[playerIndex].style = actorData.style;
         crimsonPlayer[playerIndex].actorMode = actorData.mode;
         crimsonPlayer[playerIndex].royalguardReleaseDamage = actorData.royalguardReleaseDamage;
-        if (eventData.event == EVENT::MAIN && actorData.dtExplosionCharge > 300) {
+        if (eventData.event == EVENT::MAIN && actorData.dtExplosionCharge > 300 && g_inGame) {
             crimsonPlayer[playerIndex].dtExplosionCharge = actorData.dtExplosionCharge;
         }
         
@@ -927,6 +927,36 @@ void FasterDarkslayerTricks() {
             fasterDarkslayer.newSpeedSet = false;
         }
     }
+}
+
+float DrainDTBar(float currentDT, float maxDT, float elapsedTime, bool dtOn, float drainTimeDTOn, float drainTimeDTOff) {
+	float drainTime = dtOn ? drainTimeDTOn : drainTimeDTOff;
+
+
+	// Calculate the proportion of the total drain time that has passed
+	float timeRatio = elapsedTime / drainTime;
+
+	// Clamp timeRatio between 0.0 and 1.0 to ensure it doesn't exceed the intended range
+	timeRatio = glm::clamp(timeRatio, 0.0f, 1.0f);
+
+	// Calculate the new DT based on the ratio
+	float newDT = maxDT * (1.0f - timeRatio);
+
+	return (newDT > 0.0f) ? newDT : 0.0f;
+}
+
+float DrainMirageGauge(float currentMP, float elapsedTime, float totalDrainTime) {
+
+	// Calculate the proportion of the total drain time that has passed
+	float timeRatio = elapsedTime / totalDrainTime;
+
+	// Clamp timeRatio between 0.0 and 1.0 to ensure it doesn't exceed the intended range
+	timeRatio = glm::clamp(timeRatio, 0.0f, 1.0f);
+
+	// Calculate the new DT based on the ratio
+	float newMP = maxMiragePointsAmount * (1.0f - timeRatio);
+
+	return (newMP > 0.0f) ? newMP : 0.0f;
 }
 
 #pragma endregion

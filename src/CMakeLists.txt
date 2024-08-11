@@ -1,6 +1,7 @@
 set(MASM_SRC
     masm/SampleMod.asm
     masm/GuardGravity.asm
+    masm/AddToMirageGauge.asm
     masm/CreateEffect.asm
     masm/HoldToCrazyComboAsm.asm
     masm/DisableStaggerRoyalguard.asm

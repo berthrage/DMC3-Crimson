@@ -2801,6 +2801,7 @@ byte8* SpawnActor(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
 
     actorData.royalguardReleaseDamage = crimsonPlayer[newPlayerIndex].royalguardReleaseDamage;
     actorData.dtExplosionCharge = crimsonPlayer[newPlayerIndex].dtExplosionCharge;
+    crimsonPlayer[newPlayerIndex].vergilDoppelganger.drainStart = false; // very important to ensure drainTimer doesn't stay on when respawning
     
     actorData.styleData.rank = crimsonPlayer[newPlayerIndex].styleData.rank;
     actorData.styleData.meter = crimsonPlayer[newPlayerIndex].styleData.meter;
@@ -3097,12 +3098,12 @@ void DeactivateDoppelganger(PlayerActorData& actorData) {
     dmc3.exe+1E9351 - 48 8B CF    - mov rcx,rdi
     dmc3.exe+1E9354 - E8 071B0000 - call dmc3.exe+1EAE60
     */
-    DevilFluxVFX(cloneActorData.baseAddr, DEVIL_FLUX::GLOW_OFF);
+    //DevilFluxVFX(cloneActorData.baseAddr, DEVIL_FLUX::GLOW_OFF);
 
-    if (cloneActorData.devil) {
-        cloneActorData.devil = false;
+    if (cloneActorData.devil && !actorData.devil) {
+        //cloneActorData.devil = false;
 
-        DeactivateDevil(cloneActorData);
+        //DeactivateDevil(cloneActorData);
     }
     cloneActorData.dead = 0;
     ToggleActor(cloneActorData, false);
@@ -3165,6 +3166,7 @@ void DoppDrain() {
         }
     }
 }
+
 
 void StyleSwitch(byte8* actorBaseAddr, int style) {
     if (!actorBaseAddr) {
@@ -3295,28 +3297,27 @@ void StyleSwitchController(byte8* actorBaseAddr) {
             StyleSwitch(actorBaseAddr, 4); // QUICKSILVER
         }
 
-        // ACTIVATES DOPPELGANGER WITH ONE BUTTON PRESS FOR VERGIL
-        auto& doppelganger = crimsonPlayer[playerIndex].vergilDoppelganger;
+        // ACTIVATES DOPPELGANGER WITH ONE BUTTON PRESS FOR VERGIL -- consumes Mirage Gauge
+        auto& vergilDopp = crimsonPlayer[playerIndex].vergilDoppelganger;
         if ((actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) || actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN))
-            && actorData.style != 5 && !actorData.newIsClone && doppelganger.cooldownTime <= 0) {
+            && actorData.style != 5 && !actorData.newIsClone && vergilDopp.cooldownTime <= 0) {
 
-            doppelganger.cooldownTime = doppelganger.cooldownDuration;
-
+            vergilDopp.cooldownTime = vergilDopp.cooldownDuration;
+           
             
 
-            if (!actorData.doppelganger && actorData.magicPoints >= 3000) {
+            if (!actorData.doppelganger && vergilDopp.miragePoints > 0) {
                 ActivateDoppelganger(actorData);
 
 
                 if (!doppTimeTrackerRunning && !activeConfig.infiniteMagicPoints && actorData.costume != 2 &&
                     actorData.costume !=
                         4) { // if Infinite Magic Points is on or using Super/Super Corrupted Vergil, DT drain doesn't trigger.
-
-                    std::thread dopptimetracker(DoppTimeTracker);
-                    dopptimetracker.detach();
-
-                    std::thread doppdrain(DoppDrain);
-                    doppdrain.detach();
+					// Calculate the amount of time that has already passed based on the current DT
+					vergilDopp.drainTime = (1.0f - (vergilDopp.miragePoints / maxMiragePointsAmount)) * vergilDopp.totalDrainDuration;
+                    vergilDopp.drainStart = true;
+                    
+                    
                 }
 
                 actorData.doppelganger = true;
@@ -3324,38 +3325,25 @@ void StyleSwitchController(byte8* actorBaseAddr) {
                 DeactivateDoppelganger(actorData);
                 // actorData.magicPoints = magicPointsDopp;
                 actorData.doppelganger = false;
-                doppTimeTrackerRunning = false;
-                if (!doppTimeTrackerRunning) {
-                    doppSeconds   = 0;
-                    doppSecondsDT = 0;
-                }
+                vergilDopp.drainStart = false;
             }
         }
 
-        if (actorData.doppelganger && actorData.magicPoints <= 50) {
+        if (actorData.doppelganger && vergilDopp.miragePoints <= 0) {
             DeactivateDoppelganger(actorData);
+            vergilDopp.drainStart = false;
             actorData.doppelganger = false;
-            doppTimeTrackerRunning = false;
-            doppSeconds            = 0;
-            doppSecondsDT          = 0;
-            currentDTDoppOn        = 0;
-            currentDTDoppDTOn      = 0;
-            DeactivateDevil(actorData, false);
-            UpdateForm(actorData);
-            actorData.devil = 0;
+            //DeactivateDevil(actorData, false);
+            //UpdateForm(actorData);
+            //actorData.devil = 0;
         }
-
-        /*if(actorData.doppelganger) {
-                if(actorData.devil) {
-                        doppDuration = 3000;
-                } else {
-                        doppDuration = 5000;
-                }
-        }
-        else if(!actorData.doppelganger) {
-                currentDTDopp = actorData.magicPoints;
-        }*/
     }
+
+    auto& vergilDopp = crimsonPlayer[playerIndex].vergilDoppelganger;
+    if (vergilDopp.drainStart) {
+        vergilDopp.miragePoints = CrimsonGameplay::DrainMirageGauge(vergilDopp.miragePoints, vergilDopp.drainTime, vergilDopp.totalDrainDuration);
+    }
+
 
     if (actorData.devil && actorData.magicPoints < 50) {
         CrimsonSDL::PlayDevilTriggerOut(actorData.newPlayerIndex);
@@ -3961,6 +3949,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     // dd::sphere(dd_ctx(), actorWorldPos, dd::colors::Red, 15.0f);
 
 	StyleSwitchController(actorBaseAddr);
+
 
     CrimsonGameplay::UpdateCrimsonPlayerData();
     CrimsonPatches::DisableHeightRestriction();
@@ -13059,8 +13048,6 @@ void EventDelete() {
         if (!g_defaultNewActorData[0].baseAddr) {
             return;
         }
-       
-
 
 //         actorData.hitPoints      = activeActorData.hitPoints;
 //         actorData.maxHitPoints   = activeActorData.maxHitPoints;
