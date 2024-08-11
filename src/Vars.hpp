@@ -4311,7 +4311,7 @@ struct VergilDoppelganger {
     float cooldownTime = 0;
     float cooldownDuration = 1.0f;
     float drainTime = 0;
-    float totalDrainDuration = 10.0f;
+    float totalDrainDuration = 12.0f;
     bool drainStart = false;
 };
 

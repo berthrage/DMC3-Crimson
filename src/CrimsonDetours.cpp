@@ -299,13 +299,14 @@ void AddingToPlayersMirageGauge(PlayerActorData& actorData, std::uint64_t amount
     
     float amountToAdd = *reinterpret_cast<float*>(&amountToAdduint64);
     auto playerIndex = actorData.newPlayerIndex;
+    auto& vergilDopp = crimsonPlayer[playerIndex].vergilDoppelganger;
 
-	int newMiragePoints = crimsonPlayer[playerIndex].vergilDoppelganger.miragePoints + amountToAdd;
-	if (newMiragePoints > maxMiragePointsAmount) {
-        crimsonPlayer[playerIndex].vergilDoppelganger.miragePoints = maxMiragePointsAmount;
+	int newMiragePoints = vergilDopp.miragePoints + amountToAdd;
+	if (newMiragePoints > vergilDopp.maxMiragePoints) {
+        vergilDopp.miragePoints = vergilDopp.maxMiragePoints;
 	}
 	else {
-        crimsonPlayer[playerIndex].vergilDoppelganger.miragePoints = newMiragePoints;
+        vergilDopp.miragePoints = newMiragePoints;
 	}
     return;
 
