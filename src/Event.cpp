@@ -442,10 +442,12 @@ void InGameCutsceneStart() {
     LogFunction();
 
     Actor::InGameCutsceneStart();
+    g_inGameCutscene = true;
 }
 
 void InGameCutsceneEnd() {
     LogFunction();
+    g_inGameCutscene = false;
 }
 
 

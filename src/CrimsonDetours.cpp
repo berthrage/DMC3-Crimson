@@ -301,7 +301,7 @@ void AddingToPlayersMirageGauge(PlayerActorData& actorData, std::uint64_t amount
     auto playerIndex = actorData.newPlayerIndex;
     auto& vergilDopp = crimsonPlayer[playerIndex].vergilDoppelganger;
 
-	int newMiragePoints = vergilDopp.miragePoints + amountToAdd;
+	int newMiragePoints = vergilDopp.miragePoints + amountToAdd * 1.73f;
 	if (newMiragePoints > vergilDopp.maxMiragePoints) {
         vergilDopp.miragePoints = vergilDopp.maxMiragePoints;
 	}

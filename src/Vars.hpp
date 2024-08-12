@@ -3825,6 +3825,17 @@ static_assert(offsetof(EnemyVectorData, nextMetadataAddr) == 0x1050);
 
 static_assert(sizeof(EnemyVectorData) == 4184);
 
+struct HUDData {
+	_(26904);
+	float orbsOutofCombatTimer; // 0x6918
+    _(4);
+    uint8 topLeftAlpha; // 0x6920
+};
+
+static_assert(offsetof(HUDData, orbsOutofCombatTimer) == 0x6918);
+static_assert(offsetof(HUDData, topLeftAlpha) == 0x6920);
+
+
 // $EnemyVectorDataEnd
 
 // struct ExperienceData
@@ -4140,6 +4151,8 @@ extern bool g_inCombat;
 extern bool g_inBossfight;
 extern int g_bossQuantity;
 extern bool g_inGame;
+extern bool g_inGameCutscene;
+extern bool g_HudVisible;
 extern std::string g_gameTrackPlaying;
 
 extern bool exceptionShot;

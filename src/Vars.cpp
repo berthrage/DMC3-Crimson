@@ -242,6 +242,7 @@ bool g_inCombat = false;
 bool g_inBossfight = false;
 int g_bossQuantity = 0;
 bool g_inGame = false;
+bool g_inGameCutscene = false;
 std::string g_gameTrackPlaying;
 
 bool exceptionShot = false;

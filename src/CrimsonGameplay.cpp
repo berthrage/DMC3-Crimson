@@ -46,7 +46,7 @@ namespace CrimsonGameplay {
 
 void UpdateCrimsonPlayerData() {
     // crimsonPlayer data has a lot of copies from ActorData, we're using this so we can more easily access data from Actors
-    // globally. It also serves to create new player data outside of DDMK legacy stuff or DMC3 itself (like Action/Anim Timers). 
+    // globally. It also serves to create new player data outside of DDMK legacy stuff or DMC3 itself (like Action/Anim Timers, or Mirage Gauge). 
     // Please note that assigning new values to crimsonPlayer directly might have no effect 
     // (you still need to call ActorData to change hit points, for exemple).
     // This function here and PreparePlayersDataBeforeSpawn() from CrimsonOnTick is also important to preserve Players Data in between rooms. - Mia

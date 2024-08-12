@@ -364,15 +364,17 @@ void VergilDoppelgangerDrainTimer() {
 	for (int playerIndex = 0; playerIndex < PLAYER_COUNT; playerIndex++) {
 
 		auto& time = crimsonPlayer[playerIndex].vergilDoppelganger.drainTime;
-		auto& started = crimsonPlayer[playerIndex].vergilDoppelganger.drainStart;
+		auto& start = crimsonPlayer[playerIndex].vergilDoppelganger.drainStart;
+        auto& miragePoints = crimsonPlayer[playerIndex].vergilDoppelganger.miragePoints;
 		float i = 0;
 
-		if (time >= 0 && started) {
+		if (time >= 0 && start) {
 			time += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
 		}
 
-        if (!started) {
+        if (!start || miragePoints == 0 || time == 0 || g_inGameCutscene) {
             time = 0;
+            start = false;
         }
 
 	}

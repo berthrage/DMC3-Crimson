@@ -3544,6 +3544,54 @@ const char* barsNames[PLAYER_COUNT] = {
 
 bool showBars = false;
 
+void MirageGaugeMainPlayer() {
+	if (!(activeConfig.Actor.enable && InGame() && crimsonPlayer[0].character == CHARACTER::VERGIL && !g_inGameCutscene)) {
+		return;
+	}
+	static bool show = true;
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+
+	auto miragePoints = crimsonPlayer[0].vergilDoppelganger.miragePoints / crimsonPlayer[0].vergilDoppelganger.maxMiragePoints;
+	float miragePointsColor[4] = { 1.0f , 1.0f, 1.0, hudData.topLeftAlpha / 127.0f};
+    float progressBarBgColor[4] = { 0.2f , 0.2f, 0.2f, hudData.topLeftAlpha / 127.0f };
+
+	// Base resolution (1920x1080)
+	const float baseWidth = 1920.0f;
+	const float baseHeight = 1080.0f;
+
+	// Calculate scaling factors
+	float widthScale = g_windowSize.x / baseWidth;
+	float heightScale = g_windowSize.y / baseHeight;
+
+	// Adjust the size of the bar
+	float barLength = 130.0f * widthScale * (crimsonPlayer[0].vergilDoppelganger.maxMiragePoints / maxMiragePointsAmount);
+	vec2 size = { barLength, 10.0f * heightScale };
+
+	// Calculate position 
+	float posX = 90.0f * widthScale;  
+	float posY = 170.0f * heightScale;  
+
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	ImGui::SetNextWindowPos(ImVec2(posX, posY));
+
+	if (ImGui::Begin("MirageMainPlayer", &show, windowFlags)) {
+		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&miragePointsColor));
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, *reinterpret_cast<ImVec4*>(&progressBarBgColor));
+		ImGui::ProgressBar(miragePoints, *reinterpret_cast<ImVec2*>(&size), "");
+		ImGui::PopStyleColor(2);
+	}
+
+	ImGui::End();
+}
+
+
 
 void BarsFunction(
     float hitPoints, float magicPoints, const char* name, PlayerActorData actorData, const char* label, Config::BarsData& activeData, Config::BarsData& queuedData) {
@@ -7043,6 +7091,13 @@ void MainOverlayWindow(size_t defaultFontSize) {
             auto& queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData*>(name_7058 + 0xC0);
 			auto& activeMissionActorData = *reinterpret_cast<ActiveMissionActorData*>(name_7058 + 0x16C);
 
+            auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+            if (!name_80) {
+                return;
+            }
+            auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+
+
 
             // crazyComboHold = g_HoldToCrazyComboFuncA();
             ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
@@ -7056,6 +7111,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
             // ImGui::Text("Gravity Tweak:  %g", crimsonPlayer[0].airRaveTweak.gravity);
             // ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
             // ImGui::Text("Actor Speed %g", actorData.speed);
+            ImGui::Text("TOP LEFT ALPHA: %u", hudData.topLeftAlpha);
             ImGui::Text("distance: %u", crimsonPlayer[0].cameraPlayerDistanceClamped);
             ImGui::Text("Release Damage: %g", actorData.royalguardReleaseDamage);
             ImGui::Text("ACTOR STATUS: %u", actorData.status);
@@ -10504,6 +10560,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     CrimsonTimers::CallAllTimers();
 
     Bars();
+    MirageGaugeMainPlayer();
     WeaponSwitchController();
 
 
