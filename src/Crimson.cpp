@@ -258,9 +258,11 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonDetours::InitDetours();
         CrimsonDetours::ToggleClassicHUDPositionings(activeConfig.classicHUDpositionings);
         CrimsonDetours::ToggleStyleRankHudNoFadeout(activeConfig.disableStyleRankHudFadeout);
+        CrimsonDetours::ToggleCerberusCrashFix(true);
 
         CrimsonPatches::DisableBlendingEffects(false);
         CrimsonPatches::DisableBlendingEffects(activeConfig.disableBlendingEffects);
+
 
         // Remove FMODGetCodecDescription Label
         SetMemory((appBaseAddr + 0x5505B5), 0, 23, MemoryFlags_VirtualProtectDestination);

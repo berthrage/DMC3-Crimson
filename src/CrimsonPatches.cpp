@@ -733,6 +733,23 @@ void AirTauntToggleController(byte8* actorBaseAddr) {
         ToggleAirTaunt(false);
     }
 }
-}
+
 
 #pragma endregion
+
+# pragma region Fixing
+
+void CerberusCrashFixPart2(bool enable) {
+	//dmc3.exe + 117451 - 8B 50 10 - mov edx, [rax + 10]
+	if (enable) {
+		_nop((char*)(appBaseAddr + 0x117451), 3);
+	}
+	else {
+		_patch((char*)(appBaseAddr + 0x117451), (char*)"\x8B\x50\x10", 3);
+	}
+
+}
+
+}
+
+# pragma endregion

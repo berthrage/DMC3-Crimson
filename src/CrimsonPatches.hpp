@@ -45,6 +45,15 @@ void ToggleRoyalguardForceJustFrameRelease(bool enable);
 void OverrideTauntInAir(bool enable);
 void AirTauntToggleController(byte8* actorBaseAddr);
 
+#pragma endregion
+
+#pragma region Fixing
+
+void CerberusCrashFixPart2(bool enable);
+
+#pragma endregion
+
+
 }
 
 #pragma endregion

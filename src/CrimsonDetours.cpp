@@ -13,6 +13,7 @@
 #include "Core/Macros.h"
 #include "Config.hpp"
 #include <iostream>
+#include "CrimsonPatches.hpp"
 
 namespace CrimsonDetours {
 
@@ -52,6 +53,11 @@ int createEffectID   = 144;
 int createEffectBone = 1;
 std::uint64_t createEffectPlayerAddr = 0;
 void CreateEffectDetour();
+
+// FixCrashCerberus
+std::uint64_t g_FixCrashCerberus_ReturnAddr;
+std::uint64_t g_FixCrashCerberus_PlayerStructAddr;
+void FixCrashCerberusDetour();
 
 // HoldToCrazyCombo
 std::uint64_t g_HoldToCrazyCombo_ReturnAddr;
@@ -360,7 +366,6 @@ void InitDetours() {
     HoldToCrazyComboHook->Toggle(true);
     holdToCrazyComboCall = &g_HoldToCrazyComboFuncA;
 
-
     // DisableStaggerRoyalguard
 	static std::unique_ptr<Utility::Detour_t> DisableStaggerRoyalguardHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EC464, &DisableStaggerRoyalguardDetour, 9);
@@ -425,7 +430,6 @@ void ToggleClassicHUDPositionings(bool enable) {
 
 void ToggleStyleRankHudNoFadeout(bool enable) {
     using namespace Utility;
-	DetourBaseAddr = (uintptr_t)appBaseAddr;
 
 	// StyleRankHudNoFadeout 
 	static std::unique_ptr<Utility::Detour_t> StyleRankHudNoFadeoutHook =
@@ -439,6 +443,33 @@ void ToggleStyleRankHudNoFadeout(bool enable) {
         StyleRankHudNoFadeoutHook->Toggle(false);
     }
 	
+}
+
+void ToggleCerberusCrashFix(bool enable) {
+    using namespace Utility;
+    static bool run = false;
+    
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+    //std::cout << (enable ? "Enabling CerberusFix\n" : "Disabling CerberusFix\n");
+
+	// FixCrashCerberus
+	// dmc3.exe+11793F - C6 40 05 01 - mov byte ptr [rax+05],01 - original code
+	// we add test rax, rax here to ensure rax wont contain an invalid addr leading to a crash
+	// when fighting Cerberus with multiple (4) actors
+	static std::unique_ptr<Utility::Detour_t> FixCrashCerberusHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x11793F, &FixCrashCerberusDetour, 11);
+	g_FixCrashCerberus_ReturnAddr = FixCrashCerberusHook->GetReturnAddress();
+    g_FixCrashCerberus_PlayerStructAddr = (uintptr_t)appBaseAddr + 0xC90E28;
+
+    FixCrashCerberusHook->Toggle(enable);
+    CrimsonPatches::CerberusCrashFixPart2(enable);
+  
+	
+    run = enable;
 }
 
 }

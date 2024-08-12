@@ -60,5 +60,6 @@ bool DisableStaggerCheck(PlayerActorData& actorData);
 void InitDetours();
 void ToggleClassicHUDPositionings(bool enable);
 void ToggleStyleRankHudNoFadeout(bool enable);
+void ToggleCerberusCrashFix(bool enable);
 
 }
