@@ -2494,13 +2494,10 @@ bool IsActiveActor(byte8* actorBaseAddr) {
 template <typename T> void UpdateStyle(T& actorData) {
     DebugLogFunction(actorData.operator byte8*());
 
-    if (IsActiveActor(actorData)) {
-        ExpConfig::SavePlayerActorExp();
-    }
 
-    actorData.style = GetStyle(actorData);
+    //actorData.style = GetStyle(actorData);
 
-    UpdatePlayerActorExp(actorData);
+    ExpConfig::UpdatePlayerActorExp(actorData);
 }
 
 template <typename T> void UpdateMeleeWeapon(T& actorData) {
@@ -3168,24 +3165,21 @@ void DoppDrain() {
 }
 
 
+
 void StyleSwitch(byte8* actorBaseAddr, int style) {
     if (!actorBaseAddr) {
         return;
     }
     auto& actorData     = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
 
-	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
-	if (!pool_4449 || !pool_4449[147]) {
-		return;
-	}
-	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
-
     auto playerIndex = actorData.newPlayerIndex;
     auto& characterData = GetCharacterData(actorData);
     auto* fluxtime = &crimsonPlayer[actorData.newPlayerIndex].fluxtime;
-   
+
+    actorData.styleExpPoints = heldStyleExpData.accumulatedStylePoints[style];
 
     actorData.style = style; // Changes the style.
+    UpdateStyle(actorData); // Updates Style EXP
 
     // Summons Style Switch VFX (leftover from DT In Effect).
 //     std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, style);
@@ -3206,7 +3200,6 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
         HUD_UpdateDevilTriggerExplosion(characterData.character);
     }
 
-    auto& distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
     // Trigger SFX.
     CrimsonSDL::PlayStyleChange(playerIndex);
     if (actorData.character == CHARACTER::DANTE) {
@@ -3227,9 +3220,13 @@ void StyleSwitchController(byte8* actorBaseAddr) {
     auto& characterData = GetCharacterData(actorData);
     auto playerIndex = actorData.newPlayerIndex;
 
-    CrimsonFX::StyleSwitchDrawText(actorBaseAddr);
-    
+    heldStyleExpData.accumulatedStylePoints[actorData.style] = actorData.styleExpPoints;
+	if (IsActiveActor(actorData)) {
+		ExpConfig::SavePlayerActorExp();
+	}
 
+    CrimsonFX::StyleSwitchDrawText(actorBaseAddr);
+    //ExpConfig::UpdateStylesExpertises(actorBaseAddr, actorData.style);
 
     {
         // Doppelganger StyleSwitch

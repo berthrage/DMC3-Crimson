@@ -2282,29 +2282,30 @@ struct ExpertiseHelper {
 };
 
 ExpertiseHelper expertiseHelpersDanteSwordmasterLevel2[] = {
-    {0, 0x8000},
-    {1, 0x1000},
-    {2, 0x10000004},
-    {3, 0x30000000},
+    {0, 0x4000}, // Sword Pierce
+    {1, 0x1000}, // Crystal
+    {2, 0x4}, // Crawler
+    {2, 0x4000000}, // Feedback
+    {3, 0x30000000}, // Ground and Air Volcano (0x20000000)
 };
 
 ExpertiseHelper expertiseHelpersDanteSwordmasterLevel3[] = {
-    {0, 0x8000},
-    {1, 0x5000},
-    {2, 0x5000000C},
-    {3, 0x30000000},
-    {4, 1},
-    {6, 0x100},
+    {0, 0x4000}, // Sword Pierce
+    {1, 0x5000}, // Crystal and Ice Age (0x4000)
+    {2, 0x2400000C}, // Distortion (0x20000000) and Feedback (0x4000000); Crawler (0x4) and Tempest (0x8)
+    {3, 0x30000000}, // Ground and Air Volcano
+    {4, 0x1}, // Real Impact
+    {6, 0x100}, // Dance Macabre
 };
 
 ExpertiseHelper expertiseHelpersDanteGunslingerLevel2[] = {
-    {4, 0x4000000},
-    {5, 0x1000},
+    {4, 0x4000000}, // Sphere (0x4000000)
+    {5, 0x1000}, // Grapple (0x1000)
 };
 
 ExpertiseHelper expertiseHelpersDanteGunslingerLevel3[] = {
-    {4, 0x4040000},
-    {5, 0x1002},
+    {4, 0x4040000}, // Sphere and Shotgun Stinger (0x40000)
+    {5, 0x1020}, // Grapple and Sniper (0x20)
 };
 
 ExpertiseHelper expertiseHelpersDante[] = {
@@ -2314,7 +2315,7 @@ ExpertiseHelper expertiseHelpersDante[] = {
     {6, 0x40000},
 
     {1, 0x40},
-    {1, 0x20},
+    {1, 0x20}, // Windmill
 
     {1, 0x4000000},
     {1, 0x8000000},
@@ -2371,12 +2372,37 @@ LevelHelper levelHelpers[] = {
     {WEAPON::KALINA_ANN, 2},
 };
 
+std::vector<byte32> originalExpertise = {
+	0b1111'1111'1111'1111'0101'1110'0111'1111, // 0xffff5e7f  // lacking sword pierce
+	0b1010'0111'1111'1111'1010'1111'0101'1111, // 0xa7ffaf5f  // lacking cerberus abilities
+	0b1010'1111'0001'1111'1111'1111'1111'0011, // 0xaf1ffff3  // lacking nevan and agni
+	0b1100'1011'1001'1111'1111'1111'1111'1001, // 0xcb9ffff9  // lacking beowulf forward
+	0b1111'1011'1111'1011'1111'1111'1111'1110, // 0xfbfbfffe  // lacking gunslinger artemis
+	0b1111'1111'1111'1111'1110'1111'1101'1111, // 0xffffefdf  // lacking Trick lvl 2 and rest of the gunslinger abilities
+	0b1111'1111'1110'0011'1111'1110'1111'1111, // 0xffe3feff  // lacking real impact and dance macabre
+	0b1111'1111'1111'1111'1111'1111'1111'1111  // 0xffffffff  
+};
+
+//             actorData.activeExpertise[0] = 0xFFFFFFFF; // sword pierce/dancemacabre
+//             actorData.activeExpertise[1] = 0xFFFFFFFF; // cerberus
+//             actorData.activeExpertise[2] = 0xFFFFFFFF; // nevan and agni
+//             actorData.activeExpertise[3] = 0xFFFFFFFF; // beowulf forward
+//             actorData.activeExpertise[4] = 0xFFFFFFFF; // gunslinger artemis
+//             actorData.activeExpertise[5] = 0xFFFFFFFF; // Trickster level 2 and rest of the gunslinger abilities
+//             actorData.activeExpertise[6] = 0xFFFFFFFF; // real impact, dance macabre
+//             actorData.activeExpertise[7] = 0xFFFFFFFF; // sky star(?)
+
 
 void SavePlayerActorExp() {
     if (!Enable() || Max()) {
         return;
     }
 
+	auto name_7058 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+
+	auto& missionData = *reinterpret_cast<MissionData*>(name_7058);
+	auto& queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData*>(name_7058 + 0xC0);
+	auto& activeMissionActorData = *reinterpret_cast<ActiveMissionActorData*>(name_7058 + 0x16C);
 
     // Only player 1's active actor can accumulate exp.
     // Default actors are not updated.
@@ -2423,8 +2449,8 @@ void SavePlayerActorExp() {
 
     DebugLogFunction();
 
-    expData.styleLevels[style]    = activeActorData.styleLevel;
-    expData.styleExpPoints[style] = activeActorData.styleExpPoints;
+    expData.styleLevels[style]    = activeMissionActorData.styleLevel;
+    expData.styleExpPoints[style] = heldStyleExpData.accumulatedStylePoints[style];
 }
 
 
@@ -2432,7 +2458,6 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr) {
     if (!Enable()) {
         return;
     }
-
 
     if (!actorBaseAddr) {
         return;
@@ -2456,6 +2481,9 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr) {
     if (!expDataAddr) {
         return;
     }
+    
+
+    auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
     auto& expData = *expDataAddr;
 
@@ -2465,40 +2493,39 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr) {
     DebugLogFunction(actorBaseAddr);
 
 
-    // Reset
-    /*{
-            actorData.styleLevel     = 0;
-            actorData.styleExpPoints = 0;
+	//Reset
+	{
+			actorData.styleLevel = 0;
+			actorData.styleExpPoints = 0;
 
-            if (character == CHARACTER::DANTE)
-            {
-                    actorData.activeExpertise[0] = 0xFFFF5E7F;
-                    actorData.activeExpertise[1] = 0xA7FFAF5F;
-                    actorData.activeExpertise[2] = 0xAF1FFFF3;
-                    actorData.activeExpertise[3] = 0xCB9FFFF9;
-                    actorData.activeExpertise[4] = 0xFBFBFFFE;
-                    actorData.activeExpertise[5] = 0xFFFFEFFD;
-                    actorData.activeExpertise[6] = 0xFFE3FEFF;
-                    actorData.activeExpertise[7] = 0xFFFFFFFF;
-            }
-            else if (character == CHARACTER::VERGIL)
-            {
-                    actorData.activeExpertise[0] = 0xF4FFF9CF;
-                    actorData.activeExpertise[1] = 0xFFC7FE37;
-                    actorData.activeExpertise[2] = 0xFFFFFFFF;
-                    actorData.activeExpertise[3] = 0xFFFFFFFF;
-                    actorData.activeExpertise[4] = 0xFFFFFFFF;
-                    actorData.activeExpertise[5] = 0xFFFFFFFF;
-                    actorData.activeExpertise[6] = 0xFFFFFFFF;
-                    actorData.activeExpertise[7] = 0xFFFFFFFF;
-            }
+			if (character == CHARACTER::DANTE) {
+					actorData.activeExpertise[0] = 0xFFFF5E7F;
+					actorData.activeExpertise[1] = 0xA7FFAF5F;
+					actorData.activeExpertise[2] = 0xAF1FFFF3;
+					actorData.activeExpertise[3] = 0xCB9FFFF9;
+					actorData.activeExpertise[4] = 0xFBFBFFFE;
+					actorData.activeExpertise[5] = 0xFFFFEFFD;
+					actorData.activeExpertise[6] = 0xFFE3FEFF;
+					actorData.activeExpertise[7] = 0xFFFFFFFF;
+			}
+			else if (character == CHARACTER::VERGIL) {
+					actorData.activeExpertise[0] = 0xF4FFF9CF;
+					actorData.activeExpertise[1] = 0xFFC7FE37;
+					actorData.activeExpertise[2] = 0xFFFFFFFF;
+					actorData.activeExpertise[3] = 0xFFFFFFFF;
+					actorData.activeExpertise[4] = 0xFFFFFFFF;
+					actorData.activeExpertise[5] = 0xFFFFFFFF;
+					actorData.activeExpertise[6] = 0xFFFFFFFF;
+					actorData.activeExpertise[7] = 0xFFFFFFFF;
+			}
 
-            SetMemory
-            (
-                    actorData.newWeaponLevels,
-                    0,
-                    sizeof(actorData.newWeaponLevels)
-            );*/
+			SetMemory
+			(
+					actorData.newWeaponLevels,
+					0,
+					sizeof(actorData.newWeaponLevels)
+			);
+	}
 
 
     if (Max()) {
@@ -2519,6 +2546,17 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr) {
     }
 
 
+	
+	styleLevel = (std::max)(sessionData.styleLevels[actorData.style], expData.styleLevels[actorData.style]);
+	if (styleLevel >= 2) {
+		styleExpPoints = 100000;
+	}
+	else {
+		styleExpPoints = expData.styleExpPoints[style];
+	}
+
+	
+
     auto UpdateOnce = [&](ExpertiseHelper& helper) {
         actorData.activeExpertise[helper.index] += helper.flags; // Plus instead of or, because a custom bit size is used.
     };
@@ -2532,31 +2570,103 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr) {
     };
 
 
-    styleLevel     = expData.styleLevels[style];
-    styleExpPoints = expData.styleExpPoints[style];
+    //styleLevel     = expData.styleLevels[style];
+    //styleExpPoints = expData.styleExpPoints[style];
 
+    // Documenting this shit has been a real pain the ass. - Mia
+    // std::vector<byte32> originalExpertise = {
+// 	0b1111'1111'1111'1111'0101'1110'0111'1111, // 0xffff5e7f  // lacking sword pierce
+// 	0b1010'0111'1111'1111'1010'1111'0101'1111, // 0xa7ffaf5f  // lacking cerberus abilities
+// 	0b1010'1111'0001'1111'1111'1111'1111'0011, // 0xaf1ffff3  // lacking nevan and agni
+// 	0b1100'1011'1001'1111'1111'1111'1111'1001, // 0xcb9ffff9  // lacking beowulf forward
+// 	0b1111'1011'1111'1011'1111'1111'1111'1110, // 0xfbfbfffe  // lacking gunslinger artemis
+// 	0b1111'1111'1111'1111'1110'1111'1101'1111, // 0xffffefdf  // lacking Trick lvl 2 and rest of the gunslinger abilities
+// 	0b1111'1111'1110'0011'1111'1110'1111'1111, // 0xffe3feff  // lacking real impact and dance macabre
+// 	0b1111'1111'1111'1111'1111'1111'1111'1111  // 0xffffffff  
+
+    // activeExpertise[0] - Probably most Rebellion moves
+	//                   |||| |||| |||| |||| |||| |||| +--------- Bit 7: Stinger Level 1
+	//                   |||| |||| |||| |||| |||| |||+----------- Bit 8: Stinger Level 2
+	//                   |||| |||| |||| ||+--------------------- Bit 13: Unknown (likely Drive (?))
+	//                   |||| |||| |||| +----------------------- Bit 15: Sword Pierce
+
+    // activeExpertise[1] - Probably most Cerberus moves and start of Agni and Rudra
+	//                   |||| |||| |||| |||| |||| |||| ||+------- Bit 5: Windmill
+	//                   |||| |||| |||| |||| |||| |||| +--------- Bit 7: Revolver Level 2
+	//                   |||| |||| |||| |||+-------------------- Bit 12: Crystal / Million Carats
+	//                   |||| |||| |||| |+---------------------- Bit 14: Ice Age
+	//                   |||| +--------------------------------- Bit 27: Jet Stream Level 2
+	//                   |||+----------------------------------- Bit 28: Jet Stream Level 3
+	//                   |+------------------------------------- Bit 30: Whirlwind
+
+	// activeExpertise[2] - Probably Agni and Rudra Swordmaster moves and Nevan
+	//                   |||| |||| |||| |||| |||| |||| |||| |+---- Bit 2: Crawler
+	//                   |||| |||| |||| |||| |||| |||| |||| +---- Bit 3: Twister / Tempest
+	//                   |||| |||| ||+-------------------------- Bit 20: Bat Rift Level 2
+	//                   |||| |||| |+--------------------------- Bit 21: Reverb Shock Level 1
+	//                   |||| |||| +---------------------------- Bit 22: Reverb Shock Level 2
+	//                   |||+----------------------------------- Bit 27: Feedback / Crazy Roll
+	//                   |+------------------------------------- Bit 29: Distortion
+
+	// activeExpertise[3] - Probably Beowulf moves
+	//                   |||| |||| |||| |||| |||| |||| |||| ||+--- Bit 1: Sky Star / Trick lvl 2
+	//                   |||| |||| |||| |||| |||| |||| |||| |+---- Bit 2: Sky Star / Trick lvl 2
+	//                   |||| |||| ||+-------------------------- Bit 21: Beast Uppercut
+	//                   |||| |||| |+--------------------------- Bit 22: Rising Dragon
+	//                   |||| |+-------------------------------- Bit 26: Straight Level 2
+	//                   |||+----------------------------------- Bit 28: Ground Volcano
+	//                   ||+------------------------------------ Bit 29: Mid-Air Volcano
+
+    // activeExpertise[4] - Real Impact and Gunslinger Moves
+	//                   |||| |||| |||| |||| |||| |||| |||| |||+-- Bit 0: Real Impact
+	//                   |||| |||| |||| |+---------------------- Bit 18: Shotgun Stinger
+	//                   |||| |+-------------------------------- Bit 26: Sphere
+
+    // activeExpertise[5] - More Gunslinger Moves
+	//                   |||| |||| |||| |||| |||| |||| ||+------- Bit 5: Sniper / Reflector
+	//                   |||| |||| |||| |||| |||+--------------- Bit 12: Grapple
+
+    // activeExpertise[6] - Dance Macabre
+	//                   |||| |||| |||| |||| |||| |||+----------- Bit 8: Dance Macabre (and Sky Star(?))
+	//                   |||| |||| |||| |+---------------------- Bit 18: Sky Star
+	//                   |||| |||| |||| +----------------------- Bit 19: Sky Star again for the billionth time
+	//                   |||| |||| |||+------------------------- Bit 20: Unknown
+
+     
+//     actorData.activeExpertise[0] = 0b1111'1111'1111'1111'0101'1110'0111'1111;
+//     actorData.activeExpertise[1] = 0b1010'0111'1111'1111'1010'1111'0101'1111;
+//     actorData.activeExpertise[2] = 0b1110'1111'0001'1111'1111'1111'1111'0011;
+//     actorData.activeExpertise[3] = 0b1100'1011'1001'1111'1111'1111'1111'1001;
+//     actorData.activeExpertise[4] = 0b1111'1011'1111'1011'1111'1111'1111'1110;
+//     actorData.activeExpertise[5] = 0b1111'1111'1111'1111'1110'1111'1101'1111;
+//     actorData.activeExpertise[6] = 0b1111'1111'1110'0011'1111'1110'1111'1111;
 
     if (character == CHARACTER::DANTE) {
-        switch (style) {
-        case STYLE::SWORDMASTER: {
-            if (styleLevel == 1) {
-                UpdateLoop(expertiseHelpersDanteSwordmasterLevel2, countof(expertiseHelpersDanteSwordmasterLevel2));
-            } else if (styleLevel == 2) {
-                UpdateLoop(expertiseHelpersDanteSwordmasterLevel3, countof(expertiseHelpersDanteSwordmasterLevel3));
-            }
+        
+		switch (style) {
+		case STYLE::SWORDMASTER:
+		{
+			if (styleLevel == 1) {
+				UpdateLoop(expertiseHelpersDanteSwordmasterLevel2, countof(expertiseHelpersDanteSwordmasterLevel2));
+			}
+			else if (styleLevel == 2) {
+				UpdateLoop(expertiseHelpersDanteSwordmasterLevel3, countof(expertiseHelpersDanteSwordmasterLevel3));
+			}
 
-            break;
-        }
-        case STYLE::GUNSLINGER: {
-            if (styleLevel == 1) {
-                UpdateLoop(expertiseHelpersDanteGunslingerLevel2, countof(expertiseHelpersDanteGunslingerLevel2));
-            } else if (styleLevel == 2) {
-                UpdateLoop(expertiseHelpersDanteGunslingerLevel3, countof(expertiseHelpersDanteGunslingerLevel3));
-            }
+			break;
+		}
+		case STYLE::GUNSLINGER:
+		{
+			if (styleLevel == 1) {
+				UpdateLoop(expertiseHelpersDanteGunslingerLevel2, countof(expertiseHelpersDanteGunslingerLevel2));
+			}
+			else if (styleLevel == 2) {
+				UpdateLoop(expertiseHelpersDanteGunslingerLevel3, countof(expertiseHelpersDanteGunslingerLevel3));
+			}
 
-            break;
-        }
-        }
+			break;
+		}
+		}
 
 
         using namespace UNLOCK_DANTE;

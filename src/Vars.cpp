@@ -270,6 +270,8 @@ float storedDT = 0;
 
 CrimsonPlayerData crimsonPlayer[20];
 
+HeldStyleExpData heldStyleExpData;
+
 bool devilTriggerReadyPlayed = false;
 
 bool missionClearSongPlayed = false;

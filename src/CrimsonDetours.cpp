@@ -282,17 +282,19 @@ bool TakeDamageCheck(std::uint64_t addr) {
 				return false;
 			}
 			if (ensureIsActiveActor) {
-				if (actorData.magicPoints > 0) {
-					if (actorData.guard && actorData.eventData[0].event != 44) {
-						return true;
+				if (actorData.guard && actorData.eventData[0].event != 44) {
+					if (actorData.magicPoints >= 2000) {
+                        return true;
 					}
-					else {
+					else if (actorData.magicPoints < 2000) {
 						return false;
 					}
 				}
-				else if (actorData.magicPoints < 2000) {
+				else {
 					return false;
 				}
+				
+				
 			}
 			
         }

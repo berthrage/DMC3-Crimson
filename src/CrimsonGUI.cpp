@@ -3591,6 +3591,59 @@ void MirageGaugeMainPlayer() {
 	ImGui::End();
 }
 
+void RoyalGaugeMainPlayer() {
+	if (!(activeConfig.Actor.enable && InGame() && crimsonPlayer[0].character == CHARACTER::DANTE && !g_inGameCutscene)) {
+		return;
+	}
+	static bool show = true;
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+
+    auto royalGauge = mainActorData.royalguardReleaseDamage;
+	float miragePointsColor[4] = { 1.0f , 1.0f, 1.0, hudData.topLeftAlpha / 127.0f };
+	float progressBarBgColor[4] = { 0.2f , 0.2f, 0.2f, hudData.topLeftAlpha / 127.0f };
+
+	// Base resolution (1920x1080)
+	const float baseWidth = 1920.0f;
+	const float baseHeight = 1080.0f;
+
+	// Calculate scaling factors
+	float widthScale = g_windowSize.x / baseWidth;
+	float heightScale = g_windowSize.y / baseHeight;
+
+	// Adjust the size of the bar
+	float barLength = 130.0f * widthScale * (crimsonPlayer[0].vergilDoppelganger.maxMiragePoints / maxMiragePointsAmount);
+	vec2 size = { barLength, 10.0f * heightScale };
+
+	// Calculate position 
+	float posX = 90.0f * widthScale;
+	float posY = 170.0f * heightScale;
+
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	ImGui::SetNextWindowPos(ImVec2(posX, posY));
+
+	if (ImGui::Begin("MirageMainPlayer", &show, windowFlags)) {
+		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&miragePointsColor));
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, *reinterpret_cast<ImVec4*>(&progressBarBgColor));
+		ImGui::ProgressBar(royalGauge, *reinterpret_cast<ImVec2*>(&size), "");
+		ImGui::PopStyleColor(2);
+	}
+
+	ImGui::End();
+}
+
 
 
 void BarsFunction(
@@ -6961,8 +7014,8 @@ void MainOverlayWindow(size_t defaultFontSize) {
 //                 for (int i = 0; i < 14; i++) {
 //                     ImGui::Text("sessionData unlock[%u] : %u", i, sessionData.weaponStyleUnlocks[i]);
 //                 }
-                ImGui::Text("SessionData Hit Points: %g", sessionData.hitPoints);
-                ImGui::Text("Style Levels: %u", sessionData.styleLevels[1]);
+                ImGui::Text("SessionData Style Level Royalguard: %u", ExpConfig::missionExpDataDante.styleLevels[3]);
+                ImGui::Text("Style Levels: %u", sessionData.styleLevels[3]);
                 ImGui::Text("Unlocked DT: %u", sessionData.unlockDevilTrigger);
                 ImGui::Text("Quicksilver Level: %u", sessionData.styleLevels[4]);
 
@@ -7097,7 +7150,18 @@ void MainOverlayWindow(size_t defaultFontSize) {
             }
             auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 
+            for (int i = 0; i < 8; i++) {
+                ImGui::Text("expertise[%u]:  %x", i, actorData.activeExpertise[i]);
+            }
 
+			for (int i = 0; i < 8; i++) {
+				ImGui::Text("queued expertise[%u]:  %x", i, actorData.queuedExpertise[i]);
+			}
+            
+
+			for (int i = 0; i < 8; i++) {
+				ImGui::Text("sessionData expertise[%u]:  %x", i, sessionData.expertise[i]);
+			}
 
             // crazyComboHold = g_HoldToCrazyComboFuncA();
             ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
