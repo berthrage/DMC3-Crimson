@@ -2424,20 +2424,20 @@ void SavePlayerActorExp() {
 
     if (!activeNewActorData.baseAddr) {
         return;
-    }
-    auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+	}
+	auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
 
-    auto character = activeActorData.character;
-    if (character >= CHARACTER::MAX) {
-        return;
-    }
+	auto character = activeActorData.character;
+	if (character >= CHARACTER::MAX) {
+		return;
+	}
 
-    auto style = activeActorData.style;
-    if (style >= STYLE::MAX) {
-        return;
-    }
+	auto style = activeActorData.style;
+	if (style >= STYLE::MAX) {
+		return;
+	}
 
-    ExpData* expDataAddr = (character == CHARACTER::DANTE)    ? &missionExpDataDante
+	ExpData* expDataAddr = (character == CHARACTER::DANTE) ? &missionExpDataDante
                            : (character == CHARACTER::VERGIL) ? &missionExpDataVergil
                                                               : 0;
 
@@ -2449,7 +2449,11 @@ void SavePlayerActorExp() {
 
     DebugLogFunction();
 
-    expData.styleLevels[style]    = activeMissionActorData.styleLevel;
+	HeldStyleExpData& heldStyleExpData = (character == CHARACTER::DANTE)
+		? heldStyleExpDataDante
+		: heldStyleExpDataVergil;
+
+    expData.styleLevels[style] = heldStyleExpData.accumulatedStyleLevels[style];
     expData.styleExpPoints[style] = heldStyleExpData.accumulatedStylePoints[style];
 }
 
@@ -2544,10 +2548,14 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr) {
 
         return;
     }
-
-
+    
+    if (sessionData.character == actorData.character) { // if Current Main character equates to the campaign being played.
+        styleLevel = (std::max)(sessionData.styleLevels[actorData.style], expData.styleLevels[actorData.style]); // Then we fetch possibly higher Style Level already saved (without Actor System enabled)
+    }
+    else {
+        styleLevel = expData.styleLevels[actorData.style];
+    }
 	
-	styleLevel = (std::max)(sessionData.styleLevels[actorData.style], expData.styleLevels[actorData.style]);
 	if (styleLevel >= 2) {
 		styleExpPoints = 100000;
 	}

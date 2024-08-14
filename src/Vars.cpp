@@ -270,7 +270,8 @@ float storedDT = 0;
 
 CrimsonPlayerData crimsonPlayer[20];
 
-HeldStyleExpData heldStyleExpData;
+HeldStyleExpData heldStyleExpDataDante;
+HeldStyleExpData heldStyleExpDataVergil;
 
 bool devilTriggerReadyPlayed = false;
 

@@ -39,7 +39,6 @@ void InitExp();
 
 void SavePlayerActorExp();
 
-void UpdateStylesExpertises(byte8* actorBaseAddr, int currentStyle);
 void UpdatePlayerActorExp(byte8* actorBaseAddr);
 
 void UpdatePlayerActorExps();

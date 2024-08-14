@@ -4418,10 +4418,12 @@ extern CrimsonPlayerData crimsonPlayer[20];
 struct HeldStyleExpData {
     float styleExpPoints = 0;
     int styleLevel = 0;
-    float accumulatedStylePoints[4] = { 0 };
+    int accumulatedStyleLevels[6] = { 0 };
+    float accumulatedStylePoints[6] = { 0 };
 };
 
-extern HeldStyleExpData heldStyleExpData;
+extern HeldStyleExpData heldStyleExpDataDante;
+extern HeldStyleExpData heldStyleExpDataVergil;
 
 extern bool devilTriggerReadyPlayed;
 

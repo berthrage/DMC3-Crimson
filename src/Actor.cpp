@@ -3176,14 +3176,22 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
     auto& characterData = GetCharacterData(actorData);
     auto* fluxtime = &crimsonPlayer[actorData.newPlayerIndex].fluxtime;
 
-    actorData.styleExpPoints = heldStyleExpData.accumulatedStylePoints[style];
+    // Very important for proper Style EXP to function
+    // this is essentially changing which style is going to be accumulated
+	HeldStyleExpData& heldStyleExpData = (actorData.character == CHARACTER::DANTE)
+		? heldStyleExpDataDante
+		: heldStyleExpDataVergil;
 
+	if (actorData.style >= STYLE::SWORDMASTER && actorData.style <= STYLE::ROYALGUARD) {
+		actorData.styleLevel = heldStyleExpDataDante.accumulatedStyleLevels[style];
+	}
+	actorData.styleExpPoints = heldStyleExpDataDante.accumulatedStylePoints[style];
+    
+	
     actorData.style = style; // Changes the style.
     UpdateStyle(actorData); // Updates Style EXP
 
     // Summons Style Switch VFX (leftover from DT In Effect).
-//     std::thread devilvfxtriggerstyle(DevilVFXTriggerStyle, actorBaseAddr, style);
-//     devilvfxtriggerstyle.detach();
     if (activeConfig.enableStyleSwitchFlux) {
         *fluxtime = 0.1f;
     }
@@ -3220,9 +3228,16 @@ void StyleSwitchController(byte8* actorBaseAddr) {
     auto& characterData = GetCharacterData(actorData);
     auto playerIndex = actorData.newPlayerIndex;
 
-    heldStyleExpData.accumulatedStylePoints[actorData.style] = actorData.styleExpPoints;
+	// Accumulate EXP
+	HeldStyleExpData& heldStyleExpData = (actorData.character == CHARACTER::DANTE)
+		? heldStyleExpDataDante
+		: heldStyleExpDataVergil;
+
+	heldStyleExpData.accumulatedStyleLevels[actorData.style] = actorData.styleLevel;
+	heldStyleExpData.accumulatedStylePoints[actorData.style] = actorData.styleExpPoints;
+    
 	if (IsActiveActor(actorData)) {
-		ExpConfig::SavePlayerActorExp();
+		ExpConfig::SavePlayerActorExp(); // then store it in ExpData
 	}
 
     CrimsonFX::StyleSwitchDrawText(actorBaseAddr);
@@ -3307,7 +3322,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
                 ActivateDoppelganger(actorData);
 
 
-                if (!doppTimeTrackerRunning && !activeConfig.infiniteMagicPoints && actorData.costume != 2 &&
+                if (!activeConfig.infiniteMagicPoints && actorData.costume != 2 &&
                     actorData.costume !=
                         4) { // if Infinite Magic Points is on or using Super/Super Corrupted Vergil, DT drain doesn't trigger.
 					// Calculate the amount of time that has already passed based on the current DT
@@ -3320,7 +3335,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
                 actorData.doppelganger = true;
             } else if (actorData.doppelganger) {
                 DeactivateDoppelganger(actorData);
-                // actorData.magicPoints = magicPointsDopp;
+
                 actorData.doppelganger = false;
                 vergilDopp.drainStart = false;
             }
@@ -3330,9 +3345,6 @@ void StyleSwitchController(byte8* actorBaseAddr) {
             DeactivateDoppelganger(actorData);
             vergilDopp.drainStart = false;
             actorData.doppelganger = false;
-            //DeactivateDevil(actorData, false);
-            //UpdateForm(actorData);
-            //actorData.devil = 0;
         }
     }
 
@@ -3345,95 +3357,6 @@ void StyleSwitchController(byte8* actorBaseAddr) {
     if (actorData.devil && actorData.magicPoints < 50) {
         CrimsonSDL::PlayDevilTriggerOut(actorData.newPlayerIndex);
     }
-
-    // actorData.style = 0;
-
-    /*old_for_all(uint8, styleButtonIndex, STYLE_COUNT)
-    {
-            auto &styleButton = characterData.styleButtons[styleButtonIndex];
-            auto &styleIndex = characterData.styleIndices[styleButtonIndex];
-
-            auto lastStyleIndex = styleIndex;
-
-            if (actorData.buttons[2] & styleButton)
-            {
-                    if (characterData.styleButtonIndex == styleButtonIndex)
-                    {
-
-                            styleIndex++;
-
-                            if (styleIndex >= 2)
-                            {
-                                    std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
-                                    devilvfxtrigger.detach();
-                                    styleIndex = 0;
-                            }
-                    }
-                    else
-                    {
-                            std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
-                            devilvfxtrigger.detach();
-                            styleIndex = 0;
-                    }
-
-                    //auto style = characterData.styles[styleButtonIndex][styleIndex];
-
-                    //Doppelganger Style Switching
-                    /*switch (style)
-                    {
-                    case STYLE::QUICKSILVER:
-                    {
-                            if (
-                                    (actorData.newPlayerIndex != 0) ||
-                                    (actorData.newCharacterIndex != 0) ||
-                                    (actorData.newEntityIndex != ENTITY::MAIN))
-                            {
-                                    std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
-                                    devilvfxtrigger.detach();
-                                    styleIndex = lastStyleIndex;
-
-                                    goto LoopContinue;
-                            }
-
-                            break;
-                    }
-                    case STYLE::DOPPELGANGER:
-                    {
-                            if (actorData.newEntityIndex != ENTITY::MAIN)
-                            {
-                                    std::thread devilvfxtrigger(DevilVFXTrigger, actorBaseAddr);
-                                    devilvfxtrigger.detach();
-                                    styleIndex = lastStyleIndex;
-
-                                    goto LoopContinue;
-                            }
-
-                            break;
-                    }
-                    }*/
-
-    /*characterData.styleButtonIndex = styleButtonIndex;
-
-    update = true;
-
-    break;
-}
-
-LoopContinue:;
-}*/
-
-
-    // UpdateStyle(actorData);
-
-    // if (activeConfig.removeBusyFlag)
-    // {
-    // 	actorData.state &= ~STATE::BUSY;
-
-    // 	if constexpr (debug)
-    // 	{
-    // 		Log("%llX Remove Busy Flag", actorData.operator byte8 *());
-    // 	}
-    // }
 }
 
 // @Todo: Update Nero Angelo fix.
