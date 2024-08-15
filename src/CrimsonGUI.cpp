@@ -76,911 +76,910 @@
 void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context);
 
 namespace UI {
-    WebAPIResult versionCheckResult = WebAPIResult::Awaiting;
-    WebAPIResult patronsQueueResult = WebAPIResult::Awaiting;
+WebAPIResult versionCheckResult = WebAPIResult::Awaiting;
+WebAPIResult patronsQueueResult = WebAPIResult::Awaiting;
 
-	void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
+void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened) {
+	if (pIsOpened != nullptr && *pIsOpened == false)
+		return;
+
+	ID3D11Device* pDevice = nullptr;
+
+	pSwapChain->GetDevice(IID_PPV_ARGS(&pDevice));
+
+	// Todo: move to context
+	static bool uiElementsInitialized = false;
+	if (!uiElementsInitialized) {
+		g_Image_CrimsonHeaderLogo.ResizeByRatioW(size_t(g_UIContext.DefaultFontSize * 12.23f));
+
+		uiElementsInitialized = true;
+	}
+
+	// Default font
+	ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
+	// 6 tab buttons + a bit more for the update when there is new version
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, { g_UIContext.DefaultFontSize * 9.38f * 6.0f + g_UIContext.DefaultFontSize * 3.0f, g_UIContext.DefaultFontSize * 35.0f });
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 15.0f);
+	ImGui::Begin(title, nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+	ImGui::PopStyleVar(4);
 	{
-		if (pIsOpened != nullptr && *pIsOpened == false)
-			return;
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		ImRect wndRect = window->Rect();
+		ImGuiStyle& style = ImGui::GetStyle();
 
-		ID3D11Device* pDevice = nullptr;
+		window->ContentRegionRect = ImRect{ window->ContentRegionRect.Min, window->ContentRegionRect.Max - ImVec2{ 0.0f, 70.0f } };
 
-		pSwapChain->GetDevice(IID_PPV_ARGS(&pDevice));
+		float contentMinHeightOffsetFromTop;
+		float contentMaxHeightOffsetFromBottom;
 
-		// Todo: move to context
-		static bool uiElementsInitialized = false;
-		if (!uiElementsInitialized) {
-			g_Image_CrimsonHeaderLogo.ResizeByRatioW(size_t(g_UIContext.DefaultFontSize * 12.23f));
+		// Draw the main window header graphic
+		{
+			static const Texture2DD3D11 logo(g_Image_CrimsonHeaderLogo.GetRGBAData(), g_Image_CrimsonHeaderLogo.GetWidth(), g_Image_CrimsonHeaderLogo.GetHeight(), pDevice);
 
-			uiElementsInitialized = true;
+			ImVec2 logoPos = { (wndRect.Max.x + wndRect.Min.x) * 0.5f - logo.GetWidth() * 0.5f, wndRect.Min.y + logo.GetHeight() * 0.3f };
+
+			window->DrawList->AddLine({ wndRect.Min.x + g_UIContext.DefaultFontSize * 1.7f, logoPos.y + logo.GetHeight() * 0.5f },
+				{ logoPos.x - g_UIContext.DefaultFontSize * 0.52f, logoPos.y + logo.GetHeight() * 0.5f }, SwapColorEndianness(0xE01D42FF));
+
+			window->DrawList->AddLine({ logoPos.x + logo.GetWidth() + g_UIContext.DefaultFontSize * 0.52f, logoPos.y + logo.GetHeight() * 0.5f },
+				{ wndRect.Max.x - g_UIContext.DefaultFontSize * 1.7f, logoPos.y + logo.GetHeight() * 0.5f }, SwapColorEndianness(0xE01D42FF));
+
+			window->DrawList->AddImage(logo, logoPos, logoPos + logo.GetSize());
 		}
 
-		// Default font
-		ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
-		// 6 tab buttons + a bit more for the update when there is new version
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, { g_UIContext.DefaultFontSize * 9.38f * 6.0f + g_UIContext.DefaultFontSize * 3.0f, g_UIContext.DefaultFontSize * 35.0f });
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 15.0f);
-		ImGui::Begin(title, nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
-		ImGui::PopStyleVar(4);
+		// Draw the close button
 		{
-			ImGuiWindow* window = ImGui::GetCurrentWindow();
-			ImRect wndRect = window->Rect();
-			ImGuiStyle& style = ImGui::GetStyle();
+			if (pIsOpened != nullptr) {
+				const auto cursorBackUp = ImGui::GetCursorScreenPos();
+				ImGui::SetCursorScreenPos({ wndRect.Max.x - g_UIContext.DefaultFontSize * 1.17f - 10.0f, wndRect.Min.y + g_UIContext.DefaultFontSize * 0.45f });
 
-			window->ContentRegionRect = ImRect{ window->ContentRegionRect.Min, window->ContentRegionRect.Max - ImVec2{ 0.0f, 70.0f } };
-
-			float contentMinHeightOffsetFromTop;
-			float contentMaxHeightOffsetFromBottom;
-
-			// Draw the main window header graphic
-			{
-				static const Texture2DD3D11 logo(g_Image_CrimsonHeaderLogo.GetRGBAData(), g_Image_CrimsonHeaderLogo.GetWidth(), g_Image_CrimsonHeaderLogo.GetHeight(), pDevice);
-
-				ImVec2 logoPos = { (wndRect.Max.x + wndRect.Min.x) * 0.5f - logo.GetWidth() * 0.5f, wndRect.Min.y + logo.GetHeight() * 0.3f };
-
-				window->DrawList->AddLine({ wndRect.Min.x + g_UIContext.DefaultFontSize * 1.7f, logoPos.y + logo.GetHeight() * 0.5f },
-					{ logoPos.x - g_UIContext.DefaultFontSize * 0.52f, logoPos.y + logo.GetHeight() * 0.5f }, SwapColorEndianness(0xE01D42FF));
-
-				window->DrawList->AddLine({ logoPos.x + logo.GetWidth() + g_UIContext.DefaultFontSize * 0.52f, logoPos.y + logo.GetHeight() * 0.5f },
-					{ wndRect.Max.x - g_UIContext.DefaultFontSize * 1.7f, logoPos.y + logo.GetHeight() * 0.5f }, SwapColorEndianness(0xE01D42FF));
-
-				window->DrawList->AddImage(logo, logoPos, logoPos + logo.GetSize());
-			}
-
-			// Draw the close button
-			{
-				if (pIsOpened != nullptr) {
-					const auto cursorBackUp = ImGui::GetCursorScreenPos();
-					ImGui::SetCursorScreenPos({ wndRect.Max.x - g_UIContext.DefaultFontSize * 1.17f - 10.0f, wndRect.Min.y + g_UIContext.DefaultFontSize * 0.45f });
-
-					if (CloseButton("#Close", { g_UIContext.DefaultFontSize * 1.17f, g_UIContext.DefaultFontSize * 1.17f })) {
-						*pIsOpened = false;
-					}
-
-					ImGui::SetCursorScreenPos(cursorBackUp);
-				}
-			}
-
-			// Selected game mode text
-			{
-				const ImVec2 pos = wndRect.Min + ImVec2{ g_UIContext.DefaultFontSize * 1.33f, g_UIContext.DefaultFontSize * 2.66f };
-
-				window->DrawList->AddText(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize], g_UIContext.DefaultFontSize, pos, SwapColorEndianness(0xFFFFFFFF), "Selected Game Mode: ");
-
-				const float modeTextWidth = ImGui::CalcTextSize("Selected Game Mode: ").x;
-
-				const char* gameModeString = nullptr;
-				ImU32 gameModeStringColor = 0;
-
-				switch (g_UIContext.SelectedGameMode) {
-				case UIContext::GameModes::Vanilla:
-					gameModeString = "VANILLA MODE";
-					gameModeStringColor = 0xFFFFFFFF;
-					break;
-
-				case UIContext::GameModes::StyleSwitcher:
-					gameModeString = "STYLE SWITCHER MODE";
-					gameModeStringColor = SwapColorEndianness(0xE8BA18FF);
-					break;
-
-				case UIContext::GameModes::Crimson:
-					gameModeString = "CRIMSON MODE";
-					gameModeStringColor = SwapColorEndianness(0xDA1B53FF);
-					break;
-
-				default:
-					gameModeString = "Unknown";
-					break;
+				if (CloseButton("#Close", { g_UIContext.DefaultFontSize * 1.17f, g_UIContext.DefaultFontSize * 1.17f })) {
+					*pIsOpened = false;
 				}
 
-				window->DrawList->AddText(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize], g_UIContext.DefaultFontSize, pos + ImVec2{ modeTextWidth, 0.0f }, gameModeStringColor, gameModeString);
+				ImGui::SetCursorScreenPos(cursorBackUp);
+			}
+		}
+
+		// Selected game mode text
+		{
+			const ImVec2 pos = wndRect.Min + ImVec2{ g_UIContext.DefaultFontSize * 1.33f, g_UIContext.DefaultFontSize * 2.66f };
+
+			window->DrawList->AddText(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize], g_UIContext.DefaultFontSize, pos, SwapColorEndianness(0xFFFFFFFF), "Selected Game Mode: ");
+
+			const float modeTextWidth = ImGui::CalcTextSize("Selected Game Mode: ").x;
+
+			const char* gameModeString = nullptr;
+			ImU32 gameModeStringColor = 0;
+
+			switch (g_UIContext.SelectedGameMode) {
+			case UIContext::GameModes::Vanilla:
+				gameModeString = "VANILLA MODE";
+				gameModeStringColor = 0xFFFFFFFF;
+				break;
+
+			case UIContext::GameModes::StyleSwitcher:
+				gameModeString = "STYLE SWITCHER MODE";
+				gameModeStringColor = SwapColorEndianness(0xE8BA18FF);
+				break;
+
+			case UIContext::GameModes::Crimson:
+				gameModeString = "CRIMSON MODE";
+				gameModeStringColor = SwapColorEndianness(0xDA1B53FF);
+				break;
+
+			default:
+				gameModeString = "Unknown";
+				break;
 			}
 
-			// Version text
-			{
-                std::string versionStr{};
-				std::string latestUpdateStr{};
-				std::string newVersionText{};
+			window->DrawList->AddText(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize], g_UIContext.DefaultFontSize, pos + ImVec2{ modeTextWidth, 0.0f }, gameModeStringColor, gameModeString);
+		}
 
-				if (g_UIContext.CurrentVersion.PatchLetter == 0) {
-					versionStr = std::format("Ver. {}.{}", g_UIContext.CurrentVersion.Major, g_UIContext.CurrentVersion.Minor);
-                }
-                else {
-					versionStr = std::format("Ver. {}.{}{}", g_UIContext.CurrentVersion.Major, g_UIContext.CurrentVersion.Minor, g_UIContext.CurrentVersion.PatchLetter);
-                }
+		// Version text
+		{
+			std::string versionStr{};
+			std::string latestUpdateStr{};
+			std::string newVersionText{};
 
-                if (g_UIContext.LatestVersion.PatchLetter == 0) {
-                    newVersionText = std::format("NEW VERSION AVAILABLE (Ver. {}.{})", g_UIContext.LatestVersion.Major, g_UIContext.LatestVersion.Minor);
-                }
-                else {
-                    newVersionText = std::format("NEW VERSION AVAILABLE (Ver. {}.{}{})", g_UIContext.LatestVersion.Major, g_UIContext.LatestVersion.Minor, g_UIContext.LatestVersion.PatchLetter);
-                }
-                
-				switch (UI::versionCheckResult) {
-				case WebAPIResult::Success:
-					latestUpdateStr = std::format("Latest Update: {}/{}/{}", g_UIContext.LatestUpdateDate.Day, g_UIContext.LatestUpdateDate.Month, g_UIContext.LatestUpdateDate.Year);
-					break;
+			if (g_UIContext.CurrentVersion.PatchLetter == 0) {
+				versionStr = std::format("Ver. {}.{}", g_UIContext.CurrentVersion.Major, g_UIContext.CurrentVersion.Minor);
+			}
+			else {
+				versionStr = std::format("Ver. {}.{}{}", g_UIContext.CurrentVersion.Major, g_UIContext.CurrentVersion.Minor, g_UIContext.CurrentVersion.PatchLetter);
+			}
 
-                case WebAPIResult::Awaiting:
-                    latestUpdateStr = "Latest Update...";
-                    break;
+			if (g_UIContext.LatestVersion.PatchLetter == 0) {
+				newVersionText = std::format("NEW VERSION AVAILABLE (Ver. {}.{})", g_UIContext.LatestVersion.Major, g_UIContext.LatestVersion.Minor);
+			}
+			else {
+				newVersionText = std::format("NEW VERSION AVAILABLE (Ver. {}.{}{})", g_UIContext.LatestVersion.Major, g_UIContext.LatestVersion.Minor, g_UIContext.LatestVersion.PatchLetter);
+			}
 
-                default:
-                    latestUpdateStr = "";
-                    break;
-                }
+			switch (UI::versionCheckResult) {
+			case WebAPIResult::Success:
+				latestUpdateStr = std::format("Latest Update: {}/{}/{}", g_UIContext.LatestUpdateDate.Day, g_UIContext.LatestUpdateDate.Month, g_UIContext.LatestUpdateDate.Year);
+				break;
 
-				const float latestUpdateTextWidth = ImGui::CalcTextSize(latestUpdateStr.c_str()).x;
-                const float newVersionTextWidth = g_UIContext.NewVersionAvailable ? ImGui::CalcTextSize(newVersionText.c_str()).x : 0.0f;
-                const float maxLenthUpdateSection = latestUpdateTextWidth > newVersionTextWidth ? latestUpdateTextWidth : newVersionTextWidth;
+			case WebAPIResult::Awaiting:
+				latestUpdateStr = "Latest Update...";
+				break;
 
-                const float versionButtonFontSize = size_t(g_UIContext.DefaultFontSize * 1.45f);
+			default:
+				latestUpdateStr = "";
+				break;
+			}
 
-				ImGui::PushFont(g_ImGuiFont_RussoOne[versionButtonFontSize * 0.8f]);
+			const float latestUpdateTextWidth = ImGui::CalcTextSize(latestUpdateStr.c_str()).x;
+			const float newVersionTextWidth = g_UIContext.NewVersionAvailable ? ImGui::CalcTextSize(newVersionText.c_str()).x : 0.0f;
+			const float maxLenthUpdateSection = latestUpdateTextWidth > newVersionTextWidth ? latestUpdateTextWidth : newVersionTextWidth;
 
-				const float versionButtonWidth = ImGui::CalcTextSize(versionStr.c_str()).x + style.FramePadding.x * 2.0f;
+			const float versionButtonFontSize = size_t(g_UIContext.DefaultFontSize * 1.45f);
+
+			ImGui::PushFont(g_ImGuiFont_RussoOne[versionButtonFontSize * 0.8f]);
+
+			const float versionButtonWidth = ImGui::CalcTextSize(versionStr.c_str()).x + style.FramePadding.x * 2.0f;
+
+			ImGui::PopFont();
+
+			const ImVec2 pos = ImVec2{ wndRect.Max.x - maxLenthUpdateSection - versionButtonWidth - g_UIContext.DefaultFontSize * 2.0f,
+										wndRect.Min.y + g_UIContext.DefaultFontSize * 2.66f };
+
+			// Two lines of text without space in between each with the default font size
+			float dateTextAndButtonHeightSum = g_UIContext.DefaultFontSize * 2.0f;
+
+			window->DrawList->AddText(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize * 0.9f], g_UIContext.DefaultFontSize,
+				g_UIContext.NewVersionAvailable ? pos + ImVec2{
+					0.0f,
+					g_UIContext.DefaultFontSize * 0.5f - dateTextAndButtonHeightSum * 0.5f } : pos, SwapColorEndianness(0xFFFFFFFF), latestUpdateStr.c_str());
+
+			auto cursorBackUp = ImGui::GetCursorScreenPos();
+			ImGui::SetCursorScreenPos(pos + ImVec2{ maxLenthUpdateSection + g_UIContext.DefaultFontSize * 0.3f,
+													style.FramePadding.y + g_UIContext.DefaultFontSize * 0.5f - g_UIContext.DefaultFontSize * 0.65f });
+
+			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
+			ImGui::PushFont(g_ImGuiFont_RussoOne[versionButtonFontSize * 1.0f]);
+
+			if (InfoButton(versionStr.c_str())) {
+				// Todo: Redirect to patch notes
+			}
+
+			ImGui::PopFont();
+			ImGui::PopStyleVar();
+
+			if (g_UIContext.NewVersionAvailable) {
+				ImGui::SetCursorScreenPos(pos + ImVec2{ 0.0f, g_UIContext.DefaultFontSize * 0.5f });
+
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 5.0f, 0.0f });
+				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+
+				ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize * 0.9f]);
+
+				if (InfoButton(newVersionText.c_str())) {
+					ShellExecute(0, 0, "https://github.com/berthrage/Devil-May-Cry-3-Crimson/releases/new", 0, 0, SW_SHOW);
+				}
 
 				ImGui::PopFont();
 
-				const ImVec2 pos = ImVec2{ wndRect.Max.x - maxLenthUpdateSection - versionButtonWidth - g_UIContext.DefaultFontSize * 2.0f,
-											wndRect.Min.y + g_UIContext.DefaultFontSize * 2.66f };
+				ImGui::PopStyleVar(2);
+			}
 
-				// Two lines of text without space in between each with the default font size
-				float dateTextAndButtonHeightSum = g_UIContext.DefaultFontSize * 2.0f;
+			ImGui::SetCursorScreenPos(cursorBackUp);
+		}
 
-				window->DrawList->AddText(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize * 0.9f], g_UIContext.DefaultFontSize,
-					g_UIContext.NewVersionAvailable ? pos + ImVec2{
-						0.0f,
-						g_UIContext.DefaultFontSize * 0.5f - dateTextAndButtonHeightSum * 0.5f } : pos, SwapColorEndianness(0xFFFFFFFF), latestUpdateStr.c_str());
+		// Draw main tabs / sub tabs
+		{
+			const ImVec2 tabBtnSize = { g_UIContext.DefaultFontSize * 9.38f, g_UIContext.DefaultFontSize * 2.4f };
+			const ImVec2 subTabBtnSize = { tabBtnSize.x * 0.8f, tabBtnSize.y * 0.8f };
 
-				auto cursorBackUp = ImGui::GetCursorScreenPos();
-				ImGui::SetCursorScreenPos(pos + ImVec2{ maxLenthUpdateSection + g_UIContext.DefaultFontSize * 0.3f,
-														style.FramePadding.y + g_UIContext.DefaultFontSize * 0.5f - g_UIContext.DefaultFontSize * 0.65f });
+			// The black strip behind tab buttons
+			window->DrawList->AddRectFilled(
+				{ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y },
+				{ wndRect.Max.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y },
+				SwapColorEndianness(0x000000FF)
+			);
+
+			ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 0.9f]);
+
+			contentMinHeightOffsetFromTop = 2.0f * tabBtnSize.y + tabBtnSize.y;
+
+			// Sub tabs
+			if (g_UIContext.SelectedTab == UIContext::MainTabs::Options || g_UIContext.SelectedTab == UIContext::MainTabs::CheatsAndDebug) {
+				contentMinHeightOffsetFromTop += subTabBtnSize.y;
+
+				// Grey strip behind the subtabs
+				window->DrawList->AddRectFilled(
+					{ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y },
+					{ wndRect.Max.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y + subTabBtnSize.y },
+					SwapColorEndianness(0x4E4E4EFF)
+				);
+
+				switch (g_UIContext.SelectedTab) {
+				case UIContext::MainTabs::Options:
+				{
+					const float tabBarWidth = wndRect.GetSize().x;
+					const float tabButtonsGap = (tabBarWidth - float(UIContext::OptionsSubTabs::Size) * subTabBtnSize.x) /
+						float((size_t)UIContext::OptionsSubTabs::Size + 1);
+
+					auto cursorPosBackup = ImGui::GetCursorScreenPos();
+					ImGui::SetCursorScreenPos({ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y });
+
+					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + tabButtonsGap);
+					if (TabButton("GAMEPLAY", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Gameplay, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Gameplay;
+					}
+
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					if (TabButton("CAMERA", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Camera, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Camera;
+					}
+
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					if (TabButton("HOTKEYS", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Hotkeys, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Hotkeys;
+					}
+
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					if (TabButton("INTERFACE", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Interface, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Interface;
+					}
+
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					if (TabButton("WEAPON WHEEL", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::WeaponWheel, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::WeaponWheel;
+					}
+
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					if (TabButton("SOUND/VISUAL", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::SoundOrVisual, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::SoundOrVisual;
+					}
+
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					if (TabButton("SYSTEM", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::System, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::System;
+					}
+
+					ImGui::SetCursorScreenPos(cursorPosBackup);
+				}
+				break;
+
+				case UIContext::MainTabs::CheatsAndDebug:
+				{
+					const float tabBarWidth = wndRect.GetSize().x;
+					const float tabButtonsGap = (tabBarWidth - float(UIContext::CheatsAndDebugSubTabs::Size) * subTabBtnSize.x) /
+						float((size_t)UIContext::CheatsAndDebugSubTabs::Size + 1);
+
+					auto cursorPosBackup = ImGui::GetCursorScreenPos();
+					ImGui::SetCursorScreenPos({ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y });
+
+					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + tabButtonsGap);
+					if (TabButton("COMMON", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Common, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::Common;
+					}
+
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					if (TabButton("SPEED", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Speed, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::Speed;
+					}
+
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					if (TabButton("TELEPORTER", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Teleporter, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::Teleporter;
+					}
+
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					if (TabButton("ENEMY SPAWNER", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::EnemySpawner, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::EnemySpawner;
+					}
+
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					if (TabButton("JUKEBOX", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::JukeBox, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::JukeBox;
+					}
+
+					ImGui::SetCursorScreenPos(cursorPosBackup);
+				}
+				break;
+
+				default:
+					break;
+				}
+
+			}
+
+			ImGui::PopFont();
+
+			ImGui::PushFont(g_ImGuiFont_RussoOne[size_t(g_UIContext.DefaultFontSize * 1.15f)]);
+
+			// Draw main tabs
+			{
+				const float tabBarWidth = wndRect.GetSize().x;
+				const float tabButtonsGap = (tabBarWidth - float(UIContext::MainTabs::Size) * tabBtnSize.x) /
+					float((size_t)UIContext::MainTabs::Size + 2);
+
+				auto cursorPosBackup = ImGui::GetCursorScreenPos();
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2.0f * tabBtnSize.y);
+
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + tabButtonsGap);
+				if (TabButton("GAME MODE", g_UIContext.SelectedTab == UIContext::MainTabs::GameMode, true, false, tabBtnSize)) {
+					g_UIContext.SelectedTab = UIContext::MainTabs::GameMode;
+				}
+
+				ImGui::SameLine(0.0f, tabButtonsGap);
+				if (TabButton("CHARACTER", g_UIContext.SelectedTab == UIContext::MainTabs::Character, true, false, tabBtnSize)) {
+					g_UIContext.SelectedTab = UIContext::MainTabs::Character;
+				}
+
+				ImGui::SameLine(0.0f, tabButtonsGap);
+				if (TabButton("QUICKPLAY", g_UIContext.SelectedTab == UIContext::MainTabs::Quickplay, true, false, tabBtnSize)) {
+					g_UIContext.SelectedTab = UIContext::MainTabs::Quickplay;
+				}
+
+				ImGui::SameLine(0.0f, tabButtonsGap);
+				if (TabButton("MUSIC SWITCHER", g_UIContext.SelectedTab == UIContext::MainTabs::MusicSwitcher, false, false, tabBtnSize)) {
+					g_UIContext.SelectedTab = UIContext::MainTabs::MusicSwitcher;
+				}
+
+				ImGui::SameLine(0.0f, tabButtonsGap);
+				if (TabButton("OPTIONS", g_UIContext.SelectedTab == UIContext::MainTabs::Options, true, true, tabBtnSize)) {
+					g_UIContext.SelectedTab = UIContext::MainTabs::Options;
+				}
+
+				ImGui::SameLine(0.0f, tabButtonsGap);
+				if (TabButton("CHEATS & DEBUG", g_UIContext.SelectedTab == UIContext::MainTabs::CheatsAndDebug, true, true, tabBtnSize)) {
+					g_UIContext.SelectedTab = UIContext::MainTabs::CheatsAndDebug;
+				}
+
+				ImGui::SetCursorScreenPos(cursorPosBackup);
+			}
+
+			ImGui::PopFont();
+
+			// Background faded window name text
+			{
+				ImVec2 pos{ wndRect.Min.x + g_UIContext.DefaultFontSize * 0.1f,
+							wndRect.Min.y + (2.0f * tabBtnSize.y)/*Header Space*/ + g_UIContext.DefaultFontSize * 1.3f };
+
+				switch (g_UIContext.SelectedTab) {
+				case UIContext::MainTabs::GameMode:
+				{
+					window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						SwapColorEndianness(0xFFFFFF10), "Game Mode");
+				}
+				break;
+
+				case UIContext::MainTabs::Character:
+				{
+					window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						SwapColorEndianness(0xFFFFFF10), "Character");
+				}
+				break;
+
+				case UIContext::MainTabs::Quickplay:
+				{
+					window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						SwapColorEndianness(0xFFFFFF10), "Quickplay");
+				}
+				break;
+
+				case UIContext::MainTabs::MusicSwitcher:
+				{
+					window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						SwapColorEndianness(0xFFFFFF10), "Music Switcher");
+				}
+				break;
+
+				case UIContext::MainTabs::Options:
+				{
+					// Has subtab buttons
+					pos += ImVec2{ 0.0f, subTabBtnSize.y };
+
+					if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Gameplay) {
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Gameplay");
+					}
+					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Camera) {
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Camera");
+					}
+					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Hotkeys) {
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Hotkeys");
+					}
+					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Interface) {
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Interface");
+					}
+					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::WeaponWheel) {
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Weapon Wheel");
+					}
+					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::SoundOrVisual) {
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Sound/Visual");
+					}
+					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::System) {
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "System");
+					}
+
+
+				}
+				break;
+
+				case UIContext::MainTabs::CheatsAndDebug:
+				{
+					// Has subtab buttons
+					pos += ImVec2{ 0.0f, subTabBtnSize.y + g_UIContext.DefaultFontSize * 0.3f };
+
+
+					if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Common) {
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Common Cheats");
+					}
+					else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Speed) {
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Speed");
+					}
+					else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Teleporter) {
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Teleporter");
+					}
+					else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::EnemySpawner) {
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Enemy Spawner");
+					}
+					else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::JukeBox) {
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Jukebox");
+					}
+				}
+				break;
+
+				default:
+					break;
+				}
+			}
+		}
+
+		// Footer of the window
+		{
+			// Footer background
+			window->DrawList->AddRectFilled({ wndRect.Min.x, wndRect.Max.y - g_UIContext.DefaultFontSize * 2.24f }, { wndRect.Max.x, wndRect.Max.y },
+				SwapColorEndianness(0x4d3A3EFF), window->WindowRounding, ImDrawCornerFlags_Bot);
+
+			contentMaxHeightOffsetFromBottom = g_UIContext.DefaultFontSize * 2.24f;
+
+			ImVec2 footerInfoBtnSize{ 0.0f, g_UIContext.DefaultFontSize * 1.7f };
+
+			// Left footer section
+			{
+				constexpr auto PATREON_BUTTON_TEXT = "PATREON";
+
+				float aboutButtonWidth = ImGui::CalcTextSize(PATREON_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
+
+				ImVec2 pos{ wndRect.Min.x + g_UIContext.DefaultFontSize * 1.0f, wndRect.Max.y - g_UIContext.DefaultFontSize * 1.68f };
+
+				auto cursorPosBackup = ImGui::GetCursorScreenPos();
 
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
-				ImGui::PushFont(g_ImGuiFont_RussoOne[versionButtonFontSize * 1.0f]);
+				ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
 
-				if (InfoButton(versionStr.c_str())) {
-                    // Todo: Redirect to patch notes
+				ImGui::SetCursorScreenPos(pos + ImVec2{ 0.0f, g_UIContext.DefaultFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
+				if (InfoButton(PATREON_BUTTON_TEXT, footerInfoBtnSize)) {
+					ShellExecute(0, 0, "https://www.patreon.com/miaberth", 0, 0, SW_SHOW);
 				}
 
 				ImGui::PopFont();
 				ImGui::PopStyleVar();
 
-				if (g_UIContext.NewVersionAvailable) {
-					ImGui::SetCursorScreenPos(pos + ImVec2{ 0.0f, g_UIContext.DefaultFontSize * 0.5f });
-
-					ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 5.0f, 0.0f });
-					ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
-
-					ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize * 0.9f]);
-
-					if (InfoButton(newVersionText.c_str())) {
-						ShellExecute(0, 0, "https://github.com/berthrage/Devil-May-Cry-3-Crimson/releases/new", 0, 0, SW_SHOW);
-					}
-
-					ImGui::PopFont();
-
-					ImGui::PopStyleVar(2);
-				}
-
-				ImGui::SetCursorScreenPos(cursorBackUp);
+				ImGui::SetCursorScreenPos(cursorPosBackup);
 			}
 
-			// Draw main tabs / sub tabs
+			// Middle footer section
 			{
-				const ImVec2 tabBtnSize = { g_UIContext.DefaultFontSize * 9.38f, g_UIContext.DefaultFontSize * 2.4f };
-				const ImVec2 subTabBtnSize = { tabBtnSize.x * 0.8f, tabBtnSize.y * 0.8f };
+				constexpr auto BACKGROUND_FADED_TEXT = u8"C•Team";
+				constexpr auto CREDIT_TEXT = u8"Mia Berth • SSSiyan • deepdarkkapustka • Darkness   ";
+				constexpr auto ABOUT_BUTTON_TEXT = "ABOUT";
 
-				// The black strip behind tab buttons
-				window->DrawList->AddRectFilled(
-					{ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y },
-					{ wndRect.Max.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y },
-					SwapColorEndianness(0x000000FF)
-				);
+				ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
 
-				ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 0.9f]);
+				float creditTextWidth = ImGui::CalcTextSize((const char*)CREDIT_TEXT).x;
+				float aboutButtonWidth = ImGui::CalcTextSize(ABOUT_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
 
-				contentMinHeightOffsetFromTop = 2.0f * tabBtnSize.y + tabBtnSize.y;
+				ImVec2 pos{ (wndRect.Min.x + wndRect.Max.x) * 0.5f - (creditTextWidth + aboutButtonWidth) * 0.5f, wndRect.Max.y - g_UIContext.DefaultFontSize * 1.68f };
 
-				// Sub tabs
-				if (g_UIContext.SelectedTab == UIContext::MainTabs::Options || g_UIContext.SelectedTab == UIContext::MainTabs::CheatsAndDebug) {
-					contentMinHeightOffsetFromTop += subTabBtnSize.y;
+				// Background faded text
+				ImVec2 bgFadedTextSize = ImGui::CalcTextSize((const char*)BACKGROUND_FADED_TEXT);
+				window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 4.8f,
+					{ pos.x - g_UIContext.DefaultFontSize * 5.8f,
+					pos.y - g_UIContext.DefaultFontSize * 4.8f * 0.5f },
+					SwapColorEndianness(0xFFFFFF10), (const char*)BACKGROUND_FADED_TEXT);
 
-					// Grey strip behind the subtabs
-					window->DrawList->AddRectFilled(
-						{ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y },
-						{ wndRect.Max.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y + subTabBtnSize.y },
-						SwapColorEndianness(0x4E4E4EFF)
-					);
-
-					switch (g_UIContext.SelectedTab) {
-					case UIContext::MainTabs::Options:
-					{
-						const float tabBarWidth = wndRect.GetSize().x;
-						const float tabButtonsGap = (tabBarWidth - float(UIContext::OptionsSubTabs::Size) * subTabBtnSize.x) /
-							float((size_t)UIContext::OptionsSubTabs::Size + 1);
-
-						auto cursorPosBackup = ImGui::GetCursorScreenPos();
-						ImGui::SetCursorScreenPos({ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y });
-
-						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + tabButtonsGap);
-						if (TabButton("GAMEPLAY", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Gameplay, true, false, subTabBtnSize)) {
-							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Gameplay;
-						}
-
-						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("CAMERA", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Camera, true, false, subTabBtnSize)) {
-							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Camera;
-						}
-
-						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("HOTKEYS", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Hotkeys, true, false, subTabBtnSize)) {
-							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Hotkeys;
-						}
-
-						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("INTERFACE", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Interface, true, false, subTabBtnSize)) {
-							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Interface;
-						}
-
-						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("WEAPON WHEEL", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::WeaponWheel, true, false, subTabBtnSize)) {
-							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::WeaponWheel;
-						}
-
-						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("SOUND/VISUAL", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::SoundOrVisual, true, false, subTabBtnSize)) {
-							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::SoundOrVisual;
-						}
-
-						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("SYSTEM", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::System, true, false, subTabBtnSize)) {
-							g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::System;
-						}
-
-						ImGui::SetCursorScreenPos(cursorPosBackup);
-					}
-					break;
-
-					case UIContext::MainTabs::CheatsAndDebug:
-					{
-						const float tabBarWidth = wndRect.GetSize().x;
-						const float tabButtonsGap = (tabBarWidth - float(UIContext::CheatsAndDebugSubTabs::Size) * subTabBtnSize.x) /
-							float((size_t)UIContext::CheatsAndDebugSubTabs::Size + 1);
-
-						auto cursorPosBackup = ImGui::GetCursorScreenPos();
-						ImGui::SetCursorScreenPos({ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y });
-
-						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + tabButtonsGap);
-						if (TabButton("COMMON", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Common, true, false, subTabBtnSize)) {
-							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::Common;
-						}
-
-						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("SPEED", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Speed, true, false, subTabBtnSize)) {
-							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::Speed;
-						}
-
-						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("TELEPORTER", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Teleporter, true, false, subTabBtnSize)) {
-							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::Teleporter;
-						}
-
-						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("ENEMY SPAWNER", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::EnemySpawner, true, false, subTabBtnSize)) {
-							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::EnemySpawner;
-						}
-
-						ImGui::SameLine(0.0f, tabButtonsGap);
-						if (TabButton("JUKEBOX", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::JukeBox, true, false, subTabBtnSize)) {
-							g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::JukeBox;
-						}
-
-						ImGui::SetCursorScreenPos(cursorPosBackup);
-					}
-					break;
-
-					default:
-						break;
-					}
-
-				}
+				window->DrawList->AddText(pos, SwapColorEndianness(0xFFFFFFFF), (const char*)CREDIT_TEXT);
 
 				ImGui::PopFont();
 
-				ImGui::PushFont(g_ImGuiFont_RussoOne[size_t(g_UIContext.DefaultFontSize * 1.15f)]);
+				auto cursorPosBackup = ImGui::GetCursorScreenPos();
 
-				// Draw main tabs
-				{
-					const float tabBarWidth = wndRect.GetSize().x;
-					const float tabButtonsGap = (tabBarWidth - float(UIContext::MainTabs::Size) * tabBtnSize.x) /
-						float((size_t)UIContext::MainTabs::Size + 2);
+				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
+				ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
 
-					auto cursorPosBackup = ImGui::GetCursorScreenPos();
-					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2.0f * tabBtnSize.y);
-
-					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + tabButtonsGap);
-					if (TabButton("GAME MODE", g_UIContext.SelectedTab == UIContext::MainTabs::GameMode, true, false, tabBtnSize)) {
-						g_UIContext.SelectedTab = UIContext::MainTabs::GameMode;
-					}
-
-					ImGui::SameLine(0.0f, tabButtonsGap);
-					if (TabButton("CHARACTER", g_UIContext.SelectedTab == UIContext::MainTabs::Character, true, false, tabBtnSize)) {
-						g_UIContext.SelectedTab = UIContext::MainTabs::Character;
-					}
-
-					ImGui::SameLine(0.0f, tabButtonsGap);
-					if (TabButton("QUICKPLAY", g_UIContext.SelectedTab == UIContext::MainTabs::Quickplay, true, false, tabBtnSize)) {
-						g_UIContext.SelectedTab = UIContext::MainTabs::Quickplay;
-					}
-
-					ImGui::SameLine(0.0f, tabButtonsGap);
-					if (TabButton("MUSIC SWITCHER", g_UIContext.SelectedTab == UIContext::MainTabs::MusicSwitcher, false, false, tabBtnSize)) {
-						g_UIContext.SelectedTab = UIContext::MainTabs::MusicSwitcher;
-					}
-
-					ImGui::SameLine(0.0f, tabButtonsGap);
-					if (TabButton("OPTIONS", g_UIContext.SelectedTab == UIContext::MainTabs::Options, true, true, tabBtnSize)) {
-						g_UIContext.SelectedTab = UIContext::MainTabs::Options;
-					}
-
-					ImGui::SameLine(0.0f, tabButtonsGap);
-					if (TabButton("CHEATS & DEBUG", g_UIContext.SelectedTab == UIContext::MainTabs::CheatsAndDebug, true, true, tabBtnSize)) {
-						g_UIContext.SelectedTab = UIContext::MainTabs::CheatsAndDebug;
-					}
-
-					ImGui::SetCursorScreenPos(cursorPosBackup);
+				ImGui::SetCursorScreenPos(pos + ImVec2{ creditTextWidth, g_UIContext.DefaultFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
+				if (InfoButton(ABOUT_BUTTON_TEXT, footerInfoBtnSize)) {
+					g_UIContext.SelectedTab = UIContext::MainTabs::None;
 				}
 
 				ImGui::PopFont();
+				ImGui::PopStyleVar();
 
-				// Background faded window name text
-				{
-					ImVec2 pos{ wndRect.Min.x + g_UIContext.DefaultFontSize * 0.1f,
-								wndRect.Min.y + (2.0f * tabBtnSize.y)/*Header Space*/ + g_UIContext.DefaultFontSize * 1.3f };
-
-					switch (g_UIContext.SelectedTab) {
-					case UIContext::MainTabs::GameMode:
-					{
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-							SwapColorEndianness(0xFFFFFF10), "Game Mode");
-					}
-					break;
-
-					case UIContext::MainTabs::Character:
-					{
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-							SwapColorEndianness(0xFFFFFF10), "Character");
-					}
-					break;
-
-					case UIContext::MainTabs::Quickplay:
-					{
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-							SwapColorEndianness(0xFFFFFF10), "Quickplay");
-					}
-					break;
-
-					case UIContext::MainTabs::MusicSwitcher:
-					{
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-							SwapColorEndianness(0xFFFFFF10), "Music Switcher");
-					}
-					break;
-
-					case UIContext::MainTabs::Options:
-					{
-						// Has subtab buttons
-						pos += ImVec2{ 0.0f, subTabBtnSize.y };
-
-                        if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Gameplay) {
-							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-								SwapColorEndianness(0xFFFFFF10), "Gameplay");
-                        }
-                        else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Camera) {
-							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-								SwapColorEndianness(0xFFFFFF10), "Camera");
-                        }
-						else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Hotkeys) {
-							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-								SwapColorEndianness(0xFFFFFF10), "Hotkeys");
-						}
-						else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Interface) {
-							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-								SwapColorEndianness(0xFFFFFF10), "Interface");
-						}
-						else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::WeaponWheel) {
-							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-								SwapColorEndianness(0xFFFFFF10), "Weapon Wheel");
-						}
-						else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::SoundOrVisual) {
-							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-								SwapColorEndianness(0xFFFFFF10), "Sound/Visual");
-						}
-						else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::System) {
-							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-								SwapColorEndianness(0xFFFFFF10), "System");
-						}
-
-						
-					}
-					break;
-
-					case UIContext::MainTabs::CheatsAndDebug:
-					{
-						// Has subtab buttons
-						pos += ImVec2{ 0.0f, subTabBtnSize.y + g_UIContext.DefaultFontSize * 0.3f };
-
-
-						if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Common) {
-							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-								SwapColorEndianness(0xFFFFFF10), "Common Cheats");
-						}
-						else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Speed) {
-							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-								SwapColorEndianness(0xFFFFFF10), "Speed");
-						}
-						else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Teleporter) {
-							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-								SwapColorEndianness(0xFFFFFF10), "Teleporter");
-						}
-						else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::EnemySpawner) {
-							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-								SwapColorEndianness(0xFFFFFF10), "Enemy Spawner");
-						}
-						else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::JukeBox) {
-							window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-								SwapColorEndianness(0xFFFFFF10), "Jukebox");
-						}
-					}
-					break;
-
-					default:
-						break;
-					}
-				}
+				ImGui::SetCursorScreenPos(cursorPosBackup);
 			}
 
-			// Footer of the window
+			// Right footer section
 			{
-				// Footer background
-				window->DrawList->AddRectFilled({ wndRect.Min.x, wndRect.Max.y - g_UIContext.DefaultFontSize * 2.24f }, { wndRect.Max.x, wndRect.Max.y },
-					SwapColorEndianness(0x4d3A3EFF), window->WindowRounding, ImDrawCornerFlags_Bot);
+				constexpr auto CREDIT_TEXT = "Based on serpentiem's ";
+				constexpr auto DDMK_BUTTON_TEXT = "DDMK";
 
-				contentMaxHeightOffsetFromBottom = g_UIContext.DefaultFontSize * 2.24f;
+				ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
 
-				ImVec2 footerInfoBtnSize{ 0.0f, g_UIContext.DefaultFontSize * 1.7f };
+				float creditTextWidth = ImGui::CalcTextSize(CREDIT_TEXT).x;
+				float aboutBtnWidth = ImGui::CalcTextSize(DDMK_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
 
-				// Left footer section
-				{
-					constexpr auto PATREON_BUTTON_TEXT = "PATREON";
+				ImVec2 pos{ wndRect.Max.x - creditTextWidth - aboutBtnWidth - g_UIContext.DefaultFontSize, wndRect.Max.y - g_UIContext.DefaultFontSize * 1.68f };
 
-					float aboutButtonWidth = ImGui::CalcTextSize(PATREON_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
+				window->DrawList->AddText(pos, SwapColorEndianness(0xFFFFFFFF), CREDIT_TEXT);
 
-					ImVec2 pos{ wndRect.Min.x + g_UIContext.DefaultFontSize * 1.0f, wndRect.Max.y - g_UIContext.DefaultFontSize * 1.68f };
+				ImGui::PopFont();
 
-					auto cursorPosBackup = ImGui::GetCursorScreenPos();
+				auto cursorPosBackup = ImGui::GetCursorScreenPos();
 
-					ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
-					ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
+				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
+				ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
 
-					ImGui::SetCursorScreenPos(pos + ImVec2{ 0.0f, g_UIContext.DefaultFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
-					if (InfoButton(PATREON_BUTTON_TEXT, footerInfoBtnSize)) {
-						ShellExecute(0, 0, "https://www.patreon.com/miaberth", 0, 0, SW_SHOW);
-					}
-
-					ImGui::PopFont();
-					ImGui::PopStyleVar();
-
-					ImGui::SetCursorScreenPos(cursorPosBackup);
+				ImGui::SetCursorScreenPos(pos + ImVec2{ creditTextWidth, g_UIContext.DefaultFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
+				if (InfoButton(DDMK_BUTTON_TEXT, footerInfoBtnSize)) {
+					ShellExecute(0, 0, "https://github.com/serpentiem/ddmk/", 0, 0, SW_SHOW);
 				}
 
-				// Middle footer section
-				{
-					constexpr auto BACKGROUND_FADED_TEXT = u8"C•Team";
-					constexpr auto CREDIT_TEXT = u8"Mia Berth • SSSiyan • deepdarkkapustka • Darkness   ";
-					constexpr auto ABOUT_BUTTON_TEXT = "ABOUT";
+				ImGui::PopFont();
+				ImGui::PopStyleVar();
 
-					ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
-
-					float creditTextWidth = ImGui::CalcTextSize((const char*)CREDIT_TEXT).x;
-					float aboutButtonWidth = ImGui::CalcTextSize(ABOUT_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
-
-					ImVec2 pos{ (wndRect.Min.x + wndRect.Max.x) * 0.5f - (creditTextWidth + aboutButtonWidth) * 0.5f, wndRect.Max.y - g_UIContext.DefaultFontSize * 1.68f };
-
-					// Background faded text
-					ImVec2 bgFadedTextSize = ImGui::CalcTextSize((const char*)BACKGROUND_FADED_TEXT);
-					window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 4.8f,
-						{ pos.x - g_UIContext.DefaultFontSize * 5.8f,
-						pos.y - g_UIContext.DefaultFontSize * 4.8f * 0.5f },
-						SwapColorEndianness(0xFFFFFF10), (const char*)BACKGROUND_FADED_TEXT);
-
-					window->DrawList->AddText(pos, SwapColorEndianness(0xFFFFFFFF), (const char*)CREDIT_TEXT);
-
-					ImGui::PopFont();
-
-					auto cursorPosBackup = ImGui::GetCursorScreenPos();
-
-					ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
-					ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
-
-					ImGui::SetCursorScreenPos(pos + ImVec2{ creditTextWidth, g_UIContext.DefaultFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
-					if (InfoButton(ABOUT_BUTTON_TEXT, footerInfoBtnSize)) {
-						g_UIContext.SelectedTab = UIContext::MainTabs::None;
-					}
-
-					ImGui::PopFont();
-					ImGui::PopStyleVar();
-
-					ImGui::SetCursorScreenPos(cursorPosBackup);
-				}
-
-				// Right footer section
-				{
-					constexpr auto CREDIT_TEXT = "Based on serpentiem's ";
-					constexpr auto DDMK_BUTTON_TEXT = "DDMK";
-
-					ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
-
-					float creditTextWidth = ImGui::CalcTextSize(CREDIT_TEXT).x;
-					float aboutBtnWidth = ImGui::CalcTextSize(DDMK_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
-
-					ImVec2 pos{ wndRect.Max.x - creditTextWidth - aboutBtnWidth - g_UIContext.DefaultFontSize, wndRect.Max.y - g_UIContext.DefaultFontSize * 1.68f };
-
-					window->DrawList->AddText(pos, SwapColorEndianness(0xFFFFFFFF), CREDIT_TEXT);
-
-					ImGui::PopFont();
-
-					auto cursorPosBackup = ImGui::GetCursorScreenPos();
-
-					ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
-					ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
-
-					ImGui::SetCursorScreenPos(pos + ImVec2{ creditTextWidth, g_UIContext.DefaultFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
-					if (InfoButton(DDMK_BUTTON_TEXT, footerInfoBtnSize)) {
-						ShellExecute(0, 0, "https://github.com/serpentiem/ddmk/", 0, 0, SW_SHOW);
-					}
-
-					ImGui::PopFont();
-					ImGui::PopStyleVar();
-
-					ImGui::SetCursorScreenPos(cursorPosBackup);
-				}
-			}
-
-			// Actual content
-			{
-				ImVec2 contentMin = { wndRect.Min.x + g_UIContext.DefaultFontSize * 0.3f,
-									  wndRect.Min.y + contentMinHeightOffsetFromTop + g_UIContext.DefaultFontSize * 0.3f };
-
-				ImGui::SetNextWindowPos(contentMin, ImGuiCond_Always);
-				ImGui::BeginChildEx("Content Window", window->GetID("Content Window"),
-					window->Size - ImVec2{ g_UIContext.DefaultFontSize * 0.3f * 2.0f, (contentMinHeightOffsetFromTop + g_UIContext.DefaultFontSize * 0.3f + contentMaxHeightOffsetFromBottom) }, false, 0);
-				DrawMainContent(pDevice, g_UIContext);
-				ImGui::EndChild();
+				ImGui::SetCursorScreenPos(cursorPosBackup);
 			}
 		}
-		ImGui::End();
-		ImGui::PopFont();
+
+		// Actual content
+		{
+			ImVec2 contentMin = { wndRect.Min.x + g_UIContext.DefaultFontSize * 0.3f,
+								  wndRect.Min.y + contentMinHeightOffsetFromTop + g_UIContext.DefaultFontSize * 0.3f };
+
+			ImGui::SetNextWindowPos(contentMin, ImGuiCond_Always);
+			ImGui::BeginChildEx("Content Window", window->GetID("Content Window"),
+				window->Size - ImVec2{ g_UIContext.DefaultFontSize * 0.3f * 2.0f, (contentMinHeightOffsetFromTop + g_UIContext.DefaultFontSize * 0.3f + contentMaxHeightOffsetFromBottom) }, false, 0);
+			DrawMainContent(pDevice, g_UIContext);
+			ImGui::EndChild();
+		}
 	}
+	ImGui::End();
+	ImGui::PopFont();
+}
 }
 
-bool visibleMain     = false;
+bool visibleMain = false;
 bool lastVisibleMain = false;
 
-bool visibleShop     = false;
+bool visibleShop = false;
 bool lastVisibleShop = false;
 
 bool updateWeaponWheel = false;
 
 // siy stuff to be moved //
-static const std::vector<std::pair<uint16_t, const char*>> buttonPairs = {{0x0000, "Nothing"}, {0x0001, "Left Trigger"},
-    {0x0002, "Right Trigger"}, {0x0004, "Left Shoulder"}, {0x0008, "Right Shoulder"}, {0x0010, "Y"}, {0x0020, "B"}, {0x0040, "A"},
-    {0x0080, "X"}, {0x0100, "Back"}, {0x0200, "Left Thumb"}, {0x0400, "Right Thumb"}, {0x0800, "Start"}, {0x1000, "Up"}, {0x2000, "Right"},
-    {0x4000, "Down"}, {0x8000, "Left"}};
+static const std::vector<std::pair<uint16_t, const char*>> buttonPairs = { {0x0000, "Nothing"}, {0x0001, "Left Trigger"},
+	{0x0002, "Right Trigger"}, {0x0004, "Left Shoulder"}, {0x0008, "Right Shoulder"}, {0x0010, "Y"}, {0x0020, "B"}, {0x0040, "A"},
+	{0x0080, "X"}, {0x0100, "Back"}, {0x0200, "Left Thumb"}, {0x0400, "Right Thumb"}, {0x0800, "Start"}, {0x1000, "Up"}, {0x2000, "Right"},
+	{0x4000, "Down"}, {0x8000, "Left"} };
 
 std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum) {
-    for (const auto& pair : buttonPairs) {
-        if (pair.first == buttonNum) {
-            return pair;
-        }
-    }
-    return buttonPairs[0];
+	for (const auto& pair : buttonPairs) {
+		if (pair.first == buttonNum) {
+			return pair;
+		}
+	}
+	return buttonPairs[0];
 }
 
 void DrawButtonCombo(const char* label, uint16_t& currentButton) {
-    if (ImGui::BeginCombo(label, getButtonInfo(currentButton).second)) {
-        for (const auto& buttonPair : buttonPairs) {
-            bool is_selected = (currentButton == buttonPair.first);
-            if (ImGui::Selectable(buttonPair.second, is_selected)) {
-                currentButton = buttonPair.first;
-            }
-            if (is_selected) {
-                ImGui::SetItemDefaultFocus();
-            }
-        }
-        ImGui::EndCombo();
-    }
+	if (ImGui::BeginCombo(label, getButtonInfo(currentButton).second)) {
+		for (const auto& buttonPair : buttonPairs) {
+			bool is_selected = (currentButton == buttonPair.first);
+			if (ImGui::Selectable(buttonPair.second, is_selected)) {
+				currentButton = buttonPair.first;
+			}
+			if (is_selected) {
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
 }
 // siy stuff over //
 
 #pragma region Common
 
 const char* saveNamesDante[] = {
-    "Dante 0000",
-    "Dante 0001",
-    "Dante 0002",
-    "Dante 0003",
-    "Dante 0004",
-    "Dante 0005",
-    "Dante 0006",
-    "Dante 0007",
-    "Dante 0008",
-    "Dante 0009",
+	"Dante 0000",
+	"Dante 0001",
+	"Dante 0002",
+	"Dante 0003",
+	"Dante 0004",
+	"Dante 0005",
+	"Dante 0006",
+	"Dante 0007",
+	"Dante 0008",
+	"Dante 0009",
 };
 
 
 const char* saveNamesVergil[] = {
-    "Vergil 0000",
-    "Vergil 0001",
-    "Vergil 0002",
-    "Vergil 0003",
-    "Vergil 0004",
-    "Vergil 0005",
-    "Vergil 0006",
-    "Vergil 0007",
-    "Vergil 0008",
-    "Vergil 0009",
+	"Vergil 0000",
+	"Vergil 0001",
+	"Vergil 0002",
+	"Vergil 0003",
+	"Vergil 0004",
+	"Vergil 0005",
+	"Vergil 0006",
+	"Vergil 0007",
+	"Vergil 0008",
+	"Vergil 0009",
 };
 
 
 const char* indexNames[] = {
-    "0000",
-    "0001",
-    "0002",
-    "0003",
-    "0004",
-    "0005",
-    "0006",
-    "0007",
-    "0008",
-    "0009",
-    "0010",
-    "0011",
-    "0012",
-    "0013",
-    "0014",
-    "0015",
-    "0016",
-    "0017",
-    "0018",
-    "0019",
-    "0020",
-    "0021",
-    "0022",
-    "0023",
-    "0024",
-    "0025",
-    "0026",
-    "0027",
-    "0028",
-    "0029",
-    "0030",
-    "0031",
-    "0032",
-    "0033",
-    "0034",
-    "0035",
-    "0036",
-    "0037",
-    "0038",
-    "0039",
-    "0040",
-    "0041",
-    "0042",
-    "0043",
-    "0044",
-    "0045",
-    "0046",
-    "0047",
-    "0048",
-    "0049",
-    "0050",
-    "0051",
-    "0052",
-    "0053",
-    "0054",
-    "0055",
-    "0056",
-    "0057",
-    "0058",
-    "0059",
-    "0060",
-    "0061",
-    "0062",
-    "0063",
-    "0064",
-    "0065",
-    "0066",
-    "0067",
-    "0068",
-    "0069",
-    "0070",
-    "0071",
-    "0072",
-    "0073",
-    "0074",
-    "0075",
-    "0076",
-    "0077",
-    "0078",
-    "0079",
-    "0080",
-    "0081",
-    "0082",
-    "0083",
-    "0084",
-    "0085",
-    "0086",
-    "0087",
-    "0088",
-    "0089",
-    "0090",
-    "0091",
-    "0092",
-    "0093",
-    "0094",
-    "0095",
-    "0096",
-    "0097",
-    "0098",
-    "0099",
+	"0000",
+	"0001",
+	"0002",
+	"0003",
+	"0004",
+	"0005",
+	"0006",
+	"0007",
+	"0008",
+	"0009",
+	"0010",
+	"0011",
+	"0012",
+	"0013",
+	"0014",
+	"0015",
+	"0016",
+	"0017",
+	"0018",
+	"0019",
+	"0020",
+	"0021",
+	"0022",
+	"0023",
+	"0024",
+	"0025",
+	"0026",
+	"0027",
+	"0028",
+	"0029",
+	"0030",
+	"0031",
+	"0032",
+	"0033",
+	"0034",
+	"0035",
+	"0036",
+	"0037",
+	"0038",
+	"0039",
+	"0040",
+	"0041",
+	"0042",
+	"0043",
+	"0044",
+	"0045",
+	"0046",
+	"0047",
+	"0048",
+	"0049",
+	"0050",
+	"0051",
+	"0052",
+	"0053",
+	"0054",
+	"0055",
+	"0056",
+	"0057",
+	"0058",
+	"0059",
+	"0060",
+	"0061",
+	"0062",
+	"0063",
+	"0064",
+	"0065",
+	"0066",
+	"0067",
+	"0068",
+	"0069",
+	"0070",
+	"0071",
+	"0072",
+	"0073",
+	"0074",
+	"0075",
+	"0076",
+	"0077",
+	"0078",
+	"0079",
+	"0080",
+	"0081",
+	"0082",
+	"0083",
+	"0084",
+	"0085",
+	"0086",
+	"0087",
+	"0088",
+	"0089",
+	"0090",
+	"0091",
+	"0092",
+	"0093",
+	"0094",
+	"0095",
+	"0096",
+	"0097",
+	"0098",
+	"0099",
 };
 
 
 const char* buttonIndexNames[] = {
-    "Button 1",
-    "Button 2",
-    "Button 3",
-    "Button 4",
+	"Button 1",
+	"Button 2",
+	"Button 3",
+	"Button 4",
 };
 
 const char* dataNames[] = {
-    "Data 0",
-    "Data 1",
-    "Data 2",
-    "Data 3",
-    "Data 4",
-    "Data 5",
-    "Data 6",
-    "Data 7",
+	"Data 0",
+	"Data 1",
+	"Data 2",
+	"Data 3",
+	"Data 4",
+	"Data 5",
+	"Data 6",
+	"Data 7",
 };
 
 const char* buttonNames[] = {
-    "Nothing",
-    "Left Trigger",
-    "Right Trigger",
-    "Left Shoulder",
-    "Right Shoulder",
-    "Y",
-    "B",
-    "A",
-    "X",
-    "Back",
-    "Left Thumb",
-    "Right Thumb",
-    "Start",
-    "Up",
-    "Right",
-    "Down",
-    "Left",
+	"Nothing",
+	"Left Trigger",
+	"Right Trigger",
+	"Left Shoulder",
+	"Right Shoulder",
+	"Y",
+	"B",
+	"A",
+	"X",
+	"Back",
+	"Left Thumb",
+	"Right Thumb",
+	"Start",
+	"Up",
+	"Right",
+	"Down",
+	"Left",
 };
 
 constexpr byte16 buttons[] = {
-    0,
-    GAMEPAD::LEFT_TRIGGER,
-    GAMEPAD::RIGHT_TRIGGER,
-    GAMEPAD::LEFT_SHOULDER,
-    GAMEPAD::RIGHT_SHOULDER,
-    GAMEPAD::Y,
-    GAMEPAD::B,
-    GAMEPAD::A,
-    GAMEPAD::X,
-    GAMEPAD::BACK,
-    GAMEPAD::LEFT_THUMB,
-    GAMEPAD::RIGHT_THUMB,
-    GAMEPAD::START,
-    GAMEPAD::UP,
-    GAMEPAD::RIGHT,
-    GAMEPAD::DOWN,
-    GAMEPAD::LEFT,
+	0,
+	GAMEPAD::LEFT_TRIGGER,
+	GAMEPAD::RIGHT_TRIGGER,
+	GAMEPAD::LEFT_SHOULDER,
+	GAMEPAD::RIGHT_SHOULDER,
+	GAMEPAD::Y,
+	GAMEPAD::B,
+	GAMEPAD::A,
+	GAMEPAD::X,
+	GAMEPAD::BACK,
+	GAMEPAD::LEFT_THUMB,
+	GAMEPAD::RIGHT_THUMB,
+	GAMEPAD::START,
+	GAMEPAD::UP,
+	GAMEPAD::RIGHT,
+	GAMEPAD::DOWN,
+	GAMEPAD::LEFT,
 };
 
 const char* directionNames[] = {
-    "Up",
-    "Right",
-    "Down",
-    "Left",
+	"Up",
+	"Right",
+	"Down",
+	"Left",
 };
 
 const char* playerIndexNames[] = {
-    "1P",
-    "2P",
-    "3P",
-    "4P",
+	"1P",
+	"2P",
+	"3P",
+	"4P",
 };
 
 
 const char* characterIndexNames[] = {
-    "Character 1",
-    "Character 2",
-    "Character 3",
+	"Character 1",
+	"Character 2",
+	"Character 3",
 };
 
 const char* entityNames[] = {
-    "Main",
-    "Clone",
+	"Main",
+	"Clone",
 };
 
 const char* entityEnumNames[] = {
-    "ENTITY::MAIN",
-    "ENTITY::CLONE",
+	"ENTITY::MAIN",
+	"ENTITY::CLONE",
 };
 
 const char* characterNames[] = {
-    "Dante",
-    "Bob",
-    "Lady",
-    "Vergil",
+	"Dante",
+	"Bob",
+	"Lady",
+	"Vergil",
 };
 
 
 const char* costumeRespectsProgressionNames[] = {
-    "Off",
-    "Original (Vanilla Default)",
-    "Crimson",
+	"Off",
+	"Original (Vanilla Default)",
+	"Crimson",
 };
 
 const char* cameraSensitivityNames[] = {
-    "Low (Vanilla Default)",
-    "Medium",
-    "High",
-    "Highest",
+	"Low (Vanilla Default)",
+	"Medium",
+	"High",
+	"Highest",
 };
 
 const char* cameraFollowUpSpeedNames[] = {
-    "Low (Vanilla Default)",
-    "Medium",
-    "High",
+	"Low (Vanilla Default)",
+	"Medium",
+	"High",
 };
 
 const char* cameraDistanceNames[] = {
-    "Far (Vanilla Default)",
-    "Closer",
-    "Dynamic",
+	"Far (Vanilla Default)",
+	"Closer",
+	"Dynamic",
 };
 
 const char* cameraLockOnDistanceNames[] = {
-    "Closer (Vanilla Default)",
-    "Far",
-    "Dynamic",
+	"Closer (Vanilla Default)",
+	"Far",
+	"Dynamic",
 };
 
 
 const char* cameraTiltNames[] = {
-    "Original (Vanilla Default)",
-    "Closer to Ground",
+	"Original (Vanilla Default)",
+	"Closer to Ground",
 };
 
 const char* cameraSmoothingNames[] = {
-    "Highest",
-    "High (Vanilla Default)",
-    "Medium",
-    "Low",
+	"Highest",
+	"High (Vanilla Default)",
+	"Medium",
+	"Low",
 };
 
 const char* GUITransparencyNames[] = {
@@ -991,65 +990,65 @@ const char* GUITransparencyNames[] = {
 
 
 const char* newCharacterNames[] = {
-    "Dante",
-    "Bob",
-    "Lady",
-    "Vergil",
-    "Boss Lady",
-    "Boss Vergil",
+	"Dante",
+	"Bob",
+	"Lady",
+	"Vergil",
+	"Boss Lady",
+	"Boss Vergil",
 };
 
 constexpr uint8 newCharacters[] = {
-    CHARACTER::DANTE,
-    CHARACTER::BOB,
-    CHARACTER::LADY,
-    CHARACTER::VERGIL,
-    CHARACTER::BOSS_LADY,
-    CHARACTER::BOSS_VERGIL,
+	CHARACTER::DANTE,
+	CHARACTER::BOB,
+	CHARACTER::LADY,
+	CHARACTER::VERGIL,
+	CHARACTER::BOSS_LADY,
+	CHARACTER::BOSS_VERGIL,
 };
 
-const char* collisionGroupNames[] = {"Player", "Enemy"};
+const char* collisionGroupNames[] = { "Player", "Enemy" };
 
 
 constexpr uint8 collisionGroups[] = {
-    COLLISION_GROUP::PLAYER,
-    COLLISION_GROUP::ENEMY,
+	COLLISION_GROUP::PLAYER,
+	COLLISION_GROUP::ENEMY,
 };
 
 const char* styleNamesDante[] = {
-    "Swordmaster",
-    "Gunslinger",
-    "Trickster",
-    "Royalguard",
-    "Quicksilver",
-    "Doppelganger",
+	"Swordmaster",
+	"Gunslinger",
+	"Trickster",
+	"Royalguard",
+	"Quicksilver",
+	"Doppelganger",
 };
 
 const char* styleNamesFX[] = {
-    "Trick",
-    "Sword",
-    "Gun",
-    "Royal",
-    "Quick",
-    "Dopp",
-    "DT",
-    "DTE",
-    "Ready!"
+	"Trick",
+	"Sword",
+	"Gun",
+	"Royal",
+	"Quick",
+	"Dopp",
+	"DT",
+	"DTE",
+	"Ready!"
 };
 
 constexpr uint8 stylesDante[] = {
-    STYLE::SWORDMASTER,
-    STYLE::GUNSLINGER,
-    STYLE::TRICKSTER,
-    STYLE::ROYALGUARD,
-    STYLE::QUICKSILVER,
-    STYLE::DOPPELGANGER,
+	STYLE::SWORDMASTER,
+	STYLE::GUNSLINGER,
+	STYLE::TRICKSTER,
+	STYLE::ROYALGUARD,
+	STYLE::QUICKSILVER,
+	STYLE::DOPPELGANGER,
 };
 
 const char* styleNamesVergil[] = {
-    "Dark Slayer",
-    "Doppelganger",
-    "Quicksilver",
+	"Dark Slayer",
+	"Doppelganger",
+	"Quicksilver",
 };
 
 const char* styleNamesDanteGameplay[] = {
@@ -1065,496 +1064,496 @@ const char* styleNamesVergilGameplay[] = {
 	"PLACEHOLDER",
 	"PLACEHOLDER",
 	"DARK SLAYER",
-    "PLACEHOLDER",
-    "QUICKSILVER",
-    "DOPPELGANGER",
+	"PLACEHOLDER",
+	"QUICKSILVER",
+	"DOPPELGANGER",
 };
 
 constexpr uint8 stylesVergil[] = {
-    STYLE::DARK_SLAYER,
-    STYLE::DOPPELGANGER,
-    STYLE::QUICKSILVER,
+	STYLE::DARK_SLAYER,
+	STYLE::DOPPELGANGER,
+	STYLE::QUICKSILVER,
 };
 
 const char* meleeWeaponNamesDante[] = {
-    "Rebellion",
-    "Cerberus",
-    "Agni & Rudra",
-    "Nevan",
-    "Beowulf",
+	"Rebellion",
+	"Cerberus",
+	"Agni & Rudra",
+	"Nevan",
+	"Beowulf",
 };
 
 constexpr uint8 meleeWeaponsDante[] = {
-    WEAPON::REBELLION,
-    WEAPON::CERBERUS,
-    WEAPON::AGNI_RUDRA,
-    WEAPON::NEVAN,
-    WEAPON::BEOWULF_DANTE,
+	WEAPON::REBELLION,
+	WEAPON::CERBERUS,
+	WEAPON::AGNI_RUDRA,
+	WEAPON::NEVAN,
+	WEAPON::BEOWULF_DANTE,
 };
 
 const char* meleeWeaponNamesVergil[] = {
-    "Yamato",
-    "Beowulf",
-    "Yamato & Force Edge",
+	"Yamato",
+	"Beowulf",
+	"Yamato & Force Edge",
 };
 
 constexpr uint8 meleeWeaponsVergil[] = {
-    WEAPON::YAMATO_VERGIL,
-    WEAPON::BEOWULF_VERGIL,
-    WEAPON::YAMATO_FORCE_EDGE,
+	WEAPON::YAMATO_VERGIL,
+	WEAPON::BEOWULF_VERGIL,
+	WEAPON::YAMATO_FORCE_EDGE,
 };
 
 const char* rangedWeaponNamesDante[] = {
-    "Ebony & Ivory",
-    "Shotgun",
-    "Artemis",
-    "Spiral",
-    "Kalina Ann",
+	"Ebony & Ivory",
+	"Shotgun",
+	"Artemis",
+	"Spiral",
+	"Kalina Ann",
 };
 
 constexpr uint8 rangedWeaponsDante[] = {
-    WEAPON::EBONY_IVORY,
-    WEAPON::SHOTGUN,
-    WEAPON::ARTEMIS,
-    WEAPON::SPIRAL,
-    WEAPON::KALINA_ANN,
+	WEAPON::EBONY_IVORY,
+	WEAPON::SHOTGUN,
+	WEAPON::ARTEMIS,
+	WEAPON::SPIRAL,
+	WEAPON::KALINA_ANN,
 };
 
 const char* weaponSwitchTypeNames[] = {
-    "Linear",
-    "Arbitrary",
+	"Linear",
+	"Arbitrary",
 };
 
 const char* stickNames[] = {
-    "Right Stick",
-    "Left Stick",
+	"Right Stick",
+	"Left Stick",
 };
 
 const char* styleRankNames[] = {
-    "None",
-    "Dope",
-    "Crazy",
-    "Blast",
-    "Alright",
-    "Sweet",
-    "Showtime",
-    "Stylish",
+	"None",
+	"Dope",
+	"Crazy",
+	"Blast",
+	"Alright",
+	"Sweet",
+	"Showtime",
+	"Stylish",
 };
 
 const char* missionNames[] = {
-    "Movie",
-    "Mission 1",
-    "Mission 2",
-    "Mission 3",
-    "Mission 4",
-    "Mission 5",
-    "Mission 6",
-    "Mission 7",
-    "Mission 8",
-    "Mission 9",
-    "Mission 10",
-    "Mission 11",
-    "Mission 12",
-    "Mission 13",
-    "Mission 14",
-    "Mission 15",
-    "Mission 16",
-    "Mission 17",
-    "Mission 18",
-    "Mission 19",
-    "Mission 20",
-    "Bloody Palace",
+	"Movie",
+	"Mission 1",
+	"Mission 2",
+	"Mission 3",
+	"Mission 4",
+	"Mission 5",
+	"Mission 6",
+	"Mission 7",
+	"Mission 8",
+	"Mission 9",
+	"Mission 10",
+	"Mission 11",
+	"Mission 12",
+	"Mission 13",
+	"Mission 14",
+	"Mission 15",
+	"Mission 16",
+	"Mission 17",
+	"Mission 18",
+	"Mission 19",
+	"Mission 20",
+	"Bloody Palace",
 };
 
 const char* modeNames[] = {
-    "Easy",
-    "Normal",
-    "Hard",
-    "Very Hard",
-    "Dante Must Die",
-    "Heaven or Hell",
+	"Easy",
+	"Normal",
+	"Hard",
+	"Very Hard",
+	"Dante Must Die",
+	"Heaven or Hell",
 };
 
 constexpr uint32 modes[] = {
-    MODE::EASY,
-    MODE::NORMAL,
-    MODE::HARD,
-    MODE::VERY_HARD,
-    MODE::DANTE_MUST_DIE,
-    MODE::HEAVEN_OR_HELL,
+	MODE::EASY,
+	MODE::NORMAL,
+	MODE::HARD,
+	MODE::VERY_HARD,
+	MODE::DANTE_MUST_DIE,
+	MODE::HEAVEN_OR_HELL,
 };
 
 const char* floorNames[] = {
-    "Floor 1",
-    "Floor 2",
-    "Floor 3",
-    "Floor 4",
-    "Floor 5",
-    "Floor 6",
-    "Floor 7",
-    "Floor 8",
-    "Floor 9",
-    "Floor 10",
-    "Cerberus",
-    "Gigapede",
-    "Agni & Rudra",
-    "Nevan",
-    "Beowulf",
-    "Geryon",
-    "Doppelganger",
-    "Leviathan",
-    "Damned Chessmen",
-    "Vergil 1",
-    "Vergil 2",
-    "Vergil 3",
-    "Lady",
-    "Arkham",
-    "Jester 1",
-    "Jester 2",
-    "Jester 3",
+	"Floor 1",
+	"Floor 2",
+	"Floor 3",
+	"Floor 4",
+	"Floor 5",
+	"Floor 6",
+	"Floor 7",
+	"Floor 8",
+	"Floor 9",
+	"Floor 10",
+	"Cerberus",
+	"Gigapede",
+	"Agni & Rudra",
+	"Nevan",
+	"Beowulf",
+	"Geryon",
+	"Doppelganger",
+	"Leviathan",
+	"Damned Chessmen",
+	"Vergil 1",
+	"Vergil 2",
+	"Vergil 3",
+	"Lady",
+	"Arkham",
+	"Jester 1",
+	"Jester 2",
+	"Jester 3",
 };
 
 const char* sceneNames[] = {
-    "SCENE::BOOT",
-    "SCENE::INTRO",
-    "SCENE::MAIN",
-    "SCENE::MISSION_SELECT",
-    "SCENE::LOAD",
-    "SCENE::GAME",
-    "SCENE::CUTSCENE",
-    "SCENE::MISSION_START",
-    "SCENE::MISSION_RESULT",
-    "SCENE::GAME_OVER",
+	"SCENE::BOOT",
+	"SCENE::INTRO",
+	"SCENE::MAIN",
+	"SCENE::MISSION_SELECT",
+	"SCENE::LOAD",
+	"SCENE::GAME",
+	"SCENE::CUTSCENE",
+	"SCENE::MISSION_START",
+	"SCENE::MISSION_RESULT",
+	"SCENE::GAME_OVER",
 };
 
 const char* eventNames[] = {
-    "EVENT::INIT",
-    "EVENT::MAIN",
-    "EVENT::TELEPORT",
-    "EVENT::PAUSE",
-    "EVENT::STATUS",
-    "EVENT::OPTIONS",
-    "EVENT::DEATH",
-    "EVENT::ITEM",
-    "EVENT::MESSAGE",
-    "EVENT::CUSTOMIZE",
-    "EVENT::SAVE",
-    "EVENT::DELETE",
-    "EVENT::END",
+	"EVENT::INIT",
+	"EVENT::MAIN",
+	"EVENT::TELEPORT",
+	"EVENT::PAUSE",
+	"EVENT::STATUS",
+	"EVENT::OPTIONS",
+	"EVENT::DEATH",
+	"EVENT::ITEM",
+	"EVENT::MESSAGE",
+	"EVENT::CUSTOMIZE",
+	"EVENT::SAVE",
+	"EVENT::DELETE",
+	"EVENT::END",
 };
 
 const char* trackFilenames[] = {
-    "Battle_00.ogg",
-    "Battle_01.ogg",
-    "Battle_01b.ogg",
-    "Battle_02.ogg",
-    "Battle_03.ogg",
-    "Battle_04.ogg",
-    "Battle_05.ogg",
-    "Battle_06.ogg",
-    "Battle_07.ogg",
-    "Battle_08.ogg",
-    "Battle_0a.ogg",
-    "Boss_01.ogg",
-    "Boss_01b.ogg",
-    "Boss_02.ogg",
-    "Boss_02b.ogg",
-    "Boss_03.ogg",
-    "Boss_03b.ogg",
-    "Boss_04.ogg",
-    "Boss_04b.ogg",
-    "Boss_05.ogg",
-    "Boss_05b.ogg",
-    "Boss_06.ogg",
-    "Boss_06b.ogg",
-    "Boss_07.ogg",
-    "Boss_08.ogg",
-    "Boss_08b.ogg",
-    "Boss_09.ogg",
-    "Continue.ogg",
-    "dummy.ogg",
-    "Hine_01.ogg",
-    "Hine_02.ogg",
-    "Jester.ogg",
-    "Jikushinzou.ogg",
-    "Kaze_01.ogg",
-    "Kaze_02.ogg",
-    "Kaze_03.ogg",
-    "Kaze_04.ogg",
-    "Kaze_05.ogg",
-    "Kaze_06.ogg",
-    "Lady.ogg",
-    "m01_c00.ogg",
-    "m01_v00.ogg",
-    "m01_v01.ogg",
-    "m01_v02.ogg",
-    "m01_v03.ogg",
-    "m01_v04.ogg",
-    "m01_v05.ogg",
-    "m01_v06.ogg",
-    "m01_v07.ogg",
-    "m01_v08.ogg",
-    "m01_v09.ogg",
-    "m02_c01.ogg",
-    "m02_s00.ogg",
-    "m03_b00.ogg",
-    "m03_b01.ogg",
-    "m03_c00.ogg",
-    "m03_s00.ogg",
-    "m03_s01.ogg",
-    "m04_c00.ogg",
-    "m04_s00.ogg",
-    "m05_b00.ogg",
-    "m05_c00.ogg",
-    "m05_s00.ogg",
-    "m06_c00.ogg",
-    "m07_b00.ogg",
-    "m07_s00.ogg",
-    "m08_c00.ogg",
-    "m09_b00.ogg",
-    "m09_b01.ogg",
-    "m09_c00.ogg",
-    "m10_c00.ogg",
-    "m10_s00.ogg",
-    "m11_b00.ogg",
-    "m11_b01.ogg",
-    "m11_c00.ogg",
-    "m11_s00.ogg",
-    "m12_b00.ogg",
-    "m12_b01.ogg",
-    "m12_b02.ogg",
-    "m12_c00.ogg",
-    "m12_s00.ogg",
-    "m13_b00.ogg",
-    "m13_s00.ogg",
-    "m14_s01.ogg",
-    "m15_c00.ogg",
-    "m15_s00.ogg",
-    "m16_b00.ogg",
-    "m16_c00.ogg",
-    "m16_s00.ogg",
-    "m17_b00.ogg",
-    "m17_c00.ogg",
-    "m17_s00.ogg",
-    "m18_c00.ogg",
-    "m18_s00.ogg",
-    "m19_b00.ogg",
-    "m19_b01.ogg",
-    "m19_s00.ogg",
-    "m20_b00.ogg",
-    "m20_c00.ogg",
-    "m20_s00.ogg",
-    "m99_c00.ogg",
-    "m99_c01.ogg",
-    "m99_c03.ogg",
-    "Maguma.ogg",
-    "Mizu_01.ogg",
-    "Mizu_02.ogg",
-    "M_clear.ogg",
-    "m_demo_02_001.ogg",
-    "m_demo_04_004.ogg",
-    "m_demo_04_004v.ogg",
-    "m_demo_04_014.ogg",
-    "m_demo_06_007.ogg",
-    "m_demo_06_011.ogg",
-    "m_demo_06_012.ogg",
-    "m_demo_09_003.ogg",
-    "m_demo_09_003v.ogg",
-    "m_demo_10_002.ogg",
-    "m_demo_10_002v.ogg",
-    "m_demo_10_004.ogg",
-    "m_demo_10_005.ogg",
-    "m_demo_12_004.ogg",
-    "m_demo_12_005.ogg",
-    "m_demo_15_001.ogg",
-    "m_demo_15_001v.ogg",
-    "m_demo_19_001.ogg",
-    "m_demo_19_016.ogg",
-    "M_start.ogg",
-    "M_start2.ogg",
-    "Nausica.ogg",
-    "Option.ogg",
-    "Result.ogg",
-    "Room_01.ogg",
-    "Sm_clear.ogg",
-    "Sm_failure.ogg",
-    "Staffroll.ogg",
-    "Stage_01.ogg",
-    "Stage_02.ogg",
-    "Stage_02b.ogg",
-    "Stage_03.ogg",
-    "Stage_04.ogg",
-    "Stage_04b.ogg",
-    "Stage_05.ogg",
-    "Stage_05b.ogg",
-    "Stage_06.ogg",
-    "Stage_07.ogg",
-    "Stage_08.ogg",
-    "Stage_09.ogg",
-    "Torocco.ogg",
-    "T_boss.ogg",
-    "T_bossb.ogg",
-    "Versil_01.ogg",
-    "Versil_02.ogg",
-    "Versil_03.ogg",
-    "ZZZ.ogg",
+	"Battle_00.ogg",
+	"Battle_01.ogg",
+	"Battle_01b.ogg",
+	"Battle_02.ogg",
+	"Battle_03.ogg",
+	"Battle_04.ogg",
+	"Battle_05.ogg",
+	"Battle_06.ogg",
+	"Battle_07.ogg",
+	"Battle_08.ogg",
+	"Battle_0a.ogg",
+	"Boss_01.ogg",
+	"Boss_01b.ogg",
+	"Boss_02.ogg",
+	"Boss_02b.ogg",
+	"Boss_03.ogg",
+	"Boss_03b.ogg",
+	"Boss_04.ogg",
+	"Boss_04b.ogg",
+	"Boss_05.ogg",
+	"Boss_05b.ogg",
+	"Boss_06.ogg",
+	"Boss_06b.ogg",
+	"Boss_07.ogg",
+	"Boss_08.ogg",
+	"Boss_08b.ogg",
+	"Boss_09.ogg",
+	"Continue.ogg",
+	"dummy.ogg",
+	"Hine_01.ogg",
+	"Hine_02.ogg",
+	"Jester.ogg",
+	"Jikushinzou.ogg",
+	"Kaze_01.ogg",
+	"Kaze_02.ogg",
+	"Kaze_03.ogg",
+	"Kaze_04.ogg",
+	"Kaze_05.ogg",
+	"Kaze_06.ogg",
+	"Lady.ogg",
+	"m01_c00.ogg",
+	"m01_v00.ogg",
+	"m01_v01.ogg",
+	"m01_v02.ogg",
+	"m01_v03.ogg",
+	"m01_v04.ogg",
+	"m01_v05.ogg",
+	"m01_v06.ogg",
+	"m01_v07.ogg",
+	"m01_v08.ogg",
+	"m01_v09.ogg",
+	"m02_c01.ogg",
+	"m02_s00.ogg",
+	"m03_b00.ogg",
+	"m03_b01.ogg",
+	"m03_c00.ogg",
+	"m03_s00.ogg",
+	"m03_s01.ogg",
+	"m04_c00.ogg",
+	"m04_s00.ogg",
+	"m05_b00.ogg",
+	"m05_c00.ogg",
+	"m05_s00.ogg",
+	"m06_c00.ogg",
+	"m07_b00.ogg",
+	"m07_s00.ogg",
+	"m08_c00.ogg",
+	"m09_b00.ogg",
+	"m09_b01.ogg",
+	"m09_c00.ogg",
+	"m10_c00.ogg",
+	"m10_s00.ogg",
+	"m11_b00.ogg",
+	"m11_b01.ogg",
+	"m11_c00.ogg",
+	"m11_s00.ogg",
+	"m12_b00.ogg",
+	"m12_b01.ogg",
+	"m12_b02.ogg",
+	"m12_c00.ogg",
+	"m12_s00.ogg",
+	"m13_b00.ogg",
+	"m13_s00.ogg",
+	"m14_s01.ogg",
+	"m15_c00.ogg",
+	"m15_s00.ogg",
+	"m16_b00.ogg",
+	"m16_c00.ogg",
+	"m16_s00.ogg",
+	"m17_b00.ogg",
+	"m17_c00.ogg",
+	"m17_s00.ogg",
+	"m18_c00.ogg",
+	"m18_s00.ogg",
+	"m19_b00.ogg",
+	"m19_b01.ogg",
+	"m19_s00.ogg",
+	"m20_b00.ogg",
+	"m20_c00.ogg",
+	"m20_s00.ogg",
+	"m99_c00.ogg",
+	"m99_c01.ogg",
+	"m99_c03.ogg",
+	"Maguma.ogg",
+	"Mizu_01.ogg",
+	"Mizu_02.ogg",
+	"M_clear.ogg",
+	"m_demo_02_001.ogg",
+	"m_demo_04_004.ogg",
+	"m_demo_04_004v.ogg",
+	"m_demo_04_014.ogg",
+	"m_demo_06_007.ogg",
+	"m_demo_06_011.ogg",
+	"m_demo_06_012.ogg",
+	"m_demo_09_003.ogg",
+	"m_demo_09_003v.ogg",
+	"m_demo_10_002.ogg",
+	"m_demo_10_002v.ogg",
+	"m_demo_10_004.ogg",
+	"m_demo_10_005.ogg",
+	"m_demo_12_004.ogg",
+	"m_demo_12_005.ogg",
+	"m_demo_15_001.ogg",
+	"m_demo_15_001v.ogg",
+	"m_demo_19_001.ogg",
+	"m_demo_19_016.ogg",
+	"M_start.ogg",
+	"M_start2.ogg",
+	"Nausica.ogg",
+	"Option.ogg",
+	"Result.ogg",
+	"Room_01.ogg",
+	"Sm_clear.ogg",
+	"Sm_failure.ogg",
+	"Staffroll.ogg",
+	"Stage_01.ogg",
+	"Stage_02.ogg",
+	"Stage_02b.ogg",
+	"Stage_03.ogg",
+	"Stage_04.ogg",
+	"Stage_04b.ogg",
+	"Stage_05.ogg",
+	"Stage_05b.ogg",
+	"Stage_06.ogg",
+	"Stage_07.ogg",
+	"Stage_08.ogg",
+	"Stage_09.ogg",
+	"Torocco.ogg",
+	"T_boss.ogg",
+	"T_bossb.ogg",
+	"Versil_01.ogg",
+	"Versil_02.ogg",
+	"Versil_03.ogg",
+	"ZZZ.ogg",
 };
 
 const char* trackNames[] = {
-    "Battle_00",
-    "Battle_01",
-    "Battle_01b",
-    "Battle_02",
-    "Battle_03",
-    "Battle_04",
-    "Battle_05",
-    "Battle_06",
-    "Battle_07",
-    "Battle_08",
-    "Battle_0a",
-    "Boss_01",
-    "Boss_01b",
-    "Boss_02",
-    "Boss_02b",
-    "Boss_03",
-    "Boss_03b",
-    "Boss_04",
-    "Boss_04b",
-    "Boss_05",
-    "Boss_05b",
-    "Boss_06",
-    "Boss_06b",
-    "Boss_07",
-    "Boss_08",
-    "Boss_08b",
-    "Boss_09",
-    "Continue",
-    "dummy",
-    "Hine_01",
-    "Hine_02",
-    "Jester",
-    "Jikushinzou",
-    "Kaze_01",
-    "Kaze_02",
-    "Kaze_03",
-    "Kaze_04",
-    "Kaze_05",
-    "Kaze_06",
-    "Lady",
-    "m01_c00",
-    "m01_v00",
-    "m01_v01",
-    "m01_v02",
-    "m01_v03",
-    "m01_v04",
-    "m01_v05",
-    "m01_v06",
-    "m01_v07",
-    "m01_v08",
-    "m01_v09",
-    "m02_c01",
-    "m02_s00",
-    "m03_b00",
-    "m03_b01",
-    "m03_c00",
-    "m03_s00",
-    "m03_s01",
-    "m04_c00",
-    "m04_s00",
-    "m05_b00",
-    "m05_c00",
-    "m05_s00",
-    "m06_c00",
-    "m07_b00",
-    "m07_s00",
-    "m08_c00",
-    "m09_b00",
-    "m09_b01",
-    "m09_c00",
-    "m10_c00",
-    "m10_s00",
-    "m11_b00",
-    "m11_b01",
-    "m11_c00",
-    "m11_s00",
-    "m12_b00",
-    "m12_b01",
-    "m12_b02",
-    "m12_c00",
-    "m12_s00",
-    "m13_b00",
-    "m13_s00",
-    "m14_s01",
-    "m15_c00",
-    "m15_s00",
-    "m16_b00",
-    "m16_c00",
-    "m16_s00",
-    "m17_b00",
-    "m17_c00",
-    "m17_s00",
-    "m18_c00",
-    "m18_s00",
-    "m19_b00",
-    "m19_b01",
-    "m19_s00",
-    "m20_b00",
-    "m20_c00",
-    "m20_s00",
-    "m99_c00",
-    "m99_c01",
-    "m99_c03",
-    "Maguma",
-    "Mizu_01",
-    "Mizu_02",
-    "M_clear",
-    "m_demo_02_001",
-    "m_demo_04_004",
-    "m_demo_04_004v",
-    "m_demo_04_014",
-    "m_demo_06_007",
-    "m_demo_06_011",
-    "m_demo_06_012",
-    "m_demo_09_003",
-    "m_demo_09_003v",
-    "m_demo_10_002",
-    "m_demo_10_002v",
-    "m_demo_10_004",
-    "m_demo_10_005",
-    "m_demo_12_004",
-    "m_demo_12_005",
-    "m_demo_15_001",
-    "m_demo_15_001v",
-    "m_demo_19_001",
-    "m_demo_19_016",
-    "M_start",
-    "M_start2",
-    "Nausica",
-    "Option",
-    "Result",
-    "Room_01",
-    "Sm_clear",
-    "Sm_failure",
-    "Staffroll",
-    "Stage_01",
-    "Stage_02",
-    "Stage_02b",
-    "Stage_03",
-    "Stage_04",
-    "Stage_04b",
-    "Stage_05",
-    "Stage_05b",
-    "Stage_06",
-    "Stage_07",
-    "Stage_08",
-    "Stage_09",
-    "Torocco",
-    "T_boss",
-    "T_bossb",
-    "Versil_01",
-    "Versil_02",
-    "Versil_03",
-    "ZZZ",
+	"Battle_00",
+	"Battle_01",
+	"Battle_01b",
+	"Battle_02",
+	"Battle_03",
+	"Battle_04",
+	"Battle_05",
+	"Battle_06",
+	"Battle_07",
+	"Battle_08",
+	"Battle_0a",
+	"Boss_01",
+	"Boss_01b",
+	"Boss_02",
+	"Boss_02b",
+	"Boss_03",
+	"Boss_03b",
+	"Boss_04",
+	"Boss_04b",
+	"Boss_05",
+	"Boss_05b",
+	"Boss_06",
+	"Boss_06b",
+	"Boss_07",
+	"Boss_08",
+	"Boss_08b",
+	"Boss_09",
+	"Continue",
+	"dummy",
+	"Hine_01",
+	"Hine_02",
+	"Jester",
+	"Jikushinzou",
+	"Kaze_01",
+	"Kaze_02",
+	"Kaze_03",
+	"Kaze_04",
+	"Kaze_05",
+	"Kaze_06",
+	"Lady",
+	"m01_c00",
+	"m01_v00",
+	"m01_v01",
+	"m01_v02",
+	"m01_v03",
+	"m01_v04",
+	"m01_v05",
+	"m01_v06",
+	"m01_v07",
+	"m01_v08",
+	"m01_v09",
+	"m02_c01",
+	"m02_s00",
+	"m03_b00",
+	"m03_b01",
+	"m03_c00",
+	"m03_s00",
+	"m03_s01",
+	"m04_c00",
+	"m04_s00",
+	"m05_b00",
+	"m05_c00",
+	"m05_s00",
+	"m06_c00",
+	"m07_b00",
+	"m07_s00",
+	"m08_c00",
+	"m09_b00",
+	"m09_b01",
+	"m09_c00",
+	"m10_c00",
+	"m10_s00",
+	"m11_b00",
+	"m11_b01",
+	"m11_c00",
+	"m11_s00",
+	"m12_b00",
+	"m12_b01",
+	"m12_b02",
+	"m12_c00",
+	"m12_s00",
+	"m13_b00",
+	"m13_s00",
+	"m14_s01",
+	"m15_c00",
+	"m15_s00",
+	"m16_b00",
+	"m16_c00",
+	"m16_s00",
+	"m17_b00",
+	"m17_c00",
+	"m17_s00",
+	"m18_c00",
+	"m18_s00",
+	"m19_b00",
+	"m19_b01",
+	"m19_s00",
+	"m20_b00",
+	"m20_c00",
+	"m20_s00",
+	"m99_c00",
+	"m99_c01",
+	"m99_c03",
+	"Maguma",
+	"Mizu_01",
+	"Mizu_02",
+	"M_clear",
+	"m_demo_02_001",
+	"m_demo_04_004",
+	"m_demo_04_004v",
+	"m_demo_04_014",
+	"m_demo_06_007",
+	"m_demo_06_011",
+	"m_demo_06_012",
+	"m_demo_09_003",
+	"m_demo_09_003v",
+	"m_demo_10_002",
+	"m_demo_10_002v",
+	"m_demo_10_004",
+	"m_demo_10_005",
+	"m_demo_12_004",
+	"m_demo_12_005",
+	"m_demo_15_001",
+	"m_demo_15_001v",
+	"m_demo_19_001",
+	"m_demo_19_016",
+	"M_start",
+	"M_start2",
+	"Nausica",
+	"Option",
+	"Result",
+	"Room_01",
+	"Sm_clear",
+	"Sm_failure",
+	"Staffroll",
+	"Stage_01",
+	"Stage_02",
+	"Stage_02b",
+	"Stage_03",
+	"Stage_04",
+	"Stage_04b",
+	"Stage_05",
+	"Stage_05b",
+	"Stage_06",
+	"Stage_07",
+	"Stage_08",
+	"Stage_09",
+	"Torocco",
+	"T_boss",
+	"T_bossb",
+	"Versil_01",
+	"Versil_02",
+	"Versil_03",
+	"ZZZ",
 };
 
 static_assert(countof(trackFilenames) == countof(trackNames));
@@ -1562,11 +1561,11 @@ static_assert(countof(trackFilenames) == countof(trackNames));
 #pragma endregion
 
 void PauseWhenGUIOpen() {
-    auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-    if (!pool_10298 || !pool_10298[8]) {
-        return;
-    }
-    auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10298 || !pool_10298[8]) {
+		return;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 
 	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
 	if (!name_10723) {
@@ -1574,246 +1573,249 @@ void PauseWhenGUIOpen() {
 	}
 	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
 
-    static uint32 storedFrameCount = 0;
-  
-    // We add this timer so we can safely (aka no crash) say when we can pause the game by setting speed to 0.
-    if (g_scene != SCENE::GAME || eventData.event != EVENT::MAIN) {
-        guiPause.timer    = 1.0f;
-        guiPause.canPause = false;
-        g_inGame = false;
-    } else {
-        g_inGame = true;
-        
-        if (guiPause.timer > 0) {
-            guiPause.timer -= ImGui::GetIO().DeltaTime;
-        }
-    }
+	static uint32 storedFrameCount = 0;
 
-    if (guiPause.timer <= 0) {
-        guiPause.canPause = true;
-    }
-    
-    if (!g_show || !guiPause.canPause) {
-        storedFrameCount = missionData.frameCount; // This stores the game's timer.
-        activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed; // This resumes the game speed
-        activeConfig.Speed.turbo     = queuedConfig.Speed.turbo;
-        Speed::Toggle(true); // Toggle Speed on and off to set the new speed
-        Speed::Toggle(false);
-        guiPause.in = false;
+	// We add this timer so we can safely (aka no crash) say when we can pause the game by setting speed to 0.
+	if (g_scene != SCENE::GAME || eventData.event != EVENT::MAIN) {
+		guiPause.timer = 1.0f;
+		guiPause.canPause = false;
+		g_inGame = false;
+	}
+	else {
+		g_inGame = true;
 
-    } else if (g_show && !guiPause.in && guiPause.canPause) {
-        activeConfig.Speed.mainSpeed = 0;  // This pauses the game speed
-        activeConfig.Speed.turbo     = 0;
-        Speed::Toggle(true);
-        Speed::Toggle(false);
-        guiPause.in = true;
+		if (guiPause.timer > 0) {
+			guiPause.timer -= ImGui::GetIO().DeltaTime;
+		}
+	}
 
-    }
+	if (guiPause.timer <= 0) {
+		guiPause.canPause = true;
+	}
+
+	if (!g_show || !guiPause.canPause) {
+		storedFrameCount = missionData.frameCount; // This stores the game's timer.
+		activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed; // This resumes the game speed
+		activeConfig.Speed.turbo = queuedConfig.Speed.turbo;
+		Speed::Toggle(true); // Toggle Speed on and off to set the new speed
+		Speed::Toggle(false);
+		guiPause.in = false;
+
+	}
+	else if (g_show && !guiPause.in && guiPause.canPause) {
+		activeConfig.Speed.mainSpeed = 0;  // This pauses the game speed
+		activeConfig.Speed.turbo = 0;
+		Speed::Toggle(true);
+		Speed::Toggle(false);
+		guiPause.in = true;
+
+	}
 
 
-    if (g_showMain) {
-        missionData.frameCount = storedFrameCount;  // This pauses the game's timer.
-    }
+	if (g_showMain) {
+		missionData.frameCount = storedFrameCount;  // This pauses the game's timer.
+	}
 }
 
 
 #pragma region Texture
 
 struct TextureData {
-    bool enable;
-    bool run;
-    const char* label;
-    ID3D11ShaderResourceView* textureAddr;
+	bool enable;
+	bool run;
+	const char* label;
+	ID3D11ShaderResourceView* textureAddr;
 
-    uint32 lastX;
-    uint32 lastY;
+	uint32 lastX;
+	uint32 lastY;
 
-    void Render(Config::TextureData& activeData, Config::TextureData& queuedData);
-    void Settings(Config::TextureData& activeData, Config::TextureData& queuedData);
-    void SetPosition(Config::TextureData& data, bool ranged);
+	void Render(Config::TextureData& activeData, Config::TextureData& queuedData);
+	void Settings(Config::TextureData& activeData, Config::TextureData& queuedData);
+	void SetPosition(Config::TextureData& data, bool ranged);
 };
 
 void TextureData::Render(Config::TextureData& activeData, Config::TextureData& queuedData) {
-    if (!enable || !textureAddr) {
-        return;
-    }
+	if (!enable || !textureAddr) {
+		return;
+	}
 
-    auto& activeSize = *reinterpret_cast<ImVec2*>(&activeData.size);
-    auto& queuedSize = *reinterpret_cast<ImVec2*>(&queuedData.size);
+	auto& activeSize = *reinterpret_cast<ImVec2*>(&activeData.size);
+	auto& queuedSize = *reinterpret_cast<ImVec2*>(&queuedData.size);
 
-    auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
-    auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
+	auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
+	auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
 
-    if (!run) {
-        run = true;
+	if (!run) {
+		run = true;
 
-        ImGui::SetNextWindowPos(activePos);
+		ImGui::SetNextWindowPos(activePos);
 
-        lastX = static_cast<uint32>(activeData.pos.x);
-        lastY = static_cast<uint32>(activeData.pos.y);
-    }
+		lastX = static_cast<uint32>(activeData.pos.x);
+		lastY = static_cast<uint32>(activeData.pos.y);
+	}
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
 
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
 
-    if (ImGui::Begin(label, &enable, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
-        activePos = queuedPos = ImGui::GetWindowPos();
+	if (ImGui::Begin(label, &enable, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
+		activePos = queuedPos = ImGui::GetWindowPos();
 
-        uint32 x = static_cast<uint32>(activeData.pos.x);
-        uint32 y = static_cast<uint32>(activeData.pos.y);
+		uint32 x = static_cast<uint32>(activeData.pos.x);
+		uint32 y = static_cast<uint32>(activeData.pos.y);
 
-        if ((lastX != x) || (lastY != y)) {
-            lastX = x;
-            lastY = y;
+		if ((lastX != x) || (lastY != y)) {
+			lastX = x;
+			lastY = y;
 
-            GUI::save = true;
-        }
+			GUI::save = true;
+		}
 
-        ImGui::Image(textureAddr, activeSize);
-    }
+		ImGui::Image(textureAddr, activeSize);
+	}
 
-    ImGui::End();
-    ImGui::PopStyleColor();
-    ImGui::PopStyleVar(4);
+	ImGui::End();
+	ImGui::PopStyleColor();
+	ImGui::PopStyleVar(4);
 }
 
 void TextureData::Settings(Config::TextureData& activeData, Config::TextureData& queuedData) {
-    auto& activeSize = *reinterpret_cast<ImVec2*>(&activeData.size);
-    auto& queuedSize = *reinterpret_cast<ImVec2*>(&queuedData.size);
+	auto& activeSize = *reinterpret_cast<ImVec2*>(&activeData.size);
+	auto& queuedSize = *reinterpret_cast<ImVec2*>(&queuedData.size);
 
-    auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
-    auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
+	auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
+	auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
 
-    ImGui::Text(label);
+	ImGui::Text(label);
 
-    if constexpr (debug) {
-        GUI_Checkbox("Enable", enable);
-    }
+	if constexpr (debug) {
+		GUI_Checkbox("Enable", enable);
+	}
 
-    ImGui::PushItemWidth(150);
+	ImGui::PushItemWidth(150);
 
-    GUI_Input2<float>("Width", activeSize.x, queuedSize.x, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-    GUI_Input2<float>("Height", activeSize.y, queuedSize.y, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	GUI_Input2<float>("Width", activeSize.x, queuedSize.x, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	GUI_Input2<float>("Height", activeSize.y, queuedSize.y, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
-    if (GUI_Input2<float>("X", activePos.x, queuedPos.x, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-        ImGui::SetWindowPos(label, activePos);
-    }
-    if (GUI_Input2<float>("Y", activePos.y, queuedPos.y, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-        ImGui::SetWindowPos(label, activePos);
-    }
+	if (GUI_Input2<float>("X", activePos.x, queuedPos.x, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+		ImGui::SetWindowPos(label, activePos);
+	}
+	if (GUI_Input2<float>("Y", activePos.y, queuedPos.y, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+		ImGui::SetWindowPos(label, activePos);
+	}
 
-    ImGui::PopItemWidth();
+	ImGui::PopItemWidth();
 }
 
 void TextureData::SetPosition(Config::TextureData& data, bool ranged) {
-    auto& pos = *reinterpret_cast<ImVec2*>(&data.pos);
+	auto& pos = *reinterpret_cast<ImVec2*>(&data.pos);
 
-    if (!ranged) {
-        ImGui::SetWindowPos(label, ImVec2(pos.x + activeConfig.weaponWheelHorizontalMelee, pos.y + activeConfig.weaponWheelHeight));
-    } else {
-        ImGui::SetWindowPos(label, ImVec2(pos.x + activeConfig.weaponWheelHorizontalRanged, pos.y + activeConfig.weaponWheelHeight));
-    }
+	if (!ranged) {
+		ImGui::SetWindowPos(label, ImVec2(pos.x + activeConfig.weaponWheelHorizontalMelee, pos.y + activeConfig.weaponWheelHeight));
+	}
+	else {
+		ImGui::SetWindowPos(label, ImVec2(pos.x + activeConfig.weaponWheelHorizontalRanged, pos.y + activeConfig.weaponWheelHeight));
+	}
 }
 
 enum {
-    TEXTURE_ARROW_0,
-    TEXTURE_ARROW_72,
-    TEXTURE_ARROW_144,
-    TEXTURE_ARROW_216,
-    TEXTURE_ARROW_288,
-    TEXTURE_BACKGROUND,
-    TEXTURE_HIGHLIGHT,
-    // TEXTURE_STENCIL,
-    TEXTURE_WEAPON_REBELLION,
-    TEXTURE_WEAPON_REBELLION_2,
-    TEXTURE_WEAPON_FORCE_EDGE,
-    TEXTURE_WEAPON_CERBERUS,
-    TEXTURE_WEAPON_AGNI_RUDRA,
-    TEXTURE_WEAPON_NEVAN,
-    TEXTURE_WEAPON_BEOWULF_DANTE,
-    TEXTURE_WEAPON_EBONY_IVORY,
-    TEXTURE_WEAPON_SHOTGUN,
-    TEXTURE_WEAPON_ARTEMIS,
-    TEXTURE_WEAPON_SPIRAL,
-    TEXTURE_WEAPON_KALINA_ANN,
-    TEXTURE_WEAPON_YAMATO_VERGIL,
-    TEXTURE_WEAPON_YAMATO_NERO_ANGELO,
-    TEXTURE_WEAPON_BEOWULF_VERGIL,
-    TEXTURE_WEAPON_BEOWULF_NERO_ANGELO,
-    TEXTURE_WEAPON_YAMATO_FORCE_EDGE,
-    TEXTURE_COUNT,
+	TEXTURE_ARROW_0,
+	TEXTURE_ARROW_72,
+	TEXTURE_ARROW_144,
+	TEXTURE_ARROW_216,
+	TEXTURE_ARROW_288,
+	TEXTURE_BACKGROUND,
+	TEXTURE_HIGHLIGHT,
+	// TEXTURE_STENCIL,
+	TEXTURE_WEAPON_REBELLION,
+	TEXTURE_WEAPON_REBELLION_2,
+	TEXTURE_WEAPON_FORCE_EDGE,
+	TEXTURE_WEAPON_CERBERUS,
+	TEXTURE_WEAPON_AGNI_RUDRA,
+	TEXTURE_WEAPON_NEVAN,
+	TEXTURE_WEAPON_BEOWULF_DANTE,
+	TEXTURE_WEAPON_EBONY_IVORY,
+	TEXTURE_WEAPON_SHOTGUN,
+	TEXTURE_WEAPON_ARTEMIS,
+	TEXTURE_WEAPON_SPIRAL,
+	TEXTURE_WEAPON_KALINA_ANN,
+	TEXTURE_WEAPON_YAMATO_VERGIL,
+	TEXTURE_WEAPON_YAMATO_NERO_ANGELO,
+	TEXTURE_WEAPON_BEOWULF_VERGIL,
+	TEXTURE_WEAPON_BEOWULF_NERO_ANGELO,
+	TEXTURE_WEAPON_YAMATO_FORCE_EDGE,
+	TEXTURE_COUNT,
 };
 
 const char* textureFilenames[] = {
-    "arrow_0.png",
-    "arrow_72.png",
-    "arrow_144.png",
-    "arrow_216.png",
-    "arrow_288.png",
-    "background.png",
-    "highlight.png",
-    //"stencil.png",
-    "weapon_0000_0000.png",
-    "weapon_0000_0001.png",
-    "weapon_0000_0002.png",
-    "weapon_0001.png",
-    "weapon_0002.png",
-    "weapon_0003.png",
-    "weapon_0004.png",
-    "weapon_0005.png",
-    "weapon_0006.png",
-    "weapon_0007.png",
-    "weapon_0008.png",
-    "weapon_0009.png",
-    "weapon_0011_0000.png",
-    "weapon_0011_0001.png",
-    "weapon_0012_0000.png",
-    "weapon_0012_0001.png",
-    "weapon_0013.png",
+	"arrow_0.png",
+	"arrow_72.png",
+	"arrow_144.png",
+	"arrow_216.png",
+	"arrow_288.png",
+	"background.png",
+	"highlight.png",
+	//"stencil.png",
+	"weapon_0000_0000.png",
+	"weapon_0000_0001.png",
+	"weapon_0000_0002.png",
+	"weapon_0001.png",
+	"weapon_0002.png",
+	"weapon_0003.png",
+	"weapon_0004.png",
+	"weapon_0005.png",
+	"weapon_0006.png",
+	"weapon_0007.png",
+	"weapon_0008.png",
+	"weapon_0009.png",
+	"weapon_0011_0000.png",
+	"weapon_0011_0001.png",
+	"weapon_0012_0000.png",
+	"weapon_0012_0001.png",
+	"weapon_0013.png",
 };
 
 ID3D11ShaderResourceView* textureAddrs[TEXTURE_COUNT] = {};
 
 constexpr uint8 textureWeaponMap[WEAPON::MAX] = {
-    TEXTURE_WEAPON_REBELLION,
-    TEXTURE_WEAPON_CERBERUS,
-    TEXTURE_WEAPON_AGNI_RUDRA,
-    TEXTURE_WEAPON_NEVAN,
-    TEXTURE_WEAPON_BEOWULF_DANTE,
-    TEXTURE_WEAPON_EBONY_IVORY,
-    TEXTURE_WEAPON_SHOTGUN,
-    TEXTURE_WEAPON_ARTEMIS,
-    TEXTURE_WEAPON_SPIRAL,
-    TEXTURE_WEAPON_KALINA_ANN,
-    0,
-    TEXTURE_WEAPON_YAMATO_VERGIL,
-    TEXTURE_WEAPON_BEOWULF_VERGIL,
-    TEXTURE_WEAPON_YAMATO_FORCE_EDGE,
-    0,
+	TEXTURE_WEAPON_REBELLION,
+	TEXTURE_WEAPON_CERBERUS,
+	TEXTURE_WEAPON_AGNI_RUDRA,
+	TEXTURE_WEAPON_NEVAN,
+	TEXTURE_WEAPON_BEOWULF_DANTE,
+	TEXTURE_WEAPON_EBONY_IVORY,
+	TEXTURE_WEAPON_SHOTGUN,
+	TEXTURE_WEAPON_ARTEMIS,
+	TEXTURE_WEAPON_SPIRAL,
+	TEXTURE_WEAPON_KALINA_ANN,
+	0,
+	TEXTURE_WEAPON_YAMATO_VERGIL,
+	TEXTURE_WEAPON_BEOWULF_VERGIL,
+	TEXTURE_WEAPON_YAMATO_FORCE_EDGE,
+	0,
 };
 
 constexpr uint8 textureArrowMap[5] = {
-    TEXTURE_ARROW_0,
-    TEXTURE_ARROW_288,
-    TEXTURE_ARROW_216,
-    TEXTURE_ARROW_144,
-    TEXTURE_ARROW_72,
+	TEXTURE_ARROW_0,
+	TEXTURE_ARROW_288,
+	TEXTURE_ARROW_216,
+	TEXTURE_ARROW_144,
+	TEXTURE_ARROW_72,
 };
 
 bool g_showTextures = false;
 
 void CreateTexturesWeaponWheel() {
-    char path[128];
+	char path[128];
 
-    old_for_all(uint8, textureIndex, TEXTURE_COUNT) {
-        snprintf(path, sizeof(path), ((std::string)Paths::weaponwheel + "/%s").c_str(), textureFilenames[textureIndex]);
+	old_for_all(uint8, textureIndex, TEXTURE_COUNT) {
+		snprintf(path, sizeof(path), ((std::string)Paths::weaponwheel + "/%s").c_str(), textureFilenames[textureIndex]);
 
-        textureAddrs[textureIndex] = CreateTexture(path, ::D3D11::device);
-    }
+		textureAddrs[textureIndex] = CreateTexture(path, ::D3D11::device);
+	}
 }
 
 // TextureData stencil = {};
@@ -1823,37 +1825,37 @@ void CreateTexturesWeaponWheel() {
 #pragma region Weapon Switch Controllers
 
 struct WeaponSwitchControllerTextureData {
-    TextureData backgrounds[5];
-    TextureData highlights[5];
-    TextureData icons[5];
-    TextureData arrow;
+	TextureData backgrounds[5];
+	TextureData highlights[5];
+	TextureData icons[5];
+	TextureData arrow;
 };
 
 WeaponSwitchControllerTextureData meleeWeaponSwitchControllerTextureData = {};
 
 const char* meleeWeaponSwitchControllerBackgroundNames[5] = {
-    "MeleeWeaponSwitchControllerBackground0",
-    "MeleeWeaponSwitchControllerBackground1",
-    "MeleeWeaponSwitchControllerBackground2",
-    "MeleeWeaponSwitchControllerBackground3",
-    "MeleeWeaponSwitchControllerBackground4",
+	"MeleeWeaponSwitchControllerBackground0",
+	"MeleeWeaponSwitchControllerBackground1",
+	"MeleeWeaponSwitchControllerBackground2",
+	"MeleeWeaponSwitchControllerBackground3",
+	"MeleeWeaponSwitchControllerBackground4",
 };
 
 
 const char* meleeWeaponSwitchControllerHighlightNames[5] = {
-    "MeleeWeaponSwitchControllerHighlight0",
-    "MeleeWeaponSwitchControllerHighlight1",
-    "MeleeWeaponSwitchControllerHighlight2",
-    "MeleeWeaponSwitchControllerHighlight3",
-    "MeleeWeaponSwitchControllerHighlight4",
+	"MeleeWeaponSwitchControllerHighlight0",
+	"MeleeWeaponSwitchControllerHighlight1",
+	"MeleeWeaponSwitchControllerHighlight2",
+	"MeleeWeaponSwitchControllerHighlight3",
+	"MeleeWeaponSwitchControllerHighlight4",
 };
 
 const char* meleeWeaponSwitchControllerIconNames[5] = {
-    "MeleeWeaponSwitchControllerIcon0",
-    "MeleeWeaponSwitchControllerIcon1",
-    "MeleeWeaponSwitchControllerIcon2",
-    "MeleeWeaponSwitchControllerIcon3",
-    "MeleeWeaponSwitchControllerIcon4",
+	"MeleeWeaponSwitchControllerIcon0",
+	"MeleeWeaponSwitchControllerIcon1",
+	"MeleeWeaponSwitchControllerIcon2",
+	"MeleeWeaponSwitchControllerIcon3",
+	"MeleeWeaponSwitchControllerIcon4",
 };
 
 const char* meleeWeaponSwitchControllerArrowName = "MeleeWeaponSwitchControllerArrow";
@@ -1862,747 +1864,754 @@ const char* meleeWeaponSwitchControllerArrowName = "MeleeWeaponSwitchControllerA
 WeaponSwitchControllerTextureData rangedWeaponSwitchControllerTextureData = {};
 
 const char* rangedWeaponSwitchControllerBackgroundNames[5] = {
-    "RangedWeaponSwitchControllerBackground0",
-    "RangedWeaponSwitchControllerBackground1",
-    "RangedWeaponSwitchControllerBackground2",
-    "RangedWeaponSwitchControllerBackground3",
-    "RangedWeaponSwitchControllerBackground4",
+	"RangedWeaponSwitchControllerBackground0",
+	"RangedWeaponSwitchControllerBackground1",
+	"RangedWeaponSwitchControllerBackground2",
+	"RangedWeaponSwitchControllerBackground3",
+	"RangedWeaponSwitchControllerBackground4",
 };
 
 const char* rangedWeaponSwitchControllerIconNames[5] = {
-    "RangedWeaponSwitchControllerIcon0",
-    "RangedWeaponSwitchControllerIcon1",
-    "RangedWeaponSwitchControllerIcon2",
-    "RangedWeaponSwitchControllerIcon3",
-    "RangedWeaponSwitchControllerIcon4",
+	"RangedWeaponSwitchControllerIcon0",
+	"RangedWeaponSwitchControllerIcon1",
+	"RangedWeaponSwitchControllerIcon2",
+	"RangedWeaponSwitchControllerIcon3",
+	"RangedWeaponSwitchControllerIcon4",
 };
 
 const char* rangedWeaponSwitchControllerHighlightNames[5] = {
-    "RangedWeaponSwitchControllerHighlight0",
-    "RangedWeaponSwitchControllerHighlight1",
-    "RangedWeaponSwitchControllerHighlight2",
-    "RangedWeaponSwitchControllerHighlight3",
-    "RangedWeaponSwitchControllerHighlight4",
+	"RangedWeaponSwitchControllerHighlight0",
+	"RangedWeaponSwitchControllerHighlight1",
+	"RangedWeaponSwitchControllerHighlight2",
+	"RangedWeaponSwitchControllerHighlight3",
+	"RangedWeaponSwitchControllerHighlight4",
 };
 
 const char* rangedWeaponSwitchControllerArrowName = "RangedWeaponSwitchControllerArrow";
 
 void MeleeWeaponWheelTimeTracker() {
 
-    meleeWeaponWheelTiming.wheelRunning = true;
-    while (meleeWeaponWheelTiming.wheelTime > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        meleeWeaponWheelTiming.wheelTime--;
-    }
+	meleeWeaponWheelTiming.wheelRunning = true;
+	while (meleeWeaponWheelTiming.wheelTime > 0) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		meleeWeaponWheelTiming.wheelTime--;
+	}
 
 
-    if (meleeWeaponWheelTiming.wheelTime == 0) {
-        meleeWeaponWheelTiming.wheelAppear  = false;
-        meleeWeaponWheelTiming.wheelRunning = false;
-    }
+	if (meleeWeaponWheelTiming.wheelTime == 0) {
+		meleeWeaponWheelTiming.wheelAppear = false;
+		meleeWeaponWheelTiming.wheelRunning = false;
+	}
 }
 
 void RangedWeaponWheelTimeTracker() {
-    rangedWeaponWheelTiming.wheelRunning = true;
-    while (rangedWeaponWheelTiming.wheelTime > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        rangedWeaponWheelTiming.wheelTime--;
-    }
+	rangedWeaponWheelTiming.wheelRunning = true;
+	while (rangedWeaponWheelTiming.wheelTime > 0) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		rangedWeaponWheelTiming.wheelTime--;
+	}
 
 
-    if (rangedWeaponWheelTiming.wheelTime == 0) {
-        rangedWeaponWheelTiming.wheelAppear  = false;
-        rangedWeaponWheelTiming.wheelRunning = false;
-    }
+	if (rangedWeaponWheelTiming.wheelTime == 0) {
+		rangedWeaponWheelTiming.wheelAppear = false;
+		rangedWeaponWheelTiming.wheelRunning = false;
+	}
 }
 
 
 // @Todo: Templates.
 void MeleeWeaponSwitchController() {
-    auto& textureData             = meleeWeaponSwitchControllerTextureData;
-    auto& activeConfigTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
-    auto& queuedConfigTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
+	auto& textureData = meleeWeaponSwitchControllerTextureData;
+	auto& activeConfigTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
+	auto& queuedConfigTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
 
-    if (g_showTextures) {
-        old_for_all(uint8, index, 5) {
-            textureData.backgrounds[index].Render(activeConfigTextureData.backgrounds[index], queuedConfigTextureData.backgrounds[index]);
-        }
+	if (g_showTextures) {
+		old_for_all(uint8, index, 5) {
+			textureData.backgrounds[index].Render(activeConfigTextureData.backgrounds[index], queuedConfigTextureData.backgrounds[index]);
+		}
 
-        {
-            constexpr uint8 textureIds[5] = {
-                TEXTURE_WEAPON_REBELLION,
-                TEXTURE_WEAPON_CERBERUS,
-                TEXTURE_WEAPON_AGNI_RUDRA,
-                TEXTURE_WEAPON_NEVAN,
-                TEXTURE_WEAPON_BEOWULF_DANTE,
-            };
+		{
+			constexpr uint8 textureIds[5] = {
+				TEXTURE_WEAPON_REBELLION,
+				TEXTURE_WEAPON_CERBERUS,
+				TEXTURE_WEAPON_AGNI_RUDRA,
+				TEXTURE_WEAPON_NEVAN,
+				TEXTURE_WEAPON_BEOWULF_DANTE,
+			};
 
-            old_for_all(uint8, index, 5) {
-                auto textureId = textureIds[index];
-                if (textureId >= TEXTURE_COUNT) {
-                    textureId = 0;
-                }
+			old_for_all(uint8, index, 5) {
+				auto textureId = textureIds[index];
+				if (textureId >= TEXTURE_COUNT) {
+					textureId = 0;
+				}
 
-                textureData.icons[index].textureAddr = textureAddrs[textureId];
+				textureData.icons[index].textureAddr = textureAddrs[textureId];
 
-                textureData.icons[index].Render(activeConfigTextureData.icons[index], queuedConfigTextureData.icons[index]);
-            }
-        }
+				textureData.icons[index].Render(activeConfigTextureData.icons[index], queuedConfigTextureData.icons[index]);
+			}
+		}
 
-        textureData.highlights[0].Render(activeConfigTextureData.highlights[0], queuedConfigTextureData.highlights[0]);
+		textureData.highlights[0].Render(activeConfigTextureData.highlights[0], queuedConfigTextureData.highlights[0]);
 
-        {
-            textureData.arrow.textureAddr = textureAddrs[TEXTURE_ARROW_0];
+		{
+			textureData.arrow.textureAddr = textureAddrs[TEXTURE_ARROW_0];
 
-            textureData.arrow.Render(activeConfigTextureData.arrow, queuedConfigTextureData.arrow);
-        }
-
-
-
-        return;
-    }
+			textureData.arrow.Render(activeConfigTextureData.arrow, queuedConfigTextureData.arrow);
+		}
 
 
-    auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+		return;
+	}
 
 
-    if (!InGame()) {
-        return;
-    }
-
-    auto pool_1431 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-    if (!pool_1431 || !pool_1431[3]) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_1431[3]);
-
-    auto& characterData = GetCharacterData(actorData);
-
-    auto& gamepad = GetGamepad(actorData.newPlayerIndex);
-
-    if (InCutscene() || InCredits() || !activeConfig.Actor.enable || (!activeConfig.weaponWheelEnabled) ||
-        !((characterData.character == CHARACTER::DANTE) || (characterData.character == CHARACTER::VERGIL))) {
-        return;
-    }
-
-    // HIDE WEAPON UI WHEN NOT HOLDING BUTTON, WITH DELAY
-    if (!activeConfig.MeleeWeaponWheel.alwaysShow) {
-        if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))) {
-            meleeWeaponWheelTiming.wheelTime   = activeConfig.MeleeWeaponWheel.timeout;
-            meleeWeaponWheelTiming.wheelAppear = true;
-        }
-
-        if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)) && meleeWeaponWheelTiming.wheelAppear)) {
-            if (!meleeWeaponWheelTiming.wheelRunning) {
-                std::thread meleewheeltracker(MeleeWeaponWheelTimeTracker);
-                meleewheeltracker.detach();
-            }
-        }
-
-        if (characterData.character == CHARACTER::VERGIL) {
-            if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
-                meleeWeaponWheelTiming.wheelTime   = activeConfig.MeleeWeaponWheel.timeout;
-                meleeWeaponWheelTiming.wheelAppear = true;
-            }
-
-            if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)) && meleeWeaponWheelTiming.wheelAppear)) {
-                if (!meleeWeaponWheelTiming.wheelRunning) {
-                    std::thread meleewheeltracker(MeleeWeaponWheelTimeTracker);
-                    meleewheeltracker.detach();
-                }
-            }
-        }
-    } else {
-        meleeWeaponWheelTiming.wheelAppear = true;
-    }
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 
-    if (!meleeWeaponWheelTiming.wheelAppear) {
-        return;
-    }
+	if (!InGame()) {
+		return;
+	}
+
+	auto pool_1431 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_1431 || !pool_1431[3]) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_1431[3]);
+
+	auto& characterData = GetCharacterData(actorData);
+
+	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
+
+	if (InCutscene() || InCredits() || !activeConfig.Actor.enable || (!activeConfig.weaponWheelEnabled) ||
+		!((characterData.character == CHARACTER::DANTE) || (characterData.character == CHARACTER::VERGIL))) {
+		return;
+	}
+
+	// HIDE WEAPON UI WHEN NOT HOLDING BUTTON, WITH DELAY
+	if (!activeConfig.MeleeWeaponWheel.alwaysShow) {
+		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))) {
+			meleeWeaponWheelTiming.wheelTime = activeConfig.MeleeWeaponWheel.timeout;
+			meleeWeaponWheelTiming.wheelAppear = true;
+		}
+
+		if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)) && meleeWeaponWheelTiming.wheelAppear)) {
+			if (!meleeWeaponWheelTiming.wheelRunning) {
+				std::thread meleewheeltracker(MeleeWeaponWheelTimeTracker);
+				meleewheeltracker.detach();
+			}
+		}
+
+		if (characterData.character == CHARACTER::VERGIL) {
+			if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
+				meleeWeaponWheelTiming.wheelTime = activeConfig.MeleeWeaponWheel.timeout;
+				meleeWeaponWheelTiming.wheelAppear = true;
+			}
+
+			if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)) && meleeWeaponWheelTiming.wheelAppear)) {
+				if (!meleeWeaponWheelTiming.wheelRunning) {
+					std::thread meleewheeltracker(MeleeWeaponWheelTimeTracker);
+					meleewheeltracker.detach();
+				}
+			}
+		}
+	}
+	else {
+		meleeWeaponWheelTiming.wheelAppear = true;
+	}
 
 
-    // HIDE WEAPON UI WHEN NOT HOLDING BUTTON
-    /*if (!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)))
-    {
-            if (!wheelRunning) {
-                            std::thread wheeltracker(WeaponWheelTimeTracker);
-                            wheeltracker.detach();
-            }
-
-            if(!wheelInCooldown) {
-                    wheelInCooldown = true;
-                    return;
-            }
+	if (!meleeWeaponWheelTiming.wheelAppear) {
+		return;
+	}
 
 
-    }*/
+	// HIDE WEAPON UI WHEN NOT HOLDING BUTTON
+	/*if (!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)))
+	{
+			if (!wheelRunning) {
+							std::thread wheeltracker(WeaponWheelTimeTracker);
+							wheeltracker.detach();
+			}
 
-    auto count = characterData.meleeWeaponCount;
-
-    if (characterData.character == CHARACTER::VERGIL) {
-        count = (IsNeroAngelo(actorData)) ? 2 : 3;
-    }
-
-    old_for_all(uint8, index, count) {
-        textureData.backgrounds[index].Render(activeConfigTextureData.backgrounds[index], queuedConfigTextureData.backgrounds[index]);
-    }
-
-    auto meleeWeaponIndex = characterData.meleeWeaponIndex;
-    if (meleeWeaponIndex >= 5) {
-        meleeWeaponIndex = 0;
-    }
+			if(!wheelInCooldown) {
+					wheelInCooldown = true;
+					return;
+			}
 
 
-    textureData.highlights[meleeWeaponIndex].Render(
-        activeConfigTextureData.highlights[meleeWeaponIndex], queuedConfigTextureData.highlights[meleeWeaponIndex]);
+	}*/
+
+	auto count = characterData.meleeWeaponCount;
+
+	if (characterData.character == CHARACTER::VERGIL) {
+		count = (IsNeroAngelo(actorData)) ? 2 : 3;
+	}
+
+	old_for_all(uint8, index, count) {
+		textureData.backgrounds[index].Render(activeConfigTextureData.backgrounds[index], queuedConfigTextureData.backgrounds[index]);
+	}
+
+	auto meleeWeaponIndex = characterData.meleeWeaponIndex;
+	if (meleeWeaponIndex >= 5) {
+		meleeWeaponIndex = 0;
+	}
 
 
-    {old_for_all(uint8, index, count){auto weapon = characterData.meleeWeapons[index];
-    if (weapon >= WEAPON::MAX) {
-        weapon = 0;
-    }
-
-    auto textureId = textureWeaponMap[weapon];
-    if (textureId >= TEXTURE_COUNT) {
-        textureId = 0;
-    }
-
-    switch (weapon) {
-    case WEAPON::REBELLION: {
-        if (sessionData.unlockDevilTrigger) {
-            textureId = TEXTURE_WEAPON_REBELLION_2;
-        }
-
-        if (actorData.sparda) {
-            textureId = TEXTURE_WEAPON_FORCE_EDGE;
-        }
-
-        break;
-    }
-    case WEAPON::YAMATO_VERGIL: {
-        if (IsNeroAngelo(actorData)) {
-            textureId = TEXTURE_WEAPON_YAMATO_NERO_ANGELO;
-        }
-
-        break;
-    }
-    case WEAPON::BEOWULF_VERGIL: {
-        if (IsNeroAngelo(actorData)) {
-            textureId = TEXTURE_WEAPON_BEOWULF_NERO_ANGELO;
-        }
-
-        break;
-    }
-    }
-
-    textureData.icons[index].textureAddr = textureAddrs[textureId];
-
-    if (index != meleeWeaponIndex) {
-        textureData.icons[index].Render(activeConfigTextureData.icons[index], queuedConfigTextureData.icons[index]);
-    }
-}
-}
+	textureData.highlights[meleeWeaponIndex].Render(
+		activeConfigTextureData.highlights[meleeWeaponIndex], queuedConfigTextureData.highlights[meleeWeaponIndex]);
 
 
-{
-    auto textureId = textureArrowMap[meleeWeaponIndex];
+	{
+		old_for_all(uint8, index, count) {
+			auto weapon = characterData.meleeWeapons[index];
+			if (weapon >= WEAPON::MAX) {
+				weapon = 0;
+			}
 
-    textureData.arrow.textureAddr = textureAddrs[textureId];
+			auto textureId = textureWeaponMap[weapon];
+			if (textureId >= TEXTURE_COUNT) {
+				textureId = 0;
+			}
 
-    textureData.arrow.Render(activeConfigTextureData.arrow, queuedConfigTextureData.arrow);
+			switch (weapon) {
+			case WEAPON::REBELLION:
+			{
+				if (sessionData.unlockDevilTrigger) {
+					textureId = TEXTURE_WEAPON_REBELLION_2;
+				}
+
+				if (actorData.sparda) {
+					textureId = TEXTURE_WEAPON_FORCE_EDGE;
+				}
+
+				break;
+			}
+			case WEAPON::YAMATO_VERGIL:
+			{
+				if (IsNeroAngelo(actorData)) {
+					textureId = TEXTURE_WEAPON_YAMATO_NERO_ANGELO;
+				}
+
+				break;
+			}
+			case WEAPON::BEOWULF_VERGIL:
+			{
+				if (IsNeroAngelo(actorData)) {
+					textureId = TEXTURE_WEAPON_BEOWULF_NERO_ANGELO;
+				}
+
+				break;
+			}
+			}
+
+			textureData.icons[index].textureAddr = textureAddrs[textureId];
+
+			if (index != meleeWeaponIndex) {
+				textureData.icons[index].Render(activeConfigTextureData.icons[index], queuedConfigTextureData.icons[index]);
+			}
+		}
+	}
 
 
-    textureData.icons[meleeWeaponIndex].Render(
-        activeConfigTextureData.icons[meleeWeaponIndex], queuedConfigTextureData.icons[meleeWeaponIndex]);
-}
+	{
+		auto textureId = textureArrowMap[meleeWeaponIndex];
 
-    // Force Icons to be on top of Highlights, when Main Menu is opened it forces focus on the Main Menu.
-if (!g_show) {
-	ImGui::SetWindowFocus(textureData.icons[meleeWeaponIndex].label);
-}
-//     } else {
-//         ImGui::SetWindowFocus(DMC3C_TITLE); // Calling this on-tick was making it so combo dropdowns couldn't be selected. Refer to this if future problems occur.
-//     }
+		textureData.arrow.textureAddr = textureAddrs[textureId];
+
+		textureData.arrow.Render(activeConfigTextureData.arrow, queuedConfigTextureData.arrow);
+
+
+		textureData.icons[meleeWeaponIndex].Render(
+			activeConfigTextureData.icons[meleeWeaponIndex], queuedConfigTextureData.icons[meleeWeaponIndex]);
+	}
+
+	// Force Icons to be on top of Highlights, when Main Menu is opened it forces focus on the Main Menu.
+	if (!g_show) {
+		ImGui::SetWindowFocus(textureData.icons[meleeWeaponIndex].label);
+	}
+	//     } else {
+	//         ImGui::SetWindowFocus(DMC3C_TITLE); // Calling this on-tick was making it so combo dropdowns couldn't be selected. Refer to this if future problems occur.
+	//     }
 }
 
 void RangedWeaponSwitchController() {
-    auto& textureData             = rangedWeaponSwitchControllerTextureData;
-    auto& activeConfigTextureData = activeConfig.rangedWeaponSwitchControllerTextureData;
-    auto& queuedConfigTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
+	auto& textureData = rangedWeaponSwitchControllerTextureData;
+	auto& activeConfigTextureData = activeConfig.rangedWeaponSwitchControllerTextureData;
+	auto& queuedConfigTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
 
-    if (g_showTextures) {
-        old_for_all(uint8, index, 5) {
-            textureData.backgrounds[index].Render(activeConfigTextureData.backgrounds[index], queuedConfigTextureData.backgrounds[index]);
-        }
+	if (g_showTextures) {
+		old_for_all(uint8, index, 5) {
+			textureData.backgrounds[index].Render(activeConfigTextureData.backgrounds[index], queuedConfigTextureData.backgrounds[index]);
+		}
 
-        {
-            constexpr uint8 textureIds[5] = {
-                TEXTURE_WEAPON_EBONY_IVORY,
-                TEXTURE_WEAPON_SHOTGUN,
-                TEXTURE_WEAPON_ARTEMIS,
-                TEXTURE_WEAPON_SPIRAL,
-                TEXTURE_WEAPON_KALINA_ANN,
-            };
+		{
+			constexpr uint8 textureIds[5] = {
+				TEXTURE_WEAPON_EBONY_IVORY,
+				TEXTURE_WEAPON_SHOTGUN,
+				TEXTURE_WEAPON_ARTEMIS,
+				TEXTURE_WEAPON_SPIRAL,
+				TEXTURE_WEAPON_KALINA_ANN,
+			};
 
-            old_for_all(uint8, index, 5) {
-                auto textureId = textureIds[index];
-                if (textureId >= TEXTURE_COUNT) {
-                    textureId = 0;
-                }
+			old_for_all(uint8, index, 5) {
+				auto textureId = textureIds[index];
+				if (textureId >= TEXTURE_COUNT) {
+					textureId = 0;
+				}
 
-                textureData.icons[index].textureAddr = textureAddrs[textureId];
+				textureData.icons[index].textureAddr = textureAddrs[textureId];
 
-                textureData.icons[index].Render(activeConfigTextureData.icons[index], queuedConfigTextureData.icons[index]);
-            }
-        }
+				textureData.icons[index].Render(activeConfigTextureData.icons[index], queuedConfigTextureData.icons[index]);
+			}
+		}
 
-        textureData.highlights[0].Render(activeConfigTextureData.highlights[0], queuedConfigTextureData.highlights[0]);
+		textureData.highlights[0].Render(activeConfigTextureData.highlights[0], queuedConfigTextureData.highlights[0]);
 
-        {
-            textureData.arrow.textureAddr = textureAddrs[TEXTURE_ARROW_0];
+		{
+			textureData.arrow.textureAddr = textureAddrs[TEXTURE_ARROW_0];
 
-            textureData.arrow.Render(activeConfigTextureData.arrow, queuedConfigTextureData.arrow);
-        }
-
-
-        return;
-    }
+			textureData.arrow.Render(activeConfigTextureData.arrow, queuedConfigTextureData.arrow);
+		}
 
 
-    auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+		return;
+	}
 
 
-    if (!InGame()) {
-        return;
-    }
-
-    auto pool_1720 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-    if (!pool_1720 || !pool_1720[3]) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_1720[3]);
-
-    auto& characterData = GetCharacterData(actorData);
-
-    auto& gamepad = GetGamepad(actorData.newPlayerIndex);
-
-    if (InCutscene() || InCredits() || !activeConfig.Actor.enable || (!activeConfig.weaponWheelEnabled) ||
-        (characterData.character != CHARACTER::DANTE)) {
-        return;
-    }
-
-    // HIDE WEAPON SWITCH UI WHEN NOT HOLDING BUTTON, WITH DELAY
-    if (!activeConfig.RangedWeaponWheel.alwaysShow) {
-        if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
-            rangedWeaponWheelTiming.wheelTime   = activeConfig.RangedWeaponWheel.timeout;
-            rangedWeaponWheelTiming.wheelAppear = true;
-        }
-
-        if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)) && rangedWeaponWheelTiming.wheelAppear)) {
-            if (!rangedWeaponWheelTiming.wheelRunning) {
-                std::thread rangedwheeltracker(RangedWeaponWheelTimeTracker);
-                rangedwheeltracker.detach();
-            }
-        }
-    } else {
-        rangedWeaponWheelTiming.wheelAppear = true;
-    }
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 
-    if (!rangedWeaponWheelTiming.wheelAppear) {
-        return;
-    }
+	if (!InGame()) {
+		return;
+	}
+
+	auto pool_1720 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_1720 || !pool_1720[3]) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_1720[3]);
+
+	auto& characterData = GetCharacterData(actorData);
+
+	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
+
+	if (InCutscene() || InCredits() || !activeConfig.Actor.enable || (!activeConfig.weaponWheelEnabled) ||
+		(characterData.character != CHARACTER::DANTE)) {
+		return;
+	}
+
+	// HIDE WEAPON SWITCH UI WHEN NOT HOLDING BUTTON, WITH DELAY
+	if (!activeConfig.RangedWeaponWheel.alwaysShow) {
+		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
+			rangedWeaponWheelTiming.wheelTime = activeConfig.RangedWeaponWheel.timeout;
+			rangedWeaponWheelTiming.wheelAppear = true;
+		}
+
+		if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)) && rangedWeaponWheelTiming.wheelAppear)) {
+			if (!rangedWeaponWheelTiming.wheelRunning) {
+				std::thread rangedwheeltracker(RangedWeaponWheelTimeTracker);
+				rangedwheeltracker.detach();
+			}
+		}
+	}
+	else {
+		rangedWeaponWheelTiming.wheelAppear = true;
+	}
 
 
-    // HIDE WEAPON SWITCH UI WHEN NOT HOLDING BUTTON
-    /*if (!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)))
-    {
-            return;
-    }*/
+	if (!rangedWeaponWheelTiming.wheelAppear) {
+		return;
+	}
 
-    auto count = characterData.rangedWeaponCount;
 
-    old_for_all(uint8, index, count) {
-        textureData.backgrounds[index].Render(activeConfigTextureData.backgrounds[index], queuedConfigTextureData.backgrounds[index]);
-    }
+	// HIDE WEAPON SWITCH UI WHEN NOT HOLDING BUTTON
+	/*if (!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)))
+	{
+			return;
+	}*/
 
-    {
-        old_for_all(uint8, index, count) {
-            auto weapon = characterData.rangedWeapons[index];
-            if (weapon >= WEAPON::MAX) {
-                weapon = 0;
-            }
+	auto count = characterData.rangedWeaponCount;
 
-            auto textureId = textureWeaponMap[weapon];
-            if (textureId >= TEXTURE_COUNT) {
-                textureId = 0;
-            }
+	old_for_all(uint8, index, count) {
+		textureData.backgrounds[index].Render(activeConfigTextureData.backgrounds[index], queuedConfigTextureData.backgrounds[index]);
+	}
 
-            textureData.icons[index].textureAddr = textureAddrs[textureId];
+	{
+		old_for_all(uint8, index, count) {
+			auto weapon = characterData.rangedWeapons[index];
+			if (weapon >= WEAPON::MAX) {
+				weapon = 0;
+			}
 
-            textureData.icons[index].Render(activeConfigTextureData.icons[index], queuedConfigTextureData.icons[index]);
-        }
-    }
+			auto textureId = textureWeaponMap[weapon];
+			if (textureId >= TEXTURE_COUNT) {
+				textureId = 0;
+			}
 
-    auto rangedWeaponIndex = characterData.rangedWeaponIndex;
-    if (rangedWeaponIndex >= 5) {
-        rangedWeaponIndex = 0;
-    }
+			textureData.icons[index].textureAddr = textureAddrs[textureId];
 
-    textureData.highlights[rangedWeaponIndex].Render(
-        activeConfigTextureData.highlights[rangedWeaponIndex], queuedConfigTextureData.highlights[rangedWeaponIndex]);
+			textureData.icons[index].Render(activeConfigTextureData.icons[index], queuedConfigTextureData.icons[index]);
+		}
+	}
 
-    {
-        auto textureId = textureArrowMap[rangedWeaponIndex];
+	auto rangedWeaponIndex = characterData.rangedWeaponIndex;
+	if (rangedWeaponIndex >= 5) {
+		rangedWeaponIndex = 0;
+	}
 
-        textureData.arrow.textureAddr = textureAddrs[textureId];
+	textureData.highlights[rangedWeaponIndex].Render(
+		activeConfigTextureData.highlights[rangedWeaponIndex], queuedConfigTextureData.highlights[rangedWeaponIndex]);
 
-        textureData.arrow.Render(activeConfigTextureData.arrow, queuedConfigTextureData.arrow);
-    }
+	{
+		auto textureId = textureArrowMap[rangedWeaponIndex];
 
-    // Force Icons to be on top of Highlights, when Main Menu is opened it forces focus on the Main Menu.
-    if (!g_show) {
-        ImGui::SetWindowFocus(textureData.icons[rangedWeaponIndex].label);
-    }
-//     } else {
-//         ImGui::SetWindowFocus(DMC3C_TITLE);
-//     }
+		textureData.arrow.textureAddr = textureAddrs[textureId];
+
+		textureData.arrow.Render(activeConfigTextureData.arrow, queuedConfigTextureData.arrow);
+	}
+
+	// Force Icons to be on top of Highlights, when Main Menu is opened it forces focus on the Main Menu.
+	if (!g_show) {
+		ImGui::SetWindowFocus(textureData.icons[rangedWeaponIndex].label);
+	}
+	//     } else {
+	//         ImGui::SetWindowFocus(DMC3C_TITLE);
+	//     }
 }
 
 void UpdateWeaponSwitchControllerTexturePositions() {
-    // Melee
-    {
-        auto& textureData       = meleeWeaponSwitchControllerTextureData;
-        auto& configTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
+	// Melee
+	{
+		auto& textureData = meleeWeaponSwitchControllerTextureData;
+		auto& configTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
 
-        old_for_all(uint8, index, 5) {
-            textureData.backgrounds[index].SetPosition(configTextureData.backgrounds[index], false);
-        }
+		old_for_all(uint8, index, 5) {
+			textureData.backgrounds[index].SetPosition(configTextureData.backgrounds[index], false);
+		}
 
-        old_for_all(uint8, index, 5) {
-            textureData.highlights[index].SetPosition(configTextureData.highlights[index], false);
-        }
+		old_for_all(uint8, index, 5) {
+			textureData.highlights[index].SetPosition(configTextureData.highlights[index], false);
+		}
 
 
-        old_for_all(uint8, index, 5) {
-            textureData.icons[index].SetPosition(configTextureData.icons[index], false);
-        }
+		old_for_all(uint8, index, 5) {
+			textureData.icons[index].SetPosition(configTextureData.icons[index], false);
+		}
 
-        textureData.arrow.SetPosition(configTextureData.arrow, false);
-    }
+		textureData.arrow.SetPosition(configTextureData.arrow, false);
+	}
 
-    // Ranged
-    {
-        auto& textureData       = rangedWeaponSwitchControllerTextureData;
-        auto& configTextureData = activeConfig.rangedWeaponSwitchControllerTextureData;
+	// Ranged
+	{
+		auto& textureData = rangedWeaponSwitchControllerTextureData;
+		auto& configTextureData = activeConfig.rangedWeaponSwitchControllerTextureData;
 
-        old_for_all(uint8, index, 5) {
-            textureData.backgrounds[index].SetPosition(configTextureData.backgrounds[index], true);
-        }
+		old_for_all(uint8, index, 5) {
+			textureData.backgrounds[index].SetPosition(configTextureData.backgrounds[index], true);
+		}
 
-        old_for_all(uint8, index, 5) {
-            textureData.icons[index].SetPosition(configTextureData.icons[index], true);
-        }
+		old_for_all(uint8, index, 5) {
+			textureData.icons[index].SetPosition(configTextureData.icons[index], true);
+		}
 
-        old_for_all(uint8, index, 5) {
-            textureData.highlights[index].SetPosition(configTextureData.highlights[index], true);
-        }
+		old_for_all(uint8, index, 5) {
+			textureData.highlights[index].SetPosition(configTextureData.highlights[index], true);
+		}
 
-        textureData.arrow.SetPosition(configTextureData.arrow, true);
-    }
+		textureData.arrow.SetPosition(configTextureData.arrow, true);
+	}
 }
 
 void UpdateWeaponWheelPos() {
-    {
-        const float multiplier = activeConfig.weaponWheelScaleMultiplier;
+	{
+		const float multiplier = activeConfig.weaponWheelScaleMultiplier;
 
-        CopyMemory(&queuedConfig.meleeWeaponSwitchControllerTextureData, &defaultConfig.meleeWeaponSwitchControllerTextureData,
-            sizeof(queuedConfig.meleeWeaponSwitchControllerTextureData));
+		CopyMemory(&queuedConfig.meleeWeaponSwitchControllerTextureData, &defaultConfig.meleeWeaponSwitchControllerTextureData,
+			sizeof(queuedConfig.meleeWeaponSwitchControllerTextureData));
 
-        auto& configTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
+		auto& configTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
 
-        auto values  = reinterpret_cast<float*>(&configTextureData);
-        uint32 count = (sizeof(configTextureData) / 4);
+		auto values = reinterpret_cast<float*>(&configTextureData);
+		uint32 count = (sizeof(configTextureData) / 4);
 
-        old_for_all(uint32, index, count) {
-            auto& value = values[index];
+		old_for_all(uint32, index, count) {
+			auto& value = values[index];
 
-            value *= multiplier;
-        }
+			value *= multiplier;
+		}
 
-        CopyMemory(&activeConfig.meleeWeaponSwitchControllerTextureData, &queuedConfig.meleeWeaponSwitchControllerTextureData,
-            sizeof(activeConfig.meleeWeaponSwitchControllerTextureData));
-    }
+		CopyMemory(&activeConfig.meleeWeaponSwitchControllerTextureData, &queuedConfig.meleeWeaponSwitchControllerTextureData,
+			sizeof(activeConfig.meleeWeaponSwitchControllerTextureData));
+	}
 
-    // Ranged
-    {
-        const float multiplier = activeConfig.weaponWheelScaleMultiplier;
+	// Ranged
+	{
+		const float multiplier = activeConfig.weaponWheelScaleMultiplier;
 
-        CopyMemory(&queuedConfig.rangedWeaponSwitchControllerTextureData, &defaultConfig.rangedWeaponSwitchControllerTextureData,
-            sizeof(queuedConfig.rangedWeaponSwitchControllerTextureData));
+		CopyMemory(&queuedConfig.rangedWeaponSwitchControllerTextureData, &defaultConfig.rangedWeaponSwitchControllerTextureData,
+			sizeof(queuedConfig.rangedWeaponSwitchControllerTextureData));
 
-        auto& configTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
+		auto& configTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
 
-        auto values  = reinterpret_cast<float*>(&configTextureData);
-        uint32 count = (sizeof(configTextureData) / 4);
+		auto values = reinterpret_cast<float*>(&configTextureData);
+		uint32 count = (sizeof(configTextureData) / 4);
 
-        old_for_all(uint32, index, count) {
-            auto& value = values[index];
+		old_for_all(uint32, index, count) {
+			auto& value = values[index];
 
-            value *= multiplier;
-        }
+			value *= multiplier;
+		}
 
-        CopyMemory(&activeConfig.rangedWeaponSwitchControllerTextureData, &queuedConfig.rangedWeaponSwitchControllerTextureData,
-            sizeof(activeConfig.rangedWeaponSwitchControllerTextureData));
-    }
+		CopyMemory(&activeConfig.rangedWeaponSwitchControllerTextureData, &queuedConfig.rangedWeaponSwitchControllerTextureData,
+			sizeof(activeConfig.rangedWeaponSwitchControllerTextureData));
+	}
 
-    UpdateWeaponSwitchControllerTexturePositions();
+	UpdateWeaponSwitchControllerTexturePositions();
 }
 
 
 void WeaponSwitchController() {
-    static bool run = false;
-    if (!run) {
-        run = true;
+	static bool run = false;
+	if (!run) {
+		run = true;
 
-        // Melee
-        {
-            auto& textureData = meleeWeaponSwitchControllerTextureData;
+		// Melee
+		{
+			auto& textureData = meleeWeaponSwitchControllerTextureData;
 
-            old_for_all(uint8, index, 5) {
-                textureData.backgrounds[index] = {
-                    true, false, meleeWeaponSwitchControllerBackgroundNames[index], textureAddrs[TEXTURE_BACKGROUND]};
-            }
+			old_for_all(uint8, index, 5) {
+				textureData.backgrounds[index] = {
+					true, false, meleeWeaponSwitchControllerBackgroundNames[index], textureAddrs[TEXTURE_BACKGROUND] };
+			}
 
-            old_for_all(uint8, index, 5) {
-                textureData.icons[index] = {true, false, meleeWeaponSwitchControllerIconNames[index]};
-            }
+			old_for_all(uint8, index, 5) {
+				textureData.icons[index] = { true, false, meleeWeaponSwitchControllerIconNames[index] };
+			}
 
-            old_for_all(uint8, index, 5) {
-                textureData.highlights[index] = {
-                    true, false, meleeWeaponSwitchControllerHighlightNames[index], textureAddrs[TEXTURE_HIGHLIGHT]};
-            }
+			old_for_all(uint8, index, 5) {
+				textureData.highlights[index] = {
+					true, false, meleeWeaponSwitchControllerHighlightNames[index], textureAddrs[TEXTURE_HIGHLIGHT] };
+			}
 
-            textureData.arrow = {true, false, meleeWeaponSwitchControllerArrowName};
-        }
+			textureData.arrow = { true, false, meleeWeaponSwitchControllerArrowName };
+		}
 
-        // Ranged
-        {
-            auto& textureData = rangedWeaponSwitchControllerTextureData;
+		// Ranged
+		{
+			auto& textureData = rangedWeaponSwitchControllerTextureData;
 
-            old_for_all(uint8, index, 5) {
-                textureData.backgrounds[index] = {
-                    true, false, rangedWeaponSwitchControllerBackgroundNames[index], textureAddrs[TEXTURE_BACKGROUND]};
-            }
+			old_for_all(uint8, index, 5) {
+				textureData.backgrounds[index] = {
+					true, false, rangedWeaponSwitchControllerBackgroundNames[index], textureAddrs[TEXTURE_BACKGROUND] };
+			}
 
-            old_for_all(uint8, index, 5) {
-                textureData.icons[index] = {true, false, rangedWeaponSwitchControllerIconNames[index]};
-            }
+			old_for_all(uint8, index, 5) {
+				textureData.icons[index] = { true, false, rangedWeaponSwitchControllerIconNames[index] };
+			}
 
-            old_for_all(uint8, index, 5) {
-                textureData.highlights[index] = {
-                    true, false, rangedWeaponSwitchControllerHighlightNames[index], textureAddrs[TEXTURE_HIGHLIGHT]};
-            }
+			old_for_all(uint8, index, 5) {
+				textureData.highlights[index] = {
+					true, false, rangedWeaponSwitchControllerHighlightNames[index], textureAddrs[TEXTURE_HIGHLIGHT] };
+			}
 
-            textureData.arrow = {true, false, rangedWeaponSwitchControllerArrowName};
-        }
-    }
+			textureData.arrow = { true, false, rangedWeaponSwitchControllerArrowName };
+		}
+	}
 
-    UpdateWeaponWheelPos();
-    MeleeWeaponSwitchController();
-    RangedWeaponSwitchController();
+	UpdateWeaponWheelPos();
+	MeleeWeaponSwitchController();
+	RangedWeaponSwitchController();
 }
 
 
 void WeaponSwitchControllerSettings() {
-    if (GUI_ResetButton()) {
-        CopyMemory(&queuedConfig.meleeWeaponSwitchControllerTextureData, &defaultConfig.meleeWeaponSwitchControllerTextureData,
-            sizeof(queuedConfig.meleeWeaponSwitchControllerTextureData));
-        CopyMemory(&activeConfig.meleeWeaponSwitchControllerTextureData, &queuedConfig.meleeWeaponSwitchControllerTextureData,
-            sizeof(activeConfig.meleeWeaponSwitchControllerTextureData));
+	if (GUI_ResetButton()) {
+		CopyMemory(&queuedConfig.meleeWeaponSwitchControllerTextureData, &defaultConfig.meleeWeaponSwitchControllerTextureData,
+			sizeof(queuedConfig.meleeWeaponSwitchControllerTextureData));
+		CopyMemory(&activeConfig.meleeWeaponSwitchControllerTextureData, &queuedConfig.meleeWeaponSwitchControllerTextureData,
+			sizeof(activeConfig.meleeWeaponSwitchControllerTextureData));
 
-        CopyMemory(&queuedConfig.rangedWeaponSwitchControllerTextureData, &defaultConfig.rangedWeaponSwitchControllerTextureData,
-            sizeof(queuedConfig.rangedWeaponSwitchControllerTextureData));
-        CopyMemory(&activeConfig.rangedWeaponSwitchControllerTextureData, &queuedConfig.rangedWeaponSwitchControllerTextureData,
-            sizeof(activeConfig.rangedWeaponSwitchControllerTextureData));
-
-
-        UpdateWeaponSwitchControllerTexturePositions();
-
-        CopyMemory(&queuedConfig.forceIconFocus, &defaultConfig.forceIconFocus, sizeof(queuedConfig.forceIconFocus));
-        CopyMemory(&activeConfig.forceIconFocus, &queuedConfig.forceIconFocus, sizeof(activeConfig.forceIconFocus));
-    }
-    ImGui::Text("");
-
-    /*GUI_Checkbox2
-    (
-            "Force Icon Focus",
-            activeConfig.forceIconFocus,
-            queuedConfig.forceIconFocus
-    );
-    ImGui::Text("");
-
-    GUI_Checkbox
-    (
-            "Show Textures",
-            g_showTextures
-    );
-    ImGui::Text("");*/
-
-    const float defaultWidth  = 1920;
-    const float defaultHeight = 1080;
-
-    static float targetWidth  = 1280;
-    static float targetHeight = 720;
-
-    ImGui::PushItemWidth(200);
-
-    GUI_Checkbox2("Enable New Weapon Wheel", activeConfig.weaponWheelEnabled, queuedConfig.weaponWheelEnabled);
-    ImGui::SameLine();
-    TooltipHelper("(?)", "Enables a Switch Version-like Weapon Wheel with Analog Selection, only works for Player 1.");
-
-    GUI_Checkbox2(
-        "Enable Analog Weapon Selection", activeConfig.weaponWheelAnalogSelectionEnabled, queuedConfig.weaponWheelAnalogSelectionEnabled);
-
-    GUI_Checkbox2("Disable Camera Control While Pressing Change Devil Arm/Gun", activeConfig.weaponWheelDisableCameraRotation,
-        queuedConfig.weaponWheelDisableCameraRotation);
+		CopyMemory(&queuedConfig.rangedWeaponSwitchControllerTextureData, &defaultConfig.rangedWeaponSwitchControllerTextureData,
+			sizeof(queuedConfig.rangedWeaponSwitchControllerTextureData));
+		CopyMemory(&activeConfig.rangedWeaponSwitchControllerTextureData, &queuedConfig.rangedWeaponSwitchControllerTextureData,
+			sizeof(activeConfig.rangedWeaponSwitchControllerTextureData));
 
 
-    GUI_Checkbox2("Melee Wheel Always Show", activeConfig.MeleeWeaponWheel.alwaysShow, queuedConfig.MeleeWeaponWheel.alwaysShow);
-    GUI_Checkbox2("Ranged Wheel Always Show", activeConfig.RangedWeaponWheel.alwaysShow, queuedConfig.RangedWeaponWheel.alwaysShow);
-    ImGui::Text("");
+		UpdateWeaponSwitchControllerTexturePositions();
+
+		CopyMemory(&queuedConfig.forceIconFocus, &defaultConfig.forceIconFocus, sizeof(queuedConfig.forceIconFocus));
+		CopyMemory(&activeConfig.forceIconFocus, &queuedConfig.forceIconFocus, sizeof(activeConfig.forceIconFocus));
+	}
+	ImGui::Text("");
+
+	/*GUI_Checkbox2
+	(
+			"Force Icon Focus",
+			activeConfig.forceIconFocus,
+			queuedConfig.forceIconFocus
+	);
+	ImGui::Text("");
+
+	GUI_Checkbox
+	(
+			"Show Textures",
+			g_showTextures
+	);
+	ImGui::Text("");*/
+
+	const float defaultWidth = 1920;
+	const float defaultHeight = 1080;
+
+	static float targetWidth = 1280;
+	static float targetHeight = 720;
+
+	ImGui::PushItemWidth(200);
+
+	GUI_Checkbox2("Enable New Weapon Wheel", activeConfig.weaponWheelEnabled, queuedConfig.weaponWheelEnabled);
+	ImGui::SameLine();
+	TooltipHelper("(?)", "Enables a Switch Version-like Weapon Wheel with Analog Selection, only works for Player 1.");
+
+	GUI_Checkbox2(
+		"Enable Analog Weapon Selection", activeConfig.weaponWheelAnalogSelectionEnabled, queuedConfig.weaponWheelAnalogSelectionEnabled);
+
+	GUI_Checkbox2("Disable Camera Control While Pressing Change Devil Arm/Gun", activeConfig.weaponWheelDisableCameraRotation,
+		queuedConfig.weaponWheelDisableCameraRotation);
 
 
-    GUI_InputDefault2<uint32>("Melee Wheel Timeout", activeConfig.MeleeWeaponWheel.timeout, queuedConfig.MeleeWeaponWheel.timeout,
-        defaultConfig.MeleeWeaponWheel.timeout, 1, "%u");
-
-    GUI_InputDefault2<uint32>("Ranged Wheel Timeout", activeConfig.RangedWeaponWheel.timeout, queuedConfig.RangedWeaponWheel.timeout,
-        defaultConfig.RangedWeaponWheel.timeout, 1, "%u");
-    ImGui::Text("");
+	GUI_Checkbox2("Melee Wheel Always Show", activeConfig.MeleeWeaponWheel.alwaysShow, queuedConfig.MeleeWeaponWheel.alwaysShow);
+	GUI_Checkbox2("Ranged Wheel Always Show", activeConfig.RangedWeaponWheel.alwaysShow, queuedConfig.RangedWeaponWheel.alwaysShow);
+	ImGui::Text("");
 
 
-    GUI_InputDefault2<float>("Wheel Scale Multiplier", activeConfig.weaponWheelScaleMultiplier, queuedConfig.weaponWheelScaleMultiplier,
-        defaultConfig.weaponWheelScaleMultiplier, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	GUI_InputDefault2<uint32>("Melee Wheel Timeout", activeConfig.MeleeWeaponWheel.timeout, queuedConfig.MeleeWeaponWheel.timeout,
+		defaultConfig.MeleeWeaponWheel.timeout, 1, "%u");
 
-    GUI_InputDefault2<float>("Melee Wheel Horizontal", activeConfig.weaponWheelHorizontalMelee, queuedConfig.weaponWheelHorizontalMelee,
-        defaultConfig.weaponWheelHorizontalMelee, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-
-
-    GUI_InputDefault2<float>("Ranged Wheel Horizontal", activeConfig.weaponWheelHorizontalRanged, queuedConfig.weaponWheelHorizontalRanged,
-        defaultConfig.weaponWheelHorizontalRanged, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	GUI_InputDefault2<uint32>("Ranged Wheel Timeout", activeConfig.RangedWeaponWheel.timeout, queuedConfig.RangedWeaponWheel.timeout,
+		defaultConfig.RangedWeaponWheel.timeout, 1, "%u");
+	ImGui::Text("");
 
 
-    GUI_InputDefault2<float>("Wheel Height", activeConfig.weaponWheelHeight, queuedConfig.weaponWheelHeight,
-        defaultConfig.weaponWheelHeight, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	GUI_InputDefault2<float>("Wheel Scale Multiplier", activeConfig.weaponWheelScaleMultiplier, queuedConfig.weaponWheelScaleMultiplier,
+		defaultConfig.weaponWheelScaleMultiplier, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+
+	GUI_InputDefault2<float>("Melee Wheel Horizontal", activeConfig.weaponWheelHorizontalMelee, queuedConfig.weaponWheelHorizontalMelee,
+		defaultConfig.weaponWheelHorizontalMelee, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
 
-    /*GUI_Input
-    (
-            "Target Height",
-            targetHeight,
-            1.0f,
-            "%g"
-    );*/
+	GUI_InputDefault2<float>("Ranged Wheel Horizontal", activeConfig.weaponWheelHorizontalRanged, queuedConfig.weaponWheelHorizontalRanged,
+		defaultConfig.weaponWheelHorizontalRanged, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
 
-    // Melee
-    UpdateWeaponWheelPos();
-
-    // GUI::save = true;
+	GUI_InputDefault2<float>("Wheel Height", activeConfig.weaponWheelHeight, queuedConfig.weaponWheelHeight,
+		defaultConfig.weaponWheelHeight, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
 
-    ImGui::Text("");
+	/*GUI_Input
+	(
+			"Target Height",
+			targetHeight,
+			1.0f,
+			"%g"
+	);*/
 
-    ImGui::PopItemWidth();
+
+	// Melee
+	UpdateWeaponWheelPos();
+
+	// GUI::save = true;
 
 
-    // Melee
-    /*{
-            auto & textureData = meleeWeaponSwitchControllerTextureData;
-            auto & activeConfigTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
-            auto & queuedConfigTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
+	ImGui::Text("");
 
-            old_for_all(uint8, index, 5)
-            {
-                    textureData.backgrounds[index].Settings
-                    (
-                            activeConfigTextureData.backgrounds[index],
-                            queuedConfigTextureData.backgrounds[index]
-                    );
-                    ImGui::Text("");
-            }
+	ImGui::PopItemWidth();
 
-            old_for_all(uint8, index, 5)
-            {
-                    textureData.icons[index].Settings
-                    (
-                            activeConfigTextureData.icons[index],
-                            queuedConfigTextureData.icons[index]
-                    );
-                    ImGui::Text("");
-            }
 
-            old_for_all(uint8, index, 5)
-            {
-                    textureData.highlights[index].Settings
-                    (
-                            activeConfigTextureData.highlights[index],
-                            queuedConfigTextureData.highlights[index]
-                    );
-                    ImGui::Text("");
-            }
+	// Melee
+	/*{
+			auto & textureData = meleeWeaponSwitchControllerTextureData;
+			auto & activeConfigTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
+			auto & queuedConfigTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
 
-            textureData.arrow.Settings
-            (
-                    activeConfigTextureData.arrow,
-                    queuedConfigTextureData.arrow
-            );
-            ImGui::Text("");
-    }
+			old_for_all(uint8, index, 5)
+			{
+					textureData.backgrounds[index].Settings
+					(
+							activeConfigTextureData.backgrounds[index],
+							queuedConfigTextureData.backgrounds[index]
+					);
+					ImGui::Text("");
+			}
 
-    // Ranged
-    {
-            auto & textureData = rangedWeaponSwitchControllerTextureData;
-            auto & activeConfigTextureData = activeConfig.rangedWeaponSwitchControllerTextureData;
-            auto & queuedConfigTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
+			old_for_all(uint8, index, 5)
+			{
+					textureData.icons[index].Settings
+					(
+							activeConfigTextureData.icons[index],
+							queuedConfigTextureData.icons[index]
+					);
+					ImGui::Text("");
+			}
 
-            old_for_all(uint8, index, 5)
-            {
-                    textureData.backgrounds[index].Settings
-                    (
-                            activeConfigTextureData.backgrounds[index],
-                            queuedConfigTextureData.backgrounds[index]
-                    );
-                    ImGui::Text("");
-            }
+			old_for_all(uint8, index, 5)
+			{
+					textureData.highlights[index].Settings
+					(
+							activeConfigTextureData.highlights[index],
+							queuedConfigTextureData.highlights[index]
+					);
+					ImGui::Text("");
+			}
 
-            old_for_all(uint8, index, 5)
-            {
-                    textureData.icons[index].Settings
-                    (
-                            activeConfigTextureData.icons[index],
-                            queuedConfigTextureData.icons[index]
-                    );
-                    ImGui::Text("");
-            }
+			textureData.arrow.Settings
+			(
+					activeConfigTextureData.arrow,
+					queuedConfigTextureData.arrow
+			);
+			ImGui::Text("");
+	}
 
-            old_for_all(uint8, index, 5)
-            {
-                    textureData.highlights[index].Settings
-                    (
-                            activeConfigTextureData.highlights[index],
-                            queuedConfigTextureData.highlights[index]
-                    );
-                    ImGui::Text("");
-            }
+	// Ranged
+	{
+			auto & textureData = rangedWeaponSwitchControllerTextureData;
+			auto & activeConfigTextureData = activeConfig.rangedWeaponSwitchControllerTextureData;
+			auto & queuedConfigTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
 
-            textureData.arrow.Settings
-            (
-                    activeConfigTextureData.arrow,
-                    queuedConfigTextureData.arrow
-            );
-    }*/
+			old_for_all(uint8, index, 5)
+			{
+					textureData.backgrounds[index].Settings
+					(
+							activeConfigTextureData.backgrounds[index],
+							queuedConfigTextureData.backgrounds[index]
+					);
+					ImGui::Text("");
+			}
+
+			old_for_all(uint8, index, 5)
+			{
+					textureData.icons[index].Settings
+					(
+							activeConfigTextureData.icons[index],
+							queuedConfigTextureData.icons[index]
+					);
+					ImGui::Text("");
+			}
+
+			old_for_all(uint8, index, 5)
+			{
+					textureData.highlights[index].Settings
+					(
+							activeConfigTextureData.highlights[index],
+							queuedConfigTextureData.highlights[index]
+					);
+					ImGui::Text("");
+			}
+
+			textureData.arrow.Settings
+			(
+					activeConfigTextureData.arrow,
+					queuedConfigTextureData.arrow
+			);
+	}*/
 }
 
 #pragma endregion
@@ -2616,152 +2625,154 @@ uint8 Actor_collisionGroupIndices[PLAYER_COUNT] = {};
 uint8 Actor_newCharacterIndices[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT] = {};
 
 uint8 Actor_styleButtonIndices[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][STYLE_COUNT] = {};
-uint8 Actor_styleIndices[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][STYLE_COUNT][2]    = {};
+uint8 Actor_styleIndices[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][STYLE_COUNT][2] = {};
 
-uint8 Actor_meleeWeaponIndices[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][MELEE_WEAPON_COUNT]   = {};
+uint8 Actor_meleeWeaponIndices[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][MELEE_WEAPON_COUNT] = {};
 uint8 Actor_rangedWeaponIndices[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][RANGED_WEAPON_COUNT] = {};
 
 uint8 Actor_removeBusyFlagButtonIndices[PLAYER_COUNT][4] = {};
 
 
 void Actor_UpdateIndices() {
-    old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-        auto& activePlayerData = GetActivePlayerData(playerIndex);
-        auto& queuedPlayerData = GetQueuedPlayerData(playerIndex);
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+		auto& activePlayerData = GetActivePlayerData(playerIndex);
+		auto& queuedPlayerData = GetQueuedPlayerData(playerIndex);
 
 
-        UpdateMapIndex(collisionGroups, Actor_collisionGroupIndices[playerIndex], queuedPlayerData.collisionGroup);
+		UpdateMapIndex(collisionGroups, Actor_collisionGroupIndices[playerIndex], queuedPlayerData.collisionGroup);
 
-        UpdateMapIndex(buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton);
+		UpdateMapIndex(buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton);
 
-        old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
-            old_for_all(uint8, entityIndex, ENTITY_COUNT) {
-                auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
-                auto& queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
-
-
-                UpdateMapIndex(
-                    newCharacters, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex], queuedCharacterData.character);
+		old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
+			old_for_all(uint8, entityIndex, ENTITY_COUNT) {
+				auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
+				auto& queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
 
 
-                old_for_all(uint8, styleIndex, STYLE_COUNT) {
-                    UpdateMapIndex(buttons, Actor_styleButtonIndices[playerIndex][characterIndex][entityIndex][styleIndex],
-                        queuedCharacterData.styleButtons[styleIndex]);
-
-                    switch (queuedCharacterData.character) {
-                    case CHARACTER::DANTE: {
-                        UpdateMapIndex(stylesDante, Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][0],
-                            queuedCharacterData.styles[styleIndex][0]);
-                        UpdateMapIndex(stylesDante, Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][1],
-                            queuedCharacterData.styles[styleIndex][1]);
-
-                        break;
-                    }
-                    case CHARACTER::VERGIL: {
-                        UpdateMapIndex(stylesVergil, Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][0],
-                            queuedCharacterData.styles[styleIndex][0]);
-                        UpdateMapIndex(stylesVergil, Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][1],
-                            queuedCharacterData.styles[styleIndex][1]);
-
-                        break;
-                    }
-                    }
-                }
-
-                if (queuedCharacterData.character != CHARACTER::DANTE) {
-                    continue;
-                }
-
-                old_for_all(uint8, meleeWeaponIndex, MELEE_WEAPON_COUNT_DANTE) {
-                    UpdateMapIndex(meleeWeaponsDante, Actor_meleeWeaponIndices[playerIndex][characterIndex][entityIndex][meleeWeaponIndex],
-                        queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
-                }
-
-                old_for_all(uint8, rangedWeaponIndex, RANGED_WEAPON_COUNT_DANTE) {
-                    UpdateMapIndex(rangedWeaponsDante,
-                        Actor_rangedWeaponIndices[playerIndex][characterIndex][entityIndex][rangedWeaponIndex],
-                        queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
-                }
-            }
-        }
+				UpdateMapIndex(
+					newCharacters, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex], queuedCharacterData.character);
 
 
-        old_for_all(uint8, buttonIndex, 4) {
-            UpdateMapIndex(
-                buttons, Actor_removeBusyFlagButtonIndices[playerIndex][buttonIndex], activePlayerData.removeBusyFlagButtons[buttonIndex]);
-        }
-    }
+				old_for_all(uint8, styleIndex, STYLE_COUNT) {
+					UpdateMapIndex(buttons, Actor_styleButtonIndices[playerIndex][characterIndex][entityIndex][styleIndex],
+						queuedCharacterData.styleButtons[styleIndex]);
+
+					switch (queuedCharacterData.character) {
+					case CHARACTER::DANTE:
+					{
+						UpdateMapIndex(stylesDante, Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][0],
+							queuedCharacterData.styles[styleIndex][0]);
+						UpdateMapIndex(stylesDante, Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][1],
+							queuedCharacterData.styles[styleIndex][1]);
+
+						break;
+					}
+					case CHARACTER::VERGIL:
+					{
+						UpdateMapIndex(stylesVergil, Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][0],
+							queuedCharacterData.styles[styleIndex][0]);
+						UpdateMapIndex(stylesVergil, Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][1],
+							queuedCharacterData.styles[styleIndex][1]);
+
+						break;
+					}
+					}
+				}
+
+				if (queuedCharacterData.character != CHARACTER::DANTE) {
+					continue;
+				}
+
+				old_for_all(uint8, meleeWeaponIndex, MELEE_WEAPON_COUNT_DANTE) {
+					UpdateMapIndex(meleeWeaponsDante, Actor_meleeWeaponIndices[playerIndex][characterIndex][entityIndex][meleeWeaponIndex],
+						queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
+				}
+
+				old_for_all(uint8, rangedWeaponIndex, RANGED_WEAPON_COUNT_DANTE) {
+					UpdateMapIndex(rangedWeaponsDante,
+						Actor_rangedWeaponIndices[playerIndex][characterIndex][entityIndex][rangedWeaponIndex],
+						queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
+				}
+			}
+		}
+
+
+		old_for_all(uint8, buttonIndex, 4) {
+			UpdateMapIndex(
+				buttons, Actor_removeBusyFlagButtonIndices[playerIndex][buttonIndex], activePlayerData.removeBusyFlagButtons[buttonIndex]);
+		}
+	}
 }
 
 void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex, size_t defaultFontSize) {
-    auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
-    auto& queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
+	auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
+	auto& queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
 
 	auto& activeCharacterDataClone = GetActiveCharacterData(playerIndex, characterIndex, 1);
 	auto& queuedCharacterDataClone = GetQueuedCharacterData(playerIndex, characterIndex, 1);
 
-    auto& mainActiveCharacterData = GetActiveCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
-    auto& mainQueuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
+	auto& mainActiveCharacterData = GetActiveCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
+	auto& mainQueuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
 
 	const float itemWidth = defaultFontSize * 8.0f;
-    ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
+	ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
 
-    if ((entityIndex == ENTITY::CLONE) && (mainQueuedCharacterData.character >= CHARACTER::MAX)) {
-        return;
-    }
-	
-    ImGui::Text("");
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
+	if ((entityIndex == ENTITY::CLONE) && (mainQueuedCharacterData.character >= CHARACTER::MAX)) {
+		return;
+	}
 
-    {
+	ImGui::Text("");
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
+
+	{
 		const float columnWidth = 0.8f * queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-        if (ImGui::BeginTable("CharacterSelection", 1)) {
+		if (ImGui::BeginTable("CharacterSelection", 1)) {
 
-            ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-            ImGui::TableSetupColumn("c1", 0, columnWidth);
-            ImGui::TableNextRow(0, rowWidth);
-            ImGui::TableNextColumn();
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+			ImGui::TableSetupColumn("c1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-            ImGui::PushItemWidth(itemWidth);
+			ImGui::PushItemWidth(itemWidth);
 
-            if ((playerIndex == 0) && (characterIndex > 0)) {
-                if (UI::ComboMap("CHARACTER", newCharacterNames, newCharacters, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
-                    queuedCharacterData.character)) {
-                    ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
+			if ((playerIndex == 0) && (characterIndex > 0)) {
+				if (UI::ComboMap("CHARACTER", newCharacterNames, newCharacters, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
+					queuedCharacterData.character)) {
+					ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
 
-                    if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
-                        queuedCharacterDataClone.character = queuedCharacterData.character;
-                        ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
-                    }
+					if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
+						queuedCharacterDataClone.character = queuedCharacterData.character;
+						ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
+					}
 
-                    Actor_UpdateIndices();
-                }
-            }
-            else {
-                if (UI::Combo("CHARACTER", characterNames, queuedCharacterData.character)) {
-                    ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
+					Actor_UpdateIndices();
+				}
+			}
+			else {
+				if (UI::Combo("CHARACTER", characterNames, queuedCharacterData.character)) {
+					ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
 
-                    if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
-                        queuedCharacterDataClone.character = queuedCharacterData.character;
-                        ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
-                    }
+					if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
+						queuedCharacterDataClone.character = queuedCharacterData.character;
+						ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
+					}
 
-                    Actor_UpdateIndices();
-                }
-            }
+					Actor_UpdateIndices();
+				}
+			}
 
-            ImGui::PopItemWidth();
-            ImGui::PopFont();
+			ImGui::PopItemWidth();
+			ImGui::PopFont();
 
-            
 
-            if ((queuedCharacterData.character == CHARACTER::DANTE) || (queuedCharacterData.character == CHARACTER::VERGIL)) {
+
+			if ((queuedCharacterData.character == CHARACTER::DANTE) || (queuedCharacterData.character == CHARACTER::VERGIL)) {
 				ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
-                ImGui::TableNextRow(0, rowWidth);
-                ImGui::TableNextColumn();
+				ImGui::TableNextRow(0, rowWidth);
+				ImGui::TableNextColumn();
 				ImGui::PushItemWidth(itemWidth);
 
 				// Costume
@@ -2770,16 +2781,16 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 					GUI_PushDisable(condition);
 
-                    if (GUI_Input("Costume", queuedCharacterData.costume)) {
-                        queuedCharacterDataClone.costume = queuedCharacterData.costume;
-                    }
+					if (GUI_Input("Costume", queuedCharacterData.costume)) {
+						queuedCharacterDataClone.costume = queuedCharacterData.costume;
+					}
 
 					GUI_PopDisable(condition);
 
 
-                    if (GUI_Checkbox("Ignore", queuedCharacterData.ignoreCostume)) {
-                        queuedCharacterDataClone.ignoreCostume = queuedCharacterData.ignoreCostume;
-                    }
+					if (GUI_Checkbox("Ignore", queuedCharacterData.ignoreCostume)) {
+						queuedCharacterDataClone.ignoreCostume = queuedCharacterData.ignoreCostume;
+					}
 					ImGui::SameLine();
 					TooltipHelper("(?)", "Ignores your setting and uses the global value.");
 				}
@@ -2787,9 +2798,9 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 				ImGui::SameLine();
 
 
-                if (GUI_Checkbox("Force Specific Model", queuedCharacterData.forceFiles)) {
-                    queuedCharacterDataClone.forceFiles = queuedCharacterData.forceFiles;
-                }
+				if (GUI_Checkbox("Force Specific Model", queuedCharacterData.forceFiles)) {
+					queuedCharacterDataClone.forceFiles = queuedCharacterData.forceFiles;
+				}
 
 
 				if (queuedCharacterData.forceFiles) {
@@ -2797,16 +2808,16 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 					ImGui::TableNextRow(0, rowWidth);
 					ImGui::TableNextColumn();
 
-                    if (UI::Combo("Force Model Character", characterNames, queuedCharacterData.forceFilesCharacter)) {
-                        queuedCharacterDataClone.forceFilesCharacter = queuedCharacterData.forceFilesCharacter;
-                    }
-                    
-                    ImGui::TableNextRow(0, rowWidth);
+					if (UI::Combo("Force Model Character", characterNames, queuedCharacterData.forceFilesCharacter)) {
+						queuedCharacterDataClone.forceFilesCharacter = queuedCharacterData.forceFilesCharacter;
+					}
+
+					ImGui::TableNextRow(0, rowWidth);
 					ImGui::TableNextColumn();
 
-                    if (GUI_Input("Force Model Costume", queuedCharacterData.forceFilesCostume)) {
-                        queuedCharacterDataClone.forceFilesCostume = queuedCharacterData.forceFilesCostume;
-                    }
+					if (GUI_Input("Force Model Costume", queuedCharacterData.forceFilesCostume)) {
+						queuedCharacterDataClone.forceFilesCostume = queuedCharacterData.forceFilesCostume;
+					}
 
 				}
 
@@ -2817,204 +2828,204 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 					Actor_UpdateIndices();
 				}
 
-                ImGui::PopItemWidth();
-                ImGui::PopFont();
-            }
+				ImGui::PopItemWidth();
+				ImGui::PopFont();
+			}
 
 
-            ImGui::EndTable();
-        }
-    }
-    
-    ImGui::Text("");
+			ImGui::EndTable();
+		}
+	}
 
-    /*ImGui::Text("Styles");
+	ImGui::Text("");
 
-    old_for_all(uint8, styleIndex, STYLE_COUNT)
-    {
-            if constexpr (debug)
-            {
-                    ImGui::Text("");
-                    ImGui::Text("%u", styleIndex);
-            }
+	/*ImGui::Text("Styles");
 
-            UI::ComboMap
-            (
-                    "",
-                    buttonNames,
-                    buttons,
-                    Actor_styleButtonIndices[playerIndex][characterIndex][entityIndex][styleIndex],
-                    queuedCharacterData.styleButtons[styleIndex],
-                    ImGuiComboFlags_HeightLargest
-            );
+	old_for_all(uint8, styleIndex, STYLE_COUNT)
+	{
+			if constexpr (debug)
+			{
+					ImGui::Text("");
+					ImGui::Text("%u", styleIndex);
+			}
 
-            if constexpr (!debug)
-            {
-                    ImGui::SameLine();
-            }
+			UI::ComboMap
+			(
+					"",
+					buttonNames,
+					buttons,
+					Actor_styleButtonIndices[playerIndex][characterIndex][entityIndex][styleIndex],
+					queuedCharacterData.styleButtons[styleIndex],
+					ImGuiComboFlags_HeightLargest
+			);
 
-            switch (queuedCharacterData.character)
-            {
-                    case CHARACTER::DANTE:
-                    {
-                            UI::ComboMap
-                            (
-                                    "",
-                                    styleNamesDante,
-                                    stylesDante,
-                                    Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][0],
-                                    queuedCharacterData.styles[styleIndex][0]
-                            );
+			if constexpr (!debug)
+			{
+					ImGui::SameLine();
+			}
 
-                            if constexpr (!debug)
-                            {
-                                    ImGui::SameLine();
-                            }
+			switch (queuedCharacterData.character)
+			{
+					case CHARACTER::DANTE:
+					{
+							UI::ComboMap
+							(
+									"",
+									styleNamesDante,
+									stylesDante,
+									Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][0],
+									queuedCharacterData.styles[styleIndex][0]
+							);
 
-                            UI::ComboMap
-                            (
-                                    "",
-                                    styleNamesDante,
-                                    stylesDante,
-                                    Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][1],
-                                    queuedCharacterData.styles[styleIndex][1]
-                            );
+							if constexpr (!debug)
+							{
+									ImGui::SameLine();
+							}
 
-                            break;
-                    }
-                    case CHARACTER::VERGIL:
-                    {
-                            UI::ComboMap
-                            (
-                                    "",
-                                    styleNamesVergil,
-                                    stylesVergil,
-                                    Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][0],
-                                    queuedCharacterData.styles[styleIndex][0]
-                            );
+							UI::ComboMap
+							(
+									"",
+									styleNamesDante,
+									stylesDante,
+									Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][1],
+									queuedCharacterData.styles[styleIndex][1]
+							);
 
-                            if constexpr (debug)
-                            {
-                                    ImGui::SameLine();
-                            }
+							break;
+					}
+					case CHARACTER::VERGIL:
+					{
+							UI::ComboMap
+							(
+									"",
+									styleNamesVergil,
+									stylesVergil,
+									Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][0],
+									queuedCharacterData.styles[styleIndex][0]
+							);
 
-                            UI::ComboMap
-                            (
-                                    "",
-                                    styleNamesVergil,
-                                    stylesVergil,
-                                    Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][1],
-                                    queuedCharacterData.styles[styleIndex][1]
-                            );
+							if constexpr (debug)
+							{
+									ImGui::SameLine();
+							}
 
-                            break;
-                    }
-            }
-    }
+							UI::ComboMap
+							(
+									"",
+									styleNamesVergil,
+									stylesVergil,
+									Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][1],
+									queuedCharacterData.styles[styleIndex][1]
+							);
 
-    ImGui::PopItemWidth();*/
+							break;
+					}
+			}
+	}
 
-    ImGui::PopStyleColor();
+	ImGui::PopItemWidth();*/
 
-    if (queuedCharacterData.character != CHARACTER::DANTE) {
-        return;
-    }
+	ImGui::PopStyleColor();
 
-	
+	if (queuedCharacterData.character != CHARACTER::DANTE) {
+		return;
+	}
+
+
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 	ImGui::Text("WEAPON LOADOUT");
-    //GUI_SectionEnd(SectionFlags_NoNewLine);
+	//GUI_SectionEnd(SectionFlags_NoNewLine);
 	ImGui::PopFont();
 
-    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-    {
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	{
 		const float columnWidth = 0.5f * queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-        if (ImGui::BeginTable("WeaponLoadout", 2)) {
+		if (ImGui::BeginTable("WeaponLoadout", 2)) {
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-            ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
-            ImGui::Text("MELEE");
-            ImGui::PopFont();
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
+			ImGui::Text("MELEE");
+			ImGui::PopFont();
 
-            ImGui::PushItemWidth(itemWidth);
+			ImGui::PushItemWidth(itemWidth);
 
-            GUI_Slider<uint8>("", queuedCharacterData.meleeWeaponCount, 1, MELEE_WEAPON_COUNT_DANTE);
+			GUI_Slider<uint8>("", queuedCharacterData.meleeWeaponCount, 1, MELEE_WEAPON_COUNT_DANTE);
 
-            queuedCharacterDataClone.meleeWeaponCount = queuedCharacterData.meleeWeaponCount;
+			queuedCharacterDataClone.meleeWeaponCount = queuedCharacterData.meleeWeaponCount;
 
-            old_for_all(uint8, meleeWeaponIndex, MELEE_WEAPON_COUNT_DANTE) {
-                bool condition = (meleeWeaponIndex >= queuedCharacterData.meleeWeaponCount);
+			old_for_all(uint8, meleeWeaponIndex, MELEE_WEAPON_COUNT_DANTE) {
+				bool condition = (meleeWeaponIndex >= queuedCharacterData.meleeWeaponCount);
 
-                GUI_PushDisable(condition);
+				GUI_PushDisable(condition);
 
-                UI::ComboMap("", meleeWeaponNamesDante, meleeWeaponsDante,
-                    Actor_meleeWeaponIndices[playerIndex][characterIndex][entityIndex][meleeWeaponIndex],
-                    queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
+				UI::ComboMap("", meleeWeaponNamesDante, meleeWeaponsDante,
+					Actor_meleeWeaponIndices[playerIndex][characterIndex][entityIndex][meleeWeaponIndex],
+					queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
 
-                // Doppelganger will now have same weapons equipped as Dante - Mia.
-                queuedCharacterDataClone.meleeWeapons[meleeWeaponIndex] = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
+				// Doppelganger will now have same weapons equipped as Dante - Mia.
+				queuedCharacterDataClone.meleeWeapons[meleeWeaponIndex] = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
 
-                GUI_PopDisable(condition);
-            }
+				GUI_PopDisable(condition);
+			}
 
-            ImGui::TableNextColumn();
+			ImGui::TableNextColumn();
 
-            ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
-            ImGui::Text("RANGED");
-            ImGui::PopFont();
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
+			ImGui::Text("RANGED");
+			ImGui::PopFont();
 
-            GUI_Slider<uint8>("", queuedCharacterData.rangedWeaponCount, 1, RANGED_WEAPON_COUNT_DANTE);
+			GUI_Slider<uint8>("", queuedCharacterData.rangedWeaponCount, 1, RANGED_WEAPON_COUNT_DANTE);
 
-            old_for_all(uint8, rangedWeaponIndex, RANGED_WEAPON_COUNT_DANTE) {
-                bool condition = (rangedWeaponIndex >= queuedCharacterData.rangedWeaponCount);
+			old_for_all(uint8, rangedWeaponIndex, RANGED_WEAPON_COUNT_DANTE) {
+				bool condition = (rangedWeaponIndex >= queuedCharacterData.rangedWeaponCount);
 
-                GUI_PushDisable(condition);
+				GUI_PushDisable(condition);
 
-                UI::ComboMap("", rangedWeaponNamesDante, rangedWeaponsDante,
-                    Actor_rangedWeaponIndices[playerIndex][characterIndex][entityIndex][rangedWeaponIndex],
-                    queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
+				UI::ComboMap("", rangedWeaponNamesDante, rangedWeaponsDante,
+					Actor_rangedWeaponIndices[playerIndex][characterIndex][entityIndex][rangedWeaponIndex],
+					queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
 
 				// Doppelganger will now have same weapons equipped as Dante - Mia.
 				queuedCharacterDataClone.rangedWeapons[rangedWeaponIndex] = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
 
-                GUI_PopDisable(condition);
-            }
+				GUI_PopDisable(condition);
+			}
 
-            ImGui::PopItemWidth();
+			ImGui::PopItemWidth();
 
-            ImGui::EndTable();
-        }
-    }
-    ImGui::PopFont();
+			ImGui::EndTable();
+		}
+	}
+	ImGui::PopFont();
 }
 
 void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
-    auto& activePlayerData = GetActivePlayerData(playerIndex);
-    auto& queuedPlayerData = GetQueuedPlayerData(playerIndex);
+	auto& activePlayerData = GetActivePlayerData(playerIndex);
+	auto& queuedPlayerData = GetQueuedPlayerData(playerIndex);
 
 	const float itemWidth = defaultFontSize * 8.0f;
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
 	const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-    ImGui::Text("");
+	ImGui::Text("");
 
-    ImGui::PushItemWidth(itemWidth);
-    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushItemWidth(itemWidth);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
-    GUI_Slider<uint8>("Character Count", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
+	GUI_Slider<uint8>("Character Count", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
 
 
-    UI::ComboMap2("Switch Button", buttonNames, buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton, queuedPlayerData.switchButton,
-        ImGuiComboFlags_HeightLargest);
-    ImGui::SameLine();
-    TooltipHelper("(?)", "Multi-purpose button.\n"
-                         "Main purpose is to switch characters.\n"
-                         "While Doppelganger is active it's used to control the clone's state.\n"
-                         "Hold the button and switch style or weapon to trigger the action for the clone.\n");
+	UI::ComboMap2("Switch Button", buttonNames, buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton, queuedPlayerData.switchButton,
+		ImGuiComboFlags_HeightLargest);
+	ImGui::SameLine();
+	TooltipHelper("(?)", "Multi-purpose button.\n"
+		"Main purpose is to switch characters.\n"
+		"While Doppelganger is active it's used to control the clone's state.\n"
+		"Hold the button and switch style or weapon to trigger the action for the clone.\n");
 
 	if (playerIndex != 0) {
 
@@ -3024,50 +3035,50 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 	}
 
 
-//     if (GUI_Button("Reset")) {
-//         CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag, &defaultConfig.Actor.playerData[playerIndex].removeBusyFlag,
-//             sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlag));
-//         CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlag, &queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
-//             sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlag));
-// 
-//         CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-//             &defaultConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-//             sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
-//         CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-//             &queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-//             sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
-// 
-// 
-//         Actor_UpdateIndices();
-//     }
-/*    ImGui::Text("");*/
+	//     if (GUI_Button("Reset")) {
+	//         CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag, &defaultConfig.Actor.playerData[playerIndex].removeBusyFlag,
+	//             sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlag));
+	//         CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlag, &queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
+	//             sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlag));
+	// 
+	//         CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+	//             &defaultConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+	//             sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
+	//         CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+	//             &queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+	//             sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
+	// 
+	// 
+	//         Actor_UpdateIndices();
+	//     }
+	/*    ImGui::Text("");*/
 
 
-// 	GUI_Checkbox2("Remove Busy Flag", activePlayerData.removeBusyFlag, queuedPlayerData.removeBusyFlag);
-// 	ImGui::SameLine();
-// 	TooltipHelper("(?)", "Removes the actor's busy flag which allows you to do insane combos or just look stupid.");
-// 	ImGui::Text("");
-// 
-// 
-//     {
-//         bool condition = !activePlayerData.removeBusyFlag;
-// 
-//         GUI_PushDisable(condition);
-// 
-// 
-//         old_for_all(uint8, buttonIndex, 4) {
-//             UI::ComboMap2(buttonIndexNames[buttonIndex], buttonNames, buttons, Actor_removeBusyFlagButtonIndices[playerIndex][buttonIndex],
-//                 activePlayerData.removeBusyFlagButtons[buttonIndex], queuedPlayerData.removeBusyFlagButtons[buttonIndex],
-//                 ImGuiComboFlags_HeightLargest);
-//         }
-// 
-// 
-//         GUI_PopDisable(condition);
-// 
-//     }
+	// 	GUI_Checkbox2("Remove Busy Flag", activePlayerData.removeBusyFlag, queuedPlayerData.removeBusyFlag);
+	// 	ImGui::SameLine();
+	// 	TooltipHelper("(?)", "Removes the actor's busy flag which allows you to do insane combos or just look stupid.");
+	// 	ImGui::Text("");
+	// 
+	// 
+	//     {
+	//         bool condition = !activePlayerData.removeBusyFlag;
+	// 
+	//         GUI_PushDisable(condition);
+	// 
+	// 
+	//         old_for_all(uint8, buttonIndex, 4) {
+	//             UI::ComboMap2(buttonIndexNames[buttonIndex], buttonNames, buttons, Actor_removeBusyFlagButtonIndices[playerIndex][buttonIndex],
+	//                 activePlayerData.removeBusyFlagButtons[buttonIndex], queuedPlayerData.removeBusyFlagButtons[buttonIndex],
+	//                 ImGuiComboFlags_HeightLargest);
+	//         }
+	// 
+	// 
+	//         GUI_PopDisable(condition);
+	// 
+	//     }
 
-    ImGui::PopItemWidth();
-    ImGui::PopFont();
+	ImGui::PopItemWidth();
+	ImGui::PopFont();
 }
 
 void ActorSection(size_t defaultFontSize) {
@@ -3075,109 +3086,109 @@ void ActorSection(size_t defaultFontSize) {
 	const float itemWidth = defaultFontSize * 8.0f;
 	const float columnWidth = 0.8f * queuedConfig.globalScale;
 	const float rowWidth = 40.0f * queuedConfig.globalScale;
-    ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
+	ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
 
-    bool actorCondition = (!queuedConfig.Actor.enable);
+	bool actorCondition = (!queuedConfig.Actor.enable);
 
-    GUI_PushDisable(actorCondition);
-
-
-// 	if (GUI_ResetButton()) {
-// 		CopyMemory(&queuedConfig.Actor, &defaultConfig.Actor, sizeof(queuedConfig.Actor));
-// 
-// 		old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].button, &defaultConfig.Actor.playerData[playerIndex].button,
-// 				sizeof(queuedConfig.Actor.playerData[playerIndex].button));
-// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].button, &queuedConfig.Actor.playerData[playerIndex].button,
-// 				sizeof(activeConfig.Actor.playerData[playerIndex].button));
-// 
-// 
-// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
-// 				&defaultConfig.Actor.playerData[playerIndex].removeBusyFlag,
-// 				sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlag));
-// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlag,
-// 				&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
-// 				sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlag));
-// 
-// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-// 				&defaultConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-// 				sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
-// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-// 				&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-// 				sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
-// 		}
-// 
-// 		Actor_UpdateIndices();
-// 
-// 		CopyMemory(&queuedConfig.updateLockOns, &defaultConfig.updateLockOns, sizeof(queuedConfig.updateLockOns));
-// 		CopyMemory(&activeConfig.updateLockOns, &queuedConfig.updateLockOns, sizeof(activeConfig.updateLockOns));
-// 
-// 		CopyMemory(&queuedConfig.forceSyncHitMagicPoints, &defaultConfig.forceSyncHitMagicPoints,
-// 			sizeof(queuedConfig.forceSyncHitMagicPoints));
-// 		CopyMemory(
-// 			&activeConfig.forceSyncHitMagicPoints, &queuedConfig.forceSyncHitMagicPoints, sizeof(activeConfig.forceSyncHitMagicPoints));
-// 
-// 		CopyMemory(&queuedConfig.resetPermissions, &defaultConfig.resetPermissions, sizeof(queuedConfig.resetPermissions));
-// 		CopyMemory(&activeConfig.resetPermissions, &queuedConfig.resetPermissions, sizeof(activeConfig.resetPermissions));
-// 
-// 
-// 		CopyMemory(&queuedConfig.enableBossLadyFixes, &defaultConfig.enableBossLadyFixes, sizeof(queuedConfig.enableBossLadyFixes));
-// 		CopyMemory(&activeConfig.enableBossLadyFixes, &queuedConfig.enableBossLadyFixes, sizeof(activeConfig.enableBossLadyFixes));
-// 
-// 		CopyMemory(
-// 			&queuedConfig.enableBossVergilFixes, &defaultConfig.enableBossVergilFixes, sizeof(queuedConfig.enableBossVergilFixes));
-// 		CopyMemory(
-// 			&activeConfig.enableBossVergilFixes, &queuedConfig.enableBossVergilFixes, sizeof(activeConfig.enableBossVergilFixes));
-// 
-// 		CopyMemory(&queuedConfig.enablePVPFixes, &defaultConfig.enablePVPFixes, sizeof(queuedConfig.enablePVPFixes));
-// 		CopyMemory(&activeConfig.enablePVPFixes, &queuedConfig.enablePVPFixes, sizeof(activeConfig.enablePVPFixes));
-// 
-// 		ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
-// 		ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
-// 
-// 		CopyMemory(&queuedConfig.absoluteUnit, &defaultConfig.absoluteUnit, sizeof(queuedConfig.absoluteUnit));
-// 		CopyMemory(&activeConfig.absoluteUnit, &queuedConfig.absoluteUnit, sizeof(activeConfig.absoluteUnit));
-// 	}
+	GUI_PushDisable(actorCondition);
 
 
-    
+	// 	if (GUI_ResetButton()) {
+	// 		CopyMemory(&queuedConfig.Actor, &defaultConfig.Actor, sizeof(queuedConfig.Actor));
+	// 
+	// 		old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+	// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].button, &defaultConfig.Actor.playerData[playerIndex].button,
+	// 				sizeof(queuedConfig.Actor.playerData[playerIndex].button));
+	// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].button, &queuedConfig.Actor.playerData[playerIndex].button,
+	// 				sizeof(activeConfig.Actor.playerData[playerIndex].button));
+	// 
+	// 
+	// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
+	// 				&defaultConfig.Actor.playerData[playerIndex].removeBusyFlag,
+	// 				sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlag));
+	// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlag,
+	// 				&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
+	// 				sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlag));
+	// 
+	// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+	// 				&defaultConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+	// 				sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
+	// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+	// 				&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+	// 				sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
+	// 		}
+	// 
+	// 		Actor_UpdateIndices();
+	// 
+	// 		CopyMemory(&queuedConfig.updateLockOns, &defaultConfig.updateLockOns, sizeof(queuedConfig.updateLockOns));
+	// 		CopyMemory(&activeConfig.updateLockOns, &queuedConfig.updateLockOns, sizeof(activeConfig.updateLockOns));
+	// 
+	// 		CopyMemory(&queuedConfig.forceSyncHitMagicPoints, &defaultConfig.forceSyncHitMagicPoints,
+	// 			sizeof(queuedConfig.forceSyncHitMagicPoints));
+	// 		CopyMemory(
+	// 			&activeConfig.forceSyncHitMagicPoints, &queuedConfig.forceSyncHitMagicPoints, sizeof(activeConfig.forceSyncHitMagicPoints));
+	// 
+	// 		CopyMemory(&queuedConfig.resetPermissions, &defaultConfig.resetPermissions, sizeof(queuedConfig.resetPermissions));
+	// 		CopyMemory(&activeConfig.resetPermissions, &queuedConfig.resetPermissions, sizeof(activeConfig.resetPermissions));
+	// 
+	// 
+	// 		CopyMemory(&queuedConfig.enableBossLadyFixes, &defaultConfig.enableBossLadyFixes, sizeof(queuedConfig.enableBossLadyFixes));
+	// 		CopyMemory(&activeConfig.enableBossLadyFixes, &queuedConfig.enableBossLadyFixes, sizeof(activeConfig.enableBossLadyFixes));
+	// 
+	// 		CopyMemory(
+	// 			&queuedConfig.enableBossVergilFixes, &defaultConfig.enableBossVergilFixes, sizeof(queuedConfig.enableBossVergilFixes));
+	// 		CopyMemory(
+	// 			&activeConfig.enableBossVergilFixes, &queuedConfig.enableBossVergilFixes, sizeof(activeConfig.enableBossVergilFixes));
+	// 
+	// 		CopyMemory(&queuedConfig.enablePVPFixes, &defaultConfig.enablePVPFixes, sizeof(queuedConfig.enablePVPFixes));
+	// 		CopyMemory(&activeConfig.enablePVPFixes, &queuedConfig.enablePVPFixes, sizeof(activeConfig.enablePVPFixes));
+	// 
+	// 		ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
+	// 		ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
+	// 
+	// 		CopyMemory(&queuedConfig.absoluteUnit, &defaultConfig.absoluteUnit, sizeof(queuedConfig.absoluteUnit));
+	// 		CopyMemory(&activeConfig.absoluteUnit, &queuedConfig.absoluteUnit, sizeof(activeConfig.absoluteUnit));
+	// 	}
 
-    uint8 activePlayerIndex;
 
 
-    if (ImGui::BeginTable("CharacterTable", 2)) {
 
-        // ImGui::TableSetColumnWidth(0, columnWidth);
-        ImGui::TableSetupColumn("c1", 0, columnWidth);
-        ImGui::TableNextRow(0, rowWidth);
-        ImGui::TableNextColumn();
+	uint8 activePlayerIndex;
+
+
+	if (ImGui::BeginTable("CharacterTable", 2)) {
+
+		// ImGui::TableSetColumnWidth(0, columnWidth);
+		ImGui::TableSetupColumn("c1", 0, columnWidth);
+		ImGui::TableNextRow(0, rowWidth);
+		ImGui::TableNextColumn();
 
 
 		if (ImGui::BeginTabBar("PlayerTabs")) {
-            old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-                auto condition = (playerIndex >= queuedConfig.Actor.playerCount);
+			old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+				auto condition = (playerIndex >= queuedConfig.Actor.playerCount);
 
-                GUI_PushDisable(condition);
+				GUI_PushDisable(condition);
 
-                ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.7f]);
+				ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.7f]);
 
-                if (ImGui::BeginTabItem(playerIndexNames[playerIndex])) {
-                    //ImGui::Text("");
+				if (ImGui::BeginTabItem(playerIndexNames[playerIndex])) {
+					//ImGui::Text("");
 
 
-                    Actor_PlayerTab(playerIndex, defaultFontSize);
-                    activePlayerIndex = playerIndex;
-  
+					Actor_PlayerTab(playerIndex, defaultFontSize);
+					activePlayerIndex = playerIndex;
 
-                    ImGui::EndTabItem();
-                }
 
-                ImGui::PopFont();
+					ImGui::EndTabItem();
+				}
 
-                
-                GUI_PopDisable(condition);
+				ImGui::PopFont();
 
-            }
+
+				GUI_PopDisable(condition);
+
+			}
 
 			ImGui::EndTabBar();
 		}
@@ -3195,16 +3206,16 @@ void ActorSection(size_t defaultFontSize) {
 
 				GUI_PushDisable(condition);
 
-                ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+				ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
 				if (ImGui::BeginTabItem(characterIndexNames[characterIndex])) {
-		
-					Actor_CharacterTab(activePlayerIndex, characterIndex, 0, defaultFontSize);	
+
+					Actor_CharacterTab(activePlayerIndex, characterIndex, 0, defaultFontSize);
 
 					ImGui::EndTabItem();
 				}
 
-                ImGui::PopFont();
+				ImGui::PopFont();
 
 				GUI_PopDisable(condition);
 			}
@@ -3212,25 +3223,25 @@ void ActorSection(size_t defaultFontSize) {
 			ImGui::EndTabBar();
 		}
 
-        ImGui::EndTable();
+		ImGui::EndTable();
 
-    }
+	}
 
-    GUI_PopDisable(actorCondition);
+	GUI_PopDisable(actorCondition);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 	GUI_Checkbox("ACTOR SYSTEM", queuedConfig.Actor.enable);
 	ImGui::PopFont();
 	UI::SeparatorEx(defaultFontSize * 23.35f);
 
-    ImGui::Text("");
+	ImGui::Text("");
 
-    GUI_PushDisable(actorCondition);
+	GUI_PushDisable(actorCondition);
 
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
-    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-    ImGui::PushItemWidth(itemWidth);
-    GUI_Slider<uint8>("Player Count", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushItemWidth(itemWidth);
+	GUI_Slider<uint8>("Player Count", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT);
 	UI::Combo2("Costume Respects Game Progression", costumeRespectsProgressionNames, activeConfig.costumeRespectsProgression,
 		queuedConfig.costumeRespectsProgression);
 
@@ -3242,38 +3253,38 @@ void ActorSection(size_t defaultFontSize) {
 
 	);
 
-    {
+	{
 		const float columnWidth = 0.7f * queuedConfig.globalScale;
 		const float rowWidth = 30.0f * queuedConfig.globalScale;
 
-        if (ImGui::BeginTable("ActorSystemTable", 3)) {
+		if (ImGui::BeginTable("ActorSystemTable", 3)) {
 
 			ImGui::TableSetupColumn("c2", 0, columnWidth * 1.4f);
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-           
+
 			if (GUI_Checkbox2("Boss Lady Fixes", activeConfig.enableBossLadyFixes, queuedConfig.enableBossLadyFixes)) {
 				ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
 			}
 
-            ImGui::TableNextColumn();
+			ImGui::TableNextColumn();
 
 
-            if (GUI_Checkbox2("Boss Vergil Fixes", activeConfig.enableBossVergilFixes, queuedConfig.enableBossVergilFixes)) {
-                ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
-            }
-			
+			if (GUI_Checkbox2("Boss Vergil Fixes", activeConfig.enableBossVergilFixes, queuedConfig.enableBossVergilFixes)) {
+				ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
+			}
 
-            ImGui::TableNextColumn();
 
-            GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
+			ImGui::TableNextColumn();
 
-            ImGui::EndTable();
-        }
-    }
+			GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
 
-    // Deprecated DDMK Options
+			ImGui::EndTable();
+		}
+	}
+
+	// Deprecated DDMK Options
 
 // 	GUI_Checkbox2("Update Lock-Ons", activeConfig.updateLockOns, queuedConfig.updateLockOns);
 // 
@@ -3298,42 +3309,42 @@ void ActorSection(size_t defaultFontSize) {
 // 		500);
 
 
-    GUI_PopDisable(actorCondition);
-    ImGui::PopStyleColor();
-    ImGui::PopItemWidth();
-    ImGui::PopFont();
-    
+	GUI_PopDisable(actorCondition);
+	ImGui::PopStyleColor();
+	ImGui::PopItemWidth();
+	ImGui::PopFont();
+
 }
 
 #pragma endregion
 
 #pragma region Arcade
 
-uint8 Arcade_modeIndex                 = 0;
-uint8 Arcade_meleeWeaponIndexDante[2]  = {};
+uint8 Arcade_modeIndex = 0;
+uint8 Arcade_meleeWeaponIndexDante[2] = {};
 uint8 Arcade_rangedWeaponIndexDante[2] = {};
 
 
 void Arcade_UpdateIndices() {
-    UpdateMapIndex(modes, Arcade_modeIndex, activeConfig.Arcade.mode);
+	UpdateMapIndex(modes, Arcade_modeIndex, activeConfig.Arcade.mode);
 
-    UpdateMapIndex(meleeWeaponsDante, Arcade_meleeWeaponIndexDante[0], activeConfig.Arcade.weapons[0]);
+	UpdateMapIndex(meleeWeaponsDante, Arcade_meleeWeaponIndexDante[0], activeConfig.Arcade.weapons[0]);
 
-    UpdateMapIndex(meleeWeaponsDante, Arcade_meleeWeaponIndexDante[1], activeConfig.Arcade.weapons[1]);
+	UpdateMapIndex(meleeWeaponsDante, Arcade_meleeWeaponIndexDante[1], activeConfig.Arcade.weapons[1]);
 
-    UpdateMapIndex(rangedWeaponsDante, Arcade_rangedWeaponIndexDante[0], activeConfig.Arcade.weapons[2]);
+	UpdateMapIndex(rangedWeaponsDante, Arcade_rangedWeaponIndexDante[0], activeConfig.Arcade.weapons[2]);
 
-    UpdateMapIndex(rangedWeaponsDante, Arcade_rangedWeaponIndexDante[1], activeConfig.Arcade.weapons[3]);
+	UpdateMapIndex(rangedWeaponsDante, Arcade_rangedWeaponIndexDante[1], activeConfig.Arcade.weapons[3]);
 }
 
 void ArcadeSection(size_t defaultFontSize) {
-	
-	const float itemWidth = defaultFontSize * 8.0f; 
-    const float columnWidth = 0.5f * queuedConfig.globalScale;
-    const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-    ImU32 highlightColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
-    ImU32 highlightColorText = UI::SwapColorEndianness(0xFF809FFF);
+	const float itemWidth = defaultFontSize * 8.0f;
+	const float columnWidth = 0.5f * queuedConfig.globalScale;
+	const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+	ImU32 highlightColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
+	ImU32 highlightColorText = UI::SwapColorEndianness(0xFF809FFF);
 
 
 
@@ -3347,64 +3358,64 @@ void ArcadeSection(size_t defaultFontSize) {
 
 	UI::SeparatorEx(defaultFontSize * 23.35f);
 
-    
-    ImGui::PushItemWidth(itemWidth);
-    ImGui::Text("");
 
-// 	if (GUI_ResetButton()) {
-// 		CopyMemory(&queuedConfig.Arcade, &defaultConfig.Arcade, sizeof(queuedConfig.Arcade));
-// 		CopyMemory(&activeConfig.Arcade, &queuedConfig.Arcade, sizeof(activeConfig.Arcade));
-// 
-// 
-// 		Arcade_UpdateIndices();
-// 
-// 		Arcade::Toggle(activeConfig.Arcade.enable);
-//	}
-	
+	ImGui::PushItemWidth(itemWidth);
+	ImGui::Text("");
 
-    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, highlightColorBg);
+	// 	if (GUI_ResetButton()) {
+	// 		CopyMemory(&queuedConfig.Arcade, &defaultConfig.Arcade, sizeof(queuedConfig.Arcade));
+	// 		CopyMemory(&activeConfig.Arcade, &queuedConfig.Arcade, sizeof(activeConfig.Arcade));
+	// 
+	// 
+	// 		Arcade_UpdateIndices();
+	// 
+	// 		Arcade::Toggle(activeConfig.Arcade.enable);
+	//	}
+
+
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, highlightColorBg);
 
 	if (ImGui::BeginTable("ArcadeTable", 2)) {
 
-       // ImGui::TableSetColumnWidth(0, columnWidth);
-        ImGui::TableSetupColumn("c1", 0, columnWidth);
-        ImGui::TableNextRow(0, rowWidth);
-        
+		// ImGui::TableSetColumnWidth(0, columnWidth);
+		ImGui::TableSetupColumn("c1", 0, columnWidth);
+		ImGui::TableNextRow(0, rowWidth);
+
 		ImGui::TableNextColumn();
-        
-        ImGui::PushItemWidth(itemWidth);
+
+		ImGui::PushItemWidth(itemWidth);
 
 		UI::Combo2("", missionNames, activeConfig.Arcade.mission, queuedConfig.Arcade.mission, ImGuiComboFlags_HeightLargest);
 
 		ImGui::SameLine();
-        ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 		ImGui::Text("MISSION");
-        ImGui::PopFont();
+		ImGui::PopFont();
 
 
 		ImGui::TableNextColumn();
 
 		if (activeConfig.Arcade.mission > 0) {
-            ImGui::PushItemWidth(itemWidth);
+			ImGui::PushItemWidth(itemWidth);
 			UI::ComboMap2("", modeNames, modes, Arcade_modeIndex, activeConfig.Arcade.mode, queuedConfig.Arcade.mode);
-			
-            ImGui::SameLine();
-            ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+
+			ImGui::SameLine();
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 			ImGui::Text("DIFFICULTY");
-            ImGui::PopFont();
+			ImGui::PopFont();
 
 		}
 
-        ImGui::TableNextRow(0, rowWidth);
-        ImGui::TableNextColumn();
+		ImGui::TableNextRow(0, rowWidth);
+		ImGui::TableNextColumn();
 
 
 		if (activeConfig.Arcade.mission > 0) {
 			GUI_InputDefault2<float>("Max HP", activeConfig.Arcade.hitPoints, queuedConfig.Arcade.hitPoints,
 				defaultConfig.Arcade.hitPoints, 1000, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
-            ImGui::TableNextColumn();
+			ImGui::TableNextColumn();
 
 			GUI_InputDefault2<float>("Max Devil Trigger", activeConfig.Arcade.magicPoints, queuedConfig.Arcade.magicPoints,
 				defaultConfig.Arcade.magicPoints, 1000, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
@@ -3413,28 +3424,28 @@ void ArcadeSection(size_t defaultFontSize) {
 		ImGui::TableNextRow(0, rowWidth);
 		ImGui::TableNextColumn();
 
-        UI::Combo2("Campaign", characterNames, activeConfig.Arcade.character, queuedConfig.Arcade.character);
+		UI::Combo2("Campaign", characterNames, activeConfig.Arcade.character, queuedConfig.Arcade.character);
 
 		{
-            auto queuedCharacterData = GetQueuedCharacterData(0, 0, 0);
+			auto queuedCharacterData = GetQueuedCharacterData(0, 0, 0);
 			bool disableCondition = queuedConfig.Actor.enable;
 
-            
 
-            if (activeConfig.Arcade.mission > 0 && (queuedCharacterData.ignoreCostume || !queuedConfig.Actor.enable)) {
-                ImGui::TableNextColumn();
+
+			if (activeConfig.Arcade.mission > 0 && (queuedCharacterData.ignoreCostume || !queuedConfig.Actor.enable)) {
+				ImGui::TableNextColumn();
 				GUI_InputDefault2<uint8>("Costume", activeConfig.Arcade.costume, queuedConfig.Arcade.costume, defaultConfig.Arcade.costume, 1,
 					"%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			}
 
-			
+
 			if ((activeConfig.Arcade.mission > 0) && (activeConfig.Arcade.character == CHARACTER::DANTE) && !queuedConfig.Actor.enable) {
 				ImGui::TableNextRow(0, rowWidth);
 				ImGui::TableNextColumn();
 
 				UI::Combo2("Style                  ", styleNamesDante, activeConfig.Arcade.style, queuedConfig.Arcade.style);
 
-                ImGui::TableNextColumn();
+				ImGui::TableNextColumn();
 				UI::ComboMap2("Ranged 1", rangedWeaponNamesDante, rangedWeaponsDante, Arcade_rangedWeaponIndexDante[0],
 					activeConfig.Arcade.weapons[2], queuedConfig.Arcade.weapons[2]);
 
@@ -3444,7 +3455,7 @@ void ArcadeSection(size_t defaultFontSize) {
 				UI::ComboMap2("Melee 1             ", meleeWeaponNamesDante, meleeWeaponsDante, Arcade_meleeWeaponIndexDante[0],
 					activeConfig.Arcade.weapons[0], queuedConfig.Arcade.weapons[0]);
 
-                ImGui::TableNextColumn();
+				ImGui::TableNextColumn();
 				UI::ComboMap2("Ranged 2", rangedWeaponNamesDante, rangedWeaponsDante, Arcade_rangedWeaponIndexDante[1],
 					activeConfig.Arcade.weapons[3], queuedConfig.Arcade.weapons[3]);
 
@@ -3473,15 +3484,15 @@ void ArcadeSection(size_t defaultFontSize) {
 
 				GUI_PopDisable(condition);
 
-                ImGui::SameLine();
-                ImGui::Text("Room");
+				ImGui::SameLine();
+				ImGui::Text("Room");
 
-				
+
 				ImGui::SameLine();
 				GUI_Checkbox2("", activeConfig.Arcade.enableRoomSelection, queuedConfig.Arcade.enableRoomSelection);
 			}
 
-            ImGui::TableNextColumn();
+			ImGui::TableNextColumn();
 
 			// Position
 			{
@@ -3495,7 +3506,7 @@ void ArcadeSection(size_t defaultFontSize) {
 				GUI_PopDisable(condition);
 
 				ImGui::SameLine();
-                ImGui::Text("Position");
+				ImGui::Text("Position");
 
 				ImGui::SameLine();
 				GUI_Checkbox2("", activeConfig.Arcade.enablePositionSelection, queuedConfig.Arcade.enablePositionSelection);
@@ -3509,7 +3520,7 @@ void ArcadeSection(size_t defaultFontSize) {
 
 			UI::Combo2("Floor", floorNames, activeConfig.Arcade.floor, queuedConfig.Arcade.floor, ImGuiComboFlags_HeightLargest);
 
-            ImGui::TableNextColumn();
+			ImGui::TableNextColumn();
 
 			GUI_InputDefault2<uint16>("Level", activeConfig.Arcade.level, queuedConfig.Arcade.level, defaultConfig.Arcade.level, 1, "%u",
 				ImGuiInputTextFlags_EnterReturnsTrue);
@@ -3518,17 +3529,17 @@ void ArcadeSection(size_t defaultFontSize) {
 
 		ImGui::EndTable();
 	}
-    
 
-    ImGui::SameLine();
+
+	ImGui::SameLine();
 
 	//
-    ImGui::PopItemWidth();
-    ImGui::PopFont();
-    ImGui::PopStyleColor();
+	ImGui::PopItemWidth();
+	ImGui::PopFont();
+	ImGui::PopStyleColor();
 
 	ImGui::Text("");
-	
+
 }
 
 #pragma endregion
@@ -3536,10 +3547,10 @@ void ArcadeSection(size_t defaultFontSize) {
 #pragma region Bars
 
 const char* barsNames[PLAYER_COUNT] = {
-    "Bars1",
-    "Bars2",
-    "Bars3",
-    "Bars4",
+	"Bars1",
+	"Bars2",
+	"Bars3",
+	"Bars4",
 };
 
 bool showBars = false;
@@ -3556,8 +3567,8 @@ void MirageGaugeMainPlayer() {
 	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 
 	auto miragePoints = crimsonPlayer[0].vergilDoppelganger.miragePoints / crimsonPlayer[0].vergilDoppelganger.maxMiragePoints;
-	float miragePointsColor[4] = { 1.0f , 1.0f, 1.0, hudData.topLeftAlpha / 127.0f};
-    float progressBarBgColor[4] = { 0.2f , 0.2f, 0.2f, hudData.topLeftAlpha / 127.0f };
+	float miragePointsColor[4] = { 1.0f , 1.0f, 1.0, hudData.topLeftAlpha / 127.0f };
+	float progressBarBgColor[4] = { 0.2f , 0.2f, 0.2f, hudData.topLeftAlpha / 127.0f };
 
 	// Base resolution (1920x1080)
 	const float baseWidth = 1920.0f;
@@ -3572,8 +3583,8 @@ void MirageGaugeMainPlayer() {
 	vec2 size = { barLength, 10.0f * heightScale };
 
 	// Calculate position 
-	float posX = 90.0f * widthScale;  
-	float posY = 170.0f * heightScale;  
+	float posX = 90.0f * widthScale;
+	float posY = 170.0f * heightScale;
 
 	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
 		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
@@ -3583,7 +3594,7 @@ void MirageGaugeMainPlayer() {
 
 	if (ImGui::Begin("MirageMainPlayer", &show, windowFlags)) {
 		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&miragePointsColor));
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, *reinterpret_cast<ImVec4*>(&progressBarBgColor));
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, *reinterpret_cast<ImVec4*>(&progressBarBgColor));
 		ImGui::ProgressBar(miragePoints, *reinterpret_cast<ImVec2*>(&size), "");
 		ImGui::PopStyleColor(2);
 	}
@@ -3608,7 +3619,7 @@ void RoyalGaugeMainPlayer() {
 	}
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
 
-    auto royalGauge = mainActorData.royalguardReleaseDamage;
+	auto royalGauge = mainActorData.royalguardReleaseDamage;
 	float miragePointsColor[4] = { 1.0f , 1.0f, 1.0, hudData.topLeftAlpha / 127.0f };
 	float progressBarBgColor[4] = { 0.2f , 0.2f, 0.2f, hudData.topLeftAlpha / 127.0f };
 
@@ -3647,158 +3658,158 @@ void RoyalGaugeMainPlayer() {
 
 
 void BarsFunction(
-    float hitPoints, float magicPoints, const char* name, PlayerActorData actorData, const char* label, Config::BarsData& activeData, Config::BarsData& queuedData) {
-    if (!showBars && !activeConfig.showAdditionalBars) {
-        return;
-    }
+	float hitPoints, float magicPoints, const char* name, PlayerActorData actorData, const char* label, Config::BarsData& activeData, Config::BarsData& queuedData) {
+	if (!showBars && !activeConfig.showAdditionalBars) {
+		return;
+	}
 
-    auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
-    auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
+	auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
+	auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
 
-    auto& lastX = activeData.lastX;
-    auto& lastY = activeData.lastY;
+	auto& lastX = activeData.lastX;
+	auto& lastY = activeData.lastY;
 
-    auto& run = activeData.run;
-    if (!run) {
-        
-        queuedPos.x = queuedData.lastX;
-        queuedPos.y = queuedData.lastY;
+	auto& run = activeData.run;
+	if (!run) {
 
-        ImGui::SetNextWindowPos(activePos);
+		queuedPos.x = queuedData.lastX;
+		queuedPos.y = queuedData.lastY;
 
-        lastX = static_cast<uint32>(activeData.pos.x);
-        lastY = static_cast<uint32>(activeData.pos.y);
-        run = true;
-    }
+		ImGui::SetNextWindowPos(activePos);
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
+		lastX = static_cast<uint32>(activeData.pos.x);
+		lastY = static_cast<uint32>(activeData.pos.y);
+		run = true;
+	}
 
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
 
-    if (ImGui::Begin(label, &activeConfig.showAdditionalBars, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize) && run) {
-  
-        if (guiPause.canPause) { // This prevents the resetting of bars' positions by delaying the queued pos update starting point. - Mia
-            queuedPos = ImGui::GetWindowPos(); // Queued pos updates according to its pos on screen.
-        }
-        activePos = queuedPos;
-        
-        ImGui::SetWindowPos(queuedPos);
-        
-        
-        auto x = static_cast<uint32>(activeData.pos.x);
-        auto y = static_cast<uint32>(activeData.pos.y);
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+
+	if (ImGui::Begin(label, &activeConfig.showAdditionalBars, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize) && run) {
+
+		if (guiPause.canPause) { // This prevents the resetting of bars' positions by delaying the queued pos update starting point. - Mia
+			queuedPos = ImGui::GetWindowPos(); // Queued pos updates according to its pos on screen.
+		}
+		activePos = queuedPos;
+
+		ImGui::SetWindowPos(queuedPos);
 
 
-        if ((lastX != x) || (lastY != y)) {
-            lastX = x;
-            lastY = y;
-
-            queuedData.lastX = x;
-            queuedData.lastY = y;
-
-            GUI::save = true;
-        }
-        ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 1));
-        ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.hitColor));
-        ImGui::ProgressBar(hitPoints, *reinterpret_cast<ImVec2*>(&activeData.size), "");
-        ImGui::PopStyleColor(2);
-
-        if (actorData.character != CHARACTER::VERGIL) {
-            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColor));
-        }
-        else {
-            ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColorVergil));
-        }
-        ImGui::ProgressBar(magicPoints, *reinterpret_cast<ImVec2*>(&activeData.size), "");
-        ImGui::PopStyleColor();
+		auto x = static_cast<uint32>(activeData.pos.x);
+		auto y = static_cast<uint32>(activeData.pos.y);
 
 
-        ImGui::Text(name);
-        ImGui::SameLine();
-        if (actorData.character == CHARACTER::DANTE || actorData.character == CHARACTER::VERGIL) {
+		if ((lastX != x) || (lastY != y)) {
+			lastX = x;
+			lastY = y;
+
+			queuedData.lastX = x;
+			queuedData.lastY = y;
+
+			GUI::save = true;
+		}
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 1));
+		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.hitColor));
+		ImGui::ProgressBar(hitPoints, *reinterpret_cast<ImVec2*>(&activeData.size), "");
+		ImGui::PopStyleColor(2);
+
+		if (actorData.character != CHARACTER::VERGIL) {
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColor));
+		}
+		else {
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColorVergil));
+		}
+		ImGui::ProgressBar(magicPoints, *reinterpret_cast<ImVec2*>(&activeData.size), "");
+		ImGui::PopStyleColor();
+
+
+		ImGui::Text(name);
+		ImGui::SameLine();
+		if (actorData.character == CHARACTER::DANTE || actorData.character == CHARACTER::VERGIL) {
 			ImGui::Text("  ");
 			ImGui::SameLine(0.0f, 0);
 
-            if (actorData.character == CHARACTER::DANTE) {
-                ImGui::Text(styleNamesDanteGameplay[actorData.style]);
-            }
-            else {
-                ImGui::Text(styleNamesVergilGameplay[actorData.style]);
-            }
-        }
+			if (actorData.character == CHARACTER::DANTE) {
+				ImGui::Text(styleNamesDanteGameplay[actorData.style]);
+			}
+			else {
+				ImGui::Text(styleNamesVergilGameplay[actorData.style]);
+			}
+		}
 
-        ImGui::PopFont();
+		ImGui::PopFont();
 
-        
-     
-    }
 
-    ImGui::End();
-    ImGui::PopStyleColor();
-    ImGui::PopStyleVar(4);
+
+	}
+
+	ImGui::End();
+	ImGui::PopStyleColor();
+	ImGui::PopStyleVar(4);
 }
 
 void BarsSettingsFunction(const char* label, Config::BarsData& activeData, Config::BarsData& queuedData, Config::BarsData& defaultData) {
-    auto& activePos  = *reinterpret_cast<ImVec2*>(&activeData.pos);
-    auto& queuedPos  = *reinterpret_cast<ImVec2*>(&queuedData.pos);
-    auto& defaultPos = *reinterpret_cast<ImVec2*>(&defaultData.pos);
+	auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
+	auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
+	auto& defaultPos = *reinterpret_cast<ImVec2*>(&defaultData.pos);
 
 
-    /*GUI_Checkbox2("Enable", activeData.enable, queuedData.enable);*/
-    ImGui::Text("");
+	/*GUI_Checkbox2("Enable", activeData.enable, queuedData.enable);*/
+	ImGui::Text("");
 
-//      if (GUI_ResetButton()) {
-//          CopyMemory(&queuedData, &defaultData, sizeof(queuedData));
-//          CopyMemory(&activeData, &queuedData, sizeof(activeData));
-//  
-//          ImGui::SetWindowPos(label, activePos);
-//      }
-//     ImGui::Text("");
+	//      if (GUI_ResetButton()) {
+	//          CopyMemory(&queuedData, &defaultData, sizeof(queuedData));
+	//          CopyMemory(&activeData, &queuedData, sizeof(activeData));
+	//  
+	//          ImGui::SetWindowPos(label, activePos);
+	//      }
+	//     ImGui::Text("");
 
-    bool condition = !activeData.enable;
+	bool condition = !activeData.enable;
 
-    GUI_PushDisable(condition);
+	GUI_PushDisable(condition);
 
-//     GUI_Color2("Hit Color", activeData.hitColor, queuedData.hitColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaPreview);
-//     GUI_Color2(
-//         "Magic Color", activeData.magicColor, queuedData.magicColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaPreview);
-//     ImGui::Text("");
+	//     GUI_Color2("Hit Color", activeData.hitColor, queuedData.hitColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaPreview);
+	//     GUI_Color2(
+	//         "Magic Color", activeData.magicColor, queuedData.magicColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaPreview);
+	//     ImGui::Text("");
 
-    ImGui::PushItemWidth(150);
+	ImGui::PushItemWidth(150);
 
-//     GUI_InputDefault2("Width", activeData.size.x, queuedData.size.x, defaultData.size.x, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-//     GUI_InputDefault2("Height", activeData.size.y, queuedData.size.y, defaultData.size.y, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-// 
-    if (GUI_Input2<float>("X", activePos.x, queuedPos.x, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-        ImGui::SetWindowPos(label, activePos);
-    }
-    ImGui::SameLine();
-    if (GUI_Input2<float>("Y", activePos.y, queuedPos.y, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-        ImGui::SetWindowPos(label, activePos);
-    }
+	//     GUI_InputDefault2("Width", activeData.size.x, queuedData.size.x, defaultData.size.x, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	//     GUI_InputDefault2("Height", activeData.size.y, queuedData.size.y, defaultData.size.y, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	// 
+	if (GUI_Input2<float>("X", activePos.x, queuedPos.x, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+		ImGui::SetWindowPos(label, activePos);
+	}
+	ImGui::SameLine();
+	if (GUI_Input2<float>("Y", activePos.y, queuedPos.y, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+		ImGui::SetWindowPos(label, activePos);
+	}
 
-    ImGui::PopItemWidth();
+	ImGui::PopItemWidth();
 
-    GUI_PopDisable(condition);
+	GUI_PopDisable(condition);
 }
 
 void Bars() {
-    if (!showBars && !(activeConfig.Actor.enable && InGame())) {
-        return;
-    }
+	if (!showBars && !(activeConfig.Actor.enable && InGame())) {
+		return;
+	}
 
-    uint8 playerCount = (showBars) ? PLAYER_COUNT : activeConfig.Actor.playerCount;
+	uint8 playerCount = (showBars) ? PLAYER_COUNT : activeConfig.Actor.playerCount;
 
-    int minimum = 1;
+	int minimum = 1;
 
-	
 
-    old_for_all(uint8, playerIndex, playerCount) {
-        
+
+	old_for_all(uint8, playerIndex, playerCount) {
+
 		if (!activeConfig.show1Pbar) {
 			minimum = 1;
 		}
@@ -3806,65 +3817,65 @@ void Bars() {
 			minimum = 0;
 		}
 
-        if (playerIndex >= minimum) {
+		if (playerIndex >= minimum) {
 
 
-            float hit = 0.75f;
-            float magic = 0.5f;
+			float hit = 0.75f;
+			float magic = 0.5f;
 
-            [&]() {
-                auto& playerData = GetPlayerData(playerIndex);
+			[&]() {
+				auto& playerData = GetPlayerData(playerIndex);
 
-                auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-                auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+				auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+				auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 
-                auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-                auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+				auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+				auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
 
-                auto& leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
-                auto& leadNewActorData = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
+				auto& leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
+				auto& leadNewActorData = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
 
-                auto& mainCharacterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-                auto& mainNewActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-
-
-                if (activeCharacterData.character >= CHARACTER::MAX) {
-                    hit = 1.0f;
-                    magic = 1.0f;
-
-                    return;
-                }
-
-                if (!activeNewActorData.baseAddr) {
-                    return;
-                }
-                auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
-
-                hit = (activeActorData.hitPoints / activeActorData.maxHitPoints);
-                magic = (activeActorData.magicPoints / activeActorData.maxMagicPoints);
-
-//                 activeConfig.barsData[playerIndex].pos.x = queuedConfig.barsData[playerIndex].pos.x;
-//                 activeConfig.barsData[playerIndex].pos.y = queuedConfig.barsData[playerIndex].pos.y;
+				auto& mainCharacterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+				auto& mainNewActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 
 
+				if (activeCharacterData.character >= CHARACTER::MAX) {
+					hit = 1.0f;
+					magic = 1.0f;
 
-                BarsFunction(hit, magic, playerIndexNames[playerIndex], activeActorData, barsNames[playerIndex], activeConfig.barsData[playerIndex],
-                    queuedConfig.barsData[playerIndex]);
-                }();
-        }
-        
-    }
+					return;
+				}
+
+				if (!activeNewActorData.baseAddr) {
+					return;
+				}
+				auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+
+				hit = (activeActorData.hitPoints / activeActorData.maxHitPoints);
+				magic = (activeActorData.magicPoints / activeActorData.maxMagicPoints);
+
+				//                 activeConfig.barsData[playerIndex].pos.x = queuedConfig.barsData[playerIndex].pos.x;
+				//                 activeConfig.barsData[playerIndex].pos.y = queuedConfig.barsData[playerIndex].pos.y;
+
+
+
+				BarsFunction(hit, magic, playerIndexNames[playerIndex], activeActorData, barsNames[playerIndex], activeConfig.barsData[playerIndex],
+					queuedConfig.barsData[playerIndex]);
+				}();
+		}
+
+	}
 }
 
 void BarsSettings(size_t defaultFontSize) {
 
-    ImGui::Text("");
+	ImGui::Text("");
 
-    const float itemWidth = defaultFontSize * 6.0f;
+	const float itemWidth = defaultFontSize * 6.0f;
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
 	const float rowWidth = 20.0f * queuedConfig.globalScale;
-    const float rowWidth2 = 0.5f * queuedConfig.globalScale;
-    
+	const float rowWidth2 = 0.5f * queuedConfig.globalScale;
+
 
 	auto& activePos1P = *reinterpret_cast<ImVec2*>(&activeConfig.barsData[0].pos);
 	auto& queuedPos1P = *reinterpret_cast<ImVec2*>(&queuedConfig.barsData[0].pos);
@@ -3878,99 +3889,99 @@ void BarsSettings(size_t defaultFontSize) {
 	auto& activePos4P = *reinterpret_cast<ImVec2*>(&activeConfig.barsData[3].pos);
 	auto& queuedPos4P = *reinterpret_cast<ImVec2*>(&queuedConfig.barsData[3].pos);
 
-    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
 	if (ImGui::BeginTable("BarsSettingsTable", 2)) {
 
-        ImGui::PushItemWidth(itemWidth);
+		ImGui::PushItemWidth(itemWidth);
 
 		ImGui::TableSetupColumn("c1", 0, columnWidth);
 		ImGui::TableNextRow(0, rowWidth);
 		//ImGui::TableNextColumn();
 
-        for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++) {
 			if (i == 2) {
 				ImGui::TableNextRow(0, rowWidth);
 				ImGui::TableNextRow(0, rowWidth2);
 			}
-            ImGui::TableNextColumn();
+			ImGui::TableNextColumn();
 
-            
-            std::string title = std::to_string(i + 1) + "P Position";
-            ImGui::Text(title.c_str());
 
-            auto& activePos = *reinterpret_cast<ImVec2*>(&activeConfig.barsData[i].pos);
-            auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedConfig.barsData[i].pos);
-            auto& defaultPos = *reinterpret_cast<ImVec2*>(&defaultConfig.barsData[i].pos);
+			std::string title = std::to_string(i + 1) + "P Position";
+			ImGui::Text(title.c_str());
+
+			auto& activePos = *reinterpret_cast<ImVec2*>(&activeConfig.barsData[i].pos);
+			auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedConfig.barsData[i].pos);
+			auto& defaultPos = *reinterpret_cast<ImVec2*>(&defaultConfig.barsData[i].pos);
 
 			ImGui::PushItemWidth(itemWidth);
-			if (GUI_Input2("X", activePos.x, queuedPos.x, 10.0f,"%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-                
+			if (GUI_Input2("X", activePos.x, queuedPos.x, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
+
 				ImGui::SetWindowPos(barsNames[i], activePos);
 			}
 			ImGui::SameLine();
 			if (GUI_Input2("Y", activePos.y, queuedPos.y, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
 				ImGui::SetWindowPos(barsNames[i], activePos);
 			}
-            ImGui::SameLine();
-            if(GUI_Button("D")) {
-                CopyMemory(&activePos, &defaultPos, sizeof(activePos));
-                CopyMemory(&queuedPos, &defaultPos, sizeof(queuedPos));
+			ImGui::SameLine();
+			if (GUI_Button("D")) {
+				CopyMemory(&activePos, &defaultPos, sizeof(activePos));
+				CopyMemory(&queuedPos, &defaultPos, sizeof(queuedPos));
 
-                ImGui::SetWindowPos(barsNames[i], activePos);
+				ImGui::SetWindowPos(barsNames[i], activePos);
 
-            }
+			}
 			ImGui::PopItemWidth();
-            
-        }
-        
-        
+
+		}
+
+
 
 		ImGui::EndTable();
 
 	}
 
-    ImGui::PopFont();
+	ImGui::PopFont();
 
 
-//     for_all(playerIndex, PLAYER_COUNT) {
-//         ImGui::Text("");
-// 
-//         GUI_SectionStart(playerIndexNames[playerIndex]);
-// 
-//        
-// 
-//         BarsSettingsFunction(barsNames[playerIndex], activeConfig.barsData[playerIndex], queuedConfig.barsData[playerIndex],
-//             defaultConfig.barsData[playerIndex]);
-//     }
+	//     for_all(playerIndex, PLAYER_COUNT) {
+	//         ImGui::Text("");
+	// 
+	//         GUI_SectionStart(playerIndexNames[playerIndex]);
+	// 
+	//        
+	// 
+	//         BarsSettingsFunction(barsNames[playerIndex], activeConfig.barsData[playerIndex], queuedConfig.barsData[playerIndex],
+	//             defaultConfig.barsData[playerIndex]);
+	//     }
 }
 
 void BarsSection(size_t defaultFontSize) {
-    
+
 	const float itemWidth = defaultFontSize * 8.0f;
-    ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
-    GUI_Checkbox2("ADDITIONAL PLAYER BARS", activeConfig.showAdditionalBars, queuedConfig.showAdditionalBars);
+	GUI_Checkbox2("ADDITIONAL PLAYER BARS", activeConfig.showAdditionalBars, queuedConfig.showAdditionalBars);
 
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
 	ImGui::PopFont();
-    UI::SeparatorEx(defaultFontSize * 23.35f);
+	UI::SeparatorEx(defaultFontSize * 23.35f);
 	ImGui::Text("");
 
 
-    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
-    GUI_Checkbox2("Show 1P Bar", activeConfig.show1Pbar, queuedConfig.show1Pbar);
+	GUI_Checkbox2("Show 1P Bar", activeConfig.show1Pbar, queuedConfig.show1Pbar);
 
-    ImGui::PopFont();
-    ImGui::PopStyleColor();
+	ImGui::PopFont();
+	ImGui::PopStyleColor();
 
 	BarsSettings(defaultFontSize);
 
-    
+
 }
 
 #pragma endregion
@@ -3982,12 +3993,12 @@ void BossRushSection(size_t defaultFontSize) {
 	const float itemWidth = defaultFontSize * 8.0f;
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
 	const float rowWidth = 30.0f * queuedConfig.globalScale;
-    const float rowWidth2 = 40.0f * queuedConfig.globalScale;
-    ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
+	const float rowWidth2 = 40.0f * queuedConfig.globalScale;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
-    GUI_Checkbox2("BOSS RUSH", activeConfig.BossRush.enable, queuedConfig.BossRush.enable);
+	GUI_Checkbox2("BOSS RUSH", activeConfig.BossRush.enable, queuedConfig.BossRush.enable);
 
 	ImGui::PopFont();
 
@@ -3996,39 +4007,39 @@ void BossRushSection(size_t defaultFontSize) {
 
 	ImGui::PushItemWidth(itemWidth);
 
-    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
 	ImGui::Text("");
 
-// 	if (GUI_ResetButton()) {
-// 		CopyMemory(&queuedConfig.BossRush, &defaultConfig.BossRush, sizeof(queuedConfig.BossRush));
-// 		CopyMemory(&activeConfig.BossRush, &queuedConfig.BossRush, sizeof(activeConfig.BossRush));
-// 	}
+	// 	if (GUI_ResetButton()) {
+	// 		CopyMemory(&queuedConfig.BossRush, &defaultConfig.BossRush, sizeof(queuedConfig.BossRush));
+	// 		CopyMemory(&activeConfig.BossRush, &queuedConfig.BossRush, sizeof(activeConfig.BossRush));
+	// 	}
 
-    if (ImGui::BeginTable("BossRushTable", 2)) {
+	if (ImGui::BeginTable("BossRushTable", 2)) {
 
-        ImGui::TableSetupColumn("c1", 0, columnWidth);
-        ImGui::TableNextRow(0, rowWidth);
-        ImGui::TableNextColumn();
+		ImGui::TableSetupColumn("c1", 0, columnWidth);
+		ImGui::TableNextRow(0, rowWidth);
+		ImGui::TableNextColumn();
 
-        ImGui::Text("Mission 5");
+		ImGui::Text("Mission 5");
 
-        ImGui::TableNextColumn();
-        ImGui::Text("Mission 12");
+		ImGui::TableNextColumn();
+		ImGui::Text("Mission 12");
 
-        ImGui::TableNextRow(0, rowWidth);
-        ImGui::TableNextColumn();
+		ImGui::TableNextRow(0, rowWidth);
+		ImGui::TableNextColumn();
 
-        GUI_Checkbox2("Skip Jester", activeConfig.BossRush.Mission5.skipJester, queuedConfig.BossRush.Mission5.skipJester);
+		GUI_Checkbox2("Skip Jester", activeConfig.BossRush.Mission5.skipJester, queuedConfig.BossRush.Mission5.skipJester);
 
-        ImGui::TableNextColumn();
-        GUI_Checkbox2("Skip Jester", activeConfig.BossRush.Mission12.skipJester, queuedConfig.BossRush.Mission12.skipJester);
+		ImGui::TableNextColumn();
+		GUI_Checkbox2("Skip Jester", activeConfig.BossRush.Mission12.skipJester, queuedConfig.BossRush.Mission12.skipJester);
 
 		ImGui::TableNextRow(0, rowWidth2);
 		ImGui::TableNextColumn();
 
-        ImGui::TableNextColumn();
+		ImGui::TableNextColumn();
 		GUI_Checkbox2(
 			"Skip Geryon Part 1", activeConfig.BossRush.Mission12.skipGeryonPart1, queuedConfig.BossRush.Mission12.skipGeryonPart1);
 
@@ -4037,28 +4048,28 @@ void BossRushSection(size_t defaultFontSize) {
 
 		ImGui::Text("Mission 17");
 
-        ImGui::TableNextColumn();
+		ImGui::TableNextColumn();
 		ImGui::Text("Mission 19");
 
 		ImGui::TableNextRow(0, rowWidth);
 		ImGui::TableNextColumn();
 
-        GUI_Checkbox2("Skip Jester", activeConfig.BossRush.Mission17.skipJester, queuedConfig.BossRush.Mission17.skipJester);
+		GUI_Checkbox2("Skip Jester", activeConfig.BossRush.Mission17.skipJester, queuedConfig.BossRush.Mission17.skipJester);
 
-        ImGui::TableNextColumn();
+		ImGui::TableNextColumn();
 
 		GUI_Checkbox2(
 			"Skip Arkham Part 1", activeConfig.BossRush.Mission19.skipArkhamPart1, queuedConfig.BossRush.Mission19.skipArkhamPart1);
-        
 
-        ImGui::EndTable();
 
-    }
-	
+		ImGui::EndTable();
+
+	}
+
 	ImGui::PopFont();
 	ImGui::PopItemWidth();
-    ImGui::PopStyleColor();
-    
+	ImGui::PopStyleColor();
+
 }
 
 #pragma endregion
@@ -4066,14 +4077,14 @@ void BossRushSection(size_t defaultFontSize) {
 #pragma region Camera
 
 const char* cameraAutoAdjustNames[] = {
-    "Default",
-    "Manual",
-    "Disable",
+	"Default",
+	"Manual",
+	"Disable",
 };
 
 
 void CameraSection(size_t defaultFontSize) {
-   
+
 	const float itemWidth = defaultFontSize * 8.0f;
 
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
@@ -4093,7 +4104,7 @@ void CameraSection(size_t defaultFontSize) {
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::Text("");
 
-    float smallerComboMult = 0.6f;
+	float smallerComboMult = 0.6f;
 
 	{
 		const float columnWidth = 0.5f * queuedConfig.globalScale;
@@ -4112,20 +4123,20 @@ void CameraSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
-            ImGui::PushItemWidth(itemWidth * smallerComboMult);
-            UI::Combo2("Turning Sensitivity", cameraSensitivityNames, activeConfig.cameraSensitivity, queuedConfig.cameraSensitivity);
-            ImGui::PopItemWidth();
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			UI::Combo2("Turning Sensitivity", cameraSensitivityNames, activeConfig.cameraSensitivity, queuedConfig.cameraSensitivity);
+			ImGui::PopItemWidth();
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-            ImGui::PushItemWidth(itemWidth * smallerComboMult);
-            UI::Combo2("Follow-Up Speed", cameraFollowUpSpeedNames, activeConfig.cameraFollowUpSpeed, queuedConfig.cameraFollowUpSpeed);
-            ImGui::PopItemWidth();
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			UI::Combo2("Follow-Up Speed", cameraFollowUpSpeedNames, activeConfig.cameraFollowUpSpeed, queuedConfig.cameraFollowUpSpeed);
+			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
 
-			ImGui::PushItemWidth(itemWidth  * smallerComboMult);
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
 			UI::Combo2("Distance", cameraDistanceNames, activeConfig.cameraDistance, queuedConfig.cameraDistance);
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Camera Distance relative to the player outside Lock-On.\n"
@@ -4133,39 +4144,39 @@ void CameraSection(size_t defaultFontSize) {
 				"Dynamic Option adjusts based on whether player is airborne.");
 			ImGui::PopItemWidth();
 
-            ImGui::TableNextRow(0, rowWidth);
-            ImGui::TableNextColumn();
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-            ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
 			UI::Combo2(
 				"Lock-On Distance", cameraLockOnDistanceNames, activeConfig.cameraLockOnDistance, queuedConfig.cameraLockOnDistance);
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Camera Distance relative to the player in Lock-On.\n"
 				"\n"
 				"Dynamic Option adjusts based on whether player is airborne.");
-            ImGui::PopItemWidth();
+			ImGui::PopItemWidth();
 
-            ImGui::TableNextColumn();
+			ImGui::TableNextColumn();
 
-            ImGui::PushItemWidth(itemWidth);
-            UI::Combo2("Vertical Tilt", cameraTiltNames, activeConfig.cameraTilt, queuedConfig.cameraTilt);
-            ImGui::PopItemWidth();
+			ImGui::PushItemWidth(itemWidth);
+			UI::Combo2("Vertical Tilt", cameraTiltNames, activeConfig.cameraTilt, queuedConfig.cameraTilt);
+			ImGui::PopItemWidth();
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-            ImGui::PushItemWidth(itemWidth * smallerComboMult);
-            UI::Combo2<uint8>("Auto-Adjust", cameraAutoAdjustNames, activeConfig.cameraAutoAdjust, queuedConfig.cameraAutoAdjust);
-            ImGui::PopItemWidth();
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			UI::Combo2<uint8>("Auto-Adjust", cameraAutoAdjustNames, activeConfig.cameraAutoAdjust, queuedConfig.cameraAutoAdjust);
+			ImGui::PopItemWidth();
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
-            
+
 			GUI_Checkbox2("Locked-Off Camera", activeConfig.cameraLockOff, queuedConfig.cameraLockOff);
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Allows you to freely rotate the camera using the right stick in Third-Person View sections.");
-         
-            ImGui::TableNextColumn();
+
+			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Invert X", activeConfig.cameraInvertX, queuedConfig.cameraInvertX)) {
 				Camera::ToggleInvertX(activeConfig.cameraInvertX);
@@ -4174,45 +4185,45 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-            GUI_Checkbox2("Disable Center Camera", activeConfig.disableCenterCamera, queuedConfig.disableCenterCamera);
+			GUI_Checkbox2("Disable Center Camera", activeConfig.disableCenterCamera, queuedConfig.disableCenterCamera);
 
-            ImGui::TableNextColumn();
+			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Disable Boss Camera", activeConfig.disableBossCamera, queuedConfig.disableBossCamera)) {
 				Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
 			}
 
-            
+
 
 
 			ImGui::EndTable();
 		}
 
-// 	if (GUI_ResetButton()) {
-// 		CopyMemory(&queuedConfig.cameraInvertX, &defaultConfig.cameraInvertX, sizeof(queuedConfig.cameraInvertX));
-// 		CopyMemory(&activeConfig.cameraInvertX, &queuedConfig.cameraInvertX, sizeof(activeConfig.cameraInvertX));
-// 
-// 		CopyMemory(&queuedConfig.cameraAutoAdjust, &defaultConfig.cameraAutoAdjust, sizeof(queuedConfig.cameraAutoAdjust));
-// 		CopyMemory(&activeConfig.cameraAutoAdjust, &queuedConfig.cameraAutoAdjust, sizeof(activeConfig.cameraAutoAdjust));
-// 
-// 		CopyMemory(&queuedConfig.disableCenterCamera, &defaultConfig.disableCenterCamera, sizeof(queuedConfig.disableCenterCamera));
-// 		CopyMemory(&activeConfig.disableCenterCamera, &queuedConfig.disableCenterCamera, sizeof(activeConfig.disableCenterCamera));
-// 
-// 		CopyMemory(&queuedConfig.disableBossCamera, &defaultConfig.disableBossCamera, sizeof(queuedConfig.disableBossCamera));
-// 		CopyMemory(&activeConfig.disableBossCamera, &queuedConfig.disableBossCamera, sizeof(activeConfig.disableBossCamera));
-// 
-// 		CopyMemory(&queuedConfig.fovMultiplier, &defaultConfig.fovMultiplier, sizeof(queuedConfig.fovMultiplier));
-// 		CopyMemory(&activeConfig.fovMultiplier, &queuedConfig.fovMultiplier, sizeof(activeConfig.fovMultiplier));
-// 
-// 
-// 		Camera::ToggleInvertX(activeConfig.cameraInvertX);
-// 		Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
+		// 	if (GUI_ResetButton()) {
+		// 		CopyMemory(&queuedConfig.cameraInvertX, &defaultConfig.cameraInvertX, sizeof(queuedConfig.cameraInvertX));
+		// 		CopyMemory(&activeConfig.cameraInvertX, &queuedConfig.cameraInvertX, sizeof(activeConfig.cameraInvertX));
+		// 
+		// 		CopyMemory(&queuedConfig.cameraAutoAdjust, &defaultConfig.cameraAutoAdjust, sizeof(queuedConfig.cameraAutoAdjust));
+		// 		CopyMemory(&activeConfig.cameraAutoAdjust, &queuedConfig.cameraAutoAdjust, sizeof(activeConfig.cameraAutoAdjust));
+		// 
+		// 		CopyMemory(&queuedConfig.disableCenterCamera, &defaultConfig.disableCenterCamera, sizeof(queuedConfig.disableCenterCamera));
+		// 		CopyMemory(&activeConfig.disableCenterCamera, &queuedConfig.disableCenterCamera, sizeof(activeConfig.disableCenterCamera));
+		// 
+		// 		CopyMemory(&queuedConfig.disableBossCamera, &defaultConfig.disableBossCamera, sizeof(queuedConfig.disableBossCamera));
+		// 		CopyMemory(&activeConfig.disableBossCamera, &queuedConfig.disableBossCamera, sizeof(activeConfig.disableBossCamera));
+		// 
+		// 		CopyMemory(&queuedConfig.fovMultiplier, &defaultConfig.fovMultiplier, sizeof(queuedConfig.fovMultiplier));
+		// 		CopyMemory(&activeConfig.fovMultiplier, &queuedConfig.fovMultiplier, sizeof(activeConfig.fovMultiplier));
+		// 
+		// 
+		// 		Camera::ToggleInvertX(activeConfig.cameraInvertX);
+		// 		Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
 	}
-	
+
 
 
 	ImGui::Text("");
-    ImGui::PopFont();
+	ImGui::PopFont();
 
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
@@ -4225,7 +4236,7 @@ void CameraSection(size_t defaultFontSize) {
 	UI::SeparatorEx(defaultFontSize * 23.35f);
 
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-	
+
 
 	[&]() {
 		if (g_scene != SCENE::GAME) {
@@ -4241,45 +4252,45 @@ void CameraSection(size_t defaultFontSize) {
 
 		ImGui::PushItemWidth(itemWidth * 0.8f);
 
-        {
-            const float columnWidth = 0.5f * queuedConfig.globalScale;
-            const float rowWidth = 40.0f * queuedConfig.globalScale;
+		{
+			const float columnWidth = 0.5f * queuedConfig.globalScale;
+			const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-            if (ImGui::BeginTable("LiveCameraReadingsTable", 2)) {
+			if (ImGui::BeginTable("LiveCameraReadingsTable", 2)) {
 
-                ImGui::TableSetupColumn("b1", 0, columnWidth);
-                ImGui::TableNextRow(0, rowWidth);
-                ImGui::TableNextColumn();
-                ImGui::PushItemWidth(itemWidth * 0.8f);
+				ImGui::TableSetupColumn("b1", 0, columnWidth);
+				ImGui::TableNextRow(0, rowWidth);
+				ImGui::TableNextColumn();
+				ImGui::PushItemWidth(itemWidth * 0.8f);
 				GUI_Input("FOV", cameraData.fov, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-                ImGui::PopItemWidth();
+				ImGui::PopItemWidth();
 				ImGui::Text("");
 
 				ImGui::TableNextRow(0, rowWidth);
-                ImGui::TableNextColumn();
+				ImGui::TableNextColumn();
 
-                for (int index = 0; index < countof(cameraData.data); index++) {
-                    if (index > 0) {
-                        ImGui::TableNextColumn();
-                    }
-                    
-                    ImGui::PushItemWidth(itemWidth * 0.8f);
-                    ImGui::Text(dataNames[index]);
-                    GUI_Input("X", cameraData.data[index].x, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-                    GUI_Input("Y", cameraData.data[index].y, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-                    GUI_Input("Z", cameraData.data[index].z, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-                    GUI_Input("A", cameraData.data[index].a, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-                    ImGui::Text("");
-                    ImGui::PopItemWidth();
-                }
+				for (int index = 0; index < countof(cameraData.data); index++) {
+					if (index > 0) {
+						ImGui::TableNextColumn();
+					}
 
-                ImGui::TableNextRow(0, rowWidth);
-                ImGui::TableNextColumn();
+					ImGui::PushItemWidth(itemWidth * 0.8f);
+					ImGui::Text(dataNames[index]);
+					GUI_Input("X", cameraData.data[index].x, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+					GUI_Input("Y", cameraData.data[index].y, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+					GUI_Input("Z", cameraData.data[index].z, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+					GUI_Input("A", cameraData.data[index].a, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+					ImGui::Text("");
+					ImGui::PopItemWidth();
+				}
+
+				ImGui::TableNextRow(0, rowWidth);
+				ImGui::TableNextColumn();
 
 
 				GUI_Input("Height", cameraData.height, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
-                ImGui::TableNextColumn();
+				ImGui::TableNextColumn();
 
 
 				GUI_Input("Tilt", cameraData.tilt, 0.05f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
@@ -4290,24 +4301,24 @@ void CameraSection(size_t defaultFontSize) {
 
 				GUI_Input("Distance", cameraData.distance, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
-                ImGui::TableNextColumn();
+				ImGui::TableNextColumn();
 
 
 				GUI_Input("Distance Lock-On", cameraData.distanceLockOn, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
 
 
-                ImGui::EndTable();
-            }
-        }
+				ImGui::EndTable();
+			}
+		}
 
 		ImGui::PopItemWidth();
-	}();
-        ImGui::PopStyleColor();
-        ImGui::PopFont();
+		}();
+		ImGui::PopStyleColor();
+		ImGui::PopFont();
 
-        ImGui::Text("");
-    
+		ImGui::Text("");
+
 }
 
 #pragma endregion
@@ -4315,41 +4326,41 @@ void CameraSection(size_t defaultFontSize) {
 #pragma region Cosmetics
 
 struct {
-    float32 airHike[5][4] = {
-        {128, 0, 0, 200},
-        {96, 128, 144, 200},
-        {160, 64, 16, 200},
-        {112, 64, 160, 200},
-        {128, 128, 128, 200},
-    };
-    struct {
-        float32 skyStar[4] = {255, 0, 0, 200};
-    } Trickster;
-    struct {
-        float32 ultimate[4] = {143, 112, 48, 200};
-    } Royalguard;
-    struct {
-        float32 clone[4] = {16, 16, 16, 48};
-    } Doppelganger;
-    struct {
-        float32 dante[5][4] = {
-            {128, 0, 0, 200},
-            {96, 128, 144, 200},
-            {160, 64, 16, 200},
-            {112, 64, 160, 200},
-            {128, 128, 128, 200},
-        };
-        float32 sparda[4]    = {128, 0, 0, 200};
-        float32 vergil[3][4] = {
-            {32, 64, 128, 200},
-            {32, 64, 128, 200},
-            {32, 64, 128, 200},
-        };
-        float32 neroAngelo[4] = {64, 0, 255, 200};
-    } Aura;
+	float32 airHike[5][4] = {
+		{128, 0, 0, 200},
+		{96, 128, 144, 200},
+		{160, 64, 16, 200},
+		{112, 64, 160, 200},
+		{128, 128, 128, 200},
+	};
+	struct {
+		float32 skyStar[4] = { 255, 0, 0, 200 };
+	} Trickster;
+	struct {
+		float32 ultimate[4] = { 143, 112, 48, 200 };
+	} Royalguard;
+	struct {
+		float32 clone[4] = { 16, 16, 16, 48 };
+	} Doppelganger;
+	struct {
+		float32 dante[5][4] = {
+			{128, 0, 0, 200},
+			{96, 128, 144, 200},
+			{160, 64, 16, 200},
+			{112, 64, 160, 200},
+			{128, 128, 128, 200},
+		};
+		float32 sparda[4] = { 128, 0, 0, 200 };
+		float32 vergil[3][4] = {
+			{32, 64, 128, 200},
+			{32, 64, 128, 200},
+			{32, 64, 128, 200},
+		};
+		float32 neroAngelo[4] = { 64, 0, 255, 200 };
+	} Aura;
 
 
-    struct {
+	struct {
 		float32 flux[6][4] = {
 			{ 29, 29, 0, 255 }, //trick  
 			{ 26, 0, 0, 255 }, //sword  
@@ -4359,7 +4370,7 @@ struct {
 			{ 30, 14, 0, 255 }, //doppel 
 		};
 
-        float32 text[9][4] = {
+		float32 text[9][4] = {
 			{ 240, 240, 0, 255 }, //trick  
 			{ 255, 1, 1, 255 }, //sword  
 			{ 0, 56, 239, 255 }, //gun    
@@ -4369,7 +4380,7 @@ struct {
 			{ 255, 255, 255, 255 }, //dt     
 			{ 255, 255, 255, 255 }, //dte    
 			{ 255, 255, 255, 255 }, //ready  
-        };
+		};
 
 		uint8 textMidnight[9][4] = {
 			{ 155, 85, 250, 255 }, //trick  
@@ -4383,22 +4394,22 @@ struct {
 			{ 155, 85, 250, 255 }, //ready  
 		};
 
-    } StyleSwitchColor;
+	} StyleSwitchColor;
 } Color;
 
 void Color_UpdateValues() {
-    // LogFunction();
+	// LogFunction();
 
-    constexpr uint8 itemCount = (sizeof(Color) / 4);
+	constexpr uint8 itemCount = (sizeof(Color) / 4);
 
-    auto items  = reinterpret_cast<uint8*>(activeConfig.Color.airHike);
-    auto items2 = reinterpret_cast<float32*>(Color.airHike);
-  
+	auto items = reinterpret_cast<uint8*>(activeConfig.Color.airHike);
+	auto items2 = reinterpret_cast<float32*>(Color.airHike);
 
-    old_for_all(uint8, index, itemCount) {
-        items2[index] = (static_cast<float32>(items[index]) / 255);
-        
-    }
+
+	old_for_all(uint8, index, itemCount) {
+		items2[index] = (static_cast<float32>(items[index]) / 255);
+
+	}
 
 	for (int style = 0; style < 6; style++) {
 		for (int i = 0; i < 4; i++) {
@@ -4406,11 +4417,11 @@ void Color_UpdateValues() {
 		}
 	}
 
-    for (int style = 0; style < 9; style++) {
-        for (int i = 0; i < 4; i++) {
-            Color.StyleSwitchColor.text[style][i] = (float32)activeConfig.StyleSwitchColor.text[style][i] / 255;
-        }
-    }
+	for (int style = 0; style < 9; style++) {
+		for (int i = 0; i < 4; i++) {
+			Color.StyleSwitchColor.text[style][i] = (float32)activeConfig.StyleSwitchColor.text[style][i] / 255;
+		}
+	}
 
 }
 
@@ -4420,63 +4431,64 @@ void Color_UpdateValues() {
 #pragma region Damage
 
 void Damage() {
-    if (ImGui::CollapsingHeader("Damage")) {
-        ImGui::Text("");
+	if (ImGui::CollapsingHeader("Damage")) {
+		ImGui::Text("");
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.damagePlayerActorMultiplier, &defaultConfig.damagePlayerActorMultiplier,
-                sizeof(queuedConfig.damagePlayerActorMultiplier));
-            CopyMemory(&activeConfig.damagePlayerActorMultiplier, &queuedConfig.damagePlayerActorMultiplier,
-                sizeof(activeConfig.damagePlayerActorMultiplier));
+		if (GUI_ResetButton()) {
+			CopyMemory(&queuedConfig.damagePlayerActorMultiplier, &defaultConfig.damagePlayerActorMultiplier,
+				sizeof(queuedConfig.damagePlayerActorMultiplier));
+			CopyMemory(&activeConfig.damagePlayerActorMultiplier, &queuedConfig.damagePlayerActorMultiplier,
+				sizeof(activeConfig.damagePlayerActorMultiplier));
 
-            CopyMemory(&queuedConfig.damageEnemyActorMultiplier, &defaultConfig.damageEnemyActorMultiplier,
-                sizeof(queuedConfig.damageEnemyActorMultiplier));
-            CopyMemory(&activeConfig.damageEnemyActorMultiplier, &queuedConfig.damageEnemyActorMultiplier,
-                sizeof(activeConfig.damageEnemyActorMultiplier));
+			CopyMemory(&queuedConfig.damageEnemyActorMultiplier, &defaultConfig.damageEnemyActorMultiplier,
+				sizeof(queuedConfig.damageEnemyActorMultiplier));
+			CopyMemory(&activeConfig.damageEnemyActorMultiplier, &queuedConfig.damageEnemyActorMultiplier,
+				sizeof(activeConfig.damageEnemyActorMultiplier));
 
-            CopyMemory(&queuedConfig.damageStyleRank, &defaultConfig.damageStyleRank, sizeof(queuedConfig.damageStyleRank));
-            CopyMemory(&activeConfig.damageStyleRank, &queuedConfig.damageStyleRank, sizeof(activeConfig.damageStyleRank));
-        }
-        ImGui::Text("");
+			CopyMemory(&queuedConfig.damageStyleRank, &defaultConfig.damageStyleRank, sizeof(queuedConfig.damageStyleRank));
+			CopyMemory(&activeConfig.damageStyleRank, &queuedConfig.damageStyleRank, sizeof(activeConfig.damageStyleRank));
+		}
+		ImGui::Text("");
 
-        TooltipHelper("(?)", "Multiplier values are for RECEIVED damage.");
-        ImGui::Text("");
-
-
-        {
-            static bool toggled = false;
-
-            if (GUI_Button("One Hit Kill")) {
-
-                if (!toggled) {
-                    toggled = true;
-
-                    activeConfig.damagePlayerActorMultiplier = queuedConfig.damagePlayerActorMultiplier = 1.0f;
-                    activeConfig.damageEnemyActorMultiplier = queuedConfig.damageEnemyActorMultiplier = 100.0f;
-                } else {
-                    toggled = false;
-
-                    activeConfig.damagePlayerActorMultiplier = queuedConfig.damagePlayerActorMultiplier = 0;
-                    activeConfig.damageEnemyActorMultiplier = queuedConfig.damageEnemyActorMultiplier = 0;
-                }
-            }
-        }
+		TooltipHelper("(?)", "Multiplier values are for RECEIVED damage.");
+		ImGui::Text("");
 
 
-        ImGui::PushItemWidth(150);
+		{
+			static bool toggled = false;
 
-        GUI_InputDefault2("Player Actor Multiplier", activeConfig.damagePlayerActorMultiplier, queuedConfig.damagePlayerActorMultiplier,
-            defaultConfig.damagePlayerActorMultiplier, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			if (GUI_Button("One Hit Kill")) {
 
-        GUI_InputDefault2("Enemy Actor Multiplier", activeConfig.damageEnemyActorMultiplier, queuedConfig.damageEnemyActorMultiplier,
-            defaultConfig.damageEnemyActorMultiplier, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+				if (!toggled) {
+					toggled = true;
 
-        UI::Combo2("Style Rank", styleRankNames, activeConfig.damageStyleRank, queuedConfig.damageStyleRank);
+					activeConfig.damagePlayerActorMultiplier = queuedConfig.damagePlayerActorMultiplier = 1.0f;
+					activeConfig.damageEnemyActorMultiplier = queuedConfig.damageEnemyActorMultiplier = 100.0f;
+				}
+				else {
+					toggled = false;
 
-        ImGui::PopItemWidth();
+					activeConfig.damagePlayerActorMultiplier = queuedConfig.damagePlayerActorMultiplier = 0;
+					activeConfig.damageEnemyActorMultiplier = queuedConfig.damageEnemyActorMultiplier = 0;
+				}
+			}
+		}
 
-        ImGui::Text("");
-    }
+
+		ImGui::PushItemWidth(150);
+
+		GUI_InputDefault2("Player Actor Multiplier", activeConfig.damagePlayerActorMultiplier, queuedConfig.damagePlayerActorMultiplier,
+			defaultConfig.damagePlayerActorMultiplier, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+
+		GUI_InputDefault2("Enemy Actor Multiplier", activeConfig.damageEnemyActorMultiplier, queuedConfig.damageEnemyActorMultiplier,
+			defaultConfig.damageEnemyActorMultiplier, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+
+		UI::Combo2("Style Rank", styleRankNames, activeConfig.damageStyleRank, queuedConfig.damageStyleRank);
+
+		ImGui::PopItemWidth();
+
+		ImGui::Text("");
+	}
 }
 
 #pragma endregion
@@ -4485,791 +4497,656 @@ void Damage() {
 
 // @Todo: Move.
 template <typename T>
-void ActionData(const char* label, T (&vars)[2], T (&vars2)[2], T (&defaultVars)[2], T step = 1, const char* format = 0,
-    ImGuiInputTextFlags flags = 0, float32 width = 150) {
-    auto& style = ImGui::GetStyle();
+void ActionData(const char* label, T(&vars)[2], T(&vars2)[2], T(&defaultVars)[2], T step = 1, const char* format = 0,
+	ImGuiInputTextFlags flags = 0, float32 width = 150) {
+	auto& style = ImGui::GetStyle();
 
-    ImGui::PushItemWidth(width);
-    GUI_InputDefault2("", vars[0], vars2[0], defaultVars[0], step, format, flags);
-    ImGui::SameLine(0, style.ItemInnerSpacing.x);
-    GUI_InputDefault2(label, vars[1], vars2[1], defaultVars[1], step, format, flags);
-    ImGui::PopItemWidth();
+	ImGui::PushItemWidth(width);
+	GUI_InputDefault2("", vars[0], vars2[0], defaultVars[0], step, format, flags);
+	ImGui::SameLine(0, style.ItemInnerSpacing.x);
+	GUI_InputDefault2(label, vars[1], vars2[1], defaultVars[1], step, format, flags);
+	ImGui::PopItemWidth();
 }
 
 void Dante() {
-    if (ImGui::CollapsingHeader("Dante")) {
-        ImGui::Text("");
+	if (ImGui::CollapsingHeader("Dante")) {
+		ImGui::Text("");
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.airHikeCoreAbility, &defaultConfig.airHikeCoreAbility, sizeof(queuedConfig.airHikeCoreAbility));
-            CopyMemory(&activeConfig.airHikeCoreAbility, &queuedConfig.airHikeCoreAbility, sizeof(activeConfig.airHikeCoreAbility));
+		if (GUI_ResetButton()) {
+			CopyMemory(&queuedConfig.airHikeCoreAbility, &defaultConfig.airHikeCoreAbility, sizeof(queuedConfig.airHikeCoreAbility));
+			CopyMemory(&activeConfig.airHikeCoreAbility, &queuedConfig.airHikeCoreAbility, sizeof(activeConfig.airHikeCoreAbility));
 
-            ToggleAirHikeCoreAbility(activeConfig.airHikeCoreAbility);
+			ToggleAirHikeCoreAbility(activeConfig.airHikeCoreAbility);
 
-            CopyMemory(&queuedConfig.Royalguard, &defaultConfig.Royalguard, sizeof(queuedConfig.Royalguard));
-            CopyMemory(&activeConfig.Royalguard, &queuedConfig.Royalguard, sizeof(activeConfig.Royalguard));
+			CopyMemory(&queuedConfig.Royalguard, &defaultConfig.Royalguard, sizeof(queuedConfig.Royalguard));
+			CopyMemory(&activeConfig.Royalguard, &queuedConfig.Royalguard, sizeof(activeConfig.Royalguard));
 
-            CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+			CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
 
-            CopyMemory(&queuedConfig.rebellionInfiniteShredder, &defaultConfig.rebellionInfiniteShredder,
-                sizeof(queuedConfig.rebellionInfiniteShredder));
-            CopyMemory(&activeConfig.rebellionInfiniteShredder, &queuedConfig.rebellionInfiniteShredder,
-                sizeof(activeConfig.rebellionInfiniteShredder));
+			CopyMemory(&queuedConfig.rebellionInfiniteShredder, &defaultConfig.rebellionInfiniteShredder,
+				sizeof(queuedConfig.rebellionInfiniteShredder));
+			CopyMemory(&activeConfig.rebellionInfiniteShredder, &queuedConfig.rebellionInfiniteShredder,
+				sizeof(activeConfig.rebellionInfiniteShredder));
 
-            CopyMemory(&queuedConfig.Rebellion, &defaultConfig.Rebellion, sizeof(queuedConfig.Rebellion));
-            CopyMemory(&activeConfig.Rebellion, &queuedConfig.Rebellion, sizeof(activeConfig.Rebellion));
+			CopyMemory(&queuedConfig.Rebellion, &defaultConfig.Rebellion, sizeof(queuedConfig.Rebellion));
+			CopyMemory(&activeConfig.Rebellion, &queuedConfig.Rebellion, sizeof(activeConfig.Rebellion));
 
-            ToggleRebellionInfiniteShredder(activeConfig.rebellionInfiniteShredder);
-            ToggleRebellionInfiniteSwordPierce(activeConfig.Rebellion.infiniteSwordPierce);
+			ToggleRebellionInfiniteShredder(activeConfig.rebellionInfiniteShredder);
+			ToggleRebellionInfiniteSwordPierce(activeConfig.Rebellion.infiniteSwordPierce);
 
-            CopyMemory(&queuedConfig.enableRebellionAirStinger, &defaultConfig.enableRebellionAirStinger,
-                sizeof(queuedConfig.enableRebellionAirStinger));
-            CopyMemory(&activeConfig.enableRebellionAirStinger, &queuedConfig.enableRebellionAirStinger,
-                sizeof(activeConfig.enableRebellionAirStinger));
+			CopyMemory(&queuedConfig.enableRebellionAirStinger, &defaultConfig.enableRebellionAirStinger,
+				sizeof(queuedConfig.enableRebellionAirStinger));
+			CopyMemory(&activeConfig.enableRebellionAirStinger, &queuedConfig.enableRebellionAirStinger,
+				sizeof(activeConfig.enableRebellionAirStinger));
 
-            CopyMemory(&queuedConfig.enableRebellionNewDrive, &defaultConfig.enableRebellionNewDrive,
-                sizeof(queuedConfig.enableRebellionNewDrive));
-            CopyMemory(
-                &activeConfig.enableRebellionNewDrive, &queuedConfig.enableRebellionNewDrive, sizeof(activeConfig.enableRebellionNewDrive));
+			CopyMemory(&queuedConfig.enableRebellionNewDrive, &defaultConfig.enableRebellionNewDrive,
+				sizeof(queuedConfig.enableRebellionNewDrive));
+			CopyMemory(
+				&activeConfig.enableRebellionNewDrive, &queuedConfig.enableRebellionNewDrive, sizeof(activeConfig.enableRebellionNewDrive));
 
-            CopyMemory(&queuedConfig.enableRebellionQuickDrive, &defaultConfig.enableRebellionQuickDrive,
-                sizeof(queuedConfig.enableRebellionQuickDrive));
-            CopyMemory(&activeConfig.enableRebellionQuickDrive, &queuedConfig.enableRebellionQuickDrive,
-                sizeof(activeConfig.enableRebellionQuickDrive));
-
-
-            CopyMemory(&queuedConfig.rebellionHoldDrive, &defaultConfig.rebellionHoldDrive, sizeof(queuedConfig.rebellionHoldDrive));
-            CopyMemory(&activeConfig.rebellionHoldDrive, &queuedConfig.rebellionHoldDrive, sizeof(activeConfig.rebellionHoldDrive));
-
-            ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
-
-            CopyMemory(&queuedConfig.enableCerberusAirRevolver, &defaultConfig.enableCerberusAirRevolver,
-                sizeof(queuedConfig.enableCerberusAirRevolver));
-            CopyMemory(&activeConfig.enableCerberusAirRevolver, &queuedConfig.enableCerberusAirRevolver,
-                sizeof(activeConfig.enableCerberusAirRevolver));
+			CopyMemory(&queuedConfig.enableRebellionQuickDrive, &defaultConfig.enableRebellionQuickDrive,
+				sizeof(queuedConfig.enableRebellionQuickDrive));
+			CopyMemory(&activeConfig.enableRebellionQuickDrive, &queuedConfig.enableRebellionQuickDrive,
+				sizeof(activeConfig.enableRebellionQuickDrive));
 
 
-            CopyMemory(&queuedConfig.enableNevanNewVortex, &defaultConfig.enableNevanNewVortex, sizeof(queuedConfig.enableNevanNewVortex));
-            CopyMemory(&activeConfig.enableNevanNewVortex, &queuedConfig.enableNevanNewVortex, sizeof(activeConfig.enableNevanNewVortex));
+			CopyMemory(&queuedConfig.rebellionHoldDrive, &defaultConfig.rebellionHoldDrive, sizeof(queuedConfig.rebellionHoldDrive));
+			CopyMemory(&activeConfig.rebellionHoldDrive, &queuedConfig.rebellionHoldDrive, sizeof(activeConfig.rebellionHoldDrive));
+
+			ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
+
+			CopyMemory(&queuedConfig.enableCerberusAirRevolver, &defaultConfig.enableCerberusAirRevolver,
+				sizeof(queuedConfig.enableCerberusAirRevolver));
+			CopyMemory(&activeConfig.enableCerberusAirRevolver, &queuedConfig.enableCerberusAirRevolver,
+				sizeof(activeConfig.enableCerberusAirRevolver));
 
 
-            CopyMemory(&queuedConfig.EbonyIvory, &defaultConfig.EbonyIvory, sizeof(queuedConfig.EbonyIvory));
-            CopyMemory(&activeConfig.EbonyIvory, &queuedConfig.EbonyIvory, sizeof(activeConfig.EbonyIvory));
-
-            ToggleEbonyIvoryFoursomeTime(activeConfig.EbonyIvory.foursomeTime);
-            ToggleEbonyIvoryInfiniteRainStorm(activeConfig.EbonyIvory.infiniteRainStorm);
-
-            CopyMemory(&queuedConfig.Artemis, &defaultConfig.Artemis, sizeof(queuedConfig.Artemis));
-            CopyMemory(&activeConfig.Artemis, &queuedConfig.Artemis, sizeof(activeConfig.Artemis));
-
-            ToggleArtemisSwapNormalShotAndMultiLock(activeConfig.Artemis.swapNormalShotAndMultiLock);
-            ToggleArtemisInstantFullCharge(activeConfig.Artemis.instantFullCharge);
-        }
-
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-        GUI_SectionStart("Air Hike");
-
-        if (GUI_Checkbox2("Core Ability", activeConfig.airHikeCoreAbility, queuedConfig.airHikeCoreAbility)) {
-            ToggleAirHikeCoreAbility(activeConfig.airHikeCoreAbility);
-        }
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Makes Air Hike available for all melee weapons.");
-
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-        GUI_SectionStart("Royalguard");
-
-        if (GUI_Checkbox2(
-                "Force Just Frame Release", activeConfig.Royalguard.forceJustFrameRelease, queuedConfig.Royalguard.forceJustFrameRelease)) {
-            CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
-        }
-
-        GUI_SectionEnd();
-        ImGui::Text("");
+			CopyMemory(&queuedConfig.enableNevanNewVortex, &defaultConfig.enableNevanNewVortex, sizeof(queuedConfig.enableNevanNewVortex));
+			CopyMemory(&activeConfig.enableNevanNewVortex, &queuedConfig.enableNevanNewVortex, sizeof(activeConfig.enableNevanNewVortex));
 
 
-        ImGui::Text("Rebellion");
-        ImGui::Text("");
+			CopyMemory(&queuedConfig.EbonyIvory, &defaultConfig.EbonyIvory, sizeof(queuedConfig.EbonyIvory));
+			CopyMemory(&activeConfig.EbonyIvory, &queuedConfig.EbonyIvory, sizeof(activeConfig.EbonyIvory));
 
-        if (GUI_Checkbox2("Infinite Shredder", activeConfig.rebellionInfiniteShredder, queuedConfig.rebellionInfiniteShredder)) {
-            ToggleRebellionInfiniteShredder(activeConfig.rebellionInfiniteShredder);
-        }
+			ToggleEbonyIvoryFoursomeTime(activeConfig.EbonyIvory.foursomeTime);
+			ToggleEbonyIvoryInfiniteRainStorm(activeConfig.EbonyIvory.infiniteRainStorm);
 
-        if (GUI_Checkbox2(
-                "Infinite Sword Pierce", activeConfig.Rebellion.infiniteSwordPierce, queuedConfig.Rebellion.infiniteSwordPierce)) {
-            ToggleRebellionInfiniteSwordPierce(activeConfig.Rebellion.infiniteSwordPierce);
-        }
+			CopyMemory(&queuedConfig.Artemis, &defaultConfig.Artemis, sizeof(queuedConfig.Artemis));
+			CopyMemory(&activeConfig.Artemis, &queuedConfig.Artemis, sizeof(activeConfig.Artemis));
 
-        GUI_Checkbox2("Enable Air Stinger", activeConfig.enableRebellionAirStinger, queuedConfig.enableRebellionAirStinger);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.");
+			ToggleArtemisSwapNormalShotAndMultiLock(activeConfig.Artemis.swapNormalShotAndMultiLock);
+			ToggleArtemisInstantFullCharge(activeConfig.Artemis.instantFullCharge);
+		}
 
-        GUI_Checkbox2("Enable New Drive", activeConfig.enableRebellionNewDrive, queuedConfig.enableRebellionNewDrive);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.\n"
-                             "\n"
-                             "Press Lock-On + Left + Melee Attack.");
+		GUI_SectionEnd();
+		ImGui::Text("");
 
-        GUI_Checkbox2("Enable Quick Drive", activeConfig.enableRebellionQuickDrive, queuedConfig.enableRebellionQuickDrive);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.\n"
-                             "\n"
-                             "In Swordmaster hold Style Action and press Melee Attack twice.");
+		GUI_SectionStart("Air Hike");
 
-        if (GUI_Checkbox2("Hold Drive", activeConfig.rebellionHoldDrive, queuedConfig.rebellionHoldDrive)) {
-            ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
-        }
-        ImGui::Text("");
+		if (GUI_Checkbox2("Core Ability", activeConfig.airHikeCoreAbility, queuedConfig.airHikeCoreAbility)) {
+			ToggleAirHikeCoreAbility(activeConfig.airHikeCoreAbility);
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Makes Air Hike available for all melee weapons.");
 
+		GUI_SectionEnd();
+		ImGui::Text("");
 
-        TooltipHelper("(?)", "Requires enabled Actor module.\n"
-                             "\n"
-                             "Left : Human\n"
-                             "Right: Devil");
-        ImGui::Text("");
+		GUI_SectionStart("Royalguard");
 
-        ActionData("Stinger Duration", activeConfig.Rebellion.stingerDuration, queuedConfig.Rebellion.stingerDuration,
-            defaultConfig.Rebellion.stingerDuration, 1.0f, "%g");
-        ActionData("Stinger Range", activeConfig.Rebellion.stingerRange, queuedConfig.Rebellion.stingerRange,
-            defaultConfig.Rebellion.stingerRange, 10.0f, "%g");
+		if (GUI_Checkbox2(
+			"Force Just Frame Release", activeConfig.Royalguard.forceJustFrameRelease, queuedConfig.Royalguard.forceJustFrameRelease)) {
+			CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+		}
+
+		GUI_SectionEnd();
+		ImGui::Text("");
 
 
-        {
-            bool condition = !activeConfig.enableRebellionAirStinger;
+		ImGui::Text("Rebellion");
+		ImGui::Text("");
 
-            GUI_PushDisable(condition);
+		if (GUI_Checkbox2("Infinite Shredder", activeConfig.rebellionInfiniteShredder, queuedConfig.rebellionInfiniteShredder)) {
+			ToggleRebellionInfiniteShredder(activeConfig.rebellionInfiniteShredder);
+		}
 
-            ActionData("Air Stinger Count", activeConfig.Rebellion.airStingerCount, queuedConfig.Rebellion.airStingerCount,
-                defaultConfig.Rebellion.airStingerCount);
-            ActionData("Air Stinger Duration", activeConfig.Rebellion.airStingerDuration, queuedConfig.Rebellion.airStingerDuration,
-                defaultConfig.Rebellion.airStingerDuration, 1.0f, "%g");
-            ActionData("Air Stinger Range", activeConfig.Rebellion.airStingerRange, queuedConfig.Rebellion.airStingerRange,
-                defaultConfig.Rebellion.airStingerRange, 10.0f, "%g");
+		if (GUI_Checkbox2(
+			"Infinite Sword Pierce", activeConfig.Rebellion.infiniteSwordPierce, queuedConfig.Rebellion.infiniteSwordPierce)) {
+			ToggleRebellionInfiniteSwordPierce(activeConfig.Rebellion.infiniteSwordPierce);
+		}
 
-            GUI_PopDisable(condition);
-        }
+		GUI_Checkbox2("Enable Air Stinger", activeConfig.enableRebellionAirStinger, queuedConfig.enableRebellionAirStinger);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires enabled Actor module.");
 
+		GUI_Checkbox2("Enable New Drive", activeConfig.enableRebellionNewDrive, queuedConfig.enableRebellionNewDrive);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires enabled Actor module.\n"
+			"\n"
+			"Press Lock-On + Left + Melee Attack.");
 
-        GUI_SectionEnd();
-        ImGui::Text("");
+		GUI_Checkbox2("Enable Quick Drive", activeConfig.enableRebellionQuickDrive, queuedConfig.enableRebellionQuickDrive);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires enabled Actor module.\n"
+			"\n"
+			"In Swordmaster hold Style Action and press Melee Attack twice.");
 
-
-        GUI_SectionStart("Cerberus");
-
-        GUI_Checkbox2("Enable Air Revolver", activeConfig.enableCerberusAirRevolver, queuedConfig.enableCerberusAirRevolver);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.");
-
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-
-        GUI_SectionStart("Nevan");
-
-        GUI_Checkbox2("Enable New Vortex", activeConfig.enableNevanNewVortex, queuedConfig.enableNevanNewVortex);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.\n"
-                             "\n"
-                             "While in devil form press Any Direction + Melee Attack.");
-
-        GUI_SectionEnd();
-        ImGui::Text("");
+		if (GUI_Checkbox2("Hold Drive", activeConfig.rebellionHoldDrive, queuedConfig.rebellionHoldDrive)) {
+			ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
+		}
+		ImGui::Text("");
 
 
-        GUI_SectionStart("Ebony & Ivory");
+		TooltipHelper("(?)", "Requires enabled Actor module.\n"
+			"\n"
+			"Left : Human\n"
+			"Right: Devil");
+		ImGui::Text("");
 
-        if (GUI_Checkbox2("Foursome Time", activeConfig.EbonyIvory.foursomeTime, queuedConfig.EbonyIvory.foursomeTime)) {
-            ToggleEbonyIvoryFoursomeTime(activeConfig.EbonyIvory.foursomeTime);
-        }
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Twosome Time fires 2 additional shots.");
+		ActionData("Stinger Duration", activeConfig.Rebellion.stingerDuration, queuedConfig.Rebellion.stingerDuration,
+			defaultConfig.Rebellion.stingerDuration, 1.0f, "%g");
+		ActionData("Stinger Range", activeConfig.Rebellion.stingerRange, queuedConfig.Rebellion.stingerRange,
+			defaultConfig.Rebellion.stingerRange, 10.0f, "%g");
 
-        if (GUI_Checkbox2("Infinite Rain Storm", activeConfig.EbonyIvory.infiniteRainStorm, queuedConfig.EbonyIvory.infiniteRainStorm)) {
-            ToggleEbonyIvoryInfiniteRainStorm(activeConfig.EbonyIvory.infiniteRainStorm);
-        }
 
-        GUI_SectionEnd();
-        ImGui::Text("");
+		{
+			bool condition = !activeConfig.enableRebellionAirStinger;
 
-        GUI_SectionStart("Artemis");
+			GUI_PushDisable(condition);
 
-        if (GUI_Checkbox2("Swap Normal Shot and Multi Lock", activeConfig.Artemis.swapNormalShotAndMultiLock,
-                queuedConfig.Artemis.swapNormalShotAndMultiLock)) {
-            ToggleArtemisSwapNormalShotAndMultiLock(activeConfig.Artemis.swapNormalShotAndMultiLock);
-        }
+			ActionData("Air Stinger Count", activeConfig.Rebellion.airStingerCount, queuedConfig.Rebellion.airStingerCount,
+				defaultConfig.Rebellion.airStingerCount);
+			ActionData("Air Stinger Duration", activeConfig.Rebellion.airStingerDuration, queuedConfig.Rebellion.airStingerDuration,
+				defaultConfig.Rebellion.airStingerDuration, 1.0f, "%g");
+			ActionData("Air Stinger Range", activeConfig.Rebellion.airStingerRange, queuedConfig.Rebellion.airStingerRange,
+				defaultConfig.Rebellion.airStingerRange, 10.0f, "%g");
 
-        if (GUI_Checkbox2("Instant Full Charge", activeConfig.Artemis.instantFullCharge, queuedConfig.Artemis.instantFullCharge)) {
-            ToggleArtemisInstantFullCharge(activeConfig.Artemis.instantFullCharge);
-        }
+			GUI_PopDisable(condition);
+		}
 
-        ImGui::Text("");
-    }
+
+		GUI_SectionEnd();
+		ImGui::Text("");
+
+
+		GUI_SectionStart("Cerberus");
+
+		GUI_Checkbox2("Enable Air Revolver", activeConfig.enableCerberusAirRevolver, queuedConfig.enableCerberusAirRevolver);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires enabled Actor module.");
+
+		GUI_SectionEnd();
+		ImGui::Text("");
+
+
+		GUI_SectionStart("Nevan");
+
+		GUI_Checkbox2("Enable New Vortex", activeConfig.enableNevanNewVortex, queuedConfig.enableNevanNewVortex);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires enabled Actor module.\n"
+			"\n"
+			"While in devil form press Any Direction + Melee Attack.");
+
+		GUI_SectionEnd();
+		ImGui::Text("");
+
+
+		GUI_SectionStart("Ebony & Ivory");
+
+		if (GUI_Checkbox2("Foursome Time", activeConfig.EbonyIvory.foursomeTime, queuedConfig.EbonyIvory.foursomeTime)) {
+			ToggleEbonyIvoryFoursomeTime(activeConfig.EbonyIvory.foursomeTime);
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Twosome Time fires 2 additional shots.");
+
+		if (GUI_Checkbox2("Infinite Rain Storm", activeConfig.EbonyIvory.infiniteRainStorm, queuedConfig.EbonyIvory.infiniteRainStorm)) {
+			ToggleEbonyIvoryInfiniteRainStorm(activeConfig.EbonyIvory.infiniteRainStorm);
+		}
+
+		GUI_SectionEnd();
+		ImGui::Text("");
+
+		GUI_SectionStart("Artemis");
+
+		if (GUI_Checkbox2("Swap Normal Shot and Multi Lock", activeConfig.Artemis.swapNormalShotAndMultiLock,
+			queuedConfig.Artemis.swapNormalShotAndMultiLock)) {
+			ToggleArtemisSwapNormalShotAndMultiLock(activeConfig.Artemis.swapNormalShotAndMultiLock);
+		}
+
+		if (GUI_Checkbox2("Instant Full Charge", activeConfig.Artemis.instantFullCharge, queuedConfig.Artemis.instantFullCharge)) {
+			ToggleArtemisInstantFullCharge(activeConfig.Artemis.instantFullCharge);
+		}
+
+		ImGui::Text("");
+	}
+}
+
+#pragma endregion
+
+#pragma region Shop
+
+namespace Shop {
+
+const char* tabNames[] = {
+	"Dante",
+	"Vergil",
+	"Items",
+};
+
+struct ShopExperienceHelper {
+	const char* name;
+	uint32 price;
+	int64 last;
+	int64 next;
+};
+
+ShopExperienceHelper shopHelpersDante[] = {
+	{"Rebellion Stinger Level 1", 2500, -1, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_2},
+	{"Rebellion Stinger Level 2", 10000, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1, -1},
+	{"Rebellion Drive", 10000, -1, -1},
+	{"Rebellion Air Hike", 20000, -1, -1},
+	{"Cerberus Revolver Level 2", 15000, -1, -1},
+	{"Cerberus Windmill", 7500, -1, -1},
+	{"Agni & Rudra Jet-Stream Level 2", 10000, -1, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_3},
+	{"Agni & Rudra Jet-Stream Level 3", 15000, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_2, -1},
+	{"Agni & Rudra Whirlwind", 7500, -1, -1},
+	{"Agni & Rudra Air Hike", 20000, -1, -1},
+	{"Nevan Reverb Shock Level 1", 7500, -1, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_2},
+	{"Nevan Reverb Shock Level 2", 15000, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_1, -1},
+	{"Nevan Bat Rift Level 2", 10000, -1, -1},
+	{"Nevan Air Raid", 20000, -1, -1},
+	{"Nevan Volume Up", 20000, -1, -1},
+	{"Beowulf Straight Level 2", 10000, -1, -1},
+	{"Beowulf Beast Uppercut", 7500, -1, UNLOCK_DANTE::BEOWULF_RISING_DRAGON},
+	{"Beowulf Rising Dragon", 15000, UNLOCK_DANTE::BEOWULF_BEAST_UPPERCUT, -1},
+	{"Beowulf Air Hike", 20000, -1, -1},
+	{"Ebony & Ivory Level 2", 5000, -1, UNLOCK_DANTE::EBONY_IVORY_LEVEL_3},
+	{"Ebony & Ivory Level 3", 10000, UNLOCK_DANTE::EBONY_IVORY_LEVEL_2, -1},
+	{"Shotgun Level 2", 10000, -1, UNLOCK_DANTE::SHOTGUN_LEVEL_3},
+	{"Shotgun Level 3", 20000, UNLOCK_DANTE::SHOTGUN_LEVEL_2, -1},
+	{"Artemis Level 2", 10000, -1, UNLOCK_DANTE::ARTEMIS_LEVEL_3},
+	{"Artemis Level 3", 20000, UNLOCK_DANTE::ARTEMIS_LEVEL_2, -1},
+	{"Spiral Level 2", 7500, -1, UNLOCK_DANTE::SPIRAL_LEVEL_3},
+	{"Spiral Level 3", 15000, UNLOCK_DANTE::SPIRAL_LEVEL_2, -1},
+	{"Kalina Ann Level 2", 5000, -1, UNLOCK_DANTE::KALINA_ANN_LEVEL_3},
+	{"Kalina Ann Level 3", 10000, UNLOCK_DANTE::KALINA_ANN_LEVEL_2, -1},
+};
+
+ShopExperienceHelper shopHelpersVergil[] = {
+	{"Yamato Rapid Slash Level 1", 5000, -1, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2},
+	{"Yamato Rapid Slash Level 2", 15000, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_1, -1},
+	{"Yamato Judgement Cut Level 1", 10000, -1, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2},
+	{"Yamato Judgement Cut Level 2", 20000, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_1, -1},
+	{"Beowulf Starfall Level 2", 7500, -1, -1},
+	{"Beowulf Rising Sun", 5000, -1, -1},
+	{"Beowulf Lunar Phase Level 2", 15000, -1, -1},
+	{"Yamato & Force Edge Helm Breaker Level 2", 13000, -1, -1},
+	{"Yamato & Force Edge Stinger Level 1", 5000, -1, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_2},
+	{"Yamato & Force Edge Stinger Level 2", 10000, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1, -1},
+	{"Yamato & Force Edge Round Trip", 10000, -1, -1},
+	{"Summoned Swords Level 2", 7500, -1, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3},
+	{"Summoned Swords Level 3", 15000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, -1},
+	{"Spiral Swords", 20000, -1, -1},
+};
+
+
+struct ShopItemHelper {
+	const uint8 itemIndex;
+	const uint8 buyIndex;
+	const uint8 maxItemCount;
+	const uint32* prices;
+	const uint8 priceCount;
+};
+
+
+constexpr ShopItemHelper itemHelpers[] = {
+	{ITEM::VITAL_STAR_SMALL, BUY::VITAL_STAR_SMALL, 30, itemVitalStarSmallPrices, static_cast<uint8>(countof(itemVitalStarSmallPrices))},
+	{ITEM::VITAL_STAR_LARGE, BUY::VITAL_STAR_LARGE, 30, itemVitalStarLargePrices, static_cast<uint8>(countof(itemVitalStarLargePrices))},
+	{ITEM::DEVIL_STAR, BUY::DEVIL_STAR, 10, itemDevilStarPrices, static_cast<uint8>(countof(itemDevilStarPrices))},
+	{ITEM::HOLY_WATER, BUY::HOLY_WATER, 30, itemHolyWaterPrices, static_cast<uint8>(countof(itemHolyWaterPrices))},
+	{ITEM::BLUE_ORB, BUY::BLUE_ORB, 6, itemBlueOrbPrices, static_cast<uint8>(countof(itemBlueOrbPrices))},
+	{ITEM::PURPLE_ORB, BUY::PURPLE_ORB, 7, itemPurpleOrbPrices, static_cast<uint8>(countof(itemPurpleOrbPrices))},
+	{ITEM::GOLD_ORB, BUY::GOLD_ORB, 3, itemGoldOrbPrices, static_cast<uint8>(countof(itemGoldOrbPrices))},
+	{ITEM::YELLOW_ORB, BUY::YELLOW_ORB, 99, itemYellowOrbPrices, static_cast<uint8>(countof(itemYellowOrbPrices))},
+};
+
+
+namespace ITEM_HELPER {
+enum {
+	BLUE_ORB = 4,
+	PURPLE_ORB,
+};
+};
+
+// Function Declarations
+void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount, MissionData& missionData);
+void ShowItemTab(MissionData& missionData, QueuedMissionActorData& queuedMissionActorData, ActiveMissionActorData& activeMissionActorData, bool unlockDevilTrigger);
+void HandleItemPurchase(uint8 itemHelperIndex, MissionData& missionData, ActiveMissionActorData& activeMissionActorData, uint32 price);
+void HandleItemSale(uint8 itemHelperIndex, MissionData& missionData, ActiveMissionActorData& activeMissionActorData);
+uint32 GetItemPrice(const ShopItemHelper& itemHelper, uint8 buyCount);
+
+void ShopWindow() {
+	if (!g_showShop) {
+		return;
+	}
+
+	auto missionDataPtr = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!missionDataPtr) {
+		return;
+	}
+	auto& missionData = *reinterpret_cast<MissionData*>(missionDataPtr);
+	auto& queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData*>(missionDataPtr + 0xC0);
+	auto& activeMissionActorData = *reinterpret_cast<ActiveMissionActorData*>(missionDataPtr + 0x16C);
+
+	bool unlockDevilTrigger = (activeMissionActorData.maxMagicPoints >= 3000);
+
+	static bool run = false;
+	if (!run) {
+		// TODO: Play Divine Statue Track - Mia
+		//PlayTrack("afs/sound/Jikushinzou.ogg");
+		run = true;
+		constexpr float width = 800; // 900
+		constexpr float height = 900; // 500
+
+		ImGui::SetNextWindowSize(ImVec2(width, height));
+		ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
+	}
+
+
+	if (ImGui::Begin("ShopWindow", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
+		if (GUI_Button("Close")) {
+			CloseShop();
+		}
+		ImGui::Text("");
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 2.0f]);
+		constexpr auto BULLET = u8"•";
+		ImGui::Text((const char*)BULLET);
+		ImGui::PopStyleColor();
+		ImGui::SameLine();
+		ImGui::Text("%u", missionData.redOrbs);
+		ImGui::PopFont();
+		ImGui::Text("");
+
+		if (ImGui::BeginTabBar("ShopTabs")) {
+			for (uint8 tabIndex = 0; tabIndex < TAB::COUNT; ++tabIndex) {
+				if (ImGui::BeginTabItem(tabNames[tabIndex])) {
+					ImGui::Text("");
+
+					switch (tabIndex) {
+					case TAB::DANTE:
+						ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDante, sizeof(shopHelpersDante) / sizeof(ShopExperienceHelper), missionData);
+						break;
+
+					case TAB::VERGIL:
+						ShowExperienceTab(ExpConfig::missionExpDataVergil, shopHelpersVergil, sizeof(shopHelpersVergil) / sizeof(ShopExperienceHelper), missionData);
+						break;
+
+					case TAB::ITEMS:
+						ShowItemTab(missionData, queuedMissionActorData, activeMissionActorData, unlockDevilTrigger);
+						break;
+					}
+
+					ImGui::EndTabItem();
+				}
+			}
+			ImGui::EndTabBar();
+		}
+
+		ImGui::End();
+	}
+}
+
+
+void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount, MissionData& missionData) {
+	for (size_t helperIndex = 0; helperIndex < helperCount; ++helperIndex) {
+		auto& helper = helpers[helperIndex];
+
+		auto Buy = [&]() {
+			if (missionData.redOrbs < helper.price) {
+				PlaySound(0, 19);
+				return;
+			}
+
+			missionData.redOrbs -= helper.price;
+			PlaySound(0, 18);
+			expData.unlocks[helperIndex] = true;
+			ExpConfig::UpdatePlayerActorExps();
+			};
+
+		auto Sell = [&]() {
+			missionData.redOrbs += helper.price;
+			PlaySound(0, 18);
+			expData.unlocks[helperIndex] = false;
+			ExpConfig::UpdatePlayerActorExps();
+			};
+
+		bool condition = (expData.unlocks[helperIndex] || ((helper.last > -1) && !expData.unlocks[helper.last]));
+		GUI_PushDisable(condition);
+
+		// Begin a new row
+		ImGui::BeginGroup();
+
+		if (GUI_Button(helper.name, ImVec2(500.0f, 80.0f))) {
+			Buy();
+		}
+
+		GUI_PopDisable(condition);
+
+		// Display price and bullet point in a new column
+		ImGui::SameLine(120); 
+
+		bool priceCondition = (missionData.redOrbs < helper.price);
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
+		constexpr auto BULLET = u8"•";
+		ImGui::Text((const char*)BULLET);
+		ImGui::PopFont();
+		ImGui::PopStyleColor();
+
+		GUI_PushDisable(priceCondition);
+		ImGui::SameLine();
+		ImGui::Text("%u", helper.price);
+		GUI_PopDisable(priceCondition);
+
+		// Display the sell button in a new column
+
+		if (expData.unlocks[helperIndex]) {
+			ImGui::SameLine(550);
+			condition = ((helper.next > -1) && expData.unlocks[helper.next]);
+			GUI_PushDisable(condition);
+
+			if (GUI_Button("Sell")) {
+				Sell();
+			}
+			GUI_PopDisable(condition);
+		}
+
+		ImGui::EndGroup(); // End the group for the current row
+		ImGui::Spacing(); // Add spacing between rows
+	}
+}
+
+
+void ShowItemTab(MissionData& missionData, QueuedMissionActorData& queuedMissionActorData, ActiveMissionActorData& activeMissionActorData, bool unlockDevilTrigger) {
+	for (int itemHelperIndex = 0; itemHelperIndex < sizeof(itemHelpers) / sizeof(ShopItemHelper); ++itemHelperIndex) {
+		auto& itemHelper = itemHelpers[itemHelperIndex];
+
+		uint8& itemCount = missionData.itemCounts[itemHelper.itemIndex];
+		uint8& buyCount = missionData.buyCounts[itemHelper.buyIndex];
+
+		if (itemHelper.itemIndex == ITEM::PURPLE_ORB && !unlockDevilTrigger) {
+			continue;
+		}
+
+		uint32 price = GetItemPrice(itemHelper, buyCount);
+
+		if (GUI_Button(itemNames[itemHelper.itemIndex], ImVec2(500.0f, 80.0f))) {
+			HandleItemPurchase(itemHelperIndex, missionData, activeMissionActorData, price);
+		}
+		ImGui::SameLine(120);
+
+		bool priceCondition = (missionData.redOrbs < price);
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
+		constexpr auto BULLET = u8"•";
+		ImGui::Text((const char*)BULLET);
+		ImGui::PopFont();
+		ImGui::PopStyleColor();
+
+		GUI_PushDisable(priceCondition);
+		ImGui::SameLine();
+		ImGui::Text("%u", price);
+		GUI_PopDisable(priceCondition);
+
+		ImGui::SameLine(300);
+
+		bool quantityCondition = (itemCount >= itemHelper.maxItemCount);
+		GUI_PushDisable(quantityCondition);
+		ImGui::Text("x%02u / %02u", itemCount, itemHelper.maxItemCount);
+		GUI_PopDisable(quantityCondition);
+
+
+		if (!(itemHelper.itemIndex == ITEM::BLUE_ORB || itemHelper.itemIndex == ITEM::PURPLE_ORB) && itemCount != 0) {
+			ImGui::SameLine(550);
+			if (GUI_Button("Sell")) {
+				HandleItemSale(itemHelperIndex, missionData, activeMissionActorData);
+			}
+		}
+	}
+}
+
+void UpdateStatsAfterPurchase(const ShopItemHelper& itemHelper, ActiveMissionActorData& activeMissionActorData) {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	if (itemHelper.itemIndex == ITEM::BLUE_ORB) {
+		float value = (activeMissionActorData.maxHitPoints + 1000);
+
+		[&]() {
+			if (!g_defaultNewActorData[0].baseAddr) {
+				return;
+			}
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(g_defaultNewActorData[0].baseAddr);
+			value = (actorData.maxHitPoints + 1000);
+			actorData.hitPoints = actorData.maxHitPoints = value;
+		}();
+
+		activeMissionActorData.hitPoints = activeMissionActorData.maxHitPoints = sessionData.hitPoints = value;
+
+		for (uint8 playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {
+			for (uint8 characterIndex = 0; characterIndex < CHARACTER_COUNT; ++characterIndex) {
+				for (uint8 entityIndex = 0; entityIndex < ENTITY_COUNT; ++entityIndex) {
+					auto& newActorData = GetNewActorData(playerIndex, characterIndex, entityIndex);
+
+					if (!newActorData.baseAddr) {
+						continue;
+					}
+					auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+
+					actorData.hitPoints = actorData.maxHitPoints = value;
+				}
+			}
+		}
+	}
+	else if (itemHelper.itemIndex == ITEM::PURPLE_ORB) {
+		float value = (activeMissionActorData.maxMagicPoints + 500);
+
+		[&]() {
+			if (!g_defaultNewActorData[0].baseAddr) {
+				return;
+			}
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(g_defaultNewActorData[0].baseAddr);
+			value = (actorData.maxMagicPoints + 500);
+			actorData.magicPoints = actorData.maxMagicPoints = value;
+		}();
+
+		activeMissionActorData.magicPoints = activeMissionActorData.maxMagicPoints = sessionData.magicPoints = value;
+
+		for (uint8 playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {
+			for (uint8 characterIndex = 0; characterIndex < CHARACTER_COUNT; ++characterIndex) {
+				for (uint8 entityIndex = 0; entityIndex < ENTITY_COUNT; ++entityIndex) {
+					auto& newActorData = GetNewActorData(playerIndex, characterIndex, entityIndex);
+
+					if (!newActorData.baseAddr) {
+						continue;
+					}
+					auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+
+					activeMissionActorData.magicPoints = activeMissionActorData.maxMagicPoints = value;
+				}
+			}
+		}
+	}
+}
+
+void HandleItemPurchase(uint8 itemHelperIndex, MissionData& missionData, ActiveMissionActorData& activeMissionActorData, uint32 price) {
+	auto& itemHelper = itemHelpers[itemHelperIndex];
+
+	uint8& itemCount = missionData.itemCounts[itemHelper.itemIndex];
+	uint8& buyCount = missionData.buyCounts[itemHelper.buyIndex];
+
+	if ((itemCount >= itemHelper.maxItemCount) || (missionData.redOrbs < price)) {
+		PlaySound(0, 19);
+		return;
+	}
+
+	itemCount++;
+	buyCount++;
+
+	if (buyCount > 254) {
+		buyCount = 254;
+	}
+
+	missionData.redOrbs -= price;
+	PlaySound(0, 18);
+
+	UpdateStatsAfterPurchase(itemHelper, activeMissionActorData);
+}
+
+void HandleItemSale(uint8 itemHelperIndex, MissionData& missionData, ActiveMissionActorData& activeMissionActorData) {
+	auto& itemHelper = itemHelpers[itemHelperIndex];
+
+	uint8& itemCount = missionData.itemCounts[itemHelper.itemIndex];
+	uint8& buyCount = missionData.buyCounts[itemHelper.buyIndex];
+	uint32 price = 0;
+
+	itemCount--;
+	if (buyCount > 0) {
+		buyCount--;
+	}
+
+	price = GetItemPrice(itemHelper, 0);
+
+	missionData.redOrbs += price;
+	PlaySound(0, 18);
+}
+
+uint32 GetItemPrice(const ShopItemHelper& itemHelper, uint8 buyCount) {
+	if (buyCount >= itemHelper.priceCount) {
+		return itemHelper.prices[itemHelper.priceCount - 1];
+	}
+	return itemHelper.prices[buyCount];
+}
+
+void CloseShop() {
+	g_showShop = false;
+	if (g_scene == SCENE::GAME) {
+		PlayTrack("");
+	}
+}
 }
 
 #pragma endregion
 
 #pragma region Debug
 
-// @Order
-
-bool showFileDataWindow    = false;
-bool showRegionDataWindow  = false;
-bool showSoundWindow       = false;
+bool showExpWindow = false;
 bool showMissionDataWindow = false;
-bool showActorWindow       = false;
-bool showExpWindow         = false;
-bool showEventDataWindow   = false;
-
-const char* tabNames[] = {
-    "Items",
-    "Dante",
-    "Vergil",
-};
-
-// @Research: Shop namespace
-
-
-// @Rename: ShopExperienceHelper
-
-struct ShopHelper {
-    const char* name;
-    uint32 price;
-    int64 last;
-    int64 next;
-};
-
-ShopHelper shopHelpersDante[] = {
-    {"Rebellion Stinger Level 1", 2500, -1, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_2},
-    {"Rebellion Stinger Level 2", 10000, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1, -1},
-    {"Rebellion Drive", 10000, -1, -1},
-    {"Rebellion Air Hike", 20000, -1, -1},
-    {"Cerberus Revolver Level 2", 15000, -1, -1},
-    {"Cerberus Windmill", 7500, -1, -1},
-    {"Agni & Rudra Jet-Stream Level 2", 10000, -1, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_3},
-    {"Agni & Rudra Jet-Stream Level 3", 15000, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_2, -1},
-    {"Agni & Rudra Whirlwind", 7500, -1, -1},
-    {"Agni & Rudra Air Hike", 20000, -1, -1},
-    {"Nevan Reverb Shock Level 1", 7500, -1, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_2},
-    {"Nevan Reverb Shock Level 2", 15000, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_1, -1},
-    {"Nevan Bat Rift Level 2", 10000, -1, -1},
-    {"Nevan Air Raid", 20000, -1, -1},
-    {"Nevan Volume Up", 20000, -1, -1},
-    {"Beowulf Straight Level 2", 10000, -1, -1},
-    {"Beowulf Beast Uppercut", 7500, -1, UNLOCK_DANTE::BEOWULF_RISING_DRAGON},
-    {"Beowulf Rising Dragon", 15000, UNLOCK_DANTE::BEOWULF_BEAST_UPPERCUT, -1},
-    {"Beowulf Air Hike", 20000, -1, -1},
-    {"Ebony & Ivory Level 2", 5000, -1, UNLOCK_DANTE::EBONY_IVORY_LEVEL_3},
-    {"Ebony & Ivory Level 3", 10000, UNLOCK_DANTE::EBONY_IVORY_LEVEL_2, -1},
-    {"Shotgun Level 2", 10000, -1, UNLOCK_DANTE::SHOTGUN_LEVEL_3},
-    {"Shotgun Level 3", 20000, UNLOCK_DANTE::SHOTGUN_LEVEL_2, -1},
-    {"Artemis Level 2", 10000, -1, UNLOCK_DANTE::ARTEMIS_LEVEL_3},
-    {"Artemis Level 3", 20000, UNLOCK_DANTE::ARTEMIS_LEVEL_2, -1},
-    {"Spiral Level 2", 7500, -1, UNLOCK_DANTE::SPIRAL_LEVEL_3},
-    {"Spiral Level 3", 15000, UNLOCK_DANTE::SPIRAL_LEVEL_2, -1},
-    {"Kalina Ann Level 2", 5000, -1, UNLOCK_DANTE::KALINA_ANN_LEVEL_3},
-    {"Kalina Ann Level 3", 10000, UNLOCK_DANTE::KALINA_ANN_LEVEL_2, -1},
-};
-
-ShopHelper shopHelpersVergil[] = {
-    {"Yamato Rapid Slash Level 1", 5000, -1, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2},
-    {"Yamato Rapid Slash Level 2", 15000, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_1, -1},
-    {"Yamato Judgement Cut Level 1", 10000, -1, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2},
-    {"Yamato Judgement Cut Level 2", 20000, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_1, -1},
-    {"Beowulf Starfall Level 2", 7500, -1, -1},
-    {"Beowulf Rising Sun", 5000, -1, -1},
-    {"Beowulf Lunar Phase Level 2", 15000, -1, -1},
-    {"Yamato & Force Edge Helm Breaker Level 2", 13000, -1, -1},
-    {"Yamato & Force Edge Stinger Level 1", 5000, -1, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_2},
-    {"Yamato & Force Edge Stinger Level 2", 10000, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1, -1},
-    {"Yamato & Force Edge Round Trip", 10000, -1, -1},
-    {"Summoned Swords Level 2", 7500, -1, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3},
-    {"Summoned Swords Level 3", 15000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, -1},
-    {"Spiral Swords", 20000, -1, -1},
-};
-
-
-// @Rename: ShopItemHelper.
-struct ItemHelper {
-    const uint8 itemIndex;
-    const uint8 buyIndex;
-    const uint8 itemCount;
-    const uint32* prices;
-    const uint8 priceCount;
-};
-
-// @Research: Moving to Vars causes internal compiler error in MSVC.
-constexpr ItemHelper itemHelpers[] = {
-    {ITEM::VITAL_STAR_SMALL, BUY::VITAL_STAR_SMALL, 30, itemVitalStarSmallPrices, static_cast<uint8>(countof(itemVitalStarSmallPrices))},
-    {ITEM::VITAL_STAR_LARGE, BUY::VITAL_STAR_LARGE, 30, itemVitalStarLargePrices, static_cast<uint8>(countof(itemVitalStarLargePrices))},
-    {ITEM::DEVIL_STAR, BUY::DEVIL_STAR, 10, itemDevilStarPrices, static_cast<uint8>(countof(itemDevilStarPrices))},
-    {ITEM::HOLY_WATER, BUY::HOLY_WATER, 30, itemHolyWaterPrices, static_cast<uint8>(countof(itemHolyWaterPrices))},
-    {ITEM::BLUE_ORB, BUY::BLUE_ORB, 6, itemBlueOrbPrices, static_cast<uint8>(countof(itemBlueOrbPrices))},
-    {ITEM::PURPLE_ORB, BUY::PURPLE_ORB, 7, itemPurpleOrbPrices, static_cast<uint8>(countof(itemPurpleOrbPrices))},
-    {ITEM::GOLD_ORB, BUY::GOLD_ORB, 3, itemGoldOrbPrices, static_cast<uint8>(countof(itemGoldOrbPrices))},
-    {ITEM::YELLOW_ORB, BUY::YELLOW_ORB, 99, itemYellowOrbPrices, static_cast<uint8>(countof(itemYellowOrbPrices))},
-};
-
-
-namespace ITEM_HELPER {
-enum {
-    BLUE_ORB = 4,
-    PURPLE_ORB,
-};
-};
-
-
-void ShopWindow() {
-
-
-    if (!g_showShop) {
-        return;
-    }
-
-
-    auto name_5681 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
-    if (!name_5681) {
-        return;
-    }
-    auto& missionData = *reinterpret_cast<MissionData*>(name_5681);
-
-    auto name_5688 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
-    if (!name_5688) {
-        return;
-    }
-    auto& queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData*>(name_5688 + 0xC0);
-    auto& activeMissionActorData = *reinterpret_cast<ActiveMissionActorData*>(name_5688 + 0x16C);
-
-
-    bool unlockDevilTrigger = (activeMissionActorData.maxMagicPoints >= 3000);
-
-
-    static bool run = false;
-    if (!run) {
-        run = true;
-
-
-        constexpr float width  = 700; // 900
-        constexpr float height = 700; // 500
-
-
-        ImGui::SetNextWindowSize(ImVec2(width, height));
-        ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
-    }
-
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
-
-
-    if (ImGui::Begin("ShopWindow", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
-
-
-        if (GUI_Button("Close")) {
-            CloseShop();
-        }
-        ImGui::Text("");
-
-
-        ImGui::Text("%u Red Orbs", missionData.redOrbs);
-        ImGui::Text("");
-
-
-        if (ImGui::BeginTabBar("ShopTabs")) {
-
-
-            for_all(tabIndex, TAB::COUNT) {
-                if (ImGui::BeginTabItem(tabNames[tabIndex])) {
-
-
-                    ImGui::Text("");
-
-
-                    auto Function = [&](
-
-
-                                        ExpConfig::ExpData& expData,
-
-                                        ShopHelper* helpers, new_size_t helperCount) {
-                        for_all(helperIndex, helperCount) {
-                            auto& helper = helpers[helperIndex];
-
-
-                            auto Buy = [&]() {
-                                if (missionData.redOrbs < helper.price) {
-                                    PlaySound(0, 19);
-
-                                    return;
-                                }
-
-                                missionData.redOrbs -= helper.price;
-
-                                PlaySound(0, 18);
-
-                                expData.unlocks[helperIndex] = true;
-
-                                ExpConfig::UpdatePlayerActorExps();
-                            };
-
-                            auto Sell = [&]() {
-                                missionData.redOrbs += helper.price;
-
-                                PlaySound(0, 18);
-
-                                expData.unlocks[helperIndex] = false;
-
-                                ExpConfig::UpdatePlayerActorExps();
-                            };
-
-
-                            {
-                                // Already unlocked or previous action required and not unlocked yet.
-                                bool condition = (expData.unlocks[helperIndex] || ((helper.last > -1) && !expData.unlocks[helper.last]));
-
-                                GUI_PushDisable(condition);
-
-                                ImGui::Text(helper.name);
-                                ImGui::SameLine(300);
-
-                                ImGui::Text("%u", helper.price);
-
-                                GUI_PopDisable(condition);
-                            }
-
-
-                            ImGui::SameLine(400);
-
-
-                            if (!expData.unlocks[helperIndex]) {
-                                // Previous action required and not unlocked yet.
-                                bool condition = ((helper.last > -1) && !expData.unlocks[helper.last]);
-
-                                GUI_PushDisable(condition);
-
-                                if (GUI_Button("Buy")) {
-                                    Buy();
-                                }
-
-                                GUI_PopDisable(condition);
-                            } else {
-                                // Next action available and still unlocked.
-                                bool condition = ((helper.next > -1) && expData.unlocks[helper.next]);
-
-                                GUI_PushDisable(condition);
-
-                                if (GUI_Button("Sell")) {
-                                    Sell();
-                                }
-
-                                GUI_PopDisable(condition);
-                            }
-                        }
-                    };
-
-
-                    // auto saveIndex = g_saveIndex;
-                    // if (saveIndex >= SAVE_COUNT)
-                    // {
-                    // 	saveIndex = 0;
-                    // }
-
-
-                    if (tabIndex == TAB::ITEMS) {
-
-
-                        if constexpr (debug) {
-                            ImGui::Text("unlockDevilTrigger %u", unlockDevilTrigger);
-                            ImGui::Text("");
-                        }
-
-
-                        auto GetItemCount = [&](const ItemHelper& itemHelper) -> uint8& {
-                            return missionData.itemCounts[itemHelper.itemIndex];
-                        };
-
-                        auto GetBuyCount = [&](const ItemHelper& itemHelper) -> uint8& {
-                            return missionData.buyCounts[itemHelper.buyIndex];
-                        };
-
-                        auto GetPrice = [&](const ItemHelper& itemHelper) {
-                            uint32 price = 0;
-
-                            auto& buyCount = GetBuyCount(itemHelper);
-
-                            if (buyCount >= itemHelper.priceCount) {
-                                price = itemHelper.prices[(itemHelper.priceCount - 1)];
-                            } else {
-                                price = itemHelper.prices[buyCount];
-                            }
-
-                            return price;
-                        };
-
-                        auto BuyItem = [&](uint8 itemHelperIndex) {
-                            auto& itemHelper = itemHelpers[itemHelperIndex];
-
-                            auto& itemCount = GetItemCount(itemHelper);
-                            auto& buyCount  = GetBuyCount(itemHelper);
-                            auto price      = GetPrice(itemHelper);
-
-                            if ((itemCount >= itemHelper.itemCount) || (missionData.redOrbs < price)) {
-                                PlaySound(0, 19);
-
-                                return;
-                            }
-
-                            itemCount++;
-                            buyCount++;
-
-                            if (buyCount > 254) {
-                                buyCount = 254;
-                            }
-
-                            missionData.redOrbs -= price;
-
-                            PlaySound(0, 18);
-
-
-                            if (itemHelper.itemIndex == ITEM::BLUE_ORB) {
-                                float value = (activeMissionActorData.maxHitPoints + 1000);
-
-                                [&]() {
-                                    if (!g_defaultNewActorData[0].baseAddr) {
-                                        return;
-                                    }
-                                    auto& actorData = *reinterpret_cast<PlayerActorData*>(g_defaultNewActorData[0].baseAddr);
-
-                                    value = (actorData.maxHitPoints + 1000);
-
-                                    actorData.hitPoints = actorData.maxHitPoints = value;
-                                }();
-
-                                activeMissionActorData.hitPoints = activeMissionActorData.maxHitPoints = value;
-
-
-                                old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-                                    old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
-                                        old_for_all(uint8, entityIndex, ENTITY_COUNT) {
-                                            auto& playerData = GetPlayerData(playerIndex);
-
-                                            auto& characterData = GetCharacterData(playerIndex, characterIndex, entityIndex);
-                                            auto& newActorData  = GetNewActorData(playerIndex, characterIndex, entityIndex);
-
-                                            auto& activeCharacterData =
-                                                GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-                                            auto& activeNewActorData =
-                                                GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-
-                                            auto& leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
-                                            auto& leadNewActorData  = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
-
-                                            auto& mainCharacterData = GetCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
-                                            auto& mainNewActorData  = GetNewActorData(playerIndex, characterIndex, ENTITY::MAIN);
-
-
-                                            if (!newActorData.baseAddr) {
-                                                continue;
-                                            }
-                                            auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-
-                                            actorData.hitPoints = actorData.maxHitPoints = value;
-                                        }
-                                    }
-                                }
-                            } else if (itemHelper.itemIndex == ITEM::PURPLE_ORB) {
-                                float value = (activeMissionActorData.maxMagicPoints + 1000);
-
-                                [&]() {
-                                    if (!g_defaultNewActorData[0].baseAddr) {
-                                        return;
-                                    }
-                                    auto& actorData = *reinterpret_cast<PlayerActorData*>(g_defaultNewActorData[0].baseAddr);
-
-                                    value = (actorData.maxMagicPoints + 1000);
-
-                                    actorData.magicPoints = actorData.maxMagicPoints = value;
-                                }();
-
-                                activeMissionActorData.magicPoints = activeMissionActorData.maxMagicPoints = value;
-
-
-                                old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-                                    old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
-                                        old_for_all(uint8, entityIndex, ENTITY_COUNT) {
-                                            auto& playerData = GetPlayerData(playerIndex);
-
-                                            auto& characterData = GetCharacterData(playerIndex, characterIndex, entityIndex);
-                                            auto& newActorData  = GetNewActorData(playerIndex, characterIndex, entityIndex);
-
-                                            auto& activeCharacterData =
-                                                GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-                                            auto& activeNewActorData =
-                                                GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-
-                                            auto& leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
-                                            auto& leadNewActorData  = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
-
-                                            auto& mainCharacterData = GetCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
-                                            auto& mainNewActorData  = GetNewActorData(playerIndex, characterIndex, ENTITY::MAIN);
-
-
-                                            if (!newActorData.baseAddr) {
-                                                continue;
-                                            }
-                                            auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-
-                                            actorData.magicPoints = actorData.maxMagicPoints = value;
-                                        }
-                                    }
-                                }
-                            }
-                        };
-
-
-                        auto SellItem = [&](uint8 itemHelperIndex) {
-                            auto& itemHelper = itemHelpers[itemHelperIndex];
-
-                            auto& itemCount = GetItemCount(itemHelper);
-                            auto& buyCount  = GetBuyCount(itemHelper);
-                            uint32 price    = 0;
-
-
-                            itemCount--;
-
-
-                            if (buyCount > 0) {
-                                buyCount--;
-                            }
-
-
-                            price = GetPrice(itemHelper);
-
-
-                            missionData.redOrbs += price;
-
-                            PlaySound(0, 18);
-                        };
-
-
-                        // Content
-
-
-                        old_for_all(uint8, itemHelperIndex, countof(itemHelpers)) {
-                            auto& itemHelper = itemHelpers[itemHelperIndex];
-
-                            auto& itemCount = GetItemCount(itemHelper);
-                            auto& buyCount  = GetBuyCount(itemHelper);
-                            auto price      = GetPrice(itemHelper);
-
-
-                            bool mainCondition = ((itemHelperIndex == ITEM_HELPER::PURPLE_ORB) && !unlockDevilTrigger);
-
-                            GUI_PushDisable(mainCondition);
-
-
-                            ImGui::Text("%s", itemNames[itemHelper.itemIndex]);
-                            ImGui::SameLine(200);
-
-
-                            ImGui::Text("%.2u / %.2u", itemCount, itemHelper.itemCount);
-                            ImGui::SameLine(300);
-
-
-                            ImGui::Text("%u", price);
-                            ImGui::SameLine(400);
-
-
-#define conditionExpr itemCount >= itemHelper.itemCount
-
-                            bool condition = (conditionExpr);
-
-                            GUI_PushDisable(condition);
-
-                            if (GUI_Button("Buy")) {
-                                BuyItem(itemHelperIndex);
-
-                                if (conditionExpr) {
-                                    ResetNavId();
-                                }
-                            }
-
-                            GUI_PopDisable(condition);
-
-#undef conditionExpr
-
-
-                            [&]() {
-                                if ((itemHelperIndex == ITEM_HELPER::BLUE_ORB) || (itemHelperIndex == ITEM_HELPER::PURPLE_ORB)) {
-                                    return;
-                                }
-
-
-                                ImGui::SameLine();
-
-
-#define conditionExpr itemCount < 1
-
-                                bool condition = (conditionExpr);
-
-                                GUI_PushDisable(condition);
-
-                                if (GUI_Button("Sell")) {
-                                    SellItem(itemHelperIndex);
-
-                                    if (conditionExpr) {
-                                        ResetNavId();
-                                    }
-                                }
-
-                                GUI_PopDisable(condition);
-
-#undef conditionExpr
-                            }();
-
-
-                            if constexpr (debug) {
-                                ImGui::SameLine(500);
-                                ImGui::Text("buyCount %u", buyCount);
-                            }
-
-
-                            GUI_PopDisable(mainCondition);
-                        }
-                        ImGui::Text("");
-
-
-                    } else if (tabIndex == TAB::DANTE) {
-
-
-                        Function(ExpConfig::missionExpDataDante, shopHelpersDante, countof(shopHelpersDante));
-
-
-                    } else if (tabIndex == TAB::VERGIL) {
-
-                        Function(ExpConfig::missionExpDataVergil, shopHelpersVergil, countof(shopHelpersVergil));
-                    }
-
-
-                    ImGui::EndTabItem();
-                }
-            }
-
-            ImGui::EndTabBar();
-        }
-
-
-        GamepadClose(visibleShop, lastVisibleShop, CloseShop);
-
-
-        ImGui::Text("");
-    }
-
-    ImGui::End();
-
-
-    ImGui::PopStyleVar(1);
-}
+bool showFileDataWindow = false;
+bool showActorWindow = false;
+bool showEventDataWindow = false;
+bool showRegionDataWindow = false;
+bool showSoundWindow = false;
 
 
 void ExpWindow() {
@@ -5338,7 +5215,7 @@ void ExpWindow() {
         ImGui::Text("");
 
 
-        auto FunctionOnce = [&](ExpConfig::ExpData& expData, const char* name, ShopHelper* shopHelpers, new_size_t count) {
+        auto FunctionOnce = [&](ExpConfig::ExpData& expData, const char* name, Shop::ShopExperienceHelper* shopHelpers, new_size_t count) {
             if (!ImGui::CollapsingHeader(name)) {
                 return;
             }
@@ -5372,7 +5249,7 @@ void ExpWindow() {
         };
 
 
-        auto FunctionLoop = [&](ExpConfig::ExpData* expDataAddr, const char** saveNames, ShopHelper* shopHelpers, new_size_t count) {
+        auto FunctionLoop = [&](ExpConfig::ExpData* expDataAddr, const char** saveNames, Shop::ShopExperienceHelper* shopHelpers, new_size_t count) {
             for_all(saveIndex, SAVE_COUNT) {
                 auto& expData = expDataAddr[saveIndex];
 
@@ -5381,15 +5258,15 @@ void ExpWindow() {
         };
 
 
-        FunctionOnce(ExpConfig::missionExpDataDante, "Dante Mission", shopHelpersDante, countof(shopHelpersDante));
-        FunctionOnce(ExpConfig::sessionExpDataDante, "Dante Session", shopHelpersDante, countof(shopHelpersDante));
-        FunctionLoop(ExpConfig::savedExpDataDante, saveNamesDante, shopHelpersDante, countof(shopHelpersDante));
+        FunctionOnce(ExpConfig::missionExpDataDante, "Dante Mission", Shop::shopHelpersDante, countof(Shop::shopHelpersDante));
+        FunctionOnce(ExpConfig::sessionExpDataDante, "Dante Session", Shop::shopHelpersDante, countof(Shop::shopHelpersDante));
+        FunctionLoop(ExpConfig::savedExpDataDante, saveNamesDante, Shop::shopHelpersDante, countof(Shop::shopHelpersDante));
         ImGui::Text("");
 
 
-        FunctionOnce(ExpConfig::missionExpDataVergil, "Vergil Mission", shopHelpersVergil, countof(shopHelpersVergil));
-        FunctionOnce(ExpConfig::sessionExpDataVergil, "Vergil Session", shopHelpersVergil, countof(shopHelpersVergil));
-        FunctionLoop(ExpConfig::savedExpDataVergil, saveNamesVergil, shopHelpersVergil, countof(shopHelpersVergil));
+        FunctionOnce(ExpConfig::missionExpDataVergil, "Vergil Mission", Shop::shopHelpersVergil, countof(Shop::shopHelpersVergil));
+        FunctionOnce(ExpConfig::sessionExpDataVergil, "Vergil Session", Shop::shopHelpersVergil, countof(Shop::shopHelpersVergil));
+        FunctionLoop(ExpConfig::savedExpDataVergil, saveNamesVergil, Shop::shopHelpersVergil, countof(Shop::shopHelpersVergil));
         ImGui::Text("");
 
 
@@ -10590,7 +10467,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 
     Welcome();
     Main(pSwapChain);
-    ShopWindow();
+    Shop::ShopWindow();
 
     if constexpr (debug) {
         ActorWindow();

@@ -6,9 +6,9 @@
 
 namespace TAB {
 enum {
-    ITEMS,
     DANTE,
     VERGIL,
+    ITEMS,
     COUNT,
 };
 };
