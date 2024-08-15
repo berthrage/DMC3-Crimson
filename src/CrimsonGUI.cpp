@@ -68,6 +68,8 @@
 #include "CrimsonPatches.hpp"
 #include "CrimsonDetours.hpp"
 
+#include "DebugDrawDX11.hpp"
+
 #define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
 #define LOAD_SDL_FUNCTION(X) fn_##X = GetSDLFunction<decltype(X)*>(#X)
 
@@ -3655,14 +3657,23 @@ void RoyalGaugeMainPlayer() {
 	ImGui::End();
 }
 
+// cant include <algorithm> ;_;
+static float sexy_clamp(const float val, const float minVal, const float maxVal) {
+	return max(minVal, min(val, maxVal));
+}
 
+static float smoothstep(float edge0, float edge1, float x) {
+	x = sexy_clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+	return x * x * (3 - 2 * x);
+}
 
 void BarsFunction(
-	float hitPoints, float magicPoints, const char* name, PlayerActorData actorData, const char* label, Config::BarsData& activeData, Config::BarsData& queuedData) {
+	float hitPoints, float magicPoints, const char* name, PlayerActorData actorData, const char* label, Config::BarsData& activeData/*, Config::BarsData& queuedData*/ ) {
 	if (!showBars && !activeConfig.showAdditionalBars) {
 		return;
 	}
 
+#if 0
 	auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
 	auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
 
@@ -3681,6 +3692,10 @@ void BarsFunction(
 		lastY = static_cast<uint32>(activeData.pos.y);
 		run = true;
 	}
+#endif
+
+	SimpleVec3 screen_pos = debug_draw_world_to_screen((const float*)&actorData.position, 1.0f);
+	ImGui::SetNextWindowPos(ImVec2(screen_pos.x - (activeData.size.x / 2.0f), screen_pos.y - activeData.size.y));
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
@@ -3688,9 +3703,17 @@ void BarsFunction(
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
 
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+	const float t = smoothstep(0.0f, 1390.0f, fabs(crimsonPlayer->cameraPlayerDistance - screen_pos.z));
+	const float alpha = ImLerp(0.27f, 1.0f, t);
 
-	if (ImGui::Begin(label, &activeConfig.showAdditionalBars, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize) && run) {
+	activeData.hitColor[3] = alpha;
+	activeData.magicColor[3] = alpha;
+	activeData.magicColorVergil[3] = alpha;
 
+	if (ImGui::Begin(label, &activeConfig.showAdditionalBars, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize) /* && run*/) {
+		//ImGui::Text("alpha: %f, z:%f, camdist: %f", alpha, screen_pos.z, crimsonPlayer->cameraPlayerDistance);
+
+#if 0
 		if (guiPause.canPause) { // This prevents the resetting of bars' positions by delaying the queued pos update starting point. - Mia
 			queuedPos = ImGui::GetWindowPos(); // Queued pos updates according to its pos on screen.
 		}
@@ -3712,8 +3735,9 @@ void BarsFunction(
 
 			GUI::save = true;
 		}
+#endif
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, 1));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, alpha));
 		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.hitColor));
 		ImGui::ProgressBar(hitPoints, *reinterpret_cast<ImVec2*>(&activeData.size), "");
 		ImGui::PopStyleColor(2);
@@ -3859,8 +3883,8 @@ void Bars() {
 
 
 
-				BarsFunction(hit, magic, playerIndexNames[playerIndex], activeActorData, barsNames[playerIndex], activeConfig.barsData[playerIndex],
-					queuedConfig.barsData[playerIndex]);
+				BarsFunction(hit, magic, playerIndexNames[playerIndex], activeActorData, barsNames[playerIndex], activeConfig.barsData[playerIndex]
+				/*, queuedConfig.barsData[playerIndex]*/);
 				}();
 		}
 
