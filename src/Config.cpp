@@ -2309,49 +2309,49 @@ ExpertiseHelper expertiseHelpersDanteGunslingerLevel3[] = {
 };
 
 ExpertiseHelper expertiseHelpersDante[] = {
-    {0, 0x80},
-    {0, 0x100},
-    {0, 0x2000},
-    {6, 0x40000},
+    {0, 0x80},  // Stinger Level 1
+    {0, 0x100}, // Stinger Level 2
+    {0, 0x2000}, // Drive
+    {6, 0x40000}, // Air Hike
 
-    {1, 0x40},
+    {1, 0x40}, // Revolver Level 2
     {1, 0x20}, // Windmill
 
-    {1, 0x4000000},
-    {1, 0x8000000},
-    {1, 0x40000000},
-    {6, 0x80000},
+    {1, 0x4000000}, // Jet-Stream Level 2
+    {1, 0x8000000}, // Jet-Stream Level 3
+    {1, 0x40000000}, // Whirlwind
+    {6, 0x80000}, // Agni and Rudra Air Hike
 
-    {2, 0x400000},
-    {2, 0x800000},
-    {2, 0x200000},
-    {3, 4},
-    {3, 2},
+    {2, 0x400000}, // Reverb Shock Level 1
+    {2, 0x800000}, // Reverb Shock Level 2
+    {2, 0x200000}, // Bat-Rift Level 2
+    {3, 4}, // Air Raid
+    {3, 2}, // Volume Up
 
-    {3, 0x2000000},
-    {3, 0x200000},
-    {3, 0x400000},
-    {6, 0x100000},
+    {3, 0x2000000}, // Straight Level 2
+    {3, 0x200000}, // Beast Uppercut
+    {3, 0x400000}, // Rising Dragon
+    {6, 0x100000}, // Air Hike
 };
 
 ExpertiseHelper expertiseHelpersVergil[] = {
-    {0, 0x10},
-    {0, 0x20},
-    {0, 0x200},
-    {0, 0x400},
+    {0, 0x10}, // Rapid Slash Level 1
+    {0, 0x20}, // Rapid Slash Level 2
+    {0, 0x200}, // Judgement Cut Level 1
+    {0, 0x400}, // Judgement Cut Level 2
 
-    {0, 0x800000},
-    {0, 0x2000000},
-    {0, 0x4000000},
+    {0, 0x800000}, // Starfall Level 2
+    {0, 0x2000000}, // Rising Sun
+    {0, 0x4000000}, // Lunar Phase Level 2
 
-    {1, 4},
-    {1, 0x40},
-    {1, 0x80},
-    {1, 0x100},
+    {1, 4}, // Helm Breaker Level 2
+    {1, 0x40}, // Stinger Level 1
+    {1, 0x80}, // Stinger Level 2
+    {1, 0x100}, // Round Trip
 
-    {1, 0x40000},
-    {1, 0xC0000},
-    {1, 0x200000},
+    {1, 0x40000}, // Summoned Swords Level 2
+    {1, 0xC0000}, // Summoned Sword Level 3
+    {1, 0x200000}, // Spiral Swords
 };
 
 struct LevelHelper {
@@ -2617,8 +2617,8 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr) {
 	//                   |+------------------------------------- Bit 29: Distortion
 
 	// activeExpertise[3] - Probably Beowulf moves
-	//                   |||| |||| |||| |||| |||| |||| |||| ||+--- Bit 1: Sky Star / Trick lvl 2
-	//                   |||| |||| |||| |||| |||| |||| |||| |+---- Bit 2: Sky Star / Trick lvl 2
+	//                   |||| |||| |||| |||| |||| |||| |||| ||+--- Bit 1: Volume Up
+	//                   |||| |||| |||| |||| |||| |||| |||| |+---- Bit 2: Air Raid
 	//                   |||| |||| ||+-------------------------- Bit 21: Beast Uppercut
 	//                   |||| |||| |+--------------------------- Bit 22: Rising Dragon
 	//                   |||| |+-------------------------------- Bit 26: Straight Level 2
