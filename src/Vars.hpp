@@ -1685,7 +1685,7 @@ enum {
 extern const char* itemNames[ITEM::COUNT];
 
 // For use within sessionData.weaponStyleUnlocks
-namespace WEAPONSTYLEUNLOCKS {
+namespace WEAPONANDSTYLEUNLOCKS {
 	enum {
 		UNKNOWN_0,
         CERBERUS,
@@ -1705,7 +1705,7 @@ namespace WEAPONSTYLEUNLOCKS {
 	};
 };
 
-extern const char* weaponStyleUnlocksNames[WEAPONSTYLEUNLOCKS::COUNT];
+extern const char* weaponStyleUnlocksNames[WEAPONANDSTYLEUNLOCKS::COUNT];
 
 namespace BUY {
 enum {
@@ -2026,7 +2026,7 @@ struct SessionData {
     uint32 redOrbs;       // 0x2C
     uint8 itemCounts[20]; // 0x30
     _(2);
-    bool weaponStyleUnlocks[14]; // 0x46
+    bool weaponAndStyleUnlocks[14]; // 0x46 // For weapons and quicksilver/doppelganger
     _(48);
     uint8 weapons[8]; // 0x84
     _(20);
@@ -2054,7 +2054,7 @@ static_assert(offsetof(SessionData, character) == 0x14);
 static_assert(offsetof(SessionData, bloodyPalace) == 0x1C);
 static_assert(offsetof(SessionData, redOrbs) == 0x2C);
 static_assert(offsetof(SessionData, itemCounts) == 0x30);
-static_assert(offsetof(SessionData, weaponStyleUnlocks) == 0x46);
+static_assert(offsetof(SessionData, weaponAndStyleUnlocks) == 0x46);
 static_assert(offsetof(SessionData, weapons) == 0x84);
 static_assert(offsetof(SessionData, rangedWeaponLevels) == 0xA0);
 static_assert(offsetof(SessionData, meleeWeaponIndex) == 0xC8);

@@ -812,12 +812,3 @@ void LoadConfig();
 void InitConfig();
 #endif
 
-namespace ExpConfig {
-extern ExpData missionExpDataDante;
-extern ExpData sessionExpDataDante;
-extern ExpData savedExpDataDante[SAVE_COUNT];
-
-extern ExpData missionExpDataVergil;
-extern ExpData sessionExpDataVergil;;
-extern ExpData savedExpDataVergil[SAVE_COUNT];
-}

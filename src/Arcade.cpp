@@ -64,7 +64,7 @@ void InitSession() {
     }
 
 
-    SetMemory(sessionData.weaponStyleUnlocks, 1, sizeof(sessionData.weaponStyleUnlocks));
+    SetMemory(sessionData.weaponAndStyleUnlocks, 1, sizeof(sessionData.weaponAndStyleUnlocks));
 
 
     sessionData.costume            = activeConfig.Arcade.costume;
