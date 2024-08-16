@@ -3693,9 +3693,14 @@ void BarsFunction(
 		run = true;
 	}
 #endif
+	auto playerIndex = actorData.newPlayerIndex;
+	auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
+
+	// Adjusts size dynamically based on the distance between Camera and Player
+	ImVec2 sizeDistance = { (activeData.size.x * (1.0f / ((float)distanceClamped / 20))), (activeData.size.y * (1.0f / ((float)distanceClamped / 20))) };
 
 	SimpleVec3 screen_pos = debug_draw_world_to_screen((const float*)&actorData.position, 1.0f);
-	ImGui::SetNextWindowPos(ImVec2(screen_pos.x - (activeData.size.x / 2.0f), screen_pos.y - activeData.size.y));
+	ImGui::SetNextWindowPos(ImVec2(screen_pos.x - (sizeDistance.x / 2.0f), screen_pos.y - sizeDistance.y));
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
@@ -3706,11 +3711,16 @@ void BarsFunction(
 	const float t = smoothstep(0.0f, 1390.0f, fabs(crimsonPlayer->cameraPlayerDistance - screen_pos.z));
 	const float alpha = ImLerp(0.27f, 1.0f, t);
 
+	ImGuiWindowFlags windowFlags = 
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
 	activeData.hitColor[3] = alpha;
 	activeData.magicColor[3] = alpha;
 	activeData.magicColorVergil[3] = alpha;
 
-	if (ImGui::Begin(label, &activeConfig.showAdditionalBars, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize) /* && run*/) {
+
+	if (ImGui::Begin(label, &activeConfig.showAdditionalBars, windowFlags) /* && run*/) {
 		//ImGui::Text("alpha: %f, z:%f, camdist: %f", alpha, screen_pos.z, crimsonPlayer->cameraPlayerDistance);
 
 #if 0
@@ -3739,7 +3749,7 @@ void BarsFunction(
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, alpha));
 		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.hitColor));
-		ImGui::ProgressBar(hitPoints, *reinterpret_cast<ImVec2*>(&activeData.size), "");
+		ImGui::ProgressBar(hitPoints, sizeDistance, "");
 		ImGui::PopStyleColor(2);
 
 		if (actorData.character != CHARACTER::VERGIL) {
@@ -3748,11 +3758,14 @@ void BarsFunction(
 		else {
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColorVergil));
 		}
-		ImGui::ProgressBar(magicPoints, *reinterpret_cast<ImVec2*>(&activeData.size), "");
+		ImGui::ProgressBar(magicPoints, sizeDistance, "");
 		ImGui::PopStyleColor();
 
 
-		ImGui::Text(name);
+		ImGui::Button(name, { 30.0f, 30.0f });
+		ImGui::PopFont();
+
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0f]);
 		ImGui::SameLine();
 		if (actorData.character == CHARACTER::DANTE || actorData.character == CHARACTER::VERGIL) {
 			ImGui::Text("  ");
@@ -3765,8 +3778,9 @@ void BarsFunction(
 				ImGui::Text(styleNamesVergilGameplay[actorData.style]);
 			}
 		}
-
 		ImGui::PopFont();
+
+		
 
 
 
@@ -4923,6 +4937,8 @@ void ShopWindow() {
 
 
 void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount, MissionData& missionData) {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
 	for (size_t helperIndex = 0; helperIndex < helperCount; ++helperIndex) {
 		auto& helper = helpers[helperIndex];
 
@@ -4942,6 +4958,14 @@ void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helper
 			missionData.redOrbs += helper.price;
 			PlaySound(0, 18);
 			expData.unlocks[helperIndex] = false;
+
+			// Sets the flag off on sessionData expertise to also update non Actor System
+			const auto& expertiseHelper =
+				(sessionData.character == CHARACTER::DANTE)
+				? ExpConfig::expertiseHelpersDante[helperIndex]
+				: ExpConfig::expertiseHelpersVergil[helperIndex];
+
+			sessionData.expertise[expertiseHelper.index] -= expertiseHelper.flags;
 			ExpConfig::UpdatePlayerActorExps();
 			};
 

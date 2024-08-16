@@ -152,6 +152,7 @@ void SceneHandler() {
 
         Item::SceneMissionSelect();
         SecretMission::SceneMissionSelect();
+        ExpConfig::MaintainUnlockAndExpertiseParity();
 
         break;
     }

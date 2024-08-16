@@ -25,6 +25,14 @@ struct ExpData {
     }
 };
 
+struct ExpertiseHelper {
+	new_size_t index;
+	byte32 flags;
+};
+
+extern ExpertiseHelper expertiseHelpersDante[];
+extern ExpertiseHelper expertiseHelpersVergil[];
+
 extern ExpData missionExpDataDante;
 extern ExpData sessionExpDataDante;
 extern ExpData savedExpDataDante[SAVE_COUNT];
@@ -42,6 +50,8 @@ void SavePlayerActorExp();
 void UpdatePlayerActorExp(byte8* actorBaseAddr);
 
 void UpdatePlayerActorExps();
+
+void MaintainUnlockAndExpertiseParity();
 
 namespace Exp {
 void InitSession();

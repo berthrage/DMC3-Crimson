@@ -2276,11 +2276,6 @@ void InitExp() {
     g_allocator = &root.GetAllocator();
 }
 
-struct ExpertiseHelper {
-    new_size_t index;
-    byte32 flags;
-};
-
 ExpertiseHelper expertiseHelpersDanteSwordmasterLevel2[] = {
     {0, 0x4000}, // Sword Pierce
     {1, 0x1000}, // Crystal
@@ -2312,7 +2307,7 @@ ExpertiseHelper expertiseHelpersDante[] = {
     {0, 0x80},  // Stinger Level 1
     {0, 0x100}, // Stinger Level 2
     {0, 0x2000}, // Drive
-    {6, 0x40000}, // Air Hike
+    {6, 0x40000}, // Rebellion Air Hike
 
     {1, 0x40}, // Revolver Level 2
     {1, 0x20}, // Windmill
@@ -2331,7 +2326,7 @@ ExpertiseHelper expertiseHelpersDante[] = {
     {3, 0x2000000}, // Straight Level 2
     {3, 0x200000}, // Beast Uppercut
     {3, 0x400000}, // Rising Dragon
-    {6, 0x100000}, // Air Hike
+    {6, 0x100000}, // Beowulf Air Hike
 };
 
 ExpertiseHelper expertiseHelpersVergil[] = {
@@ -2353,6 +2348,57 @@ ExpertiseHelper expertiseHelpersVergil[] = {
     {1, 0xC0000}, // Summoned Sword Level 3
     {1, 0x200000}, // Spiral Swords
 };
+
+// Documenting this shit has been a real pain the ass. - Mia
+// here's how the bits are layed out for Danter:
+
+// activeExpertise[0] - Most Rebellion moves
+//                   |||| |||| |||| |||| |||| |||| +--------- Bit 7: Stinger Level 1
+//                   |||| |||| |||| |||| |||| |||+----------- Bit 8: Stinger Level 2
+//                   |||| |||| |||| ||+--------------------- Bit 13: Unknown (likely Drive (?))
+//                   |||| |||| |||| +----------------------- Bit 15: Sword Pierce
+
+// activeExpertise[1] - Mostost Cerberus moves and start of Agni and Rudra
+//                   |||| |||| |||| |||| |||| |||| ||+------- Bit 5: Windmill
+//                   |||| |||| |||| |||| |||| |||| +--------- Bit 7: Revolver Level 2
+//                   |||| |||| |||| |||+-------------------- Bit 12: Crystal / Million Carats
+//                   |||| |||| |||| |+---------------------- Bit 14: Ice Age
+//                   |||| +--------------------------------- Bit 27: Jet Stream Level 2
+//                   |||+----------------------------------- Bit 28: Jet Stream Level 3
+//                   |+------------------------------------- Bit 30: Whirlwind
+
+// activeExpertise[2] - Agni and Rudra Swordmaster moves and Nevan
+//                   |||| |||| |||| |||| |||| |||| |||| |+---- Bit 2: Crawler
+//                   |||| |||| |||| |||| |||| |||| |||| +---- Bit 3: Twister / Tempest
+//                   |||| |||| ||+-------------------------- Bit 20: Bat Rift Level 2
+//                   |||| |||| |+--------------------------- Bit 21: Reverb Shock Level 1
+//                   |||| |||| +---------------------------- Bit 22: Reverb Shock Level 2
+//                   |||+----------------------------------- Bit 27: Feedback / Crazy Roll
+//                   |+------------------------------------- Bit 29: Distortion
+
+// activeExpertise[3] - Rest of Nevan and Beowulf moves
+//                   |||| |||| |||| |||| |||| |||| |||| ||+--- Bit 1: Volume Up
+//                   |||| |||| |||| |||| |||| |||| |||| |+---- Bit 2: Air Raid
+//                   |||| |||| ||+-------------------------- Bit 21: Beast Uppercut
+//                   |||| |||| |+--------------------------- Bit 22: Rising Dragon
+//                   |||| |+-------------------------------- Bit 26: Straight Level 2
+//                   |||+----------------------------------- Bit 28: Ground Volcano
+//                   ||+------------------------------------ Bit 29: Mid-Air Volcano
+
+// activeExpertise[4] - Real Impact and Gunslinger Moves
+//                   |||| |||| |||| |||| |||| |||| |||| |||+-- Bit 0: Real Impact
+//                   |||| |||| |||| |+---------------------- Bit 18: Shotgun Stinger
+//                   |||| |+-------------------------------- Bit 26: Sphere
+
+// activeExpertise[5] - More Gunslinger Moves
+//                   |||| |||| |||| |||| |||| |||| ||+------- Bit 5: Sniper / Reflector
+//                   |||| |||| |||| |||| |||+--------------- Bit 12: Grapple
+
+// activeExpertise[6] - Dance Macabre and Air Hikes
+//                   |||| |||| |||| |||| |||| |||+----------- Bit 8: Dance Macabre 
+//                   |||| |||| |||| |+---------------------- Bit 18: Rebellion Air Hike
+//                   |||| |||| |||| +----------------------- Bit 19: Agni and Rudra Air Hike
+//                   |||| |||| |||+------------------------- Bit 20: Beowulf Air Hike
 
 struct LevelHelper {
     new_size_t index;
@@ -2382,15 +2428,6 @@ std::vector<byte32> originalExpertise = {
 	0b1111'1111'1110'0011'1111'1110'1111'1111, // 0xffe3feff  // lacking real impact and dance macabre
 	0b1111'1111'1111'1111'1111'1111'1111'1111  // 0xffffffff  
 };
-
-//             actorData.activeExpertise[0] = 0xFFFFFFFF; // sword pierce/dancemacabre
-//             actorData.activeExpertise[1] = 0xFFFFFFFF; // cerberus
-//             actorData.activeExpertise[2] = 0xFFFFFFFF; // nevan and agni
-//             actorData.activeExpertise[3] = 0xFFFFFFFF; // beowulf forward
-//             actorData.activeExpertise[4] = 0xFFFFFFFF; // gunslinger artemis
-//             actorData.activeExpertise[5] = 0xFFFFFFFF; // Trickster level 2 and rest of the gunslinger abilities
-//             actorData.activeExpertise[6] = 0xFFFFFFFF; // real impact, dance macabre
-//             actorData.activeExpertise[7] = 0xFFFFFFFF; // sky star(?)
 
 
 void SavePlayerActorExp() {
@@ -2578,77 +2615,7 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr) {
     };
 
 
-    //styleLevel     = expData.styleLevels[style];
-    //styleExpPoints = expData.styleExpPoints[style];
-
-    // Documenting this shit has been a real pain the ass. - Mia
-    // std::vector<byte32> originalExpertise = {
-// 	0b1111'1111'1111'1111'0101'1110'0111'1111, // 0xffff5e7f  // lacking sword pierce
-// 	0b1010'0111'1111'1111'1010'1111'0101'1111, // 0xa7ffaf5f  // lacking cerberus abilities
-// 	0b1010'1111'0001'1111'1111'1111'1111'0011, // 0xaf1ffff3  // lacking nevan and agni
-// 	0b1100'1011'1001'1111'1111'1111'1111'1001, // 0xcb9ffff9  // lacking beowulf forward
-// 	0b1111'1011'1111'1011'1111'1111'1111'1110, // 0xfbfbfffe  // lacking gunslinger artemis
-// 	0b1111'1111'1111'1111'1110'1111'1101'1111, // 0xffffefdf  // lacking Trick lvl 2 and rest of the gunslinger abilities
-// 	0b1111'1111'1110'0011'1111'1110'1111'1111, // 0xffe3feff  // lacking real impact and dance macabre
-// 	0b1111'1111'1111'1111'1111'1111'1111'1111  // 0xffffffff  
-
-    // activeExpertise[0] - Probably most Rebellion moves
-	//                   |||| |||| |||| |||| |||| |||| +--------- Bit 7: Stinger Level 1
-	//                   |||| |||| |||| |||| |||| |||+----------- Bit 8: Stinger Level 2
-	//                   |||| |||| |||| ||+--------------------- Bit 13: Unknown (likely Drive (?))
-	//                   |||| |||| |||| +----------------------- Bit 15: Sword Pierce
-
-    // activeExpertise[1] - Probably most Cerberus moves and start of Agni and Rudra
-	//                   |||| |||| |||| |||| |||| |||| ||+------- Bit 5: Windmill
-	//                   |||| |||| |||| |||| |||| |||| +--------- Bit 7: Revolver Level 2
-	//                   |||| |||| |||| |||+-------------------- Bit 12: Crystal / Million Carats
-	//                   |||| |||| |||| |+---------------------- Bit 14: Ice Age
-	//                   |||| +--------------------------------- Bit 27: Jet Stream Level 2
-	//                   |||+----------------------------------- Bit 28: Jet Stream Level 3
-	//                   |+------------------------------------- Bit 30: Whirlwind
-
-	// activeExpertise[2] - Probably Agni and Rudra Swordmaster moves and Nevan
-	//                   |||| |||| |||| |||| |||| |||| |||| |+---- Bit 2: Crawler
-	//                   |||| |||| |||| |||| |||| |||| |||| +---- Bit 3: Twister / Tempest
-	//                   |||| |||| ||+-------------------------- Bit 20: Bat Rift Level 2
-	//                   |||| |||| |+--------------------------- Bit 21: Reverb Shock Level 1
-	//                   |||| |||| +---------------------------- Bit 22: Reverb Shock Level 2
-	//                   |||+----------------------------------- Bit 27: Feedback / Crazy Roll
-	//                   |+------------------------------------- Bit 29: Distortion
-
-	// activeExpertise[3] - Probably Beowulf moves
-	//                   |||| |||| |||| |||| |||| |||| |||| ||+--- Bit 1: Volume Up
-	//                   |||| |||| |||| |||| |||| |||| |||| |+---- Bit 2: Air Raid
-	//                   |||| |||| ||+-------------------------- Bit 21: Beast Uppercut
-	//                   |||| |||| |+--------------------------- Bit 22: Rising Dragon
-	//                   |||| |+-------------------------------- Bit 26: Straight Level 2
-	//                   |||+----------------------------------- Bit 28: Ground Volcano
-	//                   ||+------------------------------------ Bit 29: Mid-Air Volcano
-
-    // activeExpertise[4] - Real Impact and Gunslinger Moves
-	//                   |||| |||| |||| |||| |||| |||| |||| |||+-- Bit 0: Real Impact
-	//                   |||| |||| |||| |+---------------------- Bit 18: Shotgun Stinger
-	//                   |||| |+-------------------------------- Bit 26: Sphere
-
-    // activeExpertise[5] - More Gunslinger Moves
-	//                   |||| |||| |||| |||| |||| |||| ||+------- Bit 5: Sniper / Reflector
-	//                   |||| |||| |||| |||| |||+--------------- Bit 12: Grapple
-
-    // activeExpertise[6] - Dance Macabre
-	//                   |||| |||| |||| |||| |||| |||+----------- Bit 8: Dance Macabre (and Sky Star(?))
-	//                   |||| |||| |||| |+---------------------- Bit 18: Sky Star
-	//                   |||| |||| |||| +----------------------- Bit 19: Sky Star again for the billionth time
-	//                   |||| |||| |||+------------------------- Bit 20: Unknown
-
      
-//     actorData.activeExpertise[0] = 0b1111'1111'1111'1111'0101'1110'0111'1111;
-//     actorData.activeExpertise[1] = 0b1010'0111'1111'1111'1010'1111'0101'1111;
-//     actorData.activeExpertise[2] = 0b1110'1111'0001'1111'1111'1111'1111'0011;
-//     actorData.activeExpertise[3] = 0b1100'1011'1001'1111'1111'1111'1111'1001;
-//     actorData.activeExpertise[4] = 0b1111'1011'1111'1011'1111'1111'1111'1110;
-//     actorData.activeExpertise[5] = 0b1111'1111'1111'1111'1110'1111'1101'1111;
-//     actorData.activeExpertise[6] = 0b1111'1111'1110'0011'1111'1110'1111'1111;
-
     if (character == CHARACTER::DANTE) {
         
 		switch (style) {
@@ -2755,6 +2722,33 @@ void UpdatePlayerActorExps() {
     }
 }
 
+void MaintainUnlockAndExpertiseParity() {
+    auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	for (int index = UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1; index < UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; ++index) {
+		const ExpertiseHelper& helper = expertiseHelpersDante[index];
+
+		// Check if the specific bit in the expertise array is set and if the unlock array does not have it set to true
+		if (sessionData.expertise[helper.index] & helper.flags && !sessionExpDataDante.unlocks[index]) {
+			
+            // Set the corresponding unlock flag to true
+			sessionExpDataDante.unlocks[index] = true;
+		}
+	}
+
+	// Reverse operation: Set expertise flags based on unlocked moves
+    for (int index = UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1; index < UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; ++index) {
+        const ExpertiseHelper& helper = expertiseHelpersDante[index];
+
+        // Check if the unlock flag is set to true and if the expertise does not already have that unlock
+        if (sessionExpDataDante.unlocks[index] && !(sessionData.expertise[helper.index] & helper.flags)) {
+
+            sessionData.expertise[helper.index] += helper.flags;
+        }
+    }
+
+}
+
 
 namespace Exp {
 
@@ -2762,6 +2756,7 @@ void InitSession() {
     if (!Enable()) {
         return;
     }
+
 
     LogFunction();
 
