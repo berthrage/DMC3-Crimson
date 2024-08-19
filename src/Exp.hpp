@@ -9,6 +9,7 @@ struct ExpData {
     uint32 styleLevels[STYLE::MAX];
     float styleExpPoints[STYLE::MAX];
     bool unlocks[64];
+    bool hasPairedWithActorSystem;
 
     ExpData& operator=(ExpData& expData) {
         CopyMemory(this, &expData, sizeof(*this));
@@ -51,7 +52,11 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr);
 
 void UpdatePlayerActorExps();
 
+void TransferUnlocksToActorSystem();
+
 void MaintainUnlockAndExpertiseParity();
+
+void MarkAsPairedWithActorSystem();
 
 namespace Exp {
 void InitSession();

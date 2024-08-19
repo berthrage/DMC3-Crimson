@@ -9,6 +9,7 @@
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include "Global.hpp"
+#include <iostream>
 
 #include "Core/Macros.h"
 
@@ -2103,6 +2104,7 @@ void CreateMembers_ExpData(rapidjson::Value& member, ExpData (&expData)[SAVE_COU
         CreateArray<uint32, STYLE::MAX>(member2, "styleLevels", expData2.styleLevels);
         CreateArray<float, STYLE::MAX>(member2, "styleExpPoints", expData2.styleExpPoints);
         CreateArray<bool, 64>(member2, "unlocks", expData2.unlocks);
+        Create<bool>(member2, "hasPairedWithActorSystem", expData2.hasPairedWithActorSystem);
     }
 }
 
@@ -2129,6 +2131,7 @@ void ToJSON_ExpData(rapidjson::Value& member, ExpData (&expData)[SAVE_COUNT]) {
         SetArray<uint32, STYLE::MAX>(member2["styleLevels"], expData2.styleLevels);
         SetArray<float, STYLE::MAX>(member2["styleExpPoints"], expData2.styleExpPoints);
         SetArray<bool, 64>(member2["unlocks"], expData2.unlocks);
+        Set<bool>(member2["hasPairedWithActorSystem"], expData2.hasPairedWithActorSystem);
     }
 }
 
@@ -2152,6 +2155,7 @@ void ToExp_ExpData(ExpData (&expData)[SAVE_COUNT], rapidjson::Value& member) {
         GetArray<uint32, STYLE::MAX>(expData2.styleLevels, member2["styleLevels"]);
         GetArray<float, STYLE::MAX>(expData2.styleExpPoints, member2["styleExpPoints"]);
         GetArray<bool, 64>(expData2.unlocks, member2["unlocks"]);
+        expData2.hasPairedWithActorSystem = Get<bool>(member2["hasPairedWithActorSystem"]);
     }
 }
 
@@ -2174,6 +2178,8 @@ void SaveExp() {
         return;
     }
 
+    auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
     LogFunction();
 
 
@@ -2190,6 +2196,16 @@ void SaveExp() {
     savedExpDataDante[saveIndex]  = sessionExpDataDante;
     savedExpDataVergil[saveIndex] = sessionExpDataVergil;
 
+// 	if (sessionData.character == CHARACTER::DANTE) {
+// 		sessionData.expertise[0] = 0xFFFF5E7F;
+//         sessionData.expertise[1] = 0xA7FFAF5F;
+//         sessionData.expertise[2] = 0xAF1FFFF3;
+//         sessionData.expertise[3] = 0xCB9FFFF9;
+//         sessionData.expertise[4] = 0xFBFBFFFE;
+//         sessionData.expertise[5] = 0xFFFFEFFD;
+//         sessionData.expertise[6] = 0xFFE3FEFF;
+//         sessionData.expertise[7] = 0xFFFFFFFF;
+// 	}
 
     using namespace rapidjson;
     using namespace JSON;
@@ -2587,7 +2603,7 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr) {
     }
     
     if (sessionData.character == actorData.character) { // if Current Main character equates to the campaign being played.
-        styleLevel = (std::max)(sessionData.styleLevels[actorData.style], expData.styleLevels[actorData.style]); // Then we fetch possibly higher Style Level already saved (without Actor System enabled)
+        styleLevel = expData.styleLevels[actorData.style]; // Then we fetch possibly higher Style Level already saved (without Actor System enabled)
     }
     else {
         styleLevel = expData.styleLevels[actorData.style];
@@ -2722,32 +2738,254 @@ void UpdatePlayerActorExps() {
     }
 }
 
-void MaintainUnlockAndExpertiseParity() {
+void TransferUnlocksToActorSystem() {
     auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+    // This is to be called when saving the game on Vanilla, so that unlocks you may hvae bought in Vanilla get transfered to the Actor System.
 
-	for (int index = UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1; index < UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; ++index) {
-		const ExpertiseHelper& helper = expertiseHelpersDante[index];
+    // If not in Actor System
+    if (activeConfig.Actor.enable) {
+        return;
+    }
+	auto saveIndex = g_saveIndex;
+	if (saveIndex >= SAVE_COUNT) {
+		return;
+	}
 
-		// Check if the specific bit in the expertise array is set and if the unlock array does not have it set to true
-		if (sessionData.expertise[helper.index] & helper.flags && !sessionExpDataDante.unlocks[index]) {
-			
-            // Set the corresponding unlock flag to true
-			sessionExpDataDante.unlocks[index] = true;
+	if (sessionData.character == CHARACTER::DANTE) {
+
+		// Unlock Moves from Vanilla
+		for (int index = UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1; index < UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; ++index) {
+			const ExpertiseHelper& helper = expertiseHelpersDante[index];
+
+			// Check if the specific bit in the expertise array is set and if the unlock array does not have it set to true
+			if (sessionData.expertise[helper.index] & helper.flags && !savedExpDataDante[saveIndex].unlocks[index]) {
+
+				// Set the corresponding unlock flag to true
+                savedExpDataDante[saveIndex].unlocks[index] = true;
+			}
+		}
+
+		// Unlock Weapon Levels from Vanilla
+		for (int index = UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; index < UNLOCK_DANTE::COUNT; ++index) {
+			const LevelHelper& helper = levelHelpers[(index - UNLOCK_DANTE::EBONY_IVORY_LEVEL_2)];
+			uint8 weaponLevel = 0;
+
+			if (index % 2) {
+				weaponLevel = 1;
+			}
+			else {
+				weaponLevel = 2;
+			}
+
+			// Check if the current weapon level matches the helper's level
+			if (sessionData.rangedWeaponLevels[(helper.index - 5)] >= weaponLevel && !savedExpDataDante[saveIndex].unlocks[index]) {
+                savedExpDataDante[saveIndex].unlocks[index] = true;
+			}
+		}
+
+
+	}
+	else if (sessionData.character == CHARACTER::VERGIL) {
+
+		// Unlock Moves from Vanilla Vergil Edition
+		for (int index = 0; index < UNLOCK_VERGIL::COUNT; ++index) {
+			const ExpertiseHelper& helper = expertiseHelpersVergil[index];
+
+
+			if (sessionData.expertise[helper.index] & helper.flags && !savedExpDataVergil[saveIndex].unlocks[index]) {
+
+                savedExpDataVergil[saveIndex].unlocks[index] = true;
+			}
 		}
 	}
 
-	// Reverse operation: Set expertise flags based on unlocked moves
-    for (int index = UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1; index < UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; ++index) {
-        const ExpertiseHelper& helper = expertiseHelpersDante[index];
+	using namespace rapidjson;
+	using namespace JSON;
 
-        // Check if the unlock flag is set to true and if the expertise does not already have that unlock
-        if (sessionExpDataDante.unlocks[index] && !(sessionData.expertise[helper.index] & helper.flags)) {
 
-            sessionData.expertise[helper.index] += helper.flags;
+	ToJSON();
+
+
+	StringBuffer stringBuffer;
+	PrettyWriter<StringBuffer> prettyWriter(stringBuffer);
+
+	root.Accept(prettyWriter);
+
+
+	auto name = stringBuffer.GetString();
+	auto size = strlen(name);
+
+	if (!SaveFile(location, name, size)) {
+		Log("SaveFile failed.");
+	}
+    
+}
+
+void MaintainUnlockAndExpertiseParity() {
+    auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+    // This is to be called when loading the save to maintain parity between the Vanilla System and Actor System unlocks
+
+    if (activeConfig.Actor.enable) {
+        if (sessionData.character == CHARACTER::DANTE) {
+            
+            // Unlock Moves from Vanilla
+			for (int index = UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1; index < UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; ++index) {
+                const ExpertiseHelper& helper = expertiseHelpersDante[index];
+
+				// Check if the specific bit in the expertise array is set and if the unlock array does not have it set to true
+				if (sessionData.expertise[helper.index] & helper.flags && !sessionExpDataDante.unlocks[index]) {
+
+					// Set the corresponding unlock flag to true
+					sessionExpDataDante.unlocks[index] = true;
+				}
+			}
+
+            // Unlock Weapon Levels from Vanilla
+            for (int index = UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; index < UNLOCK_DANTE::COUNT; ++index) {
+                const LevelHelper& helper = levelHelpers[(index - UNLOCK_DANTE::EBONY_IVORY_LEVEL_2)];
+                uint8 weaponLevel = 0;
+
+                if (index % 2) {
+                    weaponLevel = 1;
+                }
+                else {
+                    weaponLevel = 2;
+                }
+
+                // Check if the current weapon level matches the helper's level
+                if (sessionData.rangedWeaponLevels[(helper.index - 5)] >= weaponLevel  && !sessionExpDataDante.unlocks[index]) {
+                    sessionExpDataDante.unlocks[index] = true;
+                }
+            }
+
+            // Sync Style EXP and Levels
+            for (int style = STYLE::SWORDMASTER; style <= STYLE::ROYALGUARD; ++style) {
+
+				sessionExpDataDante.styleExpPoints[style] = (std::max)(sessionExpDataDante.styleExpPoints[style], sessionData.styleExpPoints[style]);
+				sessionExpDataDante.styleLevels[style] = (std::max)(sessionExpDataDante.styleLevels[style], sessionData.styleLevels[style]);
+            }
+
+            // hasPairedWithActorSystem guarantees the pairing with the actor has occurred at least once 
+            // before pairing the moves from the Actor System to vanilla, so that the moves from vanilla
+            // won't get suddenly erased if someone has started Crimson from Vanilla.
+            sessionExpDataDante.hasPairedWithActorSystem = true;
         }
+        else if (sessionData.character == CHARACTER::VERGIL) {
+			
+			// Unlock Moves from Vanilla Vergil Edition
+			for (int index = 0; index < UNLOCK_VERGIL::COUNT; ++index) {
+				const ExpertiseHelper& helper = expertiseHelpersVergil[index];
+
+				
+				if (sessionData.expertise[helper.index] & helper.flags && !sessionExpDataVergil.unlocks[index]) {
+
+					sessionExpDataVergil.unlocks[index] = true;
+				}
+			}
+
+            sessionExpDataVergil.styleExpPoints[STYLE::DARK_SLAYER] = (std::max)(sessionExpDataVergil.styleExpPoints[STYLE::DARK_SLAYER], sessionData.styleExpPoints[STYLE::DARK_SLAYER]);
+            sessionExpDataVergil.styleLevels[STYLE::DARK_SLAYER] = (std::max)(sessionExpDataVergil.styleLevels[STYLE::DARK_SLAYER], sessionData.styleLevels[STYLE::DARK_SLAYER]);
+
+            sessionExpDataVergil.hasPairedWithActorSystem = true;
+        }
+		
+   
+    }
+    else { // Not in actor System
+
+        if (sessionData.character == CHARACTER::DANTE && sessionExpDataDante.hasPairedWithActorSystem) {
+
+			// Reverse operation: Set expertise flags based on unlocked moves 
+			for (int index = UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1; index < UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; ++index) {
+				const ExpertiseHelper& helper = expertiseHelpersDante[index];
+
+				// Check if the unlock flag is set to true and if the expertise does not already have that unlock
+				// if it's true, unlock move on Vanilla from the Actor System
+				if (sessionExpDataDante.unlocks[index] && !(sessionData.expertise[helper.index] & helper.flags)) {
+
+					sessionData.expertise[helper.index] += helper.flags;
+				}
+				else if (!sessionExpDataDante.unlocks[index] && (sessionData.expertise[helper.index] & helper.flags)) {
+
+					// if you've sold the move on the Actor System, disable it on vanilla
+					sessionData.expertise[helper.index] -= helper.flags;
+				}
+
+			}
+
+			// Reverse operation: Set weapon levels based on unlocked weapon levels
+			for (int index = UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; index < UNLOCK_DANTE::COUNT; index += 2) {
+				const LevelHelper& helper = levelHelpers[(index - UNLOCK_DANTE::EBONY_IVORY_LEVEL_2)];
+				uint32& weaponLevel = sessionData.rangedWeaponLevels[(helper.index - 5)];
+
+				// Check if the next index is within bounds
+				if (index + 1 < UNLOCK_DANTE::COUNT && sessionExpDataDante.unlocks[index + 1]) {
+					weaponLevel = 2; 
+				}
+				else if (sessionExpDataDante.unlocks[index]) {
+					weaponLevel = 1; 
+				}
+				else {
+					weaponLevel = 0; 
+				}
+			}
+
+
+			for (int style = STYLE::SWORDMASTER; style <= STYLE::ROYALGUARD; ++style) {
+
+                sessionData.styleExpPoints[style] = sessionExpDataDante.styleExpPoints[style];
+                sessionData.styleLevels[style] = sessionExpDataDante.styleLevels[style];
+			}
+        }
+        else if (sessionData.character == CHARACTER::VERGIL && sessionExpDataVergil.hasPairedWithActorSystem) {
+
+//          // Reverse Operation: Vergil Edition
+			for (int index = 0; index < UNLOCK_VERGIL::COUNT; ++index) {
+				const ExpertiseHelper& helper = expertiseHelpersVergil[index];
+
+				if (sessionExpDataVergil.unlocks[index] && !(sessionData.expertise[helper.index] & helper.flags)) {
+
+					sessionData.expertise[helper.index] += helper.flags;
+				}
+				else if (!sessionExpDataVergil.unlocks[index] && (sessionData.expertise[helper.index] & helper.flags)) {
+
+					// if you've sold the move on the Actor System, disable it on vanilla
+					sessionData.expertise[helper.index] -= helper.flags;
+				}
+
+			}
+
+            sessionData.styleExpPoints[STYLE::DARK_SLAYER] = sessionExpDataVergil.styleExpPoints[STYLE::DARK_SLAYER];
+            sessionData.styleLevels[STYLE::DARK_SLAYER] = sessionExpDataVergil.styleLevels[STYLE::DARK_SLAYER];
+
+        }
+
     }
 
+ 	std::cout << "Exp Paired! " << std::endl;
+
 }
+
+void MarkAsPairedWithActorSystem() {
+	// This function serves to guarantee new saves will be marked as hasPairedWithActorSystem
+
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	if (!activeConfig.Actor.enable) {
+		return;
+	}
+
+	auto& sessionExpData =
+		(sessionData.character == CHARACTER::DANTE)
+		? ExpConfig::sessionExpDataDante
+		: ExpConfig::sessionExpDataVergil;
+
+	sessionExpData.hasPairedWithActorSystem = true;
+
+    std::cout << "Marked" << std::endl;
+
+}
+
 
 
 namespace Exp {

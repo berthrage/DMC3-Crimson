@@ -830,7 +830,7 @@ template <typename T> void CommissionActor(T& actorData) {
         CopyState(mainActorData, actorData, CopyStateFlags_EventData | CopyStateFlags_Mode);
     }();
 
-    // if (actorData.mode == ACTOR_MODE::MISSION_19)
+/*     if (actorData.mode == ACTOR_MODE::MISSION_19)*/
     // {
     // 	actorData.mode = ACTOR_MODE::DEFAULT;
     // }
@@ -2795,7 +2795,8 @@ byte8* SpawnActor(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
     actorData.maxHitPoints = crimsonPlayer[newPlayerIndex].maxHitPoints;
     actorData.maxMagicPoints = crimsonPlayer[newPlayerIndex].maxMagicPoints;
     actorData.magicPoints = crimsonPlayer[newPlayerIndex].magicPoints;
-
+    
+    actorData.style = crimsonPlayer[playerIndex].style;
     actorData.royalguardReleaseDamage = crimsonPlayer[newPlayerIndex].royalguardReleaseDamage;
     actorData.dtExplosionCharge = crimsonPlayer[newPlayerIndex].dtExplosionCharge;
     crimsonPlayer[newPlayerIndex].vergilDoppelganger.drainStart = false; // very important to ensure drainTimer doesn't stay on when respawning
@@ -12978,7 +12979,7 @@ void EventDelete() {
            actorData.mode = activeActorData.mode;
 // 
 //         // actorData.devil = activeActorData.devil;
-//         actorData.style                   = activeActorData.style;
+        actorData.style                   = activeActorData.style;
 //         actorData.royalguardReleaseDamage = activeActorData.royalguardReleaseDamage;
 // 
         actorData.styleData.rank     = crimsonPlayer[0].styleData.rank;

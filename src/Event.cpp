@@ -586,6 +586,8 @@ void Save() {
 
     UpdateGlobalSaveIndex();
 
+    ExpConfig::TransferUnlocksToActorSystem();
+    ExpConfig::MarkAsPairedWithActorSystem();
     ExpConfig::SaveExp();
 }
 
@@ -595,6 +597,7 @@ void Load() {
     UpdateGlobalSaveIndex();
 
     ExpConfig::LoadExp();
+    ExpConfig::MaintainUnlockAndExpertiseParity();
 }
 
 void IncStyleExpPoints(byte8* actorBaseAddr) {

@@ -4960,12 +4960,12 @@ void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helper
 			expData.unlocks[helperIndex] = false;
 
 			// Sets the flag off on sessionData expertise to also update non Actor System
-			const auto& expertiseHelper =
-				(sessionData.character == CHARACTER::DANTE)
-				? ExpConfig::expertiseHelpersDante[helperIndex]
-				: ExpConfig::expertiseHelpersVergil[helperIndex];
-
-			sessionData.expertise[expertiseHelper.index] -= expertiseHelper.flags;
+// 			const auto& expertiseHelper =
+// 				(sessionData.character == CHARACTER::DANTE)
+// 				? ExpConfig::expertiseHelpersDante[helperIndex]
+// 				: ExpConfig::expertiseHelpersVergil[helperIndex];
+// 
+// 			sessionData.expertise[expertiseHelper.index] -= expertiseHelper.flags;
 			ExpConfig::UpdatePlayerActorExps();
 			};
 
@@ -5292,6 +5292,8 @@ void ExpWindow() {
             }
             ImGui::Text("");
 
+			GUI_Checkbox("hasPairedWithActorSystem", expData.hasPairedWithActorSystem);
+			ImGui::Text("");
 
             ImGui::PopItemWidth();
         };
@@ -6935,7 +6937,14 @@ void MainOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("sessionData mission:  %u", sessionData.mission);
                 ImGui::Text("SCENE:  %u", g_scene);
                 ImGui::Text("TRACK PLAYING: %s", g_gameTrackPlaying.c_str());
-                
+				for (int i = 0; i < 8; i++) {
+					ImGui::Text("sessionData expertise[%u]:  %x", i, sessionData.expertise[i]);
+				}
+
+				for (int i = 0; i < 5; i++) {
+					ImGui::Text("sessionData rangedWeaponLevels[%u]:  %x", i, sessionData.rangedWeaponLevels[i]);
+				}
+
 //                 for (int i = 0; i < 14; i++) {
 //                     ImGui::Text("sessionData unlock[%u] : %u", i, sessionData.weaponStyleUnlocks[i]);
 //                 }
@@ -7079,14 +7088,12 @@ void MainOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("expertise[%u]:  %x", i, actorData.activeExpertise[i]);
             }
 
-			for (int i = 0; i < 8; i++) {
-				ImGui::Text("queued expertise[%u]:  %x", i, actorData.queuedExpertise[i]);
+			for (int i = 0; i < 10; i++) {
+				ImGui::Text("actorData rangedWeaponLevels[%u]:  %x", i, actorData.newWeaponLevels[i]);
 			}
             
 
-			for (int i = 0; i < 8; i++) {
-				ImGui::Text("sessionData expertise[%u]:  %x", i, sessionData.expertise[i]);
-			}
+			
 
             // crazyComboHold = g_HoldToCrazyComboFuncA();
             ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
