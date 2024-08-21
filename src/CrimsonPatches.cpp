@@ -137,21 +137,6 @@ void RainstormLift() {
     }
 }
 
-void DisableStagger(bool enable) {
-    // used for Royalguard Rebalanced
-    uintptr_t patchAddr = (uintptr_t)appBaseAddr + 0x1EC470;
-
-
-    if (enable) {
-		_patch((char*)(patchAddr), (char*)"\x0F\x85\x15\x01\x00\x00", 6); // dmc3.exe+1EC470 - jne dmc3.exe+1EC58B
-    }
-    else {
-        _patch((char*)(patchAddr), (char*)"\x0F\x84\xB5\x00\x00\x00", 6); // dmc3.exe+1EC470 - je dmc3.exe+1EC52B
-
-    }
-
-}
-
 #pragma endregion
 
 #pragma region CameraStuff
@@ -750,6 +735,47 @@ void CerberusCrashFixPart2(bool enable) {
 
 }
 
+#pragma endregion
+
+# pragma region Damage
+
+void StopDamageToCerberus(bool enable) {
+	// this will prevent Cerberus from taking any damage, complementing Sky Launch and Infinite HP cheat.
+// 	    stop Cerberus Part 1 damage
+// 		dmc3.exe + 10C22E - F3 0F 11 87 D0 E1 00 00 - movss[rdi + 0000E1D0], xmm0
+// 
+// 		stop Cerberus Part 2 Damage All Heads
+// 		dmc3.exe + 10C0BE - F3 42 0F 11 84 A7 D4 E1 00 00 - movss[rdi + r12 * 4 + 0000E1D4], xmm0
+// 		r12 is Cerberus head id(0, 1 or 2)
+//    
+//     stop Cerberus Part 2 Damage All Heads when -~30% hp threshold (it switches to this instruction for damage instead)
+// 	   dmc3.exe + 10BD0B - F3 42 0F 11 84 A7 D4 E1 00 00 - movss[rdi + r12 * 4 + 0000E1D4], xmm0
+
+
+    static bool run = false;
+
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	if (enable) {
+		_nop((char*)(appBaseAddr + 0x10C22E), 8);
+		_nop((char*)(appBaseAddr + 0x10C0BE), 10);
+        _nop((char*)(appBaseAddr + 0x10BD0B), 10);
+	}
+	else {
+		_patch((char*)(appBaseAddr + 0x10C22E), (char*)"\xF3\x0F\x11\x87\xD0\xE1\x00\x00", 8);
+		_patch((char*)(appBaseAddr + 0x10C0BE), (char*)"\xF3\x42\x0F\x11\x84\xA7\xD4\xE1\x00\x00", 10);
+        _patch((char*)(appBaseAddr + 0x10BD0B), (char*)"\xF3\x42\x0F\x11\x84\xA7\xD4\xE1\x00\x00", 10);
+	}
+
+    run = enable;
 }
 
 # pragma endregion
+
+}
+
+# pragma endregion
+

@@ -4,6 +4,7 @@
 #include "Vars.hpp"
 
 #include "Core/Macros.h"
+#include "CrimsonPatches.hpp"
 
 // namespace Training {
 
@@ -53,36 +54,7 @@ void ToggleInfiniteHitPoints(bool enable) {
     }
 
     // Cerberus
-    /*{
-            auto addr1 = (appBaseAddr + 0x10CCBA);
-            auto addr2 = (appBaseAddr + 0x10CCD3);
-            auto addr3 = (appBaseAddr + 0x10CCF4);
-            auto addr4 = (appBaseAddr + 0x10CD15);
-            constexpr uint32 size = 8;
-
-            if (!run)
-            {
-                    backupHelper.Save(addr1, size);
-                    backupHelper.Save(addr2, size);
-                    backupHelper.Save(addr3, size);
-                    backupHelper.Save(addr4, size);
-            }
-
-            if (enable)
-            {
-                    SetMemory(addr1, 0x90, size, MemoryFlags_VirtualProtectDestination);
-                    SetMemory(addr2, 0x90, size, MemoryFlags_VirtualProtectDestination);
-                    SetMemory(addr3, 0x90, size, MemoryFlags_VirtualProtectDestination);
-                    SetMemory(addr4, 0x90, size, MemoryFlags_VirtualProtectDestination);
-            }
-            else
-            {
-                    backupHelper.Restore(addr1);
-                    backupHelper.Restore(addr2);
-                    backupHelper.Restore(addr3);
-                    backupHelper.Restore(addr4);
-            }
-    }*/
+    CrimsonPatches::StopDamageToCerberus(enable);
 
 
     run = true;

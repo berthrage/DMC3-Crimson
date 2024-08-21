@@ -11,7 +11,6 @@ void ImprovedBufferedReversals();
 void DisableJCRestriction();
 void BulletStop();
 void RainstormLift();
-void DisableStagger(bool enable);
 
 #pragma endregion
 
@@ -50,6 +49,12 @@ void AirTauntToggleController(byte8* actorBaseAddr);
 #pragma region Fixing
 
 void CerberusCrashFixPart2(bool enable);
+
+#pragma endregion
+
+#pragma region Damage
+
+void StopDamageToCerberus(bool enable);
 
 #pragma endregion
 

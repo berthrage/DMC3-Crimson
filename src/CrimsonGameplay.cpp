@@ -2281,6 +2281,7 @@ void SkyLaunchTracker() {
 
     if ((actorData.action == 195 || actorData.action == 194 || actorData.action == 212) && (actorData.motionData[0].index == 20)) {
 
+        CrimsonPatches::StopDamageToCerberus(true);
         executingSkyLaunch      = true;
         skyLaunchTrackerRunning = true;
         // ToggleCerberusDamage(true);
@@ -2306,12 +2307,14 @@ void CheckSkyLaunch(byte8* actorBaseAddr) {
     }
 
     if (!((actorData.action == 195 || actorData.action == 194) && (actorData.motionData[0].index == 20))) {
+        CrimsonPatches::StopDamageToCerberus(activeConfig.infiniteHitPoints);
         executingSkyLaunch      = false;
         skyLaunchTrackerRunning = false;
         // ToggleCerberusDamage(activeConfig.infiniteHitPoints);
     }
 
     if (!skyLaunchTrackerRunning) {
+        CrimsonPatches::StopDamageToCerberus(activeConfig.infiniteHitPoints);
         executingSkyLaunch = false;
     }
 }
