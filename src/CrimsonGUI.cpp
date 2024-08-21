@@ -4935,6 +4935,42 @@ void ShopWindow() {
 	}
 }
 
+void ShowStyleLevelsTab(ExpConfig::ExpData& expData, MissionData& missionData) {
+// 	auto Buy = [&]() {
+// 		if (missionData.redOrbs < helper.price) {
+// 			PlaySound(0, 19);
+// 			return;
+// 		}
+// 
+// 		missionData.redOrbs -= helper.price;
+// 		PlaySound(0, 18);
+// 		expData.unlocks[helperIndex] = true;
+// 		ExpConfig::UpdatePlayerActorExps();
+// 		};
+// 
+// 	if (GUI_Button("Swordmaster Level 2", ImVec2(500.0f, 80.0f))) {
+// 		Buy();
+// 	}
+// 
+// 	GUI_PopDisable(condition);
+// 
+// 	// Display price and bullet point in a new column
+// 	ImGui::SameLine(120);
+// 
+// 	bool priceCondition = (missionData.redOrbs < helper.price);
+// 	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+// 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
+// 	constexpr auto BULLET = u8"•";
+// 	ImGui::Text((const char*)BULLET);
+// 	ImGui::PopFont();
+// 	ImGui::PopStyleColor();
+// 
+// 	GUI_PushDisable(priceCondition);
+// 	ImGui::SameLine();
+// 	ImGui::Text("%u", helper.price);
+// 	GUI_PopDisable(priceCondition);
+}
+
 
 void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount, MissionData& missionData) {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
@@ -7084,6 +7120,14 @@ void MainOverlayWindow(size_t defaultFontSize) {
             }
             auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 
+			if (!actorData.lockOnData.targetBaseAddr60) {
+				return;
+			}
+
+			auto& lockedOnEnemyData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60);
+
+			ImGui::Text("Enemy Health %g", actorData.lockOnData.targetPosition.z);
+
             for (int i = 0; i < 8; i++) {
                 ImGui::Text("expertise[%u]:  %x", i, actorData.activeExpertise[i]);
             }
@@ -7091,11 +7135,14 @@ void MainOverlayWindow(size_t defaultFontSize) {
 			for (int i = 0; i < 10; i++) {
 				ImGui::Text("actorData rangedWeaponLevels[%u]:  %x", i, actorData.newWeaponLevels[i]);
 			}
+			
+			
             
 
 			
 
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			
             ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
             ImGui::Text("DTE CHARGE: %g", actorData.dtExplosionCharge);
             ImGui::Text("DTE CHARGE: %g", crimsonPlayer[0].dtExplosionCharge);
