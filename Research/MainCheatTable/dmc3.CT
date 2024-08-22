@@ -1614,7 +1614,7 @@ movss xmm3,[rax+00000190]
         </CheatEntry>
         <CheatEntry>
           <ID>2493</ID>
-          <Description>"MaryDllApplyInertia"</Description>
+          <Description>"CrimsonDllApplyInertia"</Description>
           <VariableType>Auto Assembler Script</VariableType>
           <AssemblerScript>{ Game   : dmc3.exe
   Version: 
@@ -1813,10 +1813,10 @@ dmc3.exe+1FCF90: 48 8D 0C C9           - lea rcx,[rcx+rcx*8]
           <CheatEntries>
             <CheatEntry>
               <ID>2495</ID>
-              <Description>"Mary.vars::SiyTimer"</Description>
+              <Description>"Crimson.SiyTimer"</Description>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>Float</VariableType>
-              <Address>Crimson.vars::SiyTimer</Address>
+              <Address>Crimson.SiyTimer</Address>
             </CheatEntry>
             <CheatEntry>
               <ID>2496</ID>

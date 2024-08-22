@@ -168,11 +168,6 @@ int styleVFXCountMax = 1;
 
 float siytimer = 0;
 
-float rainstormMomentum = 0;
-
-
-float highTimeRotation = 0;
-
 DoubleTap quickDoubleTap;
 DoubleTap doppDoubleTap;
 
