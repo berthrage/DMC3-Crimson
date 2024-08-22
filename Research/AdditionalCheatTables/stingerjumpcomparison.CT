@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1634</ID>
+      <Description>"Auto Assemble script"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+dmc3.exe+209476:
+nop 2
+[DISABLE]
+dmc3.exe+209476:
+jne dmc3.exe+2094A7
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

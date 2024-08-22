@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1517</ID>
+      <Description>"+bf84 anim frame"</Description>
+      <LastState Value="295.2001953" RealAddress="047DF9C4"/>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Float</VariableType>
+      <Address>dmc3.exe+168</Address>
+      <Offsets>
+        <Offset>bf84</Offset>
+        <Offset>18</Offset>
+        <Offset>00C90E28</Offset>
+      </Offsets>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>1518</ID>
+      <Description>"+bf88 anim frame"</Description>
+      <LastState Value="295.2001953" RealAddress="047DF9C8"/>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Float</VariableType>
+      <Address>dmc3.exe+168</Address>
+      <Offsets>
+        <Offset>bf88</Offset>
+        <Offset>18</Offset>
+        <Offset>00C90E28</Offset>
+      </Offsets>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

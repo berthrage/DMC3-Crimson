@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1524</ID>
+      <Description>"locked off cam"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2023-10-18
+  Author : sssiy_8fxwi52
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+
+aobscanmodule(fgdgfhfgh,dmc3.exe,F3 0F 11 B7 84 01 00 00) // should be unique
+alloc(newmem,$1000,fgdgfhfgh)
+
+label(code)
+label(return)
+
+newmem:
+dd (float)300
+dd (float)-100
+
+code:
+  push rbx
+  mov rbx,[dmc3.exe+C18AF8]
+  mov rbx,[rbx+C90E28]
+  mov rbx,[rbx+18] // player
+  cmp byte ptr [rbx+74fa],#90 // stick push amount
+  jb originalcodepop
+
+  cmp byte ptr [rbx+74f9],#30
+  jb minus
+  cmp byte ptr [rbx+74f9],#230
+  ja minus
+
+  cmp byte ptr [rbx+74f9],#170
+  jb untouched
+
+
+  jmp originalcodepop
+
+untouched:
+  cmp byte ptr [rbx+74f9],#90
+  ja plus
+  jmp originalcodepop
+
+plus:
+  movss xmm6,[newmem+4]
+  jmp originalcodepop
+
+minus:
+  movss xmm6,[newmem]
+  jmp originalcodepop
+
+originalcodepop:
+  pop rbx
+originalcode:
+  movss [rdi+00000184],xmm6
+  jmp return
+
+fgdgfhfgh:
+  jmp code
+  nop 3
+return:
+registersymbol(fgdgfhfgh)
+
+[DISABLE]
+
+fgdgfhfgh:
+  db F3 0F 11 B7 84 01 00 00
+
+unregistersymbol(fgdgfhfgh)
+dealloc(newmem)
+
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+5724D
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

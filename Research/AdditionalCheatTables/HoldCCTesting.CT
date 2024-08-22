@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="34">
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1722</ID>
+      <Description>"cc hold 3"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2023-10-30
+  Author : sssiy_8fxwi52
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+//aobscanmodule(fcghfgh,dmc3.exe,66 85 87 E4 74 00 00 74 30) // should be unique
+define(fcghfgh,dmc3.exe+1EB7C5)
+alloc(newmem,$1000,fcghfgh)
+label(code)
+label(return)
+
+newmem:
+dq 0 // ID
+dd (float)0.10 // 1:rebStinger        // above this
+dd (float)0.30 // 1:                  // below this
+dd (float)1.00 // 2:rebComboB         // above this
+dd (float)1.01 // 2:                  // below this
+dd (float)0.00 // 3:rebMacabre        // above this
+dd (float)0.00 // 3:                  // below this
+dd (float)0.00 // 4:cerbComboB        // above this
+dd (float)0.00 // 4:                  // below this
+dd (float)0.00 // 5:cerbCrystal       // above this
+dd (float)0.00 // 5:                  // below this
+dd (float)0.00 // 6:angiComboC        // above this
+dd (float)0.00 // 6:                  // below this
+dd (float)0.00 // 7:angiTwister       // above this
+dd (float)0.00 // 7:                  // below this
+dd (float)0.00 // 8:nevanComboA       // above this
+dd (float)0.00 // 8:                  // below this
+dd (float)0.00 // 9:nevanFeedback     // above this
+dd (float)0.00 // 9:                  // below this
+dd (float)0.00 // A:beoComboB         // above this
+dd (float)0.00 // A:                  // below this
+dd (float)0.00 // B:beoRealImpact     // above this
+dd (float)0.00 // B:                  // below this
+// from here is unused since "honestly in most of those I'd keep it as it is"
+// but feel free to uncomment stuff if you wanna have a play
+dd (float)0.00 // C:shottyStinger     // above this
+dd (float)0.00 // C:                  // below this
+dd (float)0.00 // D:artemisSphere     // above this
+dd (float)0.00 // D:                  // below this
+dd (float)0.00 // E:spiralSniper      // above this
+dd (float)0.00 // E:                  // below this
+dd (float)0.00 // F:badMathCheck      // above this
+dd (float)0.00 // F:                  // below this
+
+
+//////////////////////////////////////////////////////////
+newmem2:
+  test [rdi+000074E0],ax
+  je dmc3.exe+1EB7FE
+//////////////////////////////////////////////////////////
+  cmp byte ptr [rdi+3fa4], #7   // 1 reb-unupgraded stinger
+  je Mov1_Label
+  cmp byte ptr [rdi+3fa4], #8   // 1 reb-upgraded stinger
+  je Mov1_Label
+  cmp byte ptr [rdi+3fa4], #4   // 2 reb-combo b
+  je Mov2_Label
+  cmp byte ptr [rdi+3fa4], #207 // 3 reb-macabre
+  je Mov3_Label
+  cmp byte ptr [rdi+3fa4], #36  // 4 cerb-combo b
+  je Mov4_Label
+  cmp byte ptr [rdi+3fa4], #44  // 5 cerb-crystal
+  je Mov5_Label
+  cmp byte ptr [rdi+3fa4], #57  // 6 agni-combo c
+  je Mov6_Label
+  cmp byte ptr [rdi+3fa4], #67  // 7 agni-twister
+  je Mov7_Label
+  cmp byte ptr [rdi+3fa4], #81  // 8 nevan-combo a
+  je Mov8_Label
+  cmp byte ptr [rdi+3fa4], #92  // 9 nevan-feedback
+  je Mov9_Label
+  cmp byte ptr [rdi+3fa4], #113 // A beo-combo b
+  je MovA_Label
+  cmp byte ptr [rdi+3fa4], #128 // B beo-real impact
+  je MovB_Label
+  /*
+  cmp byte ptr [rdi+3fa4], #146 // C shotty-stinger
+  je MovC_Label
+  cmp byte ptr [rdi+3fa4], #154 // D artemis-sphere
+  je MovD_Label
+  cmp byte ptr [rdi+3fa4], #161 // E spiral-sniper
+  je MovE_Label
+  // cmp byte ptr [rdi+3fa4], #### // F
+  // je MovF_Label
+  */
+//////////////////////////////////////////////////////////
+  jmp code // remaining moves
+  //jmp dmc3.exe+1EB7FE // no remaining moves
+//////////////////////////////////////////////////////////
+Mov1_Label:
+  mov byte ptr [newmem], 1*8
+  jmp SetCrazyComboTiming
+Mov2_Label:
+  mov byte ptr [newmem], 2*8
+  jmp SetCrazyComboTiming
+Mov3_Label:
+  mov byte ptr [newmem], 3*8
+  jmp SetCrazyComboTiming
+Mov4_Label:
+  mov byte ptr [newmem], 4*8
+  jmp SetCrazyComboTiming
+Mov5_Label:
+  mov byte ptr [newmem], 5*8
+  jmp SetCrazyComboTiming
+Mov6_Label:
+  mov byte ptr [newmem], 6*8
+  jmp SetCrazyComboTiming
+Mov7_Label:
+  mov byte ptr [newmem], 7*8
+  jmp SetCrazyComboTiming
+Mov8_Label:
+  mov byte ptr [newmem], 8*8
+  jmp SetCrazyComboTiming
+Mov9_Label:
+  mov byte ptr [newmem], 9*8
+  jmp SetCrazyComboTiming
+MovA_Label:
+  mov byte ptr [newmem], A*8
+  jmp SetCrazyComboTiming
+MovB_Label:
+  mov byte ptr [newmem], B*8
+  jmp SetCrazyComboTiming
+MovC_Label:
+  mov byte ptr [newmem], C*8
+  jmp SetCrazyComboTiming
+MovD_Label:
+  mov byte ptr [newmem], D*8
+  jmp SetCrazyComboTiming
+MovE_Label:
+  mov byte ptr [newmem], E*8
+  jmp SetCrazyComboTiming
+// MovF_Label:
+  // mov byte ptr [newmem], F*8
+  // jmp SetCrazyComboTiming
+//////////////////////////////////////////////////////////
+SetCrazyComboTiming:
+  push rax
+  push rbx
+  push rcx
+  xor rax,rax
+  xor rbx,rbx
+  lea rax,[newmem]
+  mov rbx,[newmem]
+  mov rcx, holdToCrazyComboActionTimer
+  mov rcx,[rcx]
+  movss xmm0,[rcx] // current anim frame
+  movss xmm1,[rax+rbx] // when can we cancel stinger
+  comiss xmm0, xmm1
+  pop rcx
+  pop rbx
+  pop rax
+  jb dmc3.exe+1EB7FE
+
+  push rax
+  push rbx
+  push rcx
+  xor rax,rax
+  xor rbx,rbx
+  xor rcx,rcx
+  lea rax,[newmem]
+  mov rbx,[newmem]
+  add rbx,4
+  mov rcx,holdToCrazyComboActionTimer
+  mov rcx,[rcx]
+  movss xmm0,[rcx] // current anim frame
+  movss xmm1,[rax+rbx] // when can we cancel stinger
+  comiss xmm0, xmm1
+  pop rcx
+  pop rbx
+  pop rax
+  ja dmc3.exe+1EB7FE
+
+  mov byte ptr [rsi+04],6
+  jmp return
+
+code: // modified originalcode for remaining moves
+  test [rdi+000074E0],ax
+  je dmc3.exe+1EB7FE
+  mov byte ptr [rsi+04], 6
+  jmp return
+
+fcghfgh:
+  jmp newmem2
+  nop 7
+return:
+registersymbol(fcghfgh)
+
+[DISABLE]
+fcghfgh:
+  db 66 85 87 E4 74 00 00 74 30 FE 46 04
+unregistersymbol(fcghfgh)
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1EB7C5
+
+dmc3.exe+1EB797: B8 02 00 00 00        - mov eax,00000002
+dmc3.exe+1EB79C: E9 8D 00 00 00        - jmp dmc3.exe+1EB82E
+dmc3.exe+1EB7A1: A8 08                 - test al,08
+dmc3.exe+1EB7A3: 0F 84 83 00 00 00     - je dmc3.exe+1EB82C
+dmc3.exe+1EB7A9: 41 0F B7 50 02        - movzx edx,word ptr [r8+02]
+dmc3.exe+1EB7AE: 48 8D 2D CB 16 B8 00  - lea rbp,[dmc3.exe+D6CE80]
+dmc3.exe+1EB7B5: 48 8B CD              - mov rcx,rbp
+dmc3.exe+1EB7B8: E8 83 BA 14 00        - call dmc3.exe+337240
+dmc3.exe+1EB7BD: 0F B7 C0              - movzx eax,ax
+dmc3.exe+1EB7C0: 0F B7 44 45 0A        - movzx eax,word ptr [rbp+rax*2+0A]
+// ---------- INJECTING HERE ----------
+dmc3.exe+1EB7C5: 66 85 87 E4 74 00 00  - test [rdi+000074E4],ax
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1EB7CC: 74 30                 - je dmc3.exe+1EB7FE
+dmc3.exe+1EB7CE: FE 46 04              - inc byte ptr [rsi+04]
+dmc3.exe+1EB7D1: 0F B6 46 04           - movzx eax,byte ptr [rsi+04]
+dmc3.exe+1EB7D5: 89 5E 08              - mov [rsi+08],ebx
+dmc3.exe+1EB7D8: 66 41 3B 46 06        - cmp ax,[r14+06]
+dmc3.exe+1EB7DD: 76 15                 - jna dmc3.exe+1EB7F4
+dmc3.exe+1EB7DF: 41 0F B6 46 06        - movzx eax,byte ptr [r14+06]
+dmc3.exe+1EB7E4: FE C0                 - inc al
+dmc3.exe+1EB7E6: 88 46 04              - mov [rsi+04],al
+dmc3.exe+1EB7E9: C6 46 01 01           - mov byte ptr [rsi+01],01
+}
+</AssemblerScript>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>1642</ID>
+          <Description>"+3fa4 moveID"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>3fa4</Offset>
+            <Offset>18</Offset>
+            <Offset>00C90E28</Offset>
+          </Offsets>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>1723</ID>
+          <Description>"ActionTimer"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>holdToCrazyComboActionTimer</Address>
+          <Offsets>
+            <Offset>0</Offset>
+          </Offsets>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+  </CheatEntries>
+  <UserdefinedSymbols/>
+</CheatTable>

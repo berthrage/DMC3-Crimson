@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1570</ID>
+      <Description>"Auto Assemble script"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2023-10-20
+  Author : sssiy_8fxwi52
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+aobscanmodule(fghfhg,dmc3.exe,F3 0F 5C 05 14 B3 26 00) // should be unique
+alloc(newmem,$1000,fghfhg)
+label(code)
+label(return)
+
+newmem:
+dd (float)10
+code:
+  subss xmm0,[newmem]//[dmc3.exe+4E9080] // 12.92
+  jmp return
+
+fghfhg:
+  jmp code
+  nop 3
+return:
+registersymbol(fghfhg)
+
+[DISABLE]
+fghfhg:
+  db F3 0F 5C 05 14 B3 26 00
+unregistersymbol(fghfhg)
+dealloc(newmem)
+
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+27DD64
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

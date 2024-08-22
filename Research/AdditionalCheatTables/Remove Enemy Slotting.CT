@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>688</ID>
+      <Description>"Remove Enemy Attack Slotting"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+dmc3.exe+1C9A22:
+nop 5
+// db 90 90 90 90 90
+
+[DISABLE]
+dmc3.exe+1C9A22:
+mov byte ptr [rcx+rax*8+0C],01
+// db C6 44 C1 0C 01
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

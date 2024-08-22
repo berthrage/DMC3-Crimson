@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1439</ID>
+      <Description>"Play Effect"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+alloc(calleffect,128,dmc3.exe)
+createthread(calleffect)
+registersymbol(calleffect)
+calleffect:
+mov rcx,[dmc3.exe+C18AF8]
+mov rcx,[rcx+C90E28]
+mov rcx,[rcx+18] // player
+mov rdx,0 // toggle
+call thang
+ret
+
+thang:
+mov rbp,rsp
+sub rsp,20
+mov rax,dmc3.exe+1F94D0 // style change
+call rax
+mov rsp,rbp
+ret
+
+[DISABLE]
+dealloc(calleffect)
+unregistersymbol(calleffect)
+
+</AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>1440</ID>
+      <Description>"Play Motion"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+alloc(calleffect,64,dmc3.exe)
+createthread(calleffect)
+registersymbol(calleffect)
+calleffect:
+mov rcx,[dmc3.exe+C18AF8]
+mov rcx,[rcx+C90E28]
+mov rcx,[rcx+18] // player
+call thang
+ret
+
+thang:
+mov rbp,rsp
+sub rsp,20
+call dmc3.exe+1F1B60
+mov rsp,rbp
+ret
+
+[DISABLE]
+dealloc(calleffect)
+unregistersymbol(calleffect)
+
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

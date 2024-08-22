@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="34">
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1447</ID>
+      <Description>"jc keeps inertia"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2023-10-11
+  Author : sssiy_8fxwi52
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+aobscanmodule(fgdghhg,dmc3.exe,89 81 C0 01 00 00 42) // should be unique
+alloc(newmem,$1000,fgdghhg)
+label(code)
+label(return)
+registersymbol(inertiaBackup)
+label(inertiaBackup)
+
+newmem:
+inertiaBackup:
+dd 0
+dd 0
+dd 0
+newmem2:
+  cmp r8,132 // jc
+  je code2
+  cmp r8,15f // jc + hold
+  je code2
+  cmp r8,10E // jc + direction
+  je code2
+  cmp r8,13b // jc + direction + hold
+  je code2
+  cmp r8,7e // air hike
+  je code2
+  cmp r8,ab // air hike + hold &lt;- makes jumps retain jump inertia, bad
+  je code2
+  cmp r8,5a // air hike + direction
+  je code2
+  cmp r8,87 // air hike + direction + hold
+  je code2
+
+code:
+  mov [rcx+000001C0],eax
+  mov eax,[rdx+r8*4+3C]
+  mov [rcx+000001C4],eax
+  jmp return
+
+code2:
+  push eax
+  mov eax,[rcx+000001C0] // back up inertia
+  mov [inertiaBackup],eax
+
+  mov eax,[rcx+3ed0]
+  mov [inertiaBackup+4],eax // back up inertia direction
+
+  pop eax
+
+  mov [rcx+000001C0],eax
+  mov eax,[rdx+r8*4+3C]
+  mov [rcx+000001C4],eax
+
+  jmp return
+
+fgdghhg:
+  jmp newmem2
+  nop
+  nop 5
+  nop 6
+
+return:
+registersymbol(fgdghhg)
+
+[DISABLE]
+
+fgdghhg:
+  db 89 81 C0 01 00 00 42 8B 44 82 3C 89 81 C4 01 00 00
+
+unregistersymbol(fgdghhg)
+dealloc(newmem)
+unregistersymbol(inertiaBackup)
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1FCF58
+
+dmc3.exe+1FCF2E: CC                    - int 3 
+dmc3.exe+1FCF2F: CC                    - int 3 
+dmc3.exe+1FCF30: 0F B6 81 09 3F 00 00  - movzx eax,byte ptr [rcx+00003F09]
+dmc3.exe+1FCF37: 4C 8B C9              - mov r9,rcx
+dmc3.exe+1FCF3A: 48 8D 14 80           - lea rdx,[rax+rax*4]
+dmc3.exe+1FCF3E: 48 63 81 0C 3F 00 00  - movsxd  rax,dword ptr [rcx+00003F0C]
+dmc3.exe+1FCF45: 48 03 D0              - add rdx,rax
+dmc3.exe+1FCF48: 4C 8D 04 D2           - lea r8,[rdx+rdx*8]
+dmc3.exe+1FCF4C: 48 8B 91 D0 3D 00 00  - mov rdx,[rcx+00003DD0]
+dmc3.exe+1FCF53: 42 8B 44 82 34        - mov eax,[rdx+r8*4+34]
+// ---------- INJECTING HERE ----------
+dmc3.exe+1FCF58: 89 81 C0 01 00 00     - mov [rcx+000001C0],eax
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1FCF5E: 42 8B 44 82 3C        - mov eax,[rdx+r8*4+3C]
+dmc3.exe+1FCF63: 89 81 C4 01 00 00     - mov [rcx+000001C4],eax
+dmc3.exe+1FCF69: 42 8B 44 82 40        - mov eax,[rdx+r8*4+40]
+dmc3.exe+1FCF6E: 89 81 94 00 00 00     - mov [rcx+00000094],eax
+dmc3.exe+1FCF74: 0F B6 81 09 3F 00 00  - movzx eax,byte ptr [rcx+00003F09]
+dmc3.exe+1FCF7B: 48 8D 0C 80           - lea rcx,[rax+rax*4]
+dmc3.exe+1FCF7F: 49 63 81 0C 3F 00 00  - movsxd  rax,dword ptr [r9+00003F0C]
+dmc3.exe+1FCF86: 48 03 C8              - add rcx,rax
+dmc3.exe+1FCF89: 49 8B 81 D0 3D 00 00  - mov rax,[r9+00003DD0]
+dmc3.exe+1FCF90: 48 8D 0C C9           - lea rcx,[rcx+rcx*8]
+}
+</AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>1470</ID>
+      <Description>"guard gravity edit"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2023-10-16
+  Author : sssiy_8fxwi52
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+
+aobscanmodule(ffsdsfd,dmc3.exe,C6 83 78 63 00 00 01) // should be unique
+alloc(newmem,$1000,ffsdsfd)
+label(code)
+label(return)
+registersymbol(guardgrav)
+label(guardgrav)
+
+newmem:
+guardgrav:
+dd (float)0
+dd (float)0.4
+
+code:
+  mov byte ptr [rbx+00006378],01
+
+
+  push eax
+  mov eax,[inertiaBackup]
+  mov [rbx+000001C0],eax
+
+  mov eax,[inertiaBackup+4]
+  mov [rbx+3ed0],eax
+
+  pop eax
+
+
+  cmp dword ptr [rbx+94],0
+  jl return
+  test [rbx+74e0],0040
+  jne code2
+
+  movss xmm0,[rbx+94]
+  mulss xmm0,[newmem]
+  movss [rbx+94], xmm0
+  jmp return
+
+code2:
+  movss xmm0,[rbx+94]
+  mulss xmm0,[newmem+4]
+  movss [rbx+94], xmm0
+  jmp return
+
+ffsdsfd:
+  jmp code
+  nop 2
+return:
+registersymbol(ffsdsfd)
+
+[DISABLE]
+ffsdsfd:
+  db C6 83 78 63 00 00 01
+unregistersymbol(ffsdsfd)
+dealloc(newmem)
+unregistersymbol(guardgrav)
+
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1EE121
+</AssemblerScript>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>1471</ID>
+          <Description>"value to set vertical pull to"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>guardgrav</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+  </CheatEntries>
+  <UserdefinedSymbols/>
+</CheatTable>

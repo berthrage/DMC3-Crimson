@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1735</ID>
+      <Description>"ChargeControls"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>
+[ENABLE]
+aobscanmodule(ChargeControls,dmc3.exe,F3 0F 58 46 08 0F) // should be unique
+alloc(newmem,$1000,ChargeControls)
+label(code)
+label(return)
+
+newmem: // rax is 4 when melee is held but that would filter out other players' + weapons charges too
+
+  // only affect reb charge offset (theres no way verg uses the same offset surely)
+  push rdx
+  mov rdx,[dmc3.exe+168]
+  mov rdx,[rdx+C90E28]
+  mov rdx,[rdx+18] // player ptr (this would be crimsonplayer)
+  lea rdx,[rdx+66a4] // drive charge base
+  cmp rsi,rdx
+  pop rdx
+  je return
+
+code:
+  addss xmm0,[rsi+08]
+  jmp return
+
+ChargeControls:
+  jmp newmem
+return:
+registersymbol(ChargeControls)
+
+[DISABLE]
+ChargeControls:
+  db F3 0F 58 46 08
+unregistersymbol(ChargeControls)
+dealloc(newmem)
+
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1EB6F2
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

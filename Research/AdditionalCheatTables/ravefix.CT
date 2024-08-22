@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1457</ID>
+      <Description>"rave fsddfsdfssaaaaaaa"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+// rave 1
+dmc3.exe+20F58C:
+movzx edx,word ptr [rbx+00003ED0] // swaps forward with inertia rotation
+// db 0F B7 93 D0 3E 00 00
+
+dmc3.exe+20F61B: // kills "stop"
+nop 5
+// db 90 90 90 90 90
+
+// rave 2
+dmc3.exe+20F70C:
+movzx edx,word ptr [rbx+00003ED0]
+// db 0F B7 93 D0 3E 00 00
+
+dmc3.exe+20F79B:
+nop 5
+// db 90 90 90 90 90
+
+// rave 3
+dmc3.exe+20F88C:
+movzx edx,word ptr [rbx+00003ED0]
+// db 0F B7 93 D0 3E 00 00
+
+dmc3.exe+20F91B:
+nop 5
+// db 90 90 90 90 90
+
+// rave 4
+dmc3.exe+20FA18:
+movzx edx,word ptr [rbx+00003ED0]
+// db 0F B7 93 D0 3E 00 00
+
+dmc3.exe+20FAB2:
+nop 5
+// db 90 90 90 90 90
+
+[DISABLE]
+// rave 1
+dmc3.exe+20F58C:
+movzx edx,word ptr [rbx+000000C0]
+// db 0F B7 93 C0 00 00 00
+
+dmc3.exe+20F61B:
+call dmc3.exe+1FD050
+// db E8 30 DA FE FF
+
+// rave 2
+dmc3.exe+20F70C:
+movzx edx,word ptr [rbx+000000C0]
+// db 0F B7 93 C0 00 00 00
+
+dmc3.exe+20F79B:
+call dmc3.exe+1FD050
+// db E8 30 DA FE FF
+
+// rave 3
+dmc3.exe+20F88C:
+movzx edx,word ptr [rbx+000000C0]
+// db 0F B7 93 C0 00 00 00
+
+dmc3.exe+20F91B:
+call dmc3.exe+1FD050
+// db E8 30 DA FE FF
+
+// rave 4
+dmc3.exe+20FA18:
+movzx edx,word ptr [rbx+000000C0]
+// db 0F B7 93 C0 00 00 00
+
+dmc3.exe+20FAB2:
+call dmc3.exe+1FD050
+// db E8 30 DA FE FF
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

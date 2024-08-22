@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>2117</ID>
+      <Description>"+6328 CEm000 LockedOnEnemy"</Description>
+      <LastState Value="0000000005CA12A0" RealAddress="047F1168"/>
+      <ShowAsHex>1</ShowAsHex>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>8 Bytes</VariableType>
+      <Address>dmc3.exe+168</Address>
+      <Offsets>
+        <Offset>6328</Offset>
+        <Offset>18</Offset>
+        <Offset>00C90E28</Offset>
+      </Offsets>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>2118</ID>
+          <Description>"+0"</Description>
+          <LastState Value="00007FF65E419BB8" RealAddress="05CA12A0"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>8 Bytes</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>0</Offset>
+            <Offset>6328</Offset>
+            <Offset>18</Offset>
+            <Offset>00C90E28</Offset>
+          </Offsets>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2119</ID>
+          <Description>"+32B8"</Description>
+          <LastState Value="0000000005CA45A0" RealAddress="05CA4558"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>8 Bytes</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>32B8</Offset>
+            <Offset>6328</Offset>
+            <Offset>18</Offset>
+            <Offset>00C90E28</Offset>
+          </Offsets>
+          <CheatEntries>
+            <CheatEntry>
+              <ID>2120</ID>
+              <Description>"+10"</Description>
+              <LastState Value="0000000005CA4094" RealAddress="05CA45B0"/>
+              <ShowAsHex>1</ShowAsHex>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>8 Bytes</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>10</Offset>
+                <Offset>32B8</Offset>
+                <Offset>6328</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+              <CheatEntries>
+                <CheatEntry>
+                  <ID>2121</ID>
+                  <Description>"+C"</Description>
+                  <LastState Value="0" Activated="1" RealAddress="05CA40A0"/>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>dmc3.exe+168</Address>
+                  <Offsets>
+                    <Offset>C</Offset>
+                    <Offset>10</Offset>
+                    <Offset>32B8</Offset>
+                    <Offset>6328</Offset>
+                    <Offset>18</Offset>
+                    <Offset>00C90E28</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>2122</ID>
+                  <Description>"+10"</Description>
+                  <LastState Value="0" Activated="1" RealAddress="05CA40A4"/>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>dmc3.exe+168</Address>
+                  <Offsets>
+                    <Offset>10</Offset>
+                    <Offset>10</Offset>
+                    <Offset>32B8</Offset>
+                    <Offset>6328</Offset>
+                    <Offset>18</Offset>
+                    <Offset>00C90E28</Offset>
+                  </Offsets>
+                </CheatEntry>
+              </CheatEntries>
+            </CheatEntry>
+          </CheatEntries>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>
