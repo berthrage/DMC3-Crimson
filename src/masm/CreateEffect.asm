@@ -43,10 +43,11 @@ CreateEffectDetour PROC
 
 	mov 	rbx, QWORD PTR [rsp+8+8] ; pPlayer
 	xor 	rax, rax
-	mov 	eax, DWORD PTR [rsp+32+8] ; effectBoneIdx
-	cmp     byte ptr [rbx+3E9Bh], 00
+	cmp     byte ptr [rbx+3E9Bh], 00 ; devilTrigger
 	je      skipDTBoneAdd
-	add     eax,18h
+	mov     eax, 18h
+	imul    eax, dword ptr [rbx+3E88h] ; devilTriggerModel
+	add 	eax, DWORD PTR [rsp+32+8] ; effectBoneIdx
 	skipDTBoneAdd:
 	mov 	rdx, [rbx + rax * 8h + 0000E5D0h]
 	jmp 	Cont
