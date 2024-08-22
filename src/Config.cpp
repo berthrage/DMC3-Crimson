@@ -769,6 +769,16 @@ void CreateMembers(Config& config_) {
         Create<uint32>(member, "styleRankAnnouncerCooldownSeconds", config.styleRankAnnouncerCooldownSeconds);
     }
 
+	{
+		auto& member = Create<struct_t>(root, "Remaps");
+		auto& config = config_.Remaps;
+
+		Create<uint16_t>(member, "danteDTButton", config.danteDTButton);
+		Create<uint16_t>(member, "danteShootButton", config.danteShootButton);
+		Create<uint16_t>(member, "vergilDTButton", config.vergilDTButton);
+		Create<uint16_t>(member, "vergilShootButton", config.vergilShootButton);
+	}
+
     {
         auto& member = Create<struct_t>(root, "Gameplay");
         auto& config = config_.Gameplay;
@@ -1363,6 +1373,16 @@ void ToJSON(Config& config_) {
         Set<uint32>(member["styleRankAnnouncerCooldownSeconds"], config.styleRankAnnouncerCooldownSeconds);
     }
 
+	{
+		auto& member = root["Remaps"];
+		auto& config = config_.Remaps;
+
+		Set<uint16_t>(member["danteDTButton"], config.danteDTButton);
+		Set<uint16_t>(member["danteShootButton"], config.danteShootButton);
+		Set<uint16_t>(member["vergilDTButton"], config.vergilDTButton);
+		Set<uint16_t>(member["vergilShootButton"], config.vergilShootButton);
+	}
+
     {
         auto& member = root["Gameplay"];
         auto& config = config_.Gameplay;
@@ -1953,6 +1973,18 @@ void ToConfig(Config& config_) {
         config.styleRankAnnouncerVolume          = Get<uint32>(member["styleRankAnnouncerVolume"]);
         config.styleRankAnnouncerCooldownSeconds = Get<uint32>(member["styleRankAnnouncerCooldownSeconds"]);
     }
+
+	{
+		auto& config = config_.Remaps;
+		auto& member = root["Remaps"];
+
+		config.danteDTButton = Get<uint16_t>(member["danteDTButton"]);
+		config.danteShootButton = Get<uint16_t>(member["danteShootButton"]);
+		config.vergilDTButton = Get<uint16_t>(member["vergilDTButton"]);
+		config.vergilShootButton = Get<uint16_t>(member["vergilShootButton"]);
+	}
+
+
 
     {
         auto& config = config_.Gameplay;

@@ -678,37 +678,6 @@ bool lastVisibleShop = false;
 
 bool updateWeaponWheel = false;
 
-// siy stuff to be moved //
-static const std::vector<std::pair<uint16_t, const char*>> buttonPairs = { {0x0000, "Nothing"}, {0x0001, "Left Trigger"},
-	{0x0002, "Right Trigger"}, {0x0004, "Left Shoulder"}, {0x0008, "Right Shoulder"}, {0x0010, "Y"}, {0x0020, "B"}, {0x0040, "A"},
-	{0x0080, "X"}, {0x0100, "Back"}, {0x0200, "Left Thumb"}, {0x0400, "Right Thumb"}, {0x0800, "Start"}, {0x1000, "Up"}, {0x2000, "Right"},
-	{0x4000, "Down"}, {0x8000, "Left"} };
-
-std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum) {
-	for (const auto& pair : buttonPairs) {
-		if (pair.first == buttonNum) {
-			return pair;
-		}
-	}
-	return buttonPairs[0];
-}
-
-void DrawButtonCombo(const char* label, uint16_t& currentButton) {
-	if (ImGui::BeginCombo(label, getButtonInfo(currentButton).second)) {
-		for (const auto& buttonPair : buttonPairs) {
-			bool is_selected = (currentButton == buttonPair.first);
-			if (ImGui::Selectable(buttonPair.second, is_selected)) {
-				currentButton = buttonPair.first;
-			}
-			if (is_selected) {
-				ImGui::SetItemDefaultFocus();
-			}
-		}
-		ImGui::EndCombo();
-	}
-}
-// siy stuff over //
-
 #pragma region Common
 
 const char* saveNamesDante[] = {
@@ -8934,10 +8903,10 @@ void GameplayOptions() {
         TooltipHelper(
             "(?)", "Remaps are global for all controllers, will only take into account Player 1's active Character for the switch.");
 
-        DrawButtonCombo("Dante DT Button", activeConfig.Remaps.danteDTButton);
-        DrawButtonCombo("Dante Shoot Button", activeConfig.Remaps.danteShootButton);
-        DrawButtonCombo("Vergil DT Button", activeConfig.Remaps.vergilDTButton);
-        DrawButtonCombo("Vergil Shoot Button", activeConfig.Remaps.vergilShootButton);
+        GUI_ButtonCombo2("Dante DT Button", activeConfig.Remaps.danteDTButton, queuedConfig.Remaps.danteDTButton);
+        GUI_ButtonCombo2("Dante Shoot Button", activeConfig.Remaps.danteShootButton, queuedConfig.Remaps.danteShootButton);
+        GUI_ButtonCombo2("Vergil DT Button", activeConfig.Remaps.vergilDTButton, queuedConfig.Remaps.vergilDTButton);
+        GUI_ButtonCombo2("Vergil Shoot Button", activeConfig.Remaps.vergilShootButton, queuedConfig.Remaps.vergilShootButton);
     }
 }
 

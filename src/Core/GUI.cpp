@@ -135,6 +135,52 @@ bool GUI_Color2(const char* label, float (&var)[4], float (&var2)[4], ImGuiColor
     return update;
 }
 
+#pragma region SiyCodeAdapted
+std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum) {
+	for (const auto& pair : buttonPairs) {
+		if (pair.first == buttonNum) {
+			return pair;
+		}
+	}
+	return buttonPairs[0];
+}
+
+bool GUI_ButtonCombo(const char* label, uint16_t& currentButton) {
+	bool update = false;
+
+	if (ImGui::BeginCombo(label, getButtonInfo(currentButton).second)) {
+		for (const auto& buttonPair : buttonPairs) {
+			bool is_selected = (currentButton == buttonPair.first);
+			if (ImGui::Selectable(buttonPair.second, is_selected)) {
+				currentButton = buttonPair.first;
+                update = true;
+			}
+			if (is_selected) {
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+
+	if (update) {
+		::GUI::save = true;
+	}
+
+	return update;
+
+}
+
+bool GUI_ButtonCombo2(const char* label, uint16_t& currentButton, uint16_t& currentButton2) {
+	auto update = GUI_ButtonCombo(label, currentButton2);
+
+	if (update) {
+        currentButton = currentButton2;
+	}
+
+	return update;
+}
+#pragma endregion
+
 ID3D11ShaderResourceView* CreateTexture(const char* filename, ID3D11Device* device) {
     void* addr = 0;
     int width  = 0;

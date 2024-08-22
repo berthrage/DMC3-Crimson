@@ -10,6 +10,7 @@
 namespace UI {
 #include "Fonts/RobotoMedium.hpp"
 #include "Fonts/RussoOneRegular.hpp"
+#include "Core/GUI.hpp"
 
 	Roboto_t g_ImGuiFont_Roboto;
 

@@ -132,7 +132,7 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
 	if (actorData.dtExplosionCharge > 2500 && !vfxStarted && !vfxFinished) {
         crimsonPlayer[playerIndex].dTEVFX.time = 0;
 		auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
-		CrimsonDetours::CreateEffectDetour(pPlayer, 3, 41, 1, 69420);
+		CrimsonDetours::CreateEffectDetour(pPlayer, 3, 61, 1, 69420);
 
 		vfxStarted = true;
 	}
@@ -156,7 +156,7 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
         
         if (releaseVolumeMult > 0.4f) {
 			auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
-			CrimsonDetours::CreateEffectDetour(pPlayer, 3, 41, 1, 69420);
+			CrimsonDetours::CreateEffectDetour(pPlayer, 3, 61, 1, 69420);
         }
 
         sfxStarted = false;
