@@ -2076,11 +2076,11 @@ void SprintAbility(byte8* actorBaseAddr) {
             }
 
             if (!sprintData.VFXPlayed) {
-                CrimsonDetours::createEffectBank = sprintVFX.bank;
-                CrimsonDetours::createEffectID   = sprintVFX.id;
-                CrimsonDetours::createEffectBone = 1;
-                CrimsonDetours::createEffectPlayerAddr = (uint64_t)actorBaseAddr; // crimsonPlayer[playerIndex].playerPtr also works
-                CrimsonDetours::CreateEffectDetour();
+                //CrimsonDetours::createEffectBank = sprintVFX.bank;
+                //CrimsonDetours::createEffectID   = sprintVFX.id;
+                //CrimsonDetours::createEffectBone = 1;
+                //CrimsonDetours::createEffectPlayerAddr = (uint64_t)actorBaseAddr; // crimsonPlayer[playerIndex].playerPtr also works
+                CrimsonDetours::CreateEffectDetour(actorBaseAddr, sprintVFX.bank, sprintVFX.id, 1, 69420);
 
                 sprintData.VFXPlayed = true;
             }
@@ -2452,9 +2452,9 @@ void DriveTweaks(byte8* actorBaseAddr) {
         if (crimsonPlayer[playerIndex].drive.timer >= 1.1f) {
             if (!crimsonPlayer[playerIndex].drive.level1EffectPlayed) {
 
-                CrimsonDetours::createEffectBank = crimsonPlayer[playerIndex].drive.bank;
-                CrimsonDetours::createEffectID   = crimsonPlayer[playerIndex].drive.id;
-                CrimsonDetours::CreateEffectDetour();
+                auto& vfxBank = crimsonPlayer[playerIndex].drive.bank;
+                auto& id = crimsonPlayer[playerIndex].drive.id;
+                CrimsonDetours::CreateEffectDetour(actorBaseAddr, vfxBank, id, 1, 69420);
 
                 crimsonPlayer[playerIndex].drive.level1EffectPlayed = true;
             }
@@ -2471,9 +2471,9 @@ void DriveTweaks(byte8* actorBaseAddr) {
 
             if (!crimsonPlayer[playerIndex].drive.level2EffectPlayed) {
 
-                CrimsonDetours::createEffectBank = crimsonPlayer[playerIndex].drive.bank;
-                CrimsonDetours::createEffectID   = crimsonPlayer[playerIndex].drive.id;
-                CrimsonDetours::CreateEffectDetour();
+                auto& vfxBank = crimsonPlayer[playerIndex].drive.bank;
+                auto& id = crimsonPlayer[playerIndex].drive.id;
+                CrimsonDetours::CreateEffectDetour(actorBaseAddr, vfxBank, id, 1, 69420);
 
                 crimsonPlayer[playerIndex].drive.level2EffectPlayed = true;
             }
@@ -2485,9 +2485,9 @@ void DriveTweaks(byte8* actorBaseAddr) {
 
             if (!crimsonPlayer[playerIndex].drive.level3EffectPlayed) {
 
-                CrimsonDetours::createEffectBank = crimsonPlayer[playerIndex].drive.bank;
-                CrimsonDetours::createEffectID   = crimsonPlayer[playerIndex].drive.id;
-                CrimsonDetours::CreateEffectDetour();
+                auto& vfxBank = crimsonPlayer[playerIndex].drive.bank;
+                auto& id = crimsonPlayer[playerIndex].drive.id;
+                CrimsonDetours::CreateEffectDetour(actorBaseAddr, vfxBank, id, 1, 69420);
 
                 crimsonPlayer[playerIndex].drive.level3EffectPlayed = true;
             }

@@ -22,7 +22,7 @@ std::uint64_t DetourBaseAddr;
 
 // SampleMod
 std::uint64_t g_SampleMod_ReturnAddr1;
-void SampleModDetour1();
+//void SampleModDetour1();
 
 // GuardGravity
 std::uint64_t g_GuardGravity_ReturnAddr;
@@ -48,11 +48,7 @@ void SetAirTauntDetour();
 std::uint64_t createEffectRBXMov;
 std::uint64_t createEffectCallA;
 std::uint64_t createEffectCallB;
-int createEffectBank = 3;
-int createEffectID   = 144;
-int createEffectBone = 1;
-std::uint64_t createEffectPlayerAddr = 0;
-void CreateEffectDetour();
+//void _fastcall CreateEffectDetour(void* pPlayer, int effectBank, int effectId, int effectBoneIdx, uint32_t colo_u_r);
 
 // FixCrashCerberus
 std::uint64_t g_FixCrashCerberus_ReturnAddr;
@@ -96,14 +92,14 @@ void StyleRankHudNoFadeoutDetour();
 
 // ShootRemapDown
 std::uint64_t g_ShootRemapDown_ReturnAddr;
-void ShootRemapDownDetour();
+//void ShootRemapDownDetour();
 std::uint64_t g_ShootRemapHold_ReturnAddr;
-void ShootRemapHoldDetour();
+//void ShootRemapHoldDetour();
 std::uint16_t g_ShootRemap_NewMap;
 
 // VergilNeutralTrick
 std::uint64_t g_VergilNeutralTrick_ReturnAddr;
-void VergilNeutralTrickDetour();
+//void VergilNeutralTrickDetour();
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {

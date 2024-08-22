@@ -6214,14 +6214,19 @@ void Debug() {
 		//	HoldToCrazyComboHook->Toggle(true);
 		// }
 
-		ImGui::InputInt("Effect Bank", &CrimsonDetours::createEffectBank);
-		ImGui::InputInt("Effect ID", &CrimsonDetours::createEffectID);
-        ImGui::InputInt("Effect Bone", &CrimsonDetours::createEffectBone);
+		// Move these variables if you wanted
+		static int vfxBank = 0;
+		static int vfxId = 0;
+		static int boneIdx = 0;
+
+		ImGui::InputInt("Effect Bank", &vfxBank);
+		ImGui::InputInt("Effect ID", &vfxId);
+        ImGui::InputInt("Effect Bone", &boneIdx);
         static int effectPlayerID = 0;
         ImGui::InputInt("Player", &effectPlayerID);
-        CrimsonDetours::createEffectPlayerAddr = crimsonPlayer[effectPlayerID].playerPtr;
+        auto pPlayer = (void*)crimsonPlayer[effectPlayerID].playerPtr;
 		if (ImGui::Button("CreateEffect")) {
-			CrimsonDetours::CreateEffectDetour();
+			CrimsonDetours::CreateEffectDetour(pPlayer, vfxBank, vfxId, boneIdx, 69420);
 		}
 
         ImGui::Text("");

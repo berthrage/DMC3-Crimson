@@ -131,22 +131,16 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
 	// VFX START
 	if (actorData.dtExplosionCharge > 2500 && !vfxStarted && !vfxFinished) {
         crimsonPlayer[playerIndex].dTEVFX.time = 0;
-		CrimsonDetours::createEffectBank = 3;
-		CrimsonDetours::createEffectID = 61;
-		CrimsonDetours::createEffectBone = 1;
-		CrimsonDetours::createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
-		CrimsonDetours::CreateEffectDetour();
+		auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
+		CrimsonDetours::CreateEffectDetour(pPlayer, 3, 41, 1, 69420);
 
 		vfxStarted = true;
 	}
 
 	// VFX FINISH
 	if (actorData.dtExplosionCharge >= maxDT && !vfxFinished) {
-		CrimsonDetours::createEffectBank = 3;
-		CrimsonDetours::createEffectID = 41;
-		CrimsonDetours::createEffectBone = 1;
-		CrimsonDetours::createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
-		CrimsonDetours::CreateEffectDetour();
+		auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
+		CrimsonDetours::CreateEffectDetour(pPlayer, 3, 41, 1, 69420);
 
 		vfxFinished = true;
 	}
@@ -161,11 +155,8 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
         }
         
         if (releaseVolumeMult > 0.4f) {
-			CrimsonDetours::createEffectBank = 3;
-			CrimsonDetours::createEffectID = 61;
-			CrimsonDetours::createEffectBone = 1;
-			CrimsonDetours::createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
-			CrimsonDetours::CreateEffectDetour();
+			auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
+			CrimsonDetours::CreateEffectDetour(pPlayer, 3, 41, 1, 69420);
         }
 
         sfxStarted = false;
@@ -358,11 +349,8 @@ void DelayedComboFXController(byte8* actorBaseAddr) {
 			CrimsonSDL::PlayDelayedCombo1(actorData.newPlayerIndex);
 
             // VFX
-			CrimsonDetours::createEffectBank = delayedComboFX.bank;
-			CrimsonDetours::createEffectID = delayedComboFX.id;
-			CrimsonDetours::createEffectBone = 1;
-			CrimsonDetours::createEffectPlayerAddr = crimsonPlayer[playerIndex].playerPtr;
-			CrimsonDetours::CreateEffectDetour();
+			auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
+			CrimsonDetours::CreateEffectDetour(pPlayer, delayedComboFX.bank, delayedComboFX.id, 1, 69420);
 
             // VIBRATION
 			CrimsonSDL::VibrateController(playerIndex, 0, 0x5555, 130);

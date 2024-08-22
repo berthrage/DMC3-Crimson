@@ -183,6 +183,9 @@ void WebAPICalls::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 
 void WebAPICalls::QueuePatrons(size_t timeOutMS /*= 0*/)
 {
+	// Todo: fix the online api for patrons, then remove the return
+	return;
+
 	CURL* curlInstance = curl_easy_init();
 
 	if (curlInstance == nullptr) {
