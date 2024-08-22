@@ -584,6 +584,12 @@ void ToggleRoyalguardForceJustFrameRelease(bool enable) {
     run = true;
 }
 
+#pragma endregion
+
+#pragma region AirTauntStuff--UNUSE
+// Replaced by SetAirTaunt in CrimsonDetours
+// keeping it here for documentation only. - Mia
+
 void OverrideTauntInAir(bool enable) {
     // This allows you to use the taunt button on the air.
 
@@ -719,7 +725,6 @@ void AirTauntToggleController(byte8* actorBaseAddr) {
     }
 }
 
-
 #pragma endregion
 
 # pragma region Fixing
@@ -750,7 +755,15 @@ void StopDamageToCerberus(bool enable) {
 //    
 //     stop Cerberus Part 2 Damage All Heads when -~30% hp threshold (it switches to this instruction for damage instead)
 // 	   dmc3.exe + 10BD0B - F3 42 0F 11 84 A7 D4 E1 00 00 - movss[rdi + r12 * 4 + 0000E1D4], xmm0
-
+// 
+//     stop Cerberus Part 1 damage to the legs -- causes CRASH if used in conjunction with others
+//     dmc3.exe+10C1C6 - F3 0F 11 87 D0 E1 00 00   - movss [rdi+0000E1D0],xmm0
+//     
+//     stop Cerberus Part 2 Damage Legs 1 -- causes CRASH if used in conjunction with others
+//     dmc3.exe+10BC57 - F3 0F 11 87 D8 E1 00 00   - movss [rdi+0000E1D8],xmm0
+// 
+//     stop Cerberus Part 2 Damage Legs 2 -- causes CRASH if used in conjunction with others
+// 	   dmc3.exe + 10BB50 - F3 0F 11 87 D8 E1 00 00 - movss[rdi + 0000E1D8], xmm0
 
     static bool run = false;
 
@@ -763,11 +776,17 @@ void StopDamageToCerberus(bool enable) {
 		_nop((char*)(appBaseAddr + 0x10C22E), 8);
 		_nop((char*)(appBaseAddr + 0x10C0BE), 10);
         _nop((char*)(appBaseAddr + 0x10BD0B), 10);
+//         _nop((char*)(appBaseAddr + 0x10C1C6), 8);
+//         _nop((char*)(appBaseAddr + 0x10BC57), 8);
+//         _nop((char*)(appBaseAddr + 0x10BB50), 8);
 	}
 	else {
 		_patch((char*)(appBaseAddr + 0x10C22E), (char*)"\xF3\x0F\x11\x87\xD0\xE1\x00\x00", 8);
 		_patch((char*)(appBaseAddr + 0x10C0BE), (char*)"\xF3\x42\x0F\x11\x84\xA7\xD4\xE1\x00\x00", 10);
         _patch((char*)(appBaseAddr + 0x10BD0B), (char*)"\xF3\x42\x0F\x11\x84\xA7\xD4\xE1\x00\x00", 10);
+//         _patch((char*)(appBaseAddr + 0x10C1C6), (char*)"\xF3\x0F\x11\x87\xD0\xE1\x00\x00", 8);
+//         _patch((char*)(appBaseAddr + 0x10BC57), (char*)"\xF3\x0F\x11\x87\xD8\xE1\x00\x00", 8);
+//         _patch((char*)(appBaseAddr + 0x10BB50), (char*)"\xF3\x0F\x11\x87\xD8\xE1\x00\x00", 8);
 	}
 
     run = enable;
