@@ -7094,11 +7094,11 @@ void MainOverlayWindow(size_t defaultFontSize) {
             }
             auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 
-			if (!actorData.lockOnData.targetBaseAddr60) {
-				return;
-			}
-
-			auto& lockedOnEnemyData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60);
+// 			if (!actorData.lockOnData.targetBaseAddr60) {
+// 				return;
+// 			}
+// 
+// 			auto& lockedOnEnemyData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60);
 
 			ImGui::Text("Enemy Health %g", actorData.lockOnData.targetPosition.z);
 
@@ -7111,12 +7111,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
 			}
 			
 			
-            
-
-			
-
             // crazyComboHold = g_HoldToCrazyComboFuncA();
-			
             ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
             ImGui::Text("DTE CHARGE: %g", actorData.dtExplosionCharge);
             ImGui::Text("DTE CHARGE: %g", crimsonPlayer[0].dtExplosionCharge);
@@ -9859,9 +9854,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						Damage();
 						Dante();
 
-						if constexpr (debug) {
+						//if constexpr (debug) {
 							Debug();
-						}
+						//}
 
 						Enemy();
 						Jukebox();
