@@ -44,7 +44,10 @@ CreateEffectDetour PROC
 	mov 	rbx, QWORD PTR [rsp+8+8] ; pPlayer
 	xor 	rax, rax
 	mov 	eax, DWORD PTR [rsp+32+8] ; effectBoneIdx
-
+	cmp     byte ptr [rbx+3E9Bh], 00
+	je      skipDTBoneAdd
+	add     eax,18h
+	skipDTBoneAdd:
 	mov 	rdx, [rbx + rax * 8h + 0000E5D0h]
 	jmp 	Cont
 
