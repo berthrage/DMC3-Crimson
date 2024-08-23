@@ -776,17 +776,17 @@ void StopDamageToCerberus(bool enable) {
 		_nop((char*)(appBaseAddr + 0x10C22E), 8);
 		_nop((char*)(appBaseAddr + 0x10C0BE), 10);
         _nop((char*)(appBaseAddr + 0x10BD0B), 10);
-//         _nop((char*)(appBaseAddr + 0x10C1C6), 8);
-//         _nop((char*)(appBaseAddr + 0x10BC57), 8);
-//         _nop((char*)(appBaseAddr + 0x10BB50), 8);
+        _nop((char*)(appBaseAddr + 0x10C1C6), 8);
+        _nop((char*)(appBaseAddr + 0x10BC57), 8);
+        _nop((char*)(appBaseAddr + 0x10BB50), 8);
 	}
 	else {
 		_patch((char*)(appBaseAddr + 0x10C22E), (char*)"\xF3\x0F\x11\x87\xD0\xE1\x00\x00", 8);
 		_patch((char*)(appBaseAddr + 0x10C0BE), (char*)"\xF3\x42\x0F\x11\x84\xA7\xD4\xE1\x00\x00", 10);
         _patch((char*)(appBaseAddr + 0x10BD0B), (char*)"\xF3\x42\x0F\x11\x84\xA7\xD4\xE1\x00\x00", 10);
-//         _patch((char*)(appBaseAddr + 0x10C1C6), (char*)"\xF3\x0F\x11\x87\xD0\xE1\x00\x00", 8);
-//         _patch((char*)(appBaseAddr + 0x10BC57), (char*)"\xF3\x0F\x11\x87\xD8\xE1\x00\x00", 8);
-//         _patch((char*)(appBaseAddr + 0x10BB50), (char*)"\xF3\x0F\x11\x87\xD8\xE1\x00\x00", 8);
+        _patch((char*)(appBaseAddr + 0x10C1C6), (char*)"\xF3\x0F\x11\x87\xD0\xE1\x00\x00", 8);
+        _patch((char*)(appBaseAddr + 0x10BC57), (char*)"\xF3\x0F\x11\x87\xD8\xE1\x00\x00", 8);
+        _patch((char*)(appBaseAddr + 0x10BB50), (char*)"\xF3\x0F\x11\x87\xD8\xE1\x00\x00", 8);
 	}
 
     run = enable;

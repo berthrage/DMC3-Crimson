@@ -707,6 +707,7 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
     CreateRenderTarget<API::D3D11>();
 
     InitStyleSwitchFxTexture(::D3D11::device);
+    InitDStyleRankTextures(::D3D11::device);
     debug_draw_init(
         (void*)::D3D11::device, (void*)::D3D11::deviceContext, pSwapChainDesc->BufferDesc.Width, pSwapChainDesc->BufferDesc.Height);
 

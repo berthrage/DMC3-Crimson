@@ -3626,6 +3626,93 @@ void RoyalGaugeMainPlayer() {
 	ImGui::End();
 }
 
+static Texture2DD3D11* DStyleRankFillTexture{ nullptr };
+static Texture2DD3D11* DStyleRankBackgroundTexture{ nullptr };
+
+void InitDStyleRankTextures(ID3D11Device* pd3dDevice) {
+	DStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Dfill.png").c_str(), pd3dDevice);
+	DStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Dbg.png").c_str(), pd3dDevice);
+	assert(DStyleRankFillTexture);
+	assert(DStyleRankBackgroundTexture);
+}
+
+void RenderMeterWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, float fillRatio, ImColor color) {
+	// Ensure fillRatio is between 0.0f and 1.0f
+	fillRatio = ImClamp(fillRatio, 0.0f, 1.0f);
+
+	// Calculate the visible height based on the fill ratio
+	float visibleHeight = size.y * fillRatio;
+
+	// Adjust the position to start from the bottom
+	ImVec2 fillPos = ImVec2(pos.x, pos.y + size.y - visibleHeight);
+
+	// Define the UV coordinates for bottom-to-top filling
+	ImVec2 uv0 = ImVec2(0.0f, 1.0f - fillRatio);  // Bottom-left
+	ImVec2 uv1 = ImVec2(1.0f, 1.0f);              // Top-right
+
+	// Render the texture with the adjusted UV coordinates and position
+	ImGui::GetWindowDrawList()->AddImage(texture, fillPos, ImVec2(pos.x + size.x, pos.y + size.y), uv0, uv1, color);
+}
+
+void RenderMeterBackground(ImTextureID backgroundTexture, ImVec2 pos, ImVec2 size, ImColor color) {
+	// Render the entire background texture as-is
+	ImGui::GetWindowDrawList()->AddImage(backgroundTexture, pos, ImVec2(pos.x + size.x, pos.y + size.y), ImVec2(0,0), ImVec2(1,1), color);
+}
+
+void StyleMeterWindow() {
+	assert(DStyleRankFillTexture);
+	assert(DStyleRankBackgroundTexture);
+	if (!DStyleRankFillTexture->IsValid() || !DStyleRankBackgroundTexture->IsValid()) {
+		return;
+	}
+	if (!(activeConfig.Actor.enable && InGame() && !g_inGameCutscene)) {
+		return;
+	}
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto& styleData = mainActorData.styleData;
+	if (styleData.rank != 1) {
+		return;
+	}
+	float fillRatio = styleData.meter / 700.0f;
+
+	// 1080p base size for the window
+	const float baseWidth = 1920.0f;
+	const float baseHeight = 1080.0f;
+
+	// Calculate responsive size based on the current resolution
+	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+	float scaleFactorX = displaySize.x / baseWidth;
+	float scaleFactorY = displaySize.y / baseHeight;
+
+	ImVec2 meterSize = ImVec2(241.0f * scaleFactorX, 243.0f * scaleFactorY);
+	ImVec2 windowPos = ImVec2(1500.0f * scaleFactorX, 150.0f * scaleFactorY);
+	ImColor white = { 1.0f, 1.0f, 1.0f, 1.0f };
+	ImColor color = { 0.46f, 0.62f, 0.81f, 1.0f };
+	ImVec2 pos = ImGui::GetCursorScreenPos();
+
+	// Begin an ImGui window with no title bar, no resize, no background, no inputs, etc.
+	ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+	ImGui::SetNextWindowSize(meterSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
+
+	ImGui::Begin("StyleMeter", nullptr,
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoInputs |
+		ImGuiWindowFlags_NoBackground);
+
+	RenderMeterWithFill(DStyleRankFillTexture->GetTexture(), ImGui::GetCursorScreenPos(), meterSize, fillRatio, white);
+	RenderMeterBackground(DStyleRankBackgroundTexture->GetTexture(), ImGui::GetCursorScreenPos(), meterSize, color);
+
+	ImGui::End();
+}
+
 // cant include <algorithm> ;_;
 static float sexy_clamp(const float val, const float minVal, const float maxVal) {
 	return max(minVal, min(val, maxVal));
@@ -7112,6 +7199,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
 			
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			ImGui::Text("meter:  %g", actorData.styleData.meter);
             ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
             ImGui::Text("DTE CHARGE: %g", actorData.dtExplosionCharge);
             ImGui::Text("DTE CHARGE: %g", crimsonPlayer[0].dtExplosionCharge);
@@ -10573,6 +10661,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 
     Bars();
     MirageGaugeMainPlayer();
+	StyleMeterWindow();
     WeaponSwitchController();
 
 

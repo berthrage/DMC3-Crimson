@@ -2235,7 +2235,8 @@ static_assert(sizeof(CollisionData) == 656);
 struct CameraData {
     _(32);
     float fov; // 0x20
-    _(76);
+    float roll; // 0x24
+    _(72);
     vec4 data[2]; // 0x70
     _(32);
     byte8* targetBaseAddr; // 0xB0
@@ -2251,6 +2252,7 @@ struct CameraData {
 };
 
 static_assert(offsetof(CameraData, fov) == 0x20);
+static_assert(offsetof(CameraData, roll) == 0x24);
 static_assert(offsetof(CameraData, data) == 0x70);
 static_assert(offsetof(CameraData, targetBaseAddr) == 0xB0);
 static_assert(offsetof(CameraData, height) == 0xD0);

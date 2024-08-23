@@ -2271,52 +2271,44 @@ void CheckRoyalRelease(byte8* actorBaseAddr) {
     }
 }
 
-void SkyLaunchTracker() {
-    auto pool_12544 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-    if (!pool_12544 || !pool_12544[3]) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_12544[3]);
-
-
-    if ((actorData.action == 195 || actorData.action == 194 || actorData.action == 212) && (actorData.motionData[0].index == 20)) {
-
-        CrimsonPatches::StopDamageToCerberus(true);
-        executingSkyLaunch      = true;
-        skyLaunchTrackerRunning = true;
-        // ToggleCerberusDamage(true);
-
-        /*if(!executingSkyLaunch || !skyLaunchTrackerRunning) {
-                break;
-        }*/
-    }
+void SkyLaunchTracker(PlayerActorData& actorData) {
+	if ((actorData.action == 195 || actorData.action == 194 || actorData.action == 212) && (actorData.motionData[0].index == 20)) {
+		CrimsonPatches::StopDamageToCerberus(true);
+		executingSkyLaunch = true;
+		skyLaunchTrackerRunning = true;
+	}
 }
 
 void CheckSkyLaunch(byte8* actorBaseAddr) {
-    if (!actorBaseAddr) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
 
-    if (((actorData.state & STATE::IN_AIR && actorData.motionData[0].index == 20) && (actorData.action == 195) &&
-            actorData.buttons[0] & GetBinding(BINDING::TAUNT) && !skyLaunchTrackerRunning && !executingRoyalRelease)) {
+	// Start Sky Launch tracking if the conditions are met
+	if ((actorData.state & STATE::IN_AIR) &&
+		(actorData.motionData[0].index == 20) &&
+		(actorData.action == 195) &&
+		(actorData.buttons[0] & GetBinding(BINDING::TAUNT)) &&
+		!skyLaunchTrackerRunning &&
+		!executingRoyalRelease) {
 
+		SkyLaunchTracker(actorData);
+	}
 
-        std::thread skylaunchtracker(SkyLaunchTracker);
-        skylaunchtracker.detach();
-    }
+	// Reset Sky Launch state if the conditions are not met
+	if (!((actorData.action == 195 || actorData.action == 194) &&
+		(actorData.motionData[0].index == 20))) {
+		CrimsonPatches::StopDamageToCerberus(activeConfig.infiniteHitPoints);
+		executingSkyLaunch = false;
+		skyLaunchTrackerRunning = false;
+	}
 
-    if (!((actorData.action == 195 || actorData.action == 194) && (actorData.motionData[0].index == 20))) {
-        CrimsonPatches::StopDamageToCerberus(activeConfig.infiniteHitPoints);
-        executingSkyLaunch      = false;
-        skyLaunchTrackerRunning = false;
-        // ToggleCerberusDamage(activeConfig.infiniteHitPoints);
-    }
-
-    if (!skyLaunchTrackerRunning) {
-        CrimsonPatches::StopDamageToCerberus(activeConfig.infiniteHitPoints);
-        executingSkyLaunch = false;
-    }
+	// Ensure that Sky Launch is deactivated if not running
+	if (!skyLaunchTrackerRunning) {
+		CrimsonPatches::StopDamageToCerberus(activeConfig.infiniteHitPoints);
+		executingSkyLaunch = false;
+	}
 }
 
 void SkyLaunchProperties(byte8* actorBaseAddr) {
