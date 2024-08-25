@@ -10,6 +10,7 @@ set(MASM_SRC
     masm/HudStyleBarPosAsm.asm
     masm/DisableDriveHoldAsm.asm
     masm/SetAirTauntAsm.asm
+    masm/SkyLaunchAirTaunt.asm
     masm/ToggleTakeDamage.asm
     masm/VergilTricksAsm.asm
     masm/StyleRankHudNoFadeout.asm

@@ -28,9 +28,7 @@ void BackToForwardInputs(byte8* actorBaseAddr);
 void SprintAbility(byte8* actorBaseAddr);
 void GunDTCharacterRemaps();
 void DTInfusedRoyalguardController(byte8* actorBaseAddr);
-void CheckRoyalRelease(byte8* actorBaseAddr);
-void CheckSkyLaunch(byte8* actorBaseAddr);
-void SkyLaunchProperties(byte8* actorBaseAddr);
+void SkyLaunchAirTauntController(byte8* actorBaseAddr);
 void DriveTweaks(byte8* actorBaseAddr);
 
 }

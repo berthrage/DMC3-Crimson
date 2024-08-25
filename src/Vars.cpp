@@ -177,25 +177,6 @@ bool gunShootNormalized = false;
 
 float distanceToEnemy;
 
-float storedSkyLaunchPosX              = 0;
-float storedSkyLaunchPosY              = 0;
-float storedSkyLaunchPosZ              = 0;
-float storedSkyLaunchRank              = 0;
-bool beginSkyLaunch                    = false;
-bool skyLaunchSetVolume                = false;
-bool skyLaunchForceJustFrameToggledOff = false;
-bool skyLaunchTrackerRunning           = false;
-bool executingSkyLaunch                = false;
-bool appliedSkyLaunchProperties        = false;
-bool skyLaunchSetJustFrameTrue         = false;
-bool skyLaunchSetJustFrameGround       = false;
-
-bool executingRoyalRelease        = false;
-bool royalReleaseTrackerRunning   = false;
-bool forcingJustFrameRoyalRelease = false;
-bool royalReleaseExecuted         = false;
-bool royalReleaseJustFrameCheck   = false;
-
 float storedRisingSunTauntPosY      = 0;
 float storedRisingSunTauntPosYClone = 0;
 float storedLunarPhasePosY          = 0;

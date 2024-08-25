@@ -2916,9 +2916,9 @@ struct PlayerActorDataBase : ActorDataBase {
     _(4);
     bool airGuard; // 0x6378
     _(7);
-    uint8 royalguardReleaseLevel;       // 0x6380
+    uint16 royalguardReleaseLevel;       // 0x6380
     uint8 royalguardReleaseEffectIndex; // 0x6381
-    _(2);
+    _(1);
     float royalguardReleaseDamage; // 0x6384
     float var_6388;                // 0x6388
     float var_638C;                // 0x638C
@@ -3061,7 +3061,7 @@ static_assert(offsetof(PlayerActorDataBase, royalBlock) == 0x6368);
 static_assert(offsetof(PlayerActorDataBase, royalguardBlockType) == 0x6370);
 static_assert(offsetof(PlayerActorDataBase, airGuard) == 0x6378);
 static_assert(offsetof(PlayerActorDataBase, royalguardReleaseLevel) == 0x6380);
-static_assert(offsetof(PlayerActorDataBase, royalguardReleaseEffectIndex) == 0x6381);
+//static_assert(offsetof(PlayerActorDataBase, royalguardReleaseEffectIndex) == 0x6381);
 static_assert(offsetof(PlayerActorDataBase, royalguardReleaseDamage) == 0x6384);
 static_assert(offsetof(PlayerActorDataBase, var_6388) == 0x6388);
 static_assert(offsetof(PlayerActorDataBase, var_638C) == 0x638C);
@@ -4070,25 +4070,6 @@ extern bool gunShootInverted;
 extern bool gunShootNormalized;
 extern float distanceToEnemy;
 
-extern float storedSkyLaunchPosX;
-extern float storedSkyLaunchPosY;
-extern float storedSkyLaunchPosZ;
-extern float storedSkyLaunchRank;
-extern bool beginSkyLaunch;
-extern bool skyLaunchSetVolume;
-extern bool skyLaunchForceJustFrameToggledOff;
-extern bool skyLaunchTrackerRunning;
-extern bool executingSkyLaunch;
-extern bool appliedSkyLaunchProperties;
-extern bool skyLaunchSetJustFrameTrue;
-extern bool skyLaunchSetJustFrameGround;
-
-extern bool executingRoyalRelease;
-extern bool royalReleaseTrackerRunning;
-extern bool forcingJustFrameRoyalRelease;
-extern bool royalReleaseExecuted;
-extern bool royalReleaseJustFrameCheck;
-
 extern float storedRisingSunTauntPosY;
 extern float storedRisingSunTauntPosYClone;
 extern float storedLunarPhasePosY;
@@ -4158,6 +4139,25 @@ extern bool g_HudVisible;
 extern std::string g_gameTrackPlaying;
 
 extern bool exceptionShot;
+
+struct SkyLaunch {
+    bool setVolume = false;
+    bool forceJustFrameReleaseToggledOff = false;
+    bool trackerRunning = false;
+    bool executing = false;
+    bool appliedProperties = false;
+    bool restoringRoyalGauge = false;
+    float storedRank = 0;
+    uint16 storedReleaseLevel = 0;
+    float startTime = 0;
+    float storedDevilTrigger = 0;
+    vec3 storedPos;
+};
+
+struct RoyalRelease {
+    bool executing = false;
+    bool trackerRunning = false;
+};
 
 struct Sprint {
     bool canSprint                  = false;
@@ -4376,6 +4376,8 @@ struct CrimsonPlayerData {
     float horizontalPull;
     VergilMoveAdjustments vergilMoves;
     Inertia inertia;
+    SkyLaunch skyLaunch;
+    RoyalRelease royalRelease;
     ImprovedCancels cancels;
     BackToForward b2F;
     StyleSwitchText styleSwitchText;
@@ -4410,6 +4412,8 @@ struct CrimsonPlayerData {
     std::vector<byte32> lastStatesClone{0};
     byte32 lastLastStateClone = 0;
     float horizontalPullClone;
+    RoyalRelease royalReleaseClone;
+    SkyLaunch skyLaunchClone;
     VergilMoveAdjustments vergilMovesClone;
     ImprovedCancels cancelsClone;
     Inertia inertiaClone;

@@ -413,6 +413,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
     auto& playerData = GetPlayerData(playerIndex);
 
     auto& gamepad = GetGamepad(playerIndex);
+    auto& skyLaunch = crimsonPlayer[playerIndex].skyLaunch;
 
     static bool executes[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][4] = {};
 
@@ -424,7 +425,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
                     (inCancellableActionRebellion || inCancellableActionCerberus || inCancellableActionAgni || inCancellableActionNevan ||
                         inCancellableActionBeowulf || inCancellableActionGuns || inCancellableActionAirSwordmaster ||
                         inCancellableActionAirGunslinger || actorData.action == EBONY_IVORY_RAIN_STORM) ||
-                executingSkyLaunch)) {
+                skyLaunch.executing)) {
             if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
 
 
@@ -1349,16 +1350,6 @@ void StoreInertia(byte8* actorBaseAddr) {
 
             i->yamatoRave.cachedRotation = actorData.rotation;
         }
-
-        // TODO: Make Dante's Air Taunt available for all players (hard af) and separate this chunk into its own function. - Mia
-        if (!(action == 195 && event == ACTOR_EVENT::ATTACK && state & STATE::IN_AIR) && playerIndex == 0 &&
-            actorData.newEntityIndex == 0) {
-            storedSkyLaunchPosX        = actorData.position.x;
-            storedSkyLaunchPosY        = actorData.position.y;
-            storedSkyLaunchPosZ        = actorData.position.z;
-            storedSkyLaunchRank        = actorData.styleData.rank;
-            appliedSkyLaunchProperties = false;
-        }
     }
 
     // Old Gun Shoot Redirection - discarded.
@@ -2219,7 +2210,6 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 // 			toggledCheats[playerIndex] = false;
 // 		}
 // 	}
-
 	
 }
 
@@ -2228,21 +2218,17 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 #pragma region DanteAirTaunt
 
 
-void RoyalReleaseTracker() {
-    auto pool_12501 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-    if (!pool_12501 || !pool_12501[3]) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_12501[3]);
-
+void RoyalReleaseTracker(PlayerActorData& actorData) {
+    auto playerIndex = actorData.newPlayerIndex;
+	auto& royalRelease = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].royalRelease : crimsonPlayer[playerIndex].royalReleaseClone;
+	auto& skyLaunch = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].skyLaunch : crimsonPlayer[playerIndex].skyLaunchClone;
 
     if ((actorData.action == 195 || actorData.action == 194 || actorData.action == 196 || actorData.action == 197) &&
         (actorData.motionData[0].index == 20 || actorData.motionData[0].index == 19)) {
 
-        executingRoyalRelease      = true;
-        royalReleaseTrackerRunning = true;
+        royalRelease.executing      = true;
+        royalRelease.trackerRunning = true;
     }
-    skyLaunchSetJustFrameTrue = false;
 }
 
 void CheckRoyalRelease(byte8* actorBaseAddr) {
@@ -2250,32 +2236,36 @@ void CheckRoyalRelease(byte8* actorBaseAddr) {
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& royalRelease = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].royalRelease : crimsonPlayer[playerIndex].royalReleaseClone;
 
     if (((actorData.state & STATE::IN_AIR && actorData.motionData[0].index == 20 || actorData.motionData[0].index == 19) &&
             (actorData.action == 195 || actorData.action == 194 || actorData.action == 196 || actorData.action == 197) &&
-            actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && !royalReleaseTrackerRunning)) {
+            actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && !royalRelease.trackerRunning)) {
 
-
-        std::thread royalreleasetracker(RoyalReleaseTracker);
-        royalreleasetracker.detach();
+		std::thread royalreleasetracker(RoyalReleaseTracker, std::ref(actorData));
+		royalreleasetracker.detach();
     }
 
     if (!((actorData.action == 195 || actorData.action == 194 || actorData.action == 196 || actorData.action == 197) &&
             (actorData.motionData[0].index == 20 || actorData.motionData[0].index == 19))) {
-        executingRoyalRelease      = false;
-        royalReleaseTrackerRunning = false;
+        royalRelease.executing      = false;
+        royalRelease.trackerRunning = false;
     }
 
-    if (!royalReleaseTrackerRunning) {
-        executingRoyalRelease = false;
+    if (!royalRelease.trackerRunning) {
+        royalRelease.executing = false;
     }
 }
 
 void SkyLaunchTracker(PlayerActorData& actorData) {
+    auto playerIndex = actorData.newPlayerIndex;
+	auto& skyLaunch = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].skyLaunch : crimsonPlayer[playerIndex].skyLaunchClone;
+
 	if ((actorData.action == 195 || actorData.action == 194 || actorData.action == 212) && (actorData.motionData[0].index == 20)) {
-		CrimsonPatches::StopDamageToCerberus(true);
-		executingSkyLaunch = true;
-		skyLaunchTrackerRunning = true;
+		//CrimsonPatches::StopDamageToCerberus(true);
+		skyLaunch.executing = true;
+		skyLaunch.trackerRunning = true;
 	}
 }
 
@@ -2284,14 +2274,18 @@ void CheckSkyLaunch(byte8* actorBaseAddr) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    auto playerIndex = actorData.newPlayerIndex;
+	auto& royalRelease = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].royalRelease : crimsonPlayer[playerIndex].royalReleaseClone;
+	auto& skyLaunch = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].skyLaunch : crimsonPlayer[playerIndex].skyLaunchClone;
+
 
 	// Start Sky Launch tracking if the conditions are met
 	if ((actorData.state & STATE::IN_AIR) &&
 		(actorData.motionData[0].index == 20) &&
 		(actorData.action == 195) &&
 		(actorData.buttons[0] & GetBinding(BINDING::TAUNT)) &&
-		!skyLaunchTrackerRunning &&
-		!executingRoyalRelease) {
+		!skyLaunch.trackerRunning &&
+		!royalRelease.executing) {
 
 		SkyLaunchTracker(actorData);
 	}
@@ -2299,91 +2293,113 @@ void CheckSkyLaunch(byte8* actorBaseAddr) {
 	// Reset Sky Launch state if the conditions are not met
 	if (!((actorData.action == 195 || actorData.action == 194) &&
 		(actorData.motionData[0].index == 20))) {
-		CrimsonPatches::StopDamageToCerberus(activeConfig.infiniteHitPoints);
-		executingSkyLaunch = false;
-		skyLaunchTrackerRunning = false;
+		//CrimsonPatches::StopDamageToCerberus(activeConfig.infiniteHitPoints);
+		skyLaunch.executing = false;
+		skyLaunch.trackerRunning = false;
+        
 	}
 
 	// Ensure that Sky Launch is deactivated if not running
-	if (!skyLaunchTrackerRunning) {
-		CrimsonPatches::StopDamageToCerberus(activeConfig.infiniteHitPoints);
-		executingSkyLaunch = false;
+	if (!skyLaunch.trackerRunning) {
+		//CrimsonPatches::StopDamageToCerberus(activeConfig.infiniteHitPoints);
+		skyLaunch.executing = false;
 	}
 }
 
-void SkyLaunchProperties(byte8* actorBaseAddr) {
+void StoreSkyLaunchProperties(PlayerActorData& actorData) {
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& skyLaunch = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].skyLaunch : crimsonPlayer[playerIndex].skyLaunchClone;
+	auto& event = actorData.eventData[0].event;
+	auto& state = actorData.state;
+
+	if (!(actorData.action == 195 && event == ACTOR_EVENT::ATTACK && state & STATE::IN_AIR)) {
+
+		skyLaunch.storedPos.x = actorData.position.x;
+		skyLaunch.storedPos.y = actorData.position.y;
+		skyLaunch.storedPos.z = actorData.position.z;
+		skyLaunch.storedRank = actorData.styleData.rank;
+        skyLaunch.storedReleaseLevel = actorData.royalguardReleaseLevel;
+        skyLaunch.storedDevilTrigger = actorData.magicPoints;
+		skyLaunch.appliedProperties = false;
+	}
+}
+
+// void RestoreRoyalGauge(PlayerActorData& actorData) {
+// 	auto playerIndex = actorData.newPlayerIndex;
+// 	auto& skyLaunch = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].skyLaunch : crimsonPlayer[playerIndex].skyLaunchClone;
+//     skyLaunch.restoringRoyalGauge = true;
+//     Sleep(5000);
+//     actorData.royalguardReleaseDamage = skyLaunch.storedRoyalGauge;
+// }
+
+
+
+void ApplySkyLaunchProperties(byte8* actorBaseAddr) {
     if (!actorBaseAddr) {
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-
     auto playerIndex = actorData.newPlayerIndex;
-    auto action      = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].action : crimsonPlayer[playerIndex].actionClone;
-    auto state       = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
+    auto& action      = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].action : crimsonPlayer[playerIndex].actionClone;
+    auto& state       = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
+	auto& royalRelease = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].royalRelease : crimsonPlayer[playerIndex].royalReleaseClone;
+	auto& skyLaunch = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].skyLaunch : crimsonPlayer[playerIndex].skyLaunchClone;
+    static vec3 storedSkyLaunchPos[PLAYER_COUNT];
+ 
 
-    if (actorData.character == CHARACTER::DANTE) {
+    if (skyLaunch.executing) {
 
+        actorData.position.x     = skyLaunch.storedPos.x;
+        actorData.position.z     = skyLaunch.storedPos.z;
+        actorData.styleData.rank = skyLaunch.storedRank;
+        actorData.magicPoints = skyLaunch.storedDevilTrigger;
 
-        if (actorData.state & STATE::IN_AIR && !skyLaunchSetJustFrameTrue && !forcingJustFrameRoyalRelease) {
-            CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(true);
-            skyLaunchSetJustFrameTrue   = true;
-            skyLaunchSetJustFrameGround = false;
-            royalReleaseJustFrameCheck  = false;
+        if (!skyLaunch.restoringRoyalGauge) {
+// 			std::thread restoreroyalgauge(RestoreRoyalGauge, std::ref(actorData));
+// 			restoreroyalgauge.detach();
         }
+		
 
-        if (!executingRoyalRelease && skyLaunchSetJustFrameTrue) {
-            skyLaunchSetJustFrameTrue = false;
-        }
-
-        if (!(actorData.state & STATE::IN_AIR) && !skyLaunchSetJustFrameGround) {
-            CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
-            skyLaunchSetJustFrameGround = true;
-        }
-
-        if (executingRoyalRelease && !royalReleaseJustFrameCheck) {
-            CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
-            royalReleaseJustFrameCheck = true;
-        }
-    }
-
-    if (executingSkyLaunch) {
-
-        actorData.position.x     = storedSkyLaunchPosX;
-        actorData.position.z     = storedSkyLaunchPosZ;
-        actorData.styleData.rank = storedSkyLaunchRank;
-
-        if (!skyLaunchSetVolume) {
+        if (!skyLaunch.setVolume) {
             SetVolume(2, 0);
-            skyLaunchSetVolume = true;
+            skyLaunch.setVolume = true;
         }
 
-        if (!appliedSkyLaunchProperties) {
-            skyLaunchForceJustFrameToggledOff = false;
-
-
-            // actorData.position.y = storedSkyLaunchPosY;
-            appliedSkyLaunchProperties = true;
+        if (!skyLaunch.appliedProperties) {
+            skyLaunch.forceJustFrameReleaseToggledOff = false;
+            
+            actorData.royalguardReleaseLevel = skyLaunch.storedReleaseLevel; // Important for RG Gauge Restoration at KillRGConsumpDetour2
+            
+            skyLaunch.appliedProperties = true;
         }
 
         actorData.horizontalPull         = 0;
         actorData.verticalPullMultiplier = -0.2f;
 
-        actorData.position.x = storedSkyLaunchPosX;
-        actorData.position.z = storedSkyLaunchPosZ;
+		actorData.position.x = skyLaunch.storedPos.x;
+		actorData.position.z = skyLaunch.storedPos.z;
 
-        actorData.position.x = storedSkyLaunchPosX;
-        actorData.position.z = storedSkyLaunchPosZ;
+		actorData.position.x = skyLaunch.storedPos.x;
+		actorData.position.z = skyLaunch.storedPos.z;
 
     } else {
-        if (!skyLaunchForceJustFrameToggledOff) {
-            beginSkyLaunch = false;
-            SetVolume(2, activeConfig.channelVolumes[2]);
-            CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
-            skyLaunchForceJustFrameToggledOff = true;
-        }
+        StoreSkyLaunchProperties(actorData);
+        if (!skyLaunch.forceJustFrameReleaseToggledOff) {
 
-        skyLaunchSetVolume = false;
+            SetVolume(2, activeConfig.channelVolumes[2]);
+            //CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+            skyLaunch.forceJustFrameReleaseToggledOff = true;
+        }
+        skyLaunch.restoringRoyalGauge = false;
+        skyLaunch.setVolume = false;
     }
+
+}
+
+void SkyLaunchAirTauntController(byte8* actorBaseAddr) {
+	CheckRoyalRelease(actorBaseAddr);
+	CheckSkyLaunch(actorBaseAddr);
+	ApplySkyLaunchProperties(actorBaseAddr);
 }
 
 #pragma endregion

@@ -1132,6 +1132,19 @@ call dmc3.exe+1FD050
 
 </AssemblerScript>
         </CheatEntry>
+        <CheatEntry>
+          <ID>2615</ID>
+          <Description>"Force Third Person Camera"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>[ENABLE]
+dmc3.exe+558AC:
+nop 2
+
+[DISABLE]
+dmc3.exe+558AC:
+jne dmc3.exe+558C0
+</AssemblerScript>
+        </CheatEntry>
       </CheatEntries>
     </CheatEntry>
     <CheatEntry>
@@ -3690,12 +3703,24 @@ dmc3.exe+211BDF: 90                             - nop
             </CheatEntry>
             <CheatEntry>
               <ID>2148</ID>
-              <Description>"+3F10 Dante Stagger State"</Description>
+              <Description>"+3e10 Royal Release State"</Description>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>Byte</VariableType>
               <Address>dmc3.exe + 168</Address>
               <Offsets>
-                <Offset>6370</Offset>
+                <Offset>3e10</Offset>
+                <Offset>18</Offset>
+                <Offset>c90e28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2621</ID>
+              <Description>"+3F10 Dante Stagger State?"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Byte</VariableType>
+              <Address>dmc3.exe + 168</Address>
+              <Offsets>
+                <Offset>3F10</Offset>
                 <Offset>18</Offset>
                 <Offset>c90e28</Offset>
               </Offsets>
@@ -3884,6 +3909,18 @@ dmc3.exe+1E9A5C: CC                    - int 3
               </Offsets>
             </CheatEntry>
             <CheatEntry>
+              <ID>2622</ID>
+              <Description>"+4030 Something to do with RGGauge"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Float</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>4030</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
               <ID>2382</ID>
               <Description>"+40ec Max HP"</Description>
               <ShowAsSigned>0</ShowAsSigned>
@@ -3970,6 +4007,32 @@ dmc3.exe+1E9A5C: CC                    - int 3
                   <Address>dmc3.exe+168</Address>
                   <Offsets>
                     <Offset>18</Offset>
+                    <Offset>6328</Offset>
+                    <Offset>18</Offset>
+                    <Offset>00C90E28</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>2619</ID>
+                  <Description>"+120 "</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Byte</VariableType>
+                  <Address>dmc3.exe+168</Address>
+                  <Offsets>
+                    <Offset>120</Offset>
+                    <Offset>6328</Offset>
+                    <Offset>18</Offset>
+                    <Offset>00C90E28</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>2620</ID>
+                  <Description>"+1DD"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Byte</VariableType>
+                  <Address>dmc3.exe+168</Address>
+                  <Offsets>
+                    <Offset>1DD</Offset>
                     <Offset>6328</Offset>
                     <Offset>18</Offset>
                     <Offset>00C90E28</Offset>
@@ -4670,6 +4733,42 @@ dmc3.exe+1E9A5C: CC                    - int 3
             </CheatEntry>
             <CheatEntry>
               <ID>2440</ID>
+              <Description>"+6358 RoyalguardStyleLevel"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Byte</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>6358</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2624</ID>
+              <Description>"+6380 RG Release Level"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>2 Bytes</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>6380</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2626</ID>
+              <Description>"+6381 RG Release Level Index"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>2 Bytes</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>6381</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2625</ID>
               <Description>"+6384 RG gauge"</Description>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>Float</VariableType>
@@ -5188,7 +5287,7 @@ dmc3.exe+5728A: 48 83 C4 30                    - add rsp,30
           <CheatEntries>
             <CheatEntry>
               <ID>1586</ID>
-              <Description>"+240 CCameraCtrl"</Description>
+              <Description>"+0 CCameraCtrl"</Description>
               <ShowAsHex>1</ShowAsHex>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>4 Bytes</VariableType>
@@ -5200,7 +5299,7 @@ dmc3.exe+5728A: 48 83 C4 30                    - add rsp,30
             </CheatEntry>
             <CheatEntry>
               <ID>1549</ID>
-              <Description>"+498 Cam"</Description>
+              <Description>"+498 CameraAddr"</Description>
               <ShowAsHex>1</ShowAsHex>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>4 Bytes</VariableType>
@@ -5273,78 +5372,49 @@ dmc3.exe+5728A: 48 83 C4 30                    - add rsp,30
               </CheatEntries>
             </CheatEntry>
             <CheatEntry>
-              <ID>1599</ID>
-              <Description>"+498 Cam"</Description>
+              <ID>2614</ID>
+              <Description>"+4B0 this changes to 0 on ThirdPerson"</Description>
               <ShowAsHex>1</ShowAsHex>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>4 Bytes</VariableType>
               <Address>dmc3.exe+CF2330</Address>
               <Offsets>
-                <Offset>49A</Offset>
+                <Offset>4B0</Offset>
                 <Offset>240</Offset>
               </Offsets>
-              <CheatEntries>
-                <CheatEntry>
-                  <ID>1600</ID>
-                  <Description>"+0"</Description>
-                  <ShowAsSigned>0</ShowAsSigned>
-                  <VariableType>Float</VariableType>
-                  <Address>dmc3.exe+CF2330</Address>
-                  <Offsets>
-                    <Offset>0</Offset>
-                    <Offset>498</Offset>
-                    <Offset>240</Offset>
-                  </Offsets>
-                </CheatEntry>
-                <CheatEntry>
-                  <ID>1601</ID>
-                  <Description>"+24 roll"</Description>
-                  <ShowAsSigned>0</ShowAsSigned>
-                  <VariableType>Float</VariableType>
-                  <Address>dmc3.exe+CF2330</Address>
-                  <Offsets>
-                    <Offset>24</Offset>
-                    <Offset>498</Offset>
-                    <Offset>240</Offset>
-                  </Offsets>
-                </CheatEntry>
-                <CheatEntry>
-                  <ID>1602</ID>
-                  <Description>"+D4 tilt"</Description>
-                  <ShowAsSigned>0</ShowAsSigned>
-                  <VariableType>Float</VariableType>
-                  <Address>dmc3.exe+CF2330</Address>
-                  <Offsets>
-                    <Offset>D4</Offset>
-                    <Offset>498</Offset>
-                    <Offset>240</Offset>
-                  </Offsets>
-                </CheatEntry>
-                <CheatEntry>
-                  <ID>1603</ID>
-                  <Description>"1D4"</Description>
-                  <ShowAsSigned>0</ShowAsSigned>
-                  <VariableType>Float</VariableType>
-                  <Address>dmc3.exe+CF2330</Address>
-                  <Offsets>
-                    <Offset>1D4</Offset>
-                    <Offset>498</Offset>
-                    <Offset>240</Offset>
-                  </Offsets>
-                </CheatEntry>
-                <CheatEntry>
-                  <ID>1604</ID>
-                  <Description>"+1E0 camera lag"</Description>
-                  <ShowAsSigned>0</ShowAsSigned>
-                  <VariableType>Float</VariableType>
-                  <Address>dmc3.exe+CF2330</Address>
-                  <Offsets>
-                    <Offset>1E0</Offset>
-                    <Offset>498</Offset>
-                    <Offset>240</Offset>
-                  </Offsets>
-                </CheatEntry>
-              </CheatEntries>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2616</ID>
+              <Description>"+26F1 WhichFixedCamera"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Byte</VariableType>
+              <Address>dmc3.exe+CF2330</Address>
+              <Offsets>
+                <Offset>26F1</Offset>
+                <Offset>240</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2617</ID>
+              <Description>"+26F2 WhichFixedCamera"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Byte</VariableType>
+              <Address>dmc3.exe+CF2330</Address>
+              <Offsets>
+                <Offset>26F2</Offset>
+                <Offset>240</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2618</ID>
+              <Description>"+26F3 "</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Byte</VariableType>
+              <Address>dmc3.exe+CF2330</Address>
+              <Offsets>
+                <Offset>26F3</Offset>
+                <Offset>240</Offset>
+              </Offsets>
             </CheatEntry>
           </CheatEntries>
         </CheatEntry>
@@ -8030,6 +8100,12 @@ dmc3.exe+56050: 0F 5B C0                 - cvtdq2ps xmm0,xmm0
       <ShowAsSigned>0</ShowAsSigned>
       <VariableType>8 Bytes</VariableType>
       <Address>dmc3.exe+60A52 </Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2623</ID>
+      <Description>"No Description"</Description>
+      <VariableType>4 Bytes</VariableType>
+      <Address>047F51C4</Address>
     </CheatEntry>
   </CheatEntries>
   <CheatCodes>
@@ -74634,6 +74710,217 @@ dmc3.exe+56050: 0F 5B C0                 - cvtdq2ps xmm0,xmm0
         <Byte>63</Byte>
       </After>
     </CodeEntry>
+    <CodeEntry>
+      <Description>Change of jne dmc3.exe+558C0</Description>
+      <AddressString>dmc3.exe+558AC</AddressString>
+      <Before>
+        <Byte>26</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>3C</Byte>
+        <Byte>FF</Byte>
+      </Before>
+      <Actual>
+        <Byte>75</Byte>
+        <Byte>12</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>81</Byte>
+        <Byte>F2</Byte>
+        <Byte>26</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of movss xmm7,[rdx+0C]</Description>
+      <AddressString>dmc3.exe+10B7B6</AddressString>
+      <Before>
+        <Byte>24</Byte>
+        <Byte>20</Byte>
+        <Byte>49</Byte>
+        <Byte>8B</Byte>
+        <Byte>D8</Byte>
+      </Before>
+      <Actual>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+        <Byte>10</Byte>
+        <Byte>7A</Byte>
+        <Byte>0C</Byte>
+      </Actual>
+      <After>
+        <Byte>E8</Byte>
+        <Byte>D0</Byte>
+        <Byte>DB</Byte>
+        <Byte>F4</Byte>
+        <Byte>FF</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mulss xmm7,xmm0</Description>
+      <AddressString>dmc3.exe+10B7FA</AddressString>
+      <Before>
+        <Byte>8F</Byte>
+        <Byte>80</Byte>
+        <Byte>01</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+        <Byte>59</Byte>
+        <Byte>F8</Byte>
+      </Actual>
+      <After>
+        <Byte>E8</Byte>
+        <Byte>8D</Byte>
+        <Byte>54</Byte>
+        <Byte>F5</Byte>
+        <Byte>FF</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rbx+00006384],00000000</Description>
+      <AddressString>dmc3.exe+20BD57</AddressString>
+      <Before>
+        <Byte>74</Byte>
+        <Byte>12</Byte>
+        <Byte>48</Byte>
+        <Byte>8B</Byte>
+        <Byte>CB</Byte>
+      </Before>
+      <Actual>
+        <Byte>C7</Byte>
+        <Byte>83</Byte>
+        <Byte>84</Byte>
+        <Byte>63</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>E8</Byte>
+        <Byte>FA</Byte>
+        <Byte>2F</Byte>
+        <Byte>FE</Byte>
+        <Byte>FF</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of call dmc3.exe+1EED60</Description>
+      <AddressString>dmc3.exe+20BD61</AddressString>
+      <Before>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>E8</Byte>
+        <Byte>FA</Byte>
+        <Byte>2F</Byte>
+        <Byte>FE</Byte>
+        <Byte>FF</Byte>
+      </Actual>
+      <After>
+        <Byte>BA</Byte>
+        <Byte>01</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov word ptr [rcx+00006380],0101</Description>
+      <AddressString>dmc3.exe+1EEDF7</AddressString>
+      <Before>
+        <Byte>0F</Byte>
+        <Byte>2F</Byte>
+        <Byte>C1</Byte>
+        <Byte>72</Byte>
+        <Byte>23</Byte>
+      </Before>
+      <Actual>
+        <Byte>66</Byte>
+        <Byte>C7</Byte>
+        <Byte>81</Byte>
+        <Byte>80</Byte>
+        <Byte>63</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>01</Byte>
+        <Byte>01</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>2E</Byte>
+        <Byte>88</Byte>
+        <Byte>20</Byte>
+        <Byte>02</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov byte ptr [rcx+00006381],02</Description>
+      <AddressString>dmc3.exe+1EEE0B</AddressString>
+      <Before>
+        <Byte>00</Byte>
+        <Byte>7A</Byte>
+        <Byte>5C</Byte>
+        <Byte>75</Byte>
+        <Byte>5A</Byte>
+      </Before>
+      <Actual>
+        <Byte>C6</Byte>
+        <Byte>81</Byte>
+        <Byte>81</Byte>
+        <Byte>63</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>02</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>81</Byte>
+        <Byte>80</Byte>
+        <Byte>63</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov word ptr [rcx+00006380],0000</Description>
+      <AddressString>dmc3.exe+1EEDD2</AddressString>
+      <Before>
+        <Byte>0F</Byte>
+        <Byte>2F</Byte>
+        <Byte>C1</Byte>
+        <Byte>72</Byte>
+        <Byte>11</Byte>
+      </Before>
+      <Actual>
+        <Byte>66</Byte>
+        <Byte>C7</Byte>
+        <Byte>81</Byte>
+        <Byte>80</Byte>
+        <Byte>63</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>81</Byte>
+        <Byte>80</Byte>
+        <Byte>63</Byte>
+      </After>
+    </CodeEntry>
   </CheatCodes>
   <UserdefinedSymbols>
     <SymbolEntry>
@@ -79464,6 +79751,22 @@ dmc3.exe+2BB11E style bar stuff
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
+      <Address>"dmc3.exe"+1EEDF7</Address>
+      <Comment>257, Release Level 1,
+this will affect RoyalguardReleaseLevel
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EEE27</Address>
+      <Comment>770, Release Level 2
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EEE4A</Address>
+      <Comment>1283, Release Level 3
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
       <Address>"dmc3.exe"+1F7086</Address>
       <Comment>release, attack
 </Comment>
@@ -79501,6 +79804,16 @@ dmc3.exe+2BB11E style bar stuff
     <DisassemblerComment>
       <Address>"dmc3.exe"+20B7F0</Address>
       <Comment>release??
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20BD57</Address>
+      <Comment>This drains RGGauge on tick until move is completed
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20BD61</Address>
+      <Comment>This is updating RGGauge HUD
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>

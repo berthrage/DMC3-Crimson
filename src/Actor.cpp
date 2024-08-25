@@ -7983,14 +7983,29 @@ void UpdateActorSpeed(byte8* baseAddr) {
 
 
     auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
-    CrimsonGameplay::CheckRoyalRelease(mainActorData);
-    CrimsonGameplay::CheckSkyLaunch(mainActorData);
-    CrimsonGameplay::SkyLaunchProperties(mainActorData);
     CrimsonPatches::DisableAirSlashKnockback();
     CrimsonGameplay::SetAirStingerEnd(mainActorData);
     CrimsonPatches::InertiaFixes();
 
+    // Sky Launch needs to be called from here for maximum on tick speed so that its position is properly
+    // applied in real-time. - Mia
+	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
+		auto& playerData = GetPlayerData(playerIndex);
+		auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 
+		if (!newActorData.baseAddr) {
+			return;
+		}
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+		auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+
+		CrimsonGameplay::SkyLaunchAirTauntController(actorData);
+		CrimsonGameplay::SkyLaunchAirTauntController(cloneActorData);
+
+	}
+
+    
     auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(mainActorData.cloneActorBaseAddr);
     // AirTauntToggleController(cloneActorData);
     // SkyLaunchProperties(cloneActorData);
@@ -8073,6 +8088,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 if (activeConfig.Gameplay.sprint) {
                     CrimsonGameplay::SprintAbility(actorBaseAddr);
                 }
+				
 
                 // InertiaController(actorData.cloneActorBaseAddr);
                 CrimsonGameplay::BackToForwardInputs(actorBaseAddr);
@@ -8377,11 +8393,34 @@ float ApplyDamage(byte8* dest, float value) {
         if (!pool_13274 || !pool_13274[3]) {
             return value;
         }
-        auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_13274[3]);
 
-        if (actorData.styleData.rank < activeConfig.damageStyleRank || executingSkyLaunch) {
-            return 0;
+        {
+            auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_13274[3]);
+
+
+            if (actorData.styleData.rank < activeConfig.damageStyleRank) {
+                return 0;
+            }
         }
+
+        // Global Enemy Damage Nullifier for Sky Launch
+		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
+			auto& playerData = GetPlayerData(playerIndex);
+			auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+			auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+
+			if (!newActorData.baseAddr) {
+                continue;
+			}
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+			auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+			auto& skyLaunch = crimsonPlayer[playerIndex].skyLaunch;
+            auto& skyLaunchClone = crimsonPlayer[playerIndex].skyLaunchClone;
+
+            if (skyLaunch.executing || skyLaunchClone.executing) {
+                return 0;
+            }
+		}
     }
 
     return value;
@@ -8989,10 +9028,12 @@ void SetAction(byte8* actorBaseAddr) {
 
 
     auto tiltDirection = GetRelativeTiltDirection(actorData);
+    
 
     auto playerIndex = actorData.newPlayerIndex;
     auto actionTimer =
         (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
+    auto& gamepad = GetGamepad(playerIndex);
 
     DebugLog("%s %llX %u", FUNC_NAME, actorBaseAddr, actorData.action);
 
@@ -9040,16 +9081,6 @@ void SetAction(byte8* actorBaseAddr) {
         } else {
             crimsonPlayer[playerIndex].inQuickDrive = false;
         }
-
-
-        // This is important for Sky Launch/Royal Release switch
-        if ((actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) && actorData.state & STATE::IN_AIR) {
-
-            // executingSkyLaunch = true;
-            CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
-            // actorData.action = REBELLION_SWORD_PIERCE;
-        }
-
 
         // Swap Sword Pierce and Dance Macabre
         if ((actorData.action == REBELLION_SWORD_PIERCE)) {
@@ -12951,11 +12982,11 @@ void EventDelete() {
     if (!activeConfig.Actor.enable) {
         return;
     }
-    doppTimeTrackerRunning  = false;
-    executingSkyLaunch      = false;
-    skyLaunchTrackerRunning = false;
-    doppSeconds             = 0;
-    doppSecondsDT           = 0;
+
+    for (int playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {
+        crimsonPlayer[playerIndex].skyLaunch.executing = false;
+    }
+
     LogFunction();
 
     // Copy Data - copying of Data has moved to Spawn Actor instead, to preserve data between multiple players.

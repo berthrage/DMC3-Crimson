@@ -532,10 +532,16 @@ void ToggleRoyalguardForceJustFrameRelease(bool enable) {
     LogFunction(enable);
 
     static bool run = false;
+    static bool run2 = false;
+
+    // If the current state is the same as the desired state, return early.
+    if (run2 == enable) {
+        return;
+    }
 
     // Release
     {
-        auto addr             = (appBaseAddr + 0x20B714);
+        auto addr = (appBaseAddr + 0x20B714);
         constexpr uint32 size = 7;
         /*
         dmc3.exe+20B714 - C6 83 103E0000 01 - mov byte ptr [rbx+00003E10],01
@@ -551,42 +557,49 @@ void ToggleRoyalguardForceJustFrameRelease(bool enable) {
             Write<uint32>((addr + 2), offsetof(PlayerActorData, action));
             Write<uint8>((addr + 6), ACTION_DANTE::ROYALGUARD_RELEASE_2);
             protectionHelper.Pop();
-            forcingJustFrameRoyalRelease = true;
-        } else {
+        }
+        else {
             backupHelper.Restore(addr);
-            forcingJustFrameRoyalRelease = false;
         }
     }
 
     // Air Release
-    {
-        auto addr             = (appBaseAddr + 0x20BCF8);
-        constexpr uint32 size = 7;
-        /*
-        dmc3.exe+20BCF8 - C6 83 103E0000 01 - mov byte ptr [rbx+00003E10],01
-        dmc3.exe+20BCFF - 0F2F BB 30400000  - comiss xmm7,[rbx+00004030]
-        */
+//     {
+//         auto addr = (appBaseAddr + 0x20BCF8);
+//         constexpr uint32 size = 7;
+//         /*
+//         dmc3.exe+20BCF8 - C6 83 10 3E 00 00 01 - mov byte ptr [rbx+00003E10],01
+//         dmc3.exe+20BCFF - 0F2F BB 30400000  - comiss xmm7,[rbx+00004030]
+//         */
+// 
+//         if (!run) {
+//             backupHelper.Save(addr, size);
+//         }
+// 
+//         if (enable) {
+//             protectionHelper.Push(addr, size);
+//             Write<uint32>((addr + 2), offsetof(PlayerActorData, action));
+//             Write<uint8>((addr + 6), ACTION_DANTE::ROYALGUARD_AIR_RELEASE_2);
+//             protectionHelper.Pop();
+//         }
+//         else {
+//             backupHelper.Restore(addr);
+//         }
+//     }
 
-        if (!run) {
-            backupHelper.Save(addr, size);
-        }
+    // Air Release cheat has been moved to CrimsonDetours::SkyLaunchForceReleaseDetour
+    // for Sky Launch to work. Cheat behavior stays the same. - Mia
+  
+    // Update the state to reflect that the function has handled the enable/disable change
+    run2 = enable;
 
-        if (enable) {
-            protectionHelper.Push(addr, size);
-            Write<uint32>((addr + 2), offsetof(PlayerActorData, action));
-            Write<uint8>((addr + 6), ACTION_DANTE::ROYALGUARD_AIR_RELEASE_2);
-            protectionHelper.Pop();
-        } else {
-            backupHelper.Restore(addr);
-        }
-    }
-
+    // Mark that the backup was saved
     run = true;
 }
 
 #pragma endregion
 
-#pragma region AirTauntStuff--UNUSE
+#pragma region AirTauntStuff--UNUSED
 // Replaced by SetAirTaunt in CrimsonDetours
 // keeping it here for documentation only. - Mia
 
@@ -745,7 +758,33 @@ void CerberusCrashFixPart2(bool enable) {
 # pragma region Damage
 
 void StopDamageToCerberus(bool enable) {
-	// this will prevent Cerberus from taking any damage, complementing Sky Launch and Infinite HP cheat.
+	// this will prevent Cerberus from taking any damage, complementing Infinite HP cheat.
+    // we now do this by stopping the noping the instruction that calculates damage to cerb from player, before it writes to his hp values.
+    // which is one nop instead of various ones.
+
+	//dmc3.exe + 10B7B6 - F3 0F 10 7A 0C - movss xmm7, [rdx + 0C]
+
+
+    static bool run = false;
+
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	if (enable) {
+		_nop((char*)(appBaseAddr + 0x10B7B6), 5);
+
+	}
+	else {
+		_patch((char*)(appBaseAddr + 0x10B7B6), (char*)"\xF3\x0F\x10\x7A\x0C", 5);
+
+	}
+
+    run = enable;
+
+
+    // These are the old instructions to stop damage to cerberus.
 // 	    stop Cerberus Part 1 damage
 // 		dmc3.exe + 10C22E - F3 0F 11 87 D0 E1 00 00 - movss[rdi + 0000E1D0], xmm0
 // 
@@ -756,40 +795,14 @@ void StopDamageToCerberus(bool enable) {
 //     stop Cerberus Part 2 Damage All Heads when -~30% hp threshold (it switches to this instruction for damage instead)
 // 	   dmc3.exe + 10BD0B - F3 42 0F 11 84 A7 D4 E1 00 00 - movss[rdi + r12 * 4 + 0000E1D4], xmm0
 // 
-//     stop Cerberus Part 1 damage to the legs -- causes CRASH if used in conjunction with others
+//     stop Cerberus Part 1 damage to the legs
 //     dmc3.exe+10C1C6 - F3 0F 11 87 D0 E1 00 00   - movss [rdi+0000E1D0],xmm0
 //     
-//     stop Cerberus Part 2 Damage Legs 1 -- causes CRASH if used in conjunction with others
+//     stop Cerberus Part 2 Damage Legs 1 
 //     dmc3.exe+10BC57 - F3 0F 11 87 D8 E1 00 00   - movss [rdi+0000E1D8],xmm0
 // 
-//     stop Cerberus Part 2 Damage Legs 2 -- causes CRASH if used in conjunction with others
+//     stop Cerberus Part 2 Damage Legs 2 
 // 	   dmc3.exe + 10BB50 - F3 0F 11 87 D8 E1 00 00 - movss[rdi + 0000E1D8], xmm0
-
-    static bool run = false;
-
-	// If the function has already run in the current state, return early
-	if (run == enable) {
-		return;
-	}
-
-	if (enable) {
-		_nop((char*)(appBaseAddr + 0x10C22E), 8);
-		_nop((char*)(appBaseAddr + 0x10C0BE), 10);
-        _nop((char*)(appBaseAddr + 0x10BD0B), 10);
-        _nop((char*)(appBaseAddr + 0x10C1C6), 8);
-        _nop((char*)(appBaseAddr + 0x10BC57), 8);
-        _nop((char*)(appBaseAddr + 0x10BB50), 8);
-	}
-	else {
-		_patch((char*)(appBaseAddr + 0x10C22E), (char*)"\xF3\x0F\x11\x87\xD0\xE1\x00\x00", 8);
-		_patch((char*)(appBaseAddr + 0x10C0BE), (char*)"\xF3\x42\x0F\x11\x84\xA7\xD4\xE1\x00\x00", 10);
-        _patch((char*)(appBaseAddr + 0x10BD0B), (char*)"\xF3\x42\x0F\x11\x84\xA7\xD4\xE1\x00\x00", 10);
-        _patch((char*)(appBaseAddr + 0x10C1C6), (char*)"\xF3\x0F\x11\x87\xD0\xE1\x00\x00", 8);
-        _patch((char*)(appBaseAddr + 0x10BC57), (char*)"\xF3\x0F\x11\x87\xD8\xE1\x00\x00", 8);
-        _patch((char*)(appBaseAddr + 0x10BB50), (char*)"\xF3\x0F\x11\x87\xD8\xE1\x00\x00", 8);
-	}
-
-    run = enable;
 }
 
 # pragma endregion

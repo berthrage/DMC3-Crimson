@@ -17,6 +17,19 @@ void EnableAirTauntDetour();
 // SetAirTaunt
 void SetAirTauntDetour();
 
+// Sky Launch Detours: (Dante Air Taunt)
+// SkyLaunchForceRelease 
+void SkyLaunchForceReleaseDetour();
+
+// SkyLaunchKillRGConsumption1
+void SkyLaunchKillRGConsumptionDetour();
+
+// SkyLaunchKillReleaseLevel11Detour
+void SkyLaunchKillReleaseLevel1Detour();
+void SkyLaunchKillReleaseLevel2Detour();
+void SkyLaunchKillReleaseLevel3Detour();
+
+
 // CreateEffect
 //extern int createEffectBank;
 //extern int createEffectID;

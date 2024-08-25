@@ -7189,17 +7189,21 @@ void MainOverlayWindow(size_t defaultFontSize) {
 
 			ImGui::Text("Enemy Health %g", actorData.lockOnData.targetPosition.z);
 
-            for (int i = 0; i < 8; i++) {
-                ImGui::Text("expertise[%u]:  %x", i, actorData.activeExpertise[i]);
-            }
-
-			for (int i = 0; i < 10; i++) {
-				ImGui::Text("actorData rangedWeaponLevels[%u]:  %x", i, actorData.newWeaponLevels[i]);
-			}
+//             for (int i = 0; i < 8; i++) {
+//                 ImGui::Text("expertise[%u]:  %x", i, actorData.activeExpertise[i]);
+//             }
+// 
+// 			for (int i = 0; i < 10; i++) {
+// 				ImGui::Text("actorData rangedWeaponLevels[%u]:  %x", i, actorData.newWeaponLevels[i]);
+// 			}
 			
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
-			ImGui::Text("meter:  %g", actorData.styleData.meter);
+			ImGui::Text("SKY LAUNCH EXECUTING:  %u", crimsonPlayer[0].skyLaunch.executing);
+			ImGui::Text("ROYAL RELEASE EXECUTING:  %u", crimsonPlayer[0].royalRelease.executing);
+			ImGui::Text("STORED RELEASE LEVEL:  %u", crimsonPlayer[0].skyLaunch.storedReleaseLevel);
+			ImGui::Text("ROYAL GAUGE:  %g", actorData.royalguardReleaseDamage);
+			ImGui::Text("ACTION:  %u", actorData.action);
             ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
             ImGui::Text("DTE CHARGE: %g", actorData.dtExplosionCharge);
             ImGui::Text("DTE CHARGE: %g", crimsonPlayer[0].dtExplosionCharge);
