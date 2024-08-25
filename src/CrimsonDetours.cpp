@@ -67,6 +67,10 @@ void SkyLaunchKillReleaseLevel2Detour();
 std::uint64_t g_SkyLaunchKillReleaseLevel3_ReturnAddr;
 void SkyLaunchKillReleaseLevel3Detour();
 
+// SkyLaunchKillDamage
+std::uint64_t g_SkyLaunchKillDamage_ReturnAddr;
+void SkyLaunchKillDamageDetour();
+
 // CreateEffect
 std::uint64_t createEffectRBXMov;
 std::uint64_t createEffectCallA;
@@ -355,9 +359,11 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
 	auto playerIndex = actorData.newPlayerIndex;
 	auto gamepad = GetGamepad(playerIndex);
 
-	if (actorData.state & STATE::IN_AIR && gamepad.buttons[0] & GetBinding(BINDING::TAUNT)) {
-		return true;
-	}
+    if (actorData.character == CHARACTER::DANTE) {
+		if (actorData.state & STATE::IN_AIR && gamepad.buttons[0] & GetBinding(BINDING::TAUNT)) {
+			return true;
+		}
+    }
 
 	return false;
 }
@@ -432,6 +438,13 @@ void InitDetours() {
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EEE4A, &SkyLaunchKillReleaseLevel3Detour, 9);
 	g_SkyLaunchKillReleaseLevel3_ReturnAddr = SkyLaunchKillReleaseLevel3Hook->GetReturnAddress();
 	SkyLaunchKillReleaseLevel3Hook->Toggle(true);
+
+	// SkyLaunchKillDamage
+	// dmc3.exe + 881F1 - F3 44 0F 10 4A 0C - movss xmm9, [rdx + 0C]
+	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillDamageHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x881F1, &SkyLaunchKillDamageDetour, 6);
+	g_SkyLaunchKillDamage_ReturnAddr = SkyLaunchKillDamageHook->GetReturnAddress();
+	SkyLaunchKillDamageHook->Toggle(true);
 
     // CreateEffect
     createEffectCallA  = (uintptr_t)appBaseAddr + 0x2E7CA0;

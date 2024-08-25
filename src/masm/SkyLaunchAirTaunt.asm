@@ -164,4 +164,43 @@ OriginalCode:
     
 SkyLaunchKillReleaseLevel3Detour ENDP
 
+
+.DATA
+extern g_SkyLaunchKillDamage_ReturnAddr:QWORD
+extern g_skyLaunchCheckCall:QWORD
+
+align 16
+saved_rdi dq 0.0
+
+.CODE
+SkyLaunchKillDamageDetour PROC
+    ; player in rdi and r9 ( - 60h)
+    push rax
+    push rcx
+    push rbx
+    push rdx
+    ; you know the drill
+    ; Call the C++ function to check if player is in SkyLaunch
+    
+    mov qword ptr saved_rdi, rdi
+    sub qword ptr saved_rdi, 60h
+    mov rcx, qword ptr [saved_rdi] 
+    call qword ptr [g_skyLaunchCheckCall]
+    cmp al, 01
+    pop rdx
+    pop rbx
+    pop rcx
+    pop rax
+    je KillDamage
+    jmp OriginalCode
+
+KillDamage:
+    jmp qword ptr [g_SkyLaunchKillDamage_ReturnAddr]
+
+OriginalCode:
+    movss xmm9, dword ptr [rdx + 0Ch]
+    jmp qword ptr [g_SkyLaunchKillDamage_ReturnAddr]
+    
+SkyLaunchKillDamageDetour ENDP
+
 END

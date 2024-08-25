@@ -24,11 +24,13 @@ void SkyLaunchForceReleaseDetour();
 // SkyLaunchKillRGConsumption1
 void SkyLaunchKillRGConsumptionDetour();
 
-// SkyLaunchKillReleaseLevel11Detour
+// SkyLaunchKillReleaseLevelDetour
 void SkyLaunchKillReleaseLevel1Detour();
 void SkyLaunchKillReleaseLevel2Detour();
 void SkyLaunchKillReleaseLevel3Detour();
 
+// SkyLaunchKillDamage
+void SkyLaunchKillDamageDetour();
 
 // CreateEffect
 //extern int createEffectBank;
