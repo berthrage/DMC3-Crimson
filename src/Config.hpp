@@ -421,7 +421,7 @@ struct Config {
                 enable = true;
             }
         }
-    } mainOverlayData;
+    } debugOverlayData;
 
     OverlayData missionOverlayData;
     OverlayData bossLadyActionsOverlayData;

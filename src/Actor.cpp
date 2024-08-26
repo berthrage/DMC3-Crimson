@@ -2853,7 +2853,7 @@ void SpawnActors() {
 #pragma region Controllers
 
 void RemoveBusyFlagLegacy(byte8* actorBaseAddr) {
-    // Old ddmk's RemoveBusyFlagController, we will keep on Cheats&Debug for legacy keeping reasons.
+    // Old ddmk's RemoveBusyFlagController, we will keep on Cheats&DebugSection for legacy keeping reasons.
     if (!actorBaseAddr) {
         return;
     }

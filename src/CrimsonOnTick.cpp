@@ -15,6 +15,8 @@
 #include "Vars.hpp"
 
 #include "Core/Macros.h"
+#include "Sound.hpp"
+#include "CrimsonSDL.hpp"
 
 namespace CrimsonOnTick {
 
@@ -74,6 +76,26 @@ void PreparePlayersDataBeforeSpawn() {
 			crimsonPlayer[playerIndex].styleData.divisor = 0;
 
 		}
+	}
+}
+
+void NewMissionClearSong() {
+	if (g_scene == SCENE::MISSION_RESULT && !missionClearSongPlayed) {
+		// Mute Music Channel Volume
+		SetVolume(9, 0);
+
+		// Play song
+		CrimsonSDL::PlayNewMissionClearSong();
+		missionClearSongPlayed = true;
+	}
+	else if (g_scene != SCENE::MISSION_RESULT && missionClearSongPlayed) {
+		// Fade it out
+		CrimsonSDL::FadeOutNewMissionClearSong();
+
+		// Restore original Channnel Volume
+		SetVolume(9, activeConfig.channelVolumes[9]);
+
+		missionClearSongPlayed = false;
 	}
 }
 

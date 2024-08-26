@@ -5278,7 +5278,7 @@ void CloseShop() {
 
 #pragma endregion
 
-#pragma region Debug
+#pragma region DebugSection
 
 bool showExpWindow = false;
 bool showMissionDataWindow = false;
@@ -6258,9 +6258,23 @@ void SoundWindow() {
 }
 
 
-void Debug() {
-    if (ImGui::CollapsingHeader("Debug")) {
-        ImGui::Text("");
+void DebugSection() {
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
+	const float itemWidth = defaultFontSize * 8.0f;
+	ImGui::PushItemWidth(itemWidth);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+
+	GUI_Checkbox2("Debug Overlay", activeConfig.debugOverlayData.enable, queuedConfig.debugOverlayData.enable);
+
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	if (ImGui::CollapsingHeader("DEBUG")) {
+
+		ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+		
+
+		ImGui::Text("");
 
 		if (ImGui::Button("heheh")) {
 			CrimsonDetours::SampleModDetour1();
@@ -6277,331 +6291,338 @@ void Debug() {
 
 		ImGui::InputInt("Effect Bank", &vfxBank);
 		ImGui::InputInt("Effect ID", &vfxId);
-        ImGui::InputInt("Effect Bone", &boneIdx);
-        static int effectPlayerID = 0;
-        ImGui::InputInt("Player", &effectPlayerID);
-        auto pPlayer = (void*)crimsonPlayer[effectPlayerID].playerPtr;
+		ImGui::InputInt("Effect Bone", &boneIdx);
+		static int effectPlayerID = 0;
+		ImGui::InputInt("Player", &effectPlayerID);
+		auto pPlayer = (void*)crimsonPlayer[effectPlayerID].playerPtr;
 		if (ImGui::Button("CreateEffect")) {
 			CrimsonDetours::CreateEffectDetour(pPlayer, vfxBank, vfxId, boneIdx, 69420);
 		}
 
-        ImGui::Text("");
+		ImGui::Text("");
 
-        GUI_Checkbox("g_noTeleport", g_noTeleport);
+		GUI_Checkbox("g_noTeleport", g_noTeleport);
 
 
-        GUI_Checkbox("g_showShop", g_showShop);
+		GUI_Checkbox("g_showShop", g_showShop);
 
-        GUI_Input<float>("saveTimeout", GUI::saveTimeout, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+		GUI_Input<float>("saveTimeout", GUI::saveTimeout, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
 
-        {
-            static int32 group = 0;
-            static int32 index = 0;
+		{
+			static int32 group = 0;
+			static int32 index = 0;
 
-            ImGui::PushItemWidth(150);
-            GUI_Input<int32>("group", group, 1, "%d", ImGuiInputTextFlags_EnterReturnsTrue);
-            GUI_Input<int32>("index", index, 1, "%d", ImGuiInputTextFlags_EnterReturnsTrue);
-            ImGui::PopItemWidth();
-            ImGui::Text("");
+			ImGui::PushItemWidth(150);
+			GUI_Input<int32>("group", group, 1, "%d", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input<int32>("index", index, 1, "%d", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+			ImGui::Text("");
 
-            if (GUI_Button("Play Sound")) {
-                PlaySound(group, index);
-            }
-        }
+			if (GUI_Button("Play Sound")) {
+				PlaySound(group, index);
+			}
+		}
 
+		ImGui::Text("");
 
-        GUI_SectionEnd();
-        ImGui::Text("");
 
+		GUI_Checkbox2("Welcome", activeConfig.welcome, queuedConfig.welcome);
+		ImGui::Text("");
 
-        GUI_Checkbox2("Welcome", activeConfig.welcome, queuedConfig.welcome);
-        ImGui::Text("");
 
+		if (GUI_Button("Actor")) {
+			showActorWindow = true;
+		}
+		ImGui::SameLine();
 
-        if (GUI_Button("Actor")) {
-            showActorWindow = true;
-        }
-        ImGui::SameLine();
+		if (GUI_Button("EventData")) {
+			showEventDataWindow = true;
+		}
+		ImGui::SameLine();
 
-        if (GUI_Button("EventData")) {
-            showEventDataWindow = true;
-        }
-        ImGui::SameLine();
+		if (GUI_Button("Exp Stuff")) {
+			showExpWindow = true;
+		}
+		ImGui::SameLine();
 
-        if (GUI_Button("Exp Stuff")) {
-            showExpWindow = true;
-        }
-        ImGui::SameLine();
+		if (GUI_Button("File Data")) {
+			showFileDataWindow = true;
+		}
+		ImGui::SameLine();
 
-        if (GUI_Button("File Data")) {
-            showFileDataWindow = true;
-        }
-        ImGui::SameLine();
+		if (GUI_Button("Mission Data")) {
+			showMissionDataWindow = true;
+		}
+		ImGui::SameLine();
 
-        if (GUI_Button("Mission Data")) {
-            showMissionDataWindow = true;
-        }
-        ImGui::SameLine();
+		if (GUI_Button("Region Data")) {
+			showRegionDataWindow = true;
+		}
+		ImGui::SameLine();
 
-        if (GUI_Button("Region Data")) {
-            showRegionDataWindow = true;
-        }
-        ImGui::SameLine();
+		if (GUI_Button("Sound")) {
+			showSoundWindow = true;
+		}
+		ImGui::Text("");
 
-        if (GUI_Button("Sound")) {
-            showSoundWindow = true;
-        }
-        ImGui::Text("");
+		if (GUI_Button("Close All")) {
+			showActorWindow = false;
+			showEventDataWindow = false;
+			showExpWindow = false;
+			showFileDataWindow = false;
+			showMissionDataWindow = false;
+			showRegionDataWindow = false;
+			showSoundWindow = false;
+		}
+		ImGui::Text("");
 
-        if (GUI_Button("Close All")) {
-            showActorWindow       = false;
-            showEventDataWindow   = false;
-            showExpWindow         = false;
-            showFileDataWindow    = false;
-            showMissionDataWindow = false;
-            showRegionDataWindow  = false;
-            showSoundWindow       = false;
-        }
-        ImGui::Text("");
 
+		auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
-        auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
+		GUI_Checkbox("One Hit Kill", sessionData.oneHitKill);
+		ImGui::Text("");
 
-        GUI_Checkbox("One Hit Kill", sessionData.oneHitKill);
-        ImGui::Text("");
+		GUI_Checkbox("unlockDevilTrigger", sessionData.unlockDevilTrigger);
+		ImGui::Text("");
 
-        GUI_Checkbox("unlockDevilTrigger", sessionData.unlockDevilTrigger);
-        ImGui::Text("");
 
+		ImGui::Text("");
 
-        ImGui::Text("");
+		if (GUI_Checkbox2(
+			"Disable Player Actor Idle Timer", activeConfig.disablePlayerActorIdleTimer, queuedConfig.disablePlayerActorIdleTimer)) {
+			ToggleDisablePlayerActorIdleTimer(activeConfig.disablePlayerActorIdleTimer);
+		}
+		ImGui::Text("");
 
-        if (GUI_Checkbox2(
-                "Disable Player Actor Idle Timer", activeConfig.disablePlayerActorIdleTimer, queuedConfig.disablePlayerActorIdleTimer)) {
-            ToggleDisablePlayerActorIdleTimer(activeConfig.disablePlayerActorIdleTimer);
-        }
-        ImGui::Text("");
 
+		{
+			static ModelData* modelDataAddr = 0;
+			static BodyPartData* bodyPartDataAddr = 0;
+			static NewArchiveMetadata* archiveAddr = 0;
 
-        {
-            static ModelData* modelDataAddr        = 0;
-            static BodyPartData* bodyPartDataAddr  = 0;
-            static NewArchiveMetadata* archiveAddr = 0;
+			static uint16 cacheFileIndex = em034;
 
-            static uint16 cacheFileIndex = em034;
+			static char buffer[8];
+			static byte8* file = 0;
+			static uint32 fileIndex = 0;
 
-            static char buffer[8];
-            static byte8* file      = 0;
-            static uint32 fileIndex = 0;
+			static char subbuffer[8];
+			static byte8* subfile = 0;
+			static uint32 subfileIndex = 0;
 
-            static char subbuffer[8];
-            static byte8* subfile      = 0;
-            static uint32 subfileIndex = 0;
 
+			GUI_Input<byte64>("modelDataAddr", *reinterpret_cast<byte64*>(&modelDataAddr), 0, "%llX",
+				ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsHexadecimal);
 
-            GUI_Input<byte64>("modelDataAddr", *reinterpret_cast<byte64*>(&modelDataAddr), 0, "%llX",
-                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsHexadecimal);
+			GUI_Input<byte64>("bodyPartDataAddr", *reinterpret_cast<byte64*>(&bodyPartDataAddr), 0, "%llX",
+				ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsHexadecimal);
 
-            GUI_Input<byte64>("bodyPartDataAddr", *reinterpret_cast<byte64*>(&bodyPartDataAddr), 0, "%llX",
-                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsHexadecimal);
+			GUI_Input<byte64>("archiveAddr", *reinterpret_cast<byte64*>(&archiveAddr), 0, "%llX",
+				ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsHexadecimal);
 
-            GUI_Input<byte64>("archiveAddr", *reinterpret_cast<byte64*>(&archiveAddr), 0, "%llX",
-                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CharsHexadecimal);
 
+			// @Todo: Set Archive.
 
-            // @Todo: Set Archive.
+			GUI_Input<uint16>("cacheFileIndex", cacheFileIndex, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 
-            GUI_Input<uint16>("cacheFileIndex", cacheFileIndex, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 
+			ImGui::PushItemWidth(50);
+			ImGui::InputText("", buffer, sizeof(buffer));
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
 
-            ImGui::PushItemWidth(50);
-            ImGui::InputText("", buffer, sizeof(buffer));
-            ImGui::PopItemWidth();
-            ImGui::SameLine();
+			ImGui::PushItemWidth(150);
+			GUI_Input<byte64>("", *reinterpret_cast<byte64*>(&file), 0, "%llX",
+				ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::SameLine();
+			GUI_Input<uint32>("", fileIndex);
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			if (GUI_Button("Set File")) {
+				[&]() {
+					if (!archiveAddr) {
+						return;
+					}
+					auto& archive = *archiveAddr;
 
-            ImGui::PushItemWidth(150);
-            GUI_Input<byte64>("", *reinterpret_cast<byte64*>(&file), 0, "%llX",
-                ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue);
-            ImGui::SameLine();
-            GUI_Input<uint32>("", fileIndex);
-            ImGui::PopItemWidth();
-            ImGui::SameLine();
-            if (GUI_Button("Set File")) {
-                [&]() {
-                    if (!archiveAddr) {
-                        return;
-                    }
-                    auto& archive = *archiveAddr;
 
+					file = archive[fileIndex];
 
-                    file = archive[fileIndex];
+					SetMemory(buffer, 0, sizeof(buffer));
 
-                    SetMemory(buffer, 0, sizeof(buffer));
-
 
-                    if (!file) {
-                        return;
-                    }
+					if (!file) {
+						return;
+					}
 
-                    CopyMemory(buffer, file, 4);
-                }();
-            }
+					CopyMemory(buffer, file, 4);
+					}();
+			}
 
 
-            ImGui::PushItemWidth(50);
-            ImGui::InputText("", subbuffer, sizeof(subbuffer));
-            ImGui::PopItemWidth();
-            ImGui::SameLine();
-            ImGui::PushItemWidth(150);
-            GUI_Input<uint64>("", *reinterpret_cast<uint64*>(&subfile), 0, "%llX",
-                ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue);
-            ImGui::SameLine();
-            GUI_Input<uint32>("", subfileIndex);
-            ImGui::PopItemWidth();
-            ImGui::SameLine();
-            // @Todo: Update.
-            if (GUI_Button("Set Subfile")) {
-                [&]() {
-                    auto subarchive = file;
-                    if (!subarchive) {
-                        return;
-                    }
+			ImGui::PushItemWidth(50);
+			ImGui::InputText("", subbuffer, sizeof(subbuffer));
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			ImGui::PushItemWidth(150);
+			GUI_Input<uint64>("", *reinterpret_cast<uint64*>(&subfile), 0, "%llX",
+				ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::SameLine();
+			GUI_Input<uint32>("", subfileIndex);
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			// @Todo: Update.
+			if (GUI_Button("Set Subfile")) {
+				[&]() {
+					auto subarchive = file;
+					if (!subarchive) {
+						return;
+					}
 
-                    auto& subarchiveMetadata = *reinterpret_cast<ArchiveMetadata*>(subarchive);
+					auto& subarchiveMetadata = *reinterpret_cast<ArchiveMetadata*>(subarchive);
 
-                    if ((subarchiveMetadata.signature[0] != 'P') || (subarchiveMetadata.signature[1] != 'A') ||
-                        (subarchiveMetadata.signature[2] != 'C')) {
-                        MessageBoxA(0, "Wrong Signature", 0, 0);
+					if ((subarchiveMetadata.signature[0] != 'P') || (subarchiveMetadata.signature[1] != 'A') ||
+						(subarchiveMetadata.signature[2] != 'C')) {
+						MessageBoxA(0, "Wrong Signature", 0, 0);
 
-                        return;
-                    }
+						return;
+					}
 
-                    if (subfileIndex >= subarchiveMetadata.fileCount) {
-                        MessageBoxA(0, "Out of range.", 0, 0);
+					if (subfileIndex >= subarchiveMetadata.fileCount) {
+						MessageBoxA(0, "Out of range.", 0, 0);
 
-                        return;
-                    }
+						return;
+					}
 
-                    auto subfileOff = subarchiveMetadata.fileOffs[subfileIndex];
-                    if (!subfileOff) {
-                        return;
-                    }
+					auto subfileOff = subarchiveMetadata.fileOffs[subfileIndex];
+					if (!subfileOff) {
+						return;
+					}
 
-                    subfile = (file + subfileOff);
+					subfile = (file + subfileOff);
 
-                    SetMemory(subbuffer, 0, sizeof(subbuffer));
+					SetMemory(subbuffer, 0, sizeof(subbuffer));
 
-                    if (!subfile) {
-                        return;
-                    }
+					if (!subfile) {
+						return;
+					}
 
-                    CopyMemory(subbuffer, (subfile + 4), 3);
-                }();
-            }
+					CopyMemory(subbuffer, (subfile + 4), 3);
+					}();
+			}
 
 
-            if (GUI_Button("Play File Motion")) {
-                [&]() {
-                    // IntroduceMainActorData(actorBaseAddr, actorData, return);
-                    if (!modelDataAddr) {
-                        return;
-                    }
+			if (GUI_Button("Play File Motion")) {
+				[&]() {
+					// IntroduceMainActorData(actorBaseAddr, actorData, return);
+					if (!modelDataAddr) {
+						return;
+					}
 
-                    func_8AC80(
-                        // actorData.newModelData[0],
-                        *modelDataAddr, UPPER_BODY, file, 0, false);
-                    func_8AC80(
-                        // actorData.newModelData[0],
-                        *modelDataAddr, LOWER_BODY, file, 0, false);
-                }();
-            }
+					func_8AC80(
+						// actorData.newModelData[0],
+						*modelDataAddr, UPPER_BODY, file, 0, false);
+					func_8AC80(
+						// actorData.newModelData[0],
+						*modelDataAddr, LOWER_BODY, file, 0, false);
+					}();
+			}
 
-            if (GUI_Button("Play Subfile Motion")) {
-                [&]() {
-                    if (!modelDataAddr) {
-                        return;
-                    }
-                    // IntroduceMainActorData(actorBaseAddr, actorData, return);
+			if (GUI_Button("Play Subfile Motion")) {
+				[&]() {
+					if (!modelDataAddr) {
+						return;
+					}
+					// IntroduceMainActorData(actorBaseAddr, actorData, return);
 
-                    func_8AC80(
-                        // actorData.newModelData[0],
-                        *modelDataAddr, UPPER_BODY, subfile, 0, false);
-                    func_8AC80(
-                        // actorData.newModelData[0],
-                        *modelDataAddr, LOWER_BODY, subfile, 0, false);
+					func_8AC80(
+						// actorData.newModelData[0],
+						*modelDataAddr, UPPER_BODY, subfile, 0, false);
+					func_8AC80(
+						// actorData.newModelData[0],
+						*modelDataAddr, LOWER_BODY, subfile, 0, false);
 
-                    // auto bodyPartData2
+					// auto bodyPartData2
 
-                    auto& done1 = *reinterpret_cast<bool*>(reinterpret_cast<byte8*>(&bodyPartDataAddr[0]) + 0xBA) = false;
-                    auto& done2 = *reinterpret_cast<bool*>(reinterpret_cast<byte8*>(&bodyPartDataAddr[1]) + 0xBA) = false;
-                }();
-            }
-        }
+					auto& done1 = *reinterpret_cast<bool*>(reinterpret_cast<byte8*>(&bodyPartDataAddr[0]) + 0xBA) = false;
+					auto& done2 = *reinterpret_cast<bool*>(reinterpret_cast<byte8*>(&bodyPartDataAddr[1]) + 0xBA) = false;
+					}();
+			}
+		}
 
 
-        {
-            static vec4 __declspec(align(16)) position   = {};
-            static vec4 __declspec(align(16)) multiplier = {};
-            static __m128 __declspec(align(16)) height   = {};
+		{
+			static vec4 __declspec(align(16)) position = {};
+			static vec4 __declspec(align(16)) multiplier = {};
+			static __m128 __declspec(align(16)) height = {};
 
 
-            GUI_Input("position x", position.x, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-            GUI_Input("position y", position.y, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-            GUI_Input("position z", position.z, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-            GUI_Input("position a", position.a, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input("position x", position.x, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input("position y", position.y, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input("position z", position.z, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input("position a", position.a, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
-            GUI_Input("multiplier x", multiplier.x, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-            GUI_Input("multiplier y", multiplier.y, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-            GUI_Input("multiplier z", multiplier.z, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-            GUI_Input("multiplier a", multiplier.a, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input("multiplier x", multiplier.x, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input("multiplier y", multiplier.y, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input("multiplier z", multiplier.z, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input("multiplier a", multiplier.a, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
 
-            GUI_Input("height x", height.m128_f32[0], 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-            GUI_Input("height y", height.m128_f32[1], 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-            GUI_Input("height z", height.m128_f32[2], 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-            GUI_Input("height a", height.m128_f32[3], 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input("height x", height.m128_f32[0], 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input("height y", height.m128_f32[1], 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input("height z", height.m128_f32[2], 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input("height a", height.m128_f32[3], 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
 
-            if (GUI_Button("Grenade")) {
-                // HoboBreak();
+			if (GUI_Button("Grenade")) {
+				// HoboBreak();
 
-                func_175210(&position, &multiplier, height);
-            }
-        }
+				func_175210(&position, &multiplier, height);
+			}
+		}
 
 
-        {
-            static uint32 event      = 0;
-            static uint8 action      = 0;
-            static uint64 actorIndex = 0;
+		{
+			static uint32 event = 0;
+			static uint8 action = 0;
+			static uint64 actorIndex = 0;
 
-            GUI_Input<decltype(actorIndex)>("actorIndex", actorIndex, 1, "%llu", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input<decltype(actorIndex)>("actorIndex", actorIndex, 1, "%llu", ImGuiInputTextFlags_EnterReturnsTrue);
 
-            GUI_Input<uint32>("event", event, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input<uint32>("event", event, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 
-            GUI_Input<decltype(action)>("action", action, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input<decltype(action)>("action", action, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 
 
-            if (GUI_Button("Event")) {
+			if (GUI_Button("Event")) {
 
-                [&]() {
-                    if (!g_playerActorBaseAddrs[actorIndex]) {
-                        return;
-                    }
-                    auto& actorData = *reinterpret_cast<PlayerActorData*>(g_playerActorBaseAddrs[actorIndex]);
+				[&]() {
+					if (!g_playerActorBaseAddrs[actorIndex]) {
+						return;
+					}
+					auto& actorData = *reinterpret_cast<PlayerActorData*>(g_playerActorBaseAddrs[actorIndex]);
 
-                    actorData.action = action;
+					actorData.action = action;
 
-                    func_1E09D0(actorData, event);
-                }();
-            }
-        }
+					func_1E09D0(actorData, event);
+					}();
+			}
+		}
 
+		ImGui::PopFont();
 
-        ImGui::Text("");
-    }
+		
+	}
+
+	ImGui::PopFont();
+
+
+	ImGui::PopItemWidth();
+	ImGui::PopFont();
+	ImGui::PopStyleColor();
+    
 }
 
 #pragma endregion
@@ -6966,33 +6987,13 @@ void Other() {
 
 #pragma region Interface
 
-void NewMissionClearSong() {
-    if (g_scene == SCENE::MISSION_RESULT && !missionClearSongPlayed) {
-        // Mute Music Channel Volume
-        SetVolume(9, 0);
 
-        // Play song
-        CrimsonSDL::PlayNewMissionClearSong();
-        missionClearSongPlayed = true;
-    } else if (g_scene != SCENE::MISSION_RESULT && missionClearSongPlayed) {
-        // Fade it out
-        CrimsonSDL::FadeOutNewMissionClearSong();
+const char* mainOverlayLabel = "DebugOverlay";
 
-        // Restore original Channnel Volume
-        SetVolume(9, activeConfig.channelVolumes[9]);
-
-        missionClearSongPlayed = false;
-    }
-}
-
-
-const char* mainOverlayLabel = "MainOverlay";
-
-void MainOverlayWindow(size_t defaultFontSize) {
-    NewMissionClearSong();
+void DebugOverlayWindow(size_t defaultFontSize) {
     
     auto Function = [&]() {
-        if (activeConfig.mainOverlayData.showFocus) {
+        if (activeConfig.debugOverlayData.showFocus) {
             auto color = ImVec4(0, 1, 0, 1);
             if (GetForegroundWindow() != appWindow) {
                 color = ImVec4(1, 0, 0, 1);
@@ -7003,27 +7004,27 @@ void MainOverlayWindow(size_t defaultFontSize) {
         }
 
 
-        if (activeConfig.mainOverlayData.showFPS) {
+        if (activeConfig.debugOverlayData.showFPS) {
             ImGui::Text("%.2f FPS", ImGui::GetIO().Framerate);
         }
 
-        if (activeConfig.mainOverlayData.showSizes) {
+        if (activeConfig.debugOverlayData.showSizes) {
             ImGui::Text("g_windowSize %g %g", g_windowSize.x, g_windowSize.y);
             ImGui::Text("g_clientSize %g %g", g_clientSize.x, g_clientSize.y);
             ImGui::Text("g_renderSize %g %g", g_renderSize.x, g_renderSize.y);
         }
 
 
-        if (activeConfig.mainOverlayData.showFrameRateMultiplier) {
+        if (activeConfig.debugOverlayData.showFrameRateMultiplier) {
             ImGui::Text("g_frameRateMultiplier %g", g_frameRateMultiplier);
         }
 
-        if (activeConfig.mainOverlayData.showFocus || activeConfig.mainOverlayData.showFPS || activeConfig.mainOverlayData.showSizes ||
-            activeConfig.mainOverlayData.showFrameRateMultiplier) {
+        if (activeConfig.debugOverlayData.showFocus || activeConfig.debugOverlayData.showFPS || activeConfig.debugOverlayData.showSizes ||
+            activeConfig.debugOverlayData.showFrameRateMultiplier) {
             ImGui::Text("");
         }
 
-        if (activeConfig.mainOverlayData.showEventData) {
+        if (activeConfig.debugOverlayData.showEventData) {
             if (g_scene >= SCENE::COUNT) {
                 ImGui::Text("Unknown");
             } else {
@@ -7120,7 +7121,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("");
         }
 
-        if (activeConfig.mainOverlayData.showPosition) {
+        if (activeConfig.debugOverlayData.showPosition) {
             [&]() {
                 auto pool_10213 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
                 if (!pool_10213 || !pool_10213[3]) {
@@ -7359,7 +7360,7 @@ void MainOverlayWindow(size_t defaultFontSize) {
         }
 
 
-        if (activeConfig.mainOverlayData.showRegionData) {
+        if (activeConfig.debugOverlayData.showRegionData) {
             ImGui::Text("Region Data");
 
             auto Function = [&](RegionData& regionData) -> void {
@@ -7474,22 +7475,22 @@ void MainOverlayWindow(size_t defaultFontSize) {
     };
 
     
-    OverlayFunction(mainOverlayLabel, activeConfig.mainOverlayData, queuedConfig.mainOverlayData, Function);
+    OverlayFunction(mainOverlayLabel, activeConfig.debugOverlayData, queuedConfig.debugOverlayData, Function);
 }
 
 void MainOverlaySettings() {
     auto Function = [&]() {
-        GUI_Checkbox2("Show Focus", activeConfig.mainOverlayData.showFocus, queuedConfig.mainOverlayData.showFocus);
-        GUI_Checkbox2("Show FPS", activeConfig.mainOverlayData.showFPS, queuedConfig.mainOverlayData.showFPS);
-        GUI_Checkbox2("Show Sizes", activeConfig.mainOverlayData.showSizes, queuedConfig.mainOverlayData.showSizes);
-        GUI_Checkbox2("Show Frame Rate Multiplier", activeConfig.mainOverlayData.showFrameRateMultiplier,
-            queuedConfig.mainOverlayData.showFrameRateMultiplier);
-        GUI_Checkbox2("Show Event Data", activeConfig.mainOverlayData.showEventData, queuedConfig.mainOverlayData.showEventData);
-        GUI_Checkbox2("Show Position", activeConfig.mainOverlayData.showPosition, queuedConfig.mainOverlayData.showPosition);
-        GUI_Checkbox2("Show Region Data", activeConfig.mainOverlayData.showRegionData, queuedConfig.mainOverlayData.showRegionData);
+        GUI_Checkbox2("Show Focus", activeConfig.debugOverlayData.showFocus, queuedConfig.debugOverlayData.showFocus);
+        GUI_Checkbox2("Show FPS", activeConfig.debugOverlayData.showFPS, queuedConfig.debugOverlayData.showFPS);
+        GUI_Checkbox2("Show Sizes", activeConfig.debugOverlayData.showSizes, queuedConfig.debugOverlayData.showSizes);
+        GUI_Checkbox2("Show Frame Rate Multiplier", activeConfig.debugOverlayData.showFrameRateMultiplier,
+            queuedConfig.debugOverlayData.showFrameRateMultiplier);
+        GUI_Checkbox2("Show Event Data", activeConfig.debugOverlayData.showEventData, queuedConfig.debugOverlayData.showEventData);
+        GUI_Checkbox2("Show Position", activeConfig.debugOverlayData.showPosition, queuedConfig.debugOverlayData.showPosition);
+        GUI_Checkbox2("Show Region Data", activeConfig.debugOverlayData.showRegionData, queuedConfig.debugOverlayData.showRegionData);
     };
 
-    OverlaySettings(mainOverlayLabel, activeConfig.mainOverlayData, queuedConfig.mainOverlayData, defaultConfig.mainOverlayData, Function);
+    OverlaySettings(mainOverlayLabel, activeConfig.debugOverlayData, queuedConfig.debugOverlayData, defaultConfig.debugOverlayData, Function);
 }
 
 
@@ -9946,10 +9947,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						Damage();
 						Dante();
 
-						//if constexpr (debug) {
-							Debug();
-						//}
-
 						Enemy();
 						Jukebox();
 						KeyBindings();
@@ -10204,7 +10201,57 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 	case UI::UIContext::MainTabs::CheatsAndDebug:
 	{
+		if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::Common) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
 
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						//if constexpr (debug) {
+						DebugSection();
+						//}
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("COMMON CHEATS");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Various Cheats for you to customize the game to your liking.\nThis will tag you at the End of Mission screen.");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
+		}
+		
 	}
 	break;
 
@@ -10644,7 +10691,9 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 
     PauseWhenGUIOpen();
     GamepadToggleShowMain();
-    MainOverlayWindow(UI::g_UIContext.DefaultFontSize);
+	if (activeConfig.debugOverlayData.enable) {
+		DebugOverlayWindow(UI::g_UIContext.DefaultFontSize);
+	}
     MissionOverlayWindow(UI::g_UIContext.DefaultFontSize);
     BossLadyActionsOverlayWindow();
     BossVergilActionsOverlayWindow();
@@ -10659,6 +10708,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     CrimsonOnTick::GameTrackDetection();
     CrimsonOnTick::CorrectFrameRateCutscenes();
     CrimsonOnTick::PreparePlayersDataBeforeSpawn();
+	CrimsonOnTick::NewMissionClearSong();
 
     // TIMERS
     CrimsonTimers::CallAllTimers();

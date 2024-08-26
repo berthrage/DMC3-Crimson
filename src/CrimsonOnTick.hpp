@@ -4,4 +4,5 @@ namespace CrimsonOnTick {
 	void GameTrackDetection();
 	void CorrectFrameRateCutscenes();
 	void PreparePlayersDataBeforeSpawn();
+	void NewMissionClearSong();
 }

@@ -640,8 +640,8 @@ void CreateMembers(Config& config_) {
 
 
     {
-        auto& member2 = Create<struct_t>(member, "mainOverlayData");
-        auto& config2 = config.mainOverlayData;
+        auto& member2 = Create<struct_t>(member, "debugOverlayData");
+        auto& config2 = config.debugOverlayData;
 
         CreateMembers_OverlayDataContent(member2, config2);
 
@@ -1277,7 +1277,7 @@ void ToJSON(Config& config_) {
     Set<bool>(member["enemyAutoSpawn"], config.enemyAutoSpawn);
 
 
-    ToJSON_MainOverlayData(member["mainOverlayData"], config.mainOverlayData);
+    ToJSON_MainOverlayData(member["debugOverlayData"], config.debugOverlayData);
     ToJSON_OverlayData(member["missionOverlayData"], config.missionOverlayData);
     ToJSON_OverlayData(member["bossLadyActionsOverlayData"], config.bossLadyActionsOverlayData);
     ToJSON_OverlayData(member["bossVergilActionsOverlayData"], config.bossVergilActionsOverlayData);
@@ -1878,7 +1878,7 @@ void ToConfig(Config& config_) {
     config.enemyAutoSpawn = Get<bool>(member["enemyAutoSpawn"]);
 
 
-    ToConfig_MainOverlayData(config.mainOverlayData, member["mainOverlayData"]);
+    ToConfig_MainOverlayData(config.debugOverlayData, member["debugOverlayData"]);
     ToConfig_OverlayData(config.missionOverlayData, member["missionOverlayData"]);
     ToConfig_OverlayData(config.bossLadyActionsOverlayData, member["bossLadyActionsOverlayData"]);
     ToConfig_OverlayData(config.bossVergilActionsOverlayData, member["bossVergilActionsOverlayData"]);
