@@ -177,8 +177,10 @@ SkyLaunchKillDamageDetour PROC
     ; player in rdi and r9 ( - 60h)
     push rax
     push rcx
-    push rbx
     push rdx
+    push rdi
+    push r8
+    push r9
     ; you know the drill
     ; Call the C++ function to check if player is in SkyLaunch
     
@@ -187,8 +189,10 @@ SkyLaunchKillDamageDetour PROC
     mov rcx, qword ptr [saved_rdi] 
     call qword ptr [g_skyLaunchCheckCall]
     cmp al, 01
+    pop r9
+    pop r8
+    pop rdi
     pop rdx
-    pop rbx
     pop rcx
     pop rax
     je KillDamage
@@ -213,11 +217,13 @@ saved_rdi2 dq 0.0
 
 .CODE
 SkyLaunchKillDamageCerberusDetour PROC
-    ; player in rdi ( + 20000h)
     push rax
     push rcx
-    push rbx
     push rdx
+    push rdi
+    push r8
+    push r9
+
     ; you know the drill
     ; Call the C++ function to check if player is in SkyLaunch
     
@@ -226,8 +232,10 @@ SkyLaunchKillDamageCerberusDetour PROC
     mov rcx, qword ptr [saved_rdi2] 
     call qword ptr [g_skyLaunchCheckCall]
     cmp al, 01
+    pop r9
+    pop r8
+    pop rdi
     pop rdx
-    pop rbx
     pop rcx
     pop rax
     je KillDamageCerberus
