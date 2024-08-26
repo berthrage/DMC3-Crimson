@@ -2218,93 +2218,63 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 #pragma region DanteAirTaunt
 
 
-void RoyalReleaseTracker(PlayerActorData& actorData) {
-    auto playerIndex = actorData.newPlayerIndex;
-	auto& royalRelease = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].royalRelease : crimsonPlayer[playerIndex].royalReleaseClone;
-	auto& skyLaunch = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].skyLaunch : crimsonPlayer[playerIndex].skyLaunchClone;
-
-    if ((actorData.action == 195 || actorData.action == 194 || actorData.action == 196 || actorData.action == 197) &&
-        (actorData.motionData[0].index == 20 || actorData.motionData[0].index == 19)) {
-
-        royalRelease.executing      = true;
-        royalRelease.trackerRunning = true;
-    }
-}
-
-void CheckRoyalRelease(byte8* actorBaseAddr) {
-    if (!actorBaseAddr) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+void TrackRoyalReleaseAndSkyLaunch(PlayerActorData& actorData) {
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& royalRelease = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].royalRelease : crimsonPlayer[playerIndex].royalReleaseClone;
-
-    if (((actorData.state & STATE::IN_AIR && actorData.motionData[0].index == 20 || actorData.motionData[0].index == 19) &&
-            (actorData.action == 195 || actorData.action == 194 || actorData.action == 196 || actorData.action == 197) &&
-            actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && !royalRelease.trackerRunning)) {
-
-		std::thread royalreleasetracker(RoyalReleaseTracker, std::ref(actorData));
-		royalreleasetracker.detach();
-    }
-
-    if (!((actorData.action == 195 || actorData.action == 194 || actorData.action == 196 || actorData.action == 197) &&
-            (actorData.motionData[0].index == 20 || actorData.motionData[0].index == 19))) {
-        royalRelease.executing      = false;
-        royalRelease.trackerRunning = false;
-    }
-
-    if (!royalRelease.trackerRunning) {
-        royalRelease.executing = false;
-    }
-}
-
-void SkyLaunchTracker(PlayerActorData& actorData) {
-    auto playerIndex = actorData.newPlayerIndex;
 	auto& skyLaunch = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].skyLaunch : crimsonPlayer[playerIndex].skyLaunchClone;
 
-	if ((actorData.action == 195 || actorData.action == 194 || actorData.action == 212) && (actorData.motionData[0].index == 20)) {
-		//CrimsonPatches::StopDamageToCerberus(true);
+	bool isAirReleaseAction = (actorData.action == 195 || actorData.action == 194 || actorData.action == 196 || actorData.action == 197);
+	bool isSkyLaunchAction = (actorData.action == 195 || actorData.action == 194 || actorData.action == 212);
+	bool isInAir = (actorData.state & STATE::IN_AIR);
+	bool isCorrectMotionIndex = (actorData.motionData[0].index == 20 || actorData.motionData[0].index == 19);
+	bool isSkyLaunchButtonPressed = (actorData.buttons[0] & GetBinding(BINDING::TAUNT));
+	bool isRoyalReleaseButtonPressed = (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION));
+
+	// Sky Launch conditions
+	if (isInAir && isCorrectMotionIndex && isSkyLaunchAction && isSkyLaunchButtonPressed && !skyLaunch.trackerRunning && !royalRelease.executing) {
 		skyLaunch.executing = true;
 		skyLaunch.trackerRunning = true;
 	}
+
+	// Royal Release conditions
+	if (isAirReleaseAction && isCorrectMotionIndex && isRoyalReleaseButtonPressed && !royalRelease.trackerRunning && !skyLaunch.executing) {
+		royalRelease.executing = true;
+		royalRelease.trackerRunning = true;
+	}
+
+	// Reset Royal Release if conditions are not met
+	if (!(isAirReleaseAction && isCorrectMotionIndex)) {
+		royalRelease.executing = false;
+		royalRelease.trackerRunning = false;
+	}
+
+	// Reset Sky Launch if conditions are not met
+	if (!(isSkyLaunchAction && isCorrectMotionIndex)) {
+		skyLaunch.executing = false;
+		skyLaunch.trackerRunning = false;
+	}
+
+	// Ensure Royal Release is false if Sky Launch is active
+	if (skyLaunch.executing) {
+		royalRelease.executing = false;
+	}
+
+	// Ensure Sky Launch is false if Royal Release is active
+	if (royalRelease.executing) {
+		skyLaunch.executing = false;
+	}
 }
 
-void CheckSkyLaunch(byte8* actorBaseAddr) {
+void CheckRoyalReleaseAndSkyLaunch(byte8* actorBaseAddr) {
 	if (!actorBaseAddr) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    auto playerIndex = actorData.newPlayerIndex;
-	auto& royalRelease = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].royalRelease : crimsonPlayer[playerIndex].royalReleaseClone;
-	auto& skyLaunch = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].skyLaunch : crimsonPlayer[playerIndex].skyLaunchClone;
 
-
-	// Start Sky Launch tracking if the conditions are met
-	if ((actorData.state & STATE::IN_AIR) &&
-		(actorData.motionData[0].index == 20) &&
-		(actorData.action == 195) &&
-		(actorData.buttons[0] & GetBinding(BINDING::TAUNT)) &&
-		!skyLaunch.trackerRunning &&
-		!royalRelease.executing) {
-
-		SkyLaunchTracker(actorData);
-	}
-
-	// Reset Sky Launch state if the conditions are not met
-	if (!((actorData.action == 195 || actorData.action == 194) &&
-		(actorData.motionData[0].index == 20))) {
-		//CrimsonPatches::StopDamageToCerberus(activeConfig.infiniteHitPoints);
-		skyLaunch.executing = false;
-		skyLaunch.trackerRunning = false;
-        
-	}
-
-	// Ensure that Sky Launch is deactivated if not running
-	if (!skyLaunch.trackerRunning) {
-		//CrimsonPatches::StopDamageToCerberus(activeConfig.infiniteHitPoints);
-		skyLaunch.executing = false;
-	}
+	// Centralized tracking function to handle both states
+	TrackRoyalReleaseAndSkyLaunch(actorData);
 }
+
 
 void StoreSkyLaunchProperties(PlayerActorData& actorData) {
     auto playerIndex = actorData.newPlayerIndex;
@@ -2381,8 +2351,7 @@ void ApplySkyLaunchProperties(byte8* actorBaseAddr) {
 }
 
 void SkyLaunchAirTauntController(byte8* actorBaseAddr) {
-	CheckRoyalRelease(actorBaseAddr);
-	CheckSkyLaunch(actorBaseAddr);
+    CheckRoyalReleaseAndSkyLaunch(actorBaseAddr);
 	ApplySkyLaunchProperties(actorBaseAddr);
 }
 
