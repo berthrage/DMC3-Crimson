@@ -32,6 +32,12 @@ void SkyLaunchKillReleaseLevel3Detour();
 // SkyLaunchKillDamage
 void SkyLaunchKillDamageDetour();
 
+// SkyLaunchKillDamageToCerberus
+void SkyLaunchKillDamageCerberusDetour();
+
+// SkyLaunchKillDamageToShieldNevan
+void SkyLaunchKillDamageShieldNevanDetour();
+
 // CreateEffect
 //extern int createEffectBank;
 //extern int createEffectID;

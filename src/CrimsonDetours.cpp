@@ -71,6 +71,15 @@ void SkyLaunchKillReleaseLevel3Detour();
 std::uint64_t g_SkyLaunchKillDamage_ReturnAddr;
 void SkyLaunchKillDamageDetour();
 
+// SkyLaunchKillDamageToCerberus
+std::uint64_t g_SkyLaunchKillDamageCerberus_ReturnAddr;
+void SkyLaunchKillDamageCerberusDetour();
+
+// SkyLaunchKillDamageToShieldNevan
+void* g_skyLaunchCheckCall2;
+std::uint64_t g_SkyLaunchKillDamageShieldNevan_ReturnAddr;
+void SkyLaunchKillDamageShieldNevanDetour();
+
 // CreateEffect
 std::uint64_t createEffectRBXMov;
 std::uint64_t createEffectCallA;
@@ -359,6 +368,10 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
 	auto playerIndex = actorData.newPlayerIndex;
 	auto gamepad = GetGamepad(playerIndex);
 
+    if (activeConfig.infiniteHitPoints) {
+        return true;
+    }
+
     if (actorData.character == CHARACTER::DANTE) {
 		if (actorData.state & STATE::IN_AIR && gamepad.buttons[0] & GetBinding(BINDING::TAUNT)) {
 			return true;
@@ -367,6 +380,8 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
 
 	return false;
 }
+
+void InitSkyLaunchDetours();
 
 void InitDetours() {
     using namespace Utility;
@@ -402,54 +417,13 @@ void InitDetours() {
     g_SetAirTaunt_Call                               = (uintptr_t)appBaseAddr + 0x1E09D0;
     setAirTauntHook->Toggle(true);
 
-    // SkyLaunchForceRelease
-    // dmc3.exe + 20BCF8 - C6 83 10 3E 00 00 01 - mov byte ptr[rbx + 00003E10], 01 - original code
-	static std::unique_ptr<Utility::Detour_t> SkyLaunchForceReleaseHook =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x20BCF8, &SkyLaunchForceReleaseDetour, 7);
-	g_SkyLaunchForceRelease_ReturnAddr = SkyLaunchForceReleaseHook->GetReturnAddress();
-    SkyLaunchForceReleaseHook->Toggle(true);
-    g_skyLaunchForceReleaseCheckCall = &CheckForceRoyalReleaseForSkyLaunch;
-
-	// SkyLaunchKillRGConsumption
-	// dmc3.exe + 20BD57 - C7 83 84 63 00 00 00 00 00 00 - mov[rbx + 00006384], 00000000
-	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillRGConsumptionHook =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x20BD57, &SkyLaunchKillRGConsumptionDetour, 10);
-	g_SkyLaunchKillRGConsumption_ReturnAddr = SkyLaunchKillRGConsumptionHook->GetReturnAddress();
-    SkyLaunchKillRGConsumptionHook->Toggle(true);
-	g_skyLaunchCheckCall = &DetectIfInSkyLaunch;
-
-	// SkyLaunchKillReleaseLevel1
-	// dmc3.exe+1EEDF7 - 66 C7 81 80 63 00 00 01 01 - mov word ptr [rcx+00006380], 257
-	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillReleaseLevel1Hook =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EEDF7, &SkyLaunchKillReleaseLevel1Detour, 9);
-	g_SkyLaunchKillReleaseLevel1_ReturnAddr = SkyLaunchKillReleaseLevel1Hook->GetReturnAddress();
-    SkyLaunchKillReleaseLevel1Hook->Toggle(true);
-
-	// SkyLaunchKillReleaseLevel2
-	// dmc3.exe+1EEE27 - 66 C7 81 80 63 00 00 02 03 - mov word ptr [rcx+00006380], 770
-	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillReleaseLevel2Hook =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EEE27, &SkyLaunchKillReleaseLevel2Detour, 9);
-	g_SkyLaunchKillReleaseLevel2_ReturnAddr = SkyLaunchKillReleaseLevel2Hook->GetReturnAddress();
-	SkyLaunchKillReleaseLevel2Hook->Toggle(true);
-
-	// SkyLaunchKillReleaseLevel3
-	// dmc3.exe+1EEE4A - 66 C7 81 80 63 00 00 03 05 - mov word ptr [rcx+00006380], 1283
-	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillReleaseLevel3Hook =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EEE4A, &SkyLaunchKillReleaseLevel3Detour, 9);
-	g_SkyLaunchKillReleaseLevel3_ReturnAddr = SkyLaunchKillReleaseLevel3Hook->GetReturnAddress();
-	SkyLaunchKillReleaseLevel3Hook->Toggle(true);
-
-	// SkyLaunchKillDamage
-	// dmc3.exe + 881F1 - F3 44 0F 10 4A 0C - movss xmm9, [rdx + 0C]
-	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillDamageHook =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x881F1, &SkyLaunchKillDamageDetour, 6);
-	g_SkyLaunchKillDamage_ReturnAddr = SkyLaunchKillDamageHook->GetReturnAddress();
-	SkyLaunchKillDamageHook->Toggle(true);
-
     // CreateEffect
     createEffectCallA  = (uintptr_t)appBaseAddr + 0x2E7CA0;
     createEffectCallB  = (uintptr_t)appBaseAddr + 0x1FAA50;
     createEffectRBXMov = (uintptr_t)appBaseAddr + 0xC18AF8;
+
+    // SkyLaunchDetours
+    InitSkyLaunchDetours();
 
     // HoldToCrazyCombo
     static std::unique_ptr<Utility::Detour_t> HoldToCrazyComboHook =
@@ -489,6 +463,72 @@ void InitDetours() {
     // &VergilNeutralTrickDetour, 5); g_VergilNeutralTrick_ReturnAddr = VergilNeutralTrickHook->GetReturnAddress();
     // VergilNeutralTrickHook->Toggle(true);
 }
+
+void InitSkyLaunchDetours() {
+	using namespace Utility;
+	DetourBaseAddr = (uintptr_t)appBaseAddr;
+
+	// SkyLaunchForceRelease
+	// dmc3.exe + 20BCF8 - C6 83 10 3E 00 00 01 - mov byte ptr[rbx + 00003E10], 01 - original code
+	static std::unique_ptr<Utility::Detour_t> SkyLaunchForceReleaseHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x20BCF8, &SkyLaunchForceReleaseDetour, 7);
+	g_SkyLaunchForceRelease_ReturnAddr = SkyLaunchForceReleaseHook->GetReturnAddress();
+	SkyLaunchForceReleaseHook->Toggle(true);
+	g_skyLaunchForceReleaseCheckCall = &CheckForceRoyalReleaseForSkyLaunch;
+
+	// SkyLaunchKillRGConsumption
+	// dmc3.exe + 20BD57 - C7 83 84 63 00 00 00 00 00 00 - mov[rbx + 00006384], 00000000
+	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillRGConsumptionHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x20BD57, &SkyLaunchKillRGConsumptionDetour, 10);
+	g_SkyLaunchKillRGConsumption_ReturnAddr = SkyLaunchKillRGConsumptionHook->GetReturnAddress();
+	SkyLaunchKillRGConsumptionHook->Toggle(true);
+	g_skyLaunchCheckCall = &DetectIfInSkyLaunch;
+
+	// SkyLaunchKillReleaseLevel1
+	// dmc3.exe+1EEDF7 - 66 C7 81 80 63 00 00 01 01 - mov word ptr [rcx+00006380], 257
+	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillReleaseLevel1Hook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EEDF7, &SkyLaunchKillReleaseLevel1Detour, 9);
+	g_SkyLaunchKillReleaseLevel1_ReturnAddr = SkyLaunchKillReleaseLevel1Hook->GetReturnAddress();
+	SkyLaunchKillReleaseLevel1Hook->Toggle(true);
+
+	// SkyLaunchKillReleaseLevel2
+	// dmc3.exe+1EEE27 - 66 C7 81 80 63 00 00 02 03 - mov word ptr [rcx+00006380], 770
+	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillReleaseLevel2Hook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EEE27, &SkyLaunchKillReleaseLevel2Detour, 9);
+	g_SkyLaunchKillReleaseLevel2_ReturnAddr = SkyLaunchKillReleaseLevel2Hook->GetReturnAddress();
+	SkyLaunchKillReleaseLevel2Hook->Toggle(true);
+
+	// SkyLaunchKillReleaseLevel3
+	// dmc3.exe+1EEE4A - 66 C7 81 80 63 00 00 03 05 - mov word ptr [rcx+00006380], 1283
+	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillReleaseLevel3Hook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EEE4A, &SkyLaunchKillReleaseLevel3Detour, 9);
+	g_SkyLaunchKillReleaseLevel3_ReturnAddr = SkyLaunchKillReleaseLevel3Hook->GetReturnAddress();
+	SkyLaunchKillReleaseLevel3Hook->Toggle(true);
+
+	// SkyLaunchKillDamage
+	// dmc3.exe + 881F1 - F3 44 0F 10 4A 0C - movss xmm9, [rdx + 0C]
+	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillDamageHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x881F1, &SkyLaunchKillDamageDetour, 6);
+	g_SkyLaunchKillDamage_ReturnAddr = SkyLaunchKillDamageHook->GetReturnAddress();
+	SkyLaunchKillDamageHook->Toggle(true);
+
+	// SkyLaunchKillDamageToCerberus
+	// dmc3.exe + 10B7B6 - F3 0F 10 7A 0C - movss xmm7, [rdx + 0C]
+	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillDamageCerberusHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x10B7B6, &SkyLaunchKillDamageCerberusDetour, 5);
+	g_SkyLaunchKillDamageCerberus_ReturnAddr = SkyLaunchKillDamageCerberusHook->GetReturnAddress();
+	SkyLaunchKillDamageCerberusHook->Toggle(true);
+
+	// SkyLaunchKillDamageToShieldNevan
+	// dmc3.exe+133D85 - F3 0F 11 83 24 02 00 00 - movss [rbx+00000224],xmm0
+	// dmc3.exe+135097 - F3 0F11 8B 24020000   - movss [rbx+00000224],xmm1 -- also exists for damaging Shieded Nevan, but we won't use it here
+	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillDamageShieldNevanHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x133D85, &SkyLaunchKillDamageShieldNevanDetour, 8);
+	g_SkyLaunchKillDamageShieldNevan_ReturnAddr = SkyLaunchKillDamageShieldNevanHook->GetReturnAddress();
+	SkyLaunchKillDamageShieldNevanHook->Toggle(true);
+
+}
+
 
 void ToggleClassicHUDPositionings(bool enable) {
 	using namespace Utility;

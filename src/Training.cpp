@@ -53,10 +53,6 @@ void ToggleInfiniteHitPoints(bool enable) {
         }
     }
 
-    // Cerberus
-    CrimsonPatches::StopDamageToCerberus(enable);
-
-
     run = true;
 }
 

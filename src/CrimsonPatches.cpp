@@ -758,6 +758,7 @@ void CerberusCrashFixPart2(bool enable) {
 # pragma region Damage
 
 void StopDamageToCerberus(bool enable) {
+    // Observation: this has been moved to CrimsonDetours::SkyLaunchKillDamageCerberus.
 	// this will prevent Cerberus from taking any damage, complementing Infinite HP cheat.
     // we now do this by stopping the noping the instruction that calculates damage to cerb from player, before it writes to his hp values.
     // which is one nop instead of various ones.

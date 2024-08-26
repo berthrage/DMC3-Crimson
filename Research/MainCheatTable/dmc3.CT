@@ -4000,6 +4000,50 @@ dmc3.exe+1E9A5C: CC                    - int 3
                   </Offsets>
                 </CheatEntry>
                 <CheatEntry>
+                  <ID>2633</ID>
+                  <Description>"+64B0 shieldedNevanAddr"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>dmc3.exe+168</Address>
+                  <Offsets>
+                    <Offset>64B0</Offset>
+                    <Offset>6328</Offset>
+                    <Offset>18</Offset>
+                    <Offset>00C90E28</Offset>
+                  </Offsets>
+                  <CheatEntries>
+                    <CheatEntry>
+                      <ID>2634</ID>
+                      <Description>"+224 shield"</Description>
+                      <ShowAsSigned>0</ShowAsSigned>
+                      <VariableType>Float</VariableType>
+                      <Address>dmc3.exe+168</Address>
+                      <Offsets>
+                        <Offset>224</Offset>
+                        <Offset>64B0</Offset>
+                        <Offset>6328</Offset>
+                        <Offset>18</Offset>
+                        <Offset>00C90E28</Offset>
+                      </Offsets>
+                    </CheatEntry>
+                  </CheatEntries>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>2631</ID>
+                  <Description>"+64C0 shieldedNevanAddr2"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>4 Bytes</VariableType>
+                  <Address>dmc3.exe+168</Address>
+                  <Offsets>
+                    <Offset>64C0</Offset>
+                    <Offset>6328</Offset>
+                    <Offset>18</Offset>
+                    <Offset>00C90E28</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
                   <ID>2559</ID>
                   <Description>"+18 enemyID"</Description>
                   <ShowAsSigned>0</ShowAsSigned>
@@ -74921,6 +74965,145 @@ dmc3.exe+56050: 0F 5B C0                 - cvtdq2ps xmm0,xmm0
         <Byte>63</Byte>
       </After>
     </CodeEntry>
+    <CodeEntry>
+      <Description>Change of movss xmm0,[dmc3.exe+C964A0]</Description>
+      <AddressString>dmc3.exe+1341CA</AddressString>
+      <Before>
+        <Byte>02</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>75</Byte>
+        <Byte>80</Byte>
+      </Before>
+      <Actual>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+        <Byte>10</Byte>
+        <Byte>05</Byte>
+        <Byte>CE</Byte>
+        <Byte>22</Byte>
+        <Byte>B6</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>29</Byte>
+        <Byte>74</Byte>
+        <Byte>24</Byte>
+        <Byte>20</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov byte ptr [rbx+00000210],01</Description>
+      <AddressString>dmc3.exe+1350A1</AddressString>
+      <Before>
+        <Byte>02</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>72</Byte>
+        <Byte>07</Byte>
+      </Before>
+      <Actual>
+        <Byte>C6</Byte>
+        <Byte>83</Byte>
+        <Byte>10</Byte>
+        <Byte>02</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>01</Byte>
+      </Actual>
+      <After>
+        <Byte>48</Byte>
+        <Byte>8B</Byte>
+        <Byte>5C</Byte>
+        <Byte>24</Byte>
+        <Byte>50</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of movss [rbx+00000224],xmm1</Description>
+      <AddressString>dmc3.exe+135097</AddressString>
+      <Before>
+        <Byte>5C</Byte>
+        <Byte>CE</Byte>
+        <Byte>0F</Byte>
+        <Byte>2F</Byte>
+        <Byte>C1</Byte>
+      </Before>
+      <Actual>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+        <Byte>11</Byte>
+        <Byte>8B</Byte>
+        <Byte>24</Byte>
+        <Byte>02</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>72</Byte>
+        <Byte>07</Byte>
+        <Byte>C6</Byte>
+        <Byte>83</Byte>
+        <Byte>10</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of movss xmm1,[rbx+00000224]</Description>
+      <AddressString>dmc3.exe+135085</AddressString>
+      <Before>
+        <Byte>8B</Byte>
+        <Byte>CE</Byte>
+        <Byte>FF</Byte>
+        <Byte>50</Byte>
+        <Byte>60</Byte>
+      </Before>
+      <Actual>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+        <Byte>10</Byte>
+        <Byte>8B</Byte>
+        <Byte>24</Byte>
+        <Byte>02</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>57</Byte>
+        <Byte>C0</Byte>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Code : damage to Nevan's Shield</Description>
+      <AddressString>dmc3.exe+133D85</AddressString>
+      <Before>
+        <Byte>0F</Byte>
+        <Byte>28</Byte>
+        <Byte>74</Byte>
+        <Byte>24</Byte>
+        <Byte>40</Byte>
+      </Before>
+      <Actual>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+        <Byte>11</Byte>
+        <Byte>83</Byte>
+        <Byte>24</Byte>
+        <Byte>02</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>80</Byte>
+        <Byte>7E</Byte>
+        <Byte>38</Byte>
+        <Byte>00</Byte>
+        <Byte>74</Byte>
+      </After>
+    </CodeEntry>
   </CheatCodes>
   <UserdefinedSymbols>
     <SymbolEntry>
@@ -79711,6 +79894,16 @@ dmc3.exe+2BB11E style bar stuff
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
+      <Address>7FF6AEE6AF43</Address>
+      <Comment>%s crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>7FF7B30C47B0</Address>
+      <Comment>SetActionMeleeAttack
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
       <Address>"dmc3.exe"+881F1</Address>
       <Comment>gets damage
 </Comment>
@@ -79723,6 +79916,23 @@ dmc3.exe+2BB11E style bar stuff
     <DisassemblerComment>
       <Address>"dmc3.exe"+90C9D</Address>
       <Comment>set aura colour
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+133D85</Address>
+      <Comment>Apply Nevan Shield Damage 1
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+135085</Address>
+      <Comment>noping this makes it so nevan never loses her shield
+but it still damages it
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+135097</Address>
+      <Comment>Apply Nevan Shield Damage 2
+
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
@@ -79929,16 +80139,6 @@ this will affect RoyalguardReleaseLevel
     <DisassemblerComment>
       <Address>"dmc3.exe"+3161EA</Address>
       <Comment>doesnt reenable
-</Comment>
-    </DisassemblerComment>
-    <DisassemblerComment>
-      <Address>7FF6AEE6AF43</Address>
-      <Comment>%s crash
-</Comment>
-    </DisassemblerComment>
-    <DisassemblerComment>
-      <Address>7FF7B30C47B0</Address>
-      <Comment>SetActionMeleeAttack
 </Comment>
     </DisassemblerComment>
   </DisassemblerComments>

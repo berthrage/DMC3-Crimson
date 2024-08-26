@@ -4146,10 +4146,8 @@ struct SkyLaunch {
     bool trackerRunning = false;
     bool executing = false;
     bool appliedProperties = false;
-    bool restoringRoyalGauge = false;
     float storedRank = 0;
     uint16 storedReleaseLevel = 0;
-    float startTime = 0;
     float storedDevilTrigger = 0;
     vec3 storedPos;
 };

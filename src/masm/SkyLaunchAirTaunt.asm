@@ -203,4 +203,78 @@ OriginalCode:
     
 SkyLaunchKillDamageDetour ENDP
 
+
+.DATA
+extern g_SkyLaunchKillDamageCerberus_ReturnAddr:QWORD
+extern g_skyLaunchCheckCall:QWORD
+
+align 16
+saved_rdi2 dq 0.0
+
+.CODE
+SkyLaunchKillDamageCerberusDetour PROC
+    ; player in rdi ( + 20000h)
+    push rax
+    push rcx
+    push rbx
+    push rdx
+    ; you know the drill
+    ; Call the C++ function to check if player is in SkyLaunch
+    
+    mov qword ptr saved_rdi2, rdi
+    add qword ptr saved_rdi2, 20000h
+    mov rcx, qword ptr [saved_rdi2] 
+    call qword ptr [g_skyLaunchCheckCall]
+    cmp al, 01
+    pop rdx
+    pop rbx
+    pop rcx
+    pop rax
+    je KillDamageCerberus
+    jmp OriginalCode
+
+KillDamageCerberus:
+    jmp qword ptr [g_SkyLaunchKillDamageCerberus_ReturnAddr]
+
+OriginalCode:
+    movss xmm7, dword ptr[rdx + 0Ch]
+    jmp qword ptr [g_SkyLaunchKillDamageCerberus_ReturnAddr]
+    
+SkyLaunchKillDamageCerberusDetour ENDP
+
+
+.DATA
+extern g_SkyLaunchKillDamageShieldNevan_ReturnAddr:QWORD
+extern g_skyLaunchCheckCall:QWORD
+
+align 16 
+saved_rbx dq 0.0
+
+.CODE
+SkyLaunchKillDamageShieldNevanDetour PROC
+    ; player in rdi and rcx
+    ; shielded nevan is in rbx, yes shielded nevan is a separate entity/actor from nevan
+    push rcx
+    push rbx
+    push rdx
+    ; you know the drill
+    ; Call the C++ function to check if player is in SkyLaunch
+   
+    call qword ptr [g_skyLaunchCheckCall]
+    cmp al, 01
+    pop rdx
+    pop rbx
+    pop rcx
+    je KillDamageShieldNevan
+    jmp OriginalCode
+
+KillDamageShieldNevan:
+    jmp qword ptr [g_SkyLaunchKillDamageShieldNevan_ReturnAddr]
+
+OriginalCode:
+    movss dword ptr [rbx+00000224h], xmm0
+    jmp qword ptr [g_SkyLaunchKillDamageShieldNevan_ReturnAddr]
+    
+SkyLaunchKillDamageShieldNevanDetour ENDP
+
 END
