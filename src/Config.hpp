@@ -492,10 +492,25 @@ struct Config {
 
     BarsData barsData[PLAYER_COUNT];
 
-    bool showAdditionalBars = true;
-    bool show1Pbar = false;
-    bool classicHUDpositionings = false;
     bool disableStyleRankHudFadeout = true;
+
+    struct CrimsonHudAddons {
+        bool positionings = true;
+        bool redOrbCounter = true;
+        bool royalGauge = true;
+        bool styleRanksMeter = true;
+        bool lockOn = true;
+    } CrimsonHudAddons;
+
+    struct MultiplayerBars2D {
+		bool show = true;
+		bool show1PBar = false;
+    } MultiplayerBars2D;
+
+	struct MultiplayerBarsWorldSpace {
+		bool show = true;
+		bool show1PBar = false;
+	} MultiplayerBarsWorldSpace;
 
     bool forceSyncHitMagicPoints = true;
 

@@ -14,6 +14,8 @@
 
 #include "Core/Macros.h"
 #include "CrimsonUtil.hpp"
+#include <iostream>
+#include <iomanip>
 
 #pragma region GameplayImprovements
 
@@ -807,6 +809,43 @@ void StopDamageToCerberus(bool enable) {
 }
 
 # pragma endregion
+
+#pragma region HudStuff
+
+void SetRebOrbCounterDurationTillFadeOut(bool enable, float duration) {
+	static bool run = false;
+
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// dmc3.exe + 27E86A - C7 86 38 69 00 00 00 00 48 43 - mov [rsi + 00006938], 42B40000 { 90.00 }
+
+	if (enable) {
+		// Convert the float duration to a little-endian byte array
+		char durationBytes[4];
+		std::memcpy(durationBytes, &duration, sizeof(durationBytes));
+
+		// Create the patch bytes: mov [rsi + 00006938], immediate float value
+		char patchBytes[10] = { (char)0xC7, (char)0x86, (char)0x38,(char)0x69, (char)0x00,(char)0x00,
+								durationBytes[0], durationBytes[1], durationBytes[2], durationBytes[3] };
+
+		// Apply the patch to the instruction at dmc3.exe + 27E86A
+		_patch((char*)(appBaseAddr + 0x27E86A), patchBytes, sizeof(patchBytes));
+	}
+	else {
+		// Restore the original instruction at dmc3.exe + 27E86A
+		_patch((char*)(appBaseAddr + 0x27E86A), (char*)"\xC7\x86\x38\x69\x00\x00\x00\x00\x42\xB4", 10);
+	}
+
+	run = enable;
+}
+
+
+#pragma endregion
+
+
 
 }
 

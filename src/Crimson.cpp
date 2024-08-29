@@ -256,7 +256,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         Hooks::Init();
 
         CrimsonDetours::InitDetours();
-        CrimsonDetours::ToggleClassicHUDPositionings(activeConfig.classicHUDpositionings);
+        CrimsonDetours::ToggleClassicHUDPositionings(!activeConfig.CrimsonHudAddons.positionings);
         CrimsonDetours::ToggleStyleRankHudNoFadeout(activeConfig.disableStyleRankHudFadeout);
         CrimsonDetours::ToggleCerberusCrashFix(true);
 

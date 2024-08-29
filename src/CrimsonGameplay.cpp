@@ -421,11 +421,11 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
 
         // Dante's Trickster Actions Cancels Most Things (w/ cooldown)
         if ((actorData.style == STYLE::TRICKSTER) &&
-            (actorData.eventData[0].event != 22 &&
+            (actorData.eventData[0].event != ACTOR_EVENT::TRICKSTER_DASH &&
                     (inCancellableActionRebellion || inCancellableActionCerberus || inCancellableActionAgni || inCancellableActionNevan ||
                         inCancellableActionBeowulf || inCancellableActionGuns || inCancellableActionAirSwordmaster ||
                         inCancellableActionAirGunslinger || actorData.action == EBONY_IVORY_RAIN_STORM) ||
-                skyLaunch.executing)) {
+                skyLaunch.executing || actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_SKY_STAR)) {
             if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
 
 

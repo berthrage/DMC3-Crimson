@@ -3515,7 +3515,7 @@ void ArcadeSection(size_t defaultFontSize) {
 
 #pragma endregion
 
-#pragma region Bars
+#pragma region MultiplayerBars
 
 const char* barsNames[PLAYER_COUNT] = {
 	"Bars1",
@@ -3626,6 +3626,101 @@ void RoyalGaugeMainPlayer() {
 	ImGui::End();
 }
 
+static Texture2DD3D11* RedOrbTexture{ nullptr };
+
+void InitRedOrbTexture(ID3D11Device* pd3dDevice) {
+	RedOrbTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Redorb.png").c_str(), pd3dDevice);
+	assert(RedOrbTexture);
+}
+
+void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) {
+	assert(RedOrbTexture);
+
+	auto name_7058 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_7058) {
+		return;
+	}
+	auto& missionData = *reinterpret_cast<MissionData*>(name_7058);
+	if (!(activeConfig.Actor.enable && InGame() && !g_inGameCutscene)) {
+		return;
+	}
+
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	if (activeConfig.hideMainHUD || !activeConfig.CrimsonHudAddons.redOrbCounter) {
+		CrimsonDetours::RerouteRedOrbsCounterAlpha(false, crimsonHud.redOrbAlpha);
+		CrimsonPatches::SetRebOrbCounterDurationTillFadeOut(false, 90);
+		return;
+	}
+
+	// Set up Rerouting Alpha to our Red Orb Counter
+	hudData.orbsCountAlpha = 0;
+	CrimsonDetours::RerouteRedOrbsCounterAlpha(true, crimsonHud.redOrbAlpha);
+	CrimsonPatches::SetRebOrbCounterDurationTillFadeOut(true, crimsonHud.redOrbAlphaDurationToAlpha);
+
+	// Get the current display size
+	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+	float scaleFactorX = displaySize.x / baseWidth;
+	float scaleFactorY = displaySize.y / baseHeight;
+
+	// Define the orb count and cap it at 999999
+	int orbCount = (std::min)(999999, (int)missionData.redOrbs);
+	std::string orbCountStr = std::to_string(orbCount);
+
+	// Adjust the font size and the proportional texture size
+	float fontSize = 37.0f * scaleFactorY;
+	float textureWidth = RedOrbTexture->GetWidth() * (fontSize / 120.0f) * activeConfig.globalScale;  // Adjust proportionally
+	float textureHeight = RedOrbTexture->GetHeight() * (fontSize / 120.0f) * activeConfig.globalScale;
+
+	// Define the window size and position
+	ImVec2 windowSize = ImVec2(300.0f * scaleFactorX, 100.0f * scaleFactorY);
+	ImVec2 windowPos = ImVec2(displaySize.x - windowSize.x - 70.0f * scaleFactorX, 30.0f * scaleFactorY);
+
+	ImGui::SetNextWindowSize(windowSize);
+	ImGui::SetNextWindowPos(windowPos);
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	ImGui::Begin("RedOrbWindow", nullptr, windowFlags);
+
+	// Set the color with alpha for the Red Orb texture
+	float alpha = crimsonHud.redOrbAlpha / 127.0f;
+	ImColor colorWithAlpha(1.0f, 1.0f, 1.0f, alpha);
+
+	// Adjust the text position
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSize]);
+	ImVec2 textSize = ImGui::CalcTextSize(orbCountStr.c_str(), nullptr, true);
+	ImVec2 textPos = ImVec2(windowSize.x - textSize.x - 74.0f * scaleFactorX, (windowSize.y - textSize.y) / 2);
+
+	// Correct the texture position by considering the window's screen position
+	ImVec2 texturePos = ImVec2(windowPos.x + textPos.x - textureWidth - 24.0f * scaleFactorX, windowPos.y + (windowSize.y - textureHeight) / 2);
+
+	// Render the texture or a white square if the texture is not valid
+	if (RedOrbTexture->IsValid()) {
+		ImGui::GetWindowDrawList()->AddImage(RedOrbTexture->GetTexture(), texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImVec2(0, 0), ImVec2(1, 1), colorWithAlpha);
+	}
+	else {
+		ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
+	}
+
+	// Render the orb count text
+	ImGui::SetCursorPos(ImVec2(textPos.x, textPos.y));
+	ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, alpha), "%s", orbCountStr.c_str());
+
+	ImGui::PopFont();
+	ImGui::End();
+}
+
+
 static Texture2DD3D11* DStyleRankFillTexture{ nullptr };
 static Texture2DD3D11* DStyleRankBackgroundTexture{ nullptr };
 
@@ -3673,6 +3768,10 @@ void StyleMeterWindow() {
 		return;
 	}
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	if (activeConfig.hideMainHUD || !activeConfig.CrimsonHudAddons.styleRanksMeter) {
+		return;
+	}
+
 	auto& styleData = mainActorData.styleData;
 	if (styleData.rank != 1) {
 		return;
@@ -3723,9 +3822,9 @@ static float smoothstep(float edge0, float edge1, float x) {
 	return x * x * (3 - 2 * x);
 }
 
-void BarsFunction(
+void RenderWorldSpaceMultiplayerBar(
 	float hitPoints, float magicPoints, const char* name, PlayerActorData actorData, const char* label, Config::BarsData& activeData/*, Config::BarsData& queuedData*/ ) {
-	if (!showBars && !activeConfig.showAdditionalBars) {
+	if (!showBars && !activeConfig.MultiplayerBarsWorldSpace.show) {
 		return;
 	}
 
@@ -3776,7 +3875,7 @@ void BarsFunction(
 	activeData.magicColorVergil[3] = alpha;
 
 
-	if (ImGui::Begin(label, &activeConfig.showAdditionalBars, windowFlags) /* && run*/) {
+	if (ImGui::Begin(label, &activeConfig.MultiplayerBarsWorldSpace.show, windowFlags) /* && run*/) {
 		//ImGui::Text("alpha: %f, z:%f, camdist: %f", alpha, screen_pos.z, crimsonPlayer->cameraPlayerDistance);
 
 #if 0
@@ -3891,7 +3990,7 @@ void BarsSettingsFunction(const char* label, Config::BarsData& activeData, Confi
 	GUI_PopDisable(condition);
 }
 
-void Bars() {
+void MultiplayerBars() {
 	if (!showBars && !(activeConfig.Actor.enable && InGame())) {
 		return;
 	}
@@ -3904,7 +4003,7 @@ void Bars() {
 
 	old_for_all(uint8, playerIndex, playerCount) {
 
-		if (!activeConfig.show1Pbar) {
+		if (!activeConfig.MultiplayerBarsWorldSpace.show1PBar) {
 			minimum = 1;
 		}
 		else {
@@ -3953,7 +4052,7 @@ void Bars() {
 
 
 
-				BarsFunction(hit, magic, playerIndexNames[playerIndex], activeActorData, barsNames[playerIndex], activeConfig.barsData[playerIndex]
+				RenderWorldSpaceMultiplayerBar(hit, magic, playerIndexNames[playerIndex], activeActorData, barsNames[playerIndex], activeConfig.barsData[playerIndex]
 				/*, queuedConfig.barsData[playerIndex]*/);
 				}();
 		}
@@ -4055,25 +4154,59 @@ void BarsSection(size_t defaultFontSize) {
 	const float itemWidth = defaultFontSize * 8.0f;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-
-	GUI_Checkbox2("ADDITIONAL PLAYER BARS", activeConfig.showAdditionalBars, queuedConfig.showAdditionalBars);
-
-	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
-
-	ImGui::PopFont();
-	UI::SeparatorEx(defaultFontSize * 23.35f);
-	ImGui::Text("");
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
 
-	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+		if (ImGui::BeginTable("MultiplayerBarsOptionsTable", 2)) {
 
-	GUI_Checkbox2("Show 1P Bar", activeConfig.show1Pbar, queuedConfig.show1Pbar);
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
+			ImGui::TableNextColumn();
 
-	ImGui::PopFont();
-	ImGui::PopStyleColor();
 
-	BarsSettings(defaultFontSize);
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+
+			GUI_Checkbox2("2D MULTIPLAYER BARS", activeConfig.MultiplayerBars2D.show, queuedConfig.MultiplayerBars2D.show);
+
+			ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+
+			ImGui::PopFont();
+			UI::SeparatorEx(defaultFontSize * 46.70f);
+			ImGui::Text("");
+
+			ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+
+			GUI_Checkbox2("Show 1P Bar", activeConfig.MultiplayerBars2D.show1PBar, queuedConfig.MultiplayerBars2D.show1PBar);
+
+			ImGui::PopStyleColor();
+			ImGui::PopFont();
+
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+
+			GUI_Checkbox2("WORLD SPACE MULTIPLAYER BARS", activeConfig.MultiplayerBarsWorldSpace.show, queuedConfig.MultiplayerBarsWorldSpace.show);
+
+			ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+
+			ImGui::PopFont();
+			ImGui::Text("");
+
+			ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+
+			GUI_Checkbox2("Show 1P Bar", activeConfig.MultiplayerBarsWorldSpace.show1PBar, queuedConfig.MultiplayerBarsWorldSpace.show1PBar);
+
+			ImGui::PopFont();
+
+			ImGui::PopStyleColor();
+
+			ImGui::EndTable();
+		}
+	}
+	//BarsSettings(defaultFontSize);
 
 
 }
@@ -7200,6 +7333,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			ImGui::Text("RED ORB ALPHA:  %u", crimsonHud.redOrbAlpha);
 			ImGui::Text("SKY LAUNCH EXECUTING:  %u", crimsonPlayer[0].skyLaunch.executing);
 			ImGui::Text("ROYAL RELEASE EXECUTING:  %u", crimsonPlayer[0].royalRelease.executing);
 			ImGui::Text("STORED RELEASE LEVEL:  %u", crimsonPlayer[0].skyLaunch.storedReleaseLevel);
@@ -7656,44 +7790,47 @@ void InterfaceSection(size_t defaultFontSize) {
 
 	UI::SeparatorEx(defaultFontSize * 23.35f);
 
-    ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::Text("");
 
+
 	{
 		const float columnWidth = 0.5f * queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale;
+		
+		if (ImGui::BeginTable("GUIOptiomsTable", 3)) {
 
-		if (ImGui::BeginTable("GUIOptiomsTable", 2)) {
-
-			ImGui::TableSetupColumn("b1", 0, columnWidth);
-			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
 			ImGui::TableNextColumn();
 
-            ImGui::PushItemWidth(itemWidth);
-            UI::Combo2("Transparency Mode", GUITransparencyNames, activeConfig.GUI.transparencyMode, queuedConfig.GUI.transparencyMode);
-            ImGui::PopItemWidth();
+			ImGui::PushItemWidth(itemWidth * 0.6f);
+			UI::Combo2("Transparency Mode", GUITransparencyNames, activeConfig.GUI.transparencyMode, queuedConfig.GUI.transparencyMode);
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Dynamic will apply transparency only in-game.");
 
 			ImGui::TableNextColumn();
-            
 
-            ImGui::TableNextRow(0, rowWidth);
-			ImGui::TableNextColumn();
-
-
-			GUI_Input2<float>("Alpha", activeConfig.GUI.transparencyValue, queuedConfig.GUI.transparencyValue, 0.1f, "%g",
+			ImGui::PushItemWidth(itemWidth * 0.6f);
+			GUI_Input2<float>("Opacity", activeConfig.GUI.transparencyValue, queuedConfig.GUI.transparencyValue, 0.1f, "%g",
 				ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
 
-            ImGui::TableNextColumn();
 
-			ImGui::PushItemWidth(itemWidth);
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * 0.8f);
 			if (GUI_InputDefault2("Global Scale", activeConfig.globalScale, queuedConfig.globalScale, defaultConfig.globalScale, 0.1f, "%g",
 				ImGuiInputTextFlags_EnterReturnsTrue)) {
 				UpdateGlobalScale();
 			}
 			ImGui::PopItemWidth();
+	
 
 			ImGui::EndTable();
 		}
@@ -7722,39 +7859,39 @@ void InterfaceSection(size_t defaultFontSize) {
 		const float columnWidth = 0.5f * queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-		if (ImGui::BeginTable("HUDOptiomsTable", 2)) {
 
-			ImGui::TableSetupColumn("b1", 0, columnWidth);
-			ImGui::TableNextRow(0, rowWidth);
+		if (ImGui::BeginTable("HUDOptiomsTable", 3)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth);
-            if (UI::Combo2Vector("Select HUD", HUDdirectories, activeConfig.selectedHUD, queuedConfig.selectedHUD)) {
-                copyHUDtoGame();
-            }
+			if (UI::Combo2Vector("Select HUD", HUDdirectories, activeConfig.selectedHUD, queuedConfig.selectedHUD)) {
+				copyHUDtoGame();
+			}
 			ImGui::PopItemWidth();
 
-			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
-            
 
 			ImGui::PushItemWidth(itemWidth);
-			if (GUI_Checkbox2("Hide Main", activeConfig.hideMainHUD, queuedConfig.hideMainHUD)) {
+			if (GUI_Checkbox2("Hide Main HUD", activeConfig.hideMainHUD, queuedConfig.hideMainHUD)) {
 				ToggleHideMainHUD(activeConfig.hideMainHUD);
 			}
 			ImGui::PopItemWidth();
 
-            ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("Always Show Main", activeConfig.forceVisibleHUD, queuedConfig.forceVisibleHUD)) {
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth);
+			if (GUI_Checkbox2("Always Show Main HUD", activeConfig.forceVisibleHUD, queuedConfig.forceVisibleHUD)) {
 				ToggleForceVisibleHUD(activeConfig.forceVisibleHUD);
 			}
 
-
+			ImGui::PopItemWidth();
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
-
 
 			if (GUI_Checkbox2("Hide Lock-On", activeConfig.hideLockOn, queuedConfig.hideLockOn)) {
 				ToggleHideLockOn(activeConfig.hideLockOn);
@@ -7762,32 +7899,78 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
-			ImGui::PushItemWidth(itemWidth);
-			if (GUI_Checkbox2("Hide Boss", activeConfig.hideBossHUD, queuedConfig.hideBossHUD)) {
+			if (GUI_Checkbox2("Hide Boss Damage Bar", activeConfig.hideBossHUD, queuedConfig.hideBossHUD)) {
 				ToggleHideBossHUD(activeConfig.hideBossHUD);
 			}
-			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Disable Style Rank Fadeout", activeConfig.disableStyleRankHudFadeout, queuedConfig.disableStyleRankHudFadeout);
+
+			ImGui::EndTable();
+		}
+	}
+
+
+    ImGui::PopFont();
+    ImGui::PopStyleColor();
+    
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	ImGui::Text("CRIMSON HUD ADDONS");
+	ImGui::PopFont();
+	
+
+	UI::SeparatorEx(defaultFontSize * 23.35f);
+
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+
+	ImGui::Text("");
+
+ 	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+
+		if (ImGui::BeginTable("CrimsonHUDAddonsTable", 3)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("HUD Positionings", activeConfig.CrimsonHudAddons.positionings, queuedConfig.CrimsonHudAddons.positionings)) {
+				CrimsonDetours::ToggleClassicHUDPositionings(!activeConfig.CrimsonHudAddons.positionings);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Uncheck this if you're using Classic HUD.");
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Red Orb Counter", activeConfig.CrimsonHudAddons.redOrbCounter, queuedConfig.CrimsonHudAddons.redOrbCounter);
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Royal Gauge", activeConfig.CrimsonHudAddons.royalGauge, queuedConfig.CrimsonHudAddons.royalGauge);
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-            if (GUI_Checkbox2("Classic HUD Positionings", activeConfig.classicHUDpositionings, queuedConfig.classicHUDpositionings)) {
-                CrimsonDetours::ToggleClassicHUDPositionings(activeConfig.classicHUDpositionings);
-            }
+			GUI_Checkbox2("Style Ranks Meter", activeConfig.CrimsonHudAddons.styleRanksMeter, queuedConfig.CrimsonHudAddons.styleRanksMeter);
 
-            ImGui::TableNextColumn();
+			ImGui::TableNextColumn();
 
-            GUI_Checkbox2("Disable Style Rank Fadeout", activeConfig.disableStyleRankHudFadeout, queuedConfig.disableStyleRankHudFadeout);
+			GUI_Checkbox2("Lock-On", activeConfig.CrimsonHudAddons.lockOn, queuedConfig.CrimsonHudAddons.lockOn);
 
 
 			ImGui::EndTable();
 		}
 	}
 
-    ImGui::PopFont();
-    ImGui::PopStyleColor();
-    
-    ImGui::PopItemWidth();
+	ImGui::PopFont();
+	ImGui::PopStyleColor();
+
+	ImGui::PopItemWidth();
+	//ImGui::PopFont();
 
 	ImGui::Text("");
 	BarsSection(defaultFontSize);
@@ -10067,7 +10250,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::EndChild();
 			}
 
-			// Tooltip area
+			//Tooltip area
 			{
 				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
 				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
@@ -10713,8 +10896,9 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     // TIMERS
     CrimsonTimers::CallAllTimers();
 
-    Bars();
+    MultiplayerBars();
     MirageGaugeMainPlayer();
+	RedOrbCounterWindow();
 	StyleMeterWindow();
     WeaponSwitchController();
 

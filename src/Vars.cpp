@@ -244,6 +244,8 @@ float rainstormPull;
 float storedHP = 0;
 float storedDT = 0;
 
+CrimsonHudData crimsonHud;
+
 CrimsonPlayerData crimsonPlayer[20];
 
 HeldStyleExpData heldStyleExpDataDante;

@@ -58,6 +58,11 @@ void StopDamageToCerberus(bool enable);
 
 #pragma endregion
 
+#pragma region HudStuff
+
+void SetRebOrbCounterDurationTillFadeOut(bool enable, float duration);
+
+#pragma endregion
 
 }
 

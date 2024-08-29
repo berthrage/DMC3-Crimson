@@ -692,7 +692,6 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "hideMainHUD", config.hideMainHUD);
     Create<bool>(member, "hideLockOn", config.hideLockOn);
     Create<bool>(member, "hideBossHUD", config.hideBossHUD);
-    Create<bool>(member, "classicHUDpositionings", config.classicHUDpositionings);
     Create<bool>(member, "disableStyleRankHudFadeout", config.disableStyleRankHudFadeout);
     Create<bool>(member, "soundIgnoreEnemyData", config.soundIgnoreEnemyData);
     Create<bool>(member, "enableRebellionAirStinger", config.enableRebellionAirStinger);
@@ -722,6 +721,33 @@ void CreateMembers(Config& config_) {
     Create<uint8>(member, "cameraLockOnDistance", config.cameraLockOnDistance);
     Create<uint8>(member, "cameraTilt", config.cameraTilt);
     Create<bool>(member, "cameraLockOff", config.cameraLockOff);
+
+	{
+		auto& member = Create<struct_t>(root, "CrimsonHudAddons");
+		auto& config = config_.CrimsonHudAddons;
+
+		Create<bool>(member, "positionings", config.positionings);
+        Create<bool>(member, "redOrbCounter", config.redOrbCounter);
+        Create<bool>(member, "royalGauge", config.royalGauge);
+        Create<bool>(member, "styleRanksMeter", config.styleRanksMeter);
+        Create<bool>(member, "lockOn", config.lockOn);
+	}
+
+	{
+		auto& member = Create<struct_t>(root, "MultiplayerBars2D");
+		auto& config = config_.MultiplayerBars2D;
+
+		Create<bool>(member, "show", config.show);
+		Create<bool>(member, "show1PBar", config.show1PBar);
+	}
+
+	{
+		auto& member = Create<struct_t>(root, "MultiplayerBarsWorldSpace");
+		auto& config = config_.MultiplayerBarsWorldSpace;
+
+		Create<bool>(member, "show", config.show);
+		Create<bool>(member, "show1PBar", config.show1PBar);
+	}
 
 	{
 		auto& member = Create<struct_t>(root, "GUI");
@@ -837,10 +863,6 @@ void CreateMembers(Config& config_) {
             CreateMembers_BarsDataContent(member2, config2);
         }
     }
-
-    Create<bool>(member, "showAdditionalBars", config.showAdditionalBars);
-    Create<bool>(member, "show1Pbar", config.show1Pbar);
-
 
     Create<bool>(member, "forceSyncHitMagicPoints", config.forceSyncHitMagicPoints);
     Create<bool>(member, "updateLockOns", config.updateLockOns);
@@ -1296,7 +1318,6 @@ void ToJSON(Config& config_) {
     Set<bool>(member["hideMainHUD"], config.hideMainHUD);
     Set<bool>(member["hideLockOn"], config.hideLockOn);
     Set<bool>(member["hideBossHUD"], config.hideBossHUD);
-    Set<bool>(member["classicHUDpositionings"], config.classicHUDpositionings);
     Set<bool>(member["disableStyleRankHudFadeout"], config.disableStyleRankHudFadeout);
     Set<bool>(member["soundIgnoreEnemyData"], config.soundIgnoreEnemyData);
     Set<bool>(member["enableRebellionAirStinger"], config.enableRebellionAirStinger);
@@ -1326,6 +1347,19 @@ void ToJSON(Config& config_) {
     Set<uint8>(member["cameraLockOnDistance"], config.cameraLockOnDistance);
     Set<uint8>(member["cameraTilt"], config.cameraTilt);
     Set<bool>(member["cameraLockOff"], config.cameraLockOff);
+
+
+	{
+		auto& member = root["CrimsonHudAddons"];
+		auto& config = config_.CrimsonHudAddons;
+
+		Set<bool>(member["positionings"], config.positionings);
+        Set<bool>(member["redOrbCounter"], config.redOrbCounter);
+        Set<bool>(member["royalGauge"], config.royalGauge);
+        Set<bool>(member["styleRanksMeter"], config.styleRanksMeter);
+        Set<bool>(member["lockOn"], config.lockOn);
+	}
+
 
 	{
 		auto& member = root["GUI"];
@@ -1433,12 +1467,7 @@ void ToJSON(Config& config_) {
     for_all(playerIndex, PLAYER_COUNT) {
         ToJSON_BarsData(member["barsData"][playerIndex], config.barsData[playerIndex]);
     }
-
-    Set<bool>(member["showAdditionalBars"], config.showAdditionalBars);
-    Set<bool>(member["show1Pbar"], config.show1Pbar);
-
     
-
     Set<bool>(member["forceSyncHitMagicPoints"], config.forceSyncHitMagicPoints);
     Set<bool>(member["updateLockOns"], config.updateLockOns);
     Set<bool>(member["showCredits"], config.showCredits);
@@ -1898,7 +1927,6 @@ void ToConfig(Config& config_) {
     config.enablePVPFixes                     = Get<bool>(member["enablePVPFixes"]);
     config.hideMainHUD                        = Get<bool>(member["hideMainHUD"]);
     config.hideLockOn                         = Get<bool>(member["hideLockOn"]);
-    config.classicHUDpositionings            = Get<bool>(member["classicHUDpositionings"]);
     config.disableStyleRankHudFadeout = Get<bool>(member["disableStyleRankHudFadeout"]);
     config.soundIgnoreEnemyData               = Get<bool>(member["soundIgnoreEnemyData"]);
     config.enableRebellionAirStinger          = Get<bool>(member["enableRebellionAirStinger"]);
@@ -1928,6 +1956,34 @@ void ToConfig(Config& config_) {
     config.cameraLockOnDistance               = Get<uint8>(member["cameraLockOnDistance"]);
     config.cameraTilt                         = Get<uint8>(member["cameraTilt"]);
     config.cameraLockOff                      = Get<bool>(member["cameraLockOff"]);
+
+
+	{
+		auto& config = config_.CrimsonHudAddons;
+		auto& member = root["CrimsonHudAddons"];
+
+		config.positionings = Get<bool>(member["positionings"]);
+		config.redOrbCounter = Get<bool>(member["redOrbCounter"]);
+        config.royalGauge = Get<bool>(member["royalGauge"]);
+        config.styleRanksMeter = Get<bool>(member["styleRanksMeter"]);
+        config.styleRanksMeter = Get<bool>(member["lockOn"]);
+	}
+
+	{
+		auto& config = config_.MultiplayerBars2D;
+		auto& member = root["MultiplayerBars2D"];
+
+		config.show = Get<bool>(member["show"]);
+		config.show1PBar = Get<bool>(member["show1PBar"]);
+	}
+
+	{
+		auto& config = config_.MultiplayerBarsWorldSpace;
+		auto& member = root["MultiplayerBarsWorldSpace"];
+
+		config.show = Get<bool>(member["show"]);
+		config.show1PBar = Get<bool>(member["show1PBar"]);
+	}
 
 	{
 		auto& config = config_.GUI;
@@ -2040,10 +2096,6 @@ void ToConfig(Config& config_) {
     for_all(playerIndex, PLAYER_COUNT) {
         ToConfig_BarsData(config.barsData[playerIndex], member["barsData"][playerIndex]);
     }
-
-    
-    config.showAdditionalBars = Get<bool>(member["showAdditionalBars"]);
-    config.show1Pbar = Get<bool>(member["show1Pbar"]);
 
 
     config.forceSyncHitMagicPoints = Get<bool>(member["forceSyncHitMagicPoints"]);

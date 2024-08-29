@@ -3832,10 +3832,13 @@ struct HUDData {
 	float orbsOutofCombatTimer; // 0x6918
     _(4);
     uint8 topLeftAlpha; // 0x6920
+    _(27);
+    uint8 orbsCountAlpha; // 0x693C
 };
 
 static_assert(offsetof(HUDData, orbsOutofCombatTimer) == 0x6918);
 static_assert(offsetof(HUDData, topLeftAlpha) == 0x6920);
+static_assert(offsetof(HUDData, orbsCountAlpha) == 0x693C);
 
 
 // $EnemyVectorDataEnd
@@ -4034,6 +4037,13 @@ struct Toggle {
 };
 
 extern Toggle toggle;
+
+struct CrimsonHudData {
+    volatile uint16_t redOrbAlpha = 0; // goes up to 127
+    float redOrbAlphaDurationToAlpha = 200.0f;
+};
+
+extern CrimsonHudData crimsonHud;
 
 struct WeaponWheelTiming {
     bool wheelAppear  = false;

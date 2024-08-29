@@ -11,6 +11,7 @@ set(MASM_SRC
     masm/DisableDriveHoldAsm.asm
     masm/SetAirTauntAsm.asm
     masm/SkyLaunchAirTaunt.asm
+    masm/RerouteRedOrbsCounterAlpha.asm
     masm/ToggleTakeDamage.asm
     masm/VergilTricksAsm.asm
     masm/StyleRankHudNoFadeout.asm

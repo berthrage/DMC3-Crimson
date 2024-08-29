@@ -122,6 +122,17 @@ float g_HudStyleBarPosX;
 float g_HudStyleBarPosY;
 void HudStyleBarPosDetour();
 
+// RerouteRedOrbsCounterAlpha
+std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr1;
+std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr2;
+std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr3;
+std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr4;
+std::uint64_t g_RerouteRedOrbsCounterAlpha_VariableAddr;
+void RerouteRedOrbsCounterAlphaDetour1();
+void RerouteRedOrbsCounterAlphaDetour2();
+void RerouteRedOrbsCounterAlphaDetour3();
+void RerouteRedOrbsCounterAlphaDetour4();
+
 // StyleRankHUDNoFadeout
 std::uint64_t g_StyleRankHudNoFadeout_ReturnAddr;
 void StyleRankHudNoFadeoutDetour();
@@ -527,6 +538,49 @@ void InitSkyLaunchDetours() {
 	g_SkyLaunchKillDamageShieldNevan_ReturnAddr = SkyLaunchKillDamageShieldNevanHook->GetReturnAddress();
 	SkyLaunchKillDamageShieldNevanHook->Toggle(true);
 
+}
+
+void RerouteRedOrbsCounterAlpha(bool enable, volatile uint16_t& alphaVar) {
+    using namespace Utility;
+    static bool run = false;
+    
+
+	if (run == enable) {
+		return;
+	}
+	
+    // dmc3.exe + 27E850 - 66 89 86 3C 69 00 00 - mov [rsi + 0000693C], ax { Red Orb Count Alpha Iterating on loop for fade out }
+	// dmc3.exe + 27E85C - 66 89 9E 3C 69 00 00 - mov [rsi + 0000693C], bx { Red Orb Count Alpha Setting it to 0 }
+	// dmc3.exe + 27E874 - 66 89 86 3C 69 00 00 - mov [rsi + 0000693C], ax { Red Orb Count Alpha Setting max alpha value (127) }
+    // dmc3.exe + 27E830 - 0F B7 86 3C 69 00 00 - movzx eax, word ptr[rsi + 0000693C] { Red Orb Alpha Check if Fade Out is needed}
+
+	// Debug print to ensure addressBytes is correct
+	std::cout << "Patching address: " << std::hex << g_RerouteRedOrbsCounterAlpha_VariableAddr << std::endl;
+    std::cout << "Patching address: " << std::hex << (uintptr_t)&alphaVar << std::endl;
+
+	static std::unique_ptr<Utility::Detour_t> RerouteRedOrbsCounterAlphaHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27E850, &RerouteRedOrbsCounterAlphaDetour1, 7);
+	g_RerouteRedOrbsCounterAlpha_ReturnAddr1 = RerouteRedOrbsCounterAlphaHook1->GetReturnAddress();
+    RerouteRedOrbsCounterAlphaHook1->Toggle(enable);
+
+	static std::unique_ptr<Utility::Detour_t> RerouteRedOrbsCounterAlphaHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27E85C, &RerouteRedOrbsCounterAlphaDetour2, 7);
+    g_RerouteRedOrbsCounterAlpha_ReturnAddr2 = RerouteRedOrbsCounterAlphaHook2->GetReturnAddress();
+    RerouteRedOrbsCounterAlphaHook2->Toggle(enable);
+
+	static std::unique_ptr<Utility::Detour_t> RerouteRedOrbsCounterAlphaHook3 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27E874, &RerouteRedOrbsCounterAlphaDetour3, 7);
+    g_RerouteRedOrbsCounterAlpha_ReturnAddr3 = RerouteRedOrbsCounterAlphaHook3->GetReturnAddress();
+    RerouteRedOrbsCounterAlphaHook3->Toggle(enable);
+
+	static std::unique_ptr<Utility::Detour_t> RerouteRedOrbsCounterAlphaHook4 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27E830, &RerouteRedOrbsCounterAlphaDetour4, 7);
+	g_RerouteRedOrbsCounterAlpha_ReturnAddr4 = RerouteRedOrbsCounterAlphaHook4->GetReturnAddress();
+	RerouteRedOrbsCounterAlphaHook4->Toggle(enable);
+
+    g_RerouteRedOrbsCounterAlpha_VariableAddr = (uintptr_t)&alphaVar;
+
+    run = enable;
 }
 
 

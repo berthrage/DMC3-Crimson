@@ -5366,6 +5366,66 @@ dmc3.exe+5728A: 48 83 C4 30                    - add rsp,30
                   </Offsets>
                 </CheatEntry>
                 <CheatEntry>
+                  <ID>2640</ID>
+                  <Description>"+46"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>dmc3.exe+CF2330</Address>
+                  <Offsets>
+                    <Offset>46</Offset>
+                    <Offset>498</Offset>
+                    <Offset>240</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>2651</ID>
+                  <Description>"+80"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>dmc3.exe+CF2330</Address>
+                  <Offsets>
+                    <Offset>80</Offset>
+                    <Offset>498</Offset>
+                    <Offset>240</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>2643</ID>
+                  <Description>"+8B"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Byte</VariableType>
+                  <Address>dmc3.exe+CF2330</Address>
+                  <Offsets>
+                    <Offset>8B</Offset>
+                    <Offset>498</Offset>
+                    <Offset>240</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>2641</ID>
+                  <Description>"+190 holds on y axis"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>dmc3.exe+CF2330</Address>
+                  <Offsets>
+                    <Offset>190</Offset>
+                    <Offset>498</Offset>
+                    <Offset>240</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>2652</ID>
+                  <Description>"+1c0 holds on y axis"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>dmc3.exe+CF2330</Address>
+                  <Offsets>
+                    <Offset>1c0</Offset>
+                    <Offset>498</Offset>
+                    <Offset>240</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
                   <ID>1560</ID>
                   <Description>"+24 roll"</Description>
                   <ShowAsSigned>0</ShowAsSigned>
@@ -5554,7 +5614,7 @@ dmc3.exe+5728A: 48 83 C4 30                    - add rsp,30
         </CheatEntry>
         <CheatEntry>
           <ID>2166</ID>
-          <Description>"+6938 top left out of battle timer"</Description>
+          <Description>"+6938 top left alphatimer"</Description>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Float</VariableType>
           <Address>dmc3.exe+CF2680</Address>
@@ -5584,6 +5644,16 @@ dmc3.exe+5728A: 48 83 C4 30                    - add rsp,30
         </CheatEntry>
         <CheatEntry>
           <ID>2163</ID>
+          <Description>"+6938 orbs count alphatimer"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+CF2680</Address>
+          <Offsets>
+            <Offset>6938</Offset>
+          </Offsets>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2635</ID>
           <Description>"+693C orbs count alpha"</Description>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
@@ -8150,6 +8220,194 @@ dmc3.exe+56050: 0F 5B C0                 - cvtdq2ps xmm0,xmm0
       <Description>"No Description"</Description>
       <VariableType>4 Bytes</VariableType>
       <Address>047F51C4</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2636</ID>
+      <Description>"No description"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>2 Bytes</VariableType>
+      <Address>7fffc807dbd8</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2637</ID>
+      <Description>"No description"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>4 Bytes</VariableType>
+      <Address>dmc3.exe+27E850 </Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2638</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030B6336</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2639</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030B637B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2644</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030B648B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2645</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030B64BB</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2646</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BE8CB</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2647</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BE90B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2648</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BE94B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2649</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BE95B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2650</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BE96B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2653</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BE90B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2654</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BE94B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2655</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BE95B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2656</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BE96B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2657</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BE99B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2658</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BEC0B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2659</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BEC4B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2660</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BEC8B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2661</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BEC9B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2662</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BECAB</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2663</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BECDB</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2664</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BEFCB</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2665</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BEFDB</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2666</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BEFEB</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2667</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BF64B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2668</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BF65B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2669</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BF66B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2670</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BFCCB</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2671</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BFCDB</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2672</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>030BFCEB</Address>
     </CheatEntry>
   </CheatEntries>
   <CheatCodes>
@@ -75104,6 +75362,231 @@ dmc3.exe+56050: 0F 5B C0                 - cvtdq2ps xmm0,xmm0
         <Byte>74</Byte>
       </After>
     </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rsi+0000693C],ax</Description>
+      <AddressString>dmc3.exe+27E874</AddressString>
+      <Before>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>B4</Byte>
+        <Byte>42</Byte>
+      </Before>
+      <Actual>
+        <Byte>66</Byte>
+        <Byte>89</Byte>
+        <Byte>86</Byte>
+        <Byte>3C</Byte>
+        <Byte>69</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>BE</Byte>
+        <Byte>3C</Byte>
+        <Byte>69</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rsi+00006938],42B40000</Description>
+      <AddressString>dmc3.exe+27E86A</AddressString>
+      <Before>
+        <Byte>B8</Byte>
+        <Byte>7F</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>C7</Byte>
+        <Byte>86</Byte>
+        <Byte>38</Byte>
+        <Byte>69</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>B4</Byte>
+        <Byte>42</Byte>
+      </Actual>
+      <After>
+        <Byte>66</Byte>
+        <Byte>89</Byte>
+        <Byte>86</Byte>
+        <Byte>3C</Byte>
+        <Byte>69</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Code :RedOrbAlpha: iterate on fade</Description>
+      <AddressString>dmc3.exe+27E850</AddressString>
+      <Before>
+        <Byte>00</Byte>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+        <Byte>2C</Byte>
+        <Byte>C0</Byte>
+      </Before>
+      <Actual>
+        <Byte>66</Byte>
+        <Byte>89</Byte>
+        <Byte>86</Byte>
+        <Byte>3C</Byte>
+        <Byte>69</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>66</Byte>
+        <Byte>85</Byte>
+        <Byte>C0</Byte>
+        <Byte>79</Byte>
+        <Byte>1F</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Code :Red Orb Alpha: set max alpha value (127)</Description>
+      <AddressString>dmc3.exe+27E874</AddressString>
+      <Before>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>48</Byte>
+        <Byte>43</Byte>
+      </Before>
+      <Actual>
+        <Byte>66</Byte>
+        <Byte>89</Byte>
+        <Byte>86</Byte>
+        <Byte>3C</Byte>
+        <Byte>69</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>BE</Byte>
+        <Byte>3C</Byte>
+        <Byte>69</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Code :Red Orb Alpha: setting to 0</Description>
+      <AddressString>dmc3.exe+27E85C</AddressString>
+      <Before>
+        <Byte>66</Byte>
+        <Byte>85</Byte>
+        <Byte>C0</Byte>
+        <Byte>79</Byte>
+        <Byte>1F</Byte>
+      </Before>
+      <Actual>
+        <Byte>66</Byte>
+        <Byte>89</Byte>
+        <Byte>9E</Byte>
+        <Byte>3C</Byte>
+        <Byte>69</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>EB</Byte>
+        <Byte>16</Byte>
+        <Byte>B8</Byte>
+        <Byte>7F</Byte>
+        <Byte>00</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of movaps [rcx+10],xmm3</Description>
+      <AddressString>dmc3.exe+30C98</AddressString>
+      <Before>
+        <Byte>24</Byte>
+        <Byte>20</Byte>
+        <Byte>0F</Byte>
+        <Byte>29</Byte>
+        <Byte>11</Byte>
+      </Before>
+      <Actual>
+        <Byte>0F</Byte>
+        <Byte>29</Byte>
+        <Byte>59</Byte>
+        <Byte>10</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>58</Byte>
+        <Byte>CD</Byte>
+        <Byte>44</Byte>
+        <Byte>0F</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of movaps [rdi+00000080],xmm1</Description>
+      <AddressString>7FF7F28B5EF2</AddressString>
+      <Before>
+        <Byte>0B</Byte>
+        <Byte>0F</Byte>
+        <Byte>29</Byte>
+        <Byte>47</Byte>
+        <Byte>70</Byte>
+      </Before>
+      <Actual>
+        <Byte>0F</Byte>
+        <Byte>29</Byte>
+        <Byte>8F</Byte>
+        <Byte>80</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>E9</Byte>
+        <Byte>FF</Byte>
+        <Byte>1A</Byte>
+        <Byte>2A</Byte>
+        <Byte>FF</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of movaps [rcx+00000190],xmm0</Description>
+      <AddressString>dmc3.exe+571C3</AddressString>
+      <Before>
+        <Byte>82</Byte>
+        <Byte>80</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>0F</Byte>
+        <Byte>29</Byte>
+        <Byte>81</Byte>
+        <Byte>90</Byte>
+        <Byte>01</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+        <Byte>58</Byte>
+        <Byte>89</Byte>
+        <Byte>94</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Code : TPS Camera Collision Tight Spaces</Description>
+      <AddressString>7FF7AD93EBC6</AddressString>
+      <Before/>
+      <Actual>
+        <Byte>00</Byte>
+      </Actual>
+      <After/>
+    </CodeEntry>
   </CheatCodes>
   <UserdefinedSymbols>
     <SymbolEntry>
@@ -79899,8 +80382,14 @@ dmc3.exe+2BB11E style bar stuff
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
-      <Address>7FF7B30C47B0</Address>
-      <Comment>SetActionMeleeAttack
+      <Address>"dmc3.exe"+300C6</Address>
+      <Comment>Controls something for Character anim
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+5EBC6</Address>
+      <Comment>TPSCamera
+Collision to keep it going to tight spaces
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
@@ -80092,6 +80581,30 @@ this will affect RoyalguardReleaseLevel
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
+      <Address>"dmc3.exe"+27E830</Address>
+      <Comment>Red Orb Alpha
+Check if Fade Out is needed
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27E850</Address>
+      <Comment>Red Orb Count Alpha
+Iterating on loop for fade out
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27E85C</Address>
+      <Comment>Reb Orb Count Alpha
+Setting it to 0
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27E874</Address>
+      <Comment>Red Orb Count Alpha
+Setting max alpha value (127)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
       <Address>"dmc3.exe"+2BAF85</Address>
       <Comment>%s crash
 </Comment>
@@ -80139,6 +80652,11 @@ this will affect RoyalguardReleaseLevel
     <DisassemblerComment>
       <Address>"dmc3.exe"+3161EA</Address>
       <Comment>doesnt reenable
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>7FF7B30C47B0</Address>
+      <Comment>SetActionMeleeAttack
 </Comment>
     </DisassemblerComment>
   </DisassemblerComments>

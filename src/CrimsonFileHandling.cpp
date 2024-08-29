@@ -62,7 +62,7 @@ void copyHUDtoGame() {
 			try {
 				fs::copy_file(sourceFile, destinationFile, fs::copy_options::overwrite_existing);
 
-				std::cout << "File copied successfully!" << std::endl;
+				std::cout << "HUD File copied successfully! " << "(" << target << ")" << std::endl;
 			}
 			catch (const fs::filesystem_error& e) {
 				std::cerr << "Filesystem error: " << e.what() << std::endl;

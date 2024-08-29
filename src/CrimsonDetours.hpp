@@ -65,6 +65,11 @@ void HudHPSeparationDetour();
 // HudStyleBarPos
 void HudStyleBarPosDetour();
 
+// RerouteRedOrbsCounterAlpha
+void RerouteRedOrbsCounterAlphaDetour1();
+void RerouteRedOrbsCounterAlphaDetour2();
+void RerouteRedOrbsCounterAlphaDetour3();
+
 // StyleRankHudNoFadeout
 void StyleRankHudNoFadeoutDetour();
 
@@ -79,6 +84,7 @@ void VergilNeutralTrickDetour();
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
 void InitDetours();
+void RerouteRedOrbsCounterAlpha(bool enable, volatile uint16_t& alphaVar);
 void ToggleClassicHUDPositionings(bool enable);
 void ToggleStyleRankHudNoFadeout(bool enable);
 void ToggleCerberusCrashFix(bool enable);

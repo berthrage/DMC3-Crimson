@@ -706,6 +706,7 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
 
     CreateRenderTarget<API::D3D11>();
 
+    InitRedOrbTexture(::D3D11::device);
     InitStyleSwitchFxTexture(::D3D11::device);
     InitDStyleRankTextures(::D3D11::device);
     debug_draw_init(
