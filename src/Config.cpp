@@ -2377,7 +2377,7 @@ void InitExp() {
 }
 
 ExpertiseHelper expertiseHelpersDanteSwordmasterLevel2[] = {
-    {0, 0x4000}, // Sword Pierce
+    {0, 0x8000}, // Sword Pierce (0x4000)
     {1, 0x1000}, // Crystal
     {2, 0x4}, // Crawler
     {2, 0x4000000}, // Feedback
@@ -2385,9 +2385,9 @@ ExpertiseHelper expertiseHelpersDanteSwordmasterLevel2[] = {
 };
 
 ExpertiseHelper expertiseHelpersDanteSwordmasterLevel3[] = {
-    {0, 0x4000}, // Sword Pierce
+    {0, 0x8000}, // Sword Pierce (0x4000)
     {1, 0x5000}, // Crystal and Ice Age (0x4000)
-    {2, 0x2400000C}, // Distortion (0x20000000) and Feedback (0x4000000); Crawler (0x4) and Tempest (0x8)
+    {2, 0x5000000C}, // Distortion (0x20000000) and Feedback (0x4000000); Crawler (0x4) and Tempest (0x8)
     {3, 0x30000000}, // Ground and Air Volcano
     {4, 0x1}, // Real Impact
     {6, 0x100}, // Dance Macabre
@@ -2400,7 +2400,7 @@ ExpertiseHelper expertiseHelpersDanteGunslingerLevel2[] = {
 
 ExpertiseHelper expertiseHelpersDanteGunslingerLevel3[] = {
     {4, 0x4040000}, // Sphere and Shotgun Stinger (0x40000)
-    {5, 0x1020}, // Grapple and Sniper (0x20)
+    {5, 0x1002}, // Grapple and Sniper (0x20)
 };
 
 ExpertiseHelper expertiseHelpersDante[] = {
