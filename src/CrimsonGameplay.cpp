@@ -1629,12 +1629,13 @@ void InertiaController(byte8* actorBaseAddr) {
 
             // The Hammer
             else if (action == BEOWULF_THE_HAMMER) {
-                if (i->theHammer.cachedPull < 0) {
-                    i->theHammer.cachedPull = i->theHammer.cachedPull * -1.0f;
-                }
-
-                i->theHammer.cachedPull  = glm::clamp(i->theHammer.cachedPull, -9.0f, 9.0f);
-                actorData.horizontalPull = (i->theHammer.cachedPull / 1.5f) * 1.0f;
+//                 if (i->theHammer.cachedPull < 0) {
+//                     i->theHammer.cachedPull = i->theHammer.cachedPull * -1.0f;
+//                 }
+// 
+//                 i->theHammer.cachedPull  = glm::clamp(i->theHammer.cachedPull, -9.0f, 9.0f);
+//                 actorData.horizontalPull = (i->theHammer.cachedPull / 1.5f) * 1.0f;
+                   actorData.horizontalPull = 0;  // Having inertia on Hammer makes it hard to use with the new input (lock on + back + style)
 
             }
 
