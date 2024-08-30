@@ -17,6 +17,9 @@
 #include "Core/Macros.h"
 #include "Sound.hpp"
 #include "CrimsonSDL.hpp"
+#include "CrimsonPatches.hpp"
+#include "Camera.hpp"
+#include "CrimsonDetours.hpp"
 
 namespace CrimsonOnTick {
 
@@ -64,6 +67,7 @@ void PreparePlayersDataBeforeSpawn() {
 			crimsonPlayer[playerIndex].maxMagicPoints = sessionData.magicPoints;
 			crimsonPlayer[playerIndex].vergilDoppelganger.miragePoints = 2000;
 			crimsonPlayer[playerIndex].vergilDoppelganger.maxMiragePoints = sessionData.magicPoints;
+			crimsonPlayer[playerIndex].royalguardReleaseDamage = 0;
 		}
 	}
 
@@ -96,6 +100,95 @@ void NewMissionClearSong() {
 		SetVolume(9, activeConfig.channelVolumes[9]);
 
 		missionClearSongPlayed = false;
+	}
+}
+
+void DisableBlendingEffectsController() {
+
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	
+	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10371 || !pool_10371[8]) {
+		return;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
+	if (g_scene != SCENE::GAME) {
+		return;
+	}
+	
+	if (activeConfig.disableBlendingEffects) {
+		if (eventData.event == EVENT::MAIN || eventData.event == EVENT::PAUSE) {
+			CrimsonPatches::DisableBlendingEffects(true);
+		}
+		else {
+			CrimsonPatches::DisableBlendingEffects(false);
+		}
+
+	}
+	else {
+		CrimsonPatches::DisableBlendingEffects(false);
+	}
+	
+
+}
+
+void ForceThirdPersonCameraController() {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	auto pool_11962 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_11962 || !pool_11962[8]) {
+		return;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
+	if (g_scene != SCENE::GAME) {
+		return;
+	}
+
+	if (activeConfig.Camera.forceThirdPerson) {
+		CrimsonPatches::ForceThirdPersonCamera(true);
+		if (!(eventData.room == 228 && eventData.position == 0)) { // Adding only Geryon Part 1 as an exception for now.
+			Camera::ToggleDisableBossCamera(true);
+		}
+		else {
+			Camera::ToggleDisableBossCamera(false);
+		}
+		
+	}
+	else {
+		CrimsonPatches::ForceThirdPersonCamera(false);
+		Camera::ToggleDisableBossCamera(activeConfig.Camera.disableBossCamera);
+	}
+
+}
+
+void GeneralCameraOptionsController() {
+	if (g_scene != SCENE::GAME) {
+		return;
+	}
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449 || !pool_4449[147]) {
+		return;
+	}
+	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+
+	CrimsonPatches::CameraSensController();
+	CrimsonPatches::CameraFollowUpSpeedController();
+	CrimsonPatches::CameraDistanceController();
+	CrimsonPatches::CameraTiltController();
+	CrimsonPatches::LockedOffCameraToggle(activeConfig.Camera.lockedOff);
+	CrimsonPatches::CameraLockOnDistanceController();
+}
+
+void AirTauntDetoursController() {
+	if (activeConfig.Actor.enable) {
+		CrimsonDetours::AirTauntDetours(true);
+	}
+	else {
+		CrimsonDetours::AirTauntDetours(false);
 	}
 }
 

@@ -158,10 +158,10 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         Camera::Toggle(true);
 
         Camera::ToggleInvertX(false);
-        Camera::ToggleInvertX(activeConfig.cameraInvertX);
+        Camera::ToggleInvertX(activeConfig.Camera.invertX);
 
         Camera::ToggleDisableBossCamera(false);
-        Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
+        Camera::ToggleDisableBossCamera(activeConfig.Camera.disableBossCamera);
 
 
         ToggleNoDevilForm(false);

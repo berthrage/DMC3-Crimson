@@ -123,7 +123,7 @@ void Toggle(bool enable) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<uint8**>(func.sect0 + 2) = &activeConfig.cameraAutoAdjust;
+            *reinterpret_cast<uint8**>(func.sect0 + 2) = &activeConfig.Camera.autoAdjust;
         }
 
         if (enable) {
@@ -158,7 +158,7 @@ void Toggle(bool enable) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<bool**>(func.sect0 + 2) = &activeConfig.disableCenterCamera;
+            *reinterpret_cast<bool**>(func.sect0 + 2) = &activeConfig.Camera.disableRightStickCenterCamera;
             WriteAddress((func.sect0 + 0xE), (appBaseAddr + 0x577FF), 6);
             WriteCall((func.sect0 + 0x14), (appBaseAddr + 0x32CC90));
         }
@@ -197,7 +197,7 @@ void Toggle(bool enable) {
             backupHelper.Save(addr, size);
             func = CreateFunction(0, jumpAddr, 0, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<float**>(func.sect0 + 7) = &activeConfig.fovMultiplier;
+            *reinterpret_cast<float**>(func.sect0 + 7) = &activeConfig.Camera.fovMultiplier;
         }
 
         if (enable) {
@@ -232,6 +232,12 @@ void ToggleDisableBossCamera(bool enable) {
     LogFunction(enable);
 
     static bool run = false;
+    static bool run2 = false;
+
+	// If the current state is the same as the desired state, return early.
+	if (run2 == enable) {
+		return;
+	}
 
 
     {
@@ -254,7 +260,7 @@ void ToggleDisableBossCamera(bool enable) {
         }
     }
 
-
+    run2 = enable;
     run = true;
 }
 

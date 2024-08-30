@@ -681,11 +681,6 @@ void CreateMembers(Config& config_) {
     Create<float>(member, "kalinaAnnHookGrenadeTime", config.kalinaAnnHookGrenadeTime);
     CreateMembers_Vec4(member, "kalinaAnnHookMultiplier", config.kalinaAnnHookMultiplier);
 
-
-    Create<bool>(member, "cameraInvertX", config.cameraInvertX);
-    Create<uint8>(member, "cameraAutoAdjust", config.cameraAutoAdjust);
-    Create<bool>(member, "disableCenterCamera", config.disableCenterCamera);
-    Create<bool>(member, "disableBossCamera", config.disableBossCamera);
     Create<bool>(member, "enableBossLadyFixes", config.enableBossLadyFixes);
     Create<bool>(member, "enableBossVergilFixes", config.enableBossVergilFixes);
     Create<bool>(member, "enablePVPFixes", config.enablePVPFixes);
@@ -715,12 +710,24 @@ void CreateMembers(Config& config_) {
     Create<float>(member, "weaponWheelHeight", config.weaponWheelHeight);
     Create<float>(member, "weaponWheelHorizontalMelee", config.weaponWheelHorizontalMelee);
     Create<float>(member, "weaponWheelHorizontalRanged", config.weaponWheelHorizontalRanged);
-    Create<uint8>(member, "cameraSensitivity", config.cameraSensitivity);
-    Create<uint8>(member, "cameraFollowUpSpeed", config.cameraFollowUpSpeed);
-    Create<uint8>(member, "cameraDistance", config.cameraDistance);
-    Create<uint8>(member, "cameraLockOnDistance", config.cameraLockOnDistance);
-    Create<uint8>(member, "cameraTilt", config.cameraTilt);
-    Create<bool>(member, "cameraLockOff", config.cameraLockOff);
+
+	{
+		auto& member = Create<struct_t>(root, "Camera");
+		auto& config = config_.Camera;
+
+		Create<float>(member, "fovMultiplier", config.fovMultiplier);
+		Create<uint8>(member, "sensitivity", config.sensitivity);
+		Create<uint8>(member, "followUpSpeed", config.followUpSpeed);
+		Create<uint8>(member, "distance", config.distance);
+		Create<uint8>(member, "lockOnDistance", config.lockOnDistance);
+        Create<uint8>(member, "tilt", config.tilt);
+        Create<bool>(member, "lockedOff", config.lockedOff);
+        Create<bool>(member, "invertX", config.invertX);
+        Create<uint8>(member, "autoAdjust", config.autoAdjust);
+        Create<bool>(member, "disableRightStickCenterCamera", config.disableRightStickCenterCamera);
+        Create<bool>(member, "disableBossCamera", config.disableBossCamera);
+        Create<bool>(member, "forceThirdPerson", config.forceThirdPerson);
+	}
 
 	{
 		auto& member = Create<struct_t>(root, "CrimsonHudAddons");
@@ -885,7 +892,6 @@ void CreateMembers(Config& config_) {
     CreateString(member, "gamepadName", config.gamepadName);
     Create<byte8>(member, "gamepadButton", config.gamepadButton);
     Create<bool>(member, "disablePlayerActorIdleTimer", config.disablePlayerActorIdleTimer);
-    Create<float>(member, "fovMultiplier", config.fovMultiplier);
     Create<bool>(member, "rebellionInfiniteShredder", config.rebellionInfiniteShredder);
     Create<bool>(member, "rebellionHoldDrive", config.rebellionHoldDrive);
 }
@@ -1308,10 +1314,6 @@ void ToJSON(Config& config_) {
     Set<float>(member["kalinaAnnHookGrenadeHeight"], config.kalinaAnnHookGrenadeHeight);
     Set<float>(member["kalinaAnnHookGrenadeTime"], config.kalinaAnnHookGrenadeTime);
     Set<vec4>(member["kalinaAnnHookMultiplier"], config.kalinaAnnHookMultiplier);
-    Set<bool>(member["cameraInvertX"], config.cameraInvertX);
-    Set<uint8>(member["cameraAutoAdjust"], config.cameraAutoAdjust);
-    Set<bool>(member["disableCenterCamera"], config.disableCenterCamera);
-    Set<bool>(member["disableBossCamera"], config.disableBossCamera);
     Set<bool>(member["enableBossLadyFixes"], config.enableBossLadyFixes);
     Set<bool>(member["enableBossVergilFixes"], config.enableBossVergilFixes);
     Set<bool>(member["enablePVPFixes"], config.enablePVPFixes);
@@ -1341,13 +1343,25 @@ void ToJSON(Config& config_) {
     Set<float>(member["weaponWheelHeight"], config.weaponWheelHeight);
     Set<float>(member["weaponWheelHorizontalMelee"], config.weaponWheelHorizontalMelee);
     Set<float>(member["weaponWheelHorizontalRanged"], config.weaponWheelHorizontalRanged);
-    Set<uint8>(member["cameraSensitivity"], config.cameraSensitivity);
-    Set<uint8>(member["cameraFollowUpSpeed"], config.cameraFollowUpSpeed);
-    Set<uint8>(member["cameraDistance"], config.cameraDistance);
-    Set<uint8>(member["cameraLockOnDistance"], config.cameraLockOnDistance);
-    Set<uint8>(member["cameraTilt"], config.cameraTilt);
-    Set<bool>(member["cameraLockOff"], config.cameraLockOff);
 
+	{
+		auto& member = root["Camera"];
+		auto& config = config_.Camera;
+
+		Set<float>(member["fovMultiplier"], config.fovMultiplier);
+		Set<uint8>(member["sensitivity"], config.sensitivity);
+		Set<uint8>(member["followUpSpeed"], config.followUpSpeed);
+		Set<uint8>(member["distance"], config.distance);
+		Set<uint8>(member["lockOnDistance"], config.lockOnDistance);
+        Set<uint8>(member["tilt"], config.tilt);
+        Set<bool>(member["lockedOff"], config.lockedOff);
+        Set<bool>(member["invertX"], config.invertX);
+        Set<uint8>(member["autoAdjust"], config.autoAdjust);
+        Set<bool>(member["disableRightStickCenterCamera"], config.disableRightStickCenterCamera);
+        Set<bool>(member["disableBossCamera"], config.disableBossCamera);
+        Set<bool>(member["forceThirdPerson"], config.forceThirdPerson);
+	}
+   
 
 	{
 		auto& member = root["CrimsonHudAddons"];
@@ -1482,7 +1496,6 @@ void ToJSON(Config& config_) {
     SetString(member["gamepadName"], config.gamepadName);
     Set<byte8>(member["gamepadButton"], config.gamepadButton);
     Set<bool>(member["disablePlayerActorIdleTimer"], config.disablePlayerActorIdleTimer);
-    Set<float>(member["fovMultiplier"], config.fovMultiplier);
     Set<bool>(member["rebellionInfiniteShredder"], config.rebellionInfiniteShredder);
     Set<bool>(member["rebellionHoldDrive"], config.rebellionHoldDrive);
 }
@@ -1918,10 +1931,6 @@ void ToConfig(Config& config_) {
 
     ToConfig_Vec4(config.kalinaAnnHookMultiplier, member["kalinaAnnHookMultiplier"]);
 
-    config.cameraInvertX                      = Get<bool>(member["cameraInvertX"]);
-    config.cameraAutoAdjust                   = Get<uint8>(member["cameraAutoAdjust"]);
-    config.disableCenterCamera                = Get<bool>(member["disableCenterCamera"]);
-    config.disableBossCamera                  = Get<bool>(member["disableBossCamera"]);
     config.enableBossLadyFixes                = Get<bool>(member["enableBossLadyFixes"]);
     config.enableBossVergilFixes              = Get<bool>(member["enableBossVergilFixes"]);
     config.enablePVPFixes                     = Get<bool>(member["enablePVPFixes"]);
@@ -1950,12 +1959,25 @@ void ToConfig(Config& config_) {
     config.weaponWheelHeight                  = Get<float>(member["weaponWheelHeight"]);
     config.weaponWheelHorizontalMelee         = Get<float>(member["weaponWheelHorizontalMelee"]);
     config.weaponWheelHorizontalRanged        = Get<float>(member["weaponWheelHorizontalRanged"]);
-    config.cameraSensitivity                  = Get<uint8>(member["cameraSensitivity"]);
-    config.cameraFollowUpSpeed                = Get<uint8>(member["cameraFollowUpSpeed"]);
-    config.cameraDistance                     = Get<uint8>(member["cameraDistance"]);
-    config.cameraLockOnDistance               = Get<uint8>(member["cameraLockOnDistance"]);
-    config.cameraTilt                         = Get<uint8>(member["cameraTilt"]);
-    config.cameraLockOff                      = Get<bool>(member["cameraLockOff"]);
+
+
+	{
+		auto& config = config_.Camera;
+		auto& member = root["Camera"];
+
+		config.fovMultiplier = Get<float>(member["fovMultiplier"]);
+		config.sensitivity = Get<uint8>(member["sensitivity"]);
+		config.followUpSpeed = Get<uint8>(member["followUpSpeed"]);
+		config.distance = Get<uint8>(member["distance"]);
+		config.lockOnDistance = Get<uint8>(member["lockOnDistance"]);
+        config.tilt = Get<uint8>(member["tilt"]);
+        config.lockedOff = Get<bool>(member["lockedOff"]);
+        config.invertX = Get<bool>(member["invertX"]);
+        config.autoAdjust = Get<uint8>(member["autoAdjust"]);
+        config.disableRightStickCenterCamera = Get<bool>(member["disableRightStickCenterCamera"]);
+        config.disableBossCamera = Get<bool>(member["disableBossCamera"]);
+        config.forceThirdPerson = Get<bool>(member["forceThirdPerson"]);
+	}
 
 
 	{
@@ -1966,7 +1988,7 @@ void ToConfig(Config& config_) {
 		config.redOrbCounter = Get<bool>(member["redOrbCounter"]);
         config.royalGauge = Get<bool>(member["royalGauge"]);
         config.styleRanksMeter = Get<bool>(member["styleRanksMeter"]);
-        config.styleRanksMeter = Get<bool>(member["lockOn"]);
+        config.lockOn = Get<bool>(member["lockOn"]);
 	}
 
 	{
@@ -2114,7 +2136,6 @@ void ToConfig(Config& config_) {
 
     config.gamepadButton               = Get<byte8>(member["gamepadButton"]);
     config.disablePlayerActorIdleTimer = Get<bool>(member["disablePlayerActorIdleTimer"]);
-    config.fovMultiplier               = Get<float>(member["fovMultiplier"]);
     config.rebellionInfiniteShredder   = Get<bool>(member["rebellionInfiniteShredder"]);
     config.rebellionHoldDrive          = Get<bool>(member["rebellionHoldDrive"]);
 }

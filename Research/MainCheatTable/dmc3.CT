@@ -80387,6 +80387,12 @@ dmc3.exe+2BB11E style bar stuff
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
+      <Address>"dmc3.exe"+558AC</Address>
+      <Comment>Force Fixed Cameras to go 
+to Third Person Camera instead
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
       <Address>"dmc3.exe"+5EBC6</Address>
       <Comment>TPSCamera
 Collision to keep it going to tight spaces

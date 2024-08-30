@@ -3883,12 +3883,6 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CrimsonGameplay::FasterRapidSlashDevil(actorBaseAddr);
     CrimsonGameplay::LastEventStateQueue(actorBaseAddr);
     CrimsonGameplay::DTInfusedRoyalguardController(actorBaseAddr);
-    CrimsonPatches::CameraSensController();
-    CrimsonPatches::CameraFollowUpSpeedController();
-    CrimsonPatches::CameraDistanceController();
-    CrimsonPatches::CameraTiltController();
-    CrimsonPatches::LockedOffCameraToggle(activeConfig.cameraLockOff);
-    CrimsonPatches::CameraLockOnDistanceController();
     CrimsonFX::StyleRankHudFadeoutController();
     CrimsonFX::DelayedComboFXController(actorBaseAddr);
     CrimsonFX::StyleSwitchFlux(actorBaseAddr);

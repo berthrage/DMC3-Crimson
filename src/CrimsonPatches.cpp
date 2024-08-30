@@ -146,26 +146,26 @@ void RainstormLift() {
 void CameraSensController() {
 
     // original speed
-    if (activeConfig.cameraSensitivity != toggle.cameraSensitivity) {
-        if (activeConfig.cameraSensitivity == 0) {                                                         // Low (Vanilla Default)
+    if (activeConfig.Camera.sensitivity != toggle.cameraSensitivity) {
+        if (activeConfig.Camera.sensitivity == 0) {                                                         // Low (Vanilla Default)
             _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x35\xFA\x8E\x3C", 10); // 0.0174533f
             _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x35\xFA\x8E\x3C", 10);
             _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x35\xFA\x8E\x3C", 4);
 
             toggle.cameraSensitivity = 0;
-        } else if (activeConfig.cameraSensitivity == 1) {                                                  // Medium
+        } else if (activeConfig.Camera.sensitivity == 1) {                                                  // Medium
             _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x39\xFA\x0E\x3D", 10); // 0.0349066f
             _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x39\xFA\x0E\x3D", 10);
             _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x39\xFA\x0E\x3D", 4);
 
             toggle.cameraSensitivity = 1;
-        } else if (activeConfig.cameraSensitivity == 2) {                                                  // High
+        } else if (activeConfig.Camera.sensitivity == 2) {                                                  // High
             _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x56\x77\x56\x3D", 10); // 0.0523599f
             _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x56\x77\x56\x3D", 10);
             _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x56\x77\x56\x3D", 4);
 
             toggle.cameraSensitivity = 2;
-        } else if (activeConfig.cameraSensitivity == 3) {                                                  // Highest
+        } else if (activeConfig.Camera.sensitivity == 3) {                                                  // Highest
             _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\xCD\xCC\xCC\x3D", 10); // 0.1f
             _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\xCD\xCC\xCC\x3D", 10);
             _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\xCD\xCC\xCC\x3D", 4);
@@ -183,13 +183,13 @@ void CameraFollowUpSpeedController() {
 	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 
     
-	if (activeConfig.cameraFollowUpSpeed == 0) { // Low (Vanilla Default)
+	if (activeConfig.Camera.followUpSpeed == 0) { // Low (Vanilla Default)
 		cameraData.cameraLag = 1000.0f;
 	}
-	else if (activeConfig.cameraFollowUpSpeed == 1) { // Medium
+	else if (activeConfig.Camera.followUpSpeed == 1) { // Medium
 		cameraData.cameraLag = 500.0f;
 	}
-	else if (activeConfig.cameraFollowUpSpeed == 2) { // High
+	else if (activeConfig.Camera.followUpSpeed == 2) { // High
 		cameraData.cameraLag = 250.0f;
 	}
     
@@ -208,17 +208,17 @@ void CameraDistanceController() {
     }
     auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
 
-    if (activeConfig.cameraDistance == 0) { // Far (Vanilla Default)
+    if (activeConfig.Camera.distance == 0) { // Far (Vanilla Default)
         return;
     }
 
-    if (activeConfig.cameraDistance == 1) { // Closer
+    if (activeConfig.Camera.distance == 1) { // Closer
         if (cameraData.distance > 350) {
             cameraData.distance = 350.0f;
         }
     }
 
-    if (activeConfig.cameraDistance == 2) { // Dynamic
+    if (activeConfig.Camera.distance == 2) { // Dynamic
         if (!(mainActorData.state & STATE::IN_AIR)) {
 
             if (cameraData.distance > 350) {
@@ -246,17 +246,17 @@ void CameraLockOnDistanceController() {
     auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
 
 
-    if (activeConfig.cameraLockOnDistance == 0) {
+    if (activeConfig.Camera.lockOnDistance == 0) {
         return;
     }
 
-    if (activeConfig.cameraLockOnDistance == 1) {
+    if (activeConfig.Camera.lockOnDistance == 1) {
         cameraData.distanceLockOn = 500.0f;
     }
 
     // mainActorData.position.y > 300.0f
 
-    if (activeConfig.cameraLockOnDistance == 2) {
+    if (activeConfig.Camera.lockOnDistance == 2) {
         if (!(mainActorData.state & STATE::IN_AIR)) {
             if (cameraData.distanceLockOn > 360.0f) {
                 cameraData.distanceLockOn = 360.0f;
@@ -276,13 +276,38 @@ void CameraTiltController() {
     }
     auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 
-    if (activeConfig.cameraTilt == 0) { // Original (Vanilla Default)
+    if (activeConfig.Camera.tilt == 0) { // Original (Vanilla Default)
         return;
     }
 
-    if (activeConfig.cameraTilt == 1) { // Closer to Ground
+    if (activeConfig.Camera.tilt == 1) { // Closer to Ground
         cameraData.tilt = 0.103073f;
     }
+}
+
+void ForceThirdPersonCamera(bool enable) {
+	static bool run = false;
+
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// dmc3.exe + 558AC - 75 12 - jne dmc3.exe+558C0 { Force Fixed Cameras to go to Third Person Camera instead }
+	// dmc3.exe + 5EBC6 - 7F 14 - jg dmc3.exe + 5EBDC { TPSCamera Collision to keep it going to tight spaces } -- from call dmc3.exe+5EBC0 at dmc3.exe+56832
+
+
+	if (enable) {
+		_nop((char*)(appBaseAddr + 0x558AC), 2);
+        _patch((char*)(appBaseAddr + 0x5EBC6), (char*)"\xEB\x14", 2); // jmp dmc3.exe + 5EBDC
+	}
+	else {
+		// Restore the original instruction at dmc3.exe + 27E86A
+		_patch((char*)(appBaseAddr + 0x558AC), (char*)"\x75\x12", 2);
+        _patch((char*)(appBaseAddr + 0x5EBC6), (char*)"\x7F\x14", 2);
+	}
+
+	run = enable;
 }
 
 #pragma endregion
@@ -290,6 +315,12 @@ void CameraTiltController() {
 #pragma region GraphicsStuff
 
 void DisableBlendingEffects(bool enable) {
+	static bool run = false;
+
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
 
 	if (enable) {
 		_nop((char*)(appBaseAddr + 0x315BA4), 2);
@@ -298,6 +329,7 @@ void DisableBlendingEffects(bool enable) {
 		_patch((char*)(appBaseAddr + 0x315BA4), (char*)"\x75\x07", 2); // jne dmc3.exe+315BAD
 	}
 
+    run = enable;
 }
 
 #pragma endregion

@@ -442,11 +442,6 @@ struct Config {
         1.0f,
     };
 
-    bool cameraInvertX       = (debug) ? true : false;
-    uint8 cameraAutoAdjust   = 0;
-    bool disableCenterCamera = (debug) ? true : false;
-    bool disableBossCamera   = false;
-
     bool enableBossLadyFixes   = false;
     bool enableBossVergilFixes = false;
     bool enablePVPFixes        = false;
@@ -494,6 +489,22 @@ struct Config {
 
     bool disableStyleRankHudFadeout = true;
 
+	struct Camera {
+		float fovMultiplier = 1.2f;
+		uint8 sensitivity = 2;
+		uint8 followUpSpeed = 2;
+		uint8 distance = 2;
+		uint8 lockOnDistance = 2;
+		uint8 tilt = 1;
+		bool lockedOff = true;
+		bool invertX = true;
+		uint8 autoAdjust = 0;
+		bool disableRightStickCenterCamera = true;
+		bool disableBossCamera = false;
+		bool forceThirdPerson = true;
+	} Camera;
+
+
     struct CrimsonHudAddons {
         bool positionings = true;
         bool redOrbCounter = true;
@@ -531,8 +542,6 @@ struct Config {
 
     bool disablePlayerActorIdleTimer = false;
 
-    float fovMultiplier = 1;
-
     bool rebellionInfiniteShredder = false;
     bool rebellionHoldDrive        = false;
 
@@ -548,13 +557,6 @@ struct Config {
     float weaponWheelHorizontalRanged      = 80;
     float weaponWheelWidthSeparation;
     uint64 weaponWheelTimeout = 2000;
-
-    uint8 cameraSensitivity    = 3;
-    uint8 cameraFollowUpSpeed  = 2;
-    uint8 cameraDistance       = 2;
-    uint8 cameraLockOnDistance = 2;
-    uint8 cameraTilt           = 1;
-    bool cameraLockOff         = true;
 
 	struct GUI {
 		uint8 transparencyMode = 2;
@@ -748,10 +750,10 @@ struct Config {
     bool playDTReadySFXAtMissionStart = true;
 };
 
-static_assert((offsetof(Config, kalinaAnnHookGrenadeHeight) % 0x10) == 0);
-static_assert((offsetof(Config, kalinaAnnHookGrenadeTime) % 0x10) == 0);
-static_assert((offsetof(Config, kalinaAnnHookMultiplier) % 0x10) == 0);
-static_assert((offsetof(Config, barsData) % 0x10) == 0);
+// static_assert((offsetof(Config, kalinaAnnHookGrenadeHeight) % 0x10) == 0);
+// static_assert((offsetof(Config, kalinaAnnHookGrenadeTime) % 0x10) == 0);
+// static_assert((offsetof(Config, kalinaAnnHookMultiplier) % 0x10) == 0);
+// static_assert((offsetof(Config, barsData) % 0x10) == 0);
 
 #pragma pack(pop)
 

@@ -21,6 +21,7 @@ void CameraFollowUpSpeedController();
 void CameraDistanceController();
 void CameraLockOnDistanceController();
 void CameraTiltController();
+void ForceThirdPersonCamera(bool enable);
 
 #pragma endregion
 

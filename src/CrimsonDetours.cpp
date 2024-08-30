@@ -347,6 +347,9 @@ bool TakeDamageCheck(std::uint64_t addr) {
 }
 
 void AddingToPlayersMirageGauge(PlayerActorData& actorData, std::uint64_t amountToAdduint64) {
+    if (!activeConfig.Actor.enable) {
+        return;
+    }
     
     float amountToAdd = *reinterpret_cast<float*>(&amountToAdduint64);
     auto playerIndex = actorData.newPlayerIndex;
@@ -392,8 +395,6 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
 	return false;
 }
 
-void InitSkyLaunchDetours();
-
 void InitDetours() {
     using namespace Utility;
     DetourBaseAddr = (uintptr_t)appBaseAddr;
@@ -414,27 +415,10 @@ void InitDetours() {
     g_GuardGravity_ReturnAddr = guardGravityHook->GetReturnAddress();
     guardGravityHook->Toggle(true);
 
-    // EnableAirTaunt
-    static std::unique_ptr<Detour_t> enableAirTauntHook =
-        std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E99EB, &EnableAirTauntDetour, 9);
-    g_EnableAirTaunt_ReturnAddr = enableAirTauntHook->GetReturnAddress();
-    enableAirTauntHook->Toggle(true);
-    g_EnableAirTaunt_ConditionalAddr  = (uintptr_t)appBaseAddr + 0x1E9A53;
-    g_EnableAirTaunt_ConditionalAddr2 = (uintptr_t)appBaseAddr + 0x1E9A0F;
-
-    // SetAirTaunt
-    static std::unique_ptr<Detour_t> setAirTauntHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E9A46, &SetAirTauntDetour, 5);
-    g_SetAirTaunt_ReturnAddr                         = setAirTauntHook->GetReturnAddress();
-    g_SetAirTaunt_Call                               = (uintptr_t)appBaseAddr + 0x1E09D0;
-    setAirTauntHook->Toggle(true);
-
     // CreateEffect
     createEffectCallA  = (uintptr_t)appBaseAddr + 0x2E7CA0;
     createEffectCallB  = (uintptr_t)appBaseAddr + 0x1FAA50;
     createEffectRBXMov = (uintptr_t)appBaseAddr + 0xC18AF8;
-
-    // SkyLaunchDetours
-    InitSkyLaunchDetours();
 
     // HoldToCrazyCombo
     static std::unique_ptr<Utility::Detour_t> HoldToCrazyComboHook =
@@ -475,16 +459,21 @@ void InitDetours() {
     // VergilNeutralTrickHook->Toggle(true);
 }
 
-void InitSkyLaunchDetours() {
+void SkyLaunchDetours(bool enable) {
 	using namespace Utility;
 	DetourBaseAddr = (uintptr_t)appBaseAddr;
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
 
 	// SkyLaunchForceRelease
 	// dmc3.exe + 20BCF8 - C6 83 10 3E 00 00 01 - mov byte ptr[rbx + 00003E10], 01 - original code
 	static std::unique_ptr<Utility::Detour_t> SkyLaunchForceReleaseHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x20BCF8, &SkyLaunchForceReleaseDetour, 7);
 	g_SkyLaunchForceRelease_ReturnAddr = SkyLaunchForceReleaseHook->GetReturnAddress();
-	SkyLaunchForceReleaseHook->Toggle(true);
+	SkyLaunchForceReleaseHook->Toggle(enable);
 	g_skyLaunchForceReleaseCheckCall = &CheckForceRoyalReleaseForSkyLaunch;
 
 	// SkyLaunchKillRGConsumption
@@ -492,7 +481,7 @@ void InitSkyLaunchDetours() {
 	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillRGConsumptionHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x20BD57, &SkyLaunchKillRGConsumptionDetour, 10);
 	g_SkyLaunchKillRGConsumption_ReturnAddr = SkyLaunchKillRGConsumptionHook->GetReturnAddress();
-	SkyLaunchKillRGConsumptionHook->Toggle(true);
+	SkyLaunchKillRGConsumptionHook->Toggle(enable);
 	g_skyLaunchCheckCall = &DetectIfInSkyLaunch;
 
 	// SkyLaunchKillReleaseLevel1
@@ -500,35 +489,35 @@ void InitSkyLaunchDetours() {
 	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillReleaseLevel1Hook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EEDF7, &SkyLaunchKillReleaseLevel1Detour, 9);
 	g_SkyLaunchKillReleaseLevel1_ReturnAddr = SkyLaunchKillReleaseLevel1Hook->GetReturnAddress();
-	SkyLaunchKillReleaseLevel1Hook->Toggle(true);
+	SkyLaunchKillReleaseLevel1Hook->Toggle(enable);
 
 	// SkyLaunchKillReleaseLevel2
 	// dmc3.exe+1EEE27 - 66 C7 81 80 63 00 00 02 03 - mov word ptr [rcx+00006380], 770
 	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillReleaseLevel2Hook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EEE27, &SkyLaunchKillReleaseLevel2Detour, 9);
 	g_SkyLaunchKillReleaseLevel2_ReturnAddr = SkyLaunchKillReleaseLevel2Hook->GetReturnAddress();
-	SkyLaunchKillReleaseLevel2Hook->Toggle(true);
+	SkyLaunchKillReleaseLevel2Hook->Toggle(enable);
 
 	// SkyLaunchKillReleaseLevel3
 	// dmc3.exe+1EEE4A - 66 C7 81 80 63 00 00 03 05 - mov word ptr [rcx+00006380], 1283
 	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillReleaseLevel3Hook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EEE4A, &SkyLaunchKillReleaseLevel3Detour, 9);
 	g_SkyLaunchKillReleaseLevel3_ReturnAddr = SkyLaunchKillReleaseLevel3Hook->GetReturnAddress();
-	SkyLaunchKillReleaseLevel3Hook->Toggle(true);
+	SkyLaunchKillReleaseLevel3Hook->Toggle(enable);
 
 	// SkyLaunchKillDamage
 	// dmc3.exe + 881F1 - F3 44 0F 10 4A 0C - movss xmm9, [rdx + 0C]
 	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillDamageHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x881F1, &SkyLaunchKillDamageDetour, 6);
 	g_SkyLaunchKillDamage_ReturnAddr = SkyLaunchKillDamageHook->GetReturnAddress();
-	SkyLaunchKillDamageHook->Toggle(true);
+	SkyLaunchKillDamageHook->Toggle(enable);
 
 	// SkyLaunchKillDamageToCerberus
 	// dmc3.exe + 10B7B6 - F3 0F 10 7A 0C - movss xmm7, [rdx + 0C]
 	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillDamageCerberusHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x10B7B6, &SkyLaunchKillDamageCerberusDetour, 5);
 	g_SkyLaunchKillDamageCerberus_ReturnAddr = SkyLaunchKillDamageCerberusHook->GetReturnAddress();
-	SkyLaunchKillDamageCerberusHook->Toggle(true);
+	SkyLaunchKillDamageCerberusHook->Toggle(enable);
 
 	// SkyLaunchKillDamageToShieldNevan
 	// dmc3.exe+133D85 - F3 0F 11 83 24 02 00 00 - movss [rbx+00000224],xmm0
@@ -536,15 +525,43 @@ void InitSkyLaunchDetours() {
 	static std::unique_ptr<Utility::Detour_t> SkyLaunchKillDamageShieldNevanHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x133D85, &SkyLaunchKillDamageShieldNevanDetour, 8);
 	g_SkyLaunchKillDamageShieldNevan_ReturnAddr = SkyLaunchKillDamageShieldNevanHook->GetReturnAddress();
-	SkyLaunchKillDamageShieldNevanHook->Toggle(true);
+	SkyLaunchKillDamageShieldNevanHook->Toggle(enable);
 
+    run = enable;
+
+}
+
+void AirTauntDetours(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// EnableAirTaunt
+	static std::unique_ptr<Detour_t> enableAirTauntHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E99EB, &EnableAirTauntDetour, 9);
+	g_EnableAirTaunt_ReturnAddr = enableAirTauntHook->GetReturnAddress();
+	enableAirTauntHook->Toggle(enable);
+	g_EnableAirTaunt_ConditionalAddr = (uintptr_t)appBaseAddr + 0x1E9A53;
+	g_EnableAirTaunt_ConditionalAddr2 = (uintptr_t)appBaseAddr + 0x1E9A0F;
+
+	// SetAirTaunt
+	static std::unique_ptr<Detour_t> setAirTauntHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E9A46, &SetAirTauntDetour, 5);
+	g_SetAirTaunt_ReturnAddr = setAirTauntHook->GetReturnAddress();
+	g_SetAirTaunt_Call = (uintptr_t)appBaseAddr + 0x1E09D0;
+	setAirTauntHook->Toggle(enable);
+
+    SkyLaunchDetours(enable);
+
+    run = enable;
 }
 
 void RerouteRedOrbsCounterAlpha(bool enable, volatile uint16_t& alphaVar) {
     using namespace Utility;
     static bool run = false;
     
-
 	if (run == enable) {
 		return;
 	}
@@ -553,10 +570,6 @@ void RerouteRedOrbsCounterAlpha(bool enable, volatile uint16_t& alphaVar) {
 	// dmc3.exe + 27E85C - 66 89 9E 3C 69 00 00 - mov [rsi + 0000693C], bx { Red Orb Count Alpha Setting it to 0 }
 	// dmc3.exe + 27E874 - 66 89 86 3C 69 00 00 - mov [rsi + 0000693C], ax { Red Orb Count Alpha Setting max alpha value (127) }
     // dmc3.exe + 27E830 - 0F B7 86 3C 69 00 00 - movzx eax, word ptr[rsi + 0000693C] { Red Orb Alpha Check if Fade Out is needed}
-
-	// Debug print to ensure addressBytes is correct
-	std::cout << "Patching address: " << std::hex << g_RerouteRedOrbsCounterAlpha_VariableAddr << std::endl;
-    std::cout << "Patching address: " << std::hex << (uintptr_t)&alphaVar << std::endl;
 
 	static std::unique_ptr<Utility::Detour_t> RerouteRedOrbsCounterAlphaHook1 =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27E850, &RerouteRedOrbsCounterAlphaDetour1, 7);

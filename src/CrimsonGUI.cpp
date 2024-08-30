@@ -1544,6 +1544,18 @@ void PauseWhenGUIOpen() {
 	}
 	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
 
+
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+
 	static uint32 storedFrameCount = 0;
 
 	// We add this timer so we can safely (aka no crash) say when we can pause the game by setting speed to 0.
@@ -1563,6 +1575,8 @@ void PauseWhenGUIOpen() {
 	if (guiPause.timer <= 0) {
 		guiPause.canPause = true;
 	}
+
+
 
 	if (!g_show || !guiPause.canPause) {
 		storedFrameCount = missionData.frameCount; // This stores the game's timer.
@@ -3641,7 +3655,7 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 		return;
 	}
 	auto& missionData = *reinterpret_cast<MissionData*>(name_7058);
-	if (!(activeConfig.Actor.enable && InGame() && !g_inGameCutscene)) {
+	if (!(InGame() && !g_inGameCutscene)) {
 		return;
 	}
 
@@ -3760,7 +3774,7 @@ void StyleMeterWindow() {
 	if (!DStyleRankFillTexture->IsValid() || !DStyleRankBackgroundTexture->IsValid()) {
 		return;
 	}
-	if (!(activeConfig.Actor.enable && InGame() && !g_inGameCutscene)) {
+	if (!(InGame() && !g_inGameCutscene)) {
 		return;
 	}
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
@@ -4331,52 +4345,53 @@ void CameraSection(size_t defaultFontSize) {
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::Text("");
 
-	float smallerComboMult = 0.6f;
+	float smallerComboMult = 0.7f;
 
 	{
 		const float columnWidth = 0.5f * queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-		if (ImGui::BeginTable("CameraOptionsTable", 2)) {
+		if (ImGui::BeginTable("CameraOptionsTable", 3)) {
 
-			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			ImGui::PushItemWidth(itemWidth);
-			GUI_InputDefault2("FOV Multiplier", activeConfig.fovMultiplier, queuedConfig.fovMultiplier, defaultConfig.fovMultiplier, 0.1f, "%g",
+			ImGui::PushItemWidth(itemWidth * 0.7f);
+			GUI_InputDefault2("FOV Multiplier", activeConfig.Camera.fovMultiplier, queuedConfig.Camera.fovMultiplier, defaultConfig.Camera.fovMultiplier, 0.1f, "%g",
 				ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
 
-			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			UI::Combo2("Turning Sensitivity", cameraSensitivityNames, activeConfig.cameraSensitivity, queuedConfig.cameraSensitivity);
+			ImGui::PushItemWidth(itemWidth * 1.1f);
+			UI::Combo2("Sensitivity", cameraSensitivityNames, activeConfig.Camera.sensitivity, queuedConfig.Camera.sensitivity);
+			ImGui::PopItemWidth();
+
+			
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * 1.1f);
+			UI::Combo2("Follow-Up Speed", cameraFollowUpSpeedNames, activeConfig.Camera.followUpSpeed, queuedConfig.Camera.followUpSpeed);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			UI::Combo2("Follow-Up Speed", cameraFollowUpSpeedNames, activeConfig.cameraFollowUpSpeed, queuedConfig.cameraFollowUpSpeed);
-			ImGui::PopItemWidth();
-
-			ImGui::TableNextColumn();
-
-			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			UI::Combo2("Distance", cameraDistanceNames, activeConfig.cameraDistance, queuedConfig.cameraDistance);
+			ImGui::PushItemWidth(itemWidth * 1.1f);
+			UI::Combo2("Distance", cameraDistanceNames, activeConfig.Camera.distance, queuedConfig.Camera.distance);
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Camera Distance relative to the player outside Lock-On.\n"
 				"\n"
 				"Dynamic Option adjusts based on whether player is airborne.");
 			ImGui::PopItemWidth();
 
-			ImGui::TableNextRow(0, rowWidth);
+
 			ImGui::TableNextColumn();
 
-			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			ImGui::PushItemWidth(itemWidth * 1.1f);
 			UI::Combo2(
-				"Lock-On Distance", cameraLockOnDistanceNames, activeConfig.cameraLockOnDistance, queuedConfig.cameraLockOnDistance);
+				"LockOn Distance", cameraLockOnDistanceNames, activeConfig.Camera.lockOnDistance, queuedConfig.Camera.lockOnDistance);
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Camera Distance relative to the player in Lock-On.\n"
 				"\n"
@@ -4385,42 +4400,45 @@ void CameraSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
-			ImGui::PushItemWidth(itemWidth);
-			UI::Combo2("Vertical Tilt", cameraTiltNames, activeConfig.cameraTilt, queuedConfig.cameraTilt);
+			ImGui::PushItemWidth(itemWidth * 1.1f);
+			UI::Combo2("Vertical Tilt", cameraTiltNames, activeConfig.Camera.tilt, queuedConfig.Camera.tilt);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			UI::Combo2<uint8>("Auto-Adjust", cameraAutoAdjustNames, activeConfig.cameraAutoAdjust, queuedConfig.cameraAutoAdjust);
+			UI::Combo2<uint8>("Auto-Adjust", cameraAutoAdjustNames, activeConfig.Camera.autoAdjust, queuedConfig.Camera.autoAdjust);
 			ImGui::PopItemWidth();
 
-			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Locked-Off Camera", activeConfig.cameraLockOff, queuedConfig.cameraLockOff);
+			GUI_Checkbox2("Locked-Off Camera", activeConfig.Camera.lockedOff, queuedConfig.Camera.lockedOff);
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Allows you to freely rotate the camera using the right stick in Third-Person View sections.");
 
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("Invert X", activeConfig.cameraInvertX, queuedConfig.cameraInvertX)) {
-				Camera::ToggleInvertX(activeConfig.cameraInvertX);
+			if (GUI_Checkbox2("Invert X", activeConfig.Camera.invertX, queuedConfig.Camera.invertX)) {
+				Camera::ToggleInvertX(activeConfig.Camera.invertX);
 			}
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Disable Center Camera", activeConfig.disableCenterCamera, queuedConfig.disableCenterCamera);
+			GUI_Checkbox2("Disable Right Stick Center Camera", activeConfig.Camera.disableRightStickCenterCamera, queuedConfig.Camera.disableRightStickCenterCamera);
 
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("Disable Boss Camera", activeConfig.disableBossCamera, queuedConfig.disableBossCamera)) {
-				Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
+			if (GUI_Checkbox2("Disable Boss Camera", activeConfig.Camera.disableBossCamera, queuedConfig.Camera.disableBossCamera)) {
+				Camera::ToggleDisableBossCamera(activeConfig.Camera.disableBossCamera);
 			}
 
+			ImGui::TableNextColumn();
 
+			if (GUI_Checkbox2("[WIP] Force Third Person Camera", activeConfig.Camera.forceThirdPerson, queuedConfig.Camera.forceThirdPerson)) {
+				
+			}
 
 
 			ImGui::EndTable();
@@ -8257,9 +8275,7 @@ void SystemSection(size_t defaultFontSize) {
 
             ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("Disable Blending Effects", activeConfig.disableBlendingEffects, queuedConfig.disableBlendingEffects)) {
-                CrimsonPatches::DisableBlendingEffects(activeConfig.disableBlendingEffects);
-			}
+			GUI_Checkbox2("Disable Blending Effects", activeConfig.disableBlendingEffects, queuedConfig.disableBlendingEffects);
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
@@ -10885,12 +10901,15 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     // outside of In Game.
     CrimsonSDL::CheckAndOpenControllers();
     CrimsonSDL::UpdateJoysticks();
-
     
     CrimsonGameplay::GunDTCharacterRemaps();
     CrimsonOnTick::GameTrackDetection();
     CrimsonOnTick::CorrectFrameRateCutscenes();
     CrimsonOnTick::PreparePlayersDataBeforeSpawn();
+	CrimsonOnTick::DisableBlendingEffectsController();
+	CrimsonOnTick::ForceThirdPersonCameraController();
+	CrimsonOnTick::GeneralCameraOptionsController(); // previously called from Actor in WeaponSwitchController.
+	CrimsonOnTick::AirTauntDetoursController();
 	CrimsonOnTick::NewMissionClearSong();
 
     // TIMERS
