@@ -26,9 +26,9 @@ void DisableHeightRestriction() {
     uintptr_t rainstormAddr = 0x20149708;
     uintptr_t airMeleeAddr  = 0x2014970C;
 
-    if (toggle.disableHeightRestriction != (int)activeConfig.Gameplay.disableHeightRestriction) {
+    if (toggle.disableHeightRestriction != (int)activeCrimsonConfig.Gameplay.General.disableHeightRestriction) {
 
-        if (activeConfig.Gameplay.disableHeightRestriction) {
+        if (activeCrimsonConfig.Gameplay.General.disableHeightRestriction) {
             *(float*)(raveAddr)      = 0.0f;
             *(float*)(rainstormAddr) = 0.0f;
             *(float*)(airMeleeAddr)  = 0.0f;
@@ -53,9 +53,9 @@ void DisableHeightRestriction() {
 
 void IncreasedJCSpheres() {
 
-    if (toggle.increasedJCSpheres != (int)activeConfig.Gameplay.increasedJCSpheres) {
+    if (toggle.increasedJCSpheres != (int)activeCrimsonConfig.Gameplay.General.increasedJCSpheres) {
 
-        if (activeConfig.Gameplay.increasedJCSpheres) {
+        if (activeCrimsonConfig.Gameplay.General.increasedJCSpheres) {
             _patch((char*)(appBaseAddr + 0x1C1DCB), (char*)"\xF3\x0F\x5E\x0D\xB1\x4F\x31\x00", 8);
 
             toggle.increasedJCSpheres = 1;
@@ -71,8 +71,8 @@ void ImprovedBufferedReversals() {
     uintptr_t danteAddr  = 0x201499BC;
     uintptr_t vergilAddr = 0x21758C1C;
 
-    if (toggle.improvedBufferedReversals != (int)activeConfig.Gameplay.improvedBufferedReversals) {
-        if (activeConfig.Gameplay.improvedBufferedReversals) {
+    if (toggle.improvedBufferedReversals != (int)activeCrimsonConfig.Gameplay.General.improvedBufferedReversals) {
+        if (activeCrimsonConfig.Gameplay.General.improvedBufferedReversals) {
             *(float*)(danteAddr)  = 24.0f;
             *(float*)(vergilAddr) = 24.0f;
 
@@ -88,9 +88,9 @@ void ImprovedBufferedReversals() {
 
 void DisableJCRestriction() {
 
-    if (toggle.disableJCRestriction != (int)activeConfig.Gameplay.disableJCRestriction) {
+    if (toggle.disableJCRestriction != (int)activeCrimsonConfig.Gameplay.General.disableJCRestriction) {
 
-        if (activeConfig.Gameplay.disableJCRestriction) {
+        if (activeCrimsonConfig.Gameplay.General.disableJCRestriction) {
             _nop((char*)(appBaseAddr + 0x1E7A9F), 6);
 
             toggle.disableJCRestriction = 1;
@@ -104,8 +104,8 @@ void DisableJCRestriction() {
 
 void BulletStop() {
 
-    if (toggle.bulletStop != (int)activeConfig.Gameplay.bulletStop) {
-        if (activeConfig.Gameplay.bulletStop) {
+    if (toggle.bulletStop != (int)activeCrimsonConfig.Gameplay.Dante.bulletStop) {
+        if (activeCrimsonConfig.Gameplay.Dante.bulletStop) {
 
             _nop((char*)(appBaseAddr + 0x77070), 10); // knockback
             _nop((char*)(appBaseAddr + 0x68C80), 10); // knockback when higher up
@@ -125,8 +125,8 @@ void BulletStop() {
 void RainstormLift() {
     uintptr_t rainstormLiftAddr = 0x20149B00;
 
-    if (toggle.rainstormLift != (int)activeConfig.Gameplay.rainstormLift) {
-        if (activeConfig.Gameplay.rainstormLift) {
+    if (toggle.rainstormLift != (int)activeCrimsonConfig.Gameplay.Dante.rainstormLift) {
+        if (activeCrimsonConfig.Gameplay.Dante.rainstormLift) {
 
             *(float*)(rainstormLiftAddr) = -0.2f;
 
@@ -146,26 +146,26 @@ void RainstormLift() {
 void CameraSensController() {
 
     // original speed
-    if (activeConfig.Camera.sensitivity != toggle.cameraSensitivity) {
-        if (activeConfig.Camera.sensitivity == 0) {                                                         // Low (Vanilla Default)
+    if (activeCrimsonConfig.Camera.sensitivity != toggle.cameraSensitivity) {
+        if (activeCrimsonConfig.Camera.sensitivity == 0) {                                                         // Low (Vanilla Default)
             _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x35\xFA\x8E\x3C", 10); // 0.0174533f
             _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x35\xFA\x8E\x3C", 10);
             _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x35\xFA\x8E\x3C", 4);
 
             toggle.cameraSensitivity = 0;
-        } else if (activeConfig.Camera.sensitivity == 1) {                                                  // Medium
+        } else if (activeCrimsonConfig.Camera.sensitivity == 1) {                                                  // Medium
             _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x39\xFA\x0E\x3D", 10); // 0.0349066f
             _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x39\xFA\x0E\x3D", 10);
             _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x39\xFA\x0E\x3D", 4);
 
             toggle.cameraSensitivity = 1;
-        } else if (activeConfig.Camera.sensitivity == 2) {                                                  // High
+        } else if (activeCrimsonConfig.Camera.sensitivity == 2) {                                                  // High
             _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x56\x77\x56\x3D", 10); // 0.0523599f
             _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x56\x77\x56\x3D", 10);
             _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x56\x77\x56\x3D", 4);
 
             toggle.cameraSensitivity = 2;
-        } else if (activeConfig.Camera.sensitivity == 3) {                                                  // Highest
+        } else if (activeCrimsonConfig.Camera.sensitivity == 3) {                                                  // Highest
             _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\xCD\xCC\xCC\x3D", 10); // 0.1f
             _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\xCD\xCC\xCC\x3D", 10);
             _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\xCD\xCC\xCC\x3D", 4);
@@ -175,22 +175,34 @@ void CameraSensController() {
     }
 }
 
+
 void CameraFollowUpSpeedController() {
 	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
 	if (!pool_4449 || !pool_4449[147]) {
 		return;
 	}
-	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+	auto cameraDataPtr = pool_4449[147];
+	if (!cameraDataPtr || IsBadReadPtr(cameraDataPtr, sizeof(CameraData))) {
+		return;
+	}
+	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10298 || !pool_10298[8]) {
+		return;
+	}
+	auto& cameraData = *reinterpret_cast<CameraData*>(cameraDataPtr);
 
-    
-	if (activeConfig.Camera.followUpSpeed == 0) { // Low (Vanilla Default)
-		cameraData.cameraLag = 1000.0f;
-	}
-	else if (activeConfig.Camera.followUpSpeed == 1) { // Medium
-		cameraData.cameraLag = 500.0f;
-	}
-	else if (activeConfig.Camera.followUpSpeed == 2) { // High
-		cameraData.cameraLag = 250.0f;
+	switch (activeCrimsonConfig.Camera.followUpSpeed) {
+		case 0: // Low (Vanilla Default)
+			cameraData.cameraLag = 1000.0f;
+			break;
+		case 1: // Medium
+			cameraData.cameraLag = 500.0f;
+			break;
+		case 2: // High
+			cameraData.cameraLag = 250.0f;
+			break;
+		default:
+			break;
 	}
     
 }
@@ -208,17 +220,17 @@ void CameraDistanceController() {
     }
     auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
 
-    if (activeConfig.Camera.distance == 0) { // Far (Vanilla Default)
+    if (activeCrimsonConfig.Camera.distance == 0) { // Far (Vanilla Default)
         return;
     }
 
-    if (activeConfig.Camera.distance == 1) { // Closer
+    if (activeCrimsonConfig.Camera.distance == 1) { // Closer
         if (cameraData.distance > 350) {
             cameraData.distance = 350.0f;
         }
     }
 
-    if (activeConfig.Camera.distance == 2) { // Dynamic
+    if (activeCrimsonConfig.Camera.distance == 2) { // Dynamic
         if (!(mainActorData.state & STATE::IN_AIR)) {
 
             if (cameraData.distance > 350) {
@@ -246,17 +258,17 @@ void CameraLockOnDistanceController() {
     auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
 
 
-    if (activeConfig.Camera.lockOnDistance == 0) {
+    if (activeCrimsonConfig.Camera.lockOnDistance == 0) {
         return;
     }
 
-    if (activeConfig.Camera.lockOnDistance == 1) {
+    if (activeCrimsonConfig.Camera.lockOnDistance == 1) {
         cameraData.distanceLockOn = 500.0f;
     }
 
     // mainActorData.position.y > 300.0f
 
-    if (activeConfig.Camera.lockOnDistance == 2) {
+    if (activeCrimsonConfig.Camera.lockOnDistance == 2) {
         if (!(mainActorData.state & STATE::IN_AIR)) {
             if (cameraData.distanceLockOn > 360.0f) {
                 cameraData.distanceLockOn = 360.0f;
@@ -276,11 +288,11 @@ void CameraTiltController() {
     }
     auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 
-    if (activeConfig.Camera.tilt == 0) { // Original (Vanilla Default)
+    if (activeCrimsonConfig.Camera.tilt == 0) { // Original (Vanilla Default)
         return;
     }
 
-    if (activeConfig.Camera.tilt == 1) { // Closer to Ground
+    if (activeCrimsonConfig.Camera.tilt == 1) { // Closer to Ground
         cameraData.tilt = 0.103073f;
     }
 }
@@ -520,9 +532,9 @@ void TatsumakiInertiaFix(bool enable) {
 
 void InertiaFixes() {
 
-    if (toggle.inertiaFixes != (int)activeConfig.Gameplay.inertia) {
+    if (toggle.inertiaFixes != (int)activeCrimsonConfig.Gameplay.General.inertia) {
 
-        if (activeConfig.Gameplay.inertia) {
+        if (activeCrimsonConfig.Gameplay.General.inertia) {
             AerialRaveInertiaFix(true);
             SkyDanceInertiaFix(true);
             AirSlashInertiaFix(true);
@@ -543,9 +555,9 @@ void InertiaFixes() {
 void DisableAirSlashKnockback() {
     // dmc3.exe+5CA0C4 0x00 0x00 0x00 0x00
 
-    if (toggle.disableAirSlashKnockback != (int)activeConfig.Gameplay.disableAirSlashKnockback) {
+    if (toggle.disableAirSlashKnockback != (int)activeCrimsonConfig.Gameplay.Dante.disableAirSlashKnockback) {
 
-        if (activeConfig.Gameplay.disableAirSlashKnockback) {
+        if (activeCrimsonConfig.Gameplay.Dante.disableAirSlashKnockback) {
             _patch((char*)(appBaseAddr + 0x5CA0C4), (char*)"\x00\x00\x00\x00", 4);
 
             toggle.disableAirSlashKnockback = 1;

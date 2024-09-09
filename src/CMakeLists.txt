@@ -97,7 +97,10 @@ file(GLOB MAIN_SRC
     Camera.hpp
     Config.cpp
     Config.hpp
-    Crimson.cpp
+    Crimson.cpp 
+    CrimsonConfig.cpp
+    CrimsonConfig.hpp
+    CrimsonConfigHandling.h
     CrimsonDetours.cpp
     CrimsonDetours.hpp
     CrimsonFileHandling.cpp

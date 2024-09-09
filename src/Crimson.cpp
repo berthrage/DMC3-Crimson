@@ -158,10 +158,10 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         Camera::Toggle(true);
 
         Camera::ToggleInvertX(false);
-        Camera::ToggleInvertX(activeConfig.Camera.invertX);
+        Camera::ToggleInvertX(activeCrimsonConfig.Camera.invertX);
 
         Camera::ToggleDisableBossCamera(false);
-        Camera::ToggleDisableBossCamera(activeConfig.Camera.disableBossCamera);
+        Camera::ToggleDisableBossCamera(activeCrimsonConfig.Camera.disableBossCamera);
 
 
         ToggleNoDevilForm(false);
@@ -256,7 +256,14 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         Hooks::Init();
 
         CrimsonDetours::InitDetours();
-        CrimsonDetours::ToggleClassicHUDPositionings(!activeConfig.CrimsonHudAddons.positionings);
+        if (activeConfig.Actor.enable) {
+            CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
+        }
+        else {
+            CrimsonDetours::ToggleHoldToCrazyCombo(false);
+        }
+        
+        CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
         CrimsonDetours::ToggleStyleRankHudNoFadeout(activeConfig.disableStyleRankHudFadeout);
         CrimsonDetours::ToggleCerberusCrashFix(true);
 

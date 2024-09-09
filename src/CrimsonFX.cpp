@@ -435,7 +435,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
 		}
 	}
 	else {
-		if (actorData.character == CHARACTER::VERGIL && activeConfig.Gameplay.enableVergilQuicksilver) {
+		if (actorData.character == CHARACTER::VERGIL && activeCrimsonConfig.Gameplay.Vergil.enableQuicksilver) {
 			if (*fluxtime < 0.05f) {
 
 				if (actorData.devil == 0 && !(gamepad.buttons[2] & GetBinding(BINDING::DEVIL_TRIGGER))) {
@@ -483,7 +483,7 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
     // Color conversion from ImGui Color (255, 255, 255, 255) to ddColor (1, 1, 1)    
     for (int style = 0; style < 9; style++) {
         for (int j = 0; j < 3; j++) {
-            sstext->color[style][j] = (float)activeConfig.StyleSwitchColor.text[style][j] / 255;
+            sstext->color[style][j] = (float)activeCrimsonConfig.StyleSwitchFX.Text.color[style][j] / 255;
         }
     }
 
@@ -534,11 +534,11 @@ void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr) {
         for (int i = 0; i < 6; i++) {
             if (i == style) {
                 *drawTextTimes[i] = crimsonPlayer[playerIndex].styleSwitchText.duration;
-                sstext->animSize = activeConfig.styleSwitchTextSize;
+                sstext->animSize = activeCrimsonConfig.StyleSwitchFX.Text.size;
                 
             } else {
                 *drawTextTimes[i] = 0;
-                *drawTextAlphas[i] = activeConfig.styleSwitchTextMaxAlpha;
+				*drawTextAlphas[i] = activeCrimsonConfig.StyleSwitchFX.Text.maxAlpha;
           
             }
         }

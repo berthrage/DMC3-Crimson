@@ -84,6 +84,7 @@ void VergilNeutralTrickDetour();
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
 void InitDetours();
+void ToggleHoldToCrazyCombo(bool enable);
 void AirTauntDetours(bool enable);
 void RerouteRedOrbsCounterAlpha(bool enable, volatile uint16_t& alphaVar);
 void ToggleClassicHUDPositionings(bool enable);

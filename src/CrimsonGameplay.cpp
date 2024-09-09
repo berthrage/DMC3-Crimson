@@ -2097,15 +2097,14 @@ void GunDTCharacterRemaps() {
         return;
     }
 
-
     static uint16_t* currentDTButton    = (uint16_t*)(appBaseAddr + 0xD6CE9A);
     static uint16_t* currentShootButton = (uint16_t*)(appBaseAddr + 0xD6CE98);
     if (crimsonPlayer[0].character == CHARACTER::DANTE) {
-        *currentDTButton    = activeConfig.Remaps.danteDTButton;
-        *currentShootButton = activeConfig.Remaps.danteShootButton;
+        *currentDTButton    = activeCrimsonConfig.Gameplay.Remaps.danteDTButton;
+        *currentShootButton = activeCrimsonConfig.Gameplay.Remaps.danteShootButton;
     } else if (crimsonPlayer[0].character == CHARACTER::VERGIL) {
-        *currentDTButton    = activeConfig.Remaps.vergilDTButton;
-        *currentShootButton = activeConfig.Remaps.vergilShootButton;
+        *currentDTButton    = activeCrimsonConfig.Gameplay.Remaps.vergilDTButton;
+        *currentShootButton = activeCrimsonConfig.Gameplay.Remaps.vergilShootButton;
     }
 }
 

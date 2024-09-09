@@ -27,7 +27,6 @@ Config defaultConfig;
 Config queuedConfig;
 Config activeConfig;
 
-
 // $GetDataStart
 
 PlayerData& GetDefaultPlayerData(uint8 playerIndex) {
@@ -711,60 +710,6 @@ void CreateMembers(Config& config_) {
     Create<float>(member, "weaponWheelHorizontalMelee", config.weaponWheelHorizontalMelee);
     Create<float>(member, "weaponWheelHorizontalRanged", config.weaponWheelHorizontalRanged);
 
-	{
-		auto& member = Create<struct_t>(root, "Camera");
-		auto& config = config_.Camera;
-
-		Create<float>(member, "fovMultiplier", config.fovMultiplier);
-		Create<uint8>(member, "sensitivity", config.sensitivity);
-		Create<uint8>(member, "followUpSpeed", config.followUpSpeed);
-		Create<uint8>(member, "distance", config.distance);
-		Create<uint8>(member, "lockOnDistance", config.lockOnDistance);
-        Create<uint8>(member, "tilt", config.tilt);
-        Create<bool>(member, "lockedOff", config.lockedOff);
-        Create<bool>(member, "invertX", config.invertX);
-        Create<uint8>(member, "autoAdjust", config.autoAdjust);
-        Create<bool>(member, "disableRightStickCenterCamera", config.disableRightStickCenterCamera);
-        Create<bool>(member, "disableBossCamera", config.disableBossCamera);
-        Create<bool>(member, "forceThirdPerson", config.forceThirdPerson);
-	}
-
-	{
-		auto& member = Create<struct_t>(root, "CrimsonHudAddons");
-		auto& config = config_.CrimsonHudAddons;
-
-		Create<bool>(member, "positionings", config.positionings);
-        Create<bool>(member, "redOrbCounter", config.redOrbCounter);
-        Create<bool>(member, "royalGauge", config.royalGauge);
-        Create<bool>(member, "styleRanksMeter", config.styleRanksMeter);
-        Create<bool>(member, "lockOn", config.lockOn);
-	}
-
-	{
-		auto& member = Create<struct_t>(root, "MultiplayerBars2D");
-		auto& config = config_.MultiplayerBars2D;
-
-		Create<bool>(member, "show", config.show);
-		Create<bool>(member, "show1PBar", config.show1PBar);
-	}
-
-	{
-		auto& member = Create<struct_t>(root, "MultiplayerBarsWorldSpace");
-		auto& config = config_.MultiplayerBarsWorldSpace;
-
-		Create<bool>(member, "show", config.show);
-		Create<bool>(member, "show1PBar", config.show1PBar);
-	}
-
-	{
-		auto& member = Create<struct_t>(root, "GUI");
-		auto& config = config_.GUI;
-
-		Create<uint8>(member, "trasnparencyMode", config.transparencyMode);
-		Create<float>(member, "transparencyValue", config.transparencyValue);
-	}
-
-
     {
         auto& member = Create<struct_t>(root, "MeleeWeaponWheel");
         auto& config = config_.MeleeWeaponWheel;
@@ -780,74 +725,6 @@ void CreateMembers(Config& config_) {
         Create<bool>(member, "alwaysShow", config.alwaysShow);
         Create<uint32>(member, "timeout", config.timeout);
     }
-
-    {
-        auto& member = Create<struct_t>(root, "SFX");
-        auto& config = config_.SFX;
-
-        Create<uint8>(member, "changeGunNew", config.changeGunNew);
-        Create<uint8>(member, "changeDevilArmNew", config.changeDevilArmNew);
-        Create<uint32>(member, "changeWeaponVolume", config.changeWeaponVolume);
-        Create<uint32>(member, "styleChangeEffectVolume", config.styleChangeEffectVolume);
-        Create<uint32>(member, "styleChangeVOVolume", config.styleChangeVOVolume);
-        Create<uint32>(member, "sprintVolume", config.sprintVolume);
-        Create<uint32>(member, "devilTriggerInL1Volume", config.devilTriggerInL1Volume);
-        Create<uint32>(member, "devilTriggerInL2Volume", config.devilTriggerInL2Volume);
-        Create<uint32>(member, "devilTriggerOutVolume", config.devilTriggerOutVolume);
-        Create<uint32>(member, "devilTriggerReadyVolume", config.devilTriggerReadyVolume);
-        Create<uint32>(member, "doppelgangerInVolume", config.doppelgangerInVolume);
-        Create<uint32>(member, "doppelgangerOutVolume", config.doppelgangerOutVolume);
-        Create<uint32>(member, "quicksilverInVolume", config.quicksilverInVolume);
-        Create<uint32>(member, "styleRankAnnouncerVolume", config.styleRankAnnouncerVolume);
-        Create<uint32>(member, "styleRankAnnouncerCooldownSeconds", config.styleRankAnnouncerCooldownSeconds);
-    }
-
-	{
-		auto& member = Create<struct_t>(root, "Remaps");
-		auto& config = config_.Remaps;
-
-		Create<uint16_t>(member, "danteDTButton", config.danteDTButton);
-		Create<uint16_t>(member, "danteShootButton", config.danteShootButton);
-		Create<uint16_t>(member, "vergilDTButton", config.vergilDTButton);
-		Create<uint16_t>(member, "vergilShootButton", config.vergilShootButton);
-	}
-
-    {
-        auto& member = Create<struct_t>(root, "Gameplay");
-        auto& config = config_.Gameplay;
-
-        Create<bool>(member, "inertia", config.inertia);
-        Create<bool>(member, "aerialRaveTweaks", config.aerialRaveTweaks);
-        Create<bool>(member, "airFlickerTweaks", config.airFlickerTweaks);
-        Create<bool>(member, "skyDanceTweaks", config.skyDanceTweaks);
-        Create<bool>(member, "sprint", config.sprint);
-        Create<bool>(member, "disableHeightRestriction", config.disableHeightRestriction);
-        Create<bool>(member, "improvedBufferedReversals", config.improvedBufferedReversals);
-        Create<bool>(member, "increasedJCSpheres", config.increasedJCSpheres);
-        Create<bool>(member, "disableJCRestriction", config.disableJCRestriction);
-        Create<bool>(member, "improvedCancelsDante", config.improvedCancelsDante);
-        Create<bool>(member, "bulletStop", config.bulletStop);
-        Create<bool>(member, "rainstormLift", config.rainstormLift);
-        Create<bool>(member, "quickDriveAndTweaks", config.quickDriveAndTweaks);
-        Create<bool>(member, "disableAirSlashKnockback", config.disableAirSlashKnockback);
-        Create<bool>(member, "enableVergilQuicksilver", config.enableVergilQuicksilver);
-        Create<bool>(member, "darkslayerTrickCancels", config.darkslayerTrickCancels);
-    }
-
-
-	{
-		auto& member2 = Create<struct_t>(member, "StyleSwitchColor");
-		auto& config2 = config_.StyleSwitchColor;
-
-        CreateArray2<uint8, 6, 4>(member2, "flux", config2.flux);
-		CreateArray2<uint8, 9, 4>(member2, "text", config2.text);
-	}
-
-    Create<float>(member, "styleSwitchTextMaxAlpha", config.styleSwitchTextMaxAlpha);
-    Create<float>(member, "styleSwitchTextSize", config.styleSwitchTextSize);
-
-    Create<bool>(member, "enableStyleSwitchFlux", config.enableStyleSwitchFlux);
-    Create<bool>(member, "enableStyleSwitchText", config.enableStyleSwitchText);
 
     CreateString(member, "selectedHUD", config.selectedHUD.c_str());
 
@@ -1344,46 +1221,6 @@ void ToJSON(Config& config_) {
     Set<float>(member["weaponWheelHorizontalMelee"], config.weaponWheelHorizontalMelee);
     Set<float>(member["weaponWheelHorizontalRanged"], config.weaponWheelHorizontalRanged);
 
-	{
-		auto& member = root["Camera"];
-		auto& config = config_.Camera;
-
-		Set<float>(member["fovMultiplier"], config.fovMultiplier);
-		Set<uint8>(member["sensitivity"], config.sensitivity);
-		Set<uint8>(member["followUpSpeed"], config.followUpSpeed);
-		Set<uint8>(member["distance"], config.distance);
-		Set<uint8>(member["lockOnDistance"], config.lockOnDistance);
-        Set<uint8>(member["tilt"], config.tilt);
-        Set<bool>(member["lockedOff"], config.lockedOff);
-        Set<bool>(member["invertX"], config.invertX);
-        Set<uint8>(member["autoAdjust"], config.autoAdjust);
-        Set<bool>(member["disableRightStickCenterCamera"], config.disableRightStickCenterCamera);
-        Set<bool>(member["disableBossCamera"], config.disableBossCamera);
-        Set<bool>(member["forceThirdPerson"], config.forceThirdPerson);
-	}
-   
-
-	{
-		auto& member = root["CrimsonHudAddons"];
-		auto& config = config_.CrimsonHudAddons;
-
-		Set<bool>(member["positionings"], config.positionings);
-        Set<bool>(member["redOrbCounter"], config.redOrbCounter);
-        Set<bool>(member["royalGauge"], config.royalGauge);
-        Set<bool>(member["styleRanksMeter"], config.styleRanksMeter);
-        Set<bool>(member["lockOn"], config.lockOn);
-	}
-
-
-	{
-		auto& member = root["GUI"];
-		auto& config = config_.GUI;
-
-		Set<uint8>(member["trasnparencyMode"], config.transparencyMode);
-		Set<float>(member["transparencyValue"], config.transparencyValue);
-	}
-
-
     {
         auto& member = root["MeleeWeaponWheel"];
         auto& config = config_.MeleeWeaponWheel;
@@ -1400,73 +1237,6 @@ void ToJSON(Config& config_) {
         Set<uint32>(member["timeout"], config.timeout);
     }
 
-    {
-        auto& member = root["SFX"];
-        auto& config = config_.SFX;
-
-        Set<uint8>(member["changeGunNew"], config.changeGunNew);
-        Set<uint8>(member["changeDevilArmNew"], config.changeDevilArmNew);
-        Set<uint32>(member["changeWeaponVolume"], config.changeWeaponVolume);
-        Set<uint32>(member["styleChangeEffectVolume"], config.styleChangeEffectVolume);
-        Set<uint32>(member["styleChangeVOVolume"], config.styleChangeVOVolume);
-        Set<uint32>(member["sprintVolume"], config.sprintVolume);
-        Set<uint32>(member["devilTriggerInL1Volume"], config.devilTriggerInL1Volume);
-        Set<uint32>(member["devilTriggerInL2Volume"], config.devilTriggerInL2Volume);
-        Set<uint32>(member["devilTriggerOutVolume"], config.devilTriggerOutVolume);
-        Set<uint32>(member["devilTriggerReadyVolume"], config.devilTriggerReadyVolume);
-        Set<uint32>(member["doppelgangerInVolume"], config.doppelgangerInVolume);
-        Set<uint32>(member["doppelgangerOutVolume"], config.doppelgangerOutVolume);
-        Set<uint32>(member["quicksilverInVolume"], config.quicksilverInVolume);
-        Set<uint32>(member["styleRankAnnouncerVolume"], config.styleRankAnnouncerVolume);
-        Set<uint32>(member["styleRankAnnouncerCooldownSeconds"], config.styleRankAnnouncerCooldownSeconds);
-    }
-
-	{
-		auto& member = root["Remaps"];
-		auto& config = config_.Remaps;
-
-		Set<uint16_t>(member["danteDTButton"], config.danteDTButton);
-		Set<uint16_t>(member["danteShootButton"], config.danteShootButton);
-		Set<uint16_t>(member["vergilDTButton"], config.vergilDTButton);
-		Set<uint16_t>(member["vergilShootButton"], config.vergilShootButton);
-	}
-
-    {
-        auto& member = root["Gameplay"];
-        auto& config = config_.Gameplay;
-
-        Set<bool>(member["inertia"], config.inertia);
-        Set<bool>(member["aerialRaveTweaks"], config.aerialRaveTweaks);
-        Set<bool>(member["airFlickerTweaks"], config.airFlickerTweaks);
-        Set<bool>(member["skyDanceTweaks"], config.skyDanceTweaks);
-        Set<bool>(member["sprint"], config.sprint);
-        Set<bool>(member["disableHeightRestriction"], config.disableHeightRestriction);
-        Set<bool>(member["improvedBufferedReversals"], config.improvedBufferedReversals);
-        Set<bool>(member["increasedJCSpheres"], config.increasedJCSpheres);
-        Set<bool>(member["disableJCRestriction"], config.disableJCRestriction);
-        Set<bool>(member["improvedCancelsDante"], config.improvedCancelsDante);
-        Set<bool>(member["bulletStop"], config.bulletStop);
-        Set<bool>(member["rainstormLift"], config.rainstormLift);
-        Set<bool>(member["quickDriveAndTweaks"], config.quickDriveAndTweaks);
-        Set<bool>(member["disableAirSlashKnockback"], config.disableAirSlashKnockback);
-        Set<bool>(member["enableVergilQuicksilver"], config.enableVergilQuicksilver);
-        Set<bool>(member["darkslayerTrickCancels"], config.darkslayerTrickCancels);
-    }
-
-
-	{
-		auto& member2 = member["StyleSwitchColor"];
-		auto& config2 = config_.StyleSwitchColor;
-
-		SetArray2<uint8, 6, 4>(member2["flux"], config2.flux);
-        SetArray2<uint8, 9, 4>(member2["text"], config2.text);
-	}
-
-    Set<float>(member["styleSwitchTextMaxAlpha"], config.styleSwitchTextMaxAlpha);
-    Set<float>(member["styleSwitchTextSize"], config.styleSwitchTextSize);
-
-    Set<bool>(member["enableStyleSwitchFlux"], config.enableStyleSwitchFlux);
-    Set<bool>(member["enableStyleSwitchText"], config.enableStyleSwitchText);
 
     SetString(member["selectedHUD"], config.selectedHUD.c_str());
 
@@ -1960,61 +1730,6 @@ void ToConfig(Config& config_) {
     config.weaponWheelHorizontalMelee         = Get<float>(member["weaponWheelHorizontalMelee"]);
     config.weaponWheelHorizontalRanged        = Get<float>(member["weaponWheelHorizontalRanged"]);
 
-
-	{
-		auto& config = config_.Camera;
-		auto& member = root["Camera"];
-
-		config.fovMultiplier = Get<float>(member["fovMultiplier"]);
-		config.sensitivity = Get<uint8>(member["sensitivity"]);
-		config.followUpSpeed = Get<uint8>(member["followUpSpeed"]);
-		config.distance = Get<uint8>(member["distance"]);
-		config.lockOnDistance = Get<uint8>(member["lockOnDistance"]);
-        config.tilt = Get<uint8>(member["tilt"]);
-        config.lockedOff = Get<bool>(member["lockedOff"]);
-        config.invertX = Get<bool>(member["invertX"]);
-        config.autoAdjust = Get<uint8>(member["autoAdjust"]);
-        config.disableRightStickCenterCamera = Get<bool>(member["disableRightStickCenterCamera"]);
-        config.disableBossCamera = Get<bool>(member["disableBossCamera"]);
-        config.forceThirdPerson = Get<bool>(member["forceThirdPerson"]);
-	}
-
-
-	{
-		auto& config = config_.CrimsonHudAddons;
-		auto& member = root["CrimsonHudAddons"];
-
-		config.positionings = Get<bool>(member["positionings"]);
-		config.redOrbCounter = Get<bool>(member["redOrbCounter"]);
-        config.royalGauge = Get<bool>(member["royalGauge"]);
-        config.styleRanksMeter = Get<bool>(member["styleRanksMeter"]);
-        config.lockOn = Get<bool>(member["lockOn"]);
-	}
-
-	{
-		auto& config = config_.MultiplayerBars2D;
-		auto& member = root["MultiplayerBars2D"];
-
-		config.show = Get<bool>(member["show"]);
-		config.show1PBar = Get<bool>(member["show1PBar"]);
-	}
-
-	{
-		auto& config = config_.MultiplayerBarsWorldSpace;
-		auto& member = root["MultiplayerBarsWorldSpace"];
-
-		config.show = Get<bool>(member["show"]);
-		config.show1PBar = Get<bool>(member["show1PBar"]);
-	}
-
-	{
-		auto& config = config_.GUI;
-		auto& member = root["GUI"];
-
-		config.transparencyMode = Get<uint8>(member["trasnparencyMode"]);
-		config.transparencyValue = Get<float>(member["transparencyValue"]);
-	}
-
     {
         auto& config = config_.MeleeWeaponWheel;
         auto& member = root["MeleeWeaponWheel"];
@@ -2030,77 +1745,6 @@ void ToConfig(Config& config_) {
         config.alwaysShow = Get<bool>(member["alwaysShow"]);
         config.timeout    = Get<uint32>(member["timeout"]);
     }
-
-    {
-        auto& config = config_.SFX;
-        auto& member = root["SFX"];
-
-        config.changeGunNew                      = Get<uint8>(member["changeGunNew"]);
-        config.changeDevilArmNew                 = Get<uint8>(member["changeDevilArmNew"]);
-        config.changeWeaponVolume                = Get<uint32>(member["changeWeaponVolume"]);
-        config.styleChangeEffectVolume           = Get<uint32>(member["styleChangeEffectVolume"]);
-        config.styleChangeVOVolume               = Get<uint32>(member["styleChangeVOVolume"]);
-        config.sprintVolume                      = Get<uint32>(member["sprintVolume"]);
-        config.devilTriggerInL1Volume            = Get<uint32>(member["devilTriggerInL1Volume"]);
-        config.devilTriggerInL2Volume            = Get<uint32>(member["devilTriggerInL2Volume"]);
-        config.devilTriggerOutVolume             = Get<uint32>(member["devilTriggerOutVolume"]);
-        config.devilTriggerReadyVolume           = Get<uint32>(member["devilTriggerReadyVolume"]);
-        config.doppelgangerInVolume              = Get<uint32>(member["doppelgangerInVolume"]);
-        config.doppelgangerOutVolume             = Get<uint32>(member["doppelgangerOutVolume"]);
-        config.quicksilverInVolume               = Get<uint32>(member["quicksilverInVolume"]);
-        config.styleRankAnnouncerVolume          = Get<uint32>(member["styleRankAnnouncerVolume"]);
-        config.styleRankAnnouncerCooldownSeconds = Get<uint32>(member["styleRankAnnouncerCooldownSeconds"]);
-    }
-
-	{
-		auto& config = config_.Remaps;
-		auto& member = root["Remaps"];
-
-		config.danteDTButton = Get<uint16_t>(member["danteDTButton"]);
-		config.danteShootButton = Get<uint16_t>(member["danteShootButton"]);
-		config.vergilDTButton = Get<uint16_t>(member["vergilDTButton"]);
-		config.vergilShootButton = Get<uint16_t>(member["vergilShootButton"]);
-	}
-
-
-
-    {
-        auto& config = config_.Gameplay;
-        auto& member = root["Gameplay"];
-
-        config.inertia                   = Get<bool>(member["inertia"]);
-        config.aerialRaveTweaks          = Get<bool>(member["aerialRaveTweaks"]);
-        config.airFlickerTweaks          = Get<bool>(member["airFlickerTweaks"]);
-        config.skyDanceTweaks            = Get<bool>(member["skyDanceTweaks"]);
-        config.sprint                    = Get<bool>(member["sprint"]);
-        config.disableHeightRestriction  = Get<bool>(member["disableHeightRestriction"]);
-        config.improvedBufferedReversals = Get<bool>(member["improvedBufferedReversals"]);
-        config.increasedJCSpheres        = Get<bool>(member["increasedJCSpheres"]);
-        config.disableJCRestriction      = Get<bool>(member["disableJCRestriction"]);
-        config.improvedCancelsDante      = Get<bool>(member["improvedCancelsDante"]);
-        config.bulletStop                = Get<bool>(member["bulletStop"]);
-        config.rainstormLift             = Get<bool>(member["rainstormLift"]);
-        config.quickDriveAndTweaks       = Get<bool>(member["quickDriveAndTweaks"]);
-        config.disableAirSlashKnockback  = Get<bool>(member["disableAirSlashKnockback"]);
-        config.enableVergilQuicksilver   = Get<bool>(member["enableVergilQuicksilver"]);
-        config.darkslayerTrickCancels    = Get<bool>(member["darkslayerTrickCancels"]);
-    }
-
-
-	{
-		auto& config2 = config_.StyleSwitchColor;
-		auto& member2 = member["StyleSwitchColor"];
-
-		GetArray2<uint8, 6, 4>(config2.flux, member2["flux"]);
-        GetArray2<uint8, 9, 4>(config2.text, member2["text"]);
-		
-	}
-
-    config.styleSwitchTextMaxAlpha = Get<float>(member["styleSwitchTextMaxAlpha"]);
-    config.styleSwitchTextSize = Get<float>(member["styleSwitchTextSize"]);
-
-    config.enableStyleSwitchFlux = Get<bool>(member["enableStyleSwitchFlux"]);
-    config.enableStyleSwitchText = Get<bool>(member["enableStyleSwitchText"]);
 
     config.selectedHUD = Get<std::string>(member["selectedHUD"]);
 
@@ -2169,6 +1813,50 @@ void InitConfig() {
     DebugLog("activeConfig.gamepadName %llX", activeConfig.gamepadName);
 }
 
+// Declare template functions
+// template <typename Tuple, typename Func, std::size_t... I>
+// void for_each_impl(Tuple&& tuple, Func&& func, std::index_sequence<I...>) {
+// 	(func(std::get<I>(tuple)), ...);
+// }
+// 
+// template <typename Tuple, typename Func>
+// void for_each_tuple(Tuple&& tuple, Func&& func) {
+// 	constexpr auto size = std::tuple_size<std::decay_t<Tuple>>::value;
+// 	for_each_impl(std::forward<Tuple>(tuple), std::forward<Func>(func), std::make_index_sequence<size>{});
+// }
+// 
+// template <typename T>
+// inline void CreateMembersCrimson(rapidjson::Value& root, T& config) {
+// 	auto metadata = T::Metadata();
+// 	for_each_tuple(metadata, [&](const auto& field) {
+// 		using FieldType = typename std::decay_t<decltype(config.*(field.second))>;
+// 		auto& memberName = field.first;       // Access the first element of the pair
+// 		auto& memberValue = field.second;     // Access the second element of the pair
+// 		Create<FieldType>(root, memberName, config.*memberValue);
+// 		});
+// }
+// 
+// template <typename T>
+// inline void ToJSONCrimson(rapidjson::Value& root, T& config) {
+// 	auto metadata = T::Metadata();
+// 	for_each_tuple(metadata, [&](const auto& field) {
+// 		using FieldType = typename std::decay_t<decltype(config.*(field.second))>;
+// 		auto& memberName = field.first;       // Access the first element of the pair
+// 		auto& memberValue = field.second;     // Access the second element of the pair
+// 		Set<FieldType>(root[memberName], config.*memberValue);
+// 		});
+// }
+// 
+// template <typename T>
+// inline void ToConfigCrimson(rapidjson::Value& root, T& config) {
+// 	auto metadata = T::Metadata();
+// 	for_each_tuple(metadata, [&](const auto& field) {
+// 		using FieldType = typename std::decay_t<decltype(config.*(field.second))>;
+// 		auto& memberName = field.first;       // Access the first element of the pair
+// 		auto& memberValue = field.second;     // Access the second element of the pair
+// 		config.*memberValue = Get<FieldType>(root[memberName]);
+// 		});
+// }
 
 namespace ExpConfig {
 inline const char* directoryName = Paths::config;

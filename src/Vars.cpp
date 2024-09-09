@@ -151,6 +151,8 @@ const char* enemyNames[ENEMY::COUNT] = {
     "",
 };
 
+ColorPresets colorPresets;
+
 Toggle toggle;
 
 #pragma endregion

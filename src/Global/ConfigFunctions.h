@@ -1,3 +1,8 @@
+#include "Core/RapidJSON.h"
+#include <tuple>
+#include <type_traits>
+#include "CrimsonConfigHandling.h"
+
 #ifdef NO_SAVE
 void SaveConfigFunction()
 #else
@@ -5,28 +10,28 @@ void SaveConfig()
 #endif
 {
 #ifndef NO_SAVE
-    LogFunction();
+	LogFunction();
 #endif
 
-    using namespace rapidjson;
-    using namespace JSON;
+	using namespace rapidjson;
+	using namespace JSON;
 
 
-    ToJSON(queuedConfig);
+	ToJSON(queuedConfig);
+	SerializeConfig(root, queuedCrimsonConfig, root.GetAllocator());
+
+	StringBuffer stringBuffer;
+	PrettyWriter<StringBuffer> prettyWriter(stringBuffer);
+
+	root.Accept(prettyWriter);
 
 
-    StringBuffer stringBuffer;
-    PrettyWriter<StringBuffer> prettyWriter(stringBuffer);
+	auto name = stringBuffer.GetString();
+	auto size = strlen(name);
 
-    root.Accept(prettyWriter);
-
-
-    auto name = stringBuffer.GetString();
-    auto size = strlen(name);
-
-    if (!SaveFile(locationConfig, name, size)) {
-        Log("SaveFile failed.");
-    }
+	if (!SaveFile(locationConfig, name, size)) {
+		Log("SaveFile failed.");
+	}
 }
 
 
@@ -37,63 +42,79 @@ void LoadConfig()
 #endif
 {
 #ifndef NO_LOAD
-    LogFunction();
+	LogFunction();
 #endif
 
-    using namespace rapidjson;
-    using namespace JSON;
+	using namespace rapidjson;
+	using namespace JSON;
 
 
-    auto file = LoadFile(locationConfig);
-    if (!file) {
-        Log("LoadFile failed.");
+	auto file = LoadFile(locationConfig);
+	if (!file) {
+		Log("LoadFile failed.");
 
-        CreateMembers(defaultConfig);
+		CreateMembers(defaultConfig);
+		//CreateMembersCrimson(root, defaultCrimsonConfig);
+		SerializeConfig(root, defaultCrimsonConfig, root.GetAllocator());
 
-        SaveConfig();
+// 		int numberTest = 42;
+// 		int numberArrayTest[2][3] = { {1, 2, 3}, {4, 5, 6} };
+// 		uint8 testwithUint8Outside = 33;
+// 		int testAgain = 80;
+// 
+// 		SerializeField(root, root.GetAllocator(), "numberTest", numberTest);
+// 		SerializeField(root, root.GetAllocator(), "numberArrayTest", numberArrayTest);
+// 		SerializeField(root, root.GetAllocator(), "testwithUint8Outside", testwithUint8Outside);
+// 		SerializeField(root, root.GetAllocator(), "testAgain", testAgain);
 
-        return;
-    }
+		SaveConfig();
+
+		return;
+	}
 
 
-    auto name = const_cast<const char*>(reinterpret_cast<char*>(file));
+	auto name = const_cast<const char*>(reinterpret_cast<char*>(file));
 
-    auto& result = root.Parse(name);
+	auto& result = root.Parse(name);
 
-    if (result.HasParseError()) {
-        auto code = result.GetParseError();
-        auto off  = result.GetErrorOffset();
+	if (result.HasParseError()) {
+		auto code = result.GetParseError();
+		auto off = result.GetErrorOffset();
 
-        Log("Parse failed. "
+		Log("Parse failed. "
 #ifdef _WIN64
-            "%u %llu",
+			"%u %llu",
 #else
-              "%u %u",
+			"%u %u",
 #endif
-            code, off);
+			code, off);
 
-        return;
-    }
-
-
-    CreateMembers(defaultConfig);
-
-    // At this point all file members have been applied. Extra or obsolete file members can exist.
-    // If members were missing in the file they were created and have their default values.
+		return;
+	}
 
 
-    // The actual configs are still untouched though.
-    // Let's update them!
+	CreateMembers(defaultConfig);
+	//SerializeConfig(root, defaultCrimsonConfig, root.GetAllocator());
+	//CreateMembersCrimson(root, defaultCrimsonConfig);
 
-    ToConfig(queuedConfig);
+	// At this point all file members have been applied. Extra or obsolete file members can exist.
+	// If members were missing in the file they were created and have their default values.
 
-    CopyMemory(&activeConfig, &queuedConfig, sizeof(activeConfig));
+
+	// The actual configs are still untouched though.
+	// Let's update them!
+
+	ToConfig(queuedConfig);
+	ParseConfig(root, queuedCrimsonConfig);
+
+	CopyMemory(&activeConfig, &queuedConfig, sizeof(activeConfig));
+	CopyMemory(&activeCrimsonConfig, &queuedCrimsonConfig, sizeof(activeCrimsonConfig));
 
 
-    SaveConfig();
+	SaveConfig();
 
-    // SaveConfig here in case new members were created.
-    // This way we don't have to rely on a later SaveConfig to update the file.
+	// SaveConfig here in case new members were created.
+	// This way we don't have to rely on a later SaveConfig to update the file.
 }
 
 
@@ -104,17 +125,17 @@ void InitConfig()
 #endif
 {
 #ifndef NO_INIT
-    LogFunction();
+	LogFunction();
 #endif
 
-    using namespace rapidjson;
-    using namespace JSON;
+	using namespace rapidjson;
+	using namespace JSON;
 
-    CreateDirectoryA(directoryName, 0);
+	CreateDirectoryA(directoryName, 0);
 
-    snprintf(locationConfig, sizeof(locationConfig), "%s/%s", directoryName, fileName);
+	snprintf(locationConfig, sizeof(locationConfig), "%s/%s", directoryName, fileName);
 
-    root.SetObject();
+	root.SetObject();
 
-    g_allocator = &root.GetAllocator();
+	g_allocator = &root.GetAllocator();
 }

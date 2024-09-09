@@ -472,39 +472,39 @@ void PlayOnChannelsFadeOutPosition(int initialChannel, int finalChannel, Mix_Chu
 }
 
 void PlayChangeDevilArm() {
-    PlayOnChannelsFadeOutPosition(CHANNEL::initialDevilArm, CHANNEL::initialDevilArm + 19, changeDevilArm, activeConfig.SFX.changeWeaponVolume, 400, 90, 0);
+    PlayOnChannelsFadeOutPosition(CHANNEL::initialDevilArm, CHANNEL::initialDevilArm + 19, changeDevilArm, activeCrimsonConfig.SFX.changeWeaponVolume, 400, 90, 0);
 }
 
 void PlayChangeGun() {
-    PlayOnChannelsFadeOutPosition(CHANNEL::initialChangeGun, CHANNEL::initialChangeGun + 19, changeGun, activeConfig.SFX.changeWeaponVolume, 400, 270, 0);
+    PlayOnChannelsFadeOutPosition(CHANNEL::initialChangeGun, CHANNEL::initialChangeGun + 19, changeGun, activeCrimsonConfig.SFX.changeWeaponVolume, 400, 270, 0);
 }
 
 void PlayStyleChange(int playerIndex) {
     auto initialChannel = CHANNEL::initialStyleChange + (20 * playerIndex);
    
-    PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, styleChange, activeConfig.SFX.styleChangeEffectVolume, 150);
+    PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, styleChange, activeCrimsonConfig.SFX.styleChangeEffectVolume, 150);
 }
 
 void PlayStyleChangeVO(int playerIndex, int style, bool doppActive) {
     auto initialChannel = CHANNEL::initialStyleChangeVO + (20 * playerIndex);
 
     if (style == 2) {
-        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, tricksterVO, activeConfig.SFX.styleChangeVOVolume, 150);
+        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, tricksterVO, activeCrimsonConfig.SFX.styleChangeVOVolume, 150);
     } else if (style == 0) {
-        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, swordmasterVO, activeConfig.SFX.styleChangeVOVolume, 150);
+        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, swordmasterVO, activeCrimsonConfig.SFX.styleChangeVOVolume, 150);
     } else if (style == 1) {
-        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, gunslingerVO, activeConfig.SFX.styleChangeVOVolume, 150);
+        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, gunslingerVO, activeCrimsonConfig.SFX.styleChangeVOVolume, 150);
     } else if (style == 3) {
-        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, royalguardVO, activeConfig.SFX.styleChangeVOVolume, 150);
+        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, royalguardVO, activeCrimsonConfig.SFX.styleChangeVOVolume, 150);
     } else if (style == 4) {
-        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, quicksilverVO, activeConfig.SFX.styleChangeVOVolume, 150);
+        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, quicksilverVO, activeCrimsonConfig.SFX.styleChangeVOVolume, 150);
     } else if (style == 5) {
 
         if (doppActive) {
-            PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, doppelganger1VO, activeConfig.SFX.styleChangeVOVolume, 150);
+            PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, doppelganger1VO, activeCrimsonConfig.SFX.styleChangeVOVolume, 150);
         }
         else {
-            PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, doppelganger2VO, activeConfig.SFX.styleChangeVOVolume, 150);
+            PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, doppelganger2VO, activeCrimsonConfig.SFX.styleChangeVOVolume, 150);
         }
     }
 }
@@ -554,7 +554,7 @@ void SetAllSFXDistance(int playerIndex, int distance) {
 void StyleRankCooldownTracker(int rank) {
     rankAnnouncer[rank].trackerRunning = true;
     rankAnnouncer[rank].offCooldown    = false;
-    std::this_thread::sleep_for(std::chrono::seconds(activeConfig.SFX.styleRankAnnouncerCooldownSeconds));
+    std::this_thread::sleep_for(std::chrono::seconds(activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSeconds));
     rankAnnouncer[rank].offCooldown    = true;
     rankAnnouncer[rank].trackerRunning = false;
 }
@@ -575,7 +575,7 @@ void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank
 
 
     if (rankAnnouncer[rank - 1].turn == 0 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
-        fn_Mix_Volume(CHANNEL::initialStyleRank + (rank - 1), activeConfig.SFX.styleRankAnnouncerVolume);
+        fn_Mix_Volume(CHANNEL::initialStyleRank + (rank - 1), activeCrimsonConfig.SFX.styleRankAnnouncerVolume);
         fn_Mix_PlayChannel(CHANNEL::initialStyleRank + (rank - 1), styleRankWAV, 0);
         rankAnnouncer[rank - 1].turn++;
 
@@ -586,7 +586,7 @@ void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank
 
 
     } else if (rankAnnouncer[rank - 1].turn == 1 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
-        fn_Mix_Volume(CHANNEL::initialStyleRank + (rank - 1), activeConfig.SFX.styleRankAnnouncerVolume);
+        fn_Mix_Volume(CHANNEL::initialStyleRank + (rank - 1), activeCrimsonConfig.SFX.styleRankAnnouncerVolume);
         fn_Mix_PlayChannel(CHANNEL::initialStyleRank + (rank - 1), styleRankWAVAlt, 0);
         rankAnnouncer[rank - 1].turn = 0;
 
@@ -628,23 +628,23 @@ void StyleRankAnnouncerController(int rank) {
 
 void PlaySprint(int playerIndex) {
 
-    fn_Mix_Volume(CHANNEL::initialSprint + playerIndex, activeConfig.SFX.sprintVolume);
-    fn_Mix_Volume(CHANNEL::initialSprint + 4 + playerIndex, activeConfig.SFX.sprintVolume);
+    fn_Mix_Volume(CHANNEL::initialSprint + playerIndex, activeCrimsonConfig.SFX.sprintVolume);
+    fn_Mix_Volume(CHANNEL::initialSprint + 4 + playerIndex, activeCrimsonConfig.SFX.sprintVolume);
     fn_Mix_PlayChannel(CHANNEL::initialSprint + playerIndex, sprintL1, 0);
     fn_Mix_PlayChannel(CHANNEL::initialSprint + 4 + playerIndex, sprintL2, 0);
 }
 
 void PlayDevilTriggerIn(int playerIndex) {
 
-    fn_Mix_Volume(CHANNEL::initialDTIn + playerIndex, activeConfig.SFX.devilTriggerInL1Volume);
-    fn_Mix_Volume(CHANNEL::initialDTIn +  4 + playerIndex, activeConfig.SFX.devilTriggerInL2Volume);
+    fn_Mix_Volume(CHANNEL::initialDTIn + playerIndex, activeCrimsonConfig.SFX.devilTriggerInL1Volume);
+    fn_Mix_Volume(CHANNEL::initialDTIn +  4 + playerIndex, activeCrimsonConfig.SFX.devilTriggerInL2Volume);
     fn_Mix_PlayChannel(CHANNEL::initialDTIn + playerIndex, devilTriggerInL1, 0);
     fn_Mix_PlayChannel(CHANNEL::initialDTIn + 4 + playerIndex, devilTriggerInL2, 0);
 }
 
 void PlayDevilTriggerOut(int playerIndex) {
 
-    fn_Mix_Volume(CHANNEL::initialDTOut + playerIndex, activeConfig.SFX.devilTriggerOutVolume);
+    fn_Mix_Volume(CHANNEL::initialDTOut + playerIndex, activeCrimsonConfig.SFX.devilTriggerOutVolume);
     fn_Mix_PlayChannel(CHANNEL::initialDTOut + playerIndex, devilTriggerOut, 0);
 }
 
@@ -661,30 +661,30 @@ void StopDevilTriggerLoop(int playerIndex) {
 }
 
 void PlayDoppelgangerIn(int playerIndex) {
-    fn_Mix_Volume(CHANNEL::initialDoppIn + playerIndex, activeConfig.SFX.doppelgangerInVolume);
+    fn_Mix_Volume(CHANNEL::initialDoppIn + playerIndex, activeCrimsonConfig.SFX.doppelgangerInVolume);
     fn_Mix_PlayChannel(CHANNEL::initialDoppIn + playerIndex, doppelgangerIn, 0);
 }
 
 void PlayDoppelgangerOut(int playerIndex) {
-    fn_Mix_Volume(CHANNEL::initialDoppOut + playerIndex, activeConfig.SFX.doppelgangerOutVolume);
+    fn_Mix_Volume(CHANNEL::initialDoppOut + playerIndex, activeCrimsonConfig.SFX.doppelgangerOutVolume);
     fn_Mix_PlayChannel(CHANNEL::initialDoppOut + playerIndex, doppelgangerOut, 0);
 }
 
 void PlayQuicksilverIn() {
 
-    fn_Mix_Volume(CHANNEL::quickIn, activeConfig.SFX.quicksilverInVolume);
+    fn_Mix_Volume(CHANNEL::quickIn, activeCrimsonConfig.SFX.quicksilverInVolume);
     fn_Mix_PlayChannel(CHANNEL::quickIn, quicksilverIn, 0);
 }
 
 void PlayQuicksilverOut() {
 
-	fn_Mix_Volume(CHANNEL::quickOut, activeConfig.SFX.quicksilverInVolume);
+	fn_Mix_Volume(CHANNEL::quickOut, activeCrimsonConfig.SFX.quicksilverInVolume);
 	fn_Mix_PlayChannel(CHANNEL::quickOut, quicksilverOut, 0);
 }
 
 void PlayDevilTriggerReady(int playerIndex) {
 
-    fn_Mix_Volume(CHANNEL::initialDTReady + playerIndex, activeConfig.SFX.devilTriggerReadyVolume);
+    fn_Mix_Volume(CHANNEL::initialDTReady + playerIndex, activeCrimsonConfig.SFX.devilTriggerReadyVolume);
     fn_Mix_PlayChannel(CHANNEL::initialDTReady + playerIndex, devilTriggerReady, 0);
 }
 

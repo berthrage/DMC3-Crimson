@@ -143,7 +143,7 @@ void ForceThirdPersonCameraController() {
 		return;
 	}
 
-	if (activeConfig.Camera.forceThirdPerson) {
+	if (activeCrimsonConfig.Camera.forceThirdPerson) {
 		CrimsonPatches::ForceThirdPersonCamera(true);
 		if (!(eventData.room == 228 && eventData.position == 0)) { // Adding only Geryon Part 1 as an exception for now.
 			Camera::ToggleDisableBossCamera(true);
@@ -155,31 +155,53 @@ void ForceThirdPersonCameraController() {
 	}
 	else {
 		CrimsonPatches::ForceThirdPersonCamera(false);
-		Camera::ToggleDisableBossCamera(activeConfig.Camera.disableBossCamera);
+		Camera::ToggleDisableBossCamera(activeCrimsonConfig.Camera.disableBossCamera);
 	}
 
 }
 
-void GeneralCameraOptionsController() {
-	if (g_scene != SCENE::GAME) {
-		return;
-	}
+CameraData* GetSafeCameraData() {
 	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
 	if (!pool_4449 || !pool_4449[147]) {
+		return nullptr;
+	}
+
+	auto cameraDataPtr = reinterpret_cast<CameraData*>(pool_4449[147]);
+
+	// Check for known invalid pointers
+	if (!cameraDataPtr || reinterpret_cast<uintptr_t>(cameraDataPtr) & 0xFFF0000000000000) {
+		return nullptr;
+	}
+
+	return cameraDataPtr;
+}
+
+
+void GeneralCameraOptionsController() {
+	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10298 || !pool_10298[8]) {
 		return;
 	}
-	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+	CameraData* cameraData = GetSafeCameraData();
+	if (!cameraData) {
+		return;
+	}
+
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!pool_10222 || !pool_10222[3]) {
 		return;
 	}
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	if (eventData.event != EVENT::MAIN) {
+		return;
+	}
 
 	CrimsonPatches::CameraSensController();
 	CrimsonPatches::CameraFollowUpSpeedController();
 	CrimsonPatches::CameraDistanceController();
 	CrimsonPatches::CameraTiltController();
-	CrimsonPatches::LockedOffCameraToggle(activeConfig.Camera.lockedOff);
+	CrimsonPatches::LockedOffCameraToggle(activeCrimsonConfig.Camera.lockedOff);
 	CrimsonPatches::CameraLockOnDistanceController();
 }
 

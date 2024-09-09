@@ -420,14 +420,6 @@ void InitDetours() {
     createEffectCallB  = (uintptr_t)appBaseAddr + 0x1FAA50;
     createEffectRBXMov = (uintptr_t)appBaseAddr + 0xC18AF8;
 
-    // HoldToCrazyCombo
-    static std::unique_ptr<Utility::Detour_t> HoldToCrazyComboHook =
-        std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EB7C5, &HoldToCrazyComboDetour, 12);
-    g_HoldToCrazyCombo_ReturnAddr     = HoldToCrazyComboHook->GetReturnAddress();
-    g_holdToCrazyComboConditionalAddr = (uintptr_t)appBaseAddr + 0x1EB7FE;
-    HoldToCrazyComboHook->Toggle(true);
-    holdToCrazyComboCall = &g_HoldToCrazyComboFuncA;
-
     // DisableStaggerRoyalguard
 	static std::unique_ptr<Utility::Detour_t> DisableStaggerRoyalguardHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EC464, &DisableStaggerRoyalguardDetour, 9);
@@ -450,13 +442,31 @@ void InitDetours() {
         std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EB6F2, &DisableDriveHoldDetour, 5);
     g_DisableDriveHold_ReturnAddr = DisableDriveHoldHook->GetReturnAddress();
     DisableDriveHoldHook->Toggle(true);
-
    
     
     // VergilNeutralTrick // func is already detoured, Crimson.MobilityFunction<27>+B1
     // static std::unique_ptr<Utility::Detour_t> VergilNeutralTrickHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x0,
     // &VergilNeutralTrickDetour, 5); g_VergilNeutralTrick_ReturnAddr = VergilNeutralTrickHook->GetReturnAddress();
     // VergilNeutralTrickHook->Toggle(true);
+}
+
+void ToggleHoldToCrazyCombo(bool enable) {
+    using namespace Utility;
+    static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// HoldToCrazyCombo
+	static std::unique_ptr<Utility::Detour_t> HoldToCrazyComboHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EB7C5, &HoldToCrazyComboDetour, 12);
+	g_HoldToCrazyCombo_ReturnAddr = HoldToCrazyComboHook->GetReturnAddress();
+	g_holdToCrazyComboConditionalAddr = (uintptr_t)appBaseAddr + 0x1EB7FE;
+	HoldToCrazyComboHook->Toggle(enable);
+	holdToCrazyComboCall = &g_HoldToCrazyComboFuncA;
+
+    run = enable;
 }
 
 void SkyLaunchDetours(bool enable) {

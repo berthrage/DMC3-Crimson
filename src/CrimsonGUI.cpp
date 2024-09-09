@@ -1,5 +1,6 @@
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "../ThirdParty/SDL2/SDL_gamecontroller.h"
+#include "../ThirdParty/glm/glm.hpp"
 #include "CrimsonGUI.hpp"
 #include "Core/Core.hpp"
 #include "CrimsonGameplay.hpp"
@@ -1531,7 +1532,7 @@ static_assert(countof(trackFilenames) == countof(trackNames));
 
 #pragma endregion
 
-void PauseWhenGUIOpen() {
+void PauseWhenGUIOpened() {
 	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if (!pool_10298 || !pool_10298[8]) {
 		return;
@@ -1557,6 +1558,9 @@ void PauseWhenGUIOpen() {
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
 
 	static uint32 storedFrameCount = 0;
+	if (g_inGameCutscene || !activeCrimsonConfig.GUI.pauseWhenOpened) {
+		return;
+	}
 
 	// We add this timer so we can safely (aka no crash) say when we can pause the game by setting speed to 0.
 	if (g_scene != SCENE::GAME || eventData.event != EVENT::MAIN) {
@@ -3669,7 +3673,7 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 		return;
 	}
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
-	if (activeConfig.hideMainHUD || !activeConfig.CrimsonHudAddons.redOrbCounter) {
+	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.redOrbCounter) {
 		CrimsonDetours::RerouteRedOrbsCounterAlpha(false, crimsonHud.redOrbAlpha);
 		CrimsonPatches::SetRebOrbCounterDurationTillFadeOut(false, 90);
 		return;
@@ -3782,7 +3786,7 @@ void StyleMeterWindow() {
 		return;
 	}
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
-	if (activeConfig.hideMainHUD || !activeConfig.CrimsonHudAddons.styleRanksMeter) {
+	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter) {
 		return;
 	}
 
@@ -3836,39 +3840,267 @@ static float smoothstep(float edge0, float edge1, float x) {
 	return x * x * (3 - 2 * x);
 }
 
+void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, float screenMargin, const char* name, Config::BarsData& activeData) {
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449 || !pool_4449[147]) return;
+	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+
+	auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_12857 || !pool_12857[3]) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorDataDante*>(pool_12857[3]);
+
+	auto playerIndex = actorData.newPlayerIndex;
+
+	const float screenWidth = g_renderSize.x;
+	const float screenHeight = g_renderSize.y;
+	const float screenCenterX = screenWidth / 2.0f;
+	const float screenCenterY = screenHeight / 2.0f;
+
+	ImVec2 iconPosition;
+
+	glm::vec3 cameraPos = { cameraData.data[0].x, cameraData.data[0].y, cameraData.data[0].z };
+	glm::vec3 playerPos = { actorData.position.x, actorData.position.y, actorData.position.z };
+
+	// Calculate the camera's forward vector based on the main actor's (1P) position
+	glm::vec3 mainActorPos = { mainActorData.position.x, mainActorData.position.y, mainActorData.position.z };
+	SimpleVec3 cameraForwardVec = {
+		mainActorPos.x - cameraPos.x,
+		mainActorPos.y - cameraPos.y,
+		mainActorPos.z - cameraPos.z
+};
+
+	// Normalize the camera forward vector
+	float magnitude = sqrt(cameraForwardVec.x * cameraForwardVec.x +
+		cameraForwardVec.y * cameraForwardVec.y +
+		cameraForwardVec.z * cameraForwardVec.z);
+	cameraForwardVec.x /= magnitude;
+	cameraForwardVec.y /= magnitude;
+	cameraForwardVec.z /= magnitude;
+
+	// Calculate and normalize the vector from the camera to the player
+	SimpleVec3 cameraToPlayerVec = {
+		playerPos.x - cameraPos.x,
+		playerPos.y - cameraPos.y,
+		playerPos.z - cameraPos.z
+	};
+	float magnitudeCameraToPlayer = sqrt(cameraToPlayerVec.x * cameraToPlayerVec.x +
+		cameraToPlayerVec.y * cameraToPlayerVec.y +
+		cameraToPlayerVec.z * cameraToPlayerVec.z);
+	cameraToPlayerVec.x /= magnitudeCameraToPlayer;
+	cameraToPlayerVec.y /= magnitudeCameraToPlayer;
+	cameraToPlayerVec.z /= magnitudeCameraToPlayer;
+
+	// Determine if the player is behind the camera
+	float dotProduct = cameraToPlayerVec.x * cameraForwardVec.x +
+		cameraToPlayerVec.y * cameraForwardVec.y +
+		cameraToPlayerVec.z * cameraForwardVec.z;
+
+	bool isBehindCamera = dotProduct < 0.0f;
+
+	if (isBehindCamera) {
+		float deltaX = -cameraToPlayerVec.x;
+		float deltaY = -cameraToPlayerVec.y;
+
+		// Introduce bias towards the bottom of the screen
+		deltaY += screenHeight * 0.003f;
+
+		// Determine the screen edge closest to the player's position
+		float absDeltaX = fabs(deltaX);
+		float absDeltaY = fabs(deltaY);
+
+		if (absDeltaX > absDeltaY) {
+			// Player is more to the left or right
+			if (deltaX > 0) {
+				// Right side of the screen
+				iconPosition = ImVec2(screenWidth - screenMargin, screenCenterY + deltaY / absDeltaX * (screenHeight / 2.0f - screenMargin));
+			}
+			else {
+				// Left side of the screen
+				iconPosition = ImVec2(screenMargin, screenCenterY + deltaY / absDeltaX * (screenHeight / 2.0f - screenMargin));
+			}
+		}
+		else {
+			// Player is more to the top or bottom
+			if (deltaY > 0) {
+				// Bottom side of the screen
+				iconPosition = ImVec2(screenCenterX + deltaX / absDeltaY * (screenWidth / 2.0f - screenMargin), screenHeight - screenMargin);
+			}
+			else {
+				// Top side of the screen
+				iconPosition = ImVec2(screenCenterX + deltaX / absDeltaY * (screenWidth / 2.0f - screenMargin), screenMargin);
+			}
+		}
+	}
+	else {
+		// Apply a magnetic effect to pull the icon toward the edges of the screen
+		float deltaX = screen_pos.x - screenCenterX;
+		float deltaY = screen_pos.y - screenCenterY;
+		float edgePullFactor = 0.7f;
+
+		if (fabs(deltaX) > fabs(deltaY)) {
+			// More horizontal movement
+			iconPosition.x = screenCenterX + edgePullFactor * deltaX;
+			iconPosition.y = screenCenterY + edgePullFactor * deltaY * (screenHeight / screenWidth);
+		}
+		else {
+			// More vertical movement
+			iconPosition.x = screenCenterX + edgePullFactor * deltaX * (screenWidth / screenHeight);
+			iconPosition.y = screenCenterY + edgePullFactor * deltaY;
+		}
+
+		// Clamp icon position to screen edges
+		iconPosition.x = sexy_clamp(iconPosition.x, screenMargin, screenWidth - screenMargin);
+		iconPosition.y = sexy_clamp(iconPosition.y, screenMargin, screenHeight - screenMargin);
+	}
+
+	// Scale factor based on 1080p for responsiveness
+	float baseResX = 1920.0f;
+	float baseResY = 1080.0f;
+	float scaleFactorX = g_renderSize.x / baseResX;
+	float scaleFactorY = g_renderSize.y / baseResY;
+
+
+	ImVec2 buttonSize(80.0f * scaleFactorX, 80.0f * scaleFactorY);
+
+	// Clamp the Icon Position again to ensure Button doesn't go out of screen bounds:
+	iconPosition.x = sexy_clamp(iconPosition.x, screenMargin, screenWidth - screenMargin - buttonSize.x + 30.0f);
+	iconPosition.y = sexy_clamp(iconPosition.y, screenMargin, screenHeight - screenMargin - buttonSize.y + 30.0f);
+
+
+	auto IsOverlapping = [&](ImVec2 pos1, ImVec2 pos2, ImVec2 size) {
+		return !(pos1.x + size.x <= pos2.x || pos1.x >= pos2.x + size.x ||
+			pos1.y + size.y <= pos2.y || pos1.y >= pos2.y + size.y);
+		};
+
+	// Check for overlap between icons and reposition if necessary
+	for (int i = 0; i < crimsonHud.playerOutViewIconPositions.size(); ++i) {
+		if (i == playerIndex) continue;
+
+		const auto& previousPos = crimsonHud.playerOutViewIconPositions[i];
+		if (IsOverlapping(iconPosition, previousPos, buttonSize)) {
+
+			// Check if both icons are near the top or bottom
+			if (iconPosition.y <= screenMargin || iconPosition.y >= screenHeight - screenMargin - buttonSize.y) {
+				// Both icons are on top or bottom, move one to the side
+				iconPosition.x += buttonSize.x + 5.0f;
+				if (iconPosition.x + buttonSize.x > screenWidth - screenMargin) {
+					// Wrap around if out of bounds horizontally
+					iconPosition.x = screenMargin;
+				}
+			}
+			// Check if both icons are near the left or right
+			else if (iconPosition.x <= screenMargin || iconPosition.x >= screenWidth - screenMargin - buttonSize.x) {
+				// Both icons are on left or right, move one up or down
+				iconPosition.y += buttonSize.y + 5.0f;
+				if (iconPosition.y + buttonSize.y > screenHeight - screenMargin) {
+					// Wrap around if out of bounds vertically
+					iconPosition.y = screenMargin;
+				}
+			}
+		}
+	}
+
+	crimsonHud.playerOutViewIconPositions[playerIndex] = iconPosition;
+
+	// Render the icon at the adjusted position with label and distance
+	float playerTo1PDistance = glm::distance(playerPos, mainActorPos);
+	ImGuiWindowFlags windowFlags =
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	ImGui::SetNextWindowPos(crimsonHud.playerOutViewIconPositions[playerIndex]);
+	ImGui::Begin((std::string(playerIndex + "out of view icon")).c_str(), nullptr, windowFlags);
+
+	ImGui::InvisibleButton("##button", buttonSize);
+
+	// Draw the button manually
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	ImVec2 buttonPos = ImGui::GetItemRectMin();
+	ImVec2 buttonEndPos = ImGui::GetItemRectMax();
+	drawList->AddRectFilled(buttonPos, buttonEndPos, ImGui::GetColorU32(ImGuiCol_Button), 10.0f * scaleFactorX);  // Background color
+	drawList->AddRect(buttonPos, buttonEndPos, ImGui::GetColorU32(ImGuiCol_Border), 10.0f * scaleFactorX);  // Border
+
+
+	float minFontSize = 10.0f; // Font cannot go below 10 or else ImGui asserts will come in.
+	float fontSizeDistance = (std::max)(17.0f * scaleFactorY, minFontSize);
+	float fontSizeNameLabel = (std::max)(29.0f * scaleFactorY, minFontSize);
+
+	// Draw the distance text centered inside the button
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSizeDistance]);
+	std::string distanceText = std::to_string(static_cast<int>(playerTo1PDistance));
+	ImVec2 distanceTextSize = ImGui::CalcTextSize(distanceText.c_str());
+	ImVec2 distanceTextPos = ImVec2(
+		buttonPos.x + (buttonSize.x - distanceTextSize.x) * 0.5f,
+		buttonPos.y + 5.0f * scaleFactorY
+	);
+	drawList->AddText(distanceTextPos, ImGui::GetColorU32(ImGuiCol_Text), distanceText.c_str());
+	ImGui::PopFont();
+
+	// Draw name label (2P, 3P, etc)
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSizeNameLabel]);
+	ImVec2 nameTextSize = ImGui::CalcTextSize(name);
+	ImVec2 nameTextPos = ImVec2(
+		buttonPos.x + (buttonSize.x - nameTextSize.x) * 0.5f,
+		buttonPos.y + (buttonSize.y - nameTextSize.y) * 0.5f
+	);
+	drawList->AddText(nameTextPos, ImGui::GetColorU32(ImGuiCol_Text), name);
+	ImGui::PopFont();
+
+	// Calculate positions and sizes for progress bars
+	ImVec2 progressBarSize = ImVec2(buttonSize.x, 7.0f * scaleFactorY);
+	float progressBarPadding = 1.0f * scaleFactorY;  // Space between progress bars
+
+	// HP Bar
+	ImGui::SetCursorScreenPos(ImVec2(buttonPos.x, buttonPos.y + (buttonSize.y * 0.75f)));
+	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.hitColor));
+	ImGui::ProgressBar(actorData.hitPoints / actorData.maxHitPoints, progressBarSize, "");
+	ImGui::PopStyleColor();
+
+	// DT Bar
+	ImGui::SetCursorScreenPos(ImVec2(buttonPos.x, buttonPos.y + (buttonSize.y * 0.75f) + progressBarSize.y + progressBarPadding));
+	auto& magicColor = actorData.character != CHARACTER::VERGIL ? activeData.magicColor : activeData.magicColorVergil;
+	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(magicColor));
+	ImGui::ProgressBar(actorData.magicPoints / actorData.maxMagicPoints, progressBarSize, "");
+	ImGui::PopStyleColor();
+
+	ImGui::End();
+}
+
 void RenderWorldSpaceMultiplayerBar(
-	float hitPoints, float magicPoints, const char* name, PlayerActorData actorData, const char* label, Config::BarsData& activeData/*, Config::BarsData& queuedData*/ ) {
-	if (!showBars && !activeConfig.MultiplayerBarsWorldSpace.show) {
+	float hitPoints, float magicPoints, const char* name, PlayerActorData actorData, const char* label, Config::BarsData& activeData/*, Config::BarsData& queuedData*/) {
+	if (!showBars && !activeCrimsonConfig.MultiplayerBarsWorldSpace.show) {
 		return;
 	}
 
-#if 0
-	auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
-	auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
-
-	auto& lastX = activeData.lastX;
-	auto& lastY = activeData.lastY;
-
-	auto& run = activeData.run;
-	if (!run) {
-
-		queuedPos.x = queuedData.lastX;
-		queuedPos.y = queuedData.lastY;
-
-		ImGui::SetNextWindowPos(activePos);
-
-		lastX = static_cast<uint32>(activeData.pos.x);
-		lastY = static_cast<uint32>(activeData.pos.y);
-		run = true;
-	}
-#endif
 	auto playerIndex = actorData.newPlayerIndex;
 	auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
 
 	// Adjusts size dynamically based on the distance between Camera and Player
 	ImVec2 sizeDistance = { (activeData.size.x * (1.0f / ((float)distanceClamped / 20))), (activeData.size.y * (1.0f / ((float)distanceClamped / 20))) };
-
 	SimpleVec3 screen_pos = debug_draw_world_to_screen((const float*)&actorData.position, 1.0f);
+	float screenWidth = g_renderSize.x;
+	float screenHeight = g_renderSize.y;
+
+	const float screenMargin = 50.0f;
+
+	const float t = smoothstep(0.0f, 1390.0f, crimsonPlayer[playerIndex].cameraPlayerDistance);
+	const float alpha = ImLerp(0.27f, 1.0f, t);
+	activeData.hitColor[3] = alpha;
+	activeData.magicColor[3] = alpha;
+	activeData.magicColorVergil[3] = alpha;
+
+	// If player is outside view: Handle Out of View Icons and stop rendering WorldSpace Bars
+	if (screen_pos.x < screenMargin || screen_pos.x > screenWidth - screenMargin ||
+		screen_pos.y < screenMargin || screen_pos.y > screenHeight - screenMargin) {
+
+
+		if (activeCrimsonConfig.MultiplayerBarsWorldSpace.showOutOfViewIcons) {
+			RenderOutOfViewIcon(actorData, screen_pos, screenMargin, name, activeData);
+		}
+
+		return;
+	}
+
 	ImGui::SetNextWindowPos(ImVec2(screen_pos.x - (sizeDistance.x / 2.0f), screen_pos.y - sizeDistance.y));
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
@@ -3877,44 +4109,14 @@ void RenderWorldSpaceMultiplayerBar(
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
 
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
-	const float t = smoothstep(0.0f, 1390.0f, fabs(crimsonPlayer->cameraPlayerDistance - screen_pos.z));
-	const float alpha = ImLerp(0.27f, 1.0f, t);
 
-	ImGuiWindowFlags windowFlags = 
+
+	ImGuiWindowFlags windowFlags =
 		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize |
 		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
 
-	activeData.hitColor[3] = alpha;
-	activeData.magicColor[3] = alpha;
-	activeData.magicColorVergil[3] = alpha;
 
-
-	if (ImGui::Begin(label, &activeConfig.MultiplayerBarsWorldSpace.show, windowFlags) /* && run*/) {
-		//ImGui::Text("alpha: %f, z:%f, camdist: %f", alpha, screen_pos.z, crimsonPlayer->cameraPlayerDistance);
-
-#if 0
-		if (guiPause.canPause) { // This prevents the resetting of bars' positions by delaying the queued pos update starting point. - Mia
-			queuedPos = ImGui::GetWindowPos(); // Queued pos updates according to its pos on screen.
-		}
-		activePos = queuedPos;
-
-		ImGui::SetWindowPos(queuedPos);
-
-
-		auto x = static_cast<uint32>(activeData.pos.x);
-		auto y = static_cast<uint32>(activeData.pos.y);
-
-
-		if ((lastX != x) || (lastY != y)) {
-			lastX = x;
-			lastY = y;
-
-			queuedData.lastX = x;
-			queuedData.lastY = y;
-
-			GUI::save = true;
-		}
-#endif
+	if (ImGui::Begin(label, &activeCrimsonConfig.MultiplayerBarsWorldSpace.show, windowFlags)) {
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, alpha));
 		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.hitColor));
@@ -3929,7 +4131,6 @@ void RenderWorldSpaceMultiplayerBar(
 		}
 		ImGui::ProgressBar(magicPoints, sizeDistance, "");
 		ImGui::PopStyleColor();
-
 
 		ImGui::Button(name, { 30.0f, 30.0f });
 		ImGui::PopFont();
@@ -3948,17 +4149,13 @@ void RenderWorldSpaceMultiplayerBar(
 			}
 		}
 		ImGui::PopFont();
-
-		
-
-
-
 	}
 
 	ImGui::End();
 	ImGui::PopStyleColor();
 	ImGui::PopStyleVar(4);
 }
+
 
 void BarsSettingsFunction(const char* label, Config::BarsData& activeData, Config::BarsData& queuedData, Config::BarsData& defaultData) {
 	auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
@@ -4017,7 +4214,7 @@ void MultiplayerBars() {
 
 	old_for_all(uint8, playerIndex, playerCount) {
 
-		if (!activeConfig.MultiplayerBarsWorldSpace.show1PBar) {
+		if (!activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar) {
 			minimum = 1;
 		}
 		else {
@@ -4182,7 +4379,7 @@ void BarsSection(size_t defaultFontSize) {
 
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
-			GUI_Checkbox2("2D MULTIPLAYER BARS", activeConfig.MultiplayerBars2D.show, queuedConfig.MultiplayerBars2D.show);
+			GUI_Checkbox2("2D MULTIPLAYER BARS", activeCrimsonConfig.MultiplayerBars2D.show, queuedCrimsonConfig.MultiplayerBars2D.show);
 
 			ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
@@ -4192,7 +4389,7 @@ void BarsSection(size_t defaultFontSize) {
 
 			ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
-			GUI_Checkbox2("Show 1P Bar", activeConfig.MultiplayerBars2D.show1PBar, queuedConfig.MultiplayerBars2D.show1PBar);
+			GUI_Checkbox2("Show 1P Bar", activeCrimsonConfig.MultiplayerBars2D.show1PBar, queuedCrimsonConfig.MultiplayerBars2D.show1PBar);
 
 			ImGui::PopStyleColor();
 			ImGui::PopFont();
@@ -4202,7 +4399,7 @@ void BarsSection(size_t defaultFontSize) {
 
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
-			GUI_Checkbox2("WORLD SPACE MULTIPLAYER BARS", activeConfig.MultiplayerBarsWorldSpace.show, queuedConfig.MultiplayerBarsWorldSpace.show);
+			GUI_Checkbox2("WORLD SPACE MULTIPLAYER BARS", activeCrimsonConfig.MultiplayerBarsWorldSpace.show, queuedCrimsonConfig.MultiplayerBarsWorldSpace.show);
 
 			ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
@@ -4211,7 +4408,8 @@ void BarsSection(size_t defaultFontSize) {
 
 			ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
-			GUI_Checkbox2("Show 1P Bar", activeConfig.MultiplayerBarsWorldSpace.show1PBar, queuedConfig.MultiplayerBarsWorldSpace.show1PBar);
+			GUI_Checkbox2("Show 1P Bar", activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar, queuedCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar);
+			GUI_Checkbox2("Out of View Icons", activeCrimsonConfig.MultiplayerBarsWorldSpace.showOutOfViewIcons, queuedCrimsonConfig.MultiplayerBarsWorldSpace.showOutOfViewIcons);
 
 			ImGui::PopFont();
 
@@ -4358,28 +4556,28 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * 0.7f);
-			GUI_InputDefault2("FOV Multiplier", activeConfig.Camera.fovMultiplier, queuedConfig.Camera.fovMultiplier, defaultConfig.Camera.fovMultiplier, 0.1f, "%g",
+			GUI_InputDefault2("FOV Multiplier", activeCrimsonConfig.Camera.fovMultiplier, queuedCrimsonConfig.Camera.fovMultiplier, defaultCrimsonConfig.Camera.fovMultiplier, 0.1f, "%g",
 				ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * 1.1f);
-			UI::Combo2("Sensitivity", cameraSensitivityNames, activeConfig.Camera.sensitivity, queuedConfig.Camera.sensitivity);
+			UI::Combo2("Sensitivity", cameraSensitivityNames, activeCrimsonConfig.Camera.sensitivity, queuedCrimsonConfig.Camera.sensitivity);
 			ImGui::PopItemWidth();
 
 			
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * 1.1f);
-			UI::Combo2("Follow-Up Speed", cameraFollowUpSpeedNames, activeConfig.Camera.followUpSpeed, queuedConfig.Camera.followUpSpeed);
+			UI::Combo2("Follow-Up Speed", cameraFollowUpSpeedNames, activeCrimsonConfig.Camera.followUpSpeed, queuedCrimsonConfig.Camera.followUpSpeed);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * 1.1f);
-			UI::Combo2("Distance", cameraDistanceNames, activeConfig.Camera.distance, queuedConfig.Camera.distance);
+			UI::Combo2("Distance", cameraDistanceNames, activeCrimsonConfig.Camera.distance, queuedCrimsonConfig.Camera.distance);
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Camera Distance relative to the player outside Lock-On.\n"
 				"\n"
@@ -4391,7 +4589,7 @@ void CameraSection(size_t defaultFontSize) {
 
 			ImGui::PushItemWidth(itemWidth * 1.1f);
 			UI::Combo2(
-				"LockOn Distance", cameraLockOnDistanceNames, activeConfig.Camera.lockOnDistance, queuedConfig.Camera.lockOnDistance);
+				"LockOn Distance", cameraLockOnDistanceNames, activeCrimsonConfig.Camera.lockOnDistance, queuedCrimsonConfig.Camera.lockOnDistance);
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Camera Distance relative to the player in Lock-On.\n"
 				"\n"
@@ -4401,42 +4599,42 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * 1.1f);
-			UI::Combo2("Vertical Tilt", cameraTiltNames, activeConfig.Camera.tilt, queuedConfig.Camera.tilt);
+			UI::Combo2("Vertical Tilt", cameraTiltNames, activeCrimsonConfig.Camera.tilt, queuedCrimsonConfig.Camera.tilt);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			UI::Combo2<uint8>("Auto-Adjust", cameraAutoAdjustNames, activeConfig.Camera.autoAdjust, queuedConfig.Camera.autoAdjust);
+			UI::Combo2<uint8>("Auto-Adjust", cameraAutoAdjustNames, activeCrimsonConfig.Camera.autoAdjust, queuedCrimsonConfig.Camera.autoAdjust);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Locked-Off Camera", activeConfig.Camera.lockedOff, queuedConfig.Camera.lockedOff);
+			GUI_Checkbox2("Locked-Off Camera", activeCrimsonConfig.Camera.lockedOff, queuedCrimsonConfig.Camera.lockedOff);
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Allows you to freely rotate the camera using the right stick in Third-Person View sections.");
 
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("Invert X", activeConfig.Camera.invertX, queuedConfig.Camera.invertX)) {
-				Camera::ToggleInvertX(activeConfig.Camera.invertX);
+			if (GUI_Checkbox2("Invert X", activeCrimsonConfig.Camera.invertX, queuedCrimsonConfig.Camera.invertX)) {
+				Camera::ToggleInvertX(activeCrimsonConfig.Camera.invertX);
 			}
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Disable Right Stick Center Camera", activeConfig.Camera.disableRightStickCenterCamera, queuedConfig.Camera.disableRightStickCenterCamera);
+			GUI_Checkbox2("Disable Right Stick Center Camera", activeCrimsonConfig.Camera.disableRightStickCenterCamera, queuedCrimsonConfig.Camera.disableRightStickCenterCamera);
 
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("Disable Boss Camera", activeConfig.Camera.disableBossCamera, queuedConfig.Camera.disableBossCamera)) {
-				Camera::ToggleDisableBossCamera(activeConfig.Camera.disableBossCamera);
+			if (GUI_Checkbox2("Disable Boss Camera", activeCrimsonConfig.Camera.disableBossCamera, queuedCrimsonConfig.Camera.disableBossCamera)) {
+				Camera::ToggleDisableBossCamera(activeCrimsonConfig.Camera.disableBossCamera);
 			}
 
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("[WIP] Force Third Person Camera", activeConfig.Camera.forceThirdPerson, queuedConfig.Camera.forceThirdPerson)) {
+			if (GUI_Checkbox2("[WIP] Force Third Person Camera", activeCrimsonConfig.Camera.forceThirdPerson, queuedCrimsonConfig.Camera.forceThirdPerson)) {
 				
 			}
 
@@ -4658,13 +4856,13 @@ void Color_UpdateValues() {
 
 	for (int style = 0; style < 6; style++) {
 		for (int i = 0; i < 4; i++) {
-			Color.StyleSwitchColor.flux[style][i] = (float32)activeConfig.StyleSwitchColor.flux[style][i] / 255;
+			Color.StyleSwitchColor.flux[style][i] = (float32)activeCrimsonConfig.StyleSwitchFX.Flux.color[style][i] / 255;
 		}
 	}
 
 	for (int style = 0; style < 9; style++) {
 		for (int i = 0; i < 4; i++) {
-			Color.StyleSwitchColor.text[style][i] = (float32)activeConfig.StyleSwitchColor.text[style][i] / 255;
+			Color.StyleSwitchColor.text[style][i] = (float32)activeCrimsonConfig.StyleSwitchFX.Text.color[style][i] / 255;
 		}
 	}
 
@@ -7116,11 +7314,6 @@ void Other() {
         GUI_InputDefault2("Deplete Devil", activeConfig.depleteDevil, queuedConfig.depleteDevil, defaultConfig.depleteDevil, 1.0f, "%g",
             ImGuiInputTextFlags_EnterReturnsTrue);
 
-        if (GUI_InputDefault2("Crazy Combo Level Multiplier", activeConfig.crazyComboLevelMultiplier,
-                queuedConfig.crazyComboLevelMultiplier, defaultConfig.crazyComboLevelMultiplier)) {
-            UpdateCrazyComboLevelMultiplier();
-        }
-
         GUI_InputDefault2("Linear Weapon Switch Timeout", activeConfig.linearWeaponSwitchTimeout, queuedConfig.linearWeaponSwitchTimeout,
             defaultConfig.linearWeaponSwitchTimeout, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
@@ -7762,7 +7955,7 @@ void BossVergilActionsOverlaySettings() {
 
 void AdjustBackgroundTransparency() {
    	
-    switch (queuedConfig.GUI.transparencyMode) {
+    switch (queuedCrimsonConfig.GUI.transparencyMode) {
         // OFF
     case 0 :
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, 1.0f));
@@ -7770,22 +7963,17 @@ void AdjustBackgroundTransparency() {
         
         // STATIC
     case 1 :
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, queuedConfig.GUI.transparencyValue));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, queuedCrimsonConfig.GUI.opacity));
         break;
 
         //DYNAMIC
     case 2 :
-
         if (g_inGame) {
-            ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, queuedConfig.GUI.transparencyValue));
-
-            
+            ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, queuedCrimsonConfig.GUI.opacity));
         }
 		else {
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, 1.0f));
 		}
-        
-        /*ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, 1.0f));*/
         
         break;
     }
@@ -7827,15 +8015,15 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * 0.6f);
-			UI::Combo2("Transparency Mode", GUITransparencyNames, activeConfig.GUI.transparencyMode, queuedConfig.GUI.transparencyMode);
+			UI::Combo2("Transparency Mode", GUITransparencyNames, activeCrimsonConfig.GUI.transparencyMode, queuedCrimsonConfig.GUI.transparencyMode);
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Dynamic will apply transparency only in-game.");
 
 			ImGui::TableNextColumn();
 
-			ImGui::PushItemWidth(itemWidth * 0.6f);
-			GUI_Input2<float>("Opacity", activeConfig.GUI.transparencyValue, queuedConfig.GUI.transparencyValue, 0.1f, "%g",
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			GUI_InputDefault2<float>("Opacity", activeCrimsonConfig.GUI.opacity, queuedCrimsonConfig.GUI.opacity,defaultCrimsonConfig.GUI.opacity, 0.1f, "%g",
 				ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
@@ -7848,6 +8036,18 @@ void InterfaceSection(size_t defaultFontSize) {
 				UpdateGlobalScale();
 			}
 			ImGui::PopItemWidth();
+
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Pause When Opened", activeCrimsonConfig.GUI.pauseWhenOpened, queuedCrimsonConfig.GUI.pauseWhenOpened)) {
+				if (g_inGame) {
+					activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed; // This resumes the game speed
+					activeConfig.Speed.turbo = queuedConfig.Speed.turbo;
+					Speed::Toggle(true); // Toggle Speed on and off to set the new speed
+					Speed::Toggle(false);
+				}
+			}
 	
 
 			ImGui::EndTable();
@@ -7956,28 +8156,28 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth * 0.5f);
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("HUD Positionings", activeConfig.CrimsonHudAddons.positionings, queuedConfig.CrimsonHudAddons.positionings)) {
-				CrimsonDetours::ToggleClassicHUDPositionings(!activeConfig.CrimsonHudAddons.positionings);
+			if (GUI_Checkbox2("HUD Positionings", activeCrimsonConfig.CrimsonHudAddons.positionings, queuedCrimsonConfig.CrimsonHudAddons.positionings)) {
+				CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Uncheck this if you're using Classic HUD.");
 
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Red Orb Counter", activeConfig.CrimsonHudAddons.redOrbCounter, queuedConfig.CrimsonHudAddons.redOrbCounter);
+			GUI_Checkbox2("Red Orb Counter", activeCrimsonConfig.CrimsonHudAddons.redOrbCounter, queuedCrimsonConfig.CrimsonHudAddons.redOrbCounter);
 
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Royal Gauge", activeConfig.CrimsonHudAddons.royalGauge, queuedConfig.CrimsonHudAddons.royalGauge);
+			GUI_Checkbox2("Royal Gauge", activeCrimsonConfig.CrimsonHudAddons.royalGauge, queuedCrimsonConfig.CrimsonHudAddons.royalGauge);
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Style Ranks Meter", activeConfig.CrimsonHudAddons.styleRanksMeter, queuedConfig.CrimsonHudAddons.styleRanksMeter);
+			GUI_Checkbox2("Style Ranks Meter", activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter, queuedCrimsonConfig.CrimsonHudAddons.styleRanksMeter);
 
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Lock-On", activeConfig.CrimsonHudAddons.lockOn, queuedConfig.CrimsonHudAddons.lockOn);
+			GUI_Checkbox2("Lock-On", activeCrimsonConfig.CrimsonHudAddons.lockOn, queuedCrimsonConfig.CrimsonHudAddons.lockOn);
 
 
 			ImGui::EndTable();
@@ -8647,17 +8847,17 @@ void SoundVisualSection(size_t defaultFontSize) {
 
 	
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-            UI::Combo2<uint8>("Change Gun", changeGunNewNames, activeConfig.SFX.changeGunNew, queuedConfig.SFX.changeGunNew);
+            UI::Combo2<uint8>("Change Gun", changeGunNewNames, activeCrimsonConfig.SFX.changeGunNew, queuedCrimsonConfig.SFX.changeGunNew);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
 			UI::Combo2<uint8>(
-				"Change Devil Arm", changeDevilArmNewNames, activeConfig.SFX.changeDevilArmNew, queuedConfig.SFX.changeDevilArmNew);
+				"Change Devil Arm", changeDevilArmNewNames, activeCrimsonConfig.SFX.changeDevilArmNew, queuedCrimsonConfig.SFX.changeDevilArmNew);
 			ImGui::PopItemWidth();
 
             ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Volume", activeConfig.SFX.changeWeaponVolume, queuedConfig.SFX.changeWeaponVolume,
-				defaultConfig.SFX.changeWeaponVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("Volume", activeCrimsonConfig.SFX.changeWeaponVolume, queuedCrimsonConfig.SFX.changeWeaponVolume,
+				defaultCrimsonConfig.SFX.changeWeaponVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
             ImGui::PopItemWidth();
 
 
@@ -8668,14 +8868,14 @@ void SoundVisualSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Effect Volume", activeConfig.SFX.styleChangeEffectVolume,
-				queuedConfig.SFX.styleChangeEffectVolume, defaultConfig.SFX.styleChangeEffectVolume, 10, "%u",
+			GUI_InputDefault2<uint32>("Effect Volume", activeCrimsonConfig.SFX.styleChangeEffectVolume,
+				queuedCrimsonConfig.SFX.styleChangeEffectVolume, defaultCrimsonConfig.SFX.styleChangeEffectVolume, 10, "%u",
 				ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("VO Volume", activeConfig.SFX.styleChangeVOVolume, queuedConfig.SFX.styleChangeVOVolume,
-				defaultConfig.SFX.styleChangeVOVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("VO Volume", activeCrimsonConfig.SFX.styleChangeVOVolume, queuedCrimsonConfig.SFX.styleChangeVOVolume,
+				defaultCrimsonConfig.SFX.styleChangeVOVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
             
@@ -8686,14 +8886,14 @@ void SoundVisualSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Volume", activeConfig.SFX.styleRankAnnouncerVolume,
-				queuedConfig.SFX.styleRankAnnouncerVolume, defaultConfig.SFX.styleRankAnnouncerVolume, 10, "%u",
+			GUI_InputDefault2<uint32>("Volume", activeCrimsonConfig.SFX.styleRankAnnouncerVolume,
+				queuedCrimsonConfig.SFX.styleRankAnnouncerVolume, defaultCrimsonConfig.SFX.styleRankAnnouncerVolume, 10, "%u",
 				ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Cooldown", activeConfig.SFX.styleRankAnnouncerCooldownSeconds,
-				queuedConfig.SFX.styleRankAnnouncerCooldownSeconds, defaultConfig.SFX.styleRankAnnouncerCooldownSeconds, 1, "%u",
+			GUI_InputDefault2<uint32>("Cooldown", activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSeconds,
+				queuedCrimsonConfig.SFX.styleRankAnnouncerCooldownSeconds, defaultCrimsonConfig.SFX.styleRankAnnouncerCooldownSeconds, 1, "%u",
 				ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Duration until the Announcer can repeat the same line.\n"
@@ -8711,18 +8911,18 @@ void SoundVisualSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation L1 Volume", activeConfig.SFX.devilTriggerInL1Volume, queuedConfig.SFX.devilTriggerInL1Volume,
-				defaultConfig.SFX.devilTriggerInL1Volume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("Activation L1 Volume", activeCrimsonConfig.SFX.devilTriggerInL1Volume, queuedCrimsonConfig.SFX.devilTriggerInL1Volume,
+				defaultCrimsonConfig.SFX.devilTriggerInL1Volume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation L2 Volume", activeConfig.SFX.devilTriggerInL2Volume, queuedConfig.SFX.devilTriggerInL2Volume,
-				defaultConfig.SFX.devilTriggerInL2Volume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("Activation L2 Volume", activeCrimsonConfig.SFX.devilTriggerInL2Volume, queuedCrimsonConfig.SFX.devilTriggerInL2Volume,
+				defaultCrimsonConfig.SFX.devilTriggerInL2Volume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("DT Ready Volume", activeConfig.SFX.devilTriggerReadyVolume, queuedConfig.SFX.devilTriggerReadyVolume,
-				defaultConfig.SFX.devilTriggerReadyVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("DT Ready Volume", activeCrimsonConfig.SFX.devilTriggerReadyVolume, queuedCrimsonConfig.SFX.devilTriggerReadyVolume,
+				defaultCrimsonConfig.SFX.devilTriggerReadyVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
@@ -8734,13 +8934,13 @@ void SoundVisualSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation Volume", activeConfig.SFX.doppelgangerInVolume, queuedConfig.SFX.doppelgangerInVolume,
-				defaultConfig.SFX.doppelgangerInVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("Activation Volume", activeCrimsonConfig.SFX.doppelgangerInVolume, queuedCrimsonConfig.SFX.doppelgangerInVolume,
+				defaultCrimsonConfig.SFX.doppelgangerInVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth* smallerComboMult);
-			GUI_InputDefault2<uint32>("Deactivation Volume", activeConfig.SFX.doppelgangerOutVolume, queuedConfig.SFX.doppelgangerOutVolume,
-				defaultConfig.SFX.doppelgangerOutVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("Deactivation Volume", activeCrimsonConfig.SFX.doppelgangerOutVolume, queuedCrimsonConfig.SFX.doppelgangerOutVolume,
+				defaultCrimsonConfig.SFX.doppelgangerOutVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
@@ -8752,8 +8952,8 @@ void SoundVisualSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth* smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation Volume", activeConfig.SFX.quicksilverInVolume, queuedConfig.SFX.quicksilverInVolume,
-				defaultConfig.SFX.quicksilverInVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("Activation Volume", activeCrimsonConfig.SFX.quicksilverInVolume, queuedCrimsonConfig.SFX.quicksilverInVolume,
+				defaultCrimsonConfig.SFX.quicksilverInVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 
@@ -8858,7 +9058,7 @@ void SoundVisualSection(size_t defaultFontSize) {
 	ImGui::Text("");
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
-    GUI_Checkbox2("STYLE SWITCH FLUX", activeConfig.enableStyleSwitchFlux, queuedConfig.enableStyleSwitchFlux);
+    GUI_Checkbox2("STYLE SWITCH FLUX", activeCrimsonConfig.StyleSwitchFX.Flux.enable, queuedCrimsonConfig.StyleSwitchFX.Flux.enable);
 	ImGui::PopFont();
 
 	for (int style = 0; style < 6; style++) {
@@ -8866,15 +9066,15 @@ void SoundVisualSection(size_t defaultFontSize) {
 		if (style > 0) {
 			ImGui::SameLine();
 		}
-		GUI_Color2("", activeConfig.StyleSwitchColor.flux[style], queuedConfig.StyleSwitchColor.flux[style], Color.StyleSwitchColor.flux[style]);
+		GUI_Color2("", activeCrimsonConfig.StyleSwitchFX.Flux.color[style], queuedCrimsonConfig.StyleSwitchFX.Flux.color[style], Color.StyleSwitchColor.flux[style]);
 		ImGui::SameLine();
 		ImGui::Text(styleNamesFX[style]);
 	}
 
 
 	if (GUI_Button("Colorful")) {
-		CopyMemory(&queuedConfig.StyleSwitchColor.flux, &defaultConfig.StyleSwitchColor.flux, sizeof(queuedConfig.StyleSwitchColor.flux));
-		CopyMemory(&activeConfig.StyleSwitchColor.flux, &queuedConfig.StyleSwitchColor.flux, sizeof(activeConfig.StyleSwitchColor.flux));
+		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.colorful, sizeof(queuedCrimsonConfig.StyleSwitchFX.Flux.color));
+		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.colorful, sizeof(activeCrimsonConfig.StyleSwitchFX.Flux.color));
 
 
 
@@ -8883,8 +9083,8 @@ void SoundVisualSection(size_t defaultFontSize) {
 
     ImGui::SameLine();
 	if (GUI_Button("All Red")) {
-		CopyMemory(&queuedConfig.StyleSwitchColor.flux, &activeConfig.StyleSwitchColor.fluxAllRed, sizeof(queuedConfig.StyleSwitchColor.flux));
-		CopyMemory(&activeConfig.StyleSwitchColor.flux, &activeConfig.StyleSwitchColor.fluxAllRed, sizeof(activeConfig.StyleSwitchColor.flux));
+		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.allRed, sizeof(queuedCrimsonConfig.StyleSwitchFX.Flux.color));
+		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.allRed, sizeof(activeCrimsonConfig.StyleSwitchFX.Flux.color));
 
 
 
@@ -8895,14 +9095,14 @@ void SoundVisualSection(size_t defaultFontSize) {
 	ImGui::Text("");
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
-    GUI_Checkbox2("STYLE SWITCH TEXT", activeConfig.enableStyleSwitchText, queuedConfig.enableStyleSwitchText);
+    GUI_Checkbox2("STYLE SWITCH TEXT", activeCrimsonConfig.StyleSwitchFX.Text.enable, queuedCrimsonConfig.StyleSwitchFX.Text.enable);
 	ImGui::PopFont();
 
 	for (int style = 0; style < 9; style++) {
 		if (style > 0) {
 			ImGui::SameLine();
 		}
-		GUI_Color2("", activeConfig.StyleSwitchColor.text[style], queuedConfig.StyleSwitchColor.text[style], Color.StyleSwitchColor.text[style]);
+		GUI_Color2("", activeCrimsonConfig.StyleSwitchFX.Text.color[style], queuedCrimsonConfig.StyleSwitchFX.Text.color[style], Color.StyleSwitchColor.text[style]);
 		ImGui::SameLine();
 		ImGui::Text(styleNamesFX[style]);
 	}
@@ -8920,15 +9120,15 @@ void SoundVisualSection(size_t defaultFontSize) {
             ImGui::TableNextColumn();
 			
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<float>("Alpha", activeConfig.styleSwitchTextMaxAlpha, queuedConfig.styleSwitchTextMaxAlpha,
-				defaultConfig.styleSwitchTextMaxAlpha, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<float>("Alpha", activeCrimsonConfig.StyleSwitchFX.Text.maxAlpha, queuedCrimsonConfig.StyleSwitchFX.Text.maxAlpha,
+				defaultCrimsonConfig.StyleSwitchFX.Text.maxAlpha, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
             ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<float>("Size", activeConfig.styleSwitchTextSize, queuedConfig.styleSwitchTextSize,
-				defaultConfig.styleSwitchTextSize, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<float>("Size", activeCrimsonConfig.StyleSwitchFX.Text.size, queuedCrimsonConfig.StyleSwitchFX.Text.size,
+				defaultCrimsonConfig.StyleSwitchFX.Text.size, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::EndTable();
@@ -8937,32 +9137,32 @@ void SoundVisualSection(size_t defaultFontSize) {
 	
 
 	if (GUI_Button("Midnight")) {
-		CopyMemory(&queuedConfig.StyleSwitchColor.text, &activeConfig.StyleSwitchColor.textMidnight, sizeof(queuedConfig.StyleSwitchColor.text));
-		CopyMemory(&activeConfig.StyleSwitchColor.text, &activeConfig.StyleSwitchColor.textMidnight, sizeof(activeConfig.StyleSwitchColor.text));
+		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.midnight, sizeof(queuedCrimsonConfig.StyleSwitchFX.Text.color));
+		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.midnight, sizeof(activeCrimsonConfig.StyleSwitchFX.Text.color));
 
 		Color_UpdateValues();
 	}
 
     ImGui::SameLine();
 	if (GUI_Button("All White")) {
-		CopyMemory(&queuedConfig.StyleSwitchColor.text, &activeConfig.StyleSwitchColor.textAllWhite, sizeof(queuedConfig.StyleSwitchColor.text));
-		CopyMemory(&activeConfig.StyleSwitchColor.text, &activeConfig.StyleSwitchColor.textAllWhite, sizeof(activeConfig.StyleSwitchColor.text));
+		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.allWhite, sizeof(queuedCrimsonConfig.StyleSwitchFX.Text.color));
+		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.allWhite, sizeof(activeCrimsonConfig.StyleSwitchFX.Text.color));
 
 		Color_UpdateValues();
 	}
 
     ImGui::SameLine();
 	if (GUI_Button("Colorful Clear")) {
-		CopyMemory(&queuedConfig.StyleSwitchColor.text, &defaultConfig.StyleSwitchColor.text, sizeof(queuedConfig.StyleSwitchColor.text));
-		CopyMemory(&activeConfig.StyleSwitchColor.text, &defaultConfig.StyleSwitchColor.text, sizeof(activeConfig.StyleSwitchColor.text));
+		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.colorfulClear, sizeof(queuedCrimsonConfig.StyleSwitchFX.Text.color));
+		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.colorfulClear, sizeof(activeCrimsonConfig.StyleSwitchFX.Text.color));
 
 		Color_UpdateValues();
 	}
 
 	ImGui::SameLine();
 	if (GUI_Button("Colorful")) {
-		CopyMemory(&queuedConfig.StyleSwitchColor.text, &activeConfig.StyleSwitchColor.textColorful, sizeof(queuedConfig.StyleSwitchColor.text));
-		CopyMemory(&activeConfig.StyleSwitchColor.text, &activeConfig.StyleSwitchColor.textColorful, sizeof(activeConfig.StyleSwitchColor.text));
+		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.colorful, sizeof(queuedCrimsonConfig.StyleSwitchFX.Text.color));
+		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.colorful, sizeof(activeCrimsonConfig.StyleSwitchFX.Text.color));
 
 		Color_UpdateValues();
 	}
@@ -9045,8 +9245,8 @@ void SoundVisualSection(size_t defaultFontSize) {
 
     ImGui::SameLine();
 	if (GUI_Button("Crimson")) {
-		CopyMemory(&queuedConfig.Color, &activeConfig.ColorCrimson, sizeof(queuedConfig.Color));
-		CopyMemory(&activeConfig.Color, &activeConfig.ColorCrimson, sizeof(activeConfig.Color));
+		CopyMemory(&queuedConfig.Color, &colorPresets.ColorCrimson, sizeof(queuedConfig.Color));
+		CopyMemory(&activeConfig.Color, &colorPresets.ColorCrimson, sizeof(activeConfig.Color));
 
 
 		Color_UpdateValues();
@@ -9126,43 +9326,71 @@ void GameplayOptions() {
 
         ImGui::Text("General");
         ImGui::PushItemWidth(150.0f);
-        GUI_Checkbox2("Inertia", activeConfig.Gameplay.inertia, queuedConfig.Gameplay.inertia);
+        GUI_Checkbox2("Inertia", activeCrimsonConfig.Gameplay.General.inertia, queuedCrimsonConfig.Gameplay.General.inertia);
         ImGui::SameLine();
         TooltipHelper("(?)", "Requires Actor System.\n"
                              "\n"
                              "Changes how physics behave during almost all aerial moves. Also allows you to freely rotate performing "
                              "Swordmaster Air Moves.");
-        GUI_Checkbox2("Sprint", activeConfig.Gameplay.sprint, queuedConfig.Gameplay.sprint);
+        GUI_Checkbox2("Sprint", activeCrimsonConfig.Gameplay.General.sprint, queuedCrimsonConfig.Gameplay.General.sprint);
         ImGui::SameLine();
         TooltipHelper("(?)", "Requires Actor System.\n"
                              "\n"
                              "Sprints out of combat, similar to DMC4 and 5's Speed Ability.");
+
+		if (!activeConfig.Actor.enable) {
+			activeCrimsonConfig.Gameplay.General.holdToCrazyCombo = false;
+			queuedCrimsonConfig.Gameplay.General.holdToCrazyCombo = false;
+			CrimsonDetours::ToggleHoldToCrazyCombo(false);
+		}
+
+		if (activeCrimsonConfig.Gameplay.General.holdToCrazyCombo) {
+			activeConfig.crazyComboLevelMultiplier = 3;
+			queuedConfig.crazyComboLevelMultiplier = 3;
+			UpdateCrazyComboLevelMultiplier();
+		}
+
+		GUI_PushDisable(!activeConfig.Actor.enable);
+		if (GUI_Checkbox2("Hold To Crazy Combo", activeCrimsonConfig.Gameplay.General.holdToCrazyCombo, queuedCrimsonConfig.Gameplay.General.holdToCrazyCombo)) {
+			CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
+			activeConfig.crazyComboLevelMultiplier = 3;
+			queuedConfig.crazyComboLevelMultiplier = 3;
+			UpdateCrazyComboLevelMultiplier();
+		}
+		GUI_PopDisable(!activeConfig.Actor.enable);
+
+		GUI_PushDisable(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
+		if (GUI_InputDefault2("Crazy Combo Mash Multiplier", activeConfig.crazyComboLevelMultiplier,
+			queuedConfig.crazyComboLevelMultiplier, defaultConfig.crazyComboLevelMultiplier)) {
+			UpdateCrazyComboLevelMultiplier();
+		}
+		GUI_PopDisable(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
 
         ImGui::Text("");
 
         ImGui::Text("Dante");
 
         ImGui::PushItemWidth(150.0f);
-        GUI_Checkbox2("Improved Cancels", activeConfig.Gameplay.improvedCancelsDante, queuedConfig.Gameplay.improvedCancelsDante);
+        GUI_Checkbox2("Improved Cancels", activeCrimsonConfig.Gameplay.Dante.improvedCancels, queuedCrimsonConfig.Gameplay.Dante.improvedCancels);
         ImGui::SameLine();
         TooltipHelper("(?)", "Requires Actor System.\n"
                              "\n"
                              "Enables a series of animation cancels for Dante, especially for moves between different styles.\nCheck out "
                              "the 1.0 Patch Notes for more info. Replaces DDMK's Remove Busy Flag.");
 
-        GUI_Checkbox2("Aerial Rave Tweaks", activeConfig.Gameplay.aerialRaveTweaks, queuedConfig.Gameplay.aerialRaveTweaks);
+        GUI_Checkbox2("Aerial Rave Tweaks", activeCrimsonConfig.Gameplay.Dante.aerialRaveTweaks, queuedCrimsonConfig.Gameplay.Dante.aerialRaveTweaks);
         ImGui::SameLine();
         TooltipHelper("(?)", "Requires Actor System.\n"
                              "\n"
                              "Tweaks Aerial Rave Gravity, taking weights into account.");
 
-        GUI_Checkbox2("Air Flicker Tweaks", activeConfig.Gameplay.airFlickerTweaks, queuedConfig.Gameplay.airFlickerTweaks);
+        GUI_Checkbox2("Air Flicker Tweaks", activeCrimsonConfig.Gameplay.Dante.airFlickerTweaks, queuedCrimsonConfig.Gameplay.Dante.airFlickerTweaks);
         ImGui::SameLine();
         TooltipHelper("(?)", "Requires Actor System.\n"
                              "\n"
                              "Tweaks Air Flicker Gravity, taking weights into account. Initial windup has less gravity than vanilla.");
 
-        GUI_Checkbox2("Sky Dance Tweaks", activeConfig.Gameplay.skyDanceTweaks, queuedConfig.Gameplay.skyDanceTweaks);
+        GUI_Checkbox2("Sky Dance Tweaks", activeCrimsonConfig.Gameplay.Dante.skyDanceTweaks, queuedCrimsonConfig.Gameplay.Dante.skyDanceTweaks);
         ImGui::SameLine();
         TooltipHelper("(?)", "Requires Actor System.\n"
                              "\n"
@@ -9175,8 +9403,8 @@ void GameplayOptions() {
         ImGui::Text("Vergil");
 
         ImGui::PushItemWidth(150.0f);
-        GUI_Checkbox2("Darkslayer Tricks Cancels Everything", activeConfig.Gameplay.darkslayerTrickCancels,
-            queuedConfig.Gameplay.darkslayerTrickCancels);
+        GUI_Checkbox2("Darkslayer Tricks Cancels Everything", activeCrimsonConfig.Gameplay.Vergil.darkslayerTrickCancels,
+            queuedCrimsonConfig.Gameplay.Vergil.darkslayerTrickCancels);
         ImGui::SameLine();
         TooltipHelper("(?)", "Requires Actor System.\n"
                              "\n"
@@ -9190,10 +9418,10 @@ void GameplayOptions() {
         TooltipHelper(
             "(?)", "Remaps are global for all controllers, will only take into account Player 1's active Character for the switch.");
 
-        GUI_ButtonCombo2("Dante DT Button", activeConfig.Remaps.danteDTButton, queuedConfig.Remaps.danteDTButton);
-        GUI_ButtonCombo2("Dante Shoot Button", activeConfig.Remaps.danteShootButton, queuedConfig.Remaps.danteShootButton);
-        GUI_ButtonCombo2("Vergil DT Button", activeConfig.Remaps.vergilDTButton, queuedConfig.Remaps.vergilDTButton);
-        GUI_ButtonCombo2("Vergil Shoot Button", activeConfig.Remaps.vergilShootButton, queuedConfig.Remaps.vergilShootButton);
+        GUI_ButtonCombo2("Dante DT Button", activeCrimsonConfig.Gameplay.Remaps.danteDTButton, queuedCrimsonConfig.Gameplay.Remaps.danteDTButton);
+        GUI_ButtonCombo2("Dante Shoot Button", activeCrimsonConfig.Gameplay.Remaps.danteShootButton, queuedCrimsonConfig.Gameplay.Remaps.danteShootButton);
+        GUI_ButtonCombo2("Vergil DT Button", activeCrimsonConfig.Gameplay.Remaps.vergilDTButton, queuedCrimsonConfig.Gameplay.Remaps.vergilDTButton);
+        GUI_ButtonCombo2("Vergil Shoot Button", activeCrimsonConfig.Gameplay.Remaps.vergilShootButton, queuedCrimsonConfig.Gameplay.Remaps.vergilShootButton);
     }
 }
 
@@ -9273,7 +9501,7 @@ void Vergil() {
         GUI_SectionEnd();
         ImGui::Text("");
 		GUI_Checkbox2(
-			"Enable Quicksilver", activeConfig.Gameplay.enableVergilQuicksilver, queuedConfig.Gameplay.enableVergilQuicksilver);
+			"Enable Quicksilver", activeCrimsonConfig.Gameplay.Vergil.enableQuicksilver, queuedCrimsonConfig.Gameplay.Vergil.enableQuicksilver);
 
 
         ImGui::Text("Yamato");
@@ -10888,7 +11116,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
         SoundWindow();
     }
 
-    PauseWhenGUIOpen();
+    PauseWhenGUIOpened();
     GamepadToggleShowMain();
 	if (activeConfig.debugOverlayData.enable) {
 		DebugOverlayWindow(UI::g_UIContext.DefaultFontSize);

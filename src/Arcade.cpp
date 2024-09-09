@@ -85,14 +85,12 @@ void InitSession() {
     if (activeConfig.Arcade.character == CHARACTER::DANTE) {
         for_all(index, 4) {
             sessionData.styleLevels[index] = 2;
+            sessionData.styleExpPoints[index] = 100000;
         }
     } else if (activeConfig.Arcade.character == CHARACTER::VERGIL) {
         sessionData.styleLevels[STYLE::DARK_SLAYER] = 2;
+        sessionData.styleExpPoints[STYLE::DARK_SLAYER] = 100000;
     }
-
-
-    SetMemory(sessionData.styleExpPoints, 0, sizeof(sessionData.styleExpPoints));
-
 
     SetMemory(sessionData.expertise, 0xFF, sizeof(sessionData.expertise));
 

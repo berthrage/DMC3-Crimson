@@ -5,6 +5,7 @@
 #include "Core/Macros.h"
 #include "Exp.hpp"
 #include "Vars.hpp"
+#include "CrimsonConfig.hpp"
 
 #include "Core/DebugSwitch.hpp"
 
@@ -489,40 +490,6 @@ struct Config {
 
     bool disableStyleRankHudFadeout = true;
 
-	struct Camera {
-		float fovMultiplier = 1.2f;
-		uint8 sensitivity = 2;
-		uint8 followUpSpeed = 2;
-		uint8 distance = 2;
-		uint8 lockOnDistance = 2;
-		uint8 tilt = 1;
-		bool lockedOff = true;
-		bool invertX = true;
-		uint8 autoAdjust = 0;
-		bool disableRightStickCenterCamera = true;
-		bool disableBossCamera = false;
-		bool forceThirdPerson = true;
-	} Camera;
-
-
-    struct CrimsonHudAddons {
-        bool positionings = true;
-        bool redOrbCounter = true;
-        bool royalGauge = true;
-        bool styleRanksMeter = true;
-        bool lockOn = true;
-    } CrimsonHudAddons;
-
-    struct MultiplayerBars2D {
-		bool show = true;
-		bool show1PBar = false;
-    } MultiplayerBars2D;
-
-	struct MultiplayerBarsWorldSpace {
-		bool show = true;
-		bool show1PBar = false;
-	} MultiplayerBarsWorldSpace;
-
     bool forceSyncHitMagicPoints = true;
 
     bool updateLockOns = true;
@@ -558,10 +525,6 @@ struct Config {
     float weaponWheelWidthSeparation;
     uint64 weaponWheelTimeout = 2000;
 
-	struct GUI {
-		uint8 transparencyMode = 2;
-		float transparencyValue = 0.9f;
-	} GUI;
 
     struct WeaponWheel {
         bool alwaysShow = false;
@@ -570,179 +533,9 @@ struct Config {
 
     WeaponWheel RangedWeaponWheel;
 
-    struct SFX {
-        uint8 changeGunNew                       = 1;
-        uint8 changeDevilArmNew                  = 1;
-        uint32 changeWeaponVolume                = 30;
-        uint32 styleChangeEffectVolume           = 10;
-        uint32 styleChangeVOVolume               = 50;
-        uint32 sprintVolume                      = 20;
-        uint32 devilTriggerInL1Volume            = 40;
-        uint32 devilTriggerInL2Volume            = 20;
-        uint32 devilTriggerOutVolume             = 50;
-        uint32 devilTriggerReadyVolume           = 110;
-        uint32 doppelgangerInVolume              = 50;
-        uint32 doppelgangerOutVolume             = 50;
-        uint32 quicksilverInVolume               = 50;
-        uint32 styleRankAnnouncerVolume          = 255;
-        uint32 styleRankAnnouncerCooldownSeconds = 20;
-    } SFX;
-
-
-    struct Remaps {
-        uint16_t danteDTButton     = 0x0004;
-        uint16_t danteShootButton  = 0x0080;
-        uint16_t vergilDTButton    = 0x0080;
-        uint16_t vergilShootButton = 0x0004;
-    } Remaps;
-
     // load these from cfg, here are default values for now
-
-
-    struct Gameplay {
-
-        // GENERAL
-        bool inertia                   = true;
-        bool aerialRaveTweaks          = true;
-        bool airFlickerTweaks          = true;
-        bool skyDanceTweaks            = true;
-        bool sprint                    = true;
-        bool disableHeightRestriction  = true;
-        bool improvedBufferedReversals = true;
-        bool increasedJCSpheres        = true;
-        bool disableJCRestriction      = true;
-
-
-        // DANTE
-        bool improvedCancelsDante     = true;
-        bool bulletStop               = true;
-        bool rainstormLift            = true;
-        bool quickDriveAndTweaks      = true;
-        bool disableAirSlashKnockback = true;
-
-        // VERGIL
-        bool enableVergilQuicksilver = false;
-        bool darkslayerTrickCancels = true;
-
-
-    } Gameplay;
-
-
-    struct {
-        uint8 flux[6][4] = {
-            // r   g  b  a 
-			{ 29, 29, 0, 255 }, //trick  
-			{ 26, 0, 0, 255 }, //sword  
-			{ 0, 8, 34, 255 }, //gun    
-			{ 0, 35, 6, 255 }, //royal  
-			{ 26, 0, 35, 255 }, //quick  
-			{ 30, 14, 0, 255 }, //doppel 
-        };
-
-		uint8 fluxAllRed[6][4] = {
-			// r   g  b  a 
-			{ 29, 0, 0, 255 }, //trick  
-            { 29, 0, 0, 255 }, //sword  
-            { 29, 0, 0, 255 }, //gun    
-            { 29, 0, 0, 255 }, //royal  
-            { 29, 0, 0, 255 }, //quick  
-            { 29, 0, 0, 255 }, //doppel 
-		};
-
-		uint8 text[9][4] = {
-			// r   g  b  a  // though alpha is used in maxAlpha instead
-			{ 255, 255, 176, 255 }, //trick  
-			{ 248, 153, 153, 255 }, //sword  
-			{ 168, 186, 246, 255 }, //gun    
-			{ 190, 252, 200, 200 }, //royal  
-			{ 237, 195, 252, 255 }, //quick  
-			{ 252, 226, 203, 255 }, //doppel 
-			{ 255, 255, 255, 255 }, //dt     
-			{ 255, 255, 255, 255 }, //dte    
-			{ 255, 255, 255, 255 }, //ready  
-		};
-
-		uint8 textMidnight[9][4] = {
-			{ 155, 85, 250, 255 }, //trick  
-			{ 155, 85, 250, 255 }, //sword  
-			{ 155, 85, 250, 255 }, //gun    
-			{ 155, 85, 250, 255 }, //royal  
-			{ 155, 85, 250, 255 }, //quick  
-			{ 155, 85, 250, 255 }, //doppel 
-			{ 155, 85, 250, 255 }, //dt     
-			{ 155, 85, 250, 255 }, //dte    
-			{ 155, 85, 250, 255 }, //ready  
-		};
-
-		uint8 textAllWhite[9][4] = {
-			{ 255, 255, 255, 255 }, //trick  
-            { 255, 255, 255, 255 }, //sword  
-            { 255, 255, 255, 255 }, //gun    
-            { 255, 255, 255, 255 }, //royal  
-            { 255, 255, 255, 255 }, //quick  
-            { 255, 255, 255, 255 }, //doppel 
-            { 255, 255, 255, 255 }, //dt     
-            { 255, 255, 255, 255 }, //dte    
-            { 255, 255, 255, 255 }, //ready  
-		};
-
-		uint8 textColorful[9][4] = {
-			{ 240, 240, 0, 255 }, //trick  
-			{ 255, 1, 1, 255 }, //sword  
-			{ 0, 56, 239, 255 }, //gun    
-			{ 5, 250, 47, 255 }, //royal  
-			{ 189, 0, 255, 255 }, //quick  
-			{ 255, 121, 4, 255 }, //doppel 
-			{ 255, 255, 255, 255 }, //dt     
-			{ 255, 255, 255, 255 }, //dte    
-			{ 255, 255, 255, 255 }, //ready  
-		};
-    } StyleSwitchColor;
-
-    float styleSwitchTextMaxAlpha = 0.9f;
-    float styleSwitchTextSize = 1.0f;
-
-	struct {
-		uint8 airHike[5][4] = {
-			{128, 0, 16, 200},
-			{128, 0, 16, 200},
-			{128, 0, 16, 200},
-			{128, 0, 16, 200},
-			{128, 0, 16, 200},
-		};
-
-		struct {
-			uint8 skyStar[4] = { 128, 0, 16, 200 };
-		} Trickster;
-		struct {
-			uint8 ultimate[4] = { 128, 0, 16, 200 };
-		} Royalguard;
-		struct {
-			uint8 clone[4] = { 16, 16, 16, 48 };
-		} Doppelganger;
-		struct {
-			uint8 dante[5][4] = {
-				{128, 0, 16, 200},
-				{128, 0, 16, 200},
-				{128, 0, 16, 200},
-				{128, 0, 16, 200},
-				{128, 0, 16, 200},
-			};
-			uint8 sparda[4] = { 128, 0, 0, 200 };
-			uint8 vergil[3][4] = {
-				{32, 64, 128, 200},
-				{32, 64, 128, 200},
-				{32, 64, 128, 200},
-			};
-			uint8 neroAngelo[4] = { 64, 0, 255, 200 };
-		} Aura;
-	} ColorCrimson;
-
-    bool enableStyleSwitchFlux = true;
-    bool enableStyleSwitchText = true;
-
+    
     std::string selectedHUD = "Crimson HUD";
-    const char* test = "lala";
 
     bool disableBlendingEffects = false;
     bool framerateResponsiveGameSpeed = true;
@@ -755,6 +548,8 @@ struct Config {
 // static_assert((offsetof(Config, kalinaAnnHookMultiplier) % 0x10) == 0);
 // static_assert((offsetof(Config, barsData) % 0x10) == 0);
 
+
+
 #pragma pack(pop)
 
 #undef _
@@ -762,6 +557,7 @@ struct Config {
 extern Config defaultConfig;
 extern Config queuedConfig;
 extern Config activeConfig;
+
 
 PlayerData& GetDefaultPlayerData(uint8 playerIndex);
 
@@ -794,6 +590,7 @@ CharacterData& GetActiveCharacterData(uint8 playerIndex, uint8 characterIndex, u
 CharacterData& GetQueuedCharacterData(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex);
 
 CharacterData& GetCharacterData(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex);
+
 
 template <typename T> CharacterData& GetDefaultCharacterData(T& actorData) {
     return GetDefaultCharacterData(actorData.newPlayerIndex, actorData.newCharacterIndex, actorData.newEntityIndex);

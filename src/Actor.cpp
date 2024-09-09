@@ -3193,7 +3193,7 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
     UpdateStyle(actorData); // Updates Style EXP
 
     // Summons Style Switch VFX (leftover from DT In Effect).
-    if (activeConfig.enableStyleSwitchFlux) {
+    if (activeCrimsonConfig.StyleSwitchFX.Flux.enable) {
         *fluxtime = 0.1f;
     }
 
@@ -3215,7 +3215,7 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
         CrimsonSDL::PlayStyleChangeVO(playerIndex, style, actorData.doppelganger);
     }
 
-    if (activeConfig.enableStyleSwitchText) {
+    if (activeCrimsonConfig.StyleSwitchFX.Text.enable) {
         CrimsonFX::SetStyleSwitchDrawTextTime(style, actorBaseAddr);
     }
 }
@@ -3306,7 +3306,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
             StyleSwitch(actorBaseAddr, 2); // DARKSLAYER
         }
 
-        if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 4 && !actorData.newIsClone && activeConfig.Gameplay.enableVergilQuicksilver) {
+        if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 4 && !actorData.newIsClone && activeCrimsonConfig.Gameplay.Vergil.enableQuicksilver) {
             StyleSwitch(actorBaseAddr, 4); // QUICKSILVER
         }
 
@@ -3713,7 +3713,7 @@ template <typename T> void ArbitraryMeleeWeaponSwitchController(T& actorData) {
 
         UpdateForm(actorData);
 
-        if (activeConfig.SFX.changeDevilArmNew == 1) {
+        if (activeCrimsonConfig.SFX.changeDevilArmNew == 1) {
             CrimsonSDL::PlayChangeDevilArm();
         } else {
             PlaySound(0, 12);
@@ -3841,7 +3841,7 @@ template <typename T> void ArbitraryRangedWeaponSwitchController(T& actorData) {
 
         UpdateRangedWeapon(actorData);
 
-        if (activeConfig.SFX.changeGunNew == 1) {
+        if (activeCrimsonConfig.SFX.changeGunNew == 1) {
             CrimsonSDL::PlayChangeGun();
         } else {
             PlaySound(0, 12);
@@ -3894,13 +3894,13 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CrimsonFX::CalculateCameraPlayerDistance(actorBaseAddr);
     CrimsonSDL::SetAllSFXDistance(playerIndex, crimsonPlayer[playerIndex].cameraPlayerDistanceClamped);
     
-	if (activeConfig.Gameplay.improvedCancelsDante) {
+	if (activeCrimsonConfig.Gameplay.Dante.improvedCancels) {
 		CrimsonGameplay::ImprovedCancelsDanteController(actorBaseAddr);
         CrimsonGameplay::ImprovedCancelsRoyalguardController(actorBaseAddr);
         CrimsonGameplay::ImprovedCancelsRoyalguardController(actorData.cloneActorBaseAddr);
 	}
 
-	if (activeConfig.Gameplay.darkslayerTrickCancels) {
+	if (activeCrimsonConfig.Gameplay.Vergil.darkslayerTrickCancels) {
         CrimsonGameplay::ImprovedCancelsVergilController(actorBaseAddr);
 	}
     
@@ -7497,17 +7497,17 @@ void SetDevilAuraColor(PlayerActorData& actorData, byte8* dest) {
         auto& actorData2 = *reinterpret_cast<PlayerActorDataDante*>(&actorData);
 
         if (styleChanged[0]) {
-            CopyMemory(dest, activeConfig.StyleSwitchColor.flux[1], 4);
+            CopyMemory(dest, activeCrimsonConfig.StyleSwitchFX.Flux.color[1] , 4);
         } else if (styleChanged[1]) {
-            CopyMemory(dest, activeConfig.StyleSwitchColor.flux[2], 4);
+            CopyMemory(dest, activeCrimsonConfig.StyleSwitchFX.Flux.color[2], 4);
         } else if (styleChanged[2]) {
-            CopyMemory(dest, activeConfig.StyleSwitchColor.flux[0], 4);
+            CopyMemory(dest, activeCrimsonConfig.StyleSwitchFX.Flux.color[0], 4);
         } else if (styleChanged[3]) {
-            CopyMemory(dest, activeConfig.StyleSwitchColor.flux[3], 4);
+            CopyMemory(dest, activeCrimsonConfig.StyleSwitchFX.Flux.color[3], 4);
         } else if (styleChanged[4]) {
-            CopyMemory(dest, activeConfig.StyleSwitchColor.flux[4], 4);
+            CopyMemory(dest, activeCrimsonConfig.StyleSwitchFX.Flux.color[4], 4);
         } else if (styleChanged[5]) {
-            CopyMemory(dest, activeConfig.StyleSwitchColor.flux[5], 4);
+            CopyMemory(dest, activeCrimsonConfig.StyleSwitchFX.Flux.color[5], 4);
         } else {
             if (actorData2.sparda) {
                 CopyMemory(dest, activeConfig.Color.Aura.sparda, 4);
@@ -8079,7 +8079,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 auto& gamepad      = GetGamepad(0);
 
 
-                if (activeConfig.Gameplay.sprint) {
+                if (activeCrimsonConfig.Gameplay.General.sprint) {
                     CrimsonGameplay::SprintAbility(actorBaseAddr);
                 }
 				
@@ -8089,20 +8089,20 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 CrimsonGameplay::VergilAdjustAirMovesPos(actorBaseAddr);
                 CrimsonGameplay::DriveTweaks(actorBaseAddr);
 
-                if (activeConfig.Gameplay.aerialRaveTweaks) {
+                if (activeCrimsonConfig.Gameplay.Dante.aerialRaveTweaks) {
                     CrimsonGameplay::AerialRaveGravityTweaks(actorBaseAddr);
                 }
 
-                if (activeConfig.Gameplay.airFlickerTweaks) {
+                if (activeCrimsonConfig.Gameplay.Dante.airFlickerTweaks) {
                     CrimsonGameplay::AirFlickerGravityTweaks(actorBaseAddr);
                 }
 
-                if (activeConfig.Gameplay.skyDanceTweaks) {
+                if (activeCrimsonConfig.Gameplay.Dante.skyDanceTweaks) {
                     CrimsonGameplay::SkyDanceGravityTweaks(actorBaseAddr);
                 }
 
 
-                if (activeConfig.Gameplay.inertia) {
+                if (activeCrimsonConfig.Gameplay.General.inertia) {
                     CrimsonGameplay::FreeRotationSwordMoves(actorBaseAddr);
                     CrimsonGameplay::StoreInertia(actorBaseAddr);
                     CrimsonGameplay::InertiaController(actorBaseAddr);
@@ -9046,7 +9046,7 @@ void SetAction(byte8* actorBaseAddr) {
             actorData.action = REBELLION_STINGER_LEVEL_2;
 
             actorData.newAirStingerCount++;
-        } else if (activeConfig.Gameplay.quickDriveAndTweaks && actorData.lastAction != REBELLION_COMBO_1_PART_1 &&
+        } else if (activeCrimsonConfig.Gameplay.Dante.driveTweaks && actorData.lastAction != REBELLION_COMBO_1_PART_1 &&
                    (actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) &&
                    crimsonPlayer[playerIndex].b2F.forwardCommand) {
 
@@ -9060,7 +9060,7 @@ void SetAction(byte8* actorBaseAddr) {
             actorData.action = NEVAN_VORTEX;
         }
 
-        if (activeConfig.Gameplay.quickDriveAndTweaks && actorData.lastAction == REBELLION_COMBO_1_PART_1 && (demo_pl000_00_3 != 0) &&
+        if (activeCrimsonConfig.Gameplay.Dante.driveTweaks && actorData.lastAction == REBELLION_COMBO_1_PART_1 && (demo_pl000_00_3 != 0) &&
             (actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) &&
             crimsonPlayer[playerIndex].b2F.forwardCommand) {
             actorData.action = REBELLION_DRIVE_1;
@@ -9108,7 +9108,7 @@ void SetAction(byte8* actorBaseAddr) {
         }
 
         // Part of SkyDanceTweaks
-        if (activeConfig.Gameplay.skyDanceTweaks) {
+        if (activeCrimsonConfig.Gameplay.Dante.skyDanceTweaks) {
             if ((actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2) &&
                 (actorData.style == STYLE::SWORDMASTER)) {
 
@@ -12754,10 +12754,17 @@ void ToggleArtemisInstantFullCharge(bool enable) {
 
 void UpdateCrazyComboLevelMultiplier() {
     LogFunction();
+    static uint8 multiplier = 0;
+
+    if (multiplier == activeConfig.crazyComboLevelMultiplier) {
+        return;
+    }
 
     Write<uint8>((appBaseAddr + 0x5898DE), activeConfig.crazyComboLevelMultiplier);
     Write<uint8>((appBaseAddr + 0x58999E), activeConfig.crazyComboLevelMultiplier);
     Write<uint8>((appBaseAddr + 0x589A5E), activeConfig.crazyComboLevelMultiplier);
+
+    multiplier = activeConfig.crazyComboLevelMultiplier;
 }
 
 // @Todo: Update name.

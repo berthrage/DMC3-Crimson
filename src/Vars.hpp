@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "Core/Core.hpp"
-
+#include "ImGuiExtra.hpp"
 #include "Core/Macros.h"
 #include <string>
 
@@ -4023,6 +4023,119 @@ struct BossHelper {
     const char* track;
 };
 
+struct ColorPresets {
+    struct StyleSwitchFlux {
+		uint8 colorful[6][4] = {
+			// r   g  b  a 
+			{ 29, 29, 0, 255 }, //trick  
+			{ 26, 0, 0, 255 }, //sword  
+			{ 0, 8, 34, 255 }, //gun    
+			{ 0, 35, 6, 255 }, //royal  
+			{ 26, 0, 35, 255 }, //quick  
+			{ 30, 14, 0, 255 }, //doppel 
+		};
+
+		uint8 allRed[6][4] = {
+			// r   g  b  a 
+			{ 29, 0, 0, 255 }, //trick  
+			{ 29, 0, 0, 255 }, //sword  
+			{ 29, 0, 0, 255 }, //gun    
+			{ 29, 0, 0, 255 }, //royal  
+			{ 29, 0, 0, 255 }, //quick  
+			{ 29, 0, 0, 255 }, //doppel 
+		};
+    } StyleSwitchFlux;
+
+    struct StyleSwitchText {
+		uint8 midnight[9][4] = {
+			{ 155, 85, 250, 255 }, //trick  
+			{ 155, 85, 250, 255 }, //sword  
+			{ 155, 85, 250, 255 }, //gun    
+			{ 155, 85, 250, 255 }, //royal  
+			{ 155, 85, 250, 255 }, //quick  
+			{ 155, 85, 250, 255 }, //doppel 
+			{ 155, 85, 250, 255 }, //dt     
+			{ 155, 85, 250, 255 }, //dte    
+			{ 155, 85, 250, 255 }, //ready  
+		};
+
+		uint8 allWhite[9][4] = {
+			{ 255, 255, 255, 255 }, //trick  
+			{ 255, 255, 255, 255 }, //sword  
+			{ 255, 255, 255, 255 }, //gun    
+			{ 255, 255, 255, 255 }, //royal  
+			{ 255, 255, 255, 255 }, //quick  
+			{ 255, 255, 255, 255 }, //doppel 
+			{ 255, 255, 255, 255 }, //dt     
+			{ 255, 255, 255, 255 }, //dte    
+			{ 255, 255, 255, 255 }, //ready  
+		};
+
+		uint8 colorfulClear[9][4] = {
+			// r   g  b  a  // though alpha is used in maxAlpha instead
+			{ 255, 255, 176, 255 }, //trick  
+			{ 248, 153, 153, 255 }, //sword  
+			{ 168, 186, 246, 255 }, //gun    
+			{ 190, 252, 200, 200 }, //royal  
+			{ 237, 195, 252, 255 }, //quick  
+			{ 252, 226, 203, 255 }, //doppel 
+			{ 255, 255, 255, 255 }, //dt     
+			{ 255, 255, 255, 255 }, //dte    
+			{ 255, 255, 255, 255 }, //ready  
+		};
+
+		uint8 colorful[9][4] = {
+			{ 240, 240, 0, 255 }, //trick  
+			{ 255, 1, 1, 255 }, //sword  
+			{ 0, 56, 239, 255 }, //gun    
+			{ 5, 250, 47, 255 }, //royal  
+			{ 189, 0, 255, 255 }, //quick  
+			{ 255, 121, 4, 255 }, //doppel 
+			{ 255, 255, 255, 255 }, //dt     
+			{ 255, 255, 255, 255 }, //dte    
+			{ 255, 255, 255, 255 }, //ready  
+		};
+    } StyleSwitchText;
+
+	struct ColorCrimson {
+		uint8 airHike[5][4] = {
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+		};
+
+		struct  {
+			uint8 skyStar[4] = { 128, 0, 16, 200 };
+		} Trickster;
+		struct {
+			uint8 ultimate[4] = { 128, 0, 16, 200 };
+		} Royalguard;
+		struct {
+			uint8 clone[4] = { 16, 16, 16, 48 };
+		} Doppelganger;
+		struct {
+			uint8 dante[5][4] = {
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+			};
+			uint8 sparda[4] = { 128, 0, 0, 200 };
+			uint8 vergil[3][4] = {
+				{32, 64, 128, 200},
+				{32, 64, 128, 200},
+				{32, 64, 128, 200},
+			};
+			uint8 neroAngelo[4] = { 64, 0, 255, 200 };
+		} Aura;
+	} ColorCrimson;
+};
+
+extern ColorPresets colorPresets;
+
 struct Toggle {
     int disableHeightRestriction  = 2;
     int improvedBufferedReversals = 2;
@@ -4041,6 +4154,7 @@ extern Toggle toggle;
 struct CrimsonHudData {
     volatile uint16_t redOrbAlpha = 0; // goes up to 127
     float redOrbAlphaDurationToAlpha = 200.0f;
+    std::vector<ImVec2> playerOutViewIconPositions = std::vector<ImVec2>(PLAYER_COUNT, ImVec2(0.0f, 0.0f));
 };
 
 extern CrimsonHudData crimsonHud;
@@ -4260,7 +4374,6 @@ struct StyleSwitchText {
     float alpha[9] = { 0 };
     float color[9][3];
     float animSize = 0;
-	
 };
 
 struct DTESFX {

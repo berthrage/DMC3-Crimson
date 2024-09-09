@@ -298,7 +298,7 @@ void StyleSwitchTextTimers() {
 				
 				
                 // animates fade in
-                if (sstext->alpha[styleid] < activeConfig.styleSwitchTextMaxAlpha && sstext->time[styleid] > 0.3f) {
+                if (sstext->alpha[styleid] < activeCrimsonConfig.StyleSwitchFX.Text.maxAlpha && sstext->time[styleid] > 0.3f) {
                     sstext->alpha[styleid] += ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier) * 8;
                 
                 }
