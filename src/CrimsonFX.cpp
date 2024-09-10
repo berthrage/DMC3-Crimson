@@ -56,29 +56,85 @@ void DTReadySFX() {
     }
 }
 
-void CalculateCameraPlayerDistance(byte8* actorBaseAddr) {
-	if (!actorBaseAddr) {
-		return;
-	}
+void CalculateViewProperties(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) return;
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (!actorData.cloneActorBaseAddr) return;
+	auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
 
 	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
-	if (!pool_4449 || !pool_4449[147]) {
-		return;
-	}
+	if (!pool_4449 || !pool_4449[147]) return;
 	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 
     auto playerIndex = actorData.newPlayerIndex;
+	auto indexToAssign = playerIndex * 2;
+	auto cloneIndexToAssign = playerIndex * 2 + 1;
     
-	glm::vec3  playerPosition = { actorData.position.x, actorData.position.y, actorData.position.z };
+	glm::vec3 playerPosition = { actorData.position.x, actorData.position.y, actorData.position.z };
+	glm::vec3 clonePosition = { cloneActorData.position.x, cloneActorData.position.y, cloneActorData.position.z };
+	glm::vec3 mainActorPosition = { mainActorData.position.x, mainActorData.position.y, mainActorData.position.z };
 	glm::vec3 cameraPosition = { cameraData.data[0].x, cameraData.data[0].y, cameraData.data[0].z };
+
+	auto& playerTo1PDistance = crimsonPlayer[playerIndex].playerTo1PDistance;
+	auto& cloneTo1PDistance = crimsonPlayer[playerIndex].cloneTo1PDistance;
+	auto& playerScreenPosition = crimsonPlayer[playerIndex].playerScreenPosition;
+	auto& cloneScreenPosition = crimsonPlayer[playerIndex].cloneScreenPosition;
     auto& cameraPlayerDistance = crimsonPlayer[playerIndex].cameraPlayerDistance;
+	auto& cameraCloneDistance = crimsonPlayer[playerIndex].cameraCloneDistance;
+	auto& playerOutOfView = crimsonPlayer[playerIndex].playerOutOfView;
+	auto& cloneOutOfView = crimsonPlayer[playerIndex].cloneOutOfView;
 
+	playerTo1PDistance = glm::distance(playerPosition, mainActorPosition);
+	cloneTo1PDistance = glm::distance(clonePosition, mainActorPosition);
+	g_entityTo1PDistances[indexToAssign] = playerTo1PDistance;
+	g_entityTo1PDistances[cloneIndexToAssign] = cloneTo1PDistance;
+
+	playerScreenPosition = debug_draw_world_to_screen((const float*)&actorData.position, 1.0f);
+	cloneScreenPosition = debug_draw_world_to_screen((const float*)&cloneActorData.position, 1.0f);
+
+	g_entityScreenPositions[indexToAssign] = playerScreenPosition;
+	g_entityScreenPositions[cloneIndexToAssign] = cloneScreenPosition;
+	
     cameraPlayerDistance = glm::distance(playerPosition, cameraPosition);
-	int distance = (int)cameraPlayerDistance / 20;
-	crimsonPlayer[playerIndex].cameraPlayerDistanceClamped = glm::clamp(distance, 0, 255);
+	int distancePlayer = (int)cameraPlayerDistance / 20;
+	crimsonPlayer[playerIndex].cameraPlayerDistanceClamped = glm::clamp(distancePlayer, 0, 255);
+	g_entityCameraDistances[indexToAssign] = cameraPlayerDistance;
+
+	cameraCloneDistance = glm::distance(clonePosition, cameraPosition);
+	int distanceClone = (int)cameraCloneDistance / 20;
+	crimsonPlayer[playerIndex].cameraCloneDistanceClamped = glm::clamp(distanceClone, 0, 255);
+	g_entityCameraDistances[cloneIndexToAssign] = cameraCloneDistance;
+
+	float screenWidth = g_renderSize.x;
+	float screenHeight = g_renderSize.y;
+	const float screenMargin = 50.0f;
+
+	if (playerScreenPosition.x < screenMargin || playerScreenPosition.x > screenWidth - screenMargin ||
+		playerScreenPosition.y < screenMargin || playerScreenPosition.y > screenHeight - screenMargin) {
+
+		playerOutOfView = true;
+		g_entityOutOfView[indexToAssign] = true;
+	}
+	else {
+		playerOutOfView = false;
+		g_entityOutOfView[indexToAssign] = false;
+	}
 
 
+	if (cloneScreenPosition.x < screenMargin || cloneScreenPosition.x > screenWidth - screenMargin ||
+		cloneScreenPosition.y < screenMargin || cloneScreenPosition.y > screenHeight - screenMargin) {
+
+		cloneOutOfView = true;
+		g_entityOutOfView[cloneIndexToAssign] = true;
+	}
+	else {
+		cloneOutOfView = false;
+		g_entityOutOfView[cloneIndexToAssign] = false;
+	}
 }
 
 void DTExplosionFXController(byte8* actorBaseAddr) {

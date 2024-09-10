@@ -5,6 +5,7 @@
 #include "Core/Core.hpp"
 #include "ImGuiExtra.hpp"
 #include "Core/Macros.h"
+#include "DebugDrawDX11.hpp"
 #include <string>
 
 #pragma push_macro("VOID")
@@ -4458,6 +4459,12 @@ extern float rainstormPull;
 extern float storedHP;
 extern float storedDT;
 
+// 0 - 1P, 1 - 1P clone, 2 - 2P, 3 - 2P clone, 4 - 3P, 5 - 3P clone, 6 - 4P, 7 - 4P clone
+extern std::array<float, PLAYER_COUNT * 2> g_entityTo1PDistances;
+extern std::array<float, PLAYER_COUNT * 2> g_entityCameraDistances;
+extern std::array<SimpleVec3, PLAYER_COUNT * 2> g_entityScreenPositions;
+extern std::array<bool, PLAYER_COUNT * 2> g_entityOutOfView;
+
 struct CrimsonPlayerData {
     uintptr_t playerPtr;
     uint8 action     = 0;
@@ -4512,6 +4519,9 @@ struct CrimsonPlayerData {
     bool fluxCanEndConfirm = false;
     float cameraPlayerDistance = 0;
     int cameraPlayerDistanceClamped = 0;
+    float playerTo1PDistance = 0;
+    SimpleVec3 playerScreenPosition = { 0,0,0 };
+    bool playerOutOfView = false;
 
     AirRaveTweak airRaveTweak;
 
@@ -4538,6 +4548,12 @@ struct CrimsonPlayerData {
     VergilMoveAdjustments vergilMovesClone;
     ImprovedCancels cancelsClone;
     Inertia inertiaClone;
+    float cameraCloneDistance = 0;
+    float cameraCloneDistanceClamped = 0;
+    float cloneTo1PDistance = 0;
+    SimpleVec3 cloneScreenPosition = { 0,0,0 };
+    bool cloneOutOfView = false;
+
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];

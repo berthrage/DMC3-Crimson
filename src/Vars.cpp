@@ -248,6 +248,12 @@ float storedDT = 0;
 
 CrimsonHudData crimsonHud;
 
+// 0 - 1P, 1 - 1P clone, 2 - 2P, 3 - 2P clone, 4 - 3P, 5 - 3P clone, 6 - 4P, 7 - 4P clone
+std::array<float, PLAYER_COUNT * 2> g_entityTo1PDistances;
+std::array<float, PLAYER_COUNT * 2> g_entityCameraDistances;
+std::array<SimpleVec3, PLAYER_COUNT * 2> g_entityScreenPositions;
+std::array<bool, PLAYER_COUNT * 2> g_entityOutOfView;
+
 CrimsonPlayerData crimsonPlayer[20];
 
 HeldStyleExpData heldStyleExpDataDante;

@@ -16,6 +16,7 @@
 #include "CrimsonUtil.hpp"
 #include <iostream>
 #include <iomanip>
+#include "DebugDrawDX11.hpp"
 
 #pragma region GameplayImprovements
 
@@ -191,6 +192,10 @@ void CameraFollowUpSpeedController() {
 	}
 	auto& cameraData = *reinterpret_cast<CameraData*>(cameraDataPtr);
 
+	auto pool_166 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_166 || !pool_166[3]) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
+
 	switch (activeCrimsonConfig.Camera.followUpSpeed) {
 		case 0: // Low (Vanilla Default)
 			cameraData.cameraLag = 1000.0f;
@@ -199,50 +204,157 @@ void CameraFollowUpSpeedController() {
 			cameraData.cameraLag = 500.0f;
 			break;
 		case 2: // High
-			cameraData.cameraLag = 250.0f;
+			cameraData.cameraLag = 330.0f;
 			break;
+        case 3: // Dynamic
+            if (activeConfig.Actor.playerCount == 1) {
+                if (mainActorData.doppelganger == 0) {
+                    cameraData.cameraLag = 330.0f;
+                }
+                else {
+                    cameraData.cameraLag = 1000.0f;
+                }
+            }
+            else {
+                cameraData.cameraLag = 1000.0f;
+            }
 		default:
 			break;
 	}
     
 }
 
-void CameraDistanceController() {
-    auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
-    if (!pool_4449 || !pool_4449[147]) {
-        return;
-    }
-    auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+void HandleDynamicSPCamera(float& cameraDistance, float groundDistance, float airDistance) {
+	auto pool_166 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_166 || !pool_166[3]) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
 
-    auto pool_166 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-    if (!pool_166 || !pool_166[3]) {
-        return;
-    }
-    auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
-
-    if (activeCrimsonConfig.Camera.distance == 0) { // Far (Vanilla Default)
-        return;
-    }
-
-    if (activeCrimsonConfig.Camera.distance == 1) { // Closer
-        if (cameraData.distance > 350) {
-            cameraData.distance = 350.0f;
-        }
-    }
-
-    if (activeCrimsonConfig.Camera.distance == 2) { // Dynamic
-        if (!(mainActorData.state & STATE::IN_AIR)) {
-
-            if (cameraData.distance > 350) {
-                cameraData.distance = 350.0f;
-            }
-        } else {
-            if (cameraData.distance > 340) {
-                cameraData.distance = 500.0f;
-            }
-        }
-    }
+	if (!(mainActorData.state & STATE::IN_AIR)) {
+		if (cameraDistance > groundDistance) {
+			cameraDistance = groundDistance;
+		}
+	}
+	else {
+		if (cameraDistance > (groundDistance - 10)) {
+			cameraDistance = airDistance;
+		}
+	}
 }
+
+
+void HandleMultiplayerCamera(float& cameraDistance, float groundDistanceSP, float airDistanceSP) {
+	static auto lastAdjustmentTime = std::chrono::steady_clock::now();
+	const auto timeThreshold = std::chrono::milliseconds(1000); // 1 second delay
+
+	// Define the screen margin buffer
+	const float screenMarginForZoomIn = 380.0f;  // Safe margin for zooming in
+	const float screenMarginForZoomOut = 250.0f; 
+	float screenWidth = g_renderSize.x;
+	float screenHeight = g_renderSize.y;
+
+	float maxDistance = 1500.0f; // Maximum allowed camera distance
+	bool outOfView = false;
+
+	// Check if any entity needs the camera to zoom out
+	bool needZoomOut = false;
+	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
+		float distanceTo1P = g_entityTo1PDistances[i];
+
+		if (distanceTo1P >= 1700.0f) {
+            HandleDynamicSPCamera(cameraDistance, groundDistanceSP, airDistanceSP);
+			return; // Early exit, no need to adjust further
+		}
+
+		auto& screenPos = g_entityScreenPositions[i];
+
+		// Check if the entity is close to the edges of the screen (buffer for zooming out)
+		if (screenPos.x <= screenMarginForZoomOut || screenPos.x >= (screenWidth - screenMarginForZoomOut) ||
+			screenPos.y <= screenMarginForZoomOut || screenPos.y >= (screenHeight - screenMarginForZoomOut)) {
+			needZoomOut = true;
+		}
+	}
+
+	// Additional check: Are all entities within the screen margin for zooming in?
+	bool allEntitiesInCenter = true;
+	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
+		auto& screenPos = g_entityScreenPositions[i];
+
+		
+		if (screenPos.x <= screenMarginForZoomIn || screenPos.x >= (screenWidth - screenMarginForZoomIn) ||
+			screenPos.y <= screenMarginForZoomIn || screenPos.y >= (screenHeight - screenMarginForZoomIn)) {
+			allEntitiesInCenter = false;
+			break; // Early exit if any entity is near the edge
+		}
+	}
+
+	// Handle camera distance adjustment based on screen position
+	if (needZoomOut) {
+		lastAdjustmentTime = std::chrono::steady_clock::now(); // Reset timer
+        cameraDistance += 20.0f * g_frameRateMultiplier; // Increase camera distance per frame
+		if (cameraDistance > maxDistance) {
+            cameraDistance = maxDistance; // Capping the distance
+		}
+	}
+	else {
+		auto currentTime = std::chrono::steady_clock::now();
+		auto timeSinceLastAdjustment = currentTime - lastAdjustmentTime;
+
+		// Only adjust the camera if the cooldown time has passed and all entities are in the center
+		if (timeSinceLastAdjustment > timeThreshold && allEntitiesInCenter) {
+			if (cameraDistance > 350.0f) {
+                cameraDistance -= 10.0f * g_frameRateMultiplier;
+				if (cameraDistance < 350.0f) {
+                    cameraDistance = 350.0f; // Prevent going below default distance
+				}
+			}
+		}
+	}
+}
+
+
+void CameraDistanceController() {
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449 || !pool_4449[147]) return;
+	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+
+	auto pool_166 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_166 || !pool_166[3]) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
+
+	if (activeCrimsonConfig.Camera.distance == 0) { // Far (Vanilla Default)
+		return;
+	}
+
+	if (activeCrimsonConfig.Camera.distance == 1) { // Closer
+		if (cameraData.distance > 350) {
+			cameraData.distance = 350.0f;
+		}
+	}
+
+	if (activeCrimsonConfig.Camera.distance == 2) { // Dynamic
+        if (activeCrimsonConfig.Camera.multiplayerCamera) {
+			if (activeConfig.Actor.playerCount == 1) {
+				if (mainActorData.doppelganger == 0) {
+					// Single-player camera behavior
+					HandleDynamicSPCamera(cameraData.distance, 350, 500);
+				}
+				else {
+					HandleDynamicSPCamera(cameraData.distance, 350, 500);
+				}
+
+			}
+			else {
+				// MULTIPLAYER CAM 
+				HandleMultiplayerCamera(cameraData.distance, 350, 500);
+			}
+        }
+        else {
+            HandleDynamicSPCamera(cameraData.distance, 350, 500);
+        }
+		
+	}
+}
+
 
 void CameraLockOnDistanceController() {
     auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
@@ -263,21 +375,28 @@ void CameraLockOnDistanceController() {
     }
 
     if (activeCrimsonConfig.Camera.lockOnDistance == 1) {
-        cameraData.distanceLockOn = 500.0f;
+        cameraData.distanceLockOn = 360.0f;
     }
 
     // mainActorData.position.y > 300.0f
-
     if (activeCrimsonConfig.Camera.lockOnDistance == 2) {
-        if (!(mainActorData.state & STATE::IN_AIR)) {
-            if (cameraData.distanceLockOn > 360.0f) {
-                cameraData.distanceLockOn = 360.0f;
-            }
-        } else {
-            if (cameraData.distanceLockOn > 350.0f) {
-                cameraData.distanceLockOn = 500.0f;
-            }
+        if (activeCrimsonConfig.Camera.multiplayerCamera) {
+			if (activeConfig.Actor.playerCount == 1) {
+				if (mainActorData.doppelganger == 0) {
+					HandleDynamicSPCamera(cameraData.distanceLockOn, 360, 500);
+				}
+				else {
+					HandleMultiplayerCamera(cameraData.distanceLockOn, 360, 500);
+				}
+			}
+			else {
+				HandleMultiplayerCamera(cameraData.distanceLockOn, 360, 500);
+			}
         }
+        else {
+            HandleDynamicSPCamera(cameraData.distanceLockOn, 360, 500);
+        }
+        
     }
 }
 

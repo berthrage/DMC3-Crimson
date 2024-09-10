@@ -927,6 +927,7 @@ const char* cameraFollowUpSpeedNames[] = {
 	"Low (Vanilla Default)",
 	"Medium",
 	"High",
+	"Dynamic",
 };
 
 const char* cameraDistanceNames[] = {
@@ -4003,7 +4004,6 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 	crimsonHud.playerOutViewIconPositions[playerIndex] = iconPosition;
 
 	// Render the icon at the adjusted position with label and distance
-	float playerTo1PDistance = glm::distance(playerPos, mainActorPos);
 	ImGuiWindowFlags windowFlags =
 		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize |
 		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
@@ -4027,7 +4027,7 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 
 	// Draw the distance text centered inside the button
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSizeDistance]);
-	std::string distanceText = std::to_string(static_cast<int>(playerTo1PDistance));
+	std::string distanceText = std::to_string(static_cast<int>(crimsonPlayer[playerIndex].playerTo1PDistance));
 	ImVec2 distanceTextSize = ImGui::CalcTextSize(distanceText.c_str());
 	ImVec2 distanceTextPos = ImVec2(
 		buttonPos.x + (buttonSize.x - distanceTextSize.x) * 0.5f,
@@ -4077,7 +4077,7 @@ void RenderWorldSpaceMultiplayerBar(
 
 	// Adjusts size dynamically based on the distance between Camera and Player
 	ImVec2 sizeDistance = { (activeData.size.x * (1.0f / ((float)distanceClamped / 20))), (activeData.size.y * (1.0f / ((float)distanceClamped / 20))) };
-	SimpleVec3 screen_pos = debug_draw_world_to_screen((const float*)&actorData.position, 1.0f);
+	auto& playerScreenPosition = crimsonPlayer[playerIndex].playerScreenPosition;
 	float screenWidth = g_renderSize.x;
 	float screenHeight = g_renderSize.y;
 
@@ -4090,18 +4090,18 @@ void RenderWorldSpaceMultiplayerBar(
 	activeData.magicColorVergil[3] = alpha;
 
 	// If player is outside view: Handle Out of View Icons and stop rendering WorldSpace Bars
-	if (screen_pos.x < screenMargin || screen_pos.x > screenWidth - screenMargin ||
-		screen_pos.y < screenMargin || screen_pos.y > screenHeight - screenMargin) {
+	if (playerScreenPosition.x < screenMargin || playerScreenPosition.x > screenWidth - screenMargin ||
+		playerScreenPosition.y < screenMargin || playerScreenPosition.y > screenHeight - screenMargin) {
 
 
 		if (activeCrimsonConfig.MultiplayerBarsWorldSpace.showOutOfViewIcons) {
-			RenderOutOfViewIcon(actorData, screen_pos, screenMargin, name, activeData);
+			RenderOutOfViewIcon(actorData, playerScreenPosition, screenMargin, name, activeData);
 		}
 
 		return;
 	}
 
-	ImGui::SetNextWindowPos(ImVec2(screen_pos.x - (sizeDistance.x / 2.0f), screen_pos.y - sizeDistance.y));
+	ImGui::SetNextWindowPos(ImVec2(playerScreenPosition.x - (sizeDistance.x / 2.0f), playerScreenPosition.y - sizeDistance.y));
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
@@ -4576,6 +4576,7 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
+			GUI_PushDisable(activeCrimsonConfig.Camera.multiplayerCamera);
 			ImGui::PushItemWidth(itemWidth * 1.1f);
 			UI::Combo2("Distance", cameraDistanceNames, activeCrimsonConfig.Camera.distance, queuedCrimsonConfig.Camera.distance);
 			ImGui::SameLine();
@@ -4595,6 +4596,7 @@ void CameraSection(size_t defaultFontSize) {
 				"\n"
 				"Dynamic Option adjusts based on whether player is airborne.");
 			ImGui::PopItemWidth();
+			GUI_PopDisable(activeCrimsonConfig.Camera.multiplayerCamera);
 
 			ImGui::TableNextColumn();
 
@@ -4637,6 +4639,24 @@ void CameraSection(size_t defaultFontSize) {
 			if (GUI_Checkbox2("[WIP] Force Third Person Camera", activeCrimsonConfig.Camera.forceThirdPerson, queuedCrimsonConfig.Camera.forceThirdPerson)) {
 				
 			}
+
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("[WIP] Multiplayer Camera", activeCrimsonConfig.Camera.multiplayerCamera, queuedCrimsonConfig.Camera.multiplayerCamera)) {
+				if (activeCrimsonConfig.Camera.multiplayerCamera) {
+					activeCrimsonConfig.Camera.followUpSpeed = 3;
+					queuedCrimsonConfig.Camera.followUpSpeed = 3;
+
+					activeCrimsonConfig.Camera.distance = 2;
+					queuedCrimsonConfig.Camera.distance = 2;
+
+					activeCrimsonConfig.Camera.lockOnDistance = 2;
+					queuedCrimsonConfig.Camera.lockOnDistance = 2;
+				}
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Works best with Full Force Third Person Camera. Also triggers with Doppelganger.");
 
 
 			ImGui::EndTable();
