@@ -72,16 +72,28 @@ bool GUI_Checkbox2(const char* label, bool& var, bool& var2) {
     return update;
 }
 
-bool GUI_ColorEdit4(const char* label, uint8 (&var)[4], float (&var2)[4], ImGuiColorEditFlags flags) {
-    bool update = false;
+ImVec4 ConvertColorFromUint8ToVec4(uint8(&var)[4]) {
+    ImVec4 color = { var[0] / 255.0f, var[1] / 255.0f, var[2] / 255.0f, var[3] / 255.0f };
 
+    return color;
+}
+
+bool GUI_ColorEdit4(const char* label, uint8 (&var)[4], ImGuiColorEditFlags flags) {
+    bool update = false;
+    ImVec4 color = { var[0] / 255.0f, var[1] / 255.0f, var[2] / 255.0f, var[3] / 255.0f };
     UI::PushID();
-    if (ImGui::ColorEdit4(label, var2, flags)) {
+
+    if (ImGui::ColorEdit4(label, (float*)&color, flags)) {
         update = true;
 
-        old_for_all(uint8, index, 4) {
-            var[index] = static_cast<uint8>(var2[index] * 255);
-        }
+		
+		for (int index = 0; index < 4; ++index) {
+			
+			var[0] = static_cast<uint8>(color.x * 255.0f);  // Red
+			var[1] = static_cast<uint8>(color.y * 255.0f);  // Green
+			var[2] = static_cast<uint8>(color.z * 255.0f);  // Blue
+			var[3] = static_cast<uint8>(color.w * 255.0f);  // Alpha
+		}
     }
     UI::PopID();
 
@@ -93,12 +105,12 @@ bool GUI_ColorEdit4(const char* label, uint8 (&var)[4], float (&var2)[4], ImGuiC
     return update;
 }
 
-bool GUI_Color(const char* label, uint8 (&var)[4], float (&var2)[4]) {
-    return GUI_ColorEdit4(label, var, var2, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaPreview);
+bool GUI_Color(const char* label, uint8 (&var)[4]) {
+    return GUI_ColorEdit4(label, var, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaPreview);
 }
 
-bool GUI_Color2(const char* label, uint8 (&var)[4], uint8 (&var2)[4], float (&var3)[4]) {
-    auto update = GUI_Color(label, var2, var3);
+bool GUI_Color2(const char* label, uint8 (&var)[4], uint8 (&var2)[4]) {
+    auto update = GUI_Color(label, var2);
 
     if (update) {
         memcpy(var, var2, sizeof(var2));

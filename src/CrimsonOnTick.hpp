@@ -6,6 +6,9 @@ namespace CrimsonOnTick {
 	void PreparePlayersDataBeforeSpawn();
 	void NewMissionClearSong();
 	void DisableBlendingEffectsController();
+	void StyleMeterMultiplayer();
+	void DetermineActiveEntitiesCount();
+	void MultiplayerCameraPositioningController();
 	void ForceThirdPersonCameraController();
 	void GeneralCameraOptionsController();
 	void AirTauntDetoursController();

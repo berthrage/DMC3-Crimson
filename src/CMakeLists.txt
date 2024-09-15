@@ -9,6 +9,7 @@ set(MASM_SRC
     masm/HudHPSeparation.asm
     masm/HudStyleBarPosAsm.asm
     masm/DisableDriveHoldAsm.asm
+    masm/MultiplayerCameraPositioning.asm
     masm/SetAirTauntAsm.asm
     masm/SkyLaunchAirTaunt.asm
     masm/RerouteRedOrbsCounterAlpha.asm

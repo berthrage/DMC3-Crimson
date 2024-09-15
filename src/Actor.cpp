@@ -12163,7 +12163,7 @@ void Toggle(bool enable) {
         auto addr             = (appBaseAddr + 0x616EB);
         auto jumpAddr         = (appBaseAddr + 0x616F2);
         constexpr uint32 size = 7;
-        /*
+        /*\
         dmc3.exe+616EB - 0F28 82 80000000 - movaps xmm0,[rdx+00000080]
         dmc3.exe+616F2 - 0F29 41 40       - movaps [rcx+40],xmm0
         */
@@ -13129,7 +13129,7 @@ void EventMain() {
     if (!activeConfig.Actor.enable) {
         return;
     }
-
+   
     LogFunction();
 
     SpawnActors();

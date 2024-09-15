@@ -58,6 +58,7 @@ void DTReadySFX() {
 
 void CalculateViewProperties(byte8* actorBaseAddr) {
 	if (!actorBaseAddr) return;
+
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
 	if (!actorData.cloneActorBaseAddr) return;
 	auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
@@ -69,6 +70,12 @@ void CalculateViewProperties(byte8* actorBaseAddr) {
 	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
 	if (!pool_4449 || !pool_4449[147]) return;
 	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+	
+	auto pool_11962 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_11962 || !pool_11962[8]) return;
+	auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
+
+	static bool doppelActive[PLAYER_COUNT] = { false };
 
     auto playerIndex = actorData.newPlayerIndex;
 	auto indexToAssign = playerIndex * 2;
@@ -90,24 +97,24 @@ void CalculateViewProperties(byte8* actorBaseAddr) {
 
 	playerTo1PDistance = glm::distance(playerPosition, mainActorPosition);
 	cloneTo1PDistance = glm::distance(clonePosition, mainActorPosition);
-	g_entityTo1PDistances[indexToAssign] = playerTo1PDistance;
-	g_entityTo1PDistances[cloneIndexToAssign] = cloneTo1PDistance;
+	g_plEntityTo1PDistances[indexToAssign] = playerTo1PDistance;
+	g_plEntityTo1PDistances[cloneIndexToAssign] = cloneTo1PDistance;
 
 	playerScreenPosition = debug_draw_world_to_screen((const float*)&actorData.position, 1.0f);
 	cloneScreenPosition = debug_draw_world_to_screen((const float*)&cloneActorData.position, 1.0f);
 
-	g_entityScreenPositions[indexToAssign] = playerScreenPosition;
-	g_entityScreenPositions[cloneIndexToAssign] = cloneScreenPosition;
+	g_plEntityScreenPositions[indexToAssign] = playerScreenPosition;
+	g_plEntityScreenPositions[cloneIndexToAssign] = cloneScreenPosition;
 	
     cameraPlayerDistance = glm::distance(playerPosition, cameraPosition);
 	int distancePlayer = (int)cameraPlayerDistance / 20;
 	crimsonPlayer[playerIndex].cameraPlayerDistanceClamped = glm::clamp(distancePlayer, 0, 255);
-	g_entityCameraDistances[indexToAssign] = cameraPlayerDistance;
+	g_plEntityCameraDistances[indexToAssign] = cameraPlayerDistance;
 
 	cameraCloneDistance = glm::distance(clonePosition, cameraPosition);
 	int distanceClone = (int)cameraCloneDistance / 20;
 	crimsonPlayer[playerIndex].cameraCloneDistanceClamped = glm::clamp(distanceClone, 0, 255);
-	g_entityCameraDistances[cloneIndexToAssign] = cameraCloneDistance;
+	g_plEntityCameraDistances[cloneIndexToAssign] = cameraCloneDistance;
 
 	float screenWidth = g_renderSize.x;
 	float screenHeight = g_renderSize.y;
@@ -117,11 +124,11 @@ void CalculateViewProperties(byte8* actorBaseAddr) {
 		playerScreenPosition.y < screenMargin || playerScreenPosition.y > screenHeight - screenMargin) {
 
 		playerOutOfView = true;
-		g_entityOutOfView[indexToAssign] = true;
+		g_plEntityOutOfView[indexToAssign] = true;
 	}
 	else {
 		playerOutOfView = false;
-		g_entityOutOfView[indexToAssign] = false;
+		g_plEntityOutOfView[indexToAssign] = false;
 	}
 
 
@@ -129,11 +136,30 @@ void CalculateViewProperties(byte8* actorBaseAddr) {
 		cloneScreenPosition.y < screenMargin || cloneScreenPosition.y > screenHeight - screenMargin) {
 
 		cloneOutOfView = true;
-		g_entityOutOfView[cloneIndexToAssign] = true;
+		g_plEntityOutOfView[cloneIndexToAssign] = true;
 	}
 	else {
 		cloneOutOfView = false;
-		g_entityOutOfView[cloneIndexToAssign] = false;
+		g_plEntityOutOfView[cloneIndexToAssign] = false;
+	}
+
+	g_plEntityPositions[indexToAssign].x = actorData.position.x;
+	g_plEntityPositions[indexToAssign].y = actorData.position.y;
+	g_plEntityPositions[indexToAssign].z = actorData.position.z;
+
+	g_plEntityPositions[cloneIndexToAssign].x = cloneActorData.position.x;
+	g_plEntityPositions[cloneIndexToAssign].y = cloneActorData.position.y;
+	g_plEntityPositions[cloneIndexToAssign].z = cloneActorData.position.z;
+
+	if (actorData.doppelganger == 1 && !doppelActive[playerIndex]) {
+		g_activeClonesCount++;
+		doppelActive[playerIndex] = true;
+	}
+	
+	
+	if (doppelActive[playerIndex] && actorData.doppelganger == 0) {
+		g_activeClonesCount--;
+		doppelActive[playerIndex] = false;
 	}
 }
 

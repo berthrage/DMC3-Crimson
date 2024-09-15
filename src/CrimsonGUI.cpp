@@ -3229,9 +3229,16 @@ void ActorSection(size_t defaultFontSize) {
 	GUI_PushDisable(actorCondition);
 
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
+	
+
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	const char* SPMPText = (queuedConfig.Actor.playerCount == 1) ? SPMPText = "SINGLE PLAYER" : SPMPText = "MULTIPLAYER";
+	ImGui::Text(SPMPText);
+	ImGui::PopFont();
+
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushItemWidth(itemWidth);
-	GUI_Slider<uint8>("Player Count", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT);
+	GUI_Slider<uint8>("Number of Players", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT);
 	UI::Combo2("Costume Respects Game Progression", costumeRespectsProgressionNames, activeConfig.costumeRespectsProgression,
 		queuedConfig.costumeRespectsProgression);
 
@@ -3244,12 +3251,12 @@ void ActorSection(size_t defaultFontSize) {
 	);
 
 	{
-		const float columnWidth = 0.7f * queuedConfig.globalScale;
-		const float rowWidth = 30.0f * queuedConfig.globalScale;
+		const float columnWidth = 0.6f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
 		if (ImGui::BeginTable("ActorSystemTable", 3)) {
 
-			ImGui::TableSetupColumn("c2", 0, columnWidth * 1.4f);
+			ImGui::TableSetupColumn("c2", 0, columnWidth * 2.0f);
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
@@ -3269,6 +3276,33 @@ void ActorSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
+
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("PLAYER COLORS");
+			ImGui::PopFont();
+
+			for (int playerIndex = 0; playerIndex < PLAYER_COUNT; playerIndex++) {
+
+				if (playerIndex > 0) {
+					ImGui::SameLine();
+				}
+				GUI_Color2("", activeCrimsonConfig.PlayerProperties.playerColor[playerIndex], queuedCrimsonConfig.PlayerProperties.playerColor[playerIndex]);
+				
+				ImGui::SameLine();
+				ImGui::Text("%uP", playerIndex + 1);
+
+				ImGui::SameLine();
+				if (GUI_Button("D")) {
+					CopyMemory(&activeCrimsonConfig.PlayerProperties.playerColor[playerIndex], &defaultCrimsonConfig.PlayerProperties.playerColor[playerIndex],
+						sizeof(activeCrimsonConfig.PlayerProperties.playerColor[playerIndex]));
+					CopyMemory(&queuedCrimsonConfig.PlayerProperties.playerColor[playerIndex], &defaultCrimsonConfig.PlayerProperties.playerColor[playerIndex],
+						sizeof(queuedCrimsonConfig.PlayerProperties.playerColor[playerIndex]));
+				}
+			}
+
 
 			ImGui::EndTable();
 		}
@@ -4017,9 +4051,14 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 	ImVec2 buttonPos = ImGui::GetItemRectMin();
 	ImVec2 buttonEndPos = ImGui::GetItemRectMax();
-	drawList->AddRectFilled(buttonPos, buttonEndPos, ImGui::GetColorU32(ImGuiCol_Button), 10.0f * scaleFactorX);  // Background color
+	ImVec4 playerColor = ConvertColorFromUint8ToVec4(activeCrimsonConfig.PlayerProperties.playerColor[playerIndex]);
+	drawList->AddRectFilled(buttonPos, buttonEndPos, ImGui::GetColorU32(playerColor), 10.0f * scaleFactorX);  // Background color
 	drawList->AddRect(buttonPos, buttonEndPos, ImGui::GetColorU32(ImGuiCol_Border), 10.0f * scaleFactorX);  // Border
 
+	// Calculate luminance (perceived brightness)
+	float luminance = 0.299f * playerColor.x + 0.587f * playerColor.y + 0.114f * playerColor.z;
+	// Choose text color based on luminance 
+	ImVec4 textColor = (luminance > 0.4f) ? ImVec4(0.1f, 0.1f, 0.1f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	float minFontSize = 10.0f; // Font cannot go below 10 or else ImGui asserts will come in.
 	float fontSizeDistance = (std::max)(17.0f * scaleFactorY, minFontSize);
@@ -4027,6 +4066,7 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 
 	// Draw the distance text centered inside the button
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSizeDistance]);
+	ImGui::PushStyleColor(ImGuiCol_Text, textColor);
 	std::string distanceText = std::to_string(static_cast<int>(crimsonPlayer[playerIndex].playerTo1PDistance));
 	ImVec2 distanceTextSize = ImGui::CalcTextSize(distanceText.c_str());
 	ImVec2 distanceTextPos = ImVec2(
@@ -4044,6 +4084,7 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 		buttonPos.y + (buttonSize.y - nameTextSize.y) * 0.5f
 	);
 	drawList->AddText(nameTextPos, ImGui::GetColorU32(ImGuiCol_Text), name);
+	ImGui::PopStyleColor();
 	ImGui::PopFont();
 
 	// Calculate positions and sizes for progress bars
@@ -4132,7 +4173,15 @@ void RenderWorldSpaceMultiplayerBar(
 		ImGui::ProgressBar(magicPoints, sizeDistance, "");
 		ImGui::PopStyleColor();
 
+		ImVec4 playerColor = ConvertColorFromUint8ToVec4(activeCrimsonConfig.PlayerProperties.playerColor[playerIndex]);
+
+		float luminance = 0.299f * playerColor.x + 0.587f * playerColor.y + 0.114f * playerColor.z;
+		ImVec4 textColor = (luminance > 0.4f) ? ImVec4(0.1f, 0.1f, 0.1f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+		ImGui::PushStyleColor(ImGuiCol_Button, playerColor);
+		ImGui::PushStyleColor(ImGuiCol_Text, textColor);
 		ImGui::Button(name, { 30.0f, 30.0f });
+		ImGui::PopStyleColor(2);
 		ImGui::PopFont();
 
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0f]);
@@ -4783,111 +4832,6 @@ void CameraSection(size_t defaultFontSize) {
 		ImGui::Text("");
 
 }
-
-#pragma endregion
-
-#pragma region Cosmetics
-
-struct {
-	float32 airHike[5][4] = {
-		{128, 0, 0, 200},
-		{96, 128, 144, 200},
-		{160, 64, 16, 200},
-		{112, 64, 160, 200},
-		{128, 128, 128, 200},
-	};
-	struct {
-		float32 skyStar[4] = { 255, 0, 0, 200 };
-	} Trickster;
-	struct {
-		float32 ultimate[4] = { 143, 112, 48, 200 };
-	} Royalguard;
-	struct {
-		float32 clone[4] = { 16, 16, 16, 48 };
-	} Doppelganger;
-	struct {
-		float32 dante[5][4] = {
-			{128, 0, 0, 200},
-			{96, 128, 144, 200},
-			{160, 64, 16, 200},
-			{112, 64, 160, 200},
-			{128, 128, 128, 200},
-		};
-		float32 sparda[4] = { 128, 0, 0, 200 };
-		float32 vergil[3][4] = {
-			{32, 64, 128, 200},
-			{32, 64, 128, 200},
-			{32, 64, 128, 200},
-		};
-		float32 neroAngelo[4] = { 64, 0, 255, 200 };
-	} Aura;
-
-
-	struct {
-		float32 flux[6][4] = {
-			{ 29, 29, 0, 255 }, //trick  
-			{ 26, 0, 0, 255 }, //sword  
-			{ 0, 8, 34, 255 }, //gun    
-			{ 0, 35, 6, 255 }, //royal  
-			{ 26, 0, 35, 255 }, //quick  
-			{ 30, 14, 0, 255 }, //doppel 
-		};
-
-		float32 text[9][4] = {
-			{ 240, 240, 0, 255 }, //trick  
-			{ 255, 1, 1, 255 }, //sword  
-			{ 0, 56, 239, 255 }, //gun    
-			{ 5, 250, 47, 255 }, //royal  
-			{ 189, 0, 255, 255 }, //quick  
-			{ 255, 121, 4, 255 }, //doppel 
-			{ 255, 255, 255, 255 }, //dt     
-			{ 255, 255, 255, 255 }, //dte    
-			{ 255, 255, 255, 255 }, //ready  
-		};
-
-		uint8 textMidnight[9][4] = {
-			{ 155, 85, 250, 255 }, //trick  
-			{ 155, 85, 250, 255 }, //sword  
-			{ 155, 85, 250, 255 }, //gun    
-			{ 155, 85, 250, 255 }, //royal  
-			{ 155, 85, 250, 255 }, //quick  
-			{ 155, 85, 250, 255 }, //doppel 
-			{ 155, 85, 250, 255 }, //dt     
-			{ 155, 85, 250, 255 }, //dte    
-			{ 155, 85, 250, 255 }, //ready  
-		};
-
-	} StyleSwitchColor;
-} Color;
-
-void Color_UpdateValues() {
-	// LogFunction();
-
-	constexpr uint8 itemCount = (sizeof(Color) / 4);
-
-	auto items = reinterpret_cast<uint8*>(activeConfig.Color.airHike);
-	auto items2 = reinterpret_cast<float32*>(Color.airHike);
-
-
-	old_for_all(uint8, index, itemCount) {
-		items2[index] = (static_cast<float32>(items[index]) / 255);
-
-	}
-
-	for (int style = 0; style < 6; style++) {
-		for (int i = 0; i < 4; i++) {
-			Color.StyleSwitchColor.flux[style][i] = (float32)activeCrimsonConfig.StyleSwitchFX.Flux.color[style][i] / 255;
-		}
-	}
-
-	for (int style = 0; style < 9; style++) {
-		for (int i = 0; i < 4; i++) {
-			Color.StyleSwitchColor.text[style][i] = (float32)activeCrimsonConfig.StyleSwitchFX.Text.color[style][i] / 255;
-		}
-	}
-
-}
-
 
 #pragma endregion
 
@@ -7399,13 +7343,13 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("sessionData mission:  %u", sessionData.mission);
                 ImGui::Text("SCENE:  %u", g_scene);
                 ImGui::Text("TRACK PLAYING: %s", g_gameTrackPlaying.c_str());
-				for (int i = 0; i < 8; i++) {
-					ImGui::Text("sessionData expertise[%u]:  %x", i, sessionData.expertise[i]);
-				}
-
-				for (int i = 0; i < 5; i++) {
-					ImGui::Text("sessionData rangedWeaponLevels[%u]:  %x", i, sessionData.rangedWeaponLevels[i]);
-				}
+// 				for (int i = 0; i < 8; i++) {
+// 					ImGui::Text("sessionData expertise[%u]:  %x", i, sessionData.expertise[i]);
+// 				}
+// 
+// 				for (int i = 0; i < 5; i++) {
+// 					ImGui::Text("sessionData rangedWeaponLevels[%u]:  %x", i, sessionData.rangedWeaponLevels[i]);
+// 				}
 
 //                 for (int i = 0; i < 14; i++) {
 //                     ImGui::Text("sessionData unlock[%u] : %u", i, sessionData.weaponStyleUnlocks[i]);
@@ -7564,6 +7508,10 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			ImGui::Text("ENTITY COUNT:  %u", g_activePlayableEntitiesCount);
+			ImGui::Text("avgPos x: %g", customCameraPosMP[0]);
+			ImGui::Text("avgPos y: %g", customCameraPosMP[1]);
+			ImGui::Text("avgPos z: %g", customCameraPosMP[2]);
 			ImGui::Text("RED ORB ALPHA:  %u", crimsonHud.redOrbAlpha);
 			ImGui::Text("SKY LAUNCH EXECUTING:  %u", crimsonPlayer[0].skyLaunch.executing);
 			ImGui::Text("ROYAL RELEASE EXECUTING:  %u", crimsonPlayer[0].royalRelease.executing);
@@ -9082,11 +9030,11 @@ void SoundVisualSection(size_t defaultFontSize) {
 	ImGui::PopFont();
 
 	for (int style = 0; style < 6; style++) {
-
+	
 		if (style > 0) {
 			ImGui::SameLine();
 		}
-		GUI_Color2("", activeCrimsonConfig.StyleSwitchFX.Flux.color[style], queuedCrimsonConfig.StyleSwitchFX.Flux.color[style], Color.StyleSwitchColor.flux[style]);
+		GUI_Color2("", activeCrimsonConfig.StyleSwitchFX.Flux.color[style], queuedCrimsonConfig.StyleSwitchFX.Flux.color[style]);
 		ImGui::SameLine();
 		ImGui::Text(styleNamesFX[style]);
 	}
@@ -9095,20 +9043,12 @@ void SoundVisualSection(size_t defaultFontSize) {
 	if (GUI_Button("Colorful")) {
 		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.colorful, sizeof(queuedCrimsonConfig.StyleSwitchFX.Flux.color));
 		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.colorful, sizeof(activeCrimsonConfig.StyleSwitchFX.Flux.color));
-
-
-
-		Color_UpdateValues();
 	}
 
     ImGui::SameLine();
 	if (GUI_Button("All Red")) {
 		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.allRed, sizeof(queuedCrimsonConfig.StyleSwitchFX.Flux.color));
 		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.allRed, sizeof(activeCrimsonConfig.StyleSwitchFX.Flux.color));
-
-
-
-		Color_UpdateValues();
 	}
 
 	
@@ -9122,7 +9062,7 @@ void SoundVisualSection(size_t defaultFontSize) {
 		if (style > 0) {
 			ImGui::SameLine();
 		}
-		GUI_Color2("", activeCrimsonConfig.StyleSwitchFX.Text.color[style], queuedCrimsonConfig.StyleSwitchFX.Text.color[style], Color.StyleSwitchColor.text[style]);
+		GUI_Color2("", activeCrimsonConfig.StyleSwitchFX.Text.color[style], queuedCrimsonConfig.StyleSwitchFX.Text.color[style]);
 		ImGui::SameLine();
 		ImGui::Text(styleNamesFX[style]);
 	}
@@ -9159,32 +9099,24 @@ void SoundVisualSection(size_t defaultFontSize) {
 	if (GUI_Button("Midnight")) {
 		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.midnight, sizeof(queuedCrimsonConfig.StyleSwitchFX.Text.color));
 		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.midnight, sizeof(activeCrimsonConfig.StyleSwitchFX.Text.color));
-
-		Color_UpdateValues();
 	}
 
     ImGui::SameLine();
 	if (GUI_Button("All White")) {
 		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.allWhite, sizeof(queuedCrimsonConfig.StyleSwitchFX.Text.color));
 		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.allWhite, sizeof(activeCrimsonConfig.StyleSwitchFX.Text.color));
-
-		Color_UpdateValues();
 	}
 
     ImGui::SameLine();
 	if (GUI_Button("Colorful Clear")) {
 		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.colorfulClear, sizeof(queuedCrimsonConfig.StyleSwitchFX.Text.color));
 		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.colorfulClear, sizeof(activeCrimsonConfig.StyleSwitchFX.Text.color));
-
-		Color_UpdateValues();
 	}
 
 	ImGui::SameLine();
 	if (GUI_Button("Colorful")) {
 		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.colorful, sizeof(queuedCrimsonConfig.StyleSwitchFX.Text.color));
 		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Text.color, &colorPresets.StyleSwitchText.colorful, sizeof(activeCrimsonConfig.StyleSwitchFX.Text.color));
-
-		Color_UpdateValues();
 	}
 
     ImGui::Text("");
@@ -9197,12 +9129,12 @@ void SoundVisualSection(size_t defaultFontSize) {
 		if (dt > 0) {
 			ImGui::SameLine();
 		}
-        GUI_Color2("", activeConfig.Color.Aura.dante[dt], queuedConfig.Color.Aura.dante[dt], Color.Aura.dante[dt]);
+        GUI_Color2("", activeConfig.Color.Aura.dante[dt], queuedConfig.Color.Aura.dante[dt]);
 		ImGui::SameLine();
 		ImGui::Text(meleeWeaponNamesDante[dt]);
 	}
     ImGui::SameLine();
-	GUI_Color2("", activeConfig.Color.Aura.sparda, queuedConfig.Color.Aura.sparda, Color.Aura.sparda);
+	GUI_Color2("", activeConfig.Color.Aura.sparda, queuedConfig.Color.Aura.sparda);
     ImGui::SameLine();
     ImGui::Text("Sparda");
 
@@ -9210,12 +9142,12 @@ void SoundVisualSection(size_t defaultFontSize) {
 		if (dt > 0) {
 			ImGui::SameLine();
 		}
-		GUI_Color2("", activeConfig.Color.Aura.vergil[dt], queuedConfig.Color.Aura.vergil[dt], Color.Aura.vergil[dt]);
+		GUI_Color2("", activeConfig.Color.Aura.vergil[dt], queuedConfig.Color.Aura.vergil[dt]);
 		ImGui::SameLine();
 		ImGui::Text(meleeWeaponNamesVergil[dt]);
 	}
     ImGui::SameLine();
-	GUI_Color2("", activeConfig.Color.Aura.neroAngelo, queuedConfig.Color.Aura.neroAngelo, Color.Aura.neroAngelo);
+	GUI_Color2("", activeConfig.Color.Aura.neroAngelo, queuedConfig.Color.Aura.neroAngelo);
 	ImGui::SameLine();
 	ImGui::Text("Nelo Angelo");
 
@@ -9229,7 +9161,7 @@ void SoundVisualSection(size_t defaultFontSize) {
 		if (airhike > 0) {
 			ImGui::SameLine();
 		}
-		GUI_Color2("", activeConfig.Color.airHike[airhike], queuedConfig.Color.airHike[airhike], Color.airHike[airhike]);
+		GUI_Color2("", activeConfig.Color.airHike[airhike], queuedConfig.Color.airHike[airhike]);
 		ImGui::SameLine();
 		ImGui::Text(meleeWeaponNamesDante[airhike]);
 	}
@@ -9240,17 +9172,17 @@ void SoundVisualSection(size_t defaultFontSize) {
 	ImGui::Text("OTHER MOVES");
 	ImGui::PopFont();
 
-	GUI_Color2("", activeConfig.Color.Trickster.skyStar, queuedConfig.Color.Trickster.skyStar, Color.Trickster.skyStar);
+	GUI_Color2("", activeConfig.Color.Trickster.skyStar, queuedConfig.Color.Trickster.skyStar);
 	ImGui::SameLine();
 	ImGui::Text("Sky Star");
 
     ImGui::SameLine();
-	GUI_Color2("", activeConfig.Color.Royalguard.ultimate, queuedConfig.Color.Royalguard.ultimate, Color.Royalguard.ultimate);
+	GUI_Color2("", activeConfig.Color.Royalguard.ultimate, queuedConfig.Color.Royalguard.ultimate);
 	ImGui::SameLine();
 	ImGui::Text("Royalguard Ultimate");
 
     ImGui::SameLine();
-	GUI_Color2("", activeConfig.Color.Doppelganger.clone, queuedConfig.Color.Doppelganger.clone, Color.Doppelganger.clone);
+	GUI_Color2("", activeConfig.Color.Doppelganger.clone, queuedConfig.Color.Doppelganger.clone);
 	ImGui::SameLine();
 	ImGui::Text("Doppelganger");
 
@@ -9258,18 +9190,12 @@ void SoundVisualSection(size_t defaultFontSize) {
 	if (GUI_Button("DMC3 Default")) {
 		CopyMemory(&queuedConfig.Color, &defaultConfig.Color, sizeof(queuedConfig.Color));
 		CopyMemory(&activeConfig.Color, &queuedConfig.Color, sizeof(activeConfig.Color));
-
-
-		Color_UpdateValues();
 	}
 
     ImGui::SameLine();
 	if (GUI_Button("Crimson")) {
 		CopyMemory(&queuedConfig.Color, &colorPresets.ColorCrimson, sizeof(queuedConfig.Color));
 		CopyMemory(&activeConfig.Color, &colorPresets.ColorCrimson, sizeof(activeConfig.Color));
-
-
-		Color_UpdateValues();
 	}
     
 
@@ -11155,6 +11081,9 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     CrimsonOnTick::CorrectFrameRateCutscenes();
     CrimsonOnTick::PreparePlayersDataBeforeSpawn();
 	CrimsonOnTick::DisableBlendingEffectsController();
+	CrimsonOnTick::StyleMeterMultiplayer();
+	CrimsonOnTick::DetermineActiveEntitiesCount();
+	CrimsonOnTick::MultiplayerCameraPositioningController();
 	CrimsonOnTick::ForceThirdPersonCameraController();
 	CrimsonOnTick::GeneralCameraOptionsController(); // previously called from Actor in WeaponSwitchController.
 	CrimsonOnTick::AirTauntDetoursController();
@@ -11195,5 +11124,4 @@ void GUI_Init() {
 
     Actor_UpdateIndices();
     Arcade_UpdateIndices();
-    Color_UpdateValues();
 }

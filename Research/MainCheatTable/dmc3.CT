@@ -5450,6 +5450,42 @@ dmc3.exe+5728A: 48 83 C4 30                    - add rsp,30
                   </Offsets>
                 </CheatEntry>
                 <CheatEntry>
+                  <ID>2675</ID>
+                  <Description>"+190 camera X"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>dmc3.exe+CF2330</Address>
+                  <Offsets>
+                    <Offset>190</Offset>
+                    <Offset>498</Offset>
+                    <Offset>240</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>2674</ID>
+                  <Description>"+194 camera Y"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>dmc3.exe+CF2330</Address>
+                  <Offsets>
+                    <Offset>194</Offset>
+                    <Offset>498</Offset>
+                    <Offset>240</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>2673</ID>
+                  <Description>"+198 camera Z"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>dmc3.exe+CF2330</Address>
+                  <Offsets>
+                    <Offset>198</Offset>
+                    <Offset>498</Offset>
+                    <Offset>240</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
                   <ID>1585</ID>
                   <Description>"1D4"</Description>
                   <ShowAsSigned>0</ShowAsSigned>
@@ -75587,6 +75623,115 @@ dmc3.exe+56050: 0F 5B C0                 - cvtdq2ps xmm0,xmm0
       </Actual>
       <After/>
     </CodeEntry>
+    <CodeEntry>
+      <Description>Change of movaps xmm0,[rax+00000080]</Description>
+      <AddressString>dmc3.exe+31B114</AddressString>
+      <Before>
+        <Byte>1A</Byte>
+        <Byte>48</Byte>
+        <Byte>8B</Byte>
+        <Byte>40</Byte>
+        <Byte>18</Byte>
+      </Before>
+      <Actual>
+        <Byte>0F</Byte>
+        <Byte>28</Byte>
+        <Byte>80</Byte>
+        <Byte>80</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>29</Byte>
+        <Byte>44</Byte>
+        <Byte>24</Byte>
+        <Byte>20</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of movaps xmm0,[rdx+00000080]</Description>
+      <AddressString>dmc3.exe+571BC</AddressString>
+      <Before>
+        <Byte>20</Byte>
+        <Byte>48</Byte>
+        <Byte>8B</Byte>
+        <Byte>50</Byte>
+        <Byte>18</Byte>
+      </Before>
+      <Actual>
+        <Byte>0F</Byte>
+        <Byte>28</Byte>
+        <Byte>82</Byte>
+        <Byte>80</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>29</Byte>
+        <Byte>81</Byte>
+        <Byte>90</Byte>
+        <Byte>01</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Code : Determine camera's X by player pos</Description>
+      <AddressString>dmc3.exe+571BC</AddressString>
+      <Before>
+        <Byte>20</Byte>
+        <Byte>48</Byte>
+        <Byte>8B</Byte>
+        <Byte>50</Byte>
+        <Byte>18</Byte>
+      </Before>
+      <Actual>
+        <Byte>0F</Byte>
+        <Byte>28</Byte>
+        <Byte>82</Byte>
+        <Byte>80</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>29</Byte>
+        <Byte>81</Byte>
+        <Byte>90</Byte>
+        <Byte>01</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of addss xmm1,[rcx+00000194]</Description>
+      <AddressString>dmc3.exe+571CA</AddressString>
+      <Before>
+        <Byte>81</Byte>
+        <Byte>90</Byte>
+        <Byte>01</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+        <Byte>58</Byte>
+        <Byte>89</Byte>
+        <Byte>94</Byte>
+        <Byte>01</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+        <Byte>11</Byte>
+        <Byte>89</Byte>
+        <Byte>94</Byte>
+      </After>
+    </CodeEntry>
   </CheatCodes>
   <UserdefinedSymbols>
     <SymbolEntry>
@@ -80390,6 +80535,11 @@ dmc3.exe+2BB11E style bar stuff
       <Address>"dmc3.exe"+558AC</Address>
       <Comment>Force Fixed Cameras to go 
 to Third Person Camera instead
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+571BC</Address>
+      <Comment>Determine camera's X by player pos
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>

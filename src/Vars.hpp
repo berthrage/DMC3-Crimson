@@ -4460,10 +4460,15 @@ extern float storedHP;
 extern float storedDT;
 
 // 0 - 1P, 1 - 1P clone, 2 - 2P, 3 - 2P clone, 4 - 3P, 5 - 3P clone, 6 - 4P, 7 - 4P clone
-extern std::array<float, PLAYER_COUNT * 2> g_entityTo1PDistances;
-extern std::array<float, PLAYER_COUNT * 2> g_entityCameraDistances;
-extern std::array<SimpleVec3, PLAYER_COUNT * 2> g_entityScreenPositions;
-extern std::array<bool, PLAYER_COUNT * 2> g_entityOutOfView;
+extern std::array<float, PLAYER_COUNT * 2> g_plEntityTo1PDistances;
+extern std::array<float, PLAYER_COUNT * 2> g_plEntityCameraDistances;
+extern std::array<SimpleVec3, PLAYER_COUNT * 2> g_plEntityScreenPositions;
+extern std::array<bool, PLAYER_COUNT * 2> g_plEntityOutOfView;
+extern std::array<SimpleVec3, PLAYER_COUNT * 2> g_plEntityPositions;
+extern int g_activeClonesCount;
+extern int g_activePlayableEntitiesCount;
+
+extern __declspec(align(16)) float customCameraPosMP[4];
 
 struct CrimsonPlayerData {
     uintptr_t playerPtr;

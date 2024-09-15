@@ -104,6 +104,7 @@ void NewMissionClearSong() {
 }
 
 void DisableBlendingEffectsController() {
+	// Disables PS2 Motion Blur among other PostProcessFX.
 
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 	
@@ -128,9 +129,165 @@ void DisableBlendingEffectsController() {
 	else {
 		CrimsonPatches::DisableBlendingEffects(false);
 	}
-	
-
 }
+
+void StyleMeterMultiplayer() {
+	// Adjusts the Style Meter to take all players into account in MP.
+
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	auto pool_11962 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_11962 || !pool_11962[8]) return;
+	auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
+	
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+
+	if (g_scene != SCENE::GAME) {
+		return;
+	}
+
+	float highestStyleRank = mainActorData.styleData.rank;
+	float highestMeter = mainActorData.styleData.meter;
+
+	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
+		auto& playerData = GetPlayerData(playerIndex);
+		auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+
+		if (!newActorData.baseAddr) {
+			return;
+		}
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+		auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+
+		if (actorData.styleData.rank > highestStyleRank) {
+			highestStyleRank = actorData.styleData.rank;
+		}
+		if (actorData.styleData.meter > highestMeter) {
+			highestMeter = actorData.styleData.meter;
+		}
+	}
+
+	mainActorData.styleData.rank = highestStyleRank;
+	if (highestMeter > mainActorData.styleData.meter) {
+		mainActorData.styleData.meter = highestMeter;
+	}
+}
+
+void DetermineActiveEntitiesCount() {
+	g_activePlayableEntitiesCount = activeConfig.Actor.playerCount + g_activeClonesCount;
+}
+
+
+void MultiplayerCameraPositioningController() {
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+
+	auto pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_2128 || !pool_2128[8]) return;
+	auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
+
+	customCameraPosMP[0] = 0.0f; // X
+	customCameraPosMP[1] = 0.0f; // Y
+	customCameraPosMP[2] = 0.0f; // Z
+	customCameraPosMP[3] = 1.0f; // W
+
+	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
+		auto& playerData = GetPlayerData(playerIndex);
+		auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+
+		if (!newActorData.baseAddr) {
+			return;
+		}
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+		auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+
+		customCameraPosMP[0] += actorData.position.x;
+		customCameraPosMP[1] += actorData.position.y;
+		customCameraPosMP[2] += actorData.position.z;
+
+		if (actorData.doppelganger == 1) {
+			customCameraPosMP[0] += cloneActorData.position.x;
+			customCameraPosMP[1] += cloneActorData.position.y;
+			customCameraPosMP[2] += cloneActorData.position.z;
+		}
+	}
+	
+	for (auto enemy : enemyVectorData.metadata) {
+		if (!enemy.baseAddr) continue;
+		auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
+		if (!enemyData.baseAddr) continue;
+
+		customCameraPosMP[0] += enemyData.position.x;
+		customCameraPosMP[1] += enemyData.position.y;
+		customCameraPosMP[2] += enemyData.position.z;
+
+	}
+
+	int allEntitiesCount = g_activePlayableEntitiesCount + enemyVectorData.count;
+
+	float minDistance = 100.0f; // Minimum distance between player and clone for MP cam to trigger in Single Player
+	auto& cloneMainActorData = *reinterpret_cast<PlayerActorData*>(mainActorData.cloneActorBaseAddr);
+	glm::vec3 playerPos;
+	glm::vec3 clonePos;
+
+	playerPos.x = mainActorData.position.x;
+	playerPos.y = mainActorData.position.y;
+	playerPos.z = mainActorData.position.z;
+
+	clonePos.x = cloneMainActorData.position.x;
+	clonePos.y = cloneMainActorData.position.y;
+	clonePos.z = cloneMainActorData.position.z;
+
+	if (activeConfig.Actor.playerCount > 1) {
+		// MULTIPLAYER
+		// Calculate the average camera position based on all active entities
+		customCameraPosMP[0] /= allEntitiesCount;
+		customCameraPosMP[1] /= allEntitiesCount;
+		customCameraPosMP[2] /= allEntitiesCount;
+	}
+	else {
+		// SINGLE PLAYER
+		// Only average out camera position between clone and player if their distance
+		// exceeds minDistance (to prevent bugging out when clone is spawning)
+		float distanceBetweenClone = glm::distance(playerPos, clonePos);
+
+		customCameraPosMP[0] /= allEntitiesCount;
+		customCameraPosMP[1] /= allEntitiesCount;
+		customCameraPosMP[2] /= allEntitiesCount;
+
+// 		if (mainActorData.doppelganger == 1) {
+// 			if (distanceBetweenClone > minDistance) {
+// 				customCameraPosMP[0] /= allEntitiesCount;
+// 				customCameraPosMP[1] /= allEntitiesCount;
+// 				customCameraPosMP[2] /= allEntitiesCount;
+// 			}
+// 		}
+// 		else {
+// 			customCameraPosMP[0] /= allEntitiesCount;
+// 			customCameraPosMP[1] /= allEntitiesCount;
+// 			customCameraPosMP[2] /= allEntitiesCount;
+// 		}
+
+// 		if (distanceBetweenClone > minDistance) {
+// 			customCameraPosMP[0] /= g_activePlayableEntitiesCount;
+// 			customCameraPosMP[1] /= g_activePlayableEntitiesCount;
+// 			customCameraPosMP[2] /= g_activePlayableEntitiesCount;
+// 		}
+// 		else {
+// 			customCameraPosMP[0] = mainActorData.position.x;
+// 			customCameraPosMP[1] = mainActorData.position.y;
+// 			customCameraPosMP[2] = mainActorData.position.z;
+// 		}
+	}
+	
+	// Activate multiplayer camera positioning
+	CrimsonDetours::ToggleMultiplayerCameraPositioning(activeCrimsonConfig.Camera.multiplayerCamera);
+}
+
 
 void ForceThirdPersonCameraController() {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
@@ -157,7 +314,6 @@ void ForceThirdPersonCameraController() {
 		CrimsonPatches::ForceThirdPersonCamera(false);
 		Camera::ToggleDisableBossCamera(activeCrimsonConfig.Camera.disableBossCamera);
 	}
-
 }
 
 CameraData* GetSafeCameraData() {

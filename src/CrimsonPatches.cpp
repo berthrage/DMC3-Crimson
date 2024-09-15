@@ -224,7 +224,7 @@ void CameraFollowUpSpeedController() {
     
 }
 
-void HandleDynamicSPCamera(float& cameraDistance, float groundDistance, float airDistance) {
+void HandleDynamicSPCameraDistance(float& cameraDistance, float groundDistance, float airDistance) {
 	auto pool_166 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!pool_166 || !pool_166[3]) return;
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
@@ -241,31 +241,150 @@ void HandleDynamicSPCamera(float& cameraDistance, float groundDistance, float ai
 	}
 }
 
-
-void HandleMultiplayerCamera(float& cameraDistance, float groundDistanceSP, float airDistanceSP) {
+void HandleDynamic2SPCameraDistance(float& cameraDistance, float groundDistance, float airDistance) {
 	static auto lastAdjustmentTime = std::chrono::steady_clock::now();
 	const auto timeThreshold = std::chrono::milliseconds(1000); // 1 second delay
 
-	// Define the screen margin buffer
-	const float screenMarginForZoomIn = 380.0f;  // Safe margin for zooming in
-	const float screenMarginForZoomOut = 250.0f; 
+    auto pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+    if (!pool_2128 || !pool_2128[8]) return;
+    auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
+
+	const float baseResX = 1920.0f;
+	const float baseResY = 1080.0f;
 	float screenWidth = g_renderSize.x;
 	float screenHeight = g_renderSize.y;
+	float scaleFactorX = screenWidth / baseResX;
+	float scaleFactorY = screenWidth / baseResY;
 
-	float maxDistance = 1500.0f; // Maximum allowed camera distance
+	// Define the screen margin buffer
+	const float screenMarginForZoomIn = 210.0f * scaleFactorX;  // Safe margin for zooming in
+	const float screenMarginForZoomOut = 150.0f * scaleFactorX;
+
+	float maxDistance = 800.0f; // Maximum allowed camera distance
+	bool outOfView = false;
+
+
+	// Check if any entity needs the camera to zoom out
+	bool needZoomOut = false;
+	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
+		float distanceTo1P = g_plEntityTo1PDistances[i];
+
+		if (distanceTo1P >= 1800.0f) {
+			HandleDynamicSPCameraDistance(cameraDistance, groundDistance, airDistance);
+			return; // Early exit, no need to adjust further
+		}
+
+		auto& screenPos = g_plEntityScreenPositions[i];
+
+		// Check if the entity is close to the edges of the screen (buffer for zooming out)
+		if (screenPos.x <= screenMarginForZoomOut || screenPos.x >= (screenWidth - screenMarginForZoomOut) ||
+			screenPos.y <= screenMarginForZoomOut || screenPos.y >= (screenHeight - screenMarginForZoomOut)) {
+			needZoomOut = true;
+		}
+	}
+
+	for (auto enemy : enemyVectorData.metadata) {
+		if (!enemy.baseAddr) continue;
+		auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
+		if (!enemyData.baseAddr) continue;
+
+        SimpleVec3 enemyScreenPos = debug_draw_world_to_screen((const float*)&enemyData.position, 1.0f);
+
+		if (enemyScreenPos.x <= screenMarginForZoomOut || enemyScreenPos.x >= (screenWidth - screenMarginForZoomOut) ||
+            enemyScreenPos.y <= screenMarginForZoomOut || enemyScreenPos.y >= (screenHeight - screenMarginForZoomOut)) {
+			needZoomOut = true;
+		}
+	}
+
+	// Additional check: Are all entities within the screen margin for zooming in?
+	bool allEntitiesInCenter = true;
+	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
+		auto& screenPos = g_plEntityScreenPositions[i];
+
+        //float distanceTo1P = glm
+
+
+		if (screenPos.x <= screenMarginForZoomIn || screenPos.x >= (screenWidth - screenMarginForZoomIn) ||
+			screenPos.y <= screenMarginForZoomIn || screenPos.y >= (screenHeight - screenMarginForZoomIn)) {
+			allEntitiesInCenter = false;
+			break; // Early exit if any entity is near the edge
+		}
+	}
+
+	for (auto enemy : enemyVectorData.metadata) {
+		if (!enemy.baseAddr) continue;
+		auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
+		if (!enemyData.baseAddr) continue;
+
+		SimpleVec3 enemyScreenPos = debug_draw_world_to_screen((const float*)&enemyData.position, 1.0f);
+
+		if (enemyScreenPos.x <= screenMarginForZoomIn || enemyScreenPos.x >= (screenWidth - screenMarginForZoomIn) ||
+            enemyScreenPos.y <= screenMarginForZoomIn || enemyScreenPos.y >= (screenHeight - screenMarginForZoomIn)) {
+			allEntitiesInCenter = false;
+			break; // Early exit if any entity is near the edge
+		}
+	}
+
+    if (g_inCombat) {
+        // Handle camera distance adjustment based on screen position
+        if (needZoomOut) {
+            lastAdjustmentTime = std::chrono::steady_clock::now(); // Reset timer
+            cameraDistance += 20.0f * g_frameRateMultiplier; // Increase camera distance per frame
+            if (cameraDistance > maxDistance) {
+                cameraDistance = maxDistance; // Capping the distance
+            }
+        }
+        else {
+            auto currentTime = std::chrono::steady_clock::now();
+            auto timeSinceLastAdjustment = currentTime - lastAdjustmentTime;
+
+            // Only adjust the camera if the cooldown time has passed and all entities are in the center
+            if (timeSinceLastAdjustment > timeThreshold && allEntitiesInCenter) {
+                if (cameraDistance > 350.0f) {
+                    cameraDistance -= 10.0f * g_frameRateMultiplier;
+                    if (cameraDistance < 350.0f) {
+                        cameraDistance = 350.0f; // Prevent going below default distance
+                    }
+                }
+            }
+        }
+    }
+    else {
+        HandleDynamicSPCameraDistance(cameraDistance, groundDistance, airDistance);
+    }
+}
+
+
+void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistanceSP, float airDistanceSP) {
+	static auto lastAdjustmentTime = std::chrono::steady_clock::now();
+	const auto timeThreshold = std::chrono::milliseconds(1000); // 1 second delay
+
+    const float baseResX = 1920.0f;
+    const float baseResY = 1080.0f;
+	float screenWidth = g_renderSize.x;
+	float screenHeight = g_renderSize.y;
+    float scaleFactorX = screenWidth / baseResX;
+    float scaleFactorY = screenWidth / baseResY;
+
+	// Define the screen margin buffer
+	const float screenMarginForZoomIn = 300.0f * scaleFactorX;  // Safe margin for zooming in
+	const float screenMarginForZoomOut = 250.0f * scaleFactorX;
+	
+
+	float maxDistance = 1800.0f; // Maximum allowed camera distance
 	bool outOfView = false;
 
 	// Check if any entity needs the camera to zoom out
 	bool needZoomOut = false;
 	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
-		float distanceTo1P = g_entityTo1PDistances[i];
+		float distanceTo1P = g_plEntityTo1PDistances[i];
 
-		if (distanceTo1P >= 1700.0f) {
-            HandleDynamicSPCamera(cameraDistance, groundDistanceSP, airDistanceSP);
+		if (distanceTo1P >= 1800.0f) {
+            HandleDynamicSPCameraDistance(cameraDistance, groundDistanceSP, airDistanceSP);
 			return; // Early exit, no need to adjust further
 		}
 
-		auto& screenPos = g_entityScreenPositions[i];
+		auto& screenPos = g_plEntityScreenPositions[i];
 
 		// Check if the entity is close to the edges of the screen (buffer for zooming out)
 		if (screenPos.x <= screenMarginForZoomOut || screenPos.x >= (screenWidth - screenMarginForZoomOut) ||
@@ -277,7 +396,7 @@ void HandleMultiplayerCamera(float& cameraDistance, float groundDistanceSP, floa
 	// Additional check: Are all entities within the screen margin for zooming in?
 	bool allEntitiesInCenter = true;
 	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
-		auto& screenPos = g_entityScreenPositions[i];
+		auto& screenPos = g_plEntityScreenPositions[i];
 
 		
 		if (screenPos.x <= screenMarginForZoomIn || screenPos.x >= (screenWidth - screenMarginForZoomIn) ||
@@ -336,20 +455,20 @@ void CameraDistanceController() {
 			if (activeConfig.Actor.playerCount == 1) {
 				if (mainActorData.doppelganger == 0) {
 					// Single-player camera behavior
-					HandleDynamicSPCamera(cameraData.distance, 350, 500);
+					HandleDynamic2SPCameraDistance(cameraData.distance, 350, 500);
 				}
 				else {
-					HandleDynamicSPCamera(cameraData.distance, 350, 500);
+                    HandleMultiplayerCameraDistance(cameraData.distance, 350, 500);
 				}
 
 			}
 			else {
 				// MULTIPLAYER CAM 
-				HandleMultiplayerCamera(cameraData.distance, 350, 500);
+				HandleMultiplayerCameraDistance(cameraData.distance, 350, 500);
 			}
         }
         else {
-            HandleDynamicSPCamera(cameraData.distance, 350, 500);
+            HandleDynamicSPCameraDistance(cameraData.distance, 350, 500);
         }
 		
 	}
@@ -383,18 +502,18 @@ void CameraLockOnDistanceController() {
         if (activeCrimsonConfig.Camera.multiplayerCamera) {
 			if (activeConfig.Actor.playerCount == 1) {
 				if (mainActorData.doppelganger == 0) {
-					HandleDynamicSPCamera(cameraData.distanceLockOn, 360, 500);
+					HandleDynamic2SPCameraDistance(cameraData.distanceLockOn, 360, 500);
 				}
 				else {
-					HandleMultiplayerCamera(cameraData.distanceLockOn, 360, 500);
+					HandleMultiplayerCameraDistance(cameraData.distanceLockOn, 360, 500);
 				}
 			}
 			else {
-				HandleMultiplayerCamera(cameraData.distanceLockOn, 360, 500);
+				HandleMultiplayerCameraDistance(cameraData.distanceLockOn, 360, 500);
 			}
         }
         else {
-            HandleDynamicSPCamera(cameraData.distanceLockOn, 360, 500);
+            HandleDynamicSPCameraDistance(cameraData.distanceLockOn, 360, 500);
         }
         
     }

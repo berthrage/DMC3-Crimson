@@ -40,7 +40,7 @@ enum {
 
 bool GUI_Button(const char* label, const ImVec2& size = ImVec2(0, 0));
 
-bool GUI_ResetButton();
+bool GUI_ResetButton(); 
 
 bool GUI_Checkbox(const char* label, bool& var);
 
@@ -192,11 +192,13 @@ inline void GUI_PopDisable(bool condition) {
     }
 }
 
-bool GUI_ColorEdit4(const char* label, uint8 (&var)[4], float (&var2)[4], ImGuiColorEditFlags flags = 0);
+ImVec4 ConvertColorFromUint8ToVec4(uint8(&var)[4]);
 
-bool GUI_Color(const char* label, uint8 (&var)[4], float (&var2)[4]);
+bool GUI_ColorEdit4(const char* label, uint8 (&var)[4], ImGuiColorEditFlags flags = 0);
 
-bool GUI_Color2(const char* label, uint8 (&var)[4], uint8 (&var2)[4], float (&var3)[4]);
+bool GUI_Color(const char* label, uint8 (&var)[4]);
+
+bool GUI_Color2(const char* label, uint8 (&var)[4], uint8 (&var2)[4]);
 
 #pragma region SiyCodeAdapted
 static const std::vector<std::pair<uint16_t, const char*>> buttonPairs = { {0x0000, "Nothing"}, {0x0001, "Left Trigger"},

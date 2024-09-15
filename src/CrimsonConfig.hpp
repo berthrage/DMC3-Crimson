@@ -290,6 +290,32 @@ struct CrimsonConfig {
 
 	} Gameplay;
 
+	struct PlayerProperties {
+		uint8 playerColor[PLAYER_COUNT][4] = {
+			// r   g  b  a  
+			{ 158, 27, 63, 255 }, // 1P 
+			{ 18, 48, 130, 255 }, // 2P  
+			{ 228, 160, 16, 255 }, // 3P    
+			{ 49, 127, 67, 255 }, // 4P
+		};
+
+		std::string playerName[PLAYER_COUNT] = {
+			// r   g  b  a  
+			"Player 1", // 1P 
+			"Player 2", // 2P  
+			"Player 3", // 3P    
+			"Player 4", // 4P
+		};
+		
+
+		static constexpr auto Metadata() {
+			return std::make_tuple(
+				std::make_pair("playerColor", &PlayerProperties::playerColor),
+				std::make_pair("playerName", &PlayerProperties::playerName)
+			);
+		}
+	} PlayerProperties;
+
 	int testNumber = 3000;
 
 	static constexpr auto Metadata() {
@@ -302,6 +328,7 @@ struct CrimsonConfig {
             std::make_pair("StyleSwitchFX", &CrimsonConfig::StyleSwitchFX),
             std::make_pair("SFX", &CrimsonConfig::SFX),
             std::make_pair("Gameplay", &CrimsonConfig::Gameplay),
+			std::make_pair("PlayerProperties", &CrimsonConfig::PlayerProperties),
 			std::make_pair("testNumber", &CrimsonConfig::testNumber)
 		);
 	}
