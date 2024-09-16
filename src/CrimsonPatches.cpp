@@ -196,7 +196,11 @@ void CameraFollowUpSpeedController() {
 	if (!pool_166 || !pool_166[3]) return;
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
 
-	switch (activeCrimsonConfig.Camera.followUpSpeed) {
+	if (g_isMPCamActive || (activeCrimsonConfig.Camera.panoramicCamera && g_inCombat)) {
+		cameraData.cameraLag = 1000.0f;
+	}
+	else {
+		switch (activeCrimsonConfig.Camera.followUpSpeed) {
 		case 0: // Low (Vanilla Default)
 			cameraData.cameraLag = 1000.0f;
 			break;
@@ -206,21 +210,12 @@ void CameraFollowUpSpeedController() {
 		case 2: // High
 			cameraData.cameraLag = 330.0f;
 			break;
-        case 3: // Dynamic
-            if (activeConfig.Actor.playerCount == 1) {
-                if (mainActorData.doppelganger == 0) {
-                    cameraData.cameraLag = 330.0f;
-                }
-                else {
-                    cameraData.cameraLag = 1000.0f;
-                }
-            }
-            else {
-                cameraData.cameraLag = 1000.0f;
-            }
 		default:
 			break;
+		}
 	}
+
+	
     
 }
 
@@ -241,7 +236,7 @@ void HandleDynamicSPCameraDistance(float& cameraDistance, float groundDistance, 
 	}
 }
 
-void HandleDynamic2SPCameraDistance(float& cameraDistance, float groundDistance, float airDistance) {
+void HandlePanoramicSPCameraDistance(float& cameraDistance, float groundDistance, float airDistance) {
 	static auto lastAdjustmentTime = std::chrono::steady_clock::now();
 	const auto timeThreshold = std::chrono::milliseconds(1000); // 1 second delay
 
@@ -340,10 +335,10 @@ void HandleDynamic2SPCameraDistance(float& cameraDistance, float groundDistance,
 
             // Only adjust the camera if the cooldown time has passed and all entities are in the center
             if (timeSinceLastAdjustment > timeThreshold && allEntitiesInCenter) {
-                if (cameraDistance > 350.0f) {
+                if (cameraDistance > groundDistance) {
                     cameraDistance -= 10.0f * g_frameRateMultiplier;
-                    if (cameraDistance < 350.0f) {
-                        cameraDistance = 350.0f; // Prevent going below default distance
+                    if (cameraDistance < groundDistance) {
+                        cameraDistance = groundDistance; // Prevent going below default distance
                     }
                 }
             }
@@ -420,10 +415,10 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 
 		// Only adjust the camera if the cooldown time has passed and all entities are in the center
 		if (timeSinceLastAdjustment > timeThreshold && allEntitiesInCenter) {
-			if (cameraDistance > 350.0f) {
+			if (cameraDistance > groundDistanceSP) {
                 cameraDistance -= 10.0f * g_frameRateMultiplier;
-				if (cameraDistance < 350.0f) {
-                    cameraDistance = 350.0f; // Prevent going below default distance
+				if (cameraDistance < groundDistanceSP) {
+                    cameraDistance = groundDistanceSP; // Prevent going below default distance
 				}
 			}
 		}
@@ -451,26 +446,16 @@ void CameraDistanceController() {
 	}
 
 	if (activeCrimsonConfig.Camera.distance == 2) { // Dynamic
-        if (activeCrimsonConfig.Camera.multiplayerCamera) {
-			if (activeConfig.Actor.playerCount == 1) {
-				if (mainActorData.doppelganger == 0) {
-					// Single-player camera behavior
-					HandleDynamic2SPCameraDistance(cameraData.distance, 350, 500);
-				}
-				else {
-                    HandleMultiplayerCameraDistance(cameraData.distance, 350, 500);
-				}
 
-			}
-			else {
-				// MULTIPLAYER CAM 
-				HandleMultiplayerCameraDistance(cameraData.distance, 350, 500);
-			}
+        if ((activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) && activeCrimsonConfig.Camera.multiplayerCamera) {
+            HandleMultiplayerCameraDistance(cameraData.distance, 350, 500);
         }
-        else {
+        else if (!(activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) && activeCrimsonConfig.Camera.panoramicCamera) {
+            HandlePanoramicSPCameraDistance(cameraData.distance, 350, 500);
+        }
+        else if (!(activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) && !activeCrimsonConfig.Camera.panoramicCamera) {
             HandleDynamicSPCameraDistance(cameraData.distance, 350, 500);
         }
-		
 	}
 }
 
@@ -497,24 +482,16 @@ void CameraLockOnDistanceController() {
         cameraData.distanceLockOn = 360.0f;
     }
 
-    // mainActorData.position.y > 300.0f
     if (activeCrimsonConfig.Camera.lockOnDistance == 2) {
-        if (activeCrimsonConfig.Camera.multiplayerCamera) {
-			if (activeConfig.Actor.playerCount == 1) {
-				if (mainActorData.doppelganger == 0) {
-					HandleDynamic2SPCameraDistance(cameraData.distanceLockOn, 360, 500);
-				}
-				else {
-					HandleMultiplayerCameraDistance(cameraData.distanceLockOn, 360, 500);
-				}
-			}
-			else {
-				HandleMultiplayerCameraDistance(cameraData.distanceLockOn, 360, 500);
-			}
-        }
-        else {
-            HandleDynamicSPCameraDistance(cameraData.distanceLockOn, 360, 500);
-        }
+		if ((activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) && activeCrimsonConfig.Camera.multiplayerCamera) {
+			HandleMultiplayerCameraDistance(cameraData.distanceLockOn, 360, 500);
+		}
+		else if (!(activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) && activeCrimsonConfig.Camera.panoramicCamera) {
+			HandlePanoramicSPCameraDistance(cameraData.distanceLockOn, 360, 500);
+		}
+		else if (!(activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) && !activeCrimsonConfig.Camera.panoramicCamera) {
+			HandleDynamicSPCameraDistance(cameraData.distanceLockOn, 360, 500);
+		}
         
     }
 }
@@ -560,6 +537,69 @@ void ForceThirdPersonCamera(bool enable) {
 	run = enable;
 }
 
+void LockedOffCameraToggle(bool enable) {
+
+	static bool run = false;
+
+	auto addr = (appBaseAddr + 0x5724D);
+	auto jumpAddr = (appBaseAddr + 0x57255);
+	constexpr uint32 size = 8;
+
+	static Function func = {};
+
+	constexpr byte8 sect0[] = {
+		0x53,                                     // push rbx
+		0x48, 0x8B, 0x1D, 0xE8, 0x8A, 0xC2, 0x00, // mov rbx,[dmc3.exe + C18AF8]
+		0x48, 0x8B, 0x9B, 0x28, 0x0E, 0xC9, 0x00, // mov rbx,[rbx + 00C90E28]
+		0x48, 0x8B, 0x5B, 0x18,                   // mov rbx,[rbx + 18]
+		0x80, 0xBB, 0xFA, 0x74, 0x00, 0x00, 0x50, // cmp byte ptr[rbx + 000074FA],#80
+		0x0F, 0x82, 0x58, 0x00, 0x00, 0x00,       // jb originalcodepop
+		0x80, 0xBB, 0xF9, 0x74, 0x00, 0x00, 0x20, // cmp byte ptr[rbx + 000074F9],#32 // 38
+		0x0F, 0x86, 0x3E, 0x00, 0x00, 0x00,       // jbe minus
+		0x80, 0xBB, 0xF9, 0x74, 0x00, 0x00, 0xDF, // cmp byte ptr[rbx + 000074F9],#223
+		0x0F, 0x83, 0x31, 0x00, 0x00, 0x00,       // jae minus // 57
+		0x80, 0xBB, 0xF9, 0x74, 0x00, 0x00, 0x9F, // cmp byte ptr [rbx+74f9],#159
+		0x0F, 0x86, 0x05, 0x00, 0x00, 0x00,       // jbe untouched // 71
+		0xE9, 0x2C, 0x00, 0x00, 0x00,             // jmp originalcodepop
+		// untouched:
+		0x80, 0xBB, 0xF9, 0x74, 0x00, 0x00, 0x60, // cmp byte ptr [rbx+74f9],#96 // 83
+		0x0F, 0x83, 0x05, 0x00, 0x00, 0x00,       // jae plus
+		0xE9, 0x1A, 0x00, 0x00, 0x00,             // jmp originalcodepop // 94
+		// plus:
+		0xF3, 0x0F, 0x10, 0x35, 0x96, 0xFF, 0xFF, 0xFF, // movss xmm6,[camTiltDown] // 102
+		0xE9, 0x0D, 0x00, 0x00, 0x00,                   // jmp originalcodepop
+		// minus:
+		0xF3, 0x0F, 0x10, 0x35, 0x85, 0xFF, 0xFF, 0xFF, // movss xmm6,[camTiltUp]
+		0xE9, 0x00, 0x00, 0x00, 0x00,                   // jmp originalcodepop
+		// originalcodepop:
+		0x5B,                                           // pop rbx
+		0xF3, 0x0F, 0x11, 0xB7, 0x84, 0x01, 0x00, 0x00, // movss [rdi+00000184],xmm6
+	};
+
+	constexpr byte8 sect1[] = {
+		0x00, 0x00, 0xc8, 0xc2, // -100.0f // I tried and failed
+		0x00, 0x00, 0x96, 0x43, // 300.0f
+	};
+
+	if (!run) {
+		backupHelper.Save(addr, size);
+		func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0)); // jump at the end of asm
+		CopyMemory(func.sect0, sect0, sizeof(sect0));
+		WriteAddress(func.sect0 + 4, (appBaseAddr + 0xC18AF8), 4); // mov rbx,[dmc3.exe + C18AF8]
+		WriteAddress(func.sect0 + 98, (appBaseAddr + 0x4D1CD4), 4);
+		WriteAddress(func.sect0 + 111, (appBaseAddr + 0x4C6094), 4);
+	}
+
+	if (enable) {
+		WriteJump(addr, func.addr, (size - 5));
+	}
+	else {
+		backupHelper.Restore(addr);
+	}
+
+	run = true;
+}
+
 #pragma endregion
 
 #pragma region GraphicsStuff
@@ -585,68 +625,6 @@ void DisableBlendingEffects(bool enable) {
 #pragma endregion
 
 #pragma region InertiaFixes
-
-void LockedOffCameraToggle(bool enable) {
-
-    static bool run = false;
-
-    auto addr             = (appBaseAddr + 0x5724D);
-    auto jumpAddr         = (appBaseAddr + 0x57255);
-    constexpr uint32 size = 8;
-
-    static Function func = {};
-
-    constexpr byte8 sect0[] = {
-        0x53,                                     // push rbx
-        0x48, 0x8B, 0x1D, 0xE8, 0x8A, 0xC2, 0x00, // mov rbx,[dmc3.exe + C18AF8]
-        0x48, 0x8B, 0x9B, 0x28, 0x0E, 0xC9, 0x00, // mov rbx,[rbx + 00C90E28]
-        0x48, 0x8B, 0x5B, 0x18,                   // mov rbx,[rbx + 18]
-        0x80, 0xBB, 0xFA, 0x74, 0x00, 0x00, 0x50, // cmp byte ptr[rbx + 000074FA],#80
-        0x0F, 0x82, 0x58, 0x00, 0x00, 0x00,       // jb originalcodepop
-        0x80, 0xBB, 0xF9, 0x74, 0x00, 0x00, 0x20, // cmp byte ptr[rbx + 000074F9],#32 // 38
-        0x0F, 0x86, 0x3E, 0x00, 0x00, 0x00,       // jbe minus
-        0x80, 0xBB, 0xF9, 0x74, 0x00, 0x00, 0xDF, // cmp byte ptr[rbx + 000074F9],#223
-        0x0F, 0x83, 0x31, 0x00, 0x00, 0x00,       // jae minus // 57
-        0x80, 0xBB, 0xF9, 0x74, 0x00, 0x00, 0x9F, // cmp byte ptr [rbx+74f9],#159
-        0x0F, 0x86, 0x05, 0x00, 0x00, 0x00,       // jbe untouched // 71
-        0xE9, 0x2C, 0x00, 0x00, 0x00,             // jmp originalcodepop
-        // untouched:
-        0x80, 0xBB, 0xF9, 0x74, 0x00, 0x00, 0x60, // cmp byte ptr [rbx+74f9],#96 // 83
-        0x0F, 0x83, 0x05, 0x00, 0x00, 0x00,       // jae plus
-        0xE9, 0x1A, 0x00, 0x00, 0x00,             // jmp originalcodepop // 94
-        // plus:
-        0xF3, 0x0F, 0x10, 0x35, 0x96, 0xFF, 0xFF, 0xFF, // movss xmm6,[camTiltDown] // 102
-        0xE9, 0x0D, 0x00, 0x00, 0x00,                   // jmp originalcodepop
-        // minus:
-        0xF3, 0x0F, 0x10, 0x35, 0x85, 0xFF, 0xFF, 0xFF, // movss xmm6,[camTiltUp]
-        0xE9, 0x00, 0x00, 0x00, 0x00,                   // jmp originalcodepop
-        // originalcodepop:
-        0x5B,                                           // pop rbx
-        0xF3, 0x0F, 0x11, 0xB7, 0x84, 0x01, 0x00, 0x00, // movss [rdi+00000184],xmm6
-    };
-
-    constexpr byte8 sect1[] = {
-        0x00, 0x00, 0xc8, 0xc2, // -100.0f // I tried and failed
-        0x00, 0x00, 0x96, 0x43, // 300.0f
-    };
-
-    if (!run) {
-        backupHelper.Save(addr, size);
-        func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0)); // jump at the end of asm
-        CopyMemory(func.sect0, sect0, sizeof(sect0));
-        WriteAddress(func.sect0 + 4, (appBaseAddr + 0xC18AF8), 4); // mov rbx,[dmc3.exe + C18AF8]
-        WriteAddress(func.sect0 + 98, (appBaseAddr + 0x4D1CD4), 4);
-        WriteAddress(func.sect0 + 111, (appBaseAddr + 0x4C6094), 4);
-    }
-
-    if (enable) {
-        WriteJump(addr, func.addr, (size - 5));
-    } else {
-        backupHelper.Restore(addr);
-    }
-
-    run = true;
-}
 
 void AerialRaveInertiaFix(bool enable) {
     // This makes Aerial Rave (and subquently the Sky Dance and Air Slash "inertia fix" functions)

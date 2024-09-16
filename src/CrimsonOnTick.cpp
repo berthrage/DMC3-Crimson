@@ -20,6 +20,7 @@
 #include "CrimsonPatches.hpp"
 #include "Camera.hpp"
 #include "CrimsonDetours.hpp"
+#include "CrimsonUtil.hpp"
 
 namespace CrimsonOnTick {
 
@@ -176,9 +177,16 @@ void StyleMeterMultiplayer() {
 }
 
 void DetermineActiveEntitiesCount() {
+	auto pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_2128 || !pool_2128[8]) return;
+	auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
+
 	g_activePlayableEntitiesCount = activeConfig.Actor.playerCount + g_activeClonesCount;
+	g_activeAllEntitiesCount = g_activePlayableEntitiesCount + enemyVectorData.count;
 }
 
+
+glm::vec3 currentCameraPos; // Stores current camera position for gradual transition
 
 void MultiplayerCameraPositioningController() {
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
@@ -189,10 +197,10 @@ void MultiplayerCameraPositioningController() {
 	if (!pool_2128 || !pool_2128[8]) return;
 	auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
 
-	customCameraPosMP[0] = 0.0f; // X
-	customCameraPosMP[1] = 0.0f; // Y
-	customCameraPosMP[2] = 0.0f; // Z
-	customCameraPosMP[3] = 1.0f; // W
+	g_customCameraPos[0] = 0.0f; // X
+	g_customCameraPos[1] = 0.0f; // Y
+	g_customCameraPos[2] = 0.0f; // Z
+	g_customCameraPos[3] = 1.0f; // W
 
 	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
 		auto& playerData = GetPlayerData(playerIndex);
@@ -205,14 +213,14 @@ void MultiplayerCameraPositioningController() {
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 		auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
 
-		customCameraPosMP[0] += actorData.position.x;
-		customCameraPosMP[1] += actorData.position.y;
-		customCameraPosMP[2] += actorData.position.z;
+		g_customCameraPos[0] += actorData.position.x;
+		g_customCameraPos[1] += actorData.position.y;
+		g_customCameraPos[2] += actorData.position.z;
 
 		if (actorData.doppelganger == 1) {
-			customCameraPosMP[0] += cloneActorData.position.x;
-			customCameraPosMP[1] += cloneActorData.position.y;
-			customCameraPosMP[2] += cloneActorData.position.z;
+			g_customCameraPos[0] += cloneActorData.position.x;
+			g_customCameraPos[1] += cloneActorData.position.y;
+			g_customCameraPos[2] += cloneActorData.position.z;
 		}
 	}
 	
@@ -221,13 +229,11 @@ void MultiplayerCameraPositioningController() {
 		auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
 		if (!enemyData.baseAddr) continue;
 
-		customCameraPosMP[0] += enemyData.position.x;
-		customCameraPosMP[1] += enemyData.position.y;
-		customCameraPosMP[2] += enemyData.position.z;
+		g_customCameraPos[0] += enemyData.position.x;
+		g_customCameraPos[1] += enemyData.position.y;
+		g_customCameraPos[2] += enemyData.position.z;
 
 	}
-
-	int allEntitiesCount = g_activePlayableEntitiesCount + enemyVectorData.count;
 
 	float minDistance = 100.0f; // Minimum distance between player and clone for MP cam to trigger in Single Player
 	auto& cloneMainActorData = *reinterpret_cast<PlayerActorData*>(mainActorData.cloneActorBaseAddr);
@@ -242,12 +248,79 @@ void MultiplayerCameraPositioningController() {
 	clonePos.y = cloneMainActorData.position.y;
 	clonePos.z = cloneMainActorData.position.z;
 
-	if (activeConfig.Actor.playerCount > 1) {
+	bool triggerMPCam = activeCrimsonConfig.Camera.multiplayerCamera? true : false;
+	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
+		float distanceTo1P = g_plEntityTo1PDistances[i];
+
+		if (distanceTo1P >= 1800.0f) {
+			triggerMPCam = false;
+		}
+	}
+
+	bool triggerParanoramicCam = activeCrimsonConfig.Camera.panoramicCamera ? true : false;
+	for (auto enemy : enemyVectorData.metadata) {
+		if (!enemy.baseAddr) continue;
+		auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
+		if (!enemyData.baseAddr) continue;
+
+		glm::vec3 enemyPos;
+		enemyPos.x = enemyData.position.x;
+		enemyPos.y = enemyData.position.y;
+		enemyPos.z = enemyData.position.z;
+
+		float distanceto1P = glm::distance(enemyPos, playerPos);
+		if (distanceto1P >= 1000.0f) {
+			triggerParanoramicCam = false;
+		}
+
+	}
+
+	// Camera behavior based on player count and trigger status
+	if (activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) {
 		// MULTIPLAYER
-		// Calculate the average camera position based on all active entities
-		customCameraPosMP[0] /= allEntitiesCount;
-		customCameraPosMP[1] /= allEntitiesCount;
-		customCameraPosMP[2] /= allEntitiesCount;
+
+		if (triggerMPCam) {
+			// MPCam mode: calculate average camera position
+			g_customCameraPos[0] /= g_activeAllEntitiesCount;
+			g_customCameraPos[1] /= g_activeAllEntitiesCount;
+			g_customCameraPos[2] /= g_activeAllEntitiesCount;
+
+			// If switching from normal cam to MPCam, initialize lerp transition
+			if (!g_isMPCamActive) {
+				g_isMPCamActive = true;
+				currentCameraPos = glm::vec3(mainActorData.position.x, mainActorData.position.y, mainActorData.position.z);
+			}
+
+		}
+		else {
+			// Normal cam mode: focus on main actor position
+			g_customCameraPos[0] = mainActorData.position.x;
+			g_customCameraPos[1] = mainActorData.position.y;
+			g_customCameraPos[2] = mainActorData.position.z;
+
+			// If switching from MPCam to normal cam, initialize lerp transition
+			if (g_isMPCamActive) {
+				g_isMPCamActive = false;
+				currentCameraPos = glm::vec3(g_customCameraPos[0], g_customCameraPos[1], g_customCameraPos[2]);
+			}
+		}
+
+		// Gradual transition between MPCam and normal cam (if a transition is occurring)
+		if (g_isMPCamActive) {
+			float lerpFactor = 0.05f;  // Adjust this factor for smoother or faster transitions
+			currentCameraPos.x = lerp(currentCameraPos.x, g_customCameraPos[0], lerpFactor);
+			currentCameraPos.y = lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactor);
+			currentCameraPos.z = lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactor);
+
+			g_customCameraPos[0] = currentCameraPos.x;
+			g_customCameraPos[1] = currentCameraPos.y;
+			g_customCameraPos[2] = currentCameraPos.z;
+		}
+		else {
+			g_customCameraPos[0] = mainActorData.position.x;
+			g_customCameraPos[1] = mainActorData.position.y;
+			g_customCameraPos[2] = mainActorData.position.z;
+		}
 	}
 	else {
 		// SINGLE PLAYER
@@ -255,37 +328,53 @@ void MultiplayerCameraPositioningController() {
 		// exceeds minDistance (to prevent bugging out when clone is spawning)
 		float distanceBetweenClone = glm::distance(playerPos, clonePos);
 
-		customCameraPosMP[0] /= allEntitiesCount;
-		customCameraPosMP[1] /= allEntitiesCount;
-		customCameraPosMP[2] /= allEntitiesCount;
+		if (triggerParanoramicCam && g_inCombat) {
+			// Panoramic Camera mode: calculate average camera position
+			g_customCameraPos[0] /= g_activeAllEntitiesCount;
+			g_customCameraPos[1] /= g_activeAllEntitiesCount;
+			g_customCameraPos[2] /= g_activeAllEntitiesCount;
 
-// 		if (mainActorData.doppelganger == 1) {
-// 			if (distanceBetweenClone > minDistance) {
-// 				customCameraPosMP[0] /= allEntitiesCount;
-// 				customCameraPosMP[1] /= allEntitiesCount;
-// 				customCameraPosMP[2] /= allEntitiesCount;
-// 			}
-// 		}
-// 		else {
-// 			customCameraPosMP[0] /= allEntitiesCount;
-// 			customCameraPosMP[1] /= allEntitiesCount;
-// 			customCameraPosMP[2] /= allEntitiesCount;
-// 		}
+			// If switching from normal cam to PanoramicCam, initialize lerp transition
+			if (!g_isParanoramicCamActive) {
+				g_isParanoramicCamActive = true;
+				currentCameraPos = glm::vec3(mainActorData.position.x, mainActorData.position.y, mainActorData.position.z);
+			}
+		}
+		else {
+			// Normal cam mode: focus on main actor position
+			g_customCameraPos[0] = mainActorData.position.x;
+			g_customCameraPos[1] = mainActorData.position.y;
+			g_customCameraPos[2] = mainActorData.position.z;
 
-// 		if (distanceBetweenClone > minDistance) {
-// 			customCameraPosMP[0] /= g_activePlayableEntitiesCount;
-// 			customCameraPosMP[1] /= g_activePlayableEntitiesCount;
-// 			customCameraPosMP[2] /= g_activePlayableEntitiesCount;
-// 		}
-// 		else {
-// 			customCameraPosMP[0] = mainActorData.position.x;
-// 			customCameraPosMP[1] = mainActorData.position.y;
-// 			customCameraPosMP[2] = mainActorData.position.z;
-// 		}
+			if (g_isParanoramicCamActive) {
+				g_isParanoramicCamActive = false;
+				currentCameraPos = glm::vec3(g_customCameraPos[0], g_customCameraPos[1], g_customCameraPos[2]);
+			}
+		}
+
+		if (mainActorData.doppelganger == 0) g_isMPCamActive = false;
+
+		// Gradual transition between MPCam and normal cam (if a transition is occurring)
+		if (g_isParanoramicCamActive) {
+			float lerpFactor = 0.05f;  // Adjust this factor for smoother or faster transitions
+			currentCameraPos.x = lerp(currentCameraPos.x, g_customCameraPos[0], lerpFactor);
+			currentCameraPos.y = lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactor);
+			currentCameraPos.z = lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactor);
+
+			g_customCameraPos[0] = currentCameraPos.x;
+			g_customCameraPos[1] = currentCameraPos.y;
+			g_customCameraPos[2] = currentCameraPos.z;
+		}
+		else {
+			g_customCameraPos[0] = mainActorData.position.x;
+			g_customCameraPos[1] = mainActorData.position.y;
+			g_customCameraPos[2] = mainActorData.position.z;
+		}
+		
 	}
 	
 	// Activate multiplayer camera positioning
-	CrimsonDetours::ToggleMultiplayerCameraPositioning(activeCrimsonConfig.Camera.multiplayerCamera);
+	CrimsonDetours::ToggleCustomCameraPositioning(activeCrimsonConfig.Camera.multiplayerCamera || activeCrimsonConfig.Camera.panoramicCamera);
 }
 
 

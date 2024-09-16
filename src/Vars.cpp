@@ -256,8 +256,11 @@ std::array<bool, PLAYER_COUNT * 2> g_plEntityOutOfView;
 std::array<SimpleVec3, PLAYER_COUNT * 2> g_plEntityPositions;
 int g_activeClonesCount;
 int g_activePlayableEntitiesCount;
+int g_activeAllEntitiesCount;
+bool g_isMPCamActive = false;
+bool g_isParanoramicCamActive = false;
 
-__declspec(align(16)) float customCameraPosMP[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+__declspec(align(16)) float g_customCameraPos[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 CrimsonPlayerData crimsonPlayer[20];
 

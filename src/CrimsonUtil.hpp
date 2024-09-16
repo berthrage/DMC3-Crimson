@@ -25,3 +25,8 @@ void reverseNonNull(std::vector<T*>& vec) {
 		}
 	}
 }
+
+template <typename T>
+T lerp(const T& a, const T& b, float t) {
+	return a + t * (b - a);
+}

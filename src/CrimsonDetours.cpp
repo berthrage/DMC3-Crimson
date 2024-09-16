@@ -122,11 +122,10 @@ float g_HudStyleBarPosX;
 float g_HudStyleBarPosY;
 void HudStyleBarPosDetour();
 
-// MultiplayerCamraPositioning
-std::uint64_t g_MPCameraPos_ReturnAddr;
-float* g_MPCameraPos_NewPosAddr = nullptr;
-void MultiplayerCameraPositioningDetour();
-void* g_MPCamCheckCall;
+// CustomCameraPositioning
+std::uint64_t g_CustomCameraPos_ReturnAddr;
+float* g_CustomCameraPos_NewPosAddr = nullptr;
+void CustomCameraPositioningDetour();
 
 // RerouteRedOrbsCounterAlpha
 std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr1;
@@ -401,17 +400,6 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
 	return false;
 }
 
-bool Check1PDistanceMPCam() {
-    for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
-        float distanceTo1P = g_plEntityTo1PDistances[i];
-
-        if (distanceTo1P >= 1800.0f) {
-            return false;
-        }
-    }
-    return true;
-}
-
 void InitDetours() {
     using namespace Utility;
     DetourBaseAddr = (uintptr_t)appBaseAddr;
@@ -467,7 +455,7 @@ void InitDetours() {
     // VergilNeutralTrickHook->Toggle(true);
 }
 
-void ToggleMultiplayerCameraPositioning(bool enable) {
+void ToggleCustomCameraPositioning(bool enable) {
 	using namespace Utility;
 	static bool run = false;
 
@@ -475,14 +463,13 @@ void ToggleMultiplayerCameraPositioning(bool enable) {
 		return;
 	}
 
-	// MultiplayerCameraPositioning
+	// CustomCameraPositioning
 	// dmc3.exe+571BC - 0F 28 82 80 00 00 00 - movaps xmm0,[rdx+00000080] { Determine camera's pos by player pos, player in rdx }
-	static std::unique_ptr<Utility::Detour_t> MultiplayerCameraPositioningHook =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x571BC, &MultiplayerCameraPositioningDetour, 7);
-	g_MPCameraPos_ReturnAddr = MultiplayerCameraPositioningHook->GetReturnAddress();
-	g_MPCameraPos_NewPosAddr = customCameraPosMP;
-	MultiplayerCameraPositioningHook->Toggle(enable);
-	g_MPCamCheckCall = &Check1PDistanceMPCam;
+	static std::unique_ptr<Utility::Detour_t> CustomCameraPositioningHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x571BC, &CustomCameraPositioningDetour, 7);
+	g_CustomCameraPos_ReturnAddr = CustomCameraPositioningHook->GetReturnAddress();
+	g_CustomCameraPos_NewPosAddr = g_customCameraPos;
+	CustomCameraPositioningHook->Toggle(enable);
 
     run = enable;
 }

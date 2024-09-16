@@ -4467,8 +4467,11 @@ extern std::array<bool, PLAYER_COUNT * 2> g_plEntityOutOfView;
 extern std::array<SimpleVec3, PLAYER_COUNT * 2> g_plEntityPositions;
 extern int g_activeClonesCount;
 extern int g_activePlayableEntitiesCount;
+extern int g_activeAllEntitiesCount;
+extern bool g_isMPCamActive; 
+extern bool g_isParanoramicCamActive;
 
-extern __declspec(align(16)) float customCameraPosMP[4];
+extern __declspec(align(16)) float g_customCameraPos[4];
 
 struct CrimsonPlayerData {
     uintptr_t playerPtr;

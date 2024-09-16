@@ -927,7 +927,6 @@ const char* cameraFollowUpSpeedNames[] = {
 	"Low (Vanilla Default)",
 	"Medium",
 	"High",
-	"Dynamic",
 };
 
 const char* cameraDistanceNames[] = {
@@ -4625,7 +4624,7 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			GUI_PushDisable(activeCrimsonConfig.Camera.multiplayerCamera);
+			GUI_PushDisable(activeCrimsonConfig.Camera.multiplayerCamera || activeCrimsonConfig.Camera.panoramicCamera);
 			ImGui::PushItemWidth(itemWidth * 1.1f);
 			UI::Combo2("Distance", cameraDistanceNames, activeCrimsonConfig.Camera.distance, queuedCrimsonConfig.Camera.distance);
 			ImGui::SameLine();
@@ -4645,7 +4644,7 @@ void CameraSection(size_t defaultFontSize) {
 				"\n"
 				"Dynamic Option adjusts based on whether player is airborne.");
 			ImGui::PopItemWidth();
-			GUI_PopDisable(activeCrimsonConfig.Camera.multiplayerCamera);
+			GUI_PopDisable(activeCrimsonConfig.Camera.multiplayerCamera || activeCrimsonConfig.Camera.panoramicCamera);
 
 			ImGui::TableNextColumn();
 
@@ -4692,11 +4691,8 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("[WIP] Multiplayer Camera", activeCrimsonConfig.Camera.multiplayerCamera, queuedCrimsonConfig.Camera.multiplayerCamera)) {
+			if (GUI_Checkbox2("Multiplayer Camera", activeCrimsonConfig.Camera.multiplayerCamera, queuedCrimsonConfig.Camera.multiplayerCamera)) {
 				if (activeCrimsonConfig.Camera.multiplayerCamera) {
-					activeCrimsonConfig.Camera.followUpSpeed = 3;
-					queuedCrimsonConfig.Camera.followUpSpeed = 3;
-
 					activeCrimsonConfig.Camera.distance = 2;
 					queuedCrimsonConfig.Camera.distance = 2;
 
@@ -4705,7 +4701,21 @@ void CameraSection(size_t defaultFontSize) {
 				}
 			}
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Works best with Full Force Third Person Camera. Also triggers with Doppelganger.");
+			TooltipHelper("(?)", "Triggers only in Multiplayer or if you spawn Doppelganger. Works best with Full Force Third Person Camera.");
+
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Panoramic Camera", activeCrimsonConfig.Camera.panoramicCamera, queuedCrimsonConfig.Camera.panoramicCamera)) {
+				if (activeCrimsonConfig.Camera.multiplayerCamera) {
+					activeCrimsonConfig.Camera.distance = 2;
+					queuedCrimsonConfig.Camera.distance = 2;
+
+					activeCrimsonConfig.Camera.lockOnDistance = 2;
+					queuedCrimsonConfig.Camera.lockOnDistance = 2;
+				}
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Multiplayer-like Combat Camera in Single Player. Works best with Full Force Third Person Camera.");
 
 
 			ImGui::EndTable();
@@ -7505,13 +7515,19 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 			for (int i = 0; i < 10; i++) {
 // 				ImGui::Text("actorData rangedWeaponLevels[%u]:  %x", i, actorData.newWeaponLevels[i]);
 // 			}
-			
+			auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+			if (!pool_4449 || !pool_4449[147]) return;
+			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
-			ImGui::Text("ENTITY COUNT:  %u", g_activePlayableEntitiesCount);
-			ImGui::Text("avgPos x: %g", customCameraPosMP[0]);
-			ImGui::Text("avgPos y: %g", customCameraPosMP[1]);
-			ImGui::Text("avgPos z: %g", customCameraPosMP[2]);
+			ImGui::Text("isMPActive:  %u", g_isMPCamActive);
+			ImGui::Text("isPanoramaCamActive:  %u", g_isParanoramicCamActive);
+			ImGui::Text("CAMERA LAG:  %g", cameraData.cameraLag);
+			ImGui::Text("ALL ENTITY COUNT:  %u", g_activeAllEntitiesCount);
+			ImGui::Text("PLAYABLE ENTITY COUNT:  %u", g_activePlayableEntitiesCount);
+			ImGui::Text("avgPos x: %g", g_customCameraPos[0]);
+			ImGui::Text("avgPos y: %g", g_customCameraPos[1]);
+			ImGui::Text("avgPos z: %g", g_customCameraPos[2]);
 			ImGui::Text("RED ORB ALPHA:  %u", crimsonHud.redOrbAlpha);
 			ImGui::Text("SKY LAUNCH EXECUTING:  %u", crimsonPlayer[0].skyLaunch.executing);
 			ImGui::Text("ROYAL RELEASE EXECUTING:  %u", crimsonPlayer[0].royalRelease.executing);
