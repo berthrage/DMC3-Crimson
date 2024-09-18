@@ -7999,6 +7999,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
 		CrimsonGameplay::SkyLaunchAirTauntController(cloneActorData);
         
         CrimsonGameplay::CalculateRotationTowardsEnemy(actorData);
+        CrimsonGameplay::CalculateRotationTowardsEnemy(cloneActorData);
 	}
 
     

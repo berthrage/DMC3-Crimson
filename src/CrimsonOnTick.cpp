@@ -204,6 +204,12 @@ void MultiplayerCameraPositioningController() {
 	g_customCameraPos[2] = 0.0f; // Z
 	g_customCameraPos[3] = 1.0f; // W
 
+	int entityCount = 0; // Track valid entities for averaging
+	float playerWeight = 2.0f;  // Weight for playable characters
+	float enemyWeight = 1.0f;   // Weight for enemies
+	float totalWeight = 0.0f;
+
+	// Loop through player data
 	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
 		auto& playerData = GetPlayerData(playerIndex);
 		auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
@@ -215,26 +221,58 @@ void MultiplayerCameraPositioningController() {
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 		auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
 
-		g_customCameraPos[0] += actorData.position.x;
-		g_customCameraPos[1] += actorData.position.y;
-		g_customCameraPos[2] += actorData.position.z;
+		// Apply player weight to their position
+		g_customCameraPos[0] += actorData.position.x * playerWeight;
+		g_customCameraPos[1] += actorData.position.y * playerWeight;
+		g_customCameraPos[2] += actorData.position.z * playerWeight;
+		totalWeight += playerWeight;
+		entityCount++;
 
+		// Include the clone if it exists
 		if (actorData.doppelganger == 1) {
-			g_customCameraPos[0] += cloneActorData.position.x;
-			g_customCameraPos[1] += cloneActorData.position.y;
-			g_customCameraPos[2] += cloneActorData.position.z;
+			g_customCameraPos[0] += cloneActorData.position.x * playerWeight;
+			g_customCameraPos[1] += cloneActorData.position.y * playerWeight;
+			g_customCameraPos[2] += cloneActorData.position.z * playerWeight;
+			totalWeight += playerWeight;
+			entityCount++;
 		}
 	}
-	
+
+	// Loop through enemy data
 	for (auto enemy : enemyVectorData.metadata) {
 		if (!enemy.baseAddr) continue;
 		auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
 		if (!enemyData.baseAddr) continue;
 
-		g_customCameraPos[0] += enemyData.position.x;
-		g_customCameraPos[1] += enemyData.position.y;
-		g_customCameraPos[2] += enemyData.position.z;
+		// Find the closest player to the enemy
+		bool isWithinRange = false;
+		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
+			auto& playerData = GetPlayerData(playerIndex);
+			auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+			auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 
+			if (!newActorData.baseAddr) continue;
+
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+			glm::vec3 playerPos(actorData.position.x, actorData.position.y, actorData.position.z);
+			glm::vec3 enemyPos(enemyData.position.x, enemyData.position.y, enemyData.position.z);
+
+			float distanceToPlayer = glm::distance(playerPos, enemyPos);
+
+			if (distanceToPlayer <= 800.0f) {
+				isWithinRange = true;
+				break;
+			}
+		}
+
+		// Only count enemy if it's within range of a player
+		if (isWithinRange) {
+			g_customCameraPos[0] += enemyData.position.x * enemyWeight;
+			g_customCameraPos[1] += enemyData.position.y * enemyWeight;
+			g_customCameraPos[2] += enemyData.position.z * enemyWeight;
+			totalWeight += enemyWeight;
+			entityCount++;
+		}
 	}
 
 	float minDistance = 100.0f; // Minimum distance between player and clone for MP cam to trigger in Single Player
@@ -260,7 +298,8 @@ void MultiplayerCameraPositioningController() {
 	}
 
 	bool triggerParanoramicCam = activeCrimsonConfig.Camera.panoramicCamera ? true : false;
-	for (auto enemy : enemyVectorData.metadata) {
+	for (std::size_t i = 0; i < 50; ++i) {
+		auto& enemy = enemyVectorData.metadata[i];
 		if (!enemy.baseAddr) continue;
 		auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
 		if (!enemyData.baseAddr) continue;
@@ -271,6 +310,8 @@ void MultiplayerCameraPositioningController() {
 		enemyPos.z = enemyData.position.z;
 
 		float distanceto1P = glm::distance(enemyPos, playerPos);
+
+		g_enemiesTo1PDistances[i] = distanceto1P;
 		if (distanceto1P >= 1000.0f) {
 			triggerParanoramicCam = false;
 		}
@@ -283,9 +324,9 @@ void MultiplayerCameraPositioningController() {
 
 		if (triggerMPCam) {
 			// MPCam mode: calculate average camera position
-			g_customCameraPos[0] /= g_activeAllEntitiesCount;
-			g_customCameraPos[1] /= g_activeAllEntitiesCount;
-			g_customCameraPos[2] /= g_activeAllEntitiesCount;
+			g_customCameraPos[0] /= totalWeight;
+			g_customCameraPos[1] /= totalWeight;
+			g_customCameraPos[2] /= totalWeight;
 
 			// If switching from normal cam to MPCam, initialize lerp transition
 			if (!g_isMPCamActive) {
@@ -306,6 +347,8 @@ void MultiplayerCameraPositioningController() {
 				currentCameraPos = glm::vec3(g_customCameraPos[0], g_customCameraPos[1], g_customCameraPos[2]);
 			}
 		}
+
+		g_isParanoramicCamActive = false;
 
 		// Gradual transition between MPCam and normal cam (if a transition is occurring)
 		if (g_isMPCamActive) {
@@ -332,9 +375,12 @@ void MultiplayerCameraPositioningController() {
 
 		if (triggerParanoramicCam && g_inCombat) {
 			// Panoramic Camera mode: calculate average camera position
-			g_customCameraPos[0] /= g_activeAllEntitiesCount;
-			g_customCameraPos[1] /= g_activeAllEntitiesCount;
-			g_customCameraPos[2] /= g_activeAllEntitiesCount;
+// 			g_customCameraPos[0] /= totalWeight;
+// 			g_customCameraPos[1] /= totalWeight;
+// 			g_customCameraPos[2] /= totalWeight;
+			g_customCameraPos[0] = mainActorData.position.x;
+			g_customCameraPos[1] = mainActorData.position.y;
+			g_customCameraPos[2] = mainActorData.position.z;
 
 			// If switching from normal cam to PanoramicCam, initialize lerp transition
 			if (!g_isParanoramicCamActive) {
@@ -354,7 +400,7 @@ void MultiplayerCameraPositioningController() {
 			}
 		}
 
-		if (mainActorData.doppelganger == 0) g_isMPCamActive = false;
+		g_isMPCamActive = false;
 
 		// Gradual transition between MPCam and normal cam (if a transition is occurring)
 		if (g_isParanoramicCamActive) {
@@ -362,6 +408,10 @@ void MultiplayerCameraPositioningController() {
 			currentCameraPos.x = lerp(currentCameraPos.x, g_customCameraPos[0], lerpFactor);
 			currentCameraPos.y = lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactor);
 			currentCameraPos.z = lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactor);
+// 
+// 			g_customCameraPos[0] = mainActorData.position.x;
+// 			g_customCameraPos[1] = mainActorData.position.y;
+// 			g_customCameraPos[2] = mainActorData.position.z;
 
 			g_customCameraPos[0] = currentCameraPos.x;
 			g_customCameraPos[1] = currentCameraPos.y;

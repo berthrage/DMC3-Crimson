@@ -2359,8 +2359,6 @@ void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
 	double rotationDifference = static_cast<double>(rotationUncalculated) - static_cast<double>(currentRotation);
 	double rotationDifferenceInverted = rotationDifference * -1.0;
 
-	g_rotationDifference = static_cast<float>(rotationDifference); // If needed for logging/debugging
-
 	// Correcting the logic
 	if (rotationDifference <= 0) {
 		rotationPreppedForCalc = (rotationDifferenceInverted <= rotationOffset) ? rotationDifferenceInverted : rotationOffsetInverted;
@@ -2368,14 +2366,6 @@ void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
 	else {
 		rotationPreppedForCalc = (rotationDifference <= rotationOffset) ? rotationDifference : static_cast<double>(rotationOffset);
 	}
-// 	std::cout << "rotationUncalculated: " << rotationUncalculated << std::endl;
-// 	std::cout << "currentRotation: " << currentRotation << std::endl;
-// 	std::cout << "rotationDifference: " << rotationDifference << std::endl;
-//     std::cout << "rotationDifferenceInv: " << rotationDifferenceInverted << std::endl;
-// 	std::cout << "rotationOffset: " << rotationOffset << std::endl;
-// 	std::cout << "rotationOffsetInverted: " << rotationOffsetInverted << std::endl;
-//     std::cout << "rotationPreppedForCalc: " << rotationPreppedForCalc << std::endl;
-	g_rotationBeforeCalculation = static_cast<float>(rotationPreppedForCalc); // Still storing as float for reference
 
 	// Start calculations
 	rotationPreppedForCalc *= 360.0;
@@ -2384,8 +2374,6 @@ void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
 	rotationPreppedForCalc *= 65536.0;
 	rotationPreppedForCalc /= 360.0;
 	rotationPreppedForCalc += 0.5;
-
-	g_rotationCalculated = rotationPreppedForCalc;
 
 	finalRotationTowardsEnemy = static_cast<uint16>(rotationUncalculated);
 	rotationTowardsEnemy = finalRotationTowardsEnemy;

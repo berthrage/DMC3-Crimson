@@ -248,23 +248,6 @@ float storedDT = 0;
 
 CrimsonHudData crimsonHud;
 
-// 0 - 1P, 1 - 1P clone, 2 - 2P, 3 - 2P clone, 4 - 3P, 5 - 3P clone, 6 - 4P, 7 - 4P clone
-std::array<float, PLAYER_COUNT * 2> g_plEntityTo1PDistances;
-std::array<float, PLAYER_COUNT * 2> g_plEntityCameraDistances;
-std::array<SimpleVec3, PLAYER_COUNT * 2> g_plEntityScreenPositions;
-std::array<bool, PLAYER_COUNT * 2> g_plEntityOutOfView;
-std::array<SimpleVec3, PLAYER_COUNT * 2> g_plEntityPositions;
-int g_activeClonesCount;
-int g_activePlayableEntitiesCount;
-int g_activeAllEntitiesCount;
-bool g_isMPCamActive = false;
-bool g_isParanoramicCamActive = false;
-
-float g_rotationDifference = 0;
-float g_rotationBeforeCalculation = 0;
-float g_rotationCalculated = 0;
-__declspec(align(16)) float g_customCameraPos[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
 CrimsonPlayerData crimsonPlayer[20];
 
 HeldStyleExpData heldStyleExpDataDante;
@@ -284,5 +267,23 @@ bool changedFrameRateCorrection = false;
 std::vector<std::string> HUDdirectories;
 
 float frameRateSpeedMultiplier = 0;
+
+// 0 - 1P, 1 - 1P clone, 2 - 2P, 3 - 2P clone, 4 - 3P, 5 - 3P clone, 6 - 4P, 7 - 4P clone
+std::array<float, PLAYER_COUNT * 2> g_plEntityTo1PDistances;
+std::array<float, 50> g_enemiesTo1PDistances;
+std::array<float, PLAYER_COUNT * 2> g_plEntityCameraDistances;
+std::array<SimpleVec3, PLAYER_COUNT * 2> g_plEntityScreenPositions;
+std::array<bool, PLAYER_COUNT * 2> g_plEntityOutOfView;
+std::array<SimpleVec3, PLAYER_COUNT * 2> g_plEntityPositions;
+int g_activeClonesCount;
+int g_activePlayableEntitiesCount;
+int g_activeAllEntitiesCount;
+bool g_isMPCamActive = false;
+bool g_isParanoramicCamActive = false;
+
+float g_rotationDifference = 0;
+float g_rotationBeforeCalculation = 0;
+float g_rotationCalculated = 0;
+__declspec(align(16)) float g_customCameraPos[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 #pragma endregion

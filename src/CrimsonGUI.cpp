@@ -7521,15 +7521,10 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
 			ImGui::Text("actorCameraDirection: %u", actorData.actorCameraDirection);
-			ImGui::Text("Rotation Difference: %g", g_rotationDifference);
 			ImGui::Text("Rotation Offset: %u", actorData.rotationOffset);
-			ImGui::Text("Rotation Before: %g", g_rotationBeforeCalculation);
-			ImGui::Text("Rotation Calculated: %g", g_rotationCalculated);
 			ImGui::Text("Rotation Towards Enemy2: %u", crimsonPlayer[0].rotationTowardsEnemy2);
-			ImGui::Text("Rotation Towards Enemy: %u", crimsonPlayer[0].rotationTowardsEnemy);
-			ImGui::Text("Rotation Clone Towards Enemy: %u", crimsonPlayer[0].rotationCloneTowardsEnemy);
 			ImGui::Text("isMPActive:  %u", g_isMPCamActive);
-			ImGui::Text("isPanoramaCamActive:  %u", g_isParanoramicCamActive);
+			ImGui::Text("isPanoramicCamActive:  %u", g_isParanoramicCamActive);
 			ImGui::Text("CAMERA LAG:  %g", cameraData.cameraLag);
 			ImGui::Text("ALL ENTITY COUNT:  %u", g_activeAllEntitiesCount);
 			ImGui::Text("PLAYABLE ENTITY COUNT:  %u", g_activePlayableEntitiesCount);
@@ -8318,7 +8313,8 @@ const char* devilSpeedNamesVergil[] = {
 template <typename T>
 bool GUI_InputDefault2Speed(
     const char* label, T& var, T& var2, T& defaultVar, const T step = 1, const char* format = 0, ImGuiInputTextFlags flags = 0) {
-    auto update = GUI_InputDefault2(label, var, var2, defaultVar, step, format, flags);
+	auto defaultVarCalculated = (activeConfig.framerateResponsiveGameSpeed)? defaultVar * g_frameRateMultiplier : defaultVar;
+    auto update = GUI_InputDefault2(label, var, var2, defaultVarCalculated, step, format, flags);
 
     if (update) {
         Speed::Toggle(true);
