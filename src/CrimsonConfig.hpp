@@ -209,6 +209,8 @@ struct CrimsonConfig {
         struct General {
 			bool inertia = true;
 			bool sprint = true;
+			bool freeformSoftLock = true;
+			bool dmc4LockOnDirection = true;
             bool holdToCrazyCombo = true;
 			bool disableHeightRestriction = true;
 			bool improvedBufferedReversals = true;
@@ -220,6 +222,8 @@ struct CrimsonConfig {
 				return std::make_tuple(
 					std::make_pair("inertia", &General::inertia),
 					std::make_pair("sprint", &General::sprint),
+					std::make_pair("freeformSoftLock", &General::freeformSoftLock),
+					std::make_pair("dmc4LockOnDirection", &General::dmc4LockOnDirection),
                     std::make_pair("holdToCrazyCombo", &General::holdToCrazyCombo),
 					std::make_pair("disableHeightRestriction", &General::disableHeightRestriction),
 					std::make_pair("improvedBufferedReversals", &General::improvedBufferedReversals),

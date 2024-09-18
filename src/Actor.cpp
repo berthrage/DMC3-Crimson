@@ -8102,9 +8102,9 @@ void UpdateActorSpeed(byte8* baseAddr) {
                     CrimsonGameplay::SkyDanceGravityTweaks(actorBaseAddr);
                 }
 
+                CrimsonGameplay::FreeformSoftLockController(actorBaseAddr);
 
                 if (activeCrimsonConfig.Gameplay.General.inertia) {
-                    CrimsonGameplay::FreeformSoftLockController(actorBaseAddr);
                     CrimsonGameplay::StoreInertia(actorBaseAddr);
                     CrimsonGameplay::InertiaController(actorBaseAddr);
                 }

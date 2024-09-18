@@ -9336,6 +9336,22 @@ void GameplayOptions() {
 		}
 		GUI_PopDisable(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
 
+		GUI_Checkbox2("Freeform Soft Lock", activeCrimsonConfig.Gameplay.General.freeformSoftLock, queuedCrimsonConfig.Gameplay.General.freeformSoftLock);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Allows you to bypass Soft Lock On Auto Rotation by setting a left stick position when outside Lock On\n"
+			"Similarly to DMC4/5 Behavior. This also allows for Bufferless Reversals. ");
+
+		if (GUI_Checkbox2("DMC4/5 Lock On Direction", activeCrimsonConfig.Gameplay.General.dmc4LockOnDirection, queuedCrimsonConfig.Gameplay.General.dmc4LockOnDirection)) {
+			CrimsonDetours::ToggleDMC4LockOnDirection(activeCrimsonConfig.Gameplay.General.dmc4LockOnDirection);
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Sets Directional Moves to take Enemy Camera Direction instead of Player Camera Direction\n"
+			"Similarly to DMC4/5 Behavior.");
+
         ImGui::Text("");
 
         ImGui::Text("Dante");

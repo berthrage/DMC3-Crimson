@@ -73,11 +73,11 @@ void RerouteRedOrbsCounterAlphaDetour1();
 void RerouteRedOrbsCounterAlphaDetour2();
 void RerouteRedOrbsCounterAlphaDetour3();
 
-// GetRotationTowardsLockedOnEnemy
-void GetRotationTowardsEnemyDetour();
+// FreeformSoftLockHelper
+void FreeformSoftLockHelperDetour();
 
-// FixLockOnDirection
-void FixLockOnDirectionDetour();
+// DMC4/5LockOnDirection
+void DMC4LockOnDirectionDetour();
 
 // StyleRankHudNoFadeout
 void StyleRankHudNoFadeoutDetour();
@@ -93,6 +93,8 @@ void VergilNeutralTrickDetour();
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
 void InitDetours();
+void ToggleFreeformSoftLockHelper(bool enable);
+void ToggleDMC4LockOnDirection(bool enable);
 void ToggleCustomCameraPositioning(bool enable);
 void ToggleHoldToCrazyCombo(bool enable);
 void AirTauntDetours(bool enable);

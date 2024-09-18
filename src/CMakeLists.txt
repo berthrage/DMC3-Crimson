@@ -10,8 +10,8 @@ set(MASM_SRC
     masm/HudStyleBarPosAsm.asm
     masm/DisableDriveHoldAsm.asm
     masm/CustomCameraPositioning.asm
-    masm/GetRotationTowardsEnemy.asm
-    masm/FixLockOnDirection.asm
+    masm/FreeformSoftLockHelper.asm
+    masm/DMC4LockOnDirection.asm
     masm/SetAirTauntAsm.asm
     masm/SkyLaunchAirTaunt.asm
     masm/RerouteRedOrbsCounterAlpha.asm

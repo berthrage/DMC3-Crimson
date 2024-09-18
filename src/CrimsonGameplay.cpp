@@ -1040,6 +1040,12 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
 	auto& actionTimer =
 		(actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].actionTimerClone : crimsonPlayer[playerIndex].actionTimer;
 
+    CrimsonDetours::ToggleFreeformSoftLockHelper(activeCrimsonConfig.Gameplay.General.freeformSoftLock);
+
+    if (!activeCrimsonConfig.Gameplay.General.freeformSoftLock) {
+        return;
+    }
+
 	auto GetAutoRotation = [&]() -> uint16 {
 		return (actorData.newEntityIndex == 0)
 			? crimsonPlayer[playerIndex].rotationTowardsEnemy2
@@ -1095,8 +1101,6 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
 			currentMove = 0;  // Reset move tracking after the attack
 		}
 	}
-
-
 
 
 //     if (actorData.character == CHARACTER::DANTE) {

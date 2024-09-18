@@ -138,16 +138,14 @@ void RerouteRedOrbsCounterAlphaDetour2();
 void RerouteRedOrbsCounterAlphaDetour3();
 void RerouteRedOrbsCounterAlphaDetour4();
 
-// GetRotationTowardsLockedOnEnemy
-std::uint64_t g_GetRotationTowardsEnemy_ReturnAddr;
-void GetRotationTowardsEnemyDetour();
-void* g_GetRotationTowardsEnemyCall;
+// FreeformSoftLockHelper
+std::uint64_t g_FreeformSoftLockHelper_ReturnAddr;
+void FreeformSoftLockHelperDetour();
 
-// FixLockOnDirection
-std::uint64_t g_FixLockOnDirection_ReturnAddr;
-std::uint64_t g_FixLockOnDirection_GetRotationTowardsEnemyCall;
-void FixLockOnDirectionDetour();
-void* g_FixLockOnDirectionCall;
+// DMC4/5LockOnDirection
+std::uint64_t g_DMC4LockOnDirection_ReturnAddr;
+void DMC4LockOnDirectionDetour();
+void* g_DMC4LockOnDirectionCall;
 
 // StyleRankHUDNoFadeout
 std::uint64_t g_StyleRankHudNoFadeout_ReturnAddr;
@@ -411,13 +409,6 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
 	return false;
 }
 
-void FeedRotationTowardsEnemy(PlayerActorData& actorData, uint16 rotation) {
-	auto playerIndex = actorData.newPlayerIndex;
-	auto& rotationTowardsEnemy = (actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].rotationCloneTowardsEnemy : crimsonPlayer[playerIndex].rotationTowardsEnemy;
-
-	rotationTowardsEnemy = rotation;
-}
-
 uint16 ActorCameraDirectionToEnemyCameraDirection(PlayerActorData& actorData) {
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& rotationTowardsEnemy = (actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].rotationCloneTowardsEnemy2 : crimsonPlayer[playerIndex].rotationTowardsEnemy2;
@@ -473,30 +464,49 @@ void InitDetours() {
         std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EB6F2, &DisableDriveHoldDetour, 5);
     g_DisableDriveHold_ReturnAddr = DisableDriveHoldHook->GetReturnAddress();
     DisableDriveHoldHook->Toggle(true);
-
-	// GetRotationTowardsEnemy
-	// dmc3.exe + 1FA509 - 66 41 03 CB - add cx,r11w { Final step to Set Rotation Towards Enemy }
-	// dmc3.exe + 1FA50D - 66 41 89 88 C0 00 00 00 - mov[r8 + 000000C0], cx{ Set Character Rotation when doing directional move }
-	static std::unique_ptr<Utility::Detour_t> GetRotationTowardsEnemyHook =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1FA50D, &GetRotationTowardsEnemyDetour, 8);
-	g_GetRotationTowardsEnemy_ReturnAddr = GetRotationTowardsEnemyHook->GetReturnAddress();
-	GetRotationTowardsEnemyHook->Toggle(true);
-	g_GetRotationTowardsEnemyCall = &FeedRotationTowardsEnemy;
-
-	// FixLockOnDirection
-	// dmc3.exe + 1EBF42 - 66 89 83 0C 75 00 00 - mov[rbx + 0000750C], ax{ Set actorCameraDirection }
-	static std::unique_ptr<Utility::Detour_t> FixLockOnDirectionHook =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EBF42, &FixLockOnDirectionDetour, 7);
-	g_FixLockOnDirection_ReturnAddr = FixLockOnDirectionHook->GetReturnAddress();
-	FixLockOnDirectionHook->Toggle(true); 
-	g_FixLockOnDirection_GetRotationTowardsEnemyCall = (uintptr_t)appBaseAddr + 0x1FA484;
-	g_FixLockOnDirectionCall = &ActorCameraDirectionToEnemyCameraDirection;
-   
     
     // VergilNeutralTrick // func is already detoured, Crimson.MobilityFunction<27>+B1
     // static std::unique_ptr<Utility::Detour_t> VergilNeutralTrickHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x0,
     // &VergilNeutralTrickDetour, 5); g_VergilNeutralTrick_ReturnAddr = VergilNeutralTrickHook->GetReturnAddress();
     // VergilNeutralTrickHook->Toggle(true);
+}
+
+void ToggleFreeformSoftLockHelper(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// FreeformSoftLockHelper
+	// dmc3.exe + 1FA509 - 66 41 03 CB - add cx,r11w { Final step to Set Rotation Towards Enemy }
+	// dmc3.exe + 1FA50D - 66 41 89 88 C0 00 00 00 - mov[r8 + 000000C0], cx{ Set Character Rotation when doing directional move }
+	static std::unique_ptr<Utility::Detour_t> FreeformSoftLockHelperHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1FA50D, &FreeformSoftLockHelperDetour, 8);
+	g_FreeformSoftLockHelper_ReturnAddr = FreeformSoftLockHelperHook->GetReturnAddress();
+	FreeformSoftLockHelperHook->Toggle(enable);
+
+	run = enable;
+}
+
+void ToggleDMC4LockOnDirection(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// DMC4/5LockOnDirection
+	// dmc3.exe + 1EBF42 - 66 89 83 0C 75 00 00 - mov[rbx + 0000750C], ax{ Set actorCameraDirection }
+	static std::unique_ptr<Utility::Detour_t> DMC4LockOnDirectionHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EBF42, &DMC4LockOnDirectionDetour, 7);
+	g_DMC4LockOnDirection_ReturnAddr = DMC4LockOnDirectionHook->GetReturnAddress();
+	DMC4LockOnDirectionHook->Toggle(enable);
+	g_DMC4LockOnDirectionCall = &ActorCameraDirectionToEnemyCameraDirection;
+
+	run = enable;
 }
 
 void ToggleCustomCameraPositioning(bool enable) {

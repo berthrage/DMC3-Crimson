@@ -265,6 +265,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         
         CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
         CrimsonDetours::ToggleStyleRankHudNoFadeout(activeConfig.disableStyleRankHudFadeout);
+        CrimsonDetours::ToggleDMC4LockOnDirection(activeCrimsonConfig.Gameplay.General.dmc4LockOnDirection);
         CrimsonDetours::ToggleCerberusCrashFix(true);
 
         CrimsonPatches::DisableBlendingEffects(false);
