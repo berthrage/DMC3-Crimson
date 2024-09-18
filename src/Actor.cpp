@@ -3871,14 +3871,15 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
 
 	StyleSwitchController(actorBaseAddr);
 
+    auto& gameplayConfig = activeCrimsonConfig.Gameplay;
 
     CrimsonGameplay::UpdateCrimsonPlayerData();
-    CrimsonPatches::DisableHeightRestriction();
-    CrimsonPatches::ImprovedBufferedReversals();
-    CrimsonPatches::IncreasedJCSpheres();
-    CrimsonPatches::DisableJCRestriction();
-    CrimsonPatches::BulletStop();
-    CrimsonPatches::RainstormLift();
+    CrimsonPatches::DisableHeightRestriction(gameplayConfig.General.disableHeightRestriction);
+    CrimsonPatches::ImprovedBufferedReversals(gameplayConfig.General.improvedBufferedReversals);
+    CrimsonPatches::IncreasedJCSpheres(gameplayConfig.General.increasedJCSpheres);
+    CrimsonPatches::DisableJCRestriction(gameplayConfig.General.disableJCRestriction);
+    CrimsonPatches::BulletStop(gameplayConfig.Dante.bulletStop);
+    CrimsonPatches::RainstormLift(gameplayConfig.Dante.rainstormLift);
     CrimsonGameplay::CalculateAirStingerEndTime();
     CrimsonGameplay::FasterRapidSlashDevil(actorBaseAddr);
     CrimsonGameplay::LastEventStateQueue(actorBaseAddr);

@@ -210,6 +210,7 @@ struct CrimsonConfig {
 			bool inertia = true;
 			bool sprint = true;
 			bool freeformSoftLock = true;
+			bool bufferlessReversals = true;
 			bool dmc4LockOnDirection = true;
             bool holdToCrazyCombo = true;
 			bool disableHeightRestriction = true;
@@ -223,6 +224,8 @@ struct CrimsonConfig {
 					std::make_pair("inertia", &General::inertia),
 					std::make_pair("sprint", &General::sprint),
 					std::make_pair("freeformSoftLock", &General::freeformSoftLock),
+					std::make_pair("bufferlessReversals", &General::bufferlessReversals),
+					std::make_pair("improvedBufferedReversals", &General::improvedBufferedReversals),
 					std::make_pair("dmc4LockOnDirection", &General::dmc4LockOnDirection),
                     std::make_pair("holdToCrazyCombo", &General::holdToCrazyCombo),
 					std::make_pair("disableHeightRestriction", &General::disableHeightRestriction),

@@ -1037,10 +1037,16 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
     static uint8 currentMovePlayer[PLAYER_COUNT] = { 0 };
     static uint8 currentMoveClone[PLAYER_COUNT] = { 0 };
     static uint8& currentMove = (actorData.newEntityIndex == 0) ? currentMovePlayer[playerIndex] : currentMoveClone[playerIndex];
+
+    static uint16 cachedRotationPlayer[PLAYER_COUNT] = { 0 };
+    static uint16 cachedRotationClone[PLAYER_COUNT] = { 0 };
+    static uint16& cachedRotation = (actorData.newEntityIndex == 0) ? cachedRotationPlayer[playerIndex] : cachedRotationClone[playerIndex];
+
 	auto& actionTimer =
 		(actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].actionTimerClone : crimsonPlayer[playerIndex].actionTimer;
 
     CrimsonDetours::ToggleFreeformSoftLockHelper(activeCrimsonConfig.Gameplay.General.freeformSoftLock);
+    float bufferTime = (activeCrimsonConfig.Gameplay.General.bufferlessReversals)? 0.3f : 0.02f;
 
     if (!activeCrimsonConfig.Gameplay.General.freeformSoftLock) {
         return;
@@ -1052,48 +1058,64 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
 			: crimsonPlayer[playerIndex].rotationCloneTowardsEnemy2;
 		};
 
-	auto HandleRotationForMultiPartMove = [&](std::initializer_list<int> moveParts, uint16 stickRotation, uint16 autoRotation) {
+	auto HandleRotationForMultiPartMove = [&](std::initializer_list<int> moveParts, uint16 stickRotation) {
 		// First part of the move
 		if (actorData.action == *moveParts.begin()) {
-			actorData.rotation = (stickRotation != static_cast<uint16>(-1)) ? stickRotation : autoRotation;
-			i->yamatoRave.cachedRotation = actorData.rotation;  // Cache rotation for subsequent parts
+			actorData.rotation = (stickRotation != static_cast<uint16>(-1)) ? stickRotation : GetAutoRotation();
+			cachedRotation = actorData.rotation;  // Cache rotation for subsequent parts
 		}
 		// For all subsequent parts of the multi-part move
 		else if (std::find(moveParts.begin() + 1, moveParts.end(), actorData.action) != moveParts.end()) {
-			actorData.rotation = i->yamatoRave.cachedRotation;
+			actorData.rotation = cachedRotation;
 		}
 		// For all other moves
 		else {
-			actorData.rotation = (stickRotation != static_cast<uint16>(-1)) ? stickRotation : autoRotation;
+			actorData.rotation = (stickRotation != static_cast<uint16>(-1)) ? stickRotation : GetAutoRotation();;
 		}
 	};
 
 	if (actorData.eventData[0].event == ACTOR_EVENT::ATTACK) {
 
-		if (!lockOn && actionTimer < 0.1f) {
+		if (!lockOn && actionTimer < bufferTime) {
 			uint16 stickRotation = (radius >= RIGHT_STICK_DEADZONE) ? rotationStick : static_cast<uint16>(-1);  // Use -1 as a flag for neutral stick
-            uint16 autoRotation = GetAutoRotation();
 
 			if (currentMove != actorData.action) {
 				// Character-specific handling for multi-part moves
 				if (actorData.character == CHARACTER::DANTE) {
-                    HandleRotationForMultiPartMove({ REBELLION_HIGH_TIME, REBELLION_HIGH_TIME_LAUNCH }, stickRotation, autoRotation);
+
+                    if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT) return;
+
+                    HandleRotationForMultiPartMove({ REBELLION_HIGH_TIME, REBELLION_HIGH_TIME_LAUNCH }, stickRotation);
 				}
 				else if (actorData.character == CHARACTER::VERGIL) {
-                    HandleRotationForMultiPartMove({ YAMATO_FORCE_EDGE_HIGH_TIME, YAMATO_FORCE_EDGE_HIGH_TIME_LAUNCH }, stickRotation, autoRotation);
+                    HandleRotationForMultiPartMove({ YAMATO_FORCE_EDGE_HIGH_TIME, YAMATO_FORCE_EDGE_HIGH_TIME_LAUNCH }, stickRotation);
 				}
 				else {
 					// Default handling for other characters
-					actorData.rotation = (stickRotation != static_cast<uint16>(-1)) ? stickRotation : autoRotation;
+					actorData.rotation = (stickRotation != static_cast<uint16>(-1)) ? stickRotation : GetAutoRotation();
 				}
 
 				currentMove = actorData.action;  // Update current move
 			}
 
-			i->yamatoRave.cachedRotation = actorData.rotation;  // Keep cached rotation updated
+			cachedRotation = actorData.rotation;  // Keep cached rotation updated
 		}
         else if (lockOn && actionTimer < 0.1f) {
-            actorData.rotation = GetAutoRotation();
+                
+                // Exceptions
+//                 if (actorData.character == CHARACTER::DANTE) {
+//                     if (actorData.action == REBELLION_HIGH_TIME || actorData.action == REBELLION_HIGH_TIME_LAUNCH) return;
+//                 }
+//                 else if (actorData.character == CHARACTER::VERGIL) {
+//                     if (actorData.action == YAMATO_FORCE_EDGE_HIGH_TIME ||  actorData.action == YAMATO_FORCE_EDGE_HIGH_TIME_LAUNCH) return;
+//                 }
+//                 else {
+                    // Default handling 
+                    actorData.rotation = GetAutoRotation();
+
+//                }
+
+                cachedRotation = actorData.rotation;  // Keep cached rotation updated
         }
 	}
 	else {

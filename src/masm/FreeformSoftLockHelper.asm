@@ -17,7 +17,7 @@ FreeformSoftLockHelperDetour PROC
 
 
     cmp word ptr [r8 + 3E84h], 01 ; is player locking on?
-    jne Skip
+    jmp Skip
     mov word ptr [r8 + 192],cx
     jmp qword ptr [g_FreeformSoftLockHelper_ReturnAddr]
 

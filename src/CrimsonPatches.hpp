@@ -5,12 +5,12 @@
 #pragma region GameplayImprovements
 
 namespace CrimsonPatches {
-void DisableHeightRestriction();
-void IncreasedJCSpheres();
-void ImprovedBufferedReversals();
-void DisableJCRestriction();
-void BulletStop();
-void RainstormLift();
+void DisableHeightRestriction(bool enable);
+void IncreasedJCSpheres(bool enable);
+void ImprovedBufferedReversals(bool enable);
+void DisableJCRestriction(bool enable);
+void BulletStop(bool enable);
+void RainstormLift(bool enable);
 
 #pragma endregion
 

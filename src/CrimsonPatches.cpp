@@ -22,122 +22,132 @@
 
 namespace CrimsonPatches {
 
-void DisableHeightRestriction() {
+void DisableHeightRestriction(bool enable) {
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
     uintptr_t raveAddr      = 0x20149524;
     uintptr_t rainstormAddr = 0x20149708;
     uintptr_t airMeleeAddr  = 0x2014970C;
 
-    if (toggle.disableHeightRestriction != (int)activeCrimsonConfig.Gameplay.General.disableHeightRestriction) {
+	if (activeCrimsonConfig.Gameplay.General.disableHeightRestriction) {
+		*(float*)(raveAddr) = 0.0f;
+		*(float*)(rainstormAddr) = 0.0f;
+		*(float*)(airMeleeAddr) = 0.0f;
 
-        if (activeCrimsonConfig.Gameplay.General.disableHeightRestriction) {
-            *(float*)(raveAddr)      = 0.0f;
-            *(float*)(rainstormAddr) = 0.0f;
-            *(float*)(airMeleeAddr)  = 0.0f;
+		_patch((char*)(appBaseAddr + 0x1E62AF), (char*)"\xE9\x2B\xFD\xFF\xFF\x90", 6); // Vergil Yamato and Beowulf
+		_nop((char*)(appBaseAddr + 0x1E61EC), 6);                                      // Vergil Force Edge
+	}
+	else {
+		*(float*)(raveAddr) = 80.0f;
+		*(float*)(rainstormAddr) = 200.0f;
+		*(float*)(airMeleeAddr) = 120.0f;
 
-            _patch((char*)(appBaseAddr + 0x1E62AF), (char*)"\xE9\x2B\xFD\xFF\xFF\x90", 6); // Vergil Yamato and Beowulf
-            _nop((char*)(appBaseAddr + 0x1E61EC), 6);                                      // Vergil Force Edge
-
-            toggle.disableHeightRestriction = 1;
-        } else {
-            *(float*)(raveAddr)      = 80.0f;
-            *(float*)(rainstormAddr) = 200.0f;
-            *(float*)(airMeleeAddr)  = 120.0f;
-
-
-            _patch((char*)(appBaseAddr + 0x1E62AF), (char*)"\x0F\x87\x2A\xFD\xFF\xFF", 6);
-            _patch((char*)(appBaseAddr + 0x1E61EC), (char*)"\x0F\x86\xC3\x00\x00\x00", 6);
-
-            toggle.disableHeightRestriction = 0;
-        }
-    }
+		_patch((char*)(appBaseAddr + 0x1E62AF), (char*)"\x0F\x87\x2A\xFD\xFF\xFF", 6);
+		_patch((char*)(appBaseAddr + 0x1E61EC), (char*)"\x0F\x86\xC3\x00\x00\x00", 6);
+	}
+    
+    run = enable;
 }
 
-void IncreasedJCSpheres() {
+void IncreasedJCSpheres(bool enable) {
+	static bool run = false;
 
-    if (toggle.increasedJCSpheres != (int)activeCrimsonConfig.Gameplay.General.increasedJCSpheres) {
-
-        if (activeCrimsonConfig.Gameplay.General.increasedJCSpheres) {
-            _patch((char*)(appBaseAddr + 0x1C1DCB), (char*)"\xF3\x0F\x5E\x0D\xB1\x4F\x31\x00", 8);
-
-            toggle.increasedJCSpheres = 1;
-        } else {
-            _patch((char*)(appBaseAddr + 0x1C1DCB), (char*)"\xF3\x0F\x5E\x0D\x81\x42\x30\x00", 8);
-
-            toggle.increasedJCSpheres = 0;
-        }
-    }
+	if (run == enable) {
+		return;
+	}
+   
+	if (enable) {
+		_patch((char*)(appBaseAddr + 0x1C1DCB), (char*)"\xF3\x0F\x5E\x0D\xB1\x4F\x31\x00", 8);
+	}
+	else {
+		_patch((char*)(appBaseAddr + 0x1C1DCB), (char*)"\xF3\x0F\x5E\x0D\x81\x42\x30\x00", 8);
+	}
+    
+    run = enable;
 }
 
-void ImprovedBufferedReversals() {
+void ImprovedBufferedReversals(bool enable) {
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
     uintptr_t danteAddr  = 0x201499BC;
     uintptr_t vergilAddr = 0x21758C1C;
 
-    if (toggle.improvedBufferedReversals != (int)activeCrimsonConfig.Gameplay.General.improvedBufferedReversals) {
-        if (activeCrimsonConfig.Gameplay.General.improvedBufferedReversals) {
-            *(float*)(danteAddr)  = 24.0f;
-            *(float*)(vergilAddr) = 24.0f;
+	if (enable) {
+		*(float*)(danteAddr) = 24.0f;
+		*(float*)(vergilAddr) = 24.0f;
+	}
+	else {
+		*(float*)(danteAddr) = 4.0f;
+		*(float*)(vergilAddr) = 4.0f;
+	}
 
-            toggle.improvedBufferedReversals = 1;
-        } else {
-            *(float*)(danteAddr)  = 4.0f;
-            *(float*)(vergilAddr) = 4.0f;
-
-            toggle.improvedBufferedReversals = 0;
-        }
-    }
+    run = enable;
 }
 
-void DisableJCRestriction() {
+void DisableJCRestriction(bool enable) {
+	static bool run = false;
 
-    if (toggle.disableJCRestriction != (int)activeCrimsonConfig.Gameplay.General.disableJCRestriction) {
+	if (run == enable) {
+		return;
+	}
 
-        if (activeCrimsonConfig.Gameplay.General.disableJCRestriction) {
-            _nop((char*)(appBaseAddr + 0x1E7A9F), 6);
-
-            toggle.disableJCRestriction = 1;
-        } else {
-            _patch((char*)(appBaseAddr + 0x1E7A9F), (char*)"\x66\x0F\x1F\x44\x00\x00", 6);
-
-            toggle.disableJCRestriction = 0;
-        }
-    }
+	if (enable) {
+		_nop((char*)(appBaseAddr + 0x1E7A9F), 6);
+	}
+	else {
+		_patch((char*)(appBaseAddr + 0x1E7A9F), (char*)"\x66\x0F\x1F\x44\x00\x00", 6);
+	}
+    
+    run = enable;
 }
 
-void BulletStop() {
+void BulletStop(bool enable) {
+	static bool run = false;
 
-    if (toggle.bulletStop != (int)activeCrimsonConfig.Gameplay.Dante.bulletStop) {
-        if (activeCrimsonConfig.Gameplay.Dante.bulletStop) {
+	if (run == enable) {
+		return;
+	}
 
-            _nop((char*)(appBaseAddr + 0x77070), 10); // knockback
-            _nop((char*)(appBaseAddr + 0x68C80), 10); // knockback when higher up
-            _nop((char*)(appBaseAddr + 0x82380), 6);  // beowulf's hammer
+	if (enable) {
 
-            toggle.bulletStop = 1;
-        } else {
-            _patch((char*)(appBaseAddr + 0x77070), (char*)"\xC7\x81\x20\x01\x00\x00\x01\x00\x00\x00", 10);
-            _patch((char*)(appBaseAddr + 0x68C80), (char*)"\xC7\x81\x20\x01\x00\x00\x01\x00\x00\x00", 10);
-            _patch((char*)(appBaseAddr + 0x82380), (char*)"\x89\xA9\x18\x01\x00\x00", 6);
+		_nop((char*)(appBaseAddr + 0x77070), 10); // knockback
+		_nop((char*)(appBaseAddr + 0x68C80), 10); // knockback when higher up
+		_nop((char*)(appBaseAddr + 0x82380), 6);  // beowulf's hammer
+	}
+	else {
+		_patch((char*)(appBaseAddr + 0x77070), (char*)"\xC7\x81\x20\x01\x00\x00\x01\x00\x00\x00", 10);
+		_patch((char*)(appBaseAddr + 0x68C80), (char*)"\xC7\x81\x20\x01\x00\x00\x01\x00\x00\x00", 10);
+		_patch((char*)(appBaseAddr + 0x82380), (char*)"\x89\xA9\x18\x01\x00\x00", 6);
+	}
 
-            toggle.bulletStop = 0;
-        }
-    }
+    run = enable;
 }
 
-void RainstormLift() {
+void RainstormLift(bool enable) {
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
     uintptr_t rainstormLiftAddr = 0x20149B00;
 
-    if (toggle.rainstormLift != (int)activeCrimsonConfig.Gameplay.Dante.rainstormLift) {
-        if (activeCrimsonConfig.Gameplay.Dante.rainstormLift) {
+	if (enable) {
+		*(float*)(rainstormLiftAddr) = -0.2f;
+	}
+	else {
+		*(float*)(rainstormLiftAddr) = -0.349999994f;
+	}
 
-            *(float*)(rainstormLiftAddr) = -0.2f;
-
-            toggle.rainstormLift = 1;
-        } else {
-            *(float*)(rainstormLiftAddr) = -0.349999994f;
-
-            toggle.rainstormLift = 0;
-        }
-    }
+	run = enable;
 }
 
 #pragma endregion

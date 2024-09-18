@@ -9341,7 +9341,30 @@ void GameplayOptions() {
 		TooltipHelper("(?)", "Requires Actor System.\n"
 			"\n"
 			"Allows you to bypass Soft Lock On Auto Rotation by setting a left stick position when outside Lock On\n"
-			"Similarly to DMC4/5 Behavior. This also allows for Bufferless Reversals. ");
+			"Similarly to DMC4/5 Behavior. This also allows for Bufferless Reversals.");
+
+		if (!activeCrimsonConfig.Gameplay.General.freeformSoftLock) {
+			activeCrimsonConfig.Gameplay.General.bufferlessReversals = false;
+			queuedCrimsonConfig.Gameplay.General.bufferlessReversals = false;
+		}
+
+
+		GUI_PushDisable(!activeCrimsonConfig.Gameplay.General.freeformSoftLock);
+		if (GUI_Checkbox2("Bufferless Reversals", activeCrimsonConfig.Gameplay.General.bufferlessReversals, queuedCrimsonConfig.Gameplay.General.bufferlessReversals)) {
+			activeCrimsonConfig.Gameplay.General.freeformSoftLock = true;
+			queuedCrimsonConfig.Gameplay.General.freeformSoftLock = true;
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Allows you to do Reversals without buffering a move first.");
+		GUI_PopDisable(!activeCrimsonConfig.Gameplay.General.freeformSoftLock);
+
+		GUI_Checkbox2("Improved Buffered Reversals", activeCrimsonConfig.Gameplay.General.improvedBufferedReversals, queuedCrimsonConfig.Gameplay.General.improvedBufferedReversals);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Increased Turn Speed on Attacks for easier Buffered Reversals.");
 
 		if (GUI_Checkbox2("DMC4/5 Lock On Direction", activeCrimsonConfig.Gameplay.General.dmc4LockOnDirection, queuedCrimsonConfig.Gameplay.General.dmc4LockOnDirection)) {
 			CrimsonDetours::ToggleDMC4LockOnDirection(activeCrimsonConfig.Gameplay.General.dmc4LockOnDirection);
@@ -9351,6 +9374,25 @@ void GameplayOptions() {
 			"\n"
 			"Sets Directional Moves to take Enemy Camera Direction instead of Player Camera Direction\n"
 			"Similarly to DMC4/5 Behavior.");
+
+		GUI_Checkbox2("Increased Jump Cancel Hitboxes", activeCrimsonConfig.Gameplay.General.increasedJCSpheres, queuedCrimsonConfig.Gameplay.General.increasedJCSpheres);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Increased hitboxes leading to easier Jump Cancels\n"
+			"Similarly to DMC5 Behavior.");
+
+		GUI_Checkbox2("Disable Height Restriction", activeCrimsonConfig.Gameplay.General.disableHeightRestriction, queuedCrimsonConfig.Gameplay.General.disableHeightRestriction);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Allows you to do Air Moves even on low heights.");
+
+		GUI_Checkbox2("Disable Jump Cancel Restriction", activeCrimsonConfig.Gameplay.General.disableJCRestriction, queuedCrimsonConfig.Gameplay.General.disableJCRestriction);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Disables the cooldown for Jump Cancels.");
 
         ImGui::Text("");
 
@@ -9382,6 +9424,19 @@ void GameplayOptions() {
                              "\n"
                              "Sky Dance Part 3 is now a separate ability executed by Lock On + Forward + Style. Tweaks Sky Dance Gravity, "
                              "taking weights into account.");
+
+		GUI_Checkbox2("Bullet Stop", activeCrimsonConfig.Gameplay.Dante.bulletStop, queuedCrimsonConfig.Gameplay.Dante.bulletStop);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Shots from E&I among other moves will stop enemy movement on air.");
+
+		GUI_Checkbox2("Rainstorm Lift", activeCrimsonConfig.Gameplay.Dante.rainstormLift, queuedCrimsonConfig.Gameplay.Dante.rainstormLift);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Rainstorm will elevate you slightly in the air.");
+
         ImGui::Text("");
 
         ImGui::Text("");
