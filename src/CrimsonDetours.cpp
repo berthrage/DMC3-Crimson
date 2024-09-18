@@ -138,6 +138,17 @@ void RerouteRedOrbsCounterAlphaDetour2();
 void RerouteRedOrbsCounterAlphaDetour3();
 void RerouteRedOrbsCounterAlphaDetour4();
 
+// GetRotationTowardsLockedOnEnemy
+std::uint64_t g_GetRotationTowardsEnemy_ReturnAddr;
+void GetRotationTowardsEnemyDetour();
+void* g_GetRotationTowardsEnemyCall;
+
+// FixLockOnDirection
+std::uint64_t g_FixLockOnDirection_ReturnAddr;
+std::uint64_t g_FixLockOnDirection_GetRotationTowardsEnemyCall;
+void FixLockOnDirectionDetour();
+void* g_FixLockOnDirectionCall;
+
 // StyleRankHUDNoFadeout
 std::uint64_t g_StyleRankHudNoFadeout_ReturnAddr;
 void StyleRankHudNoFadeoutDetour();
@@ -400,6 +411,21 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
 	return false;
 }
 
+void FeedRotationTowardsEnemy(PlayerActorData& actorData, uint16 rotation) {
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& rotationTowardsEnemy = (actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].rotationCloneTowardsEnemy : crimsonPlayer[playerIndex].rotationTowardsEnemy;
+
+	rotationTowardsEnemy = rotation;
+}
+
+uint16 ActorCameraDirectionToEnemyCameraDirection(PlayerActorData& actorData) {
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& rotationTowardsEnemy = (actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].rotationCloneTowardsEnemy2 : crimsonPlayer[playerIndex].rotationTowardsEnemy2;
+
+	auto enemyCameraDirection = rotationTowardsEnemy - actorData.cameraDirection;
+	return enemyCameraDirection;
+}
+
 void InitDetours() {
     using namespace Utility;
     DetourBaseAddr = (uintptr_t)appBaseAddr;
@@ -447,6 +473,24 @@ void InitDetours() {
         std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EB6F2, &DisableDriveHoldDetour, 5);
     g_DisableDriveHold_ReturnAddr = DisableDriveHoldHook->GetReturnAddress();
     DisableDriveHoldHook->Toggle(true);
+
+	// GetRotationTowardsEnemy
+	// dmc3.exe + 1FA509 - 66 41 03 CB - add cx,r11w { Final step to Set Rotation Towards Enemy }
+	// dmc3.exe + 1FA50D - 66 41 89 88 C0 00 00 00 - mov[r8 + 000000C0], cx{ Set Character Rotation when doing directional move }
+	static std::unique_ptr<Utility::Detour_t> GetRotationTowardsEnemyHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1FA50D, &GetRotationTowardsEnemyDetour, 8);
+	g_GetRotationTowardsEnemy_ReturnAddr = GetRotationTowardsEnemyHook->GetReturnAddress();
+	GetRotationTowardsEnemyHook->Toggle(true);
+	g_GetRotationTowardsEnemyCall = &FeedRotationTowardsEnemy;
+
+	// FixLockOnDirection
+	// dmc3.exe + 1EBF42 - 66 89 83 0C 75 00 00 - mov[rbx + 0000750C], ax{ Set actorCameraDirection }
+	static std::unique_ptr<Utility::Detour_t> FixLockOnDirectionHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EBF42, &FixLockOnDirectionDetour, 7);
+	g_FixLockOnDirection_ReturnAddr = FixLockOnDirectionHook->GetReturnAddress();
+	FixLockOnDirectionHook->Toggle(true); 
+	g_FixLockOnDirection_GetRotationTowardsEnemyCall = (uintptr_t)appBaseAddr + 0x1FA484;
+	g_FixLockOnDirectionCall = &ActorCameraDirectionToEnemyCameraDirection;
    
     
     // VergilNeutralTrick // func is already detoured, Crimson.MobilityFunction<27>+B1

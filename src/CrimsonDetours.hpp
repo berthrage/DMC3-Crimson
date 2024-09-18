@@ -73,6 +73,12 @@ void RerouteRedOrbsCounterAlphaDetour1();
 void RerouteRedOrbsCounterAlphaDetour2();
 void RerouteRedOrbsCounterAlphaDetour3();
 
+// GetRotationTowardsLockedOnEnemy
+void GetRotationTowardsEnemyDetour();
+
+// FixLockOnDirection
+void FixLockOnDirectionDetour();
+
 // StyleRankHudNoFadeout
 void StyleRankHudNoFadeoutDetour();
 

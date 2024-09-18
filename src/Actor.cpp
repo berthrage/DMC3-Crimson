@@ -7996,7 +7996,8 @@ void UpdateActorSpeed(byte8* baseAddr) {
 
 		CrimsonGameplay::SkyLaunchAirTauntController(actorData);
 		CrimsonGameplay::SkyLaunchAirTauntController(cloneActorData);
-
+        
+        CrimsonGameplay::CalculateRotationTowardsEnemy(actorData);
 	}
 
     
@@ -8103,11 +8104,10 @@ void UpdateActorSpeed(byte8* baseAddr) {
 
 
                 if (activeCrimsonConfig.Gameplay.General.inertia) {
-                    CrimsonGameplay::FreeRotationSwordMoves(actorBaseAddr);
+                    CrimsonGameplay::FreeformSoftLockController(actorBaseAddr);
                     CrimsonGameplay::StoreInertia(actorBaseAddr);
                     CrimsonGameplay::InertiaController(actorBaseAddr);
                 }
-
 
                 // Doppelganger's attacks can now hold/increase your style meter
                 CrimsonGameplay::StyleMeterDoppelganger(actorBaseAddr);

@@ -2877,12 +2877,12 @@ dmc3.exe+211BDF: 90                             - nop
             </CheatEntry>
             <CheatEntry>
               <ID>2317</ID>
-              <Description>"+c0"</Description>
+              <Description>"+C0 rotation"</Description>
               <ShowAsSigned>0</ShowAsSigned>
-              <VariableType>Float</VariableType>
+              <VariableType>4 Bytes</VariableType>
               <Address>dmc3.exe+168</Address>
               <Offsets>
-                <Offset>c0</Offset>
+                <Offset>C0</Offset>
                 <Offset>18</Offset>
                 <Offset>00C90E28</Offset>
               </Offsets>
@@ -3886,6 +3886,18 @@ dmc3.exe+1E9A5C: CC                    - int 3
             </CheatEntry>
             <CheatEntry>
               <ID>2380</ID>
+              <Description>"+3FB0 RotationOffset"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>4 Bytes</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>3fB0</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2677</ID>
               <Description>"+3fac Air Sword Attack Count"</Description>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>Byte</VariableType>
@@ -3945,7 +3957,31 @@ dmc3.exe+1E9A5C: CC                    - int 3
               </Offsets>
             </CheatEntry>
             <CheatEntry>
-              <ID>2175</ID>
+              <ID>2680</ID>
+              <Description>"+6238Current HP"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>4 Bytes</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>6238</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2681</ID>
+              <Description>"+6236 UncalculatedRotationToEnemy"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>2 Bytes</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>6236</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2678</ID>
               <Description>"+41c0 LockOnData"</Description>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>Float</VariableType>
@@ -3957,7 +3993,7 @@ dmc3.exe+1E9A5C: CC                    - int 3
               </Offsets>
               <CheatEntries>
                 <CheatEntry>
-                  <ID>1610</ID>
+                  <ID>2679</ID>
                   <Description>"+41c8 CLockOnTarget"</Description>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
@@ -4950,6 +4986,18 @@ dmc3.exe+1E9A5C: CC                    - int 3
               <Address>dmc3.exe+168</Address>
               <Offsets>
                 <Offset>74fa</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2676</ID>
+              <Description>"+750C playerCameraDirection"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>4 Bytes</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>750C</Offset>
                 <Offset>18</Offset>
                 <Offset>00C90E28</Offset>
               </Offsets>
@@ -8444,6 +8492,19 @@ dmc3.exe+56050: 0F 5B C0                 - cvtdq2ps xmm0,xmm0
       <Description>"No description"</Description>
       <VariableType>Byte</VariableType>
       <Address>030BFCEB</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2682</ID>
+      <Description>"No description"</Description>
+      <VariableType>4 Bytes</VariableType>
+      <Address>047D9C78</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2683</ID>
+      <Description>"No description"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Byte</VariableType>
+      <Address>Crimson.dll+8744B0</Address>
     </CheatEntry>
   </CheatEntries>
   <CheatCodes>
@@ -75732,6 +75793,261 @@ dmc3.exe+56050: 0F 5B C0                 - cvtdq2ps xmm0,xmm0
         <Byte>94</Byte>
       </After>
     </CodeEntry>
+    <CodeEntry>
+      <Description>Change of sub ax,[rdi+00007508]</Description>
+      <AddressString>dmc3.exe+1EB4BB</AddressString>
+      <Before>
+        <Byte>87</Byte>
+        <Byte>0C</Byte>
+        <Byte>75</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>66</Byte>
+        <Byte>2B</Byte>
+        <Byte>87</Byte>
+        <Byte>08</Byte>
+        <Byte>75</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>B9</Byte>
+        <Byte>00</Byte>
+        <Byte>60</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of add [rsi],ax</Description>
+      <AddressString>dmc3.exe+1FC65E</AddressString>
+      <Before>
+        <Byte>00</Byte>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+        <Byte>2C</Byte>
+        <Byte>C4</Byte>
+      </Before>
+      <Actual>
+        <Byte>66</Byte>
+        <Byte>01</Byte>
+        <Byte>06</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>B7</Byte>
+        <Byte>C3</Byte>
+        <Byte>48</Byte>
+        <Byte>8B</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [r8+000000C0],cx</Description>
+      <AddressString>dmc3.exe+1FA50D</AddressString>
+      <Before>
+        <Byte>C9</Byte>
+        <Byte>66</Byte>
+        <Byte>41</Byte>
+        <Byte>03</Byte>
+        <Byte>CB</Byte>
+      </Before>
+      <Actual>
+        <Byte>66</Byte>
+        <Byte>41</Byte>
+        <Byte>89</Byte>
+        <Byte>88</Byte>
+        <Byte>C0</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>C3</Byte>
+        <Byte>CC</Byte>
+        <Byte>CC</Byte>
+        <Byte>CC</Byte>
+        <Byte>CC</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of add [rcx],r9w</Description>
+      <AddressString>dmc3.exe+2C72FA</AddressString>
+      <Before>
+        <Byte>44</Byte>
+        <Byte>3B</Byte>
+        <Byte>D0</Byte>
+        <Byte>7D</Byte>
+        <Byte>0C</Byte>
+      </Before>
+      <Actual>
+        <Byte>66</Byte>
+        <Byte>44</Byte>
+        <Byte>01</Byte>
+        <Byte>09</Byte>
+      </Actual>
+      <After>
+        <Byte>33</Byte>
+        <Byte>C0</Byte>
+        <Byte>66</Byte>
+        <Byte>89</Byte>
+        <Byte>02</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rsi+000000C0],ax</Description>
+      <AddressString>dmc3.exe+1DF10C</AddressString>
+      <Before>
+        <Byte>E8</Byte>
+        <Byte>64</Byte>
+        <Byte>E8</Byte>
+        <Byte>14</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>66</Byte>
+        <Byte>89</Byte>
+        <Byte>86</Byte>
+        <Byte>C0</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>8B</Byte>
+        <Byte>86</Byte>
+        <Byte>6C</Byte>
+        <Byte>3E</Byte>
+        <Byte>00</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Code :Set Character Rotation when doing directional move</Description>
+      <AddressString>dmc3.exe+1FA50D</AddressString>
+      <Before>
+        <Byte>C9</Byte>
+        <Byte>66</Byte>
+        <Byte>41</Byte>
+        <Byte>03</Byte>
+        <Byte>CB</Byte>
+      </Before>
+      <Actual>
+        <Byte>66</Byte>
+        <Byte>41</Byte>
+        <Byte>89</Byte>
+        <Byte>88</Byte>
+        <Byte>C0</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>C3</Byte>
+        <Byte>CC</Byte>
+        <Byte>CC</Byte>
+        <Byte>CC</Byte>
+        <Byte>CC</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Code :Set actorCameraDirection</Description>
+      <AddressString>dmc3.exe+1EBF42</AddressString>
+      <Before>
+        <Byte>83</Byte>
+        <Byte>D8</Byte>
+        <Byte>3E</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>66</Byte>
+        <Byte>89</Byte>
+        <Byte>83</Byte>
+        <Byte>0C</Byte>
+        <Byte>75</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>8B</Byte>
+        <Byte>83</Byte>
+        <Byte>1C</Byte>
+        <Byte>75</Byte>
+        <Byte>00</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of cmp r10d,ebx</Description>
+      <AddressString>dmc3.exe+1FC5E2</AddressString>
+      <Before>
+        <Byte>0F</Byte>
+        <Byte>44</Byte>
+        <Byte>0F</Byte>
+        <Byte>B7</Byte>
+        <Byte>D0</Byte>
+      </Before>
+      <Actual>
+        <Byte>44</Byte>
+        <Byte>3B</Byte>
+        <Byte>D3</Byte>
+      </Actual>
+      <After>
+        <Byte>7D</Byte>
+        <Byte>06</Byte>
+        <Byte>41</Byte>
+        <Byte>0F</Byte>
+        <Byte>B7</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of test r9w,r9w</Description>
+      <AddressString>dmc3.exe+1FC5ED</AddressString>
+      <Before>
+        <Byte>0F</Byte>
+        <Byte>B7</Byte>
+        <Byte>D9</Byte>
+        <Byte>EB</Byte>
+        <Byte>09</Byte>
+      </Before>
+      <Actual>
+        <Byte>66</Byte>
+        <Byte>45</Byte>
+        <Byte>85</Byte>
+        <Byte>C9</Byte>
+      </Actual>
+      <After>
+        <Byte>79</Byte>
+        <Byte>03</Byte>
+        <Byte>66</Byte>
+        <Byte>F7</Byte>
+        <Byte>DB</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of divss xmm4,xmm3</Description>
+      <AddressString>dmc3.exe+1FC64E</AddressString>
+      <Before>
+        <Byte>25</Byte>
+        <Byte>2A</Byte>
+        <Byte>9A</Byte>
+        <Byte>2C</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+        <Byte>5E</Byte>
+        <Byte>E3</Byte>
+      </Actual>
+      <After>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+        <Byte>58</Byte>
+        <Byte>25</Byte>
+        <Byte>D2</Byte>
+      </After>
+    </CodeEntry>
   </CheatCodes>
   <UserdefinedSymbols>
     <SymbolEntry>
@@ -80606,6 +80922,11 @@ but it still damages it
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
+      <Address>"dmc3.exe"+1EBF42</Address>
+      <Comment>Set actorCameraDirection
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
       <Address>"dmc3.exe"+1EEDF7</Address>
       <Comment>257, Release Level 1,
 this will affect RoyalguardReleaseLevel
@@ -80627,6 +80948,119 @@ this will affect RoyalguardReleaseLevel
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA484</Address>
+      <Comment>Loading player rotation onto r11d
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA48C</Address>
+      <Comment>Loading rotation towards enemy, 
+but still needs calculations (rotationUncalculated)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA493</Address>
+      <Comment>Subtracts uncalculatedRotation to currentRotation 
+(rotationDifference)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA49A</Address>
+      <Comment>if rotationDifference is below or equal 0
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA49C</Address>
+      <Comment>if not, Load in Rotation Offset into eax
+
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4A6</Address>
+      <Comment>if rotationDifference &lt;= rotationOffset
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4A8</Address>
+      <Comment>if not, move rotationOffset into edx
+replacing rotationDifference
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4AB</Address>
+      <Comment>let's do calculations 
+with rotationOffset as basis
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4AD</Address>
+      <Comment>load in RotationOffset into r10d
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4B5</Address>
+      <Comment>move rotationDifference into ecx
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4B8</Address>
+      <Comment>Invert rotationDifference's sign
+inside ecx
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4BD</Address>
+      <Comment>if (rotationDifferenceInverted &lt;= rotationOffset)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4BF</Address>
+      <Comment>if not load rotationOffset into edx
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4C3</Address>
+      <Comment>invert rotationOffset's sign
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4C8</Address>
+      <Comment>let's start Calculations
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4CB</Address>
+      <Comment>move rotationPreppedForCalc into eax
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4D9</Address>
+      <Comment>multiply rotationPreppedForCalc by 360
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4E1</Address>
+      <Comment>multiplying by 0.00001525878906
+therefore normalizing into a range 0 - 1
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4E9</Address>
+      <Comment>multiply by actor speed
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA509</Address>
+      <Comment>Final step to Set Rotation Towards Enemy, 
+adding to current rotation
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA50D</Address>
+      <Comment>Set Character Rotation when doing directional move
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
       <Address>"dmc3.exe"+1FC453</Address>
       <Comment>x motion
 </Comment>
@@ -80639,6 +81073,31 @@ this will affect RoyalguardReleaseLevel
     <DisassemblerComment>
       <Address>"dmc3.exe"+1FC47D</Address>
       <Comment>z motion
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC608</Address>
+      <Comment>multiply by 360
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC617</Address>
+      <Comment>multiply by speed (rbp + 14)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC624</Address>
+      <Comment>divide it by 360
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC63C</Address>
+      <Comment>multiply by speed
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC64E</Address>
+      <Comment>divide it by 360
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>

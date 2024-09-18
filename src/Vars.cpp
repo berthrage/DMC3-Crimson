@@ -260,6 +260,9 @@ int g_activeAllEntitiesCount;
 bool g_isMPCamActive = false;
 bool g_isParanoramicCamActive = false;
 
+float g_rotationDifference = 0;
+float g_rotationBeforeCalculation = 0;
+float g_rotationCalculated = 0;
 __declspec(align(16)) float g_customCameraPos[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 CrimsonPlayerData crimsonPlayer[20];

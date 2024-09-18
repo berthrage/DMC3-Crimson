@@ -2659,12 +2659,14 @@ static_assert(offsetof(SummonedSwordsData, actorBaseAddr) == 0x560);
 struct LockOnData {
     byte8* var_0; // 0
     _(4096);
-    byte8* var_1008; // 0x1008
+    byte8* var_1008; // 01008
     byte8* var_1010; // 0x1010
     byte8* var_1018; // 0x1018
     _(4136);
     uint32 targetCount; // 0x2048
-    _(244);
+    _(42);
+    uint16 rotationTowardsTarget; // 0x2076
+    _(200);
     vec4 targetPosition; // 0x2140
     _(24);
     byte8* targetBaseAddr60; // 0x2168
@@ -2676,6 +2678,7 @@ static_assert(offsetof(LockOnData, var_1008) == 0x1008);
 static_assert(offsetof(LockOnData, var_1010) == 0x1010);
 static_assert(offsetof(LockOnData, var_1018) == 0x1018);
 static_assert(offsetof(LockOnData, targetCount) == 0x2048);
+static_assert(offsetof(LockOnData, rotationTowardsTarget) == 0x2076);
 static_assert(offsetof(LockOnData, targetPosition) == 0x2140);
 static_assert(offsetof(LockOnData, targetBaseAddr60) == 0x2168);
 static_assert(offsetof(LockOnData, var_2170) == 0x2170);
@@ -2887,7 +2890,9 @@ struct PlayerActorDataBase : ActorDataBase {
     uint8 airSwordAttackCount; // 0x3FAC
     _(1);
     uint8 sumAttackCount; // 0x3FAE
-    _(61);
+    _(1);
+    uint16 rotationOffset; // 0x3FB0
+    _(58);
     byte32 activeExpertise[8]; // 0x3FEC
     _(32);
     byte32 queuedExpertise[8]; // 0x402C
@@ -3041,6 +3046,7 @@ static_assert(offsetof(PlayerActorDataBase, bufferedAction) == 0x3FA8);
 static_assert(offsetof(PlayerActorDataBase, airGunAttackCount) == 0x3FAB);
 static_assert(offsetof(PlayerActorDataBase, airSwordAttackCount) == 0x3FAC);
 static_assert(offsetof(PlayerActorDataBase, sumAttackCount) == 0x3FAE);
+static_assert(offsetof(PlayerActorDataBase, rotationOffset) == 0x3FB0);
 static_assert(offsetof(PlayerActorDataBase, activeExpertise) == 0x3FEC);
 static_assert(offsetof(PlayerActorDataBase, queuedExpertise) == 0x402C);
 static_assert(offsetof(PlayerActorDataBase, maxHitPoints) == 0x40EC);
@@ -4471,6 +4477,9 @@ extern int g_activeAllEntitiesCount;
 extern bool g_isMPCamActive; 
 extern bool g_isParanoramicCamActive;
 
+extern float g_rotationDifference;
+extern float g_rotationBeforeCalculation;
+extern float g_rotationCalculated;
 extern __declspec(align(16)) float g_customCameraPos[4];
 
 struct CrimsonPlayerData {
@@ -4530,6 +4539,8 @@ struct CrimsonPlayerData {
     float playerTo1PDistance = 0;
     SimpleVec3 playerScreenPosition = { 0,0,0 };
     bool playerOutOfView = false;
+    uint16 rotationTowardsEnemy = 0;
+    uint16 rotationTowardsEnemy2 = 0;
 
     AirRaveTweak airRaveTweak;
 
@@ -4561,6 +4572,8 @@ struct CrimsonPlayerData {
     float cloneTo1PDistance = 0;
     SimpleVec3 cloneScreenPosition = { 0,0,0 };
     bool cloneOutOfView = false;
+    uint16 rotationCloneTowardsEnemy = 0;
+    uint16 rotationCloneTowardsEnemy2 = 0;
 
 };
 

@@ -169,7 +169,9 @@ void StyleMeterMultiplayer() {
 			highestMeter = actorData.styleData.meter;
 		}
 	}
-
+	if (highestStyleRank > mainActorData.styleData.rank) {
+		mainActorData.styleData.rank = highestStyleRank;
+	}
 	mainActorData.styleData.rank = highestStyleRank;
 	if (highestMeter > mainActorData.styleData.meter) {
 		mainActorData.styleData.meter = highestMeter;

@@ -16,7 +16,7 @@ void FasterDarkslayerTricks();
 float DrainDTBar(float currentDT, float maxDT, float elapsedTime, bool dtOn, float drainTimeDTOn, float drainTimeDTOff);
 float DrainMirageGauge(float currentMP, float elapsedTime, float totalDrainTime);
 void LastEventStateQueue(byte8* actorBaseAddr);
-void FreeRotationSwordMoves(byte8* actorBaseAddr);
+void FreeformSoftLockController(byte8* actorBaseAddr);
 void StoreInertia(byte8* actorBaseAddr);
 void InertiaController(byte8* actorBaseAddr);
 void AerialRaveGravityTweaks(byte8* actorBaseAddr);
@@ -28,6 +28,7 @@ void BackToForwardInputs(byte8* actorBaseAddr);
 void SprintAbility(byte8* actorBaseAddr);
 void GunDTCharacterRemaps();
 void DTInfusedRoyalguardController(byte8* actorBaseAddr);
+void CalculateRotationTowardsEnemy(byte8* actorBaseAddr);
 void SkyLaunchAirTauntController(byte8* actorBaseAddr);
 void DriveTweaks(byte8* actorBaseAddr);
 

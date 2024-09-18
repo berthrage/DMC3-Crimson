@@ -1005,11 +1005,7 @@ void LastEventStateQueue(byte8* actorBaseAddr) {
     }
 }
 
-void FreeRotationSwordMoves(byte8* actorBaseAddr) {
-    // Allows you to freely rotate in the air while not locked on with aerial Swordmaster moves.
-    // This is important for Inertia (Redirection) and as such both can only be enabled together.
-    // Used to be called RemoveSoftLockOn. - Mia
-
+void FreeformSoftLockController(byte8* actorBaseAddr) {
     using namespace ACTION_DANTE;
     using namespace ACTION_VERGIL;
     using namespace ACTOR_EVENT;
@@ -1024,12 +1020,11 @@ void FreeRotationSwordMoves(byte8* actorBaseAddr) {
     auto tiltDirection   = GetRelativeTiltDirection(actorData);
     auto radius          = gamepad.leftStickRadius;
     uint16 relativeTilt  = 0;
-    relativeTilt         = (actorData.cameraDirection + gamepad.leftStickPosition);
+    relativeTilt         = (actorData.cameraDirection + actorData.leftStickPosition);
     uint16 rotationStick = (relativeTilt - 0x8000);
+    
 
     auto* i = &crimsonPlayer[playerIndex].inertia;
-    auto actionTimer =
-        (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 
     bool inAerialRave = (actorData.action == REBELLION_AERIAL_RAVE_PART_1 || actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
                          actorData.action == REBELLION_AERIAL_RAVE_PART_3 || actorData.action == REBELLION_AERIAL_RAVE_PART_4);
@@ -1039,197 +1034,301 @@ void FreeRotationSwordMoves(byte8* actorBaseAddr) {
 
     bool inAir     = (actorData.state & STATE::IN_AIR);
     bool lastInAir = (actorData.lastState & STATE::IN_AIR);
+    static uint8 currentMovePlayer[PLAYER_COUNT] = { 0 };
+    static uint8 currentMoveClone[PLAYER_COUNT] = { 0 };
+    static uint8& currentMove = (actorData.newEntityIndex == 0) ? currentMovePlayer[playerIndex] : currentMoveClone[playerIndex];
+	auto& actionTimer =
+		(actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].actionTimerClone : crimsonPlayer[playerIndex].actionTimer;
 
+	auto GetAutoRotation = [&]() -> uint16 {
+		return (actorData.newEntityIndex == 0)
+			? crimsonPlayer[playerIndex].rotationTowardsEnemy2
+			: crimsonPlayer[playerIndex].rotationCloneTowardsEnemy2;
+		};
 
-    if (actorData.character == CHARACTER::DANTE) {
+	auto HandleRotationForMultiPartMove = [&](std::initializer_list<int> moveParts, uint16 stickRotation, uint16 autoRotation) {
+		// First part of the move
+		if (actorData.action == *moveParts.begin()) {
+			actorData.rotation = (stickRotation != static_cast<uint16>(-1)) ? stickRotation : autoRotation;
+			i->yamatoRave.cachedRotation = actorData.rotation;  // Cache rotation for subsequent parts
+		}
+		// For all subsequent parts of the multi-part move
+		else if (std::find(moveParts.begin() + 1, moveParts.end(), actorData.action) != moveParts.end()) {
+			actorData.rotation = i->yamatoRave.cachedRotation;
+		}
+		// For all other moves
+		else {
+			actorData.rotation = (stickRotation != static_cast<uint16>(-1)) ? stickRotation : autoRotation;
+		}
+	};
 
-        if (inAerialRave) {
+	if (actorData.eventData[0].event == ACTOR_EVENT::ATTACK) {
 
-            if (!lockOn) {
-                if (!(radius < RIGHT_STICK_DEADZONE)) {
+		if (!lockOn && actionTimer < 0.1f) {
+			uint16 stickRotation = (radius >= RIGHT_STICK_DEADZONE) ? rotationStick : static_cast<uint16>(-1);  // Use -1 as a flag for neutral stick
+            uint16 autoRotation = GetAutoRotation();
 
-                    actorData.rotation           = rotationStick;
-                    i->aerialRave.cachedRotation = actorData.rotation;
-                } else {
-                    actorData.rotation = i->aerialRave.cachedRotation;
-                }
-            }
+			if (currentMove != actorData.action) {
+				// Character-specific handling for multi-part moves
+				if (actorData.character == CHARACTER::DANTE) {
+                    HandleRotationForMultiPartMove({ REBELLION_HIGH_TIME, REBELLION_HIGH_TIME_LAUNCH }, stickRotation, autoRotation);
+				}
+				else if (actorData.character == CHARACTER::VERGIL) {
+                    HandleRotationForMultiPartMove({ YAMATO_FORCE_EDGE_HIGH_TIME, YAMATO_FORCE_EDGE_HIGH_TIME_LAUNCH }, stickRotation, autoRotation);
+				}
+				else {
+					// Default handling for other characters
+					actorData.rotation = (stickRotation != static_cast<uint16>(-1)) ? stickRotation : autoRotation;
+				}
 
-            if (lockOn) {
-                if (actorData.eventData[0].event == JUMP_CANCEL || actorData.eventData[0].event == AIR_HIKE) {
-                    actorData.rotation = i->aerialRave.cachedRotation;
-                }
-            }
-        } else if (actorData.action == CERBERUS_AIR_FLICKER) {
+				currentMove = actorData.action;  // Update current move
+			}
 
-            if (!lockOn) {
-                if (!(radius < RIGHT_STICK_DEADZONE)) {
-
-                    actorData.rotation           = rotationStick;
-                    i->airFlicker.cachedRotation = actorData.rotation;
-                } else {
-                    actorData.rotation = i->airFlicker.cachedRotation;
-                }
-            }
-
-            if (lockOn) {
-                if (actorData.eventData[0].event == JUMP_CANCEL || actorData.eventData[0].event == AIR_HIKE) {
-                    actorData.rotation = i->airFlicker.cachedRotation;
-                }
-            }
-        } else if (inSkyDance) {
-
-            if (!lockOn) {
-                if (!(radius < RIGHT_STICK_DEADZONE)) {
-
-                    actorData.rotation         = rotationStick;
-                    i->skyDance.cachedRotation = actorData.rotation;
-                } else {
-                    actorData.rotation = i->skyDance.cachedRotation;
-                }
-            }
-
-            if (lockOn) {
-                if (actorData.eventData[0].event == JUMP_CANCEL || actorData.eventData[0].event == AIR_HIKE) {
-                    actorData.rotation = i->skyDance.cachedRotation;
-                }
-            }
-        } else if (actorData.action == NEVAN_AIR_SLASH_PART_1 || actorData.action == NEVAN_AIR_SLASH_PART_2) {
-
-            if (!lockOn) {
-                if (!(radius < RIGHT_STICK_DEADZONE)) {
-
-                    actorData.rotation         = rotationStick;
-                    i->airSlash.cachedRotation = actorData.rotation;
-                } else {
-                    actorData.rotation = i->airSlash.cachedRotation;
-                }
-            }
-
-            if (lockOn) {
-                if (actorData.eventData[0].event == JUMP_CANCEL || actorData.eventData[0].event == AIR_HIKE) {
-                    actorData.rotation = i->airSlash.cachedRotation;
-                }
-            }
-
-        } else if (actorData.action == BEOWULF_THE_HAMMER) {
-
-            if (!lockOn) {
-                if (!(radius < RIGHT_STICK_DEADZONE)) {
-
-                    actorData.rotation          = rotationStick;
-                    i->theHammer.cachedRotation = actorData.rotation;
-                } else {
-                    actorData.rotation = i->theHammer.cachedRotation;
-                }
-            }
-
-            if (lockOn) {
-                if (actorData.eventData[0].event == JUMP_CANCEL || actorData.eventData[0].event == AIR_HIKE) {
-                    actorData.rotation = i->theHammer.cachedRotation;
-                }
-            }
-
-        } else if (actorData.action == BEOWULF_KILLER_BEE) {
-
-
-            // Keep Player's Rotation intact on jump cancelling, this is important for Inertia Redirection and is used for several moves.
-            if (lockOn) {
-                if (actorData.eventData[0].event == JUMP_CANCEL) {
-                    actorData.rotation = i->killerBee.cachedRotation;
-                }
-            }
-        } else if (actorData.airGuard) {
-
-            if (!lockOn) {
-                if (!(radius < RIGHT_STICK_DEADZONE)) {
-
-                    actorData.rotation         = rotationStick;
-                    i->airGuard.cachedRotation = actorData.rotation;
-                } else {
-                    actorData.rotation = i->airGuard.cachedRotation;
-                }
-            }
-
-            if (lockOn) {
-                if (actorData.eventData[0].event == JUMP_CANCEL) {
-                    actorData.rotation = i->airGuard.cachedRotation;
-                }
-            }
-        } else if (actorData.motionData[0].index == JUMP_CANCEL) {
-
-
-            if (actorData.eventData[0].event == JUMP_CANCEL &&
-                (actorData.action == REBELLION_AERIAL_RAVE_PART_1 || actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
-                    actorData.action == REBELLION_AERIAL_RAVE_PART_3 || actorData.action == REBELLION_AERIAL_RAVE_PART_4)) {
-
-                actorData.rotation = i->aerialRave.cachedRotation;
-            } else if (actorData.eventData[0].event == JUMP_CANCEL &&
-                       (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
-                           actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3)) {
-                actorData.rotation = i->skyDance.cachedRotation;
-            } else if (actorData.eventData[0].event == JUMP_CANCEL && (actorData.action == CERBERUS_AIR_FLICKER)) {
-                actorData.rotation = i->airFlicker.cachedRotation;
-            } else if (actorData.eventData[0].event == JUMP_CANCEL &&
-                       (actorData.action == NEVAN_AIR_SLASH_PART_1 || actorData.action == NEVAN_AIR_SLASH_PART_2)) {
-                actorData.rotation = i->airSlash.cachedRotation;
-            } else if (actorData.eventData[0].event == JUMP_CANCEL && (actorData.action == BEOWULF_THE_HAMMER)) {
-                actorData.rotation = i->theHammer.cachedRotation;
-            } else if (actorData.eventData[0].event == JUMP_CANCEL && (actorData.action == BEOWULF_KILLER_BEE)) {
-                actorData.rotation = i->killerBee.cachedRotation;
-            } else if (actorData.eventData[0].lastEvent == JUMP_CANCEL) {
-                actorData.rotation = i->skyStar.cachedRotation;
-            }
-
-
-        } else if (actorData.eventData[0].event == AIR_HIKE) {
-            if (lockOn) {
-
-                actorData.rotation = i->airHike.cachedRotation;
-            }
+			i->yamatoRave.cachedRotation = actorData.rotation;  // Keep cached rotation updated
+		}
+        else if (lockOn && actionTimer < 0.1f) {
+            actorData.rotation = GetAutoRotation();
         }
+	}
+	else {
+		if (actorData.eventData[0].lastEvent == ACTOR_EVENT::ATTACK) {
+			currentMove = 0;  // Reset move tracking after the attack
+		}
+	}
 
 
-        if (actorData.action != BEOWULF_KILLER_BEE) {
-
-            if (radius < RIGHT_STICK_DEADZONE) {
-                i->killerBee.cachedRotation = actorData.rotation;
-            }
-        }
-
-        if (actorData.eventData[0].event != ACTOR_EVENT::TRICKSTER_SKY_STAR) {
-            if (radius < RIGHT_STICK_DEADZONE) {
-                i->skyStar.cachedRotation = actorData.rotation;
-            }
-        }
-
-        if (actorData.eventData[0].event != AIR_HIKE) {
-            if (radius < RIGHT_STICK_DEADZONE) {
-                i->airHike.cachedRotation = actorData.rotation;
-            }
-        }
 
 
-    } else if (actorData.character == CHARACTER::VERGIL) {
+//     if (actorData.character == CHARACTER::DANTE) {
+// 
+//         if (inAerialRave) {
+// 
+//             if (!lockOn) {
+//                 if (!(radius < RIGHT_STICK_DEADZONE)) {
+// 
+//                     //actorData.rotation           = rotationStick;
+//                     i->aerialRave.cachedRotation = actorData.rotation;
+//                 }
+//                 else {
+//                     //actorData.rotation = i->aerialRave.cachedRotation;
+//                 }
+//             }
+// 
+//             if (lockOn) {
+//                 if (actorData.eventData[0].event == JUMP_CANCEL || actorData.eventData[0].event == AIR_HIKE) {
+//                     //actorData.rotation = i->aerialRave.cachedRotation;
+//                 }
+//             }
+//         }
+//         else if (actorData.action == CERBERUS_AIR_FLICKER) {
+// 
+//             if (!lockOn) {
+//                 if (!(radius < RIGHT_STICK_DEADZONE)) {
+// 
+//                     //actorData.rotation           = rotationStick;
+//                     i->airFlicker.cachedRotation = actorData.rotation;
+//                 }
+//                 else {
+//                     //actorData.rotation = i->airFlicker.cachedRotation;
+//                 }
+//             }
+// 
+//             if (lockOn) {
+//                 if (actorData.eventData[0].event == JUMP_CANCEL || actorData.eventData[0].event == AIR_HIKE) {
+//                     //actorData.rotation = i->airFlicker.cachedRotation;
+//                 }
+//             }
+//         }
+//         else if (inSkyDance) {
+// 
+//             if (!lockOn) {
+//                 if (!(radius < RIGHT_STICK_DEADZONE)) {
+// 
+//                     //actorData.rotation         = rotationStick;
+//                     i->skyDance.cachedRotation = actorData.rotation;
+//                 }
+//                 else {
+//                     //actorData.rotation = i->skyDance.cachedRotation;
+//                 }
+//             }
+// 
+//             if (lockOn) {
+//                 if (actorData.eventData[0].event == JUMP_CANCEL || actorData.eventData[0].event == AIR_HIKE) {
+//                     //actorData.rotation = i->skyDance.cachedRotation;
+//                 }
+//             }
+//         }
+//         else if (actorData.action == NEVAN_AIR_SLASH_PART_1 || actorData.action == NEVAN_AIR_SLASH_PART_2) {
+// 
+//             if (!lockOn) {
+//                 if (!(radius < RIGHT_STICK_DEADZONE)) {
+// 
+//                     //actorData.rotation         = rotationStick;
+//                     i->airSlash.cachedRotation = actorData.rotation;
+//                 }
+//                 else {
+//                     //actorData.rotation = i->airSlash.cachedRotation;
+//                 }
+//             }
+// 
+//             if (lockOn) {
+//                 if (actorData.eventData[0].event == JUMP_CANCEL || actorData.eventData[0].event == AIR_HIKE) {
+//                     //actorData.rotation = i->airSlash.cachedRotation;
+//                 }
+//             }
+// 
+//         }
+//         else if (actorData.action == BEOWULF_THE_HAMMER) {
+// 
+//             if (!lockOn) {
+//                 if (!(radius < RIGHT_STICK_DEADZONE)) {
+// 
+//                     //actorData.rotation          = rotationStick;
+//                     i->theHammer.cachedRotation = actorData.rotation;
+//                 }
+//                 else {
+//                     //actorData.rotation = i->theHammer.cachedRotation;
+//                 }
+//             }
+// 
+//             if (lockOn) {
+//                 if (actorData.eventData[0].event == JUMP_CANCEL || actorData.eventData[0].event == AIR_HIKE) {
+//                     //actorData.rotation = i->theHammer.cachedRotation;
+//                 }
+//             }
+// 
+//         }
+//         else if (actorData.action == BEOWULF_KILLER_BEE) {
+// 
+// 
+//             // Keep Player's Rotation intact on jump cancelling, this is important for Inertia Redirection and is used for several moves.
+//             if (lockOn) {
+//                 if (actorData.eventData[0].event == JUMP_CANCEL) {
+//                     actorData.rotation = i->killerBee.cachedRotation;
+//                 }
+//             }
+//         }
+//         else if (actorData.airGuard) {
+// 
+//             if (!lockOn) {
+//                 if (!(radius < RIGHT_STICK_DEADZONE)) {
+// 
+//                     //actorData.rotation         = rotationStick;
+//                     i->airGuard.cachedRotation = actorData.rotation;
+//                 }
+//                 else {
+//                     actorData.rotation = i->airGuard.cachedRotation;
+//                 }
+//             }
+// 
+//             if (lockOn) {
+//                 if (actorData.eventData[0].event == JUMP_CANCEL) {
+//                     actorData.rotation = i->airGuard.cachedRotation;
+//                 }
+//             }
+//         }
+//         else if (actorData.motionData[0].index == JUMP_CANCEL) {
+// 
+// 
+//             if (actorData.eventData[0].event == JUMP_CANCEL &&
+//                 (actorData.action == REBELLION_AERIAL_RAVE_PART_1 || actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+//                     actorData.action == REBELLION_AERIAL_RAVE_PART_3 || actorData.action == REBELLION_AERIAL_RAVE_PART_4)) {
+// 
+//                 actorData.rotation = i->aerialRave.cachedRotation;
+//             }
+//             else if (actorData.eventData[0].event == JUMP_CANCEL &&
+//                 (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
+//                     actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3)) {
+//                 actorData.rotation = i->skyDance.cachedRotation;
+//             }
+//             else if (actorData.eventData[0].event == JUMP_CANCEL && (actorData.action == CERBERUS_AIR_FLICKER)) {
+//                 actorData.rotation = i->airFlicker.cachedRotation;
+//             }
+//             else if (actorData.eventData[0].event == JUMP_CANCEL &&
+//                 (actorData.action == NEVAN_AIR_SLASH_PART_1 || actorData.action == NEVAN_AIR_SLASH_PART_2)) {
+//                 actorData.rotation = i->airSlash.cachedRotation;
+//             }
+//             else if (actorData.eventData[0].event == JUMP_CANCEL && (actorData.action == BEOWULF_THE_HAMMER)) {
+//                 actorData.rotation = i->theHammer.cachedRotation;
+//             }
+//             else if (actorData.eventData[0].event == JUMP_CANCEL && (actorData.action == BEOWULF_KILLER_BEE)) {
+//                 actorData.rotation = i->killerBee.cachedRotation;
+//             }
+//             else if (actorData.eventData[0].lastEvent == JUMP_CANCEL) {
+//                 actorData.rotation = i->skyStar.cachedRotation;
+//             }
+// 
+// 
+//         }
+//         else if (actorData.eventData[0].event == AIR_HIKE) {
+//             if (lockOn) {
+// 
+//                 //actorData.rotation = i->airHike.cachedRotation;
+//             }
+//         }
+// 
+// 
+//         if (actorData.action != BEOWULF_KILLER_BEE) {
+// 
+//             if (radius < RIGHT_STICK_DEADZONE) {
+//                 i->killerBee.cachedRotation = actorData.rotation;
+//             }
+//         }
+// 
+//         if (actorData.eventData[0].event != ACTOR_EVENT::TRICKSTER_SKY_STAR) {
+//             if (radius < RIGHT_STICK_DEADZONE) {
+//                 i->skyStar.cachedRotation = actorData.rotation;
+//             }
+//         }
+// 
+//         if (actorData.eventData[0].event != AIR_HIKE) {
+//             if (radius < RIGHT_STICK_DEADZONE) {
+//                 i->airHike.cachedRotation = actorData.rotation;
+//             }
+//         }
+//     }
 
-        if (actorData.action == YAMATO_AERIAL_RAVE_PART_1 || actorData.action == YAMATO_AERIAL_RAVE_PART_2) {
+//     if (actorData.character == CHARACTER::DANTE) {
+// 
+// 		if (actorData.eventData[0].event == ACTOR_EVENT::ATTACK) {
+// 
+// 			if (!lockOn && actionTimer < 0.1f) {
+// 				if (!(radius < RIGHT_STICK_DEADZONE)) {
+// 
+// 					if (currentMoveDante != actorData.action) {
+// 						actorData.rotation = rotationStick;
+//                         currentMoveDante = actorData.action;
+// 					}
+// 					i->yamatoRave.cachedRotation = actorData.rotation;
+// 				}
+// 				else {
+// 					if (currentMoveDante != actorData.action) {
+// 						actorData.rotation = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].rotationTowardsEnemy2 : crimsonPlayer[playerIndex].rotationCloneTowardsEnemy2;
+//                         currentMoveDante = actorData.action;
+// 					}
+// 
+// 
+// 
+// 				}
+// 			}
+// 		}
+// 		else {
+// 			if (actorData.eventData[0].lastEvent == ACTOR_EVENT::ATTACK) {
+// 				currentMoveDante = 0;
+// 			}
+// 		}
+    
+    
+   
 
-            if (!lockOn) {
-                if (!(radius < RIGHT_STICK_DEADZONE)) {
 
-                    actorData.rotation           = rotationStick;
-                    i->yamatoRave.cachedRotation = actorData.rotation;
-                } else {
-                    actorData.rotation = i->yamatoRave.cachedRotation;
-                }
-            }
-        }
-    }
+        
+    
 }
 
 
 void StoreInertia(byte8* actorBaseAddr) {
-    // Here we store Momentum (Horizontal Pull) for Inertia and Rotation for FreeRotationSwordMoves. - Mia
+    // Here we store Momentum (Horizontal Pull) for Inertia and Rotation for FreeformSoftLockController. - Mia
     using namespace ACTION_DANTE;
     using namespace ACTION_VERGIL;
     // using namespace ACTOR_EVENT;
@@ -2212,6 +2311,60 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 // 	}
 	
 }
+
+void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) {
+		return;
+	}
+
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& rotationTowardsEnemy = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].rotationTowardsEnemy2 : crimsonPlayer[playerIndex].rotationCloneTowardsEnemy2;
+
+	uint16 currentRotation = actorData.rotation;
+	uint16 rotationUncalculated = actorData.lockOnData.rotationTowardsTarget;
+	uint16 rotationOffset = actorData.rotationOffset;
+	double rotationOffsetInverted = static_cast<double>(rotationOffset) * -1.0;
+	double rotationPreppedForCalc = 0.0;
+	uint16 finalRotationTowardsEnemy = 0;
+
+	// Calculating rotation difference
+	double rotationDifference = static_cast<double>(rotationUncalculated) - static_cast<double>(currentRotation);
+	double rotationDifferenceInverted = rotationDifference * -1.0;
+
+	g_rotationDifference = static_cast<float>(rotationDifference); // If needed for logging/debugging
+
+	// Correcting the logic
+	if (rotationDifference <= 0) {
+		rotationPreppedForCalc = (rotationDifferenceInverted <= rotationOffset) ? rotationDifferenceInverted : rotationOffsetInverted;
+	}
+	else {
+		rotationPreppedForCalc = (rotationDifference <= rotationOffset) ? rotationDifference : static_cast<double>(rotationOffset);
+	}
+// 	std::cout << "rotationUncalculated: " << rotationUncalculated << std::endl;
+// 	std::cout << "currentRotation: " << currentRotation << std::endl;
+// 	std::cout << "rotationDifference: " << rotationDifference << std::endl;
+//     std::cout << "rotationDifferenceInv: " << rotationDifferenceInverted << std::endl;
+// 	std::cout << "rotationOffset: " << rotationOffset << std::endl;
+// 	std::cout << "rotationOffsetInverted: " << rotationOffsetInverted << std::endl;
+//     std::cout << "rotationPreppedForCalc: " << rotationPreppedForCalc << std::endl;
+	g_rotationBeforeCalculation = static_cast<float>(rotationPreppedForCalc); // Still storing as float for reference
+
+	// Start calculations
+	rotationPreppedForCalc *= 360.0;
+	rotationPreppedForCalc *= 0.00001525878906; // normalize to range 0.0 - 0.1
+	rotationPreppedForCalc *= static_cast<double>(actorData.speed);
+	rotationPreppedForCalc *= 65536.0;
+	rotationPreppedForCalc /= 360.0;
+	rotationPreppedForCalc += 0.5;
+
+	g_rotationCalculated = rotationPreppedForCalc;
+
+	finalRotationTowardsEnemy = static_cast<uint16>(rotationUncalculated);
+	rotationTowardsEnemy = finalRotationTowardsEnemy;
+}
+
 
 #pragma endregion
 

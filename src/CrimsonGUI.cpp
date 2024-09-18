@@ -7520,6 +7520,14 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			ImGui::Text("actorCameraDirection: %u", actorData.actorCameraDirection);
+			ImGui::Text("Rotation Difference: %g", g_rotationDifference);
+			ImGui::Text("Rotation Offset: %u", actorData.rotationOffset);
+			ImGui::Text("Rotation Before: %g", g_rotationBeforeCalculation);
+			ImGui::Text("Rotation Calculated: %g", g_rotationCalculated);
+			ImGui::Text("Rotation Towards Enemy2: %u", crimsonPlayer[0].rotationTowardsEnemy2);
+			ImGui::Text("Rotation Towards Enemy: %u", crimsonPlayer[0].rotationTowardsEnemy);
+			ImGui::Text("Rotation Clone Towards Enemy: %u", crimsonPlayer[0].rotationCloneTowardsEnemy);
 			ImGui::Text("isMPActive:  %u", g_isMPCamActive);
 			ImGui::Text("isPanoramaCamActive:  %u", g_isParanoramicCamActive);
 			ImGui::Text("CAMERA LAG:  %g", cameraData.cameraLag);
@@ -7602,9 +7610,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
             ImGui::Text("Position  %g", actorData.position);
             ImGui::Text("Rotation %g", actorData.rotation);
-            ImGui::Text("Camera Direction %g", actorData.cameraDirection);
-            ImGui::Text("Actor Camera Direction %g", actorData.actorCameraDirection);
-            ImGui::Text("RelativeTilt %g", relativeTiltController);
+            ImGui::Text("Camera Direction %u", actorData.cameraDirection);
+            ImGui::Text("Actor Camera Direction %u", actorData.actorCameraDirection);
+            ImGui::Text("RelativeTilt %u", relativeTiltController);
             ImGui::Text("LeftStick Position %u", gamepad.leftStickPosition);
             ImGui::Text("Air Stinger End Timer %u", airStingerEnd.timer);
             ImGui::Text("Air Stinger End Time Int %u", airStingerEndTimeInt);
