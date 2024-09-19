@@ -5858,9 +5858,9 @@ void ImGui::RenderWindowTitleBarContents(ImGuiWindow* window, const ImRect& titl
     }
 
     // Collapse button (submitting first so it gets priority when choosing a navigation init fallback)
-    if (has_collapse_button)
-        if (CollapseButton(window->GetID("#COLLAPSE"), collapse_button_pos, NULL))
-            window->WantCollapseToggle = true; // Defer actual collapsing to next frame as we are too far in the Begin() function
+//     if (has_collapse_button)
+//         if (CollapseButton(window->GetID("#COLLAPSE"), collapse_button_pos, NULL))
+//             window->WantCollapseToggle = true; // Defer actual collapsing to next frame as we are too far in the Begin() function
 
     // Close button
     if (has_close_button)
