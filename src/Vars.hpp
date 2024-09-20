@@ -4467,6 +4467,7 @@ extern float rainstormPull;
 extern float storedHP;
 extern float storedDT;
 
+
 struct CrimsonPlayerData {
     uintptr_t playerPtr;
     uint8 action     = 0;
@@ -4525,7 +4526,6 @@ struct CrimsonPlayerData {
     SimpleVec3 playerScreenPosition = { 0,0,0 };
     bool playerOutOfView = false;
     uint16 rotationTowardsEnemy = 0;
-    uint16 rotationTowardsEnemy2 = 0;
 
     AirRaveTweak airRaveTweak;
 
@@ -4558,11 +4558,11 @@ struct CrimsonPlayerData {
     SimpleVec3 cloneScreenPosition = { 0,0,0 };
     bool cloneOutOfView = false;
     uint16 rotationCloneTowardsEnemy = 0;
-    uint16 rotationCloneTowardsEnemy2 = 0;
 
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];
+
 
 struct HeldStyleExpData {
     float styleExpPoints = 0;

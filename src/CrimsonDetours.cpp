@@ -416,7 +416,7 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
 
 uint16 ActorCameraDirectionToEnemyCameraDirection(PlayerActorData& actorData) {
 	auto playerIndex = actorData.newPlayerIndex;
-	auto& rotationTowardsEnemy = (actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].rotationCloneTowardsEnemy2 : crimsonPlayer[playerIndex].rotationTowardsEnemy2;
+	auto& rotationTowardsEnemy = (actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].rotationCloneTowardsEnemy : crimsonPlayer[playerIndex].rotationTowardsEnemy;
 
 	auto enemyCameraDirection = rotationTowardsEnemy - actorData.cameraDirection;
 	return enemyCameraDirection;

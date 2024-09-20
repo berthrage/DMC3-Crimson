@@ -1023,8 +1023,8 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
 
 	auto GetAutoRotation = [&]() -> uint16 {
 		return (actorData.newEntityIndex == 0)
-			? crimsonPlayer[playerIndex].rotationTowardsEnemy2
-			: crimsonPlayer[playerIndex].rotationCloneTowardsEnemy2;
+			? crimsonPlayer[playerIndex].rotationTowardsEnemy
+			: crimsonPlayer[playerIndex].rotationCloneTowardsEnemy;
 		};
 
 	auto HandleRotationForMultiPartMove = [&](std::initializer_list<int> moveParts, uint16 stickRotation) {
@@ -1298,7 +1298,7 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
 // 				}
 // 				else {
 // 					if (currentMoveDante != actorData.action) {
-// 						actorData.rotation = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].rotationTowardsEnemy2 : crimsonPlayer[playerIndex].rotationCloneTowardsEnemy2;
+// 						actorData.rotation = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].rotationTowardsEnemy : crimsonPlayer[playerIndex].rotationCloneTowardsEnemy;
 //                         currentMoveDante = actorData.action;
 // 					}
 // 
@@ -2315,7 +2315,7 @@ void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
 
 	auto playerIndex = actorData.newPlayerIndex;
-	auto& rotationTowardsEnemy = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].rotationTowardsEnemy2 : crimsonPlayer[playerIndex].rotationCloneTowardsEnemy2;
+	auto& rotationTowardsEnemy = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].rotationTowardsEnemy : crimsonPlayer[playerIndex].rotationCloneTowardsEnemy;
 
 	uint16 currentRotation = actorData.rotation;
 	uint16 rotationUncalculated = actorData.lockOnData.rotationTowardsTarget;

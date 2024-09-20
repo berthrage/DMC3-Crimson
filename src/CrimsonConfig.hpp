@@ -7,7 +7,8 @@
 #include "Vars.hpp"
 
 #include "Core/DebugSwitch.hpp"
-
+#pragma optimize("", off) // Disable all optimizations
+#pragma pack(push, 8)
 struct CrimsonConfig {
 	struct MultiplayerBars2D {
 		bool show = true;
@@ -347,6 +348,7 @@ struct CrimsonConfig {
 	}
 };
 
+
 // Same as in old ddmk, but with new config variables. We declare three config variables, each
 // serving a different purpose:
 // 
@@ -361,3 +363,5 @@ struct CrimsonConfig {
 extern CrimsonConfig defaultCrimsonConfig;
 extern CrimsonConfig queuedCrimsonConfig;
 extern CrimsonConfig activeCrimsonConfig;
+#pragma pack(pop)
+#pragma optimize("", on) // Re-enable optimizations

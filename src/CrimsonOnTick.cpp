@@ -324,7 +324,7 @@ void MultiplayerCameraPositioningController() {
 
 
 	// Only set triggerPanoramicCam to false if all enemies are far enough
-	triggerPanoramicCam = !allEnemiesFarAway;
+	triggerPanoramicCam = !allEnemiesFarAway && activeCrimsonConfig.Camera.panoramicCamera;
 
 	// Camera behavior based on player count and trigger status
 	if (activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) {

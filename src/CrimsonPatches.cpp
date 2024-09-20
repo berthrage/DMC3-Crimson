@@ -235,7 +235,7 @@ void CameraFollowUpSpeedController() {
 
 
 	auto dynamicCameraLag = [&](float normalLag, float lockOnLag, float lockOnDuration) {
-		if (mainActorData.lockOn && activeConfig.Actor.playerCount > 1) {
+		if (mainActorData.lockOn && activeConfig.Actor.playerCount == 1) {
 			// If lockOn is true and timer is not active, start the timer
 			if (!isLockOnTimerActive) {
 				lockOnStartTime = std::chrono::steady_clock::now();

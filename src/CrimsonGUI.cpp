@@ -7522,7 +7522,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             // crazyComboHold = g_HoldToCrazyComboFuncA();
 			ImGui::Text("actorCameraDirection: %u", actorData.actorCameraDirection);
 			ImGui::Text("Rotation Offset: %u", actorData.rotationOffset);
-			ImGui::Text("Rotation Towards Enemy2: %u", crimsonPlayer[0].rotationTowardsEnemy2);
+			ImGui::Text("Rotation Towards Enemy2: %u", crimsonPlayer[0].rotationTowardsEnemy);
 			ImGui::Text("isMPActive:  %u", g_isMPCamActive);
 			ImGui::Text("isPanoramicCamActive:  %u", g_isParanoramicCamActive);
 			ImGui::Text("CAMERA LAG:  %g", cameraData.cameraLag);

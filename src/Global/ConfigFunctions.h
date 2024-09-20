@@ -3,7 +3,7 @@
 #include <type_traits>
 #include "CrimsonConfigHandling.h"
 #include <filewritestream.h>
-
+#pragma optimize("", off) // Disable all optimizations
 #ifdef NO_SAVE
 void SaveConfigFunction()
 #else
@@ -142,3 +142,4 @@ void InitConfig()
 
 	g_allocator = &root.GetAllocator();
 }
+#pragma optimize("", on) // Re-enable optimizations
