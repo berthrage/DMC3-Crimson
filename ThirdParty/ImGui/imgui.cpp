@@ -7916,6 +7916,7 @@ bool ImGui::ItemAdd(const ImRect& bb, ImGuiID id, const ImRect* nav_bb_arg)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
+	
 
     if (id != 0)
     {
@@ -7928,11 +7929,12 @@ bool ImGui::ItemAdd(const ImRect& bb, ImGuiID id, const ImRect* nav_bb_arg)
         //      to reach unclipped widgets. This would work if user had explicit scrolling control (e.g. mapped on a stick).
         // We intentionally don't check if g.NavWindow != NULL because g.NavAnyRequest should only be set when it is non null.
         // If we crash on a NULL g.NavWindow we need to fix the bug elsewhere.
+		if (!g.NavWindow || g.NavWindow == nullptr) {
+			return false;
+		}
         window->DC.NavLayerActiveMaskNext |= (1 << window->DC.NavLayerCurrent);
         if (g.NavId == id || g.NavAnyRequest)
-            if (!g.NavWindow || g.NavWindow == nullptr) {
-                return false;
-            }
+            
             if (g.NavWindow->RootWindowForNav == window->RootWindowForNav)
                 if (window == g.NavWindow || ((window->Flags | g.NavWindow->Flags) & ImGuiWindowFlags_NavFlattened))
                     NavProcessItem(window, nav_bb_arg ? *nav_bb_arg : bb, id);
