@@ -267,7 +267,7 @@ void HandlePanoramicSPCameraDistance(float& cameraDistance, float groundDistance
 	float scaleFactorY = screenWidth / baseResY;
 
 	// Define the screen margin buffer
-	const float screenMarginForZoomIn = 90.0f * scaleFactorX;  // Safe margin for zooming in
+	const float screenMarginForZoomIn = 105.0f * scaleFactorX;  // Safe margin for zooming in
 	const float screenMarginForZoomOut = 50.0f * scaleFactorX;
 
 	float maxDistance = (mainActorData.state & STATE::IN_AIR) ? 1000.0f : 780.0f; // Maximum allowed camera distance

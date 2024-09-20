@@ -179,6 +179,8 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
     auto inAir = (actorData.state & STATE::IN_AIR);
 
     auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+    auto playerIndex = actorData.newPlayerIndex;
+    auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 
 
     bool inCancellableActionRebellion =
@@ -198,7 +200,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
             actorData.action == CERBERUS_COMBO_1_PART_3 || actorData.action == CERBERUS_COMBO_1_PART_4 ||
             actorData.action == CERBERUS_COMBO_1_PART_5 || actorData.action == CERBERUS_COMBO_2_PART_3 ||
             actorData.action == CERBERUS_COMBO_2_PART_4 || actorData.action == CERBERUS_WINDMILL ||
-            actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2 ||
+            (actorData.action == CERBERUS_REVOLVER_LEVEL_1 && actionTimer > 1.25f) || (actorData.action == CERBERUS_REVOLVER_LEVEL_2  && actionTimer > 1.25f) ||
             actorData.action == CERBERUS_SWING || actorData.action == CERBERUS_SATELLITE || actorData.action == CERBERUS_FLICKER ||
             actorData.action == CERBERUS_CRYSTAL || actorData.action == CERBERUS_MILLION_CARATS || actorData.action == CERBERUS_ICE_AGE);
 
@@ -333,6 +335,8 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
     auto& actorData    = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     auto lockOn        = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
     auto tiltDirection = GetRelativeTiltDirection(actorData);
+    auto playerIndex = actorData.newPlayerIndex;
+    auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 
 
     bool inCancellableActionRebellion =
@@ -352,9 +356,9 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
             actorData.action == CERBERUS_COMBO_1_PART_3 || actorData.action == CERBERUS_COMBO_1_PART_4 ||
             actorData.action == CERBERUS_COMBO_1_PART_5 || actorData.action == CERBERUS_COMBO_2_PART_3 ||
             actorData.action == CERBERUS_COMBO_2_PART_4 || actorData.action == CERBERUS_WINDMILL ||
-            actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2 ||
+            (actorData.action == CERBERUS_REVOLVER_LEVEL_1 && actionTimer > 1.25f) || (actorData.action == CERBERUS_REVOLVER_LEVEL_2 && actionTimer > 1.25f) ||
             actorData.action == CERBERUS_SWING || actorData.action == CERBERUS_SATELLITE || actorData.action == CERBERUS_FLICKER ||
-            actorData.action == CERBERUS_CRYSTAL || actorData.action == CERBERUS_MILLION_CARATS || actorData.action == CERBERUS_ICE_AGE);
+            actorData.action == CERBERUS_CRYSTAL || actorData.action == CERBERUS_MILLION_CARATS);
 
     bool inCancellableActionAgni =
         (actorData.action == AGNI_RUDRA_COMBO_1_PART_1 || actorData.action == AGNI_RUDRA_COMBO_1_PART_2 ||
@@ -395,7 +399,6 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
                                              actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT);
 
 
-    auto playerIndex = actorData.newPlayerIndex;
     if (playerIndex >= PLAYER_COUNT) {
         playerIndex = 0;
     }
@@ -416,6 +419,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
     auto& skyLaunch = crimsonPlayer[playerIndex].skyLaunch;
 
     static bool executes[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][4] = {};
+    auto& cancels = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].cancels : crimsonPlayer[playerIndex].cancelsClone;
 
     if (actorData.character == CHARACTER::DANTE) {
 
@@ -428,23 +432,12 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
                 skyLaunch.executing || actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_SKY_STAR)) {
             if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
 
+				if (cancels.canTrick) {
 
-                if (actorData.newEntityIndex == ENTITY::MAIN) {
-                    if (crimsonPlayer[playerIndex].cancels.canTrick) {
+					actorData.state &= ~STATE::BUSY;
 
-                        actorData.state &= ~STATE::BUSY;
-
-                        crimsonPlayer[playerIndex].cancels.canTrick = false;
-                    }
-
-                } else {
-                    if (crimsonPlayer[playerIndex].cancelsClone.canTrick) {
-
-                        actorData.state &= ~STATE::BUSY;
-
-                        crimsonPlayer[playerIndex].cancelsClone.canTrick = false;
-                    }
-                }
+					cancels.canTrick = false;
+				}
             }
         }
 
@@ -456,23 +449,12 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
             actorData.action != EBONY_IVORY_RAIN_STORM) {
             if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
 
-                if (actorData.newEntityIndex == ENTITY::MAIN) {
+				if (cancels.canGun) {
 
-                    if (crimsonPlayer[playerIndex].cancels.canGun) {
+					actorData.state &= ~STATE::BUSY;
 
-                        actorData.state &= ~STATE::BUSY;
-
-                        crimsonPlayer[playerIndex].cancels.canGun = false;
-                    }
-
-                } else {
-                    if (crimsonPlayer[playerIndex].cancelsClone.canGun) {
-
-                        actorData.state &= ~STATE::BUSY;
-
-                        crimsonPlayer[playerIndex].cancelsClone.canGun = false;
-                    }
-                }
+					cancels.canGun = false;
+				}
             }
         }
 
@@ -481,44 +463,30 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
             (crimsonPlayer[playerIndex].cancels.canRainstorm) && (actorData.action == EBONY_IVORY_RAIN_STORM)) {
             if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) {
 
+				if (cancels.canRainstorm) {
 
-                if (actorData.newEntityIndex == ENTITY::MAIN) {
+					actorData.state &= ~STATE::BUSY;
 
-                    if (crimsonPlayer[playerIndex].cancels.canRainstorm) {
-
-                        actorData.state &= ~STATE::BUSY;
-
-                        crimsonPlayer[playerIndex].cancels.canRainstorm = false;
-                    }
-
-                } else {
-                    if (crimsonPlayer[playerIndex].cancelsClone.canRainstorm) {
-
-                        actorData.state &= ~STATE::BUSY;
-
-                        crimsonPlayer[playerIndex].cancelsClone.canRainstorm = false;
-                    }
-                }
+				    cancels.canRainstorm = false;
+				}
             }
         }
 
         // This prevents the double Rainstorm from happening (but I still left it on Fireworks and Artemis Shots).
         if (actorData.action == EBONY_IVORY_RAIN_STORM && actorData.motionData[0].index == 15) {
 
-            if (actorData.newEntityIndex == ENTITY::MAIN) {
+			if (cancels.canRainstorm) {
 
-                if (crimsonPlayer[playerIndex].cancels.canRainstorm) {
-
-                    crimsonPlayer[playerIndex].cancels.canRainstorm = false;
-                }
-
-            } else {
-                if (crimsonPlayer[playerIndex].cancelsClone.canRainstorm) {
-
-                    crimsonPlayer[playerIndex].cancelsClone.canRainstorm = false;
-                }
-            }
+				cancels.canRainstorm = false;
+			}
         }
+
+        // Reset Timers if you jump cancel
+		if (actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
+			cancels.canTrick = true;
+			cancels.canGun = true;
+			cancels.canRainstorm = true;
+		}
     }
 
     old_for_all(uint8, buttonIndex, 4) {
@@ -528,7 +496,6 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
 
 
         if (actorData.character == CHARACTER::DANTE) {
-
 
             // Swordmaster moves cancel out Trickster dashes
             uint32 eventActor = actorData.eventData[0].event;
@@ -583,6 +550,8 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
             }*/
         }
     }
+
+    
 }
 
 
