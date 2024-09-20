@@ -7526,6 +7526,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			ImGui::Text("isMPActive:  %u", g_isMPCamActive);
 			ImGui::Text("isPanoramicCamActive:  %u", g_isParanoramicCamActive);
 			ImGui::Text("CAMERA LAG:  %g", cameraData.cameraLag);
+			ImGui::Text("LOCK ON CAM:  %u", cameraData.transitionToLockOnCam);
+			ImGui::Text("ACTOR SPEED:  %g", actorData.speed);
 			ImGui::Text("ALL ENTITY COUNT:  %u", g_activeAllEntitiesCount);
 			ImGui::Text("PLAYABLE ENTITY COUNT:  %u", g_activePlayableEntitiesCount);
 			ImGui::Text("avgPos x: %g", g_customCameraPos[0]);
@@ -9389,6 +9391,23 @@ void GameplayOptions() {
 		TooltipHelper("(?)", "Requires Actor System.\n"
 			"\n"
 			"Disables the cooldown for Jump Cancels.");
+
+		if (GUI_Checkbox2("Increased Enemy Juggle Time", activeCrimsonConfig.Gameplay.General.increasedEnemyJuggleTime, 
+			queuedCrimsonConfig.Gameplay.General.increasedEnemyJuggleTime)) {
+			CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonConfig.Gameplay.General.increasedEnemyJuggleTime);
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", 
+			"Increases the stagger value each move does in the air\n"
+			"Similarly to DMC5 Behavior.");
+
+		if (GUI_Checkbox2("Faster Turn Rate", activeCrimsonConfig.Gameplay.General.fasterTurnRate, 
+			queuedCrimsonConfig.Gameplay.General.fasterTurnRate)) {
+			CrimsonDetours::ToggleFasterTurnRate(activeCrimsonConfig.Gameplay.General.fasterTurnRate);
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", 
+			"Increases movement turn rate.");
 
         ImGui::Text("");
 

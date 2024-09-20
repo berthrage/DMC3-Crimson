@@ -2239,7 +2239,8 @@ struct CameraData {
     float roll; // 0x24
     _(72);
     vec4 data[2]; // 0x70
-    _(32);
+    uint8 transitionToLockOnCam; // 0x90
+    _(31);
     byte8* targetBaseAddr; // 0xB0
     _(24);
     float height;   // 0xD0
@@ -2255,6 +2256,7 @@ struct CameraData {
 static_assert(offsetof(CameraData, fov) == 0x20);
 static_assert(offsetof(CameraData, roll) == 0x24);
 static_assert(offsetof(CameraData, data) == 0x70);
+static_assert(offsetof(CameraData, transitionToLockOnCam) == 0x90);
 static_assert(offsetof(CameraData, targetBaseAddr) == 0xB0);
 static_assert(offsetof(CameraData, height) == 0xD0);
 static_assert(offsetof(CameraData, tilt) == 0xD4);

@@ -147,6 +147,11 @@ std::uint64_t g_DMC4LockOnDirection_ReturnAddr;
 void DMC4LockOnDirectionDetour();
 void* g_DMC4LockOnDirectionCall;
 
+// FasterTurnRate
+std::uint64_t g_FasterTurnRate_ReturnAddr;
+std::uint64_t g_FasterTurnRateCallAddr;
+void FasterTurnRateDetour();
+
 // StyleRankHUDNoFadeout
 std::uint64_t g_StyleRankHudNoFadeout_ReturnAddr;
 void StyleRankHudNoFadeoutDetour();
@@ -417,6 +422,10 @@ uint16 ActorCameraDirectionToEnemyCameraDirection(PlayerActorData& actorData) {
 	return enemyCameraDirection;
 }
 
+float CalculateIdealTurnRateSpeed(PlayerActorData& actorData) {
+	return actorData.speed * 1.9f;
+}
+
 void InitDetours() {
     using namespace Utility;
     DetourBaseAddr = (uintptr_t)appBaseAddr;
@@ -471,6 +480,28 @@ void InitDetours() {
     // VergilNeutralTrickHook->Toggle(true);
 }
 
+void ToggleFasterTurnRate(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// FasterTurnRate
+	// dmc3.exe + 1FC5D5 - E8 D6 13 13 00 - call dmc3.exe+32D9B0
+	// dmc3.exe + 1FC5DA - 44 0F B7 0F - movzx r9d,word ptr [rdi]
+	// dmc3.exe + 1FC5DE - 44 0F B7 D0 - movzx r10d, ax { value in ax (return from call) holds turn rate speed }
+	static std::unique_ptr<Utility::Detour_t> FasterTurnRateHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1FC5D5, &FasterTurnRateDetour, 13);
+	g_FasterTurnRate_ReturnAddr = FasterTurnRateHook->GetReturnAddress();
+	g_FasterTurnRateCallAddr = (uintptr_t)appBaseAddr + 0x32D9B0;
+	FasterTurnRateHook->Toggle(enable);
+	
+
+	run = enable;
+}
+
 void ToggleFreeformSoftLockHelper(bool enable) {
 	using namespace Utility;
 	static bool run = false;
@@ -499,6 +530,8 @@ void ToggleDMC4LockOnDirection(bool enable) {
 	}
 
 	// DMC4/5LockOnDirection
+	// relativeTilt = actorCameraDirection - leftStickPosition
+	// actorCameraDirection = currentRotation - cameraDirection
 	// dmc3.exe + 1EBF42 - 66 89 83 0C 75 00 00 - mov[rbx + 0000750C], ax{ Set actorCameraDirection }
 	static std::unique_ptr<Utility::Detour_t> DMC4LockOnDirectionHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EBF42, &DMC4LockOnDirectionDetour, 7);

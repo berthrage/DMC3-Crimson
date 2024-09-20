@@ -205,7 +205,7 @@ void MultiplayerCameraPositioningController() {
 	g_customCameraPos[3] = 1.0f; // W
 
 	int entityCount = 0; // Track valid entities for averaging
-	float playerWeight = 2.0f;  // Weight for playable characters
+	float playerWeight = 5.0f;  // Weight for playable characters
 	float enemyWeight = 1.0f;   // Weight for enemies
 	float totalWeight = 0.0f;
 
@@ -297,8 +297,10 @@ void MultiplayerCameraPositioningController() {
 		}
 	}
 
-	bool triggerParanoramicCam = activeCrimsonConfig.Camera.panoramicCamera ? true : false;
-	for (std::size_t i = 0; i < 50; ++i) {
+	bool triggerPanoramicCam = activeCrimsonConfig.Camera.panoramicCamera ? true : false;
+	bool allEnemiesFarAway = true;
+
+	for (std::size_t i = 0; i < enemyVectorData.count; ++i) {
 		auto& enemy = enemyVectorData.metadata[i];
 		if (!enemy.baseAddr) continue;
 		auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
@@ -312,11 +314,17 @@ void MultiplayerCameraPositioningController() {
 		float distanceto1P = glm::distance(enemyPos, playerPos);
 
 		g_enemiesTo1PDistances[i] = distanceto1P;
-		if (distanceto1P >= 1000.0f) {
-			triggerParanoramicCam = false;
-		}
 
+		// If any enemy is within 1000 units, set the flag to false
+		if (distanceto1P < 1000.0f) {
+			allEnemiesFarAway = false;
+			break; // We can exit early since we know not all enemies are far away
+		}
 	}
+
+
+	// Only set triggerPanoramicCam to false if all enemies are far enough
+	triggerPanoramicCam = !allEnemiesFarAway;
 
 	// Camera behavior based on player count and trigger status
 	if (activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) {
@@ -373,7 +381,7 @@ void MultiplayerCameraPositioningController() {
 		// exceeds minDistance (to prevent bugging out when clone is spawning)
 		float distanceBetweenClone = glm::distance(playerPos, clonePos);
 
-		if (triggerParanoramicCam && g_inCombat) {
+		if (triggerPanoramicCam && g_inCombat) {
 			// Panoramic Camera mode: calculate average camera position
 // 			g_customCameraPos[0] /= totalWeight;
 // 			g_customCameraPos[1] /= totalWeight;
@@ -409,13 +417,13 @@ void MultiplayerCameraPositioningController() {
 			currentCameraPos.y = lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactor);
 			currentCameraPos.z = lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactor);
 // 
-// 			g_customCameraPos[0] = mainActorData.position.x;
-// 			g_customCameraPos[1] = mainActorData.position.y;
-// 			g_customCameraPos[2] = mainActorData.position.z;
+			g_customCameraPos[0] = mainActorData.position.x;
+			g_customCameraPos[1] = mainActorData.position.y;
+			g_customCameraPos[2] = mainActorData.position.z;
 
-			g_customCameraPos[0] = currentCameraPos.x;
-			g_customCameraPos[1] = currentCameraPos.y;
-			g_customCameraPos[2] = currentCameraPos.z;
+// 			g_customCameraPos[0] = currentCameraPos.x;
+// 			g_customCameraPos[1] = currentCameraPos.y;
+// 			g_customCameraPos[2] = currentCameraPos.z;
 		}
 		else {
 			g_customCameraPos[0] = mainActorData.position.x;
@@ -425,8 +433,11 @@ void MultiplayerCameraPositioningController() {
 		
 	}
 	
+	// Disable Lock On Cam when MP Cam is active
+	CrimsonPatches::DisableLockOnCamera(g_isMPCamActive);
+
 	// Activate multiplayer camera positioning
-	CrimsonDetours::ToggleCustomCameraPositioning(activeCrimsonConfig.Camera.multiplayerCamera || activeCrimsonConfig.Camera.panoramicCamera);
+	CrimsonDetours::ToggleCustomCameraPositioning(g_isMPCamActive && activeCrimsonConfig.Camera.multiplayerCamera);
 }
 
 
@@ -498,7 +509,7 @@ void GeneralCameraOptionsController() {
 	CrimsonPatches::CameraFollowUpSpeedController();
 	CrimsonPatches::CameraDistanceController();
 	CrimsonPatches::CameraTiltController();
-	CrimsonPatches::LockedOffCameraToggle(activeCrimsonConfig.Camera.lockedOff);
+	CrimsonPatches::ToggleLockedOffCamera(activeCrimsonConfig.Camera.lockedOff);
 	CrimsonPatches::CameraLockOnDistanceController();
 }
 

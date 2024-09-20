@@ -2,6 +2,7 @@
 #include <tuple>
 #include <type_traits>
 #include "CrimsonConfigHandling.h"
+#include <filewritestream.h>
 
 #ifdef NO_SAVE
 void SaveConfigFunction()
@@ -16,22 +17,24 @@ void SaveConfig()
 	using namespace rapidjson;
 	using namespace JSON;
 
-
 	ToJSON(queuedConfig);
 	SerializeConfig(root, queuedCrimsonConfig, root.GetAllocator());
 
-	StringBuffer stringBuffer;
-	PrettyWriter<StringBuffer> prettyWriter(stringBuffer);
+	// Use FILE pointer and FileWriteStream for better large file handling
+	FILE* fp = fopen(locationConfig, "w");
+	if (!fp) {
+		Log("Failed to open file for writing.");
+		return;
+	}
 
+	char writeBuffer[65536]; // Use a larger buffer for efficiency
+	FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
+
+	// Use PrettyWriter for formatted output
+	PrettyWriter<FileWriteStream> prettyWriter(os);
 	root.Accept(prettyWriter);
 
-
-	auto name = stringBuffer.GetString();
-	auto size = strlen(name);
-
-	if (!SaveFile(locationConfig, name, size)) {
-		Log("SaveFile failed.");
-	}
+	fclose(fp);  // Close file to ensure data is fully written
 }
 
 

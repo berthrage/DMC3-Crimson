@@ -217,6 +217,8 @@ struct CrimsonConfig {
 			bool improvedBufferedReversals = true;
 			bool increasedJCSpheres = true;
 			bool disableJCRestriction = true;
+			bool increasedEnemyJuggleTime = true;
+			bool fasterTurnRate = true;
             
 
 			static constexpr auto Metadata() {
@@ -231,7 +233,9 @@ struct CrimsonConfig {
 					std::make_pair("disableHeightRestriction", &General::disableHeightRestriction),
 					std::make_pair("improvedBufferedReversals", &General::improvedBufferedReversals),
 					std::make_pair("increasedJCSpheres", &General::increasedJCSpheres),
-					std::make_pair("disableJCRestriction", &General::disableJCRestriction)
+					std::make_pair("disableJCRestriction", &General::disableJCRestriction),
+					std::make_pair("increasedEnemyJuggleTime", &General::increasedEnemyJuggleTime),
+					std::make_pair("fasterTurnRate", &General::fasterTurnRate)
 				);
 			}
         } General;

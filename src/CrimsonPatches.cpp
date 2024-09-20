@@ -150,6 +150,29 @@ void RainstormLift(bool enable) {
 	run = enable;
 }
 
+void ToggleIncreasedEnemyJuggleTime(bool enable) {
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// dmc3.exe+68C3A: // melee // C7 83 50 01 00 00 00 00 20 41 - mov [rbx+00000150],41200000 { 10.00 }
+	// dmc3.exe+81F70: // e&i shots // C7 83 50 01 00 00 00 00 20 41 - mov [rbx+00000150],41200000 { 10.00 }
+
+
+	if (enable) {
+		_patch((char*)(appBaseAddr + 0x68C3A), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\xA0\x41", 10);
+		_patch((char*)(appBaseAddr + 0x81F70), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\xA0\x41", 10);
+	}
+	else {
+		_patch((char*)(appBaseAddr + 0x68C3A), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\x20\x41", 10);
+		_patch((char*)(appBaseAddr + 0x81F70), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\x20\x41", 10);
+	}
+
+	run = enable;
+}
+
 #pragma endregion
 
 #pragma region CameraStuff
@@ -206,7 +229,47 @@ void CameraFollowUpSpeedController() {
 	if (!pool_166 || !pool_166[3]) return;
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
 
-	if (g_isMPCamActive || g_isParanoramicCamActive) {
+	static std::chrono::time_point<std::chrono::steady_clock> lockOnStartTime;
+	static bool isLockOnTimerActive = false;
+	static byte8* targetAddr = nullptr;
+
+
+	auto dynamicCameraLag = [&](float normalLag, float lockOnLag, float lockOnDuration) {
+		if (mainActorData.lockOn && activeConfig.Actor.playerCount > 1) {
+			// If lockOn is true and timer is not active, start the timer
+			if (!isLockOnTimerActive) {
+				lockOnStartTime = std::chrono::steady_clock::now();
+				isLockOnTimerActive = true;
+			}
+
+			// Reset Timer if Lock On Changes Targets
+			if (targetAddr != mainActorData.lockOnData.targetBaseAddr60 || mainActorData.buttons[0] & GetBinding(BINDING::CHANGE_TARGET)) {
+				isLockOnTimerActive = false;
+				targetAddr = mainActorData.lockOnData.targetBaseAddr60;
+			}
+
+			// Calculate elapsed time
+			auto now = std::chrono::steady_clock::now();
+			auto elapsedTime = std::chrono::duration<float>(now - lockOnStartTime).count();
+
+			if (elapsedTime < lockOnDuration) {
+				cameraData.cameraLag = lockOnLag;
+			}
+			else {
+				// After lockOnDuration, return to normal follow-up speed
+				cameraData.cameraLag = normalLag;
+			}
+		}
+		else {
+			// Reset timer if lockOn becomes false
+			isLockOnTimerActive = false;
+
+			// Normal camera lag
+			cameraData.cameraLag = normalLag;
+		}
+		};
+
+	if (g_isMPCamActive) {
 		cameraData.cameraLag = 1000.0f;
 	}
 	else {
@@ -215,19 +278,17 @@ void CameraFollowUpSpeedController() {
 			cameraData.cameraLag = 1000.0f;
 			break;
 		case 1: // Medium
-			cameraData.cameraLag = 500.0f;
+			dynamicCameraLag(500.0f, 2000.0f, 0.5f); // Apply lockOn behavior for medium follow-up speed
 			break;
 		case 2: // High
-			cameraData.cameraLag = 330.0f;
+			dynamicCameraLag(330.0f, 3000.0f, 0.5f); // Apply lockOn behavior for high follow-up speed
 			break;
 		default:
 			break;
 		}
 	}
-
-	
-    
 }
+
 
 void HandleDynamicSPCameraDistance(float& cameraDistance, float groundDistance, float airDistance) {
 	auto pool_166 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
@@ -267,7 +328,7 @@ void HandlePanoramicSPCameraDistance(float& cameraDistance, float groundDistance
 	float scaleFactorY = screenWidth / baseResY;
 
 	// Define the screen margin buffer
-	const float screenMarginForZoomIn = 105.0f * scaleFactorX;  // Safe margin for zooming in
+	const float screenMarginForZoomIn = 115.0f * scaleFactorX;  // Safe margin for zooming in
 	const float screenMarginForZoomOut = 50.0f * scaleFactorX;
 
 	float maxDistance = (mainActorData.state & STATE::IN_AIR) ? 1000.0f : 780.0f; // Maximum allowed camera distance
@@ -483,13 +544,13 @@ void CameraDistanceController() {
 
 	if (activeCrimsonConfig.Camera.distance == 2) { // Dynamic
 
-        if ((activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) && activeCrimsonConfig.Camera.multiplayerCamera) {
+        if (g_isMPCamActive) {
             HandleMultiplayerCameraDistance(cameraData.distance, 350, 500);
         }
-        else if (!(activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) && activeCrimsonConfig.Camera.panoramicCamera) {
+        else if (g_isParanoramicCamActive && g_inCombat) {
             HandlePanoramicSPCameraDistance(cameraData.distance, 350, 500);
         }
-        else if (!(activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) && !activeCrimsonConfig.Camera.panoramicCamera){
+        else if (!(g_isMPCamActive || (g_isParanoramicCamActive && g_inCombat))){
             HandleDynamicSPCameraDistance(cameraData.distance, 350, 500);
         }
 	}
@@ -519,13 +580,13 @@ void CameraLockOnDistanceController() {
     }
 
     if (activeCrimsonConfig.Camera.lockOnDistance == 2) {
-		if ((activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) && activeCrimsonConfig.Camera.multiplayerCamera) {
+		if (g_isMPCamActive) {
 			HandleMultiplayerCameraDistance(cameraData.distanceLockOn, 360, 500);
 		}
-		else if (!(activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) && activeCrimsonConfig.Camera.panoramicCamera) {
+		else if (g_isParanoramicCamActive && g_inCombat) {
 			HandlePanoramicSPCameraDistance(cameraData.distanceLockOn, 360, 500);
 		}
-		else if (!(activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) && !activeCrimsonConfig.Camera.panoramicCamera) {
+		else if (!(g_isMPCamActive || (g_isParanoramicCamActive && g_inCombat))) {
 			HandleDynamicSPCameraDistance(cameraData.distanceLockOn, 360, 500);
 		}
         
@@ -573,7 +634,7 @@ void ForceThirdPersonCamera(bool enable) {
 	run = enable;
 }
 
-void LockedOffCameraToggle(bool enable) {
+void ToggleLockedOffCamera(bool enable) {
 
 	static bool run = false;
 
@@ -634,6 +695,25 @@ void LockedOffCameraToggle(bool enable) {
 	}
 
 	run = true;
+}
+
+void DisableLockOnCamera(bool enable) {
+	static bool run = false;
+
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// dmc3.exe+569AD - C6 83 90 00 00 00 01 - mov byte ptr [rbx+00000090],01 { Setting this byte to 1 will trigger locked on cam }
+	if (enable) {
+		_nop((char*)(appBaseAddr + 0x569AD), 7);
+	}
+	else {
+		_patch((char*)(appBaseAddr + 0x569AD), (char*)"\xC6\x83\x90\x00\x00\x00\x01", 7);
+	}
+
+	run = enable;
 }
 
 #pragma endregion

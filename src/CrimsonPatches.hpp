@@ -11,6 +11,7 @@ void ImprovedBufferedReversals(bool enable);
 void DisableJCRestriction(bool enable);
 void BulletStop(bool enable);
 void RainstormLift(bool enable);
+void ToggleIncreasedEnemyJuggleTime(bool enable);
 
 #pragma endregion
 
@@ -22,6 +23,8 @@ void CameraDistanceController();
 void CameraLockOnDistanceController();
 void CameraTiltController();
 void ForceThirdPersonCamera(bool enable);
+void ToggleLockedOffCamera(bool enable);
+void DisableLockOnCamera(bool enable);
 
 #pragma endregion
 
@@ -33,7 +36,6 @@ void DisableBlendingEffects(bool enable);
 
 #pragma region InertiaFixes
 
-void LockedOffCameraToggle(bool enable);
 void InertiaFixes();
 void DisableAirSlashKnockback();
 

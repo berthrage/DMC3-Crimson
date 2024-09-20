@@ -79,6 +79,9 @@ void FreeformSoftLockHelperDetour();
 // DMC4/5LockOnDirection
 void DMC4LockOnDirectionDetour();
 
+// FasterTurnRate
+void FasterTurnRateDetour();
+
 // StyleRankHudNoFadeout
 void StyleRankHudNoFadeoutDetour();
 
@@ -93,6 +96,7 @@ void VergilNeutralTrickDetour();
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
 void InitDetours();
+void ToggleFasterTurnRate(bool enable);
 void ToggleFreeformSoftLockHelper(bool enable);
 void ToggleDMC4LockOnDirection(bool enable);
 void ToggleCustomCameraPositioning(bool enable);
