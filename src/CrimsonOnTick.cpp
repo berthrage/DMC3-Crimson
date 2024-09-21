@@ -199,10 +199,20 @@ void MultiplayerCameraPositioningController() {
 	if (!pool_2128 || !pool_2128[8]) return;
 	auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
 
+	auto pool_11962 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_11962 || !pool_11962[8]) return;
+	auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
+
 	g_customCameraPos[0] = 0.0f; // X
 	g_customCameraPos[1] = 0.0f; // Y
 	g_customCameraPos[2] = 0.0f; // Z
 	g_customCameraPos[3] = 1.0f; // W
+
+	const float lerpFactorOutTransition = 0.2f; 
+	const float lerpFactorInTransition = 0.01f;
+	static float lerpFactor = lerpFactorOutTransition;
+	static std::chrono::time_point<std::chrono::steady_clock> transitionToMPStartTime;
+	static bool isTransitionTimerActive = false;
 
 	int entityCount = 0; // Track valid entities for averaging
 	float playerWeight = 5.0f;  // Weight for playable characters
@@ -357,19 +367,54 @@ void MultiplayerCameraPositioningController() {
 		}
 
 		g_isParanoramicCamActive = false;
+		glm::vec3 currentCustomCamPos = { g_customCameraPos[0], g_customCameraPos[1], g_customCameraPos[2] };
 
 		// Gradual transition between MPCam and normal cam (if a transition is occurring)
 		if (g_isMPCamActive) {
-			float lerpFactor = 0.05f;  // Adjust this factor for smoother or faster transitions
+
+			if (!isTransitionTimerActive) {
+				transitionToMPStartTime = std::chrono::steady_clock::now();
+				isTransitionTimerActive = true;
+			}
+			
+			// Calculate elapsed time
+			auto now = std::chrono::steady_clock::now();
+			auto elapsedTime = std::chrono::duration<float>(now - transitionToMPStartTime).count();
+
+			if (elapsedTime < 0.5f) {
+				if (std::fabs(mainActorData.horizontalPull) < 30 && std::fabs(mainActorData.verticalPull) < 30) {
+					lerpFactor = lerpFactorInTransition;
+				}
+				else {
+					lerpFactor = 0.3f;
+				}
+				
+			}
+			else {
+				lerpFactor = lerpFactorOutTransition;
+			}
+
 			currentCameraPos.x = lerp(currentCameraPos.x, g_customCameraPos[0], lerpFactor);
 			currentCameraPos.y = lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactor);
 			currentCameraPos.z = lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactor);
 
+			
+
+			float distanceLerp = glm::distance(currentCameraPos, currentCustomCamPos);
+
+			if (!guiPause.canPause) {
+				currentCameraPos = currentCustomCamPos; // disable lerp when level isn't fully loaded
+			}
+
+			// apply lerp
 			g_customCameraPos[0] = currentCameraPos.x;
 			g_customCameraPos[1] = currentCameraPos.y;
 			g_customCameraPos[2] = currentCameraPos.z;
+			
 		}
 		else {
+			currentCameraPos = currentCustomCamPos;
+			isTransitionTimerActive = false;
 			g_customCameraPos[0] = mainActorData.position.x;
 			g_customCameraPos[1] = mainActorData.position.y;
 			g_customCameraPos[2] = mainActorData.position.z;
