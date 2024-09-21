@@ -3070,77 +3070,11 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 	ImGui::PopFont();
 }
 
-void ActorSection(size_t defaultFontSize) {
-
+void SelectPlayerLoadoutsWeaponsTab() {
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	const float itemWidth = defaultFontSize * 8.0f;
 	const float columnWidth = 0.8f * queuedConfig.globalScale;
 	const float rowWidth = 40.0f * queuedConfig.globalScale;
-	ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
-
-	bool actorCondition = (!queuedConfig.Actor.enable);
-
-	GUI_PushDisable(actorCondition);
-
-
-	// 	if (GUI_ResetButton()) {
-	// 		CopyMemory(&queuedConfig.Actor, &defaultConfig.Actor, sizeof(queuedConfig.Actor));
-	// 
-	// 		old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-	// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].button, &defaultConfig.Actor.playerData[playerIndex].button,
-	// 				sizeof(queuedConfig.Actor.playerData[playerIndex].button));
-	// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].button, &queuedConfig.Actor.playerData[playerIndex].button,
-	// 				sizeof(activeConfig.Actor.playerData[playerIndex].button));
-	// 
-	// 
-	// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
-	// 				&defaultConfig.Actor.playerData[playerIndex].removeBusyFlag,
-	// 				sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlag));
-	// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlag,
-	// 				&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
-	// 				sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlag));
-	// 
-	// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-	// 				&defaultConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-	// 				sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
-	// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-	// 				&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-	// 				sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
-	// 		}
-	// 
-	// 		Actor_UpdateIndices();
-	// 
-	// 		CopyMemory(&queuedConfig.updateLockOns, &defaultConfig.updateLockOns, sizeof(queuedConfig.updateLockOns));
-	// 		CopyMemory(&activeConfig.updateLockOns, &queuedConfig.updateLockOns, sizeof(activeConfig.updateLockOns));
-	// 
-	// 		CopyMemory(&queuedConfig.forceSyncHitMagicPoints, &defaultConfig.forceSyncHitMagicPoints,
-	// 			sizeof(queuedConfig.forceSyncHitMagicPoints));
-	// 		CopyMemory(
-	// 			&activeConfig.forceSyncHitMagicPoints, &queuedConfig.forceSyncHitMagicPoints, sizeof(activeConfig.forceSyncHitMagicPoints));
-	// 
-	// 		CopyMemory(&queuedConfig.resetPermissions, &defaultConfig.resetPermissions, sizeof(queuedConfig.resetPermissions));
-	// 		CopyMemory(&activeConfig.resetPermissions, &queuedConfig.resetPermissions, sizeof(activeConfig.resetPermissions));
-	// 
-	// 
-	// 		CopyMemory(&queuedConfig.enableBossLadyFixes, &defaultConfig.enableBossLadyFixes, sizeof(queuedConfig.enableBossLadyFixes));
-	// 		CopyMemory(&activeConfig.enableBossLadyFixes, &queuedConfig.enableBossLadyFixes, sizeof(activeConfig.enableBossLadyFixes));
-	// 
-	// 		CopyMemory(
-	// 			&queuedConfig.enableBossVergilFixes, &defaultConfig.enableBossVergilFixes, sizeof(queuedConfig.enableBossVergilFixes));
-	// 		CopyMemory(
-	// 			&activeConfig.enableBossVergilFixes, &queuedConfig.enableBossVergilFixes, sizeof(activeConfig.enableBossVergilFixes));
-	// 
-	// 		CopyMemory(&queuedConfig.enablePVPFixes, &defaultConfig.enablePVPFixes, sizeof(queuedConfig.enablePVPFixes));
-	// 		CopyMemory(&activeConfig.enablePVPFixes, &queuedConfig.enablePVPFixes, sizeof(activeConfig.enablePVPFixes));
-	// 
-	// 		ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
-	// 		ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
-	// 
-	// 		CopyMemory(&queuedConfig.absoluteUnit, &defaultConfig.absoluteUnit, sizeof(queuedConfig.absoluteUnit));
-	// 		CopyMemory(&activeConfig.absoluteUnit, &queuedConfig.absoluteUnit, sizeof(activeConfig.absoluteUnit));
-	// 	}
-
-
-
 
 	uint8 activePlayerIndex;
 
@@ -3215,6 +3149,79 @@ void ActorSection(size_t defaultFontSize) {
 		ImGui::EndTable();
 
 	}
+
+}
+
+void ActorSection(size_t defaultFontSize) {
+
+	const float itemWidth = defaultFontSize * 8.0f;
+	const float columnWidth = 0.8f * queuedConfig.globalScale;
+	const float rowWidth = 40.0f * queuedConfig.globalScale;
+	ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
+
+	bool actorCondition = (!queuedConfig.Actor.enable);
+
+	GUI_PushDisable(actorCondition);
+
+
+	// 	if (GUI_ResetButton()) {
+	// 		CopyMemory(&queuedConfig.Actor, &defaultConfig.Actor, sizeof(queuedConfig.Actor));
+	// 
+	// 		old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+	// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].button, &defaultConfig.Actor.playerData[playerIndex].button,
+	// 				sizeof(queuedConfig.Actor.playerData[playerIndex].button));
+	// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].button, &queuedConfig.Actor.playerData[playerIndex].button,
+	// 				sizeof(activeConfig.Actor.playerData[playerIndex].button));
+	// 
+	// 
+	// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
+	// 				&defaultConfig.Actor.playerData[playerIndex].removeBusyFlag,
+	// 				sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlag));
+	// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlag,
+	// 				&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
+	// 				sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlag));
+	// 
+	// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+	// 				&defaultConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+	// 				sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
+	// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+	// 				&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
+	// 				sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
+	// 		}
+	// 
+	// 		Actor_UpdateIndices();
+	// 
+	// 		CopyMemory(&queuedConfig.updateLockOns, &defaultConfig.updateLockOns, sizeof(queuedConfig.updateLockOns));
+	// 		CopyMemory(&activeConfig.updateLockOns, &queuedConfig.updateLockOns, sizeof(activeConfig.updateLockOns));
+	// 
+	// 		CopyMemory(&queuedConfig.forceSyncHitMagicPoints, &defaultConfig.forceSyncHitMagicPoints,
+	// 			sizeof(queuedConfig.forceSyncHitMagicPoints));
+	// 		CopyMemory(
+	// 			&activeConfig.forceSyncHitMagicPoints, &queuedConfig.forceSyncHitMagicPoints, sizeof(activeConfig.forceSyncHitMagicPoints));
+	// 
+	// 		CopyMemory(&queuedConfig.resetPermissions, &defaultConfig.resetPermissions, sizeof(queuedConfig.resetPermissions));
+	// 		CopyMemory(&activeConfig.resetPermissions, &queuedConfig.resetPermissions, sizeof(activeConfig.resetPermissions));
+	// 
+	// 
+	// 		CopyMemory(&queuedConfig.enableBossLadyFixes, &defaultConfig.enableBossLadyFixes, sizeof(queuedConfig.enableBossLadyFixes));
+	// 		CopyMemory(&activeConfig.enableBossLadyFixes, &queuedConfig.enableBossLadyFixes, sizeof(activeConfig.enableBossLadyFixes));
+	// 
+	// 		CopyMemory(
+	// 			&queuedConfig.enableBossVergilFixes, &defaultConfig.enableBossVergilFixes, sizeof(queuedConfig.enableBossVergilFixes));
+	// 		CopyMemory(
+	// 			&activeConfig.enableBossVergilFixes, &queuedConfig.enableBossVergilFixes, sizeof(activeConfig.enableBossVergilFixes));
+	// 
+	// 		CopyMemory(&queuedConfig.enablePVPFixes, &defaultConfig.enablePVPFixes, sizeof(queuedConfig.enablePVPFixes));
+	// 		CopyMemory(&activeConfig.enablePVPFixes, &queuedConfig.enablePVPFixes, sizeof(activeConfig.enablePVPFixes));
+	// 
+	// 		ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
+	// 		ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
+	// 
+	// 		CopyMemory(&queuedConfig.absoluteUnit, &defaultConfig.absoluteUnit, sizeof(queuedConfig.absoluteUnit));
+	// 		CopyMemory(&activeConfig.absoluteUnit, &queuedConfig.absoluteUnit, sizeof(activeConfig.absoluteUnit));
+	// 	}
+
+	SelectPlayerLoadoutsWeaponsTab();
 
 	GUI_PopDisable(actorCondition);
 
@@ -5284,6 +5291,8 @@ void ShopWindow() {
 		ImGui::Text("%u", missionData.redOrbs);
 		ImGui::PopFont();
 		ImGui::Text("");
+
+		SelectPlayerLoadoutsWeaponsTab();
 
 		if (ImGui::BeginTabBar("ShopTabs")) {
 			for (uint8 tabIndex = 0; tabIndex < TAB::COUNT; ++tabIndex) {
