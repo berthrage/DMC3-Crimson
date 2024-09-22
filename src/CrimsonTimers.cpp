@@ -127,7 +127,7 @@ void AnimTimers() {
 
         if (eventData.event != EVENT::PAUSE) {
             crimsonPlayer[playerIndex].animTimer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
-            guardflyTimer += ImGui::GetIO().DeltaTime * actorData.speed / g_frameRateMultiplier;
+            guardflyTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_frameRateMultiplier);
         }
 
         ////
