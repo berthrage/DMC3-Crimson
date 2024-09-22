@@ -4411,6 +4411,7 @@ struct MoveProperties {
     float cachedRotation;
 };
 
+
 struct Inertia {
     MoveProperties aerialRave;
     MoveProperties airFlicker;
@@ -4433,6 +4434,7 @@ struct Inertia {
     MoveProperties shotgunShot;
 
     MoveProperties yamatoRave;
+    float guardflyTimer = 0;
 };
 
 struct VergilMoveAdjustments {
@@ -4495,6 +4497,7 @@ struct CrimsonPlayerData {
     int currentAnim   = 0;
     float actionTimer = 0;
     float animTimer   = 0;
+    uint32 currentEvent = 0;
     bool active;
     bool inNewDrive   = false;
     bool inQuickDrive = false;
@@ -4542,6 +4545,7 @@ struct CrimsonPlayerData {
     int currentAnimClone   = 0;
     float actionTimerClone = 0;
     float animTimerClone   = 0;
+    uint32 currentEventClone = 0;
     std::vector<uint32> lastEventsClone{0};
     int lastLastEventClone = 0;
     std::vector<byte32> lastStatesClone{0};

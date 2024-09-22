@@ -106,17 +106,28 @@ void AnimTimers() {
             continue;
         }
         auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+        auto& guardflyTimer = (actorData.newEntityIndex == 0)? crimsonPlayer[playerIndex].inertia.guardflyTimer : crimsonPlayer[playerIndex].inertiaClone.guardflyTimer;
+        auto& currentEvent = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentEvent : crimsonPlayer[playerIndex].currentEventClone;
+        auto& actorEvent = actorData.eventData[0].event;
         
 
         // ANIMATION IDs
         if (actorData.motionData[0].index != crimsonPlayer[playerIndex].currentAnim) {
             crimsonPlayer[playerIndex].animTimer = 0;
-
+            //crimsonPlayer[playerIndex].inertia.guardflyTimer = 0;
             crimsonPlayer[playerIndex].currentAnim = actorData.motionData[0].index;
         }
 
+        if (actorEvent != currentEvent) {
+            guardflyTimer = 0;
+            currentEvent = actorEvent;
+        }
+
+        
+
         if (eventData.event != EVENT::PAUSE) {
             crimsonPlayer[playerIndex].animTimer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+            guardflyTimer += ImGui::GetIO().DeltaTime * actorData.speed;
         }
 
         ////
@@ -130,6 +141,7 @@ void AnimTimers() {
 			// ANIMATION IDs CLONE
 			if (cloneActorData.motionData[0].index != crimsonPlayer[playerIndex].currentAnimClone) {
 				crimsonPlayer[playerIndex].animTimerClone = 0;
+                crimsonPlayer[playerIndex].inertiaClone.guardflyTimer = 0;
 
 				crimsonPlayer[playerIndex].currentAnimClone = cloneActorData.motionData[0].index;
 			}
@@ -137,6 +149,7 @@ void AnimTimers() {
 			if (eventData.event != EVENT::PAUSE) {
 				crimsonPlayer[playerIndex].animTimerClone +=
 					(ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speedClone) / g_frameRateMultiplier;
+                crimsonPlayer[playerIndex].inertiaClone.guardflyTimer += ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed;
 			}
         }
 

@@ -7529,6 +7529,12 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			ImGui::Text("Motion Data 1: %u", crimsonPlayer[0].motion);
+			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
+			ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[0].animTimer);
+			ImGui::Text("AIR GUARD: %u", actorData.airGuard);
+			ImGui::Text("GUARDFLY PULL: %g", crimsonPlayer[0].inertia.airGuard.cachedPull);
+			ImGui::Text("GUARDFLY TIMER: %g", crimsonPlayer[0].inertia.guardflyTimer);
 			ImGui::Text("actorCameraDirection: %u", actorData.actorCameraDirection);
 			ImGui::Text("Rotation Offset: %u", actorData.rotationOffset);
 			ImGui::Text("Rotation Towards Enemy2: %u", crimsonPlayer[0].rotationTowardsEnemy);
@@ -7551,7 +7557,6 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
             ImGui::Text("DTE CHARGE: %g", actorData.dtExplosionCharge);
             ImGui::Text("DTE CHARGE: %g", crimsonPlayer[0].dtExplosionCharge);
-            ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[0].animTimer);
             // ImGui::Text("crazy combo hold:  %u", crazyComboHold);
             ImGui::Text("Chain Count (weight):  %u", actorData.airSwordAttackCount);
             ImGui::Text("Air Guard:  %u", actorData.airGuard);
@@ -7601,8 +7606,6 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("inRapidSlash %u", inRapidSlash);
             ImGui::Text("fRapidSlash storedSpeedDevil %g", fasterRapidSlash.storedSpeedDevil[0]);
             ImGui::Text("fDarklasyer storedSpeedDevil %g", fasterDarkslayer.storedSpeedDevil[0]);
-            ImGui::Text("Motion Data 1: %u", crimsonPlayer[0].motion);
-            ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
             ImGui::Text("Last Event Data %u", actorData.eventData[0].lastEvent);
             ImGui::Text("Last Last Event %u", crimsonPlayer[0].lastLastEvent);
             ImGui::Text("State %u", actorData.state);

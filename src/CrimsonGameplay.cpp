@@ -1355,6 +1355,9 @@ void StoreInertia(byte8* actorBaseAddr) {
     bool inSkyDance =
         (action == AGNI_RUDRA_SKY_DANCE_PART_1 || action == AGNI_RUDRA_SKY_DANCE_PART_2 || action == AGNI_RUDRA_SKY_DANCE_PART_3);
 
+    auto& animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
+    auto& guardflyTimer = i->guardflyTimer;
+
 
     // Part on an idea for a bufferless high time reversal - discarded
     // 		if (!(actorData.action == REBELLION_HIGH_TIME ||
@@ -1430,21 +1433,57 @@ void StoreInertia(byte8* actorBaseAddr) {
                 i->airGuard.cachedPull = 28.0f;
             } else if (event == ACTOR_EVENT::ATTACK) {
                 if (action == BEOWULF_KILLER_BEE) {
+
                     i->airGuard.cachedPull = 28.0f;
                 }
             }
-            else {
-                i->airGuard.cachedPull = horizontalPull;
-            }
-
-            
+			else {
+				i->airGuard.cachedPull = 3.0f;
+			}
         }
+
+        
+
+
 
         if (!(actorData.action == YAMATO_AERIAL_RAVE_PART_1 || actorData.action == YAMATO_AERIAL_RAVE_PART_2)) {
 
             i->yamatoRave.cachedRotation = actorData.rotation;
         }
     }
+
+    
+	// GUARDFLY TIMING
+    const float timing = 0.057f;
+	if (i->airGuard.cachedPull == 28.0f && event == ACTOR_EVENT::JUMP_CANCEL) {
+
+		if (guardflyTimer > timing) {
+			i->airGuard.cachedPull = 3.0f;  // Reset pull 
+		}
+
+		if (actorData.horizontalPull == 28.0f && event != ACTOR_EVENT::AIR_HIKE) {
+			guardflyTimer = 0;
+		}
+	}
+	// Handle Air Hike Event (Separate from Jump Cancel)
+    else if (i->airGuard.cachedPull == 28.0f && event == ACTOR_EVENT::AIR_HIKE) {
+		
+        if (animTimer < 0.01f) {
+            guardflyTimer = 0;
+        }
+
+		if (guardflyTimer > timing) {
+			i->airGuard.cachedPull = 3.0f;  // Reset pull after 0.3s
+		}
+
+		if (actorData.horizontalPull == 28.0f) {
+			guardflyTimer = 0;
+		}
+	}
+
+
+
+	
 
     // Old Gun Shoot Redirection - discarded.
 
@@ -1515,15 +1554,19 @@ void InertiaController(byte8* actorBaseAddr) {
 
     bool inSkyDance =
         (action == AGNI_RUDRA_SKY_DANCE_PART_1 || action == AGNI_RUDRA_SKY_DANCE_PART_2 || action == AGNI_RUDRA_SKY_DANCE_PART_3);
+    auto& animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
+    auto& guarflyTimer = i->guardflyTimer;
 
 
     if (actorData.character == CHARACTER::DANTE) {
 
         // Guardfly
         if (motion == 5 && actorData.airGuard && (event == JUMP_CANCEL || event == AIR_HIKE)) {
-            actorData.horizontalPull         = i->airGuard.cachedPull;
-            actorData.verticalPullMultiplier = -2;
+
+			actorData.horizontalPull = i->airGuard.cachedPull;
+			actorData.verticalPullMultiplier = -2;
         }
+
 
         // This mimic's DMC4's Air Trick Inertia Boost behaviour, uses LastEventStateQueue
         if (event == ACTOR_EVENT::AIR_TRICK_END && lastLastEvent == ATTACK && lastLastState & STATE::IN_AIR) {

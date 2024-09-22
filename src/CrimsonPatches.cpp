@@ -545,13 +545,13 @@ void CameraDistanceController() {
 	if (activeCrimsonConfig.Camera.distance == 2) { // Dynamic
 
         if (g_isMPCamActive) {
-            HandleMultiplayerCameraDistance(cameraData.distance, 350, 500);
+            HandleMultiplayerCameraDistance(cameraData.distance, 430, 580);
         }
         else if (g_isParanoramicCamActive && g_inCombat) {
-            HandlePanoramicSPCameraDistance(cameraData.distance, 350, 500);
+            HandlePanoramicSPCameraDistance(cameraData.distance, 430, 580);
         }
         else if (!(g_isMPCamActive || (g_isParanoramicCamActive && g_inCombat))){
-            HandleDynamicSPCameraDistance(cameraData.distance, 350, 500);
+            HandleDynamicSPCameraDistance(cameraData.distance, 430, 580);
         }
 	}
 }
@@ -581,13 +581,13 @@ void CameraLockOnDistanceController() {
 
     if (activeCrimsonConfig.Camera.lockOnDistance == 2) {
 		if (g_isMPCamActive) {
-			HandleMultiplayerCameraDistance(cameraData.distanceLockOn, 360, 500);
+			HandleMultiplayerCameraDistance(cameraData.distanceLockOn, 430, 580);
 		}
 		else if (g_isParanoramicCamActive && g_inCombat) {
-			HandlePanoramicSPCameraDistance(cameraData.distanceLockOn, 360, 500);
+			HandlePanoramicSPCameraDistance(cameraData.distanceLockOn, 430, 580);
 		}
 		else if (!(g_isMPCamActive || (g_isParanoramicCamActive && g_inCombat))) {
-			HandleDynamicSPCameraDistance(cameraData.distanceLockOn, 360, 500);
+			HandleDynamicSPCameraDistance(cameraData.distanceLockOn, 430, 580);
 		}
         
     }
