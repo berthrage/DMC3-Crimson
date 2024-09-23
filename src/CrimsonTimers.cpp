@@ -21,11 +21,8 @@
 namespace CrimsonTimers {
 
 void ActionTimers() {
-    
 	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-	if (!pool_10371 || !pool_10371[8]) {
-		return;
-	}
+	if (!pool_10371 || !pool_10371[8]) return;
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
 
     old_for_all(uint8, playerIndex, PLAYER_COUNT) {
@@ -34,126 +31,109 @@ void ActionTimers() {
         auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, 0);
 
         auto actorBaseAddr = newActorData.baseAddr;
-
-
         if (!actorBaseAddr) {
             continue;
         }
         auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-        auto inAttack = (actorData.eventData[0].event == 17);
+        auto inAttack = (actorData.eventData[0].event == ACTOR_EVENT::ATTACK);
+		auto& currentAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAction : crimsonPlayer[playerIndex].currentActionClone;
+		auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
         
 
         if (inAttack) {
             if (eventData.event != EVENT::PAUSE) {
-                crimsonPlayer[playerIndex].actionTimer +=
-                    (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+                actionTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_frameRateMultiplier);
             }
         } else {
-            crimsonPlayer[playerIndex].actionTimer = 0;
+            actionTimer = 0;
         }
 
-        // ACTIONS
-        if (actorData.action != crimsonPlayer[playerIndex].currentAction) {
-            crimsonPlayer[playerIndex].actionTimer = 0;
-
-            crimsonPlayer[playerIndex].currentAction = actorData.action;
-        }
-
-        ////
-
-        // We add this condition because Dante and Vergil are the only character capable of having Doppelgangers, 
-        // fetching data from Clones (such as playing with Boss Vergil) where none exist will crash the game. - Mia
-
-        if (actorData.character == CHARACTER::DANTE || actorData.character == CHARACTER::VERGIL) {
-			auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
-			auto inAttackClone = (cloneActorData.eventData[0].event == 17);
-
-			if (inAttackClone) {
-				if (eventData.event != EVENT::PAUSE) {
-					crimsonPlayer[playerIndex].actionTimerClone +=
-						(ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speedClone) / g_frameRateMultiplier;
-				}
-			}
-
-			// ACTIONS CLONE
-			if (cloneActorData.action != crimsonPlayer[playerIndex].currentActionClone) {
-				crimsonPlayer[playerIndex].actionTimerClone = 0;
-
-				crimsonPlayer[playerIndex].currentActionClone = cloneActorData.action;
-			}
+        // Reset Timer By Action
+        if (actorData.action != currentAction) {
+            actionTimer = 0;
+            currentAction = actorData.action;
         }
     }
 }
 
 
 void AnimTimers() {
+	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10371 || !pool_10371[8]) return;	
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
 
-    auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-    if (!pool_10371 || !pool_10371[8]) {
-        return;
-    }
-    auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+		auto& playerData = GetPlayerData(playerIndex);
 
+		auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, 0);
 
-    old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-        auto& playerData = GetPlayerData(playerIndex);
+		auto actorBaseAddr = newActorData.baseAddr;
 
-        auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, 0);
-
-        auto actorBaseAddr = newActorData.baseAddr;
-
-        if (!actorBaseAddr) {
-            continue;
-        }
-        auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-        auto& guardflyTimer = (actorData.newEntityIndex == 0)? crimsonPlayer[playerIndex].inertia.guardflyTimer : crimsonPlayer[playerIndex].inertiaClone.guardflyTimer;
-        auto& currentEvent = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentEvent : crimsonPlayer[playerIndex].currentEventClone;
-        auto& actorEvent = actorData.eventData[0].event;
+		if (!actorBaseAddr) {
+			continue;
+		}
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+		auto& currentAnim = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAnim : crimsonPlayer[playerIndex].currentAnimClone;
+        auto& actorMotion = actorData.motionData[0].index;
+        auto& animTimer = (actorData.newEntityIndex == 0)? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
         
 
-        // ANIMATION IDs
-        if (actorData.motionData[0].index != crimsonPlayer[playerIndex].currentAnim) {
-            crimsonPlayer[playerIndex].animTimer = 0;
-            //crimsonPlayer[playerIndex].inertia.guardflyTimer = 0;
-            crimsonPlayer[playerIndex].currentAnim = actorData.motionData[0].index;
-        }
+		// Reset Timer By Animation IDs
+		if (actorMotion != currentAnim) {
+			animTimer = 0;
+			currentAnim = actorMotion;
+		}
 
-        if (actorEvent != currentEvent) {
-            guardflyTimer = 0;
-            currentEvent = actorEvent;
-        }
+		if (eventData.event != EVENT::PAUSE) {
+			animTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_frameRateMultiplier);
+		}
+	}
+}
 
-        
+std::chrono::steady_clock::time_point guardflyStartTime;
 
-        if (eventData.event != EVENT::PAUSE) {
-            crimsonPlayer[playerIndex].animTimer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
-            guardflyTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_frameRateMultiplier);
-        }
+void ResetGuardflyTimer(float timer) {
+	timer = 0;
+	guardflyStartTime = std::chrono::steady_clock::now();
+}
 
-        ////
+void GuardflyTimers() {
+	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10371 || !pool_10371[8]) {
+		return;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
 
-		// We add this condition because Dante and Vergil are the only character capable of having Doppelgangers, 
-		// fetching data from Clones (such as playing with Boss Vergil) where none exist will crash the game. Same as with ActionTimers - Mia
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+		auto& playerData = GetPlayerData(playerIndex);
 
-        if (actorData.character == CHARACTER::DANTE || actorData.character == CHARACTER::VERGIL) {
-			auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+		auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, 0);
 
-			// ANIMATION IDs CLONE
-			if (cloneActorData.motionData[0].index != crimsonPlayer[playerIndex].currentAnimClone) {
-				crimsonPlayer[playerIndex].animTimerClone = 0;
-                crimsonPlayer[playerIndex].inertiaClone.guardflyTimer = 0;
+		auto actorBaseAddr = newActorData.baseAddr;
 
-				crimsonPlayer[playerIndex].currentAnimClone = cloneActorData.motionData[0].index;
-			}
+		if (!actorBaseAddr) {
+			continue;
+		}
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+		auto& guardflyTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inertia.guardflyTimer : crimsonPlayer[playerIndex].inertiaClone.guardflyTimer;
+		auto& currentEvent = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentEvent : crimsonPlayer[playerIndex].currentEventClone;
+		auto& actorEvent = actorData.eventData[0].event;
 
-			if (eventData.event != EVENT::PAUSE) {
-				crimsonPlayer[playerIndex].animTimerClone +=
-					(ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speedClone) / g_frameRateMultiplier;
-                crimsonPlayer[playerIndex].inertiaClone.guardflyTimer += ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed;
-			}
-        }
+		// Track Event
+		if (actorEvent != currentEvent) {
+			currentEvent = actorEvent;
 
-    }
+			ResetGuardflyTimer(guardflyTimer);
+		}
+
+
+		if (eventData.event != EVENT::PAUSE) {
+			auto now = std::chrono::steady_clock::now();
+			float elapsedTime = std::chrono::duration<float>(now - guardflyStartTime).count();
+
+			guardflyTimer = elapsedTime * (actorData.speed / g_frameRateMultiplier);
+		}
+	}
 }
 
 void SiyTimerFunc() {
@@ -398,6 +378,7 @@ void CallAllTimers() {
 	BackToForwardTimers();
 	ActionTimers();
 	AnimTimers();
+    GuardflyTimers();
 	SiyTimerFunc();
 	SprintTimer();
 	DriveTimer();
