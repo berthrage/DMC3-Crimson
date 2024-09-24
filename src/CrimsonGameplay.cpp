@@ -2210,7 +2210,7 @@ void SprintAbility(byte8* actorBaseAddr) {
                 //CrimsonDetours::createEffectID   = sprintVFX.id;
                 //CrimsonDetours::createEffectBone = 1;
                 //CrimsonDetours::createEffectPlayerAddr = (uint64_t)actorBaseAddr; // crimsonPlayer[playerIndex].playerPtr also works
-                CrimsonDetours::CreateEffectDetour(actorBaseAddr, sprintVFX.bank, sprintVFX.id, 1, 69420);
+                CrimsonDetours::CreateEffectDetour(actorBaseAddr, sprintVFX.bank, sprintVFX.id, 1, false, 69420, 1);
 
                 sprintData.VFXPlayed = true;
             }
@@ -2595,7 +2595,7 @@ void DriveTweaks(byte8* actorBaseAddr) {
 
                 auto& vfxBank = crimsonPlayer[playerIndex].drive.bank;
                 auto& id = crimsonPlayer[playerIndex].drive.id;
-                CrimsonDetours::CreateEffectDetour(actorBaseAddr, vfxBank, id, 1, 69420);
+                CrimsonDetours::CreateEffectDetour(actorBaseAddr, vfxBank, id, 1, true, 69420, 0.8f);
 
                 crimsonPlayer[playerIndex].drive.level1EffectPlayed = true;
             }
@@ -2614,7 +2614,7 @@ void DriveTweaks(byte8* actorBaseAddr) {
 
                 auto& vfxBank = crimsonPlayer[playerIndex].drive.bank;
                 auto& id = crimsonPlayer[playerIndex].drive.id;
-                CrimsonDetours::CreateEffectDetour(actorBaseAddr, vfxBank, id, 1, 69420);
+                CrimsonDetours::CreateEffectDetour(actorBaseAddr, vfxBank, id, 1,true, 69420, 0.8f);
 
                 crimsonPlayer[playerIndex].drive.level2EffectPlayed = true;
             }
@@ -2628,7 +2628,7 @@ void DriveTweaks(byte8* actorBaseAddr) {
 
                 auto& vfxBank = crimsonPlayer[playerIndex].drive.bank;
                 auto& id = crimsonPlayer[playerIndex].drive.id;
-                CrimsonDetours::CreateEffectDetour(actorBaseAddr, vfxBank, id, 1, 69420);
+                CrimsonDetours::CreateEffectDetour(actorBaseAddr, vfxBank, id, 1,true, 69420, 0.8f);
 
                 crimsonPlayer[playerIndex].drive.level3EffectPlayed = true;
             }

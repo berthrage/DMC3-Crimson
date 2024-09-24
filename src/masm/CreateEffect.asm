@@ -1,12 +1,15 @@
-.CODE
+.DATA
 extern DetourBaseAddr:QWORD
 extern createEffectRBXMov:QWORD
 extern createEffectCallA:QWORD
 extern createEffectCallB:QWORD
 
+.CODE
 CreateEffectDetour PROC
 	;sub rsp,40h handled by the callee in _fastcall
-	; rsp + 40 is the colo_u_r argument
+	; rsp + 56 is the speed argument
+	; rsp + 48 is the colo_u_r argument
+	; rsp + 40 is the enableCustomColor argument
 	mov		QWORD PTR [rsp+32], r9 ; effectBoneIdx
 	mov     QWORD PTR [rsp+24], r8 ; effectId
 	mov     QWORD PTR [rsp+16], rdx ; effectBank
@@ -28,12 +31,26 @@ CreateEffectDetour PROC
 	xor 	rdx, rdx
 	mov 	ecx, DWORD PTR [rsp+16+40] ; effectBank
 	mov 	edx, DWORD PTR [rsp+24+40] ; effectId
-	; where add colour
+
 	sub		rsp, 20h ; Shadow space for the call
 	call 	createEffectCallA ; from dmc3.exe+211B95, another example at dmc3.exe+20167F
 	mov 	rdi, rax
 	test 	rax, rax
 	je 		return
+	cmp		byte ptr [rsp + 40 + 72], 01
+	je		EnableCustomColor
+
+ContinueDetour:
+	push	r8
+	mov		r8d, dword ptr [rax + 0E0h]
+	mov		r8d, dword ptr [rsp + 48 + 80] ; adding color
+	pop		r8
+	sub		rsp, 10h
+	movaps	[rsp], xmm3
+	movss	xmm3, dword ptr [rsp + 56 + 88] ; adding speed
+	movss	dword ptr [rax + 18h], xmm3
+	movaps  xmm3, [rsp]
+	add		rsp, 10h
 	mov 	rcx, rbx
 	call 	createEffectCallB
 	add		rsp, 20h ; Shadow space for the call
@@ -53,9 +70,14 @@ CreateEffectDetour PROC
 	mov     eax, 18h
 	imul    eax, dword ptr [rbx+3E88h] ; devilTriggerModel
 	add 	eax, DWORD PTR [rsp+32+40] ; effectBoneIdx
-	skipDTBoneAdd:
+
+skipDTBoneAdd:
 	mov 	rdx, [rbx + rax * 8h + 0000E5D0h]
 	jmp 	Cont
+
+EnableCustomColor:
+	mov		word ptr [rax + 0DCh], 2 ;enable customcolor
+	jmp		ContinueDetour
 
 UseP1:
 	mov 	rdx, [rbx + rax * 8h + 0000E5D0h]

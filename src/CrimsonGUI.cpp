@@ -6620,15 +6620,17 @@ void DebugSection() {
 		static int vfxBank = 0;
 		static int vfxId = 0;
 		static int boneIdx = 0;
+		static bool enableCustomColor = false;
 
 		ImGui::InputInt("Effect Bank", &vfxBank);
 		ImGui::InputInt("Effect ID", &vfxId);
 		ImGui::InputInt("Effect Bone", &boneIdx);
 		static int effectPlayerID = 0;
 		ImGui::InputInt("Player", &effectPlayerID);
+		ImGui::Checkbox("CustomColor", &enableCustomColor);
 		auto pPlayer = (void*)crimsonPlayer[effectPlayerID].playerPtr;
 		if (ImGui::Button("CreateEffect")) {
-			CrimsonDetours::CreateEffectDetour(pPlayer, vfxBank, vfxId, boneIdx, 69420);
+			CrimsonDetours::CreateEffectDetour(pPlayer, vfxBank, vfxId, boneIdx, enableCustomColor, 69420, 1);
 		}
 
 		ImGui::Text("");
