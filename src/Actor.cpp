@@ -3213,7 +3213,7 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
     // VFX - FLUX
     if (activeCrimsonConfig.StyleSwitchFX.Flux.enable) {
         uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(activeCrimsonConfig.StyleSwitchFX.Flux.color[styleColorIndex]);
-        CrimsonDetours::CreateEffectDetour(actorBaseAddr, 3, 144, 1, true, actualColor, 1.0f);
+        CrimsonDetours::CreateEffectDetour(actorBaseAddr, 3, 144, 1, true, actualColor, 0.73f);
     }
 
     if (!actorData.cloneActorBaseAddr) {
