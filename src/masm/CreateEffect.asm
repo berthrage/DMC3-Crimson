@@ -42,8 +42,8 @@ CreateEffectDetour PROC
 
 ContinueDetour:
 	push	r8
-	mov		r8d, dword ptr [rax + 0E0h]
 	mov		r8d, dword ptr [rsp + 48 + 80] ; adding color
+	mov		dword ptr [rax + 0E0h], r8d
 	pop		r8
 	sub		rsp, 10h
 	movaps	[rsp], xmm3
@@ -64,14 +64,23 @@ ContinueDetour:
 
 	mov 	rbx, QWORD PTR [rsp+8+40] ; pPlayer
 	xor 	rax, rax
-	cmp     byte ptr [rbx+3E9Bh], 00 ; devilTrigger
-	mov     eax, DWORD PTR [rsp+32+40] ; effectBoneIdx ; for skipped bone
-	je      skipDTBoneAdd
+	cmp     byte ptr [rbx+3E9Bh], 00 ; if not in devilTrigger
+	je		IsDoppelgangerCheck
+	jmp		DoDevilTriggerBoneAdd
+	
+DoDevilTriggerBoneAdd:
 	mov     eax, 18h
 	imul    eax, dword ptr [rbx+3E88h] ; devilTriggerModel
 	add 	eax, DWORD PTR [rsp+32+40] ; effectBoneIdx
+	jmp		AddBone
 
-skipDTBoneAdd:
+IsDoppelgangerCheck:
+	cmp		byte ptr [rbx + 1CACEh], 00 ; checking if not a Clone since Clone uses DT Model
+	mov     eax, DWORD PTR [rsp+32+40] ; effectBoneIdx ; for skipped bone
+	je      AddBone
+	jmp		DoDevilTriggerBoneAdd
+
+AddBone:
 	mov 	rdx, [rbx + rax * 8h + 0000E5D0h]
 	jmp 	Cont
 
@@ -82,6 +91,7 @@ EnableCustomColor:
 UseP1:
 	mov 	rdx, [rbx + rax * 8h + 0000E5D0h]
 	jmp 	Cont
+
 Cont:
 	mov 	rcx, [rdx + 00000110h]
 	mov 	[rdi + 000000C0h], rcx ; player xyz

@@ -356,7 +356,7 @@ void InitSDL() {
         int controllerIndex = fn_SDL_GameControllerGetPlayerIndex(mainController);
 
         InitControllers();
-        reverseNonNull(controllers);
+        CrimsonUtil::ReverseNonNull(controllers);
 
         SDL2Init = true;
     }

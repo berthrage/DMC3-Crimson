@@ -394,9 +394,9 @@ void MultiplayerCameraPositioningController() {
 				lerpFactor = lerpFactorOutTransition;
 			}
 
-			currentCameraPos.x = lerp(currentCameraPos.x, g_customCameraPos[0], lerpFactor);
-			currentCameraPos.y = lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactor);
-			currentCameraPos.z = lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactor);
+			currentCameraPos.x = CrimsonUtil::lerp(currentCameraPos.x, g_customCameraPos[0], lerpFactor);
+			currentCameraPos.y = CrimsonUtil::lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactor);
+			currentCameraPos.z = CrimsonUtil::lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactor);
 
 			
 
@@ -458,9 +458,9 @@ void MultiplayerCameraPositioningController() {
 		// Gradual transition between MPCam and normal cam (if a transition is occurring)
 		if (g_isParanoramicCamActive) {
 			float lerpFactor = 0.05f;  // Adjust this factor for smoother or faster transitions
-			currentCameraPos.x = lerp(currentCameraPos.x, g_customCameraPos[0], lerpFactor);
-			currentCameraPos.y = lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactor);
-			currentCameraPos.z = lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactor);
+			currentCameraPos.x = CrimsonUtil::lerp(currentCameraPos.x, g_customCameraPos[0], lerpFactor);
+			currentCameraPos.y = CrimsonUtil::lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactor);
+			currentCameraPos.z = CrimsonUtil::lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactor);
 // 
 			g_customCameraPos[0] = mainActorData.position.x;
 			g_customCameraPos[1] = mainActorData.position.y;

@@ -35,6 +35,7 @@ void ActionTimers() {
             continue;
         }
         auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+        if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
         auto inAttack = (actorData.eventData[0].event == ACTOR_EVENT::ATTACK);
 		auto& currentAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAction : crimsonPlayer[playerIndex].currentActionClone;
 		auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
@@ -73,6 +74,7 @@ void AnimTimers() {
 			continue;
 		}
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+        if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
 		auto& currentAnim = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAnim : crimsonPlayer[playerIndex].currentAnimClone;
         auto& actorMotion = actorData.motionData[0].index;
         auto& animTimer = (actorData.newEntityIndex == 0)? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;

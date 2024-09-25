@@ -31,6 +31,7 @@
 #include "Core/Macros.h"
 #include <deque>
 #include "Training.hpp"
+#include "CrimsonUtil.hpp"
 
 namespace CrimsonFX {
 
@@ -210,11 +211,16 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
 		sfxFinished = true;
 	}
 
+	uint8 vfxColorDante[4] = { 48, 0, 10, 255 };
+	uint8 vfxColorVergil[4] = { 2, 16, 43, 255 };
+	uint32 actualColor = (actorData.character == CHARACTER::DANTE) ? CrimsonUtil::Uint8toAABBGGRR(vfxColorDante) :
+		CrimsonUtil::Uint8toAABBGGRR(vfxColorVergil);
 	// VFX START
 	if (actorData.dtExplosionCharge > 2500 && !vfxStarted && !vfxFinished) {
         crimsonPlayer[playerIndex].dTEVFX.time = 0;
 		auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
-		CrimsonDetours::CreateEffectDetour(pPlayer, 3, 61, 1, true, 69420, 0.4f);
+		
+		CrimsonDetours::CreateEffectDetour(pPlayer, 3, 61, 1, true, actualColor, 0.4f);
 
 		vfxStarted = true;
 	}
@@ -222,7 +228,7 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
 	// VFX FINISH
 	if (actorData.dtExplosionCharge >= maxDT && !vfxFinished) {
 		auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
-		CrimsonDetours::CreateEffectDetour(pPlayer, 3, 41, 1, true, 69420, 1.0f);
+		CrimsonDetours::CreateEffectDetour(pPlayer, 3, 41, 1, true, actualColor, 1.0f);
 
 		vfxFinished = true;
 	}
@@ -238,7 +244,7 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
         
         if (releaseVolumeMult > 0.4f) {
 			auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
-			CrimsonDetours::CreateEffectDetour(pPlayer, 3, 61, 1,true, 69420, 1.0f);
+			CrimsonDetours::CreateEffectDetour(pPlayer, 3, 61, 1,true, actualColor, 1.0f);
         }
 
         sfxStarted = false;
@@ -432,7 +438,9 @@ void DelayedComboFXController(byte8* actorBaseAddr) {
 
             // VFX
 			auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
-			CrimsonDetours::CreateEffectDetour(pPlayer, delayedComboFX.bank, delayedComboFX.id, 1, true, 69420, 1.2f);
+			uint8 vfxColor[4] = { 48, 0, 10, 255 };
+			uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(vfxColor);
+			CrimsonDetours::CreateEffectDetour(pPlayer, delayedComboFX.bank, delayedComboFX.id, 1, true, actualColor, 1.2f);
 
             // VIBRATION
 			CrimsonSDL::VibrateController(playerIndex, 0, 0x5555, 130);
@@ -449,6 +457,7 @@ void DelayedComboFXController(byte8* actorBaseAddr) {
 }
 
 void StyleSwitchFlux(byte8* actorBaseAddr) {
+	// Deprecated, goodbye buggy DevilFlux, we had good times. - Mia
     if (!actorBaseAddr) {   
         return;
     }

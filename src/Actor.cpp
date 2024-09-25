@@ -2787,25 +2787,28 @@ byte8* SpawnActor(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
     newActorData.baseAddr = actorBaseAddr;
     auto newPlayerIndex = actorData.newPlayerIndex;
 
+    if (actorData.character == CHARACTER::DANTE || actorData.character == CHARACTER::VERGIL) {
+        // Pass data to the new actor from UpdateCrimsonPlayerData 
+        if (eventData.event != EVENT::DEATH) {
+            actorData.hitPoints = crimsonPlayer[newPlayerIndex].hitPoints;
+        }
 
-    // Pass data to the new actor from UpdateCrimsonPlayerData 
-    if (eventData.event != EVENT::DEATH) {
-        actorData.hitPoints = crimsonPlayer[newPlayerIndex].hitPoints;
+
+        actorData.maxHitPoints = crimsonPlayer[newPlayerIndex].maxHitPoints;
+        actorData.maxMagicPoints = crimsonPlayer[newPlayerIndex].maxMagicPoints;
+        actorData.magicPoints = crimsonPlayer[newPlayerIndex].magicPoints;
+
+        actorData.style = crimsonPlayer[playerIndex].style;
+        actorData.royalguardReleaseDamage = crimsonPlayer[newPlayerIndex].royalguardReleaseDamage;
+        actorData.dtExplosionCharge = crimsonPlayer[newPlayerIndex].dtExplosionCharge;
+        crimsonPlayer[newPlayerIndex].vergilDoppelganger.drainStart = false; // very important to ensure drainTimer doesn't stay on when respawning
+
+        actorData.styleData.rank = crimsonPlayer[newPlayerIndex].styleData.rank;
+        actorData.styleData.meter = crimsonPlayer[newPlayerIndex].styleData.meter;
+        actorData.styleData.quotient = crimsonPlayer[newPlayerIndex].styleData.quotient;
+        actorData.styleData.dividend = crimsonPlayer[newPlayerIndex].styleData.dividend;
+        actorData.styleData.divisor = crimsonPlayer[newPlayerIndex].styleData.divisor;
     }
-    actorData.maxHitPoints = crimsonPlayer[newPlayerIndex].maxHitPoints;
-    actorData.maxMagicPoints = crimsonPlayer[newPlayerIndex].maxMagicPoints;
-    actorData.magicPoints = crimsonPlayer[newPlayerIndex].magicPoints;
-    
-    actorData.style = crimsonPlayer[playerIndex].style;
-    actorData.royalguardReleaseDamage = crimsonPlayer[newPlayerIndex].royalguardReleaseDamage;
-    actorData.dtExplosionCharge = crimsonPlayer[newPlayerIndex].dtExplosionCharge;
-    crimsonPlayer[newPlayerIndex].vergilDoppelganger.drainStart = false; // very important to ensure drainTimer doesn't stay on when respawning
-    
-    actorData.styleData.rank = crimsonPlayer[newPlayerIndex].styleData.rank;
-    actorData.styleData.meter = crimsonPlayer[newPlayerIndex].styleData.meter;
-    actorData.styleData.quotient = crimsonPlayer[newPlayerIndex].styleData.quotient;
-    actorData.styleData.dividend = crimsonPlayer[newPlayerIndex].styleData.dividend;
-    actorData.styleData.divisor = crimsonPlayer[newPlayerIndex].styleData.divisor;
 
     return actorBaseAddr;
 }
@@ -3193,8 +3196,24 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
     UpdateStyle(actorData); // Updates Style EXP
 
     // Summons Style Switch VFX (leftover from DT In Effect).
+    int styleColorIndex = 0;
+    if (style == 0) {
+        styleColorIndex = 1;
+    }
+    else if (style == 1) {
+        styleColorIndex = 2;
+    }
+    else if (style == 2) {
+        styleColorIndex = 0;
+    }
+    else {
+        styleColorIndex = style;
+    }
+
+    // VFX - FLUX
     if (activeCrimsonConfig.StyleSwitchFX.Flux.enable) {
-        *fluxtime = 0.1f;
+        uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(activeCrimsonConfig.StyleSwitchFX.Flux.color[styleColorIndex]);
+        CrimsonDetours::CreateEffectDetour(actorBaseAddr, 3, 144, 1, true, actualColor, 1.0f);
     }
 
     if (!actorData.cloneActorBaseAddr) {
@@ -3886,7 +3905,6 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CrimsonGameplay::DTInfusedRoyalguardController(actorBaseAddr);
     CrimsonFX::StyleRankHudFadeoutController();
     CrimsonFX::DelayedComboFXController(actorBaseAddr);
-    CrimsonFX::StyleSwitchFlux(actorBaseAddr);
     if (sessionData.unlockDevilTrigger) {
         CrimsonFX::DTExplosionFXController(actorBaseAddr);
     }
@@ -7490,7 +7508,7 @@ void SetAirHikeColor(PlayerActorDataDante& actorData, byte8* dest) {
     CopyMemory(dest, activeConfig.Color.airHike[meleeWeaponIndex], 4);
 }
 
-void SetDevilAuraColor(PlayerActorData& actorData, byte8* dest) {
+void SetDevilAuraColor(PlayerActorData& actorData, uint8* dest) {
     uint8 character = static_cast<uint8>(actorData.character);
 
     switch (character) {

@@ -171,7 +171,7 @@ std::uint64_t g_VergilNeutralTrick_ReturnAddr;
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
     using namespace ACTION_DANTE;
 
-    auto playerIndex = GetPlayerIndexFromAddr((uintptr_t)actorData.baseAddr); // simply using actorData.newPlayerIndex also works here.
+    auto playerIndex = CrimsonUtil::GetPlayerIndexFromAddr((uintptr_t)actorData.baseAddr); // simply using actorData.newPlayerIndex also works here.
 
     auto tiltDirection = GetRelativeTiltDirection(actorData);
 
@@ -415,6 +415,7 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
 }
 
 uint16 ActorCameraDirectionToEnemyCameraDirection(PlayerActorData& actorData) {
+	if(actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return actorData.actorCameraDirection;
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& rotationTowardsEnemy = (actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].rotationCloneTowardsEnemy : crimsonPlayer[playerIndex].rotationTowardsEnemy;
 

@@ -3871,15 +3871,6 @@ void StyleMeterWindow() {
 	ImGui::End();
 }
 
-// cant include <algorithm> ;_;
-static float sexy_clamp(const float val, const float minVal, const float maxVal) {
-	return max(minVal, min(val, maxVal));
-}
-
-static float smoothstep(float edge0, float edge1, float x) {
-	x = sexy_clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
-	return x * x * (3 - 2 * x);
-}
 
 void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, float screenMargin, const char* name, Config::BarsData& activeData) {
 	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
@@ -3990,8 +3981,8 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 		}
 
 		// Clamp icon position to screen edges
-		iconPosition.x = sexy_clamp(iconPosition.x, screenMargin, screenWidth - screenMargin);
-		iconPosition.y = sexy_clamp(iconPosition.y, screenMargin, screenHeight - screenMargin);
+		iconPosition.x = CrimsonUtil::sexy_clamp(iconPosition.x, screenMargin, screenWidth - screenMargin);
+		iconPosition.y = CrimsonUtil::sexy_clamp(iconPosition.y, screenMargin, screenHeight - screenMargin);
 	}
 
 	// Scale factor based on 1080p for responsiveness
@@ -4004,8 +3995,8 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 	ImVec2 buttonSize(80.0f * scaleFactorX, 80.0f * scaleFactorY);
 
 	// Clamp the Icon Position again to ensure Button doesn't go out of screen bounds:
-	iconPosition.x = sexy_clamp(iconPosition.x, screenMargin, screenWidth - screenMargin - buttonSize.x + 30.0f);
-	iconPosition.y = sexy_clamp(iconPosition.y, screenMargin, screenHeight - screenMargin - buttonSize.y + 30.0f);
+	iconPosition.x = CrimsonUtil::sexy_clamp(iconPosition.x, screenMargin, screenWidth - screenMargin - buttonSize.x + 30.0f);
+	iconPosition.y = CrimsonUtil::sexy_clamp(iconPosition.y, screenMargin, screenHeight - screenMargin - buttonSize.y + 30.0f);
 
 
 	auto IsOverlapping = [&](ImVec2 pos1, ImVec2 pos2, ImVec2 size) {
@@ -4130,7 +4121,7 @@ void RenderWorldSpaceMultiplayerBar(
 
 	const float screenMargin = 50.0f;
 
-	const float t = smoothstep(0.0f, 1390.0f, crimsonPlayer[playerIndex].cameraPlayerDistance);
+	const float t = CrimsonUtil::smoothstep(0.0f, 1390.0f, crimsonPlayer[playerIndex].cameraPlayerDistance);
 	const float alpha = ImLerp(0.27f, 1.0f, t);
 	activeData.hitColor[3] = alpha;
 	activeData.magicColor[3] = alpha;
@@ -6629,8 +6620,9 @@ void DebugSection() {
 		ImGui::InputInt("Player", &effectPlayerID);
 		ImGui::Checkbox("CustomColor", &enableCustomColor);
 		auto pPlayer = (void*)crimsonPlayer[effectPlayerID].playerPtr;
+		uint32 vfxColor = CrimsonUtil::Uint8toAABBGGRR(activeCrimsonConfig.StyleSwitchFX.Flux.color[0]);
 		if (ImGui::Button("CreateEffect")) {
-			CrimsonDetours::CreateEffectDetour(pPlayer, vfxBank, vfxId, boneIdx, enableCustomColor, 69420, 1);
+			CrimsonDetours::CreateEffectDetour(pPlayer, vfxBank, vfxId, boneIdx, enableCustomColor, vfxColor, 1);
 		}
 
 		ImGui::Text("");
@@ -9076,9 +9068,15 @@ void SoundVisualSection(size_t defaultFontSize) {
 	}
 
 
-	if (GUI_Button("Colorful")) {
-		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.colorful, sizeof(queuedCrimsonConfig.StyleSwitchFX.Flux.color));
-		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.colorful, sizeof(activeCrimsonConfig.StyleSwitchFX.Flux.color));
+	if (GUI_Button("Colorful Subtle")) {
+		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.colorfulSubtle, sizeof(queuedCrimsonConfig.StyleSwitchFX.Flux.color));
+		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.colorfulSubtle, sizeof(activeCrimsonConfig.StyleSwitchFX.Flux.color));
+	}
+
+	ImGui::SameLine();
+	if (GUI_Button("DMC3 Switch")) {
+		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.dMC3Switch, sizeof(queuedCrimsonConfig.StyleSwitchFX.Flux.color));
+		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.dMC3Switch, sizeof(activeCrimsonConfig.StyleSwitchFX.Flux.color));
 	}
 
     ImGui::SameLine();

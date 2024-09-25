@@ -40,6 +40,7 @@
 #include "CrimsonSDL.hpp"
 #include "CrimsonPatches.hpp"
 #include "CrimsonTimers.hpp"
+#include "CrimsonUtil.hpp"
 
 namespace CrimsonGameplay {
 
@@ -2206,11 +2207,9 @@ void SprintAbility(byte8* actorBaseAddr) {
             }
 
             if (!sprintData.VFXPlayed) {
-                //CrimsonDetours::createEffectBank = sprintVFX.bank;
-                //CrimsonDetours::createEffectID   = sprintVFX.id;
-                //CrimsonDetours::createEffectBone = 1;
-                //CrimsonDetours::createEffectPlayerAddr = (uint64_t)actorBaseAddr; // crimsonPlayer[playerIndex].playerPtr also works
-                CrimsonDetours::CreateEffectDetour(actorBaseAddr, sprintVFX.bank, sprintVFX.id, 1, false, 69420, 1);
+                uint8 vfxColor[4] = { 35, 35, 35, 255 };
+                uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(vfxColor);
+                CrimsonDetours::CreateEffectDetour(actorBaseAddr, sprintVFX.bank, sprintVFX.id, 1, true, actualColor, 0.3f);
 
                 sprintData.VFXPlayed = true;
             }
@@ -2355,9 +2354,10 @@ void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
 	if (!actorBaseAddr) {
 		return;
 	}
+    
 
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-
+    if(actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& rotationTowardsEnemy = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].rotationTowardsEnemy : crimsonPlayer[playerIndex].rotationCloneTowardsEnemy;
 
@@ -2399,6 +2399,7 @@ void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
 
 
 void TrackRoyalReleaseAndSkyLaunch(PlayerActorData& actorData) {
+    if (actorData.character != CHARACTER::DANTE) return;
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& royalRelease = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].royalRelease : crimsonPlayer[playerIndex].royalReleaseClone;
 	auto& skyLaunch = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].skyLaunch : crimsonPlayer[playerIndex].skyLaunchClone;
@@ -2584,6 +2585,8 @@ void DriveTweaks(byte8* actorBaseAddr) {
     // The actual Drive Tweaks
     if ((actorData.action == REBELLION_DRIVE_1) && !crimsonPlayer[playerIndex].inQuickDrive && actorData.eventData[0].event == 17) {
 
+        uint32 vfxColor = CrimsonUtil::Uint8toAABBGGRR(activeCrimsonConfig.StyleSwitchFX.Flux.color[0]);
+
         if (crimsonPlayer[playerIndex].drive.timer < 1.0f && crimsonPlayer[playerIndex].drive.level1EffectPlayed) {
             crimsonPlayer[playerIndex].drive.level1EffectPlayed = false;
             crimsonPlayer[playerIndex].drive.level2EffectPlayed = false;
@@ -2595,7 +2598,7 @@ void DriveTweaks(byte8* actorBaseAddr) {
 
                 auto& vfxBank = crimsonPlayer[playerIndex].drive.bank;
                 auto& id = crimsonPlayer[playerIndex].drive.id;
-                CrimsonDetours::CreateEffectDetour(actorBaseAddr, vfxBank, id, 1, true, 69420, 0.8f);
+                CrimsonDetours::CreateEffectDetour(actorBaseAddr, vfxBank, id, 1, true, vfxColor, 0.8f);
 
                 crimsonPlayer[playerIndex].drive.level1EffectPlayed = true;
             }
@@ -2614,7 +2617,7 @@ void DriveTweaks(byte8* actorBaseAddr) {
 
                 auto& vfxBank = crimsonPlayer[playerIndex].drive.bank;
                 auto& id = crimsonPlayer[playerIndex].drive.id;
-                CrimsonDetours::CreateEffectDetour(actorBaseAddr, vfxBank, id, 1,true, 69420, 0.8f);
+                CrimsonDetours::CreateEffectDetour(actorBaseAddr, vfxBank, id, 1,true, vfxColor, 0.8f);
 
                 crimsonPlayer[playerIndex].drive.level2EffectPlayed = true;
             }
@@ -2628,7 +2631,7 @@ void DriveTweaks(byte8* actorBaseAddr) {
 
                 auto& vfxBank = crimsonPlayer[playerIndex].drive.bank;
                 auto& id = crimsonPlayer[playerIndex].drive.id;
-                CrimsonDetours::CreateEffectDetour(actorBaseAddr, vfxBank, id, 1,true, 69420, 0.8f);
+                CrimsonDetours::CreateEffectDetour(actorBaseAddr, vfxBank, id, 1,true, vfxColor, 0.8f);
 
                 crimsonPlayer[playerIndex].drive.level3EffectPlayed = true;
             }

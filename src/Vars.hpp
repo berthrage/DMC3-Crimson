@@ -4034,7 +4034,7 @@ struct BossHelper {
 
 struct ColorPresets {
     struct StyleSwitchFlux {
-		uint8 colorful[6][4] = {
+		uint8 colorfulSubtle[6][4] = {
 			// r   g  b  a 
 			{ 29, 29, 0, 255 }, //trick  
 			{ 26, 0, 0, 255 }, //sword  
@@ -4042,6 +4042,16 @@ struct ColorPresets {
 			{ 0, 35, 6, 255 }, //royal  
 			{ 26, 0, 35, 255 }, //quick  
 			{ 30, 14, 0, 255 }, //doppel 
+		};
+
+		uint8 dMC3Switch[6][4] = {
+			// r   g  b  a 
+			{ 55, 58, 6, 255 }, //trick  
+			{ 58, 5, 5, 255 }, //sword  
+			{ 13, 5, 58, 255 }, //gun    
+			{ 5, 58, 12, 255 }, //royal  
+			{ 58, 5, 49, 255 }, //quick  
+			{ 58, 28, 5, 255 }, //doppel 
 		};
 
 		uint8 allRed[6][4] = {
