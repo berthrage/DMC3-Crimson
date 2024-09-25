@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/DataTypes.hpp"
+#include "Vars.hpp"
 
 #pragma region GameplayImprovements
 
@@ -18,10 +19,10 @@ void ToggleIncreasedEnemyJuggleTime(bool enable);
 #pragma region CameraStuff
 
 void CameraSensController();
-void CameraFollowUpSpeedController();
-void CameraDistanceController();
+void CameraFollowUpSpeedController(CameraData* cameraData);
+void CameraDistanceController(CameraData* cameraData);
 void CameraLockOnDistanceController();
-void CameraTiltController();
+void CameraTiltController(CameraData* cameraData);
 void ForceThirdPersonCamera(bool enable);
 void ToggleLockedOffCamera(bool enable);
 void DisableLockOnCamera(bool enable);

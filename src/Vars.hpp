@@ -4276,7 +4276,7 @@ extern bool styleChanged[6];
 extern bool g_inCombat;
 extern bool g_inBossfight;
 extern int g_bossQuantity;
-extern bool g_inGame;
+extern bool g_inGameDelayed;
 extern bool g_inGameCutscene;
 extern bool g_HudVisible;
 extern std::string g_gameTrackPlaying;

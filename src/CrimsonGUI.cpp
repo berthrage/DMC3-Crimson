@@ -1566,10 +1566,10 @@ void PauseWhenGUIOpened() {
 	if (g_scene != SCENE::GAME || eventData.event != EVENT::MAIN) {
 		guiPause.timer = 1.0f;
 		guiPause.canPause = false;
-		g_inGame = false;
+		g_inGameDelayed = false;
 	}
 	else {
-		g_inGame = true;
+		g_inGameDelayed = true;
 
 		if (guiPause.timer > 0) {
 			guiPause.timer -= ImGui::GetIO().DeltaTime;
@@ -7963,7 +7963,7 @@ void AdjustBackgroundTransparency() {
 
         //DYNAMIC
     case 2 :
-        if (g_inGame) {
+        if (g_inGameDelayed) {
             ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, queuedCrimsonConfig.GUI.opacity));
         }
 		else {
@@ -8036,7 +8036,7 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Pause When Opened", activeCrimsonConfig.GUI.pauseWhenOpened, queuedCrimsonConfig.GUI.pauseWhenOpened)) {
-				if (g_inGame) {
+				if (g_inGameDelayed) {
 					activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed; // This resumes the game speed
 					activeConfig.Speed.turbo = queuedConfig.Speed.turbo;
 					Speed::Toggle(true); // Toggle Speed on and off to set the new speed

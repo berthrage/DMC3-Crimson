@@ -106,7 +106,7 @@ void UpdateCrimsonPlayerData() {
         crimsonPlayer[playerIndex].style = actorData.style;
         crimsonPlayer[playerIndex].actorMode = actorData.mode;
         crimsonPlayer[playerIndex].royalguardReleaseDamage = actorData.royalguardReleaseDamage;
-        if (eventData.event == EVENT::MAIN && actorData.dtExplosionCharge > 300 && g_inGame) {
+        if (eventData.event == EVENT::MAIN && actorData.dtExplosionCharge > 300 && g_inGameDelayed) {
             crimsonPlayer[playerIndex].dtExplosionCharge = actorData.dtExplosionCharge;
         }
         
@@ -1457,7 +1457,8 @@ void StoreInertia(byte8* actorBaseAddr) {
     
 	// GUARDFLY TIMING
     float timing = 0.13f;
-	if (i->airGuard.cachedPull == 28.0f && event == ACTOR_EVENT::JUMP_CANCEL) {
+	if (i->airGuard.cachedPull == 28.0f && event == ACTOR_EVENT::JUMP_CANCEL && (actorData.eventData[0].lastEvent == ACTOR_EVENT::ATTACK || actorData.eventData[0].lastEvent == ACTOR_EVENT::TRICKSTER_SKY_STAR || 
+        actorData.eventData[0].lastEvent == ACTOR_EVENT::JUMP_CANCEL)) {
 
 		if (guardflyTimer > timing) {
 			i->airGuard.cachedPull = 3.0f;  // Reset pull 

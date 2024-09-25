@@ -415,7 +415,8 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
 }
 
 uint16 ActorCameraDirectionToEnemyCameraDirection(PlayerActorData& actorData) {
-	if(actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return actorData.actorCameraDirection;
+	if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return actorData.actorCameraDirection;
+	if (!activeConfig.Actor.enable) return actorData.actorCameraDirection;
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& rotationTowardsEnemy = (actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].rotationCloneTowardsEnemy : crimsonPlayer[playerIndex].rotationTowardsEnemy;
 

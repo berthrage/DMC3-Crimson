@@ -210,21 +210,7 @@ void CameraSensController() {
 }
 
 
-void CameraFollowUpSpeedController() {
-	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
-	if (!pool_4449 || !pool_4449[147]) {
-		return;
-	}
-	auto cameraDataPtr = pool_4449[147];
-	if (!cameraDataPtr || IsBadReadPtr(cameraDataPtr, sizeof(CameraData))) {
-		return;
-	}
-	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-	if (!pool_10298 || !pool_10298[8]) {
-		return;
-	}
-	auto& cameraData = *reinterpret_cast<CameraData*>(cameraDataPtr);
-
+void CameraFollowUpSpeedController(CameraData* cameraData) {
 	auto pool_166 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!pool_166 || !pool_166[3]) return;
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
@@ -253,11 +239,11 @@ void CameraFollowUpSpeedController() {
 			auto elapsedTime = std::chrono::duration<float>(now - lockOnStartTime).count();
 
 			if (elapsedTime < lockOnDuration) {
-				cameraData.cameraLag = lockOnLag;
+				cameraData->cameraLag = lockOnLag;
 			}
 			else {
 				// After lockOnDuration, return to normal follow-up speed
-				cameraData.cameraLag = normalLag;
+				cameraData->cameraLag = normalLag;
 			}
 		}
 		else {
@@ -265,17 +251,17 @@ void CameraFollowUpSpeedController() {
 			isLockOnTimerActive = false;
 
 			// Normal camera lag
-			cameraData.cameraLag = normalLag;
+			cameraData->cameraLag = normalLag;
 		}
 		};
 
 	if (g_isMPCamActive) {
-		cameraData.cameraLag = 1000.0f;
+		cameraData->cameraLag = 1000.0f;
 	}
 	else {
 		switch (activeCrimsonConfig.Camera.followUpSpeed) {
 		case 0: // Low (Vanilla Default)
-			cameraData.cameraLag = 1000.0f;
+			cameraData->cameraLag = 1000.0f;
 			break;
 		case 1: // Medium
 			dynamicCameraLag(500.0f, 2000.0f, 0.5f); // Apply lockOn behavior for medium follow-up speed
@@ -523,35 +509,27 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 }
 
 
-void CameraDistanceController() {
-	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
-	if (!pool_4449 || !pool_4449[147]) return;
-	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
-
-	auto pool_166 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_166 || !pool_166[3]) return;
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
-
+void CameraDistanceController(CameraData* cameraData) {
 	if (activeCrimsonConfig.Camera.distance == 0) { // Far (Vanilla Default)
 		return;
 	}
 
 	if (activeCrimsonConfig.Camera.distance == 1) { // Closer
-		if (cameraData.distance > 350) {
-			cameraData.distance = 350.0f;
+		if (cameraData->distance > 350) {
+			cameraData->distance = 350.0f;
 		}
 	}
 
 	if (activeCrimsonConfig.Camera.distance == 2) { // Dynamic
 
         if (g_isMPCamActive) {
-            HandleMultiplayerCameraDistance(cameraData.distance, 430, 580);
+            HandleMultiplayerCameraDistance(cameraData->distance, 430, 580);
         }
         else if (g_isParanoramicCamActive && g_inCombat) {
-            HandlePanoramicSPCameraDistance(cameraData.distance, 430, 580);
+            HandlePanoramicSPCameraDistance(cameraData->distance, 430, 580);
         }
         else if (!(g_isMPCamActive || (g_isParanoramicCamActive && g_inCombat))){
-            HandleDynamicSPCameraDistance(cameraData.distance, 430, 580);
+            HandleDynamicSPCameraDistance(cameraData->distance, 430, 580);
         }
 	}
 }
@@ -593,19 +571,13 @@ void CameraLockOnDistanceController() {
     }
 }
 
-void CameraTiltController() {
-    auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
-    if (!pool_4449 || !pool_4449[147]) {
-        return;
-    }
-    auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
-
+void CameraTiltController(CameraData* cameraData) {
     if (activeCrimsonConfig.Camera.tilt == 0) { // Original (Vanilla Default)
         return;
     }
 
     if (activeCrimsonConfig.Camera.tilt == 1) { // Closer to Ground
-        cameraData.tilt = 0.103073f;
+        cameraData->tilt = 0.103073f;
     }
 }
 

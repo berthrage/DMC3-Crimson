@@ -219,7 +219,7 @@ bool styleChanged[6] = {false, false, false, false, false, false};
 bool g_inCombat = false;
 bool g_inBossfight = false;
 int g_bossQuantity = 0;
-bool g_inGame = false;
+bool g_inGameDelayed = false;
 bool g_inGameCutscene = false;
 std::string g_gameTrackPlaying;
 
