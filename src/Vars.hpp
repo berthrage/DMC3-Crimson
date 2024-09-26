@@ -713,8 +713,9 @@ enum {
     SUPER_JUMP,
     UNKNOWN_24,
     HOLY_WATER,
-    UNKNOWN_25,
+    STAGGER,
     DEATH,
+    NEVAN_KISS,
     COUNT,
 };
 };
@@ -729,7 +730,7 @@ static_assert(ACTOR_EVENT::DARK_SLAYER_AIR_TRICK == 27);
 static_assert(ACTOR_EVENT::DARK_SLAYER_TRICK_UP == 28);
 static_assert(ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN == 29);
 static_assert(ACTOR_EVENT::NEVAN_AIR_RAID == 40);
-static_assert(ACTOR_EVENT::COUNT == 46);
+static_assert(ACTOR_EVENT::COUNT == 47);
 
 namespace EVENT_ENEMY {
 enum {

@@ -3175,6 +3175,7 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
         return;
     }
     auto& actorData     = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    if (actorData.eventData[0].event == ACTOR_EVENT::NEVAN_KISS) return; // Can't switch styles if you're stunned by Nevan.
 
     auto playerIndex = actorData.newPlayerIndex;
     auto& characterData = GetCharacterData(actorData);

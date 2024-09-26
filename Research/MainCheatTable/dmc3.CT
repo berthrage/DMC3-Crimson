@@ -2580,6 +2580,22 @@ dmc3.exe+211BDF: 90                             - nop
           <VariableType>4 Bytes</VariableType>
           <Address>dmc3.exe+D54A24</Address>
         </CheatEntry>
+        <CheatEntry>
+          <ID>2701</ID>
+          <Description>"+88 locked on enemy JC func"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>0</Offset>
+            <Offset>88</Offset>
+            <Offset>0</Offset>
+            <Offset>6328</Offset>
+            <Offset>18</Offset>
+            <Offset>00C90E28</Offset>
+          </Offsets>
+        </CheatEntry>
       </CheatEntries>
     </CheatEntry>
     <CheatEntry>
@@ -4116,7 +4132,7 @@ dmc3.exe+1E9A5C: CC                    - int 3
               </Offsets>
               <CheatEntries>
                 <CheatEntry>
-                  <ID>2558</ID>
+                  <ID>2703</ID>
                   <Description>"+0"</Description>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
@@ -4194,6 +4210,20 @@ dmc3.exe+1E9A5C: CC                    - int 3
                   <Address>dmc3.exe+168</Address>
                   <Offsets>
                     <Offset>120</Offset>
+                    <Offset>6328</Offset>
+                    <Offset>18</Offset>
+                    <Offset>00C90E28</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>2558</ID>
+                  <Description>"+0"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>8 Bytes</VariableType>
+                  <Address>dmc3.exe+168</Address>
+                  <Offsets>
+                    <Offset>5Fa0</Offset>
                     <Offset>6328</Offset>
                     <Offset>18</Offset>
                     <Offset>00C90E28</Offset>
@@ -8604,6 +8634,13 @@ dmc3.exe+56050: 0F 5B C0                 - cvtdq2ps xmm0,xmm0
       <Description>"No description"</Description>
       <VariableType>4 Bytes</VariableType>
       <Address>047D9C78</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2702</ID>
+      <Description>"No description"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Float</VariableType>
+      <Address>4DBB7F0</Address>
     </CheatEntry>
   </CheatEntries>
   <CheatCodes>
@@ -81167,6 +81204,11 @@ dmc3.exe+2BB11E style bar stuff
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
+      <Address>7FF6AEE6AF43</Address>
+      <Comment>%s crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
       <Address>"dmc3.exe"+300C6</Address>
       <Comment>Controls something for Character anim
 </Comment>
@@ -81602,11 +81644,6 @@ Setting max alpha value (127)
     <DisassemblerComment>
       <Address>"dmc3.exe"+3161EA</Address>
       <Comment>doesnt reenable
-</Comment>
-    </DisassemblerComment>
-    <DisassemblerComment>
-      <Address>7FF6AEE6AF43</Address>
-      <Comment>%s crash
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>

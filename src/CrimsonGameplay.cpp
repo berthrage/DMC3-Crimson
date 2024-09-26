@@ -244,7 +244,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 
     // Royalguard Cancels Everything (Most things)
     if ((actorData.style == STYLE::ROYALGUARD) && (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) &&
-        actorData.eventData[0].event != 44 &&
+        actorData.eventData[0].event != ACTOR_EVENT::STAGGER && actorData.eventData[0].event != ACTOR_EVENT::NEVAN_KISS &&
         (inCancellableActionRebellion || inCancellableActionCerberus || inCancellableActionAgni || inCancellableActionNevan ||
             inCancellableActionBeowulf || inCancellableActionGuns || actorData.eventData[0].event == 22) &&
         !royalCancelTrackerRunning) // The last condition prevents cancelling recovery
