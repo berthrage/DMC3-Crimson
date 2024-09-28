@@ -43,7 +43,7 @@ void ActionTimers() {
 
         if (inAttack) {
             if (eventData.event != EVENT::PAUSE) {
-                actionTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_frameRateMultiplier);
+                actionTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
             }
         } else {
             actionTimer = 0;
@@ -87,7 +87,7 @@ void AnimTimers() {
 		}
 
 		if (eventData.event != EVENT::PAUSE) {
-			animTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_frameRateMultiplier);
+			animTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
 		}
 	}
 }
@@ -133,7 +133,7 @@ void GuardflyTimers() {
 			auto now = std::chrono::steady_clock::now();
 			float elapsedTime = std::chrono::duration<float>(now - guardflyStartTime).count();
 
-			guardflyTimer = elapsedTime * (actorData.speed / g_frameRateMultiplier);
+			guardflyTimer = elapsedTime * (actorData.speed / g_FrameRateTimeMultiplier);
 		}
 	}
 }
@@ -155,7 +155,7 @@ void SprintTimer() {
 
 
         if (crimsonPlayer[playerIndex].sprint.timer > 0 && crimsonPlayer[playerIndex].sprint.runTimer) {
-            crimsonPlayer[playerIndex].sprint.timer -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
+            crimsonPlayer[playerIndex].sprint.timer -= ImGui::GetIO().DeltaTime / g_FrameRateTimeMultiplier;
         }
 
 
@@ -174,7 +174,7 @@ void DriveTimer() {
 
         if (crimsonPlayer[playerIndex].drive.runTimer) {
 
-            crimsonPlayer[playerIndex].drive.timer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+            crimsonPlayer[playerIndex].drive.timer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         } else {
             crimsonPlayer[playerIndex].drive.timer = 0;
         }
@@ -190,7 +190,7 @@ void ImprovedCancelsTimers() {
         if (!crimsonPlayer[playerIndex].cancels.canTrick) {
 
             crimsonPlayer[playerIndex].cancels.trickCooldown -=
-                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         }
 
         if (crimsonPlayer[playerIndex].cancels.trickCooldown <= 0 && !crimsonPlayer[playerIndex].cancels.canTrick) {
@@ -202,7 +202,7 @@ void ImprovedCancelsTimers() {
         if (!crimsonPlayer[playerIndex].cancels.canGun) {
 
             crimsonPlayer[playerIndex].cancels.gunsCooldown -=
-                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         }
 
         if (crimsonPlayer[playerIndex].cancels.gunsCooldown <= 0 && !crimsonPlayer[playerIndex].cancels.canGun) {
@@ -215,7 +215,7 @@ void ImprovedCancelsTimers() {
         if (!crimsonPlayer[playerIndex].cancels.canRainstorm) {
 
             crimsonPlayer[playerIndex].cancels.rainstormCooldown -=
-                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         }
 
         if (crimsonPlayer[playerIndex].cancels.rainstormCooldown <= 0 && !crimsonPlayer[playerIndex].cancels.canRainstorm) {
@@ -229,7 +229,7 @@ void ImprovedCancelsTimers() {
         if (!crimsonPlayer[playerIndex].cancelsClone.canTrick) {
 
             crimsonPlayer[playerIndex].cancelsClone.trickCooldown -=
-                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         }
 
         if (crimsonPlayer[playerIndex].cancelsClone.trickCooldown <= 0 && !crimsonPlayer[playerIndex].cancelsClone.canTrick) {
@@ -241,7 +241,7 @@ void ImprovedCancelsTimers() {
         if (!crimsonPlayer[playerIndex].cancelsClone.canGun) {
 
             crimsonPlayer[playerIndex].cancelsClone.gunsCooldown -=
-                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         }
 
         if (crimsonPlayer[playerIndex].cancelsClone.gunsCooldown <= 0 && !crimsonPlayer[playerIndex].cancelsClone.canGun) {
@@ -254,7 +254,7 @@ void ImprovedCancelsTimers() {
         if (!crimsonPlayer[playerIndex].cancelsClone.canRainstorm) {
 
             crimsonPlayer[playerIndex].cancelsClone.rainstormCooldown -=
-                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         }
 
         if (crimsonPlayer[playerIndex].cancelsClone.rainstormCooldown <= 0 && !crimsonPlayer[playerIndex].cancelsClone.canRainstorm) {
@@ -269,11 +269,11 @@ void BackToForwardTimers() {
     old_for_all(uint8, playerIndex, PLAYER_COUNT) {
 
         if (crimsonPlayer[playerIndex].b2F.backCommand) {
-            crimsonPlayer[playerIndex].b2F.backBuffer -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
+            crimsonPlayer[playerIndex].b2F.backBuffer -= ImGui::GetIO().DeltaTime / g_FrameRateTimeMultiplier;
         }
 
         if (crimsonPlayer[playerIndex].b2F.forwardCommand) {
-            crimsonPlayer[playerIndex].b2F.forwardBuffer -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
+            crimsonPlayer[playerIndex].b2F.forwardBuffer -= ImGui::GetIO().DeltaTime / g_FrameRateTimeMultiplier;
         }
     }
 }
@@ -287,20 +287,20 @@ void StyleSwitchTextTimers() {
         for (int styleid = 0; styleid < 9; styleid++) {
             
 			if (sstext->time[styleid] > 0) {
-                sstext->time[styleid] -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
-                sstext->animSize += ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier) * 0.1f;
+                sstext->time[styleid] -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
+                sstext->animSize += ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier) * 0.1f;
 
 				
 				
                 // animates fade in
                 if (sstext->alpha[styleid] < activeCrimsonConfig.StyleSwitchFX.Text.maxAlpha && sstext->time[styleid] > 0.3f) {
-                    sstext->alpha[styleid] += ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier) * 8;
+                    sstext->alpha[styleid] += ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier) * 8;
                 
                 }
 
                 //animates fade out
 				if (sstext->time[styleid] < 0.25f) {
-					sstext->alpha[styleid] -= ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier) * 2.5f;
+					sstext->alpha[styleid] -= ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier) * 2.5f;
 				}
             
 			}
@@ -317,7 +317,7 @@ void StyleSwitchFluxTimers() {
 		float i = 0;
 
         if (*fluxtime > 0) {
-            *fluxtime -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+            *fluxtime -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         }
 
 	}
@@ -331,7 +331,7 @@ void DTEVFXTimers() {
 		float i = 0;
 
 		if (time >= 0 && started) {
-			time += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+			time += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
 		}
 
         if (time >= 1.0f) {
@@ -349,7 +349,7 @@ void VergilDoppelgangerCooldownTimer() {
 		float i = 0;
 
 		if (time > 0) {
-			time -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+			time -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
 		}
 
 	}
@@ -364,7 +364,7 @@ void VergilDoppelgangerDrainTimer() {
 		float i = 0;
 
 		if (time >= 0 && start) {
-			time += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+			time += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
 		}
 
         if (!start || miragePoints == 0 || time == 0 || g_inGameCutscene) {

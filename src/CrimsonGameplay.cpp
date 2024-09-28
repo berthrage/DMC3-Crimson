@@ -1456,7 +1456,7 @@ void StoreInertia(byte8* actorBaseAddr) {
 
     
 	// GUARDFLY TIMING
-    float timing = 0.13f;
+    float timing = 0.14f;
 	if (i->airGuard.cachedPull == 28.0f && event == ACTOR_EVENT::JUMP_CANCEL && (actorData.eventData[0].lastEvent == ACTOR_EVENT::ATTACK || actorData.eventData[0].lastEvent == ACTOR_EVENT::TRICKSTER_SKY_STAR || 
         actorData.eventData[0].lastEvent == ACTOR_EVENT::JUMP_CANCEL)) {
 

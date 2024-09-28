@@ -7338,6 +7338,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 
         if (activeConfig.debugOverlayData.showFrameRateMultiplier) {
             ImGui::Text("g_frameRateMultiplier %g", g_frameRateMultiplier);
+			ImGui::Text("g_FrameRateTimeMultiplier %g", g_FrameRateTimeMultiplier);
         }
 
         if (activeConfig.debugOverlayData.showFocus || activeConfig.debugOverlayData.showFPS || activeConfig.debugOverlayData.showSizes ||
@@ -8648,6 +8649,8 @@ void SystemSection(size_t defaultFontSize) {
 }
 
 void FrameResponsiveGameSpeed() {
+	g_FrameRate = ImGui::GetIO().Framerate;
+	g_FrameRateTimeMultiplier = (60 / ImGui::GetIO().Framerate);
 	if (activeConfig.framerateResponsiveGameSpeed) {
 		UpdateFrameRate();
 

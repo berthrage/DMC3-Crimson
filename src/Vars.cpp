@@ -216,6 +216,8 @@ bool inRapidSlash;
 
 bool styleChanged[6] = {false, false, false, false, false, false};
 
+float g_FrameRate = 0;
+float g_FrameRateTimeMultiplier = 0;
 bool g_inCombat = false;
 bool g_inBossfight = false;
 int g_bossQuantity = 0;

@@ -203,7 +203,7 @@ bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
         }
         break;
     case REBELLION_COMBO_2_PART_2:
-        if (std::clamp<float>(actionTimer, 0.0f, 0.85f) == actionTimer && inputException) {
+        if (std::clamp<float>(actionTimer, 0.0f, 0.90f) == actionTimer && inputException) {
             return true;
         }
         break;
