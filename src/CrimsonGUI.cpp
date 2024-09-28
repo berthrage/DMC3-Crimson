@@ -8455,17 +8455,7 @@ void SystemSection(size_t defaultFontSize) {
 			ImGui::PushItemWidth(itemWidth * 0.8f);
 			if (GUI_InputDefault2<float>("Frame Rate", activeConfig.frameRate, queuedConfig.frameRate, defaultConfig.frameRate, 1, "%.2f",
 				ImGuiInputTextFlags_EnterReturnsTrue)) {
-				UpdateFrameRate();
-
-				if (activeConfig.framerateResponsiveGameSpeed) {
-
-					activeConfig.Speed.turbo = 1.2 / (activeConfig.frameRate / 60);
-					queuedConfig.Speed.turbo = 1.2 / (activeConfig.frameRate / 60);
-
-					activeConfig.Speed.mainSpeed = 1.0 / (activeConfig.frameRate / 60);
-					queuedConfig.Speed.mainSpeed = 1.0 / (activeConfig.frameRate / 60);
-
-				}
+				
 			}
 			ImGui::PopItemWidth();
 
@@ -8655,6 +8645,19 @@ void SystemSection(size_t defaultFontSize) {
 // 		ToggleForceWindowFocus(activeConfig.forceWindowFocus);
 // 	}
     
+}
+
+void FrameResponsiveGameSpeed() {
+	if (activeConfig.framerateResponsiveGameSpeed) {
+		UpdateFrameRate();
+
+		activeConfig.Speed.turbo = 1.2 / (ImGui::GetIO().Framerate / 60);
+		queuedConfig.Speed.turbo = 1.2 / (ImGui::GetIO().Framerate / 60);
+
+		activeConfig.Speed.mainSpeed = 1.0 / (activeConfig.frameRate / 60);
+		queuedConfig.Speed.mainSpeed = 1.0 / (activeConfig.frameRate / 60);
+
+	}
 }
 
 #pragma endregion
@@ -11184,6 +11187,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
         SoundWindow();
     }
 
+	FrameResponsiveGameSpeed();
     PauseWhenGUIOpened();
     GamepadToggleShowMain();
 	if (activeConfig.debugOverlayData.enable) {

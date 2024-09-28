@@ -55,16 +55,60 @@ void DisableHeightRestriction(bool enable) {
 
 void IncreasedJCSpheres(bool enable) {
 	static bool run = false;
+	uintptr_t jesterJCSizeAddr = (uintptr_t)appBaseAddr + 0x580F08;
 
 	if (run == enable) {
 		return;
 	}
    
 	if (enable) {
+		// Hells -- dmc3.exe+1C1DCB - F3 0F 5E 0D B1 4F 31 00 - divss xmm1,[dmc3.exe+4D6D84] { (2.14) }
 		_patch((char*)(appBaseAddr + 0x1C1DCB), (char*)"\xF3\x0F\x5E\x0D\xB1\x4F\x31\x00", 8);
+
+		// Beowulf -- dmc3.exe+14CFFD - 41 C7 01 00 00 7A 43 - mov [r9],437A0000 { 250.00 }
+		_patch((char*)(appBaseAddr + 0x14CFFD), (char*)"\x41\xC7\x01\x00\x00\x7A\x43", 7);
+
+		// Nevan -- dmc3.exe+12F5EB - 41 C7 01 00 00 48 43 - mov [r9],43480000 { 200.00 }
+		_patch((char*)(appBaseAddr + 0x12F5EB), (char*)"\x41\xC7\x01\x00\x00\x48\x43", 7);
+
+		*(float*)(jesterJCSizeAddr) = 150.0f;
+
+		// Agni&Rudra, Vergil, The Fallen, Enigmas -- dmc3.exe+1BF26A - 41 C7 01 00 00 34 43 - mov [r9],43340000 { 180,00 }
+		_patch((char*)(appBaseAddr + 0x1BF26A), (char*)"\x41\xC7\x01\x00\x00\x34\x43", 7);
+
+		// Bloodgoyles, Chess Pieces -- dmc3.exe+E3371 - 41 C7 01 00 00 48 43 - mov [r9],43480000 { 200,00 }
+		_patch((char*)(appBaseAddr + 0xE3371), (char*)"\x41\xC7\x01\x00\x00\x48\x43", 7);
+
+		// Arachne -- dmc3.exe + BF725 - 41 C7 01 00 00 48 43 - mov[r9], 43480000 { 200,00 }
+		_patch((char*)(appBaseAddr + 0xBF725), (char*)"\x41\xC7\x01\x00\x00\x48\x43", 7);
+
+		// Soul Eaters -- dmc3.exe+E99FE - 41 C7 01 00 00 48 43 - mov [r9],43480000 { 200,00 }
+		_patch((char*)(appBaseAddr + 0xE99FE), (char*)"\x41\xC7\x01\x00\x00\x48\x43", 7);
+
 	}
 	else {
+		// Hells -- dmc3.exe+1C1DCB - F3 0F 5E 0D 81 42 30 00  - divss xmm1,[dmc3.exe+4C6054] { (3.00) }
 		_patch((char*)(appBaseAddr + 0x1C1DCB), (char*)"\xF3\x0F\x5E\x0D\x81\x42\x30\x00", 8);
+
+		// Beowulf -- dmc3.exe+14CFFD - 41 C7 01 00 00 16 43 - mov [r9],43160000 { 150.00 }
+		_patch((char*)(appBaseAddr + 0x14CFFD), (char*)"\x41\xC7\x01\x00\x00\x16\x43", 7);
+
+		// Nevan -- dmc3.exe+12F5EB - 41 C7 01 00 00 C8 42 - mov [r9],42C80000 { 100.00 }
+		_patch((char*)(appBaseAddr + 0x12F5EB), (char*)"\x41\xC7\x01\x00\x00\xC8\x42", 7);
+
+		*(float*)(jesterJCSizeAddr) = 95.0f;
+
+		// Agni&Rudra, Vergil, The Fallen, Enigmas, Cerb -- dmc3.exe+1BF26A - 41 C7 01 00 00 C8 42 - mov [r9],42C80000 { 100.00 }
+		_patch((char*)(appBaseAddr + 0x1BF26A), (char*)"\x41\xC7\x01\x00\x00\xC8\x42", 7);
+
+		// Bloodgoyles -- dmc3.exe+E3371 - 41 C7 01 00 00 16 43 - mov [r9],43160000 { 150,00 }
+		_patch((char*)(appBaseAddr + 0xE3371), (char*)"\x41\xC7\x01\x00\x00\x16\x43", 7);
+
+		// Arachne -- dmc3.exe+BF725 - 41 C7 01 00 00 16 43 - mov [r9],43160000 { 150,00 }
+		_patch((char*)(appBaseAddr + 0xBF725), (char*)"\x41\xC7\x01\x00\x00\x16\x43", 7);
+
+		// Soul Eaters -- dmc3.exe+E99FE - 41 C7 01 00 00 16 43 - mov [r9],43160000 { 150,00 }
+		_patch((char*)(appBaseAddr + 0xE99FE), (char*)"\x41\xC7\x01\x00\x00\x16\x43", 7);
 	}
     
     run = enable;
