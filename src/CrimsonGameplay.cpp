@@ -2288,6 +2288,9 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
                     currentDT = storedDT[playerIndex];
                 }
 				normalBlocked[playerIndex] = true;
+				uint8 vfxColor[4] = { 48, 0, 10, 255 };
+                uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(vfxColor);
+				CrimsonDetours::CreateEffectDetour(actorBaseAddr, 3, 61, 15, true, actualColor, 1.3f);
 			}
 		}
 		else {
@@ -2305,6 +2308,9 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
                     currentDT = storedDT[playerIndex];
                 }
 				guardBroke[playerIndex] = true;
+				uint8 vfxColor[4] = { 48, 0, 10, 255 };
+                uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(vfxColor);
+				CrimsonDetours::CreateEffectDetour(actorBaseAddr, 3, 61, 15, true, actualColor, 1.3f);
 			}
 		}
 		else {

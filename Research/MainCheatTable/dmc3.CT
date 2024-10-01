@@ -1329,6 +1329,81 @@ dmc3.exe+1E5B0B: CC                    - int 3
 }
 </AssemblerScript>
         </CheatEntry>
+        <CheatEntry>
+          <ID>2709</ID>
+          <Description>"Trying to put JChitbox on Cerb"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2024-09-28
+  Author : Mia Berth
+
+  This script does blah blah blah
+}
+
+define(address,"dmc3.exe"+1BF25C)
+define(bytes,F3 0F 58 0D F4 1E 1B 00)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000,"dmc3.exe"+1BF25C)
+alloc(myFloatAddr, 4)
+
+label(code)
+label(return)
+
+myFloatAddr:
+dd (float)200
+
+newmem:
+
+code:
+  addss xmm1,[myFloatAddr]
+  jmp return
+
+address:
+  jmp newmem
+  nop 3
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+  // addss xmm1,[dmc3.exe+371158]
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1BF25C
+
+dmc3.exe+1BF240: 85 D2                    - test edx,edx
+dmc3.exe+1BF242: 74 2E                    - je dmc3.exe+1BF272
+dmc3.exe+1BF244: 83 FA 01                 - cmp edx,01
+dmc3.exe+1BF247: 74 03                    - je dmc3.exe+1BF24C
+dmc3.exe+1BF249: 32 C0                    - xor al,al
+dmc3.exe+1BF24B: C3                       - ret 
+dmc3.exe+1BF24C: 0F 28 41 20              - movaps xmm0,[rcx+20]
+dmc3.exe+1BF250: B0 01                    - mov al,01
+dmc3.exe+1BF252: 41 0F 29 00              - movaps [r8],xmm0
+dmc3.exe+1BF256: F3 41 0F 10 48 04        - movss xmm1,[r8+04]
+// ---------- INJECTING HERE ----------
+dmc3.exe+1BF25C: F3 0F 58 0D F4 1E 1B 00  - addss xmm1,[dmc3.exe+371158]
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1BF264: F3 41 0F 11 48 04        - movss [r8+04],xmm1
+dmc3.exe+1BF26A: 41 C7 01 00 00 34 43     - mov [r9],43340000
+dmc3.exe+1BF271: C3                       - ret 
+dmc3.exe+1BF272: 0F 28 41 20              - movaps xmm0,[rcx+20]
+dmc3.exe+1BF276: B0 01                    - mov al,01
+dmc3.exe+1BF278: 41 0F 29 00              - movaps [r8],xmm0
+dmc3.exe+1BF27C: 0F 57 C0                 - xorps xmm0,xmm0
+dmc3.exe+1BF27F: F3 41 0F 10 48 04        - movss xmm1,[r8+04]
+dmc3.exe+1BF285: F3 0F 58 C8              - addss xmm1,xmm0
+dmc3.exe+1BF289: F3 41 0F 11 48 04        - movss [r8+04],xmm1
+}
+</AssemblerScript>
+        </CheatEntry>
       </CheatEntries>
     </CheatEntry>
     <CheatEntry>
@@ -4237,6 +4312,19 @@ dmc3.exe+1E9A5C: CC                    - int 3
                   <Address>dmc3.exe+168</Address>
                   <Offsets>
                     <Offset>0</Offset>
+                    <Offset>6328</Offset>
+                    <Offset>18</Offset>
+                    <Offset>00C90E28</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>2711</ID>
+                  <Description>"+0"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>dmc3.exe+168</Address>
+                  <Offsets>
+                    <Offset>20</Offset>
                     <Offset>6328</Offset>
                     <Offset>18</Offset>
                     <Offset>00C90E28</Offset>
@@ -8731,6 +8819,176 @@ dmc3.exe+56050: 0F 5B C0                 - cvtdq2ps xmm0,xmm0
       <Description>"No description"</Description>
       <VariableType>4 Bytes</VariableType>
       <Address>047D9C78</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2708</ID>
+      <Description>"Auto Assemble script"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2024-09-28
+  Author : Mia Berth
+
+  This script does blah blah blah
+}
+
+define(address,"dmc3.exe"+1BF25C)
+define(bytes,F3 0F 58 0D F4 1E 1B 00)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000,"dmc3.exe"+1BF25C)
+
+label(code)
+label(return)
+
+newmem:
+
+code:
+  addss xmm1,[dmc3.exe+371158]
+  jmp return
+
+address:
+  jmp newmem
+  nop 3
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+  // addss xmm1,[dmc3.exe+371158]
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1BF25C
+
+dmc3.exe+1BF240: 85 D2                    - test edx,edx
+dmc3.exe+1BF242: 74 2E                    - je dmc3.exe+1BF272
+dmc3.exe+1BF244: 83 FA 01                 - cmp edx,01
+dmc3.exe+1BF247: 74 03                    - je dmc3.exe+1BF24C
+dmc3.exe+1BF249: 32 C0                    - xor al,al
+dmc3.exe+1BF24B: C3                       - ret 
+dmc3.exe+1BF24C: 0F 28 41 20              - movaps xmm0,[rcx+20]
+dmc3.exe+1BF250: B0 01                    - mov al,01
+dmc3.exe+1BF252: 41 0F 29 00              - movaps [r8],xmm0
+dmc3.exe+1BF256: F3 41 0F 10 48 04        - movss xmm1,[r8+04]
+// ---------- INJECTING HERE ----------
+dmc3.exe+1BF25C: F3 0F 58 0D F4 1E 1B 00  - addss xmm1,[dmc3.exe+371158]
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1BF264: F3 41 0F 11 48 04        - movss [r8+04],xmm1
+dmc3.exe+1BF26A: 41 C7 01 00 00 34 43     - mov [r9],43340000
+dmc3.exe+1BF271: C3                       - ret 
+dmc3.exe+1BF272: 0F 28 41 20              - movaps xmm0,[rcx+20]
+dmc3.exe+1BF276: B0 01                    - mov al,01
+dmc3.exe+1BF278: 41 0F 29 00              - movaps [r8],xmm0
+dmc3.exe+1BF27C: 0F 57 C0                 - xorps xmm0,xmm0
+dmc3.exe+1BF27F: F3 41 0F 10 48 04        - movss xmm1,[r8+04]
+dmc3.exe+1BF285: F3 0F 58 C8              - addss xmm1,xmm0
+dmc3.exe+1BF289: F3 41 0F 11 48 04        - movss [r8+04],xmm1
+}
+</AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2710</ID>
+      <Description>"Auto Assemble script"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2024-10-01
+  Author : Mia Berth
+
+  This script does blah blah blah
+}
+
+define(address,"dmc3.exe"+1BF240)
+define(bytes,85 D2 74 2E 83 FA 01)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000,"dmc3.exe"+1BF240)
+alloc(myFloatAddr, 4)
+alloc(myFloatAddr2, 4)
+alloc(myFloatAddr3, 4)
+
+label(code)
+label(return)
+
+myFloatAddr:
+dd (float)1200
+
+myFloatAddr2:
+dd (float)100
+
+myFloatAddr3:
+dd (float)4000
+
+newmem:
+
+code:
+  test edx, edx
+  jne justReturn
+  movaps xmm0,[myFloatAddr]
+  mov al, 01
+  movaps [r8], xmm0
+  movss xmm1, [r8+04]
+  //addss xmm1, [dmc3.exe+371158]
+  addss xmm1, [myFloatAddr2]
+  movss [r8+04], xmm1
+  //movss xmm1, [myFloatAddr3]
+  //movss [r8+08], xmm1
+  mov [r9], (float)3000
+  ret
+  jmp justReturn
+
+justReturn:
+   ret
+address:
+  jmp newmem
+  nop 2
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+  // test edx,edx
+  // je dmc3.exe+1BF272
+  // cmp edx,01
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1BF240
+
+dmc3.exe+1BF236: CC                       - int 3 
+dmc3.exe+1BF237: CC                       - int 3 
+dmc3.exe+1BF238: CC                       - int 3 
+dmc3.exe+1BF239: CC                       - int 3 
+dmc3.exe+1BF23A: CC                       - int 3 
+dmc3.exe+1BF23B: CC                       - int 3 
+dmc3.exe+1BF23C: CC                       - int 3 
+dmc3.exe+1BF23D: CC                       - int 3 
+dmc3.exe+1BF23E: CC                       - int 3 
+dmc3.exe+1BF23F: CC                       - int 3 
+// ---------- INJECTING HERE ----------
+dmc3.exe+1BF240: 85 D2                    - test edx,edx
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1BF242: 74 2E                    - je dmc3.exe+1BF272
+dmc3.exe+1BF244: 83 FA 01                 - cmp edx,01
+dmc3.exe+1BF247: 74 03                    - je dmc3.exe+1BF24C
+dmc3.exe+1BF249: 32 C0                    - xor al,al
+dmc3.exe+1BF24B: C3                       - ret 
+dmc3.exe+1BF24C: 0F 28 41 20              - movaps xmm0,[rcx+20]
+dmc3.exe+1BF250: B0 01                    - mov al,01
+dmc3.exe+1BF252: 41 0F 29 00              - movaps [r8],xmm0
+dmc3.exe+1BF256: F3 41 0F 10 48 04        - movss xmm1,[r8+04]
+dmc3.exe+1BF25C: F3 0F 58 0D F4 1E 1B 00  - addss xmm1,[dmc3.exe+371158]
+}
+</AssemblerScript>
     </CheatEntry>
   </CheatEntries>
   <CheatCodes>
@@ -76524,6 +76782,32 @@ dmc3.exe+56050: 0F 5B C0                 - cvtdq2ps xmm0,xmm0
         <Byte>CC</Byte>
         <Byte>CC</Byte>
         <Byte>CC</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rsi+00000080],eax</Description>
+      <AddressString>dmc3.exe+112D8E</AddressString>
+      <Before>
+        <Byte>0D</Byte>
+        <Byte>D2</Byte>
+        <Byte>01</Byte>
+        <Byte>BE</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>89</Byte>
+        <Byte>86</Byte>
+        <Byte>80</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>48</Byte>
+        <Byte>8B</Byte>
+        <Byte>D6</Byte>
+        <Byte>8B</Byte>
+        <Byte>86</Byte>
       </After>
     </CodeEntry>
   </CheatCodes>

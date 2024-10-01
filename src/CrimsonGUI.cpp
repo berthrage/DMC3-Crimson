@@ -7527,6 +7527,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			ImGui::Text("Motion Data 1: %u", crimsonPlayer[0].motion);
 			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
 			ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[0].animTimer);
+			ImGui::Text("anim Timer Clone:  %g", crimsonPlayer[0].animTimerClone);
+			ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
+			ImGui::Text("action Timer Clone:  %g", crimsonPlayer[0].actionTimerClone);
 			ImGui::Text("AIR GUARD: %u", actorData.airGuard);
 			ImGui::Text("GUARDFLY PULL: %g", crimsonPlayer[0].inertia.airGuard.cachedPull);
 			ImGui::Text("GUARDFLY TIMER: %g", crimsonPlayer[0].inertia.guardflyTimer);
@@ -8651,15 +8654,15 @@ void SystemSection(size_t defaultFontSize) {
 void FrameResponsiveGameSpeed() {
 	g_FrameRate = ImGui::GetIO().Framerate;
 	g_FrameRateTimeMultiplier = (60 / ImGui::GetIO().Framerate);
+
+	auto& activeValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+	auto& queuedValue = (IsTurbo()) ? queuedConfig.Speed.turbo : queuedConfig.Speed.mainSpeed;
+
 	if (activeConfig.framerateResponsiveGameSpeed) {
 		UpdateFrameRate();
 
-		activeConfig.Speed.turbo = 1.2 / (ImGui::GetIO().Framerate / 60);
-		queuedConfig.Speed.turbo = 1.2 / (ImGui::GetIO().Framerate / 60);
-
-		activeConfig.Speed.mainSpeed = 1.0 / (activeConfig.frameRate / 60);
-		queuedConfig.Speed.mainSpeed = 1.0 / (activeConfig.frameRate / 60);
-
+		activeValue = 1.2 / (ImGui::GetIO().Framerate / 60);
+		queuedValue = 1.2 / (ImGui::GetIO().Framerate / 60);
 	}
 }
 

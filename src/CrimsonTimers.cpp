@@ -26,33 +26,37 @@ void ActionTimers() {
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
 
     old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-        auto& playerData = GetPlayerData(playerIndex);
+        old_for_all(uint8, entityIndex, ENTITY_COUNT) {
+            auto& playerData = GetPlayerData(playerIndex);
 
-        auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, 0);
+            auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, entityIndex);
 
-        auto actorBaseAddr = newActorData.baseAddr;
-        if (!actorBaseAddr) {
-            continue;
-        }
-        auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-        if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
-        auto inAttack = (actorData.eventData[0].event == ACTOR_EVENT::ATTACK);
-		auto& currentAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAction : crimsonPlayer[playerIndex].currentActionClone;
-		auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
-        
-
-        if (inAttack) {
-            if (eventData.event != EVENT::PAUSE) {
-                actionTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+            auto actorBaseAddr = newActorData.baseAddr;
+            if (!actorBaseAddr) {
+                continue;
             }
-        } else {
-            actionTimer = 0;
-        }
+            auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+            auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+            if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
+            auto inAttack = (actorData.eventData[0].event == ACTOR_EVENT::ATTACK);
+            auto& currentAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAction : crimsonPlayer[playerIndex].currentActionClone;
+            auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 
-        // Reset Timer By Action
-        if (actorData.action != currentAction) {
-            actionTimer = 0;
-            currentAction = actorData.action;
+
+            if (inAttack) {
+                if (eventData.event != EVENT::PAUSE) {
+                    actionTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+                }
+            }
+            else {
+                actionTimer = 0;
+            }
+
+            // Reset Timer By Action
+            if (actorData.action != currentAction) {
+                actionTimer = 0;
+                currentAction = actorData.action;
+            }
         }
     }
 }
@@ -63,33 +67,35 @@ void AnimTimers() {
 	if (!pool_10371 || !pool_10371[8]) return;	
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
 
-	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-		auto& playerData = GetPlayerData(playerIndex);
+    old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+        old_for_all(uint8, entityIndex, ENTITY_COUNT) {
+            auto& playerData = GetPlayerData(playerIndex);
 
-		auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, 0);
+            auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, entityIndex);
 
-		auto actorBaseAddr = newActorData.baseAddr;
+            auto actorBaseAddr = newActorData.baseAddr;
 
-		if (!actorBaseAddr) {
-			continue;
-		}
-		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-        if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
-		auto& currentAnim = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAnim : crimsonPlayer[playerIndex].currentAnimClone;
-        auto& actorMotion = actorData.motionData[0].index;
-        auto& animTimer = (actorData.newEntityIndex == 0)? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
-        
+            if (!actorBaseAddr) {
+                continue;
+            }
+            auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+            if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
+            auto& currentAnim = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAnim : crimsonPlayer[playerIndex].currentAnimClone;
+            auto& actorMotion = actorData.motionData[0].index;
+            auto& animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
 
-		// Reset Timer By Animation IDs
-		if (actorMotion != currentAnim) {
-			animTimer = 0;
-			currentAnim = actorMotion;
-		}
 
-		if (eventData.event != EVENT::PAUSE) {
-			animTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
-		}
-	}
+            // Reset Timer By Animation IDs
+            if (actorMotion != currentAnim) {
+                animTimer = 0;
+                currentAnim = actorMotion;
+            }
+
+            if (eventData.event != EVENT::PAUSE) {
+                animTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+            }
+        }
+    }
 }
 
 std::chrono::steady_clock::time_point guardflyStartTime;
@@ -107,34 +113,36 @@ void GuardflyTimers() {
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
 
 	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-		auto& playerData = GetPlayerData(playerIndex);
+        old_for_all(uint8, entityIndex, ENTITY_COUNT) {
+            auto& playerData = GetPlayerData(playerIndex);
 
-		auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, 0);
+            auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, entityIndex);
 
-		auto actorBaseAddr = newActorData.baseAddr;
+            auto actorBaseAddr = newActorData.baseAddr;
 
-		if (!actorBaseAddr) {
-			continue;
-		}
-		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-		auto& guardflyTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inertia.guardflyTimer : crimsonPlayer[playerIndex].inertiaClone.guardflyTimer;
-		auto& currentEvent = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentEvent : crimsonPlayer[playerIndex].currentEventClone;
-		auto& actorEvent = actorData.eventData[0].event;
+            if (!actorBaseAddr) {
+                continue;
+            }
+            auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+            auto& guardflyTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inertia.guardflyTimer : crimsonPlayer[playerIndex].inertiaClone.guardflyTimer;
+            auto& currentEvent = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentEvent : crimsonPlayer[playerIndex].currentEventClone;
+            auto& actorEvent = actorData.eventData[0].event;
 
-		// Track Event
-		if (actorEvent != currentEvent) {
-			currentEvent = actorEvent;
+            // Track Event
+            if (actorEvent != currentEvent) {
+                currentEvent = actorEvent;
 
-			ResetGuardflyTimer(guardflyTimer);
-		}
+                ResetGuardflyTimer(guardflyTimer);
+            }
 
 
-		if (eventData.event != EVENT::PAUSE) {
-			auto now = std::chrono::steady_clock::now();
-			float elapsedTime = std::chrono::duration<float>(now - guardflyStartTime).count();
+            if (eventData.event != EVENT::PAUSE) {
+                auto now = std::chrono::steady_clock::now();
+                float elapsedTime = std::chrono::duration<float>(now - guardflyStartTime).count();
 
-			guardflyTimer = elapsedTime * (actorData.speed / g_FrameRateTimeMultiplier);
-		}
+                guardflyTimer = elapsedTime * (actorData.speed / g_FrameRateTimeMultiplier);
+            }
+        }
 	}
 }
 

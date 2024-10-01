@@ -326,8 +326,11 @@ void RoyalguardSFX(byte8* actorBaseAddr) {
 		// ROYAL BLOCK SFX
 		if (inRoyalBlock) {
 			if (!royalBlockPlayed[playerIndex]) {
-				std::cout << "royal block played" << std::endl;
+				//std::cout << "royal block played" << std::endl;
 				CrimsonSDL::PlayRoyalBlock(playerIndex);
+				uint8 vfxColor[4] = { 226, 4, 50, 255 };
+				uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(vfxColor);
+				CrimsonDetours::CreateEffectDetour(actorBaseAddr, 3, 61, 15, true, actualColor, 1.7f);
 				royalBlockPlayed[playerIndex] = true;
 			}
 		}
