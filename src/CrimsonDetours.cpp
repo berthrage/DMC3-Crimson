@@ -97,6 +97,11 @@ void HoldToCrazyComboDetour();
 std::uint64_t g_holdToCrazyComboConditionalAddr;
 void* holdToCrazyComboCall;
 
+// ConvertGuardBreakIntoNormalBlock: for DT-Infused Royalguard
+std::uint64_t g_GuardBreakToNormalBlock_ReturnAddr;
+void GuardBreakToNormalBlockDetour();
+void* g_GuardBreakToNormalBlockCheckCall;
+
 // DisableStaggerRoyalguard: for DT-Infused Royalguard
 std::uint64_t g_DisableStagger_ReturnAddr;
 std::uint64_t g_DisableStagger_ConditionalAddr;
@@ -344,11 +349,11 @@ bool TakeDamageCheck(std::uint64_t addr) {
 				return false;
 			}
 			if (ensureIsActiveActor) {
-				if (actorData.guard && actorData.eventData[0].event != 44) {
-					if (actorData.magicPoints >= 2000) {
+				if (actorData.guard && actorData.eventData[0].event != ACTOR_EVENT::STAGGER) {
+					if (actorData.magicPoints >= 1500) {
                         return true;
 					}
-					else if (actorData.magicPoints < 2000) {
+					else {
 						return false;
 					}
 				}
@@ -453,23 +458,6 @@ void InitDetours() {
     createEffectCallB  = (uintptr_t)appBaseAddr + 0x1FAA50;
     createEffectRBXMov = (uintptr_t)appBaseAddr + 0xC18AF8;
 
-    // DisableStaggerRoyalguard
-	static std::unique_ptr<Utility::Detour_t> DisableStaggerRoyalguardHook =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EC464, &DisableStaggerRoyalguardDetour, 9);
-	g_DisableStagger_ReturnAddr = DisableStaggerRoyalguardHook->GetReturnAddress();
-	g_DisableStagger_ConditionalAddr = (uintptr_t)appBaseAddr + 0x1EC58B;
-    DisableStaggerRoyalguardHook->Toggle(true);
-	//dmc3.exe + 1EC464 - E9 22010000 - jmp dmc3.exe + 1EC58B
-	//dmc3.exe + 1EC467 - 0F8E 1E010000 - jng dmc3.exe + 1EC58B - original code
-	g_DisableStaggerCheckCall = &DisableStaggerCheck;
-
-    // Toggle Take Damage
-	static std::unique_ptr<Utility::Detour_t> takeDamageHook =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x8851C, &ToggleTakeDamageDetour, 5);
-	g_ToggleTakeDamage_ReturnAddr = takeDamageHook->GetReturnAddress();
-	takeDamageHook->Toggle(true);
-    g_ToggleTakeDamageCheckCall = &TakeDamageCheck;
-
     // DisableDriveHold
     static std::unique_ptr<Utility::Detour_t> DisableDriveHoldHook =
         std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EB6F2, &DisableDriveHoldDetour, 5);
@@ -480,6 +468,41 @@ void InitDetours() {
     // static std::unique_ptr<Utility::Detour_t> VergilNeutralTrickHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x0,
     // &VergilNeutralTrickDetour, 5); g_VergilNeutralTrick_ReturnAddr = VergilNeutralTrickHook->GetReturnAddress();
     // VergilNeutralTrickHook->Toggle(true);
+}
+
+void ToggleDTInfusedRoyalguardDetours(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// DisableStaggerRoyalguard
+	static std::unique_ptr<Utility::Detour_t> DisableStaggerRoyalguardHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EC464, &DisableStaggerRoyalguardDetour, 9);
+	g_DisableStagger_ReturnAddr = DisableStaggerRoyalguardHook->GetReturnAddress();
+	g_DisableStagger_ConditionalAddr = (uintptr_t)appBaseAddr + 0x1EC58B;
+	DisableStaggerRoyalguardHook->Toggle(false);
+	//dmc3.exe + 1EC464 - E9 22010000 - jmp dmc3.exe + 1EC58B
+	//dmc3.exe + 1EC467 - 0F8E 1E010000 - jng dmc3.exe + 1EC58B - original code
+	g_DisableStaggerCheckCall = &DisableStaggerCheck;
+
+	// GuardBreakToNormalBlock
+	// dmc3.exe+1EC45A - 89 83 08 63 00 00 - mov [rbx+00006308],eax { Determine stagger dmg (on eax) to royal block }
+	static std::unique_ptr<Utility::Detour_t> GuardBreakToNormalBlockHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EC45A, &GuardBreakToNormalBlockDetour, 6);
+	g_GuardBreakToNormalBlock_ReturnAddr = GuardBreakToNormalBlockHook->GetReturnAddress();
+	GuardBreakToNormalBlockHook->Toggle(enable);
+
+	// Toggle Take Damage
+	static std::unique_ptr<Utility::Detour_t> takeDamageHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x8851C, &ToggleTakeDamageDetour, 5);
+	g_ToggleTakeDamage_ReturnAddr = takeDamageHook->GetReturnAddress();
+	takeDamageHook->Toggle(enable);
+	g_ToggleTakeDamageCheckCall = &TakeDamageCheck;
+
+	run = enable;
 }
 
 void ToggleFasterTurnRate(bool enable) {

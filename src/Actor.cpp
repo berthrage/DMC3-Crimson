@@ -3908,7 +3908,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
         CrimsonFX::DTExplosionFXController(actorBaseAddr);
     }
     
-    CrimsonFX::RoyalguardSFX(actorBaseAddr);
+    CrimsonFX::RoyalBlockFX(actorBaseAddr);
     CrimsonFX::CalculateViewProperties(actorBaseAddr);
     CrimsonSDL::SetAllSFXDistance(playerIndex, crimsonPlayer[playerIndex].cameraPlayerDistanceClamped);
     

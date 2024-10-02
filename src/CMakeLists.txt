@@ -6,6 +6,7 @@ set(MASM_SRC
     masm/HoldToCrazyComboAsm.asm
     masm/DisableStaggerRoyalguard.asm
     masm/FasterTurnRate.asm
+    masm/GuardBreakToNormalBlock.asm
     masm/FixCrashCerberus.asm
     masm/HudHPSeparation.asm
     masm/HudStyleBarPosAsm.asm

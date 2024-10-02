@@ -504,9 +504,11 @@ CameraData* GetSafeCameraData() {
 
 void ForceThirdPersonCameraController() {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-	static bool checkIfGameHasAlreadyLoaded1 = false;
-	if (g_scene == SCENE::MISSION_START) checkIfGameHasAlreadyLoaded1 = true;
-	if (!checkIfGameHasAlreadyLoaded1) return;
+	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_10723) {
+		return;
+	}
+	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
 	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if (!pool_10298 || !pool_10298[8]) {
 		return;
@@ -581,6 +583,28 @@ void AirTauntDetoursController() {
 	}
 	else {
 		CrimsonDetours::AirTauntDetours(false);
+	}
+}
+
+void PauseSFXWhenPaused() {
+	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_10723) {
+		return;
+	}
+	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
+	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10298 || !pool_10298[8]) {
+		return;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+
+	for (int i = 0; i < PLAYER_COUNT; ++i) {
+		if (eventData.event == EVENT::PAUSE) {
+			CrimsonSDL::PauseDTExplosionSFX(i);
+		}
+		else {
+			CrimsonSDL::ResumeDTExplosionSFX(i);
+		}
 	}
 }
 

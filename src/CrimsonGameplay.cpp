@@ -2246,12 +2246,22 @@ void GunDTCharacterRemaps() {
     }
 }
 
+#include <chrono>
+
 void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 	// This makes normal block consume DT instead of health, when DT is above 0,
 	// guard breaks occur only when DT is exhausted
+
 	if (!actorBaseAddr) {
 		return;
 	}
+
+    CrimsonDetours::ToggleDTInfusedRoyalguardDetours(activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard);
+    if (!activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard) {
+        return;
+    }
+
+	using namespace std::chrono;
 
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
 	auto playerIndex = actorData.newPlayerIndex;
@@ -2263,99 +2273,75 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 	bool inGuardBreak = ((event == 20 && motionDataIndex == 3) && !inNormalBlock);
 	bool ensureIsMainPlayer = ((actorData.newCharacterIndex == playerData.activeCharacterIndex) && (actorData.newEntityIndex == ENTITY::MAIN));
 	auto& currentDT = actorData.magicPoints;
-    auto& currentReleaseDamage = actorData.royalguardReleaseDamage;
+	auto& currentReleaseDamage = actorData.royalguardReleaseDamage;
 
 	static bool guardPlayed[PLAYER_COUNT] = { false };
 	static bool guardBroke[PLAYER_COUNT] = { false };
 	static bool normalBlocked[PLAYER_COUNT] = { false };
 	static bool toggledCheats[PLAYER_COUNT] = { false };
 	static float storedDT[PLAYER_COUNT] = {};
-    static float storedReleaseDamage[PLAYER_COUNT] = {};
-	//static int toggleCount = 0; // Track the player who is currently toggling the cheats
+	static float storedReleaseDamage[PLAYER_COUNT] = {};
+	static time_point<high_resolution_clock> blockResetTimes[PLAYER_COUNT];
 
-
-    // This makes it so Guard Breaks have a different anim and vfx
-	if (actorData.royalBlock != 3 && !inNormalBlock && event == 20) {
+	// This makes it so Guard Breaks have a different anim and vfx - unused since GuardBreaks are now converted to 
+    // Normal Blocks through the detours.
+	if (actorData.royalBlock != 3 && !inNormalBlock && actorData.royalBlock != 6 && event == 20) {
 		actorData.royalBlock = 1;
 	}
 
 	if (ensureIsMainPlayer && currentDT > 0) {
-		// Handle normal block
 		if (inNormalBlock) {
 			if (!normalBlocked[playerIndex]) {
-				storedDT[playerIndex] = std::max(storedDT[playerIndex] - 2000, 0.0f);
-                if (!activeConfig.infiniteMagicPoints) {
-                    currentDT = storedDT[playerIndex];
-                }
-				normalBlocked[playerIndex] = true;
+				storedDT[playerIndex] = std::max(storedDT[playerIndex] - 1500, 0.0f);
+				if (!activeConfig.infiniteMagicPoints) {
+					currentDT = storedDT[playerIndex];
+				}
+                normalBlocked[playerIndex] = true;
+
+                // VFX
 				uint8 vfxColor[4] = { 48, 0, 10, 255 };
-                uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(vfxColor);
+				uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(vfxColor);
 				CrimsonDetours::CreateEffectDetour(actorBaseAddr, 3, 61, 15, true, actualColor, 1.3f);
+
+                // SFX
+                CrimsonSDL::PlayNormalBlock(playerIndex);
+				blockResetTimes[playerIndex] = high_resolution_clock::now() + milliseconds(30); // Set reset time for normal block
 			}
 		}
 		else {
+
 			storedDT[playerIndex] = currentDT;
 			normalBlocked[playerIndex] = false;
 		}
 
-		// Handle guard break
 		if (actorData.royalBlock == 1) {
 			if (!guardBroke[playerIndex]) {
-				storedDT[playerIndex] = std::max(storedDT[playerIndex] - 2000, 0.0f);
-                storedReleaseDamage[playerIndex] = std::min(storedReleaseDamage[playerIndex] + 700, 9000.0f);
-                currentReleaseDamage = storedReleaseDamage[playerIndex];
-                if (!activeConfig.infiniteMagicPoints) {
-                    currentDT = storedDT[playerIndex];
-                }
+				storedDT[playerIndex] = std::max(storedDT[playerIndex] - 1000, 0.0f);
+				storedReleaseDamage[playerIndex] = std::min(storedReleaseDamage[playerIndex] + 700, 9000.0f);
+				currentReleaseDamage = storedReleaseDamage[playerIndex];
+				if (!activeConfig.infiniteMagicPoints) {
+					currentDT = storedDT[playerIndex];
+				}
 				guardBroke[playerIndex] = true;
 				uint8 vfxColor[4] = { 48, 0, 10, 255 };
                 uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(vfxColor);
 				CrimsonDetours::CreateEffectDetour(actorBaseAddr, 3, 61, 15, true, actualColor, 1.3f);
+				blockResetTimes[playerIndex] = high_resolution_clock::now() + milliseconds(30); // Set reset time for guard break
 			}
 		}
 		else {
-            storedReleaseDamage[playerIndex] = currentReleaseDamage;
+			storedReleaseDamage[playerIndex] = currentReleaseDamage;
 			storedDT[playerIndex] = currentDT;
 			guardBroke[playerIndex] = false;
 		}
 
-        // Cheats are now Detours in DetourFunctions, check DisableStaggerRoyalguard and ToggleTakeDamage
-		// GUARD BREAKS AND HP LOSS OCCUR ONLY WHEN DT IS BELOW 2000
-		// Toggle cheats when guarding and event is not 44
-// 		if (actorData.guard && event != 44) {
-// 			if (!toggledCheats[playerIndex]) {
-// //                 toggleTakeDamageActorBaseAddr = (uintptr_t)actorBaseAddr;
-// //                 toggleTakeDamage = false;
-//                 
-// 				
-// 				toggledCheats[playerIndex] = true;
-// 				
-// 			}
-// 		}
-// 		else {
-// 			if (toggledCheats[playerIndex]) {
-// // 				toggleTakeDamageActorBaseAddr = (uintptr_t)actorBaseAddr;
-// // 				toggleTakeDamage = true;
-// 				
-//                
-// 				toggledCheats[playerIndex] = false;
-// 				
-// 			}
-// 		}
+		// Reset royalBlock to 6 if the timer has passed for both normal blocks and guard breaks
+		if ((inNormalBlock || actorData.royalBlock == 1) && high_resolution_clock::now() >= blockResetTimes[playerIndex]) {
+			actorData.royalBlock = 6; // Reset to neutral guard
+		}
 	}
-// 	else if (currentDT < 2000) {
-// 		// Reset cheats when DT is below 2000
-// 		if (toggledCheats[playerIndex]) {
-// // 			toggleTakeDamageActorBaseAddr = (uintptr_t)actorBaseAddr;
-// // 			toggleTakeDamage = true;
-// // 			ToggleTakeDamageDetour();
-// 			
-// 
-// 			toggledCheats[playerIndex] = false;
-// 		}
-// 	}
-	
 }
+
 
 void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
 	if (!actorBaseAddr) {
@@ -2398,7 +2384,6 @@ void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
 	finalRotationTowardsEnemy = static_cast<uint16>(rotationUncalculated);
 	rotationTowardsEnemy = finalRotationTowardsEnemy;
 }
-
 
 #pragma endregion
 

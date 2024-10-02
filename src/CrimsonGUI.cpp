@@ -34,6 +34,7 @@
 #include "WebAPICalls.hpp"
 #include "UI\Texture2DD3D11.hpp"
 
+
 #include "UI\EmbeddedImages.hpp"
 
 #include <cmath>
@@ -3692,6 +3693,40 @@ void InitRedOrbTexture(ID3D11Device* pd3dDevice) {
 	assert(RedOrbTexture);
 }
 
+void DrawRotatedImage(ImTextureID tex_id, ImVec2 pos, ImVec2 size, float angle, ImU32 color) {
+	ImVec2 center = ImVec2(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
+
+	float cos_theta = cosf(angle);
+	float sin_theta = sinf(angle);
+
+	ImVec2 uvs[4] = {
+		ImVec2(0.0f, 0.0f),
+		ImVec2(1.0f, 0.0f),
+		ImVec2(1.0f, 1.0f),
+		ImVec2(0.0f, 1.0f)
+	};
+
+	ImVec2 points[4];
+	for (int i = 0; i < 4; i++) {
+		ImVec2 p = ImVec2(
+			(uvs[i].x - 0.5f) * size.x,
+			(uvs[i].y - 0.5f) * size.y
+		);
+
+		points[i] = ImVec2(
+			cos_theta * p.x - sin_theta * p.y,
+			sin_theta * p.x + cos_theta * p.y
+		) + center;
+	}
+
+	ImGui::GetWindowDrawList()->AddImageQuad(
+		tex_id,
+		points[0], points[1], points[2], points[3],
+		uvs[0], uvs[1], uvs[2], uvs[3],
+		color
+	);
+}
+
 void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) {
 	assert(RedOrbTexture);
 
@@ -3738,6 +3773,8 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 	float fontSize = 37.0f * scaleFactorY;
 	float textureWidth = RedOrbTexture->GetWidth() * (fontSize / 120.0f) * activeConfig.globalScale;  // Adjust proportionally
 	float textureHeight = RedOrbTexture->GetHeight() * (fontSize / 120.0f) * activeConfig.globalScale;
+	float centerX = textureWidth / 2.0f;
+	float centerY = textureHeight / 2.0f;
 
 	// Define the window size and position
 	ImVec2 windowSize = ImVec2(300.0f * scaleFactorX, 100.0f * scaleFactorY);
@@ -3765,6 +3802,13 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 
 	// Render the texture or a white square if the texture is not valid
 	if (RedOrbTexture->IsValid()) {
+// 		DrawRotatedImage(
+// 			RedOrbTexture->GetTexture(),
+// 			texturePos,
+// 			ImVec2(textureWidth, textureHeight),
+// 			IM_PI / 2.0f, // 90 degrees in radians
+// 			colorWithAlpha
+// 		);
 		ImGui::GetWindowDrawList()->AddImage(RedOrbTexture->GetTexture(), texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImVec2(0, 0), ImVec2(1, 1), colorWithAlpha);
 	}
 	else {
@@ -4300,14 +4344,13 @@ void MultiplayerBars() {
 					return;
 				}
 				auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+				auto playerIndex = activeActorData.newPlayerIndex;
 
 				hit = (activeActorData.hitPoints / activeActorData.maxHitPoints);
 				magic = (activeActorData.magicPoints / activeActorData.maxMagicPoints);
 
 				//                 activeConfig.barsData[playerIndex].pos.x = queuedConfig.barsData[playerIndex].pos.x;
 				//                 activeConfig.barsData[playerIndex].pos.y = queuedConfig.barsData[playerIndex].pos.y;
-
-
 
 				RenderWorldSpaceMultiplayerBar(hit, magic, playerIndexNames[playerIndex], activeActorData, barsNames[playerIndex], activeConfig.barsData[playerIndex]
 				/*, queuedConfig.barsData[playerIndex]*/);
@@ -4776,9 +4819,9 @@ void CameraSection(size_t defaultFontSize) {
 			const float columnWidth = 0.5f * queuedConfig.globalScale;
 			const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-			if (ImGui::BeginTable("LiveCameraReadingsTable", 2)) {
+			if (ImGui::BeginTable("LiveCameraReadingsTable", 3)) {
 
-				ImGui::TableSetupColumn("b1", 0, columnWidth);
+				ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
 				ImGui::TableNextRow(0, rowWidth);
 				ImGui::TableNextColumn();
 				ImGui::PushItemWidth(itemWidth * 0.8f);
@@ -7524,6 +7567,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			ImGui::Text("Royal Block: %u", actorData.royalBlock);
+			ImGui::Text("Guard: %u", actorData.guard);
+			ImGui::Text("maxDT: %g", actorData.maxMagicPoints);
 			ImGui::Text("Motion Data 1: %u", crimsonPlayer[0].motion);
 			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
 			ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[0].animTimer);
@@ -7565,8 +7611,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("TOP LEFT ALPHA: %u", hudData.topLeftAlpha);
             ImGui::Text("distance: %u", crimsonPlayer[0].cameraPlayerDistanceClamped);
             ImGui::Text("Release Damage: %g", actorData.royalguardReleaseDamage);
-            ImGui::Text("ACTOR STATUS: %u", actorData.status);
-            ImGui::Text("Royal Block: %u", actorData.royalBlock);
+			ImGui::Text("ACTOR STATUS: %u", actorData.status);
             ImGui::Text("MIRAGE GAUGE: %g", crimsonPlayer[0].vergilDoppelganger.miragePoints);
             ImGui::Text("Vergil Dopp Timer Start: %u", crimsonPlayer[0].vergilDoppelganger.drainStart);
             ImGui::Text("Vergil Dopp Timer: %g", crimsonPlayer[0].vergilDoppelganger.drainTime);
@@ -8657,12 +8702,13 @@ void FrameResponsiveGameSpeed() {
 
 	auto& activeValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 	auto& queuedValue = (IsTurbo()) ? queuedConfig.Speed.turbo : queuedConfig.Speed.mainSpeed;
+	float gameSpeed = (IsTurbo()) ? 1.2f : 1.0f;
 
 	if (activeConfig.framerateResponsiveGameSpeed) {
 		UpdateFrameRate();
 
-		activeValue = 1.2 / (ImGui::GetIO().Framerate / 60);
-		queuedValue = 1.2 / (ImGui::GetIO().Framerate / 60);
+		activeValue = gameSpeed / (ImGui::GetIO().Framerate / 60);
+		queuedValue = gameSpeed / (ImGui::GetIO().Framerate / 60);
 	}
 }
 
@@ -9329,7 +9375,6 @@ void GameplayOptions() {
 
 		if (!activeConfig.Actor.enable) {
 			activeCrimsonConfig.Gameplay.General.holdToCrazyCombo = false;
-			queuedCrimsonConfig.Gameplay.General.holdToCrazyCombo = false;
 			CrimsonDetours::ToggleHoldToCrazyCombo(false);
 		}
 
@@ -9472,6 +9517,18 @@ void GameplayOptions() {
 		TooltipHelper("(?)", "Requires Actor System.\n"
 			"\n"
 			"Rainstorm will elevate you slightly in the air.");
+
+
+		GUI_PushDisable(!activeConfig.Actor.enable);
+		if (!activeConfig.Actor.enable) {
+			activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard = false;
+		}
+		GUI_Checkbox2("DT Infused Royalguard", activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard, queuedCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Royalguard Normal Blocks will consume DT instead, until you're low on DT. This will also prevent Guard Breaks by converting them into Normal Blocks.");
+		GUI_PopDisable(!activeConfig.Actor.enable);
 
         ImGui::Text("");
 
@@ -11220,6 +11277,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonOnTick::GeneralCameraOptionsController(); // previously called from Actor in WeaponSwitchController.
 	CrimsonOnTick::AirTauntDetoursController();
 	CrimsonOnTick::NewMissionClearSong();
+	CrimsonOnTick::PauseSFXWhenPaused();
 
     // TIMERS
     CrimsonTimers::CallAllTimers();

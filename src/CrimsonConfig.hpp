@@ -250,6 +250,7 @@ struct CrimsonConfig {
 			bool skyDanceTweaks = true;
 			bool driveTweaks = true;
 			bool disableAirSlashKnockback = true;
+			bool dTInfusedRoyalguard = true;
 
 			static constexpr auto Metadata() {
                 return std::make_tuple(
@@ -260,7 +261,8 @@ struct CrimsonConfig {
 					std::make_pair("airFlickerTweaks", &Dante::airFlickerTweaks),
 					std::make_pair("skyDanceTweaks", &Dante::skyDanceTweaks),
 					std::make_pair("driveTweaks", &Dante::driveTweaks),
-					std::make_pair("disableAirSlashKnockback", &Dante::disableAirSlashKnockback)
+					std::make_pair("disableAirSlashKnockback", &Dante::disableAirSlashKnockback),
+					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard)
 				);
 			}
         } Dante;

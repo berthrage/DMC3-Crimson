@@ -14,7 +14,7 @@ void StyleRankHudFadeoutController();
 
 #pragma region DanteSpecificFX
 
-void RoyalguardSFX(byte8* actorBaseAddr);
+void RoyalBlockFX(byte8* actorBaseAddr);
 void DelayedComboFXController(byte8* actorBaseAddr);
 void StyleSwitchFlux(byte8* actorBaseAddr);
 void StyleSwitchDrawText(byte8* actorBaseAddr);
