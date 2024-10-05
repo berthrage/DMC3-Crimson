@@ -5073,9 +5073,6 @@ void Dante() {
 			ToggleRebellionInfiniteSwordPierce(activeConfig.Rebellion.infiniteSwordPierce);
 		}
 
-		GUI_Checkbox2("Enable Air Stinger", activeConfig.enableRebellionAirStinger, queuedConfig.enableRebellionAirStinger);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires enabled Actor module.");
 
 		GUI_Checkbox2("Enable New Drive", activeConfig.enableRebellionNewDrive, queuedConfig.enableRebellionNewDrive);
 		ImGui::SameLine();
@@ -5093,34 +5090,6 @@ void Dante() {
 			ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
 		}
 		ImGui::Text("");
-
-
-		TooltipHelper("(?)", "Requires enabled Actor module.\n"
-			"\n"
-			"Left : Human\n"
-			"Right: Devil");
-		ImGui::Text("");
-
-		ActionData("Stinger Duration", activeConfig.Rebellion.stingerDuration, queuedConfig.Rebellion.stingerDuration,
-			defaultConfig.Rebellion.stingerDuration, 1.0f, "%g");
-		ActionData("Stinger Range", activeConfig.Rebellion.stingerRange, queuedConfig.Rebellion.stingerRange,
-			defaultConfig.Rebellion.stingerRange, 10.0f, "%g");
-
-
-		{
-			bool condition = !activeConfig.enableRebellionAirStinger;
-
-			GUI_PushDisable(condition);
-
-			ActionData("Air Stinger Count", activeConfig.Rebellion.airStingerCount, queuedConfig.Rebellion.airStingerCount,
-				defaultConfig.Rebellion.airStingerCount);
-			ActionData("Air Stinger Duration", activeConfig.Rebellion.airStingerDuration, queuedConfig.Rebellion.airStingerDuration,
-				defaultConfig.Rebellion.airStingerDuration, 1.0f, "%g");
-			ActionData("Air Stinger Range", activeConfig.Rebellion.airStingerRange, queuedConfig.Rebellion.airStingerRange,
-				defaultConfig.Rebellion.airStingerRange, 10.0f, "%g");
-
-			GUI_PopDisable(condition);
-		}
 
 
 		GUI_SectionEnd();
@@ -9517,6 +9486,10 @@ void GameplayOptions() {
 		TooltipHelper("(?)", "Requires Actor System.\n"
 			"\n"
 			"Rainstorm will elevate you slightly in the air.");
+		//enableRebellionAirStinger
+		GUI_Checkbox2("Air Stinger", activeCrimsonConfig.Gameplay.Dante.airStinger, queuedCrimsonConfig.Gameplay.Dante.airStinger);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n");
 
 
 		GUI_PushDisable(!activeConfig.Actor.enable);
@@ -9543,8 +9516,17 @@ void GameplayOptions() {
         TooltipHelper("(?)", "Requires Actor System.\n"
                              "\n"
                              "Enables Vergil to cancel any move with any Darkslayer Trick at any time.");
-        ImGui::Text("");
 
+		GUI_Checkbox2("Air Stinger", activeCrimsonConfig.Gameplay.Vergil.airStinger, queuedCrimsonConfig.Gameplay.Vergil.airStinger);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n");
+
+		GUI_Checkbox2("Round Trip Tweaks", activeConfig.enableYamatoForceEdgeNewRoundTrip, queuedConfig.enableYamatoForceEdgeNewRoundTrip);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n");
+
+
+        ImGui::Text("");
         ImGui::Text("");
 
         ImGui::Text("Input Remaps");
@@ -9713,46 +9695,6 @@ void Vergil() {
         TooltipHelper("(?)", "Requires enabled Actor module.\n"
                              "\n"
                              "Press Lock-On + Right + Melee Attack.");
-
-        GUI_Checkbox2("Enable Air Stinger", activeConfig.enableYamatoForceEdgeAirStinger, queuedConfig.enableYamatoForceEdgeAirStinger);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.");
-
-        GUI_Checkbox2(
-            "Enable New Round Trip", activeConfig.enableYamatoForceEdgeNewRoundTrip, queuedConfig.enableYamatoForceEdgeNewRoundTrip);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.\n"
-                             "\n"
-                             "Press Lock-On + Left + Melee Attack.");
-        ImGui::Text("");
-
-
-        TooltipHelper("(?)", "Requires enabled Actor module.\n"
-                             "\n"
-                             "Left : Human\n"
-                             "Right: Devil");
-        ImGui::Text("");
-
-        ActionData("Stinger Duration", activeConfig.YamatoForceEdge.stingerDuration, queuedConfig.YamatoForceEdge.stingerDuration,
-            defaultConfig.YamatoForceEdge.stingerDuration, 1.0f, "%g");
-        ActionData("Stinger Range", activeConfig.YamatoForceEdge.stingerRange, queuedConfig.YamatoForceEdge.stingerRange,
-            defaultConfig.YamatoForceEdge.stingerRange, 10.0f, "%g");
-
-        {
-            bool condition = !activeConfig.enableYamatoForceEdgeAirStinger;
-
-            GUI_PushDisable(condition);
-
-            ActionData("Air Stinger Count", activeConfig.YamatoForceEdge.airStingerCount, queuedConfig.YamatoForceEdge.airStingerCount,
-                defaultConfig.YamatoForceEdge.airStingerCount);
-
-            ActionData("Air Stinger Duration", activeConfig.YamatoForceEdge.airStingerDuration,
-                queuedConfig.YamatoForceEdge.airStingerDuration, defaultConfig.YamatoForceEdge.airStingerDuration, 1.0f, "%g");
-            ActionData("Air Stinger Range", activeConfig.YamatoForceEdge.airStingerRange, queuedConfig.YamatoForceEdge.airStingerRange,
-                defaultConfig.YamatoForceEdge.airStingerRange, 10.0f, "%g");
-
-            GUI_PopDisable(condition);
-        }
 
         GUI_SectionEnd();
         ImGui::Text("");

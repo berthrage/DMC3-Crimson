@@ -4246,10 +4246,13 @@ extern float currentDTDoppDTOn;
 extern float doppDuration;
 extern float doppDurationDT;
 
-extern int storedTrickUpCount;
-extern int storedSkyStarCount;
-extern int storedAirHikeCount;
-extern bool royalCancelTrackerRunning;
+struct StoredAirCounts {
+	uint8 trickUp = 0;
+    uint8 skyStar = 0;
+    uint8 airHike = 0;
+    uint8 airStringer = 0;
+    bool cancelTrackerRunning = false;
+};
 
 struct FasterDarkslayer {
     float newSpeed            = 2.0f;
@@ -4542,6 +4545,7 @@ struct CrimsonPlayerData {
     SimpleVec3 playerScreenPosition = { 0,0,0 };
     bool playerOutOfView = false;
     uint16 rotationTowardsEnemy = 0;
+    StoredAirCounts storedAirCounts;
 
     AirRaveTweak airRaveTweak;
 
@@ -4575,7 +4579,7 @@ struct CrimsonPlayerData {
     SimpleVec3 cloneScreenPosition = { 0,0,0 };
     bool cloneOutOfView = false;
     uint16 rotationCloneTowardsEnemy = 0;
-
+    StoredAirCounts storedAirCountsClone;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];

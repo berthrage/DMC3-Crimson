@@ -138,21 +138,69 @@ void UpdateCrimsonPlayerData() {
 
 #pragma region Cancels
 
-void RoyalCancelCountsTracker(byte8* actorBaseAddr) {
+void AirCancelCountsTracker(byte8* actorBaseAddr) {
     if (!actorBaseAddr) {
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    auto playerIndex = actorData.newPlayerIndex;
+    auto& storedAirCounts = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].storedAirCounts : crimsonPlayer[playerIndex].storedAirCountsClone;
 
     // This restores player counts back to what they were before the Royal Cancel
-    royalCancelTrackerRunning = true;
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    storedAirCounts.cancelTrackerRunning = true;
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-    actorData.newTrickUpCount = storedTrickUpCount;
-    actorData.newSkyStarCount = storedSkyStarCount;
-    actorData.newAirHikeCount = storedAirHikeCount;
+    actorData.newTrickUpCount = storedAirCounts.trickUp;
+    actorData.newSkyStarCount = storedAirCounts.skyStar;
+    actorData.newAirHikeCount = storedAirCounts.airHike;
+    actorData.newAirStingerCount = storedAirCounts.airStringer;
 
-    royalCancelTrackerRunning = false;
+    storedAirCounts.cancelTrackerRunning = false;
+}
+
+void FixAirStingerCancelTime(byte8* actorBaseAddr) {
+	using namespace ACTION_DANTE;
+	using namespace ACTION_VERGIL;
+	if (!actorBaseAddr) return;
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
+	auto inAir = (actorData.state & STATE::IN_AIR);
+	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
+	auto& storedAirCounts = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].storedAirCounts : crimsonPlayer[playerIndex].storedAirCountsClone;
+
+    if (actorData.character == CHARACTER::DANTE) {
+		if ((actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) && actorData.state & STATE::IN_AIR && crimsonPlayer[playerIndex].actionTimer > 0.4f
+			&& !storedAirCounts.cancelTrackerRunning) {
+
+			storedAirCounts.trickUp = actorData.newTrickUpCount;
+			storedAirCounts.skyStar = actorData.newSkyStarCount;
+			storedAirCounts.airHike = actorData.newAirHikeCount;
+			storedAirCounts.airStringer = actorData.newAirStingerCount;
+
+			actorData.action = ROYAL_AIR_BLOCK;
+
+			std::thread aircountstracker(AirCancelCountsTracker, actorBaseAddr);
+			aircountstracker.detach();
+		}
+    }
+    else if (actorData.character == CHARACTER::VERGIL) {
+		if ((actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2 || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1) && actorData.state & STATE::IN_AIR && crimsonPlayer[playerIndex].actionTimer > 0.4f
+			&& !storedAirCounts.cancelTrackerRunning) {
+
+			storedAirCounts.trickUp = actorData.newTrickUpCount;
+			storedAirCounts.skyStar = actorData.newSkyStarCount;
+			storedAirCounts.airHike = actorData.newAirHikeCount;
+			storedAirCounts.airStringer = actorData.newAirStingerCount;
+
+			actorData.action = ROYAL_AIR_BLOCK;
+
+			std::thread aircountstracker(AirCancelCountsTracker, actorBaseAddr);
+			aircountstracker.detach();
+		}
+    }
 }
 
 void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
@@ -183,7 +231,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
     auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
     auto playerIndex = actorData.newPlayerIndex;
     auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
-
+    auto& storedAirCounts = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].storedAirCounts : crimsonPlayer[playerIndex].storedAirCountsClone;
 
     bool inCancellableActionRebellion =
         (actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_1 ||
@@ -247,7 +295,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
         actorData.eventData[0].event != ACTOR_EVENT::STAGGER && actorData.eventData[0].event != ACTOR_EVENT::NEVAN_KISS &&
         (inCancellableActionRebellion || inCancellableActionCerberus || inCancellableActionAgni || inCancellableActionNevan ||
             inCancellableActionBeowulf || inCancellableActionGuns || actorData.eventData[0].event == 22) &&
-        !royalCancelTrackerRunning) // The last condition prevents cancelling recovery
+        !storedAirCounts.cancelTrackerRunning) // The last condition prevents cancelling recovery
     {
 
         // Old list of exceptions, easier to list everything that should be cancellable.
@@ -258,29 +306,31 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
         cases of E&I and Shotgun.*/
 
 
-        storedTrickUpCount = actorData.newTrickUpCount;
-        storedSkyStarCount = actorData.newSkyStarCount;
-        storedAirHikeCount = actorData.newAirHikeCount;
+        storedAirCounts.trickUp = actorData.newTrickUpCount;
+        storedAirCounts.skyStar = actorData.newSkyStarCount;
+        storedAirCounts.airHike = actorData.newAirHikeCount;
+        storedAirCounts.airStringer = actorData.newAirStingerCount;
 
         actorData.permissions = 3080; // This is a softer version of Reset Permissions.
 
-        std::thread royalcountstracker(RoyalCancelCountsTracker, actorBaseAddr);
-        royalcountstracker.detach();
+		std::thread royalcountstracker(AirCancelCountsTracker, actorBaseAddr);
+		royalcountstracker.detach();
     }
 
     // Royal Cancelling Sky Star
     if ((actorData.style == STYLE::ROYALGUARD) && (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) &&
-        actorData.eventData[0].event == 23 && !royalCancelTrackerRunning) {
+        actorData.eventData[0].event == 23 && !storedAirCounts.cancelTrackerRunning) {
 
 
-        storedTrickUpCount = actorData.newTrickUpCount;
-        storedSkyStarCount = actorData.newSkyStarCount;
-        storedAirHikeCount = actorData.newAirHikeCount;
+		storedAirCounts.trickUp = actorData.newTrickUpCount;
+		storedAirCounts.skyStar = actorData.newSkyStarCount;
+		storedAirCounts.airHike = actorData.newAirHikeCount;
+		storedAirCounts.airStringer = actorData.newAirStingerCount;
 
         actorData.permissions = 0x1C1B; // This is a hard version of Reset Permissions.
 
-        std::thread royalcountstracker(RoyalCancelCountsTracker, actorBaseAddr);
-        royalcountstracker.detach();
+		std::thread royalcountstracker(AirCancelCountsTracker, actorBaseAddr);
+		royalcountstracker.detach();
     }
 
 
@@ -292,14 +342,15 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 
             if ((!(lockOn && tiltDirection == TILT_DIRECTION::UP)) && gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
 
-                storedTrickUpCount = actorData.newTrickUpCount;
-                storedSkyStarCount = actorData.newSkyStarCount;
-                storedAirHikeCount = actorData.newAirHikeCount;
+				storedAirCounts.trickUp = actorData.newTrickUpCount;
+				storedAirCounts.skyStar = actorData.newSkyStarCount;
+				storedAirCounts.airHike = actorData.newAirHikeCount;
+				storedAirCounts.airStringer = actorData.newAirStingerCount;
 
                 actorData.action = ROYAL_AIR_BLOCK;
 
-                std::thread royalcountstracker(RoyalCancelCountsTracker, actorBaseAddr);
-                royalcountstracker.detach();
+				std::thread royalcountstracker(AirCancelCountsTracker, actorBaseAddr);
+				royalcountstracker.detach();
             }
         }
         /*else {
@@ -311,7 +362,6 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 
         }*/
     }
-
 
     /*if (actorData.buttons[2] & GetBinding(BINDING::TAUNT))  // old ddmk Reset Permissions -- Deprecated.
     {
@@ -732,60 +782,6 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
                 actorData.verticalPullMultiplier = 0.0f;
                 actorData.position.y             = v->storedLunarPhasePosY - 20.0f;
             }
-        }
-    }
-}
-
-
-void CalculateAirStingerEndTime() {
-    using namespace ACTION_DANTE;
-    using namespace ACTION_VERGIL;
-
-    auto pool_6046 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-    if (!pool_6046 || !pool_6046[3]) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_6046[3]);
-
-    float airStingerEndTime = 100 / actorData.speed;
-    airStingerEndTimeInt    = (int)airStingerEndTime + 1;
-}
-
-void AirStingerEndTracker(byte8* actorBaseAddr) {
-    auto speedValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
-    if (!actorBaseAddr) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-
-    airStingerEnd.trackerRunning = true;
-    airStingerEnd.timer          = 0;
-    while (actorData.motionData[0].index == 11) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        airStingerEnd.timer++;
-    }
-
-
-    if (actorData.motionData[0].index != 11) {
-        airStingerEnd.trackerRunning = false;
-    }
-}
-
-void SetAirStingerEnd(byte8* actorBaseAddr) {
-    if (!actorBaseAddr) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-
-    if (actorData.character == CHARACTER::VERGIL) {
-        if (actorData.motionData[0].index == 11 && !airStingerEnd.trackerRunning) {
-
-            std::thread airstingerendtracker(AirStingerEndTracker, actorBaseAddr);
-            airstingerendtracker.detach();
-        }
-
-        if (actorData.motionData[0].index != 11) {
-            airStingerEnd.timer = 0;
         }
     }
 }

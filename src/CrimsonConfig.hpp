@@ -250,6 +250,7 @@ struct CrimsonConfig {
 			bool skyDanceTweaks = true;
 			bool driveTweaks = true;
 			bool disableAirSlashKnockback = true;
+			bool airStinger = true;
 			bool dTInfusedRoyalguard = true;
 
 			static constexpr auto Metadata() {
@@ -262,6 +263,7 @@ struct CrimsonConfig {
 					std::make_pair("skyDanceTweaks", &Dante::skyDanceTweaks),
 					std::make_pair("driveTweaks", &Dante::driveTweaks),
 					std::make_pair("disableAirSlashKnockback", &Dante::disableAirSlashKnockback),
+					std::make_pair("airStinger", &Dante::airStinger),
 					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard)
 				);
 			}
@@ -270,11 +272,13 @@ struct CrimsonConfig {
 		struct Vergil {
 			bool enableQuicksilver = false;
 			bool darkslayerTrickCancels = true;
+			bool airStinger = true;
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
 					std::make_pair("enableQuicksilver", &Vergil::enableQuicksilver),
-					std::make_pair("darkslayerTrickCancels", &Vergil::darkslayerTrickCancels)
+					std::make_pair("darkslayerTrickCancels", &Vergil::darkslayerTrickCancels),
+					std::make_pair("airStinger", &Vergil::airStinger)
 				);
 			}
         } Vergil;
