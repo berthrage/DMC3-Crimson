@@ -66,7 +66,6 @@ void InitSession() {
 
     SetMemory(sessionData.weaponAndStyleUnlocks, 1, sizeof(sessionData.weaponAndStyleUnlocks));
 
-
     sessionData.costume            = activeConfig.Arcade.costume;
     sessionData.unlockDevilTrigger = true;
     sessionData.hitPoints          = activeConfig.Arcade.hitPoints;

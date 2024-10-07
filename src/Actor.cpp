@@ -9043,6 +9043,8 @@ void SetAction(byte8* actorBaseAddr) {
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	using namespace ACTION_DANTE;
+	using namespace ACTION_VERGIL;
 
     uint8 index = (actorData.devil) ? 1 : 0;
 
@@ -9053,18 +9055,26 @@ void SetAction(byte8* actorBaseAddr) {
     
 
     auto playerIndex = actorData.newPlayerIndex;
-    auto actionTimer =
+    auto& actionTimer =
         (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
+    auto& b2F = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].b2F : crimsonPlayer[playerIndex].b2FClone;
     auto& gamepad = GetGamepad(playerIndex);
+    auto& action = actorData.action;
+    auto& lastAction = actorData.lastAction;
+    bool inRebellionAttack = (action == REBELLION_COMBO_1_PART_1 || action == REBELLION_COMBO_1_PART_2 ||
+        action == REBELLION_COMBO_1_PART_3 || action == REBELLION_COMBO_2_PART_2 || action == REBELLION_COMBO_2_PART_3);
+
+    bool wasRebellionAttack = (lastAction == REBELLION_COMBO_1_PART_1 || lastAction == REBELLION_COMBO_1_PART_2 ||
+        lastAction == REBELLION_COMBO_1_PART_3 || lastAction == REBELLION_COMBO_2_PART_2 || lastAction == REBELLION_COMBO_2_PART_3);
+
+
 
     DebugLog("%s %llX %u", FUNC_NAME, actorBaseAddr, actorData.action);
 
 
     switch (actorData.character) {
     case CHARACTER::DANTE: {
-        using namespace ACTION_DANTE;
-        using namespace ACTION_VERGIL;
-
+      
 
         actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = File_staticFiles[pl000_00_3];
 
@@ -9081,9 +9091,10 @@ void SetAction(byte8* actorBaseAddr) {
         // DRIVE
         } else if (activeCrimsonConfig.Gameplay.Dante.driveTweaks && 
             ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::REBELLION_DRIVE]
-            && actorData.lastAction != REBELLION_COMBO_1_PART_1 &&
-                   (actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) &&
-                   crimsonPlayer[playerIndex].b2F.forwardCommand) {
+            && !wasRebellionAttack &&
+                   (actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1 || 
+                       action == REBELLION_COMBO_1_PART_1) &&
+                   b2F.forwardCommand) {
 
             ToggleRebellionHoldDrive(true);
             actorData.action = REBELLION_DRIVE_1;
@@ -9103,9 +9114,9 @@ void SetAction(byte8* actorBaseAddr) {
         // QUICK DRIVE
         if (activeCrimsonConfig.Gameplay.Dante.driveTweaks && 
             ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::REBELLION_DRIVE] &&
-            actorData.lastAction == REBELLION_COMBO_1_PART_1 && (demo_pl000_00_3 != 0) &&
+            (wasRebellionAttack) && (demo_pl000_00_3 != 0) &&
             (actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) &&
-            crimsonPlayer[playerIndex].b2F.forwardCommand) {
+            b2F.forwardCommand) {
             actorData.action = REBELLION_DRIVE_1;
 
             crimsonPlayer[playerIndex].inQuickDrive = true;

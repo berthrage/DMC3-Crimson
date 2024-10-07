@@ -96,6 +96,7 @@ void VergilNeutralTrickDetour();
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
 void InitDetours();
+void ToggleDisableDriveHold(bool enable);
 void ToggleDTInfusedRoyalguardDetours(bool enable);
 void ToggleFasterTurnRate(bool enable);
 void ToggleFreeformSoftLockHelper(bool enable);

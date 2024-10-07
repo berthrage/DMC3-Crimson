@@ -4218,15 +4218,6 @@ extern float storedRisingSunTauntPosY;
 extern float storedRisingSunTauntPosYClone;
 extern float storedLunarPhasePosY;
 
-extern int airStingerEndTimeInt;
-
-struct AirStingerEnd {
-    bool trackerRunning = false;
-    int timer           = 0;
-};
-
-extern AirStingerEnd airStingerEnd;
-
 struct RankAnnouncer {
     int turn            = 0;
     int count           = 0;
@@ -4384,7 +4375,7 @@ struct ImprovedCancels {
 
 struct BackToForward {
     bool backCommand             = false;
-    float backDuration           = 0.2f;
+    float backDuration           = 0.16f;
     float backBuffer             = backDuration;
     bool backDirectionChanged    = true;
     bool forwardDirectionChanged = true;
@@ -4572,6 +4563,7 @@ struct CrimsonPlayerData {
     SkyLaunch skyLaunchClone;
     VergilMoveAdjustments vergilMovesClone;
     ImprovedCancels cancelsClone;
+    BackToForward b2FClone;
     Inertia inertiaClone;
     float cameraCloneDistance = 0;
     float cameraCloneDistanceClamped = 0;

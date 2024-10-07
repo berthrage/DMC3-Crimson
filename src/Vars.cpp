@@ -183,10 +183,6 @@ float storedRisingSunTauntPosY      = 0;
 float storedRisingSunTauntPosYClone = 0;
 float storedLunarPhasePosY          = 0;
 
-int airStingerEndTimeInt = 0;
-
-AirStingerEnd airStingerEnd;
-
 RankAnnouncer rankAnnouncer[7];
 
 uint16 relativeTiltController = 0;

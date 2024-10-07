@@ -458,16 +458,28 @@ void InitDetours() {
     createEffectCallB  = (uintptr_t)appBaseAddr + 0x1FAA50;
     createEffectRBXMov = (uintptr_t)appBaseAddr + 0xC18AF8;
 
-    // DisableDriveHold
-    static std::unique_ptr<Utility::Detour_t> DisableDriveHoldHook =
-        std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EB6F2, &DisableDriveHoldDetour, 5);
-    g_DisableDriveHold_ReturnAddr = DisableDriveHoldHook->GetReturnAddress();
-    DisableDriveHoldHook->Toggle(true);
-    
+       
     // VergilNeutralTrick // func is already detoured, Crimson.MobilityFunction<27>+B1
     // static std::unique_ptr<Utility::Detour_t> VergilNeutralTrickHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x0,
     // &VergilNeutralTrickDetour, 5); g_VergilNeutralTrick_ReturnAddr = VergilNeutralTrickHook->GetReturnAddress();
     // VergilNeutralTrickHook->Toggle(true);
+}
+
+void ToggleDisableDriveHold(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// DisableDriveHold
+	static std::unique_ptr<Utility::Detour_t> DisableDriveHoldHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EB6F2, &DisableDriveHoldDetour, 5);
+	g_DisableDriveHold_ReturnAddr = DisableDriveHoldHook->GetReturnAddress();
+	DisableDriveHoldHook->Toggle(enable);
+
+	run = enable;
 }
 
 void ToggleDTInfusedRoyalguardDetours(bool enable) {

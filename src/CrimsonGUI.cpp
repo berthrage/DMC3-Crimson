@@ -7536,6 +7536,12 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			ImGui::Text("Back Buffer: %g", crimsonPlayer[0].b2F.backBuffer);
+			ImGui::Text("Forward Buffer: %g", crimsonPlayer[0].b2F.forwardBuffer);
+			ImGui::Text("Forward Command: %u", crimsonPlayer[0].b2F.forwardCommand);
+			ImGui::Text("Back Buffer Clone: %g", crimsonPlayer[0].b2FClone.backBuffer);
+			ImGui::Text("Forward Buffer Clone: %g", crimsonPlayer[0].b2FClone.forwardBuffer);
+			ImGui::Text("Forward Command Clone: %u", crimsonPlayer[0].b2FClone.forwardCommand);
 			ImGui::Text("Royal Block: %u", actorData.royalBlock);
 			ImGui::Text("Guard: %u", actorData.guard);
 			ImGui::Text("maxDT: %g", actorData.maxMagicPoints);
@@ -7635,9 +7641,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("Actor Camera Direction %u", actorData.actorCameraDirection);
             ImGui::Text("RelativeTilt %u", relativeTiltController);
             ImGui::Text("LeftStick Position %u", gamepad.leftStickPosition);
-            ImGui::Text("Air Stinger End Timer %u", airStingerEnd.timer);
-            ImGui::Text("Air Stinger End Time Int %u", airStingerEndTimeInt);
-
+		
             ImGui::Text("Royal Block Type:  %u", actorData.royalguardBlockType);
             ImGui::Text("Guardflying:  %u", inGuardfly);
             // ImGui::Text("Track %s", eventData.track);
@@ -9474,6 +9478,12 @@ void GameplayOptions() {
                              "\n"
                              "Sky Dance Part 3 is now a separate ability executed by Lock On + Forward + Style. Tweaks Sky Dance Gravity, "
                              "taking weights into account.");
+
+		GUI_Checkbox2("Drive Tweaks", activeCrimsonConfig.Gameplay.Dante.driveTweaks, queuedCrimsonConfig.Gameplay.Dante.driveTweaks);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Drive is now inputted by Lock On + Back to Forward + Melee and can be held for more damage. Do Quick Drive by performing Drive after a Rebellion attack.");
 
 		GUI_Checkbox2("Bullet Stop", activeCrimsonConfig.Gameplay.Dante.bulletStop, queuedCrimsonConfig.Gameplay.Dante.bulletStop);
 		ImGui::SameLine();

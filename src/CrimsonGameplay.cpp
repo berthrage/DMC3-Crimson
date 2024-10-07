@@ -2019,45 +2019,47 @@ void BackToForwardInputs(byte8* actorBaseAddr) {
     auto& gamepad      = GetGamepad(playerIndex);
     auto radius        = gamepad.leftStickRadius;
     auto pos           = gamepad.leftStickPosition;
+    uint8 deadzone = 100;
+    auto& b2F = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].b2F : crimsonPlayer[playerIndex].b2FClone;
 
     if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) {
         return;
     }
 
-    if (crimsonPlayer[playerIndex].b2F.backBuffer <= 0) {
-
-        crimsonPlayer[playerIndex].b2F.backCommand = false;
+    if (b2F.backBuffer <= 0) {
+        b2F.backCommand = false;
     }
 
-    if (crimsonPlayer[playerIndex].b2F.backBuffer <= 0 && crimsonPlayer[playerIndex].b2F.backDirectionChanged) {
-        crimsonPlayer[playerIndex].b2F.backBuffer = crimsonPlayer[playerIndex].b2F.backDuration;
+    if (b2F.backBuffer <= 0 && b2F.backDirectionChanged) {
+        b2F.backBuffer = b2F.backDuration;
     }
 
-    if (crimsonPlayer[playerIndex].b2F.forwardBuffer <= 0) {
-        crimsonPlayer[playerIndex].b2F.forwardCommand = false;
+    if (b2F.forwardBuffer <= 0) {
+        b2F.forwardCommand = false;
     }
 
-    if (crimsonPlayer[playerIndex].b2F.forwardBuffer <= 0 && crimsonPlayer[playerIndex].b2F.forwardDirectionChanged) {
-        crimsonPlayer[playerIndex].b2F.forwardBuffer = crimsonPlayer[playerIndex].b2F.forwardDuration;
+    if (b2F.forwardBuffer <= 0 && b2F.forwardDirectionChanged) {
+        b2F.forwardBuffer = b2F.forwardDuration;
     }
 
-    if (lockOn && tiltDirection == TILT_DIRECTION::DOWN && (radius > RIGHT_STICK_DEADZONE)) {
-        if (crimsonPlayer[playerIndex].b2F.backBuffer > 0) {
-            crimsonPlayer[playerIndex].b2F.backCommand          = true;
-            crimsonPlayer[playerIndex].b2F.backDirectionChanged = false;
+    if (lockOn && tiltDirection == TILT_DIRECTION::DOWN && (radius > deadzone)) {
+        if (b2F.backBuffer > 0) {
+            b2F.backCommand          = true;
+            b2F.backDirectionChanged = false;
         }
-    } else if (!(lockOn && tiltDirection == TILT_DIRECTION::DOWN && (radius > RIGHT_STICK_DEADZONE))) {
-        crimsonPlayer[playerIndex].b2F.backDirectionChanged = true;
+    } else if (tiltDirection != TILT_DIRECTION::DOWN) {
+        b2F.backDirectionChanged = true;
     }
 
 
-    if (lockOn && tiltDirection == TILT_DIRECTION::UP && (radius > RIGHT_STICK_DEADZONE) && crimsonPlayer[playerIndex].b2F.backCommand) {
-        if (crimsonPlayer[playerIndex].b2F.forwardBuffer > 0) {
-            crimsonPlayer[playerIndex].b2F.forwardCommand          = true;
-            crimsonPlayer[playerIndex].b2F.forwardDirectionChanged = false;
+    if (lockOn && tiltDirection == TILT_DIRECTION::UP && (radius > deadzone) && b2F.backCommand) {
+        if (b2F.forwardBuffer > 0) {
+            b2F.forwardCommand          = true;
+            b2F.forwardDirectionChanged = false;
         }
-    } else if (!(lockOn && tiltDirection == TILT_DIRECTION::UP && (radius > RIGHT_STICK_DEADZONE))) {
-        crimsonPlayer[playerIndex].b2F.forwardDirectionChanged = true;
+    } 
+    else if (!(lockOn && tiltDirection == TILT_DIRECTION::UP && (radius > deadzone))) {
+        b2F.forwardDirectionChanged = true;
     }
 }
 
@@ -2537,7 +2539,10 @@ void DriveTweaks(byte8* actorBaseAddr) {
         return;
     }
     auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    CrimsonDetours::ToggleDisableDriveHold(activeCrimsonConfig.Gameplay.Dante.driveTweaks);
+    if (!activeCrimsonConfig.Gameplay.Dante.driveTweaks) return;
     auto playerIndex = actorData.newPlayerIndex;
+
 
     // 	drive physical hit damage dmc3.exe + 5C6D2C, 70.0f
     // 	drive projectile damage dmc3.exe + 5CB1EC, 300.0f

@@ -163,7 +163,7 @@ void SprintTimer() {
 
 
         if (crimsonPlayer[playerIndex].sprint.timer > 0 && crimsonPlayer[playerIndex].sprint.runTimer) {
-            crimsonPlayer[playerIndex].sprint.timer -= ImGui::GetIO().DeltaTime / g_FrameRateTimeMultiplier;
+            crimsonPlayer[playerIndex].sprint.timer -= ImGui::GetIO().DeltaTime * (crimsonPlayer[playerIndex].speed / g_FrameRateTimeMultiplier);
         }
 
 
@@ -275,13 +275,17 @@ void ImprovedCancelsTimers() {
 
 void BackToForwardTimers() {
     old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+        old_for_all(uint8, entityIndex, ENTITY_COUNT) {
+            auto& b2F = (entityIndex == 0) ? crimsonPlayer[playerIndex].b2F : crimsonPlayer[playerIndex].b2FClone;
 
-        if (crimsonPlayer[playerIndex].b2F.backCommand) {
-            crimsonPlayer[playerIndex].b2F.backBuffer -= ImGui::GetIO().DeltaTime / g_FrameRateTimeMultiplier;
-        }
+			if (b2F.backCommand) {
+				b2F.backBuffer -= ImGui::GetIO().DeltaTime;
+			}
 
-        if (crimsonPlayer[playerIndex].b2F.forwardCommand) {
-            crimsonPlayer[playerIndex].b2F.forwardBuffer -= ImGui::GetIO().DeltaTime / g_FrameRateTimeMultiplier;
+			if (b2F.forwardCommand) {
+				b2F.forwardBuffer -= ImGui::GetIO().DeltaTime;
+			}
+
         }
     }
 }

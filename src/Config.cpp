@@ -2343,6 +2343,7 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr) {
         }
 
         SetMemory(actorData.activeExpertise, 0xFF, sizeof(actorData.activeExpertise));
+		SetMemory(ExpConfig::missionExpDataDante.unlocks, 1, sizeof(ExpConfig::missionExpDataDante.unlocks));
 
         if (actorData.character == CHARACTER::DANTE) {
             for_each(index, WEAPON::EBONY_IVORY, WEAPON_COUNT) {
