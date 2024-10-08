@@ -9068,6 +9068,148 @@ dmc3.exe+56050: 0F 5B C0                 - cvtdq2ps xmm0,xmm0
       <VariableType>4 Bytes</VariableType>
       <Address>047D9C78</Address>
     </CheatEntry>
+    <CheatEntry>
+      <ID>2721</ID>
+      <Description>"Auto Assemble script"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2024-10-08
+  Author : Mia Berth
+
+  This script does blah blah blah
+}
+
+define(address,"dmc3.exe"+1F8DB0)
+define(bytes,48 8B 97 78 64 00 00)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000,"dmc3.exe"+1F8DB0)
+
+label(code)
+label(return)
+
+newmem:
+
+code:
+  ret
+
+address:
+  jmp newmem
+  nop 2
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+  // mov rdx,[rdi+00006478]
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1F8DB0
+
+dmc3.exe+1F8D76: 66 89 44 24 6C           - mov [rsp+6C],ax
+dmc3.exe+1F8D7B: F2 0F 10 87 00 75 00 00  - movsd xmm0,[rdi+00007500]
+dmc3.exe+1F8D83: F2 0F 11 44 24 60        - movsd [rsp+60],xmm0
+dmc3.exe+1F8D89: 0F 11 4C 24 50           - movups [rsp+50],xmm1
+dmc3.exe+1F8D8E: E8 4D 52 0F 00           - call dmc3.exe+2EDFE0
+dmc3.exe+1F8D93: 48 63 87 50 64 00 00     - movsxd  rax,dword ptr [rdi+00006450]
+dmc3.exe+1F8D9A: 48 8D 8F 10 64 00 00     - lea rcx,[rdi+00006410]
+dmc3.exe+1F8DA1: 41 8B 94 84 D8 BB 58 00  - mov edx,[r12+rax*4+0058BBD8]
+dmc3.exe+1F8DA9: F7 DA                    - neg edx
+dmc3.exe+1F8DAB: E8 90 52 0F 00           - call dmc3.exe+2EE040
+// ---------- INJECTING HERE ----------
+dmc3.exe+1F8DB0: 48 8B 97 78 64 00 00     - mov rdx,[rdi+00006478]
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1F8DB7: 0F 10 00                 - movups xmm0,[rax]
+dmc3.exe+1F8DBA: 0F 11 82 E0 74 00 00     - movups [rdx+000074E0],xmm0
+dmc3.exe+1F8DC1: 0F 10 48 10              - movups xmm1,[rax+10]
+dmc3.exe+1F8DC5: 0F 11 8A F0 74 00 00     - movups [rdx+000074F0],xmm1
+dmc3.exe+1F8DCC: F2 0F 10 40 20           - movsd xmm0,[rax+20]
+dmc3.exe+1F8DD1: F2 0F 11 82 00 75 00 00  - movsd [rdx+00007500],xmm0
+dmc3.exe+1F8DD9: 8B 48 28                 - mov ecx,[rax+28]
+dmc3.exe+1F8DDC: 89 8A 08 75 00 00        - mov [rdx+00007508],ecx
+dmc3.exe+1F8DE2: BA 01 00 00 00           - mov edx,00000001
+dmc3.exe+1F8DE7: 48 8B 8F 78 64 00 00     - mov rcx,[rdi+00006478]
+}
+</AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2722</ID>
+      <Description>"Auto Assemble script"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2024-10-08
+  Author : Mia Berth
+
+  This script does blah blah blah
+}
+
+define(address,045F8E47)
+define(bytes,00 01 00 00 00 00)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000,045F8E47)
+
+label(code)
+label(return)
+
+newmem:
+
+code:
+  jmp 045F8FA7
+
+address:
+  jmp newmem
+  nop
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+  // add [rcx],al
+  // add [rax],al
+  // add [rax],al
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: 045F8E47
+
+045F8E2D: 00 80 3F 00 00 80  - add [rax-7FFFFFC1],al
+045F8E33: 3F                 - db 3F
+045F8E34: 00 00              - add [rax],al
+045F8E36: 80 3F 00           - cmp byte ptr [rdi],00
+045F8E39: 00 80 3F 00 00 80  - add [rax-7FFFFFC1],al
+045F8E3F: 3F                 - db 3F
+045F8E40: 90                 - nop 
+045F8E41: F9                 - stc 
+045F8E42: 32 2B              - xor ch,[rbx]
+045F8E44: F7 7F 00           - idiv [rdi+00]
+// ---------- INJECTING HERE ----------
+045F8E47: 00 01              - add [rcx],al
+// ---------- DONE INJECTING  ----------
+045F8E49: 00 00              - add [rax],al
+045F8E4B: 00 00              - add [rax],al
+045F8E4D: 00 00              - add [rax],al
+045F8E4F: 00 8F 00 00 00 00  - add [rdi+00000000],cl
+045F8E55: 51                 - push rcx
+045F8E56: 1C 3F              - sbb al,3F
+045F8E58: 00 00              - add [rax],al
+045F8E5A: 80 3F 02           - cmp byte ptr [rdi],02
+045F8E5D: 00 00              - add [rax],al
+045F8E5F: 00 00              - add [rax],al
+}
+</AssemblerScript>
+    </CheatEntry>
   </CheatEntries>
   <CheatCodes>
     <CodeEntry>
@@ -81974,6 +82116,16 @@ dmc3.exe+2BB11E style bar stuff
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
+      <Address>045F8E47</Address>
+      <Comment>mission 19 crash part2
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>7FF6AEE6AF43</Address>
+      <Comment>%s crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
       <Address>"dmc3.exe"+300C6</Address>
       <Comment>Controls something for Character anim
 </Comment>
@@ -82091,6 +82243,11 @@ this will affect RoyalguardReleaseLevel
     <DisassemblerComment>
       <Address>"dmc3.exe"+1F7086</Address>
       <Comment>release, attack
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1F8DB0</Address>
+      <Comment>mission 19 actor system crashes here
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
@@ -82419,11 +82576,6 @@ Setting max alpha value (127)
     <DisassemblerComment>
       <Address>"dmc3.exe"+3161EA</Address>
       <Comment>doesnt reenable
-</Comment>
-    </DisassemblerComment>
-    <DisassemblerComment>
-      <Address>7FF6AEE6AF43</Address>
-      <Comment>%s crash
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>

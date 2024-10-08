@@ -830,10 +830,9 @@ template <typename T> void CommissionActor(T& actorData) {
         CopyState(mainActorData, actorData, CopyStateFlags_EventData | CopyStateFlags_Mode);
     }();
 
-/*     if (actorData.mode == ACTOR_MODE::MISSION_19)*/
-    // {
-    // 	actorData.mode = ACTOR_MODE::DEFAULT;
-    // }
+//      if (actorData.mode == ACTOR_MODE::MISSION_19) {
+//      	actorData.mode = ACTOR_MODE::DEFAULT;
+// 	 }
 }
 
 struct CharacterModelData {
@@ -3965,6 +3964,9 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
         }
     }
 
+// 	if (actorData.action == ACTION_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2 && crimsonPlayer[playerIndex].actionTimer > 0.7f && actorData.buttons[1] & GetBinding(BINDING::MELEE_ATTACK)) {
+// 		actorData.action = ACTION_VERGIL::BEOWULF_RISING_SUN;
+// 	}
 
 
     return true;
@@ -8117,6 +8119,11 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 CrimsonGameplay::BackToForwardInputs(actorBaseAddr);
                 CrimsonGameplay::VergilAdjustAirMovesPos(actorBaseAddr);
                 CrimsonGameplay::DriveTweaks(actorBaseAddr);
+                CrimsonGameplay::GravityCorrections(actorBaseAddr);
+
+                if (activeCrimsonConfig.Gameplay.Dante.shotgunAirShotTweaks) {
+                    CrimsonGameplay::ShotgunAirShotTweaks(actorBaseAddr);
+                }
 
                 if (activeCrimsonConfig.Gameplay.Dante.aerialRaveTweaks) {
                     CrimsonGameplay::AerialRaveGravityTweaks(actorBaseAddr);
@@ -8132,10 +8139,10 @@ void UpdateActorSpeed(byte8* baseAddr) {
 
                 CrimsonGameplay::FreeformSoftLockController(actorBaseAddr);
 
-                if (activeCrimsonConfig.Gameplay.General.inertia) {
+				if (activeCrimsonConfig.Gameplay.General.inertia) {
                     CrimsonGameplay::StoreInertia(actorBaseAddr);
-                    CrimsonGameplay::InertiaController(actorBaseAddr);
-                }
+					CrimsonGameplay::InertiaController(actorBaseAddr);
+				}
 
                 // Doppelganger's attacks can now hold/increase your style meter
                 CrimsonGameplay::StyleMeterDoppelganger(actorBaseAddr);
@@ -8143,9 +8150,9 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 CrimsonGameplay::InCombatDetection();
 
 
-                if (!g_haywireNeoGenerator) {
-                    actorData.mode = 0;
-                }
+//                 if (!g_haywireNeoGenerator) {
+//                     actorData.mode = ACTOR_MODE::MISSION_19;
+//                 }
 
                 CrimsonGameplay::FasterDarkslayerTricks();
                 // FasterRapidSlashDevil(actorBaseAddr);
@@ -9212,6 +9219,7 @@ void SetAction(byte8* actorBaseAddr) {
         }
         else if (actorData.action == YAMATO_AERIAL_RAVE_PART_1) {
             actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
+            
         }
         
 

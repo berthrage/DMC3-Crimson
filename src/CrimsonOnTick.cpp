@@ -21,6 +21,7 @@
 #include "Camera.hpp"
 #include "CrimsonDetours.hpp"
 #include "CrimsonUtil.hpp"
+#include "CrimsonTimers.hpp"
 
 namespace CrimsonOnTick {
 
@@ -607,5 +608,4 @@ void PauseSFXWhenPaused() {
 		}
 	}
 }
-
 }

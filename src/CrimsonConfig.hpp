@@ -248,6 +248,7 @@ struct CrimsonConfig {
 			bool aerialRaveTweaks = true;
 			bool airFlickerTweaks = true;
 			bool skyDanceTweaks = true;
+			bool shotgunAirShotTweaks = true;
 			bool driveTweaks = true;
 			bool disableAirSlashKnockback = true;
 			bool airStinger = true;
@@ -261,6 +262,7 @@ struct CrimsonConfig {
 					std::make_pair("aerialRaveTweaks", &Dante::aerialRaveTweaks),
 					std::make_pair("airFlickerTweaks", &Dante::airFlickerTweaks),
 					std::make_pair("skyDanceTweaks", &Dante::skyDanceTweaks),
+					std::make_pair("shotgunAirShotTweaks", &Dante::shotgunAirShotTweaks),
 					std::make_pair("driveTweaks", &Dante::driveTweaks),
 					std::make_pair("disableAirSlashKnockback", &Dante::disableAirSlashKnockback),
 					std::make_pair("airStinger", &Dante::airStinger),

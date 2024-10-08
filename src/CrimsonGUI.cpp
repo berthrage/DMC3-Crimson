@@ -1582,20 +1582,18 @@ void PauseWhenGUIOpened() {
 	}
 
 
-
 	if (!g_show || !guiPause.canPause) {
 		storedFrameCount = missionData.frameCount; // This stores the game's timer.
 		activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed; // This resumes the game speed
 		activeConfig.Speed.turbo = queuedConfig.Speed.turbo;
-		Speed::Toggle(true); // Toggle Speed on and off to set the new speed
-		Speed::Toggle(false);
+		Speed::Toggle(true); 
 		guiPause.in = false;
 
 	}
 	else if (g_show && !guiPause.in && guiPause.canPause) {
 		activeConfig.Speed.mainSpeed = 0;  // This pauses the game speed
 		activeConfig.Speed.turbo = 0;
-		Speed::Toggle(true);
+		Speed::Toggle(true); // Toggle Speed on and off to set the new speed
 		Speed::Toggle(false);
 		guiPause.in = true;
 
@@ -7536,6 +7534,12 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			ImGui::Text("rainstorm cached inertia:  %g", crimsonPlayer[0].inertia.rainstorm.cachedPull);
+			ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
+			ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
+			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
+			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
+			ImGui::Text("AIR SWORD COUNT: %u", actorData.airSwordAttackCount);
 			ImGui::Text("Back Buffer: %g", crimsonPlayer[0].b2F.backBuffer);
 			ImGui::Text("Forward Buffer: %g", crimsonPlayer[0].b2F.forwardBuffer);
 			ImGui::Text("Forward Command: %u", crimsonPlayer[0].b2F.forwardCommand);
@@ -7579,7 +7583,6 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             // ImGui::Text("crazy combo hold:  %u", crazyComboHold);
             ImGui::Text("Chain Count (weight):  %u", actorData.airSwordAttackCount);
             ImGui::Text("Air Guard:  %u", actorData.airGuard);
-            ImGui::Text("rainstorm cached inertia:  %g", crimsonPlayer[0].inertia.rainstorm.cachedPull);
             // ImGui::Text("Gravity Tweak:  %g", crimsonPlayer[0].airRaveTweak.gravity);
             // ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
             // ImGui::Text("Actor Speed %g", actorData.speed);
@@ -7631,10 +7634,6 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("Last Last State %u", crimsonPlayer[0].lastLastState);
             ImGui::Text("Character Action %u", crimsonPlayer[0].action);
             ImGui::Text("Character Last Action %u", actorData.lastAction);
-            ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
-            ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
-            ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
-            ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
             ImGui::Text("Position  %g", actorData.position);
             ImGui::Text("Rotation %g", actorData.rotation);
             ImGui::Text("Camera Direction %u", actorData.cameraDirection);
@@ -8340,81 +8339,65 @@ const char* devilSpeedNamesVergil[] = {
 // @Todo: EnterReturnsTrue.
 // @Todo: Apply rounding.
 
-template <typename T>
-bool GUI_InputDefault2Speed(
-    const char* label, T& var, T& var2, T& defaultVar, const T step = 1, const char* format = 0, ImGuiInputTextFlags flags = 0) {
-	auto defaultVarCalculated = (activeConfig.framerateResponsiveGameSpeed)? defaultVar * g_frameRateMultiplier : defaultVar;
-    auto update = GUI_InputDefault2(label, var, var2, defaultVarCalculated, step, format, flags);
 
-    if (update) {
-        Speed::Toggle(true);
-    }
-
-    return update;
-}
 
 void SpeedSection() {
-    if (ImGui::CollapsingHeader("Speed")) {
-        ImGui::Text("");
+	ImGui::Text("");
 
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.Speed, &defaultConfig.Speed, sizeof(queuedConfig.Speed));
-            CopyMemory(&activeConfig.Speed, &queuedConfig.Speed, sizeof(activeConfig.Speed));
+	if (GUI_ResetButton()) {
+		CopyMemory(&queuedConfig.Speed, &defaultConfig.Speed, sizeof(queuedConfig.Speed));
+		CopyMemory(&activeConfig.Speed, &queuedConfig.Speed, sizeof(activeConfig.Speed));
 
-            Speed::Toggle(false);
-        }
-        ImGui::Text("");
+		Speed::Toggle(false);
+	}
+	ImGui::Text("");
 
-        ImGui::PushItemWidth(200);
+	ImGui::PushItemWidth(200);
 
-        GUI_InputDefault2Speed("Main", activeConfig.Speed.mainSpeed, queuedConfig.Speed.mainSpeed, defaultConfig.Speed.mainSpeed, 0.1f,
-            "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-        GUI_InputDefault2Speed("Turbo", activeConfig.Speed.turbo, queuedConfig.Speed.turbo, defaultConfig.Speed.turbo, 0.1f, "%g",
-            ImGuiInputTextFlags_EnterReturnsTrue);
-        GUI_InputDefault2Speed("Enemy Actor", activeConfig.Speed.enemy, queuedConfig.Speed.enemy, defaultConfig.Speed.enemy, 0.1f, "%g",
-            ImGuiInputTextFlags_EnterReturnsTrue);
-        GUI_SectionEnd();
-        ImGui::Text("");
+	GUI_InputDefault2Speed("Enemy Actor", activeConfig.Speed.enemy, queuedConfig.Speed.enemy, defaultConfig.Speed.enemy, 0.1f, "%g",
+		ImGuiInputTextFlags_EnterReturnsTrue);
+	GUI_SectionEnd();
+	ImGui::Text("");
 
-        ImGui::Text("Player Actor");
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.");
-        ImGui::Text("");
+	ImGui::Text("Player Actor");
+	ImGui::SameLine();
+	TooltipHelper("(?)", "Requires enabled Actor module.");
+	ImGui::Text("");
 
-        GUI_InputDefault2Speed("Human", activeConfig.Speed.human, queuedConfig.Speed.human, defaultConfig.Speed.human, 0.1f, "%g",
-            ImGuiInputTextFlags_EnterReturnsTrue);
-        ImGui::Text("");
+	GUI_InputDefault2Speed("Human", activeConfig.Speed.human, queuedConfig.Speed.human, defaultConfig.Speed.human, 0.1f, "%g",
+		ImGuiInputTextFlags_EnterReturnsTrue);
+	ImGui::Text("");
 
-        ImGui::Text("Devil Dante");
+	ImGui::Text("Devil Dante");
 
-        old_for_all(uint8, index, countof(activeConfig.Speed.devilDante)) {
-            GUI_InputDefault2Speed(devilSpeedNamesDante[index], activeConfig.Speed.devilDante[index], queuedConfig.Speed.devilDante[index],
-                defaultConfig.Speed.devilDante[index], 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-        }
-        // ImGui::Text("");
+	old_for_all(uint8, index, countof(activeConfig.Speed.devilDante)) {
+		GUI_InputDefault2Speed(devilSpeedNamesDante[index], activeConfig.Speed.devilDante[index], queuedConfig.Speed.devilDante[index],
+			defaultConfig.Speed.devilDante[index], 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	}
+	// ImGui::Text("");
 
-        ImGui::Text("Devil Vergil");
+	ImGui::Text("Devil Vergil");
 
-        old_for_all(uint8, index, countof(activeConfig.Speed.devilVergil)) {
-            GUI_InputDefault2Speed(devilSpeedNamesVergil[index], activeConfig.Speed.devilVergil[index],
-                queuedConfig.Speed.devilVergil[index], defaultConfig.Speed.devilVergil[index], 0.1f, "%g",
-                ImGuiInputTextFlags_EnterReturnsTrue);
-        }
-        GUI_SectionEnd();
-        ImGui::Text("");
+	old_for_all(uint8, index, countof(activeConfig.Speed.devilVergil)) {
+		GUI_InputDefault2Speed(devilSpeedNamesVergil[index], activeConfig.Speed.devilVergil[index],
+			queuedConfig.Speed.devilVergil[index], defaultConfig.Speed.devilVergil[index], 0.1f, "%g",
+			ImGuiInputTextFlags_EnterReturnsTrue);
+	}
+	GUI_SectionEnd();
+	ImGui::Text("");
 
-        GUI_SectionStart("Quicksilver");
-        GUI_InputDefault2Speed("Actor", activeConfig.Speed.quicksilverPlayerActor, queuedConfig.Speed.quicksilverPlayerActor,
-            defaultConfig.Speed.quicksilverPlayerActor, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-        GUI_InputDefault2Speed("Enemy", activeConfig.Speed.quicksilverEnemyActor, queuedConfig.Speed.quicksilverEnemyActor,
-            defaultConfig.Speed.quicksilverEnemyActor, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	GUI_SectionStart("Quicksilver");
+	GUI_InputDefault2Speed("Actor", activeConfig.Speed.quicksilverPlayerActor, queuedConfig.Speed.quicksilverPlayerActor,
+		defaultConfig.Speed.quicksilverPlayerActor, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	GUI_InputDefault2Speed("Enemy", activeConfig.Speed.quicksilverEnemyActor, queuedConfig.Speed.quicksilverEnemyActor,
+		defaultConfig.Speed.quicksilverEnemyActor, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
-        ImGui::PopItemWidth();
+	ImGui::PopItemWidth();
 
 
-        ImGui::Text("");
-    }
+	ImGui::Text("");
+    
 }
 
 #pragma endregion
@@ -8468,9 +8451,9 @@ void SystemSection(size_t defaultFontSize) {
 		const float columnWidth = 0.5f * queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-		if (ImGui::BeginTable("GraphicsWindowOptionsTable", 2)) {
+		if (ImGui::BeginTable("GraphicsWindowOptionsTable", 3)) {
 
-			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
@@ -8485,17 +8468,48 @@ void SystemSection(size_t defaultFontSize) {
 
 			GUI_Checkbox2("Disable Blending Effects", activeConfig.disableBlendingEffects, queuedConfig.disableBlendingEffects);
 
-			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
+			ImGui::PushItemWidth(itemWidth * 0.8f);
 			UI::Combo2("V-Sync", Graphics_vSyncNames, activeConfig.vSync, queuedConfig.vSync);
+			ImGui::PopItemWidth();
 
-            ImGui::TableNextColumn();
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Force Focus", activeConfig.forceWindowFocus, queuedConfig.forceWindowFocus)) {
 				ToggleForceWindowFocus(activeConfig.forceWindowFocus);
 			}
 
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Hide Mouse Cursor", activeConfig.hideMouseCursor, queuedConfig.hideMouseCursor);
+
+
+			ImGui::EndTable();
+		}
+	}
+
+	ImGui::Text("");
+
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+
+
+	ImGui::Text("GAME SPEED");
+
+	ImGui::PopFont();
+
+	UI::SeparatorEx(defaultFontSize * 23.35f);
+
+	ImGui::Text("");
+
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+		if (ImGui::BeginTable("GameSpeedOptionsTable", 3)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
@@ -8516,8 +8530,24 @@ void SystemSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			GUI_InputDefault2SpeedCalc("Main Speed", activeConfig.Speed.mainSpeed, queuedConfig.Speed.mainSpeed, defaultConfig.Speed.mainSpeed, 0.1f,
+				"%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Changes Default Game Speed, changing this to be other than default\n" 
+				"(without Frame Rate-Responsive Game Speed on) will tag you at the Mission End screen.");
 
-			GUI_Checkbox2("Hide Mouse Cursor", activeConfig.hideMouseCursor, queuedConfig.hideMouseCursor);
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			GUI_InputDefault2SpeedCalc("Turbo Speed", activeConfig.Speed.turbo, queuedConfig.Speed.turbo, defaultConfig.Speed.turbo, 0.1f, "%g",
+				ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Changes Turbot Game Speed, changing this to be other than default\n"
+				"(without Frame Rate-Responsive Game Speed on) will tag you at the Mission End screen.");
+
 
 			ImGui::EndTable();
 		}
@@ -9478,6 +9508,12 @@ void GameplayOptions() {
                              "\n"
                              "Sky Dance Part 3 is now a separate ability executed by Lock On + Forward + Style. Tweaks Sky Dance Gravity, "
                              "taking weights into account.");
+
+		GUI_Checkbox2("Shotgun Air Shot Tweaks", activeCrimsonConfig.Gameplay.Dante.shotgunAirShotTweaks, queuedCrimsonConfig.Gameplay.Dante.shotgunAirShotTweaks);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Tweaks Air Shotgun Gravity to be lower, making you rise less.");
 
 		GUI_Checkbox2("Drive Tweaks", activeCrimsonConfig.Gameplay.Dante.driveTweaks, queuedCrimsonConfig.Gameplay.Dante.driveTweaks);
 		ImGui::SameLine();
@@ -10467,7 +10503,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						Mobility();
 						Other();
 						Repair();
-						SpeedSection();
 						Teleporter();
 						WeaponWheel();
 						GameplayOptions();
@@ -10759,6 +10794,56 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
 
 					ImGui::TextWrapped("Various Cheats for you to customize the game to your liking.\nThis will tag you at the End of Mission screen.");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
+		}
+		else if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::Speed) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						//if constexpr (debug) {
+						SpeedSection();
+						//}
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("CUSTOM SPEED SETTINGS");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Various Speed Settings for in-game entities.\nThis will tag you at the End of Mission screen.");
 					ImGui::PopFont();
 				}
 				ImGui::EndChild();

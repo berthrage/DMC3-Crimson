@@ -18,6 +18,8 @@ void LastEventStateQueue(byte8* actorBaseAddr);
 void FreeformSoftLockController(byte8* actorBaseAddr);
 void StoreInertia(byte8* actorBaseAddr);
 void InertiaController(byte8* actorBaseAddr);
+void GravityCorrections(byte8* actorBaseAddr);
+void ShotgunAirShotTweaks(byte8* actorBaseAddr);
 void AerialRaveGravityTweaks(byte8* actorBaseAddr);
 void AirFlickerGravityTweaks(byte8* actorBaseAddr);
 void SkyDanceGravityTweaks(byte8* actorBaseAddr);

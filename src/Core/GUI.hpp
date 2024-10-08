@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core.hpp"
+#include "../Speed.hpp"
 #include "../../ThirdParty/ImGui/imgui.h"
 #include "../../ThirdParty/ImGui/imgui_internal.h"
 #include <d3d11.h>
@@ -123,6 +124,31 @@ bool GUI_InputDefault2(
     return update;
 }
 
+
+template <typename T>
+bool GUI_InputDefault2SpeedCalc(
+	const char* label, T& var, T& var2, T& defaultVar, const T step = 1, const char* format = 0, ImGuiInputTextFlags flags = 0) {
+	auto defaultVarCalculated = defaultVar * g_frameRateMultiplier;
+	auto update = GUI_InputDefault2(label, var, var2, defaultVarCalculated, step, format, flags);
+
+	if (update) {
+		Speed::Toggle(true);
+	}
+
+	return update;
+}
+
+template <typename T>
+bool GUI_InputDefault2Speed(
+	const char* label, T& var, T& var2, T& defaultVar, const T step = 1, const char* format = 0, ImGuiInputTextFlags flags = 0) {
+	auto update = GUI_InputDefault2(label, var, var2, defaultVar, step, format, flags);
+
+	if (update) {
+		Speed::Toggle(true);
+	}
+
+	return update;
+}
 
 
 template <typename T> bool GUI_Slider(const char* label, T& var, const T min, const T max) {

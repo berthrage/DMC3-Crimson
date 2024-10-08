@@ -1090,433 +1090,155 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
 			currentMove = 0;  // Reset move tracking after the attack
 		}
 	}
-
-
-//     if (actorData.character == CHARACTER::DANTE) {
-// 
-//         if (inAerialRave) {
-// 
-//             if (!lockOn) {
-//                 if (!(radius < RIGHT_STICK_DEADZONE)) {
-// 
-//                     //actorData.rotation           = rotationStick;
-//                     i->aerialRave.cachedRotation = actorData.rotation;
-//                 }
-//                 else {
-//                     //actorData.rotation = i->aerialRave.cachedRotation;
-//                 }
-//             }
-// 
-//             if (lockOn) {
-//                 if (actorData.eventData[0].event == JUMP_CANCEL || actorData.eventData[0].event == AIR_HIKE) {
-//                     //actorData.rotation = i->aerialRave.cachedRotation;
-//                 }
-//             }
-//         }
-//         else if (actorData.action == CERBERUS_AIR_FLICKER) {
-// 
-//             if (!lockOn) {
-//                 if (!(radius < RIGHT_STICK_DEADZONE)) {
-// 
-//                     //actorData.rotation           = rotationStick;
-//                     i->airFlicker.cachedRotation = actorData.rotation;
-//                 }
-//                 else {
-//                     //actorData.rotation = i->airFlicker.cachedRotation;
-//                 }
-//             }
-// 
-//             if (lockOn) {
-//                 if (actorData.eventData[0].event == JUMP_CANCEL || actorData.eventData[0].event == AIR_HIKE) {
-//                     //actorData.rotation = i->airFlicker.cachedRotation;
-//                 }
-//             }
-//         }
-//         else if (inSkyDance) {
-// 
-//             if (!lockOn) {
-//                 if (!(radius < RIGHT_STICK_DEADZONE)) {
-// 
-//                     //actorData.rotation         = rotationStick;
-//                     i->skyDance.cachedRotation = actorData.rotation;
-//                 }
-//                 else {
-//                     //actorData.rotation = i->skyDance.cachedRotation;
-//                 }
-//             }
-// 
-//             if (lockOn) {
-//                 if (actorData.eventData[0].event == JUMP_CANCEL || actorData.eventData[0].event == AIR_HIKE) {
-//                     //actorData.rotation = i->skyDance.cachedRotation;
-//                 }
-//             }
-//         }
-//         else if (actorData.action == NEVAN_AIR_SLASH_PART_1 || actorData.action == NEVAN_AIR_SLASH_PART_2) {
-// 
-//             if (!lockOn) {
-//                 if (!(radius < RIGHT_STICK_DEADZONE)) {
-// 
-//                     //actorData.rotation         = rotationStick;
-//                     i->airSlash.cachedRotation = actorData.rotation;
-//                 }
-//                 else {
-//                     //actorData.rotation = i->airSlash.cachedRotation;
-//                 }
-//             }
-// 
-//             if (lockOn) {
-//                 if (actorData.eventData[0].event == JUMP_CANCEL || actorData.eventData[0].event == AIR_HIKE) {
-//                     //actorData.rotation = i->airSlash.cachedRotation;
-//                 }
-//             }
-// 
-//         }
-//         else if (actorData.action == BEOWULF_THE_HAMMER) {
-// 
-//             if (!lockOn) {
-//                 if (!(radius < RIGHT_STICK_DEADZONE)) {
-// 
-//                     //actorData.rotation          = rotationStick;
-//                     i->theHammer.cachedRotation = actorData.rotation;
-//                 }
-//                 else {
-//                     //actorData.rotation = i->theHammer.cachedRotation;
-//                 }
-//             }
-// 
-//             if (lockOn) {
-//                 if (actorData.eventData[0].event == JUMP_CANCEL || actorData.eventData[0].event == AIR_HIKE) {
-//                     //actorData.rotation = i->theHammer.cachedRotation;
-//                 }
-//             }
-// 
-//         }
-//         else if (actorData.action == BEOWULF_KILLER_BEE) {
-// 
-// 
-//             // Keep Player's Rotation intact on jump cancelling, this is important for Inertia Redirection and is used for several moves.
-//             if (lockOn) {
-//                 if (actorData.eventData[0].event == JUMP_CANCEL) {
-//                     actorData.rotation = i->killerBee.cachedRotation;
-//                 }
-//             }
-//         }
-//         else if (actorData.airGuard) {
-// 
-//             if (!lockOn) {
-//                 if (!(radius < RIGHT_STICK_DEADZONE)) {
-// 
-//                     //actorData.rotation         = rotationStick;
-//                     i->airGuard.cachedRotation = actorData.rotation;
-//                 }
-//                 else {
-//                     actorData.rotation = i->airGuard.cachedRotation;
-//                 }
-//             }
-// 
-//             if (lockOn) {
-//                 if (actorData.eventData[0].event == JUMP_CANCEL) {
-//                     actorData.rotation = i->airGuard.cachedRotation;
-//                 }
-//             }
-//         }
-//         else if (actorData.motionData[0].index == JUMP_CANCEL) {
-// 
-// 
-//             if (actorData.eventData[0].event == JUMP_CANCEL &&
-//                 (actorData.action == REBELLION_AERIAL_RAVE_PART_1 || actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
-//                     actorData.action == REBELLION_AERIAL_RAVE_PART_3 || actorData.action == REBELLION_AERIAL_RAVE_PART_4)) {
-// 
-//                 actorData.rotation = i->aerialRave.cachedRotation;
-//             }
-//             else if (actorData.eventData[0].event == JUMP_CANCEL &&
-//                 (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
-//                     actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3)) {
-//                 actorData.rotation = i->skyDance.cachedRotation;
-//             }
-//             else if (actorData.eventData[0].event == JUMP_CANCEL && (actorData.action == CERBERUS_AIR_FLICKER)) {
-//                 actorData.rotation = i->airFlicker.cachedRotation;
-//             }
-//             else if (actorData.eventData[0].event == JUMP_CANCEL &&
-//                 (actorData.action == NEVAN_AIR_SLASH_PART_1 || actorData.action == NEVAN_AIR_SLASH_PART_2)) {
-//                 actorData.rotation = i->airSlash.cachedRotation;
-//             }
-//             else if (actorData.eventData[0].event == JUMP_CANCEL && (actorData.action == BEOWULF_THE_HAMMER)) {
-//                 actorData.rotation = i->theHammer.cachedRotation;
-//             }
-//             else if (actorData.eventData[0].event == JUMP_CANCEL && (actorData.action == BEOWULF_KILLER_BEE)) {
-//                 actorData.rotation = i->killerBee.cachedRotation;
-//             }
-//             else if (actorData.eventData[0].lastEvent == JUMP_CANCEL) {
-//                 actorData.rotation = i->skyStar.cachedRotation;
-//             }
-// 
-// 
-//         }
-//         else if (actorData.eventData[0].event == AIR_HIKE) {
-//             if (lockOn) {
-// 
-//                 //actorData.rotation = i->airHike.cachedRotation;
-//             }
-//         }
-// 
-// 
-//         if (actorData.action != BEOWULF_KILLER_BEE) {
-// 
-//             if (radius < RIGHT_STICK_DEADZONE) {
-//                 i->killerBee.cachedRotation = actorData.rotation;
-//             }
-//         }
-// 
-//         if (actorData.eventData[0].event != ACTOR_EVENT::TRICKSTER_SKY_STAR) {
-//             if (radius < RIGHT_STICK_DEADZONE) {
-//                 i->skyStar.cachedRotation = actorData.rotation;
-//             }
-//         }
-// 
-//         if (actorData.eventData[0].event != AIR_HIKE) {
-//             if (radius < RIGHT_STICK_DEADZONE) {
-//                 i->airHike.cachedRotation = actorData.rotation;
-//             }
-//         }
-//     }
-
-//     if (actorData.character == CHARACTER::DANTE) {
-// 
-// 		if (actorData.eventData[0].event == ACTOR_EVENT::ATTACK) {
-// 
-// 			if (!lockOn && actionTimer < 0.1f) {
-// 				if (!(radius < RIGHT_STICK_DEADZONE)) {
-// 
-// 					if (currentMoveDante != actorData.action) {
-// 						actorData.rotation = rotationStick;
-//                         currentMoveDante = actorData.action;
-// 					}
-// 					i->yamatoRave.cachedRotation = actorData.rotation;
-// 				}
-// 				else {
-// 					if (currentMoveDante != actorData.action) {
-// 						actorData.rotation = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].rotationTowardsEnemy : crimsonPlayer[playerIndex].rotationCloneTowardsEnemy;
-//                         currentMoveDante = actorData.action;
-// 					}
-// 
-// 
-// 
-// 				}
-// 			}
-// 		}
-// 		else {
-// 			if (actorData.eventData[0].lastEvent == ACTOR_EVENT::ATTACK) {
-// 				currentMoveDante = 0;
-// 			}
-// 		}
-    
-    
-   
-
-
-        
-    
 }
 
-
 void StoreInertia(byte8* actorBaseAddr) {
-    // Here we store Momentum (Horizontal Pull) for Inertia and Rotation for FreeformSoftLockController. - Mia
-    using namespace ACTION_DANTE;
-    using namespace ACTION_VERGIL;
-    // using namespace ACTOR_EVENT;
+	// Here we store Momentum (Horizontal Pull) for Inertia to work. - Mia
+	using namespace ACTION_DANTE;
+	using namespace ACTION_VERGIL;
+
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+
+	if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) {
+		return;
+	}
+
+	auto* i = (actorData.newEntityIndex == 0) ? &crimsonPlayer[playerIndex].inertia : &crimsonPlayer[playerIndex].inertiaClone;
+	auto action = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].action : crimsonPlayer[playerIndex].actionClone;
+	auto motion = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
+	auto event = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].event : crimsonPlayer[playerIndex].eventClone;
+	auto state = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
+	auto horizontalPull =
+		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].horizontalPull : crimsonPlayer[playerIndex].horizontalPullClone;
+
+	bool inAerialRave = (action == REBELLION_AERIAL_RAVE_PART_1 || action == REBELLION_AERIAL_RAVE_PART_2 ||
+		action == REBELLION_AERIAL_RAVE_PART_3 || action == REBELLION_AERIAL_RAVE_PART_4);
+
+	bool inSkyDance =
+		(action == AGNI_RUDRA_SKY_DANCE_PART_1 || action == AGNI_RUDRA_SKY_DANCE_PART_2 || action == AGNI_RUDRA_SKY_DANCE_PART_3);
+
+	auto& animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
+	auto& guardflyTimer = i->guardflyTimer;
 
 
-    if (!actorBaseAddr) {
-        return;
-    }
-    auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    auto playerIndex = actorData.newPlayerIndex;
-
-    if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) {
-        return;
-    }
+	// Part on an idea for a bufferless high time reversal - discarded
+	// 		if (!(actorData.action == REBELLION_HIGH_TIME ||
+	// 			actorData.action == REBELLION_HIGH_TIME_LAUNCH)) {
+	// 			highTimeRotation = actorData.rotation;
+	// 		}
 
 
-    auto* i = (actorData.newEntityIndex == 0) ? &crimsonPlayer[playerIndex].inertia : &crimsonPlayer[playerIndex].inertiaClone;
+	if (!(event == ACTOR_EVENT::JUMP_CANCEL && motion == 33)) {
 
-    auto action = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].action : crimsonPlayer[playerIndex].actionClone;
-    auto motion = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
-    auto event  = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].event : crimsonPlayer[playerIndex].eventClone;
-    auto state  = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
-    auto horizontalPull =
-        (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].horizontalPull : crimsonPlayer[playerIndex].horizontalPullClone;
+		if (!inAerialRave || event != ACTOR_EVENT::ATTACK) {
+			i->aerialRave.cachedPull = horizontalPull;
+			i->aerialRave.cachedRotation = actorData.rotation;
+		}
 
-    bool inAerialRave = (action == REBELLION_AERIAL_RAVE_PART_1 || action == REBELLION_AERIAL_RAVE_PART_2 ||
-                         action == REBELLION_AERIAL_RAVE_PART_3 || action == REBELLION_AERIAL_RAVE_PART_4);
+		if (action != CERBERUS_AIR_FLICKER || event != ACTOR_EVENT::ATTACK) {
+			i->airFlicker.cachedPull = horizontalPull;
+			i->airFlicker.cachedRotation = actorData.rotation;
+		}
 
-    bool inSkyDance =
-        (action == AGNI_RUDRA_SKY_DANCE_PART_1 || action == AGNI_RUDRA_SKY_DANCE_PART_2 || action == AGNI_RUDRA_SKY_DANCE_PART_3);
+		if (!inSkyDance || event != ACTOR_EVENT::ATTACK) {
+			i->skyDance.cachedPull = horizontalPull;
+			i->skyDance.cachedRotation = actorData.rotation;
+		}
 
-    auto& animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
-    auto& guardflyTimer = i->guardflyTimer;
+		if (!(action == NEVAN_AIR_SLASH_PART_1 || action == NEVAN_AIR_SLASH_PART_2) || event != ACTOR_EVENT::ATTACK) {
 
+			i->airSlash.cachedPull = horizontalPull;
+			i->airSlash.cachedRotation = actorData.rotation;
+		}
 
-    // Part on an idea for a bufferless high time reversal - discarded
-    // 		if (!(actorData.action == REBELLION_HIGH_TIME ||
-    // 			actorData.action == REBELLION_HIGH_TIME_LAUNCH)) {
-    // 			highTimeRotation = actorData.rotation;
-    // 		}
+// 		if (action != BEOWULF_THE_HAMMER) {
+// 			i->theHammer.cachedPull = horizontalPull;
+// 			i->theHammer.cachedRotation = actorData.rotation;
+// 		}
 
+		if (action != BEOWULF_TORNADO || event != ACTOR_EVENT::ATTACK) {
+			i->tornado.cachedPull = horizontalPull;
+		}
 
-    if (motion != 17 && motion != ACTOR_EVENT::JUMP_CANCEL) {
-
-        if (!inAerialRave) {
-            i->aerialRave.cachedPull     = horizontalPull;
-            i->aerialRave.cachedRotation = actorData.rotation;
-        }
-
-        if (crimsonPlayer[playerIndex].action != CERBERUS_AIR_FLICKER) {
-            i->airFlicker.cachedPull     = horizontalPull;
-            i->airFlicker.cachedRotation = actorData.rotation;
-        }
-
-        if (!inSkyDance) {
-            i->skyDance.cachedPull     = horizontalPull;
-            i->skyDance.cachedRotation = actorData.rotation;
-        }
-
-        if (!(action == NEVAN_AIR_SLASH_PART_1 || action == NEVAN_AIR_SLASH_PART_2)) {
-
-            i->airSlash.cachedPull     = horizontalPull;
-            i->airSlash.cachedRotation = actorData.rotation;
-        }
-
-        if (action != BEOWULF_THE_HAMMER) {
-            i->theHammer.cachedPull     = horizontalPull;
-            i->theHammer.cachedRotation = actorData.rotation;
-        }
-
-        if (action != BEOWULF_TORNADO) {
-            i->tornado.cachedPull = horizontalPull;
-        }
-
-        if (action != EBONY_IVORY_RAIN_STORM) {
-            i->rainstorm.cachedPull = horizontalPull;
-        }
+		if (action != EBONY_IVORY_RAIN_STORM || event != ACTOR_EVENT::ATTACK) {
+			i->rainstorm.cachedPull = horizontalPull;
+		}
 
 
-        if (action != SHOTGUN_AIR_FIREWORKS) {
-            i->fireworks.cachedPull = horizontalPull;
-        }
+		if (action != SHOTGUN_AIR_FIREWORKS || event != ACTOR_EVENT::ATTACK) {
+			i->fireworks.cachedPull = horizontalPull;
+		}
 
-        if (action != EBONY_IVORY_AIR_NORMAL_SHOT) {
-            i->ebonyShot.cachedPull = horizontalPull;
-        }
+		if (action != EBONY_IVORY_AIR_NORMAL_SHOT || event != ACTOR_EVENT::ATTACK) {
+			i->ebonyShot.cachedPull = horizontalPull;
+		}
 
-        if (action != SHOTGUN_AIR_NORMAL_SHOT) {
-            i->shotgunShot.cachedPull = horizontalPull;
-        }
+		if (action != SHOTGUN_AIR_NORMAL_SHOT || event != ACTOR_EVENT::ATTACK) {
+			i->shotgunShot.cachedPull = horizontalPull;
+		}
 
-        if (action != ARTEMIS_AIR_NORMAL_SHOT) {
-            i->artemisShot.cachedPull = horizontalPull;
-        }
+		if (action != ARTEMIS_AIR_NORMAL_SHOT || event != ACTOR_EVENT::ATTACK) {
+			i->artemisShot.cachedPull = horizontalPull;
+		}
 
-        if (action != ARTEMIS_AIR_MULTI_LOCK_SHOT) {
-            i->artemisMultiLockShot.cachedPull = horizontalPull;
-        }
+		if (action != ARTEMIS_AIR_MULTI_LOCK_SHOT || event != ACTOR_EVENT::ATTACK) {
+			i->artemisMultiLockShot.cachedPull = horizontalPull;
+		}
 
-        if (!actorData.airGuard) {
-            i->airGuard.cachedRotation = actorData.rotation;
-        }
+		if (!actorData.airGuard) {
+			i->airGuard.cachedRotation = actorData.rotation;
+		}
 
-        // Important for Guardflying.
-        if (!actorData.airGuard && event != ACTOR_EVENT::JUMP_CANCEL && event != ACTOR_EVENT::AIR_HIKE) {
-            if (event == ACTOR_EVENT::TRICKSTER_SKY_STAR) {
-                i->airGuard.cachedPull = 28.0f;
-            } else if (event == ACTOR_EVENT::ATTACK) {
-                if (action == BEOWULF_KILLER_BEE) {
+		// Important for Guardflying.
+		if (!actorData.airGuard && event != ACTOR_EVENT::JUMP_CANCEL && event != ACTOR_EVENT::AIR_HIKE) {
+			if (event == ACTOR_EVENT::TRICKSTER_SKY_STAR) {
+				i->airGuard.cachedPull = 28.0f;
+			}
+			else if (event == ACTOR_EVENT::ATTACK) {
+				if (action == BEOWULF_KILLER_BEE) {
 
-                    i->airGuard.cachedPull = 28.0f;
-                }
-            }
+					i->airGuard.cachedPull = 28.0f;
+				}
+			}
 			else {
 				i->airGuard.cachedPull = 3.0f;
 			}
-        }
-
-        
-
+		}
+	}
 
 
-        if (!(actorData.action == YAMATO_AERIAL_RAVE_PART_1 || actorData.action == YAMATO_AERIAL_RAVE_PART_2)) {
-
-            i->yamatoRave.cachedRotation = actorData.rotation;
-        }
-    }
-
-    
 	// GUARDFLY TIMING
-    float timing = 0.14f;
-	if (i->airGuard.cachedPull == 28.0f && event == ACTOR_EVENT::JUMP_CANCEL && (actorData.eventData[0].lastEvent == ACTOR_EVENT::ATTACK || actorData.eventData[0].lastEvent == ACTOR_EVENT::TRICKSTER_SKY_STAR || 
-        actorData.eventData[0].lastEvent == ACTOR_EVENT::JUMP_CANCEL)) {
+	float timing = 0.14f;
+	if (i->airGuard.cachedPull == 28.0f && event == ACTOR_EVENT::JUMP_CANCEL && (actorData.eventData[0].lastEvent == ACTOR_EVENT::ATTACK || actorData.eventData[0].lastEvent == ACTOR_EVENT::TRICKSTER_SKY_STAR ||
+		actorData.eventData[0].lastEvent == ACTOR_EVENT::JUMP_CANCEL)) {
 
 		if (guardflyTimer > timing) {
 			i->airGuard.cachedPull = 3.0f;  // Reset pull 
 		}
 
 		if (actorData.horizontalPull == 28.0f && event != ACTOR_EVENT::AIR_HIKE) {
-            CrimsonTimers::ResetGuardflyTimer(guardflyTimer);
+			CrimsonTimers::ResetGuardflyTimer(guardflyTimer);
 		}
 	}
 	// Handle Air Hike Event (Separate from Jump Cancel)
-    else if (i->airGuard.cachedPull == 28.0f && event == ACTOR_EVENT::AIR_HIKE) {
-		
-        if (animTimer < 0.01f) {
-            CrimsonTimers::ResetGuardflyTimer(guardflyTimer);
-        }
+	else if (i->airGuard.cachedPull == 28.0f && event == ACTOR_EVENT::AIR_HIKE) {
+
+		if (animTimer < 0.01f) {
+			CrimsonTimers::ResetGuardflyTimer(guardflyTimer);
+		}
 
 		if (guardflyTimer > timing) {
 			i->airGuard.cachedPull = 3.0f;  // Reset pull after 0.3s
 		}
 
 		if (actorData.horizontalPull == 28.0f) {
-            CrimsonTimers::ResetGuardflyTimer(guardflyTimer);
+			CrimsonTimers::ResetGuardflyTimer(guardflyTimer);
 		}
 	}
-
-
-
-	
-
-    // Old Gun Shoot Redirection - discarded.
-
-    // 	auto inAirShot = (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == SHOTGUN_AIR_NORMAL_SHOT ||
-    // 		actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT);
-
-
-    // 	if (((actorData.action == REBELLION_AERIAL_RAVE_PART_1 ||
-    // 		actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
-    // 		actorData.action == REBELLION_AERIAL_RAVE_PART_3 ||
-    // 		actorData.action == REBELLION_AERIAL_RAVE_PART_4 ||
-    // 		actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 ||
-    // 		actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
-    // 		actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) &&
-    // 		(actorData.lastAction == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.lastAction == SHOTGUN_AIR_NORMAL_SHOT ||
-    // 			actorData.lastAction == ARTEMIS_AIR_NORMAL_SHOT || actorData.lastAction == ARTEMIS_AIR_MULTI_LOCK_SHOT)) ||
-    //
-    // 		(actorData.lastAction == REBELLION_AERIAL_RAVE_PART_1 ||
-    // 			actorData.lastAction == REBELLION_AERIAL_RAVE_PART_2 ||
-    // 			actorData.lastAction == REBELLION_AERIAL_RAVE_PART_3 ||
-    // 			actorData.lastAction == REBELLION_AERIAL_RAVE_PART_4 ||
-    // 			actorData.lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 ||
-    // 			actorData.lastAction == AGNI_RUDRA_SKY_DANCE_PART_2 ||
-    // 			actorData.lastAction == AGNI_RUDRA_SKY_DANCE_PART_3) &&
-    // 		(actorData.lastAction == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == SHOTGUN_AIR_NORMAL_SHOT ||
-    // 			actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT)) {
-    //
-    //
-    // 		inGunShoot = true;
-    // 	}
-    //
-    // 	if (!(actorData.state & STATE::IN_AIR) || actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK) {
-    // 		inGunShoot = false;
-    // 	}
 }
 
 void InertiaController(byte8* actorBaseAddr) {
@@ -1533,20 +1255,16 @@ void InertiaController(byte8* actorBaseAddr) {
     }
     auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     auto playerIndex = actorData.newPlayerIndex;
-
-
-
     auto* i = (actorData.newEntityIndex == 0) ? &crimsonPlayer[playerIndex].inertia : &crimsonPlayer[playerIndex].inertiaClone;
-
-    auto action     = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].action : crimsonPlayer[playerIndex].actionClone;
-    auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
-    auto motion     = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
-    auto event      = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].event : crimsonPlayer[playerIndex].eventClone;
-    auto lastLastEvent =
-        (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastLastEvent : crimsonPlayer[playerIndex].lastLastEventClone;
-    auto state = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
-    auto lastLastState =
-        (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastLastState : crimsonPlayer[playerIndex].lastLastStateClone;
+	auto& action = actorData.action;
+	auto& lastAction = actorData.lastAction;
+	auto& motion = actorData.motionData[0].index;
+	auto& event = actorData.eventData[0].event;
+	auto& lastLastEvent =
+		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastLastEvent : crimsonPlayer[playerIndex].lastLastEventClone;
+	auto& state = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
+	auto& lastLastState =
+		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastLastState : crimsonPlayer[playerIndex].lastLastStateClone;
 
     bool inAerialRave = (action == REBELLION_AERIAL_RAVE_PART_1 || action == REBELLION_AERIAL_RAVE_PART_2 ||
                          action == REBELLION_AERIAL_RAVE_PART_3 || action == REBELLION_AERIAL_RAVE_PART_4);
@@ -1656,7 +1374,6 @@ void InertiaController(byte8* actorBaseAddr) {
 
                 actorData.horizontalPull           = i->shotgunShot.cachedPull;
                 actorData.horizontalPullMultiplier = 0.05f;
-                actorData.verticalPullMultiplier   = -1.7f; // Experimental: tweaking Shotgun Gravity to be higher.
             }
 
             // Artemis Normal Shot
@@ -1765,14 +1482,7 @@ void InertiaController(byte8* actorBaseAddr) {
 
             // The Hammer
             else if (action == BEOWULF_THE_HAMMER) {
-//                 if (i->theHammer.cachedPull < 0) {
-//                     i->theHammer.cachedPull = i->theHammer.cachedPull * -1.0f;
-//                 }
-// 
-//                 i->theHammer.cachedPull  = glm::clamp(i->theHammer.cachedPull, -9.0f, 9.0f);
-//                 actorData.horizontalPull = (i->theHammer.cachedPull / 1.5f) * 1.0f;
                    actorData.horizontalPull = 0;  // Having inertia on Hammer makes it hard to use with the new input (lock on + back + style)
-
             }
 
             // Tornado
@@ -1786,18 +1496,61 @@ void InertiaController(byte8* actorBaseAddr) {
 
             }
 
-            // Killer Bee
-//             else if (action == BEOWULF_KILLER_BEE && state == 65538 && event != 33) {
-// 
-//                 // Makes divekick speed be consistent, important for Guardflying.
-//                 actorData.horizontalPull = 24.0f;
-//             }
+            // Making Killer Bee's inertia be constant may lead to inconsistent speeds
+            // therefore we generate guardflying inertia "artificially" so to speak.
+
         }
     }
 }
 
+void GravityCorrections(byte8* actorBaseAddr) {
+	using namespace ACTION_DANTE;
+
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    auto playerIndex = actorData.newPlayerIndex;
+    auto entityIndex = actorData.newEntityIndex;
+	auto& action = actorData.action;
+	auto& event = actorData.eventData[0].event;
+	auto& state = actorData.state;
+	auto& animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
+    static bool setSkyStarGravityPlayer[PLAYER_COUNT][ENTITY_COUNT] = { false };
+    auto& setSkyStarGravity = setSkyStarGravityPlayer[playerIndex][entityIndex];
+
+	// Air Hike Resets weights
+    if (event == ACTOR_EVENT::AIR_HIKE) {
+		actorData.airSwordAttackCount = 0;
+	}
+
+    // Sky Star Gravity remains consistent regardless of weights
+    if (event == ACTOR_EVENT::TRICKSTER_SKY_STAR && !setSkyStarGravity && animTimer < 0.2f) {
+        actorData.verticalPullMultiplier = 0.0f;
+        setSkyStarGravity = true;
+    }
+    else if (event != ACTOR_EVENT::TRICKSTER_SKY_STAR) {
+        setSkyStarGravity = false;
+    }
+}
+
+void ShotgunAirShotTweaks(byte8* actorBaseAddr) {
+    // Reduces Shotgun Air Shot Gravity
+	using namespace ACTION_DANTE;
+
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    auto& action = actorData.action;
+
+    if (action == SHOTGUN_AIR_NORMAL_SHOT) {
+        actorData.verticalPullMultiplier = -1.6f; // Experimental: tweaking Shotgun Gravity to be lower.
+    }
+}
+
 void AerialRaveGravityTweaks(byte8* actorBaseAddr) {
-    // Reduces gravity while air raving, while also adding weights into the equation. - Mia
+    // Increases gravity while air raving, while also adding weights into the equation. - Mia
     using namespace ACTION_DANTE;
 
     if (!actorBaseAddr) {
@@ -1807,10 +1560,10 @@ void AerialRaveGravityTweaks(byte8* actorBaseAddr) {
     auto playerIndex = actorData.newPlayerIndex;
 
     auto* tweak    = &crimsonPlayer[playerIndex].airRaveTweak;
-    auto action    = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].action : crimsonPlayer[playerIndex].actionClone;
-    auto event     = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].event : crimsonPlayer[playerIndex].eventClone;
-    auto state     = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
-    auto animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
+    auto& action    = actorData.action;
+    auto& event     = actorData.eventData[0].event;
+    auto& state     = actorData.state;
+    auto& animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
 
     bool inAerialRave = (action == REBELLION_AERIAL_RAVE_PART_1 || action == REBELLION_AERIAL_RAVE_PART_2 ||
                          action == REBELLION_AERIAL_RAVE_PART_3 || action == REBELLION_AERIAL_RAVE_PART_4);
@@ -1874,8 +1627,6 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
     auto state      = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
     auto actionTimer =
         (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
-    auto animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
-
 
     if (event == ACTOR_EVENT::ATTACK && state & STATE::IN_AIR && actorData.character == CHARACTER::DANTE) {
 
@@ -1926,8 +1677,7 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
     auto motion     = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
     auto state      = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
     auto actionTimer =
-        (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
-    auto animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
+		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 
     bool inSkyDance = (action == AGNI_RUDRA_SKY_DANCE_PART_1 || action == AGNI_RUDRA_SKY_DANCE_PART_2);
 
@@ -1956,6 +1706,10 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
 #pragma endregion
 
 #pragma region GeneralGameplay
+
+// void DMC4TrickCount(byte8* actorBaseAddr) {
+// 
+// }
 
 void StyleMeterDoppelganger(byte8* actorBaseAddr) {
 
