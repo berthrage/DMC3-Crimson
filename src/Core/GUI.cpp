@@ -41,7 +41,7 @@ bool GUI_Button(const char* label, const ImVec2& size) {
 }
 
 bool GUI_ResetButton() {
-    auto update = GUI_Button("Reset");
+    auto update = GUI_Button("Default Settings");
 
     if (update) {
         ::GUI::save = true;

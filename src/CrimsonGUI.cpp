@@ -6958,6 +6958,7 @@ void DebugSection() {
 	ImGui::PopItemWidth();
 	ImGui::PopFont();
 	ImGui::PopStyleColor();
+	ImGui::Text("");
     
 }
 
@@ -6965,171 +6966,180 @@ void DebugSection() {
 
 #pragma region Enemy
 
-void Enemy() {
-    if (ImGui::CollapsingHeader("Enemy")) {
-        ImGui::Text("");
+void EnemySpawnerSection() {
+	if (GUI_ResetButton()) {
+		CopyMemory(&queuedConfig.enemyCount, &defaultConfig.enemyCount, sizeof(queuedConfig.enemyCount));
+		CopyMemory(&activeConfig.enemyCount, &queuedConfig.enemyCount, sizeof(activeConfig.enemyCount));
+
+		CopyMemory(&queuedConfig.configCreateEnemyActorData, &defaultConfig.configCreateEnemyActorData,
+			sizeof(queuedConfig.configCreateEnemyActorData));
+		CopyMemory(&activeConfig.configCreateEnemyActorData, &queuedConfig.configCreateEnemyActorData,
+			sizeof(activeConfig.configCreateEnemyActorData));
+
+		CopyMemory(&queuedConfig.enemyAutoSpawn, &defaultConfig.enemyAutoSpawn, sizeof(queuedConfig.enemyAutoSpawn));
+		CopyMemory(&activeConfig.enemyAutoSpawn, &queuedConfig.enemyAutoSpawn, sizeof(activeConfig.enemyAutoSpawn));
+	}
+	ImGui::Text("");
 
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.enemyCount, &defaultConfig.enemyCount, sizeof(queuedConfig.enemyCount));
-            CopyMemory(&activeConfig.enemyCount, &queuedConfig.enemyCount, sizeof(activeConfig.enemyCount));
-
-            CopyMemory(&queuedConfig.configCreateEnemyActorData, &defaultConfig.configCreateEnemyActorData,
-                sizeof(queuedConfig.configCreateEnemyActorData));
-            CopyMemory(&activeConfig.configCreateEnemyActorData, &queuedConfig.configCreateEnemyActorData,
-                sizeof(activeConfig.configCreateEnemyActorData));
-
-            CopyMemory(&queuedConfig.enemyAutoSpawn, &defaultConfig.enemyAutoSpawn, sizeof(queuedConfig.enemyAutoSpawn));
-            CopyMemory(&activeConfig.enemyAutoSpawn, &queuedConfig.enemyAutoSpawn, sizeof(activeConfig.enemyAutoSpawn));
-        }
-        ImGui::Text("");
+	ImGui::PushItemWidth(200);
 
 
-        ImGui::PushItemWidth(200);
+	GUI_Slider2<uint8>("Enemy Count", activeConfig.enemyCount, queuedConfig.enemyCount, 1,
+		static_cast<uint8>(countof(activeConfig.configCreateEnemyActorData)));
+	ImGui::Text("");
+
+	GUI_Checkbox2("Auto Spawn", activeConfig.enemyAutoSpawn, queuedConfig.enemyAutoSpawn);
+	ImGui::Text("");
 
 
-        GUI_Slider2<uint8>("Enemy Count", activeConfig.enemyCount, queuedConfig.enemyCount, 1,
-            static_cast<uint8>(countof(activeConfig.configCreateEnemyActorData)));
-        ImGui::Text("");
+	if (GUI_Button("Create All")) {
+		old_for_all(uint8, index, activeConfig.enemyCount) {
+			auto& activeConfigCreateEnemyActorData = activeConfig.configCreateEnemyActorData[index];
 
-        GUI_Checkbox2("Auto Spawn", activeConfig.enemyAutoSpawn, queuedConfig.enemyAutoSpawn);
-        ImGui::Text("");
+			CreateEnemyActor(activeConfigCreateEnemyActorData);
+		}
+	}
+	ImGui::Text("");
 
-
-        if (GUI_Button("Create All")) {
-            old_for_all(uint8, index, activeConfig.enemyCount) {
-                auto& activeConfigCreateEnemyActorData = activeConfig.configCreateEnemyActorData[index];
-
-                CreateEnemyActor(activeConfigCreateEnemyActorData);
-            }
-        }
-        ImGui::Text("");
-
-        if (GUI_Button("Kill All Ladies")) {
-            [&]() {
-                auto pool_9347 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-                if (!pool_9347 || !pool_9347[8]) {
-                    return;
-                }
-                auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_9347[8]);
+	if (GUI_Button("Kill All Ladies")) {
+		[&]() {
+			auto pool_9347 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+			if (!pool_9347 || !pool_9347[8]) {
+				return;
+			}
+			auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_9347[8]);
 
 
-                LogFunction();
+			LogFunction();
 
-                old_for_all(uint32, enemyIndex, countof(enemyVectorData.metadata)) {
-                    auto& metadata = enemyVectorData.metadata[enemyIndex];
+			old_for_all(uint32, enemyIndex, countof(enemyVectorData.metadata)) {
+				auto& metadata = enemyVectorData.metadata[enemyIndex];
 
-                    if (!metadata.baseAddr) {
-                        continue;
-                    }
-                    auto& actorData = *reinterpret_cast<EnemyActorDataLady*>(metadata.baseAddr);
+				if (!metadata.baseAddr) {
+					continue;
+				}
+				auto& actorData = *reinterpret_cast<EnemyActorDataLady*>(metadata.baseAddr);
 
-                    if (!actorData.baseAddr || (actorData.enemy != ENEMY::LADY)) {
-                        continue;
-                    }
+				if (!actorData.baseAddr || (actorData.enemy != ENEMY::LADY)) {
+					continue;
+				}
 
-                    actorData.event    = EVENT_BOSS_LADY::DEATH;
-                    actorData.state    = 0;
-                    actorData.friendly = false;
-                }
-            }();
-        }
-        ImGui::Text("");
-
-
-        old_for_all(uint8, index, activeConfig.enemyCount) {
-            auto& activeConfigCreateEnemyActorData = activeConfig.configCreateEnemyActorData[index];
-            auto& queuedConfigCreateEnemyActorData = queuedConfig.configCreateEnemyActorData[index];
-
-            ImGui::Text("%u", index);
+				actorData.event = EVENT_BOSS_LADY::DEATH;
+				actorData.state = 0;
+				actorData.friendly = false;
+			}
+			}();
+	}
+	ImGui::Text("");
 
 
-            UI::Combo2("Enemy", enemyNames, activeConfigCreateEnemyActorData.enemy, queuedConfigCreateEnemyActorData.enemy,
-                ImGuiComboFlags_HeightLarge);
+	old_for_all(uint8, index, activeConfig.enemyCount) {
+		auto& activeConfigCreateEnemyActorData = activeConfig.configCreateEnemyActorData[index];
+		auto& queuedConfigCreateEnemyActorData = queuedConfig.configCreateEnemyActorData[index];
 
-            GUI_Input2<uint32>("Variant", activeConfigCreateEnemyActorData.variant, queuedConfigCreateEnemyActorData.variant, 1, "%u",
-                ImGuiInputTextFlags_EnterReturnsTrue);
-
-            GUI_Checkbox2("Use Main Actor Data", activeConfigCreateEnemyActorData.useMainActorData,
-                queuedConfigCreateEnemyActorData.useMainActorData);
+		ImGui::Text("%u", index);
 
 
-            {
-                bool condition = activeConfigCreateEnemyActorData.useMainActorData;
+		UI::Combo2("Enemy", enemyNames, activeConfigCreateEnemyActorData.enemy, queuedConfigCreateEnemyActorData.enemy,
+			ImGuiComboFlags_HeightLarge);
 
-                GUI_PushDisable(condition);
+		GUI_Input2<uint32>("Variant", activeConfigCreateEnemyActorData.variant, queuedConfigCreateEnemyActorData.variant, 1, "%u",
+			ImGuiInputTextFlags_EnterReturnsTrue);
 
-                GUI_Input2<float>("X", activeConfigCreateEnemyActorData.position.x, queuedConfigCreateEnemyActorData.position.x, 10.0f,
-                    "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-                GUI_Input2<float>("Y", activeConfigCreateEnemyActorData.position.y, queuedConfigCreateEnemyActorData.position.y, 10.0f,
-                    "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-                GUI_Input2<float>("Z", activeConfigCreateEnemyActorData.position.z, queuedConfigCreateEnemyActorData.position.z, 10.0f,
-                    "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+		GUI_Checkbox2("Use Main Actor Data", activeConfigCreateEnemyActorData.useMainActorData,
+			queuedConfigCreateEnemyActorData.useMainActorData);
 
 
-                GUI_Input2<uint16>("Rotation", activeConfigCreateEnemyActorData.rotation, queuedConfigCreateEnemyActorData.rotation, 1,
-                    "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+		{
+			bool condition = activeConfigCreateEnemyActorData.useMainActorData;
 
-                GUI_PopDisable(condition);
-            }
+			GUI_PushDisable(condition);
 
-
-            GUI_Input2<uint16>("Spawn Method", activeConfigCreateEnemyActorData.spawnMethod, queuedConfigCreateEnemyActorData.spawnMethod,
-                1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-
-            if (GUI_Button("Create")) {
-                CreateEnemyActor(activeConfigCreateEnemyActorData);
-            }
-
-            ImGui::Text("");
-        }
+			GUI_Input2<float>("X", activeConfigCreateEnemyActorData.position.x, queuedConfigCreateEnemyActorData.position.x, 10.0f,
+				"%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input2<float>("Y", activeConfigCreateEnemyActorData.position.y, queuedConfigCreateEnemyActorData.position.y, 10.0f,
+				"%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input2<float>("Z", activeConfigCreateEnemyActorData.position.z, queuedConfigCreateEnemyActorData.position.z, 10.0f,
+				"%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
 
-        ImGui::PopItemWidth();
-    }
+			GUI_Input2<uint16>("Rotation", activeConfigCreateEnemyActorData.rotation, queuedConfigCreateEnemyActorData.rotation, 1,
+				"%u", ImGuiInputTextFlags_EnterReturnsTrue);
+
+			GUI_PopDisable(condition);
+		}
+
+
+		GUI_Input2<uint16>("Spawn Method", activeConfigCreateEnemyActorData.spawnMethod, queuedConfigCreateEnemyActorData.spawnMethod,
+			1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+
+		if (GUI_Button("Create")) {
+			CreateEnemyActor(activeConfigCreateEnemyActorData);
+		}
+
+		ImGui::Text("");
+	}
+
+
+	ImGui::PopItemWidth();
+    
 }
 
 #pragma endregion
 
 #pragma region Jukebox
 
-void Jukebox() {
-    if (ImGui::CollapsingHeader("Jukebox")) {
-        ImGui::Text("");
+void JukeboxSection() {
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	const float itemWidth = defaultFontSize * 8.0f;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-        static char location[512];
-        static char fileName[256];
-        static new_size_t index = 0;
-        static bool run         = false;
+// 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+// 	ImGui::Text("JUKEBOX");
+// 	ImGui::PopFont();
+// 	UI::SeparatorEx(defaultFontSize * 23.35f);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
-        if (!run) {
-            run = true;
+	ImGui::PushItemWidth(itemWidth);
 
-            snprintf(fileName, sizeof(fileName), "%s", trackFilenames[index]);
-        }
+	static char location[512];
+	static char fileName[256];
+	static new_size_t index = 0;
+	static bool run = false;
 
-        ImGui::PushItemWidth(200);
+	if (!run) {
+		run = true;
 
-        ImGui::InputText("Filename", fileName, sizeof(fileName));
+		snprintf(fileName, sizeof(fileName), "%s", trackFilenames[index]);
+	}
 
-        if (UI::Combo("", trackNames, index, ImGuiComboFlags_HeightLarge)) {
-            snprintf(fileName, sizeof(fileName), "%s", trackFilenames[index]);
-        }
+	ImGui::PushItemWidth(200);
 
-        ImGui::PopItemWidth();
+	ImGui::InputText("Filename", fileName, sizeof(fileName));
 
-        if (GUI_Button("Play")) {
-            snprintf(location, sizeof(location), "afs/sound/%s", fileName);
+	if (UI::Combo("", trackNames, index, ImGuiComboFlags_HeightLarge)) {
+		snprintf(fileName, sizeof(fileName), "%s", trackFilenames[index]);
+	}
 
-            PlayTrack(location);
-        }
+	ImGui::PopItemWidth();
 
-        if (GUI_Button("Stop")) {
-            PlayTrack("");
-        }
+	if (GUI_Button("Play")) {
+		snprintf(location, sizeof(location), "afs/sound/%s", fileName);
 
-        ImGui::Text("");
-    }
+		PlayTrack(location);
+	}
+
+	if (GUI_Button("Stop")) {
+		PlayTrack("");
+	}
+
+	ImGui::PopItemWidth();
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+
+	ImGui::Text("");
 }
 
 #pragma endregion
@@ -8719,69 +8729,66 @@ void FrameResponsiveGameSpeed() {
 
 #pragma region Teleporter
 
-void Teleporter() {
-    if (ImGui::CollapsingHeader("Teleporter")) {
-        ImGui::Text("");
+void TeleporterSection() {
+   
+	[&]() {
+		if (!InGame()) {
+			ImGui::Text("Invalid Pointer");
+
+			return;
+		}
+
+		auto pool_11962 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+		if (!pool_11962 || !pool_11962[8]) {
+			return;
+		}
+		auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
+
+		auto pool_12013 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+		if (!pool_12013 || !pool_12013[12]) {
+			return;
+		}
+		auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12013[12]);
 
 
-        [&]() {
-            if (!InGame()) {
-                ImGui::Text("Invalid Pointer");
+		if (GUI_Button("Clear")) {
+			nextEventData.position = nextEventData.room = 0;
+		}
+		ImGui::SameLine();
 
-                return;
-            }
-
-            auto pool_11962 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-            if (!pool_11962 || !pool_11962[8]) {
-                return;
-            }
-            auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
-
-            auto pool_12013 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-            if (!pool_12013 || !pool_12013[12]) {
-                return;
-            }
-            auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12013[12]);
+		if (GUI_Button("Current")) {
+			nextEventData.room = static_cast<uint16>(eventData.room);
+			nextEventData.position = static_cast<uint16>(eventData.position);
+		}
+		ImGui::Text("");
 
 
-            if (GUI_Button("Clear")) {
-                nextEventData.position = nextEventData.room = 0;
-            }
-            ImGui::SameLine();
+		constexpr float width = 150.0f;
 
-            if (GUI_Button("Current")) {
-                nextEventData.room     = static_cast<uint16>(eventData.room);
-                nextEventData.position = static_cast<uint16>(eventData.position);
-            }
-            ImGui::Text("");
+		ImGui::PushItemWidth(width);
 
+		ImGui::Text("Current");
 
-            constexpr float width = 150.0f;
+		GUI_Input<uint32>("Room", eventData.room, 0, "%u", ImGuiInputTextFlags_ReadOnly);
 
-            ImGui::PushItemWidth(width);
+		GUI_Input<uint32>("Position", eventData.position, 0, "%u", ImGuiInputTextFlags_ReadOnly);
 
-            ImGui::Text("Current");
+		ImGui::Text("Next");
 
-            GUI_Input<uint32>("Room", eventData.room, 0, "%u", ImGuiInputTextFlags_ReadOnly);
+		GUI_Input<uint16>("Room", nextEventData.room, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 
-            GUI_Input<uint32>("Position", eventData.position, 0, "%u", ImGuiInputTextFlags_ReadOnly);
+		GUI_Input<uint16>("Position", nextEventData.position, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 
-            ImGui::Text("Next");
+		if (GUI_Button("Teleport", ImVec2(width, ImGui::GetFrameHeight()))) {
+			eventData.event = EVENT::TELEPORT;
+		}
 
-            GUI_Input<uint16>("Room", nextEventData.room, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-
-            GUI_Input<uint16>("Position", nextEventData.position, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-
-            if (GUI_Button("Teleport", ImVec2(width, ImGui::GetFrameHeight()))) {
-                eventData.event = EVENT::TELEPORT;
-            }
-
-            ImGui::PopItemWidth();
-        }();
+		ImGui::PopItemWidth();
+		}();
 
 
-        ImGui::Text("");
-    }
+		ImGui::Text("");
+    
 }
 
 #pragma endregion
@@ -8803,54 +8810,67 @@ void WeaponWheel() {
 #pragma region Training
 
 void TrainingSection() {
-    if (ImGui::CollapsingHeader("Training")) {
-        ImGui::Text("");
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	const float itemWidth = defaultFontSize * 8.0f;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	ImGui::Text("TRAINING");
+	ImGui::PopFont();
+	UI::SeparatorEx(defaultFontSize * 23.35f);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.infiniteHitPoints, &defaultConfig.infiniteHitPoints, sizeof(queuedConfig.infiniteHitPoints));
-            CopyMemory(&activeConfig.infiniteHitPoints, &queuedConfig.infiniteHitPoints, sizeof(activeConfig.infiniteHitPoints));
+	ImGui::PushItemWidth(itemWidth);
+	ImGui::Text("");
 
-            ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
+	float smallerComboMult = 0.7f;
 
-            CopyMemory(&queuedConfig.infiniteMagicPoints, &defaultConfig.infiniteMagicPoints, sizeof(queuedConfig.infiniteMagicPoints));
-            CopyMemory(&activeConfig.infiniteMagicPoints, &queuedConfig.infiniteMagicPoints, sizeof(activeConfig.infiniteMagicPoints));
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-            ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
+		if (ImGui::BeginTable("TrainingCheatsOptionsTable", 3)) {
 
-            CopyMemory(&queuedConfig.disableTimer, &defaultConfig.disableTimer, sizeof(queuedConfig.disableTimer));
-            CopyMemory(&activeConfig.disableTimer, &queuedConfig.disableTimer, sizeof(activeConfig.disableTimer));
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-            ToggleDisableTimer(activeConfig.disableTimer);
+			if (GUI_Checkbox2("Infinite Hit Points", activeConfig.infiniteHitPoints, activeConfig.infiniteHitPoints)) {
+				ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
+			}
 
-            CopyMemory(&queuedConfig.infiniteBullets, &defaultConfig.infiniteBullets, sizeof(queuedConfig.infiniteBullets));
-            CopyMemory(&activeConfig.infiniteBullets, &queuedConfig.infiniteBullets, sizeof(activeConfig.infiniteBullets));
+			ImGui::TableNextColumn();
 
-            ToggleInfiniteBullets(activeConfig.infiniteBullets);
-        }
-        ImGui::Text("");
+			if (GUI_Checkbox2("Infinite Magic Points", activeConfig.infiniteMagicPoints, queuedConfig.infiniteMagicPoints)) {
+				ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
+			}
 
-        if (GUI_Checkbox2("Infinite Hit Points", activeConfig.infiniteHitPoints, activeConfig.infiniteHitPoints)) {
-            ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
-        }
+			ImGui::TableNextColumn();
 
-        if (GUI_Checkbox2("Infinite Magic Points", activeConfig.infiniteMagicPoints, queuedConfig.infiniteMagicPoints)) {
-            ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
-        }
+			if (GUI_Checkbox2("Disable Timer", activeConfig.disableTimer, queuedConfig.disableTimer)) {
+				ToggleDisableTimer(activeConfig.disableTimer);
+			}
 
-        if (GUI_Checkbox2("Disable Timer", activeConfig.disableTimer, queuedConfig.disableTimer)) {
-            ToggleDisableTimer(activeConfig.disableTimer);
-        }
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-        if (GUI_Checkbox2("Infinite Bullets", activeConfig.infiniteBullets, queuedConfig.infiniteBullets)) {
-            ToggleInfiniteBullets(activeConfig.infiniteBullets);
-        }
-        ImGui::SameLine();
-        TooltipHelper("(?)", "For Boss Lady.");
+			if (GUI_Checkbox2("Infinite Bullets", activeConfig.infiniteBullets, queuedConfig.infiniteBullets)) {
+				ToggleInfiniteBullets(activeConfig.infiniteBullets);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "For Boss Lady.");
 
+			ImGui::EndTable();
+		}
+	}
 
-        ImGui::Text("");
-    }
+	ImGui::PopItemWidth();
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+
+	ImGui::Text("");
+    
 }
 
 #pragma endregion
@@ -9932,35 +9952,29 @@ std::vector<KeyBinding> keyBindings = {
 };
 
 void KeyBindings() {
-    if (ImGui::CollapsingHeader("Key Bindings")) {
-        ImGui::Text("");
 
+	bool condition = false;
 
-        bool condition = false;
+	for_all(index, keyBindings.size()) {
+		auto& keyBinding = keyBindings[index];
 
-        for_all(index, keyBindings.size()) {
-            auto& keyBinding = keyBindings[index];
+		if (keyBinding.showPopup) {
+			condition = true;
 
-            if (keyBinding.showPopup) {
-                condition = true;
+			break;
+		}
+	}
 
-                break;
-            }
-        }
+	GUI_PushDisable(condition);
 
-        GUI_PushDisable(condition);
+	for_all(index, keyBindings.size()) {
+		auto& keyBinding = keyBindings[index];
 
-        for_all(index, keyBindings.size()) {
-            auto& keyBinding = keyBindings[index];
+		keyBinding.Main();
+	}
 
-            keyBinding.Main();
-        }
-
-        GUI_PopDisable(condition);
-
-
-        ImGui::Text("");
-    }
+	GUI_PopDisable(condition);
+    
 }
 
 #pragma endregion
@@ -10470,21 +10484,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					{
 						ImGui::Text("");
 
-						std::stringstream sstm;
-						sstm << "WINDOWSIZE X: " << g_renderSize.x;
-						std::string windowSizeX = sstm.str();
-
-						std::stringstream sstm2;
-						sstm2 << "WINDOWSIZE Y: " << g_renderSize.y;
-						std::string windowSizeY = sstm2.str();
-						const char* var1 = windowSizeX.c_str();
-						const char* var2 = windowSizeY.c_str();
-
-
-						ImGui::Text(var1);
-						ImGui::Text(var2);
-
-
 						GamepadClose(visibleMain, lastVisibleMain, CloseMain);
 
 
@@ -10493,20 +10492,11 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 						ImGui::PopItemWidth();
 
-						Damage();
 						Dante();
-
-						Enemy();
-						Jukebox();
-						KeyBindings();
 						Lady();
-						Mobility();
-						Other();
 						Repair();
-						Teleporter();
 						WeaponWheel();
 						GameplayOptions();
-						TrainingSection();
 						Vergil();
 
 					}
@@ -10592,7 +10582,52 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			}
         }
         else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::Hotkeys) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
 
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						KeyBindings();
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			//Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("HOTKEY OPTIONS");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Set various settings to keyboard shortcuts.");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
         }
         else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::Interface) {
             getHUDsDirectories();
@@ -10765,6 +10800,11 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						//if constexpr (debug) {
 						DebugSection();
 						//}
+						TrainingSection();
+						Damage();
+						Mobility();
+						Other();
+						
 					}
 				}
 				ImGui::EndChild();
@@ -10812,9 +10852,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					{
-						//if constexpr (debug) {
-						SpeedSection();
-						//}
+						SpeedSection();						
 					}
 				}
 				ImGui::EndChild();
@@ -10849,7 +10887,151 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::EndChild();
 			}
 		}
-		
+		else if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::Teleporter) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						TeleporterSection();
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("TELEPORTER");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Teleport anywhere. Using this will tag you at the Mission End screen.");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
+
+		}
+		else if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::EnemySpawner) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						EnemySpawnerSection();
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("ENEMY SPAWNER");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Spawn new enemies at your leisure.");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
+		}
+		else if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::JukeBox) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						JukeboxSection();
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("JUKEBOX");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Play songs from the original game at your heart's content, using the original game's audio system (FMOD).");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
+		}
 	}
 	break;
 

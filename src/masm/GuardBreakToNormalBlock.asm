@@ -6,8 +6,11 @@ minimumDTAmount dd 1500.0
 .CODE
 GuardBreakToNormalBlockDetour PROC
     ; player + 60 in rbx
+    ; eax holds value that goes into royalBlock (player + 0x6308)
     cmp eax, 06
     je CheckIfGuard
+    cmp eax, 02
+    je CheckIfGUard
     jmp OriginalCode
 
 CheckIfGuard:
