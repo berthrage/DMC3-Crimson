@@ -220,6 +220,7 @@ struct CrimsonConfig {
 			bool disableJCRestriction = true;
 			bool increasedEnemyJuggleTime = true;
 			bool fasterTurnRate = true;
+			bool enableCustomMobility = false;
             
 
 			static constexpr auto Metadata() {
@@ -236,7 +237,8 @@ struct CrimsonConfig {
 					std::make_pair("increasedJCSpheres", &General::increasedJCSpheres),
 					std::make_pair("disableJCRestriction", &General::disableJCRestriction),
 					std::make_pair("increasedEnemyJuggleTime", &General::increasedEnemyJuggleTime),
-					std::make_pair("fasterTurnRate", &General::fasterTurnRate)
+					std::make_pair("fasterTurnRate", &General::fasterTurnRate),
+					std::make_pair("enableCustomMobility", &General::enableCustomMobility)
 				);
 			}
         } General;
@@ -252,6 +254,7 @@ struct CrimsonConfig {
 			bool driveTweaks = true;
 			bool disableAirSlashKnockback = true;
 			bool airStinger = true;
+			bool dmc4TrickCount = true;
 			bool dTInfusedRoyalguard = true;
 
 			static constexpr auto Metadata() {
@@ -266,6 +269,7 @@ struct CrimsonConfig {
 					std::make_pair("driveTweaks", &Dante::driveTweaks),
 					std::make_pair("disableAirSlashKnockback", &Dante::disableAirSlashKnockback),
 					std::make_pair("airStinger", &Dante::airStinger),
+					std::make_pair("dmc4TrickCount", &Dante::dmc4TrickCount),
 					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard)
 				);
 			}

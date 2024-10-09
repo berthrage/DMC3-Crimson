@@ -1707,9 +1707,64 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
 
 #pragma region GeneralGameplay
 
-// void DMC4TrickCount(byte8* actorBaseAddr) {
-// 
-// }
+void DMC4TrickCount(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    
+    auto playerIndex = actorData.newPlayerIndex;
+    auto entityIndex = actorData.newEntityIndex;
+    auto& event = actorData.eventData[0].event;
+    auto& state = actorData.state;
+    auto& airTrickCount = actorData.newAirTrickCount;
+    static uint8 savedAirTrickCounts[PLAYER_COUNT][ENTITY_COUNT] = { 0 };
+    auto& savedAirTrickCount = savedAirTrickCounts[playerIndex][entityIndex];
+    bool enable = activeCrimsonConfig.Gameplay.Dante.dmc4TrickCount;
+    static bool run = false;
+
+    // Messing with default Mobility Settings to be equivalent to DMC4 counts.
+	if (run != enable && enable) {
+		defaultConfig.airHikeCount[1] = 2;
+		defaultConfig.wallHikeCount[1] = 2;
+		defaultConfig.skyStarCount[1] = 2;
+		defaultConfig.airTrickCountDante[1] = 2;
+
+        run = enable;
+	}
+    else if (run != enable && !enable) {
+		defaultConfig.airHikeCount[1] = 1;
+		defaultConfig.wallHikeCount[1] = 1;
+		defaultConfig.skyStarCount[1] = 1;
+		defaultConfig.airTrickCountDante[1] = 1;
+
+        if (!activeCrimsonConfig.Gameplay.General.enableCustomMobility) {
+			queuedConfig.airHikeCount[1] = 1;
+            queuedConfig.wallHikeCount[1] = 1;
+            queuedConfig.skyStarCount[1] = 1;
+            queuedConfig.airTrickCountDante[1] = 1;
+
+			activeConfig.airHikeCount[1] = 1;
+            activeConfig.wallHikeCount[1] = 1;
+            activeConfig.skyStarCount[1] = 1;
+            activeConfig.airTrickCountDante[1] = 1;
+        }
+
+        run = enable;
+    }
+
+	if (!activeCrimsonConfig.Gameplay.Dante.dmc4TrickCount) {
+		return;
+	}
+
+    // The Reset portion
+    if (actorData.state & STATE::ON_FLOOR && event == ACTOR_EVENT::TRICKSTER_AIR_TRICK) {
+        airTrickCount = savedAirTrickCount;
+    }
+    else {
+        savedAirTrickCount = airTrickCount;
+    }
+}
 
 void StyleMeterDoppelganger(byte8* actorBaseAddr) {
 

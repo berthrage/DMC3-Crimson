@@ -8142,6 +8142,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
 					CrimsonGameplay::InertiaController(actorBaseAddr);
 				}
 
+                CrimsonGameplay::DMC4TrickCount(actorBaseAddr);
                 // Doppelganger's attacks can now hold/increase your style meter
                 CrimsonGameplay::StyleMeterDoppelganger(actorBaseAddr);
 

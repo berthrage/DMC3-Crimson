@@ -23,6 +23,7 @@ void ShotgunAirShotTweaks(byte8* actorBaseAddr);
 void AerialRaveGravityTweaks(byte8* actorBaseAddr);
 void AirFlickerGravityTweaks(byte8* actorBaseAddr);
 void SkyDanceGravityTweaks(byte8* actorBaseAddr);
+void DMC4TrickCount(byte8* actorBaseAddr);
 void StyleMeterDoppelganger(byte8* actorBaseAddr);
 void InCombatDetection();
 void BackToForwardInputs(byte8* actorBaseAddr);

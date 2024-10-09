@@ -7101,7 +7101,6 @@ void JukeboxSection() {
 // 	UI::SeparatorEx(defaultFontSize * 23.35f);
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
-
 	ImGui::PushItemWidth(itemWidth);
 
 	static char location[512];
@@ -7201,60 +7200,94 @@ void Lady() {
 
 #pragma region Mobility
 
-void Mobility() {
-    if (ImGui::CollapsingHeader("Mobility")) {
-        ImGui::Text("");
+void MobilitySection() {
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	const float itemWidth = defaultFontSize * 8.0f;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
+	GUI_PushDisable(!activeConfig.Actor.enable);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+	ImGui::PushItemWidth(itemWidth);
+	
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	if (GUI_Checkbox2("CUSTOM MOBILITY", activeCrimsonConfig.Gameplay.General.enableCustomMobility, queuedCrimsonConfig.Gameplay.General.enableCustomMobility)) {
+		if (!activeCrimsonConfig.Gameplay.General.enableCustomMobility) {
+			CopyMemory(&queuedConfig.airHikeCount, &defaultConfig.airHikeCount, sizeof(queuedConfig.airHikeCount));
+			CopyMemory(&activeConfig.airHikeCount, &queuedConfig.airHikeCount, sizeof(activeConfig.airHikeCount));
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.airHikeCount, &defaultConfig.airHikeCount, sizeof(queuedConfig.airHikeCount));
-            CopyMemory(&activeConfig.airHikeCount, &queuedConfig.airHikeCount, sizeof(activeConfig.airHikeCount));
+			CopyMemory(&queuedConfig.kickJumpCount, &defaultConfig.kickJumpCount, sizeof(queuedConfig.kickJumpCount));
+			CopyMemory(&activeConfig.kickJumpCount, &queuedConfig.kickJumpCount, sizeof(activeConfig.kickJumpCount));
 
-            CopyMemory(&queuedConfig.kickJumpCount, &defaultConfig.kickJumpCount, sizeof(queuedConfig.kickJumpCount));
-            CopyMemory(&activeConfig.kickJumpCount, &queuedConfig.kickJumpCount, sizeof(activeConfig.kickJumpCount));
+			CopyMemory(&queuedConfig.wallHikeCount, &defaultConfig.wallHikeCount, sizeof(queuedConfig.wallHikeCount));
+			CopyMemory(&activeConfig.wallHikeCount, &queuedConfig.wallHikeCount, sizeof(activeConfig.wallHikeCount));
 
-            CopyMemory(&queuedConfig.wallHikeCount, &defaultConfig.wallHikeCount, sizeof(queuedConfig.wallHikeCount));
-            CopyMemory(&activeConfig.wallHikeCount, &queuedConfig.wallHikeCount, sizeof(activeConfig.wallHikeCount));
+			CopyMemory(&queuedConfig.dashCount, &defaultConfig.dashCount, sizeof(queuedConfig.dashCount));
+			CopyMemory(&activeConfig.dashCount, &queuedConfig.dashCount, sizeof(activeConfig.dashCount));
 
-            CopyMemory(&queuedConfig.dashCount, &defaultConfig.dashCount, sizeof(queuedConfig.dashCount));
-            CopyMemory(&activeConfig.dashCount, &queuedConfig.dashCount, sizeof(activeConfig.dashCount));
+			CopyMemory(&queuedConfig.skyStarCount, &defaultConfig.skyStarCount, sizeof(queuedConfig.skyStarCount));
+			CopyMemory(&activeConfig.skyStarCount, &queuedConfig.skyStarCount, sizeof(activeConfig.skyStarCount));
 
-            CopyMemory(&queuedConfig.skyStarCount, &defaultConfig.skyStarCount, sizeof(queuedConfig.skyStarCount));
-            CopyMemory(&activeConfig.skyStarCount, &queuedConfig.skyStarCount, sizeof(activeConfig.skyStarCount));
+			CopyMemory(&queuedConfig.airTrickCountDante, &defaultConfig.airTrickCountDante, sizeof(queuedConfig.airTrickCountDante));
+			CopyMemory(&activeConfig.airTrickCountDante, &queuedConfig.airTrickCountDante, sizeof(activeConfig.airTrickCountDante));
 
-            CopyMemory(&queuedConfig.airTrickCountDante, &defaultConfig.airTrickCountDante, sizeof(queuedConfig.airTrickCountDante));
-            CopyMemory(&activeConfig.airTrickCountDante, &queuedConfig.airTrickCountDante, sizeof(activeConfig.airTrickCountDante));
+			CopyMemory(&queuedConfig.airTrickCountVergil, &defaultConfig.airTrickCountVergil, sizeof(queuedConfig.airTrickCountVergil));
+			CopyMemory(&activeConfig.airTrickCountVergil, &queuedConfig.airTrickCountVergil, sizeof(activeConfig.airTrickCountVergil));
 
-            CopyMemory(&queuedConfig.airTrickCountVergil, &defaultConfig.airTrickCountVergil, sizeof(queuedConfig.airTrickCountVergil));
-            CopyMemory(&activeConfig.airTrickCountVergil, &queuedConfig.airTrickCountVergil, sizeof(activeConfig.airTrickCountVergil));
+			CopyMemory(&queuedConfig.trickUpCount, &defaultConfig.trickUpCount, sizeof(queuedConfig.trickUpCount));
+			CopyMemory(&activeConfig.trickUpCount, &queuedConfig.trickUpCount, sizeof(activeConfig.trickUpCount));
 
-            CopyMemory(&queuedConfig.trickUpCount, &defaultConfig.trickUpCount, sizeof(queuedConfig.trickUpCount));
-            CopyMemory(&activeConfig.trickUpCount, &queuedConfig.trickUpCount, sizeof(activeConfig.trickUpCount));
+			CopyMemory(&queuedConfig.trickDownCount, &defaultConfig.trickDownCount, sizeof(queuedConfig.trickDownCount));
+			CopyMemory(&activeConfig.trickDownCount, &queuedConfig.trickDownCount, sizeof(activeConfig.trickDownCount));
+		}
+	}
+	ImGui::PopFont();
+	ImGui::SameLine();
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	TooltipHelper("(?)", "Requires Actor System");
+	UI::SeparatorEx(defaultFontSize * 23.35f);
 
-            CopyMemory(&queuedConfig.trickDownCount, &defaultConfig.trickDownCount, sizeof(queuedConfig.trickDownCount));
-            CopyMemory(&activeConfig.trickDownCount, &queuedConfig.trickDownCount, sizeof(activeConfig.trickDownCount));
-        }
-        ImGui::Text("");
+	ImGui::Text("");
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-        TooltipHelper("(?)", "Requires enabled Actor module.\n"
-                             "\n"
-                             "Left : Human\n"
-                             "Right: Devil");
-        ImGui::Text("");
+		if (ImGui::BeginTable("MobilityTitlesTable", 2)) {
 
-        ActionData("Air Hike Count", activeConfig.airHikeCount, queuedConfig.airHikeCount, defaultConfig.airHikeCount);
-        ActionData("Kick Jump Count", activeConfig.kickJumpCount, queuedConfig.kickJumpCount, defaultConfig.kickJumpCount);
-        ActionData("Wall Hike Count", activeConfig.wallHikeCount, queuedConfig.wallHikeCount, defaultConfig.wallHikeCount);
-        ActionData("Dash Count", activeConfig.dashCount, queuedConfig.dashCount, defaultConfig.dashCount);
-        ActionData("Sky Star Count", activeConfig.skyStarCount, queuedConfig.skyStarCount, defaultConfig.skyStarCount);
-        ActionData(
-            "Air Trick Count Dante", activeConfig.airTrickCountDante, queuedConfig.airTrickCountDante, defaultConfig.airTrickCountDante);
-        ActionData("Air Trick Count Vergil", activeConfig.airTrickCountVergil, queuedConfig.airTrickCountVergil,
-            defaultConfig.airTrickCountVergil);
-        ActionData("Trick Up Count", activeConfig.trickUpCount, queuedConfig.trickUpCount, defaultConfig.trickUpCount);
-        ActionData("Trick Down Count", activeConfig.trickDownCount, queuedConfig.trickDownCount, defaultConfig.trickDownCount);
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-        ImGui::Text("");
-    }
+			ImGui::Text("HUMAN");
+
+			ImGui::TableNextColumn();
+
+			ImGui::Text("DEVIL TRIGGER");
+
+
+			ImGui::EndTable();
+		}
+	}
+	ImGui::PopFont();
+	GUI_PushDisable(!activeCrimsonConfig.Gameplay.General.enableCustomMobility);
+	ActionData("Air Hike Count", activeConfig.airHikeCount, queuedConfig.airHikeCount, defaultConfig.airHikeCount);
+	ActionData("Kick Jump Count", activeConfig.kickJumpCount, queuedConfig.kickJumpCount, defaultConfig.kickJumpCount);
+	ActionData("Wall Hike Count", activeConfig.wallHikeCount, queuedConfig.wallHikeCount, defaultConfig.wallHikeCount);
+	ActionData("Dash Count", activeConfig.dashCount, queuedConfig.dashCount, defaultConfig.dashCount);
+	ActionData("Sky Star Count", activeConfig.skyStarCount, queuedConfig.skyStarCount, defaultConfig.skyStarCount);
+	ActionData(
+		"Air Trick Count Dante", activeConfig.airTrickCountDante, queuedConfig.airTrickCountDante, defaultConfig.airTrickCountDante);
+	ActionData("Air Trick Count Vergil", activeConfig.airTrickCountVergil, queuedConfig.airTrickCountVergil,
+		defaultConfig.airTrickCountVergil);
+	ActionData("Trick Up Count", activeConfig.trickUpCount, queuedConfig.trickUpCount, defaultConfig.trickUpCount);
+	ActionData("Trick Down Count", activeConfig.trickDownCount, queuedConfig.trickDownCount, defaultConfig.trickDownCount);
+	GUI_PopDisable(!activeCrimsonConfig.Gameplay.General.enableCustomMobility);
+
+
+	GUI_PopDisable(!activeConfig.Actor.enable);
+	ImGui::PopItemWidth();
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+	ImGui::Text("");
 }
 
 #pragma endregion
@@ -7544,6 +7577,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			ImGui::Text("Air Trick Count : % u", actorData.newAirTrickCount);
 			ImGui::Text("rainstorm cached inertia:  %g", crimsonPlayer[0].inertia.rainstorm.cachedPull);
 			ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
 			ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
@@ -8581,7 +8615,7 @@ void SystemSection(size_t defaultFontSize) {
 		const float columnWidth = 0.5f * queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-		if (ImGui::BeginTable("GraphicsWindowOptionsTable", 2)) {
+		if (ImGui::BeginTable("MiscOptionsTable", 2)) {
 
 			ImGui::TableSetupColumn("b1", 0, columnWidth);
 			ImGui::TableNextRow(0, rowWidth);
@@ -9556,6 +9590,22 @@ void GameplayOptions() {
 		GUI_Checkbox2("Air Stinger", activeCrimsonConfig.Gameplay.Dante.airStinger, queuedCrimsonConfig.Gameplay.Dante.airStinger);
 		ImGui::SameLine();
 		TooltipHelper("(?)", "Requires Actor System.\n");
+
+		if (GUI_Checkbox2("DMC4 Trick Count", activeCrimsonConfig.Gameplay.Dante.dmc4TrickCount, queuedCrimsonConfig.Gameplay.Dante.dmc4TrickCount)) {
+			queuedConfig.airHikeCount[1] = 2;
+			queuedConfig.wallHikeCount[1] = 2;
+			queuedConfig.skyStarCount[1] = 2;
+			queuedConfig.airTrickCountDante[1] = 2;
+
+			activeConfig.airHikeCount[1] = 2;
+			activeConfig.wallHikeCount[1] = 2;
+			activeConfig.skyStarCount[1] = 2;
+			activeConfig.airTrickCountDante[1] = 2;
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+		"\n"
+		"Air Tricking from the ground does not consume the Air Trick Count. Also sets Air Trick, Air Hike and Sky Star Count to 2 when in DT.");
 
 
 		GUI_PushDisable(!activeConfig.Actor.enable);
@@ -10802,7 +10852,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						//}
 						TrainingSection();
 						Damage();
-						Mobility();
+						MobilitySection();
 						Other();
 						
 					}
