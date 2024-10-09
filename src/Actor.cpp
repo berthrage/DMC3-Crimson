@@ -2596,8 +2596,6 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
         actorData.costume = selectedCostume;
     }
 
-    // actorData.royalguardReleaseDamage = storedRoyalguardGauge;
-
     // Necessary when for example character is Vergil and session character is Dante.
     // Since Dante has more costumes, the index could go out of range.
     {
@@ -2679,7 +2677,7 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
 
     UpdateMotionArchives(actorData);
 
-    // UpdateStyle(actorData);
+    UpdateStyle(actorData);
 
     if ((playerIndex == 0) && (characterIndex == playerData.activeCharacterIndex) && (entityIndex == ENTITY::MAIN)) {
         HUD_UpdateStyleIcon(actorData.style, characterData.character);
@@ -13382,6 +13380,7 @@ void SceneGame() {
     DebugLog("next position %u", nextEventData.position);
     DebugLog("flags         %X", eventFlags[20]);
 
+    // This determines that the Actor System gets temporarily deactivated at certain points 
     if (((sessionData.mission == 18) && (nextEventData.room == 403)) ||
         ((sessionData.mission == 19) && (nextEventData.room == 421) && (eventFlags[20] == 1)) ||
         ((sessionData.mission == 20) && (nextEventData.room == 12))) {
@@ -13390,19 +13389,11 @@ void SceneGame() {
         activeConfig.Actor.enable = false;
     }
 
-    auto pool_18964 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-    if (!pool_18964 || !pool_18964[3]) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_18964[3]);
-
-
     Actor::Toggle(activeConfig.Actor.enable);
+    CrimsonDetours::ToggleHoldToCrazyCombo(activeConfig.Actor.enable && activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
+    CrimsonDetours::ToggleDMC4LockOnDirection(activeConfig.Actor.enable && activeCrimsonConfig.Gameplay.General.dmc4LockOnDirection);
+    CrimsonDetours::ToggleFreeformSoftLockHelper(activeConfig.Actor.enable && activeCrimsonConfig.Gameplay.General.freeformSoftLock);
 
-    // if (!activeConfig.Actor.enable)
-    // {
-    // 	return;
-    // }
 }
 
 }; // namespace Actor
