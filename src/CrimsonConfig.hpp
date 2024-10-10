@@ -220,7 +220,6 @@ struct CrimsonConfig {
 			bool disableJCRestriction = true;
 			bool increasedEnemyJuggleTime = true;
 			bool fasterTurnRate = true;
-			bool enableCustomMobility = false;
             
 
 			static constexpr auto Metadata() {
@@ -237,8 +236,7 @@ struct CrimsonConfig {
 					std::make_pair("increasedJCSpheres", &General::increasedJCSpheres),
 					std::make_pair("disableJCRestriction", &General::disableJCRestriction),
 					std::make_pair("increasedEnemyJuggleTime", &General::increasedEnemyJuggleTime),
-					std::make_pair("fasterTurnRate", &General::fasterTurnRate),
-					std::make_pair("enableCustomMobility", &General::enableCustomMobility)
+					std::make_pair("fasterTurnRate", &General::fasterTurnRate)
 				);
 			}
         } General;
@@ -254,7 +252,7 @@ struct CrimsonConfig {
 			bool driveTweaks = true;
 			bool disableAirSlashKnockback = true;
 			bool airStinger = true;
-			bool dmc4TrickCount = true;
+			bool dmc4Mobility = true;
 			bool dTInfusedRoyalguard = true;
 
 			static constexpr auto Metadata() {
@@ -269,7 +267,7 @@ struct CrimsonConfig {
 					std::make_pair("driveTweaks", &Dante::driveTweaks),
 					std::make_pair("disableAirSlashKnockback", &Dante::disableAirSlashKnockback),
 					std::make_pair("airStinger", &Dante::airStinger),
-					std::make_pair("dmc4TrickCount", &Dante::dmc4TrickCount),
+					std::make_pair("dmc4Mobility", &Dante::dmc4Mobility),
 					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard)
 				);
 			}
@@ -316,6 +314,32 @@ struct CrimsonConfig {
 
 	} Gameplay;
 
+
+	struct Cheats {
+
+		struct General {
+			bool customMobility = false;
+			bool customDamage = false;
+			bool customSpeed = false;
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("customMobility", &General::customMobility),
+					std::make_pair("customDamage", &General::customDamage),
+					std::make_pair("customSpeed", &General::customSpeed)
+					
+				);
+			}
+		} General;
+
+
+		static constexpr auto Metadata() {
+			return std::make_tuple(
+				std::make_pair("General", &Cheats::General)
+			);
+		}
+	} Cheats;
+
 	struct PlayerProperties {
 		uint8 playerColor[PLAYER_COUNT][4] = {
 			// r   g  b  a  
@@ -354,6 +378,7 @@ struct CrimsonConfig {
             std::make_pair("StyleSwitchFX", &CrimsonConfig::StyleSwitchFX),
             std::make_pair("SFX", &CrimsonConfig::SFX),
             std::make_pair("Gameplay", &CrimsonConfig::Gameplay),
+			std::make_pair("Cheats", &CrimsonConfig::Cheats),
 			std::make_pair("PlayerProperties", &CrimsonConfig::PlayerProperties),
 			std::make_pair("testNumber", &CrimsonConfig::testNumber)
 		);

@@ -7996,17 +7996,15 @@ void UpdateActorSpeed(byte8* baseAddr) {
     auto& quicksilver      = player1LeadActorData.quicksilver;
     auto& quicksilverStage = player1LeadActorData.quicksilverStage;
 
-
     // IntroduceMainActorData
     auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
     if (!pool_12857 || !pool_12857[3]) {
         return;
     }
-
-
     auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
-    CrimsonPatches::DisableAirSlashKnockback();
-    CrimsonPatches::InertiaFixes();
+
+	CrimsonPatches::DisableAirSlashKnockback();
+	CrimsonPatches::InertiaFixes();
 
     // Sky Launch needs to be called from here for maximum on tick speed so that its position is properly
     // applied in real-time. - Mia
@@ -8142,7 +8140,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
 					CrimsonGameplay::InertiaController(actorBaseAddr);
 				}
 
-                CrimsonGameplay::DMC4TrickCount(actorBaseAddr);
+                CrimsonGameplay::DMC4Mobility(actorBaseAddr);
                 // Doppelganger's attacks can now hold/increase your style meter
                 CrimsonGameplay::StyleMeterDoppelganger(actorBaseAddr);
 

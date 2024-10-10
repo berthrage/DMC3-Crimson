@@ -7203,14 +7203,15 @@ void Lady() {
 void MobilitySection() {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	const float itemWidth = defaultFontSize * 8.0f;
+	float smallerComboMult = 0.7f;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 	GUI_PushDisable(!activeConfig.Actor.enable);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 	ImGui::PushItemWidth(itemWidth);
 	
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-	if (GUI_Checkbox2("CUSTOM MOBILITY", activeCrimsonConfig.Gameplay.General.enableCustomMobility, queuedCrimsonConfig.Gameplay.General.enableCustomMobility)) {
-		if (!activeCrimsonConfig.Gameplay.General.enableCustomMobility) {
+	if (GUI_Checkbox2("CUSTOM MOBILITY", activeCrimsonConfig.Cheats.General.customMobility, queuedCrimsonConfig.Cheats.General.customMobility)) {
+		if (!activeCrimsonConfig.Cheats.General.customMobility) {
 			CopyMemory(&queuedConfig.airHikeCount, &defaultConfig.airHikeCount, sizeof(queuedConfig.airHikeCount));
 			CopyMemory(&activeConfig.airHikeCount, &queuedConfig.airHikeCount, sizeof(activeConfig.airHikeCount));
 
@@ -7246,43 +7247,92 @@ void MobilitySection() {
 	UI::SeparatorEx(defaultFontSize * 23.35f);
 
 	ImGui::Text("");
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+
+	auto MobilityDataInput = [](const char* label, uint8(&active)[2], uint8(&queued)[2], uint8(&defaultVar)[2]) {
+		auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+		const float itemWidth = defaultFontSize * 8.0f;
+		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
+		float smallerComboMult = 0.7f;
+
+		for (size_t i = 0; i < 2; ++i) {
+			if (i == 0) {
+				ImGui::TableNextRow(0, rowWidth);
+				ImGui::TableNextColumn();
+			}
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2("", active[i], queued[i], defaultVar[i], (uint8)1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+			if (i == 0) {
+				ImGui::TableNextColumn();
+			}
+			else {
+				ImGui::SameLine();
+				ImGui::Text(label);
+			}
+		}
+		};
+
 	{
-		const float columnWidth = 0.5f * queuedConfig.globalScale;
-		const float rowWidth = 40.0f * queuedConfig.globalScale;
+		// Get initial cursor position for manual layout
+		ImVec2 initialPos = ImGui::GetCursorPos();
+		const float columnWidth = 0.15f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
+		GUI_PushDisable(!activeCrimsonConfig.Cheats.General.customMobility);
 
-		if (ImGui::BeginTable("MobilityTitlesTable", 2)) {
-
+		ImGui::SetCursorPos(initialPos);
+		// Start first table (left side)
+		if (ImGui::BeginTable("MobilityOptionsTable1", 2)) {
 			ImGui::TableSetupColumn("b1", 0, columnWidth);
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 			ImGui::Text("HUMAN");
-
 			ImGui::TableNextColumn();
-
 			ImGui::Text("DEVIL TRIGGER");
+			ImGui::PopFont();
 
+			// First half of mobility options
+			MobilityDataInput("Air Hike Count", activeConfig.airHikeCount, queuedConfig.airHikeCount, defaultConfig.airHikeCount);
+			MobilityDataInput("Kick Jump Count", activeConfig.kickJumpCount, queuedConfig.kickJumpCount, defaultConfig.kickJumpCount);
+			MobilityDataInput("Wall Hike Count", activeConfig.wallHikeCount, queuedConfig.wallHikeCount, defaultConfig.wallHikeCount);
+			MobilityDataInput("Dash Count", activeConfig.dashCount, queuedConfig.dashCount, defaultConfig.dashCount);
+			MobilityDataInput("Sky Star Count", activeConfig.skyStarCount, queuedConfig.skyStarCount, defaultConfig.skyStarCount);
 
 			ImGui::EndTable();
 		}
+
+		// Add some space between the tables
+		ImGui::SetCursorPos(ImVec2(initialPos.x + (420 * queuedConfig.globalScale), initialPos.y)); 
+
+		// Start second table (right side)
+		if (ImGui::BeginTable("MobilityOptionsTable2", 2)) {
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.3f);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("HUMAN");
+			ImGui::TableNextColumn();
+			ImGui::Text("DEVIL TRIGGER");
+			ImGui::PopFont();
+
+			// Second half of mobility options
+			MobilityDataInput("Air Trick Count Dante", activeConfig.airTrickCountDante, queuedConfig.airTrickCountDante, defaultConfig.airTrickCountDante);
+			MobilityDataInput("Air Trick Count Vergil", activeConfig.airTrickCountVergil, queuedConfig.airTrickCountVergil, defaultConfig.airTrickCountVergil);
+			MobilityDataInput("Trick Up Count", activeConfig.trickUpCount, queuedConfig.trickUpCount, defaultConfig.trickUpCount);
+			MobilityDataInput("Trick Down Count", activeConfig.trickDownCount, queuedConfig.trickDownCount, defaultConfig.trickDownCount);
+
+			ImGui::EndTable();
+		}
+
+		GUI_PopDisable(!activeCrimsonConfig.Cheats.General.customMobility);
 	}
-	ImGui::PopFont();
-	GUI_PushDisable(!activeCrimsonConfig.Gameplay.General.enableCustomMobility);
-	ActionData("Air Hike Count", activeConfig.airHikeCount, queuedConfig.airHikeCount, defaultConfig.airHikeCount);
-	ActionData("Kick Jump Count", activeConfig.kickJumpCount, queuedConfig.kickJumpCount, defaultConfig.kickJumpCount);
-	ActionData("Wall Hike Count", activeConfig.wallHikeCount, queuedConfig.wallHikeCount, defaultConfig.wallHikeCount);
-	ActionData("Dash Count", activeConfig.dashCount, queuedConfig.dashCount, defaultConfig.dashCount);
-	ActionData("Sky Star Count", activeConfig.skyStarCount, queuedConfig.skyStarCount, defaultConfig.skyStarCount);
-	ActionData(
-		"Air Trick Count Dante", activeConfig.airTrickCountDante, queuedConfig.airTrickCountDante, defaultConfig.airTrickCountDante);
-	ActionData("Air Trick Count Vergil", activeConfig.airTrickCountVergil, queuedConfig.airTrickCountVergil,
-		defaultConfig.airTrickCountVergil);
-	ActionData("Trick Up Count", activeConfig.trickUpCount, queuedConfig.trickUpCount, defaultConfig.trickUpCount);
-	ActionData("Trick Down Count", activeConfig.trickDownCount, queuedConfig.trickDownCount, defaultConfig.trickDownCount);
-	GUI_PopDisable(!activeCrimsonConfig.Gameplay.General.enableCustomMobility);
-
-
+	
+	//GUI_InputDefault2("", vars[0], vars2[0], defaultVars[0], step, format, flags);
 	GUI_PopDisable(!activeConfig.Actor.enable);
 	ImGui::PopItemWidth();
 	ImGui::PopStyleColor();
@@ -9591,7 +9641,7 @@ void GameplayOptions() {
 		ImGui::SameLine();
 		TooltipHelper("(?)", "Requires Actor System.\n");
 
-		if (GUI_Checkbox2("DMC4 Trick Count", activeCrimsonConfig.Gameplay.Dante.dmc4TrickCount, queuedCrimsonConfig.Gameplay.Dante.dmc4TrickCount)) {
+		if (GUI_Checkbox2("DMC4 Mobility", activeCrimsonConfig.Gameplay.Dante.dmc4Mobility, queuedCrimsonConfig.Gameplay.Dante.dmc4Mobility)) {
 			queuedConfig.airHikeCount[1] = 2;
 			queuedConfig.wallHikeCount[1] = 2;
 			queuedConfig.skyStarCount[1] = 2;

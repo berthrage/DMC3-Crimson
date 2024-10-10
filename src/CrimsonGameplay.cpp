@@ -472,6 +472,11 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
 
     static bool executes[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][4] = {};
     auto& cancels = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].cancels : crimsonPlayer[playerIndex].cancelsClone;
+    bool doingAirTrick = (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)
+        && actorData.style == STYLE::TRICKSTER && actorData.lockOn && tiltDirection == TILT_DIRECTION::UP);
+    bool doingTricksterDash = (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && actorData.state & STATE::ON_FLOOR
+        && actorData.style == STYLE::TRICKSTER && !doingAirTrick);
+
 
     if (actorData.character == CHARACTER::DANTE) {
 
@@ -1274,6 +1279,8 @@ void InertiaController(byte8* actorBaseAddr) {
     auto& animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
     auto& guarflyTimer = i->guardflyTimer;
 
+    //CrimsonPatches::InertiaFixes();
+
 
     if (actorData.character == CHARACTER::DANTE) {
 
@@ -1707,7 +1714,7 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
 
 #pragma region GeneralGameplay
 
-void DMC4TrickCount(byte8* actorBaseAddr) {
+void DMC4Mobility(byte8* actorBaseAddr) {
 	if (!actorBaseAddr) {
 		return;
 	}
@@ -1720,7 +1727,7 @@ void DMC4TrickCount(byte8* actorBaseAddr) {
     auto& airTrickCount = actorData.newAirTrickCount;
     static uint8 savedAirTrickCounts[PLAYER_COUNT][ENTITY_COUNT] = { 0 };
     auto& savedAirTrickCount = savedAirTrickCounts[playerIndex][entityIndex];
-    bool enable = activeCrimsonConfig.Gameplay.Dante.dmc4TrickCount;
+    bool enable = activeCrimsonConfig.Gameplay.Dante.dmc4Mobility;
     static bool run = false;
 
     // Messing with default Mobility Settings to be equivalent to DMC4 counts.
@@ -1738,7 +1745,7 @@ void DMC4TrickCount(byte8* actorBaseAddr) {
 		defaultConfig.skyStarCount[1] = 1;
 		defaultConfig.airTrickCountDante[1] = 1;
 
-        if (!activeCrimsonConfig.Gameplay.General.enableCustomMobility) {
+        if (!activeCrimsonConfig.Cheats.General.customMobility) {
 			queuedConfig.airHikeCount[1] = 1;
             queuedConfig.wallHikeCount[1] = 1;
             queuedConfig.skyStarCount[1] = 1;
@@ -1753,7 +1760,7 @@ void DMC4TrickCount(byte8* actorBaseAddr) {
         run = enable;
     }
 
-	if (!activeCrimsonConfig.Gameplay.Dante.dmc4TrickCount) {
+	if (!activeCrimsonConfig.Gameplay.Dante.dmc4Mobility) {
 		return;
 	}
 
