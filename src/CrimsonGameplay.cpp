@@ -372,6 +372,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 
 void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
     using namespace ACTION_DANTE;
+    using namespace NEXT_ACTION_REQUEST_POLICY;
 
     /*if (
             !actorBaseAddr ||
@@ -476,6 +477,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
         && actorData.style == STYLE::TRICKSTER && actorData.lockOn && tiltDirection == TILT_DIRECTION::UP);
     bool doingTricksterDash = (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && actorData.state & STATE::ON_FLOOR
         && actorData.style == STYLE::TRICKSTER && !doingAirTrick);
+    auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
 
 
     if (actorData.character == CHARACTER::DANTE) {
@@ -486,7 +488,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
                     (inCancellableActionRebellion || inCancellableActionCerberus || inCancellableActionAgni || inCancellableActionNevan ||
                         inCancellableActionBeowulf || inCancellableActionGuns || inCancellableActionAirSwordmaster ||
                         inCancellableActionAirGunslinger || actorData.action == EBONY_IVORY_RAIN_STORM) ||
-                skyLaunch.executing || actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_SKY_STAR)) {
+                skyLaunch.executing || actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_SKY_STAR) && (policy == BUFFER || policy == EXECUTE)) {
             if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
 
 				if (cancels.canTrick) {

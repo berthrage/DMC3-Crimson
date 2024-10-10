@@ -7627,7 +7627,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
-			ImGui::Text("Air Trick Count : % u", actorData.newAirTrickCount);
+			ImGui::Text("Permissions: %x", actorData.permissions);
+			ImGui::Text("Air Trick Count : %u", actorData.newAirTrickCount);
 			ImGui::Text("rainstorm cached inertia:  %g", crimsonPlayer[0].inertia.rainstorm.cachedPull);
 			ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
 			ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
