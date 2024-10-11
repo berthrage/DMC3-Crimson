@@ -450,6 +450,9 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
 
     bool inCancellableActionAirGunslinger = (actorData.action == SHOTGUN_AIR_FIREWORKS || actorData.action == ARTEMIS_AIR_NORMAL_SHOT ||
                                              actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT);
+    bool inGunsMove = (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == SHOTGUN_AIR_NORMAL_SHOT ||
+        actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT || actorData.action == SPIRAL_NORMAL_SHOT
+        || actorData.action == SPIRAL_TRICK_SHOT || actorData.action == KALINA_ANN_NORMAL_SHOT);
 
 
     if (playerIndex >= PLAYER_COUNT) {
@@ -478,9 +481,18 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
     bool doingTricksterDash = (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && actorData.state & STATE::ON_FLOOR
         && actorData.style == STYLE::TRICKSTER && !doingAirTrick);
     auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
+    auto& policyTrick = actorData.nextActionRequestPolicy[TRICKSTER_DARK_SLAYER];
 
 
     if (actorData.character == CHARACTER::DANTE) {
+
+        // Improve Prop/Shredder Trick Buffering
+        if (actorData.action == REBELLION_PROP || actorData.action == REBELLION_SHREDDER) {
+            policyTrick = BUFFER;
+            if (doingAirTrick && actionTimer > 0.55f) {
+                policyTrick = EXECUTE;
+            }
+        }
 
         // Dante's Trickster Actions Cancels Most Things (w/ cooldown)
         if ((actorData.style == STYLE::TRICKSTER) &&
@@ -1633,7 +1645,7 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
     auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
     auto event      = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].event : crimsonPlayer[playerIndex].eventClone;
     auto motion     = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
-    auto state      = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
+    auto& state = actorData.state;
     auto actionTimer =
         (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 
@@ -1684,7 +1696,7 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
     auto event      = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].event : crimsonPlayer[playerIndex].eventClone;
     auto lastEvent  = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastEvent : crimsonPlayer[playerIndex].lastEventClone;
     auto motion     = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
-    auto state      = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
+    auto& state = actorData.state;
     auto actionTimer =
 		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 

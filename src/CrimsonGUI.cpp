@@ -7627,7 +7627,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
-			ImGui::Text("Permissions: %x", actorData.permissions);
+			ImGui::Text("NextActionPolicyTrickster: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::TRICKSTER_DARK_SLAYER]);
+			ImGui::Text("NextActionPolicyMelee: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::MELEE_ATTACK]);
+			ImGui::Text("BufferedAction: %u", actorData.bufferedAction);
 			ImGui::Text("Air Trick Count : %u", actorData.newAirTrickCount);
 			ImGui::Text("rainstorm cached inertia:  %g", crimsonPlayer[0].inertia.rainstorm.cachedPull);
 			ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
@@ -8802,7 +8804,7 @@ void FrameResponsiveGameSpeed() {
 	auto& queuedValue = (IsTurbo()) ? queuedConfig.Speed.turbo : queuedConfig.Speed.mainSpeed;
 	float gameSpeed = (IsTurbo()) ? 1.2f : 1.0f;
 
-	if (activeConfig.framerateResponsiveGameSpeed) {
+	if (activeConfig.framerateResponsiveGameSpeed && ImGui::GetIO().Framerate > activeConfig.frameRate - 50) {
 		UpdateFrameRate();
 
 		activeValue = gameSpeed / (ImGui::GetIO().Framerate / 60);

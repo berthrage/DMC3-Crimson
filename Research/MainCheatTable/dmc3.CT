@@ -4088,6 +4088,30 @@ dmc3.exe+211BDF: 90                             - nop
               </Offsets>
             </CheatEntry>
             <CheatEntry>
+              <ID>2156</ID>
+              <Description>"+39D0 NextActionRequestPolicy[Melee]"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>4 Bytes</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>+39D0</Offset>
+                <Offset>18</Offset>
+                <Offset>c90e28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2725</ID>
+              <Description>"+39E0 NextActionRequestPolicy[Trick]"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>4 Bytes</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>+39E0</Offset>
+                <Offset>18</Offset>
+                <Offset>c90e28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
               <ID>2462</ID>
               <Description>"+3E9B InDevilTrigger"</Description>
               <ShowAsSigned>0</ShowAsSigned>
@@ -4112,7 +4136,7 @@ dmc3.exe+211BDF: 90                             - nop
               </Offsets>
             </CheatEntry>
             <CheatEntry>
-              <ID>2156</ID>
+              <ID>2724</ID>
               <Description>"+3EB8 current DT amount"</Description>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>Float</VariableType>
@@ -77326,6 +77350,203 @@ dealloc(newmem)
         <Byte>24</Byte>
       </After>
     </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [r8+000039D0],rax</Description>
+      <AddressString>dmc3.exe+1E0E7A</AddressString>
+      <Before>
+        <Byte>80</Byte>
+        <Byte>70</Byte>
+        <Byte>66</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>49</Byte>
+        <Byte>89</Byte>
+        <Byte>80</Byte>
+        <Byte>D0</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>49</Byte>
+        <Byte>89</Byte>
+        <Byte>80</Byte>
+        <Byte>D8</Byte>
+        <Byte>39</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rbx+rax*4+000039D0],00000002</Description>
+      <AddressString>dmc3.exe+1F0400</AddressString>
+      <Before>
+        <Byte>EB</Byte>
+        <Byte>0E</Byte>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>C0</Byte>
+      </Before>
+      <Actual>
+        <Byte>C7</Byte>
+        <Byte>84</Byte>
+        <Byte>83</Byte>
+        <Byte>D0</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>02</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>FF</Byte>
+        <Byte>C7</Byte>
+        <Byte>48</Byte>
+        <Byte>FF</Byte>
+        <Byte>C6</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rbx+rax*4+000039D0],ebp</Description>
+      <AddressString>dmc3.exe+1F03F4</AddressString>
+      <Before>
+        <Byte>EB</Byte>
+        <Byte>1A</Byte>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>C0</Byte>
+      </Before>
+      <Actual>
+        <Byte>89</Byte>
+        <Byte>AC</Byte>
+        <Byte>83</Byte>
+        <Byte>D0</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>EB</Byte>
+        <Byte>0E</Byte>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>C0</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rbx+rax*4+000039D0],00000001</Description>
+      <AddressString>dmc3.exe+1F03E4</AddressString>
+      <Before>
+        <Byte>75</Byte>
+        <Byte>2A</Byte>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>C0</Byte>
+      </Before>
+      <Actual>
+        <Byte>C7</Byte>
+        <Byte>84</Byte>
+        <Byte>83</Byte>
+        <Byte>D0</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>01</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>EB</Byte>
+        <Byte>1A</Byte>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>C0</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rbx+000039E0],rcx</Description>
+      <AddressString>dmc3.exe+1F015E</AddressString>
+      <Before>
+        <Byte>8B</Byte>
+        <Byte>D8</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>48</Byte>
+        <Byte>89</Byte>
+        <Byte>8B</Byte>
+        <Byte>E0</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>48</Byte>
+        <Byte>89</Byte>
+        <Byte>8B</Byte>
+        <Byte>E8</Byte>
+        <Byte>39</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [r8+000039E0],rax</Description>
+      <AddressString>dmc3.exe+1E0E88</AddressString>
+      <Before>
+        <Byte>80</Byte>
+        <Byte>D8</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>49</Byte>
+        <Byte>89</Byte>
+        <Byte>80</Byte>
+        <Byte>E0</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>49</Byte>
+        <Byte>89</Byte>
+        <Byte>80</Byte>
+        <Byte>E8</Byte>
+        <Byte>39</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rsi+000039E0],rcx</Description>
+      <AddressString>dmc3.exe+1EFCC2</AddressString>
+      <Before>
+        <Byte>8E</Byte>
+        <Byte>D8</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>48</Byte>
+        <Byte>89</Byte>
+        <Byte>8E</Byte>
+        <Byte>E0</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>48</Byte>
+        <Byte>89</Byte>
+        <Byte>8E</Byte>
+        <Byte>E8</Byte>
+        <Byte>39</Byte>
+      </After>
+    </CodeEntry>
   </CheatCodes>
   <UserdefinedSymbols>
     <SymbolEntry>
@@ -82121,11 +82342,6 @@ dmc3.exe+2BB11E style bar stuff
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
-      <Address>7FF6AEE6AF43</Address>
-      <Comment>%s crash
-</Comment>
-    </DisassemblerComment>
-    <DisassemblerComment>
       <Address>"dmc3.exe"+300C6</Address>
       <Comment>Controls something for Character anim
 </Comment>
@@ -82576,6 +82792,11 @@ Setting max alpha value (127)
     <DisassemblerComment>
       <Address>"dmc3.exe"+3161EA</Address>
       <Comment>doesnt reenable
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>7FF6AEE6AF43</Address>
+      <Comment>%s crash
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
