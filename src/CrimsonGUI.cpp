@@ -4886,65 +4886,105 @@ void CameraSection(size_t defaultFontSize) {
 
 #pragma region Damage
 
-void Damage() {
-	if (ImGui::CollapsingHeader("Damage")) {
-		ImGui::Text("");
+void DamageSection() {
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	const float itemWidth = defaultFontSize * 8.0f;
+	float smallerComboMult = 0.7f;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
+	//Gui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
-		if (GUI_ResetButton()) {
-			CopyMemory(&queuedConfig.damagePlayerActorMultiplier, &defaultConfig.damagePlayerActorMultiplier,
-				sizeof(queuedConfig.damagePlayerActorMultiplier));
-			CopyMemory(&activeConfig.damagePlayerActorMultiplier, &queuedConfig.damagePlayerActorMultiplier,
-				sizeof(activeConfig.damagePlayerActorMultiplier));
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	if (GUI_Checkbox2("CUSTOM DAMAGE", activeCrimsonConfig.Cheats.General.customDamage, queuedCrimsonConfig.Cheats.General.customDamage)) {
+		if (!activeCrimsonConfig.Cheats.General.customDamage) {
+			// Reset damage config to default when the checkbox is unchecked
+			CopyMemory(&queuedConfig.damagePlayerActorMultiplier, &defaultConfig.damagePlayerActorMultiplier, sizeof(queuedConfig.damagePlayerActorMultiplier));
+			CopyMemory(&activeConfig.damagePlayerActorMultiplier, &queuedConfig.damagePlayerActorMultiplier, sizeof(activeConfig.damagePlayerActorMultiplier));
 
-			CopyMemory(&queuedConfig.damageEnemyActorMultiplier, &defaultConfig.damageEnemyActorMultiplier,
-				sizeof(queuedConfig.damageEnemyActorMultiplier));
-			CopyMemory(&activeConfig.damageEnemyActorMultiplier, &queuedConfig.damageEnemyActorMultiplier,
-				sizeof(activeConfig.damageEnemyActorMultiplier));
+			CopyMemory(&queuedConfig.damageEnemyActorMultiplier, &defaultConfig.damageEnemyActorMultiplier, sizeof(queuedConfig.damageEnemyActorMultiplier));
+			CopyMemory(&activeConfig.damageEnemyActorMultiplier, &queuedConfig.damageEnemyActorMultiplier, sizeof(activeConfig.damageEnemyActorMultiplier));
 
 			CopyMemory(&queuedConfig.damageStyleRank, &defaultConfig.damageStyleRank, sizeof(queuedConfig.damageStyleRank));
 			CopyMemory(&activeConfig.damageStyleRank, &queuedConfig.damageStyleRank, sizeof(activeConfig.damageStyleRank));
 		}
-		ImGui::Text("");
+	}
+	ImGui::PopFont();
+	UI::SeparatorEx(defaultFontSize * 23.35f);
 
-		TooltipHelper("(?)", "Multiplier values are for RECEIVED damage.");
-		ImGui::Text("");
+	ImGui::Text("");
 
+	auto DamageDataInput = [](float& active, float& queued, float& defaultVar) {
+		auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+		const float itemWidth = defaultFontSize * 8.0f;
+		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
+		float smallerComboMult = 0.7f;
 
-		{
-			static bool toggled = false;
+		ImGui::PushItemWidth(itemWidth * smallerComboMult);
+		GUI_InputDefault2("", active, queued, defaultVar, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::PopItemWidth();
+		};
 
-			if (GUI_Button("One Hit Kill")) {
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+	{
+		// Get initial cursor position for manual layout
+		ImVec2 initialPos = ImGui::GetCursorPos();
+		const float columnWidth = queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
+		GUI_PushDisable(!activeCrimsonConfig.Cheats.General.customDamage);
 
-				if (!toggled) {
-					toggled = true;
+		ImGui::SetCursorPos(initialPos);
+		// Start first table (left side)
+		if (ImGui::BeginTable("DamageOptionsTable", 3)) {
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-					activeConfig.damagePlayerActorMultiplier = queuedConfig.damagePlayerActorMultiplier = 1.0f;
-					activeConfig.damageEnemyActorMultiplier = queuedConfig.damageEnemyActorMultiplier = 100.0f;
-				}
-				else {
-					toggled = false;
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("PLAYER RECEIVED DAMAGE MULT.");
+			ImGui::PopFont();
+			DamageDataInput(activeConfig.damagePlayerActorMultiplier, queuedConfig.damagePlayerActorMultiplier, defaultConfig.damagePlayerActorMultiplier);
 
-					activeConfig.damagePlayerActorMultiplier = queuedConfig.damagePlayerActorMultiplier = 0;
-					activeConfig.damageEnemyActorMultiplier = queuedConfig.damageEnemyActorMultiplier = 0;
+			ImGui::TableNextColumn();
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("ENEMY RECEIVED DAMAGE MULT.");
+			ImGui::PopFont();
+			DamageDataInput(activeConfig.damageEnemyActorMultiplier, queuedConfig.damageEnemyActorMultiplier, defaultConfig.damageEnemyActorMultiplier);
+			ImGui::SameLine();
+			{
+				static bool toggled = false;
+				if (GUI_Button("One Hit Kill")) {
+
+					if (!toggled) {
+						toggled = true;
+						activeConfig.damageEnemyActorMultiplier = queuedConfig.damageEnemyActorMultiplier = 100.0f;
+					}
+					else {
+						toggled = false;
+						activeConfig.damageEnemyActorMultiplier = queuedConfig.damageEnemyActorMultiplier = defaultConfig.damageEnemyActorMultiplier;
+					}
 				}
 			}
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("CAUSE DAMAGE ONLY ON STYLE RANK");
+			ImGui::PopFont();
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			UI::Combo2("", styleRankNames, activeConfig.damageStyleRank, queuedConfig.damageStyleRank);
+			ImGui::PopItemWidth();
+
+			GUI_PopDisable(!activeCrimsonConfig.Cheats.General.customDamage);
+
+			ImGui::EndTable();
 		}
-
-
-		ImGui::PushItemWidth(150);
-
-		GUI_InputDefault2("Player Actor Multiplier", activeConfig.damagePlayerActorMultiplier, queuedConfig.damagePlayerActorMultiplier,
-			defaultConfig.damagePlayerActorMultiplier, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-
-		GUI_InputDefault2("Enemy Actor Multiplier", activeConfig.damageEnemyActorMultiplier, queuedConfig.damageEnemyActorMultiplier,
-			defaultConfig.damageEnemyActorMultiplier, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-
-		UI::Combo2("Style Rank", styleRankNames, activeConfig.damageStyleRank, queuedConfig.damageStyleRank);
-
-		ImGui::PopItemWidth();
-
-		ImGui::Text("");
 	}
+
+	
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+	ImGui::Text("");
 }
 
 #pragma endregion
@@ -7206,7 +7246,7 @@ void MobilitySection() {
 	float smallerComboMult = 0.7f;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 	GUI_PushDisable(!activeConfig.Actor.enable);
-	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+	//Gui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 	ImGui::PushItemWidth(itemWidth);
 	
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
@@ -7274,6 +7314,7 @@ void MobilitySection() {
 		}
 		};
 
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 	{
 		// Get initial cursor position for manual layout
 		ImVec2 initialPos = ImGui::GetCursorPos();
@@ -10904,7 +10945,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						DebugSection();
 						//}
 						TrainingSection();
-						Damage();
+						DamageSection();
 						MobilitySection();
 						Other();
 						
