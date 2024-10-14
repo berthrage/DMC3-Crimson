@@ -518,6 +518,7 @@ struct Config {
     bool weaponWheelAnalogSelectionEnabled = true;
     bool weaponWheelAnalogRightStick       = true;
     bool weaponWheelDisableCameraRotation  = true;
+    bool weaponWheelAutoPlace              = true;
     float weaponWheelScaleMultiplier       = 0.6f;
     float weaponWheelHeight                = 447;
     float weaponWheelHorizontalMelee       = 701;

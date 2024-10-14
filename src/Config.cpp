@@ -1706,7 +1706,7 @@ void ToConfig(Config& config_) {
     config.enablePVPFixes                     = Get<bool>(member["enablePVPFixes"]);
     config.hideMainHUD                        = Get<bool>(member["hideMainHUD"]);
     config.hideLockOn                         = Get<bool>(member["hideLockOn"]);
-    config.disableStyleRankHudFadeout = Get<bool>(member["disableStyleRankHudFadeout"]);
+    config.disableStyleRankHudFadeout         = Get<bool>(member["disableStyleRankHudFadeout"]);
     config.soundIgnoreEnemyData               = Get<bool>(member["soundIgnoreEnemyData"]);
     config.enableRebellionAirStinger          = Get<bool>(member["enableRebellionAirStinger"]);
     config.enableRebellionNewDrive            = Get<bool>(member["enableRebellionNewDrive"]);

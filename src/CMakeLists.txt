@@ -198,10 +198,22 @@ set(UTILITY_SRC
 )
 
 set(UI_SRC 
-    UI/EmbeddedImages.hpp
+    UI/BatchedSprites.cpp
+    UI/BatchedSprites.hpp
     UI/EmbeddedImages.cpp
+    UI/EmbeddedImages.hpp
+    UI/GenericAnimation.cpp
+    UI/GenericAnimation.hpp
+    UI/GraphicsBase.cpp
+    UI/GraphicsBase.hpp
+    UI/Sprite.cpp
+    UI/Sprite.hpp
+    UI/Texture2DArrayD3D11.cpp
+    UI/Texture2DArrayD3D11.hpp
     UI/Texture2DD3D11.cpp
     UI/Texture2DD3D11.hpp
+    UI/WeaponWheel.cpp
+    UI/WeaponWheel.hpp
 )
 
 source_group("Global" FILES ${GLOBAL_SRC})
