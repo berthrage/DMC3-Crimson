@@ -125,7 +125,7 @@ Effects Found
 3/5 = Cool Bigger spark, Random
 3/6 = Small Shockwave + Blue Spark
 3/7 = CRASH
-3/8 = Big Shockwave
+3/8 = Big Shockwave - can use for eventual Judgement Cut End
 3/9 = CRASH
 3/10 = Small Poof + Spark
 3/11 = CRASH
@@ -178,7 +178,7 @@ Effects Found
 3/58 = CRASH
 3/59 = CRASH
 3/60 = Electrical Blur Loop
-3/61 = Cool White Circles
+3/61 = Cool White Circles - used for DTE loop
 3/62 = CRASH
 3/63 = CRASH
 3/64 = White Nonsensical Something

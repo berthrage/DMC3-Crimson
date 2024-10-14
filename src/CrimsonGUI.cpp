@@ -8940,7 +8940,7 @@ void FrameResponsiveGameSpeed() {
 	auto& queuedValue = (IsTurbo()) ? queuedConfig.Speed.turbo : queuedConfig.Speed.mainSpeed;
 	float gameSpeed = (IsTurbo()) ? 1.2f : 1.0f;
 
-	if (activeConfig.framerateResponsiveGameSpeed && ImGui::GetIO().Framerate > activeConfig.frameRate - 50) {
+	if (activeConfig.framerateResponsiveGameSpeed && ImGui::GetIO().Framerate > queuedConfig.frameRate - 50) {
 		UpdateFrameRate();
 
 		activeValue = gameSpeed / (ImGui::GetIO().Framerate / 60);

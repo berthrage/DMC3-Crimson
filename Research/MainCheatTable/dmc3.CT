@@ -9234,6 +9234,88 @@ dealloc(newmem)
 }
 </AssemblerScript>
     </CheatEntry>
+    <CheatEntry>
+      <ID>2726</ID>
+      <Description>"Artemis Multilock damage"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Float</VariableType>
+      <Address>dmc3.exe+5CB3CC</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2727</ID>
+      <Description>"Auto Assemble script"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2024-10-11
+  Author : Mia Berth
+
+  This script does blah blah blah
+}
+
+define(address,"dmc3.exe"+215E03)
+define(bytes,F3 0F 10 90 68 01 00 00)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000,"dmc3.exe"+215E03)
+alloc(myFloatAddr, 4)
+
+label(code)
+label(return)
+
+myFloatAddr:
+dd (float)1200
+
+newmem:
+
+code:
+  movss xmm2,[myFloatAddr]
+  jmp return
+
+address:
+  jmp newmem
+  nop 3
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+  // movss xmm2,[rax+00000168]
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+215E03
+
+dmc3.exe+215DCC: 44 8D 4A 02                    - lea r9d,[rdx+02]
+dmc3.exe+215DD0: E8 5B 3B 12 00                 - call dmc3.exe+339930
+dmc3.exe+215DD5: C7 87 6C B8 00 00 00 00 70 42  - mov [rdi+0000B86C],42700000
+dmc3.exe+215DDF: F3 0F 10 8F 68 B8 00 00        - movss xmm1,[rdi+0000B868]
+dmc3.exe+215DE7: 44 0F 2F C1                    - comiss xmm8,xmm1
+dmc3.exe+215DEB: 0F 86 95 01 00 00              - jbe dmc3.exe+215F86
+dmc3.exe+215DF1: 8B 8F 38 63 00 00              - mov ecx,[rdi+00006338]
+dmc3.exe+215DF7: 48 8B 87 E8 3D 00 00           - mov rax,[rdi+00003DE8]
+dmc3.exe+215DFE: 83 F9 01                       - cmp ecx,01
+dmc3.exe+215E01: 75 0A                          - jne dmc3.exe+215E0D
+// ---------- INJECTING HERE ----------
+dmc3.exe+215E03: F3 0F 10 90 68 01 00 00        - movss xmm2,[rax+00000168]
+// ---------- DONE INJECTING  ----------
+dmc3.exe+215E0B: EB 08                          - jmp dmc3.exe+215E15
+dmc3.exe+215E0D: F3 0F 10 90 64 01 00 00        - movss xmm2,[rax+00000164]
+dmc3.exe+215E15: 0F 28 C1                       - movaps xmm0,xmm1
+dmc3.exe+215E18: F3 0F 5E C2                    - divss xmm0,xmm2
+dmc3.exe+215E1C: F3 48 0F 2C C0                 - cvttss2si rax,xmm0
+dmc3.exe+215E21: 0F 57 C0                       - xorps xmm0,xmm0
+dmc3.exe+215E24: FF C0                          - inc eax
+dmc3.exe+215E26: F3 48 0F 2A C0                 - cvtsi2ss xmm0,rax
+dmc3.exe+215E2B: F3 0F 59 C2                    - mulss xmm0,xmm2
+dmc3.exe+215E2F: F3 48 0F 2C C0                 - cvttss2si rax,xmm0
+}
+</AssemblerScript>
+    </CheatEntry>
   </CheatEntries>
   <CheatCodes>
     <CodeEntry>
@@ -77545,6 +77627,34 @@ dealloc(newmem)
         <Byte>8E</Byte>
         <Byte>E8</Byte>
         <Byte>39</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of movss xmm2,[rax+00000168]</Description>
+      <AddressString>dmc3.exe+215E03</AddressString>
+      <Before>
+        <Byte>83</Byte>
+        <Byte>F9</Byte>
+        <Byte>01</Byte>
+        <Byte>75</Byte>
+        <Byte>0A</Byte>
+      </Before>
+      <Actual>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+        <Byte>10</Byte>
+        <Byte>90</Byte>
+        <Byte>68</Byte>
+        <Byte>01</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>EB</Byte>
+        <Byte>08</Byte>
+        <Byte>F3</Byte>
+        <Byte>0F</Byte>
+        <Byte>10</Byte>
       </After>
     </CodeEntry>
   </CheatCodes>
