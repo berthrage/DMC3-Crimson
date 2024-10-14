@@ -190,7 +190,7 @@ namespace WW
     {
         g_Sprites.reserve((size_t)TextureID::Size);
     
-        const std::filesystem::path textureRoot(R"(D:\original-size\textures)");
+        const std::filesystem::path textureRoot(R"(Crimson\assets\weaponwheel)");
     
         g_Sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel1.png)").string().c_str()); //ColoredDantePanel1Active
         g_Sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel2.png)").string().c_str()); //ColoredDantePanel2Active
