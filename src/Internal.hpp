@@ -156,7 +156,7 @@ extern func_594B0_t InitiateModelFunc;   // (BodyPartData & bodyPartData, byte8 
                                   // modelDataFunctions, PhysicsMetadata ** modelPhysicsMetadataPool, float32 * motionSpeed, void *)
 extern func_5A290_t func_5A290;   // (byte8 * body, uint32 group, uint32 index, uint16, uint8, uint8)
 extern func_8AC80_t func_8AC80;   // (ModelData & modelData, uint32 bodyPart, byte8 * motionFile, uint32, bool)
-extern func_1EFB90_t func_1EFB90; // (byte8 * actorData, uint32 group, uint32 index, float32, int8, uint8, uint8)
+extern func_1EFB90_t PlayAnimation; // (byte8 * actorData, uint32 group, uint32 index, float32, int8, uint8, uint8)
 extern func_1DFDA0_t func_1DFDA0; // (byte8 *, uint32, uint8, float32, float32, uint8)
 extern func_1FB300_t func_1FB300; // (byte8 * actorData, uint32 direction, float32 value)
 extern func_1E09D0_t func_1E09D0; // (byte8 * actorBaseAddr, uint32 event)

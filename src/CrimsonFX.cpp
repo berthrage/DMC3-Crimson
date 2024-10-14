@@ -31,6 +31,7 @@
 #include "Core/Macros.h"
 #include <deque>
 #include "Training.hpp"
+#include "CrimsonUtil.hpp"
 
 namespace CrimsonFX {
 
@@ -168,6 +169,12 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10298 || !pool_10298[8]) {
+		return;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+
     auto playerIndex = actorData.newPlayerIndex;
     auto& maxDT = actorData.maxMagicPoints;
     auto&sfxStarted = crimsonPlayer[playerIndex].dTESFX.started;
@@ -178,6 +185,7 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
     auto& vfxFinished = crimsonPlayer[playerIndex].dTEVFX.finished;
     auto& gamepad = GetGamepad(playerIndex);
     auto& distance = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
+	static bool pausedSFX = false;
 
 
     // SET RELEASE VOLUME MULTIPLIER
@@ -188,33 +196,42 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
         releaseVolumeMult = 0;
     }
     
-    // START
+    // SFX START
 	if (actorData.dtExplosionCharge > 500 && !sfxStarted) {
-		CrimsonSDL::PlayDTExplosionStart(playerIndex, 120);
+		CrimsonSDL::PlayDTExplosionStart(playerIndex, 50);
 
         sfxStarted = true;
 	}
 
-    // LOOP
+    // SFX LOOP
     if (!CrimsonSDL::DTEStartIsPlaying(playerIndex) && sfxStarted && !sfxLooped) {
-		CrimsonSDL::PlayDTExplosionLoop(playerIndex, 120);
+		CrimsonSDL::PlayDTExplosionLoop(playerIndex, 50);
 
         sfxLooped = true;
     }
 
-    // FINISH
-	if (actorData.dtExplosionCharge >= maxDT && !sfxFinished) {
+    // SFX FINISH
+	if (actorData.dtExplosionCharge >= maxDT) {
 		CrimsonSDL::InterruptDTExplosionSFX(playerIndex);
-		CrimsonSDL::PlayDTExplosionFinish(playerIndex, 200);
+		if (!sfxFinished) {
+			CrimsonSDL::PlayDTExplosionFinish(playerIndex, 150);
+		}
         
 		sfxFinished = true;
 	}
 
+	// We handle SFX Loop Pause in CrimsonOnTick::PauseSFXWhenPaused().
+
+	uint8 vfxColorDante[4] = { 48, 0, 10, 255 };
+	uint8 vfxColorVergil[4] = { 2, 16, 43, 255 };
+	uint32 actualColor = (actorData.character == CHARACTER::DANTE) ? CrimsonUtil::Uint8toAABBGGRR(vfxColorDante) :
+		CrimsonUtil::Uint8toAABBGGRR(vfxColorVergil);
 	// VFX START
 	if (actorData.dtExplosionCharge > 2500 && !vfxStarted && !vfxFinished) {
         crimsonPlayer[playerIndex].dTEVFX.time = 0;
 		auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
-		CrimsonDetours::CreateEffectDetour(pPlayer, 3, 61, 1, 69420);
+		
+		CrimsonDetours::CreateEffectDetour(pPlayer, 3, 61, 1, true, actualColor, 0.4f);
 
 		vfxStarted = true;
 	}
@@ -222,7 +239,7 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
 	// VFX FINISH
 	if (actorData.dtExplosionCharge >= maxDT && !vfxFinished) {
 		auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
-		CrimsonDetours::CreateEffectDetour(pPlayer, 3, 41, 1, 69420);
+		CrimsonDetours::CreateEffectDetour(pPlayer, 3, 41, 1, true, actualColor, 1.0f);
 
 		vfxFinished = true;
 	}
@@ -238,7 +255,7 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
         
         if (releaseVolumeMult > 0.4f) {
 			auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
-			CrimsonDetours::CreateEffectDetour(pPlayer, 3, 61, 1, 69420);
+			CrimsonDetours::CreateEffectDetour(pPlayer, 3, 61, 1,true, actualColor, 1.0f);
         }
 
         sfxStarted = false;
@@ -277,7 +294,7 @@ void StyleRankHudFadeoutController() {
 
 #pragma region DanteSpecificFX
 
-void RoyalguardSFX(byte8* actorBaseAddr) {
+void RoyalBlockFX(byte8* actorBaseAddr) {
 	if (!actorBaseAddr) {
 		return;
 	}
@@ -320,8 +337,11 @@ void RoyalguardSFX(byte8* actorBaseAddr) {
 		// ROYAL BLOCK SFX
 		if (inRoyalBlock) {
 			if (!royalBlockPlayed[playerIndex]) {
-				std::cout << "royal block played" << std::endl;
+				//std::cout << "royal block played" << std::endl;
 				CrimsonSDL::PlayRoyalBlock(playerIndex);
+				uint8 vfxColor[4] = { 226, 4, 50, 255 };
+				uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(vfxColor);
+				CrimsonDetours::CreateEffectDetour(actorBaseAddr, 3, 61, 15, true, actualColor, 1.7f);
 				royalBlockPlayed[playerIndex] = true;
 			}
 		}
@@ -329,11 +349,11 @@ void RoyalguardSFX(byte8* actorBaseAddr) {
 			royalBlockPlayed[playerIndex] = false;
 		}
 
-		if (actorData.magicPoints > 0) {
+		if (actorData.magicPoints >= 2000) {
 			// NORMAL BLOCK SFX
 			if (inNormalBlock) {
 				if (!normalBlockPlayed[playerIndex]) {
-					CrimsonSDL::PlayNormalBlock(playerIndex);
+					
 					normalBlockPlayed[playerIndex] = true;
 				}
 			}
@@ -432,7 +452,9 @@ void DelayedComboFXController(byte8* actorBaseAddr) {
 
             // VFX
 			auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
-			CrimsonDetours::CreateEffectDetour(pPlayer, delayedComboFX.bank, delayedComboFX.id, 1, 69420);
+			uint8 vfxColor[4] = { 48, 0, 10, 255 };
+			uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(vfxColor);
+			CrimsonDetours::CreateEffectDetour(pPlayer, delayedComboFX.bank, delayedComboFX.id, 1, true, actualColor, 1.2f);
 
             // VIBRATION
 			CrimsonSDL::VibrateController(playerIndex, 0, 0x5555, 130);
@@ -449,6 +471,7 @@ void DelayedComboFXController(byte8* actorBaseAddr) {
 }
 
 void StyleSwitchFlux(byte8* actorBaseAddr) {
+	// Deprecated, goodbye buggy DevilFlux, we had good times. - Mia
     if (!actorBaseAddr) {   
         return;
     }

@@ -43,7 +43,7 @@ void SkyLaunchKillDamageShieldNevanDetour();
 //extern int createEffectID;
 //extern int createEffectBone;
 //extern std::uint64_t createEffectPlayerAddr;
-void _fastcall CreateEffectDetour(void* pPlayer, int effectBank, int effectId, int effectBoneIdx, uint32_t colo_u_r);
+void _fastcall CreateEffectDetour(void* pPlayer, int bank, int id, int boneIndex, bool enableCustomColor, uint32_t color, float speed);
 
 // HoldToCrazyCombo
 void HoldToCrazyComboDetour();
@@ -96,6 +96,8 @@ void VergilNeutralTrickDetour();
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
 void InitDetours();
+void ToggleDisableDriveHold(bool enable);
+void ToggleDTInfusedRoyalguardDetours(bool enable);
 void ToggleFasterTurnRate(bool enable);
 void ToggleFreeformSoftLockHelper(bool enable);
 void ToggleDMC4LockOnDirection(bool enable);

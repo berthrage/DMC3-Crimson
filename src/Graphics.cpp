@@ -292,7 +292,13 @@ void Toggle(bool enable) {
 
 
 void UpdateFrameRate() {
-    LogFunction();
+	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10298 || !pool_10298[8]) {
+		return;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+
+    //LogFunction();
 
     g_frameRateMultiplier = (60 / activeConfig.frameRate);
 

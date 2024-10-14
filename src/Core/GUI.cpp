@@ -30,7 +30,10 @@ float saveTimeout = 1000; // in ms
 
 bool GUI_Button(const char* label, const ImVec2& size) {
     UI::PushID();
+    auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+    ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
     auto update = ImGui::Button(label, size);
+    ImGui::PopFont();
     UI::PopID();
 
     if (update) {
@@ -41,7 +44,7 @@ bool GUI_Button(const char* label, const ImVec2& size) {
 }
 
 bool GUI_ResetButton() {
-    auto update = GUI_Button("Reset");
+    auto update = GUI_Button("Default Settings");
 
     if (update) {
         ::GUI::save = true;

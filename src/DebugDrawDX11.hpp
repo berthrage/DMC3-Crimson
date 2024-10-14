@@ -2,6 +2,10 @@
 #define DEBUG_DRAW_EXPLICIT_CONTEXT
 #include "debug_draw.hpp"
 
+struct SimpleVec2 {
+	float x, y;
+};
+
 struct SimpleVec3 {
     float x,y,z;
 };

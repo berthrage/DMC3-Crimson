@@ -506,12 +506,6 @@ void CreateMembers(Config& config_) {
         auto& config = config_.Rebellion;
 
         Create<bool>(member, "infiniteSwordPierce", config.infiniteSwordPierce);
-
-        CreateArray<float, 2>(member, "stingerDuration", config.stingerDuration);
-        CreateArray<float, 2>(member, "stingerRange", config.stingerRange);
-        CreateArray<uint8, 2>(member, "airStingerCount", config.airStingerCount);
-        CreateArray<float, 2>(member, "airStingerDuration", config.airStingerDuration);
-        CreateArray<float, 2>(member, "airStingerRange", config.airStingerRange);
     }
 
 
@@ -560,12 +554,6 @@ void CreateMembers(Config& config_) {
         auto& config = config_.YamatoForceEdge;
 
         Create<bool>(member, "infiniteRoundTrip", config.infiniteRoundTrip);
-
-        CreateArray<float, 2>(member, "stingerDuration", config.stingerDuration);
-        CreateArray<float, 2>(member, "stingerRange", config.stingerRange);
-        CreateArray<uint8, 2>(member, "airStingerCount", config.airStingerCount);
-        CreateArray<float, 2>(member, "airStingerDuration", config.airStingerDuration);
-        CreateArray<float, 2>(member, "airStingerRange", config.airStingerRange);
     }
 
 
@@ -688,7 +676,6 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "hideBossHUD", config.hideBossHUD);
     Create<bool>(member, "disableStyleRankHudFadeout", config.disableStyleRankHudFadeout);
     Create<bool>(member, "soundIgnoreEnemyData", config.soundIgnoreEnemyData);
-    Create<bool>(member, "enableRebellionAirStinger", config.enableRebellionAirStinger);
     Create<bool>(member, "enableRebellionNewDrive", config.enableRebellionNewDrive);
     Create<bool>(member, "enableRebellionQuickDrive", config.enableRebellionQuickDrive);
     Create<bool>(member, "enableCerberusAirRevolver", config.enableCerberusAirRevolver);
@@ -697,7 +684,6 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "enableBeowulfVergilAirRisingSun", config.enableBeowulfVergilAirRisingSun);
     Create<bool>(member, "enableBeowulfVergilAirLunarPhase", config.enableBeowulfVergilAirLunarPhase);
     Create<bool>(member, "enableYamatoForceEdgeNewComboPart4", config.enableYamatoForceEdgeNewComboPart4);
-    Create<bool>(member, "enableYamatoForceEdgeAirStinger", config.enableYamatoForceEdgeAirStinger);
     Create<bool>(member, "enableYamatoForceEdgeNewRoundTrip", config.enableYamatoForceEdgeNewRoundTrip);
     Create<uint8>(member, "dergil", config.dergil);
     Create<uint8>(member, "costumeRespectsProgression", config.costumeRespectsProgression);
@@ -1054,12 +1040,6 @@ void ToJSON(Config& config_) {
         auto& config = config_.Rebellion;
 
         Set<bool>(member["infiniteSwordPierce"], config.infiniteSwordPierce);
-
-        SetArray<float, 2>(member["stingerDuration"], config.stingerDuration);
-        SetArray<float, 2>(member["stingerRange"], config.stingerRange);
-        SetArray<uint8, 2>(member["airStingerCount"], config.airStingerCount);
-        SetArray<float, 2>(member["airStingerDuration"], config.airStingerDuration);
-        SetArray<float, 2>(member["airStingerRange"], config.airStingerRange);
     }
 
 
@@ -1108,12 +1088,6 @@ void ToJSON(Config& config_) {
         auto& config = config_.YamatoForceEdge;
 
         Set<bool>(member["infiniteRoundTrip"], config.infiniteRoundTrip);
-
-        SetArray<float, 2>(member["stingerDuration"], config.stingerDuration);
-        SetArray<float, 2>(member["stingerRange"], config.stingerRange);
-        SetArray<uint8, 2>(member["airStingerCount"], config.airStingerCount);
-        SetArray<float, 2>(member["airStingerDuration"], config.airStingerDuration);
-        SetArray<float, 2>(member["airStingerRange"], config.airStingerRange);
     }
 
 
@@ -1199,7 +1173,6 @@ void ToJSON(Config& config_) {
     Set<bool>(member["hideBossHUD"], config.hideBossHUD);
     Set<bool>(member["disableStyleRankHudFadeout"], config.disableStyleRankHudFadeout);
     Set<bool>(member["soundIgnoreEnemyData"], config.soundIgnoreEnemyData);
-    Set<bool>(member["enableRebellionAirStinger"], config.enableRebellionAirStinger);
     Set<bool>(member["enableRebellionNewDrive"], config.enableRebellionNewDrive);
     Set<bool>(member["enableRebellionQuickDrive"], config.enableRebellionQuickDrive);
     Set<bool>(member["enableCerberusAirRevolver"], config.enableCerberusAirRevolver);
@@ -1208,7 +1181,6 @@ void ToJSON(Config& config_) {
     Set<bool>(member["enableBeowulfVergilAirRisingSun"], config.enableBeowulfVergilAirRisingSun);
     Set<bool>(member["enableBeowulfVergilAirLunarPhase"], config.enableBeowulfVergilAirLunarPhase);
     Set<bool>(member["enableYamatoForceEdgeNewComboPart4"], config.enableYamatoForceEdgeNewComboPart4);
-    Set<bool>(member["enableYamatoForceEdgeAirStinger"], config.enableYamatoForceEdgeAirStinger);
     Set<bool>(member["enableYamatoForceEdgeNewRoundTrip"], config.enableYamatoForceEdgeNewRoundTrip);
     Set<uint8>(member["dergil"], config.dergil);
     Set<uint8>(member["costumeRespectsProgression"], config.costumeRespectsProgression);
@@ -1564,12 +1536,6 @@ void ToConfig(Config& config_) {
         auto& member = root["Rebellion"];
 
         config.infiniteSwordPierce = Get<bool>(member["infiniteSwordPierce"]);
-
-        GetArray<float, 2>(config.stingerDuration, member["stingerDuration"]);
-        GetArray<float, 2>(config.stingerRange, member["stingerRange"]);
-        GetArray<uint8, 2>(config.airStingerCount, member["airStingerCount"]);
-        GetArray<float, 2>(config.airStingerDuration, member["airStingerDuration"]);
-        GetArray<float, 2>(config.airStingerRange, member["airStingerRange"]);
     }
 
 
@@ -1618,12 +1584,6 @@ void ToConfig(Config& config_) {
         auto& member = root["YamatoForceEdge"];
 
         config.infiniteRoundTrip = Get<bool>(member["infiniteRoundTrip"]);
-
-        GetArray<float, 2>(config.stingerDuration, member["stingerDuration"]);
-        GetArray<float, 2>(config.stingerRange, member["stingerRange"]);
-        GetArray<uint8, 2>(config.airStingerCount, member["airStingerCount"]);
-        GetArray<float, 2>(config.airStingerDuration, member["airStingerDuration"]);
-        GetArray<float, 2>(config.airStingerRange, member["airStingerRange"]);
     }
 
 
@@ -1708,7 +1668,6 @@ void ToConfig(Config& config_) {
     config.hideLockOn                         = Get<bool>(member["hideLockOn"]);
     config.disableStyleRankHudFadeout         = Get<bool>(member["disableStyleRankHudFadeout"]);
     config.soundIgnoreEnemyData               = Get<bool>(member["soundIgnoreEnemyData"]);
-    config.enableRebellionAirStinger          = Get<bool>(member["enableRebellionAirStinger"]);
     config.enableRebellionNewDrive            = Get<bool>(member["enableRebellionNewDrive"]);
     config.enableRebellionQuickDrive          = Get<bool>(member["enableRebellionQuickDrive"]);
     config.enableCerberusAirRevolver          = Get<bool>(member["enableCerberusAirRevolver"]);
@@ -1717,7 +1676,6 @@ void ToConfig(Config& config_) {
     config.enableBeowulfVergilAirRisingSun    = Get<bool>(member["enableBeowulfVergilAirRisingSun"]);
     config.enableBeowulfVergilAirLunarPhase   = Get<bool>(member["enableBeowulfVergilAirLunarPhase"]);
     config.enableYamatoForceEdgeNewComboPart4 = Get<bool>(member["enableYamatoForceEdgeNewComboPart4"]);
-    config.enableYamatoForceEdgeAirStinger    = Get<bool>(member["enableYamatoForceEdgeAirStinger"]);
     config.enableYamatoForceEdgeNewRoundTrip  = Get<bool>(member["enableYamatoForceEdgeNewRoundTrip"]);
     config.dergil                             = Get<uint8>(member["dergil"]);
     config.costumeRespectsProgression         = Get<uint8>(member["costumeRespectsProgression"]);
@@ -2385,6 +2343,7 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr) {
         }
 
         SetMemory(actorData.activeExpertise, 0xFF, sizeof(actorData.activeExpertise));
+		SetMemory(ExpConfig::missionExpDataDante.unlocks, 1, sizeof(ExpConfig::missionExpDataDante.unlocks));
 
         if (actorData.character == CHARACTER::DANTE) {
             for_each(index, WEAPON::EBONY_IVORY, WEAPON_COUNT) {

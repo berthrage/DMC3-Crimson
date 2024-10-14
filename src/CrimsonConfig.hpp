@@ -112,12 +112,12 @@ struct CrimsonConfig {
 
 			uint8 color[6][4] = {
 				// r   g  b  a 
-				{ 29, 29, 0, 255 }, //trick  
-				{ 26, 0, 0, 255 }, //sword  
-				{ 0, 8, 34, 255 }, //gun    
-				{ 0, 35, 6, 255 }, //royal  
-				{ 26, 0, 35, 255 }, //quick  
-				{ 30, 14, 0, 255 }, //doppel 
+				{ 55, 58, 6, 255 }, //trick  
+				{ 58, 5, 5, 255 }, //sword  
+				{ 13, 5, 58, 255 }, //gun    
+				{ 5, 58, 12, 255 }, //royal  
+				{ 58, 5, 49, 255 }, //quick  
+				{ 58, 28, 5, 255 }, //doppel 
 			};
 
 			static constexpr auto Metadata() {
@@ -248,8 +248,12 @@ struct CrimsonConfig {
 			bool aerialRaveTweaks = true;
 			bool airFlickerTweaks = true;
 			bool skyDanceTweaks = true;
+			bool shotgunAirShotTweaks = true;
 			bool driveTweaks = true;
 			bool disableAirSlashKnockback = true;
+			bool airStinger = true;
+			bool dmc4Mobility = true;
+			bool dTInfusedRoyalguard = true;
 
 			static constexpr auto Metadata() {
                 return std::make_tuple(
@@ -259,8 +263,12 @@ struct CrimsonConfig {
 					std::make_pair("aerialRaveTweaks", &Dante::aerialRaveTweaks),
 					std::make_pair("airFlickerTweaks", &Dante::airFlickerTweaks),
 					std::make_pair("skyDanceTweaks", &Dante::skyDanceTweaks),
+					std::make_pair("shotgunAirShotTweaks", &Dante::shotgunAirShotTweaks),
 					std::make_pair("driveTweaks", &Dante::driveTweaks),
-					std::make_pair("disableAirSlashKnockback", &Dante::disableAirSlashKnockback)
+					std::make_pair("disableAirSlashKnockback", &Dante::disableAirSlashKnockback),
+					std::make_pair("airStinger", &Dante::airStinger),
+					std::make_pair("dmc4Mobility", &Dante::dmc4Mobility),
+					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard)
 				);
 			}
         } Dante;
@@ -268,11 +276,13 @@ struct CrimsonConfig {
 		struct Vergil {
 			bool enableQuicksilver = false;
 			bool darkslayerTrickCancels = true;
+			bool airStinger = true;
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
 					std::make_pair("enableQuicksilver", &Vergil::enableQuicksilver),
-					std::make_pair("darkslayerTrickCancels", &Vergil::darkslayerTrickCancels)
+					std::make_pair("darkslayerTrickCancels", &Vergil::darkslayerTrickCancels),
+					std::make_pair("airStinger", &Vergil::airStinger)
 				);
 			}
         } Vergil;
@@ -303,6 +313,32 @@ struct CrimsonConfig {
 		}
 
 	} Gameplay;
+
+
+	struct Cheats {
+
+		struct General {
+			bool customMobility = false;
+			bool customDamage = false;
+			bool customSpeed = false;
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("customMobility", &General::customMobility),
+					std::make_pair("customDamage", &General::customDamage),
+					std::make_pair("customSpeed", &General::customSpeed)
+					
+				);
+			}
+		} General;
+
+
+		static constexpr auto Metadata() {
+			return std::make_tuple(
+				std::make_pair("General", &Cheats::General)
+			);
+		}
+	} Cheats;
 
 	struct PlayerProperties {
 		uint8 playerColor[PLAYER_COUNT][4] = {
@@ -342,6 +378,7 @@ struct CrimsonConfig {
             std::make_pair("StyleSwitchFX", &CrimsonConfig::StyleSwitchFX),
             std::make_pair("SFX", &CrimsonConfig::SFX),
             std::make_pair("Gameplay", &CrimsonConfig::Gameplay),
+			std::make_pair("Cheats", &CrimsonConfig::Cheats),
 			std::make_pair("PlayerProperties", &CrimsonConfig::PlayerProperties),
 			std::make_pair("testNumber", &CrimsonConfig::testNumber)
 		);

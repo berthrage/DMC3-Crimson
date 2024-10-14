@@ -12,4 +12,5 @@ namespace CrimsonOnTick {
 	void ForceThirdPersonCameraController();
 	void GeneralCameraOptionsController();
 	void AirTauntDetoursController();
+	void PauseSFXWhenPaused();
 }

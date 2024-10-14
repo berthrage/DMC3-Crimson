@@ -115,8 +115,8 @@ struct Config {
         float stingerDuration[2]    = {16, 16};
         float stingerRange[2]       = {560, 560};
         uint8 airStingerCount[2]    = {1, 1};
-        float airStingerDuration[2] = {4, 4};
-        float airStingerRange[2]    = {140, 140};
+        float airStingerDuration[2] = {3, 4};
+        float airStingerRange[2]    = {0, 140};
     } Rebellion;
 
     struct {
@@ -162,8 +162,8 @@ struct Config {
         float stingerDuration[2]    = {16, 16};
         float stingerRange[2]       = {560, 560};
         uint8 airStingerCount[2]    = {1, 1};
-        float airStingerDuration[2] = {4, 4};
-        float airStingerRange[2]    = {140, 140};
+        float airStingerDuration[2] = {5, 5};
+        float airStingerRange[2]    = {280, 280};
     } YamatoForceEdge;
 
     bool welcome = (debug) ? false : true;
@@ -453,7 +453,7 @@ struct Config {
 
     bool soundIgnoreEnemyData = false;
 
-    bool enableRebellionAirStinger = (debug) ? true : false;
+    bool enableRebellionAirStinger = true;
     bool enableRebellionNewDrive   = (debug) ? true : false;
     bool enableRebellionQuickDrive = (debug) ? true : false;
     bool enableCerberusAirRevolver = (debug) ? true : false;
@@ -463,7 +463,7 @@ struct Config {
     bool enableBeowulfVergilAirRisingSun    = (debug) ? true : false;
     bool enableBeowulfVergilAirLunarPhase   = (debug) ? true : false;
     bool enableYamatoForceEdgeNewComboPart4 = (debug) ? true : false;
-    bool enableYamatoForceEdgeAirStinger    = (debug) ? true : false;
+    bool enableYamatoForceEdgeAirStinger    = true;
     bool enableYamatoForceEdgeNewRoundTrip  = (debug) ? true : false;
 
     uint8 dergil = 0;

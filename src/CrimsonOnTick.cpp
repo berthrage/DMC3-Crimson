@@ -21,6 +21,7 @@
 #include "Camera.hpp"
 #include "CrimsonDetours.hpp"
 #include "CrimsonUtil.hpp"
+#include "CrimsonTimers.hpp"
 
 namespace CrimsonOnTick {
 
@@ -394,9 +395,9 @@ void MultiplayerCameraPositioningController() {
 				lerpFactor = lerpFactorOutTransition;
 			}
 
-			currentCameraPos.x = lerp(currentCameraPos.x, g_customCameraPos[0], lerpFactor);
-			currentCameraPos.y = lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactor);
-			currentCameraPos.z = lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactor);
+			currentCameraPos.x = CrimsonUtil::lerp(currentCameraPos.x, g_customCameraPos[0], lerpFactor);
+			currentCameraPos.y = CrimsonUtil::lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactor);
+			currentCameraPos.z = CrimsonUtil::lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactor);
 
 			
 
@@ -458,9 +459,9 @@ void MultiplayerCameraPositioningController() {
 		// Gradual transition between MPCam and normal cam (if a transition is occurring)
 		if (g_isParanoramicCamActive) {
 			float lerpFactor = 0.05f;  // Adjust this factor for smoother or faster transitions
-			currentCameraPos.x = lerp(currentCameraPos.x, g_customCameraPos[0], lerpFactor);
-			currentCameraPos.y = lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactor);
-			currentCameraPos.z = lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactor);
+			currentCameraPos.x = CrimsonUtil::lerp(currentCameraPos.x, g_customCameraPos[0], lerpFactor);
+			currentCameraPos.y = CrimsonUtil::lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactor);
+			currentCameraPos.z = CrimsonUtil::lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactor);
 // 
 			g_customCameraPos[0] = mainActorData.position.x;
 			g_customCameraPos[1] = mainActorData.position.y;
@@ -485,16 +486,51 @@ void MultiplayerCameraPositioningController() {
 	CrimsonDetours::ToggleCustomCameraPositioning(g_isMPCamActive && activeCrimsonConfig.Camera.multiplayerCamera);
 }
 
+CameraData* GetSafeCameraData() {
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449 || !pool_4449[147]) {
+		return nullptr;
+	}
+
+	auto cameraDataPtr = reinterpret_cast<CameraData*>(pool_4449[147]);
+
+	// Check for known invalid pointers
+	if (!cameraDataPtr || reinterpret_cast<uintptr_t>(cameraDataPtr) & 0xFFF0000000000000) {
+		return nullptr;
+	}
+
+	return cameraDataPtr;
+}
+
 
 void ForceThirdPersonCameraController() {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-	auto pool_11962 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-	if (!pool_11962 || !pool_11962[8]) {
+	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_10723) {
 		return;
 	}
-	auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
-	if (g_scene != SCENE::GAME) {
+	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
+	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10298 || !pool_10298[8]) {
 		return;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	static bool checkIfGameHasAlreadyLoaded2 = false;
+	if (!checkIfGameHasAlreadyLoaded2) {
+		if (eventData.event == EVENT::MAIN && g_inGameDelayed) checkIfGameHasAlreadyLoaded2 = true;
+	}
+	else {
+		auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+		if (!pool_10222 || !pool_10222[3]) {
+			return;
+		}
+		auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+
+		CameraData* cameraData = GetSafeCameraData();
+		if (!cameraData) {
+			return;
+		}
 	}
 
 	if (activeCrimsonConfig.Camera.forceThirdPerson) {
@@ -513,22 +549,6 @@ void ForceThirdPersonCameraController() {
 	}
 }
 
-CameraData* GetSafeCameraData() {
-	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
-	if (!pool_4449 || !pool_4449[147]) {
-		return nullptr;
-	}
-
-	auto cameraDataPtr = reinterpret_cast<CameraData*>(pool_4449[147]);
-
-	// Check for known invalid pointers
-	if (!cameraDataPtr || reinterpret_cast<uintptr_t>(cameraDataPtr) & 0xFFF0000000000000) {
-		return nullptr;
-	}
-
-	return cameraDataPtr;
-}
-
 
 void GeneralCameraOptionsController() {
 	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
@@ -537,10 +557,6 @@ void GeneralCameraOptionsController() {
 	}
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 	CameraData* cameraData = GetSafeCameraData();
-	if (!cameraData) {
-		return;
-	}
-
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!pool_10222 || !pool_10222[3]) {
 		return;
@@ -551,9 +567,13 @@ void GeneralCameraOptionsController() {
 	}
 
 	CrimsonPatches::CameraSensController();
-	CrimsonPatches::CameraFollowUpSpeedController();
-	CrimsonPatches::CameraDistanceController();
-	CrimsonPatches::CameraTiltController();
+	
+	if (cameraData != nullptr) {
+		CrimsonPatches::CameraFollowUpSpeedController(cameraData);
+		CrimsonPatches::CameraDistanceController(cameraData);
+		CrimsonPatches::CameraTiltController(cameraData);
+	}
+	
 	CrimsonPatches::ToggleLockedOffCamera(activeCrimsonConfig.Camera.lockedOff);
 	CrimsonPatches::CameraLockOnDistanceController();
 }
@@ -567,4 +587,25 @@ void AirTauntDetoursController() {
 	}
 }
 
+void PauseSFXWhenPaused() {
+	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_10723) {
+		return;
+	}
+	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
+	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10298 || !pool_10298[8]) {
+		return;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+
+	for (int i = 0; i < PLAYER_COUNT; ++i) {
+		if (eventData.event == EVENT::PAUSE) {
+			CrimsonSDL::PauseDTExplosionSFX(i);
+		}
+		else {
+			CrimsonSDL::ResumeDTExplosionSFX(i);
+		}
+	}
+}
 }

@@ -183,10 +183,6 @@ float storedRisingSunTauntPosY      = 0;
 float storedRisingSunTauntPosYClone = 0;
 float storedLunarPhasePosY          = 0;
 
-int airStingerEndTimeInt = 0;
-
-AirStingerEnd airStingerEnd;
-
 RankAnnouncer rankAnnouncer[7];
 
 uint16 relativeTiltController = 0;
@@ -216,10 +212,12 @@ bool inRapidSlash;
 
 bool styleChanged[6] = {false, false, false, false, false, false};
 
+float g_FrameRate = 0;
+float g_FrameRateTimeMultiplier = 0;
 bool g_inCombat = false;
 bool g_inBossfight = false;
 int g_bossQuantity = 0;
-bool g_inGame = false;
+bool g_inGameDelayed = false;
 bool g_inGameCutscene = false;
 std::string g_gameTrackPlaying;
 

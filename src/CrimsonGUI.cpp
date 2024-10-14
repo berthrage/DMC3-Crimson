@@ -34,6 +34,7 @@
 #include "WebAPICalls.hpp"
 #include "UI\Texture2DD3D11.hpp"
 
+
 #include "UI\EmbeddedImages.hpp"
 #include "UI\WeaponWheel.hpp"
 
@@ -1570,10 +1571,10 @@ void PauseWhenGUIOpened() {
 	if (g_scene != SCENE::GAME || eventData.event != EVENT::MAIN) {
 		guiPause.timer = 1.0f;
 		guiPause.canPause = false;
-		g_inGame = false;
+		g_inGameDelayed = false;
 	}
 	else {
-		g_inGame = true;
+		g_inGameDelayed = true;
 
 		if (guiPause.timer > 0) {
 			guiPause.timer -= ImGui::GetIO().DeltaTime;
@@ -1585,20 +1586,18 @@ void PauseWhenGUIOpened() {
 	}
 
 
-
 	if (!g_show || !guiPause.canPause) {
 		storedFrameCount = missionData.frameCount; // This stores the game's timer.
 		activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed; // This resumes the game speed
 		activeConfig.Speed.turbo = queuedConfig.Speed.turbo;
-		Speed::Toggle(true); // Toggle Speed on and off to set the new speed
-		Speed::Toggle(false);
+		Speed::Toggle(true); 
 		guiPause.in = false;
 
 	}
 	else if (g_show && !guiPause.in && guiPause.canPause) {
 		activeConfig.Speed.mainSpeed = 0;  // This pauses the game speed
 		activeConfig.Speed.turbo = 0;
-		Speed::Toggle(true);
+		Speed::Toggle(true); // Toggle Speed on and off to set the new speed
 		Speed::Toggle(false);
 		guiPause.in = true;
 
@@ -3787,6 +3786,40 @@ void InitRedOrbTexture(ID3D11Device* pd3dDevice) {
 	assert(RedOrbTexture);
 }
 
+void DrawRotatedImage(ImTextureID tex_id, ImVec2 pos, ImVec2 size, float angle, ImU32 color) {
+	ImVec2 center = ImVec2(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
+
+	float cos_theta = cosf(angle);
+	float sin_theta = sinf(angle);
+
+	ImVec2 uvs[4] = {
+		ImVec2(0.0f, 0.0f),
+		ImVec2(1.0f, 0.0f),
+		ImVec2(1.0f, 1.0f),
+		ImVec2(0.0f, 1.0f)
+	};
+
+	ImVec2 points[4];
+	for (int i = 0; i < 4; i++) {
+		ImVec2 p = ImVec2(
+			(uvs[i].x - 0.5f) * size.x,
+			(uvs[i].y - 0.5f) * size.y
+		);
+
+		points[i] = ImVec2(
+			cos_theta * p.x - sin_theta * p.y,
+			sin_theta * p.x + cos_theta * p.y
+		) + center;
+	}
+
+	ImGui::GetWindowDrawList()->AddImageQuad(
+		tex_id,
+		points[0], points[1], points[2], points[3],
+		uvs[0], uvs[1], uvs[2], uvs[3],
+		color
+	);
+}
+
 void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) {
 	assert(RedOrbTexture);
 
@@ -3833,6 +3866,8 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 	float fontSize = 37.0f * scaleFactorY;
 	float textureWidth = RedOrbTexture->GetWidth() * (fontSize / 120.0f) * activeConfig.globalScale;  // Adjust proportionally
 	float textureHeight = RedOrbTexture->GetHeight() * (fontSize / 120.0f) * activeConfig.globalScale;
+	float centerX = textureWidth / 2.0f;
+	float centerY = textureHeight / 2.0f;
 
 	// Define the window size and position
 	ImVec2 windowSize = ImVec2(300.0f * scaleFactorX, 100.0f * scaleFactorY);
@@ -3860,6 +3895,13 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 
 	// Render the texture or a white square if the texture is not valid
 	if (RedOrbTexture->IsValid()) {
+// 		DrawRotatedImage(
+// 			RedOrbTexture->GetTexture(),
+// 			texturePos,
+// 			ImVec2(textureWidth, textureHeight),
+// 			IM_PI / 2.0f, // 90 degrees in radians
+// 			colorWithAlpha
+// 		);
 		ImGui::GetWindowDrawList()->AddImage(RedOrbTexture->GetTexture(), texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImVec2(0, 0), ImVec2(1, 1), colorWithAlpha);
 	}
 	else {
@@ -3966,15 +4008,6 @@ void StyleMeterWindow() {
 	ImGui::End();
 }
 
-// cant include <algorithm> ;_;
-static float sexy_clamp(const float val, const float minVal, const float maxVal) {
-	return max(minVal, min(val, maxVal));
-}
-
-static float smoothstep(float edge0, float edge1, float x) {
-	x = sexy_clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
-	return x * x * (3 - 2 * x);
-}
 
 void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, float screenMargin, const char* name, Config::BarsData& activeData) {
 	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
@@ -4085,8 +4118,8 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 		}
 
 		// Clamp icon position to screen edges
-		iconPosition.x = sexy_clamp(iconPosition.x, screenMargin, screenWidth - screenMargin);
-		iconPosition.y = sexy_clamp(iconPosition.y, screenMargin, screenHeight - screenMargin);
+		iconPosition.x = CrimsonUtil::sexy_clamp(iconPosition.x, screenMargin, screenWidth - screenMargin);
+		iconPosition.y = CrimsonUtil::sexy_clamp(iconPosition.y, screenMargin, screenHeight - screenMargin);
 	}
 
 	// Scale factor based on 1080p for responsiveness
@@ -4099,8 +4132,8 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 	ImVec2 buttonSize(80.0f * scaleFactorX, 80.0f * scaleFactorY);
 
 	// Clamp the Icon Position again to ensure Button doesn't go out of screen bounds:
-	iconPosition.x = sexy_clamp(iconPosition.x, screenMargin, screenWidth - screenMargin - buttonSize.x + 30.0f);
-	iconPosition.y = sexy_clamp(iconPosition.y, screenMargin, screenHeight - screenMargin - buttonSize.y + 30.0f);
+	iconPosition.x = CrimsonUtil::sexy_clamp(iconPosition.x, screenMargin, screenWidth - screenMargin - buttonSize.x + 30.0f);
+	iconPosition.y = CrimsonUtil::sexy_clamp(iconPosition.y, screenMargin, screenHeight - screenMargin - buttonSize.y + 30.0f);
 
 
 	auto IsOverlapping = [&](ImVec2 pos1, ImVec2 pos2, ImVec2 size) {
@@ -4225,7 +4258,7 @@ void RenderWorldSpaceMultiplayerBar(
 
 	const float screenMargin = 50.0f;
 
-	const float t = smoothstep(0.0f, 1390.0f, crimsonPlayer[playerIndex].cameraPlayerDistance);
+	const float t = CrimsonUtil::smoothstep(0.0f, 1390.0f, crimsonPlayer[playerIndex].cameraPlayerDistance);
 	const float alpha = ImLerp(0.27f, 1.0f, t);
 	activeData.hitColor[3] = alpha;
 	activeData.magicColor[3] = alpha;
@@ -4404,14 +4437,13 @@ void MultiplayerBars() {
 					return;
 				}
 				auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+				auto playerIndex = activeActorData.newPlayerIndex;
 
 				hit = (activeActorData.hitPoints / activeActorData.maxHitPoints);
 				magic = (activeActorData.magicPoints / activeActorData.maxMagicPoints);
 
 				//                 activeConfig.barsData[playerIndex].pos.x = queuedConfig.barsData[playerIndex].pos.x;
 				//                 activeConfig.barsData[playerIndex].pos.y = queuedConfig.barsData[playerIndex].pos.y;
-
-
 
 				RenderWorldSpaceMultiplayerBar(hit, magic, playerIndexNames[playerIndex], activeActorData, barsNames[playerIndex], activeConfig.barsData[playerIndex]
 				/*, queuedConfig.barsData[playerIndex]*/);
@@ -4880,9 +4912,9 @@ void CameraSection(size_t defaultFontSize) {
 			const float columnWidth = 0.5f * queuedConfig.globalScale;
 			const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-			if (ImGui::BeginTable("LiveCameraReadingsTable", 2)) {
+			if (ImGui::BeginTable("LiveCameraReadingsTable", 3)) {
 
-				ImGui::TableSetupColumn("b1", 0, columnWidth);
+				ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
 				ImGui::TableNextRow(0, rowWidth);
 				ImGui::TableNextColumn();
 				ImGui::PushItemWidth(itemWidth * 0.8f);
@@ -4949,65 +4981,105 @@ void CameraSection(size_t defaultFontSize) {
 
 #pragma region Damage
 
-void Damage() {
-	if (ImGui::CollapsingHeader("Damage")) {
-		ImGui::Text("");
+void DamageSection() {
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	const float itemWidth = defaultFontSize * 8.0f;
+	float smallerComboMult = 0.7f;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
+	//Gui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
-		if (GUI_ResetButton()) {
-			CopyMemory(&queuedConfig.damagePlayerActorMultiplier, &defaultConfig.damagePlayerActorMultiplier,
-				sizeof(queuedConfig.damagePlayerActorMultiplier));
-			CopyMemory(&activeConfig.damagePlayerActorMultiplier, &queuedConfig.damagePlayerActorMultiplier,
-				sizeof(activeConfig.damagePlayerActorMultiplier));
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	if (GUI_Checkbox2("CUSTOM DAMAGE", activeCrimsonConfig.Cheats.General.customDamage, queuedCrimsonConfig.Cheats.General.customDamage)) {
+		if (!activeCrimsonConfig.Cheats.General.customDamage) {
+			// Reset damage config to default when the checkbox is unchecked
+			CopyMemory(&queuedConfig.damagePlayerActorMultiplier, &defaultConfig.damagePlayerActorMultiplier, sizeof(queuedConfig.damagePlayerActorMultiplier));
+			CopyMemory(&activeConfig.damagePlayerActorMultiplier, &queuedConfig.damagePlayerActorMultiplier, sizeof(activeConfig.damagePlayerActorMultiplier));
 
-			CopyMemory(&queuedConfig.damageEnemyActorMultiplier, &defaultConfig.damageEnemyActorMultiplier,
-				sizeof(queuedConfig.damageEnemyActorMultiplier));
-			CopyMemory(&activeConfig.damageEnemyActorMultiplier, &queuedConfig.damageEnemyActorMultiplier,
-				sizeof(activeConfig.damageEnemyActorMultiplier));
+			CopyMemory(&queuedConfig.damageEnemyActorMultiplier, &defaultConfig.damageEnemyActorMultiplier, sizeof(queuedConfig.damageEnemyActorMultiplier));
+			CopyMemory(&activeConfig.damageEnemyActorMultiplier, &queuedConfig.damageEnemyActorMultiplier, sizeof(activeConfig.damageEnemyActorMultiplier));
 
 			CopyMemory(&queuedConfig.damageStyleRank, &defaultConfig.damageStyleRank, sizeof(queuedConfig.damageStyleRank));
 			CopyMemory(&activeConfig.damageStyleRank, &queuedConfig.damageStyleRank, sizeof(activeConfig.damageStyleRank));
 		}
-		ImGui::Text("");
+	}
+	ImGui::PopFont();
+	UI::SeparatorEx(defaultFontSize * 23.35f);
 
-		TooltipHelper("(?)", "Multiplier values are for RECEIVED damage.");
-		ImGui::Text("");
+	ImGui::Text("");
 
+	auto DamageDataInput = [](float& active, float& queued, float& defaultVar) {
+		auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+		const float itemWidth = defaultFontSize * 8.0f;
+		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
+		float smallerComboMult = 0.7f;
 
-		{
-			static bool toggled = false;
+		ImGui::PushItemWidth(itemWidth * smallerComboMult);
+		GUI_InputDefault2("", active, queued, defaultVar, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::PopItemWidth();
+		};
 
-			if (GUI_Button("One Hit Kill")) {
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+	{
+		// Get initial cursor position for manual layout
+		ImVec2 initialPos = ImGui::GetCursorPos();
+		const float columnWidth = queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
+		GUI_PushDisable(!activeCrimsonConfig.Cheats.General.customDamage);
 
-				if (!toggled) {
-					toggled = true;
+		ImGui::SetCursorPos(initialPos);
+		// Start first table (left side)
+		if (ImGui::BeginTable("DamageOptionsTable", 3)) {
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-					activeConfig.damagePlayerActorMultiplier = queuedConfig.damagePlayerActorMultiplier = 1.0f;
-					activeConfig.damageEnemyActorMultiplier = queuedConfig.damageEnemyActorMultiplier = 100.0f;
-				}
-				else {
-					toggled = false;
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("PLAYER RECEIVED DAMAGE MULT.");
+			ImGui::PopFont();
+			DamageDataInput(activeConfig.damagePlayerActorMultiplier, queuedConfig.damagePlayerActorMultiplier, defaultConfig.damagePlayerActorMultiplier);
 
-					activeConfig.damagePlayerActorMultiplier = queuedConfig.damagePlayerActorMultiplier = 0;
-					activeConfig.damageEnemyActorMultiplier = queuedConfig.damageEnemyActorMultiplier = 0;
+			ImGui::TableNextColumn();
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("ENEMY RECEIVED DAMAGE MULT.");
+			ImGui::PopFont();
+			DamageDataInput(activeConfig.damageEnemyActorMultiplier, queuedConfig.damageEnemyActorMultiplier, defaultConfig.damageEnemyActorMultiplier);
+			ImGui::SameLine();
+			{
+				static bool toggled = false;
+				if (GUI_Button("One Hit Kill")) {
+
+					if (!toggled) {
+						toggled = true;
+						activeConfig.damageEnemyActorMultiplier = queuedConfig.damageEnemyActorMultiplier = 100.0f;
+					}
+					else {
+						toggled = false;
+						activeConfig.damageEnemyActorMultiplier = queuedConfig.damageEnemyActorMultiplier = defaultConfig.damageEnemyActorMultiplier;
+					}
 				}
 			}
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("CAUSE DAMAGE ONLY ON STYLE RANK");
+			ImGui::PopFont();
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			UI::Combo2("", styleRankNames, activeConfig.damageStyleRank, queuedConfig.damageStyleRank);
+			ImGui::PopItemWidth();
+
+			GUI_PopDisable(!activeCrimsonConfig.Cheats.General.customDamage);
+
+			ImGui::EndTable();
 		}
-
-
-		ImGui::PushItemWidth(150);
-
-		GUI_InputDefault2("Player Actor Multiplier", activeConfig.damagePlayerActorMultiplier, queuedConfig.damagePlayerActorMultiplier,
-			defaultConfig.damagePlayerActorMultiplier, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-
-		GUI_InputDefault2("Enemy Actor Multiplier", activeConfig.damageEnemyActorMultiplier, queuedConfig.damageEnemyActorMultiplier,
-			defaultConfig.damageEnemyActorMultiplier, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-
-		UI::Combo2("Style Rank", styleRankNames, activeConfig.damageStyleRank, queuedConfig.damageStyleRank);
-
-		ImGui::PopItemWidth();
-
-		ImGui::Text("");
 	}
+
+	
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+	ImGui::Text("");
 }
 
 #pragma endregion
@@ -5134,9 +5206,6 @@ void Dante() {
 			ToggleRebellionInfiniteSwordPierce(activeConfig.Rebellion.infiniteSwordPierce);
 		}
 
-		GUI_Checkbox2("Enable Air Stinger", activeConfig.enableRebellionAirStinger, queuedConfig.enableRebellionAirStinger);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires enabled Actor module.");
 
 		GUI_Checkbox2("Enable New Drive", activeConfig.enableRebellionNewDrive, queuedConfig.enableRebellionNewDrive);
 		ImGui::SameLine();
@@ -5154,34 +5223,6 @@ void Dante() {
 			ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
 		}
 		ImGui::Text("");
-
-
-		TooltipHelper("(?)", "Requires enabled Actor module.\n"
-			"\n"
-			"Left : Human\n"
-			"Right: Devil");
-		ImGui::Text("");
-
-		ActionData("Stinger Duration", activeConfig.Rebellion.stingerDuration, queuedConfig.Rebellion.stingerDuration,
-			defaultConfig.Rebellion.stingerDuration, 1.0f, "%g");
-		ActionData("Stinger Range", activeConfig.Rebellion.stingerRange, queuedConfig.Rebellion.stingerRange,
-			defaultConfig.Rebellion.stingerRange, 10.0f, "%g");
-
-
-		{
-			bool condition = !activeConfig.enableRebellionAirStinger;
-
-			GUI_PushDisable(condition);
-
-			ActionData("Air Stinger Count", activeConfig.Rebellion.airStingerCount, queuedConfig.Rebellion.airStingerCount,
-				defaultConfig.Rebellion.airStingerCount);
-			ActionData("Air Stinger Duration", activeConfig.Rebellion.airStingerDuration, queuedConfig.Rebellion.airStingerDuration,
-				defaultConfig.Rebellion.airStingerDuration, 1.0f, "%g");
-			ActionData("Air Stinger Range", activeConfig.Rebellion.airStingerRange, queuedConfig.Rebellion.airStingerRange,
-				defaultConfig.Rebellion.airStingerRange, 10.0f, "%g");
-
-			GUI_PopDisable(condition);
-		}
 
 
 		GUI_SectionEnd();
@@ -6715,15 +6756,18 @@ void DebugSection() {
 		static int vfxBank = 0;
 		static int vfxId = 0;
 		static int boneIdx = 0;
+		static bool enableCustomColor = false;
 
 		ImGui::InputInt("Effect Bank", &vfxBank);
 		ImGui::InputInt("Effect ID", &vfxId);
 		ImGui::InputInt("Effect Bone", &boneIdx);
 		static int effectPlayerID = 0;
 		ImGui::InputInt("Player", &effectPlayerID);
+		ImGui::Checkbox("CustomColor", &enableCustomColor);
 		auto pPlayer = (void*)crimsonPlayer[effectPlayerID].playerPtr;
+		uint32 vfxColor = CrimsonUtil::Uint8toAABBGGRR(activeCrimsonConfig.StyleSwitchFX.Flux.color[0]);
 		if (ImGui::Button("CreateEffect")) {
-			CrimsonDetours::CreateEffectDetour(pPlayer, vfxBank, vfxId, boneIdx, 69420);
+			CrimsonDetours::CreateEffectDetour(pPlayer, vfxBank, vfxId, boneIdx, enableCustomColor, vfxColor, 1);
 		}
 
 		ImGui::Text("");
@@ -7049,6 +7093,7 @@ void DebugSection() {
 	ImGui::PopItemWidth();
 	ImGui::PopFont();
 	ImGui::PopStyleColor();
+	ImGui::Text("");
     
 }
 
@@ -7056,171 +7101,179 @@ void DebugSection() {
 
 #pragma region Enemy
 
-void Enemy() {
-    if (ImGui::CollapsingHeader("Enemy")) {
-        ImGui::Text("");
+void EnemySpawnerSection() {
+	if (GUI_ResetButton()) {
+		CopyMemory(&queuedConfig.enemyCount, &defaultConfig.enemyCount, sizeof(queuedConfig.enemyCount));
+		CopyMemory(&activeConfig.enemyCount, &queuedConfig.enemyCount, sizeof(activeConfig.enemyCount));
+
+		CopyMemory(&queuedConfig.configCreateEnemyActorData, &defaultConfig.configCreateEnemyActorData,
+			sizeof(queuedConfig.configCreateEnemyActorData));
+		CopyMemory(&activeConfig.configCreateEnemyActorData, &queuedConfig.configCreateEnemyActorData,
+			sizeof(activeConfig.configCreateEnemyActorData));
+
+		CopyMemory(&queuedConfig.enemyAutoSpawn, &defaultConfig.enemyAutoSpawn, sizeof(queuedConfig.enemyAutoSpawn));
+		CopyMemory(&activeConfig.enemyAutoSpawn, &queuedConfig.enemyAutoSpawn, sizeof(activeConfig.enemyAutoSpawn));
+	}
+	ImGui::Text("");
 
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.enemyCount, &defaultConfig.enemyCount, sizeof(queuedConfig.enemyCount));
-            CopyMemory(&activeConfig.enemyCount, &queuedConfig.enemyCount, sizeof(activeConfig.enemyCount));
-
-            CopyMemory(&queuedConfig.configCreateEnemyActorData, &defaultConfig.configCreateEnemyActorData,
-                sizeof(queuedConfig.configCreateEnemyActorData));
-            CopyMemory(&activeConfig.configCreateEnemyActorData, &queuedConfig.configCreateEnemyActorData,
-                sizeof(activeConfig.configCreateEnemyActorData));
-
-            CopyMemory(&queuedConfig.enemyAutoSpawn, &defaultConfig.enemyAutoSpawn, sizeof(queuedConfig.enemyAutoSpawn));
-            CopyMemory(&activeConfig.enemyAutoSpawn, &queuedConfig.enemyAutoSpawn, sizeof(activeConfig.enemyAutoSpawn));
-        }
-        ImGui::Text("");
+	ImGui::PushItemWidth(200);
 
 
-        ImGui::PushItemWidth(200);
+	GUI_Slider2<uint8>("Enemy Count", activeConfig.enemyCount, queuedConfig.enemyCount, 1,
+		static_cast<uint8>(countof(activeConfig.configCreateEnemyActorData)));
+	ImGui::Text("");
+
+	GUI_Checkbox2("Auto Spawn", activeConfig.enemyAutoSpawn, queuedConfig.enemyAutoSpawn);
+	ImGui::Text("");
 
 
-        GUI_Slider2<uint8>("Enemy Count", activeConfig.enemyCount, queuedConfig.enemyCount, 1,
-            static_cast<uint8>(countof(activeConfig.configCreateEnemyActorData)));
-        ImGui::Text("");
+	if (GUI_Button("Create All")) {
+		old_for_all(uint8, index, activeConfig.enemyCount) {
+			auto& activeConfigCreateEnemyActorData = activeConfig.configCreateEnemyActorData[index];
 
-        GUI_Checkbox2("Auto Spawn", activeConfig.enemyAutoSpawn, queuedConfig.enemyAutoSpawn);
-        ImGui::Text("");
+			CreateEnemyActor(activeConfigCreateEnemyActorData);
+		}
+	}
+	ImGui::Text("");
 
-
-        if (GUI_Button("Create All")) {
-            old_for_all(uint8, index, activeConfig.enemyCount) {
-                auto& activeConfigCreateEnemyActorData = activeConfig.configCreateEnemyActorData[index];
-
-                CreateEnemyActor(activeConfigCreateEnemyActorData);
-            }
-        }
-        ImGui::Text("");
-
-        if (GUI_Button("Kill All Ladies")) {
-            [&]() {
-                auto pool_9347 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-                if (!pool_9347 || !pool_9347[8]) {
-                    return;
-                }
-                auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_9347[8]);
+	if (GUI_Button("Kill All Ladies")) {
+		[&]() {
+			auto pool_9347 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+			if (!pool_9347 || !pool_9347[8]) {
+				return;
+			}
+			auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_9347[8]);
 
 
-                LogFunction();
+			LogFunction();
 
-                old_for_all(uint32, enemyIndex, countof(enemyVectorData.metadata)) {
-                    auto& metadata = enemyVectorData.metadata[enemyIndex];
+			old_for_all(uint32, enemyIndex, countof(enemyVectorData.metadata)) {
+				auto& metadata = enemyVectorData.metadata[enemyIndex];
 
-                    if (!metadata.baseAddr) {
-                        continue;
-                    }
-                    auto& actorData = *reinterpret_cast<EnemyActorDataLady*>(metadata.baseAddr);
+				if (!metadata.baseAddr) {
+					continue;
+				}
+				auto& actorData = *reinterpret_cast<EnemyActorDataLady*>(metadata.baseAddr);
 
-                    if (!actorData.baseAddr || (actorData.enemy != ENEMY::LADY)) {
-                        continue;
-                    }
+				if (!actorData.baseAddr || (actorData.enemy != ENEMY::LADY)) {
+					continue;
+				}
 
-                    actorData.event    = EVENT_BOSS_LADY::DEATH;
-                    actorData.state    = 0;
-                    actorData.friendly = false;
-                }
-            }();
-        }
-        ImGui::Text("");
-
-
-        old_for_all(uint8, index, activeConfig.enemyCount) {
-            auto& activeConfigCreateEnemyActorData = activeConfig.configCreateEnemyActorData[index];
-            auto& queuedConfigCreateEnemyActorData = queuedConfig.configCreateEnemyActorData[index];
-
-            ImGui::Text("%u", index);
+				actorData.event = EVENT_BOSS_LADY::DEATH;
+				actorData.state = 0;
+				actorData.friendly = false;
+			}
+			}();
+	}
+	ImGui::Text("");
 
 
-            UI::Combo2("Enemy", enemyNames, activeConfigCreateEnemyActorData.enemy, queuedConfigCreateEnemyActorData.enemy,
-                ImGuiComboFlags_HeightLarge);
+	old_for_all(uint8, index, activeConfig.enemyCount) {
+		auto& activeConfigCreateEnemyActorData = activeConfig.configCreateEnemyActorData[index];
+		auto& queuedConfigCreateEnemyActorData = queuedConfig.configCreateEnemyActorData[index];
 
-            GUI_Input2<uint32>("Variant", activeConfigCreateEnemyActorData.variant, queuedConfigCreateEnemyActorData.variant, 1, "%u",
-                ImGuiInputTextFlags_EnterReturnsTrue);
-
-            GUI_Checkbox2("Use Main Actor Data", activeConfigCreateEnemyActorData.useMainActorData,
-                queuedConfigCreateEnemyActorData.useMainActorData);
+		ImGui::Text("%u", index);
 
 
-            {
-                bool condition = activeConfigCreateEnemyActorData.useMainActorData;
+		UI::Combo2("Enemy", enemyNames, activeConfigCreateEnemyActorData.enemy, queuedConfigCreateEnemyActorData.enemy,
+			ImGuiComboFlags_HeightLarge);
 
-                GUI_PushDisable(condition);
+		GUI_Input2<uint32>("Variant", activeConfigCreateEnemyActorData.variant, queuedConfigCreateEnemyActorData.variant, 1, "%u",
+			ImGuiInputTextFlags_EnterReturnsTrue);
 
-                GUI_Input2<float>("X", activeConfigCreateEnemyActorData.position.x, queuedConfigCreateEnemyActorData.position.x, 10.0f,
-                    "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-                GUI_Input2<float>("Y", activeConfigCreateEnemyActorData.position.y, queuedConfigCreateEnemyActorData.position.y, 10.0f,
-                    "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-                GUI_Input2<float>("Z", activeConfigCreateEnemyActorData.position.z, queuedConfigCreateEnemyActorData.position.z, 10.0f,
-                    "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+		GUI_Checkbox2("Use Main Actor Data", activeConfigCreateEnemyActorData.useMainActorData,
+			queuedConfigCreateEnemyActorData.useMainActorData);
 
 
-                GUI_Input2<uint16>("Rotation", activeConfigCreateEnemyActorData.rotation, queuedConfigCreateEnemyActorData.rotation, 1,
-                    "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+		{
+			bool condition = activeConfigCreateEnemyActorData.useMainActorData;
 
-                GUI_PopDisable(condition);
-            }
+			GUI_PushDisable(condition);
 
-
-            GUI_Input2<uint16>("Spawn Method", activeConfigCreateEnemyActorData.spawnMethod, queuedConfigCreateEnemyActorData.spawnMethod,
-                1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-
-            if (GUI_Button("Create")) {
-                CreateEnemyActor(activeConfigCreateEnemyActorData);
-            }
-
-            ImGui::Text("");
-        }
+			GUI_Input2<float>("X", activeConfigCreateEnemyActorData.position.x, queuedConfigCreateEnemyActorData.position.x, 10.0f,
+				"%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input2<float>("Y", activeConfigCreateEnemyActorData.position.y, queuedConfigCreateEnemyActorData.position.y, 10.0f,
+				"%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Input2<float>("Z", activeConfigCreateEnemyActorData.position.z, queuedConfigCreateEnemyActorData.position.z, 10.0f,
+				"%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
 
-        ImGui::PopItemWidth();
-    }
+			GUI_Input2<uint16>("Rotation", activeConfigCreateEnemyActorData.rotation, queuedConfigCreateEnemyActorData.rotation, 1,
+				"%u", ImGuiInputTextFlags_EnterReturnsTrue);
+
+			GUI_PopDisable(condition);
+		}
+
+
+		GUI_Input2<uint16>("Spawn Method", activeConfigCreateEnemyActorData.spawnMethod, queuedConfigCreateEnemyActorData.spawnMethod,
+			1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+
+		if (GUI_Button("Create")) {
+			CreateEnemyActor(activeConfigCreateEnemyActorData);
+		}
+
+		ImGui::Text("");
+	}
+
+
+	ImGui::PopItemWidth();
+    
 }
 
 #pragma endregion
 
 #pragma region Jukebox
 
-void Jukebox() {
-    if (ImGui::CollapsingHeader("Jukebox")) {
-        ImGui::Text("");
+void JukeboxSection() {
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	const float itemWidth = defaultFontSize * 8.0f;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-        static char location[512];
-        static char fileName[256];
-        static new_size_t index = 0;
-        static bool run         = false;
+// 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+// 	ImGui::Text("JUKEBOX");
+// 	ImGui::PopFont();
+// 	UI::SeparatorEx(defaultFontSize * 23.35f);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+	ImGui::PushItemWidth(itemWidth);
 
-        if (!run) {
-            run = true;
+	static char location[512];
+	static char fileName[256];
+	static new_size_t index = 0;
+	static bool run = false;
 
-            snprintf(fileName, sizeof(fileName), "%s", trackFilenames[index]);
-        }
+	if (!run) {
+		run = true;
 
-        ImGui::PushItemWidth(200);
+		snprintf(fileName, sizeof(fileName), "%s", trackFilenames[index]);
+	}
 
-        ImGui::InputText("Filename", fileName, sizeof(fileName));
+	ImGui::PushItemWidth(200);
 
-        if (UI::Combo("", trackNames, index, ImGuiComboFlags_HeightLarge)) {
-            snprintf(fileName, sizeof(fileName), "%s", trackFilenames[index]);
-        }
+	ImGui::InputText("Filename", fileName, sizeof(fileName));
 
-        ImGui::PopItemWidth();
+	if (UI::Combo("", trackNames, index, ImGuiComboFlags_HeightLarge)) {
+		snprintf(fileName, sizeof(fileName), "%s", trackFilenames[index]);
+	}
 
-        if (GUI_Button("Play")) {
-            snprintf(location, sizeof(location), "afs/sound/%s", fileName);
+	ImGui::PopItemWidth();
 
-            PlayTrack(location);
-        }
+	if (GUI_Button("Play")) {
+		snprintf(location, sizeof(location), "afs/sound/%s", fileName);
 
-        if (GUI_Button("Stop")) {
-            PlayTrack("");
-        }
+		PlayTrack(location);
+	}
 
-        ImGui::Text("");
-    }
+	if (GUI_Button("Stop")) {
+		PlayTrack("");
+	}
+
+	ImGui::PopItemWidth();
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+
+	ImGui::Text("");
 }
 
 #pragma endregion
@@ -7282,60 +7335,145 @@ void Lady() {
 
 #pragma region Mobility
 
-void Mobility() {
-    if (ImGui::CollapsingHeader("Mobility")) {
-        ImGui::Text("");
+void MobilitySection() {
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	const float itemWidth = defaultFontSize * 8.0f;
+	float smallerComboMult = 0.7f;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
+	GUI_PushDisable(!activeConfig.Actor.enable);
+	//Gui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+	ImGui::PushItemWidth(itemWidth);
+	
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	if (GUI_Checkbox2("CUSTOM MOBILITY", activeCrimsonConfig.Cheats.General.customMobility, queuedCrimsonConfig.Cheats.General.customMobility)) {
+		if (!activeCrimsonConfig.Cheats.General.customMobility) {
+			CopyMemory(&queuedConfig.airHikeCount, &defaultConfig.airHikeCount, sizeof(queuedConfig.airHikeCount));
+			CopyMemory(&activeConfig.airHikeCount, &queuedConfig.airHikeCount, sizeof(activeConfig.airHikeCount));
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.airHikeCount, &defaultConfig.airHikeCount, sizeof(queuedConfig.airHikeCount));
-            CopyMemory(&activeConfig.airHikeCount, &queuedConfig.airHikeCount, sizeof(activeConfig.airHikeCount));
+			CopyMemory(&queuedConfig.kickJumpCount, &defaultConfig.kickJumpCount, sizeof(queuedConfig.kickJumpCount));
+			CopyMemory(&activeConfig.kickJumpCount, &queuedConfig.kickJumpCount, sizeof(activeConfig.kickJumpCount));
 
-            CopyMemory(&queuedConfig.kickJumpCount, &defaultConfig.kickJumpCount, sizeof(queuedConfig.kickJumpCount));
-            CopyMemory(&activeConfig.kickJumpCount, &queuedConfig.kickJumpCount, sizeof(activeConfig.kickJumpCount));
+			CopyMemory(&queuedConfig.wallHikeCount, &defaultConfig.wallHikeCount, sizeof(queuedConfig.wallHikeCount));
+			CopyMemory(&activeConfig.wallHikeCount, &queuedConfig.wallHikeCount, sizeof(activeConfig.wallHikeCount));
 
-            CopyMemory(&queuedConfig.wallHikeCount, &defaultConfig.wallHikeCount, sizeof(queuedConfig.wallHikeCount));
-            CopyMemory(&activeConfig.wallHikeCount, &queuedConfig.wallHikeCount, sizeof(activeConfig.wallHikeCount));
+			CopyMemory(&queuedConfig.dashCount, &defaultConfig.dashCount, sizeof(queuedConfig.dashCount));
+			CopyMemory(&activeConfig.dashCount, &queuedConfig.dashCount, sizeof(activeConfig.dashCount));
 
-            CopyMemory(&queuedConfig.dashCount, &defaultConfig.dashCount, sizeof(queuedConfig.dashCount));
-            CopyMemory(&activeConfig.dashCount, &queuedConfig.dashCount, sizeof(activeConfig.dashCount));
+			CopyMemory(&queuedConfig.skyStarCount, &defaultConfig.skyStarCount, sizeof(queuedConfig.skyStarCount));
+			CopyMemory(&activeConfig.skyStarCount, &queuedConfig.skyStarCount, sizeof(activeConfig.skyStarCount));
 
-            CopyMemory(&queuedConfig.skyStarCount, &defaultConfig.skyStarCount, sizeof(queuedConfig.skyStarCount));
-            CopyMemory(&activeConfig.skyStarCount, &queuedConfig.skyStarCount, sizeof(activeConfig.skyStarCount));
+			CopyMemory(&queuedConfig.airTrickCountDante, &defaultConfig.airTrickCountDante, sizeof(queuedConfig.airTrickCountDante));
+			CopyMemory(&activeConfig.airTrickCountDante, &queuedConfig.airTrickCountDante, sizeof(activeConfig.airTrickCountDante));
 
-            CopyMemory(&queuedConfig.airTrickCountDante, &defaultConfig.airTrickCountDante, sizeof(queuedConfig.airTrickCountDante));
-            CopyMemory(&activeConfig.airTrickCountDante, &queuedConfig.airTrickCountDante, sizeof(activeConfig.airTrickCountDante));
+			CopyMemory(&queuedConfig.airTrickCountVergil, &defaultConfig.airTrickCountVergil, sizeof(queuedConfig.airTrickCountVergil));
+			CopyMemory(&activeConfig.airTrickCountVergil, &queuedConfig.airTrickCountVergil, sizeof(activeConfig.airTrickCountVergil));
 
-            CopyMemory(&queuedConfig.airTrickCountVergil, &defaultConfig.airTrickCountVergil, sizeof(queuedConfig.airTrickCountVergil));
-            CopyMemory(&activeConfig.airTrickCountVergil, &queuedConfig.airTrickCountVergil, sizeof(activeConfig.airTrickCountVergil));
+			CopyMemory(&queuedConfig.trickUpCount, &defaultConfig.trickUpCount, sizeof(queuedConfig.trickUpCount));
+			CopyMemory(&activeConfig.trickUpCount, &queuedConfig.trickUpCount, sizeof(activeConfig.trickUpCount));
 
-            CopyMemory(&queuedConfig.trickUpCount, &defaultConfig.trickUpCount, sizeof(queuedConfig.trickUpCount));
-            CopyMemory(&activeConfig.trickUpCount, &queuedConfig.trickUpCount, sizeof(activeConfig.trickUpCount));
+			CopyMemory(&queuedConfig.trickDownCount, &defaultConfig.trickDownCount, sizeof(queuedConfig.trickDownCount));
+			CopyMemory(&activeConfig.trickDownCount, &queuedConfig.trickDownCount, sizeof(activeConfig.trickDownCount));
+		}
+	}
+	ImGui::PopFont();
+	ImGui::SameLine();
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	TooltipHelper("(?)", "Requires Actor System");
+	UI::SeparatorEx(defaultFontSize * 23.35f);
 
-            CopyMemory(&queuedConfig.trickDownCount, &defaultConfig.trickDownCount, sizeof(queuedConfig.trickDownCount));
-            CopyMemory(&activeConfig.trickDownCount, &queuedConfig.trickDownCount, sizeof(activeConfig.trickDownCount));
-        }
-        ImGui::Text("");
+	ImGui::Text("");
 
-        TooltipHelper("(?)", "Requires enabled Actor module.\n"
-                             "\n"
-                             "Left : Human\n"
-                             "Right: Devil");
-        ImGui::Text("");
+	auto MobilityDataInput = [](const char* label, uint8(&active)[2], uint8(&queued)[2], uint8(&defaultVar)[2]) {
+		auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+		const float itemWidth = defaultFontSize * 8.0f;
+		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
+		float smallerComboMult = 0.7f;
 
-        ActionData("Air Hike Count", activeConfig.airHikeCount, queuedConfig.airHikeCount, defaultConfig.airHikeCount);
-        ActionData("Kick Jump Count", activeConfig.kickJumpCount, queuedConfig.kickJumpCount, defaultConfig.kickJumpCount);
-        ActionData("Wall Hike Count", activeConfig.wallHikeCount, queuedConfig.wallHikeCount, defaultConfig.wallHikeCount);
-        ActionData("Dash Count", activeConfig.dashCount, queuedConfig.dashCount, defaultConfig.dashCount);
-        ActionData("Sky Star Count", activeConfig.skyStarCount, queuedConfig.skyStarCount, defaultConfig.skyStarCount);
-        ActionData(
-            "Air Trick Count Dante", activeConfig.airTrickCountDante, queuedConfig.airTrickCountDante, defaultConfig.airTrickCountDante);
-        ActionData("Air Trick Count Vergil", activeConfig.airTrickCountVergil, queuedConfig.airTrickCountVergil,
-            defaultConfig.airTrickCountVergil);
-        ActionData("Trick Up Count", activeConfig.trickUpCount, queuedConfig.trickUpCount, defaultConfig.trickUpCount);
-        ActionData("Trick Down Count", activeConfig.trickDownCount, queuedConfig.trickDownCount, defaultConfig.trickDownCount);
+		for (size_t i = 0; i < 2; ++i) {
+			if (i == 0) {
+				ImGui::TableNextRow(0, rowWidth);
+				ImGui::TableNextColumn();
+			}
 
-        ImGui::Text("");
-    }
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2("", active[i], queued[i], defaultVar[i], (uint8)1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+			if (i == 0) {
+				ImGui::TableNextColumn();
+			}
+			else {
+				ImGui::SameLine();
+				ImGui::Text(label);
+			}
+		}
+		};
+
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+	{
+		// Get initial cursor position for manual layout
+		ImVec2 initialPos = ImGui::GetCursorPos();
+		const float columnWidth = 0.15f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
+		GUI_PushDisable(!activeCrimsonConfig.Cheats.General.customMobility);
+
+		ImGui::SetCursorPos(initialPos);
+		// Start first table (left side)
+		if (ImGui::BeginTable("MobilityOptionsTable1", 2)) {
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("HUMAN");
+			ImGui::TableNextColumn();
+			ImGui::Text("DEVIL TRIGGER");
+			ImGui::PopFont();
+
+			// First half of mobility options
+			MobilityDataInput("Air Hike Count", activeConfig.airHikeCount, queuedConfig.airHikeCount, defaultConfig.airHikeCount);
+			MobilityDataInput("Kick Jump Count", activeConfig.kickJumpCount, queuedConfig.kickJumpCount, defaultConfig.kickJumpCount);
+			MobilityDataInput("Wall Hike Count", activeConfig.wallHikeCount, queuedConfig.wallHikeCount, defaultConfig.wallHikeCount);
+			MobilityDataInput("Dash Count", activeConfig.dashCount, queuedConfig.dashCount, defaultConfig.dashCount);
+			MobilityDataInput("Sky Star Count", activeConfig.skyStarCount, queuedConfig.skyStarCount, defaultConfig.skyStarCount);
+
+			ImGui::EndTable();
+		}
+
+		// Add some space between the tables
+		ImGui::SetCursorPos(ImVec2(initialPos.x + (420 * queuedConfig.globalScale), initialPos.y)); 
+
+		// Start second table (right side)
+		if (ImGui::BeginTable("MobilityOptionsTable2", 2)) {
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.3f);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("HUMAN");
+			ImGui::TableNextColumn();
+			ImGui::Text("DEVIL TRIGGER");
+			ImGui::PopFont();
+
+			// Second half of mobility options
+			MobilityDataInput("Air Trick Count Dante", activeConfig.airTrickCountDante, queuedConfig.airTrickCountDante, defaultConfig.airTrickCountDante);
+			MobilityDataInput("Air Trick Count Vergil", activeConfig.airTrickCountVergil, queuedConfig.airTrickCountVergil, defaultConfig.airTrickCountVergil);
+			MobilityDataInput("Trick Up Count", activeConfig.trickUpCount, queuedConfig.trickUpCount, defaultConfig.trickUpCount);
+			MobilityDataInput("Trick Down Count", activeConfig.trickDownCount, queuedConfig.trickDownCount, defaultConfig.trickDownCount);
+
+			ImGui::EndTable();
+		}
+
+		GUI_PopDisable(!activeCrimsonConfig.Cheats.General.customMobility);
+	}
+	
+	//GUI_InputDefault2("", vars[0], vars2[0], defaultVars[0], step, format, flags);
+	GUI_PopDisable(!activeConfig.Actor.enable);
+	ImGui::PopItemWidth();
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+	ImGui::Text("");
 }
 
 #pragma endregion
@@ -7439,6 +7577,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 
         if (activeConfig.debugOverlayData.showFrameRateMultiplier) {
             ImGui::Text("g_frameRateMultiplier %g", g_frameRateMultiplier);
+			ImGui::Text("g_FrameRateTimeMultiplier %g", g_FrameRateTimeMultiplier);
         }
 
         if (activeConfig.debugOverlayData.showFocus || activeConfig.debugOverlayData.showFPS || activeConfig.debugOverlayData.showSizes ||
@@ -7624,9 +7763,31 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			ImGui::Text("NextActionPolicyTrickster: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::TRICKSTER_DARK_SLAYER]);
+			ImGui::Text("NextActionPolicyMelee: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::MELEE_ATTACK]);
+			ImGui::Text("BufferedAction: %u", actorData.bufferedAction);
+			ImGui::Text("Air Trick Count : %u", actorData.newAirTrickCount);
+			ImGui::Text("rainstorm cached inertia:  %g", crimsonPlayer[0].inertia.rainstorm.cachedPull);
+			ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
+			ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
+			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
+			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
+			ImGui::Text("AIR SWORD COUNT: %u", actorData.airSwordAttackCount);
+			ImGui::Text("Back Buffer: %g", crimsonPlayer[0].b2F.backBuffer);
+			ImGui::Text("Forward Buffer: %g", crimsonPlayer[0].b2F.forwardBuffer);
+			ImGui::Text("Forward Command: %u", crimsonPlayer[0].b2F.forwardCommand);
+			ImGui::Text("Back Buffer Clone: %g", crimsonPlayer[0].b2FClone.backBuffer);
+			ImGui::Text("Forward Buffer Clone: %g", crimsonPlayer[0].b2FClone.forwardBuffer);
+			ImGui::Text("Forward Command Clone: %u", crimsonPlayer[0].b2FClone.forwardCommand);
+			ImGui::Text("Royal Block: %u", actorData.royalBlock);
+			ImGui::Text("Guard: %u", actorData.guard);
+			ImGui::Text("maxDT: %g", actorData.maxMagicPoints);
 			ImGui::Text("Motion Data 1: %u", crimsonPlayer[0].motion);
 			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
 			ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[0].animTimer);
+			ImGui::Text("anim Timer Clone:  %g", crimsonPlayer[0].animTimerClone);
+			ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
+			ImGui::Text("action Timer Clone:  %g", crimsonPlayer[0].actionTimerClone);
 			ImGui::Text("AIR GUARD: %u", actorData.airGuard);
 			ImGui::Text("GUARDFLY PULL: %g", crimsonPlayer[0].inertia.airGuard.cachedPull);
 			ImGui::Text("GUARDFLY TIMER: %g", crimsonPlayer[0].inertia.guardflyTimer);
@@ -7655,15 +7816,13 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             // ImGui::Text("crazy combo hold:  %u", crazyComboHold);
             ImGui::Text("Chain Count (weight):  %u", actorData.airSwordAttackCount);
             ImGui::Text("Air Guard:  %u", actorData.airGuard);
-            ImGui::Text("rainstorm cached inertia:  %g", crimsonPlayer[0].inertia.rainstorm.cachedPull);
             // ImGui::Text("Gravity Tweak:  %g", crimsonPlayer[0].airRaveTweak.gravity);
             // ImGui::Text("drive timer:  %g", crimsonPlayer[0].drive.timer);
             // ImGui::Text("Actor Speed %g", actorData.speed);
             ImGui::Text("TOP LEFT ALPHA: %u", hudData.topLeftAlpha);
             ImGui::Text("distance: %u", crimsonPlayer[0].cameraPlayerDistanceClamped);
             ImGui::Text("Release Damage: %g", actorData.royalguardReleaseDamage);
-            ImGui::Text("ACTOR STATUS: %u", actorData.status);
-            ImGui::Text("Royal Block: %u", actorData.royalBlock);
+			ImGui::Text("ACTOR STATUS: %u", actorData.status);
             ImGui::Text("MIRAGE GAUGE: %g", crimsonPlayer[0].vergilDoppelganger.miragePoints);
             ImGui::Text("Vergil Dopp Timer Start: %u", crimsonPlayer[0].vergilDoppelganger.drainStart);
             ImGui::Text("Vergil Dopp Timer: %g", crimsonPlayer[0].vergilDoppelganger.drainTime);
@@ -7708,19 +7867,13 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("Last Last State %u", crimsonPlayer[0].lastLastState);
             ImGui::Text("Character Action %u", crimsonPlayer[0].action);
             ImGui::Text("Character Last Action %u", actorData.lastAction);
-            ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
-            ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
-            ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
-            ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
             ImGui::Text("Position  %g", actorData.position);
             ImGui::Text("Rotation %g", actorData.rotation);
             ImGui::Text("Camera Direction %u", actorData.cameraDirection);
             ImGui::Text("Actor Camera Direction %u", actorData.actorCameraDirection);
             ImGui::Text("RelativeTilt %u", relativeTiltController);
             ImGui::Text("LeftStick Position %u", gamepad.leftStickPosition);
-            ImGui::Text("Air Stinger End Timer %u", airStingerEnd.timer);
-            ImGui::Text("Air Stinger End Time Int %u", airStingerEndTimeInt);
-
+		
             ImGui::Text("Royal Block Type:  %u", actorData.royalguardBlockType);
             ImGui::Text("Guardflying:  %u", inGuardfly);
             // ImGui::Text("Track %s", eventData.track);
@@ -8064,7 +8217,7 @@ void AdjustBackgroundTransparency() {
 
         //DYNAMIC
     case 2 :
-        if (g_inGame) {
+        if (g_inGameDelayed) {
             ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, queuedCrimsonConfig.GUI.opacity));
         }
 		else {
@@ -8137,7 +8290,7 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Pause When Opened", activeCrimsonConfig.GUI.pauseWhenOpened, queuedCrimsonConfig.GUI.pauseWhenOpened)) {
-				if (g_inGame) {
+				if (g_inGameDelayed) {
 					activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed; // This resumes the game speed
 					activeConfig.Speed.turbo = queuedConfig.Speed.turbo;
 					Speed::Toggle(true); // Toggle Speed on and off to set the new speed
@@ -8419,81 +8572,65 @@ const char* devilSpeedNamesVergil[] = {
 // @Todo: EnterReturnsTrue.
 // @Todo: Apply rounding.
 
-template <typename T>
-bool GUI_InputDefault2Speed(
-    const char* label, T& var, T& var2, T& defaultVar, const T step = 1, const char* format = 0, ImGuiInputTextFlags flags = 0) {
-	auto defaultVarCalculated = (activeConfig.framerateResponsiveGameSpeed)? defaultVar * g_frameRateMultiplier : defaultVar;
-    auto update = GUI_InputDefault2(label, var, var2, defaultVarCalculated, step, format, flags);
 
-    if (update) {
-        Speed::Toggle(true);
-    }
-
-    return update;
-}
 
 void SpeedSection() {
-    if (ImGui::CollapsingHeader("Speed")) {
-        ImGui::Text("");
+	ImGui::Text("");
 
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.Speed, &defaultConfig.Speed, sizeof(queuedConfig.Speed));
-            CopyMemory(&activeConfig.Speed, &queuedConfig.Speed, sizeof(activeConfig.Speed));
+	if (GUI_ResetButton()) {
+		CopyMemory(&queuedConfig.Speed, &defaultConfig.Speed, sizeof(queuedConfig.Speed));
+		CopyMemory(&activeConfig.Speed, &queuedConfig.Speed, sizeof(activeConfig.Speed));
 
-            Speed::Toggle(false);
-        }
-        ImGui::Text("");
+		Speed::Toggle(false);
+	}
+	ImGui::Text("");
 
-        ImGui::PushItemWidth(200);
+	ImGui::PushItemWidth(200);
 
-        GUI_InputDefault2Speed("Main", activeConfig.Speed.mainSpeed, queuedConfig.Speed.mainSpeed, defaultConfig.Speed.mainSpeed, 0.1f,
-            "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-        GUI_InputDefault2Speed("Turbo", activeConfig.Speed.turbo, queuedConfig.Speed.turbo, defaultConfig.Speed.turbo, 0.1f, "%g",
-            ImGuiInputTextFlags_EnterReturnsTrue);
-        GUI_InputDefault2Speed("Enemy Actor", activeConfig.Speed.enemy, queuedConfig.Speed.enemy, defaultConfig.Speed.enemy, 0.1f, "%g",
-            ImGuiInputTextFlags_EnterReturnsTrue);
-        GUI_SectionEnd();
-        ImGui::Text("");
+	GUI_InputDefault2Speed("Enemy Actor", activeConfig.Speed.enemy, queuedConfig.Speed.enemy, defaultConfig.Speed.enemy, 0.1f, "%g",
+		ImGuiInputTextFlags_EnterReturnsTrue);
+	GUI_SectionEnd();
+	ImGui::Text("");
 
-        ImGui::Text("Player Actor");
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.");
-        ImGui::Text("");
+	ImGui::Text("Player Actor");
+	ImGui::SameLine();
+	TooltipHelper("(?)", "Requires enabled Actor module.");
+	ImGui::Text("");
 
-        GUI_InputDefault2Speed("Human", activeConfig.Speed.human, queuedConfig.Speed.human, defaultConfig.Speed.human, 0.1f, "%g",
-            ImGuiInputTextFlags_EnterReturnsTrue);
-        ImGui::Text("");
+	GUI_InputDefault2Speed("Human", activeConfig.Speed.human, queuedConfig.Speed.human, defaultConfig.Speed.human, 0.1f, "%g",
+		ImGuiInputTextFlags_EnterReturnsTrue);
+	ImGui::Text("");
 
-        ImGui::Text("Devil Dante");
+	ImGui::Text("Devil Dante");
 
-        old_for_all(uint8, index, countof(activeConfig.Speed.devilDante)) {
-            GUI_InputDefault2Speed(devilSpeedNamesDante[index], activeConfig.Speed.devilDante[index], queuedConfig.Speed.devilDante[index],
-                defaultConfig.Speed.devilDante[index], 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-        }
-        // ImGui::Text("");
+	old_for_all(uint8, index, countof(activeConfig.Speed.devilDante)) {
+		GUI_InputDefault2Speed(devilSpeedNamesDante[index], activeConfig.Speed.devilDante[index], queuedConfig.Speed.devilDante[index],
+			defaultConfig.Speed.devilDante[index], 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	}
+	// ImGui::Text("");
 
-        ImGui::Text("Devil Vergil");
+	ImGui::Text("Devil Vergil");
 
-        old_for_all(uint8, index, countof(activeConfig.Speed.devilVergil)) {
-            GUI_InputDefault2Speed(devilSpeedNamesVergil[index], activeConfig.Speed.devilVergil[index],
-                queuedConfig.Speed.devilVergil[index], defaultConfig.Speed.devilVergil[index], 0.1f, "%g",
-                ImGuiInputTextFlags_EnterReturnsTrue);
-        }
-        GUI_SectionEnd();
-        ImGui::Text("");
+	old_for_all(uint8, index, countof(activeConfig.Speed.devilVergil)) {
+		GUI_InputDefault2Speed(devilSpeedNamesVergil[index], activeConfig.Speed.devilVergil[index],
+			queuedConfig.Speed.devilVergil[index], defaultConfig.Speed.devilVergil[index], 0.1f, "%g",
+			ImGuiInputTextFlags_EnterReturnsTrue);
+	}
+	GUI_SectionEnd();
+	ImGui::Text("");
 
-        GUI_SectionStart("Quicksilver");
-        GUI_InputDefault2Speed("Actor", activeConfig.Speed.quicksilverPlayerActor, queuedConfig.Speed.quicksilverPlayerActor,
-            defaultConfig.Speed.quicksilverPlayerActor, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-        GUI_InputDefault2Speed("Enemy", activeConfig.Speed.quicksilverEnemyActor, queuedConfig.Speed.quicksilverEnemyActor,
-            defaultConfig.Speed.quicksilverEnemyActor, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	GUI_SectionStart("Quicksilver");
+	GUI_InputDefault2Speed("Actor", activeConfig.Speed.quicksilverPlayerActor, queuedConfig.Speed.quicksilverPlayerActor,
+		defaultConfig.Speed.quicksilverPlayerActor, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	GUI_InputDefault2Speed("Enemy", activeConfig.Speed.quicksilverEnemyActor, queuedConfig.Speed.quicksilverEnemyActor,
+		defaultConfig.Speed.quicksilverEnemyActor, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
-        ImGui::PopItemWidth();
+	ImGui::PopItemWidth();
 
 
-        ImGui::Text("");
-    }
+	ImGui::Text("");
+    
 }
 
 #pragma endregion
@@ -8547,26 +8684,16 @@ void SystemSection(size_t defaultFontSize) {
 		const float columnWidth = 0.5f * queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-		if (ImGui::BeginTable("GraphicsWindowOptionsTable", 2)) {
+		if (ImGui::BeginTable("GraphicsWindowOptionsTable", 3)) {
 
-			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * 0.8f);
 			if (GUI_InputDefault2<float>("Frame Rate", activeConfig.frameRate, queuedConfig.frameRate, defaultConfig.frameRate, 1, "%.2f",
 				ImGuiInputTextFlags_EnterReturnsTrue)) {
-				UpdateFrameRate();
-
-				if (activeConfig.framerateResponsiveGameSpeed) {
-
-					activeConfig.Speed.turbo = 1.2 / (activeConfig.frameRate / 60);
-					queuedConfig.Speed.turbo = 1.2 / (activeConfig.frameRate / 60);
-
-					activeConfig.Speed.mainSpeed = 1.0 / (activeConfig.frameRate / 60);
-					queuedConfig.Speed.mainSpeed = 1.0 / (activeConfig.frameRate / 60);
-
-				}
+				
 			}
 			ImGui::PopItemWidth();
 
@@ -8574,17 +8701,48 @@ void SystemSection(size_t defaultFontSize) {
 
 			GUI_Checkbox2("Disable Blending Effects", activeConfig.disableBlendingEffects, queuedConfig.disableBlendingEffects);
 
-			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
+			ImGui::PushItemWidth(itemWidth * 0.8f);
 			UI::Combo2("V-Sync", Graphics_vSyncNames, activeConfig.vSync, queuedConfig.vSync);
+			ImGui::PopItemWidth();
 
-            ImGui::TableNextColumn();
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Force Focus", activeConfig.forceWindowFocus, queuedConfig.forceWindowFocus)) {
 				ToggleForceWindowFocus(activeConfig.forceWindowFocus);
 			}
 
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Hide Mouse Cursor", activeConfig.hideMouseCursor, queuedConfig.hideMouseCursor);
+
+
+			ImGui::EndTable();
+		}
+	}
+
+	ImGui::Text("");
+
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+
+
+	ImGui::Text("GAME SPEED");
+
+	ImGui::PopFont();
+
+	UI::SeparatorEx(defaultFontSize * 23.35f);
+
+	ImGui::Text("");
+
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+		if (ImGui::BeginTable("GameSpeedOptionsTable", 3)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
@@ -8605,8 +8763,24 @@ void SystemSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			GUI_InputDefault2SpeedCalc("Main Speed", activeConfig.Speed.mainSpeed, queuedConfig.Speed.mainSpeed, defaultConfig.Speed.mainSpeed, 0.1f,
+				"%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Changes Default Game Speed, changing this to be other than default\n" 
+				"(without Frame Rate-Responsive Game Speed on) will tag you at the Mission End screen.");
 
-			GUI_Checkbox2("Hide Mouse Cursor", activeConfig.hideMouseCursor, queuedConfig.hideMouseCursor);
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			GUI_InputDefault2SpeedCalc("Turbo Speed", activeConfig.Speed.turbo, queuedConfig.Speed.turbo, defaultConfig.Speed.turbo, 0.1f, "%g",
+				ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Changes Turbot Game Speed, changing this to be other than default\n"
+				"(without Frame Rate-Responsive Game Speed on) will tag you at the Mission End screen.");
+
 
 			ImGui::EndTable();
 		}
@@ -8630,7 +8804,7 @@ void SystemSection(size_t defaultFontSize) {
 		const float columnWidth = 0.5f * queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-		if (ImGui::BeginTable("GraphicsWindowOptionsTable", 2)) {
+		if (ImGui::BeginTable("MiscOptionsTable", 2)) {
 
 			ImGui::TableSetupColumn("b1", 0, columnWidth);
 			ImGui::TableNextRow(0, rowWidth);
@@ -8758,73 +8932,86 @@ void SystemSection(size_t defaultFontSize) {
     
 }
 
+void FrameResponsiveGameSpeed() {
+	g_FrameRate = ImGui::GetIO().Framerate;
+	g_FrameRateTimeMultiplier = (60 / ImGui::GetIO().Framerate);
+
+	auto& activeValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+	auto& queuedValue = (IsTurbo()) ? queuedConfig.Speed.turbo : queuedConfig.Speed.mainSpeed;
+	float gameSpeed = (IsTurbo()) ? 1.2f : 1.0f;
+
+	if (activeConfig.framerateResponsiveGameSpeed && ImGui::GetIO().Framerate > activeConfig.frameRate - 50) {
+		UpdateFrameRate();
+
+		activeValue = gameSpeed / (ImGui::GetIO().Framerate / 60);
+		queuedValue = gameSpeed / (ImGui::GetIO().Framerate / 60);
+	}
+}
+
 #pragma endregion
 
 #pragma region Teleporter
 
-void Teleporter() {
-    if (ImGui::CollapsingHeader("Teleporter")) {
-        ImGui::Text("");
+void TeleporterSection() {
+   
+	[&]() {
+		if (!InGame()) {
+			ImGui::Text("Invalid Pointer");
+
+			return;
+		}
+
+		auto pool_11962 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+		if (!pool_11962 || !pool_11962[8]) {
+			return;
+		}
+		auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
+
+		auto pool_12013 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+		if (!pool_12013 || !pool_12013[12]) {
+			return;
+		}
+		auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12013[12]);
 
 
-        [&]() {
-            if (!InGame()) {
-                ImGui::Text("Invalid Pointer");
+		if (GUI_Button("Clear")) {
+			nextEventData.position = nextEventData.room = 0;
+		}
+		ImGui::SameLine();
 
-                return;
-            }
-
-            auto pool_11962 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-            if (!pool_11962 || !pool_11962[8]) {
-                return;
-            }
-            auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
-
-            auto pool_12013 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-            if (!pool_12013 || !pool_12013[12]) {
-                return;
-            }
-            auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12013[12]);
+		if (GUI_Button("Current")) {
+			nextEventData.room = static_cast<uint16>(eventData.room);
+			nextEventData.position = static_cast<uint16>(eventData.position);
+		}
+		ImGui::Text("");
 
 
-            if (GUI_Button("Clear")) {
-                nextEventData.position = nextEventData.room = 0;
-            }
-            ImGui::SameLine();
+		constexpr float width = 150.0f;
 
-            if (GUI_Button("Current")) {
-                nextEventData.room     = static_cast<uint16>(eventData.room);
-                nextEventData.position = static_cast<uint16>(eventData.position);
-            }
-            ImGui::Text("");
+		ImGui::PushItemWidth(width);
 
+		ImGui::Text("Current");
 
-            constexpr float width = 150.0f;
+		GUI_Input<uint32>("Room", eventData.room, 0, "%u", ImGuiInputTextFlags_ReadOnly);
 
-            ImGui::PushItemWidth(width);
+		GUI_Input<uint32>("Position", eventData.position, 0, "%u", ImGuiInputTextFlags_ReadOnly);
 
-            ImGui::Text("Current");
+		ImGui::Text("Next");
 
-            GUI_Input<uint32>("Room", eventData.room, 0, "%u", ImGuiInputTextFlags_ReadOnly);
+		GUI_Input<uint16>("Room", nextEventData.room, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 
-            GUI_Input<uint32>("Position", eventData.position, 0, "%u", ImGuiInputTextFlags_ReadOnly);
+		GUI_Input<uint16>("Position", nextEventData.position, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 
-            ImGui::Text("Next");
+		if (GUI_Button("Teleport", ImVec2(width, ImGui::GetFrameHeight()))) {
+			eventData.event = EVENT::TELEPORT;
+		}
 
-            GUI_Input<uint16>("Room", nextEventData.room, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-
-            GUI_Input<uint16>("Position", nextEventData.position, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-
-            if (GUI_Button("Teleport", ImVec2(width, ImGui::GetFrameHeight()))) {
-                eventData.event = EVENT::TELEPORT;
-            }
-
-            ImGui::PopItemWidth();
-        }();
+		ImGui::PopItemWidth();
+		}();
 
 
-        ImGui::Text("");
-    }
+		ImGui::Text("");
+    
 }
 
 #pragma endregion
@@ -8846,54 +9033,67 @@ void WeaponWheel() {
 #pragma region Training
 
 void TrainingSection() {
-    if (ImGui::CollapsingHeader("Training")) {
-        ImGui::Text("");
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	const float itemWidth = defaultFontSize * 8.0f;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	ImGui::Text("TRAINING");
+	ImGui::PopFont();
+	UI::SeparatorEx(defaultFontSize * 23.35f);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.infiniteHitPoints, &defaultConfig.infiniteHitPoints, sizeof(queuedConfig.infiniteHitPoints));
-            CopyMemory(&activeConfig.infiniteHitPoints, &queuedConfig.infiniteHitPoints, sizeof(activeConfig.infiniteHitPoints));
+	ImGui::PushItemWidth(itemWidth);
+	ImGui::Text("");
 
-            ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
+	float smallerComboMult = 0.7f;
 
-            CopyMemory(&queuedConfig.infiniteMagicPoints, &defaultConfig.infiniteMagicPoints, sizeof(queuedConfig.infiniteMagicPoints));
-            CopyMemory(&activeConfig.infiniteMagicPoints, &queuedConfig.infiniteMagicPoints, sizeof(activeConfig.infiniteMagicPoints));
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-            ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
+		if (ImGui::BeginTable("TrainingCheatsOptionsTable", 3)) {
 
-            CopyMemory(&queuedConfig.disableTimer, &defaultConfig.disableTimer, sizeof(queuedConfig.disableTimer));
-            CopyMemory(&activeConfig.disableTimer, &queuedConfig.disableTimer, sizeof(activeConfig.disableTimer));
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-            ToggleDisableTimer(activeConfig.disableTimer);
+			if (GUI_Checkbox2("Infinite Hit Points", activeConfig.infiniteHitPoints, activeConfig.infiniteHitPoints)) {
+				ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
+			}
 
-            CopyMemory(&queuedConfig.infiniteBullets, &defaultConfig.infiniteBullets, sizeof(queuedConfig.infiniteBullets));
-            CopyMemory(&activeConfig.infiniteBullets, &queuedConfig.infiniteBullets, sizeof(activeConfig.infiniteBullets));
+			ImGui::TableNextColumn();
 
-            ToggleInfiniteBullets(activeConfig.infiniteBullets);
-        }
-        ImGui::Text("");
+			if (GUI_Checkbox2("Infinite Magic Points", activeConfig.infiniteMagicPoints, queuedConfig.infiniteMagicPoints)) {
+				ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
+			}
 
-        if (GUI_Checkbox2("Infinite Hit Points", activeConfig.infiniteHitPoints, activeConfig.infiniteHitPoints)) {
-            ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
-        }
+			ImGui::TableNextColumn();
 
-        if (GUI_Checkbox2("Infinite Magic Points", activeConfig.infiniteMagicPoints, queuedConfig.infiniteMagicPoints)) {
-            ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
-        }
+			if (GUI_Checkbox2("Disable Timer", activeConfig.disableTimer, queuedConfig.disableTimer)) {
+				ToggleDisableTimer(activeConfig.disableTimer);
+			}
 
-        if (GUI_Checkbox2("Disable Timer", activeConfig.disableTimer, queuedConfig.disableTimer)) {
-            ToggleDisableTimer(activeConfig.disableTimer);
-        }
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-        if (GUI_Checkbox2("Infinite Bullets", activeConfig.infiniteBullets, queuedConfig.infiniteBullets)) {
-            ToggleInfiniteBullets(activeConfig.infiniteBullets);
-        }
-        ImGui::SameLine();
-        TooltipHelper("(?)", "For Boss Lady.");
+			if (GUI_Checkbox2("Infinite Bullets", activeConfig.infiniteBullets, queuedConfig.infiniteBullets)) {
+				ToggleInfiniteBullets(activeConfig.infiniteBullets);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "For Boss Lady.");
 
+			ImGui::EndTable();
+		}
+	}
 
-        ImGui::Text("");
-    }
+	ImGui::PopItemWidth();
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+
+	ImGui::Text("");
+    
 }
 
 #pragma endregion
@@ -9169,9 +9369,15 @@ void SoundVisualSection(size_t defaultFontSize) {
 	}
 
 
-	if (GUI_Button("Colorful")) {
-		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.colorful, sizeof(queuedCrimsonConfig.StyleSwitchFX.Flux.color));
-		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.colorful, sizeof(activeCrimsonConfig.StyleSwitchFX.Flux.color));
+	if (GUI_Button("Colorful Subtle")) {
+		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.colorfulSubtle, sizeof(queuedCrimsonConfig.StyleSwitchFX.Flux.color));
+		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.colorfulSubtle, sizeof(activeCrimsonConfig.StyleSwitchFX.Flux.color));
+	}
+
+	ImGui::SameLine();
+	if (GUI_Button("DMC3 Switch")) {
+		CopyMemory(&queuedCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.dMC3Switch, sizeof(queuedCrimsonConfig.StyleSwitchFX.Flux.color));
+		CopyMemory(&activeCrimsonConfig.StyleSwitchFX.Flux.color, &colorPresets.StyleSwitchFlux.dMC3Switch, sizeof(activeCrimsonConfig.StyleSwitchFX.Flux.color));
 	}
 
     ImGui::SameLine();
@@ -9415,7 +9621,6 @@ void GameplayOptions() {
 
 		if (!activeConfig.Actor.enable) {
 			activeCrimsonConfig.Gameplay.General.holdToCrazyCombo = false;
-			queuedCrimsonConfig.Gameplay.General.holdToCrazyCombo = false;
 			CrimsonDetours::ToggleHoldToCrazyCombo(false);
 		}
 
@@ -9547,6 +9752,18 @@ void GameplayOptions() {
                              "Sky Dance Part 3 is now a separate ability executed by Lock On + Forward + Style. Tweaks Sky Dance Gravity, "
                              "taking weights into account.");
 
+		GUI_Checkbox2("Shotgun Air Shot Tweaks", activeCrimsonConfig.Gameplay.Dante.shotgunAirShotTweaks, queuedCrimsonConfig.Gameplay.Dante.shotgunAirShotTweaks);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Tweaks Air Shotgun Gravity to be lower, making you rise less.");
+
+		GUI_Checkbox2("Drive Tweaks", activeCrimsonConfig.Gameplay.Dante.driveTweaks, queuedCrimsonConfig.Gameplay.Dante.driveTweaks);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Drive is now inputted by Lock On + Back to Forward + Melee and can be held for more damage. Do Quick Drive by performing Drive after a Rebellion attack.");
+
 		GUI_Checkbox2("Bullet Stop", activeCrimsonConfig.Gameplay.Dante.bulletStop, queuedCrimsonConfig.Gameplay.Dante.bulletStop);
 		ImGui::SameLine();
 		TooltipHelper("(?)", "Requires Actor System.\n"
@@ -9558,6 +9775,38 @@ void GameplayOptions() {
 		TooltipHelper("(?)", "Requires Actor System.\n"
 			"\n"
 			"Rainstorm will elevate you slightly in the air.");
+		//enableRebellionAirStinger
+		GUI_Checkbox2("Air Stinger", activeCrimsonConfig.Gameplay.Dante.airStinger, queuedCrimsonConfig.Gameplay.Dante.airStinger);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n");
+
+		if (GUI_Checkbox2("DMC4 Mobility", activeCrimsonConfig.Gameplay.Dante.dmc4Mobility, queuedCrimsonConfig.Gameplay.Dante.dmc4Mobility)) {
+			queuedConfig.airHikeCount[1] = 2;
+			queuedConfig.wallHikeCount[1] = 2;
+			queuedConfig.skyStarCount[1] = 2;
+			queuedConfig.airTrickCountDante[1] = 2;
+
+			activeConfig.airHikeCount[1] = 2;
+			activeConfig.wallHikeCount[1] = 2;
+			activeConfig.skyStarCount[1] = 2;
+			activeConfig.airTrickCountDante[1] = 2;
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+		"\n"
+		"Air Tricking from the ground does not consume the Air Trick Count. Also sets Air Trick, Air Hike and Sky Star Count to 2 when in DT.");
+
+
+		GUI_PushDisable(!activeConfig.Actor.enable);
+		if (!activeConfig.Actor.enable) {
+			activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard = false;
+		}
+		GUI_Checkbox2("DT Infused Royalguard", activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard, queuedCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Royalguard Normal Blocks will consume DT instead, until you're low on DT. This will also prevent Guard Breaks by converting them into Normal Blocks.");
+		GUI_PopDisable(!activeConfig.Actor.enable);
 
         ImGui::Text("");
 
@@ -9572,8 +9821,17 @@ void GameplayOptions() {
         TooltipHelper("(?)", "Requires Actor System.\n"
                              "\n"
                              "Enables Vergil to cancel any move with any Darkslayer Trick at any time.");
-        ImGui::Text("");
 
+		GUI_Checkbox2("Air Stinger", activeCrimsonConfig.Gameplay.Vergil.airStinger, queuedCrimsonConfig.Gameplay.Vergil.airStinger);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n");
+
+		GUI_Checkbox2("Round Trip Tweaks", activeConfig.enableYamatoForceEdgeNewRoundTrip, queuedConfig.enableYamatoForceEdgeNewRoundTrip);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n");
+
+
+        ImGui::Text("");
         ImGui::Text("");
 
         ImGui::Text("Input Remaps");
@@ -9742,46 +10000,6 @@ void Vergil() {
         TooltipHelper("(?)", "Requires enabled Actor module.\n"
                              "\n"
                              "Press Lock-On + Right + Melee Attack.");
-
-        GUI_Checkbox2("Enable Air Stinger", activeConfig.enableYamatoForceEdgeAirStinger, queuedConfig.enableYamatoForceEdgeAirStinger);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.");
-
-        GUI_Checkbox2(
-            "Enable New Round Trip", activeConfig.enableYamatoForceEdgeNewRoundTrip, queuedConfig.enableYamatoForceEdgeNewRoundTrip);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.\n"
-                             "\n"
-                             "Press Lock-On + Left + Melee Attack.");
-        ImGui::Text("");
-
-
-        TooltipHelper("(?)", "Requires enabled Actor module.\n"
-                             "\n"
-                             "Left : Human\n"
-                             "Right: Devil");
-        ImGui::Text("");
-
-        ActionData("Stinger Duration", activeConfig.YamatoForceEdge.stingerDuration, queuedConfig.YamatoForceEdge.stingerDuration,
-            defaultConfig.YamatoForceEdge.stingerDuration, 1.0f, "%g");
-        ActionData("Stinger Range", activeConfig.YamatoForceEdge.stingerRange, queuedConfig.YamatoForceEdge.stingerRange,
-            defaultConfig.YamatoForceEdge.stingerRange, 10.0f, "%g");
-
-        {
-            bool condition = !activeConfig.enableYamatoForceEdgeAirStinger;
-
-            GUI_PushDisable(condition);
-
-            ActionData("Air Stinger Count", activeConfig.YamatoForceEdge.airStingerCount, queuedConfig.YamatoForceEdge.airStingerCount,
-                defaultConfig.YamatoForceEdge.airStingerCount);
-
-            ActionData("Air Stinger Duration", activeConfig.YamatoForceEdge.airStingerDuration,
-                queuedConfig.YamatoForceEdge.airStingerDuration, defaultConfig.YamatoForceEdge.airStingerDuration, 1.0f, "%g");
-            ActionData("Air Stinger Range", activeConfig.YamatoForceEdge.airStingerRange, queuedConfig.YamatoForceEdge.airStingerRange,
-                defaultConfig.YamatoForceEdge.airStingerRange, 10.0f, "%g");
-
-            GUI_PopDisable(condition);
-        }
 
         GUI_SectionEnd();
         ImGui::Text("");
@@ -9973,35 +10191,29 @@ std::vector<KeyBinding> keyBindings = {
 };
 
 void KeyBindings() {
-    if (ImGui::CollapsingHeader("Key Bindings")) {
-        ImGui::Text("");
 
+	bool condition = false;
 
-        bool condition = false;
+	for_all(index, keyBindings.size()) {
+		auto& keyBinding = keyBindings[index];
 
-        for_all(index, keyBindings.size()) {
-            auto& keyBinding = keyBindings[index];
+		if (keyBinding.showPopup) {
+			condition = true;
 
-            if (keyBinding.showPopup) {
-                condition = true;
+			break;
+		}
+	}
 
-                break;
-            }
-        }
+	GUI_PushDisable(condition);
 
-        GUI_PushDisable(condition);
+	for_all(index, keyBindings.size()) {
+		auto& keyBinding = keyBindings[index];
 
-        for_all(index, keyBindings.size()) {
-            auto& keyBinding = keyBindings[index];
+		keyBinding.Main();
+	}
 
-            keyBinding.Main();
-        }
-
-        GUI_PopDisable(condition);
-
-
-        ImGui::Text("");
-    }
+	GUI_PopDisable(condition);
+    
 }
 
 #pragma endregion
@@ -10511,21 +10723,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					{
 						ImGui::Text("");
 
-						std::stringstream sstm;
-						sstm << "WINDOWSIZE X: " << g_renderSize.x;
-						std::string windowSizeX = sstm.str();
-
-						std::stringstream sstm2;
-						sstm2 << "WINDOWSIZE Y: " << g_renderSize.y;
-						std::string windowSizeY = sstm2.str();
-						const char* var1 = windowSizeX.c_str();
-						const char* var2 = windowSizeY.c_str();
-
-
-						ImGui::Text(var1);
-						ImGui::Text(var2);
-
-
 						GamepadClose(visibleMain, lastVisibleMain, CloseMain);
 
 
@@ -10534,21 +10731,11 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 						ImGui::PopItemWidth();
 
-						Damage();
 						Dante();
-
-						Enemy();
-						Jukebox();
-						KeyBindings();
 						Lady();
-						Mobility();
-						Other();
 						Repair();
-						SpeedSection();
-						Teleporter();
 						WeaponWheel();
 						GameplayOptions();
-						TrainingSection();
 						Vergil();
 
 					}
@@ -10634,7 +10821,52 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			}
         }
         else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::Hotkeys) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
 
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						KeyBindings();
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			//Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("HOTKEY OPTIONS");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Set various settings to keyboard shortcuts.");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
         }
         else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::Interface) {
             getHUDsDirectories();
@@ -10807,6 +11039,11 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						//if constexpr (debug) {
 						DebugSection();
 						//}
+						TrainingSection();
+						DamageSection();
+						MobilitySection();
+						Other();
+						
 					}
 				}
 				ImGui::EndChild();
@@ -10841,7 +11078,199 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::EndChild();
 			}
 		}
-		
+		else if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::Speed) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						SpeedSection();						
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("CUSTOM SPEED SETTINGS");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Various Speed Settings for in-game entities.\nThis will tag you at the End of Mission screen.");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
+		}
+		else if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::Teleporter) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						TeleporterSection();
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("TELEPORTER");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Teleport anywhere. Using this will tag you at the Mission End screen.");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
+
+		}
+		else if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::EnemySpawner) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						EnemySpawnerSection();
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("ENEMY SPAWNER");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Spawn new enemies at your leisure.");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
+		}
+		else if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::JukeBox) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						JukeboxSection();
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("JUKEBOX");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Play songs from the original game at your heart's content, using the original game's audio system (FMOD).");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
+		}
 	}
 	break;
 
@@ -11279,6 +11708,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
         SoundWindow();
     }
 
+	FrameResponsiveGameSpeed();
     PauseWhenGUIOpened();
     GamepadToggleShowMain();
 	if (activeConfig.debugOverlayData.enable) {
@@ -11305,6 +11735,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonOnTick::GeneralCameraOptionsController(); // previously called from Actor in WeaponSwitchController.
 	CrimsonOnTick::AirTauntDetoursController();
 	CrimsonOnTick::NewMissionClearSong();
+	CrimsonOnTick::PauseSFXWhenPaused();
 
     // TIMERS
     CrimsonTimers::CallAllTimers();

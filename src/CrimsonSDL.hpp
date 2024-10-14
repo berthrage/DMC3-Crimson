@@ -42,6 +42,8 @@ void PlayDTExplosionLoop(int playerIndex, int volume);
 void PlayDTExplosionFinish(int playerIndex, int volume);
 void PlayDTEExplosionRelease(int playerIndex, int volume);
 void InterruptDTExplosionSFX(int playerIndex);
+void PauseDTExplosionSFX(int playerIndex);
+void ResumeDTExplosionSFX(int playerIndex);
 void PlayGuard(int playerIndex);
 void PlayRoyalBlock(int playerIndex);
 void PlayNormalBlock(int playerIndex);

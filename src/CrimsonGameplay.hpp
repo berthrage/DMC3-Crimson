@@ -5,12 +5,11 @@
 namespace CrimsonGameplay {
 
 void UpdateCrimsonPlayerData();
+void FixAirStingerCancelTime(byte8* actorBaseAddr);
 void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr);
 void ImprovedCancelsDanteController(byte8* actorBaseAddr);
 void ImprovedCancelsVergilController(byte8* actorBaseAddr);
 void VergilAdjustAirMovesPos(byte8* actorBaseAddr);
-void CalculateAirStingerEndTime();
-void SetAirStingerEnd(byte8* actorBaseAddr);
 void FasterRapidSlashDevil(byte8* actorBaseAddr);
 void FasterDarkslayerTricks();
 float DrainDTBar(float currentDT, float maxDT, float elapsedTime, bool dtOn, float drainTimeDTOn, float drainTimeDTOff);
@@ -19,9 +18,12 @@ void LastEventStateQueue(byte8* actorBaseAddr);
 void FreeformSoftLockController(byte8* actorBaseAddr);
 void StoreInertia(byte8* actorBaseAddr);
 void InertiaController(byte8* actorBaseAddr);
+void GravityCorrections(byte8* actorBaseAddr);
+void ShotgunAirShotTweaks(byte8* actorBaseAddr);
 void AerialRaveGravityTweaks(byte8* actorBaseAddr);
 void AirFlickerGravityTweaks(byte8* actorBaseAddr);
 void SkyDanceGravityTweaks(byte8* actorBaseAddr);
+void DMC4Mobility(byte8* actorBaseAddr);
 void StyleMeterDoppelganger(byte8* actorBaseAddr);
 void InCombatDetection();
 void BackToForwardInputs(byte8* actorBaseAddr);

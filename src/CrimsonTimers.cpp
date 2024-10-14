@@ -26,32 +26,37 @@ void ActionTimers() {
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
 
     old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-        auto& playerData = GetPlayerData(playerIndex);
+        old_for_all(uint8, entityIndex, ENTITY_COUNT) {
+            auto& playerData = GetPlayerData(playerIndex);
 
-        auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, 0);
+            auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, entityIndex);
 
-        auto actorBaseAddr = newActorData.baseAddr;
-        if (!actorBaseAddr) {
-            continue;
-        }
-        auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-        auto inAttack = (actorData.eventData[0].event == ACTOR_EVENT::ATTACK);
-		auto& currentAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAction : crimsonPlayer[playerIndex].currentActionClone;
-		auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
-        
-
-        if (inAttack) {
-            if (eventData.event != EVENT::PAUSE) {
-                actionTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_frameRateMultiplier);
+            auto actorBaseAddr = newActorData.baseAddr;
+            if (!actorBaseAddr) {
+                continue;
             }
-        } else {
-            actionTimer = 0;
-        }
+            auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+            auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+            if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
+            auto inAttack = (actorData.eventData[0].event == ACTOR_EVENT::ATTACK);
+            auto& currentAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAction : crimsonPlayer[playerIndex].currentActionClone;
+            auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 
-        // Reset Timer By Action
-        if (actorData.action != currentAction) {
-            actionTimer = 0;
-            currentAction = actorData.action;
+
+            if (inAttack) {
+                if (eventData.event != EVENT::PAUSE) {
+                    actionTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+                }
+            }
+            else {
+                actionTimer = 0;
+            }
+
+            // Reset Timer By Action
+            if (actorData.action != currentAction) {
+                actionTimer = 0;
+                currentAction = actorData.action;
+            }
         }
     }
 }
@@ -62,32 +67,35 @@ void AnimTimers() {
 	if (!pool_10371 || !pool_10371[8]) return;	
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
 
-	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-		auto& playerData = GetPlayerData(playerIndex);
+    old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+        old_for_all(uint8, entityIndex, ENTITY_COUNT) {
+            auto& playerData = GetPlayerData(playerIndex);
 
-		auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, 0);
+            auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, entityIndex);
 
-		auto actorBaseAddr = newActorData.baseAddr;
+            auto actorBaseAddr = newActorData.baseAddr;
 
-		if (!actorBaseAddr) {
-			continue;
-		}
-		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-		auto& currentAnim = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAnim : crimsonPlayer[playerIndex].currentAnimClone;
-        auto& actorMotion = actorData.motionData[0].index;
-        auto& animTimer = (actorData.newEntityIndex == 0)? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
-        
+            if (!actorBaseAddr) {
+                continue;
+            }
+            auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+            if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
+            auto& currentAnim = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAnim : crimsonPlayer[playerIndex].currentAnimClone;
+            auto& actorMotion = actorData.motionData[0].index;
+            auto& animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
 
-		// Reset Timer By Animation IDs
-		if (actorMotion != currentAnim) {
-			animTimer = 0;
-			currentAnim = actorMotion;
-		}
 
-		if (eventData.event != EVENT::PAUSE) {
-			animTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_frameRateMultiplier);
-		}
-	}
+            // Reset Timer By Animation IDs
+            if (actorMotion != currentAnim) {
+                animTimer = 0;
+                currentAnim = actorMotion;
+            }
+
+            if (eventData.event != EVENT::PAUSE) {
+                animTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+            }
+        }
+    }
 }
 
 std::chrono::steady_clock::time_point guardflyStartTime;
@@ -105,34 +113,36 @@ void GuardflyTimers() {
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
 
 	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-		auto& playerData = GetPlayerData(playerIndex);
+        old_for_all(uint8, entityIndex, ENTITY_COUNT) {
+            auto& playerData = GetPlayerData(playerIndex);
 
-		auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, 0);
+            auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, entityIndex);
 
-		auto actorBaseAddr = newActorData.baseAddr;
+            auto actorBaseAddr = newActorData.baseAddr;
 
-		if (!actorBaseAddr) {
-			continue;
-		}
-		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-		auto& guardflyTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inertia.guardflyTimer : crimsonPlayer[playerIndex].inertiaClone.guardflyTimer;
-		auto& currentEvent = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentEvent : crimsonPlayer[playerIndex].currentEventClone;
-		auto& actorEvent = actorData.eventData[0].event;
+            if (!actorBaseAddr) {
+                continue;
+            }
+            auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+            auto& guardflyTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inertia.guardflyTimer : crimsonPlayer[playerIndex].inertiaClone.guardflyTimer;
+            auto& currentEvent = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentEvent : crimsonPlayer[playerIndex].currentEventClone;
+            auto& actorEvent = actorData.eventData[0].event;
 
-		// Track Event
-		if (actorEvent != currentEvent) {
-			currentEvent = actorEvent;
+            // Track Event
+            if (actorEvent != currentEvent) {
+                currentEvent = actorEvent;
 
-			ResetGuardflyTimer(guardflyTimer);
-		}
+                ResetGuardflyTimer(guardflyTimer);
+            }
 
 
-		if (eventData.event != EVENT::PAUSE) {
-			auto now = std::chrono::steady_clock::now();
-			float elapsedTime = std::chrono::duration<float>(now - guardflyStartTime).count();
+            if (eventData.event != EVENT::PAUSE) {
+                auto now = std::chrono::steady_clock::now();
+                float elapsedTime = std::chrono::duration<float>(now - guardflyStartTime).count();
 
-			guardflyTimer = elapsedTime * (actorData.speed / g_frameRateMultiplier);
-		}
+                guardflyTimer = elapsedTime * (actorData.speed / g_FrameRateTimeMultiplier);
+            }
+        }
 	}
 }
 
@@ -153,7 +163,7 @@ void SprintTimer() {
 
 
         if (crimsonPlayer[playerIndex].sprint.timer > 0 && crimsonPlayer[playerIndex].sprint.runTimer) {
-            crimsonPlayer[playerIndex].sprint.timer -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
+            crimsonPlayer[playerIndex].sprint.timer -= ImGui::GetIO().DeltaTime * (crimsonPlayer[playerIndex].speed / g_FrameRateTimeMultiplier);
         }
 
 
@@ -172,7 +182,7 @@ void DriveTimer() {
 
         if (crimsonPlayer[playerIndex].drive.runTimer) {
 
-            crimsonPlayer[playerIndex].drive.timer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+            crimsonPlayer[playerIndex].drive.timer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         } else {
             crimsonPlayer[playerIndex].drive.timer = 0;
         }
@@ -188,7 +198,7 @@ void ImprovedCancelsTimers() {
         if (!crimsonPlayer[playerIndex].cancels.canTrick) {
 
             crimsonPlayer[playerIndex].cancels.trickCooldown -=
-                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         }
 
         if (crimsonPlayer[playerIndex].cancels.trickCooldown <= 0 && !crimsonPlayer[playerIndex].cancels.canTrick) {
@@ -200,7 +210,7 @@ void ImprovedCancelsTimers() {
         if (!crimsonPlayer[playerIndex].cancels.canGun) {
 
             crimsonPlayer[playerIndex].cancels.gunsCooldown -=
-                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         }
 
         if (crimsonPlayer[playerIndex].cancels.gunsCooldown <= 0 && !crimsonPlayer[playerIndex].cancels.canGun) {
@@ -213,7 +223,7 @@ void ImprovedCancelsTimers() {
         if (!crimsonPlayer[playerIndex].cancels.canRainstorm) {
 
             crimsonPlayer[playerIndex].cancels.rainstormCooldown -=
-                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         }
 
         if (crimsonPlayer[playerIndex].cancels.rainstormCooldown <= 0 && !crimsonPlayer[playerIndex].cancels.canRainstorm) {
@@ -227,7 +237,7 @@ void ImprovedCancelsTimers() {
         if (!crimsonPlayer[playerIndex].cancelsClone.canTrick) {
 
             crimsonPlayer[playerIndex].cancelsClone.trickCooldown -=
-                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         }
 
         if (crimsonPlayer[playerIndex].cancelsClone.trickCooldown <= 0 && !crimsonPlayer[playerIndex].cancelsClone.canTrick) {
@@ -239,7 +249,7 @@ void ImprovedCancelsTimers() {
         if (!crimsonPlayer[playerIndex].cancelsClone.canGun) {
 
             crimsonPlayer[playerIndex].cancelsClone.gunsCooldown -=
-                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         }
 
         if (crimsonPlayer[playerIndex].cancelsClone.gunsCooldown <= 0 && !crimsonPlayer[playerIndex].cancelsClone.canGun) {
@@ -252,7 +262,7 @@ void ImprovedCancelsTimers() {
         if (!crimsonPlayer[playerIndex].cancelsClone.canRainstorm) {
 
             crimsonPlayer[playerIndex].cancelsClone.rainstormCooldown -=
-                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+                (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         }
 
         if (crimsonPlayer[playerIndex].cancelsClone.rainstormCooldown <= 0 && !crimsonPlayer[playerIndex].cancelsClone.canRainstorm) {
@@ -265,13 +275,17 @@ void ImprovedCancelsTimers() {
 
 void BackToForwardTimers() {
     old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+        old_for_all(uint8, entityIndex, ENTITY_COUNT) {
+            auto& b2F = (entityIndex == 0) ? crimsonPlayer[playerIndex].b2F : crimsonPlayer[playerIndex].b2FClone;
 
-        if (crimsonPlayer[playerIndex].b2F.backCommand) {
-            crimsonPlayer[playerIndex].b2F.backBuffer -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
-        }
+			if (b2F.backCommand) {
+				b2F.backBuffer -= ImGui::GetIO().DeltaTime;
+			}
 
-        if (crimsonPlayer[playerIndex].b2F.forwardCommand) {
-            crimsonPlayer[playerIndex].b2F.forwardBuffer -= ImGui::GetIO().DeltaTime / g_frameRateMultiplier;
+			if (b2F.forwardCommand) {
+				b2F.forwardBuffer -= ImGui::GetIO().DeltaTime;
+			}
+
         }
     }
 }
@@ -285,20 +299,20 @@ void StyleSwitchTextTimers() {
         for (int styleid = 0; styleid < 9; styleid++) {
             
 			if (sstext->time[styleid] > 0) {
-                sstext->time[styleid] -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
-                sstext->animSize += ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier) * 0.1f;
+                sstext->time[styleid] -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
+                sstext->animSize += ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier) * 0.1f;
 
 				
 				
                 // animates fade in
                 if (sstext->alpha[styleid] < activeCrimsonConfig.StyleSwitchFX.Text.maxAlpha && sstext->time[styleid] > 0.3f) {
-                    sstext->alpha[styleid] += ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier) * 8;
+                    sstext->alpha[styleid] += ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier) * 8;
                 
                 }
 
                 //animates fade out
 				if (sstext->time[styleid] < 0.25f) {
-					sstext->alpha[styleid] -= ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier) * 2.5f;
+					sstext->alpha[styleid] -= ((ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier) * 2.5f;
 				}
             
 			}
@@ -315,7 +329,7 @@ void StyleSwitchFluxTimers() {
 		float i = 0;
 
         if (*fluxtime > 0) {
-            *fluxtime -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+            *fluxtime -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
         }
 
 	}
@@ -329,7 +343,7 @@ void DTEVFXTimers() {
 		float i = 0;
 
 		if (time >= 0 && started) {
-			time += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+			time += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
 		}
 
         if (time >= 1.0f) {
@@ -347,7 +361,7 @@ void VergilDoppelgangerCooldownTimer() {
 		float i = 0;
 
 		if (time > 0) {
-			time -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+			time -= (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
 		}
 
 	}
@@ -362,7 +376,7 @@ void VergilDoppelgangerDrainTimer() {
 		float i = 0;
 
 		if (time >= 0 && start) {
-			time += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_frameRateMultiplier;
+			time += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
 		}
 
         if (!start || miragePoints == 0 || time == 0 || g_inGameCutscene) {

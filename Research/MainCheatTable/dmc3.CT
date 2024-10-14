@@ -1239,6 +1239,348 @@ dmc3.exe+558AC:
 jne dmc3.exe+558C0
 </AssemblerScript>
         </CheatEntry>
+        <CheatEntry>
+          <ID>2707</ID>
+          <Description>"Enable Geryon&amp;Gigapede JC hitbox"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2024-09-27
+  Author : Mia Berth
+
+  This script does blah blah blah
+}
+
+define(address,"dmc3.exe"+1E5B00)
+define(bytes,32 C0 C3 CC CC)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000,"dmc3.exe"+1E5B00)
+alloc(myFloatAddr2, 4)
+
+label(code)
+label(return)
+
+myFloatAddr2:
+dd (float)100
+
+newmem:
+
+
+code:
+  test edx, edx
+  jne justReturn
+  movaps xmm0,[rcx+20]
+  mov al, 01
+  movaps [r8], xmm0
+  movss xmm1, [r8+04]
+  //addss xmm1, [dmc3.exe+371158]
+  addss xmm1, [myFloatAddr2]
+  movss [r8+04], xmm1
+  mov [r9], (float)280
+  ret 
+  jmp return
+
+justReturn:
+   ret
+address:
+  jmp newmem
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+   xor al,al
+   ret
+   int 3
+   int 3
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1E5B00
+
+dmc3.exe+1E5AE7: 48 8B 4D 37           - mov rcx,[rbp+37]
+dmc3.exe+1E5AEB: 48 33 CC              - xor rcx,rsp
+dmc3.exe+1E5AEE: E8 FD FA 15 00        - call dmc3.exe+3455F0
+dmc3.exe+1E5AF3: 48 81 C4 90 00 00 00  - add rsp,00000090
+dmc3.exe+1E5AFA: 5F                    - pop rdi
+dmc3.exe+1E5AFB: 5B                    - pop rbx
+dmc3.exe+1E5AFC: 5D                    - pop rbp
+dmc3.exe+1E5AFD: C3                    - ret 
+dmc3.exe+1E5AFE: CC                    - int 3 
+dmc3.exe+1E5AFF: CC                    - int 3 
+// ---------- INJECTING HERE ----------
+dmc3.exe+1E5B00: 32 C0                 - xor al,al
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1E5B02: C3                    - ret 
+dmc3.exe+1E5B03: CC                    - int 3 
+dmc3.exe+1E5B04: CC                    - int 3 
+dmc3.exe+1E5B05: CC                    - int 3 
+dmc3.exe+1E5B06: CC                    - int 3 
+dmc3.exe+1E5B07: CC                    - int 3 
+dmc3.exe+1E5B08: CC                    - int 3 
+dmc3.exe+1E5B09: CC                    - int 3 
+dmc3.exe+1E5B0A: CC                    - int 3 
+dmc3.exe+1E5B0B: CC                    - int 3 
+}
+</AssemblerScript>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2709</ID>
+          <Description>"Trying to put JChitbox on Cerb"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2024-09-28
+  Author : Mia Berth
+
+  This script does blah blah blah
+}
+
+define(address,"dmc3.exe"+1BF25C)
+define(bytes,F3 0F 58 0D F4 1E 1B 00)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000,"dmc3.exe"+1BF25C)
+alloc(myFloatAddr, 4)
+
+label(code)
+label(return)
+
+myFloatAddr:
+dd (float)200
+
+newmem:
+
+code:
+  addss xmm1,[myFloatAddr]
+  jmp return
+
+address:
+  jmp newmem
+  nop 3
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+  // addss xmm1,[dmc3.exe+371158]
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1BF25C
+
+dmc3.exe+1BF240: 85 D2                    - test edx,edx
+dmc3.exe+1BF242: 74 2E                    - je dmc3.exe+1BF272
+dmc3.exe+1BF244: 83 FA 01                 - cmp edx,01
+dmc3.exe+1BF247: 74 03                    - je dmc3.exe+1BF24C
+dmc3.exe+1BF249: 32 C0                    - xor al,al
+dmc3.exe+1BF24B: C3                       - ret 
+dmc3.exe+1BF24C: 0F 28 41 20              - movaps xmm0,[rcx+20]
+dmc3.exe+1BF250: B0 01                    - mov al,01
+dmc3.exe+1BF252: 41 0F 29 00              - movaps [r8],xmm0
+dmc3.exe+1BF256: F3 41 0F 10 48 04        - movss xmm1,[r8+04]
+// ---------- INJECTING HERE ----------
+dmc3.exe+1BF25C: F3 0F 58 0D F4 1E 1B 00  - addss xmm1,[dmc3.exe+371158]
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1BF264: F3 41 0F 11 48 04        - movss [r8+04],xmm1
+dmc3.exe+1BF26A: 41 C7 01 00 00 34 43     - mov [r9],43340000
+dmc3.exe+1BF271: C3                       - ret 
+dmc3.exe+1BF272: 0F 28 41 20              - movaps xmm0,[rcx+20]
+dmc3.exe+1BF276: B0 01                    - mov al,01
+dmc3.exe+1BF278: 41 0F 29 00              - movaps [r8],xmm0
+dmc3.exe+1BF27C: 0F 57 C0                 - xorps xmm0,xmm0
+dmc3.exe+1BF27F: F3 41 0F 10 48 04        - movss xmm1,[r8+04]
+dmc3.exe+1BF285: F3 0F 58 C8              - addss xmm1,xmm0
+dmc3.exe+1BF289: F3 41 0F 11 48 04        - movss [r8+04],xmm1
+}
+</AssemblerScript>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2719</ID>
+          <Description>"Trying to Put JC on Cerb 2"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2024-10-01
+  Author : Mia Berth
+
+  This script does blah blah blah
+}
+
+define(address,"dmc3.exe"+1BF240)
+define(bytes,85 D2 74 2E 83 FA 01)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000,"dmc3.exe"+1BF240)
+alloc(myFloatAddr, 4)
+alloc(myFloatAddr2, 4)
+alloc(myFloatAddr3, 4)
+
+label(code)
+label(return)
+
+myFloatAddr:
+dd (float)1200
+
+myFloatAddr2:
+dd (float)100
+
+myFloatAddr3:
+dd (float)4000
+
+newmem:
+
+code:
+  test edx, edx
+  jne justReturn
+  movaps xmm0,[myFloatAddr]
+  mov al, 01
+  movaps [r8], xmm0
+  movss xmm1, [r8+04]
+  //addss xmm1, [dmc3.exe+371158]
+  addss xmm1, [myFloatAddr2]
+  movss [r8+04], xmm1
+  //movss xmm1, [myFloatAddr3]
+  //movss [r8+08], xmm1
+  mov [r9], (float)3000
+  ret
+  jmp justReturn
+
+justReturn:
+   ret
+address:
+  jmp newmem
+  nop 2
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+  // test edx,edx
+  // je dmc3.exe+1BF272
+  // cmp edx,01
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1BF240
+
+dmc3.exe+1BF236: CC                       - int 3 
+dmc3.exe+1BF237: CC                       - int 3 
+dmc3.exe+1BF238: CC                       - int 3 
+dmc3.exe+1BF239: CC                       - int 3 
+dmc3.exe+1BF23A: CC                       - int 3 
+dmc3.exe+1BF23B: CC                       - int 3 
+dmc3.exe+1BF23C: CC                       - int 3 
+dmc3.exe+1BF23D: CC                       - int 3 
+dmc3.exe+1BF23E: CC                       - int 3 
+dmc3.exe+1BF23F: CC                       - int 3 
+// ---------- INJECTING HERE ----------
+dmc3.exe+1BF240: 85 D2                    - test edx,edx
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1BF242: 74 2E                    - je dmc3.exe+1BF272
+dmc3.exe+1BF244: 83 FA 01                 - cmp edx,01
+dmc3.exe+1BF247: 74 03                    - je dmc3.exe+1BF24C
+dmc3.exe+1BF249: 32 C0                    - xor al,al
+dmc3.exe+1BF24B: C3                       - ret 
+dmc3.exe+1BF24C: 0F 28 41 20              - movaps xmm0,[rcx+20]
+dmc3.exe+1BF250: B0 01                    - mov al,01
+dmc3.exe+1BF252: 41 0F 29 00              - movaps [r8],xmm0
+dmc3.exe+1BF256: F3 41 0F 10 48 04        - movss xmm1,[r8+04]
+dmc3.exe+1BF25C: F3 0F 58 0D F4 1E 1B 00  - addss xmm1,[dmc3.exe+371158]
+}
+</AssemblerScript>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2720</ID>
+          <Description>"Convert Guard Break into Normal Block"</Description>
+          <VariableType>Auto Assembler Script</VariableType>
+          <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2024-10-01
+  Author : Mia Berth
+
+  This script does blah blah blah
+}
+
+define(address,"dmc3.exe"+1EC45A)
+define(bytes,89 83 08 63 00 00)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000,"dmc3.exe"+1EC45A)
+
+label(code)
+label(return)
+
+newmem:
+
+code:
+  cmp eax, 06
+  je ModifyGuardBreak
+  mov [rbx+00006308],eax
+  jmp return
+
+ModifyGuardBreak:
+  mov eax, 04
+  mov [rbx+00006308],eax
+  jmp return
+
+address:
+  jmp newmem
+  nop
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+  // mov [rbx+00006308],eax
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1EC45A
+
+dmc3.exe+1EC42A: 80 3D D4 C3 AB 00 00  - cmp byte ptr [dmc3.exe+CA8805],00
+dmc3.exe+1EC431: 0F 85 D7 00 00 00     - jne dmc3.exe+1EC50E
+dmc3.exe+1EC437: F3 41 0F 5C 36        - subss xmm6,[r14]
+dmc3.exe+1EC43C: F3 48 0F 2C C6        - cvttss2si rax,xmm6
+dmc3.exe+1EC441: 01 81 AC 00 00 00     - add [rcx+000000AC],eax
+dmc3.exe+1EC447: E9 C2 00 00 00        - jmp dmc3.exe+1EC50E
+dmc3.exe+1EC44C: 4D 8B CF              - mov r9,r15
+dmc3.exe+1EC44F: 4C 8B C7              - mov r8,rdi
+dmc3.exe+1EC452: 48 8B D5              - mov rdx,rbp
+dmc3.exe+1EC455: E8 D6 1F 00 00        - call dmc3.exe+1EE430
+// ---------- INJECTING HERE ----------
+dmc3.exe+1EC45A: 89 83 08 63 00 00     - mov [rbx+00006308],eax
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1EC460: 85 C0                 - test eax,eax
+dmc3.exe+1EC462: 78 1E                 - js dmc3.exe+1EC482
+dmc3.exe+1EC464: E9 CF 3D FE BF        - jmp 7FF628C20238
+dmc3.exe+1EC469: CC                    - int 3 
+dmc3.exe+1EC46A: CC                    - int 3 
+dmc3.exe+1EC46B: CC                    - int 3 
+dmc3.exe+1EC46C: CC                    - int 3 
+dmc3.exe+1EC46D: 83 F8 02              - cmp eax,02
+dmc3.exe+1EC470: 0F 84 B5 00 00 00     - je dmc3.exe+1EC52B
+dmc3.exe+1EC476: 83 C0 FD              - add eax,-03
+}
+</AssemblerScript>
+        </CheatEntry>
       </CheatEntries>
     </CheatEntry>
     <CheatEntry>
@@ -2580,6 +2922,29 @@ dmc3.exe+211BDF: 90                             - nop
           <VariableType>4 Bytes</VariableType>
           <Address>dmc3.exe+D54A24</Address>
         </CheatEntry>
+        <CheatEntry>
+          <ID>2701</ID>
+          <Description>"+88 locked on enemy JC func"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>0</Offset>
+            <Offset>88</Offset>
+            <Offset>0</Offset>
+            <Offset>6328</Offset>
+            <Offset>18</Offset>
+            <Offset>00C90E28</Offset>
+          </Offsets>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2705</ID>
+          <Description>"Jester JC size addr"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+580F08</Address>
+        </CheatEntry>
       </CheatEntries>
     </CheatEntry>
     <CheatEntry>
@@ -3570,8 +3935,7 @@ dmc3.exe+211BDF: 90                             - nop
             </CheatEntry>
             <CheatEntry>
               <ID>2363</ID>
-              <Description>"+3e00"</Description>
-              <ShowAsHex>1</ShowAsHex>
+              <Description>"+3e00 event"</Description>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>Byte</VariableType>
               <Address>dmc3.exe+168</Address>
@@ -3724,6 +4088,30 @@ dmc3.exe+211BDF: 90                             - nop
               </Offsets>
             </CheatEntry>
             <CheatEntry>
+              <ID>2156</ID>
+              <Description>"+39D0 NextActionRequestPolicy[Melee]"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>4 Bytes</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>+39D0</Offset>
+                <Offset>18</Offset>
+                <Offset>c90e28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2725</ID>
+              <Description>"+39E0 NextActionRequestPolicy[Trick]"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>4 Bytes</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>+39E0</Offset>
+                <Offset>18</Offset>
+                <Offset>c90e28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
               <ID>2462</ID>
               <Description>"+3E9B InDevilTrigger"</Description>
               <ShowAsSigned>0</ShowAsSigned>
@@ -3748,7 +4136,7 @@ dmc3.exe+211BDF: 90                             - nop
               </Offsets>
             </CheatEntry>
             <CheatEntry>
-              <ID>2156</ID>
+              <ID>2724</ID>
               <Description>"+3EB8 current DT amount"</Description>
               <ShowAsSigned>0</ShowAsSigned>
               <VariableType>Float</VariableType>
@@ -4075,6 +4463,78 @@ dmc3.exe+1E9A5C: CC                    - int 3
               </Offsets>
             </CheatEntry>
             <CheatEntry>
+              <ID>2714</ID>
+              <Description>"+6340 guard"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Byte</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>6340</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2715</ID>
+              <Description>"+6368 royalBlockType"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Byte</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>6368</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2713</ID>
+              <Description>"+6368 Stagger?"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>4 Bytes</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>6368</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2716</ID>
+              <Description>"+66a4 reb charge base"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>4 Bytes</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>66a4</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2717</ID>
+              <Description>"+66ac reb charge 1"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Float</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>66ac</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
+              <ID>2718</ID>
+              <Description>"+68ec reb charge 2"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Float</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>68ec</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
               <ID>2678</ID>
               <Description>"+41c0 LockOnData"</Description>
               <ShowAsSigned>0</ShowAsSigned>
@@ -4116,7 +4576,7 @@ dmc3.exe+1E9A5C: CC                    - int 3
               </Offsets>
               <CheatEntries>
                 <CheatEntry>
-                  <ID>2558</ID>
+                  <ID>2703</ID>
                   <Description>"+0"</Description>
                   <ShowAsHex>1</ShowAsHex>
                   <ShowAsSigned>0</ShowAsSigned>
@@ -4124,6 +4584,19 @@ dmc3.exe+1E9A5C: CC                    - int 3
                   <Address>dmc3.exe+168</Address>
                   <Offsets>
                     <Offset>0</Offset>
+                    <Offset>6328</Offset>
+                    <Offset>18</Offset>
+                    <Offset>00C90E28</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>2711</ID>
+                  <Description>"+0"</Description>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>Float</VariableType>
+                  <Address>dmc3.exe+168</Address>
+                  <Offsets>
+                    <Offset>20</Offset>
                     <Offset>6328</Offset>
                     <Offset>18</Offset>
                     <Offset>00C90E28</Offset>
@@ -4194,6 +4667,20 @@ dmc3.exe+1E9A5C: CC                    - int 3
                   <Address>dmc3.exe+168</Address>
                   <Offsets>
                     <Offset>120</Offset>
+                    <Offset>6328</Offset>
+                    <Offset>18</Offset>
+                    <Offset>00C90E28</Offset>
+                  </Offsets>
+                </CheatEntry>
+                <CheatEntry>
+                  <ID>2558</ID>
+                  <Description>"+0"</Description>
+                  <ShowAsHex>1</ShowAsHex>
+                  <ShowAsSigned>0</ShowAsSigned>
+                  <VariableType>8 Bytes</VariableType>
+                  <Address>dmc3.exe+168</Address>
+                  <Offsets>
+                    <Offset>5Fa0</Offset>
                     <Offset>6328</Offset>
                     <Offset>18</Offset>
                     <Offset>00C90E28</Offset>
@@ -8604,6 +9091,148 @@ dmc3.exe+56050: 0F 5B C0                 - cvtdq2ps xmm0,xmm0
       <Description>"No description"</Description>
       <VariableType>4 Bytes</VariableType>
       <Address>047D9C78</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2721</ID>
+      <Description>"Auto Assemble script"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2024-10-08
+  Author : Mia Berth
+
+  This script does blah blah blah
+}
+
+define(address,"dmc3.exe"+1F8DB0)
+define(bytes,48 8B 97 78 64 00 00)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000,"dmc3.exe"+1F8DB0)
+
+label(code)
+label(return)
+
+newmem:
+
+code:
+  ret
+
+address:
+  jmp newmem
+  nop 2
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+  // mov rdx,[rdi+00006478]
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1F8DB0
+
+dmc3.exe+1F8D76: 66 89 44 24 6C           - mov [rsp+6C],ax
+dmc3.exe+1F8D7B: F2 0F 10 87 00 75 00 00  - movsd xmm0,[rdi+00007500]
+dmc3.exe+1F8D83: F2 0F 11 44 24 60        - movsd [rsp+60],xmm0
+dmc3.exe+1F8D89: 0F 11 4C 24 50           - movups [rsp+50],xmm1
+dmc3.exe+1F8D8E: E8 4D 52 0F 00           - call dmc3.exe+2EDFE0
+dmc3.exe+1F8D93: 48 63 87 50 64 00 00     - movsxd  rax,dword ptr [rdi+00006450]
+dmc3.exe+1F8D9A: 48 8D 8F 10 64 00 00     - lea rcx,[rdi+00006410]
+dmc3.exe+1F8DA1: 41 8B 94 84 D8 BB 58 00  - mov edx,[r12+rax*4+0058BBD8]
+dmc3.exe+1F8DA9: F7 DA                    - neg edx
+dmc3.exe+1F8DAB: E8 90 52 0F 00           - call dmc3.exe+2EE040
+// ---------- INJECTING HERE ----------
+dmc3.exe+1F8DB0: 48 8B 97 78 64 00 00     - mov rdx,[rdi+00006478]
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1F8DB7: 0F 10 00                 - movups xmm0,[rax]
+dmc3.exe+1F8DBA: 0F 11 82 E0 74 00 00     - movups [rdx+000074E0],xmm0
+dmc3.exe+1F8DC1: 0F 10 48 10              - movups xmm1,[rax+10]
+dmc3.exe+1F8DC5: 0F 11 8A F0 74 00 00     - movups [rdx+000074F0],xmm1
+dmc3.exe+1F8DCC: F2 0F 10 40 20           - movsd xmm0,[rax+20]
+dmc3.exe+1F8DD1: F2 0F 11 82 00 75 00 00  - movsd [rdx+00007500],xmm0
+dmc3.exe+1F8DD9: 8B 48 28                 - mov ecx,[rax+28]
+dmc3.exe+1F8DDC: 89 8A 08 75 00 00        - mov [rdx+00007508],ecx
+dmc3.exe+1F8DE2: BA 01 00 00 00           - mov edx,00000001
+dmc3.exe+1F8DE7: 48 8B 8F 78 64 00 00     - mov rcx,[rdi+00006478]
+}
+</AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2722</ID>
+      <Description>"Auto Assemble script"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2024-10-08
+  Author : Mia Berth
+
+  This script does blah blah blah
+}
+
+define(address,045F8E47)
+define(bytes,00 01 00 00 00 00)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000,045F8E47)
+
+label(code)
+label(return)
+
+newmem:
+
+code:
+  jmp 045F8FA7
+
+address:
+  jmp newmem
+  nop
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+  // add [rcx],al
+  // add [rax],al
+  // add [rax],al
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: 045F8E47
+
+045F8E2D: 00 80 3F 00 00 80  - add [rax-7FFFFFC1],al
+045F8E33: 3F                 - db 3F
+045F8E34: 00 00              - add [rax],al
+045F8E36: 80 3F 00           - cmp byte ptr [rdi],00
+045F8E39: 00 80 3F 00 00 80  - add [rax-7FFFFFC1],al
+045F8E3F: 3F                 - db 3F
+045F8E40: 90                 - nop 
+045F8E41: F9                 - stc 
+045F8E42: 32 2B              - xor ch,[rbx]
+045F8E44: F7 7F 00           - idiv [rdi+00]
+// ---------- INJECTING HERE ----------
+045F8E47: 00 01              - add [rcx],al
+// ---------- DONE INJECTING  ----------
+045F8E49: 00 00              - add [rax],al
+045F8E4B: 00 00              - add [rax],al
+045F8E4D: 00 00              - add [rax],al
+045F8E4F: 00 8F 00 00 00 00  - add [rdi+00000000],cl
+045F8E55: 51                 - push rcx
+045F8E56: 1C 3F              - sbb al,3F
+045F8E58: 00 00              - add [rax],al
+045F8E5A: 80 3F 02           - cmp byte ptr [rdi],02
+045F8E5D: 00 00              - add [rax],al
+045F8E5F: 00 00              - add [rax],al
+}
+</AssemblerScript>
     </CheatEntry>
   </CheatEntries>
   <CheatCodes>
@@ -76377,6 +77006,547 @@ dmc3.exe+56050: 0F 5B C0                 - cvtdq2ps xmm0,xmm0
         <Byte>00</Byte>
       </After>
     </CodeEntry>
+    <CodeEntry>
+      <Description>Code :Geryon's lack of jc</Description>
+      <AddressString>dmc3.exe+1E5B00</AddressString>
+      <Before>
+        <Byte>5B</Byte>
+        <Byte>5D</Byte>
+        <Byte>C3</Byte>
+        <Byte>CC</Byte>
+        <Byte>CC</Byte>
+      </Before>
+      <Actual>
+        <Byte>32</Byte>
+        <Byte>C0</Byte>
+      </Actual>
+      <After>
+        <Byte>C3</Byte>
+        <Byte>CC</Byte>
+        <Byte>CC</Byte>
+        <Byte>CC</Byte>
+        <Byte>CC</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rsi+00000080],eax</Description>
+      <AddressString>dmc3.exe+112D8E</AddressString>
+      <Before>
+        <Byte>0D</Byte>
+        <Byte>D2</Byte>
+        <Byte>01</Byte>
+        <Byte>BE</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>89</Byte>
+        <Byte>86</Byte>
+        <Byte>80</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>48</Byte>
+        <Byte>8B</Byte>
+        <Byte>D6</Byte>
+        <Byte>8B</Byte>
+        <Byte>86</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Code :Determine Stagger dmg (on eax) to royal block</Description>
+      <AddressString>dmc3.exe+1EC45A</AddressString>
+      <Before>
+        <Byte>E8</Byte>
+        <Byte>D6</Byte>
+        <Byte>1F</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>E9</Byte>
+        <Byte>D9</Byte>
+        <Byte>3D</Byte>
+        <Byte>FE</Byte>
+        <Byte>BF</Byte>
+      </Actual>
+      <After>
+        <Byte>CC</Byte>
+        <Byte>85</Byte>
+        <Byte>C0</Byte>
+        <Byte>78</Byte>
+        <Byte>1E</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of call dmc3.exe+1F72F0</Description>
+      <AddressString>dmc3.exe+1EFBD0</AddressString>
+      <Before>
+        <Byte>33</Byte>
+        <Byte>D2</Byte>
+        <Byte>45</Byte>
+        <Byte>8B</Byte>
+        <Byte>C6</Byte>
+      </Before>
+      <Actual>
+        <Byte>E8</Byte>
+        <Byte>1B</Byte>
+        <Byte>77</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>3C</Byte>
+        <Byte>01</Byte>
+        <Byte>75</Byte>
+        <Byte>0E</Byte>
+        <Byte>45</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of call dmc3.exe+5A290</Description>
+      <AddressString>dmc3.exe+1EFC36</AddressString>
+      <Before>
+        <Byte>CE</Byte>
+        <Byte>44</Byte>
+        <Byte>0F</Byte>
+        <Byte>B7</Byte>
+        <Byte>CF</Byte>
+      </Before>
+      <Actual>
+        <Byte>E8</Byte>
+        <Byte>55</Byte>
+        <Byte>A6</Byte>
+        <Byte>E6</Byte>
+        <Byte>FF</Byte>
+      </Actual>
+      <After>
+        <Byte>48</Byte>
+        <Byte>63</Byte>
+        <Byte>86</Byte>
+        <Byte>6C</Byte>
+        <Byte>3E</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of call dmc3.exe+5A290</Description>
+      <AddressString>dmc3.exe+1EFC6C</AddressString>
+      <Before>
+        <Byte>01</Byte>
+        <Byte>00</Byte>
+        <Byte>48</Byte>
+        <Byte>03</Byte>
+        <Byte>CE</Byte>
+      </Before>
+      <Actual>
+        <Byte>E8</Byte>
+        <Byte>1F</Byte>
+        <Byte>A6</Byte>
+        <Byte>E6</Byte>
+        <Byte>FF</Byte>
+      </Actual>
+      <After>
+        <Byte>33</Byte>
+        <Byte>C9</Byte>
+        <Byte>B8</Byte>
+        <Byte>FF</Byte>
+        <Byte>00</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of call dmc3.exe+1F01F0</Description>
+      <AddressString>dmc3.exe+1EFD1C</AddressString>
+      <Before>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>48</Byte>
+        <Byte>8B</Byte>
+        <Byte>CE</Byte>
+      </Before>
+      <Actual>
+        <Byte>E8</Byte>
+        <Byte>CF</Byte>
+        <Byte>04</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>48</Byte>
+        <Byte>63</Byte>
+        <Byte>86</Byte>
+        <Byte>6C</Byte>
+        <Byte>3E</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of call dmc3.exe+59350</Description>
+      <AddressString>dmc3.exe+1EFD40</AddressString>
+      <Before>
+        <Byte>01</Byte>
+        <Byte>00</Byte>
+        <Byte>48</Byte>
+        <Byte>03</Byte>
+        <Byte>CE</Byte>
+      </Before>
+      <Actual>
+        <Byte>E8</Byte>
+        <Byte>0B</Byte>
+        <Byte>96</Byte>
+        <Byte>E6</Byte>
+        <Byte>FF</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>C0</Byte>
+        <Byte>48</Byte>
+        <Byte>8D</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of lea rdx,[dmc3.exe+58A2D0]</Description>
+      <AddressString>dmc3.exe+1EFD48</AddressString>
+      <Before>
+        <Byte>E6</Byte>
+        <Byte>FF</Byte>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>C0</Byte>
+      </Before>
+      <Actual>
+        <Byte>48</Byte>
+        <Byte>8D</Byte>
+        <Byte>15</Byte>
+        <Byte>81</Byte>
+        <Byte>A5</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>C1</Byte>
+        <Byte>E8</Byte>
+        <Byte>07</Byte>
+        <Byte>80</Byte>
+        <Byte>BE</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of call dmc3.exe+1FA050</Description>
+      <AddressString>dmc3.exe+1EFD77</AddressString>
+      <Before>
+        <Byte>75</Byte>
+        <Byte>17</Byte>
+        <Byte>48</Byte>
+        <Byte>8B</Byte>
+        <Byte>CE</Byte>
+      </Before>
+      <Actual>
+        <Byte>E8</Byte>
+        <Byte>D4</Byte>
+        <Byte>A2</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>48</Byte>
+        <Byte>8D</Byte>
+        <Byte>96</Byte>
+        <Byte>80</Byte>
+        <Byte>01</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of call dmc3.exe+1EF530</Description>
+      <AddressString>dmc3.exe+1EFD86</AddressString>
+      <Before>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>48</Byte>
+        <Byte>8B</Byte>
+        <Byte>CE</Byte>
+      </Before>
+      <Actual>
+        <Byte>E8</Byte>
+        <Byte>A5</Byte>
+        <Byte>F7</Byte>
+        <Byte>FF</Byte>
+        <Byte>FF</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>28</Byte>
+        <Byte>74</Byte>
+        <Byte>24</Byte>
+        <Byte>40</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of call dmc3.exe+1F78B0</Description>
+      <AddressString>dmc3.exe+1EFDCB</AddressString>
+      <Before>
+        <Byte>8B</Byte>
+        <Byte>E2</Byte>
+        <Byte>4C</Byte>
+        <Byte>8B</Byte>
+        <Byte>F1</Byte>
+      </Before>
+      <Actual>
+        <Byte>E8</Byte>
+        <Byte>E0</Byte>
+        <Byte>7A</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>3C</Byte>
+        <Byte>01</Byte>
+        <Byte>0F</Byte>
+        <Byte>84</Byte>
+        <Byte>B0</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of jmp dmc3.exe+1EFBE7</Description>
+      <AddressString>dmc3.exe+1EFBD7</AddressString>
+      <Before>
+        <Byte>77</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>3C</Byte>
+        <Byte>01</Byte>
+      </Before>
+      <Actual>
+        <Byte>EB</Byte>
+        <Byte>0E</Byte>
+      </Actual>
+      <After>
+        <Byte>45</Byte>
+        <Byte>32</Byte>
+        <Byte>FF</Byte>
+        <Byte>88</Byte>
+        <Byte>86</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of jmp dmc3.exe+1EFBF9</Description>
+      <AddressString>dmc3.exe+1EFBE5</AddressString>
+      <Before>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>45</Byte>
+        <Byte>32</Byte>
+        <Byte>E4</Byte>
+      </Before>
+      <Actual>
+        <Byte>EB</Byte>
+        <Byte>12</Byte>
+      </Actual>
+      <After>
+        <Byte>44</Byte>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>A4</Byte>
+        <Byte>24</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [r8+000039D0],rax</Description>
+      <AddressString>dmc3.exe+1E0E7A</AddressString>
+      <Before>
+        <Byte>80</Byte>
+        <Byte>70</Byte>
+        <Byte>66</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>49</Byte>
+        <Byte>89</Byte>
+        <Byte>80</Byte>
+        <Byte>D0</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>49</Byte>
+        <Byte>89</Byte>
+        <Byte>80</Byte>
+        <Byte>D8</Byte>
+        <Byte>39</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rbx+rax*4+000039D0],00000002</Description>
+      <AddressString>dmc3.exe+1F0400</AddressString>
+      <Before>
+        <Byte>EB</Byte>
+        <Byte>0E</Byte>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>C0</Byte>
+      </Before>
+      <Actual>
+        <Byte>C7</Byte>
+        <Byte>84</Byte>
+        <Byte>83</Byte>
+        <Byte>D0</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>02</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>FF</Byte>
+        <Byte>C7</Byte>
+        <Byte>48</Byte>
+        <Byte>FF</Byte>
+        <Byte>C6</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rbx+rax*4+000039D0],ebp</Description>
+      <AddressString>dmc3.exe+1F03F4</AddressString>
+      <Before>
+        <Byte>EB</Byte>
+        <Byte>1A</Byte>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>C0</Byte>
+      </Before>
+      <Actual>
+        <Byte>89</Byte>
+        <Byte>AC</Byte>
+        <Byte>83</Byte>
+        <Byte>D0</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>EB</Byte>
+        <Byte>0E</Byte>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>C0</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rbx+rax*4+000039D0],00000001</Description>
+      <AddressString>dmc3.exe+1F03E4</AddressString>
+      <Before>
+        <Byte>75</Byte>
+        <Byte>2A</Byte>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>C0</Byte>
+      </Before>
+      <Actual>
+        <Byte>C7</Byte>
+        <Byte>84</Byte>
+        <Byte>83</Byte>
+        <Byte>D0</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>01</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>EB</Byte>
+        <Byte>1A</Byte>
+        <Byte>0F</Byte>
+        <Byte>B6</Byte>
+        <Byte>C0</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rbx+000039E0],rcx</Description>
+      <AddressString>dmc3.exe+1F015E</AddressString>
+      <Before>
+        <Byte>8B</Byte>
+        <Byte>D8</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>48</Byte>
+        <Byte>89</Byte>
+        <Byte>8B</Byte>
+        <Byte>E0</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>48</Byte>
+        <Byte>89</Byte>
+        <Byte>8B</Byte>
+        <Byte>E8</Byte>
+        <Byte>39</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [r8+000039E0],rax</Description>
+      <AddressString>dmc3.exe+1E0E88</AddressString>
+      <Before>
+        <Byte>80</Byte>
+        <Byte>D8</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>49</Byte>
+        <Byte>89</Byte>
+        <Byte>80</Byte>
+        <Byte>E0</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>49</Byte>
+        <Byte>89</Byte>
+        <Byte>80</Byte>
+        <Byte>E8</Byte>
+        <Byte>39</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of mov [rsi+000039E0],rcx</Description>
+      <AddressString>dmc3.exe+1EFCC2</AddressString>
+      <Before>
+        <Byte>8E</Byte>
+        <Byte>D8</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>48</Byte>
+        <Byte>89</Byte>
+        <Byte>8E</Byte>
+        <Byte>E0</Byte>
+        <Byte>39</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>48</Byte>
+        <Byte>89</Byte>
+        <Byte>8E</Byte>
+        <Byte>E8</Byte>
+        <Byte>39</Byte>
+      </After>
+    </CodeEntry>
   </CheatCodes>
   <UserdefinedSymbols>
     <SymbolEntry>
@@ -81167,6 +82337,11 @@ dmc3.exe+2BB11E style bar stuff
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
+      <Address>045F8E47</Address>
+      <Comment>mission 19 crash part2
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
       <Address>"dmc3.exe"+300C6</Address>
       <Comment>Controls something for Character anim
 </Comment>
@@ -81256,6 +82431,11 @@ but it still damages it
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
+      <Address>"dmc3.exe"+1EC45A</Address>
+      <Comment>Determine stagger dmg (on eax) to royal block
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
       <Address>"dmc3.exe"+1EEDF7</Address>
       <Comment>257, Release Level 1,
 this will affect RoyalguardReleaseLevel
@@ -81272,8 +82452,18 @@ this will affect RoyalguardReleaseLevel
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
+      <Address>"dmc3.exe"+1EFC6C</Address>
+      <Comment>Process Lower Part Animation
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
       <Address>"dmc3.exe"+1F7086</Address>
       <Comment>release, attack
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1F8DB0</Address>
+      <Comment>mission 19 actor system crashes here
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>

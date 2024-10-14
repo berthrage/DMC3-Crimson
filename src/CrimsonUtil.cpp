@@ -7,6 +7,7 @@
 #include <cstdio>
 #include "Core/Macros.h"
 
+namespace CrimsonUtil {
 int GetPlayerIndexFromAddr(uintptr_t playerPtr) {
     int playerIndexFound = 10; // if none is found then it'll return 10.
 
@@ -17,6 +18,21 @@ int GetPlayerIndexFromAddr(uintptr_t playerPtr) {
     }
 
     return playerIndexFound;
+}
+
+std::uint32_t Uint8toAABBGGRR(uint8 colorUint8[4]) {
+    // Combine into AABBGGRR format
+    std::uint32_t color = (colorUint8[3] << 24) | (colorUint8[2] << 16) | (colorUint8[1] << 8) | colorUint8[0];
+    return color;
+}
+
+float sexy_clamp(const float val, const float minVal, const float maxVal) {
+	return max(minVal, min(val, maxVal));
+}
+
+float smoothstep(float edge0, float edge1, float x) {
+	x = sexy_clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+	return x * x * (3 - 2 * x);
 }
 
 bool IsAddressValidAndWritable(uintptr_t address) {
@@ -34,3 +50,4 @@ bool IsAddressValidAndWritable(uintptr_t address) {
     return false;
 }
 
+}

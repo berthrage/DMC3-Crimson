@@ -713,8 +713,9 @@ enum {
     SUPER_JUMP,
     UNKNOWN_24,
     HOLY_WATER,
-    UNKNOWN_25,
+    STAGGER,
     DEATH,
+    NEVAN_KISS,
     COUNT,
 };
 };
@@ -729,7 +730,7 @@ static_assert(ACTOR_EVENT::DARK_SLAYER_AIR_TRICK == 27);
 static_assert(ACTOR_EVENT::DARK_SLAYER_TRICK_UP == 28);
 static_assert(ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN == 29);
 static_assert(ACTOR_EVENT::NEVAN_AIR_RAID == 40);
-static_assert(ACTOR_EVENT::COUNT == 46);
+static_assert(ACTOR_EVENT::COUNT == 47);
 
 namespace EVENT_ENEMY {
 enum {
@@ -4034,7 +4035,7 @@ struct BossHelper {
 
 struct ColorPresets {
     struct StyleSwitchFlux {
-		uint8 colorful[6][4] = {
+		uint8 colorfulSubtle[6][4] = {
 			// r   g  b  a 
 			{ 29, 29, 0, 255 }, //trick  
 			{ 26, 0, 0, 255 }, //sword  
@@ -4042,6 +4043,16 @@ struct ColorPresets {
 			{ 0, 35, 6, 255 }, //royal  
 			{ 26, 0, 35, 255 }, //quick  
 			{ 30, 14, 0, 255 }, //doppel 
+		};
+
+		uint8 dMC3Switch[6][4] = {
+			// r   g  b  a 
+			{ 55, 58, 6, 255 }, //trick  
+			{ 58, 5, 5, 255 }, //sword  
+			{ 13, 5, 58, 255 }, //gun    
+			{ 5, 58, 12, 255 }, //royal  
+			{ 58, 5, 49, 255 }, //quick  
+			{ 58, 28, 5, 255 }, //doppel 
 		};
 
 		uint8 allRed[6][4] = {
@@ -4207,15 +4218,6 @@ extern float storedRisingSunTauntPosY;
 extern float storedRisingSunTauntPosYClone;
 extern float storedLunarPhasePosY;
 
-extern int airStingerEndTimeInt;
-
-struct AirStingerEnd {
-    bool trackerRunning = false;
-    int timer           = 0;
-};
-
-extern AirStingerEnd airStingerEnd;
-
 struct RankAnnouncer {
     int turn            = 0;
     int count           = 0;
@@ -4235,10 +4237,13 @@ extern float currentDTDoppDTOn;
 extern float doppDuration;
 extern float doppDurationDT;
 
-extern int storedTrickUpCount;
-extern int storedSkyStarCount;
-extern int storedAirHikeCount;
-extern bool royalCancelTrackerRunning;
+struct StoredAirCounts {
+	uint8 trickUp = 0;
+    uint8 skyStar = 0;
+    uint8 airHike = 0;
+    uint8 airStringer = 0;
+    bool cancelTrackerRunning = false;
+};
 
 struct FasterDarkslayer {
     float newSpeed            = 2.0f;
@@ -4263,10 +4268,12 @@ extern bool inRapidSlash;
 
 extern bool styleChanged[6];
 
+extern float g_FrameRate;
+extern float g_FrameRateTimeMultiplier;
 extern bool g_inCombat;
 extern bool g_inBossfight;
 extern int g_bossQuantity;
-extern bool g_inGame;
+extern bool g_inGameDelayed;
 extern bool g_inGameCutscene;
 extern bool g_HudVisible;
 extern std::string g_gameTrackPlaying;
@@ -4368,7 +4375,7 @@ struct ImprovedCancels {
 
 struct BackToForward {
     bool backCommand             = false;
-    float backDuration           = 0.2f;
+    float backDuration           = 0.16f;
     float backBuffer             = backDuration;
     bool backDirectionChanged    = true;
     bool forwardDirectionChanged = true;
@@ -4529,6 +4536,7 @@ struct CrimsonPlayerData {
     SimpleVec3 playerScreenPosition = { 0,0,0 };
     bool playerOutOfView = false;
     uint16 rotationTowardsEnemy = 0;
+    StoredAirCounts storedAirCounts;
 
     AirRaveTweak airRaveTweak;
 
@@ -4555,6 +4563,7 @@ struct CrimsonPlayerData {
     SkyLaunch skyLaunchClone;
     VergilMoveAdjustments vergilMovesClone;
     ImprovedCancels cancelsClone;
+    BackToForward b2FClone;
     Inertia inertiaClone;
     float cameraCloneDistance = 0;
     float cameraCloneDistanceClamped = 0;
@@ -4562,7 +4571,7 @@ struct CrimsonPlayerData {
     SimpleVec3 cloneScreenPosition = { 0,0,0 };
     bool cloneOutOfView = false;
     uint16 rotationCloneTowardsEnemy = 0;
-
+    StoredAirCounts storedAirCountsClone;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];
