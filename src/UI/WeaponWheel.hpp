@@ -9,6 +9,117 @@
 
 namespace WW
 {
+enum class TextureID {
+	ColoredDantePanel1Active = 0,
+	ColoredDantePanel2Active,
+	ColoredDantePanel3Active,
+	ColoredDantePanel4Active,
+	ColoredDantePanel5Active,
+
+	ColoredDantePanel1Inactive,
+	ColoredDantePanel2Inactive,
+	ColoredDantePanel3Inactive,
+	ColoredDantePanel4Inactive,
+	ColoredDantePanel5Inactive,
+
+	ColoredDanteArrow1,
+	ColoredDanteArrow2,
+	ColoredDanteArrow3,
+	ColoredDanteArrow4,
+	ColoredDanteArrow5,
+	ColoredDanteCenter,
+
+	ColoredVergilPanel1Active,
+	ColoredVergilPanel2Active,
+	ColoredVergilPanel3Active,
+	ColoredVergilPanel4Active,
+	ColoredVergilPanel5Active,
+
+	ColoredVergilPanel1Inactive,
+	ColoredVergilPanel2Inactive,
+	ColoredVergilPanel3Inactive,
+	ColoredVergilPanel4Inactive,
+	ColoredVergilPanel5Inactive,
+
+	ColoredVergilArrow1,
+	ColoredVergilArrow2,
+	ColoredVergilArrow3,
+	ColoredVergilArrow4,
+	ColoredVergilArrow5,
+	ColoredVergilCenter,
+
+	ColorlessPanel1Active,
+	ColorlessPanel2Active,
+	ColorlessPanel3Active,
+	ColorlessPanel4Active,
+	ColorlessPanel5Active,
+
+	ColorlessPanel1Inactive,
+	ColorlessPanel2Inactive,
+	ColorlessPanel3Inactive,
+	ColorlessPanel4Inactive,
+	ColorlessPanel5Inactive,
+
+	ColorlessArrow1,
+	ColorlessArrow2,
+	ColorlessArrow3,
+	ColorlessArrow4,
+	ColorlessArrow5,
+	ColorlessCenter,
+
+	RebellionAwakenedActive,
+	RebellionDormantActive,
+	CerberusActive,
+	AgniRudraActive,
+	NevanActive,
+	BeowulfActive,
+	ForceEdgeActive,
+
+	EbonyIvoryActive,
+	ShotgunActive,
+	ArtemisActive,
+	SpiralActive,
+	KalinaActive,
+
+	YamatoActive,
+	YamatoForceEdgeActive,
+
+	DuplicateRebellionAwakenedActive,
+	DuplicateRebellionDormantActive,
+	DuplicateCerberusActive,
+	DuplicateAgniRudraActive,
+	DuplicateNevanActive,
+	DuplicateBeowulfActive,
+	DuplicateForceEdgeActive,
+
+	DuplicateEbonyIvoryActive,
+	DuplicateShotgunActive,
+	DuplicateArtemisActive,
+	DuplicateSpiralActive,
+	DuplicateKalinaActive,
+
+	DuplicateYamatoActive,
+	DuplicateYamatoForceEdgeActive,
+
+	RebellionAwakenedInactive,
+	RebellionDormantInactive,
+	CerberusInactive,
+	AgniRudraInactive,
+	NevanInactive,
+	BeowulfInactive,
+	ForceEdgeInactive,
+
+	EbonyIvoryInactive,
+	ShotgunInactive,
+	ArtemisInactive,
+	SpiralInactive,
+	KalinaInactive,
+
+	YamatoInactive,
+	YamatoForceEdgeInactive,
+
+	Size
+};
 	enum class WheelThemes
 	{
 		Neutral = 0,
@@ -39,6 +150,8 @@ namespace WW
 		Size
 	};
 
+	constexpr TextureID GetDupAnimationWeaponTextureID(WeaponIDs id);
+
 	class WeaponWheel
 	{
 	public:
@@ -50,7 +163,7 @@ namespace WW
 		void SetWheelTheme(WheelThemes themeID);
 		void SetActiveSlot(size_t slot);
 
-		void OnUpdate(double ts);
+		void OnUpdate(double ts, double tsGlobal);
 		bool OnDraw();
 
 		ID3D11ShaderResourceView* GetSRV();
@@ -66,7 +179,7 @@ namespace WW
 
 		void UpdateSlotStates();
 
-	private:
+	public:
 		UINT m_Width{ 0 }, m_Height{ 0 }, m_Top{ 0 }, m_Left{ 0 };
 
 		size_t m_CurrentActiveSlot{ 0 };
@@ -87,6 +200,7 @@ namespace WW
 			m_RunWeaponSwitchScaleAnim{ false };
 
 		double m_SinceLatestChangeMs{ 0.0f };
+		double m_SinceLatestChangeMsGlobal{ 0.0f };
 
 		bool m_AlreadyTriggeredWheelFadeAnim{ false },
 			m_AlreadyTriggeredActiveWeaponFadeAnim{ false },

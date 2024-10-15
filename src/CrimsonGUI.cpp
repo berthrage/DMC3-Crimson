@@ -1913,7 +1913,7 @@ void RangedWeaponWheelTimeTracker() {
 	}
 }
 
-int oldMeleeWeaponIndex = 0;
+
 
 // @Todo: Templates.
 void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
@@ -1932,15 +1932,27 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 
 	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
 
-	if (InCutscene() || InCredits() || !activeConfig.Actor.enable || (!activeConfig.weaponWheelEnabled) ||
+	if (InCutscene() || InCredits() || !activeConfig.Actor.enable || (!activeConfig.weaponWheelEnabled) || g_inGameCutscene ||
 		!((characterData.character == CHARACTER::DANTE) || (characterData.character == CHARACTER::VERGIL))) {
 		return;
 	}
 
-	auto meleeWeaponIndex = characterData.meleeWeaponIndex;
-	if (meleeWeaponIndex >= 5) {
-		meleeWeaponIndex = 0;
-	}
+	static int oldMeleeWeaponIndex = -1;
+	static int oldCharIndex = -1;
+	static auto charTheme = WW::WheelThemes::Neutral;
+	auto& charIndex = actorData.character;
+	auto& meleeWeaponIndex = characterData.meleeWeaponIndex;
+	auto& activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+// 	if (meleeWeaponIndex >= 5) {
+// 		meleeWeaponIndex = 0;
+// 	}
+
+	if (actorData.character == CHARACTER::DANTE)
+		charTheme = WW::WheelThemes::Dante;
+	else if (actorData.character == CHARACTER::VERGIL)
+		charTheme = WW::WheelThemes::Vergil;
+	else
+		charTheme = WW::WheelThemes::Neutral;
 
 	ImVec2 windowSize{ g_renderSize.x, g_renderSize.y };
 	ImVec2 wheelSize{ windowSize.y * 0.45f, windowSize.y * 0.45f };
@@ -1955,35 +1967,44 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 
 		pD3D11Device->GetImmediateContext(&pDeviceContext);
 
-		g_pMeleeWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y,
+		g_pMeleeWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y, 
 			std::vector<WW::WeaponIDs> {
-			WW::WeaponIDs::RebellionDormant,
+			WW::WeaponIDs::Nevan,
+				WW::WeaponIDs::Beowulf,
+				WW::WeaponIDs::RebellionAwakened,
 				WW::WeaponIDs::Cerberus,
 				WW::WeaponIDs::AgniRudra,
-				WW::WeaponIDs::Nevan,
-				WW::WeaponIDs::Beowulf,
-		}, WW::WheelThemes::Neutral);
+		}, charTheme);
 
 		g_pMeleeWeaponWheel->SetActiveSlot(meleeWeaponIndex);
 
 		oldMeleeWeaponIndex = meleeWeaponIndex;
 	}
 
-	if (oldMeleeWeaponIndex != meleeWeaponIndex) // If changed set it
-		g_pMeleeWeaponWheel->SetActiveSlot(meleeWeaponIndex);
+	if (oldMeleeWeaponIndex != (int)meleeWeaponIndex || oldCharIndex != (int)charIndex) {// If changed set it
+		g_pMeleeWeaponWheel->SetActiveSlot((int)meleeWeaponIndex);
+		g_pMeleeWeaponWheel->SetWheelTheme(charTheme);
+	}
 
-	oldMeleeWeaponIndex = meleeWeaponIndex;
+	oldMeleeWeaponIndex = (int)meleeWeaponIndex;
+	oldCharIndex = (int)charIndex;
 
 	// Draw the wheel
 
 	static bool isOpen = true;
+	g_pMeleeWeaponWheel->SetWeapons(std::vector<WW::WeaponIDs> {
+		WW::WeaponIDs::Nevan,
+			WW::WeaponIDs::Cerberus,
+			WW::WeaponIDs::RebellionAwakened,
+			WW::WeaponIDs::Cerberus,
+			WW::WeaponIDs::AgniRudra});
 
 	ImGui::SetNextWindowSize(wheelSize);
 	ImGui::SetNextWindowPos(windowSize - wheelSize);
 
 	static auto startTime = ImGui::GetTime();
 
-	g_pMeleeWeaponWheel->OnUpdate((ImGui::GetTime() - startTime) * 1000.0);
+	g_pMeleeWeaponWheel->OnUpdate((ImGui::GetTime() - startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier), (ImGui::GetTime() - startTime) * 1000.0f);
 	startTime = ImGui::GetTime();
 
 	g_pMeleeWeaponWheel->OnDraw();
@@ -7763,6 +7784,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			if (g_pMeleeWeaponWheel)ImGui::Text("%u", g_pMeleeWeaponWheel->m_AlreadyTriggeredSwitchScaleAnim);
 			ImGui::Text("NextActionPolicyTrickster: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::TRICKSTER_DARK_SLAYER]);
 			ImGui::Text("NextActionPolicyMelee: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::MELEE_ATTACK]);
 			ImGui::Text("BufferedAction: %u", actorData.bufferedAction);

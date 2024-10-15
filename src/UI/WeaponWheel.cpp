@@ -164,7 +164,7 @@ static constexpr Transform s_MeleeActiveSlotTransforms[5] =
     },
     { // Slot 2
         glm::vec3(0.522f, 0.448f, 0.0f),
-        glm::vec3(0.0f, 0.0f, glm::radians(11.186f)),
+        glm::vec3(0.0f, 0.0f, glm::radians(-11.186f)),
         glm::vec3(0.420f)
     },
     { // Slot 3
@@ -709,31 +709,33 @@ namespace WW
 
         for (size_t i = 0; i < m_Weapons.size(); i++)
         {
-            m_pSpriteBatch->SetTransform(
-                (size_t)GetWeaponTextureID(m_Weapons[i], false),
-                s_MeleeInactiveSlotTransforms[i].Translation,
-                s_MeleeInactiveSlotTransforms[i].Rotation,
-                s_MeleeInactiveSlotTransforms[i].Scale
-            );
+			// Adjust SetTransform to include slot index in the ID
+			m_pSpriteBatch->SetTransform(
+				(size_t)GetWeaponTextureID(m_Weapons[i], false) + i,  // Unique key per slot
+				s_MeleeInactiveSlotTransforms[i].Translation,
+				s_MeleeInactiveSlotTransforms[i].Rotation,
+				s_MeleeInactiveSlotTransforms[i].Scale
+			);
 
-            m_pSpriteBatch->SetTransform(
-                (size_t)GetWeaponTextureID(m_Weapons[i], true),
-                s_MeleeActiveSlotTransforms[i].Translation,
-                s_MeleeActiveSlotTransforms[i].Rotation,
-                s_MeleeActiveSlotTransforms[i].Scale
-            );
+			m_pSpriteBatch->SetTransform(
+				(size_t)GetWeaponTextureID(m_Weapons[i], true) + i,   // Unique key per slot
+				s_MeleeActiveSlotTransforms[i].Translation,
+				s_MeleeActiveSlotTransforms[i].Rotation,
+				s_MeleeActiveSlotTransforms[i].Scale
+			);
 
-            m_pSpriteBatch->SetTransform(
-                (size_t)GetDupAnimationWeaponTextureID(m_Weapons[i]),
-                s_MeleeActiveSlotTransforms[i].Translation,
-                s_MeleeActiveSlotTransforms[i].Rotation,
-                s_MeleeActiveSlotTransforms[i].Scale
-            );
+			m_pSpriteBatch->SetTransform(
+				(size_t)GetDupAnimationWeaponTextureID(m_Weapons[i]) + i,  // Unique key per slot
+				s_MeleeActiveSlotTransforms[i].Translation,
+				s_MeleeActiveSlotTransforms[i].Rotation,
+				s_MeleeActiveSlotTransforms[i].Scale
+			);
 
-            m_pSpriteBatch->SetOpacity(
-                (size_t)GetDupAnimationWeaponTextureID(m_Weapons[i]),
-                0.0f
-            );
+			// Opacity also should be unique per slot
+			m_pSpriteBatch->SetOpacity(
+				(size_t)GetDupAnimationWeaponTextureID(m_Weapons[i]) + i,  // Unique key per slot
+				0.0f
+			);
         }
 
         InitializeAnimations();
@@ -780,29 +782,30 @@ namespace WW
         m_AlreadyTriggeredSwitchBrightnessAnim = false;
         m_AlreadyTriggeredSwitchScaleAnim = false;
         m_SinceLatestChangeMs = 0.0f;
+        m_SinceLatestChangeMsGlobal = 0.0f;
     }
 
-    void WeaponWheel::OnUpdate(double ts)
+    void WeaponWheel::OnUpdate(double ts, double tsGlobal)
     {
-        if (!m_AlreadyTriggeredWheelFadeAnim && m_SinceLatestChangeMs >= s_FadeDelay)
+        if (!m_AlreadyTriggeredWheelFadeAnim && m_SinceLatestChangeMsGlobal >= s_FadeDelay)
         {
             m_RunWheelFadeAnim = true;
             m_AlreadyTriggeredWheelFadeAnim = true;
         }
 
-        if (!m_AlreadyTriggeredActiveWeaponFadeAnim && m_SinceLatestChangeMs >= s_FadeDelay)
+        if (!m_AlreadyTriggeredActiveWeaponFadeAnim && m_SinceLatestChangeMsGlobal >= s_FadeDelay)
         {
             m_RunActiveWeaponFadeAnim = true;
             m_AlreadyTriggeredActiveWeaponFadeAnim = true;
         }
 
-        if (!m_AlreadyTriggeredSwitchScaleAnim)
+        if (!m_AlreadyTriggeredSwitchScaleAnim && m_SinceLatestChangeMs >= 5)
         {
             m_RunWeaponSwitchScaleAnim = true;
             m_AlreadyTriggeredSwitchScaleAnim = true;
         }
 
-        if (!m_AlreadyTriggeredSwitchBrightnessAnim)
+        if (!m_AlreadyTriggeredSwitchBrightnessAnim && m_SinceLatestChangeMs >= 5)
         {
             m_RunWeaponSwitchBrightnessAnim = true;
             m_AlreadyTriggeredSwitchBrightnessAnim = true;
@@ -821,6 +824,7 @@ namespace WW
             m_pWeaponSwitchBrightnessAnimation->OnUpdate(ts);
 
         m_SinceLatestChangeMs += ts;
+        m_SinceLatestChangeMsGlobal += tsGlobal;
     }
 
     bool WeaponWheel::OnDraw()
