@@ -4,121 +4,6 @@
 
 #include <filesystem>
 
-std::vector<Graphics::Sprite> g_Sprites;
-
-enum class TextureID 
-{
-    ColoredDantePanel1Active = 0,
-    ColoredDantePanel2Active,
-    ColoredDantePanel3Active,
-    ColoredDantePanel4Active,
-    ColoredDantePanel5Active,
-
-    ColoredDantePanel1Inactive,
-    ColoredDantePanel2Inactive,
-    ColoredDantePanel3Inactive,
-    ColoredDantePanel4Inactive,
-    ColoredDantePanel5Inactive,
-
-    ColoredDanteArrow1,
-    ColoredDanteArrow2,
-    ColoredDanteArrow3,
-    ColoredDanteArrow4,
-    ColoredDanteArrow5,
-    ColoredDanteCenter,
-
-    ColoredVergilPanel1Active,
-    ColoredVergilPanel2Active,
-    ColoredVergilPanel3Active,
-    ColoredVergilPanel4Active,
-    ColoredVergilPanel5Active,
-
-    ColoredVergilPanel1Inactive,
-    ColoredVergilPanel2Inactive,
-    ColoredVergilPanel3Inactive,
-    ColoredVergilPanel4Inactive,
-    ColoredVergilPanel5Inactive,
-
-    ColoredVergilArrow1,
-    ColoredVergilArrow2,
-    ColoredVergilArrow3,
-    ColoredVergilArrow4,
-    ColoredVergilArrow5,
-    ColoredVergilCenter,
-
-    ColorlessPanel1Active,
-    ColorlessPanel2Active,
-    ColorlessPanel3Active,
-    ColorlessPanel4Active,
-    ColorlessPanel5Active,
-
-    ColorlessPanel1Inactive,
-    ColorlessPanel2Inactive,
-    ColorlessPanel3Inactive,
-    ColorlessPanel4Inactive,
-    ColorlessPanel5Inactive,
-
-    ColorlessArrow1,
-    ColorlessArrow2,
-    ColorlessArrow3,
-    ColorlessArrow4,
-    ColorlessArrow5,
-    ColorlessCenter,
-
-    RebellionAwakenedActive,
-    RebellionDormantActive,
-    CerberusActive,
-    AgniRudraActive,
-    NevanActive,
-    BeowulfActive,
-    ForceEdgeActive,
-
-    EbonyIvoryActive,
-    ShotgunActive,
-    ArtemisActive,
-    SpiralActive,
-    KalinaActive,
-
-    YamatoActive,
-    YamatoForceEdgeActive,
-
-    DuplicateRebellionAwakenedActive,
-    DuplicateRebellionDormantActive,
-    DuplicateCerberusActive,
-    DuplicateAgniRudraActive,
-    DuplicateNevanActive,
-    DuplicateBeowulfActive,
-    DuplicateForceEdgeActive,
-
-    DuplicateEbonyIvoryActive,
-    DuplicateShotgunActive,
-    DuplicateArtemisActive,
-    DuplicateSpiralActive,
-    DuplicateKalinaActive,
-
-    DuplicateYamatoActive,
-    DuplicateYamatoForceEdgeActive,
-
-    RebellionAwakenedInactive,
-    RebellionDormantInactive,
-    CerberusInactive,
-    AgniRudraInactive,
-    NevanInactive,
-    BeowulfInactive,
-    ForceEdgeInactive,
-
-    EbonyIvoryInactive,
-    ShotgunInactive,
-    ArtemisInactive,
-    SpiralInactive,
-    KalinaInactive,
-
-    YamatoInactive,
-    YamatoForceEdgeInactive,
-
-    Size
-};
-
 struct Transform
 {
     glm::vec3 Translation;
@@ -184,228 +69,258 @@ static constexpr Transform s_MeleeActiveSlotTransforms[5] =
     }
 };
 
-namespace WW
-{
-    void LoadSprites()
+namespace WW {
+    void LoadSprites(std::vector <Graphics::Sprite>& sprites, std::vector <Graphics::Sprite>(& weaponSprites)[5])
     {
-        g_Sprites.reserve((size_t)TextureID::Size);
+        sprites.reserve((size_t)TextureID::Size);
+        for (size_t i = 0; i < 5; ++i)
+            weaponSprites[i].reserve((size_t)WeaponTextureID::Size);
     
         const std::filesystem::path textureRoot(R"(Crimson\assets\weaponwheel)");
     
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel1.png)").string().c_str()); //ColoredDantePanel1Active
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel2.png)").string().c_str()); //ColoredDantePanel2Active
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel3.png)").string().c_str()); //ColoredDantePanel3Active
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel4.png)").string().c_str()); //ColoredDantePanel4Active
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel5.png)").string().c_str()); //ColoredDantePanel5Active
+        sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel1.png)").string().c_str()); //ColoredDantePanel1Active
+        sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel2.png)").string().c_str()); //ColoredDantePanel2Active
+        sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel3.png)").string().c_str()); //ColoredDantePanel3Active
+        sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel4.png)").string().c_str()); //ColoredDantePanel4Active
+        sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel5.png)").string().c_str()); //ColoredDantePanel5Active
     
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel1.png)").string().c_str()); //ColoredDantePanel1Inactive
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel2.png)").string().c_str()); //ColoredDantePanel2Inactive
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel3.png)").string().c_str()); //ColoredDantePanel3Inactive
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel4.png)").string().c_str()); //ColoredDantePanel4Inactive
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel5.png)").string().c_str()); //ColoredDantePanel5Inactive
+        sprites.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel1.png)").string().c_str()); //ColoredDantePanel1Inactive
+        sprites.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel2.png)").string().c_str()); //ColoredDantePanel2Inactive
+        sprites.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel3.png)").string().c_str()); //ColoredDantePanel3Inactive
+        sprites.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel4.png)").string().c_str()); //ColoredDantePanel4Inactive
+        sprites.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel5.png)").string().c_str()); //ColoredDantePanel5Inactive
     
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\arrow1.png)").string().c_str()); //ColoredDanteArrow1
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\arrow2.png)").string().c_str()); //ColoredDanteArrow2
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\arrow3.png)").string().c_str()); //ColoredDanteArrow3
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\arrow4.png)").string().c_str()); //ColoredDanteArrow4
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\arrow5.png)").string().c_str()); //ColoredDanteArrow5
-        g_Sprites.emplace_back((textureRoot / R"(colored\dante\center.png)").string().c_str()); //ColoredDanteCenter
+        sprites.emplace_back((textureRoot / R"(colored\dante\arrow1.png)").string().c_str()); //ColoredDanteArrow1
+        sprites.emplace_back((textureRoot / R"(colored\dante\arrow2.png)").string().c_str()); //ColoredDanteArrow2
+        sprites.emplace_back((textureRoot / R"(colored\dante\arrow3.png)").string().c_str()); //ColoredDanteArrow3
+        sprites.emplace_back((textureRoot / R"(colored\dante\arrow4.png)").string().c_str()); //ColoredDanteArrow4
+        sprites.emplace_back((textureRoot / R"(colored\dante\arrow5.png)").string().c_str()); //ColoredDanteArrow5
+        sprites.emplace_back((textureRoot / R"(colored\dante\center.png)").string().c_str()); //ColoredDanteCenter
     
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel1.png)").string().c_str()); //ColoredVergilPanel1Active
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel2.png)").string().c_str()); //ColoredVergilPanel2Active
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel3.png)").string().c_str()); //ColoredVergilPanel3Active
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel4.png)").string().c_str()); //ColoredVergilPanel4Active
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel5.png)").string().c_str()); //ColoredVergilPanel5Active
+        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel1.png)").string().c_str()); //ColoredVergilPanel1Active
+        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel2.png)").string().c_str()); //ColoredVergilPanel2Active
+        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel3.png)").string().c_str()); //ColoredVergilPanel3Active
+        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel4.png)").string().c_str()); //ColoredVergilPanel4Active
+        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel5.png)").string().c_str()); //ColoredVergilPanel5Active
     
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel1.png)").string().c_str()); //ColoredVergilPanel1Inactive
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel2.png)").string().c_str()); //ColoredVergilPanel2Inactive
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel3.png)").string().c_str()); //ColoredVergilPanel3Inactive
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel4.png)").string().c_str()); //ColoredVergilPanel4Inactive
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel5.png)").string().c_str()); //ColoredVergilPanel5Inactive
+        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel1.png)").string().c_str()); //ColoredVergilPanel1Inactive
+        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel2.png)").string().c_str()); //ColoredVergilPanel2Inactive
+        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel3.png)").string().c_str()); //ColoredVergilPanel3Inactive
+        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel4.png)").string().c_str()); //ColoredVergilPanel4Inactive
+        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel5.png)").string().c_str()); //ColoredVergilPanel5Inactive
     
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\arrow1.png)").string().c_str()); //ColoredVergilArrow1
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\arrow2.png)").string().c_str()); //ColoredVergilArrow2
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\arrow3.png)").string().c_str()); //ColoredVergilArrow3
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\arrow4.png)").string().c_str()); //ColoredVergilArrow4
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\arrow5.png)").string().c_str()); //ColoredVergilArrow5
-        g_Sprites.emplace_back((textureRoot / R"(colored\vergil\center.png)").string().c_str()); //ColoredVergilCenter
+        sprites.emplace_back((textureRoot / R"(colored\vergil\arrow1.png)").string().c_str()); //ColoredVergilArrow1
+        sprites.emplace_back((textureRoot / R"(colored\vergil\arrow2.png)").string().c_str()); //ColoredVergilArrow2
+        sprites.emplace_back((textureRoot / R"(colored\vergil\arrow3.png)").string().c_str()); //ColoredVergilArrow3
+        sprites.emplace_back((textureRoot / R"(colored\vergil\arrow4.png)").string().c_str()); //ColoredVergilArrow4
+        sprites.emplace_back((textureRoot / R"(colored\vergil\arrow5.png)").string().c_str()); //ColoredVergilArrow5
+        sprites.emplace_back((textureRoot / R"(colored\vergil\center.png)").string().c_str()); //ColoredVergilCenter
     
-        g_Sprites.emplace_back((textureRoot / R"(colorless\panelsactive\panel1.png)").string().c_str()); //ColorlessPanel1Active
-        g_Sprites.emplace_back((textureRoot / R"(colorless\panelsactive\panel2.png)").string().c_str()); //ColorlessPanel2Active
-        g_Sprites.emplace_back((textureRoot / R"(colorless\panelsactive\panel3.png)").string().c_str()); //ColorlessPanel3Active
-        g_Sprites.emplace_back((textureRoot / R"(colorless\panelsactive\panel4.png)").string().c_str()); //ColorlessPanel4Active
-        g_Sprites.emplace_back((textureRoot / R"(colorless\panelsactive\panel5.png)").string().c_str()); //ColorlessPanel5Active
+        sprites.emplace_back((textureRoot / R"(colorless\panelsactive\panel1.png)").string().c_str()); //ColorlessPanel1Active
+        sprites.emplace_back((textureRoot / R"(colorless\panelsactive\panel2.png)").string().c_str()); //ColorlessPanel2Active
+        sprites.emplace_back((textureRoot / R"(colorless\panelsactive\panel3.png)").string().c_str()); //ColorlessPanel3Active
+        sprites.emplace_back((textureRoot / R"(colorless\panelsactive\panel4.png)").string().c_str()); //ColorlessPanel4Active
+        sprites.emplace_back((textureRoot / R"(colorless\panelsactive\panel5.png)").string().c_str()); //ColorlessPanel5Active
     
-        g_Sprites.emplace_back((textureRoot / R"(colorless\panelsinactive\panel1.png)").string().c_str()); //ColorlessPanel1Inactive
-        g_Sprites.emplace_back((textureRoot / R"(colorless\panelsinactive\panel2.png)").string().c_str()); //ColorlessPanel2Inactive
-        g_Sprites.emplace_back((textureRoot / R"(colorless\panelsinactive\panel3.png)").string().c_str()); //ColorlessPanel3Inactive
-        g_Sprites.emplace_back((textureRoot / R"(colorless\panelsinactive\panel4.png)").string().c_str()); //ColorlessPanel4Inactive
-        g_Sprites.emplace_back((textureRoot / R"(colorless\panelsinactive\panel5.png)").string().c_str()); //ColorlessPanel5Inactive
+        sprites.emplace_back((textureRoot / R"(colorless\panelsinactive\panel1.png)").string().c_str()); //ColorlessPanel1Inactive
+        sprites.emplace_back((textureRoot / R"(colorless\panelsinactive\panel2.png)").string().c_str()); //ColorlessPanel2Inactive
+        sprites.emplace_back((textureRoot / R"(colorless\panelsinactive\panel3.png)").string().c_str()); //ColorlessPanel3Inactive
+        sprites.emplace_back((textureRoot / R"(colorless\panelsinactive\panel4.png)").string().c_str()); //ColorlessPanel4Inactive
+        sprites.emplace_back((textureRoot / R"(colorless\panelsinactive\panel5.png)").string().c_str()); //ColorlessPanel5Inactive
     
-        g_Sprites.emplace_back((textureRoot / R"(colorless\arrow1.png)").string().c_str()); //ColorlessArrow1
-        g_Sprites.emplace_back((textureRoot / R"(colorless\arrow2.png)").string().c_str()); //ColorlessArrow2
-        g_Sprites.emplace_back((textureRoot / R"(colorless\arrow3.png)").string().c_str()); //ColorlessArrow3
-        g_Sprites.emplace_back((textureRoot / R"(colorless\arrow4.png)").string().c_str()); //ColorlessArrow4
-        g_Sprites.emplace_back((textureRoot / R"(colorless\arrow5.png)").string().c_str()); //ColorlessArrow5
-        g_Sprites.emplace_back((textureRoot / R"(colorless\center.png)").string().c_str()); //ColorlessCenter
-    
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\rebellion-awakened.png)").string().c_str()); //RebellionAwakenedActive
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\rebellion-dormant.png)").string().c_str()); //RebellionDormantActive
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\cerberus.png)").string().c_str()); //CerberusActive
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\agnirudra.png)").string().c_str()); //AgniRudraActive
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\nevan.png)").string().c_str()); //NevanActive
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\beowulf.png)").string().c_str()); //BeowulfActive
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\forceedge-dante.png)").string().c_str()); //ForceEdgeActive
-    
-        g_Sprites.emplace_back((textureRoot / R"(guns\active\ebonyivory.png)").string().c_str()); //EbonyIvoryActive
-        g_Sprites.emplace_back((textureRoot / R"(guns\active\shotgun.png)").string().c_str()); //ShotgunActive
-        g_Sprites.emplace_back((textureRoot / R"(guns\active\artemis.png)").string().c_str()); //ArtemisActive
-        g_Sprites.emplace_back((textureRoot / R"(guns\active\spiral.png)").string().c_str()); //SpiralActive
-        g_Sprites.emplace_back((textureRoot / R"(guns\active\kalina.png)").string().c_str()); //KalinaActive
-    
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\yamato.png)").string().c_str()); //YamatoActive
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\forceedge-vergil.png)").string().c_str()); //YamatoForceEdgeActive
-    
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\rebellion-awakened.png)").string().c_str()); //DuplicateRebellionAwakenedActive
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\rebellion-dormant.png)").string().c_str()); //DuplicateRebellionDormantActive
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\cerberus.png)").string().c_str()); //DuplicateCerberusActive
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\agnirudra.png)").string().c_str()); //DuplicateAgniRudraActive
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\nevan.png)").string().c_str()); //DuplicateNevanActive
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\beowulf.png)").string().c_str()); //DuplicateBeowulfActive
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\forceedge-dante.png)").string().c_str()); //DuplicateForceEdgeActive
-    
-        g_Sprites.emplace_back((textureRoot / R"(guns\active\ebonyivory.png)").string().c_str()); //DuplicateEbonyIvoryActive
-        g_Sprites.emplace_back((textureRoot / R"(guns\active\shotgun.png)").string().c_str()); //DuplicateShotgunActive
-        g_Sprites.emplace_back((textureRoot / R"(guns\active\artemis.png)").string().c_str()); //DuplicateArtemisActive
-        g_Sprites.emplace_back((textureRoot / R"(guns\active\spiral.png)").string().c_str()); //DuplicateSpiralActive
-        g_Sprites.emplace_back((textureRoot / R"(guns\active\kalina.png)").string().c_str()); //DuplicateKalinaActive
-    
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\yamato.png)").string().c_str()); //DuplicateYamatoActive
-        g_Sprites.emplace_back((textureRoot / R"(melee\active\forceedge-vergil.png)").string().c_str()); //DuplicateYamatoForceEdgeActive
-    
-        g_Sprites.emplace_back((textureRoot / R"(melee\inactive\rebellion-awakened.png)").string().c_str()); //RebellionAwakenedInactive
-        g_Sprites.emplace_back((textureRoot / R"(melee\inactive\rebellion-dormant.png)").string().c_str()); //RebellionDormantInactive
-        g_Sprites.emplace_back((textureRoot / R"(melee\inactive\cerberus.png)").string().c_str()); //CerberusInactive
-        g_Sprites.emplace_back((textureRoot / R"(melee\inactive\agnirudra.png)").string().c_str()); //AgniRudraInactive
-        g_Sprites.emplace_back((textureRoot / R"(melee\inactive\nevan.png)").string().c_str()); //NevanInactive
-        g_Sprites.emplace_back((textureRoot / R"(melee\inactive\beowulf.png)").string().c_str()); //BeowulfInactive
-        g_Sprites.emplace_back((textureRoot / R"(melee\inactive\forceedge-dante.png)").string().c_str()); //ForceEdgeInactive
-    
-        g_Sprites.emplace_back((textureRoot / R"(guns\inactive\ebonyivory.png)").string().c_str()); //EbonyIvoryInactive
-        g_Sprites.emplace_back((textureRoot / R"(guns\inactive\shotgun.png)").string().c_str()); //ShotgunInactive
-        g_Sprites.emplace_back((textureRoot / R"(guns\inactive\artemis.png)").string().c_str()); //ArtemisInactive
-        g_Sprites.emplace_back((textureRoot / R"(guns\inactive\spiral.png)").string().c_str()); //SpiralInactive
-        g_Sprites.emplace_back((textureRoot / R"(guns\inactive\kalina.png)").string().c_str()); //KalinaInactive
-    
-        g_Sprites.emplace_back((textureRoot / R"(melee\inactive\yamato.png)").string().c_str()); //YamatoInactive
-        g_Sprites.emplace_back((textureRoot / R"(melee\inactive\forceedge-vergil.png)").string().c_str()); //YamatoForceEdgeInactive
+        sprites.emplace_back((textureRoot / R"(colorless\arrow1.png)").string().c_str()); //ColorlessArrow1
+        sprites.emplace_back((textureRoot / R"(colorless\arrow2.png)").string().c_str()); //ColorlessArrow2
+        sprites.emplace_back((textureRoot / R"(colorless\arrow3.png)").string().c_str()); //ColorlessArrow3
+        sprites.emplace_back((textureRoot / R"(colorless\arrow4.png)").string().c_str()); //ColorlessArrow4
+        sprites.emplace_back((textureRoot / R"(colorless\arrow5.png)").string().c_str()); //ColorlessArrow5
+        sprites.emplace_back((textureRoot / R"(colorless\center.png)").string().c_str()); //ColorlessCenter
+
+
+        for (size_t i = 0; i < 5; ++i) {
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\rebellion-awakened.png)").string().c_str()); //RebellionAwakenedActive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\rebellion-dormant.png)").string().c_str()); //RebellionDormantActive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\cerberus.png)").string().c_str()); //CerberusActive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\agnirudra.png)").string().c_str()); //AgniRudraActive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\nevan.png)").string().c_str()); //NevanActive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\beowulf.png)").string().c_str()); //BeowulfActive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\forceedge-dante.png)").string().c_str()); //ForceEdgeActive
+
+            weaponSprites[i].emplace_back((textureRoot / R"(guns\active\ebonyivory.png)").string().c_str()); //EbonyIvoryActive
+            weaponSprites[i].emplace_back((textureRoot / R"(guns\active\shotgun.png)").string().c_str()); //ShotgunActive
+            weaponSprites[i].emplace_back((textureRoot / R"(guns\active\artemis.png)").string().c_str()); //ArtemisActive
+            weaponSprites[i].emplace_back((textureRoot / R"(guns\active\spiral.png)").string().c_str()); //SpiralActive
+            weaponSprites[i].emplace_back((textureRoot / R"(guns\active\kalina.png)").string().c_str()); //KalinaActive
+
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\yamato.png)").string().c_str()); //YamatoActive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\forceedge-vergil.png)").string().c_str()); //YamatoForceEdgeActive
+
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\rebellion-awakened.png)").string().c_str()); //DuplicateRebellionAwakenedActive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\rebellion-dormant.png)").string().c_str()); //DuplicateRebellionDormantActive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\cerberus.png)").string().c_str()); //DuplicateCerberusActive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\agnirudra.png)").string().c_str()); //DuplicateAgniRudraActive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\nevan.png)").string().c_str()); //DuplicateNevanActive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\beowulf.png)").string().c_str()); //DuplicateBeowulfActive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\forceedge-dante.png)").string().c_str()); //DuplicateForceEdgeActive
+
+            weaponSprites[i].emplace_back((textureRoot / R"(guns\active\ebonyivory.png)").string().c_str()); //DuplicateEbonyIvoryActive
+            weaponSprites[i].emplace_back((textureRoot / R"(guns\active\shotgun.png)").string().c_str()); //DuplicateShotgunActive
+            weaponSprites[i].emplace_back((textureRoot / R"(guns\active\artemis.png)").string().c_str()); //DuplicateArtemisActive
+            weaponSprites[i].emplace_back((textureRoot / R"(guns\active\spiral.png)").string().c_str()); //DuplicateSpiralActive
+            weaponSprites[i].emplace_back((textureRoot / R"(guns\active\kalina.png)").string().c_str()); //DuplicateKalinaActive
+
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\yamato.png)").string().c_str()); //DuplicateYamatoActive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\active\forceedge-vergil.png)").string().c_str()); //DuplicateYamatoForceEdgeActive
+
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\inactive\rebellion-awakened.png)").string().c_str()); //RebellionAwakenedInactive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\inactive\rebellion-dormant.png)").string().c_str()); //RebellionDormantInactive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\inactive\cerberus.png)").string().c_str()); //CerberusInactive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\inactive\agnirudra.png)").string().c_str()); //AgniRudraInactive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\inactive\nevan.png)").string().c_str()); //NevanInactive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\inactive\beowulf.png)").string().c_str()); //BeowulfInactive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\inactive\forceedge-dante.png)").string().c_str()); //ForceEdgeInactive
+
+            weaponSprites[i].emplace_back((textureRoot / R"(guns\inactive\ebonyivory.png)").string().c_str()); //EbonyIvoryInactive
+            weaponSprites[i].emplace_back((textureRoot / R"(guns\inactive\shotgun.png)").string().c_str()); //ShotgunInactive
+            weaponSprites[i].emplace_back((textureRoot / R"(guns\inactive\artemis.png)").string().c_str()); //ArtemisInactive
+            weaponSprites[i].emplace_back((textureRoot / R"(guns\inactive\spiral.png)").string().c_str()); //SpiralInactive
+            weaponSprites[i].emplace_back((textureRoot / R"(guns\inactive\kalina.png)").string().c_str()); //KalinaInactive
+
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\inactive\yamato.png)").string().c_str()); //YamatoInactive
+            weaponSprites[i].emplace_back((textureRoot / R"(melee\inactive\forceedge-vergil.png)").string().c_str()); //YamatoForceEdgeInactive
+        }
     }
     
-    constexpr TextureID GetWeaponTextureID(WeaponIDs id, bool activeState)
+    constexpr WeaponTextureID GetWeaponTextureID(WeaponIDs id, bool activeState)
     {
         switch (id)
         {
         case WeaponIDs::RebellionDormant:
-            return activeState ? TextureID::RebellionDormantActive : TextureID::RebellionDormantInactive;
+            return activeState ? WeaponTextureID::RebellionDormantActive : WeaponTextureID::RebellionDormantInactive;
     
         case WeaponIDs::RebellionAwakened:
-            return activeState ? TextureID::RebellionAwakenedActive : TextureID::RebellionAwakenedInactive;
+            return activeState ? WeaponTextureID::RebellionAwakenedActive : WeaponTextureID::RebellionAwakenedInactive;
     
         case WeaponIDs::ForceEdge:
-            return activeState ? TextureID::ForceEdgeActive : TextureID::ForceEdgeInactive;
+            return activeState ? WeaponTextureID::ForceEdgeActive : WeaponTextureID::ForceEdgeInactive;
     
         case WeaponIDs::Cerberus:
-            return activeState ? TextureID::CerberusActive : TextureID::CerberusInactive;
+            return activeState ? WeaponTextureID::CerberusActive : WeaponTextureID::CerberusInactive;
     
         case WeaponIDs::AgniRudra:
-            return activeState ? TextureID::AgniRudraActive : TextureID::AgniRudraInactive;
+            return activeState ? WeaponTextureID::AgniRudraActive : WeaponTextureID::AgniRudraInactive;
     
         case WeaponIDs::Nevan:
-            return activeState ? TextureID::NevanActive : TextureID::NevanInactive;
+            return activeState ? WeaponTextureID::NevanActive : WeaponTextureID::NevanInactive;
     
         case WeaponIDs::Beowulf:
-            return activeState ? TextureID::BeowulfActive : TextureID::BeowulfInactive;
+            return activeState ? WeaponTextureID::BeowulfActive : WeaponTextureID::BeowulfInactive;
     
         case WeaponIDs::Yamato:
-            return activeState ? TextureID::YamatoActive : TextureID::YamatoInactive;
+            return activeState ? WeaponTextureID::YamatoActive : WeaponTextureID::YamatoInactive;
     
         case WeaponIDs::ForceEdgeYamato:
-            return activeState ? TextureID::YamatoForceEdgeActive : TextureID::YamatoForceEdgeInactive;
+            return activeState ? WeaponTextureID::YamatoForceEdgeActive : WeaponTextureID::YamatoForceEdgeInactive;
     
         case WeaponIDs::EbonyIvory:
-            return activeState ? TextureID::EbonyIvoryActive : TextureID::EbonyIvoryInactive;
+            return activeState ? WeaponTextureID::EbonyIvoryActive : WeaponTextureID::EbonyIvoryInactive;
     
         case WeaponIDs::Shotgun:
-            return activeState ? TextureID::ShotgunActive : TextureID::ShotgunInactive;
+            return activeState ? WeaponTextureID::ShotgunActive : WeaponTextureID::ShotgunInactive;
     
         case WeaponIDs::Artemis:
-            return activeState ? TextureID::ArtemisActive : TextureID::ArtemisInactive;
+            return activeState ? WeaponTextureID::ArtemisActive : WeaponTextureID::ArtemisInactive;
     
         case WeaponIDs::Spiral:
-            return activeState ? TextureID::SpiralActive : TextureID::SpiralInactive;
+            return activeState ? WeaponTextureID::SpiralActive : WeaponTextureID::SpiralInactive;
     
         case WeaponIDs::KalinaAnn:
-            return activeState ? TextureID::KalinaActive : TextureID::KalinaInactive;
+            return activeState ? WeaponTextureID::KalinaActive : WeaponTextureID::KalinaInactive;
     
         default:
-            return TextureID::Size;
+            return WeaponTextureID::Size;
         }
     
-        return TextureID::Size;
+        return WeaponTextureID::Size;
+    }
+
+    constexpr TextureID GetWeaponSlotTextureID(size_t slot, WeaponState state) {
+        size_t baseSlotIndex = (size_t)TextureID::Slot1Inactive + (3 * slot);
+
+        switch (state)             
+        {
+        case WeaponState::Inactive:
+            return (TextureID)baseSlotIndex;
+
+        case WeaponState::Active:
+            return (TextureID)(baseSlotIndex + 1);
+
+        case WeaponState::Duplicate:
+            return (TextureID)(baseSlotIndex + 2);
+        }
     }
     
-    constexpr TextureID GetDupAnimationWeaponTextureID(WeaponIDs id)
+    constexpr WeaponTextureID GetDupAnimationWeaponTextureID(WeaponIDs id)
     {
         switch (id)
         {
         case WeaponIDs::RebellionDormant:
-            return TextureID::DuplicateRebellionDormantActive;
+            return WeaponTextureID::DuplicateRebellionDormantActive;
     
         case WeaponIDs::RebellionAwakened:
-            return TextureID::DuplicateRebellionAwakenedActive;
+            return WeaponTextureID::DuplicateRebellionAwakenedActive;
     
         case WeaponIDs::ForceEdge:
-            return TextureID::DuplicateForceEdgeActive;
+            return WeaponTextureID::DuplicateForceEdgeActive;
     
         case WeaponIDs::Cerberus:
-            return TextureID::DuplicateCerberusActive;
+            return WeaponTextureID::DuplicateCerberusActive;
     
         case WeaponIDs::AgniRudra:
-            return TextureID::DuplicateAgniRudraActive;
+            return WeaponTextureID::DuplicateAgniRudraActive;
     
         case WeaponIDs::Nevan:
-            return TextureID::DuplicateNevanActive;
+            return WeaponTextureID::DuplicateNevanActive;
     
         case WeaponIDs::Beowulf:
-            return TextureID::DuplicateBeowulfActive;
+            return WeaponTextureID::DuplicateBeowulfActive;
     
         case WeaponIDs::Yamato:
-            return TextureID::DuplicateYamatoActive;
+            return WeaponTextureID::DuplicateYamatoActive;
     
         case WeaponIDs::ForceEdgeYamato:
-            return TextureID::DuplicateYamatoForceEdgeActive;
+            return WeaponTextureID::DuplicateYamatoForceEdgeActive;
     
         case WeaponIDs::EbonyIvory:
-            return TextureID::DuplicateEbonyIvoryActive;
+            return WeaponTextureID::DuplicateEbonyIvoryActive;
     
         case WeaponIDs::Shotgun:
-            return TextureID::DuplicateShotgunActive;
+            return WeaponTextureID::DuplicateShotgunActive;
     
         case WeaponIDs::Artemis:
-            return TextureID::DuplicateArtemisActive;
+            return WeaponTextureID::DuplicateArtemisActive;
     
         case WeaponIDs::Spiral:
-            return TextureID::DuplicateSpiralActive;
+            return WeaponTextureID::DuplicateSpiralActive;
     
         case WeaponIDs::KalinaAnn:
-            return TextureID::DuplicateKalinaActive;
+            return WeaponTextureID::DuplicateKalinaActive;
     
         default:
-            return TextureID::Size;
+            return WeaponTextureID::Size;
         }
     
-        return TextureID::Size;
+        return WeaponTextureID::Size;
     }
+
+	void DefineWeaponSpirtes(std::vector<WeaponIDs>& weapons, std::vector <Graphics::Sprite>& sprites, std::vector <Graphics::Sprite>(&weaponSprites)[5]) {
+
+		for (size_t i = 0; i < 5; i++) {
+
+			sprites.emplace_back(weaponSprites[i][(size_t)GetWeaponTextureID(weapons[i], false)]);  // Slot i Inactive Texture
+			sprites.emplace_back(weaponSprites[i][(size_t)GetWeaponTextureID(weapons[i], true)]);   // Slot i Active Texture
+			sprites.emplace_back(weaponSprites[i][(size_t)GetDupAnimationWeaponTextureID(weapons[i])]);       // Slot i Duplicate Texture
+		}
+	}
     
     constexpr TextureID GetNeutralPanelTextureID(size_t slot, bool activeState)
     {
@@ -666,77 +581,98 @@ namespace WW
     
                 spriteIds.push_back((size_t)GetPanelTextureID(themeID, i, true)); // 4th: The active panels
             }
-    
-            for (size_t i = 0; i < weaponIDs.size(); i++)
-            {
-                if (i > 4)
-                    break;
-    
-                spriteIds.push_back((size_t)GetWeaponTextureID(weaponIDs[i], false)); // 5th: The inactive weapons
-            }
-    
-            for (size_t i = 0; i < weaponIDs.size(); i++)
-            {
-                if (i > 4)
-                    break;
-    
-                spriteIds.push_back((size_t)GetWeaponTextureID(weaponIDs[i], true)); // 6th: The active weapons
-            }
-    
-            for (size_t i = 0; i < weaponIDs.size(); i++)
-            {
-                if (i > 4)
-                    break;
-    
-                spriteIds.push_back((size_t)GetDupAnimationWeaponTextureID(weaponIDs[i])); // 7th: The active weapon animation duplicates
-            }
+
+
+			for (size_t i = 0; i < weaponIDs.size(); i++) {
+				if (i > 4)
+					break;
+
+				spriteIds.push_back((size_t)GetWeaponSlotTextureID(i, WeaponState::Inactive)); // 5th: The weapons per slot
+                spriteIds.push_back((size_t)GetWeaponSlotTextureID(i, WeaponState::Active));
+                spriteIds.push_back((size_t)GetWeaponSlotTextureID(i, WeaponState::Duplicate));
+
+			}
+
         }
     
         return spriteIds;
     }
+
+	constexpr std::vector<size_t> GetWeaponSpriteIDs(const std::vector<WeaponIDs>& weaponIDs) {
+		std::vector<size_t> spriteIds;
+
+		spriteIds.reserve(weaponIDs.size());
+
+		// Order matters here, back to front
+		{
+			for (size_t i = 0; i < weaponIDs.size(); i++) {
+				if (i > 4)
+					break;
+
+				spriteIds.push_back((size_t)GetWeaponTextureID(weaponIDs[i], false)); // 5th: The inactive weapons
+			}
+
+			for (size_t i = 0; i < weaponIDs.size(); i++) {
+				if (i > 4)
+					break;
+
+				spriteIds.push_back((size_t)GetWeaponTextureID(weaponIDs[i], true)); // 6th: The active weapons
+			}
+
+			for (size_t i = 0; i < weaponIDs.size(); i++) {
+				if (i > 4)
+					break;
+
+				spriteIds.push_back((size_t)GetDupAnimationWeaponTextureID(weaponIDs[i])); // 7th: The active weapon animation duplicates
+			}
+		}
+
+		return spriteIds;
+	}
 
     WeaponWheel::WeaponWheel(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext, UINT width, UINT height,
         std::vector<WeaponIDs> weapons, WheelThemes themeID)
         : m_pD3D11Device(pD3D11Device), m_pD3D11DeviceContext(pD3D11DeviceContext), m_Width(width), m_Height(height),
         m_Weapons(weapons), m_ThemeID(themeID)
     {
-        if (g_Sprites.size() == 0)
-            LoadSprites();
+        if (m_Sprites.size() == 0) {
+            LoadSprites(m_Sprites, m_WeaponSprites);
+            DefineWeaponSpirtes(m_Weapons, m_Sprites, m_WeaponSprites);
+        }
 
         const auto spriteIDs = GetSpriteIDs(m_ThemeID, m_Weapons);
 
-        m_pSpriteBatch = std::make_unique<Graphics::BatchedSprites>(m_pD3D11Device, m_Width, m_Height, g_Sprites, spriteIDs);
-
-        for (size_t i = 0; i < m_Weapons.size(); i++)
-        {
-			// Adjust SetTransform to include slot index in the ID
+        m_pSpriteBatch = std::make_unique<Graphics::BatchedSprites>(m_pD3D11Device, m_Width, m_Height, m_Sprites, spriteIDs);
+     
+		for (size_t i = 0; i < m_Weapons.size(); i++) {
 			m_pSpriteBatch->SetTransform(
-				(size_t)GetWeaponTextureID(m_Weapons[i], false) + i,  // Unique key per slot
+				(size_t)GetWeaponSlotTextureID(i, WeaponState::Inactive),
 				s_MeleeInactiveSlotTransforms[i].Translation,
 				s_MeleeInactiveSlotTransforms[i].Rotation,
 				s_MeleeInactiveSlotTransforms[i].Scale
 			);
 
 			m_pSpriteBatch->SetTransform(
-				(size_t)GetWeaponTextureID(m_Weapons[i], true) + i,   // Unique key per slot
+                (size_t)GetWeaponSlotTextureID(i, WeaponState::Active),
 				s_MeleeActiveSlotTransforms[i].Translation,
 				s_MeleeActiveSlotTransforms[i].Rotation,
 				s_MeleeActiveSlotTransforms[i].Scale
 			);
 
 			m_pSpriteBatch->SetTransform(
-				(size_t)GetDupAnimationWeaponTextureID(m_Weapons[i]) + i,  // Unique key per slot
+                (size_t)GetWeaponSlotTextureID(i, WeaponState::Duplicate),
 				s_MeleeActiveSlotTransforms[i].Translation,
 				s_MeleeActiveSlotTransforms[i].Rotation,
 				s_MeleeActiveSlotTransforms[i].Scale
 			);
 
-			// Opacity also should be unique per slot
+
 			m_pSpriteBatch->SetOpacity(
-				(size_t)GetDupAnimationWeaponTextureID(m_Weapons[i]) + i,  // Unique key per slot
+                (size_t)GetWeaponSlotTextureID(i, WeaponState::Duplicate),
 				0.0f
 			);
-        }
+		}
+        
 
         InitializeAnimations();
     }
@@ -748,9 +684,10 @@ namespace WW
     {
         m_Weapons = weapons;
 
-        const auto spriteIDs = GetSpriteIDs(m_ThemeID, m_Weapons);
+        const auto weaponSpriteIDs = GetWeaponSpriteIDs(m_Weapons);
 
-        m_pSpriteBatch->SetActiveSprites(spriteIDs);
+//         for (size_t slot = 0; slot < 5; ++slot)
+//             m_pWeaponSpriteBatch[slot]->SetActiveSprites(weaponSpriteIDs);
 
         UpdateSlotStates();
     }
@@ -869,7 +806,7 @@ namespace WW
                         // Inactive slots opacity
                         if (i != m_CurrentActiveSlot)
                         {
-                            m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[i], false), 1.0f - progress);
+                            m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, WeaponState::Inactive), 1.0f - progress);
                             m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, false), 1.0f - progress);
                         }
                         else // Active slots opacity
@@ -903,7 +840,7 @@ namespace WW
             m_pActiveWeaponFadeAnimation->SetOnStart([this](GenericAnimation* pAnim)
                 {
                     // Ensure the active weapon is at full opacity
-                    m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), 1.0f);
+                    m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Active), 1.0f);
                 });
 
             // On update
@@ -911,7 +848,7 @@ namespace WW
                 {
                     const auto progress = pAnim->GetProgressNormalized();
 
-                    m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), 1.0f - progress);
+                    m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Active), 1.0f - progress);
                 });
 
             // After the animation ends
@@ -935,7 +872,7 @@ namespace WW
             m_pWeaponSwitchBrightnessAnimation->SetOnStart([this](GenericAnimation* pAnim)
                 {
                     // Ensure the active weapon is at normal brightness
-                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), 1.0f);
+                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Active), 1.0f);
                 });
 
             // On update
@@ -943,21 +880,21 @@ namespace WW
                 {
                     const auto progress = pAnim->GetProgressNormalized();
 
-                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), progress * 3.18f);
+                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Active), progress * 3.18f);
                 });
 
             // After the animation ends
             m_pWeaponSwitchBrightnessAnimation->SetOnEnd([this](GenericAnimation* pAnim)
                 {
                     m_RunWeaponSwitchBrightnessAnim = false;
-                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), 1.0f);
+                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Active), 1.0f);
                 });
 
             // When reset
             m_pWeaponSwitchBrightnessAnimation->SetOnReset([this](GenericAnimation* pAnim)
                 {
                     m_RunWeaponSwitchBrightnessAnim = false;
-                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), 1.0f);
+                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Active), 1.0f);
                 });
         }
 
@@ -968,13 +905,13 @@ namespace WW
             m_pWeaponSwitchScaleAnimation->SetOnStart([this](GenericAnimation* pAnim)
                 {
                     m_pSpriteBatch->SetOpacity(
-                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), 0.0f);
+                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Duplicate), 0.0f);
 
                     m_pSpriteBatch->SetBrightness(
-                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), 1.0f);
+                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Duplicate), 1.0f);
 
                     m_pSpriteBatch->ScaleTo(
-                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), glm::vec3(1.0f));
+                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Duplicate), glm::vec3(1.0f));
                 });
 
             // On update
@@ -983,13 +920,13 @@ namespace WW
                     const auto progress = pAnim->GetProgressNormalized();
 
                     m_pSpriteBatch->SetOpacity(
-                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), progress * 0.9f);
+                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Duplicate), progress * 0.9f);
 
                     m_pSpriteBatch->SetBrightness(
-                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), progress * 3.18f);
+                       (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Duplicate), progress * 3.18f);
 
                     m_pSpriteBatch->ScaleTo(
-                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]),
+                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Duplicate),
                         s_MeleeActiveSlotTransforms[m_CurrentActiveSlot].Scale * float(progress) * 1.5f);
                 });
 
@@ -999,13 +936,13 @@ namespace WW
                     m_RunWeaponSwitchScaleAnim = false;
 
                     m_pSpriteBatch->SetOpacity(
-                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), 0.0f);
+                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Duplicate), 0.0f);
 
                     m_pSpriteBatch->SetBrightness(
-                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), 1.0f);
+                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Duplicate), 1.0f);
 
                     m_pSpriteBatch->ScaleTo(
-                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), glm::vec3(1.0f));
+                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Duplicate), glm::vec3(1.0f));
                 });
 
             // When reset
@@ -1014,21 +951,23 @@ namespace WW
                     m_RunWeaponSwitchScaleAnim = false;
 
                     m_pSpriteBatch->SetOpacity(
-                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), 0.0f);
+                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Duplicate), 0.0f);
 
                     m_pSpriteBatch->SetBrightness(
-                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), 1.0f);
+                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Duplicate), 1.0f);
 
                     m_pSpriteBatch->ScaleTo(
-                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), glm::vec3(1.0f));
+                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Duplicate), glm::vec3(1.0f));
                 });
         }
     }
 
     void WeaponWheel::SetInactiveOpacity(float opacity)
     {
-        for (const auto& weaponID : m_Weapons)
-            m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(weaponID, false), opacity);
+        for (size_t i = 0; i < m_Weapons.size(); i++) 
+        {
+            m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, WeaponState::Inactive), opacity);
+        }
     }
 
     void WeaponWheel::SetActiveWeaponOpacity(float opacity)
@@ -1036,7 +975,7 @@ namespace WW
         if (m_CurrentActiveSlot > 4) // 5 slots is max
             return;
 
-        m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), opacity);
+        m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Active), opacity);
     }
 
     void WeaponWheel::UpdateSlotStates()
@@ -1045,8 +984,8 @@ namespace WW
         {
             for (size_t i = 0; i < m_Weapons.size(); i++)
             {
-                m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[i], false), 1.0f);
-                m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[i], true), 0.0f);
+                m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, WeaponState::Inactive), 1.0f);
+                m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, WeaponState::Active), 0.0f);
                 m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, false), 1.0f);
                 m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, true), 0.0f);
                 m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 1.0f);
@@ -1059,8 +998,8 @@ namespace WW
 
         for (size_t i = 0; i < m_Weapons.size(); i++)
         {
-            m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[i], false), 1.0f);
-            m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[i], true), 0.0f);
+            m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, WeaponState::Inactive), 1.0f);
+            m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, WeaponState::Active), 0.0f);
             m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, false), 1.0f);
             m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, true), 0.0f);
             m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.0f);
@@ -1068,11 +1007,10 @@ namespace WW
 
         m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), 1.0f);
 
-        m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], false), 0.0f);
+        m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Inactive), 0.0f);
+        m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, WeaponState::Active), 1.0f);
         m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, m_CurrentActiveSlot, false), 0.0f);
         m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, m_CurrentActiveSlot, true), 1.0f);
         m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
-
-        m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), 1.0f);
     }
 }

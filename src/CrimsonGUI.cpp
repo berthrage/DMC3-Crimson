@@ -1801,6 +1801,7 @@ constexpr uint8 textureArrowMap[5] = {
 bool g_showTextures = false;
 
 std::unique_ptr<WW::WeaponWheel> g_pMeleeWeaponWheel;
+std::unique_ptr<WW::WeaponWheel> g_pRangedWeaponWheel;
 
 void CreateTexturesWeaponWheel()
 {
@@ -1917,7 +1918,6 @@ void RangedWeaponWheelTimeTracker() {
 
 // @Todo: Templates.
 void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
-
 	if (!InGame()) {
 		return;
 	}
@@ -1943,9 +1943,6 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	auto& charIndex = actorData.character;
 	auto& meleeWeaponIndex = characterData.meleeWeaponIndex;
 	auto& activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
-// 	if (meleeWeaponIndex >= 5) {
-// 		meleeWeaponIndex = 0;
-// 	}
 
 	if (actorData.character == CHARACTER::DANTE)
 		charTheme = WW::WheelThemes::Dante;
@@ -1970,7 +1967,7 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 		g_pMeleeWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y, 
 			std::vector<WW::WeaponIDs> {
 			WW::WeaponIDs::Nevan,
-				WW::WeaponIDs::Beowulf,
+				WW::WeaponIDs::Cerberus,
 				WW::WeaponIDs::RebellionAwakened,
 				WW::WeaponIDs::Cerberus,
 				WW::WeaponIDs::AgniRudra,
@@ -1992,12 +1989,6 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	// Draw the wheel
 
 	static bool isOpen = true;
-	g_pMeleeWeaponWheel->SetWeapons(std::vector<WW::WeaponIDs> {
-		WW::WeaponIDs::Nevan,
-			WW::WeaponIDs::Cerberus,
-			WW::WeaponIDs::RebellionAwakened,
-			WW::WeaponIDs::Cerberus,
-			WW::WeaponIDs::AgniRudra});
 
 	ImGui::SetNextWindowSize(wheelSize);
 	ImGui::SetNextWindowPos(windowSize - wheelSize);
@@ -2016,365 +2007,96 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	}
 
 	ImGui::End();
-
-	return;
-
-	//auto& textureData = meleeWeaponSwitchControllerTextureData;
-	//auto& activeConfigTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
-	//auto& queuedConfigTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
-	//
-	//if (g_showTextures) {
-	//	old_for_all(uint8, index, 5) {
-	//		textureData.backgrounds[index].Render(activeConfigTextureData.backgrounds[index], queuedConfigTextureData.backgrounds[index]);
-	//	}
-	//
-	//	{
-	//		constexpr uint8 textureIds[5] = {
-	//			TEXTURE_WEAPON_REBELLION,
-	//			TEXTURE_WEAPON_CERBERUS,
-	//			TEXTURE_WEAPON_AGNI_RUDRA,
-	//			TEXTURE_WEAPON_NEVAN,
-	//			TEXTURE_WEAPON_BEOWULF_DANTE,
-	//		};
-	//
-	//		old_for_all(uint8, index, 5) {
-	//			auto textureId = textureIds[index];
-	//			if (textureId >= TEXTURE_COUNT) {
-	//				textureId = 0;
-	//			}
-	//
-	//			textureData.icons[index].textureAddr = textureAddrs[textureId];
-	//
-	//			textureData.icons[index].Render(activeConfigTextureData.icons[index], queuedConfigTextureData.icons[index]);
-	//		}
-	//	}
-	//
-	//	textureData.highlights[0].Render(activeConfigTextureData.highlights[0], queuedConfigTextureData.highlights[0]);
-	//
-	//	{
-	//		textureData.arrow.textureAddr = textureAddrs[TEXTURE_ARROW_0];
-	//
-	//		textureData.arrow.Render(activeConfigTextureData.arrow, queuedConfigTextureData.arrow);
-	//	}
-	//
-	//
-	//
-	//	return;
-	//}
-	//
-	//
-	//auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-	//
-	//
-	//if (!InGame()) {
-	//	return;
-	//}
-	//
-	//auto pool_1431 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	//if (!pool_1431 || !pool_1431[3]) {
-	//	return;
-	//}
-	//auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_1431[3]);
-	//
-	//auto& characterData = GetCharacterData(actorData);
-	//
-	//auto& gamepad = GetGamepad(actorData.newPlayerIndex);
-	//
-	//if (InCutscene() || InCredits() || !activeConfig.Actor.enable || (!activeConfig.weaponWheelEnabled) ||
-	//	!((characterData.character == CHARACTER::DANTE) || (characterData.character == CHARACTER::VERGIL))) {
-	//	return;
-	//}
-	//
-	//// HIDE WEAPON UI WHEN NOT HOLDING BUTTON, WITH DELAY
-	//if (!activeConfig.MeleeWeaponWheel.alwaysShow) {
-	//	if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))) {
-	//		meleeWeaponWheelTiming.wheelTime = activeConfig.MeleeWeaponWheel.timeout;
-	//		meleeWeaponWheelTiming.wheelAppear = true;
-	//	}
-	//
-	//	if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)) && meleeWeaponWheelTiming.wheelAppear)) {
-	//		if (!meleeWeaponWheelTiming.wheelRunning) {
-	//			std::thread meleewheeltracker(MeleeWeaponWheelTimeTracker);
-	//			meleewheeltracker.detach();
-	//		}
-	//	}
-	//
-	//	if (characterData.character == CHARACTER::VERGIL) {
-	//		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
-	//			meleeWeaponWheelTiming.wheelTime = activeConfig.MeleeWeaponWheel.timeout;
-	//			meleeWeaponWheelTiming.wheelAppear = true;
-	//		}
-	//
-	//		if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)) && meleeWeaponWheelTiming.wheelAppear)) {
-	//			if (!meleeWeaponWheelTiming.wheelRunning) {
-	//				std::thread meleewheeltracker(MeleeWeaponWheelTimeTracker);
-	//				meleewheeltracker.detach();
-	//			}
-	//		}
-	//	}
-	//}
-	//else {
-	//	meleeWeaponWheelTiming.wheelAppear = true;
-	//}
-	//
-	//
-	//if (!meleeWeaponWheelTiming.wheelAppear) {
-	//	return;
-	//}
-	//
-	//
-	//// HIDE WEAPON UI WHEN NOT HOLDING BUTTON
-	///*if (!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)))
-	//{
-	//		if (!wheelRunning) {
-	//						std::thread wheeltracker(WeaponWheelTimeTracker);
-	//						wheeltracker.detach();
-	//		}
-	//
-	//		if(!wheelInCooldown) {
-	//				wheelInCooldown = true;
-	//				return;
-	//		}
-	//
-	//
-	//}*/
-	//
-	//auto count = characterData.meleeWeaponCount;
-	//
-	//if (characterData.character == CHARACTER::VERGIL) {
-	//	count = (IsNeroAngelo(actorData)) ? 2 : 3;
-	//}
-	//
-	//old_for_all(uint8, index, count) {
-	//	textureData.backgrounds[index].Render(activeConfigTextureData.backgrounds[index], queuedConfigTextureData.backgrounds[index]);
-	//}
-	//
-	//auto meleeWeaponIndex = characterData.meleeWeaponIndex;
-	//if (meleeWeaponIndex >= 5) {
-	//	meleeWeaponIndex = 0;
-	//}
-	//
-	//
-	//textureData.highlights[meleeWeaponIndex].Render(
-	//	activeConfigTextureData.highlights[meleeWeaponIndex], queuedConfigTextureData.highlights[meleeWeaponIndex]);
-	//
-	//
-	//{
-	//	old_for_all(uint8, index, count) {
-	//		auto weapon = characterData.meleeWeapons[index];
-	//		if (weapon >= WEAPON::MAX) {
-	//			weapon = 0;
-	//		}
-	//
-	//		auto textureId = textureWeaponMap[weapon];
-	//		if (textureId >= TEXTURE_COUNT) {
-	//			textureId = 0;
-	//		}
-	//
-	//		switch (weapon) {
-	//		case WEAPON::REBELLION:
-	//		{
-	//			if (sessionData.unlockDevilTrigger) {
-	//				textureId = TEXTURE_WEAPON_REBELLION_2;
-	//			}
-	//
-	//			if (actorData.sparda) {
-	//				textureId = TEXTURE_WEAPON_FORCE_EDGE;
-	//			}
-	//
-	//			break;
-	//		}
-	//		case WEAPON::YAMATO_VERGIL:
-	//		{
-	//			if (IsNeroAngelo(actorData)) {
-	//				textureId = TEXTURE_WEAPON_YAMATO_NERO_ANGELO;
-	//			}
-	//
-	//			break;
-	//		}
-	//		case WEAPON::BEOWULF_VERGIL:
-	//		{
-	//			if (IsNeroAngelo(actorData)) {
-	//				textureId = TEXTURE_WEAPON_BEOWULF_NERO_ANGELO;
-	//			}
-	//
-	//			break;
-	//		}
-	//		}
-	//
-	//		textureData.icons[index].textureAddr = textureAddrs[textureId];
-	//
-	//		if (index != meleeWeaponIndex) {
-	//			textureData.icons[index].Render(activeConfigTextureData.icons[index], queuedConfigTextureData.icons[index]);
-	//		}
-	//	}
-	//}
-	//
-	//
-	//{
-	//	auto textureId = textureArrowMap[meleeWeaponIndex];
-	//
-	//	textureData.arrow.textureAddr = textureAddrs[textureId];
-	//
-	//	textureData.arrow.Render(activeConfigTextureData.arrow, queuedConfigTextureData.arrow);
-	//
-	//
-	//	textureData.icons[meleeWeaponIndex].Render(
-	//		activeConfigTextureData.icons[meleeWeaponIndex], queuedConfigTextureData.icons[meleeWeaponIndex]);
-	//}
-	//
-	//// Force Icons to be on top of Highlights, when Main Menu is opened it forces focus on the Main Menu.
-	//if (!g_show) {
-	//	ImGui::SetWindowFocus(textureData.icons[meleeWeaponIndex].label);
-	//}
-	////     } else {
-	////         ImGui::SetWindowFocus(DMC3C_TITLE); // Calling this on-tick was making it so combo dropdowns couldn't be selected. Refer to this if future problems occur.
-	////     }
 }
 
-void RangedWeaponSwitchController() {
-	auto& textureData = rangedWeaponSwitchControllerTextureData;
-	auto& activeConfigTextureData = activeConfig.rangedWeaponSwitchControllerTextureData;
-	auto& queuedConfigTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
-
-	if (g_showTextures) {
-		old_for_all(uint8, index, 5) {
-			textureData.backgrounds[index].Render(activeConfigTextureData.backgrounds[index], queuedConfigTextureData.backgrounds[index]);
-		}
-
-		{
-			constexpr uint8 textureIds[5] = {
-				TEXTURE_WEAPON_EBONY_IVORY,
-				TEXTURE_WEAPON_SHOTGUN,
-				TEXTURE_WEAPON_ARTEMIS,
-				TEXTURE_WEAPON_SPIRAL,
-				TEXTURE_WEAPON_KALINA_ANN,
-			};
-
-			old_for_all(uint8, index, 5) {
-				auto textureId = textureIds[index];
-				if (textureId >= TEXTURE_COUNT) {
-					textureId = 0;
-				}
-
-				textureData.icons[index].textureAddr = textureAddrs[textureId];
-
-				textureData.icons[index].Render(activeConfigTextureData.icons[index], queuedConfigTextureData.icons[index]);
-			}
-		}
-
-		textureData.highlights[0].Render(activeConfigTextureData.highlights[0], queuedConfigTextureData.highlights[0]);
-
-		{
-			textureData.arrow.textureAddr = textureAddrs[TEXTURE_ARROW_0];
-
-			textureData.arrow.Render(activeConfigTextureData.arrow, queuedConfigTextureData.arrow);
-		}
-
-
-		return;
-	}
-
-
-	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-
-
+void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	if (!InGame()) {
 		return;
 	}
 
-	auto pool_1720 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_1720 || !pool_1720[3]) {
+	auto pool_1431 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_1431 || !pool_1431[3]) {
 		return;
 	}
-	auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_1720[3]);
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_1431[3]);
 
 	auto& characterData = GetCharacterData(actorData);
 
 	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
 
-	if (InCutscene() || InCredits() || !activeConfig.Actor.enable || (!activeConfig.weaponWheelEnabled) ||
-		(characterData.character != CHARACTER::DANTE)) {
+	if (InCutscene() || InCredits() || !activeConfig.Actor.enable || (!activeConfig.weaponWheelEnabled) || g_inGameCutscene ||
+		!((characterData.character == CHARACTER::DANTE))) {
 		return;
 	}
 
-	// HIDE WEAPON SWITCH UI WHEN NOT HOLDING BUTTON, WITH DELAY
-	if (!activeConfig.RangedWeaponWheel.alwaysShow) {
-		if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
-			rangedWeaponWheelTiming.wheelTime = activeConfig.RangedWeaponWheel.timeout;
-			rangedWeaponWheelTiming.wheelAppear = true;
-		}
+	static int oldRangedWeaponIndex = -1;
+	static int oldCharIndex = -1;
+	static auto charTheme = WW::WheelThemes::Neutral;
+	auto& charIndex = actorData.character;
+	auto& rangedWeaponIndex = characterData.rangedWeaponIndex;
+	auto& activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 
-		if ((!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)) && rangedWeaponWheelTiming.wheelAppear)) {
-			if (!rangedWeaponWheelTiming.wheelRunning) {
-				std::thread rangedwheeltracker(RangedWeaponWheelTimeTracker);
-				rangedwheeltracker.detach();
-			}
-		}
-	}
-	else {
-		rangedWeaponWheelTiming.wheelAppear = true;
-	}
+	if (actorData.character == CHARACTER::DANTE)
+		charTheme = WW::WheelThemes::Dante;
+	else if (actorData.character == CHARACTER::VERGIL)
+		charTheme = WW::WheelThemes::Vergil;
+	else
+		charTheme = WW::WheelThemes::Neutral;
 
+	ImVec2 windowSize{ g_renderSize.x, g_renderSize.y };
+	ImVec2 wheelSize{ windowSize.y * 0.45f, windowSize.y * 0.45f };
 
-	if (!rangedWeaponWheelTiming.wheelAppear) {
-		return;
-	}
+	if (!g_pRangedWeaponWheel) {
+		ID3D11DeviceContext* pDeviceContext = nullptr;
 
+		ID3D11Device* pD3D11Device = nullptr;
 
-	// HIDE WEAPON SWITCH UI WHEN NOT HOLDING BUTTON
-	/*if (!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN)))
-	{
-			return;
-	}*/
+		pSwapChain->GetDevice(IID_PPV_ARGS(&pD3D11Device));
 
-	auto count = characterData.rangedWeaponCount;
+		pD3D11Device->GetImmediateContext(&pDeviceContext);
 
-	old_for_all(uint8, index, count) {
-		textureData.backgrounds[index].Render(activeConfigTextureData.backgrounds[index], queuedConfigTextureData.backgrounds[index]);
-	}
+		g_pRangedWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y,
+			std::vector<WW::WeaponIDs> {
+			WW::WeaponIDs::Nevan,
+				WW::WeaponIDs::Cerberus,
+				WW::WeaponIDs::RebellionAwakened,
+				WW::WeaponIDs::Cerberus,
+				WW::WeaponIDs::AgniRudra,
+		}, charTheme);
 
-	{
-		old_for_all(uint8, index, count) {
-			auto weapon = characterData.rangedWeapons[index];
-			if (weapon >= WEAPON::MAX) {
-				weapon = 0;
-			}
+		g_pRangedWeaponWheel->SetActiveSlot(rangedWeaponIndex);
 
-			auto textureId = textureWeaponMap[weapon];
-			if (textureId >= TEXTURE_COUNT) {
-				textureId = 0;
-			}
-
-			textureData.icons[index].textureAddr = textureAddrs[textureId];
-
-			textureData.icons[index].Render(activeConfigTextureData.icons[index], queuedConfigTextureData.icons[index]);
-		}
+		oldRangedWeaponIndex = rangedWeaponIndex;
 	}
 
-	auto rangedWeaponIndex = characterData.rangedWeaponIndex;
-	if (rangedWeaponIndex >= 5) {
-		rangedWeaponIndex = 0;
+	if (oldRangedWeaponIndex != (int)rangedWeaponIndex || oldCharIndex != (int)charIndex) {// If changed set it
+		g_pRangedWeaponWheel->SetActiveSlot((int)rangedWeaponIndex);
+		g_pRangedWeaponWheel->SetWheelTheme(charTheme);
 	}
 
-	textureData.highlights[rangedWeaponIndex].Render(
-		activeConfigTextureData.highlights[rangedWeaponIndex], queuedConfigTextureData.highlights[rangedWeaponIndex]);
+	oldRangedWeaponIndex = (int)rangedWeaponIndex;
+	oldCharIndex = (int)charIndex;
 
-	{
-		auto textureId = textureArrowMap[rangedWeaponIndex];
+	// Draw the wheel
 
-		textureData.arrow.textureAddr = textureAddrs[textureId];
+	static bool isOpen = true;
 
-		textureData.arrow.Render(activeConfigTextureData.arrow, queuedConfigTextureData.arrow);
+	ImGui::SetNextWindowSize(wheelSize);
+	ImGui::SetNextWindowPos(ImVec2(0, windowSize.y - wheelSize.y));
+
+	static auto startTime = ImGui::GetTime();
+
+	g_pRangedWeaponWheel->OnUpdate((ImGui::GetTime() - startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier), (ImGui::GetTime() - startTime) * 1000.0f);
+	startTime = ImGui::GetTime();
+
+	g_pRangedWeaponWheel->OnDraw();
+
+	if (ImGui::Begin("RangedWheel", &isOpen, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration |
+		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground)) {
+		ImGui::Image(g_pRangedWeaponWheel->GetSRV(), wheelSize);
 	}
 
-	// Force Icons to be on top of Highlights, when Main Menu is opened it forces focus on the Main Menu.
-	if (!g_show) {
-		ImGui::SetWindowFocus(textureData.icons[rangedWeaponIndex].label);
-	}
-	//     } else {
-	//         ImGui::SetWindowFocus(DMC3C_TITLE);
-	//     }
+	ImGui::End();
 }
 
 void UpdateWeaponSwitchControllerTexturePositions() {
@@ -2518,7 +2240,7 @@ void WeaponSwitchController(IDXGISwapChain* pSwapChain) {
 
 	UpdateWeaponWheelPos();
 	MeleeWeaponSwitchController(pSwapChain);
-	RangedWeaponSwitchController();
+	RangedWeaponSwitchController(pSwapChain);
 }
 
 

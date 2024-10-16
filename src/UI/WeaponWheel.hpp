@@ -9,117 +9,152 @@
 
 namespace WW
 {
-enum class TextureID {
-	ColoredDantePanel1Active = 0,
-	ColoredDantePanel2Active,
-	ColoredDantePanel3Active,
-	ColoredDantePanel4Active,
-	ColoredDantePanel5Active,
+	enum class TextureID 
+	{
+		ColoredDantePanel1Active = 0,
+		ColoredDantePanel2Active,
+		ColoredDantePanel3Active,
+		ColoredDantePanel4Active,
+		ColoredDantePanel5Active,
 
-	ColoredDantePanel1Inactive,
-	ColoredDantePanel2Inactive,
-	ColoredDantePanel3Inactive,
-	ColoredDantePanel4Inactive,
-	ColoredDantePanel5Inactive,
+		ColoredDantePanel1Inactive,
+		ColoredDantePanel2Inactive,
+		ColoredDantePanel3Inactive,
+		ColoredDantePanel4Inactive,
+		ColoredDantePanel5Inactive,
 
-	ColoredDanteArrow1,
-	ColoredDanteArrow2,
-	ColoredDanteArrow3,
-	ColoredDanteArrow4,
-	ColoredDanteArrow5,
-	ColoredDanteCenter,
+		ColoredDanteArrow1,
+		ColoredDanteArrow2,
+		ColoredDanteArrow3,
+		ColoredDanteArrow4,
+		ColoredDanteArrow5,
+		ColoredDanteCenter,
 
-	ColoredVergilPanel1Active,
-	ColoredVergilPanel2Active,
-	ColoredVergilPanel3Active,
-	ColoredVergilPanel4Active,
-	ColoredVergilPanel5Active,
+		ColoredVergilPanel1Active,
+		ColoredVergilPanel2Active,
+		ColoredVergilPanel3Active,
+		ColoredVergilPanel4Active,
+		ColoredVergilPanel5Active,
 
-	ColoredVergilPanel1Inactive,
-	ColoredVergilPanel2Inactive,
-	ColoredVergilPanel3Inactive,
-	ColoredVergilPanel4Inactive,
-	ColoredVergilPanel5Inactive,
+		ColoredVergilPanel1Inactive,
+		ColoredVergilPanel2Inactive,
+		ColoredVergilPanel3Inactive,
+		ColoredVergilPanel4Inactive,
+		ColoredVergilPanel5Inactive,
 
-	ColoredVergilArrow1,
-	ColoredVergilArrow2,
-	ColoredVergilArrow3,
-	ColoredVergilArrow4,
-	ColoredVergilArrow5,
-	ColoredVergilCenter,
+		ColoredVergilArrow1,
+		ColoredVergilArrow2,
+		ColoredVergilArrow3,
+		ColoredVergilArrow4,
+		ColoredVergilArrow5,
+		ColoredVergilCenter,
 
-	ColorlessPanel1Active,
-	ColorlessPanel2Active,
-	ColorlessPanel3Active,
-	ColorlessPanel4Active,
-	ColorlessPanel5Active,
+		ColorlessPanel1Active,
+		ColorlessPanel2Active,
+		ColorlessPanel3Active,
+		ColorlessPanel4Active,
+		ColorlessPanel5Active,
 
-	ColorlessPanel1Inactive,
-	ColorlessPanel2Inactive,
-	ColorlessPanel3Inactive,
-	ColorlessPanel4Inactive,
-	ColorlessPanel5Inactive,
+		ColorlessPanel1Inactive,
+		ColorlessPanel2Inactive,
+		ColorlessPanel3Inactive,
+		ColorlessPanel4Inactive,
+		ColorlessPanel5Inactive,
 
-	ColorlessArrow1,
-	ColorlessArrow2,
-	ColorlessArrow3,
-	ColorlessArrow4,
-	ColorlessArrow5,
-	ColorlessCenter,
+		ColorlessArrow1,
+		ColorlessArrow2,
+		ColorlessArrow3,
+		ColorlessArrow4,
+		ColorlessArrow5,
+		ColorlessCenter,
 
-	RebellionAwakenedActive,
-	RebellionDormantActive,
-	CerberusActive,
-	AgniRudraActive,
-	NevanActive,
-	BeowulfActive,
-	ForceEdgeActive,
+		Slot1Inactive,
+		Slot1Active,
+		Slot1Duplicate,
 
-	EbonyIvoryActive,
-	ShotgunActive,
-	ArtemisActive,
-	SpiralActive,
-	KalinaActive,
+		Slot2Inactive,
+		Slot2Active,
+		Slot2Duplicate,
 
-	YamatoActive,
-	YamatoForceEdgeActive,
+		Slot3Inactive,
+		Slot3Active,
+		Slot3Duplicate,
 
-	DuplicateRebellionAwakenedActive,
-	DuplicateRebellionDormantActive,
-	DuplicateCerberusActive,
-	DuplicateAgniRudraActive,
-	DuplicateNevanActive,
-	DuplicateBeowulfActive,
-	DuplicateForceEdgeActive,
+		Slot4Inactive,
+		Slot4Active,
+		Slot4Duplicate,
 
-	DuplicateEbonyIvoryActive,
-	DuplicateShotgunActive,
-	DuplicateArtemisActive,
-	DuplicateSpiralActive,
-	DuplicateKalinaActive,
+		Slot5Inactive,
+		Slot5Active,
+		Slot5Duplicate,
 
-	DuplicateYamatoActive,
-	DuplicateYamatoForceEdgeActive,
+		Size
+	};
 
-	RebellionAwakenedInactive,
-	RebellionDormantInactive,
-	CerberusInactive,
-	AgniRudraInactive,
-	NevanInactive,
-	BeowulfInactive,
-	ForceEdgeInactive,
+	enum class WeaponTextureID 
+	{
+		RebellionAwakenedActive,
+		RebellionDormantActive,
+		CerberusActive,
+		AgniRudraActive,
+		NevanActive,
+		BeowulfActive,
+		ForceEdgeActive,
 
-	EbonyIvoryInactive,
-	ShotgunInactive,
-	ArtemisInactive,
-	SpiralInactive,
-	KalinaInactive,
+		EbonyIvoryActive,
+		ShotgunActive,
+		ArtemisActive,
+		SpiralActive,
+		KalinaActive,
 
-	YamatoInactive,
-	YamatoForceEdgeInactive,
+		YamatoActive,
+		YamatoForceEdgeActive,
 
-	Size
-};
+		DuplicateRebellionAwakenedActive,
+		DuplicateRebellionDormantActive,
+		DuplicateCerberusActive,
+		DuplicateAgniRudraActive,
+		DuplicateNevanActive,
+		DuplicateBeowulfActive,
+		DuplicateForceEdgeActive,
+
+		DuplicateEbonyIvoryActive,
+		DuplicateShotgunActive,
+		DuplicateArtemisActive,
+		DuplicateSpiralActive,
+		DuplicateKalinaActive,
+
+		DuplicateYamatoActive,
+		DuplicateYamatoForceEdgeActive,
+
+		RebellionAwakenedInactive,
+		RebellionDormantInactive,
+		CerberusInactive,
+		AgniRudraInactive,
+		NevanInactive,
+		BeowulfInactive,
+		ForceEdgeInactive,
+
+		EbonyIvoryInactive,
+		ShotgunInactive,
+		ArtemisInactive,
+		SpiralInactive,
+		KalinaInactive,
+
+		YamatoInactive,
+		YamatoForceEdgeInactive, 
+
+		Size
+	};
+
+	enum class WeaponState {
+		Inactive,
+		Active,
+		Duplicate,
+
+		Size
+	};
+
 	enum class WheelThemes
 	{
 		Neutral = 0,
@@ -149,8 +184,6 @@ enum class TextureID {
 
 		Size
 	};
-
-	constexpr TextureID GetDupAnimationWeaponTextureID(WeaponIDs id);
 
 	class WeaponWheel
 	{
@@ -183,8 +216,11 @@ enum class TextureID {
 		UINT m_Width{ 0 }, m_Height{ 0 }, m_Top{ 0 }, m_Left{ 0 };
 
 		size_t m_CurrentActiveSlot{ 0 };
-		std::vector<WeaponIDs> m_Weapons{};
+		std::vector<WeaponIDs> m_Weapons = {};
 		std::vector<size_t> m_PanelIDs{};
+
+		std::vector<Graphics::Sprite> m_Sprites;
+		std::vector<Graphics::Sprite> m_WeaponSprites[5];
 
 		WheelThemes m_ThemeID{ WheelThemes::Neutral };
 
