@@ -1971,7 +1971,7 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 				WW::WeaponIDs::RebellionAwakened,
 				WW::WeaponIDs::Cerberus,
 				WW::WeaponIDs::AgniRudra,
-		}, charTheme);
+		}, charTheme, actorData.buttons[1] & GetBinding(BINDING::CHANGE_DEVIL_ARMS));
 
 		g_pMeleeWeaponWheel->SetActiveSlot(meleeWeaponIndex);
 
@@ -1996,6 +1996,7 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	static auto startTime = ImGui::GetTime();
 
 	g_pMeleeWeaponWheel->OnUpdate((ImGui::GetTime() - startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier), (ImGui::GetTime() - startTime) * 1000.0f);
+	g_pMeleeWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(BINDING::CHANGE_DEVIL_ARMS));
 	startTime = ImGui::GetTime();
 
 	g_pMeleeWeaponWheel->OnDraw();
@@ -2059,10 +2060,8 @@ void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 			std::vector<WW::WeaponIDs> {
 			WW::WeaponIDs::Nevan,
 				WW::WeaponIDs::Cerberus,
-				WW::WeaponIDs::RebellionAwakened,
-				WW::WeaponIDs::Cerberus,
-				WW::WeaponIDs::AgniRudra,
-		}, charTheme);
+				WW::WeaponIDs::RebellionAwakened
+		}, charTheme, actorData.buttons[1] & GetBinding(BINDING::CHANGE_GUN));
 
 		g_pRangedWeaponWheel->SetActiveSlot(rangedWeaponIndex);
 
@@ -2087,6 +2086,7 @@ void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	static auto startTime = ImGui::GetTime();
 
 	g_pRangedWeaponWheel->OnUpdate((ImGui::GetTime() - startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier), (ImGui::GetTime() - startTime) * 1000.0f);
+	g_pRangedWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(BINDING::CHANGE_GUN));
 	startTime = ImGui::GetTime();
 
 	g_pRangedWeaponWheel->OnDraw();

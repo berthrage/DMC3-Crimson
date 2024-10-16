@@ -189,7 +189,7 @@ namespace WW
 	{
 	public:
 		WeaponWheel(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext, UINT width, UINT height,
-			std::vector<WeaponIDs> weapons, WheelThemes themeID = WheelThemes::Neutral);
+			std::vector<WeaponIDs> weapons, WheelThemes themeID = WheelThemes::Neutral, bool buttonHeld = false);
 		virtual ~WeaponWheel();
 
 		void SetWeapons(std::vector<WeaponIDs> weapons);
@@ -197,6 +197,7 @@ namespace WW
 		void SetActiveSlot(size_t slot);
 
 		void OnUpdate(double ts, double tsGlobal);
+		void TrackButtonHeldState(bool buttonHeld);
 		bool OnDraw();
 
 		ID3D11ShaderResourceView* GetSRV();
@@ -231,6 +232,8 @@ namespace WW
 
 		std::unique_ptr<GenericAnimation> m_pWheelFadeAnimation, m_pActiveWeaponFadeAnimation, m_pWeaponSwitchBrightnessAnimation,
 			m_pWeaponSwitchScaleAnimation;
+
+		bool m_buttonHeld = false;
 
 		bool m_RunWheelFadeAnim{ false }, m_RunActiveWeaponFadeAnim{ false }, m_RunWeaponSwitchBrightnessAnim{ false },
 			m_RunWeaponSwitchScaleAnim{ false };

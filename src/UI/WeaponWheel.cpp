@@ -314,7 +314,7 @@ namespace WW {
 
 	void DefineWeaponSpirtes(std::vector<WeaponIDs>& weapons, std::vector <Graphics::Sprite>& sprites, std::vector <Graphics::Sprite>(&weaponSprites)[5]) {
 
-		for (size_t i = 0; i < 5; i++) {
+		for (size_t i = 0; i < weapons.size(); i++) {
 
 			sprites.emplace_back(weaponSprites[i][(size_t)GetWeaponTextureID(weapons[i], false)]);  // Slot i Inactive Texture
 			sprites.emplace_back(weaponSprites[i][(size_t)GetWeaponTextureID(weapons[i], true)]);   // Slot i Active Texture
@@ -631,9 +631,9 @@ namespace WW {
 	}
 
     WeaponWheel::WeaponWheel(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext, UINT width, UINT height,
-        std::vector<WeaponIDs> weapons, WheelThemes themeID)
+        std::vector<WeaponIDs> weapons, WheelThemes themeID, bool buttonHeld)
         : m_pD3D11Device(pD3D11Device), m_pD3D11DeviceContext(pD3D11DeviceContext), m_Width(width), m_Height(height),
-        m_Weapons(weapons), m_ThemeID(themeID)
+        m_Weapons(weapons), m_ThemeID(themeID), m_buttonHeld(buttonHeld)
     {
         if (m_Sprites.size() == 0) {
             LoadSprites(m_Sprites, m_WeaponSprites);
@@ -761,7 +761,15 @@ namespace WW {
             m_pWeaponSwitchBrightnessAnimation->OnUpdate(ts);
 
         m_SinceLatestChangeMs += ts;
-        m_SinceLatestChangeMsGlobal += tsGlobal;
+        if (!m_buttonHeld)
+            m_SinceLatestChangeMsGlobal += tsGlobal;
+        else
+            m_SinceLatestChangeMsGlobal = 0;
+    }
+
+    void WeaponWheel::TrackButtonHeldState(bool buttonHeld) 
+    {
+        m_buttonHeld = buttonHeld;
     }
 
     bool WeaponWheel::OnDraw()
