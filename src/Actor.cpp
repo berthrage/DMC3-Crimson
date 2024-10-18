@@ -2628,6 +2628,7 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
             }
            
             actorData.sparda = (entityIndex == 0) ? value : false;
+            characterData.sparda = (entityIndex == 0) ? value : false;
         } else if constexpr (TypeMatch<T, PlayerActorDataVergil>::value) {
             switch (actorData.costume) {
             case COSTUME::VERGIL_NERO_ANGELO:
@@ -2639,6 +2640,7 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
             }
 
             actorData.neroAngelo = (entityIndex == 0) ? value : false;
+            characterData.neloAngelo = (entityIndex == 0) ? value : false;
         }
     }
 
@@ -13128,6 +13130,8 @@ void EventDelete() {
 
     // @Remove
     File_dynamicFiles.Clear();
+
+    g_allActorsSpawned = false;
 }
 
 void EventDeath() {
@@ -13218,6 +13222,8 @@ void EventMain() {
             CreateEnemyActor(configCreateEnemyActorData);
         }
     }();
+
+    g_allActorsSpawned = true;
 }
 
 void PlayerActorLoop(byte8* actorBaseAddr) {

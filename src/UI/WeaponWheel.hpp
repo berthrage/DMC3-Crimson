@@ -7,8 +7,11 @@
 #include "BatchedSprites.hpp"
 #include "GenericAnimation.hpp"
 
+
+
 namespace WW
 {
+	constexpr size_t CHARACTER_COUNT = 3;
 	enum class TextureID 
 	{
 		ColoredDantePanel1Active = 0,
@@ -68,25 +71,65 @@ namespace WW
 		ColorlessArrow5,
 		ColorlessCenter,
 
-		Slot1Inactive,
-		Slot1Active,
-		Slot1Duplicate,
+		Char1Slot1Inactive,
+		Char1Slot1Active,
+		Char1Slot1Duplicate,
 
-		Slot2Inactive,
-		Slot2Active,
-		Slot2Duplicate,
+		Char1Slot2Inactive,
+		Char1Slot2Active,
+		Char1Slot2Duplicate,
 
-		Slot3Inactive,
-		Slot3Active,
-		Slot3Duplicate,
+		Char1Slot3Inactive,
+		Char1Slot3Active,
+		Char1Slot3Duplicate,
 
-		Slot4Inactive,
-		Slot4Active,
-		Slot4Duplicate,
+		Char1Slot4Inactive,
+		Char1Slot4Active,
+		Char1Slot4Duplicate,
 
-		Slot5Inactive,
-		Slot5Active,
-		Slot5Duplicate,
+		Char1Slot5Inactive,
+		Char1Slot5Active,
+		Char1Slot5Duplicate,
+
+		Char2Slot1Inactive,
+		Char2Slot1Active,
+		Char2Slot1Duplicate,
+
+		Char2Slot2Inactive,
+		Char2Slot2Active,
+		Char2Slot2Duplicate,
+
+		Char2Slot3Inactive,
+		Char2Slot3Active,
+		Char2Slot3Duplicate,
+
+		Char2Slot4Inactive,
+		Char2Slot4Active,
+		Char2Slot4Duplicate,
+
+		Char2Slot5Inactive,
+		Char2Slot5Active,
+		Char2Slot5Duplicate,
+
+		Char3Slot1Inactive,
+		Char3Slot1Active,
+		Char3Slot1Duplicate,
+
+		Char3Slot2Inactive,
+		Char3Slot2Active,
+		Char3Slot2Duplicate,
+
+		Char3Slot3Inactive,
+		Char3Slot3Active,
+		Char3Slot3Duplicate,
+
+		Char3Slot4Inactive,
+		Char3Slot4Active,
+		Char3Slot4Duplicate,
+
+		Char3Slot5Inactive,
+		Char3Slot5Active,
+		Char3Slot5Duplicate,
 
 		Size
 	};
@@ -189,10 +232,12 @@ namespace WW
 	{
 	public:
 		WeaponWheel(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext, UINT width, UINT height,
-			std::vector<WeaponIDs> weapons, WheelThemes themeID = WheelThemes::Neutral, bool buttonHeld = false);
+			std::vector<WeaponIDs> weapons[CHARACTER_COUNT], WheelThemes themeID = WheelThemes::Neutral, bool buttonHeld = false);
 		virtual ~WeaponWheel();
 
-		void SetWeapons(std::vector<WeaponIDs> weapons);
+		void ReloadWheel(std::vector<WeaponIDs> weapons[CHARACTER_COUNT]);
+		void UpdateWeapons(std::vector<WeaponIDs> weapons[CHARACTER_COUNT]);
+		void UpdateCharIndex(size_t newCharIdx);
 		void SetWheelTheme(WheelThemes themeID);
 		void SetActiveSlot(size_t slot);
 
@@ -217,11 +262,12 @@ namespace WW
 		UINT m_Width{ 0 }, m_Height{ 0 }, m_Top{ 0 }, m_Left{ 0 };
 
 		size_t m_CurrentActiveSlot{ 0 };
-		std::vector<WeaponIDs> m_Weapons = {};
+		size_t m_CurrentActiveCharIndex{ 0 };
+		std::vector<WeaponIDs> m_Weapons[CHARACTER_COUNT] = {};
 		std::vector<size_t> m_PanelIDs{};
 
 		std::vector<Graphics::Sprite> m_Sprites;
-		std::vector<Graphics::Sprite> m_WeaponSprites[5];
+		std::vector<Graphics::Sprite> m_WeaponSprites;
 
 		WheelThemes m_ThemeID{ WheelThemes::Neutral };
 

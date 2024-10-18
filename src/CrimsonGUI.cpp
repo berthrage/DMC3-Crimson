@@ -1914,20 +1914,80 @@ void RangedWeaponWheelTimeTracker() {
 	}
 }
 
+void UpdateMeleeWeaponIDs(PlayerActorData& actorData, std::vector<WW::WeaponIDs>(&currentWeapons)[CHARACTER_COUNT], size_t charIdx) {
+	auto playerIndex = actorData.newPlayerIndex;
+	auto playerData = GetPlayerData(playerIndex);
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
+	for (size_t i = 0; i < currentWeapons[charIdx].size(); i++) {
+		auto& characterData = playerData.characterData[charIdx][ENTITY::MAIN];
 
-// @Todo: Templates.
+		if (characterData.character == CHARACTER::DANTE) {
+			switch (characterData.meleeWeapons[i]) {
+
+			case WEAPON::REBELLION:
+				if (!characterData.sparda) {
+					if (sessionData.unlockDevilTrigger)
+						currentWeapons[charIdx][i] = WW::WeaponIDs::RebellionAwakened;
+					else
+						currentWeapons[charIdx][i] = WW::WeaponIDs::RebellionDormant;
+				}
+				else {
+					currentWeapons[charIdx][i] = WW::WeaponIDs::ForceEdge;
+				}
+
+				break;
+
+			case WEAPON::CERBERUS:
+				currentWeapons[charIdx][i] = WW::WeaponIDs::Cerberus;
+				break;
+
+			case WEAPON::BEOWULF_DANTE:
+				currentWeapons[charIdx][i] = WW::WeaponIDs::Beowulf;
+				break;
+
+			case WEAPON::AGNI_RUDRA:
+				currentWeapons[charIdx][i] = WW::WeaponIDs::AgniRudra;
+				break;
+
+			case WEAPON::NEVAN:
+				currentWeapons[charIdx][i] = WW::WeaponIDs::Nevan;
+				break;
+			}
+		}
+		else if (characterData.character == CHARACTER::VERGIL) {
+			switch (characterData.meleeWeapons[i]) {
+
+			case WEAPON::YAMATO_VERGIL:
+				currentWeapons[charIdx][i] = WW::WeaponIDs::Yamato;
+				break;
+
+			case WEAPON::BEOWULF_VERGIL:
+				currentWeapons[charIdx][i] = WW::WeaponIDs::Beowulf;
+				break;
+
+			case WEAPON::YAMATO_FORCE_EDGE:
+				currentWeapons[charIdx][i] = WW::WeaponIDs::ForceEdgeYamato;
+				break;
+
+			}
+		}
+	}
+}
+
 void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	if (!InGame()) {
 		return;
 	}
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 	auto pool_1431 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!pool_1431 || !pool_1431[3]) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_1431[3]);
-
+	auto playerIndex = actorData.newPlayerIndex;
+	auto playerData = GetPlayerData(playerIndex);
 	auto& characterData = GetCharacterData(actorData);
 
 	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
@@ -1940,9 +2000,29 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	static int oldMeleeWeaponIndex = -1;
 	static int oldCharIndex = -1;
 	static auto charTheme = WW::WheelThemes::Neutral;
-	auto& charIndex = actorData.character;
+	auto& charIndex = actorData.newCharacterIndex;
 	auto& meleeWeaponIndex = characterData.meleeWeaponIndex;
 	auto& activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+	static std::vector<WW::WeaponIDs> currentWeapons[CHARACTER_COUNT];
+	static std::array<std::array<uint8_t, 5>, CHARACTER_COUNT> oldCharMeleeWeapons = { {
+	{playerData.characterData[0][0].meleeWeapons[0], playerData.characterData[0][0].meleeWeapons[1],
+	 playerData.characterData[0][0].meleeWeapons[2], playerData.characterData[0][0].meleeWeapons[3],
+	 playerData.characterData[0][0].meleeWeapons[4]},
+
+	{playerData.characterData[1][0].meleeWeapons[0], playerData.characterData[1][0].meleeWeapons[1],
+	 playerData.characterData[1][0].meleeWeapons[2], playerData.characterData[1][0].meleeWeapons[3],
+	 playerData.characterData[1][0].meleeWeapons[4]},
+
+	{playerData.characterData[2][0].meleeWeapons[0], playerData.characterData[2][0].meleeWeapons[1],
+	 playerData.characterData[2][0].meleeWeapons[2], playerData.characterData[2][0].meleeWeapons[3],
+	 playerData.characterData[2][0].meleeWeapons[4]}
+	} };
+	static std::array<uint8, 3> oldPlayerDataChars = { playerData.characterData[0][0].character, 
+	playerData.characterData[1][0].character, playerData.characterData[2][0].character };
+	static std::array<uint8, 3> oldCharCostumes = { playerData.characterData[0][0].costume,
+	playerData.characterData[1][0].costume, playerData.characterData[2][0].costume };
+
+	static bool oldUnlockedDevilTrigger = false;
 
 	if (actorData.character == CHARACTER::DANTE)
 		charTheme = WW::WheelThemes::Dante;
@@ -1951,9 +2031,56 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	else
 		charTheme = WW::WheelThemes::Neutral;
 
+	// These will be used for comparisons in order to know if Reloading the Wheel is needed.
+	std::array<std::array<uint8_t, 5>, CHARACTER_COUNT> currentCharMeleeWeapons = { {
+	{playerData.characterData[0][0].meleeWeapons[0], playerData.characterData[0][0].meleeWeapons[1],
+	 playerData.characterData[0][0].meleeWeapons[2], playerData.characterData[0][0].meleeWeapons[3],
+	 playerData.characterData[0][0].meleeWeapons[4]},
+
+	{playerData.characterData[1][0].meleeWeapons[0], playerData.characterData[1][0].meleeWeapons[1],
+	 playerData.characterData[1][0].meleeWeapons[2], playerData.characterData[1][0].meleeWeapons[3],
+	 playerData.characterData[1][0].meleeWeapons[4]},
+
+	{playerData.characterData[2][0].meleeWeapons[0], playerData.characterData[2][0].meleeWeapons[1],
+	 playerData.characterData[2][0].meleeWeapons[2], playerData.characterData[2][0].meleeWeapons[3],
+	 playerData.characterData[2][0].meleeWeapons[4]}
+	} };
+
+	std::array<uint8, 3> currentPlayerDataChars = { playerData.characterData[0][0].character,
+	playerData.characterData[1][0].character, playerData.characterData[2][0].character };
+
+	std::array<uint8, 3> currentCharCostumes = { playerData.characterData[0][0].costume,
+	playerData.characterData[1][0].costume, playerData.characterData[2][0].costume };
+
+	if (!g_allActorsSpawned) {
+		return;
+	}
+	
+	// Reload the Wheel if Character Settings/Loadouts have changed to update all weapon sprites.
+	for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; charIdx++) {
+		if (currentWeapons[charIdx].size() != playerData.characterData[charIdx][ENTITY::MAIN].meleeWeaponCount 
+			|| oldCharMeleeWeapons[charIdx] != currentCharMeleeWeapons[charIdx] 
+			|| oldUnlockedDevilTrigger != sessionData.unlockDevilTrigger 
+			|| oldPlayerDataChars != currentPlayerDataChars
+			|| oldCharCostumes != currentCharCostumes) {
+
+			currentWeapons[charIdx].resize(playerData.characterData[charIdx][ENTITY::MAIN].meleeWeaponCount);
+			UpdateMeleeWeaponIDs(actorData, currentWeapons, charIdx);
+			if (g_pMeleeWeaponWheel) {
+				g_pMeleeWeaponWheel->ReloadWheel(currentWeapons);
+				g_pMeleeWeaponWheel->SetActiveSlot(meleeWeaponIndex);
+			}
+
+			oldCharMeleeWeapons[charIdx] = currentCharMeleeWeapons[charIdx];
+			oldPlayerDataChars[charIdx] = currentPlayerDataChars[charIdx];
+			oldCharCostumes[charIdx] = currentCharCostumes[charIdx];
+		}
+	}
+	
 	ImVec2 windowSize{ g_renderSize.x, g_renderSize.y };
 	ImVec2 wheelSize{ windowSize.y * 0.45f, windowSize.y * 0.45f };
 
+	// Creating the Wheel class.
 	if (!g_pMeleeWeaponWheel)
 	{
 		ID3D11DeviceContext* pDeviceContext = nullptr;
@@ -1965,26 +2092,30 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 		pD3D11Device->GetImmediateContext(&pDeviceContext);
 
 		g_pMeleeWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y, 
-			std::vector<WW::WeaponIDs> {
-			WW::WeaponIDs::Nevan,
-				WW::WeaponIDs::Cerberus,
-				WW::WeaponIDs::RebellionAwakened,
-				WW::WeaponIDs::Cerberus,
-				WW::WeaponIDs::AgniRudra,
-		}, charTheme, actorData.buttons[1] & GetBinding(BINDING::CHANGE_DEVIL_ARMS));
+			currentWeapons, charTheme, actorData.buttons[1] & GetBinding(BINDING::CHANGE_DEVIL_ARMS));
 
+		
 		g_pMeleeWeaponWheel->SetActiveSlot(meleeWeaponIndex);
 
 		oldMeleeWeaponIndex = meleeWeaponIndex;
 	}
 
+	if (!g_pMeleeWeaponWheel) {
+		return;
+	}
+		
 	if (oldMeleeWeaponIndex != (int)meleeWeaponIndex || oldCharIndex != (int)charIndex) {// If changed set it
-		g_pMeleeWeaponWheel->SetActiveSlot((int)meleeWeaponIndex);
+
+		UpdateMeleeWeaponIDs(actorData, currentWeapons, actorData.newCharacterIndex);
+		g_pMeleeWeaponWheel->UpdateCharIndex(actorData.newCharacterIndex);
+		g_pMeleeWeaponWheel->UpdateWeapons(currentWeapons);
 		g_pMeleeWeaponWheel->SetWheelTheme(charTheme);
+		g_pMeleeWeaponWheel->SetActiveSlot((int)meleeWeaponIndex);
 	}
 
 	oldMeleeWeaponIndex = (int)meleeWeaponIndex;
 	oldCharIndex = (int)charIndex;
+	oldUnlockedDevilTrigger = sessionData.unlockDevilTrigger;
 
 	// Draw the wheel
 
@@ -1994,20 +2125,21 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	ImGui::SetNextWindowPos(windowSize - wheelSize);
 
 	static auto startTime = ImGui::GetTime();
-
-	g_pMeleeWeaponWheel->OnUpdate((ImGui::GetTime() - startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier), (ImGui::GetTime() - startTime) * 1000.0f);
+	
+	g_pMeleeWeaponWheel->OnUpdate((ImGui::GetTime() - startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier),
+		(ImGui::GetTime() - startTime) * 1000.0f);
 	g_pMeleeWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(BINDING::CHANGE_DEVIL_ARMS));
 	startTime = ImGui::GetTime();
 
 	g_pMeleeWeaponWheel->OnDraw();
 
-	if (ImGui::Begin("MeleeWheel", &isOpen, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration | 
-		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground))
-	{
+	if (ImGui::Begin("MeleeWheel", &isOpen, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration |
+		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground)) {
 		ImGui::Image(g_pMeleeWeaponWheel->GetSRV(), wheelSize);
 	}
 
 	ImGui::End();
+	
 }
 
 void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
@@ -2046,57 +2178,57 @@ void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 
 	ImVec2 windowSize{ g_renderSize.x, g_renderSize.y };
 	ImVec2 wheelSize{ windowSize.y * 0.45f, windowSize.y * 0.45f };
-
-	if (!g_pRangedWeaponWheel) {
-		ID3D11DeviceContext* pDeviceContext = nullptr;
-
-		ID3D11Device* pD3D11Device = nullptr;
-
-		pSwapChain->GetDevice(IID_PPV_ARGS(&pD3D11Device));
-
-		pD3D11Device->GetImmediateContext(&pDeviceContext);
-
-		g_pRangedWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y,
-			std::vector<WW::WeaponIDs> {
-			WW::WeaponIDs::Nevan,
-				WW::WeaponIDs::Cerberus,
-				WW::WeaponIDs::RebellionAwakened
-		}, charTheme, actorData.buttons[1] & GetBinding(BINDING::CHANGE_GUN));
-
-		g_pRangedWeaponWheel->SetActiveSlot(rangedWeaponIndex);
-
-		oldRangedWeaponIndex = rangedWeaponIndex;
-	}
-
-	if (oldRangedWeaponIndex != (int)rangedWeaponIndex || oldCharIndex != (int)charIndex) {// If changed set it
-		g_pRangedWeaponWheel->SetActiveSlot((int)rangedWeaponIndex);
-		g_pRangedWeaponWheel->SetWheelTheme(charTheme);
-	}
-
-	oldRangedWeaponIndex = (int)rangedWeaponIndex;
-	oldCharIndex = (int)charIndex;
-
-	// Draw the wheel
-
-	static bool isOpen = true;
-
-	ImGui::SetNextWindowSize(wheelSize);
-	ImGui::SetNextWindowPos(ImVec2(0, windowSize.y - wheelSize.y));
-
-	static auto startTime = ImGui::GetTime();
-
-	g_pRangedWeaponWheel->OnUpdate((ImGui::GetTime() - startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier), (ImGui::GetTime() - startTime) * 1000.0f);
-	g_pRangedWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(BINDING::CHANGE_GUN));
-	startTime = ImGui::GetTime();
-
-	g_pRangedWeaponWheel->OnDraw();
-
-	if (ImGui::Begin("RangedWheel", &isOpen, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration |
-		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground)) {
-		ImGui::Image(g_pRangedWeaponWheel->GetSRV(), wheelSize);
-	}
-
-	ImGui::End();
+// 
+// 	if (!g_pRangedWeaponWheel) {
+// 		ID3D11DeviceContext* pDeviceContext = nullptr;
+// 
+// 		ID3D11Device* pD3D11Device = nullptr;
+// 
+// 		pSwapChain->GetDevice(IID_PPV_ARGS(&pD3D11Device));
+// 
+// 		pD3D11Device->GetImmediateContext(&pDeviceContext);
+// 
+// 		g_pRangedWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y,
+// 			std::vector<WW::WeaponIDs> {
+// 			WW::WeaponIDs::Nevan,
+// 				WW::WeaponIDs::Cerberus,
+// 				WW::WeaponIDs::RebellionAwakened
+// 		}, charTheme, actorData.buttons[1] & GetBinding(BINDING::CHANGE_GUN));
+// 
+// 		g_pRangedWeaponWheel->SetActiveSlot(rangedWeaponIndex);
+// 
+// 		oldRangedWeaponIndex = rangedWeaponIndex;
+// 	}
+// 
+// 	if (oldRangedWeaponIndex != (int)rangedWeaponIndex || oldCharIndex != (int)charIndex) {// If changed set it
+// 		g_pRangedWeaponWheel->SetActiveSlot((int)rangedWeaponIndex);
+// 		g_pRangedWeaponWheel->SetWheelTheme(charTheme);
+// 	}
+// 
+// 	oldRangedWeaponIndex = (int)rangedWeaponIndex;
+// 	oldCharIndex = (int)charIndex;
+// 
+// 	// Draw the wheel
+// 
+// 	static bool isOpen = true;
+// 
+// 	ImGui::SetNextWindowSize(wheelSize);
+// 	ImGui::SetNextWindowPos(ImVec2(0, windowSize.y - wheelSize.y));
+// 
+// 	static auto startTime = ImGui::GetTime();
+// 
+// 	g_pRangedWeaponWheel->OnUpdate((ImGui::GetTime() - startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier), (ImGui::GetTime() - startTime) * 1000.0f);
+// 	g_pRangedWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(BINDING::CHANGE_GUN));
+// 	startTime = ImGui::GetTime();
+// 
+// 	g_pRangedWeaponWheel->OnDraw();
+// 
+// 	if (ImGui::Begin("RangedWheel", &isOpen, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration |
+// 		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground)) {
+// 		ImGui::Image(g_pRangedWeaponWheel->GetSRV(), wheelSize);
+// 	}
+// 
+// 	ImGui::End();
 }
 
 void UpdateWeaponSwitchControllerTexturePositions() {
@@ -7506,6 +7638,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			ImGui::Text("AllActorsSpawned: %u", g_allActorsSpawned);
 			if (g_pMeleeWeaponWheel)ImGui::Text("%u", g_pMeleeWeaponWheel->m_AlreadyTriggeredSwitchScaleAnim);
 			ImGui::Text("NextActionPolicyTrickster: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::TRICKSTER_DARK_SLAYER]);
 			ImGui::Text("NextActionPolicyMelee: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::MELEE_ATTACK]);

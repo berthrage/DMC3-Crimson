@@ -2724,6 +2724,9 @@ struct CharacterData {
     uint8 lastRangedWeaponIndex;
     uint8 rangedWeaponSwitchType;
     uint8 rangedWeaponSwitchStick;
+
+    bool sparda = false;
+    bool neloAngelo = false;
 };
 
 struct PlayerData {
@@ -4275,6 +4278,7 @@ extern bool g_inBossfight;
 extern int g_bossQuantity;
 extern bool g_inGameDelayed;
 extern bool g_inGameCutscene;
+extern bool g_allActorsSpawned;
 extern bool g_HudVisible;
 extern std::string g_gameTrackPlaying;
 
