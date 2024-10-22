@@ -4326,8 +4326,6 @@ extern SprintVFX sprintVFX;
 extern int notHoldingMelee;
 
 struct Drive {
-    int bank                = 3;
-    int id                  = 144;
     bool level1EffectPlayed = false;
     bool level2EffectPlayed = false;
     bool level3EffectPlayed = false;

@@ -1569,7 +1569,7 @@ void PauseWhenGUIOpened() {
 
 	// We add this timer so we can safely (aka no crash) say when we can pause the game by setting speed to 0.
 	if (g_scene != SCENE::GAME || eventData.event != EVENT::MAIN) {
-		guiPause.timer = 1.0f;
+		guiPause.timer = 1.5f;
 		guiPause.canPause = false;
 		g_inGameDelayed = false;
 	}
