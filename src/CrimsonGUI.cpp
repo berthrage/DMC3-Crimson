@@ -8906,7 +8906,7 @@ void FrameResponsiveGameSpeed() {
 		g_FrameRateTimeMultiplier = (60.0f / g_FrameRate);
 	}
 	else {
-		g_FrameRateTimeMultiplier = 1.0f; 
+		g_FrameRateTimeMultiplier = 1.0f;
 	}
 
 	auto& activeValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
