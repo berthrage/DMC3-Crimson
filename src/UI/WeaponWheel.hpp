@@ -7,6 +7,11 @@
 #include "BatchedSprites.hpp"
 #include "GenericAnimation.hpp"
 
+struct Transform {
+	glm::vec3 Translation;
+	glm::vec3 Rotation;
+	glm::vec3 Scale;
+};
 
 
 namespace WW
@@ -252,6 +257,7 @@ namespace WW
 
 	private:
 		void InitializeAnimations();
+		void SetWeaponsTranslations();
 
 		void SetInactiveOpacity(float opacity);
 		void SetActiveWeaponOpacity(float opacity);
@@ -296,5 +302,352 @@ namespace WW
 
 		static constexpr double s_WheelFadeoutDur{ 133.3 }, s_ActiveWeaponFadeoutDur{ 433.3 }, s_SwitchBrightnessAnimDur{ 215.8 },
 			s_SwitchScaleAnimDur{ 166.6 };
+
+		static constexpr Transform s_MeleeInactiveSlotTransforms[5] =
+		{
+			{ // Slot 1
+				glm::vec3(-0.142f, 0.416f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(55.120f)),
+				glm::vec3(0.244f)
+			},
+			{ // Slot 2
+				glm::vec3(0.416f, 0.287f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(-12.919f)),
+				glm::vec3(0.227f)
+			},
+			{ // Slot 3
+				glm::vec3(0.384f, -0.330f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(27.560f)),
+				glm::vec3(0.178f)
+			},
+			{ // Slot 4
+				glm::vec3(-0.086f, -0.504f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(80.366f)),
+				glm::vec3(0.217f)
+			},
+			{ // Slot 5
+				glm::vec3(-0.524f, -0.016f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(23.254f)),
+				glm::vec3(0.214f)
+			}
+		};
+
+		static constexpr Transform s_RangedActiveSlotTransforms[5] =
+		{
+			{ // Slot 1
+				glm::vec3(-0.278f, 0.486f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(49.831f)),
+				glm::vec3(0.446f)
+			},
+			{ // Slot 2
+				glm::vec3(0.522f, 0.293f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(-11.186f)),
+				glm::vec3(0.420f)
+			},
+			{ // Slot 3
+				glm::vec3(0.472f, -0.344f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(23.390f)),
+				glm::vec3(0.388f)
+			},
+			{ // Slot 4
+				glm::vec3(-0.122f, -0.540f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(78.486f)),
+				glm::vec3(0.391f)
+			},
+			{ // Slot 5
+				glm::vec3(-0.594f, 0.012f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(23.254f)),
+				glm::vec3(0.359f)
+			}
+		};
+
+		static constexpr Transform s_MeleeActiveSlotSwitchVersTransforms[5] =
+		{
+			{ // Slot 1
+				glm::vec3(-0.278f, 0.546f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(49.831f)),
+				glm::vec3(0.446f)
+			},
+			{ // Slot 2
+				glm::vec3(0.522f, 0.448f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(-11.186f)),
+				glm::vec3(0.420f)
+			},
+			{ // Slot 3
+				glm::vec3(0.472f, -0.424f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(23.390f)),
+				glm::vec3(0.388f)
+			},
+			{ // Slot 4
+				glm::vec3(-0.122f, -0.540f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(78.486f)),
+				glm::vec3(0.391f)
+			},
+			{ // Slot 5
+				glm::vec3(-0.594f, 0.012f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(23.254f)),
+				glm::vec3(0.359f)
+			}
+		};
+
+		static constexpr Transform s_MeleeActiveSlotTransforms[5] =
+		{
+			{ // Slot 1
+				glm::vec3(-0.142f, 0.416f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(49.831f)),
+				glm::vec3(0.446f)
+			},
+			{ // Slot 2
+				glm::vec3(0.416f, 0.287f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(-11.186f)),
+				glm::vec3(0.420f)
+			},
+			{ // Slot 3
+				glm::vec3(0.384f, -0.330f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(23.390f)),
+				glm::vec3(0.388f)
+			},
+			{ // Slot 4
+				glm::vec3(-0.086f, -0.504f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(78.486f)),
+				glm::vec3(0.391f)
+			},
+			{ // Slot 5
+				glm::vec3(-0.524f, -0.016f, 0.0f),
+				glm::vec3(0.0f, 0.0f, glm::radians(23.254f)),
+				glm::vec3(0.359f)
+			}
+		};
+
+		static constexpr glm::vec3 s_WeaponInactiveSwitchVersRotations[(size_t)WeaponIDs::Size]{
+			{ // RebellionDormant
+				glm::vec3(0.0f, 0.0f, glm::radians(55.120f))
+			},
+			{ // RebellionAwakened
+				glm::vec3(0.0f, 0.0f, glm::radians(55.120f))
+			},
+			{ // ForceEdge
+				glm::vec3(0.0f, 0.0f, glm::radians(55.120f))
+			},
+			{ // Cerberus
+				glm::vec3(0.0f, 0.0f, glm::radians(-12.919f))
+			},
+			{ // AgniRudra
+				glm::vec3(0.0f, 0.0f, glm::radians(27.560f))
+			},
+			{ // Nevan
+				glm::vec3(0.0f, 0.0f, glm::radians(80.366f))
+			},
+			{ // Beowulf
+				glm::vec3(0.0f, 0.0f, glm::radians(23.254f))
+			},
+			{ // Yamato
+				glm::vec3(0.0f, 0.0f, glm::radians(55.120f))
+			},
+			{ // ForceEdgeYamato
+				glm::vec3(0.0f, 0.0f, glm::radians(27.560f))
+			},
+
+			{ // EbonyIvory
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // Shotgun
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // Artemis
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // Spiral
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // KalinaAnn
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+		};
+
+		static constexpr glm::vec3 s_WeaponActiveSwitchVersRotations[(size_t)WeaponIDs::Size]{
+			{ // RebellionDormant
+				glm::vec3(0.0f, 0.0f, glm::radians(49.831f))
+			},
+			{ // RebellionAwakened
+				glm::vec3(0.0f, 0.0f, glm::radians(49.831f))
+			},
+			{ // ForceEdge
+				glm::vec3(0.0f, 0.0f, glm::radians(49.831f))
+			},
+			{ // Cerberus
+				glm::vec3(0.0f, 0.0f, glm::radians(-11.186f))
+			},
+			{ // AgniRudra
+				glm::vec3(0.0f, 0.0f, glm::radians(23.390f))
+			},
+			{ // Nevan
+				glm::vec3(0.0f, 0.0f, glm::radians(78.486f))
+			},
+			{ // Beowulf
+				glm::vec3(0.0f, 0.0f, glm::radians(23.254f))
+			},
+			{ // Yamato
+				glm::vec3(0.0f, 0.0f, glm::radians(49.831f))
+			},
+			{ // ForceEdgeYamato
+				glm::vec3(0.0f, 0.0f, glm::radians(23.390f))
+			},
+
+			{ // EbonyIvory
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // Shotgun
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // Artemis
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // Spiral
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // KalinaAnn
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+		};
+
+		static constexpr glm::vec3 s_WeaponNormalRotations[(size_t)WeaponIDs::Size]{
+			{ // RebellionDormant
+				glm::vec3(0.0f, 0.0f, glm::radians(-22.572f))
+			},
+			{ // RebellionAwakened
+				glm::vec3(0.0f, 0.0f, glm::radians(-22.572f))
+			},
+			{ // ForceEdge
+				glm::vec3(0.0f, 0.0f, glm::radians(-22.572f))
+			},
+			{ // Cerberus
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // AgniRudra
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // Nevan
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // Beowulf
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // Yamato
+				glm::vec3(0.0f, 0.0f, glm::radians(49.831f))
+			},
+			{ // ForceEdgeYamato
+				glm::vec3(0.0f, 0.0f, glm::radians(23.390f))
+			},
+
+			{ // EbonyIvory
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // Shotgun
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // Artemis
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // Spiral
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+			{ // KalinaAnn
+				glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+			},
+		};
+
+		static constexpr glm::vec3 s_WeaponNormalInactiveScales[(size_t)WeaponIDs::Size]{
+			{ // RebellionDormant
+				glm::vec3(0.244f)
+			},
+			{ // RebellionAwakened
+				glm::vec3(0.244f)
+			},
+			{ // ForceEdge
+				glm::vec3(0.244f)
+			},
+			{ // Cerberus
+				glm::vec3(0.227f)
+			},
+			{ // AgniRudra
+				glm::vec3(0.178f)
+			},
+			{ // Nevan
+				glm::vec3(0.217f)
+			},
+			{ // Beowulf
+				glm::vec3(0.214f)
+			},
+			{ // Yamato
+				glm::vec3(0.244f)
+			},
+			{ // ForceEdgeYamato
+				glm::vec3(0.178f)
+			},
+
+			{ // EbonyIvory
+				glm::vec3(0.214f)
+			},
+			{ // Shotgun
+				glm::vec3(0.227f)
+			},
+			{ // Artemis
+				glm::vec3(0.227f)
+			},
+			{ // Spiral
+				glm::vec3(0.217f)
+			},
+			{ // KalinaAnn
+				glm::vec3(0.214f)
+			},
+		};
+
+		static constexpr glm::vec3 s_WeaponNormalActiveScales[(size_t)WeaponIDs::Size]{
+			{ // RebellionDormant
+				glm::vec3(0.446f)
+			},
+			{ // RebellionAwakened
+				glm::vec3(0.446f)
+			},
+			{ // ForceEdge
+				glm::vec3(0.446f)
+			},
+			{ // Cerberus
+				glm::vec3(0.420f)
+			},
+			{ // AgniRudra
+				glm::vec3(0.388f)
+			},
+			{ // Nevan
+				glm::vec3(0.391f)
+			},
+			{ // Beowulf
+				glm::vec3(0.359f)
+			},
+			{ // Yamato
+				glm::vec3(0.446f)
+			},
+			{ // ForceEdgeYamato
+				glm::vec3(0.388f)
+			},
+
+			{ // EbonyIvory
+				glm::vec3(0.391f)
+			},
+			{ // Shotgun
+				glm::vec3(0.420f)
+			},
+			{ // Artemis
+				glm::vec3(0.420f)
+			},
+			{ // Spiral
+				glm::vec3(0.391f)
+			},
+			{ // KalinaAnn
+				glm::vec3(0.359f)
+			},
+		};
+
 	};
 }

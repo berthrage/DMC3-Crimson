@@ -4,70 +4,6 @@
 
 #include <filesystem>
 
-struct Transform
-{
-    glm::vec3 Translation;
-    glm::vec3 Rotation;
-    glm::vec3 Scale;
-};
-
-static constexpr Transform s_MeleeInactiveSlotTransforms[5] =
-{
-    { // Slot 1
-        glm::vec3(-0.142f, 0.416f, 0.0f),
-        glm::vec3(0.0f, 0.0f, glm::radians(55.120f)),
-        glm::vec3(0.244f)
-    },
-    { // Slot 2
-        glm::vec3(0.416f, 0.362f, 0.0f),
-        glm::vec3(0.0f, 0.0f, glm::radians(-12.919f)),
-        glm::vec3(0.227f)
-    },
-    { // Slot 3
-        glm::vec3(0.384f, -0.330f, 0.0f),
-        glm::vec3(0.0f, 0.0f, glm::radians(27.560f)),
-        glm::vec3(0.178f)
-    },
-    { // Slot 4
-        glm::vec3(-0.086f, -0.504f, 0.0f),
-        glm::vec3(0.0f, 0.0f, glm::radians(80.366f)),
-        glm::vec3(0.217f)
-    },
-    { // Slot 5
-        glm::vec3(-0.524f, -0.016f, 0.0f),
-        glm::vec3(0.0f, 0.0f, glm::radians(23.254f)),
-        glm::vec3(0.214f)
-    }
-};
-
-static constexpr Transform s_MeleeActiveSlotTransforms[5] =
-{
-    { // Slot 1
-        glm::vec3(-0.278f, 0.546f, 0.0f),
-        glm::vec3(0.0f, 0.0f, glm::radians(49.831f)),
-        glm::vec3(0.446f)
-    },
-    { // Slot 2
-        glm::vec3(0.522f, 0.448f, 0.0f),
-        glm::vec3(0.0f, 0.0f, glm::radians(-11.186f)),
-        glm::vec3(0.420f)
-    },
-    { // Slot 3
-        glm::vec3(0.472f, -0.424f, 0.0f),
-        glm::vec3(0.0f, 0.0f, glm::radians(23.390f)),
-        glm::vec3(0.388f)
-    },
-    { // Slot 4
-        glm::vec3(-0.122f, -0.540f, 0.0f),
-        glm::vec3(0.0f, 0.0f, glm::radians(78.486f)),
-        glm::vec3(0.391f)
-    },
-    { // Slot 5
-        glm::vec3(-0.594f, 0.012f, 0.0f),
-        glm::vec3(0.0f, 0.0f, glm::radians(23.254f)),
-        glm::vec3(0.359f)
-    }
-};
 
 namespace WW {
     void LoadSprites(std::vector <Graphics::Sprite>& sprites, std::vector <Graphics::Sprite>& weaponSprites)
@@ -253,7 +189,11 @@ namespace WW {
 
         case WeaponState::Duplicate:
             return (TextureID)(baseSlotIndex + 2);
+
+        default:
+            return (TextureID)baseSlotIndex;
         }
+        
     }
     
     constexpr WeaponTextureID GetDupAnimationWeaponTextureID(WeaponIDs id)
@@ -673,28 +613,79 @@ namespace WW {
 
         m_pSpriteBatch = std::make_unique<Graphics::BatchedSprites>(m_pD3D11Device, m_Width, m_Height, m_Sprites, spriteIDs);
 
-        for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; charIdx++) {
+        SetWeaponsTranslations();
+
+        InitializeAnimations();
+    }
+
+    WeaponWheel::~WeaponWheel()
+    {}
+
+	void WeaponWheel::SetWeaponsTranslations() {
+		for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; charIdx++) {
 			for (size_t i = 0; i < m_Weapons[charIdx].size(); i++) {
 				m_pSpriteBatch->SetTransform(
 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Inactive),
 					s_MeleeInactiveSlotTransforms[i].Translation,
-					s_MeleeInactiveSlotTransforms[i].Rotation,
-					s_MeleeInactiveSlotTransforms[i].Scale
+					s_WeaponNormalRotations[(size_t)m_Weapons[charIdx][i]],
+                    s_WeaponNormalInactiveScales[(size_t)m_Weapons[charIdx][i]]
 				);
 
-				m_pSpriteBatch->SetTransform(
-					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Active),
-					s_MeleeActiveSlotTransforms[i].Translation,
-					s_MeleeActiveSlotTransforms[i].Rotation,
-					s_MeleeActiveSlotTransforms[i].Scale
-				);
+                if (m_Weapons[charIdx][i] <= WeaponIDs::ForceEdgeYamato) {
+                    // MELEE WEAPONS
 
-				m_pSpriteBatch->SetTransform(
-					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
-					s_MeleeActiveSlotTransforms[i].Translation,
-					s_MeleeActiveSlotTransforms[i].Rotation,
-					s_MeleeActiveSlotTransforms[i].Scale
-				);
+                    if (m_Weapons[charIdx][i] != WeaponIDs::RebellionAwakened
+                        && m_Weapons[charIdx][i] != WeaponIDs::RebellionDormant
+                        && m_Weapons[charIdx][i] != WeaponIDs::ForceEdge
+                        && m_Weapons[charIdx][i] != WeaponIDs::Yamato) {
+
+                        m_pSpriteBatch->SetTransform(
+                            (size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Active),
+                            s_RangedActiveSlotTransforms[i].Translation,
+                            s_WeaponNormalRotations[(size_t)m_Weapons[charIdx][i]],
+                            s_WeaponNormalActiveScales[(size_t)m_Weapons[charIdx][i]]
+                        );
+
+                        m_pSpriteBatch->SetTransform(
+                            (size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
+                            s_RangedActiveSlotTransforms[i].Translation,
+                            s_WeaponNormalRotations[(size_t)m_Weapons[charIdx][i]],
+                            s_WeaponNormalActiveScales[(size_t)m_Weapons[charIdx][i]]
+                        );
+                    }
+                    else {
+						m_pSpriteBatch->SetTransform(
+							(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Active),
+							s_MeleeActiveSlotTransforms[i].Translation,
+							s_WeaponNormalRotations[(size_t)m_Weapons[charIdx][i]],
+							s_WeaponNormalActiveScales[(size_t)m_Weapons[charIdx][i]]
+						);
+
+						m_pSpriteBatch->SetTransform(
+							(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
+                            s_MeleeActiveSlotTransforms[i].Translation,
+							s_WeaponNormalRotations[(size_t)m_Weapons[charIdx][i]],
+							s_WeaponNormalActiveScales[(size_t)m_Weapons[charIdx][i]]
+						);
+                    }
+                }
+                else {
+                    // RANGED WEAPONS 
+
+					m_pSpriteBatch->SetTransform(
+						(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Active),
+						s_RangedActiveSlotTransforms[i].Translation,
+						s_WeaponNormalRotations[(size_t)m_Weapons[charIdx][i]],
+                        s_WeaponNormalActiveScales[(size_t)m_Weapons[charIdx][i]]
+					);
+
+					m_pSpriteBatch->SetTransform(
+						(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
+						s_RangedActiveSlotTransforms[i].Translation,
+						s_WeaponNormalRotations[(size_t)m_Weapons[charIdx][i]],
+                        s_WeaponNormalActiveScales[(size_t)m_Weapons[charIdx][i]]
+					);
+                }
 
 
 				m_pSpriteBatch->SetOpacity(
@@ -702,13 +693,8 @@ namespace WW {
 					0.0f
 				);
 			}
-        }
-		
-        InitializeAnimations();
-    }
-
-    WeaponWheel::~WeaponWheel()
-    {}
+		}
+	}
 
     void WeaponWheel::ReloadWheel(std::vector<WeaponIDs> weapons[CHARACTER_COUNT])
     {
@@ -720,40 +706,40 @@ namespace WW {
         RedefineWeaponSprites(m_Weapons, m_Sprites, m_WeaponSprites);
         const auto spriteIDs = GetSpriteIDs(m_ThemeID, m_Weapons, m_CurrentActiveCharIndex);
 
-        
 		m_pSpriteBatch = std::make_unique<Graphics::BatchedSprites>(m_pD3D11Device, m_Width, m_Height, m_Sprites, spriteIDs);
-        //m_pSpriteBatch->SetActiveSprites(spriteIDs);
 
-		for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; charIdx++) {
-			for (size_t i = 0; i < m_Weapons[charIdx].size(); i++) {
-				m_pSpriteBatch->SetTransform(
-					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Inactive),
-					s_MeleeInactiveSlotTransforms[i].Translation,
-					s_MeleeInactiveSlotTransforms[i].Rotation,
-					s_MeleeInactiveSlotTransforms[i].Scale
-				);
+        SetWeaponsTranslations();
 
-				m_pSpriteBatch->SetTransform(
-					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Active),
-					s_MeleeActiveSlotTransforms[i].Translation,
-					s_MeleeActiveSlotTransforms[i].Rotation,
-					s_MeleeActiveSlotTransforms[i].Scale
-				);
-
-				m_pSpriteBatch->SetTransform(
-					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
-					s_MeleeActiveSlotTransforms[i].Translation,
-					s_MeleeActiveSlotTransforms[i].Rotation,
-					s_MeleeActiveSlotTransforms[i].Scale
-				);
-
-
-				m_pSpriteBatch->SetOpacity(
-					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
-					0.0f
-				);
-			}
-		}
+// 		for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; charIdx++) {
+// 			for (size_t i = 0; i < m_Weapons[charIdx].size(); i++) {
+// 				m_pSpriteBatch->SetTransform(
+// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Inactive),
+// 					s_MeleeInactiveSlotTransforms[i].Translation,
+// 					s_MeleeInactiveSlotTransforms[i].Rotation,
+// 					s_MeleeInactiveSlotTransforms[i].Scale
+// 				);
+// 
+// 				m_pSpriteBatch->SetTransform(
+// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Active),
+// 					s_MeleeActiveSlotTransforms[i].Translation,
+// 					s_MeleeActiveSlotTransforms[i].Rotation,
+// 					s_MeleeActiveSlotTransforms[i].Scale
+// 				);
+// 
+// 				m_pSpriteBatch->SetTransform(
+// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
+// 					s_MeleeActiveSlotTransforms[i].Translation,
+// 					s_MeleeActiveSlotTransforms[i].Rotation,
+// 					s_MeleeActiveSlotTransforms[i].Scale
+// 				);
+// 
+// 
+// 				m_pSpriteBatch->SetOpacity(
+// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
+// 					0.0f
+// 				);
+// 			}
+// 		}
 
         UpdateSlotStates();
     }
@@ -904,7 +890,8 @@ namespace WW {
                         }
                     }
 
-                    m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), 1.0f - progress);
+                    if (m_Weapons[m_CurrentActiveCharIndex].size() > 0)
+                        m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), 1.0f - progress);
                 });
 
             // After the animation ends
@@ -1103,7 +1090,11 @@ namespace WW {
             m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.0f);
         }
 
-        m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), 1.0f);
+        if (m_Weapons[m_CurrentActiveCharIndex].size() > 0)
+            m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), 1.0f);
+        else 
+            m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), 0.0f);
+        
 
         m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Inactive), 0.0f);
         m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
