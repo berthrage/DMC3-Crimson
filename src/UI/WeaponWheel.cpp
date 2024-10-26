@@ -710,37 +710,6 @@ namespace WW {
 
         SetWeaponsTranslations();
 
-// 		for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; charIdx++) {
-// 			for (size_t i = 0; i < m_Weapons[charIdx].size(); i++) {
-// 				m_pSpriteBatch->SetTransform(
-// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Inactive),
-// 					s_MeleeInactiveSlotTransforms[i].Translation,
-// 					s_MeleeInactiveSlotTransforms[i].Rotation,
-// 					s_MeleeInactiveSlotTransforms[i].Scale
-// 				);
-// 
-// 				m_pSpriteBatch->SetTransform(
-// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Active),
-// 					s_MeleeActiveSlotTransforms[i].Translation,
-// 					s_MeleeActiveSlotTransforms[i].Rotation,
-// 					s_MeleeActiveSlotTransforms[i].Scale
-// 				);
-// 
-// 				m_pSpriteBatch->SetTransform(
-// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
-// 					s_MeleeActiveSlotTransforms[i].Translation,
-// 					s_MeleeActiveSlotTransforms[i].Rotation,
-// 					s_MeleeActiveSlotTransforms[i].Scale
-// 				);
-// 
-// 
-// 				m_pSpriteBatch->SetOpacity(
-// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
-// 					0.0f
-// 				);
-// 			}
-// 		}
-
         UpdateSlotStates();
     }
 
@@ -885,7 +854,7 @@ namespace WW {
                         }
                         else // Active slots opacity
                         {
-                            m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 1.0f - progress);
+                            //m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 1.0f - progress);
                             m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, true), 1.0f - progress);
                         }
                     }
@@ -1100,6 +1069,6 @@ namespace WW {
         m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
         m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, m_CurrentActiveSlot, false), 0.0f);
         m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, m_CurrentActiveSlot, true), 1.0f);
-        m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
+        //m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
     }
 }
