@@ -760,10 +760,11 @@ namespace WW {
 
         m_SinceLatestChangeMs = 0.0f;
         m_SinceLatestChangeHeldResetMs = 0.0f;
+		m_SinceLatestChangeHeldArrowMs = 0.0f;
     }
 
 
-	void WeaponWheel::OnUpdate(double ts, double tsHeldReset) 
+	void WeaponWheel::OnUpdate(double ts, double tsHeldReset, double tsHeldArrow) 
     {
 		
 		// If the wheel is not being held, start the fadeout animation
@@ -772,7 +773,7 @@ namespace WW {
 			m_pWheelFadeAnimation->SetAlreadyTriggered(true);
 		}
 
-        if (!m_pArrowFadeAnimation->IsAlreadyTriggered() && m_SinceLatestChangeHeldResetMs >= 40) {
+        if (!m_pArrowFadeAnimation->IsAlreadyTriggered() && m_SinceLatestChangeHeldArrowMs >= 40) {
 			m_pArrowFadeAnimation->Start();
 			m_pArrowFadeAnimation->SetAlreadyTriggered(true);
 		}
@@ -818,10 +819,20 @@ namespace WW {
 			m_pWeaponSwitchBrightnessAnimation->OnUpdate(ts);
 
 		m_SinceLatestChangeMs += ts;
-		if (!m_buttonHeld)
-			m_SinceLatestChangeHeldResetMs += tsHeldReset;
-		else
+		
+		if (!m_buttonHeld) {
+            if (!m_alwaysShow)
+			    m_SinceLatestChangeHeldResetMs += tsHeldReset;
+			m_SinceLatestChangeHeldArrowMs += tsHeldArrow;
+		}
+		else {
 			m_SinceLatestChangeHeldResetMs = 0;
+			m_SinceLatestChangeHeldArrowMs = 0;
+		}
+
+		if (m_alwaysShow) {
+			m_SinceLatestChangeHeldResetMs = 0;
+		}
 	}
 
 
@@ -829,6 +840,11 @@ namespace WW {
     {
         m_buttonHeld = buttonHeld;
     }
+
+	void WeaponWheel::TrackAlwaysShowState(bool alwaysShow) 
+    {
+		m_alwaysShow = alwaysShow;
+	}
 
     bool WeaponWheel::OnDraw()
     {

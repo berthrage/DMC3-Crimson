@@ -246,8 +246,9 @@ namespace WW
 		void SetWheelTheme(WheelThemes themeID);
 		void SetActiveSlot(size_t slot);
 
-		void OnUpdate(double ts, double tsGlobal);
+		void OnUpdate(double ts, double tsHeldReset, double tsHeldArrow);
 		void TrackButtonHeldState(bool buttonHeld);
+		void TrackAlwaysShowState(bool alwaysShow);
 		bool OnDraw();
 
 		ID3D11ShaderResourceView* GetSRV();
@@ -286,9 +287,11 @@ namespace WW
 			m_pWeaponSwitchScaleAnimation;
 
 		bool m_buttonHeld = false;
+		bool m_alwaysShow{ false };
 
 		double m_SinceLatestChangeMs{ 0.0f };
 		double m_SinceLatestChangeHeldResetMs{ 0.0f };
+		double m_SinceLatestChangeHeldArrowMs{ 0.0f };
 
 		static constexpr double s_FadeDelay{ 583.3 };
 

@@ -1881,8 +1881,9 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	static auto startTime = ImGui::GetTime();
 	
 	g_pMeleeWeaponWheel->OnUpdate((ImGui::GetTime() - startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier),
-		(ImGui::GetTime() - startTime) * 1000.0f);
+		(ImGui::GetTime() - startTime) * 1000.0f, (ImGui::GetTime() - startTime) * 1000.0f);
 	g_pMeleeWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(BINDING::CHANGE_DEVIL_ARMS));
+	g_pMeleeWeaponWheel->TrackAlwaysShowState(activeCrimsonConfig.WeaponWheel.meleeAlwaysShow);
 	startTime = ImGui::GetTime();
 
 	g_pMeleeWeaponWheel->OnDraw();
@@ -2047,8 +2048,9 @@ void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	static auto startTime = ImGui::GetTime();
 
 	g_pRangedWeaponWheel->OnUpdate((ImGui::GetTime() - startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier),
-		(ImGui::GetTime() - startTime) * 1000.0f);
+		(ImGui::GetTime() - startTime) * 1000.0f, (ImGui::GetTime() - startTime) * 1000.0f);
 	g_pRangedWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(BINDING::CHANGE_GUN));
+	g_pRangedWeaponWheel->TrackAlwaysShowState(activeCrimsonConfig.WeaponWheel.rangedAlwaysShow);
 	startTime = ImGui::GetTime();
 
 	g_pRangedWeaponWheel->OnDraw();
