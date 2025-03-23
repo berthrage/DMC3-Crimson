@@ -710,6 +710,37 @@ namespace WW {
 
         SetWeaponsTranslations();
 
+// 		for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; charIdx++) {
+// 			for (size_t i = 0; i < m_Weapons[charIdx].size(); i++) {
+// 				m_pSpriteBatch->SetTransform(
+// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Inactive),
+// 					s_MeleeInactiveSlotTransforms[i].Translation,
+// 					s_MeleeInactiveSlotTransforms[i].Rotation,
+// 					s_MeleeInactiveSlotTransforms[i].Scale
+// 				);
+// 
+// 				m_pSpriteBatch->SetTransform(
+// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Active),
+// 					s_MeleeActiveSlotTransforms[i].Translation,
+// 					s_MeleeActiveSlotTransforms[i].Rotation,
+// 					s_MeleeActiveSlotTransforms[i].Scale
+// 				);
+// 
+// 				m_pSpriteBatch->SetTransform(
+// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
+// 					s_MeleeActiveSlotTransforms[i].Translation,
+// 					s_MeleeActiveSlotTransforms[i].Rotation,
+// 					s_MeleeActiveSlotTransforms[i].Scale
+// 				);
+// 
+// 
+// 				m_pSpriteBatch->SetOpacity(
+// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
+// 					0.0f
+// 				);
+// 			}
+// 		}
+
         UpdateSlotStates();
     }
 
@@ -744,6 +775,7 @@ namespace WW {
         m_pActiveWeaponFadeAnimation->OnReset();
         m_pWeaponSwitchScaleAnimation->OnReset();
         m_pWeaponSwitchBrightnessAnimation->OnReset();
+		m_pArrowFadeAnimation->OnReset();
 
         m_CurrentActiveSlot = slot;
 
@@ -753,54 +785,58 @@ namespace WW {
         m_AlreadyTriggeredActiveWeaponFadeAnim = false;
         m_AlreadyTriggeredSwitchBrightnessAnim = false;
         m_AlreadyTriggeredSwitchScaleAnim = false;
+		m_AlreadyTriggeredArrowFadeAnim = false;
         m_SinceLatestChangeMs = 0.0f;
         m_SinceLatestChangeMsGlobal = 0.0f;
     }
 
-    void WeaponWheel::OnUpdate(double ts, double tsGlobal)
-    {
-        if (!m_AlreadyTriggeredWheelFadeAnim && m_SinceLatestChangeMsGlobal >= s_FadeDelay)
-        {
-            m_RunWheelFadeAnim = true;
-            m_AlreadyTriggeredWheelFadeAnim = true;
-        }
+	void WeaponWheel::OnUpdate(double ts, double tsGlobal) {
+		if (!m_AlreadyTriggeredWheelFadeAnim && m_SinceLatestChangeMsGlobal >= s_FadeDelay) {
+			m_RunWheelFadeAnim = true;
+			m_AlreadyTriggeredWheelFadeAnim = true;
+		}
 
-        if (!m_AlreadyTriggeredActiveWeaponFadeAnim && m_SinceLatestChangeMsGlobal >= s_FadeDelay)
-        {
-            m_RunActiveWeaponFadeAnim = true;
-            m_AlreadyTriggeredActiveWeaponFadeAnim = true;
-        }
+		if (!m_AlreadyTriggeredActiveWeaponFadeAnim && m_SinceLatestChangeMsGlobal >= s_FadeDelay) {
+			m_RunActiveWeaponFadeAnim = true;
+			m_AlreadyTriggeredActiveWeaponFadeAnim = true;
+		}
 
-        if (!m_AlreadyTriggeredSwitchScaleAnim && m_SinceLatestChangeMs >= 5)
-        {
-            m_RunWeaponSwitchScaleAnim = true;
-            m_AlreadyTriggeredSwitchScaleAnim = true;
-        }
+		if (!m_AlreadyTriggeredSwitchScaleAnim && m_SinceLatestChangeMs >= 5) {
+			m_RunWeaponSwitchScaleAnim = true;
+			m_AlreadyTriggeredSwitchScaleAnim = true;
+		}
 
-        if (!m_AlreadyTriggeredSwitchBrightnessAnim && m_SinceLatestChangeMs >= 5)
-        {
-            m_RunWeaponSwitchBrightnessAnim = true;
-            m_AlreadyTriggeredSwitchBrightnessAnim = true;
-        }
+		if (!m_AlreadyTriggeredSwitchBrightnessAnim && m_SinceLatestChangeMs >= 5) {
+			m_RunWeaponSwitchBrightnessAnim = true;
+			m_AlreadyTriggeredSwitchBrightnessAnim = true;
+		}
 
-        if (m_RunWheelFadeAnim)
-            m_pWheelFadeAnimation->OnUpdate(ts);
+		if (!m_AlreadyTriggeredArrowFadeAnim && m_SinceLatestChangeMsGlobal >= 40) {
+			m_RunArrowFadeAnim = true;
+			m_AlreadyTriggeredArrowFadeAnim = true;
+		}
 
-        if (m_RunActiveWeaponFadeAnim)
-            m_pActiveWeaponFadeAnimation->OnUpdate(ts);
+		if (m_RunArrowFadeAnim)
+			m_pArrowFadeAnimation->OnUpdate(ts);
 
-        if (m_RunWeaponSwitchScaleAnim)
-            m_pWeaponSwitchScaleAnimation->OnUpdate(ts);
+		if (m_RunWheelFadeAnim)
+			m_pWheelFadeAnimation->OnUpdate(ts);
 
-        if (m_RunWeaponSwitchBrightnessAnim)
-            m_pWeaponSwitchBrightnessAnimation->OnUpdate(ts);
+		if (m_RunActiveWeaponFadeAnim)
+			m_pActiveWeaponFadeAnimation->OnUpdate(ts);
 
-        m_SinceLatestChangeMs += ts;
-        if (!m_buttonHeld)
-            m_SinceLatestChangeMsGlobal += tsGlobal;
-        else
-            m_SinceLatestChangeMsGlobal = 0;
-    }
+		if (m_RunWeaponSwitchScaleAnim)
+			m_pWeaponSwitchScaleAnimation->OnUpdate(ts);
+
+		if (m_RunWeaponSwitchBrightnessAnim)
+			m_pWeaponSwitchBrightnessAnimation->OnUpdate(ts);
+
+		m_SinceLatestChangeMs += ts;
+		if (!m_buttonHeld)
+			m_SinceLatestChangeMsGlobal += tsGlobal;
+		else
+			m_SinceLatestChangeMsGlobal = 0;
+	}
 
     void WeaponWheel::TrackButtonHeldState(bool buttonHeld) 
     {
@@ -854,7 +890,7 @@ namespace WW {
                         }
                         else // Active slots opacity
                         {
-                            //m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 1.0f - progress);
+                            m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.0F);
                             m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, true), 1.0f - progress);
                         }
                     }
@@ -868,14 +904,44 @@ namespace WW {
                 {
                     m_RunWheelFadeAnim = false;
                 });
-
-            // When reset
-            m_pWheelFadeAnimation->SetOnReset([this](GenericAnimation* pAnim)
-                {
-                    m_RunWheelFadeAnim = false;
-                    UpdateSlotStates();
-                });
+			// When reset
+			m_pWheelFadeAnimation->SetOnReset([this](GenericAnimation* pAnim)
+				{
+					m_RunWheelFadeAnim = false;
+					UpdateSlotStates();
+				});
         }
+
+		{
+			m_pArrowFadeAnimation = std::make_unique<GenericAnimation>(300.0F);
+
+			// Before the animation starts
+            m_pArrowFadeAnimation->SetOnStart([this](GenericAnimation* pAnim)
+				{
+					// Ensure the state is set to normal
+                    m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
+				});
+
+			// On update
+            m_pArrowFadeAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
+				{
+					const auto progress = pAnim->GetProgressNormalized();
+
+                    m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f - progress);
+				});
+
+			// After the animation ends
+            m_pArrowFadeAnimation->SetOnEnd([this](GenericAnimation* pAnim)
+				{
+					m_RunArrowFadeAnim = false;
+				});
+			// When reset
+			m_pArrowFadeAnimation->SetOnReset([this](GenericAnimation* pAnim)
+				{
+					m_RunArrowFadeAnim = false;
+                    //m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
+				});
+		}
 
         {
             m_pActiveWeaponFadeAnimation = std::make_unique<GenericAnimation>(s_ActiveWeaponFadeoutDur);
@@ -1032,7 +1098,7 @@ namespace WW {
                 m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, m_CurrentActiveCharIndex, WeaponState::Active), 0.0f);
                 m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, false), 1.0f);
                 m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, true), 0.0f);
-                m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 1.0f);
+                //m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 1.0f);
             }
 
             m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), 1.0f);
@@ -1069,6 +1135,6 @@ namespace WW {
         m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
         m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, m_CurrentActiveSlot, false), 0.0f);
         m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, m_CurrentActiveSlot, true), 1.0f);
-        //m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
+        m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
     }
 }
