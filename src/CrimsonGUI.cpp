@@ -1533,6 +1533,11 @@ const char* trackNames[] = {
 	"ZZZ",
 };
 
+const char* weaponWheeThemeNames[] = {
+	"Crimson",
+	"DMC3 Switch",
+};
+
 static_assert(countof(trackFilenames) == countof(trackNames));
 
 #pragma endregion
@@ -2032,48 +2037,25 @@ void WeaponSwitchController(IDXGISwapChain* pSwapChain) {
 
 
 void WeaponSwitchControllerSettings() {
-	if (GUI_ResetButton()) {
-		CopyMemory(&queuedConfig.meleeWeaponSwitchControllerTextureData, &defaultConfig.meleeWeaponSwitchControllerTextureData,
-			sizeof(queuedConfig.meleeWeaponSwitchControllerTextureData));
-		CopyMemory(&activeConfig.meleeWeaponSwitchControllerTextureData, &queuedConfig.meleeWeaponSwitchControllerTextureData,
-			sizeof(activeConfig.meleeWeaponSwitchControllerTextureData));
-
-		CopyMemory(&queuedConfig.rangedWeaponSwitchControllerTextureData, &defaultConfig.rangedWeaponSwitchControllerTextureData,
-			sizeof(queuedConfig.rangedWeaponSwitchControllerTextureData));
-		CopyMemory(&activeConfig.rangedWeaponSwitchControllerTextureData, &queuedConfig.rangedWeaponSwitchControllerTextureData,
-			sizeof(activeConfig.rangedWeaponSwitchControllerTextureData));
-
-
-		CopyMemory(&queuedConfig.forceIconFocus, &defaultConfig.forceIconFocus, sizeof(queuedConfig.forceIconFocus));
-		CopyMemory(&activeConfig.forceIconFocus, &queuedConfig.forceIconFocus, sizeof(activeConfig.forceIconFocus));
-	}
-	ImGui::Text("");
-
-	const float defaultWidth = 1920;
-	const float defaultHeight = 1080;
-
-	static float targetWidth = 1280;
-	static float targetHeight = 720;
 
 	ImGui::PushItemWidth(200);
 
 	GUI_Checkbox2(
-		"Enable Analog Weapon Selection", activeConfig.weaponWheelAnalogSelectionEnabled, queuedConfig.weaponWheelAnalogSelectionEnabled);
+		"Enable Analog Weapon Selection", activeCrimsonConfig.WeaponWheel.enableAnalogSelection,
+		queuedCrimsonConfig.WeaponWheel.enableAnalogSelection);
 
-	GUI_Checkbox2("Disable Camera Control While Pressing Change Devil Arm/Gun", activeConfig.weaponWheelDisableCameraRotation,
-		queuedConfig.weaponWheelDisableCameraRotation);
+	GUI_Checkbox2("Disable Camera Control While Open", activeCrimsonConfig.WeaponWheel.disableCameraRotation,
+		queuedCrimsonConfig.WeaponWheel.disableCameraRotation);
 
 
-	GUI_Checkbox2("Melee Wheel Always Show", activeConfig.MeleeWeaponWheel.alwaysShow, queuedConfig.MeleeWeaponWheel.alwaysShow);
-	GUI_Checkbox2("Ranged Wheel Always Show", activeConfig.RangedWeaponWheel.alwaysShow, queuedConfig.RangedWeaponWheel.alwaysShow);
+	//UI::Combo2("Theme", weaponWheeThemeNames, activeCrimsonConfig.WeaponWheel.theme, queuedCrimsonConfig.WeaponWheel.theme);
+
+	GUI_Checkbox2("Melee Wheel Always Show", activeCrimsonConfig.WeaponWheel.meleeAlwaysShow, 
+		queuedCrimsonConfig.WeaponWheel.meleeAlwaysShow);
+	GUI_Checkbox2("Ranged Wheel Always Show", activeCrimsonConfig.WeaponWheel.rangedAlwaysShow, 
+		queuedCrimsonConfig.WeaponWheel.rangedAlwaysShow);
 	ImGui::Text("");
 
-	GUI_InputDefault2<uint32>("Melee Wheel Timeout", activeConfig.MeleeWeaponWheel.timeout, queuedConfig.MeleeWeaponWheel.timeout,
-		defaultConfig.MeleeWeaponWheel.timeout, 1, "%u");
-
-	GUI_InputDefault2<uint32>("Ranged Wheel Timeout", activeConfig.RangedWeaponWheel.timeout, queuedConfig.RangedWeaponWheel.timeout,
-		defaultConfig.RangedWeaponWheel.timeout, 1, "%u");
-	ImGui::Text("");
 
 	ImGui::Text("");
 

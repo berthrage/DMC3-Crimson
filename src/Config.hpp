@@ -514,19 +514,6 @@ struct Config {
 
     uint8 costumeRespectsProgression = 2;
 
-    bool weaponWheelAnalogSelectionEnabled = true;
-    bool weaponWheelAnalogRightStick       = true;
-    bool weaponWheelDisableCameraRotation  = true;
-    uint64 weaponWheelTimeout = 2000;
-
-
-    struct WeaponWheel {
-        bool alwaysShow = false;
-        uint32 timeout  = 700;
-    } MeleeWeaponWheel;
-
-    WeaponWheel RangedWeaponWheel;
-
     // load these from cfg, here are default values for now
     
     std::string selectedHUD = "Crimson HUD";

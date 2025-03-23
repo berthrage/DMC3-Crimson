@@ -50,6 +50,25 @@ struct CrimsonConfig {
 		}
 	} GUI;
 
+	struct WeaponWheel {
+		bool enableAnalogSelection = true;
+		bool disableCameraRotation = true;
+		std::string theme = "Crimson";
+		bool meleeAlwaysShow = false;
+		bool rangedAlwaysShow = false;
+
+		static constexpr auto Metadata() {
+			return std::make_tuple(
+				std::make_pair("enableAnalogSelection", &WeaponWheel::enableAnalogSelection),
+				std::make_pair("disableCameraRotation", &WeaponWheel::disableCameraRotation),
+				std::make_pair("theme", &WeaponWheel::theme),
+				std::make_pair("meleeAlwaysShow", &WeaponWheel::meleeAlwaysShow),
+				std::make_pair("rangedAlwaysShow", &WeaponWheel::rangedAlwaysShow)
+			);
+		}
+
+	} WeaponWheel;
+
 	struct CrimsonHudAddons {
 		bool positionings = true;
 		bool redOrbCounter = true;
@@ -373,6 +392,7 @@ struct CrimsonConfig {
 			std::make_pair("MultiplayerBars2D", &CrimsonConfig::MultiplayerBars2D),
 			std::make_pair("MultiplayerBarsWorldSpace", &CrimsonConfig::MultiplayerBarsWorldSpace),
 			std::make_pair("GUI", &CrimsonConfig::GUI),
+			std::make_pair("WeaponWheel", &CrimsonConfig::WeaponWheel),
             std::make_pair("CrimsonHudAddons", &CrimsonConfig::CrimsonHudAddons),
             std::make_pair("Camera", &CrimsonConfig::Camera),
             std::make_pair("StyleSwitchFX", &CrimsonConfig::StyleSwitchFX),

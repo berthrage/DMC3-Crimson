@@ -687,25 +687,6 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "enableYamatoForceEdgeNewRoundTrip", config.enableYamatoForceEdgeNewRoundTrip);
     Create<uint8>(member, "dergil", config.dergil);
     Create<uint8>(member, "costumeRespectsProgression", config.costumeRespectsProgression);
-    Create<bool>(member, "weaponWheelAnalogSelectionEnabled", config.weaponWheelAnalogSelectionEnabled);
-    Create<bool>(member, "weaponWheelAnalogRightStick", config.weaponWheelAnalogRightStick);
-    Create<bool>(member, "weaponWheelDisableCameraRotation", config.weaponWheelDisableCameraRotation);
-
-    {
-        auto& member = Create<struct_t>(root, "MeleeWeaponWheel");
-        auto& config = config_.MeleeWeaponWheel;
-
-        Create<bool>(member, "alwaysShow", config.alwaysShow);
-        Create<uint32>(member, "timeout", config.timeout);
-    }
-
-    {
-        auto& member = Create<struct_t>(root, "RangedWeaponWheel");
-        auto& config = config_.MeleeWeaponWheel;
-
-        Create<bool>(member, "alwaysShow", config.alwaysShow);
-        Create<uint32>(member, "timeout", config.timeout);
-    }
 
     CreateString(member, "selectedHUD", config.selectedHUD.c_str());
 
@@ -1179,25 +1160,6 @@ void ToJSON(Config& config_) {
     Set<bool>(member["enableYamatoForceEdgeNewRoundTrip"], config.enableYamatoForceEdgeNewRoundTrip);
     Set<uint8>(member["dergil"], config.dergil);
     Set<uint8>(member["costumeRespectsProgression"], config.costumeRespectsProgression);
-    Set<bool>(member["weaponWheelAnalogSelectionEnabled"], config.weaponWheelAnalogSelectionEnabled);
-    Set<bool>(member["weaponWheelAnalogRightStick"], config.weaponWheelAnalogRightStick);
-    Set<bool>(member["weaponWheelDisableCameraRotation"], config.weaponWheelDisableCameraRotation);
-
-    {
-        auto& member = root["MeleeWeaponWheel"];
-        auto& config = config_.MeleeWeaponWheel;
-
-        Set<bool>(member["alwaysShow"], config.alwaysShow);
-        Set<uint32>(member["timeout"], config.timeout);
-    }
-
-    {
-        auto& member = root["RangedWeaponWheel"];
-        auto& config = config_.RangedWeaponWheel;
-
-        Set<bool>(member["alwaysShow"], config.alwaysShow);
-        Set<uint32>(member["timeout"], config.timeout);
-    }
 
 
     SetString(member["selectedHUD"], config.selectedHUD.c_str());
@@ -1669,25 +1631,6 @@ void ToConfig(Config& config_) {
     config.enableYamatoForceEdgeNewRoundTrip  = Get<bool>(member["enableYamatoForceEdgeNewRoundTrip"]);
     config.dergil                             = Get<uint8>(member["dergil"]);
     config.costumeRespectsProgression         = Get<uint8>(member["costumeRespectsProgression"]);
-    config.weaponWheelAnalogSelectionEnabled  = Get<bool>(member["weaponWheelAnalogSelectionEnabled"]);
-    config.weaponWheelAnalogRightStick        = Get<bool>(member["weaponWheelAnalogRightStick"]);
-    config.weaponWheelDisableCameraRotation   = Get<bool>(member["weaponWheelDisableCameraRotation"]);
-
-    {
-        auto& config = config_.MeleeWeaponWheel;
-        auto& member = root["MeleeWeaponWheel"];
-
-        config.alwaysShow = Get<bool>(member["alwaysShow"]);
-        config.timeout    = Get<uint32>(member["timeout"]);
-    }
-
-    {
-        auto& config = config_.RangedWeaponWheel;
-        auto& member = root["RangedWeaponWheel"];
-
-        config.alwaysShow = Get<bool>(member["alwaysShow"]);
-        config.timeout    = Get<uint32>(member["timeout"]);
-    }
 
     config.selectedHUD = Get<std::string>(member["selectedHUD"]);
 
