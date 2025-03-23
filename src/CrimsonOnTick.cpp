@@ -574,7 +574,7 @@ void GeneralCameraOptionsController() {
 		CrimsonPatches::CameraTiltController(cameraData);
 	}
 	
-	CrimsonPatches::ToggleLockedOffCamera(activeCrimsonConfig.Camera.lockedOff);
+	CrimsonPatches::ToggleLockedOffCamera(g_disableCameraRotation? false : activeCrimsonConfig.Camera.lockedOff);
 	CrimsonPatches::CameraLockOnDistanceController();
 }
 
