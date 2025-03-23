@@ -282,13 +282,13 @@ namespace WW
 
 		std::unique_ptr<Graphics::BatchedSprites> m_pSpriteBatch;
 
-		std::unique_ptr<GenericAnimation> m_pWheelFadeAnimation, m_pArrowFadeAnimation, m_pActiveWeaponFadeAnimation, m_pWeaponSwitchBrightnessAnimation,
+		std::unique_ptr<GenericAnimation> m_pWheelFadeAnimation, m_pArrowFadeAnimation, m_pArrowBrightnessAnim, m_pActiveWeaponFadeAnimation, m_pWeaponSwitchBrightnessAnimation,
 			m_pWeaponSwitchScaleAnimation;
 
 		bool m_buttonHeld = false;
 
 		double m_SinceLatestChangeMs{ 0.0f };
-		double m_SinceLatestChangeMsGlobal{ 0.0f };
+		double m_SinceLatestChangeHeldResetMs{ 0.0f };
 
 		static constexpr double s_FadeDelay{ 583.3 };
 

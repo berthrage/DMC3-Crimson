@@ -745,6 +745,7 @@ namespace WW {
         m_pWeaponSwitchScaleAnimation->OnReset();
         m_pWeaponSwitchBrightnessAnimation->OnReset();
         m_pArrowFadeAnimation->OnReset();
+		m_pArrowBrightnessAnim->OnReset();
 
         m_CurrentActiveSlot = slot;
 
@@ -755,25 +756,33 @@ namespace WW {
         m_pWeaponSwitchBrightnessAnimation->SetAlreadyTriggered(false);
         m_pWeaponSwitchScaleAnimation->SetAlreadyTriggered(false);
         m_pArrowFadeAnimation->SetAlreadyTriggered(false);
+        m_pArrowBrightnessAnim->SetAlreadyTriggered(false);
 
         m_SinceLatestChangeMs = 0.0f;
-        m_SinceLatestChangeMsGlobal = 0.0f;
+        m_SinceLatestChangeHeldResetMs = 0.0f;
     }
 
 
-	void WeaponWheel::OnUpdate(double ts, double tsGlobal) 
+	void WeaponWheel::OnUpdate(double ts, double tsHeldReset) 
     {
-		if (!m_pArrowFadeAnimation->IsAlreadyTriggered() && m_SinceLatestChangeMsGlobal >= 40) {
-			m_pArrowFadeAnimation->Start();
-			m_pArrowFadeAnimation->SetAlreadyTriggered(true);
-		}
-
-		if (!m_pWheelFadeAnimation->IsAlreadyTriggered() && !m_pArrowFadeAnimation->IsRunning() && m_SinceLatestChangeMsGlobal >= s_FadeDelay) {
+		
+		// If the wheel is not being held, start the fadeout animation
+		if (!m_pWheelFadeAnimation->IsAlreadyTriggered() && !m_pArrowFadeAnimation->IsRunning() && m_SinceLatestChangeHeldResetMs >= s_FadeDelay) {
 			m_pWheelFadeAnimation->Start();
 			m_pWheelFadeAnimation->SetAlreadyTriggered(true);
 		}
 
-		if (!m_pActiveWeaponFadeAnimation->IsAlreadyTriggered() && m_SinceLatestChangeMsGlobal >= s_FadeDelay) {
+        if (!m_pArrowFadeAnimation->IsAlreadyTriggered() && m_SinceLatestChangeHeldResetMs >= 40) {
+			m_pArrowFadeAnimation->Start();
+			m_pArrowFadeAnimation->SetAlreadyTriggered(true);
+		}
+
+        if (!m_pArrowBrightnessAnim->IsAlreadyTriggered() && m_SinceLatestChangeMs >= 5) {
+			m_pArrowBrightnessAnim->Start();
+			m_pArrowBrightnessAnim->SetAlreadyTriggered(true);
+        }
+
+		if (!m_pActiveWeaponFadeAnimation->IsAlreadyTriggered() && m_SinceLatestChangeHeldResetMs >= s_FadeDelay) {
 			m_pActiveWeaponFadeAnimation->Start();
 			m_pActiveWeaponFadeAnimation->SetAlreadyTriggered(true);
 		}
@@ -788,11 +797,16 @@ namespace WW {
 			m_pWeaponSwitchBrightnessAnimation->SetAlreadyTriggered(true);
 		}
 
-		if (m_pArrowFadeAnimation->IsRunning())
-			m_pArrowFadeAnimation->OnUpdate(ts);
+		// Update the animations
 
 		if (m_pWheelFadeAnimation->IsRunning())
 			m_pWheelFadeAnimation->OnUpdate(ts);
+
+		if (m_pArrowFadeAnimation->IsRunning())
+			m_pArrowFadeAnimation->OnUpdate(ts);
+
+		if (m_pArrowBrightnessAnim->IsRunning())
+            m_pArrowBrightnessAnim->OnUpdate(ts);
 
 		if (m_pActiveWeaponFadeAnimation->IsRunning())
 			m_pActiveWeaponFadeAnimation->OnUpdate(ts);
@@ -805,9 +819,9 @@ namespace WW {
 
 		m_SinceLatestChangeMs += ts;
 		if (!m_buttonHeld)
-			m_SinceLatestChangeMsGlobal += tsGlobal;
+			m_SinceLatestChangeHeldResetMs += tsHeldReset;
 		else
-			m_SinceLatestChangeMsGlobal = 0;
+			m_SinceLatestChangeHeldResetMs = 0;
 	}
 
 
@@ -909,6 +923,43 @@ namespace WW {
 			m_pArrowFadeAnimation->SetOnReset([this](GenericAnimation* pAnim)
 				{
 					m_pArrowFadeAnimation->Stop();
+				});
+		}
+
+		{
+			m_pArrowBrightnessAnim = std::make_unique<GenericAnimation>(s_SwitchBrightnessAnimDur);
+
+			// Before the animation starts
+            m_pArrowBrightnessAnim->SetOnStart([this](GenericAnimation* pAnim)
+				{
+					// Ensure the active weapon is at normal brightness
+					m_pSpriteBatch->SetBrightness((size_t)GetArrowTextureID(m_ThemeID
+                        , m_CurrentActiveSlot), 1.0f);
+				});
+
+			// On update
+            m_pArrowBrightnessAnim->SetOnUpdate([this](GenericAnimation* pAnim)
+				{
+					const auto progress = pAnim->GetProgressNormalized();
+
+					m_pSpriteBatch->SetBrightness((size_t)GetArrowTextureID(m_ThemeID
+                        , m_CurrentActiveSlot), progress * 5.18f);
+				});
+
+			// After the animation ends
+            m_pArrowBrightnessAnim->SetOnEnd([this](GenericAnimation* pAnim)
+				{
+                    m_pArrowBrightnessAnim->Stop();
+					m_pSpriteBatch->SetBrightness((size_t)GetArrowTextureID(m_ThemeID
+						, m_CurrentActiveSlot), 1.0f);
+				});
+
+			// When reset
+            m_pArrowBrightnessAnim->SetOnReset([this](GenericAnimation* pAnim)
+				{
+                    m_pArrowBrightnessAnim->Stop();
+					m_pSpriteBatch->SetBrightness((size_t)GetArrowTextureID(m_ThemeID
+                        , m_CurrentActiveSlot), 1.0f);
 				});
 		}
 
