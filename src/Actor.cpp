@@ -3629,8 +3629,9 @@ template <typename T> void ArbitraryMeleeWeaponSwitchController(T& actorData) {
 
     if (activeConfig.weaponWheelAnalogSelectionEnabled) {
         if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))) {
-
-            g_disableCameraRotation = true;
+			if (activeConfig.weaponWheelDisableCameraRotation) {
+				g_disableCameraRotation = true;
+			}
 
             if (!(radius < RIGHT_STICK_DEADZONE)) {
 
