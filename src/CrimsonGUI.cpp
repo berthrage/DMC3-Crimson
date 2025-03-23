@@ -1533,10 +1533,11 @@ const char* trackNames[] = {
 	"ZZZ",
 };
 
-const char* weaponWheeThemeNames[] = {
+std::vector<std::string> weaponWheelThemeNames = {
 	"Crimson",
 	"DMC3 Switch",
 };
+
 
 static_assert(countof(trackFilenames) == countof(trackNames));
 
@@ -1741,6 +1742,7 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	static int oldMeleeWeaponIndex = -1;
 	static int oldCharIndex = -1;
 	static auto charTheme = WW::WheelThemes::Neutral;
+	static auto oldTheme = activeCrimsonConfig.WeaponWheel.theme;
 	auto& charIndex = actorData.newCharacterIndex;
 	auto& meleeWeaponIndex = characterData.meleeWeaponIndex;
 	auto& activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
@@ -1829,7 +1831,8 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 		pD3D11Device->GetImmediateContext(&pDeviceContext);
 
 		g_pMeleeWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y, 
-			currentWeapons, charTheme, actorData.buttons[1] & GetBinding(BINDING::CHANGE_DEVIL_ARMS));
+			currentWeapons, activeCrimsonConfig.WeaponWheel.theme == "Crimson" ? charTheme : WW::WheelThemes::Neutral
+			, actorData.buttons[1] & GetBinding(BINDING::CHANGE_DEVIL_ARMS));
 
 		
 		g_pMeleeWeaponWheel->SetActiveSlot(meleeWeaponIndex);
@@ -1846,10 +1849,25 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 		UpdateMeleeWeaponIDs(actorData, currentWeapons, actorData.newCharacterIndex);
 		g_pMeleeWeaponWheel->UpdateCharIndex(actorData.newCharacterIndex);
 		g_pMeleeWeaponWheel->UpdateWeapons(currentWeapons);
-		g_pMeleeWeaponWheel->SetWheelTheme(charTheme);
+
+		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
+			g_pMeleeWeaponWheel->SetWheelTheme(charTheme);
+		}
+		
 		g_pMeleeWeaponWheel->SetActiveSlot((int)meleeWeaponIndex);
 	}
 
+	if (oldTheme != activeCrimsonConfig.WeaponWheel.theme) {
+		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
+			g_pMeleeWeaponWheel->SetWheelTheme(charTheme);
+		}
+		else {
+			g_pMeleeWeaponWheel->SetWheelTheme(WW::WheelThemes::Neutral);
+		}
+		g_pMeleeWeaponWheel->SetActiveSlot((int)meleeWeaponIndex);
+	}
+
+	oldTheme = activeCrimsonConfig.WeaponWheel.theme;
 	oldMeleeWeaponIndex = (int)meleeWeaponIndex;
 	oldCharIndex = (int)charIndex;
 	oldUnlockedDevilTrigger = sessionData.unlockDevilTrigger;
@@ -1902,6 +1920,7 @@ void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	static int oldRangedWeaponIndex = -1;
 	static int oldCharIndex = -1;
 	static auto charTheme = WW::WheelThemes::Neutral;
+	static auto oldTheme = activeCrimsonConfig.WeaponWheel.theme;
 	auto& charIndex = actorData.newCharacterIndex;
 	auto& rangedWeaponIndex = characterData.rangedWeaponIndex;
 	auto& activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
@@ -1982,7 +2001,8 @@ void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 		pD3D11Device->GetImmediateContext(&pDeviceContext);
 
 		g_pRangedWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y,
-			currentWeapons, charTheme, actorData.buttons[1] & GetBinding(BINDING::CHANGE_DEVIL_ARMS));
+			currentWeapons, activeCrimsonConfig.WeaponWheel.theme == "Crimson" ? charTheme : WW::WheelThemes::Neutral
+			, actorData.buttons[1] & GetBinding(BINDING::CHANGE_DEVIL_ARMS));
 
 
 		g_pRangedWeaponWheel->SetActiveSlot(rangedWeaponIndex);
@@ -1999,10 +2019,22 @@ void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 		UpdateMeleeWeaponIDs(actorData, currentWeapons, actorData.newCharacterIndex);
 		g_pRangedWeaponWheel->UpdateCharIndex(actorData.newCharacterIndex);
 		g_pRangedWeaponWheel->UpdateWeapons(currentWeapons);
-		g_pRangedWeaponWheel->SetWheelTheme(charTheme);
+		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
+			g_pRangedWeaponWheel->SetWheelTheme(charTheme);
+		}
 		g_pRangedWeaponWheel->SetActiveSlot((int)rangedWeaponIndex);
 	}
 
+	if (oldTheme != activeCrimsonConfig.WeaponWheel.theme) {
+		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
+			g_pRangedWeaponWheel->SetWheelTheme(charTheme);
+		} else {
+			g_pRangedWeaponWheel->SetWheelTheme(WW::WheelThemes::Neutral);
+		}
+		g_pRangedWeaponWheel->SetActiveSlot((int)rangedWeaponIndex);
+	}
+
+	oldTheme = activeCrimsonConfig.WeaponWheel.theme;
 	oldRangedWeaponIndex = (int)rangedWeaponIndex;
 	oldCharIndex = (int)charIndex;
 
@@ -2048,7 +2080,7 @@ void WeaponSwitchControllerSettings() {
 		queuedCrimsonConfig.WeaponWheel.disableCameraRotation);
 
 
-	//UI::Combo2("Theme", weaponWheeThemeNames, activeCrimsonConfig.WeaponWheel.theme, queuedCrimsonConfig.WeaponWheel.theme);
+	UI::Combo2Vector("Theme", weaponWheelThemeNames, activeCrimsonConfig.WeaponWheel.theme, queuedCrimsonConfig.WeaponWheel.theme);
 
 	GUI_Checkbox2("Melee Wheel Always Show", activeCrimsonConfig.WeaponWheel.meleeAlwaysShow, 
 		queuedCrimsonConfig.WeaponWheel.meleeAlwaysShow);
