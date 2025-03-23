@@ -687,14 +687,9 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "enableYamatoForceEdgeNewRoundTrip", config.enableYamatoForceEdgeNewRoundTrip);
     Create<uint8>(member, "dergil", config.dergil);
     Create<uint8>(member, "costumeRespectsProgression", config.costumeRespectsProgression);
-    Create<bool>(member, "weaponWheelEnabled", config.weaponWheelEnabled);
     Create<bool>(member, "weaponWheelAnalogSelectionEnabled", config.weaponWheelAnalogSelectionEnabled);
     Create<bool>(member, "weaponWheelAnalogRightStick", config.weaponWheelAnalogRightStick);
     Create<bool>(member, "weaponWheelDisableCameraRotation", config.weaponWheelDisableCameraRotation);
-    Create<float>(member, "weaponWheelScaleMultiplier", config.weaponWheelScaleMultiplier);
-    Create<float>(member, "weaponWheelHeight", config.weaponWheelHeight);
-    Create<float>(member, "weaponWheelHorizontalMelee", config.weaponWheelHorizontalMelee);
-    Create<float>(member, "weaponWheelHorizontalRanged", config.weaponWheelHorizontalRanged);
 
     {
         auto& member = Create<struct_t>(root, "MeleeWeaponWheel");
@@ -1184,14 +1179,9 @@ void ToJSON(Config& config_) {
     Set<bool>(member["enableYamatoForceEdgeNewRoundTrip"], config.enableYamatoForceEdgeNewRoundTrip);
     Set<uint8>(member["dergil"], config.dergil);
     Set<uint8>(member["costumeRespectsProgression"], config.costumeRespectsProgression);
-    Set<bool>(member["weaponWheelEnabled"], config.weaponWheelEnabled);
     Set<bool>(member["weaponWheelAnalogSelectionEnabled"], config.weaponWheelAnalogSelectionEnabled);
     Set<bool>(member["weaponWheelAnalogRightStick"], config.weaponWheelAnalogRightStick);
     Set<bool>(member["weaponWheelDisableCameraRotation"], config.weaponWheelDisableCameraRotation);
-    Set<float>(member["weaponWheelScaleMultiplier"], config.weaponWheelScaleMultiplier);
-    Set<float>(member["weaponWheelHeight"], config.weaponWheelHeight);
-    Set<float>(member["weaponWheelHorizontalMelee"], config.weaponWheelHorizontalMelee);
-    Set<float>(member["weaponWheelHorizontalRanged"], config.weaponWheelHorizontalRanged);
 
     {
         auto& member = root["MeleeWeaponWheel"];
@@ -1679,14 +1669,9 @@ void ToConfig(Config& config_) {
     config.enableYamatoForceEdgeNewRoundTrip  = Get<bool>(member["enableYamatoForceEdgeNewRoundTrip"]);
     config.dergil                             = Get<uint8>(member["dergil"]);
     config.costumeRespectsProgression         = Get<uint8>(member["costumeRespectsProgression"]);
-    config.weaponWheelEnabled                 = Get<bool>(member["weaponWheelEnabled"]);
     config.weaponWheelAnalogSelectionEnabled  = Get<bool>(member["weaponWheelAnalogSelectionEnabled"]);
     config.weaponWheelAnalogRightStick        = Get<bool>(member["weaponWheelAnalogRightStick"]);
     config.weaponWheelDisableCameraRotation   = Get<bool>(member["weaponWheelDisableCameraRotation"]);
-    config.weaponWheelScaleMultiplier         = Get<float>(member["weaponWheelScaleMultiplier"]);
-    config.weaponWheelHeight                  = Get<float>(member["weaponWheelHeight"]);
-    config.weaponWheelHorizontalMelee         = Get<float>(member["weaponWheelHorizontalMelee"]);
-    config.weaponWheelHorizontalRanged        = Get<float>(member["weaponWheelHorizontalRanged"]);
 
     {
         auto& config = config_.MeleeWeaponWheel;

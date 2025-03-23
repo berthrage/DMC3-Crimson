@@ -3627,11 +3627,6 @@ template <typename T> void ArbitraryMeleeWeaponSwitchController(T& actorData) {
         back = true;
     };
 
-    // JUST A TEST
-    /*if(actorData.styleData.rank == 1) {
-            PlaySound(0, 13);
-    }*/
-
     if (activeConfig.weaponWheelAnalogSelectionEnabled) {
         if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))) {
 
@@ -3940,22 +3935,11 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     if ((actorData.newPlayerIndex == 0) && (actorData.newCharacterIndex == playerData.activeCharacterIndex) &&
         (actorData.newEntityIndex == ENTITY::MAIN)) {
 
-        
         g_disableCameraRotation = false;
 
-        if (activeConfig.weaponWheelEnabled) {
-            ArbitraryMeleeWeaponSwitchController(actorData);
-        } else {
-            LinearMeleeWeaponSwitchController(actorData);
-        }
+        ArbitraryMeleeWeaponSwitchController(actorData);
+        ArbitraryRangedWeaponSwitchController(actorData);
 
-        if constexpr (TypeMatch<T, PlayerActorDataDante>::value) {
-            if (activeConfig.weaponWheelEnabled) {
-                ArbitraryRangedWeaponSwitchController(actorData);
-            } else {
-                LinearRangedWeaponSwitchController(actorData);
-            }
-        }
     } else {
         LinearMeleeWeaponSwitchController(actorData);
 

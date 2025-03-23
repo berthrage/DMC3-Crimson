@@ -514,16 +514,9 @@ struct Config {
 
     uint8 costumeRespectsProgression = 2;
 
-    bool weaponWheelEnabled                = true;
     bool weaponWheelAnalogSelectionEnabled = true;
     bool weaponWheelAnalogRightStick       = true;
     bool weaponWheelDisableCameraRotation  = true;
-    bool weaponWheelAutoPlace              = true;
-    float weaponWheelScaleMultiplier       = 0.6f;
-    float weaponWheelHeight                = 447;
-    float weaponWheelHorizontalMelee       = 701;
-    float weaponWheelHorizontalRanged      = 80;
-    float weaponWheelWidthSeparation;
     uint64 weaponWheelTimeout = 2000;
 
 

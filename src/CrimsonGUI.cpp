@@ -1609,310 +1609,12 @@ void PauseWhenGUIOpened() {
 	}
 }
 
-
-#pragma region Texture
-
-struct TextureData {
-	bool enable;
-	bool run;
-	const char* label;
-	ID3D11ShaderResourceView* textureAddr;
-
-	uint32 lastX;
-	uint32 lastY;
-
-	void Render(Config::TextureData& activeData, Config::TextureData& queuedData);
-	void Settings(Config::TextureData& activeData, Config::TextureData& queuedData);
-	void SetPosition(Config::TextureData& data, bool ranged);
-};
-
-void TextureData::Render(Config::TextureData& activeData, Config::TextureData& queuedData) {
-	if (!enable || !textureAddr) {
-		return;
-	}
-
-	auto& activeSize = *reinterpret_cast<ImVec2*>(&activeData.size);
-	auto& queuedSize = *reinterpret_cast<ImVec2*>(&queuedData.size);
-
-	auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
-	auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
-
-	if (!run) {
-		run = true;
-
-		ImGui::SetNextWindowPos(activePos);
-
-		lastX = static_cast<uint32>(activeData.pos.x);
-		lastY = static_cast<uint32>(activeData.pos.y);
-	}
-
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
-
-	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
-
-	if (ImGui::Begin(label, &enable, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
-		activePos = queuedPos = ImGui::GetWindowPos();
-
-		uint32 x = static_cast<uint32>(activeData.pos.x);
-		uint32 y = static_cast<uint32>(activeData.pos.y);
-
-		if ((lastX != x) || (lastY != y)) {
-			lastX = x;
-			lastY = y;
-
-			GUI::save = true;
-		}
-
-		ImGui::Image(textureAddr, activeSize);
-	}
-
-	ImGui::End();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleVar(4);
-}
-
-void TextureData::Settings(Config::TextureData& activeData, Config::TextureData& queuedData) {
-	auto& activeSize = *reinterpret_cast<ImVec2*>(&activeData.size);
-	auto& queuedSize = *reinterpret_cast<ImVec2*>(&queuedData.size);
-
-	auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
-	auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
-
-	ImGui::Text(label);
-
-	if constexpr (debug) {
-		GUI_Checkbox("Enable", enable);
-	}
-
-	ImGui::PushItemWidth(150);
-
-	GUI_Input2<float>("Width", activeSize.x, queuedSize.x, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-	GUI_Input2<float>("Height", activeSize.y, queuedSize.y, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-
-	if (GUI_Input2<float>("X", activePos.x, queuedPos.x, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-		ImGui::SetWindowPos(label, activePos);
-	}
-	if (GUI_Input2<float>("Y", activePos.y, queuedPos.y, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-		ImGui::SetWindowPos(label, activePos);
-	}
-
-	ImGui::PopItemWidth();
-}
-
-void TextureData::SetPosition(Config::TextureData& data, bool ranged) {
-	auto& pos = *reinterpret_cast<ImVec2*>(&data.pos);
-
-	if (!ranged) {
-		ImGui::SetWindowPos(label, ImVec2(pos.x + activeConfig.weaponWheelHorizontalMelee, pos.y + activeConfig.weaponWheelHeight));
-	}
-	else {
-		ImGui::SetWindowPos(label, ImVec2(pos.x + activeConfig.weaponWheelHorizontalRanged, pos.y + activeConfig.weaponWheelHeight));
-	}
-}
-
-enum {
-	TEXTURE_ARROW_0,
-	TEXTURE_ARROW_72,
-	TEXTURE_ARROW_144,
-	TEXTURE_ARROW_216,
-	TEXTURE_ARROW_288,
-	TEXTURE_BACKGROUND,
-	TEXTURE_HIGHLIGHT,
-	// TEXTURE_STENCIL,
-	TEXTURE_WEAPON_REBELLION,
-	TEXTURE_WEAPON_REBELLION_2,
-	TEXTURE_WEAPON_FORCE_EDGE,
-	TEXTURE_WEAPON_CERBERUS,
-	TEXTURE_WEAPON_AGNI_RUDRA,
-	TEXTURE_WEAPON_NEVAN,
-	TEXTURE_WEAPON_BEOWULF_DANTE,
-	TEXTURE_WEAPON_EBONY_IVORY,
-	TEXTURE_WEAPON_SHOTGUN,
-	TEXTURE_WEAPON_ARTEMIS,
-	TEXTURE_WEAPON_SPIRAL,
-	TEXTURE_WEAPON_KALINA_ANN,
-	TEXTURE_WEAPON_YAMATO_VERGIL,
-	TEXTURE_WEAPON_YAMATO_NERO_ANGELO,
-	TEXTURE_WEAPON_BEOWULF_VERGIL,
-	TEXTURE_WEAPON_BEOWULF_NERO_ANGELO,
-	TEXTURE_WEAPON_YAMATO_FORCE_EDGE,
-	TEXTURE_COUNT,
-};
-
-const char* textureFilenames[] = {
-	"arrow_0.png",
-	"arrow_72.png",
-	"arrow_144.png",
-	"arrow_216.png",
-	"arrow_288.png",
-	"background.png",
-	"highlight.png",
-	//"stencil.png",
-	"weapon_0000_0000.png",
-	"weapon_0000_0001.png",
-	"weapon_0000_0002.png",
-	"weapon_0001.png",
-	"weapon_0002.png",
-	"weapon_0003.png",
-	"weapon_0004.png",
-	"weapon_0005.png",
-	"weapon_0006.png",
-	"weapon_0007.png",
-	"weapon_0008.png",
-	"weapon_0009.png",
-	"weapon_0011_0000.png",
-	"weapon_0011_0001.png",
-	"weapon_0012_0000.png",
-	"weapon_0012_0001.png",
-	"weapon_0013.png",
-};
-
-ID3D11ShaderResourceView* textureAddrs[TEXTURE_COUNT] = {};
-
-constexpr uint8 textureWeaponMap[WEAPON::MAX] = {
-	TEXTURE_WEAPON_REBELLION,
-	TEXTURE_WEAPON_CERBERUS,
-	TEXTURE_WEAPON_AGNI_RUDRA,
-	TEXTURE_WEAPON_NEVAN,
-	TEXTURE_WEAPON_BEOWULF_DANTE,
-	TEXTURE_WEAPON_EBONY_IVORY,
-	TEXTURE_WEAPON_SHOTGUN,
-	TEXTURE_WEAPON_ARTEMIS,
-	TEXTURE_WEAPON_SPIRAL,
-	TEXTURE_WEAPON_KALINA_ANN,
-	0,
-	TEXTURE_WEAPON_YAMATO_VERGIL,
-	TEXTURE_WEAPON_BEOWULF_VERGIL,
-	TEXTURE_WEAPON_YAMATO_FORCE_EDGE,
-	0,
-};
-
-constexpr uint8 textureArrowMap[5] = {
-	TEXTURE_ARROW_0,
-	TEXTURE_ARROW_288,
-	TEXTURE_ARROW_216,
-	TEXTURE_ARROW_144,
-	TEXTURE_ARROW_72,
-};
-
-bool g_showTextures = false;
-
 std::unique_ptr<WW::WeaponWheel> g_pMeleeWeaponWheel;
 std::unique_ptr<WW::WeaponWheel> g_pRangedWeaponWheel;
-
-void CreateTexturesWeaponWheel()
-{
-	char path[128];
-	
-	old_for_all(uint8, textureIndex, TEXTURE_COUNT) {
-		snprintf(path, sizeof(path), ((std::string)Paths::weaponwheel + "/%s").c_str(), textureFilenames[textureIndex]);
-	
-		textureAddrs[textureIndex] = CreateTexture(path, ::D3D11::device);
-	}
-}
-
-// TextureData stencil = {};
 
 #pragma endregion
 
 #pragma region Weapon Switch Controllers
-
-struct WeaponSwitchControllerTextureData {
-	TextureData backgrounds[5];
-	TextureData highlights[5];
-	TextureData icons[5];
-	TextureData arrow;
-};
-
-WeaponSwitchControllerTextureData meleeWeaponSwitchControllerTextureData = {};
-
-const char* meleeWeaponSwitchControllerBackgroundNames[5] = {
-	"MeleeWeaponSwitchControllerBackground0",
-	"MeleeWeaponSwitchControllerBackground1",
-	"MeleeWeaponSwitchControllerBackground2",
-	"MeleeWeaponSwitchControllerBackground3",
-	"MeleeWeaponSwitchControllerBackground4",
-};
-
-
-const char* meleeWeaponSwitchControllerHighlightNames[5] = {
-	"MeleeWeaponSwitchControllerHighlight0",
-	"MeleeWeaponSwitchControllerHighlight1",
-	"MeleeWeaponSwitchControllerHighlight2",
-	"MeleeWeaponSwitchControllerHighlight3",
-	"MeleeWeaponSwitchControllerHighlight4",
-};
-
-const char* meleeWeaponSwitchControllerIconNames[5] = {
-	"MeleeWeaponSwitchControllerIcon0",
-	"MeleeWeaponSwitchControllerIcon1",
-	"MeleeWeaponSwitchControllerIcon2",
-	"MeleeWeaponSwitchControllerIcon3",
-	"MeleeWeaponSwitchControllerIcon4",
-};
-
-const char* meleeWeaponSwitchControllerArrowName = "MeleeWeaponSwitchControllerArrow";
-
-
-WeaponSwitchControllerTextureData rangedWeaponSwitchControllerTextureData = {};
-
-const char* rangedWeaponSwitchControllerBackgroundNames[5] = {
-	"RangedWeaponSwitchControllerBackground0",
-	"RangedWeaponSwitchControllerBackground1",
-	"RangedWeaponSwitchControllerBackground2",
-	"RangedWeaponSwitchControllerBackground3",
-	"RangedWeaponSwitchControllerBackground4",
-};
-
-const char* rangedWeaponSwitchControllerIconNames[5] = {
-	"RangedWeaponSwitchControllerIcon0",
-	"RangedWeaponSwitchControllerIcon1",
-	"RangedWeaponSwitchControllerIcon2",
-	"RangedWeaponSwitchControllerIcon3",
-	"RangedWeaponSwitchControllerIcon4",
-};
-
-const char* rangedWeaponSwitchControllerHighlightNames[5] = {
-	"RangedWeaponSwitchControllerHighlight0",
-	"RangedWeaponSwitchControllerHighlight1",
-	"RangedWeaponSwitchControllerHighlight2",
-	"RangedWeaponSwitchControllerHighlight3",
-	"RangedWeaponSwitchControllerHighlight4",
-};
-
-const char* rangedWeaponSwitchControllerArrowName = "RangedWeaponSwitchControllerArrow";
-
-void MeleeWeaponWheelTimeTracker() {
-
-	meleeWeaponWheelTiming.wheelRunning = true;
-	while (meleeWeaponWheelTiming.wheelTime > 0) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		meleeWeaponWheelTiming.wheelTime--;
-	}
-
-
-	if (meleeWeaponWheelTiming.wheelTime == 0) {
-		meleeWeaponWheelTiming.wheelAppear = false;
-		meleeWeaponWheelTiming.wheelRunning = false;
-	}
-}
-
-void RangedWeaponWheelTimeTracker() {
-	rangedWeaponWheelTiming.wheelRunning = true;
-	while (rangedWeaponWheelTiming.wheelTime > 0) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		rangedWeaponWheelTiming.wheelTime--;
-	}
-
-
-	if (rangedWeaponWheelTiming.wheelTime == 0) {
-		rangedWeaponWheelTiming.wheelAppear = false;
-		rangedWeaponWheelTiming.wheelRunning = false;
-	}
-}
 
 void UpdateMeleeWeaponIDs(PlayerActorData& actorData, std::vector<WW::WeaponIDs>(&currentWeapons)[CHARACTER_COUNT], size_t charIdx) {
 	auto playerIndex = actorData.newPlayerIndex;
@@ -2026,7 +1728,7 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 
 	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
 
-	if (InCutscene() || InCredits() || !activeConfig.Actor.enable || (!activeConfig.weaponWheelEnabled) || g_inGameCutscene ||
+	if (InCutscene() || InCredits() || !activeConfig.Actor.enable || g_inGameCutscene ||
 		!((characterData.character == CHARACTER::DANTE) || (characterData.character == CHARACTER::VERGIL))) {
 		return;
 	}
@@ -2187,7 +1889,7 @@ void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 
 	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
 
-	if (InCutscene() || InCredits() || !activeConfig.Actor.enable || (!activeConfig.weaponWheelEnabled) || g_inGameCutscene ||
+	if (InCutscene() || InCredits() || !activeConfig.Actor.enable || g_inGameCutscene ||
 		!((characterData.character == CHARACTER::DANTE) || (characterData.character == CHARACTER::VERGIL))) {
 		return;
 	}
@@ -2322,146 +2024,8 @@ void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	ImGui::End();
 }
 
-void UpdateWeaponSwitchControllerTexturePositions() {
-	// Melee
-	{
-		auto& textureData = meleeWeaponSwitchControllerTextureData;
-		auto& configTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
-
-		old_for_all(uint8, index, 5) {
-			textureData.backgrounds[index].SetPosition(configTextureData.backgrounds[index], false);
-		}
-
-		old_for_all(uint8, index, 5) {
-			textureData.highlights[index].SetPosition(configTextureData.highlights[index], false);
-		}
-
-
-		old_for_all(uint8, index, 5) {
-			textureData.icons[index].SetPosition(configTextureData.icons[index], false);
-		}
-
-		textureData.arrow.SetPosition(configTextureData.arrow, false);
-	}
-
-	// Ranged
-	{
-		auto& textureData = rangedWeaponSwitchControllerTextureData;
-		auto& configTextureData = activeConfig.rangedWeaponSwitchControllerTextureData;
-
-		old_for_all(uint8, index, 5) {
-			textureData.backgrounds[index].SetPosition(configTextureData.backgrounds[index], true);
-		}
-
-		old_for_all(uint8, index, 5) {
-			textureData.icons[index].SetPosition(configTextureData.icons[index], true);
-		}
-
-		old_for_all(uint8, index, 5) {
-			textureData.highlights[index].SetPosition(configTextureData.highlights[index], true);
-		}
-
-		textureData.arrow.SetPosition(configTextureData.arrow, true);
-	}
-}
-
-void UpdateWeaponWheelPos() {
-	{
-		const float multiplier = activeConfig.weaponWheelScaleMultiplier;
-
-		CopyMemory(&queuedConfig.meleeWeaponSwitchControllerTextureData, &defaultConfig.meleeWeaponSwitchControllerTextureData,
-			sizeof(queuedConfig.meleeWeaponSwitchControllerTextureData));
-
-		auto& configTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
-
-		auto values = reinterpret_cast<float*>(&configTextureData);
-		uint32 count = (sizeof(configTextureData) / 4);
-
-		old_for_all(uint32, index, count) {
-			auto& value = values[index];
-
-			value *= multiplier;
-		}
-
-		CopyMemory(&activeConfig.meleeWeaponSwitchControllerTextureData, &queuedConfig.meleeWeaponSwitchControllerTextureData,
-			sizeof(activeConfig.meleeWeaponSwitchControllerTextureData));
-	}
-
-	// Ranged
-	{
-		const float multiplier = activeConfig.weaponWheelScaleMultiplier;
-
-		CopyMemory(&queuedConfig.rangedWeaponSwitchControllerTextureData, &defaultConfig.rangedWeaponSwitchControllerTextureData,
-			sizeof(queuedConfig.rangedWeaponSwitchControllerTextureData));
-
-		auto& configTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
-
-		auto values = reinterpret_cast<float*>(&configTextureData);
-		uint32 count = (sizeof(configTextureData) / 4);
-
-		old_for_all(uint32, index, count) {
-			auto& value = values[index];
-
-			value *= multiplier;
-		}
-
-		CopyMemory(&activeConfig.rangedWeaponSwitchControllerTextureData, &queuedConfig.rangedWeaponSwitchControllerTextureData,
-			sizeof(activeConfig.rangedWeaponSwitchControllerTextureData));
-	}
-
-	UpdateWeaponSwitchControllerTexturePositions();
-}
-
 
 void WeaponSwitchController(IDXGISwapChain* pSwapChain) {
-	static bool run = false;
-	if (!run) {
-		run = true;
-
-		// Melee
-		{
-			auto& textureData = meleeWeaponSwitchControllerTextureData;
-
-			old_for_all(uint8, index, 5) {
-				textureData.backgrounds[index] = {
-					true, false, meleeWeaponSwitchControllerBackgroundNames[index], textureAddrs[TEXTURE_BACKGROUND] };
-			}
-
-			old_for_all(uint8, index, 5) {
-				textureData.icons[index] = { true, false, meleeWeaponSwitchControllerIconNames[index] };
-			}
-
-			old_for_all(uint8, index, 5) {
-				textureData.highlights[index] = {
-					true, false, meleeWeaponSwitchControllerHighlightNames[index], textureAddrs[TEXTURE_HIGHLIGHT] };
-			}
-
-			textureData.arrow = { true, false, meleeWeaponSwitchControllerArrowName };
-		}
-
-		// Ranged
-		{
-			auto& textureData = rangedWeaponSwitchControllerTextureData;
-
-			old_for_all(uint8, index, 5) {
-				textureData.backgrounds[index] = {
-					true, false, rangedWeaponSwitchControllerBackgroundNames[index], textureAddrs[TEXTURE_BACKGROUND] };
-			}
-
-			old_for_all(uint8, index, 5) {
-				textureData.icons[index] = { true, false, rangedWeaponSwitchControllerIconNames[index] };
-			}
-
-			old_for_all(uint8, index, 5) {
-				textureData.highlights[index] = {
-					true, false, rangedWeaponSwitchControllerHighlightNames[index], textureAddrs[TEXTURE_HIGHLIGHT] };
-			}
-
-			textureData.arrow = { true, false, rangedWeaponSwitchControllerArrowName };
-		}
-	}
-
-	UpdateWeaponWheelPos();
 	MeleeWeaponSwitchController(pSwapChain);
 	RangedWeaponSwitchController(pSwapChain);
 }
@@ -2480,27 +2044,10 @@ void WeaponSwitchControllerSettings() {
 			sizeof(activeConfig.rangedWeaponSwitchControllerTextureData));
 
 
-		UpdateWeaponSwitchControllerTexturePositions();
-
 		CopyMemory(&queuedConfig.forceIconFocus, &defaultConfig.forceIconFocus, sizeof(queuedConfig.forceIconFocus));
 		CopyMemory(&activeConfig.forceIconFocus, &queuedConfig.forceIconFocus, sizeof(activeConfig.forceIconFocus));
 	}
 	ImGui::Text("");
-
-	/*GUI_Checkbox2
-	(
-			"Force Icon Focus",
-			activeConfig.forceIconFocus,
-			queuedConfig.forceIconFocus
-	);
-	ImGui::Text("");
-
-	GUI_Checkbox
-	(
-			"Show Textures",
-			g_showTextures
-	);
-	ImGui::Text("");*/
 
 	const float defaultWidth = 1920;
 	const float defaultHeight = 1080;
@@ -2509,10 +2056,6 @@ void WeaponSwitchControllerSettings() {
 	static float targetHeight = 720;
 
 	ImGui::PushItemWidth(200);
-
-	GUI_Checkbox2("Enable New Weapon Wheel", activeConfig.weaponWheelEnabled, queuedConfig.weaponWheelEnabled);
-	ImGui::SameLine();
-	TooltipHelper("(?)", "Enables a Switch Version-like Weapon Wheel with Analog Selection, only works for Player 1.");
 
 	GUI_Checkbox2(
 		"Enable Analog Weapon Selection", activeConfig.weaponWheelAnalogSelectionEnabled, queuedConfig.weaponWheelAnalogSelectionEnabled);
@@ -2532,135 +2075,9 @@ void WeaponSwitchControllerSettings() {
 		defaultConfig.RangedWeaponWheel.timeout, 1, "%u");
 	ImGui::Text("");
 
-	GUI_Checkbox2("Automatic Wheel Positioning", activeConfig.weaponWheelAutoPlace, queuedConfig.weaponWheelAutoPlace);
-
-	if (activeConfig.weaponWheelAutoPlace)
-		GUI_PushDisable(true);
-
-	GUI_InputDefault2<float>("Wheel Scale Multiplier", activeConfig.weaponWheelScaleMultiplier, queuedConfig.weaponWheelScaleMultiplier,
-		defaultConfig.weaponWheelScaleMultiplier, 0.1f, "%g");
-
-
-	GUI_InputDefault2<float>("Melee Wheel Horizontal", activeConfig.weaponWheelHorizontalMelee, queuedConfig.weaponWheelHorizontalMelee,
-		defaultConfig.weaponWheelHorizontalMelee, 1, "%g");
-
-
-	GUI_InputDefault2<float>("Ranged Wheel Horizontal", activeConfig.weaponWheelHorizontalRanged, queuedConfig.weaponWheelHorizontalRanged,
-		defaultConfig.weaponWheelHorizontalRanged, 1, "%g");
-
-
-	GUI_InputDefault2<float>("Wheel Height", activeConfig.weaponWheelHeight, queuedConfig.weaponWheelHeight,
-		defaultConfig.weaponWheelHeight, 1, "%g");
-
-	if (activeConfig.weaponWheelAutoPlace)
-		GUI_PopDisable(true);
-
-	/*GUI_Input
-	(
-			"Target Height",
-			targetHeight,
-			1.0f,
-			"%g"
-	);*/
-
-
-	// Melee
-	UpdateWeaponWheelPos();
-
-	// GUI::save = true;
-
-
 	ImGui::Text("");
 
 	ImGui::PopItemWidth();
-
-
-	// Melee
-	/*{
-			auto & textureData = meleeWeaponSwitchControllerTextureData;
-			auto & activeConfigTextureData = activeConfig.meleeWeaponSwitchControllerTextureData;
-			auto & queuedConfigTextureData = queuedConfig.meleeWeaponSwitchControllerTextureData;
-
-			old_for_all(uint8, index, 5)
-			{
-					textureData.backgrounds[index].Settings
-					(
-							activeConfigTextureData.backgrounds[index],
-							queuedConfigTextureData.backgrounds[index]
-					);
-					ImGui::Text("");
-			}
-
-			old_for_all(uint8, index, 5)
-			{
-					textureData.icons[index].Settings
-					(
-							activeConfigTextureData.icons[index],
-							queuedConfigTextureData.icons[index]
-					);
-					ImGui::Text("");
-			}
-
-			old_for_all(uint8, index, 5)
-			{
-					textureData.highlights[index].Settings
-					(
-							activeConfigTextureData.highlights[index],
-							queuedConfigTextureData.highlights[index]
-					);
-					ImGui::Text("");
-			}
-
-			textureData.arrow.Settings
-			(
-					activeConfigTextureData.arrow,
-					queuedConfigTextureData.arrow
-			);
-			ImGui::Text("");
-	}
-
-	// Ranged
-	{
-			auto & textureData = rangedWeaponSwitchControllerTextureData;
-			auto & activeConfigTextureData = activeConfig.rangedWeaponSwitchControllerTextureData;
-			auto & queuedConfigTextureData = queuedConfig.rangedWeaponSwitchControllerTextureData;
-
-			old_for_all(uint8, index, 5)
-			{
-					textureData.backgrounds[index].Settings
-					(
-							activeConfigTextureData.backgrounds[index],
-							queuedConfigTextureData.backgrounds[index]
-					);
-					ImGui::Text("");
-			}
-
-			old_for_all(uint8, index, 5)
-			{
-					textureData.icons[index].Settings
-					(
-							activeConfigTextureData.icons[index],
-							queuedConfigTextureData.icons[index]
-					);
-					ImGui::Text("");
-			}
-
-			old_for_all(uint8, index, 5)
-			{
-					textureData.highlights[index].Settings
-					(
-							activeConfigTextureData.highlights[index],
-							queuedConfigTextureData.highlights[index]
-					);
-					ImGui::Text("");
-			}
-
-			textureData.arrow.Settings
-			(
-					activeConfigTextureData.arrow,
-					queuedConfigTextureData.arrow
-			);
-	}*/
 }
 
 #pragma endregion
@@ -11650,13 +11067,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 #pragma endregion
 
 void GUI_Render(IDXGISwapChain* pSwapChain) {
-    static bool run = false;
-
-    if (!run) {
-        run = true;
-
-        CreateTexturesWeaponWheel();
-    }
 
     CrimsonSDL::InitSDL();
     if (g_scene != SCENE::GAME) {
