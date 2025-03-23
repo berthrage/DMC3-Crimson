@@ -287,22 +287,13 @@ namespace WW
 
 		bool m_buttonHeld = false;
 
-		bool m_RunWheelFadeAnim{ false }, m_RunActiveWeaponFadeAnim{ false }, m_RunWeaponSwitchBrightnessAnim{ false },
-			m_RunWeaponSwitchScaleAnim{ false }, m_RunArrowFadeAnim{ false };
-
 		double m_SinceLatestChangeMs{ 0.0f };
 		double m_SinceLatestChangeMsGlobal{ 0.0f };
-
-		bool m_AlreadyTriggeredWheelFadeAnim{ false },
-			m_AlreadyTriggeredActiveWeaponFadeAnim{ false },
-			m_AlreadyTriggeredSwitchBrightnessAnim{ false },
-			m_AlreadyTriggeredSwitchScaleAnim{ false },
-			m_AlreadyTriggeredArrowFadeAnim{ false };
 
 		static constexpr double s_FadeDelay{ 583.3 };
 
 		static constexpr double s_WheelFadeoutDur{ 133.3 }, s_ActiveWeaponFadeoutDur{ 433.3 }, s_SwitchBrightnessAnimDur{ 215.8 },
-			s_SwitchScaleAnimDur{ 166.6 }, s_ArrowFadeAnim{ 60.0 };
+			s_SwitchScaleAnimDur{ 166.6 }, s_ArrowFadeAnimDur{ 300.0 };
 
 		static constexpr Transform s_MeleeInactiveSlotTransforms[5] =
 		{

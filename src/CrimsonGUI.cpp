@@ -7730,7 +7730,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
 			ImGui::Text("AllActorsSpawned: %u", g_allActorsSpawned);
-			if (g_pMeleeWeaponWheel)ImGui::Text("%u", g_pMeleeWeaponWheel->m_AlreadyTriggeredSwitchScaleAnim);
+			if (g_pMeleeWeaponWheel)ImGui::Text("%u", g_pMeleeWeaponWheel->m_pWeaponSwitchScaleAnimation->IsAlreadyTriggered());
 			ImGui::Text("NextActionPolicyTrickster: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::TRICKSTER_DARK_SLAYER]);
 			ImGui::Text("NextActionPolicyMelee: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::MELEE_ATTACK]);
 			ImGui::Text("BufferedAction: %u", actorData.bufferedAction);

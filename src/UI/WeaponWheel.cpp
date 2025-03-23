@@ -710,37 +710,6 @@ namespace WW {
 
         SetWeaponsTranslations();
 
-// 		for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; charIdx++) {
-// 			for (size_t i = 0; i < m_Weapons[charIdx].size(); i++) {
-// 				m_pSpriteBatch->SetTransform(
-// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Inactive),
-// 					s_MeleeInactiveSlotTransforms[i].Translation,
-// 					s_MeleeInactiveSlotTransforms[i].Rotation,
-// 					s_MeleeInactiveSlotTransforms[i].Scale
-// 				);
-// 
-// 				m_pSpriteBatch->SetTransform(
-// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Active),
-// 					s_MeleeActiveSlotTransforms[i].Translation,
-// 					s_MeleeActiveSlotTransforms[i].Rotation,
-// 					s_MeleeActiveSlotTransforms[i].Scale
-// 				);
-// 
-// 				m_pSpriteBatch->SetTransform(
-// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
-// 					s_MeleeActiveSlotTransforms[i].Translation,
-// 					s_MeleeActiveSlotTransforms[i].Rotation,
-// 					s_MeleeActiveSlotTransforms[i].Scale
-// 				);
-// 
-// 
-// 				m_pSpriteBatch->SetOpacity(
-// 					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
-// 					0.0f
-// 				);
-// 			}
-// 		}
-
         UpdateSlotStates();
     }
 
@@ -769,66 +738,69 @@ namespace WW {
         m_pSpriteBatch->SetActiveSprites(spriteIDs);
     }
 
-    void WeaponWheel::SetActiveSlot(size_t slot)
+    void WeaponWheel::SetActiveSlot(size_t slot) 
     {
         m_pWheelFadeAnimation->OnReset();
         m_pActiveWeaponFadeAnimation->OnReset();
         m_pWeaponSwitchScaleAnimation->OnReset();
         m_pWeaponSwitchBrightnessAnimation->OnReset();
-		m_pArrowFadeAnimation->OnReset();
+        m_pArrowFadeAnimation->OnReset();
 
         m_CurrentActiveSlot = slot;
 
         UpdateSlotStates();
 
-        m_AlreadyTriggeredWheelFadeAnim = false;
-        m_AlreadyTriggeredActiveWeaponFadeAnim = false;
-        m_AlreadyTriggeredSwitchBrightnessAnim = false;
-        m_AlreadyTriggeredSwitchScaleAnim = false;
-		m_AlreadyTriggeredArrowFadeAnim = false;
+        m_pWheelFadeAnimation->SetAlreadyTriggered(false);
+        m_pActiveWeaponFadeAnimation->SetAlreadyTriggered(false);
+        m_pWeaponSwitchBrightnessAnimation->SetAlreadyTriggered(false);
+        m_pWeaponSwitchScaleAnimation->SetAlreadyTriggered(false);
+        m_pArrowFadeAnimation->SetAlreadyTriggered(false);
+
         m_SinceLatestChangeMs = 0.0f;
         m_SinceLatestChangeMsGlobal = 0.0f;
     }
 
-	void WeaponWheel::OnUpdate(double ts, double tsGlobal) {
-		if (!m_AlreadyTriggeredWheelFadeAnim && m_SinceLatestChangeMsGlobal >= s_FadeDelay) {
-			m_RunWheelFadeAnim = true;
-			m_AlreadyTriggeredWheelFadeAnim = true;
+
+	void WeaponWheel::OnUpdate(double ts, double tsGlobal) 
+    {
+		if (!m_pArrowFadeAnimation->IsAlreadyTriggered() && m_SinceLatestChangeMsGlobal >= 40) {
+			m_pArrowFadeAnimation->Start();
+			m_pArrowFadeAnimation->SetAlreadyTriggered(true);
 		}
 
-		if (!m_AlreadyTriggeredActiveWeaponFadeAnim && m_SinceLatestChangeMsGlobal >= s_FadeDelay) {
-			m_RunActiveWeaponFadeAnim = true;
-			m_AlreadyTriggeredActiveWeaponFadeAnim = true;
+		if (!m_pWheelFadeAnimation->IsAlreadyTriggered() && !m_pArrowFadeAnimation->IsRunning() && m_SinceLatestChangeMsGlobal >= s_FadeDelay) {
+			m_pWheelFadeAnimation->Start();
+			m_pWheelFadeAnimation->SetAlreadyTriggered(true);
 		}
 
-		if (!m_AlreadyTriggeredSwitchScaleAnim && m_SinceLatestChangeMs >= 5) {
-			m_RunWeaponSwitchScaleAnim = true;
-			m_AlreadyTriggeredSwitchScaleAnim = true;
+		if (!m_pActiveWeaponFadeAnimation->IsAlreadyTriggered() && m_SinceLatestChangeMsGlobal >= s_FadeDelay) {
+			m_pActiveWeaponFadeAnimation->Start();
+			m_pActiveWeaponFadeAnimation->SetAlreadyTriggered(true);
 		}
 
-		if (!m_AlreadyTriggeredSwitchBrightnessAnim && m_SinceLatestChangeMs >= 5) {
-			m_RunWeaponSwitchBrightnessAnim = true;
-			m_AlreadyTriggeredSwitchBrightnessAnim = true;
+		if (!m_pWeaponSwitchScaleAnimation->IsAlreadyTriggered() && m_SinceLatestChangeMs >= 5) {
+			m_pWeaponSwitchScaleAnimation->Start();
+			m_pWeaponSwitchScaleAnimation->SetAlreadyTriggered(true);
 		}
 
-		if (!m_AlreadyTriggeredArrowFadeAnim && m_SinceLatestChangeMsGlobal >= 40) {
-			m_RunArrowFadeAnim = true;
-			m_AlreadyTriggeredArrowFadeAnim = true;
+		if (!m_pWeaponSwitchBrightnessAnimation->IsAlreadyTriggered() && m_SinceLatestChangeMs >= 5) {
+			m_pWeaponSwitchBrightnessAnimation->Start();
+			m_pWeaponSwitchBrightnessAnimation->SetAlreadyTriggered(true);
 		}
 
-		if (m_RunArrowFadeAnim)
+		if (m_pArrowFadeAnimation->IsRunning())
 			m_pArrowFadeAnimation->OnUpdate(ts);
 
-		if (m_RunWheelFadeAnim)
+		if (m_pWheelFadeAnimation->IsRunning())
 			m_pWheelFadeAnimation->OnUpdate(ts);
 
-		if (m_RunActiveWeaponFadeAnim)
+		if (m_pActiveWeaponFadeAnimation->IsRunning())
 			m_pActiveWeaponFadeAnimation->OnUpdate(ts);
 
-		if (m_RunWeaponSwitchScaleAnim)
+		if (m_pWeaponSwitchScaleAnimation->IsRunning())
 			m_pWeaponSwitchScaleAnimation->OnUpdate(ts);
 
-		if (m_RunWeaponSwitchBrightnessAnim)
+		if (m_pWeaponSwitchBrightnessAnimation->IsRunning())
 			m_pWeaponSwitchBrightnessAnimation->OnUpdate(ts);
 
 		m_SinceLatestChangeMs += ts;
@@ -837,6 +809,7 @@ namespace WW {
 		else
 			m_SinceLatestChangeMsGlobal = 0;
 	}
+
 
     void WeaponWheel::TrackButtonHeldState(bool buttonHeld) 
     {
@@ -863,214 +836,211 @@ namespace WW {
         return m_pSpriteBatch->GetLastErrorCode();
     }
 
-    void WeaponWheel::InitializeAnimations()
-    {
-        {
-            m_pWheelFadeAnimation = std::make_unique<GenericAnimation>(s_WheelFadeoutDur);
-
-            // Before the animation starts
-            m_pWheelFadeAnimation->SetOnStart([this](GenericAnimation* pAnim)
-                {
-                    // Ensure the state is set to normal
-                    UpdateSlotStates();
-                });
-
-            // On update
-            m_pWheelFadeAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
-                {
-                    const auto progress = pAnim->GetProgressNormalized();
-
-                    for (size_t i = 0; i < m_Weapons[m_CurrentActiveCharIndex].size(); i++)
-                    {
-                        // Inactive slots opacity
-                        if (i != m_CurrentActiveSlot)
-                        {
-                            m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, m_CurrentActiveCharIndex, WeaponState::Inactive), 1.0f - progress);
-                            m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, false), 1.0f - progress);
-                        }
-                        else // Active slots opacity
-                        {
-                            m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.0F);
-                            m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, true), 1.0f - progress);
-                        }
-                    }
-
-                    if (m_Weapons[m_CurrentActiveCharIndex].size() > 0)
-                        m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), 1.0f - progress);
-                });
-
-            // After the animation ends
-            m_pWheelFadeAnimation->SetOnEnd([this](GenericAnimation* pAnim)
-                {
-                    m_RunWheelFadeAnim = false;
-                });
-			// When reset
-			m_pWheelFadeAnimation->SetOnReset([this](GenericAnimation* pAnim)
-				{
-					m_RunWheelFadeAnim = false;
-					UpdateSlotStates();
-				});
-        }
-
+	void WeaponWheel::InitializeAnimations() {
 		{
-			m_pArrowFadeAnimation = std::make_unique<GenericAnimation>(300.0F);
+			m_pWheelFadeAnimation = std::make_unique<GenericAnimation>(s_WheelFadeoutDur);
 
 			// Before the animation starts
-            m_pArrowFadeAnimation->SetOnStart([this](GenericAnimation* pAnim)
+			m_pWheelFadeAnimation->SetOnStart([this](GenericAnimation* pAnim)
 				{
 					// Ensure the state is set to normal
-                    m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
+					UpdateSlotStates();
 				});
 
 			// On update
-            m_pArrowFadeAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
+			m_pWheelFadeAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
 				{
 					const auto progress = pAnim->GetProgressNormalized();
 
-                    m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f - progress);
+					for (size_t i = 0; i < m_Weapons[m_CurrentActiveCharIndex].size(); i++) {
+						// Inactive slots opacity
+						if (i != m_CurrentActiveSlot) {
+							m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, m_CurrentActiveCharIndex, WeaponState::Inactive), 1.0f - progress);
+							m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, false), 1.0f - progress);
+						}
+						else // Active slots opacity
+						{
+							m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.0F);
+							m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, true), 1.0f - progress);
+						}
+					}
+
+					if (m_Weapons[m_CurrentActiveCharIndex].size() > 0)
+						m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), 1.0f - progress);
 				});
 
 			// After the animation ends
-            m_pArrowFadeAnimation->SetOnEnd([this](GenericAnimation* pAnim)
+			m_pWheelFadeAnimation->SetOnEnd([this](GenericAnimation* pAnim)
 				{
-					m_RunArrowFadeAnim = false;
+					m_pWheelFadeAnimation->Stop();
+				});
+			// When reset
+			m_pWheelFadeAnimation->SetOnReset([this](GenericAnimation* pAnim)
+				{
+					m_pWheelFadeAnimation->Stop();
+					UpdateSlotStates();
+				});
+		}
+
+		{
+			m_pArrowFadeAnimation = std::make_unique<GenericAnimation>(s_ArrowFadeAnimDur);
+
+			// Before the animation starts
+			m_pArrowFadeAnimation->SetOnStart([this](GenericAnimation* pAnim)
+				{
+					// Ensure the state is set to normal
+					m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
+				});
+
+			// On update
+			m_pArrowFadeAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
+				{
+					const auto progress = pAnim->GetProgressNormalized();
+
+					m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f - progress);
+				});
+
+			// After the animation ends
+			m_pArrowFadeAnimation->SetOnEnd([this](GenericAnimation* pAnim)
+				{
+					m_pArrowFadeAnimation->Stop();
 				});
 			// When reset
 			m_pArrowFadeAnimation->SetOnReset([this](GenericAnimation* pAnim)
 				{
-					m_RunArrowFadeAnim = false;
-                    //m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
+					m_pArrowFadeAnimation->Stop();
 				});
 		}
 
-        {
-            m_pActiveWeaponFadeAnimation = std::make_unique<GenericAnimation>(s_ActiveWeaponFadeoutDur);
+		{
+			m_pActiveWeaponFadeAnimation = std::make_unique<GenericAnimation>(s_ActiveWeaponFadeoutDur);
 
-            // Before the animation starts
-            m_pActiveWeaponFadeAnimation->SetOnStart([this](GenericAnimation* pAnim)
-                {
-                    // Ensure the active weapon is at full opacity
-                    m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
-                });
+			// Before the animation starts
+			m_pActiveWeaponFadeAnimation->SetOnStart([this](GenericAnimation* pAnim)
+				{
+					// Ensure the active weapon is at full opacity
+					m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
+				});
 
-            // On update
-            m_pActiveWeaponFadeAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
-                {
-                    const auto progress = pAnim->GetProgressNormalized();
+			// On update
+			m_pActiveWeaponFadeAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
+				{
+					const auto progress = pAnim->GetProgressNormalized();
 
-                    m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f - progress);
-                });
+					m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f - progress);
+				});
 
-            // After the animation ends
-            m_pActiveWeaponFadeAnimation->SetOnEnd([this](GenericAnimation* pAnim)
-                {
-                    m_RunActiveWeaponFadeAnim = false;
-                });
+			// After the animation ends
+			m_pActiveWeaponFadeAnimation->SetOnEnd([this](GenericAnimation* pAnim)
+				{
+					m_pActiveWeaponFadeAnimation->Stop();
+				});
 
-            // When reset
-            m_pActiveWeaponFadeAnimation->SetOnReset([this](GenericAnimation* pAnim)
-                {
-                    m_RunActiveWeaponFadeAnim = false;
-                    UpdateSlotStates();
-                });
-        }
+			// When reset
+			m_pActiveWeaponFadeAnimation->SetOnReset([this](GenericAnimation* pAnim)
+				{
+					m_pActiveWeaponFadeAnimation->Stop();
+					UpdateSlotStates();
+				});
+		}
 
-        {
-            m_pWeaponSwitchBrightnessAnimation = std::make_unique<GenericAnimation>(s_SwitchBrightnessAnimDur);
+		{
+			m_pWeaponSwitchBrightnessAnimation = std::make_unique<GenericAnimation>(s_SwitchBrightnessAnimDur);
 
-            // Before the animation starts
-            m_pWeaponSwitchBrightnessAnimation->SetOnStart([this](GenericAnimation* pAnim)
-                {
-                    // Ensure the active weapon is at normal brightness
-                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
-                });
+			// Before the animation starts
+			m_pWeaponSwitchBrightnessAnimation->SetOnStart([this](GenericAnimation* pAnim)
+				{
+					// Ensure the active weapon is at normal brightness
+					m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
+				});
 
-            // On update
-            m_pWeaponSwitchBrightnessAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
-                {
-                    const auto progress = pAnim->GetProgressNormalized();
+			// On update
+			m_pWeaponSwitchBrightnessAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
+				{
+					const auto progress = pAnim->GetProgressNormalized();
 
-                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), progress * 3.18f);
-                });
+					m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), progress * 3.18f);
+				});
 
-            // After the animation ends
-            m_pWeaponSwitchBrightnessAnimation->SetOnEnd([this](GenericAnimation* pAnim)
-                {
-                    m_RunWeaponSwitchBrightnessAnim = false;
-                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
-                });
+			// After the animation ends
+			m_pWeaponSwitchBrightnessAnimation->SetOnEnd([this](GenericAnimation* pAnim)
+				{
+					m_pWeaponSwitchBrightnessAnimation->Stop();
+					m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
+				});
 
-            // When reset
-            m_pWeaponSwitchBrightnessAnimation->SetOnReset([this](GenericAnimation* pAnim)
-                {
-                    m_RunWeaponSwitchBrightnessAnim = false;
-                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
-                });
-        }
+			// When reset
+			m_pWeaponSwitchBrightnessAnimation->SetOnReset([this](GenericAnimation* pAnim)
+				{
+					m_pWeaponSwitchBrightnessAnimation->Stop();
+					m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
+				});
+		}
 
-        {
-            m_pWeaponSwitchScaleAnimation = std::make_unique<GenericAnimation>(s_SwitchScaleAnimDur);
+		{
+			m_pWeaponSwitchScaleAnimation = std::make_unique<GenericAnimation>(s_SwitchScaleAnimDur);
 
-            // Before the animation starts
-            m_pWeaponSwitchScaleAnimation->SetOnStart([this](GenericAnimation* pAnim)
-                {
-                    m_pSpriteBatch->SetOpacity(
-                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 0.0f);
+			// Before the animation starts
+			m_pWeaponSwitchScaleAnimation->SetOnStart([this](GenericAnimation* pAnim)
+				{
+					m_pSpriteBatch->SetOpacity(
+						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 0.0f);
 
-                    m_pSpriteBatch->SetBrightness(
-                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 1.0f);
+					m_pSpriteBatch->SetBrightness(
+						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 1.0f);
 
-                    m_pSpriteBatch->ScaleTo(
-                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), glm::vec3(1.0f));
-                });
+					m_pSpriteBatch->ScaleTo(
+						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), glm::vec3(1.0f));
+				});
 
-            // On update
-            m_pWeaponSwitchScaleAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
-                {
-                    const auto progress = pAnim->GetProgressNormalized();
+			// On update
+			m_pWeaponSwitchScaleAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
+				{
+					const auto progress = pAnim->GetProgressNormalized();
 
-                    m_pSpriteBatch->SetOpacity(
-                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), progress * 0.9f);
+					m_pSpriteBatch->SetOpacity(
+						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), progress * 0.9f);
 
-                    m_pSpriteBatch->SetBrightness(
-                       (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), progress * 3.18f);
+					m_pSpriteBatch->SetBrightness(
+						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), progress * 3.18f);
 
-                    m_pSpriteBatch->ScaleTo(
-                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate),
-                        s_MeleeActiveSlotTransforms[m_CurrentActiveSlot].Scale * float(progress) * 1.5f);
-                });
+					m_pSpriteBatch->ScaleTo(
+						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate),
+						s_MeleeActiveSlotTransforms[m_CurrentActiveSlot].Scale * float(progress) * 1.5f);
+				});
 
-            // After the animation ends
-            m_pWeaponSwitchScaleAnimation->SetOnEnd([this](GenericAnimation* pAnim)
-                {
-                    m_RunWeaponSwitchScaleAnim = false;
+			// After the animation ends
+			m_pWeaponSwitchScaleAnimation->SetOnEnd([this](GenericAnimation* pAnim)
+				{
+					m_pWeaponSwitchScaleAnimation->Stop();
 
-                    m_pSpriteBatch->SetOpacity(
-                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 0.0f);
+					m_pSpriteBatch->SetOpacity(
+						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 0.0f);
 
-                    m_pSpriteBatch->SetBrightness(
-                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 1.0f);
+					m_pSpriteBatch->SetBrightness(
+						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 1.0f);
 
-                    m_pSpriteBatch->ScaleTo(
-                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), glm::vec3(1.0f));
-                });
+					m_pSpriteBatch->ScaleTo(
+						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), glm::vec3(1.0f));
+				});
 
-            // When reset
-            m_pWeaponSwitchScaleAnimation->SetOnReset([this](GenericAnimation* pAnim)
-                {
-                    m_RunWeaponSwitchScaleAnim = false;
+			// When reset
+			m_pWeaponSwitchScaleAnimation->SetOnReset([this](GenericAnimation* pAnim)
+				{
+					m_pWeaponSwitchScaleAnimation->Stop();
 
-                    m_pSpriteBatch->SetOpacity(
-                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 0.0f);
+					m_pSpriteBatch->SetOpacity(
+						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 0.0f);
 
-                    m_pSpriteBatch->SetBrightness(
-                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 1.0f);
+					m_pSpriteBatch->SetBrightness(
+						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 1.0f);
 
-                    m_pSpriteBatch->ScaleTo(
-                        (size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), glm::vec3(1.0f));
-                });
-        }
-    }
+					m_pSpriteBatch->ScaleTo(
+						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), glm::vec3(1.0f));
+				});
+		}
+
+	}
 
     void WeaponWheel::SetInactiveOpacity(float opacity)
     {
