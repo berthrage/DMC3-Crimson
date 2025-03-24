@@ -3,6 +3,7 @@
 #include "Sprite.hpp"
 
 #include <filesystem>
+#include <algorithm> 
 
 
 namespace WW {
@@ -746,6 +747,8 @@ namespace WW {
         m_pWeaponSwitchBrightnessAnimation->OnReset();
         m_pArrowFadeAnimation->OnReset();
 		m_pArrowBrightnessAnim->OnReset();
+        if (!m_buttonHeld) 
+            m_pAnalogArrowsFadeInAnim->OnReset();
 
         m_CurrentActiveSlot = slot;
 
@@ -757,17 +760,21 @@ namespace WW {
         m_pWeaponSwitchScaleAnimation->SetAlreadyTriggered(false);
         m_pArrowFadeAnimation->SetAlreadyTriggered(false);
         m_pArrowBrightnessAnim->SetAlreadyTriggered(false);
+		if (!m_buttonHeld) {
+			m_pAnalogArrowsFadeInAnim->SetAlreadyTriggered(false);
+		}
 
         m_SinceLatestChangeMs = 0.0f;
         m_SinceLatestChangeHeldResetMs = 0.0f;
 		m_SinceLatestChangeHeldArrowMs = 0.0f;
+		m_SinceLatestChangeAnalogUsedMs = 0.0f;
     }
 
 
-	void WeaponWheel::OnUpdate(double ts, double tsHeldReset, double tsHeldArrow) 
+	void WeaponWheel::OnUpdate(double ts, double tsHeldReset, double tsHeldArrow, double tsAnalogUsed) 
     {
 		
-		// If the wheel is not being held, start the fadeout animation
+		// Animation Start Logics
 		if (!m_pWheelFadeAnimation->IsAlreadyTriggered() && !m_pArrowFadeAnimation->IsRunning() && m_SinceLatestChangeHeldResetMs >= s_FadeDelay) {
 			m_pWheelFadeAnimation->Start();
 			m_pWheelFadeAnimation->SetAlreadyTriggered(true);
@@ -799,7 +806,6 @@ namespace WW {
 		}
 
 		// Update the animations
-
 		if (m_pWheelFadeAnimation->IsRunning())
 			m_pWheelFadeAnimation->OnUpdate(ts);
 
@@ -818,6 +824,10 @@ namespace WW {
 		if (m_pWeaponSwitchBrightnessAnimation->IsRunning())
 			m_pWeaponSwitchBrightnessAnimation->OnUpdate(ts);
 
+		if (m_pAnalogArrowsFadeInAnim->IsRunning())
+			m_pAnalogArrowsFadeInAnim->OnUpdate(ts);
+
+        // Increment and Reset Timers
 		m_SinceLatestChangeMs += ts;
 		
 		if (!m_buttonHeld) {
@@ -833,6 +843,39 @@ namespace WW {
 		if (m_alwaysShow) {
 			m_SinceLatestChangeHeldResetMs = 0;
 		}
+
+		if (!m_analogMoving || !m_buttonHeld) {
+            m_SinceLatestChangeAnalogUsedMs += tsAnalogUsed;
+        }
+        else {
+            m_SinceLatestChangeAnalogUsedMs = 0;
+        }
+
+		// Analog Arrows Fade In Logic when holding the button
+        if (m_buttonHeld && m_SinceLatestChangeMs >= 550 && 
+            !m_pAnalogArrowsFadeInAnim->IsAlreadyTriggered() && m_analogSwitching) {
+			m_pAnalogArrowsFadeInAnim->Start();
+			m_pAnalogArrowsFadeInAnim->SetAlreadyTriggered(true);
+        }
+
+        // Snap Analog Arrows' opacity right away if analog moves 
+        if (m_analogSwitching) {
+			if (m_analogMoving && m_buttonHeld) {
+				for (size_t i = 0; i < m_Weapons[m_CurrentActiveCharIndex].size(); i++) {
+					if (i != m_CurrentActiveSlot) {
+						m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.45f);
+					}
+				}
+                m_pAnalogArrowsFadeInAnim->SetAlreadyTriggered(true);
+			}
+			else if (!(m_analogMoving || m_buttonHeld) && m_SinceLatestChangeAnalogUsedMs >= 160) {
+				for (size_t i = 0; i < m_Weapons[m_CurrentActiveCharIndex].size(); i++) {
+					if (i != m_CurrentActiveSlot) {
+						m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.0f);
+					}
+				}
+			}
+        }
 	}
 
 
@@ -841,7 +884,17 @@ namespace WW {
         m_buttonHeld = buttonHeld;
     }
 
-	void WeaponWheel::TrackAlwaysShowState(bool alwaysShow) 
+    void WeaponWheel::TrackAnalogMovingState(bool analogMoving) 
+    {
+		m_analogMoving = analogMoving;
+    }
+
+    void WeaponWheel::TrackAnalogSwitchingConfig(bool analogSwitching)
+    {
+		m_analogSwitching = analogSwitching;
+    }
+
+	void WeaponWheel::TrackAlwaysShowConfig(bool alwaysShow) 
     {
 		m_alwaysShow = alwaysShow;
 	}
@@ -976,6 +1029,44 @@ namespace WW {
                     m_pArrowBrightnessAnim->Stop();
 					m_pSpriteBatch->SetBrightness((size_t)GetArrowTextureID(m_ThemeID
                         , m_CurrentActiveSlot), 1.0f);
+				});
+		}
+
+		{
+			m_pAnalogArrowsFadeInAnim = std::make_unique<GenericAnimation>(700.0);
+
+			// Before the animation starts
+            m_pAnalogArrowsFadeInAnim->SetOnStart([this](GenericAnimation* pAnim)
+				{
+					// Ensure the state is set to normal
+// 					for (size_t i = 0; i < m_Weapons[m_CurrentActiveCharIndex].size(); i++) {
+// 						if (i != m_CurrentActiveSlot) {
+// 							m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.05f);
+// 						}
+// 					}
+				});
+
+			// On update
+            m_pAnalogArrowsFadeInAnim->SetOnUpdate([this](GenericAnimation* pAnim)
+				{
+					const auto progress = pAnim->GetProgressNormalized();
+                    
+					for (size_t i = 0; i < m_Weapons[m_CurrentActiveCharIndex].size(); i++) {
+						if (i != m_CurrentActiveSlot) {
+							m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), std::min(0.00 + progress, 0.45));
+						}
+					}
+				});
+
+			// After the animation ends
+            m_pAnalogArrowsFadeInAnim->SetOnEnd([this](GenericAnimation* pAnim)
+				{
+					m_pArrowFadeAnimation->Stop();
+				});
+			// When reset
+            m_pAnalogArrowsFadeInAnim->SetOnReset([this](GenericAnimation* pAnim)
+				{
+                    m_pAnalogArrowsFadeInAnim->Stop();
 				});
 		}
 

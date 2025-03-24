@@ -246,9 +246,11 @@ namespace WW
 		void SetWheelTheme(WheelThemes themeID);
 		void SetActiveSlot(size_t slot);
 
-		void OnUpdate(double ts, double tsHeldReset, double tsHeldArrow);
+		void OnUpdate(double ts, double tsHeldReset, double tsHeldArrow, double tsAnalogUsed);
 		void TrackButtonHeldState(bool buttonHeld);
-		void TrackAlwaysShowState(bool alwaysShow);
+		void TrackAnalogMovingState(bool analogMoving);
+		void TrackAnalogSwitchingConfig(bool analogSwitching);
+		void TrackAlwaysShowConfig(bool alwaysShow);
 		bool OnDraw();
 
 		ID3D11ShaderResourceView* GetSRV();
@@ -284,14 +286,17 @@ namespace WW
 		std::unique_ptr<Graphics::BatchedSprites> m_pSpriteBatch;
 
 		std::unique_ptr<GenericAnimation> m_pWheelFadeAnimation, m_pArrowFadeAnimation, m_pArrowBrightnessAnim, m_pActiveWeaponFadeAnimation, m_pWeaponSwitchBrightnessAnimation,
-			m_pWeaponSwitchScaleAnimation;
+			m_pWeaponSwitchScaleAnimation, m_pAnalogArrowsFadeInAnim;
 
 		bool m_buttonHeld = false;
 		bool m_alwaysShow{ false };
+		bool m_analogMoving{ false };
+		bool m_analogSwitching{ false };
 
 		double m_SinceLatestChangeMs{ 0.0f };
 		double m_SinceLatestChangeHeldResetMs{ 0.0f };
 		double m_SinceLatestChangeHeldArrowMs{ 0.0f };
+		double m_SinceLatestChangeAnalogUsedMs{ 0.0f };
 
 		static constexpr double s_FadeDelay{ 583.3 };
 

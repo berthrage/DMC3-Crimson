@@ -1752,6 +1752,10 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	static std::array<uint8_t, CHARACTER_COUNT> oldCharCostumes;
 	static bool oldUnlockedDevilTrigger = false;
 
+	auto leftStick = (characterData.rangedWeaponSwitchStick == LEFT_STICK);
+	auto radius = (leftStick) ? gamepad.leftStickRadius : gamepad.rightStickRadius;
+	auto stickUsed = radius > RIGHT_STICK_DEADZONE ? true : false;
+
 	// Feed old arrays for comparisons. -- only once during runtime.
 	static bool initializedOld = false;  
 	if (!initializedOld) {
@@ -1881,9 +1885,11 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	static auto startTime = ImGui::GetTime();
 	
 	g_pMeleeWeaponWheel->OnUpdate((ImGui::GetTime() - startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier),
-		(ImGui::GetTime() - startTime) * 1000.0f, (ImGui::GetTime() - startTime) * 1000.0f);
+		(ImGui::GetTime() - startTime) * 1000.0f, (ImGui::GetTime() - startTime) * 1000.0f, (ImGui::GetTime() - startTime) * 1000.0f);
 	g_pMeleeWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(BINDING::CHANGE_DEVIL_ARMS));
-	g_pMeleeWeaponWheel->TrackAlwaysShowState(activeCrimsonConfig.WeaponWheel.meleeAlwaysShow);
+	g_pMeleeWeaponWheel->TrackAlwaysShowConfig(activeCrimsonConfig.WeaponWheel.meleeAlwaysShow);
+	g_pMeleeWeaponWheel->TrackAnalogMovingState(stickUsed);
+	g_pMeleeWeaponWheel->TrackAnalogSwitchingConfig(activeCrimsonConfig.WeaponWheel.enableAnalogSelection);
 	startTime = ImGui::GetTime();
 
 	g_pMeleeWeaponWheel->OnDraw();
@@ -1928,6 +1934,10 @@ void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	static std::vector<WW::WeaponIDs> currentWeapons[CHARACTER_COUNT];
 	static std::array<std::array<uint8_t, 5>, CHARACTER_COUNT> oldCharRangedWeapons;
 	static std::array<uint8_t, CHARACTER_COUNT> oldPlayerDataChars;
+	
+	auto leftStick = (characterData.rangedWeaponSwitchStick == LEFT_STICK);
+	auto radius = (leftStick) ? gamepad.leftStickRadius : gamepad.rightStickRadius;
+	auto stickUsed = radius > RIGHT_STICK_DEADZONE ? true : false;
 
 	// Feed old arrays for comparisons. -- only once during runtime.
 	static bool initializedOld = false;
@@ -2048,9 +2058,11 @@ void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	static auto startTime = ImGui::GetTime();
 
 	g_pRangedWeaponWheel->OnUpdate((ImGui::GetTime() - startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier),
-		(ImGui::GetTime() - startTime) * 1000.0f, (ImGui::GetTime() - startTime) * 1000.0f);
+		(ImGui::GetTime() - startTime) * 1000.0f, (ImGui::GetTime() - startTime) * 1000.0f, (ImGui::GetTime() - startTime) * 1000.0f);
 	g_pRangedWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(BINDING::CHANGE_GUN));
-	g_pRangedWeaponWheel->TrackAlwaysShowState(activeCrimsonConfig.WeaponWheel.rangedAlwaysShow);
+	g_pRangedWeaponWheel->TrackAlwaysShowConfig(activeCrimsonConfig.WeaponWheel.rangedAlwaysShow);
+	g_pRangedWeaponWheel->TrackAnalogMovingState(stickUsed);
+	g_pRangedWeaponWheel->TrackAnalogSwitchingConfig(activeCrimsonConfig.WeaponWheel.enableAnalogSelection);
 	startTime = ImGui::GetTime();
 
 	g_pRangedWeaponWheel->OnDraw();
@@ -7163,7 +7175,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
 			ImGui::Text("AllActorsSpawned: %u", g_allActorsSpawned);
-			if (g_pMeleeWeaponWheel)ImGui::Text("%u", g_pMeleeWeaponWheel->m_pWeaponSwitchScaleAnimation->IsAlreadyTriggered());
+			ImGui::Text("StickRadius2: %u", gamepad.rightStickRadius);
 			ImGui::Text("NextActionPolicyTrickster: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::TRICKSTER_DARK_SLAYER]);
 			ImGui::Text("NextActionPolicyMelee: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::MELEE_ATTACK]);
 			ImGui::Text("BufferedAction: %u", actorData.bufferedAction);
