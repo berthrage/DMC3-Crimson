@@ -1889,7 +1889,7 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	g_pMeleeWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(BINDING::CHANGE_DEVIL_ARMS));
 	g_pMeleeWeaponWheel->TrackAlwaysShowConfig(activeCrimsonConfig.WeaponWheel.meleeAlwaysShow);
 	g_pMeleeWeaponWheel->TrackAnalogMovingState(stickUsed);
-	g_pMeleeWeaponWheel->TrackAnalogSwitchingConfig(activeCrimsonConfig.WeaponWheel.enableAnalogSelection);
+	g_pMeleeWeaponWheel->TrackAnalogSwitchingConfig(activeCrimsonConfig.WeaponWheel.analogSwitching);
 	startTime = ImGui::GetTime();
 
 	g_pMeleeWeaponWheel->OnDraw();
@@ -2062,7 +2062,7 @@ void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	g_pRangedWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(BINDING::CHANGE_GUN));
 	g_pRangedWeaponWheel->TrackAlwaysShowConfig(activeCrimsonConfig.WeaponWheel.rangedAlwaysShow);
 	g_pRangedWeaponWheel->TrackAnalogMovingState(stickUsed);
-	g_pRangedWeaponWheel->TrackAnalogSwitchingConfig(activeCrimsonConfig.WeaponWheel.enableAnalogSelection);
+	g_pRangedWeaponWheel->TrackAnalogSwitchingConfig(activeCrimsonConfig.WeaponWheel.analogSwitching);
 	startTime = ImGui::GetTime();
 
 	g_pRangedWeaponWheel->OnDraw();
@@ -2087,8 +2087,8 @@ void WeaponSwitchControllerSettings() {
 	ImGui::PushItemWidth(200);
 
 	GUI_Checkbox2(
-		"Enable Analog Weapon Selection", activeCrimsonConfig.WeaponWheel.enableAnalogSelection,
-		queuedCrimsonConfig.WeaponWheel.enableAnalogSelection);
+		"Analog Switching", activeCrimsonConfig.WeaponWheel.analogSwitching,
+		queuedCrimsonConfig.WeaponWheel.analogSwitching);
 
 	GUI_Checkbox2("Disable Camera Control While Open", activeCrimsonConfig.WeaponWheel.disableCameraRotation,
 		queuedCrimsonConfig.WeaponWheel.disableCameraRotation);

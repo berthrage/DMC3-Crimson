@@ -51,7 +51,7 @@ struct CrimsonConfig {
 	} GUI;
 
 	struct WeaponWheel {
-		bool enableAnalogSelection = true;
+		bool analogSwitching = true;
 		bool disableCameraRotation = true;
 		std::string theme = "Crimson";
 		bool meleeAlwaysShow = false;
@@ -59,7 +59,7 @@ struct CrimsonConfig {
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
-				std::make_pair("enableAnalogSelection", &WeaponWheel::enableAnalogSelection),
+				std::make_pair("analogSwitching", &WeaponWheel::analogSwitching),
 				std::make_pair("disableCameraRotation", &WeaponWheel::disableCameraRotation),
 				std::make_pair("theme", &WeaponWheel::theme),
 				std::make_pair("meleeAlwaysShow", &WeaponWheel::meleeAlwaysShow),

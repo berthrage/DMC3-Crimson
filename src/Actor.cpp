@@ -3627,7 +3627,7 @@ template <typename T> void ArbitraryMeleeWeaponSwitchController(T& actorData) {
         back = true;
     };
 
-    if (activeCrimsonConfig.WeaponWheel.enableAnalogSelection) {
+    if (activeCrimsonConfig.WeaponWheel.analogSwitching) {
         if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))) {
 			if (activeCrimsonConfig.WeaponWheel.disableCameraRotation) {
 				g_disableCameraRotation = true;
@@ -3659,7 +3659,7 @@ template <typename T> void ArbitraryMeleeWeaponSwitchController(T& actorData) {
         }
     }
 
-    if (activeCrimsonConfig.WeaponWheel.enableAnalogSelection) {
+    if (activeCrimsonConfig.WeaponWheel.analogSwitching) {
         if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
             if (TypeMatch<T, PlayerActorDataVergil>::value) {
                 if (activeCrimsonConfig.WeaponWheel.disableCameraRotation) {
@@ -3784,7 +3784,7 @@ template <typename T> void ArbitraryRangedWeaponSwitchController(T& actorData) {
         back = true;
     };
 
-    if (activeCrimsonConfig.WeaponWheel.enableAnalogSelection) {
+    if (activeCrimsonConfig.WeaponWheel.analogSwitching) {
         if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
             if (activeCrimsonConfig.WeaponWheel.disableCameraRotation) {
                 g_disableCameraRotation = true;
