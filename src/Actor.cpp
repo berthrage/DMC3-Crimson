@@ -3587,7 +3587,7 @@ template <typename T> void LinearRangedWeaponSwitchController(T& actorData) {
 }
 
 // @Research: Consider weapon type template.
-template <typename T> void ArbitraryMeleeWeaponSwitchController(T& actorData) {
+template <typename T> void AnalogMeleeWeaponSwitchController(T& actorData) {
     auto& characterData = GetCharacterData(actorData);
 
     auto& gamepad = GetGamepad(actorData.newPlayerIndex);
@@ -3746,7 +3746,7 @@ template <typename T> void ArbitraryMeleeWeaponSwitchController(T& actorData) {
     }
 }
 
-template <typename T> void ArbitraryRangedWeaponSwitchController(T& actorData) {
+template <typename T> void AnalogRangedWeaponSwitchController(T& actorData) {
     auto& characterData = GetCharacterData(actorData);
 
     auto& gamepad = GetGamepad(actorData.newPlayerIndex);
@@ -3938,8 +3938,8 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
 
         g_disableCameraRotation = false;
 
-        ArbitraryMeleeWeaponSwitchController(actorData);
-        ArbitraryRangedWeaponSwitchController(actorData);
+        AnalogMeleeWeaponSwitchController(actorData);
+        AnalogRangedWeaponSwitchController(actorData);
 
     } else {
         LinearMeleeWeaponSwitchController(actorData);
