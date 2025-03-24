@@ -1717,7 +1717,7 @@ void UpdateRangedWeaponIDs(PlayerActorData& actorData, std::vector<WW::WeaponIDs
 	}
 }
 
-void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
+void MeleeWeaponWheelController(IDXGISwapChain* pSwapChain) {
 	if (!InGame()) {
 		return;
 	}
@@ -1902,7 +1902,7 @@ void MeleeWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 	ImGui::End();
 }
 
-void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
+void RangedWeaponWheelController(IDXGISwapChain* pSwapChain) {
 	if (!InGame()) {
 		return;
 	}
@@ -2076,9 +2076,9 @@ void RangedWeaponSwitchController(IDXGISwapChain* pSwapChain) {
 }
 
 
-void WeaponSwitchController(IDXGISwapChain* pSwapChain) {
-	MeleeWeaponSwitchController(pSwapChain);
-	RangedWeaponSwitchController(pSwapChain);
+void WeaponWheelController(IDXGISwapChain* pSwapChain) {
+	MeleeWeaponWheelController(pSwapChain);
+	RangedWeaponWheelController(pSwapChain);
 }
 
 
@@ -2086,9 +2086,18 @@ void WeaponSwitchControllerSettings() {
 
 	ImGui::PushItemWidth(200);
 
-	GUI_Checkbox2(
+	if (GUI_Checkbox2(
 		"Analog Switching", activeCrimsonConfig.WeaponWheel.analogSwitching,
-		queuedCrimsonConfig.WeaponWheel.analogSwitching);
+		queuedCrimsonConfig.WeaponWheel.analogSwitching)) {
+
+		if (!queuedCrimsonConfig.WeaponWheel.analogSwitching) {
+			activeCrimsonConfig.WeaponWheel.disableCameraRotation = false;
+			queuedCrimsonConfig.WeaponWheel.disableCameraRotation = false;
+		} else {
+			activeCrimsonConfig.WeaponWheel.disableCameraRotation = true;
+			queuedCrimsonConfig.WeaponWheel.disableCameraRotation = true;
+		}
+	}
 
 	GUI_Checkbox2("Disable Camera Control While Open", activeCrimsonConfig.WeaponWheel.disableCameraRotation,
 		queuedCrimsonConfig.WeaponWheel.disableCameraRotation);
@@ -11155,7 +11164,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     MirageGaugeMainPlayer();
 	RedOrbCounterWindow();
 	StyleMeterWindow();
-    WeaponSwitchController(pSwapChain);
+    WeaponWheelController(pSwapChain);
 
 
     HandleKeyBindings(keyBindings.data(), keyBindings.size());
