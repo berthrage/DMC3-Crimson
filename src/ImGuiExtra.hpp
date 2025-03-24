@@ -98,8 +98,8 @@ namespace UI {
 			Camera,
 			Hotkeys,
 			Interface,
-			WeaponWheel,
-			SoundOrVisual,
+			Sound,
+			Visual,
 			System,
 
 			Size,

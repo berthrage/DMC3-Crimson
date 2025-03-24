@@ -335,13 +335,13 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 					}
 
 					ImGui::SameLine(0.0f, tabButtonsGap);
-					if (TabButton("WEAPON WHEEL", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::WeaponWheel, true, false, subTabBtnSize)) {
-						g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::WeaponWheel;
+					if (TabButton("SOUND", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Sound, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Sound;
 					}
 
 					ImGui::SameLine(0.0f, tabButtonsGap);
-					if (TabButton("SOUND/VISUAL", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::SoundOrVisual, true, false, subTabBtnSize)) {
-						g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::SoundOrVisual;
+					if (TabButton("VISUAL", g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Visual, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedOptionsSubTab = UIContext::OptionsSubTabs::Visual;
 					}
 
 					ImGui::SameLine(0.0f, tabButtonsGap);
@@ -500,13 +500,13 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "Interface");
 					}
-					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::WeaponWheel) {
+					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Sound) {
 						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-							SwapColorEndianness(0xFFFFFF10), "Weapon Wheel");
+							SwapColorEndianness(0xFFFFFF10), "Sound");
 					}
-					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::SoundOrVisual) {
+					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Visual) {
 						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
-							SwapColorEndianness(0xFFFFFF10), "Sound/Visual");
+							SwapColorEndianness(0xFFFFFF10), "Visual");
 					}
 					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::System) {
 						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
@@ -8515,17 +8515,16 @@ void TrainingSection() {
 
 #pragma region Training
 
-void SoundVisualSection(size_t defaultFontSize) {
-    const char* changeGunNewNames[] = {"DMC3 Default", "New"};
-    const char* changeDevilArmNewNames[] = {"DMC3 Default", "New"};
+void SoundSection(size_t defaultFontSize) {
+	const char* changeGunNewNames[] = { "DMC3 Default", "New" };
+	const char* changeDevilArmNewNames[] = { "DMC3 Default", "New" };
 
 	const float itemWidth = defaultFontSize * 8.0f;
-    float smallerComboMult = 0.7f;
+	float smallerComboMult = 0.7f;
 
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-
 
 	ImGui::Text("CRIMSON SFX OPTIONS");
 
@@ -8533,22 +8532,17 @@ void SoundVisualSection(size_t defaultFontSize) {
 
 	UI::SeparatorEx(defaultFontSize * 23.35f);
 
-    
-
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::Text("");
 
-
 	{
 		const float columnWidth = 0.5f * queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-
 		if (ImGui::BeginTable("WeaponwheelSFXTable", 3)) {
-
 			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
 			ImGui::TableNextRow(0, rowWidth * 0.5f);
 			ImGui::TableNextColumn();
@@ -8557,21 +8551,17 @@ void SoundVisualSection(size_t defaultFontSize) {
 			ImGui::Text("WEAPON WHEEL SFX");
 			ImGui::PopFont();
 
-	
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-            UI::Combo2<uint8>("Change Gun", changeGunNewNames, activeCrimsonConfig.SFX.changeGunNew, queuedCrimsonConfig.SFX.changeGunNew);
+			UI::Combo2<uint8>("Change Gun", changeGunNewNames, activeCrimsonConfig.SFX.changeGunNew, queuedCrimsonConfig.SFX.changeGunNew);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			UI::Combo2<uint8>(
-				"Change Devil Arm", changeDevilArmNewNames, activeCrimsonConfig.SFX.changeDevilArmNew, queuedCrimsonConfig.SFX.changeDevilArmNew);
+			UI::Combo2<uint8>("Change Devil Arm", changeDevilArmNewNames, activeCrimsonConfig.SFX.changeDevilArmNew, queuedCrimsonConfig.SFX.changeDevilArmNew);
 			ImGui::PopItemWidth();
 
-            ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Volume", activeCrimsonConfig.SFX.changeWeaponVolume, queuedCrimsonConfig.SFX.changeWeaponVolume,
-				defaultCrimsonConfig.SFX.changeWeaponVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-            ImGui::PopItemWidth();
-
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<uint32>("Volume", activeCrimsonConfig.SFX.changeWeaponVolume, queuedCrimsonConfig.SFX.changeWeaponVolume, defaultCrimsonConfig.SFX.changeWeaponVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
 
@@ -8580,17 +8570,13 @@ void SoundVisualSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Effect Volume", activeCrimsonConfig.SFX.styleChangeEffectVolume,
-				queuedCrimsonConfig.SFX.styleChangeEffectVolume, defaultCrimsonConfig.SFX.styleChangeEffectVolume, 10, "%u",
-				ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("Effect Volume", activeCrimsonConfig.SFX.styleChangeEffectVolume, queuedCrimsonConfig.SFX.styleChangeEffectVolume, defaultCrimsonConfig.SFX.styleChangeEffectVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("VO Volume", activeCrimsonConfig.SFX.styleChangeVOVolume, queuedCrimsonConfig.SFX.styleChangeVOVolume,
-				defaultCrimsonConfig.SFX.styleChangeVOVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("VO Volume", activeCrimsonConfig.SFX.styleChangeVOVolume, queuedCrimsonConfig.SFX.styleChangeVOVolume, defaultCrimsonConfig.SFX.styleChangeVOVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
-            
 			ImGui::TableNextColumn();
 
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
@@ -8598,43 +8584,33 @@ void SoundVisualSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Volume", activeCrimsonConfig.SFX.styleRankAnnouncerVolume,
-				queuedCrimsonConfig.SFX.styleRankAnnouncerVolume, defaultCrimsonConfig.SFX.styleRankAnnouncerVolume, 10, "%u",
-				ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("Volume", activeCrimsonConfig.SFX.styleRankAnnouncerVolume, queuedCrimsonConfig.SFX.styleRankAnnouncerVolume, defaultCrimsonConfig.SFX.styleRankAnnouncerVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Cooldown", activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSeconds,
-				queuedCrimsonConfig.SFX.styleRankAnnouncerCooldownSeconds, defaultCrimsonConfig.SFX.styleRankAnnouncerCooldownSeconds, 1, "%u",
-				ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("Cooldown", activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSeconds, queuedCrimsonConfig.SFX.styleRankAnnouncerCooldownSeconds, defaultCrimsonConfig.SFX.styleRankAnnouncerCooldownSeconds, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Duration until the Announcer can repeat the same line.\n"
-				"\n"
-				"(in Seconds)");
+			TooltipHelper("(?)", "Duration until the Announcer can repeat the same line.\n\n(in Seconds)");
 			ImGui::PopItemWidth();
-
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-            ImGui::Text("");
+			ImGui::Text("");
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 			ImGui::Text("DEVIL TRIGGER SFX");
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation L1 Volume", activeCrimsonConfig.SFX.devilTriggerInL1Volume, queuedCrimsonConfig.SFX.devilTriggerInL1Volume,
-				defaultCrimsonConfig.SFX.devilTriggerInL1Volume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("Activation L1 Volume", activeCrimsonConfig.SFX.devilTriggerInL1Volume, queuedCrimsonConfig.SFX.devilTriggerInL1Volume, defaultCrimsonConfig.SFX.devilTriggerInL1Volume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation L2 Volume", activeCrimsonConfig.SFX.devilTriggerInL2Volume, queuedCrimsonConfig.SFX.devilTriggerInL2Volume,
-				defaultCrimsonConfig.SFX.devilTriggerInL2Volume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("Activation L2 Volume", activeCrimsonConfig.SFX.devilTriggerInL2Volume, queuedCrimsonConfig.SFX.devilTriggerInL2Volume, defaultCrimsonConfig.SFX.devilTriggerInL2Volume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("DT Ready Volume", activeCrimsonConfig.SFX.devilTriggerReadyVolume, queuedCrimsonConfig.SFX.devilTriggerReadyVolume,
-				defaultCrimsonConfig.SFX.devilTriggerReadyVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("DT Ready Volume", activeCrimsonConfig.SFX.devilTriggerReadyVolume, queuedCrimsonConfig.SFX.devilTriggerReadyVolume, defaultCrimsonConfig.SFX.devilTriggerReadyVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
@@ -8646,13 +8622,11 @@ void SoundVisualSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation Volume", activeCrimsonConfig.SFX.doppelgangerInVolume, queuedCrimsonConfig.SFX.doppelgangerInVolume,
-				defaultCrimsonConfig.SFX.doppelgangerInVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("Activation Volume", activeCrimsonConfig.SFX.doppelgangerInVolume, queuedCrimsonConfig.SFX.doppelgangerInVolume, defaultCrimsonConfig.SFX.doppelgangerInVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
-			ImGui::PushItemWidth(itemWidth* smallerComboMult);
-			GUI_InputDefault2<uint32>("Deactivation Volume", activeCrimsonConfig.SFX.doppelgangerOutVolume, queuedCrimsonConfig.SFX.doppelgangerOutVolume,
-				defaultCrimsonConfig.SFX.doppelgangerOutVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<uint32>("Deactivation Volume", activeCrimsonConfig.SFX.doppelgangerOutVolume, queuedCrimsonConfig.SFX.doppelgangerOutVolume, defaultCrimsonConfig.SFX.doppelgangerOutVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
@@ -8663,67 +8637,47 @@ void SoundVisualSection(size_t defaultFontSize) {
 			ImGui::Text("QUICKSILVER SFX");
 			ImGui::PopFont();
 
-			ImGui::PushItemWidth(itemWidth* smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation Volume", activeCrimsonConfig.SFX.quicksilverInVolume, queuedCrimsonConfig.SFX.quicksilverInVolume,
-				defaultCrimsonConfig.SFX.quicksilverInVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<uint32>("Activation Volume", activeCrimsonConfig.SFX.quicksilverInVolume, queuedCrimsonConfig.SFX.quicksilverInVolume, defaultCrimsonConfig.SFX.quicksilverInVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
-
 
 			ImGui::EndTable();
 		}
 	}
 
-    ImGui::Text("");
+	ImGui::Text("");
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-
 
 	ImGui::Text("IM-GAME SOUND VOLUMES");
 
 	ImGui::PopFont();
 
-    UI::SeparatorEx(defaultFontSize * 23.35f);
+	UI::SeparatorEx(defaultFontSize * 23.35f);
 
-	
 	ImGui::Text("");
-
-// 	if (GUI_ResetButton()) {
-// 		CopyMemory(&queuedConfig.channelVolumes, &defaultConfig.channelVolumes, sizeof(queuedConfig.channelVolumes));
-// 		CopyMemory(&activeConfig.channelVolumes, &queuedConfig.channelVolumes, sizeof(activeConfig.channelVolumes));
-// 
-// 
-// 		UpdateVolumes();
-// 	}
-// 	ImGui::Text("");
 
 	{
 		const float columnWidth = 0.5f * queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-
 		if (ImGui::BeginTable("InGameVolumesTable", 3)) {
-
 			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
-            ImGui::TableNextRow(0, rowWidth * 0.1f);
-			
+			ImGui::TableNextRow(0, rowWidth * 0.1f);
+
 			for (int channelIndex = 0; channelIndex < CHANNEL::MAX; channelIndex++) {
+				if (channelIndex % 3 == 0) {
+					ImGui::TableNextRow(0, rowWidth * 0.1f);
+				}
 
-                if (channelIndex % 3 == 0) {
-                    ImGui::TableNextRow(0, rowWidth * 0.1f);
-                }
+				ImGui::TableNextColumn();
 
-                ImGui::TableNextColumn();
-
-                ImGui::PushItemWidth(itemWidth* smallerComboMult);
-				if (GUI_InputDefault2(Sound_channelNames[channelIndex], activeConfig.channelVolumes[channelIndex],
-					queuedConfig.channelVolumes[channelIndex], defaultConfig.channelVolumes[channelIndex], 0.1f, "%g",
-					ImGuiInputTextFlags_EnterReturnsTrue)) {
+				ImGui::PushItemWidth(itemWidth * smallerComboMult);
+				if (GUI_InputDefault2(Sound_channelNames[channelIndex], activeConfig.channelVolumes[channelIndex], queuedConfig.channelVolumes[channelIndex], defaultConfig.channelVolumes[channelIndex], 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
 					SetVolume(channelIndex, activeConfig.channelVolumes[channelIndex]);
 				}
-                ImGui::PopItemWidth();
-
+				ImGui::PopItemWidth();
 			}
-			
 
 			ImGui::EndTable();
 		}
@@ -8731,12 +8685,22 @@ void SoundVisualSection(size_t defaultFontSize) {
 
 	GUI_Checkbox2("Ignore Enemy Data", activeConfig.soundIgnoreEnemyData, queuedConfig.soundIgnoreEnemyData);
 	ImGui::SameLine();
-	TooltipHelper("(?)", "Do not look at enemy data when updating the global indices.\n"
-		"Most, if not all enemies will lose their sound effects if enabled.\n"
-		"Intended as a workaround for playable bosses when the sound effect\n"
-		"interferences from other enemies get too annoying. - serpentiem");
+	TooltipHelper("(?)", "Do not look at enemy data when updating the global indices.\nMost, if not all enemies will lose their sound effects if enabled.\nIntended as a workaround for playable bosses when the sound effect\ninterferences from other enemies get too annoying. - serpentiem");
 
 	ImGui::Text("");
+
+	ImGui::PopFont();
+	ImGui::PopStyleColor();
+}
+
+void VisualSection(size_t defaultFontSize) {
+    const char* changeGunNewNames[] = {"DMC3 Default", "New"};
+    const char* changeDevilArmNewNames[] = {"DMC3 Default", "New"};
+
+	const float itemWidth = defaultFontSize * 8.0f;
+    float smallerComboMult = 0.7f;
+
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
@@ -8744,6 +8708,9 @@ void SoundVisualSection(size_t defaultFontSize) {
 	ImGui::Text("VFX COLORS");
 
 	ImGui::PopFont();
+
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
 	UI::SeparatorEx(defaultFontSize * 23.35f);
 
@@ -9010,7 +8977,6 @@ void SoundVisualSection(size_t defaultFontSize) {
 
     ImGui::PopFont();
     ImGui::PopStyleColor();	
-    
 }
 
 void GameplayOptions() {
@@ -10332,9 +10298,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::EndChild();
 			}
         }
-        else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::WeaponWheel) {
-        }
-        else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::SoundOrVisual) {
+        else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::Sound) {
 			// Widget area
 			{
 				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
@@ -10347,7 +10311,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					{
-						SoundVisualSection(context.DefaultFontSize);
+						SoundSection(context.DefaultFontSize);
 					}
 				}
 				ImGui::EndChild();
@@ -10369,14 +10333,62 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
-					ImGui::Text("SOUND/VISUAL OPTIONS");
+					ImGui::Text("SOUND OPTIONS");
 					ImGui::PopFont();
 
 
 					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
 					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
 
-					ImGui::TextWrapped("Settings related to Sound and Visual Effects.");
+					ImGui::TextWrapped("Settings related to Sound.");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
+        }
+        else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::Visual) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					{
+						VisualSection(context.DefaultFontSize);
+					}
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("VISUAL OPTIONS");
+					ImGui::PopFont();
+
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Settings related to various Visual Effects.");
 					ImGui::PopFont();
 				}
 				ImGui::EndChild();
