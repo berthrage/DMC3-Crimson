@@ -2081,42 +2081,6 @@ void WeaponWheelController(IDXGISwapChain* pSwapChain) {
 	RangedWeaponWheelController(pSwapChain);
 }
 
-
-void WeaponSwitchControllerSettings() {
-
-	ImGui::PushItemWidth(200);
-
-	if (GUI_Checkbox2(
-		"Analog Switching", activeCrimsonConfig.WeaponWheel.analogSwitching,
-		queuedCrimsonConfig.WeaponWheel.analogSwitching)) {
-
-		if (!queuedCrimsonConfig.WeaponWheel.analogSwitching) {
-			activeCrimsonConfig.WeaponWheel.disableCameraRotation = false;
-			queuedCrimsonConfig.WeaponWheel.disableCameraRotation = false;
-		} else {
-			activeCrimsonConfig.WeaponWheel.disableCameraRotation = true;
-			queuedCrimsonConfig.WeaponWheel.disableCameraRotation = true;
-		}
-	}
-
-	GUI_Checkbox2("Disable Camera Control While Open", activeCrimsonConfig.WeaponWheel.disableCameraRotation,
-		queuedCrimsonConfig.WeaponWheel.disableCameraRotation);
-
-
-	UI::Combo2Vector("Theme", weaponWheelThemeNames, activeCrimsonConfig.WeaponWheel.theme, queuedCrimsonConfig.WeaponWheel.theme);
-
-	GUI_Checkbox2("Melee Wheel Always Show", activeCrimsonConfig.WeaponWheel.meleeAlwaysShow, 
-		queuedCrimsonConfig.WeaponWheel.meleeAlwaysShow);
-	GUI_Checkbox2("Ranged Wheel Always Show", activeCrimsonConfig.WeaponWheel.rangedAlwaysShow, 
-		queuedCrimsonConfig.WeaponWheel.rangedAlwaysShow);
-	ImGui::Text("");
-
-
-	ImGui::Text("");
-
-	ImGui::PopItemWidth();
-}
-
 #pragma endregion
 
 #pragma region Actor
@@ -7855,50 +7819,88 @@ void InterfaceSection(size_t defaultFontSize) {
 		}
 	}
 
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	ImGui::Text("WEAPON WHEEL OPTIONS");
+	ImGui::PopFont();
+
+	UI::SeparatorEx(defaultFontSize * 23.35f);
+
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+
+	ImGui::Text("");
+
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+		if (ImGui::BeginTable("WeaponWheelOptionsTable", 3)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
+			ImGui::TableNextColumn();
+
+			// First Row - Analog Switching & Disable Camera Control
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			if (GUI_Checkbox2(
+				"Analog Switching", activeCrimsonConfig.WeaponWheel.analogSwitching,
+				queuedCrimsonConfig.WeaponWheel.analogSwitching)) {
+
+				if (!queuedCrimsonConfig.WeaponWheel.analogSwitching) {
+					activeCrimsonConfig.WeaponWheel.disableCameraRotation = false;
+					queuedCrimsonConfig.WeaponWheel.disableCameraRotation = false;
+				} else {
+					activeCrimsonConfig.WeaponWheel.disableCameraRotation = true;
+					queuedCrimsonConfig.WeaponWheel.disableCameraRotation = true;
+				}
+			}
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeCrimsonConfig.WeaponWheel.analogSwitching);
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			GUI_Checkbox2("Disable Camera Control While Open",
+				activeCrimsonConfig.WeaponWheel.disableCameraRotation,
+				queuedCrimsonConfig.WeaponWheel.disableCameraRotation);
+			ImGui::PopItemWidth();
+			GUI_PopDisable(!activeCrimsonConfig.WeaponWheel.analogSwitching);
+
+			ImGui::TableNextColumn();
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			UI::Combo2Vector("Theme", weaponWheelThemeNames,
+				activeCrimsonConfig.WeaponWheel.theme,
+				queuedCrimsonConfig.WeaponWheel.theme);
+			ImGui::PopItemWidth();
+
+			// Second Row - Melee/Ranged Always Show
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Melee Wheel Always Show",
+				activeCrimsonConfig.WeaponWheel.meleeAlwaysShow,
+				queuedCrimsonConfig.WeaponWheel.meleeAlwaysShow);
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Ranged Wheel Always Show",
+				activeCrimsonConfig.WeaponWheel.rangedAlwaysShow,
+				queuedCrimsonConfig.WeaponWheel.rangedAlwaysShow);
+
+			ImGui::EndTable();
+		}
+	}
+
+	ImGui::PopFont();
+	ImGui::PopStyleColor();
+
 	ImGui::PopFont();
 	ImGui::PopStyleColor();
 
 	ImGui::PopItemWidth();
 	//ImGui::PopFont();
 
-	ImGui::Text("");
 	BarsSection(defaultFontSize);
-	
-// 
-// 	GUI_SectionEnd();
-// 	ImGui::Text("");
-// 
-// 	GUI_SectionStart("Main");
-// 
-// 	MainOverlaySettings();
-// 
-// 	GUI_SectionEnd();
-// 	ImGui::Text("");
-// 
-// 
-// 	GUI_SectionStart("Mission");
-// 
-// 	MissionOverlaySettings();
-// 
-// 	GUI_SectionEnd();
-// 	ImGui::Text("");
-// 
-// 
-// 	GUI_SectionStart("Boss Lady Actions");
-// 
-// 	BossLadyActionsOverlaySettings();
-// 
-// 	GUI_SectionEnd();
-// 	ImGui::Text("");
-// 
-// 
-// 	GUI_SectionStart("Boss Vergil Actions");
-// 
-// 	BossVergilActionsOverlaySettings();
-// 
-// 
-// 	ImGui::Text("");
-
 }
 
 #pragma endregion
@@ -8439,20 +8441,6 @@ void TeleporterSection() {
 
 		ImGui::Text("");
     
-}
-
-#pragma endregion
-
-#pragma region Textures
-
-void WeaponWheel() {
-    if (ImGui::CollapsingHeader("Weapon Wheel")) {
-        ImGui::Text("");
-
-        WeaponSwitchControllerSettings();
-
-        ImGui::Text("");
-    }
 }
 
 #pragma endregion
@@ -10161,7 +10149,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						Dante();
 						Lady();
 						Repair();
-						WeaponWheel();
 						GameplayOptions();
 						Vergil();
 
