@@ -261,10 +261,8 @@ namespace WW
 	private:
 		void InitializeAnimations();
 		void SetWeaponsTranslations();
-
 		void SetInactiveOpacity(float opacity);
 		void SetActiveWeaponOpacity(float opacity);
-
 		void UpdateSlotStates();
 
 	public:

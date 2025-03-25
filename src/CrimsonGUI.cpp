@@ -1717,7 +1717,21 @@ void UpdateRangedWeaponIDs(PlayerActorData& actorData, std::vector<WW::WeaponIDs
 	}
 }
 
-void MeleeWeaponWheelController(IDXGISwapChain* pSwapChain) {
+struct WeaponWheelState {
+	int oldWeaponIndex = -1;
+	int oldCharIndex = -1;
+	WW::WheelThemes charTheme = WW::WheelThemes::Neutral;
+	std::string oldTheme = activeCrimsonConfig.WeaponWheel.theme;
+	std::vector<WW::WeaponIDs> currentWeapons[CHARACTER_COUNT];
+	std::array<std::array<uint8_t, 5>, CHARACTER_COUNT> oldCharWeapons;
+	std::array<uint8_t, CHARACTER_COUNT> oldPlayerDataChars;
+	std::array<uint8_t, CHARACTER_COUNT> oldCharCostumes;
+	bool oldUnlockedDevilTrigger = false;
+	bool initializedOld = false;
+	double startTime = ImGui::GetTime();
+};
+
+void WeaponWheelController(IDXGISwapChain* pSwapChain, std::unique_ptr<WW::WeaponWheel>& pWeaponWheel, const char* windowName, bool cornerPositioning, ImVec2 windowPos, ImVec2 wheelSize, bool isMelee, WeaponWheelState& state) {
 	if (!InGame()) {
 		return;
 	}
@@ -1739,57 +1753,49 @@ void MeleeWeaponWheelController(IDXGISwapChain* pSwapChain) {
 		return;
 	}
 
-	static int oldMeleeWeaponIndex = -1;
-	static int oldCharIndex = -1;
-	static auto charTheme = WW::WheelThemes::Neutral;
-	static auto oldTheme = activeCrimsonConfig.WeaponWheel.theme;
 	auto& charIndex = actorData.newCharacterIndex;
-	auto& meleeWeaponIndex = characterData.meleeWeaponIndex;
+	auto& weaponIndex = isMelee ? characterData.meleeWeaponIndex : characterData.rangedWeaponIndex;
+	auto& weaponCount = isMelee ? playerData.characterData[charIndex][ENTITY::MAIN].meleeWeaponCount : playerData.characterData[charIndex][ENTITY::MAIN].rangedWeaponCount;
 	auto& activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
-	static std::vector<WW::WeaponIDs> currentWeapons[CHARACTER_COUNT];
-	static std::array<std::array<uint8_t, 5>, CHARACTER_COUNT> oldCharMeleeWeapons;
-	static std::array<uint8_t, CHARACTER_COUNT> oldPlayerDataChars;
-	static std::array<uint8_t, CHARACTER_COUNT> oldCharCostumes;
-	static bool oldUnlockedDevilTrigger = false;
 
 	auto leftStick = (characterData.rangedWeaponSwitchStick == LEFT_STICK);
 	auto radius = (leftStick) ? gamepad.leftStickRadius : gamepad.rightStickRadius;
 	auto stickUsed = radius > RIGHT_STICK_DEADZONE ? true : false;
+	auto weapons = isMelee ? playerData.characterData[charIndex][ENTITY::MAIN].meleeWeapons : playerData.characterData[charIndex][ENTITY::MAIN].rangedWeapons;
 
 	// Feed old arrays for comparisons. -- only once during runtime.
-	static bool initializedOld = false;  
-	if (!initializedOld) {
+	if (!state.initializedOld) {
 		for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; ++charIdx) {
 			for (size_t j = 0; j < 5; ++j) {
-				oldCharMeleeWeapons[charIdx][j] = playerData.characterData[charIdx][0].meleeWeapons[j];
+				state.oldCharWeapons[charIdx][j] = weapons[j];
 			}
-			oldPlayerDataChars[charIdx] = playerData.characterData[charIdx][0].character;
-			oldCharCostumes[charIdx] = playerData.characterData[charIdx][0].costume;
+			state.oldPlayerDataChars[charIdx] = playerData.characterData[charIdx][0].character;
+			state.oldCharCostumes[charIdx] = playerData.characterData[charIdx][0].costume;
 		}
-		oldUnlockedDevilTrigger = false;
-		initializedOld = true;  
+		state.oldUnlockedDevilTrigger = false;
+		state.initializedOld = true;
 	}
 
 	// Set character theme based on actor's character.
 	switch (actorData.character) {
 	case CHARACTER::DANTE:
-		charTheme = WW::WheelThemes::Dante;
+		state.charTheme = WW::WheelThemes::Dante;
 		break;
 	case CHARACTER::VERGIL:
-		charTheme = WW::WheelThemes::Vergil;
+		state.charTheme = WW::WheelThemes::Vergil;
 		break;
 	default:
-		charTheme = WW::WheelThemes::Neutral;
+		state.charTheme = WW::WheelThemes::Neutral;
 		break;
 	}
 
 	// Create and feed current arrays for comparisons.
-	std::array<std::array<uint8_t, 5>, CHARACTER_COUNT> currentCharMeleeWeapons;
+	std::array<std::array<uint8_t, 5>, CHARACTER_COUNT> currentCharWeapons;
 	std::array<uint8, 3> currentPlayerDataChars;
 	std::array<uint8, 3> currentCharCostumes;
 	for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; ++charIdx) {
 		for (size_t j = 0; j < 5; ++j) {
-			currentCharMeleeWeapons[charIdx][j] = playerData.characterData[charIdx][0].meleeWeapons[j];
+			currentCharWeapons[charIdx][j] = weapons[j];
 		}
 		currentPlayerDataChars[charIdx] = playerData.characterData[charIdx][0].character;
 		currentCharCostumes[charIdx] = playerData.characterData[charIdx][0].costume;
@@ -1798,34 +1804,35 @@ void MeleeWeaponWheelController(IDXGISwapChain* pSwapChain) {
 	if (!g_allActorsSpawned) {
 		return;
 	}
-	
+
 	// Reload the Wheel if Character Settings/Loadouts have changed to update all weapon sprites.
-	for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; charIdx++) {
-		if (currentWeapons[charIdx].size() != playerData.characterData[charIdx][ENTITY::MAIN].meleeWeaponCount 
-			|| oldCharMeleeWeapons[charIdx] != currentCharMeleeWeapons[charIdx] 
-			|| oldUnlockedDevilTrigger != sessionData.unlockDevilTrigger 
-			|| oldPlayerDataChars != currentPlayerDataChars
-			|| oldCharCostumes != currentCharCostumes) {
+	if (state.currentWeapons[charIndex].size() != weaponCount
+		|| state.oldCharWeapons[charIndex] != currentCharWeapons[charIndex]
+		|| state.oldUnlockedDevilTrigger != sessionData.unlockDevilTrigger
+			|| state.oldPlayerDataChars[charIndex] != currentPlayerDataChars[charIndex]
+			|| state.oldCharCostumes[charIndex] != currentCharCostumes[charIndex]) {
 
-			currentWeapons[charIdx].resize(playerData.characterData[charIdx][ENTITY::MAIN].meleeWeaponCount);
-			UpdateMeleeWeaponIDs(actorData, currentWeapons, charIdx);
-			if (g_pMeleeWeaponWheel) {
-				g_pMeleeWeaponWheel->ReloadWheel(currentWeapons);
-				g_pMeleeWeaponWheel->SetActiveSlot(meleeWeaponIndex);
-			}
+		state.currentWeapons[charIndex].resize(weaponCount);
 
-			oldCharMeleeWeapons[charIdx] = currentCharMeleeWeapons[charIdx];
-			oldPlayerDataChars[charIdx] = currentPlayerDataChars[charIdx];
-			oldCharCostumes[charIdx] = currentCharCostumes[charIdx];
+		if (isMelee) {
+			UpdateMeleeWeaponIDs(actorData, state.currentWeapons, charIndex);
+		} else {
+			UpdateRangedWeaponIDs(actorData, state.currentWeapons, charIndex);
 		}
+
+		if (pWeaponWheel) {
+			pWeaponWheel->ReloadWheel(state.currentWeapons);
+			pWeaponWheel->SetWheelTheme(state.charTheme);
+			pWeaponWheel->SetActiveSlot(weaponIndex);
+		}
+
+		state.oldCharWeapons[charIndex] = currentCharWeapons[charIndex];
+		state.oldPlayerDataChars[charIndex] = currentPlayerDataChars[charIndex];
+		state.oldCharCostumes[charIndex] = currentCharCostumes[charIndex];
 	}
-	
-	ImVec2 windowSize{ g_renderSize.x, g_renderSize.y };
-	ImVec2 wheelSize{ windowSize.y * 0.45f, windowSize.y * 0.45f };
 
 	// Instancing the Wheel class.
-	if (!g_pMeleeWeaponWheel)
-	{
+	if (!pWeaponWheel) {
 		ID3D11DeviceContext* pDeviceContext = nullptr;
 
 		ID3D11Device* pD3D11Device = nullptr;
@@ -1834,251 +1841,83 @@ void MeleeWeaponWheelController(IDXGISwapChain* pSwapChain) {
 
 		pD3D11Device->GetImmediateContext(&pDeviceContext);
 
-		g_pMeleeWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y, 
-			currentWeapons, activeCrimsonConfig.WeaponWheel.theme == "Crimson" ? charTheme : WW::WheelThemes::Neutral
-			, actorData.buttons[1] & GetBinding(BINDING::CHANGE_DEVIL_ARMS));
+		pWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y,
+			state.currentWeapons, activeCrimsonConfig.WeaponWheel.theme == "Crimson" ? state.charTheme : WW::WheelThemes::Neutral
+			, actorData.buttons[1] & GetBinding(isMelee ? BINDING::CHANGE_DEVIL_ARMS : BINDING::CHANGE_GUN));
 
-		
-		g_pMeleeWeaponWheel->SetActiveSlot(meleeWeaponIndex);
+		pWeaponWheel->SetActiveSlot(weaponIndex);
 
-		oldMeleeWeaponIndex = meleeWeaponIndex;
+		state.oldWeaponIndex = weaponIndex;
 	}
 
-	if (!g_pMeleeWeaponWheel) {
+	if (!pWeaponWheel) {
 		return;
 	}
-		
-	if (oldMeleeWeaponIndex != (int)meleeWeaponIndex || oldCharIndex != (int)charIndex) {// If changed set it
 
-		UpdateMeleeWeaponIDs(actorData, currentWeapons, actorData.newCharacterIndex);
-		g_pMeleeWeaponWheel->UpdateCharIndex(actorData.newCharacterIndex);
-		g_pMeleeWeaponWheel->UpdateWeapons(currentWeapons);
+	if (state.oldWeaponIndex != (int)weaponIndex || state.oldCharIndex != (int)charIndex) {// If changed set it
+		if (isMelee) {
+			UpdateMeleeWeaponIDs(actorData, state.currentWeapons, actorData.newCharacterIndex);
+		} else {
+			UpdateRangedWeaponIDs(actorData, state.currentWeapons, actorData.newCharacterIndex);
+		}
+		pWeaponWheel->UpdateCharIndex(actorData.newCharacterIndex);
+		pWeaponWheel->UpdateWeapons(state.currentWeapons);
 
 		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
-			g_pMeleeWeaponWheel->SetWheelTheme(charTheme);
+			pWeaponWheel->SetWheelTheme(state.charTheme);
 		}
-		
-		g_pMeleeWeaponWheel->SetActiveSlot((int)meleeWeaponIndex);
+
+		pWeaponWheel->SetActiveSlot((int)weaponIndex);
 	}
 
-	if (oldTheme != activeCrimsonConfig.WeaponWheel.theme) {
+	if (state.oldTheme != activeCrimsonConfig.WeaponWheel.theme) {
 		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
-			g_pMeleeWeaponWheel->SetWheelTheme(charTheme);
+			pWeaponWheel->SetWheelTheme(state.charTheme);
+		} else {
+			pWeaponWheel->SetWheelTheme(WW::WheelThemes::Neutral);
 		}
-		else {
-			g_pMeleeWeaponWheel->SetWheelTheme(WW::WheelThemes::Neutral);
-		}
-		g_pMeleeWeaponWheel->SetActiveSlot((int)meleeWeaponIndex);
+		pWeaponWheel->SetActiveSlot((int)weaponIndex);
 	}
 
-	oldTheme = activeCrimsonConfig.WeaponWheel.theme;
-	oldMeleeWeaponIndex = (int)meleeWeaponIndex;
-	oldCharIndex = (int)charIndex;
-	oldUnlockedDevilTrigger = sessionData.unlockDevilTrigger;
+	state.oldTheme = activeCrimsonConfig.WeaponWheel.theme;
+	state.oldWeaponIndex = (int)weaponIndex;
+	state.oldCharIndex = (int)charIndex;
+	state.oldUnlockedDevilTrigger = sessionData.unlockDevilTrigger;
 
 	// Draw the wheel
 	static bool isOpen = true;
 
+	static auto windowSize = ImVec2(g_renderSize.x, g_renderSize.y);
+	auto cornerPos = isMelee ? windowSize - wheelSize : ImVec2(0, windowSize.y - wheelSize.y);
 	ImGui::SetNextWindowSize(wheelSize);
-	ImGui::SetNextWindowPos(windowSize - wheelSize);
+	ImGui::SetNextWindowPos(cornerPositioning ? cornerPos : windowPos);
 
-	static auto startTime = ImGui::GetTime();
-	
-	g_pMeleeWeaponWheel->OnUpdate((ImGui::GetTime() - startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier),
-		(ImGui::GetTime() - startTime) * 1000.0f, (ImGui::GetTime() - startTime) * 1000.0f, (ImGui::GetTime() - startTime) * 1000.0f);
-	g_pMeleeWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(BINDING::CHANGE_DEVIL_ARMS));
-	g_pMeleeWeaponWheel->TrackAlwaysShowConfig(activeCrimsonConfig.WeaponWheel.meleeAlwaysShow);
-	g_pMeleeWeaponWheel->TrackAnalogMovingState(stickUsed);
-	g_pMeleeWeaponWheel->TrackAnalogSwitchingConfig(activeCrimsonConfig.WeaponWheel.analogSwitching);
-	startTime = ImGui::GetTime();
+	pWeaponWheel->OnUpdate((ImGui::GetTime() - state.startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier),
+		(ImGui::GetTime() - state.startTime) * 1000.0f, (ImGui::GetTime() - state.startTime) * 1000.0f, (ImGui::GetTime() - state.startTime) * 1000.0f);
+	pWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(isMelee ? BINDING::CHANGE_DEVIL_ARMS : BINDING::CHANGE_GUN));
+	pWeaponWheel->TrackAlwaysShowConfig(isMelee ? activeCrimsonConfig.WeaponWheel.meleeAlwaysShow : activeCrimsonConfig.WeaponWheel.rangedAlwaysShow);
+	pWeaponWheel->TrackAnalogMovingState(stickUsed);
+	pWeaponWheel->TrackAnalogSwitchingConfig(activeCrimsonConfig.WeaponWheel.analogSwitching);
+	state.startTime = ImGui::GetTime();
 
-	g_pMeleeWeaponWheel->OnDraw();
+	pWeaponWheel->OnDraw();
 
-	if (ImGui::Begin("MeleeWheel", &isOpen, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration |
+	if (ImGui::Begin(windowName, &isOpen, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration |
 		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground)) {
-		ImGui::Image(g_pMeleeWeaponWheel->GetSRV(), wheelSize);
+		ImGui::Image(pWeaponWheel->GetSRV(), wheelSize);
 	}
 
 	ImGui::End();
+}
+
+void MeleeWeaponWheelController(IDXGISwapChain* pSwapChain) {
+	static WeaponWheelState state;
+	WeaponWheelController(pSwapChain, g_pMeleeWeaponWheel, "MeleeWheel", true, ImVec2(g_renderSize.x - g_renderSize.y * 0.45f, g_renderSize.y - g_renderSize.y * 0.45f), ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f), true, state);
 }
 
 void RangedWeaponWheelController(IDXGISwapChain* pSwapChain) {
-	if (!InGame()) {
-		return;
-	}
-	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-
-	auto pool_1431 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_1431 || !pool_1431[3]) {
-		return;
-	}
-	auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_1431[3]);
-	auto playerIndex = actorData.newPlayerIndex;
-	auto playerData = GetPlayerData(playerIndex);
-	auto& characterData = GetCharacterData(actorData);
-
-	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
-
-	if (InCutscene() || InCredits() || !activeConfig.Actor.enable || g_inGameCutscene ||
-		!((characterData.character == CHARACTER::DANTE) || (characterData.character == CHARACTER::VERGIL))) {
-		return;
-	}
-
-	static int oldRangedWeaponIndex = -1;
-	static int oldCharIndex = -1;
-	static auto charTheme = WW::WheelThemes::Neutral;
-	static auto oldTheme = activeCrimsonConfig.WeaponWheel.theme;
-	auto& charIndex = actorData.newCharacterIndex;
-	auto& rangedWeaponIndex = characterData.rangedWeaponIndex;
-	auto& activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
-	static std::vector<WW::WeaponIDs> currentWeapons[CHARACTER_COUNT];
-	static std::array<std::array<uint8_t, 5>, CHARACTER_COUNT> oldCharRangedWeapons;
-	static std::array<uint8_t, CHARACTER_COUNT> oldPlayerDataChars;
-	
-	auto leftStick = (characterData.rangedWeaponSwitchStick == LEFT_STICK);
-	auto radius = (leftStick) ? gamepad.leftStickRadius : gamepad.rightStickRadius;
-	auto stickUsed = radius > RIGHT_STICK_DEADZONE ? true : false;
-
-	// Feed old arrays for comparisons. -- only once during runtime.
-	static bool initializedOld = false;
-	if (!initializedOld) {
-		for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; ++charIdx) {
-			for (size_t j = 0; j < 5; ++j) {
-				oldCharRangedWeapons[charIdx][j] = playerData.characterData[charIdx][0].rangedWeapons[j];
-			}
-			oldPlayerDataChars[charIdx] = playerData.characterData[charIdx][0].character;
-		}
-		initializedOld = true;
-	}
-
-	// Set character theme based on actor's character.
-	switch (actorData.character) {
-	case CHARACTER::DANTE:
-		charTheme = WW::WheelThemes::Dante;
-		break;
-	case CHARACTER::VERGIL:
-		charTheme = WW::WheelThemes::Vergil;
-		break;
-	default:
-		charTheme = WW::WheelThemes::Neutral;
-		break;
-	}
-
-	// Create and feed current arrays for comparisons.
-	std::array<std::array<uint8_t, 5>, CHARACTER_COUNT> currentCharRangedWeapons;
-	std::array<uint8, 3> currentPlayerDataChars;
-	std::array<uint8, 3> currentCharCostumes;
-	for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; ++charIdx) {
-		for (size_t j = 0; j < 5; ++j) {
-			currentCharRangedWeapons[charIdx][j] = playerData.characterData[charIdx][0].rangedWeapons[j];
-		}
-		currentPlayerDataChars[charIdx] = playerData.characterData[charIdx][0].character;
-		currentCharCostumes[charIdx] = playerData.characterData[charIdx][0].costume;
-	}
-
-	if (!g_allActorsSpawned) {
-		return;
-	}
-
-	// Reload the Wheel if Character Settings/Loadouts have changed to update all weapon sprites.
-	for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; charIdx++) {
-		if (currentWeapons[charIdx].size() != playerData.characterData[charIdx][ENTITY::MAIN].rangedWeaponCount
-			|| oldCharRangedWeapons[charIdx] != currentCharRangedWeapons[charIdx]
-			|| oldPlayerDataChars != currentPlayerDataChars) {
-
-			currentWeapons[charIdx].resize(playerData.characterData[charIdx][ENTITY::MAIN].rangedWeaponCount);
-			UpdateRangedWeaponIDs(actorData, currentWeapons, charIdx);
-			if (g_pRangedWeaponWheel) {
-				g_pRangedWeaponWheel->ReloadWheel(currentWeapons);
-				g_pRangedWeaponWheel->SetActiveSlot(rangedWeaponIndex);
-			}
-
-			oldCharRangedWeapons[charIdx] = currentCharRangedWeapons[charIdx];
-			oldPlayerDataChars[charIdx] = currentPlayerDataChars[charIdx];
-		}
-	}
-
-	ImVec2 windowSize{ g_renderSize.x, g_renderSize.y };
-	ImVec2 wheelSize{ windowSize.y * 0.45f, windowSize.y * 0.45f };
-
-	// Instancing the Wheel class.
-	if (!g_pRangedWeaponWheel) {
-		ID3D11DeviceContext* pDeviceContext = nullptr;
-
-		ID3D11Device* pD3D11Device = nullptr;
-
-		pSwapChain->GetDevice(IID_PPV_ARGS(&pD3D11Device));
-
-		pD3D11Device->GetImmediateContext(&pDeviceContext);
-
-		g_pRangedWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y,
-			currentWeapons, activeCrimsonConfig.WeaponWheel.theme == "Crimson" ? charTheme : WW::WheelThemes::Neutral
-			, actorData.buttons[1] & GetBinding(BINDING::CHANGE_DEVIL_ARMS));
-
-
-		g_pRangedWeaponWheel->SetActiveSlot(rangedWeaponIndex);
-
-		oldRangedWeaponIndex = rangedWeaponIndex;
-	}
-
-	if (!g_pRangedWeaponWheel) {
-		return;
-	}
-
-	if (oldRangedWeaponIndex != (int)rangedWeaponIndex || oldCharIndex != (int)charIndex) {// If changed set it
-
-		UpdateMeleeWeaponIDs(actorData, currentWeapons, actorData.newCharacterIndex);
-		g_pRangedWeaponWheel->UpdateCharIndex(actorData.newCharacterIndex);
-		g_pRangedWeaponWheel->UpdateWeapons(currentWeapons);
-		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
-			g_pRangedWeaponWheel->SetWheelTheme(charTheme);
-		}
-		g_pRangedWeaponWheel->SetActiveSlot((int)rangedWeaponIndex);
-	}
-
-	if (oldTheme != activeCrimsonConfig.WeaponWheel.theme) {
-		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
-			g_pRangedWeaponWheel->SetWheelTheme(charTheme);
-		} else {
-			g_pRangedWeaponWheel->SetWheelTheme(WW::WheelThemes::Neutral);
-		}
-		g_pRangedWeaponWheel->SetActiveSlot((int)rangedWeaponIndex);
-	}
-
-	oldTheme = activeCrimsonConfig.WeaponWheel.theme;
-	oldRangedWeaponIndex = (int)rangedWeaponIndex;
-	oldCharIndex = (int)charIndex;
-
-	// Draw the wheel
-	static bool isOpen = true;
-
-	ImGui::SetNextWindowSize(wheelSize);
-	ImGui::SetNextWindowPos(ImVec2(0, windowSize.y - wheelSize.y));
-
-	static auto startTime = ImGui::GetTime();
-
-	g_pRangedWeaponWheel->OnUpdate((ImGui::GetTime() - startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier),
-		(ImGui::GetTime() - startTime) * 1000.0f, (ImGui::GetTime() - startTime) * 1000.0f, (ImGui::GetTime() - startTime) * 1000.0f);
-	g_pRangedWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(BINDING::CHANGE_GUN));
-	g_pRangedWeaponWheel->TrackAlwaysShowConfig(activeCrimsonConfig.WeaponWheel.rangedAlwaysShow);
-	g_pRangedWeaponWheel->TrackAnalogMovingState(stickUsed);
-	g_pRangedWeaponWheel->TrackAnalogSwitchingConfig(activeCrimsonConfig.WeaponWheel.analogSwitching);
-	startTime = ImGui::GetTime();
-
-	g_pRangedWeaponWheel->OnDraw();
-
-	if (ImGui::Begin("RangedWheel", &isOpen, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration |
-		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground)) {
-		ImGui::Image(g_pRangedWeaponWheel->GetSRV(), wheelSize);
-	}
-
-	ImGui::End();
-}
-
-
-void WeaponWheelController(IDXGISwapChain* pSwapChain) {
-	MeleeWeaponWheelController(pSwapChain);
-	RangedWeaponWheelController(pSwapChain);
+	static WeaponWheelState state;
+	WeaponWheelController(pSwapChain, g_pRangedWeaponWheel, "RangedWheel", true, ImVec2(0, g_renderSize.y - g_renderSize.y * 0.45f), ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f), false, state);
 }
 
 #pragma endregion
@@ -8694,9 +8533,6 @@ void SoundSection(size_t defaultFontSize) {
 }
 
 void VisualSection(size_t defaultFontSize) {
-    const char* changeGunNewNames[] = {"DMC3 Default", "New"};
-    const char* changeDevilArmNewNames[] = {"DMC3 Default", "New"};
-
 	const float itemWidth = defaultFontSize * 8.0f;
     float smallerComboMult = 0.7f;
 
@@ -8714,25 +8550,6 @@ void VisualSection(size_t defaultFontSize) {
 
 	UI::SeparatorEx(defaultFontSize * 23.35f);
 
-// 	if (GUI_Button("DMC3 Default")) {
-// 		CopyMemory(&queuedConfig.Color, &defaultConfig.Color, sizeof(queuedConfig.Color));
-// 		CopyMemory(&activeConfig.Color, &queuedConfig.Color, sizeof(activeConfig.Color));
-// 
-// 
-// 		Color_UpdateValues();
-// 
-// 		CopyMemory(&queuedConfig.hideBeowulfDante, &defaultConfig.hideBeowulfDante, sizeof(queuedConfig.hideBeowulfDante));
-// 		CopyMemory(&activeConfig.hideBeowulfDante, &queuedConfig.hideBeowulfDante, sizeof(activeConfig.hideBeowulfDante));
-// 
-// 		CopyMemory(&queuedConfig.hideBeowulfVergil, &defaultConfig.hideBeowulfVergil, sizeof(queuedConfig.hideBeowulfVergil));
-// 		CopyMemory(&activeConfig.hideBeowulfVergil, &queuedConfig.hideBeowulfVergil, sizeof(activeConfig.hideBeowulfVergil));
-// 
-// 
-// 		CopyMemory(&queuedConfig.noDevilForm, &defaultConfig.noDevilForm, sizeof(queuedConfig.noDevilForm));
-// 		CopyMemory(&activeConfig.noDevilForm, &queuedConfig.noDevilForm, sizeof(activeConfig.noDevilForm));
-// 
-// 		ToggleNoDevilForm(activeConfig.noDevilForm);
-// 	}
 	
 	ImGui::Text("");
 
@@ -11163,7 +10980,8 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     MirageGaugeMainPlayer();
 	RedOrbCounterWindow();
 	StyleMeterWindow();
-    WeaponWheelController(pSwapChain);
+	MeleeWeaponWheelController(pSwapChain);
+	RangedWeaponWheelController(pSwapChain);
 
 
     HandleKeyBindings(keyBindings.data(), keyBindings.size());
