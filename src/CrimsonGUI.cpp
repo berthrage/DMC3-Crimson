@@ -79,8 +79,6 @@
 #define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
 #define LOAD_SDL_FUNCTION(X) fn_##X = GetSDLFunction<decltype(X)*>(#X)
 
-
-
 void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context);
 
 namespace UI {
@@ -7956,8 +7954,11 @@ void SystemSection(size_t defaultFontSize) {
 			ImGui::PushItemWidth(itemWidth * 0.8f);
 			if (GUI_InputDefault2<float>("Frame Rate", activeConfig.frameRate, queuedConfig.frameRate, defaultConfig.frameRate, 1, "%.2f",
 				ImGuiInputTextFlags_EnterReturnsTrue)) {
-				
+				CrimsonOnTick::inputtingFPS = true;
+			} else {
+				CrimsonOnTick::inputtingFPS = false;
 			}
+
 			ImGui::PopItemWidth();
 
             ImGui::TableNextColumn();
@@ -8193,27 +8194,6 @@ void SystemSection(size_t defaultFontSize) {
 // 		ToggleForceWindowFocus(activeConfig.forceWindowFocus);
 // 	}
     
-}
-
-void FrameResponsiveGameSpeed() {
-	g_FrameRate = ImGui::GetIO().Framerate;
-	if (g_FrameRate > 0.0f) {
-		g_FrameRateTimeMultiplier = (60.0f / g_FrameRate);
-	}
-	else {
-		g_FrameRateTimeMultiplier = 1.0f;
-	}
-
-	auto& activeValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
-	auto& queuedValue = (IsTurbo()) ? queuedConfig.Speed.turbo : queuedConfig.Speed.mainSpeed;
-	float gameSpeed = (IsTurbo()) ? 1.2f : 1.0f;
-
-	if (activeConfig.framerateResponsiveGameSpeed && ImGui::GetIO().DeltaTime < 0.04f && ImGui::GetIO().Framerate >= 30.0f) { //25 fps frametime
-		UpdateFrameRate();
-
-		activeValue = gameSpeed / (ImGui::GetIO().Framerate / 60);
-		queuedValue = gameSpeed / (ImGui::GetIO().Framerate / 60);
-	}
 }
 
 #pragma endregion
@@ -10944,7 +10924,6 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
         SoundWindow();
     }
 
-	FrameResponsiveGameSpeed();
     PauseWhenGUIOpened();
     GamepadToggleShowMain();
 	if (activeConfig.debugOverlayData.enable) {
@@ -10960,6 +10939,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     CrimsonSDL::UpdateJoysticks();
     
     CrimsonGameplay::GunDTCharacterRemaps();
+	CrimsonOnTick::FrameResponsiveGameSpeed();
     CrimsonOnTick::GameTrackDetection();
     CrimsonOnTick::CorrectFrameRateCutscenes();
     CrimsonOnTick::PreparePlayersDataBeforeSpawn();

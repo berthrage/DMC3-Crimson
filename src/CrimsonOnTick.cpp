@@ -25,6 +25,31 @@
 
 namespace CrimsonOnTick {
 
+bool inputtingFPS = false;
+
+void FrameResponsiveGameSpeed() {
+	g_FrameRate = ImGui::GetIO().Framerate;
+	g_FrameRateTimeMultiplier = (g_FrameRate > 0.0f) ? (60.0f / g_FrameRate) : 1.0f;
+
+	auto& activeValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+	auto& queuedValue = (IsTurbo()) ? queuedConfig.Speed.turbo : queuedConfig.Speed.mainSpeed;
+	float gameSpeed = (IsTurbo()) ? 1.2f : 1.0f;
+	auto& userSetFrameRate = queuedConfig.frameRate;
+
+	// Only update if the current FPS is within ±10 of the setFrameRate
+	if (activeConfig.framerateResponsiveGameSpeed) { // 25 FPS frametime limit
+
+		if ((std::abs(g_FrameRate - userSetFrameRate) <= 10.0f &&
+			ImGui::GetIO().DeltaTime < 0.04f && g_FrameRate >= 30.0f) || inputtingFPS) {
+			UpdateFrameRate();
+
+			float adjustedFrameRate = (std::max)(g_FrameRate, 30.0f); // Prevent extreme drops
+			activeValue = gameSpeed / (adjustedFrameRate / 60);
+			queuedValue = gameSpeed / (adjustedFrameRate / 60);
+		}
+	}
+}
+
 void GameTrackDetection() {
 	g_gameTrackPlaying = (std::string)reinterpret_cast<char*>(appBaseAddr + 0xD23906);
 }

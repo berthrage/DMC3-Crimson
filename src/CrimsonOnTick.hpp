@@ -1,6 +1,8 @@
 #pragma once
 
 namespace CrimsonOnTick {
+	extern bool inputtingFPS;
+	void FrameResponsiveGameSpeed();
 	void GameTrackDetection();
 	void CorrectFrameRateCutscenes();
 	void PreparePlayersDataBeforeSpawn();
