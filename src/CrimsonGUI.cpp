@@ -1536,6 +1536,10 @@ std::vector<std::string> weaponWheelThemeNames = {
 	"DMC3 Switch",
 };
 
+std::vector<std::string> weaponWheelScaleNames = {
+	"Small",
+	"Big",
+};
 
 static_assert(countof(trackFilenames) == countof(trackNames));
 
@@ -1729,15 +1733,17 @@ struct WeaponWheelState {
 	double startTime = ImGui::GetTime();
 };
 
-void WeaponWheelController(IDXGISwapChain* pSwapChain, std::unique_ptr<WW::WeaponWheel>& pWeaponWheel, const char* windowName, bool cornerPositioning, ImVec2 windowPos, ImVec2 wheelSize, bool isMelee, WeaponWheelState& state) {
+bool WeaponWheelController(IDXGISwapChain* pSwapChain, std::unique_ptr<WW::WeaponWheel>& pWeaponWheel, 
+	const char* windowName, bool cornerPositioning, ImVec2 windowPos, ImVec2 wheelSize, bool isMelee, WeaponWheelState& state) {
+
 	if (!InGame()) {
-		return;
+		return false;
 	}
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 	auto pool_1431 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!pool_1431 || !pool_1431[3]) {
-		return;
+		return false;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_1431[3]);
 	auto playerIndex = actorData.newPlayerIndex;
@@ -1748,7 +1754,7 @@ void WeaponWheelController(IDXGISwapChain* pSwapChain, std::unique_ptr<WW::Weapo
 
 	if (InCutscene() || InCredits() || !activeConfig.Actor.enable || g_inGameCutscene ||
 		!((characterData.character == CHARACTER::DANTE) || (characterData.character == CHARACTER::VERGIL))) {
-		return;
+		return false;
 	}
 
 	auto& charIndex = actorData.newCharacterIndex;
@@ -1800,7 +1806,7 @@ void WeaponWheelController(IDXGISwapChain* pSwapChain, std::unique_ptr<WW::Weapo
 	}
 
 	if (!g_allActorsSpawned) {
-		return;
+		return false;
 	}
 
 	// Reload the Wheel if Character Settings/Loadouts have changed to update all weapon sprites.
@@ -1849,7 +1855,7 @@ void WeaponWheelController(IDXGISwapChain* pSwapChain, std::unique_ptr<WW::Weapo
 	}
 
 	if (!pWeaponWheel) {
-		return;
+		return false;
 	}
 
 	if (state.oldWeaponIndex != (int)weaponIndex || state.oldCharIndex != (int)charIndex) {// If changed set it
@@ -1863,6 +1869,8 @@ void WeaponWheelController(IDXGISwapChain* pSwapChain, std::unique_ptr<WW::Weapo
 
 		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
 			pWeaponWheel->SetWheelTheme(state.charTheme);
+		} else {
+			pWeaponWheel->SetWheelTheme(WW::WheelThemes::Neutral);
 		}
 
 		pWeaponWheel->SetActiveSlot((int)weaponIndex);
@@ -1903,6 +1911,9 @@ void WeaponWheelController(IDXGISwapChain* pSwapChain, std::unique_ptr<WW::Weapo
 	if (ImGui::Begin(windowName, &isOpen, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration |
 		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground)) {
 		ImGui::Image(pWeaponWheel->GetSRV(), wheelSize);
+		return true;
+	} else {
+		return false;
 	}
 
 	ImGui::End();
@@ -1910,12 +1921,51 @@ void WeaponWheelController(IDXGISwapChain* pSwapChain, std::unique_ptr<WW::Weapo
 
 void MeleeWeaponWheelController(IDXGISwapChain* pSwapChain) {
 	static WeaponWheelState state;
-	WeaponWheelController(pSwapChain, g_pMeleeWeaponWheel, "MeleeWheel", true, ImVec2(g_renderSize.x - g_renderSize.y * 0.45f, g_renderSize.y - g_renderSize.y * 0.45f), ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f), true, state);
+	static bool initialized = false;
+
+	auto& forcing1PMPPosScale = activeCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale;
+	auto& scale = activeCrimsonConfig.WeaponWheel.scale;
+	ImVec2 normalPos = ImVec2(g_renderSize.x - g_renderSize.y * 0.45f, g_renderSize.y - g_renderSize.y * 0.45f);
+	ImVec2 normalSize = initialized ? scale == "Big" ? ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f) :
+		ImVec2(g_renderSize.y * 0.35f, g_renderSize.y * 0.35f) :
+		ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
+
+	ImVec2 multiplayerPos = ImVec2(g_renderSize.x * 0.4953f, g_renderSize.y * 0.0f);
+	ImVec2 multiplayerSize = initialized ? ImVec2(g_renderSize.y * 0.15f, g_renderSize.y * 0.15f) : normalSize;
+	// We need to initialize with the bigger size first to avoid the wheel from displaying on a lower quality if the user changes the setting at runtime. -- Berth
+
+	if (WeaponWheelController(pSwapChain, g_pMeleeWeaponWheel, "MeleeWheel",
+		!forcing1PMPPosScale,
+		forcing1PMPPosScale ? multiplayerPos : normalPos, forcing1PMPPosScale ? multiplayerSize : normalSize,
+		true, state)) {
+
+		initialized = true;
+	}
 }
 
 void RangedWeaponWheelController(IDXGISwapChain* pSwapChain) {
 	static WeaponWheelState state;
-	WeaponWheelController(pSwapChain, g_pRangedWeaponWheel, "RangedWheel", true, ImVec2(0, g_renderSize.y - g_renderSize.y * 0.45f), ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f), false, state);
+	static bool initialized = false;
+
+	auto& forcing1PMPPosScale = activeCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale;
+	auto& scale = activeCrimsonConfig.WeaponWheel.scale;
+	ImVec2 normalPos = ImVec2(0, g_renderSize.y - g_renderSize.y * 0.45f);
+	ImVec2 normalSize = initialized ? scale == "Big" ? ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f) : 
+		ImVec2(g_renderSize.y * 0.35f, g_renderSize.y * 0.35f) :
+		ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
+
+	ImVec2 multiplayerPos = ImVec2(g_renderSize.x * 0.4253f, g_renderSize.y * 0.0f);
+	ImVec2 multiplayerSize = initialized ? ImVec2(g_renderSize.y * 0.15f, g_renderSize.y * 0.15f) : normalSize;
+
+	if (WeaponWheelController(pSwapChain, g_pRangedWeaponWheel, "RangedWheel",
+		!forcing1PMPPosScale,
+		forcing1PMPPosScale ? multiplayerPos : normalPos, forcing1PMPPosScale ? multiplayerSize : normalSize,
+		false, state)) {
+
+		initialized = true;
+	}
+	
+	
 }
 
 #pragma endregion
@@ -7642,7 +7692,7 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			GUI_Checkbox2("Royal Gauge", activeCrimsonConfig.CrimsonHudAddons.royalGauge, queuedCrimsonConfig.CrimsonHudAddons.royalGauge);
 
-			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
 			ImGui::TableNextColumn();
 
 			GUI_Checkbox2("Style Ranks Meter", activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter, queuedCrimsonConfig.CrimsonHudAddons.styleRanksMeter);
@@ -7711,7 +7761,7 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::PopItemWidth();
 
 			// Second Row - Melee/Ranged Always Show
-			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
 			ImGui::TableNextColumn();
 
 			GUI_Checkbox2("Melee Wheel Always Show",
@@ -7724,9 +7774,28 @@ void InterfaceSection(size_t defaultFontSize) {
 				activeCrimsonConfig.WeaponWheel.rangedAlwaysShow,
 				queuedCrimsonConfig.WeaponWheel.rangedAlwaysShow);
 
+			ImGui::TableNextColumn();
+
+		
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			UI::Combo2Vector("Scale", weaponWheelScaleNames,
+				activeCrimsonConfig.WeaponWheel.scale,
+				queuedCrimsonConfig.WeaponWheel.scale);
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
+
+			ImGui::TableNextColumn();
+			GUI_Checkbox2("Force 1P Multiplayer Positioning/Scale",
+				activeCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale,
+				queuedCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale);
+
+
 			ImGui::EndTable();
 		}
 	}
+
+	ImGui::Text("");
 
 	ImGui::PopFont();
 	ImGui::PopStyleColor();
