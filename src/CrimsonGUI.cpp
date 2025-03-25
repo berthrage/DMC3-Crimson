@@ -1908,6 +1908,10 @@ bool WeaponWheelController(IDXGISwapChain* pSwapChain, std::unique_ptr<WW::Weapo
 
 	pWeaponWheel->OnDraw();
 
+	if (activeCrimsonConfig.WeaponWheel.hide) {
+		return true;
+	}
+
 	if (ImGui::Begin(windowName, &isOpen, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration |
 		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground)) {
 		ImGui::Image(pWeaponWheel->GetSRV(), wheelSize);
@@ -7789,6 +7793,11 @@ void InterfaceSection(size_t defaultFontSize) {
 			GUI_Checkbox2("Force 1P Multiplayer Positioning/Scale",
 				activeCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale,
 				queuedCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale);
+
+			ImGui::TableNextColumn();
+			GUI_Checkbox2("Hide Weapon Wheel HUD",
+				activeCrimsonConfig.WeaponWheel.hide,
+				queuedCrimsonConfig.WeaponWheel.hide);
 
 
 			ImGui::EndTable();

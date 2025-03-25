@@ -58,6 +58,7 @@ struct CrimsonConfig {
 		bool meleeAlwaysShow = false;
 		bool rangedAlwaysShow = false;
 		bool force1PMultiplayerPosScale = false;
+		bool hide = false;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -67,7 +68,8 @@ struct CrimsonConfig {
 				std::make_pair("scale", &WeaponWheel::scale),
 				std::make_pair("meleeAlwaysShow", &WeaponWheel::meleeAlwaysShow),
 				std::make_pair("rangedAlwaysShow", &WeaponWheel::rangedAlwaysShow),
-				std::make_pair("force1PMultiplayerPosScale", &WeaponWheel::force1PMultiplayerPosScale)
+				std::make_pair("force1PMultiplayerPosScale", &WeaponWheel::force1PMultiplayerPosScale),
+				std::make_pair("hide", &WeaponWheel::hide)
 			);
 		}
 
