@@ -25,8 +25,8 @@ add_compile_options("$<$<CONFIG:Release>:/MT>")
 add_compile_options("$<$<CONFIG:Debug>:/MTd>")
 add_compile_options(/Ob1)
 
-# Add O1 optimization for Release
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O1")
+# Add O2 optimization for Release
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2")
 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
 set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG:FULL /OPT:REF /OPT:ICF")
