@@ -1916,11 +1916,10 @@ bool WeaponWheelController(IDXGISwapChain* pSwapChain, std::unique_ptr<WW::Weapo
 		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground)) {
 		ImGui::Image(pWeaponWheel->GetSRV(), wheelSize);
 		return true;
-	} else {
-		return false;
-	}
+	} 
 
 	ImGui::End();
+	return false;
 }
 
 void MeleeWeaponWheelController(IDXGISwapChain* pSwapChain) {
@@ -7261,9 +7260,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             }
         }
 
-        if constexpr (!debug) {
-            return;
-        }
+//         if constexpr (!debug) {
+//             return;
+//         }
 
         ImGui::Text("g_saveIndex     %llu", g_saveIndex);
         ImGui::Text("g_lastSaveIndex %llu", g_lastSaveIndex);
@@ -10992,15 +10991,15 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     Main(pSwapChain);
     Shop::ShopWindow();
 
-    if constexpr (debug) {
-        ActorWindow();
-        EventDataWindow();
-        ExpWindow();
-        FileDataWindow();
-        MissionDataWindow();
-        RegionDataWindow();
-        SoundWindow();
-    }
+
+	ActorWindow();
+	EventDataWindow();
+	ExpWindow();
+	FileDataWindow();
+	MissionDataWindow();
+	RegionDataWindow();
+	SoundWindow();
+    
 
     PauseWhenGUIOpened();
     GamepadToggleShowMain();
