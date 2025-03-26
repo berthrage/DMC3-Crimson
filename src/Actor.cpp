@@ -9188,10 +9188,12 @@ void SetAction(byte8* actorBaseAddr) {
                    (tiltDirection == TILT_DIRECTION::RIGHT)) {
             actorData.action = YAMATO_FORCE_EDGE_COMBO_PART_4;
         } 
-        else if (activeCrimsonConfig.Gameplay.Vergil.airStinger && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1] &&
-            (actorData.action == YAMATO_FORCE_EDGE_HELM_BREAKER_LEVEL_2) &&
+		else if (activeCrimsonConfig.Gameplay.Vergil.airStinger && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1] &&
                    (actorData.newAirStingerCount < activeConfig.YamatoForceEdge.airStingerCount[index]) && lockOn &&
-                   (tiltDirection == TILT_DIRECTION::UP)) {
+                   (tiltDirection == TILT_DIRECTION::UP) &&
+			       (actorData.action == YAMATO_FORCE_EDGE_HELM_BREAKER_LEVEL_1 ||
+				        actorData.action == YAMATO_FORCE_EDGE_HELM_BREAKER_LEVEL_2)) {
+
             actorData.action = YAMATO_FORCE_EDGE_STINGER_LEVEL_2;
 
             actorData.newAirStingerCount++;
@@ -9205,7 +9207,6 @@ void SetAction(byte8* actorBaseAddr) {
 //             actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;  -- air judgement cut test
 //             
 //         }
-        
 
         break;
     }

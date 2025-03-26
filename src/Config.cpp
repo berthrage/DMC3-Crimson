@@ -2270,8 +2270,10 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr) {
             actorData.styleExpPoints = 100000;
         }
 
+        // flag ExpData as unlocked in Arcade 
         SetMemory(actorData.activeExpertise, 0xFF, sizeof(actorData.activeExpertise));
 		SetMemory(ExpConfig::missionExpDataDante.unlocks, 1, sizeof(ExpConfig::missionExpDataDante.unlocks));
+        SetMemory(ExpConfig::missionExpDataVergil.unlocks, 1, sizeof(ExpConfig::missionExpDataVergil.unlocks));
 
         if (actorData.character == CHARACTER::DANTE) {
             for_each(index, WEAPON::EBONY_IVORY, WEAPON_COUNT) {
