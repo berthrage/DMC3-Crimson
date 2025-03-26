@@ -1915,10 +1915,11 @@ bool WeaponWheelController(IDXGISwapChain* pSwapChain, std::unique_ptr<WW::Weapo
 	if (ImGui::Begin(windowName, &isOpen, ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration |
 		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground)) {
 		ImGui::Image(pWeaponWheel->GetSRV(), wheelSize);
+
+		ImGui::End();
 		return true;
 	} 
-
-	ImGui::End();
+	
 	return false;
 }
 
