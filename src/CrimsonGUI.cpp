@@ -9091,7 +9091,9 @@ void GameplayOptions() {
 
 		GUI_Checkbox2("Round Trip Tweaks", activeConfig.enableYamatoForceEdgeNewRoundTrip, queuedConfig.enableYamatoForceEdgeNewRoundTrip);
 		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n");
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Enables Round Trip as Back to Forward input with Force Edge.");
 
 		UI::Combo2Vector("Adjust Rising Sun Positioning", VergilMoveAdjustmentsNames, activeCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos,
 			queuedCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos);
