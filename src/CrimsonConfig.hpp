@@ -302,12 +302,16 @@ struct CrimsonConfig {
 			bool enableQuicksilver = false;
 			bool darkslayerTrickCancels = true;
 			bool airStinger = true;
+			std::string adjustRisingSunPos = "From Air";
+			std::string adjustLunarPhasePos = "From Air";
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
 					std::make_pair("enableQuicksilver", &Vergil::enableQuicksilver),
 					std::make_pair("darkslayerTrickCancels", &Vergil::darkslayerTrickCancels),
-					std::make_pair("airStinger", &Vergil::airStinger)
+					std::make_pair("airStinger", &Vergil::airStinger),
+					std::make_pair("adjustRisingSunPos", &Vergil::adjustRisingSunPos),
+					std::make_pair("adjustLunarPhasePos", &Vergil::adjustLunarPhasePos)
 				);
 			}
         } Vergil;

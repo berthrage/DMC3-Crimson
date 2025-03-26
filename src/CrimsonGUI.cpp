@@ -1541,6 +1541,12 @@ std::vector<std::string> weaponWheelScaleNames = {
 	"Big",
 };
 
+std::vector<std::string> VergilMoveAdjustmentsNames = {
+	"Off",
+	"From Air",
+	"Always",
+};
+
 static_assert(countof(trackFilenames) == countof(trackNames));
 
 #pragma endregion
@@ -7038,6 +7044,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			ImGui::Text("Starting From Ground: %u", crimsonPlayer[0].vergilMoves.startingRisingSunFromGround);
 			ImGui::Text("AllActorsSpawned: %u", g_allActorsSpawned);
 			ImGui::Text("StickRadius2: %u", gamepad.rightStickRadius);
 			ImGui::Text("NextActionPolicyTrickster: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::TRICKSTER_DARK_SLAYER]);
@@ -9085,6 +9092,20 @@ void GameplayOptions() {
 		GUI_Checkbox2("Round Trip Tweaks", activeConfig.enableYamatoForceEdgeNewRoundTrip, queuedConfig.enableYamatoForceEdgeNewRoundTrip);
 		ImGui::SameLine();
 		TooltipHelper("(?)", "Requires Actor System.\n");
+
+		UI::Combo2Vector("Adjust Rising Sun Positioning", VergilMoveAdjustmentsNames, activeCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos,
+			queuedCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Stops Rising Sun from going upwards, still launches enemy.");
+
+		UI::Combo2Vector("Adjust Lunar Phase Positioning", VergilMoveAdjustmentsNames, activeCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos,
+			queuedCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"Stops Lunar Phase from going upwards, enemy behavior intact.");
 
 
         ImGui::Text("");

@@ -4,6 +4,8 @@
 
 namespace CrimsonGameplay {
 
+extern bool startingFromGround[4];
+
 void UpdateCrimsonPlayerData();
 void FixAirStingerCancelTime(byte8* actorBaseAddr);
 void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr);

@@ -4449,6 +4449,8 @@ struct Inertia {
 struct VergilMoveAdjustments {
     float storedRisingSunPosY;
     float storedLunarPhasePosY;
+    bool startingRisingSunFromGround = false;
+    bool startingLunarPhaseFromGround = false;
 };
 
 struct DelayedComboFX {

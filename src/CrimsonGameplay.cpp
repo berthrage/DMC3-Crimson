@@ -747,6 +747,9 @@ void ImprovedCancelsVergilController(byte8* actorBaseAddr) {
 
 #pragma region VergilGameplay
 
+bool startingFromGround[PLAYER_COUNT] = { true };
+bool risingSunActive[PLAYER_COUNT] = { false };
+
 void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
     // This is for adjusting DDMK's Vergil's Air Moves positions, so that their startup position is more correct. - Mia
 
@@ -767,6 +770,7 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
     auto actionTimer =
         (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
     auto animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
+    
 
 
     if (actorData.character == CHARACTER::VERGIL) {
@@ -776,17 +780,49 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
             v->storedRisingSunPosY = actorData.position.y;
         }
 
+        
         if (!(state & STATE::IN_AIR && (action == BEOWULF_LUNAR_PHASE_LEVEL_1 || action == BEOWULF_LUNAR_PHASE_LEVEL_2) &&
                 actorData.eventData[0].event == 17)) {
 
             v->storedLunarPhasePosY = actorData.position.y;
         }
 
+
+        // Take configs into account if new positionings will be applied or not
+        if (activeCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos == "From Air") {
+			if (action != BEOWULF_RISING_SUN) {
+				if (!(state & STATE::IN_AIR)) {
+					v->startingRisingSunFromGround = true;
+				} else {
+					v->startingRisingSunFromGround = false;
+				}
+			}
+		} else if (activeCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos == "Always") {
+			v->startingRisingSunFromGround = false;
+		} else if (activeCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos == "Off") {
+			v->startingRisingSunFromGround = true;
+		}
+
+		
+        if (activeCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos == "From Air") {
+            if (action != BEOWULF_LUNAR_PHASE_LEVEL_1 && action != BEOWULF_LUNAR_PHASE_LEVEL_2) {
+                if (!(state & STATE::IN_AIR)) {
+                    v->startingLunarPhaseFromGround = true;
+                } else {
+                    v->startingLunarPhaseFromGround = false;
+                }
+            }
+		} else if (activeCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos == "Always") {
+			v->startingLunarPhaseFromGround = false;
+        } else if (activeCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos == "Off") {
+            v->startingLunarPhaseFromGround = true;
+        }
+
         // Applying the pos
         if (event == ACTOR_EVENT::ATTACK && state & STATE::IN_AIR) {
 
-            // Adjusts Vergil Pos to be lower when starting Air Rising Sun
-            if (action == BEOWULF_RISING_SUN) {
+            // Adjusts Vergil Pos to be lower when starting Ground/Air Rising Sun
+            if (action == BEOWULF_RISING_SUN && !v->startingRisingSunFromGround) {
 
                 if (actionTimer <= 0.6f) {
                     actorData.verticalPullMultiplier = 0.0f;
@@ -795,8 +831,10 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
                 actorData.position.y = v->storedRisingSunPosY - 50.0f;
             }
 
-            // Adjusts Vergil Pos to be lower when starting Air Lunar Phase
-            if ((actorData.action == BEOWULF_LUNAR_PHASE_LEVEL_1 || actorData.action == BEOWULF_LUNAR_PHASE_LEVEL_2) && motion != 23) {
+            // Adjusts Vergil Pos to be lower when starting Ground/Air Lunar Phase
+            if ((actorData.action == BEOWULF_LUNAR_PHASE_LEVEL_1 || actorData.action == BEOWULF_LUNAR_PHASE_LEVEL_2) && 
+                motion != 23 &&
+                !v->startingLunarPhaseFromGround) {
 
                 actorData.verticalPullMultiplier = 0.0f;
                 actorData.position.y             = v->storedLunarPhasePosY - 20.0f;
