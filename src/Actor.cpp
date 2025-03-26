@@ -3866,10 +3866,12 @@ template <typename T> void AnalogRangedWeaponSwitchController(T& actorData) {
 
         UpdateRangedWeapon(actorData);
 
-        if (activeCrimsonConfig.SFX.changeGunNew == 1) {
-            CrimsonSDL::PlayChangeGun();
-        } else {
-            PlaySound(0, 12);
+        if (characterData.character == CHARACTER::DANTE) {
+			if (activeCrimsonConfig.SFX.changeGunNew == 1) {
+				CrimsonSDL::PlayChangeGun();
+			} else {
+				PlaySound(0, 12);
+			}
         }
     }
 }
@@ -9202,6 +9204,9 @@ void SetAction(byte8* actorBaseAddr) {
                    (actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1 || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2) &&
                    crimsonPlayer[playerIndex].b2F.forwardCommand) {
             actorData.action = YAMATO_FORCE_EDGE_ROUND_TRIP;
+        }
+        else if (actorData.action == YAMATO_UPPER_SLASH_PART_1 && actionTimer > 0.4f && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK))) {
+            actorData.action = BEOWULF_RISING_SUN;
         }
 //         else if (actorData.action == YAMATO_AERIAL_RAVE_PART_1) {
 //             actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;  -- air judgement cut test
