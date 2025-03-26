@@ -1622,7 +1622,7 @@ std::unique_ptr<WW::WeaponWheel> g_pRangedWeaponWheel;
 
 #pragma endregion
 
-#pragma region Weapon Switch Controllers
+#pragma region Weapon Wheel Controllers
 
 void UpdateMeleeWeaponIDs(PlayerActorData& actorData, std::vector<WW::WeaponIDs>(&currentWeapons)[CHARACTER_COUNT], size_t charIdx) {
 	auto playerIndex = actorData.newPlayerIndex;

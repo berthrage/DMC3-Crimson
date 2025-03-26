@@ -9201,10 +9201,10 @@ void SetAction(byte8* actorBaseAddr) {
                    crimsonPlayer[playerIndex].b2F.forwardCommand) {
             actorData.action = YAMATO_FORCE_EDGE_ROUND_TRIP;
         }
-        else if (actorData.action == YAMATO_AERIAL_RAVE_PART_1) {
-            actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
-            
-        }
+//         else if (actorData.action == YAMATO_AERIAL_RAVE_PART_1) {
+//             actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;  -- air judgement cut test
+//             
+//         }
         
 
         break;
@@ -9232,10 +9232,11 @@ bool AirActionCheck(PlayerActorData& actorData) {
             return true;
         }
 
-		if ((actorData.state & STATE::IN_AIR) && (actorData.action == ACTION_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2) &&
-			(actorData.motionData[1].group == MOTION_GROUP_VERGIL::YAMATO)) {
-			return true;
-		}
+        // Enable Air Judgement Cut on air test -- unfinished
+// 		if ((actorData.state & STATE::IN_AIR) && (actorData.action == ACTION_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2) &&
+// 			(actorData.motionData[1].group == MOTION_GROUP_VERGIL::YAMATO)) {
+// 			return true;
+// 		}
 
         break;
     }
