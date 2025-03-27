@@ -6812,6 +6812,8 @@ void ResetSkyStar(PlayerActorData& actorData) {
             (actorData.lastAction == ACTION_DANTE::REBELLION_STINGER_LEVEL_2) && !inAir && lastInAir) ||
         // Dante Air Rising Dragon Whirlwind
 		((actorData.character == CHARACTER::DANTE) && (actorData.action == ACTION_DANTE::BEOWULF_RISING_DRAGON_WHIRLWIND) && inAir && lastInAir) ||
+		// Dante Agni Rudra Whirlwind
+		((actorData.character == CHARACTER::DANTE) && (actorData.action == ACTION_DANTE::AGNI_RUDRA_WHIRLWIND_LAUNCH) && inAir && lastInAir) ||
         // Vergil Air Rising Sun
         ((actorData.character == CHARACTER::VERGIL) && (actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN) && inAir && lastInAir) ||
         // Vergil Air Stinger
@@ -6833,6 +6835,7 @@ void ResetSkyStar(PlayerActorData& actorData) {
     actorData.newTrickDownCount  = 0;
     actorData.newAirStingerCount = 0;
     airCounts.airRisingSunWhirlwind = 0;
+	airCounts.airAgniRudraWhirlwind = 0;
 
 	if ((actorData.character == CHARACTER::VERGIL) && (actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN) && inAir && !lastInAir) {
 		actorData.newAirRisingSunCount = 1;
@@ -9173,6 +9176,18 @@ void SetAction(byte8* actorBaseAddr) {
             }
         }
 
+        // Air Agni & Rudra Whirlwind
+		if ((actorData.action == AGNI_RUDRA_AERIAL_CROSS) &&
+			actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) &&
+			(airCounts.airAgniRudraWhirlwind < 1) && activeCrimsonConfig.Gameplay.Dante.airAgniRudraWhirlwind &&
+			ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::AGNI_RUDRA_WHIRLWIND]) {
+
+			if ((lockOn && tiltDirection == TILT_DIRECTION::DOWN)) {
+				actorData.action = AGNI_RUDRA_WHIRLWIND_LAUNCH;
+				airCounts.airAgniRudraWhirlwind++;
+			}
+		}
+
         // Part of SkyDanceTweaks
         if (activeCrimsonConfig.Gameplay.Dante.skyDanceTweaks) {
             if ((actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2) &&
@@ -9253,6 +9268,11 @@ bool AirActionCheck(PlayerActorData& actorData) {
             (actorData.motionData[1].group == MOTION_GROUP_DANTE::BEOWULF)) {
             return true;
         }
+
+		if ((actorData.state & STATE::IN_AIR) && (actorData.action == ACTION_DANTE::AGNI_RUDRA_WHIRLWIND_LAUNCH) &&
+			(actorData.motionData[1].group == MOTION_GROUP_DANTE::AGNI_RUDRA)) {
+			return true;
+		}
 
         break;
     }

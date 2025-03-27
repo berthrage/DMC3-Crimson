@@ -9052,7 +9052,15 @@ void GameplayOptions() {
 		ImGui::SameLine();
 		TooltipHelper("(?)", "Requires Actor System.\n"
 			"\n"
-			"With Beowulf: LockOn + Back while in air.");
+			"With Beowulf: LockOn + Back + Melee while in air.");
+
+		GUI_Checkbox2("Air Agni & Rudra Whirlwind",
+			activeCrimsonConfig.Gameplay.Dante.airAgniRudraWhirlwind,
+			queuedCrimsonConfig.Gameplay.Dante.airAgniRudraWhirlwind);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"With Agni & Rudra: LockOn + Back + Melee while in air.");
 
 		if (GUI_Checkbox2("DMC4 Mobility", activeCrimsonConfig.Gameplay.Dante.dmc4Mobility, queuedCrimsonConfig.Gameplay.Dante.dmc4Mobility)) {
 			queuedConfig.airHikeCount[1] = 2;

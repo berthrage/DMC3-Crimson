@@ -278,6 +278,7 @@ struct CrimsonConfig {
 			bool disableAirSlashKnockback = true;
 			bool airStinger = true;
 			bool airRisingDragonWhirlwind = true;
+			bool airAgniRudraWhirlwind = true;
 			bool dmc4Mobility = true;
 			bool dTInfusedRoyalguard = true;
 
@@ -294,6 +295,7 @@ struct CrimsonConfig {
 					std::make_pair("disableAirSlashKnockback", &Dante::disableAirSlashKnockback),
 					std::make_pair("airStinger", &Dante::airStinger),
 					std::make_pair("airRisingDragonWhirlwind", &Dante::airRisingDragonWhirlwind),
+					std::make_pair("airAgniRudraWhirlwind", &Dante::airAgniRudraWhirlwind),
 					std::make_pair("dmc4Mobility", &Dante::dmc4Mobility),
 					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard)
 				);
