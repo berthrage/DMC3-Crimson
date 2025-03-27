@@ -1200,6 +1200,40 @@ void StopDamageToCerberus(bool enable) {
 // 	   dmc3.exe + 10BB50 - F3 0F 11 87 D8 E1 00 00 - movss[rdi + 0000E1D8], xmm0
 }
 
+void ReduceAirTornadoDamage(bool enable) {
+	static bool run = false;
+	uintptr_t sometimesStart = (uintptr_t)appBaseAddr + 0x5C6A5C;
+	uintptr_t sometimesStart2 = (uintptr_t)appBaseAddr + 0x5C6BEC;
+	uintptr_t spin = (uintptr_t)appBaseAddr + 0x5CA4CC;
+	uintptr_t knockAwayEnder = (uintptr_t)appBaseAddr + 0x5CA51C;
+
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+// 	tatsu damage
+// 	dmc3.exe + 5C6A5C // 80.0f, sometimes used at the start of the attack
+// 	dmc3.exe + 5CA4CC // 100.0f, always used every spin hit
+// 	dmc3.exe + 5CA51C // 100.0f, knock away ender
+// 	dmc3.exe + 5C6BEC // 70.0f, sometimes used at the start of the attack
+// 	dmc3.exe + 5CA88C // 1.0f, used for the swoop??????
+
+	if (enable) {
+		*(float*)(sometimesStart) = 20.0f;
+		*(float*)(sometimesStart2) = 10.0f;
+		*(float*)(spin) = 13.0f;
+		*(float*)(knockAwayEnder) = 20.0f;
+	} else {
+		*(float*)(sometimesStart) = 80.0f;
+		*(float*)(sometimesStart2) = 70.0f;
+		*(float*)(spin) = 100.0f;
+		*(float*)(knockAwayEnder) = 100.0f;
+	}
+
+	run = enable;
+}
+
 # pragma endregion
 
 #pragma region HudStuff

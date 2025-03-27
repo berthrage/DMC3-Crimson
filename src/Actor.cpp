@@ -3905,6 +3905,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CrimsonPatches::DisableJCRestriction(activeCrimsonConfig.Gameplay.General.disableJCRestriction);
     CrimsonPatches::BulletStop(activeCrimsonConfig.Gameplay.Dante.bulletStop);
     CrimsonPatches::RainstormLift(activeCrimsonConfig.Gameplay.Dante.rainstormLift);
+    CrimsonPatches::ReduceAirTornadoDamage(activeCrimsonConfig.Gameplay.Dante.airTornado);
     CrimsonGameplay::FixAirStingerCancelTime(actorBaseAddr);
     CrimsonGameplay::FasterRapidSlashDevil(actorBaseAddr);
     CrimsonGameplay::LastEventStateQueue(actorBaseAddr);

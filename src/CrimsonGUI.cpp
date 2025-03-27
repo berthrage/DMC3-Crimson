@@ -9052,7 +9052,7 @@ void GameplayOptions() {
 		ImGui::SameLine();
 		TooltipHelper("(?)", "Requires Actor System.\n"
 			"\n"
-			"With Beowulf: Neutral + Style while in air. Carries inertia.");
+			"With Beowulf: Neutral + Style while in air. Reduces Tornado damage across the board. Carries inertia.");
 
 		GUI_Checkbox2("Air Rising Dragon Whirlwind", 
 			activeCrimsonConfig.Gameplay.Dante.airRisingDragonWhirlwind, 

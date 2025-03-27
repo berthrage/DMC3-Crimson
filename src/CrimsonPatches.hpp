@@ -59,6 +59,7 @@ void CerberusCrashFixPart2(bool enable);
 #pragma region Damage
 
 void StopDamageToCerberus(bool enable);
+void ReduceAirTornadoDamage(bool enable);
 
 #pragma endregion
 
