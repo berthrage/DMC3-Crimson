@@ -7045,7 +7045,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
 			ImGui::Text("Starting From Ground: %u", crimsonPlayer[0].vergilMoves.startingRisingSunFromGround);
-			ImGui::Text("Melee Button Held: %u", gamepad.buttons[1] & GetBinding(BINDING::MELEE_ATTACK));
+			ImGui::Text("Air Rising Dragon Count: %u", crimsonPlayer[0].airCounts.airRisingSunWhirlwind);
+			ImGui::Text("Rising Sun Count: %u", actorData.newAirRisingSunCount);
 			ImGui::Text("AllActorsSpawned: %u", g_allActorsSpawned);
 			ImGui::Text("StickRadius2: %u", gamepad.rightStickRadius);
 			ImGui::Text("NextActionPolicyTrickster: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::TRICKSTER_DARK_SLAYER]);
@@ -9040,9 +9041,18 @@ void GameplayOptions() {
 			"\n"
 			"Rainstorm will elevate you slightly in the air.");
 		//enableRebellionAirStinger
-		GUI_Checkbox2("Air Stinger", activeCrimsonConfig.Gameplay.Dante.airStinger, queuedCrimsonConfig.Gameplay.Dante.airStinger);
+		GUI_Checkbox2("Air Stinger", activeCrimsonConfig.Gameplay.Dante.airStinger, 
+			queuedCrimsonConfig.Gameplay.Dante.airStinger);
 		ImGui::SameLine();
 		TooltipHelper("(?)", "Requires Actor System.\n");
+
+		GUI_Checkbox2("Air Rising Dragon Whirlwind", 
+			activeCrimsonConfig.Gameplay.Dante.airRisingDragonWhirlwind, 
+			queuedCrimsonConfig.Gameplay.Dante.airRisingDragonWhirlwind);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"With Beowulf: LockOn + Back while in air.");
 
 		if (GUI_Checkbox2("DMC4 Mobility", activeCrimsonConfig.Gameplay.Dante.dmc4Mobility, queuedCrimsonConfig.Gameplay.Dante.dmc4Mobility)) {
 			queuedConfig.airHikeCount[1] = 2;

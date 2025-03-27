@@ -4248,6 +4248,10 @@ struct StoredAirCounts {
     bool cancelTrackerRunning = false;
 };
 
+struct AirCounts {
+    uint8 airRisingSunWhirlwind = 0;
+};
+
 struct FasterDarkslayer {
     float newSpeed            = 2.0f;
     bool newSpeedSet          = false;
@@ -4541,6 +4545,7 @@ struct CrimsonPlayerData {
     bool playerOutOfView = false;
     uint16 rotationTowardsEnemy = 0;
     StoredAirCounts storedAirCounts;
+	AirCounts airCounts;
 
     AirRaveTweak airRaveTweak;
 
@@ -4576,6 +4581,7 @@ struct CrimsonPlayerData {
     bool cloneOutOfView = false;
     uint16 rotationCloneTowardsEnemy = 0;
     StoredAirCounts storedAirCountsClone;
+    AirCounts airCountsClone;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];
