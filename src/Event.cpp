@@ -11,6 +11,9 @@
 #include "Global.hpp"
 #include "Sound.hpp"
 #include "Vars.hpp"
+#include "CrimsonOnTick.hpp"
+#include "CrimsonSDL.hpp"
+#include "CrimsonGameplay.hpp"
 
 #include "Core/Macros.h"
 
@@ -192,6 +195,22 @@ static_assert(countof(newEventFuncNames) == EVENT::COUNT);
 
 void EventHandler(EventData& eventData) {
     using namespace EVENT;
+
+	CrimsonSDL::CheckAndOpenControllers();
+	CrimsonSDL::UpdateJoysticks();
+	CrimsonGameplay::GunDTCharacterRemaps();
+	CrimsonOnTick::GameTrackDetection();
+     CrimsonOnTick::CorrectFrameRateCutscenes();
+	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
+	CrimsonOnTick::DisableBlendingEffectsController();
+	CrimsonOnTick::StyleMeterMultiplayer();
+	CrimsonOnTick::DetermineActiveEntitiesCount();
+ 	CrimsonOnTick::MultiplayerCameraPositioningController();
+ 	CrimsonOnTick::ForceThirdPersonCameraController();
+ 	CrimsonOnTick::GeneralCameraOptionsController(); // previously called from Actor in WeaponSwitchController.
+ 	CrimsonOnTick::AirTauntDetoursController();
+ 	CrimsonOnTick::NewMissionClearSong();
+ 	CrimsonOnTick::PauseSFXWhenPaused();
 
 
     auto event = eventData.event;
@@ -394,6 +413,7 @@ void EventHandler(EventData& eventData) {
         BossLadyController();
         BossVergilController();
 
+
         break;
     }
     case TELEPORT: {
@@ -435,6 +455,8 @@ void EventHandler(EventData& eventData) {
 
 void PlayerActorLoop(byte8* actorBaseAddr) {
     Actor::PlayerActorLoop(actorBaseAddr);
+
+	
 }
 
 

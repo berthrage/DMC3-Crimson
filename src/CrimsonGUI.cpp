@@ -7045,6 +7045,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
 			ImGui::Text("Starting From Ground: %u", crimsonPlayer[0].vergilMoves.startingRisingSunFromGround);
+			ImGui::Text("Melee Button Held: %u", gamepad.buttons[1] & GetBinding(BINDING::MELEE_ATTACK));
 			ImGui::Text("AllActorsSpawned: %u", g_allActorsSpawned);
 			ImGui::Text("StickRadius2: %u", gamepad.rightStickRadius);
 			ImGui::Text("NextActionPolicyTrickster: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::TRICKSTER_DARK_SLAYER]);
@@ -11002,7 +11003,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 void GUI_Render(IDXGISwapChain* pSwapChain) {
 
-    CrimsonSDL::InitSDL();
     if (g_scene != SCENE::GAME) {
         devilTriggerReadyPlayed = !activeConfig.playDTReadySFXAtMissionStart;
     }
@@ -11025,34 +11025,19 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	SoundWindow();
     
 
-    PauseWhenGUIOpened();
+    //PauseWhenGUIOpened();
     GamepadToggleShowMain();
 	if (activeConfig.debugOverlayData.enable) {
 		DebugOverlayWindow(UI::g_UIContext.DefaultFontSize);
 	}
     MissionOverlayWindow(UI::g_UIContext.DefaultFontSize);
-    BossLadyActionsOverlayWindow();
-    BossVergilActionsOverlayWindow();
+     BossLadyActionsOverlayWindow();
+     BossVergilActionsOverlayWindow();
     
 	// Calling this from GUI Render is the safest way to ensure this will run on-tick properly
     // outside of In Game.
-    CrimsonSDL::CheckAndOpenControllers();
-    CrimsonSDL::UpdateJoysticks();
     
-    CrimsonGameplay::GunDTCharacterRemaps();
-	CrimsonOnTick::FrameResponsiveGameSpeed();
-    CrimsonOnTick::GameTrackDetection();
-    CrimsonOnTick::CorrectFrameRateCutscenes();
-    CrimsonOnTick::PreparePlayersDataBeforeSpawn();
-	CrimsonOnTick::DisableBlendingEffectsController();
-	CrimsonOnTick::StyleMeterMultiplayer();
-	CrimsonOnTick::DetermineActiveEntitiesCount();
-	CrimsonOnTick::MultiplayerCameraPositioningController();
-	CrimsonOnTick::ForceThirdPersonCameraController();
-	CrimsonOnTick::GeneralCameraOptionsController(); // previously called from Actor in WeaponSwitchController.
-	CrimsonOnTick::AirTauntDetoursController();
-	CrimsonOnTick::NewMissionClearSong();
-	CrimsonOnTick::PauseSFXWhenPaused();
+  	CrimsonOnTick::FrameResponsiveGameSpeed();
 
     // TIMERS
     CrimsonTimers::CallAllTimers();

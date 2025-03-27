@@ -529,24 +529,20 @@ CameraData* GetSafeCameraData() {
 
 
 void ForceThirdPersonCameraController() {
-	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
-	if (!name_10723) {
-		return;
-	}
-	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
 	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if (!pool_10298 || !pool_10298[8]) {
 		return;
 	}
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	static bool checkIfGameHasAlreadyLoaded2 = false;
+
 	if (!checkIfGameHasAlreadyLoaded2) {
-		if (eventData.event == EVENT::MAIN && g_inGameDelayed) checkIfGameHasAlreadyLoaded2 = true;
-	}
-	else {
-		auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+		if (eventData.event == EVENT::MAIN && g_inGameDelayed) {
+			checkIfGameHasAlreadyLoaded2 = true;
+		}
+	} else {
 		if (!pool_10222 || !pool_10222[3]) {
 			return;
 		}
@@ -560,15 +556,13 @@ void ForceThirdPersonCameraController() {
 
 	if (activeCrimsonConfig.Camera.forceThirdPerson) {
 		CrimsonPatches::ForceThirdPersonCamera(true);
+
 		if (!(eventData.room == 228 && eventData.position == 0)) { // Adding only Geryon Part 1 as an exception for now.
 			Camera::ToggleDisableBossCamera(true);
-		}
-		else {
+		} else {
 			Camera::ToggleDisableBossCamera(false);
 		}
-		
-	}
-	else {
+	} else {
 		CrimsonPatches::ForceThirdPersonCamera(false);
 		Camera::ToggleDisableBossCamera(activeCrimsonConfig.Camera.disableBossCamera);
 	}

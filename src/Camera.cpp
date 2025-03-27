@@ -229,39 +229,23 @@ dmc3.exe+55FC0 - 0FB6 05 69B8C300      - movzx eax,byte ptr [dmc3.exe+C91830] { 
 
 
 void ToggleDisableBossCamera(bool enable) {
-    LogFunction(enable);
+	static bool run = false;
 
-    static bool run = false;
-    static bool run2 = false;
-
-	// If the current state is the same as the desired state, return early.
-	if (run2 == enable) {
+	// dmc3.exe+55FD2 - 48 89 83 98040000 - mov [rbx+00000498],rax
+	//	dmc3.exe+55FD9 - 4C 89 A3 B0040000 - mov [rbx+000004B0],r12
+	//	dmc3.exe+55FE0 - EB 15             - jmp dmc3.exe+55FF7
+    
+	if (run == enable) {
 		return;
 	}
 
+	if (enable) {
+		_nop((char*)(appBaseAddr + 0x55FD2), 14);
+	} else {
+		_patch((char*)(appBaseAddr + 0x55FD2), (char*)"\x48\x89\x83\x98\x04\x00\x00\x4C\x89\xA3\xB0\x04\x00\x00", 14);
+	}
 
-    {
-        auto addr             = (appBaseAddr + 0x55FD2);
-        constexpr uint32 size = 14;
-        /*
-        dmc3.exe+55FD2 - 48 89 83 98040000 - mov [rbx+00000498],rax
-        dmc3.exe+55FD9 - 4C 89 A3 B0040000 - mov [rbx+000004B0],r12
-        dmc3.exe+55FE0 - EB 15             - jmp dmc3.exe+55FF7
-        */
-
-        if (!run) {
-            backupHelper.Save(addr, size);
-        }
-
-        if (enable) {
-            SetMemory(addr, 0x90, size, MemoryFlags_VirtualProtectDestination);
-        } else {
-            backupHelper.Restore(addr);
-        }
-    }
-
-    run2 = enable;
-    run = true;
+	run = enable;
 }
 
 }; // namespace Camera

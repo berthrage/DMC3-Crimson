@@ -17,6 +17,7 @@
 #include "../../ThirdParty/ImGui/Backend/imgui_impl_dx10.h"
 #include "../../ThirdParty/ImGui/Backend/imgui_impl_dx11.h"
 #include "../StyleSwitchFX.hpp"
+#include "../CrimsonSDL.hpp"
 
 namespace API {
 enum {
@@ -200,8 +201,8 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
     DXGI_SWAP_CHAIN_DESC swapDesc = {};
     pSwapChain->GetDesc(&swapDesc);
 
-    UpdateGlobalRenderSize(swapDesc.BufferDesc.Width, swapDesc.BufferDesc.Height);
-    CoreImGui::UpdateDisplaySize(swapDesc.BufferDesc.Width, swapDesc.BufferDesc.Height);
+    //UpdateGlobalRenderSize(swapDesc.BufferDesc.Width, swapDesc.BufferDesc.Height);
+    //CoreImGui::UpdateDisplaySize(swapDesc.BufferDesc.Width, swapDesc.BufferDesc.Height);
 
     ImGui_ImplWin32_GetDpiScaleForHwnd(swapDesc.OutputWindow);
 
@@ -214,6 +215,7 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
 
     ImGui::NewFrame();
 
+    CrimsonSDL::InitSDL();
     GUI_Render(pSwapChain);
 
     DrawStyleSwitchFxTexture();

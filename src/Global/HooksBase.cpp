@@ -603,7 +603,7 @@ HRESULT D3D10CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D10_DRIVER_TYPE 
             return;
         }
 
-        Install(&funcAddrs[8], ::Base::DXGI::Present, ::Hook::DXGI::Present<API::D3D10>);
+        //Install(&funcAddrs[8], ::Base::DXGI::Present, ::Hook::DXGI::Present<API::D3D10>);
 
         Install(&funcAddrs[13], ::Base::DXGI::ResizeBuffers, ::Hook::DXGI::ResizeBuffers<API::D3D10>);
     }();
@@ -734,7 +734,7 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
 
         Install(&funcAddrs[8], ::Base::DXGI::Present, ::Hook::DXGI::Present<API::D3D11>);
 
-        Install(&funcAddrs[13], ::Base::DXGI::ResizeBuffers, ::Hook::DXGI::ResizeBuffers<API::D3D11>);
+        //Install(&funcAddrs[13], ::Base::DXGI::ResizeBuffers, ::Hook::DXGI::ResizeBuffers<API::D3D11>);
     }();
 
 
