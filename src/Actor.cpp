@@ -6814,6 +6814,8 @@ void ResetSkyStar(PlayerActorData& actorData) {
 		((actorData.character == CHARACTER::DANTE) && (actorData.action == ACTION_DANTE::BEOWULF_RISING_DRAGON_WHIRLWIND) && inAir && lastInAir) ||
 		// Dante Agni Rudra Whirlwind
 		((actorData.character == CHARACTER::DANTE) && (actorData.action == ACTION_DANTE::AGNI_RUDRA_WHIRLWIND_LAUNCH) && inAir && lastInAir) ||
+		// Dante Air Tornado
+		((actorData.character == CHARACTER::DANTE) && (actorData.action == ACTION_DANTE::BEOWULF_TORNADO) && inAir && lastInAir) ||
         // Vergil Air Rising Sun
         ((actorData.character == CHARACTER::VERGIL) && (actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN) && inAir && lastInAir) ||
         // Vergil Air Stinger
@@ -6834,8 +6836,10 @@ void ResetSkyStar(PlayerActorData& actorData) {
     actorData.newTrickUpCount    = 0;
     actorData.newTrickDownCount  = 0;
     actorData.newAirStingerCount = 0;
+    airCounts.airTornado = 0;
     airCounts.airRisingSunWhirlwind = 0;
 	airCounts.airAgniRudraWhirlwind = 0;
+    
 
 	if ((actorData.character == CHARACTER::VERGIL) && (actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN) && inAir && !lastInAir) {
 		actorData.newAirRisingSunCount = 1;
@@ -9154,13 +9158,17 @@ void SetAction(byte8* actorBaseAddr) {
         }
 
 
-        // Alt Tornado
+        // Air Tornado
         if ((actorData.action == BEOWULF_THE_HAMMER) && (actorData.style == STYLE::SWORDMASTER) &&
-            actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
+			activeCrimsonConfig.Gameplay.Dante.airTornado && 
+            ExpConfig::missionExpDataDante.styleLevels[STYLE::SWORDMASTER] >= 2 &&
+            actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION) &&
+            airCounts.airTornado < 1) {
 
             if ((lockOn && tiltDirection != TILT_DIRECTION::DOWN) || !lockOn) {
 
                 actorData.action = BEOWULF_TORNADO;
+                airCounts.airTornado++;
             }
         }
 

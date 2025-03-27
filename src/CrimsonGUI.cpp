@@ -9046,6 +9046,14 @@ void GameplayOptions() {
 		ImGui::SameLine();
 		TooltipHelper("(?)", "Requires Actor System.\n");
 
+		GUI_Checkbox2("Air Tornado",
+			activeCrimsonConfig.Gameplay.Dante.airTornado,
+			queuedCrimsonConfig.Gameplay.Dante.airTornado);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Requires Actor System.\n"
+			"\n"
+			"With Beowulf: Neutral + Style while in air. Carries inertia.");
+
 		GUI_Checkbox2("Air Rising Dragon Whirlwind", 
 			activeCrimsonConfig.Gameplay.Dante.airRisingDragonWhirlwind, 
 			queuedCrimsonConfig.Gameplay.Dante.airRisingDragonWhirlwind);

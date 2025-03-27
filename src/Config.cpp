@@ -2274,6 +2274,10 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr) {
         SetMemory(actorData.activeExpertise, 0xFF, sizeof(actorData.activeExpertise));
 		SetMemory(ExpConfig::missionExpDataDante.unlocks, 1, sizeof(ExpConfig::missionExpDataDante.unlocks));
         SetMemory(ExpConfig::missionExpDataVergil.unlocks, 1, sizeof(ExpConfig::missionExpDataVergil.unlocks));
+        for (size_t i = 0; i < 4; i++) {
+            ExpConfig::missionExpDataDante.styleLevels[i] = 2;
+            ExpConfig::missionExpDataVergil.styleLevels[i] = 2;
+        }
 
         if (actorData.character == CHARACTER::DANTE) {
             for_each(index, WEAPON::EBONY_IVORY, WEAPON_COUNT) {
