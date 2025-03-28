@@ -4244,7 +4244,7 @@ struct StoredAirCounts {
 	uint8 trickUp = 0;
     uint8 skyStar = 0;
     uint8 airHike = 0;
-    uint8 airStringer = 0;
+    uint8 airStinger = 0;
     bool cancelTrackerRunning = false;
 };
 

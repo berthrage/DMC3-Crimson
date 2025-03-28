@@ -7045,7 +7045,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
 			ImGui::Text("Starting From Ground: %u", crimsonPlayer[0].vergilMoves.startingRisingSunFromGround);
-			ImGui::Text("Air Rising Dragon Count: %u", crimsonPlayer[0].airCounts.airRisingSunWhirlwind);
+			ImGui::Text("Air Stinger Count: %u", actorData.newAirStingerCount);
 			ImGui::Text("Rising Sun Count: %u", actorData.newAirRisingSunCount);
 			ImGui::Text("AllActorsSpawned: %u", g_allActorsSpawned);
 			ImGui::Text("StickRadius2: %u", gamepad.rightStickRadius);

@@ -6809,8 +6809,8 @@ void ResetSkyStar(PlayerActorData& actorData) {
 
     if (
         // Dante Air Stinger
-        ((actorData.character == CHARACTER::DANTE) && (actorData.action == 0) &&
-            (actorData.lastAction == ACTION_DANTE::REBELLION_STINGER_LEVEL_2) && !inAir && lastInAir) ||
+		((actorData.character == CHARACTER::DANTE) && (actorData.action == 0) &&
+			(actorData.lastAction == ACTION_DANTE::REBELLION_STINGER_LEVEL_2) && !inAir && lastInAir) ||
         // Dante Air Rising Dragon Whirlwind
 		((actorData.character == CHARACTER::DANTE) && (actorData.action == ACTION_DANTE::BEOWULF_RISING_DRAGON_WHIRLWIND) && inAir && lastInAir) ||
 		// Dante Agni Rudra Whirlwind

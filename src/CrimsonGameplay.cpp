@@ -148,12 +148,12 @@ void AirCancelCountsTracker(byte8* actorBaseAddr) {
 
     // This restores player counts back to what they were before the Royal Cancel
     storedAirCounts.cancelTrackerRunning = true;
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
     actorData.newTrickUpCount = storedAirCounts.trickUp;
     actorData.newSkyStarCount = storedAirCounts.skyStar;
     actorData.newAirHikeCount = storedAirCounts.airHike;
-    actorData.newAirStingerCount = storedAirCounts.airStringer;
+    actorData.newAirStingerCount = storedAirCounts.airStinger;
 
     storedAirCounts.cancelTrackerRunning = false;
 }
@@ -178,13 +178,16 @@ void FixAirStingerCancelTime(byte8* actorBaseAddr) {
 			storedAirCounts.trickUp = actorData.newTrickUpCount;
 			storedAirCounts.skyStar = actorData.newSkyStarCount;
 			storedAirCounts.airHike = actorData.newAirHikeCount;
-			storedAirCounts.airStringer = actorData.newAirStingerCount;
+			storedAirCounts.airStinger = actorData.newAirStingerCount;
 
 			actorData.action = ROYAL_AIR_BLOCK;
 
 			std::thread aircountstracker(AirCancelCountsTracker, actorBaseAddr);
 			aircountstracker.detach();
 		}
+        else {
+
+        }
     }
     else if (actorData.character == CHARACTER::VERGIL) {
 		if ((actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2 || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1) && actorData.state & STATE::IN_AIR && crimsonPlayer[playerIndex].actionTimer > 0.4f
@@ -193,7 +196,7 @@ void FixAirStingerCancelTime(byte8* actorBaseAddr) {
 			storedAirCounts.trickUp = actorData.newTrickUpCount;
 			storedAirCounts.skyStar = actorData.newSkyStarCount;
 			storedAirCounts.airHike = actorData.newAirHikeCount;
-			storedAirCounts.airStringer = actorData.newAirStingerCount;
+			storedAirCounts.airStinger = actorData.newAirStingerCount;
 
 			actorData.action = ROYAL_AIR_BLOCK;
 
@@ -309,7 +312,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
         storedAirCounts.trickUp = actorData.newTrickUpCount;
         storedAirCounts.skyStar = actorData.newSkyStarCount;
         storedAirCounts.airHike = actorData.newAirHikeCount;
-        storedAirCounts.airStringer = actorData.newAirStingerCount;
+        storedAirCounts.airStinger = actorData.newAirStingerCount;
 
         actorData.permissions = 3080; // This is a softer version of Reset Permissions.
 
@@ -325,7 +328,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 		storedAirCounts.trickUp = actorData.newTrickUpCount;
 		storedAirCounts.skyStar = actorData.newSkyStarCount;
 		storedAirCounts.airHike = actorData.newAirHikeCount;
-		storedAirCounts.airStringer = actorData.newAirStingerCount;
+		storedAirCounts.airStinger = actorData.newAirStingerCount;
 
         actorData.permissions = 0x1C1B; // This is a hard version of Reset Permissions.
 
@@ -345,7 +348,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 				storedAirCounts.trickUp = actorData.newTrickUpCount;
 				storedAirCounts.skyStar = actorData.newSkyStarCount;
 				storedAirCounts.airHike = actorData.newAirHikeCount;
-				storedAirCounts.airStringer = actorData.newAirStingerCount;
+				storedAirCounts.airStinger = actorData.newAirStingerCount;
 
                 actorData.action = ROYAL_AIR_BLOCK;
 
