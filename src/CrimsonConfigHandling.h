@@ -258,6 +258,9 @@ void ParseField(const Value& obj, const char* name, T& value) {
 					else if constexpr (std::is_floating_point_v<std::remove_extent_t<T>>) {
 						value[index++] = elem.GetFloat();
 					}
+					else if constexpr (TypeMatch<std::remove_extent_t<T>, std::string>::value) {
+						value[index++] = (elem.GetString());
+					}
 				}
 			}
 			// 2D arrays
@@ -296,6 +299,9 @@ void ParseField(const Value& obj, const char* name, T& value) {
 						}
 						else if constexpr (std::is_floating_point_v<std::remove_all_extents_t<T>>) {
 							value[row][col++] = elem.GetFloat();
+						}
+						else if constexpr (TypeMatch<std::remove_all_extents_t<T>, std::string>::value) {
+							value[row][col++] = (elem.GetString());
 						}
 					}
 					++row;
@@ -341,6 +347,10 @@ void ParseField(const Value& obj, const char* name, T& value) {
 							else if constexpr (std::is_floating_point_v<std::remove_all_extents_t<T>>) {
 								value[layer][row][col++] = elem.GetFloat();
 							}
+							else if constexpr (TypeMatch<std::remove_all_extents_t<T>, std::string>::value) {
+								value[layer][row][col++] = (elem.GetString());
+							}
+
 						}
 						++row;
 					}
