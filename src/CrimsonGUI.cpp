@@ -2634,11 +2634,11 @@ void ActorSection(size_t defaultFontSize) {
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushItemWidth(itemWidth);
 	GUI_Slider<uint8>("Number of Players", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT);
-	UI::Combo2("Costume Respects Game Progression", costumeRespectsProgressionNames, activeConfig.costumeRespectsProgression,
+	UI::Combo2("Costume Game Progression", costumeRespectsProgressionNames, activeConfig.costumeRespectsProgression,
 		queuedConfig.costumeRespectsProgression);
 
 	ImGui::SameLine();
-	TooltipHelper("(?)", "First Costume updates as the game progresses as in Vanilla.\n"
+	TooltipHelper("(?)", "Makes DMC3 Costume update as the game progresses, as in the Vanilla game.\n"
 		"\n"
 		"Original behaves the same as the Vanilla Game.\n"
 		"Crimson also updates Vergil's First Costume."
