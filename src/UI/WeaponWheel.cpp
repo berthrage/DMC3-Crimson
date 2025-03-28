@@ -258,10 +258,10 @@ namespace WW {
         for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; charIdx++) {
 			for (size_t i = 0; i < 5; i++) {
 				if (i >= weapons[charIdx].size()) {
-					// If out of bounds of the weapon loadout, we still fill it with the weapon on slot 1
-					sprites.emplace_back(weaponSprites[(size_t)GetWeaponTextureID(weapons[0][charIdx], false)]);  // Slot i Inactive Texture
-					sprites.emplace_back(weaponSprites[(size_t)GetWeaponTextureID(weapons[0][charIdx], true)]);   // Slot i Active Texture
-					sprites.emplace_back(weaponSprites[(size_t)GetDupAnimationWeaponTextureID(weapons[0][charIdx])]);       // Slot i Duplicate Texture
+					// If out of bounds of the weapon loadout, we still fill it with weapon id 0 as placeholder
+					sprites.emplace_back(weaponSprites[0]);  // Slot i Inactive Texture
+					sprites.emplace_back(weaponSprites[0]);   // Slot i Active Texture
+					sprites.emplace_back(weaponSprites[0]);       // Slot i Duplicate Texture
 				}
 				else {
 					// Filling it normally
