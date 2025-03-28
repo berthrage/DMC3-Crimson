@@ -572,13 +572,17 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
     auto playerIndex = actorData.newPlayerIndex;
     auto* sstext = &crimsonPlayer[playerIndex].styleSwitchText;
     auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
+	auto& worldSpaceBars = activeCrimsonConfig.MultiplayerBarsWorldSpace.show;
+	auto& worldSpace1PBar = activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar;
+	bool adjustRoyalWithWorldSpaceBar = playerIndex == 0 ? ((worldSpaceBars && worldSpace1PBar) ? true : false) : worldSpaceBars ?  true : false;
+	float royalAdjustment = adjustRoyalWithWorldSpaceBar ? 70.0f : 10.0f;
 
     // This function draws the Style Switching Text near Dante when switching styles.
 
-    const float stylesWorldPos[9][3] = { { actorData.position.x, actorData.position.y + 200.f, actorData.position.z }, // trick
+    float stylesWorldPos[9][3] = { { actorData.position.x, actorData.position.y + 200.f, actorData.position.z }, // trick
     { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // sword
     { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // gun
-    { actorData.position.x, actorData.position.y - 10.f, actorData.position.z }, // royal
+    { actorData.position.x, actorData.position.y - royalAdjustment, actorData.position.z }, // royal
     { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // quick
     { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // dopp
     { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // dt
