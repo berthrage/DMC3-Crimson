@@ -26,12 +26,14 @@ struct CrimsonConfig {
 		bool show = true;
 		bool show1PBar = false;
         bool showOutOfViewIcons = true;
+		bool showPlayerNames = true;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
 				std::make_pair("show", &MultiplayerBarsWorldSpace::show),
 				std::make_pair("show1PBar", &MultiplayerBarsWorldSpace::show1PBar),
-                std::make_pair("showOutOfViewIcons", &MultiplayerBarsWorldSpace::showOutOfViewIcons)
+                std::make_pair("showOutOfViewIcons", &MultiplayerBarsWorldSpace::showOutOfViewIcons),
+				std::make_pair("showPlayerNames", &MultiplayerBarsWorldSpace::showPlayerNames)
 			);
 		}
 	} MultiplayerBarsWorldSpace;
@@ -391,7 +393,6 @@ struct CrimsonConfig {
 			"Player 3", // 3P    
 			"Player 4", // 4P
 		};
-		
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -400,8 +401,6 @@ struct CrimsonConfig {
 			);
 		}
 	} PlayerProperties;
-
-	int testNumber = 3000;
 
 	static constexpr auto Metadata() {
 		return std::make_tuple(
@@ -415,8 +414,7 @@ struct CrimsonConfig {
             std::make_pair("SFX", &CrimsonConfig::SFX),
             std::make_pair("Gameplay", &CrimsonConfig::Gameplay),
 			std::make_pair("Cheats", &CrimsonConfig::Cheats),
-			std::make_pair("PlayerProperties", &CrimsonConfig::PlayerProperties),
-			std::make_pair("testNumber", &CrimsonConfig::testNumber)
+			std::make_pair("PlayerProperties", &CrimsonConfig::PlayerProperties)
 		);
 	}
 };

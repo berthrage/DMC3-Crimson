@@ -1094,6 +1094,25 @@ constexpr uint8 rangedWeaponsDante[] = {
 	WEAPON::KALINA_ANN,
 };
 
+const char* costumeNamesDante[] = {
+	"DMC3",
+	"DMC3 Coatless",
+	"DMC3 Torn",
+	"DMC1",
+	"DMC1 Coatless",
+	"Sparda",
+	"Super Dante",
+	"Super DMC1 Dante",
+};
+
+const char* costumeNamesVergil[] = {
+	"DMC3",
+	"DMC3 Coatless",
+	"Super Vergil",
+	"Corrupted Vergil",
+	"Super Corrupted Vergil",
+};
+
 const char* weaponSwitchTypeNames[] = {
 	"Linear",
 	"Arbitrary",
@@ -2141,22 +2160,22 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 				// Costume
 				{
-					bool condition = queuedCharacterData.ignoreCostume;
+					bool condition = queuedCharacterData.ignoreCostume || queuedCharacterData.forceFiles;
 
 					GUI_PushDisable(condition);
 
-					if (GUI_Input("Costume", queuedCharacterData.costume)) {
-						queuedCharacterDataClone.costume = queuedCharacterData.costume;
+					if (queuedCharacterData.character == CHARACTER::DANTE) {
+						UI::Combo2("Costume", costumeNamesDante, activeCharacterData.costume, queuedCharacterData.costume);
+					} else {
+						UI::Combo2("Costume", costumeNamesVergil, activeCharacterData.costume, queuedCharacterData.costume);
 					}
-
+					
 					GUI_PopDisable(condition);
 
-
-					if (GUI_Checkbox("Ignore", queuedCharacterData.ignoreCostume)) {
+					if (GUI_Checkbox("Use In-Game Setting ", queuedCharacterData.ignoreCostume)) {
 						queuedCharacterDataClone.ignoreCostume = queuedCharacterData.ignoreCostume;
 					}
 					ImGui::SameLine();
-					TooltipHelper("(?)", "Ignores your setting and uses the global value.");
 				}
 
 				ImGui::SameLine();
@@ -2176,15 +2195,12 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 						queuedCharacterDataClone.forceFilesCharacter = queuedCharacterData.forceFilesCharacter;
 					}
 
-					ImGui::TableNextRow(0, rowWidth);
-					ImGui::TableNextColumn();
-
-					if (GUI_Input("Force Model Costume", queuedCharacterData.forceFilesCostume)) {
-						queuedCharacterDataClone.forceFilesCostume = queuedCharacterData.forceFilesCostume;
+					if (queuedCharacterData.forceFilesCharacter == CHARACTER::DANTE) {
+						UI::Combo2("Force Files Costume", costumeNamesDante, activeCharacterData.forceFilesCostume, queuedCharacterData.forceFilesCostume);
+					} else {
+						UI::Combo2("Force Files Costume", costumeNamesVergil, activeCharacterData.forceFilesCostume, queuedCharacterData.forceFilesCostume);
 					}
-
 				}
-
 
 				if (UI::Combo("Doppelganger", characterNames, queuedCharacterDataClone.character)) {
 					ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
@@ -2380,16 +2396,14 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
-	GUI_Slider<uint8>("Character Count", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
+	GUI_Slider<uint8>("Number of Characters", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
 
 
 	UI::ComboMap2("Switch Button", buttonNames, buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton, queuedPlayerData.switchButton,
 		ImGuiComboFlags_HeightLargest);
 	ImGui::SameLine();
-	TooltipHelper("(?)", "Multi-purpose button.\n"
-		"Main purpose is to switch characters.\n"
-		"While Doppelganger is active it's used to control the clone's state.\n"
-		"Hold the button and switch style or weapon to trigger the action for the clone.\n");
+	TooltipHelper("(?)", "Press to Switch Loadouts or Characters.\n"
+		"Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n");
 
 	if (playerIndex != 0) {
 
@@ -2468,7 +2482,7 @@ void SelectPlayerLoadoutsWeaponsTab() {
 
 				GUI_PushDisable(condition);
 
-				ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.7f]);
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 
 				if (ImGui::BeginTabItem(playerIndexNames[playerIndex])) {
 					//ImGui::Text("");
@@ -2504,7 +2518,7 @@ void SelectPlayerLoadoutsWeaponsTab() {
 
 				GUI_PushDisable(condition);
 
-				ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 
 				if (ImGui::BeginTabItem(characterIndexNames[characterIndex])) {
 
@@ -2662,19 +2676,32 @@ void ActorSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
-			ImGui::Text("PLAYER COLORS");
-			ImGui::PopFont();
-
+			ImGui::Text("PLAYER NAMES / COLORS");
+			
 			for (int playerIndex = 0; playerIndex < PLAYER_COUNT; playerIndex++) {
 
-				if (playerIndex > 0) {
-					ImGui::SameLine();
+				ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+				std::string& playerNameActive = activeCrimsonConfig.PlayerProperties.playerName[playerIndex];
+				std::string& playerNameQueued = queuedCrimsonConfig.PlayerProperties.playerName[playerIndex];
+				char buffer[20] = { 0 }; 
+				strncpy(buffer, playerNameQueued.c_str(), sizeof(buffer) - 1);
+				buffer[20 - 1] = '\0';
+
+				std::string inputLabel = "##playerName" + std::to_string(playerIndex);
+				ImGui::PushItemWidth(itemWidth * 1.3f);
+				if (ImGui::InputText(inputLabel.c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_CallbackEdit)) {
+					playerNameActive = std::string(buffer);
+					playerNameQueued = std::string(buffer);
+					GUI::save = true;
 				}
+				ImGui::PopFont();
+				ImGui::PopItemWidth();
+
+				ImGui::SameLine();
 				GUI_Color2("", activeCrimsonConfig.PlayerProperties.playerColor[playerIndex], queuedCrimsonConfig.PlayerProperties.playerColor[playerIndex]);
-				
 				ImGui::SameLine();
 				ImGui::Text("%uP", playerIndex + 1);
-
+				ImGui::SameLine();
 				ImGui::SameLine();
 				if (GUI_Button("D")) {
 					CopyMemory(&activeCrimsonConfig.PlayerProperties.playerColor[playerIndex], &defaultCrimsonConfig.PlayerProperties.playerColor[playerIndex],
@@ -2682,8 +2709,19 @@ void ActorSection(size_t defaultFontSize) {
 					CopyMemory(&queuedCrimsonConfig.PlayerProperties.playerColor[playerIndex], &defaultCrimsonConfig.PlayerProperties.playerColor[playerIndex],
 						sizeof(queuedCrimsonConfig.PlayerProperties.playerColor[playerIndex]));
 				}
-			}
 
+				if (playerIndex == 1) {
+					ImGui::TableNextRow(0, rowWidth);
+				}
+				
+				ImGui::TableNextColumn();
+				if (playerIndex == 0) {
+					ImGui::Text("");
+				}
+				
+				
+			}
+			ImGui::PopFont();
 
 			ImGui::EndTable();
 		}
@@ -2718,7 +2756,6 @@ void ActorSection(size_t defaultFontSize) {
 	ImGui::PopStyleColor();
 	ImGui::PopItemWidth();
 	ImGui::PopFont();
-
 }
 
 #pragma endregion
@@ -3581,8 +3618,7 @@ void RenderWorldSpaceMultiplayerBar(
 
 		if (actorData.character != CHARACTER::VERGIL) {
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColor));
-		}
-		else {
+		} else {
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColorVergil));
 		}
 		ImGui::ProgressBar(magicPoints, sizeDistance, "");
@@ -3607,12 +3643,17 @@ void RenderWorldSpaceMultiplayerBar(
 
 			if (actorData.character == CHARACTER::DANTE) {
 				ImGui::Text(styleNamesDanteGameplay[actorData.style]);
-			}
-			else {
+			} else {
 				ImGui::Text(styleNamesVergilGameplay[actorData.style]);
 			}
 		}
 		ImGui::PopFont();
+
+		if (activeCrimsonConfig.MultiplayerBarsWorldSpace.showPlayerNames) {
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[11.0f]);
+			ImGui::Text(activeCrimsonConfig.PlayerProperties.playerName[playerIndex].c_str());
+			ImGui::PopFont();
+		}
 	}
 
 	ImGui::End();
@@ -3871,8 +3912,15 @@ void BarsSection(size_t defaultFontSize) {
 
 			ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
-			GUI_Checkbox2("Show 1P Bar", activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar, queuedCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar);
-			GUI_Checkbox2("Out of View Icons", activeCrimsonConfig.MultiplayerBarsWorldSpace.showOutOfViewIcons, queuedCrimsonConfig.MultiplayerBarsWorldSpace.showOutOfViewIcons);
+			GUI_Checkbox2("Show 1P Bar", 
+				activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar, 
+				queuedCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar);
+			GUI_Checkbox2("Out of View Icons",
+				activeCrimsonConfig.MultiplayerBarsWorldSpace.showOutOfViewIcons,
+				queuedCrimsonConfig.MultiplayerBarsWorldSpace.showOutOfViewIcons);
+			GUI_Checkbox2("Show Player Names",
+				activeCrimsonConfig.MultiplayerBarsWorldSpace.showPlayerNames,
+				queuedCrimsonConfig.MultiplayerBarsWorldSpace.showPlayerNames);
 
 			ImGui::PopFont();
 
