@@ -5,6 +5,7 @@
 #include "glm\gtx\euler_angles.hpp"
 
 #include <d3dcompiler.h>
+#include <array>
 
 namespace Graphics
 {
@@ -378,96 +379,72 @@ namespace Graphics
         return true;
     }
 
-    bool BatchedSprites::Draw(ID3D11DeviceContext* pD3D11DeviceContext)
-    {
-        if (m_UpdateVertexBuffer)
-        {
-            if (!UpdateVertexBuffer(pD3D11DeviceContext))
-                return false;
+	bool BatchedSprites::Draw(ID3D11DeviceContext* pD3D11DeviceContext) {
+		// Update Buffers if necessary
+		if (m_UpdateVertexBuffer && !UpdateVertexBuffer(pD3D11DeviceContext)) return false;
+		if (m_UpdateIndexBuffer && !UpdateIndexBuffer(pD3D11DeviceContext)) return false;
+		if (m_SpriteInfoUpdateQueued && !UpdateSpriteInfoBuffer(pD3D11DeviceContext)) return false;
 
-            m_UpdateVertexBuffer = false;
-        }
+		m_UpdateVertexBuffer = m_UpdateIndexBuffer = m_SpriteInfoUpdateQueued = false;
 
-        if (m_UpdateIndexBuffer)
-        {
-            if (!UpdateIndexBuffer(pD3D11DeviceContext))
-                return false;
+		if (!UpdateVertexConstantBuffer(pD3D11DeviceContext, { glm::mat4(1.0f), s_VertexPerSprite, s_IndexPerSprite }))
+			return false;
 
-            m_UpdateIndexBuffer = false;
-        }
+        if (!UpdatePixelConstantBuffer(pD3D11DeviceContext, { static_cast<uint32_t>(m_pTextureArray->GetCount()), 1 }))
+			return false;
 
-        if (m_SpriteInfoUpdateQueued)
-        {
-            if (!UpdateSpriteInfoBuffer(pD3D11DeviceContext))
-                return false;
+		BackupD3D11State(pD3D11DeviceContext);
 
-            m_SpriteInfoUpdateQueued = false;
-        }
+		// Set Render Target, Viewport, and Scissor Rect
+		const D3D11_RECT scissor = { 0, 0, m_RTWidth, m_RTHeight };
+		pD3D11DeviceContext->RSSetScissorRects(1, &scissor);
+		pD3D11DeviceContext->RSSetViewports(1, &m_VP);
+		pD3D11DeviceContext->OMSetRenderTargets(1, m_pRTV.GetAddressOf(), m_pDepthStincilView.Get());
 
-        {
-            VERTEX_CONSTANT_BUFFER cBuffer = { glm::mat4(1.0f), s_VertexPerSprite, s_IndexPerSprite };
+		// Bind Pipeline Resources
+		pD3D11DeviceContext->IASetInputLayout(m_pInputLayout.Get());
 
-            if (!UpdateVertexConstantBuffer(pD3D11DeviceContext, cBuffer))
-                return false;
-        }
+		UINT stride = sizeof(decltype(m_Vertices)::value_type);
+		UINT offset = 0;
+		pD3D11DeviceContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &stride, &offset);
+		pD3D11DeviceContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+		pD3D11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        {
-            PIXEL_CONSTANT_BUFFER cBuffer =
-            {
-                m_pTextureArray->GetCount(),
-                1
-            };
+		// Set Vertex Shader and Resources
+		pD3D11DeviceContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+		pD3D11DeviceContext->VSSetShaderResources(0, 1, m_pTIBSRV.GetAddressOf());
+		pD3D11DeviceContext->VSSetConstantBuffers(0, 1, m_pVertexConstantBuffer.GetAddressOf());
 
-            if (!UpdatePixelConstantBuffer(pD3D11DeviceContext, cBuffer))
-                return false;
-        }
+		// Set Pixel Shader and Resources
+		ID3D11ShaderResourceView* srv = m_pTextureArray->GetSrv();
+		pD3D11DeviceContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
+		pD3D11DeviceContext->PSSetConstantBuffers(0, 1, m_pPixelConstantBuffer.GetAddressOf());
+		pD3D11DeviceContext->PSSetShaderResources(0, 1, &srv);
+		pD3D11DeviceContext->PSSetSamplers(0, 1, m_pTextureSampler.GetAddressOf());
 
-        BackupD3D11State(pD3D11DeviceContext);
+		// Disable Unused Shader Stages
+		pD3D11DeviceContext->GSSetShader(nullptr, nullptr, 0);
+		pD3D11DeviceContext->HSSetShader(nullptr, nullptr, 0);
+		pD3D11DeviceContext->DSSetShader(nullptr, nullptr, 0);
+		pD3D11DeviceContext->CSSetShader(nullptr, nullptr, 0);
 
-        const D3D11_RECT scissor = { 0, 0, m_RTWidth, m_RTHeight };
-        pD3D11DeviceContext->RSSetScissorRects(1, &scissor);
-        pD3D11DeviceContext->RSSetViewports(1, &m_VP);
+		// Set Blend, Depth-Stencil, and Rasterizer States
+		const std::array<float, 4> blendFactor = { 0.0f, 0.0f, 0.0f, 0.0f };
+		pD3D11DeviceContext->OMSetBlendState(m_pBlendState.Get(), blendFactor.data(), 0xffffffff);
+		pD3D11DeviceContext->OMSetDepthStencilState(m_pDepthStencilStateTransparent.Get(), 0);
+		pD3D11DeviceContext->RSSetState(m_pRasterizerState.Get());
 
-        pD3D11DeviceContext->IASetInputLayout(m_pInputLayout.Get());
+		// Clear Render Targets
+		pD3D11DeviceContext->ClearRenderTargetView(m_pRTV.Get(), blendFactor.data());
+		pD3D11DeviceContext->ClearDepthStencilView(m_pDepthStincilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-        UINT stride = sizeof(decltype(m_Vertices)::value_type); // Size of each vertex
-        UINT offset = 0; // Offset in the vertex buffer
-        pD3D11DeviceContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &stride, &offset);
-        pD3D11DeviceContext->IASetIndexBuffer(m_pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-        pD3D11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		// Draw Call
+		pD3D11DeviceContext->DrawIndexed(static_cast<UINT>(m_ActiveIndices.size()), 0, 0);
 
-        pD3D11DeviceContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
-        pD3D11DeviceContext->VSSetShaderResources(0, 1, m_pTIBSRV.GetAddressOf());
-        pD3D11DeviceContext->VSSetConstantBuffers(0, 1, m_pVertexConstantBuffer.GetAddressOf());
+		RestoreD3D11State(pD3D11DeviceContext);
 
-        auto srv = m_pTextureArray->GetSrv();
-        pD3D11DeviceContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
-        pD3D11DeviceContext->PSSetConstantBuffers(0, 1, m_pPixelConstantBuffer.GetAddressOf());
-        pD3D11DeviceContext->PSSetShaderResources(0, 1, &srv);
-        pD3D11DeviceContext->PSSetSamplers(0, 1, m_pTextureSampler.GetAddressOf());
-
-        pD3D11DeviceContext->GSSetShader(nullptr, nullptr, 0);
-        pD3D11DeviceContext->HSSetShader(nullptr, nullptr, 0);
-        pD3D11DeviceContext->DSSetShader(nullptr, nullptr, 0);
-        pD3D11DeviceContext->CSSetShader(nullptr, nullptr, 0);
-
-        const float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-        pD3D11DeviceContext->OMSetBlendState(m_pBlendState.Get(), blendFactor, 0xffffffff);
-        pD3D11DeviceContext->OMSetDepthStencilState(m_pDepthStencilStateTransparent.Get(), 0);
-        pD3D11DeviceContext->RSSetState(m_pRasterizerState.Get());
-
-        pD3D11DeviceContext->OMSetRenderTargets(1, m_pRTV.GetAddressOf(), m_pDepthStincilView.Get());
-
-        const float clearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-        pD3D11DeviceContext->ClearRenderTargetView(m_pRTV.Get(), clearColor);
-        pD3D11DeviceContext->ClearDepthStencilView(m_pDepthStincilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-        pD3D11DeviceContext->DrawIndexed((UINT)m_ActiveIndices.size(), 0, 0);
-
-        RestoreD3D11State(pD3D11DeviceContext);
-
-        return true;
-    }
+		return true;
+	}
 
     std::optional<size_t> BatchedSprites::FindTexturePathIndex(const std::string& path)
     {
