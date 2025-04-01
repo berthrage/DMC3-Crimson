@@ -251,6 +251,7 @@ namespace WW
 		void TrackAnalogMovingState(bool analogMoving);
 		void TrackAnalogSwitchingConfig(bool analogSwitching);
 		void TrackAlwaysShowConfig(bool alwaysShow);
+		void SetLoaded(bool loaded);
 		bool OnDraw();
 
 		ID3D11ShaderResourceView* GetSRV();
@@ -286,6 +287,7 @@ namespace WW
 		std::unique_ptr<GenericAnimation> m_pWheelFadeAnimation, m_pArrowFadeAnimation, m_pArrowBrightnessAnim, m_pActiveWeaponFadeAnimation, m_pWeaponSwitchBrightnessAnimation,
 			m_pWeaponSwitchScaleAnimation, m_pAnalogArrowsFadeInAnim;
 
+		bool m_loaded = false;
 		bool m_buttonHeld = false;
 		bool m_alwaysShow{ false };
 		bool m_analogMoving{ false };

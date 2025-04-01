@@ -899,6 +899,11 @@ namespace WW {
 		m_alwaysShow = alwaysShow;
 	}
 
+    void WeaponWheel::SetLoaded(bool loaded) 
+    {
+		m_loaded = loaded;
+    }
+
     bool WeaponWheel::OnDraw()
     {
         return m_pSpriteBatch->Draw(m_pD3D11DeviceContext);

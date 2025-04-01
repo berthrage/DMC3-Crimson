@@ -1,4 +1,4 @@
-// UNSTUPIFY(Disclaimer: by 5%)... POOOF
+ï»¿// UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "../ThirdParty/SDL2/SDL_gamecontroller.h"
 #include "../ThirdParty/glm/glm.hpp"
 #include "CrimsonGUI.hpp"
@@ -586,8 +586,8 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 
 			// Middle footer section
 			{
-				constexpr auto BACKGROUND_FADED_TEXT = u8"C•Team";
-				constexpr auto CREDIT_TEXT = u8"Mia Berth • SSSiyan • deepdarkkapustka • Darkness   ";
+				constexpr auto BACKGROUND_FADED_TEXT = u8"Câ€¢Team";
+				constexpr auto CREDIT_TEXT = u8"Mia Berth â€¢ SSSiyan â€¢ deepdarkkapustka â€¢ Darkness   ";
 				constexpr auto ABOUT_BUTTON_TEXT = "ABOUT";
 
 				ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
@@ -1654,6 +1654,7 @@ std::unique_ptr<WW::WeaponWheel> meleeWeaponWheel[PLAYER_COUNT];
 std::unique_ptr<WW::WeaponWheel> rangedWeaponWheel[PLAYER_COUNT];
 std::unique_ptr<WW::WeaponWheel>  meleeWorldSpaceWeaponWheel[PLAYER_COUNT];
 std::unique_ptr<WW::WeaponWheel>  rangedWorldSpaceWeaponWheel[PLAYER_COUNT];
+bool multiplayerWheelsLoaded = false;
 
 #pragma endregion
 
@@ -1769,7 +1770,9 @@ struct WeaponWheelState {
 };
 
 bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChain, std::unique_ptr<WW::WeaponWheel>& pWeaponWheel, 
-	const char* windowName, bool cornerPositioning, ImVec2 windowPos, ImVec2 wheelSize, bool alwaysShow, bool trackHide, bool isMelee, WeaponWheelState& state) {
+	const char* windowName, bool cornerPositioning, ImVec2 windowPos, ImVec2 wheelSize, 
+	bool alwaysShow, bool trackHide, bool isMelee, WeaponWheelState& state,
+	float deltaTimeGameSpeed, float deltaTime) {
 
 	if (!InGame()) {
 		return false;
@@ -1790,7 +1793,7 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 	auto& charIndex = actorData.newCharacterIndex;
 	auto& weaponIndex = isMelee ? characterData.meleeWeaponIndex : characterData.rangedWeaponIndex;
 	auto& weaponCount = isMelee ? playerData.characterData[charIndex][ENTITY::MAIN].meleeWeaponCount : playerData.characterData[charIndex][ENTITY::MAIN].rangedWeaponCount;
-	auto& activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+	auto activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 
 	auto leftStick = (characterData.rangedWeaponSwitchStick == LEFT_STICK);
 	auto radius = (leftStick) ? gamepad.leftStickRadius : gamepad.rightStickRadius;
@@ -1929,15 +1932,15 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 	ImGui::SetNextWindowSize(wheelSize);
 	ImGui::SetNextWindowPos(cornerPositioning ? cornerPos : windowPos);
 
-	pWeaponWheel->OnUpdate((ImGui::GetTime() - state.startTime) * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier),
-		(ImGui::GetTime() - state.startTime) * 1000.0f, (ImGui::GetTime() - state.startTime) * 1000.0f, (ImGui::GetTime() - state.startTime) * 1000.0f);
+	pWeaponWheel->OnUpdate(deltaTimeGameSpeed,
+		deltaTime, deltaTime, deltaTime);
 	pWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(isMelee ? BINDING::CHANGE_DEVIL_ARMS : BINDING::CHANGE_GUN));
 	pWeaponWheel->TrackAnalogMovingState(stickUsed);
 	pWeaponWheel->TrackAnalogSwitchingConfig(activeCrimsonConfig.WeaponWheel.analogSwitching);
 	pWeaponWheel->TrackAlwaysShowConfig(alwaysShow);
 	state.startTime = ImGui::GetTime();
 
-	pWeaponWheel->OnDraw();
+	pWeaponWheel->SetLoaded(pWeaponWheel->OnDraw());
 
 	if (activeCrimsonConfig.WeaponWheel.hide && trackHide) {
 		return true;
@@ -1968,6 +1971,11 @@ void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	auto& playerScreenPosition = crimsonPlayer[playerIndex].playerScreenPosition;
 	auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
 
+	float deltaTime = ImGui::GetIO().DeltaTime;
+	auto activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+	float deltaTimeAdjustedSpeed = deltaTime * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier);
+	float deltaTimeAdjusted = deltaTime * 1000.0f;
+
 	auto inMultiplayer = activeCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale || activeConfig.Actor.playerCount > 1;
 	auto& scale = activeCrimsonConfig.WeaponWheel.scale;
 	ImVec2 normalPos = ImVec2(g_renderSize.x - g_renderSize.y * 0.45f, g_renderSize.y - g_renderSize.y * 0.45f);
@@ -1986,7 +1994,7 @@ void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	if (WeaponWheelController(actorData, pSwapChain, meleeWeaponWheel[0], "MeleeWheel1P",
 		!inMultiplayer,
 		inMultiplayer ? multiplayerPosMelee : normalPos, inMultiplayer ? multiplayerSize : normalSize,
-		activeCrimsonConfig.WeaponWheel.meleeAlwaysShow, true, true, stateMelee)) {
+		activeCrimsonConfig.WeaponWheel.meleeAlwaysShow, true, true, stateMelee, deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
 
 		initialized = true;
 	}
@@ -1994,7 +2002,7 @@ void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	WeaponWheelController(actorData, pSwapChain, rangedWeaponWheel[0], "RangedWheel1P",
 		!inMultiplayer,
 		inMultiplayer ? multiplayerPosRanged : normalPos, inMultiplayer ? multiplayerSize : normalSize,
-		activeCrimsonConfig.WeaponWheel.rangedAlwaysShow, true, false, stateRanged);
+		activeCrimsonConfig.WeaponWheel.rangedAlwaysShow, true, false, stateRanged, deltaTimeAdjustedSpeed, deltaTimeAdjusted);
 }
 
 void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
@@ -2003,6 +2011,11 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 
 	static WeaponWheelState stateRanged[PLAYER_COUNT];
 	static bool initializedRanged[PLAYER_COUNT] = { false };
+
+	float deltaTime = ImGui::GetIO().DeltaTime;
+	auto activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+	float deltaTimeAdjustedSpeed = deltaTime * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier);
+	float deltaTimeAdjusted = deltaTime * 1000.0f;
 
 	if (!activeCrimsonConfig.MultiplayerBars2D.show) return;
 
@@ -2018,6 +2031,7 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 
 		auto& playerScreenPosition = crimsonPlayer[playerIndex].playerScreenPosition;
 		auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
+		auto activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 
 
 		ImVec2 normalSize = ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
@@ -2029,8 +2043,10 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 		auto& rangedWheel = rangedWorldSpaceWeaponWheel[playerIndex];
 		const float baseSpacing = 0.37f;
 		const float barSpacing = g_renderSize.x * baseSpacing;
-		const float baseXMelee = g_renderSize.x * (0.1672f - baseSpacing);
+
+		const float baseXMelee = g_renderSize.x * (0.1722f - baseSpacing);
 		const float baseXRanged = g_renderSize.x * (0.1122f - baseSpacing);
+
 		
 		const float baseY = g_renderSize.y * 0.8462f; // Bottom of the screen
 
@@ -2045,7 +2061,7 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 		if (WeaponWheelController(actorData, pSwapChain, meleeWheel, meleeWheelName.c_str(),
 			false,
 			multiplayerPosMelee, multiplayerSize,
-			activeCrimsonConfig.WeaponWheel.meleeAlwaysShow, true, true, stateMelee[playerIndex])) {
+			activeCrimsonConfig.WeaponWheel.meleeAlwaysShow, true, true, stateMelee[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
 
 			initializedMelee[playerIndex] = true;
 		}
@@ -2053,11 +2069,87 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 		WeaponWheelController(actorData, pSwapChain, rangedWheel, rangedWheelName.c_str(),
 			false,
 			multiplayerPosRanged, multiplayerSize,
-			activeCrimsonConfig.WeaponWheel.rangedAlwaysShow, true, false, stateRanged[playerIndex]);
+			activeCrimsonConfig.WeaponWheel.rangedAlwaysShow, true, false, stateRanged[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted);
+	}
+
+	multiplayerWheelsLoaded = true; 
+
+	for (uint8 playerIndex = 1; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
+		auto& meleeWheel = meleeWorldSpaceWeaponWheel[playerIndex];
+		auto& rangedWheel = rangedWorldSpaceWeaponWheel[playerIndex];
+
+		if (!meleeWheel->m_loaded || !rangedWheel->m_loaded) {
+			multiplayerWheelsLoaded = false; 
+			break;
+		}
 	}
 }
 
+void WorldSpaceWeapon1PWheelsController(IDXGISwapChain* pSwapChain) {
+	static WeaponWheelState stateMelee;
+	static bool initialized = false;
 
+	static WeaponWheelState stateRanged;
+
+	if (!multiplayerWheelsLoaded) return;
+	if (activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Off") return;
+
+	// Measure delta time using chrono
+	static auto lastTime = std::chrono::high_resolution_clock::now();
+	auto currentTime = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<float> deltaTimeDuration = currentTime - lastTime;
+	float deltaTime = ImGui::GetIO().DeltaTime;
+	lastTime = currentTime;
+
+	float activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+	float deltaTimeAdjustedSpeed = deltaTime * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier);
+	float deltaTimeAdjusted = deltaTime * 1000.0f;
+
+	auto pool_1431 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_1431 || !pool_1431[3]) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_1431[3]);
+
+	auto& playerScreenPosition = crimsonPlayer[0].playerScreenPosition;
+	auto distanceClamped = crimsonPlayer[0].cameraPlayerDistanceClamped;
+
+	ImVec2 normalSize = ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
+	ImVec2 baseMultiplayerSize = ImVec2(g_renderSize.y * 0.17f, g_renderSize.y * 0.17f);
+	ImVec2 sizeDistance = { (baseMultiplayerSize.x * (1.0f / ((float)distanceClamped / 20))),
+							(baseMultiplayerSize.y * (1.0f / ((float)distanceClamped / 20))) };
+	ImVec2 multiplayerSize = initialized ? sizeDistance : normalSize;
+	ImVec2 worldSpaceMultiplayerPos = ImVec2(playerScreenPosition.x - (sizeDistance.x / 2.0f), playerScreenPosition.y - sizeDistance.y);
+
+	auto& meleeWheel = meleeWorldSpaceWeaponWheel[0];
+	auto& rangedWheel = rangedWorldSpaceWeaponWheel[0];
+
+	const float baseSpacing = 170.0f;
+	float scaleFactor = multiplayerSize.x / normalSize.x;
+	float adjustedSpacing = baseSpacing * scaleFactor;
+
+	ImVec2 meleeWheelPos = ImVec2(worldSpaceMultiplayerPos.x + adjustedSpacing, worldSpaceMultiplayerPos.y);
+	ImVec2 rangedWheelPos = ImVec2(worldSpaceMultiplayerPos.x - adjustedSpacing, worldSpaceMultiplayerPos.y);
+
+	std::string meleeWheelName = "MeleeWheelWorldSpace " + std::to_string(0);
+	std::string rangedWheelName = "RangedWheelWorldSpace " + std::to_string(0);
+
+	if (WeaponWheelController(actorData, pSwapChain, meleeWheel, meleeWheelName.c_str(),
+		false,
+		meleeWheelPos, multiplayerSize,
+		activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Always Show", false, true,
+		stateMelee, deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
+		initialized = true;
+	}
+
+
+	WeaponWheelController(actorData, pSwapChain, rangedWheel, rangedWheelName.c_str(),
+		false,
+		rangedWheelPos, multiplayerSize,
+		activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Always Show", false, false,
+		stateRanged, deltaTimeAdjustedSpeed, deltaTimeAdjusted);
+
+}
 
 void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 	static WeaponWheelState stateMelee[PLAYER_COUNT];
@@ -2066,12 +2158,22 @@ void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 	static WeaponWheelState stateRanged[PLAYER_COUNT];
 	static bool initializedRanged[PLAYER_COUNT] = { false };
 
-	if (!guiPause.canPause) return;
-
+	if (!multiplayerWheelsLoaded) return;
 	if (activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Off") return;
 
-	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
-		auto& playerData = GetPlayerData(playerIndex);
+	// Measure delta time using chrono
+	static auto lastTime = std::chrono::high_resolution_clock::now();
+	auto currentTime = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<float> deltaTimeDuration = currentTime - lastTime;
+	float deltaTime = ImGui::GetIO().DeltaTime;
+	lastTime = currentTime;
+
+	float activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+	float deltaTimeAdjustedSpeed = deltaTime * (activeGameSpeed / g_FrameRateTimeMultiplier);
+	float deltaTimeAdjusted = deltaTime;
+
+	for (int playerIndex = 1; playerIndex < activeConfig.Actor.playerCount; playerIndex++) {
+		auto& playerData = GetPlayerData((uint8)playerIndex);
 		auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 
@@ -2083,48 +2185,43 @@ void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 		auto& playerScreenPosition = crimsonPlayer[playerIndex].playerScreenPosition;
 		auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
 
-
 		ImVec2 normalSize = ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
-
-
 		ImVec2 baseMultiplayerSize = ImVec2(g_renderSize.y * 0.17f, g_renderSize.y * 0.17f);
-		ImVec2 sizeDistance = { (baseMultiplayerSize.x * (1.0f / ((float)distanceClamped / 20))), (baseMultiplayerSize.y * (1.0f / ((float)distanceClamped / 20))) };
+		ImVec2 sizeDistance = { (baseMultiplayerSize.x * (1.0f / ((float)distanceClamped / 20))),
+								(baseMultiplayerSize.y * (1.0f / ((float)distanceClamped / 20))) };
 		ImVec2 multiplayerSize = initializedMelee[playerIndex] ? sizeDistance : normalSize;
 		ImVec2 worldSpaceMultiplayerPos = ImVec2(playerScreenPosition.x - (sizeDistance.x / 2.0f), playerScreenPosition.y - sizeDistance.y);
 
 		auto& meleeWheel = meleeWorldSpaceWeaponWheel[playerIndex];
 		auto& rangedWheel = rangedWorldSpaceWeaponWheel[playerIndex];
 
-		const float baseSpacing = 170.0f; 
-
-		// Compute scale factor based on normalSize
+		const float baseSpacing = 170.0f;
 		float scaleFactor = multiplayerSize.x / normalSize.x;
-
-		// Adjust offset dynamically to maintain constant screen-space separation
 		float adjustedSpacing = baseSpacing * scaleFactor;
 
-		// Compute final weapon wheel positions
 		ImVec2 meleeWheelPos = ImVec2(worldSpaceMultiplayerPos.x + adjustedSpacing, worldSpaceMultiplayerPos.y);
 		ImVec2 rangedWheelPos = ImVec2(worldSpaceMultiplayerPos.x - adjustedSpacing, worldSpaceMultiplayerPos.y);
 
 		std::string meleeWheelName = "MeleeWheelWorldSpace " + std::to_string(playerIndex + 1);
 		std::string rangedWheelName = "RangedWheelWorldSpace " + std::to_string(playerIndex + 1);
 
-
 		if (WeaponWheelController(actorData, pSwapChain, meleeWheel, meleeWheelName.c_str(),
 			false,
 			meleeWheelPos, multiplayerSize,
-			activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Always Show" ? true : false, false, true, stateMelee[playerIndex])) {
-
+			activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Always Show", false, true,
+			stateMelee[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
 			initializedMelee[playerIndex] = true;
 		}
+	
 
 		WeaponWheelController(actorData, pSwapChain, rangedWheel, rangedWheelName.c_str(),
 			false,
 			rangedWheelPos, multiplayerSize,
-			activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Always Show" ? true : false, false, false,  stateRanged[playerIndex]);
+			activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Always Show", false, false,
+			stateRanged[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted);
 	}
 }
+
 
 #pragma endregion
 
@@ -3775,7 +3872,7 @@ void RenderMultiplayerBar(
 		ImGui::SameLine(0.0f, 0);
 		ImGui::Text("  ");
 
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0f]);
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[22.0f]);
 		ImGui::SameLine();
 		ImGui::Text(activeCrimsonConfig.PlayerProperties.playerName[playerIndex].c_str());
 		// 		ImGui::SameLine();
@@ -4998,7 +5095,7 @@ void ShopWindow() {
 		ImGui::Text("");
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 2.0f]);
-		constexpr auto BULLET = u8"•";
+		constexpr auto BULLET = u8"â€¢";
 		ImGui::Text((const char*)BULLET);
 		ImGui::PopStyleColor();
 		ImGui::SameLine();
@@ -5062,7 +5159,7 @@ void ShowStyleLevelsTab(ExpConfig::ExpData& expData, MissionData& missionData) {
 // 	bool priceCondition = (missionData.redOrbs < helper.price);
 // 	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
 // 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
-// 	constexpr auto BULLET = u8"•";
+// 	constexpr auto BULLET = u8"â€¢";
 // 	ImGui::Text((const char*)BULLET);
 // 	ImGui::PopFont();
 // 	ImGui::PopStyleColor();
@@ -5125,7 +5222,7 @@ void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helper
 		bool priceCondition = (missionData.redOrbs < helper.price);
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
-		constexpr auto BULLET = u8"•";
+		constexpr auto BULLET = u8"â€¢";
 		ImGui::Text((const char*)BULLET);
 		ImGui::PopFont();
 		ImGui::PopStyleColor();
@@ -5175,7 +5272,7 @@ void ShowItemTab(MissionData& missionData, QueuedMissionActorData& queuedMission
 		bool priceCondition = (missionData.redOrbs < price);
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
-		constexpr auto BULLET = u8"•";
+		constexpr auto BULLET = u8"â€¢";
 		ImGui::Text((const char*)BULLET);
 		ImGui::PopFont();
 		ImGui::PopStyleColor();
@@ -7342,8 +7439,19 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
 			ImGui::Text("Starting From Ground: %u", crimsonPlayer[0].vergilMoves.startingRisingSunFromGround);
-			ImGui::Text("Air Stinger Count: %u", actorData.newAirStingerCount);
-			ImGui::Text("Rising Sun Count: %u", actorData.newAirRisingSunCount);
+
+			if (meleeWorldSpaceWeaponWheel[0]) {
+				ImGui::Text("WheelTime1P: %g", meleeWorldSpaceWeaponWheel[0]->m_SinceLatestChangeMs);
+			}
+			if (meleeWorldSpaceWeaponWheel[1]) {
+				ImGui::Text("WheelTime2P: %g", meleeWorldSpaceWeaponWheel[1]->m_SinceLatestChangeMs);
+			}
+			if (meleeWorldSpaceWeaponWheel[2]) {
+				ImGui::Text("WheelTime3P: %g", meleeWorldSpaceWeaponWheel[2]->m_SinceLatestChangeMs);
+			}
+			if (meleeWorldSpaceWeaponWheel[3]) {
+				ImGui::Text("WheelTime4P: %g", meleeWorldSpaceWeaponWheel[3]->m_SinceLatestChangeMs);
+			}
 			ImGui::Text("AllActorsSpawned: %u", g_allActorsSpawned);
 			ImGui::Text("StickRadius2: %u", gamepad.rightStickRadius);
 			ImGui::Text("NextActionPolicyTrickster: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::TRICKSTER_DARK_SLAYER]);
@@ -10225,11 +10333,11 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			ImGui::PopStyleVar();
 			{
                 constexpr auto ACTOR_SYSTEM_INTRO = u8"Custom Character Creation and Spawning System created by DDMK's Serpentiem.";
-                constexpr auto FEATURE_STYLE_SWITCH = u8"   • Style Switching;";
-                constexpr auto FEATURE_WEAPONS = u8"   • Custom Weapon Loadouts;";
-                constexpr auto FEATURE_CHAR_SWITCH = u8"   • Character Switching;";
-                constexpr auto FEATURE_MULTIPLAYER = u8"   • Local Multiplayer;";
-                constexpr auto FEATURE_DOPPEL_TWEAKS = u8"   • Doppelganger Tweaks;";
+                constexpr auto FEATURE_STYLE_SWITCH = u8"   â€¢ Style Switching;";
+                constexpr auto FEATURE_WEAPONS = u8"   â€¢ Custom Weapon Loadouts;";
+                constexpr auto FEATURE_CHAR_SWITCH = u8"   â€¢ Character Switching;";
+                constexpr auto FEATURE_MULTIPLAYER = u8"   â€¢ Local Multiplayer;";
+                constexpr auto FEATURE_DOPPEL_TWEAKS = u8"   â€¢ Doppelganger Tweaks;";
 
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
 				ImGui::Text("ACTOR SYSTEM");
@@ -10957,7 +11065,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				{
 					ImGui::Text("CREDITS");
 					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.2f);
-					ImGui::Text((const char*)u8"C•Team");
+					ImGui::Text((const char*)u8"Câ€¢Team");
 				}
 				ImGui::PopFont();
 
@@ -11377,6 +11485,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     MultiplayerBars(pSwapChain);
 	WeaponWheels1PController(pSwapChain);
 	WeaponWheelsMultiplayerController(pSwapChain);
+	WorldSpaceWeapon1PWheelsController(pSwapChain);
 	WorldSpaceWeaponWheelsController(pSwapChain);
     MirageGaugeMainPlayer();
 	RedOrbCounterWindow();
