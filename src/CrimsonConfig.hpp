@@ -12,19 +12,19 @@
 struct CrimsonConfig {
 	struct MultiplayerBars2D {
 		bool show = true;
-		bool show1PBar = false;
+		std::string show1PAttributes = "Only in Multiplayer";
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
 				std::make_pair("show", &MultiplayerBars2D::show),
-				std::make_pair("show1PBar", &MultiplayerBars2D::show1PBar)
+				std::make_pair("show1PAttributes", &MultiplayerBars2D::show1PAttributes)
 			);
 		}
 	} MultiplayerBars2D;
 
 	struct MultiplayerBarsWorldSpace {
 		bool show = true;
-		bool show1PBar = false;
+		std::string show1PBar = "Only in Multiplayer";
         bool showOutOfViewIcons = true;
 		bool showPlayerNames = true;
 

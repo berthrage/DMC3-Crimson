@@ -573,7 +573,7 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
     auto* sstext = &crimsonPlayer[playerIndex].styleSwitchText;
     auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
 	auto& worldSpaceBars = activeCrimsonConfig.MultiplayerBarsWorldSpace.show;
-	auto& worldSpace1PBar = activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar;
+	auto worldSpace1PBar = activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar == "Off" ? false : true;
 	bool adjustRoyalWithWorldSpaceBar = playerIndex == 0 ? ((worldSpaceBars && worldSpace1PBar) ? true : false) : worldSpaceBars ?  true : false;
 	float royalAdjustment = adjustRoyalWithWorldSpaceBar ? 70.0f : 10.0f;
 

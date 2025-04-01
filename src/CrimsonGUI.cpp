@@ -1560,9 +1560,15 @@ std::vector<std::string> weaponWheelScaleNames = {
 	"Big",
 };
 
+std::vector<std::string> show1PNames = {
+	"Off",
+	"Only in Multiplayer",
+	"Always Show",
+};
+
 std::vector<std::string> worldSpaceWheelNames = {
 	"Off",
-	"On",
+	"On with Fadeout",
 	"Always Show",
 };
 
@@ -1967,7 +1973,7 @@ void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	auto& playerScreenPosition = crimsonPlayer[playerIndex].playerScreenPosition;
 	auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
 
-	auto& forcing1PMPPosScale = activeCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale;
+	auto inMultiplayer = activeCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale || activeConfig.Actor.playerCount > 1;
 	auto& scale = activeCrimsonConfig.WeaponWheel.scale;
 	ImVec2 normalPos = ImVec2(g_renderSize.x - g_renderSize.y * 0.45f, g_renderSize.y - g_renderSize.y * 0.45f);
 	ImVec2 normalSize = initialized ? scale == "Big" ? ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f) :
@@ -1983,18 +1989,74 @@ void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	// Adjusts size dynamically based on the distance between Camera and Player
 
 	if (WeaponWheelController(actorData, pSwapChain, meleeWeaponWheel[0], "MeleeWheel1P",
-		!forcing1PMPPosScale,
-		forcing1PMPPosScale ? multiplayerPosMelee : normalPos, forcing1PMPPosScale ? multiplayerSize : normalSize,
+		!inMultiplayer,
+		inMultiplayer ? multiplayerPosMelee : normalPos, inMultiplayer ? multiplayerSize : normalSize,
 		activeCrimsonConfig.WeaponWheel.meleeAlwaysShow, true, true, stateMelee)) {
 
 		initialized = true;
 	}
 
 	WeaponWheelController(actorData, pSwapChain, rangedWeaponWheel[0], "RangedWheel1P",
-		!forcing1PMPPosScale,
-		forcing1PMPPosScale ? multiplayerPosRanged : normalPos, forcing1PMPPosScale ? multiplayerSize : normalSize,
+		!inMultiplayer,
+		inMultiplayer ? multiplayerPosRanged : normalPos, inMultiplayer ? multiplayerSize : normalSize,
 		activeCrimsonConfig.WeaponWheel.rangedAlwaysShow, true, false, stateRanged);
 }
+
+void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
+	static WeaponWheelState stateMelee[PLAYER_COUNT];
+	static bool initializedMelee[PLAYER_COUNT] = { false };
+
+	static WeaponWheelState stateRanged[PLAYER_COUNT];
+	static bool initializedRanged[PLAYER_COUNT] = { false };
+
+	if (!activeCrimsonConfig.MultiplayerBars2D.show) return;
+
+	for (uint8 playerIndex = 1; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
+		auto& playerData = GetPlayerData(playerIndex);
+		auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+
+		if (!newActorData.baseAddr) {
+			return;
+		}
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+
+		auto& playerScreenPosition = crimsonPlayer[playerIndex].playerScreenPosition;
+		auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
+
+
+		ImVec2 normalSize = ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
+
+		ImVec2 baseMultiplayerSize = ImVec2(g_renderSize.y * 0.15f, g_renderSize.y * 0.15f);
+		ImVec2 multiplayerSize = initializedMelee[playerIndex] ? baseMultiplayerSize : normalSize;
+
+		auto& meleeWheel = meleeWorldSpaceWeaponWheel[playerIndex];
+		auto& rangedWheel = rangedWorldSpaceWeaponWheel[playerIndex];
+
+
+		ImVec2 multiplayerPosMelee = ImVec2(g_renderSize.x * 0.1772f, g_renderSize.y * (0.1762f + (0.18f * playerIndex)));
+		ImVec2 multiplayerPosRanged = ImVec2(g_renderSize.x * 0.1072f, g_renderSize.y * (0.1762f + (0.18f * playerIndex)));
+
+		std::string meleeWheelName = "MeleeWheel " + std::to_string(playerIndex + 1);
+		std::string rangedWheelName = "RangedWheel " + std::to_string(playerIndex + 1);
+
+
+		if (WeaponWheelController(actorData, pSwapChain, meleeWheel, meleeWheelName.c_str(),
+			false,
+			multiplayerPosMelee, multiplayerSize,
+			activeCrimsonConfig.WeaponWheel.meleeAlwaysShow, true, true, stateMelee[playerIndex])) {
+
+			initializedMelee[playerIndex] = true;
+		}
+
+		WeaponWheelController(actorData, pSwapChain, rangedWheel, rangedWheelName.c_str(),
+			false,
+			multiplayerPosRanged, multiplayerSize,
+			activeCrimsonConfig.WeaponWheel.rangedAlwaysShow, true, false, stateRanged[playerIndex]);
+	}
+}
+
+
 
 void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 	static WeaponWheelState stateMelee[PLAYER_COUNT];
@@ -2753,7 +2815,7 @@ void ActorSection(size_t defaultFontSize) {
 
 				std::string inputLabel = "##playerName" + std::to_string(playerIndex);
 				ImGui::PushItemWidth(itemWidth * 1.3f);
-				if (ImGui::InputText(inputLabel.c_str(), buffer, sizeof(buffer), ImGuiInputTextFlags_CallbackEdit)) {
+				if (ImGui::InputText(inputLabel.c_str(), buffer, sizeof(buffer))) {
 					playerNameActive = std::string(buffer);
 					playerNameQueued = std::string(buffer);
 					GUI::save = true;
@@ -3623,6 +3685,109 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 	ImGui::End();
 }
 
+void RenderMultiplayerBar(
+	float hitPoints, float magicPoints, const char* name, PlayerActorData actorData, Config::BarsData& activeData/*, Config::BarsData& queuedData*/) {
+	if (!showBars && !activeCrimsonConfig.MultiplayerBars2D.show) {
+		return;
+	}
+
+	auto playerIndex = actorData.newPlayerIndex;
+
+	if (playerIndex == 0) {
+		return;
+	}
+
+	// Adjusts size dynamically based on the distance between Camera and Player
+	auto& playerScreenPosition = crimsonPlayer[playerIndex].playerScreenPosition;
+	const float screenMargin = 50.0f;
+
+	const float t = CrimsonUtil::smoothstep(0.0f, 1390.0f, crimsonPlayer[playerIndex].cameraPlayerDistance);
+	const float alpha = ImLerp(0.27f, 1.0f, t);
+	activeData.hitColor[3] = alpha;
+	activeData.magicColor[3] = alpha;
+	activeData.magicColorVergil[3] = alpha;
+
+	ImVec2 pos = ImVec2(g_renderSize.x * 0.01f, g_renderSize.y * (0.2262f + (0.18f * playerIndex)));
+
+	ImGui::SetNextWindowPos(pos);
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
+
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+
+
+	ImGuiWindowFlags windowFlags =
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	std::string label = "2DMPBar " + std::to_string(playerIndex + 1);
+
+
+	if (ImGui::Begin(label.c_str(), &activeCrimsonConfig.MultiplayerBarsWorldSpace.show, windowFlags)) {
+
+		ImVec4 playerColor = ConvertColorFromUint8ToVec4(activeCrimsonConfig.PlayerProperties.playerColor[playerIndex]);
+		float luminance = 0.299f * playerColor.x + 0.587f * playerColor.y + 0.114f * playerColor.z;
+		ImVec4 textColor = (luminance > 0.4f) ? ImVec4(0.1f, 0.1f, 0.1f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+		
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0f]);
+		ImGui::Text("  ");
+		ImGui::SameLine();
+		//ImGui::SameLine();
+		if (actorData.character == CHARACTER::DANTE || actorData.character == CHARACTER::VERGIL) {
+
+			if (actorData.character == CHARACTER::DANTE) {
+				ImGui::Text(styleNamesDanteGameplay[actorData.style]);
+			} else {
+				ImGui::Text(styleNamesVergilGameplay[actorData.style]);
+			}
+		}
+		ImGui::PopFont();
+
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, alpha));
+		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.hitColor));
+		ImGui::ProgressBar(hitPoints, ImVec2(activeData.size.x, activeData.size.y), "");
+		ImGui::PopStyleColor(2);
+
+		if (actorData.character != CHARACTER::VERGIL) {
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColor));
+		} else {
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColorVergil));
+		}
+		ImGui::ProgressBar(magicPoints, ImVec2(activeData.size.x, activeData.size.y), "");
+		ImGui::PopStyleColor();
+
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
+		ImGui::PushStyleColor(ImGuiCol_Button, playerColor);
+		ImGui::PushStyleColor(ImGuiCol_Text, textColor);
+		ImGui::Button(name, { 30.0f, 30.0f });
+		ImGui::PopStyleColor(2);
+		ImGui::PopFont();
+		ImGui::SameLine(0.0f, 0);
+		ImGui::Text("  ");
+
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0f]);
+		ImGui::SameLine();
+		ImGui::Text(activeCrimsonConfig.PlayerProperties.playerName[playerIndex].c_str());
+		// 		ImGui::SameLine();
+		// 		ImGui::Text(" -");
+		ImGui::PopFont();
+
+		
+
+		
+		
+
+	}
+
+	ImGui::End();
+	ImGui::PopStyleColor();
+	ImGui::PopStyleVar(4);
+}
+
+
 void RenderWorldSpaceMultiplayerBar(
 	float hitPoints, float magicPoints, const char* name, PlayerActorData actorData, const char* label, Config::BarsData& activeData/*, Config::BarsData& queuedData*/) {
 	if (!showBars && !activeCrimsonConfig.MultiplayerBarsWorldSpace.show) {
@@ -3784,10 +3949,12 @@ void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 
 	old_for_all(uint8, playerIndex, playerCount) {
 
-		if (!activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar) {
+		if (activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar == "Off") {
 			minimum = 1;
 		}
-		else {
+		else if ((activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar == "Only in Multiplayer" 
+			&& activeConfig.Actor.playerCount > 1) ||
+			(activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar != "Always")) {
 			minimum = 0;
 		}
 
@@ -3832,8 +3999,12 @@ void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 				//                 activeConfig.barsData[playerIndex].pos.x = queuedConfig.barsData[playerIndex].pos.x;
 				//                 activeConfig.barsData[playerIndex].pos.y = queuedConfig.barsData[playerIndex].pos.y;
 
-				RenderWorldSpaceMultiplayerBar(hit, magic, playerIndexNames[playerIndex], activeActorData, barsNames[playerIndex], activeConfig.barsData[playerIndex]
-				/*, queuedConfig.barsData[playerIndex]*/);
+				RenderWorldSpaceMultiplayerBar(hit, magic, playerIndexNames[playerIndex], 
+					activeActorData, barsNames[playerIndex], activeConfig.barsData[playerIndex]);
+
+				RenderMultiplayerBar(hit, magic, playerIndexNames[playerIndex],
+					activeActorData, activeConfig.barsData[playerIndex]);
+
 				//WorldSpaceWeaponWheelsController2P(activeActorData, pSwapChain);
 				}();
 		}
@@ -3959,7 +4130,11 @@ void BarsSection(size_t defaultFontSize) {
 
 			ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
-			GUI_Checkbox2("Show 1P Bar", activeCrimsonConfig.MultiplayerBars2D.show1PBar, queuedCrimsonConfig.MultiplayerBars2D.show1PBar);
+			ImGui::PushItemWidth(itemWidth);
+			UI::Combo2Vector("Show 1P Attributes", show1PNames,
+				activeCrimsonConfig.MultiplayerBars2D.show1PAttributes,
+				queuedCrimsonConfig.MultiplayerBars2D.show1PAttributes);
+			ImGui::PopItemWidth();
 
 			ImGui::PopStyleColor();
 			ImGui::PopFont();
@@ -3978,9 +4153,12 @@ void BarsSection(size_t defaultFontSize) {
 
 			ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
-			GUI_Checkbox2("Show 1P Bar", 
-				activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar, 
+			ImGui::PushItemWidth(itemWidth);
+			UI::Combo2Vector("Show 1P Bar", show1PNames,
+				activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar,
 				queuedCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar);
+			ImGui::PopItemWidth();
+
 			GUI_Checkbox2("Out of View Icons",
 				activeCrimsonConfig.MultiplayerBarsWorldSpace.showOutOfViewIcons,
 				queuedCrimsonConfig.MultiplayerBarsWorldSpace.showOutOfViewIcons);
@@ -11193,11 +11371,11 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 
     MultiplayerBars(pSwapChain);
 	WeaponWheels1PController(pSwapChain);
+	WeaponWheelsMultiplayerController(pSwapChain);
 	WorldSpaceWeaponWheelsController(pSwapChain);
     MirageGaugeMainPlayer();
 	RedOrbCounterWindow();
 	StyleMeterWindow();
-	WeaponWheels1PController(pSwapChain);
 
 
     HandleKeyBindings(keyBindings.data(), keyBindings.size());
