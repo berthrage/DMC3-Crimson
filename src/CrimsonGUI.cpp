@@ -1927,6 +1927,8 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 	// Draw the wheel
 	static bool isOpen = true;
 
+	auto analogSwitchingState = playerIndex == 0 ? activeCrimsonConfig.WeaponWheel.analogSwitching ? true : false : true;
+
 	static auto windowSize = ImVec2(g_renderSize.x, g_renderSize.y);
 	auto cornerPos = isMelee ? windowSize - wheelSize : ImVec2(0, windowSize.y - wheelSize.y);
 	ImGui::SetNextWindowSize(wheelSize);
@@ -1936,7 +1938,7 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 		deltaTime, deltaTime, deltaTime);
 	pWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(isMelee ? BINDING::CHANGE_DEVIL_ARMS : BINDING::CHANGE_GUN));
 	pWeaponWheel->TrackAnalogMovingState(stickUsed);
-	pWeaponWheel->TrackAnalogSwitchingConfig(activeCrimsonConfig.WeaponWheel.analogSwitching);
+	pWeaponWheel->TrackAnalogSwitchingConfig(analogSwitchingState);
 	pWeaponWheel->TrackAlwaysShowConfig(alwaysShow);
 	state.startTime = ImGui::GetTime();
 

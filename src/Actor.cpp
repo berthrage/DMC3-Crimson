@@ -3593,6 +3593,7 @@ template <typename T> void AnalogMeleeWeaponSwitchController(T& actorData) {
     auto& gamepad = GetGamepad(actorData.newPlayerIndex);
 
     auto leftStick = (characterData.meleeWeaponSwitchStick == LEFT_STICK);
+	auto playerIndex = actorData.newPlayerIndex;
 
     auto radius = (leftStick) ? gamepad.leftStickRadius : gamepad.rightStickRadius;
     auto pos    = (leftStick) ? gamepad.leftStickPosition : gamepad.rightStickPosition;
@@ -3627,9 +3628,9 @@ template <typename T> void AnalogMeleeWeaponSwitchController(T& actorData) {
         back = true;
     };
 
-    if (activeCrimsonConfig.WeaponWheel.analogSwitching) {
+    if (activeCrimsonConfig.WeaponWheel.analogSwitching || playerIndex != 0) {
         if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_DEVIL_ARMS))) {
-			if (activeCrimsonConfig.WeaponWheel.disableCameraRotation) {
+			if (activeCrimsonConfig.WeaponWheel.disableCameraRotation && playerIndex == 0) {
 				g_disableCameraRotation = true;
 			}
 
@@ -3659,10 +3660,10 @@ template <typename T> void AnalogMeleeWeaponSwitchController(T& actorData) {
         }
     }
 
-    if (activeCrimsonConfig.WeaponWheel.analogSwitching) {
+    if (activeCrimsonConfig.WeaponWheel.analogSwitching || playerIndex != 0) {
         if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
             if (TypeMatch<T, PlayerActorDataVergil>::value) {
-                if (activeCrimsonConfig.WeaponWheel.disableCameraRotation) {
+                if (activeCrimsonConfig.WeaponWheel.disableCameraRotation && playerIndex == 0) {
                     g_disableCameraRotation = true;
                 }
 
@@ -3738,10 +3739,12 @@ template <typename T> void AnalogMeleeWeaponSwitchController(T& actorData) {
 
         UpdateForm(actorData);
 
-        if (activeCrimsonConfig.SFX.changeDevilArmNew == 1) {
-            CrimsonSDL::PlayChangeDevilArm();
-        } else {
-            PlaySound(0, 12);
+        if (activeConfig.Actor.playerCount <= 1) {
+            if (activeCrimsonConfig.SFX.changeDevilArmNew == 1) {
+                CrimsonSDL::PlayChangeDevilArm();
+            } else {
+                PlaySound(0, 12);
+            }
         }
     }
 }
@@ -3750,6 +3753,7 @@ template <typename T> void AnalogRangedWeaponSwitchController(T& actorData) {
     auto& characterData = GetCharacterData(actorData);
 
     auto& gamepad = GetGamepad(actorData.newPlayerIndex);
+	auto playerIndex = actorData.newPlayerIndex;
 
     auto leftStick = (characterData.rangedWeaponSwitchStick == LEFT_STICK);
 
@@ -3784,9 +3788,9 @@ template <typename T> void AnalogRangedWeaponSwitchController(T& actorData) {
         back = true;
     };
 
-    if (activeCrimsonConfig.WeaponWheel.analogSwitching) {
+    if (activeCrimsonConfig.WeaponWheel.analogSwitching || playerIndex != 0) {
         if ((gamepad.buttons[0] & GetBinding(BINDING::CHANGE_GUN))) {
-            if (activeCrimsonConfig.WeaponWheel.disableCameraRotation) {
+            if (activeCrimsonConfig.WeaponWheel.disableCameraRotation && playerIndex == 0) {
                 g_disableCameraRotation = true;
             }
 
@@ -3866,12 +3870,15 @@ template <typename T> void AnalogRangedWeaponSwitchController(T& actorData) {
 
         UpdateRangedWeapon(actorData);
 
-        if (characterData.character == CHARACTER::DANTE) {
-			if (activeCrimsonConfig.SFX.changeGunNew == 1) {
-				CrimsonSDL::PlayChangeGun();
-			} else {
-				PlaySound(0, 12);
-			}
+
+        if (activeConfig.Actor.playerCount <= 1) {
+            if (characterData.character == CHARACTER::DANTE) {
+                if (activeCrimsonConfig.SFX.changeGunNew == 1) {
+                    CrimsonSDL::PlayChangeGun();
+                } else {
+                    PlaySound(0, 12);
+                }
+            }
         }
     }
 }
@@ -3936,10 +3943,12 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     }
 
 
-    if ((actorData.newPlayerIndex == 0) && (actorData.newCharacterIndex == playerData.activeCharacterIndex) &&
+    if ((actorData.newCharacterIndex == playerData.activeCharacterIndex) &&
         (actorData.newEntityIndex == ENTITY::MAIN)) {
 
-        g_disableCameraRotation = false;
+        if (actorData.newPlayerIndex == 0) {
+            g_disableCameraRotation = false;
+        }
 
         AnalogMeleeWeaponSwitchController(actorData);
         AnalogRangedWeaponSwitchController(actorData);
