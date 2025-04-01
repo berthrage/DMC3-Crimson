@@ -1597,11 +1597,7 @@ void PauseWhenGUIOpened() {
 	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
 
 
-	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
-	if (!name_80) {
-		return;
-	}
-	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!pool_10222 || !pool_10222[3]) {
 		return;
@@ -1615,7 +1611,7 @@ void PauseWhenGUIOpened() {
 
 	// We add this timer so we can safely (aka no crash) say when we can pause the game by setting speed to 0.
 	if (g_scene != SCENE::GAME || eventData.event != EVENT::MAIN) {
-		guiPause.timer = 1.5f;
+		guiPause.timer = 0.5f;
 		guiPause.canPause = false;
 		g_inGameDelayed = false;
 	}
@@ -1630,29 +1626,28 @@ void PauseWhenGUIOpened() {
 	if (guiPause.timer <= 0) {
 		guiPause.canPause = true;
 	}
-
-
-	if (!g_show || !guiPause.canPause) {
-		storedFrameCount = missionData.frameCount; // This stores the game's timer.
-		activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed; // This resumes the game speed
-		activeConfig.Speed.turbo = queuedConfig.Speed.turbo;
-		Speed::Toggle(true); 
-		guiPause.in = false;
-
-	}
-	else if (g_show && !guiPause.in && guiPause.canPause) {
-		activeConfig.Speed.mainSpeed = 0;  // This pauses the game speed
-		activeConfig.Speed.turbo = 0;
-		Speed::Toggle(true); // Toggle Speed on and off to set the new speed
-		Speed::Toggle(false);
-		guiPause.in = true;
-
-	}
-
-
-	if (g_showMain) {
-		missionData.frameCount = storedFrameCount;  // This pauses the game's timer.
-	}
+// 
+// 
+// 	if (!g_show || !guiPause.canPause) {
+// 		storedFrameCount = missionData.frameCount; // This stores the game's timer.
+// 		activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed; // This resumes the game speed
+// 		activeConfig.Speed.turbo = queuedConfig.Speed.turbo;
+// 		Speed::Toggle(true); 
+// 		guiPause.in = false;
+// 
+// 	}
+// 	else if (g_show && !guiPause.in && guiPause.canPause) {
+// 		activeConfig.Speed.mainSpeed = 0;  // This pauses the game speed
+// 		activeConfig.Speed.turbo = 0;
+// 		Speed::Toggle(true); // Toggle Speed on and off to set the new speed
+// 		Speed::Toggle(false);
+// 		guiPause.in = true;
+// 	}
+// 
+// 
+// 	if (g_showMain) {
+// 		missionData.frameCount = storedFrameCount;  // This pauses the game's timer.
+// 	}
 }
 
 std::unique_ptr<WW::WeaponWheel> meleeWeaponWheel[PLAYER_COUNT];
@@ -1980,7 +1975,7 @@ void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 		ImVec2(g_renderSize.y * 0.35f, g_renderSize.y * 0.35f) :
 		ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
 
-	ImVec2 multiplayerPosMelee = ImVec2(g_renderSize.x * 0.4953f, g_renderSize.y * 0.0f);
+	ImVec2 multiplayerPosMelee = ImVec2(g_renderSize.x * 0.4853f, g_renderSize.y * 0.0f);
 	ImVec2 multiplayerPosRanged = ImVec2(g_renderSize.x * 0.4253f, g_renderSize.y * 0.0f);
 	ImVec2 multiplayerSize = initialized ? ImVec2(g_renderSize.y * 0.15f, g_renderSize.y * 0.15f) : normalSize;
 	// We need to initialize with the bigger size first to avoid the wheel from displaying on a lower quality if the user changes the setting at runtime. -- Berth
@@ -2032,10 +2027,16 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 
 		auto& meleeWheel = meleeWorldSpaceWeaponWheel[playerIndex];
 		auto& rangedWheel = rangedWorldSpaceWeaponWheel[playerIndex];
+		const float baseSpacing = 0.37f;
+		const float barSpacing = g_renderSize.x * baseSpacing;
+		const float baseXMelee = g_renderSize.x * (0.1672f - baseSpacing);
+		const float baseXRanged = g_renderSize.x * (0.1122f - baseSpacing);
+		
+		const float baseY = g_renderSize.y * 0.8462f; // Bottom of the screen
 
 
-		ImVec2 multiplayerPosMelee = ImVec2(g_renderSize.x * 0.1772f, g_renderSize.y * (0.1762f + (0.18f * playerIndex)));
-		ImVec2 multiplayerPosRanged = ImVec2(g_renderSize.x * 0.1072f, g_renderSize.y * (0.1762f + (0.18f * playerIndex)));
+		ImVec2 multiplayerPosMelee = ImVec2(baseXMelee + barSpacing * (playerIndex), baseY);
+		ImVec2 multiplayerPosRanged = ImVec2(baseXRanged + barSpacing * (playerIndex), baseY);
 
 		std::string meleeWheelName = "MeleeWheel " + std::to_string(playerIndex + 1);
 		std::string rangedWheelName = "RangedWheel " + std::to_string(playerIndex + 1);
@@ -2064,6 +2065,8 @@ void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 
 	static WeaponWheelState stateRanged[PLAYER_COUNT];
 	static bool initializedRanged[PLAYER_COUNT] = { false };
+
+	if (!guiPause.canPause) return;
 
 	if (activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Off") return;
 
@@ -3686,7 +3689,7 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 }
 
 void RenderMultiplayerBar(
-	float hitPoints, float magicPoints, const char* name, PlayerActorData actorData, Config::BarsData& activeData/*, Config::BarsData& queuedData*/) {
+	float hitPoints, float magicPoints, const char* name, PlayerActorData& actorData) {
 	if (!showBars && !activeCrimsonConfig.MultiplayerBars2D.show) {
 		return;
 	}
@@ -3696,18 +3699,22 @@ void RenderMultiplayerBar(
 	if (playerIndex == 0) {
 		return;
 	}
+	const float alpha = ImLerp(0.27f, 1.0f, 1.0);
+	float hitColor[4] = { 0.29f , 0.99f, 0.44f, 1.0f };
+	float magicColor[4] = { 0.78f, 0.05f, 0.41f, 1.0f };
+	float magicColorVergil[4] = { 0.06f, 0.74f, 0.81f, 1.0f };
 
-	// Adjusts size dynamically based on the distance between Camera and Player
-	auto& playerScreenPosition = crimsonPlayer[playerIndex].playerScreenPosition;
-	const float screenMargin = 50.0f;
+	const float baseSpacing = 0.37f;
+	const float barSpacing = g_renderSize.x * baseSpacing; // 37% of screen width per bar
+	const float baseX = g_renderSize.x * (0.02f - baseSpacing); // Corner of the screen
+	const float baseY = g_renderSize.y * 0.8962f; // Bottom of the screen
+	
 
-	const float t = CrimsonUtil::smoothstep(0.0f, 1390.0f, crimsonPlayer[playerIndex].cameraPlayerDistance);
-	const float alpha = ImLerp(0.27f, 1.0f, t);
-	activeData.hitColor[3] = alpha;
-	activeData.magicColor[3] = alpha;
-	activeData.magicColorVergil[3] = alpha;
-
-	ImVec2 pos = ImVec2(g_renderSize.x * 0.01f, g_renderSize.y * (0.2262f + (0.18f * playerIndex)));
+	ImVec2 pos = ImVec2(
+		baseX + barSpacing * (playerIndex),
+		//baseY - barSpacing * (activeConfig.Actor.playerCount - playerIndex) // Inverted
+		baseY
+	);
 
 	ImGui::SetNextWindowPos(pos);
 
@@ -3747,16 +3754,16 @@ void RenderMultiplayerBar(
 		ImGui::PopFont();
 
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, alpha));
-		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.hitColor));
-		ImGui::ProgressBar(hitPoints, ImVec2(activeData.size.x, activeData.size.y), "");
+		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&hitColor));
+		ImGui::ProgressBar(hitPoints, ImVec2(200, 10), "");
 		ImGui::PopStyleColor(2);
 
 		if (actorData.character != CHARACTER::VERGIL) {
-			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColor));
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&magicColor));
 		} else {
-			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColorVergil));
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&magicColorVergil));
 		}
-		ImGui::ProgressBar(magicPoints, ImVec2(activeData.size.x, activeData.size.y), "");
+		ImGui::ProgressBar(magicPoints, ImVec2(200, 10), "");
 		ImGui::PopStyleColor();
 
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
@@ -3774,12 +3781,6 @@ void RenderMultiplayerBar(
 		// 		ImGui::SameLine();
 		// 		ImGui::Text(" -");
 		ImGui::PopFont();
-
-		
-
-		
-		
-
 	}
 
 	ImGui::End();
@@ -3789,7 +3790,7 @@ void RenderMultiplayerBar(
 
 
 void RenderWorldSpaceMultiplayerBar(
-	float hitPoints, float magicPoints, const char* name, PlayerActorData actorData, const char* label, Config::BarsData& activeData/*, Config::BarsData& queuedData*/) {
+	float hitPoints, float magicPoints, const char* name, const PlayerActorData& actorData, const char* label, Config::BarsData& activeData/*, Config::BarsData& queuedData*/) {
 	if (!showBars && !activeCrimsonConfig.MultiplayerBarsWorldSpace.show) {
 		return;
 	}
@@ -3941,6 +3942,10 @@ void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 		return;
 	}
 
+	if (InCutscene() || InCredits() || !activeConfig.Actor.enable || g_inGameCutscene ) {
+		return;
+	}
+
 	uint8 playerCount = (showBars) ? PLAYER_COUNT : activeConfig.Actor.playerCount;
 
 	int minimum = 1;
@@ -4003,7 +4008,7 @@ void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 					activeActorData, barsNames[playerIndex], activeConfig.barsData[playerIndex]);
 
 				RenderMultiplayerBar(hit, magic, playerIndexNames[playerIndex],
-					activeActorData, activeConfig.barsData[playerIndex]);
+					activeActorData);
 
 				//WorldSpaceWeaponWheelsController2P(activeActorData, pSwapChain);
 				}();
@@ -11352,7 +11357,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	SoundWindow();
     
 
-    //PauseWhenGUIOpened();
+    PauseWhenGUIOpened();
     GamepadToggleShowMain();
 	if (activeConfig.debugOverlayData.enable) {
 		DebugOverlayWindow(UI::g_UIContext.DefaultFontSize);
