@@ -1768,7 +1768,7 @@ struct WeaponWheelState {
 };
 
 bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChain, std::unique_ptr<WW::WeaponWheel>& pWeaponWheel, 
-	const char* windowName, bool cornerPositioning, ImVec2 windowPos, ImVec2 wheelSize, bool alwaysShow, bool isMelee, WeaponWheelState& state) {
+	const char* windowName, bool cornerPositioning, ImVec2 windowPos, ImVec2 wheelSize, bool alwaysShow, bool trackHide, bool isMelee, WeaponWheelState& state) {
 
 	if (!InGame()) {
 		return false;
@@ -1938,7 +1938,7 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 
 	pWeaponWheel->OnDraw();
 
-	if (activeCrimsonConfig.WeaponWheel.hide) {
+	if (activeCrimsonConfig.WeaponWheel.hide && trackHide) {
 		return true;
 	}
 
@@ -1985,7 +1985,7 @@ void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	if (WeaponWheelController(actorData, pSwapChain, meleeWeaponWheel[0], "MeleeWheel1P",
 		!forcing1PMPPosScale,
 		forcing1PMPPosScale ? multiplayerPosMelee : normalPos, forcing1PMPPosScale ? multiplayerSize : normalSize,
-		activeCrimsonConfig.WeaponWheel.meleeAlwaysShow, true, stateMelee)) {
+		activeCrimsonConfig.WeaponWheel.meleeAlwaysShow, true, true, stateMelee)) {
 
 		initialized = true;
 	}
@@ -1993,7 +1993,7 @@ void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	WeaponWheelController(actorData, pSwapChain, rangedWeaponWheel[0], "RangedWheel1P",
 		!forcing1PMPPosScale,
 		forcing1PMPPosScale ? multiplayerPosRanged : normalPos, forcing1PMPPosScale ? multiplayerSize : normalSize,
-		activeCrimsonConfig.WeaponWheel.rangedAlwaysShow, false, stateRanged);
+		activeCrimsonConfig.WeaponWheel.rangedAlwaysShow, true, false, stateRanged);
 }
 
 void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
@@ -2049,7 +2049,7 @@ void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 		if (WeaponWheelController(actorData, pSwapChain, meleeWheel, meleeWheelName.c_str(),
 			false,
 			meleeWheelPos, multiplayerSize,
-			activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Always Show" ? true : false, true, stateMelee[playerIndex])) {
+			activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Always Show" ? true : false, false, true, stateMelee[playerIndex])) {
 
 			initializedMelee[playerIndex] = true;
 		}
@@ -2057,7 +2057,7 @@ void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 		WeaponWheelController(actorData, pSwapChain, rangedWheel, rangedWheelName.c_str(),
 			false,
 			rangedWheelPos, multiplayerSize,
-			activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Always Show" ? true : false, false, stateRanged[playerIndex]);
+			activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Always Show" ? true : false, false, false,  stateRanged[playerIndex]);
 	}
 }
 
