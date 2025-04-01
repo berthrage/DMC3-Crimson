@@ -1948,9 +1948,19 @@ bool WeaponWheelController(IDXGISwapChain* pSwapChain, std::unique_ptr<WW::Weapo
 	return false;
 }
 
-void MeleeWeaponWheelController(IDXGISwapChain* pSwapChain) {
-	static WeaponWheelState state;
+void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
+	static WeaponWheelState stateMelee;
+	static WeaponWheelState stateRanged;
 	static bool initialized = false;
+
+	auto pool_1431 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_1431 || !pool_1431[3]) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_1431[3]);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& playerScreenPosition = crimsonPlayer[playerIndex].playerScreenPosition;
+	auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
 
 	auto& forcing1PMPPosScale = activeCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale;
 	auto& scale = activeCrimsonConfig.WeaponWheel.scale;
@@ -1959,42 +1969,26 @@ void MeleeWeaponWheelController(IDXGISwapChain* pSwapChain) {
 		ImVec2(g_renderSize.y * 0.35f, g_renderSize.y * 0.35f) :
 		ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
 
-	ImVec2 multiplayerPos = ImVec2(g_renderSize.x * 0.4953f, g_renderSize.y * 0.0f);
+	ImVec2 multiplayerPosMelee = ImVec2(g_renderSize.x * 0.4953f, g_renderSize.y * 0.0f);
+	ImVec2 multiplayerPosRanged = ImVec2(g_renderSize.x * 0.4253f, g_renderSize.y * 0.0f);
 	ImVec2 multiplayerSize = initialized ? ImVec2(g_renderSize.y * 0.15f, g_renderSize.y * 0.15f) : normalSize;
 	// We need to initialize with the bigger size first to avoid the wheel from displaying on a lower quality if the user changes the setting at runtime. -- Berth
 
-	if (WeaponWheelController(pSwapChain, g_pMeleeWeaponWheel, "MeleeWheel",
+
+	// Adjusts size dynamically based on the distance between Camera and Player
+
+	if (WeaponWheelController(actorData, pSwapChain, meleeWeaponWheel[0], "MeleeWheel1P",
 		!forcing1PMPPosScale,
-		forcing1PMPPosScale ? multiplayerPos : normalPos, forcing1PMPPosScale ? multiplayerSize : normalSize,
-		true, state)) {
+		forcing1PMPPosScale ? multiplayerPosMelee : normalPos, forcing1PMPPosScale ? multiplayerSize : normalSize,
+		activeCrimsonConfig.WeaponWheel.meleeAlwaysShow, true, stateMelee)) {
 
 		initialized = true;
 	}
-}
 
-void RangedWeaponWheelController(IDXGISwapChain* pSwapChain) {
-	static WeaponWheelState state;
-	static bool initialized = false;
-
-	auto& forcing1PMPPosScale = activeCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale;
-	auto& scale = activeCrimsonConfig.WeaponWheel.scale;
-	ImVec2 normalPos = ImVec2(0, g_renderSize.y - g_renderSize.y * 0.45f);
-	ImVec2 normalSize = initialized ? scale == "Big" ? ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f) : 
-		ImVec2(g_renderSize.y * 0.35f, g_renderSize.y * 0.35f) :
-		ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
-
-	ImVec2 multiplayerPos = ImVec2(g_renderSize.x * 0.4253f, g_renderSize.y * 0.0f);
-	ImVec2 multiplayerSize = initialized ? ImVec2(g_renderSize.y * 0.15f, g_renderSize.y * 0.15f) : normalSize;
-
-	if (WeaponWheelController(pSwapChain, g_pRangedWeaponWheel, "RangedWheel",
+	WeaponWheelController(actorData, pSwapChain, rangedWeaponWheel[0], "RangedWheel1P",
 		!forcing1PMPPosScale,
-		forcing1PMPPosScale ? multiplayerPos : normalPos, forcing1PMPPosScale ? multiplayerSize : normalSize,
-		false, state)) {
-
-		initialized = true;
-	}
-	
-	
+		forcing1PMPPosScale ? multiplayerPosRanged : normalPos, forcing1PMPPosScale ? multiplayerSize : normalSize,
+		activeCrimsonConfig.WeaponWheel.rangedAlwaysShow, false, stateRanged);
 }
 
 #pragma endregion
@@ -11120,8 +11114,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     MirageGaugeMainPlayer();
 	RedOrbCounterWindow();
 	StyleMeterWindow();
-	MeleeWeaponWheelController(pSwapChain);
-	RangedWeaponWheelController(pSwapChain);
+	WeaponWheels1PController(pSwapChain);
 
 
     HandleKeyBindings(keyBindings.data(), keyBindings.size());
