@@ -57,11 +57,11 @@ struct CrimsonConfig {
 		bool disableCameraRotation = true;
 		std::string theme = "Crimson";
 		std::string scale = "Small";
-		bool meleeAlwaysShow = false;
-		bool rangedAlwaysShow = false;
+		bool alwaysShow = false;
 		bool force1PMultiplayerPosScale = false;
 		bool hide = false;
-		std::string worldSpaceWheels = "Off";
+		std::string worldSpaceWheels = "Only in Multiplayer";
+		bool worldSpaceAlwaysShow = false;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -69,11 +69,11 @@ struct CrimsonConfig {
 				std::make_pair("disableCameraRotation", &WeaponWheel::disableCameraRotation),
 				std::make_pair("theme", &WeaponWheel::theme),
 				std::make_pair("scale", &WeaponWheel::scale),
-				std::make_pair("meleeAlwaysShow", &WeaponWheel::meleeAlwaysShow),
-				std::make_pair("rangedAlwaysShow", &WeaponWheel::rangedAlwaysShow),
+				std::make_pair("alwaysShow", &WeaponWheel::alwaysShow),
 				std::make_pair("force1PMultiplayerPosScale", &WeaponWheel::force1PMultiplayerPosScale),
 				std::make_pair("hide", &WeaponWheel::hide),
-				std::make_pair("worldSpaceWheels", &WeaponWheel::worldSpaceWheels)
+				std::make_pair("worldSpaceWheels", &WeaponWheel::worldSpaceWheels),
+				std::make_pair("worldSpaceAlwaysShow", &WeaponWheel::worldSpaceAlwaysShow)
 			);
 		}
 

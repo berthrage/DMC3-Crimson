@@ -1563,15 +1563,14 @@ std::vector<std::string> weaponWheelScaleNames = {
 std::vector<std::string> show1PNames = {
 	"Off",
 	"Only in Multiplayer",
-	"Always Show",
+	"Always",
 };
 
 std::vector<std::string> worldSpaceWheelNames = {
 	"Off",
-	"On with Fadeout",
-	"Always Show",
+	"Only in Multiplayer",
+	"Always",
 };
-
 
 std::vector<std::string> VergilMoveAdjustmentsNames = {
 	"Off",
@@ -1996,7 +1995,7 @@ void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	if (WeaponWheelController(actorData, pSwapChain, meleeWeaponWheel[0], "MeleeWheel1P",
 		!inMultiplayer,
 		inMultiplayer ? multiplayerPosMelee : normalPos, inMultiplayer ? multiplayerSize : normalSize,
-		activeCrimsonConfig.WeaponWheel.meleeAlwaysShow, true, true, stateMelee, deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
+		activeCrimsonConfig.WeaponWheel.alwaysShow, true, true, stateMelee, deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
 
 		initialized = true;
 	}
@@ -2004,7 +2003,7 @@ void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	WeaponWheelController(actorData, pSwapChain, rangedWeaponWheel[0], "RangedWheel1P",
 		!inMultiplayer,
 		inMultiplayer ? multiplayerPosRanged : normalPos, inMultiplayer ? multiplayerSize : normalSize,
-		activeCrimsonConfig.WeaponWheel.rangedAlwaysShow, true, false, stateRanged, deltaTimeAdjustedSpeed, deltaTimeAdjusted);
+		activeCrimsonConfig.WeaponWheel.alwaysShow, true, false, stateRanged, deltaTimeAdjustedSpeed, deltaTimeAdjusted);
 }
 
 void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
@@ -2063,7 +2062,7 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 		if (WeaponWheelController(actorData, pSwapChain, meleeWheel, meleeWheelName.c_str(),
 			false,
 			multiplayerPosMelee, multiplayerSize,
-			activeCrimsonConfig.WeaponWheel.meleeAlwaysShow, true, true, stateMelee[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
+			activeCrimsonConfig.WeaponWheel.alwaysShow, true, true, stateMelee[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
 
 			initializedMelee[playerIndex] = true;
 		}
@@ -2071,7 +2070,7 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 		WeaponWheelController(actorData, pSwapChain, rangedWheel, rangedWheelName.c_str(),
 			false,
 			multiplayerPosRanged, multiplayerSize,
-			activeCrimsonConfig.WeaponWheel.rangedAlwaysShow, true, false, stateRanged[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted);
+			activeCrimsonConfig.WeaponWheel.alwaysShow, true, false, stateRanged[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted);
 	}
 
 	multiplayerWheelsLoaded = true; 
@@ -2087,14 +2086,16 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 	}
 }
 
-void WorldSpaceWeapon1PWheelsController(IDXGISwapChain* pSwapChain) {
+void WorldSpaceWeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	static WeaponWheelState stateMelee;
 	static bool initialized = false;
 
 	static WeaponWheelState stateRanged;
 
 	if (!multiplayerWheelsLoaded) return;
-	if (activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Off") return;
+	if (activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Off" ||
+		(activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Only in Multiplayer"
+			&& activeConfig.Actor.playerCount <= 1)) return;
 
 	// Measure delta time using chrono
 	static auto lastTime = std::chrono::high_resolution_clock::now();
@@ -2139,7 +2140,7 @@ void WorldSpaceWeapon1PWheelsController(IDXGISwapChain* pSwapChain) {
 	if (WeaponWheelController(actorData, pSwapChain, meleeWheel, meleeWheelName.c_str(),
 		false,
 		meleeWheelPos, multiplayerSize,
-		activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Always Show", false, true,
+		activeCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow, false, true,
 		stateMelee, deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
 		initialized = true;
 	}
@@ -2148,7 +2149,7 @@ void WorldSpaceWeapon1PWheelsController(IDXGISwapChain* pSwapChain) {
 	WeaponWheelController(actorData, pSwapChain, rangedWheel, rangedWheelName.c_str(),
 		false,
 		rangedWheelPos, multiplayerSize,
-		activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Always Show", false, false,
+		activeCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow, false, false,
 		stateRanged, deltaTimeAdjustedSpeed, deltaTimeAdjusted);
 
 }
@@ -2161,7 +2162,9 @@ void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 	static bool initializedRanged[PLAYER_COUNT] = { false };
 
 	if (!multiplayerWheelsLoaded) return;
-	if (activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Off") return;
+	if (activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Off" ||
+		(activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Only in Multiplayer" 
+			&& activeConfig.Actor.playerCount <= 1)) return;
 
 	// Measure delta time using chrono
 	static auto lastTime = std::chrono::high_resolution_clock::now();
@@ -2210,7 +2213,7 @@ void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 		if (WeaponWheelController(actorData, pSwapChain, meleeWheel, meleeWheelName.c_str(),
 			false,
 			meleeWheelPos, multiplayerSize,
-			activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Always Show", false, true,
+			activeCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow, false, true,
 			stateMelee[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
 			initializedMelee[playerIndex] = true;
 		}
@@ -2219,7 +2222,7 @@ void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 		WeaponWheelController(actorData, pSwapChain, rangedWheel, rangedWheelName.c_str(),
 			false,
 			rangedWheelPos, multiplayerSize,
-			activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Always Show", false, false,
+			activeCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow, false, false,
 			stateRanged[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted);
 	}
 }
@@ -8227,18 +8230,11 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth * 0.5f);
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Melee Wheel Always Show",
-				activeCrimsonConfig.WeaponWheel.meleeAlwaysShow,
-				queuedCrimsonConfig.WeaponWheel.meleeAlwaysShow);
+			GUI_Checkbox2("Wheel Always Show",
+				activeCrimsonConfig.WeaponWheel.alwaysShow,
+				queuedCrimsonConfig.WeaponWheel.alwaysShow);
 
 			ImGui::TableNextColumn();
-
-			GUI_Checkbox2("Ranged Wheel Always Show",
-				activeCrimsonConfig.WeaponWheel.rangedAlwaysShow,
-				queuedCrimsonConfig.WeaponWheel.rangedAlwaysShow);
-
-			ImGui::TableNextColumn();
-
 		
 			ImGui::PushItemWidth(itemWidth * 0.8f);
 			UI::Combo2Vector("Scale", weaponWheelScaleNames,
@@ -8246,12 +8242,12 @@ void InterfaceSection(size_t defaultFontSize) {
 				queuedCrimsonConfig.WeaponWheel.scale);
 			ImGui::PopItemWidth();
 
-			ImGui::TableNextRow(0, rowWidth * 0.5f);
-
 			ImGui::TableNextColumn();
 			GUI_Checkbox2("Force 1P Multiplayer Positioning/Scale",
 				activeCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale,
 				queuedCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale);
+
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
 
 			ImGui::TableNextColumn();
 			GUI_Checkbox2("Hide Weapon Wheel HUD",
@@ -8259,11 +8255,16 @@ void InterfaceSection(size_t defaultFontSize) {
 				queuedCrimsonConfig.WeaponWheel.hide);
 
 			ImGui::TableNextColumn();
-			ImGui::PushItemWidth(itemWidth * 0.8f);
+			ImGui::PushItemWidth(itemWidth * 1.0f);
 			UI::Combo2Vector("World Space Wheels", worldSpaceWheelNames,
 				activeCrimsonConfig.WeaponWheel.worldSpaceWheels,
 				queuedCrimsonConfig.WeaponWheel.worldSpaceWheels);
 			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+			GUI_Checkbox2("World Space Wheel Always Show",
+				activeCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow,
+				queuedCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow);
 
 
 			ImGui::EndTable();
@@ -11528,7 +11529,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     MultiplayerBars(pSwapChain);
 	WeaponWheels1PController(pSwapChain);
 	WeaponWheelsMultiplayerController(pSwapChain);
-	WorldSpaceWeapon1PWheelsController(pSwapChain);
+	WorldSpaceWeaponWheels1PController(pSwapChain);
 	WorldSpaceWeaponWheelsController(pSwapChain);
     MirageGaugeMainPlayer();
 	RedOrbCounterWindow();
