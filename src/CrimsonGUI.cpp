@@ -3887,6 +3887,73 @@ void RenderMultiplayerBar(
 	ImGui::PopStyleVar(4);
 }
 
+void Render1PAttributes(const char* name, PlayerActorData& actorData) {
+	if (!showBars && !activeCrimsonConfig.MultiplayerBars2D.show) {
+		return;
+	}
+
+	auto playerIndex = actorData.newPlayerIndex;
+
+	if (playerIndex != 0) {
+		return;
+	}
+
+	if ((activeCrimsonConfig.MultiplayerBars2D.show1PAttributes == "Only in Multiplayer" 
+		&& activeConfig.Actor.playerCount == 1) ||
+		(activeCrimsonConfig.MultiplayerBars2D.show1PAttributes == "Off")) {
+		return;
+	}
+
+	const float baseX = g_renderSize.x * (0.3272f); 
+	const float baseY = g_renderSize.y * 0.015f; 
+
+	ImVec2 pos = ImVec2(baseX,baseY);
+
+	ImGui::SetNextWindowPos(pos);
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
+
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+
+
+	ImGuiWindowFlags windowFlags =
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	std::string label = "1PAttributes " + std::to_string(playerIndex + 1);
+
+
+	if (ImGui::Begin(label.c_str(), &activeCrimsonConfig.MultiplayerBarsWorldSpace.show, windowFlags)) {
+
+		ImVec4 playerColor = ConvertColorFromUint8ToVec4(activeCrimsonConfig.PlayerProperties.playerColor[playerIndex]);
+		float luminance = 0.299f * playerColor.x + 0.587f * playerColor.y + 0.114f * playerColor.z;
+		ImVec4 textColor = (luminance > 0.4f) ? ImVec4(0.1f, 0.1f, 0.1f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
+		ImGui::PushStyleColor(ImGuiCol_Button, playerColor);
+		ImGui::PushStyleColor(ImGuiCol_Text, textColor);
+		ImGui::Button(name, { 30.0f, 30.0f });
+		ImGui::PopStyleColor(2);
+		ImGui::PopFont();
+		ImGui::SameLine(0.0f, 0);
+		ImGui::Text("  ");
+
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[22.0f]);
+		ImGui::SameLine();
+		ImGui::Text(activeCrimsonConfig.PlayerProperties.playerName[playerIndex].c_str());
+		// 		ImGui::SameLine();
+		// 		ImGui::Text(" -");
+		ImGui::PopFont();
+	}
+
+	ImGui::End();
+	ImGui::PopStyleColor();
+	ImGui::PopStyleVar(4);
+}
+
 
 void RenderWorldSpaceMultiplayerBar(
 	float hitPoints, float magicPoints, const char* name, const PlayerActorData& actorData, const char* label, Config::BarsData& activeData/*, Config::BarsData& queuedData*/) {
@@ -3991,51 +4058,6 @@ void RenderWorldSpaceMultiplayerBar(
 	ImGui::PopStyleVar(4);
 }
 
-
-void BarsSettingsFunction(const char* label, Config::BarsData& activeData, Config::BarsData& queuedData, Config::BarsData& defaultData) {
-	auto& activePos = *reinterpret_cast<ImVec2*>(&activeData.pos);
-	auto& queuedPos = *reinterpret_cast<ImVec2*>(&queuedData.pos);
-	auto& defaultPos = *reinterpret_cast<ImVec2*>(&defaultData.pos);
-
-
-	/*GUI_Checkbox2("Enable", activeData.enable, queuedData.enable);*/
-	ImGui::Text("");
-
-	//      if (GUI_ResetButton()) {
-	//          CopyMemory(&queuedData, &defaultData, sizeof(queuedData));
-	//          CopyMemory(&activeData, &queuedData, sizeof(activeData));
-	//  
-	//          ImGui::SetWindowPos(label, activePos);
-	//      }
-	//     ImGui::Text("");
-
-	bool condition = !activeData.enable;
-
-	GUI_PushDisable(condition);
-
-	//     GUI_Color2("Hit Color", activeData.hitColor, queuedData.hitColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaPreview);
-	//     GUI_Color2(
-	//         "Magic Color", activeData.magicColor, queuedData.magicColor, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaPreview);
-	//     ImGui::Text("");
-
-	ImGui::PushItemWidth(150);
-
-	//     GUI_InputDefault2("Width", activeData.size.x, queuedData.size.x, defaultData.size.x, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-	//     GUI_InputDefault2("Height", activeData.size.y, queuedData.size.y, defaultData.size.y, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-	// 
-	if (GUI_Input2<float>("X", activePos.x, queuedPos.x, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-		ImGui::SetWindowPos(label, activePos);
-	}
-	ImGui::SameLine();
-	if (GUI_Input2<float>("Y", activePos.y, queuedPos.y, 1, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-		ImGui::SetWindowPos(label, activePos);
-	}
-
-	ImGui::PopItemWidth();
-
-	GUI_PopDisable(condition);
-}
-
 void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 	if (!showBars && !(activeConfig.Actor.enable && InGame())) {
 		return;
@@ -4058,7 +4080,7 @@ void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 		}
 		else if ((activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar == "Only in Multiplayer" 
 			&& activeConfig.Actor.playerCount > 1) ||
-			(activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar != "Always")) {
+			(activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar == "Always")) {
 			minimum = 0;
 		}
 
@@ -4106,12 +4128,29 @@ void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 				RenderWorldSpaceMultiplayerBar(hit, magic, playerIndexNames[playerIndex], 
 					activeActorData, barsNames[playerIndex], activeConfig.barsData[playerIndex]);
 
-				RenderMultiplayerBar(hit, magic, playerIndexNames[playerIndex],
-					activeActorData);
-
 				//WorldSpaceWeaponWheelsController2P(activeActorData, pSwapChain);
 				}();
 		}
+
+		float hit = 0.75f;
+		float magic = 0.5f;
+
+		auto& playerData = GetPlayerData(playerIndex);
+
+		auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+
+		auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+		auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+
+		if (!activeNewActorData.baseAddr) {
+			return;
+		}
+		auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+		RenderMultiplayerBar(hit, magic, playerIndexNames[playerIndex],
+			activeActorData);
+
+		Render1PAttributes(playerIndexNames[0], activeActorData);
 
 	}
 }
