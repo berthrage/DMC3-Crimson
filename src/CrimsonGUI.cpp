@@ -4147,11 +4147,13 @@ void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 			return;
 		}
 		auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+
+		hit = (activeActorData.hitPoints / activeActorData.maxHitPoints);
+		magic = (activeActorData.magicPoints / activeActorData.maxMagicPoints);
 		RenderMultiplayerBar(hit, magic, playerIndexNames[playerIndex],
 			activeActorData);
 
 		Render1PAttributes(playerIndexNames[0], activeActorData);
-
 	}
 }
 

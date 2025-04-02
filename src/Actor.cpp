@@ -12331,11 +12331,11 @@ void Toggle(bool enable) {
             CopyMemory(func.sect2, sect2, sizeof(sect2));
         }
 
-        if (enable) {
-            WriteJump(addr, func.addr, (size - 5));
-        } else {
-            backupHelper.Restore(addr);
-        }
+//         if (enable) {
+//             WriteJump(addr, func.addr, (size - 5));
+//         } else {
+//             backupHelper.Restore(addr);
+//         }
     }
 
     // Enemy Update AI Timer
