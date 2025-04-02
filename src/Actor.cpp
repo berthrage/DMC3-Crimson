@@ -3746,6 +3746,13 @@ template <typename T> void AnalogMeleeWeaponSwitchController(T& actorData) {
                 PlaySound(0, 12);
             }
         }
+        else {
+			if (activeCrimsonConfig.SFX.changeDevilArmNew == 1) {
+				CrimsonSDL::PlayChangeDevilArmMP();
+            } else {
+                CrimsonSDL::PlayChangeWeaponDMC3MP();
+            }
+        }
     }
 }
 
@@ -3870,16 +3877,23 @@ template <typename T> void AnalogRangedWeaponSwitchController(T& actorData) {
 
         UpdateRangedWeapon(actorData);
 
+		if (characterData.character == CHARACTER::DANTE) {
+			if (activeConfig.Actor.playerCount <= 1) {
 
-        if (activeConfig.Actor.playerCount <= 1) {
-            if (characterData.character == CHARACTER::DANTE) {
-                if (activeCrimsonConfig.SFX.changeGunNew == 1) {
-                    CrimsonSDL::PlayChangeGun();
-                } else {
-                    PlaySound(0, 12);
-                }
-            }
-        }
+				if (activeCrimsonConfig.SFX.changeGunNew == 1) {
+					CrimsonSDL::PlayChangeGun();
+				} else {
+					PlaySound(0, 12);
+				}
+
+			} else {
+				if (activeCrimsonConfig.SFX.changeDevilArmNew == 1) {
+					CrimsonSDL::PlayChangeGunMP();
+				} else {
+					CrimsonSDL::PlayChangeWeaponDMC3MP();
+				}
+			}
+		}
     }
 }
 

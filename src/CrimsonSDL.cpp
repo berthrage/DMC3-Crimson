@@ -27,6 +27,7 @@ bool SDL2Init                    = false;
 bool cacheAudioFiles             = false;
 Mix_Chunk* changeGun;
 Mix_Chunk* changeDevilArm;
+Mix_Chunk* changeWeaponDMC3;
 Mix_Chunk* styleChange;
 Mix_Chunk* tricksterVO;
 Mix_Chunk* swordmasterVO;
@@ -74,30 +75,29 @@ Mix_Music* missionClearSong;
 
 // Mix Channels used
 namespace CHANNEL {
-    constexpr int initialDevilArm = 0; // to 19
-    constexpr int initialChangeGun = 20; // to 39
-    constexpr int initialStyleChange = 40; // to 119, 20 channels per player
-    constexpr int initialStyleChangeVO = 120; // to 199, 20 channels per player
-    constexpr int initialStyleRank = 200; // to 206
-    constexpr int initialSprint = 300; // to 307, 2 channel per player
-    constexpr int initialDTIn = 307; // to 314, 2 channels per player
-    constexpr int initialDTOut = 315; // to 318, 1 channel per player
-    constexpr int initialDTLoop = 319; // to 322, 1 channel per player
-    constexpr int initialDoppIn = 323; // to 326, 1 channel per player
-    constexpr int initialDoppOut = 327; // to 330, 1 channel per player
-	constexpr int quickIn = 328;
-	constexpr int quickOut = 329;
-	constexpr int initialDTReady = 330; // to 333, 1 channel per player
-	constexpr int initialDelayedCombo1 = 334; // to 337, 1 channel per player
-    constexpr int initialDelayedCombo2 = 338; // to 341, 1 channel per player
-    constexpr int initialDTEStart = 342; // to 345, 1 channel per player
-    constexpr int initialDTELoop = 346; // to 349, 1 channel per player
-    constexpr int initialDTEFinish = 350; // to 353, 1 channel per player
-    constexpr int initialDTERelease = 354; // to 357, 1 channel per player
-    constexpr int initialGuard = 358; // to 365, 2 channels per player
-    constexpr int initialRoyalBlock = 366; // to 390, 5 channels per player
-    constexpr int initialBlock = 391; // to 410, 5 channels per player
-
+    constexpr int initialDevilArm = 0; // to 79, 20 channels per player
+    constexpr int initialChangeGun = 80; // to 159, 20 channels per player
+    constexpr int initialStyleChange = 160; // to 239, 20 channels per player
+    constexpr int initialStyleChangeVO = 240; // to 319, 20 channels per player
+    constexpr int initialStyleRank = 320; // to 326
+    constexpr int initialSprint = 327; // to 334, 2 channels per player
+    constexpr int initialDTIn = 335; // to 342, 2 channels per player
+    constexpr int initialDTOut = 343; // to 346, 1 channel per player
+    constexpr int initialDTLoop = 347; // to 350, 1 channel per player
+    constexpr int initialDoppIn = 351; // to 354, 1 channel per player
+    constexpr int initialDoppOut = 355; // to 358, 1 channel per player
+    constexpr int quickIn = 359;
+    constexpr int quickOut = 360;
+    constexpr int initialDTReady = 361; // to 364, 1 channel per player
+    constexpr int initialDelayedCombo1 = 365; // to 368, 1 channel per player
+    constexpr int initialDelayedCombo2 = 369; // to 372, 1 channel per player
+    constexpr int initialDTEStart = 373; // to 376, 1 channel per player
+    constexpr int initialDTELoop = 377; // to 380, 1 channel per player
+    constexpr int initialDTEFinish = 381; // to 384, 1 channel per player
+    constexpr int initialDTERelease = 385; // to 388, 1 channel per player
+    constexpr int initialGuard = 389; // to 396, 2 channels per player
+    constexpr int initialRoyalBlock = 397; // to 421, 5 channels per player
+    constexpr int initialBlock = 422; // to 441, 5 channels per player
 }
 
 #define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
@@ -144,6 +144,7 @@ void LoadAllSFX() {
 
 		changeGun = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\changegun.wav").c_str());
 		changeDevilArm = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\changedevilarm.wav").c_str());
+		changeWeaponDMC3 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\changeweapondmc3.wav").c_str());
 		styleChange = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\stylechange.wav").c_str());
 		tricksterVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\trickster1.wav").c_str());
 		swordmasterVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\swordmaster1.wav").c_str());
@@ -481,6 +482,19 @@ void PlayChangeGun() {
     PlayOnChannelsFadeOutPosition(CHANNEL::initialChangeGun, CHANNEL::initialChangeGun + 19, changeGun, activeCrimsonConfig.SFX.changeWeaponVolume, 400, 270, 0);
 }
 
+
+void PlayChangeDevilArmMP() {
+	PlayOnChannelsFadeOutPosition(CHANNEL::initialDevilArm, CHANNEL::initialDevilArm + 19, changeDevilArm, activeCrimsonConfig.SFX.changeWeaponVolume - 10, 400, 0, 0);
+}
+
+void PlayChangeGunMP() {
+	PlayOnChannelsFadeOutPosition(CHANNEL::initialChangeGun, CHANNEL::initialChangeGun + 19, changeGun, activeCrimsonConfig.SFX.changeWeaponVolume - 10, 400, 0, 0);
+}
+
+void PlayChangeWeaponDMC3MP() {
+	PlayOnChannelsFadeOutPosition(CHANNEL::initialChangeGun, CHANNEL::initialChangeGun + 19, changeWeaponDMC3, activeCrimsonConfig.SFX.changeWeaponVolume - 10, 400, 0, 0);
+}
+
 void PlayStyleChange(int playerIndex) {
     auto initialChannel = CHANNEL::initialStyleChange + (20 * playerIndex);
    
@@ -523,9 +537,12 @@ void SetSFXDistanceMultipleChannels(int playerIndex, int initialChannel, int num
 void SetAllSFXDistance(int playerIndex, int distance) {
     // This will simulate a pseudo 3D effect for the SFX
 
+    if (activeConfig.Actor.playerCount > 1) {
+		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDevilArm, 20, distance);
+		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialChangeGun, 20, distance);
+    }
     SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChange, 20, distance);
     SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChangeVO, 20, distance);
-
 
     fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex, 0, distance);
     fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex + 4, 0, distance); // L2
