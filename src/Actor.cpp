@@ -3939,7 +3939,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     
     CrimsonFX::RoyalBlockFX(actorBaseAddr);
     CrimsonFX::CalculateViewProperties(actorBaseAddr);
-    CrimsonSDL::SetAllSFXDistance(playerIndex, crimsonPlayer[playerIndex].cameraPlayerDistanceClamped);
+    CrimsonSDL::SetAllSFXDistance(playerIndex, crimsonPlayer[playerIndex].playerScreenAngle, crimsonPlayer[playerIndex].cameraPlayerDistanceClamped);
     
 	if (activeCrimsonConfig.Gameplay.Dante.improvedCancels) {
 		CrimsonGameplay::ImprovedCancelsDanteController(actorBaseAddr);

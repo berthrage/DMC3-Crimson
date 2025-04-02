@@ -4544,6 +4544,7 @@ struct CrimsonPlayerData {
     int cameraPlayerDistanceClamped = 0;
     float playerTo1PDistance = 0;
     SimpleVec3 playerScreenPosition = { 0,0,0 };
+    int playerScreenAngle = 0;
     bool playerOutOfView = false;
     uint16 rotationTowardsEnemy = 0;
     StoredAirCounts storedAirCounts;
@@ -4580,6 +4581,7 @@ struct CrimsonPlayerData {
     float cameraCloneDistanceClamped = 0;
     float cloneTo1PDistance = 0;
     SimpleVec3 cloneScreenPosition = { 0,0,0 };
+	int cloneScreenAngle = 0;
     bool cloneOutOfView = false;
     uint16 rotationCloneTowardsEnemy = 0;
     StoredAirCounts storedAirCountsClone;

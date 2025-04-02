@@ -525,49 +525,49 @@ void PlayStyleChangeVO(int playerIndex, int style, bool doppActive) {
     }
 }
 
-void SetSFXDistanceMultipleChannels(int playerIndex, int initialChannel, int numberChannelsPerPlayer, int distance) {
+void SetSFXDistanceMultipleChannels(int playerIndex, int initialChannel, int numberChannelsPerPlayer, int angle, int distance) {
     auto initialChannelPlayer = initialChannel + (numberChannelsPerPlayer * playerIndex);
 
     for (int i = initialChannelPlayer; i <= (initialChannelPlayer + (numberChannelsPerPlayer - 1)); i++) {
-        fn_Mix_SetPosition(i, 0, distance);
+        fn_Mix_SetPosition(i, angle, distance);
     }
 
 }
 
-void SetAllSFXDistance(int playerIndex, int distance) {
+void SetAllSFXDistance(int playerIndex, int angle, int distance) {
     // This will simulate a pseudo 3D effect for the SFX
 
     if (activeConfig.Actor.playerCount > 1) {
-		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDevilArm, 20, distance);
-		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialChangeGun, 20, distance);
+		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDevilArm, 20, angle, distance);
+		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialChangeGun, 20, angle, distance);
     }
-    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChange, 20, distance);
-    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChangeVO, 20, distance);
+    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChange, 20, angle, distance);
+    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChangeVO, 20, angle, distance);
 
-    fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex, 0, distance);
-    fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex + 4, 0, distance); // L2
-    fn_Mix_SetPosition(CHANNEL::initialDTIn + playerIndex, 0, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDTIn + playerIndex + 4, 0, distance); // L2
-    fn_Mix_SetPosition(CHANNEL::initialDTOut + playerIndex, 0, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDTLoop + playerIndex, 0, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDoppIn + playerIndex, 0, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDoppOut + playerIndex, 0, distance);
-    fn_Mix_SetPosition(CHANNEL::quickIn, 0, distance);
-    fn_Mix_SetPosition(CHANNEL::quickOut, 0, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDTReady + playerIndex, 0, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDelayedCombo1 + playerIndex, 0, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDelayedCombo2 + playerIndex, 0, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDTEStart + playerIndex, 0, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDTELoop + playerIndex, 0, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDTEFinish + playerIndex, 0, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDTERelease + playerIndex, 0, distance);
-	fn_Mix_SetPosition(CHANNEL::initialDTEStart + playerIndex, 0, distance);
-	fn_Mix_SetPosition(CHANNEL::initialDTELoop + playerIndex, 0, distance);
-	fn_Mix_SetPosition(CHANNEL::initialDTEFinish + playerIndex, 0, distance);
+    fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex, angle, distance);
+    fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex + 4, angle, distance); // L2
+    fn_Mix_SetPosition(CHANNEL::initialDTIn + playerIndex, angle, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDTIn + playerIndex + 4, angle, distance); // L2
+    fn_Mix_SetPosition(CHANNEL::initialDTOut + playerIndex, angle, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDTLoop + playerIndex, angle, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDoppIn + playerIndex, angle, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDoppOut + playerIndex, angle, distance);
+    fn_Mix_SetPosition(CHANNEL::quickIn, angle, distance);
+    fn_Mix_SetPosition(CHANNEL::quickOut, angle, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDTReady + playerIndex, angle, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDelayedCombo1 + playerIndex, angle, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDelayedCombo2 + playerIndex, angle, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDTEStart + playerIndex, angle, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDTELoop + playerIndex, angle, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDTEFinish + playerIndex, angle, distance);
+    fn_Mix_SetPosition(CHANNEL::initialDTERelease + playerIndex, angle, distance);
+	fn_Mix_SetPosition(CHANNEL::initialDTEStart + playerIndex, angle, distance);
+	fn_Mix_SetPosition(CHANNEL::initialDTELoop + playerIndex, angle, distance);
+	fn_Mix_SetPosition(CHANNEL::initialDTEFinish + playerIndex, angle, distance);
 
-    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialGuard, 2, distance);
-    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialRoyalBlock, 5, distance);
-    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialBlock, 5, distance);
+    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialGuard, 2, angle, distance);
+    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialRoyalBlock, 5, angle, distance);
+    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialBlock, 5, angle, distance);
 }
 
 void StyleRankCooldownTracker(int rank) {

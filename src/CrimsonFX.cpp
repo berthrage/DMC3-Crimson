@@ -117,6 +117,16 @@ void CalculateViewProperties(byte8* actorBaseAddr) {
 	crimsonPlayer[playerIndex].cameraCloneDistanceClamped = glm::clamp(distanceClone, 0, 255);
 	g_plEntityCameraDistances[cloneIndexToAssign] = cameraCloneDistance;
 
+	// Calculate the angle
+	glm::vec3 direction = glm::normalize(playerPosition - cameraPosition);
+	float angle = glm::degrees(glm::atan(direction.y, direction.x)); // Angle in degrees
+
+	glm::vec3 directionClone = glm::normalize(clonePosition - cameraPosition);
+	float angleClone = glm::degrees(glm::atan(directionClone.y, directionClone.x)); 
+
+	crimsonPlayer[playerIndex].playerScreenAngle = static_cast<int>(std::round(angle));
+	crimsonPlayer[playerIndex].cloneScreenAngle = static_cast<int>(std::round(angleClone));
+
 	float screenWidth = g_renderSize.x;
 	float screenHeight = g_renderSize.y;
 	const float screenMargin = 50.0f;
