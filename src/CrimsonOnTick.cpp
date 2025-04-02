@@ -328,7 +328,7 @@ void MultiplayerCameraPositioningController() {
 	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
 		float distanceTo1P = g_plEntityTo1PDistances[i];
 
-		if (distanceTo1P >= 1800.0f) {
+		if (distanceTo1P >= 2800.0) {
 			triggerMPCam = false;
 		}
 	}

@@ -367,7 +367,7 @@ void HandlePanoramicSPCameraDistance(float& cameraDistance, float groundDistance
 	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
 		float distanceTo1P = g_plEntityTo1PDistances[i];
 
-		if (distanceTo1P >= 1800.0f) {
+		if (distanceTo1P >= 2800.0f) {
 			HandleDynamicSPCameraDistance(cameraDistance, groundDistance, airDistance);
 			return; // Early exit, no need to adjust further
 		}
@@ -493,7 +493,7 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 	const float screenMarginForZoomIn = 380.0f * scaleFactorX;  // Safe margin for zooming in
 	const float screenMarginForZoomOut = 300.0f * scaleFactorX;
 	
-	float maxDistance = 1800.0f; // Maximum allowed camera distance
+	float maxDistance = 2800.0f; // Maximum allowed camera distance
 	bool outOfView = false;
 
 	// Check if any entity needs the camera to zoom out
@@ -501,7 +501,7 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
 		float distanceTo1P = g_plEntityTo1PDistances[i];
 
-		if (distanceTo1P >= 1800.0f) {
+		if (distanceTo1P >= 2800.0f) {
             HandleDynamicSPCameraDistance(cameraDistance, groundDistanceSP, airDistanceSP);
 			return; // Early exit, no need to adjust further
 		}
