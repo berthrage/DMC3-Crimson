@@ -3169,7 +3169,37 @@ void DoppDrain() {
     }
 }
 
+struct StyleSwitchAnimationState {
+	bool isPlaying = false;
+	std::chrono::steady_clock::time_point startTime;
+	byte8* actorData = nullptr;
+	uint32 group;
+	uint32 index;
+};
 
+StyleSwitchAnimationState switchAnimState;
+
+void PlaySwitchAnimation(byte8* actorData, uint32 group, uint32 index) {
+	PlayAnimation(actorData, group, index, -1.0f, -1, 2, 13);
+	switchAnimState.isPlaying = true;
+	switchAnimState.startTime = std::chrono::steady_clock::now();
+	switchAnimState.actorData = actorData;
+	switchAnimState.group = group;
+	switchAnimState.index = index;
+}
+
+void UpdateStyleSwitchAnimations() {
+	if (switchAnimState.isPlaying) {
+		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::steady_clock::now() - switchAnimState.startTime
+		).count();
+
+		if (elapsed >= 30) { // 50 ms has passed
+			PlayAnimation(switchAnimState.actorData, switchAnimState.group, switchAnimState.index, -1.0f, -1, 2, 0);
+			switchAnimState.isPlaying = false; // Reset state
+		}
+	}
+}
 
 void StyleSwitch(byte8* actorBaseAddr, int style) {
     if (!actorBaseAddr) {
@@ -3192,14 +3222,24 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
 		actorData.styleLevel = heldStyleExpDataDante.accumulatedStyleLevels[style];
 	}
 	actorData.styleExpPoints = heldStyleExpDataDante.accumulatedStylePoints[style];
-	if (actorData.eventData[0].event == 1) {
-		auto& motionArchive = actorData.motionArchives[3];
+	if (actorData.eventData[0].event == 1 && actorData.character == CHARACTER::DANTE) {
+		auto& motionArchive = actorData.motionArchives[5];
 		auto lastMotionArchive = motionArchive;
 
-		motionArchive = File_staticFiles[pl000_00_25];
+		//if (motionArchive != File_staticFiles[pl000_00_3]) motionArchive = File_staticFiles[pl000_00_3];
+		
+		uint32 group = 2, index = 0;
 
-        PlayAnimation(actorBaseAddr, 25, 0, -1.0f, -1, 2, 0);
-        //motionArchive = lastMotionArchive;
+		switch (style) {
+		case STYLE::SWORDMASTER:   group = 2; index = 0; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
+		case STYLE::GUNSLINGER:    group = 25; index = 0; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
+		case STYLE::TRICKSTER:     group = 2; index = 1; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
+		case STYLE::ROYALGUARD:    group = 2; index = 2; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
+        case STYLE::QUICKSILVER:   group = 2; index = 3; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
+        case STYLE::DOPPELGANGER:  group = 2; index = 1;  actorData.motionArchives[2] = File_staticFiles[pl001_00_2]; break;
+		}
+
+		PlaySwitchAnimation(actorBaseAddr, group, index);
     }
     
     actorData.style = style; // Changes the style.
@@ -3916,7 +3956,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     }
 
     // dd::sphere(dd_ctx(), actorWorldPos, dd::colors::Red, 15.0f);
-
+	UpdateStyleSwitchAnimations();
 	StyleSwitchController(actorBaseAddr);
 
     CrimsonGameplay::UpdateCrimsonPlayerData();
