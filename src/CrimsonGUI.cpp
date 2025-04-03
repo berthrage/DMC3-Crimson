@@ -2397,7 +2397,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 					if (queuedCharacterData.character == CHARACTER::DANTE) {
 						UI::Combo2("Costume", costumeNamesDante, activeCharacterData.costume, queuedCharacterData.costume);
-					} else {
+					} else if (queuedCharacterData.character == CHARACTER::VERGIL) {
 						UI::Combo2("Costume", costumeNamesVergil, activeCharacterData.costume, queuedCharacterData.costume);
 					}
 					
@@ -7483,6 +7483,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			if (!pool_4449 || !pool_4449[147]) return;
 			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 
+			auto& costume = activeConfig.Actor.playerData[0].characterData[0]->costume;
+
 // 			auto& enemy = enemyVectorData.metadata[0];
 // 			if (!enemy.baseAddr) return;
 // 			auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
@@ -7493,7 +7495,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 			ImGui::Text("Enemy Base Addr: %x", enemyData.baseAddr);
 // 			ImGui::Text("Enemy's Target Pos Y: %g", enemyData.targetPosition.y);
 			ImGui::Text("AllActorsSpawned: %u", g_allActorsSpawned);
-			ImGui::Text("StickRadius2: %u", gamepad.rightStickRadius);
+			ImGui::Text("costume: %u", costume);
 			ImGui::Text("NextActionPolicyTrickster: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::TRICKSTER_DARK_SLAYER]);
 			ImGui::Text("NextActionPolicyMelee: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::MELEE_ATTACK]);
 			ImGui::Text("BufferedAction: %u", actorData.bufferedAction);

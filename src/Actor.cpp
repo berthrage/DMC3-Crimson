@@ -2590,6 +2590,8 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
 
         if (sessionData.mission == 1) {
             actorData.costume = 1;
+        } else {
+			actorData.costume = 0;
         }
 
     } else {
@@ -3067,9 +3069,6 @@ void ActivateDoppelganger(PlayerActorData& actorData) {
 // 		}
 //     }
     
-
-    
-
     CrimsonSDL::PlayDoppelgangerIn(actorData.newPlayerIndex);
 	// Elec Loop VFX on Doppel -- WIP
 // 	createEffectBank = 3;
@@ -3229,14 +3228,14 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
 		//if (motionArchive != File_staticFiles[pl000_00_3]) motionArchive = File_staticFiles[pl000_00_3];
 		
 		uint32 group = 2, index = 0;
-
+        
 		switch (style) {
 		case STYLE::SWORDMASTER:   group = 2; index = 0; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
 		case STYLE::GUNSLINGER:    group = 25; index = 0; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
 		case STYLE::TRICKSTER:     group = 2; index = 1; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
 		case STYLE::ROYALGUARD:    group = 2; index = 2; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
-        case STYLE::QUICKSILVER:   group = 2; index = 3; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
-        case STYLE::DOPPELGANGER:  group = 2; index = 1;  actorData.motionArchives[2] = File_staticFiles[pl001_00_2]; break;
+        case STYLE::QUICKSILVER:   group = 2; index = 1;  actorData.motionArchives[2] = File_staticFiles[pl001_00_2]; break;
+        case STYLE::DOPPELGANGER:  group = 2; index = 3; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
 		}
 
 		PlaySwitchAnimation(actorBaseAddr, group, index);
