@@ -627,4 +627,51 @@ void PauseSFXWhenPaused() {
 		}
 	}
 }
+
+#pragma endregion
+
+#pragma region EnemyGameplay
+
+void OverrideEnemyTargetPosition() {
+	if (g_scene != SCENE::GAME) {
+		CrimsonPatches::DisableEnemyTargetting1PPosition(false);
+		return;
+	} else if (g_scene == SCENE::GAME && 
+		activeConfig.Actor.enable && 
+		activeConfig.Actor.playerCount > 1) {
+		CrimsonPatches::DisableEnemyTargetting1PPosition(true);
+	}
+
+	auto pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_2128 || !pool_2128[8]) return;
+	auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
+
+	for (std::size_t enemyIndex = 0; enemyIndex < enemyVectorData.count; ++enemyIndex) {
+		auto& enemy = enemyVectorData.metadata[enemyIndex];
+		if (!enemy.baseAddr) continue;
+		auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
+		if (!enemyData.baseAddr) continue;
+
+		glm::vec3 enemyPos;
+		enemyPos.x = enemyData.position.x;
+		enemyPos.y = enemyData.position.y;
+		enemyPos.z = enemyData.position.z;
+
+		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
+			auto& playerData = GetPlayerData(playerIndex);
+			auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+			auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+
+			if (!newActorData.baseAddr) {
+				return;
+			}
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+
+			if (playerIndex == 1) {
+				enemyData.targetPosition = actorData.position;
+			}
+		}
+	}
+}
+
 }

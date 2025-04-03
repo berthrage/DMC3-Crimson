@@ -79031,115 +79031,6 @@ dmc3.exe+215E2F: F3 48 0F 2C C0                 - cvttss2si rax,xmm0
         <Byte>48</Byte>
       </After>
     </CodeEntry>
-    <CodeEntry>
-      <Description>Change of addss xmm0,[rbx+00000080]</Description>
-      <AddressString>dmc3.exe+16725C</AddressString>
-      <Before>
-        <Byte>05</Byte>
-        <Byte>38</Byte>
-        <Byte>EE</Byte>
-        <Byte>35</Byte>
-        <Byte>00</Byte>
-      </Before>
-      <Actual>
-        <Byte>F3</Byte>
-        <Byte>0F</Byte>
-        <Byte>58</Byte>
-        <Byte>83</Byte>
-        <Byte>80</Byte>
-        <Byte>00</Byte>
-        <Byte>00</Byte>
-        <Byte>00</Byte>
-      </Actual>
-      <After>
-        <Byte>C7</Byte>
-        <Byte>86</Byte>
-        <Byte>84</Byte>
-        <Byte>00</Byte>
-        <Byte>00</Byte>
-      </After>
-    </CodeEntry>
-    <CodeEntry>
-      <Description>Change of movaps xmm0,[rcx+00000080]</Description>
-      <AddressString>dmc3.exe+569E6</AddressString>
-      <Before>
-        <Byte>00</Byte>
-        <Byte>48</Byte>
-        <Byte>8B</Byte>
-        <Byte>48</Byte>
-        <Byte>18</Byte>
-      </Before>
-      <Actual>
-        <Byte>0F</Byte>
-        <Byte>28</Byte>
-        <Byte>81</Byte>
-        <Byte>80</Byte>
-        <Byte>00</Byte>
-        <Byte>00</Byte>
-        <Byte>00</Byte>
-      </Actual>
-      <After>
-        <Byte>0F</Byte>
-        <Byte>29</Byte>
-        <Byte>83</Byte>
-        <Byte>F0</Byte>
-        <Byte>01</Byte>
-      </After>
-    </CodeEntry>
-    <CodeEntry>
-      <Description>Change of movaps xmm0,[rcx+00000080]</Description>
-      <AddressString>dmc3.exe+163DD5</AddressString>
-      <Before>
-        <Byte>00</Byte>
-        <Byte>48</Byte>
-        <Byte>8B</Byte>
-        <Byte>48</Byte>
-        <Byte>18</Byte>
-      </Before>
-      <Actual>
-        <Byte>0F</Byte>
-        <Byte>28</Byte>
-        <Byte>81</Byte>
-        <Byte>80</Byte>
-        <Byte>00</Byte>
-        <Byte>00</Byte>
-        <Byte>00</Byte>
-      </Actual>
-      <After>
-        <Byte>0F</Byte>
-        <Byte>29</Byte>
-        <Byte>83</Byte>
-        <Byte>D0</Byte>
-        <Byte>0E</Byte>
-      </After>
-    </CodeEntry>
-    <CodeEntry>
-      <Description>Change of movaps xmm0,[rcx+00000080]</Description>
-      <AddressString>dmc3.exe+1645F9</AddressString>
-      <Before>
-        <Byte>00</Byte>
-        <Byte>48</Byte>
-        <Byte>8B</Byte>
-        <Byte>48</Byte>
-        <Byte>18</Byte>
-      </Before>
-      <Actual>
-        <Byte>0F</Byte>
-        <Byte>28</Byte>
-        <Byte>81</Byte>
-        <Byte>80</Byte>
-        <Byte>00</Byte>
-        <Byte>00</Byte>
-        <Byte>00</Byte>
-      </Actual>
-      <After>
-        <Byte>48</Byte>
-        <Byte>8B</Byte>
-        <Byte>45</Byte>
-        <Byte>97</Byte>
-        <Byte>0F</Byte>
-      </After>
-    </CodeEntry>
   </CheatCodes>
   <UserdefinedSymbols/>
   <Structures StructVersion="2">
@@ -83783,11 +83674,6 @@ to Third Person Camera instead
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
-      <Address>"dmc3.exe"+569E6</Address>
-      <Comment>Arkham Charge Attack Yellow Target Position ?
-</Comment>
-    </DisassemblerComment>
-    <DisassemblerComment>
       <Address>"dmc3.exe"+571BC</Address>
       <Comment>Determine camera's X by player pos
 </Comment>
@@ -83801,11 +83687,6 @@ Collision to keep it going to tight spaces
     <DisassemblerComment>
       <Address>"dmc3.exe"+616EB</Address>
       <Comment>Standard Enemy Set Target Position
-</Comment>
-    </DisassemblerComment>
-    <DisassemblerComment>
-      <Address>"dmc3.exe"+616F2</Address>
-      <Comment>followup to standard target pos
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
@@ -83903,21 +83784,6 @@ but it still damages it
     <DisassemblerComment>
       <Address>"dmc3.exe"+1603DC</Address>
       <Comment>Arkham Leeches Circling Around Target Position
-</Comment>
-    </DisassemblerComment>
-    <DisassemblerComment>
-      <Address>"dmc3.exe"+163DD5</Address>
-      <Comment>Arkham Spikes Attack Target Position
-</Comment>
-    </DisassemblerComment>
-    <DisassemblerComment>
-      <Address>"dmc3.exe"+1645F9</Address>
-      <Comment>
-</Comment>
-    </DisassemblerComment>
-    <DisassemblerComment>
-      <Address>"dmc3.exe"+16725C</Address>
-      <Comment>Arkham Leeches Jump Attack 2 Target Position
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
@@ -84125,11 +83991,6 @@ adding to current rotation
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
-      <Address>"dmc3.exe"+1FAC69</Address>
-      <Comment>
-</Comment>
-    </DisassemblerComment>
-    <DisassemblerComment>
       <Address>"dmc3.exe"+1FC453</Address>
       <Comment>x motion
 </Comment>
@@ -84261,6 +84122,11 @@ Determines Character Turn Rate
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
+      <Address>"dmc3.exe"+245063</Address>
+      <Comment>
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
       <Address>"dmc3.exe"+27E524</Address>
       <Comment>style hud falls off left
 </Comment>
@@ -84352,6 +84218,11 @@ Setting max alpha value (127)
     <DisassemblerComment>
       <Address>"dmc3.exe"+3161EA</Address>
       <Comment>doesnt reenable
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+32E5FF</Address>
+      <Comment>
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>

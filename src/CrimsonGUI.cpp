@@ -7482,22 +7482,16 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
 			if (!pool_4449 || !pool_4449[147]) return;
 			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+
+// 			auto& enemy = enemyVectorData.metadata[0];
+// 			if (!enemy.baseAddr) return;
+// 			auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
+// 			if (!enemyData.baseAddr) return;
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
 			ImGui::Text("Starting From Ground: %u", crimsonPlayer[0].vergilMoves.startingRisingSunFromGround);
-
-			if (meleeWorldSpaceWeaponWheel[0]) {
-				ImGui::Text("WheelTime1P: %g", meleeWorldSpaceWeaponWheel[0]->m_SinceLatestChangeMs);
-			}
-			if (meleeWorldSpaceWeaponWheel[1]) {
-				ImGui::Text("WheelTime2P: %g", meleeWorldSpaceWeaponWheel[1]->m_SinceLatestChangeMs);
-			}
-			if (meleeWorldSpaceWeaponWheel[2]) {
-				ImGui::Text("WheelTime3P: %g", meleeWorldSpaceWeaponWheel[2]->m_SinceLatestChangeMs);
-			}
-			if (meleeWorldSpaceWeaponWheel[3]) {
-				ImGui::Text("WheelTime4P: %g", meleeWorldSpaceWeaponWheel[3]->m_SinceLatestChangeMs);
-			}
+// 			ImGui::Text("Enemy Base Addr: %x", enemyData.baseAddr);
+// 			ImGui::Text("Enemy's Target Pos Y: %g", enemyData.targetPosition.y);
 			ImGui::Text("AllActorsSpawned: %u", g_allActorsSpawned);
 			ImGui::Text("StickRadius2: %u", gamepad.rightStickRadius);
 			ImGui::Text("NextActionPolicyTrickster: %u", actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::TRICKSTER_DARK_SLAYER]);

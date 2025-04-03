@@ -15,4 +15,5 @@ namespace CrimsonOnTick {
 	void GeneralCameraOptionsController();
 	void AirTauntDetoursController();
 	void PauseSFXWhenPaused();
+	void OverrideEnemyTargetPosition();
 }

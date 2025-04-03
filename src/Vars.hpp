@@ -3691,7 +3691,18 @@ static_assert(offsetof(PlayerActorDataVergil, newAirRisingSunCount) == 0x1CAE4);
 static_assert(offsetof(PlayerActorDataVergil, newEffectIndices) == 0x1CAF0);
 static_assert(offsetof(PlayerActorDataVergil, newLastVar) == 0x1CB20);
 
-struct EnemyActorData : ActorDataBase {};
+struct EnemyActorData : ActorDataBase {
+	_(11620);
+	float maxHitPointsPride; // 0x2E2C
+	_(44);
+	float hitPointsPride; // 0x2E5C
+    _(2848);
+	vec4 targetPosition; // 0x3980 - needs to sum with 60 from ActorDataBase
+};
+
+static_assert(offsetof(EnemyActorData, maxHitPointsPride) == 0x2E2C);
+static_assert(offsetof(EnemyActorData, hitPointsPride) == 0x2E5C);
+static_assert(offsetof(EnemyActorData, targetPosition) == 0x3980);
 
 struct EnemyActorDataPride : ActorDataBase {
     _(11620);

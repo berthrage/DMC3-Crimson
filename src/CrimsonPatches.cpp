@@ -1144,7 +1144,26 @@ void CerberusCrashFixPart2(bool enable) {
 	else {
 		_patch((char*)(appBaseAddr + 0x117451), (char*)"\x8B\x50\x10", 3);
 	}
+}
 
+#pragma endregion
+
+# pragma region Enemy
+
+void DisableEnemyTargetting1PPosition(bool enable) {
+	static bool run = false;
+
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+	// dmc3.exe + 616F2 - 0F 29 41 40 - movaps[rcx + 40], xmm0
+	if (enable) {
+		_nop((char*)(appBaseAddr + 0x616F2), 4);
+	} else {
+		_patch((char*)(appBaseAddr + 0x616F2), (char*)"\x0F\x29\x41\x40", 4);
+	}
+	run = enable;
 }
 
 #pragma endregion

@@ -56,6 +56,12 @@ void CerberusCrashFixPart2(bool enable);
 
 #pragma endregion
 
+# pragma region Enemy
+
+void DisableEnemyTargetting1PPosition(bool enable);
+
+#pragma endregion
+
 #pragma region Damage
 
 void StopDamageToCerberus(bool enable);
