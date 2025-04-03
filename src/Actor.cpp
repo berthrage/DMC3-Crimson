@@ -8216,7 +8216,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
 //                     actorData.mode = ACTOR_MODE::MISSION_19;
 //                 }
 
-                CrimsonGameplay::FasterDarkslayerTricks();
+                //CrimsonGameplay::FasterDarkslayerTricks();
                 // FasterRapidSlashDevil(actorBaseAddr);
 
 
