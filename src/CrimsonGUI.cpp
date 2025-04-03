@@ -587,7 +587,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			// Middle footer section
 			{
 				constexpr auto BACKGROUND_FADED_TEXT = u8"C•Team";
-				constexpr auto CREDIT_TEXT = u8"Mia Berth • SSSiyan • deepdarkkapustka • Darkness   ";
+				constexpr auto CREDIT_TEXT = u8"Berthrage • SSSiyan • deepdarkkapustka • Darkness   ";
 				constexpr auto ABOUT_BUTTON_TEXT = "ABOUT";
 
 				ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
@@ -11155,7 +11155,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
 					{
-						ImGui::Text("Mia Berth");
+						ImGui::Text("Berthrage");
 
 						ImGui::SameLine();
 
@@ -11443,7 +11443,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				auto window = ImGui::GetCurrentWindow();
 				constexpr const char* THX_TEXT = "Thank you all for playing and supporting the project!";
 				constexpr const char* LICENCE_BUTTON_TEXT = "LICENCE";
-				constexpr const char* COPYRIGHT_TEXT = "Copyright (c) 2023 Mia Berth";
+				constexpr const char* COPYRIGHT_TEXT = "Copyright (c) 2025 Berthrage";
 
 				{
 					const float thxTextWidth = ImGui::CalcTextSize(THX_TEXT).x;
