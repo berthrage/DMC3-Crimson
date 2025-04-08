@@ -36,11 +36,11 @@ void FrameResponsiveGameSpeed() {
 	float gameSpeed = (IsTurbo()) ? 1.2f : 1.0f;
 	auto& userSetFrameRate = queuedConfig.frameRate;
 
-	// Only update if the current FPS is within ±10 of the setFrameRate
+	// Only update if the current FPS is within ±20 of the setFrameRate
 	if (activeConfig.framerateResponsiveGameSpeed) { // 25 FPS frametime limit
 
-		if ((std::abs(g_FrameRate - userSetFrameRate) <= 10.0f &&
-			ImGui::GetIO().DeltaTime < 0.04f && g_FrameRate >= 30.0f) || inputtingFPS) {
+		if ((std::abs(g_FrameRate - userSetFrameRate) <= 20.0f &&
+			ImGui::GetIO().DeltaTime < 0.04f && g_FrameRate >= 20.0f) || inputtingFPS || g_scene != SCENE::GAME) {
 			UpdateFrameRate();
 
 			float adjustedFrameRate = (std::max)(g_FrameRate, 30.0f); // Prevent extreme drops
