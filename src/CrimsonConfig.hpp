@@ -404,6 +404,29 @@ struct CrimsonConfig {
 		}
 	} PlayerProperties;
 
+	struct CachedSettings {
+		uint8 lastMaxMeleeWeaponCount[PLAYER_COUNT][CHARACTER_COUNT] = {
+			{ 5, 5, 5}, // 1P
+			{ 5, 5, 5}, // 2P
+			{ 5, 5, 5}, // 3P
+			{ 5, 5, 5}, // 4P
+		};
+
+		uint8 lastMaxRangedWeaponCount[PLAYER_COUNT][CHARACTER_COUNT] = {
+			{ 5, 5, 5}, // 1P
+			{ 5, 5, 5}, // 2P
+			{ 5, 5, 5}, // 3P
+			{ 5, 5, 5}, // 4P
+		};
+
+		static constexpr auto Metadata() {
+			return std::make_tuple(
+				std::make_pair("lastMaxMeleeWeaponCount", &CachedSettings::lastMaxMeleeWeaponCount),
+				std::make_pair("lastMaxRangedWeaponCount", &CachedSettings::lastMaxRangedWeaponCount)
+			);
+		}
+	} CachedSettings;
+
 	static constexpr auto Metadata() {
 		return std::make_tuple(
 			std::make_pair("MultiplayerBars2D", &CrimsonConfig::MultiplayerBars2D),
@@ -416,7 +439,8 @@ struct CrimsonConfig {
             std::make_pair("SFX", &CrimsonConfig::SFX),
             std::make_pair("Gameplay", &CrimsonConfig::Gameplay),
 			std::make_pair("Cheats", &CrimsonConfig::Cheats),
-			std::make_pair("PlayerProperties", &CrimsonConfig::PlayerProperties)
+			std::make_pair("PlayerProperties", &CrimsonConfig::PlayerProperties),
+			std::make_pair("CachedSettings", &CrimsonConfig::CachedSettings)
 		);
 	}
 };

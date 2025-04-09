@@ -2328,6 +2328,10 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 	auto& mainActiveCharacterData = GetActiveCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
 	auto& mainQueuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
 
+	auto& playerData = GetPlayerData(playerIndex);
+	auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+	
+
 	const float itemWidth = defaultFontSize * 8.0f;
 	ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
 
@@ -2564,18 +2568,36 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 			ImGui::PushItemWidth(itemWidth);
 
-			GUI_Slider<uint8>("", queuedCharacterData.meleeWeaponCount, 1, MELEE_WEAPON_COUNT_DANTE);
+			//GUI_Slider<uint8>("", queuedCharacterData.meleeWeaponCount, 1, weaponProgression.devilArmsUnlockedQtt + 1);
+			auto meleeSlider = [&]() {
+				if (GUI_Slider2<uint8>("", queuedCharacterData.meleeWeaponCount,
+					activeCharacterData.meleeWeaponCount, 1, weaponProgression.devilArmsUnlockedQtt + 1)) {
+					if (!newActorData.baseAddr) return;
+					auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+					auto& characterData = GetCharacterData(actorData);
+				}
+				};
+
+			meleeSlider();
 
 			queuedCharacterDataClone.meleeWeaponCount = queuedCharacterData.meleeWeaponCount;
 
-			old_for_all(uint8, meleeWeaponIndex, MELEE_WEAPON_COUNT_DANTE) {
+			old_for_all(uint8, meleeWeaponIndex, weaponProgression.devilArmsUnlockedQtt + 1) {
 				bool condition = (meleeWeaponIndex >= queuedCharacterData.meleeWeaponCount);
 
 				GUI_PushDisable(condition);
 
-				UI::ComboMap("", meleeWeaponNamesDante, meleeWeaponsDante,
-					Actor_meleeWeaponIndices[playerIndex][characterIndex][entityIndex][meleeWeaponIndex],
-					queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
+				if (UI::ComboMapVector2("", weaponProgression.meleeWeaponNames, weaponProgression.meleeWeaponIds,
+					queuedCharacterData.meleeWeapons[meleeWeaponIndex], activeCharacterData.meleeWeapons[meleeWeaponIndex])) {
+
+					if (!newActorData.baseAddr) break;
+					auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+					actorData.meleeWeaponIndex = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
+				}
+
+// 				UI::ComboMap("", meleeWeaponNamesDante, meleeWeaponsDante,
+// 					Actor_meleeWeaponIndices[playerIndex][characterIndex][entityIndex][meleeWeaponIndex],
+// 					queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
 
 				// Doppelganger will now have same weapons equipped as Dante - Mia.
 				queuedCharacterDataClone.meleeWeapons[meleeWeaponIndex] = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
@@ -2589,16 +2611,39 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 			ImGui::Text("RANGED");
 			ImGui::PopFont();
 
-			GUI_Slider<uint8>("", queuedCharacterData.rangedWeaponCount, 1, RANGED_WEAPON_COUNT_DANTE);
+			auto rangedSlider = [&]() {
+				if (GUI_Slider2<uint8>("", queuedCharacterData.rangedWeaponCount,
+					activeCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1)) {
+					if (!newActorData.baseAddr) return;
+					auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+					auto& characterData = GetCharacterData(actorData);
+// 					// If the character is holding the weapon on last index
+// 					if (actorData.rangedWeaponIndex == characterData.rangedWeapons[queuedCharacterData.rangedWeaponCount]) {
+// 						auto rangedWeapon = characterData.rangedWeapons[queuedCharacterData.rangedWeaponCount]; // Update it with the penultimate index
+// 						actorData.rangedWeaponIndex = rangedWeapon;
+// 						queuedCharacterData.rangedWeaponIndex = rangedWeapon;
+// 						activeCharacterData.rangedWeaponIndex = rangedWeapon;
+// 					}
+ 				}
+				};
 
-			old_for_all(uint8, rangedWeaponIndex, RANGED_WEAPON_COUNT_DANTE) {
+			rangedSlider();
+
+			old_for_all(uint8, rangedWeaponIndex, weaponProgression.gunsUnlockedQtt + 1) {
 				bool condition = (rangedWeaponIndex >= queuedCharacterData.rangedWeaponCount);
 
 				GUI_PushDisable(condition);
 
-				UI::ComboMap("", rangedWeaponNamesDante, rangedWeaponsDante,
-					Actor_rangedWeaponIndices[playerIndex][characterIndex][entityIndex][rangedWeaponIndex],
-					queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
+				if (UI::ComboMapVector2("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
+					queuedCharacterData.rangedWeapons[rangedWeaponIndex], activeCharacterData.rangedWeapons[rangedWeaponIndex])) {
+
+					if (!newActorData.baseAddr) break;
+					auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+					actorData.rangedWeaponIndex = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
+				}
+// 				UI::ComboMapVector("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
+// 					queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
+
 
 				// Doppelganger will now have same weapons equipped as Dante - Mia.
 				queuedCharacterDataClone.rangedWeapons[rangedWeaponIndex] = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
@@ -7329,6 +7374,18 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 //                     ImGui::Text("sessionData unlock[%u] : %u", i, sessionData.weaponStyleUnlocks[i]);
 //                 }
                 ImGui::Text("SessionData Style Level Royalguard: %u", ExpConfig::missionExpDataDante.styleLevels[3]);
+				ImGui::Text("Cerbus Unlocked Session? %u", sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::CERBERUS]);
+				ImGui::Text("Cerbus Unlock? %u", weaponProgression.devilArmUnlocks[DEVILARMUNLOCKS::CERBERUS]);
+				ImGui::Text("DevilArmUnlockedQtt: %u", weaponProgression.devilArmsUnlockedQtt);
+// 				for (int i = 0; i < weaponProgression.rangedWeaponIds.size(); i++) {
+// 					ImGui::Text("RangedWeaponId[%u]: %u", i, weaponProgression.rangedWeaponIds[i]);
+// 				}
+				for (int i = 0; i < weaponProgression.meleeWeaponIds.size(); i++) {
+					ImGui::Text("MeleeWeaponName[%u]: %s", i, weaponProgression.meleeWeaponNames[i]);
+				}
+				for (size_t i = 0; i < queuedConfig.Actor.playerData[0].characterData[0][0].meleeWeaponCount; i++) {
+					ImGui::Text("MeleeWeaponQeued[%u]: %u", i, queuedConfig.Actor.playerData[0].characterData[0][0].meleeWeapons[i]);
+				} 
                 ImGui::Text("Style Levels: %u", sessionData.styleLevels[3]);
                 ImGui::Text("Unlocked DT: %u", sessionData.unlockDevilTrigger);
                 ImGui::Text("Quicksilver Level: %u", sessionData.styleLevels[4]);
@@ -11518,6 +11575,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     // outside of In Game.
     
   	CrimsonOnTick::FrameResponsiveGameSpeed();
+	CrimsonOnTick::WeaponProgressionTracking();
 
     // TIMERS
     CrimsonTimers::CallAllTimers();

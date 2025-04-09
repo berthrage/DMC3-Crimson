@@ -4193,6 +4193,39 @@ struct CrimsonHudData {
 
 extern CrimsonHudData crimsonHud;
 
+namespace DEVILARMUNLOCKS {
+enum {
+	CERBERUS,
+	AGNI_RUDRA,
+	NEVAN,
+	BEOWULF,
+	COUNT 
+};
+};
+
+namespace GUNUNLOCKS {
+enum {
+	SHOTGUN,
+	ARTEMIS,
+	SPIRAL,
+	KALINA_ANN,
+	COUNT 
+};
+};
+
+struct WeaponProgressionData {
+    uint8 devilArmsUnlockedQtt = 1;
+	uint8 gunsUnlockedQtt = 1;
+    bool devilArmUnlocks[DEVILARMUNLOCKS::COUNT] = { false };
+    bool gunUnlocks[GUNUNLOCKS::COUNT] = { false };
+	std::vector<std::string> meleeWeaponNames = { "Rebellion" };
+	std::vector<uint8> meleeWeaponIds = { WEAPON::REBELLION };
+    std::vector<std::string> rangedWeaponNames = { "Ebony & Ivory" };
+    std::vector<uint8> rangedWeaponIds = { WEAPON::EBONY_IVORY };
+};
+
+extern WeaponProgressionData weaponProgression;
+
 struct WeaponWheelTiming {
     bool wheelAppear  = false;
     bool wheelRunning = false;

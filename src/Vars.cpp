@@ -247,6 +247,8 @@ float storedDT = 0;
 
 CrimsonHudData crimsonHud;
 
+WeaponProgressionData weaponProgression;
+
 CrimsonPlayerData crimsonPlayer[20];
 
 HeldStyleExpData heldStyleExpDataDante;

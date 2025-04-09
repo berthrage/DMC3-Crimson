@@ -4186,7 +4186,7 @@ void CharacterSwitchController() {
                     execute = false;
 
                     playerData.characterIndex++;
-
+                   
                     if (playerData.characterIndex >= playerData.characterCount) {
                         playerData.characterIndex = 0;
                     }
@@ -4279,6 +4279,7 @@ void CharacterSwitchController() {
             ToggleActor(activeCharacterData, activeNewActorData, false);
 
             ToggleActor(characterData, newActorData, true);
+			
 
 
             [&]() {
@@ -4303,6 +4304,14 @@ void CharacterSwitchController() {
                 HUD_UpdateDevilTriggerGauge(characterData.character);
                 HUD_UpdateDevilTriggerLightning(characterData.character);
                 HUD_UpdateDevilTriggerExplosion(characterData.character);
+
+				if (actorData.character == CHARACTER::DANTE) {
+                    auto meleeWeapon = GetMeleeWeapon(actorData);
+                    auto rangedWeapon = GetRangedWeapon(actorData);
+					actorData.meleeWeaponIndex = meleeWeapon;
+                    actorData.rangedWeaponIndex = rangedWeapon;
+				}
+
             }();
 
             // If Boss enable lead actor's lock-on system.
@@ -4334,31 +4343,31 @@ void CharacterSwitchController() {
         } else {
             auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
 
-            if (IsActive(activeActorData)) {
-                if (CanQueueMeleeAttack(activeActorData) && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK)) &&
-                    (GetNextMeleeAction(activeCharacterData, activeNewActorData, characterData, newActorData) > 0)) {
-                    UpdateHitMagicPoints();
+			if (IsActive(activeActorData)) {
+				if (CanQueueMeleeAttack(activeActorData) && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK)) &&
+					(GetNextMeleeAction(activeCharacterData, activeNewActorData, characterData, newActorData) > 0)) {
+					UpdateHitMagicPoints();
 
-                    CopyState(activeCharacterData, activeNewActorData, characterData, newActorData);
+					CopyState(activeCharacterData, activeNewActorData, characterData, newActorData);
 
-                    EndMotion(activeActorData);
+					EndMotion(activeActorData);
 
-                    Update();
+					Update();
 
-                    SetNextMeleeAction(activeCharacterData, activeNewActorData, characterData, newActorData);
-                } else if (CanQueueStyleAction(activeActorData) && (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
-                           (GetNextStyleAction(activeCharacterData, activeNewActorData, characterData, newActorData) > 0)) {
-                    UpdateHitMagicPoints();
+					SetNextMeleeAction(activeCharacterData, activeNewActorData, characterData, newActorData);
+				} else if (CanQueueStyleAction(activeActorData) && (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
+					(GetNextStyleAction(activeCharacterData, activeNewActorData, characterData, newActorData) > 0)) {
+					UpdateHitMagicPoints();
 
-                    CopyState(activeCharacterData, activeNewActorData, characterData, newActorData);
+					CopyState(activeCharacterData, activeNewActorData, characterData, newActorData);
 
-                    EndMotion(activeActorData);
+					EndMotion(activeActorData);
 
-                    Update();
+					Update();
 
-                    SetNextStyleAction(activeCharacterData, activeNewActorData, characterData, newActorData);
-                }
-            } else {
+					SetNextStyleAction(activeCharacterData, activeNewActorData, characterData, newActorData);
+				}
+			} else {
                 UpdateHitMagicPoints();
 
                 CopyState(activeCharacterData, activeNewActorData, characterData, newActorData, CopyStateFlags_FixPermissions);

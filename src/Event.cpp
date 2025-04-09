@@ -211,6 +211,7 @@ void EventHandler(EventData& eventData) {
  	CrimsonOnTick::AirTauntDetoursController();
  	CrimsonOnTick::NewMissionClearSong();
  	CrimsonOnTick::PauseSFXWhenPaused();
+    
 	//CrimsonOnTick::OverrideEnemyTargetPosition();
 
 

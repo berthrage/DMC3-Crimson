@@ -674,4 +674,328 @@ void OverrideEnemyTargetPosition() {
 	}
 }
 
+void UpdateDevilArmProgression(uint8 unlockId, uint8 gameData, uint8 weaponId, std::string weaponName) {
+	weaponProgression.devilArmUnlocks[unlockId] = gameData;
+
+	auto& names = weaponProgression.meleeWeaponNames;
+	auto& ids = weaponProgression.meleeWeaponIds;
+
+	auto nameIt = std::find(names.begin(), names.end(), weaponName);
+	auto idIt = std::find(ids.begin(), ids.end(), weaponId);
+
+	if (gameData) {
+		if (nameIt == names.end()) {
+			names.push_back(weaponName);
+		}
+		if (idIt == ids.end()) {
+			ids.push_back(weaponId);
+		}
+
+	} else {
+		if (nameIt != names.end()) {
+			names.erase(nameIt);
+		}
+		if (idIt != ids.end()) {
+			ids.erase(idIt);
+		}
+
+	}
+}
+
+void UpdateGunProgression(uint8 unlockId, uint8 gameData, uint8 weaponId, std::string weaponName) {
+	weaponProgression.gunUnlocks[unlockId] = gameData;
+
+	auto& names = weaponProgression.rangedWeaponNames;
+	auto& ids = weaponProgression.rangedWeaponIds;
+
+	auto nameIt = std::find(names.begin(), names.end(), weaponName);
+	auto idIt = std::find(ids.begin(), ids.end(), weaponId);
+
+	if (gameData) {
+		if (nameIt == names.end()) {
+			names.push_back(weaponName);
+		}
+		if (idIt == ids.end()) {
+			ids.push_back(weaponId);
+		}
+
+	} else {
+		if (nameIt != names.end()) {
+			names.erase(nameIt);
+		}
+		if (idIt != ids.end()) {
+			ids.erase(idIt);
+		}
+	}
+}
+
+bool CheckIfWeaponIdIsUnlocked(uint8 weaponId) {
+	auto& names = weaponProgression.meleeWeaponNames;
+	auto& ids = weaponProgression.meleeWeaponIds;
+	auto idIt = std::find(ids.begin(), ids.end(), weaponId);
+	if (idIt != ids.end()) {
+		return true;
+	}
+	return false;
+}
+
+std::string GetWeaponNameById(uint8 weaponId) {
+	switch (weaponId) {
+	case WEAPON::CERBERUS:
+		return "Cerberus";
+	case WEAPON::AGNI_RUDRA:
+		return "Agni & Rudra";
+	case WEAPON::NEVAN:
+		return "Nevan";
+	case WEAPON::BEOWULF_DANTE:
+		return "Beowulf";
+	case WEAPON::SHOTGUN:
+		return "Shotgun";
+	case WEAPON::ARTEMIS:
+		return "Artemis";
+	case WEAPON::SPIRAL:
+		return "Spiral";
+	case WEAPON::KALINA_ANN:
+		return "Kalina Ann";
+	}
+
+	return "";
+}
+
+
+void WeaponProgressionTracking() {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	if (g_scene == SCENE::GAME) {
+		for (size_t i = 0; i < ITEM::COUNT; i++) {
+			auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+			if (!name_10723) {
+				return;
+			}
+			auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
+			switch (i) {
+			case ITEM::CERBERUS:
+				UpdateDevilArmProgression(DEVILARMUNLOCKS::CERBERUS, missionData.itemCounts[i], WEAPON::CERBERUS, "Cerberus");
+				break;
+			case ITEM::AGNI_RUDRA:
+				UpdateDevilArmProgression(DEVILARMUNLOCKS::AGNI_RUDRA, missionData.itemCounts[i], WEAPON::AGNI_RUDRA, "Agni & Rudra");
+				break;
+			case ITEM::NEVAN:
+				UpdateDevilArmProgression(DEVILARMUNLOCKS::NEVAN, missionData.itemCounts[i], WEAPON::NEVAN, "Nevan");
+				break;
+			case ITEM::BEOWULF:
+				UpdateDevilArmProgression(DEVILARMUNLOCKS::BEOWULF, missionData.itemCounts[i], WEAPON::BEOWULF_DANTE, "Beowulf");
+				break;
+			case ITEM::SHOTGUN:
+				UpdateGunProgression(GUNUNLOCKS::SHOTGUN, missionData.itemCounts[i], WEAPON::SHOTGUN, "Shotgun");
+				break;
+			case ITEM::ARTEMIS:
+				UpdateGunProgression(GUNUNLOCKS::ARTEMIS, missionData.itemCounts[i], WEAPON::ARTEMIS, "Artemis");
+				break;
+			case ITEM::SPIRAL:
+				UpdateGunProgression(GUNUNLOCKS::SPIRAL, missionData.itemCounts[i], WEAPON::SPIRAL, "Spiral");
+				break;
+			case ITEM::KALINA_ANN:
+				UpdateGunProgression(GUNUNLOCKS::KALINA_ANN, missionData.itemCounts[i], WEAPON::KALINA_ANN, "Kalina Ann");
+				break;
+			}
+		}
+	} else {
+		for (size_t i = 0; i < WEAPONANDSTYLEUNLOCKS::COUNT; i++) {
+			switch (i) {
+			case WEAPONANDSTYLEUNLOCKS::CERBERUS:
+				UpdateDevilArmProgression(DEVILARMUNLOCKS::CERBERUS, sessionData.weaponAndStyleUnlocks[i], WEAPON::CERBERUS, "Cerberus");
+				break;
+			case WEAPONANDSTYLEUNLOCKS::AGNI_RUDRA:
+				UpdateDevilArmProgression(DEVILARMUNLOCKS::AGNI_RUDRA, sessionData.weaponAndStyleUnlocks[i], WEAPON::AGNI_RUDRA, "Agni & Rudra");
+				break;
+			case WEAPONANDSTYLEUNLOCKS::NEVAN:
+				UpdateDevilArmProgression(DEVILARMUNLOCKS::NEVAN, sessionData.weaponAndStyleUnlocks[i], WEAPON::NEVAN, "Nevan");
+				break;
+			case WEAPONANDSTYLEUNLOCKS::BEOWULF:
+				UpdateDevilArmProgression(DEVILARMUNLOCKS::BEOWULF, sessionData.weaponAndStyleUnlocks[i], WEAPON::BEOWULF_DANTE, "Beowulf");
+				break;
+			case WEAPONANDSTYLEUNLOCKS::SHOTGUN:
+				UpdateGunProgression(GUNUNLOCKS::SHOTGUN, sessionData.weaponAndStyleUnlocks[i], WEAPON::SHOTGUN, "Shotgun");
+				break;
+			case WEAPONANDSTYLEUNLOCKS::ARTEMIS:
+				UpdateGunProgression(GUNUNLOCKS::ARTEMIS, sessionData.weaponAndStyleUnlocks[i], WEAPON::ARTEMIS, "Artemis");
+				break;
+			case WEAPONANDSTYLEUNLOCKS::SPIRAL:
+				UpdateGunProgression(GUNUNLOCKS::SPIRAL, sessionData.weaponAndStyleUnlocks[i], WEAPON::SPIRAL, "Spiral");
+				break;
+			case WEAPONANDSTYLEUNLOCKS::KALINA_ANN:
+				UpdateGunProgression(GUNUNLOCKS::KALINA_ANN, sessionData.weaponAndStyleUnlocks[i], WEAPON::KALINA_ANN, "Kalina Ann");
+				break;
+			}
+		}
+	}
+	
+
+	// Track Unlocked Weapon Quantity
+	int previousDevilArmUnlockedQtt = weaponProgression.devilArmsUnlockedQtt;
+	int previousGunsUnlockedQtt = weaponProgression.gunsUnlockedQtt;
+
+	// Track Current Weapon Quantity
+	weaponProgression.devilArmsUnlockedQtt = 0;
+	for (size_t i = 0; i < DEVILARMUNLOCKS::COUNT; ++i) {
+		if (weaponProgression.devilArmUnlocks[i]) {
+			weaponProgression.devilArmsUnlockedQtt++;
+		}
+	}
+
+	weaponProgression.gunsUnlockedQtt = 0;
+	for (size_t i = 0; i < GUNUNLOCKS::COUNT; ++i) {
+		if (weaponProgression.gunUnlocks[i]) {
+			weaponProgression.gunsUnlockedQtt++;
+		}
+	}
+
+	// Only update weaponCount when the unlocked quantity has changed
+	for (size_t playerIndex = 0; playerIndex < PLAYER_COUNT; playerIndex++) {
+		for (size_t characterIndex = 0; characterIndex < CHARACTER_COUNT; characterIndex++) {
+			auto& activeCharacterData = activeConfig.Actor.playerData[playerIndex].characterData[characterIndex][ENTITY::MAIN];
+			auto& queuedCharacterData = queuedConfig.Actor.playerData[playerIndex].characterData[characterIndex][ENTITY::MAIN];
+
+			auto& lastMaxMeleeWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCount[playerIndex][characterIndex];
+			auto& lastMaxRangedWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxRangedWeaponCount[playerIndex][characterIndex];
+
+			if (activeCharacterData.meleeWeaponCount > 1) {
+				lastMaxMeleeWeaponCount = activeCharacterData.meleeWeaponCount;
+			}
+
+			if (activeCharacterData.rangedWeaponCount > 1) {
+				lastMaxRangedWeaponCount = activeCharacterData.rangedWeaponCount;
+			}
+
+			if (activeCharacterData.character != CHARACTER::DANTE) {
+				break;
+			}
+
+			// DEVIL ARMS
+			if (weaponProgression.devilArmsUnlockedQtt != previousDevilArmUnlockedQtt) {
+
+				if (g_scene == SCENE::GAME) {
+					// If the player is in a mission, set the melee weapon count to the max unlocked quantity
+					activeCharacterData.meleeWeaponCount = weaponProgression.devilArmsUnlockedQtt + 1;
+					queuedCharacterData.meleeWeaponCount = weaponProgression.devilArmsUnlockedQtt + 1;
+				} else {
+					// If the player is not in a mission, set the melee weapon count to the last max melee weapon count
+					if (lastMaxMeleeWeaponCount > weaponProgression.devilArmsUnlockedQtt + 1) {
+						activeCharacterData.meleeWeaponCount = weaponProgression.devilArmsUnlockedQtt + 1;
+						queuedCharacterData.meleeWeaponCount = weaponProgression.devilArmsUnlockedQtt + 1;
+					} else {
+						activeCharacterData.meleeWeaponCount = lastMaxMeleeWeaponCount;
+						queuedCharacterData.meleeWeaponCount = lastMaxMeleeWeaponCount;
+					}
+				}
+
+				// Replace invalid melee weapons
+				for (size_t i = 0; i < activeCharacterData.meleeWeaponCount; ++i) {
+					uint8_t equippedId = activeCharacterData.meleeWeapons[i];
+
+					// If the equipped weapon is not in the unlocked list
+					if (std::find(weaponProgression.meleeWeaponIds.begin(), weaponProgression.meleeWeaponIds.end(), equippedId) == weaponProgression.meleeWeaponIds.end()) {
+						// Try to find a replacement weapon that is unlocked and not already equipped
+						for (size_t j = 0; j < weaponProgression.meleeWeaponIds.size(); ++j) {
+							uint8_t replacementId = weaponProgression.meleeWeaponIds[j];
+							bool alreadyEquipped = false;
+
+							// Skip if this replacement is already equipped
+							for (size_t k = 0; k < activeCharacterData.meleeWeaponCount; ++k) {
+								if (activeCharacterData.meleeWeapons[k] == replacementId) {
+									alreadyEquipped = true;
+									break;
+								}
+							}
+							if (!alreadyEquipped) {
+								activeCharacterData.meleeWeapons[i] = replacementId;
+								queuedCharacterData.meleeWeapons[i] = replacementId;
+
+								// Keep meleeWeaponNames in sync
+								if (i < weaponProgression.meleeWeaponNames.size()) {
+									weaponProgression.meleeWeaponNames[i] = GetWeaponNameById(replacementId); // j matches unlocked ID
+								} else {
+									// Pad the vector to make space if needed
+									while (weaponProgression.meleeWeaponNames.size() <= i)
+										weaponProgression.meleeWeaponNames.push_back("");
+									weaponProgression.meleeWeaponNames[i] = GetWeaponNameById(replacementId);
+								}
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			// Safety check: ensure count never becomes 0
+			if (activeCharacterData.meleeWeaponCount == 0)
+				activeCharacterData.meleeWeaponCount = 1;
+			if (queuedCharacterData.meleeWeaponCount == 0)
+				queuedCharacterData.meleeWeaponCount = 1;
+
+			// GUNS
+			if (weaponProgression.gunsUnlockedQtt != previousGunsUnlockedQtt) {
+
+				if (g_scene == SCENE::GAME) {
+					// If the player is in a mission, set the melee weapon count to the max unlocked quantity
+					activeCharacterData.rangedWeaponCount = weaponProgression.gunsUnlockedQtt + 1;
+					queuedCharacterData.rangedWeaponCount = weaponProgression.gunsUnlockedQtt + 1;
+				} else {
+					// If the player is not in a mission, set the melee weapon count to the last max melee weapon count
+					if (lastMaxRangedWeaponCount > weaponProgression.gunsUnlockedQtt + 1) {
+						activeCharacterData.rangedWeaponCount = weaponProgression.gunsUnlockedQtt + 1;
+						queuedCharacterData.rangedWeaponCount = weaponProgression.gunsUnlockedQtt + 1;
+					} else {
+						activeCharacterData.rangedWeaponCount = lastMaxRangedWeaponCount;
+						queuedCharacterData.rangedWeaponCount = lastMaxRangedWeaponCount;
+					}
+				}
+
+				// Replace invalid melee weapons
+				for (size_t i = 0; i < activeCharacterData.rangedWeaponCount; ++i) {
+					uint8_t equippedId = activeCharacterData.rangedWeapons[i];
+
+					// If the equipped weapon is not in the unlocked list
+					if (std::find(weaponProgression.rangedWeaponIds.begin(), weaponProgression.rangedWeaponIds.end(), equippedId) == weaponProgression.rangedWeaponIds.end()) {
+						// Try to find a replacement weapon that is unlocked and not already equipped
+						for (size_t j = 0; j < weaponProgression.rangedWeaponIds.size(); ++j) {
+							uint8_t replacementId = weaponProgression.rangedWeaponIds[j];
+							bool alreadyEquipped = false;
+
+							// Skip if this replacement is already equipped
+							for (size_t k = 0; k < activeCharacterData.rangedWeaponCount; ++k) {
+								if (activeCharacterData.rangedWeapons[k] == replacementId) {
+									alreadyEquipped = true;
+									break;
+								}
+							}
+							if (!alreadyEquipped) {
+								activeCharacterData.rangedWeapons[i] = replacementId;
+								queuedCharacterData.rangedWeapons[i] = replacementId;
+
+								// Keep meleeWeaponNames in sync
+								if (i < weaponProgression.rangedWeaponNames.size()) {
+									weaponProgression.rangedWeaponNames[i] = GetWeaponNameById(replacementId); // j matches unlocked ID
+								} else {
+									// Pad the vector to make space if needed
+									while (weaponProgression.rangedWeaponNames.size() <= i)
+										weaponProgression.rangedWeaponNames.push_back("");
+									weaponProgression.rangedWeaponNames[i] = GetWeaponNameById(replacementId);
+								}
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			if (activeCharacterData.rangedWeaponCount == 0)
+				activeCharacterData.rangedWeaponCount = 1;
+			if (queuedCharacterData.rangedWeaponCount == 0)
+				queuedCharacterData.rangedWeaponCount = 1;
+		}
+	}
+}
+
 }

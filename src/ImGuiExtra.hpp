@@ -350,5 +350,82 @@ namespace UI {
 
 		return update;
 	}
+
+	template <typename varType>
+	bool ComboMapVector(const char* label,
+		const std::vector<std::string>& names,
+		const std::vector<varType>& map,
+		varType& var,
+		ImGuiComboFlags flags = 0) {
+		using namespace ImGui;
+		bool update = false;
+
+		std::vector<const char*> namesCStr;
+		for (const auto& name : names) {
+			namesCStr.push_back(name.c_str());
+		}
+
+		PushID();
+
+		int selectedIndex = -1;
+		for (int i = 0; i < map.size(); ++i) {
+			if (map[i] == var) {
+				selectedIndex = i;
+				break;
+			}
+		}
+
+		const char* previewValue = (selectedIndex >= 0 && selectedIndex < namesCStr.size()) ? namesCStr[selectedIndex] : "Unknown";
+
+		if (BeginCombo(label, previewValue, ImVec2{ 0.0f, 0.0f }, 0.6f, flags)) {
+			for (int i = 0; i < namesCStr.size(); i++) {
+				bool isSelected = (var == map[i]);
+
+				PushID();
+
+				if (ImGui::Selectable(namesCStr[i], isSelected)) {
+					var = map[i];
+					update = true;
+				}
+
+				if (isSelected) {
+					SetItemDefaultFocus();
+				}
+
+				PopID();
+			}
+
+			EndCombo();
+		}
+
+		PopID();
+
+		if (update) {
+			::GUI::save = true;
+		}
+
+		return update;
+	}
+
+	template <typename varType>
+	bool ComboMapVector2(const char* label,
+		const std::vector<std::string>& names,
+		const std::vector<varType>& map,
+		varType& var,
+		varType& var2,
+		ImGuiComboFlags flags = 0) {
+		auto update = ComboMapVector(label, names, map, var2, flags);
+
+		if (update) {
+			var = var2;
+		}
+
+		return update;
+	}
+
+
+
+
+
 #pragma endregion
 }
