@@ -13,6 +13,7 @@
 #include "Exp.hpp"
 #include "Global.hpp"
 #include "Vars.hpp"
+#include "Speed.hpp"
 
 #include "Core/Macros.h"
 #include "Sound.hpp"
@@ -35,6 +36,7 @@ void FrameResponsiveGameSpeed() {
 	auto& queuedValue = (IsTurbo()) ? queuedConfig.Speed.turbo : queuedConfig.Speed.mainSpeed;
 	float gameSpeed = (IsTurbo()) ? 1.2f : 1.0f;
 	auto& userSetFrameRate = queuedConfig.frameRate;
+	static bool setSpeedTrue = false;
 
 	// Only update if the current FPS is within ±20 of the setFrameRate
 	if (activeConfig.framerateResponsiveGameSpeed) { // 25 FPS frametime limit
@@ -43,9 +45,23 @@ void FrameResponsiveGameSpeed() {
 			ImGui::GetIO().DeltaTime < 0.04f && g_FrameRate >= 20.0f) || inputtingFPS || g_scene != SCENE::GAME) {
 			UpdateFrameRate();
 
+
 			float adjustedFrameRate = (std::max)(g_FrameRate, 30.0f); // Prevent extreme drops
 			activeValue = gameSpeed / (adjustedFrameRate / 60);
 			queuedValue = gameSpeed / (adjustedFrameRate / 60);
+		}
+
+
+		// Fix for Cutscenes speeding up enemies
+		if (g_scene == SCENE::GAME) {
+			if (!setSpeedTrue) {
+				Speed::Toggle(true);
+				setSpeedTrue = true;
+			}
+		}
+
+		if (g_inGameCutscene && setSpeedTrue) {
+			setSpeedTrue = false;
 		}
 	}
 }
