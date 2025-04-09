@@ -200,8 +200,7 @@ void EventHandler(EventData& eventData) {
 	CrimsonSDL::UpdateJoysticks();
 	CrimsonGameplay::GunDTCharacterRemaps();
 	CrimsonOnTick::GameTrackDetection();
-     CrimsonOnTick::CorrectFrameRateCutscenes();
-	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
+    CrimsonOnTick::CorrectFrameRateCutscenes();
 	CrimsonOnTick::DisableBlendingEffectsController();
 	CrimsonOnTick::StyleMeterMultiplayer();
 	CrimsonOnTick::DetermineActiveEntitiesCount();

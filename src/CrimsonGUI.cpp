@@ -11576,6 +11576,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     
   	CrimsonOnTick::FrameResponsiveGameSpeed();
 	CrimsonOnTick::WeaponProgressionTracking();
+	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
 
     // TIMERS
     CrimsonTimers::CallAllTimers();
