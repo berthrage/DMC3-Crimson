@@ -79,7 +79,7 @@ void D3D11CreateDeviceAndSwapChain_Function() {
 // 		{
 // 			execute = false;
 
-// 			ToggleShowMain();
+// 			ToggleCrimsonGUI();
 // 		}
 // 	}
 // 	else

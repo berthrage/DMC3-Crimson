@@ -9852,7 +9852,7 @@ void Vergil() {
 #pragma endregion
 
 
-#pragma region Key Bindings
+#pragma region Hotkeys
 
 // @Move
 
@@ -9960,6 +9960,18 @@ void ToggleInfiniteHealth() {
     ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
 }
 
+void ToggleOneHitKill() {
+	static bool toggled = activeConfig.damageEnemyActorMultiplier == 100.0f ? true : false;
+
+	if (!toggled) {
+		toggled = true;
+		activeConfig.damageEnemyActorMultiplier = 100.0f;
+	} else {
+		toggled = false;
+		activeConfig.damageEnemyActorMultiplier = defaultConfig.damageEnemyActorMultiplier;
+	}
+}
+
 void GamepadToggleShowMain() {
 
     static bool gamepadCombinationMainRelease[PLAYER_COUNT] = { false };
@@ -9973,7 +9985,7 @@ void GamepadToggleShowMain() {
 
 			// Combination pressed and was not pressed before, toggle GUI and set window focus
 			if (combination && !g_showMain && gamepadCombinationMainRelease[i]) {
-				ToggleShowMain();
+				ToggleCrimsonGUI();
 				ImGui::SetWindowFocus(DMC3C_TITLE);
 				gamepadCombinationMainRelease[i] = false;
 			}
@@ -9985,7 +9997,7 @@ void GamepadToggleShowMain() {
 
 			// Combination pressed, GUI shown, and was not pressed before, toggle GUI
 			if (combination && g_showMain && gamepadCombinationMainRelease[i]) {
-				ToggleShowMain();
+				ToggleCrimsonGUI();
 				gamepadCombinationMainRelease[i] = false;
 			}
 		}
@@ -9996,18 +10008,19 @@ void GamepadToggleShowMain() {
 
 std::vector<KeyBinding> keyBindings = {
     {
-        "Toggle Show Main",
+        "Toggle Crimson GUI",
         activeConfig.keyData[0],
         queuedConfig.keyData[0],
         defaultConfig.keyData[0],
-        ToggleShowMain,
+        ToggleCrimsonGUI,
     },
-    {"Reload Room", activeConfig.keyData[1], queuedConfig.keyData[1], defaultConfig.keyData[1], ReloadRoom},
-    {"Move To Main Actor", activeConfig.keyData[2], queuedConfig.keyData[2], defaultConfig.keyData[2], MoveToMainActor},
-    {"Toggle Infinite Health Points", activeConfig.keyData[3], queuedConfig.keyData[3], defaultConfig.keyData[3], ToggleInfiniteHealth},
+	{"Toggle Infinite Health Points", activeConfig.keyData[1], queuedConfig.keyData[1], defaultConfig.keyData[1], ToggleInfiniteHealth},
+	{"Toggle One Hit Kill", activeConfig.keyData[2], queuedConfig.keyData[2], defaultConfig.keyData[2], ToggleOneHitKill},
+    {"Reload Room", activeConfig.keyData[3], queuedConfig.keyData[3], defaultConfig.keyData[3], ReloadRoom},
+    {"Move To Main Character", activeConfig.keyData[4], queuedConfig.keyData[4], defaultConfig.keyData[4], MoveToMainActor},
 };
 
-void KeyBindings() {
+void HotkeysSection() {
 
 	bool condition = false;
 
@@ -10023,14 +10036,25 @@ void KeyBindings() {
 
 	GUI_PushDisable(condition);
 
+	ImVec2 startPos = ImGui::GetCursorScreenPos();
+
 	for_all(index, keyBindings.size()) {
 		auto& keyBinding = keyBindings[index];
 
+		ImGui::SetCursorScreenPos(startPos);
 		keyBinding.Main();
+
+		startPos.y += 100; // <- matches ImVec2{300, 100} from the keybinding's button height
 	}
 
 	GUI_PopDisable(condition);
     
+}
+
+void PreventEmptyCrimsonGUIHotkey() {
+	if (queuedConfig.keyData[0].IsEmpty()) {
+		queuedConfig.keyData[0] = defaultConfig.keyData[0];
+	}
 }
 
 #pragma endregion
@@ -10649,7 +10673,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					{
-						KeyBindings();
+						HotkeysSection();
 					}
 				}
 				ImGui::EndChild();
@@ -11538,6 +11562,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 #pragma endregion
 
+
 void GUI_Render(IDXGISwapChain* pSwapChain) {
 
     if (g_scene != SCENE::GAME) {
@@ -11546,6 +11571,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 
 	UI::ResetID(0);
 
+	PreventEmptyCrimsonGUIHotkey();
     AdjustBackgroundTransparency();
 
     Welcome();

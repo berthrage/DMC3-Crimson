@@ -210,7 +210,7 @@ void UpdateGamepad() {
         if (execute) {
             execute = false;
 
-            ToggleShowMain();
+            ToggleCrimsonGUI();
         }
     } else {
         execute = true;

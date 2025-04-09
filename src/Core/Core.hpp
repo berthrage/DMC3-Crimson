@@ -660,6 +660,11 @@ struct KeyData {
     new_size_t keyCount;
     bool execute;
     // void * func;
+	bool allowEmpty; 
+
+	bool IsEmpty() const {
+		return !allowEmpty && keyCount == 0;
+	}
 
     typedef void (*func_t)();
 

@@ -44,7 +44,7 @@ bool GUI_Button(const char* label, const ImVec2& size) {
 }
 
 bool GUI_ResetButton() {
-    auto update = GUI_Button("Default Settings");
+    auto update = GUI_Button("Default");
 
     if (update) {
         ::GUI::save = true;
@@ -310,8 +310,12 @@ void KeyBinding::UpdateBuffer(Data& data, KeyData& keyData)
     auto& keys     = keyData.keys;
     auto& keyCount = keyData.keyCount;
 
-
     pos = 0;
+
+	// Prevent empty key if not allowed
+	if (keyCount < 1 && !keyData.allowEmpty) {
+		return;
+	}
 
     if (keyCount < 1) {
         SetMemory(buffer, 0, sizeof(buffer));
@@ -348,46 +352,60 @@ void KeyBinding::UpdateBuffer(Data& data, KeyData& keyData)
     }
 };
 
-void KeyBinding::Main()
+void KeyBinding::Main() {
+	auto keys32 = *reinterpret_cast<uint32*>(activeKeyData.keys);
+	auto& lastKeys32 = main.lastKeys32;
+    auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 
-{
-    auto keys32      = *reinterpret_cast<uint32*>(activeKeyData.keys);
-    auto& lastKeys32 = main.lastKeys32;
+	if (!main.run) {
+		main.run = true;
+		UpdateBuffer(main, activeKeyData);
+	}
 
+	if (lastKeys32 != keys32) {
+		lastKeys32 = keys32;
+		UpdateBuffer(main, activeKeyData);
+	}
 
-    if (!main.run) {
-        main.run = true;
+	const auto buttonSize = ImVec2{ 300, 100 };
 
-        UpdateBuffer(main, activeKeyData);
-    }
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 8, 0 });
 
-    if (lastKeys32 != keys32) {
-        lastKeys32 = keys32;
+	ImGui::BeginGroup();
 
-        UpdateBuffer(main, activeKeyData);
-    }
+	float buttonStartY = ImGui::GetCursorPosY();
 
+	if (GUI_Button(name, buttonSize)) {
+		popupKeyData.Clear();
+		showPopup = true;
+	}
 
-    const auto buttonSize = ImVec2{150, ImGui::GetFrameHeight()};
+	ImGui::SameLine();
 
+	float textHeight = ImGui::GetFontSize();
+	float textY = buttonStartY + (buttonSize.y - textHeight) * 0.5f;
+	ImGui::SetCursorPosY(textY);
+	
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.2f]);
+	// Measure text width so we can add 200 after it
+	ImVec2 textSize = ImGui::CalcTextSize(main.buffer);
+	ImGui::Text(main.buffer);
 
-    if (GUI_Button(name, buttonSize)) {
-        popupKeyData.Clear();
+	ImGui::SameLine(textSize.x + 320);
 
-        showPopup = true;
-    }
-    ImGui::SameLine();
+	if (GUI_ResetButton()) {
+		CopyMemory(&queuedKeyData, &defaultKeyData, sizeof(queuedKeyData));
+		CopyMemory(&activeKeyData, &queuedKeyData, sizeof(activeKeyData));
+	}
 
+	ImGui::EndGroup();
+	ImGui::PopStyleVar();
 
-    ImGui::Text(main.buffer);
-    ImGui::SameLine(500);
+	ImVec2 spacing = ImGui::GetStyle().ItemSpacing;
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() - spacing.y);
+	ImGui::PopFont();
+}
 
-
-    if (GUI_ResetButton()) {
-        CopyMemory(&queuedKeyData, &defaultKeyData, sizeof(queuedKeyData));
-        CopyMemory(&activeKeyData, &queuedKeyData, sizeof(activeKeyData));
-    }
-};
 
 void KeyBinding::Popup()
 
@@ -453,6 +471,7 @@ void KeyBinding::Popup()
         }
         ImGui::Text("");
 
+        CenterText("Press ENTER to confirm the Hotkey.");
 
         if (flags & KeyFlags_AtLeastOneKey) {
             CenterText("This binding requires at least one key.");

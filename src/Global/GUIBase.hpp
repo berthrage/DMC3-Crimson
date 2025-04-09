@@ -26,7 +26,7 @@ typedef void (*GamepadClose_func_t)();
 void GamepadClose(bool& visible, bool& lastVisible, GamepadClose_func_t func);
 void OpenMain();
 void CloseMain();
-void ToggleShowMain();
+void ToggleCrimsonGUI();
 
 template <typename T> void OverlayFunction(const char* label, Config::OverlayData& activeData, Config::OverlayData& queuedData, T& func) {
     if (!activeData.enable) {

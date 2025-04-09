@@ -496,11 +496,13 @@ struct Config {
 
     bool showCredits = (debug) ? false : true;
 
-    KeyData keyData[4] = {{{
-                               DI8::KEY::DELETE,
-                           },
-                              1},
-        {}, {}, {{DI8::KEY::F1}, 1}};
+	KeyData keyData[5] = {
+	    { { DI8::KEY::DELETE }, 1, true, false },
+		{ { DI8::KEY::F1 }, 1, true, true },
+		{ { DI8::KEY::F3 }, 1, true, true },
+	    {}, 
+	    {}, 
+	};
 
     bool absoluteUnit = false;
 

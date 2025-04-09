@@ -366,7 +366,7 @@ void CloseMain() {
     PlaySound(0, 3);
 }
 
-void ToggleShowMain() {
+void ToggleCrimsonGUI() {
     DebugLogFunction();
 
     if (!g_showMain) {
