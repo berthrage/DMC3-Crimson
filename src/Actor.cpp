@@ -3296,6 +3296,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
     auto& playerData    = GetPlayerData(actorData);
     auto& characterData = GetCharacterData(actorData);
     auto playerIndex = actorData.newPlayerIndex;
+    auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 	// Accumulate EXP
 	HeldStyleExpData& heldStyleExpData = (actorData.character == CHARACTER::DANTE)
@@ -3357,13 +3358,15 @@ void StyleSwitchController(byte8* actorBaseAddr) {
         }
 
         if (actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 4 && quickDoubleTap.canChange &&
-            !actorData.newIsClone) {
+            !actorData.newIsClone && 
+            sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER]) {
 
             StyleSwitch(actorBaseAddr, 4); // QUICKSILVER
         }
 
         if (actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5 && doppDoubleTap.canChange &&
-            !actorData.newIsClone) {
+            !actorData.newIsClone &&
+			sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER]) {
 
             StyleSwitch(actorBaseAddr, 5); // DOPPELGANGER
         }
