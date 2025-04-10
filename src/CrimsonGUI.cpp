@@ -299,7 +299,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 				window->DrawList->AddRectFilled(
 					{ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y },
 					{ wndRect.Max.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y + subTabBtnSize.y },
-					SwapColorEndianness(0x4E4E4E20)
+					SwapColorEndianness(0x00000050)
 				);
 
 				switch (g_UIContext.SelectedTab) {
@@ -554,7 +554,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 		{
 			// Footer background
 			window->DrawList->AddRectFilled({ wndRect.Min.x, wndRect.Max.y - g_UIContext.DefaultFontSize * 2.24f }, { wndRect.Max.x, wndRect.Max.y },
-				SwapColorEndianness(0x4d3A3EFF), window->WindowRounding, ImDrawCornerFlags_Bot);
+				SwapColorEndianness(0x1F1718FF), window->WindowRounding, ImDrawCornerFlags_Bot);
 
 			contentMaxHeightOffsetFromBottom = g_UIContext.DefaultFontSize * 2.24f;
 
@@ -7993,10 +7993,10 @@ void BossVergilActionsOverlaySettings() {
 }
 
 ImVec4 GetCrimsonGUIBgColor(float opacity = 1.0f) {
-	return ImVec4(0.090f, 0.090f, 0.090f, opacity);
+	return ImVec4(0.169f, 0.125f, 0.133f, opacity);
 }
 
-void AdjustBackgroundTransparency() {
+void AdjustBackgroundColorAndTransparency() {
 	// previously ImVec4(0.207f, 0.156f, 0.168f
    	
     switch (queuedCrimsonConfig.GUI.transparencyMode) {
@@ -11577,7 +11577,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	UI::ResetID(0);
 
 	PreventEmptyCrimsonGUIHotkey();
-    AdjustBackgroundTransparency();
+    AdjustBackgroundColorAndTransparency();
 
     Welcome();
     Main(pSwapChain);

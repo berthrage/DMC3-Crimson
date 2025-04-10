@@ -199,8 +199,8 @@ namespace UI {
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
 
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, SwapColorEndianness(0xFF6A8FFF));
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, isActive ? SwapColorEndianness(0xD81B57FF) : SwapColorEndianness(0x2E2E2EFF));
-		ImGui::PushStyleColor(ImGuiCol_Button, isActive ? (hasSubtab ? SwapColorEndianness(0xB3173EFF) : SwapColorEndianness(0xD81B57FF)) : 0x00000000);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, isActive ? SwapColorEndianness(0xD81B57FF) : SwapColorEndianness(0x2E2E2E60));
+		ImGui::PushStyleColor(ImGuiCol_Button, isActive ? (hasSubtab ? SwapColorEndianness(0xD81B57FF) : SwapColorEndianness(0xD81B57FF)) : 0x00000000);
 		ImGui::PushStyleColor(ImGuiCol_Text, isEnabled ? 0xFFFFFFFF : SwapColorEndianness(0x625F5FFF));
 
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, !isEnabled);
