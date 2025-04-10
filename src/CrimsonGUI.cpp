@@ -299,7 +299,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 				window->DrawList->AddRectFilled(
 					{ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y },
 					{ wndRect.Max.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y + subTabBtnSize.y },
-					SwapColorEndianness(0x4E4E4EFF)
+					SwapColorEndianness(0x4E4E4E20)
 				);
 
 				switch (g_UIContext.SelectedTab) {
@@ -7992,26 +7992,31 @@ void BossVergilActionsOverlaySettings() {
         defaultConfig.bossVergilActionsOverlayData);
 }
 
+ImVec4 GetCrimsonGUIBgColor(float opacity = 1.0f) {
+	return ImVec4(0.090f, 0.090f, 0.090f, opacity);
+}
+
 void AdjustBackgroundTransparency() {
+	// previously ImVec4(0.207f, 0.156f, 0.168f
    	
     switch (queuedCrimsonConfig.GUI.transparencyMode) {
         // OFF
     case 0 :
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, GetCrimsonGUIBgColor());
         break;
         
         // STATIC
     case 1 :
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, queuedCrimsonConfig.GUI.opacity));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, GetCrimsonGUIBgColor(queuedCrimsonConfig.GUI.opacity));
         break;
 
         //DYNAMIC
     case 2 :
         if (g_inGameDelayed) {
-            ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, queuedCrimsonConfig.GUI.opacity));
+            ImGui::PushStyleColor(ImGuiCol_WindowBg, GetCrimsonGUIBgColor(queuedCrimsonConfig.GUI.opacity));
         }
 		else {
-			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.207f, 0.156f, 0.168f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, GetCrimsonGUIBgColor());
 		}
         
         break;
@@ -10075,8 +10080,8 @@ void Main(IDXGISwapChain* pSwapChain) {
         doOnce = true;
 
         // Originally 800x725, or screenWidth / 2.4 x screenHeight / 1.4 for 1080p
-        float width  = g_renderSize.x / 1.5;
-        float height = g_renderSize.y / 1.3;
+        float width  = g_renderSize.x / 1.40;
+        float height = g_renderSize.y / 1.20;
 
         ImGui::SetNextWindowSize(ImVec2(width, height));
 

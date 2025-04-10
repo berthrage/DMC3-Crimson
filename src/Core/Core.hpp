@@ -658,9 +658,10 @@ enum {
 struct KeyData {
     byte8 keys[4];
     new_size_t keyCount;
+    bool allowEmpty;
     bool execute;
     // void * func;
-	bool allowEmpty; 
+	
 
 	bool IsEmpty() const {
 		return !allowEmpty && keyCount == 0;
