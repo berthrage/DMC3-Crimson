@@ -4849,188 +4849,6 @@ void ActionData(const char* label, T(&vars)[2], T(&vars2)[2], T(&defaultVars)[2]
 	ImGui::PopItemWidth();
 }
 
-void Dante() {
-	if (ImGui::CollapsingHeader("Dante")) {
-		ImGui::Text("");
-
-		if (GUI_ResetButton()) {
-			CopyMemory(&queuedConfig.airHikeCoreAbility, &defaultConfig.airHikeCoreAbility, sizeof(queuedConfig.airHikeCoreAbility));
-			CopyMemory(&activeConfig.airHikeCoreAbility, &queuedConfig.airHikeCoreAbility, sizeof(activeConfig.airHikeCoreAbility));
-
-			ToggleAirHikeCoreAbility(activeConfig.airHikeCoreAbility);
-
-			CopyMemory(&queuedConfig.Royalguard, &defaultConfig.Royalguard, sizeof(queuedConfig.Royalguard));
-			CopyMemory(&activeConfig.Royalguard, &queuedConfig.Royalguard, sizeof(activeConfig.Royalguard));
-
-			CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
-
-			CopyMemory(&queuedConfig.rebellionInfiniteShredder, &defaultConfig.rebellionInfiniteShredder,
-				sizeof(queuedConfig.rebellionInfiniteShredder));
-			CopyMemory(&activeConfig.rebellionInfiniteShredder, &queuedConfig.rebellionInfiniteShredder,
-				sizeof(activeConfig.rebellionInfiniteShredder));
-
-			CopyMemory(&queuedConfig.Rebellion, &defaultConfig.Rebellion, sizeof(queuedConfig.Rebellion));
-			CopyMemory(&activeConfig.Rebellion, &queuedConfig.Rebellion, sizeof(activeConfig.Rebellion));
-
-			ToggleRebellionInfiniteShredder(activeConfig.rebellionInfiniteShredder);
-			ToggleRebellionInfiniteSwordPierce(activeConfig.Rebellion.infiniteSwordPierce);
-
-			CopyMemory(&queuedConfig.enableRebellionAirStinger, &defaultConfig.enableRebellionAirStinger,
-				sizeof(queuedConfig.enableRebellionAirStinger));
-			CopyMemory(&activeConfig.enableRebellionAirStinger, &queuedConfig.enableRebellionAirStinger,
-				sizeof(activeConfig.enableRebellionAirStinger));
-
-			CopyMemory(&queuedConfig.enableRebellionNewDrive, &defaultConfig.enableRebellionNewDrive,
-				sizeof(queuedConfig.enableRebellionNewDrive));
-			CopyMemory(
-				&activeConfig.enableRebellionNewDrive, &queuedConfig.enableRebellionNewDrive, sizeof(activeConfig.enableRebellionNewDrive));
-
-			CopyMemory(&queuedConfig.enableRebellionQuickDrive, &defaultConfig.enableRebellionQuickDrive,
-				sizeof(queuedConfig.enableRebellionQuickDrive));
-			CopyMemory(&activeConfig.enableRebellionQuickDrive, &queuedConfig.enableRebellionQuickDrive,
-				sizeof(activeConfig.enableRebellionQuickDrive));
-
-
-			CopyMemory(&queuedConfig.rebellionHoldDrive, &defaultConfig.rebellionHoldDrive, sizeof(queuedConfig.rebellionHoldDrive));
-			CopyMemory(&activeConfig.rebellionHoldDrive, &queuedConfig.rebellionHoldDrive, sizeof(activeConfig.rebellionHoldDrive));
-
-			ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
-
-			CopyMemory(&queuedConfig.enableCerberusAirRevolver, &defaultConfig.enableCerberusAirRevolver,
-				sizeof(queuedConfig.enableCerberusAirRevolver));
-			CopyMemory(&activeConfig.enableCerberusAirRevolver, &queuedConfig.enableCerberusAirRevolver,
-				sizeof(activeConfig.enableCerberusAirRevolver));
-
-
-			CopyMemory(&queuedConfig.enableNevanNewVortex, &defaultConfig.enableNevanNewVortex, sizeof(queuedConfig.enableNevanNewVortex));
-			CopyMemory(&activeConfig.enableNevanNewVortex, &queuedConfig.enableNevanNewVortex, sizeof(activeConfig.enableNevanNewVortex));
-
-
-			CopyMemory(&queuedConfig.EbonyIvory, &defaultConfig.EbonyIvory, sizeof(queuedConfig.EbonyIvory));
-			CopyMemory(&activeConfig.EbonyIvory, &queuedConfig.EbonyIvory, sizeof(activeConfig.EbonyIvory));
-
-			ToggleEbonyIvoryFoursomeTime(activeConfig.EbonyIvory.foursomeTime);
-			ToggleEbonyIvoryInfiniteRainStorm(activeConfig.EbonyIvory.infiniteRainStorm);
-
-			CopyMemory(&queuedConfig.Artemis, &defaultConfig.Artemis, sizeof(queuedConfig.Artemis));
-			CopyMemory(&activeConfig.Artemis, &queuedConfig.Artemis, sizeof(activeConfig.Artemis));
-
-			ToggleArtemisSwapNormalShotAndMultiLock(activeConfig.Artemis.swapNormalShotAndMultiLock);
-			ToggleArtemisInstantFullCharge(activeConfig.Artemis.instantFullCharge);
-		}
-
-		GUI_SectionEnd();
-		ImGui::Text("");
-
-		GUI_SectionStart("Air Hike");
-
-		if (GUI_Checkbox2("Core Ability", activeConfig.airHikeCoreAbility, queuedConfig.airHikeCoreAbility)) {
-			ToggleAirHikeCoreAbility(activeConfig.airHikeCoreAbility);
-		}
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Makes Air Hike available for all melee weapons.");
-
-		GUI_SectionEnd();
-		ImGui::Text("");
-
-		GUI_SectionStart("Royalguard");
-
-		if (GUI_Checkbox2(
-			"Force Just Frame Release", activeConfig.Royalguard.forceJustFrameRelease, queuedConfig.Royalguard.forceJustFrameRelease)) {
-			CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
-		}
-
-		GUI_SectionEnd();
-		ImGui::Text("");
-
-
-		ImGui::Text("Rebellion");
-		ImGui::Text("");
-
-		if (GUI_Checkbox2("Infinite Shredder", activeConfig.rebellionInfiniteShredder, queuedConfig.rebellionInfiniteShredder)) {
-			ToggleRebellionInfiniteShredder(activeConfig.rebellionInfiniteShredder);
-		}
-
-		if (GUI_Checkbox2(
-			"Infinite Sword Pierce", activeConfig.Rebellion.infiniteSwordPierce, queuedConfig.Rebellion.infiniteSwordPierce)) {
-			ToggleRebellionInfiniteSwordPierce(activeConfig.Rebellion.infiniteSwordPierce);
-		}
-
-
-		GUI_Checkbox2("Enable New Drive", activeConfig.enableRebellionNewDrive, queuedConfig.enableRebellionNewDrive);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires enabled Actor module.\n"
-			"\n"
-			"Press Lock-On + Left + Melee Attack.");
-
-		GUI_Checkbox2("Enable Quick Drive", activeConfig.enableRebellionQuickDrive, queuedConfig.enableRebellionQuickDrive);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires enabled Actor module.\n"
-			"\n"
-			"In Swordmaster hold Style Action and press Melee Attack twice.");
-
-		if (GUI_Checkbox2("Hold Drive", activeConfig.rebellionHoldDrive, queuedConfig.rebellionHoldDrive)) {
-			ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
-		}
-		ImGui::Text("");
-
-
-		GUI_SectionEnd();
-		ImGui::Text("");
-
-
-		GUI_SectionStart("Cerberus");
-
-		GUI_Checkbox2("Enable Air Revolver", activeConfig.enableCerberusAirRevolver, queuedConfig.enableCerberusAirRevolver);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires enabled Actor module.");
-
-		GUI_SectionEnd();
-		ImGui::Text("");
-
-
-		GUI_SectionStart("Nevan");
-
-		GUI_Checkbox2("Enable New Vortex", activeConfig.enableNevanNewVortex, queuedConfig.enableNevanNewVortex);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires enabled Actor module.\n"
-			"\n"
-			"While in devil form press Any Direction + Melee Attack.");
-
-		GUI_SectionEnd();
-		ImGui::Text("");
-
-
-		GUI_SectionStart("Ebony & Ivory");
-
-		if (GUI_Checkbox2("Foursome Time", activeConfig.EbonyIvory.foursomeTime, queuedConfig.EbonyIvory.foursomeTime)) {
-			ToggleEbonyIvoryFoursomeTime(activeConfig.EbonyIvory.foursomeTime);
-		}
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Twosome Time fires 2 additional shots.");
-
-		if (GUI_Checkbox2("Infinite Rain Storm", activeConfig.EbonyIvory.infiniteRainStorm, queuedConfig.EbonyIvory.infiniteRainStorm)) {
-			ToggleEbonyIvoryInfiniteRainStorm(activeConfig.EbonyIvory.infiniteRainStorm);
-		}
-
-		GUI_SectionEnd();
-		ImGui::Text("");
-
-		GUI_SectionStart("Artemis");
-
-		if (GUI_Checkbox2("Swap Normal Shot and Multi Lock", activeConfig.Artemis.swapNormalShotAndMultiLock,
-			queuedConfig.Artemis.swapNormalShotAndMultiLock)) {
-			ToggleArtemisSwapNormalShotAndMultiLock(activeConfig.Artemis.swapNormalShotAndMultiLock);
-		}
-
-		if (GUI_Checkbox2("Instant Full Charge", activeConfig.Artemis.instantFullCharge, queuedConfig.Artemis.instantFullCharge)) {
-			ToggleArtemisInstantFullCharge(activeConfig.Artemis.instantFullCharge);
-		}
-
-		ImGui::Text("");
-	}
-}
-
 #pragma endregion
 
 #pragma region Shop
@@ -9363,483 +9181,835 @@ void VisualSection(size_t defaultFontSize) {
     ImGui::PopStyleColor();	
 }
 
-void GameplayOptions() {
+// General gameplay options section
+void GeneralGameplayOptions() {
+	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	const float itemWidth = defaultFontSize * 8.0f;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-    if (ImGui::CollapsingHeader("Gameplay Options (Crimson)")) {
-        ImGui::Text("");
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
-        ImGui::Text("");
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	ImGui::Text("GENERAL GAMEPLAY OPTIONS");
+	ImGui::PopFont();
+	UI::SeparatorEx(defaultFontSize * 23.35f);
+	ImGui::Text("");
 
-        ImGui::Text("General");
-        ImGui::PushItemWidth(150.0f);
-        GUI_Checkbox2("Inertia", activeCrimsonConfig.Gameplay.General.inertia, queuedCrimsonConfig.Gameplay.General.inertia);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires Actor System.\n"
-                             "\n"
-                             "Changes how physics behave during almost all aerial moves. Also allows you to freely rotate performing "
-                             "Swordmaster Air Moves.");
-        GUI_Checkbox2("Sprint", activeCrimsonConfig.Gameplay.General.sprint, queuedCrimsonConfig.Gameplay.General.sprint);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires Actor System.\n"
-                             "\n"
-                             "Sprints out of combat, similar to DMC4 and 5's Speed Ability.");
+	// General Options Section
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowHeight = 40.0f * queuedConfig.globalScale;
 
-		if (!activeConfig.Actor.enable) {
-			activeCrimsonConfig.Gameplay.General.holdToCrazyCombo = false;
-			CrimsonDetours::ToggleHoldToCrazyCombo(false);
+		if (ImGui::BeginTable("GameplayOptionsTable", 3)) {
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
+			ImGui::TableSetupColumn("b2", 0, columnWidth * 2.0f);
+			ImGui::TableSetupColumn("b3", 0, columnWidth * 2.0f);
+
+			// First row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Inertia",
+				activeCrimsonConfig.Gameplay.General.inertia,
+				queuedCrimsonConfig.Gameplay.General.inertia)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nChanges how physics behave during almost all aerial moves. Also allows you to freely rotate performing Swordmaster Air Moves.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Sprint",
+				activeCrimsonConfig.Gameplay.General.sprint,
+				queuedCrimsonConfig.Gameplay.General.sprint)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nSprints out of combat, similar to DMC4 and 5's Speed Ability.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			if (!activeConfig.Actor.enable) {
+				activeCrimsonConfig.Gameplay.General.holdToCrazyCombo = false;
+				CrimsonDetours::ToggleHoldToCrazyCombo(false);
+			}
+			if (activeCrimsonConfig.Gameplay.General.holdToCrazyCombo) {
+				activeConfig.crazyComboLevelMultiplier = 3;
+				queuedConfig.crazyComboLevelMultiplier = 3;
+				UpdateCrazyComboLevelMultiplier();
+			}
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Hold To Crazy Combo",
+				activeCrimsonConfig.Gameplay.General.holdToCrazyCombo,
+				queuedCrimsonConfig.Gameplay.General.holdToCrazyCombo)) {
+				CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
+				activeConfig.crazyComboLevelMultiplier = 3;
+				queuedConfig.crazyComboLevelMultiplier = 3;
+				UpdateCrazyComboLevelMultiplier();
+			}
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			// Second row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			if (GUI_InputDefault2("Crazy Combo Mash Multiplier",
+				activeConfig.crazyComboLevelMultiplier,
+				queuedConfig.crazyComboLevelMultiplier,
+				defaultConfig.crazyComboLevelMultiplier)) {
+				UpdateCrazyComboLevelMultiplier();
+			}
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Multiplier for Hold-To-Crazy-Combo auto-mash level");
+			GUI_PopDisable(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Freeform Soft Lock",
+				activeCrimsonConfig.Gameplay.General.freeformSoftLock,
+				queuedCrimsonConfig.Gameplay.General.freeformSoftLock)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nBypass Soft Lock On Auto Rotation when outside Lock On. Enables Bufferless Reversals.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			if (!activeCrimsonConfig.Gameplay.General.freeformSoftLock) {
+				activeCrimsonConfig.Gameplay.General.bufferlessReversals = false;
+				queuedCrimsonConfig.Gameplay.General.bufferlessReversals = false;
+			}
+
+			GUI_PushDisable(!activeConfig.Actor.enable || !activeCrimsonConfig.Gameplay.General.freeformSoftLock);
+			if (GUI_Checkbox2("Bufferless Reversals",
+				activeCrimsonConfig.Gameplay.General.bufferlessReversals,
+				queuedCrimsonConfig.Gameplay.General.bufferlessReversals)) {
+				activeCrimsonConfig.Gameplay.General.freeformSoftLock = true;
+				queuedCrimsonConfig.Gameplay.General.freeformSoftLock = true;
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nAllows you to do Reversals without buffering a move first.");
+			GUI_PopDisable(!activeConfig.Actor.enable || !activeCrimsonConfig.Gameplay.General.freeformSoftLock);
+
+			// Third row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Improved Buffered Reversals",
+				activeCrimsonConfig.Gameplay.General.improvedBufferedReversals,
+				queuedCrimsonConfig.Gameplay.General.improvedBufferedReversals)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nIncreased Turn Speed on Attacks for easier Buffered Reversals.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("DMC4/5 Lock On Direction",
+				activeCrimsonConfig.Gameplay.General.dmc4LockOnDirection,
+				queuedCrimsonConfig.Gameplay.General.dmc4LockOnDirection)) {
+				CrimsonDetours::ToggleDMC4LockOnDirection(activeCrimsonConfig.Gameplay.General.dmc4LockOnDirection);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nDirectional moves take enemy camera direction instead of player camera direction.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Increased Jump Cancel Hitboxes",
+				activeCrimsonConfig.Gameplay.General.increasedJCSpheres,
+				queuedCrimsonConfig.Gameplay.General.increasedJCSpheres)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nIncreased hitboxes for easier Jump Cancels.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			// Fourth row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Disable Height Restriction",
+				activeCrimsonConfig.Gameplay.General.disableHeightRestriction,
+				queuedCrimsonConfig.Gameplay.General.disableHeightRestriction)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nAllows you to do Air Moves even at low heights.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Disable Jump Cancel Restriction",
+				activeCrimsonConfig.Gameplay.General.disableJCRestriction,
+				queuedCrimsonConfig.Gameplay.General.disableJCRestriction)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nDisables cooldown for Jump Cancels.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Increased Enemy Juggle Time",
+				activeCrimsonConfig.Gameplay.General.increasedEnemyJuggleTime,
+				queuedCrimsonConfig.Gameplay.General.increasedEnemyJuggleTime)) {
+				CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonConfig.Gameplay.General.increasedEnemyJuggleTime);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Increases stagger value of moves in the air, similar to DMC5.");
+
+			// Fifth row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Faster Turn Rate",
+				activeCrimsonConfig.Gameplay.General.fasterTurnRate,
+				queuedCrimsonConfig.Gameplay.General.fasterTurnRate)) {
+				CrimsonDetours::ToggleFasterTurnRate(activeCrimsonConfig.Gameplay.General.fasterTurnRate);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Increases character turn speed.");
+
+			ImGui::EndTable();
 		}
+	}
 
-		if (activeCrimsonConfig.Gameplay.General.holdToCrazyCombo) {
-			activeConfig.crazyComboLevelMultiplier = 3;
-			queuedConfig.crazyComboLevelMultiplier = 3;
-			UpdateCrazyComboLevelMultiplier();
-		}
+	ImGui::Text("");
 
-		GUI_PushDisable(!activeConfig.Actor.enable);
-		if (GUI_Checkbox2("Hold To Crazy Combo", activeCrimsonConfig.Gameplay.General.holdToCrazyCombo, queuedCrimsonConfig.Gameplay.General.holdToCrazyCombo)) {
-			CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
-			activeConfig.crazyComboLevelMultiplier = 3;
-			queuedConfig.crazyComboLevelMultiplier = 3;
-			UpdateCrazyComboLevelMultiplier();
-		}
-		GUI_PopDisable(!activeConfig.Actor.enable);
-
-		GUI_PushDisable(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
-		if (GUI_InputDefault2("Crazy Combo Mash Multiplier", activeConfig.crazyComboLevelMultiplier,
-			queuedConfig.crazyComboLevelMultiplier, defaultConfig.crazyComboLevelMultiplier)) {
-			UpdateCrazyComboLevelMultiplier();
-		}
-		GUI_PopDisable(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
-
-		GUI_Checkbox2("Freeform Soft Lock", activeCrimsonConfig.Gameplay.General.freeformSoftLock, queuedCrimsonConfig.Gameplay.General.freeformSoftLock);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"Allows you to bypass Soft Lock On Auto Rotation by setting a left stick position when outside Lock On\n"
-			"Similarly to DMC4/5 Behavior. This also allows for Bufferless Reversals.");
-
-		if (!activeCrimsonConfig.Gameplay.General.freeformSoftLock) {
-			activeCrimsonConfig.Gameplay.General.bufferlessReversals = false;
-			queuedCrimsonConfig.Gameplay.General.bufferlessReversals = false;
-		}
-
-
-		GUI_PushDisable(!activeCrimsonConfig.Gameplay.General.freeformSoftLock);
-		if (GUI_Checkbox2("Bufferless Reversals", activeCrimsonConfig.Gameplay.General.bufferlessReversals, queuedCrimsonConfig.Gameplay.General.bufferlessReversals)) {
-			activeCrimsonConfig.Gameplay.General.freeformSoftLock = true;
-			queuedCrimsonConfig.Gameplay.General.freeformSoftLock = true;
-		}
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"Allows you to do Reversals without buffering a move first.");
-		GUI_PopDisable(!activeCrimsonConfig.Gameplay.General.freeformSoftLock);
-
-		GUI_Checkbox2("Improved Buffered Reversals", activeCrimsonConfig.Gameplay.General.improvedBufferedReversals, queuedCrimsonConfig.Gameplay.General.improvedBufferedReversals);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"Increased Turn Speed on Attacks for easier Buffered Reversals.");
-
-		if (GUI_Checkbox2("DMC4/5 Lock On Direction", activeCrimsonConfig.Gameplay.General.dmc4LockOnDirection, queuedCrimsonConfig.Gameplay.General.dmc4LockOnDirection)) {
-			CrimsonDetours::ToggleDMC4LockOnDirection(activeCrimsonConfig.Gameplay.General.dmc4LockOnDirection);
-		}
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"Sets Directional Moves to take Enemy Camera Direction instead of Player Camera Direction\n"
-			"Similarly to DMC4/5 Behavior.");
-
-		GUI_Checkbox2("Increased Jump Cancel Hitboxes", activeCrimsonConfig.Gameplay.General.increasedJCSpheres, queuedCrimsonConfig.Gameplay.General.increasedJCSpheres);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"Increased hitboxes leading to easier Jump Cancels\n"
-			"Similarly to DMC5 Behavior.");
-
-		GUI_Checkbox2("Disable Height Restriction", activeCrimsonConfig.Gameplay.General.disableHeightRestriction, queuedCrimsonConfig.Gameplay.General.disableHeightRestriction);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"Allows you to do Air Moves even on low heights.");
-
-		GUI_Checkbox2("Disable Jump Cancel Restriction", activeCrimsonConfig.Gameplay.General.disableJCRestriction, queuedCrimsonConfig.Gameplay.General.disableJCRestriction);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"Disables the cooldown for Jump Cancels.");
-
-		if (GUI_Checkbox2("Increased Enemy Juggle Time", activeCrimsonConfig.Gameplay.General.increasedEnemyJuggleTime, 
-			queuedCrimsonConfig.Gameplay.General.increasedEnemyJuggleTime)) {
-			CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonConfig.Gameplay.General.increasedEnemyJuggleTime);
-		}
-		ImGui::SameLine();
-		TooltipHelper("(?)", 
-			"Increases the stagger value each move does in the air\n"
-			"Similarly to DMC5 Behavior.");
-
-		if (GUI_Checkbox2("Faster Turn Rate", activeCrimsonConfig.Gameplay.General.fasterTurnRate, 
-			queuedCrimsonConfig.Gameplay.General.fasterTurnRate)) {
-			CrimsonDetours::ToggleFasterTurnRate(activeCrimsonConfig.Gameplay.General.fasterTurnRate);
-		}
-		ImGui::SameLine();
-		TooltipHelper("(?)", 
-			"Increases movement turn rate.");
-
-        ImGui::Text("");
-
-        ImGui::Text("Dante");
-
-        ImGui::PushItemWidth(150.0f);
-        GUI_Checkbox2("Improved Cancels", activeCrimsonConfig.Gameplay.Dante.improvedCancels, queuedCrimsonConfig.Gameplay.Dante.improvedCancels);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires Actor System.\n"
-                             "\n"
-                             "Enables a series of animation cancels for Dante, especially for moves between different styles.\nCheck out "
-                             "the 1.0 Patch Notes for more info. Replaces DDMK's Remove Busy Flag.");
-
-        GUI_Checkbox2("Aerial Rave Tweaks", activeCrimsonConfig.Gameplay.Dante.aerialRaveTweaks, queuedCrimsonConfig.Gameplay.Dante.aerialRaveTweaks);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires Actor System.\n"
-                             "\n"
-                             "Tweaks Aerial Rave Gravity, taking weights into account.");
-
-        GUI_Checkbox2("Air Flicker Tweaks", activeCrimsonConfig.Gameplay.Dante.airFlickerTweaks, queuedCrimsonConfig.Gameplay.Dante.airFlickerTweaks);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires Actor System.\n"
-                             "\n"
-                             "Tweaks Air Flicker Gravity, taking weights into account. Initial windup has less gravity than vanilla.");
-
-        GUI_Checkbox2("Sky Dance Tweaks", activeCrimsonConfig.Gameplay.Dante.skyDanceTweaks, queuedCrimsonConfig.Gameplay.Dante.skyDanceTweaks);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires Actor System.\n"
-                             "\n"
-                             "Sky Dance Part 3 is now a separate ability executed by Lock On + Forward + Style. Tweaks Sky Dance Gravity, "
-                             "taking weights into account.");
-
-		GUI_Checkbox2("Shotgun Air Shot Tweaks", activeCrimsonConfig.Gameplay.Dante.shotgunAirShotTweaks, queuedCrimsonConfig.Gameplay.Dante.shotgunAirShotTweaks);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"Tweaks Air Shotgun Gravity to be lower, making you rise less.");
-
-		GUI_Checkbox2("Drive Tweaks", activeCrimsonConfig.Gameplay.Dante.driveTweaks, queuedCrimsonConfig.Gameplay.Dante.driveTweaks);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"Drive is now inputted by Lock On + Back to Forward + Melee and can be held for more damage. Do Quick Drive by performing Drive after a Rebellion attack.");
-
-		GUI_Checkbox2("Bullet Stop", activeCrimsonConfig.Gameplay.Dante.bulletStop, queuedCrimsonConfig.Gameplay.Dante.bulletStop);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"Shots from E&I among other moves will stop enemy movement on air.");
-
-		GUI_Checkbox2("Rainstorm Lift", activeCrimsonConfig.Gameplay.Dante.rainstormLift, queuedCrimsonConfig.Gameplay.Dante.rainstormLift);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"Rainstorm will elevate you slightly in the air.");
-		//enableRebellionAirStinger
-		GUI_Checkbox2("Air Stinger", activeCrimsonConfig.Gameplay.Dante.airStinger, 
-			queuedCrimsonConfig.Gameplay.Dante.airStinger);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n");
-
-		GUI_Checkbox2("Air Tornado",
-			activeCrimsonConfig.Gameplay.Dante.airTornado,
-			queuedCrimsonConfig.Gameplay.Dante.airTornado);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"With Beowulf: Neutral + Style while in air. Reduces Tornado damage across the board. Carries inertia.");
-
-		GUI_Checkbox2("Air Rising Dragon Whirlwind", 
-			activeCrimsonConfig.Gameplay.Dante.airRisingDragonWhirlwind, 
-			queuedCrimsonConfig.Gameplay.Dante.airRisingDragonWhirlwind);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"With Beowulf: LockOn + Back + Melee while in air.");
-
-		GUI_Checkbox2("Air Agni & Rudra Whirlwind",
-			activeCrimsonConfig.Gameplay.Dante.airAgniRudraWhirlwind,
-			queuedCrimsonConfig.Gameplay.Dante.airAgniRudraWhirlwind);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"With Agni & Rudra: LockOn + Back + Melee while in air.");
-
-		if (GUI_Checkbox2("DMC4 Mobility", activeCrimsonConfig.Gameplay.Dante.dmc4Mobility, queuedCrimsonConfig.Gameplay.Dante.dmc4Mobility)) {
-			queuedConfig.airHikeCount[1] = 2;
-			queuedConfig.wallHikeCount[1] = 2;
-			queuedConfig.skyStarCount[1] = 2;
-			queuedConfig.airTrickCountDante[1] = 2;
-
-			activeConfig.airHikeCount[1] = 2;
-			activeConfig.wallHikeCount[1] = 2;
-			activeConfig.skyStarCount[1] = 2;
-			activeConfig.airTrickCountDante[1] = 2;
-		}
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-		"\n"
-		"Air Tricking from the ground does not consume the Air Trick Count. Also sets Air Trick, Air Hike and Sky Star Count to 2 when in DT.");
-
-
-		GUI_PushDisable(!activeConfig.Actor.enable);
-		if (!activeConfig.Actor.enable) {
-			activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard = false;
-		}
-		GUI_Checkbox2("DT Infused Royalguard", activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard, queuedCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"Royalguard Normal Blocks will consume DT instead, until you're low on DT. This will also prevent Guard Breaks by converting them into Normal Blocks.");
-		GUI_PopDisable(!activeConfig.Actor.enable);
-
-        ImGui::Text("");
-
-        ImGui::Text("");
-
-        ImGui::Text("Vergil");
-
-        ImGui::PushItemWidth(150.0f);
-        GUI_Checkbox2("Darkslayer Tricks Cancels Everything", activeCrimsonConfig.Gameplay.Vergil.darkslayerTrickCancels,
-            queuedCrimsonConfig.Gameplay.Vergil.darkslayerTrickCancels);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires Actor System.\n"
-                             "\n"
-                             "Enables Vergil to cancel any move with any Darkslayer Trick at any time.");
-
-		GUI_Checkbox2("Air Stinger", activeCrimsonConfig.Gameplay.Vergil.airStinger, queuedCrimsonConfig.Gameplay.Vergil.airStinger);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n");
-
-		GUI_Checkbox2("Round Trip Tweaks", activeConfig.enableYamatoForceEdgeNewRoundTrip, queuedConfig.enableYamatoForceEdgeNewRoundTrip);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"Enables Round Trip as Back to Forward input with Force Edge.");
-
-		UI::Combo2Vector("Adjust Rising Sun Positioning", VergilMoveAdjustmentsNames, activeCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos,
-			queuedCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"Stops Rising Sun from going upwards, still launches enemy.");
-
-		UI::Combo2Vector("Adjust Lunar Phase Positioning", VergilMoveAdjustmentsNames, activeCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos,
-			queuedCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Requires Actor System.\n"
-			"\n"
-			"Stops Lunar Phase from going upwards, enemy behavior intact.");
-
-
-        ImGui::Text("");
-        ImGui::Text("");
-
-        ImGui::Text("Input Remaps");
-        ImGui::SameLine();
-        TooltipHelper(
-            "(?)", "Remaps are global for all controllers, will only take into account Player 1's active Character for the switch.");
-
-        GUI_ButtonCombo2("Dante DT Button", activeCrimsonConfig.Gameplay.Remaps.danteDTButton, queuedCrimsonConfig.Gameplay.Remaps.danteDTButton);
-        GUI_ButtonCombo2("Dante Shoot Button", activeCrimsonConfig.Gameplay.Remaps.danteShootButton, queuedCrimsonConfig.Gameplay.Remaps.danteShootButton);
-        GUI_ButtonCombo2("Vergil DT Button", activeCrimsonConfig.Gameplay.Remaps.vergilDTButton, queuedCrimsonConfig.Gameplay.Remaps.vergilDTButton);
-        GUI_ButtonCombo2("Vergil Shoot Button", activeCrimsonConfig.Gameplay.Remaps.vergilShootButton, queuedCrimsonConfig.Gameplay.Remaps.vergilShootButton);
-    }
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
 }
 
+// Dante options section
+void DanteGameplayOptions() {
+	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	const float itemWidth = defaultFontSize * 8.0f;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-#pragma endregion
+	// Dante Options Section
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	ImGui::Text("DANTE GAMEPLAY OPTIONS");
+	ImGui::PopFont();
 
-#pragma region Vergil
+	UI::SeparatorEx(defaultFontSize * 23.35f);
+
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+
+	ImGui::Text("");
+
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowHeight = 40.0f * queuedConfig.globalScale;
+
+		if (ImGui::BeginTable("DanteOptionsTable", 3)) {
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
+			ImGui::TableSetupColumn("b2", 0, columnWidth * 2.0f);
+			ImGui::TableSetupColumn("b3", 0, columnWidth * 2.0f);
+
+			// First row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Improved Cancels",
+				activeCrimsonConfig.Gameplay.Dante.improvedCancels,
+				queuedCrimsonConfig.Gameplay.Dante.improvedCancels)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nEnables a series of animation cancels for Dante, especially for moves between different styles.\nCheck out the 1.0 Patch Notes for more info. Replaces DDMK's Remove Busy Flag.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Aerial Rave Tweaks",
+				activeCrimsonConfig.Gameplay.Dante.aerialRaveTweaks,
+				queuedCrimsonConfig.Gameplay.Dante.aerialRaveTweaks)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nTweaks Aerial Rave Gravity, taking weights into account.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Air Flicker Tweaks",
+				activeCrimsonConfig.Gameplay.Dante.airFlickerTweaks,
+				queuedCrimsonConfig.Gameplay.Dante.airFlickerTweaks)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nTweaks Air Flicker Gravity, taking weights into account. Initial windup has less gravity than vanilla.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			// Second row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Sky Dance Tweaks",
+				activeCrimsonConfig.Gameplay.Dante.skyDanceTweaks,
+				queuedCrimsonConfig.Gameplay.Dante.skyDanceTweaks)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nSky Dance Part 3 is now a separate ability executed by Lock On + Forward + Style. Tweaks Sky Dance Gravity, taking weights into account.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Shotgun Air Shot Tweaks",
+				activeCrimsonConfig.Gameplay.Dante.shotgunAirShotTweaks,
+				queuedCrimsonConfig.Gameplay.Dante.shotgunAirShotTweaks)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nTweaks Air Shotgun Gravity to be lower, making you rise less.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Drive Tweaks",
+				activeCrimsonConfig.Gameplay.Dante.driveTweaks,
+				queuedCrimsonConfig.Gameplay.Dante.driveTweaks)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nDrive is now inputted by Lock On + Back to Forward + Melee and can be held for more damage. Do Quick Drive by performing Drive after a Rebellion attack.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			// Third row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Bullet Stop",
+				activeCrimsonConfig.Gameplay.Dante.bulletStop,
+				queuedCrimsonConfig.Gameplay.Dante.bulletStop)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nShots from E&I among other moves will stop enemy movement on air.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Rainstorm Lift",
+				activeCrimsonConfig.Gameplay.Dante.rainstormLift,
+				queuedCrimsonConfig.Gameplay.Dante.rainstormLift)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nRainstorm will elevate you slightly in the air.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Air Stinger",
+				activeCrimsonConfig.Gameplay.Dante.airStinger,
+				queuedCrimsonConfig.Gameplay.Dante.airStinger)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			// Fourth row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Air Tornado",
+				activeCrimsonConfig.Gameplay.Dante.airTornado,
+				queuedCrimsonConfig.Gameplay.Dante.airTornado)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nWith Beowulf: Neutral + Style while in air. Reduces Tornado damage across the board. Carries inertia.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Air Rising Dragon Whirlwind",
+				activeCrimsonConfig.Gameplay.Dante.airRisingDragonWhirlwind,
+				queuedCrimsonConfig.Gameplay.Dante.airRisingDragonWhirlwind)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nWith Beowulf: LockOn + Back + Melee while in air.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Air Agni & Rudra Whirlwind",
+				activeCrimsonConfig.Gameplay.Dante.airAgniRudraWhirlwind,
+				queuedCrimsonConfig.Gameplay.Dante.airAgniRudraWhirlwind)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nWith Agni & Rudra: LockOn + Back + Melee while in air.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			// Fifth row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("DMC4 Mobility",
+				activeCrimsonConfig.Gameplay.Dante.dmc4Mobility,
+				queuedCrimsonConfig.Gameplay.Dante.dmc4Mobility)) {
+				queuedConfig.airHikeCount[1] = 2;
+				queuedConfig.wallHikeCount[1] = 2;
+				queuedConfig.skyStarCount[1] = 2;
+				queuedConfig.airTrickCountDante[1] = 2;
+
+				activeConfig.airHikeCount[1] = 2;
+				activeConfig.wallHikeCount[1] = 2;
+				activeConfig.skyStarCount[1] = 2;
+				activeConfig.airTrickCountDante[1] = 2;
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nAir Tricking from the ground does not consume the Air Trick Count. Also sets Air Trick, Air Hike and Sky Star Count to 2 when in DT.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (!activeConfig.Actor.enable) {
+				activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard = false;
+			}
+			if (GUI_Checkbox2("DT Infused Royalguard",
+				activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard,
+				queuedCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nRoyalguard Normal Blocks will consume DT instead, until you're low on DT. This will also prevent Guard Breaks by converting them into Normal Blocks.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			// New options section headers
+			ImGui::TableNextColumn();
+
+			// Adding Air Hike section
+			if (GUI_Checkbox2("Air Hike Core Ability",
+				activeConfig.airHikeCoreAbility,
+				queuedConfig.airHikeCoreAbility)) {
+				ToggleAirHikeCoreAbility(activeConfig.airHikeCoreAbility);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Makes Air Hike available for all melee weapons.");
+
+			// Sixth row - Royalguard and Rebellion options
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Force Just Frame Release",
+				activeConfig.Royalguard.forceJustFrameRelease,
+				queuedConfig.Royalguard.forceJustFrameRelease)) {
+				CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Forces Royalguard Release to always be a Just Frame release.");
+
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Infinite Shredder",
+				activeConfig.rebellionInfiniteShredder,
+				queuedConfig.rebellionInfiniteShredder)) {
+				ToggleRebellionInfiniteShredder(activeConfig.rebellionInfiniteShredder);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Allows infinite use of Rebellion's Shredder move.");
+
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Infinite Sword Pierce",
+				activeConfig.Rebellion.infiniteSwordPierce,
+				queuedConfig.Rebellion.infiniteSwordPierce)) {
+				ToggleRebellionInfiniteSwordPierce(activeConfig.Rebellion.infiniteSwordPierce);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Allows infinite use of Rebellion's Sword Pierce move.");
+
+			// Seventh row - Drive options
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Enable New Drive",
+				activeConfig.enableRebellionNewDrive,
+				queuedConfig.enableRebellionNewDrive)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires enabled Actor module.\n\nPress Lock-On + Left + Melee Attack.");
+
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Enable Quick Drive",
+				activeConfig.enableRebellionQuickDrive,
+				queuedConfig.enableRebellionQuickDrive)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires enabled Actor module.\n\nIn Swordmaster hold Style Action and press Melee Attack twice.");
+
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Hold Drive",
+				activeConfig.rebellionHoldDrive,
+				queuedConfig.rebellionHoldDrive)) {
+				ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Allows holding the Drive attack for increased damage.");
+
+			// Eighth row - Cerberus, Nevan, E&I options
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Enable Air Revolver",
+				activeConfig.enableCerberusAirRevolver,
+				queuedConfig.enableCerberusAirRevolver)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires enabled Actor module.\n\nAllows using Cerberus Revolver in mid-air.");
+
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Enable New Vortex",
+				activeConfig.enableNevanNewVortex,
+				queuedConfig.enableNevanNewVortex)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires enabled Actor module.\n\nWhile in devil form press Any Direction + Melee Attack.");
+
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Foursome Time",
+				activeConfig.EbonyIvory.foursomeTime,
+				queuedConfig.EbonyIvory.foursomeTime)) {
+				ToggleEbonyIvoryFoursomeTime(activeConfig.EbonyIvory.foursomeTime);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Twosome Time fires 2 additional shots.");
+
+			// Ninth row - More E&I and Artemis options
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Infinite Rain Storm",
+				activeConfig.EbonyIvory.infiniteRainStorm,
+				queuedConfig.EbonyIvory.infiniteRainStorm)) {
+				ToggleEbonyIvoryInfiniteRainStorm(activeConfig.EbonyIvory.infiniteRainStorm);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Allows infinite use of Rain Storm.");
+
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Swap Normal Shot and Multi Lock",
+				activeConfig.Artemis.swapNormalShotAndMultiLock,
+				queuedConfig.Artemis.swapNormalShotAndMultiLock)) {
+				ToggleArtemisSwapNormalShotAndMultiLock(activeConfig.Artemis.swapNormalShotAndMultiLock);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Swaps Artemis normal shot and multi-lock functionality.");
+
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Instant Full Charge",
+				activeConfig.Artemis.instantFullCharge,
+				queuedConfig.Artemis.instantFullCharge)) {
+				ToggleArtemisInstantFullCharge(activeConfig.Artemis.instantFullCharge);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Artemis charges to full instantly.");
+
+			ImGui::EndTable();
+		}
+	}
+
+	ImGui::Text("");
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+}
 
 const char* dergilNames[] = {
-    "Default",
-    "Force Off",
-    "Force On",
+	"Default",
+	"Force Off",
+	"Force On",
 };
 
 
-void Vergil() {
-    if (ImGui::CollapsingHeader("Vergil")) {
-        ImGui::Text("");
+void VergilGameplayOptions() {
+	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	const float itemWidth = defaultFontSize * 8.0f;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	ImGui::Text("VERGIL GAMEPLAY OPTIONS");
+	ImGui::PopFont();
+	UI::SeparatorEx(defaultFontSize * 23.35f);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+	ImGui::Text("");
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.Yamato, &defaultConfig.Yamato, sizeof(queuedConfig.Yamato));
-            CopyMemory(&activeConfig.Yamato, &queuedConfig.Yamato, sizeof(activeConfig.Yamato));
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowHeight = 40.0f * queuedConfig.globalScale;
+		if (ImGui::BeginTable("VergilOptionsTable", 3)) {
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
+			ImGui::TableSetupColumn("b2", 0, columnWidth * 2.0f);
+			ImGui::TableSetupColumn("b3", 0, columnWidth * 2.0f);
 
+			// First row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Darkslayer Tricks Cancels Everything",
+				activeCrimsonConfig.Gameplay.Vergil.darkslayerTrickCancels,
+				queuedCrimsonConfig.Gameplay.Vergil.darkslayerTrickCancels)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nEnables Vergil to cancel any move with any Darkslayer Trick at any time.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
 
-            CopyMemory(&queuedConfig.YamatoForceEdge, &defaultConfig.YamatoForceEdge, sizeof(queuedConfig.YamatoForceEdge));
-            CopyMemory(&activeConfig.YamatoForceEdge, &queuedConfig.YamatoForceEdge, sizeof(activeConfig.YamatoForceEdge));
+			ImGui::TableNextColumn();
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Air Stinger",
+				activeCrimsonConfig.Gameplay.Vergil.airStinger,
+				queuedCrimsonConfig.Gameplay.Vergil.airStinger)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
 
-            ToggleYamatoForceEdgeInfiniteRoundTrip(activeConfig.YamatoForceEdge.infiniteRoundTrip);
+			ImGui::TableNextColumn();
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Round Trip Tweaks",
+				activeConfig.enableYamatoForceEdgeNewRoundTrip,
+				queuedConfig.enableYamatoForceEdgeNewRoundTrip)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nEnables Round Trip as Back to Forward input with Force Edge.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
 
-            CopyMemory(&queuedConfig.SummonedSwords, &defaultConfig.SummonedSwords, sizeof(queuedConfig.SummonedSwords));
-            CopyMemory(&activeConfig.SummonedSwords, &queuedConfig.SummonedSwords, sizeof(activeConfig.SummonedSwords));
+			// Second row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			UI::Combo2Vector("Adjust Rising Sun Positioning",
+				VergilMoveAdjustmentsNames,
+				activeCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos,
+				queuedCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos);
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nStops Rising Sun from going upwards, still launches enemy.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
 
-            ToggleChronoSwords(activeConfig.SummonedSwords.chronoSwords);
+			ImGui::TableNextColumn();
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			UI::Combo2Vector("Adjust Lunar Phase Positioning",
+				VergilMoveAdjustmentsNames,
+				activeCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos,
+				queuedCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos);
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nStops Lunar Phase from going upwards, enemy behavior intact.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
 
-            CopyMemory(&queuedConfig.enableYamatoVergilNewJudgementCut, &defaultConfig.enableYamatoVergilNewJudgementCut,
-                sizeof(queuedConfig.enableYamatoVergilNewJudgementCut));
-            CopyMemory(&activeConfig.enableYamatoVergilNewJudgementCut, &queuedConfig.enableYamatoVergilNewJudgementCut,
-                sizeof(activeConfig.enableYamatoVergilNewJudgementCut));
+			// Third row - Quicksilver
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+			if (GUI_Checkbox2("Enable Quicksilver",
+				activeCrimsonConfig.Gameplay.Vergil.enableQuicksilver,
+				queuedCrimsonConfig.Gameplay.Vergil.enableQuicksilver)) {
+			}
 
-            CopyMemory(&queuedConfig.enableBeowulfVergilAirRisingSun, &defaultConfig.enableBeowulfVergilAirRisingSun,
-                sizeof(queuedConfig.enableBeowulfVergilAirRisingSun));
-            CopyMemory(&activeConfig.enableBeowulfVergilAirRisingSun, &queuedConfig.enableBeowulfVergilAirRisingSun,
-                sizeof(activeConfig.enableBeowulfVergilAirRisingSun));
+			ImGui::TableNextColumn();
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("New Combo Part 4",
+				activeConfig.enableYamatoForceEdgeNewComboPart4,
+				queuedConfig.enableYamatoForceEdgeNewComboPart4)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nPress Lock-On + Right + Melee Attack.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
 
-            CopyMemory(&queuedConfig.beowulfVergilAirRisingSunCount, &defaultConfig.beowulfVergilAirRisingSunCount,
-                sizeof(queuedConfig.beowulfVergilAirRisingSunCount));
-            CopyMemory(&activeConfig.beowulfVergilAirRisingSunCount, &queuedConfig.beowulfVergilAirRisingSunCount,
-                sizeof(activeConfig.beowulfVergilAirRisingSunCount));
+			ImGui::TableNextColumn();
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("New Judgement Cut",
+				activeConfig.enableYamatoVergilNewJudgementCut,
+				queuedConfig.enableYamatoVergilNewJudgementCut)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nPress Lock-On + Left + Melee Attack.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
 
-            CopyMemory(&queuedConfig.enableBeowulfVergilAirLunarPhase, &defaultConfig.enableBeowulfVergilAirLunarPhase,
-                sizeof(queuedConfig.enableBeowulfVergilAirLunarPhase));
-            CopyMemory(&activeConfig.enableBeowulfVergilAirLunarPhase, &queuedConfig.enableBeowulfVergilAirLunarPhase,
-                sizeof(activeConfig.enableBeowulfVergilAirLunarPhase));
+			// Fourth row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+			if (GUI_Checkbox2("Chrono Swords",
+				activeConfig.SummonedSwords.chronoSwords,
+				queuedConfig.SummonedSwords.chronoSwords)) {
+				ToggleChronoSwords(activeConfig.SummonedSwords.chronoSwords);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.\n\nSummoned Swords will continue to levitate as long as Quicksilver is active.");
 
-            CopyMemory(&queuedConfig.enableYamatoForceEdgeNewComboPart4, &defaultConfig.enableYamatoForceEdgeNewComboPart4,
-                sizeof(queuedConfig.enableYamatoForceEdgeNewComboPart4));
-            CopyMemory(&activeConfig.enableYamatoForceEdgeNewComboPart4, &queuedConfig.enableYamatoForceEdgeNewComboPart4,
-                sizeof(activeConfig.enableYamatoForceEdgeNewComboPart4));
+			ImGui::TableNextColumn();
+			if (GUI_Checkbox2("Infinite Round Trip",
+				activeConfig.YamatoForceEdge.infiniteRoundTrip,
+				queuedConfig.YamatoForceEdge.infiniteRoundTrip)) {
+				ToggleYamatoForceEdgeInfiniteRoundTrip(activeConfig.YamatoForceEdge.infiniteRoundTrip);
+			}
 
-            CopyMemory(&queuedConfig.enableYamatoForceEdgeAirStinger, &defaultConfig.enableYamatoForceEdgeAirStinger,
-                sizeof(queuedConfig.enableYamatoForceEdgeAirStinger));
-            CopyMemory(&activeConfig.enableYamatoForceEdgeAirStinger, &queuedConfig.enableYamatoForceEdgeAirStinger,
-                sizeof(activeConfig.enableYamatoForceEdgeAirStinger));
+			ImGui::TableNextColumn();
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Air Rising Sun",
+				activeConfig.enableBeowulfVergilAirRisingSun,
+				queuedConfig.enableBeowulfVergilAirRisingSun)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
 
-            CopyMemory(&queuedConfig.enableYamatoForceEdgeNewRoundTrip, &defaultConfig.enableYamatoForceEdgeNewRoundTrip,
-                sizeof(queuedConfig.enableYamatoForceEdgeNewRoundTrip));
-            CopyMemory(&activeConfig.enableYamatoForceEdgeNewRoundTrip, &queuedConfig.enableYamatoForceEdgeNewRoundTrip,
-                sizeof(activeConfig.enableYamatoForceEdgeNewRoundTrip));
+			// Fifth row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			if (UI::Combo2("Dergil", dergilNames, activeConfig.dergil, queuedConfig.dergil)) {
+				ToggleDergil(activeConfig.dergil);
+			}
+			ImGui::PopItemWidth();
 
+			ImGui::TableNextColumn();
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Air Lunar Phase",
+				activeConfig.enableBeowulfVergilAirLunarPhase,
+				queuedConfig.enableBeowulfVergilAirLunarPhase)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Actor System.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
 
-            CopyMemory(&queuedConfig.dergil, &defaultConfig.dergil, sizeof(queuedConfig.dergil));
-            CopyMemory(&activeConfig.dergil, &queuedConfig.dergil, sizeof(activeConfig.dergil));
+			ImGui::TableNextColumn();
+			{
+				bool condition = !activeConfig.enableBeowulfVergilAirRisingSun;
+				GUI_PushDisable(condition);
+				ImGui::PushItemWidth(itemWidth * 0.8f);
+				ActionData("Rising Sun Count",
+					activeConfig.beowulfVergilAirRisingSunCount,
+					queuedConfig.beowulfVergilAirRisingSunCount,
+					defaultConfig.beowulfVergilAirRisingSunCount);
+				ImGui::PopItemWidth();
+				GUI_PopDisable(condition);
+			}
 
-            ToggleDergil(activeConfig.dergil);
-        }
+			// Add extra rows for Judgement Cut Count
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			ActionData("Judgement Cut Count",
+				activeConfig.Yamato.judgementCutCount,
+				queuedConfig.Yamato.judgementCutCount,
+				defaultConfig.Yamato.judgementCutCount);
+			ImGui::PopItemWidth();
 
-        GUI_SectionEnd();
-        ImGui::Text("");
-		GUI_Checkbox2(
-			"Enable Quicksilver", activeCrimsonConfig.Gameplay.Vergil.enableQuicksilver, queuedCrimsonConfig.Gameplay.Vergil.enableQuicksilver);
+			ImGui::EndTable();
+		}
+	}
 
+	ImGui::Text("");
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+}
 
-        ImGui::Text("Yamato");
-        ImGui::Text("");
+void InputRemapOptions() {
+	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	const float itemWidth = defaultFontSize * 8.0f;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	ImGui::Text("INPUT REMAPS");
+	ImGui::PopFont();
 
-        GUI_Checkbox2(
-            "Enable New Judgement Cut", activeConfig.enableYamatoVergilNewJudgementCut, queuedConfig.enableYamatoVergilNewJudgementCut);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.\n"
-                             "\n"
-                             "Press Lock-On + Left + Melee Attack.");
-        ImGui::Text("");
+	UI::SeparatorEx(defaultFontSize * 23.35f);
 
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
-        TooltipHelper("(?)", "Requires enabled Actor module.\n"
-                             "\n"
-                             "Left : Human\n"
-                             "Right: Devil");
-        ImGui::Text("");
+	ImGui::Text("");
+	ImGui::SameLine();
+	TooltipHelper("(?)", "Remaps are global for all controllers, will only take into account Player 1's active Character for the switch.");
 
-        ActionData("Judgement Cut Count", activeConfig.Yamato.judgementCutCount, queuedConfig.Yamato.judgementCutCount,
-            defaultConfig.Yamato.judgementCutCount);
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowHeight = 40.0f * queuedConfig.globalScale;
 
-        GUI_SectionEnd();
-        ImGui::Text("");
+		if (ImGui::BeginTable("InputRemapsTable", 3)) {
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
+			ImGui::TableSetupColumn("b2", 0, columnWidth * 2.0f);
+			ImGui::TableSetupColumn("b3", 0, columnWidth * 2.0f);
 
+			// First row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
 
-        GUI_SectionStart("Beowulf");
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			GUI_ButtonCombo2("Dante DT Button",
+				activeCrimsonConfig.Gameplay.Remaps.danteDTButton,
+				queuedCrimsonConfig.Gameplay.Remaps.danteDTButton);
+			ImGui::PopItemWidth();
 
-        GUI_Checkbox2("Enable Air Rising Sun", activeConfig.enableBeowulfVergilAirRisingSun, queuedConfig.enableBeowulfVergilAirRisingSun);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.");
-        ImGui::Text("");
+			ImGui::TableNextColumn();
 
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			GUI_ButtonCombo2("Dante Shoot Button",
+				activeCrimsonConfig.Gameplay.Remaps.danteShootButton,
+				queuedCrimsonConfig.Gameplay.Remaps.danteShootButton);
+			ImGui::PopItemWidth();
 
-        TooltipHelper("(?)", "Requires enabled Actor module.\n"
-                             "\n"
-                             "Left : Human\n"
-                             "Right: Devil");
-        ImGui::Text("");
+			// Second row
+			ImGui::TableNextRow(0, rowHeight * 0.5f);
+			ImGui::TableNextColumn();
 
-        {
-            bool condition = !activeConfig.enableBeowulfVergilAirRisingSun;
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			GUI_ButtonCombo2("Vergil DT Button",
+				activeCrimsonConfig.Gameplay.Remaps.vergilDTButton,
+				queuedCrimsonConfig.Gameplay.Remaps.vergilDTButton);
+			ImGui::PopItemWidth();
 
-            GUI_PushDisable(condition);
+			ImGui::TableNextColumn();
 
-            ActionData("Air Rising Sun Count", activeConfig.beowulfVergilAirRisingSunCount, queuedConfig.beowulfVergilAirRisingSunCount,
-                defaultConfig.beowulfVergilAirRisingSunCount);
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			GUI_ButtonCombo2("Vergil Shoot Button",
+				activeCrimsonConfig.Gameplay.Remaps.vergilShootButton,
+				queuedCrimsonConfig.Gameplay.Remaps.vergilShootButton);
+			ImGui::PopItemWidth();
 
-            GUI_PopDisable(condition);
-        }
-        ImGui::Text("");
+			ImGui::EndTable();
+		}
+	}
 
-        GUI_Checkbox2(
-            "Enable Air Lunar Phase", activeConfig.enableBeowulfVergilAirLunarPhase, queuedConfig.enableBeowulfVergilAirLunarPhase);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.");
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+}
 
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-
-        ImGui::Text("Yamato & Force Edge");
-        ImGui::Text("");
-
-        if (GUI_Checkbox2(
-                "Infinite Round Trip", activeConfig.YamatoForceEdge.infiniteRoundTrip, queuedConfig.YamatoForceEdge.infiniteRoundTrip)) {
-            ToggleYamatoForceEdgeInfiniteRoundTrip(activeConfig.YamatoForceEdge.infiniteRoundTrip);
-        }
-
-        GUI_Checkbox2(
-            "Enable New Combo Part 4", activeConfig.enableYamatoForceEdgeNewComboPart4, queuedConfig.enableYamatoForceEdgeNewComboPart4);
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.\n"
-                             "\n"
-                             "Press Lock-On + Right + Melee Attack.");
-
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-
-        GUI_SectionStart("Summoned Swords");
-
-        if (GUI_Checkbox2("Chrono Swords", activeConfig.SummonedSwords.chronoSwords, queuedConfig.SummonedSwords.chronoSwords)) {
-            ToggleChronoSwords(activeConfig.SummonedSwords.chronoSwords);
-        }
-        ImGui::SameLine();
-        TooltipHelper("(?)", "Requires enabled Actor module.\n"
-                             "\n"
-                             "Summoned Swords will continue to levitate as long as Quicksilver is active.");
-
-        GUI_SectionEnd();
-        ImGui::Text("");
-
-
-        ImGui::PushItemWidth(150.0f);
-
-        if (UI::Combo2("Dergil", dergilNames, activeConfig.dergil, queuedConfig.dergil)) {
-            ToggleDergil(activeConfig.dergil);
-        }
-
-        ImGui::PopItemWidth();
-
-
-        ImGui::Text("");
-    }
+void GameplaySection() {
+	GeneralGameplayOptions();
+	DanteGameplayOptions();
+	VergilGameplayOptions();
+	InputRemapOptions();
 }
 
 #pragma endregion
-
 
 #pragma region Hotkeys
 
@@ -10551,22 +10721,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					{
-						ImGui::Text("");
+						//GamepadClose(visibleMain, lastVisibleMain, CloseMain);
 
-						GamepadClose(visibleMain, lastVisibleMain, CloseMain);
-
-
-						ImGui::PushItemWidth(150);
-
-
-						ImGui::PopItemWidth();
-
-						Dante();
-						Lady();
-						Repair();
-						GameplayOptions();
-						Vergil();
-
+						GameplaySection();
 					}
 				}
 				ImGui::EndChild();
@@ -10918,6 +11075,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						DamageSection();
 						MobilitySection();
 						Other();
+						Lady();
+						Repair();
 						
 					}
 				}
