@@ -407,19 +407,18 @@ void KeyBinding::Main() {
 }
 
 
-void KeyBinding::Popup()
-
-{
+void KeyBinding::Popup() {
     if (!showPopup) {
         return;
     }
+    auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 
 
     auto keys32      = *reinterpret_cast<uint32*>(popupKeyData.keys);
     auto& lastKeys32 = popup.lastKeys32;
 
-    constexpr float width  = 420;
-    constexpr float height = 128;
+    constexpr float width  = 600;
+    constexpr float height = 330;
 
 
     if (!popup.run) {
@@ -429,12 +428,43 @@ void KeyBinding::Popup()
         ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
     }
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 20.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 20.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
 
-    if (ImGui::Begin("KeyPopup", &showPopup, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 0.85f)); 
+
+    if (ImGui::Begin("KeyPopup", &showPopup, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
+
+		
+		// Add some spacing so the text below doesn't overlap the button
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10.0f);
+
+        ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.2f]);
+        ImGui::Text("Capturing Inputs...");
+        ImGui::SameLine();
+		// Create a close button 'X' at the top right
+		float closeButtonSize = 24.0f;
+		ImVec2 windowSize = ImGui::GetWindowSize();
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));   
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1, 1, 1, 0.1f)); 
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1, 1, 1, 0.2f));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));       // remove inner padding
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);              // no rounding
+		ImGui::SetCursorPos(ImVec2(windowSize.x - closeButtonSize - 20.0f, 10.0f));
+        ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 1.2f]);
+		if (ImGui::Button("X", ImVec2(closeButtonSize, closeButtonSize))) {
+			showPopup = false;
+		}
+        ImGui::PopFont();
+        ImGui::PopStyleVar(2);
+		ImGui::PopStyleColor(3); 
+
+
+        ImGui::PopFont();
+        ImGui::Text("");
+        ImGui::Text("");
         ImGui::Text("");
 
 
@@ -444,29 +474,32 @@ void KeyBinding::Popup()
             UpdateBuffer(popup, popupKeyData);
         }
 
-
+        ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.3f]);
         CenterText(popup.buffer);
+        ImGui::PopFont();
+        ImGui::Text("");
+        ImGui::Text("");
         ImGui::Text("");
 
 
-        const auto buttonSize = ImVec2{64, ImGui::GetFrameHeight()};
+        const auto buttonSize = ImVec2{120, 40};
 
         auto& style = ImGui::GetStyle();
 
         CenterCursorX((buttonSize.x * 3) + (style.ItemInnerSpacing.x * 2));
 
 
-        if (GUI_Button("Escape", buttonSize)) {
+        if (GUI_Button("Capture Escape", buttonSize)) {
             popupKeyData.AddKey(KEY::ESCAPE);
         }
         ImGui::SameLine();
 
-        if (GUI_Button("Delete", buttonSize)) {
+        if (GUI_Button("Capture Delete", buttonSize)) {
             popupKeyData.AddKey(KEY::DELETE);
         }
         ImGui::SameLine();
 
-        if (GUI_Button("Enter", buttonSize)) {
+        if (GUI_Button("Capture Enter", buttonSize)) {
             popupKeyData.AddKey(KEY::ENTER);
         }
         ImGui::Text("");
@@ -481,7 +514,10 @@ void KeyBinding::Popup()
         ImGui::Text("");
     }
 
+
     ImGui::End();
+
+    ImGui::PopStyleColor();
 
     ImGui::PopStyleVar(4);
 }
