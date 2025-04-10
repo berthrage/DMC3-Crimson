@@ -11323,7 +11323,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 		// C Team area
 		{
-			const ImVec2 areaSize = cntWindow->Size * ImVec2{ areaPaddingXRation, 0.8f };
+			const ImVec2 areaSize = cntWindow->Size * ImVec2{ areaPaddingXRation, 1.0f };
 			const ImVec2 areaMin{ cntWindow->Pos.x + areaPaddingX,
 									 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
 
@@ -11381,7 +11381,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
 					{
-						ImGui::Text("Project Director, Artist, Gameplay Programmer");
+						ImGui::Text("Project Director, Lead Programmer, Artist, Reverse Engineering");
 					}
 					ImGui::PopFont();
 
@@ -11399,7 +11399,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						ImGui::SetCursorScreenPos(ImVec2{ window->ContentRegionRect.Max.x - socialsBBFrameSize.x, currentCursorPos.y });
 
 						if (fnDrawSocialButton("miatwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
-							ShellExecute(0, 0, "https://twitter.com/MiaBerth", 0, 0, SW_SHOW);
+							ShellExecute(0, 0, "https://twitter.com/Berthrage", 0, 0, SW_SHOW);
 						}
 
 						ImGui::SameLine(0.0f, 0.0f);
@@ -11411,7 +11411,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						ImGui::SameLine(0.0f, 0.0f);
 
 						if (fnDrawSocialButton("miayt", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
-							ShellExecute(0, 0, "https://www.youtube.com/@MiaBerth", 0, 0, SW_SHOW);
+							ShellExecute(0, 0, "https://www.youtube.com/@Berthrage", 0, 0, SW_SHOW);
 						}
 
 						ImGui::SameLine(0.0f, 0.0f);
@@ -11441,7 +11441,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
 					{
-						ImGui::Text("Reverse Engineering, Gameplay Programmer");
+						ImGui::Text("Reverse Engineering, Gameplay Programmer, Q&A, Testing");
 					}
 					ImGui::PopFont();
 
@@ -11471,7 +11471,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
 					{
-						ImGui::Text("Reverse Engineering, Graphics Programmer");
+						ImGui::Text("Reverse Engineering, Tooling, Graphics Programmer");
 					}
 					ImGui::PopFont();
 
@@ -11507,7 +11507,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
 					{
-						ImGui::Text("Backend Engineering, GUI Programmer");
+						ImGui::Text("Backend, DevOps, General Programmer, Reverse Engineering");
 					}
 					ImGui::PopFont();
 
@@ -11539,9 +11539,133 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.7f);
 
+				// Additional Work
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 1.2f)]);
+					{
+						ImGui::Text("With Additional Work By");
+					}
+					ImGui::PopFont();
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.2f);
+
+					// Charlie
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+						{
+							ImGui::Text("Community Manager, Testing, Q&A");
+						}
+						ImGui::PopFont();
+
+						ImGui::Separator();
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Text("Charlie");
+
+							ImGui::SameLine();
+
+							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
+							}
+						}
+						ImGui::PopFont();
+					}
+
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+						{
+							ImGui::Text("Artist");
+						}
+						ImGui::PopFont();
+
+						ImGui::Separator();
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Text("Cynuma");
+
+							ImGui::SameLine();
+ 							
+							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+ 									ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
+							}
+						}
+						ImGui::PopFont();
+					}
+
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+						{
+							ImGui::Text("3D Artist");
+						}
+						ImGui::PopFont();
+
+						ImGui::Separator();
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Text("Omar Nabelse");
+
+							ImGui::SameLine();
+
+							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
+							}
+						}
+						ImGui::PopFont();
+					}
+
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+						{
+							ImGui::Text("Mod Tooling");
+						}
+						ImGui::PopFont();
+
+						ImGui::Separator();
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Text("Che");
+
+							ImGui::SameLine();
+
+							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
+							}
+						}
+						ImGui::PopFont();
+					}
+
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+						{
+							ImGui::Text("Artist");
+						}
+						ImGui::PopFont();
+
+						ImGui::Separator();
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Text("Vainiuss1");
+
+							ImGui::SameLine();
+
+							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
+							}
+						}
+						ImGui::PopFont();
+					}
+				}
+
+				ImGui::Text("");
+
 				// Serp
 				{
-					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 1.1f)]);
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 1.2f)]);
 					{
 						ImGui::Text("Original DDMK Developer");
 					}

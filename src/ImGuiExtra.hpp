@@ -163,10 +163,8 @@ namespace UI {
 		std::vector<const char*> SpecialThanksNames{
 			"serpentiem",
 			"Bibic<3",
-			"Che",
-			"Vainiuss1",
-			"Aleziinah",
 			"Zuzu",
+			"Sammy",
 			"Bini",
 			"Johnny",
 			"Matt",
