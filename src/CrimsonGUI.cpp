@@ -2318,6 +2318,21 @@ void Actor_UpdateIndices() {
 	}
 }
 
+void BackgroundPlayerText(uint8 playerIndex) {
+	const char* playerIndexNames[PLAYER_COUNT] = { "1P", "2P", "3P", "4P" };
+	std::string playerBackgroundText = std::string(playerIndexNames[playerIndex]) + " - " + activeCrimsonConfig.PlayerProperties.playerName[playerIndex];
+	ImGuiWindow* window = ImGui::GetCurrentWindow();
+	ImRect wndRect = window->Rect();
+	const ImVec2 tabBtnSize = { UI::g_UIContext.DefaultFontSize * 9.38f, UI::g_UIContext.DefaultFontSize * 2.4f };
+
+	ImVec2 pos{ wndRect.Min.x + UI::g_UIContext.DefaultFontSize * 0.1f,
+							wndRect.Min.y + (3.0f * tabBtnSize.y)/*Header Space*/ + UI::g_UIContext.DefaultFontSize * 1.3f };
+
+
+	window->DrawList->AddText(UI::g_ImGuiFont_RussoOne256, UI::g_UIContext.DefaultFontSize * 6.6f, pos,
+		UI::SwapColorEndianness(0xFFFFFF10), playerBackgroundText.c_str());
+}
+
 void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex, size_t defaultFontSize) {
 	auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
 	auto& queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
@@ -2341,6 +2356,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 	ImGui::Text("");
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
+
 
 	{
 		const float columnWidth = 0.8f * queuedConfig.globalScale;
@@ -2384,6 +2400,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 			ImGui::PopItemWidth();
 			ImGui::PopFont();
 
+			BackgroundPlayerText(playerIndex);
 
 
 			if ((queuedCharacterData.character == CHARACTER::DANTE) || (queuedCharacterData.character == CHARACTER::VERGIL)) {
@@ -2671,6 +2688,7 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	
 
 	GUI_Slider<uint8>("Number of Characters", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
 
@@ -2687,6 +2705,8 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 			queuedPlayerData.collisionGroup);
 
 	}
+
+	BackgroundPlayerText(playerIndex);
 
 
 	//     if (GUI_Button("Reset")) {
@@ -2858,6 +2878,19 @@ void CharacterSection(size_t defaultFontSize) {
 	const char* SPMPText = (queuedConfig.Actor.playerCount == 1) ? SPMPText = "SINGLE PLAYER" : SPMPText = "MULTIPLAYER";
 	ImGui::Text(SPMPText);
 	ImGui::PopFont();
+	{
+		ImGuiWindow* window = ImGui::GetCurrentWindow();
+		ImRect wndRect = window->Rect();
+		const ImVec2 tabBtnSize = { UI::g_UIContext.DefaultFontSize * 9.38f, UI::g_UIContext.DefaultFontSize * 2.4f };
+
+		ImVec2 pos{ wndRect.Min.x + UI::g_UIContext.DefaultFontSize * 0.1f,
+								wndRect.Min.y + (8.0f * tabBtnSize.y)/*Header Space*/ + UI::g_UIContext.DefaultFontSize * 1.3f };
+
+
+		window->DrawList->AddText(UI::g_ImGuiFont_RussoOne256, UI::g_UIContext.DefaultFontSize * 6.6f, pos,
+			UI::SwapColorEndianness(0xFFFFFF10), SPMPText);
+	}
+	
 
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushItemWidth(itemWidth);
