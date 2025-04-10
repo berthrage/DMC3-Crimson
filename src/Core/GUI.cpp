@@ -4,6 +4,8 @@
 //
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "Core.hpp"
+#include "../Sound.hpp"
+#include "../CrimsonConfig.hpp"
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include <dxgi.h>
@@ -60,6 +62,7 @@ bool GUI_Checkbox(const char* label, bool& var) {
 
     if (update) {
         ::GUI::save = true;
+        if (activeCrimsonConfig.GUI.sounds) PlaySound(0, 25);
     }
 
     return update;

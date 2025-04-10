@@ -7836,7 +7836,7 @@ void InterfaceSection(size_t defaultFontSize) {
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
 
-    ImGui::Text("GUI OPTIONS");
+    ImGui::Text("CRIMSON GUI OPTIONS");
 
 	ImGui::PopFont();
 
@@ -7894,6 +7894,11 @@ void InterfaceSection(size_t defaultFontSize) {
 					Speed::Toggle(false);
 				}
 			}
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("GUI Sounds", 
+				activeCrimsonConfig.GUI.sounds, queuedCrimsonConfig.GUI.sounds);
 	
 
 			ImGui::EndTable();

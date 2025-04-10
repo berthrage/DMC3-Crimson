@@ -356,14 +356,14 @@ void OpenMain() {
 
     ::CoreImGui::XI::UpdateGamepad(&state);
 
-    PlaySound(0, 4);
+    if (activeCrimsonConfig.GUI.sounds) PlaySound(0, 4);
 }
 
 void CloseMain() {
     DebugLogFunction();
 
     g_showMain = false;
-    PlaySound(0, 3);
+    if (activeCrimsonConfig.GUI.sounds) PlaySound(0, 3);
 }
 
 void ToggleCrimsonGUI() {
