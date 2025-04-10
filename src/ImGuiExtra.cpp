@@ -1,5 +1,6 @@
 #include "ImGuiExtra.hpp"
 #include "Config.hpp"
+#include "Sound.hpp"
 
 #include <format>
 
@@ -205,6 +206,9 @@ namespace UI {
 
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, !isEnabled);
 		bool ret = ButtonEx(label, size, SwapColorEndianness(0xFFFFFFFF), ImGuiButtonFlags_None);
+		if (ret) {
+			PlaySound(0, 2);
+		}
 		ImGui::PopItemFlag();
 
 		ImGui::PopStyleColor(4);
@@ -231,6 +235,7 @@ namespace UI {
 						subTabArrowCenterPos.y - triHeight * 0.5f },
 				0xFFFFFFFF);
 		}
+
 
 		return ret;
 	}
