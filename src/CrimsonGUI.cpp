@@ -915,7 +915,7 @@ const char* characterNames[] = {
 
 const char* costumeRespectsProgressionNames[] = {
 	"Off",
-	"Original (Vanilla Default)",
+	"Vanilla",
 	"Crimson",
 };
 
@@ -2817,7 +2817,7 @@ void SelectPlayerLoadoutsWeaponsTab() {
 
 }
 
-void ActorSection(size_t defaultFontSize) {
+void CharacterSection(size_t defaultFontSize) {
 
 	const float itemWidth = defaultFontSize * 8.0f;
 	const float columnWidth = 0.8f * queuedConfig.globalScale;
@@ -2826,77 +2826,29 @@ void ActorSection(size_t defaultFontSize) {
 
 	bool actorCondition = (!queuedConfig.Actor.enable);
 
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	GUI_Checkbox("CRIMSON CHARACTER SYSTEM       ", queuedConfig.Actor.enable);
+	ImGui::PopFont();
+
+	if (!queuedConfig.Actor.enable) {
+		ImGui::SameLine();
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.871f, 0.110f, 0.298f, 1.0f));
+		ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+		ImGui::Text("Crimson Character System is disabled. Most Gameplay Options and Multiplayer will not work.");
+		ImGui::PopStyleColor();
+		ImGui::PopFont();
+	}
+	UI::SeparatorEx(defaultFontSize * 23.35f);
+	
 	GUI_PushDisable(actorCondition);
 
-
-	// 	if (GUI_ResetButton()) {
-	// 		CopyMemory(&queuedConfig.Actor, &defaultConfig.Actor, sizeof(queuedConfig.Actor));
-	// 
-	// 		old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-	// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].button, &defaultConfig.Actor.playerData[playerIndex].button,
-	// 				sizeof(queuedConfig.Actor.playerData[playerIndex].button));
-	// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].button, &queuedConfig.Actor.playerData[playerIndex].button,
-	// 				sizeof(activeConfig.Actor.playerData[playerIndex].button));
-	// 
-	// 
-	// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
-	// 				&defaultConfig.Actor.playerData[playerIndex].removeBusyFlag,
-	// 				sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlag));
-	// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlag,
-	// 				&queuedConfig.Actor.playerData[playerIndex].removeBusyFlag,
-	// 				sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlag));
-	// 
-	// 			CopyMemory(&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-	// 				&defaultConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-	// 				sizeof(queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
-	// 			CopyMemory(&activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-	// 				&queuedConfig.Actor.playerData[playerIndex].removeBusyFlagButtons,
-	// 				sizeof(activeConfig.Actor.playerData[playerIndex].removeBusyFlagButtons));
-	// 		}
-	// 
-	// 		Actor_UpdateIndices();
-	// 
-	// 		CopyMemory(&queuedConfig.updateLockOns, &defaultConfig.updateLockOns, sizeof(queuedConfig.updateLockOns));
-	// 		CopyMemory(&activeConfig.updateLockOns, &queuedConfig.updateLockOns, sizeof(activeConfig.updateLockOns));
-	// 
-	// 		CopyMemory(&queuedConfig.forceSyncHitMagicPoints, &defaultConfig.forceSyncHitMagicPoints,
-	// 			sizeof(queuedConfig.forceSyncHitMagicPoints));
-	// 		CopyMemory(
-	// 			&activeConfig.forceSyncHitMagicPoints, &queuedConfig.forceSyncHitMagicPoints, sizeof(activeConfig.forceSyncHitMagicPoints));
-	// 
-	// 		CopyMemory(&queuedConfig.resetPermissions, &defaultConfig.resetPermissions, sizeof(queuedConfig.resetPermissions));
-	// 		CopyMemory(&activeConfig.resetPermissions, &queuedConfig.resetPermissions, sizeof(activeConfig.resetPermissions));
-	// 
-	// 
-	// 		CopyMemory(&queuedConfig.enableBossLadyFixes, &defaultConfig.enableBossLadyFixes, sizeof(queuedConfig.enableBossLadyFixes));
-	// 		CopyMemory(&activeConfig.enableBossLadyFixes, &queuedConfig.enableBossLadyFixes, sizeof(activeConfig.enableBossLadyFixes));
-	// 
-	// 		CopyMemory(
-	// 			&queuedConfig.enableBossVergilFixes, &defaultConfig.enableBossVergilFixes, sizeof(queuedConfig.enableBossVergilFixes));
-	// 		CopyMemory(
-	// 			&activeConfig.enableBossVergilFixes, &queuedConfig.enableBossVergilFixes, sizeof(activeConfig.enableBossVergilFixes));
-	// 
-	// 		CopyMemory(&queuedConfig.enablePVPFixes, &defaultConfig.enablePVPFixes, sizeof(queuedConfig.enablePVPFixes));
-	// 		CopyMemory(&activeConfig.enablePVPFixes, &queuedConfig.enablePVPFixes, sizeof(activeConfig.enablePVPFixes));
-	// 
-	// 		ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
-	// 		ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
-	// 
-	// 		CopyMemory(&queuedConfig.absoluteUnit, &defaultConfig.absoluteUnit, sizeof(queuedConfig.absoluteUnit));
-	// 		CopyMemory(&activeConfig.absoluteUnit, &queuedConfig.absoluteUnit, sizeof(activeConfig.absoluteUnit));
-	// 	}
+	ImGui::Text("");
 
 	SelectPlayerLoadoutsWeaponsTab();
 
 	GUI_PopDisable(actorCondition);
 
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-	GUI_Checkbox("ACTOR SYSTEM", queuedConfig.Actor.enable);
-	ImGui::PopFont();
-	UI::SeparatorEx(defaultFontSize * 23.35f);
-
-	ImGui::Text("");
-
+	
 	GUI_PushDisable(actorCondition);
 
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
@@ -2910,14 +2862,13 @@ void ActorSection(size_t defaultFontSize) {
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushItemWidth(itemWidth);
 	GUI_Slider<uint8>("Number of Players", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT);
-	UI::Combo2("Costume Game Progression", costumeRespectsProgressionNames, activeConfig.costumeRespectsProgression,
+	UI::Combo2("DMC3 Costume Game Progression", costumeRespectsProgressionNames, activeConfig.costumeRespectsProgression,
 		queuedConfig.costumeRespectsProgression);
 
 	ImGui::SameLine();
 	TooltipHelper("(?)", "Makes DMC3 Costume update as the game progresses, as in the Vanilla game.\n"
 		"\n"
-		"Original behaves the same as the Vanilla Game.\n"
-		"Crimson also updates Vergil's First Costume."
+		"'Crimson' updates Vergil's Costume at Mission 1."
 
 	);
 
@@ -10438,7 +10389,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
 			ImGui::PopStyleVar();
 			{
-                ActorSection(context.DefaultFontSize);
+                CharacterSection(context.DefaultFontSize);
 			}
 			ImGui::EndChild();
 		}
@@ -10458,7 +10409,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
 			ImGui::PopStyleVar();
 			{
-                constexpr auto ACTOR_SYSTEM_INTRO = u8"Custom Character Creation and Spawning System created by DDMK's Serpentiem.";
+                constexpr auto ACTOR_SYSTEM_INTRO = u8"Custom Character Creation and Spawning System primarily developed by DDMK's Serpentiem (Formerly 'Actor System').";
                 constexpr auto FEATURE_STYLE_SWITCH = u8"   • Style Switching;";
                 constexpr auto FEATURE_WEAPONS = u8"   • Custom Weapon Loadouts;";
                 constexpr auto FEATURE_CHAR_SWITCH = u8"   • Character Switching;";
@@ -10466,7 +10417,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
                 constexpr auto FEATURE_DOPPEL_TWEAKS = u8"   • Doppelganger Tweaks;";
 
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
-				ImGui::Text("ACTOR SYSTEM");
+				ImGui::Text("CRIMSON CHARACTER SYSTEM");
 				ImGui::PopFont();
 
 
@@ -10484,7 +10435,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
                 ImGui::TextWrapped((const char*) FEATURE_DOPPEL_TWEAKS);
                 ImGui::TextWrapped("");
                 ImGui::TextWrapped("");
-                ImGui::TextWrapped("*Required for Crimson Mode to stay enabled.");
+                ImGui::TextWrapped("*Required for Crimson and Style Switcher Modes.");
                 ImGui::TextWrapped("**Changes the Divinity Statue (Shop) UI.");
 				ImGui::TextWrapped("(Automatically disables itself during Battle of Brothers and End Credits for stability).");
 
