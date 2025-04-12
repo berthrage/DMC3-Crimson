@@ -6,6 +6,7 @@
 #include "Core.hpp"
 #include "../Sound.hpp"
 #include "../CrimsonConfig.hpp"
+#include "../CrimsonUtil.hpp"
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include <dxgi.h>
@@ -185,7 +186,74 @@ bool GUI_ButtonCombo(const char* label, uint16_t& currentButton) {
 	}
 
 	return update;
+}
 
+bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequired, float separatorSize) {
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+
+    auto update = GUI_Checkbox2(title, activeConfig.Arcade.enable, queuedConfig.Arcade.enable);
+	ImGui::PopFont();
+
+	if (ccsRequired) {
+		ImGui::SameLine();
+		GUI_CCSRequirementButton();
+	}
+
+	UI::SeparatorEx(separatorSize);
+	ImGui::Text("");
+
+    return update;
+}
+
+void GUI_Title(const char* title, bool ccsRequired, float separatorSize) {
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	ImGui::Text(title);
+	ImGui::PopFont();
+	if (ccsRequired) {
+		ImGui::SameLine();
+		GUI_CCSRequirementButton();
+	}
+	UI::SeparatorEx(separatorSize);
+	ImGui::Text("");
+}
+
+bool GUI_CCSRequirementButton() {
+	// Check if parent window is disabled by checking its alpha
+	float currentAlpha = ImGui::GetStyle().Alpha;
+	bool wasDisabled = currentAlpha < 1.0f; // Approximate check for disabled state
+
+	if (wasDisabled) {
+		// Only restore the item flag but keep the alpha (for visual appearance)
+		ImGui::PopItemFlag();
+	}
+
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	ImGui::PushStyleColor(ImGuiCol_Button, CrimsonUtil::HexToImVec4(0xD81B57FF));
+	ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.69f]);
+
+	ImGui::SmallButton("CCS");
+
+	ImGui::PopFont();
+	ImGui::PopItemFlag();
+	ImGui::PopStyleColor();
+
+	if (ImGui::IsItemHovered()) {
+		// Push full opacity for tooltip
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+		ImGui::SetTooltip("Requires Crimson Character System");
+		ImGui::PopStyleVar();
+	}
+
+	if (wasDisabled) {
+		// Restore disabled state
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+	}
+
+	return false;
 }
 
 bool GUI_ButtonCombo2(const char* label, uint16_t& currentButton, uint16_t& currentButton2) {

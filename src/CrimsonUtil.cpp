@@ -26,6 +26,14 @@ std::uint32_t Uint8toAABBGGRR(uint8 colorUint8[4]) {
     return color;
 }
 
+ImVec4 HexToImVec4(uint32_t hexColor) {
+	float r = ((hexColor >> 24) & 0xFF) / 255.0f;
+	float g = ((hexColor >> 16) & 0xFF) / 255.0f;
+	float b = ((hexColor >> 8) & 0xFF) / 255.0f;
+	float a = (hexColor & 0xFF) / 255.0f;
+	return ImVec4(r, g, b, a);
+}
+
 float sexy_clamp(const float val, const float minVal, const float maxVal) {
 	return max(minVal, min(val, maxVal));
 }

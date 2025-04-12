@@ -3377,7 +3377,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
             StyleSwitch(actorBaseAddr, 2); // DARKSLAYER
         }
 
-        if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 4 && !actorData.newIsClone && activeCrimsonConfig.Gameplay.Vergil.enableQuicksilver) {
+        if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 4 && !actorData.newIsClone && activeCrimsonConfig.Cheats.Vergil.quicksilverStyle) {
             StyleSwitch(actorBaseAddr, 4); // QUICKSILVER
         }
 
@@ -3970,7 +3970,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CrimsonPatches::RainstormLift(activeCrimsonConfig.Gameplay.Dante.rainstormLift);
     CrimsonPatches::ReduceAirTornadoDamage(activeCrimsonConfig.Gameplay.Dante.airTornado);
     CrimsonGameplay::FixAirStingerCancelTime(actorBaseAddr);
-    CrimsonGameplay::FasterRapidSlashDevil(actorBaseAddr);
+    CrimsonGameplay::FasterDTRapidSlash(actorBaseAddr);
     CrimsonGameplay::LastEventStateQueue(actorBaseAddr);
     CrimsonGameplay::DTInfusedRoyalguardController(actorBaseAddr);
     CrimsonFX::StyleRankHudFadeoutController();
@@ -8229,7 +8229,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
 //                 }
 
                 //CrimsonGameplay::FasterDarkslayerTricks();
-                // FasterRapidSlashDevil(actorBaseAddr);
+                // FasterDTRapidSlash(actorBaseAddr);
 
 
                 // actorData.styleData.meter = 200;
@@ -9116,7 +9116,7 @@ float* GetYamatoForceEdgeStingerRange(PlayerActorData& actorData) {
 uint32 GetYamatoJudgementCutCount(PlayerActorData& actorData) {
     uint8 index = (actorData.devil) ? 1 : 0;
 
-    return static_cast<uint32>(activeConfig.Yamato.judgementCutCount[index]);
+    return static_cast<uint32>(activeCrimsonConfig.Cheats.Vergil.judgementCutCount[index]);
 }
 
 void SetAction(byte8* actorBaseAddr) {
@@ -9302,10 +9302,6 @@ void SetAction(byte8* actorBaseAddr) {
         else if (activeConfig.enableBeowulfVergilAirLunarPhase && (actorData.action == BEOWULF_STARFALL_LEVEL_2) && lockOn &&
                  (tiltDirection == TILT_DIRECTION::UP)) {
             actorData.action = BEOWULF_LUNAR_PHASE_LEVEL_2;
-        } 
-        else if (activeConfig.enableYamatoForceEdgeNewComboPart4 && (actorData.action == YAMATO_FORCE_EDGE_COMBO_PART_1) && lockOn &&
-                   (tiltDirection == TILT_DIRECTION::RIGHT)) {
-            actorData.action = YAMATO_FORCE_EDGE_COMBO_PART_4;
         } 
 		else if (activeCrimsonConfig.Gameplay.Vergil.airStinger && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1] &&
                    (actorData.newAirStingerCount < activeConfig.YamatoForceEdge.airStingerCount[index]) && lockOn &&

@@ -12,7 +12,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr);
 void ImprovedCancelsDanteController(byte8* actorBaseAddr);
 void ImprovedCancelsVergilController(byte8* actorBaseAddr);
 void VergilAdjustAirMovesPos(byte8* actorBaseAddr);
-void FasterRapidSlashDevil(byte8* actorBaseAddr);
+void FasterDTRapidSlash(byte8* actorBaseAddr);
 void FasterDarkslayerTricks();
 float DrainDTBar(float currentDT, float maxDT, float elapsedTime, bool dtOn, float drainTimeDTOn, float drainTimeDTOff);
 float DrainMirageGauge(float currentMP, float elapsedTime, float totalDrainTime);

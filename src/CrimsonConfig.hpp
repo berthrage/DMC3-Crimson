@@ -311,16 +311,16 @@ struct CrimsonConfig {
         } Dante;
 
 		struct Vergil {
-			bool enableQuicksilver = false;
 			bool darkslayerTrickCancels = true;
+			bool fasterDTRapidSlash = true;
 			bool airStinger = true;
 			std::string adjustRisingSunPos = "From Air";
 			std::string adjustLunarPhasePos = "From Air";
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
-					std::make_pair("enableQuicksilver", &Vergil::enableQuicksilver),
 					std::make_pair("darkslayerTrickCancels", &Vergil::darkslayerTrickCancels),
+					std::make_pair("fasterRapidSlash", &Vergil::fasterDTRapidSlash),
 					std::make_pair("airStinger", &Vergil::airStinger),
 					std::make_pair("adjustRisingSunPos", &Vergil::adjustRisingSunPos),
 					std::make_pair("adjustLunarPhasePos", &Vergil::adjustLunarPhasePos)
@@ -373,10 +373,44 @@ struct CrimsonConfig {
 			}
 		} General;
 
+		struct Dante {
+			bool forceRoyalRelease = false;
+			bool infiniteShredder = false;
+			bool infiniteSwordPierce = false;
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("forceRoyalRelease", &Dante::forceRoyalRelease),
+					std::make_pair("infiniteShredder", &Dante::infiniteShredder),
+					std::make_pair("infiniteSwordPierce", &Dante::infiniteSwordPierce)
+				);
+			}
+		} Dante;
+
+		struct Vergil {
+			bool quicksilverStyle = false;
+			bool chronoSwords = false;
+			bool infiniteRoundTrip = false;
+			uint8 airRisingSunCount[2] = { 1, 1 };
+			uint8 judgementCutCount[2] = { 2, 2 };
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("quicksilver", &Vergil::quicksilverStyle),
+					std::make_pair("chronoSwords", &Vergil::chronoSwords),
+					std::make_pair("infiniteRoundTrip", &Vergil::infiniteRoundTrip),
+					std::make_pair("airRisingSunCount", &Vergil::airRisingSunCount),
+					std::make_pair("judgementCutCount", &Vergil::judgementCutCount)
+				);
+			}
+		} Vergil;
+
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
-				std::make_pair("General", &Cheats::General)
+				std::make_pair("General", &Cheats::General),
+				std::make_pair("Dante", &Cheats::Dante),
+				std::make_pair("Vergil", &Cheats::Vergil)
 			);
 		}
 	} Cheats;

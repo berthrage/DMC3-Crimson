@@ -1,10 +1,12 @@
 #pragma once
 #include <inttypes.h>
+#include "../ThirdParty/ImGui/imgui.h"
 namespace CrimsonUtil {
 int GetPlayerIndexFromAddr(uintptr_t playerPtr);
 float sexy_clamp(const float val, const float minVal, const float maxVal);
 float smoothstep(float edge0, float edge1, float x);
 std::uint32_t Uint8toAABBGGRR(uint8 colorUint8[4]);
+ImVec4 HexToImVec4(uint32_t hexColor);
 bool IsAddressValidAndWritable(uintptr_t address);
 
 

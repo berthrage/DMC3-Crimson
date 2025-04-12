@@ -846,10 +846,10 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
     }
 }
 
-void FasterRapidSlashDevil(byte8* actorBaseAddr) {
+void FasterDTRapidSlash(byte8* actorBaseAddr) {
     using namespace ACTION_DANTE;
     using namespace ACTION_VERGIL;
-    if (!actorBaseAddr) {
+    if (!actorBaseAddr || !activeCrimsonConfig.Gameplay.Vergil.fasterDTRapidSlash) {
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);

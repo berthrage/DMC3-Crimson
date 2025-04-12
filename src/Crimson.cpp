@@ -181,9 +181,9 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         UpdateCrazyComboLevelMultiplier();
 
         ToggleAirHikeCoreAbility(activeConfig.airHikeCoreAbility);
-        CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
-        ToggleRebellionInfiniteSwordPierce(activeConfig.Rebellion.infiniteSwordPierce);
-        ToggleYamatoForceEdgeInfiniteRoundTrip(activeConfig.YamatoForceEdge.infiniteRoundTrip);
+        CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeCrimsonConfig.Cheats.Dante.forceRoyalRelease);
+        ToggleRebellionInfiniteSwordPierce(activeCrimsonConfig.Cheats.Dante.infiniteSwordPierce);
+        ToggleYamatoForceEdgeInfiniteRoundTrip(activeCrimsonConfig.Cheats.Vergil.infiniteRoundTrip);
         ToggleEbonyIvoryFoursomeTime(activeConfig.EbonyIvory.foursomeTime);
         ToggleEbonyIvoryInfiniteRainStorm(activeConfig.EbonyIvory.infiniteRainStorm);
         ToggleArtemisSwapNormalShotAndMultiLock(activeConfig.Artemis.swapNormalShotAndMultiLock);
@@ -246,7 +246,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleDisablePlayerActorIdleTimer(activeConfig.disablePlayerActorIdleTimer);
 
         ToggleRebellionInfiniteShredder(false);
-        ToggleRebellionInfiniteShredder(activeConfig.rebellionInfiniteShredder);
+        ToggleRebellionInfiniteShredder(activeCrimsonConfig.Cheats.Dante.infiniteShredder);
 
         ToggleRebellionHoldDrive(false);
         ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
