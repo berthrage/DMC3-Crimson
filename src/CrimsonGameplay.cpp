@@ -497,6 +497,14 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
             }
         }
 
+        // Improve Twister/Tempest Trick Buffering
+		if (actorData.action == AGNI_RUDRA_TWISTER || actorData.action == AGNI_RUDRA_TEMPEST) {
+			policyTrick = BUFFER;
+			if (doingAirTrick && actionTimer > 0.55f) {
+				policyTrick = EXECUTE;
+			}
+		}
+
         // Dante's Trickster Actions Cancels Most Things (w/ cooldown)
         if ((actorData.style == STYLE::TRICKSTER) &&
             (actorData.eventData[0].event != ACTOR_EVENT::TRICKSTER_DASH &&
