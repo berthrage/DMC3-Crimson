@@ -2028,7 +2028,7 @@ struct SessionData {
     uint32 redOrbs;       // 0x2C
     uint8 itemCounts[20]; // 0x30
     _(2);
-    bool weaponAndStyleUnlocks[14]; // 0x46 // For weapons and quicksilver/doppelganger
+    bool weaponAndStyleUnlocks[14]; // 0x46 // For weapons and quicksilverStyle/doppelganger
     _(48);
     uint8 weapons[8]; // 0x84
     _(20);
@@ -2231,6 +2231,13 @@ static_assert(offsetof(CollisionData, data) == 0x210);
 static_assert(sizeof(CollisionData) == 656);
 
 // $CollisionDataEnd
+
+struct CameraControlMetadata {
+	_(1200);
+	uint32 fixedCameraAddr; // 0x4B0
+};  
+
+static_assert(offsetof(CameraControlMetadata, fixedCameraAddr) == 0x4B0);
 
 // $CameraDataStart
 

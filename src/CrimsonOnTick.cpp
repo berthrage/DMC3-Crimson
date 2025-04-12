@@ -592,6 +592,10 @@ void GeneralCameraOptionsController() {
 	}
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 	CameraData* cameraData = GetSafeCameraData();
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449) return;
+	auto& cameraControlMetadata = *reinterpret_cast<CameraControlMetadata*>(pool_4449);
+
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!pool_10222 || !pool_10222[3]) {
 		return;
@@ -604,7 +608,7 @@ void GeneralCameraOptionsController() {
 	CrimsonPatches::CameraSensController();
 	
 	if (cameraData != nullptr) {
-		CrimsonPatches::CameraFollowUpSpeedController(cameraData);
+		CrimsonPatches::CameraFollowUpSpeedController(*cameraData, cameraControlMetadata);
 		CrimsonPatches::CameraDistanceController(cameraData);
 		CrimsonPatches::CameraTiltController(cameraData);
 	}

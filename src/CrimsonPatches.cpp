@@ -254,7 +254,7 @@ void CameraSensController() {
 }
 
 
-void CameraFollowUpSpeedController(CameraData* cameraData) {
+void CameraFollowUpSpeedController(CameraData& cameraData, CameraControlMetadata& cameraMetadata) {
 	auto pool_166 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!pool_166 || !pool_166[3]) return;
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
@@ -283,11 +283,11 @@ void CameraFollowUpSpeedController(CameraData* cameraData) {
 			auto elapsedTime = std::chrono::duration<float>(now - lockOnStartTime).count();
 
 			if (elapsedTime < lockOnDuration) {
-				cameraData->cameraLag = lockOnLag;
+				cameraData.cameraLag = lockOnLag;
 			}
 			else {
 				// After lockOnDuration, return to normal follow-up speed
-				cameraData->cameraLag = normalLag;
+				cameraData.cameraLag = normalLag;
 			}
 		}
 		else {
@@ -295,26 +295,30 @@ void CameraFollowUpSpeedController(CameraData* cameraData) {
 			isLockOnTimerActive = false;
 
 			// Normal camera lag
-			cameraData->cameraLag = normalLag;
+			cameraData.cameraLag = normalLag;
 		}
 		};
 
-	if (g_isMPCamActive) {
-		cameraData->cameraLag = 1000.0f;
+	if (activeCrimsonConfig.Camera.multiplayerCamera && activeConfig.Actor.playerCount > 1) {
+		return; // Disable follow-up speed adjustment when multiplayer camera is active
 	}
 	else {
-		switch (activeCrimsonConfig.Camera.followUpSpeed) {
-		case 0: // Low (Vanilla Default)
-			cameraData->cameraLag = 1000.0f;
-			break;
-		case 1: // Medium
-			dynamicCameraLag(500.0f, 2000.0f, 0.5f); // Apply lockOn behavior for medium follow-up speed
-			break;
-		case 2: // High
-			dynamicCameraLag(330.0f, 3000.0f, 0.5f); // Apply lockOn behavior for high follow-up speed
-			break;
-		default:
-			break;
+		if (cameraMetadata.fixedCameraAddr == 0) {
+			switch (activeCrimsonConfig.Camera.followUpSpeed) {
+			case 0: // Low (Vanilla Default)
+				return;
+				break;
+			case 1: // Medium
+				dynamicCameraLag(500.0f, 2000.0f, 0.5f); // Apply lockOn behavior for medium follow-up speed
+				break;
+			case 2: // High
+				dynamicCameraLag(330.0f, 3000.0f, 0.5f); // Apply lockOn behavior for high follow-up speed
+				break;
+			default:
+				break;
+			}
+		} else {
+			return; // Disable follow-up speed adjustment when a fixed camera is active
 		}
 	}
 }

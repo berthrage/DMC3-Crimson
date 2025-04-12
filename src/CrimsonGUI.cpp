@@ -7309,7 +7309,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 			}
 			auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
 			if (!pool_4449 || !pool_4449[147]) return;
-			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]); // 0x498 = 1176 / 8 = 147
+			auto& cameraControlMetadata = *reinterpret_cast<CameraControlMetadata*>(pool_4449);
 
 			auto& costume = activeConfig.Actor.playerData[0].characterData[0]->costume;
 
@@ -7319,6 +7320,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 			if (!enemyData.baseAddr) return;
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			ImGui::Text("fixedCameraAddr: %x", cameraControlMetadata.fixedCameraAddr);
 			ImGui::Text("Starting From Ground: %u", crimsonPlayer[0].vergilMoves.startingRisingSunFromGround);
 // 			ImGui::Text("Enemy Base Addr: %x", enemyData.baseAddr);
 // 			ImGui::Text("Enemy's Target Pos Y: %g", enemyData.targetPosition.y);

@@ -206,7 +206,7 @@ void EventHandler(EventData& eventData) {
 	CrimsonOnTick::DetermineActiveEntitiesCount();
  	CrimsonOnTick::MultiplayerCameraPositioningController();
  	CrimsonOnTick::ForceThirdPersonCameraController();
- 	CrimsonOnTick::GeneralCameraOptionsController(); 
+    CrimsonOnTick::GeneralCameraOptionsController();
  	CrimsonOnTick::AirTauntDetoursController();
  	CrimsonOnTick::NewMissionClearSong();
  	CrimsonOnTick::PauseSFXWhenPaused();

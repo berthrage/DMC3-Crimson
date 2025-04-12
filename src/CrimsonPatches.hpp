@@ -19,7 +19,7 @@ void ToggleIncreasedEnemyJuggleTime(bool enable);
 #pragma region CameraStuff
 
 void CameraSensController();
-void CameraFollowUpSpeedController(CameraData* cameraData);
+void CameraFollowUpSpeedController(CameraData& cameraData, CameraControlMetadata& cameraMetadata);
 void CameraDistanceController(CameraData* cameraData);
 void CameraLockOnDistanceController();
 void CameraTiltController(CameraData* cameraData);
