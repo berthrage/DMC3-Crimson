@@ -8080,7 +8080,6 @@ void UpdateActorSpeed(byte8* baseAddr) {
     }
     auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
 
-	CrimsonPatches::DisableAirSlashKnockback();
 	CrimsonPatches::InertiaFixes();
 
     // Sky Launch needs to be called from here for maximum on tick speed so that its position is properly

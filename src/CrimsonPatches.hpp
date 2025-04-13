@@ -13,6 +13,7 @@ void DisableJCRestriction(bool enable);
 void BulletStop(bool enable);
 void RainstormLift(bool enable);
 void ToggleIncreasedEnemyJuggleTime(bool enable);
+void DisableAirSlashKnockback(bool enable);
 
 #pragma endregion
 
@@ -38,7 +39,6 @@ void DisableBlendingEffects(bool enable);
 #pragma region InertiaFixes
 
 void InertiaFixes();
-void DisableAirSlashKnockback();
 
 #pragma endregion
 

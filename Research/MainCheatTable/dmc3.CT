@@ -83911,11 +83911,6 @@ but it still damages it
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
-      <Address>"dmc3.exe"+1645F9</Address>
-      <Comment>
-</Comment>
-    </DisassemblerComment>
-    <DisassemblerComment>
       <Address>"dmc3.exe"+16725C</Address>
       <Comment>Arkham Leeches Jump Attack 2 Target Position
 </Comment>
@@ -84122,11 +84117,6 @@ adding to current rotation
     <DisassemblerComment>
       <Address>"dmc3.exe"+1FA50D</Address>
       <Comment>Set Character Rotation when doing directional move
-</Comment>
-    </DisassemblerComment>
-    <DisassemblerComment>
-      <Address>"dmc3.exe"+1FAC69</Address>
-      <Comment>
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
@@ -84352,6 +84342,11 @@ Setting max alpha value (127)
     <DisassemblerComment>
       <Address>"dmc3.exe"+3161EA</Address>
       <Comment>doesnt reenable
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+5CA0C6</Address>
+      <Comment>Sends Knockback Value to Air Slash pt. 1
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>

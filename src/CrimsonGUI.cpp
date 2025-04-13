@@ -9365,6 +9365,9 @@ void GeneralGameplayOptions() {
 	ImGui::PopFont();
 }
 
+
+
+// Dante gameplay options section
 void DanteGameplayOptions() {
 	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	const float itemWidth = defaultFontSize * 8.0f;
@@ -9675,6 +9678,16 @@ void DanteGameplayOptions() {
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Artemis charges to full semi-instantly.");
+
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Cut Nevan Air Slash Knockback",
+				activeCrimsonConfig.Gameplay.Dante.disableAirSlashKnockback,
+				queuedCrimsonConfig.Gameplay.Dante.disableAirSlashKnockback)) {
+				CrimsonPatches::DisableAirSlashKnockback(activeCrimsonConfig.Gameplay.Dante.disableAirSlashKnockback);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Disables the Knockback from Nevan's Air Slash pt. 1.");
 
 			ImGui::EndTable();
 		}

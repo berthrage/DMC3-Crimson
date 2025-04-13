@@ -904,22 +904,22 @@ void InertiaFixes() {
     }
 }
 
-void DisableAirSlashKnockback() {
-    // dmc3.exe+5CA0C4 0x00 0x00 0x00 0x00
+void DisableAirSlashKnockback(bool enable) {
+	//dmc3.exe + 5CA0C6 - 70 42 - jo dmc3.exe + 5CA10A{ Sends Knockback Value to Air Slash pt. 1
+	static bool run = false;
 
-    if (toggle.disableAirSlashKnockback != (int)activeCrimsonConfig.Gameplay.Dante.disableAirSlashKnockback) {
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
 
-        if (activeCrimsonConfig.Gameplay.Dante.disableAirSlashKnockback) {
-            _patch((char*)(appBaseAddr + 0x5CA0C4), (char*)"\x00\x00\x00\x00", 4);
-
-            toggle.disableAirSlashKnockback = 1;
-        } else {
-            // dmc3.exe+5CA0C4 - 00 00                 - add [rax],al
-            _patch((char*)(appBaseAddr + 0x5CA0C4), (char*)"\x00\x00", 2);
-
-            toggle.disableAirSlashKnockback = 0;
-        }
-    }
+	if (enable) {
+		// dmc3.exe+5CA0C6 - 00 00 - add [rax],al
+		_patch((char*)(appBaseAddr + 0x5CA0C6), (char*)"\x00\x00", 2);
+	} else {
+		_patch((char*)(appBaseAddr + 0x5CA0C6), (char*)"\x70\x42", 2);
+	}
+	run = enable;
 }
 
 #pragma endregion
@@ -1142,12 +1142,21 @@ void AirTauntToggleController(byte8* actorBaseAddr) {
 
 void CerberusCrashFixPart2(bool enable) {
 	//dmc3.exe + 117451 - 8B 50 10 - mov edx, [rax + 10]
+
+	static bool run = false;
+
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
 	if (enable) {
 		_nop((char*)(appBaseAddr + 0x117451), 3);
 	}
 	else {
 		_patch((char*)(appBaseAddr + 0x117451), (char*)"\x8B\x50\x10", 3);
 	}
+	run = enable;
 }
 
 #pragma endregion
