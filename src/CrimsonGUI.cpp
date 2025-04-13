@@ -2040,8 +2040,8 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 		ImVec2 baseMultiplayerSize = ImVec2(g_renderSize.y * 0.15f, g_renderSize.y * 0.15f);
 		ImVec2 multiplayerSize = initializedMelee[playerIndex] ? baseMultiplayerSize : normalSize;
 
-		auto& meleeWheel = meleeWorldSpaceWeaponWheel[playerIndex];
-		auto& rangedWheel = rangedWorldSpaceWeaponWheel[playerIndex];
+		auto& meleeWheel = meleeWeaponWheel[playerIndex];
+		auto& rangedWheel = rangedWeaponWheel[playerIndex];
 		const float baseSpacing = 0.37f;
 		const float barSpacing = g_renderSize.x * baseSpacing;
 
@@ -2076,8 +2076,8 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 	multiplayerWheelsLoaded = true; 
 
 	for (uint8 playerIndex = 1; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
-		auto& meleeWheel = meleeWorldSpaceWeaponWheel[playerIndex];
-		auto& rangedWheel = rangedWorldSpaceWeaponWheel[playerIndex];
+		auto& meleeWheel = meleeWeaponWheel[playerIndex];
+		auto& rangedWheel = rangedWeaponWheel[playerIndex];
 
 		if (!meleeWheel->m_loaded || !rangedWheel->m_loaded) {
 			multiplayerWheelsLoaded = false; 
@@ -2097,14 +2097,8 @@ void WorldSpaceWeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 		(activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Only in Multiplayer"
 			&& activeConfig.Actor.playerCount <= 1)) return;
 
-	// Measure delta time using chrono
-	static auto lastTime = std::chrono::high_resolution_clock::now();
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<float> deltaTimeDuration = currentTime - lastTime;
 	float deltaTime = ImGui::GetIO().DeltaTime;
-	lastTime = currentTime;
-
-	float activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+	auto activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 	float deltaTimeAdjustedSpeed = deltaTime * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier);
 	float deltaTimeAdjusted = deltaTime * 1000.0f;
 
@@ -2167,15 +2161,10 @@ void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 			&& activeConfig.Actor.playerCount <= 1)) return;
 
 	// Measure delta time using chrono
-	static auto lastTime = std::chrono::high_resolution_clock::now();
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<float> deltaTimeDuration = currentTime - lastTime;
 	float deltaTime = ImGui::GetIO().DeltaTime;
-	lastTime = currentTime;
-
-	float activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
-	float deltaTimeAdjustedSpeed = deltaTime * (activeGameSpeed / g_FrameRateTimeMultiplier);
-	float deltaTimeAdjusted = deltaTime;
+	auto activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+	float deltaTimeAdjustedSpeed = deltaTime * 1000.0f * (activeGameSpeed / g_FrameRateTimeMultiplier);
+	float deltaTimeAdjusted = deltaTime * 1000.0f;
 
 	for (int playerIndex = 1; playerIndex < activeConfig.Actor.playerCount; playerIndex++) {
 		auto& playerData = GetPlayerData((uint8)playerIndex);
@@ -7133,7 +7122,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				for (size_t i = 0; i < queuedConfig.Actor.playerData[0].characterData[0][0].meleeWeaponCount; i++) {
 					ImGui::Text("MeleeWeaponQeued[%u]: %u", i, queuedConfig.Actor.playerData[0].characterData[0][0].meleeWeapons[i]);
 				} 
-                ImGui::Text("Style Levels: %u", sessionData.styleLevels[3]);
+				
                 ImGui::Text("Gamepad Style Button: %u", gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION));
                 ImGui::Text("Quicksilver Level: %u", sessionData.styleLevels[4]);
 
@@ -7296,6 +7285,12 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 			if (!enemyData.baseAddr) return;
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
+			if (meleeWeaponWheel[0]) {
+				ImGui::Text("Wheel 0 timer: %g", meleeWeaponWheel[0]->m_SinceLatestChangeMs);
+			}
+			if (meleeWeaponWheel[1]) {
+				ImGui::Text("Wheel 1 timer: %g", meleeWeaponWheel[1]->m_SinceLatestChangeMs);
+			}
 			ImGui::Text("fixedCameraAddr: %x", cameraControlMetadata.fixedCameraAddr);
 			ImGui::Text("Starting From Ground: %u", crimsonPlayer[0].vergilMoves.startingRisingSunFromGround);
 // 			ImGui::Text("Enemy Base Addr: %x", enemyData.baseAddr);
