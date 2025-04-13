@@ -4958,13 +4958,13 @@ void ShopWindow() {
 		ImGui::PopFont();
 		ImGui::Text("");
 
-		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
-			auto& gamepad = GetGamepad(playerIndex);
-
-			if ((gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))) {
-				CloseShop();
-			}
-		}
+// 		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
+// 			auto& gamepad = GetGamepad(playerIndex);
+// 
+// 			if ((gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))) {
+// 				CloseShop();
+// 			}
+// 		}
 
 		SelectPlayerLoadoutsWeaponsTab();
 
