@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1464</ID>
+      <Description>"nevan asudfhsd"</Description>
+      <LastState Activated="1"/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABlE]
+// part 1
+dmc3.exe+20BE9C:
+movzx edx,word ptr [rbx+00003ED0]
+
+dmc3.exe+20BEA3:
+call dmc3.exe+1FB300
+
+// part 2
+dmc3.exe+20C00C:
+movzx edx,word ptr [rbx+00003ED0]
+
+dmc3.exe+20C013:
+call dmc3.exe+1FB300
+
+[DISABLE]
+// part 1
+dmc3.exe+20BE9C:
+movzx edx,word ptr [rbx+000000C0]
+
+dmc3.exe+20BEA3:
+call dmc3.exe+1FC3A0
+
+// part 2
+dmc3.exe+20C00C:
+movzx edx,word ptr [rbx+000000C0]
+
+dmc3.exe+20C013:
+call dmc3.exe+1FC3A0
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

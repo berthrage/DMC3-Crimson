@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>2631</ID>
+      <Description>"dmc5head"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+dmc3.exe+68C3A: // melee
+mov [rbx+00000150],(float)20
+
+dmc3.exe+81F70: // ei shots
+mov [rbx+00000150],(float)20
+
+[DISABLE]
+dmc3.exe+68C3A: // melee
+mov [rbx+00000150],(float)10
+
+dmc3.exe+81F70: // ei shots
+mov [rbx+00000150],(float)10
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1726</ID>
+      <Description>"Disable Hold Drive"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+dmc3.exe+1EB675:
+jmp dmc3.exe+1EB7A1
+nop
+// db E9 27 01 00 00 90:
+[DISABLE]
+dmc3.exe+1EB675:
+je dmc3.exe+1EB7A1
+// db 0F 84 26 01 00 00:
+
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

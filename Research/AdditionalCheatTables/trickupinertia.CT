@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1633</ID>
+      <Description>"Auto Assemble script"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>
+[ENABLE]
+aobscanmodule(gfdgfd,dmc3.exe,F3 0F 10 15 E9 B1 16 00) // should be unique
+alloc(newmem,$1000,gfdgfd)
+label(code)
+label(return)
+
+newmem:
+dd (float)2
+code:
+  movss xmm2,[newmem]
+  //movss xmm2,[dmc3.exe+35D56C]
+  jmp return
+
+gfdgfd:
+  jmp code
+  nop 3
+return:
+registersymbol(gfdgfd)
+
+[DISABLE]
+gfdgfd:
+  db F3 0F 10 15 E9 B1 16 00
+unregistersymbol(gfdgfd)
+dealloc(newmem)
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

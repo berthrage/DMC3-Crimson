@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="45">
+  <CheatEntries>
+    <CheatEntry>
+      <ID>2707</ID>
+      <Description>"Enable Geryon&amp;Gigapede JC hitbox"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2024-09-27
+  Author : Mia Berth
+
+  This script does blah blah blah
+}
+
+define(address,"dmc3.exe"+1E5B00)
+define(bytes,32 C0 C3 CC CC)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000,"dmc3.exe"+1E5B00)
+alloc(myFloatAddr2, 4)
+
+label(code)
+label(return)
+
+myFloatAddr2:
+dd (float)100
+
+newmem:
+
+
+code:
+  test edx, edx
+  jne justReturn
+  movaps xmm0,[rcx+20]
+  mov al, 01
+  movaps [r8], xmm0
+  movss xmm1, [r8+04]
+  //addss xmm1, [dmc3.exe+371158]
+  addss xmm1, [myFloatAddr2]
+  movss [r8+04], xmm1
+  mov [r9], (float)280
+  ret 
+  jmp return
+
+justReturn:
+   ret
+address:
+  jmp newmem
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+   xor al,al
+   ret
+   int 3
+   int 3
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1E5B00
+
+dmc3.exe+1E5AE7: 48 8B 4D 37           - mov rcx,[rbp+37]
+dmc3.exe+1E5AEB: 48 33 CC              - xor rcx,rsp
+dmc3.exe+1E5AEE: E8 FD FA 15 00        - call dmc3.exe+3455F0
+dmc3.exe+1E5AF3: 48 81 C4 90 00 00 00  - add rsp,00000090
+dmc3.exe+1E5AFA: 5F                    - pop rdi
+dmc3.exe+1E5AFB: 5B                    - pop rbx
+dmc3.exe+1E5AFC: 5D                    - pop rbp
+dmc3.exe+1E5AFD: C3                    - ret 
+dmc3.exe+1E5AFE: CC                    - int 3 
+dmc3.exe+1E5AFF: CC                    - int 3 
+// ---------- INJECTING HERE ----------
+dmc3.exe+1E5B00: 32 C0                 - xor al,al
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1E5B02: C3                    - ret 
+dmc3.exe+1E5B03: CC                    - int 3 
+dmc3.exe+1E5B04: CC                    - int 3 
+dmc3.exe+1E5B05: CC                    - int 3 
+dmc3.exe+1E5B06: CC                    - int 3 
+dmc3.exe+1E5B07: CC                    - int 3 
+dmc3.exe+1E5B08: CC                    - int 3 
+dmc3.exe+1E5B09: CC                    - int 3 
+dmc3.exe+1E5B0A: CC                    - int 3 
+dmc3.exe+1E5B0B: CC                    - int 3 
+}
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+  <UserdefinedSymbols/>
+</CheatTable>

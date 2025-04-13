@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>2106</ID>
+      <Description>"some filter"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+dmc3.exe+315BA4:
+nop 2
+
+[DISABLE]
+dmc3.exe+315BA4:
+jne dmc3.exe+315BAD
+
+// dmc3.exe+4F34B:call dmc3.exe+316430
+  // inside that is dmc3.exe+3165D2 - call dmc3.exe+3161B0 that does the same thing
+     // inside that is dmc3.exe+3165B6 - call dmc3.exe+3153C0
+        // dmc3.exe+3156A2 - call dmc3.exe+315B00
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

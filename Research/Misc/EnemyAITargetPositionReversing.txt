@@ -1,0 +1,82 @@
+Standard Enemy Target Pos:
+dmc3.exe+616EB - 0F 28 82 80 00 00 00      - movaps xmm0,[rdx+00000080] { Standard Enemy Set Target Position }
+dmc3.exe+616F2 - 0F 29 41 40            - movaps [rcx+40],xmm0 { followup to standard target pos }
+
+Hells:
+Every single one uses +616EB only, including Hell Vanguard.
+
+Arachne:
+dmc3.exe+C5A40 - 0F 28 83 80 00 00 00      - movaps xmm0,[rbx+00000080] { Arachne Set Target Position for Circling Around }
+dmc3.exe+BF553 - 0F 28 82 80 00 00 00      - movaps xmm0,[rdx+00000080] { Arachne Set Target Position for Jump Attack }
+
+The Fallen:
+Uses + 616EB
+
+Dullahan:
+Uses + 616EB
+dmc3.exe+D5419 - 0F 28 81 80 00 00 00      - movaps xmm0,[rcx+00000080] { Dullahan Sword Up Attack Target Position }
+dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
+
+Enigma:
+dmc3.exe+2C6813 - 0F 10 01               - movups xmm0,[rcx] { Enigma Rotate to Target }
+dmc3.exe+1BB04C - 44 0F 28 89 80 00 00 00   - movaps xmm9,[rcx+00000080] { Enigma Set Target Position to Aim 1 }
+
+Bloodgoyle:
+dmc3.exe+E7EC2 - 44 0F 10 02            - movups xmm8,[rdx] { Bloodgoyle Dive Target Position}
+dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
+
+Soul Eater:
+dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
+And some other one that is already nop'ed, not Bloodgoyle Dive
+
+All Chess-Pieces:
+Using one of the above that isn't +616EB
+
+Cerberus:
+dmc3.exe+10E89E - F3 0F 10 87 80 00 00 00   - movss xmm0,[rdi+00000080] { Cerberus Set Position to Target - Red }
+dmc3.exe+116DD8 - F3 0F 10 89 80 00 00 00   - movss xmm1,[rcx+00000080] { Cerberus Ice Ball Target Position - Blue}
+dmc3.exe+117F33 - F3 0F 58 8B 80 00 00 00   - addss xmm1,[rbx+00000080] { Cerberus Ice From Above Attack Target Position - Green}
+
+Agni and Rudra:
+Uses + 616EB
+
+Nevan:
+dmc3.exe+134548 - F3 0F 10 82 80 00 00 00   - movss xmm0,[rdx+00000080] { Nevan Lightning Balls Target Position HOW'S THIS }
+dmc3.exe+136363 - F3 0F 10 81 80 00 00 00   - movss xmm0,[rcx+00000080] { Nevan Lightning Balls 2 Target Position DON'T YOU LIKE THIS }
+dmc3.exe+12CE41 - 0F 28 81 80 00 00 00      - movaps xmm0,[rcx+00000080] { Nevan Forward Spikes Target Position }
+dmc3.exe+12C6ED - 0F 28 81 80 00 00 00      - movaps xmm0,[rcx+00000080] { Nevan's Kiss Target Position }
+dmc3.exe+137DBF - 0F 28 81 80 00 00 00      - movaps xmm0,[rcx+00000080] { Nevan Bolt From Above Target Position NOW YOU'LL BECOME TIRED }
+
+Geryon:
+dmc3.exe+2C6813 - 0F 10 01               - movups xmm0,[rcx] { Enigma Rotate to Target }
+dmc3.exe+1E7C16 - 0F 28 83 80 00 00 00      - movaps xmm0,[rbx+00000080] { Geryon Carriage hit Target Position  }
+
+Beowulf:
+Uses +616EB
+dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
+dmc3.exe+2C6813 - 0F 10 01               - movups xmm0,[rcx] { Enigma Rotate to Target }
+
+Doppelganger:
+Uses +616EB
+
+Vergil:
+Uses +616EB
+dmc3.exe+1871C5 - 0F 58 81 80 00 00 00      - addps xmm0,[rcx+00000080] { Vergil Blink/Trick Target Position }
+dmc3.exe+1B269C - 0F 10 0F               - movups xmm1,[rdi] { Vergil Attack After Blocking }
+dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ? Also Judgement Cut }
+
+Lady:
+Uses +616EB
+dmc3.exe+1BB04C - 44 0F 28 89 80 00 00 00   - movaps xmm9,[rcx+00000080] { Enigma Set Target Position to Aim 1  }
+
+Jester:
+Can't test properly because he bugs out when spawned out of his arena. But he should be fine as is.
+
+Arkham:
+dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ? Also Judgement Cut }
+dmc3.exe+1BB04C - 44 0F 28 89 80 00 00 00   - movaps xmm9,[rcx+00000080] { Enigma Set Target Position to Aim 1 }
+dmc3.exe+163DD5 - 0F 28 81 80 00 00 00      - movaps xmm0,[rcx+00000080] { Arkham Spikes Attack Target Position }
+dmc3.exe+569E6 - 0F 28 81 80 00 00 00      - movaps xmm0,[rcx+00000080] { Arkham Charge Attack Yellow Target Position ? }
+dmc3.exe+1603DC - F3 0F 58 81 80 00 00 00   - addss xmm0,[rcx+00000080] { Arkham Leeches Circling Around Target Position }
+dmc3.exe+1675B3 - 0F 28 82 80 00 00 00      - movaps xmm0,[rdx+00000080] { Arkham Leeches Jump Attack Target Position }
+dmc3.exe+16725C - F3 0F 58 83 80 00 00 00   - addss xmm0,[rbx+00000080] { Arkham Leeches Jump Attack 2 Target Position } 

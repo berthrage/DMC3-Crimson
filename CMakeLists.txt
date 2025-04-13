@@ -16,12 +16,20 @@ include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/SDL2)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/glm)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/Detours/Detours/src)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/debug-draw)
+include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/curl/include)
+include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/openssl/include)
 include_directories(${CMAKE_SOURCE_DIR}/src/Utility)
 
 add_compile_options(/W0)
 add_compile_options("$<$<CONFIG:Release>:/MT>")
 add_compile_options("$<$<CONFIG:Debug>:/MTd>")
 add_compile_options(/Ob1)
+
+# Add O2 optimization for Release
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2")
+
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
+set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG:FULL /OPT:REF /OPT:ICF")
 
 # set output directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

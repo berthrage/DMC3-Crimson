@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1638</ID>
+      <Description>"crazy combo hold"</Description>
+      <LastState Activated="1"/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+dmc3.exe+1EB7C5:
+test [rdi+000074E0],ax
+
+[DISABLE]
+dmc3.exe+1EB7C5:
+test [rdi+000074E4],ax
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

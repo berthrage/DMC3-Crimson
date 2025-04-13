@@ -1,309 +1,284 @@
-import Core;
-import Core_Input;
+// UNSTUPIFY(Disclaimer: by 5%)... POOOF
+#include "Core/Core.hpp"
+#include "Core/Input.hpp"
+#include "CrimsonDetours.hpp"
+#include "DMC3Input.hpp"
+#include "CrimsonSDL.hpp"
+#include "File.hpp"
+#include "FMOD.hpp"
+#include "Graphics.hpp"
+#include "Hooks.hpp"
+#include "Internal.hpp"
+#include "Memory.hpp"
+#include "Model.hpp"
+#include "CrimsonPatches.hpp"
+#include "Actor.hpp"
+#include "ActorBase.hpp"
+#include "ActorRelocations.hpp"
+#include "Arcade.hpp"
+#include "BossRush.hpp"
+#include "Config.hpp"
+#include "Event.hpp"
+#include "Exp.hpp"
+#include "Global.hpp"
+#include "Camera.hpp"
+#include "CrimsonGUI.hpp"
+#include "HUD.hpp"
+#include "Scene.hpp"
+#include "Sound.hpp"
+#include "SoundRelocations.hpp"
+#include "Speed.hpp"
+#include "Training.hpp"
+#include "Window.hpp"
+#include "Vars.hpp"
 
 #include "Core/Macros.h"
 
-import Windows;
-
-using namespace Windows;
-
-import ActorBase;
-import ActorRelocations;
-import Actor;
-import Arcade;
-import BossRush;
-import Camera;
-import Config;
-import DetourFunctions;
-import Event;
-import Exp;
-import File;
-import FMOD;
-import Global;
-import Graphics;
-import GUI;
-import Hooks;
-import HUD;
-import Input;
-import Internal;
-import Memory;
-import Model;
-import Scene;
-import SoundRelocations;
-import Sound;
-import PatchFunctions;
-import ExtraSound;
-import Speed;
-import Training;
-import Vars;
-import Window;
+#include "Core/DebugSwitch.hpp"
+#include "CrimsonFileHandling.hpp"
 
-#define debug false
 
+uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
+    if (reason == DLL_PROCESS_ATTACH) {
+#ifndef NDEBUG
+		AllocConsole();
+		freopen("CONIN$", "r", stdin);
+		freopen("CONOUT$", "w", stdout);
+		freopen("CONOUT$", "w", stderr);
+#endif
 
+        InitLog("logs", "Crimson.txt");
 
-uint32 DllMain
-(
-	HINSTANCE instance,
-	uint32 reason,
-	LPVOID reserved
-)
-{
-	if (reason == DLL_PROCESS_ATTACH)
-	{
-		InitLog("logs", "Mary.txt");
+        Log("Session started.");
 
-		Log("Session started.");
+        if (!Core_Memory_Init()) {
+            Log("Core_Memory_Init failed.");
 
-		if (!Core_Memory_Init())
-		{
-			Log("Core_Memory_Init failed.");
+            return 0;
+        }
 
-			return 0;
-		}
+        if (!memoryData.InitData(64 * 1024 * 1024)) {
+            Log("memoryData.InitData failed.");
 
-		if (!memoryData.InitData(64 * 1024 * 1024))
-		{
-			Log("memoryData.InitData failed.");
+            return 0;
+        }
 
-			return 0;
-		}
+        SetMemory(memoryData.dataAddr, 0xCC, memoryData.dataSize);
 
-		SetMemory
-		(
-			memoryData.dataAddr,
-			0xCC,
-			memoryData.dataSize
-		);
+        if (!protectionHelper.Init(4096)) {
+            Log("protectionHelper.Init failed.");
 
-		if (!protectionHelper.Init(4096))
-		{
-			Log("protectionHelper.Init failed.");
+            return 0;
+        }
 
-			return 0;
-		}
 
+        if (!backupHelper.Init((8 * 1024 * 1024), (1 * 1024 * 1024))) {
+            Log("backupHelper.Init failed.");
 
+            return 0;
+        }
 
-		if
-		(
-			!backupHelper.Init
-			(
-				(8 * 1024 * 1024),
-				(1 * 1024 * 1024)
-			)
-		)
-		{
-			Log("backupHelper.Init failed.");
 
-			return 0;
-		}
+        InitConfig();
+        LoadConfig();
 
 
+        ExpConfig::InitExp();
+        ExpConfig::LoadExp();
 
-		InitConfig();
-		LoadConfig();
+        copyHUDtoGame();
 
+        if (!Memory_Init()) {
+            Log("Memory_Init failed.");
 
+            return 0;
+        }
 
-		InitExp();
-		LoadExp();
+        Memory_ToggleExtendVectors(true);
 
+        Internal_Init();
 
+        if (!File_Init()) {
+            Log("File_Init failed.");
 
-		if (!Memory_Init())
-		{
-			Log("Memory_Init failed.");
+            return 0;
+        }
 
-			return 0;
-		}
+        if (!FMOD_Init()) {
+            Log("FMOD_Init failed.");
 
-		Memory_ToggleExtendVectors(true);
+            return 0;
+        }
 
-		Internal_Init();
+        if (!Sound_Init()) {
+            Log("Sound_Init failed.");
 
-		if (!File_Init())
-		{
-			Log("File_Init failed.");
+            return 0;
+        }
 
-			return 0;
-		}
 
-		if (!FMOD_Init())
-		{
-			Log("FMOD_Init failed.");
+        /*
+        Tldr: We often run toggle functions twice with false first to ensure that
+        backupHelper gets the correct data.
 
-			return 0;
-		}
+        Toggle and ToggleRelocations share some addresses.
 
-		if (!Sound_Init())
-		{
-			Log("Sound_Init failed.");
+        If ToggleRelocations runs first Toggle will now push the modified data
+        instead of the default one to backupHelper.
 
-			return 0;
-		}
+        This becomes problematic when the data is later restored.
 
+        ToggleRelocations correctly writes the default data, but Toggle will write
+        the modified data and this will likely cause a crash later.
 
+        To avoid this we run the toggle functions twice. The first time with false.
 
-		/*
-		Tldr: We often run toggle functions twice with false first to ensure that
-		backupHelper gets the correct data.
+        This way, ToggleRelocations writes the default data and Toggle will also
+        push the default data to backupHelper.
+        */
 
-		Toggle and ToggleRelocations share some addresses.
+        
 
-		If ToggleRelocations runs first Toggle will now push the modified data
-		instead of the default one to backupHelper.
+        Actor::Toggle(false);
+        Actor::Toggle(activeConfig.Actor.enable);
 
-		This becomes problematic when the data is later restored.
 
-		ToggleRelocations correctly writes the default data, but Toggle will write
-		the modified data and this will likely cause a crash later.
+        ToggleBossLadyFixes(false);
+        ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
 
-		To avoid this we run the toggle functions twice. The first time with false.
+        ToggleBossVergilFixes(false);
+        ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
 
-		This way, ToggleRelocations writes the default data and Toggle will also
-		push the default data to backupHelper.
-		*/
 
-		Actor::Toggle(false);
-		Actor::Toggle(activeConfig.Actor.enable);
+        ToggleDergil(false);
+        ToggleDergil(activeConfig.dergil);
 
 
+        Camera::Toggle(false);
+        Camera::Toggle(true);
 
-		ToggleBossLadyFixes(false);
-		ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
+        Camera::ToggleInvertX(false);
+        Camera::ToggleInvertX(activeCrimsonConfig.Camera.invertX);
 
-		ToggleBossVergilFixes(false);
-		ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
+        Camera::ToggleDisableBossCamera(false);
+        Camera::ToggleDisableBossCamera(activeCrimsonConfig.Camera.disableBossCamera);
 
 
-		ToggleDergil(false);
-		ToggleDergil(activeConfig.dergil);
+        ToggleNoDevilForm(false);
+        ToggleNoDevilForm(activeConfig.noDevilForm);
 
 
+        ToggleDeplete(false);
+        ToggleDeplete(true);
 
-		Camera::Toggle(false);
-		Camera::Toggle(true);
+        ToggleOrbReach(false);
+        ToggleOrbReach(true);
 
-		Camera::ToggleInvertX(false);
-		Camera::ToggleInvertX(activeConfig.cameraInvertX);
+        ToggleDamage(false);
+        ToggleDamage(true);
 
-		Camera::ToggleDisableBossCamera(false);
-		Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
 
+        UpdateCrazyComboLevelMultiplier();
 
+        ToggleAirHikeCoreAbility(activeCrimsonConfig.Gameplay.Dante.airHikeCoreAbility);
+        CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeCrimsonConfig.Cheats.Dante.forceRoyalRelease);
+        CrimsonPatches::DisableAirSlashKnockback(activeCrimsonConfig.Gameplay.Dante.disableAirSlashKnockback);
+        ToggleRebellionInfiniteSwordPierce(activeCrimsonConfig.Cheats.Dante.infiniteSwordPierce);
+        ToggleYamatoForceEdgeInfiniteRoundTrip(activeCrimsonConfig.Cheats.Vergil.infiniteRoundTrip);
+        ToggleEbonyIvoryFoursomeTime(activeCrimsonConfig.Gameplay.Dante.foursomeTime);
+        ToggleEbonyIvoryInfiniteRainStorm(activeCrimsonConfig.Gameplay.Dante.infiniteRainstorm);
+        ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonConfig.Gameplay.Dante.artemisInstantFullCharge);
+        ToggleArtemisInstantFullCharge(activeCrimsonConfig.Gameplay.Dante.artemisInstantFullCharge);
+        ToggleChronoSwords(activeCrimsonConfig.Cheats.Vergil.chronoSwords);
 
-		ToggleNoDevilForm(false);
-		ToggleNoDevilForm(activeConfig.noDevilForm);
 
+        Arcade::Toggle(false);
+        Arcade::Toggle(activeConfig.Arcade.enable);
 
 
-		ToggleDeplete(false);
-		ToggleDeplete(true);
+        // @Merge
+        Event_Toggle(false);
+        Event_Toggle(true);
 
-		ToggleOrbReach(false);
-		ToggleOrbReach(true);
+        Event_Init();
 
-		ToggleDamage(false);
-		ToggleDamage(true);
 
+        ToggleSkipIntro(activeConfig.skipIntro);
+        ToggleSkipCutscenes(activeConfig.skipCutscenes);
 
 
-		UpdateCrazyComboLevelMultiplier();
+        HUD_Init();
 
-		ToggleAirHikeCoreAbility               (activeConfig.airHikeCoreAbility                );
-		ToggleRoyalguardForceJustFrameRelease  (activeConfig.Royalguard.forceJustFrameRelease  );
-		ToggleRebellionInfiniteSwordPierce     (activeConfig.Rebellion.infiniteSwordPierce     );
-		ToggleYamatoForceEdgeInfiniteRoundTrip (activeConfig.YamatoForceEdge.infiniteRoundTrip );
-		ToggleEbonyIvoryFoursomeTime           (activeConfig.EbonyIvory.foursomeTime           );
-		ToggleEbonyIvoryInfiniteRainStorm      (activeConfig.EbonyIvory.infiniteRainStorm      );
-		ToggleArtemisSwapNormalShotAndMultiLock(activeConfig.Artemis.swapNormalShotAndMultiLock);
-		ToggleArtemisInstantFullCharge         (activeConfig.Artemis.instantFullCharge         );
-		ToggleChronoSwords                     (activeConfig.SummonedSwords.chronoSwords       );
+        ToggleHideMainHUD(false);
+        ToggleHideMainHUD(activeConfig.hideMainHUD);
 
+        ToggleHideLockOn(false);
+        ToggleHideLockOn(activeConfig.hideLockOn);
 
+        ToggleHideBossHUD(false);
+        ToggleHideBossHUD(activeConfig.hideBossHUD);
 
-		Arcade::Toggle(false);
-		Arcade::Toggle(activeConfig.Arcade.enable);
+        ToggleForceVisibleHUD(false);
+        ToggleForceVisibleHUD(activeConfig.forceVisibleHUD);
 
+        // Overriding default additional player bars positions so as not to spawn them together in a mush initially.
+        defaultConfig.barsData[1].pos = { 900, 60 };
+        defaultConfig.barsData[2].pos = { 1180, 60 };
+        defaultConfig.barsData[3].pos = { 1180, 140 };
 
+        Scene::Toggle(false);
+        Scene::Toggle(true);
 
-		// @Merge
-		Event_Toggle(false);
-		Event_Toggle(true);
+        Speed::Toggle(false);
+        Speed::Toggle(true);
 
-		Event_Init();
 
+        ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
+        ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
+        ToggleDisableTimer(activeConfig.disableTimer);
+        ToggleInfiniteBullets(activeConfig.infiniteBullets);
 
+        // Why are we calling these with false first???? - Answer: See Line 119
 
-		ToggleSkipIntro    (activeConfig.skipIntro    );
-		ToggleSkipCutscenes(activeConfig.skipCutscenes);
+        ToggleForceWindowFocus(false);
+        ToggleForceWindowFocus(activeConfig.forceWindowFocus);
 
+        ToggleDisablePlayerActorIdleTimer(false);
+        ToggleDisablePlayerActorIdleTimer(activeConfig.disablePlayerActorIdleTimer);
 
+        ToggleRebellionInfiniteShredder(false);
+        ToggleRebellionInfiniteShredder(activeCrimsonConfig.Cheats.Dante.infiniteShredder);
 
-		HUD_Init();
+        ToggleRebellionHoldDrive(false);
+        ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
 
-		ToggleHideMainHUD(false);
-		ToggleHideMainHUD(activeConfig.hideMainHUD);
+        XI::new_Init("xinput9_1_0.dll");
 
-		ToggleHideLockOn(false);
-		ToggleHideLockOn(activeConfig.hideLockOn);
+        Hooks::Init();
 
-		ToggleHideBossHUD(false);
-		ToggleHideBossHUD(activeConfig.hideBossHUD);
+        CrimsonDetours::InitDetours();
+        if (activeConfig.Actor.enable) {
+            CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
+        }
+        else {
+            CrimsonDetours::ToggleHoldToCrazyCombo(false);
+        }
+        
+        CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
+        CrimsonDetours::ToggleStyleRankHudNoFadeout(activeConfig.disableStyleRankHudFadeout);
+        CrimsonDetours::ToggleDMC4LockOnDirection(activeCrimsonConfig.Gameplay.General.dmc4LockOnDirection);
+        CrimsonDetours::ToggleFasterTurnRate(activeCrimsonConfig.Gameplay.General.fasterTurnRate);
+        CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonConfig.Gameplay.General.increasedEnemyJuggleTime);
+        CrimsonDetours::ToggleCerberusCrashFix(true);
 
-		ToggleForceVisibleHUD(false);
-		ToggleForceVisibleHUD(activeConfig.forceVisibleHUD);
+        CrimsonPatches::DisableBlendingEffects(false);
+        CrimsonPatches::DisableBlendingEffects(activeConfig.disableBlendingEffects);
 
 
+        // Remove FMODGetCodecDescription Label
+        SetMemory((appBaseAddr + 0x5505B5), 0, 23, MemoryFlags_VirtualProtectDestination);
 
-		Scene::Toggle(false);
-		Scene::Toggle(true);
+    }
 
-		Speed::Toggle(false);
-		Speed::Toggle(true);
-
-
-
-		ToggleInfiniteHitPoints  (activeConfig.infiniteHitPoints  );
-		ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
-		ToggleDisableTimer       (activeConfig.disableTimer       );
-		ToggleInfiniteBullets    (activeConfig.infiniteBullets    );
-
-
-
-		ToggleForceWindowFocus(false);
-		ToggleForceWindowFocus(activeConfig.forceWindowFocus);
-
-
-
-		ToggleDisablePlayerActorIdleTimer(false);
-		ToggleDisablePlayerActorIdleTimer(activeConfig.disablePlayerActorIdleTimer);
-
-		ToggleRebellionInfiniteShredder(false);
-		ToggleRebellionInfiniteShredder(activeConfig.rebellionInfiniteShredder);
-
-		ToggleRebellionHoldDrive(false);
-		ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
-
-
-
-		XI::new_Init("xinput9_1_0.dll");
-
-		Hooks::Init();
-
-		InitDetours();
-
-
-		// Remove FMODGetCodecDescription Label
-		SetMemory
-		(
-			(appBaseAddr + 0x5505B5),
-			0,
-			23,
-			MemoryFlags_VirtualProtectDestination
-		);
-	}
-
-	return 1;
+    return 1;
 }

@@ -1,238 +1,164 @@
-import Core;
+// UNSTUPIFY(Disclaimer: by 5%)... POOOF
+#include "Core/Core.hpp"
+#define DIRECTINPUT_VERSION 0x0800
+#include <dinput.h>
+#include <tlhelp32.h>
 
 #include "Core/Macros.h"
 
-import Windows;
-import DI8;
-
-using namespace Windows;
-using namespace DI8;
 
 #include <stdio.h>
 #include <string.h>
 
-#define debug false
+#include "Core/DebugSwitch.hpp"
 
 
+namespace DI8 {
 
-namespaceStart(DI8);
+typedef decltype(DirectInput8Create)* DirectInput8Create_t;
 
-typedef decltype(DirectInput8Create) * DirectInput8Create_t;
-
-namespaceEnd();
-
+};
 
 
-namespaceStart(Base::DI8);
+namespace Base::DI8 {
 
 ::DI8::DirectInput8Create_t DirectInput8Create = 0;
 
-namespaceEnd();
+};
 
 
+namespace Hook::DI8 {
 
-namespaceStart(Hook::DI8);
-
-HRESULT DirectInput8Create
-(
-	HINSTANCE hinst,
-	DWORD dwVersion,
-	const IID& riidltf,
-	LPVOID* ppvOut,
-	LPUNKNOWN punkOuter
-)
-{
-	#pragma comment(linker, "/EXPORT:DirectInput8Create=" DECORATED_FUNCTION_NAME)
+HRESULT DirectInput8Create(HINSTANCE hinst, DWORD dwVersion, const IID& riidltf, LPVOID* ppvOut, LPUNKNOWN punkOuter) {
+#pragma comment(linker, "/EXPORT:DirectInput8Create=" DECORATED_FUNCTION_NAME)
 
 
-
-	return ::Base::DI8::DirectInput8Create
-	(
-		hinst,
-		dwVersion,
-		riidltf,
-		ppvOut,
-		punkOuter
-	);
+    return ::Base::DI8::DirectInput8Create(hinst, dwVersion, riidltf, ppvOut, punkOuter);
 }
 
-namespaceEnd();
+}; // namespace Hook::DI8
 
 
-
-void Init()
-{
-	LogFunction();
+void Init() {
+    LogFunction();
 
 
+    byte32 error = 0;
 
-	byte32 error = 0;
+    const char* libName = "dinput8.dll";
 
-	const char * libName = "dinput8.dll";
-
-	char directory[128];
-	char location[512];
-
+    char directory[128];
+    char location[512];
 
 
-	GetSystemDirectoryA
-	(
-		directory,
-		sizeof(directory)
-	);
+    GetSystemDirectoryA(directory, sizeof(directory));
 
-	snprintf
-	(
-		location,
-		sizeof(location),
-		"%s\\%s",
-		directory,
-		libName
-	);
+    snprintf(location, sizeof(location), "%s\\%s", directory, libName);
 
 
+    SetLastError(0);
 
-	SetLastError(0);
+    auto lib = LoadLibraryA(location);
+    if (!lib) {
+        error = GetLastError();
 
-	auto lib = LoadLibraryA(location);
-	if (!lib)
-	{
-		error = GetLastError();
+        Log("LoadLibraryA failed. %s %X", location, error);
 
-		Log("LoadLibraryA failed. %s %X", location, error);
+        return;
+    }
 
-		return;
-	}
+    // DirectInput8Create
+    {
+        const char* funcName = "DirectInput8Create";
 
-	// DirectInput8Create
-	{
-		const char * funcName = "DirectInput8Create";
+        SetLastError(0);
 
-		SetLastError(0);
+        auto funcAddr = GetProcAddress(lib, funcName);
+        if (!funcAddr) {
+            error = GetLastError();
 
-		auto funcAddr = GetProcAddress(lib, funcName);
-		if (!funcAddr)
-		{
-			error = GetLastError();
+            Log("GetProcAddress failed. %s %X", funcName, error);
 
-			Log("GetProcAddress failed. %s %X", funcName, error);
+            return;
+        }
 
-			return;
-		}
+        ::Base::DI8::DirectInput8Create = reinterpret_cast<::DI8::DirectInput8Create_t>(funcAddr);
 
-		::Base::DI8::DirectInput8Create = reinterpret_cast<::DI8::DirectInput8Create_t>(funcAddr);
-
-		Log("DirectInput8Create %X", DirectInput8Create);
-	}
+        Log("DirectInput8Create %X", DirectInput8Create);
+    }
 }
 
-void Load()
-{
-	LogFunction();
+void Load() {
+    LogFunction();
 
 
+    byte32 error = 0;
 
-	byte32 error = 0;
+    MODULEENTRY32 me32 = {};
+    me32.dwSize        = sizeof(MODULEENTRY32);
 
-	MODULEENTRY32 me32 = {};
-	me32.dwSize = sizeof(MODULEENTRY32);
+    auto snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, 0);
 
-	auto snapshot = CreateToolhelp32Snapshot
-	(
-		TH32CS_SNAPMODULE,
-		0
-	);
-
-	Module32First(snapshot, &me32);
+    Module32First(snapshot, &me32);
 
 
-
-	const char * names[][4] =
-	{
-		{
-			"dmc1.exe",
-			"Eva.dll",
-		},
-		{
-			"dmc2.exe",
-			"Lucia.dll",
-		},
-		{
-			"dmc3.exe",
-			"Crimson.dll",
-			"SDL2.dll",
-			"SDL2_mixer.dll"
-		},
-		{
-			"dmc4.exe",
-			"Kyrie.dll",
-		},
-		{
-			"DevilMayCry4SpecialEdition.exe",
-			"Kyrie.dll",
-		}
-	};
+    const char* names[][4] = {{
+                                  "dmc1.exe",
+                                  "Eva.dll",
+                              },
+        {
+            "dmc2.exe",
+            "Lucia.dll",
+        },
+        {"dmc3.exe", "Crimson.dll", "SDL2.dll", "SDL2_mixer.dll"},
+        {
+            "dmc4.exe",
+            "Kyrie.dll",
+        },
+        {
+            "DevilMayCry4SpecialEdition.exe",
+            "Kyrie.dll",
+        }};
 
 
+    for_all(index, countof(names)) {
+        auto appName = names[index][0];
+        auto libName = names[index][1];
 
-	for_all(index, countof(names))
-	{
-		auto appName = names[index][0];
-		auto libName = names[index][1];
-
-		if
-		(
-			strncmp
-			(
-				me32.szModule,
-				appName,
-				sizeof(appName) // @Research: Pretty sure that should be strlen. sizeof includes the terminating zero, strlen doesn't.
-			) == 0
-		)
-		{
-			Log("%s %s", appName, libName);
+        if (strncmp(me32.szModule, appName,
+                sizeof(appName) // @Research: Pretty sure that should be strlen. sizeof includes the terminating zero, strlen doesn't.
+                ) == 0) {
+            Log("%s %s", appName, libName);
 
 
+            SetLastError(0);
 
-			SetLastError(0);
+            auto lib = LoadLibraryA(libName);
+            if (!lib) {
+                error = GetLastError();
 
-			auto lib = LoadLibraryA(libName);
-			if (!lib)
-			{
-				error = GetLastError();
-
-				Log("LoadLibraryA failed. %s %X", libName, error);
-			}
+                Log("LoadLibraryA failed. %s %X", libName, error);
+            }
 
 
-
-			return;
-		}
-	}
-
+            return;
+        }
+    }
 
 
-	Log("No Match");
+    Log("No Match");
 }
 
 
+byte32 DllMain(HINSTANCE instance, byte32 reason, void* reserved) {
+    if (reason == DLL_PROCESS_ATTACH) {
+        InitLog("logs", "dinput8.txt");
 
-byte32 DllMain
-(
-	HINSTANCE instance,
-	byte32 reason,
-	void * reserved
-)
-{
-	if (reason == DLL_PROCESS_ATTACH)
-	{
-		InitLog("logs", "dinput8.txt");
+        Log("Session started.");
 
-		Log("Session started.");
+        Init();
+        Load();
+    }
 
-		Init();
-		Load();
-	}
-
-	return 1;
+    return 1;
 }

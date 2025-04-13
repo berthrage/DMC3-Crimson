@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1608</ID>
+      <Description>"air tatsumaki"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+dmc3.exe+20B1D9:
+movzx eax,word ptr [rbx+00003ED0]
+// db 0F B7 83 D0 3E 00 00
+[DISABLE]
+dmc3.exe+20B1D9:
+movzx eax,word ptr [rbx+000000C0]
+// db 0F B7 83 C0 00 00 00
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="45">
+  <CheatEntries>
+    <CheatEntry>
+      <ID>2684</ID>
+      <Description>"Faster Turn Rate"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2024-09-18
+  Author : Mia Berth
+
+  This script does blah blah blah
+}
+
+define(address,"dmc3.exe"+1FC63C)
+define(bytes,F3 0F 59 65 14)
+
+[ENABLE]
+
+
+assert(address,bytes)
+alloc(newmem,$1000,"dmc3.exe"+1FC63C)
+
+label(code)
+label(return)
+
+newmem:
+
+code:
+  movss xmm1, [newfloat]
+  mulss xmm4, xmm1
+  jmp return
+
+newfloat:
+dd (float)1.7
+
+address:
+  jmp newmem
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+  mulss xmm4,[rbp+14]
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1FC63C
+
+dmc3.exe+1FC608: F3 0F 59 E3              - mulss xmm4,xmm3
+dmc3.exe+1FC60C: F3 0F 59 25 28 9A 2C 00  - mulss xmm4,[dmc3.exe+4C603C]
+dmc3.exe+1FC614: 0F 28 C4                 - movaps xmm0,xmm4
+dmc3.exe+1FC617: F3 0F 59 45 14           - mulss xmm0,[rbp+14]
+dmc3.exe+1FC61C: F3 0F 59 05 54 9A 2C 00  - mulss xmm0,[dmc3.exe+4C6078]
+dmc3.exe+1FC624: F3 0F 5E C3              - divss xmm0,xmm3
+dmc3.exe+1FC628: F3 0F 58 05 FC 0E 16 00  - addss xmm0,[dmc3.exe+35D52C]
+dmc3.exe+1FC630: F3 0F 2C C0              - cvttss2si eax,xmm0
+dmc3.exe+1FC634: 66 44 2B C8              - sub r9w,ax
+dmc3.exe+1FC638: 66 44 89 0F              - mov [rdi],r9w
+// ---------- INJECTING HERE ----------
+dmc3.exe+1FC63C: F3 0F 59 65 14           - mulss xmm4,[rbp+14]
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1FC641: 48 8B 6C 24 38           - mov rbp,[rsp+38]
+dmc3.exe+1FC646: F3 0F 59 25 2A 9A 2C 00  - mulss xmm4,[dmc3.exe+4C6078]
+dmc3.exe+1FC64E: F3 0F 5E E3              - divss xmm4,xmm3
+dmc3.exe+1FC652: F3 0F 58 25 D2 0E 16 00  - addss xmm4,[dmc3.exe+35D52C]
+dmc3.exe+1FC65A: F3 0F 2C C4              - cvttss2si eax,xmm4
+dmc3.exe+1FC65E: 66 01 06                 - add [rsi],ax
+dmc3.exe+1FC661: 0F B7 C3                 - movzx eax,bx
+dmc3.exe+1FC664: 48 8B 5C 24 30           - mov rbx,[rsp+30]
+dmc3.exe+1FC669: 48 8B 74 24 40           - mov rsi,[rsp+40]
+dmc3.exe+1FC66E: 48 83 C4 20              - add rsp,20
+}
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+  <UserdefinedSymbols/>
+</CheatTable>

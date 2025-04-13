@@ -2,6 +2,7 @@ project(STB LANGUAGES C)
 
 set(SRC
     stb_image.h
+    stb_image_resize2.h
     dummy.c # Cause fucking cmake
 )
 

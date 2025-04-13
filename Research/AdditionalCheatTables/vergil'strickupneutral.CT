@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1763</ID>
+      <Description>"VergilLockedOffNeutralTrick"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>
+[ENABLE]
+aobscanmodule(VergilLockedOffNeutralTrick,Crimson.dll,B8 1B 00 00 00 48 83) // should be unique
+alloc(newmem,$1000,VergilLockedOffNeutralTrick)
+label(code)
+label(return)
+
+newmem:
+  cmp byte ptr [rax+3e84], 1 // locked on
+  je code
+  mov eax,0000001C // trick up
+  jmp return
+code:
+  mov eax,0000001B // trick
+  jmp return
+
+VergilLockedOffNeutralTrick:
+  jmp newmem
+return:
+registersymbol(VergilLockedOffNeutralTrick)
+
+[DISABLE]
+VergilLockedOffNeutralTrick:
+  db B8 1B 00 00 00
+unregistersymbol(VergilLockedOffNeutralTrick)
+dealloc(newmem)
+// ORIGINAL CODE - INJECTION POINT: Crimson.MobilityFunction&lt;27&gt;+B1
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

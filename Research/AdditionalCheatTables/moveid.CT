@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>69</ID>
+      <Description>"+3fa4 move id requested"</Description>
+      <LastState Value="82" RealAddress="048021E4"/>
+      <ShowAsHex>1</ShowAsHex>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Byte</VariableType>
+      <Address>dmc3.exe+168</Address>
+      <Offsets>
+        <Offset>3fa4</Offset>
+        <Offset>18</Offset>
+        <Offset>00C90E28</Offset>
+      </Offsets>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>68</ID>
+      <Description>"+3fa8 Buffered Attack"</Description>
+      <LastState Value="00" RealAddress="048021E8"/>
+      <ShowAsHex>1</ShowAsHex>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Byte</VariableType>
+      <Address>dmc3.exe+168</Address>
+      <Offsets>
+        <Offset>3fa8</Offset>
+        <Offset>18</Offset>
+        <Offset>00C90E28</Offset>
+      </Offsets>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

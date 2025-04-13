@@ -1,0 +1,19 @@
+[ENABLE]
+dmc3.exe+1E99F2: // 0x7FF6623F99F2
+nop 2
+
+dmc3.exe+1E9A0D: // 0x7FF6623F9A0D
+nop 2
+
+//dmc3.exe+1E9A3E: // 0x7FF6623F9A3E
+//db BA 16 00 00 00 // moveid
+
+[DISABLE]
+dmc3.exe+1E99F2:
+db 74 5F // je dmc3.exe+1E9A53
+
+dmc3.exe+1E9A0D:
+db 75 44 // jne dmc3.exe+1E9A53
+
+//dmc3.exe+1E9A3E:
+//db BA 12 00 00 00 // mov edx,00000012

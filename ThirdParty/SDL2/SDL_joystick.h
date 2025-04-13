@@ -110,6 +110,23 @@ typedef enum
     SDL_JOYSTICK_POWER_MAX
 } SDL_JoystickPowerLevel;
 
+typedef enum
+{
+    SDL_JOYSTICK_BUTTON_INVALID = -1,
+    SDL_JOYSTICK_BUTTON_A = 0,
+    SDL_JOYSTICK_BUTTON_B = 1,
+    SDL_JOYSTICK_BUTTON_X = 2,
+    SDL_JOYSTICK_BUTTON_Y = 3,
+    SDL_JOYSTICK_BUTTON_LEFTSHOULDER = 4,
+    SDL_JOYSTICK_BUTTON_RIGHTSHOULDER = 5,
+    SDL_JOYSTICK_BUTTON_BACK = 6,
+    SDL_JOYSTICK_BUTTON_START = 7,
+    SDL_JOYSTICK_BUTTON_LEFTSTICK = 8,
+    SDL_JOYSTICK_BUTTON_RIGHTSTICK = 9,
+    SDL_JOYSTICK_BUTTON_GUIDE,
+    SDL_JOYSTICK_BUTTON_MAX
+} SDL_JoystickButton;
+
 /* Set max recognized G-force from accelerometer
    See src/joystick/uikit/SDL_sysjoystick.m for notes on why this is needed
  */

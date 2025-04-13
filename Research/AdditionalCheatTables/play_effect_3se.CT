@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1495</ID>
+      <Description>"Play Effect"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+alloc(calleffect,128,dmc3.exe)
+registersymbol(calleffect)
+createthread(calleffect)
+calleffect:
+  push rbx
+  mov rbx,[dmc3.exe+C18AF8]
+  mov rbx,[rbx+C90E28]
+  mov rbx,[rbx+18] // player
+  mov rcx,3  // bank
+  mov rdx,90 // id
+  //mov r8,0
+  //mov r9,8
+  call dmc3.exe+2E7CA0 // from dmc3.exe+211B95
+  mov rdi,rax
+  test rax,rax
+  je return
+  mov rcx,rbx
+  call dmc3.exe+1FAA50
+  inc eax // y pos
+  mov rdx,[rbx+rax*8+0000E5D0] // get ptr to effects
+  mov rcx,[rdx+00000110] // get effect ptr
+  mov [rdi+000000C0],rcx // write effect ptr
+return:
+  pop rbx
+  ret
+
+[DISABLE]
+dealloc(calleffect)
+unregistersymbol(calleffect)
+
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

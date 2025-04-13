@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>73</ID>
+      <Description>"+4C Buffered Attack Turn Speed"</Description>
+      <LastState Value="9" RealAddress="21758C1C"/>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Float</VariableType>
+      <Address>dmc3.exe+168</Address>
+      <Offsets>
+        <Offset>4C</Offset>
+        <Offset>3df8</Offset>
+        <Offset>18</Offset>
+        <Offset>00C90E28</Offset>
+      </Offsets>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

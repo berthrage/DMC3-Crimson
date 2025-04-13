@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>14</ID>
+      <Description>"Bullet stop "</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+dmc3.exe+77070: // 0x7FF662287070
+nop A // knockback
+
+dmc3.exe+68C80: // 0x7FF662278C80
+nop A // knockback when higher up
+
+dmc3.exe+82380: // 0x7FF662292380
+nop 6 // hammer
+
+[DISABLE]
+dmc3.exe+77070:
+mov [rcx+00000120],00000001
+
+dmc3.exe+68C80:
+mov [rcx+00000120],00000001
+
+dmc3.exe+82380:
+mov [rcx+00000118],ebp
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1473</ID>
+      <Description>"rainstorm pop"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+dmc3.exe+20CF55:
+xorps xmm3,xmm3
+nop 5
+
+[DISABLE]
+dmc3.exe+20CF55:
+movss xmm3,[rax+00000190]
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

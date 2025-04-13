@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1465</ID>
+      <Description>"sky dance"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+// part 1
+dmc3.exe+20978C:
+movzx edx,word ptr [rbx+00003ED0]
+
+//dmc3.exe+209704:
+//nop 5 // i think this is pointless
+
+// part 2
+dmc3.exe+20990C:
+movzx edx,word ptr [rbx+00003ED0]
+
+// part 3
+dmc3.exe+209AFB:
+movzx edx,word ptr [rbx+00003ED0]
+
+[DISABLE]
+// part 1
+dmc3.exe+20978C:
+movzx edx,word ptr [rbx+000000C0]
+
+//dmc3.exe+209704:
+//call dmc3.exe+1FA450
+
+// part 2
+dmc3.exe+20990C:
+movzx edx,word ptr [rbx+000000C0]
+
+// part 3
+dmc3.exe+209AFB:
+movzx edx,word ptr [rbx+000000C0]
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

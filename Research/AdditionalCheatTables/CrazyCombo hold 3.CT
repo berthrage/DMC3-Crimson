@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1641</ID>
+      <Description>"cc hold 2"</Description>
+      <LastState Activated="1"/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>
+[ENABLE]
+//aobscanmodule(fcghfgh,dmc3.exe,66 85 87 E4 74 00 00 74 30) // should be unique
+define(fcghfgh,dmc3.exe+1EB7C5)
+alloc(newmem,$1000,fcghfgh)
+label(code)
+label(return)
+
+newmem:
+dq 0 // ID
+dd (float)10 // stinger // must be above this
+dd (float)11 // stinger // must be below this
+dd (float)69 // combo b // above this
+dd (float)70 // combo b // below this
+newmem2:
+  test [rdi+000074E0],ax
+  je dmc3.exe+1EB7FE
+
+  cmp byte ptr [rdi+3fa4], 7 // un upgraded stinger
+  je Stinger
+  cmp byte ptr [rdi+3fa4], 8
+  je Stinger
+
+  cmp byte ptr [rdi+3fa4], 4
+  je ComboB
+  jmp code
+
+Stinger:
+  mov byte ptr [newmem], 1*8
+  jmp SetCrazyComboTiming
+
+ComboB:
+  mov byte ptr [newmem], 2*8
+  jmp SetCrazyComboTiming
+
+SetCrazyComboTiming:
+  push rax
+  push rbx
+  xor rax,rax
+  xor rbx,rbx
+  lea rax,[newmem]
+  mov rbx,[newmem]
+  movss xmm0,[rdi+bf88] // current anim frame
+  movss xmm1,[rax+rbx] // when can we cancel stinger
+  comiss xmm0, xmm1
+  pop rbx
+  pop rax
+  jb dmc3.exe+1EB7FE
+
+  push rax
+  push rbx
+  xor rax,rax
+  xor rbx,rbx
+  lea rax,[newmem]
+  mov rbx,[newmem]
+  add rbx,4
+  movss xmm0,[rdi+bf88] // current anim frame
+  movss xmm1,[rax+rbx] // when can we cancel stinger
+  comiss xmm0, xmm1
+  pop rbx
+  pop rax
+  ja dmc3.exe+1EB7FE
+
+  mov byte ptr [rsi+04],6
+  jmp return
+
+code: // modified originalcode for other moves
+  test [rdi+000074E0],ax
+  je dmc3.exe+1EB7FE
+  mov byte ptr [rsi+04], 6
+  jmp return
+
+fcghfgh:
+  jmp newmem2
+  nop 7
+return:
+registersymbol(fcghfgh)
+
+[DISABLE]
+fcghfgh:
+  db 66 85 87 E4 74 00 00 74 30 FE 46 04
+unregistersymbol(fcghfgh)
+dealloc(newmem)
+
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

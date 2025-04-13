@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1535</ID>
+      <Description>"+1E0 camera lag"</Description>
+      <LastState Value="500" RealAddress="030BA4D0"/>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Float</VariableType>
+      <Address>dmc3.exe+C8FBD0</Address>
+      <Offsets>
+        <Offset>1E0</Offset>
+        <Offset>498</Offset>
+      </Offsets>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

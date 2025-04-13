@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1560</ID>
+      <Description>"+24 roll"</Description>
+      <LastState Value="0" RealAddress="030BA314"/>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Float</VariableType>
+      <Address>dmc3.exe+CF2330</Address>
+      <Offsets>
+        <Offset>24</Offset>
+        <Offset>498</Offset>
+        <Offset>240</Offset>
+      </Offsets>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

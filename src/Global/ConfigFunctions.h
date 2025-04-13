@@ -1,69 +1,74 @@
+#include "Core/RapidJSON.h"
+#include <tuple>
+#include <type_traits>
+#include "CrimsonConfigHandling.h"
+#include <filewritestream.h>
+#pragma optimize("", off) // Disable all optimizations
 #ifdef NO_SAVE
 void SaveConfigFunction()
 #else
-export void SaveConfig()
+void SaveConfig()
 #endif
 {
-	#ifndef NO_SAVE
+#ifndef NO_SAVE
 	LogFunction();
-	#endif
+#endif
 
 	using namespace rapidjson;
 	using namespace JSON;
 
-
-
 	ToJSON(queuedConfig);
+	SerializeConfig(root, queuedCrimsonConfig, root.GetAllocator());
 
+	// Use FILE pointer and FileWriteStream for better large file handling
+	FILE* fp = fopen(locationConfig, "w");
+	if (!fp) {
+		Log("Failed to open file for writing.");
+		return;
+	}
 
+	char writeBuffer[65536]; // Use a larger buffer for efficiency
+	FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
 
-	StringBuffer stringBuffer;
-	PrettyWriter<StringBuffer> prettyWriter(stringBuffer);
-
+	// Use PrettyWriter for formatted output
+	PrettyWriter<FileWriteStream> prettyWriter(os);
 	root.Accept(prettyWriter);
 
-
-
-	auto name = stringBuffer.GetString();
-	auto size = strlen(name);
-
-	if
-	(
-		!SaveFile
-		(
-			locationConfig,
-			name,
-			size
-		)
-	)
-	{
-		Log("SaveFile failed.");
-	}
+	fclose(fp);  // Close file to ensure data is fully written
 }
-
 
 
 #ifdef NO_LOAD
 void LoadConfigFunction()
 #else
-export void LoadConfig()
+void LoadConfig()
 #endif
 {
-	#ifndef NO_LOAD
+#ifndef NO_LOAD
 	LogFunction();
-	#endif
+#endif
 
 	using namespace rapidjson;
 	using namespace JSON;
 
 
-
 	auto file = LoadFile(locationConfig);
-	if (!file)
-	{
+	if (!file) {
 		Log("LoadFile failed.");
 
 		CreateMembers(defaultConfig);
+		//CreateMembersCrimson(root, defaultCrimsonConfig);
+		SerializeConfig(root, defaultCrimsonConfig, root.GetAllocator());
+
+// 		int numberTest = 42;
+// 		int numberArrayTest[2][3] = { {1, 2, 3}, {4, 5, 6} };
+// 		uint8 testwithUint8Outside = 33;
+// 		int testAgain = 80;
+// 
+// 		SerializeField(root, root.GetAllocator(), "numberTest", numberTest);
+// 		SerializeField(root, root.GetAllocator(), "numberArrayTest", numberArrayTest);
+// 		SerializeField(root, root.GetAllocator(), "testwithUint8Outside", testwithUint8Outside);
+// 		SerializeField(root, root.GetAllocator(), "testAgain", testAgain);
 
 		SaveConfig();
 
@@ -71,52 +76,42 @@ export void LoadConfig()
 	}
 
 
+	auto name = const_cast<const char*>(reinterpret_cast<char*>(file));
 
-	auto name = const_cast<const char *>(reinterpret_cast<char *>(file));
+	auto& result = root.Parse(name);
 
-	auto & result = root.Parse(name);
-
-	if (result.HasParseError())
-	{
+	if (result.HasParseError()) {
 		auto code = result.GetParseError();
 		auto off = result.GetErrorOffset();
 
-		Log
-		(
-			"Parse failed. "
-			#ifdef _WIN64
+		Log("Parse failed. "
+#ifdef _WIN64
 			"%u %llu",
-			#else
+#else
 			"%u %u",
-			#endif
-			code,
-			off
-		);
+#endif
+			code, off);
 
 		return;
 	}
 
 
-
 	CreateMembers(defaultConfig);
+	//SerializeConfig(root, defaultCrimsonConfig, root.GetAllocator());
+	//CreateMembersCrimson(root, defaultCrimsonConfig);
 
 	// At this point all file members have been applied. Extra or obsolete file members can exist.
 	// If members were missing in the file they were created and have their default values.
-
 
 
 	// The actual configs are still untouched though.
 	// Let's update them!
 
 	ToConfig(queuedConfig);
+	ParseConfig(root, queuedCrimsonConfig);
 
-	CopyMemory
-	(
-		&activeConfig,
-		&queuedConfig,
-		sizeof(activeConfig)
-	);
-
+	CopyMemory(&activeConfig, &queuedConfig, sizeof(activeConfig));
+	CopyMemory(&activeCrimsonConfig, &queuedCrimsonConfig, sizeof(activeCrimsonConfig));
 
 
 	SaveConfig();
@@ -126,32 +121,25 @@ export void LoadConfig()
 }
 
 
-
 #ifdef NO_INIT
 void InitConfigFunction()
 #else
-export void InitConfig()
+void InitConfig()
 #endif
 {
-	#ifndef NO_INIT
+#ifndef NO_INIT
 	LogFunction();
-	#endif
+#endif
 
 	using namespace rapidjson;
 	using namespace JSON;
 
 	CreateDirectoryA(directoryName, 0);
 
-	snprintf
-	(
-		locationConfig,
-		sizeof(locationConfig),
-		"%s/%s",
-		directoryName,
-		fileName
-	);
+	snprintf(locationConfig, sizeof(locationConfig), "%s/%s", directoryName, fileName);
 
 	root.SetObject();
 
 	g_allocator = &root.GetAllocator();
 }
+#pragma optimize("", on) // Re-enable optimizations

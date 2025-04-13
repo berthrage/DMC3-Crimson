@@ -2,6 +2,9 @@
 !.github
 !.github/*
 
+!Research
+!Research/** 
+
 !src
 !src/**
 

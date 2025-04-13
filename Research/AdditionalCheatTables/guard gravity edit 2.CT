@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>1470</ID>
+      <Description>"guard gravity edit"</Description>
+      <LastState Activated="1"/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2023-10-16
+  Author : sssiy_8fxwi52
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+
+aobscanmodule(ffsdsfd,dmc3.exe,C6 83 78 63 00 00 01) // should be unique
+alloc(newmem,$1000,ffsdsfd)
+label(code)
+label(return)
+registersymbol(guardgrav)
+label(guardgrav)
+
+newmem:
+guardgrav:
+dd (float)0
+
+code:
+  mov byte ptr [rbx+00006378],01
+  test [rbx+74e0],0040
+  jne return
+  cmp dword ptr [rbx+94],0
+  jl return
+  movss xmm0,[rbx+94]
+  mulss xmm0,[newmem]
+  movss [rbx+94], xmm0
+  jmp return
+
+ffsdsfd:
+  jmp code
+  nop 2
+return:
+registersymbol(ffsdsfd)
+
+[DISABLE]
+ffsdsfd:
+  db C6 83 78 63 00 00 01
+unregistersymbol(ffsdsfd)
+dealloc(newmem)
+unregistersymbol(guardgrav)
+
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1EE121
+</AssemblerScript>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>1471</ID>
+          <Description>"value to set vertical pull to"</Description>
+          <LastState Value="0.1000000015" RealAddress="7FF639260000"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>guardgrav</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>
