@@ -899,6 +899,7 @@ void WeaponProgressionTracking() {
 					// If the player is in a mission, set the melee weapon count to the max unlocked quantity
 					activeCharacterData.meleeWeaponCount = weaponProgression.devilArmsUnlockedQtt + 1;
 					queuedCharacterData.meleeWeaponCount = weaponProgression.devilArmsUnlockedQtt + 1;
+					lastMaxMeleeWeaponCount = weaponProgression.devilArmsUnlockedQtt + 1;
 				} else {
 					// If the player is not in a mission, set the melee weapon count to the last max melee weapon count
 					if (lastMaxMeleeWeaponCount > weaponProgression.devilArmsUnlockedQtt + 1) {
@@ -961,6 +962,7 @@ void WeaponProgressionTracking() {
 					// If the player is in a mission, set the melee weapon count to the max unlocked quantity
 					activeCharacterData.rangedWeaponCount = weaponProgression.gunsUnlockedQtt + 1;
 					queuedCharacterData.rangedWeaponCount = weaponProgression.gunsUnlockedQtt + 1;
+					lastMaxRangedWeaponCount = weaponProgression.gunsUnlockedQtt + 1;
 				} else {
 					// If the player is not in a mission, set the melee weapon count to the last max melee weapon count
 					if (lastMaxRangedWeaponCount > weaponProgression.gunsUnlockedQtt + 1) {
