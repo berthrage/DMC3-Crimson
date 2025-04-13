@@ -9294,16 +9294,25 @@ void SetAction(byte8* actorBaseAddr) {
     case CHARACTER::VERGIL: {
         using namespace ACTION_VERGIL;
 
+        // BACK TO FORWARD JUDGEMENT CUT INPUT
         if (activeCrimsonConfig.Gameplay.Vergil.altJudgementCutInput &&
             (actorData.action == YAMATO_RAPID_SLASH_LEVEL_1 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_2) &&
             crimsonPlayer[playerIndex].b2F.forwardCommand) {
             actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
         }
+        // AIR LUNAR PHASE
         else if (activeCrimsonConfig.Gameplay.Vergil.airLunarPhase && (actorData.action == BEOWULF_STARFALL_LEVEL_2 || 
-            actorData.action == BEOWULF_STARFALL_LEVEL_1) && lockOn && 
-                 (tiltDirection == TILT_DIRECTION::UP)) {
-            actorData.action = BEOWULF_LUNAR_PHASE_LEVEL_2;
+            actorData.action == BEOWULF_STARFALL_LEVEL_1) 
+            && lockOn && (tiltDirection == TILT_DIRECTION::UP)) {
+
+            if (ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::BEOWULF_LUNAR_PHASE_LEVEL_2]) {
+				actorData.action = BEOWULF_LUNAR_PHASE_LEVEL_2;
+            }
+            else {
+				actorData.action = BEOWULF_LUNAR_PHASE_LEVEL_1;
+            }
         } 
+        // FORCE EDGE AIR STINGER
 		else if (activeCrimsonConfig.Gameplay.Vergil.airStinger && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1] &&
                    (actorData.newAirStingerCount < activeConfig.YamatoForceEdge.airStingerCount[index]) && lockOn &&
                    (tiltDirection == TILT_DIRECTION::UP) &&
@@ -9314,6 +9323,7 @@ void SetAction(byte8* actorBaseAddr) {
 
             actorData.newAirStingerCount++;
         } 
+        // ROUND TRIP TWEAKS
         else if (activeCrimsonConfig.Gameplay.Vergil.roundTripTweaks &&
                    (actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1 || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2) &&
                    crimsonPlayer[playerIndex].b2F.forwardCommand) {
@@ -9361,6 +9371,11 @@ bool AirActionCheck(PlayerActorData& actorData) {
             (actorData.motionData[1].group == MOTION_GROUP_VERGIL::YAMATO_FORCE_EDGE)) {
             return true;
         }
+
+		if ((actorData.state & STATE::IN_AIR) && (actorData.action == ACTION_VERGIL::BEOWULF_LUNAR_PHASE_LEVEL_1) &&
+			(actorData.motionData[1].group == MOTION_GROUP_VERGIL::BEOWULF)) {
+			return true;
+		}
 
         // Enable Air Judgement Cut on air test -- unfinished
 // 		if ((actorData.state & STATE::IN_AIR) && (actorData.action == ACTION_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2) &&

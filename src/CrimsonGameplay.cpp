@@ -843,13 +843,21 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
             }
 
             // Adjusts Vergil Pos to be lower when starting Ground/Air Lunar Phase
-            if ((actorData.action == BEOWULF_LUNAR_PHASE_LEVEL_1 || actorData.action == BEOWULF_LUNAR_PHASE_LEVEL_2) && 
+            if ((actorData.action == BEOWULF_LUNAR_PHASE_LEVEL_2) && 
                 motion != 23 &&
                 !v->startingLunarPhaseFromGround) {
 
                 actorData.verticalPullMultiplier = 0.0f;
                 actorData.position.y             = v->storedLunarPhasePosY - 20.0f;
             }
+
+			if ((actorData.action == BEOWULF_LUNAR_PHASE_LEVEL_1) &&
+				motion != 10 &&
+				!v->startingLunarPhaseFromGround) {
+
+				actorData.verticalPullMultiplier = 0.0f;
+				actorData.position.y = v->storedLunarPhasePosY - 20.0f;
+			}
         }
     }
 }
