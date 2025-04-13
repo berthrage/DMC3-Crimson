@@ -245,6 +245,7 @@ struct CrimsonConfig {
 			bool bufferlessReversals = true;
 			bool dmc4LockOnDirection = true;
             bool holdToCrazyCombo = true;
+			uint8 crazyComboMashRequirement = 6;
 			bool disableHeightRestriction = true;
 			bool improvedBufferedReversals = true;
 			bool increasedJCSpheres = true;
@@ -262,6 +263,7 @@ struct CrimsonConfig {
 					std::make_pair("improvedBufferedReversals", &General::improvedBufferedReversals),
 					std::make_pair("dmc4LockOnDirection", &General::dmc4LockOnDirection),
                     std::make_pair("holdToCrazyCombo", &General::holdToCrazyCombo),
+					std::make_pair("crazyComboMashRequirement", &General::crazyComboMashRequirement),
 					std::make_pair("disableHeightRestriction", &General::disableHeightRestriction),
 					std::make_pair("improvedBufferedReversals", &General::improvedBufferedReversals),
 					std::make_pair("increasedJCSpheres", &General::increasedJCSpheres),
@@ -276,6 +278,8 @@ struct CrimsonConfig {
 			bool improvedCancels = true;
 			bool bulletStop = true;
 			bool rainstormLift = true;
+			bool infiniteRainstorm = true;	
+			bool foursomeTime = true;
 			bool aerialRaveTweaks = true;
 			bool airFlickerTweaks = true;
 			bool skyDanceTweaks = true;
@@ -283,17 +287,24 @@ struct CrimsonConfig {
 			bool driveTweaks = true;
 			bool disableAirSlashKnockback = true;
 			bool airStinger = true;
+			bool airRevolver = true;
 			bool airTornado = true;
 			bool airRisingDragonWhirlwind = true;
 			bool airAgniRudraWhirlwind = true;
 			bool dmc4Mobility = true;
 			bool dTInfusedRoyalguard = true;
+			bool airHikeCoreAbility = true;
+			bool altNevanVortex = true;
+			bool artemisSwapShotMultiLock = true;
+			bool artemisInstantFullCharge = true;
 
 			static constexpr auto Metadata() {
                 return std::make_tuple(
 				    std::make_pair("improvedCancels", &Dante::improvedCancels),
 					std::make_pair("bulletStop", &Dante::bulletStop),
 					std::make_pair("rainstormLift", &Dante::rainstormLift),
+					std::make_pair("infiniteRainstorm", &Dante::infiniteRainstorm),
+					std::make_pair("foursomeTime", &Dante::foursomeTime),
 					std::make_pair("aerialRaveTweaks", &Dante::aerialRaveTweaks),
 					std::make_pair("airFlickerTweaks", &Dante::airFlickerTweaks),
 					std::make_pair("skyDanceTweaks", &Dante::skyDanceTweaks),
@@ -301,11 +312,16 @@ struct CrimsonConfig {
 					std::make_pair("driveTweaks", &Dante::driveTweaks),
 					std::make_pair("disableAirSlashKnockback", &Dante::disableAirSlashKnockback),
 					std::make_pair("airStinger", &Dante::airStinger),
+					std::make_pair("airRevolver", &Dante::airRevolver),
 					std::make_pair("airTornado", &Dante::airTornado),
 					std::make_pair("airRisingDragonWhirlwind", &Dante::airRisingDragonWhirlwind),
 					std::make_pair("airAgniRudraWhirlwind", &Dante::airAgniRudraWhirlwind),
 					std::make_pair("dmc4Mobility", &Dante::dmc4Mobility),
-					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard)
+					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard),
+					std::make_pair("airHikeCoreAbility", &Dante::airHikeCoreAbility),
+					std::make_pair("altNevanVortex", &Dante::altNevanVortex),
+					std::make_pair("artemisSwapShotMultiLock", &Dante::artemisSwapShotMultiLock),
+					std::make_pair("artemisInstantFullCharge", &Dante::artemisInstantFullCharge)
 				);
 			}
         } Dante;
@@ -313,15 +329,23 @@ struct CrimsonConfig {
 		struct Vergil {
 			bool darkslayerTrickCancels = true;
 			bool fasterDTRapidSlash = true;
+			bool roundTripTweaks = true;
 			bool airStinger = true;
+			bool airRisingSun = true;
+			bool airLunarPhase = true;
+			bool altJudgementCutInput = false;
 			std::string adjustRisingSunPos = "From Air";
 			std::string adjustLunarPhasePos = "From Air";
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
 					std::make_pair("darkslayerTrickCancels", &Vergil::darkslayerTrickCancels),
-					std::make_pair("fasterRapidSlash", &Vergil::fasterDTRapidSlash),
+					std::make_pair("fasterDTRapidSlash", &Vergil::fasterDTRapidSlash),
+					std::make_pair("roundTripTweaks", &Vergil::roundTripTweaks),
 					std::make_pair("airStinger", &Vergil::airStinger),
+					std::make_pair("airRisingSun", &Vergil::airRisingSun),
+					std::make_pair("airLunarPhase", &Vergil::airLunarPhase),
+					std::make_pair("altJudgementCutInput", &Vergil::altJudgementCutInput),
 					std::make_pair("adjustRisingSunPos", &Vergil::adjustRisingSunPos),
 					std::make_pair("adjustLunarPhasePos", &Vergil::adjustLunarPhasePos)
 				);

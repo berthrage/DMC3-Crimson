@@ -406,15 +406,6 @@ void CreateMembers(Config& config_) {
 
 
     {
-        auto& member = Create<struct_t>(root, "Artemis");
-        auto& config = config_.Artemis;
-
-        Create<bool>(member, "swapNormalShotAndMultiLock", config.swapNormalShotAndMultiLock);
-        Create<bool>(member, "instantFullCharge", config.instantFullCharge);
-    }
-
-
-    {
         auto& member = Create<struct_t>(root, "BossRush");
         auto& config = config_.BossRush;
 
@@ -491,32 +482,6 @@ void CreateMembers(Config& config_) {
         }
     }
 
-
-    {
-        auto& member = Create<struct_t>(root, "EbonyIvory");
-        auto& config = config_.EbonyIvory;
-
-        Create<bool>(member, "foursomeTime", config.foursomeTime);
-        Create<bool>(member, "infiniteRainStorm", config.infiniteRainStorm);
-    }
-
-
-    {
-        auto& member = Create<struct_t>(root, "Rebellion");
-        auto& config = config_.Rebellion;
-
-        Create<bool>(member, "infiniteSwordPierce", config.infiniteSwordPierce);
-    }
-
-
-    {
-        auto& member = Create<struct_t>(root, "Royalguard");
-        auto& config = config_.Royalguard;
-
-        Create<bool>(member, "forceJustFrameRelease", config.forceJustFrameRelease);
-    }
-
-
     {
         auto& member = Create<struct_t>(root, "Speed");
         auto& config = config_.Speed;
@@ -533,38 +498,12 @@ void CreateMembers(Config& config_) {
     }
 
 
-    {
-        auto& member = Create<struct_t>(root, "SummonedSwords");
-        auto& config = config_.SummonedSwords;
-
-        Create<bool>(member, "chronoSwords", config.chronoSwords);
-    }
-
-
-    {
-        auto& member = Create<struct_t>(root, "Yamato");
-        auto& config = config_.Yamato;
-
-        CreateArray<uint8, 2>(member, "judgementCutCount", config.judgementCutCount);
-    }
-
-
-    {
-        auto& member = Create<struct_t>(root, "YamatoForceEdge");
-        auto& config = config_.YamatoForceEdge;
-
-        Create<bool>(member, "infiniteRoundTrip", config.infiniteRoundTrip);
-    }
-
-
     auto& member = root;
     auto& config = config_;
 
     Create<bool>(member, "welcome", config.welcome);
     Create<bool>(member, "hideBeowulfDante", config.hideBeowulfDante);
     Create<bool>(member, "hideBeowulfVergil", config.hideBeowulfVergil);
-    Create<bool>(member, "airHikeCoreAbility", config.airHikeCoreAbility);
-    Create<uint8>(member, "crazyComboLevelMultiplier", config.crazyComboLevelMultiplier);
     Create<uint8>(member, "dotShadow", config.dotShadow);
     Create<float>(member, "depleteQuicksilver", config.depleteQuicksilver);
     Create<float>(member, "depleteDoppelganger", config.depleteDoppelganger);
@@ -676,15 +615,6 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "hideBossHUD", config.hideBossHUD);
     Create<bool>(member, "disableStyleRankHudFadeout", config.disableStyleRankHudFadeout);
     Create<bool>(member, "soundIgnoreEnemyData", config.soundIgnoreEnemyData);
-    Create<bool>(member, "enableRebellionNewDrive", config.enableRebellionNewDrive);
-    Create<bool>(member, "enableRebellionQuickDrive", config.enableRebellionQuickDrive);
-    Create<bool>(member, "enableCerberusAirRevolver", config.enableCerberusAirRevolver);
-    Create<bool>(member, "enableNevanNewVortex", config.enableNevanNewVortex);
-    Create<bool>(member, "enableYamatoVergilNewJudgementCut", config.enableYamatoVergilNewJudgementCut);
-    Create<bool>(member, "enableBeowulfVergilAirRisingSun", config.enableBeowulfVergilAirRisingSun);
-    Create<bool>(member, "enableBeowulfVergilAirLunarPhase", config.enableBeowulfVergilAirLunarPhase);
-    Create<bool>(member, "enableYamatoForceEdgeNewComboPart4", config.enableYamatoForceEdgeNewComboPart4);
-    Create<bool>(member, "enableYamatoForceEdgeNewRoundTrip", config.enableYamatoForceEdgeNewRoundTrip);
     Create<uint8>(member, "dergil", config.dergil);
     Create<uint8>(member, "costumeRespectsProgression", config.costumeRespectsProgression);
 
@@ -918,15 +848,6 @@ void ToJSON(Config& config_) {
 
 
     {
-        auto& member = root["Artemis"];
-        auto& config = config_.Artemis;
-
-        Set<bool>(member["swapNormalShotAndMultiLock"], config.swapNormalShotAndMultiLock);
-        Set<bool>(member["instantFullCharge"], config.instantFullCharge);
-    }
-
-
-    {
         auto& member = root["BossRush"];
         auto& config = config_.BossRush;
 
@@ -1001,32 +922,6 @@ void ToJSON(Config& config_) {
         }
     }
 
-
-    {
-        auto& member = root["EbonyIvory"];
-        auto& config = config_.EbonyIvory;
-
-        Set<bool>(member["foursomeTime"], config.foursomeTime);
-        Set<bool>(member["infiniteRainStorm"], config.infiniteRainStorm);
-    }
-
-
-    {
-        auto& member = root["Rebellion"];
-        auto& config = config_.Rebellion;
-
-        Set<bool>(member["infiniteSwordPierce"], config.infiniteSwordPierce);
-    }
-
-
-    {
-        auto& member = root["Royalguard"];
-        auto& config = config_.Royalguard;
-
-        Set<bool>(member["forceJustFrameRelease"], config.forceJustFrameRelease);
-    }
-
-
     {
         auto& member = root["Speed"];
         auto& config = config_.Speed;
@@ -1042,39 +937,12 @@ void ToJSON(Config& config_) {
         SetArray<float, 5>(member["devilVergil"], config.devilVergil);
     }
 
-
-    {
-        auto& member = root["SummonedSwords"];
-        auto& config = config_.SummonedSwords;
-
-        Set<bool>(member["chronoSwords"], config.chronoSwords);
-    }
-
-
-    {
-        auto& member = root["Yamato"];
-        auto& config = config_.Yamato;
-
-        SetArray<uint8, 2>(member["judgementCutCount"], config.judgementCutCount);
-    }
-
-
-    {
-        auto& member = root["YamatoForceEdge"];
-        auto& config = config_.YamatoForceEdge;
-
-        Set<bool>(member["infiniteRoundTrip"], config.infiniteRoundTrip);
-    }
-
-
     auto& member = root;
     auto& config = config_;
 
     Set<bool>(member["welcome"], config.welcome);
     Set<bool>(member["hideBeowulfDante"], config.hideBeowulfDante);
     Set<bool>(member["hideBeowulfVergil"], config.hideBeowulfVergil);
-    Set<bool>(member["airHikeCoreAbility"], config.airHikeCoreAbility);
-    Set<uint8>(member["crazyComboLevelMultiplier"], config.crazyComboLevelMultiplier);
     Set<uint8>(member["dotShadow"], config.dotShadow);
     Set<float>(member["depleteQuicksilver"], config.depleteQuicksilver);
     Set<float>(member["depleteDoppelganger"], config.depleteDoppelganger);
@@ -1149,18 +1017,8 @@ void ToJSON(Config& config_) {
     Set<bool>(member["hideBossHUD"], config.hideBossHUD);
     Set<bool>(member["disableStyleRankHudFadeout"], config.disableStyleRankHudFadeout);
     Set<bool>(member["soundIgnoreEnemyData"], config.soundIgnoreEnemyData);
-    Set<bool>(member["enableRebellionNewDrive"], config.enableRebellionNewDrive);
-    Set<bool>(member["enableRebellionQuickDrive"], config.enableRebellionQuickDrive);
-    Set<bool>(member["enableCerberusAirRevolver"], config.enableCerberusAirRevolver);
-    Set<bool>(member["enableNevanNewVortex"], config.enableNevanNewVortex);
-    Set<bool>(member["enableYamatoVergilNewJudgementCut"], config.enableYamatoVergilNewJudgementCut);
-    Set<bool>(member["enableBeowulfVergilAirRisingSun"], config.enableBeowulfVergilAirRisingSun);
-    Set<bool>(member["enableBeowulfVergilAirLunarPhase"], config.enableBeowulfVergilAirLunarPhase);
-    Set<bool>(member["enableYamatoForceEdgeNewComboPart4"], config.enableYamatoForceEdgeNewComboPart4);
-    Set<bool>(member["enableYamatoForceEdgeNewRoundTrip"], config.enableYamatoForceEdgeNewRoundTrip);
     Set<uint8>(member["dergil"], config.dergil);
     Set<uint8>(member["costumeRespectsProgression"], config.costumeRespectsProgression);
-
 
     SetString(member["selectedHUD"], config.selectedHUD.c_str());
 
@@ -1389,15 +1247,6 @@ void ToConfig(Config& config_) {
 
 
     {
-        auto& config = config_.Artemis;
-        auto& member = root["Artemis"];
-
-        config.swapNormalShotAndMultiLock = Get<bool>(member["swapNormalShotAndMultiLock"]);
-        config.instantFullCharge          = Get<bool>(member["instantFullCharge"]);
-    }
-
-
-    {
         auto& config = config_.BossRush;
         auto& member = root["BossRush"];
 
@@ -1473,32 +1322,6 @@ void ToConfig(Config& config_) {
         }
     }
 
-
-    {
-        auto& config = config_.EbonyIvory;
-        auto& member = root["EbonyIvory"];
-
-        config.foursomeTime      = Get<bool>(member["foursomeTime"]);
-        config.infiniteRainStorm = Get<bool>(member["infiniteRainStorm"]);
-    }
-
-
-    {
-        auto& config = config_.Rebellion;
-        auto& member = root["Rebellion"];
-
-        config.infiniteSwordPierce = Get<bool>(member["infiniteSwordPierce"]);
-    }
-
-
-    {
-        auto& config = config_.Royalguard;
-        auto& member = root["Royalguard"];
-
-        config.forceJustFrameRelease = Get<bool>(member["forceJustFrameRelease"]);
-    }
-
-
     {
         auto& config = config_.Speed;
         auto& member = root["Speed"];
@@ -1514,39 +1337,12 @@ void ToConfig(Config& config_) {
         GetArray<float, 5>(config.devilVergil, member["devilVergil"]);
     }
 
-
-    {
-        auto& config = config_.SummonedSwords;
-        auto& member = root["SummonedSwords"];
-
-        config.chronoSwords = Get<bool>(member["chronoSwords"]);
-    }
-
-
-    {
-        auto& config = config_.Yamato;
-        auto& member = root["Yamato"];
-
-        GetArray<uint8, 2>(config.judgementCutCount, member["judgementCutCount"]);
-    }
-
-
-    {
-        auto& config = config_.YamatoForceEdge;
-        auto& member = root["YamatoForceEdge"];
-
-        config.infiniteRoundTrip = Get<bool>(member["infiniteRoundTrip"]);
-    }
-
-
     auto& config = config_;
     auto& member = root;
 
     config.welcome                   = Get<bool>(member["welcome"]);
     config.hideBeowulfDante          = Get<bool>(member["hideBeowulfDante"]);
     config.hideBeowulfVergil         = Get<bool>(member["hideBeowulfVergil"]);
-    config.airHikeCoreAbility        = Get<bool>(member["airHikeCoreAbility"]);
-    config.crazyComboLevelMultiplier = Get<uint8>(member["crazyComboLevelMultiplier"]);
     config.dotShadow                 = Get<uint8>(member["dotShadow"]);
     config.depleteQuicksilver        = Get<float>(member["depleteQuicksilver"]);
     config.depleteDoppelganger       = Get<float>(member["depleteDoppelganger"]);
@@ -1601,12 +1397,10 @@ void ToConfig(Config& config_) {
 
     config.enemyAutoSpawn = Get<bool>(member["enemyAutoSpawn"]);
 
-
     ToConfig_MainOverlayData(config.debugOverlayData, member["debugOverlayData"]);
     ToConfig_OverlayData(config.missionOverlayData, member["missionOverlayData"]);
     ToConfig_OverlayData(config.bossLadyActionsOverlayData, member["bossLadyActionsOverlayData"]);
     ToConfig_OverlayData(config.bossVergilActionsOverlayData, member["bossVergilActionsOverlayData"]);
-
 
     config.kalinaAnnHookGrenadeHeight = Get<float>(member["kalinaAnnHookGrenadeHeight"]);
     config.kalinaAnnHookGrenadeTime   = Get<float>(member["kalinaAnnHookGrenadeTime"]);
@@ -1620,22 +1414,10 @@ void ToConfig(Config& config_) {
     config.hideLockOn                         = Get<bool>(member["hideLockOn"]);
     config.disableStyleRankHudFadeout         = Get<bool>(member["disableStyleRankHudFadeout"]);
     config.soundIgnoreEnemyData               = Get<bool>(member["soundIgnoreEnemyData"]);
-    config.enableRebellionNewDrive            = Get<bool>(member["enableRebellionNewDrive"]);
-    config.enableRebellionQuickDrive          = Get<bool>(member["enableRebellionQuickDrive"]);
-    config.enableCerberusAirRevolver          = Get<bool>(member["enableCerberusAirRevolver"]);
-    config.enableNevanNewVortex               = Get<bool>(member["enableNevanNewVortex"]);
-    config.enableYamatoVergilNewJudgementCut  = Get<bool>(member["enableYamatoVergilNewJudgementCut"]);
-    config.enableBeowulfVergilAirRisingSun    = Get<bool>(member["enableBeowulfVergilAirRisingSun"]);
-    config.enableBeowulfVergilAirLunarPhase   = Get<bool>(member["enableBeowulfVergilAirLunarPhase"]);
-    config.enableYamatoForceEdgeNewComboPart4 = Get<bool>(member["enableYamatoForceEdgeNewComboPart4"]);
-    config.enableYamatoForceEdgeNewRoundTrip  = Get<bool>(member["enableYamatoForceEdgeNewRoundTrip"]);
     config.dergil                             = Get<uint8>(member["dergil"]);
     config.costumeRespectsProgression         = Get<uint8>(member["costumeRespectsProgression"]);
 
     config.selectedHUD = Get<std::string>(member["selectedHUD"]);
-
-    //GetString(config.selectedHUD, sizeof(config.selectedHUD), member["selectedHUD"]);
-
 
 	config.disableBlendingEffects = Get<bool>(member["disableBlendingEffects"]);
 	config.framerateResponsiveGameSpeed = Get<bool>(member["framerateResponsiveGameSpeed"]);

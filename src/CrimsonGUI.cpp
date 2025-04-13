@@ -4969,6 +4969,14 @@ void ShopWindow() {
 		ImGui::PopFont();
 		ImGui::Text("");
 
+		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
+			auto& gamepad = GetGamepad(playerIndex);
+
+			if ((gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))) {
+				CloseShop();
+			}
+		}
+
 		SelectPlayerLoadoutsWeaponsTab();
 
 		if (ImGui::BeginTabBar("ShopTabs")) {
@@ -7024,39 +7032,6 @@ void Other() {
     if (ImGui::CollapsingHeader("Other")) {
         ImGui::Text("");
 
-     
-
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.dotShadow, &defaultConfig.dotShadow, sizeof(queuedConfig.dotShadow));
-            CopyMemory(&activeConfig.dotShadow, &queuedConfig.dotShadow, sizeof(activeConfig.dotShadow));
-
-            CopyMemory(&queuedConfig.depleteQuicksilver, &defaultConfig.depleteQuicksilver, sizeof(queuedConfig.depleteQuicksilver));
-            CopyMemory(&activeConfig.depleteQuicksilver, &queuedConfig.depleteQuicksilver, sizeof(activeConfig.depleteQuicksilver));
-
-            CopyMemory(&queuedConfig.depleteDoppelganger, &defaultConfig.depleteDoppelganger, sizeof(queuedConfig.depleteDoppelganger));
-            CopyMemory(&activeConfig.depleteDoppelganger, &queuedConfig.depleteDoppelganger, sizeof(activeConfig.depleteDoppelganger));
-
-            CopyMemory(&queuedConfig.depleteDevil, &defaultConfig.depleteDevil, sizeof(queuedConfig.depleteDevil));
-            CopyMemory(&activeConfig.depleteDevil, &queuedConfig.depleteDevil, sizeof(activeConfig.depleteDevil));
-
-            CopyMemory(&queuedConfig.crazyComboLevelMultiplier, &defaultConfig.crazyComboLevelMultiplier,
-                sizeof(queuedConfig.crazyComboLevelMultiplier));
-            CopyMemory(&activeConfig.crazyComboLevelMultiplier, &queuedConfig.crazyComboLevelMultiplier,
-                sizeof(activeConfig.crazyComboLevelMultiplier));
-
-            CopyMemory(&queuedConfig.linearWeaponSwitchTimeout, &defaultConfig.linearWeaponSwitchTimeout,
-                sizeof(queuedConfig.linearWeaponSwitchTimeout));
-            CopyMemory(&activeConfig.linearWeaponSwitchTimeout, &queuedConfig.linearWeaponSwitchTimeout,
-                sizeof(activeConfig.linearWeaponSwitchTimeout));
-
-            CopyMemory(&queuedConfig.orbReach, &defaultConfig.orbReach, sizeof(queuedConfig.orbReach));
-            CopyMemory(&activeConfig.orbReach, &queuedConfig.orbReach, sizeof(activeConfig.orbReach));
-
-
-            UpdateCrazyComboLevelMultiplier();
-        }
-        ImGui::Text("");
-
         ImGui::PushItemWidth(200);
 
 
@@ -7127,6 +7102,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("Unknown");
             } else {
                 auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+				auto& gamepad = GetGamepad(0);
                 
 
                 ImGui::Text(sceneNames[g_scene]);
@@ -7158,7 +7134,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 					ImGui::Text("MeleeWeaponQeued[%u]: %u", i, queuedConfig.Actor.playerData[0].characterData[0][0].meleeWeapons[i]);
 				} 
                 ImGui::Text("Style Levels: %u", sessionData.styleLevels[3]);
-                ImGui::Text("Unlocked DT: %u", sessionData.unlockDevilTrigger);
+                ImGui::Text("Gamepad Style Button: %u", gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION));
                 ImGui::Text("Quicksilver Level: %u", sessionData.styleLevels[4]);
 
                 /*ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
@@ -9224,8 +9200,8 @@ void GeneralGameplayOptions() {
 				CrimsonDetours::ToggleHoldToCrazyCombo(false);
 			}
 			if (activeCrimsonConfig.Gameplay.General.holdToCrazyCombo) {
-				activeConfig.crazyComboLevelMultiplier = 3;
-				queuedConfig.crazyComboLevelMultiplier = 3;
+				activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement = 3;
+				queuedCrimsonConfig.Gameplay.General.crazyComboMashRequirement = 3;
 				UpdateCrazyComboLevelMultiplier();
 			}
 
@@ -9234,8 +9210,8 @@ void GeneralGameplayOptions() {
 				activeCrimsonConfig.Gameplay.General.holdToCrazyCombo,
 				queuedCrimsonConfig.Gameplay.General.holdToCrazyCombo)) {
 				CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
-				activeConfig.crazyComboLevelMultiplier = 3;
-				queuedConfig.crazyComboLevelMultiplier = 3;
+				activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement = 3;
+				queuedCrimsonConfig.Gameplay.General.crazyComboMashRequirement = 3;
 				UpdateCrazyComboLevelMultiplier();
 			}
 			ImGui::SameLine();
@@ -9249,9 +9225,9 @@ void GeneralGameplayOptions() {
 			GUI_PushDisable(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
 			ImGui::PushItemWidth(itemWidth * 0.8f);
 			if (GUI_InputDefault2("Crazy Combo Mash Requirement",
-				activeConfig.crazyComboLevelMultiplier,
-				queuedConfig.crazyComboLevelMultiplier,
-				defaultConfig.crazyComboLevelMultiplier)) {
+				activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement,
+				queuedCrimsonConfig.Gameplay.General.crazyComboMashRequirement,
+				defaultCrimsonConfig.Gameplay.General.crazyComboMashRequirement)) {
 				UpdateCrazyComboLevelMultiplier();
 			}
 			ImGui::PopItemWidth();
@@ -9533,9 +9509,9 @@ void DanteGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Infinite Rainstorm",
-				activeConfig.EbonyIvory.infiniteRainStorm,
-				queuedConfig.EbonyIvory.infiniteRainStorm)) {
-				ToggleEbonyIvoryInfiniteRainStorm(activeConfig.EbonyIvory.infiniteRainStorm);
+				activeCrimsonConfig.Gameplay.Dante.infiniteRainstorm,
+				queuedCrimsonConfig.Gameplay.Dante.infiniteRainstorm)) {
+				ToggleEbonyIvoryInfiniteRainStorm(activeCrimsonConfig.Gameplay.Dante.infiniteRainstorm);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Makes rainstorm last indefinitely in the air.");
@@ -9545,9 +9521,9 @@ void DanteGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("E&I Foursome Time",
-				activeConfig.EbonyIvory.foursomeTime,
-				queuedConfig.EbonyIvory.foursomeTime)) {
-				ToggleEbonyIvoryFoursomeTime(activeConfig.EbonyIvory.foursomeTime);
+				activeCrimsonConfig.Gameplay.Dante.foursomeTime,
+				queuedCrimsonConfig.Gameplay.Dante.foursomeTime)) {
+				ToggleEbonyIvoryFoursomeTime(activeCrimsonConfig.Gameplay.Dante.foursomeTime);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Ebony & Ivory's Twosome Time fires 2 additional shots.");
@@ -9569,8 +9545,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Revolver",
-				activeConfig.enableCerberusAirRevolver,
-				queuedConfig.enableCerberusAirRevolver)) {
+				activeCrimsonConfig.Gameplay.Dante.airRevolver,
+				queuedCrimsonConfig.Gameplay.Dante.airRevolver)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9663,9 +9639,9 @@ void DanteGameplayOptions() {
 
 			// Adding Air Hike section
 			if (GUI_Checkbox2("Air Hike Core Ability",
-				activeConfig.airHikeCoreAbility,
-				queuedConfig.airHikeCoreAbility)) {
-				ToggleAirHikeCoreAbility(activeConfig.airHikeCoreAbility);
+				activeCrimsonConfig.Gameplay.Dante.airHikeCoreAbility,
+				queuedCrimsonConfig.Gameplay.Dante.airHikeCoreAbility)) {
+				ToggleAirHikeCoreAbility(activeCrimsonConfig.Gameplay.Dante.airHikeCoreAbility);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Makes Air Hike available for all melee weapons.");
@@ -9676,8 +9652,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Alternate Nevan Vortex",
-				activeConfig.enableNevanNewVortex,
-				queuedConfig.enableNevanNewVortex)) {
+				activeCrimsonConfig.Gameplay.Dante.altNevanVortex,
+				queuedCrimsonConfig.Gameplay.Dante.altNevanVortex)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9688,9 +9664,9 @@ void DanteGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Artemis Swap Normal Shot / Multi Lock",
-				activeConfig.Artemis.swapNormalShotAndMultiLock,
-				queuedConfig.Artemis.swapNormalShotAndMultiLock)) {
-				ToggleArtemisSwapNormalShotAndMultiLock(activeConfig.Artemis.swapNormalShotAndMultiLock);
+				activeCrimsonConfig.Gameplay.Dante.artemisSwapShotMultiLock,
+				queuedCrimsonConfig.Gameplay.Dante.artemisSwapShotMultiLock)) {
+				ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonConfig.Gameplay.Dante.artemisSwapShotMultiLock);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Swaps Artemis' Normal Shot and Multi-Lock functionality.");
@@ -9698,9 +9674,9 @@ void DanteGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Artemis Instant Full Charge",
-				activeConfig.Artemis.instantFullCharge,
-				queuedConfig.Artemis.instantFullCharge)) {
-				ToggleArtemisInstantFullCharge(activeConfig.Artemis.instantFullCharge);
+				activeCrimsonConfig.Gameplay.Dante.artemisInstantFullCharge,
+				queuedCrimsonConfig.Gameplay.Dante.artemisInstantFullCharge)) {
+				ToggleArtemisInstantFullCharge(activeCrimsonConfig.Gameplay.Dante.artemisInstantFullCharge);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Artemis charges to full semi-instantly.");
@@ -9831,8 +9807,8 @@ void VergilGameplayOptions() {
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Round Trip Tweaks",
-				activeConfig.enableYamatoForceEdgeNewRoundTrip,
-				queuedConfig.enableYamatoForceEdgeNewRoundTrip)) {
+				activeCrimsonConfig.Gameplay.Vergil.roundTripTweaks,
+				queuedCrimsonConfig.Gameplay.Vergil.roundTripTweaks)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9857,8 +9833,8 @@ void VergilGameplayOptions() {
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Rising Sun",
-				activeConfig.enableBeowulfVergilAirRisingSun,
-				queuedConfig.enableBeowulfVergilAirRisingSun)) {
+				activeCrimsonConfig.Gameplay.Vergil.airRisingSun,
+				queuedCrimsonConfig.Gameplay.Vergil.airRisingSun)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9869,8 +9845,8 @@ void VergilGameplayOptions() {
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Lunar Phase",
-				activeConfig.enableBeowulfVergilAirLunarPhase,
-				queuedConfig.enableBeowulfVergilAirLunarPhase)) {
+				activeCrimsonConfig.Gameplay.Vergil.airLunarPhase,
+				queuedCrimsonConfig.Gameplay.Vergil.airLunarPhase)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9883,8 +9859,8 @@ void VergilGameplayOptions() {
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Alternate Judgement Cut Input",
-				activeConfig.enableYamatoVergilNewJudgementCut,
-				queuedConfig.enableYamatoVergilNewJudgementCut)) {
+				activeCrimsonConfig.Gameplay.Vergil.altJudgementCutInput,
+				queuedCrimsonConfig.Gameplay.Vergil.altJudgementCutInput)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10046,7 +10022,7 @@ void VergilCheatOptions() {
 		ImGui::Text("DEVIL TRIGGER");
 		ImGui::PopFont();
 
-		bool beowulfDisabled = !activeConfig.enableBeowulfVergilAirRisingSun;
+		bool beowulfDisabled = !activeCrimsonConfig.Gameplay.Vergil.airRisingSun;
 		VergilActionDataInput("Air Rising Sun Count",
 			activeCrimsonConfig.Cheats.Vergil.airRisingSunCount,
 			queuedCrimsonConfig.Cheats.Vergil.airRisingSunCount,

@@ -9182,13 +9182,13 @@ void SetAction(byte8* actorBaseAddr) {
             actorData.action = REBELLION_DRIVE_1;
 
         // AIR REVOLVER
-        } else if (activeConfig.enableCerberusAirRevolver && 
+        } else if (activeCrimsonConfig.Gameplay.Dante.airRevolver && 
             (actorData.action == CERBERUS_SWING) && lockOn &&
                    (tiltDirection == TILT_DIRECTION::UP)) {
             actorData.action = CERBERUS_REVOLVER_LEVEL_2;
 
         // NEW VORTEX INPUT
-        } else if (activeConfig.enableNevanNewVortex && (actorData.action == NEVAN_AIR_PLAY) && actorData.devil &&
+        } else if (activeCrimsonConfig.Gameplay.Dante.altNevanVortex && (actorData.action == NEVAN_AIR_PLAY) && actorData.devil &&
                    (tiltDirection != TILT_DIRECTION::NEUTRAL)) {
             actorData.action = NEVAN_VORTEX;
         }
@@ -9294,12 +9294,13 @@ void SetAction(byte8* actorBaseAddr) {
     case CHARACTER::VERGIL: {
         using namespace ACTION_VERGIL;
 
-        if (activeConfig.enableYamatoVergilNewJudgementCut &&
+        if (activeCrimsonConfig.Gameplay.Vergil.altJudgementCutInput &&
             (actorData.action == YAMATO_RAPID_SLASH_LEVEL_1 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_2) &&
             crimsonPlayer[playerIndex].b2F.forwardCommand) {
             actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
         }
-        else if (activeConfig.enableBeowulfVergilAirLunarPhase && (actorData.action == BEOWULF_STARFALL_LEVEL_2) && lockOn &&
+        else if (activeCrimsonConfig.Gameplay.Vergil.airLunarPhase && (actorData.action == BEOWULF_STARFALL_LEVEL_2 || 
+            actorData.action == BEOWULF_STARFALL_LEVEL_1) && lockOn && 
                  (tiltDirection == TILT_DIRECTION::UP)) {
             actorData.action = BEOWULF_LUNAR_PHASE_LEVEL_2;
         } 
@@ -9313,7 +9314,7 @@ void SetAction(byte8* actorBaseAddr) {
 
             actorData.newAirStingerCount++;
         } 
-        else if (activeConfig.enableYamatoForceEdgeNewRoundTrip &&
+        else if (activeCrimsonConfig.Gameplay.Vergil.roundTripTweaks &&
                    (actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1 || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2) &&
                    crimsonPlayer[playerIndex].b2F.forwardCommand) {
             actorData.action = YAMATO_FORCE_EDGE_ROUND_TRIP;
@@ -12946,15 +12947,15 @@ void UpdateCrazyComboLevelMultiplier() {
     LogFunction();
     static uint8 multiplier = 0;
 
-    if (multiplier == activeConfig.crazyComboLevelMultiplier) {
+    if (multiplier == activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement) {
         return;
     }
 
-    Write<uint8>((appBaseAddr + 0x5898DE), activeConfig.crazyComboLevelMultiplier);
-    Write<uint8>((appBaseAddr + 0x58999E), activeConfig.crazyComboLevelMultiplier);
-    Write<uint8>((appBaseAddr + 0x589A5E), activeConfig.crazyComboLevelMultiplier);
+    Write<uint8>((appBaseAddr + 0x5898DE), activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement);
+    Write<uint8>((appBaseAddr + 0x58999E), activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement);
+    Write<uint8>((appBaseAddr + 0x589A5E), activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement);
 
-    multiplier = activeConfig.crazyComboLevelMultiplier;
+    multiplier = activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement;
 }
 
 // @Todo: Update name.

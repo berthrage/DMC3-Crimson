@@ -180,15 +180,15 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 
         UpdateCrazyComboLevelMultiplier();
 
-        ToggleAirHikeCoreAbility(activeConfig.airHikeCoreAbility);
+        ToggleAirHikeCoreAbility(activeCrimsonConfig.Gameplay.Dante.airHikeCoreAbility);
         CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeCrimsonConfig.Cheats.Dante.forceRoyalRelease);
         ToggleRebellionInfiniteSwordPierce(activeCrimsonConfig.Cheats.Dante.infiniteSwordPierce);
         ToggleYamatoForceEdgeInfiniteRoundTrip(activeCrimsonConfig.Cheats.Vergil.infiniteRoundTrip);
-        ToggleEbonyIvoryFoursomeTime(activeConfig.EbonyIvory.foursomeTime);
-        ToggleEbonyIvoryInfiniteRainStorm(activeConfig.EbonyIvory.infiniteRainStorm);
-        ToggleArtemisSwapNormalShotAndMultiLock(activeConfig.Artemis.swapNormalShotAndMultiLock);
-        ToggleArtemisInstantFullCharge(activeConfig.Artemis.instantFullCharge);
-        ToggleChronoSwords(activeConfig.SummonedSwords.chronoSwords);
+        ToggleEbonyIvoryFoursomeTime(activeCrimsonConfig.Gameplay.Dante.foursomeTime);
+        ToggleEbonyIvoryInfiniteRainStorm(activeCrimsonConfig.Gameplay.Dante.infiniteRainstorm);
+        ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonConfig.Gameplay.Dante.artemisInstantFullCharge);
+        ToggleArtemisInstantFullCharge(activeCrimsonConfig.Gameplay.Dante.artemisInstantFullCharge);
+        ToggleChronoSwords(activeCrimsonConfig.Cheats.Vergil.chronoSwords);
 
 
         Arcade::Toggle(false);

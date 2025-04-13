@@ -47,11 +47,6 @@ struct Config {
     } Arcade;
 
     struct {
-        bool swapNormalShotAndMultiLock = false;
-        bool instantFullCharge          = false;
-    } Artemis;
-
-    struct {
         bool enable = false;
         struct {
             bool skipJester = false;
@@ -106,22 +101,12 @@ struct Config {
 
 
     struct {
-        bool foursomeTime      = false;
-        bool infiniteRainStorm = false;
-    } EbonyIvory;
-
-    struct {
-        bool infiniteSwordPierce    = false;
         float stingerDuration[2]    = {16, 16};
         float stingerRange[2]       = {560, 560};
         uint8 airStingerCount[2]    = {1, 1};
         float airStingerDuration[2] = {3, 4};
         float airStingerRange[2]    = {0, 140};
     } Rebellion;
-
-    struct {
-        bool forceJustFrameRelease = false;
-    } Royalguard;
 
     struct {
         float mainSpeed = 1.0f;
@@ -150,15 +135,6 @@ struct Config {
     } Speed;
 
     struct {
-        bool chronoSwords = false;
-    } SummonedSwords;
-
-    struct {
-        uint8 judgementCutCount[2] = {2, 2};
-    } Yamato;
-
-    struct {
-        bool infiniteRoundTrip      = false;
         float stingerDuration[2]    = {16, 16};
         float stingerRange[2]       = {560, 560};
         uint8 airStingerCount[2]    = {1, 1};
@@ -166,14 +142,10 @@ struct Config {
         float airStingerRange[2]    = {280, 280};
     } YamatoForceEdge;
 
-    bool welcome = (debug) ? false : true;
+    bool welcome = false;
 
     bool hideBeowulfDante  = false;
     bool hideBeowulfVergil = false;
-
-    bool airHikeCoreAbility = false;
-
-    uint8 crazyComboLevelMultiplier = 6;
 
     uint8 dotShadow = DOT_SHADOW::DEFAULT;
 
@@ -182,12 +154,12 @@ struct Config {
     float depleteDevil        = 11.0f;
 
     bool noDevilForm = false;
-    float orbReach   = (debug) ? 9000.0f : 300.0f;
+    float orbReach   = 300.0f;
 
     bool resetPermissions = false;
 
     bool infiniteHitPoints   = false;
-    bool infiniteMagicPoints = (debug) ? true : false;
+    bool infiniteMagicPoints = false;
     bool disableTimer        = false;
     bool infiniteBullets     = false;
 
@@ -381,8 +353,8 @@ struct Config {
     float damageEnemyActorMultiplier  = 1.0f;
     uint32 damageStyleRank            = STYLE_RANK::NONE;
 
-    bool skipIntro     = (debug) ? true : false;
-    bool skipCutscenes = (debug) ? true : false;
+    bool skipIntro     = false;
+    bool skipCutscenes = false;
 
     bool enableFileMods = true;
 
@@ -452,19 +424,6 @@ struct Config {
     bool hideBossHUD = false;
 
     bool soundIgnoreEnemyData = false;
-
-    bool enableRebellionAirStinger = true;
-    bool enableRebellionNewDrive   = (debug) ? true : false;
-    bool enableRebellionQuickDrive = (debug) ? true : false;
-    bool enableCerberusAirRevolver = (debug) ? true : false;
-    bool enableNevanNewVortex      = (debug) ? true : false;
-
-    bool enableYamatoVergilNewJudgementCut  = (debug) ? true : false;
-    bool enableBeowulfVergilAirRisingSun    = (debug) ? true : false;
-    bool enableBeowulfVergilAirLunarPhase   = (debug) ? true : false;
-    bool enableYamatoForceEdgeNewComboPart4 = (debug) ? true : false;
-    bool enableYamatoForceEdgeAirStinger    = true;
-    bool enableYamatoForceEdgeNewRoundTrip  = (debug) ? true : false;
 
     uint8 dergil = 0;
 
