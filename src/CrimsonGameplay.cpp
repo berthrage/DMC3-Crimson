@@ -209,6 +209,7 @@ void FixAirStingerCancelTime(byte8* actorBaseAddr) {
 void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
     using namespace ACTION_DANTE;
     using namespace ACTION_VERGIL;
+    using namespace NEXT_ACTION_REQUEST_POLICY;
 
     // This used to be Reset Permissions Controller, which we'll now use for Improved Cancels (Royalguard) - Mia.
     /*if (
@@ -234,50 +235,57 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
     auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
     auto playerIndex = actorData.newPlayerIndex;
     auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
-    auto& storedAirCounts = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].storedAirCounts : crimsonPlayer[playerIndex].storedAirCountsClone;
+   auto& storedAirCounts = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].storedAirCounts : crimsonPlayer[playerIndex].storedAirCountsClone;
+
+    bool inCancellableBasicRebellion = (actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_1 ||
+        actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_2 ||
+        actorData.action == REBELLION_COMBO_1_PART_3 || actorData.action == REBELLION_COMBO_2_PART_2 ||
+        actorData.action == REBELLION_COMBO_2_PART_3 || actorData.action == REBELLION_PROP || actorData.action == REBELLION_SHREDDER ||
+		actorData.action == REBELLION_DRIVE_1 || actorData.action == REBELLION_DRIVE_2 || actorData.action == REBELLION_DANCE_MACABRE_PART_1 || actorData.action == REBELLION_DANCE_MACABRE_PART_2 ||
+		actorData.action == REBELLION_DANCE_MACABRE_PART_3 || actorData.action == REBELLION_DANCE_MACABRE_PART_4 ||
+		actorData.action == REBELLION_DANCE_MACABRE_PART_5 || actorData.action == REBELLION_DANCE_MACABRE_PART_6 ||
+		actorData.action == REBELLION_DANCE_MACABRE_PART_7 || actorData.action == REBELLION_DANCE_MACABRE_PART_8);
 
     bool inCancellableActionRebellion =
-        (actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_1 ||
-            actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_2 ||
-            actorData.action == REBELLION_COMBO_1_PART_3 || actorData.action == REBELLION_COMBO_2_PART_2 ||
-            actorData.action == REBELLION_COMBO_2_PART_3 || actorData.action == REBELLION_PROP || actorData.action == REBELLION_SHREDDER ||
-            actorData.action == REBELLION_DRIVE_1 || actorData.action == REBELLION_DRIVE_2 || actorData.action == REBELLION_MILLION_STAB ||
-            actorData.action == REBELLION_DANCE_MACABRE_PART_1 || actorData.action == REBELLION_DANCE_MACABRE_PART_2 ||
-            actorData.action == REBELLION_DANCE_MACABRE_PART_3 || actorData.action == REBELLION_DANCE_MACABRE_PART_4 ||
-            actorData.action == REBELLION_DANCE_MACABRE_PART_5 || actorData.action == REBELLION_DANCE_MACABRE_PART_6 ||
-            actorData.action == REBELLION_DANCE_MACABRE_PART_7 || actorData.action == REBELLION_DANCE_MACABRE_PART_8 ||
+        (actorData.action == REBELLION_MILLION_STAB ||
             actorData.action == REBELLION_CRAZY_DANCE || actorData.action == POLE_PLAY);
 
+    bool inCancellableBasicCerberus = (actorData.action == CERBERUS_COMBO_1_PART_1 || actorData.action == CERBERUS_COMBO_1_PART_2 ||
+        actorData.action == CERBERUS_COMBO_1_PART_3 || actorData.action == CERBERUS_COMBO_1_PART_4 ||
+        actorData.action == CERBERUS_COMBO_1_PART_5 || actorData.action == CERBERUS_COMBO_2_PART_3 ||
+        actorData.action == CERBERUS_COMBO_2_PART_4 || actorData.action == CERBERUS_WINDMILL || actorData.action == CERBERUS_FLICKER
+        || actorData.action == CERBERUS_SWING);
+
     bool inCancellableActionCerberus =
-        (actorData.action == CERBERUS_COMBO_1_PART_1 || actorData.action == CERBERUS_COMBO_1_PART_2 ||
-            actorData.action == CERBERUS_COMBO_1_PART_3 || actorData.action == CERBERUS_COMBO_1_PART_4 ||
-            actorData.action == CERBERUS_COMBO_1_PART_5 || actorData.action == CERBERUS_COMBO_2_PART_3 ||
-            actorData.action == CERBERUS_COMBO_2_PART_4 || actorData.action == CERBERUS_WINDMILL ||
-            (actorData.action == CERBERUS_REVOLVER_LEVEL_1 && actionTimer > 1.25f) || (actorData.action == CERBERUS_REVOLVER_LEVEL_2  && actionTimer > 1.25f) ||
-            actorData.action == CERBERUS_SWING || actorData.action == CERBERUS_SATELLITE || actorData.action == CERBERUS_FLICKER ||
+        ((actorData.action == CERBERUS_REVOLVER_LEVEL_1 && actionTimer > 1.25f) || (actorData.action == CERBERUS_REVOLVER_LEVEL_2  && actionTimer > 1.25f) 
+            || actorData.action == CERBERUS_SATELLITE ||
             actorData.action == CERBERUS_CRYSTAL || actorData.action == CERBERUS_MILLION_CARATS || actorData.action == CERBERUS_ICE_AGE);
 
+	bool inCancellableBasicAgni = (actorData.action == AGNI_RUDRA_COMBO_1_PART_1 || actorData.action == AGNI_RUDRA_COMBO_1_PART_2 ||
+		actorData.action == AGNI_RUDRA_COMBO_1_PART_3 || actorData.action == AGNI_RUDRA_COMBO_1_PART_4 ||
+		actorData.action == AGNI_RUDRA_COMBO_1_PART_5 || actorData.action == AGNI_RUDRA_COMBO_2_PART_2 ||
+		actorData.action == AGNI_RUDRA_COMBO_2_PART_3 || actorData.action == AGNI_RUDRA_COMBO_3_PART_3 ||
+		actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_1 || actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_2 ||
+		actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_3);
+
     bool inCancellableActionAgni =
-        (actorData.action == AGNI_RUDRA_COMBO_1_PART_1 || actorData.action == AGNI_RUDRA_COMBO_1_PART_2 ||
-            actorData.action == AGNI_RUDRA_COMBO_1_PART_3 || actorData.action == AGNI_RUDRA_COMBO_1_PART_4 ||
-            actorData.action == AGNI_RUDRA_COMBO_1_PART_5 || actorData.action == AGNI_RUDRA_COMBO_2_PART_2 ||
-            actorData.action == AGNI_RUDRA_COMBO_2_PART_3 || actorData.action == AGNI_RUDRA_COMBO_3_PART_3 ||
-            actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_1 || actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_2 ||
-            actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_3 || actorData.action == AGNI_RUDRA_MILLION_SLASH ||
+        (actorData.action == AGNI_RUDRA_MILLION_SLASH ||
             actorData.action == AGNI_RUDRA_TWISTER || actorData.action == AGNI_RUDRA_TEMPEST);
 
+	bool inCancellableBasicNevan = (actorData.action == NEVAN_TUNE_UP || actorData.action == NEVAN_COMBO_1 || actorData.action == NEVAN_COMBO_2 ||
+		actorData.action == NEVAN_BAT_RIFT_LEVEL_1 ||
+		actorData.action == NEVAN_BAT_RIFT_LEVEL_2  || actorData.action == NEVAN_SLASH);
 
     bool inCancellableActionNevan =
-        (actorData.action == NEVAN_TUNE_UP || actorData.action == NEVAN_COMBO_1 || actorData.action == NEVAN_COMBO_2 ||
-            actorData.action == NEVAN_JAM_SESSION || actorData.action == NEVAN_BAT_RIFT_LEVEL_1 ||
-            actorData.action == NEVAN_BAT_RIFT_LEVEL_2 || actorData.action == NEVAN_REVERB_SHOCK_LEVEL_1 ||
-            actorData.action == NEVAN_REVERB_SHOCK_LEVEL_2 || actorData.action == NEVAN_SLASH || actorData.action == NEVAN_FEEDBACK ||
-            actorData.action == NEVAN_CRAZY_ROLL || actorData.action == NEVAN_DISTORTION);
+        (actorData.action == NEVAN_JAM_SESSION || actorData.action == NEVAN_FEEDBACK ||
+			actorData.action == NEVAN_CRAZY_ROLL || actorData.action == NEVAN_DISTORTION || actorData.action == NEVAN_REVERB_SHOCK_LEVEL_1 ||
+			actorData.action == NEVAN_REVERB_SHOCK_LEVEL_2);
 
-    bool inCancellableActionBeowulf = (actorData.action == BEOWULF_COMBO_1_PART_1 || actorData.action == BEOWULF_COMBO_1_PART_2 ||
-                                       actorData.action == BEOWULF_COMBO_1_PART_3 || actorData.action == BEOWULF_COMBO_2_PART_3 ||
-                                       actorData.action == BEOWULF_COMBO_2_PART_4 || actorData.action == BEOWULF_BEAST_UPPERCUT ||
-                                       actorData.action == BEOWULF_HYPER_FIST);
+	bool inCancellableBasicBeowulf = (actorData.action == BEOWULF_COMBO_1_PART_1 || actorData.action == BEOWULF_COMBO_1_PART_2 ||
+		actorData.action == BEOWULF_COMBO_1_PART_3 || actorData.action == BEOWULF_COMBO_2_PART_3 ||
+		actorData.action == BEOWULF_COMBO_2_PART_4 || actorData.action == BEOWULF_BEAST_UPPERCUT);
+
+    bool inCancellableActionBeowulf = (actorData.action == BEOWULF_HYPER_FIST);
 
     bool inCancellableActionGuns =
         (actorData.action == EBONY_IVORY_WILD_STOMP || actorData.action == ARTEMIS_ACID_RAIN || actorData.action == KALINA_ANN_GRAPPLE);
@@ -292,23 +300,15 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
              (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO)) &&
             actorData.eventData[0].event == 17);
 
+    auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
 
-    // Royalguard Cancels Everything (Most things)
+    // What Royalguard Cancels Completely and at any frame (Not Basic Combos mainly Crazy Combos)
     if ((actorData.style == STYLE::ROYALGUARD) && (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) &&
         actorData.eventData[0].event != ACTOR_EVENT::STAGGER && actorData.eventData[0].event != ACTOR_EVENT::NEVAN_KISS &&
         (inCancellableActionRebellion || inCancellableActionCerberus || inCancellableActionAgni || inCancellableActionNevan ||
-            inCancellableActionBeowulf || inCancellableActionGuns || actorData.eventData[0].event == 22) &&
+            inCancellableActionBeowulf || inCancellableActionGuns || actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_DASH) &&
         !storedAirCounts.cancelTrackerRunning) // The last condition prevents cancelling recovery
     {
-
-        // Old list of exceptions, easier to list everything that should be cancellable.
-
-        /*/if (actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT &&
-        actorData.action != EBONY_IVORY_AIR_NORMAL_SHOT && actorData.action != SHOTGUN_AIR_NORMAL_SHOT &&
-        actorData.action != SPIRAL_TRICK_SHOT && !royalCancelTrackerRunning) // Exceptions, these cancels are way too OP or buggy in the
-        cases of E&I and Shotgun.*/
-
-
         storedAirCounts.trickUp = actorData.newTrickUpCount;
         storedAirCounts.skyStar = actorData.newSkyStarCount;
         storedAirCounts.airHike = actorData.newAirHikeCount;
@@ -318,6 +318,24 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 
 		std::thread royalcountstracker(AirCancelCountsTracker, actorBaseAddr);
 		royalcountstracker.detach();
+    }
+
+    // Basic Combos and Moves should only cancellable if the player can do an attack
+    if ((actorData.style == STYLE::ROYALGUARD) && (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) &&
+        actorData.eventData[0].event != ACTOR_EVENT::STAGGER && actorData.eventData[0].event != ACTOR_EVENT::NEVAN_KISS &&
+        (inCancellableBasicRebellion || inCancellableBasicCerberus || inCancellableBasicAgni || inCancellableBasicNevan ||
+            inCancellableBasicBeowulf) && (policy == EXECUTE) &&
+        !storedAirCounts.cancelTrackerRunning) // The last condition prevents cancelling recovery
+    {
+        storedAirCounts.trickUp = actorData.newTrickUpCount;
+        storedAirCounts.skyStar = actorData.newSkyStarCount;
+        storedAirCounts.airHike = actorData.newAirHikeCount;
+        storedAirCounts.airStinger = actorData.newAirStingerCount;
+
+        actorData.permissions = 3080; // This is a softer version of Reset Permissions.
+
+        std::thread royalcountstracker(AirCancelCountsTracker, actorBaseAddr);
+        royalcountstracker.detach();
     }
 
     // Royal Cancelling Sky Star
