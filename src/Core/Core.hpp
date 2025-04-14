@@ -785,7 +785,7 @@ enum {
     H,
     J,
     K,
-    L,
+    L = 38,
     SEMICOLON,
     APOSTROPHE,
     TILDE,

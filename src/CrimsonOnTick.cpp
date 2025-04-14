@@ -786,7 +786,7 @@ std::string GetWeaponNameById(uint8 weaponId) {
 void WeaponProgressionTracking() {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
-	if (g_scene == SCENE::GAME) {
+	if (g_scene == SCENE::GAME || g_scene == SCENE::MISSION_RESULT) {
 		for (size_t i = 0; i < ITEM::COUNT; i++) {
 			auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
 			if (!name_10723) {
@@ -820,7 +820,7 @@ void WeaponProgressionTracking() {
 				break;
 			}
 		}
-	} else {
+	} else if (g_scene == SCENE::MISSION_SELECT || g_scene == SCENE::MAIN || g_scene == SCENE::MISSION_START) {
 		for (size_t i = 0; i < WEAPONANDSTYLEUNLOCKS::COUNT; i++) {
 			switch (i) {
 			case WEAPONANDSTYLEUNLOCKS::CERBERUS:
@@ -851,7 +851,6 @@ void WeaponProgressionTracking() {
 		}
 	}
 	
-
 	// Track Unlocked Weapon Quantity
 	int previousDevilArmUnlockedQtt = weaponProgression.devilArmsUnlockedQtt;
 	int previousGunsUnlockedQtt = weaponProgression.gunsUnlockedQtt;

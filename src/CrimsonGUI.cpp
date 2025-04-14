@@ -7112,15 +7112,16 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("SessionData Style Level Royalguard: %u", ExpConfig::missionExpDataDante.styleLevels[3]);
 				ImGui::Text("Cerbus Unlocked Session? %u", sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::CERBERUS]);
 				ImGui::Text("Cerbus Unlock? %u", weaponProgression.devilArmUnlocks[DEVILARMUNLOCKS::CERBERUS]);
-				ImGui::Text("DevilArmUnlockedQtt: %u", weaponProgression.devilArmsUnlockedQtt);
+				ImGui::Text("GunUnlockedQtt: %u", weaponProgression.gunsUnlockedQtt);
+				ImGui::Text("activeCharacterData.rangedWeaponCount: %u", queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeaponCount);
 // 				for (int i = 0; i < weaponProgression.rangedWeaponIds.size(); i++) {
 // 					ImGui::Text("RangedWeaponId[%u]: %u", i, weaponProgression.rangedWeaponIds[i]);
 // 				}
-				for (int i = 0; i < weaponProgression.meleeWeaponIds.size(); i++) {
-					ImGui::Text("MeleeWeaponName[%u]: %s", i, weaponProgression.meleeWeaponNames[i]);
+				for (int i = 0; i < weaponProgression.rangedWeaponIds.size(); i++) {
+					ImGui::Text("RangedWeaponName[%u]: %s", i, weaponProgression.rangedWeaponNames[i]);
 				}
-				for (size_t i = 0; i < queuedConfig.Actor.playerData[0].characterData[0][0].meleeWeaponCount; i++) {
-					ImGui::Text("MeleeWeaponQeued[%u]: %u", i, queuedConfig.Actor.playerData[0].characterData[0][0].meleeWeapons[i]);
+				for (size_t i = 0; i < queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeaponCount; i++) {
+					ImGui::Text("RangedWeaponQeued[%u]: %u", i, queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeapons[i]);
 				} 
 				
                 ImGui::Text("Gamepad Style Button: %u", gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION));
