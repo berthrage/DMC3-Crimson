@@ -12961,6 +12961,10 @@ void UpdateCrazyComboLevelMultiplier() {
     LogFunction();
     static uint8 multiplier = 0;
 
+	if (activeCrimsonConfig.Gameplay.General.holdToCrazyCombo) {
+		activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement = 3;
+	}
+
     if (multiplier == activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement) {
         return;
     }
