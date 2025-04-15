@@ -179,6 +179,8 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
     if (activeConfig.vSync != 0) {
         SyncInterval = (activeConfig.vSync - 1);
     }
+	static uint32 prevWidth = 0;
+	static uint32 prevHeight = 0;
 
     UpdateShow();
 
@@ -201,12 +203,21 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
     DXGI_SWAP_CHAIN_DESC swapDesc = {};
     pSwapChain->GetDesc(&swapDesc);
 
-    //UpdateGlobalRenderSize(swapDesc.BufferDesc.Width, swapDesc.BufferDesc.Height);
-    //CoreImGui::UpdateDisplaySize(swapDesc.BufferDesc.Width, swapDesc.BufferDesc.Height);
-
-    ImGui_ImplWin32_GetDpiScaleForHwnd(swapDesc.OutputWindow);
+	uint32 width = swapDesc.BufferDesc.Width;
+	uint32 height = swapDesc.BufferDesc.Height;
 
     auto& io = ImGui::GetIO();
+	// Only update if the size has changed
+	if (width != prevWidth || height != prevHeight) {
+		prevWidth = width;
+		prevHeight = height;
+
+		UpdateGlobalRenderSize(width, height);
+		//CoreImGui::UpdateDisplaySize(width, height);
+	}
+    io.DisplaySize = ImVec2((float)width, (float)height);
+
+    ImGui_ImplWin32_GetDpiScaleForHwnd(swapDesc.OutputWindow);
 
     io.MousePos.x *= (swapDesc.BufferDesc.Width / g_clientSize.x);
     io.MousePos.y *= (swapDesc.BufferDesc.Height / g_clientSize.y);
