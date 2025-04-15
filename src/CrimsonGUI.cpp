@@ -3402,6 +3402,7 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 
 	// Get the current display size
 	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
 	float scaleFactorX = displaySize.x / baseWidth;
 	float scaleFactorY = displaySize.y / baseHeight;
 
@@ -3410,15 +3411,20 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 	std::string orbCountStr = std::to_string(orbCount);
 
 	// Adjust the font size and the proportional texture size
-	float fontSize = 37.0f * scaleFactorY;
-	float textureWidth = RedOrbTexture->GetWidth() * (fontSize / 120.0f) * activeConfig.globalScale;  // Adjust proportionally
-	float textureHeight = RedOrbTexture->GetHeight() * (fontSize / 120.0f) * activeConfig.globalScale;
+	float fontSize = 37.0f;
+	float textureBaseSizeX = 43.0f; 
+	float textureBaseSizeY = 61.0f;
+	float textureWidth = textureBaseSizeX * scaleFactorY;
+	float textureHeight = textureBaseSizeY * scaleFactorY;
 	float centerX = textureWidth / 2.0f;
 	float centerY = textureHeight / 2.0f;
 
 	// Define the window size and position
 	ImVec2 windowSize = ImVec2(300.0f * scaleFactorX, 100.0f * scaleFactorY);
-	ImVec2 windowPos = ImVec2(displaySize.x - windowSize.x - 70.0f * scaleFactorX, 30.0f * scaleFactorY);
+	float edgeOffsetX = 70.0f * scaleFactorY;
+	float edgeOffsetY = 30.0f * scaleFactorY;
+	ImVec2 windowPos = ImVec2(displaySize.x - windowSize.x - edgeOffsetX, edgeOffsetY);
+	//ImVec2 windowPos = ImVec2(displaySize.x - windowSize.x - 70.0f * scaleFactorX, 30.0f * scaleFactorY);
 
 	ImGui::SetNextWindowSize(windowSize);
 	ImGui::SetNextWindowPos(windowPos);
@@ -3433,6 +3439,7 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 	ImColor colorWithAlpha(1.0f, 1.0f, 1.0f, alpha);
 
 	// Adjust the text position
+	ImGui::SetWindowFontScale(scaleFactorY);
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSize]);
 	ImVec2 textSize = ImGui::CalcTextSize(orbCountStr.c_str(), nullptr, true);
 	ImVec2 textPos = ImVec2(windowSize.x - textSize.x - 74.0f * scaleFactorX, (windowSize.y - textSize.y) / 2);
