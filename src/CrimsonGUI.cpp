@@ -3884,6 +3884,7 @@ void RenderMultiplayerBar(
 
 
 	if (ImGui::Begin(label.c_str(), &activeCrimsonConfig.MultiplayerBarsWorldSpace.show, windowFlags)) {
+		ImGui::SetWindowFontScale(scaleFactorY);
 
 		ImVec4 playerColor = ConvertColorFromUint8ToVec4(activeCrimsonConfig.PlayerProperties.playerColor[playerIndex]);
 		float luminance = 0.299f * playerColor.x + 0.587f * playerColor.y + 0.114f * playerColor.z;
@@ -3905,7 +3906,7 @@ void RenderMultiplayerBar(
 
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, alpha));
 		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&hitColor));
-		ImGui::ProgressBar(hitPoints, ImVec2(200, 10), "");
+		ImGui::ProgressBar(hitPoints, ImVec2(200 * scaleFactorY, 10 * scaleFactorY), "");
 		ImGui::PopStyleColor(2);
 
 		if (actorData.character != CHARACTER::VERGIL) {
@@ -3913,13 +3914,13 @@ void RenderMultiplayerBar(
 		} else {
 			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&magicColorVergil));
 		}
-		ImGui::ProgressBar(magicPoints, ImVec2(200, 10), "");
+		ImGui::ProgressBar(magicPoints, ImVec2(200 * scaleFactorY, 10 * scaleFactorY), "");
 		ImGui::PopStyleColor();
 
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
 		ImGui::PushStyleColor(ImGuiCol_Button, playerColor);
 		ImGui::PushStyleColor(ImGuiCol_Text, textColor);
-		ImGui::Button(name, { 30.0f, 30.0f });
+		ImGui::Button(name, { 30.0f * scaleFactorY, 30.0f * scaleFactorY});
 		ImGui::PopStyleColor(2);
 		ImGui::PopFont();
 		ImGui::SameLine(0.0f, 0);
@@ -3955,8 +3956,8 @@ void Render1PAttributes(const char* name, PlayerActorData& actorData) {
 		return;
 	}
 
-	const float baseX = g_renderSize.x * (0.3272f); 
-	const float baseY = g_renderSize.y * 0.015f; 
+	float baseX = g_renderSize.x * (0.3272f); 
+	float baseY = g_renderSize.y * 0.015f; 
 
 	ImVec2 pos = ImVec2(baseX,baseY);
 
@@ -3978,6 +3979,7 @@ void Render1PAttributes(const char* name, PlayerActorData& actorData) {
 
 
 	if (ImGui::Begin(label.c_str(), &activeCrimsonConfig.MultiplayerBarsWorldSpace.show, windowFlags)) {
+		ImGui::SetWindowFontScale(scaleFactorY);
 
 		ImVec4 playerColor = ConvertColorFromUint8ToVec4(activeCrimsonConfig.PlayerProperties.playerColor[playerIndex]);
 		float luminance = 0.299f * playerColor.x + 0.587f * playerColor.y + 0.114f * playerColor.z;
@@ -3986,7 +3988,7 @@ void Render1PAttributes(const char* name, PlayerActorData& actorData) {
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
 		ImGui::PushStyleColor(ImGuiCol_Button, playerColor);
 		ImGui::PushStyleColor(ImGuiCol_Text, textColor);
-		ImGui::Button(name, { 30.0f, 30.0f });
+		ImGui::Button(name, { 30.0f * scaleFactorY, 30.0f * scaleFactorY });
 		ImGui::PopStyleColor(2);
 		ImGui::PopFont();
 		ImGui::SameLine(0.0f, 0);
@@ -4016,7 +4018,7 @@ void RenderWorldSpaceMultiplayerBar(
 	auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
 
 	// Adjusts size dynamically based on the distance between Camera and Player
-	ImVec2 sizeDistance = { (activeData.size.x * (1.0f / ((float)distanceClamped / 20))), (activeData.size.y * (1.0f / ((float)distanceClamped / 20))) };
+	ImVec2 sizeDistance = { (activeData.size.x * (1.0f / ((float)distanceClamped / 20))) * scaleFactorY, (activeData.size.y * (1.0f / ((float)distanceClamped / 20))) * scaleFactorY };
 	auto& playerScreenPosition = crimsonPlayer[playerIndex].playerScreenPosition;
 	float screenWidth = g_renderSize.x;
 	float screenHeight = g_renderSize.y;
@@ -4057,6 +4059,7 @@ void RenderWorldSpaceMultiplayerBar(
 
 
 	if (ImGui::Begin(label, &activeCrimsonConfig.MultiplayerBarsWorldSpace.show, windowFlags)) {
+		ImGui::SetWindowFontScale(scaleFactorY);
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, alpha));
 		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.hitColor));
@@ -4078,7 +4081,7 @@ void RenderWorldSpaceMultiplayerBar(
 
 		ImGui::PushStyleColor(ImGuiCol_Button, playerColor);
 		ImGui::PushStyleColor(ImGuiCol_Text, textColor);
-		ImGui::Button(name, { 30.0f, 30.0f });
+		ImGui::Button(name, { 30.0f * scaleFactorY, 30.0f * scaleFactorY});
 		ImGui::PopStyleColor(2);
 		ImGui::PopFont();
 
