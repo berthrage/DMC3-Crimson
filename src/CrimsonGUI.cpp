@@ -79,6 +79,11 @@
 #define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
 #define LOAD_SDL_FUNCTION(X) fn_##X = GetSDLFunction<decltype(X)*>(#X)
 
+float scaleFactorX;
+float scaleFactorY;
+float scaledFontSize;
+float itemWidth;
+
 void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context);
 
 namespace UI {
@@ -101,6 +106,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 		uiElementsInitialized = true;
 	}
 
+	
 	// Default font
 	ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
 	// 6 tab buttons + a bit more for the update when there is new version
@@ -109,11 +115,15 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 15.0f);
 	ImGui::Begin(title, nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
+	float scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
+	ImGui::SetWindowFontScale(scaleFactorY);
+	float scaledFontSize = g_UIContext.DefaultFontSize * scaleFactorY;
 	ImGui::PopStyleVar(4);
 	{
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		ImRect wndRect = window->Rect();
 		ImGuiStyle& style = ImGui::GetStyle();
+		
 
 		window->ContentRegionRect = ImRect{ window->ContentRegionRect.Min, window->ContentRegionRect.Max - ImVec2{ 0.0f, 70.0f } };
 
@@ -124,24 +134,29 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 		{
 			static const Texture2DD3D11 logo(g_Image_CrimsonHeaderLogo.GetRGBAData(), g_Image_CrimsonHeaderLogo.GetWidth(), g_Image_CrimsonHeaderLogo.GetHeight(), pDevice);
 
-			ImVec2 logoPos = { (wndRect.Max.x + wndRect.Min.x) * 0.5f - logo.GetWidth() * 0.5f, wndRect.Min.y + logo.GetHeight() * 0.3f };
+			auto logoWidth = logo.GetWidth() * scaleFactorY;
+			auto logoHeight = logo.GetHeight() * scaleFactorY;
 
-			window->DrawList->AddLine({ wndRect.Min.x + g_UIContext.DefaultFontSize * 1.7f, logoPos.y + logo.GetHeight() * 0.5f },
-				{ logoPos.x - g_UIContext.DefaultFontSize * 0.52f, logoPos.y + logo.GetHeight() * 0.5f }, SwapColorEndianness(0xE01D42FF));
+			ImVec2 logoPos = { (wndRect.Max.x + wndRect.Min.x) * 0.5f - logoWidth * 0.5f, wndRect.Min.y + logoHeight * 0.3f };
 
-			window->DrawList->AddLine({ logoPos.x + logo.GetWidth() + g_UIContext.DefaultFontSize * 0.52f, logoPos.y + logo.GetHeight() * 0.5f },
-				{ wndRect.Max.x - g_UIContext.DefaultFontSize * 1.7f, logoPos.y + logo.GetHeight() * 0.5f }, SwapColorEndianness(0xE01D42FF));
+			window->DrawList->AddLine({ wndRect.Min.x + scaledFontSize * 1.7f, logoPos.y + logoHeight * 0.5f },
+				{ logoPos.x - scaledFontSize * 0.52f, logoPos.y + logoHeight * 0.5f }, SwapColorEndianness(0xE01D42FF));
 
-			window->DrawList->AddImage(logo, logoPos, logoPos + logo.GetSize());
+			window->DrawList->AddLine({ logoPos.x + logoWidth + scaledFontSize * 0.52f, logoPos.y + logoHeight * 0.5f },
+				{ wndRect.Max.x - scaledFontSize * 1.7f, logoPos.y + logoHeight * 0.5f }, SwapColorEndianness(0xE01D42FF));
+
+			auto logoSize = ImVec2(logoPos.x + logoWidth, logoPos.y + logoHeight);
+
+			window->DrawList->AddImage(logo, logoPos, logoSize);
 		}
 
 		// Draw the close button
 		{
 			if (pIsOpened != nullptr) {
 				const auto cursorBackUp = ImGui::GetCursorScreenPos();
-				ImGui::SetCursorScreenPos({ wndRect.Max.x - g_UIContext.DefaultFontSize * 1.17f - 10.0f, wndRect.Min.y + g_UIContext.DefaultFontSize * 0.45f });
+				ImGui::SetCursorScreenPos({ wndRect.Max.x - scaledFontSize * 1.17f - 10.0f, wndRect.Min.y + scaledFontSize * 0.45f });
 
-				if (CloseButton("#Close", { g_UIContext.DefaultFontSize * 1.17f, g_UIContext.DefaultFontSize * 1.17f })) {
+				if (CloseButton("#Close", { scaledFontSize * 1.17f, scaledFontSize * 1.17f })) {
 					*pIsOpened = false;
 				}
 
@@ -151,9 +166,9 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 
 		// Selected game mode text
 		{
-			const ImVec2 pos = wndRect.Min + ImVec2{ g_UIContext.DefaultFontSize * 1.33f, g_UIContext.DefaultFontSize * 2.66f };
+			const ImVec2 pos = wndRect.Min + ImVec2{ scaledFontSize * 1.33f, scaledFontSize * 2.66f };
 
-			window->DrawList->AddText(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize], g_UIContext.DefaultFontSize, pos, SwapColorEndianness(0xFFFFFFFF), "Selected Game Mode: ");
+			window->DrawList->AddText(g_ImGuiFont_Roboto[scaledFontSize], scaledFontSize, pos, SwapColorEndianness(0xFFFFFFFF), "Selected Game Mode: ");
 
 			const float modeTextWidth = ImGui::CalcTextSize("Selected Game Mode: ").x;
 
@@ -181,7 +196,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 				break;
 			}
 
-			window->DrawList->AddText(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize], g_UIContext.DefaultFontSize, pos + ImVec2{ modeTextWidth, 0.0f }, gameModeStringColor, gameModeString);
+			window->DrawList->AddText(g_ImGuiFont_RussoOne[scaledFontSize], scaledFontSize, pos + ImVec2{ modeTextWidth, 0.0f }, gameModeStringColor, gameModeString);
 		}
 
 		// Version text
@@ -230,23 +245,23 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 
 			ImGui::PopFont();
 
-			const ImVec2 pos = ImVec2{ wndRect.Max.x - maxLenthUpdateSection - versionButtonWidth - g_UIContext.DefaultFontSize * 2.0f,
-										wndRect.Min.y + g_UIContext.DefaultFontSize * 2.66f };
+			const ImVec2 pos = ImVec2{ wndRect.Max.x - maxLenthUpdateSection - versionButtonWidth - scaledFontSize * 2.0f,
+										wndRect.Min.y + scaledFontSize * 2.66f };
 
 			// Two lines of text without space in between each with the default font size
-			float dateTextAndButtonHeightSum = g_UIContext.DefaultFontSize * 2.0f;
+			float dateTextAndButtonHeightSum = scaledFontSize * 2.0f;
 
-			window->DrawList->AddText(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize * 0.9f], g_UIContext.DefaultFontSize,
+			window->DrawList->AddText(g_ImGuiFont_Roboto[scaledFontSize * 0.9f], scaledFontSize,
 				g_UIContext.NewVersionAvailable ? pos + ImVec2{
 					0.0f,
 					g_UIContext.DefaultFontSize * 0.5f - dateTextAndButtonHeightSum * 0.5f } : pos, SwapColorEndianness(0xFFFFFFFF), latestUpdateStr.c_str());
 
 			auto cursorBackUp = ImGui::GetCursorScreenPos();
-			ImGui::SetCursorScreenPos(pos + ImVec2{ maxLenthUpdateSection + g_UIContext.DefaultFontSize * 0.3f,
-													style.FramePadding.y + g_UIContext.DefaultFontSize * 0.5f - g_UIContext.DefaultFontSize * 0.65f });
+			ImGui::SetCursorScreenPos(pos + ImVec2{ maxLenthUpdateSection + scaledFontSize * 0.3f,
+													style.FramePadding.y + scaledFontSize * 0.5f - scaledFontSize * 0.65f });
 
-			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
-			ImGui::PushFont(g_ImGuiFont_RussoOne[versionButtonFontSize * 1.0f]);
+			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f * scaledFontSize);
+			ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 1.0f]);
 
 			if (InfoButton(versionStr.c_str())) {
 				// Todo: Redirect to patch notes
@@ -256,7 +271,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			ImGui::PopStyleVar();
 
 			if (g_UIContext.NewVersionAvailable) {
-				ImGui::SetCursorScreenPos(pos + ImVec2{ 0.0f, g_UIContext.DefaultFontSize * 0.5f });
+				ImGui::SetCursorScreenPos(pos + ImVec2{ 0.0f, scaledFontSize * 0.5f });
 
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 5.0f, 0.0f });
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
@@ -277,7 +292,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 
 		// Draw main tabs / sub tabs
 		{
-			const ImVec2 tabBtnSize = { g_UIContext.DefaultFontSize * 9.38f, g_UIContext.DefaultFontSize * 2.4f };
+			const ImVec2 tabBtnSize = { scaledFontSize * 9.38f, scaledFontSize * 2.4f };
 			const ImVec2 subTabBtnSize = { tabBtnSize.x * 0.8f, tabBtnSize.y * 0.8f };
 
 			// The black strip behind tab buttons
@@ -446,33 +461,33 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			// Background faded window name text
 			{
 				ImVec2 pos{ wndRect.Min.x + g_UIContext.DefaultFontSize * 0.1f,
-							wndRect.Min.y + (2.0f * tabBtnSize.y)/*Header Space*/ + g_UIContext.DefaultFontSize * 1.3f };
+							wndRect.Min.y + (2.0f * tabBtnSize.y)/*Header Space*/ + scaledFontSize * 1.3f };
 
 				switch (g_UIContext.SelectedTab) {
 				case UIContext::MainTabs::GameMode:
 				{
-					window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+					window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 						SwapColorEndianness(0xFFFFFF10), "Game Mode");
 				}
 				break;
 
 				case UIContext::MainTabs::Character:
 				{
-					window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+					window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 						SwapColorEndianness(0xFFFFFF10), "Character");
 				}
 				break;
 
 				case UIContext::MainTabs::Quickplay:
 				{
-					window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+					window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 						SwapColorEndianness(0xFFFFFF10), "Quickplay");
 				}
 				break;
 
 				case UIContext::MainTabs::MusicSwitcher:
 				{
-					window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+					window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 						SwapColorEndianness(0xFFFFFF10), "Music Switcher");
 				}
 				break;
@@ -483,31 +498,31 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 					pos += ImVec2{ 0.0f, subTabBtnSize.y };
 
 					if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Gameplay) {
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "Gameplay");
 					}
 					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Camera) {
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "Camera");
 					}
 					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Hotkeys) {
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "Hotkeys");
 					}
 					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Interface) {
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "Interface");
 					}
 					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Sound) {
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "Sound");
 					}
 					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::Visual) {
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "Visual");
 					}
 					else if (g_UIContext.SelectedOptionsSubTab == UIContext::OptionsSubTabs::System) {
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "System");
 					}
 
@@ -522,23 +537,23 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 
 
 					if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Common) {
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "Common Cheats");
 					}
 					else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Speed) {
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "Speed");
 					}
 					else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Teleporter) {
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "Teleporter");
 					}
 					else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::EnemySpawner) {
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "Enemy Spawner");
 					}
 					else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::JukeBox) {
-						window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 9.6f, pos,
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "Jukebox");
 					}
 				}
@@ -553,12 +568,12 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 		// Footer of the window
 		{
 			// Footer background
-			window->DrawList->AddRectFilled({ wndRect.Min.x, wndRect.Max.y - g_UIContext.DefaultFontSize * 2.24f }, { wndRect.Max.x, wndRect.Max.y },
+			window->DrawList->AddRectFilled({ wndRect.Min.x, wndRect.Max.y - scaledFontSize * 2.24f }, { wndRect.Max.x, wndRect.Max.y },
 				SwapColorEndianness(0x1F1718FF), window->WindowRounding, ImDrawCornerFlags_Bot);
 
-			contentMaxHeightOffsetFromBottom = g_UIContext.DefaultFontSize * 2.24f;
+			contentMaxHeightOffsetFromBottom = scaledFontSize * 2.24f;
 
-			ImVec2 footerInfoBtnSize{ 0.0f, g_UIContext.DefaultFontSize * 1.7f };
+			ImVec2 footerInfoBtnSize{ 0.0f, scaledFontSize * 1.7f };
 
 			// Left footer section
 			{
@@ -566,16 +581,16 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 
 				float aboutButtonWidth = ImGui::CalcTextSize(PATREON_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
 
-				ImVec2 pos{ wndRect.Min.x + g_UIContext.DefaultFontSize * 1.0f, wndRect.Max.y - g_UIContext.DefaultFontSize * 1.68f };
+				ImVec2 pos{ wndRect.Min.x + scaledFontSize * 1.0f, wndRect.Max.y - scaledFontSize * 1.68f };
 
 				auto cursorPosBackup = ImGui::GetCursorScreenPos();
 
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
 				ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
 
-				ImGui::SetCursorScreenPos(pos + ImVec2{ 0.0f, g_UIContext.DefaultFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
+				ImGui::SetCursorScreenPos(pos + ImVec2{ 0.0f, scaledFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
 				if (InfoButton(PATREON_BUTTON_TEXT, footerInfoBtnSize)) {
-					ShellExecute(0, 0, "https://www.patreon.com/miaberth", 0, 0, SW_SHOW);
+					ShellExecute(0, 0, "https://www.patreon.com/berthrage", 0, 0, SW_SHOW);
 				}
 
 				ImGui::PopFont();
@@ -595,13 +610,13 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 				float creditTextWidth = ImGui::CalcTextSize((const char*)CREDIT_TEXT).x;
 				float aboutButtonWidth = ImGui::CalcTextSize(ABOUT_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
 
-				ImVec2 pos{ (wndRect.Min.x + wndRect.Max.x) * 0.5f - (creditTextWidth + aboutButtonWidth) * 0.5f, wndRect.Max.y - g_UIContext.DefaultFontSize * 1.68f };
+				ImVec2 pos{ (wndRect.Min.x + wndRect.Max.x) * 0.5f - (creditTextWidth + aboutButtonWidth) * 0.5f, wndRect.Max.y - scaledFontSize * 1.68f };
 
 				// Background faded text
 				ImVec2 bgFadedTextSize = ImGui::CalcTextSize((const char*)BACKGROUND_FADED_TEXT);
-				window->DrawList->AddText(g_ImGuiFont_RussoOne256, g_UIContext.DefaultFontSize * 4.8f,
-					{ pos.x - g_UIContext.DefaultFontSize * 5.8f,
-					pos.y - g_UIContext.DefaultFontSize * 4.8f * 0.5f },
+				window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 4.8f,
+					{ pos.x - scaledFontSize * 5.8f,
+					pos.y - scaledFontSize * 4.8f * 0.5f },
 					SwapColorEndianness(0xFFFFFF10), (const char*)BACKGROUND_FADED_TEXT);
 
 				window->DrawList->AddText(pos, SwapColorEndianness(0xFFFFFFFF), (const char*)CREDIT_TEXT);
@@ -613,7 +628,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
 				ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
 
-				ImGui::SetCursorScreenPos(pos + ImVec2{ creditTextWidth, g_UIContext.DefaultFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
+				ImGui::SetCursorScreenPos(pos + ImVec2{ creditTextWidth, scaledFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
 				if (InfoButton(ABOUT_BUTTON_TEXT, footerInfoBtnSize)) {
 					g_UIContext.SelectedTab = UIContext::MainTabs::None;
 				}
@@ -634,7 +649,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 				float creditTextWidth = ImGui::CalcTextSize(CREDIT_TEXT).x;
 				float aboutBtnWidth = ImGui::CalcTextSize(DDMK_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
 
-				ImVec2 pos{ wndRect.Max.x - creditTextWidth - aboutBtnWidth - g_UIContext.DefaultFontSize, wndRect.Max.y - g_UIContext.DefaultFontSize * 1.68f };
+				ImVec2 pos{ wndRect.Max.x - creditTextWidth - aboutBtnWidth - scaledFontSize, wndRect.Max.y - scaledFontSize * 1.68f };
 
 				window->DrawList->AddText(pos, SwapColorEndianness(0xFFFFFFFF), CREDIT_TEXT);
 
@@ -645,7 +660,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f);
 				ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize]);
 
-				ImGui::SetCursorScreenPos(pos + ImVec2{ creditTextWidth, g_UIContext.DefaultFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
+				ImGui::SetCursorScreenPos(pos + ImVec2{ creditTextWidth, scaledFontSize * 0.5f - footerInfoBtnSize.y * 0.5f });
 				if (InfoButton(DDMK_BUTTON_TEXT, footerInfoBtnSize)) {
 					ShellExecute(0, 0, "https://github.com/serpentiem/ddmk/", 0, 0, SW_SHOW);
 				}
@@ -659,12 +674,13 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 
 		// Actual content
 		{
-			ImVec2 contentMin = { wndRect.Min.x + g_UIContext.DefaultFontSize * 0.3f,
-								  wndRect.Min.y + contentMinHeightOffsetFromTop + g_UIContext.DefaultFontSize * 0.3f };
+			ImVec2 contentMin = { wndRect.Min.x + scaledFontSize * 0.3f,
+								  wndRect.Min.y + contentMinHeightOffsetFromTop + scaledFontSize * 0.3f };
 
 			ImGui::SetNextWindowPos(contentMin, ImGuiCond_Always);
 			ImGui::BeginChildEx("Content Window", window->GetID("Content Window"),
-				window->Size - ImVec2{ g_UIContext.DefaultFontSize * 0.3f * 2.0f, (contentMinHeightOffsetFromTop + g_UIContext.DefaultFontSize * 0.3f + contentMaxHeightOffsetFromBottom) }, false, 0);
+				window->Size - ImVec2{ scaledFontSize * 0.3f * 2.0f, (contentMinHeightOffsetFromTop + scaledFontSize * 0.3f + contentMaxHeightOffsetFromBottom) }, false, 0);
+			//ImGui::SetWindowFontScale(scaleFactorY);
 			DrawMainContent(pDevice, g_UIContext);
 			ImGui::EndChild();
 		}
@@ -2314,14 +2330,28 @@ void BackgroundPlayerText(uint8 playerIndex) {
 	std::string playerBackgroundText = std::string(playerIndexNames[playerIndex]) + " - " + activeCrimsonConfig.PlayerProperties.playerName[playerIndex];
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
 	ImRect wndRect = window->Rect();
-	const ImVec2 tabBtnSize = { UI::g_UIContext.DefaultFontSize * 9.38f, UI::g_UIContext.DefaultFontSize * 2.4f };
+	const ImVec2 tabBtnSize = { scaledFontSize * 9.38f, scaledFontSize * 2.4f };
 
-	ImVec2 pos{ wndRect.Min.x + UI::g_UIContext.DefaultFontSize * 0.1f,
-							wndRect.Min.y + (3.0f * tabBtnSize.y)/*Header Space*/ + UI::g_UIContext.DefaultFontSize * 1.3f };
+	ImVec2 pos{ wndRect.Min.x + scaledFontSize * 0.1f,
+							wndRect.Min.y + (2.8f * tabBtnSize.y)/*Header Space*/ + scaledFontSize * 1.3f };
 
 
-	window->DrawList->AddText(UI::g_ImGuiFont_RussoOne256, UI::g_UIContext.DefaultFontSize * 6.6f, pos,
+	window->DrawList->AddText(UI::g_ImGuiFont_RussoOne256, scaledFontSize * 4.6f, pos,
 		UI::SwapColorEndianness(0xFFFFFF10), playerBackgroundText.c_str());
+}
+
+void BackgroundSPMPText(const char* SPMPText) {
+	ImGuiWindow* window = ImGui::GetCurrentWindow();
+	ImRect wndRect = window->Rect();
+	const ImVec2 tabBtnSize = { scaledFontSize * 9.38f, scaledFontSize * 2.4f };
+
+	ImVec2 pos{ wndRect.Min.x + scaledFontSize * 0.1f,
+							wndRect.Min.y + (6.9f * tabBtnSize.y)/*Header Space*/ + scaledFontSize * 1.3f };
+
+
+	window->DrawList->AddText(UI::g_ImGuiFont_RussoOne256, scaledFontSize * 4.6f, pos,
+		UI::SwapColorEndianness(0xFFFFFF10), SPMPText);
+
 }
 
 void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex, size_t defaultFontSize) {
@@ -2336,9 +2366,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 	auto& playerData = GetPlayerData(playerIndex);
 	auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-	
 
-	const float itemWidth = defaultFontSize * 8.0f;
 	ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	if ((entityIndex == ENTITY::CLONE) && (mainQueuedCharacterData.character >= CHARACTER::MAX)) {
@@ -2619,6 +2647,9 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 			ImGui::Text("RANGED");
 			ImGui::PopFont();
 
+
+			ImGui::PushItemWidth(itemWidth);
+
 			auto rangedSlider = [&]() {
 				if (GUI_Slider2<uint8>("", queuedCharacterData.rangedWeaponCount,
 					activeCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1)) {
@@ -2658,7 +2689,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 				GUI_PopDisable(condition);
 			}
-
+			ImGui::PopItemWidth();
 			ImGui::PopItemWidth();
 
 			ImGui::EndTable();
@@ -2671,7 +2702,6 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 	auto& activePlayerData = GetActivePlayerData(playerIndex);
 	auto& queuedPlayerData = GetQueuedPlayerData(playerIndex);
 
-	const float itemWidth = defaultFontSize * 8.0f;
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
 	const float rowWidth = 40.0f * queuedConfig.globalScale;
 
@@ -2748,7 +2778,7 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 
 void SelectPlayerLoadoutsWeaponsTab() {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
-	const float itemWidth = defaultFontSize * 8.0f;
+
 	const float columnWidth = 0.8f * queuedConfig.globalScale;
 	const float rowWidth = 40.0f * queuedConfig.globalScale;
 
@@ -2830,7 +2860,6 @@ void SelectPlayerLoadoutsWeaponsTab() {
 
 void CharacterSection(size_t defaultFontSize) {
 
-	const float itemWidth = defaultFontSize * 8.0f;
 	const float columnWidth = 0.8f * queuedConfig.globalScale;
 	const float rowWidth = 40.0f * queuedConfig.globalScale;
 	ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
@@ -2869,18 +2898,7 @@ void CharacterSection(size_t defaultFontSize) {
 	const char* SPMPText = (queuedConfig.Actor.playerCount == 1) ? SPMPText = "SINGLE PLAYER" : SPMPText = "MULTIPLAYER";
 	ImGui::Text(SPMPText);
 	ImGui::PopFont();
-	{
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
-		ImRect wndRect = window->Rect();
-		const ImVec2 tabBtnSize = { UI::g_UIContext.DefaultFontSize * 9.38f, UI::g_UIContext.DefaultFontSize * 2.4f };
-
-		ImVec2 pos{ wndRect.Min.x + UI::g_UIContext.DefaultFontSize * 0.1f,
-								wndRect.Min.y + (8.0f * tabBtnSize.y)/*Header Space*/ + UI::g_UIContext.DefaultFontSize * 1.3f };
-
-
-		window->DrawList->AddText(UI::g_ImGuiFont_RussoOne256, UI::g_UIContext.DefaultFontSize * 6.6f, pos,
-			UI::SwapColorEndianness(0xFFFFFF10), SPMPText);
-	}
+	BackgroundSPMPText(SPMPText);
 	
 
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
@@ -3032,7 +3050,6 @@ void Arcade_UpdateIndices() {
 
 void ArcadeSection(size_t defaultFontSize) {
 
-	const float itemWidth = defaultFontSize * 8.0f;
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
 	const float rowWidth = 40.0f * queuedConfig.globalScale;
 
@@ -4171,7 +4188,6 @@ void BarsSettings(size_t defaultFontSize) {
 
 	ImGui::Text("");
 
-	const float itemWidth = defaultFontSize * 6.0f;
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
 	const float rowWidth = 20.0f * queuedConfig.globalScale;
 	const float rowWidth2 = 0.5f * queuedConfig.globalScale;
@@ -4258,7 +4274,6 @@ void BarsSettings(size_t defaultFontSize) {
 
 void BarsSection(size_t defaultFontSize) {
 
-	const float itemWidth = defaultFontSize * 8.0f;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	{
@@ -4332,7 +4347,6 @@ void BarsSection(size_t defaultFontSize) {
 
 void BossRushSection(size_t defaultFontSize) {
 
-	const float itemWidth = defaultFontSize * 8.0f;
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
 	const float rowWidth = 30.0f * queuedConfig.globalScale;
 	const float rowWidth2 = 40.0f * queuedConfig.globalScale;
@@ -4426,8 +4440,6 @@ const char* cameraAutoAdjustNames[] = {
 
 
 void CameraSection(size_t defaultFontSize) {
-
-	const float itemWidth = defaultFontSize * 8.0f;
 
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
@@ -4704,7 +4716,7 @@ void CameraSection(size_t defaultFontSize) {
 
 void DamageSection() {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
-	const float itemWidth = defaultFontSize * 8.0f;
+
 	float smallerComboMult = 0.7f;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 	//Gui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
@@ -4731,7 +4743,7 @@ void DamageSection() {
 
 	auto DamageDataInput = [](float& active, float& queued, float& defaultVar) {
 		auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
-		const float itemWidth = defaultFontSize * 8.0f;
+
 		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
 		float smallerComboMult = 0.7f;
 
@@ -4944,15 +4956,17 @@ void ShopWindow() {
 		// TODO: Play Divine Statue Track - Mia
 		//PlayTrack("afs/sound/Jikushinzou.ogg");
 		run = true;
-		constexpr float width = 800; // 900
-		constexpr float height = 900; // 500
-
-		ImGui::SetNextWindowSize(ImVec2(width, height));
-		ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
 	}
+
+	float width = 800 * scaleFactorY; 
+	float height = 900 * scaleFactorY; 
+
+	ImGui::SetNextWindowSize(ImVec2(width, height));
+	ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
 
 
 	if (ImGui::Begin("ShopWindow", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
+		ImGui::SetWindowFontScale(scaleFactorY);
 		if (GUI_Button("Close")) {
 			CloseShop();
 		}
@@ -5082,7 +5096,7 @@ void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helper
 		// Begin a new row
 		ImGui::BeginGroup();
 
-		if (GUI_Button(helper.name, ImVec2(500.0f, 80.0f))) {
+		if (GUI_Button(helper.name, ImVec2(500.0f * scaleFactorY, 80.0f * scaleFactorY))) {
 			Buy();
 		}
 
@@ -5136,7 +5150,7 @@ void ShowItemTab(MissionData& missionData, QueuedMissionActorData& queuedMission
 
 		uint32 price = GetItemPrice(itemHelper, buyCount);
 
-		if (GUI_Button(itemNames[itemHelper.itemIndex], ImVec2(500.0f, 80.0f))) {
+		if (GUI_Button(itemNames[itemHelper.itemIndex], ImVec2(500.0f * scaleFactorY, 80.0f * scaleFactorY))) {
 			HandleItemPurchase(itemHelperIndex, missionData, activeMissionActorData, price);
 		}
 		ImGui::SameLine(120);
@@ -5337,6 +5351,7 @@ void ExpWindow() {
 
 
     if (ImGui::Begin("Exp Stuff", &showExpWindow)) {
+		ImGui::SetWindowFontScale(scaleFactorY);
         ImGui::Text("");
 
 
@@ -5564,6 +5579,7 @@ void MissionDataWindow() {
 
 
     if (ImGui::Begin("MissionData", &showMissionDataWindow)) {
+		ImGui::SetWindowFontScale(scaleFactorY);
         ImGui::Text("");
 
 
@@ -5795,6 +5811,7 @@ void FileDataWindow() {
 
 
     if (ImGui::Begin("FileData", &showFileDataWindow)) {
+		ImGui::SetWindowFontScale(scaleFactorY);
         ImGui::Text("");
 
         auto GUI_FileData = [&](FileData& fileData) {
@@ -5924,6 +5941,7 @@ void ActorWindow() {
 
 
     if (ImGui::Begin("ActorWindow", &showActorWindow)) {
+		ImGui::SetWindowFontScale(scaleFactorY);
         ImGui::Text("");
 
 
@@ -6082,6 +6100,7 @@ void EventDataWindow() {
 
 
     if (ImGui::Begin("EventData", &showEventDataWindow)) {
+		ImGui::SetWindowFontScale(scaleFactorY);
         ImGui::Text("");
 
         ImGui::PushItemWidth(150);
@@ -6132,6 +6151,7 @@ void RegionDataWindow() {
     }
 
     if (ImGui::Begin("RegionData", &showRegionDataWindow)) {
+		ImGui::SetWindowFontScale(scaleFactorY);
         ImGui::Text("");
 
 
@@ -6190,6 +6210,7 @@ void SoundWindow() {
     }
 
     if (ImGui::Begin("Sound", &showSoundWindow)) {
+		ImGui::SetWindowFontScale(scaleFactorY);
         ImGui::Text("");
 
 
@@ -6276,7 +6297,7 @@ void SoundWindow() {
 void DebugSection() {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
-	const float itemWidth = defaultFontSize * 8.0f;
+
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
@@ -6774,7 +6795,7 @@ void EnemySpawnerSection() {
 
 void JukeboxSection() {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
-	const float itemWidth = defaultFontSize * 8.0f;
+
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 // 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
@@ -6884,7 +6905,7 @@ void Lady() {
 
 void CustomMobilitySection() {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
-	const float itemWidth = defaultFontSize * 8.0f;
+
 	float smallerComboMult = 0.7f;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 	GUI_PushDisable(!activeConfig.Actor.enable);
@@ -6928,7 +6949,7 @@ void CustomMobilitySection() {
 
 	auto MobilityDataInput = [](const char* label, uint8(&active)[2], uint8(&queued)[2], uint8(&defaultVar)[2]) {
 		auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
-		const float itemWidth = defaultFontSize * 8.0f;
+
 		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
 		float smallerComboMult = 0.7f;
 
@@ -6984,7 +7005,7 @@ void CustomMobilitySection() {
 		}
 
 		// Add some space between the tables
-		ImGui::SetCursorPos(ImVec2(initialPos.x + (420 * queuedConfig.globalScale), initialPos.y)); 
+		ImGui::SetCursorPos(ImVec2(initialPos.x + (420 * queuedConfig.globalScale * scaleFactorY), initialPos.y));
 
 		// Start second table (right side)
 		if (ImGui::BeginTable("MobilityOptionsTable2", 2)) {
@@ -7063,6 +7084,7 @@ const char* mainOverlayLabel = "DebugOverlay";
 void DebugOverlayWindow(size_t defaultFontSize) {
     
     auto Function = [&]() {
+		ImGui::SetWindowFontScale(scaleFactorY);
         if (activeConfig.debugOverlayData.showFocus) {
             auto color = ImVec4(0, 1, 0, 1);
             if (GetForegroundWindow() != appWindow) {
@@ -7780,8 +7802,6 @@ void AdjustBackgroundColorAndTransparency() {
 
 
 void InterfaceSection(size_t defaultFontSize) {
-    
-	const float itemWidth = defaultFontSize * 8.0f;
 
     ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
@@ -8276,7 +8296,7 @@ const char* Sound_channelNames[CHANNEL::MAX] = {
 
 
 void SystemSection(size_t defaultFontSize) {
-	const float itemWidth = defaultFontSize * 8.0f;
+
 	float smallerComboMult = 0.7f;
 
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
@@ -8624,7 +8644,7 @@ void TeleporterSection() {
 
 void TrainingSection() {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
-	const float itemWidth = defaultFontSize * 8.0f;
+
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
@@ -8694,7 +8714,6 @@ void SoundSection(size_t defaultFontSize) {
 	const char* changeGunNewNames[] = { "DMC3 Default", "New" };
 	const char* changeDevilArmNewNames[] = { "DMC3 Default", "New" };
 
-	const float itemWidth = defaultFontSize * 8.0f;
 	float smallerComboMult = 0.7f;
 
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
@@ -8875,7 +8894,7 @@ const char* dergilNames[] = {
 };
 
 void VisualSection(size_t defaultFontSize) {
-	const float itemWidth = defaultFontSize * 8.0f;
+
     float smallerComboMult = 0.7f;
 
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
@@ -9148,7 +9167,7 @@ void VisualSection(size_t defaultFontSize) {
 // General gameplay options section
 void GeneralGameplayOptions() {
 	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
-	const float itemWidth = defaultFontSize * 8.0f;
+
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
@@ -9229,7 +9248,7 @@ void GeneralGameplayOptions() {
 
 			GUI_PushDisable(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
 			ImGui::PushItemWidth(itemWidth * 0.8f);
-			if (GUI_InputDefault2("Crazy Combo Mash Requirement",
+			if (GUI_InputDefault2("C. Combo Mash Requirement",
 				activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement,
 				queuedCrimsonConfig.Gameplay.General.crazyComboMashRequirement,
 				defaultCrimsonConfig.Gameplay.General.crazyComboMashRequirement)) {
@@ -9380,7 +9399,6 @@ void GeneralGameplayOptions() {
 // Dante gameplay options section
 void DanteGameplayOptions() {
 	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
-	const float itemWidth = defaultFontSize * 8.0f;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	// Dante Options Section
@@ -9710,7 +9728,6 @@ void DanteGameplayOptions() {
 
 void DanteCheatOptions() {
 	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
-	const float itemWidth = defaultFontSize * 8.0f;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	// Dante Cheats Section
@@ -9778,7 +9795,6 @@ void DanteCheatOptions() {
 // Vergil gameplay options section
 void VergilGameplayOptions() {
 	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
-	const float itemWidth = defaultFontSize * 8.0f;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 	ImGui::Text("VERGIL GAMEPLAY OPTIONS");
@@ -9925,7 +9941,6 @@ void VergilGameplayOptions() {
 
 void VergilCheatOptions() {
 	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
-	const float itemWidth = defaultFontSize * 8.0f;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
@@ -9992,7 +10007,6 @@ void VergilCheatOptions() {
 
 	auto VergilActionDataInput = [](const char* label, uint8(&active)[2], uint8(&queued)[2], uint8(&defaultVar)[2], bool disabled = false) {
 		auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
-		const float itemWidth = defaultFontSize * 8.0f;
 		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
 		float smallerComboMult = 0.7f;
 
@@ -10063,7 +10077,6 @@ void VergilCheatOptions() {
 
 void InputRemapOptions() {
 	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
-	const float itemWidth = defaultFontSize * 8.0f;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
@@ -10336,7 +10349,7 @@ void HotkeysSection() {
 		ImGui::SetCursorScreenPos(startPos);
 		keyBinding.Main();
 
-		startPos.y += 100; // <- matches ImVec2{300, 100} from the keybinding's button height
+		startPos.y += 100 * scaleFactorY; // <- matches ImVec2{300 * scaleFactorY, 100 * scaleFactorY} from the keybinding's button height
 	}
 
 	GUI_PopDisable(condition);
@@ -10488,18 +10501,24 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 	ImGuiWindow* cntWindow = ImGui::GetCurrentWindow();
 	const ImRect cntRegion = cntWindow->Rect();
 	const ImGuiStyle& style = ImGui::GetStyle();
+	float scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
+	ImGui::SetWindowFontScale(scaleFactorY);
+	float scaledFontSize = context.DefaultFontSize * scaleFactorY;
+
 
 	static bool uiElementsInitialized = false;
 	if (!uiElementsInitialized) {
-		size_t mainLogoWidth = size_t(context.DefaultFontSize * 37.0f);
+		size_t mainLogoWidth = size_t(scaledFontSize * 37.0f);
 
 		g_Image_CrimsonMainLogo.ResizeByRatioW(mainLogoWidth);
 		g_Image_VanillaLogo.ResizeByRatioW(mainLogoWidth);
 		g_Image_StyleSwitcherLogo.ResizeByRatioW(mainLogoWidth);
-		g_Image_SocialIcons.ResizeByRatioW(size_t(context.DefaultFontSize * 10.0f));
+		g_Image_SocialIcons.ResizeByRatioW(size_t(scaledFontSize * 10.0f));
 
 		uiElementsInitialized = true;
 	}
+
+	
 
 	switch (context.SelectedTab) {
 	case UI::UIContext::MainTabs::GameMode:
@@ -10510,6 +10529,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			"This will affect the entire Gameplay Options globally and tag you at the Mission End Screen.\n"
 			"If Gameplay Options diverge too much from any preset, 'Custom' Game Mode will be selected instead automatically.";
 
+		ImGui::PushFont(UI::g_ImGuiFont_Roboto[context.DefaultFontSize / scaleFactorY]);
 		float width = ImGui::CalcTextSize(MODE_SELECTION_TEXT).x;
 
         ImGui::Text("");
@@ -10518,10 +10538,14 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - width) * align);
 
+		
 		ImGui::TextWrapped(MODE_SELECTION_TEXT);
+		ImGui::PopFont();
         ImGui::Text("");
 
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
+
+
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[(context.DefaultFontSize / scaleFactorY) * 1.3f]);
 
 		float comboBoxWidth = width * 0.5f;
 
@@ -10687,7 +10711,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			constexpr auto MODE_INFO_TEXT_SW_LINE2 = "Vanilla + Style / Full Weapon Switching.";
 			constexpr auto MODE_INFP_TEXT_CRIMSON = "Enjoy the ultimate DMC3 experience! All new Gameplay Improvements and Expansions enabled.";
 
-			ImGui::PushFont(UI::g_ImGuiFont_Roboto[context.DefaultFontSize]);
+			ImGui::PushFont(UI::g_ImGuiFont_Roboto[context.DefaultFontSize / scaleFactorY]);
 
 			const float vanillaWidth = ImGui::CalcTextSize(MODE_INFO_TEXT_VANILLA).x;
 			const float swWidthLine1 = ImGui::CalcTextSize(MODE_INFO_TEXT_SW_LINE1).x;
@@ -11996,6 +12020,11 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	MissionDataWindow();
 	RegionDataWindow();
 	SoundWindow();
+
+	scaleFactorX = ImGui::GetIO().DisplaySize.x / 1920;
+	scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
+	scaledFontSize = UI::g_UIContext.DefaultFontSize * scaleFactorY;
+	itemWidth = scaledFontSize * 8.0f;
     
 
     PauseWhenGUIOpened();

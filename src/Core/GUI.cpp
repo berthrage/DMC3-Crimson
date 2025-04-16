@@ -313,10 +313,14 @@ ID3D11ShaderResourceView* CreateTexture(const char* filename, ID3D11Device* devi
 
 // @Research: Consider inline.
 void TooltipHelper(const char* name, const char* description, float x) {
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	auto scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
+
     ImGui::TextDisabled(name);
 
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
+		ImGui::SetWindowFontScale(scaleFactorY);
         ImGui::PushTextWrapPos(x);
         ImGui::Text(description);
         ImGui::PopTextWrapPos();
@@ -427,6 +431,8 @@ void KeyBinding::Main() {
 	auto keys32 = *reinterpret_cast<uint32*>(activeKeyData.keys);
 	auto& lastKeys32 = main.lastKeys32;
     auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	auto scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
+	auto scaledFontSize = UI::g_UIContext.DefaultFontSize * scaleFactorY;
 
 	if (!main.run) {
 		main.run = true;
@@ -438,9 +444,9 @@ void KeyBinding::Main() {
 		UpdateBuffer(main, activeKeyData);
 	}
 
-	const auto buttonSize = ImVec2{ 300, 100 };
+	const auto buttonSize = ImVec2{ 300 * scaleFactorY, 100 * scaleFactorY};
 
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 8, 0 });
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 8 * scaleFactorY, 0 });
 
 	ImGui::BeginGroup();
 
@@ -462,7 +468,7 @@ void KeyBinding::Main() {
 	ImVec2 textSize = ImGui::CalcTextSize(main.buffer);
 	ImGui::Text(main.buffer);
 
-	ImGui::SameLine(textSize.x + 320);
+	ImGui::SameLine(textSize.x + 320 * scaleFactorY);
 
 	if (GUI_ResetButton()) {
 		CopyMemory(&queuedKeyData, &defaultKeyData, sizeof(queuedKeyData));
@@ -483,13 +489,13 @@ void KeyBinding::Popup() {
         return;
     }
     auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
-
+    auto scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
 
     auto keys32      = *reinterpret_cast<uint32*>(popupKeyData.keys);
     auto& lastKeys32 = popup.lastKeys32;
 
-    constexpr float width  = 600;
-    constexpr float height = 330;
+    float width  = 600 * scaleFactorY;
+    float height = 330 * scaleFactorY;
 
 
     if (!popup.run) {
@@ -507,7 +513,7 @@ void KeyBinding::Popup() {
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 0.85f)); 
 
     if (ImGui::Begin("KeyPopup", &showPopup, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
-
+        ImGui::SetWindowFontScale(scaleFactorY);
 		
 		// Add some spacing so the text below doesn't overlap the button
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10.0f);
@@ -553,7 +559,7 @@ void KeyBinding::Popup() {
         ImGui::Text("");
 
 
-        const auto buttonSize = ImVec2{120, 40};
+        const auto buttonSize = ImVec2{120 * scaleFactorY, 40 * scaleFactorY};
 
         auto& style = ImGui::GetStyle();
 
