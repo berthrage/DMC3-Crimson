@@ -3442,10 +3442,10 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 	ImGui::SetWindowFontScale(scaleFactorY);
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSize]);
 	ImVec2 textSize = ImGui::CalcTextSize(orbCountStr.c_str(), nullptr, true);
-	ImVec2 textPos = ImVec2(windowSize.x - textSize.x - 74.0f * scaleFactorX, (windowSize.y - textSize.y) / 2);
+	ImVec2 textPos = ImVec2(windowSize.x - textSize.x - 74.0f * scaleFactorY, (windowSize.y - textSize.y) / 2);
 
 	// Correct the texture position by considering the window's screen position
-	ImVec2 texturePos = ImVec2(windowPos.x + textPos.x - textureWidth - 24.0f * scaleFactorX, windowPos.y + (windowSize.y - textureHeight) / 2);
+	ImVec2 texturePos = ImVec2(windowPos.x + textPos.x - textureWidth - 24.0f * scaleFactorY, windowPos.y + (windowSize.y - textureHeight) / 2);
 
 	// Render the texture or a white square if the texture is not valid
 	if (RedOrbTexture->IsValid()) {
