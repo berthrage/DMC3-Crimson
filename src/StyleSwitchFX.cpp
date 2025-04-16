@@ -4,6 +4,8 @@
 #include <array>
 #include "DebugDrawDX11.hpp"
 #include "CrimsonFileHandling.hpp"
+#include "Config.hpp"
+#include "Global.hpp"
 
 #define TEXTURE_ATLAS_FILENAME "stylenames.png"
 
@@ -83,8 +85,13 @@ void DrawStyleSwitchFxTexture() {
         return;
     }
 
-    ImGuiIO& io = ImGui::GetIO();
-    g_StyleSwitchFxWork.time -= io.DeltaTime;
+	ImGuiIO& io = ImGui::GetIO();
+	g_StyleSwitchFxWork.time -= io.DeltaTime;
+
+	if (!(activeConfig.Actor.enable && InGame() && !g_inGameCutscene)) {
+		return;
+	}
+    auto scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
 
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBackground |
         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
@@ -95,6 +102,7 @@ void DrawStyleSwitchFxTexture() {
     ImGui::SetNextWindowSize(io.DisplaySize);
 
     ImGui::Begin("Overlay", nullptr, window_flags); {
+        ImGui::SetWindowFontScale(scaleFactorY);
         const float factor = g_StyleSwitchFxWork.size;
         ImDrawList* drawlist = ImGui::GetWindowDrawList();
         const Rect& rect = g_TextureAtlas.rects[g_StyleSwitchFxWork.sfxType];
@@ -105,11 +113,11 @@ void DrawStyleSwitchFxTexture() {
 
         const float ar = rect.m_size.x / rect.m_size.y;
         
-        float xSize = rect.m_size.x * factor / ar;
-        float ySize = rect.m_size.y * factor / ar;
+        float xSize = (rect.m_size.x * factor / ar) * scaleFactorY;
+        float ySize = (rect.m_size.y * factor / ar) * scaleFactorY;
 
-        float xScreenPos = g_StyleSwitchFxWork.pos[0] - (xSize / 2.0f) + g_StyleSwitchFxWork.offset[0];
-        float yScreenPos = g_StyleSwitchFxWork.pos[1] - (ySize / 2.0f) + g_StyleSwitchFxWork.offset[1];
+        float xScreenPos = g_StyleSwitchFxWork.pos[0] - (xSize / 2.0f) + (g_StyleSwitchFxWork.offset[0] * scaleFactorY);
+        float yScreenPos = g_StyleSwitchFxWork.pos[1] - (ySize / 2.0f) + (g_StyleSwitchFxWork.offset[1] * scaleFactorY);
 
         ImVec2 pmin(xScreenPos, yScreenPos);
         ImVec2 pmax((pmin.x + xSize), (pmin.y + ySize));
