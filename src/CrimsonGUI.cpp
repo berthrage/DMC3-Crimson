@@ -132,6 +132,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 
 		// Draw the main window header graphic
 		{
+			// DMC3Crimson Logo
 			static const Texture2DD3D11 logo(g_Image_CrimsonHeaderLogo.GetRGBAData(), g_Image_CrimsonHeaderLogo.GetWidth(), g_Image_CrimsonHeaderLogo.GetHeight(), pDevice);
 
 			auto logoWidth = logo.GetWidth() * scaleFactorY;
@@ -148,6 +149,27 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			auto logoSize = ImVec2(logoPos.x + logoWidth, logoPos.y + logoHeight);
 
 			window->DrawList->AddImage(logo, logoPos, logoSize);
+
+			// BETA Notice 
+			const char* text = "BETA";
+			ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 0.8f]);
+			ImVec2 textSize = ImGui::CalcTextSize(text);
+			float padding = scaledFontSize * 0.2f;
+			ImVec2 buttonSize = { textSize.x + padding, textSize.y + padding};
+
+			ImVec2 buttonPos = {
+				logoPos.x + logoWidth * 0.5f - buttonSize.x * 0.5f,
+				logoPos.y + logoHeight + scaledFontSize * -0.3f // spacing below logo
+			};
+			ImVec2 buttonMax = buttonPos + buttonSize;
+
+			ImVec2 textPos = {
+				buttonPos.x + (buttonSize.x - textSize.x) * 0.5f,
+				buttonPos.y + (buttonSize.y - textSize.y) * 0.5f
+			};
+			window->DrawList->AddText(ImGui::GetFont(), ImGui::GetFontSize(), textPos, IM_COL32(255, 255, 255, 255), text);
+
+			ImGui::PopFont();
 		}
 
 		// Draw the close button
