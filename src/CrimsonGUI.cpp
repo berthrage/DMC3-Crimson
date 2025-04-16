@@ -2159,7 +2159,8 @@ void WorldSpaceWeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	auto& meleeWheel = meleeWorldSpaceWeaponWheel[0];
 	auto& rangedWheel = rangedWorldSpaceWeaponWheel[0];
 
-	const float baseSpacing = 170.0f;
+	//const float baseSpacing = 170.0f;
+	const float baseSpacing = 400.0f;
 	float scaleFactor = multiplayerSize.x / normalSize.x;
 	float scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
 	float adjustedSpacing = baseSpacing * scaleFactorY * scaleFactor;
@@ -2228,7 +2229,8 @@ void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 		auto& meleeWheel = meleeWorldSpaceWeaponWheel[playerIndex];
 		auto& rangedWheel = rangedWorldSpaceWeaponWheel[playerIndex];
 
-		const float baseSpacing = 170.0f;
+		//const float baseSpacing = 170.0f;
+		const float baseSpacing = 400.0f;
 		float scaleFactor = multiplayerSize.x / normalSize.x;
 		float scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
 		float adjustedSpacing = baseSpacing * scaleFactorY * scaleFactor;
@@ -11504,11 +11506,11 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		{
 			const ImVec2 areaSize = cntWindow->Size * ImVec2{ areaPaddingXRation, 1.0f };
 			const ImVec2 areaMin{ cntWindow->Pos.x + areaPaddingX,
-									 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+									 cntWindow->Pos.y + scaledFontSize * 0.1f };
 
 			//cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x00FF00FF));
 
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { scaledFontSize * 0.4f, scaledFontSize * 0.4f });
 			ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
 			ImGui::BeginChildEx("C Team Area", cntWindow->GetID("C Team Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
 			ImGui::PopStyleVar();
@@ -11517,12 +11519,12 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 1.4f)]);
 				{
 					ImGui::Text("CREDITS");
-					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.2f);
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.2f);
 					ImGui::Text((const char*)u8"C•Team");
 				}
 				ImGui::PopFont();
 
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.4f);
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.4f);
 
 				auto fnDrawSocialButton = [window](const void* id, const size_t socialID, const ImVec2 size, const char* tooltip = nullptr)->bool {
 					const auto bbTuple = g_Image_SocialIcons.GetUVRect(socialID);
@@ -11614,7 +11616,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					ImGui::PopFont();
 				}
 
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.4f);
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.4f);
 
 				// Sarah
 				{
@@ -11644,7 +11646,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					}
 				}
 
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.4f);
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.4f);
 
 				// Deep
 				{
@@ -11680,7 +11682,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					}
 				}
 
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.4f);
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.4f);
 
 				// My smooth shiny bald ass
 				{
@@ -11716,7 +11718,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					}
 				}
 
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.7f);
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.7f);
 
 				// Additional Work
 				{
@@ -11726,7 +11728,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					}
 					ImGui::PopFont();
 
-					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.2f);
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.2f);
 
 					// Charlie
 					{
@@ -11850,7 +11852,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					}
 					ImGui::PopFont();
 
-					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.2f);
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.2f);
 
 					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
 					{
@@ -11872,13 +11874,13 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		{
 			const ImVec2 areaSize = cntWindow->Size * ImVec2{ areaPaddingXRation, 0.8f };
 			const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x * areaPaddingXRation + areaPaddingX * 2.0f,
-									 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+									 cntWindow->Pos.y + scaledFontSize * 0.1f };
 
 			//cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x00FF00FF));
 
-			ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+			ImVec2 padding{ scaledFontSize * 0.8f, scaledFontSize * 0.8f };
 
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { scaledFontSize * 0.4f, scaledFontSize * 0.4f });
 			ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
 			ImGui::BeginChildEx("Patrons Area", cntWindow->GetID("Patrons Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
 			ImGui::PopStyleVar();
@@ -11891,7 +11893,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopFont();
 
                 if (UI::patronsQueueResult == WebAPIResult::Success || UI::patronsQueueResult == WebAPIResult::Awaiting) {
-                    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.5f);
+                    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.5f);
 
                     ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
                     {
@@ -11907,7 +11909,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
                     }
                     ImGui::PopFont();
 
-                    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.5f);
+                    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.5f);
 
                     ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
                     {
@@ -11931,13 +11933,13 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		{
 			const ImVec2 areaSize = cntWindow->Size * ImVec2{ areaPaddingXRation, 0.8f };
 			const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x * areaPaddingXRation * 2.0f + areaPaddingX * 3.0f,
-									 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+									 cntWindow->Pos.y + scaledFontSize * 0.1f };
 
 			//cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x00FF00FF));
 
-			ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+			ImVec2 padding{ context.DefaultFontSize * 0.8f, scaledFontSize * 0.8f };
 
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { scaledFontSize * 0.4f, scaledFontSize * 0.4f });
 			ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
 			ImGui::BeginChildEx("Special Thanks Area", cntWindow->GetID("Special Thanks Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
 			ImGui::PopStyleVar();
@@ -11949,7 +11951,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				}
 				ImGui::PopFont();
 
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.5f);
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.5f);
 
 				ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
 				{
@@ -11964,15 +11966,15 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 		// Footer area
 		{
-			const ImVec2 areaSize{ cntWindow->Size.x - areaPaddingX * 2.0f, context.DefaultFontSize * 4.4f };
+			const ImVec2 areaSize{ cntWindow->Size.x - areaPaddingX * 2.0f, scaledFontSize * 4.4f };
 			const ImVec2 areaMin{ cntWindow->Pos.x + areaPaddingX,
 									 cntWindow->Pos.y + cntWindow->Size.y - cntWindow->Size.y * 0.18f };
 
 			//cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x00FF00FF));
 
-			ImVec2 padding{ context.DefaultFontSize * 0.8f, context.DefaultFontSize * 0.8f };
+			ImVec2 padding{ context.DefaultFontSize * 0.8f, scaledFontSize * 0.8f };
 
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { scaledFontSize * 0.4f, scaledFontSize * 0.4f });
 			ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
 			ImGui::BeginChildEx("Footer Area", cntWindow->GetID("Footer Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
 			ImGui::PopStyleVar();
@@ -11984,7 +11986,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				{
 					const float thxTextWidth = ImGui::CalcTextSize(THX_TEXT).x;
-					window->DrawList->AddText(ImVec2{ areaMin.x + (areaSize.x - thxTextWidth) * 0.5f, areaMin.y + context.DefaultFontSize * 0.6f }, 0xFFFFFFFF, THX_TEXT);
+					window->DrawList->AddText(ImVec2{ areaMin.x + (areaSize.x - thxTextWidth) * 0.5f, areaMin.y + scaledFontSize * 0.6f }, 0xFFFFFFFF, THX_TEXT);
 				}
 
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
@@ -11992,7 +11994,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					const float licenceButtonWidth = ImGui::CalcTextSize(LICENCE_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
 
 					ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
-					ImGui::SetCursorScreenPos(ImVec2{ areaMin.x + (areaSize.x - licenceButtonWidth) * 0.5f, areaMin.y + context.DefaultFontSize * 2.0f });
+					ImGui::SetCursorScreenPos(ImVec2{ areaMin.x + (areaSize.x - licenceButtonWidth) * 0.5f, areaMin.y + scaledFontSize * 2.0f });
 					UI::InfoButton(LICENCE_BUTTON_TEXT);
 					ImGui::PopStyleVar();
 				}
@@ -12001,7 +12003,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 0.8f)]);
 				{
 					const float crTextWidth = ImGui::CalcTextSize(COPYRIGHT_TEXT).x;
-					window->DrawList->AddText(ImVec2{ areaMin.x + (areaSize.x - crTextWidth) * 0.5f, areaMin.y + context.DefaultFontSize * 3.5f }, 0xFFFFFFFF, COPYRIGHT_TEXT);
+					window->DrawList->AddText(ImVec2{ areaMin.x + (areaSize.x - crTextWidth) * 0.5f, areaMin.y + scaledFontSize * 3.5f }, 0xFFFFFFFF, COPYRIGHT_TEXT);
 				}
 				ImGui::PopFont();
 			}
