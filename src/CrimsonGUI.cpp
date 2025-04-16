@@ -2123,7 +2123,8 @@ void WorldSpaceWeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 
 	const float baseSpacing = 170.0f;
 	float scaleFactor = multiplayerSize.x / normalSize.x;
-	float adjustedSpacing = baseSpacing * scaleFactor;
+	float scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
+	float adjustedSpacing = baseSpacing * scaleFactorY * scaleFactor;
 
 	ImVec2 meleeWheelPos = ImVec2(worldSpaceMultiplayerPos.x + adjustedSpacing, worldSpaceMultiplayerPos.y);
 	ImVec2 rangedWheelPos = ImVec2(worldSpaceMultiplayerPos.x - adjustedSpacing, worldSpaceMultiplayerPos.y);
@@ -2191,7 +2192,8 @@ void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 
 		const float baseSpacing = 170.0f;
 		float scaleFactor = multiplayerSize.x / normalSize.x;
-		float adjustedSpacing = baseSpacing * scaleFactor;
+		float scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
+		float adjustedSpacing = baseSpacing * scaleFactorY * scaleFactor;
 
 		ImVec2 meleeWheelPos = ImVec2(worldSpaceMultiplayerPos.x + adjustedSpacing, worldSpaceMultiplayerPos.y);
 		ImVec2 rangedWheelPos = ImVec2(worldSpaceMultiplayerPos.x - adjustedSpacing, worldSpaceMultiplayerPos.y);
