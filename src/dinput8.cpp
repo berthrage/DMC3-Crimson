@@ -91,6 +91,57 @@ void Init() {
 void Load() {
     LogFunction();
 
+	// Early memory limit patch
+	uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
+    // ENEMIES
+// 	uintptr_t target = base + 0x2C6030; 
+// 
+// 	BYTE patch[] = { 0xBA, 0x00, 0x00, 0x00, 0x0A }; // 128MB
+// 	DWORD oldProtect;
+// 	if (VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), PAGE_EXECUTE_READWRITE, &oldProtect)) {
+// 		memcpy(reinterpret_cast<void*>(target), patch, sizeof(patch));
+// 		VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), oldProtect, &oldProtect);
+// 		Log("Patched memory limit at %p", reinterpret_cast<void*>(target));
+// 	}
+
+    // not it
+// 	uintptr_t target = base + 0x2C6064;
+// 	BYTE patch[] = { 0xBA, 0x00, 0x00, 0x00, 0x0A }; // 128MB
+// 	DWORD oldProtect;
+// 	if (VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), PAGE_EXECUTE_READWRITE, &oldProtect)) {
+// 		memcpy(reinterpret_cast<void*>(target), patch, sizeof(patch));
+// 		VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), oldProtect, &oldProtect);
+// 		Log("Patched memory limit at %p", reinterpret_cast<void*>(target));
+// 	}
+
+    // not it
+// 	uintptr_t target = base + 0x2C6098;
+// 	BYTE patch[] = { 0xBA, 0x00, 0x00, 0x00, 0x0A }; // 128MB
+// 	DWORD oldProtect;
+// 	if (VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), PAGE_EXECUTE_READWRITE, &oldProtect)) {
+// 		memcpy(reinterpret_cast<void*>(target), patch, sizeof(patch));
+// 		VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), oldProtect, &oldProtect);
+// 		Log("Patched memory limit at %p", reinterpret_cast<void*>(target));
+// 	}
+
+    // not it
+// 	uintptr_t target = base + 0x2C604C;
+// 	BYTE patch[] = { 0x41, 0xB9, 0x00, 0x00, 0x0A }; // 128MB
+// 	DWORD oldProtect;
+// 	if (VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), PAGE_EXECUTE_READWRITE, &oldProtect)) {
+// 		memcpy(reinterpret_cast<void*>(target), patch, sizeof(patch));
+// 		VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), oldProtect, &oldProtect);
+// 		Log("Patched memory limit at %p", reinterpret_cast<void*>(target));
+// 	}
+
+	uintptr_t target = base + 0x2C6080;
+	BYTE patch[] = { 0x41, 0xB9, 0x00, 0x00, 0x0A }; // 128MB
+	DWORD oldProtect;
+	if (VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), PAGE_EXECUTE_READWRITE, &oldProtect)) {
+		memcpy(reinterpret_cast<void*>(target), patch, sizeof(patch));
+		VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), oldProtect, &oldProtect);
+		Log("Patched memory limit at %p", reinterpret_cast<void*>(target));
+	}
 
     byte32 error = 0;
 
