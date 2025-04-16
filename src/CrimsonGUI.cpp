@@ -3284,21 +3284,14 @@ void MirageGaugeMainPlayer() {
 	float miragePointsColor[4] = { 1.0f , 1.0f, 1.0, hudData.topLeftAlpha / 127.0f };
 	float progressBarBgColor[4] = { 0.2f , 0.2f, 0.2f, hudData.topLeftAlpha / 127.0f };
 
-	// Base resolution (1920x1080)
-	const float baseWidth = 1920.0f;
-	const float baseHeight = 1080.0f;
-
-	// Calculate scaling factors
-	float widthScale = g_windowSize.x / baseWidth;
-	float heightScale = g_windowSize.y / baseHeight;
 
 	// Adjust the size of the bar
-	float barLength = 130.0f * widthScale * (crimsonPlayer[0].vergilDoppelganger.maxMiragePoints / maxMiragePointsAmount);
-	vec2 size = { barLength, 10.0f * heightScale };
+	float barLength = 130.0f * scaleFactorY * (crimsonPlayer[0].vergilDoppelganger.maxMiragePoints / maxMiragePointsAmount);
+	vec2 size = { barLength, 10.0f * scaleFactorY };
 
 	// Calculate position 
-	float posX = 90.0f * widthScale;
-	float posY = 170.0f * heightScale;
+	float posX = 90.0f * scaleFactorY;
+	float posY = 170.0f * scaleFactorY;
 
 	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
 		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
