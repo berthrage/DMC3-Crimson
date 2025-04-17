@@ -1,5 +1,6 @@
 #include <thread>
 #include <chrono>
+#include <algorithm>
 #include "../ThirdParty/glm/glm.hpp"
 #include "../ThirdParty/ImGui/imgui.h"
 
@@ -29,40 +30,54 @@ namespace CrimsonOnTick {
 bool inputtingFPS = false;
 
 void FrameResponsiveGameSpeed() {
-	g_FrameRate = ImGui::GetIO().Framerate;
-	g_FrameRateTimeMultiplier = (g_FrameRate > 0.0f) ? (60.0f / g_FrameRate) : 1.0f;
+	// Calculate Delta Time Manually
+	static double lastTime = ImGui::GetTime();
+	double currentTime = ImGui::GetTime();
+	float deltaTime = static_cast<float>(currentTime - lastTime);
+	lastTime = currentTime;
 
-	auto& activeValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
-	auto& queuedValue = (IsTurbo()) ? queuedConfig.Speed.turbo : queuedConfig.Speed.mainSpeed;
-	float gameSpeed = (IsTurbo()) ? 1.2f : 1.0f;
-	auto& userSetFrameRate = queuedConfig.frameRate;
-	static bool setSpeedTrue = false;
+	// Ignore deltaTime spikes that result from alt-tabbing, loading screens, etc.
+	constexpr float freezeThreshold = 0.25f; // 250ms+ = freeze
+	if (deltaTime > freezeThreshold) {
+		return;
+	}
 
-	// Only update if the current FPS is within ±20 of the setFrameRate
-	if (activeConfig.framerateResponsiveGameSpeed) { // 25 FPS frametime limit
+	// Compute frame rate and multiplier
+	g_FrameRate = 1.0f / deltaTime;
+	g_FrameRateTimeMultiplier = 60.0f / g_FrameRate;
 
-		if ((std::abs(g_FrameRate - userSetFrameRate) <= 20.0f &&
-			ImGui::GetIO().DeltaTime < 0.04f && g_FrameRate >= 20.0f) || inputtingFPS || g_scene != SCENE::GAME) {
-			UpdateFrameRate();
+	const float gameSpeedBase = IsTurbo() ? 1.2f : 1.0f;
+	auto& activeValue = IsTurbo() ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+	auto& queuedValue = IsTurbo() ? queuedConfig.Speed.turbo : queuedConfig.Speed.mainSpeed;
 
+	if (activeConfig.framerateResponsiveGameSpeed) {
+		const float adjustedSpeed = gameSpeedBase * g_FrameRateTimeMultiplier;
 
-			float adjustedFrameRate = (std::max)(g_FrameRate, 30.0f); // Prevent extreme drops
-			activeValue = gameSpeed / (adjustedFrameRate / 60);
-			queuedValue = gameSpeed / (adjustedFrameRate / 60);
+		activeValue = adjustedSpeed;
+		queuedValue = adjustedSpeed;
+
+		UpdateFrameRate(); 
+
+		// === Throttled Speed::Toggle(true) ===
+		static double lastToggleTime = 0.0;
+		constexpr double toggleInterval = 0.25; // seconds 
+
+		if (currentTime - lastToggleTime >= toggleInterval) {
+			Speed::Toggle(true);
+			lastToggleTime = currentTime;
 		}
 
-
-		// Fix for Cutscenes speeding up enemies
-		if (g_scene == SCENE::GAME) {
-			if (!setSpeedTrue) {
-				Speed::Toggle(true);
-				setSpeedTrue = true;
-			}
+		// === One-time enable/disable logic ===
+		static bool speedWasEnabled = false;
+		if (g_scene == SCENE::GAME && !speedWasEnabled) {
+			Speed::Toggle(true);
+			speedWasEnabled = true;
+		} else if (g_inGameCutscene && speedWasEnabled) {
+			speedWasEnabled = false;
 		}
-
-		if (g_inGameCutscene && setSpeedTrue) {
-			setSpeedTrue = false;
-		}
+	} else {
+		activeValue = gameSpeedBase;
+		queuedValue = gameSpeedBase;
 	}
 }
 

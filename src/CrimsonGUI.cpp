@@ -5613,6 +5613,8 @@ void MissionDataWindow() {
 
 
         GUI_Checkbox("unlockDevilTrigger", sessionData.unlockDevilTrigger);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Applies to sessionData. Needs Mission Restart for it to take effect.");
         ImGui::Text("");
 
 
@@ -7331,10 +7333,10 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 
 			auto& costume = activeConfig.Actor.playerData[0].characterData[0]->costume;
 
-// 			auto& enemy = enemyVectorData.metadata[0];
-// 			if (!enemy.baseAddr) return;
-// 			auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
-// 			if (!enemyData.baseAddr) return;
+			auto& enemy = enemyVectorData.metadata[0];
+			if (!enemy.baseAddr) return;
+			auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
+			if (!enemyData.baseAddr) return;
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
 			if (meleeWeaponWheel[0]) {
@@ -7345,7 +7347,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			ImGui::Text("fixedCameraAddr: %x", cameraControlMetadata.fixedCameraAddr);
 			ImGui::Text("Starting From Ground: %u", crimsonPlayer[0].vergilMoves.startingRisingSunFromGround);
-// 			ImGui::Text("Enemy Base Addr: %x", enemyData.baseAddr);
+			ImGui::Text("Enemy Speed: %g", enemyData.speed);
+			ImGui::Text("Enemy Base Addr: %x", enemyData.baseAddr);
 // 			ImGui::Text("Enemy's Target Pos Y: %g", enemyData.targetPosition.y);
 			ImGui::Text("AllActorsSpawned: %u", g_allActorsSpawned);
 			ImGui::Text("costume: %u", costume);
@@ -8350,6 +8353,7 @@ void SystemSection(size_t defaultFontSize) {
 			ImGui::PushItemWidth(itemWidth * 0.8f);
 			if (GUI_InputDefault2<float>("Frame Rate", activeConfig.frameRate, queuedConfig.frameRate, defaultConfig.frameRate, 1, "%.2f",
 				ImGuiInputTextFlags_EnterReturnsTrue)) {
+				Speed::Toggle(true);
 				CrimsonOnTick::inputtingFPS = true;
 			} else {
 				CrimsonOnTick::inputtingFPS = false;
