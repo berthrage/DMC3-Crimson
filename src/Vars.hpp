@@ -4430,6 +4430,8 @@ struct ImprovedCancels {
     bool canTrick                   = true;
     bool canGun                     = true;
     bool canRainstorm               = true;
+    float revolverTimer = 0.0f;
+    bool revolverTimerRunning = false;
 };
 
 struct BackToForward {

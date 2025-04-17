@@ -234,8 +234,22 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 
     auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
     auto playerIndex = actorData.newPlayerIndex;
-    auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
-   auto& storedAirCounts = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].storedAirCounts : crimsonPlayer[playerIndex].storedAirCountsClone;
+    auto& actionTimer = (actorData.newEntityIndex == 0) ? 
+        crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
+	auto& actorCancels = (actorData.newEntityIndex == 0) ?
+		crimsonPlayer[playerIndex].cancels : crimsonPlayer[playerIndex].cancelsClone;
+    auto& storedAirCounts = (actorData.newEntityIndex == 0) ? 
+        crimsonPlayer[playerIndex].storedAirCounts : crimsonPlayer[playerIndex].storedAirCountsClone;
+
+	if ((actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2) && actorCancels.revolverTimer < 1.1f) {
+		if (inAir) {
+			actorCancels.revolverTimerRunning = true;
+		} else {
+			actorCancels.revolverTimerRunning = false;
+		}
+	} else {
+		actorCancels.revolverTimerRunning = false;
+	}
 
     bool inCancellableBasicRebellion = (actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_1 ||
         actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_2 ||
@@ -257,7 +271,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
         || actorData.action == CERBERUS_SWING);
 
     bool inCancellableActionCerberus =
-        ((actorData.action == CERBERUS_REVOLVER_LEVEL_1 && actionTimer > 1.25f) || (actorData.action == CERBERUS_REVOLVER_LEVEL_2  && actionTimer > 1.25f) 
+        ((actorData.action == CERBERUS_REVOLVER_LEVEL_1 && actorCancels.revolverTimer > 1.1f) || (actorData.action == CERBERUS_REVOLVER_LEVEL_2 && actorCancels.revolverTimer > 1.1f)
             || actorData.action == CERBERUS_SATELLITE ||
             actorData.action == CERBERUS_CRYSTAL || actorData.action == CERBERUS_MILLION_CARATS || actorData.action == CERBERUS_ICE_AGE);
 
@@ -301,6 +315,8 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
             actorData.eventData[0].event == 17);
 
     auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
+
+	
 
     // What Royalguard Cancels Completely and at any frame (Not Basic Combos mainly Crazy Combos)
     if ((actorData.style == STYLE::ROYALGUARD) && (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) &&
@@ -519,6 +535,24 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
 		if (actorData.action == AGNI_RUDRA_TWISTER || actorData.action == AGNI_RUDRA_TEMPEST) {
 			policyTrick = BUFFER;
 			if (doingAirTrick && actionTimer > 0.55f) {
+				policyTrick = EXECUTE;
+			}
+		}
+
+		// Improved Air Swordmaster Moves Trick Buffering
+		if (actorData.action == CERBERUS_AIR_FLICKER || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 
+            || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3
+            || actorData.action == BEOWULF_THE_HAMMER || actorData.action == BEOWULF_TORNADO) {
+			policyTrick = BUFFER;
+			if (doingAirTrick && actionTimer > 0.15f) {
+                policyTrick = EXECUTE;
+			}
+		}
+
+		// Improved Cerberus' Crystal/Million Carats Trick Buffering
+		if (actorData.action == CERBERUS_CRYSTAL || actorData.action == CERBERUS_MILLION_CARATS) {
+			policyTrick = BUFFER;
+			if (doingAirTrick && actionTimer > 0.45f) {
 				policyTrick = EXECUTE;
 			}
 		}

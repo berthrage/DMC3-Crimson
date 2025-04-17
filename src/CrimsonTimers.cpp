@@ -231,6 +231,14 @@ void ImprovedCancelsTimers() {
             crimsonPlayer[playerIndex].cancels.canRainstorm      = true;
         }
 
+        // REVOLVER TIMER
+		if (crimsonPlayer[playerIndex].cancels.revolverTimerRunning) {
+			crimsonPlayer[playerIndex].cancels.revolverTimer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
+		}
+        else {
+			crimsonPlayer[playerIndex].cancels.revolverTimer = 0;
+        }
+
         ///
 
         // TRICK CANCEL CLONE
@@ -269,6 +277,13 @@ void ImprovedCancelsTimers() {
             crimsonPlayer[playerIndex].cancelsClone.rainstormCooldown = crimsonPlayer[playerIndex].cancelsClone.rainstormCooldownDuration;
             crimsonPlayer[playerIndex].cancelsClone.canRainstorm      = true;
         }
+
+		// REVOLVER TIMER CLONE
+		if (crimsonPlayer[playerIndex].cancelsClone.revolverTimerRunning) {
+			crimsonPlayer[playerIndex].cancelsClone.revolverTimer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
+		} else {
+			crimsonPlayer[playerIndex].cancelsClone.revolverTimer = 0;
+		}
     }
 }
 
