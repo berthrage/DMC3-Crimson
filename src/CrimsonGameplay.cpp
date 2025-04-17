@@ -2050,14 +2050,14 @@ void SprintAbility(byte8* actorBaseAddr) {
 
             if (!sprintData.runTimer) {
                 if (!g_inCombat) {
-                    sprintData.timer = sprintData.duration / actorData.speed; // Out of combat sprint is nearly instant
+                    sprintData.timer = sprintData.duration / (actorData.speed / g_FrameRateTimeMultiplier); // Out of combat sprint is nearly instant
                 }
                 else {
 					if (!actorData.devil) {
-						sprintData.timer = sprintData.durationCombatHuman / actorData.speed; // In combat it has more wind-up
+						sprintData.timer = sprintData.durationCombatHuman / (actorData.speed / g_FrameRateTimeMultiplier); // In combat it has more wind-up
 					}
 					else {
-						sprintData.timer = sprintData.durationCombatDevil / actorData.speed;
+						sprintData.timer = sprintData.durationCombatDevil / (actorData.speed / g_FrameRateTimeMultiplier);
 					}
                 }
 

@@ -163,7 +163,7 @@ void SprintTimer() {
 
 
         if (crimsonPlayer[playerIndex].sprint.timer > 0 && crimsonPlayer[playerIndex].sprint.runTimer) {
-            crimsonPlayer[playerIndex].sprint.timer -= ImGui::GetIO().DeltaTime * (crimsonPlayer[playerIndex].speed / g_FrameRateTimeMultiplier);
+            crimsonPlayer[playerIndex].sprint.timer -= ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed / g_FrameRateTimeMultiplier;
         }
 
 
