@@ -190,7 +190,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonConfig.Gameplay.Dante.artemisInstantFullCharge);
         ToggleArtemisInstantFullCharge(activeCrimsonConfig.Gameplay.Dante.artemisInstantFullCharge);
         ToggleChronoSwords(activeCrimsonConfig.Cheats.Vergil.chronoSwords);
-
+        UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonConfig.GameMode.preset;
 
         Arcade::Toggle(false);
         Arcade::Toggle(activeConfig.Arcade.enable);

@@ -4233,6 +4233,12 @@ struct WeaponProgressionData {
 
 extern WeaponProgressionData weaponProgression;
 
+struct GameModeData {
+    uint8 missionResultGameMode = 2;
+};
+
+extern GameModeData gameModeData;
+
 struct WeaponWheelTiming {
     bool wheelAppear  = false;
     bool wheelRunning = false;

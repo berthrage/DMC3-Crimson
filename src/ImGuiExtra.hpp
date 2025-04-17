@@ -121,6 +121,7 @@ namespace UI {
 			Vanilla = 0,
 			StyleSwitcher,
 			Crimson,
+			Custom,
 
 			Size,
 			None

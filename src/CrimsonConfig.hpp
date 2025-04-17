@@ -9,6 +9,18 @@
 #include "Core/DebugSwitch.hpp"
 #pragma optimize("", off) // Disable all optimizations
 #pragma pack(push, 8)
+
+namespace GAMEMODEPRESETS {
+enum {
+	VANILLA,
+	STYLE_SWITCHER,
+	CRIMSON,
+	CUSTOM,
+
+	UNRATED,
+	};
+}
+
 struct CrimsonConfig {
 	struct MultiplayerBars2D {
 		bool show = true;
@@ -487,6 +499,16 @@ struct CrimsonConfig {
 		}
 	} CachedSettings;
 
+	struct GameMode {
+		uint8 preset = GAMEMODEPRESETS::CRIMSON;
+
+		static constexpr auto Metadata() {
+			return std::make_tuple(
+				std::make_pair("preset", &GameMode::preset)
+			);
+		}
+	} GameMode;
+
 	static constexpr auto Metadata() {
 		return std::make_tuple(
 			std::make_pair("MultiplayerBars2D", &CrimsonConfig::MultiplayerBars2D),
@@ -500,7 +522,8 @@ struct CrimsonConfig {
             std::make_pair("Gameplay", &CrimsonConfig::Gameplay),
 			std::make_pair("Cheats", &CrimsonConfig::Cheats),
 			std::make_pair("PlayerProperties", &CrimsonConfig::PlayerProperties),
-			std::make_pair("CachedSettings", &CrimsonConfig::CachedSettings)
+			std::make_pair("CachedSettings", &CrimsonConfig::CachedSettings),
+			std::make_pair("GameMode", &CrimsonConfig::GameMode)
 		);
 	}
 };

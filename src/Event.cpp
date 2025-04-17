@@ -200,7 +200,6 @@ void EventHandler(EventData& eventData) {
 	CrimsonSDL::UpdateJoysticks();
 	CrimsonGameplay::GunDTCharacterRemaps();
 	CrimsonOnTick::GameTrackDetection();
-    CrimsonOnTick::CorrectFrameRateCutscenes();
 	CrimsonOnTick::DisableBlendingEffectsController();
 	CrimsonOnTick::StyleMeterMultiplayer();
 	CrimsonOnTick::DetermineActiveEntitiesCount();
@@ -208,7 +207,6 @@ void EventHandler(EventData& eventData) {
  	CrimsonOnTick::ForceThirdPersonCameraController();
     CrimsonOnTick::GeneralCameraOptionsController();
  	CrimsonOnTick::AirTauntDetoursController();
- 	CrimsonOnTick::NewMissionClearSong();
  	CrimsonOnTick::PauseSFXWhenPaused();
     
 	//CrimsonOnTick::OverrideEnemyTargetPosition();

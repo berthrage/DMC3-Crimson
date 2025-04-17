@@ -213,6 +213,11 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 				gameModeStringColor = SwapColorEndianness(0xDA1B53FF);
 				break;
 
+			case UIContext::GameModes::Custom:
+				gameModeString = "CUSTOM MODE";
+				gameModeStringColor = SwapColorEndianness(0x4050FFFF);
+				break;
+
 			default:
 				gameModeString = "Unknown";
 				break;
@@ -3564,15 +3569,6 @@ void StyleMeterWindow() {
 	}
 	float fillRatio = styleData.meter / 700.0f;
 
-	// 1080p base size for the window
-	const float baseWidth = 1920.0f;
-	const float baseHeight = 1080.0f;
-
-	// Calculate responsive size based on the current resolution
-	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
-	float scaleFactorX = displaySize.x / baseWidth;
-	float scaleFactorY = displaySize.y / baseHeight;
-
 	ImVec2 meterSize = ImVec2(241.0f * scaleFactorX, 243.0f * scaleFactorY);
 	ImVec2 windowPos = ImVec2(1500.0f * scaleFactorX, 150.0f * scaleFactorY);
 	ImColor white = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -3594,6 +3590,80 @@ void StyleMeterWindow() {
 
 	RenderMeterWithFill(DStyleRankFillTexture->GetTexture(), ImGui::GetCursorScreenPos(), meterSize, fillRatio, white);
 	RenderMeterBackground(DStyleRankBackgroundTexture->GetTexture(), ImGui::GetCursorScreenPos(), meterSize, color);
+
+	ImGui::End();
+}
+
+void RenderMissionResultStats() {
+	using namespace UI;
+	const char* gameModeString = nullptr;
+	ImU32 gameModeStringColor = 0;
+	auto defaultFontSize = g_UIContext.DefaultFontSize;
+	ImVec2 windowSize = ImVec2(1800.0f * scaleFactorY, 200.0f * scaleFactorY);
+	ImVec2 windowPos = ImVec2(scaleFactorX / 2 + (1000.0 * scaleFactorY), scaleFactorY / 2 + (147.0 * scaleFactorY));
+
+	if (g_scene != SCENE::MISSION_RESULT) {
+		return;
+	}
+
+	switch (gameModeData.missionResultGameMode) {
+	case GAMEMODEPRESETS::VANILLA:
+		gameModeString = "VANILLA MODE";
+		gameModeStringColor = 0xFFFFFFFF;
+		break;
+
+	case GAMEMODEPRESETS::STYLE_SWITCHER:
+		gameModeString = "STYLE SWITCHER MODE";
+		gameModeStringColor = SwapColorEndianness(0xE8BA18FF);
+		break;
+
+	case GAMEMODEPRESETS::CRIMSON:
+		gameModeString = "CRIMSON MODE";
+		gameModeStringColor = SwapColorEndianness(0xDA1B53FF);
+		break;
+
+	case GAMEMODEPRESETS::CUSTOM:
+		gameModeString = "CUSTOM MODE";
+		gameModeStringColor = SwapColorEndianness(0x4050FFFF);
+		break;
+
+	case GAMEMODEPRESETS::UNRATED:
+		gameModeString = "UNRATED";
+		gameModeStringColor = 0xFFFFFFFF;
+		break;
+
+	default:
+		gameModeString = "Unknown";
+		break;
+	}
+
+	ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
+
+	if (ImGui::Begin("MissionResultStats", nullptr,
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoInputs |
+		ImGuiWindowFlags_NoBackground)) {
+
+		ImGui::SetWindowFontScale(scaleFactorY);
+
+		ImFont* font = UI::g_ImGuiFont_RussoOne[40.0f];
+		ImGui::PushFont(font);
+
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		ImVec2 textSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, gameModeString);
+		ImVec2 textPos = ImGui::GetWindowPos() + ImVec2(10.0f * scaleFactorY, 0.0f);
+
+		drawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 3.8f, textPos, gameModeStringColor, gameModeString);
+		// 		window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
+		// 			SwapColorEndianness(0xFFFFFF10), "Game Mode");
+
+		ImGui::PopFont();
+	}
 
 	ImGui::End();
 }
@@ -7170,12 +7240,12 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 				for (int i = 0; i < weaponProgression.rangedWeaponIds.size(); i++) {
 // 					ImGui::Text("RangedWeaponId[%u]: %u", i, weaponProgression.rangedWeaponIds[i]);
 // 				}
-				for (int i = 0; i < weaponProgression.rangedWeaponIds.size(); i++) {
-					ImGui::Text("RangedWeaponName[%u]: %s", i, weaponProgression.rangedWeaponNames[i]);
-				}
-				for (size_t i = 0; i < queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeaponCount; i++) {
-					ImGui::Text("RangedWeaponQeued[%u]: %u", i, queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeapons[i]);
-				} 
+// 				for (int i = 0; i < weaponProgression.rangedWeaponIds.size(); i++) {
+// 					ImGui::Text("RangedWeaponName[%u]: %s", i, weaponProgression.rangedWeaponNames[i]);
+// 				}
+// 				for (size_t i = 0; i < queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeaponCount; i++) {
+// 					ImGui::Text("RangedWeaponQeued[%u]: %u", i, queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeapons[i]);
+// 				} 
 				
                 ImGui::Text("Gamepad Style Button: %u", gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION));
                 ImGui::Text("Quicksilver Level: %u", sessionData.styleLevels[4]);
@@ -7339,12 +7409,13 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 			if (!enemyData.baseAddr) return;
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
-			if (meleeWeaponWheel[0]) {
-				ImGui::Text("Wheel 0 timer: %g", meleeWeaponWheel[0]->m_SinceLatestChangeMs);
-			}
-			if (meleeWeaponWheel[1]) {
-				ImGui::Text("Wheel 1 timer: %g", meleeWeaponWheel[1]->m_SinceLatestChangeMs);
-			}
+// 			if (meleeWeaponWheel[0]) {
+// 				ImGui::Text("Wheel 0 timer: %g", meleeWeaponWheel[0]->m_SinceLatestChangeMs);
+// 			}
+// 			if (meleeWeaponWheel[1]) {
+// 				ImGui::Text("Wheel 1 timer: %g", meleeWeaponWheel[1]->m_SinceLatestChangeMs);
+// 			}
+			ImGui::Text("missionData frameCount: %u", missionData.frameCount);
 			ImGui::Text("fixedCameraAddr: %x", cameraControlMetadata.fixedCameraAddr);
 			ImGui::Text("Starting From Ground: %u", crimsonPlayer[0].vergilMoves.startingRisingSunFromGround);
 // 			ImGui::Text("Enemy Speed: %g", enemyData.speed);
@@ -10589,9 +10660,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[(context.DefaultFontSize / scaleFactorY) * 1.3f]);
 
-		float comboBoxWidth = width * 0.5f;
+		float comboBoxWidth = width * 0.8f;
 
-		std::array<const char*, 3> modes{ "VANLLA MODE", "STYLE SWITCHER MODE", "CRIMSON MODE" };
+		std::array<const char*, 4> modes{ "VANLLA MODE", "STYLE SWITCHER MODE", "CRIMSON MODE", "CUSTOM MODE"};
 
 		ImGui::SetNextItemWidth(comboBoxWidth);
 
@@ -10627,6 +10698,14 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		}
 		break;
 
+		case UI::UIContext::GameModes::Custom:
+		{
+			frameBG = UI::SwapColorEndianness(0x4050FFFF);
+			frameBGHovered = UI::SwapColorEndianness(0x4050FFAA);
+			textColor = UI::SwapColorEndianness(0xFFFFFFFF);
+		}
+		break;
+
 		default:
 		{
 			frameBG = UI::SwapColorEndianness(0xFFFFFFFF);
@@ -10640,6 +10719,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, frameBG);
 		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, frameBGHovered);
 		ImGui::PushStyleColor(ImGuiCol_Text, textColor);;
+
+		context.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonConfig.GameMode.preset;
 
 		if (UI::BeginCombo("##Game Mode", modes[size_t(context.SelectedGameMode)], { 0.5f, 0.5f }, 0.9f)) {
 			ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
@@ -10696,11 +10777,17 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				bool isSelected = size_t(context.SelectedGameMode) == i;
 
-				if (ImGui::Selectable(modes[i], isSelected))
-					context.SelectedGameMode = (decltype(context.SelectedGameMode))i;
+				if (ImGui::Selectable(modes[i], isSelected)) {
+					
+					activeCrimsonConfig.GameMode.preset = (uint8)i;
+					queuedCrimsonConfig.GameMode.preset = (uint8)i;
+					::GUI::save = true;
+				}
 
-				if (isSelected)
+				if (isSelected) {
 					ImGui::SetItemDefaultFocus();
+					
+				}
 
 				ImGui::PopStyleColor(4);
 			}
@@ -12075,8 +12162,8 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 		DebugOverlayWindow(UI::g_UIContext.DefaultFontSize);
 	}
     MissionOverlayWindow(UI::g_UIContext.DefaultFontSize);
-     BossLadyActionsOverlayWindow();
-     BossVergilActionsOverlayWindow();
+    BossLadyActionsOverlayWindow();
+    BossVergilActionsOverlayWindow();
     
 	// Calling this from GUI Render is the safest way to ensure this will run on-tick properly
     // outside of In Game.
@@ -12096,6 +12183,11 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     MirageGaugeMainPlayer();
 	RedOrbCounterWindow();
 	StyleMeterWindow();
+
+	RenderMissionResultStats();
+	CrimsonOnTick::TrackMissionResultGameMode();
+	CrimsonOnTick::CrimsonMissionClearSong();
+	//CrimsonOnTick::CorrectFrameRateCutscenes();
 
 
     HandleKeyBindings(keyBindings.data(), keyBindings.size());

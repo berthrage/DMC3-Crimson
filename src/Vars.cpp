@@ -249,6 +249,8 @@ CrimsonHudData crimsonHud;
 
 WeaponProgressionData weaponProgression;
 
+GameModeData gameModeData;
+
 CrimsonPlayerData crimsonPlayer[20];
 
 HeldStyleExpData heldStyleExpDataDante;
