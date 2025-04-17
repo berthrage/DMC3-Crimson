@@ -1,9 +1,4 @@
-// @Todo: Create Enable.
-
-// @Clean
-// @Remove: File_dynamicFiles
-
-// UNSTUPIFY(Disclaimer: by 5%)... POOOF
+// Note: "Actor System" refers to the Crimson Character System (CCS) in the UI
 #include <thread>
 #include <chrono>
 #include <math.h>

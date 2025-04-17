@@ -608,6 +608,7 @@ void Save() {
     UpdateGlobalSaveIndex();
 
     ExpConfig::TransferUnlocksToActorSystem();
+    ExpConfig::TransferUnlocksToVanilla();
     ExpConfig::MarkAsPairedWithActorSystem();
     ExpConfig::SaveExp();
 }

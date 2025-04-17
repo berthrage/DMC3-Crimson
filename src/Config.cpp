@@ -2208,7 +2208,7 @@ void UpdatePlayerActorExps() {
 
 void TransferUnlocksToActorSystem() {
     auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-    // This is to be called when saving the game on Vanilla, so that unlocks you may hvae bought in Vanilla get transfered to the Actor System.
+    // This is to be called when saving the game on Vanilla, so that unlocks you may have bought in Vanilla get transferred to the Actor System.
 
     // If not in Actor System
     if (activeConfig.Actor.enable) {
@@ -2289,9 +2289,113 @@ void TransferUnlocksToActorSystem() {
     
 }
 
+void TransferUnlocksToVanilla() {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	// Only apply this when the Actor System is enabled
+	if (!activeConfig.Actor.enable) {
+		return;
+	}
+
+	auto saveIndex = g_saveIndex;
+	if (saveIndex >= SAVE_COUNT) {
+		return;
+	}
+
+	if (sessionData.character == CHARACTER::DANTE) {
+		// Sync Move Unlocks (Crimson to Vanilla)
+		for (int index = UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1; index < UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; ++index) {
+			const ExpertiseHelper& helper = expertiseHelpersDante[index];
+
+			if (savedExpDataDante[saveIndex].unlocks[index]) {
+				sessionData.expertise[helper.index] |= helper.flags;
+			} else {
+				sessionData.expertise[helper.index] &= ~helper.flags;
+			}
+		}
+
+		// Sync Weapon Levels (Crimson to Vanilla)
+		for (int index = UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; index < UNLOCK_DANTE::COUNT; index += 2) {
+			const LevelHelper& helper = levelHelpers[(index - UNLOCK_DANTE::EBONY_IVORY_LEVEL_2)];
+			uint32& weaponLevel = sessionData.rangedWeaponLevels[(helper.index - 5)];
+
+			if (savedExpDataDante[saveIndex].unlocks[index + 1]) {
+				weaponLevel = 2;
+			} else if (savedExpDataDante[saveIndex].unlocks[index]) {
+				weaponLevel = 1;
+			} else {
+				weaponLevel = 0;
+			}
+		}
+
+		// Sync Style EXP (Crimson to Vanilla)
+		for (int style = STYLE::SWORDMASTER; style <= STYLE::ROYALGUARD; ++style) {
+			sessionData.styleLevels[style] = savedExpDataDante[saveIndex].styleLevels[style];
+			sessionData.styleExpPoints[style] = savedExpDataDante[saveIndex].styleExpPoints[style];
+		}
+	}
+
+	else if (sessionData.character == CHARACTER::VERGIL) {
+		// Sync Move Unlocks (Crimson to Vanilla)
+		for (int index = 0; index < UNLOCK_VERGIL::COUNT; ++index) {
+			const ExpertiseHelper& helper = expertiseHelpersVergil[index];
+
+			if (savedExpDataVergil[saveIndex].unlocks[index]) {
+				sessionData.expertise[helper.index] |= helper.flags;
+			} else {
+				sessionData.expertise[helper.index] &= ~helper.flags;
+			}
+		}
+
+		// Sync Style EXP (Crimson to Vanilla)
+		for (int style = STYLE::DARK_SLAYER; style <= STYLE::DARK_SLAYER; ++style) {
+			sessionData.styleLevels[style] = savedExpDataVergil[saveIndex].styleLevels[style];
+			sessionData.styleExpPoints[style] = savedExpDataVergil[saveIndex].styleExpPoints[style];
+		}
+	}
+}
+
+void InitializeCrimsonExpFromVanilla() {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	if (sessionData.character == CHARACTER::DANTE) {
+		for (int i = 0; i < UNLOCK_DANTE::COUNT; ++i) {
+			const auto& helper = expertiseHelpersDante[i];
+			if (sessionData.expertise[helper.index] & helper.flags)
+				sessionExpDataDante.unlocks[i] = true;
+		}
+
+		for (int i = STYLE::SWORDMASTER; i <= STYLE::ROYALGUARD; ++i) {
+			sessionExpDataDante.styleExpPoints[i] = sessionData.styleExpPoints[i];
+			sessionExpDataDante.styleLevels[i] = sessionData.styleLevels[i];
+		}
+
+		sessionExpDataDante.hasPairedWithActorSystem = true;
+	} else if (sessionData.character == CHARACTER::VERGIL) {
+		for (int i = 0; i < UNLOCK_VERGIL::COUNT; ++i) {
+			const auto& helper = expertiseHelpersVergil[i];
+			if (sessionData.expertise[helper.index] & helper.flags)
+				sessionExpDataVergil.unlocks[i] = true;
+		}
+
+		sessionExpDataVergil.styleExpPoints[STYLE::DARK_SLAYER] = sessionData.styleExpPoints[STYLE::DARK_SLAYER];
+		sessionExpDataVergil.styleLevels[STYLE::DARK_SLAYER] = sessionData.styleLevels[STYLE::DARK_SLAYER];
+
+		sessionExpDataVergil.hasPairedWithActorSystem = true;
+	}
+}
+
 void MaintainUnlockAndExpertiseParity() {
     auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
     // This is to be called when loading the save to maintain parity between the Vanilla System and Actor System unlocks
+
+	if (activeConfig.Actor.enable &&
+		((sessionData.character == CHARACTER::DANTE && !sessionExpDataDante.hasPairedWithActorSystem) ||
+			(sessionData.character == CHARACTER::VERGIL && !sessionExpDataVergil.hasPairedWithActorSystem))) {
+
+		std::cout << "[Crimson] Initializing from Vanilla due to missing or reset session data.\n";
+		InitializeCrimsonExpFromVanilla();
+	}
 
     if (activeConfig.Actor.enable) {
         if (sessionData.character == CHARACTER::DANTE) {
@@ -2337,6 +2441,8 @@ void MaintainUnlockAndExpertiseParity() {
             // before pairing the moves from the Actor System to vanilla, so that the moves from vanilla
             // won't get suddenly erased if someone has started Crimson from Vanilla.
             sessionExpDataDante.hasPairedWithActorSystem = true;
+
+            TransferUnlocksToVanilla();
         }
         else if (sessionData.character == CHARACTER::VERGIL) {
 			
