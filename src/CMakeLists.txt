@@ -116,6 +116,8 @@ file(GLOB MAIN_SRC
     CrimsonGameplay.hpp
     CrimsonGUI.cpp
     CrimsonGUI.hpp
+    CrimsonLDK.cpp
+    CrimsonLDK.hpp
     CrimsonUtil.cpp
     CrimsonUtil.hpp
     CrimsonOnTick.cpp

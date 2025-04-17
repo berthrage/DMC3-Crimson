@@ -14,6 +14,7 @@
 #include "Config.hpp"
 #include <iostream>
 #include "CrimsonPatches.hpp"
+#include "CrimsonLDK.hpp"
 
 namespace CrimsonDetours {
 
@@ -436,6 +437,10 @@ float CalculateIdealTurnRateSpeed(PlayerActorData& actorData) {
 void InitDetours() {
     using namespace Utility;
     DetourBaseAddr = (uintptr_t)appBaseAddr;
+
+	// cEnemySetCtrl__spawnGuy_sub_1401A4680
+	//dmc3.exe+1A4680 - 40 57 - push rdi
+	LdkInitDetour();
 
 	// AddToMirageGauge
 	//dmc3.exe + 1E0BB2 - F3 0F58 89 B83E0000 - addss xmm1, [rcx + 00003EB8] 
