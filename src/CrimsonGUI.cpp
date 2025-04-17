@@ -3594,13 +3594,16 @@ void StyleMeterWindow() {
 	ImGui::End();
 }
 
-void RenderMissionResultStats() {
+void RenderMissionResultGameModeStats() {
 	using namespace UI;
 	const char* gameModeString = nullptr;
 	ImU32 gameModeStringColor = 0;
 	auto defaultFontSize = g_UIContext.DefaultFontSize;
 	ImVec2 windowSize = ImVec2(1800.0f * scaleFactorY, 200.0f * scaleFactorY);
-	ImVec2 windowPos = ImVec2(scaleFactorX / 2 + (1000.0 * scaleFactorY), scaleFactorY / 2 + (147.0 * scaleFactorY));
+	ImVec2 windowPos = ImVec2(
+		(g_renderSize.x - windowSize.x) * 0.5f + (950.0f * scaleFactorY),
+		scaleFactorY / 2 + (147.0f * scaleFactorY)
+	);
 
 	if (g_scene != SCENE::MISSION_RESULT) {
 		return;
@@ -12184,7 +12187,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	RedOrbCounterWindow();
 	StyleMeterWindow();
 
-	RenderMissionResultStats();
+	RenderMissionResultGameModeStats();
 	CrimsonOnTick::TrackMissionResultGameMode();
 	CrimsonOnTick::CrimsonMissionClearSong();
 	//CrimsonOnTick::CorrectFrameRateCutscenes();
