@@ -37,7 +37,7 @@ void FrameResponsiveGameSpeed() {
 	lastTime = currentTime;
 
 	// Ignore deltaTime spikes that result from alt-tabbing, loading screens, etc.
-	constexpr float freezeThreshold = 0.25f; // 250ms+ = freeze
+	constexpr float freezeThreshold = 0.034f; // 34ms+ = freeze // Skips <30 FPS frames
 	if (deltaTime > freezeThreshold) {
 		return;
 	}
