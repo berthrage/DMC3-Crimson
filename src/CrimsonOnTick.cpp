@@ -75,10 +75,7 @@ void FrameResponsiveGameSpeed() {
 		} else if (g_inGameCutscene && speedWasEnabled) {
 			speedWasEnabled = false;
 		}
-	} else {
-		activeValue = gameSpeedBase;
-		queuedValue = gameSpeedBase;
-	}
+	} 
 }
 
 void GameTrackDetection() {
