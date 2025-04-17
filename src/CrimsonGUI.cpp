@@ -7333,10 +7333,10 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 
 			auto& costume = activeConfig.Actor.playerData[0].characterData[0]->costume;
 
-			auto& enemy = enemyVectorData.metadata[0];
-			if (!enemy.baseAddr) return;
-			auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
-			if (!enemyData.baseAddr) return;
+// 			auto& enemy = enemyVectorData.metadata[0];
+// 			if (!enemy.baseAddr) return;
+// 			auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
+// 			if (!enemyData.baseAddr) return;
 			
             // crazyComboHold = g_HoldToCrazyComboFuncA();
 			if (meleeWeaponWheel[0]) {
@@ -7347,8 +7347,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			ImGui::Text("fixedCameraAddr: %x", cameraControlMetadata.fixedCameraAddr);
 			ImGui::Text("Starting From Ground: %u", crimsonPlayer[0].vergilMoves.startingRisingSunFromGround);
-			ImGui::Text("Enemy Speed: %g", enemyData.speed);
-			ImGui::Text("Enemy Base Addr: %x", enemyData.baseAddr);
+// 			ImGui::Text("Enemy Speed: %g", enemyData.speed);
+// 			ImGui::Text("Enemy Base Addr: %x", enemyData.baseAddr);
 // 			ImGui::Text("Enemy's Target Pos Y: %g", enemyData.targetPosition.y);
 			ImGui::Text("AllActorsSpawned: %u", g_allActorsSpawned);
 			ImGui::Text("costume: %u", costume);
@@ -8347,16 +8347,30 @@ void SystemSection(size_t defaultFontSize) {
 		if (ImGui::BeginTable("GraphicsWindowOptionsTable", 3)) {
 
 			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
-			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
 			ImGui::TableNextColumn();
 
-			ImGui::PushItemWidth(itemWidth * 0.8f);
+			ImGui::PushItemWidth(itemWidth * 0.9f);
 			if (GUI_InputDefault2<float>("Frame Rate", activeConfig.frameRate, queuedConfig.frameRate, defaultConfig.frameRate, 1, "%.2f",
 				ImGuiInputTextFlags_EnterReturnsTrue)) {
 				Speed::Toggle(true);
 				CrimsonOnTick::inputtingFPS = true;
 			} else {
 				CrimsonOnTick::inputtingFPS = false;
+			}
+			if (GUI_Button("60 FPS")) {
+				activeConfig.frameRate = 60.0f;
+				queuedConfig.frameRate = 60.0f;
+			}
+			ImGui::SameLine();
+			if (GUI_Button("80 FPS")) {
+				activeConfig.frameRate = 80.0f;
+				queuedConfig.frameRate = 80.0f;
+			}
+			ImGui::SameLine();
+			if (GUI_Button("120 FPS")) {
+				activeConfig.frameRate = 120.0f;
+				queuedConfig.frameRate = 120.0f;
 			}
 
 			ImGui::PopItemWidth();
@@ -8371,7 +8385,6 @@ void SystemSection(size_t defaultFontSize) {
 			UI::Combo2("V-Sync", Graphics_vSyncNames, activeConfig.vSync, queuedConfig.vSync);
 			ImGui::PopItemWidth();
 
-			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Force Focus", activeConfig.forceWindowFocus, queuedConfig.forceWindowFocus)) {
@@ -8419,7 +8432,8 @@ void SystemSection(size_t defaultFontSize) {
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Adjusts Game Speed based on the Frame Rate setting \n"
-				"to ensure gameplay stays consistent across different frame rates. \n\n"
+				"to ensure gameplay stays consistent across different frame rates.\n"
+				"We recommend leaving this option on, unless you want to customize the Global Game Speed.\n\n"
 				"WARNING: Playing at higher frame rates will greatly reduce input lag, but \n"
 				"various gameplay issues may be introduced, such as enemy projectiles being too fast. \n"
 				"Help us fix those issues by reporting them individually on our GitHub's issue tracker \n"
@@ -8427,23 +8441,27 @@ void SystemSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
+			GUI_PushDisable(IsTurbo());
 			ImGui::PushItemWidth(itemWidth * 0.8f);
-			GUI_InputDefault2SpeedCalc("Main Speed", activeConfig.Speed.mainSpeed, queuedConfig.Speed.mainSpeed, defaultConfig.Speed.mainSpeed, 0.1f,
+			GUI_InputDefault2SpeedCalc("Default Speed", activeConfig.Speed.mainSpeed, queuedConfig.Speed.mainSpeed, defaultConfig.Speed.mainSpeed, 0.1f,
 				"%g", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Changes Default Game Speed, changing this to be other than default\n" 
 				"(without Frame Rate-Responsive Game Speed on) will tag you at the Mission End screen.");
+			GUI_PopDisable(IsTurbo());
 
 			ImGui::TableNextColumn();
 
+			GUI_PushDisable(!IsTurbo());
 			ImGui::PushItemWidth(itemWidth * 0.8f);
 			GUI_InputDefault2SpeedCalc("Turbo Speed", activeConfig.Speed.turbo, queuedConfig.Speed.turbo, defaultConfig.Speed.turbo, 0.1f, "%g",
 				ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Changes Turbot Game Speed, changing this to be other than default\n"
+			TooltipHelper("(?)", "Changes Turbo Game Speed, changing this to be other than default\n"
 				"(without Frame Rate-Responsive Game Speed on) will tag you at the Mission End screen.");
+			GUI_PopDisable(!IsTurbo());
 
 
 			ImGui::EndTable();
