@@ -8076,6 +8076,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
     auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
 
 	CrimsonPatches::InertiaFixes();
+    CrimsonDetours::ToggleGuardGravityAlteration(activeCrimsonConfig.Gameplay.General.inertia);
 
     // Sky Launch needs to be called from here for maximum on tick speed so that its position is properly
     // applied in real-time. - Mia

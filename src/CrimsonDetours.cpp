@@ -172,6 +172,7 @@ std::uint16_t g_ShootRemap_NewMap;
 // VergilNeutralTrick
 std::uint64_t g_VergilNeutralTrick_ReturnAddr;
 //void VergilNeutralTrickDetour();
+
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -452,12 +453,6 @@ void InitDetours() {
 	AddToMirageGaugeHook->Toggle(true);
 	g_AddToMirageGaugeCall = &AddingToPlayersMirageGauge;
 
-    // GuardGravity
-    static std::unique_ptr<Detour_t> guardGravityHook =
-        std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EE121, &GuardGravityDetour, 7);
-    g_GuardGravity_ReturnAddr = guardGravityHook->GetReturnAddress();
-    guardGravityHook->Toggle(true);
-
     // CreateEffect
     createEffectCallA  = (uintptr_t)appBaseAddr + 0x2E7CA0;
     createEffectCallB  = (uintptr_t)appBaseAddr + 0x1FAA50;
@@ -468,6 +463,22 @@ void InitDetours() {
     // static std::unique_ptr<Utility::Detour_t> VergilNeutralTrickHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x0,
     // &VergilNeutralTrickDetour, 5); g_VergilNeutralTrick_ReturnAddr = VergilNeutralTrickHook->GetReturnAddress();
     // VergilNeutralTrickHook->Toggle(true);
+}
+
+void ToggleGuardGravityAlteration(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// GuardGravity
+	static std::unique_ptr<Utility::Detour_t> guardGravityHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EE121, &GuardGravityDetour, 7);
+	g_GuardGravity_ReturnAddr = guardGravityHook->GetReturnAddress();
+	guardGravityHook->Toggle(enable);
+
+	run = enable;
 }
 
 void ToggleDisableDriveHold(bool enable) {
