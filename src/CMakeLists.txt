@@ -20,6 +20,7 @@ set(MASM_SRC
     masm/ToggleTakeDamage.asm
     masm/VergilTricksAsm.asm
     masm/StyleRankHudNoFadeout.asm
+    masm/ArtemisInstantFullCharge.asm
 )
 
 set (ASM_LIBS)
