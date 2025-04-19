@@ -9829,7 +9829,7 @@ void DanteGameplayOptions() {
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Swaps Artemis' Normal Shot and Multi-Lock inputs, and makes it charge to full near instantly.\n"
-				"Nerfs Artemis' projectile damage by half to compensate.");
+				"Nerfs Artemis' projectile damage by 90-percent to compensate.");
 
 
 			ImGui::TableNextColumn();

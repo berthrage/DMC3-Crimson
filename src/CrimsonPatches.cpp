@@ -1321,7 +1321,7 @@ void ReduceArtemisProjectileDamage(bool enable) {
 	// 	dmc3.exe + 5CB3CC // 50.0f, Artemis' Normal Shot and Multi Lock Shot projectile damage
 
 	if (enable) {
-		*(float*)(artemisProjectileDamage) = 25.0f;
+		*(float*)(artemisProjectileDamage) = 5.0f;
 	} else {
 		*(float*)(artemisProjectileDamage) = 50.0f;
 	}

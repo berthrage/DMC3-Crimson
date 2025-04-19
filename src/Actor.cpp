@@ -8189,7 +8189,9 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 CrimsonGameplay::DriveTweaks(actorBaseAddr);
                 CrimsonGameplay::GravityCorrections(actorBaseAddr);
 
-                actorData.artemisCharge = 100;
+                if (activeCrimsonConfig.Gameplay.Dante.artemisRework) {
+                    actorData.artemisCharge = 240;
+                }
 
                 if (activeCrimsonConfig.Gameplay.Dante.shotgunAirShotTweaks) {
                     CrimsonGameplay::ShotgunAirShotTweaks(actorBaseAddr);

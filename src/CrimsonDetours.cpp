@@ -489,16 +489,16 @@ void ToggleArtemisInstantFullCharge(bool enable) {
 	// dmc3.exe + 215E3E - 44 0F 2F C0 - comiss xmm8,xmm0
 	// dmc3.exe + 215E42 - 0F 82 00 00 00 00 - jb dmc3.exe + 215E48 --> jmp dmc3.exe + 215E51
 	static std::unique_ptr<Utility::Detour_t> ArtemisInstantFullChargeHook2 =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x215E3E, &ArtemisInstantFullChargeDetour2, 7);
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x215E3E, &ArtemisInstantFullChargeDetour2, 4);
 	g_ArtemisReworkJumpAddr2 = (uintptr_t)appBaseAddr + 0x215E51;
 	ArtemisInstantFullChargeHook2->Toggle(enable);
 
 	// dmc3.exe + 215EA2 - 80 BC 38 E0C90100 07 - cmp byte ptr[rax + rdi + 0001C9E0], 07 { 7 }
 	// dmc3.exe + 215EAA - 74 20 - je dmc3.exe+215ECC --> jmp dmc3.exe + 215EE2
 
-
 	CrimsonPatches::ToggleIncreasedArtemisInstantChargeResponsiveness(enable);
 
+	run = enable;
 }
 
 void ToggleGuardGravityAlteration(bool enable) {
