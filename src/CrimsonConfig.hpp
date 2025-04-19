@@ -316,8 +316,7 @@ struct CrimsonConfig {
 			bool dTInfusedRoyalguard = true;
 			bool airHikeCoreAbility = true;
 			bool altNevanVortex = true;
-			bool artemisSwapShotMultiLock = true;
-			bool artemisInstantFullCharge = true;
+			bool artemisRework = true;
 
 			static constexpr auto Metadata() {
                 return std::make_tuple(
@@ -341,8 +340,7 @@ struct CrimsonConfig {
 					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard),
 					std::make_pair("airHikeCoreAbility", &Dante::airHikeCoreAbility),
 					std::make_pair("altNevanVortex", &Dante::altNevanVortex),
-					std::make_pair("artemisSwapShotMultiLock", &Dante::artemisSwapShotMultiLock),
-					std::make_pair("artemisInstantFullCharge", &Dante::artemisInstantFullCharge)
+					std::make_pair("artemisRework", &Dante::artemisRework)
 				);
 			}
         } Dante;

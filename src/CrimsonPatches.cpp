@@ -1266,6 +1266,26 @@ void ReduceAirTornadoDamage(bool enable) {
 	run = enable;
 }
 
+void ReduceArtemisProjectileDamage(bool enable) {
+	static bool run = false;
+	uintptr_t artemisProjectileDamage = (uintptr_t)appBaseAddr + 0x5CB3CC;
+
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// 	dmc3.exe + 5CB3CC // 50.0f, Artemis' Normal Shot and Multi Lock Shot projectile damage
+
+	if (enable) {
+		*(float*)(artemisProjectileDamage) = 25.0f;
+	} else {
+		*(float*)(artemisProjectileDamage) = 50.0f;
+	}
+
+	run = enable;
+}
+
 # pragma endregion
 
 #pragma region HudStuff

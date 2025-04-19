@@ -9819,23 +9819,17 @@ void DanteGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("Artemis Swap Normal Shot / Multi Lock",
-				activeCrimsonConfig.Gameplay.Dante.artemisSwapShotMultiLock,
-				queuedCrimsonConfig.Gameplay.Dante.artemisSwapShotMultiLock)) {
-				ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonConfig.Gameplay.Dante.artemisSwapShotMultiLock);
+			if (GUI_Checkbox2("Artemis Rework",
+				activeCrimsonConfig.Gameplay.Dante.artemisRework,
+				queuedCrimsonConfig.Gameplay.Dante.artemisRework)) {
+				ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonConfig.Gameplay.Dante.artemisRework);
+				ToggleArtemisInstantFullCharge(activeCrimsonConfig.Gameplay.Dante.artemisRework);
+				CrimsonPatches::ReduceArtemisProjectileDamage(activeCrimsonConfig.Gameplay.Dante.artemisRework);
 			}
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Swaps Artemis' Normal Shot and Multi-Lock functionality.");
+			TooltipHelper("(?)", "Swaps Artemis' Normal Shot and Multi-Lock inputs, and makes it charge to full near instantly.\n"
+				"Nerfs Artemis' projectile damage by half to compensate.");
 
-			ImGui::TableNextColumn();
-
-			if (GUI_Checkbox2("Artemis Instant Full Charge",
-				activeCrimsonConfig.Gameplay.Dante.artemisInstantFullCharge,
-				queuedCrimsonConfig.Gameplay.Dante.artemisInstantFullCharge)) {
-				ToggleArtemisInstantFullCharge(activeCrimsonConfig.Gameplay.Dante.artemisInstantFullCharge);
-			}
-			ImGui::SameLine();
-			TooltipHelper("(?)", "Artemis charges to full semi-instantly.");
 
 			ImGui::TableNextColumn();
 

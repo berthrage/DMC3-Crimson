@@ -66,6 +66,7 @@ void DisableEnemyTargetting1PPosition(bool enable);
 
 void StopDamageToCerberus(bool enable);
 void ReduceAirTornadoDamage(bool enable);
+void ReduceArtemisProjectileDamage(bool enable);
 
 #pragma endregion
 

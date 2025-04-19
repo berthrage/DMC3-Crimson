@@ -3564,6 +3564,18 @@ dmc3.exe+211BDF: 90                             - nop
               </Offsets>
             </CheatEntry>
             <CheatEntry>
+              <ID>2732</ID>
+              <Description>"+b868 artemischarge?"</Description>
+              <ShowAsSigned>0</ShowAsSigned>
+              <VariableType>Float</VariableType>
+              <Address>dmc3.exe+168</Address>
+              <Offsets>
+                <Offset>b868</Offset>
+                <Offset>18</Offset>
+                <Offset>00C90E28</Offset>
+              </Offsets>
+            </CheatEntry>
+            <CheatEntry>
               <ID>2336</ID>
               <Description>"+35A8 CMotion*"</Description>
               <ShowAsHex>1</ShowAsHex>
@@ -9341,6 +9353,13 @@ dmc3.exe+215E2B: F3 0F 59 C2                    - mulss xmm0,xmm2
 dmc3.exe+215E2F: F3 48 0F 2C C0                 - cvttss2si rax,xmm0
 }
 </AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2731</ID>
+      <Description>"ArtemisDamage"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Float</VariableType>
+      <Address>dmc3.exe+5CB3CC</Address>
     </CheatEntry>
   </CheatEntries>
   <CheatCodes>
@@ -79140,6 +79159,76 @@ dmc3.exe+215E2F: F3 48 0F 2C C0                 - cvttss2si rax,xmm0
         <Byte>0F</Byte>
       </After>
     </CodeEntry>
+    <CodeEntry>
+      <Description>Change of jbe dmc3.exe+215F78</Description>
+      <AddressString>dmc3.exe+215E4B</AddressString>
+      <Before>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>0F</Byte>
+        <Byte>2F</Byte>
+        <Byte>C1</Byte>
+      </Before>
+      <Actual>
+        <Byte>0F</Byte>
+        <Byte>86</Byte>
+        <Byte>27</Byte>
+        <Byte>01</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>4C</Byte>
+        <Byte>89</Byte>
+        <Byte>BC</Byte>
+        <Byte>24</Byte>
+        <Byte>80</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of jne dmc3.exe+215E7D</Description>
+      <AddressString>dmc3.exe+215E65</AddressString>
+      <Before>
+        <Byte>7B</Byte>
+        <Byte>05</Byte>
+        <Byte>83</Byte>
+        <Byte>F9</Byte>
+        <Byte>01</Byte>
+      </Before>
+      <Actual>
+        <Byte>75</Byte>
+        <Byte>16</Byte>
+      </Actual>
+      <After>
+        <Byte>8B</Byte>
+        <Byte>87</Byte>
+        <Byte>58</Byte>
+        <Byte>63</Byte>
+        <Byte>00</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of jmp dmc3.exe+215E7D</Description>
+      <AddressString>dmc3.exe+215E74</AddressString>
+      <Before>
+        <Byte>74</Byte>
+        <Byte>05</Byte>
+        <Byte>8D</Byte>
+        <Byte>59</Byte>
+        <Byte>04</Byte>
+      </Before>
+      <Actual>
+        <Byte>EB</Byte>
+        <Byte>07</Byte>
+      </Actual>
+      <After>
+        <Byte>83</Byte>
+        <Byte>F8</Byte>
+        <Byte>02</Byte>
+        <Byte>41</Byte>
+        <Byte>0F</Byte>
+      </After>
+    </CodeEntry>
   </CheatCodes>
   <UserdefinedSymbols/>
   <Structures StructVersion="2">
@@ -83762,11 +83851,6 @@ dmc3.exe+2BB11E style bar stuff
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
-      <Address>7FF6AEE6AF43</Address>
-      <Comment>%s crash
-</Comment>
-    </DisassemblerComment>
-    <DisassemblerComment>
       <Address>"dmc3.exe"+300C6</Address>
       <Comment>Controls something for Character anim
 </Comment>
@@ -84347,6 +84431,11 @@ Setting max alpha value (127)
     <DisassemblerComment>
       <Address>"dmc3.exe"+5CA0C6</Address>
       <Comment>Sends Knockback Value to Air Slash pt. 1
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>7FF6AEE6AF43</Address>
+      <Comment>%s crash
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
