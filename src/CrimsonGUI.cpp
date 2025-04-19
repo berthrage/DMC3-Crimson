@@ -1621,6 +1621,20 @@ std::vector<std::string> VergilMoveAdjustmentsNames = {
 	"Always",
 };
 
+const char* ldkModeNames[] = {
+	"Off",
+	"LDK",
+	"Super LDK",
+	"Super LDK w/ Bosses",
+};
+
+constexpr uint8 ldkModes[] = {
+	LDKMODE::OFF,
+	LDKMODE::LDK,
+	LDKMODE::SUPER_LDK,
+	LDKMODE::SUPER_LDK_BOSSES,
+};
+
 static_assert(countof(trackFilenames) == countof(trackNames));
 
 #pragma endregion
@@ -10191,6 +10205,48 @@ void VergilCheatOptions() {
 	ImGui::PopFont();
 }
 
+void ExtraDifficultyGameplayOptions() {
+	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
+
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	ImGui::Text("EXTRA DIFFICULTY OPTIONS");
+	ImGui::PopFont();
+	UI::SeparatorEx(defaultFontSize * 23.35f);
+
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+	ImGui::Text("");
+
+	const float columnWidth = 0.5f * queuedConfig.globalScale;
+	const float rowHeight = 40.0f * queuedConfig.globalScale;
+
+	if (ImGui::BeginTable("ExtraDifficultyOptionsTable", 1)) {
+		ImGui::TableSetupColumn("c1", 0, columnWidth * 2.0f);
+
+		ImGui::TableNextRow(0, rowHeight * 0.5f);
+		ImGui::TableNextColumn();
+
+		ImGui::PushItemWidth(itemWidth * 0.5f);
+		UI::ComboMapValue2("Legendary Dark Knight Mode",
+			ldkModeNames,
+			ldkModes,
+			activeCrimsonConfig.Gameplay.ExtraDifficulty.ldkMode,
+			queuedCrimsonConfig.Gameplay.ExtraDifficulty.ldkMode);
+		ImGui::PopItemWidth();
+		TooltipHelper("(?)", "Spawns large waves of enemies like in DMC5's LDK Mode.");
+		GUI_PopDisable(!activeConfig.Actor.enable);
+
+		ImGui::EndTable();
+	}
+
+	ImGui::Text("");
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+}
+
+
+
 void InputRemapOptions() {
 	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
@@ -10265,6 +10321,7 @@ void GameplaySection() {
 	GeneralGameplayOptions();
 	DanteGameplayOptions();
 	VergilGameplayOptions();
+	ExtraDifficultyGameplayOptions();
 	InputRemapOptions();
 }
 

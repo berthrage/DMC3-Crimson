@@ -21,6 +21,15 @@ enum {
 	};
 }
 
+namespace LDKMODE {
+enum {
+	OFF,
+	LDK,
+	SUPER_LDK,
+	SUPER_LDK_BOSSES,
+};
+}
+
 struct CrimsonConfig {
 	struct MultiplayerBars2D {
 		bool show = true;
@@ -364,6 +373,18 @@ struct CrimsonConfig {
 			}
         } Vergil;
 
+		struct ExtraDifficulty {
+			uint8 ldkMode = 0;
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("ldkMode", &ExtraDifficulty::ldkMode)
+				);
+			}
+
+		} ExtraDifficulty;
+
+
 		struct Remaps {
 			uint16_t danteDTButton = 0x0004;
 			uint16_t danteShootButton = 0x0080;
@@ -385,7 +406,9 @@ struct CrimsonConfig {
                 std::make_pair("General", &Gameplay::General),
                 std::make_pair("Dante", &Gameplay::Dante),
                 std::make_pair("Vergil", &Gameplay::Vergil),
+				std::make_pair("ExtraDifficulty", &Gameplay::ExtraDifficulty),
                 std::make_pair("Remaps", &Gameplay::Remaps)
+				
 			);
 		}
 
@@ -440,7 +463,6 @@ struct CrimsonConfig {
 				);
 			}
 		} Vergil;
-
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
