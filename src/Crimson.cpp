@@ -188,7 +188,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleEbonyIvoryFoursomeTime(activeCrimsonConfig.Gameplay.Dante.foursomeTime);
         ToggleEbonyIvoryInfiniteRainStorm(activeCrimsonConfig.Gameplay.Dante.infiniteRainstorm);
         ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonConfig.Gameplay.Dante.artemisRework);
-        ToggleArtemisInstantFullCharge(activeCrimsonConfig.Gameplay.Dante.artemisRework);
+        CrimsonDetours::ToggleArtemisInstantFullCharge(activeCrimsonConfig.Gameplay.Dante.artemisRework);
         CrimsonPatches::ReduceArtemisProjectileDamage(activeCrimsonConfig.Gameplay.Dante.artemisRework);
         ToggleChronoSwords(activeCrimsonConfig.Cheats.Vergil.chronoSwords);
         UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonConfig.GameMode.preset;

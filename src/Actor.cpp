@@ -8189,6 +8189,8 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 CrimsonGameplay::DriveTweaks(actorBaseAddr);
                 CrimsonGameplay::GravityCorrections(actorBaseAddr);
 
+                actorData.artemisCharge = 100;
+
                 if (activeCrimsonConfig.Gameplay.Dante.shotgunAirShotTweaks) {
                     CrimsonGameplay::ShotgunAirShotTweaks(actorBaseAddr);
                 }
@@ -12943,15 +12945,15 @@ void ToggleArtemisSwapNormalShotAndMultiLock(bool enable) {
     */
 }
 
-void ToggleArtemisInstantFullCharge(bool enable) {
-    LogFunction(enable);
-
-    WriteAddress((appBaseAddr + 0x215E42), (enable) ? (appBaseAddr + 0x215E48) : (appBaseAddr + 0x215F78), 6);
-    /*
-    dmc3.exe+215E42 - 0F82 30010000 - jb dmc3.exe+215F78
-    dmc3.exe+215E48 - 0F2F C1       - comiss xmm0,xmm1
-    */
-}
+// void ToggleArtemisInstantFullCharge(bool enable) {
+//     LogFunction(enable);
+// 
+//     WriteAddress((appBaseAddr + 0x215E42), (enable) ? (appBaseAddr + 0x215E48) : (appBaseAddr + 0x215F78), 6);
+//     /*
+//     dmc3.exe+215E42 - 0F82 30010000 - jb dmc3.exe+215F78
+//     dmc3.exe+215E48 - 0F2F C1       - comiss xmm0,xmm1
+//     */
+// }
 
 void UpdateCrazyComboLevelMultiplier() {
     LogFunction();

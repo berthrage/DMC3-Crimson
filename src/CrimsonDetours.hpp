@@ -91,11 +91,16 @@ void ShootRemapHoldDetour();
 
 // VergilNeutralTrick
 void VergilNeutralTrickDetour();
+
+// ArtemisInstantFullCharge
+void ArtemisInstantFullChargeDetour1();
+void ArtemisInstantFullChargeDetour2();
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
 void InitDetours();
+void ToggleArtemisInstantFullCharge(bool enable);
 void ToggleGuardGravityAlteration(bool enable);
 void ToggleDisableDriveHold(bool enable);
 void ToggleDTInfusedRoyalguardDetours(bool enable);

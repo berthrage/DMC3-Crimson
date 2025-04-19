@@ -173,6 +173,11 @@ std::uint16_t g_ShootRemap_NewMap;
 std::uint64_t g_VergilNeutralTrick_ReturnAddr;
 //void VergilNeutralTrickDetour();
 
+// Artemis Instant Full Charge
+void ArtemisInstantFullChargeDetour1();
+std::uint64_t g_ArtemisReworkJumpAddr1;
+void ArtemisInstantFullChargeDetour2();
+std::uint64_t g_ArtemisReworkJumpAddr2;
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -463,6 +468,37 @@ void InitDetours() {
     // static std::unique_ptr<Utility::Detour_t> VergilNeutralTrickHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x0,
     // &VergilNeutralTrickDetour, 5); g_VergilNeutralTrick_ReturnAddr = VergilNeutralTrickHook->GetReturnAddress();
     // VergilNeutralTrickHook->Toggle(true);
+}
+
+void ToggleArtemisInstantFullCharge(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+	// ArtemisInstantFullCharge
+
+	// dmc3.exe + 215DE7 - 44 0F 2F C1 - comiss xmm8, xmm1
+	// dmc3.exe + 215DEB - 0F 86 95 01 00 00 - jbe dmc3.exe + 215F86 --> jmp dmc3.exe + 215DF1
+	// dmc3.exe + 215DF1 - 8B 8F 38 63 00 00 - mov ecx, [rdi + 00006338]
+	static std::unique_ptr<Utility::Detour_t> ArtemisInstantFullChargeHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x215DE7, &ArtemisInstantFullChargeDetour1, 4);
+	g_ArtemisReworkJumpAddr1 = (uintptr_t)appBaseAddr + 0x215DF1;
+	ArtemisInstantFullChargeHook1->Toggle(enable);
+
+	// dmc3.exe + 215E3E - 44 0F 2F C0 - comiss xmm8,xmm0
+	// dmc3.exe + 215E42 - 0F 82 00 00 00 00 - jb dmc3.exe + 215E48 --> jmp dmc3.exe + 215E51
+	static std::unique_ptr<Utility::Detour_t> ArtemisInstantFullChargeHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x215E3E, &ArtemisInstantFullChargeDetour2, 7);
+	g_ArtemisReworkJumpAddr2 = (uintptr_t)appBaseAddr + 0x215E51;
+	ArtemisInstantFullChargeHook2->Toggle(enable);
+
+	// dmc3.exe + 215EA2 - 80 BC 38 E0C90100 07 - cmp byte ptr[rax + rdi + 0001C9E0], 07 { 7 }
+	// dmc3.exe + 215EAA - 74 20 - je dmc3.exe+215ECC --> jmp dmc3.exe + 215EE2
+
+
+	CrimsonPatches::ToggleIncreasedArtemisInstantChargeResponsiveness(enable);
+
 }
 
 void ToggleGuardGravityAlteration(bool enable) {

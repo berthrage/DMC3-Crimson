@@ -3125,7 +3125,9 @@ static_assert(offsetof(PlayerActorDataBase, leftStickDirection) == 0x751C);
 static_assert(sizeof(PlayerActorDataBase) == 0x7540);
 
 struct PlayerActorData : PlayerActorDataBase {
-    _(17280);
+	_(17192);
+	float artemisCharge; // 0xB868
+    _(84);
     uint32 newFirstVar; // 0xB8C0
     _(12);
     ModelData newModelData[6];                           // 0xB8D0
@@ -3181,6 +3183,7 @@ struct PlayerActorData : PlayerActorDataBase {
     uint32 newLastVar;           // 0x1CB20
 };
 
+static_assert(offsetof(PlayerActorData, artemisCharge) == 0xB868);
 static_assert(offsetof(PlayerActorData, newFirstVar) == 0xB8C0);
 static_assert(offsetof(PlayerActorData, newModelData) == 0xB8D0);
 static_assert(offsetof(PlayerActorData, newModelPhysicsMetadataPool) == 0xE5D0);

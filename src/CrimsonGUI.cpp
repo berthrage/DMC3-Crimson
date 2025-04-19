@@ -7433,6 +7433,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 				ImGui::Text("Wheel 1 timer: %g", meleeWeaponWheel[1]->m_SinceLatestChangeMs);
 // 			}
 			ImGui::Text("missionData frameCount: %u", missionData.frameCount);
+			ImGui::Text("artemis Charge: %g", actorData.artemisCharge);
 			ImGui::Text("fixedCameraAddr: %x", cameraControlMetadata.fixedCameraAddr);
 			ImGui::Text("Starting From Ground: %u", crimsonPlayer[0].vergilMoves.startingRisingSunFromGround);
 // 			ImGui::Text("Enemy Speed: %g", enemyData.speed);
@@ -9823,7 +9824,7 @@ void DanteGameplayOptions() {
 				activeCrimsonConfig.Gameplay.Dante.artemisRework,
 				queuedCrimsonConfig.Gameplay.Dante.artemisRework)) {
 				ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonConfig.Gameplay.Dante.artemisRework);
-				ToggleArtemisInstantFullCharge(activeCrimsonConfig.Gameplay.Dante.artemisRework);
+				CrimsonDetours::ToggleArtemisInstantFullCharge(activeCrimsonConfig.Gameplay.Dante.artemisRework);
 				CrimsonPatches::ReduceArtemisProjectileDamage(activeCrimsonConfig.Gameplay.Dante.artemisRework);
 			}
 			ImGui::SameLine();

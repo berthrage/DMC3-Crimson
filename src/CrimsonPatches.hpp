@@ -14,6 +14,7 @@ void BulletStop(bool enable);
 void RainstormLift(bool enable);
 void ToggleIncreasedEnemyJuggleTime(bool enable);
 void DisableAirSlashKnockback(bool enable);
+void ToggleIncreasedArtemisInstantChargeResponsiveness(bool enable);
 
 #pragma endregion
 

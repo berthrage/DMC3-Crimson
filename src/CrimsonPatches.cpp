@@ -217,6 +217,49 @@ void ToggleIncreasedEnemyJuggleTime(bool enable) {
 	run = enable;
 }
 
+void ToggleIncreasedArtemisInstantChargeResponsiveness(bool enable) {
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// dmc3.exe + 215E01 - 75 0A - jne dmc3.exe+215E0D
+	// dmc3.exe + 215E0B - EB 08 - jmp dmc3.exe+215E15
+	// dmc3.exe + 215E4B - 0F 86 27 01 00 00 - jbe dmc3.exe + 215F78
+	// dmc3.exe + 215E65 - 75 16 - jne dmc3.exe + 215E7D
+	// dmc3.exe + 215E6F - 75 05 - jne dmc3.exe + 215E76
+	// dmc3.exe + 215E74 - EB 07 - jmp dmc3.exe + 215E7D
+	// dmc3.exe + 215E8A - 74 29 - je dmc3.exe+215EB5
+	// dmc3.exe + 215E91 - 72 ED - jb dmc3.exe+215E80
+	// dmc3.exe + 215EF3 - 76 2E - jna dmc3.exe + 215F23 // Kill Blinding VisualEffect
+
+
+	if (enable) {
+		_nop((char*)(appBaseAddr + 0x215E01), 2);
+		_nop((char*)(appBaseAddr + 0x215E0B), 2);
+		_nop((char*)(appBaseAddr + 0x215E4B), 6);
+		_nop((char*)(appBaseAddr + 0x215E65), 2);
+		_nop((char*)(appBaseAddr + 0x215E6F), 2);
+		_nop((char*)(appBaseAddr + 0x215E74), 2);
+		_nop((char*)(appBaseAddr + 0x215E8A), 2);
+		_nop((char*)(appBaseAddr + 0x215E91), 2);
+		//_nop((char*)(appBaseAddr + 0x215EF3), 2);
+	} else {
+		_patch((char*)(appBaseAddr + 0x215E01), (char*)"\x75\x0A", 2);
+		_patch((char*)(appBaseAddr + 0x215E0B), (char*)"\xEB\x08", 2);
+		_patch((char*)(appBaseAddr + 0x215E4B), (char*)"\x0F\x86\x27\x01\x00\x00", 6);
+		_patch((char*)(appBaseAddr + 0x215E65), (char*)"\x75\x16", 2);
+		_patch((char*)(appBaseAddr + 0x215E6F), (char*)"\x75\x05", 2);
+		_patch((char*)(appBaseAddr + 0x215E74), (char*)"\xEB\x07", 2);
+		_patch((char*)(appBaseAddr + 0x215E8A), (char*)"\x74\x29", 2);
+		_patch((char*)(appBaseAddr + 0x215E91), (char*)"\x72\xED", 2);
+		//_patch((char*)(appBaseAddr + 0x215EF3), (char*)"\x76\x2E", 2);
+	}
+
+	run = enable;
+}
+
 #pragma endregion
 
 #pragma region CameraStuff
