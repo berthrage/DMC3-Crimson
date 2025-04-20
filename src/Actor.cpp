@@ -3495,7 +3495,7 @@ template <typename T> void LinearMeleeWeaponSwitchController(T& actorData) {
         return;
     }
 
-    actorData.meleeWeaponSwitchTimeout = activeConfig.linearWeaponSwitchTimeout;
+    actorData.meleeWeaponSwitchTimeout = activeCrimsonConfig.Gameplay.General.vanillaWeaponSwitchDelay;
 
     // Nero Angelo Fix
     {
@@ -3595,7 +3595,7 @@ template <typename T> void LinearRangedWeaponSwitchController(T& actorData) {
         return;
     }
 
-    actorData.rangedWeaponSwitchTimeout = activeConfig.linearWeaponSwitchTimeout;
+    actorData.rangedWeaponSwitchTimeout = activeCrimsonConfig.Gameplay.General.vanillaWeaponSwitchDelay;
 
     UpdateRangedWeapon(actorData);
 

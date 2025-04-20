@@ -163,8 +163,6 @@ struct Config {
     bool disableTimer        = false;
     bool infiniteBullets     = false;
 
-    float linearWeaponSwitchTimeout = (debug) ? 6 : 12;
-
     uint8 airHikeCount[2]        = {1, 1};
     uint8 kickJumpCount[2]       = {1, 1};
     uint8 wallHikeCount[2]       = {1, 1};

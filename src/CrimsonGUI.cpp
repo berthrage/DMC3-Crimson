@@ -7151,36 +7151,66 @@ void CustomMobilitySection() {
 
 #pragma endregion
 
-#pragma region Other
+#pragma region MiscCheats
 
 const char* dotShadowNames[] = {"Default", "Disable", "Disable Player Actors Only"};
 
 
-void Other() {
-    if (ImGui::CollapsingHeader("Other")) {
-        ImGui::Text("");
+void MiscCheatsSection() {
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	ImGui::Text("");
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-        ImGui::PushItemWidth(200);
+	GUI_Title("MISC CHEATS", false);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
+	ImGui::PushItemWidth(itemWidth * 0.5f);
 
-        GUI_InputDefault2("Deplete Quicksilver", activeConfig.depleteQuicksilver, queuedConfig.depleteQuicksilver,
-            defaultConfig.depleteQuicksilver, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-        GUI_InputDefault2("Deplete Doppelganger", activeConfig.depleteDoppelganger, queuedConfig.depleteDoppelganger,
-            defaultConfig.depleteDoppelganger, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-        GUI_InputDefault2("Deplete Devil", activeConfig.depleteDevil, queuedConfig.depleteDevil, defaultConfig.depleteDevil, 1.0f, "%g",
-            ImGuiInputTextFlags_EnterReturnsTrue);
+	auto MiscCheatInput = [](const char* label, float(&active), float(&queued), float(&defaultVar)) {
+		auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
+		float smallerComboMult = 0.9f;
+		
+		ImGui::PushItemWidth(itemWidth * smallerComboMult);
+		GUI_InputDefault2(label, active, queued, defaultVar, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::PopItemWidth();
+			
+		};
 
-        GUI_InputDefault2("Linear Weapon Switch Timeout", activeConfig.linearWeaponSwitchTimeout, queuedConfig.linearWeaponSwitchTimeout,
-            defaultConfig.linearWeaponSwitchTimeout, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	const float columnWidth = 0.5f * queuedConfig.globalScale;
+	const float rowHeight = 40.0f * queuedConfig.globalScale * 0.5f;
 
-        GUI_InputDefault2("Orb Reach", activeConfig.orbReach, queuedConfig.orbReach, defaultConfig.orbReach, 100.0f, "%g",
-            ImGuiInputTextFlags_EnterReturnsTrue);
+	if (ImGui::BeginTable("MiscCheatsOptionsTable", 3)) {
+		ImGui::TableSetupColumn("col1", 0, columnWidth * 2.0f);
+		ImGui::TableSetupColumn("col2", 0, columnWidth * 2.0f);
 
-        ImGui::PopItemWidth();
+		ImGui::TableNextRow(0, rowHeight);
+		ImGui::TableNextColumn();
 
+		MiscCheatInput("Deplete Quicksilver", activeConfig.depleteQuicksilver, queuedConfig.depleteQuicksilver,
+			defaultConfig.depleteQuicksilver);
 
-        ImGui::Text("");
-    }
+		ImGui::TableNextColumn();
+		MiscCheatInput("Deplete Doppelganger", activeConfig.depleteDoppelganger, queuedConfig.depleteDoppelganger,
+			defaultConfig.depleteDoppelganger);
+
+		ImGui::TableNextColumn();
+		MiscCheatInput("Deplete DT", activeConfig.depleteDevil, queuedConfig.depleteDevil,
+			defaultConfig.depleteDevil);
+
+		ImGui::TableNextColumn();
+		MiscCheatInput("Orb Reach", activeConfig.orbReach, queuedConfig.orbReach,
+			defaultConfig.orbReach);
+
+		ImGui::EndTable();
+	}
+
+	ImGui::PopItemWidth();
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+
+	ImGui::Text("");
 }
 
 #pragma endregion
@@ -9551,6 +9581,18 @@ void GeneralGameplayOptions() {
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Increases character turn speed.");
 
+			ImGui::TableNextColumn();
+			GUI_PushDisable(activeConfig.Actor.enable);
+			ImGui::PushItemWidth(itemWidth * 0.7f);
+			GUI_InputDefault2("Vanilla Weapon Switch Delay", activeCrimsonConfig.Gameplay.General.vanillaWeaponSwitchDelay,
+				queuedCrimsonConfig.Gameplay.General.vanillaWeaponSwitchDelay, 
+				defaultCrimsonConfig.Gameplay.General.vanillaWeaponSwitchDelay, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::SameLine();
+			ImGui::PopItemWidth();
+			GUI_PopDisable(activeConfig.Actor.enable);
+			TooltipHelper("(?)", "Decreases the cooldown between switching weapons.\n"
+				"Doesn't affect the Weapon Wheel and only applies to the Vanilla game.");
+
 			ImGui::EndTable();
 		}
 	}
@@ -10569,7 +10611,7 @@ void CommonCheatsSection() {
 	DanteCheatOptions();
 	VergilCheatOptions();
 	CustomMobilitySection();
-	Other();
+	MiscCheatsSection();
 	Lady();
 	Repair();
 }

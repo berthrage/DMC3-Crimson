@@ -515,7 +515,6 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "infiniteMagicPoints", config.infiniteMagicPoints);
     Create<bool>(member, "disableTimer", config.disableTimer);
     Create<bool>(member, "infiniteBullets", config.infiniteBullets);
-    Create<float>(member, "linearWeaponSwitchTimeout", config.linearWeaponSwitchTimeout);
 
     CreateArray<uint8, 2>(member, "airHikeCount", config.airHikeCount);
     CreateArray<uint8, 2>(member, "kickJumpCount", config.kickJumpCount);
@@ -954,7 +953,6 @@ void ToJSON(Config& config_) {
     Set<bool>(member["infiniteMagicPoints"], config.infiniteMagicPoints);
     Set<bool>(member["disableTimer"], config.disableTimer);
     Set<bool>(member["infiniteBullets"], config.infiniteBullets);
-    Set<float>(member["linearWeaponSwitchTimeout"], config.linearWeaponSwitchTimeout);
 
     SetArray<uint8, 2>(member["airHikeCount"], config.airHikeCount);
     SetArray<uint8, 2>(member["kickJumpCount"], config.kickJumpCount);
@@ -1354,7 +1352,6 @@ void ToConfig(Config& config_) {
     config.infiniteMagicPoints       = Get<bool>(member["infiniteMagicPoints"]);
     config.disableTimer              = Get<bool>(member["disableTimer"]);
     config.infiniteBullets           = Get<bool>(member["infiniteBullets"]);
-    config.linearWeaponSwitchTimeout = Get<float>(member["linearWeaponSwitchTimeout"]);
 
     GetArray<uint8, 2>(config.airHikeCount, member["airHikeCount"]);
     GetArray<uint8, 2>(config.kickJumpCount, member["kickJumpCount"]);

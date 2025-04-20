@@ -273,6 +273,7 @@ struct CrimsonConfig {
 			bool disableJCRestriction = true;
 			bool increasedEnemyJuggleTime = true;
 			bool fasterTurnRate = true;
+			float vanillaWeaponSwitchDelay = 12;
             
 
 			static constexpr auto Metadata() {
@@ -290,7 +291,8 @@ struct CrimsonConfig {
 					std::make_pair("increasedJCSpheres", &General::increasedJCSpheres),
 					std::make_pair("disableJCRestriction", &General::disableJCRestriction),
 					std::make_pair("increasedEnemyJuggleTime", &General::increasedEnemyJuggleTime),
-					std::make_pair("fasterTurnRate", &General::fasterTurnRate)
+					std::make_pair("fasterTurnRate", &General::fasterTurnRate),
+					std::make_pair("vanillaWeaponSwitchDelay", &General::vanillaWeaponSwitchDelay)
 				);
 			}
         } General;
