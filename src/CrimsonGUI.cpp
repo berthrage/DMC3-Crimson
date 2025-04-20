@@ -4830,7 +4830,7 @@ void DamageSection() {
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-	if (GUI_Checkbox2("CUSTOM DAMAGE", activeCrimsonConfig.Cheats.General.customDamage, queuedCrimsonConfig.Cheats.General.customDamage)) {
+	if (GUI_Checkbox2("CUSTOM DAMAGE CHEATS", activeCrimsonConfig.Cheats.General.customDamage, queuedCrimsonConfig.Cheats.General.customDamage)) {
 		if (!activeCrimsonConfig.Cheats.General.customDamage) {
 			// Reset damage config to default when the checkbox is unchecked
 			CopyMemory(&queuedConfig.damagePlayerActorMultiplier, &defaultConfig.damagePlayerActorMultiplier, sizeof(queuedConfig.damagePlayerActorMultiplier));
@@ -8321,65 +8321,101 @@ const char* devilSpeedNamesVergil[] = {
 // @Todo: EnterReturnsTrue.
 // @Todo: Apply rounding.
 
-
-
 void SpeedSection() {
-	ImGui::Text("");
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	const float columnWidth = 0.15f * queuedConfig.globalScale;
+	const float rowHeight = 40.0f * queuedConfig.globalScale * 0.5f;
+	float smallerComboMult = 0.7f;
 
+	ImGui::PushItemWidth(itemWidth);
 
-	if (GUI_ResetButton()) {
-		CopyMemory(&queuedConfig.Speed, &defaultConfig.Speed, sizeof(queuedConfig.Speed));
-		CopyMemory(&activeConfig.Speed, &queuedConfig.Speed, sizeof(activeConfig.Speed));
+	// Speed Group Title
+	GUI_Title("GAME SPEED OPTIONS", false);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
-		Speed::Toggle(false);
+	// Reusable speed input
+	auto SpeedInput = [](const char* label, float& active, float& queued, float& defaultVal) {
+		auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+		ImGui::PushItemWidth(itemWidth * 1.0f);
+		GUI_InputDefault2(label, active, queued, defaultVal, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::PopItemWidth();
+		};
+
+	// --- Main Speed Table ---
+	if (ImGui::BeginTable("SpeedTable", 2)) {
+		ImGui::TableSetupColumn("Left", 0, columnWidth * 3.5f);
+		ImGui::TableSetupColumn("Right", 0, columnWidth * 3.5f);
+
+		ImGui::TableNextRow(0, rowHeight);
+		ImGui::TableNextColumn();
+
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+		ImGui::Text("ENEMY CHARACTER");
+		ImGui::PopFont();
+
+		ImGui::TableNextColumn();
+
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+		ImGui::Text("PLAYER CHARACTER"); ImGui::SameLine();
+		ImGui::PopFont();
+		GUI_CCSRequirementButton();
+
+		ImGui::TableNextRow(0, rowHeight);
+		ImGui::TableNextColumn();
+		SpeedInput("Enemy", activeConfig.Speed.enemy, queuedConfig.Speed.enemy, defaultConfig.Speed.enemy);
+		ImGui::TableNextColumn();
+		SpeedInput("Human", activeConfig.Speed.human, queuedConfig.Speed.human, defaultConfig.Speed.human);
+
+		ImGui::EndTable();
 	}
+
 	ImGui::Text("");
 
-	ImGui::PushItemWidth(200);
+	if (ImGui::BeginTable("SpeedTableDT", 2)) {
+		ImGui::TableSetupColumn("Left", 0, columnWidth * 3.5f);
+		ImGui::TableSetupColumn("Right", 0, columnWidth * 3.5f);
 
-	GUI_InputDefault2Speed("Enemy Actor", activeConfig.Speed.enemy, queuedConfig.Speed.enemy, defaultConfig.Speed.enemy, 0.1f, "%g",
-		ImGuiInputTextFlags_EnterReturnsTrue);
-	GUI_SectionEnd();
-	ImGui::Text("");
+		// Row 1 - Dante
+		ImGui::TableNextRow(0, rowHeight);
+		ImGui::TableNextColumn();
 
-	ImGui::Text("Player Actor");
-	ImGui::SameLine();
-	TooltipHelper("(?)", "Requires enabled Actor module.");
-	ImGui::Text("");
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+		ImGui::Text("DEVIL TRIGGERED DANTE");
+		ImGui::PopFont();
 
-	GUI_InputDefault2Speed("Human", activeConfig.Speed.human, queuedConfig.Speed.human, defaultConfig.Speed.human, 0.1f, "%g",
-		ImGuiInputTextFlags_EnterReturnsTrue);
-	ImGui::Text("");
+		for (uint8 i = 0; i < countof(activeConfig.Speed.devilDante); ++i) {
+			SpeedInput(devilSpeedNamesDante[i], activeConfig.Speed.devilDante[i], queuedConfig.Speed.devilDante[i], defaultConfig.Speed.devilDante[i]);
+		}
 
-	ImGui::Text("Devil Dante");
+		// Row 1 - Vergil
+		ImGui::TableNextColumn();
 
-	old_for_all(uint8, index, countof(activeConfig.Speed.devilDante)) {
-		GUI_InputDefault2Speed(devilSpeedNamesDante[index], activeConfig.Speed.devilDante[index], queuedConfig.Speed.devilDante[index],
-			defaultConfig.Speed.devilDante[index], 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+		ImGui::Text("DEVIL TRIGGERED VERGIL");
+		ImGui::PopFont();
+
+		for (uint8 i = 0; i < countof(activeConfig.Speed.devilVergil); ++i) {
+			SpeedInput(devilSpeedNamesVergil[i], activeConfig.Speed.devilVergil[i], queuedConfig.Speed.devilVergil[i], defaultConfig.Speed.devilVergil[i]);
+		}
+
+		// Row 2 - Quicksilver
+		ImGui::TableNextRow(0, rowHeight);
+		ImGui::TableNextColumn();
+
+		ImGui::Text("");
+
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+		ImGui::Text("QUICKSILVER");
+		ImGui::PopFont();
+		SpeedInput("Player Character", activeConfig.Speed.quicksilverPlayerActor, queuedConfig.Speed.quicksilverPlayerActor, defaultConfig.Speed.quicksilverPlayerActor);
+		SpeedInput("Enemy Character", activeConfig.Speed.quicksilverEnemyActor, queuedConfig.Speed.quicksilverEnemyActor, defaultConfig.Speed.quicksilverEnemyActor);
+
+		ImGui::EndTable();
 	}
-	// ImGui::Text("");
 
-	ImGui::Text("Devil Vergil");
-
-	old_for_all(uint8, index, countof(activeConfig.Speed.devilVergil)) {
-		GUI_InputDefault2Speed(devilSpeedNamesVergil[index], activeConfig.Speed.devilVergil[index],
-			queuedConfig.Speed.devilVergil[index], defaultConfig.Speed.devilVergil[index], 0.1f, "%g",
-			ImGuiInputTextFlags_EnterReturnsTrue);
-	}
-	GUI_SectionEnd();
-	ImGui::Text("");
-
-	GUI_SectionStart("Quicksilver");
-	GUI_InputDefault2Speed("Actor", activeConfig.Speed.quicksilverPlayerActor, queuedConfig.Speed.quicksilverPlayerActor,
-		defaultConfig.Speed.quicksilverPlayerActor, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-	GUI_InputDefault2Speed("Enemy", activeConfig.Speed.quicksilverEnemyActor, queuedConfig.Speed.quicksilverEnemyActor,
-		defaultConfig.Speed.quicksilverEnemyActor, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-
+	ImGui::PopFont();
 	ImGui::PopItemWidth();
-
-
 	ImGui::Text("");
-    
 }
 
 #pragma endregion
@@ -8779,7 +8815,7 @@ void TrainingSection() {
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-	ImGui::Text("TRAINING");
+	ImGui::Text("TRAINING CHEATS");
 	ImGui::PopFont();
 	UI::SeparatorEx(defaultFontSize * 23.35f);
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
@@ -8792,7 +8828,7 @@ void TrainingSection() {
 
 	{
 		const float columnWidth = 0.5f * queuedConfig.globalScale;
-		const float rowWidth = 40.0f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
 
 		if (ImGui::BeginTable("TrainingCheatsOptionsTable", 3)) {
 
