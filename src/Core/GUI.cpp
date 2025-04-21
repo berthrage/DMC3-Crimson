@@ -192,7 +192,7 @@ bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequi
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
-    auto update = GUI_Checkbox2(title, activeConfig.Arcade.enable, queuedConfig.Arcade.enable);
+	auto update = GUI_Checkbox2(title, var1, var2); 
 	ImGui::PopFont();
 
 	if (ccsRequired) {
@@ -203,7 +203,11 @@ bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequi
 	UI::SeparatorEx(separatorSize);
 	ImGui::Text("");
 
-    return update;
+	if (update) {
+		::GUI::save = true;
+	}
+
+	return update;
 }
 
 void GUI_Title(const char* title, bool ccsRequired, float separatorSize) {

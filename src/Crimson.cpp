@@ -12,6 +12,7 @@
 #include "Memory.hpp"
 #include "Model.hpp"
 #include "CrimsonPatches.hpp"
+#include "CrimsonGameplay.hpp"
 #include "Actor.hpp"
 #include "ActorBase.hpp"
 #include "ActorRelocations.hpp"
@@ -177,7 +178,6 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleDamage(false);
         ToggleDamage(true);
 
-
         UpdateCrazyComboLevelMultiplier();
 
         ToggleAirHikeCoreAbility(activeCrimsonConfig.Gameplay.Dante.airHikeCoreAbility);
@@ -192,10 +192,10 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonPatches::ReduceArtemisProjectileDamage(activeCrimsonConfig.Gameplay.Dante.artemisRework);
         ToggleChronoSwords(activeCrimsonConfig.Cheats.Vergil.chronoSwords);
         UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonConfig.GameMode.preset;
+        CrimsonGameplay::AdjustDMC4MobilitySettings();
 
         Arcade::Toggle(false);
         Arcade::Toggle(activeConfig.Arcade.enable);
-
 
         // @Merge
         Event_Toggle(false);

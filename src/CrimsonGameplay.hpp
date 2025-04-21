@@ -26,6 +26,7 @@ void AerialRaveGravityTweaks(byte8* actorBaseAddr);
 void AirFlickerGravityTweaks(byte8* actorBaseAddr);
 void SkyDanceGravityTweaks(byte8* actorBaseAddr);
 void DMC4Mobility(byte8* actorBaseAddr);
+void AdjustDMC4MobilitySettings();
 void StyleMeterDoppelganger(byte8* actorBaseAddr);
 void InCombatDetection();
 void BackToForwardInputs(byte8* actorBaseAddr);

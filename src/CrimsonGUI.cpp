@@ -948,7 +948,7 @@ const char* entityEnumNames[] = {
 	"ENTITY::CLONE",
 };
 
-const char* characterNames[] = {
+const char* ddmkCharacter2PNames[] = {
 	"Dante",
 	"Bob",
 	"Lady",
@@ -1007,16 +1007,16 @@ const char* GUITransparencyNames[] = {
 };
 
 
-const char* newCharacterNames[] = {
+const char* ddmkCharacterNames[] = {
 	"Dante",
-	"Bob",
+	"BoB Vergil",
 	"Lady",
 	"Vergil",
 	"Boss Lady",
 	"Boss Vergil",
 };
 
-constexpr uint8 newCharacters[] = {
+constexpr uint8 ddmkCharactersMap[] = {
 	CHARACTER::DANTE,
 	CHARACTER::BOB,
 	CHARACTER::LADY,
@@ -1025,8 +1025,17 @@ constexpr uint8 newCharacters[] = {
 	CHARACTER::BOSS_VERGIL,
 };
 
-const char* collisionGroupNames[] = { "Player", "Enemy" };
+const char* crimsonCharacterNames[] = {
+	"Dante",
+	"Vergil",
+};
 
+constexpr uint8 crimsonCharacterMap[] = {
+	CHARACTER::DANTE,
+	CHARACTER::VERGIL,
+};
+
+const char* collisionGroupNames[] = { "Player", "Enemy" };
 
 constexpr uint8 collisionGroups[] = {
 	COLLISION_GROUP::PLAYER,
@@ -2314,7 +2323,7 @@ void Actor_UpdateIndices() {
 
 
 				UpdateMapIndex(
-					newCharacters, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex], queuedCharacterData.character);
+					ddmkCharactersMap, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex], queuedCharacterData.character);
 
 
 				old_for_all(uint8, styleIndex, STYLE_COUNT) {
@@ -2433,8 +2442,8 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 			ImGui::PushItemWidth(itemWidth);
 
-			if ((playerIndex == 0) && (characterIndex > 0)) {
-				if (UI::ComboMap("CHARACTER", newCharacterNames, newCharacters, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
+			if (!activeCrimsonConfig.Cheats.General.legacyDDMKCharacters) {
+				if (UI::ComboMapValue("CHARACTER", crimsonCharacterNames, crimsonCharacterMap,
 					queuedCharacterData.character)) {
 					ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
 
@@ -2445,19 +2454,35 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 					Actor_UpdateIndices();
 				}
-			}
-			else {
-				if (UI::Combo("CHARACTER", characterNames, queuedCharacterData.character)) {
-					ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
+				
+			} else {
+				if ((playerIndex == 0) && (characterIndex > 0)) {
+					if (UI::ComboMap("CHARACTER", ddmkCharacterNames, ddmkCharactersMap, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
+						queuedCharacterData.character)) {
+						ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
 
-					if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
-						queuedCharacterDataClone.character = queuedCharacterData.character;
-						ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
+						if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
+							queuedCharacterDataClone.character = queuedCharacterData.character;
+							ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
+						}
+
+						Actor_UpdateIndices();
 					}
+				} else {
+					if (UI::Combo("CHARACTER", ddmkCharacter2PNames, queuedCharacterData.character)) {
+						ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
 
-					Actor_UpdateIndices();
+						if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
+							queuedCharacterDataClone.character = queuedCharacterData.character;
+							ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
+						}
+
+						Actor_UpdateIndices();
+					}
 				}
 			}
+
+			
 
 			ImGui::PopItemWidth();
 			ImGui::PopFont();
@@ -2505,7 +2530,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 					ImGui::TableNextRow(0, rowWidth);
 					ImGui::TableNextColumn();
 
-					if (UI::Combo("Force Model Character", characterNames, queuedCharacterData.forceFilesCharacter)) {
+					if (UI::Combo("Force Model Character", ddmkCharacter2PNames, queuedCharacterData.forceFilesCharacter)) {
 						queuedCharacterDataClone.forceFilesCharacter = queuedCharacterData.forceFilesCharacter;
 					}
 
@@ -2516,7 +2541,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 					}
 				}
 
-				if (UI::Combo("Doppelganger", characterNames, queuedCharacterDataClone.character)) {
+				if (UI::Combo("Doppelganger", ddmkCharacter2PNames, queuedCharacterDataClone.character)) {
 					ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
 
 					Actor_UpdateIndices();
@@ -3157,7 +3182,7 @@ void ArcadeSection(size_t defaultFontSize) {
 		ImGui::TableNextRow(0, rowWidth);
 		ImGui::TableNextColumn();
 
-		UI::Combo2("Campaign", characterNames, activeConfig.Arcade.character, queuedConfig.Arcade.character);
+		UI::Combo2("Campaign", ddmkCharacter2PNames, activeConfig.Arcade.character, queuedConfig.Arcade.character);
 
 		{
 			auto queuedCharacterData = GetQueuedCharacterData(0, 0, 0);
@@ -6957,55 +6982,96 @@ void JukeboxSection() {
 
 #pragma region Lady
 
-void Lady() {
-    if (ImGui::CollapsingHeader("Lady")) {
-        ImGui::Text("");
+void LegacyDDMKCharactersSection() {
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-        if (GUI_ResetButton()) {
-            CopyMemory(&queuedConfig.kalinaAnnHookMultiplier, &defaultConfig.kalinaAnnHookMultiplier,
-                sizeof(queuedConfig.kalinaAnnHookMultiplier));
-            CopyMemory(
-                &activeConfig.kalinaAnnHookMultiplier, &queuedConfig.kalinaAnnHookMultiplier, sizeof(activeConfig.kalinaAnnHookMultiplier));
+	ImGui::Text("");
 
-            CopyMemory(&queuedConfig.kalinaAnnHookGrenadeHeight, &defaultConfig.kalinaAnnHookGrenadeHeight,
-                sizeof(queuedConfig.kalinaAnnHookGrenadeHeight));
-            CopyMemory(&activeConfig.kalinaAnnHookGrenadeHeight, &queuedConfig.kalinaAnnHookGrenadeHeight,
-                sizeof(activeConfig.kalinaAnnHookGrenadeHeight));
+	if (GUI_TitleCheckbox2("LEGACY DDMK CHARACTERS", activeCrimsonConfig.Cheats.General.legacyDDMKCharacters,
+		queuedCrimsonConfig.Cheats.General.legacyDDMKCharacters, true)) {
+		if (!activeCrimsonConfig.Cheats.General.legacyDDMKCharacters) {
+			CopyMemory(&queuedConfig.kalinaAnnHookMultiplier, &defaultConfig.kalinaAnnHookMultiplier,
+				sizeof(queuedConfig.kalinaAnnHookMultiplier));
+			CopyMemory(&activeConfig.kalinaAnnHookMultiplier, &queuedConfig.kalinaAnnHookMultiplier,
+				sizeof(activeConfig.kalinaAnnHookMultiplier));
 
-            CopyMemory(&queuedConfig.kalinaAnnHookGrenadeTime, &defaultConfig.kalinaAnnHookGrenadeTime,
-                sizeof(queuedConfig.kalinaAnnHookGrenadeTime));
-            CopyMemory(&activeConfig.kalinaAnnHookGrenadeTime, &queuedConfig.kalinaAnnHookGrenadeTime,
-                sizeof(activeConfig.kalinaAnnHookGrenadeTime));
-        }
+			CopyMemory(&queuedConfig.kalinaAnnHookGrenadeHeight, &defaultConfig.kalinaAnnHookGrenadeHeight,
+				sizeof(queuedConfig.kalinaAnnHookGrenadeHeight));
+			CopyMemory(&activeConfig.kalinaAnnHookGrenadeHeight, &queuedConfig.kalinaAnnHookGrenadeHeight,
+				sizeof(activeConfig.kalinaAnnHookGrenadeHeight));
 
-        GUI_SectionEnd();
-        ImGui::Text("");
+			CopyMemory(&queuedConfig.kalinaAnnHookGrenadeTime, &defaultConfig.kalinaAnnHookGrenadeTime,
+				sizeof(queuedConfig.kalinaAnnHookGrenadeTime));
+			CopyMemory(&activeConfig.kalinaAnnHookGrenadeTime, &queuedConfig.kalinaAnnHookGrenadeTime,
+				sizeof(activeConfig.kalinaAnnHookGrenadeTime));
+		}
+	}
+	ImGui::SameLine();
+	TooltipHelper("(?)", "These are incomplete playable characters adapted from their respective bosses in DDMK.\n"
+		"Crimson won't offer long-term support for these characters, but they will remain here for preservation purposes.\n"
+		"Enables them to be selected at PLAYER -> Character tab.");
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+	ImGui::PushItemWidth(itemWidth * 0.5f);
 
-        GUI_SectionStart("Kalina Ann");
+	// Helper for Lady Options
+	auto LadyInput = [](const char* label, float& active, float& queued, float& defaultVar, float step = 1.0f) {
+		const float smallerComboMult = 0.9f;
+		ImGui::PushItemWidth(itemWidth * smallerComboMult);
+		GUI_InputDefault2(label, active, queued, defaultVar, step, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::PopItemWidth();
+		};
 
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+	ImGui::Text("LADY OPTIONS");
+	ImGui::PopFont();
 
-        ImGui::PushItemWidth(200.0f);
+	GUI_PushDisable(!activeCrimsonConfig.Cheats.General.legacyDDMKCharacters);
 
-        GUI_InputDefault2<float>("Hook Multiplier X", activeConfig.kalinaAnnHookMultiplier.x, queuedConfig.kalinaAnnHookMultiplier.x,
-            defaultConfig.kalinaAnnHookMultiplier.x, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-        GUI_InputDefault2<float>("Hook Multiplier Y", activeConfig.kalinaAnnHookMultiplier.y, queuedConfig.kalinaAnnHookMultiplier.y,
-            defaultConfig.kalinaAnnHookMultiplier.y, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-        GUI_InputDefault2<float>("Hook Multiplier Z", activeConfig.kalinaAnnHookMultiplier.z, queuedConfig.kalinaAnnHookMultiplier.z,
-            defaultConfig.kalinaAnnHookMultiplier.z, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-        GUI_InputDefault2<float>("Hook Multiplier A", activeConfig.kalinaAnnHookMultiplier.a, queuedConfig.kalinaAnnHookMultiplier.a,
-            defaultConfig.kalinaAnnHookMultiplier.a, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	// Table layout for Lady's Kalina Ann options
+	const float columnWidth = 0.5f * queuedConfig.globalScale;
+	const float rowHeight = 40.0f * queuedConfig.globalScale * 0.5f;
 
-        GUI_InputDefault2<float>("Hook Grenade Height", activeConfig.kalinaAnnHookGrenadeHeight, queuedConfig.kalinaAnnHookGrenadeHeight,
-            defaultConfig.kalinaAnnHookGrenadeHeight, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+	if (ImGui::BeginTable("LadyOptionsTable", 3)) {
+		ImGui::TableSetupColumn("col1", 0, columnWidth * 2.0f);
+		ImGui::TableSetupColumn("col2", 0, columnWidth * 2.0f);
 
-        GUI_InputDefault2<float>("Hook Grenade Time", activeConfig.kalinaAnnHookGrenadeTime, queuedConfig.kalinaAnnHookGrenadeTime,
-            defaultConfig.kalinaAnnHookGrenadeTime, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::TableNextRow(0, rowHeight);
+		ImGui::TableNextColumn();
+		LadyInput("Hook Multiplier X", activeConfig.kalinaAnnHookMultiplier.x,
+			queuedConfig.kalinaAnnHookMultiplier.x, defaultConfig.kalinaAnnHookMultiplier.x);
 
-        ImGui::PopItemWidth();
+		ImGui::TableNextColumn();
+		LadyInput("Hook Multiplier Y", activeConfig.kalinaAnnHookMultiplier.y,
+			queuedConfig.kalinaAnnHookMultiplier.y, defaultConfig.kalinaAnnHookMultiplier.y);
 
+		ImGui::TableNextColumn();
+		LadyInput("Hook Multiplier Z", activeConfig.kalinaAnnHookMultiplier.z,
+			queuedConfig.kalinaAnnHookMultiplier.z, defaultConfig.kalinaAnnHookMultiplier.z);
 
-        ImGui::Text("");
-    }
+		ImGui::TableNextColumn();
+		LadyInput("Hook Multiplier A", activeConfig.kalinaAnnHookMultiplier.a,
+			queuedConfig.kalinaAnnHookMultiplier.a, defaultConfig.kalinaAnnHookMultiplier.a);
+
+		ImGui::TableNextColumn();
+		LadyInput("Hook Grenade Height", activeConfig.kalinaAnnHookGrenadeHeight,
+			queuedConfig.kalinaAnnHookGrenadeHeight, defaultConfig.kalinaAnnHookGrenadeHeight, 10.0f);
+
+		ImGui::TableNextColumn();
+		LadyInput("Hook Grenade Time", activeConfig.kalinaAnnHookGrenadeTime,
+			queuedConfig.kalinaAnnHookGrenadeTime, defaultConfig.kalinaAnnHookGrenadeTime, 10.0f);
+
+		ImGui::EndTable();
+	}
+
+	GUI_PopDisable(!activeCrimsonConfig.Cheats.General.legacyDDMKCharacters);
+
+	ImGui::PopItemWidth();
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+
+	ImGui::Text("");
 }
 
 #pragma endregion
@@ -7050,6 +7116,18 @@ void CustomMobilitySection() {
 
 			CopyMemory(&queuedConfig.trickDownCount, &defaultConfig.trickDownCount, sizeof(queuedConfig.trickDownCount));
 			CopyMemory(&activeConfig.trickDownCount, &queuedConfig.trickDownCount, sizeof(activeConfig.trickDownCount));
+
+			if (activeCrimsonConfig.Gameplay.Dante.dmc4Mobility) {
+				queuedConfig.airHikeCount[1] = 2;
+				queuedConfig.wallHikeCount[1] = 2;
+				queuedConfig.skyStarCount[1] = 2;
+				queuedConfig.airTrickCountDante[1] = 2;
+
+				activeConfig.airHikeCount[1] = 2;
+				activeConfig.wallHikeCount[1] = 2;
+				activeConfig.skyStarCount[1] = 2;
+				activeConfig.airTrickCountDante[1] = 2;
+			}
 		}
 	}
 	
@@ -7130,8 +7208,8 @@ void CustomMobilitySection() {
 			ImGui::PopFont();
 
 			// Second half of mobility options
-			MobilityDataInput("Air Trick Count Dante", activeConfig.airTrickCountDante, queuedConfig.airTrickCountDante, defaultConfig.airTrickCountDante);
-			MobilityDataInput("Air Trick Count Vergil", activeConfig.airTrickCountVergil, queuedConfig.airTrickCountVergil, defaultConfig.airTrickCountVergil);
+			MobilityDataInput("Dante Air Trick Count", activeConfig.airTrickCountDante, queuedConfig.airTrickCountDante, defaultConfig.airTrickCountDante);
+			MobilityDataInput("Vergil Air Trick Count", activeConfig.airTrickCountVergil, queuedConfig.airTrickCountVergil, defaultConfig.airTrickCountVergil);
 			MobilityDataInput("Trick Up Count", activeConfig.trickUpCount, queuedConfig.trickUpCount, defaultConfig.trickUpCount);
 			MobilityDataInput("Trick Down Count", activeConfig.trickDownCount, queuedConfig.trickDownCount, defaultConfig.trickDownCount);
 
@@ -7161,7 +7239,22 @@ void MiscCheatsSection() {
 	ImGui::Text("");
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-	GUI_Title("MISC CHEATS", false);
+	if (GUI_TitleCheckbox2("MISC CHEATS", activeCrimsonConfig.Cheats.General.miscCheats,
+		queuedCrimsonConfig.Cheats.General.miscCheats, false)) {
+		if (!activeCrimsonConfig.Cheats.General.miscCheats) {
+			CopyMemory(&queuedConfig.depleteQuicksilver, &defaultConfig.depleteQuicksilver, sizeof(queuedConfig.depleteQuicksilver));
+			CopyMemory(&activeConfig.depleteQuicksilver, &queuedConfig.depleteQuicksilver, sizeof(activeConfig.depleteQuicksilver));
+
+			CopyMemory(&queuedConfig.depleteDoppelganger, &defaultConfig.depleteDoppelganger, sizeof(queuedConfig.depleteDoppelganger));
+			CopyMemory(&activeConfig.depleteDoppelganger, &queuedConfig.depleteDoppelganger, sizeof(activeConfig.depleteDoppelganger));
+
+			CopyMemory(&queuedConfig.depleteDevil, &defaultConfig.depleteDevil, sizeof(queuedConfig.depleteDevil));
+			CopyMemory(&activeConfig.depleteDevil, &queuedConfig.depleteDevil, sizeof(activeConfig.depleteDevil));
+
+			CopyMemory(&queuedConfig.orbReach, &defaultConfig.orbReach, sizeof(queuedConfig.orbReach));
+			CopyMemory(&activeConfig.orbReach, &queuedConfig.orbReach, sizeof(activeConfig.orbReach));
+		}
+	}
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
@@ -7181,6 +7274,8 @@ void MiscCheatsSection() {
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
 	const float rowHeight = 40.0f * queuedConfig.globalScale * 0.5f;
 
+	GUI_PushDisable(!activeCrimsonConfig.Cheats.General.miscCheats);
+
 	if (ImGui::BeginTable("MiscCheatsOptionsTable", 3)) {
 		ImGui::TableSetupColumn("col1", 0, columnWidth * 2.0f);
 		ImGui::TableSetupColumn("col2", 0, columnWidth * 2.0f);
@@ -7188,23 +7283,25 @@ void MiscCheatsSection() {
 		ImGui::TableNextRow(0, rowHeight);
 		ImGui::TableNextColumn();
 
-		MiscCheatInput("Deplete Quicksilver", activeConfig.depleteQuicksilver, queuedConfig.depleteQuicksilver,
+		MiscCheatInput("Quicksilver Depletion", activeConfig.depleteQuicksilver, queuedConfig.depleteQuicksilver,
 			defaultConfig.depleteQuicksilver);
 
 		ImGui::TableNextColumn();
-		MiscCheatInput("Deplete Doppelganger", activeConfig.depleteDoppelganger, queuedConfig.depleteDoppelganger,
+		MiscCheatInput("Doppelganger Depletion", activeConfig.depleteDoppelganger, queuedConfig.depleteDoppelganger,
 			defaultConfig.depleteDoppelganger);
 
 		ImGui::TableNextColumn();
-		MiscCheatInput("Deplete DT", activeConfig.depleteDevil, queuedConfig.depleteDevil,
+		MiscCheatInput("DT Depletion", activeConfig.depleteDevil, queuedConfig.depleteDevil,
 			defaultConfig.depleteDevil);
 
 		ImGui::TableNextColumn();
-		MiscCheatInput("Orb Reach", activeConfig.orbReach, queuedConfig.orbReach,
+		MiscCheatInput("Orb Reach Distance", activeConfig.orbReach, queuedConfig.orbReach,
 			defaultConfig.orbReach);
 
 		ImGui::EndTable();
 	}
+
+	GUI_PopDisable(!activeCrimsonConfig.Cheats.General.miscCheats);
 
 	ImGui::PopItemWidth();
 	ImGui::PopStyleColor();
@@ -7216,7 +7313,6 @@ void MiscCheatsSection() {
 #pragma endregion
 
 #pragma region Interface
-
 
 const char* mainOverlayLabel = "DebugOverlay";
 
@@ -7268,6 +7364,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("sessionData mission:  %u", sessionData.mission);
                 ImGui::Text("SCENE:  %u", g_scene);
                 ImGui::Text("TRACK PLAYING: %s", g_gameTrackPlaying.c_str());
+				ImGui::Text("activeCrimsonConfig.legacyDDMKCharacters: %u", activeCrimsonConfig.Cheats.General.legacyDDMKCharacters);
 // 				for (int i = 0; i < 8; i++) {
 // 					ImGui::Text("sessionData expertise[%u]:  %x", i, sessionData.expertise[i]);
 // 				}
@@ -8351,7 +8448,7 @@ const char* devilSpeedNamesVergil[] = {
 // @Todo: EnterReturnsTrue.
 // @Todo: Apply rounding.
 
-void SpeedSection() {
+void CustomSpeedSection() {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	const float columnWidth = 0.15f * queuedConfig.globalScale;
 	const float rowHeight = 40.0f * queuedConfig.globalScale * 0.5f;
@@ -8360,7 +8457,15 @@ void SpeedSection() {
 	ImGui::PushItemWidth(itemWidth);
 
 	// Speed Group Title
-	GUI_Title("GAME SPEED OPTIONS", false);
+	if (GUI_TitleCheckbox2("CUSTOM GAME SPEED CHEATS", activeCrimsonConfig.Cheats.General.customSpeed,
+		defaultCrimsonConfig.Cheats.General.customSpeed)) {
+		if (!activeCrimsonConfig.Cheats.General.customSpeed) {
+			CopyMemory(&queuedConfig.Speed, &defaultConfig.Speed, sizeof(queuedConfig.Speed));
+			CopyMemory(&activeConfig.Speed, &queuedConfig.Speed, sizeof(activeConfig.Speed));
+
+			Speed::Toggle(true);
+		}	
+	}
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
 	// Reusable speed input
@@ -8370,6 +8475,8 @@ void SpeedSection() {
 		GUI_InputDefault2(label, active, queued, defaultVal, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 		ImGui::PopItemWidth();
 		};
+
+	GUI_PushDisable(!activeCrimsonConfig.Cheats.General.customSpeed);
 
 	// --- Main Speed Table ---
 	if (ImGui::BeginTable("SpeedTable", 2)) {
@@ -8442,6 +8549,8 @@ void SpeedSection() {
 
 		ImGui::EndTable();
 	}
+
+	GUI_PopDisable(!activeCrimsonConfig.Cheats.General.customSpeed);
 
 	ImGui::PopFont();
 	ImGui::PopItemWidth();
@@ -9838,15 +9947,7 @@ void DanteGameplayOptions() {
 			if (GUI_Checkbox2("DMC4 Mobility",
 				activeCrimsonConfig.Gameplay.Dante.dmc4Mobility,
 				queuedCrimsonConfig.Gameplay.Dante.dmc4Mobility)) {
-				queuedConfig.airHikeCount[1] = 2;
-				queuedConfig.wallHikeCount[1] = 2;
-				queuedConfig.skyStarCount[1] = 2;
-				queuedConfig.airTrickCountDante[1] = 2;
-
-				activeConfig.airHikeCount[1] = 2;
-				activeConfig.wallHikeCount[1] = 2;
-				activeConfig.skyStarCount[1] = 2;
-				activeConfig.airTrickCountDante[1] = 2;
+				CrimsonGameplay::AdjustDMC4MobilitySettings();
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10612,8 +10713,8 @@ void CommonCheatsSection() {
 	VergilCheatOptions();
 	CustomMobilitySection();
 	MiscCheatsSection();
-	Lady();
-	Repair();
+	LegacyDDMKCharactersSection();
+	//Repair();
 }
 
 void PreventEmptyCrimsonGUIHotkey() {
@@ -11549,7 +11650,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					{
-						SpeedSection();						
+						CustomSpeedSection();						
 					}
 				}
 				ImGui::EndChild();

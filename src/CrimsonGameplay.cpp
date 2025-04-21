@@ -1896,6 +1896,30 @@ void DMC4Mobility(byte8* actorBaseAddr) {
     }
 }
 
+void AdjustDMC4MobilitySettings() {
+	if (activeCrimsonConfig.Gameplay.Dante.dmc4Mobility) {
+		queuedConfig.airHikeCount[1] = 2;
+		queuedConfig.wallHikeCount[1] = 2;
+		queuedConfig.skyStarCount[1] = 2;
+		queuedConfig.airTrickCountDante[1] = 2;
+
+		activeConfig.airHikeCount[1] = 2;
+		activeConfig.wallHikeCount[1] = 2;
+		activeConfig.skyStarCount[1] = 2;
+		activeConfig.airTrickCountDante[1] = 2;
+	} else {
+		queuedConfig.airHikeCount[1] = 1;
+		queuedConfig.wallHikeCount[1] = 1;
+		queuedConfig.skyStarCount[1] = 1;
+		queuedConfig.airTrickCountDante[1] = 1;
+
+		activeConfig.airHikeCount[1] = 1;
+		activeConfig.wallHikeCount[1] = 1;
+		activeConfig.skyStarCount[1] = 1;
+		activeConfig.airTrickCountDante[1] = 1;
+	}
+}
+
 void StyleMeterDoppelganger(byte8* actorBaseAddr) {
 
     // This allows Doppelgangers to actually fill your style meter with their attacks (but not increase your ranks).

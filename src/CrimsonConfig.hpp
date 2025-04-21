@@ -421,13 +421,16 @@ struct CrimsonConfig {
 			bool customMobility = false;
 			bool customDamage = false;
 			bool customSpeed = false;
+			bool miscCheats = false;
+			bool legacyDDMKCharacters = false;
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
 					std::make_pair("customMobility", &General::customMobility),
 					std::make_pair("customDamage", &General::customDamage),
-					std::make_pair("customSpeed", &General::customSpeed)
-					
+					std::make_pair("customSpeed", &General::customSpeed),
+					std::make_pair("miscCheats", &General::miscCheats),
+					std::make_pair("legacyDDMKCharacters", &General::legacyDDMKCharacters)
 				);
 			}
 		} General;
