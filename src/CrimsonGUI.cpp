@@ -1609,21 +1609,26 @@ std::vector<std::string> weaponWheelThemeNames = {
 	"DMC3 Switch",
 };
 
-std::vector<std::string> weaponWheelScaleNames = {
+const char* hudElementScaleStateNames[] = {
 	"Small",
 	"Big",
 };
 
-std::vector<std::string> show1PNames = {
+constexpr uint8 hudElementScaleStateMap[2] = {
+	HUDELEMENTSCALESTATE::SMALL,
+	HUDELEMENTSCALESTATE::BIG,
+};
+
+const char* hudElementShowStateNames[] = {
 	"Off",
 	"Only in Multiplayer",
 	"Always",
 };
 
-std::vector<std::string> worldSpaceWheelNames = {
-	"Off",
-	"Only in Multiplayer",
-	"Always",
+constexpr uint8 hudElementShowStateMap[3] = {
+	HUDELEMENTSHOWSTATE::OFF,
+	HUDELEMENTSHOWSTATE::ONLY_IN_MP,
+	HUDELEMENTSHOWSTATE::ALWAYS,
 };
 
 std::vector<std::string> VergilMoveAdjustmentsNames = {
@@ -2048,7 +2053,7 @@ void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	auto inMultiplayer = activeCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale || activeConfig.Actor.playerCount > 1;
 	auto& scale = activeCrimsonConfig.WeaponWheel.scale;
 	ImVec2 normalPos = ImVec2(g_renderSize.x - g_renderSize.y * 0.45f, g_renderSize.y - g_renderSize.y * 0.45f);
-	ImVec2 normalSize = initialized ? scale == "Big" ? ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f) :
+	ImVec2 normalSize = initialized ? scale == HUDELEMENTSCALESTATE::BIG ? ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f) :
 		ImVec2(g_renderSize.y * 0.35f, g_renderSize.y * 0.35f) :
 		ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
 
@@ -2057,13 +2062,15 @@ void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	ImVec2 multiplayerSize = initialized ? ImVec2(g_renderSize.y * 0.15f, g_renderSize.y * 0.15f) : normalSize;
 	// We need to initialize with the bigger size first to avoid the wheel from displaying on a lower quality if the user changes the setting at runtime. -- Berth
 
-
 	// Adjusts size dynamically based on the distance between Camera and Player
+
+	bool alwaysShow = (activeCrimsonConfig.WeaponWheel.alwaysShow == HUDELEMENTSHOWSTATE::ONLY_IN_MP
+		&& activeConfig.Actor.playerCount > 1) || activeCrimsonConfig.WeaponWheel.alwaysShow == HUDELEMENTSHOWSTATE::ALWAYS ? true : false;
 
 	if (WeaponWheelController(actorData, pSwapChain, meleeWeaponWheel[0], "MeleeWheel1P",
 		!inMultiplayer,
 		inMultiplayer ? multiplayerPosMelee : normalPos, inMultiplayer ? multiplayerSize : normalSize,
-		activeCrimsonConfig.WeaponWheel.alwaysShow, true, true, stateMelee, deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
+		alwaysShow, true, true, stateMelee, deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
 
 		initialized = true;
 	}
@@ -2071,7 +2078,7 @@ void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	WeaponWheelController(actorData, pSwapChain, rangedWeaponWheel[0], "RangedWheel1P",
 		!inMultiplayer,
 		inMultiplayer ? multiplayerPosRanged : normalPos, inMultiplayer ? multiplayerSize : normalSize,
-		activeCrimsonConfig.WeaponWheel.alwaysShow, true, false, stateRanged, deltaTimeAdjustedSpeed, deltaTimeAdjusted);
+		alwaysShow, true, false, stateRanged, deltaTimeAdjustedSpeed, deltaTimeAdjusted);
 }
 
 void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
@@ -2102,7 +2109,6 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 		auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
 		auto activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 
-
 		ImVec2 normalSize = ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
 
 		ImVec2 baseMultiplayerSize = ImVec2(g_renderSize.y * 0.15f, g_renderSize.y * 0.15f);
@@ -2126,11 +2132,13 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 		std::string meleeWheelName = "MeleeWheel " + std::to_string(playerIndex + 1);
 		std::string rangedWheelName = "RangedWheel " + std::to_string(playerIndex + 1);
 
+		bool alwaysShow = (activeCrimsonConfig.WeaponWheel.alwaysShow == HUDELEMENTSHOWSTATE::ONLY_IN_MP
+			&& activeConfig.Actor.playerCount > 1) || activeCrimsonConfig.WeaponWheel.alwaysShow == HUDELEMENTSHOWSTATE::ALWAYS ? true : false;
 
 		if (WeaponWheelController(actorData, pSwapChain, meleeWheel, meleeWheelName.c_str(),
 			false,
 			multiplayerPosMelee, multiplayerSize,
-			activeCrimsonConfig.WeaponWheel.alwaysShow, true, true, stateMelee[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
+			alwaysShow, true, true, stateMelee[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
 
 			initializedMelee[playerIndex] = true;
 		}
@@ -2138,7 +2146,7 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 		WeaponWheelController(actorData, pSwapChain, rangedWheel, rangedWheelName.c_str(),
 			false,
 			multiplayerPosRanged, multiplayerSize,
-			activeCrimsonConfig.WeaponWheel.alwaysShow, true, false, stateRanged[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted);
+			alwaysShow, true, false, stateRanged[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted);
 	}
 
 	multiplayerWheelsLoaded = true; 
@@ -2161,8 +2169,8 @@ void WorldSpaceWeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	static WeaponWheelState stateRanged;
 
 	if (!multiplayerWheelsLoaded) return;
-	if (activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Off" ||
-		(activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Only in Multiplayer"
+	if (activeCrimsonConfig.WeaponWheel.worldSpaceWheels == HUDELEMENTSHOWSTATE::OFF ||
+		(activeCrimsonConfig.WeaponWheel.worldSpaceWheels == HUDELEMENTSHOWSTATE::ONLY_IN_MP
 			&& activeConfig.Actor.playerCount <= 1)) return;
 
 	float deltaTime = ImGui::GetIO().DeltaTime;
@@ -2201,19 +2209,21 @@ void WorldSpaceWeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	std::string meleeWheelName = "MeleeWheelWorldSpace " + std::to_string(0);
 	std::string rangedWheelName = "RangedWheelWorldSpace " + std::to_string(0);
 
+	bool alwaysShow = (activeCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow == HUDELEMENTSHOWSTATE::ONLY_IN_MP 
+		&& activeConfig.Actor.playerCount > 1) || activeCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow == HUDELEMENTSHOWSTATE::ALWAYS ? true : false;
+
 	if (WeaponWheelController(actorData, pSwapChain, meleeWheel, meleeWheelName.c_str(),
 		false,
 		meleeWheelPos, multiplayerSize,
-		activeCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow, false, true,
+		alwaysShow, false, true,
 		stateMelee, deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
 		initialized = true;
 	}
 
-
 	WeaponWheelController(actorData, pSwapChain, rangedWheel, rangedWheelName.c_str(),
 		false,
 		rangedWheelPos, multiplayerSize,
-		activeCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow, false, false,
+		alwaysShow, false, false,
 		stateRanged, deltaTimeAdjustedSpeed, deltaTimeAdjusted);
 
 }
@@ -2226,8 +2236,8 @@ void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 	static bool initializedRanged[PLAYER_COUNT] = { false };
 
 	if (!multiplayerWheelsLoaded) return;
-	if (activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Off" ||
-		(activeCrimsonConfig.WeaponWheel.worldSpaceWheels == "Only in Multiplayer" 
+	if (activeCrimsonConfig.WeaponWheel.worldSpaceWheels == HUDELEMENTSHOWSTATE::OFF ||
+		(activeCrimsonConfig.WeaponWheel.worldSpaceWheels == HUDELEMENTSHOWSTATE::ONLY_IN_MP
 			&& activeConfig.Actor.playerCount <= 1)) return;
 
 	// Measure delta time using chrono
@@ -2271,19 +2281,21 @@ void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 		std::string meleeWheelName = "MeleeWheelWorldSpace " + std::to_string(playerIndex + 1);
 		std::string rangedWheelName = "RangedWheelWorldSpace " + std::to_string(playerIndex + 1);
 
+		bool alwaysShow = (activeCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow == HUDELEMENTSHOWSTATE::ONLY_IN_MP
+			&& activeConfig.Actor.playerCount > 1) || activeCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow == HUDELEMENTSHOWSTATE::ALWAYS ? true : false;
+
 		if (WeaponWheelController(actorData, pSwapChain, meleeWheel, meleeWheelName.c_str(),
 			false,
 			meleeWheelPos, multiplayerSize,
-			activeCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow, false, true,
+			alwaysShow, false, true,
 			stateMelee[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted)) {
 			initializedMelee[playerIndex] = true;
 		}
 	
-
 		WeaponWheelController(actorData, pSwapChain, rangedWheel, rangedWheelName.c_str(),
 			false,
 			rangedWheelPos, multiplayerSize,
-			activeCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow, false, false,
+			alwaysShow, false, false,
 			stateRanged[playerIndex], deltaTimeAdjustedSpeed, deltaTimeAdjusted);
 	}
 }
@@ -4057,9 +4069,9 @@ void Render1PAttributes(const char* name, PlayerActorData& actorData) {
 		return;
 	}
 
-	if ((activeCrimsonConfig.MultiplayerBars2D.show1PAttributes == "Only in Multiplayer" 
+	if ((activeCrimsonConfig.MultiplayerBars2D.show1PAttributes == HUDELEMENTSHOWSTATE::ONLY_IN_MP
 		&& activeConfig.Actor.playerCount == 1) ||
-		(activeCrimsonConfig.MultiplayerBars2D.show1PAttributes == "Off")) {
+		(activeCrimsonConfig.MultiplayerBars2D.show1PAttributes == HUDELEMENTSHOWSTATE::OFF)) {
 		return;
 	}
 
@@ -4236,12 +4248,12 @@ void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 
 	old_for_all(uint8, playerIndex, playerCount) {
 
-		if (activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar == "Off") {
+		if (activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar == HUDELEMENTSHOWSTATE::OFF) {
 			minimum = 1;
 		}
-		else if ((activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar == "Only in Multiplayer" 
+		else if ((activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar == HUDELEMENTSHOWSTATE::ONLY_IN_MP
 			&& activeConfig.Actor.playerCount > 1) ||
-			(activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar == "Always")) {
+			(activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar == HUDELEMENTSHOWSTATE::ALWAYS)) {
 			minimum = 0;
 		}
 
@@ -4431,7 +4443,7 @@ void BarsSection(size_t defaultFontSize) {
 			ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
 			ImGui::PushItemWidth(itemWidth);
-			UI::Combo2Vector("Show 1P Attributes", show1PNames,
+			UI::ComboMapValue2("Show 1P Attributes", hudElementShowStateNames, hudElementShowStateMap,
 				activeCrimsonConfig.MultiplayerBars2D.show1PAttributes,
 				queuedCrimsonConfig.MultiplayerBars2D.show1PAttributes);
 			ImGui::PopItemWidth();
@@ -4450,7 +4462,7 @@ void BarsSection(size_t defaultFontSize) {
 			ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
 			ImGui::PushItemWidth(itemWidth);
-			UI::Combo2Vector("Show 1P Bar", show1PNames,
+			UI::ComboMapValue2("Show 1P Bar", hudElementShowStateNames, hudElementShowStateMap,
 				activeCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar,
 				queuedCrimsonConfig.MultiplayerBarsWorldSpace.show1PBar);
 			ImGui::PopItemWidth();
@@ -8185,7 +8197,7 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth);
-			if (UI::Combo2Vector("Select HUD", HUDdirectories, activeConfig.selectedHUD, queuedConfig.selectedHUD)) {
+			if (UI::ComboVectorString2("Select HUD", HUDdirectories, activeConfig.selectedHUD, queuedConfig.selectedHUD)) {
 				copyHUDtoGame();
 			}
 			ImGui::PopItemWidth();
@@ -8329,7 +8341,7 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 			ImGui::PushItemWidth(itemWidth * 0.8f);
-			UI::Combo2Vector("Theme", weaponWheelThemeNames,
+			UI::ComboVectorString2("Theme", weaponWheelThemeNames,
 				activeCrimsonConfig.WeaponWheel.theme,
 				queuedCrimsonConfig.WeaponWheel.theme);
 			ImGui::PopItemWidth();
@@ -8338,14 +8350,14 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth * 0.5f);
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Wheel Always Show",
+			UI::ComboMapValue2("Wheel Always Show", hudElementShowStateNames, hudElementShowStateMap,
 				activeCrimsonConfig.WeaponWheel.alwaysShow,
 				queuedCrimsonConfig.WeaponWheel.alwaysShow);
 
 			ImGui::TableNextColumn();
 		
 			ImGui::PushItemWidth(itemWidth * 0.8f);
-			UI::Combo2Vector("Scale", weaponWheelScaleNames,
+			UI::ComboMapValue2("Scale", hudElementScaleStateNames, hudElementScaleStateMap,
 				activeCrimsonConfig.WeaponWheel.scale,
 				queuedCrimsonConfig.WeaponWheel.scale);
 			ImGui::PopItemWidth();
@@ -8364,13 +8376,14 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 			ImGui::PushItemWidth(itemWidth * 1.0f);
-			UI::Combo2Vector("World Space Wheels", worldSpaceWheelNames,
+			UI::ComboMapValue2("World Space Wheels", hudElementShowStateNames, hudElementShowStateMap,
 				activeCrimsonConfig.WeaponWheel.worldSpaceWheels,
 				queuedCrimsonConfig.WeaponWheel.worldSpaceWheels);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
-			GUI_Checkbox2("World Space Wheel Always Show",
+
+			UI::ComboMapValue2("WS Wheel Always Show", hudElementShowStateNames, hudElementShowStateMap,
 				activeCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow,
 				queuedCrimsonConfig.WeaponWheel.worldSpaceAlwaysShow);
 
@@ -10308,7 +10321,7 @@ void VergilGameplayOptions() {
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			ImGui::PushItemWidth(itemWidth * 0.5f);
-			UI::Combo2Vector("Alt. Rising Sun Positioning",
+			UI::ComboVectorString2("Alt. Rising Sun Positioning",
 				VergilMoveAdjustmentsNames,
 				activeCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos,
 				queuedCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos);
@@ -10322,7 +10335,7 @@ void VergilGameplayOptions() {
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			ImGui::PushItemWidth(itemWidth * 0.5f);
-			UI::Combo2Vector("Alt. Lunar Phase Positioning",
+			UI::ComboVectorString2("Alt. Lunar Phase Positioning",
 				VergilMoveAdjustmentsNames,
 				activeCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos,
 				queuedCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos);

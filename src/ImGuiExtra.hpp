@@ -251,7 +251,7 @@ namespace UI {
 	}
 
 	template <typename varType>
-	bool ComboVector(const char* label, std::vector<std::string>(&names), varType& var, ImGuiComboFlags flags = 0) {
+	bool ComboVectorString(const char* label, std::vector<std::string>(&names), varType& var, ImGuiComboFlags flags = 0) {
 		bool update = false;
 
 		std::vector<const char*> namescStr;
@@ -291,8 +291,8 @@ namespace UI {
 	}
 
 	template <typename varType>
-	bool Combo2Vector(const char* label, std::vector<std::string>(&names), varType& var, varType& var2, ImGuiComboFlags flags = 0) {
-		auto update = ComboVector(label, names, var2, flags);
+	bool ComboVectorString2(const char* label, std::vector<std::string>(&names), varType& var, varType& var2, ImGuiComboFlags flags = 0) {
+		auto update = ComboVectorString(label, names, var2, flags);
 
 		if (update) {
 			var = var2;

@@ -30,10 +30,25 @@ enum {
 };
 }
 
+namespace HUDELEMENTSCALESTATE {
+enum {
+	SMALL,
+	BIG
+};
+}
+
+namespace HUDELEMENTSHOWSTATE {
+enum {
+	OFF,
+	ONLY_IN_MP,
+	ALWAYS,
+};
+}
+
 struct CrimsonConfig {
 	struct MultiplayerBars2D {
 		bool show = true;
-		std::string show1PAttributes = "Only in Multiplayer";
+		uint8 show1PAttributes = HUDELEMENTSHOWSTATE::ONLY_IN_MP;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -45,7 +60,7 @@ struct CrimsonConfig {
 
 	struct MultiplayerBarsWorldSpace {
 		bool show = true;
-		std::string show1PBar = "Only in Multiplayer";
+		uint8 show1PBar = HUDELEMENTSHOWSTATE::ONLY_IN_MP;
         bool showOutOfViewIcons = true;
 		bool showPlayerNames = true;
 
@@ -79,12 +94,12 @@ struct CrimsonConfig {
 		bool analogSwitching = true;
 		bool disableCameraRotation = true;
 		std::string theme = "Crimson";
-		std::string scale = "Small";
-		bool alwaysShow = false;
+		uint8 scale = HUDELEMENTSCALESTATE::SMALL;
+		uint8 alwaysShow = HUDELEMENTSHOWSTATE::ONLY_IN_MP;
 		bool force1PMultiplayerPosScale = false;
 		bool hide = false;
-		std::string worldSpaceWheels = "Only in Multiplayer";
-		bool worldSpaceAlwaysShow = false;
+		uint8 worldSpaceWheels = HUDELEMENTSHOWSTATE::ONLY_IN_MP;
+		uint8 worldSpaceAlwaysShow = HUDELEMENTSHOWSTATE::OFF;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
