@@ -423,6 +423,8 @@ struct CrimsonConfig {
 			bool customSpeed = false;
 			bool miscCheats = false;
 			bool legacyDDMKCharacters = false;
+			bool teleporterTool = false;
+			bool enemySpawnerTool = false;
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
@@ -430,7 +432,10 @@ struct CrimsonConfig {
 					std::make_pair("customDamage", &General::customDamage),
 					std::make_pair("customSpeed", &General::customSpeed),
 					std::make_pair("miscCheats", &General::miscCheats),
-					std::make_pair("legacyDDMKCharacters", &General::legacyDDMKCharacters)
+					std::make_pair("legacyDDMKCharacters", &General::legacyDDMKCharacters),
+					std::make_pair("teleporterTool", &General::teleporterTool),
+					std::make_pair("enemySpawnerTool", &General::enemySpawnerTool)
+
 				);
 			}
 		} General;

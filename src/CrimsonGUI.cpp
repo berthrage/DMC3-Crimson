@@ -8882,68 +8882,103 @@ void SystemSection(size_t defaultFontSize) {
 
 #pragma endregion
 
-#pragma region Teleporter
+#pragma region TeleporterTool
 
-void TeleporterSection() {
-   
-	[&]() {
-		if (!InGame()) {
-			ImGui::Text("Invalid Pointer");
+void TeleporterToolSection() {
+	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	float smallerComboMult = 0.8f;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-			return;
-		}
+	GUI_TitleCheckbox2("TELEPORTER TOOL", activeCrimsonConfig.Cheats.General.teleporterTool, 
+		queuedCrimsonConfig.Cheats.General.teleporterTool, false);
 
-		auto pool_11962 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-		if (!pool_11962 || !pool_11962[8]) {
-			return;
-		}
-		auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
-		auto pool_12013 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-		if (!pool_12013 || !pool_12013[12]) {
-			return;
-		}
-		auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12013[12]);
+	GUI_PushDisable(!activeCrimsonConfig.Cheats.General.teleporterTool);
 
+	if (!InGame()) {
+		ImGui::Text("Invalid pointer. Needs to be in-game.");
+		ImGui::PopStyleColor();
+		ImGui::PopFont();
+		return;
+	}
 
-		if (GUI_Button("Clear")) {
-			nextEventData.position = nextEventData.room = 0;
-		}
-		ImGui::SameLine();
+	auto pool_11962 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_11962 || !pool_11962[8]) {
+		ImGui::PopStyleColor();
+		ImGui::PopFont();
+		return;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
 
-		if (GUI_Button("Current")) {
-			nextEventData.room = static_cast<uint16>(eventData.room);
-			nextEventData.position = static_cast<uint16>(eventData.position);
-		}
-		ImGui::Text("");
+	auto pool_12013 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_12013 || !pool_12013[12]) {
+		ImGui::PopStyleColor();
+		ImGui::PopFont();
+		return;
+	}
+	auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12013[12]);
 
+	const float columnWidth = 0.5f * queuedConfig.globalScale;
+	const float rowHeight = 40.0f * queuedConfig.globalScale;
 
-		constexpr float width = 150.0f;
+	if (ImGui::BeginTable("TeleporterTable", 2)) {
+		ImGui::TableSetupColumn("c1", 0, columnWidth * 2.0f);
+		ImGui::TableSetupColumn("c2", 0, columnWidth * 2.0f);
 
-		ImGui::PushItemWidth(width);
+		ImGui::TableNextRow(0, rowHeight * 0.75f);
+		ImGui::TableNextColumn();
 
-		ImGui::Text("Current");
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+		ImGui::Text("CURRENT ROOM");
+		ImGui::PopFont();
 
+		ImGui::TableNextColumn();
+		
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+		ImGui::Text("NEXT ROOM");
+		ImGui::PopFont();
+
+		ImGui::TableNextRow(0, rowHeight);
+		ImGui::TableNextColumn();
+
+		ImGui::PushItemWidth(itemWidth * smallerComboMult);
 		GUI_Input<uint32>("Room", eventData.room, 0, "%u", ImGuiInputTextFlags_ReadOnly);
-
 		GUI_Input<uint32>("Position", eventData.position, 0, "%u", ImGuiInputTextFlags_ReadOnly);
+		ImGui::PopItemWidth();
 
-		ImGui::Text("Next");
+		ImGui::TableNextColumn();
 
-		GUI_Input<uint16>("Room", nextEventData.room, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::PushItemWidth(itemWidth * 1.1f);
+		bool updatedRoom = GUI_Input<uint16>("Room", nextEventData.room, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::PopItemWidth();
 
-		GUI_Input<uint16>("Position", nextEventData.position, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::PushItemWidth(itemWidth * 1.1f);
+		bool updatedPos = GUI_Input<uint16>("Position", nextEventData.position, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::PopItemWidth();
 
-		if (GUI_Button("Teleport", ImVec2(width, ImGui::GetFrameHeight()))) {
+		if (GUI_Button("TELEPORT", ImVec2(150.0f * scaleFactorY, 50.0f * scaleFactorY))) {
 			eventData.event = EVENT::TELEPORT;
 		}
 
-		ImGui::PopItemWidth();
-		}();
+		if (GUI_Button("Use Current Location")) {
+			nextEventData.room = static_cast<uint16>(eventData.room);
+			nextEventData.position = static_cast<uint16>(eventData.position);
+		}
+		ImGui::SameLine();
+		if (GUI_Button("Clear")) {
+			nextEventData.position = nextEventData.room = 0;
+		}
 
+		ImGui::EndTable();
+	}
 
-		ImGui::Text("");
+	GUI_PopDisable(!activeCrimsonConfig.Cheats.General.teleporterTool);
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
 }
+
 
 #pragma endregion
 
@@ -11705,7 +11740,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					{
-						TeleporterSection();
+						TeleporterToolSection();
 					}
 				}
 				ImGui::EndChild();
