@@ -197,6 +197,11 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         Arcade::Toggle(false);
         Arcade::Toggle(activeConfig.Arcade.enable);
 
+		if (!activeCrimsonConfig.Cheats.General.enemySpawnerTool) {
+			activeConfig.enemyAutoSpawn = false;
+			queuedConfig.enemyAutoSpawn = false;
+		}
+
         // @Merge
         Event_Toggle(false);
         Event_Toggle(true);

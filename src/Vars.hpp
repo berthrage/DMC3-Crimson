@@ -1971,8 +1971,11 @@ static_assert(sizeof(BloodyPalaceData) == 2088);
 
 // $BloodyPalaceDataEnd
 
-
 // $EventDataStart
+
+constexpr size_t ROOMS_COUNT = 189;
+extern const char* roomNames[ROOMS_COUNT];
+extern const uint16 roomsMap[ROOMS_COUNT];
 
 struct EventData {
     _(24);

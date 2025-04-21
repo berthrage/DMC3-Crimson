@@ -6805,125 +6805,143 @@ void DebugSection() {
 
 #pragma region Enemy
 
-void EnemySpawnerSection() {
-	if (GUI_ResetButton()) {
+void EnemySpawnerToolSection() {
+	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
+	float smallerComboMult = 0.8f;
+
+	if (GUI_TitleCheckbox2("ENEMY SPAWNER TOOL", activeCrimsonConfig.Cheats.General.enemySpawnerTool,
+		queuedCrimsonConfig.Cheats.General.enemySpawnerTool, false)) {
+		if (!activeCrimsonConfig.Cheats.General.enemySpawnerTool) {
+			activeConfig.enemyAutoSpawn = false;
+			queuedConfig.enemyAutoSpawn = false;
+		}
 		CopyMemory(&queuedConfig.enemyCount, &defaultConfig.enemyCount, sizeof(queuedConfig.enemyCount));
 		CopyMemory(&activeConfig.enemyCount, &queuedConfig.enemyCount, sizeof(activeConfig.enemyCount));
 
-		CopyMemory(&queuedConfig.configCreateEnemyActorData, &defaultConfig.configCreateEnemyActorData,
-			sizeof(queuedConfig.configCreateEnemyActorData));
-		CopyMemory(&activeConfig.configCreateEnemyActorData, &queuedConfig.configCreateEnemyActorData,
-			sizeof(activeConfig.configCreateEnemyActorData));
+		CopyMemory(&queuedConfig.configCreateEnemyActorData, &defaultConfig.configCreateEnemyActorData, sizeof(queuedConfig.configCreateEnemyActorData));
+		CopyMemory(&activeConfig.configCreateEnemyActorData, &queuedConfig.configCreateEnemyActorData, sizeof(activeConfig.configCreateEnemyActorData));
 
 		CopyMemory(&queuedConfig.enemyAutoSpawn, &defaultConfig.enemyAutoSpawn, sizeof(queuedConfig.enemyAutoSpawn));
 		CopyMemory(&activeConfig.enemyAutoSpawn, &queuedConfig.enemyAutoSpawn, sizeof(activeConfig.enemyAutoSpawn));
 	}
-	ImGui::Text("");
 
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+	GUI_PushDisable(!activeCrimsonConfig.Cheats.General.enemySpawnerTool);
 
-	ImGui::PushItemWidth(200);
+	const float columnWidth = 0.48f * queuedConfig.globalScale;
+	const float rowHeight = 40.0f * queuedConfig.globalScale;
 
+	if (ImGui::BeginTable("EnemySpawnerTable", 2)) {
+		ImGui::TableSetupColumn("Left", 0, columnWidth * 2.0f);
+		ImGui::TableSetupColumn("Right", 0, columnWidth * 2.0f);
 
-	GUI_Slider2<uint8>("Enemy Count", activeConfig.enemyCount, queuedConfig.enemyCount, 1,
-		static_cast<uint8>(countof(activeConfig.configCreateEnemyActorData)));
-	ImGui::Text("");
+		ImGui::TableNextRow(0, rowHeight);
+		ImGui::TableNextColumn();
+		GUI_Slider2<uint8>("Enemy Quantity", activeConfig.enemyCount, queuedConfig.enemyCount, 1, static_cast<uint8>(countof(activeConfig.configCreateEnemyActorData)));
 
-	GUI_Checkbox2("Auto Spawn", activeConfig.enemyAutoSpawn, queuedConfig.enemyAutoSpawn);
-	ImGui::Text("");
+		ImGui::TableNextColumn();
+		GUI_Checkbox2("Auto Spawn", activeConfig.enemyAutoSpawn, queuedConfig.enemyAutoSpawn);
 
-
-	if (GUI_Button("Create All")) {
-		old_for_all(uint8, index, activeConfig.enemyCount) {
-			auto& activeConfigCreateEnemyActorData = activeConfig.configCreateEnemyActorData[index];
-
-			CreateEnemyActor(activeConfigCreateEnemyActorData);
+		ImGui::TableNextRow(0, rowHeight * 0.9f);
+		ImGui::TableNextColumn();
+		if (GUI_Button("SPAWN ALL", ImVec2(150.0f * scaleFactorY, 30.0f * scaleFactorY))) {
+			old_for_all(uint8, index, activeConfig.enemyCount) {
+				auto& data = activeConfig.configCreateEnemyActorData[index];
+				CreateEnemyActor(data);
+			}
 		}
-	}
-	ImGui::Text("");
 
-	if (GUI_Button("Kill All Ladies")) {
-		[&]() {
+		ImGui::TableNextColumn();
+		if (GUI_Button("Kill All Ladies")) {
 			auto pool_9347 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-			if (!pool_9347 || !pool_9347[8]) {
-				return;
-			}
-			auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_9347[8]);
+			if (pool_9347 && pool_9347[8]) {
+				auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_9347[8]);
+				old_for_all(uint32, enemyIndex, countof(enemyVectorData.metadata)) {
+					auto& metadata = enemyVectorData.metadata[enemyIndex];
+					if (!metadata.baseAddr) continue;
 
+					auto& actor = *reinterpret_cast<EnemyActorDataLady*>(metadata.baseAddr);
+					if (!actor.baseAddr || actor.enemy != ENEMY::LADY) continue;
 
-			LogFunction();
-
-			old_for_all(uint32, enemyIndex, countof(enemyVectorData.metadata)) {
-				auto& metadata = enemyVectorData.metadata[enemyIndex];
-
-				if (!metadata.baseAddr) {
-					continue;
+					actor.event = EVENT_BOSS_LADY::DEATH;
+					actor.state = 0;
+					actor.friendly = false;
 				}
-				auto& actorData = *reinterpret_cast<EnemyActorDataLady*>(metadata.baseAddr);
-
-				if (!actorData.baseAddr || (actorData.enemy != ENEMY::LADY)) {
-					continue;
-				}
-
-				actorData.event = EVENT_BOSS_LADY::DEATH;
-				actorData.state = 0;
-				actorData.friendly = false;
 			}
-			}();
-	}
-	ImGui::Text("");
-
-
-	old_for_all(uint8, index, activeConfig.enemyCount) {
-		auto& activeConfigCreateEnemyActorData = activeConfig.configCreateEnemyActorData[index];
-		auto& queuedConfigCreateEnemyActorData = queuedConfig.configCreateEnemyActorData[index];
-
-		ImGui::Text("%u", index);
-
-
-		UI::Combo2("Enemy", enemyNames, activeConfigCreateEnemyActorData.enemy, queuedConfigCreateEnemyActorData.enemy,
-			ImGuiComboFlags_HeightLarge);
-
-		GUI_Input2<uint32>("Variant", activeConfigCreateEnemyActorData.variant, queuedConfigCreateEnemyActorData.variant, 1, "%u",
-			ImGuiInputTextFlags_EnterReturnsTrue);
-
-		GUI_Checkbox2("Use Main Actor Data", activeConfigCreateEnemyActorData.useMainActorData,
-			queuedConfigCreateEnemyActorData.useMainActorData);
-
-
-		{
-			bool condition = activeConfigCreateEnemyActorData.useMainActorData;
-
-			GUI_PushDisable(condition);
-
-			GUI_Input2<float>("X", activeConfigCreateEnemyActorData.position.x, queuedConfigCreateEnemyActorData.position.x, 10.0f,
-				"%g", ImGuiInputTextFlags_EnterReturnsTrue);
-			GUI_Input2<float>("Y", activeConfigCreateEnemyActorData.position.y, queuedConfigCreateEnemyActorData.position.y, 10.0f,
-				"%g", ImGuiInputTextFlags_EnterReturnsTrue);
-			GUI_Input2<float>("Z", activeConfigCreateEnemyActorData.position.z, queuedConfigCreateEnemyActorData.position.z, 10.0f,
-				"%g", ImGuiInputTextFlags_EnterReturnsTrue);
-
-
-			GUI_Input2<uint16>("Rotation", activeConfigCreateEnemyActorData.rotation, queuedConfigCreateEnemyActorData.rotation, 1,
-				"%u", ImGuiInputTextFlags_EnterReturnsTrue);
-
-			GUI_PopDisable(condition);
 		}
-
-
-		GUI_Input2<uint16>("Spawn Method", activeConfigCreateEnemyActorData.spawnMethod, queuedConfigCreateEnemyActorData.spawnMethod,
-			1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
-
-		if (GUI_Button("Create")) {
-			CreateEnemyActor(activeConfigCreateEnemyActorData);
-		}
-
-		ImGui::Text("");
+		ImGui::EndTable();
 	}
 
+	ImGui::Spacing();
 
+	// Enemy Entries
+	ImGui::PushItemWidth(200);
+	if (ImGui::BeginTable("EnemySpawnerTable2", 3)) {
+		ImGui::TableSetupColumn("Left", 0, columnWidth * 2.0f);
+		ImGui::TableSetupColumn("Right", 0, columnWidth * 2.0f);
+
+		ImGui::TableNextRow(0, rowHeight);
+		ImGui::TableNextColumn();
+		old_for_all(uint8, index, activeConfig.enemyCount) {
+			auto& activeData = activeConfig.configCreateEnemyActorData[index];
+			auto& queuedData = queuedConfig.configCreateEnemyActorData[index];
+
+			ImGui::PushID(index);
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("Enemy Slot %u", index + 1);
+			ImGui::PopFont();
+
+			ImGui::PushItemWidth(itemWidth * 1.7f);
+			UI::Combo2("Enemy", enemyNames, activeData.enemy, queuedData.enemy, ImGuiComboFlags_HeightLarge);
+			ImGui::PopItemWidth();
+
+			ImGui::PushItemWidth(itemWidth * 0.9f);
+			GUI_Input2<uint32>("Variant", activeData.variant, queuedData.variant, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+			GUI_Checkbox2("Use 1P Character Position", activeData.useMainActorData, queuedData.useMainActorData);
+
+			bool disablePos = activeData.useMainActorData;
+			GUI_PushDisable(disablePos);
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_Input2<float>("X", activeData.position.x, queuedData.position.x, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_Input2<float>("Y", activeData.position.y, queuedData.position.y, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_Input2<float>("Z", activeData.position.z, queuedData.position.z, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_Input2<uint16>("Rotation", activeData.rotation, queuedData.rotation, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+			GUI_PopDisable(disablePos);
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_Input2<uint16>("Spawn Method", activeData.spawnMethod, queuedData.spawnMethod, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+			if (GUI_Button("SPAWN", ImVec2(150.0f * scaleFactorY, 50.0f * scaleFactorY))) {
+				CreateEnemyActor(activeData);
+			}
+
+			ImGui::PopID();
+			ImGui::TableNextColumn();
+		}
+
+		ImGui::EndTable();
+	}
 	ImGui::PopItemWidth();
-    
+
+	GUI_PopDisable(!activeCrimsonConfig.Cheats.General.enemySpawnerTool);
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
 }
+
 
 #pragma endregion
 
@@ -8900,6 +8918,7 @@ void TeleporterToolSection() {
 	if (!InGame()) {
 		ImGui::Text("Invalid pointer. Needs to be in-game.");
 		ImGui::PopStyleColor();
+		GUI_PopDisable(!activeCrimsonConfig.Cheats.General.teleporterTool);
 		ImGui::PopFont();
 		return;
 	}
@@ -8908,6 +8927,7 @@ void TeleporterToolSection() {
 	if (!pool_11962 || !pool_11962[8]) {
 		ImGui::PopStyleColor();
 		ImGui::PopFont();
+		GUI_PopDisable(!activeCrimsonConfig.Cheats.General.teleporterTool);
 		return;
 	}
 	auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
@@ -8916,6 +8936,7 @@ void TeleporterToolSection() {
 	if (!pool_12013 || !pool_12013[12]) {
 		ImGui::PopStyleColor();
 		ImGui::PopFont();
+		GUI_PopDisable(!activeCrimsonConfig.Cheats.General.teleporterTool);
 		return;
 	}
 	auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12013[12]);
@@ -8944,15 +8965,40 @@ void TeleporterToolSection() {
 		ImGui::TableNextColumn();
 
 		ImGui::PushItemWidth(itemWidth * smallerComboMult);
-		GUI_Input<uint32>("Room", eventData.room, 0, "%u", ImGuiInputTextFlags_ReadOnly);
+		GUI_Input<uint32>("", eventData.room, 0, "%u", ImGuiInputTextFlags_ReadOnly);
+		ImGui::SameLine();
+		int roomIndex = -1;
+		for (size_t i = 0; i < ROOMS_COUNT; i++) {
+			if (roomsMap[i] == eventData.room) {
+				roomIndex = i;
+				break;
+			}
+		}
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+		if (roomIndex != -1) {
+			const char* currentRoomName = roomNames[roomIndex];
+			ImGui::Text("%s", currentRoomName);
+		} else {
+			ImGui::Text("Unknown Room (%d)", eventData.room);
+		}
+		ImGui::PopFont();
+		
 		GUI_Input<uint32>("Position", eventData.position, 0, "%u", ImGuiInputTextFlags_ReadOnly);
 		ImGui::PopItemWidth();
 
 		ImGui::TableNextColumn();
 
-		ImGui::PushItemWidth(itemWidth * 1.1f);
-		bool updatedRoom = GUI_Input<uint16>("Room", nextEventData.room, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+		ImGui::PushItemWidth(itemWidth * 0.6f);
+		bool updatedRoom = GUI_Input<uint16>("", nextEventData.room, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushItemWidth(itemWidth * 1.3f);
+		updatedRoom = UI::ComboMapValue("", roomNames, roomsMap, nextEventData.room, 0);
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
+		ImGui::Text("Room");
 
 		ImGui::PushItemWidth(itemWidth * 1.1f);
 		bool updatedPos = GUI_Input<uint16>("Position", nextEventData.position, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
@@ -11789,7 +11835,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					{
-						EnemySpawnerSection();
+						EnemySpawnerToolSection();
 					}
 				}
 				ImGui::EndChild();
