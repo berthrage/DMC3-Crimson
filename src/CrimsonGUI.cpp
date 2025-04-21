@@ -456,8 +456,8 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 				}
 
 				ImGui::SameLine(0.0f, tabButtonsGap);
-				if (TabButton("CHARACTER", g_UIContext.SelectedTab == UIContext::MainTabs::Character, true, false, tabBtnSize)) {
-					g_UIContext.SelectedTab = UIContext::MainTabs::Character;
+				if (TabButton("PLAYER", g_UIContext.SelectedTab == UIContext::MainTabs::Player, true, false, tabBtnSize)) {
+					g_UIContext.SelectedTab = UIContext::MainTabs::Player;
 				}
 
 				ImGui::SameLine(0.0f, tabButtonsGap);
@@ -498,10 +498,10 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 				}
 				break;
 
-				case UIContext::MainTabs::Character:
+				case UIContext::MainTabs::Player:
 				{
 					window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
-						SwapColorEndianness(0xFFFFFF10), "Character");
+						SwapColorEndianness(0xFFFFFF10), "Player");
 				}
 				break;
 
@@ -11113,7 +11113,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 	}
 	break;
 
-	case UI::UIContext::MainTabs::Character:
+	case UI::UIContext::MainTabs::Player:
 	{
 		// Widget area
 		{

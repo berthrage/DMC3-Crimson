@@ -83,7 +83,7 @@ namespace UI {
 	struct UIContext {
 		enum class MainTabs {
 			GameMode = 0,
-			Character,
+			Player,
 			Quickplay,
 			MusicSwitcher,
 			Options,
