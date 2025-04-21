@@ -425,8 +425,8 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 					}
 
 					ImGui::SameLine(0.0f, tabButtonsGap);
-					if (TabButton("JUKEBOX", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::JukeBox, true, false, subTabBtnSize)) {
-						g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::JukeBox;
+					if (TabButton("FMOD JUKEBOX", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::FMODJukebox, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::FMODJukebox;
 					}
 
 					ImGui::SetCursorScreenPos(cursorPosBackup);
@@ -581,9 +581,9 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "Enemy Spawner");
 					}
-					else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::JukeBox) {
+					else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::FMODJukebox) {
 						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
-							SwapColorEndianness(0xFFFFFF10), "Jukebox");
+							SwapColorEndianness(0xFFFFFF10), "FMOD Jukebox");
 					}
 				}
 				break;
@@ -6947,18 +6947,15 @@ void EnemySpawnerToolSection() {
 
 #pragma region Jukebox
 
-void JukeboxSection() {
-	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
-
+void FMODJukeboxSection() {
+	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	float smallerComboMult = 0.8f;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-// 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-// 	ImGui::Text("JUKEBOX");
-// 	ImGui::PopFont();
-// 	UI::SeparatorEx(defaultFontSize * 23.35f);
+	GUI_Title("FMOD JUKEBOX TOOL", false);
+
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
-	ImGui::PushItemWidth(itemWidth);
 
 	static char location[512];
 	static char fileName[256];
@@ -6967,35 +6964,56 @@ void JukeboxSection() {
 
 	if (!run) {
 		run = true;
-
 		snprintf(fileName, sizeof(fileName), "%s", trackFilenames[index]);
 	}
 
-	ImGui::PushItemWidth(200);
+	const float columnWidth = 0.5f * queuedConfig.globalScale;
+	const float rowHeight = 40.0f * queuedConfig.globalScale;
 
-	ImGui::InputText("Filename", fileName, sizeof(fileName));
+	if (ImGui::BeginTable("JukeboxTable", 2)) {
+		ImGui::TableSetupColumn("c1", 0, columnWidth * 2.0f);
+		ImGui::TableSetupColumn("c2", 0, columnWidth * 2.0f);
 
-	if (UI::Combo("", trackNames, index, ImGuiComboFlags_HeightLarge)) {
-		snprintf(fileName, sizeof(fileName), "%s", trackFilenames[index]);
+		ImGui::TableNextRow(0, rowHeight * 0.75f);
+		ImGui::TableNextColumn();
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+		ImGui::Text("TRACK SELECTION");
+		ImGui::PopFont();
+
+		ImGui::TableNextColumn();
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+		ImGui::Text("CONTROL");
+		ImGui::PopFont();
+
+		ImGui::TableNextRow(0, rowHeight);
+		ImGui::TableNextColumn();
+
+		ImGui::PushItemWidth(itemWidth * smallerComboMult);
+		ImGui::InputText("##Filename", fileName, sizeof(fileName));
+		ImGui::PopItemWidth();
+
+		ImGui::PushItemWidth(itemWidth * 1.3f);
+		if (UI::Combo("", trackNames, index, ImGuiComboFlags_HeightLarge)) {
+			snprintf(fileName, sizeof(fileName), "%s", trackFilenames[index]);
+		}
+		ImGui::PopItemWidth();
+
+		ImGui::TableNextColumn();
+
+		if (GUI_Button("PLAY", ImVec2(150.0f * scaleFactorY, 50.0f * scaleFactorY))) {
+			snprintf(location, sizeof(location), "afs/sound/%s", fileName);
+			PlayTrack(location);
+		}
+
+		if (GUI_Button("STOP", ImVec2(150.0f * scaleFactorY, 50.0f * scaleFactorY))) {
+			PlayTrack("");
+		}
+
+		ImGui::EndTable();
 	}
 
-	ImGui::PopItemWidth();
-
-	if (GUI_Button("Play")) {
-		snprintf(location, sizeof(location), "afs/sound/%s", fileName);
-
-		PlayTrack(location);
-	}
-
-	if (GUI_Button("Stop")) {
-		PlayTrack("");
-	}
-
-	ImGui::PopItemWidth();
 	ImGui::PopStyleColor();
 	ImGui::PopFont();
-
-	ImGui::Text("");
 }
 
 #pragma endregion
@@ -9024,7 +9042,6 @@ void TeleporterToolSection() {
 	ImGui::PopStyleColor();
 	ImGui::PopFont();
 }
-
 
 #pragma endregion
 
@@ -11808,14 +11825,14 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
-					ImGui::Text("TELEPORTER");
+					ImGui::Text("TELEPORTER TOOL");
 					ImGui::PopFont();
 
 
 					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
 					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
 
-					ImGui::TextWrapped("Teleport anywhere. Using this will tag you at the Mission End screen.");
+					ImGui::TextWrapped("Teleport anywhere.\nEnabling this will tag you at the Mission Result screen.");
 					ImGui::PopFont();
 				}
 				ImGui::EndChild();
@@ -11857,20 +11874,20 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
-					ImGui::Text("ENEMY SPAWNER");
+					ImGui::Text("ENEMY SPAWNER TOOL");
 					ImGui::PopFont();
 
 
 					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
 					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
 
-					ImGui::TextWrapped("Spawn new enemies at your leisure.");
+					ImGui::TextWrapped("Spawn new enemies at your leisure.\nEnabling this will tag you at the Mission Result screen.");
 					ImGui::PopFont();
 				}
 				ImGui::EndChild();
 			}
 		}
-		else if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::JukeBox) {
+		else if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::FMODJukebox) {
 			// Widget area
 			{
 				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
@@ -11883,7 +11900,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					{
-						JukeboxSection();
+						FMODJukeboxSection();
 					}
 				}
 				ImGui::EndChild();
@@ -11905,7 +11922,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
-					ImGui::Text("JUKEBOX");
+					ImGui::Text("FMOD JUKEBOX TOOL");
 					ImGui::PopFont();
 
 

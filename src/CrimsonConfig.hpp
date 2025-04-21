@@ -435,7 +435,6 @@ struct CrimsonConfig {
 					std::make_pair("legacyDDMKCharacters", &General::legacyDDMKCharacters),
 					std::make_pair("teleporterTool", &General::teleporterTool),
 					std::make_pair("enemySpawnerTool", &General::enemySpawnerTool)
-
 				);
 			}
 		} General;

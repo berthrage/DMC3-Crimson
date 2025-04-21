@@ -111,7 +111,7 @@ namespace UI {
 			CharacterCheats,
 			Teleporter,
 			EnemySpawner,
-			JukeBox,
+			FMODJukebox,
 
 			Size,
 			None
