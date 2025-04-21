@@ -403,14 +403,16 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 					ImGui::SetCursorScreenPos({ wndRect.Min.x, wndRect.Min.y + 2.0f * tabBtnSize.y + tabBtnSize.y });
 
 					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + tabButtonsGap);
-					if (TabButton("COMMON", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Common, true, false, subTabBtnSize)) {
-						g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::Common;
+					if (TabButton("COMMON CHEATS", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::CommonCheats, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::CommonCheats;
 					}
 
 					ImGui::SameLine(0.0f, tabButtonsGap);
-					if (TabButton("SPEED", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Speed, true, false, subTabBtnSize)) {
-						g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::Speed;
+					ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 0.83f]);
+					if (TabButton("CHARACTER CHEATS", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::CharacterCheats, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::CharacterCheats;
 					}
+					ImGui::PopFont();
 
 					ImGui::SameLine(0.0f, tabButtonsGap);
 					if (TabButton("TELEPORTER", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Teleporter, true, false, subTabBtnSize)) {
@@ -563,13 +565,13 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 					pos += ImVec2{ 0.0f, subTabBtnSize.y + g_UIContext.DefaultFontSize * 0.3f };
 
 
-					if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Common) {
+					if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::CommonCheats) {
 						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "Common Cheats");
 					}
-					else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Speed) {
+					else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::CharacterCheats) {
 						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
-							SwapColorEndianness(0xFFFFFF10), "Speed");
+							SwapColorEndianness(0xFFFFFF10), "Character Cheats");
 					}
 					else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::Teleporter) {
 						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
@@ -7010,7 +7012,7 @@ void LegacyDDMKCharactersSection() {
 	ImGui::SameLine();
 	TooltipHelper("(?)", "These are incomplete playable characters adapted from their respective bosses in DDMK.\n"
 		"Crimson won't offer long-term support for these characters, but they will remain here for preservation purposes.\n"
-		"Enables them to be selected at PLAYER -> Character tab.");
+		"Enables them to be selected at PLAYER tab -> CHARACTER.");
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 	ImGui::PushItemWidth(itemWidth * 0.5f);
@@ -8941,7 +8943,6 @@ void TeleporterSection() {
 
 
 		ImGui::Text("");
-    
 }
 
 #pragma endregion
@@ -10709,12 +10710,16 @@ void CommonCheatsSection() {
 	//}
 	TrainingSection();
 	DamageSection();
-	DanteCheatOptions();
-	VergilCheatOptions();
+	CustomSpeedSection();
 	CustomMobilitySection();
 	MiscCheatsSection();
-	LegacyDDMKCharactersSection();
 	//Repair();
+}
+
+void CharacterCheatsSection() {
+	DanteCheatOptions();
+	VergilCheatOptions();
+	LegacyDDMKCharactersSection();
 }
 
 void PreventEmptyCrimsonGUIHotkey() {
@@ -11589,7 +11594,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 	case UI::UIContext::MainTabs::CheatsAndDebug:
 	{
-		if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::Common) {
+		if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::CommonCheats) {
 			// Widget area
 			{
 				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
@@ -11631,13 +11636,14 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
 					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
 
-					ImGui::TextWrapped("Various Cheats for you to customize the game to your liking.\nThis will tag you at the End of Mission screen.");
+					ImGui::TextWrapped("Various Cheats for you to customize the game to your liking.\n"
+						"This can tag you at the Mission Result screen, and possibly change your Game Mode to 'Custom Mode'.");
 					ImGui::PopFont();
 				}
 				ImGui::EndChild();
 			}
 		}
-		else if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::Speed) {
+		else if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::CharacterCheats) {
 			// Widget area
 			{
 				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
@@ -11650,7 +11656,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					{
-						CustomSpeedSection();						
+						CharacterCheatsSection();
 					}
 				}
 				ImGui::EndChild();
@@ -11672,14 +11678,15 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
-					ImGui::Text("CUSTOM SPEED SETTINGS");
+					ImGui::Text("CHARACTER CHEAT OPTIONS");
 					ImGui::PopFont();
 
 
 					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
 					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
 
-					ImGui::TextWrapped("Various Speed Settings for in-game entities.\nThis will tag you at the End of Mission screen.");
+					ImGui::TextWrapped("Cheats for several Character-based Gameplay changes.\n"
+						"This can tag you at the Mission Result screen, and possibly change your Game Mode to 'Custom Mode'.");
 					ImGui::PopFont();
 				}
 				ImGui::EndChild();

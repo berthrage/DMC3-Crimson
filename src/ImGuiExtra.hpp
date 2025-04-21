@@ -107,8 +107,8 @@ namespace UI {
 		} SelectedOptionsSubTab{ 0 };
 
 		enum class CheatsAndDebugSubTabs {
-			Common = 0,
-			Speed,
+			CommonCheats = 0,
+			CharacterCheats,
 			Teleporter,
 			EnemySpawner,
 			JukeBox,
