@@ -413,7 +413,7 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
 	auto playerIndex = actorData.newPlayerIndex;
 	auto gamepad = GetGamepad(playerIndex);
 
-    if (activeConfig.infiniteHitPoints) {
+    if (activeCrimsonGameplay.Cheats.Training.infiniteHP) {
         return true;
     }
 

@@ -7803,7 +7803,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("Air Rising Sun Count %u", actorData.newAirRisingSunCount);
 
 
-            ImGui::Text("Config Inf HP: %u", activeConfig.infiniteHitPoints);
+            ImGui::Text("Config Inf HP: %u", activeCrimsonGameplay.Cheats.Training.infiniteDT);
 
             /*ImGui::Text("styleRankCount Dismal %u", rankAnnouncer[0].count);
             ImGui::Text("styleRankCount Crazy %u", rankAnnouncer[1].count);
@@ -9148,30 +9148,35 @@ void TrainingSection() {
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("Infinite Hit Points", activeConfig.infiniteHitPoints, activeConfig.infiniteHitPoints)) {
-				ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
+			if (GUI_Checkbox2("Infinite Hit Points", activeCrimsonGameplay.Cheats.Training.infiniteHP, queuedCrimsonGameplay.Cheats.Training.infiniteHP)) {
+				ToggleInfiniteHitPoints(activeCrimsonGameplay.Cheats.Training.infiniteHP);
 			}
 
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("Infinite Magic Points", activeConfig.infiniteMagicPoints, queuedConfig.infiniteMagicPoints)) {
-				ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
+			if (GUI_Checkbox2("Infinite Devil Trigger", activeCrimsonGameplay.Cheats.Training.infiniteDT, queuedCrimsonGameplay.Cheats.Training.infiniteDT)) {
+				ToggleInfiniteMagicPoints(activeCrimsonGameplay.Cheats.Training.infiniteDT);
 			}
 
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("Disable Timer", activeConfig.disableTimer, queuedConfig.disableTimer)) {
-				ToggleDisableTimer(activeConfig.disableTimer);
+			if (GUI_Checkbox2("Disable Timer", activeCrimsonGameplay.Cheats.Training.disableTimers, queuedCrimsonGameplay.Cheats.Training.disableTimers)) {
+				ToggleDisableTimer(activeCrimsonGameplay.Cheats.Training.disableTimers);
 			}
+			
+			if (activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters) {
+				ImGui::TableNextColumn();
 
-			ImGui::TableNextRow(0, rowWidth);
-			ImGui::TableNextColumn();
-
-			if (GUI_Checkbox2("Infinite Bullets", activeConfig.infiniteBullets, queuedConfig.infiniteBullets)) {
-				ToggleInfiniteBullets(activeConfig.infiniteBullets);
+				GUI_PushDisable(!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters);
+				if (GUI_Checkbox2("Infinite B. Lady Bullets", activeCrimsonGameplay.Cheats.Training.infiniteBossLadyBullets, 
+					queuedCrimsonGameplay.Cheats.Training.infiniteBossLadyBullets)) {
+					ToggleInfiniteBullets(activeCrimsonGameplay.Cheats.Training.infiniteBossLadyBullets);
+				}
+				ImGui::SameLine();
+				GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters);
+				TooltipHelper("(?)", "For Boss Lady (Legacy DDMK Character).");
 			}
-			ImGui::SameLine();
-			TooltipHelper("(?)", "For Boss Lady.");
+			
 
 			ImGui::EndTable();
 		}
@@ -10773,13 +10778,13 @@ void MoveToMainActor() {
 
 void ToggleInfiniteHealth() {
 
-    if (activeConfig.infiniteHitPoints) {
-        activeConfig.infiniteHitPoints = false;
+    if (activeCrimsonGameplay.Cheats.Training.infiniteHP) {
+		activeCrimsonGameplay.Cheats.Training.infiniteHP = false;
     } else {
-        activeConfig.infiniteHitPoints = true;
+		activeCrimsonGameplay.Cheats.Training.infiniteHP = true;
     }
 
-    ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
+    ToggleInfiniteHitPoints(activeCrimsonGameplay.Cheats.Training.infiniteHP);
 }
 
 void ToggleOneHitKill() {

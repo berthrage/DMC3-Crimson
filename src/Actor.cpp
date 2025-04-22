@@ -3389,7 +3389,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
                 ActivateDoppelganger(actorData);
 
 
-                if (!activeConfig.infiniteMagicPoints && actorData.costume != 2 &&
+                if (!activeCrimsonGameplay.Cheats.Training.infiniteDT && actorData.costume != 2 &&
                     actorData.costume !=
                         4) { // if Infinite Magic Points is on or using Super/Super Corrupted Vergil, DT drain doesn't trigger.
 					// Calculate the amount of time that has already passed based on the current DT

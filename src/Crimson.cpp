@@ -239,10 +239,10 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         Speed::Toggle(true);
 
 
-        ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
-        ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
-        ToggleDisableTimer(activeConfig.disableTimer);
-        ToggleInfiniteBullets(activeConfig.infiniteBullets);
+        ToggleInfiniteHitPoints(activeCrimsonGameplay.Cheats.Training.infiniteHP);
+        ToggleInfiniteMagicPoints(activeCrimsonGameplay.Cheats.Training.infiniteDT);
+        ToggleDisableTimer(activeCrimsonGameplay.Cheats.Training.disableTimers);
+        ToggleInfiniteBullets(activeCrimsonGameplay.Cheats.Training.infiniteBossLadyBullets);
 
         // Why are we calling these with false first???? - Answer: See Line 119
 

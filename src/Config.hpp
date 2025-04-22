@@ -158,11 +158,6 @@ struct Config {
 
     bool resetPermissions = false;
 
-    bool infiniteHitPoints   = false;
-    bool infiniteMagicPoints = false;
-    bool disableTimer        = false;
-    bool infiniteBullets     = false;
-
     uint8 airHikeCount[2]        = {1, 1};
     uint8 kickJumpCount[2]       = {1, 1};
     uint8 wallHikeCount[2]       = {1, 1};

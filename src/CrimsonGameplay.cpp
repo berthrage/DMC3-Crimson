@@ -2255,7 +2255,7 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 		if (inNormalBlock) {
 			if (!normalBlocked[playerIndex]) {
 				storedDT[playerIndex] = std::max(storedDT[playerIndex] - 1500, 0.0f);
-				if (!activeConfig.infiniteMagicPoints) {
+				if (!activeCrimsonGameplay.Cheats.Training.infiniteDT) {
 					currentDT = storedDT[playerIndex];
 				}
                 normalBlocked[playerIndex] = true;
@@ -2281,7 +2281,7 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 				storedDT[playerIndex] = std::max(storedDT[playerIndex] - 1000, 0.0f);
 				storedReleaseDamage[playerIndex] = std::min(storedReleaseDamage[playerIndex] + 700, 9000.0f);
 				currentReleaseDamage = storedReleaseDamage[playerIndex];
-				if (!activeConfig.infiniteMagicPoints) {
+				if (!activeCrimsonGameplay.Cheats.Training.infiniteDT) {
 					currentDT = storedDT[playerIndex];
 				}
 				guardBroke[playerIndex] = true;

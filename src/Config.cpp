@@ -523,10 +523,6 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "noDevilForm", config.noDevilForm);
     Create<float>(member, "orbReach", config.orbReach);
     Create<bool>(member, "resetPermissions", config.resetPermissions);
-    Create<bool>(member, "infiniteHitPoints", config.infiniteHitPoints);
-    Create<bool>(member, "infiniteMagicPoints", config.infiniteMagicPoints);
-    Create<bool>(member, "disableTimer", config.disableTimer);
-    Create<bool>(member, "infiniteBullets", config.infiniteBullets);
 
     CreateArray<uint8, 2>(member, "airHikeCount", config.airHikeCount);
     CreateArray<uint8, 2>(member, "kickJumpCount", config.kickJumpCount);
@@ -961,10 +957,6 @@ void ToJSON(Config& config_) {
     Set<bool>(member["noDevilForm"], config.noDevilForm);
     Set<float>(member["orbReach"], config.orbReach);
     Set<bool>(member["resetPermissions"], config.resetPermissions);
-    Set<bool>(member["infiniteHitPoints"], config.infiniteHitPoints);
-    Set<bool>(member["infiniteMagicPoints"], config.infiniteMagicPoints);
-    Set<bool>(member["disableTimer"], config.disableTimer);
-    Set<bool>(member["infiniteBullets"], config.infiniteBullets);
 
     SetArray<uint8, 2>(member["airHikeCount"], config.airHikeCount);
     SetArray<uint8, 2>(member["kickJumpCount"], config.kickJumpCount);
@@ -1360,10 +1352,6 @@ void ToConfig(Config& config_) {
     config.noDevilForm               = Get<bool>(member["noDevilForm"]);
     config.orbReach                  = Get<float>(member["orbReach"]);
     config.resetPermissions          = Get<bool>(member["resetPermissions"]);
-    config.infiniteHitPoints         = Get<bool>(member["infiniteHitPoints"]);
-    config.infiniteMagicPoints       = Get<bool>(member["infiniteMagicPoints"]);
-    config.disableTimer              = Get<bool>(member["disableTimer"]);
-    config.infiniteBullets           = Get<bool>(member["infiniteBullets"]);
 
     GetArray<uint8, 2>(config.airHikeCount, member["airHikeCount"]);
     GetArray<uint8, 2>(config.kickJumpCount, member["kickJumpCount"]);

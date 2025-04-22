@@ -196,6 +196,22 @@ struct CrimsonConfigGameplay {
 			}
 		} General;
 
+		struct Training {
+			bool infiniteHP = false;
+			bool infiniteDT = false;
+			bool disableTimers = false;
+			bool infiniteBossLadyBullets = false;
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("infiniteHP", &Training::infiniteHP),
+					std::make_pair("infiniteDT", &Training::infiniteDT),
+					std::make_pair("disableTimers", &Training::disableTimers),
+					std::make_pair("infiniteBossLadyBullets", &Training::infiniteBossLadyBullets)
+				);
+			}
+		} Training;
+
 		struct Dante {
 			bool forceRoyalRelease = false;
 			bool infiniteShredder = false;
@@ -231,6 +247,7 @@ struct CrimsonConfigGameplay {
 		static constexpr auto Metadata() {
 			return std::make_tuple(
 				std::make_pair("General", &Cheats::General),
+				std::make_pair("Training", &Cheats::Training),
 				std::make_pair("Dante", &Cheats::Dante),
 				std::make_pair("Vergil", &Cheats::Vergil)
 			);
