@@ -410,7 +410,7 @@ struct CrimsonConfig {
 			std::make_pair("MultiplayerBars2D", &CrimsonConfig::MultiplayerBars2D),
 			std::make_pair("MultiplayerBarsWorldSpace", &CrimsonConfig::MultiplayerBarsWorldSpace),
 			std::make_pair("GUI", &CrimsonConfig::GUI),
-			std::make_pair("Sound", &CrimsonConfig::WeaponWheel),
+			std::make_pair("WeaponWheel", &CrimsonConfig::WeaponWheel),
             std::make_pair("CrimsonHudAddons", &CrimsonConfig::CrimsonHudAddons),
             std::make_pair("Camera", &CrimsonConfig::Camera),
             std::make_pair("StyleSwitchFX", &CrimsonConfig::StyleSwitchFX),
