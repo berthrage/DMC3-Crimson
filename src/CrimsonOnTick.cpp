@@ -891,17 +891,25 @@ void WeaponProgressionTracking() {
 
 			auto& lastMaxMeleeWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCount[playerIndex][characterIndex];
 			auto& lastMaxRangedWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxRangedWeaponCount[playerIndex][characterIndex];
+			auto& lastEquippedMeleeWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedMeleeWeapons[playerIndex][characterIndex];
+			auto& lastEquippedRangedWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedRangedWeapons[playerIndex][characterIndex];
+
+			if (activeCharacterData.character != CHARACTER::DANTE) {
+				break;
+			}
 
 			if (activeCharacterData.meleeWeaponCount > 1) {
 				lastMaxMeleeWeaponCount = activeCharacterData.meleeWeaponCount;
+				for (size_t i = 0; i < MELEE_WEAPON_COUNT_DANTE; i++) {
+					lastEquippedMeleeWeapons[i] = activeCharacterData.meleeWeapons[i];
+				}
 			}
 
 			if (activeCharacterData.rangedWeaponCount > 1) {
 				lastMaxRangedWeaponCount = activeCharacterData.rangedWeaponCount;
-			}
-
-			if (activeCharacterData.character != CHARACTER::DANTE) {
-				break;
+				for (size_t i = 0; i < RANGED_WEAPON_COUNT_DANTE; i++) {
+					lastEquippedRangedWeapons[i] = activeCharacterData.rangedWeapons[i];
+				}
 			}
 
 			// DEVIL ARMS
@@ -1024,10 +1032,12 @@ void WeaponProgressionTracking() {
 				}
 			}
 
-			if (activeCharacterData.rangedWeaponCount == 0)
-				activeCharacterData.rangedWeaponCount = 1;
-			if (queuedCharacterData.rangedWeaponCount == 0)
-				queuedCharacterData.rangedWeaponCount = 1;
+			if (activeCharacterData.character == CHARACTER::DANTE) {
+				if (activeCharacterData.rangedWeaponCount == 0)
+					activeCharacterData.rangedWeaponCount = 1;
+				if (queuedCharacterData.rangedWeaponCount == 0)
+					queuedCharacterData.rangedWeaponCount = 1;
+			}
 		}
 	}
 }

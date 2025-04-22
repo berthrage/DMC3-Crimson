@@ -71,11 +71,14 @@ CharacterData& GetCharacterData(uint8 playerIndex, uint8 characterIndex, uint8 e
 
 // $GetDataEnd
 
-void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character) {
-    SetMemory(&characterData, 0, sizeof(CharacterData));
+void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, uint8 playerIndex, uint8 characterIndex) {
+    //SetMemory(&characterData, 0, sizeof(CharacterData));
 
     switch (character) {
     case CHARACTER::DANTE: {
+		characterData.character = CHARACTER::DANTE;
+		auto& lastEquippedMeleeWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedMeleeWeapons[playerIndex][characterIndex];
+		auto& lastEquippedRangedWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedRangedWeapons[playerIndex][characterIndex];
         characterData = {CHARACTER::DANTE, 0, false, false, CHARACTER::DANTE, 0,
             {
                 {
@@ -102,21 +105,22 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character) {
                 GAMEPAD::DOWN,
                 GAMEPAD::LEFT,
             },
-            0, MELEE_WEAPON_COUNT_DANTE,
+            0, activeCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCount[playerIndex][characterIndex],
+
             {
-                WEAPON::REBELLION,
-                WEAPON::CERBERUS,
-                WEAPON::AGNI_RUDRA,
-                WEAPON::NEVAN,
-                WEAPON::BEOWULF_DANTE,
+                lastEquippedMeleeWeapons[0],
+				lastEquippedMeleeWeapons[1],
+				lastEquippedMeleeWeapons[2],
+				lastEquippedMeleeWeapons[3],
+				lastEquippedMeleeWeapons[4],
             },
-            0, 0, WEAPON_SWITCH_TYPE::LINEAR, RIGHT_STICK, RANGED_WEAPON_COUNT_DANTE,
+            0, 0, WEAPON_SWITCH_TYPE::LINEAR, RIGHT_STICK, activeCrimsonConfig.CachedSettings.lastMaxRangedWeaponCount[playerIndex][characterIndex],
             {
-                WEAPON::EBONY_IVORY,
-                WEAPON::SHOTGUN,
-                WEAPON::ARTEMIS,
-                WEAPON::SPIRAL,
-                WEAPON::KALINA_ANN,
+                lastEquippedRangedWeapons[0],
+				lastEquippedRangedWeapons[1],
+				lastEquippedRangedWeapons[2],
+				lastEquippedRangedWeapons[3],
+				lastEquippedRangedWeapons[4],
             },
             0, 0, WEAPON_SWITCH_TYPE::LINEAR, RIGHT_STICK};
 
@@ -166,6 +170,7 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character) {
                 WEAPON::YAMATO_FORCE_EDGE,
             },
             0, 0, WEAPON_SWITCH_TYPE::LINEAR, RIGHT_STICK};
+        characterData.rangedWeaponCount = 0;
 
         break;
     };
@@ -191,7 +196,7 @@ void ApplyDefaultPlayerData(PlayerData& playerData) {
     old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
         old_for_all(uint8, entityIndex, ENTITY_COUNT) {
             ApplyDefaultCharacterData(
-                playerData.characterData[characterIndex][entityIndex], (characterIndex == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE);
+                playerData.characterData[characterIndex][entityIndex], (characterIndex == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE, 0, 0);
         }
     }
 }

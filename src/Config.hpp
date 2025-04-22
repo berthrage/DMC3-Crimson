@@ -548,7 +548,7 @@ template <typename T> CharacterData& GetCharacterData(T& actorData) {
     return GetCharacterData(actorData.newPlayerIndex, actorData.newCharacterIndex, actorData.newEntityIndex);
 }
 
-void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character);
+void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, uint8 playerIndex, uint8 characterIndex);
 
 void ApplyDefaultPlayerData(PlayerData& playerData);
 
