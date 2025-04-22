@@ -9531,7 +9531,7 @@ void ToggleDeplete(bool enable) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<float**>(func.sect0 + 2) = &activeConfig.depleteQuicksilver;
+            *reinterpret_cast<float**>(func.sect0 + 2) = &activeCrimsonGameplay.Cheats.Misc.quicksilverDepletion;
         }
 
         if (enable) {
@@ -9562,7 +9562,7 @@ void ToggleDeplete(bool enable) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<float**>(func.sect0 + 2) = &activeConfig.depleteDoppelganger;
+            *reinterpret_cast<float**>(func.sect0 + 2) = &activeCrimsonGameplay.Cheats.Misc.doppelgangerDepletion;
         }
 
         if (enable) {
@@ -9593,7 +9593,7 @@ void ToggleDeplete(bool enable) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<float**>(func.sect0 + 2) = &activeConfig.depleteDevil;
+            *reinterpret_cast<float**>(func.sect0 + 2) = &activeCrimsonGameplay.Cheats.Misc.dTDepletion;
         }
 
         if (enable) {
@@ -9633,7 +9633,7 @@ void ToggleOrbReach(bool enable) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<float**>(func.sect0 + 3) = &activeConfig.orbReach;
+            *reinterpret_cast<float**>(func.sect0 + 3) = &activeCrimsonGameplay.Cheats.Misc.orbReach;
         }
 
         if (enable) {

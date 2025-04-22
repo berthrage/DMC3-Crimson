@@ -128,12 +128,8 @@ struct Config {
 
     uint8 dotShadow = DOT_SHADOW::DEFAULT;
 
-    float depleteQuicksilver  = 13.75f;
-    float depleteDoppelganger = 16.5f;
-    float depleteDevil        = 11.0f;
-
     bool noDevilForm = false;
-    float orbReach   = 300.0f;
+    
 
     bool resetPermissions = false;
 

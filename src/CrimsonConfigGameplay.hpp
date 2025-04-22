@@ -287,6 +287,22 @@ struct CrimsonConfigGameplay {
 			}
 		} Mobility;
 
+		struct Misc {
+			float quicksilverDepletion = 13.75f;
+			float doppelgangerDepletion = 16.5f;
+			float dTDepletion = 11.0f;
+			float orbReach = 300.0f;
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("quicksilverDepletion", &Misc::quicksilverDepletion),
+					std::make_pair("doppelgangerDepletion", &Misc::doppelgangerDepletion),
+					std::make_pair("dTDepletion", &Misc::dTDepletion),
+					std::make_pair("orbReach", &Misc::orbReach)
+				);
+			}
+		} Misc;
+
 		struct Dante {
 			bool forceRoyalRelease = false;
 			bool infiniteShredder = false;
@@ -326,6 +342,7 @@ struct CrimsonConfigGameplay {
 				std::make_pair("Damage", &Cheats::Damage),
 				std::make_pair("Speed", &Cheats::Speed),
 				std::make_pair("Mobility", &Cheats::Mobility),
+				std::make_pair("Misc", &Cheats::Misc),
 				std::make_pair("Dante", &Cheats::Dante),
 				std::make_pair("Vergil", &Cheats::Vergil)
 			);

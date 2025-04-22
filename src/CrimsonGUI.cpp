@@ -7345,17 +7345,8 @@ void MiscCheatsSection() {
 	if (GUI_TitleCheckbox2("MISC CHEATS", activeCrimsonGameplay.Cheats.General.miscCheats,
 		queuedCrimsonGameplay.Cheats.General.miscCheats, false)) {
 		if (!activeCrimsonGameplay.Cheats.General.miscCheats) {
-			CopyMemory(&queuedConfig.depleteQuicksilver, &defaultConfig.depleteQuicksilver, sizeof(queuedConfig.depleteQuicksilver));
-			CopyMemory(&activeConfig.depleteQuicksilver, &queuedConfig.depleteQuicksilver, sizeof(activeConfig.depleteQuicksilver));
-
-			CopyMemory(&queuedConfig.depleteDoppelganger, &defaultConfig.depleteDoppelganger, sizeof(queuedConfig.depleteDoppelganger));
-			CopyMemory(&activeConfig.depleteDoppelganger, &queuedConfig.depleteDoppelganger, sizeof(activeConfig.depleteDoppelganger));
-
-			CopyMemory(&queuedConfig.depleteDevil, &defaultConfig.depleteDevil, sizeof(queuedConfig.depleteDevil));
-			CopyMemory(&activeConfig.depleteDevil, &queuedConfig.depleteDevil, sizeof(activeConfig.depleteDevil));
-
-			CopyMemory(&queuedConfig.orbReach, &defaultConfig.orbReach, sizeof(queuedConfig.orbReach));
-			CopyMemory(&activeConfig.orbReach, &queuedConfig.orbReach, sizeof(activeConfig.orbReach));
+			CopyMemory(&queuedCrimsonGameplay.Cheats.Misc, &defaultCrimsonGameplay.Cheats.Misc, sizeof(queuedCrimsonGameplay.Cheats.Misc));
+			CopyMemory(&activeCrimsonGameplay.Cheats.Misc, &queuedCrimsonGameplay.Cheats.Misc, sizeof(activeCrimsonGameplay.Cheats.Misc));
 		}
 	}
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
@@ -7386,20 +7377,20 @@ void MiscCheatsSection() {
 		ImGui::TableNextRow(0, rowHeight);
 		ImGui::TableNextColumn();
 
-		MiscCheatInput("Quicksilver Depletion", activeConfig.depleteQuicksilver, queuedConfig.depleteQuicksilver,
-			defaultConfig.depleteQuicksilver);
+		MiscCheatInput("Quicksilver Depletion", activeCrimsonGameplay.Cheats.Misc.quicksilverDepletion, queuedCrimsonGameplay.Cheats.Misc.quicksilverDepletion,
+			defaultCrimsonGameplay.Cheats.Misc.quicksilverDepletion);
 
 		ImGui::TableNextColumn();
-		MiscCheatInput("Doppelganger Depletion", activeConfig.depleteDoppelganger, queuedConfig.depleteDoppelganger,
-			defaultConfig.depleteDoppelganger);
+		MiscCheatInput("Doppelganger Depletion", activeCrimsonGameplay.Cheats.Misc.doppelgangerDepletion, queuedCrimsonGameplay.Cheats.Misc.doppelgangerDepletion,
+			defaultCrimsonGameplay.Cheats.Misc.doppelgangerDepletion);
 
 		ImGui::TableNextColumn();
-		MiscCheatInput("DT Depletion", activeConfig.depleteDevil, queuedConfig.depleteDevil,
-			defaultConfig.depleteDevil);
+		MiscCheatInput("DT Depletion", activeCrimsonGameplay.Cheats.Misc.dTDepletion, queuedCrimsonGameplay.Cheats.Misc.dTDepletion,
+			defaultCrimsonGameplay.Cheats.Misc.dTDepletion);
 
 		ImGui::TableNextColumn();
-		MiscCheatInput("Orb Reach Distance", activeConfig.orbReach, queuedConfig.orbReach,
-			defaultConfig.orbReach);
+		MiscCheatInput("Orb Reach Distance", activeCrimsonGameplay.Cheats.Misc.orbReach, queuedCrimsonGameplay.Cheats.Misc.orbReach,
+			defaultCrimsonGameplay.Cheats.Misc.orbReach);
 
 		ImGui::EndTable();
 	}

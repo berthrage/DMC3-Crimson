@@ -510,11 +510,7 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "hideBeowulfDante", config.hideBeowulfDante);
     Create<bool>(member, "hideBeowulfVergil", config.hideBeowulfVergil);
     Create<uint8>(member, "dotShadow", config.dotShadow);
-    Create<float>(member, "depleteQuicksilver", config.depleteQuicksilver);
-    Create<float>(member, "depleteDoppelganger", config.depleteDoppelganger);
-    Create<float>(member, "depleteDevil", config.depleteDevil);
     Create<bool>(member, "noDevilForm", config.noDevilForm);
-    Create<float>(member, "orbReach", config.orbReach);
     Create<bool>(member, "resetPermissions", config.resetPermissions);
 
     CreateArray<float, CHANNEL::MAX>(member, "channelVolumes", config.channelVolumes);
@@ -924,11 +920,7 @@ void ToJSON(Config& config_) {
     Set<bool>(member["hideBeowulfDante"], config.hideBeowulfDante);
     Set<bool>(member["hideBeowulfVergil"], config.hideBeowulfVergil);
     Set<uint8>(member["dotShadow"], config.dotShadow);
-    Set<float>(member["depleteQuicksilver"], config.depleteQuicksilver);
-    Set<float>(member["depleteDoppelganger"], config.depleteDoppelganger);
-    Set<float>(member["depleteDevil"], config.depleteDevil);
     Set<bool>(member["noDevilForm"], config.noDevilForm);
-    Set<float>(member["orbReach"], config.orbReach);
     Set<bool>(member["resetPermissions"], config.resetPermissions);
 
     SetArray<float, CHANNEL::MAX>(member["channelVolumes"], config.channelVolumes);
@@ -1299,11 +1291,7 @@ void ToConfig(Config& config_) {
     config.hideBeowulfDante          = Get<bool>(member["hideBeowulfDante"]);
     config.hideBeowulfVergil         = Get<bool>(member["hideBeowulfVergil"]);
     config.dotShadow                 = Get<uint8>(member["dotShadow"]);
-    config.depleteQuicksilver        = Get<float>(member["depleteQuicksilver"]);
-    config.depleteDoppelganger       = Get<float>(member["depleteDoppelganger"]);
-    config.depleteDevil              = Get<float>(member["depleteDevil"]);
     config.noDevilForm               = Get<bool>(member["noDevilForm"]);
-    config.orbReach                  = Get<float>(member["orbReach"]);
     config.resetPermissions          = Get<bool>(member["resetPermissions"]);
 
     GetArray<float, CHANNEL::MAX>(config.channelVolumes, member["channelVolumes"]);
