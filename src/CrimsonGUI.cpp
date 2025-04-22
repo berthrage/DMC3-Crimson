@@ -4921,7 +4921,7 @@ void CameraSection(size_t defaultFontSize) {
 
 #pragma region Damage
 
-void DamageSection() {
+void CustomDamageSection() {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 
 	float smallerComboMult = 0.7f;
@@ -4933,14 +4933,20 @@ void DamageSection() {
 	if (GUI_Checkbox2("CUSTOM DAMAGE CHEATS", activeCrimsonGameplay.Cheats.General.customDamage, queuedCrimsonGameplay.Cheats.General.customDamage)) {
 		if (!activeCrimsonGameplay.Cheats.General.customDamage) {
 			// Reset damage config to default when the checkbox is unchecked
-			CopyMemory(&queuedConfig.damagePlayerActorMultiplier, &defaultConfig.damagePlayerActorMultiplier, sizeof(queuedConfig.damagePlayerActorMultiplier));
-			CopyMemory(&activeConfig.damagePlayerActorMultiplier, &queuedConfig.damagePlayerActorMultiplier, sizeof(activeConfig.damagePlayerActorMultiplier));
+			CopyMemory(&queuedCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult, 
+				&defaultCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult, sizeof(queuedCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult));
+			CopyMemory(&activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult, 
+				&queuedCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult, sizeof(activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult));
 
-			CopyMemory(&queuedConfig.damageEnemyActorMultiplier, &defaultConfig.damageEnemyActorMultiplier, sizeof(queuedConfig.damageEnemyActorMultiplier));
-			CopyMemory(&activeConfig.damageEnemyActorMultiplier, &queuedConfig.damageEnemyActorMultiplier, sizeof(activeConfig.damageEnemyActorMultiplier));
+			CopyMemory(&queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult,
+				&defaultCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult, sizeof(queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult));
+			CopyMemory(&activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult,
+				&queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult, sizeof(activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult));
 
-			CopyMemory(&queuedConfig.damageStyleRank, &defaultConfig.damageStyleRank, sizeof(queuedConfig.damageStyleRank));
-			CopyMemory(&activeConfig.damageStyleRank, &queuedConfig.damageStyleRank, sizeof(activeConfig.damageStyleRank));
+			CopyMemory(&queuedCrimsonGameplay.Cheats.Damage.minStyleRankForDamage, 
+				&defaultCrimsonGameplay.Cheats.Damage.minStyleRankForDamage, sizeof(queuedCrimsonGameplay.Cheats.Damage.minStyleRankForDamage));
+			CopyMemory(&activeCrimsonGameplay.Cheats.Damage.minStyleRankForDamage,
+				&queuedCrimsonGameplay.Cheats.Damage.minStyleRankForDamage, sizeof(activeCrimsonGameplay.Cheats.Damage.minStyleRankForDamage));
 		}
 	}
 	ImGui::PopFont();
@@ -4977,14 +4983,16 @@ void DamageSection() {
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 			ImGui::Text("PLAYER RECEIVED DAMAGE MULT.");
 			ImGui::PopFont();
-			DamageDataInput(activeConfig.damagePlayerActorMultiplier, queuedConfig.damagePlayerActorMultiplier, defaultConfig.damagePlayerActorMultiplier);
+			DamageDataInput(activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult, 
+				queuedCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult, defaultCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult);
 
 			ImGui::TableNextColumn();
 
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 			ImGui::Text("ENEMY RECEIVED DAMAGE MULT.");
 			ImGui::PopFont();
-			DamageDataInput(activeConfig.damageEnemyActorMultiplier, queuedConfig.damageEnemyActorMultiplier, defaultConfig.damageEnemyActorMultiplier);
+			DamageDataInput(activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult, 
+				queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult, defaultCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult);
 			ImGui::SameLine();
 			{
 				static bool toggled = false;
@@ -4992,11 +5000,12 @@ void DamageSection() {
 
 					if (!toggled) {
 						toggled = true;
-						activeConfig.damageEnemyActorMultiplier = queuedConfig.damageEnemyActorMultiplier = 100.0f;
+						activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 100.0f;
 					}
 					else {
 						toggled = false;
-						activeConfig.damageEnemyActorMultiplier = queuedConfig.damageEnemyActorMultiplier = defaultConfig.damageEnemyActorMultiplier;
+						activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 
+							defaultCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult;
 					}
 				}
 			}
@@ -5007,7 +5016,7 @@ void DamageSection() {
 			ImGui::Text("CAUSE DAMAGE ONLY ON STYLE RANK");
 			ImGui::PopFont();
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			UI::Combo2("", styleRankNames, activeConfig.damageStyleRank, queuedConfig.damageStyleRank);
+			UI::Combo2("", styleRankNames, activeCrimsonGameplay.Cheats.Damage.minStyleRankForDamage, queuedCrimsonGameplay.Cheats.Damage.minStyleRankForDamage);
 			ImGui::PopItemWidth();
 
 			GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.customDamage);
@@ -10803,14 +10812,14 @@ void ToggleInfiniteHealth() {
 }
 
 void ToggleOneHitKill() {
-	static bool toggled = activeConfig.damageEnemyActorMultiplier == 100.0f ? true : false;
+	static bool toggled = activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult == 100.0f ? true : false;
 
 	if (!toggled) {
 		toggled = true;
-		activeConfig.damageEnemyActorMultiplier = 100.0f;
+		activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 100.0f;
 	} else {
 		toggled = false;
-		activeConfig.damageEnemyActorMultiplier = defaultConfig.damageEnemyActorMultiplier;
+		activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = defaultCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult;
 	}
 }
 
@@ -10901,7 +10910,7 @@ void CommonCheatsSection() {
 	DebugSection();
 	//}
 	TrainingSection();
-	DamageSection();
+	CustomDamageSection();
 	CustomSpeedSection();
 	CustomMobilitySection();
 	MiscCheatsSection();

@@ -8462,7 +8462,7 @@ float ApplyDamage(byte8* dest, float value) {
         if (((dest + 8) - offsetof(PlayerActorData, hitPoints)) == actorBaseAddr) {
             match = true;
 
-            value *= activeConfig.damagePlayerActorMultiplier;
+            value *= activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult;
         }
     }();
 
@@ -8481,7 +8481,7 @@ float ApplyDamage(byte8* dest, float value) {
 
             match = true;
 
-            value *= activeConfig.damagePlayerActorMultiplier;
+            value *= activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult;
 
             break;
         }
@@ -8489,7 +8489,7 @@ float ApplyDamage(byte8* dest, float value) {
 
     // Enemy
     if (!match) {
-        value *= activeConfig.damageEnemyActorMultiplier;
+        value *= activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult;
 
         auto pool_13274 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
         if (!pool_13274 || !pool_13274[3]) {
@@ -8500,7 +8500,7 @@ float ApplyDamage(byte8* dest, float value) {
             auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_13274[3]);
 
 
-            if (actorData.styleData.rank < activeConfig.damageStyleRank) {
+            if (actorData.styleData.rank < activeCrimsonGameplay.Cheats.Damage.minStyleRankForDamage) {
                 return 0;
             }
         }

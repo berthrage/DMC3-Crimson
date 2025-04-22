@@ -342,10 +342,6 @@ struct Config {
 
     bool forceIconFocus = false;
 
-    float damagePlayerActorMultiplier = 1.0f;
-    float damageEnemyActorMultiplier  = 1.0f;
-    uint32 damageStyleRank            = STYLE_RANK::NONE;
-
     bool skipIntro     = false;
     bool skipCutscenes = false;
 

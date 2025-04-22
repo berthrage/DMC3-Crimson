@@ -542,9 +542,6 @@ void CreateMembers(Config& config_) {
         member, "rangedWeaponSwitchControllerTextureData", config.rangedWeaponSwitchControllerTextureData);
 
     Create<bool>(member, "forceIconFocus", config.forceIconFocus);
-    Create<float>(member, "damagePlayerActorMultiplier", config.damagePlayerActorMultiplier);
-    Create<float>(member, "damageEnemyActorMultiplier", config.damageEnemyActorMultiplier);
-    Create<uint32>(member, "damageStyleRank", config.damageStyleRank);
     Create<bool>(member, "skipIntro", config.skipIntro);
     Create<bool>(member, "skipCutscenes", config.skipCutscenes);
     Create<bool>(member, "enableFileMods", config.enableFileMods);
@@ -978,9 +975,6 @@ void ToJSON(Config& config_) {
 
 
     Set<bool>(member["forceIconFocus"], config.forceIconFocus);
-    Set<float>(member["damagePlayerActorMultiplier"], config.damagePlayerActorMultiplier);
-    Set<float>(member["damageEnemyActorMultiplier"], config.damageEnemyActorMultiplier);
-    Set<uint32>(member["damageStyleRank"], config.damageStyleRank);
     Set<bool>(member["skipIntro"], config.skipIntro);
     Set<bool>(member["skipCutscenes"], config.skipCutscenes);
     Set<bool>(member["enableFileMods"], config.enableFileMods);
@@ -1371,9 +1365,6 @@ void ToConfig(Config& config_) {
         config.rangedWeaponSwitchControllerTextureData, member["rangedWeaponSwitchControllerTextureData"]);
 
     config.forceIconFocus              = Get<bool>(member["forceIconFocus"]);
-    config.damagePlayerActorMultiplier = Get<float>(member["damagePlayerActorMultiplier"]);
-    config.damageEnemyActorMultiplier  = Get<float>(member["damageEnemyActorMultiplier"]);
-    config.damageStyleRank             = Get<uint32>(member["damageStyleRank"]);
     config.skipIntro                   = Get<bool>(member["skipIntro"]);
     config.skipCutscenes               = Get<bool>(member["skipCutscenes"]);
     config.enableFileMods            = Get<bool>(member["enableFileMods"]);

@@ -214,6 +214,20 @@ struct CrimsonConfigGameplay {
 			}
 		} Training;
 
+		struct Damage {
+			float playerReceivedDmgMult = 1.0f;
+			float enemyReceivedDmgMult = 1.0f;
+			uint32 minStyleRankForDamage = STYLE_RANK::NONE;
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("playerReceivedDmgMult", &Damage::playerReceivedDmgMult),
+					std::make_pair("enemyReceivedDmgMult", &Damage::enemyReceivedDmgMult),
+					std::make_pair("minStyleRankForDamage", &Damage::minStyleRankForDamage)
+				);
+			}
+		} Damage;
+
 		struct Dante {
 			bool forceRoyalRelease = false;
 			bool infiniteShredder = false;
@@ -250,6 +264,7 @@ struct CrimsonConfigGameplay {
 			return std::make_tuple(
 				std::make_pair("General", &Cheats::General),
 				std::make_pair("Training", &Cheats::Training),
+				std::make_pair("Damage", &Cheats::Damage),
 				std::make_pair("Dante", &Cheats::Dante),
 				std::make_pair("Vergil", &Cheats::Vergil)
 			);
