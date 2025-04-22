@@ -2853,16 +2853,16 @@ void SpawnActors() {
 
 #pragma region Controllers
 
-void RemoveBusyFlagLegacy(byte8* actorBaseAddr) {
+void ResetMotionStateLegacy(byte8* actorBaseAddr) {
     // Old ddmk's RemoveBusyFlagController, we will keep on Cheats&DebugSection for legacy keeping reasons.
     if (!actorBaseAddr) {
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
 
-    // 	if (!playerData.removeBusyFlag) {
-    // 		return;
-    // 	}
+    if (!activeCrimsonGameplay.Cheats.Misc.resetMotionState) {
+        return;
+    }
 
     auto playerIndex = actorData.newPlayerIndex;
     if (playerIndex >= PLAYER_COUNT) {
@@ -3973,6 +3973,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     if (sessionData.unlockDevilTrigger) {
         CrimsonFX::DTExplosionFXController(actorBaseAddr);
     }
+    ResetMotionStateLegacy(actorBaseAddr);
     
     CrimsonFX::RoyalBlockFX(actorBaseAddr);
     CrimsonFX::CalculateViewProperties(actorBaseAddr);

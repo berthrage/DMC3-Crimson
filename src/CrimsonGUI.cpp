@@ -4496,7 +4496,7 @@ void BarsSection(size_t defaultFontSize) {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			GUI_TitleCheckbox2("2D MULTIPLAYER BARS", activeCrimsonConfig.MultiplayerBars2D.show, 
-				queuedCrimsonConfig.MultiplayerBars2D.show, true, defaultFontSize * 46.70f);
+				queuedCrimsonConfig.MultiplayerBars2D.show, true, false, defaultFontSize * 46.70f);
 			
 			ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
@@ -7109,7 +7109,7 @@ void LegacyDDMKCharactersSection() {
 	ImGui::Text("");
 
 	if (GUI_TitleCheckbox2("LEGACY DDMK CHARACTERS", activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters,
-		queuedCrimsonGameplay.Cheats.General.legacyDDMKCharacters, true)) {
+		queuedCrimsonGameplay.Cheats.General.legacyDDMKCharacters, true, true)) {
 		if (!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters) {
 			CopyMemory(&queuedConfig.kalinaAnnHookMultiplier, &defaultConfig.kalinaAnnHookMultiplier,
 				sizeof(queuedConfig.kalinaAnnHookMultiplier));
@@ -7376,6 +7376,17 @@ void MiscCheatsSection() {
 
 		ImGui::TableNextRow(0, rowHeight);
 		ImGui::TableNextColumn();
+
+		GUI_PushDisable(!activeConfig.Actor.enable);
+		GUI_Checkbox2("Reset Motion State", activeCrimsonGameplay.Cheats.Misc.resetMotionState, queuedCrimsonGameplay.Cheats.Misc.resetMotionState);
+		ImGui::SameLine();
+		GUI_CCSRequirementButton();
+		ImGui::SameLine();
+		GUI_LegacyButton();
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Legacy DDMK/StyleSwitcher option kept for preservation purposes. Superseded by 'Improved Cancels'. Also called 'Remove Busy Flag'.\n"
+			"Allows you to cancel any move by pressing any direction on the d-pad. AFFECTS game balance significantly.");
+		GUI_PopDisable(!activeConfig.Actor.enable);
 
 		MiscCheatInput("Quicksilver Depletion", activeCrimsonGameplay.Cheats.Misc.quicksilverDepletion, queuedCrimsonGameplay.Cheats.Misc.quicksilverDepletion,
 			defaultCrimsonGameplay.Cheats.Misc.quicksilverDepletion);
