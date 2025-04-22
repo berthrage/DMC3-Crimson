@@ -2309,7 +2309,6 @@ void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
 	if (!actorBaseAddr) {
 		return;
 	}
-    
 
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     if(actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;

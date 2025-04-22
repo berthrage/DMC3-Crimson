@@ -9212,23 +9212,25 @@ void SetAction(byte8* actorBaseAddr) {
         }
 
         // Swap Sword Pierce and Dance Macabre
-        if ((actorData.action == REBELLION_SWORD_PIERCE)) {
+        if (activeCrimsonGameplay.Gameplay.Dante.swapDancePierceInputs) {
+            if ((actorData.action == REBELLION_SWORD_PIERCE)) {
 
-            if (actorData.lastAction != REBELLION_DANCE_MACABRE_PART_1) {
-                actorData.action = REBELLION_DANCE_MACABRE_PART_1;
-            } else {
-                actorData.action = REBELLION_DANCE_MACABRE_PART_2;
+                if (actorData.lastAction != REBELLION_DANCE_MACABRE_PART_1) {
+                    actorData.action = REBELLION_DANCE_MACABRE_PART_1;
+                } else {
+                    actorData.action = REBELLION_DANCE_MACABRE_PART_2;
+                }
             }
-        }
 
-        if ((actorData.action == REBELLION_DANCE_MACABRE_PART_1 || actorData.action == REBELLION_DANCE_MACABRE_PART_2 ||
+            if ((actorData.action == REBELLION_DANCE_MACABRE_PART_1 || actorData.action == REBELLION_DANCE_MACABRE_PART_2 ||
                 actorData.action == REBELLION_DANCE_MACABRE_PART_3 || actorData.action == REBELLION_DANCE_MACABRE_PART_4 ||
                 actorData.action == REBELLION_DANCE_MACABRE_PART_5 || actorData.action == REBELLION_DANCE_MACABRE_PART_6 ||
                 actorData.action == REBELLION_DANCE_MACABRE_PART_7 || actorData.action == REBELLION_DANCE_MACABRE_PART_8) &&
-            (actorData.style == STYLE::SWORDMASTER) && lockOn && (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
-            (tiltDirection == TILT_DIRECTION::DOWN)) {
+                (actorData.style == STYLE::SWORDMASTER) && lockOn && (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
+                (tiltDirection == TILT_DIRECTION::DOWN)) {
 
-            actorData.action = REBELLION_SWORD_PIERCE;
+                actorData.action = REBELLION_SWORD_PIERCE;
+            }
         }
 
 

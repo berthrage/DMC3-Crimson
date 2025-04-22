@@ -93,6 +93,7 @@ struct CrimsonConfigGameplay {
 			bool airHikeCoreAbility = true;
 			bool altNevanVortex = true;
 			bool artemisRework = true;
+			bool swapDancePierceInputs = true;
 
 			static constexpr auto Metadata() {
                 return std::make_tuple(
@@ -116,7 +117,8 @@ struct CrimsonConfigGameplay {
 					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard),
 					std::make_pair("airHikeCoreAbility", &Dante::airHikeCoreAbility),
 					std::make_pair("altNevanVortex", &Dante::altNevanVortex),
-					std::make_pair("artemisRework", &Dante::artemisRework)
+					std::make_pair("artemisRework", &Dante::artemisRework),
+					std::make_pair("swapDancePierceInputs", &Dante::swapDancePierceInputs)
 				);
 			}
         } Dante;

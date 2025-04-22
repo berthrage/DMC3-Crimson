@@ -1641,7 +1641,7 @@ const char* ldkModeNames[] = {
 	"Off",
 	"LDK",
 	"Super LDK",
-	"Super LDK w/ Bosses",
+	"Super LDK + Bosses",
 };
 
 constexpr uint8 ldkModes[] = {
@@ -10177,6 +10177,20 @@ void DanteGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Swap Dance Pierce Inputs",
+				activeCrimsonGameplay.Gameplay.Dante.swapDancePierceInputs,
+				queuedCrimsonGameplay.Gameplay.Dante.swapDancePierceInputs)) {
+			}
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Swaps Dance Macabre to: Lock On + Forward + Style(Swordmaster)\n"
+				"and Sword Pierce to: Lock On + Back + Style(Swordmaster");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
 			if (GUI_Checkbox2("Artemis Rework",
 				activeCrimsonGameplay.Gameplay.Dante.artemisRework,
 				queuedCrimsonGameplay.Gameplay.Dante.artemisRework)) {
@@ -10187,7 +10201,6 @@ void DanteGameplayOptions() {
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Swaps Artemis' Normal Shot and Multi-Lock inputs, and makes it charge to full near instantly.\n"
 				"Nerfs Artemis' Multi-Lock and Normal Shot projectile damage by 90-percent to compensate.");
-
 
 			ImGui::TableNextColumn();
 
@@ -10579,14 +10592,16 @@ void ExtraDifficultyGameplayOptions() {
 		ImGui::TableNextRow(0, rowHeight * 0.5f);
 		ImGui::TableNextColumn();
 
-		ImGui::PushItemWidth(itemWidth * 0.5f);
+		ImGui::PushItemWidth(itemWidth * 1.0f);
 		UI::ComboMapValue2("Legendary Dark Knight Mode",
 			ldkModeNames,
 			ldkModes,
 			activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode,
 			queuedCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode);
 		ImGui::PopItemWidth();
-		TooltipHelper("(?)", "Spawns large waves of enemies like in DMC5's LDK Mode.");
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Spawns large waves of enemies like in DMC5's LDK Mode.\n"
+			"Super LDK spawns even more enemies. Super LDK + Bosses duplicates some of the Bosses.");
 		GUI_PopDisable(!activeConfig.Actor.enable);
 
 		ImGui::EndTable();
