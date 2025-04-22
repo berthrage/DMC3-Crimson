@@ -4520,6 +4520,7 @@ struct Inertia {
 struct VergilMoveAdjustments {
     float storedRisingSunPosY;
     float storedLunarPhasePosY;
+    float storedLunarPhaseLv1PosY;
     bool startingRisingSunFromGround = false;
     bool startingLunarPhaseFromGround = false;
 };

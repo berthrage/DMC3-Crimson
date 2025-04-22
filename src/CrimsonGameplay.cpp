@@ -834,21 +834,22 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
         (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
     auto animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
     
-
-
     if (actorData.character == CHARACTER::VERGIL) {
 
         // Storing the pos
-        if (action != BEOWULF_RISING_SUN) {
+        if (!(action == BEOWULF_RISING_SUN && event == ACTOR_EVENT::ATTACK)) {
             v->storedRisingSunPosY = actorData.position.y;
         }
 
-        
-        if (!(state & STATE::IN_AIR && (action == BEOWULF_LUNAR_PHASE_LEVEL_1 || action == BEOWULF_LUNAR_PHASE_LEVEL_2) &&
-                actorData.eventData[0].event == 17)) {
+        if (!(action == BEOWULF_LUNAR_PHASE_LEVEL_2 && event == ACTOR_EVENT::ATTACK)) {
 
             v->storedLunarPhasePosY = actorData.position.y;
         }
+
+		if (!(action == BEOWULF_LUNAR_PHASE_LEVEL_1 && event == ACTOR_EVENT::ATTACK)) {
+
+			v->storedLunarPhaseLv1PosY = actorData.position.y;
+		}
 
 
         // Take configs into account if new positionings will be applied or not
@@ -908,7 +909,7 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
 				!v->startingLunarPhaseFromGround) {
 
 				actorData.verticalPullMultiplier = 0.0f;
-				actorData.position.y = v->storedLunarPhasePosY - 20.0f;
+				actorData.position.y = v->storedLunarPhaseLv1PosY - 20.0f;
 			}
         }
     }
