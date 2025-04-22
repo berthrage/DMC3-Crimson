@@ -73,12 +73,17 @@ CharacterData& GetCharacterData(uint8 playerIndex, uint8 characterIndex, uint8 e
 
 void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, uint8 playerIndex, uint8 characterIndex) {
     //SetMemory(&characterData, 0, sizeof(CharacterData));
+	auto& lastEquippedMeleeWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedMeleeWeapons[playerIndex][characterIndex];
+	auto& lastEquippedRangedWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedRangedWeapons[playerIndex][characterIndex];
+    auto& lastEquippedMeleeWeaponsVergil = queuedCrimsonConfig.CachedSettings.lastEquippedMeleeWeaponsVergil[playerIndex][characterIndex];
+	auto& lastMaxMeleeWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCount[playerIndex][characterIndex];
+	auto& lastMaxRangedWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxRangedWeaponCount[playerIndex][characterIndex];
+	auto& lastMaxMeleeWeaponCountVergil = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCountVergil[playerIndex][characterIndex];
 
     switch (character) {
     case CHARACTER::DANTE: {
 		characterData.character = CHARACTER::DANTE;
-		auto& lastEquippedMeleeWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedMeleeWeapons[playerIndex][characterIndex];
-		auto& lastEquippedRangedWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedRangedWeapons[playerIndex][characterIndex];
+		
         characterData = {CHARACTER::DANTE, 0, false, false, CHARACTER::DANTE, 0,
             {
                 {
@@ -105,7 +110,7 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, ui
                 GAMEPAD::DOWN,
                 GAMEPAD::LEFT,
             },
-            0, activeCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCount[playerIndex][characterIndex],
+            0, lastMaxMeleeWeaponCount,
 
             {
                 lastEquippedMeleeWeapons[0],
@@ -114,7 +119,7 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, ui
 				lastEquippedMeleeWeapons[3],
 				lastEquippedMeleeWeapons[4],
             },
-            0, 0, WEAPON_SWITCH_TYPE::LINEAR, RIGHT_STICK, activeCrimsonConfig.CachedSettings.lastMaxRangedWeaponCount[playerIndex][characterIndex],
+            0, 0, WEAPON_SWITCH_TYPE::LINEAR, RIGHT_STICK, lastMaxRangedWeaponCount,
             {
                 lastEquippedRangedWeapons[0],
 				lastEquippedRangedWeapons[1],
@@ -163,11 +168,11 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, ui
                 GAMEPAD::DOWN,
                 GAMEPAD::LEFT,
             },
-            0, MELEE_WEAPON_COUNT_VERGIL,
+            0, lastMaxMeleeWeaponCountVergil,
             {
-                WEAPON::YAMATO_VERGIL,
-                WEAPON::BEOWULF_VERGIL,
-                WEAPON::YAMATO_FORCE_EDGE,
+                lastEquippedMeleeWeaponsVergil[0],
+				lastEquippedMeleeWeaponsVergil[1],
+				lastEquippedMeleeWeaponsVergil[2],
             },
             0, 0, WEAPON_SWITCH_TYPE::LINEAR, RIGHT_STICK};
         characterData.rangedWeaponCount = 0;

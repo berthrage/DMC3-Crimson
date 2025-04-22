@@ -1123,7 +1123,7 @@ constexpr uint8 meleeWeaponsDante[] = {
 const char* meleeWeaponNamesVergil[] = {
 	"Yamato",
 	"Beowulf",
-	"Yamato & Force Edge",
+	"Force Edge",
 };
 
 constexpr uint8 meleeWeaponsVergil[] = {
@@ -2446,7 +2446,6 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 	ImGui::Text("");
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
 
-
 	{
 		const float columnWidth = 0.8f * queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale;
@@ -2467,40 +2466,38 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 					if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
 						queuedCharacterDataClone.character = queuedCharacterData.character;
-						//ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
+						ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
 					}
 
-					//Actor_UpdateIndices();
+					Actor_UpdateIndices();
 				}
 				
 			} else {
 				if ((playerIndex == 0) && (characterIndex > 0)) {
 					if (UI::ComboMap("CHARACTER", ddmkCharacterNames, ddmkCharactersMap, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
 						queuedCharacterData.character)) {
-						//ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
+						ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character, playerIndex, characterIndex);
 
 						if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
 							queuedCharacterDataClone.character = queuedCharacterData.character;
-							//ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
+							ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
 						}
 
 						Actor_UpdateIndices();
 					}
 				} else {
 					if (UI::Combo("CHARACTER", ddmkCharacter2PNames, queuedCharacterData.character)) {
-						//ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
+						ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character, playerIndex, characterIndex);
 
 						if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
 							queuedCharacterDataClone.character = queuedCharacterData.character;
-							//ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
+							ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
 						}
 
 						Actor_UpdateIndices();
 					}
 				}
 			}
-
-			
 
 			ImGui::PopItemWidth();
 			ImGui::PopFont();
@@ -2560,7 +2557,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 				}
 
 				if (UI::Combo("Doppelganger", ddmkCharacter2PNames, queuedCharacterDataClone.character)) {
-					//ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
+					ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
 
 					Actor_UpdateIndices();
 				}
@@ -2664,10 +2661,9 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 	ImGui::PopStyleColor();
 
-	if (queuedCharacterData.character != CHARACTER::DANTE) {
+	if (queuedCharacterData.character != CHARACTER::DANTE && queuedCharacterData.character != CHARACTER::VERGIL) {
 		return;
 	}
-
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 	ImGui::Text("WEAPON LOADOUT");
@@ -2690,107 +2686,157 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 			ImGui::PushItemWidth(itemWidth);
 
-			//GUI_Slider<uint8>("", queuedCharacterData.meleeWeaponCount, 1, weaponProgression.devilArmsUnlockedQtt + 1);
-			auto meleeSlider = [&]() {
-				if (queuedCharacterData.character == activeCharacterData.character) {
-					if (GUI_Slider2<uint8>("", queuedCharacterData.meleeWeaponCount,
-						activeCharacterData.meleeWeaponCount, 1, weaponProgression.devilArmsUnlockedQtt + 1)) {
-						if (!newActorData.baseAddr) return;
-						auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-						auto& characterData = GetCharacterData(actorData);
+
+			if (queuedCharacterData.character == CHARACTER::DANTE) {
+				auto meleeSlider = [&]() {
+					if (queuedCharacterData.character == activeCharacterData.character) {
+						if (GUI_Slider2<uint8>("", queuedCharacterData.meleeWeaponCount,
+							activeCharacterData.meleeWeaponCount, 1, weaponProgression.devilArmsUnlockedQtt + 1)) {
+							if (!newActorData.baseAddr) return;
+							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+							auto& characterData = GetCharacterData(actorData);
+						}
+					} else {
+						GUI_Slider<uint8>("", queuedCharacterData.meleeWeaponCount, 1, weaponProgression.devilArmsUnlockedQtt + 1);
 					}
-				} else {
-					GUI_Slider<uint8>("", queuedCharacterData.meleeWeaponCount, 1, weaponProgression.devilArmsUnlockedQtt + 1);
-				}
-				};
+					};
 
-			meleeSlider();
+				meleeSlider();
 
-			queuedCharacterDataClone.meleeWeaponCount = queuedCharacterData.meleeWeaponCount;
+				queuedCharacterDataClone.meleeWeaponCount = queuedCharacterData.meleeWeaponCount;
 
-			old_for_all(uint8, meleeWeaponIndex, weaponProgression.devilArmsUnlockedQtt + 1) {
-				bool condition = (meleeWeaponIndex >= queuedCharacterData.meleeWeaponCount);
 
-				GUI_PushDisable(condition);
+				old_for_all(uint8, meleeWeaponIndex, weaponProgression.devilArmsUnlockedQtt + 1) {
+					bool condition = (meleeWeaponIndex >= queuedCharacterData.meleeWeaponCount);
 
-				// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
-				if (queuedCharacterData.character == activeCharacterData.character) {
-					if (UI::ComboMapVector2("", weaponProgression.meleeWeaponNames, weaponProgression.meleeWeaponIds,
-						queuedCharacterData.meleeWeapons[meleeWeaponIndex], activeCharacterData.meleeWeapons[meleeWeaponIndex])) {
+					GUI_PushDisable(condition);
 
-						if (!newActorData.baseAddr) break;
-						auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-						actorData.meleeWeaponIndex = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
+					// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
+					if (queuedCharacterData.character == activeCharacterData.character) {
+						if (UI::ComboMapVector2("", weaponProgression.meleeWeaponNames, weaponProgression.meleeWeaponIds,
+							queuedCharacterData.meleeWeapons[meleeWeaponIndex], activeCharacterData.meleeWeapons[meleeWeaponIndex])) {
+
+							if (!newActorData.baseAddr) break;
+							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+							actorData.meleeWeaponIndex = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
+						}
+					} else {
+						UI::ComboMapVector("", weaponProgression.meleeWeaponNames, weaponProgression.meleeWeaponIds,
+							queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
 					}
-				} else {
-					UI::ComboMapVector("", weaponProgression.meleeWeaponNames, weaponProgression.meleeWeaponIds,
-						queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
+
+					// Doppelganger will now have same weapons equipped as Dante - Mia.
+					queuedCharacterDataClone.meleeWeapons[meleeWeaponIndex] = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
+
+					GUI_PopDisable(condition);
 				}
+			} else if (queuedCharacterData.character == CHARACTER::VERGIL) {
+				auto meleeSlider = [&]() {
+					if (queuedCharacterData.character == activeCharacterData.character) {
+						if (GUI_Slider2<uint8>("", queuedCharacterData.meleeWeaponCount,
+							activeCharacterData.meleeWeaponCount, 1, WEAPON_COUNT_VERGIL)) {
+							if (!newActorData.baseAddr) return;
+							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+							auto& characterData = GetCharacterData(actorData);
+						}
+					} else {
+						GUI_Slider<uint8>("", queuedCharacterData.meleeWeaponCount, 1, WEAPON_COUNT_VERGIL);
+					}
+					};
 
-				// 				UI::ComboMap("", meleeWeaponNamesDante, meleeWeaponsDante,
-				// 					Actor_meleeWeaponIndices[playerIndex][characterIndex][entityIndex][meleeWeaponIndex],
-				// 					queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
+				meleeSlider();
 
-				// Doppelganger will now have same weapons equipped as Dante - Mia.
-				queuedCharacterDataClone.meleeWeapons[meleeWeaponIndex] = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
+				queuedCharacterDataClone.meleeWeaponCount = queuedCharacterData.meleeWeaponCount;
 
-				GUI_PopDisable(condition);
+
+				old_for_all(uint8, meleeWeaponIndex, WEAPON_COUNT_VERGIL) {
+					bool condition = (meleeWeaponIndex >= queuedCharacterData.meleeWeaponCount);
+
+					GUI_PushDisable(condition);
+
+					// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
+					if (queuedCharacterData.character == activeCharacterData.character) {
+						if (UI::ComboMapValue2("", meleeWeaponNamesVergil, meleeWeaponsVergil,
+							queuedCharacterData.meleeWeapons[meleeWeaponIndex], activeCharacterData.meleeWeapons[meleeWeaponIndex])) {
+
+							if (!newActorData.baseAddr) break;
+							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+							actorData.meleeWeaponIndex = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
+						}
+					} else {
+						UI::ComboMapValue("", meleeWeaponNamesVergil, meleeWeaponsVergil,
+							queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
+					}
+
+					// Doppelganger will now have same weapons equipped as Dante - Mia.
+					queuedCharacterDataClone.meleeWeapons[meleeWeaponIndex] = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
+
+					GUI_PopDisable(condition);
+				}
 			}
 		}
 
-			ImGui::TableNextColumn();
-
-			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
-			ImGui::Text("RANGED");
-			ImGui::PopFont();
-
-
-			ImGui::PushItemWidth(itemWidth);
-
-			auto rangedSlider = [&]() {
-				if (queuedCharacterData.character == activeCharacterData.character) {
-					if (GUI_Slider2<uint8>("", queuedCharacterData.rangedWeaponCount,
-						activeCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1)) {
-						if (!newActorData.baseAddr) return;
-						auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-						auto& characterData = GetCharacterData(actorData);
-					}
-				} else {
-					GUI_Slider<uint8>("", queuedCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1);
-				}
-				};
-
-			rangedSlider();
-
-			old_for_all(uint8, rangedWeaponIndex, weaponProgression.gunsUnlockedQtt + 1) {
-				bool condition = (rangedWeaponIndex >= queuedCharacterData.rangedWeaponCount);
-
-				GUI_PushDisable(condition);
-
-				// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
-				if (queuedCharacterData.character == activeCharacterData.character) {
-					if (UI::ComboMapVector2("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
-						queuedCharacterData.rangedWeapons[rangedWeaponIndex], activeCharacterData.rangedWeapons[rangedWeaponIndex])) {
-
-						if (!newActorData.baseAddr) break;
-						auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-						actorData.rangedWeaponIndex = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
-					}
-				} else {
-					UI::ComboMapVector("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
-						queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
-				}
-
-				// Doppelganger will now have same weapons equipped as Dante - Mia.
-				queuedCharacterDataClone.rangedWeapons[rangedWeaponIndex] = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
-
-				GUI_PopDisable(condition);
-			}
+		if (queuedCharacterData.character != CHARACTER::DANTE) {
 			ImGui::PopItemWidth();
 			ImGui::PopItemWidth();
 
 			ImGui::EndTable();
-		
+			return;
+		}
+
+		ImGui::TableNextColumn();
+
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
+		ImGui::Text("RANGED");
+		ImGui::PopFont();
+
+
+		ImGui::PushItemWidth(itemWidth);
+
+		auto rangedSlider = [&]() {
+			if (queuedCharacterData.character == activeCharacterData.character) {
+				if (GUI_Slider2<uint8>("", queuedCharacterData.rangedWeaponCount,
+					activeCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1)) {
+					if (!newActorData.baseAddr) return;
+					auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+					auto& characterData = GetCharacterData(actorData);
+				}
+			} else {
+				GUI_Slider<uint8>("", queuedCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1);
+			}
+			};
+
+		rangedSlider();
+
+		old_for_all(uint8, rangedWeaponIndex, weaponProgression.gunsUnlockedQtt + 1) {
+			bool condition = (rangedWeaponIndex >= queuedCharacterData.rangedWeaponCount);
+
+			GUI_PushDisable(condition);
+
+			// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
+			if (queuedCharacterData.character == activeCharacterData.character) {
+				if (UI::ComboMapVector2("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
+					queuedCharacterData.rangedWeapons[rangedWeaponIndex], activeCharacterData.rangedWeapons[rangedWeaponIndex])) {
+
+					if (!newActorData.baseAddr) break;
+					auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+					actorData.rangedWeaponIndex = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
+				}
+			} else {
+				UI::ComboMapVector("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
+					queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
+			}
+
+			// Doppelganger will now have same weapons equipped as Dante - Mia.
+			queuedCharacterDataClone.rangedWeapons[rangedWeaponIndex] = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
+
+			GUI_PopDisable(condition);
+		}
+		ImGui::PopItemWidth();
+		ImGui::PopItemWidth();
+
+		ImGui::EndTable();
+
 	}
 	ImGui::PopFont();
 }

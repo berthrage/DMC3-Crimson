@@ -535,6 +535,13 @@ struct CrimsonConfig {
 			{ 5, 5, 5}, // 4P
 		};
 
+		uint8 lastMaxMeleeWeaponCountVergil[PLAYER_COUNT][CHARACTER_COUNT] = {
+			{ 3, 3, 3}, // 1P
+			{ 3, 3, 3}, // 2P
+			{ 3, 3, 3}, // 3P
+			{ 3, 3, 3}, // 4P
+		};
+
 		uint8 lastEquippedMeleeWeapons[PLAYER_COUNT][CHARACTER_COUNT][MELEE_WEAPON_COUNT_DANTE] = {
 			{ // 1P
 				{ WEAPON::REBELLION, WEAPON::CERBERUS, WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE }, // Character 0
@@ -581,12 +588,37 @@ struct CrimsonConfig {
 			}
 		};
 
+		uint8 lastEquippedMeleeWeaponsVergil[PLAYER_COUNT][CHARACTER_COUNT][MELEE_WEAPON_COUNT_VERGIL] = {
+			{ // 1P
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE}, // Character 0
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE}, // Character 1
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE}  // Character 2
+			},
+			{ // 2P
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE},
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE},
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE}
+			},
+			{ // 3P
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE},
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE},
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE}
+			},
+			{ // 4P
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE},
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE},
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE}
+			}
+		};
+
 		static constexpr auto Metadata() {
 			return std::make_tuple(
 				std::make_pair("lastMaxMeleeWeaponCount", &CachedSettings::lastMaxMeleeWeaponCount),
 				std::make_pair("lastMaxRangedWeaponCount", &CachedSettings::lastMaxRangedWeaponCount),
+				std::make_pair("lastMaxMeleeWeaponCountVergil", &CachedSettings::lastMaxMeleeWeaponCountVergil),
 				std::make_pair("lastEquippedMeleeWeapons", &CachedSettings::lastEquippedMeleeWeapons),
-				std::make_pair("lastEquippedRangedWeapons", &CachedSettings::lastEquippedRangedWeapons)
+				std::make_pair("lastEquippedRangedWeapons", &CachedSettings::lastEquippedRangedWeapons),
+				std::make_pair("lastEquippedMeleeWeaponsVergil", &CachedSettings::lastEquippedMeleeWeaponsVergil)
 			);
 		}
 	} CachedSettings;

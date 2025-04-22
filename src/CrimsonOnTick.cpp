@@ -883,7 +883,6 @@ void WeaponProgressionTracking() {
 		}
 	}
 
-	// Only update weaponCount when the unlocked quantity has changed
 	for (size_t playerIndex = 0; playerIndex < PLAYER_COUNT; playerIndex++) {
 		for (size_t characterIndex = 0; characterIndex < CHARACTER_COUNT; characterIndex++) {
 			auto& activeCharacterData = activeConfig.Actor.playerData[playerIndex].characterData[characterIndex][ENTITY::MAIN];
@@ -891,8 +890,20 @@ void WeaponProgressionTracking() {
 
 			auto& lastMaxMeleeWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCount[playerIndex][characterIndex];
 			auto& lastMaxRangedWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxRangedWeaponCount[playerIndex][characterIndex];
+			auto& lastMaxMeleeWeaponCountVergil = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCountVergil[playerIndex][characterIndex];
 			auto& lastEquippedMeleeWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedMeleeWeapons[playerIndex][characterIndex];
 			auto& lastEquippedRangedWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedRangedWeapons[playerIndex][characterIndex];
+			auto& lastEquippedMeleeWeaponsVergil = queuedCrimsonConfig.CachedSettings.lastEquippedMeleeWeaponsVergil[playerIndex][characterIndex];
+
+			// Caching lastMaxWeaponCounts and equippedWeapons for GUI usability and for maintaining the Weapon Progression System.
+			if (activeCharacterData.character == CHARACTER::VERGIL) {
+				if (activeCharacterData.meleeWeaponCount > 1) {
+					lastMaxMeleeWeaponCountVergil = activeCharacterData.meleeWeaponCount;
+					for (size_t i = 0; i < MELEE_WEAPON_COUNT_DANTE; i++) {
+						lastEquippedMeleeWeaponsVergil[i] = activeCharacterData.meleeWeapons[i];
+					}
+				}
+			}
 
 			if (activeCharacterData.character != CHARACTER::DANTE) {
 				break;
@@ -912,6 +923,7 @@ void WeaponProgressionTracking() {
 				}
 			}
 
+			// Only update weaponCount when the unlocked quantity has changed
 			// DEVIL ARMS
 			if (weaponProgression.devilArmsUnlockedQtt != previousDevilArmUnlockedQtt) {
 
