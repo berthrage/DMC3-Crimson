@@ -7210,47 +7210,22 @@ void CustomMobilitySection() {
 	if (GUI_TitleCheckbox2("CUSTOM MOBILITY", activeCrimsonGameplay.Cheats.General.customMobility,
 		queuedCrimsonGameplay.Cheats.General.customMobility, true)) {
 		if (!activeCrimsonGameplay.Cheats.General.customMobility) {
-			CopyMemory(&queuedConfig.airHikeCount, &defaultConfig.airHikeCount, sizeof(queuedConfig.airHikeCount));
-			CopyMemory(&activeConfig.airHikeCount, &queuedConfig.airHikeCount, sizeof(activeConfig.airHikeCount));
-
-			CopyMemory(&queuedConfig.kickJumpCount, &defaultConfig.kickJumpCount, sizeof(queuedConfig.kickJumpCount));
-			CopyMemory(&activeConfig.kickJumpCount, &queuedConfig.kickJumpCount, sizeof(activeConfig.kickJumpCount));
-
-			CopyMemory(&queuedConfig.wallHikeCount, &defaultConfig.wallHikeCount, sizeof(queuedConfig.wallHikeCount));
-			CopyMemory(&activeConfig.wallHikeCount, &queuedConfig.wallHikeCount, sizeof(activeConfig.wallHikeCount));
-
-			CopyMemory(&queuedConfig.dashCount, &defaultConfig.dashCount, sizeof(queuedConfig.dashCount));
-			CopyMemory(&activeConfig.dashCount, &queuedConfig.dashCount, sizeof(activeConfig.dashCount));
-
-			CopyMemory(&queuedConfig.skyStarCount, &defaultConfig.skyStarCount, sizeof(queuedConfig.skyStarCount));
-			CopyMemory(&activeConfig.skyStarCount, &queuedConfig.skyStarCount, sizeof(activeConfig.skyStarCount));
-
-			CopyMemory(&queuedConfig.airTrickCountDante, &defaultConfig.airTrickCountDante, sizeof(queuedConfig.airTrickCountDante));
-			CopyMemory(&activeConfig.airTrickCountDante, &queuedConfig.airTrickCountDante, sizeof(activeConfig.airTrickCountDante));
-
-			CopyMemory(&queuedConfig.airTrickCountVergil, &defaultConfig.airTrickCountVergil, sizeof(queuedConfig.airTrickCountVergil));
-			CopyMemory(&activeConfig.airTrickCountVergil, &queuedConfig.airTrickCountVergil, sizeof(activeConfig.airTrickCountVergil));
-
-			CopyMemory(&queuedConfig.trickUpCount, &defaultConfig.trickUpCount, sizeof(queuedConfig.trickUpCount));
-			CopyMemory(&activeConfig.trickUpCount, &queuedConfig.trickUpCount, sizeof(activeConfig.trickUpCount));
-
-			CopyMemory(&queuedConfig.trickDownCount, &defaultConfig.trickDownCount, sizeof(queuedConfig.trickDownCount));
-			CopyMemory(&activeConfig.trickDownCount, &queuedConfig.trickDownCount, sizeof(activeConfig.trickDownCount));
+			CopyMemory(&queuedCrimsonGameplay.Cheats.Mobility, &defaultCrimsonGameplay.Cheats.Mobility, sizeof(queuedCrimsonGameplay.Cheats.Mobility));
+			CopyMemory(&activeCrimsonGameplay.Cheats.Mobility, &queuedCrimsonGameplay.Cheats.Mobility, sizeof(activeCrimsonGameplay.Cheats.Mobility));
 
 			if (activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility) {
-				queuedConfig.airHikeCount[1] = 2;
-				queuedConfig.wallHikeCount[1] = 2;
-				queuedConfig.skyStarCount[1] = 2;
-				queuedConfig.airTrickCountDante[1] = 2;
+				queuedCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 2;
+				queuedCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 2;
+				queuedCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 2;
+				queuedCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 2;
 
-				activeConfig.airHikeCount[1] = 2;
-				activeConfig.wallHikeCount[1] = 2;
-				activeConfig.skyStarCount[1] = 2;
-				activeConfig.airTrickCountDante[1] = 2;
+				activeCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 2;
+				activeCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 2;
+				activeCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 2;
+				activeCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 2;
 			}
 		}
 	}
-	
 
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
@@ -7272,8 +7247,7 @@ void CustomMobilitySection() {
 
 			if (i == 0) {
 				ImGui::TableNextColumn();
-			}
-			else {
+			} else {
 				ImGui::SameLine();
 				ImGui::Text(label);
 			}
@@ -7302,11 +7276,16 @@ void CustomMobilitySection() {
 			ImGui::PopFont();
 
 			// First half of mobility options
-			MobilityDataInput("Air Hike Count", activeConfig.airHikeCount, queuedConfig.airHikeCount, defaultConfig.airHikeCount);
-			MobilityDataInput("Kick Jump Count", activeConfig.kickJumpCount, queuedConfig.kickJumpCount, defaultConfig.kickJumpCount);
-			MobilityDataInput("Wall Hike Count", activeConfig.wallHikeCount, queuedConfig.wallHikeCount, defaultConfig.wallHikeCount);
-			MobilityDataInput("Dash Count", activeConfig.dashCount, queuedConfig.dashCount, defaultConfig.dashCount);
-			MobilityDataInput("Sky Star Count", activeConfig.skyStarCount, queuedConfig.skyStarCount, defaultConfig.skyStarCount);
+			MobilityDataInput("Air Hike Count", activeCrimsonGameplay.Cheats.Mobility.airHikeCount, 
+				queuedCrimsonGameplay.Cheats.Mobility.airHikeCount, defaultCrimsonGameplay.Cheats.Mobility.airHikeCount);
+			MobilityDataInput("Kick Jump Count", activeCrimsonGameplay.Cheats.Mobility.kickJumpCount, 
+				queuedCrimsonGameplay.Cheats.Mobility.kickJumpCount, defaultCrimsonGameplay.Cheats.Mobility.kickJumpCount);
+			MobilityDataInput("Wall Hike Count", activeCrimsonGameplay.Cheats.Mobility.wallHikeCount, 
+				queuedCrimsonGameplay.Cheats.Mobility.wallHikeCount, defaultCrimsonGameplay.Cheats.Mobility.wallHikeCount);
+			MobilityDataInput("Dash Count", activeCrimsonGameplay.Cheats.Mobility.dashCount, 
+				queuedCrimsonGameplay.Cheats.Mobility.dashCount, defaultCrimsonGameplay.Cheats.Mobility.dashCount);
+			MobilityDataInput("Sky Star Count", activeCrimsonGameplay.Cheats.Mobility.skyStarCount, 
+				queuedCrimsonGameplay.Cheats.Mobility.skyStarCount, defaultCrimsonGameplay.Cheats.Mobility.skyStarCount);
 
 			ImGui::EndTable();
 		}
@@ -7320,7 +7299,6 @@ void CustomMobilitySection() {
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 			ImGui::Text("HUMAN");
 			ImGui::TableNextColumn();
@@ -7328,17 +7306,21 @@ void CustomMobilitySection() {
 			ImGui::PopFont();
 
 			// Second half of mobility options
-			MobilityDataInput("Dante Air Trick Count", activeConfig.airTrickCountDante, queuedConfig.airTrickCountDante, defaultConfig.airTrickCountDante);
-			MobilityDataInput("Vergil Air Trick Count", activeConfig.airTrickCountVergil, queuedConfig.airTrickCountVergil, defaultConfig.airTrickCountVergil);
-			MobilityDataInput("Trick Up Count", activeConfig.trickUpCount, queuedConfig.trickUpCount, defaultConfig.trickUpCount);
-			MobilityDataInput("Trick Down Count", activeConfig.trickDownCount, queuedConfig.trickDownCount, defaultConfig.trickDownCount);
+			MobilityDataInput("Dante Air Trick Count", activeCrimsonGameplay.Cheats.Mobility.danteAirTrickCount, 
+				queuedCrimsonGameplay.Cheats.Mobility.danteAirTrickCount, defaultCrimsonGameplay.Cheats.Mobility.danteAirTrickCount);
+			MobilityDataInput("Vergil Air Trick Count", activeCrimsonGameplay.Cheats.Mobility.vergilAirTrickCount, 
+				queuedCrimsonGameplay.Cheats.Mobility.vergilAirTrickCount, defaultCrimsonGameplay.Cheats.Mobility.vergilAirTrickCount);
+			MobilityDataInput("Trick Up Count", activeCrimsonGameplay.Cheats.Mobility.trickUpCount, 
+				queuedCrimsonGameplay.Cheats.Mobility.trickUpCount, defaultCrimsonGameplay.Cheats.Mobility.trickUpCount);
+			MobilityDataInput("Trick Down Count", activeCrimsonGameplay.Cheats.Mobility.trickDownCount, 
+				queuedCrimsonGameplay.Cheats.Mobility.trickDownCount, defaultCrimsonGameplay.Cheats.Mobility.trickDownCount);
 
 			ImGui::EndTable();
 		}
 
 		GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.customMobility);
 	}
-	
+
 	//GUI_InputDefault2("", vars[0], vars2[0], defaultVars[0], step, format, flags);
 	GUI_PopDisable(!activeConfig.Actor.enable);
 	ImGui::PopItemWidth();
@@ -7346,6 +7328,7 @@ void CustomMobilitySection() {
 	ImGui::PopFont();
 	ImGui::Text("");
 }
+
 
 #pragma endregion
 

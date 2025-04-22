@@ -517,16 +517,6 @@ void CreateMembers(Config& config_) {
     Create<float>(member, "orbReach", config.orbReach);
     Create<bool>(member, "resetPermissions", config.resetPermissions);
 
-    CreateArray<uint8, 2>(member, "airHikeCount", config.airHikeCount);
-    CreateArray<uint8, 2>(member, "kickJumpCount", config.kickJumpCount);
-    CreateArray<uint8, 2>(member, "wallHikeCount", config.wallHikeCount);
-    CreateArray<uint8, 2>(member, "dashCount", config.dashCount);
-    CreateArray<uint8, 2>(member, "skyStarCount", config.skyStarCount);
-    CreateArray<uint8, 2>(member, "airTrickCountDante", config.airTrickCountDante);
-    CreateArray<uint8, 2>(member, "airTrickCountVergil", config.airTrickCountVergil);
-    CreateArray<uint8, 2>(member, "trickUpCount", config.trickUpCount);
-    CreateArray<uint8, 2>(member, "trickDownCount", config.trickDownCount);
-
     CreateArray<float, CHANNEL::MAX>(member, "channelVolumes", config.channelVolumes);
 
     CreateMembers_WeaponSwitchControllerTextureData(
@@ -941,16 +931,6 @@ void ToJSON(Config& config_) {
     Set<float>(member["orbReach"], config.orbReach);
     Set<bool>(member["resetPermissions"], config.resetPermissions);
 
-    SetArray<uint8, 2>(member["airHikeCount"], config.airHikeCount);
-    SetArray<uint8, 2>(member["kickJumpCount"], config.kickJumpCount);
-    SetArray<uint8, 2>(member["wallHikeCount"], config.wallHikeCount);
-    SetArray<uint8, 2>(member["dashCount"], config.dashCount);
-    SetArray<uint8, 2>(member["skyStarCount"], config.skyStarCount);
-    SetArray<uint8, 2>(member["airTrickCountDante"], config.airTrickCountDante);
-    SetArray<uint8, 2>(member["airTrickCountVergil"], config.airTrickCountVergil);
-    SetArray<uint8, 2>(member["trickUpCount"], config.trickUpCount);
-    SetArray<uint8, 2>(member["trickDownCount"], config.trickDownCount);
-
     SetArray<float, CHANNEL::MAX>(member["channelVolumes"], config.channelVolumes);
 
 
@@ -1325,16 +1305,6 @@ void ToConfig(Config& config_) {
     config.noDevilForm               = Get<bool>(member["noDevilForm"]);
     config.orbReach                  = Get<float>(member["orbReach"]);
     config.resetPermissions          = Get<bool>(member["resetPermissions"]);
-
-    GetArray<uint8, 2>(config.airHikeCount, member["airHikeCount"]);
-    GetArray<uint8, 2>(config.kickJumpCount, member["kickJumpCount"]);
-    GetArray<uint8, 2>(config.wallHikeCount, member["wallHikeCount"]);
-    GetArray<uint8, 2>(config.dashCount, member["dashCount"]);
-    GetArray<uint8, 2>(config.skyStarCount, member["skyStarCount"]);
-    GetArray<uint8, 2>(config.airTrickCountDante, member["airTrickCountDante"]);
-    GetArray<uint8, 2>(config.airTrickCountVergil, member["airTrickCountVergil"]);
-    GetArray<uint8, 2>(config.trickUpCount, member["trickUpCount"]);
-    GetArray<uint8, 2>(config.trickDownCount, member["trickDownCount"]);
 
     GetArray<float, CHANNEL::MAX>(config.channelVolumes, member["channelVolumes"]);
 

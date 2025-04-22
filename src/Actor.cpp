@@ -6774,15 +6774,15 @@ bool AirHike(PlayerActorData& actorData) {
         return false;
     }
 
-    return MobilityFunction(actorData, actorData.newAirHikeCount, activeConfig.airHikeCount);
+    return MobilityFunction(actorData, actorData.newAirHikeCount, activeCrimsonGameplay.Cheats.Mobility.airHikeCount);
 }
 
 bool KickJump(PlayerActorData& actorData) {
-    return MobilityFunction(actorData, actorData.newKickJumpCount, activeConfig.kickJumpCount);
+    return MobilityFunction(actorData, actorData.newKickJumpCount, activeCrimsonGameplay.Cheats.Mobility.kickJumpCount);
 }
 
 bool WallHike(PlayerActorData& actorData) {
-    return MobilityFunction(actorData, actorData.newWallHikeCount, activeConfig.wallHikeCount);
+    return MobilityFunction(actorData, actorData.newWallHikeCount, activeCrimsonGameplay.Cheats.Mobility.wallHikeCount);
 }
 
 template <uint32 event> uint32 MobilityFunction(PlayerActorData& actorData, uint8 action, uint8& var, uint8* array) {
@@ -6811,7 +6811,7 @@ uint32 Dash(PlayerActorData& actorData, uint8 action) {
     static uint8 dashCount0[2] = {1, 1};
     static uint8 dashCount1[2] = {2, 2};
 
-    uint8* dashCount = (actorData.styleLevel == 0) ? dashCount0 : (actorData.styleLevel == 1) ? dashCount1 : activeConfig.dashCount;
+    uint8* dashCount = (actorData.styleLevel == 0) ? dashCount0 : (actorData.styleLevel == 1) ? dashCount1 : activeCrimsonGameplay.Cheats.Mobility.dashCount;
 
     return MobilityFunction<ACTOR_EVENT::TRICKSTER_DASH>(actorData, action, actorData.newDashCount, dashCount);
 }
@@ -6821,7 +6821,7 @@ uint32 SkyStar(PlayerActorData& actorData, uint8 action) {
         return 0;
     }
 
-    return MobilityFunction<ACTOR_EVENT::TRICKSTER_SKY_STAR>(actorData, action, actorData.newSkyStarCount, activeConfig.skyStarCount);
+    return MobilityFunction<ACTOR_EVENT::TRICKSTER_SKY_STAR>(actorData, action, actorData.newSkyStarCount, activeCrimsonGameplay.Cheats.Mobility.skyStarCount);
 }
 
 uint32 AirTrickDante(PlayerActorData& actorData, uint8 action) {
@@ -6832,12 +6832,12 @@ uint32 AirTrickDante(PlayerActorData& actorData, uint8 action) {
     actorData.recoverState[26] = (actorData.state & STATE::ON_FLOOR) ? 1 : 0;
 
     return MobilityFunction<ACTOR_EVENT::TRICKSTER_AIR_TRICK>(
-        actorData, action, actorData.newAirTrickCount, activeConfig.airTrickCountDante);
+        actorData, action, actorData.newAirTrickCount, activeCrimsonGameplay.Cheats.Mobility.danteAirTrickCount);
 }
 
 uint32 AirTrickVergil(PlayerActorData& actorData, uint8 action) {
     return MobilityFunction<ACTOR_EVENT::DARK_SLAYER_AIR_TRICK>(
-        actorData, action, actorData.newAirTrickCount, activeConfig.airTrickCountVergil);
+        actorData, action, actorData.newAirTrickCount, activeCrimsonGameplay.Cheats.Mobility.vergilAirTrickCount);
 }
 
 uint32 TrickUp(PlayerActorData& actorData, uint8 action) {
@@ -6845,7 +6845,7 @@ uint32 TrickUp(PlayerActorData& actorData, uint8 action) {
         return 0;
     }
 
-    return MobilityFunction<ACTOR_EVENT::DARK_SLAYER_TRICK_UP>(actorData, action, actorData.newTrickUpCount, activeConfig.trickUpCount);
+    return MobilityFunction<ACTOR_EVENT::DARK_SLAYER_TRICK_UP>(actorData, action, actorData.newTrickUpCount, activeCrimsonGameplay.Cheats.Mobility.trickUpCount);
 }
 
 uint32 TrickDown(PlayerActorData& actorData, uint8 action) {
@@ -6854,7 +6854,7 @@ uint32 TrickDown(PlayerActorData& actorData, uint8 action) {
     }
 
     return MobilityFunction<ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN>(
-        actorData, action, actorData.newTrickDownCount, activeConfig.trickDownCount);
+        actorData, action, actorData.newTrickDownCount, activeCrimsonGameplay.Cheats.Mobility.trickDownCount);
 }
 
 void ResetDash(PlayerActorData& actorData) {

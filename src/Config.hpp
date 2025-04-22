@@ -137,16 +137,6 @@ struct Config {
 
     bool resetPermissions = false;
 
-    uint8 airHikeCount[2]        = {1, 1};
-    uint8 kickJumpCount[2]       = {1, 1};
-    uint8 wallHikeCount[2]       = {1, 1};
-    uint8 dashCount[2]           = {3, 3};
-    uint8 skyStarCount[2]        = {1, 1};
-    uint8 airTrickCountDante[2]  = {1, 1};
-    uint8 airTrickCountVergil[2] = {1, 1};
-    uint8 trickUpCount[2]        = {1, 1};
-    uint8 trickDownCount[2]      = {1, 1};
-
     float channelVolumes[CHANNEL::MAX] = {
         1.0f,
         1.0f,

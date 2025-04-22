@@ -1843,83 +1843,73 @@ void DMC4Mobility(byte8* actorBaseAddr) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    
-    auto playerIndex = actorData.newPlayerIndex;
-    auto entityIndex = actorData.newEntityIndex;
-    auto& event = actorData.eventData[0].event;
-    auto& state = actorData.state;
-    auto& airTrickCount = actorData.newAirTrickCount;
-    static uint8 savedAirTrickCounts[PLAYER_COUNT][ENTITY_COUNT] = { 0 };
-    auto& savedAirTrickCount = savedAirTrickCounts[playerIndex][entityIndex];
-    bool enable = activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility;
-    static bool run = false;
 
-    // Messing with default Mobility Settings to be equivalent to DMC4 counts.
+	auto playerIndex = actorData.newPlayerIndex;
+	auto entityIndex = actorData.newEntityIndex;
+	auto& event = actorData.eventData[0].event;
+	auto& state = actorData.state;
+	auto& airTrickCount = actorData.newAirTrickCount;
+	static uint8 savedAirTrickCounts[PLAYER_COUNT][ENTITY_COUNT] = { 0 };
+	auto& savedAirTrickCount = savedAirTrickCounts[playerIndex][entityIndex];
+	bool enable = activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility;
+	static bool run = false;
+	// Messing with default Mobility Settings to be equivalent to DMC4 counts.
 	if (run != enable && enable) {
-		defaultConfig.airHikeCount[1] = 2;
-		defaultConfig.wallHikeCount[1] = 2;
-		defaultConfig.skyStarCount[1] = 2;
-		defaultConfig.airTrickCountDante[1] = 2;
-
-        run = enable;
+		defaultCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 2;
+		defaultCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 2;
+		defaultCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 2;
+		defaultCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 2;
+		run = enable;
+	} else if (run != enable && !enable) {
+		defaultCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 1;
+		defaultCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 1;
+		defaultCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 1;
+		defaultCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 1;
+		if (!activeCrimsonGameplay.Cheats.General.customMobility) {
+			queuedCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 1;
+			queuedCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 1;
+			queuedCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 1;
+			queuedCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 1;
+			activeCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 1;
+			activeCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 1;
+			activeCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 1;
+			activeCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 1;
+		}
+		run = enable;
 	}
-    else if (run != enable && !enable) {
-		defaultConfig.airHikeCount[1] = 1;
-		defaultConfig.wallHikeCount[1] = 1;
-		defaultConfig.skyStarCount[1] = 1;
-		defaultConfig.airTrickCountDante[1] = 1;
-
-        if (!activeCrimsonGameplay.Cheats.General.customMobility) {
-			queuedConfig.airHikeCount[1] = 1;
-            queuedConfig.wallHikeCount[1] = 1;
-            queuedConfig.skyStarCount[1] = 1;
-            queuedConfig.airTrickCountDante[1] = 1;
-
-			activeConfig.airHikeCount[1] = 1;
-            activeConfig.wallHikeCount[1] = 1;
-            activeConfig.skyStarCount[1] = 1;
-            activeConfig.airTrickCountDante[1] = 1;
-        }
-
-        run = enable;
-    }
-
 	if (!activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility) {
 		return;
 	}
-
-    // The Reset portion
-    if (actorData.state & STATE::ON_FLOOR && event == ACTOR_EVENT::TRICKSTER_AIR_TRICK) {
-        airTrickCount = savedAirTrickCount;
-    }
-    else {
-        savedAirTrickCount = airTrickCount;
-    }
+	// The Reset portion
+	if (actorData.state & STATE::ON_FLOOR && event == ACTOR_EVENT::TRICKSTER_AIR_TRICK) {
+		airTrickCount = savedAirTrickCount;
+	} else {
+		savedAirTrickCount = airTrickCount;
+	}
 }
 
 void AdjustDMC4MobilitySettings() {
 	if (activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility) {
-		queuedConfig.airHikeCount[1] = 2;
-		queuedConfig.wallHikeCount[1] = 2;
-		queuedConfig.skyStarCount[1] = 2;
-		queuedConfig.airTrickCountDante[1] = 2;
-
-		activeConfig.airHikeCount[1] = 2;
-		activeConfig.wallHikeCount[1] = 2;
-		activeConfig.skyStarCount[1] = 2;
-		activeConfig.airTrickCountDante[1] = 2;
+		queuedCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 2;
+		queuedCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 2;
+		queuedCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 2;
+		queuedCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 2;
+		activeCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 2;
+		activeCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 2;
+		activeCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 2;
+		activeCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 2;
 	} else {
-		queuedConfig.airHikeCount[1] = 1;
-		queuedConfig.wallHikeCount[1] = 1;
-		queuedConfig.skyStarCount[1] = 1;
-		queuedConfig.airTrickCountDante[1] = 1;
-
-		activeConfig.airHikeCount[1] = 1;
-		activeConfig.wallHikeCount[1] = 1;
-		activeConfig.skyStarCount[1] = 1;
-		activeConfig.airTrickCountDante[1] = 1;
+		queuedCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 1;
+		queuedCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 1;
+		queuedCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 1;
+		queuedCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 1;
+		activeCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 1;
+		activeCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 1;
+		activeCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 1;
+		activeCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 1;
 	}
 }
+
 
 void StyleMeterDoppelganger(byte8* actorBaseAddr) {
 

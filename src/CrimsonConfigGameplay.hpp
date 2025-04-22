@@ -261,6 +261,32 @@ struct CrimsonConfigGameplay {
 			}
 		} Speed;
 
+		struct Mobility {
+			uint8 airHikeCount[2] = { 1, 1 };
+			uint8 kickJumpCount[2] = { 1, 1 };
+			uint8 wallHikeCount[2] = { 1, 1 };
+			uint8 dashCount[2] = { 3, 3 };
+			uint8 skyStarCount[2] = { 1, 1 };
+			uint8 danteAirTrickCount[2] = { 1, 1 };
+			uint8 vergilAirTrickCount[2] = { 1, 1 };
+			uint8 trickUpCount[2] = { 1, 1 };
+			uint8 trickDownCount[2] = { 1, 1 };
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("airHikeCount", &Mobility::airHikeCount),
+					std::make_pair("kickJumpCount", &Mobility::kickJumpCount),
+					std::make_pair("wallHikeCount", &Mobility::wallHikeCount),
+					std::make_pair("dashCount", &Mobility::dashCount),
+					std::make_pair("skyStarCount", &Mobility::skyStarCount),
+					std::make_pair("danteAirTrickCount", &Mobility::danteAirTrickCount),
+					std::make_pair("vergilAirTrickCount", &Mobility::vergilAirTrickCount),
+					std::make_pair("trickUpCount", &Mobility::trickUpCount),
+					std::make_pair("trickDownCount", &Mobility::trickDownCount)
+				);
+			}
+		} Mobility;
+
 		struct Dante {
 			bool forceRoyalRelease = false;
 			bool infiniteShredder = false;
@@ -299,6 +325,7 @@ struct CrimsonConfigGameplay {
 				std::make_pair("Training", &Cheats::Training),
 				std::make_pair("Damage", &Cheats::Damage),
 				std::make_pair("Speed", &Cheats::Speed),
+				std::make_pair("Mobility", &Cheats::Mobility),
 				std::make_pair("Dante", &Cheats::Dante),
 				std::make_pair("Vergil", &Cheats::Vergil)
 			);
