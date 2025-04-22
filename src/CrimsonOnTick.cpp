@@ -1060,7 +1060,7 @@ void TrackMissionResultGameMode() {
 
 	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
 	if (!name_10723) {
-		gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : activeCrimsonConfig.GameMode.preset;
+		gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : activeCrimsonGameplay.GameMode.preset;
 		initialized = false; // Reset for next mission
 		return;
 	}
@@ -1070,12 +1070,12 @@ void TrackMissionResultGameMode() {
 	
 	if (missionData.frameCount > 0 && g_scene != SCENE::MISSION_RESULT) { // Mission is Running
 		if (!initialized) {
-			initialPreset = activeCrimsonConfig.GameMode.preset;
+			initialPreset = activeCrimsonGameplay.GameMode.preset;
 			initialized = true;
 			presetChanged = false;
-		} else if (activeCrimsonConfig.GameMode.preset != initialPreset) {
+		} else if (activeCrimsonGameplay.GameMode.preset != initialPreset) {
 			presetChanged = true;
-			gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : activeCrimsonConfig.GameMode.preset;
+			gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : activeCrimsonGameplay.GameMode.preset;
 		}
 	} else if (g_scene == SCENE::MISSION_RESULT) { // Mission Result Screen
 		gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : gameModeData.missionResultGameMode;

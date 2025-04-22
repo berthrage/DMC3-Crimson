@@ -2459,7 +2459,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 			ImGui::PushItemWidth(itemWidth);
 
-			if (!activeCrimsonConfig.Cheats.General.legacyDDMKCharacters) {
+			if (!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters) {
 				if (UI::ComboMapValue("CHARACTER", crimsonCharacterNames, crimsonCharacterMap,
 					queuedCharacterData.character)) {
 					ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character, playerIndex, characterIndex);
@@ -4930,8 +4930,8 @@ void DamageSection() {
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-	if (GUI_Checkbox2("CUSTOM DAMAGE CHEATS", activeCrimsonConfig.Cheats.General.customDamage, queuedCrimsonConfig.Cheats.General.customDamage)) {
-		if (!activeCrimsonConfig.Cheats.General.customDamage) {
+	if (GUI_Checkbox2("CUSTOM DAMAGE CHEATS", activeCrimsonGameplay.Cheats.General.customDamage, queuedCrimsonGameplay.Cheats.General.customDamage)) {
+		if (!activeCrimsonGameplay.Cheats.General.customDamage) {
 			// Reset damage config to default when the checkbox is unchecked
 			CopyMemory(&queuedConfig.damagePlayerActorMultiplier, &defaultConfig.damagePlayerActorMultiplier, sizeof(queuedConfig.damagePlayerActorMultiplier));
 			CopyMemory(&activeConfig.damagePlayerActorMultiplier, &queuedConfig.damagePlayerActorMultiplier, sizeof(activeConfig.damagePlayerActorMultiplier));
@@ -4965,7 +4965,7 @@ void DamageSection() {
 		ImVec2 initialPos = ImGui::GetCursorPos();
 		const float columnWidth = queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
-		GUI_PushDisable(!activeCrimsonConfig.Cheats.General.customDamage);
+		GUI_PushDisable(!activeCrimsonGameplay.Cheats.General.customDamage);
 
 		ImGui::SetCursorPos(initialPos);
 		// Start first table (left side)
@@ -5010,7 +5010,7 @@ void DamageSection() {
 			UI::Combo2("", styleRankNames, activeConfig.damageStyleRank, queuedConfig.damageStyleRank);
 			ImGui::PopItemWidth();
 
-			GUI_PopDisable(!activeCrimsonConfig.Cheats.General.customDamage);
+			GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.customDamage);
 
 			ImGui::EndTable();
 		}
@@ -6883,9 +6883,9 @@ void EnemySpawnerToolSection() {
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 	float smallerComboMult = 0.8f;
 
-	if (GUI_TitleCheckbox2("ENEMY SPAWNER TOOL", activeCrimsonConfig.Cheats.General.enemySpawnerTool,
-		queuedCrimsonConfig.Cheats.General.enemySpawnerTool, false)) {
-		if (!activeCrimsonConfig.Cheats.General.enemySpawnerTool) {
+	if (GUI_TitleCheckbox2("ENEMY SPAWNER TOOL", activeCrimsonGameplay.Cheats.General.enemySpawnerTool,
+		queuedCrimsonGameplay.Cheats.General.enemySpawnerTool, false)) {
+		if (!activeCrimsonGameplay.Cheats.General.enemySpawnerTool) {
 			activeConfig.enemyAutoSpawn = false;
 			queuedConfig.enemyAutoSpawn = false;
 		}
@@ -6901,7 +6901,7 @@ void EnemySpawnerToolSection() {
 
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
-	GUI_PushDisable(!activeCrimsonConfig.Cheats.General.enemySpawnerTool);
+	GUI_PushDisable(!activeCrimsonGameplay.Cheats.General.enemySpawnerTool);
 
 	const float columnWidth = 0.48f * queuedConfig.globalScale;
 	const float rowHeight = 40.0f * queuedConfig.globalScale;
@@ -7010,7 +7010,7 @@ void EnemySpawnerToolSection() {
 	}
 	ImGui::PopItemWidth();
 
-	GUI_PopDisable(!activeCrimsonConfig.Cheats.General.enemySpawnerTool);
+	GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.enemySpawnerTool);
 	ImGui::PopStyleColor();
 	ImGui::PopFont();
 }
@@ -7099,9 +7099,9 @@ void LegacyDDMKCharactersSection() {
 
 	ImGui::Text("");
 
-	if (GUI_TitleCheckbox2("LEGACY DDMK CHARACTERS", activeCrimsonConfig.Cheats.General.legacyDDMKCharacters,
-		queuedCrimsonConfig.Cheats.General.legacyDDMKCharacters, true)) {
-		if (!activeCrimsonConfig.Cheats.General.legacyDDMKCharacters) {
+	if (GUI_TitleCheckbox2("LEGACY DDMK CHARACTERS", activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters,
+		queuedCrimsonGameplay.Cheats.General.legacyDDMKCharacters, true)) {
+		if (!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters) {
 			CopyMemory(&queuedConfig.kalinaAnnHookMultiplier, &defaultConfig.kalinaAnnHookMultiplier,
 				sizeof(queuedConfig.kalinaAnnHookMultiplier));
 			CopyMemory(&activeConfig.kalinaAnnHookMultiplier, &queuedConfig.kalinaAnnHookMultiplier,
@@ -7138,7 +7138,7 @@ void LegacyDDMKCharactersSection() {
 	ImGui::Text("LADY OPTIONS");
 	ImGui::PopFont();
 
-	GUI_PushDisable(!activeCrimsonConfig.Cheats.General.legacyDDMKCharacters);
+	GUI_PushDisable(!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters);
 
 	// Table layout for Lady's Kalina Ann options
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
@@ -7176,7 +7176,7 @@ void LegacyDDMKCharactersSection() {
 		ImGui::EndTable();
 	}
 
-	GUI_PopDisable(!activeCrimsonConfig.Cheats.General.legacyDDMKCharacters);
+	GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters);
 
 	ImGui::PopItemWidth();
 	ImGui::PopStyleColor();
@@ -7198,9 +7198,9 @@ void CustomMobilitySection() {
 	//Gui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 	ImGui::PushItemWidth(itemWidth);
 
-	if (GUI_TitleCheckbox2("CUSTOM MOBILITY", activeCrimsonConfig.Cheats.General.customMobility, 
-		queuedCrimsonConfig.Cheats.General.customMobility, true)) {
-		if (!activeCrimsonConfig.Cheats.General.customMobility) {
+	if (GUI_TitleCheckbox2("CUSTOM MOBILITY", activeCrimsonGameplay.Cheats.General.customMobility,
+		queuedCrimsonGameplay.Cheats.General.customMobility, true)) {
+		if (!activeCrimsonGameplay.Cheats.General.customMobility) {
 			CopyMemory(&queuedConfig.airHikeCount, &defaultConfig.airHikeCount, sizeof(queuedConfig.airHikeCount));
 			CopyMemory(&activeConfig.airHikeCount, &queuedConfig.airHikeCount, sizeof(activeConfig.airHikeCount));
 
@@ -7228,7 +7228,7 @@ void CustomMobilitySection() {
 			CopyMemory(&queuedConfig.trickDownCount, &defaultConfig.trickDownCount, sizeof(queuedConfig.trickDownCount));
 			CopyMemory(&activeConfig.trickDownCount, &queuedConfig.trickDownCount, sizeof(activeConfig.trickDownCount));
 
-			if (activeCrimsonConfig.Gameplay.Dante.dmc4Mobility) {
+			if (activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility) {
 				queuedConfig.airHikeCount[1] = 2;
 				queuedConfig.wallHikeCount[1] = 2;
 				queuedConfig.skyStarCount[1] = 2;
@@ -7277,7 +7277,7 @@ void CustomMobilitySection() {
 		ImVec2 initialPos = ImGui::GetCursorPos();
 		const float columnWidth = 0.15f * queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
-		GUI_PushDisable(!activeCrimsonConfig.Cheats.General.customMobility);
+		GUI_PushDisable(!activeCrimsonGameplay.Cheats.General.customMobility);
 
 		ImGui::SetCursorPos(initialPos);
 		// Start first table (left side)
@@ -7327,7 +7327,7 @@ void CustomMobilitySection() {
 			ImGui::EndTable();
 		}
 
-		GUI_PopDisable(!activeCrimsonConfig.Cheats.General.customMobility);
+		GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.customMobility);
 	}
 	
 	//GUI_InputDefault2("", vars[0], vars2[0], defaultVars[0], step, format, flags);
@@ -7350,9 +7350,9 @@ void MiscCheatsSection() {
 	ImGui::Text("");
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-	if (GUI_TitleCheckbox2("MISC CHEATS", activeCrimsonConfig.Cheats.General.miscCheats,
-		queuedCrimsonConfig.Cheats.General.miscCheats, false)) {
-		if (!activeCrimsonConfig.Cheats.General.miscCheats) {
+	if (GUI_TitleCheckbox2("MISC CHEATS", activeCrimsonGameplay.Cheats.General.miscCheats,
+		queuedCrimsonGameplay.Cheats.General.miscCheats, false)) {
+		if (!activeCrimsonGameplay.Cheats.General.miscCheats) {
 			CopyMemory(&queuedConfig.depleteQuicksilver, &defaultConfig.depleteQuicksilver, sizeof(queuedConfig.depleteQuicksilver));
 			CopyMemory(&activeConfig.depleteQuicksilver, &queuedConfig.depleteQuicksilver, sizeof(activeConfig.depleteQuicksilver));
 
@@ -7385,7 +7385,7 @@ void MiscCheatsSection() {
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
 	const float rowHeight = 40.0f * queuedConfig.globalScale * 0.5f;
 
-	GUI_PushDisable(!activeCrimsonConfig.Cheats.General.miscCheats);
+	GUI_PushDisable(!activeCrimsonGameplay.Cheats.General.miscCheats);
 
 	if (ImGui::BeginTable("MiscCheatsOptionsTable", 3)) {
 		ImGui::TableSetupColumn("col1", 0, columnWidth * 2.0f);
@@ -7412,7 +7412,7 @@ void MiscCheatsSection() {
 		ImGui::EndTable();
 	}
 
-	GUI_PopDisable(!activeCrimsonConfig.Cheats.General.miscCheats);
+	GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.miscCheats);
 
 	ImGui::PopItemWidth();
 	ImGui::PopStyleColor();
@@ -7475,7 +7475,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("sessionData mission:  %u", sessionData.mission);
                 ImGui::Text("SCENE:  %u", g_scene);
                 ImGui::Text("TRACK PLAYING: %s", g_gameTrackPlaying.c_str());
-				ImGui::Text("activeCrimsonConfig.legacyDDMKCharacters: %u", activeCrimsonConfig.Cheats.General.legacyDDMKCharacters);
+				ImGui::Text("activeCrimsonConfig.legacyDDMKCharacters: %u", activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters);
 // 				for (int i = 0; i < 8; i++) {
 // 					ImGui::Text("sessionData expertise[%u]:  %x", i, sessionData.expertise[i]);
 // 				}
@@ -8569,9 +8569,9 @@ void CustomSpeedSection() {
 	ImGui::PushItemWidth(itemWidth);
 
 	// Speed Group Title
-	if (GUI_TitleCheckbox2("CUSTOM GAME SPEED CHEATS", activeCrimsonConfig.Cheats.General.customSpeed,
-		defaultCrimsonConfig.Cheats.General.customSpeed)) {
-		if (!activeCrimsonConfig.Cheats.General.customSpeed) {
+	if (GUI_TitleCheckbox2("CUSTOM GAME SPEED CHEATS", activeCrimsonGameplay.Cheats.General.customSpeed,
+		queuedCrimsonGameplay.Cheats.General.customSpeed)) {
+		if (!activeCrimsonGameplay.Cheats.General.customSpeed) {
 			CopyMemory(&queuedConfig.Speed, &defaultConfig.Speed, sizeof(queuedConfig.Speed));
 			CopyMemory(&activeConfig.Speed, &queuedConfig.Speed, sizeof(activeConfig.Speed));
 
@@ -8588,7 +8588,7 @@ void CustomSpeedSection() {
 		ImGui::PopItemWidth();
 		};
 
-	GUI_PushDisable(!activeCrimsonConfig.Cheats.General.customSpeed);
+	GUI_PushDisable(!activeCrimsonGameplay.Cheats.General.customSpeed);
 
 	// --- Main Speed Table ---
 	if (ImGui::BeginTable("SpeedTable", 2)) {
@@ -8662,7 +8662,7 @@ void CustomSpeedSection() {
 		ImGui::EndTable();
 	}
 
-	GUI_PopDisable(!activeCrimsonConfig.Cheats.General.customSpeed);
+	GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.customSpeed);
 
 	ImGui::PopFont();
 	ImGui::PopItemWidth();
@@ -8999,18 +8999,18 @@ void TeleporterToolSection() {
 	float smallerComboMult = 0.8f;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-	GUI_TitleCheckbox2("TELEPORTER TOOL", activeCrimsonConfig.Cheats.General.teleporterTool, 
-		queuedCrimsonConfig.Cheats.General.teleporterTool, false);
+	GUI_TitleCheckbox2("TELEPORTER TOOL", activeCrimsonGameplay.Cheats.General.teleporterTool,
+		queuedCrimsonGameplay.Cheats.General.teleporterTool, false);
 
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
-	GUI_PushDisable(!activeCrimsonConfig.Cheats.General.teleporterTool);
+	GUI_PushDisable(!activeCrimsonGameplay.Cheats.General.teleporterTool);
 
 	if (!InGame()) {
 		ImGui::Text("Invalid pointer. Needs to be in-game.");
 		ImGui::PopStyleColor();
-		GUI_PopDisable(!activeCrimsonConfig.Cheats.General.teleporterTool);
+		GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.teleporterTool);
 		ImGui::PopFont();
 		return;
 	}
@@ -9019,7 +9019,7 @@ void TeleporterToolSection() {
 	if (!pool_11962 || !pool_11962[8]) {
 		ImGui::PopStyleColor();
 		ImGui::PopFont();
-		GUI_PopDisable(!activeCrimsonConfig.Cheats.General.teleporterTool);
+		GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.teleporterTool);
 		return;
 	}
 	auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
@@ -9028,7 +9028,7 @@ void TeleporterToolSection() {
 	if (!pool_12013 || !pool_12013[12]) {
 		ImGui::PopStyleColor();
 		ImGui::PopFont();
-		GUI_PopDisable(!activeCrimsonConfig.Cheats.General.teleporterTool);
+		GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.teleporterTool);
 		return;
 	}
 	auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12013[12]);
@@ -9059,7 +9059,7 @@ void TeleporterToolSection() {
 		ImGui::PushItemWidth(itemWidth * smallerComboMult);
 		GUI_Input<uint32>("", eventData.room, 0, "%u", ImGuiInputTextFlags_ReadOnly);
 		ImGui::SameLine();
-		int roomIndex = -1;
+		size_t roomIndex = -1;
 		for (size_t i = 0; i < ROOMS_COUNT; i++) {
 			if (roomsMap[i] == eventData.room) {
 				roomIndex = i;
@@ -9112,7 +9112,7 @@ void TeleporterToolSection() {
 		ImGui::EndTable();
 	}
 
-	GUI_PopDisable(!activeCrimsonConfig.Cheats.General.teleporterTool);
+	GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.teleporterTool);
 	ImGui::PopStyleColor();
 	ImGui::PopFont();
 }
@@ -9674,8 +9674,8 @@ void GeneralGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Inertia",
-				activeCrimsonConfig.Gameplay.General.inertia,
-				queuedCrimsonConfig.Gameplay.General.inertia)) {
+				activeCrimsonGameplay.Gameplay.General.inertia,
+				queuedCrimsonGameplay.Gameplay.General.inertia)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9687,8 +9687,8 @@ void GeneralGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Sprint",
-				activeCrimsonConfig.Gameplay.General.sprint,
-				queuedCrimsonConfig.Gameplay.General.sprint)) {
+				activeCrimsonGameplay.Gameplay.General.sprint,
+				queuedCrimsonGameplay.Gameplay.General.sprint)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9699,22 +9699,22 @@ void GeneralGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			if (!activeConfig.Actor.enable) {
-				activeCrimsonConfig.Gameplay.General.holdToCrazyCombo = false;
+				activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo = false;
 				CrimsonDetours::ToggleHoldToCrazyCombo(false);
 			}
-			if (activeCrimsonConfig.Gameplay.General.holdToCrazyCombo) {
-				activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement = 3;
-				queuedCrimsonConfig.Gameplay.General.crazyComboMashRequirement = 3;
+			if (activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo) {
+				activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = 3;
+				queuedCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = 3;
 				UpdateCrazyComboLevelMultiplier();
 			}
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Hold To Crazy Combo",
-				activeCrimsonConfig.Gameplay.General.holdToCrazyCombo,
-				queuedCrimsonConfig.Gameplay.General.holdToCrazyCombo)) {
-				CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
-				activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement = 3;
-				queuedCrimsonConfig.Gameplay.General.crazyComboMashRequirement = 3;
+				activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo,
+				queuedCrimsonGameplay.Gameplay.General.holdToCrazyCombo)) {
+				CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
+				activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = 3;
+				queuedCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = 3;
 				UpdateCrazyComboLevelMultiplier();
 			}
 			ImGui::SameLine();
@@ -9725,25 +9725,25 @@ void GeneralGameplayOptions() {
 			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
-			GUI_PushDisable(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
+			GUI_PushDisable(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
 			ImGui::PushItemWidth(itemWidth * 0.8f);
 			if (GUI_InputDefault2("C. Combo Mash Requirement",
-				activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement,
-				queuedCrimsonConfig.Gameplay.General.crazyComboMashRequirement,
-				defaultCrimsonConfig.Gameplay.General.crazyComboMashRequirement)) {
+				activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement,
+				queuedCrimsonGameplay.Gameplay.General.crazyComboMashRequirement,
+				defaultCrimsonGameplay.Gameplay.General.crazyComboMashRequirement)) {
 				UpdateCrazyComboLevelMultiplier();
 			}
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Multiplier for how hard you need to mash to execute Crazy Combos. Less is easier.");
-			GUI_PopDisable(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
+			GUI_PopDisable(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
 
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Freeform Soft Lock",
-				activeCrimsonConfig.Gameplay.General.freeformSoftLock,
-				queuedCrimsonConfig.Gameplay.General.freeformSoftLock)) {
+				activeCrimsonGameplay.Gameplay.General.freeformSoftLock,
+				queuedCrimsonGameplay.Gameplay.General.freeformSoftLock)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9753,23 +9753,23 @@ void GeneralGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
-			if (!activeCrimsonConfig.Gameplay.General.freeformSoftLock) {
-				activeCrimsonConfig.Gameplay.General.bufferlessReversals = false;
-				queuedCrimsonConfig.Gameplay.General.bufferlessReversals = false;
+			if (!activeCrimsonGameplay.Gameplay.General.freeformSoftLock) {
+				activeCrimsonGameplay.Gameplay.General.bufferlessReversals = false;
+				queuedCrimsonGameplay.Gameplay.General.bufferlessReversals = false;
 			}
 
-			GUI_PushDisable(!activeConfig.Actor.enable || !activeCrimsonConfig.Gameplay.General.freeformSoftLock);
+			GUI_PushDisable(!activeConfig.Actor.enable || !activeCrimsonGameplay.Gameplay.General.freeformSoftLock);
 			if (GUI_Checkbox2("Bufferless Reversals",
-				activeCrimsonConfig.Gameplay.General.bufferlessReversals,
-				queuedCrimsonConfig.Gameplay.General.bufferlessReversals)) {
-				activeCrimsonConfig.Gameplay.General.freeformSoftLock = true;
-				queuedCrimsonConfig.Gameplay.General.freeformSoftLock = true;
+				activeCrimsonGameplay.Gameplay.General.bufferlessReversals,
+				queuedCrimsonGameplay.Gameplay.General.bufferlessReversals)) {
+				activeCrimsonGameplay.Gameplay.General.freeformSoftLock = true;
+				queuedCrimsonGameplay.Gameplay.General.freeformSoftLock = true;
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Allows you to do Reversals without buffering a move first.");
-			GUI_PopDisable(!activeConfig.Actor.enable || !activeCrimsonConfig.Gameplay.General.freeformSoftLock);
+			GUI_PopDisable(!activeConfig.Actor.enable || !activeCrimsonGameplay.Gameplay.General.freeformSoftLock);
 
 			// Third row
 			ImGui::TableNextRow(0, rowHeight * 0.5f);
@@ -9777,8 +9777,8 @@ void GeneralGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Improved Buffered Reversals",
-				activeCrimsonConfig.Gameplay.General.improvedBufferedReversals,
-				queuedCrimsonConfig.Gameplay.General.improvedBufferedReversals)) {
+				activeCrimsonGameplay.Gameplay.General.improvedBufferedReversals,
+				queuedCrimsonGameplay.Gameplay.General.improvedBufferedReversals)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9790,9 +9790,9 @@ void GeneralGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("DMC4/5 Lock On Direction",
-				activeCrimsonConfig.Gameplay.General.dmc4LockOnDirection,
-				queuedCrimsonConfig.Gameplay.General.dmc4LockOnDirection)) {
-				CrimsonDetours::ToggleDMC4LockOnDirection(activeCrimsonConfig.Gameplay.General.dmc4LockOnDirection);
+				activeCrimsonGameplay.Gameplay.General.dmc4LockOnDirection,
+				queuedCrimsonGameplay.Gameplay.General.dmc4LockOnDirection)) {
+				CrimsonDetours::ToggleDMC4LockOnDirection(activeCrimsonGameplay.Gameplay.General.dmc4LockOnDirection);
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9804,8 +9804,8 @@ void GeneralGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Increased Jump Cancel Hitboxes",
-				activeCrimsonConfig.Gameplay.General.increasedJCSpheres,
-				queuedCrimsonConfig.Gameplay.General.increasedJCSpheres)) {
+				activeCrimsonGameplay.Gameplay.General.increasedJCSpheres,
+				queuedCrimsonGameplay.Gameplay.General.increasedJCSpheres)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9819,8 +9819,8 @@ void GeneralGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Disable Height Restriction",
-				activeCrimsonConfig.Gameplay.General.disableHeightRestriction,
-				queuedCrimsonConfig.Gameplay.General.disableHeightRestriction)) {
+				activeCrimsonGameplay.Gameplay.General.disableHeightRestriction,
+				queuedCrimsonGameplay.Gameplay.General.disableHeightRestriction)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9832,8 +9832,8 @@ void GeneralGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Disable Jump Cancel Restriction",
-				activeCrimsonConfig.Gameplay.General.disableJCRestriction,
-				queuedCrimsonConfig.Gameplay.General.disableJCRestriction)) {
+				activeCrimsonGameplay.Gameplay.General.disableJCRestriction,
+				queuedCrimsonGameplay.Gameplay.General.disableJCRestriction)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9844,9 +9844,9 @@ void GeneralGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Increased Enemy Juggle Time",
-				activeCrimsonConfig.Gameplay.General.increasedEnemyJuggleTime,
-				queuedCrimsonConfig.Gameplay.General.increasedEnemyJuggleTime)) {
-				CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonConfig.Gameplay.General.increasedEnemyJuggleTime);
+				activeCrimsonGameplay.Gameplay.General.increasedEnemyJuggleTime,
+				queuedCrimsonGameplay.Gameplay.General.increasedEnemyJuggleTime)) {
+				CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonGameplay.Gameplay.General.increasedEnemyJuggleTime);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Increases stagger value of moves in the air, similar to DMC5.");
@@ -9856,9 +9856,9 @@ void GeneralGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Faster Turn Rate",
-				activeCrimsonConfig.Gameplay.General.fasterTurnRate,
-				queuedCrimsonConfig.Gameplay.General.fasterTurnRate)) {
-				CrimsonDetours::ToggleFasterTurnRate(activeCrimsonConfig.Gameplay.General.fasterTurnRate);
+				activeCrimsonGameplay.Gameplay.General.fasterTurnRate,
+				queuedCrimsonGameplay.Gameplay.General.fasterTurnRate)) {
+				CrimsonDetours::ToggleFasterTurnRate(activeCrimsonGameplay.Gameplay.General.fasterTurnRate);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Increases character turn speed.");
@@ -9866,9 +9866,9 @@ void GeneralGameplayOptions() {
 			ImGui::TableNextColumn();
 			GUI_PushDisable(activeConfig.Actor.enable);
 			ImGui::PushItemWidth(itemWidth * 0.7f);
-			GUI_InputDefault2("Vanilla Weapon Switch Delay", activeCrimsonConfig.Gameplay.General.vanillaWeaponSwitchDelay,
-				queuedCrimsonConfig.Gameplay.General.vanillaWeaponSwitchDelay, 
-				defaultCrimsonConfig.Gameplay.General.vanillaWeaponSwitchDelay, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2("Vanilla Weapon Switch Delay", activeCrimsonGameplay.Gameplay.General.vanillaWeaponSwitchDelay,
+				queuedCrimsonGameplay.Gameplay.General.vanillaWeaponSwitchDelay, 
+				defaultCrimsonGameplay.Gameplay.General.vanillaWeaponSwitchDelay, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::SameLine();
 			ImGui::PopItemWidth();
 			GUI_PopDisable(activeConfig.Actor.enable);
@@ -9919,8 +9919,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Improved Cancels",
-				activeCrimsonConfig.Gameplay.Dante.improvedCancels,
-				queuedCrimsonConfig.Gameplay.Dante.improvedCancels)) {
+				activeCrimsonGameplay.Gameplay.Dante.improvedCancels,
+				queuedCrimsonGameplay.Gameplay.Dante.improvedCancels)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9932,8 +9932,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Aerial Rave Tweaks",
-				activeCrimsonConfig.Gameplay.Dante.aerialRaveTweaks,
-				queuedCrimsonConfig.Gameplay.Dante.aerialRaveTweaks)) {
+				activeCrimsonGameplay.Gameplay.Dante.aerialRaveTweaks,
+				queuedCrimsonGameplay.Gameplay.Dante.aerialRaveTweaks)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9945,8 +9945,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Flicker Tweaks",
-				activeCrimsonConfig.Gameplay.Dante.airFlickerTweaks,
-				queuedCrimsonConfig.Gameplay.Dante.airFlickerTweaks)) {
+				activeCrimsonGameplay.Gameplay.Dante.airFlickerTweaks,
+				queuedCrimsonGameplay.Gameplay.Dante.airFlickerTweaks)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9960,8 +9960,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Sky Dance Tweaks",
-				activeCrimsonConfig.Gameplay.Dante.skyDanceTweaks,
-				queuedCrimsonConfig.Gameplay.Dante.skyDanceTweaks)) {
+				activeCrimsonGameplay.Gameplay.Dante.skyDanceTweaks,
+				queuedCrimsonGameplay.Gameplay.Dante.skyDanceTweaks)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9973,8 +9973,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Shotgun Air Shot Tweaks",
-				activeCrimsonConfig.Gameplay.Dante.shotgunAirShotTweaks,
-				queuedCrimsonConfig.Gameplay.Dante.shotgunAirShotTweaks)) {
+				activeCrimsonGameplay.Gameplay.Dante.shotgunAirShotTweaks,
+				queuedCrimsonGameplay.Gameplay.Dante.shotgunAirShotTweaks)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -9986,8 +9986,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Drive Tweaks",
-				activeCrimsonConfig.Gameplay.Dante.driveTweaks,
-				queuedCrimsonConfig.Gameplay.Dante.driveTweaks)) {
+				activeCrimsonGameplay.Gameplay.Dante.driveTweaks,
+				queuedCrimsonGameplay.Gameplay.Dante.driveTweaks)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10001,8 +10001,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Bullet Stop",
-				activeCrimsonConfig.Gameplay.Dante.bulletStop,
-				queuedCrimsonConfig.Gameplay.Dante.bulletStop)) {
+				activeCrimsonGameplay.Gameplay.Dante.bulletStop,
+				queuedCrimsonGameplay.Gameplay.Dante.bulletStop)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10014,8 +10014,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Rainstorm Lift",
-				activeCrimsonConfig.Gameplay.Dante.rainstormLift,
-				queuedCrimsonConfig.Gameplay.Dante.rainstormLift)) {
+				activeCrimsonGameplay.Gameplay.Dante.rainstormLift,
+				queuedCrimsonGameplay.Gameplay.Dante.rainstormLift)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10026,9 +10026,9 @@ void DanteGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Infinite Rainstorm",
-				activeCrimsonConfig.Gameplay.Dante.infiniteRainstorm,
-				queuedCrimsonConfig.Gameplay.Dante.infiniteRainstorm)) {
-				ToggleEbonyIvoryInfiniteRainStorm(activeCrimsonConfig.Gameplay.Dante.infiniteRainstorm);
+				activeCrimsonGameplay.Gameplay.Dante.infiniteRainstorm,
+				queuedCrimsonGameplay.Gameplay.Dante.infiniteRainstorm)) {
+				ToggleEbonyIvoryInfiniteRainStorm(activeCrimsonGameplay.Gameplay.Dante.infiniteRainstorm);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Makes rainstorm last indefinitely in the air.");
@@ -10038,9 +10038,9 @@ void DanteGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("E&I Foursome Time",
-				activeCrimsonConfig.Gameplay.Dante.foursomeTime,
-				queuedCrimsonConfig.Gameplay.Dante.foursomeTime)) {
-				ToggleEbonyIvoryFoursomeTime(activeCrimsonConfig.Gameplay.Dante.foursomeTime);
+				activeCrimsonGameplay.Gameplay.Dante.foursomeTime,
+				queuedCrimsonGameplay.Gameplay.Dante.foursomeTime)) {
+				ToggleEbonyIvoryFoursomeTime(activeCrimsonGameplay.Gameplay.Dante.foursomeTime);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Ebony & Ivory's Twosome Time fires 2 additional shots.");
@@ -10049,8 +10049,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Stinger",
-				activeCrimsonConfig.Gameplay.Dante.airStinger,
-				queuedCrimsonConfig.Gameplay.Dante.airStinger)) {
+				activeCrimsonGameplay.Gameplay.Dante.airStinger,
+				queuedCrimsonGameplay.Gameplay.Dante.airStinger)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10062,8 +10062,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Revolver",
-				activeCrimsonConfig.Gameplay.Dante.airRevolver,
-				queuedCrimsonConfig.Gameplay.Dante.airRevolver)) {
+				activeCrimsonGameplay.Gameplay.Dante.airRevolver,
+				queuedCrimsonGameplay.Gameplay.Dante.airRevolver)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10077,8 +10077,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Agni & Rudra Whirlwind",
-				activeCrimsonConfig.Gameplay.Dante.airAgniRudraWhirlwind,
-				queuedCrimsonConfig.Gameplay.Dante.airAgniRudraWhirlwind)) {
+				activeCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind,
+				queuedCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10090,8 +10090,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Tornado",
-				activeCrimsonConfig.Gameplay.Dante.airTornado,
-				queuedCrimsonConfig.Gameplay.Dante.airTornado)) {
+				activeCrimsonGameplay.Gameplay.Dante.airTornado,
+				queuedCrimsonGameplay.Gameplay.Dante.airTornado)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10103,8 +10103,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Rising Dragon Whirlwind",
-				activeCrimsonConfig.Gameplay.Dante.airRisingDragonWhirlwind,
-				queuedCrimsonConfig.Gameplay.Dante.airRisingDragonWhirlwind)) {
+				activeCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind,
+				queuedCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10118,8 +10118,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("DMC4 Mobility",
-				activeCrimsonConfig.Gameplay.Dante.dmc4Mobility,
-				queuedCrimsonConfig.Gameplay.Dante.dmc4Mobility)) {
+				activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility,
+				queuedCrimsonGameplay.Gameplay.Dante.dmc4Mobility)) {
 				CrimsonGameplay::AdjustDMC4MobilitySettings();
 			}
 			ImGui::SameLine();
@@ -10132,11 +10132,11 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (!activeConfig.Actor.enable) {
-				activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard = false;
+				activeCrimsonGameplay.Gameplay.Dante.dTInfusedRoyalguard = false;
 			}
 			if (GUI_Checkbox2("DT Infused Royalguard",
-				activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard,
-				queuedCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard)) {
+				activeCrimsonGameplay.Gameplay.Dante.dTInfusedRoyalguard,
+				queuedCrimsonGameplay.Gameplay.Dante.dTInfusedRoyalguard)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10148,9 +10148,9 @@ void DanteGameplayOptions() {
 
 			// Adding Air Hike section
 			if (GUI_Checkbox2("Air Hike Core Ability",
-				activeCrimsonConfig.Gameplay.Dante.airHikeCoreAbility,
-				queuedCrimsonConfig.Gameplay.Dante.airHikeCoreAbility)) {
-				ToggleAirHikeCoreAbility(activeCrimsonConfig.Gameplay.Dante.airHikeCoreAbility);
+				activeCrimsonGameplay.Gameplay.Dante.airHikeCoreAbility,
+				queuedCrimsonGameplay.Gameplay.Dante.airHikeCoreAbility)) {
+				ToggleAirHikeCoreAbility(activeCrimsonGameplay.Gameplay.Dante.airHikeCoreAbility);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Makes Air Hike available for all melee weapons.");
@@ -10161,8 +10161,8 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Alternate Nevan Vortex",
-				activeCrimsonConfig.Gameplay.Dante.altNevanVortex,
-				queuedCrimsonConfig.Gameplay.Dante.altNevanVortex)) {
+				activeCrimsonGameplay.Gameplay.Dante.altNevanVortex,
+				queuedCrimsonGameplay.Gameplay.Dante.altNevanVortex)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10173,11 +10173,11 @@ void DanteGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Artemis Rework",
-				activeCrimsonConfig.Gameplay.Dante.artemisRework,
-				queuedCrimsonConfig.Gameplay.Dante.artemisRework)) {
-				ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonConfig.Gameplay.Dante.artemisRework);
-				CrimsonDetours::ToggleArtemisInstantFullCharge(activeCrimsonConfig.Gameplay.Dante.artemisRework);
-				CrimsonPatches::ReduceArtemisProjectileDamage(activeCrimsonConfig.Gameplay.Dante.artemisRework);
+				activeCrimsonGameplay.Gameplay.Dante.artemisRework,
+				queuedCrimsonGameplay.Gameplay.Dante.artemisRework)) {
+				ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
+				CrimsonDetours::ToggleArtemisInstantFullCharge(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
+				CrimsonPatches::ReduceArtemisProjectileDamage(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Swaps Artemis' Normal Shot and Multi-Lock inputs, and makes it charge to full near instantly.\n"
@@ -10187,9 +10187,9 @@ void DanteGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Cut Nevan Air Slash Knockback",
-				activeCrimsonConfig.Gameplay.Dante.disableAirSlashKnockback,
-				queuedCrimsonConfig.Gameplay.Dante.disableAirSlashKnockback)) {
-				CrimsonPatches::DisableAirSlashKnockback(activeCrimsonConfig.Gameplay.Dante.disableAirSlashKnockback);
+				activeCrimsonGameplay.Gameplay.Dante.disableAirSlashKnockback,
+				queuedCrimsonGameplay.Gameplay.Dante.disableAirSlashKnockback)) {
+				CrimsonPatches::DisableAirSlashKnockback(activeCrimsonGameplay.Gameplay.Dante.disableAirSlashKnockback);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Disables the Knockback from Nevan's Air Slash pt. 1.");
@@ -10233,9 +10233,9 @@ void DanteCheatOptions() {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Force Royal Release",
-				activeCrimsonConfig.Cheats.Dante.forceRoyalRelease,
-				queuedCrimsonConfig.Cheats.Dante.forceRoyalRelease)) {
-				CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeCrimsonConfig.Cheats.Dante.forceRoyalRelease);
+				activeCrimsonGameplay.Cheats.Dante.forceRoyalRelease,
+				queuedCrimsonGameplay.Cheats.Dante.forceRoyalRelease)) {
+				CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeCrimsonGameplay.Cheats.Dante.forceRoyalRelease);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Forces Royalguard Release to always be a Royal (Just Frame) Release.");
@@ -10243,9 +10243,9 @@ void DanteCheatOptions() {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Infinite Shredder",
-				activeCrimsonConfig.Cheats.Dante.infiniteShredder,
-				queuedCrimsonConfig.Cheats.Dante.infiniteShredder)) {
-				ToggleRebellionInfiniteShredder(activeCrimsonConfig.Cheats.Dante.infiniteShredder);
+				activeCrimsonGameplay.Cheats.Dante.infiniteShredder,
+				queuedCrimsonGameplay.Cheats.Dante.infiniteShredder)) {
+				ToggleRebellionInfiniteShredder(activeCrimsonGameplay.Cheats.Dante.infiniteShredder);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Makes Rebellion's Shredder last for an indefinite amount of time.");
@@ -10253,9 +10253,9 @@ void DanteCheatOptions() {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Infinite Sword Pierce",
-				activeCrimsonConfig.Cheats.Dante.infiniteSwordPierce,
-				queuedCrimsonConfig.Cheats.Dante.infiniteSwordPierce)) {
-				ToggleRebellionInfiniteSwordPierce(activeCrimsonConfig.Cheats.Dante.infiniteSwordPierce);
+				activeCrimsonGameplay.Cheats.Dante.infiniteSwordPierce,
+				queuedCrimsonGameplay.Cheats.Dante.infiniteSwordPierce)) {
+				ToggleRebellionInfiniteSwordPierce(activeCrimsonGameplay.Cheats.Dante.infiniteSwordPierce);
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Makes Rebellion's Sword Pierce last for an indefinite amount of time.");
@@ -10294,8 +10294,8 @@ void VergilGameplayOptions() {
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Darkslayer Tricks Cancels All",
-				activeCrimsonConfig.Gameplay.Vergil.darkslayerTrickCancels,
-				queuedCrimsonConfig.Gameplay.Vergil.darkslayerTrickCancels)) {
+				activeCrimsonGameplay.Gameplay.Vergil.darkslayerTrickCancels,
+				queuedCrimsonGameplay.Gameplay.Vergil.darkslayerTrickCancels)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10306,8 +10306,8 @@ void VergilGameplayOptions() {
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Faster DT Rapid Slash",
-				activeCrimsonConfig.Gameplay.Vergil.fasterDTRapidSlash,
-				queuedCrimsonConfig.Gameplay.Vergil.fasterDTRapidSlash)) {
+				activeCrimsonGameplay.Gameplay.Vergil.fasterDTRapidSlash,
+				queuedCrimsonGameplay.Gameplay.Vergil.fasterDTRapidSlash)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10318,8 +10318,8 @@ void VergilGameplayOptions() {
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Round Trip Tweaks",
-				activeCrimsonConfig.Gameplay.Vergil.roundTripTweaks,
-				queuedCrimsonConfig.Gameplay.Vergil.roundTripTweaks)) {
+				activeCrimsonGameplay.Gameplay.Vergil.roundTripTweaks,
+				queuedCrimsonGameplay.Gameplay.Vergil.roundTripTweaks)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10332,8 +10332,8 @@ void VergilGameplayOptions() {
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Stinger",
-				activeCrimsonConfig.Gameplay.Vergil.airStinger,
-				queuedCrimsonConfig.Gameplay.Vergil.airStinger)) {
+				activeCrimsonGameplay.Gameplay.Vergil.airStinger,
+				queuedCrimsonGameplay.Gameplay.Vergil.airStinger)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10344,8 +10344,8 @@ void VergilGameplayOptions() {
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Rising Sun",
-				activeCrimsonConfig.Gameplay.Vergil.airRisingSun,
-				queuedCrimsonConfig.Gameplay.Vergil.airRisingSun)) {
+				activeCrimsonGameplay.Gameplay.Vergil.airRisingSun,
+				queuedCrimsonGameplay.Gameplay.Vergil.airRisingSun)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10356,8 +10356,8 @@ void VergilGameplayOptions() {
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Lunar Phase",
-				activeCrimsonConfig.Gameplay.Vergil.airLunarPhase,
-				queuedCrimsonConfig.Gameplay.Vergil.airLunarPhase)) {
+				activeCrimsonGameplay.Gameplay.Vergil.airLunarPhase,
+				queuedCrimsonGameplay.Gameplay.Vergil.airLunarPhase)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10370,8 +10370,8 @@ void VergilGameplayOptions() {
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Alternate Judgement Cut Input",
-				activeCrimsonConfig.Gameplay.Vergil.altJudgementCutInput,
-				queuedCrimsonConfig.Gameplay.Vergil.altJudgementCutInput)) {
+				activeCrimsonGameplay.Gameplay.Vergil.altJudgementCutInput,
+				queuedCrimsonGameplay.Gameplay.Vergil.altJudgementCutInput)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10384,8 +10384,8 @@ void VergilGameplayOptions() {
 			ImGui::PushItemWidth(itemWidth * 0.5f);
 			UI::ComboVectorString2("Alt. Rising Sun Positioning",
 				VergilMoveAdjustmentsNames,
-				activeCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos,
-				queuedCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos);
+				activeCrimsonGameplay.Gameplay.Vergil.adjustRisingSunPos,
+				queuedCrimsonGameplay.Gameplay.Vergil.adjustRisingSunPos);
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10398,8 +10398,8 @@ void VergilGameplayOptions() {
 			ImGui::PushItemWidth(itemWidth * 0.5f);
 			UI::ComboVectorString2("Alt. Lunar Phase Positioning",
 				VergilMoveAdjustmentsNames,
-				activeCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos,
-				queuedCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos);
+				activeCrimsonGameplay.Gameplay.Vergil.adjustLunarPhasePos,
+				queuedCrimsonGameplay.Gameplay.Vergil.adjustLunarPhasePos);
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10444,8 +10444,8 @@ void VergilCheatOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Quicksilver Style",
-				activeCrimsonConfig.Cheats.Vergil.quicksilverStyle,
-				queuedCrimsonConfig.Cheats.Vergil.quicksilverStyle)) {
+				activeCrimsonGameplay.Cheats.Vergil.quicksilverStyle,
+				queuedCrimsonGameplay.Cheats.Vergil.quicksilverStyle)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10458,9 +10458,9 @@ void VergilCheatOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Chrono Swords",
-				activeCrimsonConfig.Cheats.Vergil.chronoSwords,
-				queuedCrimsonConfig.Cheats.Vergil.chronoSwords)) {
-				ToggleChronoSwords(activeCrimsonConfig.Cheats.Vergil.chronoSwords);
+				activeCrimsonGameplay.Cheats.Vergil.chronoSwords,
+				queuedCrimsonGameplay.Cheats.Vergil.chronoSwords)) {
+				ToggleChronoSwords(activeCrimsonGameplay.Cheats.Vergil.chronoSwords);
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10470,9 +10470,9 @@ void VergilCheatOptions() {
 
 			ImGui::TableNextColumn();
 			if (GUI_Checkbox2("Infinite Round Trip",
-				activeCrimsonConfig.Cheats.Vergil.infiniteRoundTrip,
-				queuedCrimsonConfig.Cheats.Vergil.infiniteRoundTrip)) {
-				ToggleYamatoForceEdgeInfiniteRoundTrip(activeCrimsonConfig.Cheats.Vergil.infiniteRoundTrip);
+				activeCrimsonGameplay.Cheats.Vergil.infiniteRoundTrip,
+				queuedCrimsonGameplay.Cheats.Vergil.infiniteRoundTrip)) {
+				ToggleYamatoForceEdgeInfiniteRoundTrip(activeCrimsonGameplay.Cheats.Vergil.infiniteRoundTrip);
 			}
 
 			ImGui::EndTable();
@@ -10531,17 +10531,17 @@ void VergilCheatOptions() {
 		ImGui::Text("DEVIL TRIGGER");
 		ImGui::PopFont();
 
-		bool beowulfDisabled = !activeCrimsonConfig.Gameplay.Vergil.airRisingSun;
+		bool beowulfDisabled = !activeCrimsonGameplay.Gameplay.Vergil.airRisingSun;
 		VergilActionDataInput("Air Rising Sun Count",
-			activeCrimsonConfig.Cheats.Vergil.airRisingSunCount,
-			queuedCrimsonConfig.Cheats.Vergil.airRisingSunCount,
-			defaultCrimsonConfig.Cheats.Vergil.airRisingSunCount,
+			activeCrimsonGameplay.Cheats.Vergil.airRisingSunCount,
+			queuedCrimsonGameplay.Cheats.Vergil.airRisingSunCount,
+			defaultCrimsonGameplay.Cheats.Vergil.airRisingSunCount,
 			beowulfDisabled);
 
 		VergilActionDataInput("Judgement Cut Count",
-			activeCrimsonConfig.Cheats.Vergil.judgementCutCount,
-			queuedCrimsonConfig.Cheats.Vergil.judgementCutCount,
-			defaultCrimsonConfig.Cheats.Vergil.judgementCutCount);
+			activeCrimsonGameplay.Cheats.Vergil.judgementCutCount,
+			queuedCrimsonGameplay.Cheats.Vergil.judgementCutCount,
+			defaultCrimsonGameplay.Cheats.Vergil.judgementCutCount);
 
 		ImGui::EndTable();
 	}
@@ -10578,8 +10578,8 @@ void ExtraDifficultyGameplayOptions() {
 		UI::ComboMapValue2("Legendary Dark Knight Mode",
 			ldkModeNames,
 			ldkModes,
-			activeCrimsonConfig.Gameplay.ExtraDifficulty.ldkMode,
-			queuedCrimsonConfig.Gameplay.ExtraDifficulty.ldkMode);
+			activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode,
+			queuedCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode);
 		ImGui::PopItemWidth();
 		TooltipHelper("(?)", "Spawns large waves of enemies like in DMC5's LDK Mode.");
 		GUI_PopDisable(!activeConfig.Actor.enable);
@@ -10626,16 +10626,16 @@ void InputRemapOptions() {
 
 			ImGui::PushItemWidth(itemWidth * 0.8f);
 			GUI_ButtonCombo2("Dante DT Button",
-				activeCrimsonConfig.Gameplay.Remaps.danteDTButton,
-				queuedCrimsonConfig.Gameplay.Remaps.danteDTButton);
+				activeCrimsonConfig.System.Remaps.danteDTButton,
+				queuedCrimsonConfig.System.Remaps.danteDTButton);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * 0.8f);
 			GUI_ButtonCombo2("Dante Shoot Button",
-				activeCrimsonConfig.Gameplay.Remaps.danteShootButton,
-				queuedCrimsonConfig.Gameplay.Remaps.danteShootButton);
+				activeCrimsonConfig.System.Remaps.danteShootButton,
+				queuedCrimsonConfig.System.Remaps.danteShootButton);
 			ImGui::PopItemWidth();
 
 			// Second row
@@ -10644,16 +10644,16 @@ void InputRemapOptions() {
 
 			ImGui::PushItemWidth(itemWidth * 0.8f);
 			GUI_ButtonCombo2("Vergil DT Button",
-				activeCrimsonConfig.Gameplay.Remaps.vergilDTButton,
-				queuedCrimsonConfig.Gameplay.Remaps.vergilDTButton);
+				activeCrimsonConfig.System.Remaps.vergilDTButton,
+				queuedCrimsonConfig.System.Remaps.vergilDTButton);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * 0.8f);
 			GUI_ButtonCombo2("Vergil Shoot Button",
-				activeCrimsonConfig.Gameplay.Remaps.vergilShootButton,
-				queuedCrimsonConfig.Gameplay.Remaps.vergilShootButton);
+				activeCrimsonConfig.System.Remaps.vergilShootButton,
+				queuedCrimsonConfig.System.Remaps.vergilShootButton);
 			ImGui::PopItemWidth();
 
 			ImGui::EndTable();
@@ -11131,7 +11131,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, frameBGHovered);
 		ImGui::PushStyleColor(ImGuiCol_Text, textColor);;
 
-		context.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonConfig.GameMode.preset;
+		context.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
 
 		if (UI::BeginCombo("##Game Mode", modes[size_t(context.SelectedGameMode)], { 0.5f, 0.5f }, 0.9f)) {
 			ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
@@ -11190,8 +11190,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				if (ImGui::Selectable(modes[i], isSelected)) {
 					
-					activeCrimsonConfig.GameMode.preset = (uint8)i;
-					queuedCrimsonConfig.GameMode.preset = (uint8)i;
+					activeCrimsonGameplay.GameMode.preset = (uint8)i;
+					queuedCrimsonGameplay.GameMode.preset = (uint8)i;
 					::GUI::save = true;
 				}
 

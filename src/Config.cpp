@@ -20,8 +20,10 @@ using namespace DI8;
 
 inline const char* directoryName = Paths::config;
 inline const char* fileName      = "CrimsonConfig.json";
+inline const char* fileNameGameplay = "CrimsonConfigGameplay.json";
 
 char locationConfig[64] = {};
+char locationConfigGameplay[64] = {};
 
 Config defaultConfig;
 Config queuedConfig;
@@ -375,7 +377,7 @@ void CreateMembers(Config& config_) {
     DebugLogFunction();
 
     {
-        auto& member = Create<struct_t>(root, "Actor");
+        auto& member = Create<struct_t>(crimsonConfigRoot, "Actor");
         auto& config = config_.Actor;
 
         Create<bool>(member, "enable", config.enable);
@@ -393,7 +395,7 @@ void CreateMembers(Config& config_) {
 
 
     {
-        auto& member = Create<struct_t>(root, "Arcade");
+        auto& member = Create<struct_t>(crimsonConfigRoot, "Arcade");
         auto& config = config_.Arcade;
 
         Create<bool>(member, "enable", config.enable);
@@ -416,7 +418,7 @@ void CreateMembers(Config& config_) {
 
 
     {
-        auto& member = Create<struct_t>(root, "BossRush");
+        auto& member = Create<struct_t>(crimsonConfigRoot, "BossRush");
         auto& config = config_.BossRush;
 
         Create<bool>(member, "enable", config.enable);
@@ -453,7 +455,7 @@ void CreateMembers(Config& config_) {
 
 
     {
-        auto& member = Create<struct_t>(root, "Color");
+        auto& member = Create<struct_t>(crimsonConfigRoot, "Color");
         auto& config = config_.Color;
 
         CreateArray2<uint8, 5, 4>(member, "airHike", config.airHike);
@@ -493,7 +495,7 @@ void CreateMembers(Config& config_) {
     }
 
     {
-        auto& member = Create<struct_t>(root, "Speed");
+        auto& member = Create<struct_t>(crimsonConfigRoot, "Speed");
         auto& config = config_.Speed;
 
         Create<float>(member, "mainSpeed", config.mainSpeed);
@@ -508,7 +510,7 @@ void CreateMembers(Config& config_) {
     }
 
 
-    auto& member = root;
+    auto& member = crimsonConfigRoot;
     auto& config = config_;
 
     Create<bool>(member, "welcome", config.welcome);
@@ -638,7 +640,7 @@ void CreateMembers(Config& config_) {
 
 
     {
-        auto& member = CreateArray<struct_t, PLAYER_COUNT>(root, "barsData");
+        auto& member = CreateArray<struct_t, PLAYER_COUNT>(crimsonConfigRoot, "barsData");
         auto& config = config_.barsData;
 
         for_all(playerIndex, PLAYER_COUNT) {
@@ -654,7 +656,7 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "showCredits", config.showCredits);
 
     {
-        auto& member = CreateArray<struct_t, 3>(root, "keyData");
+        auto& member = CreateArray<struct_t, 3>(crimsonConfigRoot, "keyData");
         auto& config = config_.keyData;
 
         for_all(index, 3) {
@@ -820,7 +822,7 @@ void ToJSON(Config& config_) {
     DebugLogFunction();
 
     {
-        auto& member = root["Actor"];
+        auto& member = crimsonConfigRoot["Actor"];
         auto& config = config_.Actor;
 
         Set<bool>(member["enable"], config.enable);
@@ -834,7 +836,7 @@ void ToJSON(Config& config_) {
 
 
     {
-        auto& member = root["Arcade"];
+        auto& member = crimsonConfigRoot["Arcade"];
         auto& config = config_.Arcade;
 
         Set<bool>(member["enable"], config.enable);
@@ -857,7 +859,7 @@ void ToJSON(Config& config_) {
 
 
     {
-        auto& member = root["BossRush"];
+        auto& member = crimsonConfigRoot["BossRush"];
         auto& config = config_.BossRush;
 
         Set<bool>(member["enable"], config.enable);
@@ -894,7 +896,7 @@ void ToJSON(Config& config_) {
 
 
     {
-        auto& member = root["Color"];
+        auto& member = crimsonConfigRoot["Color"];
         auto& config = config_.Color;
 
         SetArray2<uint8, 5, 4>(member["airHike"], config.airHike);
@@ -932,7 +934,7 @@ void ToJSON(Config& config_) {
     }
 
     {
-        auto& member = root["Speed"];
+        auto& member = crimsonConfigRoot["Speed"];
         auto& config = config_.Speed;
 
         Set<float>(member["mainSpeed"], config.mainSpeed);
@@ -946,7 +948,7 @@ void ToJSON(Config& config_) {
         SetArray<float, 5>(member["devilVergil"], config.devilVergil);
     }
 
-    auto& member = root;
+    auto& member = crimsonConfigRoot;
     auto& config = config_;
 
     Set<bool>(member["welcome"], config.welcome);
@@ -1220,7 +1222,7 @@ void ToConfig(Config& config_) {
 
     {
         auto& config = config_.Actor;
-        auto& member = root["Actor"];
+        auto& member = crimsonConfigRoot["Actor"];
 
         config.enable      = Get<bool>(member["enable"]);
         config.playerCount = Get<uint8>(member["playerCount"]);
@@ -1233,7 +1235,7 @@ void ToConfig(Config& config_) {
 
     {
         auto& config = config_.Arcade;
-        auto& member = root["Arcade"];
+        auto& member = crimsonConfigRoot["Arcade"];
 
         config.enable         = Get<bool>(member["enable"]);
         config.mission        = Get<uint32>(member["mission"]);
@@ -1256,7 +1258,7 @@ void ToConfig(Config& config_) {
 
     {
         auto& config = config_.BossRush;
-        auto& member = root["BossRush"];
+        auto& member = crimsonConfigRoot["BossRush"];
 
         config.enable = Get<bool>(member["enable"]);
 
@@ -1294,7 +1296,7 @@ void ToConfig(Config& config_) {
     {
 
         auto& config = config_.Color;
-        auto& member = root["Color"];
+        auto& member = crimsonConfigRoot["Color"];
 
         GetArray2<uint8, 5, 4>(config.airHike, member["airHike"]);
 
@@ -1332,7 +1334,7 @@ void ToConfig(Config& config_) {
 
     {
         auto& config = config_.Speed;
-        auto& member = root["Speed"];
+        auto& member = crimsonConfigRoot["Speed"];
 
         config.mainSpeed              = Get<float>(member["mainSpeed"]);
         config.turbo                  = Get<float>(member["turbo"]);
@@ -1346,7 +1348,7 @@ void ToConfig(Config& config_) {
     }
 
     auto& config = config_;
-    auto& member = root;
+    auto& member = crimsonConfigRoot;
 
     config.welcome                   = Get<bool>(member["welcome"]);
     config.hideBeowulfDante          = Get<bool>(member["hideBeowulfDante"]);
@@ -1579,11 +1581,11 @@ void CreateMembers_ExpData(rapidjson::Value& member, ExpData (&expData)[SAVE_COU
 void CreateMembers() {
     DebugLogFunction();
 
-    CreateArray<struct_t, SAVE_COUNT>(root, "Dante");
-    CreateMembers_ExpData(root["Dante"], savedExpDataDante);
+    CreateArray<struct_t, SAVE_COUNT>(crimsonConfigRoot, "Dante");
+    CreateMembers_ExpData(crimsonConfigRoot["Dante"], savedExpDataDante);
 
-    CreateArray<struct_t, SAVE_COUNT>(root, "Vergil");
-    CreateMembers_ExpData(root["Vergil"], savedExpDataVergil);
+    CreateArray<struct_t, SAVE_COUNT>(crimsonConfigRoot, "Vergil");
+    CreateMembers_ExpData(crimsonConfigRoot["Vergil"], savedExpDataVergil);
 }
 
 #pragma endregion
@@ -1606,8 +1608,8 @@ void ToJSON_ExpData(rapidjson::Value& member, ExpData (&expData)[SAVE_COUNT]) {
 void ToJSON() {
     DebugLogFunction();
 
-    ToJSON_ExpData(root["Dante"], savedExpDataDante);
-    ToJSON_ExpData(root["Vergil"], savedExpDataVergil);
+    ToJSON_ExpData(crimsonConfigRoot["Dante"], savedExpDataDante);
+    ToJSON_ExpData(crimsonConfigRoot["Vergil"], savedExpDataVergil);
 }
 
 #pragma endregion
@@ -1630,8 +1632,8 @@ void ToExp_ExpData(ExpData (&expData)[SAVE_COUNT], rapidjson::Value& member) {
 void ToExp() {
     DebugLogFunction();
 
-    ToExp_ExpData(savedExpDataDante, root["Dante"]);
-    ToExp_ExpData(savedExpDataVergil, root["Vergil"]);
+    ToExp_ExpData(savedExpDataDante, crimsonConfigRoot["Dante"]);
+    ToExp_ExpData(savedExpDataVergil, crimsonConfigRoot["Vergil"]);
 }
 
 #pragma endregion
@@ -1685,7 +1687,7 @@ void SaveExp() {
     StringBuffer stringBuffer;
     PrettyWriter<StringBuffer> prettyWriter(stringBuffer);
 
-    root.Accept(prettyWriter);
+    crimsonConfigRoot.Accept(prettyWriter);
 
 
     auto name = stringBuffer.GetString();
@@ -1717,7 +1719,7 @@ void LoadExp() {
 
     auto name = const_cast<const char*>(reinterpret_cast<char*>(file));
 
-    if (root.Parse(name).HasParseError()) {
+    if (crimsonConfigRoot.Parse(name).HasParseError()) {
         Log("Parse failed.");
 
         return;
@@ -1755,9 +1757,9 @@ void InitExp() {
 
     snprintf(location, sizeof(location), "%s/%s", directoryName, fileName);
 
-    root.SetObject();
+    crimsonConfigRoot.SetObject();
 
-    g_allocator = &root.GetAllocator();
+    g_allocator = &crimsonConfigRoot.GetAllocator();
 }
 
 ExpertiseHelper expertiseHelpersDanteSwordmasterLevel2[] = {
@@ -2284,7 +2286,7 @@ void TransferUnlocksToActorSystem() {
 	StringBuffer stringBuffer;
 	PrettyWriter<StringBuffer> prettyWriter(stringBuffer);
 
-	root.Accept(prettyWriter);
+    crimsonConfigRoot.Accept(prettyWriter);
 
 
 	auto name = stringBuffer.GetString();

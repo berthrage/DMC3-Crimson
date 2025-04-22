@@ -3,6 +3,7 @@
 #include <type_traits>
 #include "CrimsonConfigHandling.h"
 #include <filewritestream.h>
+#include <../CrimsonConfigGameplay.hpp>
 #pragma optimize("", off) // Disable all optimizations
 #ifdef NO_SAVE
 void SaveConfigFunction()
@@ -18,7 +19,8 @@ void SaveConfig()
 	using namespace JSON;
 
 	ToJSON(queuedConfig);
-	SerializeConfig(root, queuedCrimsonConfig, root.GetAllocator());
+	SerializeConfig(crimsonConfigRoot, queuedCrimsonConfig, crimsonConfigRoot.GetAllocator());
+	SerializeConfig(crimsonConfigGameplayRoot, queuedCrimsonGameplay, crimsonConfigGameplayRoot.GetAllocator());
 
 	// Use FILE pointer and FileWriteStream for better large file handling
 	FILE* fp = fopen(locationConfig, "w");
@@ -27,14 +29,26 @@ void SaveConfig()
 		return;
 	}
 
+	FILE* fp_g = fopen(locationConfigGameplay, "w");
+	if (!fp_g) {
+		Log("Failed to open Gameplay file for writing.");
+		return;
+	}
+
 	char writeBuffer[65536]; // Use a larger buffer for efficiency
 	FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
 
+	char writeBuffer_g[65536]; 
+	FileWriteStream os_g(fp_g, writeBuffer_g, sizeof(writeBuffer_g));
+
 	// Use PrettyWriter for formatted output
 	PrettyWriter<FileWriteStream> prettyWriter(os);
-	root.Accept(prettyWriter);
+	PrettyWriter<FileWriteStream> prettyWriterGameplay(os_g);
+	crimsonConfigRoot.Accept(prettyWriter);
+	crimsonConfigGameplayRoot.Accept(prettyWriterGameplay);
 
 	fclose(fp);  // Close file to ensure data is fully written
+	fclose(fp_g); // Close file to ensure data is fully written
 }
 
 
@@ -53,12 +67,12 @@ void LoadConfig()
 
 
 	auto file = LoadFile(locationConfig);
+	auto fileGameplay = LoadFile(locationConfigGameplay);
 	if (!file) {
 		Log("LoadFile failed.");
 
 		CreateMembers(defaultConfig);
-		//CreateMembersCrimson(root, defaultCrimsonConfig);
-		SerializeConfig(root, defaultCrimsonConfig, root.GetAllocator());
+		SerializeConfig(crimsonConfigRoot, defaultCrimsonConfig, crimsonConfigRoot.GetAllocator());
 
 // 		int numberTest = 42;
 // 		int numberArrayTest[2][3] = { {1, 2, 3}, {4, 5, 6} };
@@ -75,10 +89,22 @@ void LoadConfig()
 		return;
 	}
 
+	if (!fileGameplay) {
+		Log("LoadFile Gameplay failed.");
+
+		SerializeConfig(crimsonConfigGameplayRoot, defaultCrimsonGameplay, crimsonConfigGameplayRoot.GetAllocator());
+
+		SaveConfig();
+
+		return;
+	}
+
 
 	auto name = const_cast<const char*>(reinterpret_cast<char*>(file));
+	auto nameGameplay = const_cast<const char*>(reinterpret_cast<char*>(fileGameplay));
 
-	auto& result = root.Parse(name);
+	auto& result = crimsonConfigRoot.Parse(name);
+	auto& resultGameplay = crimsonConfigGameplayRoot.Parse(nameGameplay);
 
 	if (result.HasParseError()) {
 		auto code = result.GetParseError();
@@ -95,6 +121,20 @@ void LoadConfig()
 		return;
 	}
 
+	if (resultGameplay.HasParseError()) {
+		auto code = resultGameplay.GetParseError();
+		auto off = resultGameplay.GetErrorOffset();
+
+		Log("Parse Gameplay failed. "
+#ifdef _WIN64
+			"%u %llu",
+#else
+			"%u %u",
+#endif
+			code, off);
+
+		return;
+	}
 
 	CreateMembers(defaultConfig);
 	//SerializeConfig(root, defaultCrimsonConfig, root.GetAllocator());
@@ -108,10 +148,12 @@ void LoadConfig()
 	// Let's update them!
 
 	ToConfig(queuedConfig);
-	ParseConfig(root, queuedCrimsonConfig);
+	ParseConfig(crimsonConfigRoot, queuedCrimsonConfig);
+	ParseConfig(crimsonConfigGameplayRoot, queuedCrimsonGameplay);
 
 	CopyMemory(&activeConfig, &queuedConfig, sizeof(activeConfig));
 	CopyMemory(&activeCrimsonConfig, &queuedCrimsonConfig, sizeof(activeCrimsonConfig));
+	CopyMemory(&activeCrimsonGameplay, &queuedCrimsonGameplay, sizeof(activeCrimsonGameplay));
 
 
 	SaveConfig();
@@ -119,7 +161,6 @@ void LoadConfig()
 	// SaveConfig here in case new members were created.
 	// This way we don't have to rely on a later SaveConfig to update the file.
 }
-
 
 #ifdef NO_INIT
 void InitConfigFunction()
@@ -137,9 +178,12 @@ void InitConfig()
 	CreateDirectoryA(directoryName, 0);
 
 	snprintf(locationConfig, sizeof(locationConfig), "%s/%s", directoryName, fileName);
+	snprintf(locationConfigGameplay, sizeof(locationConfigGameplay), "%s/%s", directoryName, fileNameGameplay);
 
-	root.SetObject();
+	crimsonConfigRoot.SetObject();
+	crimsonConfigGameplayRoot.SetObject();
 
-	g_allocator = &root.GetAllocator();
+	g_allocator = &crimsonConfigRoot.GetAllocator();
+	g_gameplay_allocator = &crimsonConfigGameplayRoot.GetAllocator();
 }
 #pragma optimize("", on) // Re-enable optimizations

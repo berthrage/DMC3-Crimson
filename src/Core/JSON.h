@@ -1,21 +1,12 @@
-
-
-
-// @Todo: Check array item count at compile-time.
-// @Todo: Check Get type.
-
-
-// Inconsistent value and value-less versions, because we can't have nice things.
-
-rapidjson::Document root = {};
+rapidjson::Document crimsonConfigRoot = {};
+rapidjson::Document crimsonConfigGameplayRoot = {};
 
 rapidjson::Value::AllocatorType* g_allocator = 0;
-
+rapidjson::Document::AllocatorType* g_gameplay_allocator = 0;
 
 bool IsString(rapidjson::Value& member) {
 	return member.IsString();
 }
-
 
 void GetString(std::string buffer, new_size_t bufferSize, rapidjson::Value& member) {
 	auto name = member.GetString();

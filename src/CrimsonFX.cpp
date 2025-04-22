@@ -550,7 +550,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
 		}
 	}
 	else {
-		if (actorData.character == CHARACTER::VERGIL && activeCrimsonConfig.Cheats.Vergil.quicksilverStyle) {
+		if (actorData.character == CHARACTER::VERGIL && activeCrimsonGameplay.Cheats.Vergil.quicksilverStyle) {
 			if (*fluxtime < 0.05f) {
 
 				if (actorData.devil == 0 && !(gamepad.buttons[2] & GetBinding(BINDING::DEVIL_TRIGGER))) {

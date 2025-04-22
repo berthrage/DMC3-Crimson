@@ -853,7 +853,7 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
 
 
         // Take configs into account if new positionings will be applied or not
-        if (activeCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos == "From Air") {
+        if (activeCrimsonGameplay.Gameplay.Vergil.adjustRisingSunPos == "From Air") {
 			if (action != BEOWULF_RISING_SUN) {
 				if (!(state & STATE::IN_AIR)) {
 					v->startingRisingSunFromGround = true;
@@ -861,14 +861,14 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
 					v->startingRisingSunFromGround = false;
 				}
 			}
-		} else if (activeCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos == "Always") {
+		} else if (activeCrimsonGameplay.Gameplay.Vergil.adjustRisingSunPos == "Always") {
 			v->startingRisingSunFromGround = false;
-		} else if (activeCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos == "Off") {
+		} else if (activeCrimsonGameplay.Gameplay.Vergil.adjustRisingSunPos == "Off") {
 			v->startingRisingSunFromGround = true;
 		}
 
 		
-        if (activeCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos == "From Air") {
+        if (activeCrimsonGameplay.Gameplay.Vergil.adjustLunarPhasePos == "From Air") {
             if (action != BEOWULF_LUNAR_PHASE_LEVEL_1 && action != BEOWULF_LUNAR_PHASE_LEVEL_2) {
                 if (!(state & STATE::IN_AIR)) {
                     v->startingLunarPhaseFromGround = true;
@@ -876,9 +876,9 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
                     v->startingLunarPhaseFromGround = false;
                 }
             }
-		} else if (activeCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos == "Always") {
+		} else if (activeCrimsonGameplay.Gameplay.Vergil.adjustLunarPhasePos == "Always") {
 			v->startingLunarPhaseFromGround = false;
-        } else if (activeCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos == "Off") {
+        } else if (activeCrimsonGameplay.Gameplay.Vergil.adjustLunarPhasePos == "Off") {
             v->startingLunarPhaseFromGround = true;
         }
 
@@ -918,7 +918,7 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
 void FasterDTRapidSlash(byte8* actorBaseAddr) {
     using namespace ACTION_DANTE;
     using namespace ACTION_VERGIL;
-    if (!actorBaseAddr || !activeCrimsonConfig.Gameplay.Vergil.fasterDTRapidSlash) {
+    if (!actorBaseAddr || !activeCrimsonGameplay.Gameplay.Vergil.fasterDTRapidSlash) {
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
@@ -1141,10 +1141,10 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
 	auto& actionTimer =
 		(actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].actionTimerClone : crimsonPlayer[playerIndex].actionTimer;
 
-    CrimsonDetours::ToggleFreeformSoftLockHelper(activeCrimsonConfig.Gameplay.General.freeformSoftLock);
-    float bufferTime = (activeCrimsonConfig.Gameplay.General.bufferlessReversals)? 0.3f : 0.02f;
+    CrimsonDetours::ToggleFreeformSoftLockHelper(activeCrimsonGameplay.Gameplay.General.freeformSoftLock);
+    float bufferTime = (activeCrimsonGameplay.Gameplay.General.bufferlessReversals)? 0.3f : 0.02f;
 
-    if (!activeCrimsonConfig.Gameplay.General.freeformSoftLock) {
+    if (!activeCrimsonGameplay.Gameplay.General.freeformSoftLock) {
         return;
     }
 
@@ -1851,7 +1851,7 @@ void DMC4Mobility(byte8* actorBaseAddr) {
     auto& airTrickCount = actorData.newAirTrickCount;
     static uint8 savedAirTrickCounts[PLAYER_COUNT][ENTITY_COUNT] = { 0 };
     auto& savedAirTrickCount = savedAirTrickCounts[playerIndex][entityIndex];
-    bool enable = activeCrimsonConfig.Gameplay.Dante.dmc4Mobility;
+    bool enable = activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility;
     static bool run = false;
 
     // Messing with default Mobility Settings to be equivalent to DMC4 counts.
@@ -1869,7 +1869,7 @@ void DMC4Mobility(byte8* actorBaseAddr) {
 		defaultConfig.skyStarCount[1] = 1;
 		defaultConfig.airTrickCountDante[1] = 1;
 
-        if (!activeCrimsonConfig.Cheats.General.customMobility) {
+        if (!activeCrimsonGameplay.Cheats.General.customMobility) {
 			queuedConfig.airHikeCount[1] = 1;
             queuedConfig.wallHikeCount[1] = 1;
             queuedConfig.skyStarCount[1] = 1;
@@ -1884,7 +1884,7 @@ void DMC4Mobility(byte8* actorBaseAddr) {
         run = enable;
     }
 
-	if (!activeCrimsonConfig.Gameplay.Dante.dmc4Mobility) {
+	if (!activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility) {
 		return;
 	}
 
@@ -1898,7 +1898,7 @@ void DMC4Mobility(byte8* actorBaseAddr) {
 }
 
 void AdjustDMC4MobilitySettings() {
-	if (activeCrimsonConfig.Gameplay.Dante.dmc4Mobility) {
+	if (activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility) {
 		queuedConfig.airHikeCount[1] = 2;
 		queuedConfig.wallHikeCount[1] = 2;
 		queuedConfig.skyStarCount[1] = 2;
@@ -2200,11 +2200,11 @@ void GunDTCharacterRemaps() {
     static uint16_t* currentDTButton    = (uint16_t*)(appBaseAddr + 0xD6CE9A);
     static uint16_t* currentShootButton = (uint16_t*)(appBaseAddr + 0xD6CE98);
     if (crimsonPlayer[0].character == CHARACTER::DANTE) {
-        *currentDTButton    = activeCrimsonConfig.Gameplay.Remaps.danteDTButton;
-        *currentShootButton = activeCrimsonConfig.Gameplay.Remaps.danteShootButton;
+        *currentDTButton    = activeCrimsonConfig.System.Remaps.danteDTButton;
+        *currentShootButton = activeCrimsonConfig.System.Remaps.danteShootButton;
     } else if (crimsonPlayer[0].character == CHARACTER::VERGIL) {
-        *currentDTButton    = activeCrimsonConfig.Gameplay.Remaps.vergilDTButton;
-        *currentShootButton = activeCrimsonConfig.Gameplay.Remaps.vergilShootButton;
+        *currentDTButton    = activeCrimsonConfig.System.Remaps.vergilDTButton;
+        *currentShootButton = activeCrimsonConfig.System.Remaps.vergilShootButton;
     }
 }
 
@@ -2218,8 +2218,8 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 		return;
 	}
 
-    CrimsonDetours::ToggleDTInfusedRoyalguardDetours(activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard);
-    if (!activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard) {
+    CrimsonDetours::ToggleDTInfusedRoyalguardDetours(activeCrimsonGameplay.Gameplay.Dante.dTInfusedRoyalguard);
+    if (!activeCrimsonGameplay.Gameplay.Dante.dTInfusedRoyalguard) {
         return;
     }
 
@@ -2503,8 +2503,8 @@ void DriveTweaks(byte8* actorBaseAddr) {
         return;
     }
     auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    CrimsonDetours::ToggleDisableDriveHold(activeCrimsonConfig.Gameplay.Dante.driveTweaks);
-    if (!activeCrimsonConfig.Gameplay.Dante.driveTweaks || actorData.character != CHARACTER::DANTE) return;
+    CrimsonDetours::ToggleDisableDriveHold(activeCrimsonGameplay.Gameplay.Dante.driveTweaks);
+    if (!activeCrimsonGameplay.Gameplay.Dante.driveTweaks || actorData.character != CHARACTER::DANTE) return;
     auto playerIndex = actorData.newPlayerIndex;
     int vfxBank = 3;
     int vfxId = 144;

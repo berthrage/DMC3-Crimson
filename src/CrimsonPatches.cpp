@@ -33,7 +33,7 @@ void DisableHeightRestriction(bool enable) {
     uintptr_t rainstormAddr = 0x20149708;
     uintptr_t airMeleeAddr  = 0x2014970C;
 
-	if (activeCrimsonConfig.Gameplay.General.disableHeightRestriction) {
+	if (activeCrimsonGameplay.Gameplay.General.disableHeightRestriction) {
 		*(float*)(raveAddr) = 0.0f;
 		*(float*)(rainstormAddr) = 0.0f;
 		*(float*)(airMeleeAddr) = 0.0f;
@@ -927,9 +927,9 @@ void TatsumakiInertiaFix(bool enable) {
 
 void InertiaFixes() {
 
-    if (toggle.inertiaFixes != (int)activeCrimsonConfig.Gameplay.General.inertia) {
+    if (toggle.inertiaFixes != (int)activeCrimsonGameplay.Gameplay.General.inertia) {
 
-        if (activeCrimsonConfig.Gameplay.General.inertia) {
+        if (activeCrimsonGameplay.Gameplay.General.inertia) {
             AerialRaveInertiaFix(true);
             SkyDanceInertiaFix(true);
             AirSlashInertiaFix(true);

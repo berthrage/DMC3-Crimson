@@ -402,7 +402,7 @@ bool CheckForceRoyalReleaseForSkyLaunch(PlayerActorData& actorData) {
     auto gamepad = GetGamepad(playerIndex);
 
     if ((actorData.state & STATE::IN_AIR && gamepad.buttons[0] & GetBinding(BINDING::TAUNT))
-            || activeCrimsonConfig.Cheats.Dante.forceRoyalRelease) {
+            || activeCrimsonGameplay.Cheats.Dante.forceRoyalRelease) {
         return true;
     }
 

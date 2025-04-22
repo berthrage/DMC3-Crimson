@@ -82,7 +82,7 @@ static constexpr std::array bossEnemiesIds {
 
 static uintptr_t __fastcall cEnemySetCtrl_spawnGuy_sub_1401A4680(uintptr_t pthis, float* a2) {
 	typedef uintptr_t (__fastcall *spawGuyTrampoline)(uintptr_t, float*);
-	auto& ldkModeConfig = activeCrimsonConfig.Gameplay.ExtraDifficulty.ldkMode;
+	auto& ldkModeConfig = activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode;
 
 	uintptr_t trampoline_raw = s_cEmsetCtrlSpawnGuyHook->GetTrampoline();
 	spawGuyTrampoline trampoline = (spawGuyTrampoline)trampoline_raw;
