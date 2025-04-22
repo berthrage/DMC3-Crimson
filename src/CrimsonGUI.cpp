@@ -8574,21 +8574,17 @@ void CustomSpeedSection() {
 	const float columnWidth = 0.15f * queuedConfig.globalScale;
 	const float rowHeight = 40.0f * queuedConfig.globalScale * 0.5f;
 	float smallerComboMult = 0.7f;
-
 	ImGui::PushItemWidth(itemWidth);
-
 	// Speed Group Title
 	if (GUI_TitleCheckbox2("CUSTOM GAME SPEED CHEATS", activeCrimsonGameplay.Cheats.General.customSpeed,
 		queuedCrimsonGameplay.Cheats.General.customSpeed)) {
 		if (!activeCrimsonGameplay.Cheats.General.customSpeed) {
-			CopyMemory(&queuedConfig.Speed, &defaultConfig.Speed, sizeof(queuedConfig.Speed));
-			CopyMemory(&activeConfig.Speed, &queuedConfig.Speed, sizeof(activeConfig.Speed));
-
+			CopyMemory(&queuedCrimsonGameplay.Cheats.Speed, &defaultCrimsonGameplay.Cheats.Speed, sizeof(queuedCrimsonGameplay.Cheats.Speed));
+			CopyMemory(&activeCrimsonGameplay.Cheats.Speed, &queuedCrimsonGameplay.Cheats.Speed, sizeof(activeCrimsonGameplay.Cheats.Speed));
 			Speed::Toggle(true);
-		}	
+		}
 	}
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-
 	// Reusable speed input
 	auto SpeedInput = [](const char* label, float& active, float& queued, float& defaultVal) {
 		auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
@@ -8596,83 +8592,67 @@ void CustomSpeedSection() {
 		GUI_InputDefault2(label, active, queued, defaultVal, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 		ImGui::PopItemWidth();
 		};
-
 	GUI_PushDisable(!activeCrimsonGameplay.Cheats.General.customSpeed);
-
 	// --- Main Speed Table ---
 	if (ImGui::BeginTable("SpeedTable", 2)) {
 		ImGui::TableSetupColumn("Left", 0, columnWidth * 3.5f);
 		ImGui::TableSetupColumn("Right", 0, columnWidth * 3.5f);
-
 		ImGui::TableNextRow(0, rowHeight);
 		ImGui::TableNextColumn();
-
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 		ImGui::Text("ENEMY CHARACTER");
 		ImGui::PopFont();
-
 		ImGui::TableNextColumn();
-
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 		ImGui::Text("PLAYER CHARACTER"); ImGui::SameLine();
 		ImGui::PopFont();
 		GUI_CCSRequirementButton();
-
 		ImGui::TableNextRow(0, rowHeight);
 		ImGui::TableNextColumn();
-		SpeedInput("Enemy", activeConfig.Speed.enemy, queuedConfig.Speed.enemy, defaultConfig.Speed.enemy);
+		SpeedInput("Enemy", activeCrimsonGameplay.Cheats.Speed.enemy,
+			queuedCrimsonGameplay.Cheats.Speed.enemy, defaultCrimsonGameplay.Cheats.Speed.enemy);
 		ImGui::TableNextColumn();
-		SpeedInput("Human", activeConfig.Speed.human, queuedConfig.Speed.human, defaultConfig.Speed.human);
-
+		SpeedInput("Human", activeCrimsonGameplay.Cheats.Speed.human, 
+			queuedCrimsonGameplay.Cheats.Speed.human, defaultCrimsonGameplay.Cheats.Speed.human);
 		ImGui::EndTable();
 	}
-
 	ImGui::Text("");
-
 	if (ImGui::BeginTable("SpeedTableDT", 2)) {
 		ImGui::TableSetupColumn("Left", 0, columnWidth * 3.5f);
 		ImGui::TableSetupColumn("Right", 0, columnWidth * 3.5f);
-
 		// Row 1 - Dante
 		ImGui::TableNextRow(0, rowHeight);
 		ImGui::TableNextColumn();
-
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 		ImGui::Text("DEVIL TRIGGERED DANTE");
 		ImGui::PopFont();
-
-		for (uint8 i = 0; i < countof(activeConfig.Speed.devilDante); ++i) {
-			SpeedInput(devilSpeedNamesDante[i], activeConfig.Speed.devilDante[i], queuedConfig.Speed.devilDante[i], defaultConfig.Speed.devilDante[i]);
+		for (uint8 i = 0; i < countof(activeCrimsonGameplay.Cheats.Speed.dTDante); ++i) {
+			SpeedInput(devilSpeedNamesDante[i], activeCrimsonGameplay.Cheats.Speed.dTDante[i], 
+				queuedCrimsonGameplay.Cheats.Speed.dTDante[i], defaultCrimsonGameplay.Cheats.Speed.dTDante[i]);
 		}
-
 		// Row 1 - Vergil
 		ImGui::TableNextColumn();
-
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 		ImGui::Text("DEVIL TRIGGERED VERGIL");
 		ImGui::PopFont();
-
-		for (uint8 i = 0; i < countof(activeConfig.Speed.devilVergil); ++i) {
-			SpeedInput(devilSpeedNamesVergil[i], activeConfig.Speed.devilVergil[i], queuedConfig.Speed.devilVergil[i], defaultConfig.Speed.devilVergil[i]);
+		for (uint8 i = 0; i < countof(activeCrimsonGameplay.Cheats.Speed.dTVergil); ++i) {
+			SpeedInput(devilSpeedNamesVergil[i], activeCrimsonGameplay.Cheats.Speed.dTVergil[i], 
+				queuedCrimsonGameplay.Cheats.Speed.dTVergil[i], defaultCrimsonGameplay.Cheats.Speed.dTVergil[i]);
 		}
-
 		// Row 2 - Quicksilver
 		ImGui::TableNextRow(0, rowHeight);
 		ImGui::TableNextColumn();
-
 		ImGui::Text("");
-
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 		ImGui::Text("QUICKSILVER");
 		ImGui::PopFont();
-		SpeedInput("Player Character", activeConfig.Speed.quicksilverPlayerActor, queuedConfig.Speed.quicksilverPlayerActor, defaultConfig.Speed.quicksilverPlayerActor);
-		SpeedInput("Enemy Character", activeConfig.Speed.quicksilverEnemyActor, queuedConfig.Speed.quicksilverEnemyActor, defaultConfig.Speed.quicksilverEnemyActor);
-
+		SpeedInput("Player Character", activeCrimsonGameplay.Cheats.Speed.quicksilverPlayer, 
+			queuedCrimsonGameplay.Cheats.Speed.quicksilverPlayer, defaultCrimsonGameplay.Cheats.Speed.quicksilverPlayer);
+		SpeedInput("Enemy Character", activeCrimsonGameplay.Cheats.Speed.quicksilverEnemy, 
+			queuedCrimsonGameplay.Cheats.Speed.quicksilverEnemy, defaultCrimsonGameplay.Cheats.Speed.quicksilverEnemy);
 		ImGui::EndTable();
 	}
-
 	GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.customSpeed);
-
 	ImGui::PopFont();
 	ImGui::PopItemWidth();
 	ImGui::Text("");

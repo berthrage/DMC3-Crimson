@@ -228,6 +228,39 @@ struct CrimsonConfigGameplay {
 			}
 		} Damage;
 
+		struct Speed {
+			float enemy = 1.0f;
+			float human = 1.0f;
+			float dTDante[6] = {
+				1.1f,
+				1.2f,
+				1.05f,
+				1.1f,
+				1.05f,
+				1.1f,
+			};
+			float dTVergil[5] = {
+				1.2f,
+				1.2f,
+				1.2f,
+				1.0f,
+				1.0f,
+			};
+			float quicksilverPlayer = 1.05f;
+			float quicksilverEnemy = 0.33f;
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("enemy", &Speed::enemy),
+					std::make_pair("human", &Speed::human),
+					std::make_pair("dTDante", &Speed::dTDante),
+					std::make_pair("dTVergil", &Speed::dTVergil),
+					std::make_pair("quicksilverPlayer", &Speed::quicksilverPlayer),
+					std::make_pair("quicksilverEnemy", &Speed::quicksilverEnemy)
+				);
+			}
+		} Speed;
+
 		struct Dante {
 			bool forceRoyalRelease = false;
 			bool infiniteShredder = false;
@@ -265,6 +298,7 @@ struct CrimsonConfigGameplay {
 				std::make_pair("General", &Cheats::General),
 				std::make_pair("Training", &Cheats::Training),
 				std::make_pair("Damage", &Cheats::Damage),
+				std::make_pair("Speed", &Cheats::Speed),
 				std::make_pair("Dante", &Cheats::Dante),
 				std::make_pair("Vergil", &Cheats::Vergil)
 			);

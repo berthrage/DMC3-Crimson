@@ -111,27 +111,6 @@ struct Config {
     struct {
         float mainSpeed = 1.0f;
         float turbo     = 1.2f;
-        float enemy     = 1.0f;
-
-        float quicksilverPlayerActor = 1.05f;
-        float quicksilverEnemyActor  = 0.33f;
-
-        float human         = 1.0f;
-        float devilDante[6] = {
-            1.1f,
-            1.2f,
-            1.05f,
-            1.1f,
-            1.05f,
-            1.1f,
-        };
-        float devilVergil[5] = {
-            1.2f,
-            1.2f,
-            1.2f,
-            1.0f,
-            1.0f,
-        };
     } Speed;
 
     struct {

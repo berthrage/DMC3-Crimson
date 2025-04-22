@@ -8250,7 +8250,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
                     if ((quicksilverStage == TO_ON) && (actorData.action != 0)) {
                         value = 0;
                     } else if (quicksilverStage == ON) {
-                        value *= activeConfig.Speed.quicksilverPlayerActor;
+                        value *= activeCrimsonGameplay.Cheats.Speed.quicksilverPlayer;
                     }
 
                     goto Return;
@@ -8297,7 +8297,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 }
 
                 if (!actorData.devil) {
-                    value *= activeConfig.Speed.human;
+                    value *= activeCrimsonGameplay.Cheats.Speed.human;
 
                     goto Return;
                 }
@@ -8313,7 +8313,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
                         devilIndex = DEVIL_SPEED::DANTE_SPARDA;
                     }
 
-                    value *= activeConfig.Speed.devilDante[devilIndex];
+                    value *= activeCrimsonGameplay.Cheats.Speed.dTDante[devilIndex];
 
                     break;
                 }
@@ -8331,7 +8331,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
                         devilIndex += 3;
                     }
 
-                    value *= activeConfig.Speed.devilVergil[devilIndex];
+                    value *= activeCrimsonGameplay.Cheats.Speed.dTVergil[devilIndex];
 
                     break;
                 }
@@ -8406,14 +8406,14 @@ void ToggleSpeed(bool enable) {
         */
 
         if (enable) {
-            old_for_all(uint8, itemIndex, countof(activeConfig.Speed.devilDante)) {
+            old_for_all(uint8, itemIndex, countof(activeCrimsonGameplay.Cheats.Speed.dTDante)) {
                 auto& item = items[itemIndex];
 
                 Write<float>(&item, 1.0f);
             }
         } else {
             CopyMemory(
-                items, defaultConfig.Speed.devilDante, sizeof(defaultConfig.Speed.devilDante), MemoryFlags_VirtualProtectDestination);
+                items, defaultCrimsonGameplay.Cheats.Speed.dTDante, sizeof(defaultCrimsonGameplay.Cheats.Speed.dTDante), MemoryFlags_VirtualProtectDestination);
         }
     }
 
@@ -8425,14 +8425,14 @@ void ToggleSpeed(bool enable) {
         */
 
         if (enable) {
-            old_for_all(uint8, itemIndex, countof(activeConfig.Speed.devilVergil)) {
+            old_for_all(uint8, itemIndex, countof(activeCrimsonGameplay.Cheats.Speed.dTVergil)) {
                 auto& item = items[itemIndex];
 
                 Write<float>(&item, 1.0f);
             }
         } else {
             CopyMemory(
-                items, defaultConfig.Speed.devilVergil, sizeof(defaultConfig.Speed.devilVergil), MemoryFlags_VirtualProtectDestination);
+                items, defaultCrimsonGameplay.Cheats.Speed.dTVergil, sizeof(defaultCrimsonGameplay.Cheats.Speed.dTVergil), MemoryFlags_VirtualProtectDestination);
         }
     }
 

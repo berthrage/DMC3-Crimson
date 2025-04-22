@@ -500,13 +500,6 @@ void CreateMembers(Config& config_) {
 
         Create<float>(member, "mainSpeed", config.mainSpeed);
         Create<float>(member, "turbo", config.turbo);
-        Create<float>(member, "enemy", config.enemy);
-        Create<float>(member, "quicksilverPlayerActor", config.quicksilverPlayerActor);
-        Create<float>(member, "quicksilverEnemyActor", config.quicksilverEnemyActor);
-        Create<float>(member, "human", config.human);
-
-        CreateArray<float, 6>(member, "devilDante", config.devilDante);
-        CreateArray<float, 5>(member, "devilVergil", config.devilVergil);
     }
 
 
@@ -932,13 +925,6 @@ void ToJSON(Config& config_) {
 
         Set<float>(member["mainSpeed"], config.mainSpeed);
         Set<float>(member["turbo"], config.turbo);
-        Set<float>(member["enemy"], config.enemy);
-        Set<float>(member["quicksilverPlayerActor"], config.quicksilverPlayerActor);
-        Set<float>(member["quicksilverEnemyActor"], config.quicksilverEnemyActor);
-        Set<float>(member["human"], config.human);
-
-        SetArray<float, 6>(member["devilDante"], config.devilDante);
-        SetArray<float, 5>(member["devilVergil"], config.devilVergil);
     }
 
     auto& member = crimsonConfigRoot;
@@ -1324,13 +1310,6 @@ void ToConfig(Config& config_) {
 
         config.mainSpeed              = Get<float>(member["mainSpeed"]);
         config.turbo                  = Get<float>(member["turbo"]);
-        config.enemy                  = Get<float>(member["enemy"]);
-        config.quicksilverPlayerActor = Get<float>(member["quicksilverPlayerActor"]);
-        config.quicksilverEnemyActor  = Get<float>(member["quicksilverEnemyActor"]);
-        config.human                  = Get<float>(member["human"]);
-
-        GetArray<float, 6>(config.devilDante, member["devilDante"]);
-        GetArray<float, 5>(config.devilVergil, member["devilVergil"]);
     }
 
     auto& config = config_;

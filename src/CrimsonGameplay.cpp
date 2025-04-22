@@ -937,10 +937,10 @@ void FasterDTRapidSlash(byte8* actorBaseAddr) {
         if ((actorData.motionData[0].index == 51 || actorData.motionData[0].index == 2) &&
             !inRapidSlash) { // Coudln't figure out a way to not bug this out then to store this out of walking anim
             // Storing the original speeds
-            fasterRapidSlash.storedSpeedDevil[0] = activeConfig.Speed.devilVergil[0];
-            fasterRapidSlash.storedSpeedDevil[1] = activeConfig.Speed.devilVergil[1];
-            fasterRapidSlash.storedSpeedDevil[2] = activeConfig.Speed.devilVergil[2];
-            fasterRapidSlash.storedSpeedDevil[3] = activeConfig.Speed.devilVergil[3];
+            fasterRapidSlash.storedSpeedDevil[0] = activeCrimsonGameplay.Cheats.Speed.dTVergil[0];
+            fasterRapidSlash.storedSpeedDevil[1] = activeCrimsonGameplay.Cheats.Speed.dTVergil[1];
+            fasterRapidSlash.storedSpeedDevil[2] = activeCrimsonGameplay.Cheats.Speed.dTVergil[2];
+            fasterRapidSlash.storedSpeedDevil[3] = activeCrimsonGameplay.Cheats.Speed.dTVergil[3];
         }
 
         if (actorData.devil == 1) {
@@ -948,20 +948,20 @@ void FasterDTRapidSlash(byte8* actorBaseAddr) {
 
 
                 // Setting the new speed
-                activeConfig.Speed.devilVergil[0] = fasterRapidSlash.newSpeed;
-                activeConfig.Speed.devilVergil[1] = fasterRapidSlash.newSpeed;
-                activeConfig.Speed.devilVergil[2] = fasterRapidSlash.newSpeed;
-                activeConfig.Speed.devilVergil[3] = fasterRapidSlash.newSpeed;
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[0] = fasterRapidSlash.newSpeed;
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[1] = fasterRapidSlash.newSpeed;
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[2] = fasterRapidSlash.newSpeed;
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[3] = fasterRapidSlash.newSpeed;
 
                 fasterRapidSlash.newSpeedSet = true;
             } else if (!inRapidSlash && fasterRapidSlash.newSpeedSet) {
 
 
                 // Restoring the original speeds
-                activeConfig.Speed.devilVergil[0] = fasterRapidSlash.storedSpeedDevil[0];
-                activeConfig.Speed.devilVergil[1] = fasterRapidSlash.storedSpeedDevil[1];
-                activeConfig.Speed.devilVergil[2] = fasterRapidSlash.storedSpeedDevil[2];
-                activeConfig.Speed.devilVergil[3] = fasterRapidSlash.storedSpeedDevil[3];
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[0] = fasterRapidSlash.storedSpeedDevil[0];
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[1] = fasterRapidSlash.storedSpeedDevil[1];
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[2] = fasterRapidSlash.storedSpeedDevil[2];
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[3] = fasterRapidSlash.storedSpeedDevil[3];
 
 
                 fasterRapidSlash.newSpeedSet = false;
@@ -980,18 +980,18 @@ void FasterDarkslayerTricks() {
 
 
     if (actorData.character == CHARACTER::VERGIL) {
-        float storedspeedVergil = activeConfig.Speed.human;
+        float storedspeedVergil = activeCrimsonGameplay.Cheats.Speed.human;
 
         if ((actorData.motionData[0].index == 51 || actorData.motionData[0].index == 2) &&
             !(actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK ||
                 actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP ||
                 actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN)) {
             // Storing the original speeds
-            fasterDarkslayer.storedSpeedHuman    = activeConfig.Speed.human;
-            fasterDarkslayer.storedSpeedDevil[0] = activeConfig.Speed.devilVergil[0];
-            fasterDarkslayer.storedSpeedDevil[1] = activeConfig.Speed.devilVergil[1];
-            fasterDarkslayer.storedSpeedDevil[2] = activeConfig.Speed.devilVergil[2];
-            fasterDarkslayer.storedSpeedDevil[3] = activeConfig.Speed.devilVergil[3];
+            fasterDarkslayer.storedSpeedHuman    = activeCrimsonGameplay.Cheats.Speed.human;
+            fasterDarkslayer.storedSpeedDevil[0] = activeCrimsonGameplay.Cheats.Speed.dTVergil[0];
+            fasterDarkslayer.storedSpeedDevil[1] = activeCrimsonGameplay.Cheats.Speed.dTVergil[1];
+            fasterDarkslayer.storedSpeedDevil[2] = activeCrimsonGameplay.Cheats.Speed.dTVergil[2];
+            fasterDarkslayer.storedSpeedDevil[3] = activeCrimsonGameplay.Cheats.Speed.dTVergil[3];
         }
 
         if ((actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK ||
@@ -1001,11 +1001,11 @@ void FasterDarkslayerTricks() {
 
 
             // Setting the new speed
-            activeConfig.Speed.human          = fasterDarkslayer.newSpeed;
-            activeConfig.Speed.devilVergil[0] = fasterDarkslayer.newSpeed;
-            activeConfig.Speed.devilVergil[1] = fasterDarkslayer.newSpeed;
-            activeConfig.Speed.devilVergil[2] = fasterDarkslayer.newSpeed;
-            activeConfig.Speed.devilVergil[3] = fasterDarkslayer.newSpeed;
+            activeCrimsonGameplay.Cheats.Speed.human = fasterDarkslayer.newSpeed;
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[0] = fasterDarkslayer.newSpeed;
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[1] = fasterDarkslayer.newSpeed;
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[2] = fasterDarkslayer.newSpeed;
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[3] = fasterDarkslayer.newSpeed;
 
             fasterDarkslayer.newSpeedSet = true;
         } else if (!(actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK ||
@@ -1014,11 +1014,11 @@ void FasterDarkslayerTricks() {
                    fasterDarkslayer.newSpeedSet) {
 
             // Restoring the original speeds
-            activeConfig.Speed.human          = fasterDarkslayer.storedSpeedHuman;
-            activeConfig.Speed.devilVergil[0] = fasterDarkslayer.storedSpeedDevil[0];
-            activeConfig.Speed.devilVergil[1] = fasterDarkslayer.storedSpeedDevil[1];
-            activeConfig.Speed.devilVergil[2] = fasterDarkslayer.storedSpeedDevil[2];
-            activeConfig.Speed.devilVergil[3] = fasterDarkslayer.storedSpeedDevil[3];
+            activeCrimsonGameplay.Cheats.Speed.human = fasterDarkslayer.storedSpeedHuman;
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[0] = fasterDarkslayer.storedSpeedDevil[0];
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[1] = fasterDarkslayer.storedSpeedDevil[1];
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[2] = fasterDarkslayer.storedSpeedDevil[2];
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[3] = fasterDarkslayer.storedSpeedDevil[3];
 
 
             fasterDarkslayer.newSpeedSet = false;
@@ -2046,16 +2046,16 @@ void SprintAbility(byte8* actorBaseAddr) {
         // Storing the actor's set speed when not sprinting for us to calculate sprintSpeed.
         if (!sprintData.isSprinting) {
            
-            sprintData.storedSpeedHuman = activeConfig.Speed.human;
+            sprintData.storedSpeedHuman = activeCrimsonGameplay.Cheats.Speed.human;
 
             if (actorData.character == CHARACTER::DANTE) {
                 for (int i = 0; i < 6; i++) {
-                    sprintData.storedSpeedDevilDante[i] = activeConfig.Speed.devilDante[i];
+                    sprintData.storedSpeedDevilDante[i] = activeCrimsonGameplay.Cheats.Speed.dTDante[i];
                 }
   
             } else if (actorData.character == CHARACTER::VERGIL) {
 				for (int i = 0; i < 5; i++) {
-					sprintData.storedSpeedDevilVergil[i] = activeConfig.Speed.devilVergil[i];
+					sprintData.storedSpeedDevilVergil[i] = activeCrimsonGameplay.Cheats.Speed.dTVergil[i];
 				}
             }
 
