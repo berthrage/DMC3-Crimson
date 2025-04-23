@@ -145,6 +145,7 @@ void AirCancelCountsTracker(byte8* actorBaseAddr) {
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     auto playerIndex = actorData.newPlayerIndex;
     auto& storedAirCounts = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].storedAirCounts : crimsonPlayer[playerIndex].storedAirCountsClone;
+	auto& airCounts = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].airCounts : crimsonPlayer[playerIndex].airCountsClone;
 
     // This restores player counts back to what they were before the Royal Cancel
     storedAirCounts.cancelTrackerRunning = true;
@@ -154,6 +155,7 @@ void AirCancelCountsTracker(byte8* actorBaseAddr) {
     actorData.newSkyStarCount = storedAirCounts.skyStar;
     actorData.newAirHikeCount = storedAirCounts.airHike;
     actorData.newAirStingerCount = storedAirCounts.airStinger;
+	airCounts.airTornado = storedAirCounts.airTornado;
 
     storedAirCounts.cancelTrackerRunning = false;
 }
@@ -170,6 +172,7 @@ void FixAirStingerCancelTime(byte8* actorBaseAddr) {
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 	auto& storedAirCounts = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].storedAirCounts : crimsonPlayer[playerIndex].storedAirCountsClone;
+	auto& airCounts = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].airCounts : crimsonPlayer[playerIndex].airCountsClone;
 
     if (actorData.character == CHARACTER::DANTE) {
 		if ((actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) && actorData.state & STATE::IN_AIR && crimsonPlayer[playerIndex].actionTimer > 0.4f
@@ -179,6 +182,7 @@ void FixAirStingerCancelTime(byte8* actorBaseAddr) {
 			storedAirCounts.skyStar = actorData.newSkyStarCount;
 			storedAirCounts.airHike = actorData.newAirHikeCount;
 			storedAirCounts.airStinger = actorData.newAirStingerCount;
+            storedAirCounts.airTornado = airCounts.airTornado;
 
 			actorData.action = ROYAL_AIR_BLOCK;
 
@@ -197,6 +201,7 @@ void FixAirStingerCancelTime(byte8* actorBaseAddr) {
 			storedAirCounts.skyStar = actorData.newSkyStarCount;
 			storedAirCounts.airHike = actorData.newAirHikeCount;
 			storedAirCounts.airStinger = actorData.newAirStingerCount;
+            storedAirCounts.airTornado = airCounts.airTornado;
 
 			actorData.action = ROYAL_AIR_BLOCK;
 
@@ -240,6 +245,8 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 		crimsonPlayer[playerIndex].cancels : crimsonPlayer[playerIndex].cancelsClone;
     auto& storedAirCounts = (actorData.newEntityIndex == 0) ? 
         crimsonPlayer[playerIndex].storedAirCounts : crimsonPlayer[playerIndex].storedAirCountsClone;
+	auto& airCounts = (actorData.newEntityIndex == 0) ?
+		crimsonPlayer[playerIndex].airCounts : crimsonPlayer[playerIndex].airCountsClone;
 
 	if ((actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2) && actorCancels.revolverTimer < 1.1f) {
 		if (inAir) {
@@ -329,6 +336,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
         storedAirCounts.skyStar = actorData.newSkyStarCount;
         storedAirCounts.airHike = actorData.newAirHikeCount;
         storedAirCounts.airStinger = actorData.newAirStingerCount;
+        storedAirCounts.airTornado = airCounts.airTornado;
 
         actorData.permissions = 3080; // This is a softer version of Reset Permissions.
 
@@ -347,6 +355,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
         storedAirCounts.skyStar = actorData.newSkyStarCount;
         storedAirCounts.airHike = actorData.newAirHikeCount;
         storedAirCounts.airStinger = actorData.newAirStingerCount;
+        storedAirCounts.airTornado = airCounts.airTornado;
 
         actorData.permissions = 3080; // This is a softer version of Reset Permissions.
 
@@ -363,6 +372,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 		storedAirCounts.skyStar = actorData.newSkyStarCount;
 		storedAirCounts.airHike = actorData.newAirHikeCount;
 		storedAirCounts.airStinger = actorData.newAirStingerCount;
+        storedAirCounts.airTornado = airCounts.airTornado;
 
         actorData.permissions = 0x1C1B; // This is a hard version of Reset Permissions.
 
@@ -383,6 +393,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 				storedAirCounts.skyStar = actorData.newSkyStarCount;
 				storedAirCounts.airHike = actorData.newAirHikeCount;
 				storedAirCounts.airStinger = actorData.newAirStingerCount;
+                storedAirCounts.airTornado = airCounts.airTornado;
 
                 actorData.action = ROYAL_AIR_BLOCK;
 
