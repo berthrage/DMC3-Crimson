@@ -100,17 +100,17 @@ void UpdateKeyboard() {
              ::DI8::KEY::LEFT_CONTROL,
              ::DI8::KEY::ONE,
          },
-            2, false, WindowSize1},
+            2, false, false, WindowSize1},
         {{
              ::DI8::KEY::LEFT_CONTROL,
              ::DI8::KEY::TWO,
          },
-            2, false, WindowSize2},
+            2, false, false, WindowSize2},
         {{
              ::DI8::KEY::LEFT_CONTROL,
              ::DI8::KEY::THREE,
          },
-            2, false, WindowSize3},
+            2, false, false, WindowSize3},
     };
 
     for_all(index, countof(keyData)) {
