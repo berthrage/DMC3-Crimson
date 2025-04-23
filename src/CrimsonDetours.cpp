@@ -15,6 +15,7 @@
 #include <iostream>
 #include "CrimsonPatches.hpp"
 #include "CrimsonLDK.hpp"
+#include "Actor.hpp"
 
 namespace CrimsonDetours {
 
@@ -653,6 +654,7 @@ void ToggleCustomCameraPositioning(bool enable) {
 void ToggleHoldToCrazyCombo(bool enable) {
     using namespace Utility;
     static bool run = false;
+	static uint8 previousCComboMashRequirement = activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement;
 
 	if (run == enable) {
 		return;
@@ -666,6 +668,17 @@ void ToggleHoldToCrazyCombo(bool enable) {
 	HoldToCrazyComboHook->Toggle(enable);
 	holdToCrazyComboCall = &g_HoldToCrazyComboFuncA;
 
+	if (enable) {
+		activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = 3;
+		queuedCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = 3;
+		UpdateCrazyComboLevelMultiplier();
+	} else {
+		activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = previousCComboMashRequirement;
+		queuedCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = previousCComboMashRequirement;
+		UpdateCrazyComboLevelMultiplier();
+	}
+
+	previousCComboMashRequirement = activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement;
     run = enable;
 }
 

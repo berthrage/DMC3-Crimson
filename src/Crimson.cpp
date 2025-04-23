@@ -37,6 +37,7 @@
 
 #include "Core/DebugSwitch.hpp"
 #include "CrimsonFileHandling.hpp"
+#include "CrimsonGameModes.hpp"
 
 
 uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
@@ -192,6 +193,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonPatches::ReduceArtemisProjectileDamage(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
         ToggleChronoSwords(activeCrimsonGameplay.Cheats.Vergil.chronoSwords);
         UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
+        CrimsonGameModes::SetGameMode(activeCrimsonGameplay.GameMode.preset);
 
         Arcade::Toggle(false);
         Arcade::Toggle(activeConfig.Arcade.enable);

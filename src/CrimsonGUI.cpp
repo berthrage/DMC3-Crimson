@@ -68,6 +68,7 @@
 #include <SDL_joystick.h>
 #include "CrimsonTimers.hpp"
 #include "CrimsonOnTick.hpp"
+#include "CrimsonGameModes.hpp"
 #include "CrimsonSDL.hpp"
 #include "CrimsonPatches.hpp"
 #include "CrimsonDetours.hpp"
@@ -7492,14 +7493,16 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 				for (int i = 0; i < weaponProgression.rangedWeaponIds.size(); i++) {
 // 					ImGui::Text("RangedWeaponId[%u]: %u", i, weaponProgression.rangedWeaponIds[i]);
 // 				}
-				for (int i = 0; i < weaponProgression.meleeWeaponIds.size(); i++) {
-					ImGui::Text("MeleeWeaponName[%u]: %s", i, weaponProgression.meleeWeaponNames[i]);
-				}
+// 				for (int i = 0; i < weaponProgression.meleeWeaponIds.size(); i++) {
+// 					ImGui::Text("MeleeWeaponName[%u]: %s", i, weaponProgression.meleeWeaponNames[i]);
+// 				}
 // 				for (size_t i = 0; i < queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeaponCount; i++) {
 // 					ImGui::Text("RangedWeaponQeued[%u]: %u", i, queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeapons[i]);
 // 				} 
 				
-                ImGui::Text("Gamepad Style Button: %u", gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION));
+               // ImGui::Text("Gamepad Style Button: %u", gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION));
+				ImGui::Text("activePreset: %u", activeCrimsonGameplay.GameMode.preset);
+				ImGui::Text("queuedPreset: %u", queuedCrimsonGameplay.GameMode.preset);
                 ImGui::Text("Quicksilver Level: %u", sessionData.styleLevels[4]);
 
                 /*ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
@@ -9694,10 +9697,6 @@ void GeneralGameplayOptions() {
 			if (GUI_Checkbox2("Hold To Crazy Combo",
 				activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo,
 				queuedCrimsonGameplay.Gameplay.General.holdToCrazyCombo)) {
-				CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
-				activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = 3;
-				queuedCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = 3;
-				UpdateCrazyComboLevelMultiplier();
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
@@ -10654,7 +10653,7 @@ void InputRemapOptions() {
 }
 
 void GameplaySection() {
-	GeneralGameplayOptions();
+ 	GeneralGameplayOptions();
 	DanteGameplayOptions();
 	VergilGameplayOptions();
 	ExtraDifficultyGameplayOptions();
@@ -11061,8 +11060,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[(context.DefaultFontSize / scaleFactorY) * 1.3f]);
 
 		float comboBoxWidth = width * 0.8f;
-
-		std::array<const char*, 4> modes{ "VANLLA MODE", "STYLE SWITCHER MODE", "CRIMSON MODE", "CUSTOM MODE"};
+		
+		std::array<const char*, 3> modes{ "VANLLA MODE", "STYLE SWITCHER MODE", "CRIMSON MODE"};
+		std::array<const char*, 4> modesWCustom{ "VANLLA MODE", "STYLE SWITCHER MODE", "CRIMSON MODE", "CUSTOM MODE"};
 
 		ImGui::SetNextItemWidth(comboBoxWidth);
 
@@ -11121,8 +11121,10 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		ImGui::PushStyleColor(ImGuiCol_Text, textColor);;
 
 		context.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
+		auto previewValue = context.SelectedGameMode == UI::UIContext::GameModes::Custom ? modesWCustom[size_t(context.SelectedGameMode)] : 
+			modes[size_t(context.SelectedGameMode)];
 
-		if (UI::BeginCombo("##Game Mode", modes[size_t(context.SelectedGameMode)], { 0.5f, 0.5f }, 0.9f)) {
+		if (UI::BeginCombo("##Game Mode", previewValue, { 0.5f, 0.5f }, 0.9f)) {
 			ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
 
 			for (size_t i = 0; i < modes.size(); i++)
@@ -11179,8 +11181,10 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				if (ImGui::Selectable(modes[i], isSelected)) {
 					
-					activeCrimsonGameplay.GameMode.preset = (uint8)i;
-					queuedCrimsonGameplay.GameMode.preset = (uint8)i;
+					CrimsonGameModes::SetGameMode(i);
+// 					activeCrimsonGameplay.GameMode.preset = (uint8)i;
+// 					queuedCrimsonGameplay.GameMode.preset = (uint8)i;
+					
 					::GUI::save = true;
 				}
 
@@ -12549,7 +12553,6 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     Main(pSwapChain);
     Shop::ShopWindow();
 
-
 	ActorWindow();
 	EventDataWindow();
 	ExpWindow();
@@ -12562,7 +12565,6 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
 	scaledFontSize = UI::g_UIContext.DefaultFontSize * scaleFactorY;
 	itemWidth = scaledFontSize * 8.0f;
-    
 
     PauseWhenGUIOpened();
     GamepadToggleShowMain();
@@ -12579,6 +12581,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
   	CrimsonOnTick::FrameResponsiveGameSpeed();
 	CrimsonOnTick::WeaponProgressionTracking();
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
+	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
 
     // TIMERS
     CrimsonTimers::CallAllTimers();
@@ -12592,7 +12595,9 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	RedOrbCounterWindow();
 	StyleMeterWindow();
 
+	UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
 	RenderMissionResultGameModeStats();
+	CrimsonGameModes::TrackGameMode();
 	CrimsonOnTick::TrackMissionResultGameMode();
 	CrimsonOnTick::CrimsonMissionClearSong();
 	//CrimsonOnTick::CorrectFrameRateCutscenes();
