@@ -288,19 +288,19 @@ struct CrimsonConfigGameplay {
 		} Mobility;
 
 		struct Misc {
-			bool resetMotionState = false;
 			float quicksilverDepletion = 13.75f;
 			float doppelgangerDepletion = 16.5f;
 			float dTDepletion = 11.0f;
 			float orbReach = 300.0f;
+			bool resetMotionState = false;
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
-					std::make_pair("resetMotionState", &Misc::resetMotionState),
 					std::make_pair("quicksilverDepletion", &Misc::quicksilverDepletion),
 					std::make_pair("doppelgangerDepletion", &Misc::doppelgangerDepletion),
 					std::make_pair("dTDepletion", &Misc::dTDepletion),
-					std::make_pair("orbReach", &Misc::orbReach)
+					std::make_pair("orbReach", &Misc::orbReach),
+					std::make_pair("resetMotionState", &Misc::resetMotionState)
 				);
 			}
 		} Misc;

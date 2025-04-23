@@ -4496,7 +4496,7 @@ void BarsSection(size_t defaultFontSize) {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			GUI_TitleCheckbox2("2D MULTIPLAYER BARS", activeCrimsonConfig.MultiplayerBars2D.show, 
-				queuedCrimsonConfig.MultiplayerBars2D.show, true, false, defaultFontSize * 46.70f);
+				queuedCrimsonConfig.MultiplayerBars2D.show, true, false, "", defaultFontSize * 46.70f);
 			
 			ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
@@ -7108,8 +7108,12 @@ void LegacyDDMKCharactersSection() {
 
 	ImGui::Text("");
 
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+
+	GUI_PushDisable(!activeConfig.Actor.enable);
 	if (GUI_TitleCheckbox2("LEGACY DDMK CHARACTERS", activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters,
-		queuedCrimsonGameplay.Cheats.General.legacyDDMKCharacters, true, true)) {
+		queuedCrimsonGameplay.Cheats.General.legacyDDMKCharacters, true, true, "These are incomplete playable characters adapted from their respective bosses in DDMK.\n"
+		"Enables them to be selected at PLAYER -> CHARACTER.")) {
 		if (!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters) {
 			CopyMemory(&queuedConfig.kalinaAnnHookMultiplier, &defaultConfig.kalinaAnnHookMultiplier,
 				sizeof(queuedConfig.kalinaAnnHookMultiplier));
@@ -7127,11 +7131,7 @@ void LegacyDDMKCharactersSection() {
 				sizeof(activeConfig.kalinaAnnHookGrenadeTime));
 		}
 	}
-	ImGui::SameLine();
-	TooltipHelper("(?)", "These are incomplete playable characters adapted from their respective bosses in DDMK.\n"
-		"Crimson won't offer long-term support for these characters, but they will remain here for preservation purposes.\n"
-		"Enables them to be selected at PLAYER tab -> CHARACTER.");
-	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 	ImGui::PushItemWidth(itemWidth * 0.5f);
 
@@ -7190,6 +7190,7 @@ void LegacyDDMKCharactersSection() {
 	ImGui::PopItemWidth();
 	ImGui::PopStyleColor();
 	ImGui::PopFont();
+	GUI_PopDisable(!activeConfig.Actor.enable);
 
 	ImGui::Text("");
 }
@@ -7377,17 +7378,6 @@ void MiscCheatsSection() {
 		ImGui::TableNextRow(0, rowHeight);
 		ImGui::TableNextColumn();
 
-		GUI_PushDisable(!activeConfig.Actor.enable);
-		GUI_Checkbox2("Reset Motion State", activeCrimsonGameplay.Cheats.Misc.resetMotionState, queuedCrimsonGameplay.Cheats.Misc.resetMotionState);
-		ImGui::SameLine();
-		GUI_CCSRequirementButton();
-		ImGui::SameLine();
-		GUI_LegacyButton();
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Legacy DDMK/StyleSwitcher option kept for preservation purposes. Superseded by 'Improved Cancels'. Also called 'Remove Busy Flag'.\n"
-			"Allows you to cancel any move by pressing any direction on the d-pad. AFFECTS game balance significantly.");
-		GUI_PopDisable(!activeConfig.Actor.enable);
-
 		MiscCheatInput("Quicksilver Depletion", activeCrimsonGameplay.Cheats.Misc.quicksilverDepletion, queuedCrimsonGameplay.Cheats.Misc.quicksilverDepletion,
 			defaultCrimsonGameplay.Cheats.Misc.quicksilverDepletion);
 
@@ -7402,6 +7392,19 @@ void MiscCheatsSection() {
 		ImGui::TableNextColumn();
 		MiscCheatInput("Orb Reach Distance", activeCrimsonGameplay.Cheats.Misc.orbReach, queuedCrimsonGameplay.Cheats.Misc.orbReach,
 			defaultCrimsonGameplay.Cheats.Misc.orbReach);
+
+		ImGui::TableNextColumn();
+
+		GUI_PushDisable(!activeConfig.Actor.enable);
+		GUI_Checkbox2("Reset Motion State", activeCrimsonGameplay.Cheats.Misc.resetMotionState, queuedCrimsonGameplay.Cheats.Misc.resetMotionState);
+		ImGui::SameLine();
+		GUI_CCSRequirementButton();
+		ImGui::SameLine();
+		GUI_LegacyButton();
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Deprecated in favor of 'Improved Cancels'. Also called 'Remove Busy Flag'.\n"
+			"Allows you to cancel any move by pressing any direction on the d-pad. AFFECTS game balance significantly.");
+		GUI_PopDisable(!activeConfig.Actor.enable);
 
 		ImGui::EndTable();
 	}
@@ -9904,7 +9907,9 @@ void DanteGameplayOptions() {
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Enables a series of animation cancels for Dante, especially for moves between different styles.\nCheck out the Patch Notes for more info. Replaces DDMK's Remove Busy Flag.");
+			TooltipHelper("(?)", "Enables a series of animation cancels for Dante, especially for moves between different styles.\n"
+				"We have cautiously added each cancel, taking buffers and timers into account to ensure game balance is maintained.\n"
+				"Check out the Patch Notes for more info. Replaces DDMK's Remove Busy Flag/Reset Motion State.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
@@ -10444,7 +10449,6 @@ void VergilCheatOptions() {
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Enables Quicksilver for Vergil. Swap to it with D-Pad Downwards. Swap back to Darkslayer with D-Pad Up.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
-			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
 
@@ -10576,7 +10580,6 @@ void ExtraDifficultyGameplayOptions() {
 		ImGui::SameLine();
 		TooltipHelper("(?)", "Spawns large waves of enemies like in DMC5's LDK Mode.\n"
 			"Super LDK spawns even more enemies. Super LDK + Bosses duplicates some of the Bosses.");
-		GUI_PopDisable(!activeConfig.Actor.enable);
 
 		ImGui::EndTable();
 	}
@@ -10592,18 +10595,10 @@ void InputRemapOptions() {
 	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-	ImGui::Text("INPUT REMAPS");
-	ImGui::PopFont();
-
-	UI::SeparatorEx(defaultFontSize * 23.35f);
+	GUI_Title("INPUT REMAPS", false, false, "Remaps are global for all controllers, will only take into account Player 1's active Character for the switch.");
 
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
-
-	ImGui::Text("");
-	ImGui::SameLine();
-	TooltipHelper("(?)", "Remaps are global for all controllers, will only take into account Player 1's active Character for the switch.");
 
 	{
 		const float columnWidth = 0.5f * queuedConfig.globalScale;

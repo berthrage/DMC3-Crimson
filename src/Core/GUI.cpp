@@ -188,7 +188,8 @@ bool GUI_ButtonCombo(const char* label, uint16_t& currentButton) {
 	return update;
 }
 
-bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequired, bool legacyTag, float separatorSize) {
+bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequired, 
+    bool legacyTag, const char* tooltip, float separatorSize) {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
@@ -205,6 +206,11 @@ bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequi
 		GUI_LegacyButton();
     }
 
+    if ((std::string)tooltip != "") {
+		ImGui::SameLine();
+        TooltipHelper("(?)", tooltip);
+    }
+
 	UI::SeparatorEx(separatorSize);
 	ImGui::Text("");
 
@@ -215,16 +221,29 @@ bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequi
 	return update;
 }
 
-void GUI_Title(const char* title, bool ccsRequired, float separatorSize) {
+void GUI_Title(const char* title, bool ccsRequired,
+	bool legacyTag, const char* tooltip, float separatorSize) {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 	ImGui::Text(title);
 	ImGui::PopFont();
+
 	if (ccsRequired) {
 		ImGui::SameLine();
 		GUI_CCSRequirementButton();
 	}
+
+	if (legacyTag) {
+		ImGui::SameLine();
+		GUI_LegacyButton();
+	}
+
+	if (tooltip != "") {
+		ImGui::SameLine();
+		TooltipHelper("(?)", tooltip);
+	}
+
 	UI::SeparatorEx(separatorSize);
 	ImGui::Text("");
 }
@@ -253,7 +272,9 @@ bool GUI_CCSRequirementButton() {
 	if (ImGui::IsItemHovered()) {
 		// Push full opacity for tooltip
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+        ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 		ImGui::SetTooltip("Requires Crimson Character System");
+        ImGui::PopFont();
 		ImGui::PopStyleVar();
 	}
 
@@ -289,8 +310,10 @@ bool GUI_LegacyButton() {
 	if (ImGui::IsItemHovered()) {
 		// Push full opacity for tooltip
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+        ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 		ImGui::SetTooltip("This is a legacy feature from DDMK/StyleSwitcher.\n"
-            "It's retained for preservation but may not be maintained; no future updates planned.");
+            "It's retained for preservation purposes, but may not receive future updates.");
+		ImGui::PopFont();
 		ImGui::PopStyleVar();
 	}
 
@@ -362,6 +385,8 @@ void TooltipHelper(const char* name, const char* description, float x) {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	auto scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
 
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+
     ImGui::TextDisabled(name);
 
     if (ImGui::IsItemHovered()) {
@@ -372,6 +397,8 @@ void TooltipHelper(const char* name, const char* description, float x) {
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
+
+    ImGui::PopFont();
 }
 
 void DescriptionHelper(const char* description, float width) {
