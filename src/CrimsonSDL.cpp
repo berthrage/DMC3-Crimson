@@ -784,7 +784,7 @@ void PlayNormalBlock(int playerIndex) {
 }
 
 void PlayNewMissionClearSong() {
-    fn_Mix_VolumeMusic(128 * activeConfig.channelVolumes[9]);
+    fn_Mix_VolumeMusic(77 * activeConfig.channelVolumes[9]);
     fn_Mix_FadeInMusic(missionClearSong, -1, 500);
 }
 
