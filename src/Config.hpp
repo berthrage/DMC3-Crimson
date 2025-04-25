@@ -121,7 +121,7 @@ struct Config {
         float airStingerRange[2]    = {280, 280};
     } YamatoForceEdge;
 
-    bool welcome = false;
+    bool welcome = true;
 
     bool hideBeowulfDante  = false;
     bool hideBeowulfVergil = false;
@@ -514,8 +514,16 @@ void InitConfig();
 void SaveConfig();
 #endif
 
+#ifndef NO_SAVE
+void SaveConfigGameplay();
+#endif
+
 #ifndef NO_LOAD
 void LoadConfig();
+#endif
+
+#ifndef NO_LOAD
+void LoadConfigGameplay();
 #endif
 
 #ifndef NO_INIT
