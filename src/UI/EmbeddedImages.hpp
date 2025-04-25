@@ -52,13 +52,13 @@ public:
 protected:
 	static constexpr uint32_t	m_CompressedWidth{ 1598 };
 	static constexpr uint32_t	m_CompressedHeight{ 317 };
-	static constexpr uint32_t	m_ImageCompressedSize{ 458647 };
-	static			 uint32_t	m_ImageCompressedData[458648 / 4];
+	static constexpr uint32_t	m_ImageCompressedSize{ 493597 };
+	static			 uint32_t	m_ImageCompressedData[493600 / 4];
 };
 
 extern CrimsonHeaderLogo g_Image_CrimsonHeaderLogo;
 
-// 1924 x 512
+// 1924 x 509
 class CrimsonMainLogo : public Image {
 public:
 	CrimsonMainLogo()
@@ -68,9 +68,9 @@ public:
 
 protected:
 	static constexpr uint32_t	m_CompressedWidth{ 1924 };
-	static constexpr uint32_t	m_CompressedHeight{ 512 };
-	static constexpr uint32_t	m_ImageCompressedSize{ 719488 };
-	static			 uint32_t	m_ImageCompressedData[719488 / 4];
+	static constexpr uint32_t	m_CompressedHeight{ 509 };
+	static constexpr uint32_t	m_ImageCompressedSize{ 851506 };
+	static			 uint32_t	m_ImageCompressedData[851508 / 4];
 };
 
 extern CrimsonMainLogo g_Image_CrimsonMainLogo;
@@ -194,3 +194,72 @@ protected:
 };
 
 extern SocialsIcons g_Image_SocialIcons;
+
+
+// 142 x 200
+class RedOrb : public Image {
+public:
+	RedOrb()
+		: Image(m_CompressedWidth, m_CompressedHeight,
+			m_ImageCompressedSize, reinterpret_cast<const uint8_t*>(m_ImageCompressedData)) {
+	}
+
+protected:
+	static constexpr uint32_t	m_CompressedWidth{ 142 };
+	static constexpr uint32_t	m_CompressedHeight{ 200 };
+	static constexpr uint32_t m_ImageCompressedSize{ 39475 };
+	static			 uint32_t m_ImageCompressedData[39476 / 4];
+};
+
+extern RedOrb g_Image_RedOrb;
+
+// 142 x 200
+class RedOrbStyleSwitcher : public Image {
+public:
+	RedOrbStyleSwitcher()
+		: Image(m_CompressedWidth, m_CompressedHeight,
+			m_ImageCompressedSize, reinterpret_cast<const uint8_t*>(m_ImageCompressedData)) {
+	}
+
+protected:
+	static constexpr uint32_t	m_CompressedWidth{ 142 };
+	static constexpr uint32_t	m_CompressedHeight{ 200 };
+	static constexpr uint32_t m_ImageCompressedSize{ 40105 };
+	static			 uint32_t m_ImageCompressedData[40108 / 4];
+};
+
+extern RedOrbStyleSwitcher g_Image_RedOrbStyleSwitcher;
+
+// 142 x 200
+class RedOrbCrimson : public Image {
+public:
+	RedOrbCrimson()
+		: Image(m_CompressedWidth, m_CompressedHeight,
+			m_ImageCompressedSize, reinterpret_cast<const uint8_t*>(m_ImageCompressedData)) {
+	}
+
+protected:
+	static constexpr uint32_t	m_CompressedWidth{ 142 };
+	static constexpr uint32_t	m_CompressedHeight{ 200 };
+	static constexpr uint32_t m_ImageCompressedSize{ 41182 };
+	static			 uint32_t m_ImageCompressedData[41184 / 4];
+};
+
+extern RedOrbCrimson g_Image_RedOrbCrimson;
+
+// 142 x 200
+class RedOrbCustom : public Image {
+public:
+	RedOrbCustom()
+		: Image(m_CompressedWidth, m_CompressedHeight,
+			m_ImageCompressedSize, reinterpret_cast<const uint8_t*>(m_ImageCompressedData)) {
+	}
+
+protected:
+	static constexpr uint32_t	m_CompressedWidth{ 142 };
+	static constexpr uint32_t	m_CompressedHeight{ 200 };
+	static constexpr uint32_t m_ImageCompressedSize{ 40111 };
+	static			uint32_t m_ImageCompressedData[40112 / 4];
+};
+
+extern RedOrbCustom g_Image_RedOrbCustom;
