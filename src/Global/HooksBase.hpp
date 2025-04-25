@@ -213,7 +213,9 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
 		prevHeight = height;
 
 		UpdateGlobalRenderSize(width, height);
-		//CoreImGui::UpdateDisplaySize(width, height);
+        UpdateGlobalClientSize();
+        UpdateGlobalWindowSize();
+
 	}
     io.DisplaySize = ImVec2((float)width, (float)height);
 
