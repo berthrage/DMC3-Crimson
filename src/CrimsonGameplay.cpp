@@ -537,7 +537,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
         // Improve Prop/Shredder Trick Buffering
         if (actorData.action == REBELLION_PROP || actorData.action == REBELLION_SHREDDER) {
             policyTrick = BUFFER;
-            if (doingAirTrick && actionTimer > 0.55f) {
+            if (doingAirTrick && actionTimer > 0.47f) {
                 policyTrick = EXECUTE;
             }
         }
@@ -545,7 +545,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
         // Improve Twister/Tempest Trick Buffering
 		if (actorData.action == AGNI_RUDRA_TWISTER || actorData.action == AGNI_RUDRA_TEMPEST) {
 			policyTrick = BUFFER;
-			if (doingAirTrick && actionTimer > 0.55f) {
+			if (doingAirTrick && actionTimer > 0.50f) {
 				policyTrick = EXECUTE;
 			}
 		}
