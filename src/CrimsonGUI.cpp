@@ -10441,7 +10441,7 @@ void DanteGameplayOptions() {
 			if (GUI_Checkbox2("Artemis Rework",
 				activeCrimsonGameplay.Gameplay.Dante.artemisRework,
 				queuedCrimsonGameplay.Gameplay.Dante.artemisRework)) {
-				ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
+				//ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
 				CrimsonDetours::ToggleArtemisInstantFullCharge(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
 				CrimsonPatches::ReduceArtemisProjectileDamage(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
 			}
