@@ -195,6 +195,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleChronoSwords(activeCrimsonGameplay.Cheats.Vergil.chronoSwords);
         UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
         CrimsonGameModes::SetGameMode(activeCrimsonGameplay.GameMode.preset);
+        CrimsonGameplay::AdjustDMC4MobilitySettings();
 
         Arcade::Toggle(false);
         Arcade::Toggle(activeConfig.Arcade.enable);
