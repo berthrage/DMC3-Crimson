@@ -224,7 +224,16 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 				break;
 			}
 
+			const float gameModeStringWidth = ImGui::CalcTextSize(gameModeString).x;
+
+			const char* ccsRestartString = "Restart mission required to update CCS.";
+			auto ccsRestartStringColor = SwapColorEndianness(0x1DD6FFFF);
+
 			window->DrawList->AddText(g_ImGuiFont_RussoOne[scaledFontSize], scaledFontSize, pos + ImVec2{ modeTextWidth, 0.0f }, gameModeStringColor, gameModeString);
+
+			if (activeConfig.Actor.enable != queuedConfig.Actor.enable && g_scene == SCENE::GAME) {
+				window->DrawList->AddText(g_ImGuiFont_Roboto[scaledFontSize], scaledFontSize * 0.9f, ImVec2(pos.x + 250.0f, pos.y - 35.0f) * scaleFactorY, ccsRestartStringColor, ccsRestartString);
+			}
 		}
 
 		// Version text
@@ -3011,7 +3020,7 @@ void CharacterSection(size_t defaultFontSize) {
 	bool actorCondition = (!queuedConfig.Actor.enable);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-	GUI_Checkbox("CRIMSON CHARACTER SYSTEM       ", queuedConfig.Actor.enable);
+	GUI_Checkbox("CRIMSON CHARACTER SYSTEM (CCS)      ", queuedConfig.Actor.enable);
 	ImGui::PopFont();
 
 	if (!queuedConfig.Actor.enable) {
@@ -3483,16 +3492,18 @@ void RoyalGaugeMainPlayer() {
 }
 
 static Texture2DD3D11* RedOrbTexture{ nullptr };
-static Texture2DD3D11* RedOrbCrimsonTexture{ nullptr };
+static Texture2DD3D11* RedOrbVanillaTexture{ nullptr };
 static Texture2DD3D11* RedOrbStyleSwitcherTexture{ nullptr };
+static Texture2DD3D11* RedOrbCrimsonTexture{ nullptr };
 static Texture2DD3D11* RedOrbCustomTexture{ nullptr };
 
 void InitRedOrbTexture(ID3D11Device* pd3dDevice) {
 	//RedOrbTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "RedorbVanilla3.png").c_str(), pd3dDevice);
 	RedOrbTexture = new Texture2DD3D11 (g_Image_RedOrb.GetRGBAData(), g_Image_RedOrb.GetWidth(), g_Image_RedOrb.GetHeight(), pd3dDevice);
-	RedOrbCrimsonTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "RedorbCrimson3.png").c_str(), pd3dDevice);
-	RedOrbStyleSwitcherTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "RedorbStyleSwitcher3.png").c_str(), pd3dDevice);
-	RedOrbCustomTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "RedorbCustom3.png").c_str(), pd3dDevice);
+	RedOrbVanillaTexture = new Texture2DD3D11(g_Image_RedOrbVanilla.GetRGBAData(), g_Image_RedOrbVanilla.GetWidth(), g_Image_RedOrbVanilla.GetHeight(), pd3dDevice);
+	RedOrbStyleSwitcherTexture = new Texture2DD3D11(g_Image_RedOrbStyleSwitcher.GetRGBAData(), g_Image_RedOrbStyleSwitcher.GetWidth(), g_Image_RedOrbStyleSwitcher.GetHeight(), pd3dDevice);
+	RedOrbCrimsonTexture = new Texture2DD3D11(g_Image_RedOrbCrimson.GetRGBAData(), g_Image_RedOrbCrimson.GetWidth(), g_Image_RedOrbCrimson.GetHeight(), pd3dDevice);
+	RedOrbCustomTexture = new Texture2DD3D11(g_Image_RedOrbCustom.GetRGBAData(), g_Image_RedOrbCustom.GetWidth(), g_Image_RedOrbCustom.GetHeight(), pd3dDevice);
 	assert(RedOrbTexture);
 }
 
@@ -3572,8 +3583,10 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 
 	// Adjust the font size and the proportional texture size
 	float fontSize = 37.0f;
-	float textureBaseSizeX = 43.0f; 
-	float textureBaseSizeY = 61.0f;
+
+	// previously 142x200 -> 43x61; now 178x250 -> 54x76 to make space for the glow.
+	float textureBaseSizeX = 54.0f; 
+	float textureBaseSizeY = 76.0f;
 	float textureWidth = textureBaseSizeX * scaleFactorY;
 	float textureHeight = textureBaseSizeY * scaleFactorY;
 	float centerX = textureWidth / 2.0f;
@@ -3605,13 +3618,13 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 	ImVec2 textPos = ImVec2(windowSize.x - textSize.x - 74.0f * scaleFactorY, (windowSize.y - textSize.y) / 2);
 
 	// Correct the texture position by considering the window's screen position
-	ImVec2 texturePos = ImVec2(windowPos.x + textPos.x - textureWidth - 24.0f * scaleFactorY, windowPos.y + (windowSize.y - textureHeight) / 2);
+	ImVec2 texturePos = ImVec2(windowPos.x + textPos.x - textureWidth - 17.916f * scaleFactorY, windowPos.y + (windowSize.y - textureHeight) / 2);
 
 	static auto* redOrbGameMode = RedOrbTexture;
 	switch (activeCrimsonGameplay.GameMode.preset)
 	{
 	case(GAMEMODEPRESETS::VANILLA):
-		redOrbGameMode = RedOrbTexture;
+		redOrbGameMode = RedOrbVanillaTexture;
 		break;
 
 	case(GAMEMODEPRESETS::STYLE_SWITCHER):
@@ -3633,7 +3646,7 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 	}
 
 	// Render the texture or a white square if the texture is not valid
-	if (RedOrbTexture->IsValid()) {
+	if (redOrbGameMode->IsValid()) {
 // 		DrawRotatedImage(
 // 			RedOrbTexture->GetTexture(),
 // 			texturePos,
@@ -3641,7 +3654,7 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 // 			IM_PI / 2.0f, // 90 degrees in radians
 // 			colorWithAlpha
 // 		);
-		ImGui::GetWindowDrawList()->AddImage(RedOrbTexture->GetTexture(), texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImVec2(0, 0), ImVec2(1, 1), colorWithAlpha);
+		ImGui::GetWindowDrawList()->AddImage(redOrbGameMode->GetTexture(), texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImVec2(0, 0), ImVec2(1, 1), colorWithAlpha);
 	}
 	else {
 		ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
@@ -7720,7 +7733,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("sessionData mission:  %u", sessionData.mission);
                 ImGui::Text("SCENE:  %u", g_scene);
                 ImGui::Text("TRACK PLAYING: %s", g_gameTrackPlaying.c_str());
-				ImGui::Text("activeCrimsonConfig.legacyDDMKCharacters: %u", activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters);
+				ImGui::Text("activeCrimsonGameplay.holdToCC: %u", activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
 // 				for (int i = 0; i < 8; i++) {
 // 					ImGui::Text("sessionData expertise[%u]:  %x", i, sessionData.expertise[i]);
 // 				}
@@ -11591,9 +11604,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
 
                 ImGui::TextWrapped((const char*) ACTOR_SYSTEM_INTRO);
-                ImGui::TextWrapped("Required for almost all Gameplay Options to be enabled.");
+                ImGui::TextWrapped("Essential for enabling most gameplay options.");
                 ImGui::TextWrapped("");
-                ImGui::TextWrapped("Enables:");
+                ImGui::TextWrapped("Features:");
                 ImGui::TextWrapped((const char*) FEATURE_STYLE_SWITCH);
                 ImGui::TextWrapped((const char*) FEATURE_WEAPONS);
                 ImGui::TextWrapped((const char*) FEATURE_CHAR_SWITCH);
@@ -11601,9 +11614,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
                 ImGui::TextWrapped((const char*) FEATURE_DOPPEL_TWEAKS);
                 ImGui::TextWrapped("");
                 ImGui::TextWrapped("");
-                ImGui::TextWrapped("*Required for Crimson and Style Switcher Modes.");
-                ImGui::TextWrapped("**Changes the Divinity Statue (Shop) UI.");
-				ImGui::TextWrapped("(Automatically disables itself during Battle of Brothers and End Credits for stability).");
+                ImGui::TextWrapped("Required for Crimson and Style Switcher modes.");
+                ImGui::TextWrapped("Note: Changes the Divinity Statue (Shop) UI.");
+				ImGui::TextWrapped("Automatically disables itself during Battle of Brothers and End Credits for stability.");
 
 
 				ImGui::PopFont();
