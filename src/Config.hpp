@@ -18,19 +18,19 @@
 
 struct Config {
     struct {
-        bool enable                         = (debug) ? true : false;
+        bool enable                         = true;
         uint8 playerCount                   = 1;
         PlayerData playerData[PLAYER_COUNT] = {};
     } Actor;
 
     struct {
-        bool enable         = (debug) ? true : false;
-        uint32 mission      = 7;
-        uint32 mode         = DIFFICULTY_MODE::DANTE_MUST_DIE;
+        bool enable         = false;
+        uint32 mission      = 1;
+        uint32 mode         = DIFFICULTY_MODE::NORMAL;
         uint32 room         = 900;
-        bool enableRoomSelection     = (debug) ? false : true;
+        bool enableRoomSelection     = false;
         uint32 position     = 0;
-        bool enablePositionSelection = (debug) ? false : true;
+        bool enablePositionSelection = false;
         uint8 floor         = 0;
         uint16 level        = 0;
         float hitPoints     = 20000;
@@ -312,7 +312,7 @@ struct Config {
 
     bool enableFileMods = true;
 
-    float frameRate = 60;
+    float frameRate = 80;
     uint8 vSync     = 1;
 
     bool hideMouseCursor = false;
@@ -433,7 +433,7 @@ struct Config {
     
     std::string selectedHUD = "Crimson HUD";
 
-    bool disableBlendingEffects = false;
+    bool disableBlendingEffects = true;
     bool framerateResponsiveGameSpeed = true;
 
     bool playDTReadySFXAtMissionStart = true;
