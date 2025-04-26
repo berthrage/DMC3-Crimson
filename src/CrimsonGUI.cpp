@@ -9004,7 +9004,11 @@ void SystemSection(size_t defaultFontSize) {
 
             ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Disable Blending Effects", activeConfig.disableBlendingEffects, queuedConfig.disableBlendingEffects);
+			GUI_Checkbox2("Disable Motion Blur / Blending Effects", activeConfig.disableBlendingEffects, queuedConfig.disableBlendingEffects);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Makes DMC3 look smoother/snappier, but lacking certain PS2 post process effects."
+				"\nDisables itself during cutscenes and screen transitions."
+				"\nPersonally, this is mandatory for a smoother, lag-free gameplay feel. -Berthrage");
 
 			ImGui::TableNextColumn();
 
@@ -10441,12 +10445,11 @@ void DanteGameplayOptions() {
 			if (GUI_Checkbox2("Artemis Rework",
 				activeCrimsonGameplay.Gameplay.Dante.artemisRework,
 				queuedCrimsonGameplay.Gameplay.Dante.artemisRework)) {
-				//ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
 				CrimsonDetours::ToggleArtemisInstantFullCharge(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
 				CrimsonPatches::ReduceArtemisProjectileDamage(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
 			}
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Swaps Artemis' Normal Shot and Multi-Lock inputs, and makes it charge to full near instantly.\n"
+			TooltipHelper("(?)", "Makes Artemis' Multi-Lock and Normal Shot charge instantly.\n"
 				"Nerfs Artemis' Multi-Lock and Normal Shot projectile damage by 90-percent to compensate.");
 
 			ImGui::TableNextColumn();
@@ -10524,6 +10527,17 @@ void DanteCheatOptions() {
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Makes Rebellion's Sword Pierce last for an indefinite amount of time.");
+
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Swap Artemis' Multi-Lock / Normal Shot",
+				activeCrimsonGameplay.Cheats.Dante.swapArtemisMultiLockNormalShot,
+				queuedCrimsonGameplay.Cheats.Dante.swapArtemisMultiLockNormalShot)) {
+				ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonGameplay.Cheats.Dante.swapArtemisMultiLockNormalShot);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Swaps Artemis' Multi-Lock and Normal Shot inputs/funcionality.\n"
+				"Multi-Lock fires from Normal Shot, and Normal Shot goes to Gunslinger.");
 
 			ImGui::EndTable();
 		}

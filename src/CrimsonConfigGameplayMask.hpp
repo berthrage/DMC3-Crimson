@@ -259,12 +259,14 @@ struct CrimsonConfigGameplayMask {
 			bool forceRoyalRelease = true;
 			bool infiniteShredder = true;
 			bool infiniteSwordPierce = true;
+			bool swapArtemisMultiLockNormalShot = true;
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
 					std::make_pair("forceRoyalRelease", &Dante::forceRoyalRelease),
 					std::make_pair("infiniteShredder", &Dante::infiniteShredder),
-					std::make_pair("infiniteSwordPierce", &Dante::infiniteSwordPierce)
+					std::make_pair("infiniteSwordPierce", &Dante::infiniteSwordPierce),
+					std::make_pair("swapArtemisMultiLockNormalShot", &Dante::swapArtemisMultiLockNormalShot)
 				);
 			}
 		} Dante;
