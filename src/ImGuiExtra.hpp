@@ -40,6 +40,14 @@ namespace UI {
 		return res;
 	}
 
+	inline ImVec4 ColorToImVec4(uint32_t color) {
+		float r = ((color >> 24) & 0xFF) / 255.0f;
+		float g = ((color >> 16) & 0xFF) / 255.0f;
+		float b = ((color >> 8) & 0xFF) / 255.0f;
+		float a = (color & 0xFF) / 255.0f;
+		return ImVec4(r, g, b, a);
+	}
+
 	class Roboto_t {
 	public:
 		auto& operator[](size_t index)

@@ -276,6 +276,32 @@ const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 	// Example: these fields are optional for Vanilla
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.vanillaWeaponSwitchDelay = false;
+	mask.Gameplay.ExtraDifficulty.ldkMode = false;
+	mask.Cheats.Training.infiniteHP = false;
+	mask.Cheats.Training.infiniteDT = false;
+	mask.Cheats.Training.disableTimers = false;
+	mask.Cheats.Training.infiniteBossLadyBullets = false;
+	mask.Cheats.General.customDamage = false;
+	mask.Cheats.Damage.playerReceivedDmgMult = false;
+	mask.Cheats.Damage.enemyReceivedDmgMult = false;
+	mask.Cheats.Damage.minStyleRankForDamage = false;
+	mask.Cheats.General.customSpeed = false;
+	mask.Cheats.Speed.enemy = false;
+	mask.Cheats.Speed.human = false;
+	mask.Cheats.Speed.dTDante = false;
+	mask.Cheats.Speed.dTVergil = false;
+	mask.Cheats.Speed.quicksilverPlayer = false;
+	mask.Cheats.Speed.quicksilverEnemy = false;
+	mask.Cheats.General.customMobility = false;
+	mask.Cheats.Mobility.airHikeCount = false;
+	mask.Cheats.Mobility.kickJumpCount = false;
+	mask.Cheats.Mobility.wallHikeCount = false;
+	mask.Cheats.Mobility.dashCount = false;
+	mask.Cheats.Mobility.skyStarCount = false;
+	mask.Cheats.Mobility.danteAirTrickCount = false;
+	mask.Cheats.Mobility.vergilAirTrickCount = false;
+	mask.Cheats.Mobility.trickUpCount = false;
+	mask.Cheats.Mobility.trickDownCount = false;
 
 	mask.GameMode.preset = false; // Ignore preset field in matching!
 	return mask;
@@ -287,7 +313,33 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Gameplay.General.holdToCrazyCombo = false;
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.bufferlessReversals = false;
+	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Cheats.Vergil.chronoSwords = false;
+	mask.Cheats.Training.infiniteHP = false;
+	mask.Cheats.Training.infiniteDT = false;
+	mask.Cheats.Training.disableTimers = false;
+	mask.Cheats.Training.infiniteBossLadyBullets = false;
+	mask.Cheats.General.customDamage = false;
+	mask.Cheats.Damage.playerReceivedDmgMult = false;
+	mask.Cheats.Damage.enemyReceivedDmgMult = false;
+	mask.Cheats.Damage.minStyleRankForDamage = false;
+	mask.Cheats.General.customSpeed = false;
+	mask.Cheats.Speed.enemy = false;
+	mask.Cheats.Speed.human = false;
+	mask.Cheats.Speed.dTDante = false;
+	mask.Cheats.Speed.dTVergil = false;
+	mask.Cheats.Speed.quicksilverPlayer = false;
+	mask.Cheats.Speed.quicksilverEnemy = false;
+	mask.Cheats.General.customMobility = false;
+	mask.Cheats.Mobility.airHikeCount = false;
+	mask.Cheats.Mobility.kickJumpCount = false;
+	mask.Cheats.Mobility.wallHikeCount = false;
+	mask.Cheats.Mobility.dashCount = false;
+	mask.Cheats.Mobility.skyStarCount = false;
+	mask.Cheats.Mobility.danteAirTrickCount = false;
+	mask.Cheats.Mobility.vergilAirTrickCount = false;
+	mask.Cheats.Mobility.trickUpCount = false;
+	mask.Cheats.Mobility.trickDownCount = false;
 
 	mask.GameMode.preset = false; // Ignore preset field in matching!
 	return mask;
@@ -298,12 +350,63 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	CrimsonConfigGameplayMask mask{};
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.bufferlessReversals = false;
+	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Cheats.Vergil.chronoSwords = false;
+	mask.Cheats.Training.infiniteHP = false;
+	mask.Cheats.Training.infiniteDT = false;
+	mask.Cheats.Training.disableTimers = false;
+	mask.Cheats.Training.infiniteBossLadyBullets = false;
+	mask.Cheats.General.customDamage = false;
+	mask.Cheats.Damage.playerReceivedDmgMult = false;
+	mask.Cheats.Damage.enemyReceivedDmgMult = false;
+	mask.Cheats.Damage.minStyleRankForDamage = false;
+	mask.Cheats.General.customSpeed = false;
+	mask.Cheats.Speed.enemy = false;
+	mask.Cheats.Speed.human = false;
+	mask.Cheats.Speed.dTDante = false;
+	mask.Cheats.Speed.dTVergil = false;
+	mask.Cheats.Speed.quicksilverPlayer = false;
+	mask.Cheats.Speed.quicksilverEnemy = false;
+	mask.Cheats.General.customMobility = false;
+	mask.Cheats.Mobility.airHikeCount = false;
+	mask.Cheats.Mobility.kickJumpCount = false;
+	mask.Cheats.Mobility.wallHikeCount = false;
+	mask.Cheats.Mobility.dashCount = false;
+	mask.Cheats.Mobility.skyStarCount = false;
+	mask.Cheats.Mobility.danteAirTrickCount = false;
+	mask.Cheats.Mobility.vergilAirTrickCount = false;
+	mask.Cheats.Mobility.trickUpCount = false;
+	mask.Cheats.Mobility.trickDownCount = false;
 
 	
 	mask.GameMode.preset = false; // Ignore preset field in matching!
 	return mask;
 	}();
+
+const CrimsonConfigGameplay& GetCurrentPreset(uint8 mode) {
+	switch (mode) {
+	case GAMEMODEPRESETS::VANILLA:
+	{
+		static const CrimsonConfigGameplay vanilla = VANILLA_PRESET;
+		return vanilla;
+	}
+	case GAMEMODEPRESETS::STYLE_SWITCHER:
+	{
+		static const CrimsonConfigGameplay styleSwitcher = STYLE_SWITCHER_PRESET;
+		return styleSwitcher;
+	}
+	case GAMEMODEPRESETS::CRIMSON:
+	{
+		static const CrimsonConfigGameplay crimson = CRIMSON_PRESET;
+		return crimson;
+	}
+	default:
+	{
+		static const CrimsonConfigGameplay fallback{};
+		return fallback;
+	}
+	}
+}
 
 
 void CrimsonGameModes::SetGameMode(uint8 mode) {
@@ -364,6 +467,161 @@ void CrimsonGameModes::TrackGameMode() {
 			activeCrimsonGameplay.GameMode.preset = GAMEMODEPRESETS::CUSTOM;
 			queuedCrimsonGameplay.GameMode.preset = GAMEMODEPRESETS::CUSTOM;
 		}
+	}
+}
+
+void CrimsonGameModes::TrackCheats() {
+	auto& activeCheats = activeCrimsonGameplay.Cheats;
+	auto& currentPreset = GetCurrentPreset(activeCrimsonGameplay.GameMode.preset);
+	auto& currentCheats = gameModeData.currentlyUsedCheats;
+	auto& missionUsedCheats = gameModeData.missionUsedCheats;
+	auto& initializedMission = gameModeData.isMissionInitializedCheatsUsedMission;
+
+	auto missionDataAddr = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!missionDataAddr) {
+		initializedMission = false; // Reset for next mission
+		return;
+	}
+	auto& missionData = *reinterpret_cast<MissionData*>(missionDataAddr);
+
+	auto updateCheatFlag = [&](bool anyChanged, uint8 group) {
+		auto it = std::find(currentCheats.begin(), currentCheats.end(), group);
+		auto itMission = std::find(missionUsedCheats.begin(), missionUsedCheats.end(), group);
+		if (anyChanged) {
+			if (it == currentCheats.end()) {
+				currentCheats.push_back(group);
+				std::sort(currentCheats.begin(), currentCheats.end());
+			}
+			if (initializedMission && itMission == missionUsedCheats.end()) {
+				missionUsedCheats.push_back(group);
+				std::sort(missionUsedCheats.begin(), missionUsedCheats.end());
+			}
+		} else {
+			if (it != currentCheats.end()) {
+				currentCheats.erase(it);
+				std::sort(currentCheats.begin(), currentCheats.end());
+			}
+		}
+		};
+
+	// === CHEATS::TRAINING ===
+	bool trainingChanged =
+		activeCheats.Training.infiniteHP != currentPreset.Cheats.Training.infiniteHP ||
+		activeCheats.Training.infiniteDT != currentPreset.Cheats.Training.infiniteDT ||
+		activeCheats.Training.disableTimers != currentPreset.Cheats.Training.disableTimers ||
+		activeCheats.Training.infiniteBossLadyBullets != currentPreset.Cheats.Training.infiniteBossLadyBullets;
+
+	updateCheatFlag(trainingChanged, CHEATS::TRAINING);
+
+	// === CHEATS::DAMAGE ===
+	bool damageChanged =
+		activeCheats.General.customDamage != currentPreset.Cheats.General.customDamage ||
+		activeCheats.Damage.playerReceivedDmgMult != currentPreset.Cheats.Damage.playerReceivedDmgMult ||
+		activeCheats.Damage.enemyReceivedDmgMult != currentPreset.Cheats.Damage.enemyReceivedDmgMult ||
+		activeCheats.Damage.minStyleRankForDamage != currentPreset.Cheats.Damage.minStyleRankForDamage;
+
+	updateCheatFlag(damageChanged, CHEATS::DAMAGE);
+
+	// === CHEATS::SPEED ===
+	bool speedChanged =
+		activeCheats.General.customSpeed != currentPreset.Cheats.General.customSpeed ||
+		activeCheats.Speed.enemy != currentPreset.Cheats.Speed.enemy ||
+		activeCheats.Speed.human != currentPreset.Cheats.Speed.human ||
+		activeCheats.Speed.quicksilverPlayer != currentPreset.Cheats.Speed.quicksilverPlayer ||
+		activeCheats.Speed.quicksilverEnemy != currentPreset.Cheats.Speed.quicksilverEnemy ||
+		// Arrays: [6] and [5]
+		std::memcmp(activeCheats.Speed.dTDante, currentPreset.Cheats.Speed.dTDante, sizeof(float) * 6) != 0 ||
+		std::memcmp(activeCheats.Speed.dTVergil, currentPreset.Cheats.Speed.dTVergil, sizeof(float) * 5) != 0;
+
+	updateCheatFlag(speedChanged, CHEATS::SPEED);
+
+	// === CHEATS::MOBILITY ===
+	bool mobilityChanged =
+		activeCheats.General.customMobility != currentPreset.Cheats.General.customMobility ||
+		activeCheats.Mobility.airHikeCount[0] != currentPreset.Cheats.Mobility.airHikeCount[0] ||
+		activeCheats.Mobility.airHikeCount[1] != currentPreset.Cheats.Mobility.airHikeCount[1] ||
+		activeCheats.Mobility.kickJumpCount[0] != currentPreset.Cheats.Mobility.kickJumpCount[0] ||
+		activeCheats.Mobility.kickJumpCount[1] != currentPreset.Cheats.Mobility.kickJumpCount[1] ||
+		activeCheats.Mobility.wallHikeCount[0] != currentPreset.Cheats.Mobility.wallHikeCount[0] ||
+		activeCheats.Mobility.wallHikeCount[1] != currentPreset.Cheats.Mobility.wallHikeCount[1] ||
+		activeCheats.Mobility.dashCount[0] != currentPreset.Cheats.Mobility.dashCount[0] ||
+		activeCheats.Mobility.dashCount[1] != currentPreset.Cheats.Mobility.dashCount[1] ||
+		activeCheats.Mobility.skyStarCount[0] != currentPreset.Cheats.Mobility.skyStarCount[0] ||
+		activeCheats.Mobility.skyStarCount[1] != currentPreset.Cheats.Mobility.skyStarCount[1] ||
+		activeCheats.Mobility.danteAirTrickCount[0] != currentPreset.Cheats.Mobility.danteAirTrickCount[0] ||
+		activeCheats.Mobility.danteAirTrickCount[1] != currentPreset.Cheats.Mobility.danteAirTrickCount[1] ||
+		activeCheats.Mobility.vergilAirTrickCount[0] != currentPreset.Cheats.Mobility.vergilAirTrickCount[0] ||
+		activeCheats.Mobility.vergilAirTrickCount[1] != currentPreset.Cheats.Mobility.vergilAirTrickCount[1] ||
+		activeCheats.Mobility.trickUpCount[0] != currentPreset.Cheats.Mobility.trickUpCount[0] ||
+		activeCheats.Mobility.trickUpCount[1] != currentPreset.Cheats.Mobility.trickUpCount[1] ||
+		activeCheats.Mobility.trickDownCount[0] != currentPreset.Cheats.Mobility.trickDownCount[0] ||
+		activeCheats.Mobility.trickDownCount[1] != currentPreset.Cheats.Mobility.trickDownCount[1];
+
+	updateCheatFlag(mobilityChanged, CHEATS::MOBILITY);
+
+	if (missionData.frameCount > 0) {
+		if (!initializedMission) {
+			initializedMission = true;
+		}
+	} else if (g_scene == SCENE::MISSION_SELECT || g_scene == SCENE::MISSION_START) {
+		initializedMission = false;
+	}
+
+	if (!initializedMission && missionUsedCheats.size() > 0) {
+		missionUsedCheats.clear();
+	}
+
+	if (initializedMission && activeConfig.Arcade.enable) {
+		gameModeData.arcadeMissionEnabled = true;
+	} else if (!initializedMission && !activeConfig.Arcade.enable) {
+		gameModeData.arcadeMissionEnabled = false;
+	}
+
+	if (initializedMission && activeConfig.BossRush.enable) {
+		gameModeData.bossRushMissionEnabled = true;
+	} else if (!initializedMission && !activeConfig.BossRush.enable) {
+		gameModeData.bossRushMissionEnabled = false;
+	}
+}
+
+void CrimsonGameModes::TrackMissionResultGameMode() {
+	bool& initializedMission = gameModeData.isMissionInitializedGameModeMResult;
+
+	static bool presetChanged = false;
+	static bool ldkChanged = false;
+
+	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_10723) {
+		gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : activeCrimsonGameplay.GameMode.preset;
+		gameModeData.ldkNissionResult = ldkChanged ? LDKMODE::OFF : activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode;
+		initializedMission = false; // Reset for next mission
+		return;
+	}
+	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
+
+	static uint8 initialPreset = GAMEMODEPRESETS::UNRATED;
+	static uint8 initialLDKPreset = LDKMODE::OFF;
+
+	if (missionData.frameCount > 0 && g_scene != SCENE::MISSION_RESULT) { // Mission is Running
+		if (!initializedMission) {
+			initialPreset = activeCrimsonGameplay.GameMode.preset;
+			initialLDKPreset = activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode;
+			initializedMission = true;
+			presetChanged = false;
+			ldkChanged = false;
+		} else if (activeCrimsonGameplay.GameMode.preset != initialPreset) {
+			presetChanged = true;
+			gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : activeCrimsonGameplay.GameMode.preset;
+		}
+
+		if (activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode != initialLDKPreset) {
+			ldkChanged = true;
+			gameModeData.ldkNissionResult = ldkChanged ? LDKMODE::OFF : activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode;
+		}
+	} else if (g_scene == SCENE::MISSION_RESULT) { // Mission Result Screen
+		gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : gameModeData.missionResultGameMode;
+		gameModeData.ldkNissionResult = ldkChanged ? LDKMODE::OFF : activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode;
+		initializedMission = false; // Reset for next mission
 	}
 }
 

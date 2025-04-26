@@ -140,7 +140,8 @@ void PreparePlayersDataBeforeSpawn() {
 
 void CrimsonMissionClearSong() {
 	if (g_scene == SCENE::MISSION_RESULT && !missionClearSongPlayed 
-		&& gameModeData.missionResultGameMode == GAMEMODEPRESETS::CRIMSON) {
+		&& (gameModeData.missionResultGameMode == GAMEMODEPRESETS::CRIMSON 
+		|| gameModeData.missionResultGameMode == GAMEMODEPRESETS::CUSTOM)) {
 		// Mute Music Channel Volume
 		SetVolume(9, 0);
 
@@ -1053,34 +1054,4 @@ void WeaponProgressionTracking() {
 		}
 	}
 }
-
-void TrackMissionResultGameMode() {
-	static bool initialized = false;
-	static bool presetChanged = false;
-
-	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
-	if (!name_10723) {
-		gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : activeCrimsonGameplay.GameMode.preset;
-		initialized = false; // Reset for next mission
-		return;
-	}
-	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
-
-	static uint8 initialPreset = GAMEMODEPRESETS::UNRATED;
-	
-	if (missionData.frameCount > 0 && g_scene != SCENE::MISSION_RESULT) { // Mission is Running
-		if (!initialized) {
-			initialPreset = activeCrimsonGameplay.GameMode.preset;
-			initialized = true;
-			presetChanged = false;
-		} else if (activeCrimsonGameplay.GameMode.preset != initialPreset) {
-			presetChanged = true;
-			gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : activeCrimsonGameplay.GameMode.preset;
-		}
-	} else if (g_scene == SCENE::MISSION_RESULT) { // Mission Result Screen
-		gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : gameModeData.missionResultGameMode;
-		initialized = false; // Reset for next mission
-	} 
-}
-
 }

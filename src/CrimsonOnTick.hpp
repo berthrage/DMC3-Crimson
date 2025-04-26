@@ -17,5 +17,4 @@ namespace CrimsonOnTick {
 	void PauseSFXWhenPaused();
 	void OverrideEnemyTargetPosition();
 	void WeaponProgressionTracking();
-	void TrackMissionResultGameMode();
 }

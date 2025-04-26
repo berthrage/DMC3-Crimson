@@ -3,9 +3,10 @@
 #include <cmath>
 
 namespace CrimsonGameModes {
-void TrackMissionResultGameMode();
 void SetGameMode(uint8 mode);
 void TrackGameMode();
+void TrackCheats();
+void TrackMissionResultGameMode();
 
 // Tolerance constant for floating point comparisons
 constexpr float FLOAT_EPSILON = 0.01f;

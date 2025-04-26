@@ -235,7 +235,7 @@ enum {
 };
 };
 
-namespace MODE {
+namespace DIFFICULTY_MODE {
 enum {
     EASY,
     NORMAL,
@@ -4239,8 +4239,61 @@ struct WeaponProgressionData {
 
 extern WeaponProgressionData weaponProgression;
 
+namespace CHEATS {
+enum {
+	TRAINING,
+	DAMAGE,
+	SPEED,
+	MOBILITY,
+	COUNT
+};
+}
+
+namespace LDKMODE {
+enum {
+	OFF,
+	LDK,
+	SUPER_LDK,
+	SUPER_LDK_BOSSES,
+};
+}
+
 struct GameModeData {
     uint8 missionResultGameMode = 2;
+    uint8 ldkNissionResult = LDKMODE::OFF;
+	std::vector<std::string> names = {
+		"VANILLA MODE",
+		"STYLE SWITCHER MODE",
+		"CRIMSON MODE",
+		"CUSTOM MODE",
+		"UNRATED",
+	};
+    std::vector<uint32> colors = {
+        0xFFFFFFFF,
+        0xE8BA18FF,
+        0xDA1B53FF,
+        0x4050FFFF,
+        0xFFFFFFFF,
+    };
+	std::vector<std::string> cheatsNames = {
+		"TRAINING",
+		"DAMAGE",
+		"SPEED",
+		"MOBILITY",
+	};
+    std::array<std::string, DIFFICULTY_MODE::COUNT> difficultyModeNames = {
+        "Easy",
+        "Normal",
+        "Hard",
+        "Very Hard",
+        "Dante Must Die",
+    };
+    std::vector<uint8> currentlyUsedCheats = { };
+    std::vector<uint8> missionUsedCheats = { };
+    bool isMissionInitializedGameModeMResult = false;
+    bool isMissionInitializedCheatsUsedMission = false;
+    bool arcadeMissionEnabled = false;
+    bool bossRushMissionEnabled = false;
 };
 
 extern GameModeData gameModeData;

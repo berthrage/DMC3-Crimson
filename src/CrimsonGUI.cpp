@@ -1224,12 +1224,12 @@ const char* modeNames[] = {
 };
 
 constexpr uint32 modes[] = {
-	MODE::EASY,
-	MODE::NORMAL,
-	MODE::HARD,
-	MODE::VERY_HARD,
-	MODE::DANTE_MUST_DIE,
-	MODE::HEAVEN_OR_HELL,
+	DIFFICULTY_MODE::EASY,
+	DIFFICULTY_MODE::NORMAL,
+	DIFFICULTY_MODE::HARD,
+	DIFFICULTY_MODE::VERY_HARD,
+	DIFFICULTY_MODE::DANTE_MUST_DIE,
+	DIFFICULTY_MODE::HEAVEN_OR_HELL,
 };
 
 const char* floorNames[] = {
@@ -3483,9 +3483,16 @@ void RoyalGaugeMainPlayer() {
 }
 
 static Texture2DD3D11* RedOrbTexture{ nullptr };
+static Texture2DD3D11* RedOrbCrimsonTexture{ nullptr };
+static Texture2DD3D11* RedOrbStyleSwitcherTexture{ nullptr };
+static Texture2DD3D11* RedOrbCustomTexture{ nullptr };
 
 void InitRedOrbTexture(ID3D11Device* pd3dDevice) {
-	RedOrbTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Redorb.png").c_str(), pd3dDevice);
+	//RedOrbTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "RedorbVanilla3.png").c_str(), pd3dDevice);
+	RedOrbTexture = new Texture2DD3D11 (g_Image_RedOrb.GetRGBAData(), g_Image_RedOrb.GetWidth(), g_Image_RedOrb.GetHeight(), pd3dDevice);
+	RedOrbCrimsonTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "RedorbCrimson3.png").c_str(), pd3dDevice);
+	RedOrbStyleSwitcherTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "RedorbStyleSwitcher3.png").c_str(), pd3dDevice);
+	RedOrbCustomTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "RedorbCustom3.png").c_str(), pd3dDevice);
 	assert(RedOrbTexture);
 }
 
@@ -3559,9 +3566,6 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 	// Get the current display size
 	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
-	float scaleFactorX = displaySize.x / baseWidth;
-	float scaleFactorY = displaySize.y / baseHeight;
-
 	// Define the orb count and cap it at 999999
 	int orbCount = (std::min)(999999, (int)missionData.redOrbs);
 	std::string orbCountStr = std::to_string(orbCount);
@@ -3603,6 +3607,31 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 	// Correct the texture position by considering the window's screen position
 	ImVec2 texturePos = ImVec2(windowPos.x + textPos.x - textureWidth - 24.0f * scaleFactorY, windowPos.y + (windowSize.y - textureHeight) / 2);
 
+	static auto* redOrbGameMode = RedOrbTexture;
+	switch (activeCrimsonGameplay.GameMode.preset)
+	{
+	case(GAMEMODEPRESETS::VANILLA):
+		redOrbGameMode = RedOrbTexture;
+		break;
+
+	case(GAMEMODEPRESETS::STYLE_SWITCHER):
+		redOrbGameMode = RedOrbStyleSwitcherTexture;
+		break;
+
+	case(GAMEMODEPRESETS::CRIMSON):
+		redOrbGameMode = RedOrbCrimsonTexture;
+		break;
+
+	case(GAMEMODEPRESETS::CUSTOM):
+		redOrbGameMode = RedOrbCustomTexture;
+		break;
+
+	default:
+		redOrbGameMode = RedOrbTexture;
+		break;
+
+	}
+
 	// Render the texture or a white square if the texture is not valid
 	if (RedOrbTexture->IsValid()) {
 // 		DrawRotatedImage(
@@ -3624,6 +3653,101 @@ void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) 
 
 	ImGui::PopFont();
 	ImGui::End();
+}
+
+void CheatsHUDIndicatorWindow() {
+	auto name_7058 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_7058) {
+		return;
+	}
+	auto& missionData = *reinterpret_cast<MissionData*>(name_7058);
+	if (!(InGame() && !g_inGameCutscene)) {
+		return;
+	}
+
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) {
+		return;
+	}
+
+	// Define the window size and position
+	ImVec2 windowSize = ImVec2(367.0f * scaleFactorX, 100.0f * scaleFactorY);
+	float edgeOffsetX = 0.0f * scaleFactorY;
+	float edgeOffsetY = 15.0f * scaleFactorY;
+	ImVec2 windowPos = ImVec2(g_renderSize.x - windowSize.x - edgeOffsetX, edgeOffsetY);
+	auto& currentGameMode = activeCrimsonGameplay.GameMode.preset;
+
+	ImGui::SetNextWindowSize(windowSize);
+	ImGui::SetNextWindowPos(windowPos);
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	// Adjust the font size and the proportional texture size
+	float fontSize = 18.0f;
+
+	ImGui::Begin("CheatsHUDIndicatorWindow", nullptr, windowFlags);
+	// Set the color with alpha for the Red Orb texture
+	float alpha = crimsonHud.redOrbAlpha / 127.0f;
+	ImColor colorWithAlpha(1.0f, 1.0f, 1.0f, alpha);
+	ImGui::SetWindowFontScale(scaleFactorY);
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSize]);
+
+	// Prepare button and text colors with alpha
+	ImVec4 buttonColor = ImColor(UI::SwapColorEndianness(gameModeData.colors[currentGameMode]));
+	buttonColor.w *= alpha;
+	ImVec4 textColor = (currentGameMode <= 1)
+		? ImColor(UI::SwapColorEndianness(0x151515FF))
+		: ImColor(UI::SwapColorEndianness(0xFFFFFFFF));
+	textColor.w *= alpha;
+	ImVec4 borderColor = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+	borderColor.w *= alpha;
+	ImGui::PushStyleColor(ImGuiCol_Border, borderColor);
+	ImGui::PushStyleColor(ImGuiCol_Button, buttonColor);
+	ImGui::PushStyleColor(ImGuiCol_Text, textColor);
+
+
+	// Calculate total width of all buttons and spacing
+	float totalButtonsWidth = 0.0f;
+	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f * scaledFontSize);
+	float spacing = ImGui::GetStyle().ItemSpacing.x * scaleFactorY;
+	std::vector<ImVec2> btnSizes;
+	for (auto cheat : gameModeData.currentlyUsedCheats) {
+		const std::string& btnLabel = gameModeData.cheatsNames[cheat];
+		ImVec2 btnSize = ImGui::CalcTextSize(btnLabel.c_str());
+		btnSize.x += ImGui::GetStyle().FramePadding.x * 2.0f * scaleFactorY;
+		btnSize.y += ImGui::GetStyle().FramePadding.y * 2.0f * scaleFactorY;
+		btnSizes.push_back(btnSize);
+		totalButtonsWidth += btnSize.x;
+	}
+	if (!btnSizes.empty())
+		totalButtonsWidth += spacing * (btnSizes.size() - 1);
+
+	// Center the group
+	float groupStartX = (windowSize.x - totalButtonsWidth) * 0.5f;
+	ImGui::SetCursorPosX(groupStartX);
+
+	// Draw buttons
+	for (size_t i = 0; i < gameModeData.currentlyUsedCheats.size(); ++i) {
+		auto cheat = gameModeData.currentlyUsedCheats[i];
+		const std::string& btnLabel = gameModeData.cheatsNames[cheat];
+		ImGui::Button(btnLabel.c_str(), btnSizes[i]);
+		if (i + 1 < gameModeData.currentlyUsedCheats.size()) {
+			ImGui::SameLine();
+			ImGui::SameLine(0.0f, spacing); // Use calculated spacing
+		}
+	}
+
+	ImGui::PopStyleVar();
+	ImGui::PopStyleColor(3);
+	ImGui::PopFont();
+	ImGui::End();
+
 }
 
 
@@ -3711,12 +3835,13 @@ void StyleMeterWindow() {
 
 void RenderMissionResultGameModeStats() {
 	using namespace UI;
-	const char* gameModeString = nullptr;
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	const char* missionResultGameModeString = nullptr;
 	ImU32 gameModeStringColor = 0;
 	auto defaultFontSize = g_UIContext.DefaultFontSize;
 	ImVec2 windowSize = ImVec2(1800.0f * scaleFactorY, 200.0f * scaleFactorY);
 	ImVec2 windowPos = ImVec2(
-		(g_renderSize.x - windowSize.x) * 0.5f + (950.0f * scaleFactorY),
+		(g_renderSize.x - windowSize.x) * 0.5f + (990.0f * scaleFactorY),
 		scaleFactorY / 2 + (147.0f * scaleFactorY)
 	);
 
@@ -3726,32 +3851,32 @@ void RenderMissionResultGameModeStats() {
 
 	switch (gameModeData.missionResultGameMode) {
 	case GAMEMODEPRESETS::VANILLA:
-		gameModeString = "VANILLA MODE";
+		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::VANILLA].c_str();
 		gameModeStringColor = 0xFFFFFFFF;
 		break;
 
 	case GAMEMODEPRESETS::STYLE_SWITCHER:
-		gameModeString = "STYLE SWITCHER MODE";
+		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::STYLE_SWITCHER].c_str();
 		gameModeStringColor = SwapColorEndianness(0xE8BA18FF);
 		break;
 
 	case GAMEMODEPRESETS::CRIMSON:
-		gameModeString = "CRIMSON MODE";
+		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::CRIMSON].c_str();
 		gameModeStringColor = SwapColorEndianness(0xDA1B53FF);
 		break;
 
 	case GAMEMODEPRESETS::CUSTOM:
-		gameModeString = "CUSTOM MODE";
+		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::CUSTOM].c_str();
 		gameModeStringColor = SwapColorEndianness(0x4050FFFF);
 		break;
 
 	case GAMEMODEPRESETS::UNRATED:
-		gameModeString = "UNRATED";
+		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::UNRATED].c_str();
 		gameModeStringColor = 0xFFFFFFFF;
 		break;
 
 	default:
-		gameModeString = "Unknown";
+		missionResultGameModeString = "Unknown";
 		break;
 	}
 
@@ -3773,12 +3898,126 @@ void RenderMissionResultGameModeStats() {
 		ImGui::PushFont(font);
 
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		ImVec2 textSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, gameModeString);
+		ImVec2 textSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, missionResultGameModeString);
 		ImVec2 textPos = ImGui::GetWindowPos() + ImVec2(10.0f * scaleFactorY, 0.0f);
 
-		drawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 3.8f, textPos, gameModeStringColor, gameModeString);
+		drawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 3.8f, textPos, gameModeStringColor, missionResultGameModeString);
 		// 		window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 		// 			SwapColorEndianness(0xFFFFFF10), "Game Mode");
+
+		 // Calculate position for difficulty text
+		const char* difficultyString = gameModeData.difficultyModeNames[sessionData.mode].c_str(); // Implement this function as needed
+		ImVec2 difficultyTextSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, difficultyString);
+
+		// Center difficulty text based on game mode text
+		ImVec2 difficultyTextPos = textPos;
+		difficultyTextPos.y += textSize.y + (37.0f * scaleFactorY); 
+		difficultyTextPos.x += (textSize.x - difficultyTextSize.x) * 0.5f; // Centered
+
+		ImGui::SetCursorScreenPos(difficultyTextPos);
+		ImGui::Text("%s", difficultyString);
+
+		ImGui::SameLine();
+		std::string ldkMissionText = (" - " + (std::string)ldkModeNames[gameModeData.ldkNissionResult]);
+
+		if (gameModeData.ldkNissionResult != LDKMODE::OFF) {
+			ImGui::Text(ldkMissionText.c_str());
+		}
+
+		ImGui::PopFont();
+	}
+
+	ImGui::End();
+}
+
+
+void RenderMissionResultCheatsUsed() {
+	using namespace UI;
+	const char* missionResultGameModeString = nullptr;
+	ImU32 gameModeStringColor = 0;
+	auto defaultFontSize = g_UIContext.DefaultFontSize;
+	ImVec2 windowSize = ImVec2(1300.0f * scaleFactorY, 200.0f * scaleFactorY);
+	ImVec2 windowPos = ImVec2(
+		(g_renderSize.x - windowSize.x) * 0.5f + (1200.0f * scaleFactorY),
+		scaleFactorY / 2 + (347.0f * scaleFactorY)
+	);
+
+	if (g_scene != SCENE::MISSION_RESULT) {
+		return;
+	}
+
+	switch (gameModeData.missionResultGameMode) {
+	case GAMEMODEPRESETS::VANILLA:
+		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::VANILLA].c_str();
+		gameModeStringColor = 0xFFFFFFFF;
+		break;
+
+	case GAMEMODEPRESETS::STYLE_SWITCHER:
+		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::STYLE_SWITCHER].c_str();
+		gameModeStringColor = SwapColorEndianness(0xE8BA18FF);
+		break;
+
+	case GAMEMODEPRESETS::CRIMSON:
+		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::CRIMSON].c_str();
+		gameModeStringColor = SwapColorEndianness(0xDA1B53FF);
+		break;
+
+	case GAMEMODEPRESETS::CUSTOM:
+		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::CUSTOM].c_str();
+		gameModeStringColor = SwapColorEndianness(0x4050FFFF);
+		break;
+
+	case GAMEMODEPRESETS::UNRATED:
+		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::UNRATED].c_str();
+		gameModeStringColor = 0xFFFFFFFF;
+		break;
+
+	default:
+		missionResultGameModeString = "Unknown";
+		break;
+	}
+
+	ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
+	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
+
+	if (ImGui::Begin("MissionResultCheatsUsed", nullptr,
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoInputs |
+		ImGuiWindowFlags_NoBackground)) {
+
+		ImGui::SetWindowFontScale(scaleFactorY);
+
+		ImFont* font = UI::g_ImGuiFont_RussoOne[40.0f];
+		ImGui::PushFont(font);
+
+		if (gameModeData.arcadeMissionEnabled) {
+			ImGui::PushFont(g_ImGuiFont_RussoOne[40.0f]);
+			ImGui::Text("Arcade");
+			ImGui::PopFont();
+		}
+
+		if (gameModeData.arcadeMissionEnabled && gameModeData.bossRushMissionEnabled) {
+			ImGui::SameLine();
+			ImGui::Text(" - ");
+		}
+
+		if (gameModeData.bossRushMissionEnabled) {
+			ImGui::SameLine();
+			ImGui::PushFont(g_ImGuiFont_RussoOne[40.0f]);
+			ImGui::Text("Boss Rush");
+			ImGui::PopFont();
+		}
+
+		ImGui::Text("CHEATS USED:");
+		for (auto cheat : gameModeData.missionUsedCheats) {
+			ImGui::PushFont(g_ImGuiFont_RussoOne[23.0f]);
+			ImGui::Text("%s", gameModeData.cheatsNames[cheat].c_str());
+			ImGui::PopFont();
+		}
 
 		ImGui::PopFont();
 	}
@@ -5808,11 +6047,12 @@ void MissionDataWindow() {
 
         ImGui::Text("");
 
-
+	
         GUI_Checkbox("unlockDevilTrigger", sessionData.unlockDevilTrigger);
 		ImGui::SameLine();
 		TooltipHelper("(?)", "Applies to sessionData. Needs Mission Restart for it to take effect.");
         ImGui::Text("");
+		
 
 
         [&]() {
@@ -6643,6 +6883,13 @@ void DebugSection() {
 		ImGui::Text("");
 
 		GUI_Checkbox("unlockDevilTrigger", sessionData.unlockDevilTrigger);
+		ImGui::SameLine();							
+		if (GUI_Button("Fix Devil Trigger")) {
+			sessionData.unlockDevilTrigger = true;
+			sessionData.magicPoints = 3000;
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Applies to sessionData. Needs Mission Restart for it to take effect.");
 		ImGui::Text("");
 
 
@@ -7489,7 +7736,15 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				ImGui::Text("Cerbus Unlocked Session? %u", sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::CERBERUS]);
 				ImGui::Text("Cerbus Unlock? %u", weaponProgression.devilArmUnlocks[DEVILARMUNLOCKS::CERBERUS]);
 				ImGui::Text("GunUnlockedQtt: %u", weaponProgression.gunsUnlockedQtt);
+				ImGui::Text("sessionData.unlockDevilTrigger: %u", sessionData.unlockDevilTrigger);
+				ImGui::Text("sessionData.magicPoints: %g", sessionData.magicPoints);
 				ImGui::Text("queuedCharacterData.rangedWeaponCount: %u", queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeaponCount);
+				for (auto cheat : gameModeData.currentlyUsedCheats) {
+					ImGui::Text("Cheat: %s", gameModeData.cheatsNames[cheat]);
+				}
+				for (auto cheat : gameModeData.missionUsedCheats) {
+					ImGui::Text("Mission Cheat: %s", gameModeData.cheatsNames[cheat]);
+				}
 // 				for (int i = 0; i < weaponProgression.rangedWeaponIds.size(); i++) {
 // 					ImGui::Text("RangedWeaponId[%u]: %u", i, weaponProgression.rangedWeaponIds[i]);
 // 				}
@@ -9687,7 +9942,8 @@ void GeneralGameplayOptions() {
 				activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo = false;
 				CrimsonDetours::ToggleHoldToCrazyCombo(false);
 			}
-			if (activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo) {
+			if (activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo && (activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement != 3 ||
+				queuedCrimsonGameplay.Gameplay.General.crazyComboMashRequirement != 3)) {
 				activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = 3;
 				queuedCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = 3;
 				UpdateCrazyComboLevelMultiplier();
@@ -10766,6 +11022,7 @@ void ToggleInfiniteHealth() {
     } else {
 		activeCrimsonGameplay.Cheats.Training.infiniteHP = true;
     }
+	if (activeCrimsonConfig.GUI.sounds && g_scene == SCENE::GAME) PlaySound(0, 25); 
 
     ToggleInfiniteHitPoints(activeCrimsonGameplay.Cheats.Training.infiniteHP);
 }
@@ -10780,6 +11037,7 @@ void ToggleOneHitKill() {
 		toggled = false;
 		activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = defaultCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult;
 	}
+	if (activeCrimsonConfig.GUI.sounds && g_scene == SCENE::GAME) PlaySound(0, 25); 
 }
 
 void GamepadToggleShowMain() {
@@ -11022,9 +11280,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 	if (!uiElementsInitialized) {
 		size_t mainLogoWidth = size_t(scaledFontSize * 37.0f);
 
-		g_Image_CrimsonMainLogo.ResizeByRatioW(mainLogoWidth);
-		g_Image_VanillaLogo.ResizeByRatioW(mainLogoWidth);
-		g_Image_StyleSwitcherLogo.ResizeByRatioW(mainLogoWidth);
+		g_Image_CrimsonMainLogo.ResizeByRatioW((uint32_t)mainLogoWidth);
+		g_Image_VanillaLogo.ResizeByRatioW((uint32_t)mainLogoWidth);
+		g_Image_StyleSwitcherLogo.ResizeByRatioW((uint32_t)mainLogoWidth);
 		g_Image_SocialIcons.ResizeByRatioW(size_t(scaledFontSize * 10.0f));
 
 		uiElementsInitialized = true;
@@ -11181,9 +11439,10 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				if (ImGui::Selectable(modes[i], isSelected)) {
 					
-					CrimsonGameModes::SetGameMode(i);
-// 					activeCrimsonGameplay.GameMode.preset = (uint8)i;
-// 					queuedCrimsonGameplay.GameMode.preset = (uint8)i;
+					CrimsonGameModes::SetGameMode((uint8)i);
+					
+					CrimsonGameplay::AdjustDMC4MobilitySettings();
+					
 					
 					::GUI::save = true;
 				}
@@ -12593,12 +12852,15 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	WorldSpaceWeaponWheelsController(pSwapChain);
     MirageGaugeMainPlayer();
 	RedOrbCounterWindow();
+	CheatsHUDIndicatorWindow();
 	StyleMeterWindow();
 
 	UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
 	RenderMissionResultGameModeStats();
+	RenderMissionResultCheatsUsed();
 	CrimsonGameModes::TrackGameMode();
-	CrimsonOnTick::TrackMissionResultGameMode();
+	CrimsonGameModes::TrackCheats();
+	CrimsonGameModes::TrackMissionResultGameMode();
 	CrimsonOnTick::CrimsonMissionClearSong();
 	//CrimsonOnTick::CorrectFrameRateCutscenes();
 

@@ -21,15 +21,6 @@ enum {
 	};
 }
 
-namespace LDKMODE {
-enum {
-	OFF,
-	LDK,
-	SUPER_LDK,
-	SUPER_LDK_BOSSES,
-};
-}
-
 struct CrimsonConfigGameplay {
 	struct Gameplay {
 

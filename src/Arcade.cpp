@@ -27,7 +27,7 @@ void InitSession() {
     sessionData.mission = activeConfig.Arcade.mission;
 
     if ((sessionData.mission >= 1) && (sessionData.mission <= 20)) {
-        using namespace MODE;
+        using namespace DIFFICULTY_MODE;
 
         uint32 mode     = 0;
         bool oneHitKill = false;

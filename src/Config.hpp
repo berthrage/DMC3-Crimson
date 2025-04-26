@@ -26,7 +26,7 @@ struct Config {
     struct {
         bool enable         = (debug) ? true : false;
         uint32 mission      = 7;
-        uint32 mode         = MODE::DANTE_MUST_DIE;
+        uint32 mode         = DIFFICULTY_MODE::DANTE_MUST_DIE;
         uint32 room         = 900;
         bool enableRoomSelection     = (debug) ? false : true;
         uint32 position     = 0;
