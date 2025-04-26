@@ -12,7 +12,7 @@
 namespace Speed {
 
 void Toggle(bool enable) {
-    LogFunction();
+    //LogFunction();
 
     static bool run = false;
 

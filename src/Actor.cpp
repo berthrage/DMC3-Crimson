@@ -12961,22 +12961,26 @@ void ToggleArtemisSwapNormalShotAndMultiLock(bool enable) {
 // }
 
 void UpdateCrazyComboLevelMultiplier() {
-    LogFunction();
-    static uint8 multiplier = 0;
+	LogFunction();
+	static uint8 previousMashRequirement = 0;
 
+	uint8 currentMashRequirement = activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement;
+
+	// Override if HoldToCrazyCombo is enabled
 	if (activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo) {
-        activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = 3;
+		currentMashRequirement = 3;
 	}
 
-    if (multiplier == activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement) {
-        return;
-    }
+	// Only update if the value changed
+	if (previousMashRequirement == currentMashRequirement) {
+		return;
+	}
 
-    Write<uint8>((appBaseAddr + 0x5898DE), activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement);
-    Write<uint8>((appBaseAddr + 0x58999E), activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement);
-    Write<uint8>((appBaseAddr + 0x589A5E), activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement);
+	Write<uint8>((appBaseAddr + 0x5898DE), currentMashRequirement);
+	Write<uint8>((appBaseAddr + 0x58999E), currentMashRequirement);
+	Write<uint8>((appBaseAddr + 0x589A5E), currentMashRequirement);
 
-    multiplier = activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement;
+	previousMashRequirement = currentMashRequirement;
 }
 
 // @Todo: Update name.
