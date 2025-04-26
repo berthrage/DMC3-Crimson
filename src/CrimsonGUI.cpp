@@ -9008,7 +9008,7 @@ void SystemSection(size_t defaultFontSize) {
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Makes DMC3 look smoother/snappier, but lacking certain PS2 post process effects."
 				"\nDisables itself during cutscenes and screen transitions."
-				"\nPersonally, this is mandatory for a smoother, lag-free gameplay feel. -Berthrage");
+				"\nPersonally, this is essential for a smoother, lag-free gameplay feel. -Berthrage");
 
 			ImGui::TableNextColumn();
 
