@@ -299,8 +299,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 
     bool inCancellableActionNevan =
         (actorData.action == NEVAN_JAM_SESSION || actorData.action == NEVAN_FEEDBACK ||
-			actorData.action == NEVAN_CRAZY_ROLL || actorData.action == NEVAN_DISTORTION || actorData.action == NEVAN_REVERB_SHOCK_LEVEL_1 ||
-			actorData.action == NEVAN_REVERB_SHOCK_LEVEL_2);
+            actorData.action == NEVAN_CRAZY_ROLL || actorData.action == NEVAN_DISTORTION);
 
 	bool inCancellableBasicBeowulf = (actorData.action == BEOWULF_COMBO_1_PART_1 || actorData.action == BEOWULF_COMBO_1_PART_2 ||
 		actorData.action == BEOWULF_COMBO_1_PART_3 || actorData.action == BEOWULF_COMBO_2_PART_3 ||
