@@ -106,6 +106,9 @@ file(GLOB MAIN_SRC
     Crimson.cpp 
     CrimsonConfig.cpp
     CrimsonConfig.hpp
+    CrimsonConfigGameplay.cpp
+    CrimsonConfigGameplay.hpp
+    CrimsonConfigGameplayMask.hpp
     CrimsonConfigHandling.h
     CrimsonDetours.cpp
     CrimsonDetours.hpp
@@ -113,6 +116,8 @@ file(GLOB MAIN_SRC
     CrimsonFileHandling.hpp	
     CrimsonFX.cpp
     CrimsonFX.hpp
+    CrimsonGameModes.cpp
+    CrimsonGameModes.hpp
     CrimsonGameplay.cpp
     CrimsonGameplay.hpp
     CrimsonGUI.cpp
