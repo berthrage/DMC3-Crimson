@@ -4025,7 +4025,9 @@ void RenderMissionResultCheatsUsed() {
 			ImGui::PopFont();
 		}
 
-		ImGui::Text("CHEATS USED:");
+		if (gameModeData.missionUsedCheats.size() > 0) 
+			ImGui::Text("CHEATS USED:");
+		
 		for (auto cheat : gameModeData.missionUsedCheats) {
 			ImGui::PushFont(g_ImGuiFont_RussoOne[23.0f]);
 			ImGui::Text("%s", gameModeData.cheatsNames[cheat].c_str());
@@ -7734,6 +7736,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("SCENE:  %u", g_scene);
                 ImGui::Text("TRACK PLAYING: %s", g_gameTrackPlaying.c_str());
 				ImGui::Text("activeCrimsonGameplay.holdToCC: %u", activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
+				ImGui::Text("activeCrimsonGameplay.dmc4Mobility: %u", activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility);
 // 				for (int i = 0; i < 8; i++) {
 // 					ImGui::Text("sessionData expertise[%u]:  %x", i, sessionData.expertise[i]);
 // 				}
@@ -9951,10 +9954,7 @@ void GeneralGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
-			if (!activeConfig.Actor.enable) {
-				activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo = false;
-				CrimsonDetours::ToggleHoldToCrazyCombo(false);
-			}
+			
 			if (activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo && (activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement != 3 ||
 				queuedCrimsonGameplay.Gameplay.General.crazyComboMashRequirement != 3)) {
 				activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = 3;
@@ -12854,6 +12854,15 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonOnTick::WeaponProgressionTracking();
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
 	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
+
+// 	if (!activeConfig.Actor.enable && 
+// 		activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo && 
+// 		(activeCrimsonGameplay.GameMode.preset != GAMEMODEPRESETS::CRIMSON &&
+// 		activeCrimsonGameplay.GameMode.preset != GAMEMODEPRESETS::STYLE_SWITCHER)) {
+// 
+// 		activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo = false;
+// 		CrimsonDetours::ToggleHoldToCrazyCombo(false);
+// 	}
 
     // TIMERS
     CrimsonTimers::CallAllTimers();
