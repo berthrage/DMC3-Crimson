@@ -470,6 +470,35 @@ void CrimsonGameModes::TrackGameMode() {
 	}
 }
 
+void AdjustCustomPresetForComparison(CrimsonConfigGameplay& preset) {
+    if (activeCrimsonGameplay.GameMode.preset == GAMEMODEPRESETS::CUSTOM) {
+		auto& mobility = preset.Cheats.Mobility;
+		auto& defMob = defaultCrimsonGameplay.Cheats.Mobility;
+
+		if (activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility) {
+			mobility.airHikeCount[0] = 1;  mobility.airHikeCount[1] = 2;
+			mobility.kickJumpCount[0] = 1; mobility.kickJumpCount[1] = 1;
+			mobility.wallHikeCount[0] = 1; mobility.wallHikeCount[1] = 2;
+			mobility.dashCount[0] = 3;     mobility.dashCount[1] = 3;
+			mobility.skyStarCount[0] = 1;  mobility.skyStarCount[1] = 2;
+			mobility.danteAirTrickCount[0] = 1;  mobility.danteAirTrickCount[1] = 2;
+			mobility.vergilAirTrickCount[0] = 1; mobility.vergilAirTrickCount[1] = 1;
+			mobility.trickUpCount[0] = 1;  mobility.trickUpCount[1] = 1;
+			mobility.trickDownCount[0] = 1; mobility.trickDownCount[1] = 1;
+		} else {
+			mobility.airHikeCount[0] = defMob.airHikeCount[0];  mobility.airHikeCount[1] = defMob.airHikeCount[1];
+			mobility.kickJumpCount[0] = defMob.kickJumpCount[0]; mobility.kickJumpCount[1] = defMob.kickJumpCount[1];
+			mobility.wallHikeCount[0] = defMob.wallHikeCount[0]; mobility.wallHikeCount[1] = defMob.wallHikeCount[1];
+			mobility.dashCount[0] = defMob.dashCount[0];     mobility.dashCount[1] = defMob.dashCount[1];
+			mobility.skyStarCount[0] = defMob.skyStarCount[0];  mobility.skyStarCount[1] = defMob.skyStarCount[1];
+			mobility.danteAirTrickCount[0] = defMob.danteAirTrickCount[0];  mobility.danteAirTrickCount[1] = defMob.danteAirTrickCount[1];
+			mobility.vergilAirTrickCount[0] = defMob.vergilAirTrickCount[0]; mobility.vergilAirTrickCount[1] = defMob.vergilAirTrickCount[1];
+			mobility.trickUpCount[0] = defMob.trickUpCount[0];  mobility.trickUpCount[1] = defMob.trickUpCount[1];
+			mobility.trickDownCount[0] = defMob.trickDownCount[0]; mobility.trickDownCount[1] = defMob.trickDownCount[1];
+		}
+    }
+}
+
 void CrimsonGameModes::TrackCheats() {
 	auto& activeCheats = activeCrimsonGameplay.Cheats;
 	auto& currentPreset = GetCurrentPreset(activeCrimsonGameplay.GameMode.preset);
@@ -536,26 +565,32 @@ void CrimsonGameModes::TrackCheats() {
 	updateCheatFlag(speedChanged, CHEATS::SPEED);
 
 	// === CHEATS::MOBILITY ===
-	bool mobilityChanged =
-		activeCheats.General.customMobility != currentPreset.Cheats.General.customMobility ||
-		activeCheats.Mobility.airHikeCount[0] != currentPreset.Cheats.Mobility.airHikeCount[0] ||
-		activeCheats.Mobility.airHikeCount[1] != currentPreset.Cheats.Mobility.airHikeCount[1] ||
-		activeCheats.Mobility.kickJumpCount[0] != currentPreset.Cheats.Mobility.kickJumpCount[0] ||
-		activeCheats.Mobility.kickJumpCount[1] != currentPreset.Cheats.Mobility.kickJumpCount[1] ||
-		activeCheats.Mobility.wallHikeCount[0] != currentPreset.Cheats.Mobility.wallHikeCount[0] ||
-		activeCheats.Mobility.wallHikeCount[1] != currentPreset.Cheats.Mobility.wallHikeCount[1] ||
-		activeCheats.Mobility.dashCount[0] != currentPreset.Cheats.Mobility.dashCount[0] ||
-		activeCheats.Mobility.dashCount[1] != currentPreset.Cheats.Mobility.dashCount[1] ||
-		activeCheats.Mobility.skyStarCount[0] != currentPreset.Cheats.Mobility.skyStarCount[0] ||
-		activeCheats.Mobility.skyStarCount[1] != currentPreset.Cheats.Mobility.skyStarCount[1] ||
-		activeCheats.Mobility.danteAirTrickCount[0] != currentPreset.Cheats.Mobility.danteAirTrickCount[0] ||
-		activeCheats.Mobility.danteAirTrickCount[1] != currentPreset.Cheats.Mobility.danteAirTrickCount[1] ||
-		activeCheats.Mobility.vergilAirTrickCount[0] != currentPreset.Cheats.Mobility.vergilAirTrickCount[0] ||
-		activeCheats.Mobility.vergilAirTrickCount[1] != currentPreset.Cheats.Mobility.vergilAirTrickCount[1] ||
-		activeCheats.Mobility.trickUpCount[0] != currentPreset.Cheats.Mobility.trickUpCount[0] ||
-		activeCheats.Mobility.trickUpCount[1] != currentPreset.Cheats.Mobility.trickUpCount[1] ||
-		activeCheats.Mobility.trickDownCount[0] != currentPreset.Cheats.Mobility.trickDownCount[0] ||
-		activeCheats.Mobility.trickDownCount[1] != currentPreset.Cheats.Mobility.trickDownCount[1];
+	bool mobilityChanged = [&]() {
+		CrimsonConfigGameplay adjustedPreset = currentPreset;
+		AdjustCustomPresetForComparison(adjustedPreset);
+
+		return activeCheats.General.customMobility != adjustedPreset.Cheats.General.customMobility ||
+			   activeCheats.Mobility.airHikeCount[0] != adjustedPreset.Cheats.Mobility.airHikeCount[0] ||
+			   activeCheats.Mobility.airHikeCount[1] != adjustedPreset.Cheats.Mobility.airHikeCount[1] ||
+			   activeCheats.Mobility.kickJumpCount[0] != adjustedPreset.Cheats.Mobility.kickJumpCount[0] ||
+			   activeCheats.Mobility.kickJumpCount[1] != adjustedPreset.Cheats.Mobility.kickJumpCount[1] ||
+			   activeCheats.Mobility.wallHikeCount[0] != adjustedPreset.Cheats.Mobility.wallHikeCount[0] ||
+			   activeCheats.Mobility.wallHikeCount[1] != adjustedPreset.Cheats.Mobility.wallHikeCount[1] ||
+			   activeCheats.Mobility.dashCount[0] != adjustedPreset.Cheats.Mobility.dashCount[0] ||
+			   activeCheats.Mobility.dashCount[1] != adjustedPreset.Cheats.Mobility.dashCount[1] ||
+			   activeCheats.Mobility.skyStarCount[0] != adjustedPreset.Cheats.Mobility.skyStarCount[0] ||
+			   activeCheats.Mobility.skyStarCount[1] != adjustedPreset.Cheats.Mobility.skyStarCount[1] ||
+			   activeCheats.Mobility.danteAirTrickCount[0] != adjustedPreset.Cheats.Mobility.danteAirTrickCount[0] ||
+			   activeCheats.Mobility.danteAirTrickCount[1] != adjustedPreset.Cheats.Mobility.danteAirTrickCount[1] ||
+			   activeCheats.Mobility.vergilAirTrickCount[0] != adjustedPreset.Cheats.Mobility.vergilAirTrickCount[0] ||
+			   activeCheats.Mobility.vergilAirTrickCount[1] != adjustedPreset.Cheats.Mobility.vergilAirTrickCount[1] ||
+			   activeCheats.Mobility.trickUpCount[0] != adjustedPreset.Cheats.Mobility.trickUpCount[0] ||
+			   activeCheats.Mobility.trickUpCount[1] != adjustedPreset.Cheats.Mobility.trickUpCount[1] ||
+			   activeCheats.Mobility.trickDownCount[0] != adjustedPreset.Cheats.Mobility.trickDownCount[0] ||
+			   activeCheats.Mobility.trickDownCount[1] != adjustedPreset.Cheats.Mobility.trickDownCount[1];
+	}();
+
+updateCheatFlag(mobilityChanged, CHEATS::MOBILITY);
 
 	updateCheatFlag(mobilityChanged, CHEATS::MOBILITY);
 
