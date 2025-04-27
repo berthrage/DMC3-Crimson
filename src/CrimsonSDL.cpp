@@ -385,17 +385,11 @@ void CheckAndOpenControllers() {
 
 	while (fn_SDL_PollEvent(&event)) {
 		if (event.type == SDL_CONTROLLERDEVICEADDED) {
-            if (controllers[event.cdevice.which] == NULL) {
-                AddController(event.cdevice.which);
-            }
-		}
-		else if (event.type == SDL_CONTROLLERDEVICEREMOVED) {
-            
-            RemoveController(event.cdevice.which);
-            
+			AddController(event.cdevice.which);
+		} else if (event.type == SDL_CONTROLLERDEVICEREMOVED) {
+			RemoveController(event.cdevice.which); 
 		}
 	}
-
 }
 
 void UpdateJoysticks() {

@@ -542,8 +542,6 @@ Toggle toggle;
 #pragma endregion
 
 #pragma region Helpers
-WeaponWheelTiming meleeWeaponWheelTiming;
-WeaponWheelTiming rangedWeaponWheelTiming;
 
 bool ebonyIvoryCancel = true;
 

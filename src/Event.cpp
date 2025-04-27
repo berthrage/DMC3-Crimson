@@ -196,8 +196,6 @@ static_assert(countof(newEventFuncNames) == EVENT::COUNT);
 void EventHandler(EventData& eventData) {
     using namespace EVENT;
 
-	CrimsonSDL::CheckAndOpenControllers();
-	CrimsonSDL::UpdateJoysticks();
 	CrimsonGameplay::GunDTCharacterRemaps();
 	CrimsonOnTick::GameTrackDetection();
 	CrimsonOnTick::DisableBlendingEffectsController();

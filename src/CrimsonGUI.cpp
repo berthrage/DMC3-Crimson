@@ -8080,14 +8080,11 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("styleRankCount Crazy %u", rankAnnouncer[1].count);
             ImGui::Text("styleRankCount Dismal Off Cooldown %u", rankAnnouncer[0].offCooldown);
             ImGui::Text("styleRankCount Crazy Off Cooldown %u", rankAnnouncer[1].offCooldown);*/
-            ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
+
             /*ImGui::Text("SDL2 %s", SDL2Initialization);
             ImGui::Text("Mixer  %s", MixerInitialization);
             ImGui::Text("Mixer2  %s", MixerInitialization2);*/
 
-            ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
-            ImGui::Text("Wheel Running %u", meleeWeaponWheelTiming.wheelRunning);
-            ImGui::Text("Wheel Time %u", meleeWeaponWheelTiming.wheelTime);
             ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap.buffer);
             ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap.buffer);
 
@@ -12899,6 +12896,9 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonGameModes::TrackMissionResultGameMode();
 	CrimsonOnTick::CrimsonMissionClearSong();
 	//CrimsonOnTick::CorrectFrameRateCutscenes();
+
+	CrimsonSDL::CheckAndOpenControllers();
+	CrimsonSDL::UpdateJoysticks();
 
 
     HandleKeyBindings(keyBindings.data(), keyBindings.size());

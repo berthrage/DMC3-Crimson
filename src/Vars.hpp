@@ -4298,15 +4298,6 @@ struct GameModeData {
 
 extern GameModeData gameModeData;
 
-struct WeaponWheelTiming {
-    bool wheelAppear  = false;
-    bool wheelRunning = false;
-    int wheelTime     = 0;
-};
-
-extern WeaponWheelTiming meleeWeaponWheelTiming;
-extern WeaponWheelTiming rangedWeaponWheelTiming;
-
 extern bool ebonyIvoryCancel;
 
 extern bool triggerVFX;
