@@ -59,6 +59,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	general.disableJCRestriction = false;
 	general.increasedEnemyJuggleTime = false;
 	general.fasterTurnRate = false;
+	general.disableSoulEaterInvis = false;
 
 	// Dante section
 	auto& dante = preset.Gameplay.Dante;
@@ -120,6 +121,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	general.increasedJCSpheres = false;
 	general.disableJCRestriction = false;
 	general.increasedEnemyJuggleTime = false;
+	general.disableSoulEaterInvis = false;
 	//general.fasterTurnRate = false;
 
 	// Dante section
@@ -197,6 +199,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	general.increasedJCSpheres = true;
 	general.disableJCRestriction = true;
 	general.increasedEnemyJuggleTime = true;
+	general.disableSoulEaterInvis = true;
 	//general.fasterTurnRate = false;
 
 	// Dante section

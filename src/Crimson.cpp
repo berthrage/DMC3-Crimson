@@ -185,6 +185,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleAirHikeCoreAbility(activeCrimsonGameplay.Gameplay.Dante.airHikeCoreAbility);
         CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeCrimsonGameplay.Cheats.Dante.forceRoyalRelease);
         CrimsonPatches::DisableAirSlashKnockback(activeCrimsonGameplay.Gameplay.Dante.disableAirSlashKnockback);
+        CrimsonPatches::ToggleDisableSoulEaterInvis(activeCrimsonGameplay.Gameplay.General.disableSoulEaterInvis);
         ToggleRebellionInfiniteSwordPierce(activeCrimsonGameplay.Cheats.Dante.infiniteSwordPierce);
         ToggleYamatoForceEdgeInfiniteRoundTrip(activeCrimsonGameplay.Cheats.Vergil.infiniteRoundTrip);
         ToggleEbonyIvoryFoursomeTime(activeCrimsonGameplay.Gameplay.Dante.foursomeTime);

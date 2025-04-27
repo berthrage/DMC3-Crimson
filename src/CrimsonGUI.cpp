@@ -10126,6 +10126,13 @@ void GeneralGameplayOptions() {
 			TooltipHelper("(?)", "Decreases the cooldown between switching weapons.\n"
 				"Doesn't affect the Weapon Wheel and only applies to the Vanilla game.");
 
+			ImGui::TableNextColumn();
+			if (GUI_Checkbox2("Disable Soul Eater Invisibility",
+				activeCrimsonGameplay.Gameplay.General.disableSoulEaterInvis,
+				queuedCrimsonGameplay.Gameplay.General.disableSoulEaterInvis)) {
+				CrimsonPatches::ToggleDisableSoulEaterInvis(activeCrimsonGameplay.Gameplay.General.disableSoulEaterInvis);
+			}
+
 			ImGui::EndTable();
 		}
 	}
@@ -12866,14 +12873,6 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
 	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
 
-// 	if (!activeConfig.Actor.enable && 
-// 		activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo && 
-// 		(activeCrimsonGameplay.GameMode.preset != GAMEMODEPRESETS::CRIMSON &&
-// 		activeCrimsonGameplay.GameMode.preset != GAMEMODEPRESETS::STYLE_SWITCHER)) {
-// 
-// 		activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo = false;
-// 		CrimsonDetours::ToggleHoldToCrazyCombo(false);
-// 	}
 
     // TIMERS
     CrimsonTimers::CallAllTimers();

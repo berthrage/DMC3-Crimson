@@ -260,6 +260,24 @@ void ToggleIncreasedArtemisInstantChargeResponsiveness(bool enable) {
 	run = enable;
 }
 
+void ToggleDisableSoulEaterInvis(bool enable) {
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	//dmc3.exe + E94E2 - 75 24 - jne dmc3.exe + E9508{ Soul Eater goes visible comparison
+	
+	if (enable) {
+		_patch((char*)(appBaseAddr + 0xE94E2), (char*)"\xEB\x24", 2); // Soul Eater goes visible regardless
+	} else {
+		_patch((char*)(appBaseAddr + 0xE94E2), (char*)"\x75\x24", 2); // Soul Eater goes visible only when it should
+	}
+
+	run = enable;
+}
+
 #pragma endregion
 
 #pragma region CameraStuff
