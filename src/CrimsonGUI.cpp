@@ -3793,9 +3793,7 @@ void CheatHotkeysPopUpWindow() {
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSize]);
 	ImVec4 windowColor = ImColor(UI::SwapColorEndianness(gameModeData.colors[currentGameMode]));
 	windowColor.w = 0.6f; // window opacity
-	ImVec4 textColor = (currentGameMode <= 1)
-		? ImColor(UI::SwapColorEndianness(0x151515FF))
-		: ImColor(UI::SwapColorEndianness(0xFFFFFFFF));
+	ImVec4 textColor = ImColor(UI::SwapColorEndianness(0xFFFFFFFF));
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, windowColor);
 	ImGui::PushStyleColor(ImGuiCol_Text, textColor);
 
