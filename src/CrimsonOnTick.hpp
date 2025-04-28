@@ -17,4 +17,5 @@ namespace CrimsonOnTick {
 	void PauseSFXWhenPaused();
 	void OverrideEnemyTargetPosition();
 	void WeaponProgressionTracking();
+	void FixM7DevilTriggerUnlocking();
 }

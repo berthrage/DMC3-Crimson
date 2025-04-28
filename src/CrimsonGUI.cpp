@@ -12944,6 +12944,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
   	CrimsonOnTick::FrameResponsiveGameSpeed();
 	CrimsonOnTick::WeaponProgressionTracking();
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
+	CrimsonOnTick::FixM7DevilTriggerUnlocking();
 	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
 
 
