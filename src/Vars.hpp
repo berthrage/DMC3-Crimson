@@ -4206,6 +4206,14 @@ struct CrimsonHudData {
 
 extern CrimsonHudData crimsonHud;
 
+struct CheatsPopUpData {
+    const char* cheatText = "Toggled Infinite HP On";
+    float popupTime = 2.0f;
+    bool showPopUp = false;
+};
+
+extern CheatsPopUpData cheatsPopUp;
+
 namespace DEVILARMUNLOCKS {
 enum {
 	CERBERUS,
@@ -4280,6 +4288,7 @@ struct GameModeData {
 		"DAMAGE",
 		"SPEED",
 		"MOBILITY",
+        "RMS",
 	};
     std::array<std::string, DIFFICULTY_MODE::COUNT> difficultyModeNames = {
         "Easy",

@@ -629,6 +629,8 @@ float storedDT = 0;
 
 CrimsonHudData crimsonHud;
 
+CheatsPopUpData cheatsPopUp;
+
 WeaponProgressionData weaponProgression;
 
 GameModeData gameModeData;

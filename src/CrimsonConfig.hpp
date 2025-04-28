@@ -60,13 +60,15 @@ struct CrimsonConfig {
 		float opacity = 0.9f;
 		bool pauseWhenOpened = true;
 		bool sounds = true;
+		bool cheatsPopup = true;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
 				std::make_pair("transparencyMode", &GUI::transparencyMode),
 				std::make_pair("opacity", &GUI::opacity),
 				std::make_pair("pauseWhenOpened", &GUI::pauseWhenOpened),
-				std::make_pair("sounds", &GUI::sounds)	
+				std::make_pair("sounds", &GUI::sounds),
+				std::make_pair("cheatsPopup", &GUI::cheatsPopup)
 			);
 		}
 	} GUI;

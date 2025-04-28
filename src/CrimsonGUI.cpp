@@ -3760,6 +3760,68 @@ void CheatsHUDIndicatorWindow() {
 	ImGui::PopStyleColor(3);
 	ImGui::PopFont();
 	ImGui::End();
+}
+
+void CheatHotkeysPopUpWindow() {
+	// Define the window size and position
+	ImVec2 windowSize = ImVec2(367.0f * scaleFactorX, 100.0f * scaleFactorY);
+	float edgeOffsetX = (g_renderSize.x * 0.7f) - (windowSize.x * 0.5f);
+	float edgeOffsetY = 15.0f * scaleFactorY;
+	ImVec2 windowPos = ImVec2(edgeOffsetX, edgeOffsetY);
+	auto& currentGameMode = activeCrimsonGameplay.GameMode.preset;
+
+	ImGui::SetNextWindowSize(windowSize);
+	ImGui::SetNextWindowPos(windowPos);
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+
+	float fontSize = 23.0f;
+
+	if (cheatsPopUp.popupTime <= 0) {
+		cheatsPopUp.showPopUp = false;
+		cheatsPopUp.popupTime = 2.0f;
+	}
+
+	if (!cheatsPopUp.showPopUp || !activeCrimsonConfig.GUI.cheatsPopup) {
+		return;
+	} else {
+		cheatsPopUp.popupTime -= ImGui::GetIO().DeltaTime;
+	}
+
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSize]);
+	ImVec4 windowColor = ImColor(UI::SwapColorEndianness(gameModeData.colors[currentGameMode]));
+	windowColor.w = 0.6f; // window opacity
+	ImVec4 textColor = (currentGameMode <= 1)
+		? ImColor(UI::SwapColorEndianness(0x151515FF))
+		: ImColor(UI::SwapColorEndianness(0xFFFFFFFF));
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, windowColor);
+	ImGui::PushStyleColor(ImGuiCol_Text, textColor);
+
+	ImGui::Begin("CheatHotkeysPopUpWindow", nullptr, windowFlags);
+
+	// Calculate total width of the text
+	float textWidth = ImGui::CalcTextSize(cheatsPopUp.cheatText).x;
+
+	// Draw custom background with alpha
+// 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+// 	ImVec2 min = ImGui::GetWindowPos();
+// 	ImVec2 max = ImVec2(min.x + windowSize.x, min.y + windowSize.y);
+// 	draw_list->AddRectFilled(min, max, ImGui::ColorConvertFloat4ToU32(windowColor), 8.0f);
+
+	// Center the text
+	float textStartX = (windowSize.x - textWidth) * 0.5f;
+	float textStartY = (windowSize.y - ImGui::GetFontSize()) * 0.2f;
+	ImGui::SetCursorPosX(textStartX);
+	ImGui::SetCursorPosY(textStartY);
+
+	
+	ImGui::Text(cheatsPopUp.cheatText);
+
+	ImGui::PopStyleColor(2);
+	ImGui::PopFont();
+	ImGui::End();
 
 }
 
@@ -7737,6 +7799,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("TRACK PLAYING: %s", g_gameTrackPlaying.c_str());
 				ImGui::Text("activeCrimsonGameplay.holdToCC: %u", activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
 				ImGui::Text("activeCrimsonGameplay.dmc4Mobility: %u", activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility);
+				ImGui::Text("popUpTime: %g", cheatsPopUp.popupTime);
+				ImGui::Text("showPopUp: %u", cheatsPopUp.showPopUp);
 // 				for (int i = 0; i < 8; i++) {
 // 					ImGui::Text("sessionData expertise[%u]:  %x", i, sessionData.expertise[i]);
 // 				}
@@ -8489,6 +8553,11 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			GUI_Checkbox2("GUI Sounds", 
 				activeCrimsonConfig.GUI.sounds, queuedCrimsonConfig.GUI.sounds);
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Hotkey Cheats Pop Up",
+				activeCrimsonConfig.GUI.cheatsPopup, queuedCrimsonConfig.GUI.cheatsPopup);
 	
 
 			ImGui::EndTable();
@@ -11050,12 +11119,15 @@ void ToggleInfiniteHealth() {
 
     if (activeCrimsonGameplay.Cheats.Training.infiniteHP) {
 		activeCrimsonGameplay.Cheats.Training.infiniteHP = false;
+		cheatsPopUp.cheatText = "Toggled Infinite HP Off";
     } else {
 		activeCrimsonGameplay.Cheats.Training.infiniteHP = true;
+		cheatsPopUp.cheatText = "Toggled Infinite HP On";
     }
-	if (activeCrimsonConfig.GUI.sounds && g_scene == SCENE::GAME) PlaySound(0, 25); 
+	if (activeCrimsonConfig.GUI.sounds) PlaySound(0, 25); 
 
     ToggleInfiniteHitPoints(activeCrimsonGameplay.Cheats.Training.infiniteHP);
+	cheatsPopUp.showPopUp = true;
 }
 
 void ToggleOneHitKill() {
@@ -11064,11 +11136,14 @@ void ToggleOneHitKill() {
 	if (!toggled) {
 		toggled = true;
 		activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 100.0f;
+		cheatsPopUp.cheatText = "Toggled One Hit Kill On";
 	} else {
 		toggled = false;
 		activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = defaultCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult;
+		cheatsPopUp.cheatText = "Toggled One Hit Kill Off";
 	}
-	if (activeCrimsonConfig.GUI.sounds && g_scene == SCENE::GAME) PlaySound(0, 25); 
+	if (activeCrimsonConfig.GUI.sounds) PlaySound(0, 25); 
+	cheatsPopUp.showPopUp = true;
 }
 
 void GamepadToggleShowMain() {
@@ -12885,6 +12960,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     MirageGaugeMainPlayer();
 	RedOrbCounterWindow();
 	CheatsHUDIndicatorWindow();
+	CheatHotkeysPopUpWindow();
 	StyleMeterWindow();
 
 	UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
