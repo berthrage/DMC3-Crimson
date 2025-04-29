@@ -618,9 +618,9 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 }
 
 
-void CameraDistanceController(CameraData* cameraData) {
-	if (activeCrimsonConfig.Camera.distance == 0) { // Far (Vanilla Default)
-		return;
+void CameraDistanceController(CameraData* cameraData, CameraControlMetadata& cameraMetadata) {
+	if (activeCrimsonConfig.Camera.distance == 0 || cameraMetadata.fixedCameraAddr != 0) { // Far (Vanilla Default) // check if the camera is in a fixed pos mode
+		return; 
 	}
 
 	if (activeCrimsonConfig.Camera.distance == 1) { // Closer
@@ -680,8 +680,8 @@ void CameraLockOnDistanceController() {
     }
 }
 
-void CameraTiltController(CameraData* cameraData) {
-    if (activeCrimsonConfig.Camera.tilt == 0) { // Original (Vanilla Default)
+void CameraTiltController(CameraData* cameraData, CameraControlMetadata& cameraMetadata) {
+    if (activeCrimsonConfig.Camera.tilt == 0 || cameraMetadata.fixedCameraAddr != 0) { // Original (Vanilla Default)
         return;
     }
 
