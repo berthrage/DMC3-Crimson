@@ -2160,6 +2160,13 @@ static_assert(sizeof(ActiveMissionActorData) == 116);
 
 // $ActiveMissionActorDataEnd
 
+struct SavingInGameData {
+	_(16396);
+	byte32 expertise[8]; // 0x400C
+};
+
+static_assert(offsetof(SavingInGameData, expertise) == 0x400C);
+
 // $StyleDataStart
 
 struct StyleData {

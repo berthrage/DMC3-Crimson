@@ -7790,6 +7790,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 				auto& gamepad = GetGamepad(0);
                 
+				auto name_7058 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+
+				
 
                 ImGui::Text(sceneNames[g_scene]);
                 ImGui::Text("sessionData mission:  %u", sessionData.mission);
@@ -7799,6 +7802,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				ImGui::Text("activeCrimsonGameplay.dmc4Mobility: %u", activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility);
 				ImGui::Text("popUpTime: %g", cheatsPopUp.popupTime);
 				ImGui::Text("showPopUp: %u", cheatsPopUp.showPopUp);
+				ImGui::Text("sessionData.expertise[1]: %x", sessionData.expertise[1]);
 // 				for (int i = 0; i < 8; i++) {
 // 					ImGui::Text("sessionData expertise[%u]:  %x", i, sessionData.expertise[i]);
 // 				}
@@ -8003,6 +8007,13 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 			if (meleeWeaponWheel[1]) {
 // 				ImGui::Text("Wheel 1 timer: %g", meleeWeaponWheel[1]->m_SinceLatestChangeMs);
 // 			}
+			auto savingInGameDataAddr = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2548);
+			if (!savingInGameDataAddr) {
+				return;
+			}
+			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
+
+			ImGui::Text("savingInGameData.expertise[1]: %x", savingInGameData.expertise[1]);
 			ImGui::Text("missionData frameCount: %u", missionData.frameCount);
 			ImGui::Text("artemis Charge: %g", actorData.artemisCharge);
 			ImGui::Text("fixedCameraAddr: %x", cameraControlMetadata.fixedCameraAddr);
@@ -12947,6 +12958,9 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonOnTick::FixM7DevilTriggerUnlocking();
 	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
 
+	if (activeConfig.Actor.enable) {
+		ExpConfig::TransferUnlocksToVanilla();
+	}
 
     // TIMERS
     CrimsonTimers::CallAllTimers();

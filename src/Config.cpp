@@ -2227,12 +2227,13 @@ void TransferUnlocksToVanilla() {
 		return;
 	}
 
+    // SESSION DATA
 	if (sessionData.character == CHARACTER::DANTE) {
 		// Sync Move Unlocks (Crimson to Vanilla)
 		for (int index = UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1; index < UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; ++index) {
 			const ExpertiseHelper& helper = expertiseHelpersDante[index];
 
-			if (savedExpDataDante[saveIndex].unlocks[index]) {
+			if (sessionExpDataDante.unlocks[index]) {
 				sessionData.expertise[helper.index] |= helper.flags;
 			} else {
 				sessionData.expertise[helper.index] &= ~helper.flags;
@@ -2244,9 +2245,9 @@ void TransferUnlocksToVanilla() {
 			const LevelHelper& helper = levelHelpers[(index - UNLOCK_DANTE::EBONY_IVORY_LEVEL_2)];
 			uint32& weaponLevel = sessionData.rangedWeaponLevels[(helper.index - 5)];
 
-			if (savedExpDataDante[saveIndex].unlocks[index + 1]) {
+			if (sessionExpDataDante.unlocks[index + 1]) {
 				weaponLevel = 2;
-			} else if (savedExpDataDante[saveIndex].unlocks[index]) {
+			} else if (sessionExpDataDante.unlocks[index]) {
 				weaponLevel = 1;
 			} else {
 				weaponLevel = 0;
@@ -2255,8 +2256,8 @@ void TransferUnlocksToVanilla() {
 
 		// Sync Style EXP (Crimson to Vanilla)
 		for (int style = STYLE::SWORDMASTER; style <= STYLE::ROYALGUARD; ++style) {
-			sessionData.styleLevels[style] = savedExpDataDante[saveIndex].styleLevels[style];
-			sessionData.styleExpPoints[style] = savedExpDataDante[saveIndex].styleExpPoints[style];
+			sessionData.styleLevels[style] = sessionExpDataDante.styleLevels[style];
+			sessionData.styleExpPoints[style] = sessionExpDataDante.styleExpPoints[style];
 		}
 	}
 
@@ -2265,7 +2266,7 @@ void TransferUnlocksToVanilla() {
 		for (int index = 0; index < UNLOCK_VERGIL::COUNT; ++index) {
 			const ExpertiseHelper& helper = expertiseHelpersVergil[index];
 
-			if (savedExpDataVergil[saveIndex].unlocks[index]) {
+			if (sessionExpDataVergil.unlocks[index]) {
 				sessionData.expertise[helper.index] |= helper.flags;
 			} else {
 				sessionData.expertise[helper.index] &= ~helper.flags;
@@ -2274,17 +2275,50 @@ void TransferUnlocksToVanilla() {
 
 		// Sync Style EXP (Crimson to Vanilla)
 		for (int style = STYLE::DARK_SLAYER; style <= STYLE::DARK_SLAYER; ++style) {
-			sessionData.styleLevels[style] = savedExpDataVergil[saveIndex].styleLevels[style];
-			sessionData.styleExpPoints[style] = savedExpDataVergil[saveIndex].styleExpPoints[style];
+			sessionData.styleLevels[style] = sessionExpDataVergil.styleLevels[style];
+			sessionData.styleExpPoints[style] = sessionExpDataVergil.styleExpPoints[style];
 		}
 	}
+
+	auto savingInGameDataAddr = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2548);
+	if (!savingInGameDataAddr) {
+		return;
+	}
+	auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
+
+    // SAVING-IN-GAME DATA
+	if (sessionData.character == CHARACTER::DANTE) {
+		// Sync Move Unlocks (Crimson to Vanilla)
+		for (int index = UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1; index < UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; ++index) {
+			const ExpertiseHelper& helper = expertiseHelpersDante[index];
+
+			if (sessionExpDataDante.unlocks[index]) {
+				savingInGameData.expertise[helper.index] |= helper.flags;
+			} else {
+				sessionData.expertise[helper.index] &= ~helper.flags;
+				savingInGameData.expertise[helper.index] &= ~helper.flags;
+			}
+		}
+	}
+    else if (sessionData.character == CHARACTER::VERGIL) {
+        // Sync Move Unlocks (Crimson to Vanilla)
+        for (int index = 0; index < UNLOCK_VERGIL::COUNT; ++index) {
+            const ExpertiseHelper& helper = expertiseHelpersVergil[index];
+
+            if (sessionExpDataVergil.unlocks[index]) {
+                savingInGameData.expertise[helper.index] |= helper.flags;
+            } else {
+                savingInGameData.expertise[helper.index] &= ~helper.flags;
+            }
+        }
+    }
 }
 
 void InitializeCrimsonExpFromVanilla() {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 	if (sessionData.character == CHARACTER::DANTE) {
-		for (int i = 0; i < UNLOCK_DANTE::COUNT; ++i) {
+        for (int i = UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1; i < UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; ++i) {
 			const auto& helper = expertiseHelpersDante[i];
 			if (sessionData.expertise[helper.index] & helper.flags)
 				sessionExpDataDante.unlocks[i] = true;
@@ -2293,6 +2327,22 @@ void InitializeCrimsonExpFromVanilla() {
 		for (int i = STYLE::SWORDMASTER; i <= STYLE::ROYALGUARD; ++i) {
 			sessionExpDataDante.styleExpPoints[i] = sessionData.styleExpPoints[i];
 			sessionExpDataDante.styleLevels[i] = sessionData.styleLevels[i];
+		}
+
+		for (int index = UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; index < UNLOCK_DANTE::COUNT; ++index) {
+			const LevelHelper& helper = levelHelpers[(index - UNLOCK_DANTE::EBONY_IVORY_LEVEL_2)];
+			uint8 weaponLevel = 0;
+
+			if (index % 2) {
+				weaponLevel = 1;
+			} else {
+				weaponLevel = 2;
+			}
+
+			// Check if the current weapon level matches the helper's level
+			if (sessionData.rangedWeaponLevels[(helper.index - 5)] >= weaponLevel && !sessionExpDataDante.unlocks[index]) {
+				sessionExpDataDante.unlocks[index] = true;
+			}
 		}
 
 		sessionExpDataDante.hasPairedWithActorSystem = true;
