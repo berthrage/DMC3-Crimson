@@ -3798,7 +3798,7 @@ void CheatHotkeysPopUpWindow() {
 	ImGui::PushStyleColor(ImGuiCol_Text, textColor);
 
 	ImGui::Begin("CheatHotkeysPopUpWindow", nullptr, windowFlags);
-
+	ImGui::SetWindowFontScale(scaleFactorY);
 	// Calculate total width of the text
 	float textWidth = ImGui::CalcTextSize(cheatsPopUp.cheatText).x;
 
