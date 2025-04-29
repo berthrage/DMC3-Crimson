@@ -600,6 +600,7 @@ void ForceThirdPersonCameraController() {
 
 
 void GeneralCameraOptionsController() {
+	static bool setCamPos = false;
 	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if (!pool_10298 || !pool_10298[8]) {
 		return;
@@ -616,8 +617,45 @@ void GeneralCameraOptionsController() {
 	}
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
 	if (eventData.event != EVENT::MAIN) {
+		setCamPos = false; 
 		return;
 	}
+	if (g_inGameCutscene) {
+		setCamPos = false;
+	}
+
+	// Fix Initial Camera Rotation
+	if (!setCamPos) {
+		if (!g_inGameCutscene) {
+			constexpr float TWO_PI = 6.283185307f;
+			constexpr float PI = 3.1415926535f;
+			float radius = 50.0f;
+			float radiusZ = 50.0f;
+			float verticalOffset = 140.0f; // Vertical height directly
+
+			// Convert fixed-point rotation to radians
+			float angle = (mainActorData.rotation / 65535.0f) * TWO_PI;
+			angle += 3.14159265f;
+
+			// Flip the angle to get the back
+			angle += PI;
+
+			// Calculate backward offset
+			vec3 offset;
+			offset.x = -sinf(angle) * radius;
+			offset.z = -cosf(angle) * radiusZ;
+			offset.y = verticalOffset;
+
+			// Set camera position properly
+			cameraData->data[0].x = mainActorData.position.x + offset.x;
+			cameraData->data[0].y = mainActorData.position.y + offset.y; // Only vertical offset here
+			cameraData->data[0].z = mainActorData.position.z + offset.z;
+			mainActorData.position.x = mainActorData.position.x + 1; // Triggers camera orbit
+
+			setCamPos = true;
+		}
+	}
+	
 
 	CrimsonPatches::CameraSensController();
 	
