@@ -4974,29 +4974,19 @@ const char* cameraAutoAdjustNames[] = {
 
 
 void CameraSection(size_t defaultFontSize) {
-
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
-
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-
-
-	ImGui::Text("CAMERA OPTIONS");
-
-	ImGui::PopFont();
-
-	UI::SeparatorEx(defaultFontSize * 23.35f);
 
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
 	ImGui::PushItemWidth(itemWidth);
-	ImGui::Text("");
 
 	float smallerComboMult = 0.7f;
 
 	{
+		GUI_Title("GENERAL CAMERA OPTIONS");
 		const float columnWidth = 0.5f * queuedConfig.globalScale;
-		const float rowWidth = 40.0f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
 
 		if (ImGui::BeginTable("CameraOptionsTable", 3)) {
 
@@ -5064,7 +5054,7 @@ void CameraSection(size_t defaultFontSize) {
 
 			GUI_Checkbox2("Locked-Off Camera", activeCrimsonConfig.Camera.lockedOff, queuedCrimsonConfig.Camera.lockedOff);
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Allows you to freely rotate the camera using the right stick in Third-Person View sections.");
+			TooltipHelper("(?)", "Allows you to freely rotate the camera using the right stick in Third Person Camera sections.");
 
 			ImGui::TableNextColumn();
 
@@ -5075,7 +5065,7 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			ImGui::PushItemWidth(itemWidth * 0.8f);
+			ImGui::PushItemWidth(itemWidth * 0.87f);
 			UI::ComboMapValue2("Right Stick Camera Centering", rightStickCenterCamNames, rightStickCenterCamMap,
 				activeCrimsonConfig.Camera.rightStickCameraCentering, queuedCrimsonConfig.Camera.rightStickCameraCentering);
 			ImGui::PopItemWidth();
@@ -5086,13 +5076,23 @@ void CameraSection(size_t defaultFontSize) {
 				Camera::ToggleDisableBossCamera(activeCrimsonConfig.Camera.disableBossCamera);
 			}
 
+			ImGui::EndTable();
+		}
+
+		ImGui::Text("");
+
+		GUI_Title("ADVANCED CAMERA OPTIONS");
+
+		if (ImGui::BeginTable("AdvancedCameraOptionsTable", 3)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
+			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("[WIP] Force Third Person Camera", activeCrimsonConfig.Camera.forceThirdPerson, queuedCrimsonConfig.Camera.forceThirdPerson)) {
-				
-			}
+			GUI_Checkbox2("Force Third Person Camera", activeCrimsonConfig.Camera.forceThirdPerson, queuedCrimsonConfig.Camera.forceThirdPerson);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Replaces every Fixed Camera with the Third Person Camera. Disables Boss Cam automatically.");
 
-			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Multiplayer Camera", activeCrimsonConfig.Camera.multiplayerCamera, queuedCrimsonConfig.Camera.multiplayerCamera)) {
@@ -5105,7 +5105,8 @@ void CameraSection(size_t defaultFontSize) {
 				}
 			}
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Triggers only in Multiplayer or if you spawn Doppelganger. Works best with Full Force Third Person Camera.");
+			TooltipHelper("(?)", "A cam for Multiplayer that will take all players (and enemies) into account for positioning and distancing.\n"
+				"Triggers only in Multiplayer or if you spawn Doppelganger in SP. Works best with Force Third Person Camera on.");
 
 			ImGui::TableNextColumn();
 
@@ -5119,31 +5120,150 @@ void CameraSection(size_t defaultFontSize) {
 				}
 			}
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Multiplayer-like Combat Camera in Single Player. Works best with Full Force Third Person Camera.");
-
+			TooltipHelper("(?)", "Multiplayer-like Combat Camera in Single Player. Works best with Force Third Person Camera on.");
 
 			ImGui::EndTable();
 		}
 
-		// 	if (GUI_ResetButton()) {
-		// 		CopyMemory(&queuedConfig.cameraInvertX, &defaultConfig.cameraInvertX, sizeof(queuedConfig.cameraInvertX));
-		// 		CopyMemory(&activeConfig.cameraInvertX, &queuedConfig.cameraInvertX, sizeof(activeConfig.cameraInvertX));
-		// 
-		// 		CopyMemory(&queuedConfig.cameraAutoAdjust, &defaultConfig.cameraAutoAdjust, sizeof(queuedConfig.cameraAutoAdjust));
-		// 		CopyMemory(&activeConfig.cameraAutoAdjust, &queuedConfig.cameraAutoAdjust, sizeof(activeConfig.cameraAutoAdjust));
-		// 
-		// 		CopyMemory(&queuedConfig.disableCenterCamera, &defaultConfig.disableCenterCamera, sizeof(queuedConfig.disableCenterCamera));
-		// 		CopyMemory(&activeConfig.disableCenterCamera, &queuedConfig.disableCenterCamera, sizeof(activeConfig.disableCenterCamera));
-		// 
-		// 		CopyMemory(&queuedConfig.disableBossCamera, &defaultConfig.disableBossCamera, sizeof(queuedConfig.disableBossCamera));
-		// 		CopyMemory(&activeConfig.disableBossCamera, &queuedConfig.disableBossCamera, sizeof(activeConfig.disableBossCamera));
-		// 
-		// 		CopyMemory(&queuedConfig.fovMultiplier, &defaultConfig.fovMultiplier, sizeof(queuedConfig.fovMultiplier));
-		// 		CopyMemory(&activeConfig.fovMultiplier, &queuedConfig.fovMultiplier, sizeof(activeConfig.fovMultiplier));
-		// 
-		// 
-		// 		Camera::ToggleInvertX(activeConfig.cameraInvertX);
-		// 		Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
+		ImGui::Text("");
+
+		GUI_Title("CAMERA PRESETS");
+
+		if (GUI_Button("Vanilla")) {
+			activeCrimsonConfig.Camera.distance = 0;
+			queuedCrimsonConfig.Camera.distance = 0;
+
+			activeCrimsonConfig.Camera.lockOnDistance = 0;
+			queuedCrimsonConfig.Camera.lockOnDistance = 0;
+
+			activeCrimsonConfig.Camera.tilt = 0;
+			queuedCrimsonConfig.Camera.tilt = 0;
+
+			activeCrimsonConfig.Camera.fovMultiplier = 1.0f;
+			queuedCrimsonConfig.Camera.fovMultiplier = 1.0f;
+
+			activeCrimsonConfig.Camera.sensitivity = 0;
+			queuedCrimsonConfig.Camera.sensitivity = 0;
+
+			activeCrimsonConfig.Camera.invertX = false;
+			queuedCrimsonConfig.Camera.invertX = false;
+
+			activeCrimsonConfig.Camera.lockedOff = false;
+			queuedCrimsonConfig.Camera.lockedOff = false;
+
+			activeCrimsonConfig.Camera.rightStickCameraCentering = 2;
+			queuedCrimsonConfig.Camera.rightStickCameraCentering = 2;
+
+			activeCrimsonConfig.Camera.followUpSpeed = 0;
+			queuedCrimsonConfig.Camera.followUpSpeed = 0;
+
+			activeCrimsonConfig.Camera.autoAdjust = 0;
+			queuedCrimsonConfig.Camera.autoAdjust = 0;
+
+			activeCrimsonConfig.Camera.forceThirdPerson = false;
+			queuedCrimsonConfig.Camera.forceThirdPerson = false;
+
+			activeCrimsonConfig.Camera.panoramicCamera = false;
+			queuedCrimsonConfig.Camera.panoramicCamera = false;
+
+// 			activeCrimsonConfig.Camera.multiplayerCamera = false;
+// 			queuedCrimsonConfig.Camera.multiplayerCamera = false;
+
+			activeCrimsonConfig.Camera.disableBossCamera = false;
+			queuedCrimsonConfig.Camera.disableBossCamera = false;
+		}
+
+		ImGui::SameLine();
+
+		if (GUI_Button("Vanilla Improved")) {
+			activeCrimsonConfig.Camera.distance = 0;
+			queuedCrimsonConfig.Camera.distance = 0;
+
+			activeCrimsonConfig.Camera.lockOnDistance = 0;
+			queuedCrimsonConfig.Camera.lockOnDistance = 0;
+
+			activeCrimsonConfig.Camera.tilt = 0;
+			queuedCrimsonConfig.Camera.tilt = 0;
+
+			activeCrimsonConfig.Camera.fovMultiplier = 1.2f;
+			queuedCrimsonConfig.Camera.fovMultiplier = 1.2f;
+
+			activeCrimsonConfig.Camera.sensitivity = 2;
+			queuedCrimsonConfig.Camera.sensitivity = 2;
+
+			activeCrimsonConfig.Camera.invertX = true;
+			queuedCrimsonConfig.Camera.invertX = true;
+
+			activeCrimsonConfig.Camera.lockedOff = true;
+			queuedCrimsonConfig.Camera.lockedOff = true;
+
+			activeCrimsonConfig.Camera.rightStickCameraCentering = 1;
+			queuedCrimsonConfig.Camera.rightStickCameraCentering = 1;
+
+			activeCrimsonConfig.Camera.followUpSpeed = 0;
+			queuedCrimsonConfig.Camera.followUpSpeed = 0;
+
+			activeCrimsonConfig.Camera.autoAdjust = 0;
+			queuedCrimsonConfig.Camera.autoAdjust = 0;
+
+			activeCrimsonConfig.Camera.forceThirdPerson = false;
+			queuedCrimsonConfig.Camera.forceThirdPerson = false;
+
+			activeCrimsonConfig.Camera.panoramicCamera = false;
+			queuedCrimsonConfig.Camera.panoramicCamera = false;
+
+			activeCrimsonConfig.Camera.multiplayerCamera = true;
+			queuedCrimsonConfig.Camera.multiplayerCamera = true;
+
+			activeCrimsonConfig.Camera.disableBossCamera = false;
+			queuedCrimsonConfig.Camera.disableBossCamera = false;
+		}
+
+		ImGui::SameLine();
+
+		if (GUI_Button("Crimson")) {
+			activeCrimsonConfig.Camera.distance = 2;
+			queuedCrimsonConfig.Camera.distance = 2;
+
+			activeCrimsonConfig.Camera.lockOnDistance = 2;
+			queuedCrimsonConfig.Camera.lockOnDistance = 2;
+
+			activeCrimsonConfig.Camera.tilt = 1;
+			queuedCrimsonConfig.Camera.tilt = 1;
+
+			activeCrimsonConfig.Camera.fovMultiplier = 1.2f;
+			queuedCrimsonConfig.Camera.fovMultiplier = 1.2f;
+
+			activeCrimsonConfig.Camera.sensitivity = 2;
+			queuedCrimsonConfig.Camera.sensitivity = 2;
+
+			activeCrimsonConfig.Camera.invertX = true;
+			queuedCrimsonConfig.Camera.invertX = true;
+
+			activeCrimsonConfig.Camera.lockedOff = true;
+			queuedCrimsonConfig.Camera.lockedOff = true;
+
+			activeCrimsonConfig.Camera.rightStickCameraCentering = 1;
+			queuedCrimsonConfig.Camera.rightStickCameraCentering = 1;
+
+			activeCrimsonConfig.Camera.followUpSpeed = 2;
+			queuedCrimsonConfig.Camera.followUpSpeed = 2;
+
+			activeCrimsonConfig.Camera.autoAdjust = 0;
+			queuedCrimsonConfig.Camera.autoAdjust = 0;
+
+			activeCrimsonConfig.Camera.forceThirdPerson = true;
+			queuedCrimsonConfig.Camera.forceThirdPerson = true;
+
+			activeCrimsonConfig.Camera.panoramicCamera = false;
+			queuedCrimsonConfig.Camera.panoramicCamera = false;
+
+			activeCrimsonConfig.Camera.multiplayerCamera = true;
+			queuedCrimsonConfig.Camera.multiplayerCamera = true;
+
+			activeCrimsonConfig.Camera.disableBossCamera = false;
+			queuedCrimsonConfig.Camera.disableBossCamera = false;
+		}
 	}
 
 

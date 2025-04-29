@@ -137,7 +137,7 @@ struct CrimsonConfig {
 		bool lockedOff = true;
 		bool invertX = true;
 		uint8 autoAdjust = 0;
-		uint8 rightStickCameraCentering = RIGHTSTICKCENTERCAM::OFF;
+		uint8 rightStickCameraCentering = RIGHTSTICKCENTERCAM::TO_NEAREST_SIDE;
 		bool disableBossCamera = false;
 		bool multiplayerCamera = true;
 		bool panoramicCamera = false;

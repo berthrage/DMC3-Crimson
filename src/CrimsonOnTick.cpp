@@ -604,8 +604,8 @@ void FixInitialCameraRotation(EventData& eventData, PlayerActorData& mainActorDa
 		if (!g_inGameCutscene) {
 			constexpr float TWO_PI = 6.283185307f;
 			constexpr float PI = 3.1415926535f;
-			float radius = 50.0f;
-			float radiusZ = 50.0f;
+			float radius = 5.0f;
+			float radiusZ = 5.0f;
 			float verticalOffset = 140.0f;
 
 			float angle = (mainActorData.rotation / 65535.0f) * TWO_PI;
