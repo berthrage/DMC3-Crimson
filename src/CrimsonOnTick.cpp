@@ -24,6 +24,7 @@
 #include "CrimsonDetours.hpp"
 #include "CrimsonUtil.hpp"
 #include "CrimsonTimers.hpp"
+#include "DMC3Input.hpp"
 
 namespace CrimsonOnTick {
 
@@ -652,6 +653,59 @@ void VajuraBugFix(CameraData* cameraData) {
 	}
 }
 
+void ResetCameraToNearestSide(EventData& eventData, PlayerActorData& mainActorData, CameraData* cameraData) {
+	if (activeCrimsonConfig.Camera.rightStickCameraCentering != RIGHTSTICKCENTERCAM::TO_NEAREST_SIDE) {
+		return;
+	}
+    static bool defaultCamSet = false;
+    constexpr float TWO_PI = 6.283185307f;
+    constexpr float PI = 3.1415926535f;
+    float radius = 200.0f;
+    float radiusZ = 200.0f;
+    float verticalOffset = 140.0f;
+
+    if (mainActorData.buttons[0] & GetBinding(BINDING::DEFAULT_CAMERA) && !defaultCamSet) {
+        if (!g_inGameCutscene) {
+            // Character's forward angle in world space
+            float charAngle = (mainActorData.rotation / 65535.0f) * TWO_PI;
+           // charAngle += PI;
+
+            // Use -dx, -dz so angle is from camera to character (matches forward logic)
+            float dx = cameraData->data[0].x - mainActorData.position.x;
+            float dz = cameraData->data[0].z - mainActorData.position.z;
+            float camAngle = atan2f(-dx, -dz);
+
+            // Normalize angles to [-PI, PI]
+            auto NormalizeAngle = [](float angle) {
+                constexpr float PI = 3.1415926535f;
+                constexpr float TWO_PI = 6.283185307f;
+                while (angle > PI) angle -= TWO_PI;
+                while (angle < -PI) angle += TWO_PI;
+                return angle;
+            };
+
+            float diff = NormalizeAngle(camAngle - charAngle);
+
+            // If diff > 0, camera is on the left; snap to left. If diff < 0, snap to right.
+            float targetAngle = (diff > 0.0f) ? (charAngle + (PI / 2.0f)) : (charAngle - (PI / 2.0f));
+
+            vec3 offset;
+            offset.x = -sinf(targetAngle) * radius;
+            offset.z = -cosf(targetAngle) * radiusZ;
+            offset.y = verticalOffset;
+
+            cameraData->data[0].x = mainActorData.position.x + offset.x;
+            cameraData->data[0].y = mainActorData.position.y + offset.y;
+            cameraData->data[0].z = mainActorData.position.z + offset.z;
+            mainActorData.position.x = mainActorData.position.x + 1; // Triggers camera orbit
+
+            defaultCamSet = true;
+        }
+    } else if (!(mainActorData.buttons[0] & GetBinding(BINDING::DEFAULT_CAMERA))) {
+        defaultCamSet = false;
+    }
+}
+
 void GeneralCameraOptionsController() {
 	static bool setCamPos = false;
 	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
@@ -677,8 +731,12 @@ void GeneralCameraOptionsController() {
 		setCamPos = false;
 	}
 
+	g_disableRightStickCenterCamera = (activeCrimsonConfig.Camera.rightStickCameraCentering == RIGHTSTICKCENTERCAM::OFF ||
+		activeCrimsonConfig.Camera.rightStickCameraCentering == RIGHTSTICKCENTERCAM::TO_NEAREST_SIDE) ? true : false;
+
 	FixInitialCameraRotation(eventData, mainActorData, cameraData, setCamPos);
 	VajuraBugFix(cameraData);
+	ResetCameraToNearestSide(eventData, mainActorData, cameraData);
 
 	CrimsonPatches::CameraSensController();
 

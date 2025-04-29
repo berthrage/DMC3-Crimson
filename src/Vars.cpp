@@ -539,6 +539,8 @@ ColorPresets colorPresets;
 
 Toggle toggle;
 
+bool g_disableRightStickCenterCamera;
+
 #pragma endregion
 
 #pragma region Helpers

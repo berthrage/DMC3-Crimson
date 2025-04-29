@@ -4400,6 +4400,8 @@ struct Toggle {
 
 extern Toggle toggle;
 
+extern bool g_disableRightStickCenterCamera;
+
 struct CrimsonHudData {
     volatile uint16_t redOrbAlpha = 0; // goes up to 127
     float redOrbAlphaDurationToAlpha = 200.0f;

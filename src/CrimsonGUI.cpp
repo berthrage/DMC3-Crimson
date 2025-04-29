@@ -1187,6 +1187,18 @@ const char* stickNames[] = {
 	"Left Stick",
 };
 
+const char* rightStickCenterCamNames[] = {
+	"Off",
+	"To Nearest Side",
+	"On",
+};
+
+uint8 rightStickCenterCamMap[] = {
+	0,
+	1,
+	2,
+};
+
 const char* styleRankNames[] = {
 	"None",
 	"Dope",
@@ -5063,7 +5075,10 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Disable Right Stick Center Camera", activeCrimsonConfig.Camera.disableRightStickCenterCamera, queuedCrimsonConfig.Camera.disableRightStickCenterCamera);
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			UI::ComboMapValue2("Right Stick Camera Centering", rightStickCenterCamNames, rightStickCenterCamMap,
+				activeCrimsonConfig.Camera.rightStickCameraCentering, queuedCrimsonConfig.Camera.rightStickCameraCentering);
+			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
 
@@ -8013,6 +8028,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
+			ImGui::Text("g_disableRightStickCenterCam: %u", g_disableRightStickCenterCamera);
 			ImGui::Text("savingInGameData.expertise[1]: %x", savingInGameData.expertise[1]);
 			ImGui::Text("missionData frameCount: %u", missionData.frameCount);
 			ImGui::Text("artemis Charge: %g", actorData.artemisCharge);

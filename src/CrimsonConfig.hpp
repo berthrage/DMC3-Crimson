@@ -26,6 +26,14 @@ enum {
 };
 }
 
+namespace RIGHTSTICKCENTERCAM {
+enum {
+	OFF,
+	TO_NEAREST_SIDE,
+	ON
+};
+}
+
 struct CrimsonConfig {
 	struct MultiplayerBars2D {
 		bool show = true;
@@ -129,7 +137,7 @@ struct CrimsonConfig {
 		bool lockedOff = true;
 		bool invertX = true;
 		uint8 autoAdjust = 0;
-		bool disableRightStickCenterCamera = true;
+		uint8 rightStickCameraCentering = RIGHTSTICKCENTERCAM::OFF;
 		bool disableBossCamera = false;
 		bool multiplayerCamera = true;
 		bool panoramicCamera = false;
@@ -146,7 +154,7 @@ struct CrimsonConfig {
                 std::make_pair("lockedOff", &Camera::lockedOff),
                 std::make_pair("invertX", &Camera::invertX),
                 std::make_pair("autoAdjust", &Camera::autoAdjust),
-                std::make_pair("disableRightStickCenterCamera", &Camera::disableRightStickCenterCamera),
+                std::make_pair("rightStickCameraCentering", &Camera::rightStickCameraCentering),
                 std::make_pair("disableBossCamera", &Camera::disableBossCamera),
 				std::make_pair("multiplayerCamera", &Camera::multiplayerCamera),
 				std::make_pair("panoramicCamera", &Camera::panoramicCamera),
