@@ -638,8 +638,8 @@ void GeneralCameraOptionsController() {
 			angle += 3.14159265f;
 
 			// Flip the angle to get the back
-			angle += PI;
-
+			if (eventData.room != ROOM::HEAVENRISE_CHAMBER) angle += PI; // HeavenriseChamber as an exception, probably there will be more
+			
 			// Calculate backward offset
 			vec3 offset;
 			offset.x = -sinf(angle) * radius;
