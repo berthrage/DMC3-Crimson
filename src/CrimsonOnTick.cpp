@@ -598,6 +598,59 @@ void ForceThirdPersonCameraController() {
 	}
 }
 
+void FixInitialCameraRotation(EventData& eventData, PlayerActorData& mainActorData, CameraData* cameraData, bool& setCamPos) {
+	if (!setCamPos) {
+		if (!g_inGameCutscene) {
+			constexpr float TWO_PI = 6.283185307f;
+			constexpr float PI = 3.1415926535f;
+			float radius = 50.0f;
+			float radiusZ = 50.0f;
+			float verticalOffset = 140.0f;
+
+			float angle = (mainActorData.rotation / 65535.0f) * TWO_PI;
+			angle += PI;
+
+			if (eventData.room != ROOM::HEAVENRISE_CHAMBER) angle += PI;
+
+			vec3 offset;
+			offset.x = -sinf(angle) * radius;
+			offset.z = -cosf(angle) * radiusZ;
+			offset.y = verticalOffset;
+
+			cameraData->data[0].x = mainActorData.position.x + offset.x;
+			cameraData->data[0].y = mainActorData.position.y + offset.y;
+			cameraData->data[0].z = mainActorData.position.z + offset.z;
+			mainActorData.position.x = mainActorData.position.x + 1;
+
+			setCamPos = true;
+		}
+	}
+}
+
+void VajuraBugFix(CameraData* cameraData) {
+	static bool wasInCutscene = false;
+	static bool restoreCamData1 = false;
+	static vec3 fixCamData1Vec = { 0.0f, 0.0f, 0.0f };
+
+	if (g_inGameCutscene) {
+		if (!wasInCutscene) {
+			restoreCamData1 = true;
+		}
+		wasInCutscene = true;
+	} else {
+		if (restoreCamData1) {
+			cameraData->data[1].x = fixCamData1Vec.x;
+			cameraData->data[1].y = fixCamData1Vec.y;
+			cameraData->data[1].z = fixCamData1Vec.z;
+			restoreCamData1 = false;
+		} else {
+			fixCamData1Vec.x = cameraData->data[1].x;
+			fixCamData1Vec.y = cameraData->data[1].y;
+			fixCamData1Vec.z = cameraData->data[1].z;
+		}
+		wasInCutscene = false;
+	}
+}
 
 void GeneralCameraOptionsController() {
 	static bool setCamPos = false;
@@ -617,57 +670,28 @@ void GeneralCameraOptionsController() {
 	}
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
 	if (eventData.event != EVENT::MAIN) {
-		setCamPos = false; 
+		setCamPos = false;
 		return;
 	}
 	if (g_inGameCutscene) {
 		setCamPos = false;
 	}
 
-	// Fix Initial Camera Rotation
-	if (!setCamPos) {
-		if (!g_inGameCutscene) {
-			constexpr float TWO_PI = 6.283185307f;
-			constexpr float PI = 3.1415926535f;
-			float radius = 50.0f;
-			float radiusZ = 50.0f;
-			float verticalOffset = 140.0f; // Vertical height directly
-
-			// Convert fixed-point rotation to radians
-			float angle = (mainActorData.rotation / 65535.0f) * TWO_PI;
-			angle += 3.14159265f;
-
-			// Flip the angle to get the back
-			if (eventData.room != ROOM::HEAVENRISE_CHAMBER) angle += PI; // HeavenriseChamber as an exception, probably there will be more
-			
-			// Calculate backward offset
-			vec3 offset;
-			offset.x = -sinf(angle) * radius;
-			offset.z = -cosf(angle) * radiusZ;
-			offset.y = verticalOffset;
-
-			// Set camera position properly
-			cameraData->data[0].x = mainActorData.position.x + offset.x;
-			cameraData->data[0].y = mainActorData.position.y + offset.y; // Only vertical offset here
-			cameraData->data[0].z = mainActorData.position.z + offset.z;
-			mainActorData.position.x = mainActorData.position.x + 1; // Triggers camera orbit
-
-			setCamPos = true;
-		}
-	}
-	
+	FixInitialCameraRotation(eventData, mainActorData, cameraData, setCamPos);
+	VajuraBugFix(cameraData);
 
 	CrimsonPatches::CameraSensController();
-	
+
 	if (cameraData != nullptr) {
 		CrimsonPatches::CameraFollowUpSpeedController(*cameraData, cameraControlMetadata);
 		CrimsonPatches::CameraDistanceController(cameraData);
 		CrimsonPatches::CameraTiltController(cameraData);
 	}
-	
-	CrimsonPatches::ToggleLockedOffCamera(g_disableCameraRotation? false : activeCrimsonConfig.Camera.lockedOff);
+
+	CrimsonPatches::ToggleLockedOffCamera(g_disableCameraRotation ? false : activeCrimsonConfig.Camera.lockedOff);
 	CrimsonPatches::CameraLockOnDistanceController();
 }
+
 
 void AirTauntDetoursController() {
 	if (activeConfig.Actor.enable) {
