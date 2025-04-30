@@ -75,6 +75,7 @@
 #include "DebugDrawDX11.hpp"
 
 #include "ImGui/imgui.h"
+#include "CrimsonHUD.hpp"
 
 #define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
 #define LOAD_SDL_FUNCTION(X) fn_##X = GetSDLFunction<decltype(X)*>(#X)
@@ -12699,7 +12700,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonHUD::RedOrbCounterWindow();
 	CrimsonHUD::CheatsHUDIndicatorWindow();
 	CrimsonHUD::CheatHotkeysPopUpWindow();
-	StyleMeterWindow();
+	CrimsonHUD::StyleMeterWindow();
 
 	UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
 	RenderMissionResultGameModeStats();
