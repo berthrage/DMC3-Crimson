@@ -1980,7 +1980,7 @@ enum {
     BEOWULF,
     DOPPELGANGER,
     ARKHAM,
-    UNKNOWN_3,
+    ARKHAM_LEECHES,
     LADY,
     UNKNOWN_4,
     UNKNOWN_5,
@@ -3906,18 +3906,259 @@ static_assert(offsetof(PlayerActorDataVergil, newAirRisingSunCount) == 0x1CAE4);
 static_assert(offsetof(PlayerActorDataVergil, newEffectIndices) == 0x1CAF0);
 static_assert(offsetof(PlayerActorDataVergil, newLastVar) == 0x1CB20);
 
+
+// float maxHitPointsDullahan; // 0x238
+// float hitPointsDullahan; // 0x2478
+// 
+// float maxHitPointsChess; //0x530
+// float hitPointsChess; // 0x1318
+// 
+// float maxHitPointsTheFallen; // 0x1840
+// float hitPointsTheFallen; // 0x1808
+// 
+// float maxHitPointsBloodgoyle; // 0x643
+// float hitPointsBloodgoyle; // 0x1498
+// 
+// float maxHitPointsSoulEater; // 0x628
+// float hitPointsSoulEater; // 0x1A18
+// 
+// float maxHitPointsEnigma; // 0x3B14
+// float hitPointsEnigma; // 0x3958
+// 
+// float maxHitPointsArachne; // 0x40EC
+// float hitPointsArachne; // 0x4170
+// 
+// // BOSSES
+// 
+// float hitPointsCerberusPart1; // 0xE230 -- max cerberus part1 hp is always 2400
+// float hitPointsCerberusPart2Head1Red; // 0xE234
+// float hitPointsCerberusPart2Head2Green; // 0xE238
+// float hitPointsCerberusPart2Head3Blue; // 0xE23C
+// float hitPointsCerberusTotal; // 0xE240 -- max cerberus hp is always 7200
+// float maxHitPointsCerberusTotal; // 0x352C84
+// float maxHitPointsCerberusPart1; // 0x3637D0 // or dmc3.exe + 5728F0
+// 
+// float maxHitPointsAgniRudra; // 0xFEC
+// float hitPointsAgniRudra; // 0x101C
+// 
+// float maxHitPointsVergil; // 0xED20
+// float hitPointsVergil; // 0xEB28
+// 
+// float maxHitPointsNevan; // 0x69C0
+// float hitPointsNevan; // 0x68D8
+// 
+// float maxHitPointsJester; // 0x61E0
+// float hitPointsJester; // 0x5F98
+// 
+// float maxHitPointsGeryon; // 0xFB0
+// float hitPointsGeryon; // 0xFC8
+// float maxHitPointsGeryonCarriage; // 0x16484
+// float hitPointsGeryonCarriage; // 0x1648C // detect whether aiming at carriage or horse by checking if this is 0
+// 
+// float maxHitPointsBeowulf; // 0x45F0
+// float hitPointsBeowulf; // 0x4338
+// 
+// float maxHitPointsLady; // 0x5950 
+// float hitPointsLady; // 0x5758
+// 
+// float maxHitPointsDoppelganger; // 0x81C
+// float hitPointsDoppelganger; // 0x84C
+// 
+// float maxHitPointsLeviathan; // 0x388884
+// float hitPointsLeviathan; // 0xAF4
+// 
+// float hitPointsLeviathanOther; // 0xA78 // left one max HP is 2000 and right one max hp is 1500, couldn't find a good addr that works for both
+// 
+// float maxHitPointsArkham; // 0x2788
+// float hitPointsArkham; // 0x1AF4
+// 
+// float hitPointsArkhamLeech; // 0xE68
+// float maxHitPointsArkhamLeech; // 0x12A0
+// 
+// float maxHitPointsGigapede; // 0x9584
+// float hitPointsGigapede; // 0x9BC0
+// byte32 gigapedePartAddr; // 0xF68 // check if this is null, if isn't then it's a gigapede part and we must fetch using +95E4 / +9B60 from the gigapedePartAddr
+
+
 struct EnemyActorData : ActorDataBase {
-	_(11620);
-	float maxHitPointsPride; // 0x2E2C
+	_(368);
+	float maxHitPointsDullahan; // 0x238
+	_(756);
+	float maxHitPointsChess; // 0x530
+	_(220);
+	float maxHitPointsBloodgoyle; // 0x610
+	_(92);
+    float maxHitPointsSoulEater; // 0x670
+	_(424);
+	float maxHitPointsDoppelganger; // 0x81C
 	_(44);
-	float hitPointsPride; // 0x2E5C
-    _(2848);
+	float hitPointsDoppelganger; // 0x84C
+	_(552);
+	float hitPointsLeviathanOther; // 0xA78 // left one max HP is 2000 and right one max hp is 1500, couldn't find a good addr that works for both
+	_(120);
+	float hitPointsLeviathan; // 0xAF4
+	_(880);
+	float hitPointsArkhamLeech; // 0xE68
+	_(252);
+	byte8* gigapedePartAddr; // 0xF68 // check if this is null, if isn't then it's a gigapede part and we must fetch using +95E4 / +9B60 from the gigapedePartAddr
+	_(64);
+	float maxHitPointsGeryon; // 0xFB0
+	_(20);
+	float hitPointsGeryon; // 0xFC8
+	_(32);
+	float maxHitPointsAgniRudra; // 0xFEC
+	_(44);
+	float hitPointsAgniRudra; // 0x101C
+	_(640);
+	float maxHitPointsArkhamLeech; // 0x12A0
+	_(116);
+	float hitPointsChess; // 0x1318
+	_(380);
+	float hitPointsBloodgoyle; // 0x1498
+	_(876);
+	float hitPointsTheFallen; // 0x1808
+	_(52);
+	float maxHitPointsTheFallen; // 0x1840
+	_(468);
+	float hitPointsSoulEater; // 0x1A18
+	_(2652);
+	float hitPointsDullahan; // 0x2478
+	_(556);
+	float hitPointsArkham; // 0x26A8
+	_(220);
+	float maxHitPointsArkham; // 0x2788
+	_(1696);
+	float maxHitPointsHells; // 0x2E2C
+	_(44);
+	float hitPointsHells; // 0x2E5C
+	_(1112);
+	byte32 stunDisplacementHellsAddr; // 0x32B8 // +10 from this addr is the stun displacement hells Struct
+    _(1692);
+	float hitPointsEnigma; // 0x3958
+	_(36);
 	vec4 targetPosition; // 0x3980 - needs to sum with 60 from ActorDataBase
+	_(388);
+	float maxHitPointsEnigma; // 0x3B14
+	_(1492);
+    float maxHitPointsArachne; // 0x40EC
+    _(128);
+    float hitPointsArachne; // 0x4170
+	_(452);
+	float hitPointsBeowulf; // 0x4338
+	_(692);
+	float maxHitPointsBeowulf; // 0x45F0
+	_(4452);
+	float hitPointsLady; // 0x5758
+	_(500);
+	float maxHitPointsLady; // 0x5950
+	_(1604);
+	float hitPointsJester; // 0x5F98
+	_(580);
+	float maxHitPointsJester; // 0x61E0
+	_(812);
+    byte8* shieldedNevanAddr; // 0x6510 // +224 from this addr is currentShield amount and +A24 is maxShield amount
+    _(960);
+	float hitPointsNevan; // 0x68D8
+	_(228);
+	float maxHitPointsNevan; // 0x69C0
+	_(11296);
+	float maxHitPointsGigapede; // 0x95E4
+	_(1496);
+	float hitPointsGigapede; // 0x9BC0
+	_(18028);
+	float hitPointsCerberusPart1; // 0xE230 // max cerberus part1 hp is always 2400
+	float hitPointsCerberusPart2Head1Red; // 0xE234 
+	float hitPointsCerberusPart2Head2Green; // 0xE238
+	float hitPointsCerberusPart2Head3Blue; // 0xE23C
+	float hitPointsCerberusTotal; // 0xE240 // max cerberus hp is always 7200
+	_(2276);
+	float hitPointsVergil; // 0xEB28
+	_(500);
+	float maxHitPointsVergil; // 0xED20
+	_(30560);
+	float maxHitPointsGeryonCarriage; // 0x16484
+	_(4);
+	float hitPointsGeryonCarriage; // 0x1648C // detect whether aiming at carriage or horse by checking if this is 0
+	_(3393524);
+	float maxHitPointsCerberusTotal; // 0x352C84
+	_(68424);
+	float maxHitPointsCerberusPart1; // 0x3637D0 // or dmc3.exe + 5728F0
+	_(151728);
+	float maxHitPointsLeviathan; // 0x388884
 };
 
-static_assert(offsetof(EnemyActorData, maxHitPointsPride) == 0x2E2C);
-static_assert(offsetof(EnemyActorData, hitPointsPride) == 0x2E5C);
+static_assert(offsetof(EnemyActorData, maxHitPointsDullahan) == 0x238);
+static_assert(offsetof(EnemyActorData, maxHitPointsChess) == 0x530);
+static_assert(offsetof(EnemyActorData, maxHitPointsBloodgoyle) == 0x610);
+static_assert(offsetof(EnemyActorData, maxHitPointsSoulEater) == 0x670);
+static_assert(offsetof(EnemyActorData, maxHitPointsDoppelganger) == 0x81C);
+static_assert(offsetof(EnemyActorData, hitPointsDoppelganger) == 0x84C);
+static_assert(offsetof(EnemyActorData, hitPointsLeviathanOther) == 0xA78);
+static_assert(offsetof(EnemyActorData, hitPointsLeviathan) == 0xAF4);
+static_assert(offsetof(EnemyActorData, hitPointsArkhamLeech) == 0xE68);
+static_assert(offsetof(EnemyActorData, gigapedePartAddr) == 0xF68);
+static_assert(offsetof(EnemyActorData, maxHitPointsGeryon) == 0xFB0);
+static_assert(offsetof(EnemyActorData, hitPointsGeryon) == 0xFC8);
+static_assert(offsetof(EnemyActorData, maxHitPointsAgniRudra) == 0xFEC);
+static_assert(offsetof(EnemyActorData, hitPointsAgniRudra) == 0x101C);
+static_assert(offsetof(EnemyActorData, maxHitPointsArkhamLeech) == 0x12A0);
+static_assert(offsetof(EnemyActorData, hitPointsChess) == 0x1318);
+static_assert(offsetof(EnemyActorData, hitPointsBloodgoyle) == 0x1498);
+static_assert(offsetof(EnemyActorData, hitPointsTheFallen) == 0x1808);
+static_assert(offsetof(EnemyActorData, maxHitPointsTheFallen) == 0x1840);
+static_assert(offsetof(EnemyActorData, hitPointsSoulEater) == 0x1A18);
+static_assert(offsetof(EnemyActorData, hitPointsDullahan) == 0x2478);
+static_assert(offsetof(EnemyActorData, hitPointsArkham) == 0x26A8);
+static_assert(offsetof(EnemyActorData, maxHitPointsArkham) == 0x2788);
+static_assert(offsetof(EnemyActorData, maxHitPointsHells) == 0x2E2C);
+static_assert(offsetof(EnemyActorData, hitPointsHells) == 0x2E5C);
+static_assert(offsetof(EnemyActorData, hitPointsEnigma) == 0x3958);
 static_assert(offsetof(EnemyActorData, targetPosition) == 0x3980);
+static_assert(offsetof(EnemyActorData, maxHitPointsEnigma) == 0x3B14);
+static_assert(offsetof(EnemyActorData, maxHitPointsArachne) == 0x40EC);
+static_assert(offsetof(EnemyActorData, hitPointsArachne) == 0x4170);
+static_assert(offsetof(EnemyActorData, hitPointsBeowulf) == 0x4338);
+static_assert(offsetof(EnemyActorData, maxHitPointsBeowulf) == 0x45F0);
+static_assert(offsetof(EnemyActorData, hitPointsLady) == 0x5758);
+static_assert(offsetof(EnemyActorData, maxHitPointsLady) == 0x5950);
+static_assert(offsetof(EnemyActorData, hitPointsJester) == 0x5F98);
+static_assert(offsetof(EnemyActorData, maxHitPointsJester) == 0x61E0);
+static_assert(offsetof(EnemyActorData, shieldedNevanAddr) == 0x6510);
+static_assert(offsetof(EnemyActorData, hitPointsNevan) == 0x68D8);
+static_assert(offsetof(EnemyActorData, maxHitPointsNevan) == 0x69C0);
+static_assert(offsetof(EnemyActorData, maxHitPointsGigapede) == 0x95E4);
+static_assert(offsetof(EnemyActorData, hitPointsGigapede) == 0x9BC0);
+static_assert(offsetof(EnemyActorData, hitPointsCerberusPart1) == 0xE230);
+static_assert(offsetof(EnemyActorData, hitPointsCerberusPart2Head1Red) == 0xE234);
+static_assert(offsetof(EnemyActorData, hitPointsCerberusPart2Head2Green) == 0xE238);
+static_assert(offsetof(EnemyActorData, hitPointsCerberusPart2Head3Blue) == 0xE23C);
+static_assert(offsetof(EnemyActorData, hitPointsCerberusTotal) == 0xE240);
+static_assert(offsetof(EnemyActorData, hitPointsVergil) == 0xEB28);
+static_assert(offsetof(EnemyActorData, maxHitPointsVergil) == 0xED20);
+static_assert(offsetof(EnemyActorData, maxHitPointsGeryonCarriage) == 0x16484);
+static_assert(offsetof(EnemyActorData, hitPointsGeryonCarriage) == 0x1648C);
+static_assert(offsetof(EnemyActorData, maxHitPointsCerberusTotal) == 0x352C84);
+static_assert(offsetof(EnemyActorData, maxHitPointsCerberusPart1) == 0x3637D0);
+static_assert(offsetof(EnemyActorData, maxHitPointsLeviathan) == 0x388884);
+
+struct StunDisplacementHells {
+	_(12);
+    float displacement; // 0xC
+    float stun; // 0x10
+};
+
+static_assert(offsetof(StunDisplacementHells, displacement) == 0xC);
+static_assert(offsetof(StunDisplacementHells, stun) == 0x10);
+
+struct ShieldedNevanData {
+    _(548);
+	float currentShield; // 0x224
+    _(2044);
+	float maxShield; // 0xA24
+};
+
+static_assert(offsetof(ShieldedNevanData, currentShield) == 0x224);
+static_assert(offsetof(ShieldedNevanData, maxShield) == 0xA24);
 
 struct EnemyActorDataPride : ActorDataBase {
     _(11620);
@@ -4868,11 +5109,16 @@ struct CrimsonPlayerData {
     int cameraPlayerDistanceClamped = 0;
     float playerTo1PDistance = 0;
     SimpleVec3 playerScreenPosition = { 0,0,0 };
+	float cameraLockedEnemyDistance = 0;
+    int cameraLockedEnemyDistanceClamped = 0;
+    SimpleVec3 lockedEnemyScreenPosition = { 0,0,0 };
     int playerScreenAngle = 0;
     bool playerOutOfView = false;
     uint16 rotationTowardsEnemy = 0;
     StoredAirCounts storedAirCounts;
 	AirCounts airCounts;
+    float lockedOnEnemyHP = 0;
+	float lockedOnEnemyMaxHP = 0;
 
     AirRaveTweak airRaveTweak;
 
@@ -4905,11 +5151,16 @@ struct CrimsonPlayerData {
     float cameraCloneDistanceClamped = 0;
     float cloneTo1PDistance = 0;
     SimpleVec3 cloneScreenPosition = { 0,0,0 };
+	float cameraCloneLockedEnemyDistance = 0;
+	int cameraCloneLockedEnemyDistanceClamped = 0;
+	SimpleVec3 cloneLockedEnemyScreenPosition = { 0,0,0 };
 	int cloneScreenAngle = 0;
     bool cloneOutOfView = false;
     uint16 rotationCloneTowardsEnemy = 0;
     StoredAirCounts storedAirCountsClone;
     AirCounts airCountsClone;
+	float lockedOnEnemyHPClone = 0;
+	float lockedOnEnemyMaxHPClone = 0;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];

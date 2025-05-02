@@ -2346,6 +2346,140 @@ void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
 	rotationTowardsEnemy = finalRotationTowardsEnemy;
 }
 
+void GetLockedOnEnemyHitPoints(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& lockedOnEnemyHP = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyHP : crimsonPlayer[playerIndex].lockedOnEnemyHPClone;
+	auto& lockedOnEnemyMaxHP = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMaxHP : crimsonPlayer[playerIndex].lockedOnEnemyMaxHPClone;
+
+// 	auto pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+// 	if (!pool_2128 || !pool_2128[8]) return;
+// 	auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
+// 
+//     for (std::size_t enemyIndex = 0; enemyIndex < enemyVectorData.count; ++enemyIndex) {
+//         auto& enemy = enemyVectorData.metadata[enemyIndex];
+//         if (!enemy.baseAddr) continue;
+//         auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
+//         if (!enemyData.baseAddr) continue;
+// 
+// 		// store all hit points in a vector only once, to count as max hit points
+//     }
+
+	if (actorData.lockOnData.targetBaseAddr60 != 0) {
+		auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60); // -0x60 very important don't forget
+		auto& enemyId = enemyActorData.enemy;
+		bool isHell = (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::HELL_VANGUARD);
+		bool isChess = (enemyId >= ENEMY::DAMNED_CHESSMEN_PAWN && enemyId <= ENEMY::DAMNED_CHESSMEN_KING);
+		bool isAgniAndRudra = (enemyId >= ENEMY::AGNI_RUDRA_ALL && enemyId <= ENEMY::AGNI_RUDRA_BLUE);
+
+        if (isHell) {
+            lockedOnEnemyHP = enemyActorData.hitPointsHells;
+            lockedOnEnemyMaxHP = enemyActorData.maxHitPointsHells;
+        } else if (enemyId == ENEMY::ARACHNE) {
+            lockedOnEnemyHP = enemyActorData.hitPointsArachne;
+            lockedOnEnemyMaxHP = enemyActorData.maxHitPointsArachne;
+		} else if (enemyId == ENEMY::THE_FALLEN) {
+			lockedOnEnemyHP = enemyActorData.hitPointsTheFallen;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsTheFallen;
+		} else if (enemyId == ENEMY::DULLAHAN) {
+			lockedOnEnemyHP = enemyActorData.hitPointsDullahan;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsDullahan;
+        } else if (enemyId == ENEMY::ENIGMA) {
+            lockedOnEnemyHP = enemyActorData.hitPointsEnigma;
+            lockedOnEnemyMaxHP = enemyActorData.maxHitPointsEnigma;
+		} else if (enemyId == ENEMY::BLOOD_GOYLE) {
+			lockedOnEnemyHP = enemyActorData.hitPointsBloodgoyle;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsBloodgoyle;
+		} else if (enemyId == ENEMY::SOUL_EATER) {
+			lockedOnEnemyHP = enemyActorData.hitPointsSoulEater;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsSoulEater;
+		} else if (isChess) {
+			lockedOnEnemyHP = enemyActorData.hitPointsChess;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsChess;
+        } else if (enemyId == ENEMY::GIGAPEDE) {
+            if (enemyActorData.gigapedePartAddr == 0) {
+                lockedOnEnemyHP = enemyActorData.hitPointsGigapede;
+                lockedOnEnemyMaxHP = enemyActorData.maxHitPointsGigapede;
+            } else {
+                auto& currentHitPointsGigapede = *reinterpret_cast<float*>(enemyActorData.gigapedePartAddr + 0x9BC0);
+                auto& maxHitPointsGigapede = *reinterpret_cast<float*>(enemyActorData.gigapedePartAddr + 0x95E4);
+                lockedOnEnemyHP = currentHitPointsGigapede;
+                lockedOnEnemyMaxHP = maxHitPointsGigapede;
+            }
+		} else if (enemyId == ENEMY::CERBERUS) {
+            if (enemyActorData.hitPointsCerberusPart1 > 0) {
+                auto& maxHitPointsCerberusPart1 = *reinterpret_cast<float*>(appBaseAddr + 0x5728F0);
+				lockedOnEnemyHP = enemyActorData.hitPointsCerberusPart1;
+				lockedOnEnemyMaxHP = maxHitPointsCerberusPart1;
+            } else {
+                auto& maxHitPointsCerberusRed = *reinterpret_cast<float*>(appBaseAddr + 0x5728F4); // 1650
+                auto& maxHitPointsCerberusPart1 = *reinterpret_cast<float*>(appBaseAddr + 0x5728F0); // 2400
+                auto& maxHitPointsCerberusGreen = *reinterpret_cast<float*>(appBaseAddr + 0x5728F8); // 1600
+                auto& maxHitPointsCerberusBlue = *reinterpret_cast<float*>(appBaseAddr + 0x5728FC); // 1550
+				float totalMaxHP = maxHitPointsCerberusRed + maxHitPointsCerberusPart1 + maxHitPointsCerberusRed + maxHitPointsCerberusRed; // 7200
+				lockedOnEnemyHP = enemyActorData.hitPointsCerberusTotal;
+                lockedOnEnemyMaxHP = totalMaxHP;
+            }
+		} else if (isAgniAndRudra) {
+			lockedOnEnemyHP = enemyActorData.hitPointsAgniRudra;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsAgniRudra;
+		} else if (enemyId == ENEMY::NEVAN) {
+            auto& shieldedNevanData = *reinterpret_cast<ShieldedNevanData*>(enemyActorData.shieldedNevanAddr);
+			if (!enemyActorData.shieldedNevanAddr) {
+				lockedOnEnemyHP = enemyActorData.hitPointsNevan;
+				lockedOnEnemyMaxHP = enemyActorData.maxHitPointsNevan;
+            } else {
+                lockedOnEnemyHP = shieldedNevanData.currentShield;
+                lockedOnEnemyMaxHP = 350.0f;
+            }
+            
+        } else if (enemyId == ENEMY::GERYON) {
+            // aiming at carriage
+            if (enemyActorData.hitPointsGeryonCarriage != 0) {
+				lockedOnEnemyHP = enemyActorData.hitPointsGeryonCarriage;
+				lockedOnEnemyMaxHP = enemyActorData.maxHitPointsGeryonCarriage;
+            } else {
+				lockedOnEnemyHP = enemyActorData.hitPointsGeryon;
+				lockedOnEnemyMaxHP = enemyActorData.maxHitPointsGeryon;
+            }
+        } else if (enemyId == ENEMY::BEOWULF) {
+			lockedOnEnemyHP = enemyActorData.hitPointsBeowulf;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsBeowulf;
+		} else if (enemyId == ENEMY::DOPPELGANGER) {
+			lockedOnEnemyHP = enemyActorData.hitPointsDoppelganger;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsDoppelganger;
+        } else if (enemyId == ENEMY::ARKHAM) {
+			lockedOnEnemyHP = enemyActorData.hitPointsArkham;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsArkham;
+		} else if (enemyId == ENEMY::ARKHAM_LEECHES) {
+			lockedOnEnemyHP = enemyActorData.hitPointsArkhamLeech;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsArkhamLeech;
+		} else if (enemyId == ENEMY::LADY) {
+			lockedOnEnemyHP = enemyActorData.hitPointsLady;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsLady;
+		} else if (enemyId == ENEMY::VERGIL) {
+			lockedOnEnemyHP = enemyActorData.hitPointsVergil;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsVergil;
+		} else if (enemyId == ENEMY::JESTER) {
+			lockedOnEnemyHP = enemyActorData.hitPointsJester;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsJester;
+		} else if (enemyId == ENEMY::LEVIATHAN_HEART) {
+			lockedOnEnemyHP = enemyActorData.hitPointsLeviathan;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsLeviathan;
+
+        } else {
+			lockedOnEnemyHP = 1000.0f;
+            lockedOnEnemyMaxHP = 1000.0f;
+        }
+	} else {
+        lockedOnEnemyHP = 0;
+        lockedOnEnemyMaxHP = 0;
+	}
+}
+
 #pragma endregion
 
 #pragma region DanteAirTaunt

@@ -11,5 +11,15 @@ void RedOrbCounterWindow();
 void CheatsHUDIndicatorWindow();
 void CheatHotkeysPopUpWindow();
 void StyleMeterWindow();
+void LockOnWindows();
+
+struct FadeState {
+	float alpha = 0.0f;
+	bool wasActive = false;
+};
+
+inline float SmoothLerp(float from, float to, float speed, float deltaTime) {
+	return from + (to - from) * (1.0f - std::exp(-speed * deltaTime));
+}
 
 }

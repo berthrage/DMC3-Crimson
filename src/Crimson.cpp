@@ -223,7 +223,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleHideMainHUD(activeConfig.hideMainHUD);
 
         ToggleHideLockOn(false);
-        ToggleHideLockOn(activeConfig.hideLockOn);
+        ToggleHideLockOn(activeConfig.hideLockOn || activeCrimsonConfig.CrimsonHudAddons.lockOn);
 
         ToggleHideBossHUD(false);
         ToggleHideBossHUD(activeConfig.hideBossHUD);
