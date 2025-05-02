@@ -913,6 +913,7 @@ const char* buttonNames[] = {
 	"Down",
 	"Left",
 };
+const int buttonNamesCount = IM_ARRAYSIZE(buttonNames);
 
 constexpr byte16 buttons[] = {
 	0,
@@ -10679,7 +10680,87 @@ void ExtraDifficultyGameplayOptions() {
 	ImGui::PopFont();
 }
 
+struct buttonRemapStruct {
+	uint16_t item; // 0 dpad up
+	uint16_t equip; // 1 dpad down
+	uint16_t map; // 2 dpad right
+	uint16_t file; // 3 dpad left
+	uint16_t melee; // 4 Y
+	uint16_t jump; // 5 A
+	uint16_t style; // 6 B
+	uint16_t shoot; // 7 X
+	uint16_t dt; // 8 L1
+	uint16_t gunChange; // 9 L2
+	uint16_t targetChange; // A L3
+	uint16_t lockOn; // B R1
+	uint16_t swordChange; // C R2
+	uint16_t camReset; // D R3
+	uint16_t taunt; // E Select
+};
 
+void DrawKeybindEditor(buttonRemapStruct* buttonRemapMemory) {
+    struct KeybindEntry {
+        const char* name;
+        uint16_t& value;
+    };
+    
+    std::vector<KeybindEntry> keybinds = {
+        {"Trickster (Item)", buttonRemapMemory->item},
+        {"Royal Guard (Equip)", buttonRemapMemory->equip},
+        {"Swordmaster (Map)", buttonRemapMemory->map},
+        {"Gunslinger (File)", buttonRemapMemory->file},
+        {"Melee", buttonRemapMemory->melee},
+        {"Jump", buttonRemapMemory->jump},
+        {"Style", buttonRemapMemory->style},
+        {"Shoot", buttonRemapMemory->shoot},
+        {"Devil Trigger", buttonRemapMemory->dt},
+        {"Gun Change", buttonRemapMemory->gunChange},
+        {"Target Change", buttonRemapMemory->targetChange},
+        {"Lock On", buttonRemapMemory->lockOn},
+        {"Sword Change", buttonRemapMemory->swordChange},
+        {"Camera Reset", buttonRemapMemory->camReset},
+        {"Taunt", buttonRemapMemory->taunt}
+    };
+    for (auto& keybind : keybinds) {
+        uint16_t& currentKey = keybind.value;
+        const char* currentItem = "None";
+        for (const auto& pair : buttonPairs) {
+            if (pair.first == currentKey) {
+                currentItem = pair.second;
+                break;
+            }
+        }
+        if (ImGui::BeginCombo(keybind.name, currentItem)) {
+            for (const auto& pair : buttonPairs) {
+                bool isSelected = (currentKey == pair.first);
+                if (ImGui::Selectable(pair.second, isSelected)) {
+                    currentKey = pair.first;
+                }
+                if (isSelected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+    }
+    if (ImGui::Button("Default")) {
+        buttonRemapMemory->item = 0x1000;    // Up
+        buttonRemapMemory->equip = 0x4000;   // Down
+        buttonRemapMemory->map = 0x2000;     // Right
+        buttonRemapMemory->file = 0x8000;    // Left
+        buttonRemapMemory->melee = 0x0010;   // Y
+        buttonRemapMemory->jump = 0x0040;    // A
+        buttonRemapMemory->style = 0x0020;   // B
+        buttonRemapMemory->shoot = 0x0080;   // X
+        buttonRemapMemory->dt = 0x0004;      // Left Shoulder
+        buttonRemapMemory->gunChange = 0x0001; // Left Trigger
+        buttonRemapMemory->targetChange = 0x0200; // Left Thumb
+        buttonRemapMemory->lockOn = 0x0008;  // Right Shoulder
+        buttonRemapMemory->swordChange = 0x0002; // Right Trigger
+        buttonRemapMemory->camReset = 0x0400; // Right Thumb
+        buttonRemapMemory->taunt = 0x0100;   // Back
+    }
+}
 
 void InputRemapOptions() {
 	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
@@ -10739,6 +10820,13 @@ void InputRemapOptions() {
 		}
 	}
 
+	// I assume the stuff at void UpdateMapIndex(const varType (&map)[mapItemCount], uint8& index, varType& var)is the vergil/dante bind swap??
+	if (ImGui::CollapsingHeader("Siy direct memory remaps")) {
+		buttonRemapStruct* buttonRemapMemory = (buttonRemapStruct*)(appBaseAddr + 0xD6CE80 + 0xA);
+		ImGui::InputScalar("struct addr", ImGuiDataType_U64, (int*)&buttonRemapMemory, NULL, NULL, "%016llX", ImGuiInputTextFlags_CharsHexadecimal);
+		DrawKeybindEditor(buttonRemapMemory);
+	}
+	
 	ImGui::PopStyleColor();
 	ImGui::PopFont();
 }
