@@ -7703,9 +7703,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 				return;
 // 			}
 // 
-// 			auto& lockedOnEnemyData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60);
+// 			auto& lockedOnEnemyData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60);
 
-			ImGui::Text("Enemy Health %g", actorData.lockOnData.targetPosition.z);
+			//ImGui::Text("TargetPosZ %g", actorData.lockOnData.targetPosition.z);
 
 //             for (int i = 0; i < 8; i++) {
 //                 ImGui::Text("expertise[%u]:  %x", i, actorData.activeExpertise[i]);
@@ -7738,8 +7738,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				return;
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
-
-			ImGui::Text("g_disableRightStickCenterCam: %u", g_disableRightStickCenterCamera);
+			
+			ImGui::Text("lockOnEnemyHP: %g", crimsonPlayer[0].lockedOnEnemyHP);
+			ImGui::Text("lockOnEnemyMaxHP: %g", crimsonPlayer[0].lockedOnEnemyMaxHP);
 			ImGui::Text("savingInGameData.expertise[1]: %x", savingInGameData.expertise[1]);
 			ImGui::Text("missionData frameCount: %u", missionData.frameCount);
 			ImGui::Text("artemis Charge: %g", actorData.artemisCharge);
@@ -8423,7 +8424,9 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Lock-On", activeCrimsonConfig.CrimsonHudAddons.lockOn, queuedCrimsonConfig.CrimsonHudAddons.lockOn);
+			if (GUI_Checkbox2("Lock-On", activeCrimsonConfig.CrimsonHudAddons.lockOn, queuedCrimsonConfig.CrimsonHudAddons.lockOn)) {
+				ToggleHideLockOn(activeCrimsonConfig.CrimsonHudAddons.lockOn);
+			}
 
 
 			ImGui::EndTable();
@@ -12789,6 +12792,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonHUD::CheatsHUDIndicatorWindow();
 	CrimsonHUD::CheatHotkeysPopUpWindow();
 	CrimsonHUD::StyleMeterWindow();
+	CrimsonHUD::LockOnWindows();
 
 	UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
 	RenderMissionResultGameModeStats();

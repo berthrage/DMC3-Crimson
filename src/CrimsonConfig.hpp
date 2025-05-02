@@ -266,10 +266,10 @@ struct CrimsonConfig {
 	struct PlayerProperties {
 		uint8 playerColor[PLAYER_COUNT][4] = {
 			// r   g  b  a  
-			{ 158, 27, 63, 255 }, // 1P 
-			{ 18, 48, 130, 255 }, // 2P  
-			{ 228, 160, 16, 255 }, // 3P    
-			{ 49, 127, 67, 255 }, // 4P
+			{ 222, 28, 76, 255 }, // 1P 
+			{ 12, 133, 197, 255 }, // 2P  
+			{ 255, 230, 0, 255 }, // 3P    
+			{ 0, 192, 70, 255 }, // 4P
 		};
 
 		std::string playerName[PLAYER_COUNT] = {

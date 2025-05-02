@@ -566,8 +566,13 @@ void ForceThirdPersonCameraController() {
 	}
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 
+	if (eventData.event == EVENT::TELEPORT) {
+		CrimsonPatches::ForceThirdPersonCamera(true);
+	}
+
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	static bool checkIfGameHasAlreadyLoaded2 = false;
+	
 
 	if (!checkIfGameHasAlreadyLoaded2) {
 		if (eventData.event == EVENT::MAIN && g_inGameDelayed) {
@@ -586,7 +591,12 @@ void ForceThirdPersonCameraController() {
 	}
 
 	if (activeCrimsonConfig.Camera.forceThirdPerson) {
-		CrimsonPatches::ForceThirdPersonCamera(true);
+		if (eventData.room == ROOM::LOST_SOULS_NIRVANA && eventData.event != EVENT::TELEPORT) {
+			CrimsonPatches::ForceThirdPersonCamera(false);
+		} else {
+			CrimsonPatches::ForceThirdPersonCamera(true);
+			
+		}
 
 		if (!(eventData.room == 228 && eventData.position == 0)) { // Adding only Geryon Part 1 as an exception for now.
 			Camera::ToggleDisableBossCamera(true);
@@ -611,7 +621,7 @@ void FixInitialCameraRotation(EventData& eventData, PlayerActorData& mainActorDa
 			float angle = (mainActorData.rotation / 65535.0f) * TWO_PI;
 			angle += PI;
 
-			if (eventData.room != ROOM::HEAVENRISE_CHAMBER) angle += PI;
+			if (eventData.room != ROOM::HEAVENRISE_CHAMBER && eventData.room != ROOM::HIGH_FLY_ZONE) angle += PI;
 
 			vec3 offset;
 			offset.x = -sinf(angle) * radius;
@@ -628,28 +638,32 @@ void FixInitialCameraRotation(EventData& eventData, PlayerActorData& mainActorDa
 	}
 }
 
-void VajuraBugFix(CameraData* cameraData) {
+void VajuraBugFix(CameraData* cameraData, EventData& eventData) {
 	static bool wasInCutscene = false;
 	static bool restoreCamData1 = false;
+	static bool restoreCamData2 = false;
 	static vec3 fixCamData1Vec = { 0.0f, 0.0f, 0.0f };
+	static vec3 fixCamData2Vec = { 0.0f, 0.0f, 0.0f };
 
-	if (g_inGameCutscene) {
-		if (!wasInCutscene) {
-			restoreCamData1 = true;
-		}
-		wasInCutscene = true;
-	} else {
-		if (restoreCamData1) {
-			cameraData->data[1].x = fixCamData1Vec.x;
-			cameraData->data[1].y = fixCamData1Vec.y;
-			cameraData->data[1].z = fixCamData1Vec.z;
-			restoreCamData1 = false;
+	if (eventData.room == ROOM::LIVING_STATUE_ROOM) {
+		if (g_inGameCutscene) {
+			if (!wasInCutscene) {
+				restoreCamData1 = true;
+			}
+			wasInCutscene = true;
 		} else {
-			fixCamData1Vec.x = cameraData->data[1].x;
-			fixCamData1Vec.y = cameraData->data[1].y;
-			fixCamData1Vec.z = cameraData->data[1].z;
+			if (restoreCamData1) {
+				cameraData->data[1].x = fixCamData1Vec.x;
+				cameraData->data[1].y = fixCamData1Vec.y;
+				cameraData->data[1].z = fixCamData1Vec.z;
+				restoreCamData1 = false;
+			} else {
+				fixCamData1Vec.x = cameraData->data[1].x;
+				fixCamData1Vec.y = cameraData->data[1].y;
+				fixCamData1Vec.z = cameraData->data[1].z;
+			}
+			wasInCutscene = false;
 		}
-		wasInCutscene = false;
 	}
 }
 
@@ -735,7 +749,7 @@ void GeneralCameraOptionsController() {
 		activeCrimsonConfig.Camera.rightStickCameraCentering == RIGHTSTICKCENTERCAM::TO_NEAREST_SIDE) ? true : false;
 
 	FixInitialCameraRotation(eventData, mainActorData, cameraData, setCamPos);
-	VajuraBugFix(cameraData);
+	VajuraBugFix(cameraData, eventData);
 	ResetCameraToNearestSide(eventData, mainActorData, cameraData);
 
 	CrimsonPatches::CameraSensController();

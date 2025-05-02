@@ -42,6 +42,8 @@
 #include "UI\EmbeddedImages.hpp"
 #include "CrimsonGUI.hpp"
 #include "CrimsonFileHandling.hpp"
+#include "CrimsonHUD.hpp"
+#include "CrimsonGameplay.hpp"
 
 namespace CrimsonHUD {
 
@@ -55,6 +57,9 @@ static Texture2DD3D11* RedOrbCustomTexture{ nullptr };
 
 static Texture2DD3D11* DStyleRankFillTexture{ nullptr };
 static Texture2DD3D11* DStyleRankBackgroundTexture{ nullptr };
+
+static Texture2DD3D11* LockOnTexture{ nullptr };
+static Texture2DD3D11* LockOnForegroundTexture{ nullptr };
 
 void InitRedOrbTexture(ID3D11Device* pd3dDevice) {
 	//RedOrbTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "RedorbVanilla3.png").c_str(), pd3dDevice);
@@ -72,6 +77,14 @@ void InitDStyleRankTextures(ID3D11Device* pd3dDevice) {
 	assert(DStyleRankFillTexture);
 	assert(DStyleRankBackgroundTexture);
 }
+
+void InitLockOnTexture(ID3D11Device* pd3dDevice) {
+	LockOnTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "lockon.png").c_str(), pd3dDevice);
+	LockOnForegroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "lockonforeground.png").c_str(), pd3dDevice);
+	assert(LockOnTexture);
+	assert(LockOnForegroundTexture);
+}
+
 
 void RenderMeterWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, float fillRatio, ImColor color) {
 	// Ensure fillRatio is between 0.0f and 1.0f
@@ -177,6 +190,51 @@ void DrawRotatedImage(ImTextureID tex_id, ImVec2 pos, ImVec2 size, float angle, 
 		uvs[0], uvs[1], uvs[2], uvs[3],
 		color
 	);
+}
+
+
+void DrawRotatedImagePie(ImTextureID tex_id, ImVec2 pos, ImVec2 size, float angle, ImU32 color, float fill) {
+	if (fill <= 0.0f) return;
+	if (fill >= 1.0f) {
+		DrawRotatedImage(tex_id, pos, size, angle, color);
+		return;
+	}
+
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+	ImVec2 center = ImVec2(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
+
+	const int NUM_SEGMENTS = 64;
+	int arc_segments = std::max(1, (int)(NUM_SEGMENTS * fill));
+
+	float rx = size.x * 0.5f;
+	float ry = size.y * 0.5f;
+
+	// Clockwise: end_angle < start_angle
+	//float start_angle = -IM_PI / 2.0f + angle; // with angle it rotates
+	float start_angle = -IM_PI / 2.0f + angle;
+	float end_angle = start_angle - fill * 2.0f * IM_PI; // Subtract for clockwise
+
+	for (int i = 0; i < arc_segments; ++i) {
+		float t0 = (float)i / arc_segments;
+		float t1 = (float)(i + 1) / arc_segments;
+		float theta0 = start_angle - t0 * (start_angle - end_angle);
+		float theta1 = start_angle - t1 * (start_angle - end_angle);
+
+		ImVec2 p0 = center;
+		ImVec2 p1 = ImVec2(center.x + cosf(theta0) * rx, center.y + sinf(theta0) * ry);
+		ImVec2 p2 = ImVec2(center.x + cosf(theta1) * rx, center.y + sinf(theta1) * ry);
+
+		ImVec2 uv0(0.5f, 0.5f);
+		ImVec2 uv1(0.5f + 0.5f * cosf(theta0), 0.5f + 0.5f * sinf(theta0));
+		ImVec2 uv2(0.5f + 0.5f * cosf(theta1), 0.5f + 0.5f * sinf(theta1));
+
+		draw_list->AddImageQuad(
+			tex_id,
+			p0, p1, p2, p0,
+			uv0, uv1, uv2, uv0,
+			color
+		);
+	}
 }
 
 void RedOrbCounterWindow() {
@@ -458,9 +516,152 @@ void CheatHotkeysPopUpWindow() {
 	ImGui::End();
 }
 
+void LockOnWindows() {
+	static float lockOnAngle[PLAYER_COUNT] = { 0.0f };
+	static FadeState lockOnFade[PLAYER_COUNT];
+
+	assert(LockOnTexture);
+	if (!LockOnTexture->IsValid()) {
+		return;
+	}
+	if (!(InGame() && !g_inGameCutscene)) {
+		return;
+	}
+	
+	
+	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+	float textureBaseSizeX = 600.0f;
+	float textureBaseSizeY = 581.0f;
+
+	// Spin speed in radians per second (adjust as needed)
+	const float spinSpeed = 0.04f; // slow spin
+
+	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.lockOn) {
+		return;
+	}
+
+	// Loop through player data
+	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
+		auto& playerData = GetPlayerData(playerIndex);
+		auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+
+		if (!newActorData.baseAddr) {
+			return;
+		}
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+
+		// Update angle
+		float deltaTime = ImGui::GetIO().DeltaTime;
+		lockOnAngle[playerIndex] += spinSpeed * deltaTime;
+
+		// Keep angle in [0, 2*PI]
+		if (lockOnAngle[playerIndex] > IM_PI * 2.0f) lockOnAngle[playerIndex] -= IM_PI * 2.0f;
+
+		auto distanceClamped = crimsonPlayer[playerIndex].cameraLockedEnemyDistanceClamped;
+
+		// Adjusts size dynamically based on the distance between Camera and Playerfloat minDistance = 5.0f;
+		float minDistance = 5.0f;
+		float safeDistance = (std::max)((float)distanceClamped, minDistance);
+		ImVec2 sizeDistance = { (textureBaseSizeX * (1.0f / (safeDistance / 25))) * scaleFactorY,
+								(textureBaseSizeY * (1.0f / (safeDistance / 25))) * scaleFactorY };
+		auto& lockedEnemyScreenPosition = crimsonPlayer[playerIndex].lockedEnemyScreenPosition;
+
+		float textureWidth = sizeDistance.x * 0.25f * scaleFactorY;
+		float textureHeight = sizeDistance.y * 0.25f * scaleFactorY;
+
+		ImVec2 windowSize = ImVec2(sizeDistance.x * scaleFactorY, sizeDistance.y * scaleFactorY);
+		float edgeOffsetX = 350.0f * scaleFactorY;
+		float edgeOffsetY = 350.0f * scaleFactorY;
+
+		float offsetX = 0.24f * sizeDistance.x;  // 10% of texture width
+		float offsetY = +0.23f * sizeDistance.y; // 20% of texture height upwards
+
+		ImVec2 texturePos = ImVec2(
+			lockedEnemyScreenPosition.x - (sizeDistance.x / 2.0f) + offsetX,
+			lockedEnemyScreenPosition.y - (sizeDistance.y / 2.0f) + offsetY
+		);
+		
+		ImVec2 windowPos = ImVec2(
+			texturePos.x + (sizeDistance.x / 2.0f) - (windowSize.x / 2.0f),
+			texturePos.y + (sizeDistance.y / 2.0f) - (windowSize.y / 2.0f)
+		);
+		ImGui::SetNextWindowSize(windowSize);
+		ImGui::SetNextWindowPos(windowPos);
+
+		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+		std::string windowName = "LockOnWindow" + std::to_string(playerIndex);
+
+		ImGui::Begin(windowName.c_str(), nullptr, windowFlags);
+
+		float alpha = 1.0f;
+
+		ImVec4 playerColor = ConvertColorFromUint8ToVec4(activeCrimsonConfig.PlayerProperties.playerColor[playerIndex]);
+
+		ImColor color(playerColor);
+		float h, s, v;
+		ImGui::ColorConvertRGBtoHSV(color.Value.x, color.Value.y, color.Value.z, h, s, v);
+
+		// Boost saturation and value for more "pop"
+		s = ImClamp(s * 1.4f, 0.0f, 1.0f); // Increase saturation by 40%
+		v = ImClamp(v * 1.8f, 0.0f, 1.0f); // Increase brightness by 80%
+
+		ImVec4 poppedColor;
+		ImGui::ColorConvertHSVtoRGB(h, s, v, poppedColor.x, poppedColor.y, poppedColor.z);
+		poppedColor.w = lockOnFade[playerIndex].alpha; // Set alpha
+
+		ImColor colorWithAlpha(poppedColor);
+		ImColor fgColorWithAlpha(1.0f, 1.0f, 1.0f, lockOnFade[playerIndex].alpha);
+
+		CrimsonGameplay::GetLockedOnEnemyHitPoints(actorData);
+		float healthFraction = crimsonPlayer[playerIndex].lockedOnEnemyHP / crimsonPlayer[playerIndex].lockedOnEnemyMaxHP; // Clamp to [0,1] as needed
+
+		bool lockOnActive = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON)) && actorData.lockOnData.targetBaseAddr60 != 0;
+
+		float fadeSpeed = 8.0f; // Higher = faster fade
+		float targetAlpha = lockOnActive ? 1.0f : 0.0f;
+		lockOnFade[playerIndex].alpha = SmoothLerp(lockOnFade[playerIndex].alpha, targetAlpha, fadeSpeed, ImGui::GetIO().DeltaTime);
+
+		if (lockOnFade[playerIndex].alpha <= 0.01f) {
+			continue;
+		}
+
+		if (LockOnTexture->IsValid()) {
+			DrawRotatedImagePie(
+				LockOnTexture->GetTexture(),
+				texturePos,
+				ImVec2(textureWidth, textureHeight),
+				lockOnAngle[playerIndex],
+				colorWithAlpha,
+				healthFraction
+			);
+			DrawRotatedImagePie(
+				LockOnForegroundTexture->GetTexture(),
+				texturePos,
+				ImVec2(textureWidth, textureHeight),
+				lockOnAngle[playerIndex],
+				fgColorWithAlpha,
+				healthFraction
+			);
+		} else {
+			ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
+		}
+		
+		ImGui::End();
+	}
+	
+
+	
+}
+
+
 void InitTextures(ID3D11Device* pd3dDevice) {
 	InitRedOrbTexture(pd3dDevice);
 	InitDStyleRankTextures(pd3dDevice);
+	InitLockOnTexture(pd3dDevice);
 }
 
 }
