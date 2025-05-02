@@ -7698,11 +7698,11 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             }
             auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 
-			if (!actorData.lockOnData.targetBaseAddr60) {
-				return;
-			}
-
-			auto& lockedOnEnemyData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60);
+// 			if (!actorData.lockOnData.targetBaseAddr60) {
+// 				return;
+// 			}
+// 
+// 			auto& lockedOnEnemyData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60);
 
 			//ImGui::Text("TargetPosZ %g", actorData.lockOnData.targetPosition.z);
 
