@@ -237,7 +237,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			window->DrawList->AddText(g_ImGuiFont_RussoOne[scaledFontSize], scaledFontSize, pos + ImVec2{ modeTextWidth, 0.0f }, gameModeStringColor, gameModeString);
 
 			if (activeConfig.Actor.enable != queuedConfig.Actor.enable && g_scene == SCENE::GAME) {
-				window->DrawList->AddText(g_ImGuiFont_Roboto[scaledFontSize], scaledFontSize * 0.9f, ImVec2(pos.x + 250.0f, pos.y - 35.0f) * scaleFactorY, ccsRestartStringColor, ccsRestartString);
+				window->DrawList->AddText(g_ImGuiFont_Roboto[scaledFontSize], scaledFontSize * 0.9f, ImVec2(pos.x + (250.0f * scaleFactorY), pos.y - (35.0f * scaleFactorY)), ccsRestartStringColor, ccsRestartString);
 			}
 		}
 
@@ -3891,7 +3891,7 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 
 	float minFontSize = 10.0f; // Font cannot go below 10 or else ImGui asserts will come in.
 	float fontSizeDistance = (std::max)(17.0f * scaleFactorY, minFontSize);
-	float fontSizeNameLabel = (std::max)(29.0f * scaleFactorY, minFontSize);
+	float fontSizeNameLabel = (std::max)(23.0f * scaleFactorY, minFontSize);
 
 	// Draw the distance text centered inside the button
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSizeDistance]);
@@ -3903,10 +3903,12 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 		buttonPos.y + 5.0f * scaleFactorY
 	);
 	drawList->AddText(distanceTextPos, ImGui::GetColorU32(ImGuiCol_Text), distanceText.c_str());
+	ImGui::PopStyleColor();
 	ImGui::PopFont();
 
 	// Draw name label (2P, 3P, etc)
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSizeNameLabel]);
+	ImGui::PushStyleColor(ImGuiCol_Text, textColor);
 	ImVec2 nameTextSize = ImGui::CalcTextSize(name);
 	ImVec2 nameTextPos = ImVec2(
 		buttonPos.x + (buttonSize.x - nameTextSize.x) * 0.5f,
