@@ -260,24 +260,6 @@ void ToggleIncreasedArtemisInstantChargeResponsiveness(bool enable) {
 	run = enable;
 }
 
-void ToggleDisableSoulEaterInvis(bool enable) {
-	static bool run = false;
-
-	if (run == enable) {
-		return;
-	}
-
-	//dmc3.exe + E94E2 - 75 24 - jne dmc3.exe + E9508{ Soul Eater goes visible comparison
-	
-	if (enable) {
-		_patch((char*)(appBaseAddr + 0xE94E2), (char*)"\xEB\x24", 2); // Soul Eater goes visible regardless
-	} else {
-		_patch((char*)(appBaseAddr + 0xE94E2), (char*)"\x75\x24", 2); // Soul Eater goes visible only when it should
-	}
-
-	run = enable;
-}
-
 #pragma endregion
 
 #pragma region CameraStuff
@@ -1238,6 +1220,51 @@ void DisableEnemyTargetting1PPosition(bool enable) {
 		_patch((char*)(appBaseAddr + 0x616F2), (char*)"\x0F\x29\x41\x40", 4);
 	}
 	run = enable;
+}
+
+void ToggleDisableSoulEaterInvis(bool enable) {
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	//dmc3.exe + E94E2 - 75 24 - jne dmc3.exe + E9508{ Soul Eater goes visible comparison
+
+	if (enable) {
+		_patch((char*)(appBaseAddr + 0xE94E2), (char*)"\xEB\x24", 2); // Soul Eater goes visible regardless
+	} else {
+		_patch((char*)(appBaseAddr + 0xE94E2), (char*)"\x75\x24", 2); // Soul Eater goes visible only when it should
+	}
+
+	run = enable;
+}
+
+void SetEnemyDTMode(uint8 mode) {
+	static uint8 run = -1;
+	if (run == mode) {
+		return;
+	}
+	// 	INSTANT ENEMY DT
+	// 	dmc3.exe + 6105F - 80 B9 BC 00 00 00 00 - cmp byte ptr[rcx + 000000BC], 00 { 0 }
+	// 	Change this comparison to 01 or nop the addr and you get instant enemy DT
+	// 
+	// 	NO ENEMY DT :
+	// 	dmc3.exe + 6105D - 77 09 - ja dmc3.exe + 61068 // nop this addr
+	// 	dmc3.exe + 61066 - 74 18 - je dmc3.exe + 61080 // change this addr to a jmp // EB 18
+
+	if (mode == ENEMYDTMODE::INSTANT_DT) {
+		_nop((char*)(appBaseAddr + 0x6105F), 7); // Change the cmp to 1
+
+	} else if (mode == ENEMYDTMODE::NO_ENEMY_DT) {
+		_nop((char*)(appBaseAddr + 0x6105D), 2); // NOP the ja
+		_patch((char*)(appBaseAddr + 0x61066), (char*)"\xEB\x18", 2); // Change the je to a jmp
+	} else {
+		_patch((char*)(appBaseAddr + 0x6105F), (char*)"\x80\xB9\xBC\x00\x00\x00\x00", 7); // Change the cmp back to 0
+		_patch((char*)(appBaseAddr + 0x6105D), (char*)"\x77\x09", 2); // Change the ja back
+		_patch((char*)(appBaseAddr + 0x61066), (char*)"\x74\x18", 2); // Change the jmp back to a je
+	}
+	run = mode;
 }
 
 #pragma endregion

@@ -8501,7 +8501,7 @@ float ApplyDamage(byte8* dest, float value) {
             auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_13274[3]);
 
 
-            if (actorData.styleData.rank < activeCrimsonGameplay.Cheats.Damage.minStyleRankForDamage) {
+            if (actorData.styleData.rank < activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode) {
                 return 0;
             }
         }

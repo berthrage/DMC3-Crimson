@@ -15,7 +15,6 @@ void RainstormLift(bool enable);
 void ToggleIncreasedEnemyJuggleTime(bool enable);
 void DisableAirSlashKnockback(bool enable);
 void ToggleIncreasedArtemisInstantChargeResponsiveness(bool enable);
-void ToggleDisableSoulEaterInvis(bool enable);
 
 #pragma endregion
 
@@ -61,6 +60,8 @@ void CerberusCrashFixPart2(bool enable);
 # pragma region Enemy
 
 void DisableEnemyTargetting1PPosition(bool enable);
+void ToggleDisableSoulEaterInvis(bool enable);
+void SetEnemyDTMode(uint8 mode);
 
 #pragma endregion
 

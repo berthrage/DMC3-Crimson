@@ -280,6 +280,8 @@ const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.vanillaWeaponSwitchDelay = false;
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
+	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
+	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
 	mask.Cheats.Training.infiniteHP = false;
 	mask.Cheats.Training.infiniteDT = false;
 	mask.Cheats.Training.disableTimers = false;
@@ -287,7 +289,6 @@ const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 	mask.Cheats.General.customDamage = false;
 	mask.Cheats.Damage.playerReceivedDmgMult = false;
 	mask.Cheats.Damage.enemyReceivedDmgMult = false;
-	mask.Cheats.Damage.minStyleRankForDamage = false;
 	mask.Cheats.General.customSpeed = false;
 	mask.Cheats.Speed.enemy = false;
 	mask.Cheats.Speed.human = false;
@@ -317,6 +318,8 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.bufferlessReversals = false;
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
+	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
+	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
 	mask.Cheats.Vergil.chronoSwords = false;
 	mask.Cheats.Training.infiniteHP = false;
 	mask.Cheats.Training.infiniteDT = false;
@@ -325,7 +328,6 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Cheats.General.customDamage = false;
 	mask.Cheats.Damage.playerReceivedDmgMult = false;
 	mask.Cheats.Damage.enemyReceivedDmgMult = false;
-	mask.Cheats.Damage.minStyleRankForDamage = false;
 	mask.Cheats.General.customSpeed = false;
 	mask.Cheats.Speed.enemy = false;
 	mask.Cheats.Speed.human = false;
@@ -354,6 +356,8 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.bufferlessReversals = false;
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
+	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
+	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
 	mask.Cheats.Vergil.chronoSwords = false;
 	mask.Cheats.Training.infiniteHP = false;
 	mask.Cheats.Training.infiniteDT = false;
@@ -362,7 +366,6 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Cheats.General.customDamage = false;
 	mask.Cheats.Damage.playerReceivedDmgMult = false;
 	mask.Cheats.Damage.enemyReceivedDmgMult = false;
-	mask.Cheats.Damage.minStyleRankForDamage = false;
 	mask.Cheats.General.customSpeed = false;
 	mask.Cheats.Speed.enemy = false;
 	mask.Cheats.Speed.human = false;
@@ -549,8 +552,7 @@ void CrimsonGameModes::TrackCheats() {
 	bool damageChanged =
 		activeCheats.General.customDamage != currentPreset.Cheats.General.customDamage ||
 		activeCheats.Damage.playerReceivedDmgMult != currentPreset.Cheats.Damage.playerReceivedDmgMult ||
-		activeCheats.Damage.enemyReceivedDmgMult != currentPreset.Cheats.Damage.enemyReceivedDmgMult ||
-		activeCheats.Damage.minStyleRankForDamage != currentPreset.Cheats.Damage.minStyleRankForDamage;
+		activeCheats.Damage.enemyReceivedDmgMult != currentPreset.Cheats.Damage.enemyReceivedDmgMult;
 
 	updateCheatFlag(damageChanged, CHEATS::DAMAGE);
 
@@ -627,11 +629,15 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 
 	static bool presetChanged = false;
 	static bool ldkChanged = false;
+	static bool mustStyleChanged = false;
+	static bool enemyDTChanged = false;
 
 	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
 	if (!name_10723) {
 		gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : activeCrimsonGameplay.GameMode.preset;
 		gameModeData.ldkNissionResult = ldkChanged ? LDKMODE::OFF : activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode;
+		gameModeData.mustStyleMissionResult = mustStyleChanged ? STYLE_RANK::NONE : activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode;
+		gameModeData.enemyDTMissionResult = enemyDTChanged ? ENEMYDTMODE::DEFAULT : activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode;
 		initializedMission = false; // Reset for next mission
 		return;
 	}
@@ -639,14 +645,22 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 
 	static uint8 initialPreset = GAMEMODEPRESETS::UNRATED;
 	static uint8 initialLDKPreset = LDKMODE::OFF;
+	static uint8 initialEnemyDTPreset = ENEMYDTMODE::DEFAULT;
+	static uint32 initialMustStylePreset = STYLE_RANK::NONE;
+	static bool enemyDTLockedNoDT = false; 
 
 	if (missionData.frameCount > 0 && g_scene != SCENE::MISSION_RESULT) { // Mission is Running
 		if (!initializedMission) {
 			initialPreset = activeCrimsonGameplay.GameMode.preset;
 			initialLDKPreset = activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode;
+			initialEnemyDTPreset = activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode;
+			initialMustStylePreset = activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode;
 			initializedMission = true;
 			presetChanged = false;
 			ldkChanged = false;
+			mustStyleChanged = false;
+			enemyDTChanged = false;
+			enemyDTLockedNoDT = false; // Reset lock at mission start
 		} else if (activeCrimsonGameplay.GameMode.preset != initialPreset) {
 			presetChanged = true;
 			gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : activeCrimsonGameplay.GameMode.preset;
@@ -656,10 +670,31 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 			ldkChanged = true;
 			gameModeData.ldkNissionResult = ldkChanged ? LDKMODE::OFF : activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode;
 		}
+
+		if (activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode != initialMustStylePreset) {
+			mustStyleChanged = true;
+			gameModeData.mustStyleMissionResult = mustStyleChanged ? STYLE_RANK::NONE : activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode;
+		}
+
+		// Enemy DT Mode logic with lock
+		if (!enemyDTLockedNoDT && activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode == ENEMYDTMODE::NO_ENEMY_DT) {
+			enemyDTLockedNoDT = true;
+			gameModeData.enemyDTMissionResult = ENEMYDTMODE::NO_ENEMY_DT;
+		} else if (!enemyDTLockedNoDT && activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode != initialEnemyDTPreset) {
+			enemyDTChanged = true;
+			gameModeData.enemyDTMissionResult = enemyDTChanged ? ENEMYDTMODE::DEFAULT : activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode;
+		} else if (enemyDTLockedNoDT) {
+			// Keep it locked
+			gameModeData.enemyDTMissionResult = ENEMYDTMODE::NO_ENEMY_DT;
+		}
 	} else if (g_scene == SCENE::MISSION_RESULT) { // Mission Result Screen
 		gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : gameModeData.missionResultGameMode;
 		gameModeData.ldkNissionResult = ldkChanged ? LDKMODE::OFF : activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode;
+		gameModeData.mustStyleMissionResult = mustStyleChanged ? STYLE_RANK::NONE : activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode;
+		gameModeData.enemyDTMissionResult = enemyDTLockedNoDT ? ENEMYDTMODE::NO_ENEMY_DT :
+			(enemyDTChanged ? ENEMYDTMODE::DEFAULT : activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode);
 		initializedMission = false; // Reset for next mission
+		enemyDTLockedNoDT = false;  // Reset lock after mission result
 	}
 }
 

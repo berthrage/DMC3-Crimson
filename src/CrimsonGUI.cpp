@@ -1679,6 +1679,18 @@ constexpr uint8 ldkModes[] = {
 	LDKMODE::SUPER_LDK_BOSSES,
 };
 
+const char* enemyDTModeNames[] = {
+	"Default",
+	"Instant Enemy DT",
+	"No Enemy DT",
+};
+
+constexpr uint8 enemyDTModes[] = {
+	ENEMYDTMODE::DEFAULT,
+	ENEMYDTMODE::INSTANT_DT,
+	ENEMYDTMODE::NO_ENEMY_DT,
+};
+
 static_assert(countof(trackFilenames) == countof(trackNames));
 
 #pragma endregion
@@ -3555,6 +3567,8 @@ void RenderMissionResultGameModeStats() {
 
 	ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
+	ImFont* font = UI::g_ImGuiFont_RussoOne[40.0f];
+	ImGui::PushFont(font);
 
 	if (ImGui::Begin("MissionResultStats", nullptr,
 		ImGuiWindowFlags_NoTitleBar |
@@ -3567,9 +3581,6 @@ void RenderMissionResultGameModeStats() {
 
 		ImGui::SetWindowFontScale(scaleFactorY);
 
-		ImFont* font = UI::g_ImGuiFont_RussoOne[40.0f];
-		ImGui::PushFont(font);
-
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		ImVec2 textSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, missionResultGameModeString);
 		ImVec2 textPos = ImGui::GetWindowPos() + ImVec2(10.0f * scaleFactorY, 0.0f);
@@ -3578,29 +3589,57 @@ void RenderMissionResultGameModeStats() {
 		// 		window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 		// 			SwapColorEndianness(0xFFFFFF10), "Game Mode");
 
+		ImGui::End();
+	}
+
+	ImVec2 difficultyWindowPos = ImVec2(
+		(g_renderSize.x - windowSize.x) * 0.5f + (250.0f * scaleFactorY),
+		scaleFactorY / 2 + (210.0f * scaleFactorY)
+	);
+
+	ImGui::SetNextWindowPos(difficultyWindowPos, ImGuiCond_Always);
+	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
+
+	if (ImGui::Begin("DifficultyStats", nullptr,
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoInputs |
+		ImGuiWindowFlags_NoBackground)) {
 		 // Calculate position for difficulty text
 		const char* difficultyString = gameModeData.difficultyModeNames[sessionData.mode].c_str(); // Implement this function as needed
 		ImVec2 difficultyTextSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, difficultyString);
+		ImGui::SetWindowFontScale(scaleFactorY);
 
 		// Center difficulty text based on game mode text
-		ImVec2 difficultyTextPos = textPos;
-		difficultyTextPos.y += textSize.y + (37.0f * scaleFactorY); 
-		difficultyTextPos.x += (textSize.x - difficultyTextSize.x) * 0.5f; // Centered
+		ImVec2 difficultyTextPos = ImGui::GetWindowPos() + ImVec2(10.0f * scaleFactorY, 0.0f);
 
 		ImGui::SetCursorScreenPos(difficultyTextPos);
 		ImGui::Text("%s", difficultyString);
 
 		ImGui::SameLine();
 		std::string ldkMissionText = (" - " + (std::string)ldkModeNames[gameModeData.ldkNissionResult]);
+		std::string mustStyleMissionText = " - Must Style (" + std::string(styleRankNames[gameModeData.mustStyleMissionResult]) + ")";
+		std::string enemyDTMissionText = (" - " + (std::string)enemyDTModeNames[gameModeData.enemyDTMissionResult]);
 
 		if (gameModeData.ldkNissionResult != LDKMODE::OFF) {
 			ImGui::Text(ldkMissionText.c_str());
 		}
+		ImGui::SameLine();
+		if (gameModeData.mustStyleMissionResult != STYLE_RANK::NONE) {
+			ImGui::Text(mustStyleMissionText.c_str());
+		}
+		ImGui::SameLine();
+		if (gameModeData.enemyDTMissionResult != ENEMYDTMODE::DEFAULT && sessionData.mode == DIFFICULTY_MODE::DANTE_MUST_DIE) {
+			ImGui::Text(enemyDTMissionText.c_str());
+		}
 
-		ImGui::PopFont();
+		
+		ImGui::End();
 	}
-
-	ImGui::End();
+	ImGui::PopFont();
 }
 
 
@@ -4982,11 +5021,6 @@ void CustomDamageSection() {
 				&defaultCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult, sizeof(queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult));
 			CopyMemory(&activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult,
 				&queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult, sizeof(activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult));
-
-			CopyMemory(&queuedCrimsonGameplay.Cheats.Damage.minStyleRankForDamage, 
-				&defaultCrimsonGameplay.Cheats.Damage.minStyleRankForDamage, sizeof(queuedCrimsonGameplay.Cheats.Damage.minStyleRankForDamage));
-			CopyMemory(&activeCrimsonGameplay.Cheats.Damage.minStyleRankForDamage,
-				&queuedCrimsonGameplay.Cheats.Damage.minStyleRankForDamage, sizeof(activeCrimsonGameplay.Cheats.Damage.minStyleRankForDamage));
 		}
 	}
 	ImGui::PopFont();
@@ -5049,18 +5083,7 @@ void CustomDamageSection() {
 					}
 				}
 			}
-
-			ImGui::TableNextColumn();
-
-			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
-			ImGui::Text("CAUSE DAMAGE ONLY ON STYLE RANK");
-			ImGui::PopFont();
-			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			UI::Combo2("", styleRankNames, activeCrimsonGameplay.Cheats.Damage.minStyleRankForDamage, queuedCrimsonGameplay.Cheats.Damage.minStyleRankForDamage);
-			ImGui::PopItemWidth();
-
 			GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.customDamage);
-
 			ImGui::EndTable();
 		}
 	}
@@ -7740,8 +7763,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				return;
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
-			CrimsonGameplay::GetLockedOnEnemyStunDisplacement(actorData);
-
+			
+			ImGui::Text("gameModeData.mustStyleMissionResult: %u", gameModeData.mustStyleMissionResult);
+			ImGui::Text("gameModeData.enemyDTMisionResult: %u", gameModeData.enemyDTMissionResult);
 			ImGui::Text("lockedEnemyScreenPositionX: %g", crimsonPlayer[0].lockedEnemyScreenPosition.x);
 			ImGui::Text("lockedEnemyScreenPositionX: %g", actorData.lockOnData.targetPosition.x);
 			ImGui::Text("lockOnEnemyStun: %g", crimsonPlayer[0].lockedOnEnemyStun);
@@ -10609,44 +10633,44 @@ void VergilCheatOptions() {
 		GUI_PopDisable(disabled);
 		};
 
-	// Get initial cursor position for manual layout
-	ImVec2 initialPos = ImGui::GetCursorPos();
-	const float columnWidth = 0.15f * queuedConfig.globalScale;
-	const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
+		// Get initial cursor position for manual layout
+		ImVec2 initialPos = ImGui::GetCursorPos();
+		const float columnWidth = 0.15f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
 
-	GUI_PushDisable(!activeConfig.Actor.enable);
-	ImGui::SetCursorPos(initialPos);
-	// Start table for Rising Sun and Judgement Cut
-	if (ImGui::BeginTable("VergilActionTable", 2)) {
-		ImGui::TableSetupColumn("b1", 0, columnWidth);
-		ImGui::TableNextRow(0, rowWidth);
-		ImGui::TableNextColumn();
+		GUI_PushDisable(!activeConfig.Actor.enable);
+		ImGui::SetCursorPos(initialPos);
+		// Start table for Rising Sun and Judgement Cut
+		if (ImGui::BeginTable("VergilActionTable", 2)) {
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
-		ImGui::Text("HUMAN");
-		ImGui::TableNextColumn();
-		ImGui::Text("DEVIL TRIGGER");
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("HUMAN");
+			ImGui::TableNextColumn();
+			ImGui::Text("DEVIL TRIGGER");
+			ImGui::PopFont();
+
+			bool beowulfDisabled = !activeCrimsonGameplay.Gameplay.Vergil.airRisingSun;
+			VergilActionDataInput("Air Rising Sun Count",
+				activeCrimsonGameplay.Cheats.Vergil.airRisingSunCount,
+				queuedCrimsonGameplay.Cheats.Vergil.airRisingSunCount,
+				defaultCrimsonGameplay.Cheats.Vergil.airRisingSunCount,
+				beowulfDisabled);
+
+			VergilActionDataInput("Judgement Cut Count",
+				activeCrimsonGameplay.Cheats.Vergil.judgementCutCount,
+				queuedCrimsonGameplay.Cheats.Vergil.judgementCutCount,
+				defaultCrimsonGameplay.Cheats.Vergil.judgementCutCount);
+
+			ImGui::EndTable();
+		}
+		GUI_PopDisable(!activeConfig.Actor.enable);
+
+		ImGui::Text("");
+		ImGui::PopStyleColor();
 		ImGui::PopFont();
-
-		bool beowulfDisabled = !activeCrimsonGameplay.Gameplay.Vergil.airRisingSun;
-		VergilActionDataInput("Air Rising Sun Count",
-			activeCrimsonGameplay.Cheats.Vergil.airRisingSunCount,
-			queuedCrimsonGameplay.Cheats.Vergil.airRisingSunCount,
-			defaultCrimsonGameplay.Cheats.Vergil.airRisingSunCount,
-			beowulfDisabled);
-
-		VergilActionDataInput("Judgement Cut Count",
-			activeCrimsonGameplay.Cheats.Vergil.judgementCutCount,
-			queuedCrimsonGameplay.Cheats.Vergil.judgementCutCount,
-			defaultCrimsonGameplay.Cheats.Vergil.judgementCutCount);
-
-		ImGui::EndTable();
-	}
-	GUI_PopDisable(!activeConfig.Actor.enable);
-
-	ImGui::Text("");
-	ImGui::PopStyleColor();
-	ImGui::PopFont();
 }
 
 void ExtraDifficultyGameplayOptions() {
@@ -10665,14 +10689,14 @@ void ExtraDifficultyGameplayOptions() {
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
 	const float rowHeight = 40.0f * queuedConfig.globalScale;
 
-	if (ImGui::BeginTable("ExtraDifficultyOptionsTable", 1)) {
+	if (ImGui::BeginTable("ExtraDifficultyOptionsTable", 3)) {
 		ImGui::TableSetupColumn("c1", 0, columnWidth * 2.0f);
 
 		ImGui::TableNextRow(0, rowHeight * 0.5f);
 		ImGui::TableNextColumn();
 
 		ImGui::PushItemWidth(itemWidth * 1.0f);
-		UI::ComboMapValue2("Legendary Dark Knight Mode",
+		UI::ComboMapValue2("Legendary Dark Knight",
 			ldkModeNames,
 			ldkModes,
 			activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode,
@@ -10681,6 +10705,30 @@ void ExtraDifficultyGameplayOptions() {
 		ImGui::SameLine();
 		TooltipHelper("(?)", "Spawns large waves of enemies like in DMC5's LDK Mode.\n"
 			"Super LDK spawns even more enemies. Super LDK + Bosses duplicates some of the Bosses.");
+
+		ImGui::TableNextColumn();
+
+		ImGui::PushItemWidth(itemWidth * 0.8f);
+		UI::Combo2("Must Style", styleRankNames, activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode, queuedCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode);
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Restrict your damage to only apply at specific Style Ranks.");
+
+		ImGui::TableNextColumn();
+
+		ImGui::PushItemWidth(itemWidth * 0.93f);
+		if (UI::ComboMapValue2("Enemy DT Mode",
+			enemyDTModeNames,
+			enemyDTModes,
+			activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode,
+			queuedCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode)) {
+			CrimsonPatches::SetEnemyDTMode(activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode);
+		}
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Default setting will apply Enemy DT as normal in Dante Must Die Difficulty.\n"
+			"Instant Enemy DT will apply Enemy DT instantly when they spawn on DMD.\n"
+		"No Enemy DT will make it so enemy DT never occurs, even on DMD.");
 
 		ImGui::EndTable();
 	}

@@ -4720,9 +4720,19 @@ enum {
 };
 }
 
+namespace ENEMYDTMODE {
+enum {
+	DEFAULT,
+	INSTANT_DT,
+	NO_ENEMY_DT,
+};
+}
+
 struct GameModeData {
     uint8 missionResultGameMode = 2;
     uint8 ldkNissionResult = LDKMODE::OFF;
+    uint32 mustStyleMissionResult = STYLE_RANK::NONE;
+    uint8 enemyDTMissionResult = ENEMYDTMODE::DEFAULT;
 	std::vector<std::string> names = {
 		"VANILLA MODE",
 		"STYLE SWITCHER MODE",

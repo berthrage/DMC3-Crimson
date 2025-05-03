@@ -143,10 +143,14 @@ struct CrimsonConfigGameplay {
 
 		struct ExtraDifficulty {
 			uint8 ldkMode = 0;
+			uint32 mustStyleMode = STYLE_RANK::NONE;
+			uint8 enemyDTMode = ENEMYDTMODE::DEFAULT;
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
-					std::make_pair("ldkMode", &ExtraDifficulty::ldkMode)
+					std::make_pair("ldkMode", &ExtraDifficulty::ldkMode),
+					std::make_pair("mustStyleMode", &ExtraDifficulty::mustStyleMode),
+					std::make_pair("enemyDTMode", &ExtraDifficulty::enemyDTMode)
 				);
 			}
 
@@ -209,13 +213,11 @@ struct CrimsonConfigGameplay {
 		struct Damage {
 			float playerReceivedDmgMult = 1.0f;
 			float enemyReceivedDmgMult = 1.0f;
-			uint32 minStyleRankForDamage = STYLE_RANK::NONE;
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
 					std::make_pair("playerReceivedDmgMult", &Damage::playerReceivedDmgMult),
-					std::make_pair("enemyReceivedDmgMult", &Damage::enemyReceivedDmgMult),
-					std::make_pair("minStyleRankForDamage", &Damage::minStyleRankForDamage)
+					std::make_pair("enemyReceivedDmgMult", &Damage::enemyReceivedDmgMult)
 				);
 			}
 		} Damage;
