@@ -2706,6 +2706,59 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 		if (ImGui::BeginTable("WeaponLoadout", 2)) {
 
 			ImGui::TableNextRow(0, rowWidth);
+
+			if (queuedCharacterData.character == CHARACTER::DANTE) {
+
+				ImGui::TableNextColumn();
+
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
+				ImGui::Text("RANGED");
+				ImGui::PopFont();
+
+
+				ImGui::PushItemWidth(itemWidth);
+
+				auto rangedSlider = [&]() {
+					if (queuedCharacterData.character == activeCharacterData.character) {
+						if (GUI_Slider2<uint8>("", queuedCharacterData.rangedWeaponCount,
+							activeCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1)) {
+							if (!newActorData.baseAddr) return;
+							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+							auto& characterData = GetCharacterData(actorData);
+						}
+					} else {
+						GUI_Slider<uint8>("", queuedCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1);
+					}
+					};
+
+				rangedSlider();
+
+				old_for_all(uint8, rangedWeaponIndex, weaponProgression.gunsUnlockedQtt + 1) {
+					bool condition = (rangedWeaponIndex >= queuedCharacterData.rangedWeaponCount);
+
+					GUI_PushDisable(condition);
+
+					// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
+					if (queuedCharacterData.character == activeCharacterData.character) {
+						if (UI::ComboMapVector2("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
+							queuedCharacterData.rangedWeapons[rangedWeaponIndex], activeCharacterData.rangedWeapons[rangedWeaponIndex])) {
+
+							if (!newActorData.baseAddr) break;
+							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+							actorData.rangedWeaponIndex = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
+						}
+					} else {
+						UI::ComboMapVector("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
+							queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
+					}
+
+					// Doppelganger will now have same weapons equipped as Dante - Mia.
+					queuedCharacterDataClone.rangedWeapons[rangedWeaponIndex] = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
+
+					GUI_PopDisable(condition);
+				}
+			}
+
 			ImGui::TableNextColumn();
 
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
@@ -2804,68 +2857,12 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 			}
 		}
 
-		if (queuedCharacterData.character != CHARACTER::DANTE) {
 			ImGui::PopItemWidth();
 			ImGui::PopItemWidth();
 
 			ImGui::EndTable();
-			return;
+
 		}
-
-		ImGui::TableNextColumn();
-
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
-		ImGui::Text("RANGED");
-		ImGui::PopFont();
-
-
-		ImGui::PushItemWidth(itemWidth);
-
-		auto rangedSlider = [&]() {
-			if (queuedCharacterData.character == activeCharacterData.character) {
-				if (GUI_Slider2<uint8>("", queuedCharacterData.rangedWeaponCount,
-					activeCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1)) {
-					if (!newActorData.baseAddr) return;
-					auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-					auto& characterData = GetCharacterData(actorData);
-				}
-			} else {
-				GUI_Slider<uint8>("", queuedCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1);
-			}
-			};
-
-		rangedSlider();
-
-		old_for_all(uint8, rangedWeaponIndex, weaponProgression.gunsUnlockedQtt + 1) {
-			bool condition = (rangedWeaponIndex >= queuedCharacterData.rangedWeaponCount);
-
-			GUI_PushDisable(condition);
-
-			// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
-			if (queuedCharacterData.character == activeCharacterData.character) {
-				if (UI::ComboMapVector2("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
-					queuedCharacterData.rangedWeapons[rangedWeaponIndex], activeCharacterData.rangedWeapons[rangedWeaponIndex])) {
-
-					if (!newActorData.baseAddr) break;
-					auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-					actorData.rangedWeaponIndex = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
-				}
-			} else {
-				UI::ComboMapVector("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
-					queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
-			}
-
-			// Doppelganger will now have same weapons equipped as Dante - Mia.
-			queuedCharacterDataClone.rangedWeapons[rangedWeaponIndex] = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
-
-			GUI_PopDisable(condition);
-		}
-		ImGui::PopItemWidth();
-		ImGui::PopItemWidth();
-
-		ImGui::EndTable();
-
-	}
 	ImGui::PopFont();
 }
 
@@ -3241,7 +3238,7 @@ void ArcadeSection(size_t defaultFontSize) {
 
 		// ImGui::TableSetColumnWidth(0, columnWidth);
 		ImGui::TableSetupColumn("c1", 0, columnWidth);
-		ImGui::TableNextRow(0, rowWidth);
+		ImGui::TableNextRow(0, rowWidth * 0.5f);
 
 		ImGui::TableNextColumn();
 
