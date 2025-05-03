@@ -113,15 +113,13 @@ void ToggleCursor() {
 void InitBindings()
 {
     BindTable* mainBinds = (BindTable*)(appBaseAddr + 0xD6CE80 + 0xA);
-    //TODO(): check if coop is on
-    //if (coopEnabled) {
-    CopyMemory(mainBinds, &s_defaultBinds, sizeof(BindTable));
-    //}
+    if (activeConfig.Actor.playerCount > 1) {
+        CopyMemory(mainBinds, &s_defaultBinds, sizeof(BindTable));
+    }
 }
 
 void SwapXInputButtonsCoop(uint8 plindex, XINPUT_STATE* state) {
-    // TODO(): idk how to tell if coop mode is on
-    //if(!coopEnabled) { return; }
+    if(activeConfig.Actor.playerCount < 2) { return; }
     std::vector<CrimsonXinputBinding>& playerBinds = s_bindsPlayer[plindex];
     std::vector<uint16> buttons(playerBinds.size(), 0x0);
     size_t btnIndex = 0;
