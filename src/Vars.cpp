@@ -539,11 +539,11 @@ ColorPresets colorPresets;
 
 Toggle toggle;
 
+bool g_disableRightStickCenterCamera;
+
 #pragma endregion
 
 #pragma region Helpers
-WeaponWheelTiming meleeWeaponWheelTiming;
-WeaponWheelTiming rangedWeaponWheelTiming;
 
 bool ebonyIvoryCancel = true;
 
@@ -630,6 +630,8 @@ float storedHP = 0;
 float storedDT = 0;
 
 CrimsonHudData crimsonHud;
+
+CheatsPopUpData cheatsPopUp;
 
 WeaponProgressionData weaponProgression;
 

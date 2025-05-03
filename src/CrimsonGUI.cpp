@@ -32,10 +32,7 @@
 #include "Training.hpp"
 #include "Window.hpp"
 #include "WebAPICalls.hpp"
-#include "UI\Texture2DD3D11.hpp"
 
-
-#include "UI\EmbeddedImages.hpp"
 #include "UI\WeaponWheel.hpp"
 
 #include <cmath>
@@ -72,18 +69,26 @@
 #include "CrimsonSDL.hpp"
 #include "CrimsonPatches.hpp"
 #include "CrimsonDetours.hpp"
+#include "UI\Texture2DD3D11.hpp"
+#include "UI\EmbeddedImages.hpp"
 
 #include "DebugDrawDX11.hpp"
 
 #include "ImGui/imgui.h"
+#include "CrimsonHUD.hpp"
 
 #define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
 #define LOAD_SDL_FUNCTION(X) fn_##X = GetSDLFunction<decltype(X)*>(#X)
 
+
+namespace CrimsonGUI {
 float scaleFactorX;
 float scaleFactorY;
 float scaledFontSize;
 float itemWidth;
+}
+
+using namespace CrimsonGUI;
 
 void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context);
 
@@ -232,7 +237,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			window->DrawList->AddText(g_ImGuiFont_RussoOne[scaledFontSize], scaledFontSize, pos + ImVec2{ modeTextWidth, 0.0f }, gameModeStringColor, gameModeString);
 
 			if (activeConfig.Actor.enable != queuedConfig.Actor.enable && g_scene == SCENE::GAME) {
-				window->DrawList->AddText(g_ImGuiFont_Roboto[scaledFontSize], scaledFontSize * 0.9f, ImVec2(pos.x + 250.0f, pos.y - 35.0f) * scaleFactorY, ccsRestartStringColor, ccsRestartString);
+				window->DrawList->AddText(g_ImGuiFont_Roboto[scaledFontSize], scaledFontSize * 0.9f, ImVec2(pos.x + (250.0f * scaleFactorY), pos.y - (35.0f * scaleFactorY)), ccsRestartStringColor, ccsRestartString);
 			}
 		}
 
@@ -908,6 +913,7 @@ const char* buttonNames[] = {
 	"Down",
 	"Left",
 };
+const int buttonNamesCount = IM_ARRAYSIZE(buttonNames);
 
 constexpr byte16 buttons[] = {
 	0,
@@ -1185,6 +1191,18 @@ const char* weaponSwitchTypeNames[] = {
 const char* stickNames[] = {
 	"Right Stick",
 	"Left Stick",
+};
+
+const char* rightStickCenterCamNames[] = {
+	"Off",
+	"To Nearest Side",
+	"On",
+};
+
+uint8 rightStickCenterCamMap[] = {
+	0,
+	1,
+	2,
 };
 
 const char* styleRankNames[] = {
@@ -1659,6 +1677,18 @@ constexpr uint8 ldkModes[] = {
 	LDKMODE::LDK,
 	LDKMODE::SUPER_LDK,
 	LDKMODE::SUPER_LDK_BOSSES,
+};
+
+const char* enemyDTModeNames[] = {
+	"Default",
+	"Instant Enemy DT",
+	"No Enemy DT",
+};
+
+constexpr uint8 enemyDTModes[] = {
+	ENEMYDTMODE::DEFAULT,
+	ENEMYDTMODE::INSTANT_DT,
+	ENEMYDTMODE::NO_ENEMY_DT,
 };
 
 static_assert(countof(trackFilenames) == countof(trackNames));
@@ -2688,6 +2718,59 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 		if (ImGui::BeginTable("WeaponLoadout", 2)) {
 
 			ImGui::TableNextRow(0, rowWidth);
+
+			if (queuedCharacterData.character == CHARACTER::DANTE) {
+
+				ImGui::TableNextColumn();
+
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
+				ImGui::Text("RANGED");
+				ImGui::PopFont();
+
+
+				ImGui::PushItemWidth(itemWidth);
+
+				auto rangedSlider = [&]() {
+					if (queuedCharacterData.character == activeCharacterData.character) {
+						if (GUI_Slider2<uint8>("", queuedCharacterData.rangedWeaponCount,
+							activeCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1)) {
+							if (!newActorData.baseAddr) return;
+							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+							auto& characterData = GetCharacterData(actorData);
+						}
+					} else {
+						GUI_Slider<uint8>("", queuedCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1);
+					}
+					};
+
+				rangedSlider();
+
+				old_for_all(uint8, rangedWeaponIndex, weaponProgression.gunsUnlockedQtt + 1) {
+					bool condition = (rangedWeaponIndex >= queuedCharacterData.rangedWeaponCount);
+
+					GUI_PushDisable(condition);
+
+					// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
+					if (queuedCharacterData.character == activeCharacterData.character) {
+						if (UI::ComboMapVector2("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
+							queuedCharacterData.rangedWeapons[rangedWeaponIndex], activeCharacterData.rangedWeapons[rangedWeaponIndex])) {
+
+							if (!newActorData.baseAddr) break;
+							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+							actorData.rangedWeaponIndex = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
+						}
+					} else {
+						UI::ComboMapVector("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
+							queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
+					}
+
+					// Doppelganger will now have same weapons equipped as Dante - Mia.
+					queuedCharacterDataClone.rangedWeapons[rangedWeaponIndex] = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
+
+					GUI_PopDisable(condition);
+				}
+			}
+
 			ImGui::TableNextColumn();
 
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
@@ -2786,68 +2869,12 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 			}
 		}
 
-		if (queuedCharacterData.character != CHARACTER::DANTE) {
 			ImGui::PopItemWidth();
 			ImGui::PopItemWidth();
 
 			ImGui::EndTable();
-			return;
+
 		}
-
-		ImGui::TableNextColumn();
-
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
-		ImGui::Text("RANGED");
-		ImGui::PopFont();
-
-
-		ImGui::PushItemWidth(itemWidth);
-
-		auto rangedSlider = [&]() {
-			if (queuedCharacterData.character == activeCharacterData.character) {
-				if (GUI_Slider2<uint8>("", queuedCharacterData.rangedWeaponCount,
-					activeCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1)) {
-					if (!newActorData.baseAddr) return;
-					auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-					auto& characterData = GetCharacterData(actorData);
-				}
-			} else {
-				GUI_Slider<uint8>("", queuedCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1);
-			}
-			};
-
-		rangedSlider();
-
-		old_for_all(uint8, rangedWeaponIndex, weaponProgression.gunsUnlockedQtt + 1) {
-			bool condition = (rangedWeaponIndex >= queuedCharacterData.rangedWeaponCount);
-
-			GUI_PushDisable(condition);
-
-			// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
-			if (queuedCharacterData.character == activeCharacterData.character) {
-				if (UI::ComboMapVector2("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
-					queuedCharacterData.rangedWeapons[rangedWeaponIndex], activeCharacterData.rangedWeapons[rangedWeaponIndex])) {
-
-					if (!newActorData.baseAddr) break;
-					auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-					actorData.rangedWeaponIndex = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
-				}
-			} else {
-				UI::ComboMapVector("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
-					queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
-			}
-
-			// Doppelganger will now have same weapons equipped as Dante - Mia.
-			queuedCharacterDataClone.rangedWeapons[rangedWeaponIndex] = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
-
-			GUI_PopDisable(condition);
-		}
-		ImGui::PopItemWidth();
-		ImGui::PopItemWidth();
-
-		ImGui::EndTable();
-
-	}
 	ImGui::PopFont();
 }
 
@@ -3223,7 +3250,7 @@ void ArcadeSection(size_t defaultFontSize) {
 
 		// ImGui::TableSetColumnWidth(0, columnWidth);
 		ImGui::TableSetupColumn("c1", 0, columnWidth);
-		ImGui::TableNextRow(0, rowWidth);
+		ImGui::TableNextRow(0, rowWidth * 0.5f);
 
 		ImGui::TableNextColumn();
 
@@ -3491,361 +3518,6 @@ void RoyalGaugeMainPlayer() {
 	ImGui::End();
 }
 
-static Texture2DD3D11* RedOrbTexture{ nullptr };
-static Texture2DD3D11* RedOrbVanillaTexture{ nullptr };
-static Texture2DD3D11* RedOrbStyleSwitcherTexture{ nullptr };
-static Texture2DD3D11* RedOrbCrimsonTexture{ nullptr };
-static Texture2DD3D11* RedOrbCustomTexture{ nullptr };
-
-void InitRedOrbTexture(ID3D11Device* pd3dDevice) {
-	//RedOrbTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "RedorbVanilla3.png").c_str(), pd3dDevice);
-	RedOrbTexture = new Texture2DD3D11 (g_Image_RedOrb.GetRGBAData(), g_Image_RedOrb.GetWidth(), g_Image_RedOrb.GetHeight(), pd3dDevice);
-	RedOrbVanillaTexture = new Texture2DD3D11(g_Image_RedOrbVanilla.GetRGBAData(), g_Image_RedOrbVanilla.GetWidth(), g_Image_RedOrbVanilla.GetHeight(), pd3dDevice);
-	RedOrbStyleSwitcherTexture = new Texture2DD3D11(g_Image_RedOrbStyleSwitcher.GetRGBAData(), g_Image_RedOrbStyleSwitcher.GetWidth(), g_Image_RedOrbStyleSwitcher.GetHeight(), pd3dDevice);
-	RedOrbCrimsonTexture = new Texture2DD3D11(g_Image_RedOrbCrimson.GetRGBAData(), g_Image_RedOrbCrimson.GetWidth(), g_Image_RedOrbCrimson.GetHeight(), pd3dDevice);
-	RedOrbCustomTexture = new Texture2DD3D11(g_Image_RedOrbCustom.GetRGBAData(), g_Image_RedOrbCustom.GetWidth(), g_Image_RedOrbCustom.GetHeight(), pd3dDevice);
-	assert(RedOrbTexture);
-}
-
-void DrawRotatedImage(ImTextureID tex_id, ImVec2 pos, ImVec2 size, float angle, ImU32 color) {
-	ImVec2 center = ImVec2(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
-
-	float cos_theta = cosf(angle);
-	float sin_theta = sinf(angle);
-
-	ImVec2 uvs[4] = {
-		ImVec2(0.0f, 0.0f),
-		ImVec2(1.0f, 0.0f),
-		ImVec2(1.0f, 1.0f),
-		ImVec2(0.0f, 1.0f)
-	};
-
-	ImVec2 points[4];
-	for (int i = 0; i < 4; i++) {
-		ImVec2 p = ImVec2(
-			(uvs[i].x - 0.5f) * size.x,
-			(uvs[i].y - 0.5f) * size.y
-		);
-
-		points[i] = ImVec2(
-			cos_theta * p.x - sin_theta * p.y,
-			sin_theta * p.x + cos_theta * p.y
-		) + center;
-	}
-
-	ImGui::GetWindowDrawList()->AddImageQuad(
-		tex_id,
-		points[0], points[1], points[2], points[3],
-		uvs[0], uvs[1], uvs[2], uvs[3],
-		color
-	);
-}
-
-void RedOrbCounterWindow(float baseWidth = 1920.0f, float baseHeight = 1080.0f) {
-	assert(RedOrbTexture);
-
-	auto name_7058 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
-	if (!name_7058) {
-		return;
-	}
-	auto& missionData = *reinterpret_cast<MissionData*>(name_7058);
-	if (!(InGame() && !g_inGameCutscene)) {
-		return;
-	}
-
-	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
-	if (!name_80) {
-		return;
-	}
-	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
-	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_10222 || !pool_10222[3]) {
-		return;
-	}
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
-	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.redOrbCounter) {
-		CrimsonDetours::RerouteRedOrbsCounterAlpha(false, crimsonHud.redOrbAlpha);
-		CrimsonPatches::SetRebOrbCounterDurationTillFadeOut(false, 90);
-		return;
-	}
-
-	// Set up Rerouting Alpha to our Red Orb Counter
-	hudData.orbsCountAlpha = 0;
-	CrimsonDetours::RerouteRedOrbsCounterAlpha(true, crimsonHud.redOrbAlpha);
-	CrimsonPatches::SetRebOrbCounterDurationTillFadeOut(true, crimsonHud.redOrbAlphaDurationToAlpha);
-
-	// Get the current display size
-	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
-
-	// Define the orb count and cap it at 999999
-	int orbCount = (std::min)(999999, (int)missionData.redOrbs);
-	std::string orbCountStr = std::to_string(orbCount);
-
-	// Adjust the font size and the proportional texture size
-	float fontSize = 37.0f;
-
-	// previously 142x200 -> 43x61; now 178x250 -> 54x76 to make space for the glow.
-	float textureBaseSizeX = 54.0f; 
-	float textureBaseSizeY = 76.0f;
-	float textureWidth = textureBaseSizeX * scaleFactorY;
-	float textureHeight = textureBaseSizeY * scaleFactorY;
-	float centerX = textureWidth / 2.0f;
-	float centerY = textureHeight / 2.0f;
-
-	// Define the window size and position
-	ImVec2 windowSize = ImVec2(300.0f * scaleFactorX, 100.0f * scaleFactorY);
-	float edgeOffsetX = 70.0f * scaleFactorY;
-	float edgeOffsetY = 30.0f * scaleFactorY;
-	ImVec2 windowPos = ImVec2(displaySize.x - windowSize.x - edgeOffsetX, edgeOffsetY);
-	//ImVec2 windowPos = ImVec2(displaySize.x - windowSize.x - 70.0f * scaleFactorX, 30.0f * scaleFactorY);
-
-	ImGui::SetNextWindowSize(windowSize);
-	ImGui::SetNextWindowPos(windowPos);
-	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
-		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
-
-	ImGui::Begin("RedOrbWindow", nullptr, windowFlags);
-
-	// Set the color with alpha for the Red Orb texture
-	float alpha = crimsonHud.redOrbAlpha / 127.0f;
-	ImColor colorWithAlpha(1.0f, 1.0f, 1.0f, alpha);
-
-	// Adjust the text position
-	ImGui::SetWindowFontScale(scaleFactorY);
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSize]);
-	ImVec2 textSize = ImGui::CalcTextSize(orbCountStr.c_str(), nullptr, true);
-	ImVec2 textPos = ImVec2(windowSize.x - textSize.x - 74.0f * scaleFactorY, (windowSize.y - textSize.y) / 2);
-
-	// Correct the texture position by considering the window's screen position
-	ImVec2 texturePos = ImVec2(windowPos.x + textPos.x - textureWidth - 17.916f * scaleFactorY, windowPos.y + (windowSize.y - textureHeight) / 2);
-
-	static auto* redOrbGameMode = RedOrbTexture;
-	switch (activeCrimsonGameplay.GameMode.preset)
-	{
-	case(GAMEMODEPRESETS::VANILLA):
-		redOrbGameMode = RedOrbVanillaTexture;
-		break;
-
-	case(GAMEMODEPRESETS::STYLE_SWITCHER):
-		redOrbGameMode = RedOrbStyleSwitcherTexture;
-		break;
-
-	case(GAMEMODEPRESETS::CRIMSON):
-		redOrbGameMode = RedOrbCrimsonTexture;
-		break;
-
-	case(GAMEMODEPRESETS::CUSTOM):
-		redOrbGameMode = RedOrbCustomTexture;
-		break;
-
-	default:
-		redOrbGameMode = RedOrbTexture;
-		break;
-
-	}
-
-	// Render the texture or a white square if the texture is not valid
-	if (redOrbGameMode->IsValid()) {
-// 		DrawRotatedImage(
-// 			RedOrbTexture->GetTexture(),
-// 			texturePos,
-// 			ImVec2(textureWidth, textureHeight),
-// 			IM_PI / 2.0f, // 90 degrees in radians
-// 			colorWithAlpha
-// 		);
-		ImGui::GetWindowDrawList()->AddImage(redOrbGameMode->GetTexture(), texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImVec2(0, 0), ImVec2(1, 1), colorWithAlpha);
-	}
-	else {
-		ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
-	}
-
-	// Render the orb count text
-	ImGui::SetCursorPos(ImVec2(textPos.x, textPos.y));
-	ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, alpha), "%s", orbCountStr.c_str());
-
-	ImGui::PopFont();
-	ImGui::End();
-}
-
-void CheatsHUDIndicatorWindow() {
-	auto name_7058 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
-	if (!name_7058) {
-		return;
-	}
-	auto& missionData = *reinterpret_cast<MissionData*>(name_7058);
-	if (!(InGame() && !g_inGameCutscene)) {
-		return;
-	}
-
-	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
-	if (!name_80) {
-		return;
-	}
-	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
-	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_10222 || !pool_10222[3]) {
-		return;
-	}
-
-	// Define the window size and position
-	ImVec2 windowSize = ImVec2(367.0f * scaleFactorX, 100.0f * scaleFactorY);
-	float edgeOffsetX = 0.0f * scaleFactorY;
-	float edgeOffsetY = 15.0f * scaleFactorY;
-	ImVec2 windowPos = ImVec2(g_renderSize.x - windowSize.x - edgeOffsetX, edgeOffsetY);
-	auto& currentGameMode = activeCrimsonGameplay.GameMode.preset;
-
-	ImGui::SetNextWindowSize(windowSize);
-	ImGui::SetNextWindowPos(windowPos);
-	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
-		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
-
-	// Adjust the font size and the proportional texture size
-	float fontSize = 18.0f;
-
-	ImGui::Begin("CheatsHUDIndicatorWindow", nullptr, windowFlags);
-	// Set the color with alpha for the Red Orb texture
-	float alpha = crimsonHud.redOrbAlpha / 127.0f;
-	ImColor colorWithAlpha(1.0f, 1.0f, 1.0f, alpha);
-	ImGui::SetWindowFontScale(scaleFactorY);
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSize]);
-
-	// Prepare button and text colors with alpha
-	ImVec4 buttonColor = ImColor(UI::SwapColorEndianness(gameModeData.colors[currentGameMode]));
-	buttonColor.w *= alpha;
-	ImVec4 textColor = (currentGameMode <= 1)
-		? ImColor(UI::SwapColorEndianness(0x151515FF))
-		: ImColor(UI::SwapColorEndianness(0xFFFFFFFF));
-	textColor.w *= alpha;
-	ImVec4 borderColor = ImGui::GetStyleColorVec4(ImGuiCol_Border);
-	borderColor.w *= alpha;
-	ImGui::PushStyleColor(ImGuiCol_Border, borderColor);
-	ImGui::PushStyleColor(ImGuiCol_Button, buttonColor);
-	ImGui::PushStyleColor(ImGuiCol_Text, textColor);
-
-
-	// Calculate total width of all buttons and spacing
-	float totalButtonsWidth = 0.0f;
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f * scaledFontSize);
-	float spacing = ImGui::GetStyle().ItemSpacing.x * scaleFactorY;
-	std::vector<ImVec2> btnSizes;
-	for (auto cheat : gameModeData.currentlyUsedCheats) {
-		const std::string& btnLabel = gameModeData.cheatsNames[cheat];
-		ImVec2 btnSize = ImGui::CalcTextSize(btnLabel.c_str());
-		btnSize.x += ImGui::GetStyle().FramePadding.x * 2.0f * scaleFactorY;
-		btnSize.y += ImGui::GetStyle().FramePadding.y * 2.0f * scaleFactorY;
-		btnSizes.push_back(btnSize);
-		totalButtonsWidth += btnSize.x;
-	}
-	if (!btnSizes.empty())
-		totalButtonsWidth += spacing * (btnSizes.size() - 1);
-
-	// Center the group
-	float groupStartX = (windowSize.x - totalButtonsWidth) * 0.5f;
-	ImGui::SetCursorPosX(groupStartX);
-
-	// Draw buttons
-	for (size_t i = 0; i < gameModeData.currentlyUsedCheats.size(); ++i) {
-		auto cheat = gameModeData.currentlyUsedCheats[i];
-		const std::string& btnLabel = gameModeData.cheatsNames[cheat];
-		ImGui::Button(btnLabel.c_str(), btnSizes[i]);
-		if (i + 1 < gameModeData.currentlyUsedCheats.size()) {
-			ImGui::SameLine();
-			ImGui::SameLine(0.0f, spacing); // Use calculated spacing
-		}
-	}
-
-	ImGui::PopStyleVar();
-	ImGui::PopStyleColor(3);
-	ImGui::PopFont();
-	ImGui::End();
-
-}
-
-
-static Texture2DD3D11* DStyleRankFillTexture{ nullptr };
-static Texture2DD3D11* DStyleRankBackgroundTexture{ nullptr };
-
-void InitDStyleRankTextures(ID3D11Device* pd3dDevice) {
-	DStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Dfill.png").c_str(), pd3dDevice);
-	DStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Dbg.png").c_str(), pd3dDevice);
-	assert(DStyleRankFillTexture);
-	assert(DStyleRankBackgroundTexture);
-}
-
-void RenderMeterWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, float fillRatio, ImColor color) {
-	// Ensure fillRatio is between 0.0f and 1.0f
-	fillRatio = ImClamp(fillRatio, 0.0f, 1.0f);
-
-	// Calculate the visible height based on the fill ratio
-	float visibleHeight = size.y * fillRatio;
-
-	// Adjust the position to start from the bottom
-	ImVec2 fillPos = ImVec2(pos.x, pos.y + size.y - visibleHeight);
-
-	// Define the UV coordinates for bottom-to-top filling
-	ImVec2 uv0 = ImVec2(0.0f, 1.0f - fillRatio);  // Bottom-left
-	ImVec2 uv1 = ImVec2(1.0f, 1.0f);              // Top-right
-
-	// Render the texture with the adjusted UV coordinates and position
-	ImGui::GetWindowDrawList()->AddImage(texture, fillPos, ImVec2(pos.x + size.x, pos.y + size.y), uv0, uv1, color);
-}
-
-void RenderMeterBackground(ImTextureID backgroundTexture, ImVec2 pos, ImVec2 size, ImColor color) {
-	// Render the entire background texture as-is
-	ImGui::GetWindowDrawList()->AddImage(backgroundTexture, pos, ImVec2(pos.x + size.x, pos.y + size.y), ImVec2(0,0), ImVec2(1,1), color);
-}
-
-void StyleMeterWindow() {
-	assert(DStyleRankFillTexture);
-	assert(DStyleRankBackgroundTexture);
-	if (!DStyleRankFillTexture->IsValid() || !DStyleRankBackgroundTexture->IsValid()) {
-		return;
-	}
-	if (!(InGame() && !g_inGameCutscene)) {
-		return;
-	}
-	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_10222 || !pool_10222[3]) {
-		return;
-	}
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
-	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter) {
-		return;
-	}
-
-	auto& styleData = mainActorData.styleData;
-	if (styleData.rank != 1) {
-		return;
-	}
-	float fillRatio = styleData.meter / 700.0f;
-
-	ImVec2 meterSize = ImVec2(241.0f * scaleFactorX, 243.0f * scaleFactorY);
-	ImVec2 windowPos = ImVec2(1500.0f * scaleFactorX, 150.0f * scaleFactorY);
-	ImColor white = { 1.0f, 1.0f, 1.0f, 1.0f };
-	ImColor color = { 0.46f, 0.62f, 0.81f, 1.0f };
-	ImVec2 pos = ImGui::GetCursorScreenPos();
-
-	// Begin an ImGui window with no title bar, no resize, no background, no inputs, etc.
-	ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
-	ImGui::SetNextWindowSize(meterSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
-
-	ImGui::Begin("StyleMeter", nullptr,
-		ImGuiWindowFlags_NoTitleBar |
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoScrollbar |
-		ImGuiWindowFlags_NoSavedSettings |
-		ImGuiWindowFlags_NoInputs |
-		ImGuiWindowFlags_NoBackground);
-
-	RenderMeterWithFill(DStyleRankFillTexture->GetTexture(), ImGui::GetCursorScreenPos(), meterSize, fillRatio, white);
-	RenderMeterBackground(DStyleRankBackgroundTexture->GetTexture(), ImGui::GetCursorScreenPos(), meterSize, color);
-
-	ImGui::End();
-}
-
 void RenderMissionResultGameModeStats() {
 	using namespace UI;
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
@@ -3895,6 +3567,8 @@ void RenderMissionResultGameModeStats() {
 
 	ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
+	ImFont* font = UI::g_ImGuiFont_RussoOne[40.0f];
+	ImGui::PushFont(font);
 
 	if (ImGui::Begin("MissionResultStats", nullptr,
 		ImGuiWindowFlags_NoTitleBar |
@@ -3907,9 +3581,6 @@ void RenderMissionResultGameModeStats() {
 
 		ImGui::SetWindowFontScale(scaleFactorY);
 
-		ImFont* font = UI::g_ImGuiFont_RussoOne[40.0f];
-		ImGui::PushFont(font);
-
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		ImVec2 textSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, missionResultGameModeString);
 		ImVec2 textPos = ImGui::GetWindowPos() + ImVec2(10.0f * scaleFactorY, 0.0f);
@@ -3918,29 +3589,57 @@ void RenderMissionResultGameModeStats() {
 		// 		window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 		// 			SwapColorEndianness(0xFFFFFF10), "Game Mode");
 
+		ImGui::End();
+	}
+
+	ImVec2 difficultyWindowPos = ImVec2(
+		(g_renderSize.x - windowSize.x) * 0.5f + (250.0f * scaleFactorY),
+		scaleFactorY / 2 + (210.0f * scaleFactorY)
+	);
+
+	ImGui::SetNextWindowPos(difficultyWindowPos, ImGuiCond_Always);
+	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
+
+	if (ImGui::Begin("DifficultyStats", nullptr,
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoInputs |
+		ImGuiWindowFlags_NoBackground)) {
 		 // Calculate position for difficulty text
 		const char* difficultyString = gameModeData.difficultyModeNames[sessionData.mode].c_str(); // Implement this function as needed
 		ImVec2 difficultyTextSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, difficultyString);
+		ImGui::SetWindowFontScale(scaleFactorY);
 
 		// Center difficulty text based on game mode text
-		ImVec2 difficultyTextPos = textPos;
-		difficultyTextPos.y += textSize.y + (37.0f * scaleFactorY); 
-		difficultyTextPos.x += (textSize.x - difficultyTextSize.x) * 0.5f; // Centered
+		ImVec2 difficultyTextPos = ImGui::GetWindowPos() + ImVec2(10.0f * scaleFactorY, 0.0f);
 
 		ImGui::SetCursorScreenPos(difficultyTextPos);
 		ImGui::Text("%s", difficultyString);
 
 		ImGui::SameLine();
 		std::string ldkMissionText = (" - " + (std::string)ldkModeNames[gameModeData.ldkNissionResult]);
+		std::string mustStyleMissionText = " - Must Style (" + std::string(styleRankNames[gameModeData.mustStyleMissionResult]) + ")";
+		std::string enemyDTMissionText = (" - " + (std::string)enemyDTModeNames[gameModeData.enemyDTMissionResult]);
 
 		if (gameModeData.ldkNissionResult != LDKMODE::OFF) {
 			ImGui::Text(ldkMissionText.c_str());
 		}
+		ImGui::SameLine();
+		if (gameModeData.mustStyleMissionResult != STYLE_RANK::NONE) {
+			ImGui::Text(mustStyleMissionText.c_str());
+		}
+		ImGui::SameLine();
+		if (gameModeData.enemyDTMissionResult != ENEMYDTMODE::DEFAULT && sessionData.mode == DIFFICULTY_MODE::DANTE_MUST_DIE) {
+			ImGui::Text(enemyDTMissionText.c_str());
+		}
 
-		ImGui::PopFont();
+		
+		ImGui::End();
 	}
-
-	ImGui::End();
+	ImGui::PopFont();
 }
 
 
@@ -4228,7 +3927,7 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 
 	float minFontSize = 10.0f; // Font cannot go below 10 or else ImGui asserts will come in.
 	float fontSizeDistance = (std::max)(17.0f * scaleFactorY, minFontSize);
-	float fontSizeNameLabel = (std::max)(29.0f * scaleFactorY, minFontSize);
+	float fontSizeNameLabel = (std::max)(23.0f * scaleFactorY, minFontSize);
 
 	// Draw the distance text centered inside the button
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSizeDistance]);
@@ -4240,10 +3939,12 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 		buttonPos.y + 5.0f * scaleFactorY
 	);
 	drawList->AddText(distanceTextPos, ImGui::GetColorU32(ImGuiCol_Text), distanceText.c_str());
+	ImGui::PopStyleColor();
 	ImGui::PopFont();
 
 	// Draw name label (2P, 3P, etc)
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSizeNameLabel]);
+	ImGui::PushStyleColor(ImGuiCol_Text, textColor);
 	ImVec2 nameTextSize = ImGui::CalcTextSize(name);
 	ImVec2 nameTextPos = ImVec2(
 		buttonPos.x + (buttonSize.x - nameTextSize.x) * 0.5f,
@@ -4902,29 +4603,19 @@ const char* cameraAutoAdjustNames[] = {
 
 
 void CameraSection(size_t defaultFontSize) {
-
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
-
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-
-
-	ImGui::Text("CAMERA OPTIONS");
-
-	ImGui::PopFont();
-
-	UI::SeparatorEx(defaultFontSize * 23.35f);
 
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
 	ImGui::PushItemWidth(itemWidth);
-	ImGui::Text("");
 
 	float smallerComboMult = 0.7f;
 
 	{
+		GUI_Title("GENERAL CAMERA OPTIONS");
 		const float columnWidth = 0.5f * queuedConfig.globalScale;
-		const float rowWidth = 40.0f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
 
 		if (ImGui::BeginTable("CameraOptionsTable", 3)) {
 
@@ -4992,7 +4683,7 @@ void CameraSection(size_t defaultFontSize) {
 
 			GUI_Checkbox2("Locked-Off Camera", activeCrimsonConfig.Camera.lockedOff, queuedCrimsonConfig.Camera.lockedOff);
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Allows you to freely rotate the camera using the right stick in Third-Person View sections.");
+			TooltipHelper("(?)", "Allows you to freely rotate the camera using the right stick in Third Person Camera sections.");
 
 			ImGui::TableNextColumn();
 
@@ -5003,7 +4694,10 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Disable Right Stick Center Camera", activeCrimsonConfig.Camera.disableRightStickCenterCamera, queuedCrimsonConfig.Camera.disableRightStickCenterCamera);
+			ImGui::PushItemWidth(itemWidth * 0.87f);
+			UI::ComboMapValue2("Right Stick Camera Centering", rightStickCenterCamNames, rightStickCenterCamMap,
+				activeCrimsonConfig.Camera.rightStickCameraCentering, queuedCrimsonConfig.Camera.rightStickCameraCentering);
+			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
 
@@ -5011,13 +4705,23 @@ void CameraSection(size_t defaultFontSize) {
 				Camera::ToggleDisableBossCamera(activeCrimsonConfig.Camera.disableBossCamera);
 			}
 
+			ImGui::EndTable();
+		}
+
+		ImGui::Text("");
+
+		GUI_Title("ADVANCED CAMERA OPTIONS");
+
+		if (ImGui::BeginTable("AdvancedCameraOptionsTable", 3)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
+			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("[WIP] Force Third Person Camera", activeCrimsonConfig.Camera.forceThirdPerson, queuedCrimsonConfig.Camera.forceThirdPerson)) {
-				
-			}
+			GUI_Checkbox2("Force Third Person Camera", activeCrimsonConfig.Camera.forceThirdPerson, queuedCrimsonConfig.Camera.forceThirdPerson);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Replaces every Fixed Camera with the Third Person Camera. Disables Boss Cam automatically.");
 
-			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Multiplayer Camera", activeCrimsonConfig.Camera.multiplayerCamera, queuedCrimsonConfig.Camera.multiplayerCamera)) {
@@ -5030,7 +4734,8 @@ void CameraSection(size_t defaultFontSize) {
 				}
 			}
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Triggers only in Multiplayer or if you spawn Doppelganger. Works best with Full Force Third Person Camera.");
+			TooltipHelper("(?)", "A cam for Multiplayer that will take all players (and enemies) into account for positioning and distancing.\n"
+				"Triggers only in Multiplayer or if you spawn Doppelganger in SP. Works best with Force Third Person Camera on.");
 
 			ImGui::TableNextColumn();
 
@@ -5044,31 +4749,150 @@ void CameraSection(size_t defaultFontSize) {
 				}
 			}
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Multiplayer-like Combat Camera in Single Player. Works best with Full Force Third Person Camera.");
-
+			TooltipHelper("(?)", "Multiplayer-like Combat Camera in Single Player. Works best with Force Third Person Camera on.");
 
 			ImGui::EndTable();
 		}
 
-		// 	if (GUI_ResetButton()) {
-		// 		CopyMemory(&queuedConfig.cameraInvertX, &defaultConfig.cameraInvertX, sizeof(queuedConfig.cameraInvertX));
-		// 		CopyMemory(&activeConfig.cameraInvertX, &queuedConfig.cameraInvertX, sizeof(activeConfig.cameraInvertX));
-		// 
-		// 		CopyMemory(&queuedConfig.cameraAutoAdjust, &defaultConfig.cameraAutoAdjust, sizeof(queuedConfig.cameraAutoAdjust));
-		// 		CopyMemory(&activeConfig.cameraAutoAdjust, &queuedConfig.cameraAutoAdjust, sizeof(activeConfig.cameraAutoAdjust));
-		// 
-		// 		CopyMemory(&queuedConfig.disableCenterCamera, &defaultConfig.disableCenterCamera, sizeof(queuedConfig.disableCenterCamera));
-		// 		CopyMemory(&activeConfig.disableCenterCamera, &queuedConfig.disableCenterCamera, sizeof(activeConfig.disableCenterCamera));
-		// 
-		// 		CopyMemory(&queuedConfig.disableBossCamera, &defaultConfig.disableBossCamera, sizeof(queuedConfig.disableBossCamera));
-		// 		CopyMemory(&activeConfig.disableBossCamera, &queuedConfig.disableBossCamera, sizeof(activeConfig.disableBossCamera));
-		// 
-		// 		CopyMemory(&queuedConfig.fovMultiplier, &defaultConfig.fovMultiplier, sizeof(queuedConfig.fovMultiplier));
-		// 		CopyMemory(&activeConfig.fovMultiplier, &queuedConfig.fovMultiplier, sizeof(activeConfig.fovMultiplier));
-		// 
-		// 
-		// 		Camera::ToggleInvertX(activeConfig.cameraInvertX);
-		// 		Camera::ToggleDisableBossCamera(activeConfig.disableBossCamera);
+		ImGui::Text("");
+
+		GUI_Title("CAMERA PRESETS");
+
+		if (GUI_Button("Vanilla")) {
+			activeCrimsonConfig.Camera.distance = 0;
+			queuedCrimsonConfig.Camera.distance = 0;
+
+			activeCrimsonConfig.Camera.lockOnDistance = 0;
+			queuedCrimsonConfig.Camera.lockOnDistance = 0;
+
+			activeCrimsonConfig.Camera.tilt = 0;
+			queuedCrimsonConfig.Camera.tilt = 0;
+
+			activeCrimsonConfig.Camera.fovMultiplier = 1.0f;
+			queuedCrimsonConfig.Camera.fovMultiplier = 1.0f;
+
+			activeCrimsonConfig.Camera.sensitivity = 0;
+			queuedCrimsonConfig.Camera.sensitivity = 0;
+
+			activeCrimsonConfig.Camera.invertX = false;
+			queuedCrimsonConfig.Camera.invertX = false;
+
+			activeCrimsonConfig.Camera.lockedOff = false;
+			queuedCrimsonConfig.Camera.lockedOff = false;
+
+			activeCrimsonConfig.Camera.rightStickCameraCentering = 2;
+			queuedCrimsonConfig.Camera.rightStickCameraCentering = 2;
+
+			activeCrimsonConfig.Camera.followUpSpeed = 0;
+			queuedCrimsonConfig.Camera.followUpSpeed = 0;
+
+			activeCrimsonConfig.Camera.autoAdjust = 0;
+			queuedCrimsonConfig.Camera.autoAdjust = 0;
+
+			activeCrimsonConfig.Camera.forceThirdPerson = false;
+			queuedCrimsonConfig.Camera.forceThirdPerson = false;
+
+			activeCrimsonConfig.Camera.panoramicCamera = false;
+			queuedCrimsonConfig.Camera.panoramicCamera = false;
+
+// 			activeCrimsonConfig.Camera.multiplayerCamera = false;
+// 			queuedCrimsonConfig.Camera.multiplayerCamera = false;
+
+			activeCrimsonConfig.Camera.disableBossCamera = false;
+			queuedCrimsonConfig.Camera.disableBossCamera = false;
+		}
+
+		ImGui::SameLine();
+
+		if (GUI_Button("Vanilla Improved")) {
+			activeCrimsonConfig.Camera.distance = 0;
+			queuedCrimsonConfig.Camera.distance = 0;
+
+			activeCrimsonConfig.Camera.lockOnDistance = 0;
+			queuedCrimsonConfig.Camera.lockOnDistance = 0;
+
+			activeCrimsonConfig.Camera.tilt = 0;
+			queuedCrimsonConfig.Camera.tilt = 0;
+
+			activeCrimsonConfig.Camera.fovMultiplier = 1.2f;
+			queuedCrimsonConfig.Camera.fovMultiplier = 1.2f;
+
+			activeCrimsonConfig.Camera.sensitivity = 2;
+			queuedCrimsonConfig.Camera.sensitivity = 2;
+
+			activeCrimsonConfig.Camera.invertX = true;
+			queuedCrimsonConfig.Camera.invertX = true;
+
+			activeCrimsonConfig.Camera.lockedOff = true;
+			queuedCrimsonConfig.Camera.lockedOff = true;
+
+			activeCrimsonConfig.Camera.rightStickCameraCentering = 1;
+			queuedCrimsonConfig.Camera.rightStickCameraCentering = 1;
+
+			activeCrimsonConfig.Camera.followUpSpeed = 0;
+			queuedCrimsonConfig.Camera.followUpSpeed = 0;
+
+			activeCrimsonConfig.Camera.autoAdjust = 0;
+			queuedCrimsonConfig.Camera.autoAdjust = 0;
+
+			activeCrimsonConfig.Camera.forceThirdPerson = false;
+			queuedCrimsonConfig.Camera.forceThirdPerson = false;
+
+			activeCrimsonConfig.Camera.panoramicCamera = false;
+			queuedCrimsonConfig.Camera.panoramicCamera = false;
+
+			activeCrimsonConfig.Camera.multiplayerCamera = true;
+			queuedCrimsonConfig.Camera.multiplayerCamera = true;
+
+			activeCrimsonConfig.Camera.disableBossCamera = false;
+			queuedCrimsonConfig.Camera.disableBossCamera = false;
+		}
+
+		ImGui::SameLine();
+
+		if (GUI_Button("Crimson")) {
+			activeCrimsonConfig.Camera.distance = 2;
+			queuedCrimsonConfig.Camera.distance = 2;
+
+			activeCrimsonConfig.Camera.lockOnDistance = 2;
+			queuedCrimsonConfig.Camera.lockOnDistance = 2;
+
+			activeCrimsonConfig.Camera.tilt = 1;
+			queuedCrimsonConfig.Camera.tilt = 1;
+
+			activeCrimsonConfig.Camera.fovMultiplier = 1.2f;
+			queuedCrimsonConfig.Camera.fovMultiplier = 1.2f;
+
+			activeCrimsonConfig.Camera.sensitivity = 2;
+			queuedCrimsonConfig.Camera.sensitivity = 2;
+
+			activeCrimsonConfig.Camera.invertX = true;
+			queuedCrimsonConfig.Camera.invertX = true;
+
+			activeCrimsonConfig.Camera.lockedOff = true;
+			queuedCrimsonConfig.Camera.lockedOff = true;
+
+			activeCrimsonConfig.Camera.rightStickCameraCentering = 1;
+			queuedCrimsonConfig.Camera.rightStickCameraCentering = 1;
+
+			activeCrimsonConfig.Camera.followUpSpeed = 2;
+			queuedCrimsonConfig.Camera.followUpSpeed = 2;
+
+			activeCrimsonConfig.Camera.autoAdjust = 0;
+			queuedCrimsonConfig.Camera.autoAdjust = 0;
+
+			activeCrimsonConfig.Camera.forceThirdPerson = true;
+			queuedCrimsonConfig.Camera.forceThirdPerson = true;
+
+			activeCrimsonConfig.Camera.panoramicCamera = false;
+			queuedCrimsonConfig.Camera.panoramicCamera = false;
+
+			activeCrimsonConfig.Camera.multiplayerCamera = true;
+			queuedCrimsonConfig.Camera.multiplayerCamera = true;
+
+			activeCrimsonConfig.Camera.disableBossCamera = false;
+			queuedCrimsonConfig.Camera.disableBossCamera = false;
+		}
 	}
 
 
@@ -5197,11 +5021,6 @@ void CustomDamageSection() {
 				&defaultCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult, sizeof(queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult));
 			CopyMemory(&activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult,
 				&queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult, sizeof(activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult));
-
-			CopyMemory(&queuedCrimsonGameplay.Cheats.Damage.minStyleRankForDamage, 
-				&defaultCrimsonGameplay.Cheats.Damage.minStyleRankForDamage, sizeof(queuedCrimsonGameplay.Cheats.Damage.minStyleRankForDamage));
-			CopyMemory(&activeCrimsonGameplay.Cheats.Damage.minStyleRankForDamage,
-				&queuedCrimsonGameplay.Cheats.Damage.minStyleRankForDamage, sizeof(activeCrimsonGameplay.Cheats.Damage.minStyleRankForDamage));
 		}
 	}
 	ImGui::PopFont();
@@ -5264,18 +5083,7 @@ void CustomDamageSection() {
 					}
 				}
 			}
-
-			ImGui::TableNextColumn();
-
-			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
-			ImGui::Text("CAUSE DAMAGE ONLY ON STYLE RANK");
-			ImGui::PopFont();
-			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			UI::Combo2("", styleRankNames, activeCrimsonGameplay.Cheats.Damage.minStyleRankForDamage, queuedCrimsonGameplay.Cheats.Damage.minStyleRankForDamage);
-			ImGui::PopItemWidth();
-
 			GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.customDamage);
-
 			ImGui::EndTable();
 		}
 	}
@@ -7730,6 +7538,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 				auto& gamepad = GetGamepad(0);
                 
+				auto name_7058 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+
+				
 
                 ImGui::Text(sceneNames[g_scene]);
                 ImGui::Text("sessionData mission:  %u", sessionData.mission);
@@ -7737,6 +7548,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("TRACK PLAYING: %s", g_gameTrackPlaying.c_str());
 				ImGui::Text("activeCrimsonGameplay.holdToCC: %u", activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
 				ImGui::Text("activeCrimsonGameplay.dmc4Mobility: %u", activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility);
+				ImGui::Text("popUpTime: %g", cheatsPopUp.popupTime);
+				ImGui::Text("showPopUp: %u", cheatsPopUp.showPopUp);
+				ImGui::Text("sessionData.expertise[1]: %x", sessionData.expertise[1]);
 // 				for (int i = 0; i < 8; i++) {
 // 					ImGui::Text("sessionData expertise[%u]:  %x", i, sessionData.expertise[i]);
 // 				}
@@ -7750,7 +7564,10 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 //                 }
                 ImGui::Text("SessionData Style Level Royalguard: %u", ExpConfig::missionExpDataDante.styleLevels[3]);
 				ImGui::Text("Cerbus Unlocked Session? %u", sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::CERBERUS]);
-				ImGui::Text("Cerbus Unlock? %u", weaponProgression.devilArmUnlocks[DEVILARMUNLOCKS::CERBERUS]);
+				ImGui::Text("sessionData.quicksilver? %u", sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER]);
+				ImGui::Text("sessionData.doppelganger? %u", sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER]);
+				ImGui::Text("sessionData.quicksilverLevel: %u", sessionData.styleLevels[STYLE::QUICKSILVER]);
+				ImGui::Text("sessionData.doppelgangerLevel: %u", sessionData.styleLevels[STYLE::DOPPELGANGER]);
 				ImGui::Text("GunUnlockedQtt: %u", weaponProgression.gunsUnlockedQtt);
 				ImGui::Text("sessionData.unlockDevilTrigger: %u", sessionData.unlockDevilTrigger);
 				ImGui::Text("sessionData.magicPoints: %g", sessionData.magicPoints);
@@ -7907,13 +7724,13 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             }
             auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 
-// 			if (!actorData.lockOnData.targetBaseAddr60) {
-// 				return;
-// 			}
-// 
-// 			auto& lockedOnEnemyData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60);
+			if (!actorData.lockOnData.targetBaseAddr60) {
+				return;
+			}
 
-			ImGui::Text("Enemy Health %g", actorData.lockOnData.targetPosition.z);
+			auto& lockedOnEnemyData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60);
+
+			//ImGui::Text("TargetPosZ %g", actorData.lockOnData.targetPosition.z);
 
 //             for (int i = 0; i < 8; i++) {
 //                 ImGui::Text("expertise[%u]:  %x", i, actorData.activeExpertise[i]);
@@ -7941,6 +7758,21 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 			if (meleeWeaponWheel[1]) {
 // 				ImGui::Text("Wheel 1 timer: %g", meleeWeaponWheel[1]->m_SinceLatestChangeMs);
 // 			}
+			auto savingInGameDataAddr = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2548);
+			if (!savingInGameDataAddr) {
+				return;
+			}
+			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
+			
+			ImGui::Text("gameModeData.mustStyleMissionResult: %u", gameModeData.mustStyleMissionResult);
+			ImGui::Text("gameModeData.enemyDTMisionResult: %u", gameModeData.enemyDTMissionResult);
+			ImGui::Text("lockedEnemyScreenPositionX: %g", crimsonPlayer[0].lockedEnemyScreenPosition.x);
+			ImGui::Text("lockedEnemyScreenPositionX: %g", actorData.lockOnData.targetPosition.x);
+			ImGui::Text("lockOnEnemyStun: %g", crimsonPlayer[0].lockedOnEnemyStun);
+			ImGui::Text("lockOnEnemyDisplacement: %g", crimsonPlayer[0].lockedOnEnemyDisplacement);
+			ImGui::Text("lockOnEnemyHP: %g", crimsonPlayer[0].lockedOnEnemyHP);
+			ImGui::Text("lockOnEnemyMaxHP: %g", crimsonPlayer[0].lockedOnEnemyMaxHP);
+			ImGui::Text("savingInGameData.expertise[1]: %x", savingInGameData.expertise[1]);
 			ImGui::Text("missionData frameCount: %u", missionData.frameCount);
 			ImGui::Text("artemis Charge: %g", actorData.artemisCharge);
 			ImGui::Text("fixedCameraAddr: %x", cameraControlMetadata.fixedCameraAddr);
@@ -8080,14 +7912,11 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("styleRankCount Crazy %u", rankAnnouncer[1].count);
             ImGui::Text("styleRankCount Dismal Off Cooldown %u", rankAnnouncer[0].offCooldown);
             ImGui::Text("styleRankCount Crazy Off Cooldown %u", rankAnnouncer[1].offCooldown);*/
-            ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
+
             /*ImGui::Text("SDL2 %s", SDL2Initialization);
             ImGui::Text("Mixer  %s", MixerInitialization);
             ImGui::Text("Mixer2  %s", MixerInitialization2);*/
 
-            ImGui::Text("Wheel Appear %u", meleeWeaponWheelTiming.wheelAppear);
-            ImGui::Text("Wheel Running %u", meleeWeaponWheelTiming.wheelRunning);
-            ImGui::Text("Wheel Time %u", meleeWeaponWheelTiming.wheelTime);
             ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap.buffer);
             ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap.buffer);
 
@@ -8492,6 +8321,11 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			GUI_Checkbox2("GUI Sounds", 
 				activeCrimsonConfig.GUI.sounds, queuedCrimsonConfig.GUI.sounds);
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Hotkey Cheats Pop Up",
+				activeCrimsonConfig.GUI.cheatsPopup, queuedCrimsonConfig.GUI.cheatsPopup);
 	
 
 			ImGui::EndTable();
@@ -8621,7 +8455,9 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Lock-On", activeCrimsonConfig.CrimsonHudAddons.lockOn, queuedCrimsonConfig.CrimsonHudAddons.lockOn);
+			if (GUI_Checkbox2("Lock-On", activeCrimsonConfig.CrimsonHudAddons.lockOn, queuedCrimsonConfig.CrimsonHudAddons.lockOn)) {
+				ToggleHideLockOn(activeCrimsonConfig.CrimsonHudAddons.lockOn);
+			}
 
 
 			ImGui::EndTable();
@@ -10129,6 +9965,13 @@ void GeneralGameplayOptions() {
 			TooltipHelper("(?)", "Decreases the cooldown between switching weapons.\n"
 				"Doesn't affect the Weapon Wheel and only applies to the Vanilla game.");
 
+			ImGui::TableNextColumn();
+			if (GUI_Checkbox2("Disable Soul Eater Invisibility",
+				activeCrimsonGameplay.Gameplay.General.disableSoulEaterInvis,
+				queuedCrimsonGameplay.Gameplay.General.disableSoulEaterInvis)) {
+				CrimsonPatches::ToggleDisableSoulEaterInvis(activeCrimsonGameplay.Gameplay.General.disableSoulEaterInvis);
+			}
+
 			ImGui::EndTable();
 		}
 	}
@@ -10790,44 +10633,44 @@ void VergilCheatOptions() {
 		GUI_PopDisable(disabled);
 		};
 
-	// Get initial cursor position for manual layout
-	ImVec2 initialPos = ImGui::GetCursorPos();
-	const float columnWidth = 0.15f * queuedConfig.globalScale;
-	const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
+		// Get initial cursor position for manual layout
+		ImVec2 initialPos = ImGui::GetCursorPos();
+		const float columnWidth = 0.15f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
 
-	GUI_PushDisable(!activeConfig.Actor.enable);
-	ImGui::SetCursorPos(initialPos);
-	// Start table for Rising Sun and Judgement Cut
-	if (ImGui::BeginTable("VergilActionTable", 2)) {
-		ImGui::TableSetupColumn("b1", 0, columnWidth);
-		ImGui::TableNextRow(0, rowWidth);
-		ImGui::TableNextColumn();
+		GUI_PushDisable(!activeConfig.Actor.enable);
+		ImGui::SetCursorPos(initialPos);
+		// Start table for Rising Sun and Judgement Cut
+		if (ImGui::BeginTable("VergilActionTable", 2)) {
+			ImGui::TableSetupColumn("b1", 0, columnWidth);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
 
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
-		ImGui::Text("HUMAN");
-		ImGui::TableNextColumn();
-		ImGui::Text("DEVIL TRIGGER");
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("HUMAN");
+			ImGui::TableNextColumn();
+			ImGui::Text("DEVIL TRIGGER");
+			ImGui::PopFont();
+
+			bool beowulfDisabled = !activeCrimsonGameplay.Gameplay.Vergil.airRisingSun;
+			VergilActionDataInput("Air Rising Sun Count",
+				activeCrimsonGameplay.Cheats.Vergil.airRisingSunCount,
+				queuedCrimsonGameplay.Cheats.Vergil.airRisingSunCount,
+				defaultCrimsonGameplay.Cheats.Vergil.airRisingSunCount,
+				beowulfDisabled);
+
+			VergilActionDataInput("Judgement Cut Count",
+				activeCrimsonGameplay.Cheats.Vergil.judgementCutCount,
+				queuedCrimsonGameplay.Cheats.Vergil.judgementCutCount,
+				defaultCrimsonGameplay.Cheats.Vergil.judgementCutCount);
+
+			ImGui::EndTable();
+		}
+		GUI_PopDisable(!activeConfig.Actor.enable);
+
+		ImGui::Text("");
+		ImGui::PopStyleColor();
 		ImGui::PopFont();
-
-		bool beowulfDisabled = !activeCrimsonGameplay.Gameplay.Vergil.airRisingSun;
-		VergilActionDataInput("Air Rising Sun Count",
-			activeCrimsonGameplay.Cheats.Vergil.airRisingSunCount,
-			queuedCrimsonGameplay.Cheats.Vergil.airRisingSunCount,
-			defaultCrimsonGameplay.Cheats.Vergil.airRisingSunCount,
-			beowulfDisabled);
-
-		VergilActionDataInput("Judgement Cut Count",
-			activeCrimsonGameplay.Cheats.Vergil.judgementCutCount,
-			queuedCrimsonGameplay.Cheats.Vergil.judgementCutCount,
-			defaultCrimsonGameplay.Cheats.Vergil.judgementCutCount);
-
-		ImGui::EndTable();
-	}
-	GUI_PopDisable(!activeConfig.Actor.enable);
-
-	ImGui::Text("");
-	ImGui::PopStyleColor();
-	ImGui::PopFont();
 }
 
 void ExtraDifficultyGameplayOptions() {
@@ -10846,14 +10689,14 @@ void ExtraDifficultyGameplayOptions() {
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
 	const float rowHeight = 40.0f * queuedConfig.globalScale;
 
-	if (ImGui::BeginTable("ExtraDifficultyOptionsTable", 1)) {
+	if (ImGui::BeginTable("ExtraDifficultyOptionsTable", 3)) {
 		ImGui::TableSetupColumn("c1", 0, columnWidth * 2.0f);
 
 		ImGui::TableNextRow(0, rowHeight * 0.5f);
 		ImGui::TableNextColumn();
 
 		ImGui::PushItemWidth(itemWidth * 1.0f);
-		UI::ComboMapValue2("Legendary Dark Knight Mode",
+		UI::ComboMapValue2("Legendary Dark Knight",
 			ldkModeNames,
 			ldkModes,
 			activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode,
@@ -10863,6 +10706,30 @@ void ExtraDifficultyGameplayOptions() {
 		TooltipHelper("(?)", "Spawns large waves of enemies like in DMC5's LDK Mode.\n"
 			"Super LDK spawns even more enemies. Super LDK + Bosses duplicates some of the Bosses.");
 
+		ImGui::TableNextColumn();
+
+		ImGui::PushItemWidth(itemWidth * 0.8f);
+		UI::Combo2("Must Style", styleRankNames, activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode, queuedCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode);
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Restrict your damage to only apply at specific Style Ranks.");
+
+		ImGui::TableNextColumn();
+
+		ImGui::PushItemWidth(itemWidth * 0.93f);
+		if (UI::ComboMapValue2("Enemy DT Mode",
+			enemyDTModeNames,
+			enemyDTModes,
+			activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode,
+			queuedCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode)) {
+			CrimsonPatches::SetEnemyDTMode(activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode);
+		}
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Default setting will apply Enemy DT as normal in Dante Must Die Difficulty.\n"
+			"Instant Enemy DT will apply Enemy DT instantly when they spawn on DMD.\n"
+		"No Enemy DT will make it so enemy DT never occurs, even on DMD.");
+
 		ImGui::EndTable();
 	}
 
@@ -10871,7 +10738,87 @@ void ExtraDifficultyGameplayOptions() {
 	ImGui::PopFont();
 }
 
+struct buttonRemapStruct {
+	uint16_t item; // 0 dpad up
+	uint16_t equip; // 1 dpad down
+	uint16_t map; // 2 dpad right
+	uint16_t file; // 3 dpad left
+	uint16_t melee; // 4 Y
+	uint16_t jump; // 5 A
+	uint16_t style; // 6 B
+	uint16_t shoot; // 7 X
+	uint16_t dt; // 8 L1
+	uint16_t gunChange; // 9 L2
+	uint16_t targetChange; // A L3
+	uint16_t lockOn; // B R1
+	uint16_t swordChange; // C R2
+	uint16_t camReset; // D R3
+	uint16_t taunt; // E Select
+};
 
+void DrawKeybindEditor(buttonRemapStruct* buttonRemapMemory) {
+    struct KeybindEntry {
+        const char* name;
+        uint16_t& value;
+    };
+    
+    std::vector<KeybindEntry> keybinds = {
+        {"Trickster (Item)", buttonRemapMemory->item},
+        {"Royal Guard (Equip)", buttonRemapMemory->equip},
+        {"Swordmaster (Map)", buttonRemapMemory->map},
+        {"Gunslinger (File)", buttonRemapMemory->file},
+        {"Melee", buttonRemapMemory->melee},
+        {"Jump", buttonRemapMemory->jump},
+        {"Style", buttonRemapMemory->style},
+        {"Shoot", buttonRemapMemory->shoot},
+        {"Devil Trigger", buttonRemapMemory->dt},
+        {"Gun Change", buttonRemapMemory->gunChange},
+        {"Target Change", buttonRemapMemory->targetChange},
+        {"Lock On", buttonRemapMemory->lockOn},
+        {"Sword Change", buttonRemapMemory->swordChange},
+        {"Camera Reset", buttonRemapMemory->camReset},
+        {"Taunt", buttonRemapMemory->taunt}
+    };
+    for (auto& keybind : keybinds) {
+        uint16_t& currentKey = keybind.value;
+        const char* currentItem = "None";
+        for (const auto& pair : buttonPairs) {
+            if (pair.first == currentKey) {
+                currentItem = pair.second;
+                break;
+            }
+        }
+        if (ImGui::BeginCombo(keybind.name, currentItem)) {
+            for (const auto& pair : buttonPairs) {
+                bool isSelected = (currentKey == pair.first);
+                if (ImGui::Selectable(pair.second, isSelected)) {
+                    currentKey = pair.first;
+                }
+                if (isSelected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+    }
+    if (ImGui::Button("Default")) {
+        buttonRemapMemory->item = 0x1000;    // Up
+        buttonRemapMemory->equip = 0x4000;   // Down
+        buttonRemapMemory->map = 0x2000;     // Right
+        buttonRemapMemory->file = 0x8000;    // Left
+        buttonRemapMemory->melee = 0x0010;   // Y
+        buttonRemapMemory->jump = 0x0040;    // A
+        buttonRemapMemory->style = 0x0020;   // B
+        buttonRemapMemory->shoot = 0x0080;   // X
+        buttonRemapMemory->dt = 0x0004;      // Left Shoulder
+        buttonRemapMemory->gunChange = 0x0001; // Left Trigger
+        buttonRemapMemory->targetChange = 0x0200; // Left Thumb
+        buttonRemapMemory->lockOn = 0x0008;  // Right Shoulder
+        buttonRemapMemory->swordChange = 0x0002; // Right Trigger
+        buttonRemapMemory->camReset = 0x0400; // Right Thumb
+        buttonRemapMemory->taunt = 0x0100;   // Back
+    }
+}
 
 void InputRemapOptions() {
 	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
@@ -10931,6 +10878,13 @@ void InputRemapOptions() {
 		}
 	}
 
+	// I assume the stuff at void UpdateMapIndex(const varType (&map)[mapItemCount], uint8& index, varType& var)is the vergil/dante bind swap??
+	if (ImGui::CollapsingHeader("Siy direct memory remaps")) {
+		buttonRemapStruct* buttonRemapMemory = (buttonRemapStruct*)(appBaseAddr + 0xD6CE80 + 0xA);
+		ImGui::InputScalar("struct addr", ImGuiDataType_U64, (int*)&buttonRemapMemory, NULL, NULL, "%016llX", ImGuiInputTextFlags_CharsHexadecimal);
+		DrawKeybindEditor(buttonRemapMemory);
+	}
+	
 	ImGui::PopStyleColor();
 	ImGui::PopFont();
 }
@@ -11046,12 +11000,15 @@ void ToggleInfiniteHealth() {
 
     if (activeCrimsonGameplay.Cheats.Training.infiniteHP) {
 		activeCrimsonGameplay.Cheats.Training.infiniteHP = false;
+		cheatsPopUp.cheatText = "Toggled Infinite HP Off";
     } else {
 		activeCrimsonGameplay.Cheats.Training.infiniteHP = true;
+		cheatsPopUp.cheatText = "Toggled Infinite HP On";
     }
-	if (activeCrimsonConfig.GUI.sounds && g_scene == SCENE::GAME) PlaySound(0, 25); 
+	if (activeCrimsonConfig.GUI.sounds) PlaySound(0, 25); 
 
     ToggleInfiniteHitPoints(activeCrimsonGameplay.Cheats.Training.infiniteHP);
+	cheatsPopUp.showPopUp = true;
 }
 
 void ToggleOneHitKill() {
@@ -11060,11 +11017,14 @@ void ToggleOneHitKill() {
 	if (!toggled) {
 		toggled = true;
 		activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 100.0f;
+		cheatsPopUp.cheatText = "Toggled One Hit Kill On";
 	} else {
 		toggled = false;
 		activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = defaultCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult;
+		cheatsPopUp.cheatText = "Toggled One Hit Kill Off";
 	}
-	if (activeCrimsonConfig.GUI.sounds && g_scene == SCENE::GAME) PlaySound(0, 25); 
+	if (activeCrimsonConfig.GUI.sounds) PlaySound(0, 25); 
+	cheatsPopUp.showPopUp = true;
 }
 
 void GamepadToggleShowMain() {
@@ -12867,16 +12827,12 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
   	CrimsonOnTick::FrameResponsiveGameSpeed();
 	CrimsonOnTick::WeaponProgressionTracking();
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
+	CrimsonOnTick::FixM7DevilTriggerUnlocking();
 	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
 
-// 	if (!activeConfig.Actor.enable && 
-// 		activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo && 
-// 		(activeCrimsonGameplay.GameMode.preset != GAMEMODEPRESETS::CRIMSON &&
-// 		activeCrimsonGameplay.GameMode.preset != GAMEMODEPRESETS::STYLE_SWITCHER)) {
-// 
-// 		activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo = false;
-// 		CrimsonDetours::ToggleHoldToCrazyCombo(false);
-// 	}
+	if (activeConfig.Actor.enable) {
+		ExpConfig::TransferUnlocksToVanilla();
+	}
 
     // TIMERS
     CrimsonTimers::CallAllTimers();
@@ -12887,9 +12843,12 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	WorldSpaceWeaponWheels1PController(pSwapChain);
 	WorldSpaceWeaponWheelsController(pSwapChain);
     MirageGaugeMainPlayer();
-	RedOrbCounterWindow();
-	CheatsHUDIndicatorWindow();
-	StyleMeterWindow();
+	CrimsonHUD::RedOrbCounterWindow();
+	CrimsonHUD::CheatsHUDIndicatorWindow();
+	CrimsonHUD::CheatHotkeysPopUpWindow();
+	CrimsonHUD::StyleMeterWindow();
+	CrimsonHUD::LockOnWindows();
+	CrimsonHUD::StunDisplacementLockOnWindows();
 
 	UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
 	RenderMissionResultGameModeStats();
@@ -12899,6 +12858,9 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonGameModes::TrackMissionResultGameMode();
 	CrimsonOnTick::CrimsonMissionClearSong();
 	//CrimsonOnTick::CorrectFrameRateCutscenes();
+
+	CrimsonSDL::CheckAndOpenControllers();
+	CrimsonSDL::UpdateJoysticks();
 
 
     HandleKeyBindings(keyBindings.data(), keyBindings.size());

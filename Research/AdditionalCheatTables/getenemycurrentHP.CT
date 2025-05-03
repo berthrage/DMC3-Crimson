@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>2801</ID>
+      <Description>"+0"</Description>
+      <LastState Value="02899000BF3B0BE9" RealAddress="7FF709DA20F0"/>
+      <ShowAsHex>1</ShowAsHex>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>8 Bytes</VariableType>
+      <Address>dmc3.exe+168</Address>
+      <Offsets>
+        <Offset>0</Offset>
+        <Offset>C8</Offset>
+        <Offset>0</Offset>
+        <Offset>6328</Offset>
+        <Offset>18</Offset>
+        <Offset>00C90E28</Offset>
+      </Offsets>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

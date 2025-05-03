@@ -227,10 +227,25 @@ bool GUI_Color(const char* label, uint8 (&var)[4]);
 bool GUI_Color2(const char* label, uint8 (&var)[4], uint8 (&var2)[4]);
 
 #pragma region SiyCodeAdapted
-static const std::vector<std::pair<uint16_t, const char*>> buttonPairs = { {0x0000, "Nothing"}, {0x0001, "Left Trigger"},
-	{0x0002, "Right Trigger"}, {0x0004, "Left Shoulder"}, {0x0008, "Right Shoulder"}, {0x0010, "Y"}, {0x0020, "B"}, {0x0040, "A"},
-	{0x0080, "X"}, {0x0100, "Back"}, {0x0200, "Left Thumb"}, {0x0400, "Right Thumb"}, {0x0800, "Start"}, {0x1000, "Up"}, {0x2000, "Right"},
-	{0x4000, "Down"}, {0x8000, "Left"} };
+static const std::vector<std::pair<uint16_t, const char*>> buttonPairs = {
+    {0x0000, "Nothing"},
+    {0x0001, "Left Trigger"},
+	{0x0002, "Right Trigger"},
+    {0x0004, "Left Shoulder"},
+    {0x0008, "Right Shoulder"},
+    {0x0010, "Y"},
+    {0x0020, "B"},
+    {0x0040, "A"},
+	{0x0080, "X"},
+    {0x0100, "Back"},
+    {0x0200, "Left Thumb"},
+    {0x0400, "Right Thumb"},
+    {0x0800, "Start"},
+    {0x1000, "Up"},
+    {0x2000, "Right"},
+	{0x4000, "Down"},
+    {0x8000, "Left"}
+};
 
 std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum);
 

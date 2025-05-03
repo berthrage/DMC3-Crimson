@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>2797</ID>
+      <Description>"No Soul Eater Invis"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+dmc3.exe+E94E0:
+cmp al,01
+jmp dmc3.exe+E9508
+
+[DISABLE]
+dmc3.exe+E94E0:
+cmp al,01
+jne dmc3.exe+E9508
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

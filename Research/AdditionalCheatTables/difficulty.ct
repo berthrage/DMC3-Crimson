@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>2763</ID>
+      <Description>"Difficulty"</Description>
+      <LastState Value="4" RealAddress="7FF66C29F25C"/>
+      <VariableType>2 Bytes</VariableType>
+      <Address>dmc3.exe+C8F25C</Address>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

@@ -24,6 +24,7 @@
 #include "CrimsonDetours.hpp"
 #include "CrimsonUtil.hpp"
 #include "CrimsonTimers.hpp"
+#include "DMC3Input.hpp"
 
 namespace CrimsonOnTick {
 
@@ -565,8 +566,13 @@ void ForceThirdPersonCameraController() {
 	}
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 
+	if (eventData.event == EVENT::TELEPORT) {
+		CrimsonPatches::ForceThirdPersonCamera(true);
+	}
+
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	static bool checkIfGameHasAlreadyLoaded2 = false;
+	
 
 	if (!checkIfGameHasAlreadyLoaded2) {
 		if (eventData.event == EVENT::MAIN && g_inGameDelayed) {
@@ -585,7 +591,12 @@ void ForceThirdPersonCameraController() {
 	}
 
 	if (activeCrimsonConfig.Camera.forceThirdPerson) {
-		CrimsonPatches::ForceThirdPersonCamera(true);
+		if (eventData.room == ROOM::LOST_SOULS_NIRVANA && eventData.event != EVENT::TELEPORT) {
+			CrimsonPatches::ForceThirdPersonCamera(false);
+		} else {
+			CrimsonPatches::ForceThirdPersonCamera(true);
+			
+		}
 
 		if (!(eventData.room == 228 && eventData.position == 0)) { // Adding only Geryon Part 1 as an exception for now.
 			Camera::ToggleDisableBossCamera(true);
@@ -598,8 +609,119 @@ void ForceThirdPersonCameraController() {
 	}
 }
 
+void FixInitialCameraRotation(EventData& eventData, PlayerActorData& mainActorData, CameraData* cameraData, bool& setCamPos) {
+	if (!setCamPos) {
+		if (!g_inGameCutscene) {
+			constexpr float TWO_PI = 6.283185307f;
+			constexpr float PI = 3.1415926535f;
+			float radius = 5.0f;
+			float radiusZ = 5.0f;
+			float verticalOffset = 140.0f;
+
+			float angle = (mainActorData.rotation / 65535.0f) * TWO_PI;
+			angle += PI;
+
+			if (eventData.room != ROOM::HEAVENRISE_CHAMBER && eventData.room != ROOM::HIGH_FLY_ZONE) angle += PI;
+
+			vec3 offset;
+			offset.x = -sinf(angle) * radius;
+			offset.z = -cosf(angle) * radiusZ;
+			offset.y = verticalOffset;
+
+			cameraData->data[0].x = mainActorData.position.x + offset.x;
+			cameraData->data[0].y = mainActorData.position.y + offset.y;
+			cameraData->data[0].z = mainActorData.position.z + offset.z;
+			mainActorData.position.x = mainActorData.position.x + 1;
+
+			setCamPos = true;
+		}
+	}
+}
+
+void VajuraBugFix(CameraData* cameraData, EventData& eventData) {
+	static bool wasInCutscene = false;
+	static bool restoreCamData1 = false;
+	static bool restoreCamData2 = false;
+	static vec3 fixCamData1Vec = { 0.0f, 0.0f, 0.0f };
+	static vec3 fixCamData2Vec = { 0.0f, 0.0f, 0.0f };
+
+	if (eventData.room == ROOM::LIVING_STATUE_ROOM) {
+		if (g_inGameCutscene) {
+			if (!wasInCutscene) {
+				restoreCamData1 = true;
+			}
+			wasInCutscene = true;
+		} else {
+			if (restoreCamData1) {
+				cameraData->data[1].x = fixCamData1Vec.x;
+				cameraData->data[1].y = fixCamData1Vec.y;
+				cameraData->data[1].z = fixCamData1Vec.z;
+				restoreCamData1 = false;
+			} else {
+				fixCamData1Vec.x = cameraData->data[1].x;
+				fixCamData1Vec.y = cameraData->data[1].y;
+				fixCamData1Vec.z = cameraData->data[1].z;
+			}
+			wasInCutscene = false;
+		}
+	}
+}
+
+void ResetCameraToNearestSide(EventData& eventData, PlayerActorData& mainActorData, CameraData* cameraData) {
+	if (activeCrimsonConfig.Camera.rightStickCameraCentering != RIGHTSTICKCENTERCAM::TO_NEAREST_SIDE) {
+		return;
+	}
+    static bool defaultCamSet = false;
+    constexpr float TWO_PI = 6.283185307f;
+    constexpr float PI = 3.1415926535f;
+    float radius = 200.0f;
+    float radiusZ = 200.0f;
+    float verticalOffset = 140.0f;
+
+    if (mainActorData.buttons[0] & GetBinding(BINDING::DEFAULT_CAMERA) && !defaultCamSet) {
+        if (!g_inGameCutscene) {
+            // Character's forward angle in world space
+            float charAngle = (mainActorData.rotation / 65535.0f) * TWO_PI;
+           // charAngle += PI;
+
+            // Use -dx, -dz so angle is from camera to character (matches forward logic)
+            float dx = cameraData->data[0].x - mainActorData.position.x;
+            float dz = cameraData->data[0].z - mainActorData.position.z;
+            float camAngle = atan2f(-dx, -dz);
+
+            // Normalize angles to [-PI, PI]
+            auto NormalizeAngle = [](float angle) {
+                constexpr float PI = 3.1415926535f;
+                constexpr float TWO_PI = 6.283185307f;
+                while (angle > PI) angle -= TWO_PI;
+                while (angle < -PI) angle += TWO_PI;
+                return angle;
+            };
+
+            float diff = NormalizeAngle(camAngle - charAngle);
+
+            // If diff > 0, camera is on the left; snap to left. If diff < 0, snap to right.
+            float targetAngle = (diff > 0.0f) ? (charAngle + (PI / 2.0f)) : (charAngle - (PI / 2.0f));
+
+            vec3 offset;
+            offset.x = -sinf(targetAngle) * radius;
+            offset.z = -cosf(targetAngle) * radiusZ;
+            offset.y = verticalOffset;
+
+            cameraData->data[0].x = mainActorData.position.x + offset.x;
+            cameraData->data[0].y = mainActorData.position.y + offset.y;
+            cameraData->data[0].z = mainActorData.position.z + offset.z;
+            mainActorData.position.x = mainActorData.position.x + 1; // Triggers camera orbit
+
+            defaultCamSet = true;
+        }
+    } else if (!(mainActorData.buttons[0] & GetBinding(BINDING::DEFAULT_CAMERA))) {
+        defaultCamSet = false;
+    }
+}
 
 void GeneralCameraOptionsController() {
+	static bool setCamPos = false;
 	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if (!pool_10298 || !pool_10298[8]) {
 		return;
@@ -616,20 +738,32 @@ void GeneralCameraOptionsController() {
 	}
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
 	if (eventData.event != EVENT::MAIN) {
+		setCamPos = false;
 		return;
 	}
+	if (g_inGameCutscene) {
+		setCamPos = false;
+	}
+
+	g_disableRightStickCenterCamera = (activeCrimsonConfig.Camera.rightStickCameraCentering == RIGHTSTICKCENTERCAM::OFF ||
+		activeCrimsonConfig.Camera.rightStickCameraCentering == RIGHTSTICKCENTERCAM::TO_NEAREST_SIDE) ? true : false;
+
+	FixInitialCameraRotation(eventData, mainActorData, cameraData, setCamPos);
+	VajuraBugFix(cameraData, eventData);
+	ResetCameraToNearestSide(eventData, mainActorData, cameraData);
 
 	CrimsonPatches::CameraSensController();
-	
+
 	if (cameraData != nullptr) {
 		CrimsonPatches::CameraFollowUpSpeedController(*cameraData, cameraControlMetadata);
-		CrimsonPatches::CameraDistanceController(cameraData);
-		CrimsonPatches::CameraTiltController(cameraData);
+		CrimsonPatches::CameraDistanceController(cameraData, cameraControlMetadata);
+		CrimsonPatches::CameraTiltController(cameraData, cameraControlMetadata);
 	}
-	
-	CrimsonPatches::ToggleLockedOffCamera(g_disableCameraRotation? false : activeCrimsonConfig.Camera.lockedOff);
+
+	CrimsonPatches::ToggleLockedOffCamera(g_disableCameraRotation ? false : activeCrimsonConfig.Camera.lockedOff);
 	CrimsonPatches::CameraLockOnDistanceController();
 }
+
 
 void AirTauntDetoursController() {
 	if (activeConfig.Actor.enable) {
@@ -1051,6 +1185,18 @@ void WeaponProgressionTracking() {
 				if (queuedCharacterData.rangedWeaponCount == 0)
 					queuedCharacterData.rangedWeaponCount = 1;
 			}
+		}
+	}
+}
+
+void FixM7DevilTriggerUnlocking() {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	if ((g_scene == SCENE::MISSION_RESULT && sessionData.mission == 7) || 
+		(g_scene == SCENE::MISSION_START && sessionData.mission == 8)) {
+		if (!sessionData.unlockDevilTrigger && sessionData.magicPoints == 0) {
+			sessionData.unlockDevilTrigger = true;
+			sessionData.magicPoints = 3000;
 		}
 	}
 }

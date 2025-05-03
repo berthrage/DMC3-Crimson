@@ -26,6 +26,14 @@ enum {
 };
 }
 
+namespace RIGHTSTICKCENTERCAM {
+enum {
+	OFF,
+	TO_NEAREST_SIDE,
+	ON
+};
+}
+
 struct CrimsonConfig {
 	struct MultiplayerBars2D {
 		bool show = true;
@@ -60,13 +68,15 @@ struct CrimsonConfig {
 		float opacity = 0.9f;
 		bool pauseWhenOpened = true;
 		bool sounds = true;
+		bool cheatsPopup = true;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
 				std::make_pair("transparencyMode", &GUI::transparencyMode),
 				std::make_pair("opacity", &GUI::opacity),
 				std::make_pair("pauseWhenOpened", &GUI::pauseWhenOpened),
-				std::make_pair("sounds", &GUI::sounds)	
+				std::make_pair("sounds", &GUI::sounds),
+				std::make_pair("cheatsPopup", &GUI::cheatsPopup)
 			);
 		}
 	} GUI;
@@ -127,7 +137,7 @@ struct CrimsonConfig {
 		bool lockedOff = true;
 		bool invertX = true;
 		uint8 autoAdjust = 0;
-		bool disableRightStickCenterCamera = true;
+		uint8 rightStickCameraCentering = RIGHTSTICKCENTERCAM::TO_NEAREST_SIDE;
 		bool disableBossCamera = false;
 		bool multiplayerCamera = true;
 		bool panoramicCamera = false;
@@ -144,7 +154,7 @@ struct CrimsonConfig {
                 std::make_pair("lockedOff", &Camera::lockedOff),
                 std::make_pair("invertX", &Camera::invertX),
                 std::make_pair("autoAdjust", &Camera::autoAdjust),
-                std::make_pair("disableRightStickCenterCamera", &Camera::disableRightStickCenterCamera),
+                std::make_pair("rightStickCameraCentering", &Camera::rightStickCameraCentering),
                 std::make_pair("disableBossCamera", &Camera::disableBossCamera),
 				std::make_pair("multiplayerCamera", &Camera::multiplayerCamera),
 				std::make_pair("panoramicCamera", &Camera::panoramicCamera),
@@ -256,10 +266,10 @@ struct CrimsonConfig {
 	struct PlayerProperties {
 		uint8 playerColor[PLAYER_COUNT][4] = {
 			// r   g  b  a  
-			{ 158, 27, 63, 255 }, // 1P 
-			{ 18, 48, 130, 255 }, // 2P  
-			{ 228, 160, 16, 255 }, // 3P    
-			{ 49, 127, 67, 255 }, // 4P
+			{ 222, 28, 76, 255 }, // 1P 
+			{ 12, 133, 197, 255 }, // 2P  
+			{ 255, 230, 0, 255 }, // 3P    
+			{ 0, 192, 70, 255 }, // 4P
 		};
 
 		std::string playerName[PLAYER_COUNT] = {
