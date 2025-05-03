@@ -115,7 +115,7 @@ void InitBindings()
     BindTable* mainBinds = (BindTable*)(appBaseAddr + 0xD6CE80 + 0xA);
     //TODO(): check if coop is on
     //if (coopEnabled) {
-    SetMemory((void*)mainBinds, (byte8)&s_defaultBinds, sizeof(BindTable));
+    CopyMemory(mainBinds, &s_defaultBinds, sizeof(BindTable));
     //}
 }
 
