@@ -2,6 +2,7 @@
 
 #include "Core/Core.hpp"
 #include "Vars.hpp"
+#include "Xinput.h"
 
 namespace TILT_DIRECTION {
 enum {
@@ -20,9 +21,38 @@ inline ENGINE_GAMEPAD& GetGamepad(uint8 index) {
     return (reinterpret_cast<ENGINE_GAMEPAD*>(appBaseAddr + 0xD54A10 + 0x550))[index];
 }
 
+#if 0
 inline byte16 GetBinding(uint8 index) {
     return (reinterpret_cast<byte16*>(appBaseAddr + 0xD6CE80 + 0xA))[index];
 }
+#else
+inline byte16 GetBinding(uint8 index) {
+    return (reinterpret_cast<byte16*>(appBaseAddr + 0xD6CE80 + 0xA))[index];
+}
+// Created with ReClass.NET 1.2 by KN4CK3R
+struct BindTable
+{
+public:
+    uint16_t up; //0x0000
+    uint16_t down; //0x0002
+    uint16_t right; //0x0004
+    uint16_t left; //0x0006
+    uint16_t melee_atk; //0x0008
+    uint16_t jump; //0x000A
+    uint16_t style; //0x000C
+    uint16_t shoot; //0x000E
+    uint16_t dt; //0x0010
+    uint16_t change_gun; //0x0012
+    uint16_t change_target; //0x0014
+    uint16_t lock_on; //0x0016
+    uint16_t change_sword; //0x0018
+    uint16_t default_camera; //0x001A
+    uint16_t taunt; //0x001C
+}; //Size: 0x001E
+void InitBindings();
+void SwapXInputButtonsCoop(uint8 index, XINPUT_STATE* gamepad);
+
+#endif
 
 inline uint16 GetRelativeTilt(PlayerActorData& actorData) {
     auto& gamepad       = GetGamepad(0);

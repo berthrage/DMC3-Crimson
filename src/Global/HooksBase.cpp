@@ -791,6 +791,8 @@ DWORD XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pState) {
         SetMemory(pState, 0, sizeof(XINPUT_STATE));
     }
 
+    SwapXInputButtonsCoop(dwUserIndex, pState);
+
     return 0;
 }
 

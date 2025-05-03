@@ -13447,6 +13447,7 @@ void SceneMissionStart() {
     }
 
     ToggleSkipCutscenes(activeConfig.skipCutscenes);
+    InitBindings();
 
     // if (!activeConfig.Actor.enable)
     // {
