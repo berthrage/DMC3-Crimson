@@ -5138,6 +5138,8 @@ struct CrimsonPlayerData {
 	AirCounts airCounts;
     float lockedOnEnemyHP = 0;
 	float lockedOnEnemyMaxHP = 0;
+	float lockedOnEnemyShield = 0;
+	float lockedOnEnemyMaxShield = 0;
     float lockedOnEnemyStun = 0;
     float lockedOnEnemyDisplacement = 0;
     float lockedOnEnemyMaxStun = 0;
@@ -5186,6 +5188,8 @@ struct CrimsonPlayerData {
     AirCounts airCountsClone;
 	float lockedOnEnemyHPClone = 0;
 	float lockedOnEnemyMaxHPClone = 0;
+	float lockedOnEnemyShieldClone = 0;
+	float lockedOnEnemyMaxShieldClone = 0;
 	float lockedOnEnemyStunClone = 0;
 	float lockedOnEnemyDisplacementClone = 0;
 	float lockedOnEnemyMaxStunClone = 0;

@@ -2410,32 +2410,21 @@ void GetLockedOnEnemyHitPoints(byte8* actorBaseAddr) {
                 lockedOnEnemyMaxHP = maxHitPointsGigapede;
             }
 		} else if (enemyId == ENEMY::CERBERUS) {
-            if (enemyActorData.hitPointsCerberusPart1 > 0) {
-                auto& maxHitPointsCerberusPart1 = *reinterpret_cast<float*>(appBaseAddr + 0x5728F0);
-				lockedOnEnemyHP = enemyActorData.hitPointsCerberusPart1;
-				lockedOnEnemyMaxHP = maxHitPointsCerberusPart1;
-            } else {
-                auto& maxHitPointsCerberusRed = *reinterpret_cast<float*>(appBaseAddr + 0x5728F4); // 1650
-                auto& maxHitPointsCerberusPart1 = *reinterpret_cast<float*>(appBaseAddr + 0x5728F0); // 2400
-                auto& maxHitPointsCerberusGreen = *reinterpret_cast<float*>(appBaseAddr + 0x5728F8); // 1600
-                auto& maxHitPointsCerberusBlue = *reinterpret_cast<float*>(appBaseAddr + 0x5728FC); // 1550
-				float totalMaxHP = maxHitPointsCerberusRed + maxHitPointsCerberusPart1 + maxHitPointsCerberusRed + maxHitPointsCerberusRed; // 7200
-				lockedOnEnemyHP = enemyActorData.hitPointsCerberusTotal;
-                lockedOnEnemyMaxHP = totalMaxHP;
-            }
+			auto& maxHitPointsCerberusRed = *reinterpret_cast<float*>(appBaseAddr + 0x5728F4); // 1650
+			auto& maxHitPointsCerberusPart1 = *reinterpret_cast<float*>(appBaseAddr + 0x5728F0); // 2400
+			auto& maxHitPointsCerberusGreen = *reinterpret_cast<float*>(appBaseAddr + 0x5728F8); // 1600
+			auto& maxHitPointsCerberusBlue = *reinterpret_cast<float*>(appBaseAddr + 0x5728FC); // 1550
+			float totalMaxHP = maxHitPointsCerberusRed + maxHitPointsCerberusPart1 + maxHitPointsCerberusRed + maxHitPointsCerberusRed; // 7200
+			lockedOnEnemyHP = enemyActorData.hitPointsCerberusTotal;
+			lockedOnEnemyMaxHP = totalMaxHP;
+            
 		} else if (isAgniAndRudra) {
 			lockedOnEnemyHP = enemyActorData.hitPointsAgniRudra;
 			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsAgniRudra;
 		} else if (enemyId == ENEMY::NEVAN) {
-            auto& shieldedNevanData = *reinterpret_cast<ShieldedNevanData*>(enemyActorData.shieldedNevanAddr);
-			if (!enemyActorData.shieldedNevanAddr) {
-				lockedOnEnemyHP = enemyActorData.hitPointsNevan;
-				lockedOnEnemyMaxHP = enemyActorData.maxHitPointsNevan;
-            } else {
-                lockedOnEnemyHP = shieldedNevanData.currentShield;
-                lockedOnEnemyMaxHP = 350.0f;
-            }
-            
+			lockedOnEnemyHP = enemyActorData.hitPointsNevan;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsNevan;
+          
         } else if (enemyId == ENEMY::GERYON) {
             // aiming at carriage
             if (enemyActorData.hitPointsGeryonCarriage != 0) {
@@ -2599,6 +2588,46 @@ void CalculateLockedOnEnemyLastStunDisplacementValue(byte8* actorBaseAddr) {
 
 	lastStun[playerIndex][entityIdx] = currentStun;
 	lastDisplacement[playerIndex][entityIdx] = currentDisplacement;
+}
+
+void GetLockedOnEnemyShield(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& lockedOnEnemyShield = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyShield : crimsonPlayer[playerIndex].lockedOnEnemyShieldClone;
+	auto& lockedOnEnemyMaxShield = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMaxShield : crimsonPlayer[playerIndex].lockedOnEnemyMaxShieldClone;
+
+
+	if (actorData.lockOnData.targetBaseAddr60 != 0) {
+		auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60); // -0x60 very important don't forget
+		auto& enemyId = enemyActorData.enemy;
+
+        if (enemyId == ENEMY::CERBERUS) {
+			
+			auto& maxHitPointsCerberusPart1 = *reinterpret_cast<float*>(appBaseAddr + 0x5728F0);
+			lockedOnEnemyShield = enemyActorData.hitPointsCerberusPart1;
+			lockedOnEnemyMaxShield = maxHitPointsCerberusPart1;
+			
+		} else if (enemyId == ENEMY::NEVAN) {
+			auto& shieldedNevanData = *reinterpret_cast<ShieldedNevanData*>(enemyActorData.shieldedNevanAddr);
+			if (!enemyActorData.shieldedNevanAddr) {
+				lockedOnEnemyShield = 0;
+				lockedOnEnemyMaxShield = 0;
+			} else {
+				lockedOnEnemyShield = shieldedNevanData.currentShield;
+				lockedOnEnemyMaxShield = 350.0f;
+			}
+
+		} else {
+            lockedOnEnemyShield = 0;
+			lockedOnEnemyMaxShield = 0;
+		}
+	} else {
+		lockedOnEnemyShield = 0;
+		lockedOnEnemyMaxShield = 0;
+	}
 }
 
 #pragma endregion

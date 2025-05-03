@@ -12876,6 +12876,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonHUD::StyleMeterWindow();
 	CrimsonHUD::LockOnWindows();
 	CrimsonHUD::StunDisplacementLockOnWindows();
+	CrimsonHUD::ShieldLockOnWindows();
 
 	UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
 	RenderMissionResultGameModeStats();

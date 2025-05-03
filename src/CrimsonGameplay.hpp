@@ -38,6 +38,7 @@ void CalculateRotationTowardsEnemy(byte8* actorBaseAddr);
 void GetLockedOnEnemyHitPoints(byte8* actorBaseAddr);
 void GetLockedOnEnemyStunDisplacement(byte8* actorBaseAddr);
 void CalculateLockedOnEnemyLastStunDisplacementValue(byte8* actorBaseAddr);
+void GetLockedOnEnemyShield(byte8* actorBaseAddr);
 void SkyLaunchAirTauntController(byte8* actorBaseAddr);
 void DriveTweaks(byte8* actorBaseAddr);
 
