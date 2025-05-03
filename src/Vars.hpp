@@ -5142,6 +5142,8 @@ struct CrimsonPlayerData {
     float lockedOnEnemyDisplacement = 0;
     float lockedOnEnemyMaxStun = 0;
 	float lockedOnEnemyMaxDisplacement = 0;
+    float lockedOnEnemyMinusStun = 0;
+	float lockedOnEnemyMinusDisplacement = 0;
 
     AirRaveTweak airRaveTweak;
 
@@ -5188,6 +5190,8 @@ struct CrimsonPlayerData {
 	float lockedOnEnemyDisplacementClone = 0;
 	float lockedOnEnemyMaxStunClone = 0;
 	float lockedOnEnemyMaxDisplacementClone = 0;
+	float lockedOnEnemyMinusStunClone = 0;
+	float lockedOnEnemyMinusDisplacementClone = 0;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];

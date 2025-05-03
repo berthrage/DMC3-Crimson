@@ -1408,12 +1408,22 @@ void SetRebOrbCounterDurationTillFadeOut(bool enable, float duration) {
 	run = enable;
 }
 
+void ToggleHideLockOn(bool enable) {
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+	//dmc3.exe + 296E77 - 75 14 - jne dmc3.exe + 296E8D{ ToggleLockOnDisplay, change this to jmp to hide permanently
+	
+	if (enable) {
+		_patch((char*)(appBaseAddr + 0x296E77), (char*)"\xEB\x14", 2); // jmp dmc3.exe+296E8D
+	} else {
+		_patch((char*)(appBaseAddr + 0x296E77), (char*)"\x75\x14", 2); // jne dmc3.exe+296E8D
+	}
 
-#pragma endregion
-
-
-
+	run = enable;
 }
-
+}
 # pragma endregion
 

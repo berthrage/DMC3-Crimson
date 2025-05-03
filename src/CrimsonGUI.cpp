@@ -3048,6 +3048,7 @@ void CharacterSection(size_t defaultFontSize) {
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 	GUI_Checkbox("CRIMSON CHARACTER SYSTEM (CCS)      ", queuedConfig.Actor.enable);
+	
 	ImGui::PopFont();
 
 	if (!queuedConfig.Actor.enable) {
@@ -7562,12 +7563,12 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 //                 for (int i = 0; i < 14; i++) {
 //                     ImGui::Text("sessionData unlock[%u] : %u", i, sessionData.weaponStyleUnlocks[i]);
 //                 }
-                ImGui::Text("SessionData Style Level Royalguard: %u", ExpConfig::missionExpDataDante.styleLevels[3]);
-				ImGui::Text("Cerbus Unlocked Session? %u", sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::CERBERUS]);
-				ImGui::Text("sessionData.quicksilver? %u", sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER]);
-				ImGui::Text("sessionData.doppelganger? %u", sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER]);
-				ImGui::Text("sessionData.quicksilverLevel: %u", sessionData.styleLevels[STYLE::QUICKSILVER]);
-				ImGui::Text("sessionData.doppelgangerLevel: %u", sessionData.styleLevels[STYLE::DOPPELGANGER]);
+//                 ImGui::Text("SessionData Style Level Royalguard: %u", ExpConfig::missionExpDataDante.styleLevels[3]);
+// 				ImGui::Text("Cerbus Unlocked Session? %u", sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::CERBERUS]);
+// 				ImGui::Text("sessionData.quicksilver? %u", sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER]);
+// 				ImGui::Text("sessionData.doppelganger? %u", sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER]);
+// 				ImGui::Text("sessionData.quicksilverLevel: %u", sessionData.styleLevels[STYLE::QUICKSILVER]);
+// 				ImGui::Text("sessionData.doppelgangerLevel: %u", sessionData.styleLevels[STYLE::DOPPELGANGER]);
 				ImGui::Text("GunUnlockedQtt: %u", weaponProgression.gunsUnlockedQtt);
 				ImGui::Text("sessionData.unlockDevilTrigger: %u", sessionData.unlockDevilTrigger);
 				ImGui::Text("sessionData.magicPoints: %g", sessionData.magicPoints);
@@ -7763,7 +7764,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				return;
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
-			
+
+			ImGui::Text("lockOnEnemyMinusStun: %g", crimsonPlayer[0].lockedOnEnemyMinusStun);
+			ImGui::Text("lockOnEnemyMinusDisplacement: %g", crimsonPlayer[0].lockedOnEnemyMinusDisplacement);
 			ImGui::Text("gameModeData.mustStyleMissionResult: %u", gameModeData.mustStyleMissionResult);
 			ImGui::Text("gameModeData.enemyDTMisionResult: %u", gameModeData.enemyDTMissionResult);
 			ImGui::Text("lockedEnemyScreenPositionX: %g", crimsonPlayer[0].lockedEnemyScreenPosition.x);
@@ -8390,7 +8393,7 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Hide Lock-On", activeConfig.hideLockOn, queuedConfig.hideLockOn)) {
-				ToggleHideLockOn(activeConfig.hideLockOn);
+				CrimsonPatches::ToggleHideLockOn(activeConfig.hideLockOn);
 			}
 
 			ImGui::TableNextColumn();
@@ -8455,10 +8458,34 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
+			
 			if (GUI_Checkbox2("Lock-On", activeCrimsonConfig.CrimsonHudAddons.lockOn, queuedCrimsonConfig.CrimsonHudAddons.lockOn)) {
-				ToggleHideLockOn(activeCrimsonConfig.CrimsonHudAddons.lockOn);
+				CrimsonPatches::ToggleHideLockOn(activeCrimsonConfig.CrimsonHudAddons.lockOn);
+				if (!activeCrimsonConfig.CrimsonHudAddons.lockOn) {
+					activeCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud = false;
+					queuedCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud = false;
+				}
 			}
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
 
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeCrimsonConfig.CrimsonHudAddons.lockOn);
+
+			if (GUI_Checkbox2("Stun/Displacement Numeric HUD", activeCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud, queuedCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud)) {
+				if (activeCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud) {
+					activeCrimsonConfig.CrimsonHudAddons.lockOn = true;
+					queuedCrimsonConfig.CrimsonHudAddons.lockOn = true;
+					CrimsonPatches::ToggleHideLockOn(activeCrimsonConfig.CrimsonHudAddons.lockOn);
+				} 
+			}
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Show numerical stun and displacement values on lock-on (Hells enemies only).\nLast Move minus value updates each 200ms. Requires CrimsonHUD's Lock-On.");
+
+			GUI_PopDisable(!activeCrimsonConfig.CrimsonHudAddons.lockOn);
 
 			ImGui::EndTable();
 		}

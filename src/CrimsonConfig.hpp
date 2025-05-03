@@ -114,6 +114,7 @@ struct CrimsonConfig {
 		bool royalGauge = true;
 		bool styleRanksMeter = true;
 		bool lockOn = true;
+		bool stunDisplacementNumericHud = false;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -121,7 +122,8 @@ struct CrimsonConfig {
                 std::make_pair("redOrbCounter", &CrimsonHudAddons::redOrbCounter),
                 std::make_pair("royalGauge", &CrimsonHudAddons::royalGauge),
                 std::make_pair("styleRanksMeter", &CrimsonHudAddons::styleRanksMeter),
-                std::make_pair("lockOn", &CrimsonHudAddons::lockOn)
+                std::make_pair("lockOn", &CrimsonHudAddons::lockOn),
+				std::make_pair("stunDisplacementNumericHud", &CrimsonHudAddons::stunDisplacementNumericHud)
 			);
 		}
 	} CrimsonHudAddons;

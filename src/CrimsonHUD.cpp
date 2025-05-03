@@ -543,9 +543,12 @@ void LockOnWindows() {
 	// Spin speed in radians per second (adjust as needed)
 	const float spinSpeed = 0.08f; // slow spin
 
-	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.lockOn) {
+	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.lockOn || !activeConfig.Actor.enable) {
+		CrimsonPatches::ToggleHideLockOn(activeConfig.hideLockOn);
 		return;
 	}
+
+	CrimsonPatches::ToggleHideLockOn(true);
 
 	// Loop through player data
 	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
@@ -691,7 +694,7 @@ void StunDisplacementLockOnWindows() {
 	// Spin speed in radians per second (adjust as needed)
 	const float spinSpeed = -0.12f; // slow spin
 
-	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.lockOn) {
+	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.lockOn || !activeConfig.Actor.enable) {
 		return;
 	}
 
@@ -781,6 +784,8 @@ void StunDisplacementLockOnWindows() {
 		auto& lockedEnemyStun = crimsonPlayer[playerIndex].lockedOnEnemyStun;
 		auto& lockedOnEnemyDisplacement = crimsonPlayer[playerIndex].lockedOnEnemyDisplacement;
 		auto& lockedOnEnemyMaxDisplacement = crimsonPlayer[playerIndex].lockedOnEnemyMaxDisplacement;
+		auto& lockedOnEnemyMinusStun = crimsonPlayer[playerIndex].lockedOnEnemyMinusStun;
+		auto& lockedOnEnemyMinusDisplacement = crimsonPlayer[playerIndex].lockedOnEnemyMinusDisplacement;
 		
 		float displacementFraction = 1.0f - (lockedOnEnemyDisplacement / lockedOnEnemyMaxDisplacement);
 
@@ -815,7 +820,58 @@ void StunDisplacementLockOnWindows() {
 			ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
 		}
 
-		ImGui::End();
+		if (actorData.lockOnData.targetBaseAddr60 != 0) {
+			auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60); // -0x60 very important don't forget
+			auto& enemyId = enemyActorData.enemy;
+			bool isHell = (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::HELL_VANGUARD);
+
+			if (!isHell || !activeCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud) continue;
+			CrimsonGameplay::CalculateLockedOnEnemyLastStunDisplacementValue(actorData);
+			ImVec4 textColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+			ImVec4 fadedTextColor = textColor;
+			fadedTextColor.w *= lockOnFade[playerIndex].alpha;
+			ImGui::PushStyleColor(ImGuiCol_Text, fadedTextColor);
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0f]);
+			// Stun
+			ImGui::Text("Stun: ");
+			ImGui::SameLine();
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[24.0f]);
+			ImGui::Text("%.2f", lockedEnemyStun);
+			ImGui::PopFont();
+			if (lockedOnEnemyMinusStun > 0.0f) {
+				float baseX = ImGui::GetCursorPosX();
+				float offset = 170.0f * scaleFactorY; // Adjust as needed for your font/UI
+				ImGui::SameLine();
+				ImGui::SetCursorPosX(baseX + offset);
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[20.0f]);
+				ImGui::Text(" -%.1f", lockedOnEnemyMinusStun);
+				ImGui::PopFont();
+			}
+
+			// Displacement
+			ImGui::Text("Displacement: ");
+			ImGui::SameLine();
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[24.0f]);
+			ImGui::Text("%.2f", lockedOnEnemyDisplacement);
+			ImGui::PopFont();
+			if (lockedOnEnemyMinusDisplacement > 0.0f) {
+				float baseX = ImGui::GetCursorPosX();
+				float offset = 185.0f * scaleFactorY; // Adjust as needed for your font/UI
+				ImGui::SameLine();
+				ImGui::SetCursorPosX(baseX + offset);
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[20.0f]);
+				ImGui::Text(" -%.1f", lockedOnEnemyMinusDisplacement);
+				ImGui::PopFont();
+			}
+			ImGui::PopFont();
+
+			ImGui::PopStyleColor();
+			ImGui::End();
+
+
+
+		}
 	}
 }
 

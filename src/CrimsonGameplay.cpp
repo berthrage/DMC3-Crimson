@@ -2561,6 +2561,46 @@ void GetLockedOnEnemyStunDisplacement(byte8* actorBaseAddr) {
 	}
 }
 
+void CalculateLockedOnEnemyLastStunDisplacementValue(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) return;
+
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	uint32_t entityIdx = actorData.newEntityIndex;
+
+	auto& lockedOnEnemyStun = (entityIdx == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyStun : crimsonPlayer[playerIndex].lockedOnEnemyStunClone;
+	auto& lockedOnEnemyDisplacement = (entityIdx == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyDisplacement : crimsonPlayer[playerIndex].lockedOnEnemyDisplacementClone;
+	auto& lockedOnEnemyMinusStun = (entityIdx == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMinusStun : crimsonPlayer[playerIndex].lockedOnEnemyMinusStunClone;
+	auto& lockedOnEnemyMinusDisplacement = (entityIdx == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMinusDisplacement : crimsonPlayer[playerIndex].lockedOnEnemyMinusDisplacementClone;
+
+	static float lastStun[4][2] = {};
+	static float lastDisplacement[4][2] = {};
+	static bool firstFrame[4][2] = { true };
+	static std::chrono::steady_clock::time_point lastCheck[4][2] = {};
+
+	auto now = std::chrono::steady_clock::now();
+	if (now - lastCheck[playerIndex][entityIdx] < std::chrono::milliseconds(200)) {
+		return;
+	}
+	lastCheck[playerIndex][entityIdx] = now;
+
+	float currentStun = lockedOnEnemyStun;
+	float currentDisplacement = lockedOnEnemyDisplacement;
+
+	float stunDiff = lastStun[playerIndex][entityIdx] - currentStun;
+	float displacementDiff = lastDisplacement[playerIndex][entityIdx] - currentDisplacement;
+
+	if (stunDiff > 0.0f) {
+		lockedOnEnemyMinusStun = stunDiff;
+	}
+	if (displacementDiff > 0.0f) {
+		lockedOnEnemyMinusDisplacement = displacementDiff;
+	}
+
+	lastStun[playerIndex][entityIdx] = currentStun;
+	lastDisplacement[playerIndex][entityIdx] = currentDisplacement;
+}
+
 #pragma endregion
 
 #pragma region DanteAirTaunt

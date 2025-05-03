@@ -76,6 +76,7 @@ void ReduceArtemisProjectileDamage(bool enable);
 #pragma region HudStuff
 
 void SetRebOrbCounterDurationTillFadeOut(bool enable, float duration);
+void ToggleHideLockOn(bool enable);
 
 #pragma endregion
 

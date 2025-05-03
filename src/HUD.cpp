@@ -388,6 +388,8 @@ void ToggleHideMainHUD(bool enable) {
         dmc3.exe+2BB194 - 0F85 18020000     - jne dmc3.exe+2BB3B2
         dmc3.exe+2BB19A - 83 B9 203D0000 00 - cmp dword ptr [rcx+00003D20],00
         */
+		//dmc3.exe + 2BB194 - 0F 85 18 02 00 00 - jne dmc3.exe + 2BB3B2
+
 
         if (!run) {
             backupHelper.Save(addr, size);
@@ -395,35 +397,6 @@ void ToggleHideMainHUD(bool enable) {
 
         if (enable) {
             Write<byte16>(addr, 0xE990);
-        } else {
-            backupHelper.Restore(addr);
-        }
-    }
-
-
-    run = true;
-}
-
-void ToggleHideLockOn(bool enable) {
-    LogFunction(enable);
-
-    static bool run = false;
-
-
-    {
-        auto addr             = (appBaseAddr + 0x296E77);
-        constexpr uint32 size = 2;
-        /*
-        dmc3.exe+296E77 - 75 14    - jne dmc3.exe+296E8D
-        dmc3.exe+296E79 - 48 8B D3 - mov rdx,rbx
-        */
-
-        if (!run) {
-            backupHelper.Save(addr, size);
-        }
-
-        if (enable) {
-            Write<byte8>(addr, 0xEB);
         } else {
             backupHelper.Restore(addr);
         }
