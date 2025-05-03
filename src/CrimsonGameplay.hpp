@@ -36,6 +36,7 @@ void GunDTCharacterRemaps();
 void DTInfusedRoyalguardController(byte8* actorBaseAddr);
 void CalculateRotationTowardsEnemy(byte8* actorBaseAddr);
 void GetLockedOnEnemyHitPoints(byte8* actorBaseAddr);
+void GetLockedOnEnemyStunDisplacement(byte8* actorBaseAddr);
 void SkyLaunchAirTauntController(byte8* actorBaseAddr);
 void DriveTweaks(byte8* actorBaseAddr);
 

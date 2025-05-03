@@ -4031,9 +4031,9 @@ struct EnemyActorData : ActorDataBase {
 	float maxHitPointsHells; // 0x2E2C
 	_(44);
 	float hitPointsHells; // 0x2E5C
-	_(1112);
-	byte32 stunDisplacementHellsAddr; // 0x32B8 // +10 from this addr is the stun displacement hells Struct
-    _(1692);
+	_(1208);
+	byte8* stunDisplacementDataAddr; // 0x3318 // +10 from this addr is the stun displacement hells Struct
+    _(1592);
 	float hitPointsEnigma; // 0x3958
 	_(36);
 	vec4 targetPosition; // 0x3980 - needs to sum with 60 from ActorDataBase
@@ -4111,6 +4111,7 @@ static_assert(offsetof(EnemyActorData, hitPointsDullahan) == 0x2478);
 static_assert(offsetof(EnemyActorData, hitPointsArkham) == 0x26A8);
 static_assert(offsetof(EnemyActorData, maxHitPointsArkham) == 0x2788);
 static_assert(offsetof(EnemyActorData, maxHitPointsHells) == 0x2E2C);
+static_assert(offsetof(EnemyActorData, stunDisplacementDataAddr) == 0x3318); 
 static_assert(offsetof(EnemyActorData, hitPointsHells) == 0x2E5C);
 static_assert(offsetof(EnemyActorData, hitPointsEnigma) == 0x3958);
 static_assert(offsetof(EnemyActorData, targetPosition) == 0x3980);
@@ -4143,12 +4144,20 @@ static_assert(offsetof(EnemyActorData, maxHitPointsLeviathan) == 0x388884);
 
 struct StunDisplacementHells {
 	_(12);
-    float displacement; // 0xC
-    float stun; // 0x10
+	float displacement; // 0xC
+	float stun; // 0x10
 };
 
 static_assert(offsetof(StunDisplacementHells, displacement) == 0xC);
 static_assert(offsetof(StunDisplacementHells, stun) == 0x10);
+
+struct StunDisplacementData {
+    _(16);
+    StunDisplacementHells* stunDisplacementHells; // 0x10
+};
+
+static_assert(offsetof(StunDisplacementData, stunDisplacementHells) == 0x10);
+
 
 struct ShieldedNevanData {
     _(548);
@@ -5119,6 +5128,10 @@ struct CrimsonPlayerData {
 	AirCounts airCounts;
     float lockedOnEnemyHP = 0;
 	float lockedOnEnemyMaxHP = 0;
+    float lockedOnEnemyStun = 0;
+    float lockedOnEnemyDisplacement = 0;
+    float lockedOnEnemyMaxStun = 0;
+	float lockedOnEnemyMaxDisplacement = 0;
 
     AirRaveTweak airRaveTweak;
 
@@ -5161,6 +5174,10 @@ struct CrimsonPlayerData {
     AirCounts airCountsClone;
 	float lockedOnEnemyHPClone = 0;
 	float lockedOnEnemyMaxHPClone = 0;
+	float lockedOnEnemyStunClone = 0;
+	float lockedOnEnemyDisplacementClone = 0;
+	float lockedOnEnemyMaxStunClone = 0;
+	float lockedOnEnemyMaxDisplacementClone = 0;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];

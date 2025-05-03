@@ -12,6 +12,7 @@ void CheatsHUDIndicatorWindow();
 void CheatHotkeysPopUpWindow();
 void StyleMeterWindow();
 void LockOnWindows();
+void StunDisplacementLockOnWindows();
 
 struct FadeState {
 	float alpha = 0.0f;

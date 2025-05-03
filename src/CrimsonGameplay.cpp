@@ -2480,6 +2480,87 @@ void GetLockedOnEnemyHitPoints(byte8* actorBaseAddr) {
 	}
 }
 
+void GetLockedOnEnemyStunDisplacement(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& lockedOnEnemyStun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyStun : crimsonPlayer[playerIndex].lockedOnEnemyStunClone;
+	auto& lockedOnEnemyDisplacement = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyDisplacement : crimsonPlayer[playerIndex].lockedOnEnemyDisplacementClone;
+	auto& lockedOnEnemyMaxStun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMaxStun : crimsonPlayer[playerIndex].lockedOnEnemyMaxStunClone;
+	auto& lockedOnEnemyMaxDisplacement = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMaxDisplacement : crimsonPlayer[playerIndex].lockedOnEnemyMaxDisplacementClone;
+
+
+	if (actorData.lockOnData.targetBaseAddr60 != 0) {
+		auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60); // -0x60 very important don't forget
+		uintptr_t stunAddr = reinterpret_cast<uintptr_t>(enemyActorData.stunDisplacementDataAddr);
+		if (!stunAddr ||
+			stunAddr == 0xFFFFFFFF ||
+			stunAddr == 0xFFFFFFFFFFFFFFFF) {
+			return;
+		}
+        auto& stunDisplacementData = *reinterpret_cast<StunDisplacementData*>(enemyActorData.stunDisplacementDataAddr);
+		
+		auto& enemyId = enemyActorData.enemy;
+		bool isHell = (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::HELL_VANGUARD);
+		bool isChess = (enemyId >= ENEMY::DAMNED_CHESSMEN_PAWN && enemyId <= ENEMY::DAMNED_CHESSMEN_KING);
+        bool isAgniAndRudra = (enemyId >= ENEMY::AGNI_RUDRA_ALL && enemyId <= ENEMY::AGNI_RUDRA_BLUE);
+
+		if (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::PRIDE_2) {
+			lockedOnEnemyMaxStun = 30.0f;
+			lockedOnEnemyMaxDisplacement = 30.0f;
+		} else if (enemyId >= ENEMY::GLUTTONY_1 && enemyId <= ENEMY::GLUTTONY_4) {
+			lockedOnEnemyMaxStun = 20.0f;
+			lockedOnEnemyMaxDisplacement = 60.0f;
+		} else if (enemyId >= ENEMY::LUST_1 && enemyId <= ENEMY::LUST_4) {
+			lockedOnEnemyMaxStun = 60.0f;
+			lockedOnEnemyMaxDisplacement = 60.0f;
+		} else if (enemyId >= ENEMY::SLOTH_1 && enemyId <= ENEMY::SLOTH_4) {
+			lockedOnEnemyMaxStun = 60.0f;
+			lockedOnEnemyMaxDisplacement = 60.0f;
+		} else if (enemyId >= ENEMY::WRATH_1 && enemyId <= ENEMY::WRATH_4) {
+			lockedOnEnemyMaxStun = 100000.0f;
+			lockedOnEnemyMaxDisplacement = 100000.0f;
+		} else if (enemyId >= ENEMY::WRATH_1 && enemyId <= ENEMY::WRATH_4) {
+			lockedOnEnemyMaxStun = 100000.0f;
+			lockedOnEnemyMaxDisplacement = 100000.0f;
+		} else if (enemyId >= ENEMY::GREED_1 && enemyId <= ENEMY::GREED_4) {
+			lockedOnEnemyMaxStun = 100000.0f;
+			lockedOnEnemyMaxDisplacement = 100000.0f;
+        } else if (enemyId == ENEMY::ABYSS) {
+            lockedOnEnemyMaxStun = 60.0f;
+            lockedOnEnemyMaxDisplacement = 60.0f;
+        } else if (enemyId == ENEMY::ENVY) {
+            lockedOnEnemyMaxStun = 60.0f;
+            lockedOnEnemyMaxDisplacement = 300.0f;
+		} else if (enemyId == ENEMY::HELL_VANGUARD) {
+			lockedOnEnemyMaxStun = 300.0f;
+			lockedOnEnemyMaxDisplacement = 1000.0f;
+        } else {
+            lockedOnEnemyMaxStun = 1.0f;
+			lockedOnEnemyMaxDisplacement = 1.0f;
+        }
+
+		if (isHell) {
+            if (!stunDisplacementData.stunDisplacementHells) {
+                lockedOnEnemyStun = lockedOnEnemyMaxStun;
+                lockedOnEnemyDisplacement = lockedOnEnemyMaxDisplacement;
+                return;
+            } else {
+				lockedOnEnemyStun = stunDisplacementData.stunDisplacementHells->stun;
+				lockedOnEnemyDisplacement = stunDisplacementData.stunDisplacementHells->displacement;
+            }
+		} else {
+            lockedOnEnemyStun = lockedOnEnemyMaxStun;
+            lockedOnEnemyDisplacement = lockedOnEnemyMaxDisplacement;
+		}
+	} else {
+		lockedOnEnemyStun = lockedOnEnemyMaxStun;
+		lockedOnEnemyDisplacement = lockedOnEnemyMaxDisplacement;
+	}
+}
+
 #pragma endregion
 
 #pragma region DanteAirTaunt

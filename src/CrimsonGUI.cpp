@@ -7542,7 +7542,10 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 //                 }
                 ImGui::Text("SessionData Style Level Royalguard: %u", ExpConfig::missionExpDataDante.styleLevels[3]);
 				ImGui::Text("Cerbus Unlocked Session? %u", sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::CERBERUS]);
-				ImGui::Text("Cerbus Unlock? %u", weaponProgression.devilArmUnlocks[DEVILARMUNLOCKS::CERBERUS]);
+				ImGui::Text("sessionData.quicksilver? %u", sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER]);
+				ImGui::Text("sessionData.doppelganger? %u", sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER]);
+				ImGui::Text("sessionData.quicksilverLevel: %u", sessionData.styleLevels[STYLE::QUICKSILVER]);
+				ImGui::Text("sessionData.doppelgangerLevel: %u", sessionData.styleLevels[STYLE::DOPPELGANGER]);
 				ImGui::Text("GunUnlockedQtt: %u", weaponProgression.gunsUnlockedQtt);
 				ImGui::Text("sessionData.unlockDevilTrigger: %u", sessionData.unlockDevilTrigger);
 				ImGui::Text("sessionData.magicPoints: %g", sessionData.magicPoints);
@@ -7699,11 +7702,11 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             }
             auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 
-// 			if (!actorData.lockOnData.targetBaseAddr60) {
-// 				return;
-// 			}
-// 
-// 			auto& lockedOnEnemyData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60);
+			if (!actorData.lockOnData.targetBaseAddr60) {
+				return;
+			}
+
+			auto& lockedOnEnemyData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60);
 
 			//ImGui::Text("TargetPosZ %g", actorData.lockOnData.targetPosition.z);
 
@@ -7738,7 +7741,12 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				return;
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
-			
+			CrimsonGameplay::GetLockedOnEnemyStunDisplacement(actorData);
+
+			ImGui::Text("lockedEnemyScreenPositionX: %g", crimsonPlayer[0].lockedEnemyScreenPosition.x);
+			ImGui::Text("lockedEnemyScreenPositionX: %g", actorData.lockOnData.targetPosition.x);
+			ImGui::Text("lockOnEnemyStun: %g", crimsonPlayer[0].lockedOnEnemyStun);
+			ImGui::Text("lockOnEnemyDisplacement: %g", crimsonPlayer[0].lockedOnEnemyDisplacement);
 			ImGui::Text("lockOnEnemyHP: %g", crimsonPlayer[0].lockedOnEnemyHP);
 			ImGui::Text("lockOnEnemyMaxHP: %g", crimsonPlayer[0].lockedOnEnemyMaxHP);
 			ImGui::Text("savingInGameData.expertise[1]: %x", savingInGameData.expertise[1]);
@@ -12793,6 +12801,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonHUD::CheatHotkeysPopUpWindow();
 	CrimsonHUD::StyleMeterWindow();
 	CrimsonHUD::LockOnWindows();
+	CrimsonHUD::StunDisplacementLockOnWindows();
 
 	UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
 	RenderMissionResultGameModeStats();
