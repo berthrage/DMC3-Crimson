@@ -1411,11 +1411,14 @@ void StunDisplacementLockOnWindows() {
 		if (actorData.lockOnData.targetBaseAddr60 != 0) {
 			auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60); // -0x60 very important don't forget
 
+			float textureBaseSizeXStun = 300.0f * scaleFactorY;
+			float textureBaseSizeYStun = 290.50f * scaleFactorY;
+
 			// STUN LOCK-ON (INNER LIGHTER CIRCLE)
 
 			ImVec2 sizeDistanceStun = {
-			(textureBaseSizeX * (1.0f / (safeDistance / 20))),
-			(textureBaseSizeY * (1.0f / (safeDistance / 20)))
+			(textureBaseSizeXStun * (1.0f / (safeDistance / 35))),
+			(textureBaseSizeYStun * (1.0f / (safeDistance / 35)))
 			};
 
 			float textureWidthStun = sizeDistanceStun.x * 0.25f;
