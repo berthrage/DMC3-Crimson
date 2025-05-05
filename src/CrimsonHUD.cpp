@@ -422,7 +422,7 @@ void StyleMeterWindowRank(
 		auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 		if (pool_10222 && pool_10222[3]) {
 			auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
-			if (!activeConfig.hideMainHUD && activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter) {
+			if (activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter) {
 				auto& styleData = mainActorData.styleData;
 				if (styleData.rank == currentRank) {
 					fillRatio = styleData.meter / 700.0f;
@@ -625,6 +625,12 @@ void StyleMeterWindowRank(
 }
 
 void StyleMeterWindows() {
+
+	if (activeCrimsonConfig.HudOptions.hideStyleMeter) {
+		return;
+	}
+
+	CrimsonDetours::ToggleHideStyleRankHUD(activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter); // Hide the original style rank HUD
 
 	// D
 	StyleMeterWindowRank(
@@ -1109,12 +1115,16 @@ void LockOnWindows() {
 	// Spin speed in radians per second (adjust as needed)
 	const float spinSpeed = 0.08f; // slow spin
 
-	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.lockOn || !activeConfig.Actor.enable) {
+	if (!activeCrimsonConfig.CrimsonHudAddons.lockOn || !activeConfig.Actor.enable) {
 		CrimsonPatches::ToggleHideLockOn(activeConfig.hideLockOn);
 		return;
 	}
 
-	CrimsonPatches::ToggleHideLockOn(true);
+	if (activeConfig.hideLockOn) {
+		return;
+	}
+
+	CrimsonPatches::ToggleHideLockOn(activeCrimsonConfig.CrimsonHudAddons.lockOn);
 
 	// Loop through player data
 	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
@@ -1254,13 +1264,16 @@ void StunDisplacementLockOnWindows() {
 		return;
 	}
 
+	if (activeConfig.hideLockOn) {
+		return;
+	}
 
 	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
 	// Spin speed in radians per second (adjust as needed)
 	const float spinSpeed = -0.12f; // slow spin
 
-	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.lockOn || !activeConfig.Actor.enable) {
+	if (!activeCrimsonConfig.CrimsonHudAddons.lockOn || !activeConfig.Actor.enable) {
 		return;
 	}
 
@@ -1494,6 +1507,7 @@ void StunDisplacementLockOnWindows() {
 			ImVec4 fadedTextColor = textColor;
 			fadedTextColor.w *= lockOnFade[playerIndex].alpha;
 			ImGui::PushStyleColor(ImGuiCol_Text, fadedTextColor);
+			ImGui::SetWindowFontScale(scaleFactorY);
 
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0f]);
 			// Stun Text

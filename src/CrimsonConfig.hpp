@@ -128,6 +128,16 @@ struct CrimsonConfig {
 		}
 	} CrimsonHudAddons;
 
+	struct HudOptions {
+		bool hideStyleMeter = false;
+
+		static constexpr auto Metadata() {
+			return std::make_tuple(
+				std::make_pair("hideStyleMeter", &HudOptions::hideStyleMeter)
+			);
+		}
+	} HudOptions;
+
 
 	struct Camera {
 		float fovMultiplier = 1.2f;
@@ -424,6 +434,7 @@ struct CrimsonConfig {
 			std::make_pair("GUI", &CrimsonConfig::GUI),
 			std::make_pair("WeaponWheel", &CrimsonConfig::WeaponWheel),
             std::make_pair("CrimsonHudAddons", &CrimsonConfig::CrimsonHudAddons),
+			std::make_pair("HudOptions", &CrimsonConfig::HudOptions),
             std::make_pair("Camera", &CrimsonConfig::Camera),
             std::make_pair("StyleSwitchFX", &CrimsonConfig::StyleSwitchFX),
             std::make_pair("SFX", &CrimsonConfig::SFX),

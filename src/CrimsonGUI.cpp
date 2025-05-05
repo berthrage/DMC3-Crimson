@@ -8385,7 +8385,6 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::PushItemWidth(itemWidth);
 			if (GUI_Checkbox2("Always Show Main HUD", activeConfig.forceVisibleHUD, queuedConfig.forceVisibleHUD)) {
 				ToggleForceVisibleHUD(activeConfig.forceVisibleHUD);
-				CrimsonDetours::ToggleHideStyleRankHUD(!activeConfig.forceVisibleHUD);
 			}
 
 			ImGui::PopItemWidth();
@@ -8395,6 +8394,12 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			if (GUI_Checkbox2("Hide Lock-On", activeConfig.hideLockOn, queuedConfig.hideLockOn)) {
 				CrimsonPatches::ToggleHideLockOn(activeConfig.hideLockOn);
+			}
+
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Hide Style Meter", activeCrimsonConfig.HudOptions.hideStyleMeter, queuedCrimsonConfig.HudOptions.hideStyleMeter)) {
+				CrimsonDetours::ToggleHideStyleRankHUD(activeCrimsonConfig.HudOptions.hideStyleMeter);
 			}
 
 			ImGui::TableNextColumn();
