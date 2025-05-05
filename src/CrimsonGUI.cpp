@@ -9693,8 +9693,8 @@ void VisualSection(size_t defaultFontSize) {
 
 
 	if (GUI_Button("DMC3 Default")) {
-		CopyMemory(&queuedConfig.Color, &defaultConfig.Color, sizeof(queuedConfig.Color));
-		CopyMemory(&activeConfig.Color, &queuedConfig.Color, sizeof(activeConfig.Color));
+		CopyMemory(&queuedConfig.Color, &colorPresets.ColorDMC3Default, sizeof(queuedConfig.Color));
+		CopyMemory(&activeConfig.Color, &colorPresets.ColorDMC3Default, sizeof(activeConfig.Color));
 	}
 
     ImGui::SameLine();

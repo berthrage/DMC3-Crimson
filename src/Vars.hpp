@@ -4631,6 +4631,43 @@ struct ColorPresets {
 			uint8 neroAngelo[4] = { 64, 0, 255, 200 };
 		} Aura;
 	} ColorCrimson;
+
+	struct ColorDMC3Default {
+		uint8 airHike[5][4] = {
+			{128, 0, 0, 200},
+			{96, 128, 144, 200},
+			{160, 64, 16, 200},
+			{112, 64, 160, 200},
+			{128, 128, 128, 200},
+		};
+
+		struct {
+			uint8 skyStar[4] = { 255, 0, 0, 200 };
+		} Trickster;
+		struct {
+			uint8 ultimate[4] = { 143, 112, 48, 200 };
+		} Royalguard;
+		struct {
+			uint8 clone[4] = { 16, 16, 16, 48 };
+		} Doppelganger;
+		struct {
+			uint8 dante[5][4] = {
+				{128, 0, 0, 200},
+				{96, 128, 144, 200},
+				{160, 64, 16, 200},
+				{112, 64, 160, 200},
+				{128, 128, 128, 200},
+			};
+			uint8 sparda[4] = { 128, 0, 0, 200 };
+            uint8 vergil[3][4] = {
+				{32, 64, 128, 200},
+				{32, 64, 128, 200},
+				{32, 64, 128, 200},
+			};
+			uint8 neroAngelo[4] = { 64, 0, 255, 200 };
+		} Aura;
+	} ColorDMC3Default;
+
 };
 
 extern ColorPresets colorPresets;
