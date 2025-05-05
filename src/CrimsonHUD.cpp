@@ -1292,6 +1292,8 @@ void StunDisplacementLockOnWindows() {
 		float minDistance = 5.0f;
 		float safeDistance = (std::max)((float)crimsonPlayer[playerIndex].cameraLockedEnemyDistanceClamped, minDistance);
 
+		// DISPLACEMENT LOCK-ON (OUTER DARKER CIRCLE)
+
 		ImVec2 sizeDistance = {
 			(textureBaseSizeX * (1.0f / (safeDistance / 30))),
 			(textureBaseSizeY * (1.0f / (safeDistance / 30)))
@@ -1300,7 +1302,7 @@ void StunDisplacementLockOnWindows() {
 		float textureWidth = sizeDistance.x * 0.25f;
 		float textureHeight = sizeDistance.y * 0.25f;
 
-		ImVec2 windowSize = ImVec2(sizeDistance.x, sizeDistance.y);;
+		ImVec2 windowSize = ImVec2(sizeDistance.x, sizeDistance.y);
 
 		// --- Calculate the Regular Lock On's center exactly as in LockOnWindows ---
 		float regularBaseSizeX = 600.0f * scaleFactorY;
@@ -1323,7 +1325,7 @@ void StunDisplacementLockOnWindows() {
 			regularTexturePos.y + (regularTextureHeight / 2.0f)
 		);
 
-		// --- Center the StunDisplacementLockOn on the Regular Lock On ---
+		// --- Center the DisplacementLockOn on the Regular Lock On ---
 		ImVec2 texturePos = ImVec2(
 			regularCenter.x - (textureWidth / 2.0f),
 			regularCenter.y - (textureHeight / 2.0f)
@@ -1340,15 +1342,15 @@ void StunDisplacementLockOnWindows() {
 			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
 			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
 
-		std::string windowName = "LockOnWindow" + std::to_string(playerIndex);
+		std::string windowName = "LockOnDisplacementWindow" + std::to_string(playerIndex);
 
 		ImGui::Begin(windowName.c_str(), nullptr, windowFlags);
 
 		float alpha = 1.0f;
 
-		ImVec4 stunColor = ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(0x5948a7FF));
+		ImVec4 displacementColor = ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(0x5948a7FF));
 
-		ImColor color(stunColor);
+		ImColor color(displacementColor);
 		float h, s, v;
 		ImGui::ColorConvertRGBtoHSV(color.Value.x, color.Value.y, color.Value.z, h, s, v);
 
@@ -1364,7 +1366,8 @@ void StunDisplacementLockOnWindows() {
 		ImColor fgColorWithAlpha(1.0f, 1.0f, 1.0f, lockOnFade[playerIndex].alpha);
 
 		CrimsonGameplay::GetLockedOnEnemyStunDisplacement(actorData);
-		auto& lockedEnemyStun = crimsonPlayer[playerIndex].lockedOnEnemyStun;
+		auto& lockedOnEnemyStun = crimsonPlayer[playerIndex].lockedOnEnemyStun;
+		auto& lockedOnEnemyMaxStun = crimsonPlayer[playerIndex].lockedOnEnemyMaxStun;
 		auto& lockedOnEnemyDisplacement = crimsonPlayer[playerIndex].lockedOnEnemyDisplacement;
 		auto& lockedOnEnemyMaxDisplacement = crimsonPlayer[playerIndex].lockedOnEnemyMaxDisplacement;
 		auto& lockedOnEnemyMinusStun = crimsonPlayer[playerIndex].lockedOnEnemyMinusStun;
@@ -1403,8 +1406,82 @@ void StunDisplacementLockOnWindows() {
 			ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
 		}
 
+		ImGui::End();
+
 		if (actorData.lockOnData.targetBaseAddr60 != 0) {
 			auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60); // -0x60 very important don't forget
+
+			// STUN LOCK-ON (INNER LIGHTER CIRCLE)
+
+			ImVec2 sizeDistanceStun = {
+			(textureBaseSizeX * (1.0f / (safeDistance / 20))),
+			(textureBaseSizeY * (1.0f / (safeDistance / 20)))
+			};
+
+			float textureWidthStun = sizeDistanceStun.x * 0.25f;
+			float textureHeightStun = sizeDistanceStun.y * 0.25f;
+
+			ImVec2 windowSizeStun = ImVec2(sizeDistanceStun.x, sizeDistanceStun.y);
+
+			// --- Center the StunLockOn on the Regular Lock On ---
+			ImVec2 texturePosStun = ImVec2(
+				regularCenter.x - (textureWidthStun / 2.0f),
+				regularCenter.y - (textureHeightStun / 2.0f)
+			);
+
+			ImVec2 windowPosStun = ImVec2(
+				texturePosStun.x + (sizeDistanceStun.x / 2.0f) - (windowSize.x / 2.0f),
+				texturePosStun.y + (sizeDistanceStun.y / 2.0f) - (windowSize.y / 2.0f)
+			);
+			ImGui::SetNextWindowSize(windowSizeStun);
+			ImGui::SetNextWindowPos(windowPosStun);
+
+			std::string windowNameStun = "LockOnStunWindow" + std::to_string(playerIndex);
+
+			ImGui::Begin(windowNameStun.c_str(), nullptr, windowFlags);
+
+			ImVec4 stunColor = ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(0xcfc4ffFF));
+
+			ImColor colorStunC(stunColor);
+			float hS, sS, vS;
+			ImGui::ColorConvertRGBtoHSV(colorStunC.Value.x, colorStunC.Value.y, colorStunC.Value.z, hS, sS, vS);
+
+			// Boost saturation and value for more "pop"
+			sS = ImClamp(sS * 1.4f, 0.0f, 1.0f); // Increase saturation by 40%
+			vS = ImClamp(vS * 2.0f, 0.0f, 1.0f); // Increase brightness by 80%
+
+			ImVec4 poppedColorStun;
+			ImGui::ColorConvertHSVtoRGB(hS, sS, vS, poppedColorStun.x, poppedColorStun.y, poppedColorStun.z);
+			poppedColorStun.w = lockOnFade[playerIndex].alpha; // Set alpha
+
+			ImColor colorStunWithAlpha(poppedColorStun);
+
+			float stunFraction = 1.0f - (lockedOnEnemyStun / lockedOnEnemyMaxStun);
+
+			if (LockOnTexture->IsValid()) {
+				DrawRotatedImagePie(
+					LockOnStunTexture->GetTexture(),
+					texturePosStun,
+					ImVec2(textureWidthStun, textureHeightStun),
+					lockOnAngle[playerIndex],
+					colorStunWithAlpha,
+					stunFraction
+				);
+				DrawRotatedImagePie(
+					LockOnForegroundTexture->GetTexture(),
+					texturePosStun,
+					ImVec2(textureWidthStun, textureHeightStun),
+					lockOnAngle[playerIndex],
+					fgColorWithAlpha,
+					stunFraction
+				);
+			} else {
+				ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
+			}
+
+		
+			// STUN / DISPLACEMENT NUMERIC HUD
+		
 			auto& enemyId = enemyActorData.enemy;
 			bool isHell = (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::HELL_VANGUARD);
 
@@ -1416,11 +1493,11 @@ void StunDisplacementLockOnWindows() {
 			ImGui::PushStyleColor(ImGuiCol_Text, fadedTextColor);
 
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0f]);
-			// Stun
+			// Stun Text
 			ImGui::Text("Stun: ");
 			ImGui::SameLine();
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[24.0f]);
-			ImGui::Text("%.2f", lockedEnemyStun);
+			ImGui::Text("%.2f", lockedOnEnemyStun);
 			ImGui::PopFont();
 			if (lockedOnEnemyMinusStun > 0.0f) {
 				float baseX = ImGui::GetCursorPosX();
@@ -1432,7 +1509,7 @@ void StunDisplacementLockOnWindows() {
 				ImGui::PopFont();
 			}
 
-			// Displacement
+			// Displacement Text
 			ImGui::Text("Displacement: ");
 			ImGui::SameLine();
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[24.0f]);
@@ -1450,11 +1527,10 @@ void StunDisplacementLockOnWindows() {
 			ImGui::PopFont();
 
 			ImGui::PopStyleColor();
-			ImGui::End();
-
-
-
 		}
+
+		ImGui::End();
+
 	}
 }
 
