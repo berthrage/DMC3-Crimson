@@ -119,6 +119,10 @@ void* g_ToggleTakeDamageCheckCall;
 std::uint64_t g_DisableDriveHold_ReturnAddr;
 void DisableDriveHoldDetour();
 
+// HideStyleRankHUD
+std::uint64_t g_HideStyleRankHUD_JumpAddr;
+void HideStyleRankHUDDetour();
+
 // HudHPSeparation
 std::uint64_t g_HudHPSeparation_ReturnAddr;
 void HudHPSeparationDetour();
@@ -532,6 +536,22 @@ void ToggleDisableDriveHold(bool enable) {
 	g_DisableDriveHold_ReturnAddr = DisableDriveHoldHook->GetReturnAddress();
 	DisableDriveHoldHook->Toggle(enable);
 
+	run = enable;
+}
+
+void ToggleHideStyleRankHUD(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+	// HideStyleRankHUD
+	//dmc3.exe + 2BB194 - 0F 85 18 02 00 00 - jne dmc3.exe + 2BB3B2
+	// goes to dmc3.exe+2BB195 - E9 18 02 00 00 - jmp dmc3.exe+2BB3B2
+	static std::unique_ptr<Utility::Detour_t> HideStyleRankHUDHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2BB194, &HideStyleRankHUDDetour, 6);
+	g_HideStyleRankHUD_JumpAddr = (uintptr_t)appBaseAddr + 0x2BB3B2;
+	HideStyleRankHUDHook->Toggle(enable);
 	run = enable;
 }
 

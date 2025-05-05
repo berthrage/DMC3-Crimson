@@ -10,7 +10,7 @@ void InitTextures(ID3D11Device* pd3dDevice);
 void RedOrbCounterWindow();
 void CheatsHUDIndicatorWindow();
 void CheatHotkeysPopUpWindow();
-void StyleMeterWindow();
+void StyleMeterWindows();
 void LockOnWindows();
 void StunDisplacementLockOnWindows();
 void ShieldLockOnWindows();

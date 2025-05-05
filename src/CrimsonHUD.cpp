@@ -60,6 +60,45 @@ static Texture2DD3D11* RedOrbCustomTexture{ nullptr };
 
 static Texture2DD3D11* DStyleRankFillTexture{ nullptr };
 static Texture2DD3D11* DStyleRankBackgroundTexture{ nullptr };
+static Texture2DD3D11* DStyleRankBackgroundHighlightTexture{ nullptr };
+static Texture2DD3D11* DStyleRankTextTexture{ nullptr };
+static Texture2DD3D11* DStyleRankTextHighlightTexture{ nullptr };
+
+static Texture2DD3D11* CStyleRankFillTexture{ nullptr };
+static Texture2DD3D11* CStyleRankBackgroundTexture{ nullptr };
+static Texture2DD3D11* CStyleRankBackgroundHighlightTexture{ nullptr };
+static Texture2DD3D11* CStyleRankTextTexture{ nullptr };
+static Texture2DD3D11* CStyleRankTextHighlightTexture{ nullptr };
+
+static Texture2DD3D11* BStyleRankFillTexture{ nullptr };
+static Texture2DD3D11* BStyleRankBackgroundTexture{ nullptr };
+static Texture2DD3D11* BStyleRankBackgroundHighlightTexture{ nullptr };
+static Texture2DD3D11* BStyleRankTextTexture{ nullptr };
+static Texture2DD3D11* BStyleRankTextHighlightTexture{ nullptr };
+
+static Texture2DD3D11* AStyleRankFillTexture{ nullptr };
+static Texture2DD3D11* AStyleRankBackgroundTexture{ nullptr };
+static Texture2DD3D11* AStyleRankBackgroundHighlightTexture{ nullptr };
+static Texture2DD3D11* AStyleRankTextTexture{ nullptr };
+static Texture2DD3D11* AStyleRankTextHighlightTexture{ nullptr };
+
+static Texture2DD3D11* SStyleRankFillTexture{ nullptr };
+static Texture2DD3D11* SStyleRankBackgroundTexture{ nullptr };
+static Texture2DD3D11* SStyleRankBackgroundHighlightTexture{ nullptr };
+static Texture2DD3D11* SStyleRankTextTexture{ nullptr };
+static Texture2DD3D11* SStyleRankTextHighlightTexture{ nullptr };
+
+static Texture2DD3D11* SSStyleRankFillTexture{ nullptr };
+static Texture2DD3D11* SSStyleRankBackgroundTexture{ nullptr };
+static Texture2DD3D11* SSStyleRankBackgroundHighlightTexture{ nullptr };
+static Texture2DD3D11* SSStyleRankTextTexture{ nullptr };
+static Texture2DD3D11* SSStyleRankTextHighlightTexture{ nullptr };
+
+static Texture2DD3D11* SSSStyleRankFillTexture{ nullptr };
+static Texture2DD3D11* SSSStyleRankBackgroundTexture{ nullptr };
+static Texture2DD3D11* SSSStyleRankBackgroundHighlightTexture{ nullptr };
+static Texture2DD3D11* SSSStyleRankTextTexture{ nullptr };
+static Texture2DD3D11* SSSStyleRankTextHighlightTexture{ nullptr };
 
 static Texture2DD3D11* LockOnTexture{ nullptr };
 static Texture2DD3D11* LockOnForegroundTexture{ nullptr };
@@ -77,11 +116,84 @@ void InitRedOrbTexture(ID3D11Device* pd3dDevice) {
 	assert(RedOrbTexture);
 }
 
-void InitDStyleRankTextures(ID3D11Device* pd3dDevice) {
+void InitStyleRankTextures(ID3D11Device* pd3dDevice) {
 	DStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Dfill.png").c_str(), pd3dDevice);
 	DStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Dbg.png").c_str(), pd3dDevice);
+	DStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Dbghighlight.png").c_str(), pd3dDevice);
+	DStyleRankTextTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Dtext.png").c_str(), pd3dDevice);
+	DStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Dtexthighlight.png").c_str(), pd3dDevice);
+
+	CStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Cfill.png").c_str(), pd3dDevice);
+	CStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Cbg.png").c_str(), pd3dDevice);
+	CStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Cbghighlight.png").c_str(), pd3dDevice);
+	CStyleRankTextTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Ctext.png").c_str(), pd3dDevice);
+	CStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Ctexthighlight.png").c_str(), pd3dDevice);
+
+	BStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Bfill.png").c_str(), pd3dDevice);
+	BStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Bbg.png").c_str(), pd3dDevice);
+	BStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Bbghighlight.png").c_str(), pd3dDevice);
+	BStyleRankTextTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Btext.png").c_str(), pd3dDevice);
+	BStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Btexthighlight.png").c_str(), pd3dDevice);
+
+	AStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Afill.png").c_str(), pd3dDevice);
+	AStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Abg.png").c_str(), pd3dDevice);
+	AStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Abghighlight.png").c_str(), pd3dDevice);
+	AStyleRankTextTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Atext.png").c_str(), pd3dDevice);
+	AStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Atexthighlight.png").c_str(), pd3dDevice);
+
+	SStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Sfill.png").c_str(), pd3dDevice);
+	SStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Sbg.png").c_str(), pd3dDevice);
+	SStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Sbghighlight.png").c_str(), pd3dDevice);
+	SStyleRankTextTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Stext.png").c_str(), pd3dDevice);
+	SStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Stexthighlight.png").c_str(), pd3dDevice);
+
+	SSStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSfill.png").c_str(), pd3dDevice);
+	SSStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSbg.png").c_str(), pd3dDevice);
+	SSStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSbghighlight.png").c_str(), pd3dDevice);
+	SSStyleRankTextTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SStext.png").c_str(), pd3dDevice);
+	SSStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SStexthighlight.png").c_str(), pd3dDevice);
+
+	SSSStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSSfill.png").c_str(), pd3dDevice);
+	SSSStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSSbg.png").c_str(), pd3dDevice);
+	SSSStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSSbghighlight.png").c_str(), pd3dDevice);
+	SSSStyleRankTextTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSStext.png").c_str(), pd3dDevice);
+	SSSStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSStexthighlight.png").c_str(), pd3dDevice);
+
 	assert(DStyleRankFillTexture);
 	assert(DStyleRankBackgroundTexture);
+	assert(DStyleRankBackgroundHighlightTexture);
+	assert(DStyleRankTextTexture);
+	assert(DStyleRankTextHighlightTexture);
+	assert(CStyleRankFillTexture);
+	assert(CStyleRankBackgroundTexture);
+	assert(CStyleRankBackgroundHighlightTexture);
+	assert(CStyleRankTextTexture);
+	assert(CStyleRankTextHighlightTexture);
+	assert(BStyleRankFillTexture);
+	assert(BStyleRankBackgroundTexture);
+	assert(BStyleRankBackgroundHighlightTexture);
+	assert(BStyleRankTextTexture);
+	assert(BStyleRankTextHighlightTexture);
+	assert(AStyleRankFillTexture);
+	assert(AStyleRankBackgroundTexture);
+	assert(AStyleRankBackgroundHighlightTexture);
+	assert(AStyleRankTextTexture);
+	assert(AStyleRankTextHighlightTexture);
+	assert(SStyleRankFillTexture);
+	assert(SStyleRankBackgroundTexture);
+	assert(SStyleRankBackgroundHighlightTexture);
+	assert(SStyleRankTextTexture);
+	assert(SStyleRankTextHighlightTexture);
+	assert(SSStyleRankFillTexture);
+	assert(SSStyleRankBackgroundTexture);
+	assert(SSStyleRankBackgroundHighlightTexture);
+	assert(SSStyleRankTextTexture);
+	assert(SSStyleRankTextHighlightTexture);
+	assert(SSSStyleRankFillTexture);
+	assert(SSSStyleRankBackgroundTexture);
+	assert(SSSStyleRankBackgroundHighlightTexture);
+	assert(SSSStyleRankTextTexture);
+	assert(SSSStyleRankTextHighlightTexture);
 }
 
 void InitLockOnTexture(ID3D11Device* pd3dDevice) {
@@ -96,62 +208,300 @@ void InitLockOnTexture(ID3D11Device* pd3dDevice) {
 }
 
 
-void RenderMeterWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, float fillRatio, ImColor color) {
-	// Ensure fillRatio is between 0.0f and 1.0f
+void RenderMeterWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, float fillRatio, ImColor color, float angle = 0.0f) {
 	fillRatio = ImClamp(fillRatio, 0.0f, 1.0f);
+	float visibleHeight = size.y * fillRatio;
+	ImVec2 fillPos = ImVec2(pos.x, pos.y + size.y - visibleHeight);
+	ImVec2 uv0 = ImVec2(0.0f, 1.0f - fillRatio);
+	ImVec2 uv1 = ImVec2(1.0f, 1.0f);
 
-	// Calculate the visible height based on the fill ratio
+	// Center of the fill area
+	ImVec2 center = ImVec2(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
+
+	// Four corners of the filled rect
+	ImVec2 corners[4] = {
+		ImVec2(fillPos.x, fillPos.y),                         // Bottom-left
+		ImVec2(fillPos.x + size.x, fillPos.y),                // Bottom-right
+		ImVec2(pos.x + size.x, pos.y + size.y),               // Top-right
+		ImVec2(pos.x, pos.y + size.y)                         // Top-left
+	};
+
+	// UVs for the filled area
+	ImVec2 uvs[4] = {
+		ImVec2(uv0.x, uv0.y),
+		ImVec2(uv1.x, uv0.y),
+		ImVec2(uv1.x, uv1.y),
+		ImVec2(uv0.x, uv1.y)
+	};
+
+	// Rotate corners around center if angle != 0
+	if (angle != 0.0f) {
+		float s = sinf(angle), c = cosf(angle);
+		for (int i = 0; i < 4; ++i) {
+			ImVec2 p = corners[i] - center;
+			corners[i] = ImVec2(
+				center.x + p.x * c - p.y * s,
+				center.y + p.x * s + p.y * c
+			);
+		}
+	}
+
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	drawList->AddImageQuad(
+		texture,
+		corners[0], corners[1], corners[2], corners[3],
+		uvs[0], uvs[1], uvs[2], uvs[3],
+		color
+	);
+}
+
+void RenderTexture(ImTextureID texture, ImVec2 pos, ImVec2 size, ImColor color, float angle = 0.0f) {
+	ImVec2 center = ImVec2(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
+
+	ImVec2 corners[4] = {
+		ImVec2(pos.x, pos.y),
+		ImVec2(pos.x + size.x, pos.y),
+		ImVec2(pos.x + size.x, pos.y + size.y),
+		ImVec2(pos.x, pos.y + size.y)
+	};
+
+	ImVec2 uvs[4] = {
+		ImVec2(0, 0),
+		ImVec2(1, 0),
+		ImVec2(1, 1),
+		ImVec2(0, 1)
+	};
+
+	if (angle != 0.0f) {
+		float s = sinf(angle), c = cosf(angle);
+		for (int i = 0; i < 4; ++i) {
+			ImVec2 p = corners[i] - center;
+			corners[i] = ImVec2(
+				center.x + p.x * c - p.y * s,
+				center.y + p.x * s + p.y * c
+			);
+		}
+	}
+
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	drawList->AddImageQuad(
+		texture,
+		corners[0], corners[1], corners[2], corners[3],
+		uvs[0], uvs[1], uvs[2], uvs[3],
+		color
+	);
+}
+
+void RenderSkewedMeterWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, float fillRatio, ImColor color, float angle, float skewT) {
+	fillRatio = ImClamp(fillRatio, 0.0f, 1.0f);
 	float visibleHeight = size.y * fillRatio;
 
-	// Adjust the position to start from the bottom
+	// EXTREME skew and pointiness
+	float skewAmount = (1.0f - skewT) * 4.2f;
+	float pointy = (1.0f - skewT) * 6.0f;
+
 	ImVec2 fillPos = ImVec2(pos.x, pos.y + size.y - visibleHeight);
+	float fillTop = fillPos.y;
+	float fillBottom = pos.y + size.y;
 
-	// Define the UV coordinates for bottom-to-top filling
-	ImVec2 uv0 = ImVec2(0.0f, 1.0f - fillRatio);  // Bottom-left
-	ImVec2 uv1 = ImVec2(1.0f, 1.0f);              // Top-right
+	ImVec2 center = ImVec2(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
 
-	// Render the texture with the adjusted UV coordinates and position
-	ImGui::GetWindowDrawList()->AddImage(texture, fillPos, ImVec2(pos.x + size.x, pos.y + size.y), uv0, uv1, color);
+	ImVec2 corners[4] = {
+		ImVec2(pos.x - size.x * skewAmount, fillTop + visibleHeight * pointy),                  // Top-left
+		ImVec2(pos.x + size.x + size.x * skewAmount, fillTop + visibleHeight * pointy),         // Top-right
+		ImVec2(pos.x + size.x, fillBottom),                                                     // Bottom-right
+		ImVec2(pos.x, fillBottom)                                                               // Bottom-left
+	};
+
+	float uvFill = 1.0f - fillRatio;
+	ImVec2 uvs[4] = {
+		ImVec2(0, uvFill),
+		ImVec2(1, uvFill),
+		ImVec2(1, 1),
+		ImVec2(0, 1)
+	};
+
+	if (angle != 0.0f) {
+		float s = sinf(angle), c = cosf(angle);
+		for (int i = 0; i < 4; ++i) {
+			ImVec2 p = corners[i] - center;
+			corners[i] = ImVec2(
+				center.x + p.x * c - p.y * s,
+				center.y + p.x * s + p.y * c
+			);
+		}
+	}
+
+	ImGui::GetWindowDrawList()->AddImageQuad(
+		texture,
+		corners[0], corners[1], corners[2], corners[3],
+		uvs[0], uvs[1], uvs[2], uvs[3],
+		color
+	);
 }
 
-void RenderMeterBackground(ImTextureID backgroundTexture, ImVec2 pos, ImVec2 size, ImColor color) {
-	// Render the entire background texture as-is
-	ImGui::GetWindowDrawList()->AddImage(backgroundTexture, pos, ImVec2(pos.x + size.x, pos.y + size.y), ImVec2(0, 0), ImVec2(1, 1), color);
+void RenderSkewedTexture(ImTextureID texture, ImVec2 pos, ImVec2 size, ImColor color, float angle, float skewT) {
+	ImVec2 center = pos + size * 0.5f;
+	float skewAmount = (1.0f - skewT) * 4.2f;
+	float pointy = (1.0f - skewT) * 6.0f;
+
+	ImVec2 corners[4] = {
+		ImVec2(pos.x - size.x * skewAmount, pos.y + size.y * pointy),                  // Top-left
+		ImVec2(pos.x + size.x + size.x * skewAmount, pos.y + size.y * pointy),         // Top-right
+		ImVec2(pos.x + size.x, pos.y + size.y),                                        // Bottom-right
+		ImVec2(pos.x, pos.y + size.y)                                                  // Bottom-left
+	};
+
+	if (angle != 0.0f) {
+		float s = sinf(angle), c = cosf(angle);
+		for (int i = 0; i < 4; ++i) {
+			ImVec2 p = corners[i] - center;
+			corners[i] = ImVec2(
+				center.x + p.x * c - p.y * s,
+				center.y + p.x * s + p.y * c
+			);
+		}
+	}
+
+	ImVec2 uvs[4] = {
+		ImVec2(0, 0),
+		ImVec2(1, 0),
+		ImVec2(1, 1),
+		ImVec2(0, 1)
+	};
+
+	ImGui::GetWindowDrawList()->AddImageQuad(
+		texture,
+		corners[0], corners[1], corners[2], corners[3],
+		uvs[0], uvs[1], uvs[2], uvs[3],
+		color
+	);
 }
 
-void StyleMeterWindow() {
-	assert(DStyleRankFillTexture);
-	assert(DStyleRankBackgroundTexture);
-	if (!DStyleRankFillTexture->IsValid() || !DStyleRankBackgroundTexture->IsValid()) {
+struct StyleMeterAnimState {
+	FadeState fade;
+	bool prevActive = false;
+	float animTimer = 0.0f;
+	bool animating = false;
+};
+
+// Global previous style rank for entrance animation logic
+static int prevGlobalStyleRank = -1;
+
+void StyleMeterWindowRank(
+	int currentRank,
+	ImTextureID fillTexture,
+	ImTextureID bgTexture,
+	ImTextureID bgHighlightTexture,
+	ImTextureID textTexture,
+	ImTextureID textHighlightTexture,
+	uint32 auraColor,
+	uint32 fillColor,
+	uint32 textColor,
+	float animIntensity = 1.0f,
+	ImVec2 windowPos = ImVec2(g_renderSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
+	bool sSStyle = false,
+	bool sSSStyle = false
+) {
+	// Use a static map to store animation state per rank
+	static std::unordered_map<int, StyleMeterAnimState> animStates;
+	StyleMeterAnimState& state = animStates[currentRank];
+
+	const float animDuration = 0.32f;
+	const float textDelay = 0.64f;
+	const float textAnimDuration = 0.22f;
+	const float flashDuration = 0.6f;
+
+	float fillRatio = 0.0f;
+	bool active = false;
+
+	if (!fillTexture || !bgTexture || !textTexture || !textHighlightTexture)
 		return;
-	}
-	if (!(InGame() && !g_inGameCutscene)) {
-		return;
-	}
-	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_10222 || !pool_10222[3]) {
-		return;
-	}
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
-	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter) {
-		return;
+
+	if (InGame() && !g_inGameCutscene) {
+		auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+		if (pool_10222 && pool_10222[3]) {
+			auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+			if (!activeConfig.hideMainHUD && activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter) {
+				auto& styleData = mainActorData.styleData;
+				if (styleData.rank == currentRank) {
+					fillRatio = styleData.meter / 700.0f;
+					active = fillRatio > 0.0f;
+				}
+			}
+		}
 	}
 
-	auto& styleData = mainActorData.styleData;
-	if (styleData.rank != 1) {
-		return;
+	float deltaTime = ImGui::GetIO().DeltaTime;
+	float targetAlpha = active ? 1.0f : 0.0f;
+	float fadeSpeed = 8.0f;
+	state.fade.alpha = SmoothLerp(state.fade.alpha, targetAlpha, fadeSpeed, deltaTime);
+
+	// Animation trigger: only when going up in rank
+	if (!state.prevActive && active && currentRank > prevGlobalStyleRank) {
+		state.animTimer = 0.0f;
+		state.animating = true;
 	}
-	float fillRatio = styleData.meter / 700.0f;
+	state.prevActive = active;
 
-	ImVec2 meterSize = ImVec2(241.0f * scaleFactorX, 243.0f * scaleFactorY);
-	ImVec2 windowPos = ImVec2(1500.0f * scaleFactorX, 150.0f * scaleFactorY);
-	ImColor white = { 1.0f, 1.0f, 1.0f, 1.0f };
-	ImColor color = { 0.46f, 0.62f, 0.81f, 1.0f };
-	ImVec2 pos = ImGui::GetCursorScreenPos();
+	// Update the global previous style rank if this rank is active
+	if (active) {
+		prevGlobalStyleRank = currentRank;
+	}
 
-	// Begin an ImGui window with no title bar, no resize, no background, no inputs, etc.
-	ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
-	ImGui::SetNextWindowSize(meterSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
+	// --- Animation update ---
+	if (state.animating) {
+		state.animTimer += deltaTime;
+		if (state.animTimer > animDuration + textDelay + textAnimDuration)
+			state.animating = false;
+	}
+
+	if (state.fade.alpha <= 0.01f && !state.animating)
+		return;
+
+	ImVec2 meterSize = ImVec2(301.0f * scaleFactorY * 0.95f, 303.0f * scaleFactorY * 0.95f);
+	ImColor white = { 1.0f, 1.0f, 1.0f, state.fade.alpha };
+	ImVec4 colorHex = ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(auraColor));
+	ImColor color = (colorHex);
+	float h, s, v;
+	ImGui::ColorConvertRGBtoHSV(color.Value.x, color.Value.y, color.Value.z, h, s, v);
+
+	s = ImClamp(s * 1.0f, 0.0f, 1.0f);
+	v = ImClamp(v * 1.3f, 0.0f, 1.0f);
+
+	ImVec4 poppedColor;
+	ImGui::ColorConvertHSVtoRGB(h, s, v, poppedColor.x, poppedColor.y, poppedColor.z);
+	poppedColor.w = state.fade.alpha;
+
+	// --- Flash color logic ---
+	float flashT = 0.0f;
+	if (state.animating && state.animTimer < flashDuration) {
+		flashT = 1.0f - (state.animTimer / flashDuration);
+		flashT = ImClamp(flashT, 0.0f, 1.0f);
+	}
+	ImVec4 poppedColorV = poppedColor;
+	ImVec4 whiteV = ImVec4(1.0f, 1.0f, 1.0f, state.fade.alpha);
+	ImVec4 flashBgV = ImLerp(poppedColorV, whiteV, flashT);
+	ImColor flashBg(flashBgV);
+
+	ImColor fillColorC = ImColor(ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(fillColor)));
+	if (state.animating && state.animTimer < animDuration) {
+		fillColorC = ImColor(ImLerp(poppedColorV, whiteV, flashT));
+	}
+	fillColorC.Value.w = state.fade.alpha;
+
+	ImColor highlightColor = white;
+	if (state.animating && state.animTimer < animDuration) {
+		highlightColor = ImColor(ImLerp(white, whiteV, flashT));
+	}
+	highlightColor.Value.w = state.fade.alpha;
+
+	float extraLeft = (100.0f * scaleFactorY);
+	ImVec2 adjustedWindowPos = ImVec2(windowPos.x - extraLeft, windowPos.y);
+	ImVec2 adjustedWindowSize = meterSize + ImVec2(300.0f + extraLeft, 300.0f);
+
+	ImGui::SetNextWindowPos(adjustedWindowPos, ImGuiCond_Always);
+	ImGui::SetNextWindowSize(adjustedWindowSize, ImGuiCond_Always);
 
 	ImGui::Begin("StyleMeter", nullptr,
 		ImGuiWindowFlags_NoTitleBar |
@@ -162,10 +512,222 @@ void StyleMeterWindow() {
 		ImGuiWindowFlags_NoInputs |
 		ImGuiWindowFlags_NoBackground);
 
-	RenderMeterWithFill(DStyleRankFillTexture->GetTexture(), ImGui::GetCursorScreenPos(), meterSize, fillRatio, white);
-	RenderMeterBackground(DStyleRankBackgroundTexture->GetTexture(), ImGui::GetCursorScreenPos(), meterSize, color);
+	float animScale = 1.0f;
+	float animAngle = 0.0f;
+	float skewT = 1.0f;
+	ImVec2 animOffset(0, 0);
+	if (state.animating && state.animTimer < animDuration) {
+		float t = ImClamp(state.animTimer / animDuration, 0.0f, 1.0f);
+
+		auto easeInOut = [](float t) {
+			return t < 0.5f ? 4.0f * t * t * t : 1.0f - powf(-2.0f * t + 2.0f, 3.0f) / 2.0f;
+			};
+
+		float phase1 = 0.55f;
+		float centerDist = meterSize.x * 1.2f * animIntensity;
+
+		if (t < phase1) {
+			float t1 = easeInOut(t / phase1);
+			animOffset.x = -centerDist * (1.0f - t1);
+			skewT = t1 * 0.5f;
+			animScale = 2.8f - 1.2f * t1;
+			animAngle = (1.0f - t1) * 0.18f * sinf(t1 * 8.0f);
+		} else {
+			float t2 = easeInOut((t - phase1) / (1.0f - phase1));
+			animOffset.x = ImLerp(0.0f, 0.0f, t2);
+			skewT = 0.5f + t2 * 0.5f;
+			animScale = 1.6f - 0.6f * t2;
+			animAngle = (1.0f - t2) * 0.08f * sinf(t2 * 8.0f);
+		}
+
+		if (t > 0.96f) {
+			float snapT = (t - 0.96f) / 0.04f;
+			animScale = ImLerp(animScale, 1.0f, snapT);
+			animAngle = ImLerp(animAngle, 0.0f, snapT);
+			animOffset.x = ImLerp(animOffset.x, 0.0f, snapT);
+			skewT = ImLerp(skewT, 1.0f, snapT);
+		}
+	}
+
+	ImVec2 center = ImGui::GetCursorScreenPos() + meterSize * 0.5f + animOffset;
+	ImVec2 renderSize = meterSize * animScale;
+	ImVec2 renderPos = center - renderSize * 0.5f;
+	ImVec2 renderPosExtraLeft = ImVec2(renderPos.x + extraLeft, renderPos.y);
+	ImVec2 actualRenderPos = renderPosExtraLeft;
+
+	ImVec2 renderPosSSStyle = ImVec2(renderPos.x - (50.0f * scaleFactorY), renderPos.y + (50.0f * scaleFactorY));
+	ImVec2 renderPosSSStyleExtraLeft = ImVec2(renderPosSSStyle.x + extraLeft, renderPosSSStyle.y);
+	ImVec2 actualRenderPosSSStyle = renderPosSSStyleExtraLeft;
+	ImVec2 renderPosSSSStyle = ImVec2(renderPos.x - (100.0f * scaleFactorY), renderPos.y + (20.0f * scaleFactorY));
+	ImVec2 renderPosSSSStyleExtraLeft = ImVec2(renderPosSSSStyle.x + extraLeft, renderPosSSSStyle.y);
+	ImVec2 actualRenderPosSSSStyle = renderPosSSSStyleExtraLeft;
+
+	if (sSSStyle) {
+		RenderSkewedMeterWithFill(fillTexture, actualRenderPosSSSStyle, renderSize, fillRatio, fillColorC, animAngle, skewT);
+		RenderSkewedTexture(bgTexture, actualRenderPosSSSStyle, renderSize, flashBg, animAngle, skewT);
+		RenderSkewedTexture(bgHighlightTexture, actualRenderPosSSSStyle, renderSize, highlightColor, animAngle, skewT);
+	}
+
+	if (sSStyle || sSSStyle) {
+		RenderSkewedMeterWithFill(fillTexture, actualRenderPosSSStyle, renderSize, fillRatio, fillColorC, animAngle, skewT);
+		RenderSkewedTexture(bgTexture, actualRenderPosSSStyle, renderSize, flashBg, animAngle, skewT);
+		RenderSkewedTexture(bgHighlightTexture, actualRenderPosSSStyle, renderSize, highlightColor, animAngle, skewT);
+	}
+
+	RenderSkewedMeterWithFill(fillTexture, actualRenderPos, renderSize, fillRatio, fillColorC, animAngle, skewT);
+	RenderSkewedTexture(bgTexture, actualRenderPos, renderSize, flashBg, animAngle, skewT);
+	RenderSkewedTexture(bgHighlightTexture, actualRenderPos, renderSize, highlightColor, animAngle, skewT);
 
 	ImGui::End();
+
+	// --- Text Animation: delayed, ease in-out, straight ---
+	ImVec2 textSize = ImVec2(1000.0f * scaleFactorY * 0.55f, 243.0f * scaleFactorY * 0.55f);
+	ImVec2 textWindowPos = ImVec2(windowPos.x + (194.0f * scaleFactorY), windowPos.y + (125.0f * scaleFactorY));
+	ImVec4 textColorHex = ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(textColor));
+	ImColor textColorC = (textColorHex);
+	float hT, sT, vT;
+	ImGui::ColorConvertRGBtoHSV(textColorC.Value.x, textColorC.Value.y, textColorC.Value.z, hT, sT, vT);
+
+	sT = ImClamp(sT * 1.9f, 0.0f, 1.0f);
+	vT = ImClamp(vT * 1.8f, 0.0f, 1.0f);
+
+	ImVec4 poppedTextColor;
+	ImGui::ColorConvertHSVtoRGB(hT, sT, vT, poppedTextColor.x, poppedTextColor.y, poppedTextColor.z);
+	poppedTextColor.w = state.fade.alpha;
+	ImGui::SetNextWindowPos(textWindowPos, ImGuiCond_Always);
+	ImGui::SetNextWindowSize(textSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
+
+	ImGui::Begin("StyleMeterText", nullptr,
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoInputs |
+		ImGuiWindowFlags_NoBackground);
+
+	float textAnimT = 1.0f;
+	if (state.animating) {
+		if (state.animTimer > textDelay) {
+			float t = ImClamp((state.animTimer - textDelay) / textAnimDuration, 0.0f, 1.0f);
+			textAnimT = t < 0.5f ? 4.0f * t * t * t : 1.0f - powf(-2.0f * t + 2.0f, 3.0f) / 2.0f;
+		} else {
+			textAnimT = 0.0f;
+		}
+	}
+	ImVec2 textAnimOffset = ImVec2((1.0f - textAnimT) * -meterSize.x * 1.2f * animIntensity, 0.0f);
+
+	ImVec2 textPos = ImGui::GetCursorScreenPos() + textAnimOffset;
+	RenderTexture(textTexture, textPos, textSize, poppedTextColor);
+	RenderTexture(textHighlightTexture, textPos, textSize, white);
+
+	ImGui::End();
+}
+
+void StyleMeterWindows() {
+
+	// D
+	StyleMeterWindowRank(
+		1,
+		DStyleRankFillTexture->GetTexture(),
+		DStyleRankBackgroundTexture->GetTexture(),
+		DStyleRankBackgroundHighlightTexture->GetTexture(),
+		DStyleRankTextTexture->GetTexture(),
+		DStyleRankTextHighlightTexture->GetTexture(),
+		0x1f5d8aFF,
+		0xFFFFFFFF,
+		0x02c4ffFF
+	);
+
+	// C
+	StyleMeterWindowRank(
+		2,
+		CStyleRankFillTexture->GetTexture(),
+		CStyleRankBackgroundTexture->GetTexture(),
+		CStyleRankBackgroundHighlightTexture->GetTexture(),
+		CStyleRankTextTexture->GetTexture(),
+		CStyleRankTextHighlightTexture->GetTexture(),
+		0x2d6a4eFF,
+		0xFFFFFFFF,
+		0x3ad897FF
+	);
+
+	// B
+	StyleMeterWindowRank(
+		3,
+		BStyleRankFillTexture->GetTexture(),
+		BStyleRankBackgroundTexture->GetTexture(),
+		BStyleRankBackgroundHighlightTexture->GetTexture(),
+		BStyleRankTextTexture->GetTexture(),
+		BStyleRankTextHighlightTexture->GetTexture(),
+		0x887018FF,
+		0xFFFFFFFF,
+		0xe0d143FF
+	);
+
+	// A
+	StyleMeterWindowRank(
+		4,
+		AStyleRankFillTexture->GetTexture(),
+		AStyleRankBackgroundTexture->GetTexture(),
+		AStyleRankBackgroundHighlightTexture->GetTexture(),
+		AStyleRankTextTexture->GetTexture(),
+		AStyleRankTextHighlightTexture->GetTexture(),
+		0xbb5b10FF,
+		0xFFFFFFFF,
+		0xe29d2fFF
+	);
+
+	// S
+	StyleMeterWindowRank(
+		5,
+		SStyleRankFillTexture->GetTexture(),
+		SStyleRankBackgroundTexture->GetTexture(),
+		SStyleRankBackgroundHighlightTexture->GetTexture(),
+		SStyleRankTextTexture->GetTexture(),
+		SStyleRankTextHighlightTexture->GetTexture(),
+		0x97418cFF,
+		0xFFFFFFFF,
+		0xff50e2FF,
+		1.5f,
+		ImVec2(g_renderSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
+		false,
+		false
+	);
+
+	// SS
+	StyleMeterWindowRank(
+		6,
+		SSStyleRankFillTexture->GetTexture(),
+		SSStyleRankBackgroundTexture->GetTexture(),
+		SSStyleRankBackgroundHighlightTexture->GetTexture(),
+		SSStyleRankTextTexture->GetTexture(),
+		SSStyleRankTextHighlightTexture->GetTexture(),
+		0x632881FF,
+		0xFFFFFFFF,
+		0xb303ceFF,
+		1.5f,
+		ImVec2(g_renderSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
+		true,
+		false
+	);
+
+	// SSS
+	StyleMeterWindowRank(
+		7,
+		SSSStyleRankFillTexture->GetTexture(),
+		SSSStyleRankBackgroundTexture->GetTexture(),
+		SSSStyleRankBackgroundHighlightTexture->GetTexture(),
+		SSSStyleRankTextTexture->GetTexture(),
+		SSSStyleRankTextHighlightTexture->GetTexture(),
+		0x82141aFF,
+		0xf6bbadFF,
+		0xeb0024FF,
+		1.5f,
+		ImVec2(g_renderSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
+		true,
+		true
+	);
 }
 
 void DrawRotatedImage(ImTextureID tex_id, ImVec2 pos, ImVec2 size, float angle, ImU32 color) {
@@ -738,16 +1300,33 @@ void StunDisplacementLockOnWindows() {
 		float textureWidth = sizeDistance.x * 0.25f;
 		float textureHeight = sizeDistance.y * 0.25f;
 
-		ImVec2 windowSize = ImVec2(sizeDistance.x, sizeDistance.y);
-		float edgeOffsetX = 350.0f * scaleFactorY;
-		float edgeOffsetY = 350.0f * scaleFactorY;
+		ImVec2 windowSize = ImVec2(sizeDistance.x, sizeDistance.y);;
 
-		float offsetX = 0.38f * sizeDistance.x;
-		float offsetY = 0.39f * sizeDistance.y;
+		// --- Calculate the Regular Lock On's center exactly as in LockOnWindows ---
+		float regularBaseSizeX = 600.0f * scaleFactorY;
+		float regularBaseSizeY = 581.0f * scaleFactorY;
+		float regularSafeDistance = (std::max)((float)crimsonPlayer[playerIndex].cameraLockedEnemyDistanceClamped, 5.0f);
+		ImVec2 regularSizeDistance = {
+			(regularBaseSizeX * (1.0f / (regularSafeDistance / 40))),
+			(regularBaseSizeY * (1.0f / (regularSafeDistance / 40)))
+		};
+		float regularOffsetX = 0.38f * regularSizeDistance.x;
+		float regularOffsetY = 0.39f * regularSizeDistance.y;
+		ImVec2 regularTexturePos = ImVec2(
+			lockedEnemyScreenPosition.x - (regularSizeDistance.x / 2.0f) + regularOffsetX,
+			lockedEnemyScreenPosition.y - (regularSizeDistance.y / 2.0f) + regularOffsetY
+		);
+		float regularTextureWidth = regularSizeDistance.x * 0.25f;
+		float regularTextureHeight = regularSizeDistance.y * 0.25f;
+		ImVec2 regularCenter = ImVec2(
+			regularTexturePos.x + (regularTextureWidth / 2.0f),
+			regularTexturePos.y + (regularTextureHeight / 2.0f)
+		);
 
+		// --- Center the StunDisplacementLockOn on the Regular Lock On ---
 		ImVec2 texturePos = ImVec2(
-			lockedEnemyScreenPosition.x - (sizeDistance.x / 2.0f) + offsetX,
-			lockedEnemyScreenPosition.y - (sizeDistance.y / 2.0f) + offsetY
+			regularCenter.x - (textureWidth / 2.0f),
+			regularCenter.y - (textureHeight / 2.0f)
 		);
 
 		ImVec2 windowPos = ImVec2(
@@ -767,7 +1346,7 @@ void StunDisplacementLockOnWindows() {
 
 		float alpha = 1.0f;
 
-		ImVec4 stunColor = ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(0xFFFF00FF));
+		ImVec4 stunColor = ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(0x5948a7FF));
 
 		ImColor color(stunColor);
 		float h, s, v;
@@ -937,15 +1516,31 @@ void ShieldLockOnWindows() {
 		float textureHeight = sizeDistance.y * 0.25f;
 
 		ImVec2 windowSize = ImVec2(sizeDistance.x, sizeDistance.y);
-		float edgeOffsetX = 350.0f * scaleFactorY;
-		float edgeOffsetY = 350.0f * scaleFactorY;
+		// --- Calculate the Regular Lock On's center exactly as in LockOnWindows ---
+		float regularBaseSizeX = 600.0f * scaleFactorY;
+		float regularBaseSizeY = 581.0f * scaleFactorY;
+		float regularSafeDistance = (std::max)((float)crimsonPlayer[playerIndex].cameraLockedEnemyDistanceClamped, 5.0f);
+		ImVec2 regularSizeDistance = {
+			(regularBaseSizeX * (1.0f / (regularSafeDistance / 40))),
+			(regularBaseSizeY * (1.0f / (regularSafeDistance / 40)))
+		};
+		float regularOffsetX = 0.38f * regularSizeDistance.x;
+		float regularOffsetY = 0.39f * regularSizeDistance.y;
+		ImVec2 regularTexturePos = ImVec2(
+			lockedEnemyScreenPosition.x - (regularSizeDistance.x / 2.0f) + regularOffsetX,
+			lockedEnemyScreenPosition.y - (regularSizeDistance.y / 2.0f) + regularOffsetY
+		);
+		float regularTextureWidth = regularSizeDistance.x * 0.25f;
+		float regularTextureHeight = regularSizeDistance.y * 0.25f;
+		ImVec2 regularCenter = ImVec2(
+			regularTexturePos.x + (regularTextureWidth / 2.0f),
+			regularTexturePos.y + (regularTextureHeight / 2.0f)
+		);
 
-		float offsetX = 0.38f * sizeDistance.x;
-		float offsetY = 0.39f * sizeDistance.y;
-
+		// --- Center the StunDisplacementLockOn on the Regular Lock On ---
 		ImVec2 texturePos = ImVec2(
-			lockedEnemyScreenPosition.x - (sizeDistance.x / 2.0f) + offsetX,
-			lockedEnemyScreenPosition.y - (sizeDistance.y / 2.0f) + offsetY
+			regularCenter.x - (textureWidth / 2.0f),
+			regularCenter.y - (textureHeight / 2.0f)
 		);
 
 		ImVec2 windowPos = ImVec2(
@@ -1027,7 +1622,7 @@ void ShieldLockOnWindows() {
 
 void InitTextures(ID3D11Device* pd3dDevice) {
 	InitRedOrbTexture(pd3dDevice);
-	InitDStyleRankTextures(pd3dDevice);
+	InitStyleRankTextures(pd3dDevice);
 	InitLockOnTexture(pd3dDevice);
 }
 

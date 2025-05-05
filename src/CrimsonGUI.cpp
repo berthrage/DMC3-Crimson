@@ -8385,6 +8385,7 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::PushItemWidth(itemWidth);
 			if (GUI_Checkbox2("Always Show Main HUD", activeConfig.forceVisibleHUD, queuedConfig.forceVisibleHUD)) {
 				ToggleForceVisibleHUD(activeConfig.forceVisibleHUD);
+				CrimsonDetours::ToggleHideStyleRankHUD(!activeConfig.forceVisibleHUD);
 			}
 
 			ImGui::PopItemWidth();
@@ -8454,7 +8455,9 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth * 0.5f);
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Style Ranks Meter", activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter, queuedCrimsonConfig.CrimsonHudAddons.styleRanksMeter);
+			if (GUI_Checkbox2("Style Ranks Meter", activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter, queuedCrimsonConfig.CrimsonHudAddons.styleRanksMeter)) {
+				CrimsonDetours::ToggleHideStyleRankHUD(activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter);
+			}
 
 			ImGui::TableNextColumn();
 
@@ -12873,7 +12876,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonHUD::RedOrbCounterWindow();
 	CrimsonHUD::CheatsHUDIndicatorWindow();
 	CrimsonHUD::CheatHotkeysPopUpWindow();
-	CrimsonHUD::StyleMeterWindow();
+	CrimsonHUD::StyleMeterWindows();
 	CrimsonHUD::LockOnWindows();
 	CrimsonHUD::StunDisplacementLockOnWindows();
 	CrimsonHUD::ShieldLockOnWindows();

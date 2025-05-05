@@ -59,6 +59,9 @@ void ToggleTakeDamageDetour();
 // DisableDriveHold
 void DisableDriveHoldDetour();
 
+// HideStyleRankHUD
+void HideStyleRankHUDDetour();
+
 // HudHPSeparation
 void HudHPSeparationDetour();
 
@@ -103,6 +106,7 @@ void InitDetours();
 void ToggleArtemisInstantFullCharge(bool enable);
 void ToggleGuardGravityAlteration(bool enable);
 void ToggleDisableDriveHold(bool enable);
+void ToggleHideStyleRankHUD(bool enable);
 void ToggleDTInfusedRoyalguardDetours(bool enable);
 void ToggleFasterTurnRate(bool enable);
 void ToggleFreeformSoftLockHelper(bool enable);
