@@ -1791,9 +1791,14 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
         }
 
         // Fix for the weird carry over to EbonyIvory Normal Shot
-        if (action == 132 && lastAction == CERBERUS_AIR_FLICKER) {
+        if (action == ACTION_DANTE::EBONY_IVORY_AIR_NORMAL_SHOT && lastAction == CERBERUS_AIR_FLICKER) {
             actorData.verticalPullMultiplier = -1.2f;
         }
+
+		// Fix for weird Fireworks carry over on vertical mult.
+		if (action == ACTION_DANTE::SHOTGUN_AIR_FIREWORKS && lastAction == CERBERUS_AIR_FLICKER) {
+			actorData.verticalPullMultiplier = -0.95f;
+		}
     }
 }
 
@@ -1836,11 +1841,16 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
             }
         }
 
-
         // Fix for the weird carry over to EbonyIvory Normal Shot
-        if (action == 132 && inSkyDanceLastAction) {
+        if (action == ACTION_DANTE::EBONY_IVORY_AIR_NORMAL_SHOT && inSkyDanceLastAction) {
             actorData.verticalPullMultiplier = -1.2f;
         }
+
+		// Fix for weird Fireworks carry over on vertical mult.
+		if (action == ACTION_DANTE::SHOTGUN_AIR_FIREWORKS && (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 
+            || lastAction == AGNI_RUDRA_SKY_DANCE_PART_2)) {
+			actorData.verticalPullMultiplier = -0.95f;
+		}
     }
 }
 

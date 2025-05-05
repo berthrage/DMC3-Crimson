@@ -7725,11 +7725,11 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             }
             auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 
-			if (!actorData.lockOnData.targetBaseAddr60) {
-				return;
-			}
-
-			auto& lockedOnEnemyData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60);
+// 			if (!actorData.lockOnData.targetBaseAddr60) {
+// 				return;
+// 			}
+// 
+// 			auto& lockedOnEnemyData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60);
 
 			//ImGui::Text("TargetPosZ %g", actorData.lockOnData.targetPosition.z);
 
@@ -7765,6 +7765,10 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
+			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
+			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
+			ImGui::Text("ACTION:  %u", actorData.action);
+			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
 			ImGui::Text("lockOnEnemyMinusStun: %g", crimsonPlayer[0].lockedOnEnemyMinusStun);
 			ImGui::Text("lockOnEnemyMinusDisplacement: %g", crimsonPlayer[0].lockedOnEnemyMinusDisplacement);
 			ImGui::Text("gameModeData.mustStyleMissionResult: %u", gameModeData.mustStyleMissionResult);
@@ -7805,7 +7809,6 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			ImGui::Text("Guard: %u", actorData.guard);
 			ImGui::Text("maxDT: %g", actorData.maxMagicPoints);
 			ImGui::Text("Motion Data 1: %u", crimsonPlayer[0].motion);
-			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
 			ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[0].animTimer);
 			ImGui::Text("anim Timer Clone:  %g", crimsonPlayer[0].animTimerClone);
 			ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
@@ -7831,7 +7834,6 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			ImGui::Text("ROYAL RELEASE EXECUTING:  %u", crimsonPlayer[0].royalRelease.executing);
 			ImGui::Text("STORED RELEASE LEVEL:  %u", crimsonPlayer[0].skyLaunch.storedReleaseLevel);
 			ImGui::Text("ROYAL GAUGE:  %g", actorData.royalguardReleaseDamage);
-			ImGui::Text("ACTION:  %u", actorData.action);
             ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
             ImGui::Text("DTE CHARGE: %g", actorData.dtExplosionCharge);
             ImGui::Text("DTE CHARGE: %g", crimsonPlayer[0].dtExplosionCharge);
