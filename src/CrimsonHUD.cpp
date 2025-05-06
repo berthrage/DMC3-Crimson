@@ -960,78 +960,103 @@ void CheatsHUDIndicatorWindow() {
 		return;
 	}
 
-	// Define the window size and position
-	ImVec2 windowSize = ImVec2(367.0f * scaleFactorX, 100.0f * scaleFactorY);
-	float edgeOffsetX = 0.0f * scaleFactorY;
-	float edgeOffsetY = 15.0f * scaleFactorY;
-	ImVec2 windowPos = ImVec2(g_renderSize.x - windowSize.x - edgeOffsetX, edgeOffsetY);
-	auto& currentGameMode = activeCrimsonGameplay.GameMode.preset;
+	auto CheatIndicatorWindow = [](ImVec2 windowSize, ImVec2 windowPos, std::vector<uint8> cheatIndices, const char* label) {
+		// Define the window size and position
+		float edgeOffsetX = 0.0f * scaleFactorY;
+		float edgeOffsetY = 15.0f * scaleFactorY;
+		auto& currentGameMode = activeCrimsonGameplay.GameMode.preset;
 
-	ImGui::SetNextWindowSize(windowSize);
-	ImGui::SetNextWindowPos(windowPos);
-	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
-		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+		ImGui::SetNextWindowSize(windowSize);
+		ImGui::SetNextWindowPos(windowPos);
+		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
 
-	// Adjust the font size and the proportional texture size
-	float fontSize = 18.0f;
+		// Adjust the font size and the proportional texture size
+		float fontSize = 18.0f;
 
-	ImGui::Begin("CheatsHUDIndicatorWindow", nullptr, windowFlags);
-	// Set the color with alpha for the Red Orb texture
-	float alpha = crimsonHud.redOrbAlpha / 127.0f;
-	ImColor colorWithAlpha(1.0f, 1.0f, 1.0f, alpha);
-	ImGui::SetWindowFontScale(scaleFactorY);
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSize]);
+		ImGui::Begin(label, nullptr, windowFlags);
+		// Set the color with alpha for the Red Orb texture
+		float alpha = crimsonHud.redOrbAlpha / 127.0f;
+		ImColor colorWithAlpha(1.0f, 1.0f, 1.0f, alpha);
+		ImGui::SetWindowFontScale(scaleFactorY);
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSize]);
 
-	// Prepare button and text colors with alpha
-	ImVec4 buttonColor = ImColor(UI::SwapColorEndianness(gameModeData.colors[currentGameMode]));
-	buttonColor.w *= alpha;
-	ImVec4 textColor = (currentGameMode <= 1)
-		? ImColor(UI::SwapColorEndianness(0x151515FF))
-		: ImColor(UI::SwapColorEndianness(0xFFFFFFFF));
-	textColor.w *= alpha;
-	ImVec4 borderColor = ImGui::GetStyleColorVec4(ImGuiCol_Border);
-	borderColor.w *= alpha;
-	ImGui::PushStyleColor(ImGuiCol_Border, borderColor);
-	ImGui::PushStyleColor(ImGuiCol_Button, buttonColor);
-	ImGui::PushStyleColor(ImGuiCol_Text, textColor);
+		// Prepare button and text colors with alpha
+		ImVec4 buttonColor = ImColor(UI::SwapColorEndianness(gameModeData.colors[currentGameMode]));
+		buttonColor.w *= alpha;
+		ImVec4 textColor = (currentGameMode <= 1)
+			? ImColor(UI::SwapColorEndianness(0x151515FF))
+			: ImColor(UI::SwapColorEndianness(0xFFFFFFFF));
+		textColor.w *= alpha;
+		ImVec4 borderColor = ImGui::GetStyleColorVec4(ImGuiCol_Border);
+		borderColor.w *= alpha;
+		ImGui::PushStyleColor(ImGuiCol_Border, borderColor);
+		ImGui::PushStyleColor(ImGuiCol_Button, buttonColor);
+		ImGui::PushStyleColor(ImGuiCol_Text, textColor);
 
-
-	// Calculate total width of all buttons and spacing
-	float totalButtonsWidth = 0.0f;
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f * scaledFontSize);
-	float spacing = ImGui::GetStyle().ItemSpacing.x * scaleFactorY;
-	std::vector<ImVec2> btnSizes;
-	for (auto cheat : gameModeData.currentlyUsedCheats) {
-		const std::string& btnLabel = gameModeData.cheatsNames[cheat];
-		ImVec2 btnSize = ImGui::CalcTextSize(btnLabel.c_str());
-		btnSize.x += ImGui::GetStyle().FramePadding.x * 2.0f * scaleFactorY;
-		btnSize.y += ImGui::GetStyle().FramePadding.y * 2.0f * scaleFactorY;
-		btnSizes.push_back(btnSize);
-		totalButtonsWidth += btnSize.x;
-	}
-	if (!btnSizes.empty())
-		totalButtonsWidth += spacing * (btnSizes.size() - 1);
-
-	// Center the group
-	float groupStartX = (windowSize.x - totalButtonsWidth) * 0.5f;
-	ImGui::SetCursorPosX(groupStartX);
-
-	// Draw buttons
-	for (size_t i = 0; i < gameModeData.currentlyUsedCheats.size(); ++i) {
-		auto cheat = gameModeData.currentlyUsedCheats[i];
-		const std::string& btnLabel = gameModeData.cheatsNames[cheat];
-		ImGui::Button(btnLabel.c_str(), btnSizes[i]);
-		if (i + 1 < gameModeData.currentlyUsedCheats.size()) {
-			ImGui::SameLine();
-			ImGui::SameLine(0.0f, spacing); // Use calculated spacing
+		// Prepare the list of cheats to show in this window
+		std::vector<uint8> cheatsToShow;
+		for (auto cheatIdx : cheatIndices) {
+			// Only show if this cheat is currently active
+			if (std::find(gameModeData.currentlyUsedCheats.begin(), gameModeData.currentlyUsedCheats.end(), cheatIdx) != gameModeData.currentlyUsedCheats.end()) {
+				cheatsToShow.push_back(cheatIdx);
+			}
 		}
-	}
 
-	ImGui::PopStyleVar();
-	ImGui::PopStyleColor(3);
-	ImGui::PopFont();
-	ImGui::End();
+		// Calculate total width of all buttons and spacing
+		float totalButtonsWidth = 0.0f;
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f * scaledFontSize);
+		float spacing = ImGui::GetStyle().ItemSpacing.x * scaleFactorY;
+		std::vector<ImVec2> btnSizes;
+		for (size_t i = 0; i < cheatsToShow.size(); ++i) {
+			auto cheat = cheatsToShow[i];
+			const std::string& btnLabel = gameModeData.cheatsNames[cheat];
+			ImVec2 btnSize = ImGui::CalcTextSize(btnLabel.c_str());
+			btnSize.x += ImGui::GetStyle().FramePadding.x * 2.0f * scaleFactorY;
+			btnSize.y += ImGui::GetStyle().FramePadding.y * 2.0f * scaleFactorY;
+			btnSizes.push_back(btnSize);
+			totalButtonsWidth += btnSize.x;
+		}
+		if (!btnSizes.empty())
+			totalButtonsWidth += spacing * (btnSizes.size() - 1);
+
+		// Center the group
+		float groupStartX = (windowSize.x - totalButtonsWidth) * 0.5f;
+		ImGui::SetCursorPosX(groupStartX);
+
+		// Draw buttons
+		for (size_t i = 0; i < cheatsToShow.size(); ++i) {
+			auto cheat = cheatsToShow[i];
+			const std::string& btnLabel = gameModeData.cheatsNames[cheat];
+			ImGui::Button(btnLabel.c_str(), btnSizes[i]);
+			if (i + 1 < cheatsToShow.size()) {
+				ImGui::SameLine();
+				ImGui::SameLine(0.0f, spacing); // Use calculated spacing
+			}
+		}
+
+		ImGui::PopStyleVar();
+		ImGui::PopStyleColor(3);
+		ImGui::PopFont();
+		ImGui::End();
+		};
+
+	// Top window: TRAINING, DAMAGE, SPEED, MOBILITY
+	CheatIndicatorWindow(
+		ImVec2(367.0f * scaleFactorX, 100.0f * scaleFactorY),
+		ImVec2(g_renderSize.x - (367.0f * scaleFactorX) - (0.0f * scaleFactorY), 15.0f * scaleFactorY),
+		{ CHEATS::TRAINING, CHEATS::DAMAGE, CHEATS::SPEED, CHEATS::MOBILITY },
+		"CheatsHUDIndicatorWindow1"
+	);
+
+	// Bottom window: DEBUG, RMS
+	CheatIndicatorWindow(
+		ImVec2(367.0f * scaleFactorX, 100.0f * scaleFactorY),
+		ImVec2(g_renderSize.x - (367.0f * scaleFactorX) - (0.0f * scaleFactorY), 117.0f * scaleFactorY),
+		{ CHEATS::DEBUG, CHEATS::RMS },
+		"CheatsHUDIndicatorWindow2"
+	);
 }
 
 void CheatHotkeysPopUpWindow() {
@@ -1108,8 +1133,8 @@ void LockOnWindows() {
 	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
 	if (!pool_4449 || !pool_4449[147]) return;
 	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
-	
-	
+
+
 	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 
 	// Spin speed in radians per second (adjust as needed)
@@ -1133,7 +1158,7 @@ void LockOnWindows() {
 		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 
 		if (!newActorData.baseAddr) {
-			return;
+			continue; // FIX: Use continue instead of return to avoid mismatched Begin/End
 		}
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 
@@ -1193,7 +1218,8 @@ void LockOnWindows() {
 
 		std::string windowName = "LockOnWindow" + std::to_string(playerIndex);
 
-		ImGui::Begin(windowName.c_str(), nullptr, windowFlags);
+		// Only call Begin if you will always call End in this loop iteration!
+		bool windowOpen = ImGui::Begin(windowName.c_str(), nullptr, windowFlags);
 
 		float alpha = 1.0f;
 
@@ -1223,31 +1249,29 @@ void LockOnWindows() {
 		float targetAlpha = lockOnActive ? 1.0f : 0.0f;
 		lockOnFade[playerIndex].alpha = SmoothLerp(lockOnFade[playerIndex].alpha, targetAlpha, fadeSpeed, ImGui::GetIO().DeltaTime);
 
-		if (lockOnFade[playerIndex].alpha <= 0.01f) {
-			continue;
+		if (lockOnFade[playerIndex].alpha > 0.01f) {
+			if (LockOnTexture->IsValid()) {
+				DrawRotatedImagePie(
+					LockOnTexture->GetTexture(),
+					texturePos,
+					ImVec2(textureWidth, textureHeight),
+					lockOnAngle[playerIndex],
+					colorWithAlpha,
+					healthFraction
+				);
+				DrawRotatedImagePie(
+					LockOnForegroundTexture->GetTexture(),
+					texturePos,
+					ImVec2(textureWidth, textureHeight),
+					lockOnAngle[playerIndex],
+					fgColorWithAlpha,
+					healthFraction
+				);
+			} else {
+				ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
+			}
 		}
 
-		if (LockOnTexture->IsValid()) {
-			DrawRotatedImagePie(
-				LockOnTexture->GetTexture(),
-				texturePos,
-				ImVec2(textureWidth, textureHeight),
-				lockOnAngle[playerIndex],
-				colorWithAlpha,
-				healthFraction
-			);
-			DrawRotatedImagePie(
-				LockOnForegroundTexture->GetTexture(),
-				texturePos,
-				ImVec2(textureWidth, textureHeight),
-				lockOnAngle[playerIndex],
-				fgColorWithAlpha,
-				healthFraction
-			);
-		} else {
-			ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
-		}
-		
 		ImGui::End();
 	}
 }
@@ -1284,7 +1308,7 @@ void StunDisplacementLockOnWindows() {
 		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 
 		if (!newActorData.baseAddr) {
-			return;
+			continue; // FIX: Use continue instead of return to avoid mismatched Begin/End
 		}
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 
@@ -1385,7 +1409,7 @@ void StunDisplacementLockOnWindows() {
 		auto& lockedOnEnemyMaxDisplacement = crimsonPlayer[playerIndex].lockedOnEnemyMaxDisplacement;
 		auto& lockedOnEnemyMinusStun = crimsonPlayer[playerIndex].lockedOnEnemyMinusStun;
 		auto& lockedOnEnemyMinusDisplacement = crimsonPlayer[playerIndex].lockedOnEnemyMinusDisplacement;
-		
+
 		float displacementFraction = 1.0f - (lockedOnEnemyDisplacement / lockedOnEnemyMaxDisplacement);
 
 		bool lockOnActive = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON)) && actorData.lockOnData.targetBaseAddr60 != 0;
@@ -1394,160 +1418,157 @@ void StunDisplacementLockOnWindows() {
 		float targetAlpha = lockOnActive ? 1.0f : 0.0f;
 		lockOnFade[playerIndex].alpha = SmoothLerp(lockOnFade[playerIndex].alpha, targetAlpha, fadeSpeed, ImGui::GetIO().DeltaTime);
 
-		if (lockOnFade[playerIndex].alpha <= 0.01f) {
-			continue;
-		}
-
-		if (LockOnTexture->IsValid()) {
-			DrawRotatedImagePie(
-				LockOnStunTexture->GetTexture(),
-				texturePos,
-				ImVec2(textureWidth, textureHeight),
-				lockOnAngle[playerIndex],
-				colorWithAlpha,
-				displacementFraction
-			);
-			DrawRotatedImagePie(
-				LockOnForegroundTexture->GetTexture(),
-				texturePos,
-				ImVec2(textureWidth, textureHeight),
-				lockOnAngle[playerIndex],
-				fgColorWithAlpha,
-				displacementFraction
-			);
-		} else {
-			ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
-		}
-
-		ImGui::End();
-
-		if (actorData.lockOnData.targetBaseAddr60 != 0) {
-			auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60); // -0x60 very important don't forget
-
-			float textureBaseSizeXStun = 300.0f * scaleFactorY;
-			float textureBaseSizeYStun = 290.50f * scaleFactorY;
-
-			// STUN LOCK-ON (INNER LIGHTER CIRCLE)
-
-			ImVec2 sizeDistanceStun = {
-			(textureBaseSizeXStun * (1.0f / (safeDistance / 35))),
-			(textureBaseSizeYStun * (1.0f / (safeDistance / 35)))
-			};
-
-			float textureWidthStun = sizeDistanceStun.x * 0.25f;
-			float textureHeightStun = sizeDistanceStun.y * 0.25f;
-
-			ImVec2 windowSizeStun = ImVec2(sizeDistanceStun.x, sizeDistanceStun.y);
-
-			// --- Center the StunLockOn on the Regular Lock On ---
-			ImVec2 texturePosStun = ImVec2(
-				regularCenter.x - (textureWidthStun / 2.0f),
-				regularCenter.y - (textureHeightStun / 2.0f)
-			);
-
-			ImVec2 windowPosStun = ImVec2(
-				texturePosStun.x + (sizeDistanceStun.x / 2.0f) - (windowSize.x / 2.0f),
-				texturePosStun.y + (sizeDistanceStun.y / 2.0f) - (windowSize.y / 2.0f)
-			);
-			ImGui::SetNextWindowSize(windowSizeStun);
-			ImGui::SetNextWindowPos(windowPosStun);
-
-			std::string windowNameStun = "LockOnStunWindow" + std::to_string(playerIndex);
-
-			ImGui::Begin(windowNameStun.c_str(), nullptr, windowFlags);
-
-			ImVec4 stunColor = ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(0xcfc4ffFF));
-
-			ImColor colorStunC(stunColor);
-			float hS, sS, vS;
-			ImGui::ColorConvertRGBtoHSV(colorStunC.Value.x, colorStunC.Value.y, colorStunC.Value.z, hS, sS, vS);
-
-			// Boost saturation and value for more "pop"
-			sS = ImClamp(sS * 1.4f, 0.0f, 1.0f); // Increase saturation by 40%
-			vS = ImClamp(vS * 2.0f, 0.0f, 1.0f); // Increase brightness by 80%
-
-			ImVec4 poppedColorStun;
-			ImGui::ColorConvertHSVtoRGB(hS, sS, vS, poppedColorStun.x, poppedColorStun.y, poppedColorStun.z);
-			poppedColorStun.w = lockOnFade[playerIndex].alpha; // Set alpha
-
-			ImColor colorStunWithAlpha(poppedColorStun);
-
-			float stunFraction = 1.0f - (lockedOnEnemyStun / lockedOnEnemyMaxStun);
-
+		if (lockOnFade[playerIndex].alpha > 0.01f) {
 			if (LockOnTexture->IsValid()) {
 				DrawRotatedImagePie(
 					LockOnStunTexture->GetTexture(),
-					texturePosStun,
-					ImVec2(textureWidthStun, textureHeightStun),
+					texturePos,
+					ImVec2(textureWidth, textureHeight),
 					lockOnAngle[playerIndex],
-					colorStunWithAlpha,
-					stunFraction
+					colorWithAlpha,
+					displacementFraction
 				);
 				DrawRotatedImagePie(
 					LockOnForegroundTexture->GetTexture(),
-					texturePosStun,
-					ImVec2(textureWidthStun, textureHeightStun),
+					texturePos,
+					ImVec2(textureWidth, textureHeight),
 					lockOnAngle[playerIndex],
 					fgColorWithAlpha,
-					stunFraction
+					displacementFraction
 				);
 			} else {
 				ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
 			}
 
-		
-			// STUN / DISPLACEMENT NUMERIC HUD
-		
-			auto& enemyId = enemyActorData.enemy;
-			bool isHell = (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::HELL_VANGUARD);
+			if (actorData.lockOnData.targetBaseAddr60 != 0) {
+				auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60); // -0x60 very important don't forget
 
-			if (!isHell || !activeCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud) continue;
-			CrimsonGameplay::CalculateLockedOnEnemyLastStunDisplacementValue(actorData);
-			ImVec4 textColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
-			ImVec4 fadedTextColor = textColor;
-			fadedTextColor.w *= lockOnFade[playerIndex].alpha;
-			ImGui::PushStyleColor(ImGuiCol_Text, fadedTextColor);
-			ImGui::SetWindowFontScale(scaleFactorY);
+				float textureBaseSizeXStun = 300.0f * scaleFactorY;
+				float textureBaseSizeYStun = 290.50f * scaleFactorY;
 
-			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0f]);
-			// Stun Text
-			ImGui::Text("Stun: ");
-			ImGui::SameLine();
-			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[24.0f]);
-			ImGui::Text("%.2f", lockedOnEnemyStun);
-			ImGui::PopFont();
-			if (lockedOnEnemyMinusStun > 0.0f) {
-				float baseX = ImGui::GetCursorPosX();
-				float offset = 170.0f * scaleFactorY; // Adjust as needed for your font/UI
-				ImGui::SameLine();
-				ImGui::SetCursorPosX(baseX + offset);
-				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[20.0f]);
-				ImGui::Text(" -%.1f", lockedOnEnemyMinusStun);
-				ImGui::PopFont();
+				// STUN LOCK-ON (INNER LIGHTER CIRCLE)
+
+				ImVec2 sizeDistanceStun = {
+					(textureBaseSizeXStun * (1.0f / (safeDistance / 35))),
+					(textureBaseSizeYStun * (1.0f / (safeDistance / 35)))
+				};
+
+				float textureWidthStun = sizeDistanceStun.x * 0.25f;
+				float textureHeightStun = sizeDistanceStun.y * 0.25f;
+
+				ImVec2 windowSizeStun = ImVec2(sizeDistanceStun.x, sizeDistanceStun.y);
+
+				// --- Center the StunLockOn on the Regular Lock On ---
+				ImVec2 texturePosStun = ImVec2(
+					regularCenter.x - (textureWidthStun / 2.0f),
+					regularCenter.y - (textureHeightStun / 2.0f)
+				);
+
+				ImVec2 windowPosStun = ImVec2(
+					texturePosStun.x + (sizeDistanceStun.x / 2.0f) - (windowSize.x / 2.0f),
+					texturePosStun.y + (sizeDistanceStun.y / 2.0f) - (windowSize.y / 2.0f)
+				);
+				ImGui::SetNextWindowSize(windowSizeStun);
+				ImGui::SetNextWindowPos(windowPosStun);
+
+				std::string windowNameStun = "LockOnStunWindow" + std::to_string(playerIndex);
+
+				ImGui::Begin(windowNameStun.c_str(), nullptr, windowFlags);
+
+				ImVec4 stunColor = ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(0xcfc4ffFF));
+
+				ImColor colorStunC(stunColor);
+				float hS, sS, vS;
+				ImGui::ColorConvertRGBtoHSV(colorStunC.Value.x, colorStunC.Value.y, colorStunC.Value.z, hS, sS, vS);
+
+				// Boost saturation and value for more "pop"
+				sS = ImClamp(sS * 1.4f, 0.0f, 1.0f); // Increase saturation by 40%
+				vS = ImClamp(vS * 2.0f, 0.0f, 1.0f); // Increase brightness by 80%
+
+				ImVec4 poppedColorStun;
+				ImGui::ColorConvertHSVtoRGB(hS, sS, vS, poppedColorStun.x, poppedColorStun.y, poppedColorStun.z);
+				poppedColorStun.w = lockOnFade[playerIndex].alpha; // Set alpha
+
+				ImColor colorStunWithAlpha(poppedColorStun);
+
+				float stunFraction = 1.0f - (lockedOnEnemyStun / lockedOnEnemyMaxStun);
+
+				if (LockOnTexture->IsValid()) {
+					DrawRotatedImagePie(
+						LockOnStunTexture->GetTexture(),
+						texturePosStun,
+						ImVec2(textureWidthStun, textureHeightStun),
+						lockOnAngle[playerIndex],
+						colorStunWithAlpha,
+						stunFraction
+					);
+					DrawRotatedImagePie(
+						LockOnForegroundTexture->GetTexture(),
+						texturePosStun,
+						ImVec2(textureWidthStun, textureHeightStun),
+						lockOnAngle[playerIndex],
+						fgColorWithAlpha,
+						stunFraction
+					);
+				} else {
+					ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
+				}
+
+				// STUN / DISPLACEMENT NUMERIC HUD
+
+				auto& enemyId = enemyActorData.enemy;
+				bool isHell = (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::HELL_VANGUARD);
+
+				if (isHell && activeCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud) {
+					CrimsonGameplay::CalculateLockedOnEnemyLastStunDisplacementValue(actorData);
+					ImVec4 textColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+					ImVec4 fadedTextColor = textColor;
+					fadedTextColor.w *= lockOnFade[playerIndex].alpha;
+					ImGui::PushStyleColor(ImGuiCol_Text, fadedTextColor);
+					ImGui::SetWindowFontScale(scaleFactorY);
+
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0f]);
+					// Stun Text
+					ImGui::Text("Stun: ");
+					ImGui::SameLine();
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[24.0f]);
+					ImGui::Text("%.2f", lockedOnEnemyStun);
+					ImGui::PopFont();
+					if (lockedOnEnemyMinusStun > 0.0f) {
+						float baseX = ImGui::GetCursorPosX();
+						float offset = 170.0f * scaleFactorY; // Adjust as needed for your font/UI
+						ImGui::SameLine();
+						ImGui::SetCursorPosX(baseX + offset);
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[20.0f]);
+						ImGui::Text(" -%.1f", lockedOnEnemyMinusStun);
+						ImGui::PopFont();
+					}
+
+					// Displacement Text
+					ImGui::Text("Displacement: ");
+					ImGui::SameLine();
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[24.0f]);
+					ImGui::Text("%.2f", lockedOnEnemyDisplacement);
+					ImGui::PopFont();
+					if (lockedOnEnemyMinusDisplacement > 0.0f) {
+						float baseX = ImGui::GetCursorPosX();
+						float offset = 185.0f * scaleFactorY; // Adjust as needed for your font/UI
+						ImGui::SameLine();
+						ImGui::SetCursorPosX(baseX + offset);
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[20.0f]);
+						ImGui::Text(" -%.1f", lockedOnEnemyMinusDisplacement);
+						ImGui::PopFont();
+					}
+					ImGui::PopFont();
+
+					ImGui::PopStyleColor();
+				}
+
+				ImGui::End(); // End LockOnStunWindow
 			}
-
-			// Displacement Text
-			ImGui::Text("Displacement: ");
-			ImGui::SameLine();
-			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[24.0f]);
-			ImGui::Text("%.2f", lockedOnEnemyDisplacement);
-			ImGui::PopFont();
-			if (lockedOnEnemyMinusDisplacement > 0.0f) {
-				float baseX = ImGui::GetCursorPosX();
-				float offset = 185.0f * scaleFactorY; // Adjust as needed for your font/UI
-				ImGui::SameLine();
-				ImGui::SetCursorPosX(baseX + offset);
-				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[20.0f]);
-				ImGui::Text(" -%.1f", lockedOnEnemyMinusDisplacement);
-				ImGui::PopFont();
-			}
-			ImGui::PopFont();
-
-			ImGui::PopStyleColor();
 		}
 
-		ImGui::End();
-
+		ImGui::End(); // End LockOnDisplacementWindow
 	}
 }
 
@@ -1579,7 +1600,7 @@ void ShieldLockOnWindows() {
 		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 
 		if (!newActorData.baseAddr) {
-			return;
+			continue; // FIX: Use continue instead of return to avoid mismatched Begin/End
 		}
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 
@@ -1682,33 +1703,30 @@ void ShieldLockOnWindows() {
 		float targetAlpha = lockOnActive ? 1.0f : 0.0f;
 		lockOnFade[playerIndex].alpha = SmoothLerp(lockOnFade[playerIndex].alpha, targetAlpha, fadeSpeed, ImGui::GetIO().DeltaTime);
 
-		if (lockOnFade[playerIndex].alpha <= 0.01f) {
-			continue;
-		}
-
-		if (LockOnTexture->IsValid()) {
-			DrawRotatedImagePie(
-				LockOnShieldTexture->GetTexture(),
-				texturePos,
-				ImVec2(textureWidth, textureHeight),
-				lockOnAngle[playerIndex],
-				colorWithAlpha,
-				shieldFraction
-			);
-			DrawRotatedImagePie(
-				LockOnShieldTexture->GetTexture(),
-				texturePos,
-				ImVec2(textureWidth, textureHeight),
-				lockOnAngle[playerIndex],
-				fgColorWithAlpha,
-				shieldFraction
-			);
-		} else {
-			ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
+		if (lockOnFade[playerIndex].alpha > 0.01f) {
+			if (LockOnTexture->IsValid()) {
+				DrawRotatedImagePie(
+					LockOnShieldTexture->GetTexture(),
+					texturePos,
+					ImVec2(textureWidth, textureHeight),
+					lockOnAngle[playerIndex],
+					colorWithAlpha,
+					shieldFraction
+				);
+				DrawRotatedImagePie(
+					LockOnShieldTexture->GetTexture(),
+					texturePos,
+					ImVec2(textureWidth, textureHeight),
+					lockOnAngle[playerIndex],
+					fgColorWithAlpha,
+					shieldFraction
+				);
+			} else {
+				ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
+			}
 		}
 
 		ImGui::End();
-		
 	}
 }
 
