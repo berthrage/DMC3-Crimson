@@ -306,6 +306,9 @@ const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 	mask.Cheats.Mobility.vergilAirTrickCount = false;
 	mask.Cheats.Mobility.trickUpCount = false;
 	mask.Cheats.Mobility.trickDownCount = false;
+	mask.Debug.debugTools = false;
+	mask.Cheats.General.enemySpawnerTool = false;
+	mask.Cheats.General.teleporterTool = false;
 
 	mask.GameMode.preset = false; // Ignore preset field in matching!
 	return mask;
@@ -345,6 +348,9 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Cheats.Mobility.vergilAirTrickCount = false;
 	mask.Cheats.Mobility.trickUpCount = false;
 	mask.Cheats.Mobility.trickDownCount = false;
+	mask.Debug.debugTools = false;
+	mask.Cheats.General.enemySpawnerTool = false;
+	mask.Cheats.General.teleporterTool = false;
 
 	mask.GameMode.preset = false; // Ignore preset field in matching!
 	return mask;
@@ -383,6 +389,9 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Cheats.Mobility.vergilAirTrickCount = false;
 	mask.Cheats.Mobility.trickUpCount = false;
 	mask.Cheats.Mobility.trickDownCount = false;
+	mask.Debug.debugTools = false;
+	mask.Cheats.General.enemySpawnerTool = false;
+	mask.Cheats.General.teleporterTool = false;
 
 	
 	mask.GameMode.preset = false; // Ignore preset field in matching!
@@ -595,9 +604,17 @@ void CrimsonGameModes::TrackCheats() {
 			   activeCheats.Mobility.trickDownCount[1] != adjustedPreset.Cheats.Mobility.trickDownCount[1];
 	}();
 
-updateCheatFlag(mobilityChanged, CHEATS::MOBILITY);
-
 	updateCheatFlag(mobilityChanged, CHEATS::MOBILITY);
+
+	bool debugChanged =
+		activeCrimsonGameplay.Debug.debugTools != currentPreset.Debug.debugTools ||
+		activeCrimsonGameplay.Cheats.General.enemySpawnerTool != currentPreset.Cheats.General.enemySpawnerTool ||
+		activeCrimsonGameplay.Cheats.General.teleporterTool != currentPreset.Cheats.General.teleporterTool;
+
+	updateCheatFlag(debugChanged, CHEATS::DEBUG);
+
+	bool rmsChanged = activeCrimsonGameplay.Cheats.Misc.resetMotionState != currentPreset.Cheats.Misc.resetMotionState;
+	updateCheatFlag(rmsChanged, CHEATS::RMS);
 
 	if (missionData.frameCount > 0) {
 		if (!initializedMission) {

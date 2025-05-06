@@ -347,6 +347,16 @@ struct CrimsonConfigGameplay {
 		}
 	} Cheats;
 
+	struct Debug {
+		bool debugTools = false;
+
+		static constexpr auto Metadata() {
+			return std::make_tuple(
+				std::make_pair("debugTools", &Debug::debugTools)
+			);
+		}
+	} Debug;
+
 	struct GameMode {
 		uint8 preset = GAMEMODEPRESETS::CRIMSON;
 
@@ -361,6 +371,7 @@ struct CrimsonConfigGameplay {
 		return std::make_tuple(
             std::make_pair("Gameplay", &CrimsonConfigGameplay::Gameplay),
 			std::make_pair("Cheats", &CrimsonConfigGameplay::Cheats),
+			std::make_pair("Debug", &CrimsonConfigGameplay::Debug),
 			std::make_pair("GameMode", &CrimsonConfigGameplay::GameMode)
 		);
 	}

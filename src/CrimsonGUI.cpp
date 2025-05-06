@@ -4602,7 +4602,6 @@ const char* cameraAutoAdjustNames[] = {
 	"Disable",
 };
 
-
 void CameraSection(size_t defaultFontSize) {
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
@@ -4635,7 +4634,6 @@ void CameraSection(size_t defaultFontSize) {
 			UI::Combo2("Sensitivity", cameraSensitivityNames, activeCrimsonConfig.Camera.sensitivity, queuedCrimsonConfig.Camera.sensitivity);
 			ImGui::PopItemWidth();
 
-			
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * 1.1f);
@@ -4653,7 +4651,6 @@ void CameraSection(size_t defaultFontSize) {
 				"\n"
 				"Dynamic Option adjusts based on whether player is airborne.");
 			ImGui::PopItemWidth();
-
 
 			ImGui::TableNextColumn();
 
@@ -4796,8 +4793,8 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.panoramicCamera = false;
 			queuedCrimsonConfig.Camera.panoramicCamera = false;
 
-// 			activeCrimsonConfig.Camera.multiplayerCamera = false;
-// 			queuedCrimsonConfig.Camera.multiplayerCamera = false;
+			// activeCrimsonConfig.Camera.multiplayerCamera = false;
+			// queuedCrimsonConfig.Camera.multiplayerCamera = false;
 
 			activeCrimsonConfig.Camera.disableBossCamera = false;
 			queuedCrimsonConfig.Camera.disableBossCamera = false;
@@ -4896,105 +4893,84 @@ void CameraSection(size_t defaultFontSize) {
 		}
 	}
 
-
-
 	ImGui::Text("");
-	ImGui::PopFont();
 
+	if (activeCrimsonGameplay.Debug.debugTools) {
+		GUI_Title("LIVE CAMERA READINGS");
 
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+		ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
+		if (g_scene == SCENE::GAME) {
+			auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+			if (pool_4449 && pool_4449[147]) {
+				auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 
-	ImGui::Text("LIVE READINGS");
-
-	ImGui::PopFont();
-
-	UI::SeparatorEx(defaultFontSize * 23.35f);
-
-	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-
-
-	[&]() {
-		if (g_scene != SCENE::GAME) {
-			return;
-		}
-
-		auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
-		if (!pool_4449 || !pool_4449[147]) {
-			return;
-		}
-		auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
-
-
-		ImGui::PushItemWidth(itemWidth * 0.8f);
-
-		{
-			const float columnWidth = 0.5f * queuedConfig.globalScale;
-			const float rowWidth = 40.0f * queuedConfig.globalScale;
-
-			if (ImGui::BeginTable("LiveCameraReadingsTable", 3)) {
-
-				ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
-				ImGui::TableNextRow(0, rowWidth);
-				ImGui::TableNextColumn();
 				ImGui::PushItemWidth(itemWidth * 0.8f);
-				GUI_Input("FOV", cameraData.fov, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-				ImGui::PopItemWidth();
-				ImGui::Text("");
 
-				ImGui::TableNextRow(0, rowWidth);
-				ImGui::TableNextColumn();
+				const float columnWidth = 0.5f * queuedConfig.globalScale;
+				const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-				for (int index = 0; index < countof(cameraData.data); index++) {
-					if (index > 0) {
-						ImGui::TableNextColumn();
+				if (ImGui::BeginTable("LiveCameraReadingsTable", 3)) {
+
+					ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
+					ImGui::TableNextRow(0, rowWidth);
+					ImGui::TableNextColumn();
+					ImGui::PushItemWidth(itemWidth * 0.8f);
+					GUI_Input("FOV", cameraData.fov, 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+					ImGui::PopItemWidth();
+					ImGui::Text("");
+
+					ImGui::TableNextRow(0, rowWidth);
+					ImGui::TableNextColumn();
+
+					for (int index = 0; index < countof(cameraData.data); index++) {
+						if (index > 0) {
+							ImGui::TableNextColumn();
+						}
+
+						ImGui::PushItemWidth(itemWidth * 0.8f);
+						ImGui::Text(dataNames[index]);
+						GUI_Input("X", cameraData.data[index].x, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+						GUI_Input("Y", cameraData.data[index].y, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+						GUI_Input("Z", cameraData.data[index].z, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+						GUI_Input("A", cameraData.data[index].a, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+						ImGui::Text("");
+						ImGui::PopItemWidth();
 					}
 
-					ImGui::PushItemWidth(itemWidth * 0.8f);
-					ImGui::Text(dataNames[index]);
-					GUI_Input("X", cameraData.data[index].x, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-					GUI_Input("Y", cameraData.data[index].y, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-					GUI_Input("Z", cameraData.data[index].z, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-					GUI_Input("A", cameraData.data[index].a, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-					ImGui::Text("");
-					ImGui::PopItemWidth();
+					ImGui::TableNextRow(0, rowWidth);
+					ImGui::TableNextColumn();
+
+					GUI_Input("Height", cameraData.height, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+
+					ImGui::TableNextColumn();
+
+					GUI_Input("Tilt", cameraData.tilt, 0.05f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+
+					ImGui::TableNextRow(0, rowWidth);
+					ImGui::TableNextColumn();
+
+					GUI_Input("Distance", cameraData.distance, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+
+					ImGui::TableNextColumn();
+
+					GUI_Input("Distance Lock-On", cameraData.distanceLockOn, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+
+					ImGui::EndTable();
 				}
 
-				ImGui::TableNextRow(0, rowWidth);
-				ImGui::TableNextColumn();
-
-
-				GUI_Input("Height", cameraData.height, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-
-				ImGui::TableNextColumn();
-
-
-				GUI_Input("Tilt", cameraData.tilt, 0.05f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-
-
-				ImGui::TableNextRow(0, rowWidth);
-				ImGui::TableNextColumn();
-
-				GUI_Input("Distance", cameraData.distance, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-
-				ImGui::TableNextColumn();
-
-
-				GUI_Input("Distance Lock-On", cameraData.distanceLockOn, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
-
-
-
-				ImGui::EndTable();
+				ImGui::PopItemWidth();
 			}
 		}
 
-		ImGui::PopItemWidth();
-		}();
-		ImGui::PopStyleColor();
-		ImGui::PopFont();
+		ImGui::PopFont(); // Pop Roboto (defaultFontSize * 0.9f)
+	}
 
-		ImGui::Text("");
+	ImGui::PopItemWidth(); // Pop initial PushItemWidth
+	ImGui::PopStyleColor(); // Pop CheckMark color
+	ImGui::PopFont(); // Pop initial Roboto (defaultFontSize * 0.9f)
 
+	ImGui::Text("");
 }
 
 #pragma endregion
@@ -6581,11 +6557,50 @@ void DebugSection() {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
+	GUI_Title("DEBUG OPTIONS");
+
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
-	GUI_Checkbox2("Debug Overlay", activeConfig.debugOverlayData.enable, queuedConfig.debugOverlayData.enable);
+	float smallerComboMult = 0.7f;
+
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale * 0.5f;
+
+		if (ImGui::BeginTable("DebugCheatsOptionsTable", 3)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Debug Tools", activeCrimsonGameplay.Debug.debugTools, queuedCrimsonGameplay.Debug.debugTools)) {
+				if (activeCrimsonGameplay.Debug.debugTools) {
+					activeConfig.debugOverlayData.enable = true;
+					queuedConfig.debugOverlayData.enable = true;
+				} else {
+					activeConfig.debugOverlayData.enable = false;
+					queuedConfig.debugOverlayData.enable = false;
+				}
+			}
+
+			if (!activeCrimsonGameplay.Debug.debugTools) {
+				ImGui::EndTable();
+				ImGui::PopStyleColor();
+				ImGui::PopFont();
+				ImGui::PopItemWidth();
+				ImGui::Text("");
+				return;
+			}
+			
+			ImGui::TableNextColumn();
+			GUI_Checkbox2("Debug Overlay", activeConfig.debugOverlayData.enable, queuedConfig.debugOverlayData.enable);
+			ImGui::EndTable();
+		}
+	}
+
+	
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 	if (ImGui::CollapsingHeader("DEBUG")) {
@@ -9254,15 +9269,11 @@ void TrainingSection() {
 
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-	ImGui::Text("TRAINING CHEATS");
-	ImGui::PopFont();
-	UI::SeparatorEx(defaultFontSize * 23.35f);
+	GUI_Title("TRAINING CHEATS");
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
 	ImGui::PushItemWidth(itemWidth);
-	ImGui::Text("");
 
 	float smallerComboMult = 0.7f;
 
@@ -11147,14 +11158,14 @@ void HotkeysSection() {
 }
 
 void CommonCheatsSection() {
-	//if constexpr (debug) {
-	DebugSection();
-	//}
 	TrainingSection();
 	CustomDamageSection();
 	CustomSpeedSection();
 	CustomMobilitySection();
 	MiscCheatsSection();
+	//if constexpr (debug) {
+	DebugSection();
+	//}
 	//Repair();
 }
 
@@ -11323,7 +11334,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			"This will affect the entire Gameplay Options globally and tag you at the Mission End Screen.\n"
 			"If Gameplay Options diverge too much from any preset, 'Custom' Game Mode will be selected instead automatically.";
 
-		ImGui::PushFont(UI::g_ImGuiFont_Roboto[context.DefaultFontSize / scaleFactorY]);
+		//ImGui::PushFont(UI::g_ImGuiFont_Roboto[9.0f]);
 		float width = ImGui::CalcTextSize(MODE_SELECTION_TEXT).x;
 
         ImGui::Text("");
@@ -11334,12 +11345,12 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 		
 		ImGui::TextWrapped(MODE_SELECTION_TEXT);
-		ImGui::PopFont();
+		//ImGui::PopFont();
         ImGui::Text("");
 
 
 
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[(context.DefaultFontSize / scaleFactorY) * 1.3f]);
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize * 1.3f]);
 
 		float comboBoxWidth = width * 0.8f;
 		
@@ -11527,7 +11538,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			constexpr auto MODE_INFO_TEXT_SW_LINE2 = "Vanilla + Style / Full Weapon Switching.";
 			constexpr auto MODE_INFP_TEXT_CRIMSON = "Enjoy the ultimate DMC3 experience! All new Gameplay Improvements and Expansions enabled.";
 
-			ImGui::PushFont(UI::g_ImGuiFont_Roboto[context.DefaultFontSize / scaleFactorY]);
+			ImGui::PushFont(UI::g_ImGuiFont_Roboto[context.DefaultFontSize]);
 
 			const float vanillaWidth = ImGui::CalcTextSize(MODE_INFO_TEXT_VANILLA).x;
 			const float swWidthLine1 = ImGui::CalcTextSize(MODE_INFO_TEXT_SW_LINE1).x;
@@ -12880,10 +12891,10 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	WorldSpaceWeaponWheels1PController(pSwapChain);
 	WorldSpaceWeaponWheelsController(pSwapChain);
     MirageGaugeMainPlayer();
-	CrimsonHUD::RedOrbCounterWindow();
-	CrimsonHUD::CheatsHUDIndicatorWindow();
-	CrimsonHUD::CheatHotkeysPopUpWindow();
-	CrimsonHUD::StyleMeterWindows();
+ 	CrimsonHUD::RedOrbCounterWindow();
+ 	CrimsonHUD::CheatsHUDIndicatorWindow();
+ 	CrimsonHUD::CheatHotkeysPopUpWindow();
+ 	CrimsonHUD::StyleMeterWindows();
 	CrimsonHUD::LockOnWindows();
 	CrimsonHUD::StunDisplacementLockOnWindows();
 	CrimsonHUD::ShieldLockOnWindows();

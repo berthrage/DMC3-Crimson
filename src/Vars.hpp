@@ -4744,6 +4744,8 @@ enum {
 	DAMAGE,
 	SPEED,
 	MOBILITY,
+    DEBUG,
+    RMS,
 	COUNT
 };
 }
@@ -4789,6 +4791,7 @@ struct GameModeData {
 		"DAMAGE",
 		"SPEED",
 		"MOBILITY",
+        "DEBUG",
         "RMS",
 	};
     std::array<std::string, DIFFICULTY_MODE::COUNT> difficultyModeNames = {
