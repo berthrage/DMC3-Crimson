@@ -138,6 +138,13 @@ std::uint64_t g_CustomCameraPos_ReturnAddr;
 float* g_CustomCameraPos_NewPosAddr = nullptr;
 void CustomCameraPositioningDetour();
 
+// CustomCameraSensitivity
+std::uint64_t g_CameraSensitivity_ReturnAddr1;
+std::uint64_t g_CameraSensitivity_ReturnAddr2;
+float* g_CameraSensitivity_NewSensAddr = nullptr;
+void CameraSensitivityDetour1();
+void CameraSensitivityDetour2();
+
 // RerouteRedOrbsCounterAlpha
 std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr1;
 std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr2;
@@ -670,6 +677,31 @@ void ToggleCustomCameraPositioning(bool enable) {
 
     run = enable;
 }
+
+void ToggleCustomCameraSensitivity(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// CameraSensitivity
+	// dmc3.exe + 5772F - C7 87 D4 01 00 00 56 77 56 3D - mov[rdi + 000001D4], 3D567756{ (0) } // not default values, they are 'High' values
+	// dmc3.exe + 5775B - C7 87 D4 01 00 00 56 77 56 3D - mov[rdi + 000001D4], 3D567756{ (0) }
+	static std::unique_ptr<Utility::Detour_t> CameraSensitivityHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x5772F, &CameraSensitivityDetour1, 10);
+	static std::unique_ptr<Utility::Detour_t> CameraSensitivityHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x5775B, &CameraSensitivityDetour2, 10);
+	g_CameraSensitivity_ReturnAddr1 = CameraSensitivityHook1->GetReturnAddress();
+	g_CameraSensitivity_ReturnAddr2 = CameraSensitivityHook2->GetReturnAddress();
+	g_CameraSensitivity_NewSensAddr = &g_customCameraSensitivity;
+	CameraSensitivityHook1->Toggle(enable);
+	CameraSensitivityHook2->Toggle(enable);
+
+	run = enable;
+}
+
 
 void ToggleHoldToCrazyCombo(bool enable) {
     using namespace Utility;

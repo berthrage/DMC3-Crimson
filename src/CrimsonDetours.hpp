@@ -98,6 +98,10 @@ void VergilNeutralTrickDetour();
 // ArtemisInstantFullCharge
 void ArtemisInstantFullChargeDetour1();
 void ArtemisInstantFullChargeDetour2();
+
+// CameraSensitivity
+void CameraSensitivityDetour1();
+void CameraSensitivityDetour2();
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
@@ -112,6 +116,7 @@ void ToggleFasterTurnRate(bool enable);
 void ToggleFreeformSoftLockHelper(bool enable);
 void ToggleDMC4LockOnDirection(bool enable);
 void ToggleCustomCameraPositioning(bool enable);
+void ToggleCustomCameraSensitivity(bool enable);	
 void ToggleHoldToCrazyCombo(bool enable);
 void AirTauntDetours(bool enable);
 void RerouteRedOrbsCounterAlpha(bool enable, volatile uint16_t& alphaVar);

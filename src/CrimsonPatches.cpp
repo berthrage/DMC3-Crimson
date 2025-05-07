@@ -265,35 +265,34 @@ void ToggleIncreasedArtemisInstantChargeResponsiveness(bool enable) {
 #pragma region CameraStuff
 
 void CameraSensController() {
+	// dmc3.exe + 5772F - C7 87 D4010000 5677563D - mov[rdi + 000001D4], 3D567756{ (0) }
+	// dmc3.exe + 5775B - C7 87 D4010000 5677563D - mov[rdi + 000001D4], 3D567756{ (0) }
+	// dmc3.exe+4C6429 - 00 80 3E000080        - add [rax-7FFFFFC2],al
+	// dmc3.exe+4C642F - 3E 56                 - push rsi
+	// Now controlled by g_customCameraSensitivity that connects to CameraSensitivityDetour.
+	// We do this instead of patching so we can make sensitivity changes in real time, and 
+	// make it fully frame-rate independent. - Berthrage
 
-    // original speed
-    if (activeCrimsonConfig.Camera.sensitivity != toggle.cameraSensitivity) {
-        if (activeCrimsonConfig.Camera.sensitivity == 0) {                                                         // Low (Vanilla Default)
-            _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x35\xFA\x8E\x3C", 10); // 0.0174533f
-            _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x35\xFA\x8E\x3C", 10);
-            _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x35\xFA\x8E\x3C", 4);
-
-            toggle.cameraSensitivity = 0;
-        } else if (activeCrimsonConfig.Camera.sensitivity == 1) {                                                  // Medium
-            _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x39\xFA\x0E\x3D", 10); // 0.0349066f
-            _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x39\xFA\x0E\x3D", 10);
-            _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x39\xFA\x0E\x3D", 4);
-
-            toggle.cameraSensitivity = 1;
-        } else if (activeCrimsonConfig.Camera.sensitivity == 2) {                                                  // High
-            _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x56\x77\x56\x3D", 10); // 0.0523599f
-            _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x56\x77\x56\x3D", 10);
-            _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x56\x77\x56\x3D", 4);
-
-            toggle.cameraSensitivity = 2;
-        } else if (activeCrimsonConfig.Camera.sensitivity == 3) {                                                  // Highest
-            _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\xCD\xCC\xCC\x3D", 10); // 0.1f
-            _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\xCD\xCC\xCC\x3D", 10);
-            _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\xCD\xCC\xCC\x3D", 4);
-
-            toggle.cameraSensitivity = 3;
-        }
-    }
+	switch (activeCrimsonConfig.Camera.sensitivity) {
+	case 0: // Low (Vanilla Default)
+		g_customCameraSensitivity = 0.0174533f * g_FrameRateTimeMultiplier;
+		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x35\xFA\x8E\x3C", 4);
+		break;
+	case 1: // Medium
+		g_customCameraSensitivity = 0.0349066f * g_FrameRateTimeMultiplier;
+		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x39\xFA\x0E\x3D", 4);
+		break;
+	case 2: // High
+		g_customCameraSensitivity = 0.0523599f * g_FrameRateTimeMultiplier;
+		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x56\x77\x56\x3D", 4);
+		break;
+	case 3: // Highest
+		g_customCameraSensitivity = 0.1f * g_FrameRateTimeMultiplier;
+		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\xCD\xCC\xCC\x3D", 4);
+		break;
+	default:
+		break;
+	}
 }
 
 

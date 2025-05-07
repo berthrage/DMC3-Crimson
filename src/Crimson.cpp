@@ -225,6 +225,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonPatches::ToggleHideLockOn(false);
         CrimsonPatches::ToggleHideLockOn(activeConfig.hideLockOn || activeCrimsonConfig.CrimsonHudAddons.lockOn);
         CrimsonDetours::ToggleHideStyleRankHUD(activeCrimsonConfig.HudOptions.hideStyleMeter);
+        CrimsonDetours::ToggleCustomCameraSensitivity(true);
 
         ToggleHideBossHUD(false);
         ToggleHideBossHUD(activeConfig.hideBossHUD);
