@@ -2490,73 +2490,106 @@ void GetLockedOnEnemyStunDisplacement(byte8* actorBaseAddr) {
 	auto& lockedOnEnemyMaxStun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMaxStun : crimsonPlayer[playerIndex].lockedOnEnemyMaxStunClone;
 	auto& lockedOnEnemyMaxDisplacement = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMaxDisplacement : crimsonPlayer[playerIndex].lockedOnEnemyMaxDisplacementClone;
 
+	// Set base values assuming no valid enemy is locked on
+	lockedOnEnemyStun = lockedOnEnemyMaxStun;
+	lockedOnEnemyDisplacement = lockedOnEnemyMaxDisplacement;
 
-	if (actorData.lockOnData.targetBaseAddr60 != 0) {
-		auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60); // -0x60 very important don't forget
-		uintptr_t stunAddr = reinterpret_cast<uintptr_t>(enemyActorData.stunDisplacementDataAddr);
-		if (!stunAddr ||
-			stunAddr == 0xFFFFFFFF ||
-			stunAddr == 0xFFFFFFFFFFFFFFFF) {
-			return;
-		}
-        auto& stunDisplacementData = *reinterpret_cast<StunDisplacementData*>(enemyActorData.stunDisplacementDataAddr);
-		
-		auto& enemyId = enemyActorData.enemy;
-		bool isHell = (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::HELL_VANGUARD);
-		bool isChess = (enemyId >= ENEMY::DAMNED_CHESSMEN_PAWN && enemyId <= ENEMY::DAMNED_CHESSMEN_KING);
-        bool isAgniAndRudra = (enemyId >= ENEMY::AGNI_RUDRA_ALL && enemyId <= ENEMY::AGNI_RUDRA_BLUE);
+	if (actorData.lockOnData.targetBaseAddr60 == 0) {
+		return;
+	}
 
-		if (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::PRIDE_2) {
-			lockedOnEnemyMaxStun = 30.0f;
-			lockedOnEnemyMaxDisplacement = 30.0f;
-		} else if (enemyId >= ENEMY::GLUTTONY_1 && enemyId <= ENEMY::GLUTTONY_4) {
-			lockedOnEnemyMaxStun = 20.0f;
-			lockedOnEnemyMaxDisplacement = 60.0f;
-		} else if (enemyId >= ENEMY::LUST_1 && enemyId <= ENEMY::LUST_4) {
-			lockedOnEnemyMaxStun = 60.0f;
-			lockedOnEnemyMaxDisplacement = 60.0f;
-		} else if (enemyId >= ENEMY::SLOTH_1 && enemyId <= ENEMY::SLOTH_4) {
-			lockedOnEnemyMaxStun = 60.0f;
-			lockedOnEnemyMaxDisplacement = 60.0f;
-		} else if (enemyId >= ENEMY::WRATH_1 && enemyId <= ENEMY::WRATH_4) {
-			lockedOnEnemyMaxStun = 100000.0f;
-			lockedOnEnemyMaxDisplacement = 100000.0f;
-		} else if (enemyId >= ENEMY::WRATH_1 && enemyId <= ENEMY::WRATH_4) {
-			lockedOnEnemyMaxStun = 100000.0f;
-			lockedOnEnemyMaxDisplacement = 100000.0f;
-		} else if (enemyId >= ENEMY::GREED_1 && enemyId <= ENEMY::GREED_4) {
-			lockedOnEnemyMaxStun = 100000.0f;
-			lockedOnEnemyMaxDisplacement = 100000.0f;
-        } else if (enemyId == ENEMY::ABYSS) {
-            lockedOnEnemyMaxStun = 60.0f;
-            lockedOnEnemyMaxDisplacement = 60.0f;
-        } else if (enemyId == ENEMY::ENVY) {
-            lockedOnEnemyMaxStun = 60.0f;
-            lockedOnEnemyMaxDisplacement = 300.0f;
-		} else if (enemyId == ENEMY::HELL_VANGUARD) {
-			lockedOnEnemyMaxStun = 300.0f;
-			lockedOnEnemyMaxDisplacement = 1000.0f;
-        } else {
-            lockedOnEnemyMaxStun = 1.0f;
-			lockedOnEnemyMaxDisplacement = 1.0f;
-        }
+	// Adjust pointer back to get correct enemy base
+	uintptr_t targetAddr = static_cast<uintptr_t>((uintptr_t)actorData.lockOnData.targetBaseAddr60 - 0x60);
+	if (targetAddr == 0 || targetAddr == 0xFFFFFFFFFFFFFFA0 || targetAddr < 0x10000) {
+		return;
+	}
 
-		if (isHell) {
-            if (!stunDisplacementData.stunDisplacementHells) {
-                lockedOnEnemyStun = lockedOnEnemyMaxStun;
-                lockedOnEnemyDisplacement = lockedOnEnemyMaxDisplacement;
-                return;
-            } else {
-				lockedOnEnemyStun = stunDisplacementData.stunDisplacementHells->stun;
-				lockedOnEnemyDisplacement = stunDisplacementData.stunDisplacementHells->displacement;
-            }
-		} else {
-            lockedOnEnemyStun = lockedOnEnemyMaxStun;
-            lockedOnEnemyDisplacement = lockedOnEnemyMaxDisplacement;
-		}
+	auto* enemyActorData = reinterpret_cast<EnemyActorData*>(targetAddr);
+	if (!enemyActorData) {
+		return;
+	}
+
+	// Validate stun/displacement data pointer
+	uintptr_t stunDisplacementDataAddr = reinterpret_cast<uintptr_t>(enemyActorData->stunDisplacementDataAddr);
+	if (!enemyActorData->stunDisplacementDataAddr ||
+		stunDisplacementDataAddr == 0xFFFFFFFFFFFFFFFF ||
+		stunDisplacementDataAddr == 0xFFFFFFFFFFFFFFEF ||
+		stunDisplacementDataAddr == 0xFFFFFFFF ||
+		stunDisplacementDataAddr < 0x10000) {
+		return;
+	}
+
+	StunDisplacementData* stunDisplacementData = reinterpret_cast<StunDisplacementData*>(stunDisplacementDataAddr);
+	if (!stunDisplacementData) {
+		return;
+	}
+
+	auto& enemyId = enemyActorData->enemy;
+	bool isHell = (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::HELL_VANGUARD);
+
+	// Assign max values based on specific enemy type
+	if (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::PRIDE_2) {
+		lockedOnEnemyMaxStun = 30.0f;
+		lockedOnEnemyMaxDisplacement = 30.0f;
+	} else if (enemyId >= ENEMY::GLUTTONY_1 && enemyId <= ENEMY::GLUTTONY_4) {
+		lockedOnEnemyMaxStun = 20.0f;
+		lockedOnEnemyMaxDisplacement = 60.0f;
+	} else if (enemyId >= ENEMY::LUST_1 && enemyId <= ENEMY::LUST_4) {
+		lockedOnEnemyMaxStun = 60.0f;
+		lockedOnEnemyMaxDisplacement = 60.0f;
+	} else if (enemyId >= ENEMY::SLOTH_1 && enemyId <= ENEMY::SLOTH_4) {
+		lockedOnEnemyMaxStun = 60.0f;
+		lockedOnEnemyMaxDisplacement = 60.0f;
+	} else if (enemyId >= ENEMY::WRATH_1 && enemyId <= ENEMY::WRATH_4) {
+		lockedOnEnemyMaxStun = 100000.0f;
+		lockedOnEnemyMaxDisplacement = 100000.0f;
+	} else if (enemyId >= ENEMY::GREED_1 && enemyId <= ENEMY::GREED_4) {
+		lockedOnEnemyMaxStun = 100000.0f;
+		lockedOnEnemyMaxDisplacement = 100000.0f;
+	} else if (enemyId == ENEMY::ABYSS) {
+		lockedOnEnemyMaxStun = 60.0f;
+		lockedOnEnemyMaxDisplacement = 60.0f;
+	} else if (enemyId == ENEMY::ENVY) {
+		lockedOnEnemyMaxStun = 60.0f;
+		lockedOnEnemyMaxDisplacement = 300.0f;
+	} else if (enemyId == ENEMY::HELL_VANGUARD) {
+		lockedOnEnemyMaxStun = 300.0f;
+		lockedOnEnemyMaxDisplacement = 1000.0f;
 	} else {
-		lockedOnEnemyStun = lockedOnEnemyMaxStun;
-		lockedOnEnemyDisplacement = lockedOnEnemyMaxDisplacement;
+		lockedOnEnemyMaxStun = 1.0f;
+		lockedOnEnemyMaxDisplacement = 1.0f;
+	}
+
+	// Apply updated values
+	lockedOnEnemyStun = lockedOnEnemyMaxStun;
+	lockedOnEnemyDisplacement = lockedOnEnemyMaxDisplacement;
+
+	// If enemy is a "Hell" type, attempt to read additional data
+	if (isHell) {
+		void* stunDisplacementHellsPtr = nullptr;
+
+		// Try to access the pointer safely
+		__try {
+			stunDisplacementHellsPtr = stunDisplacementData->stunDisplacementHells;
+		} __except (EXCEPTION_EXECUTE_HANDLER) {
+			stunDisplacementHellsPtr = nullptr;
+		}
+
+		uintptr_t ptrValue = reinterpret_cast<uintptr_t>(stunDisplacementHellsPtr);
+		if (stunDisplacementHellsPtr &&
+			ptrValue != 0xFFFFFFFFFFFFFFFF &&
+			ptrValue != 0xFFFFFFFFFFFFFFEF &&
+			ptrValue > 0x10000) {
+
+			// Try reading actual stun/displacement values
+			__try {
+				auto* safeHellsPtr = static_cast<decltype(stunDisplacementData->stunDisplacementHells)>(stunDisplacementHellsPtr);
+				lockedOnEnemyStun = safeHellsPtr->stun;
+				lockedOnEnemyDisplacement = safeHellsPtr->displacement;
+			} __except (EXCEPTION_EXECUTE_HANDLER) {
+				// If this fails, fallback to earlier values
+			}
+		}
 	}
 }
 
