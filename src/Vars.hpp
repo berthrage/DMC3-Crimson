@@ -141,17 +141,18 @@ enum {
 
 namespace GAMEPAD {
 enum {
-    LEFT_TRIGGER   = 0x1,
-    RIGHT_TRIGGER  = 0x2,
-    LEFT_SHOULDER  = 0x4,
+    LEFT_TRIGGER = 0x1,
+    RIGHT_TRIGGER = 0x2,
+    LEFT_SHOULDER = 0x4,
     RIGHT_SHOULDER = 0x8,
-    Y              = 0x10,
-    B              = 0x20,
-    A              = 0x40,
-    X              = 0x80,
-    BACK           = 0x100,
-    LEFT_THUMB     = 0x200,
-    RIGHT_THUMB    = 0x400,
+    Y = 0x10,
+    B = 0x20,
+    A = 0x40,
+    X = 0x80,
+    BACK = 0x100,
+    LEFT_STICK_CLICK = 0x200,
+    RIGHT_STICK_CLICK = 0x400,
+    LEFT_PLUS_RIGHT_STICK_CLICK = LEFT_STICK_CLICK | RIGHT_STICK_CLICK,
     START          = 0x800,
     // Direction ids are the same for dpad, left stick and right stick.
     UP    = 0x1000,

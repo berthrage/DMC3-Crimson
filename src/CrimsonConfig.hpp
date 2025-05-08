@@ -69,6 +69,7 @@ struct CrimsonConfig {
 		bool pauseWhenOpened = true;
 		bool sounds = true;
 		bool cheatsPopup = true;
+		bool disableGamepadShortcut = false;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -76,7 +77,8 @@ struct CrimsonConfig {
 				std::make_pair("opacity", &GUI::opacity),
 				std::make_pair("pauseWhenOpened", &GUI::pauseWhenOpened),
 				std::make_pair("sounds", &GUI::sounds),
-				std::make_pair("cheatsPopup", &GUI::cheatsPopup)
+				std::make_pair("cheatsPopup", &GUI::cheatsPopup),
+				std::make_pair("disableGamepadShortcut", &GUI::disableGamepadShortcut)
 			);
 		}
 	} GUI;

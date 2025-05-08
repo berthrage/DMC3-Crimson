@@ -907,8 +907,9 @@ const char* buttonNames[] = {
 	"A",
 	"X",
 	"Back",
-	"Left Thumb",
-	"Right Thumb",
+	"Left Stick",
+	"Right Stick",
+	"Left + Right Stick",
 	"Start",
 	"Up",
 	"Right",
@@ -928,8 +929,9 @@ constexpr byte16 buttons[] = {
 	GAMEPAD::A,
 	GAMEPAD::X,
 	GAMEPAD::BACK,
-	GAMEPAD::LEFT_THUMB,
-	GAMEPAD::RIGHT_THUMB,
+	GAMEPAD::LEFT_STICK_CLICK,
+	GAMEPAD::RIGHT_STICK_CLICK,
+	GAMEPAD::LEFT_PLUS_RIGHT_STICK_CLICK,
 	GAMEPAD::START,
 	GAMEPAD::UP,
 	GAMEPAD::RIGHT,
@@ -2375,7 +2377,7 @@ void Actor_UpdateIndices() {
 		UpdateMapIndex(collisionGroups, Actor_collisionGroupIndices[playerIndex], queuedPlayerData.collisionGroup);
 
 		UpdateMapIndex(buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton);
-
+ 
 		old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
 			old_for_all(uint8, entityIndex, ENTITY_COUNT) {
 				auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
@@ -8349,6 +8351,13 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			GUI_Checkbox2("Hotkey Cheats Pop Up",
 				activeCrimsonConfig.GUI.cheatsPopup, queuedCrimsonConfig.GUI.cheatsPopup);
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Disable Gamepad Shortcut",
+				activeCrimsonConfig.GUI.disableGamepadShortcut, queuedCrimsonConfig.GUI.disableGamepadShortcut);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Helpful for those who want to use LS + RS as the Switch Button.");
 	
 
 			ImGui::EndTable();
@@ -11065,9 +11074,13 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	auto guiHotkey = keyBindings[0].mainInfo.buffer;
 	std::string guiKeyTextKeyboard = "Press " + (std::string)guiHotkey;
 	std::string guiKeyTextComplete = guiKeyTextKeyboard + " or Left Stick + Right Stick to toggle the Overlay";
+	std::string guiTextComplete2 = "Press " + (std::string)keyBindings[0].mainInfo.buffer + " to toggle the Overlay";
 	ImVec2 guiTextSize = ImGui::CalcTextSize(guiKeyTextComplete.c_str());
-	ImVec2 guiKeyWindowSize = ImVec2((guiTextSize.x + 20.0f) * scaleFactorY, 100.0f * scaleFactorY);
-	ImVec2 guiKeyWindowPos = ImVec2((g_renderSize.x - (guiTextSize.x * scaleFactorY)) * 0.5f, 775.0 * scaleFactorY);
+	ImVec2 guiTextSize2 = ImGui::CalcTextSize(guiTextComplete2.c_str());
+	ImVec2 guiKeyWindowSize = activeCrimsonConfig.GUI.disableGamepadShortcut ? ImVec2((guiTextSize2.x + 20.0f) * scaleFactorY, 100.0f * scaleFactorY) : 
+		ImVec2((guiTextSize.x + 20.0f) * scaleFactorY, 100.0f * scaleFactorY);
+	ImVec2 guiKeyWindowPos = activeCrimsonConfig.GUI.disableGamepadShortcut ? ImVec2((g_renderSize.x - (guiTextSize2.x * scaleFactorY)) * 0.5f, 775.0 * scaleFactorY) : 
+		ImVec2((g_renderSize.x - (guiTextSize.x * scaleFactorY)) * 0.5f, 775.0 * scaleFactorY);
 
 	ImGui::SetNextWindowPos(guiKeyWindowPos);
 	ImGui::SetNextWindowSize(guiKeyWindowSize);
@@ -11078,15 +11091,17 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	// Calculate text position (centered in window)
 	ImVec2 guiKeyTextPos = ImGui::GetCursorScreenPos();
 	ImVec2 windowSize = ImGui::GetWindowSize();
-	ImVec2 textOffset = ImVec2((windowSize.x - guiTextSize.x) * 0.5f, (windowSize.y - guiTextSize.y) * 0.5f);
+	ImVec2 textOffset = activeCrimsonConfig.GUI.disableGamepadShortcut ? ImVec2((windowSize.x - guiTextSize2.x) * 0.5f, (windowSize.y - guiTextSize2.y) * 0.5f) :
+		ImVec2((windowSize.x - guiTextSize.x) * 0.5f, (windowSize.y - guiTextSize.y) * 0.5f);
 	ImVec2 drawPos = guiKeyTextPos + textOffset;
 
 	// Draw shadow
 	ImVec2 shadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY); // Shadow offset
-	ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize()* scaleFactorY, drawPos + shadowOffset, IM_COL32(0, 0, 0, 255), guiKeyTextComplete.c_str());
+	const char* guiKeyTextFinal = activeCrimsonConfig.GUI.disableGamepadShortcut ? guiTextComplete2.c_str() : guiKeyTextComplete.c_str();
+	ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize()* scaleFactorY, drawPos + shadowOffset, IM_COL32(0, 0, 0, 255), guiKeyTextFinal);
 
 	// Draw normal text
-	ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize()* scaleFactorY, drawPos, ImGui::GetColorU32(ImGuiCol_Text), guiKeyTextComplete.c_str());
+	ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize()* scaleFactorY, drawPos, ImGui::GetColorU32(ImGuiCol_Text), guiKeyTextFinal);
 
 	ImGui::PopFont();
 	ImGui::End();
@@ -11304,6 +11319,10 @@ void ToggleOneHitKill() {
 }
 
 void GamepadToggleShowMain() {
+
+	if (activeCrimsonConfig.GUI.disableGamepadShortcut) {
+		return;
+	}
 
     static bool gamepadCombinationMainRelease[PLAYER_COUNT] = { false };
 

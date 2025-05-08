@@ -195,7 +195,7 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, ui
 }
 
 void ApplyDefaultPlayerData(PlayerData& playerData) {
-    playerData.switchButton = GAMEPAD::RIGHT_THUMB;
+    playerData.switchButton = GAMEPAD::RIGHT_STICK_CLICK;
 
     playerData.characterCount = 2;
     playerData.characterIndex = 0;

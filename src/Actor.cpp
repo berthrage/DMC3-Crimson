@@ -3544,9 +3544,9 @@ template <typename T> void LinearRangedWeaponSwitchController(T& actorData) {
 
     bool update = false;
 
-
     {
-        bool condition = (actorData.buttons[0] & playerData.switchButton);
+        bool condition = 
+            (actorData.buttons[0] & playerData.switchButton);
 
         if (actorData.newEntityIndex == ENTITY::MAIN) {
             if (condition) {
@@ -4179,8 +4179,24 @@ void CharacterSwitchController() {
 
             auto& playerData = GetPlayerData(playerIndex);
 
+			static bool condition = false;
+
+			if (!activeCrimsonConfig.GUI.disableGamepadShortcut) {
+				// Shortcut is enabled
+				condition = (gamepad.buttons[0] & playerData.switchButton) &&
+					!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_TARGET));
+			} else {
+				// Shortcut is disabled
+				if (playerData.switchButton == GAMEPAD::LEFT_PLUS_RIGHT_STICK_CLICK) {
+					condition = (gamepad.buttons[0] & GetBinding(BINDING::DEFAULT_CAMERA)) &&
+						(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_TARGET));
+				} else {
+					condition = (gamepad.buttons[0] & playerData.switchButton);
+				}
+			}
+				
             // Adding Change Target Button (Left Stick) check to prevent Char/Loadout Switching when opening GUI with gamepad (L3 + R3)
-            if (gamepad.buttons[0] & playerData.switchButton && !(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_TARGET))) {
+            if (condition) {
                 if (execute) {
                     execute = false;
 
