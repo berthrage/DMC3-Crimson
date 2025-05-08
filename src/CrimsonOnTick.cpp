@@ -37,25 +37,30 @@ void FrameResponsiveGameSpeed() {
 	float deltaTime = static_cast<float>(currentTime - lastTime);
 	lastTime = currentTime;
 
-	// Ignore deltaTime spikes that result from alt-tabbing, loading screens, etc.
-	constexpr float freezeThreshold = 0.034f; // 34ms+ = freeze // Skips <30 FPS frames
-	if (deltaTime > freezeThreshold) {
-		return;
-	}
-
 	// Compute frame rate and multiplier
 	g_FrameRate = 1.0f / deltaTime;
 	g_FrameRateTimeMultiplier = 60.0f / g_FrameRate;
 
-	const float gameSpeedBase = IsTurbo() ? 1.2f : 1.0f;
+	// Ignore deltaTime spikes that result from alt-tabbing, loading screens, etc.
+	float freezeThreshold = 1.0f / 50.0f; // Skips <50 FPS frames
+	if (deltaTime > freezeThreshold) {
+		return;
+	}
+
+	const float gameSpeedBase = g_scene != SCENE::CUTSCENE ? IsTurbo() ? 1.2f : 1.0f : 1.0f;
 	auto& activeValue = IsTurbo() ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 	auto& queuedValue = IsTurbo() ? queuedConfig.Speed.turbo : queuedConfig.Speed.mainSpeed;
 
-	if (activeConfig.framerateResponsiveGameSpeed) {
-		const float adjustedSpeed = gameSpeedBase * g_FrameRateTimeMultiplier;
 
-		activeValue = adjustedSpeed;
-		queuedValue = adjustedSpeed;
+	if (activeConfig.framerateResponsiveGameSpeed) {
+		// Cutscene audio is so timing sensitive that we can't truly sync the FPS to the game speed while in them.
+		const float adjustedSpeed = g_scene != SCENE::CUTSCENE ? gameSpeedBase * g_FrameRateTimeMultiplier : gameSpeedBase * g_frameRateMultiplier;
+		if (g_scene == SCENE::CUTSCENE) Speed::Toggle(true);
+
+		activeConfig.Speed.turbo = adjustedSpeed;
+		activeConfig.Speed.mainSpeed = adjustedSpeed;
+		queuedConfig.Speed.turbo = adjustedSpeed;
+		queuedConfig.Speed.mainSpeed = adjustedSpeed;
 
 		UpdateFrameRate(); 
 
@@ -81,28 +86,6 @@ void FrameResponsiveGameSpeed() {
 
 void GameTrackDetection() {
 	g_gameTrackPlaying = (std::string)reinterpret_cast<char*>(appBaseAddr + 0xD23906);
-}
-
-void CorrectFrameRateCutscenes() {
-	// Changing frame rate to above or below 60 will alter cutscene speed, this function corrects this behavior
-	// by forcing cutscenes to play at 60 fps. - Mia
-
-	static bool changedFrameRateCorrection = false;
-	float temp = queuedConfig.frameRate;
-
-	if (g_scene == SCENE::CUTSCENE && !changedFrameRateCorrection) {
-		activeConfig.frameRate = 60.0;
-
-		UpdateFrameRate();
-		changedFrameRateCorrection = true;
-	}
-
-	if (g_scene != SCENE::CUTSCENE && changedFrameRateCorrection) {
-		activeConfig.frameRate = temp;
-
-		UpdateFrameRate();
-		changedFrameRateCorrection = false;
-	}
 }
 
 void PreparePlayersDataBeforeSpawn() {
