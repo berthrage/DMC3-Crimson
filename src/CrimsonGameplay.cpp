@@ -321,6 +321,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
             actorData.eventData[0].event == 17);
 
     auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
+    auto& trickDashTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].trickDashTimer : crimsonPlayer[playerIndex].trickDashTimerClone;
 
 	
 
@@ -328,7 +329,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
     if ((actorData.style == STYLE::ROYALGUARD) && (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) &&
         actorData.eventData[0].event != ACTOR_EVENT::STAGGER && actorData.eventData[0].event != ACTOR_EVENT::NEVAN_KISS &&
         (inCancellableActionRebellion || inCancellableActionCerberus || inCancellableActionAgni || inCancellableActionNevan ||
-            inCancellableActionBeowulf || inCancellableActionGuns || actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_DASH) &&
+            inCancellableActionBeowulf || inCancellableActionGuns || (actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_DASH) && trickDashTimer > 0.3f) &&
         !storedAirCounts.cancelTrackerRunning) // The last condition prevents cancelling recovery
     {
         storedAirCounts.trickUp = actorData.newTrickUpCount;

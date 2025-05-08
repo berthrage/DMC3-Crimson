@@ -7780,6 +7780,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
+			ImGui::Text("TrickDash Timer: %g", crimsonPlayer[0].trickDashTimer);
 			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
 			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
 			ImGui::Text("ACTION:  %u", actorData.action);
