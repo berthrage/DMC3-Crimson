@@ -724,7 +724,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			ImGui::SetNextWindowPos(contentMin, ImGuiCond_Always);
 			ImGui::BeginChildEx("Content Window", window->GetID("Content Window"),
 				window->Size - ImVec2{ scaledFontSize * 0.3f * 2.0f, (contentMinHeightOffsetFromTop + scaledFontSize * 0.3f + contentMaxHeightOffsetFromBottom) }, false, 0);
-			//ImGui::SetWindowFontScale(scaleFactorY);
+			ImGui::SetWindowFontScale(scaleFactorY);
 			DrawMainContent(pDevice, g_UIContext);
 			ImGui::EndChild();
 		}
@@ -11307,9 +11307,11 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 	const ImRect cntRegion = cntWindow->Rect();
 	const ImGuiStyle& style = ImGui::GetStyle();
 	float scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
-	ImGui::SetWindowFontScale(scaleFactorY);
+	
 	float scaledFontSize = context.DefaultFontSize * scaleFactorY;
 
+	// Calculate base font size once - don't multiply by scale factor since that's handled by SetWindowFontScale
+	float baseFontSize = context.DefaultFontSize;
 
 	static bool uiElementsInitialized = false;
 	if (!uiElementsInitialized) {
@@ -11328,39 +11330,35 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 	switch (context.SelectedTab) {
 	case UI::UIContext::MainTabs::GameMode:
 	{
+		// Reset font scaling for this tab since SetWindowFontScale was applied outside
+		ImGui::SetWindowFontScale(1.0f);
+
 		constexpr float align = 0.5f; // Center = 0.5f
 
 		constexpr const char* MODE_SELECTION_TEXT = "Choose your desired Devil May Cry 3 version!\n"
 			"This will affect the entire Gameplay Options globally and tag you at the Mission End Screen.\n"
 			"If Gameplay Options diverge too much from any preset, 'Custom' Game Mode will be selected instead automatically.";
 
-		//ImGui::PushFont(UI::g_ImGuiFont_Roboto[9.0f]);
 		float width = ImGui::CalcTextSize(MODE_SELECTION_TEXT).x;
 
-        ImGui::Text("");
-        ImGui::Text("");
-        
+		ImGui::Text("");
+		ImGui::Text("");
 
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - width) * align);
-
-		
 		ImGui::TextWrapped(MODE_SELECTION_TEXT);
-		//ImGui::PopFont();
-        ImGui::Text("");
+		ImGui::Text("");
 
-
-
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize * 1.3f]);
+		// Use the base font size but apply the scale factor directly to compensate for the reset
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[baseFontSize * 1.7f]);
 
 		float comboBoxWidth = width * 0.8f;
-		
-		std::array<const char*, 3> modes{ "VANLLA MODE", "STYLE SWITCHER MODE", "CRIMSON MODE"};
-		std::array<const char*, 4> modesWCustom{ "VANLLA MODE", "STYLE SWITCHER MODE", "CRIMSON MODE", "CUSTOM MODE"};
+
+		std::array<const char*, 3> modes{ "VANLLA MODE", "STYLE SWITCHER MODE", "CRIMSON MODE" };
+		std::array<const char*, 4> modesWCustom{ "VANLLA MODE", "STYLE SWITCHER MODE", "CRIMSON MODE", "CUSTOM MODE" };
 
 		ImGui::SetNextItemWidth(comboBoxWidth);
 
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - comboBoxWidth) * align);
-
 
 		ImU32 frameBG = 0;
 		ImU32 frameBGHovered = 0;
@@ -11408,20 +11406,18 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		break;
 		}
 
-
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, frameBG);
 		ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, frameBGHovered);
 		ImGui::PushStyleColor(ImGuiCol_Text, textColor);;
 
 		context.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
-		auto previewValue = context.SelectedGameMode == UI::UIContext::GameModes::Custom ? modesWCustom[size_t(context.SelectedGameMode)] : 
+		auto previewValue = context.SelectedGameMode == UI::UIContext::GameModes::Custom ? modesWCustom[size_t(context.SelectedGameMode)] :
 			modes[size_t(context.SelectedGameMode)];
 
 		if (UI::BeginCombo("##Game Mode", previewValue, { 0.5f, 0.5f }, 0.9f)) {
 			ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
 
-			for (size_t i = 0; i < modes.size(); i++)
-			{
+			for (size_t i = 0; i < modes.size(); i++) {
 				ImU32 headerColor = 0;
 				ImU32 headerHoveredColor = 0;
 				ImU32 headerActiveColor = 0;
@@ -11473,18 +11469,13 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				bool isSelected = size_t(context.SelectedGameMode) == i;
 
 				if (ImGui::Selectable(modes[i], isSelected)) {
-					
 					CrimsonGameModes::SetGameMode((uint8)i);
-					
 					CrimsonGameplay::AdjustDMC4MobilitySettings();
-					
-					
 					::GUI::save = true;
 				}
 
 				if (isSelected) {
 					ImGui::SetItemDefaultFocus();
-					
 				}
 
 				ImGui::PopStyleColor(4);
@@ -11508,17 +11499,17 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			switch (context.SelectedGameMode) {
 			case UI::UIContext::GameModes::Vanilla:
 				pMainLogo = &vanillaLogo;
-				heightOffset = context.DefaultFontSize * 2.0f;
+				heightOffset = baseFontSize * scaleFactorY * 2.0f;
 				break;
 
 			case UI::UIContext::GameModes::StyleSwitcher:
 				pMainLogo = &styleSwitcherLogo;
-				heightOffset = -(context.DefaultFontSize * 3.2f);
+				heightOffset = -(baseFontSize * scaleFactorY * 3.2f);
 				break;
 
 			case UI::UIContext::GameModes::Crimson:
 				pMainLogo = &crimsonLogo;
-				heightOffset = context.DefaultFontSize * 2.0f;
+				heightOffset = baseFontSize * scaleFactorY * 2.0f;
 				break;
 
 			default:
@@ -11528,7 +11519,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2{ (cntRegion.GetWidth() - pMainLogo->GetWidth()) * align, heightOffset });
 
-			ImGui::Image(*pMainLogo, pMainLogo->GetSize());//, { 0.001f, 0.001f }, { 0.999f, 0.999f });
+			ImGui::Image(*pMainLogo, pMainLogo->GetSize());
 		}
 
 		// Bottom text
@@ -11538,7 +11529,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			constexpr auto MODE_INFO_TEXT_SW_LINE2 = "Vanilla + Style / Full Weapon Switching.";
 			constexpr auto MODE_INFP_TEXT_CRIMSON = "Enjoy the ultimate DMC3 experience! All new Gameplay Improvements and Expansions enabled.";
 
-			ImGui::PushFont(UI::g_ImGuiFont_Roboto[context.DefaultFontSize]);
+			ImGui::PushFont(UI::g_ImGuiFont_Roboto[baseFontSize]);
 
 			const float vanillaWidth = ImGui::CalcTextSize(MODE_INFO_TEXT_VANILLA).x;
 			const float swWidthLine1 = ImGui::CalcTextSize(MODE_INFO_TEXT_SW_LINE1).x;
@@ -11552,7 +11543,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				break;
 
 			case UI::UIContext::GameModes::StyleSwitcher:
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() - context.DefaultFontSize * 3.0f);
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() - baseFontSize * scaleFactorY * 3.0f);
 
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - swWidthLine1) * align);
 				ImGui::Text(MODE_INFO_TEXT_SW_LINE1);
@@ -11561,7 +11552,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				break;
 
 			case UI::UIContext::GameModes::Crimson:
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 1.0f);
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + baseFontSize * scaleFactorY * 1.0f);
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - crimsonWidth) * align);
 				ImGui::Text(MODE_INFP_TEXT_CRIMSON);
 				break;
@@ -11574,6 +11565,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		}
 
 		ImGui::PopFont();
+
+		// Restore window scale for other tabs
+		ImGui::SetWindowFontScale(scaleFactorY);
 	}
 	break;
 
