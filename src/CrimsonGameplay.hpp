@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/DataTypes.hpp"
+#include "Vars.hpp"
 
 namespace CrimsonGameplay {
 
@@ -26,6 +27,7 @@ void AerialRaveGravityTweaks(byte8* actorBaseAddr);
 void AirFlickerGravityTweaks(byte8* actorBaseAddr);
 void SkyDanceGravityTweaks(byte8* actorBaseAddr);
 void DMC4Mobility(byte8* actorBaseAddr);
+void AdjustDMC4MobilitySettings();
 void StyleMeterDoppelganger(byte8* actorBaseAddr);
 void InCombatDetection();
 void BackToForwardInputs(byte8* actorBaseAddr);
@@ -33,7 +35,12 @@ void SprintAbility(byte8* actorBaseAddr);
 void GunDTCharacterRemaps();
 void DTInfusedRoyalguardController(byte8* actorBaseAddr);
 void CalculateRotationTowardsEnemy(byte8* actorBaseAddr);
+void GetLockedOnEnemyHitPoints(byte8* actorBaseAddr);
+void GetLockedOnEnemyStunDisplacement(byte8* actorBaseAddr);
+void CalculateLockedOnEnemyLastStunDisplacementValue(byte8* actorBaseAddr);
+void GetLockedOnEnemyShield(byte8* actorBaseAddr);
 void SkyLaunchAirTauntController(byte8* actorBaseAddr);
 void DriveTweaks(byte8* actorBaseAddr);
+
 
 }

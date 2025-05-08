@@ -5,14 +5,39 @@
 #include "Core/Macros.h"
 #include "Exp.hpp"
 #include "Vars.hpp"
+#include "CrimsonConfigGameplay.hpp"
 
 #include "Core/DebugSwitch.hpp"
 #pragma optimize("", off) // Disable all optimizations
 #pragma pack(push, 8)
+
+namespace HUDELEMENTSCALESTATE {
+enum {
+	SMALL,
+	BIG
+};
+}
+
+namespace HUDELEMENTSHOWSTATE {
+enum {
+	OFF,
+	ONLY_IN_MP,
+	ALWAYS,
+};
+}
+
+namespace RIGHTSTICKCENTERCAM {
+enum {
+	OFF,
+	TO_NEAREST_SIDE,
+	ON
+};
+}
+
 struct CrimsonConfig {
 	struct MultiplayerBars2D {
 		bool show = true;
-		std::string show1PAttributes = "Only in Multiplayer";
+		uint8 show1PAttributes = HUDELEMENTSHOWSTATE::ONLY_IN_MP;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -24,7 +49,7 @@ struct CrimsonConfig {
 
 	struct MultiplayerBarsWorldSpace {
 		bool show = true;
-		std::string show1PBar = "Only in Multiplayer";
+		uint8 show1PBar = HUDELEMENTSHOWSTATE::ONLY_IN_MP;
         bool showOutOfViewIcons = true;
 		bool showPlayerNames = true;
 
@@ -43,13 +68,17 @@ struct CrimsonConfig {
 		float opacity = 0.9f;
 		bool pauseWhenOpened = true;
 		bool sounds = true;
+		bool cheatsPopup = true;
+		bool disableGamepadShortcut = false;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
 				std::make_pair("transparencyMode", &GUI::transparencyMode),
 				std::make_pair("opacity", &GUI::opacity),
 				std::make_pair("pauseWhenOpened", &GUI::pauseWhenOpened),
-				std::make_pair("sounds", &GUI::sounds)	
+				std::make_pair("sounds", &GUI::sounds),
+				std::make_pair("cheatsPopup", &GUI::cheatsPopup),
+				std::make_pair("disableGamepadShortcut", &GUI::disableGamepadShortcut)
 			);
 		}
 	} GUI;
@@ -58,12 +87,12 @@ struct CrimsonConfig {
 		bool analogSwitching = true;
 		bool disableCameraRotation = true;
 		std::string theme = "Crimson";
-		std::string scale = "Small";
-		bool alwaysShow = false;
+		uint8 scale = HUDELEMENTSCALESTATE::SMALL;
+		uint8 alwaysShow = HUDELEMENTSHOWSTATE::ONLY_IN_MP;
 		bool force1PMultiplayerPosScale = false;
 		bool hide = false;
-		std::string worldSpaceWheels = "Only in Multiplayer";
-		bool worldSpaceAlwaysShow = false;
+		uint8 worldSpaceWheels = HUDELEMENTSHOWSTATE::ONLY_IN_MP;
+		uint8 worldSpaceAlwaysShow = HUDELEMENTSHOWSTATE::OFF;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -87,6 +116,7 @@ struct CrimsonConfig {
 		bool royalGauge = true;
 		bool styleRanksMeter = true;
 		bool lockOn = true;
+		bool stunDisplacementNumericHud = false;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -94,10 +124,21 @@ struct CrimsonConfig {
                 std::make_pair("redOrbCounter", &CrimsonHudAddons::redOrbCounter),
                 std::make_pair("royalGauge", &CrimsonHudAddons::royalGauge),
                 std::make_pair("styleRanksMeter", &CrimsonHudAddons::styleRanksMeter),
-                std::make_pair("lockOn", &CrimsonHudAddons::lockOn)
+                std::make_pair("lockOn", &CrimsonHudAddons::lockOn),
+				std::make_pair("stunDisplacementNumericHud", &CrimsonHudAddons::stunDisplacementNumericHud)
 			);
 		}
 	} CrimsonHudAddons;
+
+	struct HudOptions {
+		bool hideStyleMeter = false;
+
+		static constexpr auto Metadata() {
+			return std::make_tuple(
+				std::make_pair("hideStyleMeter", &HudOptions::hideStyleMeter)
+			);
+		}
+	} HudOptions;
 
 
 	struct Camera {
@@ -110,7 +151,7 @@ struct CrimsonConfig {
 		bool lockedOff = true;
 		bool invertX = true;
 		uint8 autoAdjust = 0;
-		bool disableRightStickCenterCamera = true;
+		uint8 rightStickCameraCentering = RIGHTSTICKCENTERCAM::TO_NEAREST_SIDE;
 		bool disableBossCamera = false;
 		bool multiplayerCamera = true;
 		bool panoramicCamera = false;
@@ -127,7 +168,7 @@ struct CrimsonConfig {
                 std::make_pair("lockedOff", &Camera::lockedOff),
                 std::make_pair("invertX", &Camera::invertX),
                 std::make_pair("autoAdjust", &Camera::autoAdjust),
-                std::make_pair("disableRightStickCenterCamera", &Camera::disableRightStickCenterCamera),
+                std::make_pair("rightStickCameraCentering", &Camera::rightStickCameraCentering),
                 std::make_pair("disableBossCamera", &Camera::disableBossCamera),
 				std::make_pair("multiplayerCamera", &Camera::multiplayerCamera),
 				std::make_pair("panoramicCamera", &Camera::panoramicCamera),
@@ -236,216 +277,13 @@ struct CrimsonConfig {
 		}
 	} SFX;
 
-	struct Gameplay {
-
-        struct General {
-			bool inertia = true;
-			bool sprint = true;
-			bool freeformSoftLock = true;
-			bool bufferlessReversals = true;
-			bool dmc4LockOnDirection = true;
-            bool holdToCrazyCombo = true;
-			uint8 crazyComboMashRequirement = 6;
-			bool disableHeightRestriction = true;
-			bool improvedBufferedReversals = true;
-			bool increasedJCSpheres = true;
-			bool disableJCRestriction = true;
-			bool increasedEnemyJuggleTime = true;
-			bool fasterTurnRate = true;
-            
-
-			static constexpr auto Metadata() {
-				return std::make_tuple(
-					std::make_pair("inertia", &General::inertia),
-					std::make_pair("sprint", &General::sprint),
-					std::make_pair("freeformSoftLock", &General::freeformSoftLock),
-					std::make_pair("bufferlessReversals", &General::bufferlessReversals),
-					std::make_pair("improvedBufferedReversals", &General::improvedBufferedReversals),
-					std::make_pair("dmc4LockOnDirection", &General::dmc4LockOnDirection),
-                    std::make_pair("holdToCrazyCombo", &General::holdToCrazyCombo),
-					std::make_pair("crazyComboMashRequirement", &General::crazyComboMashRequirement),
-					std::make_pair("disableHeightRestriction", &General::disableHeightRestriction),
-					std::make_pair("improvedBufferedReversals", &General::improvedBufferedReversals),
-					std::make_pair("increasedJCSpheres", &General::increasedJCSpheres),
-					std::make_pair("disableJCRestriction", &General::disableJCRestriction),
-					std::make_pair("increasedEnemyJuggleTime", &General::increasedEnemyJuggleTime),
-					std::make_pair("fasterTurnRate", &General::fasterTurnRate)
-				);
-			}
-        } General;
-
-        struct Dante {
-			bool improvedCancels = true;
-			bool bulletStop = true;
-			bool rainstormLift = true;
-			bool infiniteRainstorm = true;	
-			bool foursomeTime = true;
-			bool aerialRaveTweaks = true;
-			bool airFlickerTweaks = true;
-			bool skyDanceTweaks = true;
-			bool shotgunAirShotTweaks = true;
-			bool driveTweaks = true;
-			bool disableAirSlashKnockback = true;
-			bool airStinger = true;
-			bool airRevolver = true;
-			bool airTornado = true;
-			bool airRisingDragonWhirlwind = true;
-			bool airAgniRudraWhirlwind = true;
-			bool dmc4Mobility = true;
-			bool dTInfusedRoyalguard = true;
-			bool airHikeCoreAbility = true;
-			bool altNevanVortex = true;
-			bool artemisSwapShotMultiLock = true;
-			bool artemisInstantFullCharge = true;
-
-			static constexpr auto Metadata() {
-                return std::make_tuple(
-				    std::make_pair("improvedCancels", &Dante::improvedCancels),
-					std::make_pair("bulletStop", &Dante::bulletStop),
-					std::make_pair("rainstormLift", &Dante::rainstormLift),
-					std::make_pair("infiniteRainstorm", &Dante::infiniteRainstorm),
-					std::make_pair("foursomeTime", &Dante::foursomeTime),
-					std::make_pair("aerialRaveTweaks", &Dante::aerialRaveTweaks),
-					std::make_pair("airFlickerTweaks", &Dante::airFlickerTweaks),
-					std::make_pair("skyDanceTweaks", &Dante::skyDanceTweaks),
-					std::make_pair("shotgunAirShotTweaks", &Dante::shotgunAirShotTweaks),
-					std::make_pair("driveTweaks", &Dante::driveTweaks),
-					std::make_pair("disableAirSlashKnockback", &Dante::disableAirSlashKnockback),
-					std::make_pair("airStinger", &Dante::airStinger),
-					std::make_pair("airRevolver", &Dante::airRevolver),
-					std::make_pair("airTornado", &Dante::airTornado),
-					std::make_pair("airRisingDragonWhirlwind", &Dante::airRisingDragonWhirlwind),
-					std::make_pair("airAgniRudraWhirlwind", &Dante::airAgniRudraWhirlwind),
-					std::make_pair("dmc4Mobility", &Dante::dmc4Mobility),
-					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard),
-					std::make_pair("airHikeCoreAbility", &Dante::airHikeCoreAbility),
-					std::make_pair("altNevanVortex", &Dante::altNevanVortex),
-					std::make_pair("artemisSwapShotMultiLock", &Dante::artemisSwapShotMultiLock),
-					std::make_pair("artemisInstantFullCharge", &Dante::artemisInstantFullCharge)
-				);
-			}
-        } Dante;
-
-		struct Vergil {
-			bool darkslayerTrickCancels = true;
-			bool fasterDTRapidSlash = true;
-			bool roundTripTweaks = true;
-			bool airStinger = true;
-			bool airRisingSun = true;
-			bool airLunarPhase = true;
-			bool altJudgementCutInput = false;
-			std::string adjustRisingSunPos = "From Air";
-			std::string adjustLunarPhasePos = "From Air";
-
-			static constexpr auto Metadata() {
-				return std::make_tuple(
-					std::make_pair("darkslayerTrickCancels", &Vergil::darkslayerTrickCancels),
-					std::make_pair("fasterDTRapidSlash", &Vergil::fasterDTRapidSlash),
-					std::make_pair("roundTripTweaks", &Vergil::roundTripTweaks),
-					std::make_pair("airStinger", &Vergil::airStinger),
-					std::make_pair("airRisingSun", &Vergil::airRisingSun),
-					std::make_pair("airLunarPhase", &Vergil::airLunarPhase),
-					std::make_pair("altJudgementCutInput", &Vergil::altJudgementCutInput),
-					std::make_pair("adjustRisingSunPos", &Vergil::adjustRisingSunPos),
-					std::make_pair("adjustLunarPhasePos", &Vergil::adjustLunarPhasePos)
-				);
-			}
-        } Vergil;
-
-		struct Remaps {
-			uint16_t danteDTButton = 0x0004;
-			uint16_t danteShootButton = 0x0080;
-			uint16_t vergilDTButton = 0x0080;
-			uint16_t vergilShootButton = 0x0004;
-
-			static constexpr auto Metadata() {
-				return std::make_tuple(
-					std::make_pair("danteDTButton", &Remaps::danteDTButton),
-					std::make_pair("danteShootButton", &Remaps::danteShootButton),
-					std::make_pair("vergilDTButton", &Remaps::vergilDTButton),
-                    std::make_pair("vergilShootButton", &Remaps::vergilShootButton)
-				);
-			}
-		} Remaps;
-
-		static constexpr auto Metadata() {
-			return std::make_tuple(
-                std::make_pair("General", &Gameplay::General),
-                std::make_pair("Dante", &Gameplay::Dante),
-                std::make_pair("Vergil", &Gameplay::Vergil),
-                std::make_pair("Remaps", &Gameplay::Remaps)
-			);
-		}
-
-	} Gameplay;
-
-
-	struct Cheats {
-
-		struct General {
-			bool customMobility = false;
-			bool customDamage = false;
-			bool customSpeed = false;
-
-			static constexpr auto Metadata() {
-				return std::make_tuple(
-					std::make_pair("customMobility", &General::customMobility),
-					std::make_pair("customDamage", &General::customDamage),
-					std::make_pair("customSpeed", &General::customSpeed)
-					
-				);
-			}
-		} General;
-
-		struct Dante {
-			bool forceRoyalRelease = false;
-			bool infiniteShredder = false;
-			bool infiniteSwordPierce = false;
-
-			static constexpr auto Metadata() {
-				return std::make_tuple(
-					std::make_pair("forceRoyalRelease", &Dante::forceRoyalRelease),
-					std::make_pair("infiniteShredder", &Dante::infiniteShredder),
-					std::make_pair("infiniteSwordPierce", &Dante::infiniteSwordPierce)
-				);
-			}
-		} Dante;
-
-		struct Vergil {
-			bool quicksilverStyle = false;
-			bool chronoSwords = false;
-			bool infiniteRoundTrip = false;
-			uint8 airRisingSunCount[2] = { 1, 1 };
-			uint8 judgementCutCount[2] = { 2, 2 };
-
-			static constexpr auto Metadata() {
-				return std::make_tuple(
-					std::make_pair("quicksilver", &Vergil::quicksilverStyle),
-					std::make_pair("chronoSwords", &Vergil::chronoSwords),
-					std::make_pair("infiniteRoundTrip", &Vergil::infiniteRoundTrip),
-					std::make_pair("airRisingSunCount", &Vergil::airRisingSunCount),
-					std::make_pair("judgementCutCount", &Vergil::judgementCutCount)
-				);
-			}
-		} Vergil;
-
-
-		static constexpr auto Metadata() {
-			return std::make_tuple(
-				std::make_pair("General", &Cheats::General),
-				std::make_pair("Dante", &Cheats::Dante),
-				std::make_pair("Vergil", &Cheats::Vergil)
-			);
-		}
-	} Cheats;
-
 	struct PlayerProperties {
 		uint8 playerColor[PLAYER_COUNT][4] = {
 			// r   g  b  a  
-			{ 158, 27, 63, 255 }, // 1P 
-			{ 18, 48, 130, 255 }, // 2P  
-			{ 228, 160, 16, 255 }, // 3P    
-			{ 49, 127, 67, 255 }, // 4P
+			{ 222, 28, 76, 255 }, // 1P 
+			{ 12, 133, 197, 255 }, // 2P  
+			{ 255, 230, 0, 255 }, // 3P    
+			{ 0, 192, 70, 255 }, // 4P
 		};
 
 		std::string playerName[PLAYER_COUNT] = {
@@ -464,6 +302,30 @@ struct CrimsonConfig {
 		}
 	} PlayerProperties;
 
+	struct System {
+		struct Remaps {
+			uint16_t danteDTButton = 0x0004;
+			uint16_t danteShootButton = 0x0080;
+			uint16_t vergilDTButton = 0x0080;
+			uint16_t vergilShootButton = 0x0004;
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("danteDTButton", &Remaps::danteDTButton),
+					std::make_pair("danteShootButton", &Remaps::danteShootButton),
+					std::make_pair("vergilDTButton", &Remaps::vergilDTButton),
+					std::make_pair("vergilShootButton", &Remaps::vergilShootButton)
+				);
+			}
+		} Remaps;
+
+		static constexpr auto Metadata() {
+			return std::make_tuple(
+				std::make_pair("Remaps", &System::Remaps)
+			);
+		}
+	} System;
+
 	struct CachedSettings {
 		uint8 lastMaxMeleeWeaponCount[PLAYER_COUNT][CHARACTER_COUNT] = {
 			{ 5, 5, 5}, // 1P
@@ -479,10 +341,90 @@ struct CrimsonConfig {
 			{ 5, 5, 5}, // 4P
 		};
 
+		uint8 lastMaxMeleeWeaponCountVergil[PLAYER_COUNT][CHARACTER_COUNT] = {
+			{ 3, 3, 3}, // 1P
+			{ 3, 3, 3}, // 2P
+			{ 3, 3, 3}, // 3P
+			{ 3, 3, 3}, // 4P
+		};
+
+		uint8 lastEquippedMeleeWeapons[PLAYER_COUNT][CHARACTER_COUNT][MELEE_WEAPON_COUNT_DANTE] = {
+			{ // 1P
+				{ WEAPON::REBELLION, WEAPON::CERBERUS, WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE }, // Character 0
+				{ WEAPON::REBELLION, WEAPON::CERBERUS, WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE }, // Character 1
+				{ WEAPON::REBELLION, WEAPON::CERBERUS, WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE }  // Character 2
+			},
+			{ // 2P
+				{ WEAPON::REBELLION, WEAPON::CERBERUS, WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE },
+				{ WEAPON::REBELLION, WEAPON::CERBERUS, WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE },
+				{ WEAPON::REBELLION, WEAPON::CERBERUS, WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE }
+			},
+			{ // 3P
+				{ WEAPON::REBELLION, WEAPON::CERBERUS, WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE },
+				{ WEAPON::REBELLION, WEAPON::CERBERUS, WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE },
+				{ WEAPON::REBELLION, WEAPON::CERBERUS, WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE }
+			},
+			{ // 4P
+				{ WEAPON::REBELLION, WEAPON::CERBERUS, WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE },
+				{ WEAPON::REBELLION, WEAPON::CERBERUS, WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE },
+				{ WEAPON::REBELLION, WEAPON::CERBERUS, WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE }
+			}
+		};
+
+		uint8 lastEquippedRangedWeapons[PLAYER_COUNT][CHARACTER_COUNT][RANGED_WEAPON_COUNT_DANTE] = {
+			{ // 1P
+				{ WEAPON::EBONY_IVORY, WEAPON::SHOTGUN, WEAPON::ARTEMIS, WEAPON::SPIRAL, WEAPON::KALINA_ANN }, // Character 0
+				{ WEAPON::EBONY_IVORY, WEAPON::SHOTGUN, WEAPON::ARTEMIS, WEAPON::SPIRAL, WEAPON::KALINA_ANN }, // Character 1
+				{ WEAPON::EBONY_IVORY, WEAPON::SHOTGUN, WEAPON::ARTEMIS, WEAPON::SPIRAL, WEAPON::KALINA_ANN }  // Character 2
+			},
+			{ // 2P
+				{ WEAPON::EBONY_IVORY, WEAPON::SHOTGUN, WEAPON::ARTEMIS, WEAPON::SPIRAL, WEAPON::KALINA_ANN },
+				{ WEAPON::EBONY_IVORY, WEAPON::SHOTGUN, WEAPON::ARTEMIS, WEAPON::SPIRAL, WEAPON::KALINA_ANN },
+				{ WEAPON::EBONY_IVORY, WEAPON::SHOTGUN, WEAPON::ARTEMIS, WEAPON::SPIRAL, WEAPON::KALINA_ANN }
+			},
+			{ // 3P
+				{ WEAPON::EBONY_IVORY, WEAPON::SHOTGUN, WEAPON::ARTEMIS, WEAPON::SPIRAL, WEAPON::KALINA_ANN },
+				{ WEAPON::EBONY_IVORY, WEAPON::SHOTGUN, WEAPON::ARTEMIS, WEAPON::SPIRAL, WEAPON::KALINA_ANN },
+				{ WEAPON::EBONY_IVORY, WEAPON::SHOTGUN, WEAPON::ARTEMIS, WEAPON::SPIRAL, WEAPON::KALINA_ANN }
+			},
+			{ // 4P
+				{ WEAPON::EBONY_IVORY, WEAPON::SHOTGUN, WEAPON::ARTEMIS, WEAPON::SPIRAL, WEAPON::KALINA_ANN },
+				{ WEAPON::EBONY_IVORY, WEAPON::SHOTGUN, WEAPON::ARTEMIS, WEAPON::SPIRAL, WEAPON::KALINA_ANN },
+				{ WEAPON::EBONY_IVORY, WEAPON::SHOTGUN, WEAPON::ARTEMIS, WEAPON::SPIRAL, WEAPON::KALINA_ANN }
+			}
+		};
+
+		uint8 lastEquippedMeleeWeaponsVergil[PLAYER_COUNT][CHARACTER_COUNT][MELEE_WEAPON_COUNT_VERGIL] = {
+			{ // 1P
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE}, // Character 0
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE}, // Character 1
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE}  // Character 2
+			},
+			{ // 2P
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE},
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE},
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE}
+			},
+			{ // 3P
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE},
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE},
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE}
+			},
+			{ // 4P
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE},
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE},
+				{ WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL, WEAPON::YAMATO_FORCE_EDGE}
+			}
+		};
+
 		static constexpr auto Metadata() {
 			return std::make_tuple(
 				std::make_pair("lastMaxMeleeWeaponCount", &CachedSettings::lastMaxMeleeWeaponCount),
-				std::make_pair("lastMaxRangedWeaponCount", &CachedSettings::lastMaxRangedWeaponCount)
+				std::make_pair("lastMaxRangedWeaponCount", &CachedSettings::lastMaxRangedWeaponCount),
+				std::make_pair("lastMaxMeleeWeaponCountVergil", &CachedSettings::lastMaxMeleeWeaponCountVergil),
+				std::make_pair("lastEquippedMeleeWeapons", &CachedSettings::lastEquippedMeleeWeapons),
+				std::make_pair("lastEquippedRangedWeapons", &CachedSettings::lastEquippedRangedWeapons),
+				std::make_pair("lastEquippedMeleeWeaponsVergil", &CachedSettings::lastEquippedMeleeWeaponsVergil)
 			);
 		}
 	} CachedSettings;
@@ -492,19 +434,18 @@ struct CrimsonConfig {
 			std::make_pair("MultiplayerBars2D", &CrimsonConfig::MultiplayerBars2D),
 			std::make_pair("MultiplayerBarsWorldSpace", &CrimsonConfig::MultiplayerBarsWorldSpace),
 			std::make_pair("GUI", &CrimsonConfig::GUI),
-			std::make_pair("Sound", &CrimsonConfig::WeaponWheel),
+			std::make_pair("WeaponWheel", &CrimsonConfig::WeaponWheel),
             std::make_pair("CrimsonHudAddons", &CrimsonConfig::CrimsonHudAddons),
+			std::make_pair("HudOptions", &CrimsonConfig::HudOptions),
             std::make_pair("Camera", &CrimsonConfig::Camera),
             std::make_pair("StyleSwitchFX", &CrimsonConfig::StyleSwitchFX),
             std::make_pair("SFX", &CrimsonConfig::SFX),
-            std::make_pair("Gameplay", &CrimsonConfig::Gameplay),
-			std::make_pair("Cheats", &CrimsonConfig::Cheats),
 			std::make_pair("PlayerProperties", &CrimsonConfig::PlayerProperties),
+			std::make_pair("System", &CrimsonConfig::System),
 			std::make_pair("CachedSettings", &CrimsonConfig::CachedSettings)
 		);
 	}
 };
-
 
 // Same as in old ddmk, but with new config variables. We declare three config variables, each
 // serving a different purpose:

@@ -17,6 +17,7 @@
 #include "Vars.hpp"
 
 #include "Core/Macros.h"
+#include "DMC3Input.hpp"
 
 namespace CrimsonTimers {
 
@@ -98,6 +99,80 @@ void AnimTimers() {
     }
 }
 
+void EventTimers() {
+	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10371 || !pool_10371[8]) return;
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
+
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+		old_for_all(uint8, entityIndex, ENTITY_COUNT) {
+			auto& playerData = GetPlayerData(playerIndex);
+
+			auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, entityIndex);
+
+			auto actorBaseAddr = newActorData.baseAddr;
+
+			if (!actorBaseAddr) {
+				continue;
+			}
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+			if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
+            static uint32 currentEvent[PLAYER_COUNT][ENTITY_COUNT];
+            auto& actorEvent = actorData.eventData[0].event;
+			auto& eventTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].eventTimer : crimsonPlayer[playerIndex].eventTimerClone;
+
+
+			// Reset Timer By Animation IDs
+			if (actorEvent != currentEvent[playerIndex][entityIndex]) {
+				eventTimer = 0;
+                currentEvent[playerIndex][entityIndex] = actorEvent;
+			}
+
+			if (eventData.event != EVENT::PAUSE) {
+				eventTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+			}
+		}
+	}
+}
+
+void TrickDashTimers () {
+	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10371 || !pool_10371[8]) return;
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
+    static uint32 currentEvent[PLAYER_COUNT][ENTITY_COUNT] = { 0 };
+
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+		old_for_all(uint8, entityIndex, ENTITY_COUNT) {
+			auto& playerData = GetPlayerData(playerIndex);
+
+			auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, entityIndex);
+
+			auto actorBaseAddr = newActorData.baseAddr;
+
+			if (!actorBaseAddr) {
+				continue;
+			}
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+			if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
+			
+			auto& actorEvent = actorData.eventData[0].event;
+			auto& trickDashTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].trickDashTimer : crimsonPlayer[playerIndex].trickDashTimerClone;
+            auto& policy = actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::TRICKSTER_DARK_SLAYER];
+
+
+			// Reset Timer by Event ID or Style button press
+			if (actorEvent != currentEvent[playerIndex][entityIndex] || policy == 2) {
+				trickDashTimer = 0;
+				currentEvent[playerIndex][entityIndex] = actorEvent;
+			}
+
+			if (eventData.event != EVENT::PAUSE) {
+				trickDashTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+			}
+		}
+	}
+}
+
 std::chrono::steady_clock::time_point guardflyStartTime;
 
 void ResetGuardflyTimer(float timer) {
@@ -163,7 +238,7 @@ void SprintTimer() {
 
 
         if (crimsonPlayer[playerIndex].sprint.timer > 0 && crimsonPlayer[playerIndex].sprint.runTimer) {
-            crimsonPlayer[playerIndex].sprint.timer -= ImGui::GetIO().DeltaTime * (crimsonPlayer[playerIndex].speed / g_FrameRateTimeMultiplier);
+            crimsonPlayer[playerIndex].sprint.timer -= ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed / g_FrameRateTimeMultiplier;
         }
 
 
@@ -231,6 +306,14 @@ void ImprovedCancelsTimers() {
             crimsonPlayer[playerIndex].cancels.canRainstorm      = true;
         }
 
+        // REVOLVER TIMER
+		if (crimsonPlayer[playerIndex].cancels.revolverTimerRunning) {
+			crimsonPlayer[playerIndex].cancels.revolverTimer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
+		}
+        else {
+			crimsonPlayer[playerIndex].cancels.revolverTimer = 0;
+        }
+
         ///
 
         // TRICK CANCEL CLONE
@@ -269,6 +352,13 @@ void ImprovedCancelsTimers() {
             crimsonPlayer[playerIndex].cancelsClone.rainstormCooldown = crimsonPlayer[playerIndex].cancelsClone.rainstormCooldownDuration;
             crimsonPlayer[playerIndex].cancelsClone.canRainstorm      = true;
         }
+
+		// REVOLVER TIMER CLONE
+		if (crimsonPlayer[playerIndex].cancelsClone.revolverTimerRunning) {
+			crimsonPlayer[playerIndex].cancelsClone.revolverTimer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
+		} else {
+			crimsonPlayer[playerIndex].cancelsClone.revolverTimer = 0;
+		}
     }
 }
 
@@ -392,6 +482,8 @@ void CallAllTimers() {
 	BackToForwardTimers();
 	ActionTimers();
 	AnimTimers();
+    EventTimers();
+    TrickDashTimers();
     GuardflyTimers();
 	SiyTimerFunc();
 	SprintTimer();

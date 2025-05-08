@@ -1,5 +1,6 @@
 #include <thread>
 #include <chrono>
+#include <algorithm>
 #include "../ThirdParty/glm/glm.hpp"
 #include "../ThirdParty/ImGui/imgui.h"
 
@@ -23,73 +24,68 @@
 #include "CrimsonDetours.hpp"
 #include "CrimsonUtil.hpp"
 #include "CrimsonTimers.hpp"
+#include "DMC3Input.hpp"
 
 namespace CrimsonOnTick {
 
 bool inputtingFPS = false;
 
 void FrameResponsiveGameSpeed() {
-	g_FrameRate = ImGui::GetIO().Framerate;
-	g_FrameRateTimeMultiplier = (g_FrameRate > 0.0f) ? (60.0f / g_FrameRate) : 1.0f;
+	// Calculate Delta Time Manually
+	static double lastTime = ImGui::GetTime();
+	double currentTime = ImGui::GetTime();
+	float deltaTime = static_cast<float>(currentTime - lastTime);
+	lastTime = currentTime;
 
-	auto& activeValue = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
-	auto& queuedValue = (IsTurbo()) ? queuedConfig.Speed.turbo : queuedConfig.Speed.mainSpeed;
-	float gameSpeed = (IsTurbo()) ? 1.2f : 1.0f;
-	auto& userSetFrameRate = queuedConfig.frameRate;
-	static bool setSpeedTrue = false;
+	// Compute frame rate and multiplier
+	g_FrameRate = 1.0f / deltaTime;
+	g_FrameRateTimeMultiplier = 60.0f / g_FrameRate;
 
-	// Only update if the current FPS is within ±20 of the setFrameRate
-	if (activeConfig.framerateResponsiveGameSpeed) { // 25 FPS frametime limit
-
-		if ((std::abs(g_FrameRate - userSetFrameRate) <= 20.0f &&
-			ImGui::GetIO().DeltaTime < 0.04f && g_FrameRate >= 20.0f) || inputtingFPS || g_scene != SCENE::GAME) {
-			UpdateFrameRate();
-
-
-			float adjustedFrameRate = (std::max)(g_FrameRate, 30.0f); // Prevent extreme drops
-			activeValue = gameSpeed / (adjustedFrameRate / 60);
-			queuedValue = gameSpeed / (adjustedFrameRate / 60);
-		}
-
-
-		// Fix for Cutscenes speeding up enemies
-		if (g_scene == SCENE::GAME) {
-			if (!setSpeedTrue) {
-				Speed::Toggle(true);
-				setSpeedTrue = true;
-			}
-		}
-
-		if (g_inGameCutscene && setSpeedTrue) {
-			setSpeedTrue = false;
-		}
+	// Ignore deltaTime spikes that result from alt-tabbing, loading screens, etc.
+	float freezeThreshold = 1.0f / 50.0f; // Skips <50 FPS frames
+	if (deltaTime > freezeThreshold) {
+		return;
 	}
+
+	const float gameSpeedBase = g_scene != SCENE::CUTSCENE ? IsTurbo() ? 1.2f : 1.0f : 1.0f;
+	auto& activeValue = IsTurbo() ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+	auto& queuedValue = IsTurbo() ? queuedConfig.Speed.turbo : queuedConfig.Speed.mainSpeed;
+
+
+	if (activeConfig.framerateResponsiveGameSpeed) {
+		// Cutscene audio is so timing sensitive that we can't truly sync the FPS to the game speed while in them.
+		const float adjustedSpeed = g_scene != SCENE::CUTSCENE ? gameSpeedBase * g_FrameRateTimeMultiplier : gameSpeedBase * g_frameRateMultiplier;
+		if (g_scene == SCENE::CUTSCENE) Speed::Toggle(true);
+
+		activeConfig.Speed.turbo = adjustedSpeed;
+		activeConfig.Speed.mainSpeed = adjustedSpeed;
+		queuedConfig.Speed.turbo = adjustedSpeed;
+		queuedConfig.Speed.mainSpeed = adjustedSpeed;
+
+		UpdateFrameRate(); 
+
+		// === Throttled Speed::Toggle(true) ===
+		static double lastToggleTime = 0.0;
+		constexpr double toggleInterval = 0.25; // seconds 
+
+		if (currentTime - lastToggleTime >= toggleInterval) {
+			Speed::Toggle(true);
+			lastToggleTime = currentTime;
+		}
+
+		// === One-time enable/disable logic ===
+		static bool speedWasEnabled = false;
+		if (g_scene == SCENE::GAME && !speedWasEnabled) {
+			Speed::Toggle(true);
+			speedWasEnabled = true;
+		} else if (g_inGameCutscene && speedWasEnabled) {
+			speedWasEnabled = false;
+		}
+	} 
 }
 
 void GameTrackDetection() {
 	g_gameTrackPlaying = (std::string)reinterpret_cast<char*>(appBaseAddr + 0xD23906);
-}
-
-void CorrectFrameRateCutscenes() {
-	// Changing frame rate to above or below 60 will alter cutscene speed, this function corrects this behavior
-	// by forcing cutscenes to play at 60 fps. - Mia
-
-	static bool changedFrameRateCorrection = false;
-	float temp = queuedConfig.frameRate;
-
-	if (g_scene == SCENE::CUTSCENE && !changedFrameRateCorrection) {
-		activeConfig.frameRate = 60.0;
-
-		UpdateFrameRate();
-		changedFrameRateCorrection = true;
-	}
-
-	if (g_scene != SCENE::CUTSCENE && changedFrameRateCorrection) {
-		activeConfig.frameRate = temp;
-
-		UpdateFrameRate();
-		changedFrameRateCorrection = false;
-	}
 }
 
 void PreparePlayersDataBeforeSpawn() {
@@ -126,8 +122,10 @@ void PreparePlayersDataBeforeSpawn() {
 	}
 }
 
-void NewMissionClearSong() {
-	if (g_scene == SCENE::MISSION_RESULT && !missionClearSongPlayed) {
+void CrimsonMissionClearSong() {
+	if (g_scene == SCENE::MISSION_RESULT && !missionClearSongPlayed 
+		&& (gameModeData.missionResultGameMode == GAMEMODEPRESETS::CRIMSON 
+		|| gameModeData.missionResultGameMode == GAMEMODEPRESETS::CUSTOM)) {
 		// Mute Music Channel Volume
 		SetVolume(9, 0);
 
@@ -551,8 +549,13 @@ void ForceThirdPersonCameraController() {
 	}
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 
+	if (eventData.event == EVENT::TELEPORT) {
+		CrimsonPatches::ForceThirdPersonCamera(true);
+	}
+
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	static bool checkIfGameHasAlreadyLoaded2 = false;
+	
 
 	if (!checkIfGameHasAlreadyLoaded2) {
 		if (eventData.event == EVENT::MAIN && g_inGameDelayed) {
@@ -571,7 +574,12 @@ void ForceThirdPersonCameraController() {
 	}
 
 	if (activeCrimsonConfig.Camera.forceThirdPerson) {
-		CrimsonPatches::ForceThirdPersonCamera(true);
+		if (eventData.room == ROOM::LOST_SOULS_NIRVANA && eventData.event != EVENT::TELEPORT) {
+			CrimsonPatches::ForceThirdPersonCamera(false);
+		} else {
+			CrimsonPatches::ForceThirdPersonCamera(true);
+			
+		}
 
 		if (!(eventData.room == 228 && eventData.position == 0)) { // Adding only Geryon Part 1 as an exception for now.
 			Camera::ToggleDisableBossCamera(true);
@@ -584,8 +592,119 @@ void ForceThirdPersonCameraController() {
 	}
 }
 
+void FixInitialCameraRotation(EventData& eventData, PlayerActorData& mainActorData, CameraData* cameraData, bool& setCamPos) {
+	if (!setCamPos) {
+		if (!g_inGameCutscene) {
+			constexpr float TWO_PI = 6.283185307f;
+			constexpr float PI = 3.1415926535f;
+			float radius = 5.0f;
+			float radiusZ = 5.0f;
+			float verticalOffset = 140.0f;
+
+			float angle = (mainActorData.rotation / 65535.0f) * TWO_PI;
+			angle += PI;
+
+			if (eventData.room != ROOM::HEAVENRISE_CHAMBER && eventData.room != ROOM::HIGH_FLY_ZONE) angle += PI;
+
+			vec3 offset;
+			offset.x = -sinf(angle) * radius;
+			offset.z = -cosf(angle) * radiusZ;
+			offset.y = verticalOffset;
+
+			cameraData->data[0].x = mainActorData.position.x + offset.x;
+			cameraData->data[0].y = mainActorData.position.y + offset.y;
+			cameraData->data[0].z = mainActorData.position.z + offset.z;
+			mainActorData.position.x = mainActorData.position.x + 1;
+
+			setCamPos = true;
+		}
+	}
+}
+
+void VajuraBugFix(CameraData* cameraData, EventData& eventData) {
+	static bool wasInCutscene = false;
+	static bool restoreCamData1 = false;
+	static bool restoreCamData2 = false;
+	static vec3 fixCamData1Vec = { 0.0f, 0.0f, 0.0f };
+	static vec3 fixCamData2Vec = { 0.0f, 0.0f, 0.0f };
+
+	if (eventData.room == ROOM::LIVING_STATUE_ROOM) {
+		if (g_inGameCutscene) {
+			if (!wasInCutscene) {
+				restoreCamData1 = true;
+			}
+			wasInCutscene = true;
+		} else {
+			if (restoreCamData1) {
+				cameraData->data[1].x = fixCamData1Vec.x;
+				cameraData->data[1].y = fixCamData1Vec.y;
+				cameraData->data[1].z = fixCamData1Vec.z;
+				restoreCamData1 = false;
+			} else {
+				fixCamData1Vec.x = cameraData->data[1].x;
+				fixCamData1Vec.y = cameraData->data[1].y;
+				fixCamData1Vec.z = cameraData->data[1].z;
+			}
+			wasInCutscene = false;
+		}
+	}
+}
+
+void ResetCameraToNearestSide(EventData& eventData, PlayerActorData& mainActorData, CameraData* cameraData) {
+	if (activeCrimsonConfig.Camera.rightStickCameraCentering != RIGHTSTICKCENTERCAM::TO_NEAREST_SIDE) {
+		return;
+	}
+    static bool defaultCamSet = false;
+    constexpr float TWO_PI = 6.283185307f;
+    constexpr float PI = 3.1415926535f;
+    float radius = 200.0f;
+    float radiusZ = 200.0f;
+    float verticalOffset = 140.0f;
+
+    if (mainActorData.buttons[0] & GetBinding(BINDING::DEFAULT_CAMERA) && !defaultCamSet) {
+        if (!g_inGameCutscene) {
+            // Character's forward angle in world space
+            float charAngle = (mainActorData.rotation / 65535.0f) * TWO_PI;
+           // charAngle += PI;
+
+            // Use -dx, -dz so angle is from camera to character (matches forward logic)
+            float dx = cameraData->data[0].x - mainActorData.position.x;
+            float dz = cameraData->data[0].z - mainActorData.position.z;
+            float camAngle = atan2f(-dx, -dz);
+
+            // Normalize angles to [-PI, PI]
+            auto NormalizeAngle = [](float angle) {
+                constexpr float PI = 3.1415926535f;
+                constexpr float TWO_PI = 6.283185307f;
+                while (angle > PI) angle -= TWO_PI;
+                while (angle < -PI) angle += TWO_PI;
+                return angle;
+            };
+
+            float diff = NormalizeAngle(camAngle - charAngle);
+
+            // If diff > 0, camera is on the left; snap to left. If diff < 0, snap to right.
+            float targetAngle = (diff > 0.0f) ? (charAngle + (PI / 2.0f)) : (charAngle - (PI / 2.0f));
+
+            vec3 offset;
+            offset.x = -sinf(targetAngle) * radius;
+            offset.z = -cosf(targetAngle) * radiusZ;
+            offset.y = verticalOffset;
+
+            cameraData->data[0].x = mainActorData.position.x + offset.x;
+            cameraData->data[0].y = mainActorData.position.y + offset.y;
+            cameraData->data[0].z = mainActorData.position.z + offset.z;
+            mainActorData.position.x = mainActorData.position.x + 1; // Triggers camera orbit
+
+            defaultCamSet = true;
+        }
+    } else if (!(mainActorData.buttons[0] & GetBinding(BINDING::DEFAULT_CAMERA))) {
+        defaultCamSet = false;
+    }
+}
 
 void GeneralCameraOptionsController() {
+	static bool setCamPos = false;
 	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if (!pool_10298 || !pool_10298[8]) {
 		return;
@@ -601,21 +720,33 @@ void GeneralCameraOptionsController() {
 		return;
 	}
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
-	if (eventData.event != EVENT::MAIN) {
+	if (eventData.event != EVENT::MAIN && eventData.event != EVENT::PAUSE) {
+		setCamPos = false;
 		return;
 	}
+	if (g_inGameCutscene) {
+		setCamPos = false;
+	}
+
+	g_disableRightStickCenterCamera = (activeCrimsonConfig.Camera.rightStickCameraCentering == RIGHTSTICKCENTERCAM::OFF ||
+		activeCrimsonConfig.Camera.rightStickCameraCentering == RIGHTSTICKCENTERCAM::TO_NEAREST_SIDE) ? true : false;
+
+	FixInitialCameraRotation(eventData, mainActorData, cameraData, setCamPos);
+	VajuraBugFix(cameraData, eventData);
+	ResetCameraToNearestSide(eventData, mainActorData, cameraData);
 
 	CrimsonPatches::CameraSensController();
-	
+
 	if (cameraData != nullptr) {
 		CrimsonPatches::CameraFollowUpSpeedController(*cameraData, cameraControlMetadata);
-		CrimsonPatches::CameraDistanceController(cameraData);
-		CrimsonPatches::CameraTiltController(cameraData);
+		CrimsonPatches::CameraDistanceController(cameraData, cameraControlMetadata);
+		CrimsonPatches::CameraTiltController(cameraData, cameraControlMetadata);
 	}
-	
-	CrimsonPatches::ToggleLockedOffCamera(g_disableCameraRotation? false : activeCrimsonConfig.Camera.lockedOff);
+
+	CrimsonPatches::ToggleLockedOffCamera(g_disableCameraRotation ? false : activeCrimsonConfig.Camera.lockedOff);
 	CrimsonPatches::CameraLockOnDistanceController();
 }
+
 
 void AirTauntDetoursController() {
 	if (activeConfig.Actor.enable) {
@@ -786,7 +917,7 @@ std::string GetWeaponNameById(uint8 weaponId) {
 void WeaponProgressionTracking() {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
-	if (g_scene == SCENE::GAME) {
+	if (g_scene == SCENE::GAME || g_scene == SCENE::MISSION_RESULT) {
 		for (size_t i = 0; i < ITEM::COUNT; i++) {
 			auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
 			if (!name_10723) {
@@ -820,7 +951,7 @@ void WeaponProgressionTracking() {
 				break;
 			}
 		}
-	} else {
+	} else if (g_scene == SCENE::MISSION_SELECT || g_scene == SCENE::MAIN || g_scene == SCENE::MISSION_START) {
 		for (size_t i = 0; i < WEAPONANDSTYLEUNLOCKS::COUNT; i++) {
 			switch (i) {
 			case WEAPONANDSTYLEUNLOCKS::CERBERUS:
@@ -851,7 +982,6 @@ void WeaponProgressionTracking() {
 		}
 	}
 	
-
 	// Track Unlocked Weapon Quantity
 	int previousDevilArmUnlockedQtt = weaponProgression.devilArmsUnlockedQtt;
 	int previousGunsUnlockedQtt = weaponProgression.gunsUnlockedQtt;
@@ -871,7 +1001,6 @@ void WeaponProgressionTracking() {
 		}
 	}
 
-	// Only update weaponCount when the unlocked quantity has changed
 	for (size_t playerIndex = 0; playerIndex < PLAYER_COUNT; playerIndex++) {
 		for (size_t characterIndex = 0; characterIndex < CHARACTER_COUNT; characterIndex++) {
 			auto& activeCharacterData = activeConfig.Actor.playerData[playerIndex].characterData[characterIndex][ENTITY::MAIN];
@@ -879,19 +1008,40 @@ void WeaponProgressionTracking() {
 
 			auto& lastMaxMeleeWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCount[playerIndex][characterIndex];
 			auto& lastMaxRangedWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxRangedWeaponCount[playerIndex][characterIndex];
+			auto& lastMaxMeleeWeaponCountVergil = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCountVergil[playerIndex][characterIndex];
+			auto& lastEquippedMeleeWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedMeleeWeapons[playerIndex][characterIndex];
+			auto& lastEquippedRangedWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedRangedWeapons[playerIndex][characterIndex];
+			auto& lastEquippedMeleeWeaponsVergil = queuedCrimsonConfig.CachedSettings.lastEquippedMeleeWeaponsVergil[playerIndex][characterIndex];
 
-			if (activeCharacterData.meleeWeaponCount > 1) {
-				lastMaxMeleeWeaponCount = activeCharacterData.meleeWeaponCount;
-			}
-
-			if (activeCharacterData.rangedWeaponCount > 1) {
-				lastMaxRangedWeaponCount = activeCharacterData.rangedWeaponCount;
+			// Caching lastMaxWeaponCounts and equippedWeapons for GUI usability and for maintaining the Weapon Progression System.
+			if (activeCharacterData.character == CHARACTER::VERGIL) {
+				if (activeCharacterData.meleeWeaponCount > 1) {
+					lastMaxMeleeWeaponCountVergil = activeCharacterData.meleeWeaponCount;
+					for (size_t i = 0; i < MELEE_WEAPON_COUNT_DANTE; i++) {
+						lastEquippedMeleeWeaponsVergil[i] = activeCharacterData.meleeWeapons[i];
+					}
+				}
 			}
 
 			if (activeCharacterData.character != CHARACTER::DANTE) {
 				break;
 			}
 
+			if (activeCharacterData.meleeWeaponCount > 1) {
+				lastMaxMeleeWeaponCount = activeCharacterData.meleeWeaponCount;
+				for (size_t i = 0; i < MELEE_WEAPON_COUNT_DANTE; i++) {
+					lastEquippedMeleeWeapons[i] = activeCharacterData.meleeWeapons[i];
+				}
+			}
+
+			if (activeCharacterData.rangedWeaponCount > 1) {
+				lastMaxRangedWeaponCount = activeCharacterData.rangedWeaponCount;
+				for (size_t i = 0; i < RANGED_WEAPON_COUNT_DANTE; i++) {
+					lastEquippedRangedWeapons[i] = activeCharacterData.rangedWeapons[i];
+				}
+			}
+
+			// Only update weaponCount when the unlocked quantity has changed
 			// DEVIL ARMS
 			if (weaponProgression.devilArmsUnlockedQtt != previousDevilArmUnlockedQtt) {
 
@@ -1012,12 +1162,25 @@ void WeaponProgressionTracking() {
 				}
 			}
 
-			if (activeCharacterData.rangedWeaponCount == 0)
-				activeCharacterData.rangedWeaponCount = 1;
-			if (queuedCharacterData.rangedWeaponCount == 0)
-				queuedCharacterData.rangedWeaponCount = 1;
+			if (activeCharacterData.character == CHARACTER::DANTE) {
+				if (activeCharacterData.rangedWeaponCount == 0)
+					activeCharacterData.rangedWeaponCount = 1;
+				if (queuedCharacterData.rangedWeaponCount == 0)
+					queuedCharacterData.rangedWeaponCount = 1;
+			}
 		}
 	}
 }
 
+void FixM7DevilTriggerUnlocking() {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	if ((g_scene == SCENE::MISSION_RESULT && sessionData.mission == 7) || 
+		(g_scene == SCENE::MISSION_START && sessionData.mission == 8)) {
+		if (!sessionData.unlockDevilTrigger && sessionData.magicPoints == 0) {
+			sessionData.unlockDevilTrigger = true;
+			sessionData.magicPoints = 3000;
+		}
+	}
+}
 }

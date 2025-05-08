@@ -145,6 +145,7 @@ void AirCancelCountsTracker(byte8* actorBaseAddr) {
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     auto playerIndex = actorData.newPlayerIndex;
     auto& storedAirCounts = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].storedAirCounts : crimsonPlayer[playerIndex].storedAirCountsClone;
+	auto& airCounts = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].airCounts : crimsonPlayer[playerIndex].airCountsClone;
 
     // This restores player counts back to what they were before the Royal Cancel
     storedAirCounts.cancelTrackerRunning = true;
@@ -154,6 +155,7 @@ void AirCancelCountsTracker(byte8* actorBaseAddr) {
     actorData.newSkyStarCount = storedAirCounts.skyStar;
     actorData.newAirHikeCount = storedAirCounts.airHike;
     actorData.newAirStingerCount = storedAirCounts.airStinger;
+	airCounts.airTornado = storedAirCounts.airTornado;
 
     storedAirCounts.cancelTrackerRunning = false;
 }
@@ -170,6 +172,7 @@ void FixAirStingerCancelTime(byte8* actorBaseAddr) {
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 	auto& storedAirCounts = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].storedAirCounts : crimsonPlayer[playerIndex].storedAirCountsClone;
+	auto& airCounts = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].airCounts : crimsonPlayer[playerIndex].airCountsClone;
 
     if (actorData.character == CHARACTER::DANTE) {
 		if ((actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) && actorData.state & STATE::IN_AIR && crimsonPlayer[playerIndex].actionTimer > 0.4f
@@ -179,6 +182,7 @@ void FixAirStingerCancelTime(byte8* actorBaseAddr) {
 			storedAirCounts.skyStar = actorData.newSkyStarCount;
 			storedAirCounts.airHike = actorData.newAirHikeCount;
 			storedAirCounts.airStinger = actorData.newAirStingerCount;
+            storedAirCounts.airTornado = airCounts.airTornado;
 
 			actorData.action = ROYAL_AIR_BLOCK;
 
@@ -197,6 +201,7 @@ void FixAirStingerCancelTime(byte8* actorBaseAddr) {
 			storedAirCounts.skyStar = actorData.newSkyStarCount;
 			storedAirCounts.airHike = actorData.newAirHikeCount;
 			storedAirCounts.airStinger = actorData.newAirStingerCount;
+            storedAirCounts.airTornado = airCounts.airTornado;
 
 			actorData.action = ROYAL_AIR_BLOCK;
 
@@ -209,6 +214,7 @@ void FixAirStingerCancelTime(byte8* actorBaseAddr) {
 void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
     using namespace ACTION_DANTE;
     using namespace ACTION_VERGIL;
+    using namespace NEXT_ACTION_REQUEST_POLICY;
 
     // This used to be Reset Permissions Controller, which we'll now use for Improved Cancels (Royalguard) - Mia.
     /*if (
@@ -233,51 +239,73 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 
     auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
     auto playerIndex = actorData.newPlayerIndex;
-    auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
-    auto& storedAirCounts = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].storedAirCounts : crimsonPlayer[playerIndex].storedAirCountsClone;
+    auto& actionTimer = (actorData.newEntityIndex == 0) ? 
+        crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
+	auto& actorCancels = (actorData.newEntityIndex == 0) ?
+		crimsonPlayer[playerIndex].cancels : crimsonPlayer[playerIndex].cancelsClone;
+    auto& storedAirCounts = (actorData.newEntityIndex == 0) ? 
+        crimsonPlayer[playerIndex].storedAirCounts : crimsonPlayer[playerIndex].storedAirCountsClone;
+	auto& airCounts = (actorData.newEntityIndex == 0) ?
+		crimsonPlayer[playerIndex].airCounts : crimsonPlayer[playerIndex].airCountsClone;
+
+	if ((actorData.action == CERBERUS_REVOLVER_LEVEL_1 || actorData.action == CERBERUS_REVOLVER_LEVEL_2) && actorCancels.revolverTimer < 1.1f) {
+		if (inAir) {
+			actorCancels.revolverTimerRunning = true;
+		} else {
+			actorCancels.revolverTimerRunning = false;
+		}
+	} else {
+		actorCancels.revolverTimerRunning = false;
+	}
+
+    bool inCancellableBasicRebellion = (actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_1 ||
+        actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_2 ||
+        actorData.action == REBELLION_COMBO_1_PART_3 || actorData.action == REBELLION_COMBO_2_PART_2 ||
+        actorData.action == REBELLION_COMBO_2_PART_3 || actorData.action == REBELLION_PROP || actorData.action == REBELLION_SHREDDER ||
+		actorData.action == REBELLION_DRIVE_1 || actorData.action == REBELLION_DRIVE_2 || actorData.action == REBELLION_DANCE_MACABRE_PART_1 || actorData.action == REBELLION_DANCE_MACABRE_PART_2 ||
+		actorData.action == REBELLION_DANCE_MACABRE_PART_3 || actorData.action == REBELLION_DANCE_MACABRE_PART_4 ||
+		actorData.action == REBELLION_DANCE_MACABRE_PART_5 || actorData.action == REBELLION_DANCE_MACABRE_PART_6 ||
+		actorData.action == REBELLION_DANCE_MACABRE_PART_7 || actorData.action == REBELLION_DANCE_MACABRE_PART_8);
 
     bool inCancellableActionRebellion =
-        (actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_1 ||
-            actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_2 ||
-            actorData.action == REBELLION_COMBO_1_PART_3 || actorData.action == REBELLION_COMBO_2_PART_2 ||
-            actorData.action == REBELLION_COMBO_2_PART_3 || actorData.action == REBELLION_PROP || actorData.action == REBELLION_SHREDDER ||
-            actorData.action == REBELLION_DRIVE_1 || actorData.action == REBELLION_DRIVE_2 || actorData.action == REBELLION_MILLION_STAB ||
-            actorData.action == REBELLION_DANCE_MACABRE_PART_1 || actorData.action == REBELLION_DANCE_MACABRE_PART_2 ||
-            actorData.action == REBELLION_DANCE_MACABRE_PART_3 || actorData.action == REBELLION_DANCE_MACABRE_PART_4 ||
-            actorData.action == REBELLION_DANCE_MACABRE_PART_5 || actorData.action == REBELLION_DANCE_MACABRE_PART_6 ||
-            actorData.action == REBELLION_DANCE_MACABRE_PART_7 || actorData.action == REBELLION_DANCE_MACABRE_PART_8 ||
+        (actorData.action == REBELLION_MILLION_STAB ||
             actorData.action == REBELLION_CRAZY_DANCE || actorData.action == POLE_PLAY);
 
+    bool inCancellableBasicCerberus = (actorData.action == CERBERUS_COMBO_1_PART_1 || actorData.action == CERBERUS_COMBO_1_PART_2 ||
+        actorData.action == CERBERUS_COMBO_1_PART_3 || actorData.action == CERBERUS_COMBO_1_PART_4 ||
+        actorData.action == CERBERUS_COMBO_1_PART_5 || actorData.action == CERBERUS_COMBO_2_PART_3 ||
+        actorData.action == CERBERUS_COMBO_2_PART_4 || actorData.action == CERBERUS_WINDMILL || actorData.action == CERBERUS_FLICKER
+        || actorData.action == CERBERUS_SWING);
+
     bool inCancellableActionCerberus =
-        (actorData.action == CERBERUS_COMBO_1_PART_1 || actorData.action == CERBERUS_COMBO_1_PART_2 ||
-            actorData.action == CERBERUS_COMBO_1_PART_3 || actorData.action == CERBERUS_COMBO_1_PART_4 ||
-            actorData.action == CERBERUS_COMBO_1_PART_5 || actorData.action == CERBERUS_COMBO_2_PART_3 ||
-            actorData.action == CERBERUS_COMBO_2_PART_4 || actorData.action == CERBERUS_WINDMILL ||
-            (actorData.action == CERBERUS_REVOLVER_LEVEL_1 && actionTimer > 1.25f) || (actorData.action == CERBERUS_REVOLVER_LEVEL_2  && actionTimer > 1.25f) ||
-            actorData.action == CERBERUS_SWING || actorData.action == CERBERUS_SATELLITE || actorData.action == CERBERUS_FLICKER ||
+        ((actorData.action == CERBERUS_REVOLVER_LEVEL_1 && actorCancels.revolverTimer > 1.1f) || (actorData.action == CERBERUS_REVOLVER_LEVEL_2 && actorCancels.revolverTimer > 1.1f)
+            || actorData.action == CERBERUS_SATELLITE ||
             actorData.action == CERBERUS_CRYSTAL || actorData.action == CERBERUS_MILLION_CARATS || actorData.action == CERBERUS_ICE_AGE);
 
+	bool inCancellableBasicAgni = (actorData.action == AGNI_RUDRA_COMBO_1_PART_1 || actorData.action == AGNI_RUDRA_COMBO_1_PART_2 ||
+		actorData.action == AGNI_RUDRA_COMBO_1_PART_3 || actorData.action == AGNI_RUDRA_COMBO_1_PART_4 ||
+		actorData.action == AGNI_RUDRA_COMBO_1_PART_5 || actorData.action == AGNI_RUDRA_COMBO_2_PART_2 ||
+		actorData.action == AGNI_RUDRA_COMBO_2_PART_3 || actorData.action == AGNI_RUDRA_COMBO_3_PART_3 ||
+		actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_1 || actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_2 ||
+		actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_3);
+
     bool inCancellableActionAgni =
-        (actorData.action == AGNI_RUDRA_COMBO_1_PART_1 || actorData.action == AGNI_RUDRA_COMBO_1_PART_2 ||
-            actorData.action == AGNI_RUDRA_COMBO_1_PART_3 || actorData.action == AGNI_RUDRA_COMBO_1_PART_4 ||
-            actorData.action == AGNI_RUDRA_COMBO_1_PART_5 || actorData.action == AGNI_RUDRA_COMBO_2_PART_2 ||
-            actorData.action == AGNI_RUDRA_COMBO_2_PART_3 || actorData.action == AGNI_RUDRA_COMBO_3_PART_3 ||
-            actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_1 || actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_2 ||
-            actorData.action == AGNI_RUDRA_JET_STREAM_LEVEL_3 || actorData.action == AGNI_RUDRA_MILLION_SLASH ||
+        (actorData.action == AGNI_RUDRA_MILLION_SLASH ||
             actorData.action == AGNI_RUDRA_TWISTER || actorData.action == AGNI_RUDRA_TEMPEST);
 
+	bool inCancellableBasicNevan = (actorData.action == NEVAN_TUNE_UP || actorData.action == NEVAN_COMBO_1 || actorData.action == NEVAN_COMBO_2 ||
+		actorData.action == NEVAN_BAT_RIFT_LEVEL_1 ||
+		actorData.action == NEVAN_BAT_RIFT_LEVEL_2  || actorData.action == NEVAN_SLASH);
 
     bool inCancellableActionNevan =
-        (actorData.action == NEVAN_TUNE_UP || actorData.action == NEVAN_COMBO_1 || actorData.action == NEVAN_COMBO_2 ||
-            actorData.action == NEVAN_JAM_SESSION || actorData.action == NEVAN_BAT_RIFT_LEVEL_1 ||
-            actorData.action == NEVAN_BAT_RIFT_LEVEL_2 || actorData.action == NEVAN_REVERB_SHOCK_LEVEL_1 ||
-            actorData.action == NEVAN_REVERB_SHOCK_LEVEL_2 || actorData.action == NEVAN_SLASH || actorData.action == NEVAN_FEEDBACK ||
+        (actorData.action == NEVAN_JAM_SESSION || actorData.action == NEVAN_FEEDBACK ||
             actorData.action == NEVAN_CRAZY_ROLL || actorData.action == NEVAN_DISTORTION);
 
-    bool inCancellableActionBeowulf = (actorData.action == BEOWULF_COMBO_1_PART_1 || actorData.action == BEOWULF_COMBO_1_PART_2 ||
-                                       actorData.action == BEOWULF_COMBO_1_PART_3 || actorData.action == BEOWULF_COMBO_2_PART_3 ||
-                                       actorData.action == BEOWULF_COMBO_2_PART_4 || actorData.action == BEOWULF_BEAST_UPPERCUT ||
-                                       actorData.action == BEOWULF_HYPER_FIST);
+	bool inCancellableBasicBeowulf = (actorData.action == BEOWULF_COMBO_1_PART_1 || actorData.action == BEOWULF_COMBO_1_PART_2 ||
+		actorData.action == BEOWULF_COMBO_1_PART_3 || actorData.action == BEOWULF_COMBO_2_PART_3 ||
+		actorData.action == BEOWULF_COMBO_2_PART_4 || actorData.action == BEOWULF_BEAST_UPPERCUT);
+
+    bool inCancellableActionBeowulf = (actorData.action == BEOWULF_HYPER_FIST);
 
     bool inCancellableActionGuns =
         (actorData.action == EBONY_IVORY_WILD_STOMP || actorData.action == ARTEMIS_ACID_RAIN || actorData.action == KALINA_ANN_GRAPPLE);
@@ -292,32 +320,47 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
              (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO)) &&
             actorData.eventData[0].event == 17);
 
+    auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
+    auto& trickDashTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].trickDashTimer : crimsonPlayer[playerIndex].trickDashTimerClone;
 
-    // Royalguard Cancels Everything (Most things)
+	
+
+    // What Royalguard Cancels Completely and at any frame (Not Basic Combos mainly Crazy Combos)
     if ((actorData.style == STYLE::ROYALGUARD) && (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) &&
         actorData.eventData[0].event != ACTOR_EVENT::STAGGER && actorData.eventData[0].event != ACTOR_EVENT::NEVAN_KISS &&
         (inCancellableActionRebellion || inCancellableActionCerberus || inCancellableActionAgni || inCancellableActionNevan ||
-            inCancellableActionBeowulf || inCancellableActionGuns || actorData.eventData[0].event == 22) &&
+            inCancellableActionBeowulf || inCancellableActionGuns || (actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_DASH) && trickDashTimer > 0.3f) &&
         !storedAirCounts.cancelTrackerRunning) // The last condition prevents cancelling recovery
     {
-
-        // Old list of exceptions, easier to list everything that should be cancellable.
-
-        /*/if (actorData.action != SPIRAL_NORMAL_SHOT && actorData.action != KALINA_ANN_NORMAL_SHOT &&
-        actorData.action != EBONY_IVORY_AIR_NORMAL_SHOT && actorData.action != SHOTGUN_AIR_NORMAL_SHOT &&
-        actorData.action != SPIRAL_TRICK_SHOT && !royalCancelTrackerRunning) // Exceptions, these cancels are way too OP or buggy in the
-        cases of E&I and Shotgun.*/
-
-
         storedAirCounts.trickUp = actorData.newTrickUpCount;
         storedAirCounts.skyStar = actorData.newSkyStarCount;
         storedAirCounts.airHike = actorData.newAirHikeCount;
         storedAirCounts.airStinger = actorData.newAirStingerCount;
+        storedAirCounts.airTornado = airCounts.airTornado;
 
         actorData.permissions = 3080; // This is a softer version of Reset Permissions.
 
 		std::thread royalcountstracker(AirCancelCountsTracker, actorBaseAddr);
 		royalcountstracker.detach();
+    }
+
+    // Basic Combos and Moves should only cancellable if the player can do an attack
+    if ((actorData.style == STYLE::ROYALGUARD) && (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) &&
+        actorData.eventData[0].event != ACTOR_EVENT::STAGGER && actorData.eventData[0].event != ACTOR_EVENT::NEVAN_KISS &&
+        (inCancellableBasicRebellion || inCancellableBasicCerberus || inCancellableBasicAgni || inCancellableBasicNevan ||
+            inCancellableBasicBeowulf) && (policy == EXECUTE) &&
+        !storedAirCounts.cancelTrackerRunning) // The last condition prevents cancelling recovery
+    {
+        storedAirCounts.trickUp = actorData.newTrickUpCount;
+        storedAirCounts.skyStar = actorData.newSkyStarCount;
+        storedAirCounts.airHike = actorData.newAirHikeCount;
+        storedAirCounts.airStinger = actorData.newAirStingerCount;
+        storedAirCounts.airTornado = airCounts.airTornado;
+
+        actorData.permissions = 3080; // This is a softer version of Reset Permissions.
+
+        std::thread royalcountstracker(AirCancelCountsTracker, actorBaseAddr);
+        royalcountstracker.detach();
     }
 
     // Royal Cancelling Sky Star
@@ -329,6 +372,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 		storedAirCounts.skyStar = actorData.newSkyStarCount;
 		storedAirCounts.airHike = actorData.newAirHikeCount;
 		storedAirCounts.airStinger = actorData.newAirStingerCount;
+        storedAirCounts.airTornado = airCounts.airTornado;
 
         actorData.permissions = 0x1C1B; // This is a hard version of Reset Permissions.
 
@@ -349,6 +393,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 				storedAirCounts.skyStar = actorData.newSkyStarCount;
 				storedAirCounts.airHike = actorData.newAirHikeCount;
 				storedAirCounts.airStinger = actorData.newAirStingerCount;
+                storedAirCounts.airTornado = airCounts.airTornado;
 
                 actorData.action = ROYAL_AIR_BLOCK;
 
@@ -492,7 +537,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
         // Improve Prop/Shredder Trick Buffering
         if (actorData.action == REBELLION_PROP || actorData.action == REBELLION_SHREDDER) {
             policyTrick = BUFFER;
-            if (doingAirTrick && actionTimer > 0.55f) {
+            if (doingAirTrick && actionTimer > 0.47f) {
                 policyTrick = EXECUTE;
             }
         }
@@ -500,7 +545,25 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
         // Improve Twister/Tempest Trick Buffering
 		if (actorData.action == AGNI_RUDRA_TWISTER || actorData.action == AGNI_RUDRA_TEMPEST) {
 			policyTrick = BUFFER;
-			if (doingAirTrick && actionTimer > 0.55f) {
+			if (doingAirTrick && actionTimer > 0.50f) {
+				policyTrick = EXECUTE;
+			}
+		}
+
+		// Improved Air Swordmaster Moves Trick Buffering
+		if (actorData.action == CERBERUS_AIR_FLICKER || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 
+            || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3
+            || actorData.action == BEOWULF_THE_HAMMER || actorData.action == BEOWULF_TORNADO) {
+			policyTrick = BUFFER;
+			if (doingAirTrick && actionTimer > 0.15f) {
+                policyTrick = EXECUTE;
+			}
+		}
+
+		// Improved Cerberus' Crystal/Million Carats Trick Buffering
+		if (actorData.action == CERBERUS_CRYSTAL || actorData.action == CERBERUS_MILLION_CARATS) {
+			policyTrick = BUFFER;
+			if (doingAirTrick && actionTimer > 0.45f) {
 				policyTrick = EXECUTE;
 			}
 		}
@@ -782,25 +845,26 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
         (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
     auto animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
     
-
-
     if (actorData.character == CHARACTER::VERGIL) {
 
         // Storing the pos
-        if (action != BEOWULF_RISING_SUN) {
+        if (!(action == BEOWULF_RISING_SUN && event == ACTOR_EVENT::ATTACK)) {
             v->storedRisingSunPosY = actorData.position.y;
         }
 
-        
-        if (!(state & STATE::IN_AIR && (action == BEOWULF_LUNAR_PHASE_LEVEL_1 || action == BEOWULF_LUNAR_PHASE_LEVEL_2) &&
-                actorData.eventData[0].event == 17)) {
+        if (!(action == BEOWULF_LUNAR_PHASE_LEVEL_2 && event == ACTOR_EVENT::ATTACK)) {
 
             v->storedLunarPhasePosY = actorData.position.y;
         }
 
+		if (!(action == BEOWULF_LUNAR_PHASE_LEVEL_1 && event == ACTOR_EVENT::ATTACK)) {
+
+			v->storedLunarPhaseLv1PosY = actorData.position.y;
+		}
+
 
         // Take configs into account if new positionings will be applied or not
-        if (activeCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos == "From Air") {
+        if (activeCrimsonGameplay.Gameplay.Vergil.adjustRisingSunPos == "From Air") {
 			if (action != BEOWULF_RISING_SUN) {
 				if (!(state & STATE::IN_AIR)) {
 					v->startingRisingSunFromGround = true;
@@ -808,14 +872,14 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
 					v->startingRisingSunFromGround = false;
 				}
 			}
-		} else if (activeCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos == "Always") {
+		} else if (activeCrimsonGameplay.Gameplay.Vergil.adjustRisingSunPos == "Always") {
 			v->startingRisingSunFromGround = false;
-		} else if (activeCrimsonConfig.Gameplay.Vergil.adjustRisingSunPos == "Off") {
+		} else if (activeCrimsonGameplay.Gameplay.Vergil.adjustRisingSunPos == "Off") {
 			v->startingRisingSunFromGround = true;
 		}
 
 		
-        if (activeCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos == "From Air") {
+        if (activeCrimsonGameplay.Gameplay.Vergil.adjustLunarPhasePos == "From Air") {
             if (action != BEOWULF_LUNAR_PHASE_LEVEL_1 && action != BEOWULF_LUNAR_PHASE_LEVEL_2) {
                 if (!(state & STATE::IN_AIR)) {
                     v->startingLunarPhaseFromGround = true;
@@ -823,9 +887,9 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
                     v->startingLunarPhaseFromGround = false;
                 }
             }
-		} else if (activeCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos == "Always") {
+		} else if (activeCrimsonGameplay.Gameplay.Vergil.adjustLunarPhasePos == "Always") {
 			v->startingLunarPhaseFromGround = false;
-        } else if (activeCrimsonConfig.Gameplay.Vergil.adjustLunarPhasePos == "Off") {
+        } else if (activeCrimsonGameplay.Gameplay.Vergil.adjustLunarPhasePos == "Off") {
             v->startingLunarPhaseFromGround = true;
         }
 
@@ -856,7 +920,7 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
 				!v->startingLunarPhaseFromGround) {
 
 				actorData.verticalPullMultiplier = 0.0f;
-				actorData.position.y = v->storedLunarPhasePosY - 20.0f;
+				actorData.position.y = v->storedLunarPhaseLv1PosY - 20.0f;
 			}
         }
     }
@@ -865,7 +929,7 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
 void FasterDTRapidSlash(byte8* actorBaseAddr) {
     using namespace ACTION_DANTE;
     using namespace ACTION_VERGIL;
-    if (!actorBaseAddr || !activeCrimsonConfig.Gameplay.Vergil.fasterDTRapidSlash) {
+    if (!actorBaseAddr || !activeCrimsonGameplay.Gameplay.Vergil.fasterDTRapidSlash) {
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
@@ -884,10 +948,10 @@ void FasterDTRapidSlash(byte8* actorBaseAddr) {
         if ((actorData.motionData[0].index == 51 || actorData.motionData[0].index == 2) &&
             !inRapidSlash) { // Coudln't figure out a way to not bug this out then to store this out of walking anim
             // Storing the original speeds
-            fasterRapidSlash.storedSpeedDevil[0] = activeConfig.Speed.devilVergil[0];
-            fasterRapidSlash.storedSpeedDevil[1] = activeConfig.Speed.devilVergil[1];
-            fasterRapidSlash.storedSpeedDevil[2] = activeConfig.Speed.devilVergil[2];
-            fasterRapidSlash.storedSpeedDevil[3] = activeConfig.Speed.devilVergil[3];
+            fasterRapidSlash.storedSpeedDevil[0] = activeCrimsonGameplay.Cheats.Speed.dTVergil[0];
+            fasterRapidSlash.storedSpeedDevil[1] = activeCrimsonGameplay.Cheats.Speed.dTVergil[1];
+            fasterRapidSlash.storedSpeedDevil[2] = activeCrimsonGameplay.Cheats.Speed.dTVergil[2];
+            fasterRapidSlash.storedSpeedDevil[3] = activeCrimsonGameplay.Cheats.Speed.dTVergil[3];
         }
 
         if (actorData.devil == 1) {
@@ -895,20 +959,20 @@ void FasterDTRapidSlash(byte8* actorBaseAddr) {
 
 
                 // Setting the new speed
-                activeConfig.Speed.devilVergil[0] = fasterRapidSlash.newSpeed;
-                activeConfig.Speed.devilVergil[1] = fasterRapidSlash.newSpeed;
-                activeConfig.Speed.devilVergil[2] = fasterRapidSlash.newSpeed;
-                activeConfig.Speed.devilVergil[3] = fasterRapidSlash.newSpeed;
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[0] = fasterRapidSlash.newSpeed;
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[1] = fasterRapidSlash.newSpeed;
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[2] = fasterRapidSlash.newSpeed;
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[3] = fasterRapidSlash.newSpeed;
 
                 fasterRapidSlash.newSpeedSet = true;
             } else if (!inRapidSlash && fasterRapidSlash.newSpeedSet) {
 
 
                 // Restoring the original speeds
-                activeConfig.Speed.devilVergil[0] = fasterRapidSlash.storedSpeedDevil[0];
-                activeConfig.Speed.devilVergil[1] = fasterRapidSlash.storedSpeedDevil[1];
-                activeConfig.Speed.devilVergil[2] = fasterRapidSlash.storedSpeedDevil[2];
-                activeConfig.Speed.devilVergil[3] = fasterRapidSlash.storedSpeedDevil[3];
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[0] = fasterRapidSlash.storedSpeedDevil[0];
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[1] = fasterRapidSlash.storedSpeedDevil[1];
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[2] = fasterRapidSlash.storedSpeedDevil[2];
+                activeCrimsonGameplay.Cheats.Speed.dTVergil[3] = fasterRapidSlash.storedSpeedDevil[3];
 
 
                 fasterRapidSlash.newSpeedSet = false;
@@ -927,18 +991,18 @@ void FasterDarkslayerTricks() {
 
 
     if (actorData.character == CHARACTER::VERGIL) {
-        float storedspeedVergil = activeConfig.Speed.human;
+        float storedspeedVergil = activeCrimsonGameplay.Cheats.Speed.human;
 
         if ((actorData.motionData[0].index == 51 || actorData.motionData[0].index == 2) &&
             !(actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK ||
                 actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP ||
                 actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN)) {
             // Storing the original speeds
-            fasterDarkslayer.storedSpeedHuman    = activeConfig.Speed.human;
-            fasterDarkslayer.storedSpeedDevil[0] = activeConfig.Speed.devilVergil[0];
-            fasterDarkslayer.storedSpeedDevil[1] = activeConfig.Speed.devilVergil[1];
-            fasterDarkslayer.storedSpeedDevil[2] = activeConfig.Speed.devilVergil[2];
-            fasterDarkslayer.storedSpeedDevil[3] = activeConfig.Speed.devilVergil[3];
+            fasterDarkslayer.storedSpeedHuman    = activeCrimsonGameplay.Cheats.Speed.human;
+            fasterDarkslayer.storedSpeedDevil[0] = activeCrimsonGameplay.Cheats.Speed.dTVergil[0];
+            fasterDarkslayer.storedSpeedDevil[1] = activeCrimsonGameplay.Cheats.Speed.dTVergil[1];
+            fasterDarkslayer.storedSpeedDevil[2] = activeCrimsonGameplay.Cheats.Speed.dTVergil[2];
+            fasterDarkslayer.storedSpeedDevil[3] = activeCrimsonGameplay.Cheats.Speed.dTVergil[3];
         }
 
         if ((actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK ||
@@ -948,11 +1012,11 @@ void FasterDarkslayerTricks() {
 
 
             // Setting the new speed
-            activeConfig.Speed.human          = fasterDarkslayer.newSpeed;
-            activeConfig.Speed.devilVergil[0] = fasterDarkslayer.newSpeed;
-            activeConfig.Speed.devilVergil[1] = fasterDarkslayer.newSpeed;
-            activeConfig.Speed.devilVergil[2] = fasterDarkslayer.newSpeed;
-            activeConfig.Speed.devilVergil[3] = fasterDarkslayer.newSpeed;
+            activeCrimsonGameplay.Cheats.Speed.human = fasterDarkslayer.newSpeed;
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[0] = fasterDarkslayer.newSpeed;
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[1] = fasterDarkslayer.newSpeed;
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[2] = fasterDarkslayer.newSpeed;
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[3] = fasterDarkslayer.newSpeed;
 
             fasterDarkslayer.newSpeedSet = true;
         } else if (!(actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK ||
@@ -961,11 +1025,11 @@ void FasterDarkslayerTricks() {
                    fasterDarkslayer.newSpeedSet) {
 
             // Restoring the original speeds
-            activeConfig.Speed.human          = fasterDarkslayer.storedSpeedHuman;
-            activeConfig.Speed.devilVergil[0] = fasterDarkslayer.storedSpeedDevil[0];
-            activeConfig.Speed.devilVergil[1] = fasterDarkslayer.storedSpeedDevil[1];
-            activeConfig.Speed.devilVergil[2] = fasterDarkslayer.storedSpeedDevil[2];
-            activeConfig.Speed.devilVergil[3] = fasterDarkslayer.storedSpeedDevil[3];
+            activeCrimsonGameplay.Cheats.Speed.human = fasterDarkslayer.storedSpeedHuman;
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[0] = fasterDarkslayer.storedSpeedDevil[0];
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[1] = fasterDarkslayer.storedSpeedDevil[1];
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[2] = fasterDarkslayer.storedSpeedDevil[2];
+            activeCrimsonGameplay.Cheats.Speed.dTVergil[3] = fasterDarkslayer.storedSpeedDevil[3];
 
 
             fasterDarkslayer.newSpeedSet = false;
@@ -1088,10 +1152,10 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
 	auto& actionTimer =
 		(actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].actionTimerClone : crimsonPlayer[playerIndex].actionTimer;
 
-    CrimsonDetours::ToggleFreeformSoftLockHelper(activeCrimsonConfig.Gameplay.General.freeformSoftLock);
-    float bufferTime = (activeCrimsonConfig.Gameplay.General.bufferlessReversals)? 0.3f : 0.02f;
+    CrimsonDetours::ToggleFreeformSoftLockHelper(activeCrimsonGameplay.Gameplay.General.freeformSoftLock);
+    float bufferTime = (activeCrimsonGameplay.Gameplay.General.bufferlessReversals)? 0.3f : 0.02f;
 
-    if (!activeCrimsonConfig.Gameplay.General.freeformSoftLock) {
+    if (!activeCrimsonGameplay.Gameplay.General.freeformSoftLock) {
         return;
     }
 
@@ -1728,9 +1792,14 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
         }
 
         // Fix for the weird carry over to EbonyIvory Normal Shot
-        if (action == 132 && lastAction == CERBERUS_AIR_FLICKER) {
+        if (action == ACTION_DANTE::EBONY_IVORY_AIR_NORMAL_SHOT && lastAction == CERBERUS_AIR_FLICKER) {
             actorData.verticalPullMultiplier = -1.2f;
         }
+
+		// Fix for weird Fireworks carry over on vertical mult.
+		if (action == ACTION_DANTE::SHOTGUN_AIR_FIREWORKS && lastAction == CERBERUS_AIR_FLICKER) {
+			actorData.verticalPullMultiplier = -0.95f;
+		}
     }
 }
 
@@ -1773,11 +1842,16 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
             }
         }
 
-
         // Fix for the weird carry over to EbonyIvory Normal Shot
-        if (action == 132 && inSkyDanceLastAction) {
+        if (action == ACTION_DANTE::EBONY_IVORY_AIR_NORMAL_SHOT && inSkyDanceLastAction) {
             actorData.verticalPullMultiplier = -1.2f;
         }
+
+		// Fix for weird Fireworks carry over on vertical mult.
+		if (action == ACTION_DANTE::SHOTGUN_AIR_FIREWORKS && (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 
+            || lastAction == AGNI_RUDRA_SKY_DANCE_PART_2)) {
+			actorData.verticalPullMultiplier = -0.95f;
+		}
     }
 }
 
@@ -1790,59 +1864,73 @@ void DMC4Mobility(byte8* actorBaseAddr) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    
-    auto playerIndex = actorData.newPlayerIndex;
-    auto entityIndex = actorData.newEntityIndex;
-    auto& event = actorData.eventData[0].event;
-    auto& state = actorData.state;
-    auto& airTrickCount = actorData.newAirTrickCount;
-    static uint8 savedAirTrickCounts[PLAYER_COUNT][ENTITY_COUNT] = { 0 };
-    auto& savedAirTrickCount = savedAirTrickCounts[playerIndex][entityIndex];
-    bool enable = activeCrimsonConfig.Gameplay.Dante.dmc4Mobility;
-    static bool run = false;
 
-    // Messing with default Mobility Settings to be equivalent to DMC4 counts.
+	auto playerIndex = actorData.newPlayerIndex;
+	auto entityIndex = actorData.newEntityIndex;
+	auto& event = actorData.eventData[0].event;
+	auto& state = actorData.state;
+	auto& airTrickCount = actorData.newAirTrickCount;
+	static uint8 savedAirTrickCounts[PLAYER_COUNT][ENTITY_COUNT] = { 0 };
+	auto& savedAirTrickCount = savedAirTrickCounts[playerIndex][entityIndex];
+	bool enable = activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility;
+	static bool run = false;
+	// Messing with default Mobility Settings to be equivalent to DMC4 counts.
 	if (run != enable && enable) {
-		defaultConfig.airHikeCount[1] = 2;
-		defaultConfig.wallHikeCount[1] = 2;
-		defaultConfig.skyStarCount[1] = 2;
-		defaultConfig.airTrickCountDante[1] = 2;
-
-        run = enable;
+		defaultCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 2;
+		defaultCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 2;
+		defaultCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 2;
+		defaultCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 2;
+		run = enable;
+	} else if (run != enable && !enable) {
+		defaultCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 1;
+		defaultCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 1;
+		defaultCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 1;
+		defaultCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 1;
+		if (!activeCrimsonGameplay.Cheats.General.customMobility) {
+			queuedCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 1;
+			queuedCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 1;
+			queuedCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 1;
+			queuedCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 1;
+			activeCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 1;
+			activeCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 1;
+			activeCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 1;
+			activeCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 1;
+		}
+		run = enable;
 	}
-    else if (run != enable && !enable) {
-		defaultConfig.airHikeCount[1] = 1;
-		defaultConfig.wallHikeCount[1] = 1;
-		defaultConfig.skyStarCount[1] = 1;
-		defaultConfig.airTrickCountDante[1] = 1;
-
-        if (!activeCrimsonConfig.Cheats.General.customMobility) {
-			queuedConfig.airHikeCount[1] = 1;
-            queuedConfig.wallHikeCount[1] = 1;
-            queuedConfig.skyStarCount[1] = 1;
-            queuedConfig.airTrickCountDante[1] = 1;
-
-			activeConfig.airHikeCount[1] = 1;
-            activeConfig.wallHikeCount[1] = 1;
-            activeConfig.skyStarCount[1] = 1;
-            activeConfig.airTrickCountDante[1] = 1;
-        }
-
-        run = enable;
-    }
-
-	if (!activeCrimsonConfig.Gameplay.Dante.dmc4Mobility) {
+	if (!activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility) {
 		return;
 	}
-
-    // The Reset portion
-    if (actorData.state & STATE::ON_FLOOR && event == ACTOR_EVENT::TRICKSTER_AIR_TRICK) {
-        airTrickCount = savedAirTrickCount;
-    }
-    else {
-        savedAirTrickCount = airTrickCount;
-    }
+	// The Reset portion
+	if (actorData.state & STATE::ON_FLOOR && event == ACTOR_EVENT::TRICKSTER_AIR_TRICK) {
+		airTrickCount = savedAirTrickCount;
+	} else {
+		savedAirTrickCount = airTrickCount;
+	}
 }
+
+void AdjustDMC4MobilitySettings() {
+	if (activeCrimsonGameplay.Gameplay.Dante.dmc4Mobility) {
+		queuedCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 2;
+		queuedCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 2;
+		queuedCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 2;
+		queuedCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 2;
+		activeCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 2;
+		activeCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 2;
+		activeCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 2;
+		activeCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 2;
+	} else {
+		queuedCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 1;
+		queuedCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 1;
+		queuedCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 1;
+		queuedCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 1;
+		activeCrimsonGameplay.Cheats.Mobility.airHikeCount[1] = 1;
+		activeCrimsonGameplay.Cheats.Mobility.wallHikeCount[1] = 1;
+		activeCrimsonGameplay.Cheats.Mobility.skyStarCount[1] = 1;
+		activeCrimsonGameplay.Cheats.Mobility.danteAirTrickCount[1] = 1;
+	}
+}
+
 
 void StyleMeterDoppelganger(byte8* actorBaseAddr) {
 
@@ -1969,16 +2057,16 @@ void SprintAbility(byte8* actorBaseAddr) {
         // Storing the actor's set speed when not sprinting for us to calculate sprintSpeed.
         if (!sprintData.isSprinting) {
            
-            sprintData.storedSpeedHuman = activeConfig.Speed.human;
+            sprintData.storedSpeedHuman = activeCrimsonGameplay.Cheats.Speed.human;
 
             if (actorData.character == CHARACTER::DANTE) {
                 for (int i = 0; i < 6; i++) {
-                    sprintData.storedSpeedDevilDante[i] = activeConfig.Speed.devilDante[i];
+                    sprintData.storedSpeedDevilDante[i] = activeCrimsonGameplay.Cheats.Speed.dTDante[i];
                 }
   
             } else if (actorData.character == CHARACTER::VERGIL) {
 				for (int i = 0; i < 5; i++) {
-					sprintData.storedSpeedDevilVergil[i] = activeConfig.Speed.devilVergil[i];
+					sprintData.storedSpeedDevilVergil[i] = activeCrimsonGameplay.Cheats.Speed.dTVergil[i];
 				}
             }
 
@@ -1998,14 +2086,14 @@ void SprintAbility(byte8* actorBaseAddr) {
 
             if (!sprintData.runTimer) {
                 if (!g_inCombat) {
-                    sprintData.timer = sprintData.duration / actorData.speed; // Out of combat sprint is nearly instant
+                    sprintData.timer = sprintData.duration / (actorData.speed / g_FrameRateTimeMultiplier); // Out of combat sprint is nearly instant
                 }
                 else {
 					if (!actorData.devil) {
-						sprintData.timer = sprintData.durationCombatHuman / actorData.speed; // In combat it has more wind-up
+						sprintData.timer = sprintData.durationCombatHuman / (actorData.speed / g_FrameRateTimeMultiplier); // In combat it has more wind-up
 					}
 					else {
-						sprintData.timer = sprintData.durationCombatDevil / actorData.speed;
+						sprintData.timer = sprintData.durationCombatDevil / (actorData.speed / g_FrameRateTimeMultiplier);
 					}
                 }
 
@@ -2123,11 +2211,11 @@ void GunDTCharacterRemaps() {
     static uint16_t* currentDTButton    = (uint16_t*)(appBaseAddr + 0xD6CE9A);
     static uint16_t* currentShootButton = (uint16_t*)(appBaseAddr + 0xD6CE98);
     if (crimsonPlayer[0].character == CHARACTER::DANTE) {
-        *currentDTButton    = activeCrimsonConfig.Gameplay.Remaps.danteDTButton;
-        *currentShootButton = activeCrimsonConfig.Gameplay.Remaps.danteShootButton;
+        *currentDTButton    = activeCrimsonConfig.System.Remaps.danteDTButton;
+        *currentShootButton = activeCrimsonConfig.System.Remaps.danteShootButton;
     } else if (crimsonPlayer[0].character == CHARACTER::VERGIL) {
-        *currentDTButton    = activeCrimsonConfig.Gameplay.Remaps.vergilDTButton;
-        *currentShootButton = activeCrimsonConfig.Gameplay.Remaps.vergilShootButton;
+        *currentDTButton    = activeCrimsonConfig.System.Remaps.vergilDTButton;
+        *currentShootButton = activeCrimsonConfig.System.Remaps.vergilShootButton;
     }
 }
 
@@ -2141,8 +2229,8 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 		return;
 	}
 
-    CrimsonDetours::ToggleDTInfusedRoyalguardDetours(activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard);
-    if (!activeCrimsonConfig.Gameplay.Dante.dTInfusedRoyalguard) {
+    CrimsonDetours::ToggleDTInfusedRoyalguardDetours(activeCrimsonGameplay.Gameplay.Dante.dTInfusedRoyalguard);
+    if (!activeCrimsonGameplay.Gameplay.Dante.dTInfusedRoyalguard) {
         return;
     }
 
@@ -2178,7 +2266,7 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 		if (inNormalBlock) {
 			if (!normalBlocked[playerIndex]) {
 				storedDT[playerIndex] = std::max(storedDT[playerIndex] - 1500, 0.0f);
-				if (!activeConfig.infiniteMagicPoints) {
+				if (!activeCrimsonGameplay.Cheats.Training.infiniteDT) {
 					currentDT = storedDT[playerIndex];
 				}
                 normalBlocked[playerIndex] = true;
@@ -2204,7 +2292,7 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 				storedDT[playerIndex] = std::max(storedDT[playerIndex] - 1000, 0.0f);
 				storedReleaseDamage[playerIndex] = std::min(storedReleaseDamage[playerIndex] + 700, 9000.0f);
 				currentReleaseDamage = storedReleaseDamage[playerIndex];
-				if (!activeConfig.infiniteMagicPoints) {
+				if (!activeCrimsonGameplay.Cheats.Training.infiniteDT) {
 					currentDT = storedDT[playerIndex];
 				}
 				guardBroke[playerIndex] = true;
@@ -2232,7 +2320,6 @@ void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
 	if (!actorBaseAddr) {
 		return;
 	}
-    
 
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     if(actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
@@ -2268,6 +2355,323 @@ void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
 
 	finalRotationTowardsEnemy = static_cast<uint16>(rotationUncalculated);
 	rotationTowardsEnemy = finalRotationTowardsEnemy;
+}
+
+void GetLockedOnEnemyHitPoints(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& lockedOnEnemyHP = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyHP : crimsonPlayer[playerIndex].lockedOnEnemyHPClone;
+	auto& lockedOnEnemyMaxHP = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMaxHP : crimsonPlayer[playerIndex].lockedOnEnemyMaxHPClone;
+
+// 	auto pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+// 	if (!pool_2128 || !pool_2128[8]) return;
+// 	auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
+// 
+//     for (std::size_t enemyIndex = 0; enemyIndex < enemyVectorData.count; ++enemyIndex) {
+//         auto& enemy = enemyVectorData.metadata[enemyIndex];
+//         if (!enemy.baseAddr) continue;
+//         auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
+//         if (!enemyData.baseAddr) continue;
+// 
+// 		// store all hit points in a vector only once, to count as max hit points
+//     }
+
+	if (actorData.lockOnData.targetBaseAddr60 != 0) {
+		auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60); // -0x60 very important don't forget
+		auto& enemyId = enemyActorData.enemy;
+		bool isHell = (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::HELL_VANGUARD);
+		bool isChess = (enemyId >= ENEMY::DAMNED_CHESSMEN_PAWN && enemyId <= ENEMY::DAMNED_CHESSMEN_KING);
+		bool isAgniAndRudra = (enemyId >= ENEMY::AGNI_RUDRA_ALL && enemyId <= ENEMY::AGNI_RUDRA_BLUE);
+
+        if (isHell) {
+            lockedOnEnemyHP = enemyActorData.hitPointsHells;
+            lockedOnEnemyMaxHP = enemyActorData.maxHitPointsHells;
+        } else if (enemyId == ENEMY::ARACHNE) {
+            lockedOnEnemyHP = enemyActorData.hitPointsArachne;
+            lockedOnEnemyMaxHP = enemyActorData.maxHitPointsArachne;
+		} else if (enemyId == ENEMY::THE_FALLEN) {
+			lockedOnEnemyHP = enemyActorData.hitPointsTheFallen;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsTheFallen;
+		} else if (enemyId == ENEMY::DULLAHAN) {
+			lockedOnEnemyHP = enemyActorData.hitPointsDullahan;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsDullahan;
+        } else if (enemyId == ENEMY::ENIGMA) {
+            lockedOnEnemyHP = enemyActorData.hitPointsEnigma;
+            lockedOnEnemyMaxHP = enemyActorData.maxHitPointsEnigma;
+		} else if (enemyId == ENEMY::BLOOD_GOYLE) {
+			lockedOnEnemyHP = enemyActorData.hitPointsBloodgoyle;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsBloodgoyle;
+		} else if (enemyId == ENEMY::SOUL_EATER) {
+			lockedOnEnemyHP = enemyActorData.hitPointsSoulEater;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsSoulEater;
+		} else if (isChess) {
+			lockedOnEnemyHP = enemyActorData.hitPointsChess;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsChess;
+        } else if (enemyId == ENEMY::GIGAPEDE) {
+            if (enemyActorData.gigapedePartAddr == 0) {
+                lockedOnEnemyHP = enemyActorData.hitPointsGigapede;
+                lockedOnEnemyMaxHP = enemyActorData.maxHitPointsGigapede;
+            } else {
+                auto& currentHitPointsGigapede = *reinterpret_cast<float*>(enemyActorData.gigapedePartAddr + 0x9BC0);
+                auto& maxHitPointsGigapede = *reinterpret_cast<float*>(enemyActorData.gigapedePartAddr + 0x95E4);
+                lockedOnEnemyHP = currentHitPointsGigapede;
+                lockedOnEnemyMaxHP = maxHitPointsGigapede;
+            }
+		} else if (enemyId == ENEMY::CERBERUS) {
+			auto& maxHitPointsCerberusRed = *reinterpret_cast<float*>(appBaseAddr + 0x5728F4); // 1650
+			auto& maxHitPointsCerberusPart1 = *reinterpret_cast<float*>(appBaseAddr + 0x5728F0); // 2400
+			auto& maxHitPointsCerberusGreen = *reinterpret_cast<float*>(appBaseAddr + 0x5728F8); // 1600
+			auto& maxHitPointsCerberusBlue = *reinterpret_cast<float*>(appBaseAddr + 0x5728FC); // 1550
+			float totalMaxHP = maxHitPointsCerberusRed + maxHitPointsCerberusPart1 + maxHitPointsCerberusRed + maxHitPointsCerberusRed; // 7200
+			lockedOnEnemyHP = enemyActorData.hitPointsCerberusTotal;
+			lockedOnEnemyMaxHP = totalMaxHP;
+            
+		} else if (isAgniAndRudra) {
+			lockedOnEnemyHP = enemyActorData.hitPointsAgniRudra;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsAgniRudra;
+		} else if (enemyId == ENEMY::NEVAN) {
+			lockedOnEnemyHP = enemyActorData.hitPointsNevan;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsNevan;
+          
+        } else if (enemyId == ENEMY::GERYON) {
+            // aiming at carriage
+            if (enemyActorData.hitPointsGeryonCarriage != 0) {
+				lockedOnEnemyHP = enemyActorData.hitPointsGeryonCarriage;
+				lockedOnEnemyMaxHP = enemyActorData.maxHitPointsGeryonCarriage;
+            } else {
+				lockedOnEnemyHP = enemyActorData.hitPointsGeryon;
+				lockedOnEnemyMaxHP = enemyActorData.maxHitPointsGeryon;
+            }
+        } else if (enemyId == ENEMY::BEOWULF) {
+			lockedOnEnemyHP = enemyActorData.hitPointsBeowulf;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsBeowulf;
+		} else if (enemyId == ENEMY::DOPPELGANGER) {
+			lockedOnEnemyHP = enemyActorData.hitPointsDoppelganger;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsDoppelganger;
+        } else if (enemyId == ENEMY::ARKHAM) {
+			lockedOnEnemyHP = enemyActorData.hitPointsArkham;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsArkham;
+		} else if (enemyId == ENEMY::ARKHAM_LEECHES) {
+			lockedOnEnemyHP = enemyActorData.hitPointsArkhamLeech;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsArkhamLeech;
+		} else if (enemyId == ENEMY::LADY) {
+			lockedOnEnemyHP = enemyActorData.hitPointsLady;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsLady;
+		} else if (enemyId == ENEMY::VERGIL) {
+			lockedOnEnemyHP = enemyActorData.hitPointsVergil;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsVergil;
+		} else if (enemyId == ENEMY::JESTER) {
+			lockedOnEnemyHP = enemyActorData.hitPointsJester;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsJester;
+		} else if (enemyId == ENEMY::LEVIATHAN_HEART) {
+			lockedOnEnemyHP = enemyActorData.hitPointsLeviathan;
+			lockedOnEnemyMaxHP = enemyActorData.maxHitPointsLeviathan;
+
+        } else {
+			lockedOnEnemyHP = 1000.0f;
+            lockedOnEnemyMaxHP = 1000.0f;
+        }
+	} else {
+        lockedOnEnemyHP = 0;
+        lockedOnEnemyMaxHP = 0;
+	}
+}
+
+void GetLockedOnEnemyStunDisplacement(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& lockedOnEnemyStun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyStun : crimsonPlayer[playerIndex].lockedOnEnemyStunClone;
+	auto& lockedOnEnemyDisplacement = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyDisplacement : crimsonPlayer[playerIndex].lockedOnEnemyDisplacementClone;
+	auto& lockedOnEnemyMaxStun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMaxStun : crimsonPlayer[playerIndex].lockedOnEnemyMaxStunClone;
+	auto& lockedOnEnemyMaxDisplacement = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMaxDisplacement : crimsonPlayer[playerIndex].lockedOnEnemyMaxDisplacementClone;
+
+	// Set base values assuming no valid enemy is locked on
+	lockedOnEnemyStun = lockedOnEnemyMaxStun;
+	lockedOnEnemyDisplacement = lockedOnEnemyMaxDisplacement;
+
+	if (actorData.lockOnData.targetBaseAddr60 == 0) {
+		return;
+	}
+
+	// Adjust pointer back to get correct enemy base
+	uintptr_t targetAddr = static_cast<uintptr_t>((uintptr_t)actorData.lockOnData.targetBaseAddr60 - 0x60);
+	if (targetAddr == 0 || targetAddr == 0xFFFFFFFFFFFFFFA0 || targetAddr < 0x10000) {
+		return;
+	}
+
+	auto* enemyActorData = reinterpret_cast<EnemyActorData*>(targetAddr);
+	if (!enemyActorData) {
+		return;
+	}
+
+	// Validate stun/displacement data pointer
+	uintptr_t stunDisplacementDataAddr = reinterpret_cast<uintptr_t>(enemyActorData->stunDisplacementDataAddr);
+	if (!enemyActorData->stunDisplacementDataAddr ||
+		stunDisplacementDataAddr == 0xFFFFFFFFFFFFFFFF ||
+		stunDisplacementDataAddr == 0xFFFFFFFFFFFFFFEF ||
+		stunDisplacementDataAddr == 0xFFFFFFFF ||
+		stunDisplacementDataAddr < 0x10000) {
+		return;
+	}
+
+	StunDisplacementData* stunDisplacementData = reinterpret_cast<StunDisplacementData*>(stunDisplacementDataAddr);
+	if (!stunDisplacementData) {
+		return;
+	}
+
+	auto& enemyId = enemyActorData->enemy;
+	bool isHell = (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::HELL_VANGUARD);
+
+	// Assign max values based on specific enemy type
+	if (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::PRIDE_2) {
+		lockedOnEnemyMaxStun = 30.0f;
+		lockedOnEnemyMaxDisplacement = 30.0f;
+	} else if (enemyId >= ENEMY::GLUTTONY_1 && enemyId <= ENEMY::GLUTTONY_4) {
+		lockedOnEnemyMaxStun = 20.0f;
+		lockedOnEnemyMaxDisplacement = 60.0f;
+	} else if (enemyId >= ENEMY::LUST_1 && enemyId <= ENEMY::LUST_4) {
+		lockedOnEnemyMaxStun = 60.0f;
+		lockedOnEnemyMaxDisplacement = 60.0f;
+	} else if (enemyId >= ENEMY::SLOTH_1 && enemyId <= ENEMY::SLOTH_4) {
+		lockedOnEnemyMaxStun = 60.0f;
+		lockedOnEnemyMaxDisplacement = 60.0f;
+	} else if (enemyId >= ENEMY::WRATH_1 && enemyId <= ENEMY::WRATH_4) {
+		lockedOnEnemyMaxStun = 100000.0f;
+		lockedOnEnemyMaxDisplacement = 100000.0f;
+	} else if (enemyId >= ENEMY::GREED_1 && enemyId <= ENEMY::GREED_4) {
+		lockedOnEnemyMaxStun = 100000.0f;
+		lockedOnEnemyMaxDisplacement = 100000.0f;
+	} else if (enemyId == ENEMY::ABYSS) {
+		lockedOnEnemyMaxStun = 60.0f;
+		lockedOnEnemyMaxDisplacement = 60.0f;
+	} else if (enemyId == ENEMY::ENVY) {
+		lockedOnEnemyMaxStun = 60.0f;
+		lockedOnEnemyMaxDisplacement = 300.0f;
+	} else if (enemyId == ENEMY::HELL_VANGUARD) {
+		lockedOnEnemyMaxStun = 300.0f;
+		lockedOnEnemyMaxDisplacement = 1000.0f;
+	} else {
+		lockedOnEnemyMaxStun = 1.0f;
+		lockedOnEnemyMaxDisplacement = 1.0f;
+	}
+
+	// Apply updated values
+	lockedOnEnemyStun = lockedOnEnemyMaxStun;
+	lockedOnEnemyDisplacement = lockedOnEnemyMaxDisplacement;
+
+	// If enemy is a "Hell" type, attempt to read additional data
+	if (isHell) {
+		void* stunDisplacementHellsPtr = nullptr;
+
+		// Try to access the pointer safely
+		__try {
+			stunDisplacementHellsPtr = stunDisplacementData->stunDisplacementHells;
+		} __except (EXCEPTION_EXECUTE_HANDLER) {
+			stunDisplacementHellsPtr = nullptr;
+		}
+
+		uintptr_t ptrValue = reinterpret_cast<uintptr_t>(stunDisplacementHellsPtr);
+		if (stunDisplacementHellsPtr &&
+			ptrValue != 0xFFFFFFFFFFFFFFFF &&
+			ptrValue != 0xFFFFFFFFFFFFFFEF &&
+			ptrValue > 0x10000) {
+
+			// Try reading actual stun/displacement values
+			__try {
+				auto* safeHellsPtr = static_cast<decltype(stunDisplacementData->stunDisplacementHells)>(stunDisplacementHellsPtr);
+				lockedOnEnemyStun = safeHellsPtr->stun;
+				lockedOnEnemyDisplacement = safeHellsPtr->displacement;
+			} __except (EXCEPTION_EXECUTE_HANDLER) {
+				// If this fails, fallback to earlier values
+			}
+		}
+	}
+}
+
+void CalculateLockedOnEnemyLastStunDisplacementValue(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) return;
+
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	uint32_t entityIdx = actorData.newEntityIndex;
+
+	auto& lockedOnEnemyStun = (entityIdx == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyStun : crimsonPlayer[playerIndex].lockedOnEnemyStunClone;
+	auto& lockedOnEnemyDisplacement = (entityIdx == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyDisplacement : crimsonPlayer[playerIndex].lockedOnEnemyDisplacementClone;
+	auto& lockedOnEnemyMinusStun = (entityIdx == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMinusStun : crimsonPlayer[playerIndex].lockedOnEnemyMinusStunClone;
+	auto& lockedOnEnemyMinusDisplacement = (entityIdx == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMinusDisplacement : crimsonPlayer[playerIndex].lockedOnEnemyMinusDisplacementClone;
+
+	static float lastStun[4][2] = {};
+	static float lastDisplacement[4][2] = {};
+	static bool firstFrame[4][2] = { true };
+	static std::chrono::steady_clock::time_point lastCheck[4][2] = {};
+
+	auto now = std::chrono::steady_clock::now();
+	if (now - lastCheck[playerIndex][entityIdx] < std::chrono::milliseconds(200)) {
+		return;
+	}
+	lastCheck[playerIndex][entityIdx] = now;
+
+	float currentStun = lockedOnEnemyStun;
+	float currentDisplacement = lockedOnEnemyDisplacement;
+
+	float stunDiff = lastStun[playerIndex][entityIdx] - currentStun;
+	float displacementDiff = lastDisplacement[playerIndex][entityIdx] - currentDisplacement;
+
+	if (stunDiff > 0.0f) {
+		lockedOnEnemyMinusStun = stunDiff;
+	}
+	if (displacementDiff > 0.0f) {
+		lockedOnEnemyMinusDisplacement = displacementDiff;
+	}
+
+	lastStun[playerIndex][entityIdx] = currentStun;
+	lastDisplacement[playerIndex][entityIdx] = currentDisplacement;
+}
+
+void GetLockedOnEnemyShield(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& lockedOnEnemyShield = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyShield : crimsonPlayer[playerIndex].lockedOnEnemyShieldClone;
+	auto& lockedOnEnemyMaxShield = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMaxShield : crimsonPlayer[playerIndex].lockedOnEnemyMaxShieldClone;
+
+
+	if (actorData.lockOnData.targetBaseAddr60 != 0) {
+		auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60); // -0x60 very important don't forget
+		auto& enemyId = enemyActorData.enemy;
+
+        if (enemyId == ENEMY::CERBERUS) {
+			
+			auto& maxHitPointsCerberusPart1 = *reinterpret_cast<float*>(appBaseAddr + 0x5728F0);
+			lockedOnEnemyShield = enemyActorData.hitPointsCerberusPart1;
+			lockedOnEnemyMaxShield = maxHitPointsCerberusPart1;
+			
+		} else if (enemyId == ENEMY::NEVAN) {
+			auto& shieldedNevanData = *reinterpret_cast<ShieldedNevanData*>(enemyActorData.shieldedNevanAddr);
+			if (!enemyActorData.shieldedNevanAddr) {
+				lockedOnEnemyShield = 0;
+				lockedOnEnemyMaxShield = 0;
+			} else {
+				lockedOnEnemyShield = shieldedNevanData.currentShield;
+				lockedOnEnemyMaxShield = 350.0f;
+			}
+
+		} else {
+            lockedOnEnemyShield = 0;
+			lockedOnEnemyMaxShield = 0;
+		}
+	} else {
+		lockedOnEnemyShield = 0;
+		lockedOnEnemyMaxShield = 0;
+	}
 }
 
 #pragma endregion
@@ -2426,8 +2830,8 @@ void DriveTweaks(byte8* actorBaseAddr) {
         return;
     }
     auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    CrimsonDetours::ToggleDisableDriveHold(activeCrimsonConfig.Gameplay.Dante.driveTweaks);
-    if (!activeCrimsonConfig.Gameplay.Dante.driveTweaks || actorData.character != CHARACTER::DANTE) return;
+    CrimsonDetours::ToggleDisableDriveHold(activeCrimsonGameplay.Gameplay.Dante.driveTweaks);
+    if (!activeCrimsonGameplay.Gameplay.Dante.driveTweaks || actorData.character != CHARACTER::DANTE) return;
     auto playerIndex = actorData.newPlayerIndex;
     int vfxBank = 3;
     int vfxId = 144;

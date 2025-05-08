@@ -394,9 +394,12 @@ void HandleSaveTimer(float frameRate) {
 
 
     if (save) {
+		Log("Saving main config...");
+		SaveConfig();
+		Log("Saving gameplay config...");
+		SaveConfigGameplay();
+		Log("Both saves complete.");
         save = false;
-
-        SaveConfig();
     }
 }
 

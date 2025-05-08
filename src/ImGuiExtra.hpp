@@ -40,6 +40,14 @@ namespace UI {
 		return res;
 	}
 
+	inline ImVec4 ColorToImVec4(uint32_t color) {
+		float r = ((color >> 24) & 0xFF) / 255.0f;
+		float g = ((color >> 16) & 0xFF) / 255.0f;
+		float b = ((color >> 8) & 0xFF) / 255.0f;
+		float a = (color & 0xFF) / 255.0f;
+		return ImVec4(r, g, b, a);
+	}
+
 	class Roboto_t {
 	public:
 		auto& operator[](size_t index)
@@ -83,7 +91,7 @@ namespace UI {
 	struct UIContext {
 		enum class MainTabs {
 			GameMode = 0,
-			Character,
+			Player,
 			Quickplay,
 			MusicSwitcher,
 			Options,
@@ -107,11 +115,11 @@ namespace UI {
 		} SelectedOptionsSubTab{ 0 };
 
 		enum class CheatsAndDebugSubTabs {
-			Common = 0,
-			Speed,
+			CommonCheats = 0,
+			CharacterCheats,
 			Teleporter,
 			EnemySpawner,
-			JukeBox,
+			FMODJukebox,
 
 			Size,
 			None
@@ -121,6 +129,7 @@ namespace UI {
 			Vanilla = 0,
 			StyleSwitcher,
 			Crimson,
+			Custom,
 
 			Size,
 			None
@@ -136,14 +145,14 @@ namespace UI {
 
 		struct {
 			uint32_t Major = 0;
-			uint32_t Minor = 0;
+			uint32_t Minor = 1;
 			char	 PatchLetter = 0;
 		} CurrentVersion;
 
 		struct {
-			uint32_t Day = 0;
-			uint32_t Month = 0;
-			uint32_t Year = 0;
+			uint32_t Day = 13;
+			uint32_t Month = 5;
+			uint32_t Year = 2025;
 		} LatestUpdateDate;
 
 		std::string LatestVersionURL{};
@@ -250,7 +259,7 @@ namespace UI {
 	}
 
 	template <typename varType>
-	bool ComboVector(const char* label, std::vector<std::string>(&names), varType& var, ImGuiComboFlags flags = 0) {
+	bool ComboVectorString(const char* label, std::vector<std::string>(&names), varType& var, ImGuiComboFlags flags = 0) {
 		bool update = false;
 
 		std::vector<const char*> namescStr;
@@ -290,8 +299,8 @@ namespace UI {
 	}
 
 	template <typename varType>
-	bool Combo2Vector(const char* label, std::vector<std::string>(&names), varType& var, varType& var2, ImGuiComboFlags flags = 0) {
-		auto update = ComboVector(label, names, var2, flags);
+	bool ComboVectorString2(const char* label, std::vector<std::string>(&names), varType& var, varType& var2, ImGuiComboFlags flags = 0) {
+		auto update = ComboVectorString(label, names, var2, flags);
 
 		if (update) {
 			var = var2;
@@ -341,6 +350,65 @@ namespace UI {
 	bool ComboMap2(const char* label, const char* (&names)[mapItemCount], const varType(&map)[mapItemCount], uint8_t& index, varType& var,
 		varType& var2, ImGuiComboFlags flags = 0) {
 		auto update = ComboMap(label, names, map, index, var2, flags);
+
+		if (update) {
+			var = var2;
+		}
+
+		return update;
+	}
+
+	template <typename varType, uint8_t mapItemCount>
+	bool ComboMapValue(const char* label,
+		const char* (&names)[mapItemCount],
+		const varType(&map)[mapItemCount],
+		varType& var,
+		ImGuiComboFlags flags = 0) {
+		using namespace ImGui;
+		bool update = false;
+
+		int currentIndex = -1;
+		for (uint8_t i = 0; i < mapItemCount; ++i) {
+			if (map[i] == var) {
+				currentIndex = i;
+				break;
+			}
+		}
+
+		const char* currentLabel = (currentIndex >= 0) ? names[currentIndex] : "Unknown";
+
+		PushID();
+
+		if (BeginCombo(label, currentLabel, ImVec2{ 0.0f, 0.0f }, 0.6f, flags)) {
+			for (uint8_t i = 0; i < mapItemCount; ++i) {
+				bool selected = (map[i] == var);
+
+				PushID();
+				if (Selectable(names[i], &selected)) {
+					var = map[i];
+					update = true;
+				}
+				PopID();
+			}
+			EndCombo();		}
+
+		PopID();
+
+		if (update) {
+			::GUI::save = true;
+		}
+
+		return update;
+	}
+
+	template <typename varType, uint8_t mapItemCount>
+	bool ComboMapValue2(const char* label,
+		const char* (&names)[mapItemCount],
+		const varType(&map)[mapItemCount],
+		varType& var,
+		varType& var2,
+		ImGuiComboFlags flags = 0) {
+		auto update = ComboMapValue(label, names, map, var2, flags);
 
 		if (update) {
 			var = var2;

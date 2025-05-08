@@ -20,8 +20,10 @@ using namespace DI8;
 
 inline const char* directoryName = Paths::config;
 inline const char* fileName      = "CrimsonConfig.json";
+inline const char* fileNameGameplay = "CrimsonConfigGameplay.json";
 
 char locationConfig[64] = {};
+char locationConfigGameplay[64] = {};
 
 Config defaultConfig;
 Config queuedConfig;
@@ -71,11 +73,19 @@ CharacterData& GetCharacterData(uint8 playerIndex, uint8 characterIndex, uint8 e
 
 // $GetDataEnd
 
-void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character) {
-    SetMemory(&characterData, 0, sizeof(CharacterData));
+void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, uint8 playerIndex, uint8 characterIndex) {
+    //SetMemory(&characterData, 0, sizeof(CharacterData));
+	auto& lastEquippedMeleeWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedMeleeWeapons[playerIndex][characterIndex];
+	auto& lastEquippedRangedWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedRangedWeapons[playerIndex][characterIndex];
+    auto& lastEquippedMeleeWeaponsVergil = queuedCrimsonConfig.CachedSettings.lastEquippedMeleeWeaponsVergil[playerIndex][characterIndex];
+	auto& lastMaxMeleeWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCount[playerIndex][characterIndex];
+	auto& lastMaxRangedWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxRangedWeaponCount[playerIndex][characterIndex];
+	auto& lastMaxMeleeWeaponCountVergil = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCountVergil[playerIndex][characterIndex];
 
     switch (character) {
     case CHARACTER::DANTE: {
+		characterData.character = CHARACTER::DANTE;
+		
         characterData = {CHARACTER::DANTE, 0, false, false, CHARACTER::DANTE, 0,
             {
                 {
@@ -102,21 +112,22 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character) {
                 GAMEPAD::DOWN,
                 GAMEPAD::LEFT,
             },
-            0, MELEE_WEAPON_COUNT_DANTE,
+            0, lastMaxMeleeWeaponCount,
+
             {
-                WEAPON::REBELLION,
-                WEAPON::CERBERUS,
-                WEAPON::AGNI_RUDRA,
-                WEAPON::NEVAN,
-                WEAPON::BEOWULF_DANTE,
+                lastEquippedMeleeWeapons[0],
+				lastEquippedMeleeWeapons[1],
+				lastEquippedMeleeWeapons[2],
+				lastEquippedMeleeWeapons[3],
+				lastEquippedMeleeWeapons[4],
             },
-            0, 0, WEAPON_SWITCH_TYPE::LINEAR, RIGHT_STICK, RANGED_WEAPON_COUNT_DANTE,
+            0, 0, WEAPON_SWITCH_TYPE::LINEAR, RIGHT_STICK, lastMaxRangedWeaponCount,
             {
-                WEAPON::EBONY_IVORY,
-                WEAPON::SHOTGUN,
-                WEAPON::ARTEMIS,
-                WEAPON::SPIRAL,
-                WEAPON::KALINA_ANN,
+                lastEquippedRangedWeapons[0],
+				lastEquippedRangedWeapons[1],
+				lastEquippedRangedWeapons[2],
+				lastEquippedRangedWeapons[3],
+				lastEquippedRangedWeapons[4],
             },
             0, 0, WEAPON_SWITCH_TYPE::LINEAR, RIGHT_STICK};
 
@@ -159,13 +170,14 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character) {
                 GAMEPAD::DOWN,
                 GAMEPAD::LEFT,
             },
-            0, MELEE_WEAPON_COUNT_VERGIL,
+            0, lastMaxMeleeWeaponCountVergil,
             {
-                WEAPON::YAMATO_VERGIL,
-                WEAPON::BEOWULF_VERGIL,
-                WEAPON::YAMATO_FORCE_EDGE,
+                lastEquippedMeleeWeaponsVergil[0],
+				lastEquippedMeleeWeaponsVergil[1],
+				lastEquippedMeleeWeaponsVergil[2],
             },
             0, 0, WEAPON_SWITCH_TYPE::LINEAR, RIGHT_STICK};
+        characterData.rangedWeaponCount = 0;
 
         break;
     };
@@ -183,7 +195,7 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character) {
 }
 
 void ApplyDefaultPlayerData(PlayerData& playerData) {
-    playerData.switchButton = GAMEPAD::RIGHT_THUMB;
+    playerData.switchButton = GAMEPAD::RIGHT_STICK_CLICK;
 
     playerData.characterCount = 2;
     playerData.characterIndex = 0;
@@ -191,7 +203,7 @@ void ApplyDefaultPlayerData(PlayerData& playerData) {
     old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
         old_for_all(uint8, entityIndex, ENTITY_COUNT) {
             ApplyDefaultCharacterData(
-                playerData.characterData[characterIndex][entityIndex], (characterIndex == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE);
+                playerData.characterData[characterIndex][entityIndex], (characterIndex == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE, 0, 0);
         }
     }
 }
@@ -365,7 +377,7 @@ void CreateMembers(Config& config_) {
     DebugLogFunction();
 
     {
-        auto& member = Create<struct_t>(root, "Actor");
+        auto& member = Create<struct_t>(crimsonConfigRoot, "Actor");
         auto& config = config_.Actor;
 
         Create<bool>(member, "enable", config.enable);
@@ -383,7 +395,7 @@ void CreateMembers(Config& config_) {
 
 
     {
-        auto& member = Create<struct_t>(root, "Arcade");
+        auto& member = Create<struct_t>(crimsonConfigRoot, "Arcade");
         auto& config = config_.Arcade;
 
         Create<bool>(member, "enable", config.enable);
@@ -406,7 +418,7 @@ void CreateMembers(Config& config_) {
 
 
     {
-        auto& member = Create<struct_t>(root, "BossRush");
+        auto& member = Create<struct_t>(crimsonConfigRoot, "BossRush");
         auto& config = config_.BossRush;
 
         Create<bool>(member, "enable", config.enable);
@@ -443,7 +455,7 @@ void CreateMembers(Config& config_) {
 
 
     {
-        auto& member = Create<struct_t>(root, "Color");
+        auto& member = Create<struct_t>(crimsonConfigRoot, "Color");
         auto& config = config_.Color;
 
         CreateArray2<uint8, 5, 4>(member, "airHike", config.airHike);
@@ -483,49 +495,23 @@ void CreateMembers(Config& config_) {
     }
 
     {
-        auto& member = Create<struct_t>(root, "Speed");
+        auto& member = Create<struct_t>(crimsonConfigRoot, "Speed");
         auto& config = config_.Speed;
 
         Create<float>(member, "mainSpeed", config.mainSpeed);
         Create<float>(member, "turbo", config.turbo);
-        Create<float>(member, "enemy", config.enemy);
-        Create<float>(member, "quicksilverPlayerActor", config.quicksilverPlayerActor);
-        Create<float>(member, "quicksilverEnemyActor", config.quicksilverEnemyActor);
-        Create<float>(member, "human", config.human);
-
-        CreateArray<float, 6>(member, "devilDante", config.devilDante);
-        CreateArray<float, 5>(member, "devilVergil", config.devilVergil);
     }
 
 
-    auto& member = root;
+    auto& member = crimsonConfigRoot;
     auto& config = config_;
 
     Create<bool>(member, "welcome", config.welcome);
     Create<bool>(member, "hideBeowulfDante", config.hideBeowulfDante);
     Create<bool>(member, "hideBeowulfVergil", config.hideBeowulfVergil);
     Create<uint8>(member, "dotShadow", config.dotShadow);
-    Create<float>(member, "depleteQuicksilver", config.depleteQuicksilver);
-    Create<float>(member, "depleteDoppelganger", config.depleteDoppelganger);
-    Create<float>(member, "depleteDevil", config.depleteDevil);
     Create<bool>(member, "noDevilForm", config.noDevilForm);
-    Create<float>(member, "orbReach", config.orbReach);
     Create<bool>(member, "resetPermissions", config.resetPermissions);
-    Create<bool>(member, "infiniteHitPoints", config.infiniteHitPoints);
-    Create<bool>(member, "infiniteMagicPoints", config.infiniteMagicPoints);
-    Create<bool>(member, "disableTimer", config.disableTimer);
-    Create<bool>(member, "infiniteBullets", config.infiniteBullets);
-    Create<float>(member, "linearWeaponSwitchTimeout", config.linearWeaponSwitchTimeout);
-
-    CreateArray<uint8, 2>(member, "airHikeCount", config.airHikeCount);
-    CreateArray<uint8, 2>(member, "kickJumpCount", config.kickJumpCount);
-    CreateArray<uint8, 2>(member, "wallHikeCount", config.wallHikeCount);
-    CreateArray<uint8, 2>(member, "dashCount", config.dashCount);
-    CreateArray<uint8, 2>(member, "skyStarCount", config.skyStarCount);
-    CreateArray<uint8, 2>(member, "airTrickCountDante", config.airTrickCountDante);
-    CreateArray<uint8, 2>(member, "airTrickCountVergil", config.airTrickCountVergil);
-    CreateArray<uint8, 2>(member, "trickUpCount", config.trickUpCount);
-    CreateArray<uint8, 2>(member, "trickDownCount", config.trickDownCount);
 
     CreateArray<float, CHANNEL::MAX>(member, "channelVolumes", config.channelVolumes);
 
@@ -535,9 +521,6 @@ void CreateMembers(Config& config_) {
         member, "rangedWeaponSwitchControllerTextureData", config.rangedWeaponSwitchControllerTextureData);
 
     Create<bool>(member, "forceIconFocus", config.forceIconFocus);
-    Create<float>(member, "damagePlayerActorMultiplier", config.damagePlayerActorMultiplier);
-    Create<float>(member, "damageEnemyActorMultiplier", config.damageEnemyActorMultiplier);
-    Create<uint32>(member, "damageStyleRank", config.damageStyleRank);
     Create<bool>(member, "skipIntro", config.skipIntro);
     Create<bool>(member, "skipCutscenes", config.skipCutscenes);
     Create<bool>(member, "enableFileMods", config.enableFileMods);
@@ -629,7 +612,7 @@ void CreateMembers(Config& config_) {
 
 
     {
-        auto& member = CreateArray<struct_t, PLAYER_COUNT>(root, "barsData");
+        auto& member = CreateArray<struct_t, PLAYER_COUNT>(crimsonConfigRoot, "barsData");
         auto& config = config_.barsData;
 
         for_all(playerIndex, PLAYER_COUNT) {
@@ -645,7 +628,7 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "showCredits", config.showCredits);
 
     {
-        auto& member = CreateArray<struct_t, 3>(root, "keyData");
+        auto& member = CreateArray<struct_t, 3>(crimsonConfigRoot, "keyData");
         auto& config = config_.keyData;
 
         for_all(index, 3) {
@@ -811,7 +794,7 @@ void ToJSON(Config& config_) {
     DebugLogFunction();
 
     {
-        auto& member = root["Actor"];
+        auto& member = crimsonConfigRoot["Actor"];
         auto& config = config_.Actor;
 
         Set<bool>(member["enable"], config.enable);
@@ -825,7 +808,7 @@ void ToJSON(Config& config_) {
 
 
     {
-        auto& member = root["Arcade"];
+        auto& member = crimsonConfigRoot["Arcade"];
         auto& config = config_.Arcade;
 
         Set<bool>(member["enable"], config.enable);
@@ -848,7 +831,7 @@ void ToJSON(Config& config_) {
 
 
     {
-        auto& member = root["BossRush"];
+        auto& member = crimsonConfigRoot["BossRush"];
         auto& config = config_.BossRush;
 
         Set<bool>(member["enable"], config.enable);
@@ -885,7 +868,7 @@ void ToJSON(Config& config_) {
 
 
     {
-        auto& member = root["Color"];
+        auto& member = crimsonConfigRoot["Color"];
         auto& config = config_.Color;
 
         SetArray2<uint8, 5, 4>(member["airHike"], config.airHike);
@@ -923,48 +906,22 @@ void ToJSON(Config& config_) {
     }
 
     {
-        auto& member = root["Speed"];
+        auto& member = crimsonConfigRoot["Speed"];
         auto& config = config_.Speed;
 
         Set<float>(member["mainSpeed"], config.mainSpeed);
         Set<float>(member["turbo"], config.turbo);
-        Set<float>(member["enemy"], config.enemy);
-        Set<float>(member["quicksilverPlayerActor"], config.quicksilverPlayerActor);
-        Set<float>(member["quicksilverEnemyActor"], config.quicksilverEnemyActor);
-        Set<float>(member["human"], config.human);
-
-        SetArray<float, 6>(member["devilDante"], config.devilDante);
-        SetArray<float, 5>(member["devilVergil"], config.devilVergil);
     }
 
-    auto& member = root;
+    auto& member = crimsonConfigRoot;
     auto& config = config_;
 
     Set<bool>(member["welcome"], config.welcome);
     Set<bool>(member["hideBeowulfDante"], config.hideBeowulfDante);
     Set<bool>(member["hideBeowulfVergil"], config.hideBeowulfVergil);
     Set<uint8>(member["dotShadow"], config.dotShadow);
-    Set<float>(member["depleteQuicksilver"], config.depleteQuicksilver);
-    Set<float>(member["depleteDoppelganger"], config.depleteDoppelganger);
-    Set<float>(member["depleteDevil"], config.depleteDevil);
     Set<bool>(member["noDevilForm"], config.noDevilForm);
-    Set<float>(member["orbReach"], config.orbReach);
     Set<bool>(member["resetPermissions"], config.resetPermissions);
-    Set<bool>(member["infiniteHitPoints"], config.infiniteHitPoints);
-    Set<bool>(member["infiniteMagicPoints"], config.infiniteMagicPoints);
-    Set<bool>(member["disableTimer"], config.disableTimer);
-    Set<bool>(member["infiniteBullets"], config.infiniteBullets);
-    Set<float>(member["linearWeaponSwitchTimeout"], config.linearWeaponSwitchTimeout);
-
-    SetArray<uint8, 2>(member["airHikeCount"], config.airHikeCount);
-    SetArray<uint8, 2>(member["kickJumpCount"], config.kickJumpCount);
-    SetArray<uint8, 2>(member["wallHikeCount"], config.wallHikeCount);
-    SetArray<uint8, 2>(member["dashCount"], config.dashCount);
-    SetArray<uint8, 2>(member["skyStarCount"], config.skyStarCount);
-    SetArray<uint8, 2>(member["airTrickCountDante"], config.airTrickCountDante);
-    SetArray<uint8, 2>(member["airTrickCountVergil"], config.airTrickCountVergil);
-    SetArray<uint8, 2>(member["trickUpCount"], config.trickUpCount);
-    SetArray<uint8, 2>(member["trickDownCount"], config.trickDownCount);
 
     SetArray<float, CHANNEL::MAX>(member["channelVolumes"], config.channelVolumes);
 
@@ -976,9 +933,6 @@ void ToJSON(Config& config_) {
 
 
     Set<bool>(member["forceIconFocus"], config.forceIconFocus);
-    Set<float>(member["damagePlayerActorMultiplier"], config.damagePlayerActorMultiplier);
-    Set<float>(member["damageEnemyActorMultiplier"], config.damageEnemyActorMultiplier);
-    Set<uint32>(member["damageStyleRank"], config.damageStyleRank);
     Set<bool>(member["skipIntro"], config.skipIntro);
     Set<bool>(member["skipCutscenes"], config.skipCutscenes);
     Set<bool>(member["enableFileMods"], config.enableFileMods);
@@ -1212,7 +1166,7 @@ void ToConfig(Config& config_) {
 
     {
         auto& config = config_.Actor;
-        auto& member = root["Actor"];
+        auto& member = crimsonConfigRoot["Actor"];
 
         config.enable      = Get<bool>(member["enable"]);
         config.playerCount = Get<uint8>(member["playerCount"]);
@@ -1225,7 +1179,7 @@ void ToConfig(Config& config_) {
 
     {
         auto& config = config_.Arcade;
-        auto& member = root["Arcade"];
+        auto& member = crimsonConfigRoot["Arcade"];
 
         config.enable         = Get<bool>(member["enable"]);
         config.mission        = Get<uint32>(member["mission"]);
@@ -1248,7 +1202,7 @@ void ToConfig(Config& config_) {
 
     {
         auto& config = config_.BossRush;
-        auto& member = root["BossRush"];
+        auto& member = crimsonConfigRoot["BossRush"];
 
         config.enable = Get<bool>(member["enable"]);
 
@@ -1286,7 +1240,7 @@ void ToConfig(Config& config_) {
     {
 
         auto& config = config_.Color;
-        auto& member = root["Color"];
+        auto& member = crimsonConfigRoot["Color"];
 
         GetArray2<uint8, 5, 4>(config.airHike, member["airHike"]);
 
@@ -1324,47 +1278,21 @@ void ToConfig(Config& config_) {
 
     {
         auto& config = config_.Speed;
-        auto& member = root["Speed"];
+        auto& member = crimsonConfigRoot["Speed"];
 
         config.mainSpeed              = Get<float>(member["mainSpeed"]);
         config.turbo                  = Get<float>(member["turbo"]);
-        config.enemy                  = Get<float>(member["enemy"]);
-        config.quicksilverPlayerActor = Get<float>(member["quicksilverPlayerActor"]);
-        config.quicksilverEnemyActor  = Get<float>(member["quicksilverEnemyActor"]);
-        config.human                  = Get<float>(member["human"]);
-
-        GetArray<float, 6>(config.devilDante, member["devilDante"]);
-        GetArray<float, 5>(config.devilVergil, member["devilVergil"]);
     }
 
     auto& config = config_;
-    auto& member = root;
+    auto& member = crimsonConfigRoot;
 
     config.welcome                   = Get<bool>(member["welcome"]);
     config.hideBeowulfDante          = Get<bool>(member["hideBeowulfDante"]);
     config.hideBeowulfVergil         = Get<bool>(member["hideBeowulfVergil"]);
     config.dotShadow                 = Get<uint8>(member["dotShadow"]);
-    config.depleteQuicksilver        = Get<float>(member["depleteQuicksilver"]);
-    config.depleteDoppelganger       = Get<float>(member["depleteDoppelganger"]);
-    config.depleteDevil              = Get<float>(member["depleteDevil"]);
     config.noDevilForm               = Get<bool>(member["noDevilForm"]);
-    config.orbReach                  = Get<float>(member["orbReach"]);
     config.resetPermissions          = Get<bool>(member["resetPermissions"]);
-    config.infiniteHitPoints         = Get<bool>(member["infiniteHitPoints"]);
-    config.infiniteMagicPoints       = Get<bool>(member["infiniteMagicPoints"]);
-    config.disableTimer              = Get<bool>(member["disableTimer"]);
-    config.infiniteBullets           = Get<bool>(member["infiniteBullets"]);
-    config.linearWeaponSwitchTimeout = Get<float>(member["linearWeaponSwitchTimeout"]);
-
-    GetArray<uint8, 2>(config.airHikeCount, member["airHikeCount"]);
-    GetArray<uint8, 2>(config.kickJumpCount, member["kickJumpCount"]);
-    GetArray<uint8, 2>(config.wallHikeCount, member["wallHikeCount"]);
-    GetArray<uint8, 2>(config.dashCount, member["dashCount"]);
-    GetArray<uint8, 2>(config.skyStarCount, member["skyStarCount"]);
-    GetArray<uint8, 2>(config.airTrickCountDante, member["airTrickCountDante"]);
-    GetArray<uint8, 2>(config.airTrickCountVergil, member["airTrickCountVergil"]);
-    GetArray<uint8, 2>(config.trickUpCount, member["trickUpCount"]);
-    GetArray<uint8, 2>(config.trickDownCount, member["trickDownCount"]);
 
     GetArray<float, CHANNEL::MAX>(config.channelVolumes, member["channelVolumes"]);
 
@@ -1374,9 +1302,6 @@ void ToConfig(Config& config_) {
         config.rangedWeaponSwitchControllerTextureData, member["rangedWeaponSwitchControllerTextureData"]);
 
     config.forceIconFocus              = Get<bool>(member["forceIconFocus"]);
-    config.damagePlayerActorMultiplier = Get<float>(member["damagePlayerActorMultiplier"]);
-    config.damageEnemyActorMultiplier  = Get<float>(member["damageEnemyActorMultiplier"]);
-    config.damageStyleRank             = Get<uint32>(member["damageStyleRank"]);
     config.skipIntro                   = Get<bool>(member["skipIntro"]);
     config.skipCutscenes               = Get<bool>(member["skipCutscenes"]);
     config.enableFileMods            = Get<bool>(member["enableFileMods"]);
@@ -1572,11 +1497,11 @@ void CreateMembers_ExpData(rapidjson::Value& member, ExpData (&expData)[SAVE_COU
 void CreateMembers() {
     DebugLogFunction();
 
-    CreateArray<struct_t, SAVE_COUNT>(root, "Dante");
-    CreateMembers_ExpData(root["Dante"], savedExpDataDante);
+    CreateArray<struct_t, SAVE_COUNT>(crimsonConfigRoot, "Dante");
+    CreateMembers_ExpData(crimsonConfigRoot["Dante"], savedExpDataDante);
 
-    CreateArray<struct_t, SAVE_COUNT>(root, "Vergil");
-    CreateMembers_ExpData(root["Vergil"], savedExpDataVergil);
+    CreateArray<struct_t, SAVE_COUNT>(crimsonConfigRoot, "Vergil");
+    CreateMembers_ExpData(crimsonConfigRoot["Vergil"], savedExpDataVergil);
 }
 
 #pragma endregion
@@ -1599,8 +1524,8 @@ void ToJSON_ExpData(rapidjson::Value& member, ExpData (&expData)[SAVE_COUNT]) {
 void ToJSON() {
     DebugLogFunction();
 
-    ToJSON_ExpData(root["Dante"], savedExpDataDante);
-    ToJSON_ExpData(root["Vergil"], savedExpDataVergil);
+    ToJSON_ExpData(crimsonConfigRoot["Dante"], savedExpDataDante);
+    ToJSON_ExpData(crimsonConfigRoot["Vergil"], savedExpDataVergil);
 }
 
 #pragma endregion
@@ -1623,8 +1548,8 @@ void ToExp_ExpData(ExpData (&expData)[SAVE_COUNT], rapidjson::Value& member) {
 void ToExp() {
     DebugLogFunction();
 
-    ToExp_ExpData(savedExpDataDante, root["Dante"]);
-    ToExp_ExpData(savedExpDataVergil, root["Vergil"]);
+    ToExp_ExpData(savedExpDataDante, crimsonConfigRoot["Dante"]);
+    ToExp_ExpData(savedExpDataVergil, crimsonConfigRoot["Vergil"]);
 }
 
 #pragma endregion
@@ -1678,7 +1603,7 @@ void SaveExp() {
     StringBuffer stringBuffer;
     PrettyWriter<StringBuffer> prettyWriter(stringBuffer);
 
-    root.Accept(prettyWriter);
+    crimsonConfigRoot.Accept(prettyWriter);
 
 
     auto name = stringBuffer.GetString();
@@ -1710,7 +1635,7 @@ void LoadExp() {
 
     auto name = const_cast<const char*>(reinterpret_cast<char*>(file));
 
-    if (root.Parse(name).HasParseError()) {
+    if (crimsonConfigRoot.Parse(name).HasParseError()) {
         Log("Parse failed.");
 
         return;
@@ -1748,9 +1673,9 @@ void InitExp() {
 
     snprintf(location, sizeof(location), "%s/%s", directoryName, fileName);
 
-    root.SetObject();
+    crimsonConfigRoot.SetObject();
 
-    g_allocator = &root.GetAllocator();
+    g_allocator = &crimsonConfigRoot.GetAllocator();
 }
 
 ExpertiseHelper expertiseHelpersDanteSwordmasterLevel2[] = {
@@ -2208,7 +2133,7 @@ void UpdatePlayerActorExps() {
 
 void TransferUnlocksToActorSystem() {
     auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-    // This is to be called when saving the game on Vanilla, so that unlocks you may hvae bought in Vanilla get transfered to the Actor System.
+    // This is to be called when saving the game on Vanilla, so that unlocks you may have bought in Vanilla get transferred to the Actor System.
 
     // If not in Actor System
     if (activeConfig.Actor.enable) {
@@ -2277,7 +2202,7 @@ void TransferUnlocksToActorSystem() {
 	StringBuffer stringBuffer;
 	PrettyWriter<StringBuffer> prettyWriter(stringBuffer);
 
-	root.Accept(prettyWriter);
+    crimsonConfigRoot.Accept(prettyWriter);
 
 
 	auto name = stringBuffer.GetString();
@@ -2289,9 +2214,163 @@ void TransferUnlocksToActorSystem() {
     
 }
 
+void TransferUnlocksToVanilla() {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	// Only apply this when the Actor System is enabled
+	if (!activeConfig.Actor.enable) {
+		return;
+	}
+
+	auto saveIndex = g_saveIndex;
+	if (saveIndex >= SAVE_COUNT) {
+		return;
+	}
+
+    // SESSION DATA
+	if (sessionData.character == CHARACTER::DANTE) {
+		// Sync Move Unlocks (Crimson to Vanilla)
+		for (int index = UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1; index < UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; ++index) {
+			const ExpertiseHelper& helper = expertiseHelpersDante[index];
+
+			if (sessionExpDataDante.unlocks[index]) {
+				sessionData.expertise[helper.index] |= helper.flags;
+			} else {
+				sessionData.expertise[helper.index] &= ~helper.flags;
+			}
+		}
+
+		// Sync Weapon Levels (Crimson to Vanilla)
+		for (int index = UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; index < UNLOCK_DANTE::COUNT; index += 2) {
+			const LevelHelper& helper = levelHelpers[(index - UNLOCK_DANTE::EBONY_IVORY_LEVEL_2)];
+			uint32& weaponLevel = sessionData.rangedWeaponLevels[(helper.index - 5)];
+
+			if (sessionExpDataDante.unlocks[index + 1]) {
+				weaponLevel = 2;
+			} else if (sessionExpDataDante.unlocks[index]) {
+				weaponLevel = 1;
+			} else {
+				weaponLevel = 0;
+			}
+		}
+
+		// Sync Style EXP (Crimson to Vanilla)
+		for (int style = STYLE::SWORDMASTER; style <= STYLE::ROYALGUARD; ++style) {
+			sessionData.styleLevels[style] = sessionExpDataDante.styleLevels[style];
+			sessionData.styleExpPoints[style] = sessionExpDataDante.styleExpPoints[style];
+		}
+	}
+
+	else if (sessionData.character == CHARACTER::VERGIL) {
+		// Sync Move Unlocks (Crimson to Vanilla)
+		for (int index = 0; index < UNLOCK_VERGIL::COUNT; ++index) {
+			const ExpertiseHelper& helper = expertiseHelpersVergil[index];
+
+			if (sessionExpDataVergil.unlocks[index]) {
+				sessionData.expertise[helper.index] |= helper.flags;
+			} else {
+				sessionData.expertise[helper.index] &= ~helper.flags;
+			}
+		}
+
+		// Sync Style EXP (Crimson to Vanilla)
+		for (int style = STYLE::DARK_SLAYER; style <= STYLE::DARK_SLAYER; ++style) {
+			sessionData.styleLevels[style] = sessionExpDataVergil.styleLevels[style];
+			sessionData.styleExpPoints[style] = sessionExpDataVergil.styleExpPoints[style];
+		}
+	}
+
+	auto savingInGameDataAddr = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2548);
+	if (!savingInGameDataAddr) {
+		return;
+	}
+	auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
+
+    // SAVING-IN-GAME DATA
+	if (sessionData.character == CHARACTER::DANTE) {
+		// Sync Move Unlocks (Crimson to Vanilla)
+		for (int index = UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1; index < UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; ++index) {
+			const ExpertiseHelper& helper = expertiseHelpersDante[index];
+
+			if (sessionExpDataDante.unlocks[index]) {
+				savingInGameData.expertise[helper.index] |= helper.flags;
+			} else {
+				sessionData.expertise[helper.index] &= ~helper.flags;
+				savingInGameData.expertise[helper.index] &= ~helper.flags;
+			}
+		}
+	}
+    else if (sessionData.character == CHARACTER::VERGIL) {
+        // Sync Move Unlocks (Crimson to Vanilla)
+        for (int index = 0; index < UNLOCK_VERGIL::COUNT; ++index) {
+            const ExpertiseHelper& helper = expertiseHelpersVergil[index];
+
+            if (sessionExpDataVergil.unlocks[index]) {
+                savingInGameData.expertise[helper.index] |= helper.flags;
+            } else {
+                savingInGameData.expertise[helper.index] &= ~helper.flags;
+            }
+        }
+    }
+}
+
+void InitializeCrimsonExpFromVanilla() {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	if (sessionData.character == CHARACTER::DANTE) {
+        for (int i = UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1; i < UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; ++i) {
+			const auto& helper = expertiseHelpersDante[i];
+			if (sessionData.expertise[helper.index] & helper.flags)
+				sessionExpDataDante.unlocks[i] = true;
+		}
+
+		for (int i = STYLE::SWORDMASTER; i <= STYLE::ROYALGUARD; ++i) {
+			sessionExpDataDante.styleExpPoints[i] = sessionData.styleExpPoints[i];
+			sessionExpDataDante.styleLevels[i] = sessionData.styleLevels[i];
+		}
+
+		for (int index = UNLOCK_DANTE::EBONY_IVORY_LEVEL_2; index < UNLOCK_DANTE::COUNT; ++index) {
+			const LevelHelper& helper = levelHelpers[(index - UNLOCK_DANTE::EBONY_IVORY_LEVEL_2)];
+			uint8 weaponLevel = 0;
+
+			if (index % 2) {
+				weaponLevel = 1;
+			} else {
+				weaponLevel = 2;
+			}
+
+			// Check if the current weapon level matches the helper's level
+			if (sessionData.rangedWeaponLevels[(helper.index - 5)] >= weaponLevel && !sessionExpDataDante.unlocks[index]) {
+				sessionExpDataDante.unlocks[index] = true;
+			}
+		}
+
+		sessionExpDataDante.hasPairedWithActorSystem = true;
+	} else if (sessionData.character == CHARACTER::VERGIL) {
+		for (int i = 0; i < UNLOCK_VERGIL::COUNT; ++i) {
+			const auto& helper = expertiseHelpersVergil[i];
+			if (sessionData.expertise[helper.index] & helper.flags)
+				sessionExpDataVergil.unlocks[i] = true;
+		}
+
+		sessionExpDataVergil.styleExpPoints[STYLE::DARK_SLAYER] = sessionData.styleExpPoints[STYLE::DARK_SLAYER];
+		sessionExpDataVergil.styleLevels[STYLE::DARK_SLAYER] = sessionData.styleLevels[STYLE::DARK_SLAYER];
+
+		sessionExpDataVergil.hasPairedWithActorSystem = true;
+	}
+}
+
 void MaintainUnlockAndExpertiseParity() {
     auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
     // This is to be called when loading the save to maintain parity between the Vanilla System and Actor System unlocks
+
+	if (activeConfig.Actor.enable &&
+		((sessionData.character == CHARACTER::DANTE && !sessionExpDataDante.hasPairedWithActorSystem) ||
+			(sessionData.character == CHARACTER::VERGIL && !sessionExpDataVergil.hasPairedWithActorSystem))) {
+
+		std::cout << "[Crimson] Initializing from Vanilla due to missing or reset session data.\n";
+		InitializeCrimsonExpFromVanilla();
+	}
 
     if (activeConfig.Actor.enable) {
         if (sessionData.character == CHARACTER::DANTE) {
@@ -2337,6 +2416,8 @@ void MaintainUnlockAndExpertiseParity() {
             // before pairing the moves from the Actor System to vanilla, so that the moves from vanilla
             // won't get suddenly erased if someone has started Crimson from Vanilla.
             sessionExpDataDante.hasPairedWithActorSystem = true;
+
+            TransferUnlocksToVanilla();
         }
         else if (sessionData.character == CHARACTER::VERGIL) {
 			

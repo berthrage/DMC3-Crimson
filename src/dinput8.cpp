@@ -12,6 +12,10 @@
 
 #include "Core/DebugSwitch.hpp"
 
+#include <utility>
+#include <vector>
+#include <stdlib.h>
+#include <cstring>
 
 namespace DI8 {
 
@@ -19,6 +23,31 @@ typedef decltype(DirectInput8Create)* DirectInput8Create_t;
 
 };
 
+static std::vector<std::pair<ptrdiff_t, std::vector<uint8_t>>> s_CrimsonOffsets = {
+    { 0x1E0BB2 , { 0xF3, 0x0F, 0x58, 0x89, 0xB8, 0x3E, 0x00, 0x00 } },
+    { 0x1E0B8E , { 0x80, 0xB9, 0x9B, 0x3E, 0x00, 0x00, 0x01 } },
+    { 0x215DE7 , { 0x44, 0x0F, 0x2F, 0xC1 } },
+    { 0x215DEB , { 0x0F, 0x86, 0x95, 0x01, 0x00, 0x00 } },
+    { 0x215DF1 , { 0x8B, 0x8F, 0x38, 0x63, 0x00, 0x00 } },
+    { 0x215E3E , { 0x44, 0x0F, 0x2F, 0xC0 } },
+    { 0x215EAA , { 0x74, 0x20 } },
+    { 0x2BB194 , { 0x0F, 0x85, 0x18, 0x02, 0x00, 0x00 } },
+    { 0x1EC467 , { 0x0F, 0x8E, 0x1E, 0x01, 0x00, 0x00 } },
+    { 0x1FC5D5 , { 0xE8, 0xD6, 0x13, 0x13, 0x00 } },
+    { 0x1FC5DA , { 0x44, 0x0F, 0xB7, 0x0F } },
+    { 0x1FC5DE , { 0x44, 0x0F, 0xB7, 0xD0 } },
+    { 0x1FA509 , { 0x66, 0x41, 0x03, 0xCB } },
+    { 0x1FA50D , { 0x66, 0x41, 0x89, 0x88, 0xC0, 0x00, 0x00, 0x00 } },
+    { 0x1EBF42 , { 0x66, 0x89, 0x83, 0x0C, 0x75, 0x00, 0x00 } },
+    { 0x20BCF8 , { 0xC6, 0x83, 0x10, 0x3E, 0x00, 0x00, 0x01 } },
+    { 0x20BD57 , { 0xC7, 0x83, 0x84, 0x63, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } },
+    { 0x881F1  , { 0xF3, 0x44, 0x0F, 0x10, 0x4A, 0x0C } },
+    { 0x10B7B6 , { 0xF3, 0x0F, 0x10, 0x7A, 0x0C } },
+    { 0x27E850 , { 0x66, 0x89, 0x86, 0x3C, 0x69, 0x00, 0x00 } },
+    { 0x27E85C , { 0x66, 0x89, 0x9E, 0x3C, 0x69, 0x00, 0x00 } },
+    { 0x27E874 , { 0x66, 0x89, 0x86, 0x3C, 0x69, 0x00, 0x00 } },
+    { 0x27E830 , { 0x0F, 0xB7, 0x86, 0x3C, 0x69, 0x00, 0x00 } },
+};
 
 namespace Base::DI8 {
 
@@ -86,11 +115,74 @@ void Init() {
 
         Log("DirectInput8Create %X", DirectInput8Create);
     }
+
+    uintptr_t base = (uintptr_t)GetModuleHandleA(NULL);
+    for (const auto& entry : s_CrimsonOffsets) {
+        uintptr_t address = base + entry.first;
+        int result = memcmp((void*)address, entry.second.data(), entry.second.size());
+        if (result != 0) {
+            Log("Check dmc3.exe + %X FAILED", address);
+            MessageBoxA(NULL, "Executable checksum is wrong. Startup cannot continue", "DMC3 Crimson", MB_ICONERROR);
+            std::exit(1);
+        }
+    }
 }
 
 void Load() {
     LogFunction();
 
+	// Early memory limit patch
+// 	uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandle(nullptr));
+//     // ENEMIES
+// 	uintptr_t target = base + 0x2C6030; 
+// 
+// 	BYTE patch[] = { 0xBA, 0x00, 0x00, 0x00, 0x0A }; // 160MB
+// 	DWORD oldProtect;
+// 	if (VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), PAGE_EXECUTE_READWRITE, &oldProtect)) {
+// 		memcpy(reinterpret_cast<void*>(target), patch, sizeof(patch));
+// 		VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), oldProtect, &oldProtect);
+// 		Log("Patched memory limit at %p", reinterpret_cast<void*>(target));
+// 	}
+
+    // not it
+// 	uintptr_t target = base + 0x2C6064;
+// 	BYTE patch[] = { 0xBA, 0x00, 0x00, 0x00, 0x0A }; // 160MB
+// 	DWORD oldProtect;
+// 	if (VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), PAGE_EXECUTE_READWRITE, &oldProtect)) {
+// 		memcpy(reinterpret_cast<void*>(target), patch, sizeof(patch));
+// 		VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), oldProtect, &oldProtect);
+// 		Log("Patched memory limit at %p", reinterpret_cast<void*>(target));
+// 	}
+
+    // not it
+// 	uintptr_t target = base + 0x2C6098;
+// 	BYTE patch[] = { 0xBA, 0x00, 0x00, 0x00, 0x0A }; // 160MB
+// 	DWORD oldProtect;
+// 	if (VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), PAGE_EXECUTE_READWRITE, &oldProtect)) {
+// 		memcpy(reinterpret_cast<void*>(target), patch, sizeof(patch));
+// 		VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), oldProtect, &oldProtect);
+// 		Log("Patched memory limit at %p", reinterpret_cast<void*>(target));
+// 	}
+
+    // not it
+// 	uintptr_t target = base + 0x2C604C;
+// 	BYTE patch[] = { 0x41, 0xB9, 0x00, 0x00, 0x0A }; // 160MB
+// 	DWORD oldProtect;
+// 	if (VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), PAGE_EXECUTE_READWRITE, &oldProtect)) {
+// 		memcpy(reinterpret_cast<void*>(target), patch, sizeof(patch));
+// 		VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), oldProtect, &oldProtect);
+// 		Log("Patched memory limit at %p", reinterpret_cast<void*>(target));
+// 	}
+
+    // not it
+// 	uintptr_t target = base + 0x2C6080;
+// 	BYTE patch[] = { 0x41, 0xB9, 0x00, 0x00, 0x0A }; // 160MB
+// 	DWORD oldProtect;
+// 	if (VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), PAGE_EXECUTE_READWRITE, &oldProtect)) {
+// 		memcpy(reinterpret_cast<void*>(target), patch, sizeof(patch));
+// 		VirtualProtect(reinterpret_cast<void*>(target), sizeof(patch), oldProtect, &oldProtect);
+// 		Log("Patched memory limit at %p", reinterpret_cast<void*>(target));
+// 	}
 
     byte32 error = 0;
 

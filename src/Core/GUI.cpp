@@ -188,11 +188,12 @@ bool GUI_ButtonCombo(const char* label, uint16_t& currentButton) {
 	return update;
 }
 
-bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequired, float separatorSize) {
+bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequired, 
+    bool legacyTag, const char* tooltip, float separatorSize) {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
-    auto update = GUI_Checkbox2(title, activeConfig.Arcade.enable, queuedConfig.Arcade.enable);
+	auto update = GUI_Checkbox2(title, var1, var2); 
 	ImGui::PopFont();
 
 	if (ccsRequired) {
@@ -200,22 +201,49 @@ bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequi
 		GUI_CCSRequirementButton();
 	}
 
+    if (legacyTag) {
+		ImGui::SameLine();
+		GUI_LegacyButton();
+    }
+
+    if ((std::string)tooltip != "") {
+		ImGui::SameLine();
+        TooltipHelper("(?)", tooltip);
+    }
+
 	UI::SeparatorEx(separatorSize);
 	ImGui::Text("");
 
-    return update;
+	if (update) {
+		::GUI::save = true;
+	}
+
+	return update;
 }
 
-void GUI_Title(const char* title, bool ccsRequired, float separatorSize) {
+void GUI_Title(const char* title, bool ccsRequired,
+	bool legacyTag, const char* tooltip, float separatorSize) {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 	ImGui::Text(title);
 	ImGui::PopFont();
+
 	if (ccsRequired) {
 		ImGui::SameLine();
 		GUI_CCSRequirementButton();
 	}
+
+	if (legacyTag) {
+		ImGui::SameLine();
+		GUI_LegacyButton();
+	}
+
+	if (tooltip != "") {
+		ImGui::SameLine();
+		TooltipHelper("(?)", tooltip);
+	}
+
 	UI::SeparatorEx(separatorSize);
 	ImGui::Text("");
 }
@@ -244,7 +272,48 @@ bool GUI_CCSRequirementButton() {
 	if (ImGui::IsItemHovered()) {
 		// Push full opacity for tooltip
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+        ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 		ImGui::SetTooltip("Requires Crimson Character System");
+        ImGui::PopFont();
+		ImGui::PopStyleVar();
+	}
+
+	if (wasDisabled) {
+		// Restore disabled state
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+	}
+
+	return false;
+}
+
+bool GUI_LegacyButton() {
+	// Check if parent window is disabled by checking its alpha
+	float currentAlpha = ImGui::GetStyle().Alpha;
+	bool wasDisabled = currentAlpha < 1.0f; // Approximate check for disabled state
+
+	if (wasDisabled) {
+		// Only restore the item flag but keep the alpha (for visual appearance)
+		ImGui::PopItemFlag();
+	}
+
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	ImGui::PushStyleColor(ImGuiCol_Button, CrimsonUtil::HexToImVec4(0x12692FFF));
+	ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.69f]);
+
+	ImGui::SmallButton("LEGACY");
+
+	ImGui::PopFont();
+	ImGui::PopItemFlag();
+	ImGui::PopStyleColor();
+
+	if (ImGui::IsItemHovered()) {
+		// Push full opacity for tooltip
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+        ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+		ImGui::SetTooltip("This is a legacy feature from DDMK/StyleSwitcher.\n"
+            "It's retained for preservation purposes, but may not receive future updates.");
+		ImGui::PopFont();
 		ImGui::PopStyleVar();
 	}
 
@@ -313,15 +382,23 @@ ID3D11ShaderResourceView* CreateTexture(const char* filename, ID3D11Device* devi
 
 // @Research: Consider inline.
 void TooltipHelper(const char* name, const char* description, float x) {
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	auto scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
+
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+
     ImGui::TextDisabled(name);
 
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
+		ImGui::SetWindowFontScale(scaleFactorY);
         ImGui::PushTextWrapPos(x);
         ImGui::Text(description);
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
+
+    ImGui::PopFont();
 }
 
 void DescriptionHelper(const char* description, float width) {
@@ -425,22 +502,24 @@ void KeyBinding::UpdateBuffer(Data& data, KeyData& keyData)
 
 void KeyBinding::Main() {
 	auto keys32 = *reinterpret_cast<uint32*>(activeKeyData.keys);
-	auto& lastKeys32 = main.lastKeys32;
+	auto& lastKeys32 = mainInfo.lastKeys32;
     auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	auto scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
+	auto scaledFontSize = UI::g_UIContext.DefaultFontSize * scaleFactorY;
 
-	if (!main.run) {
-		main.run = true;
-		UpdateBuffer(main, activeKeyData);
+	if (!mainInfo.run) {
+		mainInfo.run = true;
+		UpdateBuffer(mainInfo, activeKeyData);
 	}
 
 	if (lastKeys32 != keys32) {
 		lastKeys32 = keys32;
-		UpdateBuffer(main, activeKeyData);
+		UpdateBuffer(mainInfo, activeKeyData);
 	}
 
-	const auto buttonSize = ImVec2{ 300, 100 };
+	const auto buttonSize = ImVec2{ 300 * scaleFactorY, 100 * scaleFactorY};
 
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 8, 0 });
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 8 * scaleFactorY, 0 });
 
 	ImGui::BeginGroup();
 
@@ -459,10 +538,10 @@ void KeyBinding::Main() {
 	
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.2f]);
 	// Measure text width so we can add 200 after it
-	ImVec2 textSize = ImGui::CalcTextSize(main.buffer);
-	ImGui::Text(main.buffer);
+	ImVec2 textSize = ImGui::CalcTextSize(mainInfo.buffer);
+	ImGui::Text(mainInfo.buffer);
 
-	ImGui::SameLine(textSize.x + 320);
+	ImGui::SameLine(textSize.x + 320 * scaleFactorY);
 
 	if (GUI_ResetButton()) {
 		CopyMemory(&queuedKeyData, &defaultKeyData, sizeof(queuedKeyData));
@@ -479,118 +558,111 @@ void KeyBinding::Main() {
 
 
 void KeyBinding::Popup() {
-    if (!showPopup) {
-        return;
-    }
-    auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	if (!showPopup) {
+		return;
+	}
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 
+	// Calculate scaling based on both dimensions for better 4K support
+	float scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080.0f;
+	float scaleFactorX = ImGui::GetIO().DisplaySize.x / 1920.0f;
+	float scaleFactor = (scaleFactorX + scaleFactorY) * 0.5f; // Average for more balanced scaling
 
-    auto keys32      = *reinterpret_cast<uint32*>(popupKeyData.keys);
-    auto& lastKeys32 = popup.lastKeys32;
+	auto keys32 = *reinterpret_cast<uint32*>(popupKeyData.keys);
+	auto& lastKeys32 = popup.lastKeys32;
 
-    constexpr float width  = 600;
-    constexpr float height = 330;
+	float width = 600 * scaleFactor;
+	float height = 330 * scaleFactor;
 
+	// Calculate center position - don't apply scale factor twice to position
+	float centerX = (g_renderSize.x - width) / 2;
+	float centerY = (g_renderSize.y - height) / 2;
 
-    if (!popup.run) {
-        popup.run = true;
+	ImGui::SetNextWindowSize(ImVec2(width, height));
+	ImGui::SetNextWindowPos(ImVec2(centerX, centerY));
 
-        ImGui::SetNextWindowSize(ImVec2(width, height));
-        ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
-    }
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f * scaleFactor, 20.0f * scaleFactor));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 20.0f * scaleFactor);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 20.0f));
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 20.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 0.85f));
 
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 0.85f)); 
+	if (ImGui::Begin("KeyPopup", &showPopup, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
+		ImGui::SetWindowFontScale(scaleFactor);
 
-    if (ImGui::Begin("KeyPopup", &showPopup, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
-
-		
 		// Add some spacing so the text below doesn't overlap the button
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10.0f);
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10.0f * scaleFactor);
 
-        ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.2f]);
-        ImGui::Text("Capturing Inputs...");
-        ImGui::SameLine();
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.2f]);
+		ImGui::Text("Capturing Inputs...");
+		ImGui::SameLine();
 		// Create a close button 'X' at the top right
-		float closeButtonSize = 24.0f;
+		float closeButtonSize = 24.0f * scaleFactor;
 		ImVec2 windowSize = ImGui::GetWindowSize();
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));   
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1, 1, 1, 0.1f)); 
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1, 1, 1, 0.1f));
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1, 1, 1, 0.2f));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));       // remove inner padding
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);              // no rounding
-		ImGui::SetCursorPos(ImVec2(windowSize.x - closeButtonSize - 20.0f, 10.0f));
-        ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 1.2f]);
+		ImGui::SetCursorPos(ImVec2(windowSize.x - closeButtonSize - 20.0f * scaleFactor, 10.0f * scaleFactor));
+		ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 1.2f]);
 		if (ImGui::Button("X", ImVec2(closeButtonSize, closeButtonSize))) {
 			showPopup = false;
 		}
-        ImGui::PopFont();
-        ImGui::PopStyleVar(2);
-		ImGui::PopStyleColor(3); 
+		ImGui::PopFont();
+		ImGui::PopStyleVar(2);
+		ImGui::PopStyleColor(3);
 
+		ImGui::PopFont();
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
 
-        ImGui::PopFont();
-        ImGui::Text("");
-        ImGui::Text("");
-        ImGui::Text("");
+		if (lastKeys32 != keys32) {
+			lastKeys32 = keys32;
+			UpdateBuffer(popup, popupKeyData);
+		}
 
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.3f]);
+		CenterText(popup.buffer);
+		ImGui::PopFont();
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
 
-        if (lastKeys32 != keys32) {
-            lastKeys32 = keys32;
+		const auto buttonSize = ImVec2{ 120 * scaleFactor, 40 * scaleFactor };
+		auto& style = ImGui::GetStyle();
 
-            UpdateBuffer(popup, popupKeyData);
-        }
+		CenterCursorX((buttonSize.x * 3) + (style.ItemInnerSpacing.x * 2));
 
-        ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.3f]);
-        CenterText(popup.buffer);
-        ImGui::PopFont();
-        ImGui::Text("");
-        ImGui::Text("");
-        ImGui::Text("");
+		if (GUI_Button("Capture Escape", buttonSize)) {
+			popupKeyData.AddKey(KEY::ESCAPE);
+		}
+		ImGui::SameLine();
 
+		if (GUI_Button("Capture Delete", buttonSize)) {
+			popupKeyData.AddKey(KEY::DELETE);
+		}
+		ImGui::SameLine();
 
-        const auto buttonSize = ImVec2{120, 40};
+		if (GUI_Button("Capture Enter", buttonSize)) {
+			popupKeyData.AddKey(KEY::ENTER);
+		}
+		ImGui::Text("");
 
-        auto& style = ImGui::GetStyle();
+		CenterText("Press ENTER to confirm the Hotkey.");
 
-        CenterCursorX((buttonSize.x * 3) + (style.ItemInnerSpacing.x * 2));
+		if (flags & KeyFlags_AtLeastOneKey) {
+			CenterText("This binding requires at least one key.");
+		}
 
+		ImGui::Text("");
+	}
 
-        if (GUI_Button("Capture Escape", buttonSize)) {
-            popupKeyData.AddKey(KEY::ESCAPE);
-        }
-        ImGui::SameLine();
-
-        if (GUI_Button("Capture Delete", buttonSize)) {
-            popupKeyData.AddKey(KEY::DELETE);
-        }
-        ImGui::SameLine();
-
-        if (GUI_Button("Capture Enter", buttonSize)) {
-            popupKeyData.AddKey(KEY::ENTER);
-        }
-        ImGui::Text("");
-
-        CenterText("Press ENTER to confirm the Hotkey.");
-
-        if (flags & KeyFlags_AtLeastOneKey) {
-            CenterText("This binding requires at least one key.");
-        }
-
-
-        ImGui::Text("");
-    }
-
-
-    ImGui::End();
-
-    ImGui::PopStyleColor();
-
-    ImGui::PopStyleVar(4);
+	ImGui::End();
+	ImGui::PopStyleColor();
+	ImGui::PopStyleVar(4);
 }
 
 void KeyBinding::UpdateKeyData(byte8* state) {

@@ -1,9 +1,4 @@
-// @Todo: Create Enable.
-
-// @Clean
-// @Remove: File_dynamicFiles
-
-// UNSTUPIFY(Disclaimer: by 5%)... POOOF
+// Note: "Actor System" refers to the Crimson Character System (CCS) in the UI
 #include <thread>
 #include <chrono>
 #include <math.h>
@@ -2858,16 +2853,16 @@ void SpawnActors() {
 
 #pragma region Controllers
 
-void RemoveBusyFlagLegacy(byte8* actorBaseAddr) {
+void ResetMotionStateLegacy(byte8* actorBaseAddr) {
     // Old ddmk's RemoveBusyFlagController, we will keep on Cheats&DebugSection for legacy keeping reasons.
     if (!actorBaseAddr) {
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
 
-    // 	if (!playerData.removeBusyFlag) {
-    // 		return;
-    // 	}
+    if (!activeCrimsonGameplay.Cheats.Misc.resetMotionState) {
+        return;
+    }
 
     auto playerIndex = actorData.newPlayerIndex;
     if (playerIndex >= PLAYER_COUNT) {
@@ -3377,7 +3372,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
             StyleSwitch(actorBaseAddr, 2); // DARKSLAYER
         }
 
-        if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 4 && !actorData.newIsClone && activeCrimsonConfig.Cheats.Vergil.quicksilverStyle) {
+        if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 4 && !actorData.newIsClone && activeCrimsonGameplay.Cheats.Vergil.quicksilverStyle) {
             StyleSwitch(actorBaseAddr, 4); // QUICKSILVER
         }
 
@@ -3394,7 +3389,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
                 ActivateDoppelganger(actorData);
 
 
-                if (!activeConfig.infiniteMagicPoints && actorData.costume != 2 &&
+                if (!activeCrimsonGameplay.Cheats.Training.infiniteDT && actorData.costume != 2 &&
                     actorData.costume !=
                         4) { // if Infinite Magic Points is on or using Super/Super Corrupted Vergil, DT drain doesn't trigger.
 					// Calculate the amount of time that has already passed based on the current DT
@@ -3500,7 +3495,7 @@ template <typename T> void LinearMeleeWeaponSwitchController(T& actorData) {
         return;
     }
 
-    actorData.meleeWeaponSwitchTimeout = activeConfig.linearWeaponSwitchTimeout;
+    actorData.meleeWeaponSwitchTimeout = activeCrimsonGameplay.Gameplay.General.vanillaWeaponSwitchDelay;
 
     // Nero Angelo Fix
     {
@@ -3549,9 +3544,9 @@ template <typename T> void LinearRangedWeaponSwitchController(T& actorData) {
 
     bool update = false;
 
-
     {
-        bool condition = (actorData.buttons[0] & playerData.switchButton);
+        bool condition = 
+            (actorData.buttons[0] & playerData.switchButton);
 
         if (actorData.newEntityIndex == ENTITY::MAIN) {
             if (condition) {
@@ -3600,7 +3595,7 @@ template <typename T> void LinearRangedWeaponSwitchController(T& actorData) {
         return;
     }
 
-    actorData.rangedWeaponSwitchTimeout = activeConfig.linearWeaponSwitchTimeout;
+    actorData.rangedWeaponSwitchTimeout = activeCrimsonGameplay.Gameplay.General.vanillaWeaponSwitchDelay;
 
     UpdateRangedWeapon(actorData);
 
@@ -3962,13 +3957,13 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
 	StyleSwitchController(actorBaseAddr);
 
     CrimsonGameplay::UpdateCrimsonPlayerData();
-    CrimsonPatches::DisableHeightRestriction(activeCrimsonConfig.Gameplay.General.disableHeightRestriction);
-    CrimsonPatches::ImprovedBufferedReversals(activeCrimsonConfig.Gameplay.General.improvedBufferedReversals);
-    CrimsonPatches::IncreasedJCSpheres(activeCrimsonConfig.Gameplay.General.increasedJCSpheres);
-    CrimsonPatches::DisableJCRestriction(activeCrimsonConfig.Gameplay.General.disableJCRestriction);
-    CrimsonPatches::BulletStop(activeCrimsonConfig.Gameplay.Dante.bulletStop);
-    CrimsonPatches::RainstormLift(activeCrimsonConfig.Gameplay.Dante.rainstormLift);
-    CrimsonPatches::ReduceAirTornadoDamage(activeCrimsonConfig.Gameplay.Dante.airTornado);
+    CrimsonPatches::DisableHeightRestriction(activeCrimsonGameplay.Gameplay.General.disableHeightRestriction);
+    CrimsonPatches::ImprovedBufferedReversals(activeCrimsonGameplay.Gameplay.General.improvedBufferedReversals);
+    CrimsonPatches::IncreasedJCSpheres(activeCrimsonGameplay.Gameplay.General.increasedJCSpheres);
+    CrimsonPatches::DisableJCRestriction(activeCrimsonGameplay.Gameplay.General.disableJCRestriction);
+    CrimsonPatches::BulletStop(activeCrimsonGameplay.Gameplay.Dante.bulletStop);
+    CrimsonPatches::RainstormLift(activeCrimsonGameplay.Gameplay.Dante.rainstormLift);
+    CrimsonPatches::ReduceAirTornadoDamage(activeCrimsonGameplay.Gameplay.Dante.airTornado);
     CrimsonGameplay::FixAirStingerCancelTime(actorBaseAddr);
     CrimsonGameplay::FasterDTRapidSlash(actorBaseAddr);
     CrimsonGameplay::LastEventStateQueue(actorBaseAddr);
@@ -3978,18 +3973,19 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     if (sessionData.unlockDevilTrigger) {
         CrimsonFX::DTExplosionFXController(actorBaseAddr);
     }
+    ResetMotionStateLegacy(actorBaseAddr);
     
     CrimsonFX::RoyalBlockFX(actorBaseAddr);
     CrimsonFX::CalculateViewProperties(actorBaseAddr);
     CrimsonSDL::SetAllSFXDistance(playerIndex, crimsonPlayer[playerIndex].playerScreenAngle, crimsonPlayer[playerIndex].cameraPlayerDistanceClamped);
     
-	if (activeCrimsonConfig.Gameplay.Dante.improvedCancels) {
+	if (activeCrimsonGameplay.Gameplay.Dante.improvedCancels) {
 		CrimsonGameplay::ImprovedCancelsDanteController(actorBaseAddr);
         CrimsonGameplay::ImprovedCancelsRoyalguardController(actorBaseAddr);
         CrimsonGameplay::ImprovedCancelsRoyalguardController(actorData.cloneActorBaseAddr);
 	}
 
-	if (activeCrimsonConfig.Gameplay.Vergil.darkslayerTrickCancels) {
+	if (activeCrimsonGameplay.Gameplay.Vergil.darkslayerTrickCancels) {
         CrimsonGameplay::ImprovedCancelsVergilController(actorBaseAddr);
 	}
     
@@ -4183,8 +4179,24 @@ void CharacterSwitchController() {
 
             auto& playerData = GetPlayerData(playerIndex);
 
+			static bool condition = false;
+
+			if (!activeCrimsonConfig.GUI.disableGamepadShortcut) {
+				// Shortcut is enabled
+				condition = (gamepad.buttons[0] & playerData.switchButton) &&
+					!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_TARGET));
+			} else {
+				// Shortcut is disabled
+				if (playerData.switchButton == GAMEPAD::LEFT_PLUS_RIGHT_STICK_CLICK) {
+					condition = (gamepad.buttons[0] & GetBinding(BINDING::DEFAULT_CAMERA)) &&
+						(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_TARGET));
+				} else {
+					condition = (gamepad.buttons[0] & playerData.switchButton);
+				}
+			}
+				
             // Adding Change Target Button (Left Stick) check to prevent Char/Loadout Switching when opening GUI with gamepad (L3 + R3)
-            if (gamepad.buttons[0] & playerData.switchButton && !(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_TARGET))) {
+            if (condition) {
                 if (execute) {
                     execute = false;
 
@@ -6779,15 +6791,15 @@ bool AirHike(PlayerActorData& actorData) {
         return false;
     }
 
-    return MobilityFunction(actorData, actorData.newAirHikeCount, activeConfig.airHikeCount);
+    return MobilityFunction(actorData, actorData.newAirHikeCount, activeCrimsonGameplay.Cheats.Mobility.airHikeCount);
 }
 
 bool KickJump(PlayerActorData& actorData) {
-    return MobilityFunction(actorData, actorData.newKickJumpCount, activeConfig.kickJumpCount);
+    return MobilityFunction(actorData, actorData.newKickJumpCount, activeCrimsonGameplay.Cheats.Mobility.kickJumpCount);
 }
 
 bool WallHike(PlayerActorData& actorData) {
-    return MobilityFunction(actorData, actorData.newWallHikeCount, activeConfig.wallHikeCount);
+    return MobilityFunction(actorData, actorData.newWallHikeCount, activeCrimsonGameplay.Cheats.Mobility.wallHikeCount);
 }
 
 template <uint32 event> uint32 MobilityFunction(PlayerActorData& actorData, uint8 action, uint8& var, uint8* array) {
@@ -6816,7 +6828,7 @@ uint32 Dash(PlayerActorData& actorData, uint8 action) {
     static uint8 dashCount0[2] = {1, 1};
     static uint8 dashCount1[2] = {2, 2};
 
-    uint8* dashCount = (actorData.styleLevel == 0) ? dashCount0 : (actorData.styleLevel == 1) ? dashCount1 : activeConfig.dashCount;
+    uint8* dashCount = (actorData.styleLevel == 0) ? dashCount0 : (actorData.styleLevel == 1) ? dashCount1 : activeCrimsonGameplay.Cheats.Mobility.dashCount;
 
     return MobilityFunction<ACTOR_EVENT::TRICKSTER_DASH>(actorData, action, actorData.newDashCount, dashCount);
 }
@@ -6826,7 +6838,7 @@ uint32 SkyStar(PlayerActorData& actorData, uint8 action) {
         return 0;
     }
 
-    return MobilityFunction<ACTOR_EVENT::TRICKSTER_SKY_STAR>(actorData, action, actorData.newSkyStarCount, activeConfig.skyStarCount);
+    return MobilityFunction<ACTOR_EVENT::TRICKSTER_SKY_STAR>(actorData, action, actorData.newSkyStarCount, activeCrimsonGameplay.Cheats.Mobility.skyStarCount);
 }
 
 uint32 AirTrickDante(PlayerActorData& actorData, uint8 action) {
@@ -6837,12 +6849,12 @@ uint32 AirTrickDante(PlayerActorData& actorData, uint8 action) {
     actorData.recoverState[26] = (actorData.state & STATE::ON_FLOOR) ? 1 : 0;
 
     return MobilityFunction<ACTOR_EVENT::TRICKSTER_AIR_TRICK>(
-        actorData, action, actorData.newAirTrickCount, activeConfig.airTrickCountDante);
+        actorData, action, actorData.newAirTrickCount, activeCrimsonGameplay.Cheats.Mobility.danteAirTrickCount);
 }
 
 uint32 AirTrickVergil(PlayerActorData& actorData, uint8 action) {
     return MobilityFunction<ACTOR_EVENT::DARK_SLAYER_AIR_TRICK>(
-        actorData, action, actorData.newAirTrickCount, activeConfig.airTrickCountVergil);
+        actorData, action, actorData.newAirTrickCount, activeCrimsonGameplay.Cheats.Mobility.vergilAirTrickCount);
 }
 
 uint32 TrickUp(PlayerActorData& actorData, uint8 action) {
@@ -6850,7 +6862,7 @@ uint32 TrickUp(PlayerActorData& actorData, uint8 action) {
         return 0;
     }
 
-    return MobilityFunction<ACTOR_EVENT::DARK_SLAYER_TRICK_UP>(actorData, action, actorData.newTrickUpCount, activeConfig.trickUpCount);
+    return MobilityFunction<ACTOR_EVENT::DARK_SLAYER_TRICK_UP>(actorData, action, actorData.newTrickUpCount, activeCrimsonGameplay.Cheats.Mobility.trickUpCount);
 }
 
 uint32 TrickDown(PlayerActorData& actorData, uint8 action) {
@@ -6859,7 +6871,7 @@ uint32 TrickDown(PlayerActorData& actorData, uint8 action) {
     }
 
     return MobilityFunction<ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN>(
-        actorData, action, actorData.newTrickDownCount, activeConfig.trickDownCount);
+        actorData, action, actorData.newTrickDownCount, activeCrimsonGameplay.Cheats.Mobility.trickDownCount);
 }
 
 void ResetDash(PlayerActorData& actorData) {
@@ -8081,6 +8093,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
     auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
 
 	CrimsonPatches::InertiaFixes();
+    CrimsonDetours::ToggleGuardGravityAlteration(activeCrimsonGameplay.Gameplay.General.inertia);
 
     // Sky Launch needs to be called from here for maximum on tick speed so that its position is properly
     // applied in real-time. - Mia
@@ -8182,7 +8195,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 auto& gamepad      = GetGamepad(0);
 
 
-                if (activeCrimsonConfig.Gameplay.General.sprint) {
+                if (activeCrimsonGameplay.Gameplay.General.sprint) {
                     CrimsonGameplay::SprintAbility(actorBaseAddr);
                 }
 				
@@ -8193,25 +8206,29 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 CrimsonGameplay::DriveTweaks(actorBaseAddr);
                 CrimsonGameplay::GravityCorrections(actorBaseAddr);
 
-                if (activeCrimsonConfig.Gameplay.Dante.shotgunAirShotTweaks) {
+                if (activeCrimsonGameplay.Gameplay.Dante.artemisRework) {
+                    actorData.artemisCharge = 240;
+                }
+
+                if (activeCrimsonGameplay.Gameplay.Dante.shotgunAirShotTweaks) {
                     CrimsonGameplay::ShotgunAirShotTweaks(actorBaseAddr);
                 }
 
-                if (activeCrimsonConfig.Gameplay.Dante.aerialRaveTweaks) {
+                if (activeCrimsonGameplay.Gameplay.Dante.aerialRaveTweaks) {
                     CrimsonGameplay::AerialRaveGravityTweaks(actorBaseAddr);
                 }
 
-                if (activeCrimsonConfig.Gameplay.Dante.airFlickerTweaks) {
+                if (activeCrimsonGameplay.Gameplay.Dante.airFlickerTweaks) {
                     CrimsonGameplay::AirFlickerGravityTweaks(actorBaseAddr);
                 }
 
-                if (activeCrimsonConfig.Gameplay.Dante.skyDanceTweaks) {
+                if (activeCrimsonGameplay.Gameplay.Dante.skyDanceTweaks) {
                     CrimsonGameplay::SkyDanceGravityTweaks(actorBaseAddr);
                 }
 
                 CrimsonGameplay::FreeformSoftLockController(actorBaseAddr);
 
-				if (activeCrimsonConfig.Gameplay.General.inertia) {
+				if (activeCrimsonGameplay.Gameplay.General.inertia) {
                     CrimsonGameplay::StoreInertia(actorBaseAddr);
 					CrimsonGameplay::InertiaController(actorBaseAddr);
 				}
@@ -8250,7 +8267,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
                     if ((quicksilverStage == TO_ON) && (actorData.action != 0)) {
                         value = 0;
                     } else if (quicksilverStage == ON) {
-                        value *= activeConfig.Speed.quicksilverPlayerActor;
+                        value *= activeCrimsonGameplay.Cheats.Speed.quicksilverPlayer;
                     }
 
                     goto Return;
@@ -8297,7 +8314,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 }
 
                 if (!actorData.devil) {
-                    value *= activeConfig.Speed.human;
+                    value *= activeCrimsonGameplay.Cheats.Speed.human;
 
                     goto Return;
                 }
@@ -8313,7 +8330,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
                         devilIndex = DEVIL_SPEED::DANTE_SPARDA;
                     }
 
-                    value *= activeConfig.Speed.devilDante[devilIndex];
+                    value *= activeCrimsonGameplay.Cheats.Speed.dTDante[devilIndex];
 
                     break;
                 }
@@ -8331,7 +8348,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
                         devilIndex += 3;
                     }
 
-                    value *= activeConfig.Speed.devilVergil[devilIndex];
+                    value *= activeCrimsonGameplay.Cheats.Speed.dTVergil[devilIndex];
 
                     break;
                 }
@@ -8406,14 +8423,14 @@ void ToggleSpeed(bool enable) {
         */
 
         if (enable) {
-            old_for_all(uint8, itemIndex, countof(activeConfig.Speed.devilDante)) {
+            old_for_all(uint8, itemIndex, countof(activeCrimsonGameplay.Cheats.Speed.dTDante)) {
                 auto& item = items[itemIndex];
 
                 Write<float>(&item, 1.0f);
             }
         } else {
             CopyMemory(
-                items, defaultConfig.Speed.devilDante, sizeof(defaultConfig.Speed.devilDante), MemoryFlags_VirtualProtectDestination);
+                items, defaultCrimsonGameplay.Cheats.Speed.dTDante, sizeof(defaultCrimsonGameplay.Cheats.Speed.dTDante), MemoryFlags_VirtualProtectDestination);
         }
     }
 
@@ -8425,14 +8442,14 @@ void ToggleSpeed(bool enable) {
         */
 
         if (enable) {
-            old_for_all(uint8, itemIndex, countof(activeConfig.Speed.devilVergil)) {
+            old_for_all(uint8, itemIndex, countof(activeCrimsonGameplay.Cheats.Speed.dTVergil)) {
                 auto& item = items[itemIndex];
 
                 Write<float>(&item, 1.0f);
             }
         } else {
             CopyMemory(
-                items, defaultConfig.Speed.devilVergil, sizeof(defaultConfig.Speed.devilVergil), MemoryFlags_VirtualProtectDestination);
+                items, defaultCrimsonGameplay.Cheats.Speed.dTVergil, sizeof(defaultCrimsonGameplay.Cheats.Speed.dTVergil), MemoryFlags_VirtualProtectDestination);
         }
     }
 
@@ -8462,7 +8479,7 @@ float ApplyDamage(byte8* dest, float value) {
         if (((dest + 8) - offsetof(PlayerActorData, hitPoints)) == actorBaseAddr) {
             match = true;
 
-            value *= activeConfig.damagePlayerActorMultiplier;
+            value *= activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult;
         }
     }();
 
@@ -8481,7 +8498,7 @@ float ApplyDamage(byte8* dest, float value) {
 
             match = true;
 
-            value *= activeConfig.damagePlayerActorMultiplier;
+            value *= activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult;
 
             break;
         }
@@ -8489,7 +8506,7 @@ float ApplyDamage(byte8* dest, float value) {
 
     // Enemy
     if (!match) {
-        value *= activeConfig.damageEnemyActorMultiplier;
+        value *= activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult;
 
         auto pool_13274 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
         if (!pool_13274 || !pool_13274[3]) {
@@ -8500,7 +8517,7 @@ float ApplyDamage(byte8* dest, float value) {
             auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_13274[3]);
 
 
-            if (actorData.styleData.rank < activeConfig.damageStyleRank) {
+            if (actorData.styleData.rank < activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode) {
                 return 0;
             }
         }
@@ -9115,7 +9132,7 @@ float* GetYamatoForceEdgeStingerRange(PlayerActorData& actorData) {
 uint32 GetYamatoJudgementCutCount(PlayerActorData& actorData) {
     uint8 index = (actorData.devil) ? 1 : 0;
 
-    return static_cast<uint32>(activeCrimsonConfig.Cheats.Vergil.judgementCutCount[index]);
+    return static_cast<uint32>(activeCrimsonGameplay.Cheats.Vergil.judgementCutCount[index]);
 }
 
 void SetAction(byte8* actorBaseAddr) {
@@ -9160,7 +9177,7 @@ void SetAction(byte8* actorBaseAddr) {
         actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = File_staticFiles[pl000_00_3];
 
         // AIR STINGER
-        if (activeCrimsonConfig.Gameplay.Dante.airStinger && 
+        if (activeCrimsonGameplay.Gameplay.Dante.airStinger &&
             ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1] &&
             (actorData.action == REBELLION_HELM_BREAKER) &&
             (actorData.newAirStingerCount < activeConfig.Rebellion.airStingerCount[index]) && lockOn &&
@@ -9170,7 +9187,7 @@ void SetAction(byte8* actorBaseAddr) {
             actorData.newAirStingerCount++;
 
         // DRIVE
-        } else if (activeCrimsonConfig.Gameplay.Dante.driveTweaks && 
+        } else if (activeCrimsonGameplay.Gameplay.Dante.driveTweaks &&
             ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::REBELLION_DRIVE]
             && !wasRebellionAttack &&
                    (actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1 || 
@@ -9181,19 +9198,19 @@ void SetAction(byte8* actorBaseAddr) {
             actorData.action = REBELLION_DRIVE_1;
 
         // AIR REVOLVER
-        } else if (activeCrimsonConfig.Gameplay.Dante.airRevolver && 
+        } else if (activeCrimsonGameplay.Gameplay.Dante.airRevolver &&
             (actorData.action == CERBERUS_SWING) && lockOn &&
                    (tiltDirection == TILT_DIRECTION::UP)) {
             actorData.action = CERBERUS_REVOLVER_LEVEL_2;
 
         // NEW VORTEX INPUT
-        } else if (activeCrimsonConfig.Gameplay.Dante.altNevanVortex && (actorData.action == NEVAN_AIR_PLAY) && actorData.devil &&
+        } else if (activeCrimsonGameplay.Gameplay.Dante.altNevanVortex && (actorData.action == NEVAN_AIR_PLAY) && actorData.devil &&
                    (tiltDirection != TILT_DIRECTION::NEUTRAL)) {
             actorData.action = NEVAN_VORTEX;
         }
 
         // QUICK DRIVE
-        if (activeCrimsonConfig.Gameplay.Dante.driveTweaks && 
+        if (activeCrimsonGameplay.Gameplay.Dante.driveTweaks &&
             ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::REBELLION_DRIVE] &&
             (wasRebellionAttack) && (demo_pl000_00_3 != 0) &&
             (actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) &&
@@ -9212,29 +9229,31 @@ void SetAction(byte8* actorBaseAddr) {
         }
 
         // Swap Sword Pierce and Dance Macabre
-        if ((actorData.action == REBELLION_SWORD_PIERCE)) {
+        if (activeCrimsonGameplay.Gameplay.Dante.swapDancePierceInputs) {
+            if ((actorData.action == REBELLION_SWORD_PIERCE)) {
 
-            if (actorData.lastAction != REBELLION_DANCE_MACABRE_PART_1) {
-                actorData.action = REBELLION_DANCE_MACABRE_PART_1;
-            } else {
-                actorData.action = REBELLION_DANCE_MACABRE_PART_2;
+                if (actorData.lastAction != REBELLION_DANCE_MACABRE_PART_1) {
+                    actorData.action = REBELLION_DANCE_MACABRE_PART_1;
+                } else {
+                    actorData.action = REBELLION_DANCE_MACABRE_PART_2;
+                }
             }
-        }
 
-        if ((actorData.action == REBELLION_DANCE_MACABRE_PART_1 || actorData.action == REBELLION_DANCE_MACABRE_PART_2 ||
+            if ((actorData.action == REBELLION_DANCE_MACABRE_PART_1 || actorData.action == REBELLION_DANCE_MACABRE_PART_2 ||
                 actorData.action == REBELLION_DANCE_MACABRE_PART_3 || actorData.action == REBELLION_DANCE_MACABRE_PART_4 ||
                 actorData.action == REBELLION_DANCE_MACABRE_PART_5 || actorData.action == REBELLION_DANCE_MACABRE_PART_6 ||
                 actorData.action == REBELLION_DANCE_MACABRE_PART_7 || actorData.action == REBELLION_DANCE_MACABRE_PART_8) &&
-            (actorData.style == STYLE::SWORDMASTER) && lockOn && (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
-            (tiltDirection == TILT_DIRECTION::DOWN)) {
+                (actorData.style == STYLE::SWORDMASTER) && lockOn && (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
+                (tiltDirection == TILT_DIRECTION::DOWN)) {
 
-            actorData.action = REBELLION_SWORD_PIERCE;
+                actorData.action = REBELLION_SWORD_PIERCE;
+            }
         }
 
 
         // Air Tornado
         if ((actorData.action == BEOWULF_THE_HAMMER) && (actorData.style == STYLE::SWORDMASTER) &&
-			activeCrimsonConfig.Gameplay.Dante.airTornado && 
+            activeCrimsonGameplay.Gameplay.Dante.airTornado &&
             ExpConfig::missionExpDataDante.styleLevels[STYLE::SWORDMASTER] >= 2 &&
             actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION) &&
             airCounts.airTornado < 1) {
@@ -9249,7 +9268,7 @@ void SetAction(byte8* actorBaseAddr) {
         // Air Rising Dragon Whirlwind
         if ((actorData.action == BEOWULF_KILLER_BEE) && 
             actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) &&
-            (airCounts.airRisingSunWhirlwind < 1) && activeCrimsonConfig.Gameplay.Dante.airRisingDragonWhirlwind &&
+            (airCounts.airRisingSunWhirlwind < 1) && activeCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind &&
             ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::BEOWULF_RISING_DRAGON]) {
 
             if ((lockOn && tiltDirection == TILT_DIRECTION::DOWN)) {
@@ -9261,7 +9280,7 @@ void SetAction(byte8* actorBaseAddr) {
         // Air Agni & Rudra Whirlwind
 		if ((actorData.action == AGNI_RUDRA_AERIAL_CROSS) &&
 			actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) &&
-			(airCounts.airAgniRudraWhirlwind < 1) && activeCrimsonConfig.Gameplay.Dante.airAgniRudraWhirlwind &&
+			(airCounts.airAgniRudraWhirlwind < 1) && activeCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind &&
 			ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::AGNI_RUDRA_WHIRLWIND]) {
 
 			if ((lockOn && tiltDirection == TILT_DIRECTION::DOWN)) {
@@ -9271,7 +9290,7 @@ void SetAction(byte8* actorBaseAddr) {
 		}
 
         // Part of SkyDanceTweaks
-        if (activeCrimsonConfig.Gameplay.Dante.skyDanceTweaks) {
+        if (activeCrimsonGameplay.Gameplay.Dante.skyDanceTweaks) {
             if ((actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2) &&
                 (actorData.style == STYLE::SWORDMASTER)) {
 
@@ -9294,13 +9313,13 @@ void SetAction(byte8* actorBaseAddr) {
         using namespace ACTION_VERGIL;
 
         // BACK TO FORWARD JUDGEMENT CUT INPUT
-        if (activeCrimsonConfig.Gameplay.Vergil.altJudgementCutInput &&
+        if (activeCrimsonGameplay.Gameplay.Vergil.altJudgementCutInput &&
             (actorData.action == YAMATO_RAPID_SLASH_LEVEL_1 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_2) &&
             crimsonPlayer[playerIndex].b2F.forwardCommand) {
             actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
         }
         // AIR LUNAR PHASE
-        else if (activeCrimsonConfig.Gameplay.Vergil.airLunarPhase && (actorData.action == BEOWULF_STARFALL_LEVEL_2 || 
+        else if (activeCrimsonGameplay.Gameplay.Vergil.airLunarPhase && (actorData.action == BEOWULF_STARFALL_LEVEL_2 ||
             actorData.action == BEOWULF_STARFALL_LEVEL_1) 
             && lockOn && (tiltDirection == TILT_DIRECTION::UP)) {
 
@@ -9312,7 +9331,7 @@ void SetAction(byte8* actorBaseAddr) {
             }
         } 
         // FORCE EDGE AIR STINGER
-		else if (activeCrimsonConfig.Gameplay.Vergil.airStinger && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1] &&
+		else if (activeCrimsonGameplay.Gameplay.Vergil.airStinger && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1] &&
                    (actorData.newAirStingerCount < activeConfig.YamatoForceEdge.airStingerCount[index]) && lockOn &&
                    (tiltDirection == TILT_DIRECTION::UP) &&
 			       (actorData.action == YAMATO_FORCE_EDGE_HELM_BREAKER_LEVEL_1 ||
@@ -9323,7 +9342,7 @@ void SetAction(byte8* actorBaseAddr) {
             actorData.newAirStingerCount++;
         } 
         // ROUND TRIP TWEAKS
-        else if (activeCrimsonConfig.Gameplay.Vergil.roundTripTweaks &&
+        else if (activeCrimsonGameplay.Gameplay.Vergil.roundTripTweaks &&
                    (actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1 || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2) &&
                    crimsonPlayer[playerIndex].b2F.forwardCommand) {
             actorData.action = YAMATO_FORCE_EDGE_ROUND_TRIP;
@@ -9529,7 +9548,7 @@ void ToggleDeplete(bool enable) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<float**>(func.sect0 + 2) = &activeConfig.depleteQuicksilver;
+            *reinterpret_cast<float**>(func.sect0 + 2) = &activeCrimsonGameplay.Cheats.Misc.quicksilverDepletion;
         }
 
         if (enable) {
@@ -9560,7 +9579,7 @@ void ToggleDeplete(bool enable) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<float**>(func.sect0 + 2) = &activeConfig.depleteDoppelganger;
+            *reinterpret_cast<float**>(func.sect0 + 2) = &activeCrimsonGameplay.Cheats.Misc.doppelgangerDepletion;
         }
 
         if (enable) {
@@ -9591,7 +9610,7 @@ void ToggleDeplete(bool enable) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<float**>(func.sect0 + 2) = &activeConfig.depleteDevil;
+            *reinterpret_cast<float**>(func.sect0 + 2) = &activeCrimsonGameplay.Cheats.Misc.dTDepletion;
         }
 
         if (enable) {
@@ -9631,7 +9650,7 @@ void ToggleOrbReach(bool enable) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<float**>(func.sect0 + 3) = &activeConfig.orbReach;
+            *reinterpret_cast<float**>(func.sect0 + 3) = &activeCrimsonGameplay.Cheats.Misc.orbReach;
         }
 
         if (enable) {
@@ -12947,29 +12966,37 @@ void ToggleArtemisSwapNormalShotAndMultiLock(bool enable) {
     */
 }
 
-void ToggleArtemisInstantFullCharge(bool enable) {
-    LogFunction(enable);
-
-    WriteAddress((appBaseAddr + 0x215E42), (enable) ? (appBaseAddr + 0x215E48) : (appBaseAddr + 0x215F78), 6);
-    /*
-    dmc3.exe+215E42 - 0F82 30010000 - jb dmc3.exe+215F78
-    dmc3.exe+215E48 - 0F2F C1       - comiss xmm0,xmm1
-    */
-}
+// void ToggleArtemisInstantFullCharge(bool enable) {
+//     LogFunction(enable);
+// 
+//     WriteAddress((appBaseAddr + 0x215E42), (enable) ? (appBaseAddr + 0x215E48) : (appBaseAddr + 0x215F78), 6);
+//     /*
+//     dmc3.exe+215E42 - 0F82 30010000 - jb dmc3.exe+215F78
+//     dmc3.exe+215E48 - 0F2F C1       - comiss xmm0,xmm1
+//     */
+// }
 
 void UpdateCrazyComboLevelMultiplier() {
-    LogFunction();
-    static uint8 multiplier = 0;
+	LogFunction();
+	static uint8 previousMashRequirement = 0;
 
-    if (multiplier == activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement) {
-        return;
-    }
+	uint8 currentMashRequirement = activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement;
 
-    Write<uint8>((appBaseAddr + 0x5898DE), activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement);
-    Write<uint8>((appBaseAddr + 0x58999E), activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement);
-    Write<uint8>((appBaseAddr + 0x589A5E), activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement);
+	// Override if HoldToCrazyCombo is enabled
+	if (activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo) {
+		currentMashRequirement = 3;
+	}
 
-    multiplier = activeCrimsonConfig.Gameplay.General.crazyComboMashRequirement;
+	// Only update if the value changed
+	if (previousMashRequirement == currentMashRequirement) {
+		return;
+	}
+
+	Write<uint8>((appBaseAddr + 0x5898DE), currentMashRequirement);
+	Write<uint8>((appBaseAddr + 0x58999E), currentMashRequirement);
+	Write<uint8>((appBaseAddr + 0x589A5E), currentMashRequirement);
+
+	previousMashRequirement = currentMashRequirement;
 }
 
 // @Todo: Update name.
@@ -13436,6 +13463,7 @@ void SceneMissionStart() {
     }
 
     ToggleSkipCutscenes(activeConfig.skipCutscenes);
+    InitBindings();
 
     // if (!activeConfig.Actor.enable)
     // {
@@ -13526,9 +13554,9 @@ void SceneGame() {
     }
 
     Actor::Toggle(activeConfig.Actor.enable);
-    CrimsonDetours::ToggleHoldToCrazyCombo(activeConfig.Actor.enable && activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
-    CrimsonDetours::ToggleDMC4LockOnDirection(activeConfig.Actor.enable && activeCrimsonConfig.Gameplay.General.dmc4LockOnDirection);
-    CrimsonDetours::ToggleFreeformSoftLockHelper(activeConfig.Actor.enable && activeCrimsonConfig.Gameplay.General.freeformSoftLock);
+    CrimsonDetours::ToggleHoldToCrazyCombo(activeConfig.Actor.enable && activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
+    CrimsonDetours::ToggleDMC4LockOnDirection(activeConfig.Actor.enable && activeCrimsonGameplay.Gameplay.General.dmc4LockOnDirection);
+    CrimsonDetours::ToggleFreeformSoftLockHelper(activeConfig.Actor.enable && activeCrimsonGameplay.Gameplay.General.freeformSoftLock);
 
 }
 

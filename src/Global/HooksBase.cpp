@@ -11,6 +11,7 @@
 
 #include "../Core/DebugSwitch.hpp"
 #include "../StyleSwitchFX.hpp"
+#include "../CrimsonHUD.hpp"
 
 void UpdateMousePositionMultiplier() {
     using namespace CoreImGui::DI8;
@@ -100,17 +101,17 @@ void UpdateKeyboard() {
              ::DI8::KEY::LEFT_CONTROL,
              ::DI8::KEY::ONE,
          },
-            2, false, WindowSize1},
+            2, false, false, WindowSize1},
         {{
              ::DI8::KEY::LEFT_CONTROL,
              ::DI8::KEY::TWO,
          },
-            2, false, WindowSize2},
+            2, false, false, WindowSize2},
         {{
              ::DI8::KEY::LEFT_CONTROL,
              ::DI8::KEY::THREE,
          },
-            2, false, WindowSize3},
+            2, false, false, WindowSize3},
     };
 
     for_all(index, countof(keyData)) {
@@ -706,9 +707,8 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
 
     CreateRenderTarget<API::D3D11>();
 
-    InitRedOrbTexture(::D3D11::device);
+    CrimsonHUD::InitTextures(::D3D11::device);
     InitStyleSwitchFxTexture(::D3D11::device);
-    InitDStyleRankTextures(::D3D11::device);
     debug_draw_init(
         (void*)::D3D11::device, (void*)::D3D11::deviceContext, pSwapChainDesc->BufferDesc.Width, pSwapChainDesc->BufferDesc.Height);
 
@@ -763,8 +763,9 @@ namespace Base::DI8 {
 namespace Hook::DI8 {
 
 HRESULT GetDeviceStateA(IDirectInputDevice8A* pDevice, DWORD BufferSize, LPVOID Buffer) {
+    // Blocks DI8 Keyboard Input while GUI is Open
     if (g_show) {
-        SetMemory(Buffer, 0, BufferSize);
+        //SetMemory(Buffer, 0, BufferSize);
     }
 
     return 0;
@@ -785,9 +786,12 @@ namespace Base::XI {
 namespace Hook::XI {
 
 DWORD XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pState) {
+	// Blocks XInput Gamepad Input while GUI is Open
     if (g_show) {
         SetMemory(pState, 0, sizeof(XINPUT_STATE));
     }
+
+    SwapXInputButtonsCoop(dwUserIndex, pState);
 
     return 0;
 }

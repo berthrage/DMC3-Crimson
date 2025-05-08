@@ -14,6 +14,7 @@ void BulletStop(bool enable);
 void RainstormLift(bool enable);
 void ToggleIncreasedEnemyJuggleTime(bool enable);
 void DisableAirSlashKnockback(bool enable);
+void ToggleIncreasedArtemisInstantChargeResponsiveness(bool enable);
 
 #pragma endregion
 
@@ -21,9 +22,9 @@ void DisableAirSlashKnockback(bool enable);
 
 void CameraSensController();
 void CameraFollowUpSpeedController(CameraData& cameraData, CameraControlMetadata& cameraMetadata);
-void CameraDistanceController(CameraData* cameraData);
+void CameraDistanceController(CameraData* cameraData, CameraControlMetadata& cameraMetadata);
 void CameraLockOnDistanceController();
-void CameraTiltController(CameraData* cameraData);
+void CameraTiltController(CameraData* cameraData, CameraControlMetadata& cameraMetadata);
 void ForceThirdPersonCamera(bool enable);
 void ToggleLockedOffCamera(bool enable);
 void DisableLockOnCamera(bool enable);
@@ -59,6 +60,8 @@ void CerberusCrashFixPart2(bool enable);
 # pragma region Enemy
 
 void DisableEnemyTargetting1PPosition(bool enable);
+void ToggleDisableSoulEaterInvis(bool enable);
+void SetEnemyDTMode(uint8 mode);
 
 #pragma endregion
 
@@ -66,12 +69,14 @@ void DisableEnemyTargetting1PPosition(bool enable);
 
 void StopDamageToCerberus(bool enable);
 void ReduceAirTornadoDamage(bool enable);
+void ReduceArtemisProjectileDamage(bool enable);
 
 #pragma endregion
 
 #pragma region HudStuff
 
 void SetRebOrbCounterDurationTillFadeOut(bool enable, float duration);
+void ToggleHideLockOn(bool enable);
 
 #pragma endregion
 

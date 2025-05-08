@@ -196,11 +196,8 @@ static_assert(countof(newEventFuncNames) == EVENT::COUNT);
 void EventHandler(EventData& eventData) {
     using namespace EVENT;
 
-	CrimsonSDL::CheckAndOpenControllers();
-	CrimsonSDL::UpdateJoysticks();
 	CrimsonGameplay::GunDTCharacterRemaps();
 	CrimsonOnTick::GameTrackDetection();
-    CrimsonOnTick::CorrectFrameRateCutscenes();
 	CrimsonOnTick::DisableBlendingEffectsController();
 	CrimsonOnTick::StyleMeterMultiplayer();
 	CrimsonOnTick::DetermineActiveEntitiesCount();
@@ -208,7 +205,6 @@ void EventHandler(EventData& eventData) {
  	CrimsonOnTick::ForceThirdPersonCameraController();
     CrimsonOnTick::GeneralCameraOptionsController();
  	CrimsonOnTick::AirTauntDetoursController();
- 	CrimsonOnTick::NewMissionClearSong();
  	CrimsonOnTick::PauseSFXWhenPaused();
     
 	//CrimsonOnTick::OverrideEnemyTargetPosition();
@@ -610,6 +606,7 @@ void Save() {
     UpdateGlobalSaveIndex();
 
     ExpConfig::TransferUnlocksToActorSystem();
+    ExpConfig::TransferUnlocksToVanilla();
     ExpConfig::MarkAsPairedWithActorSystem();
     ExpConfig::SaveExp();
 }

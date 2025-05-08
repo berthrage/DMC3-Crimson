@@ -12,7 +12,7 @@
 namespace Speed {
 
 void Toggle(bool enable) {
-    LogFunction();
+    //LogFunction();
 
     static bool run = false;
 
@@ -102,7 +102,7 @@ void Toggle(bool enable) {
         }
 
         if (enable) {
-            Write((addr + 3), activeConfig.Speed.enemy);
+            Write((addr + 3), activeCrimsonGameplay.Cheats.Speed.enemy);
         } else {
             backupHelper.Restore(addr);
         }
@@ -132,8 +132,8 @@ void Toggle(bool enable) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<float**>(func.sect0 + 2)       = &activeConfig.Speed.quicksilverPlayerActor;
-            *reinterpret_cast<float**>(func.sect0 + 0xE + 2) = &activeConfig.Speed.quicksilverEnemyActor;
+            *reinterpret_cast<float**>(func.sect0 + 2)       = &activeCrimsonGameplay.Cheats.Speed.quicksilverPlayer;
+            *reinterpret_cast<float**>(func.sect0 + 0xE + 2) = &activeCrimsonGameplay.Cheats.Speed.quicksilverEnemy;
         }
 
         if (enable) {

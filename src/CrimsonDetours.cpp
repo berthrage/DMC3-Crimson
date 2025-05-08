@@ -14,6 +14,8 @@
 #include "Config.hpp"
 #include <iostream>
 #include "CrimsonPatches.hpp"
+#include "CrimsonLDK.hpp"
+#include "Actor.hpp"
 
 namespace CrimsonDetours {
 
@@ -117,6 +119,10 @@ void* g_ToggleTakeDamageCheckCall;
 std::uint64_t g_DisableDriveHold_ReturnAddr;
 void DisableDriveHoldDetour();
 
+// HideStyleRankHUD
+std::uint64_t g_HideStyleRankHUD_JumpAddr;
+void HideStyleRankHUDDetour();
+
 // HudHPSeparation
 std::uint64_t g_HudHPSeparation_ReturnAddr;
 void HudHPSeparationDetour();
@@ -131,6 +137,13 @@ void HudStyleBarPosDetour();
 std::uint64_t g_CustomCameraPos_ReturnAddr;
 float* g_CustomCameraPos_NewPosAddr = nullptr;
 void CustomCameraPositioningDetour();
+
+// CustomCameraSensitivity
+std::uint64_t g_CameraSensitivity_ReturnAddr1;
+std::uint64_t g_CameraSensitivity_ReturnAddr2;
+float* g_CameraSensitivity_NewSensAddr = nullptr;
+void CameraSensitivityDetour1();
+void CameraSensitivityDetour2();
 
 // RerouteRedOrbsCounterAlpha
 std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr1;
@@ -171,6 +184,12 @@ std::uint16_t g_ShootRemap_NewMap;
 // VergilNeutralTrick
 std::uint64_t g_VergilNeutralTrick_ReturnAddr;
 //void VergilNeutralTrickDetour();
+
+// Artemis Instant Full Charge
+void ArtemisInstantFullChargeDetour1();
+std::uint64_t g_ArtemisReworkJumpAddr1;
+void ArtemisInstantFullChargeDetour2();
+std::uint64_t g_ArtemisReworkJumpAddr2;
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -395,7 +414,7 @@ bool CheckForceRoyalReleaseForSkyLaunch(PlayerActorData& actorData) {
     auto gamepad = GetGamepad(playerIndex);
 
     if ((actorData.state & STATE::IN_AIR && gamepad.buttons[0] & GetBinding(BINDING::TAUNT))
-            || activeCrimsonConfig.Cheats.Dante.forceRoyalRelease) {
+            || activeCrimsonGameplay.Cheats.Dante.forceRoyalRelease) {
         return true;
     }
 
@@ -406,7 +425,7 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
 	auto playerIndex = actorData.newPlayerIndex;
 	auto gamepad = GetGamepad(playerIndex);
 
-    if (activeConfig.infiniteHitPoints) {
+    if (activeCrimsonGameplay.Cheats.Training.infiniteHP) {
         return true;
     }
 
@@ -437,6 +456,10 @@ void InitDetours() {
     using namespace Utility;
     DetourBaseAddr = (uintptr_t)appBaseAddr;
 
+	// cEnemySetCtrl__spawnGuy_sub_1401A4680
+	//dmc3.exe+1A4680 - 40 57 - push rdi
+	LdkInitDetour();
+
 	// AddToMirageGauge
 	//dmc3.exe + 1E0BB2 - F3 0F58 89 B83E0000 - addss xmm1, [rcx + 00003EB8] 
 	//dmc3.exe + 1E0B8E - 80 B9 9B3E0000 01 - cmp byte ptr[rcx + 00003E9B], 01 - original code, 
@@ -446,12 +469,6 @@ void InitDetours() {
 	g_AddToMirageGauge_ReturnAddr = AddToMirageGaugeHook->GetReturnAddress();
 	AddToMirageGaugeHook->Toggle(true);
 	g_AddToMirageGaugeCall = &AddingToPlayersMirageGauge;
-
-    // GuardGravity
-    static std::unique_ptr<Detour_t> guardGravityHook =
-        std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EE121, &GuardGravityDetour, 7);
-    g_GuardGravity_ReturnAddr = guardGravityHook->GetReturnAddress();
-    guardGravityHook->Toggle(true);
 
     // CreateEffect
     createEffectCallA  = (uintptr_t)appBaseAddr + 0x2E7CA0;
@@ -463,6 +480,53 @@ void InitDetours() {
     // static std::unique_ptr<Utility::Detour_t> VergilNeutralTrickHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x0,
     // &VergilNeutralTrickDetour, 5); g_VergilNeutralTrick_ReturnAddr = VergilNeutralTrickHook->GetReturnAddress();
     // VergilNeutralTrickHook->Toggle(true);
+}
+
+void ToggleArtemisInstantFullCharge(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+	// ArtemisInstantFullCharge
+
+	// dmc3.exe + 215DE7 - 44 0F 2F C1 - comiss xmm8, xmm1
+	// dmc3.exe + 215DEB - 0F 86 95 01 00 00 - jbe dmc3.exe + 215F86 --> jmp dmc3.exe + 215DF1
+	// dmc3.exe + 215DF1 - 8B 8F 38 63 00 00 - mov ecx, [rdi + 00006338]
+	static std::unique_ptr<Utility::Detour_t> ArtemisInstantFullChargeHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x215DE7, &ArtemisInstantFullChargeDetour1, 4);
+	g_ArtemisReworkJumpAddr1 = (uintptr_t)appBaseAddr + 0x215DF1;
+	ArtemisInstantFullChargeHook1->Toggle(enable);
+
+	// dmc3.exe + 215E3E - 44 0F 2F C0 - comiss xmm8,xmm0
+	// dmc3.exe + 215E42 - 0F 82 00 00 00 00 - jb dmc3.exe + 215E48 --> jmp dmc3.exe + 215E51
+	static std::unique_ptr<Utility::Detour_t> ArtemisInstantFullChargeHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x215E3E, &ArtemisInstantFullChargeDetour2, 4);
+	g_ArtemisReworkJumpAddr2 = (uintptr_t)appBaseAddr + 0x215E51;
+	ArtemisInstantFullChargeHook2->Toggle(enable);
+
+	// dmc3.exe + 215EA2 - 80 BC 38 E0C90100 07 - cmp byte ptr[rax + rdi + 0001C9E0], 07 { 7 }
+	// dmc3.exe + 215EAA - 74 20 - je dmc3.exe+215ECC --> jmp dmc3.exe + 215EE2
+
+	CrimsonPatches::ToggleIncreasedArtemisInstantChargeResponsiveness(enable);
+
+	run = enable;
+}
+
+void ToggleGuardGravityAlteration(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// GuardGravity
+	static std::unique_ptr<Utility::Detour_t> guardGravityHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1EE121, &GuardGravityDetour, 7);
+	g_GuardGravity_ReturnAddr = guardGravityHook->GetReturnAddress();
+	guardGravityHook->Toggle(enable);
+
+	run = enable;
 }
 
 void ToggleDisableDriveHold(bool enable) {
@@ -479,6 +543,22 @@ void ToggleDisableDriveHold(bool enable) {
 	g_DisableDriveHold_ReturnAddr = DisableDriveHoldHook->GetReturnAddress();
 	DisableDriveHoldHook->Toggle(enable);
 
+	run = enable;
+}
+
+void ToggleHideStyleRankHUD(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+	// HideStyleRankHUD
+	//dmc3.exe + 2BB194 - 0F 85 18 02 00 00 - jne dmc3.exe + 2BB3B2
+	// goes to dmc3.exe+2BB195 - E9 18 02 00 00 - jmp dmc3.exe+2BB3B2
+	static std::unique_ptr<Utility::Detour_t> HideStyleRankHUDHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2BB194, &HideStyleRankHUDDetour, 6);
+	g_HideStyleRankHUD_JumpAddr = (uintptr_t)appBaseAddr + 0x2BB3B2;
+	HideStyleRankHUDHook->Toggle(enable);
 	run = enable;
 }
 
@@ -534,7 +614,6 @@ void ToggleFasterTurnRate(bool enable) {
 	g_FasterTurnRate_ReturnAddr = FasterTurnRateHook->GetReturnAddress();
 	g_FasterTurnRateCallAddr = (uintptr_t)appBaseAddr + 0x32D9B0;
 	FasterTurnRateHook->Toggle(enable);
-	
 
 	run = enable;
 }
@@ -598,9 +677,35 @@ void ToggleCustomCameraPositioning(bool enable) {
     run = enable;
 }
 
+void ToggleCustomCameraSensitivity(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// CameraSensitivity
+	// dmc3.exe + 5772F - C7 87 D4 01 00 00 56 77 56 3D - mov[rdi + 000001D4], 3D567756{ (0) } // not default values, they are 'High' values
+	// dmc3.exe + 5775B - C7 87 D4 01 00 00 56 77 56 3D - mov[rdi + 000001D4], 3D567756{ (0) }
+	static std::unique_ptr<Utility::Detour_t> CameraSensitivityHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x5772F, &CameraSensitivityDetour1, 10);
+	static std::unique_ptr<Utility::Detour_t> CameraSensitivityHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x5775B, &CameraSensitivityDetour2, 10);
+	g_CameraSensitivity_ReturnAddr1 = CameraSensitivityHook1->GetReturnAddress();
+	g_CameraSensitivity_ReturnAddr2 = CameraSensitivityHook2->GetReturnAddress();
+	g_CameraSensitivity_NewSensAddr = &g_customCameraSensitivity;
+	CameraSensitivityHook1->Toggle(enable);
+	CameraSensitivityHook2->Toggle(enable);
+
+	run = enable;
+}
+
+
 void ToggleHoldToCrazyCombo(bool enable) {
     using namespace Utility;
     static bool run = false;
+	static uint8 previousCComboMashRequirement = activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement;
 
 	if (run == enable) {
 		return;
@@ -614,6 +719,17 @@ void ToggleHoldToCrazyCombo(bool enable) {
 	HoldToCrazyComboHook->Toggle(enable);
 	holdToCrazyComboCall = &g_HoldToCrazyComboFuncA;
 
+	if (enable) {
+		activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = 3;
+		queuedCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = 3;
+		UpdateCrazyComboLevelMultiplier();
+	} else {
+		activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = previousCComboMashRequirement;
+		queuedCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = previousCComboMashRequirement;
+		UpdateCrazyComboLevelMultiplier();
+	}
+
+	previousCComboMashRequirement = activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement;
     run = enable;
 }
 

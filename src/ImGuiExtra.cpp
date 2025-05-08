@@ -436,6 +436,9 @@ namespace UI {
 			IM_ASSERT(0);   // This should never happen as we tested for IsPopupOpen() above
 			return false;
 		}
+
+		float scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
+		ImGui::SetWindowFontScale(scaleFactorY);
 		return true;
 	}
 

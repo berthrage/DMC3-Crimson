@@ -18,19 +18,19 @@
 
 struct Config {
     struct {
-        bool enable                         = (debug) ? true : false;
+        bool enable                         = true;
         uint8 playerCount                   = 1;
         PlayerData playerData[PLAYER_COUNT] = {};
     } Actor;
 
     struct {
-        bool enable         = (debug) ? true : false;
-        uint32 mission      = 7;
-        uint32 mode         = MODE::DANTE_MUST_DIE;
+        bool enable         = false;
+        uint32 mission      = 1;
+        uint32 mode         = DIFFICULTY_MODE::NORMAL;
         uint32 room         = 900;
-        bool enableRoomSelection     = (debug) ? false : true;
+        bool enableRoomSelection     = false;
         uint32 position     = 0;
-        bool enablePositionSelection = (debug) ? false : true;
+        bool enablePositionSelection = false;
         uint8 floor         = 0;
         uint16 level        = 0;
         float hitPoints     = 20000;
@@ -63,41 +63,41 @@ struct Config {
         } Mission19;
     } BossRush;
 
-    struct {
-        uint8 airHike[5][4] = {
-            {128, 0, 0, 200},
-            {96, 128, 144, 200},
-            {160, 64, 16, 200},
-            {112, 64, 160, 200},
-            {128, 128, 128, 200},
-        };
+	struct  {
+		uint8 airHike[5][4] = {
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+		};
 
-        struct {
-            uint8 skyStar[4] = {255, 0, 0, 200};
-        } Trickster;
-        struct {
-            uint8 ultimate[4] = {143, 112, 48, 200};
-        } Royalguard;
-        struct {
-            uint8 clone[4] = {16, 16, 16, 48};
-        } Doppelganger;
-        struct {
-            uint8 dante[5][4] = {
-                {128, 0, 0, 200},
-                {96, 128, 144, 200},
-                {160, 64, 16, 200},
-                {112, 64, 160, 200},
-                {128, 128, 128, 200},
-            };
-            uint8 sparda[4]    = {128, 0, 0, 200};
-            uint8 vergil[3][4] = {
-                {32, 64, 128, 200},
-                {32, 64, 128, 200},
-                {32, 64, 128, 200},
-            };
-            uint8 neroAngelo[4] = {64, 0, 255, 200};
-        } Aura;
-    } Color;
+		struct {
+			uint8 skyStar[4] = { 128, 0, 16, 200 };
+		} Trickster;
+		struct {
+			uint8 ultimate[4] = { 128, 0, 16, 200 };
+		} Royalguard;
+		struct {
+			uint8 clone[4] = { 16, 16, 16, 48 };
+		} Doppelganger;
+		struct {
+			uint8 dante[5][4] = {
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+			};
+			uint8 sparda[4] = { 128, 0, 0, 200 };
+			uint8 vergil[3][4] = {
+				{32, 64, 128, 200},
+				{32, 64, 128, 200},
+				{32, 64, 128, 200},
+			};
+			uint8 neroAngelo[4] = { 64, 0, 255, 200 };
+		} Aura;
+	} Color;
 
 
     struct {
@@ -111,27 +111,6 @@ struct Config {
     struct {
         float mainSpeed = 1.0f;
         float turbo     = 1.2f;
-        float enemy     = 1.0f;
-
-        float quicksilverPlayerActor = 1.05f;
-        float quicksilverEnemyActor  = 0.33f;
-
-        float human         = 1.0f;
-        float devilDante[6] = {
-            1.1f,
-            1.2f,
-            1.05f,
-            1.1f,
-            1.05f,
-            1.1f,
-        };
-        float devilVergil[5] = {
-            1.2f,
-            1.2f,
-            1.2f,
-            1.0f,
-            1.0f,
-        };
     } Speed;
 
     struct {
@@ -142,38 +121,17 @@ struct Config {
         float airStingerRange[2]    = {280, 280};
     } YamatoForceEdge;
 
-    bool welcome = false;
+    bool welcome = true;
 
     bool hideBeowulfDante  = false;
     bool hideBeowulfVergil = false;
 
     uint8 dotShadow = DOT_SHADOW::DEFAULT;
 
-    float depleteQuicksilver  = 13.75f;
-    float depleteDoppelganger = 16.5f;
-    float depleteDevil        = 11.0f;
-
     bool noDevilForm = false;
-    float orbReach   = 300.0f;
+    
 
     bool resetPermissions = false;
-
-    bool infiniteHitPoints   = false;
-    bool infiniteMagicPoints = false;
-    bool disableTimer        = false;
-    bool infiniteBullets     = false;
-
-    float linearWeaponSwitchTimeout = (debug) ? 6 : 12;
-
-    uint8 airHikeCount[2]        = {1, 1};
-    uint8 kickJumpCount[2]       = {1, 1};
-    uint8 wallHikeCount[2]       = {1, 1};
-    uint8 dashCount[2]           = {3, 3};
-    uint8 skyStarCount[2]        = {1, 1};
-    uint8 airTrickCountDante[2]  = {1, 1};
-    uint8 airTrickCountVergil[2] = {1, 1};
-    uint8 trickUpCount[2]        = {1, 1};
-    uint8 trickDownCount[2]      = {1, 1};
 
     float channelVolumes[CHANNEL::MAX] = {
         1.0f,
@@ -349,16 +307,12 @@ struct Config {
 
     bool forceIconFocus = false;
 
-    float damagePlayerActorMultiplier = 1.0f;
-    float damageEnemyActorMultiplier  = 1.0f;
-    uint32 damageStyleRank            = STYLE_RANK::NONE;
-
     bool skipIntro     = false;
     bool skipCutscenes = false;
 
     bool enableFileMods = true;
 
-    float frameRate = 60;
+    float frameRate = 80;
     uint8 vSync     = 1;
 
     bool hideMouseCursor = false;
@@ -479,7 +433,7 @@ struct Config {
     
     std::string selectedHUD = "Crimson HUD";
 
-    bool disableBlendingEffects = false;
+    bool disableBlendingEffects = true;
     bool framerateResponsiveGameSpeed = true;
 
     bool playDTReadySFXAtMissionStart = true;
@@ -550,7 +504,7 @@ template <typename T> CharacterData& GetCharacterData(T& actorData) {
     return GetCharacterData(actorData.newPlayerIndex, actorData.newCharacterIndex, actorData.newEntityIndex);
 }
 
-void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character);
+void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, uint8 playerIndex, uint8 characterIndex);
 
 void ApplyDefaultPlayerData(PlayerData& playerData);
 
@@ -560,8 +514,16 @@ void InitConfig();
 void SaveConfig();
 #endif
 
+#ifndef NO_SAVE
+void SaveConfigGameplay();
+#endif
+
 #ifndef NO_LOAD
 void LoadConfig();
+#endif
+
+#ifndef NO_LOAD
+void LoadConfigGameplay();
 #endif
 
 #ifndef NO_INIT

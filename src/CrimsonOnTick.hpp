@@ -6,7 +6,7 @@ namespace CrimsonOnTick {
 	void GameTrackDetection();
 	void CorrectFrameRateCutscenes();
 	void PreparePlayersDataBeforeSpawn();
-	void NewMissionClearSong();
+	void CrimsonMissionClearSong();
 	void DisableBlendingEffectsController();
 	void StyleMeterMultiplayer();
 	void DetermineActiveEntitiesCount();
@@ -17,4 +17,5 @@ namespace CrimsonOnTick {
 	void PauseSFXWhenPaused();
 	void OverrideEnemyTargetPosition();
 	void WeaponProgressionTracking();
+	void FixM7DevilTriggerUnlocking();
 }

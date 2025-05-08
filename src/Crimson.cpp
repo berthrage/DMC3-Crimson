@@ -12,6 +12,7 @@
 #include "Memory.hpp"
 #include "Model.hpp"
 #include "CrimsonPatches.hpp"
+#include "CrimsonGameplay.hpp"
 #include "Actor.hpp"
 #include "ActorBase.hpp"
 #include "ActorRelocations.hpp"
@@ -36,6 +37,7 @@
 
 #include "Core/DebugSwitch.hpp"
 #include "CrimsonFileHandling.hpp"
+#include "CrimsonGameModes.hpp"
 
 
 uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
@@ -81,6 +83,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 
         InitConfig();
         LoadConfig();
+        LoadConfigGameplay();
 
 
         ExpConfig::InitExp();
@@ -177,24 +180,31 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleDamage(false);
         ToggleDamage(true);
 
-
         UpdateCrazyComboLevelMultiplier();
 
-        ToggleAirHikeCoreAbility(activeCrimsonConfig.Gameplay.Dante.airHikeCoreAbility);
-        CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeCrimsonConfig.Cheats.Dante.forceRoyalRelease);
-        CrimsonPatches::DisableAirSlashKnockback(activeCrimsonConfig.Gameplay.Dante.disableAirSlashKnockback);
-        ToggleRebellionInfiniteSwordPierce(activeCrimsonConfig.Cheats.Dante.infiniteSwordPierce);
-        ToggleYamatoForceEdgeInfiniteRoundTrip(activeCrimsonConfig.Cheats.Vergil.infiniteRoundTrip);
-        ToggleEbonyIvoryFoursomeTime(activeCrimsonConfig.Gameplay.Dante.foursomeTime);
-        ToggleEbonyIvoryInfiniteRainStorm(activeCrimsonConfig.Gameplay.Dante.infiniteRainstorm);
-        ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonConfig.Gameplay.Dante.artemisInstantFullCharge);
-        ToggleArtemisInstantFullCharge(activeCrimsonConfig.Gameplay.Dante.artemisInstantFullCharge);
-        ToggleChronoSwords(activeCrimsonConfig.Cheats.Vergil.chronoSwords);
-
+        ToggleAirHikeCoreAbility(activeCrimsonGameplay.Gameplay.Dante.airHikeCoreAbility);
+        CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeCrimsonGameplay.Cheats.Dante.forceRoyalRelease);
+        CrimsonPatches::DisableAirSlashKnockback(activeCrimsonGameplay.Gameplay.Dante.disableAirSlashKnockback);
+        CrimsonPatches::ToggleDisableSoulEaterInvis(activeCrimsonGameplay.Gameplay.General.disableSoulEaterInvis);
+        ToggleRebellionInfiniteSwordPierce(activeCrimsonGameplay.Cheats.Dante.infiniteSwordPierce);
+        ToggleYamatoForceEdgeInfiniteRoundTrip(activeCrimsonGameplay.Cheats.Vergil.infiniteRoundTrip);
+        ToggleEbonyIvoryFoursomeTime(activeCrimsonGameplay.Gameplay.Dante.foursomeTime);
+        ToggleEbonyIvoryInfiniteRainStorm(activeCrimsonGameplay.Gameplay.Dante.infiniteRainstorm);
+        ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonGameplay.Cheats.Dante.swapArtemisMultiLockNormalShot);
+        CrimsonDetours::ToggleArtemisInstantFullCharge(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
+        CrimsonPatches::ReduceArtemisProjectileDamage(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
+        ToggleChronoSwords(activeCrimsonGameplay.Cheats.Vergil.chronoSwords);
+        UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
+        CrimsonGameModes::SetGameMode(activeCrimsonGameplay.GameMode.preset);
+        CrimsonGameplay::AdjustDMC4MobilitySettings();
 
         Arcade::Toggle(false);
         Arcade::Toggle(activeConfig.Arcade.enable);
 
+		if (!activeCrimsonGameplay.Cheats.General.enemySpawnerTool) {
+			activeConfig.enemyAutoSpawn = false;
+			queuedConfig.enemyAutoSpawn = false;
+		}
 
         // @Merge
         Event_Toggle(false);
@@ -212,8 +222,10 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleHideMainHUD(false);
         ToggleHideMainHUD(activeConfig.hideMainHUD);
 
-        ToggleHideLockOn(false);
-        ToggleHideLockOn(activeConfig.hideLockOn);
+        CrimsonPatches::ToggleHideLockOn(false);
+        CrimsonPatches::ToggleHideLockOn(activeConfig.hideLockOn || activeCrimsonConfig.CrimsonHudAddons.lockOn);
+        CrimsonDetours::ToggleHideStyleRankHUD(activeCrimsonConfig.HudOptions.hideStyleMeter);
+        CrimsonDetours::ToggleCustomCameraSensitivity(true);
 
         ToggleHideBossHUD(false);
         ToggleHideBossHUD(activeConfig.hideBossHUD);
@@ -233,10 +245,10 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         Speed::Toggle(true);
 
 
-        ToggleInfiniteHitPoints(activeConfig.infiniteHitPoints);
-        ToggleInfiniteMagicPoints(activeConfig.infiniteMagicPoints);
-        ToggleDisableTimer(activeConfig.disableTimer);
-        ToggleInfiniteBullets(activeConfig.infiniteBullets);
+        ToggleInfiniteHitPoints(activeCrimsonGameplay.Cheats.Training.infiniteHP);
+        ToggleInfiniteMagicPoints(activeCrimsonGameplay.Cheats.Training.infiniteDT);
+        ToggleDisableTimer(activeCrimsonGameplay.Cheats.Training.disableTimers);
+        ToggleInfiniteBullets(activeCrimsonGameplay.Cheats.Training.infiniteBossLadyBullets);
 
         // Why are we calling these with false first???? - Answer: See Line 119
 
@@ -247,7 +259,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleDisablePlayerActorIdleTimer(activeConfig.disablePlayerActorIdleTimer);
 
         ToggleRebellionInfiniteShredder(false);
-        ToggleRebellionInfiniteShredder(activeCrimsonConfig.Cheats.Dante.infiniteShredder);
+        ToggleRebellionInfiniteShredder(activeCrimsonGameplay.Cheats.Dante.infiniteShredder);
 
         ToggleRebellionHoldDrive(false);
         ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
@@ -258,7 +270,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 
         CrimsonDetours::InitDetours();
         if (activeConfig.Actor.enable) {
-            CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonConfig.Gameplay.General.holdToCrazyCombo);
+            CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
         }
         else {
             CrimsonDetours::ToggleHoldToCrazyCombo(false);
@@ -266,9 +278,10 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         
         CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
         CrimsonDetours::ToggleStyleRankHudNoFadeout(activeConfig.disableStyleRankHudFadeout);
-        CrimsonDetours::ToggleDMC4LockOnDirection(activeCrimsonConfig.Gameplay.General.dmc4LockOnDirection);
-        CrimsonDetours::ToggleFasterTurnRate(activeCrimsonConfig.Gameplay.General.fasterTurnRate);
-        CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonConfig.Gameplay.General.increasedEnemyJuggleTime);
+        CrimsonDetours::ToggleDMC4LockOnDirection(activeCrimsonGameplay.Gameplay.General.dmc4LockOnDirection);
+        CrimsonDetours::ToggleFasterTurnRate(activeCrimsonGameplay.Gameplay.General.fasterTurnRate);
+        CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonGameplay.Gameplay.General.increasedEnemyJuggleTime);
+        CrimsonPatches::SetEnemyDTMode(activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode);
         CrimsonDetours::ToggleCerberusCrashFix(true);
 
         CrimsonPatches::DisableBlendingEffects(false);

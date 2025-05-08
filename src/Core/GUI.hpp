@@ -227,10 +227,25 @@ bool GUI_Color(const char* label, uint8 (&var)[4]);
 bool GUI_Color2(const char* label, uint8 (&var)[4], uint8 (&var2)[4]);
 
 #pragma region SiyCodeAdapted
-static const std::vector<std::pair<uint16_t, const char*>> buttonPairs = { {0x0000, "Nothing"}, {0x0001, "Left Trigger"},
-	{0x0002, "Right Trigger"}, {0x0004, "Left Shoulder"}, {0x0008, "Right Shoulder"}, {0x0010, "Y"}, {0x0020, "B"}, {0x0040, "A"},
-	{0x0080, "X"}, {0x0100, "Back"}, {0x0200, "Left Thumb"}, {0x0400, "Right Thumb"}, {0x0800, "Start"}, {0x1000, "Up"}, {0x2000, "Right"},
-	{0x4000, "Down"}, {0x8000, "Left"} };
+static const std::vector<std::pair<uint16_t, const char*>> buttonPairs = {
+    {0x0000, "Nothing"},
+    {0x0001, "Left Trigger"},
+	{0x0002, "Right Trigger"},
+    {0x0004, "Left Shoulder"},
+    {0x0008, "Right Shoulder"},
+    {0x0010, "Y"},
+    {0x0020, "B"},
+    {0x0040, "A"},
+	{0x0080, "X"},
+    {0x0100, "Back"},
+    {0x0200, "Left Thumb"},
+    {0x0400, "Right Thumb"},
+    {0x0800, "Start"},
+    {0x1000, "Up"},
+    {0x2000, "Right"},
+	{0x4000, "Down"},
+    {0x8000, "Left"}
+};
 
 std::pair<uint16_t, const char*> getButtonInfo(uint16_t buttonNum);
 
@@ -291,12 +306,14 @@ template <typename varType> bool GUI_RadioButton(const char* label, varType& var
 }
 
 bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequired = false, 
-    float separatorSize = UI::g_UIContext.DefaultFontSize * 23.35f);
+    bool legacyTag = false, const char* tooltip = "", float separatorSize = UI::g_UIContext.DefaultFontSize * 23.35f);
 
-void GUI_Title(const char* title, bool ccsRequired = false,
-    float separatorSize = UI::g_UIContext.DefaultFontSize * 23.35f);
+void GUI_Title(const char* title, bool ccsRequired = false, bool legacyTag = false,
+    const char* tooltip = "", float separatorSize = UI::g_UIContext.DefaultFontSize * 23.35f);
 
 bool GUI_CCSRequirementButton();
+
+bool GUI_LegacyButton();
 
 bool GUI_Color(const char* label, float (&var)[4], ImGuiColorEditFlags flags = 0);
 
@@ -331,7 +348,7 @@ struct KeyBinding {
 
     const char* name = "";
 
-    Data main  = {};
+    Data mainInfo  = {};
     Data popup = {};
 
     bool showPopup = false;

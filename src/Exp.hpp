@@ -53,6 +53,7 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr);
 void UpdatePlayerActorExps();
 
 void TransferUnlocksToActorSystem();
+void TransferUnlocksToVanilla();
 
 void MaintainUnlockAndExpertiseParity();
 

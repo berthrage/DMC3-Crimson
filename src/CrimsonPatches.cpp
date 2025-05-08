@@ -33,7 +33,7 @@ void DisableHeightRestriction(bool enable) {
     uintptr_t rainstormAddr = 0x20149708;
     uintptr_t airMeleeAddr  = 0x2014970C;
 
-	if (activeCrimsonConfig.Gameplay.General.disableHeightRestriction) {
+	if (activeCrimsonGameplay.Gameplay.General.disableHeightRestriction) {
 		*(float*)(raveAddr) = 0.0f;
 		*(float*)(rainstormAddr) = 0.0f;
 		*(float*)(airMeleeAddr) = 0.0f;
@@ -217,40 +217,82 @@ void ToggleIncreasedEnemyJuggleTime(bool enable) {
 	run = enable;
 }
 
+void ToggleIncreasedArtemisInstantChargeResponsiveness(bool enable) {
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// dmc3.exe + 215E01 - 75 0A - jne dmc3.exe+215E0D
+	// dmc3.exe + 215E0B - EB 08 - jmp dmc3.exe+215E15
+	// dmc3.exe + 215E4B - 0F 86 27 01 00 00 - jbe dmc3.exe + 215F78
+	// dmc3.exe + 215E65 - 75 16 - jne dmc3.exe + 215E7D
+	// dmc3.exe + 215E6F - 75 05 - jne dmc3.exe + 215E76
+	// dmc3.exe + 215E74 - EB 07 - jmp dmc3.exe + 215E7D
+	// dmc3.exe + 215E8A - 74 29 - je dmc3.exe+215EB5
+	// dmc3.exe + 215E91 - 72 ED - jb dmc3.exe+215E80
+	// dmc3.exe + 215EF3 - 76 2E - jna dmc3.exe + 215F23 // Kill Blinding VisualEffect
+
+
+	if (enable) {
+		_nop((char*)(appBaseAddr + 0x215E01), 2);
+		_nop((char*)(appBaseAddr + 0x215E0B), 2);
+		_nop((char*)(appBaseAddr + 0x215E4B), 6);
+		_nop((char*)(appBaseAddr + 0x215E65), 2);
+		_nop((char*)(appBaseAddr + 0x215E6F), 2);
+		_nop((char*)(appBaseAddr + 0x215E74), 2);
+		_nop((char*)(appBaseAddr + 0x215E8A), 2);
+		_nop((char*)(appBaseAddr + 0x215E91), 2);
+		//_nop((char*)(appBaseAddr + 0x215EF3), 2);
+	} else {
+		_patch((char*)(appBaseAddr + 0x215E01), (char*)"\x75\x0A", 2);
+		_patch((char*)(appBaseAddr + 0x215E0B), (char*)"\xEB\x08", 2);
+		_patch((char*)(appBaseAddr + 0x215E4B), (char*)"\x0F\x86\x27\x01\x00\x00", 6);
+		_patch((char*)(appBaseAddr + 0x215E65), (char*)"\x75\x16", 2);
+		_patch((char*)(appBaseAddr + 0x215E6F), (char*)"\x75\x05", 2);
+		_patch((char*)(appBaseAddr + 0x215E74), (char*)"\xEB\x07", 2);
+		_patch((char*)(appBaseAddr + 0x215E8A), (char*)"\x74\x29", 2);
+		_patch((char*)(appBaseAddr + 0x215E91), (char*)"\x72\xED", 2);
+		//_patch((char*)(appBaseAddr + 0x215EF3), (char*)"\x76\x2E", 2);
+	}
+
+	run = enable;
+}
+
 #pragma endregion
 
 #pragma region CameraStuff
 
 void CameraSensController() {
+	// dmc3.exe + 5772F - C7 87 D4010000 5677563D - mov[rdi + 000001D4], 3D567756{ (0) }
+	// dmc3.exe + 5775B - C7 87 D4010000 5677563D - mov[rdi + 000001D4], 3D567756{ (0) }
+	// dmc3.exe+4C6429 - 00 80 3E000080        - add [rax-7FFFFFC2],al
+	// dmc3.exe+4C642F - 3E 56                 - push rsi
+	// Now controlled by g_customCameraSensitivity that connects to CameraSensitivityDetour.
+	// We do this instead of patching so we can make sensitivity changes in real time, and 
+	// make it fully frame-rate independent. - Berthrage
 
-    // original speed
-    if (activeCrimsonConfig.Camera.sensitivity != toggle.cameraSensitivity) {
-        if (activeCrimsonConfig.Camera.sensitivity == 0) {                                                         // Low (Vanilla Default)
-            _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x35\xFA\x8E\x3C", 10); // 0.0174533f
-            _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x35\xFA\x8E\x3C", 10);
-            _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x35\xFA\x8E\x3C", 4);
-
-            toggle.cameraSensitivity = 0;
-        } else if (activeCrimsonConfig.Camera.sensitivity == 1) {                                                  // Medium
-            _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x39\xFA\x0E\x3D", 10); // 0.0349066f
-            _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x39\xFA\x0E\x3D", 10);
-            _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x39\xFA\x0E\x3D", 4);
-
-            toggle.cameraSensitivity = 1;
-        } else if (activeCrimsonConfig.Camera.sensitivity == 2) {                                                  // High
-            _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\x56\x77\x56\x3D", 10); // 0.0523599f
-            _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\x56\x77\x56\x3D", 10);
-            _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x56\x77\x56\x3D", 4);
-
-            toggle.cameraSensitivity = 2;
-        } else if (activeCrimsonConfig.Camera.sensitivity == 3) {                                                  // Highest
-            _patch((char*)(appBaseAddr + 0x5772F), (char*)"\xC7\x87\xD4\x01\x00\x00\xCD\xCC\xCC\x3D", 10); // 0.1f
-            _patch((char*)(appBaseAddr + 0x5775B), (char*)"\xC7\x87\xD4\x01\x00\x00\xCD\xCC\xCC\x3D", 10);
-            _patch((char*)(appBaseAddr + 0x4C6430), (char*)"\xCD\xCC\xCC\x3D", 4);
-
-            toggle.cameraSensitivity = 3;
-        }
-    }
+	switch (activeCrimsonConfig.Camera.sensitivity) {
+	case 0: // Low (Vanilla Default)
+		g_customCameraSensitivity = 0.0174533f * g_FrameRateTimeMultiplier;
+		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x35\xFA\x8E\x3C", 4);
+		break;
+	case 1: // Medium
+		g_customCameraSensitivity = 0.0349066f * g_FrameRateTimeMultiplier;
+		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x39\xFA\x0E\x3D", 4);
+		break;
+	case 2: // High
+		g_customCameraSensitivity = 0.0523599f * g_FrameRateTimeMultiplier;
+		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x56\x77\x56\x3D", 4);
+		break;
+	case 3: // Highest
+		g_customCameraSensitivity = 0.1f * g_FrameRateTimeMultiplier;
+		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\xCD\xCC\xCC\x3D", 4);
+		break;
+	default:
+		break;
+	}
 }
 
 
@@ -557,9 +599,9 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 }
 
 
-void CameraDistanceController(CameraData* cameraData) {
-	if (activeCrimsonConfig.Camera.distance == 0) { // Far (Vanilla Default)
-		return;
+void CameraDistanceController(CameraData* cameraData, CameraControlMetadata& cameraMetadata) {
+	if (activeCrimsonConfig.Camera.distance == 0 || cameraMetadata.fixedCameraAddr != 0) { // Far (Vanilla Default) // check if the camera is in a fixed pos mode
+		return; 
 	}
 
 	if (activeCrimsonConfig.Camera.distance == 1) { // Closer
@@ -619,8 +661,8 @@ void CameraLockOnDistanceController() {
     }
 }
 
-void CameraTiltController(CameraData* cameraData) {
-    if (activeCrimsonConfig.Camera.tilt == 0) { // Original (Vanilla Default)
+void CameraTiltController(CameraData* cameraData, CameraControlMetadata& cameraMetadata) {
+    if (activeCrimsonConfig.Camera.tilt == 0 || cameraMetadata.fixedCameraAddr != 0) { // Original (Vanilla Default)
         return;
     }
 
@@ -884,9 +926,9 @@ void TatsumakiInertiaFix(bool enable) {
 
 void InertiaFixes() {
 
-    if (toggle.inertiaFixes != (int)activeCrimsonConfig.Gameplay.General.inertia) {
+    if (toggle.inertiaFixes != (int)activeCrimsonGameplay.Gameplay.General.inertia) {
 
-        if (activeCrimsonConfig.Gameplay.General.inertia) {
+        if (activeCrimsonGameplay.Gameplay.General.inertia) {
             AerialRaveInertiaFix(true);
             SkyDanceInertiaFix(true);
             AirSlashInertiaFix(true);
@@ -1179,6 +1221,51 @@ void DisableEnemyTargetting1PPosition(bool enable) {
 	run = enable;
 }
 
+void ToggleDisableSoulEaterInvis(bool enable) {
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	//dmc3.exe + E94E2 - 75 24 - jne dmc3.exe + E9508{ Soul Eater goes visible comparison
+
+	if (enable) {
+		_patch((char*)(appBaseAddr + 0xE94E2), (char*)"\xEB\x24", 2); // Soul Eater goes visible regardless
+	} else {
+		_patch((char*)(appBaseAddr + 0xE94E2), (char*)"\x75\x24", 2); // Soul Eater goes visible only when it should
+	}
+
+	run = enable;
+}
+
+void SetEnemyDTMode(uint8 mode) {
+	static uint8 run = -1;
+	if (run == mode) {
+		return;
+	}
+	// 	INSTANT ENEMY DT
+	// 	dmc3.exe + 6105F - 80 B9 BC 00 00 00 00 - cmp byte ptr[rcx + 000000BC], 00 { 0 }
+	// 	Change this comparison to 01 or nop the addr and you get instant enemy DT
+	// 
+	// 	NO ENEMY DT :
+	// 	dmc3.exe + 6105D - 77 09 - ja dmc3.exe + 61068 // nop this addr
+	// 	dmc3.exe + 61066 - 74 18 - je dmc3.exe + 61080 // change this addr to a jmp // EB 18
+
+	if (mode == ENEMYDTMODE::INSTANT_DT) {
+		_nop((char*)(appBaseAddr + 0x6105F), 7); // Change the cmp to 1
+
+	} else if (mode == ENEMYDTMODE::NO_ENEMY_DT) {
+		_nop((char*)(appBaseAddr + 0x6105D), 2); // NOP the ja
+		_patch((char*)(appBaseAddr + 0x61066), (char*)"\xEB\x18", 2); // Change the je to a jmp
+	} else {
+		_patch((char*)(appBaseAddr + 0x6105F), (char*)"\x80\xB9\xBC\x00\x00\x00\x00", 7); // Change the cmp back to 0
+		_patch((char*)(appBaseAddr + 0x6105D), (char*)"\x77\x09", 2); // Change the ja back
+		_patch((char*)(appBaseAddr + 0x61066), (char*)"\x74\x18", 2); // Change the jmp back to a je
+	}
+	run = mode;
+}
+
 #pragma endregion
 
 # pragma region Damage
@@ -1266,6 +1353,26 @@ void ReduceAirTornadoDamage(bool enable) {
 	run = enable;
 }
 
+void ReduceArtemisProjectileDamage(bool enable) {
+	static bool run = false;
+	uintptr_t artemisProjectileDamage = (uintptr_t)appBaseAddr + 0x5CB3CC;
+
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// 	dmc3.exe + 5CB3CC // 50.0f, Artemis' Normal Shot and Multi Lock Shot projectile damage
+
+	if (enable) {
+		*(float*)(artemisProjectileDamage) = 5.0f;
+	} else {
+		*(float*)(artemisProjectileDamage) = 50.0f;
+	}
+
+	run = enable;
+}
+
 # pragma endregion
 
 #pragma region HudStuff
@@ -1300,12 +1407,22 @@ void SetRebOrbCounterDurationTillFadeOut(bool enable, float duration) {
 	run = enable;
 }
 
+void ToggleHideLockOn(bool enable) {
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+	//dmc3.exe + 296E77 - 75 14 - jne dmc3.exe + 296E8D{ ToggleLockOnDisplay, change this to jmp to hide permanently
+	
+	if (enable) {
+		_patch((char*)(appBaseAddr + 0x296E77), (char*)"\xEB\x14", 2); // jmp dmc3.exe+296E8D
+	} else {
+		_patch((char*)(appBaseAddr + 0x296E77), (char*)"\x75\x14", 2); // jne dmc3.exe+296E8D
+	}
 
-#pragma endregion
-
-
-
+	run = enable;
 }
-
+}
 # pragma endregion
 

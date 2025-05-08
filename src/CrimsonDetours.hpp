@@ -59,6 +59,9 @@ void ToggleTakeDamageDetour();
 // DisableDriveHold
 void DisableDriveHoldDetour();
 
+// HideStyleRankHUD
+void HideStyleRankHUDDetour();
+
 // HudHPSeparation
 void HudHPSeparationDetour();
 
@@ -91,17 +94,29 @@ void ShootRemapHoldDetour();
 
 // VergilNeutralTrick
 void VergilNeutralTrickDetour();
+
+// ArtemisInstantFullCharge
+void ArtemisInstantFullChargeDetour1();
+void ArtemisInstantFullChargeDetour2();
+
+// CameraSensitivity
+void CameraSensitivityDetour1();
+void CameraSensitivityDetour2();
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
 void InitDetours();
+void ToggleArtemisInstantFullCharge(bool enable);
+void ToggleGuardGravityAlteration(bool enable);
 void ToggleDisableDriveHold(bool enable);
+void ToggleHideStyleRankHUD(bool enable);
 void ToggleDTInfusedRoyalguardDetours(bool enable);
 void ToggleFasterTurnRate(bool enable);
 void ToggleFreeformSoftLockHelper(bool enable);
 void ToggleDMC4LockOnDirection(bool enable);
 void ToggleCustomCameraPositioning(bool enable);
+void ToggleCustomCameraSensitivity(bool enable);	
 void ToggleHoldToCrazyCombo(bool enable);
 void AirTauntDetours(bool enable);
 void RerouteRedOrbsCounterAlpha(bool enable, volatile uint16_t& alphaVar);

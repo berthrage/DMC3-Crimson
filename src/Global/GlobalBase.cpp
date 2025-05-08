@@ -6,7 +6,7 @@ const char* DMC3C_TITLE = "Devil May Cry 3 Crimson " DMC3C_DATE;
 
 const char* WELCOME_TEXT = "DMC3 Crimson has loaded, enjoy!\n"
                            "\n"
-                           "Press LEFT_CONTROL + D to toggle the menu.";
+                           "Press DELETE to toggle the menu.";
 
 const char* PATREON_TEXT =
     /*"If you like my work and wish to support me, consider becoming my patron.\n"\
@@ -15,7 +15,7 @@ const char* PATREON_TEXT =
     "Cheers!"*/
     "PLACEHOLDER";
 
-const char* PATREON_LINK = "https://www.patreon.com/miaberth";
+const char* PATREON_LINK = "https://www.patreon.com/berthrage";
 
 const std::vector<const char*> specialNames = {
     "PLACEHOLDER",

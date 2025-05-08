@@ -2,12 +2,14 @@ set(MASM_SRC
     masm/SampleMod.asm
     masm/GuardGravity.asm
     masm/AddToMirageGauge.asm
+    masm/CameraSensitivity.asm
     masm/CreateEffect.asm
     masm/HoldToCrazyComboAsm.asm
     masm/DisableStaggerRoyalguard.asm
     masm/FasterTurnRate.asm
     masm/GuardBreakToNormalBlock.asm
     masm/FixCrashCerberus.asm
+    masm/HideStyleRankHUD.asm
     masm/HudHPSeparation.asm
     masm/HudStyleBarPosAsm.asm
     masm/DisableDriveHoldAsm.asm
@@ -20,6 +22,7 @@ set(MASM_SRC
     masm/ToggleTakeDamage.asm
     masm/VergilTricksAsm.asm
     masm/StyleRankHudNoFadeout.asm
+    masm/ArtemisInstantFullCharge.asm
 )
 
 set (ASM_LIBS)
@@ -105,6 +108,9 @@ file(GLOB MAIN_SRC
     Crimson.cpp 
     CrimsonConfig.cpp
     CrimsonConfig.hpp
+    CrimsonConfigGameplay.cpp
+    CrimsonConfigGameplay.hpp
+    CrimsonConfigGameplayMask.hpp
     CrimsonConfigHandling.h
     CrimsonDetours.cpp
     CrimsonDetours.hpp
@@ -112,10 +118,16 @@ file(GLOB MAIN_SRC
     CrimsonFileHandling.hpp	
     CrimsonFX.cpp
     CrimsonFX.hpp
+    CrimsonGameModes.cpp
+    CrimsonGameModes.hpp
     CrimsonGameplay.cpp
     CrimsonGameplay.hpp
     CrimsonGUI.cpp
     CrimsonGUI.hpp
+    CrimsonHUD.cpp
+    CrimsonHUD.hpp
+    CrimsonLDK.cpp
+    CrimsonLDK.hpp
     CrimsonUtil.cpp
     CrimsonUtil.hpp
     CrimsonOnTick.cpp

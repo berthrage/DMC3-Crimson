@@ -154,11 +154,12 @@ void Toggle(bool enable) {
             0xE8, 0x00, 0x00, 0x00, 0x00,                               // call dmc3.exe+32CC90
         };
 
+        
         if (!run) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<bool**>(func.sect0 + 2) = &activeCrimsonConfig.Camera.disableRightStickCenterCamera;
+            *reinterpret_cast<bool**>(func.sect0 + 2) = &g_disableRightStickCenterCamera;
             WriteAddress((func.sect0 + 0xE), (appBaseAddr + 0x577FF), 6);
             WriteCall((func.sect0 + 0x14), (appBaseAddr + 0x32CC90));
         }

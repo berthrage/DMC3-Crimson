@@ -226,8 +226,6 @@ void UpdateGamepad(XINPUT_STATE* stateAddr) {
 #pragma endregion
 
 void UpdateDisplaySize(uint32 width, uint32 height) {
-    Log("%s %u %u", FUNC_NAME, width, height);
-
     auto& io = ImGui::GetIO();
 
     io.DisplaySize.x = static_cast<float>(width/* + 1920*/);

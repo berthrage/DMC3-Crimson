@@ -14,7 +14,6 @@ bool HUD_UpdateWeaponIcon(uint8 index, uint8 weapon);
 
 void HUD_Init();
 void ToggleHideMainHUD(bool enable);
-void ToggleHideLockOn(bool enable);
 void ToggleHideBossHUD(bool enable);
 
 void ToggleForceVisibleHUD(bool enable);
