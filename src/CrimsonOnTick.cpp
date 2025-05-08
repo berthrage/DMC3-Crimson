@@ -737,7 +737,7 @@ void GeneralCameraOptionsController() {
 		return;
 	}
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
-	if (eventData.event != EVENT::MAIN) {
+	if (eventData.event != EVENT::MAIN && eventData.event != EVENT::PAUSE) {
 		setCamPos = false;
 		return;
 	}
