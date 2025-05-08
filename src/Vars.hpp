@@ -4905,6 +4905,7 @@ extern bool g_inBossfight;
 extern int g_bossQuantity;
 extern bool g_inGameDelayed;
 extern bool g_inGameCutscene;
+extern bool g_inMainMenu;
 extern bool g_allActorsSpawned;
 extern bool g_HudVisible;
 extern std::string g_gameTrackPlaying;
@@ -5138,6 +5139,8 @@ struct CrimsonPlayerData {
     int currentAnim   = 0;
     float actionTimer = 0;
     float animTimer   = 0;
+    float eventTimer = 0;
+    float trickDashTimer = 0;
     uint32 currentEvent = 0;
     bool active;
     bool inNewDrive   = false;
@@ -5202,6 +5205,8 @@ struct CrimsonPlayerData {
     int currentAnimClone   = 0;
     float actionTimerClone = 0;
     float animTimerClone   = 0;
+    float eventTimerClone = 0;
+    float trickDashTimerClone = 0;
     uint32 currentEventClone = 0;
     std::vector<uint32> lastEventsClone{0};
     int lastLastEventClone = 0;

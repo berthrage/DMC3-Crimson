@@ -614,7 +614,6 @@ void ToggleFasterTurnRate(bool enable) {
 	g_FasterTurnRate_ReturnAddr = FasterTurnRateHook->GetReturnAddress();
 	g_FasterTurnRateCallAddr = (uintptr_t)appBaseAddr + 0x32D9B0;
 	FasterTurnRateHook->Toggle(enable);
-	
 
 	run = enable;
 }

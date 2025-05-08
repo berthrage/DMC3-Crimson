@@ -502,19 +502,19 @@ void KeyBinding::UpdateBuffer(Data& data, KeyData& keyData)
 
 void KeyBinding::Main() {
 	auto keys32 = *reinterpret_cast<uint32*>(activeKeyData.keys);
-	auto& lastKeys32 = main.lastKeys32;
+	auto& lastKeys32 = mainInfo.lastKeys32;
     auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	auto scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
 	auto scaledFontSize = UI::g_UIContext.DefaultFontSize * scaleFactorY;
 
-	if (!main.run) {
-		main.run = true;
-		UpdateBuffer(main, activeKeyData);
+	if (!mainInfo.run) {
+		mainInfo.run = true;
+		UpdateBuffer(mainInfo, activeKeyData);
 	}
 
 	if (lastKeys32 != keys32) {
 		lastKeys32 = keys32;
-		UpdateBuffer(main, activeKeyData);
+		UpdateBuffer(mainInfo, activeKeyData);
 	}
 
 	const auto buttonSize = ImVec2{ 300 * scaleFactorY, 100 * scaleFactorY};
@@ -538,8 +538,8 @@ void KeyBinding::Main() {
 	
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.2f]);
 	// Measure text width so we can add 200 after it
-	ImVec2 textSize = ImGui::CalcTextSize(main.buffer);
-	ImGui::Text(main.buffer);
+	ImVec2 textSize = ImGui::CalcTextSize(mainInfo.buffer);
+	ImGui::Text(mainInfo.buffer);
 
 	ImGui::SameLine(textSize.x + 320 * scaleFactorY);
 
@@ -558,118 +558,111 @@ void KeyBinding::Main() {
 
 
 void KeyBinding::Popup() {
-    if (!showPopup) {
-        return;
-    }
-    auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
-    auto scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
+	if (!showPopup) {
+		return;
+	}
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 
-    auto keys32      = *reinterpret_cast<uint32*>(popupKeyData.keys);
-    auto& lastKeys32 = popup.lastKeys32;
+	// Calculate scaling based on both dimensions for better 4K support
+	float scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080.0f;
+	float scaleFactorX = ImGui::GetIO().DisplaySize.x / 1920.0f;
+	float scaleFactor = (scaleFactorX + scaleFactorY) * 0.5f; // Average for more balanced scaling
 
-    float width  = 600 * scaleFactorY;
-    float height = 330 * scaleFactorY;
+	auto keys32 = *reinterpret_cast<uint32*>(popupKeyData.keys);
+	auto& lastKeys32 = popup.lastKeys32;
 
+	float width = 600 * scaleFactor;
+	float height = 330 * scaleFactor;
 
-    if (!popup.run) {
-        popup.run = true;
+	// Calculate center position - don't apply scale factor twice to position
+	float centerX = (g_renderSize.x - width) / 2;
+	float centerY = (g_renderSize.y - height) / 2;
 
-        ImGui::SetNextWindowSize(ImVec2(width, height));
-        ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
-    }
+	ImGui::SetNextWindowSize(ImVec2(width, height));
+	ImGui::SetNextWindowPos(ImVec2(centerX, centerY));
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 20.0f));
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 20.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f * scaleFactor, 20.0f * scaleFactor));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 20.0f * scaleFactor);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
 
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 0.85f)); 
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 0.85f));
 
-    if (ImGui::Begin("KeyPopup", &showPopup, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
-        ImGui::SetWindowFontScale(scaleFactorY);
-		
+	if (ImGui::Begin("KeyPopup", &showPopup, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
+		ImGui::SetWindowFontScale(scaleFactor);
+
 		// Add some spacing so the text below doesn't overlap the button
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10.0f);
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10.0f * scaleFactor);
 
-        ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.2f]);
-        ImGui::Text("Capturing Inputs...");
-        ImGui::SameLine();
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.2f]);
+		ImGui::Text("Capturing Inputs...");
+		ImGui::SameLine();
 		// Create a close button 'X' at the top right
-		float closeButtonSize = 24.0f;
+		float closeButtonSize = 24.0f * scaleFactor;
 		ImVec2 windowSize = ImGui::GetWindowSize();
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));   
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1, 1, 1, 0.1f)); 
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1, 1, 1, 0.1f));
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1, 1, 1, 0.2f));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));       // remove inner padding
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);              // no rounding
-		ImGui::SetCursorPos(ImVec2(windowSize.x - closeButtonSize - 20.0f, 10.0f));
-        ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 1.2f]);
+		ImGui::SetCursorPos(ImVec2(windowSize.x - closeButtonSize - 20.0f * scaleFactor, 10.0f * scaleFactor));
+		ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 1.2f]);
 		if (ImGui::Button("X", ImVec2(closeButtonSize, closeButtonSize))) {
 			showPopup = false;
 		}
-        ImGui::PopFont();
-        ImGui::PopStyleVar(2);
-		ImGui::PopStyleColor(3); 
+		ImGui::PopFont();
+		ImGui::PopStyleVar(2);
+		ImGui::PopStyleColor(3);
 
+		ImGui::PopFont();
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
 
-        ImGui::PopFont();
-        ImGui::Text("");
-        ImGui::Text("");
-        ImGui::Text("");
+		if (lastKeys32 != keys32) {
+			lastKeys32 = keys32;
+			UpdateBuffer(popup, popupKeyData);
+		}
 
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.3f]);
+		CenterText(popup.buffer);
+		ImGui::PopFont();
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
 
-        if (lastKeys32 != keys32) {
-            lastKeys32 = keys32;
+		const auto buttonSize = ImVec2{ 120 * scaleFactor, 40 * scaleFactor };
+		auto& style = ImGui::GetStyle();
 
-            UpdateBuffer(popup, popupKeyData);
-        }
+		CenterCursorX((buttonSize.x * 3) + (style.ItemInnerSpacing.x * 2));
 
-        ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.3f]);
-        CenterText(popup.buffer);
-        ImGui::PopFont();
-        ImGui::Text("");
-        ImGui::Text("");
-        ImGui::Text("");
+		if (GUI_Button("Capture Escape", buttonSize)) {
+			popupKeyData.AddKey(KEY::ESCAPE);
+		}
+		ImGui::SameLine();
 
+		if (GUI_Button("Capture Delete", buttonSize)) {
+			popupKeyData.AddKey(KEY::DELETE);
+		}
+		ImGui::SameLine();
 
-        const auto buttonSize = ImVec2{120 * scaleFactorY, 40 * scaleFactorY};
+		if (GUI_Button("Capture Enter", buttonSize)) {
+			popupKeyData.AddKey(KEY::ENTER);
+		}
+		ImGui::Text("");
 
-        auto& style = ImGui::GetStyle();
+		CenterText("Press ENTER to confirm the Hotkey.");
 
-        CenterCursorX((buttonSize.x * 3) + (style.ItemInnerSpacing.x * 2));
+		if (flags & KeyFlags_AtLeastOneKey) {
+			CenterText("This binding requires at least one key.");
+		}
 
+		ImGui::Text("");
+	}
 
-        if (GUI_Button("Capture Escape", buttonSize)) {
-            popupKeyData.AddKey(KEY::ESCAPE);
-        }
-        ImGui::SameLine();
-
-        if (GUI_Button("Capture Delete", buttonSize)) {
-            popupKeyData.AddKey(KEY::DELETE);
-        }
-        ImGui::SameLine();
-
-        if (GUI_Button("Capture Enter", buttonSize)) {
-            popupKeyData.AddKey(KEY::ENTER);
-        }
-        ImGui::Text("");
-
-        CenterText("Press ENTER to confirm the Hotkey.");
-
-        if (flags & KeyFlags_AtLeastOneKey) {
-            CenterText("This binding requires at least one key.");
-        }
-
-
-        ImGui::Text("");
-    }
-
-
-    ImGui::End();
-
-    ImGui::PopStyleColor();
-
-    ImGui::PopStyleVar(4);
+	ImGui::End();
+	ImGui::PopStyleColor();
+	ImGui::PopStyleVar(4);
 }
 
 void KeyBinding::UpdateKeyData(byte8* state) {

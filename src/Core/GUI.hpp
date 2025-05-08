@@ -348,7 +348,7 @@ struct KeyBinding {
 
     const char* name = "";
 
-    Data main  = {};
+    Data mainInfo  = {};
     Data popup = {};
 
     bool showPopup = false;

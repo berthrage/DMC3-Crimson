@@ -119,7 +119,8 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, { g_UIContext.DefaultFontSize * 9.38f * 6.0f + g_UIContext.DefaultFontSize * 3.0f, g_UIContext.DefaultFontSize * 35.0f });
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 0.0f });
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 15.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 5.0f * scaleFactorY);
+	ImGui::PushStyleColor(ImGuiCol_Button, SwapColorEndianness(0xDA1B53FF));
 	ImGui::Begin(title, nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar);
 	float scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
 	ImGui::SetWindowFontScale(scaleFactorY);
@@ -248,17 +249,17 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			std::string newVersionText{};
 
 			if (g_UIContext.CurrentVersion.PatchLetter == 0) {
-				versionStr = std::format("Ver. {}.{}", g_UIContext.CurrentVersion.Major, g_UIContext.CurrentVersion.Minor);
+				versionStr = std::format("v{}.{}", g_UIContext.CurrentVersion.Major, g_UIContext.CurrentVersion.Minor);
 			}
 			else {
-				versionStr = std::format("Ver. {}.{}{}", g_UIContext.CurrentVersion.Major, g_UIContext.CurrentVersion.Minor, g_UIContext.CurrentVersion.PatchLetter);
+				versionStr = std::format("v{}.{}{}", g_UIContext.CurrentVersion.Major, g_UIContext.CurrentVersion.Minor, g_UIContext.CurrentVersion.PatchLetter);
 			}
 
 			if (g_UIContext.LatestVersion.PatchLetter == 0) {
-				newVersionText = std::format("NEW VERSION AVAILABLE (Ver. {}.{})", g_UIContext.LatestVersion.Major, g_UIContext.LatestVersion.Minor);
+				newVersionText = std::format("NEW VERSION AVAILABLE (v{}.{})", g_UIContext.LatestVersion.Major, g_UIContext.LatestVersion.Minor);
 			}
 			else {
-				newVersionText = std::format("NEW VERSION AVAILABLE (Ver. {}.{}{})", g_UIContext.LatestVersion.Major, g_UIContext.LatestVersion.Minor, g_UIContext.LatestVersion.PatchLetter);
+				newVersionText = std::format("NEW VERSION AVAILABLE (v{}.{}{})", g_UIContext.LatestVersion.Major, g_UIContext.LatestVersion.Minor, g_UIContext.LatestVersion.PatchLetter);
 			}
 
 			switch (UI::versionCheckResult) {
@@ -302,7 +303,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			ImGui::SetCursorScreenPos(pos + ImVec2{ maxLenthUpdateSection + scaledFontSize * 0.3f,
 													style.FramePadding.y + scaledFontSize * 0.5f - scaledFontSize * 0.65f });
 
-			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 7.0f * scaledFontSize);
+			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.5f * scaleFactorY);
 			ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 1.0f]);
 
 			if (InfoButton(versionStr.c_str())) {
@@ -729,6 +730,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			ImGui::EndChild();
 		}
 	}
+	ImGui::PopStyleColor();
 	ImGui::End();
 	ImGui::PopFont();
 }
@@ -3443,7 +3445,7 @@ void MirageGaugeMainPlayer() {
 
 
 	// Adjust the size of the bar
-	float barLength = 130.0f * scaleFactorY * (crimsonPlayer[0].vergilDoppelganger.maxMiragePoints / maxMiragePointsAmount);
+	float barLength = 130.0f * (crimsonPlayer[0].vergilDoppelganger.maxMiragePoints / maxMiragePointsAmount);
 	vec2 size = { barLength, 10.0f * scaleFactorY };
 
 	// Calculate position 
@@ -3621,9 +3623,9 @@ void RenderMissionResultGameModeStats() {
 		ImGui::Text("%s", difficultyString);
 
 		ImGui::SameLine();
-		std::string ldkMissionText = (" - " + (std::string)ldkModeNames[gameModeData.ldkNissionResult]);
-		std::string mustStyleMissionText = " - Must Style (" + std::string(styleRankNames[gameModeData.mustStyleMissionResult]) + ")";
-		std::string enemyDTMissionText = (" - " + (std::string)enemyDTModeNames[gameModeData.enemyDTMissionResult]);
+		std::string ldkMissionText = std::string(reinterpret_cast<const char*>(u8"• ")) + ldkModeNames[gameModeData.ldkNissionResult];
+		std::string mustStyleMissionText = std::string(reinterpret_cast<const char*>(u8"• Must Style (")) + std::string(styleRankNames[gameModeData.mustStyleMissionResult]) + ")";
+		std::string enemyDTMissionText = (std::string(reinterpret_cast<const char*>(u8"• ")) + (std::string)enemyDTModeNames[gameModeData.enemyDTMissionResult]);
 
 		if (gameModeData.ldkNissionResult != LDKMODE::OFF) {
 			ImGui::Text(ldkMissionText.c_str());
@@ -3715,7 +3717,7 @@ void RenderMissionResultCheatsUsed() {
 
 		if (gameModeData.arcadeMissionEnabled && gameModeData.bossRushMissionEnabled) {
 			ImGui::SameLine();
-			ImGui::Text(" - ");
+			ImGui::Text((const char*)u8" • ");
 		}
 
 		if (gameModeData.bossRushMissionEnabled) {
@@ -7557,7 +7559,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				auto name_7058 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
 
 				
-
+				ImGui::Text("inMainMenu: %u", g_inMainMenu);
                 ImGui::Text(sceneNames[g_scene]);
                 ImGui::Text("sessionData mission:  %u", sessionData.mission);
                 ImGui::Text("SCENE:  %u", g_scene);
@@ -10948,6 +10950,231 @@ void GameplaySection() {
 
 #pragma endregion
 
+#pragma region Indicators
+
+void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
+	static bool wasInMenu = false;
+	static bool resized = false;
+	ID3D11Device* pDevice = nullptr;
+	pSwapChain->GetDevice(IID_PPV_ARGS(&pDevice));
+	static const Texture2DD3D11 logo(g_Image_CrimsonMainLogo.GetRGBAData(), g_Image_CrimsonMainLogo.GetWidth(), g_Image_CrimsonMainLogo.GetHeight(), pDevice);
+	if (!resized) {
+		g_Image_CrimsonMainLogo.Resize(1924.0f, 509.0f);
+		resized = true;
+	}
+
+	if (g_inMainMenu != 1) {
+		// Reset fade when not in menu
+		wasInMenu = false;
+		return;
+	}
+
+	static float fadeTimer = 0.0f;
+	static const float fadeDuration = 0.7f; // seconds
+
+	// Reset fade when menu is entered
+	if (!wasInMenu) {
+		fadeTimer = 0.0f;
+		wasInMenu = true;
+
+	}
+	
+	// Advance fade timer
+	float deltaTime = ImGui::GetIO().DeltaTime;
+	if (fadeTimer < fadeDuration)
+		fadeTimer += deltaTime;
+	float fadeProgress = (std::min)(fadeTimer / fadeDuration, 1.0f);
+
+	// Logo Window
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+
+	auto logoWidth = (logo.GetWidth() * 0.6f) * scaleFactorY;
+	auto logoHeight = (logo.GetHeight() * 0.6f) * scaleFactorY;
+	ImVec2 logoWindowSize = ImVec2(logoWidth + 50.0f, logoHeight + 50.0f);
+	ImVec2 logoWindowPos = ImVec2((g_renderSize.x - (logoWidth)) * 0.5f, 310.0 * scaleFactorY);
+	auto logoSize = ImVec2(logoWindowPos.x + logoWidth, logoWindowPos.y + logoHeight);
+
+	ImGui::SetNextWindowPos(logoWindowPos);
+	ImGui::SetNextWindowSize(logoWindowSize);
+
+	ImGui::Begin("LogoWindow", nullptr, windowFlags);
+
+	// Fade from white to normal color
+	ImVec4 tintColor = ImLerp(ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1), fadeProgress); // default is white
+	tintColor = ImVec4(1, 1, 1, fadeProgress);
+
+	ImGui::GetWindowDrawList()->AddImage(
+		logo,
+		logoWindowPos,
+		logoSize,
+		ImVec2(0, 0), ImVec2(1, 1),
+		ImGui::ColorConvertFloat4ToU32(tintColor)
+	);
+
+	ImGui::End();
+
+	// Game Mode Text Window
+	float gameModeFontSize = 30.0f;
+	//ImGui::PushStyleColor(ImGuiCol_Text, *reinterpret_cast<ImVec4*>(&gameModeData.colors[activeCrimsonGameplay.GameMode.preset]));
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[gameModeFontSize]);
+	std::string gameModeText = gameModeData.names[activeCrimsonGameplay.GameMode.preset];
+	ImVec2 gameModeTextSize = ImGui::CalcTextSize(gameModeText.c_str());
+	ImVec2 gameModeTextSizeWindowSize = ImVec2((gameModeTextSize.x + 20.0f) * scaleFactorY, 100.0f * scaleFactorY);
+	ImVec2 gameModeTextSizeWindowPos = ImVec2((g_renderSize.x - (gameModeTextSize.x * scaleFactorY)) * 0.5f, 675.0f * scaleFactorY);
+
+	ImGui::SetNextWindowPos(gameModeTextSizeWindowPos);
+	ImGui::SetNextWindowSize(gameModeTextSizeWindowSize);
+
+	ImGui::Begin("GameModeTextWindow", nullptr, windowFlags);
+	ImGui::SetWindowFontScale(scaleFactorY);
+	ImGui::Text(gameModeText.c_str());
+
+	//ImGui::PopStyleColor();
+	ImGui::PopFont();
+
+	ImGui::End();
+
+	// Version Text Window
+	float versionFontSize = 20.0f;
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[versionFontSize]);
+	std::string versionStr = {}; 
+	versionStr = (std::format)("v{}.{}", UI::g_UIContext.CurrentVersion.Major, UI::g_UIContext.CurrentVersion.Minor);
+	std::string versionText = "BETA " + versionStr;
+	ImVec2 versionTextSize = ImGui::CalcTextSize(versionText.c_str());
+	ImVec2 versionTextSizeWindowSize = ImVec2((versionTextSize.x + 20.0f) * scaleFactorY, 100.0f * scaleFactorY);
+	ImVec2 versionTextSizeWindowPos = ImVec2((g_renderSize.x - (versionTextSize.x * scaleFactorY)) * 0.5f, 725.0f * scaleFactorY);
+	ImGui::SetNextWindowPos(versionTextSizeWindowPos);
+	ImGui::SetNextWindowSize(versionTextSizeWindowSize);
+
+	ImGui::Begin("VersionTextWindow", nullptr, windowFlags);
+
+	ImGui::SetWindowFontScale(scaleFactorY);
+	ImGui::Text(versionText.c_str());
+	ImGui::PopFont();
+
+	ImGui::End();
+
+	// GUI Hotket Text Window
+	static bool guiHotkeyRun = false;
+	float guiKeyFontSize = 35.0f;
+	if (!guiHotkeyRun) keyBindings[0].UpdateBuffer(keyBindings[0].mainInfo, keyBindings[0].activeKeyData);
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[guiKeyFontSize]);
+	auto guiHotkey = keyBindings[0].mainInfo.buffer;
+	std::string guiKeyTextKeyboard = "Press " + (std::string)guiHotkey;
+	std::string guiKeyTextComplete = guiKeyTextKeyboard + " or Left Stick + Right Stick to toggle the Overlay";
+	ImVec2 guiTextSize = ImGui::CalcTextSize(guiKeyTextComplete.c_str());
+	ImVec2 guiKeyWindowSize = ImVec2((guiTextSize.x + 20.0f) * scaleFactorY, 100.0f * scaleFactorY);
+	ImVec2 guiKeyWindowPos = ImVec2((g_renderSize.x - (guiTextSize.x * scaleFactorY)) * 0.5f, 775.0 * scaleFactorY);
+
+	ImGui::SetNextWindowPos(guiKeyWindowPos);
+	ImGui::SetNextWindowSize(guiKeyWindowSize);
+
+	ImGui::Begin("GuiKeyTextWindow", nullptr, windowFlags);
+	ImGui::SetWindowFontScale(scaleFactorY);
+
+	// Calculate text position (centered in window)
+	ImVec2 guiKeyTextPos = ImGui::GetCursorScreenPos();
+	ImVec2 windowSize = ImGui::GetWindowSize();
+	ImVec2 textOffset = ImVec2((windowSize.x - guiTextSize.x) * 0.5f, (windowSize.y - guiTextSize.y) * 0.5f);
+	ImVec2 drawPos = guiKeyTextPos + textOffset;
+
+	// Draw shadow
+	ImVec2 shadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY); // Shadow offset
+	ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize()* scaleFactorY, drawPos + shadowOffset, IM_COL32(0, 0, 0, 255), guiKeyTextComplete.c_str());
+
+	// Draw normal text
+	ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize()* scaleFactorY, drawPos, ImGui::GetColorU32(ImGuiCol_Text), guiKeyTextComplete.c_str());
+
+	ImGui::PopFont();
+	ImGui::End();
+
+	// Credits Text Window
+	float creditsFontSize = 22.0f;
+	float creditsCapCoFontSize = 10.0f;
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[creditsFontSize]);
+	auto creditsText = u8"C•Team • Directed by Berthrage • DMC3 Crimson © • 2025";
+	auto creditsCapCo = "Devil May Cry is a property of Capcom Co., Ltd. All assets belong to their respective owners.";
+
+	// Calculate text sizes with correct fonts
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[creditsFontSize]);
+	ImVec2 creditsTextSize = ImGui::CalcTextSize((const char*)creditsText);
+	ImGui::PopFont();
+
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[creditsCapCoFontSize]);
+	ImVec2 creditsCapCoSize = ImGui::CalcTextSize(creditsCapCo);
+	ImGui::PopFont();
+
+	ImVec2 creditsWindowSize = ImVec2(
+		(std::max)(creditsTextSize.x, creditsCapCoSize.x) + 20.0f * scaleFactorY,
+		60.0f * scaleFactorY
+	);
+	ImVec2 creditsWindowPos = ImVec2(
+		(g_renderSize.x - (creditsWindowSize.x)) * 0.5f,
+		1030.0f * scaleFactorY
+	);
+
+	ImGui::SetNextWindowPos(creditsWindowPos);
+	ImGui::SetNextWindowSize(creditsWindowSize);
+
+	ImGui::Begin("CreditsTextWindow", nullptr, windowFlags);
+	ImGui::SetWindowFontScale(scaleFactorY);
+
+	// Main credits text (centered)
+
+	ImGui::Begin("CreditsTextWindow", nullptr, windowFlags);
+	ImGui::SetWindowFontScale(scaleFactorY);
+
+	// Main credits text (centered)
+	float windowWidth = ImGui::GetWindowSize().x;
+
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[creditsFontSize]);
+	float textWidth = creditsTextSize.x;
+
+	// Calculate centered position
+	float textPosX = (windowWidth - textWidth) * 0.5f;
+	float textPosY = ImGui::GetCursorPosY();
+
+	// Get window draw list and position
+	ImVec2 creditsTextPos = ImVec2(creditsWindowPos.x + textPosX, creditsWindowPos.y + textPosY);
+
+	// Draw shadow (black, offset by 2px)
+	ImGui::GetWindowDrawList()->AddText(
+		UI::g_ImGuiFont_RussoOne[creditsFontSize],
+		creditsFontSize,
+		ImVec2(creditsTextPos.x + 2, creditsTextPos.y + 2), // Offset for shadow
+		IM_COL32(0, 0, 0, 255), // Black color
+		(const char*)creditsText
+	);
+
+	// Draw main text (default color, no offset)
+	ImGui::GetWindowDrawList()->AddText(
+		UI::g_ImGuiFont_RussoOne[creditsFontSize],
+		creditsFontSize,
+		creditsTextPos,
+		ImGui::GetColorU32(ImGuiCol_Text), // Use current text color
+		(const char*)creditsText
+	);
+
+	// Advance cursor so ImGui layout continues correctly
+	ImGui::SetCursorPosY(textPosY + creditsTextSize.y);
+
+	ImGui::PopFont();
+
+	// Capco copyright (smaller, centered)
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[creditsCapCoFontSize]);
+	float capcoTextWidth = creditsCapCoSize.x;
+	ImGui::SetCursorPosX((windowWidth - capcoTextWidth) * 0.5f);
+	ImGui::Text("%s", creditsCapCo);
+	ImGui::PopFont();
+
+	ImGui::End();
+}
+
+#pragma endregion
+
 #pragma region Hotkeys
 
 // @Move
@@ -11112,7 +11339,7 @@ void GamepadToggleShowMain() {
 
 std::vector<KeyBinding> keyBindings = {
     {
-        "Toggle Crimson GUI",
+        "Toggle Crimson Overlay",
         activeConfig.keyData[0],
         queuedConfig.keyData[0],
         defaultConfig.keyData[0],
@@ -11128,6 +11355,8 @@ void HotkeysSection() {
 	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
 
 	GUI_Title("KEYBOARD HOTKEYS");
+
+	ImGui::PushStyleColor(ImGuiCol_Button, UI::SwapColorEndianness(0x333642FF));
 
 	bool condition = false;
 
@@ -11151,11 +11380,11 @@ void HotkeysSection() {
 		ImGui::SetCursorScreenPos(startPos);
 		keyBinding.Main();
 
-		startPos.y += 100 * scaleFactorY; // <- matches ImVec2{300 * scaleFactorY, 100 * scaleFactorY} from the keybinding's button height
+		startPos.y += 120 * scaleFactorY; // <- matches ImVec2{300 * scaleFactorY, 100 * scaleFactorY} from the keybinding's button height
 	}
 
 	GUI_PopDisable(condition);
-    
+	ImGui::PopStyleColor();
 }
 
 void CommonCheatsSection() {
@@ -12832,6 +13061,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     if (g_scene != SCENE::GAME) {
         devilTriggerReadyPlayed = !activeConfig.playDTReadySFXAtMissionStart;
     }
+	g_inMainMenu = *reinterpret_cast<bool*>(appBaseAddr + 0x5D9213);
 
 	UI::ResetID(0);
 
@@ -12841,6 +13071,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     Welcome();
     Main(pSwapChain);
     Shop::ShopWindow();
+	RenderMainMenuInfo(pSwapChain);
 
 	ActorWindow();
 	EventDataWindow();

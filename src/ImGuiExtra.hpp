@@ -145,14 +145,14 @@ namespace UI {
 
 		struct {
 			uint32_t Major = 0;
-			uint32_t Minor = 0;
+			uint32_t Minor = 1;
 			char	 PatchLetter = 0;
 		} CurrentVersion;
 
 		struct {
-			uint32_t Day = 0;
-			uint32_t Month = 0;
-			uint32_t Year = 0;
+			uint32_t Day = 13;
+			uint32_t Month = 5;
+			uint32_t Year = 2025;
 		} LatestUpdateDate;
 
 		std::string LatestVersionURL{};

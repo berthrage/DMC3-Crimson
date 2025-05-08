@@ -603,6 +603,7 @@ bool g_inBossfight = false;
 int g_bossQuantity = 0;
 bool g_inGameDelayed = false;
 bool g_inGameCutscene = false;
+bool g_inMainMenu = false;
 bool g_allActorsSpawned = false;
 std::string g_gameTrackPlaying;
 
