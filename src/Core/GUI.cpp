@@ -16,6 +16,7 @@
 #include "../../ThirdParty/stb/stb_image.h"
 
 #include "Macros.h"
+#include "../CrimsonGUI.hpp"
 
 using namespace DI8;
 
@@ -211,7 +212,7 @@ bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequi
         TooltipHelper("(?)", tooltip);
     }
 
-	UI::SeparatorEx(separatorSize);
+	UI::SeparatorEx(separatorSize * CrimsonGUI::scaleFactorY);
 	ImGui::Text("");
 
 	if (update) {
@@ -244,7 +245,7 @@ void GUI_Title(const char* title, bool ccsRequired,
 		TooltipHelper("(?)", tooltip);
 	}
 
-	UI::SeparatorEx(separatorSize);
+	UI::SeparatorEx(separatorSize * CrimsonGUI::scaleFactorY);
 	ImGui::Text("");
 }
 
