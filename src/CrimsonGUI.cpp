@@ -126,6 +126,41 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 	ImGui::SetWindowFontScale(scaleFactorY);
 	float scaledFontSize = g_UIContext.DefaultFontSize * scaleFactorY;
 	ImGui::PopStyleVar(4);
+
+	ImVec2 customSpacing(10.0f * scaleFactorY, 7.0f * scaleFactorY); // Horizontal and vertical spacing
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, customSpacing);
+	// Scale style variables
+	ImGuiStyle& style = ImGui::GetStyle();
+
+	float scaleFactorUltrawideY = g_renderSize.y / 810;
+	style.WindowPadding = ImVec2(6.0f * scaleFactorUltrawideY, 3.0f * scaleFactorUltrawideY);
+	style.WindowRounding = 0.0f * scaleFactorY;
+	style.WindowBorderSize = 1.0f * scaleFactorUltrawideY;
+	style.WindowMinSize = ImVec2(32.0f * scaleFactorUltrawideY, 32.0f * scaleFactorUltrawideY);
+	style.WindowTitleAlign = ImVec2(0.5f, 0.5f); // Alignment values are typically not scaled
+	style.WindowMenuButtonPosition = ImGuiDir_Left; // Enum values are not scaled
+	style.ChildRounding = 0.0f * scaleFactorY;
+	style.ChildBorderSize = 1.0f * scaleFactorUltrawideY;
+	style.PopupRounding = 0.0f * scaleFactorY;
+	style.PopupBorderSize = 1.0f * scaleFactorUltrawideY;
+	style.FramePadding = ImVec2(5.0f * scaleFactorUltrawideY, 1.0f * scaleFactorUltrawideY);
+	style.FrameRounding = 3.0f * scaleFactorY;
+	style.FrameBorderSize = 1.0f * scaleFactorUltrawideY;
+	style.ItemSpacing = ImVec2(8.0f * scaleFactorUltrawideY, 4.0f * scaleFactorUltrawideY);
+	style.ItemInnerSpacing = ImVec2(4.0f * scaleFactorUltrawideY, 4.0f * scaleFactorUltrawideY);
+	style.CellPadding = ImVec2(4.0f * scaleFactorUltrawideY, 2.0f * scaleFactorUltrawideY);
+	style.IndentSpacing = 21.0f * scaleFactorUltrawideY;
+	style.ColumnsMinSpacing = 6.0f * scaleFactorUltrawideY;
+	style.ScrollbarSize = 13.0f * scaleFactorY;
+	style.ScrollbarRounding = 16.0f * scaleFactorY;
+	style.GrabMinSize = 20.0f * scaleFactorY;
+	style.GrabRounding = 2.0f * scaleFactorY;
+	style.TabRounding = 4.0f * scaleFactorY;
+	style.TabBorderSize = 1.0f * scaleFactorUltrawideY;
+	style.TabMinWidthForCloseButton = 0.0f * scaleFactorUltrawideY;
+	style.ColorButtonPosition = ImGuiDir_Right; // Enum values are not scaled
+	style.ButtonTextAlign = ImVec2(0.5f, 0.5f); // Alignment values are typically not scaled
+	style.SelectableTextAlign = ImVec2(0.0f, 0.0f); // Alignment values are typically
 	{
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		ImRect wndRect = window->Rect();
@@ -731,6 +766,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 		}
 	}
 	ImGui::PopStyleColor();
+	ImGui::PopStyleVar();
 	ImGui::End();
 	ImGui::PopFont();
 }
@@ -11025,6 +11061,60 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 
 	ImGui::End();
 
+	// C•Team 'A Berthrage Project' window
+	float cTeamBerthrageFontSize = 30.0f;
+	int cTeamBerthrageAlpha = static_cast<int>(fadeProgress * 255.0f);
+	ImFont* berthrageFont = UI::g_ImGuiFont_RussoOne[cTeamBerthrageFontSize];
+	float scaledFontSize = berthrageFont->FontSize * scaleFactorY;
+	auto cTeamBerthrageText = u8"C•Team Presents • A Berthrage Project";
+
+	// Calculate text size with scaling
+	ImVec2 cTeamBerthrageTextSize = berthrageFont->CalcTextSizeA(
+		scaledFontSize, FLT_MAX, 0.0f, (const char*)cTeamBerthrageText
+	);
+
+	// Calculate centered position in screen space
+	ImVec2 berthrageTitleTextScreenPos = ImVec2(
+		(g_renderSize.x - cTeamBerthrageTextSize.x) * 0.5f,
+		logoWindowPos.y - (40.0f * scaleFactorY) // Y position as before
+	);
+
+	// Setup window (make sure it's big enough, but position doesn't matter for AddText)
+	ImVec2 cTeamBerthrageTextWindowSize = ImVec2(
+		cTeamBerthrageTextSize.x + 20.0f * scaleFactorY,
+		cTeamBerthrageTextSize.y + 20.0f * scaleFactorY
+	);
+	ImVec2 cTeamBerthrageTextWindowPos = ImVec2(
+		berthrageTitleTextScreenPos.x - 10.0f * scaleFactorY,
+		berthrageTitleTextScreenPos.y - 10.0f * scaleFactorY
+	);
+
+	ImGui::SetNextWindowPos(cTeamBerthrageTextWindowPos);
+	ImGui::SetNextWindowSize(cTeamBerthrageTextWindowSize);
+	ImGui::Begin("CTeamBerthrageProjectWindow", nullptr, windowFlags);
+
+	// Draw shadow
+	ImVec2 berthrageTitleTextShadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY);
+	ImGui::GetWindowDrawList()->AddText(
+		berthrageFont,
+		scaledFontSize,
+		berthrageTitleTextScreenPos + berthrageTitleTextShadowOffset,
+		IM_COL32(0, 0, 0, cTeamBerthrageAlpha),
+		(const char*)cTeamBerthrageText
+	);
+
+	// Draw normal text
+	ImGui::GetWindowDrawList()->AddText(
+		berthrageFont,
+		scaledFontSize,
+		berthrageTitleTextScreenPos,
+		IM_COL32(255, 255, 255, cTeamBerthrageAlpha),
+		(const char*)cTeamBerthrageText
+	);
+
+	
+	ImGui::End();
+
 	// Game Mode Text Window
 	float gameModeFontSize = 30.0f;
 	//ImGui::PushStyleColor(ImGuiCol_Text, *reinterpret_cast<ImVec4*>(&gameModeData.colors[activeCrimsonGameplay.GameMode.preset]));
@@ -11049,12 +11139,37 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	// Version Text Window
 	float versionFontSize = 20.0f;
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[versionFontSize]);
-	std::string versionStr = {}; 
-	versionStr = (std::format)("v{}.{}", UI::g_UIContext.CurrentVersion.Major, UI::g_UIContext.CurrentVersion.Minor);
+
+	// Format the version string
+	std::string versionStr = std::format("v{}.{}", UI::g_UIContext.CurrentVersion.Major, UI::g_UIContext.CurrentVersion.Minor);
 	std::string versionText = "BETA " + versionStr;
+
+	// Calculate text size
 	ImVec2 versionTextSize = ImGui::CalcTextSize(versionText.c_str());
 	ImVec2 versionTextSizeWindowSize = ImVec2((versionTextSize.x + 20.0f) * scaleFactorY, 100.0f * scaleFactorY);
-	ImVec2 versionTextSizeWindowPos = ImVec2((g_renderSize.x - (versionTextSize.x * scaleFactorY)) * 0.5f, 725.0f * scaleFactorY);
+
+	// Clamp the render width to a maximum of 1920.0f
+	float clampedRenderWidth = (std::min)(g_renderSize.x, 1920.0f);
+
+	// Calculate the center position for a 16:9 aspect ratio
+	float aspectRatio = 16.0f / 9.0f;
+	float targetHeight = clampedRenderWidth / aspectRatio; // Height based on 16:9 aspect ratio
+
+	// Calculate the center position
+	float centerX = (clampedRenderWidth / 2.0f) * scaleFactorY;
+	float centerY = targetHeight / 2.0f;
+
+	// Offset the position to align the text correctly
+	ImVec2 versionTextSizeWindowPos = ImVec2(
+		centerX + (800.0f * scaleFactorY), // Center horizontally
+		100.0f * scaleFactorY // Center vertically
+	);
+
+	// Ensure the position stays within bounds
+	versionTextSizeWindowPos.x = (std::max)(0.0f, versionTextSizeWindowPos.x);
+	versionTextSizeWindowPos.y = (std::max)(0.0f, versionTextSizeWindowPos.y);
+
+	// Set the window position and size
 	ImGui::SetNextWindowPos(versionTextSizeWindowPos);
 	ImGui::SetNextWindowSize(versionTextSizeWindowSize);
 
@@ -11071,37 +11186,71 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	float guiKeyFontSize = 35.0f;
 	if (!guiHotkeyRun) keyBindings[0].UpdateBuffer(keyBindings[0].mainInfo, keyBindings[0].activeKeyData);
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[guiKeyFontSize]);
+	
+	float guiHotkeyFontSize = 35.0f;
+	int guiHotkeyAlpha = 255; // Fixed alpha
+
+	ImFont* guiHotkeyFont = UI::g_ImGuiFont_RussoOne[guiHotkeyFontSize];
+	float guiHotkeyScaledFontSize = guiHotkeyFont->FontSize * scaleFactorY;
+
 	auto guiHotkey = keyBindings[0].mainInfo.buffer;
-	std::string guiKeyTextKeyboard = "Press " + (std::string)guiHotkey;
-	std::string guiKeyTextComplete = guiKeyTextKeyboard + " or Left Stick + Right Stick to toggle the Overlay";
-	std::string guiTextComplete2 = "Press " + (std::string)keyBindings[0].mainInfo.buffer + " to toggle the Overlay";
-	ImVec2 guiTextSize = ImGui::CalcTextSize(guiKeyTextComplete.c_str());
-	ImVec2 guiTextSize2 = ImGui::CalcTextSize(guiTextComplete2.c_str());
-	ImVec2 guiKeyWindowSize = activeCrimsonConfig.GUI.disableGamepadShortcut ? ImVec2((guiTextSize2.x + 20.0f) * scaleFactorY, 100.0f * scaleFactorY) : 
-		ImVec2((guiTextSize.x + 20.0f) * scaleFactorY, 100.0f * scaleFactorY);
-	ImVec2 guiKeyWindowPos = activeCrimsonConfig.GUI.disableGamepadShortcut ? ImVec2((g_renderSize.x - (guiTextSize2.x * scaleFactorY)) * 0.5f, 775.0 * scaleFactorY) : 
-		ImVec2((g_renderSize.x - (guiTextSize.x * scaleFactorY)) * 0.5f, 775.0 * scaleFactorY);
+	std::string guiHotkeyTextKeyboard = "Press " + (std::string)guiHotkey;
+	std::string guiHotkeyTextComplete = guiHotkeyTextKeyboard + " or Left Stick + Right Stick to toggle the Overlay";
+	std::string guiHotkeyTextKeyboardOnly = "Press " + (std::string)keyBindings[0].mainInfo.buffer + " to toggle the Overlay";
+	ImVec2 guiTextSize = ImGui::CalcTextSize(guiHotkeyTextComplete.c_str());
+	ImVec2 guiTextSize2 = ImGui::CalcTextSize(guiHotkeyTextKeyboardOnly.c_str());
 
-	ImGui::SetNextWindowPos(guiKeyWindowPos);
-	ImGui::SetNextWindowSize(guiKeyWindowSize);
+	// Calculate text size with scaling
+	ImVec2 guiHotkeyTextCompleteSize = guiHotkeyFont->CalcTextSizeA(
+		guiHotkeyScaledFontSize, FLT_MAX, 0.0f, guiHotkeyTextComplete.c_str()
+	);
+	ImVec2 guiHotkeyTextKeyboardOnlySize = guiHotkeyFont->CalcTextSizeA(
+		guiHotkeyScaledFontSize, FLT_MAX, 0.0f, guiHotkeyTextKeyboardOnly.c_str()
+	);
 
+	// Choose which text to use
+	bool useKeyboardOnly = activeCrimsonConfig.GUI.disableGamepadShortcut;
+	const char* guiHotkeyTextFinal = useKeyboardOnly ? guiHotkeyTextKeyboardOnly.c_str() : guiHotkeyTextComplete.c_str();
+	ImVec2 guiHotkeyTextFinalSize = useKeyboardOnly ? guiHotkeyTextKeyboardOnlySize : guiHotkeyTextCompleteSize;
+
+	// Calculate centered position in screen space
+	ImVec2 guiHotkeyTextScreenPos = ImVec2(
+		(g_renderSize.x - guiHotkeyTextFinalSize.x) * 0.5f,
+		775.0f * scaleFactorY
+	);
+
+	// Setup window (make sure it's big enough, but position doesn't matter for AddText)
+	ImVec2 guiHotkeyWindowSize = ImVec2(
+		guiHotkeyTextFinalSize.x + 20.0f * scaleFactorY,
+		guiHotkeyTextFinalSize.y + 20.0f * scaleFactorY
+	);
+	ImVec2 guiHotkeyWindowPos = ImVec2(
+		guiHotkeyTextScreenPos.x - 10.0f * scaleFactorY,
+		guiHotkeyTextScreenPos.y - 10.0f * scaleFactorY
+	);
+
+	ImGui::SetNextWindowPos(guiHotkeyWindowPos);
+	ImGui::SetNextWindowSize(guiHotkeyWindowSize);
 	ImGui::Begin("GuiKeyTextWindow", nullptr, windowFlags);
-	ImGui::SetWindowFontScale(scaleFactorY);
-
-	// Calculate text position (centered in window)
-	ImVec2 guiKeyTextPos = ImGui::GetCursorScreenPos();
-	ImVec2 windowSize = ImGui::GetWindowSize();
-	ImVec2 textOffset = activeCrimsonConfig.GUI.disableGamepadShortcut ? ImVec2((windowSize.x - guiTextSize2.x) * 0.5f, (windowSize.y - guiTextSize2.y) * 0.5f) :
-		ImVec2((windowSize.x - guiTextSize.x) * 0.5f, (windowSize.y - guiTextSize.y) * 0.5f);
-	ImVec2 drawPos = guiKeyTextPos + textOffset;
 
 	// Draw shadow
-	ImVec2 shadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY); // Shadow offset
-	const char* guiKeyTextFinal = activeCrimsonConfig.GUI.disableGamepadShortcut ? guiTextComplete2.c_str() : guiKeyTextComplete.c_str();
-	ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize()* scaleFactorY, drawPos + shadowOffset, IM_COL32(0, 0, 0, 255), guiKeyTextFinal);
+	ImVec2 guiHotkeyTextShadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY);
+	ImGui::GetWindowDrawList()->AddText(
+		guiHotkeyFont,
+		guiHotkeyScaledFontSize,
+		guiHotkeyTextScreenPos + guiHotkeyTextShadowOffset,
+		IM_COL32(0, 0, 0, guiHotkeyAlpha),
+		guiHotkeyTextFinal
+	);
 
 	// Draw normal text
-	ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize()* scaleFactorY, drawPos, ImGui::GetColorU32(ImGuiCol_Text), guiKeyTextFinal);
+	ImGui::GetWindowDrawList()->AddText(
+		guiHotkeyFont,
+		guiHotkeyScaledFontSize,
+		guiHotkeyTextScreenPos,
+		IM_COL32(255, 255, 255, guiHotkeyAlpha),
+		guiHotkeyTextFinal
+	);
 
 	ImGui::PopFont();
 	ImGui::End();
@@ -11123,7 +11272,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	ImGui::PopFont();
 
 	ImVec2 creditsWindowSize = ImVec2(
-		(std::max)(creditsTextSize.x, creditsCapCoSize.x) + 20.0f * scaleFactorY,
+		g_renderSize.x,
 		60.0f * scaleFactorY
 	);
 	ImVec2 creditsWindowPos = ImVec2(
@@ -11134,56 +11283,59 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	ImGui::SetNextWindowPos(creditsWindowPos);
 	ImGui::SetNextWindowSize(creditsWindowSize);
 
-	ImGui::Begin("CreditsTextWindow", nullptr, windowFlags);
-	ImGui::SetWindowFontScale(scaleFactorY);
-
 	// Main credits text (centered)
 
 	ImGui::Begin("CreditsTextWindow", nullptr, windowFlags);
-	ImGui::SetWindowFontScale(scaleFactorY);
 
 	// Main credits text (centered)
-	float windowWidth = ImGui::GetWindowSize().x;
+	ImFont* creditsFont = UI::g_ImGuiFont_RussoOne[creditsFontSize];
+	float creditsScaledFontSize = creditsFont->FontSize * scaleFactorY;
+	ImVec2 creditsTextSizeScaled = creditsFont->CalcTextSizeA(
+		creditsScaledFontSize, FLT_MAX, 0.0f, (const char*)creditsText
+	);
+	ImVec2 creditsTextScreenPos = ImVec2(
+		(g_renderSize.x - creditsTextSizeScaled.x) * 0.5f,
+		creditsWindowPos.y + ImGui::GetCursorPosY()
+	);
 
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[creditsFontSize]);
-	float textWidth = creditsTextSize.x;
-
-	// Calculate centered position
-	float textPosX = (windowWidth - textWidth) * 0.5f;
-	float textPosY = ImGui::GetCursorPosY();
-
-	// Get window draw list and position
-	ImVec2 creditsTextPos = ImVec2(creditsWindowPos.x + textPosX, creditsWindowPos.y + textPosY);
-
-	// Draw shadow (black, offset by 2px)
+	// Draw shadow
+	ImVec2 creditsTextShadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY);
 	ImGui::GetWindowDrawList()->AddText(
-		UI::g_ImGuiFont_RussoOne[creditsFontSize],
-		creditsFontSize,
-		ImVec2(creditsTextPos.x + 2, creditsTextPos.y + 2), // Offset for shadow
-		IM_COL32(0, 0, 0, 255), // Black color
+		creditsFont,
+		creditsScaledFontSize,
+		creditsTextScreenPos + creditsTextShadowOffset,
+		IM_COL32(0, 0, 0, 255),
+		(const char*)creditsText
+	);
+	// Draw main text
+	ImGui::GetWindowDrawList()->AddText(
+		creditsFont,
+		creditsScaledFontSize,
+		creditsTextScreenPos,
+		ImGui::GetColorU32(ImGuiCol_Text),
 		(const char*)creditsText
 	);
 
-	// Draw main text (default color, no offset)
-	ImGui::GetWindowDrawList()->AddText(
-		UI::g_ImGuiFont_RussoOne[creditsFontSize],
-		creditsFontSize,
-		creditsTextPos,
-		ImGui::GetColorU32(ImGuiCol_Text), // Use current text color
-		(const char*)creditsText
+
+	// CapCo copyright (smaller, centered)
+	ImFont* capcoFont = UI::g_ImGuiFont_RussoOne[creditsCapCoFontSize];
+	float capcoScaledFontSize = capcoFont->FontSize * scaleFactorY;
+	ImVec2 capcoTextSizeScaled = capcoFont->CalcTextSizeA(
+		capcoScaledFontSize, FLT_MAX, 0.0f, creditsCapCo
+	);
+	ImVec2 capcoTextScreenPos = ImVec2(
+		(g_renderSize.x - capcoTextSizeScaled.x) * 0.5f,
+		creditsWindowPos.y + ImGui::GetCursorPosY() + 25.0f * scaleFactorY
 	);
 
-	// Advance cursor so ImGui layout continues correctly
-	ImGui::SetCursorPosY(textPosY + creditsTextSize.y);
-
-	ImGui::PopFont();
-
-	// Capco copyright (smaller, centered)
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[creditsCapCoFontSize]);
-	float capcoTextWidth = creditsCapCoSize.x;
-	ImGui::SetCursorPosX((windowWidth - capcoTextWidth) * 0.5f);
-	ImGui::Text("%s", creditsCapCo);
-	ImGui::PopFont();
+	// Draw CapCo main text
+	ImGui::GetWindowDrawList()->AddText(
+		capcoFont,
+		capcoScaledFontSize,
+		capcoTextScreenPos,
+		ImGui::GetColorU32(ImGuiCol_Text),
+		creditsCapCo
+	);
 
 	ImGui::End();
 }
