@@ -153,7 +153,7 @@ struct Config {
 
     bool enableFileMods = true;
 
-    float frameRate = 80;
+    float frameRate = 120;
     uint8 vSync     = 1;
 
     bool hideMouseCursor = false;
@@ -283,8 +283,6 @@ struct Config {
 // static_assert((offsetof(Config, kalinaAnnHookGrenadeTime) % 0x10) == 0);
 // static_assert((offsetof(Config, kalinaAnnHookMultiplier) % 0x10) == 0);
 // static_assert((offsetof(Config, barsData) % 0x10) == 0);
-
-
 
 #pragma pack(pop)
 
