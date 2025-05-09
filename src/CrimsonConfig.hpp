@@ -184,12 +184,12 @@ struct CrimsonConfig {
 
 			uint8 color[6][4] = {
 				// r   g  b  a 
-				{ 55, 58, 6, 255 }, //trick  
-				{ 58, 5, 5, 255 }, //sword  
-				{ 13, 5, 58, 255 }, //gun    
-				{ 5, 58, 12, 255 }, //royal  
-				{ 58, 5, 49, 255 }, //quick  
-				{ 58, 28, 5, 255 }, //doppel 
+				{ 29, 29, 0, 255 }, //trick  
+				{ 26, 0, 0, 255 }, //sword  
+				{ 0, 8, 34, 255 }, //gun    
+				{ 0, 35, 6, 255 }, //royal  
+				{ 26, 0, 35, 255 }, //quick  
+				{ 30, 14, 0, 255 }, //doppel 
 			};
 
 			static constexpr auto Metadata() {

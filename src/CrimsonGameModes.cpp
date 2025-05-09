@@ -114,15 +114,15 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	general.inertia = false;
 	general.sprint = true;
 	general.freeformSoftLock = true;
-	//general.bufferlessReversals = false;
+
 	general.dmc4LockOnDirection = true;
 	general.disableHeightRestriction = true;
-	//general.improvedBufferedReversals = false;
 	general.increasedJCSpheres = false;
 	general.disableJCRestriction = false;
 	general.increasedEnemyJuggleTime = false;
 	general.disableSoulEaterInvis = false;
-	//general.fasterTurnRate = false;
+	general.disableHeightRestriction = false;
+
 
 	// Dante section
 	auto& dante = preset.Gameplay.Dante;
@@ -320,6 +320,8 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Gameplay.General.holdToCrazyCombo = false;
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.bufferlessReversals = false;
+	mask.Gameplay.General.dmc4LockOnDirection = false;
+	mask.Gameplay.General.fasterTurnRate = false;
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
 	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
@@ -361,6 +363,7 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	CrimsonConfigGameplayMask mask{};
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.bufferlessReversals = false;
+	mask.Gameplay.General.fasterTurnRate = false;
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
 	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
