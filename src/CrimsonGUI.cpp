@@ -132,7 +132,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 	// Scale style variables
 	ImGuiStyle& style = ImGui::GetStyle();
 
-	float scaleFactorUltrawideY = g_renderSize.y / 810;
+	float scaleFactorUltrawideY = g_renderSize.y / 610;
 	style.WindowPadding = ImVec2(6.0f * scaleFactorUltrawideY, 3.0f * scaleFactorUltrawideY);
 	style.WindowRounding = 0.0f * scaleFactorY;
 	style.WindowBorderSize = 1.0f * scaleFactorUltrawideY;
@@ -143,7 +143,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 	style.ChildBorderSize = 1.0f * scaleFactorUltrawideY;
 	style.PopupRounding = 0.0f * scaleFactorY;
 	style.PopupBorderSize = 1.0f * scaleFactorUltrawideY;
-	style.FramePadding = ImVec2(5.0f * scaleFactorUltrawideY, 1.0f * scaleFactorUltrawideY);
+	style.FramePadding = ImVec2(5.0f * scaleFactorY, 1.0f * scaleFactorY);
 	style.FrameRounding = 3.0f * scaleFactorY;
 	style.FrameBorderSize = 1.0f * scaleFactorUltrawideY;
 	style.ItemSpacing = ImVec2(8.0f * scaleFactorUltrawideY, 4.0f * scaleFactorUltrawideY);
@@ -10035,7 +10035,7 @@ void GeneralGameplayOptions() {
 				CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonGameplay.Gameplay.General.increasedEnemyJuggleTime);
 			}
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Increases stagger value of moves in the air, similar to DMC5.");
+			TooltipHelper("(?)", "Increases stagger value of moves in the air, subtly altering the gravity in combat.");
 
 			// Fifth row
 			ImGui::TableNextRow(0, rowHeight * 0.5f);
