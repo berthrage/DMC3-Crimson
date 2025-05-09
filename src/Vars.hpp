@@ -4669,6 +4669,10 @@ struct ColorPresets {
 		} Aura;
 	} ColorDMC3Default;
 
+    struct LockOnColors {
+		uint32 Dante = 0xDE1C4CFF;
+		uint32 Vergil = 0x0C85C5FF;
+    } LockOnColors;
 };
 
 extern ColorPresets colorPresets;

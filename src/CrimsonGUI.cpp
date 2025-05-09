@@ -8558,6 +8558,15 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Show numerical stun and displacement values on lock-on (Hells enemies only).\nLast Move minus value updates each 200ms. Requires CrimsonHUD's Lock-On.");
 
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Lock On Colors on Characters", activeCrimsonConfig.CrimsonHudAddons.lockOnColorsCharacter, 
+				queuedCrimsonConfig.CrimsonHudAddons.lockOnColorsCharacter);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "SINGLE PLAYER ONLY: Changes the color of the Lock-On reticle to match the character's color.\n"
+				"Disabling this effectively allows you to change the Lock-On color at your will.\n"
+				"In Multiplayer or with this option disabled, Lock-On color is always based on PLAYER COLOR.");
+
 			GUI_PopDisable(!activeCrimsonConfig.CrimsonHudAddons.lockOn);
 
 			ImGui::EndTable();

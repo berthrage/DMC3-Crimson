@@ -1223,9 +1223,20 @@ void LockOnWindows() {
 
 		float alpha = 1.0f;
 
+		// Decide the Lock-On Color
 		ImVec4 playerColor = ConvertColorFromUint8ToVec4(activeCrimsonConfig.PlayerProperties.playerColor[playerIndex]);
+		static ImVec4 usedColor = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
+		if (activeCrimsonConfig.CrimsonHudAddons.lockOnColorsCharacter && activeConfig.Actor.playerCount == 1) {
+			if (actorData.character == CHARACTER::DANTE) {
+				usedColor = ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(colorPresets.LockOnColors.Dante));
+			} else {
+				usedColor = ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(colorPresets.LockOnColors.Vergil));
+			}
+		} else {
+			usedColor = playerColor;
+		}
 
-		ImColor color(playerColor);
+		ImColor color(usedColor);
 		float h, s, v;
 		ImGui::ColorConvertRGBtoHSV(color.Value.x, color.Value.y, color.Value.z, h, s, v);
 
