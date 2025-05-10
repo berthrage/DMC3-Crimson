@@ -7820,6 +7820,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
+			ImGui::Text("Actor Base Addr: %x", actorData.baseAddr);
 			ImGui::Text("TrickDash Timer: %g", crimsonPlayer[0].trickDashTimer);
 			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
 			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
@@ -7830,7 +7831,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			ImGui::Text("gameModeData.mustStyleMissionResult: %u", gameModeData.mustStyleMissionResult);
 			ImGui::Text("gameModeData.enemyDTMisionResult: %u", gameModeData.enemyDTMissionResult);
 			ImGui::Text("lockedEnemyScreenPositionX: %g", crimsonPlayer[0].lockedEnemyScreenPosition.x);
-			ImGui::Text("lockedEnemyScreenPositionX: %g", actorData.lockOnData.targetPosition.x);
+			ImGui::Text("lockedEnemyScreenPositionX: %g", actorData.lockOnData.targetPositionHells.x);
 			ImGui::Text("lockOnEnemyStun: %g", crimsonPlayer[0].lockedOnEnemyStun);
 			ImGui::Text("lockOnEnemyDisplacement: %g", crimsonPlayer[0].lockedOnEnemyDisplacement);
 			ImGui::Text("lockOnEnemyHP: %g", crimsonPlayer[0].lockedOnEnemyHP);
@@ -11194,7 +11195,6 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	static bool guiHotkeyRun = false;
 	float guiKeyFontSize = 35.0f;
 	if (!guiHotkeyRun) keyBindings[0].UpdateBuffer(keyBindings[0].mainInfo, keyBindings[0].activeKeyData);
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[guiKeyFontSize]);
 	
 	float guiHotkeyFontSize = 35.0f;
 	int guiHotkeyAlpha = 255; // Fixed alpha
@@ -11261,7 +11261,6 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 		guiHotkeyTextFinal
 	);
 
-	ImGui::PopFont();
 	ImGui::End();
 
 	// Credits Text Window
@@ -11272,7 +11271,6 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	auto creditsCapCo = "Devil May Cry is a property of Capcom Co., Ltd. All assets belong to their respective owners.";
 
 	// Calculate text sizes with correct fonts
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[creditsFontSize]);
 	ImVec2 creditsTextSize = ImGui::CalcTextSize((const char*)creditsText);
 	ImGui::PopFont();
 
@@ -13283,6 +13281,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
 	CrimsonOnTick::FixM7DevilTriggerUnlocking();
 	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
+	//CrimsonOnTick::OverrideEnemyTargetPosition();
 
 	if (activeConfig.Actor.enable) {
 		ExpConfig::TransferUnlocksToVanilla();
