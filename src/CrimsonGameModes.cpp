@@ -114,7 +114,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	general.inertia = false;
 	general.sprint = true;
 	general.freeformSoftLock = true;
-
+	general.holdToCrazyCombo = true;
 	general.dmc4LockOnDirection = true;
 	general.increasedJCSpheres = false;
 	general.disableJCRestriction = true;
@@ -158,6 +158,8 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	vergil.airRisingSun = true;
 	vergil.airLunarPhase = true;
 	vergil.altJudgementCutInput = true;
+	vergil.yamatoRisingSun = false;
+	vergil.mirageTrigger = false;
 	//vergil.adjustRisingSunPos = "Off"; // or whatever vanilla used
 	//vergil.adjustLunarPhasePos = "Off";
 
@@ -236,6 +238,8 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	vergil.airRisingSun = true;
 	vergil.airLunarPhase = true;
 	vergil.altJudgementCutInput = true;
+	vergil.yamatoRisingSun = true;
+	vergil.mirageTrigger = true;
 	//vergil.adjustRisingSunPos = "Off"; // or whatever vanilla used
 	//vergil.adjustLunarPhasePos = "Off";
 
@@ -322,6 +326,7 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Gameplay.General.bufferlessReversals = false;
 	mask.Gameplay.General.dmc4LockOnDirection = false;
 	mask.Gameplay.General.fasterTurnRate = false;
+	mask.Gameplay.Vergil.yamatoRisingSun = false;
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
 	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
@@ -364,6 +369,7 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.bufferlessReversals = false;
 	mask.Gameplay.General.fasterTurnRate = false;
+	mask.Gameplay.Vergil.yamatoRisingSun = false;
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
 	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
@@ -437,6 +443,8 @@ void CrimsonGameModes::SetGameMode(uint8 mode) {
 	case GAMEMODEPRESETS::STYLE_SWITCHER:
 		AssignMembersMasked(activeCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
 		AssignMembersMasked(queuedCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
+		activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
+		queuedCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
 		queuedConfig.Actor.enable = true;
 		break;
 	case GAMEMODEPRESETS::CRIMSON:

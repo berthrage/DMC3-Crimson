@@ -3376,9 +3376,10 @@ void StyleSwitchController(byte8* actorBaseAddr) {
             StyleSwitch(actorBaseAddr, 4); // QUICKSILVER
         }
 
-        // ACTIVATES DOPPELGANGER WITH ONE BUTTON PRESS FOR VERGIL -- consumes Mirage Gauge
+        // MIRAGE TRIGGER - ACTIVATES DOPPELGANGER WITH ONE BUTTON PRESS FOR VERGIL -- consumes Mirage Gauge
         auto& vergilDopp = crimsonPlayer[playerIndex].vergilDoppelganger;
-        if ((actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) || actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN))
+        if (activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger && 
+            (actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) || actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN))
             && actorData.style != 5 && !actorData.newIsClone && vergilDopp.cooldownTime <= 0) {
 
             vergilDopp.cooldownTime = vergilDopp.cooldownDuration;
@@ -9347,7 +9348,10 @@ void SetAction(byte8* actorBaseAddr) {
                    crimsonPlayer[playerIndex].b2F.forwardCommand) {
             actorData.action = YAMATO_FORCE_EDGE_ROUND_TRIP;
         }
-        else if (actorData.action == YAMATO_UPPER_SLASH_PART_1 && actionTimer > 0.4f && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK))) {
+
+        // YAMATO RISING SUN -- WIP
+        else if (activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun && actorData.action == YAMATO_UPPER_SLASH_PART_1 && actionTimer > 0.4f &&
+            (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK))) {
             actorData.action = BEOWULF_RISING_SUN;
         }
 //         else if (actorData.action == YAMATO_AERIAL_RAVE_PART_1) {

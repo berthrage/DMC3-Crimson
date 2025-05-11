@@ -3468,7 +3468,11 @@ const char* barsNames[PLAYER_COUNT] = {
 bool showBars = false;
 
 void MirageGaugeMainPlayer() {
-	if (!(activeConfig.Actor.enable && InGame() && crimsonPlayer[0].character == CHARACTER::VERGIL && !g_inGameCutscene)) {
+	if (!(activeConfig.Actor.enable && 
+		InGame() && 
+		crimsonPlayer[0].character == CHARACTER::VERGIL && 
+		!g_inGameCutscene &&
+		activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger)) {
 		return;
 	}
 	static bool show = true;
@@ -3500,8 +3504,9 @@ void MirageGaugeMainPlayer() {
 	if (ImGui::Begin("MirageMainPlayer", &show, windowFlags)) {
 		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&miragePointsColor));
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, *reinterpret_cast<ImVec4*>(&progressBarBgColor));
+		ImGui::PushStyleColor(ImGuiCol_Border, *reinterpret_cast<ImVec4*>(&progressBarBgColor));
 		ImGui::ProgressBar(miragePoints, *reinterpret_cast<ImVec2*>(&size), "");
-		ImGui::PopStyleColor(2);
+		ImGui::PopStyleColor(3);
 	}
 
 	ImGui::End();
@@ -4494,7 +4499,8 @@ void BarsSection(size_t defaultFontSize) {
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			GUI_TitleCheckbox2("2D MULTIPLAYER BARS", activeCrimsonConfig.MultiplayerBars2D.show, 
-				queuedCrimsonConfig.MultiplayerBars2D.show, true, false, "", defaultFontSize * 46.70f);
+				queuedCrimsonConfig.MultiplayerBars2D.show, true, false, false,
+				"", defaultFontSize * 46.70f);
 			
 			ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
@@ -10598,8 +10604,6 @@ void VergilGameplayOptions() {
 			TooltipHelper("(?)", "With Beowulf: Lock On + Forward + Melee while in air.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
-			// Third row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Alternate Judgement Cut Input",
@@ -10610,6 +10614,34 @@ void VergilGameplayOptions() {
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
 			TooltipHelper("(?)", "With Yamato: Lock On + Back to Forward + Melee.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Yamato Rising Sun",
+				activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun,
+				queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun)) {
+			}
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			GUI_WIPButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "With Yamato, at the end of any move: Lock On + Back + Melee.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Mirage Trigger",
+				activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger,
+				queuedCrimsonGameplay.Gameplay.Vergil.mirageTrigger)) {
+			}
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Press Left or Right D-Pad to summon Doppelganger.\n"
+			"Vergil's Doppelganger uses a separate resource called Mirage Gauge, indicated on his HUD as a white bar.\n"
+			"Mirage Gauge refills like DT (but is separate from it), and can be turned on/off at will, without a minimum amount required.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
@@ -11020,7 +11052,7 @@ void InputRemapOptions() {
 	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
-	GUI_Title("INPUT REMAPS", false, false, "Remaps are global for all controllers, will only take into account Player 1's active Character for the switch.");
+	GUI_Title("INPUT REMAPS", false, false, true, "Remaps are global for all controllers, will only take into account Player 1's active Character for the switch.");
 
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
@@ -12038,6 +12070,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			auto descriptionCrimson =
 				u8"• Inertia\n"
 				u8"• Guardflying\n"
+				u8"• DT-Infused Royalguard\n"
+				u8"• Mirage Trigger\n"
 				u8"• Increased Jump Cancel Hitboxes\n"
 				u8"• Aerial Combat Changes\n"
 				u8"• Enemy Alterations\n"
