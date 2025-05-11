@@ -10899,14 +10899,14 @@ struct PlayerBindingUI {
     const char* name;
 };
 
-// replace with s_bindsPlayer
-static std::vector<PlayerBindingUI> playerBindingsUI[4];
+static std::vector<PlayerBindingUI> playerBindingsUI[4][2];
+
 void InitPlayerBindingsUI() {
     const struct {
         uint16_t button;
         const char* name;
-    } commonBindings[] = {
-        { XINPUT_GAMEPAD_DPAD_UP,        "ITEM SCREEN (UP)" },
+    } danteBindings[] = {
+        { XINPUT_GAMEPAD_DPAD_UP,        "ITEM SCREEN (UP)" }, // XINPUT buttons are not what uint16_t, const char*>> buttonPairs uses, so this displays incorrectly atm
         { XINPUT_GAMEPAD_DPAD_DOWN,      "EQUIP SCREEN (DOWN)" },
         { XINPUT_GAMEPAD_DPAD_RIGHT,     "MAP SCREEN (RIGHT)" },
         { XINPUT_GAMEPAD_DPAD_LEFT,      "FILE SCREEN (LEFT)" },
@@ -10921,10 +10921,35 @@ void InitPlayerBindingsUI() {
         { XINPUT_GAMEPAD_BACK,           "TAUNT" }
     };
     
+    const struct {
+        uint16_t button;
+        const char* name;
+    } vergilBindings[] = {
+        { XINPUT_GAMEPAD_DPAD_UP,        "ITEM SCREEN (UP)" },
+        { XINPUT_GAMEPAD_DPAD_DOWN,      "EQUIP SCREEN (DOWN)" },
+        { XINPUT_GAMEPAD_DPAD_RIGHT,     "MAP SCREEN (RIGHT)" },
+        { XINPUT_GAMEPAD_DPAD_LEFT,      "FILE SCREEN (LEFT)" },
+        { XINPUT_GAMEPAD_Y,              "MELEE ATTACK" },
+        { XINPUT_GAMEPAD_A,              "JUMP" },
+        { XINPUT_GAMEPAD_B,              "DARKSLAYER ACTION" },
+        { XINPUT_GAMEPAD_X,              "SUMMONED SWORD" },
+        { XINPUT_GAMEPAD_LEFT_SHOULDER,  "DEVIL TRIGGER" },
+        { XINPUT_GAMEPAD_LEFT_THUMB,     "CHANGE TARGET" },
+        { XINPUT_GAMEPAD_RIGHT_SHOULDER, "LOCK ON" },
+        { XINPUT_GAMEPAD_RIGHT_THUMB,    "DEFAULT CAMERA" },
+        { XINPUT_GAMEPAD_BACK,           "TAUNT" }
+    };
+    
     for (int player = 0; player < 4; player++) {
-        playerBindingsUI[player].clear();
-        for (const auto& binding : commonBindings) {
-            playerBindingsUI[player].push_back({binding.button, binding.button, binding.name});
+        playerBindingsUI[player][0].clear(); // Dante
+        playerBindingsUI[player][1].clear(); // Vergil
+        
+        for (const auto& binding : danteBindings) {
+            playerBindingsUI[player][0].push_back({binding.button, binding.button, binding.name}); // Dante
+        }
+        
+        for (const auto& binding : vergilBindings) {
+            playerBindingsUI[player][1].push_back({binding.button, binding.button, binding.name}); // Vergil
         }
     }
 }
@@ -10932,11 +10957,13 @@ void InitPlayerBindingsUI() {
 void DrawKeybindEditor(const std::vector<std::pair<uint16_t, const char*>>& buttonPairs) {
     static bool initialized = false;
     if (!initialized) {
-        InitPlayerBindingsUI();
+        InitPlayerBindingsUI(); // load game binds here
         initialized = true;
     }
     
     static int currentPlayer = 0;
+    static int currentCharacter = 0;
+
     if (ImGui::BeginTabBar("PlayerTabs")) {
         for (int i = 0; i < 4; i++) {
             char tabName[32];
@@ -10949,14 +10976,26 @@ void DrawKeybindEditor(const std::vector<std::pair<uint16_t, const char*>>& butt
         ImGui::EndTabBar();
     }
 
+    if (ImGui::BeginTabBar("CharacterTabs")) {
+        if (ImGui::BeginTabItem("Dante")) {
+            currentCharacter = 0;
+            ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Vergil")) {
+            currentCharacter = 1;
+            ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+    }
+
     if (ImGui::BeginTable("playerBindingsTable", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
         ImGui::TableSetupColumn("Action");
         ImGui::TableSetupColumn("Controller Button");
         ImGui::TableSetupColumn("Mapped To");
         ImGui::TableHeadersRow();
             
-        for (size_t i = 0; i < playerBindingsUI[currentPlayer].size(); i++) {
-            auto& binding = playerBindingsUI[currentPlayer][i];
+        for (size_t i = 0; i < playerBindingsUI[currentPlayer][currentCharacter].size(); i++) {
+            auto& binding = playerBindingsUI[currentPlayer][currentCharacter][i];
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
             ImGui::Text("%s", binding.name);
@@ -10965,13 +11004,13 @@ void DrawKeybindEditor(const std::vector<std::pair<uint16_t, const char*>>& butt
             ImGui::TableSetColumnIndex(2);
             char comboLabel[64];
             sprintf(comboLabel, "##playerCombo%zu", i);
-			DrawButtonCombo(comboLabel, binding.target, buttonPairs);
+            DrawButtonCombo(comboLabel, binding.target, buttonPairs);
         }
         ImGui::EndTable();
     }
     
     if (ImGui::Button("Reset Player Bindings to Default")) {
-        InitPlayerBindingsUI();
+        InitPlayerBindingsUI(); // load default binds here
     }
     
     ImGui::End();
