@@ -3982,7 +3982,9 @@ static_assert(offsetof(PlayerActorDataVergil, newLastVar) == 0x1CB20);
 
 
 struct EnemyActorData : ActorDataBase {
-	_(368);
+	_(248);
+    vec4 targetPositionDullahan; // 0x1C0
+    _(104);
 	float maxHitPointsDullahan; // 0x238
 	_(756);
 	float maxHitPointsChess; // 0x530
@@ -4062,7 +4064,9 @@ struct EnemyActorData : ActorDataBase {
 	float hitPointsNevan; // 0x68D8
 	_(228);
 	float maxHitPointsNevan; // 0x69C0
-	_(11296);
+    _(7388);
+    vec4 targetPositionHellVanguard; // 0x86A0
+	_(3892);
 	float maxHitPointsGigapede; // 0x95E4
 	_(1496);
 	float hitPointsGigapede; // 0x9BC0
@@ -4088,6 +4092,7 @@ struct EnemyActorData : ActorDataBase {
 	float maxHitPointsLeviathan; // 0x388884
 };
 
+static_assert(offsetof(EnemyActorData, targetPositionDullahan) == 0x1C0);
 static_assert(offsetof(EnemyActorData, maxHitPointsDullahan) == 0x238);
 static_assert(offsetof(EnemyActorData, maxHitPointsChess) == 0x530);
 static_assert(offsetof(EnemyActorData, maxHitPointsBloodgoyle) == 0x610);
@@ -4128,6 +4133,7 @@ static_assert(offsetof(EnemyActorData, maxHitPointsJester) == 0x61E0);
 static_assert(offsetof(EnemyActorData, shieldedNevanAddr) == 0x6510);
 static_assert(offsetof(EnemyActorData, hitPointsNevan) == 0x68D8);
 static_assert(offsetof(EnemyActorData, maxHitPointsNevan) == 0x69C0);
+static_assert(offsetof(EnemyActorData, targetPositionHellVanguard) == 0x86A0);
 static_assert(offsetof(EnemyActorData, maxHitPointsGigapede) == 0x95E4);
 static_assert(offsetof(EnemyActorData, hitPointsGigapede) == 0x9BC0);
 static_assert(offsetof(EnemyActorData, hitPointsCerberusPart1) == 0xE230);

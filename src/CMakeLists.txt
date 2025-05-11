@@ -16,6 +16,7 @@ set(MASM_SRC
     masm/CustomCameraPositioning.asm
     masm/FreeformSoftLockHelper.asm
     masm/DMC4LockOnDirection.asm
+    masm/EnemyAITarget.asm
     masm/SetAirTauntAsm.asm
     masm/SkyLaunchAirTaunt.asm
     masm/RerouteRedOrbsCounterAlpha.asm
@@ -114,6 +115,8 @@ file(GLOB MAIN_SRC
     CrimsonConfigHandling.h
     CrimsonDetours.cpp
     CrimsonDetours.hpp
+    CrimsonEnemyAITarget.cpp
+    CrimsonEnemyAITarget.hpp
     CrimsonFileHandling.cpp
     CrimsonFileHandling.hpp	
     CrimsonFX.cpp

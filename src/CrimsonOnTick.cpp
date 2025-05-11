@@ -1,6 +1,7 @@
 #include <thread>
 #include <chrono>
 #include <algorithm>
+#include "CrimsonEnemyAITarget.hpp"
 #include "../ThirdParty/glm/glm.hpp"
 #include "../ThirdParty/ImGui/imgui.h"
 
@@ -25,6 +26,7 @@
 #include "CrimsonUtil.hpp"
 #include "CrimsonTimers.hpp"
 #include "DMC3Input.hpp"
+
 
 namespace CrimsonOnTick {
 
@@ -736,6 +738,8 @@ void GeneralCameraOptionsController() {
 	ResetCameraToNearestSide(eventData, mainActorData, cameraData);
 
 	CrimsonPatches::CameraSensController();
+	
+	//CrimsonDetours::ToggleCustomCameraSensitivity(activeConfig.Actor.playerCount == 1);
 
 	if (cameraData != nullptr) {
 		CrimsonPatches::CameraFollowUpSpeedController(*cameraData, cameraControlMetadata);
@@ -784,42 +788,96 @@ void PauseSFXWhenPaused() {
 #pragma region EnemyGameplay
 
 void OverrideEnemyTargetPosition() {
-	if (g_scene != SCENE::GAME) {
+// 	if (g_scene != SCENE::GAME) {
+// 		CrimsonPatches::DisableEnemyTargetting1PPosition(false);
+// 		return;
+// 	} else if (g_scene == SCENE::GAME && 
+// 		activeConfig.Actor.enable && 
+// 		activeConfig.Actor.playerCount > 1) {
+// 		CrimsonPatches::DisableEnemyTargetting1PPosition(true);
+// 	}
+
+	if (g_scene != SCENE::GAME || g_inGameCutscene) {
 		CrimsonPatches::DisableEnemyTargetting1PPosition(false);
 		return;
-	} else if (g_scene == SCENE::GAME && 
-		activeConfig.Actor.enable && 
-		activeConfig.Actor.playerCount > 1) {
+	} else if (g_scene == SCENE::GAME &&
+				activeConfig.Actor.enable && 
+				activeConfig.Actor.playerCount > 1) {
 		CrimsonPatches::DisableEnemyTargetting1PPosition(true);
 	}
+	CrimsonEnemyAITarget::EnemyAIMultiplayerTargettingDetours(activeConfig.Actor.playerCount > 1);
+
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
 
 	auto pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!pool_2128 || !pool_2128[8]) return;
 	auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
 
-	for (std::size_t enemyIndex = 0; enemyIndex < enemyVectorData.count; ++enemyIndex) {
-		auto& enemy = enemyVectorData.metadata[enemyIndex];
+	for (auto enemyMeta : enemyVectorData.metadata) {
+		if (!enemyMeta.baseAddr) continue;
+		auto& enemy = *reinterpret_cast<EnemyActorData*>(enemyMeta.baseAddr);
 		if (!enemy.baseAddr) continue;
-		auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
-		if (!enemyData.baseAddr) continue;
 
-		glm::vec3 enemyPos;
-		enemyPos.x = enemyData.position.x;
-		enemyPos.y = enemyData.position.y;
-		enemyPos.z = enemyData.position.z;
+		glm::vec3 enemyPosition = { enemy.position.x, enemy.position.y, enemy.position.z };
 
-		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
+		glm::vec3 playerPosition[PLAYER_COUNT];
+		float distanceToPlayer[PLAYER_COUNT];
+		uintptr_t closestPlayerAddr = (uintptr_t)mainActorData.baseAddr;
+		float closestDistance = 9000.0f;
+		auto& enemyId = enemy.enemy;
+
+		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; playerIndex++) {
 			auto& playerData = GetPlayerData(playerIndex);
 			auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 			auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 
 			if (!newActorData.baseAddr) {
-				return;
+				continue;
 			}
 			auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 
-			if (playerIndex == 1) {
-				enemyData.targetPosition = actorData.position;
+			playerPosition[playerIndex] = { actorData.position.x, actorData.position.y, actorData.position.z };
+			distanceToPlayer[playerIndex] = glm::distance(enemyPosition, playerPosition[playerIndex]);
+
+			bool isAgniRudra = (enemyId >= ENEMY::AGNI_RUDRA_ALL && enemyId <= ENEMY::AGNI_RUDRA_BLUE);
+
+			if (distanceToPlayer[playerIndex] < closestDistance) {
+				closestDistance = distanceToPlayer[playerIndex];
+				if ((enemyId >= ENEMY::PRIDE_1 && enemyId < ENEMY::HELL_VANGUARD) && enemy.hitPointsHells > 0) {
+					enemy.targetPosition = actorData.position;
+				}
+
+				if (enemyId == ENEMY::HELL_VANGUARD && enemy.hitPointsHells > 0) {
+					enemy.targetPositionHellVanguard = actorData.position;
+				}
+
+				if (enemyId == ENEMY::DOPPELGANGER && enemy.hitPointsDoppelganger > 0) {
+					enemy.targetPositionDullahan = actorData.position;
+				}
+
+				if (enemyId == ENEMY::THE_FALLEN && enemy.hitPointsTheFallen > 0) {
+					enemy.targetPositionDullahan = actorData.position;
+				}
+
+				if (enemyId == ENEMY::DULLAHAN && enemy.hitPointsDullahan > 0) {
+					enemy.targetPositionDullahan = actorData.position;
+				}
+
+				if (enemyId == ENEMY::BEOWULF && enemy.hitPointsBeowulf > 0) {
+					enemy.targetPositionDullahan = actorData.position;
+				}
+
+				if (enemyId == ENEMY::VERGIL && enemy.hitPointsVergil > 0) {
+					enemy.targetPositionDullahan = actorData.position;
+				}
+
+				if (enemyId == ENEMY::LADY && enemy.hitPointsLady > 0) {
+					enemy.targetPositionDullahan = actorData.position;
+				}
 			}
 		}
 	}

@@ -7831,7 +7831,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			ImGui::Text("gameModeData.mustStyleMissionResult: %u", gameModeData.mustStyleMissionResult);
 			ImGui::Text("gameModeData.enemyDTMisionResult: %u", gameModeData.enemyDTMissionResult);
 			ImGui::Text("lockedEnemyScreenPositionX: %g", crimsonPlayer[0].lockedEnemyScreenPosition.x);
-			// ImGui::Text("lockedEnemyScreenPositionX: %g", actorData.lockOnData.targetPositionHells.x); // this doesn't exist for me ~siy
+			ImGui::Text("lockedEnemyScreenPositionX: %g", actorData.lockOnData.targetPosition.x);
 			ImGui::Text("lockOnEnemyStun: %g", crimsonPlayer[0].lockedOnEnemyStun);
 			ImGui::Text("lockOnEnemyDisplacement: %g", crimsonPlayer[0].lockedOnEnemyDisplacement);
 			ImGui::Text("lockOnEnemyHP: %g", crimsonPlayer[0].lockedOnEnemyHP);
@@ -13322,7 +13322,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
 	CrimsonOnTick::FixM7DevilTriggerUnlocking();
 	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
-	//CrimsonOnTick::OverrideEnemyTargetPosition();
+	CrimsonOnTick::OverrideEnemyTargetPosition();
 
 	if (activeConfig.Actor.enable) {
 		ExpConfig::TransferUnlocksToVanilla();

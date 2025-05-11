@@ -1,6 +1,6 @@
-
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include <algorithm>
+#include "CrimsonEnemyAITarget.hpp"
 #include "Core/Core.hpp"
 #include <stdio.h>
 #include "Utility/Detour.hpp"
@@ -16,6 +16,7 @@
 #include "CrimsonPatches.hpp"
 #include "CrimsonLDK.hpp"
 #include "Actor.hpp"
+
 
 namespace CrimsonDetours {
 
@@ -680,6 +681,7 @@ void ToggleCustomCameraPositioning(bool enable) {
 void ToggleCustomCameraSensitivity(bool enable) {
 	using namespace Utility;
 	static bool run = false;
+	// This detour isn't used anymore due to causing issues with Low/Default FollowUpSpeed
 
 	if (run == enable) {
 		return;

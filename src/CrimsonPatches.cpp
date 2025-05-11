@@ -272,27 +272,40 @@ void CameraSensController() {
 	// Now controlled by g_customCameraSensitivity that connects to CameraSensitivityDetour.
 	// We do this instead of patching so we can make sensitivity changes in real time, and 
 	// make it fully frame-rate independent. - Berthrage
+	// original speed
+
+	// Function to patch memory with correct opcodes + float value
+	static float lastFrameRate = activeConfig.frameRate;
+	auto patchWithFloat = [](byte* address, const char* prefix, int prefixSize, float value) {
+		char patchBytes[10];
+		memcpy(patchBytes, prefix, prefixSize);
+		memcpy(patchBytes + prefixSize, &value, sizeof(float));
+		_patch((char*)address, patchBytes, prefixSize + sizeof(float));
+		};
+
+	float sensitivityValue;
+	int sensitivityEnum;
+
 
 	switch (activeCrimsonConfig.Camera.sensitivity) {
-	case 0: // Low (Vanilla Default)
-		g_customCameraSensitivity = 0.0174533f * g_FrameRateTimeMultiplier;
-		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x35\xFA\x8E\x3C", 4);
-		break;
-	case 1: // Medium
-		g_customCameraSensitivity = 0.0349066f * g_FrameRateTimeMultiplier;
-		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x39\xFA\x0E\x3D", 4);
-		break;
-	case 2: // High
-		g_customCameraSensitivity = 0.0523599f * g_FrameRateTimeMultiplier;
-		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\x56\x77\x56\x3D", 4);
-		break;
-	case 3: // Highest
-		g_customCameraSensitivity = 0.1f * g_FrameRateTimeMultiplier;
-		_patch((char*)(appBaseAddr + 0x4C6430), (char*)"\xCD\xCC\xCC\x3D", 4);
-		break;
-	default:
-		break;
+	case 0: sensitivityValue = 0.0174533f * g_frameRateMultiplier; sensitivityEnum = 0; break;
+	case 1: sensitivityValue = 0.0349066f * g_frameRateMultiplier; sensitivityEnum = 1; break;
+	case 2: sensitivityValue = 0.0523599f * g_frameRateMultiplier; sensitivityEnum = 2; break;
+	case 3: sensitivityValue = 0.1f * g_frameRateMultiplier; sensitivityEnum = 3; break;
+	default: sensitivityValue = 0.0523599f * g_frameRateMultiplier; sensitivityEnum = 2;
 	}
+
+	if (toggle.cameraSensitivity == sensitivityEnum && lastFrameRate == activeConfig.frameRate) {
+		return;
+	}
+	
+	const char prefix1[] = "\xC7\x87\xD4\x01\x00\x00";
+	patchWithFloat(appBaseAddr + 0x5772F, prefix1, 6, sensitivityValue);
+	patchWithFloat(appBaseAddr + 0x5775B, prefix1, 6, sensitivityValue);
+	patchWithFloat(appBaseAddr + 0x4C6430, "", 0, sensitivityValue);
+
+	toggle.cameraSensitivity = sensitivityEnum;
+	lastFrameRate = activeConfig.frameRate;
 }
 
 

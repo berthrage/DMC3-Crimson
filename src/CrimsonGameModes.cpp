@@ -116,12 +116,12 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	general.freeformSoftLock = true;
 
 	general.dmc4LockOnDirection = true;
-	general.disableHeightRestriction = true;
 	general.increasedJCSpheres = false;
-	general.disableJCRestriction = false;
+	general.disableJCRestriction = true;
 	general.increasedEnemyJuggleTime = false;
 	general.disableSoulEaterInvis = false;
-	general.disableHeightRestriction = false;
+	general.disableHeightRestriction = true;
+	general.fasterTurnRate = true;
 
 
 	// Dante section
@@ -200,7 +200,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	general.disableJCRestriction = true;
 	general.increasedEnemyJuggleTime = true;
 	general.disableSoulEaterInvis = true;
-	//general.fasterTurnRate = false;
+	general.fasterTurnRate = true;
 
 	// Dante section
 	auto& dante = preset.Gameplay.Dante;
