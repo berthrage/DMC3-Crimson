@@ -10950,7 +10950,9 @@ void InitPlayerBindingsUI() {
         { XINPUT_GAMEPAD_LEFT_THUMB,     "CHANGE TARGET" },
         { XINPUT_GAMEPAD_RIGHT_SHOULDER, "LOCK ON" },
         { XINPUT_GAMEPAD_RIGHT_THUMB,    "DEFAULT CAMERA" },
-        { XINPUT_GAMEPAD_BACK,           "TAUNT" }
+        { XINPUT_GAMEPAD_BACK,           "TAUNT" },
+        // { XINPUT_GAMEPAD_LEFT_TRIGGER,   "GUN CHANGE" },
+        // { XINPUT_GAMEPAD_RIGHT_TRIGGER,  "SWORD CHANGE" }
     };
     
     const struct {
@@ -10969,19 +10971,21 @@ void InitPlayerBindingsUI() {
         { XINPUT_GAMEPAD_LEFT_THUMB,     "CHANGE TARGET" },
         { XINPUT_GAMEPAD_RIGHT_SHOULDER, "LOCK ON" },
         { XINPUT_GAMEPAD_RIGHT_THUMB,    "DEFAULT CAMERA" },
-        { XINPUT_GAMEPAD_BACK,           "TAUNT" }
+        { XINPUT_GAMEPAD_BACK,           "TAUNT" },
+        // { XINPUT_GAMEPAD_LEFT_TRIGGER,   "WEAPON CHANGE 1" },
+        // { XINPUT_GAMEPAD_RIGHT_TRIGGER,  "WEAPON CHANGE 2" }
     };
     
     for (int player = 0; player < 4; player++) {
-        playerBindingsUI[player][0].clear(); // Dante
-        playerBindingsUI[player][1].clear(); // Vergil
+        playerBindingsUI[player][0].clear();
+        playerBindingsUI[player][1].clear();
         
         for (const auto& binding : danteBindings) {
-            playerBindingsUI[player][0].push_back({binding.button, binding.button, binding.name}); // Dante
+            playerBindingsUI[player][0].push_back({binding.button, binding.button, binding.name});
         }
         
         for (const auto& binding : vergilBindings) {
-            playerBindingsUI[player][1].push_back({binding.button, binding.button, binding.name}); // Vergil
+            playerBindingsUI[player][1].push_back({binding.button, binding.button, binding.name});
         }
     }
 }
@@ -11041,8 +11045,62 @@ void DrawKeybindEditor(const std::vector<std::pair<uint16_t, const char*>>& butt
         ImGui::EndTable();
     }
     
-    if (ImGui::Button("Reset Player Bindings to Default")) {
-        InitPlayerBindingsUI(); // load default binds here
+    char resetButtonLabel[64];
+    sprintf(resetButtonLabel, "Reset Player %i %s Bindings to Default", currentPlayer + 1, currentCharacter == 0 ? "Dante" : "Vergil");
+    if (ImGui::Button(resetButtonLabel)) {
+        const struct {
+            uint16_t button;
+            const char* name;
+        } danteBindings[] = {
+            { XINPUT_GAMEPAD_DPAD_UP,        "ITEM SCREEN (UP)" },
+            { XINPUT_GAMEPAD_DPAD_DOWN,      "EQUIP SCREEN (DOWN)" },
+            { XINPUT_GAMEPAD_DPAD_RIGHT,     "MAP SCREEN (RIGHT)" },
+            { XINPUT_GAMEPAD_DPAD_LEFT,      "FILE SCREEN (LEFT)" },
+            { XINPUT_GAMEPAD_Y,              "MELEE ATTACK" },
+            { XINPUT_GAMEPAD_A,              "JUMP" },
+            { XINPUT_GAMEPAD_B,              "STYLE ACTION" },
+            { XINPUT_GAMEPAD_X,              "SHOOT" },
+            { XINPUT_GAMEPAD_LEFT_SHOULDER,  "DEVIL TRIGGER" },
+            { XINPUT_GAMEPAD_LEFT_THUMB,     "CHANGE TARGET" },
+            { XINPUT_GAMEPAD_RIGHT_SHOULDER, "LOCK ON" },
+            { XINPUT_GAMEPAD_RIGHT_THUMB,    "DEFAULT CAMERA" },
+            { XINPUT_GAMEPAD_BACK,           "TAUNT" },
+            // { XINPUT_GAMEPAD_LEFT_TRIGGER,   "GUN CHANGE" },
+            // { XINPUT_GAMEPAD_RIGHT_TRIGGER,  "SWORD CHANGE" }
+        };
+        
+        const struct {
+            uint16_t button;
+            const char* name;
+        } vergilBindings[] = {
+            { XINPUT_GAMEPAD_DPAD_UP,        "ITEM SCREEN (UP)" },
+            { XINPUT_GAMEPAD_DPAD_DOWN,      "EQUIP SCREEN (DOWN)" },
+            { XINPUT_GAMEPAD_DPAD_RIGHT,     "MAP SCREEN (RIGHT)" },
+            { XINPUT_GAMEPAD_DPAD_LEFT,      "FILE SCREEN (LEFT)" },
+            { XINPUT_GAMEPAD_Y,              "YAMATO ATTACK" },
+            { XINPUT_GAMEPAD_A,              "JUMP" },
+            { XINPUT_GAMEPAD_B,              "DARK SLAYER ACTION" },
+            { XINPUT_GAMEPAD_X,              "SUMMON SWORDS" },
+            { XINPUT_GAMEPAD_LEFT_SHOULDER,  "DEVIL TRIGGER" },
+            { XINPUT_GAMEPAD_LEFT_THUMB,     "CHANGE TARGET" },
+            { XINPUT_GAMEPAD_RIGHT_SHOULDER, "LOCK ON" },
+            { XINPUT_GAMEPAD_RIGHT_THUMB,    "DEFAULT CAMERA" },
+            { XINPUT_GAMEPAD_BACK,           "TAUNT" },
+            // { XINPUT_GAMEPAD_LEFT_TRIGGER,   "WEAPON CHANGE 1" },
+            // { XINPUT_GAMEPAD_RIGHT_TRIGGER,  "WEAPON CHANGE 2 }
+        };
+        
+        playerBindingsUI[currentPlayer][currentCharacter].clear();
+        
+		if (currentCharacter == 0) {
+			for (const auto& binding : danteBindings) {
+				playerBindingsUI[currentPlayer][currentCharacter].push_back({binding.button, binding.button, binding.name});
+			}
+		} else {
+			for (const auto& binding : vergilBindings) {
+				playerBindingsUI[currentPlayer][currentCharacter].push_back({binding.button, binding.button, binding.name});
+			}
+		}
     }
     
     ImGui::End();
