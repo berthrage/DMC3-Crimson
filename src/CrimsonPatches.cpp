@@ -269,10 +269,6 @@ void CameraSensController() {
 	// dmc3.exe + 5775B - C7 87 D4010000 5677563D - mov[rdi + 000001D4], 3D567756{ (0) }
 	// dmc3.exe+4C6429 - 00 80 3E000080        - add [rax-7FFFFFC2],al
 	// dmc3.exe+4C642F - 3E 56                 - push rsi
-	// Now controlled by g_customCameraSensitivity that connects to CameraSensitivityDetour.
-	// We do this instead of patching so we can make sensitivity changes in real time, and 
-	// make it fully frame-rate independent. - Berthrage
-	// original speed
 
 	// Function to patch memory with correct opcodes + float value
 	static float lastFrameRate = activeConfig.frameRate;

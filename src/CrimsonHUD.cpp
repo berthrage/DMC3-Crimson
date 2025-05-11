@@ -837,6 +837,12 @@ void RedOrbCounterWindow() {
 		return;
 	}
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	// This element is mandatory for non-vanilla modes
+	if (activeCrimsonGameplay.GameMode.preset >= GAMEMODEPRESETS::STYLE_SWITCHER) {
+		activeCrimsonConfig.CrimsonHudAddons.redOrbCounter = true;
+		queuedCrimsonConfig.CrimsonHudAddons.redOrbCounter = true;
+	}
+
 	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.redOrbCounter) {
 		CrimsonDetours::RerouteRedOrbsCounterAlpha(false, crimsonHud.redOrbAlpha);
 		CrimsonPatches::SetRebOrbCounterDurationTillFadeOut(false, 90);

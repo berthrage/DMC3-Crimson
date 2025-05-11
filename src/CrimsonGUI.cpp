@@ -193,7 +193,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			window->DrawList->AddImage(logo, logoPos, logoSize);
 
 			// BETA Notice 
-			const char* text = "BETA";
+			const char* text = "PRE-BETA PREVIEW BUILD";
 			ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 0.8f]);
 			ImVec2 textSize = ImGui::CalcTextSize(text);
 			float padding = scaledFontSize * 0.2f;
@@ -3087,8 +3087,9 @@ void CharacterSection(size_t defaultFontSize) {
 	bool actorCondition = (!queuedConfig.Actor.enable);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+	GUI_PushDisable(activeCrimsonGameplay.GameMode.preset < GAMEMODEPRESETS::CUSTOM);
 	GUI_Checkbox("CRIMSON CHARACTER SYSTEM (CCS)      ", queuedConfig.Actor.enable);
-	
+	GUI_PopDisable(activeCrimsonGameplay.GameMode.preset < GAMEMODEPRESETS::CUSTOM);
 	ImGui::PopFont();
 
 	if (!queuedConfig.Actor.enable) {
@@ -8517,7 +8518,11 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
+			GUI_PushDisable((activeCrimsonGameplay.GameMode.preset >= GAMEMODEPRESETS::STYLE_SWITCHER) || (activeConfig.Actor.enable != queuedConfig.Actor.enable));
+
 			GUI_Checkbox2("Red Orb Counter", activeCrimsonConfig.CrimsonHudAddons.redOrbCounter, queuedCrimsonConfig.CrimsonHudAddons.redOrbCounter);
+
+			GUI_PopDisable((activeCrimsonGameplay.GameMode.preset >= GAMEMODEPRESETS::STYLE_SWITCHER) || (activeConfig.Actor.enable != queuedConfig.Actor.enable));
 
 			ImGui::TableNextColumn();
 
@@ -11784,9 +11789,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 		constexpr float align = 0.5f; // Center = 0.5f
 
-		constexpr const char* MODE_SELECTION_TEXT = "Choose your desired Devil May Cry 3 version!\n"
-			"This will affect the entire Gameplay Options globally and tag you at the Mission End Screen.\n"
-			"If Gameplay Options diverge too much from any preset, 'Custom' Game Mode will be selected instead automatically.";
+		constexpr const char* MODE_SELECTION_TEXT = "Choose your desired Devil May Cry 3 version! Game Modes govern your style of gameplay.\n"
+			"This will affect the entire Gameplay Options globally and tag you at the Mission Result screen.\n\n"
+			"If Gameplay Options diverge too much from any preset, the 'CUSTOM MODE' Game Mode will be selected instead automatically.";
 
 		float width = ImGui::CalcTextSize(MODE_SELECTION_TEXT).x;
 
@@ -11794,7 +11799,10 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		ImGui::Text("");
 
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - width) * align);
+		ImVec2 spacing = ImGui::GetStyle().ItemSpacing;
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing.x, 0.3f * scaleFactorY));
 		ImGui::TextWrapped(MODE_SELECTION_TEXT);
+		ImGui::PopStyleVar();
 		ImGui::Text("");
 
 		// Use the base font size but apply the scale factor directly to compensate for the reset
@@ -11978,17 +11986,45 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			constexpr auto MODE_INFO_TEXT_SW_LINE2 = "Vanilla + Style / Full Weapon Switching.";
 			constexpr auto MODE_INFP_TEXT_CRIMSON = "Enjoy the ultimate DMC3 experience! All new Gameplay Improvements and Expansions enabled.";
 
+			auto descriptionVanilla =
+				u8"• No Style Switching\n"
+				u8"• Weapons Slots Restricted (2-Slots).\n";
+			
+			auto descriptionStyleSwitcher =
+				u8"• New Moves\n"
+				u8"• Style Switching\n"
+				u8"• Weapon Wheel (up to 5-Slots)\n"
+				u8"• Improved Cancels\n";
+
+			auto descriptionCrimson =
+				u8"• Inertia\n"
+				u8"• Guardflying\n"
+				u8"• Increased Jump Cancel Hitboxes\n"
+				u8"• Aerial Combat Changes\n"
+				u8"• Enemy Alterations\n"
+				u8"• Higher Mobility\n"
+				u8"• New Moves\n"
+				u8"• Style Switching\n"
+				u8"• Weapon Wheel (up to 5-Slots)\n"
+				u8"• Improved Cancels\n";
+
 			ImGui::PushFont(UI::g_ImGuiFont_Roboto[baseFontSize]);
 
 			const float vanillaWidth = ImGui::CalcTextSize(MODE_INFO_TEXT_VANILLA).x;
 			const float swWidthLine1 = ImGui::CalcTextSize(MODE_INFO_TEXT_SW_LINE1).x;
 			const float swWidthLine2 = ImGui::CalcTextSize(MODE_INFO_TEXT_SW_LINE2).x;
 			const float crimsonWidth = ImGui::CalcTextSize(MODE_INFP_TEXT_CRIMSON).x;
+			const float descriptionVanillaWidth = ImGui::CalcTextSize((const char*)descriptionVanilla).x;
+			const float descriptionStyleSwitcherWidth = ImGui::CalcTextSize((const char*)descriptionStyleSwitcher).x;
+			const float descriptionCrimsonWidth = ImGui::CalcTextSize((const char*)descriptionCrimson).x;
 
 			switch (context.SelectedGameMode) {
 			case UI::UIContext::GameModes::Vanilla:
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - vanillaWidth) * align);
 				ImGui::Text(MODE_INFO_TEXT_VANILLA);
+				ImGui::Text("");
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - descriptionVanillaWidth) * align);
+				ImGui::Text((const char*)descriptionVanilla);
 				break;
 
 			case UI::UIContext::GameModes::StyleSwitcher:
@@ -11998,12 +12034,18 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::Text(MODE_INFO_TEXT_SW_LINE1);
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - swWidthLine2) * align);
 				ImGui::Text(MODE_INFO_TEXT_SW_LINE2);
+				ImGui::Text("");
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - descriptionStyleSwitcherWidth) * align);
+				ImGui::Text((const char*)descriptionStyleSwitcher);
 				break;
 
 			case UI::UIContext::GameModes::Crimson:
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + baseFontSize * scaleFactorY * 1.0f);
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - crimsonWidth) * align);
 				ImGui::Text(MODE_INFP_TEXT_CRIMSON);
+				ImGui::Text("");
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - descriptionCrimsonWidth) * align);
+				ImGui::Text((const char*)descriptionCrimson);
 				break;
 
 			default:
