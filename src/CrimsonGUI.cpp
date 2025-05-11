@@ -7831,7 +7831,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			ImGui::Text("gameModeData.mustStyleMissionResult: %u", gameModeData.mustStyleMissionResult);
 			ImGui::Text("gameModeData.enemyDTMisionResult: %u", gameModeData.enemyDTMissionResult);
 			ImGui::Text("lockedEnemyScreenPositionX: %g", crimsonPlayer[0].lockedEnemyScreenPosition.x);
-			ImGui::Text("lockedEnemyScreenPositionX: %g", actorData.lockOnData.targetPositionHells.x);
+			// ImGui::Text("lockedEnemyScreenPositionX: %g", actorData.lockOnData.targetPositionHells.x); // this doesn't exist for me ~siy
 			ImGui::Text("lockOnEnemyStun: %g", crimsonPlayer[0].lockedOnEnemyStun);
 			ImGui::Text("lockOnEnemyDisplacement: %g", crimsonPlayer[0].lockedOnEnemyDisplacement);
 			ImGui::Text("lockOnEnemyHP: %g", crimsonPlayer[0].lockedOnEnemyHP);
@@ -10862,68 +10862,114 @@ struct buttonRemapStruct {
 	uint16_t taunt; // E Select
 };
 
-void DrawKeybindEditor(buttonRemapStruct* buttonRemapMemory) {
-    struct KeybindEntry {
+const char* GetButtonNameFromValue(uint16_t value, const std::vector<std::pair<uint16_t, const char*>>& buttonPairs) {
+    for (const auto& pair : buttonPairs) {
+        if (pair.first == value) {
+            return pair.second;
+        }
+    }
+    return "Unknown";
+}
+
+void DrawButtonCombo(const char* label, uint16_t& current_value, const std::vector<std::pair<uint16_t, const char*>>& buttonPairs) {
+    bool value_changed = false;
+    const char* current_button_name = GetButtonNameFromValue(current_value, buttonPairs);
+    if (ImGui::BeginCombo(label, current_button_name)) {
+        for (const auto& pair : buttonPairs) {
+            const bool is_selected = (current_value == pair.first);
+            if (ImGui::Selectable(pair.second, is_selected)) {
+                current_value = pair.first;
+                value_changed = true;
+            }
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+}
+
+struct PlayerBindingUI {
+    uint16_t source;
+    uint16_t target;
+    const char* name;
+};
+
+// replace with s_bindsPlayer
+static std::vector<PlayerBindingUI> playerBindingsUI[4];
+void InitPlayerBindingsUI() {
+    const struct {
+        uint16_t button;
         const char* name;
-        uint16_t& value;
+    } commonBindings[] = {
+        { XINPUT_GAMEPAD_DPAD_UP,        "ITEM SCREEN (UP)" },
+        { XINPUT_GAMEPAD_DPAD_DOWN,      "EQUIP SCREEN (DOWN)" },
+        { XINPUT_GAMEPAD_DPAD_RIGHT,     "MAP SCREEN (RIGHT)" },
+        { XINPUT_GAMEPAD_DPAD_LEFT,      "FILE SCREEN (LEFT)" },
+        { XINPUT_GAMEPAD_Y,              "MELEE ATTACK" },
+        { XINPUT_GAMEPAD_A,              "JUMP" },
+        { XINPUT_GAMEPAD_B,              "STYLE ACTION" },
+        { XINPUT_GAMEPAD_X,              "SHOOT" },
+        { XINPUT_GAMEPAD_LEFT_SHOULDER,  "DEVIL TRIGGER" },
+        { XINPUT_GAMEPAD_LEFT_THUMB,     "CHANGE TARGET" },
+        { XINPUT_GAMEPAD_RIGHT_SHOULDER, "LOCK ON" },
+        { XINPUT_GAMEPAD_RIGHT_THUMB,    "DEFAULT CAMERA" },
+        { XINPUT_GAMEPAD_BACK,           "TAUNT" }
     };
     
-    std::vector<KeybindEntry> keybinds = {
-        {"Trickster (Item)", buttonRemapMemory->item},
-        {"Royal Guard (Equip)", buttonRemapMemory->equip},
-        {"Swordmaster (Map)", buttonRemapMemory->map},
-        {"Gunslinger (File)", buttonRemapMemory->file},
-        {"Melee", buttonRemapMemory->melee},
-        {"Jump", buttonRemapMemory->jump},
-        {"Style", buttonRemapMemory->style},
-        {"Shoot", buttonRemapMemory->shoot},
-        {"Devil Trigger", buttonRemapMemory->dt},
-        {"Gun Change", buttonRemapMemory->gunChange},
-        {"Target Change", buttonRemapMemory->targetChange},
-        {"Lock On", buttonRemapMemory->lockOn},
-        {"Sword Change", buttonRemapMemory->swordChange},
-        {"Camera Reset", buttonRemapMemory->camReset},
-        {"Taunt", buttonRemapMemory->taunt}
-    };
-    for (auto& keybind : keybinds) {
-        uint16_t& currentKey = keybind.value;
-        const char* currentItem = "None";
-        for (const auto& pair : buttonPairs) {
-            if (pair.first == currentKey) {
-                currentItem = pair.second;
-                break;
-            }
-        }
-        if (ImGui::BeginCombo(keybind.name, currentItem)) {
-            for (const auto& pair : buttonPairs) {
-                bool isSelected = (currentKey == pair.first);
-                if (ImGui::Selectable(pair.second, isSelected)) {
-                    currentKey = pair.first;
-                }
-                if (isSelected) {
-                    ImGui::SetItemDefaultFocus();
-                }
-            }
-            ImGui::EndCombo();
+    for (int player = 0; player < 4; player++) {
+        playerBindingsUI[player].clear();
+        for (const auto& binding : commonBindings) {
+            playerBindingsUI[player].push_back({binding.button, binding.button, binding.name});
         }
     }
-    if (ImGui::Button("Default")) {
-        buttonRemapMemory->item = 0x1000;    // Up
-        buttonRemapMemory->equip = 0x4000;   // Down
-        buttonRemapMemory->map = 0x2000;     // Right
-        buttonRemapMemory->file = 0x8000;    // Left
-        buttonRemapMemory->melee = 0x0010;   // Y
-        buttonRemapMemory->jump = 0x0040;    // A
-        buttonRemapMemory->style = 0x0020;   // B
-        buttonRemapMemory->shoot = 0x0080;   // X
-        buttonRemapMemory->dt = 0x0004;      // Left Shoulder
-        buttonRemapMemory->gunChange = 0x0001; // Left Trigger
-        buttonRemapMemory->targetChange = 0x0200; // Left Thumb
-        buttonRemapMemory->lockOn = 0x0008;  // Right Shoulder
-        buttonRemapMemory->swordChange = 0x0002; // Right Trigger
-        buttonRemapMemory->camReset = 0x0400; // Right Thumb
-        buttonRemapMemory->taunt = 0x0100;   // Back
+}
+
+void DrawKeybindEditor(const std::vector<std::pair<uint16_t, const char*>>& buttonPairs) {
+    static bool initialized = false;
+    if (!initialized) {
+        InitPlayerBindingsUI();
+        initialized = true;
     }
+    
+    static int currentPlayer = 0;
+    if (ImGui::BeginTabBar("PlayerTabs")) {
+        for (int i = 0; i < 4; i++) {
+            char tabName[32];
+            sprintf(tabName, "Player %d", i + 1);
+            if (ImGui::BeginTabItem(tabName)) {
+                currentPlayer = i;
+                ImGui::EndTabItem();
+            }
+        }
+        ImGui::EndTabBar();
+    }
+
+    if (ImGui::BeginTable("playerBindingsTable", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+        ImGui::TableSetupColumn("Action");
+        ImGui::TableSetupColumn("Controller Button");
+        ImGui::TableSetupColumn("Mapped To");
+        ImGui::TableHeadersRow();
+            
+        for (size_t i = 0; i < playerBindingsUI[currentPlayer].size(); i++) {
+            auto& binding = playerBindingsUI[currentPlayer][i];
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("%s", binding.name);
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("%s", GetButtonNameFromValue(binding.source, buttonPairs));
+            ImGui::TableSetColumnIndex(2);
+            char comboLabel[64];
+            sprintf(comboLabel, "##playerCombo%zu", i);
+			DrawButtonCombo(comboLabel, binding.target, buttonPairs);
+        }
+        ImGui::EndTable();
+    }
+    
+    if (ImGui::Button("Reset Player Bindings to Default")) {
+        InitPlayerBindingsUI();
+    }
+    
+    ImGui::End();
 }
 
 void InputRemapOptions() {
@@ -10984,12 +11030,7 @@ void InputRemapOptions() {
 		}
 	}
 
-	// I assume the stuff at void UpdateMapIndex(const varType (&map)[mapItemCount], uint8& index, varType& var)is the vergil/dante bind swap??
-	if (ImGui::CollapsingHeader("Siy direct memory remaps")) {
-		buttonRemapStruct* buttonRemapMemory = (buttonRemapStruct*)(appBaseAddr + 0xD6CE80 + 0xA);
-		ImGui::InputScalar("struct addr", ImGuiDataType_U64, (int*)&buttonRemapMemory, NULL, NULL, "%016llX", ImGuiInputTextFlags_CharsHexadecimal);
-		DrawKeybindEditor(buttonRemapMemory);
-	}
+	DrawKeybindEditor(buttonPairs);
 	
 	ImGui::PopStyleColor();
 	ImGui::PopFont();
