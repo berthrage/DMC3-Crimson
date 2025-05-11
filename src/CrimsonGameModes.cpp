@@ -326,7 +326,18 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Gameplay.General.bufferlessReversals = false;
 	mask.Gameplay.General.dmc4LockOnDirection = false;
 	mask.Gameplay.General.fasterTurnRate = false;
+	
+	// NEW MOVES are optional
+	mask.Gameplay.Dante.airRevolver = false;
+	mask.Gameplay.Dante.airTornado = false;
+	mask.Gameplay.Dante.airRisingDragonWhirlwind = false;
+	mask.Gameplay.Dante.airAgniRudraWhirlwind = false;
+	mask.Gameplay.Dante.airStinger = false;
+	mask.Gameplay.Vergil.airLunarPhase = false;
+	mask.Gameplay.Vergil.airRisingSun = false;
+	mask.Gameplay.Vergil.airStinger = false;
 	mask.Gameplay.Vergil.yamatoRisingSun = false;
+
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
 	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
@@ -369,7 +380,18 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.bufferlessReversals = false;
 	mask.Gameplay.General.fasterTurnRate = false;
+
+	// NEW MOVES are optional
+	mask.Gameplay.Dante.airRevolver = false;
+	mask.Gameplay.Dante.airTornado = false;
+	mask.Gameplay.Dante.airRisingDragonWhirlwind = false;
+	mask.Gameplay.Dante.airAgniRudraWhirlwind = false;
+	mask.Gameplay.Dante.airStinger = false;
+	mask.Gameplay.Vergil.airLunarPhase = false;
+	mask.Gameplay.Vergil.airRisingSun = false;
+	mask.Gameplay.Vergil.airStinger = false;
 	mask.Gameplay.Vergil.yamatoRisingSun = false;
+
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
 	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
