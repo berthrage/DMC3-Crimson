@@ -467,11 +467,68 @@ void CrimsonGameModes::SetGameMode(uint8 mode) {
 		AssignMembersMasked(queuedCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
 		activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
 		queuedCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airRevolver = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airRevolver = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airTornado = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airTornado = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airStinger = false;
+		queuedCrimsonGameplay.Gameplay.Dante.airStinger = false;
+
+		activeCrimsonGameplay.Gameplay.Vergil.airLunarPhase = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.airLunarPhase = true;
+
+		activeCrimsonGameplay.Gameplay.Vergil.airRisingSun = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.airRisingSun = true;
+
+		activeCrimsonGameplay.Gameplay.Vergil.airStinger = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.airStinger = true;
+
+		activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun = false;
+		queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun = false;
 		queuedConfig.Actor.enable = true;
 		break;
 	case GAMEMODEPRESETS::CRIMSON:
 		AssignMembersMasked(activeCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
 		AssignMembersMasked(queuedCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
+		activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
+		queuedCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airRevolver = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airRevolver = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airTornado = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airTornado = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airStinger = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airStinger = true;
+
+		activeCrimsonGameplay.Gameplay.Vergil.airLunarPhase = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.airLunarPhase = true;
+
+		activeCrimsonGameplay.Gameplay.Vergil.airRisingSun = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.airRisingSun = true;
+
+		activeCrimsonGameplay.Gameplay.Vergil.airStinger = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.airStinger = true;
+
+		activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun = true;
+
 		queuedConfig.Actor.enable = true;
 		break;
 	default:
