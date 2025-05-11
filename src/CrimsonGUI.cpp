@@ -12359,14 +12359,15 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
                 ImGui::PopStyleVar();
                 {
                     ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
-                    ImGui::Text("ARCADE");
+                    ImGui::Text("GAMEPLAY OPTIONS");
                     ImGui::PopFont();
 
 
                     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
                     ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
 
-                    ImGui::TextWrapped("Jumps you directly to a specific point in the game, triggered in the Main Menu. \nThis will tag you at the Mission End Screen.");
+                    ImGui::TextWrapped("These options will largely affect your gameplay experience and govern the Game Modes.\n\n"
+						"Some Gameplay Options are optional for each Game Mode to stay active, and some are not.");
                     ImGui::PopFont();
                 }
                 ImGui::EndChild();
