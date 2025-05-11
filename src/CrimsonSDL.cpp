@@ -702,7 +702,7 @@ void PlayDevilTriggerReady(int playerIndex) {
 }
 
 void PlayDelayedCombo1(int playerIndex) {
-    fn_Mix_Volume(CHANNEL::initialDelayedCombo1 + playerIndex, 25);
+    fn_Mix_Volume(CHANNEL::initialDelayedCombo1 + playerIndex, 18);
     fn_Mix_PlayChannel(CHANNEL::initialDelayedCombo1 + playerIndex, delayedCombo1, 0);
 }
 
@@ -768,7 +768,7 @@ void PlayGuard(int playerIndex) {
 void PlayRoyalBlock(int playerIndex) {
 	auto initialChannel = CHANNEL::initialRoyalBlock + (5 * playerIndex);
 
-	PlayOnChannels(initialChannel, initialChannel + 4, royalBlock, 80);
+	PlayOnChannels(initialChannel, initialChannel + 4, royalBlock, 57);
 }
 
 void PlayNormalBlock(int playerIndex) {
