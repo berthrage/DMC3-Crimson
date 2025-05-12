@@ -2239,7 +2239,7 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 		auto& meleeWheel = meleeWeaponWheel[playerIndex];
 		auto& rangedWheel = rangedWeaponWheel[playerIndex];
 
-		if (!meleeWheel->m_loaded || !rangedWheel->m_loaded) {
+		if (!meleeWheel->m_loaded) {
 			multiplayerWheelsLoaded = false; 
 			break;
 		}
