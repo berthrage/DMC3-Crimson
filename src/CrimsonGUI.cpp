@@ -5152,55 +5152,57 @@ struct ShopExperienceHelper {
 	uint32 price;
 	int64 last;
 	int64 next;
+	int64 devilarm;
+	int64 gun;
 };
 
 ShopExperienceHelper shopHelpersDante[] = {
-	{"Rebellion Stinger Level 1", 2500, -1, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_2},
-	{"Rebellion Stinger Level 2", 10000, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1, -1},
-	{"Rebellion Drive", 10000, -1, -1},
-	{"Rebellion Air Hike", 20000, -1, -1},
-	{"Cerberus Revolver Level 2", 15000, -1, -1},
-	{"Cerberus Windmill", 7500, -1, -1},
-	{"Agni & Rudra Jet-Stream Level 2", 10000, -1, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_3},
-	{"Agni & Rudra Jet-Stream Level 3", 15000, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_2, -1},
-	{"Agni & Rudra Whirlwind", 7500, -1, -1},
-	{"Agni & Rudra Air Hike", 20000, -1, -1},
-	{"Nevan Reverb Shock Level 1", 7500, -1, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_2},
-	{"Nevan Reverb Shock Level 2", 15000, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_1, -1},
-	{"Nevan Bat Rift Level 2", 10000, -1, -1},
-	{"Nevan Air Raid", 20000, -1, -1},
-	{"Nevan Volume Up", 20000, -1, -1},
-	{"Beowulf Straight Level 2", 10000, -1, -1},
-	{"Beowulf Beast Uppercut", 7500, -1, UNLOCK_DANTE::BEOWULF_RISING_DRAGON},
-	{"Beowulf Rising Dragon", 15000, UNLOCK_DANTE::BEOWULF_BEAST_UPPERCUT, -1},
-	{"Beowulf Air Hike", 20000, -1, -1},
-	{"Ebony & Ivory Level 2", 5000, -1, UNLOCK_DANTE::EBONY_IVORY_LEVEL_3},
-	{"Ebony & Ivory Level 3", 10000, UNLOCK_DANTE::EBONY_IVORY_LEVEL_2, -1},
-	{"Shotgun Level 2", 10000, -1, UNLOCK_DANTE::SHOTGUN_LEVEL_3},
-	{"Shotgun Level 3", 20000, UNLOCK_DANTE::SHOTGUN_LEVEL_2, -1},
-	{"Artemis Level 2", 10000, -1, UNLOCK_DANTE::ARTEMIS_LEVEL_3},
-	{"Artemis Level 3", 20000, UNLOCK_DANTE::ARTEMIS_LEVEL_2, -1},
-	{"Spiral Level 2", 7500, -1, UNLOCK_DANTE::SPIRAL_LEVEL_3},
-	{"Spiral Level 3", 15000, UNLOCK_DANTE::SPIRAL_LEVEL_2, -1},
-	{"Kalina Ann Level 2", 5000, -1, UNLOCK_DANTE::KALINA_ANN_LEVEL_3},
-	{"Kalina Ann Level 3", 10000, UNLOCK_DANTE::KALINA_ANN_LEVEL_2, -1},
+	{"Rebellion Stinger Level 1", 2500, -1, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_2,-1,-1},
+	{"Rebellion Stinger Level 2", 10000, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1, -1,-1,-1},
+	{"Rebellion Drive", 10000, -1, -1,-1,-1},
+	{"Rebellion Air Hike", 20000, -1, -1,-1,-1},
+	{"Cerberus Revolver Level 2", 15000, -1, -1,DEVILARMUNLOCKS::CERBERUS,-1},
+	{"Cerberus Windmill", 7500, -1, -1,DEVILARMUNLOCKS::CERBERUS,-1},
+	{"Agni & Rudra Jet-Stream Level 2", 10000, -1, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_3,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
+	{"Agni & Rudra Jet-Stream Level 3", 15000, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_2, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
+	{"Agni & Rudra Whirlwind", 7500, -1, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
+	{"Agni & Rudra Air Hike", 20000, -1, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
+	{"Nevan Reverb Shock Level 1", 7500, -1, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_2,DEVILARMUNLOCKS::NEVAN,-1},
+	{"Nevan Reverb Shock Level 2", 15000, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_1, -1,DEVILARMUNLOCKS::NEVAN,-1},
+	{"Nevan Bat Rift Level 2", 10000, -1, -1,DEVILARMUNLOCKS::NEVAN,-1},
+	{"Nevan Air Raid", 20000, -1, -1,DEVILARMUNLOCKS::NEVAN,-1},
+	{"Nevan Volume Up", 20000, -1, -1,DEVILARMUNLOCKS::NEVAN,-1},
+	{"Beowulf Straight Level 2", 10000, -1, -1,DEVILARMUNLOCKS::BEOWULF,-1},
+	{"Beowulf Beast Uppercut", 7500, -1, UNLOCK_DANTE::BEOWULF_RISING_DRAGON,DEVILARMUNLOCKS::BEOWULF,-1},
+	{"Beowulf Rising Dragon", 15000, UNLOCK_DANTE::BEOWULF_BEAST_UPPERCUT, -1,DEVILARMUNLOCKS::BEOWULF,-1},
+	{"Beowulf Air Hike", 20000, -1, -1,DEVILARMUNLOCKS::BEOWULF,-1},
+	{"Ebony & Ivory Level 2", 5000, -1, UNLOCK_DANTE::EBONY_IVORY_LEVEL_3,-1,-1},
+	{"Ebony & Ivory Level 3", 10000, UNLOCK_DANTE::EBONY_IVORY_LEVEL_2, -1,-1,-1},
+	{"Shotgun Level 2", 10000, -1, UNLOCK_DANTE::SHOTGUN_LEVEL_3,-1,GUNUNLOCKS::SHOTGUN},
+	{"Shotgun Level 3", 20000, UNLOCK_DANTE::SHOTGUN_LEVEL_2, -1,-1,GUNUNLOCKS::SHOTGUN},
+	{"Artemis Level 2", 10000, -1, UNLOCK_DANTE::ARTEMIS_LEVEL_3,-1,GUNUNLOCKS::ARTEMIS},
+	{"Artemis Level 3", 20000, UNLOCK_DANTE::ARTEMIS_LEVEL_2, -1,-1,GUNUNLOCKS::ARTEMIS},
+	{"Spiral Level 2", 7500, -1, UNLOCK_DANTE::SPIRAL_LEVEL_3,-1,GUNUNLOCKS::SPIRAL},
+	{"Spiral Level 3", 15000, UNLOCK_DANTE::SPIRAL_LEVEL_2, -1,-1,GUNUNLOCKS::SPIRAL},
+	{"Kalina Ann Level 2", 5000, -1, UNLOCK_DANTE::KALINA_ANN_LEVEL_3,-1,GUNUNLOCKS::KALINA_ANN},
+	{"Kalina Ann Level 3", 10000, UNLOCK_DANTE::KALINA_ANN_LEVEL_2, -1,-1,GUNUNLOCKS::KALINA_ANN},
 };
 
 ShopExperienceHelper shopHelpersVergil[] = {
-	{"Yamato Rapid Slash Level 1", 5000, -1, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2},
-	{"Yamato Rapid Slash Level 2", 15000, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_1, -1},
-	{"Yamato Judgement Cut Level 1", 10000, -1, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2},
-	{"Yamato Judgement Cut Level 2", 20000, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_1, -1},
-	{"Beowulf Starfall Level 2", 7500, -1, -1},
-	{"Beowulf Rising Sun", 5000, -1, -1},
-	{"Beowulf Lunar Phase Level 2", 15000, -1, -1},
-	{"Yamato & Force Edge Helm Breaker Level 2", 13000, -1, -1},
-	{"Yamato & Force Edge Stinger Level 1", 5000, -1, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_2},
-	{"Yamato & Force Edge Stinger Level 2", 10000, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1, -1},
-	{"Yamato & Force Edge Round Trip", 10000, -1, -1},
-	{"Summoned Swords Level 2", 7500, -1, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3},
-	{"Summoned Swords Level 3", 15000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, -1},
-	{"Spiral Swords", 20000, -1, -1},
+	{"Yamato Rapid Slash Level 1", 5000, -1, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2,-1,-1},
+	{"Yamato Rapid Slash Level 2", 15000, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_1, -1,-1,-1},
+	{"Yamato Judgement Cut Level 1", 10000, -1, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2,-1,-1},
+	{"Yamato Judgement Cut Level 2", 20000, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_1, -1,-1,-1},
+	{"Beowulf Starfall Level 2", 7500, -1, -1,-1,-1},
+	{"Beowulf Rising Sun", 5000, -1, -1,-1,-1},
+	{"Beowulf Lunar Phase Level 2", 15000, -1, -1,-1,-1},
+	{"Yamato & Force Edge Helm Breaker Level 2", 13000, -1, -1,-1,-1},
+	{"Yamato & Force Edge Stinger Level 1", 5000, -1, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_2,-1,-1},
+	{"Yamato & Force Edge Stinger Level 2", 10000, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1, -1,-1,-1},
+	{"Yamato & Force Edge Round Trip", 10000, -1, -1,-1,-1},
+	{"Summoned Swords Level 2", 7500, -1, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3,-1,-1},
+	{"Summoned Swords Level 3", 15000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, -1,-1,-1},
+	{"Spiral Swords", 20000, -1, -1,-1,-1},
 };
 
 
@@ -5365,6 +5367,15 @@ void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helper
 
 	for (size_t helperIndex = 0; helperIndex < helperCount; ++helperIndex) {
 		auto& helper = helpers[helperIndex];
+
+		if (helper.devilarm > -1) {
+			if (!weaponProgression.devilArmUnlocks[helper.devilarm])
+				continue;
+		}
+		if (helper.gun > -1) {
+			if (!weaponProgression.devilArmUnlocks[helper.gun])
+				continue;
+		}
 
 		auto Buy = [&]() {
 			if (missionData.redOrbs < helper.price) {
