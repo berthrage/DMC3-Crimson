@@ -465,6 +465,9 @@ void CrimsonGameModes::SetGameMode(uint8 mode) {
 	case GAMEMODEPRESETS::STYLE_SWITCHER:
 		AssignMembersMasked(activeCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
 		AssignMembersMasked(queuedCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
+		activeCrimsonGameplay.Gameplay.General.fasterTurnRate = true;
+		queuedCrimsonGameplay.Gameplay.General.fasterTurnRate = true;
+
 		activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
 		queuedCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
 
@@ -499,6 +502,9 @@ void CrimsonGameModes::SetGameMode(uint8 mode) {
 	case GAMEMODEPRESETS::CRIMSON:
 		AssignMembersMasked(activeCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
 		AssignMembersMasked(queuedCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
+		activeCrimsonGameplay.Gameplay.General.fasterTurnRate = true;
+		queuedCrimsonGameplay.Gameplay.General.fasterTurnRate = true;
+
 		activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
 		queuedCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
 
