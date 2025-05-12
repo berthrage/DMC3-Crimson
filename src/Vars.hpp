@@ -3980,6 +3980,9 @@ static_assert(offsetof(PlayerActorDataVergil, newLastVar) == 0x1CB20);
 // float hitPointsGigapede; // 0x9BC0
 // byte32 gigapedePartAddr; // 0xF68 // check if this is null, if isn't then it's a gigapede part and we must fetch using +95E4 / +9B60 from the gigapedePartAddr
 
+//39A0 is greed TargetPos
+// 3A10 is abyss targetPos
+// 39F0 is envy targetPos
 
 struct EnemyActorData : ActorDataBase {
 	_(248);
@@ -4040,7 +4043,13 @@ struct EnemyActorData : ActorDataBase {
 	float hitPointsEnigma; // 0x3958
 	_(36);
 	vec4 targetPosition; // 0x3980 - needs to sum with 60 from ActorDataBase
-	_(388);
+	_(16);
+	vec4 targetPositionGreed; // 0x39A0
+    _(64);
+	vec4 targetPositionEnvy; // 0x39F0
+    _(16);
+	vec4 targetPositionAbyss; // 0x3A10
+    _(244);
 	float maxHitPointsEnigma; // 0x3B14
 	_(1492);
     float maxHitPointsArachne; // 0x40EC
@@ -4121,6 +4130,9 @@ static_assert(offsetof(EnemyActorData, stunDisplacementDataAddr) == 0x3318);
 static_assert(offsetof(EnemyActorData, hitPointsHells) == 0x2E5C);
 static_assert(offsetof(EnemyActorData, hitPointsEnigma) == 0x3958);
 static_assert(offsetof(EnemyActorData, targetPosition) == 0x3980);
+static_assert(offsetof(EnemyActorData, targetPositionGreed) == 0x39A0);
+static_assert(offsetof(EnemyActorData, targetPositionEnvy) == 0x39F0);
+static_assert(offsetof(EnemyActorData, targetPositionAbyss) == 0x3A10);
 static_assert(offsetof(EnemyActorData, maxHitPointsEnigma) == 0x3B14);
 static_assert(offsetof(EnemyActorData, maxHitPointsArachne) == 0x40EC);
 static_assert(offsetof(EnemyActorData, hitPointsArachne) == 0x4170);

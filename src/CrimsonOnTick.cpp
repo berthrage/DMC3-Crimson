@@ -805,7 +805,7 @@ void OverrideEnemyTargetPosition() {
 	}
 	CrimsonEnemyAITarget::EnemyAIMultiplayerTargettingDetours(activeConfig.Actor.playerCount > 1);
 
-	if (activeConfig.Actor.playerCount == 1) return;
+	if (activeConfig.Actor.playerCount == 1 || g_inGameCutscene || g_scene != SCENE::GAME) return;
 
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!pool_10222 || !pool_10222[3]) {
@@ -831,14 +831,14 @@ void OverrideEnemyTargetPosition() {
 		auto& enemyId = enemy.enemy;
 
 		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; playerIndex++) {
-			auto& playerData = GetPlayerData(playerIndex);
-			auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-			auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+// 			auto& playerData = GetPlayerData(playerIndex);
+// 			auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+// 			auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 
-			if (!newActorData.baseAddr) {
+			if (!crimsonPlayer[playerIndex].playerPtr) {
 				continue;
 			}
-			auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(crimsonPlayer[playerIndex].playerPtr);
 
 			// Skip dead players
 			if (actorData.dead) {
@@ -850,37 +850,53 @@ void OverrideEnemyTargetPosition() {
 
 			bool isAgniRudra = (enemyId >= ENEMY::AGNI_RUDRA_ALL && enemyId <= ENEMY::AGNI_RUDRA_BLUE);
 
+			if (!enemy.baseAddr) {
+				continue;
+			}
+
 			if (distanceToPlayer[playerIndex] < closestDistance) {
 				closestDistance = distanceToPlayer[playerIndex];
-				if ((enemyId >= ENEMY::PRIDE_1 && enemyId < ENEMY::HELL_VANGUARD) && enemy.hitPointsHells > 2) {
+				if ((enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::WRATH_4) && enemy.hitPointsHells > 7) {
 					enemy.targetPosition = actorData.position;
 				}
 
-				if (enemyId == ENEMY::HELL_VANGUARD && enemy.hitPointsHells > 2) {
+				if (enemyId >= ENEMY::GREED_1 && enemyId <= ENEMY::GREED_4 && enemy.hitPointsHells > 7) {
+					enemy.targetPositionGreed = actorData.position;
+				}
+
+				if (enemyId == ENEMY::ABYSS && enemy.hitPointsHells > 7) {
+					enemy.targetPositionAbyss = actorData.position;
+				}
+
+				if (enemyId == ENEMY::ENVY && enemy.hitPointsHells > 7) {
+					enemy.targetPositionEnvy = actorData.position;
+				}
+
+				if (enemyId == ENEMY::HELL_VANGUARD && enemy.hitPointsHells > 7) {
 					enemy.targetPositionHellVanguard = actorData.position;
 				}
 
-				if (enemyId == ENEMY::DOPPELGANGER && enemy.hitPointsDoppelganger > 2) {
+				if (enemyId == ENEMY::DOPPELGANGER && enemy.hitPointsDoppelganger > 7) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 
-				if (enemyId == ENEMY::THE_FALLEN && enemy.hitPointsTheFallen > 2) {
+				if (enemyId == ENEMY::THE_FALLEN && enemy.hitPointsTheFallen > 7) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 
-				if (enemyId == ENEMY::DULLAHAN && enemy.hitPointsDullahan > 2) {
+				if (enemyId == ENEMY::DULLAHAN && enemy.hitPointsDullahan > 7) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 
-				if (enemyId == ENEMY::BEOWULF && enemy.hitPointsBeowulf > 2) {
+				if (enemyId == ENEMY::BEOWULF && enemy.hitPointsBeowulf > 7) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 
-				if (enemyId == ENEMY::VERGIL && enemy.hitPointsVergil > 2) {
+				if (enemyId == ENEMY::VERGIL && enemy.hitPointsVergil > 7) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 
-				if (enemyId == ENEMY::LADY && enemy.hitPointsLady > 2) {
+				if (enemyId == ENEMY::LADY && enemy.hitPointsLady > 7) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 			}
