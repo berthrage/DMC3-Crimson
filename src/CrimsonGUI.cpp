@@ -9928,7 +9928,13 @@ void GeneralGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
-			
+			if (GUI_Checkbox2("Hold To Shoot gun",
+				activeCrimsonGameplay.Gameplay.General.holdToShoot,
+				queuedCrimsonGameplay.Gameplay.General.holdToShoot)) {
+			}
+
+			ImGui::TableNextColumn();
+
 			if (activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo && (activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement != 3 ||
 				queuedCrimsonGameplay.Gameplay.General.crazyComboMashRequirement != 3)) {
 				activeCrimsonGameplay.Gameplay.General.crazyComboMashRequirement = 3;

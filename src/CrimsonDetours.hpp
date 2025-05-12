@@ -113,6 +113,7 @@ void ToggleDisableDriveHold(bool enable);
 void ToggleHideStyleRankHUD(bool enable);
 void ToggleDTInfusedRoyalguardDetours(bool enable);
 void ToggleFasterTurnRate(bool enable);
+void ToggleShootRemapDown(bool enable);
 void ToggleFreeformSoftLockHelper(bool enable);
 void ToggleDMC4LockOnDirection(bool enable);
 void ToggleCustomCameraPositioning(bool enable);
