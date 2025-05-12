@@ -31,6 +31,7 @@ struct CrimsonConfigGameplay {
 			bool bufferlessReversals = true;
 			bool dmc4LockOnDirection = true;
             bool holdToCrazyCombo = true;
+			bool holdToShoot = true;
 			uint8 crazyComboMashRequirement = 6;
 			bool disableHeightRestriction = true;
 			bool improvedBufferedReversals = true;
@@ -50,6 +51,7 @@ struct CrimsonConfigGameplay {
 					std::make_pair("bufferlessReversals", &General::bufferlessReversals),
 					std::make_pair("dmc4LockOnDirection", &General::dmc4LockOnDirection),
                     std::make_pair("holdToCrazyCombo", &General::holdToCrazyCombo),
+					std::make_pair("holdToShoot", &General::holdToShoot),
 					std::make_pair("crazyComboMashRequirement", &General::crazyComboMashRequirement),
 					std::make_pair("disableHeightRestriction", &General::disableHeightRestriction),
 					std::make_pair("improvedBufferedReversals", &General::improvedBufferedReversals),
