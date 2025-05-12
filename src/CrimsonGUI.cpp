@@ -3474,7 +3474,8 @@ void MirageGaugeMainPlayer() {
 		InGame() && 
 		crimsonPlayer[0].character == CHARACTER::VERGIL && 
 		!g_inGameCutscene &&
-		activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger)) {
+		activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger &&
+		!activeConfig.hideMainHUD)) {
 		return;
 	}
 	static bool show = true;
