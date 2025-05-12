@@ -2513,6 +2513,8 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 	auto& mainActiveCharacterData = GetActiveCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
 	auto& mainQueuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
+	
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 	auto& playerData = GetPlayerData(playerIndex);
 	auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
@@ -2635,11 +2637,13 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 						UI::Combo2("Force Files Costume", costumeNamesVergil, activeCharacterData.forceFilesCostume, queuedCharacterData.forceFilesCostume);
 					}
 				}
+				//if we are dante and haven't unlocked doppelganger, we shouldn't show this menu option.
+				if (!queuedCharacterData.character == CHARACTER::DANTE || sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER]) {
+					if (UI::Combo("Doppelganger", ddmkCharacter2PNames, queuedCharacterDataClone.character)) {
+						ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
 
-				if (UI::Combo("Doppelganger", ddmkCharacter2PNames, queuedCharacterDataClone.character)) {
-					ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
-
-					Actor_UpdateIndices();
+						Actor_UpdateIndices();
+					}
 				}
 
 				ImGui::PopItemWidth();
