@@ -4133,6 +4133,9 @@ void Render1PAttributes(const char* name, PlayerActorData& actorData) {
 	if (!showBars && !activeCrimsonConfig.MultiplayerBars2D.show) {
 		return;
 	}
+	if (activeConfig.hideMainHUD) {
+		return;
+	}
 
 	auto playerIndex = actorData.newPlayerIndex;
 
@@ -4201,6 +4204,9 @@ void Render1PAttributes(const char* name, PlayerActorData& actorData) {
 void RenderWorldSpaceMultiplayerBar(
 	float hitPoints, float magicPoints, const char* name, const PlayerActorData& actorData, const char* label, Config::BarsData& activeData/*, Config::BarsData& queuedData*/) {
 	if (!showBars && !activeCrimsonConfig.MultiplayerBarsWorldSpace.show) {
+		return;
+	}
+	if (activeConfig.hideMainHUD) {
 		return;
 	}
 
@@ -4304,6 +4310,9 @@ void RenderWorldSpaceMultiplayerBar(
 
 void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 	if (!showBars && !(activeConfig.Actor.enable && InGame())) {
+		return;
+	}
+	if (activeConfig.hideMainHUD) {
 		return;
 	}
 
