@@ -2908,8 +2908,10 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 				}
 			}
 		}
-
-			ImGui::PopItemWidth();
+			//I think one of these is ranged weapons and we only pop it if we're dante?
+			if (queuedCharacterData.character == CHARACTER::DANTE) {
+				ImGui::PopItemWidth();
+			};
 			ImGui::PopItemWidth();
 
 			ImGui::EndTable();
@@ -11113,8 +11115,8 @@ void DrawKeybindEditor(const std::vector<std::pair<uint16_t, const char*>>& butt
 			}
 		}
     }
-    
-    ImGui::End();
+	//Commented out because siyan said to do so -Hitch
+    //ImGui::End();
 }
 
 void InputRemapOptions() {

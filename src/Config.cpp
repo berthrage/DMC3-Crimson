@@ -86,7 +86,7 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, ui
     case CHARACTER::DANTE: {
 		characterData.character = CHARACTER::DANTE;
 		
-        characterData = {CHARACTER::DANTE, 0, false, false, CHARACTER::DANTE, 0,
+        characterData = {CHARACTER::DANTE, 0, true, false, CHARACTER::DANTE, 0,
             {
                 {
                     STYLE::TRICKSTER,
@@ -144,7 +144,7 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, ui
         break;
     };
     case CHARACTER::VERGIL: {
-        characterData = {CHARACTER::VERGIL, 0, false, false, CHARACTER::DANTE, 0,
+        characterData = {CHARACTER::VERGIL, 0, true, false, CHARACTER::DANTE, 0,
             {
                 {
                     STYLE::DARK_SLAYER,
@@ -197,7 +197,7 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, ui
 void ApplyDefaultPlayerData(PlayerData& playerData) {
     playerData.switchButton = GAMEPAD::RIGHT_STICK_CLICK;
 
-    playerData.characterCount = 2;
+    playerData.characterCount = 1;
     playerData.characterIndex = 0;
 
     old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
