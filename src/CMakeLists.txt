@@ -5,7 +5,6 @@ set(MASM_SRC
     masm/CameraSensitivity.asm
     masm/CreateEffect.asm
     masm/HoldToCrazyComboAsm.asm
-    masm/HoldToShoot.asm
     masm/DisableStaggerRoyalguard.asm
     masm/FasterTurnRate.asm
     masm/GuardBreakToNormalBlock.asm

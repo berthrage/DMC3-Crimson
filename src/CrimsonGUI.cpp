@@ -9931,7 +9931,17 @@ void GeneralGameplayOptions() {
 			if (GUI_Checkbox2("Hold To Shoot gun",
 				activeCrimsonGameplay.Gameplay.General.holdToShoot,
 				queuedCrimsonGameplay.Gameplay.General.holdToShoot)) {
+				CrimsonPatches::HoldToAutoFire(activeCrimsonGameplay.Gameplay.General.holdToShoot);
 			}
+
+			if (GUI_Checkbox2("Lock-On", activeCrimsonConfig.CrimsonHudAddons.lockOn, queuedCrimsonConfig.CrimsonHudAddons.lockOn)) {
+				CrimsonPatches::ToggleHideLockOn(activeCrimsonConfig.CrimsonHudAddons.lockOn);
+				if (!activeCrimsonConfig.CrimsonHudAddons.lockOn) {
+					activeCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud = false;
+					queuedCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud = false;
+				}
+			}
+
 
 			ImGui::TableNextColumn();
 

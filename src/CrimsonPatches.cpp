@@ -22,6 +22,26 @@
 
 namespace CrimsonPatches {
 
+	void HoldToAutoFire(bool enable) {
+		static bool run = false;
+
+		if (run == enable) {
+			return;
+		}
+
+		if (activeCrimsonGameplay.Gameplay.General.holdToShoot) {
+			//one of these is air, one is ground, I forget which is which.
+			_patch((char*)(appBaseAddr + 0x2050A0), (char*)"\xE0", 1);
+			_patch((char*)(appBaseAddr + 0x2053E8), (char*)"\xE0", 1); 
+		}
+		else {
+			_patch((char*)(appBaseAddr + 0x2050A0), (char*)"\xE4", 1);
+			_patch((char*)(appBaseAddr + 0x2053E8), (char*)"\xE4", 1);
+		}
+
+		run = enable;
+	}
+
 void DisableHeightRestriction(bool enable) {
 	static bool run = false;
 

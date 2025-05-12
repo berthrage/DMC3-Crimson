@@ -7,6 +7,7 @@
 
 namespace CrimsonPatches {
 void DisableHeightRestriction(bool enable);
+void HoldToAutoFire(bool enable);
 void IncreasedJCSpheres(bool enable);
 void ImprovedBufferedReversals(bool enable);
 void DisableJCRestriction(bool enable);
