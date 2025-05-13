@@ -1699,6 +1699,18 @@ constexpr uint8 hudElementShowStateMap[3] = {
 	HUDELEMENTSHOWSTATE::ALWAYS,
 };
 
+const char* stylesDisplayStateNames[] = {
+	"Off",
+	"With Broken Glass",
+	"No Broken Glass",
+};
+
+constexpr uint8 stylesDisplayStateMap[3] = {
+	STYLESDISPLAY::OFF,
+	STYLESDISPLAY::WITH_BROKEN_GLASS,
+	STYLESDISPLAY::NO_BROKEN_GLASS,
+};
+
 std::vector<std::string> VergilMoveAdjustmentsNames = {
 	"Off",
 	"From Air",
@@ -3476,52 +3488,6 @@ const char* barsNames[PLAYER_COUNT] = {
 };
 
 bool showBars = false;
-
-void MirageGaugeMainPlayer() {
-	if (!(activeConfig.Actor.enable && 
-		InGame() && 
-		crimsonPlayer[0].character == CHARACTER::VERGIL && 
-		!g_inGameCutscene &&
-		activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger &&
-		!activeConfig.hideMainHUD)) {
-		return;
-	}
-	static bool show = true;
-	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
-	if (!name_80) {
-		return;
-	}
-	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
-
-	auto miragePoints = crimsonPlayer[0].vergilDoppelganger.miragePoints / crimsonPlayer[0].vergilDoppelganger.maxMiragePoints;
-	float miragePointsColor[4] = { 1.0f , 1.0f, 1.0, hudData.topLeftAlpha / 127.0f };
-	float progressBarBgColor[4] = { 0.2f , 0.2f, 0.2f, hudData.topLeftAlpha / 127.0f };
-
-
-	// Adjust the size of the bar
-	float barLength = 130.0f * (crimsonPlayer[0].vergilDoppelganger.maxMiragePoints / maxMiragePointsAmount);
-	vec2 size = { barLength, 10.0f * scaleFactorY };
-
-	// Calculate position 
-	float posX = 90.0f * scaleFactorY;
-	float posY = 170.0f * scaleFactorY;
-
-	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
-		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
-
-	ImGui::SetNextWindowPos(ImVec2(posX, posY));
-
-	if (ImGui::Begin("MirageMainPlayer", &show, windowFlags)) {
-		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&miragePointsColor));
-		ImGui::PushStyleColor(ImGuiCol_FrameBg, *reinterpret_cast<ImVec4*>(&progressBarBgColor));
-		ImGui::PushStyleColor(ImGuiCol_Border, *reinterpret_cast<ImVec4*>(&progressBarBgColor));
-		ImGui::ProgressBar(miragePoints, *reinterpret_cast<ImVec2*>(&size), "");
-		ImGui::PopStyleColor(3);
-	}
-
-	ImGui::End();
-}
 
 void RoyalGaugeMainPlayer() {
 	if (!(activeConfig.Actor.enable && InGame() && crimsonPlayer[0].character == CHARACTER::DANTE && !g_inGameCutscene)) {
@@ -8011,6 +7977,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
+			ImGui::Text("styleExpPoints: %g", actorData.styleExpPoints);
 			ImGui::Text("Actor Base Addr: %x", actorData.baseAddr);
 			ImGui::Text("TrickDash Timer: %g", crimsonPlayer[0].trickDashTimer);
 			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
@@ -8558,7 +8525,6 @@ void InterfaceSection(size_t defaultFontSize) {
 			}
 			ImGui::PopItemWidth();
 
-			ImGui::TableNextRow(0, rowWidth * 0.5f);
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Pause When Opened", activeCrimsonConfig.GUI.pauseWhenOpened, queuedCrimsonConfig.GUI.pauseWhenOpened)) {
@@ -8708,6 +8674,28 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
+			if (UI::ComboMapValue2("Styles Display", stylesDisplayStateNames, stylesDisplayStateMap,
+				activeCrimsonConfig.CrimsonHudAddons.stylesDisplay,
+				queuedCrimsonConfig.CrimsonHudAddons.stylesDisplay)) {
+				if (activeCrimsonConfig.CrimsonHudAddons.stylesDisplay == 0) {
+					activeCrimsonConfig.CrimsonHudAddons.displayStyleNames = false;
+					queuedCrimsonConfig.CrimsonHudAddons.displayStyleNames = false;
+				} else {
+					activeCrimsonConfig.CrimsonHudAddons.displayStyleNames = true;
+					queuedCrimsonConfig.CrimsonHudAddons.displayStyleNames = true;
+				}
+			}
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeCrimsonConfig.CrimsonHudAddons.stylesDisplay);
+
+			GUI_Checkbox2("Show Style Names", activeCrimsonConfig.CrimsonHudAddons.displayStyleNames, queuedCrimsonConfig.CrimsonHudAddons.displayStyleNames);
+
+			GUI_PopDisable(!activeCrimsonConfig.CrimsonHudAddons.stylesDisplay);
+
+			ImGui::TableNextColumn();
+
 			GUI_PushDisable((activeCrimsonGameplay.GameMode.preset >= GAMEMODEPRESETS::STYLE_SWITCHER) || (activeConfig.Actor.enable != queuedConfig.Actor.enable));
 
 			GUI_Checkbox2("Red Orb Counter", activeCrimsonConfig.CrimsonHudAddons.redOrbCounter, queuedCrimsonConfig.CrimsonHudAddons.redOrbCounter);
@@ -8718,7 +8706,6 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			GUI_Checkbox2("Royal Gauge", activeCrimsonConfig.CrimsonHudAddons.royalGauge, queuedCrimsonConfig.CrimsonHudAddons.royalGauge);
 
-			ImGui::TableNextRow(0, rowWidth * 0.5f);
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Style Ranks Meter", activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter, queuedCrimsonConfig.CrimsonHudAddons.styleRanksMeter)) {
@@ -13814,7 +13801,6 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	WeaponWheelsMultiplayerController(pSwapChain);
 	WorldSpaceWeaponWheels1PController(pSwapChain);
 	WorldSpaceWeaponWheelsController(pSwapChain);
-    MirageGaugeMainPlayer();
  	CrimsonHUD::RedOrbCounterWindow();
  	CrimsonHUD::CheatsHUDIndicatorWindow();
  	CrimsonHUD::CheatHotkeysPopUpWindow();
@@ -13822,6 +13808,11 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonHUD::LockOnWindows();
 	CrimsonHUD::StunDisplacementLockOnWindows();
 	CrimsonHUD::ShieldLockOnWindows();
+	CrimsonHUD::StyleDisplayWindow();
+	CrimsonHUD::StyleTextDisplayWindow();
+	CrimsonHUD::StyleLvlDispWindow();
+	CrimsonHUD::StyleEXPDisplayWindow();
+	CrimsonHUD::MirageGaugeMainPlayer();
 
 	UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
 	RenderMissionResultGameModeStats();

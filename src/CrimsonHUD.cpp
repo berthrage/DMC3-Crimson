@@ -52,12 +52,16 @@ namespace CrimsonHUD {
 
 using namespace CrimsonGUI;
 
+
+// RED ORB
 static Texture2DD3D11* RedOrbTexture{ nullptr };
 static Texture2DD3D11* RedOrbVanillaTexture{ nullptr };
 static Texture2DD3D11* RedOrbStyleSwitcherTexture{ nullptr };
 static Texture2DD3D11* RedOrbCrimsonTexture{ nullptr };
 static Texture2DD3D11* RedOrbCustomTexture{ nullptr };
 
+
+// STYLE RANK METER
 static Texture2DD3D11* DStyleRankFillTexture{ nullptr };
 static Texture2DD3D11* DStyleRankBackgroundTexture{ nullptr };
 static Texture2DD3D11* DStyleRankBackgroundHighlightTexture{ nullptr };
@@ -100,10 +104,61 @@ static Texture2DD3D11* SSSStyleRankBackgroundHighlightTexture{ nullptr };
 static Texture2DD3D11* SSSStyleRankTextTexture{ nullptr };
 static Texture2DD3D11* SSSStyleRankTextHighlightTexture{ nullptr };
 
+// LOCK ON
 static Texture2DD3D11* LockOnTexture{ nullptr };
 static Texture2DD3D11* LockOnForegroundTexture{ nullptr };
 static Texture2DD3D11* LockOnStunTexture{ nullptr };
 static Texture2DD3D11* LockOnShieldTexture{ nullptr };
+
+// STYLE GLASSES HUD
+static Texture2DD3D11* tSmall{ nullptr };
+static Texture2DD3D11* tBig{ nullptr };
+static Texture2DD3D11* sSmall{ nullptr };
+static Texture2DD3D11* sBig{ nullptr };
+static Texture2DD3D11* gSmall{ nullptr };
+static Texture2DD3D11* gBig{ nullptr };
+static Texture2DD3D11* rSmall{ nullptr };
+static Texture2DD3D11* rBig{ nullptr };
+static Texture2DD3D11* dSmall{ nullptr };
+static Texture2DD3D11* dBig{ nullptr };
+static Texture2DD3D11* qSmall{ nullptr };
+static Texture2DD3D11* qBig{ nullptr };
+static Texture2DD3D11* diamondTGSR{ nullptr };
+
+static Texture2DD3D11* darkslayerVergilGlass{ nullptr };
+static Texture2DD3D11* darkslayerVergilBadge{ nullptr };
+static Texture2DD3D11* quicksilverVergilGlass{ nullptr };
+static Texture2DD3D11* quicksilverVergilBadge{ nullptr };
+static Texture2DD3D11* doppelgangerGlass{ nullptr };
+static Texture2DD3D11* doppelgangerBadge{ nullptr };
+static Texture2DD3D11* gunslingerGlass{ nullptr };
+static Texture2DD3D11* gunslingerBadge{ nullptr };
+static Texture2DD3D11* quicksilverGlass{ nullptr };
+static Texture2DD3D11* quicksilverBadge{ nullptr };
+static Texture2DD3D11* royalguardGlass{ nullptr };
+static Texture2DD3D11* royalguardBadge{ nullptr };
+static Texture2DD3D11* swordmasterGlass{ nullptr };
+static Texture2DD3D11* swordmasterBadge{ nullptr };
+static Texture2DD3D11* tricksterGlass{ nullptr };
+static Texture2DD3D11* tricksterBadge{ nullptr };
+
+static Texture2DD3D11* doppelgangerText{ nullptr };
+static Texture2DD3D11* doppelgangerTextBlur{ nullptr };
+static Texture2DD3D11* gunslingerText{ nullptr };
+static Texture2DD3D11* gunslingerTextBlur{ nullptr };
+static Texture2DD3D11* quicksilverText{ nullptr };
+static Texture2DD3D11* quicksilverTextBlur{ nullptr };
+static Texture2DD3D11* royalguardText{ nullptr };
+static Texture2DD3D11* royalguardTextBlur{ nullptr };
+static Texture2DD3D11* swordmasterText{ nullptr };
+static Texture2DD3D11* swordmasterTextBlur{ nullptr };
+static Texture2DD3D11* tricksterText{ nullptr };
+static Texture2DD3D11* tricksterTextBlur{ nullptr };
+
+static Texture2DD3D11* styleExpBarBorder{ nullptr };
+static Texture2DD3D11* styleExpBarBorderVergil{ nullptr };
+static Texture2DD3D11* styleExpBarFill{ nullptr };
+static Texture2DD3D11* styleLevelDiamond{ nullptr };
 
 
 void InitRedOrbTexture(ID3D11Device* pd3dDevice) {
@@ -207,6 +262,103 @@ void InitLockOnTexture(ID3D11Device* pd3dDevice) {
 	assert(LockOnShieldTexture);
 }
 
+void InitStyleGlassTextures(ID3D11Device* pd3dDevice) {
+	tSmall = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\tgrs\\tSmall.png").c_str(), pd3dDevice);
+	tBig = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\tgrs\\tBig.png").c_str(), pd3dDevice);
+	sSmall = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\tgrs\\sSmall.png").c_str(), pd3dDevice);
+	sBig = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\tgrs\\sBig.png").c_str(), pd3dDevice);
+	gSmall = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\tgrs\\gSmall.png").c_str(), pd3dDevice);
+	gBig = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\tgrs\\gBig.png").c_str(), pd3dDevice);
+	rSmall = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\tgrs\\rSmall.png").c_str(), pd3dDevice);
+	rBig = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\tgrs\\rBig.png").c_str(), pd3dDevice);
+	dSmall = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\tgrs\\dSmall.png").c_str(), pd3dDevice);
+	dBig = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\tgrs\\dBig.png").c_str(), pd3dDevice);
+	qSmall = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\tgrs\\qSmall.png").c_str(), pd3dDevice);
+	qBig = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\tgrs\\qBig.png").c_str(), pd3dDevice);
+	diamondTGSR = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\tgrs\\diamond.png").c_str(), pd3dDevice);
+
+	darkslayerVergilGlass = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\darkslayer-vergil-glass.png").c_str(), pd3dDevice);
+	darkslayerVergilBadge = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\darkslayer-vergil-badge.png").c_str(), pd3dDevice);
+	quicksilverVergilGlass = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\quicksilver-vergil-glass.png").c_str(), pd3dDevice);
+	quicksilverVergilBadge = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\quicksilver-vergil-badge.png").c_str(), pd3dDevice);
+	doppelgangerGlass = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\doppelganger-glass.png").c_str(), pd3dDevice);
+	doppelgangerBadge = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\doppelganger-badge.png").c_str(), pd3dDevice);
+	gunslingerGlass = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\gunslinger-glass.png").c_str(), pd3dDevice);
+	gunslingerBadge = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\gunslinger-badge.png").c_str(), pd3dDevice);
+	quicksilverGlass = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\quicksilver-glass.png").c_str(), pd3dDevice);
+	quicksilverBadge = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\quicksilver-badge.png").c_str(), pd3dDevice);
+	royalguardGlass = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\royalguard-glass.png").c_str(), pd3dDevice);
+	royalguardBadge = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\royalguard-badge.png").c_str(), pd3dDevice);
+	swordmasterGlass = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\swordmaster-glass.png").c_str(), pd3dDevice);
+	swordmasterBadge = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\swordmaster-badge.png").c_str(), pd3dDevice);
+	tricksterGlass = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\trickster-glass.png").c_str(), pd3dDevice);
+	tricksterBadge = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\styles\\trickster-badge.png").c_str(), pd3dDevice);
+
+	doppelgangerText = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\stylenames\\doppelganger.png").c_str(), pd3dDevice);
+	doppelgangerTextBlur = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\stylenames\\doppelganger-blur.png").c_str(), pd3dDevice);
+	gunslingerText = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\stylenames\\gunslinger.png").c_str(), pd3dDevice);
+	gunslingerTextBlur = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\stylenames\\gunslinger-blur.png").c_str(), pd3dDevice);
+	quicksilverText = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\stylenames\\quicksilver.png").c_str(), pd3dDevice);
+	quicksilverTextBlur = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\stylenames\\quicksilver-blur.png").c_str(), pd3dDevice);
+	royalguardText = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\stylenames\\royalguard.png").c_str(), pd3dDevice);
+	royalguardTextBlur = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\stylenames\\royalguard-blur.png").c_str(), pd3dDevice);
+	swordmasterText = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\stylenames\\swordmaster.png").c_str(), pd3dDevice);
+	swordmasterTextBlur = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\stylenames\\swordmaster-blur.png").c_str(), pd3dDevice);
+	tricksterText = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\stylenames\\trickster.png").c_str(), pd3dDevice);
+	tricksterTextBlur = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\stylenames\\trickster-blur.png").c_str(), pd3dDevice);
+
+	styleExpBarBorder = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\exp\\style-exp-border.png").c_str(), pd3dDevice);
+	styleExpBarBorderVergil = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\exp\\style-exp-border-vergil.png").c_str(), pd3dDevice);
+	styleExpBarFill = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\exp\\style-exp-inside.png").c_str(), pd3dDevice);
+	styleLevelDiamond = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\exp\\diamondLevel.png").c_str(), pd3dDevice);
+
+	assert(tSmall);
+	assert(tBig);
+	assert(sSmall);
+	assert(sBig);
+	assert(gSmall);
+	assert(gBig);
+	assert(rSmall);
+	assert(rBig);
+	assert(dSmall);
+	assert(dBig);
+	assert(qSmall);
+	assert(qBig);
+	assert(diamondTGSR);
+	assert(darkslayerVergilGlass);
+	assert(darkslayerVergilBadge);
+	assert(quicksilverVergilGlass);
+	assert(quicksilverVergilBadge);
+	assert(doppelgangerGlass);
+	assert(doppelgangerBadge);
+	assert(gunslingerGlass);
+	assert(gunslingerBadge);
+	assert(quicksilverGlass);
+	assert(quicksilverBadge);
+	assert(royalguardGlass);
+	assert(royalguardBadge);
+	assert(swordmasterGlass);
+	assert(swordmasterBadge);
+	assert(tricksterGlass);
+	assert(tricksterBadge);
+	assert(doppelgangerText);
+	assert(doppelgangerTextBlur);
+	assert(gunslingerText);
+	assert(gunslingerTextBlur);
+	assert(quicksilverText);
+	assert(quicksilverTextBlur);
+	assert(royalguardText);
+	assert(royalguardTextBlur);
+	assert(swordmasterText);
+	assert(swordmasterTextBlur);
+	assert(tricksterText);
+	assert(tricksterTextBlur);
+	assert(styleExpBarBorder);
+	assert(styleExpBarBorderVergil);
+	assert(styleExpBarFill);
+	assert(styleLevelDiamond);
+}
+
 
 void RenderMeterWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, float fillRatio, ImColor color, float angle = 0.0f) {
 	fillRatio = ImClamp(fillRatio, 0.0f, 1.0f);
@@ -224,6 +376,53 @@ void RenderMeterWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, float fil
 		ImVec2(fillPos.x + size.x, fillPos.y),                // Bottom-right
 		ImVec2(pos.x + size.x, pos.y + size.y),               // Top-right
 		ImVec2(pos.x, pos.y + size.y)                         // Top-left
+	};
+
+	// UVs for the filled area
+	ImVec2 uvs[4] = {
+		ImVec2(uv0.x, uv0.y),
+		ImVec2(uv1.x, uv0.y),
+		ImVec2(uv1.x, uv1.y),
+		ImVec2(uv0.x, uv1.y)
+	};
+
+	// Rotate corners around center if angle != 0
+	if (angle != 0.0f) {
+		float s = sinf(angle), c = cosf(angle);
+		for (int i = 0; i < 4; ++i) {
+			ImVec2 p = corners[i] - center;
+			corners[i] = ImVec2(
+				center.x + p.x * c - p.y * s,
+				center.y + p.x * s + p.y * c
+			);
+		}
+	}
+
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	drawList->AddImageQuad(
+		texture,
+		corners[0], corners[1], corners[2], corners[3],
+		uvs[0], uvs[1], uvs[2], uvs[3],
+		color
+	);
+}
+
+void RenderExpWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, float fillRatio, ImColor color, float angle = 0.0f) {
+	fillRatio = ImClamp(fillRatio, 0.0f, 1.0f);
+	float visibleHeight = size.y * fillRatio;
+	ImVec2 fillPos = ImVec2(pos.x, pos.y); // Start at the top
+	ImVec2 uv0 = ImVec2(0.0f, 0.0f);
+	ImVec2 uv1 = ImVec2(1.0f, fillRatio);
+
+	// Center of the fill area
+	ImVec2 center = ImVec2(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
+
+	// Four corners of the filled rect (top to bottom)
+	ImVec2 corners[4] = {
+		ImVec2(fillPos.x, fillPos.y),                         // Top-left
+		ImVec2(fillPos.x + size.x, fillPos.y),                // Top-right
+		ImVec2(pos.x + size.x, pos.y + visibleHeight),        // Bottom-right
+		ImVec2(pos.x, pos.y + visibleHeight)                  // Bottom-left
 	};
 
 	// UVs for the filled area
@@ -953,6 +1152,9 @@ void CheatsHUDIndicatorWindow() {
 	}
 	auto& missionData = *reinterpret_cast<MissionData*>(name_7058);
 	if (!(InGame() && !g_inGameCutscene)) {
+		return;
+	}
+	if (activeConfig.hideMainHUD) {
 		return;
 	}
 
@@ -1747,11 +1949,861 @@ void ShieldLockOnWindows() {
 	}
 }
 
+ImColor GetStyleFlashColor(int style, uint8 character) {
+	switch (style) {
+	case STYLE::TRICKSTER:     if (character == CHARACTER::DANTE) return ImColor(UI::SwapColorEndianness(0xf4dc07FF)); 
+								else return ImColor(UI::SwapColorEndianness(0x44bccdFF)); // Yellow / Light Blue
+	case STYLE::SWORDMASTER:   return ImColor(UI::SwapColorEndianness(0xf30202FF)); // Red
+	case STYLE::GUNSLINGER:    return ImColor(UI::SwapColorEndianness(0x0c59f6FF)); // Blue
+	case STYLE::ROYALGUARD:    return ImColor(UI::SwapColorEndianness(0x00fe27FF)); // Green
+	case STYLE::DOPPELGANGER:  return ImColor(UI::SwapColorEndianness(0xfe5102FF)); // Orange
+	case STYLE::QUICKSILVER:   if (character == CHARACTER::DANTE) return ImColor(UI::SwapColorEndianness(0xd40af0FF));
+						   else return ImColor(UI::SwapColorEndianness(0xb5b5b5FF));
+		 // Purple
+	default:                   return ImColor(UI::SwapColorEndianness(0xFFFFFFFF)); // White fallback
+	}
+}
+
+void StyleDisplayWindow() {
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+	if (!(InGame() && !g_inGameCutscene)) {
+		return;
+	}
+	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.stylesDisplay || !activeConfig.Actor.enable) {
+		return;
+	}
+	// dmc3.exe + 27E86A - C7 86 38 69 00 00 00 00 48 43 - mov[rsi + 00006938], 43480000 { Top Left Count Alpha Timer
+	// setting max alpha value(127) }
+
+	// --- Shake Animation State ---
+	static int prevStyle = -1;
+	static int prevCharacter = -1;
+	static double shakeStartTime = 0.0;
+	static bool shaking = false;
+	const float shakeDuration = 0.1f; // seconds
+
+	// --- Flash Animation State ---
+	static double flashStartTime = 0.0;
+	static bool flashing = false;
+	const float flashDuration = 0.6f;
+	static ImColor lastFlashColor = ImColor(0xFFFFFFFF);
+
+	// --- Scale Animation State ---
+	static double scaleStartTime = 0.0;
+	static bool scaling = false;
+	const float scaleDuration = 0.1f;
+	static float currentScale = 1.0f;
+
+	auto& character = mainActorData.character;
+	float inGameAlpha = hudData.topLeftAlpha / 127.0f;
+
+	int currentStyle = mainActorData.style;
+	int currentCharacter = mainActorData.character;
+
+	// Detect style or character change
+	if (currentStyle != prevStyle || currentCharacter != prevCharacter) {
+		shakeStartTime = ImGui::GetTime();
+		shaking = true;
+		// Flash logic
+		flashStartTime = ImGui::GetTime();
+		flashing = true;
+		lastFlashColor = GetStyleFlashColor(currentStyle, character);
+		// Scale logic
+		scaleStartTime = ImGui::GetTime();
+		scaling = true;
+		prevStyle = currentStyle;
+		prevCharacter = currentCharacter;
+	}
+
+	float styleGlassTextureSizeX = 596.0f * 0.95f * scaleFactorY;
+	float styleGlassTextureSizeY = 485.50f * 0.95f * scaleFactorY;
+
+	ImVec2 styleGlassWindowSize = ImVec2(
+		styleGlassTextureSizeX + (50.0f * scaleFactorY),
+		styleGlassTextureSizeY + (50.0f * scaleFactorY));
+
+	// Get the center of the screen 
+	float screenCenterX = ImGui::GetIO().DisplaySize.x * 0.5f - styleGlassWindowSize.x;
+	float screenCenterY = ImGui::GetIO().DisplaySize.y * 0.5f - styleGlassWindowSize.y;
+
+	// Apply your negative offset from center
+	ImVec2 styleGlassWindowPos = ImVec2(
+		screenCenterX - (440.0f * scaleFactorY),
+		-120.0f * scaleFactorY
+	);
+
+	ImGui::SetNextWindowSize(styleGlassWindowSize);
+	ImGui::SetNextWindowPos(styleGlassWindowPos);
+
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	// STYLE COMPASS
+	ImGui::Begin("StyleCompassWindow", nullptr, windowFlags);
+
+	{
+		float textureWidth = styleGlassTextureSizeX;
+		float textureHeight = styleGlassTextureSizeY;
+
+		ImVec2 windowPos = ImGui::GetWindowPos();
+		ImVec2 texturePos = ImVec2(
+			windowPos.x,
+			windowPos.y + (styleGlassWindowSize.y - textureHeight) * 0.5f
+		);
+
+		auto DrawSmallLetterCompass = [](ID3D11ShaderResourceView* texture, uint8 currentStyle, uint8 style,
+			ImVec2 windowPos, ImVec2 styleGlassTextureSize, ImColor colorWithAlpha) {
+				auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+				float textureWidth = styleGlassTextureSize.x;
+				float textureHeight = styleGlassTextureSize.y;
+				ImVec2 texturePosNoShake = ImVec2(
+					windowPos.x,
+					windowPos.y + (styleGlassTextureSize.y - textureHeight) * 0.5f
+				);
+
+				if (style != currentStyle) {
+					if (style == STYLE::QUICKSILVER && !sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER]) return;
+					if (style == STYLE::DOPPELGANGER && !sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER]) return;
+					ImGui::GetWindowDrawList()->AddImage(
+						texture,
+						texturePosNoShake,
+						ImVec2(texturePosNoShake.x + textureWidth, texturePosNoShake.y + textureHeight),
+						ImVec2(0, 0), ImVec2(1, 1),
+						colorWithAlpha
+					);
+				}
+			};
+
+		// --- Apply Shake Offset ---
+		float shakeOffsetX = 0.0f;
+		float shakeOffsetY = 0.0f;
+		const float shakeAmountX = 1.5f;
+		const float shakeAmountY = 2.0f;
+		if (shaking) {
+			float t = static_cast<float>(ImGui::GetTime() - shakeStartTime);
+			if (t < shakeDuration) {
+				float norm = t / shakeDuration;
+				float ease = -0.5f * (cosf(3.14159265f * norm) - 1.0f);
+				float wave = sinf(norm * 8.0f * 3.14159265f);
+				shakeOffsetX = wave * shakeAmountX * ease;
+				shakeOffsetY = wave * shakeAmountY * ease;
+			} else {
+				shaking = false;
+			}
+		}
+		texturePos.x += shakeOffsetX;
+		texturePos.y += shakeOffsetY;
+
+		ImColor colorWithAlpha(1.0f, 1.0f, 1.0f, inGameAlpha);
+		auto usedActiveCompassTexture = tBig->GetTexture();
+
+		if (character == CHARACTER::DANTE) {
+			switch (mainActorData.style) {
+			case (STYLE::TRICKSTER):
+				usedActiveCompassTexture = tBig->GetTexture();
+				break;
+			case (STYLE::SWORDMASTER):
+				usedActiveCompassTexture = sBig->GetTexture();
+				break;
+			case (STYLE::GUNSLINGER):
+				usedActiveCompassTexture = gBig->GetTexture();
+				break;
+			case (STYLE::ROYALGUARD):
+				usedActiveCompassTexture = rBig->GetTexture();
+				break;
+			case (STYLE::DOPPELGANGER):
+				usedActiveCompassTexture = dBig->GetTexture();
+				break;
+			case (STYLE::QUICKSILVER):
+				usedActiveCompassTexture = qBig->GetTexture();
+				break;
+			default:
+				usedActiveCompassTexture = tBig->GetTexture();
+				break;
+			}
+		}
+		if (character == CHARACTER::DANTE) {
+			DrawSmallLetterCompass(tSmall->GetTexture(), mainActorData.style, STYLE::TRICKSTER,
+				texturePos, ImVec2(styleGlassTextureSizeX, styleGlassTextureSizeY), colorWithAlpha);
+			DrawSmallLetterCompass(sSmall->GetTexture(), mainActorData.style, STYLE::SWORDMASTER,
+				texturePos, ImVec2(styleGlassTextureSizeX, styleGlassTextureSizeY), colorWithAlpha);
+			DrawSmallLetterCompass(gSmall->GetTexture(), mainActorData.style, STYLE::GUNSLINGER,
+				texturePos, ImVec2(styleGlassTextureSizeX, styleGlassTextureSizeY), colorWithAlpha);
+			DrawSmallLetterCompass(rSmall->GetTexture(), mainActorData.style, STYLE::ROYALGUARD,
+				texturePos, ImVec2(styleGlassTextureSizeX, styleGlassTextureSizeY), colorWithAlpha);
+			DrawSmallLetterCompass(dSmall->GetTexture(), mainActorData.style, STYLE::DOPPELGANGER,
+				texturePos, ImVec2(styleGlassTextureSizeX, styleGlassTextureSizeY), colorWithAlpha);
+			DrawSmallLetterCompass(qSmall->GetTexture(), mainActorData.style, STYLE::QUICKSILVER,
+				texturePos, ImVec2(styleGlassTextureSizeX, styleGlassTextureSizeY), colorWithAlpha);
+
+			// --- Scaling Animation for Active Compass Texture ---
+			// Only scale the active compass texture
+			// Scaling anim: ease out back, 0.8 -> 1.0 over 0.3s
+			float scale = 1.0f;
+			if (scaling) {
+				float t = static_cast<float>(ImGui::GetTime() - scaleStartTime);
+				if (t < scaleDuration) {
+					float norm = t / scaleDuration;
+					// Ease out back (s = overshoot)
+					const float s = 9.70158f;
+					float ease = 1.0f + s * powf(norm - 1.0f, 3) + s * (norm - 1.0f) * powf(norm - 1.0f, 2);
+					scale = ImLerp(0.87f, 1.0f, ease);
+				} else {
+					scaling = false;
+					scale = 1.0f;
+				}
+			}
+			ImVec2 scaledSize = ImVec2(textureWidth * scale, textureHeight * scale);
+			ImVec2 scaledPos = ImVec2(
+				texturePos.x + (textureWidth - scaledSize.x) * 0.5f,
+				texturePos.y + (textureHeight - scaledSize.y) * 0.5f
+			);
+
+			if (usedActiveCompassTexture) {
+				ImGui::GetWindowDrawList()->AddImage(
+					usedActiveCompassTexture,
+					scaledPos,
+					ImVec2(scaledPos.x + scaledSize.x, scaledPos.y + scaledSize.y),
+					ImVec2(0, 0), ImVec2(1, 1),
+					colorWithAlpha
+				);
+			}
+		}
+	}
+
+	ImGui::End(); // End StyleCompassWindow
+
+	ImGui::SetNextWindowSize(styleGlassWindowSize);
+	ImGui::SetNextWindowPos(styleGlassWindowPos);
+
+	// STYLE BADGE
+	ImGui::Begin("StyleBadgeWindow", nullptr, windowFlags);
+
+	{
+		float textureWidth = styleGlassTextureSizeX;
+		float textureHeight = styleGlassTextureSizeY;
+
+		ImVec2 windowPos = ImGui::GetWindowPos();
+		ImVec2 texturePos = ImVec2(
+			windowPos.x,
+			windowPos.y + (styleGlassWindowSize.y - textureHeight) * 0.5f
+		);
+
+		// --- Apply Shake Offset ---
+		float shakeOffsetX = 0.0f;
+		float shakeOffsetY = 0.0f;
+		const float shakeAmountX = 1.5f;
+		const float shakeAmountY = 2.0f;
+		if (shaking) {
+			float t = static_cast<float>(ImGui::GetTime() - shakeStartTime);
+			if (t < shakeDuration) {
+				float norm = t / shakeDuration;
+				float ease = -0.5f * (cosf(3.14159265f * norm) - 1.0f);
+				float wave = sinf(norm * 8.0f * 3.14159265f);
+				shakeOffsetX = wave * shakeAmountX * ease;
+				shakeOffsetY = wave * shakeAmountY * ease;
+			} else {
+				shaking = false;
+			}
+		}
+		texturePos.x += shakeOffsetX;
+		texturePos.y += shakeOffsetY;
+
+		// --- Flash Color Logic ---
+		ImColor badgeColor = ImColor(1.0f, 1.0f, 1.0f, inGameAlpha);
+		ImVec4 flashV = lastFlashColor;
+		ImVec4 whiteV = ImVec4(1.0f, 1.0f, 1.0f, inGameAlpha);
+		ImVec4 baseV = ImLerp(flashV, whiteV, 0.55f); // 45% color, 55% white
+		baseV.w = inGameAlpha;
+
+		if (flashing) {
+			float t = static_cast<float>(ImGui::GetTime() - flashStartTime);
+			if (t < flashDuration) {
+				float lerpT = t / flashDuration;
+				lerpT = ImClamp(lerpT, 0.0f, 1.0f);
+				ImVec4 lerped = ImLerp(flashV, baseV, lerpT); // Lerp from 100% color to 45% color
+				lerped.w = inGameAlpha;
+				badgeColor = ImColor(lerped);
+			} else {
+				flashing = false;
+				badgeColor = ImColor(baseV);
+			}
+		} else {
+			badgeColor = ImColor(baseV);
+		}
+
+		auto usedBadgeTexture = tricksterBadge->GetTexture();
+		if (character == CHARACTER::DANTE) {
+			switch (mainActorData.style) {
+			case (STYLE::TRICKSTER):
+				usedBadgeTexture = tricksterBadge->GetTexture();
+				break;
+			case (STYLE::SWORDMASTER):
+				usedBadgeTexture = swordmasterBadge->GetTexture();
+				break;
+			case (STYLE::GUNSLINGER):
+				usedBadgeTexture = gunslingerBadge->GetTexture();
+				break;
+			case (STYLE::ROYALGUARD):
+				usedBadgeTexture = royalguardBadge->GetTexture();
+				break;
+			case (STYLE::DOPPELGANGER):
+				usedBadgeTexture = doppelgangerBadge->GetTexture();
+				break;
+			case (STYLE::QUICKSILVER):
+				usedBadgeTexture = quicksilverBadge->GetTexture();
+				break;
+			}
+		} else if (character == CHARACTER::VERGIL) {
+			switch (mainActorData.style) {
+			case (STYLE::DARK_SLAYER):
+				usedBadgeTexture = darkslayerVergilBadge->GetTexture();
+				break;
+			case (STYLE::QUICKSILVER):
+				usedBadgeTexture = quicksilverVergilBadge->GetTexture();
+				break;
+			}
+		}
+
+		// Draw the texture
+		if (usedBadgeTexture) {
+			ImGui::GetWindowDrawList()->AddImage(
+				usedBadgeTexture,
+				texturePos,
+				ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight),
+				ImVec2(0, 0), ImVec2(1, 1),
+				badgeColor
+			);
+		}
+
+		if (diamondTGSR->GetTexture() && mainActorData.character == CHARACTER::DANTE) {
+			ImGui::GetWindowDrawList()->AddImage(
+				diamondTGSR->GetTexture(),
+				texturePos,
+				ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight),
+				ImVec2(0, 0), ImVec2(1, 1),
+				badgeColor
+			);
+		}
+	}
+
+	ImGui::End(); // End StyleBadgeWindow
+
+	// STYLE GLASS 
+	if (activeCrimsonConfig.CrimsonHudAddons.stylesDisplay == STYLESDISPLAY::WITH_BROKEN_GLASS) {
+		ImGui::SetNextWindowSize(styleGlassWindowSize);
+		ImGui::SetNextWindowPos(styleGlassWindowPos);
+
+		ImGui::Begin("StyleGlassWindow", nullptr, windowFlags);
+
+		{
+			float textureWidth = styleGlassTextureSizeX;
+			float textureHeight = styleGlassTextureSizeY;
+
+			ImVec2 windowPos = ImGui::GetWindowPos();
+			ImVec2 texturePos = ImVec2(
+				windowPos.x,
+				windowPos.y + (styleGlassWindowSize.y - textureHeight) * 0.5f
+			);
+
+			// --- Apply Shake Offset ---
+			float shakeOffsetX = 0.0f;
+			float shakeOffsetY = 0.0f;
+			const float shakeAmountX = 1.5f;
+			const float shakeAmountY = 2.0f;
+			if (shaking) {
+				float t = static_cast<float>(ImGui::GetTime() - shakeStartTime);
+				if (t < shakeDuration) {
+					float norm = t / shakeDuration;
+					float ease = -0.5f * (cosf(3.14159265f * norm) - 1.0f);
+					float wave = sinf(norm * 8.0f * 3.14159265f);
+					shakeOffsetX = wave * shakeAmountX * ease;
+					shakeOffsetY = wave * shakeAmountY * ease;
+				} else {
+					shaking = false;
+				}
+			}
+			texturePos.x += shakeOffsetX;
+			texturePos.y += shakeOffsetY;
+
+			ImColor colorWithAlpha(1.0f, 1.0f, 1.0f, inGameAlpha);
+
+			auto usedGlassTexture = tricksterGlass->GetTexture();
+			if (character == CHARACTER::DANTE) {
+				switch (mainActorData.style) {
+				case (STYLE::TRICKSTER):
+					usedGlassTexture = tricksterGlass->GetTexture();
+					break;
+				case (STYLE::SWORDMASTER):
+					usedGlassTexture = swordmasterGlass->GetTexture();
+					break;
+				case (STYLE::GUNSLINGER):
+					usedGlassTexture = gunslingerGlass->GetTexture();
+					break;
+				case (STYLE::ROYALGUARD):
+					usedGlassTexture = royalguardGlass->GetTexture();
+					break;
+				case (STYLE::DOPPELGANGER):
+					usedGlassTexture = doppelgangerGlass->GetTexture();
+					break;
+				case (STYLE::QUICKSILVER):
+					usedGlassTexture = quicksilverGlass->GetTexture();
+					break;
+				}
+			} else if (character == CHARACTER::VERGIL) {
+				switch (mainActorData.style) {
+				case (STYLE::DARK_SLAYER):
+					usedGlassTexture = darkslayerVergilGlass->GetTexture();
+					break;
+				case (STYLE::QUICKSILVER):
+					usedGlassTexture = quicksilverVergilGlass->GetTexture();
+					break;
+				}
+			}
+
+			// Draw the texture
+			if (usedGlassTexture) {
+				ImGui::GetWindowDrawList()->AddImage(
+					usedGlassTexture,
+					texturePos,
+					ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight),
+					ImVec2(0, 0), ImVec2(1, 1),
+					colorWithAlpha
+				);
+			}
+		}
+
+		ImGui::End(); // End StyleGlassWindow
+	}
+}
+
+void StyleTextDisplayWindow() {
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+	if (!(InGame() && !g_inGameCutscene)) {
+		return;
+	}
+	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.stylesDisplay || !activeConfig.Actor.enable) {
+		return;
+	}
+	auto& character = mainActorData.character;
+
+	if (!activeCrimsonConfig.CrimsonHudAddons.displayStyleNames) return;
+	
+	if (character != CHARACTER::DANTE) return;
+	float styleTextTextureSizeX = (1100.0f * 0.5f) * scaleFactorY;
+	float styleTextTextureSizeY = (200.00f * 0.5f) * scaleFactorY;
+
+	ImVec2 styleTextWindowSize = ImVec2(
+		styleTextTextureSizeX + (50.0f * scaleFactorY),
+		styleTextTextureSizeY + (50.0f * scaleFactorY));
+
+	// Get the center of the screen 
+	float screenCenterX = ImGui::GetIO().DisplaySize.x * 0.5f - styleTextWindowSize.x;
+	float screenCenterY = ImGui::GetIO().DisplaySize.y * 0.5f - styleTextWindowSize.y;
+
+	// Apply your negative offset from center
+	ImVec2 styleTextWindowPos = ImVec2(
+		screenCenterX - (200.0f * scaleFactorY),
+		-47.0f * scaleFactorY);
+
+	ImGui::SetNextWindowSize(styleTextWindowSize);
+	ImGui::SetNextWindowPos(styleTextWindowPos);
+
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	// --- Blur Animation State ---
+	static int prevStyle = -1;
+	static int prevCharacter = -1;
+	static double blurStartTime = 0.0;
+	const float blurDuration = 0.13f;
+	static bool showBlur = false;
+
+	int currentStyle = mainActorData.style;
+	int currentCharacter = mainActorData.character;
+
+	// Detect style or character change
+	if (currentStyle != prevStyle || currentCharacter != prevCharacter) {
+		blurStartTime = ImGui::GetTime();
+		showBlur = true;
+		prevStyle = currentStyle;
+		prevCharacter = currentCharacter;
+	}
+
+	ImGui::Begin("StyleTextWindow", nullptr, windowFlags);
+	{
+		float textureWidth = styleTextTextureSizeX;
+		float textureHeight = styleTextTextureSizeY;
+		ImVec2 windowPos = ImGui::GetWindowPos();
+		ImVec2 texturePos = ImVec2(
+			windowPos.x,
+			windowPos.y + (styleTextWindowSize.y - textureHeight) * 0.5f
+		);
+
+		auto usedActiveTextTexture = tricksterText->GetTexture();
+		auto usedActiveTextBlurTexture = tricksterTextBlur->GetTexture();
+		if (character == CHARACTER::DANTE) {
+			switch (mainActorData.style) {
+			case (STYLE::TRICKSTER):
+				usedActiveTextTexture = tricksterText->GetTexture();
+				usedActiveTextBlurTexture = tricksterTextBlur->GetTexture();
+				break;
+			case (STYLE::SWORDMASTER):
+				usedActiveTextTexture = swordmasterText->GetTexture();
+				usedActiveTextBlurTexture = swordmasterTextBlur->GetTexture();
+				break;
+			case (STYLE::GUNSLINGER):
+				usedActiveTextTexture = gunslingerText->GetTexture();
+				usedActiveTextBlurTexture = gunslingerTextBlur->GetTexture();
+				break;
+			case (STYLE::ROYALGUARD):
+				usedActiveTextTexture = royalguardText->GetTexture();
+				usedActiveTextBlurTexture = royalguardTextBlur->GetTexture();
+				break;
+			case (STYLE::DOPPELGANGER):
+				usedActiveTextTexture = doppelgangerText->GetTexture();
+				usedActiveTextBlurTexture = doppelgangerTextBlur->GetTexture();
+				break;
+			case (STYLE::QUICKSILVER):
+				usedActiveTextTexture = quicksilverText->GetTexture();
+				usedActiveTextBlurTexture = quicksilverTextBlur->GetTexture();
+				break;
+			default:
+				usedActiveTextTexture = tricksterText->GetTexture();
+				usedActiveTextBlurTexture = tricksterTextBlur->GetTexture();
+				break;
+			}
+		}
+
+		float alpha = hudData.topLeftAlpha / 127.0f;
+
+		// Blur logic: show blur for blurDuration after style change
+		bool blurActive = false;
+		if (showBlur) {
+			float t = static_cast<float>(ImGui::GetTime() - blurStartTime);
+			if (t < blurDuration) {
+				blurActive = true;
+			} else {
+				showBlur = false;
+			}
+		}
+
+		if (blurActive && usedActiveTextBlurTexture) {
+			ImGui::GetWindowDrawList()->AddImage(
+				usedActiveTextBlurTexture,
+				texturePos,
+				ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight),
+				ImVec2(0, 0), ImVec2(1, 1),
+				ImColor(1.0f, 1.0f, 1.0f, alpha)
+			);
+		} else if (usedActiveTextTexture) {
+			ImGui::GetWindowDrawList()->AddImage(
+				usedActiveTextTexture,
+				texturePos,
+				ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight),
+				ImVec2(0, 0), ImVec2(1, 1),
+				ImColor(1.0f, 1.0f, 1.0f, alpha)
+			);
+		}
+	}
+	ImGui::End();
+}
+
+void StyleEXPDisplayWindow() {
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+	if (!(InGame() && !g_inGameCutscene)) {
+		return;
+	}
+	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.stylesDisplay || !activeConfig.Actor.enable) {
+		return;
+	}
+
+	if (mainActorData.style == STYLE::DOPPELGANGER || mainActorData.style == STYLE::QUICKSILVER) return;
+
+	auto& character = mainActorData.character;
+	if (character != CHARACTER::DANTE && character != CHARACTER::VERGIL) return;
+	float alpha = hudData.topLeftAlpha / 127.0f;
+	float styleExpTextureSizeX = (80.0f * 0.23f) * scaleFactorY;
+	float styleExpTextureSizeY = (513.00f * 0.23f) * scaleFactorY;
+
+	ImVec2 styleExpDispWindowSize = ImVec2(
+		styleExpTextureSizeX + (50.0f * scaleFactorY),
+		styleExpTextureSizeY + (50.0f * scaleFactorY));
+
+	// Get the center of the screen 
+	float screenCenterX = ImGui::GetIO().DisplaySize.x * 0.5f - styleExpDispWindowSize.x;
+	float screenCenterY = ImGui::GetIO().DisplaySize.y * 0.5f - styleExpDispWindowSize.y;
+
+	// Apply your negative offset from center
+	ImVec2 styleExpDispWindowPos = ImVec2(
+		screenCenterX - (830.0f * scaleFactorY),
+		210 * scaleFactorY);
+
+	ImGui::SetNextWindowSize(styleExpDispWindowSize);
+	ImGui::SetNextWindowPos(styleExpDispWindowPos);
+
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	// --- EXP Bar Shake Animation State ---
+	static double expShakeStartTime = 0.0;
+	static bool expShaking = false;
+	const float expShakeDuration = 0.1f; // seconds
+
+	// Detect style change for shake (you may want to trigger this externally)
+	static int prevExpStyle = -1;
+	int currentExpStyle = mainActorData.style;
+	if (currentExpStyle != prevExpStyle) {
+		expShakeStartTime = ImGui::GetTime();
+		expShaking = true;
+		prevExpStyle = currentExpStyle;
+	}
+
+	ImGui::Begin("StyleExpDisplayWindow", nullptr, windowFlags);
+
+	{
+		float textureWidth = styleExpTextureSizeX;
+		float textureHeight = styleExpTextureSizeY;
+		ImVec2 windowPos = ImGui::GetWindowPos();
+		ImVec2 texturePos = ImVec2(
+			windowPos.x,
+			windowPos.y + (styleExpDispWindowSize.y - textureHeight) * 0.5f
+		);
+
+		// --- Apply EXP Shake Offset ---
+		float expShakeOffsetX = 0.0f;
+		float expShakeOffsetY = 0.0f;
+		const float expShakeAmountX = 1.5f;
+		const float expShakeAmountY = 2.0f;
+		if (expShaking) {
+			float t = static_cast<float>(ImGui::GetTime() - expShakeStartTime);
+			if (t < expShakeDuration) {
+				float norm = t / expShakeDuration;
+				float ease = -0.5f * (cosf(3.14159265f * norm) - 1.0f);
+				float wave = sinf(norm * 8.0f * 3.14159265f);
+				expShakeOffsetX = wave * expShakeAmountX * ease;
+				expShakeOffsetY = wave * expShakeAmountY * ease;
+			} else {
+				expShaking = false;
+			}
+		}
+		texturePos.x += expShakeOffsetX;
+		texturePos.y += expShakeOffsetY;
+
+		auto expBorderTexture = character == CHARACTER::DANTE ? styleExpBarBorder->GetTexture() : styleExpBarBorderVergil->GetTexture();
+		auto expFillTexture = styleExpBarFill->GetTexture();
+
+		// Determine fill amount
+
+		float maxFillAmount = mainActorData.styleLevel == 0 ? 30000.0f : 99999.0f;
+
+		// Draw fill first
+		if (expFillTexture) {
+			RenderExpWithFill(expFillTexture,
+				texturePos,
+				ImVec2(textureWidth, textureHeight),
+				mainActorData.styleExpPoints / maxFillAmount,
+				ImColor(1.0f, 1.0f, 1.0f, alpha)
+			);
+		}
+
+		// Draw border on top
+		if (expBorderTexture) {
+			ImGui::GetWindowDrawList()->AddImage(
+				expBorderTexture,
+				texturePos,
+				ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight),
+				ImVec2(0, 0), ImVec2(1, 1),
+				ImColor(1.0f, 1.0f, 1.0f, alpha)
+			);
+		}
+	}
+
+	ImGui::End();
+}
+
+
+void StyleLvlDispWindow() {
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+	if (!(InGame() && !g_inGameCutscene)) {
+		return;
+	}
+	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.stylesDisplay || !activeConfig.Actor.enable) {
+		return;
+	}
+	
+	if (mainActorData.style == STYLE::DOPPELGANGER || mainActorData.style == STYLE::QUICKSILVER) return;
+
+	auto& character = mainActorData.character;
+	if (character != CHARACTER::DANTE && character != CHARACTER::VERGIL) return;
+	float alpha = hudData.topLeftAlpha / 127.0f;
+	float styleLvlTextureSizeX = (76.0f * 0.17f) * scaleFactorY;
+	float styleLvlTextureSizeY = (97.0f * 0.17f) * scaleFactorY;
+
+	ImVec2 styleLvlDispWindowSize = ImVec2(
+		styleLvlTextureSizeX + (50.0f * 3 * scaleFactorY),
+		styleLvlTextureSizeY + (50.0f * 3 * scaleFactorY));
+
+	// Center of the screen
+	float screenCenterX = ImGui::GetIO().DisplaySize.x * 0.5f;
+	float screenCenterY = ImGui::GetIO().DisplaySize.y * 0.5f;
+
+	ImVec2 styleLvlDispWindowPos = character == CHARACTER::DANTE ? 
+		ImVec2(
+		screenCenterX - (896.0f * scaleFactorY),
+		67.0f * scaleFactorY) : 
+		ImVec2(
+		screenCenterX - (858.0f * scaleFactorY),
+		37.0f * scaleFactorY);
+
+	ImGui::SetNextWindowSize(styleLvlDispWindowSize);
+	ImGui::SetNextWindowPos(styleLvlDispWindowPos);
+
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	ImGui::Begin("StyleLvlDisplayWindow", nullptr, windowFlags);
+
+	ImColor diamondStyleColor = GetStyleFlashColor(mainActorData.style, character);
+	diamondStyleColor.Value.w = alpha;
+
+	ImVec2 windowPos = ImGui::GetWindowPos();
+	ImVec2 diamondMin = ImVec2(windowPos.x + 25.0f * scaleFactorY, windowPos.y + 25.0f * scaleFactorY);
+	ImVec2 diamondMax = ImVec2(diamondMin.x + styleLvlTextureSizeX, diamondMin.y + styleLvlTextureSizeY);
+
+	ImGui::GetWindowDrawList()->AddImage(
+		styleLevelDiamond->GetTexture(),
+		diamondMin,
+		diamondMax,
+		ImVec2(0, 0), ImVec2(1, 1),
+		diamondStyleColor
+	);
+
+
+	if (mainActorData.styleLevel == 0) {
+		ImGui::End(); 
+		return;
+	}
+
+	ImGui::GetWindowDrawList()->AddImage(
+		styleLevelDiamond->GetTexture(),
+		diamondMin + ImVec2(20, 0),
+		diamondMax + ImVec2(20, 0),
+		ImVec2(0, 0), ImVec2(1, 1),
+		diamondStyleColor
+	);
+
+	if (mainActorData.styleLevel == 1) {
+		ImGui::End();
+		return;
+	}
+
+	ImGui::GetWindowDrawList()->AddImage(
+		styleLevelDiamond->GetTexture(),
+		diamondMin + ImVec2(40, 0),
+		diamondMax + ImVec2(40, 0),
+		ImVec2(0, 0), ImVec2(1, 1),
+		diamondStyleColor
+	);
+
+	ImGui::End();
+}
+
+
+void MirageGaugeMainPlayer() {
+	if (!(activeConfig.Actor.enable &&
+		InGame() &&
+		crimsonPlayer[0].character == CHARACTER::VERGIL &&
+		!g_inGameCutscene &&
+		activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger &&
+		!activeConfig.hideMainHUD)) {
+		return;
+	}
+	static bool show = true;
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+
+	auto miragePoints = crimsonPlayer[0].vergilDoppelganger.miragePoints / crimsonPlayer[0].vergilDoppelganger.maxMiragePoints;
+	float miragePointsColor[4] = { 1.0f , 1.0f, 1.0, hudData.topLeftAlpha / 127.0f };
+	float progressBarBgColor[4] = { 0.2f , 0.2f, 0.2f, hudData.topLeftAlpha / 127.0f };
+
+
+	// Adjust the size of the bar
+	float barLength = 130.0f * (crimsonPlayer[0].vergilDoppelganger.maxMiragePoints / maxMiragePointsAmount);
+	vec2 size = { barLength, 10.0f * scaleFactorY };
+
+	// Calculate position 
+	float posX = 90.0f * scaleFactorY;
+	float posY = 170.0f * scaleFactorY;
+
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	ImGui::SetNextWindowPos(ImVec2(posX, posY));
+
+	if (ImGui::Begin("MirageMainPlayer", &show, windowFlags)) {
+		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&miragePointsColor));
+		ImGui::PushStyleColor(ImGuiCol_FrameBg, *reinterpret_cast<ImVec4*>(&progressBarBgColor));
+		ImGui::PushStyleColor(ImGuiCol_Border, *reinterpret_cast<ImVec4*>(&progressBarBgColor));
+		ImGui::ProgressBar(miragePoints, *reinterpret_cast<ImVec2*>(&size), "");
+		ImGui::PopStyleColor(3);
+	}
+
+	ImGui::End();
+}
+
+
 
 void InitTextures(ID3D11Device* pd3dDevice) {
 	InitRedOrbTexture(pd3dDevice);
 	InitStyleRankTextures(pd3dDevice);
 	InitLockOnTexture(pd3dDevice);
+	InitStyleGlassTextures(pd3dDevice);
 }
 
 }

@@ -3206,6 +3206,12 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
     auto& characterData = GetCharacterData(actorData);
     auto* fluxtime = &crimsonPlayer[actorData.newPlayerIndex].fluxtime;
 
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+
     // Very important for proper Style EXP to function
     // this is essentially changing which style is going to be accumulated
 	HeldStyleExpData& heldStyleExpData = (actorData.character == CHARACTER::DANTE)
@@ -3257,7 +3263,9 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
     // VFX - FLUX
     if (activeCrimsonConfig.StyleSwitchFX.Flux.enable) {
         uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(activeCrimsonConfig.StyleSwitchFX.Flux.color[styleColorIndex]);
-        CrimsonDetours::CreateEffectDetour(actorBaseAddr, 3, 144, 1, true, actualColor, 0.73f);
+        uint32 vergilColor = CrimsonUtil::Uint8toAABBGGRR(activeCrimsonConfig.StyleSwitchFX.Flux.color[6]);
+        CrimsonDetours::CreateEffectDetour(actorBaseAddr, 3, 144, 1, true, 
+            actorData.character == CHARACTER::DANTE ? actualColor : vergilColor, 0.73f);
     }
 
     if (!actorData.cloneActorBaseAddr) {
@@ -3281,6 +3289,9 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
     if (activeCrimsonConfig.StyleSwitchFX.Text.enable) {
         CrimsonFX::SetStyleSwitchDrawTextTime(style, actorBaseAddr);
     }
+
+    hudData.topLeftAlpha = 127.0f;
+    hudData.topLeftAlphaTimer = 80.0f * (1.0f / g_FrameRateTimeMultiplier);
 }
 
 void StyleSwitchController(byte8* actorBaseAddr) {
@@ -3337,7 +3348,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
         }
 
         // START QUICKSILVER DOUBLE TAP BUFFER
-        if (actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN)) {
+        if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN)) {
             if (!quickDoubleTap.trackerRunning) {
                 std::thread doubletapquicktracker(doubleTapQuickTracker, actorBaseAddr);
                 doubletapquicktracker.detach();
@@ -3352,7 +3363,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
             }
         }
 
-        if (actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 4 && quickDoubleTap.canChange &&
+        if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 4 && quickDoubleTap.canChange &&
             !actorData.newIsClone && 
             sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER]) {
 

@@ -4372,15 +4372,17 @@ static_assert(sizeof(EnemyVectorData) == 4184);
 
 struct HUDData {
 	_(26904);
-	float orbsOutofCombatTimer; // 0x6918
+	float topLeftAlphaTimer; // 0x6918
     _(4);
     uint8 topLeftAlpha; // 0x6920
-    _(27);
+    _(23);
+    float orbsCountAlphaTimer; // 0x6938
     uint8 orbsCountAlpha; // 0x693C
 };
 
-static_assert(offsetof(HUDData, orbsOutofCombatTimer) == 0x6918);
+static_assert(offsetof(HUDData, topLeftAlphaTimer) == 0x6918);
 static_assert(offsetof(HUDData, topLeftAlpha) == 0x6920);
+static_assert(offsetof(HUDData, orbsCountAlphaTimer) == 0x6938);
 static_assert(offsetof(HUDData, orbsCountAlpha) == 0x693C);
 
 
@@ -4568,7 +4570,7 @@ struct BossHelper {
 
 struct ColorPresets {
     struct StyleSwitchFlux {
-		uint8 colorfulSubtle[6][4] = {
+		uint8 colorfulSubtle[7][4] = {
 			// r   g  b  a 
 			{ 29, 29, 0, 255 }, //trick  
 			{ 26, 0, 0, 255 }, //sword  
@@ -4576,9 +4578,10 @@ struct ColorPresets {
 			{ 0, 35, 6, 255 }, //royal  
 			{ 26, 0, 35, 255 }, //quick  
 			{ 30, 14, 0, 255 }, //doppel 
+            { 0, 25, 30, 255 } // vergil
 		};
 
-		uint8 dMC3Switch[6][4] = {
+		uint8 dMC3Switch[7][4] = {
 			// r   g  b  a 
 			{ 55, 58, 6, 255 }, //trick  
 			{ 58, 5, 5, 255 }, //sword  
@@ -4586,9 +4589,10 @@ struct ColorPresets {
 			{ 5, 58, 12, 255 }, //royal  
 			{ 58, 5, 49, 255 }, //quick  
 			{ 58, 28, 5, 255 }, //doppel 
+            { 5, 57, 58, 255 }, //vergil
 		};
 
-		uint8 allRed[6][4] = {
+		uint8 allRed[7][4] = {
 			// r   g  b  a 
 			{ 29, 0, 0, 255 }, //trick  
 			{ 29, 0, 0, 255 }, //sword  
@@ -4596,6 +4600,7 @@ struct ColorPresets {
 			{ 29, 0, 0, 255 }, //royal  
 			{ 29, 0, 0, 255 }, //quick  
 			{ 29, 0, 0, 255 }, //doppel 
+            { 0, 25, 30, 255 } // vergil
 		};
     } StyleSwitchFlux;
 
