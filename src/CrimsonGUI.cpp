@@ -5151,7 +5151,7 @@ struct ShopExperienceStyleHelper {
 };
 
 
-ShopExperienceHelper shopHelpersDante[] = {
+ShopExperienceHelper shopHelpersDanteDevilarms[] = {
 	{"Air Hike", 20000, -1, -1,-1,-1},
 	{"Rebellion Stinger Level 1", 2500, -1, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_2,-1,-1},
 	{"Rebellion Stinger Level 2", 10000, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1, -1,-1,-1},
@@ -5161,7 +5161,7 @@ ShopExperienceHelper shopHelpersDante[] = {
 	{"Agni & Rudra Jet-Stream Level 2", 10000, -1, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_3,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
 	{"Agni & Rudra Jet-Stream Level 3", 15000, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_2, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
 	{"Agni & Rudra Whirlwind", 7500, -1, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
-	{"Agni & Rudra Air Hike", 20000, -1, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
+	//{"Agni & Rudra Air Hike", 20000, -1, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
 	{"Nevan Reverb Shock Level 1", 7500, -1, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_2,DEVILARMUNLOCKS::NEVAN,-1},
 	{"Nevan Reverb Shock Level 2", 15000, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_1, -1,DEVILARMUNLOCKS::NEVAN,-1},
 	{"Nevan Bat Rift Level 2", 10000, -1, -1,DEVILARMUNLOCKS::NEVAN,-1},
@@ -5170,7 +5170,10 @@ ShopExperienceHelper shopHelpersDante[] = {
 	{"Beowulf Straight Level 2", 10000, -1, -1,DEVILARMUNLOCKS::BEOWULF,-1},
 	{"Beowulf Beast Uppercut", 7500, -1, UNLOCK_DANTE::BEOWULF_RISING_DRAGON,DEVILARMUNLOCKS::BEOWULF,-1},
 	{"Beowulf Rising Dragon", 15000, UNLOCK_DANTE::BEOWULF_BEAST_UPPERCUT, -1,DEVILARMUNLOCKS::BEOWULF,-1},
-	{"Beowulf Air Hike", 20000, -1, -1,DEVILARMUNLOCKS::BEOWULF,-1},
+	//{"Beowulf Air Hike", 20000, -1, -1,DEVILARMUNLOCKS::BEOWULF,-1},
+};
+
+ShopExperienceHelper shopHelpersDanteGuns[] = {
 	{"Ebony & Ivory Level 2", 5000, -1, UNLOCK_DANTE::EBONY_IVORY_LEVEL_3,-1,-1},
 	{"Ebony & Ivory Level 3", 10000, UNLOCK_DANTE::EBONY_IVORY_LEVEL_2, -1,-1,-1},
 	{"Shotgun Level 2", 10000, -1, UNLOCK_DANTE::SHOTGUN_LEVEL_3,-1,GUNUNLOCKS::SHOTGUN},
@@ -5184,6 +5187,12 @@ ShopExperienceHelper shopHelpersDante[] = {
 };
 
 ShopExperienceStyleHelper shopStyleHelpersDante[] = {
+	{"Doppelganger Level 2", 20000, STYLE::DOPPELGANGER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
+	{"Doppelganger Level 3", 30000, STYLE::DOPPELGANGER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
+
+	{"Quicksilver Level 2", 20000, STYLE::QUICKSILVER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
+	{"Quicksilver Level 3", 30000, STYLE::QUICKSILVER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
+
 	{"Swordmaster Level 2", 20000, STYLE::SWORDMASTER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
 	{"Swordmaster Level 3", 30000, STYLE::SWORDMASTER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
 	
@@ -5196,11 +5205,7 @@ ShopExperienceStyleHelper shopStyleHelpersDante[] = {
 	{"Royal Guard Level 2", 20000, STYLE::ROYALGUARD,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
 	{"Royal Guard Level 3", 30000, STYLE::ROYALGUARD,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
 
-	{"Quicksilver Level 2", 20000, STYLE::QUICKSILVER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
-	{"Quicksilver Level 3", 30000, STYLE::QUICKSILVER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
 
-	{"Doppelganger Level 2", 20000, STYLE::DOPPELGANGER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
-	{"Doppelganger Level 3", 30000, STYLE::DOPPELGANGER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
 };
 
 ShopExperienceStyleHelper shopStyleHelpersVergil[] = {
@@ -5209,7 +5214,7 @@ ShopExperienceStyleHelper shopStyleHelpersVergil[] = {
 };
 
 
-ShopExperienceHelper shopHelpersVergil[] = {
+ShopExperienceHelper shopHelpersVergilDevilarms[] = {
 	{"Yamato Rapid Slash Level 1", 5000, -1, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2,-1,-1},
 	{"Yamato Rapid Slash Level 2", 15000, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_1, -1,-1,-1},
 	{"Yamato Judgement Cut Level 1", 10000, -1, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2,-1,-1},
@@ -5221,6 +5226,10 @@ ShopExperienceHelper shopHelpersVergil[] = {
 	{"Yamato & Force Edge Stinger Level 1", 5000, -1, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_2,-1,-1},
 	{"Yamato & Force Edge Stinger Level 2", 10000, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1, -1,-1,-1},
 	{"Yamato & Force Edge Round Trip", 10000, -1, -1,-1,-1},
+
+};
+
+ShopExperienceHelper shopHelpersVergilGuns[] = {
 	{"Summoned Swords Level 2", 7500, -1, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3,-1,-1},
 	{"Summoned Swords Level 3", 15000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, -1,-1,-1},
 	{"Spiral Swords", 20000, -1, -1,-1,-1},
@@ -5338,7 +5347,7 @@ void ShopWindow() {
 
 					switch (tabIndex) {
 					case TAB::DANTE:
-						ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDante, sizeof(shopHelpersDante) / sizeof(ShopExperienceHelper), shopStyleHelpersDante, sizeof(shopStyleHelpersDante) / sizeof(ShopExperienceStyleHelper), missionData);
+						ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDanteDevilarms, sizeof(shopHelpersDanteDevilarms) / sizeof(ShopExperienceHelper), missionData);
 						break;
 
 					case TAB::VERGIL:
@@ -5397,7 +5406,7 @@ void ShowStyleLevelsTab(ExpConfig::ExpData& expData, MissionData& missionData) {
 }
 
 
-void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount, ShopExperienceStyleHelper* styleHelpers, new_size_t styleHelperCount, MissionData& missionData) {
+void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount, MissionData& missionData) {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 	for (size_t helperIndex = 0; helperIndex < helperCount; ++helperIndex) {
@@ -5483,6 +5492,10 @@ void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helper
 		ImGui::EndGroup(); // End the group for the current row
 		ImGui::Spacing(); // Add spacing between rows
 	}
+}
+
+void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelper* styleHelpers, new_size_t styleHelperCount, MissionData& missionData) {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 	//buying style upgrades here
 	for (size_t helperIndex = 0; helperIndex < styleHelperCount; ++helperIndex) {
 		auto& helper = styleHelpers[helperIndex];
