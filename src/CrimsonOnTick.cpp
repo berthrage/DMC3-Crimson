@@ -340,6 +340,8 @@ void MultiplayerCameraPositioningController() {
 	clonePos.y = cloneMainActorData.position.y;
 	clonePos.z = cloneMainActorData.position.z;
 
+	float cameraDistanceMP = (eventData.room >= ROOM::BLOODY_PALACE_1 && eventData.room <= ROOM::BLOODY_PALACE_10) || eventData.room? 2800.0f : 1900.0f;
+
 	bool triggerMPCam = activeCrimsonConfig.Camera.multiplayerCamera? true : false;
 	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
 		float distanceTo1P = g_plEntityTo1PDistances[i];
@@ -854,49 +856,53 @@ void OverrideEnemyTargetPosition() {
 				continue;
 			}
 
+			if (enemyId == ENEMY::BLOOD_GOYLE) {
+				continue;
+			}
+
 			if (distanceToPlayer[playerIndex] < closestDistance) {
 				closestDistance = distanceToPlayer[playerIndex];
-				if ((enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::WRATH_4) && enemy.hitPointsHells > 7) {
+				if ((enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::WRATH_4) && enemy.hitPointsHells > 20) {
 					enemy.targetPosition = actorData.position;
 				}
 
-				if (enemyId >= ENEMY::GREED_1 && enemyId <= ENEMY::GREED_4 && enemy.hitPointsHells > 7) {
+				if (enemyId >= ENEMY::GREED_1 && enemyId <= ENEMY::GREED_4 && enemy.hitPointsHells > 20) {
 					enemy.targetPositionGreed = actorData.position;
 				}
 
-				if (enemyId == ENEMY::ABYSS && enemy.hitPointsHells > 7) {
+				if (enemyId == ENEMY::ABYSS && enemy.hitPointsHells > 20) {
 					enemy.targetPositionAbyss = actorData.position;
 				}
 
-				if (enemyId == ENEMY::ENVY && enemy.hitPointsHells > 7) {
+				if (enemyId == ENEMY::ENVY && enemy.hitPointsHells > 20) {
 					enemy.targetPositionEnvy = actorData.position;
 				}
 
-				if (enemyId == ENEMY::HELL_VANGUARD && enemy.hitPointsHells > 7) {
+				if (enemyId == ENEMY::HELL_VANGUARD && enemy.hitPointsHells > 20) {
 					enemy.targetPositionHellVanguard = actorData.position;
 				}
 
-				if (enemyId == ENEMY::DOPPELGANGER && enemy.hitPointsDoppelganger > 7) {
+				if (enemyId == ENEMY::DOPPELGANGER && enemy.hitPointsDoppelganger > 20) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 
-				if (enemyId == ENEMY::THE_FALLEN && enemy.hitPointsTheFallen > 7) {
+				if (enemyId == ENEMY::THE_FALLEN && enemy.hitPointsTheFallen > 20) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 
-				if (enemyId == ENEMY::DULLAHAN && enemy.hitPointsDullahan > 7) {
+				if (enemyId == ENEMY::DULLAHAN && enemy.hitPointsDullahan > 20) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 
-				if (enemyId == ENEMY::BEOWULF && enemy.hitPointsBeowulf > 7) {
+				if (enemyId == ENEMY::BEOWULF && enemy.hitPointsBeowulf > 20) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 
-				if (enemyId == ENEMY::VERGIL && enemy.hitPointsVergil > 7) {
+				if (enemyId == ENEMY::VERGIL && enemy.hitPointsVergil > 20) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 
-				if (enemyId == ENEMY::LADY && enemy.hitPointsLady > 7) {
+				if (enemyId == ENEMY::LADY && enemy.hitPointsLady > 20) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 			}
