@@ -682,7 +682,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			// Middle footer section
 			{
 				constexpr auto BACKGROUND_FADED_TEXT = u8"C•Team";
-				constexpr auto CREDIT_TEXT = u8"Berthrage • SSSiyan • deepdarkkapustka • Darkness • Charlie  ";
+				constexpr auto CREDIT_TEXT = u8"Berthrage • SSSiyan • deepdarkkapustka • Darkness • Charlie • The Hitchhiker  ";
 				constexpr auto ABOUT_BUTTON_TEXT = "ABOUT";
 
 				ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
@@ -9938,20 +9938,11 @@ void GeneralGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("Hold To Shoot gun",
+			if (GUI_Checkbox2("Hold To Shoot Gun",
 				activeCrimsonGameplay.Gameplay.General.holdToShoot,
 				queuedCrimsonGameplay.Gameplay.General.holdToShoot)) {
 				CrimsonPatches::HoldToAutoFire(activeCrimsonGameplay.Gameplay.General.holdToShoot);
 			}
-
-			if (GUI_Checkbox2("Lock-On", activeCrimsonConfig.CrimsonHudAddons.lockOn, queuedCrimsonConfig.CrimsonHudAddons.lockOn)) {
-				CrimsonPatches::ToggleHideLockOn(activeCrimsonConfig.CrimsonHudAddons.lockOn);
-				if (!activeCrimsonConfig.CrimsonHudAddons.lockOn) {
-					activeCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud = false;
-					queuedCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud = false;
-				}
-			}
-
 
 			ImGui::TableNextColumn();
 
@@ -9971,8 +9962,6 @@ void GeneralGameplayOptions() {
 			GUI_CCSRequirementButton();
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
-			// Second row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
@@ -10021,8 +10010,6 @@ void GeneralGameplayOptions() {
 			TooltipHelper("(?)", "Allows you to do Reversals without buffering a move first.");
 			GUI_PopDisable(!activeConfig.Actor.enable || !activeCrimsonGameplay.Gameplay.General.freeformSoftLock);
 
-			// Third row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
@@ -10063,8 +10050,7 @@ void GeneralGameplayOptions() {
 			TooltipHelper("(?)", "Increased hitboxes for easier Jump Cancels.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
-			// Fourth row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
+
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
@@ -10101,8 +10087,6 @@ void GeneralGameplayOptions() {
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Increases stagger value of moves in the air, subtly altering the gravity in combat.");
 
-			// Fifth row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Faster Turn Rate",
@@ -11947,6 +11931,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		g_Image_VanillaLogo.ResizeByRatioW((uint32_t)mainLogoWidth);
 		g_Image_StyleSwitcherLogo.ResizeByRatioW((uint32_t)mainLogoWidth);
 		g_Image_SocialIcons.ResizeByRatioW(size_t(scaledFontSize * 10.0f));
+		g_Image_SocialsTwitch.ResizeByRatioW(size_t(scaledFontSize * 10.0f));
+		g_Image_SocialsBluesky.ResizeByRatioW(size_t(scaledFontSize * 10.0f));
 
 		uiElementsInitialized = true;
 	}
@@ -12963,6 +12949,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 	{
 		// If none of the tabs are selected, draw the about page
 		static const Texture2DD3D11 socialIcons(g_Image_SocialIcons.GetRGBAData(), g_Image_SocialIcons.GetWidth(), g_Image_SocialIcons.GetWidth(), pDevice);
+		static const Texture2DD3D11 socialsTwitch(g_Image_SocialsTwitch.GetRGBAData(), g_Image_SocialsTwitch.GetWidth(), g_Image_SocialsTwitch.GetWidth(), pDevice);
+		static const Texture2DD3D11 socialsBluesky(g_Image_SocialsBluesky.GetRGBAData(), g_Image_SocialsBluesky.GetWidth(), g_Image_SocialsBluesky.GetWidth(), pDevice);
 
 		const float areaPaddingXRation = 0.326f;
 		const float areaPaddingX = (1.0f - 3.0f * (areaPaddingXRation)) * 0.25f * cntWindow->Size.x;
@@ -13018,6 +13006,63 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						}
                     }
 					//ImGui::PopStyleColor();
+					ImGui::PopStyleVar();
+
+					return clicked;
+					};
+
+				auto fnDrawSocialButtonNonUV = [window](const void* id, const Texture2DD3D11& texture, const ImVec2 size, const char* tooltip = nullptr) -> bool {
+					bool clicked = false;
+
+					ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+					{
+						ImGui::PushID(id);
+						const ImGuiID calcedID = window->GetID("#socialButton");
+						ImGui::PopID();
+
+						clicked = ImGui::ImageButtonEx(
+							calcedID,
+							texture.GetTexture(),
+							size,
+							ImVec2{ 0.0f, 0.0f }, ImVec2{ 1.0f, 1.0f },
+							ImVec2{ 2.0f, 2.0f },
+							ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f },
+							ImVec4{ 1.0f, 1.0f, 1.0f, 1.0f }
+						);
+
+						if (tooltip != nullptr && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+							ImGui::SetTooltip("%s", tooltip);
+						}
+					}
+					ImGui::PopStyleVar();
+
+					return clicked;
+					};
+
+				auto fnDrawSocialBluesky = [window](const void* id, const ImVec2 size, const char* tooltip = nullptr) -> bool {
+					bool clicked = false;
+
+					ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+					{
+						ImGui::PushID(id);
+						const ImGuiID calcedID = window->GetID("#socialButton");
+						ImGui::PopID();
+
+						// Use the full image, so UVs are (0,0) to (1,1)
+						clicked = ImGui::ImageButtonEx(
+							calcedID,
+							socialsBluesky.GetTexture(),
+							size,
+							ImVec2{ 0.0f, 0.0f }, ImVec2{ 1.0f, 1.0f },
+							ImVec2{ 2.0f, 2.0f },
+							ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f },
+							ImVec4{ 1.0f, 1.0f, 1.0f, 1.0f }
+						);
+
+						if (tooltip != nullptr && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+							ImGui::SetTooltip("%s", tooltip);
+						}
+					}
 					ImGui::PopStyleVar();
 
 					return clicked;
@@ -13201,7 +13246,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 					ImGui::SameLine();
 
-					const ImVec2 socialsBBFrameSize{ 4.0f + ImGui::GetFontSize(), 4.0f + ImGui::GetFontSize() };
+					const ImVec2 socialsBBFrameSize{ 4.0f * 2.0f + 2.0f * ImGui::GetFontSize(), 4.0f + ImGui::GetFontSize() };
 					const ImVec2 currentCursorPos = ImGui::GetCursorScreenPos();
 
 					ImGui::SetCursorScreenPos(ImVec2{ window->ContentRegionRect.Max.x - socialsBBFrameSize.x, currentCursorPos.y });
@@ -13209,6 +13254,57 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					if (fnDrawSocialButton("charlieyoutube", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
 						ShellExecute(0, 0, "https://www.youtube.com/@DMC_Charlie", 0, 0, SW_SHOW);
 					}
+
+					ImGui::SameLine(0.0f, 0.0f);
+
+					if (fnDrawSocialButtonNonUV("charlietwitch", socialsTwitch, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+						ShellExecute(0, 0, "https://www.twitch.tv/charlie_decker", 0, 0, SW_SHOW);
+					}
+				}
+
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.7f);
+
+
+				// Hitchhiker
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+					{
+						ImGui::Text("General Programmer, Reverse Engineering");
+					}
+					ImGui::PopFont();
+
+					ImGui::Separator();
+
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+					{
+						ImGui::Text("The Hitchhiker");
+					}
+					ImGui::PopFont();
+
+					ImGui::SameLine();
+
+					const ImVec2 socialsBBFrameSize{ 4.0f * 2.0f + 3.0f * ImGui::GetFontSize(), 4.0f + ImGui::GetFontSize() };
+					const ImVec2 currentCursorPos = ImGui::GetCursorScreenPos();
+
+					ImGui::SetCursorScreenPos(ImVec2{ window->ContentRegionRect.Max.x - socialsBBFrameSize.x, currentCursorPos.y });
+
+
+					if (fnDrawSocialButton("hitchyoutube", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+						ShellExecute(0, 0, "https://www.youtube.com/@TheHitchhiker", 0, 0, SW_SHOW);
+					}
+
+					ImGui::SameLine(0.0f, 0.0f);
+
+					if (fnDrawSocialButtonNonUV("hitchtwitch", socialsTwitch, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+						ShellExecute(0, 0, "https://www.twitch.tv/hitchhikingthrough", 0, 0, SW_SHOW);
+					}
+
+					ImGui::SameLine(0.0f, 0.0f);
+
+					if (fnDrawSocialButtonNonUV("hitchbluesky", socialsBluesky, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+						ShellExecute(0, 0, "https://bsky.app/profile/the-hitchhiker.bsky.social", 0, 0, SW_SHOW);
+					}
+				
 				}
 
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.7f);

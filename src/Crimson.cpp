@@ -276,6 +276,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
             CrimsonDetours::ToggleHoldToCrazyCombo(false);
         }
         
+        CrimsonPatches::HoldToAutoFire(activeCrimsonGameplay.Gameplay.General.holdToShoot);
         CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
         CrimsonDetours::ToggleStyleRankHudNoFadeout(activeConfig.disableStyleRankHudFadeout);
         CrimsonDetours::ToggleDMC4LockOnDirection(activeCrimsonGameplay.Gameplay.General.dmc4LockOnDirection);

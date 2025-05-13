@@ -195,6 +195,40 @@ protected:
 
 extern SocialsIcons g_Image_SocialIcons;
 
+// 300 x 300
+class SocialsTwitch : public Image {
+public:
+	SocialsTwitch()
+		: Image(m_CompressedWidth, m_CompressedHeight,
+			m_ImageCompressedSize, reinterpret_cast<const uint8_t*>(m_ImageCompressedData)) {
+	}
+
+protected:
+	static constexpr uint32_t	m_CompressedWidth{ 300 };
+	static constexpr uint32_t	m_CompressedHeight{ 300 };
+	static constexpr uint32_t m_ImageCompressedSize{ 2531 };
+	static			 uint32_t m_ImageCompressedData[2532 / 4];
+};
+
+extern SocialsTwitch g_Image_SocialsTwitch;
+
+// 300 x 300
+class SocialsBluesky : public Image {
+public:
+	SocialsBluesky()
+		: Image(m_CompressedWidth, m_CompressedHeight,
+			m_ImageCompressedSize, reinterpret_cast<const uint8_t*>(m_ImageCompressedData)) {
+	}
+
+protected:
+	static constexpr uint32_t	m_CompressedWidth{ 300 };
+	static constexpr uint32_t	m_CompressedHeight{ 300 };
+	static constexpr uint32_t m_ImageCompressedSize{ 6491 };
+	static			 uint32_t m_ImageCompressedData[6492 / 4];
+};
+
+extern SocialsBluesky g_Image_SocialsBluesky;
+
 
 // 142 x 200
 class RedOrb : public Image {
