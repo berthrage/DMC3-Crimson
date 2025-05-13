@@ -11844,6 +11844,8 @@ void GamepadToggleShowMain() {
 
     static bool gamepadCombinationMainRelease[PLAYER_COUNT] = { false };
 
+	//prevents double toggle
+	bool updatinggui = false;
 	// Loop through each controller
 	for (int i = 0; i < 4; ++i) {
 		if (CrimsonSDL::controllers[i] != NULL) {
@@ -11853,8 +11855,11 @@ void GamepadToggleShowMain() {
 
 			// Combination pressed and was not pressed before, toggle GUI and set window focus
 			if (combination && !g_showMain && gamepadCombinationMainRelease[i]) {
-				ToggleCrimsonGUI();
-				ImGui::SetWindowFocus(DMC3C_TITLE);
+				if(!updatinggui){
+					updatinggui = true;
+					ToggleCrimsonGUI();
+					ImGui::SetWindowFocus(DMC3C_TITLE);
+				}
 				gamepadCombinationMainRelease[i] = false;
 			}
 
@@ -11865,7 +11870,10 @@ void GamepadToggleShowMain() {
 
 			// Combination pressed, GUI shown, and was not pressed before, toggle GUI
 			if (combination && g_showMain && gamepadCombinationMainRelease[i]) {
-				ToggleCrimsonGUI();
+				if (!updatinggui) {
+					updatinggui = true;
+					ToggleCrimsonGUI();
+				}
 				gamepadCombinationMainRelease[i] = false;
 			}
 		}
