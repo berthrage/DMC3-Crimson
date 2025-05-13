@@ -2935,8 +2935,12 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	if (GUI_Checkbox2("Character Hotswap", activeCrimsonGameplay.Gameplay.General.characterHotswap, queuedCrimsonGameplay.Gameplay.General.characterHotswap)) {}
 	
-
+	GUI_PushDisable(!activeCrimsonGameplay.Gameplay.General.characterHotswap);
+	if (!activeCrimsonGameplay.Gameplay.General.characterHotswap) {
+		queuedPlayerData.characterCount = 1;
+	}
 	GUI_Slider<uint8>("Number of Characters", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
 
 
@@ -2952,7 +2956,7 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 			queuedPlayerData.collisionGroup);
 
 	}
-
+	GUI_PopDisable(!activeCrimsonGameplay.Gameplay.General.characterHotswap);
 	BackgroundPlayerText(playerIndex);
 
 
@@ -5182,10 +5186,10 @@ struct ShopExperienceStyleHelper {
 
 
 ShopExperienceHelper shopHelpersDante[] = {
+	{"Air Hike", 20000, -1, -1,-1,-1},
 	{"Rebellion Stinger Level 1", 2500, -1, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_2,-1,-1},
 	{"Rebellion Stinger Level 2", 10000, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1, -1,-1,-1},
 	{"Rebellion Drive", 10000, -1, -1,-1,-1},
-	{"Rebellion Air Hike", 20000, -1, -1,-1,-1},
 	{"Cerberus Revolver Level 2", 15000, -1, -1,DEVILARMUNLOCKS::CERBERUS,-1},
 	{"Cerberus Windmill", 7500, -1, -1,DEVILARMUNLOCKS::CERBERUS,-1},
 	{"Agni & Rudra Jet-Stream Level 2", 10000, -1, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_3,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
