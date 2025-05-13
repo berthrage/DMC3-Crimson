@@ -5128,8 +5128,12 @@ void ActionData(const char* label, T(&vars)[2], T(&vars2)[2], T(&defaultVars)[2]
 namespace Shop {
 
 const char* tabNames[] = {
-	"Dante",
-	"Vergil",
+	"Dante Devil Arms",
+	"Dante Guns",
+	"Dante Styles",
+	"Vergil Devil Arms",
+	"Vergil Summoned Swords",
+	"Vergil Style",
 	"Items",
 };
 
@@ -5151,17 +5155,17 @@ struct ShopExperienceStyleHelper {
 };
 
 
-ShopExperienceHelper shopHelpersDanteDevilarms[] = {
-	{"Air Hike", 20000, -1, -1,-1,-1},
+ShopExperienceHelper shopHelpersDante[] = {
 	{"Rebellion Stinger Level 1", 2500, -1, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_2,-1,-1},
 	{"Rebellion Stinger Level 2", 10000, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1, -1,-1,-1},
 	{"Rebellion Drive", 10000, -1, -1,-1,-1},
+	{"Air Hike", 20000, -1, -1,-1,-1},
 	{"Cerberus Revolver Level 2", 15000, -1, -1,DEVILARMUNLOCKS::CERBERUS,-1},
 	{"Cerberus Windmill", 7500, -1, -1,DEVILARMUNLOCKS::CERBERUS,-1},
 	{"Agni & Rudra Jet-Stream Level 2", 10000, -1, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_3,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
 	{"Agni & Rudra Jet-Stream Level 3", 15000, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_2, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
 	{"Agni & Rudra Whirlwind", 7500, -1, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
-	//{"Agni & Rudra Air Hike", 20000, -1, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
+	{"Agni & Rudra Air Hike", 20000, -1, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
 	{"Nevan Reverb Shock Level 1", 7500, -1, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_2,DEVILARMUNLOCKS::NEVAN,-1},
 	{"Nevan Reverb Shock Level 2", 15000, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_1, -1,DEVILARMUNLOCKS::NEVAN,-1},
 	{"Nevan Bat Rift Level 2", 10000, -1, -1,DEVILARMUNLOCKS::NEVAN,-1},
@@ -5170,7 +5174,7 @@ ShopExperienceHelper shopHelpersDanteDevilarms[] = {
 	{"Beowulf Straight Level 2", 10000, -1, -1,DEVILARMUNLOCKS::BEOWULF,-1},
 	{"Beowulf Beast Uppercut", 7500, -1, UNLOCK_DANTE::BEOWULF_RISING_DRAGON,DEVILARMUNLOCKS::BEOWULF,-1},
 	{"Beowulf Rising Dragon", 15000, UNLOCK_DANTE::BEOWULF_BEAST_UPPERCUT, -1,DEVILARMUNLOCKS::BEOWULF,-1},
-	//{"Beowulf Air Hike", 20000, -1, -1,DEVILARMUNLOCKS::BEOWULF,-1},
+	{"Beowulf Air Hike", 20000, -1, -1,DEVILARMUNLOCKS::BEOWULF,-1},
 };
 
 ShopExperienceHelper shopHelpersDanteGuns[] = {
@@ -5186,7 +5190,7 @@ ShopExperienceHelper shopHelpersDanteGuns[] = {
 	{"Kalina Ann Level 3", 10000, UNLOCK_DANTE::KALINA_ANN_LEVEL_2, -1,-1,GUNUNLOCKS::KALINA_ANN},
 };
 
-ShopExperienceStyleHelper shopStyleHelpersDante[] = {
+ShopExperienceStyleHelper shopHelpersDanteStyle[] = {
 	{"Doppelganger Level 2", 20000, STYLE::DOPPELGANGER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
 	{"Doppelganger Level 3", 30000, STYLE::DOPPELGANGER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
 
@@ -5208,13 +5212,13 @@ ShopExperienceStyleHelper shopStyleHelpersDante[] = {
 
 };
 
-ShopExperienceStyleHelper shopStyleHelpersVergil[] = {
+ShopExperienceStyleHelper shopHelpersVergilStyle[] = {
 	{"Dark Slayer Level 2", 25,STYLE::DARK_SLAYER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
 	{"Dark Slayer Level 3", 100,STYLE::DARK_SLAYER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
 };
 
 
-ShopExperienceHelper shopHelpersVergilDevilarms[] = {
+ShopExperienceHelper shopHelpersVergil[] = {
 	{"Yamato Rapid Slash Level 1", 5000, -1, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2,-1,-1},
 	{"Yamato Rapid Slash Level 2", 15000, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_1, -1,-1,-1},
 	{"Yamato Judgement Cut Level 1", 10000, -1, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2,-1,-1},
@@ -5265,7 +5269,9 @@ enum {
 };
 
 // Function Declarations
-void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount,ShopExperienceStyleHelper* styleHelpers,new_size_t styleHelperCount, MissionData& missionData);
+void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount, MissionData& missionData);
+void ShowExperienceStyleTab(ExpConfig::ExpData& expData,ShopExperienceStyleHelper* styleHelpers, new_size_t styleHelperCount, MissionData& missionData);
+
 void ShowItemTab(MissionData& missionData, QueuedMissionActorData& queuedMissionActorData, ActiveMissionActorData& activeMissionActorData, bool unlockDevilTrigger);
 void HandleItemPurchase(uint8 itemHelperIndex, MissionData& missionData, ActiveMissionActorData& activeMissionActorData, uint32 price);
 void HandleItemSale(uint8 itemHelperIndex, MissionData& missionData, ActiveMissionActorData& activeMissionActorData);
@@ -5294,7 +5300,7 @@ void ShopWindow() {
 		run = true;
 	}
 
-	float width = 800 * scaleFactorY; 
+	float width = 1000 * scaleFactorY; 
 	float height = 900 * scaleFactorY; 
 
 	ImGui::SetNextWindowSize(ImVec2(width, height));
@@ -5346,14 +5352,24 @@ void ShopWindow() {
 					ImGui::Text("");
 
 					switch (tabIndex) {
-					case TAB::DANTE:
-						ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDanteDevilarms, sizeof(shopHelpersDanteDevilarms) / sizeof(ShopExperienceHelper), missionData);
+					case TAB::DANTE_DEVILARM:
+						ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDante, sizeof(shopHelpersDante) / sizeof(ShopExperienceHelper), missionData);
 						break;
-
-					case TAB::VERGIL:
-						ShowExperienceTab(ExpConfig::missionExpDataVergil, shopHelpersVergil, sizeof(shopHelpersVergil) / sizeof(ShopExperienceHelper), shopStyleHelpersDante, sizeof(shopStyleHelpersDante) / sizeof(ShopExperienceStyleHelper), missionData);
+					case TAB::DANTE_GUN:
+						ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDanteGuns, sizeof(shopHelpersDanteGuns) / sizeof(ShopExperienceHelper), missionData);
 						break;
-
+					case TAB::DANTE_STYLE:
+						ShowExperienceStyleTab(ExpConfig::missionExpDataDante, shopHelpersDanteStyle, sizeof(shopHelpersDanteStyle) / sizeof(ShopExperienceStyleHelper), missionData);
+						break;
+					case TAB::VERGIL_DEVILARM:
+						ShowExperienceTab(ExpConfig::missionExpDataVergil, shopHelpersVergil, sizeof(shopHelpersVergil) / sizeof(ShopExperienceHelper), missionData);
+						break;
+					case TAB::VERGIL_GUN:
+						ShowExperienceTab(ExpConfig::missionExpDataVergil, shopHelpersVergilGuns, sizeof(shopHelpersVergilGuns) / sizeof(ShopExperienceHelper), missionData);
+						break;
+					case TAB::VERGIL_STYLE:
+						ShowExperienceStyleTab(ExpConfig::missionExpDataDante, shopHelpersVergilStyle, sizeof(shopHelpersVergilStyle) / sizeof(ShopExperienceStyleHelper), missionData);
+						break;
 					case TAB::ITEMS:
 						ShowItemTab(missionData, queuedMissionActorData, activeMissionActorData, unlockDevilTrigger);
 						break;
@@ -5409,164 +5425,205 @@ void ShowStyleLevelsTab(ExpConfig::ExpData& expData, MissionData& missionData) {
 void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount, MissionData& missionData) {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
-	for (size_t helperIndex = 0; helperIndex < helperCount; ++helperIndex) {
-		auto& helper = helpers[helperIndex];
+	const float columnWidth = 0.48f * queuedConfig.globalScale;
+	const float rowHeight = 40.0f * queuedConfig.globalScale;
+	int columnTracker = 0;
+	if (ImGui::BeginTable("SkillTable", 4)) {
+		ImGui::TableSetupColumn("Col1", ImGuiTableColumnFlags_WidthAuto, 400.0f * scaleFactorY); // Default to 100.0f
+		ImGui::TableSetupColumn("SellCol1", ImGuiTableColumnFlags_WidthAuto, 80.0f * scaleFactorY); // Default to 200.0f
+		ImGui::TableSetupColumn("Col2", ImGuiTableColumnFlags_WidthAuto, 400.0f * scaleFactorY); // Default to 100.0f
+		ImGui::TableSetupColumn("SellCol2", ImGuiTableColumnFlags_WidthAuto, 80.0f * scaleFactorY); // Default to 200.0f
+		//ImGui::TableSetupColumn("Col1", 0, columnWidth * 2.0f);
+		//ImGui::TableSetupColumn("SellCol1", 0, columnWidth * 2.0f);
+		//ImGui::TableSetupColumn("Col2", 0, columnWidth * 2.0f);
+		//ImGui::TableSetupColumn("SellCol2", 0, columnWidth * 2.0f);
+		ImGui::TableNextRow(0, rowHeight);
 
-		if (helper.devilarm > -1) {
-			if (!weaponProgression.devilArmUnlocks[helper.devilarm])
-				continue;
-		}
-		if (helper.gun > -1) {
-			if (!weaponProgression.devilArmUnlocks[helper.gun])
-				continue;
-		}
 
-		auto Buy = [&]() {
-			if (missionData.redOrbs < helper.price) {
-				PlaySound(0, 19);
-				return;
+		for (size_t helperIndex = 0; helperIndex < helperCount; ++helperIndex) {
+			auto& helper = helpers[helperIndex];
+
+			if (helper.devilarm > -1) {
+				if (!weaponProgression.devilArmUnlocks[helper.devilarm])
+					continue;
+			}
+			if (helper.gun > -1) {
+				if (!weaponProgression.devilArmUnlocks[helper.gun])
+					continue;
 			}
 
-			missionData.redOrbs -= helper.price;
-			PlaySound(0, 18);
-			expData.unlocks[helperIndex] = true;
-			ExpConfig::UpdatePlayerActorExps();
-			};
+			columnTracker++;
+			ImGui::TableNextColumn();
+			auto Buy = [&]() {
+				if (missionData.redOrbs < helper.price) {
+					PlaySound(0, 19);
+					return;
+				}
 
-		auto Sell = [&]() {
-			missionData.redOrbs += helper.price;
-			PlaySound(0, 18);
-			expData.unlocks[helperIndex] = false;
+				missionData.redOrbs -= helper.price;
+				PlaySound(0, 18);
+				expData.unlocks[helperIndex] = true;
+				ExpConfig::UpdatePlayerActorExps();
+				};
 
-			// Sets the flag off on sessionData expertise to also update non Actor System
-// 			const auto& expertiseHelper =
-// 				(sessionData.character == CHARACTER::DANTE)
-// 				? ExpConfig::expertiseHelpersDante[helperIndex]
-// 				: ExpConfig::expertiseHelpersVergil[helperIndex];
-// 
-// 			sessionData.expertise[expertiseHelper.index] -= expertiseHelper.flags;
-			ExpConfig::UpdatePlayerActorExps();
-			};
+			auto Sell = [&]() {
+				missionData.redOrbs += helper.price;
+				PlaySound(0, 18);
+				expData.unlocks[helperIndex] = false;
 
-		bool condition = (expData.unlocks[helperIndex] || ((helper.last > -1) && !expData.unlocks[helper.last]));
-		GUI_PushDisable(condition);
+				// Sets the flag off on sessionData expertise to also update non Actor System
+	// 			const auto& expertiseHelper =
+	// 				(sessionData.character == CHARACTER::DANTE)
+	// 				? ExpConfig::expertiseHelpersDante[helperIndex]
+	// 				: ExpConfig::expertiseHelpersVergil[helperIndex];
+	// 
+	// 			sessionData.expertise[expertiseHelper.index] -= expertiseHelper.flags;
+				ExpConfig::UpdatePlayerActorExps();
+				};
 
-		// Begin a new row
-		ImGui::BeginGroup();
-
-		if (GUI_Button(helper.name, ImVec2(500.0f * scaleFactorY, 80.0f * scaleFactorY))) {
-			Buy();
-		}
-
-		GUI_PopDisable(condition);
-
-		// Display price and bullet point in a new column
-		ImGui::SameLine(120); 
-
-		bool priceCondition = (missionData.redOrbs < helper.price);
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
-		constexpr auto BULLET = u8"•";
-		ImGui::Text((const char*)BULLET);
-		ImGui::PopFont();
-		ImGui::PopStyleColor();
-
-		GUI_PushDisable(priceCondition);
-		ImGui::SameLine();
-		ImGui::Text("%u", helper.price);
-		GUI_PopDisable(priceCondition);
-
-		// Display the sell button in a new column
-
-		if (expData.unlocks[helperIndex]) {
-			ImGui::SameLine(550);
-			condition = ((helper.next > -1) && expData.unlocks[helper.next]);
+			bool condition = (expData.unlocks[helperIndex] || ((helper.last > -1) && !expData.unlocks[helper.last]));
 			GUI_PushDisable(condition);
 
-			if (GUI_Button("Sell")) {
-				Sell();
-			}
-			GUI_PopDisable(condition);
-		}
+			// Begin a new row
+			ImGui::BeginGroup();
 
-		ImGui::EndGroup(); // End the group for the current row
-		ImGui::Spacing(); // Add spacing between rows
+			if (GUI_Button(helper.name, ImVec2(400.0f * scaleFactorY, 80.0f * scaleFactorY))) {
+				Buy();
+			}
+
+			GUI_PopDisable(condition);
+
+			// Display price and bullet point in a new column
+			ImGui::SameLine(120 * scaleFactorY);
+
+			bool priceCondition = (missionData.redOrbs < helper.price);
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
+			constexpr auto BULLET = u8"•";
+			ImGui::Text((const char*)BULLET);
+			ImGui::PopFont();
+			ImGui::PopStyleColor();
+
+			GUI_PushDisable(priceCondition);
+			ImGui::SameLine();
+			ImGui::Text("%u", helper.price);
+			GUI_PopDisable(priceCondition);
+
+			// Display the sell button in a new column
+			ImGui::EndGroup(); // End the group for the current row
+			ImGui::TableNextColumn();
+			if (expData.unlocks[helperIndex]) {
+				condition = ((helper.next > -1) && expData.unlocks[helper.next]);
+				GUI_PushDisable(condition);
+
+				if (GUI_Button("Sell",ImVec2(80.0f * scaleFactorY, 80.0f * scaleFactorY))) {
+					Sell();
+				}
+				GUI_PopDisable(condition);
+			}
+
+
+			
+
+			if (helper.next == -1) {
+				ImGui::Spacing(); // Add spacing between rows
+				ImGui::TableNextRow(0, rowHeight);
+			}
+
+			//ImGui::TableNextColumn();
+			//if (columnTracker % 2 == 0) {
+			//	ImGui::TableNextRow(0, rowHeight);
+			//	ImGui::TableNextColumn();
+			//}
+		}
+	ImGui::EndTable();
 	}
 }
 
 void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelper* styleHelpers, new_size_t styleHelperCount, MissionData& missionData) {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 	//buying style upgrades here
-	for (size_t helperIndex = 0; helperIndex < styleHelperCount; ++helperIndex) {
-		auto& helper = styleHelpers[helperIndex];
 
-		//check to see if we have the styles in question.
-		if (helper.styleid > -1) {
-			if (helper.styleid == STYLE::QUICKSILVER and !sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER])
-				continue;
-			if (helper.styleid == STYLE::DOPPELGANGER and !sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER])
-				continue;
-		}
-		//calculates how far through leveling up a style you were as a percentage
-		uint32 percentage_discount = static_cast<uint32>(floor(100*expData.styleExpPoints[helper.styleid] / helper.styleexp));
-		if (percentage_discount < 0)
-			percentage_discount = 0;
-		if (percentage_discount > 100)
-			percentage_discount = 100;
-		//calculates cost of red orbs as the base price with a percentage discount based on how close you were to leveling up style
-		//so 30% of the exp to level 2 = 30% discount
-		uint32 rorb_cost_calculated = helper.price - (static_cast<uint32>(helper.price / 100) * percentage_discount);
-		auto Buy = [&]() {
-			if (missionData.redOrbs < rorb_cost_calculated)		{
-				PlaySound(0, 19);
-				return;
+	const float columnWidth = 0.48f * queuedConfig.globalScale;
+	const float rowHeight = 40.0f * queuedConfig.globalScale;
+	int columnTracker = 0;
+	if (ImGui::BeginTable("SkillTable", 2)) {
+		ImGui::TableSetupColumn("Col1", ImGuiTableColumnFlags_WidthAuto, 400.0f * scaleFactorY); // Default to 100.0f
+		ImGui::TableSetupColumn("Col2", ImGuiTableColumnFlags_WidthAuto, 400.0f * scaleFactorY); // Default to 100.0f
+
+		for (size_t helperIndex = 0; helperIndex < styleHelperCount; ++helperIndex) {
+			auto& helper = styleHelpers[helperIndex];
+
+			//check to see if we have the styles in question.
+			if (helper.styleid > -1) {
+				if (helper.styleid == STYLE::QUICKSILVER and !sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER])
+					continue;
+				if (helper.styleid == STYLE::DOPPELGANGER and !sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER])
+					continue;
 			}
-			missionData.redOrbs -= rorb_cost_calculated;
-			PlaySound(0, 18);
-			expData.styleLevels[helper.styleid] = helper.stylelevel;
-			expData.styleExpPoints[helper.styleid] = 0;
-			ExpConfig::UpdatePlayerActorExps();
-			};
-		bool condition = !(expData.styleLevels[helper.styleid] + 1 == helper.stylelevel);
-		GUI_PushDisable(condition);
+			ImGui::TableNextColumn();
+			//calculates how far through leveling up a style you were as a percentage
+			uint32 percentage_discount = static_cast<uint32>(floor(100 * expData.styleExpPoints[helper.styleid] / helper.styleexp));
+			if (percentage_discount < 0)
+				percentage_discount = 0;
+			if (percentage_discount > 100)
+				percentage_discount = 100;
+			//calculates cost of red orbs as the base price with a percentage discount based on how close you were to leveling up style
+			//so 30% of the exp to level 2 = 30% discount
+			uint32 rorb_cost_calculated = helper.price - (static_cast<uint32>(helper.price / 100) * percentage_discount);
+			auto Buy = [&]() {
+				if (missionData.redOrbs < rorb_cost_calculated) {
+					PlaySound(0, 19);
+					return;
+				}
+				missionData.redOrbs -= rorb_cost_calculated;
+				PlaySound(0, 18);
+				expData.styleLevels[helper.styleid] = helper.stylelevel;
+				expData.styleExpPoints[helper.styleid] = 0;
+				ExpConfig::UpdatePlayerActorExps();
+				};
+			bool condition = !(expData.styleLevels[helper.styleid] + 1 == helper.stylelevel);
+			GUI_PushDisable(condition);
 
-		// Begin a new row
-		ImGui::BeginGroup();
+			// Begin a new row
+			ImGui::BeginGroup();
 
-		if (GUI_Button(helper.name, ImVec2(500.0f * scaleFactorY, 80.0f * scaleFactorY))) {
-			Buy();
-		}
+			if (GUI_Button(helper.name, ImVec2(500.0f * scaleFactorY, 80.0f * scaleFactorY))) {
+				Buy();
+			}
 
-		GUI_PopDisable(condition);
+			GUI_PopDisable(condition);
 
-		// Display price and bullet point in a new column
-		ImGui::SameLine(120);
+			// Display price and bullet point in a new column
+			ImGui::SameLine(120);
 
-		bool priceCondition = (missionData.redOrbs < rorb_cost_calculated);
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
-		constexpr auto BULLET = u8"•";
-		ImGui::Text((const char*)BULLET);
-		ImGui::PopFont();
-		ImGui::PopStyleColor();
+			bool priceCondition = (missionData.redOrbs < rorb_cost_calculated);
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
+			constexpr auto BULLET = u8"•";
+			ImGui::Text((const char*)BULLET);
+			ImGui::PopFont();
+			ImGui::PopStyleColor();
 
-		GUI_PushDisable(priceCondition);
-		ImGui::SameLine();
-		if (expData.styleLevels[helper.styleid] >= helper.stylelevel) {
-			ImGui::Text("Sold out!");
-		}
-		else {
-			if (rorb_cost_calculated == helper.price) {
-				ImGui::Text("%u", rorb_cost_calculated);
+			GUI_PushDisable(priceCondition);
+			ImGui::SameLine();
+			if (expData.styleLevels[helper.styleid] >= helper.stylelevel) {
+				ImGui::Text("Sold out!");
 			}
 			else {
-				ImGui::Text("%u (%u%% off!)", rorb_cost_calculated, percentage_discount);
+				if (rorb_cost_calculated == helper.price) {
+					ImGui::Text("%u", rorb_cost_calculated);
+				}
+				else {
+					ImGui::Text("%u (%u%% off!)", rorb_cost_calculated, percentage_discount);
+				}
 			}
-		}
-		GUI_PopDisable(priceCondition);
+			GUI_PopDisable(priceCondition);
 
-		ImGui::EndGroup(); // End the group for the current row
-		ImGui::Spacing(); // Add spacing between rows
+			ImGui::EndGroup(); // End the group for the current row
+			ImGui::Spacing(); // Add spacing between rows
+		}
+		ImGui::EndTable();
 	}
 }
 
