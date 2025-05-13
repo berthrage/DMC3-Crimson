@@ -5527,25 +5527,6 @@ void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelp
 			expData.styleExpPoints[helper.styleid] = 0;
 			ExpConfig::UpdatePlayerActorExps();
 			};
-
-
-//		auto Sell = [&]() {
-//			missionData.redOrbs += helper.price;
-//			PlaySound(0, 18);
-//			expData.unlocks[helperIndex] = false;
-//
-//			// Sets the flag off on sessionData expertise to also update non Actor System
-//// 			const auto& expertiseHelper =
-//// 				(sessionData.character == CHARACTER::DANTE)
-//// 				? ExpConfig::expertiseHelpersDante[helperIndex]
-//// 				: ExpConfig::expertiseHelpersVergil[helperIndex];
-//// 
-//// 			sessionData.expertise[expertiseHelper.index] -= expertiseHelper.flags;
-//			ExpConfig::UpdatePlayerActorExps();
-//			};
-						//already have											
-
-		
 		bool condition = !(expData.styleLevels[helper.styleid] + 1 == helper.stylelevel);
 		GUI_PushDisable(condition);
 
@@ -5583,19 +5564,6 @@ void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelp
 			}
 		}
 		GUI_PopDisable(priceCondition);
-
-		// Display the sell button in a new column
-
-		//if (expData.unlocks[helperIndex]) {
-		//	ImGui::SameLine(550);
-		//	condition = ((helper.next > -1) && expData.unlocks[helper.next]);
-		//	GUI_PushDisable(condition);
-
-		//	if (GUI_Button("Sell")) {
-		//		Sell();
-		//	}
-		//	GUI_PopDisable(condition);
-		//}
 
 		ImGui::EndGroup(); // End the group for the current row
 		ImGui::Spacing(); // Add spacing between rows
