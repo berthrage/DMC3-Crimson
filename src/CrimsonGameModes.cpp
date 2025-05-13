@@ -281,6 +281,7 @@ static const CrimsonConfigGameplay CRIMSON_PRESET = CreateCrimsonPreset();
 const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 	CrimsonConfigGameplayMask mask{};
 	// Example: these fields are optional for Vanilla
+	mask.Gameplay.General.characterHotswap = false;
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.holdToShoot = false;
 	mask.Gameplay.General.vanillaWeaponSwitchDelay = false;
@@ -322,6 +323,7 @@ const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 // Mask for Style Switcher preset: all fields checked except these
 const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	CrimsonConfigGameplayMask mask{};
+	mask.Gameplay.General.characterHotswap = false;
 	mask.Gameplay.General.holdToCrazyCombo = false;
 	mask.Gameplay.General.holdToShoot = false;
 	mask.Gameplay.General.crazyComboMashRequirement = false;
@@ -379,6 +381,7 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 // Mask for Crimson preset: all fields checked except these
 const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	CrimsonConfigGameplayMask mask{};
+	mask.Gameplay.General.characterHotswap = false;
 	mask.Gameplay.General.holdToShoot = false;
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.bufferlessReversals = false;

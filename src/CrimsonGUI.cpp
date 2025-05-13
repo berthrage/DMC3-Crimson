@@ -2935,8 +2935,12 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	if (GUI_Checkbox2("Switch characters mid-mission", activeCrimsonGameplay.Gameplay.General.characterHotswap, queuedCrimsonGameplay.Gameplay.General.characterHotswap)) {}
 	
-
+	GUI_PushDisable(!activeCrimsonGameplay.Gameplay.General.characterHotswap);
+	if (!activeCrimsonGameplay.Gameplay.General.characterHotswap) {
+		queuedPlayerData.characterCount = 1;
+	}
 	GUI_Slider<uint8>("Number of Characters", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
 
 
@@ -2952,7 +2956,7 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 			queuedPlayerData.collisionGroup);
 
 	}
-
+	GUI_PopDisable(!activeCrimsonGameplay.Gameplay.General.characterHotswap);
 	BackgroundPlayerText(playerIndex);
 
 
@@ -5172,11 +5176,20 @@ struct ShopExperienceHelper {
 	int64 gun;
 };
 
+struct ShopExperienceStyleHelper {
+	const char* name;
+	uint32 price;
+	int64 styleid;
+	int64 stylelevel;
+	int64 styleexp;
+};
+
+
 ShopExperienceHelper shopHelpersDante[] = {
+	{"Air Hike", 20000, -1, -1,-1,-1},
 	{"Rebellion Stinger Level 1", 2500, -1, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_2,-1,-1},
 	{"Rebellion Stinger Level 2", 10000, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1, -1,-1,-1},
 	{"Rebellion Drive", 10000, -1, -1,-1,-1},
-	{"Rebellion Air Hike", 20000, -1, -1,-1,-1},
 	{"Cerberus Revolver Level 2", 15000, -1, -1,DEVILARMUNLOCKS::CERBERUS,-1},
 	{"Cerberus Windmill", 7500, -1, -1,DEVILARMUNLOCKS::CERBERUS,-1},
 	{"Agni & Rudra Jet-Stream Level 2", 10000, -1, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_3,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
@@ -5203,6 +5216,32 @@ ShopExperienceHelper shopHelpersDante[] = {
 	{"Kalina Ann Level 2", 5000, -1, UNLOCK_DANTE::KALINA_ANN_LEVEL_3,-1,GUNUNLOCKS::KALINA_ANN},
 	{"Kalina Ann Level 3", 10000, UNLOCK_DANTE::KALINA_ANN_LEVEL_2, -1,-1,GUNUNLOCKS::KALINA_ANN},
 };
+
+ShopExperienceStyleHelper shopStyleHelpersDante[] = {
+	{"Swordmaster Level 2", 20000, STYLE::SWORDMASTER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
+	{"Swordmaster Level 3", 30000, STYLE::SWORDMASTER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
+	
+	{"Gunslinger Level 2", 20000, STYLE::GUNSLINGER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
+	{"Gunslinger Level 3", 30000, STYLE::GUNSLINGER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
+
+	{"Trickster Level 2", 20000, STYLE::TRICKSTER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
+	{"Trickster Level 3", 30000, STYLE::TRICKSTER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
+
+	{"Royal Guard Level 2", 20000, STYLE::ROYALGUARD,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
+	{"Royal Guard Level 3", 30000, STYLE::ROYALGUARD,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
+
+	{"Quicksilver Level 2", 20000, STYLE::QUICKSILVER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
+	{"Quicksilver Level 3", 30000, STYLE::QUICKSILVER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
+
+	{"Doppelganger Level 2", 20000, STYLE::DOPPELGANGER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
+	{"Doppelganger Level 3", 30000, STYLE::DOPPELGANGER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
+};
+
+ShopExperienceStyleHelper shopStyleHelpersVergil[] = {
+	{"Dark Slayer Level 2", 25,STYLE::DARK_SLAYER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
+	{"Dark Slayer Level 3", 100,STYLE::DARK_SLAYER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
+};
+
 
 ShopExperienceHelper shopHelpersVergil[] = {
 	{"Yamato Rapid Slash Level 1", 5000, -1, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2,-1,-1},
@@ -5251,7 +5290,7 @@ enum {
 };
 
 // Function Declarations
-void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount, MissionData& missionData);
+void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount,ShopExperienceStyleHelper* styleHelpers,new_size_t styleHelperCount, MissionData& missionData);
 void ShowItemTab(MissionData& missionData, QueuedMissionActorData& queuedMissionActorData, ActiveMissionActorData& activeMissionActorData, bool unlockDevilTrigger);
 void HandleItemPurchase(uint8 itemHelperIndex, MissionData& missionData, ActiveMissionActorData& activeMissionActorData, uint32 price);
 void HandleItemSale(uint8 itemHelperIndex, MissionData& missionData, ActiveMissionActorData& activeMissionActorData);
@@ -5261,6 +5300,7 @@ void ShopWindow() {
 	if (!g_showShop) {
 		return;
 	}
+	auto& io = ImGui::GetIO();
 
 	auto missionDataPtr = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
 	if (!missionDataPtr) {
@@ -5285,6 +5325,19 @@ void ShopWindow() {
 	ImGui::SetNextWindowSize(ImVec2(width, height));
 	ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
 
+	if (io.NavInputs[ImGuiNavInput_Cancel] && (io.NavInputsDownDuration[ImGuiNavInput_Cancel] == 0.0f)) {
+		Log("controller back button");
+		if (!io.NavVisible) {
+			CloseShop();
+		}
+	};
+	//Replace this with a map option at some point. 
+	if (io.KeysDown[DI8::KEY::L] && (io.KeysDownDuration[DI8::KEY::L] == 0.0f)) {
+		Log("keyboard back button");
+		//if (!io.NavVisible) {
+			CloseShop();
+		//}
+	};
 
 	if (ImGui::Begin("ShopWindow", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
 		ImGui::SetWindowFontScale(scaleFactorY);
@@ -5319,11 +5372,11 @@ void ShopWindow() {
 
 					switch (tabIndex) {
 					case TAB::DANTE:
-						ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDante, sizeof(shopHelpersDante) / sizeof(ShopExperienceHelper), missionData);
+						ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDante, sizeof(shopHelpersDante) / sizeof(ShopExperienceHelper), shopStyleHelpersDante, sizeof(shopStyleHelpersDante) / sizeof(ShopExperienceStyleHelper), missionData);
 						break;
 
 					case TAB::VERGIL:
-						ShowExperienceTab(ExpConfig::missionExpDataVergil, shopHelpersVergil, sizeof(shopHelpersVergil) / sizeof(ShopExperienceHelper), missionData);
+						ShowExperienceTab(ExpConfig::missionExpDataVergil, shopHelpersVergil, sizeof(shopHelpersVergil) / sizeof(ShopExperienceHelper), shopStyleHelpersDante, sizeof(shopStyleHelpersDante) / sizeof(ShopExperienceStyleHelper), missionData);
 						break;
 
 					case TAB::ITEMS:
@@ -5378,7 +5431,7 @@ void ShowStyleLevelsTab(ExpConfig::ExpData& expData, MissionData& missionData) {
 }
 
 
-void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount, MissionData& missionData) {
+void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount, ShopExperienceStyleHelper* styleHelpers, new_size_t styleHelperCount, MissionData& missionData) {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 	for (size_t helperIndex = 0; helperIndex < helperCount; ++helperIndex) {
@@ -5460,6 +5513,110 @@ void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helper
 			}
 			GUI_PopDisable(condition);
 		}
+
+		ImGui::EndGroup(); // End the group for the current row
+		ImGui::Spacing(); // Add spacing between rows
+	}
+	//buying style upgrades here
+	for (size_t helperIndex = 0; helperIndex < styleHelperCount; ++helperIndex) {
+		auto& helper = styleHelpers[helperIndex];
+
+		//check to see if we have the styles in question.
+		if (helper.styleid > -1) {
+			if (helper.styleid == STYLE::QUICKSILVER and !sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER])
+				continue;
+			if (helper.styleid == STYLE::DOPPELGANGER and !sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER])
+				continue;
+		}
+		//calculates how far through leveling up a style you were as a percentage
+		uint32 percentage_discount = static_cast<uint32>(floor(100*expData.styleExpPoints[helper.styleid] / helper.styleexp));
+		if (percentage_discount < 0)
+			percentage_discount = 0;
+		if (percentage_discount > 100)
+			percentage_discount = 100;
+		//calculates cost of red orbs as the base price with a percentage discount based on how close you were to leveling up style
+		//so 30% of the exp to level 2 = 30% discount
+		uint32 rorb_cost_calculated = helper.price - (static_cast<uint32>(helper.price / 100) * percentage_discount);
+		auto Buy = [&]() {
+			if (missionData.redOrbs < rorb_cost_calculated)		{
+				PlaySound(0, 19);
+				return;
+			}
+			missionData.redOrbs -= rorb_cost_calculated;
+			PlaySound(0, 18);
+			expData.styleLevels[helper.styleid] = helper.stylelevel;
+			expData.styleExpPoints[helper.styleid] = 0;
+			ExpConfig::UpdatePlayerActorExps();
+			};
+
+
+//		auto Sell = [&]() {
+//			missionData.redOrbs += helper.price;
+//			PlaySound(0, 18);
+//			expData.unlocks[helperIndex] = false;
+//
+//			// Sets the flag off on sessionData expertise to also update non Actor System
+//// 			const auto& expertiseHelper =
+//// 				(sessionData.character == CHARACTER::DANTE)
+//// 				? ExpConfig::expertiseHelpersDante[helperIndex]
+//// 				: ExpConfig::expertiseHelpersVergil[helperIndex];
+//// 
+//// 			sessionData.expertise[expertiseHelper.index] -= expertiseHelper.flags;
+//			ExpConfig::UpdatePlayerActorExps();
+//			};
+						//already have											
+
+		
+		bool condition = !(expData.styleLevels[helper.styleid] + 1 == helper.stylelevel);
+		GUI_PushDisable(condition);
+
+		// Begin a new row
+		ImGui::BeginGroup();
+
+		if (GUI_Button(helper.name, ImVec2(500.0f * scaleFactorY, 80.0f * scaleFactorY))) {
+			Buy();
+		}
+
+		GUI_PopDisable(condition);
+
+		// Display price and bullet point in a new column
+		ImGui::SameLine(120);
+
+		bool priceCondition = (missionData.redOrbs < rorb_cost_calculated);
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
+		constexpr auto BULLET = u8"•";
+		ImGui::Text((const char*)BULLET);
+		ImGui::PopFont();
+		ImGui::PopStyleColor();
+
+		GUI_PushDisable(priceCondition);
+		ImGui::SameLine();
+		if (expData.styleLevels[helper.styleid] >= helper.stylelevel) {
+			ImGui::Text("Sold out!");
+		}
+		else {
+			if (rorb_cost_calculated == helper.price) {
+				ImGui::Text("%u", rorb_cost_calculated);
+			}
+			else {
+				ImGui::Text("%u (%u%% off!)", rorb_cost_calculated, percentage_discount);
+			}
+		}
+		GUI_PopDisable(priceCondition);
+
+		// Display the sell button in a new column
+
+		//if (expData.unlocks[helperIndex]) {
+		//	ImGui::SameLine(550);
+		//	condition = ((helper.next > -1) && expData.unlocks[helper.next]);
+		//	GUI_PushDisable(condition);
+
+		//	if (GUI_Button("Sell")) {
+		//		Sell();
+		//	}
+		//	GUI_PopDisable(condition);
+		//}
 
 		ImGui::EndGroup(); // End the group for the current row
 		ImGui::Spacing(); // Add spacing between rows
@@ -11687,6 +11844,8 @@ void GamepadToggleShowMain() {
 
     static bool gamepadCombinationMainRelease[PLAYER_COUNT] = { false };
 
+	//prevents double toggle
+	bool updatinggui = false;
 	// Loop through each controller
 	for (int i = 0; i < 4; ++i) {
 		if (CrimsonSDL::controllers[i] != NULL) {
@@ -11696,8 +11855,11 @@ void GamepadToggleShowMain() {
 
 			// Combination pressed and was not pressed before, toggle GUI and set window focus
 			if (combination && !g_showMain && gamepadCombinationMainRelease[i]) {
-				ToggleCrimsonGUI();
-				ImGui::SetWindowFocus(DMC3C_TITLE);
+				if(!updatinggui){
+					updatinggui = true;
+					ToggleCrimsonGUI();
+					ImGui::SetWindowFocus(DMC3C_TITLE);
+				}
 				gamepadCombinationMainRelease[i] = false;
 			}
 
@@ -11708,7 +11870,10 @@ void GamepadToggleShowMain() {
 
 			// Combination pressed, GUI shown, and was not pressed before, toggle GUI
 			if (combination && g_showMain && gamepadCombinationMainRelease[i]) {
-				ToggleCrimsonGUI();
+				if (!updatinggui) {
+					updatinggui = true;
+					ToggleCrimsonGUI();
+				}
 				gamepadCombinationMainRelease[i] = false;
 			}
 		}
