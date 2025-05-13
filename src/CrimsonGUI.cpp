@@ -5331,6 +5331,13 @@ void ShopWindow() {
 			CloseShop();
 		}
 	};
+	//Replace this with a map option at some point. 
+	if (io.KeysDown[DI8::KEY::L] && (io.KeysDownDuration[DI8::KEY::L] == 0.0f)) {
+		Log("keyboard back button");
+		//if (!io.NavVisible) {
+			CloseShop();
+		//}
+	};
 
 	if (ImGui::Begin("ShopWindow", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
 		ImGui::SetWindowFontScale(scaleFactorY);

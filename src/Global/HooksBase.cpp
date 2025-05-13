@@ -765,7 +765,7 @@ namespace Hook::DI8 {
 HRESULT GetDeviceStateA(IDirectInputDevice8A* pDevice, DWORD BufferSize, LPVOID Buffer) {
     // Blocks DI8 Keyboard Input while GUI is Open
     if (g_show) {
-        //SetMemory(Buffer, 0, BufferSize);
+        SetMemory(Buffer, 0, BufferSize);
     }
 
     return 0;
