@@ -327,6 +327,41 @@ enum {
 };
 };
 
+namespace STYLE_LEVEL {
+    enum {
+        LEVEL_ONE,
+        LEVEL_TWO,
+        LEVEL_THREE,
+    };
+};
+
+namespace STYLE_LEVEL_EXP {
+    enum {
+        LEVEL_ONE = 0,
+        LEVEL_TWO = 30000,
+        LEVEL_THREE = 99999,
+    };
+};
+
+namespace STYLE_UNLOCKS {
+    enum {
+        SWORDMASTER_LEVEL_TWO,
+        SWORDMASTER_LEVEL_THREE,
+        GUNSLINGER_LEVEL_TWO,
+        GUNSLINGER_LEVEL_THREE,
+        TRICKSTER_LEVEL_TWO,
+        TRICKSTER_LEVEL_THREE,
+        ROYALGUARD_LEVEL_TWO,
+        ROYALGUARD_LEVEL_THREE,
+        QUICKSILVER_LEVEL_TWO,
+        QUICKSILVER_LEVEL_THREE,
+        DOPPELGANGER_LEVEL_TWO,
+        DOPPELGANGER_LEVEL_THREE,
+        DARK_SLAYER_LEVEL_TWO,
+        DARK_SLAYER_LEVEL_THREE,
+    };
+};
+
 namespace STYLE_RANK {
 enum {
     NONE,
