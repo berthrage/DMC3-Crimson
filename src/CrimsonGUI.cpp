@@ -5300,6 +5300,7 @@ void ShopWindow() {
 	if (!g_showShop) {
 		return;
 	}
+	auto& io = ImGui::GetIO();
 
 	auto missionDataPtr = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
 	if (!missionDataPtr) {
@@ -5324,6 +5325,12 @@ void ShopWindow() {
 	ImGui::SetNextWindowSize(ImVec2(width, height));
 	ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
 
+	if (io.NavInputs[ImGuiNavInput_Cancel] && (io.NavInputsDownDuration[ImGuiNavInput_Cancel] == 0.0f)) {
+		Log("controller back button");
+		if (!io.NavVisible) {
+			CloseShop();
+		}
+	};
 
 	if (ImGui::Begin("ShopWindow", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
 		ImGui::SetWindowFontScale(scaleFactorY);
