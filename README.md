@@ -29,3 +29,6 @@ C•Team is an independent development group and is not affiliated with, endorse
 
 Warning: Be careful about downloading supposed Crimson builds from unofficial sources, they could be fake and/or contain malicious code.
 
+## LICENSE
+DMC3 Crimson is licensed under the [zlib license](https://github.com/berthrage/Devil-May-Cry-3-Crimson/blob/main/LICENSE). The rest of the licenses should be contained [here](https://github.com/serpentiem/ddmk/tree/master/ThirdParty).
+
