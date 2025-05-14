@@ -144,8 +144,8 @@ namespace UI {
 		} LatestVersion;
 
 		struct {
-			uint32_t Major = 1;
-			uint32_t Minor = 0;
+			uint32_t Major = 0;
+			uint32_t Minor = 3;
 			char	 PatchLetter = 0;
 		} CurrentVersion;
 
