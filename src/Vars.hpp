@@ -327,6 +327,41 @@ enum {
 };
 };
 
+namespace STYLE_LEVEL {
+    enum {
+        LEVEL_ONE,
+        LEVEL_TWO,
+        LEVEL_THREE,
+    };
+};
+
+namespace STYLE_LEVEL_EXP {
+    enum {
+        LEVEL_ONE = 0,
+        LEVEL_TWO = 30000,
+        LEVEL_THREE = 99999,
+    };
+};
+
+namespace STYLE_UNLOCKS {
+    enum {
+        SWORDMASTER_LEVEL_TWO,
+        SWORDMASTER_LEVEL_THREE,
+        GUNSLINGER_LEVEL_TWO,
+        GUNSLINGER_LEVEL_THREE,
+        TRICKSTER_LEVEL_TWO,
+        TRICKSTER_LEVEL_THREE,
+        ROYALGUARD_LEVEL_TWO,
+        ROYALGUARD_LEVEL_THREE,
+        QUICKSILVER_LEVEL_TWO,
+        QUICKSILVER_LEVEL_THREE,
+        DOPPELGANGER_LEVEL_TWO,
+        DOPPELGANGER_LEVEL_THREE,
+        DARK_SLAYER_LEVEL_TWO,
+        DARK_SLAYER_LEVEL_THREE,
+    };
+};
+
 namespace STYLE_RANK {
 enum {
     NONE,
@@ -3980,9 +4015,14 @@ static_assert(offsetof(PlayerActorDataVergil, newLastVar) == 0x1CB20);
 // float hitPointsGigapede; // 0x9BC0
 // byte32 gigapedePartAddr; // 0xF68 // check if this is null, if isn't then it's a gigapede part and we must fetch using +95E4 / +9B60 from the gigapedePartAddr
 
+//39A0 is greed TargetPos
+// 3A10 is abyss targetPos
+// 39F0 is envy targetPos
 
 struct EnemyActorData : ActorDataBase {
-	_(368);
+	_(248);
+    vec4 targetPositionDullahan; // 0x1C0
+    _(104);
 	float maxHitPointsDullahan; // 0x238
 	_(756);
 	float maxHitPointsChess; // 0x530
@@ -4038,7 +4078,13 @@ struct EnemyActorData : ActorDataBase {
 	float hitPointsEnigma; // 0x3958
 	_(36);
 	vec4 targetPosition; // 0x3980 - needs to sum with 60 from ActorDataBase
-	_(388);
+	_(16);
+	vec4 targetPositionGreed; // 0x39A0
+    _(64);
+	vec4 targetPositionEnvy; // 0x39F0
+    _(16);
+	vec4 targetPositionAbyss; // 0x3A10
+    _(244);
 	float maxHitPointsEnigma; // 0x3B14
 	_(1492);
     float maxHitPointsArachne; // 0x40EC
@@ -4062,7 +4108,9 @@ struct EnemyActorData : ActorDataBase {
 	float hitPointsNevan; // 0x68D8
 	_(228);
 	float maxHitPointsNevan; // 0x69C0
-	_(11296);
+    _(7388);
+    vec4 targetPositionHellVanguard; // 0x86A0
+	_(3892);
 	float maxHitPointsGigapede; // 0x95E4
 	_(1496);
 	float hitPointsGigapede; // 0x9BC0
@@ -4088,6 +4136,7 @@ struct EnemyActorData : ActorDataBase {
 	float maxHitPointsLeviathan; // 0x388884
 };
 
+static_assert(offsetof(EnemyActorData, targetPositionDullahan) == 0x1C0);
 static_assert(offsetof(EnemyActorData, maxHitPointsDullahan) == 0x238);
 static_assert(offsetof(EnemyActorData, maxHitPointsChess) == 0x530);
 static_assert(offsetof(EnemyActorData, maxHitPointsBloodgoyle) == 0x610);
@@ -4116,6 +4165,9 @@ static_assert(offsetof(EnemyActorData, stunDisplacementDataAddr) == 0x3318);
 static_assert(offsetof(EnemyActorData, hitPointsHells) == 0x2E5C);
 static_assert(offsetof(EnemyActorData, hitPointsEnigma) == 0x3958);
 static_assert(offsetof(EnemyActorData, targetPosition) == 0x3980);
+static_assert(offsetof(EnemyActorData, targetPositionGreed) == 0x39A0);
+static_assert(offsetof(EnemyActorData, targetPositionEnvy) == 0x39F0);
+static_assert(offsetof(EnemyActorData, targetPositionAbyss) == 0x3A10);
 static_assert(offsetof(EnemyActorData, maxHitPointsEnigma) == 0x3B14);
 static_assert(offsetof(EnemyActorData, maxHitPointsArachne) == 0x40EC);
 static_assert(offsetof(EnemyActorData, hitPointsArachne) == 0x4170);
@@ -4128,6 +4180,7 @@ static_assert(offsetof(EnemyActorData, maxHitPointsJester) == 0x61E0);
 static_assert(offsetof(EnemyActorData, shieldedNevanAddr) == 0x6510);
 static_assert(offsetof(EnemyActorData, hitPointsNevan) == 0x68D8);
 static_assert(offsetof(EnemyActorData, maxHitPointsNevan) == 0x69C0);
+static_assert(offsetof(EnemyActorData, targetPositionHellVanguard) == 0x86A0);
 static_assert(offsetof(EnemyActorData, maxHitPointsGigapede) == 0x95E4);
 static_assert(offsetof(EnemyActorData, hitPointsGigapede) == 0x9BC0);
 static_assert(offsetof(EnemyActorData, hitPointsCerberusPart1) == 0xE230);
@@ -4319,15 +4372,17 @@ static_assert(sizeof(EnemyVectorData) == 4184);
 
 struct HUDData {
 	_(26904);
-	float orbsOutofCombatTimer; // 0x6918
+	float topLeftAlphaTimer; // 0x6918
     _(4);
     uint8 topLeftAlpha; // 0x6920
-    _(27);
+    _(23);
+    float orbsCountAlphaTimer; // 0x6938
     uint8 orbsCountAlpha; // 0x693C
 };
 
-static_assert(offsetof(HUDData, orbsOutofCombatTimer) == 0x6918);
+static_assert(offsetof(HUDData, topLeftAlphaTimer) == 0x6918);
 static_assert(offsetof(HUDData, topLeftAlpha) == 0x6920);
+static_assert(offsetof(HUDData, orbsCountAlphaTimer) == 0x6938);
 static_assert(offsetof(HUDData, orbsCountAlpha) == 0x693C);
 
 
@@ -4515,7 +4570,7 @@ struct BossHelper {
 
 struct ColorPresets {
     struct StyleSwitchFlux {
-		uint8 colorfulSubtle[6][4] = {
+		uint8 colorfulSubtle[7][4] = {
 			// r   g  b  a 
 			{ 29, 29, 0, 255 }, //trick  
 			{ 26, 0, 0, 255 }, //sword  
@@ -4523,9 +4578,10 @@ struct ColorPresets {
 			{ 0, 35, 6, 255 }, //royal  
 			{ 26, 0, 35, 255 }, //quick  
 			{ 30, 14, 0, 255 }, //doppel 
+            { 0, 25, 30, 255 } // vergil
 		};
 
-		uint8 dMC3Switch[6][4] = {
+		uint8 dMC3Switch[7][4] = {
 			// r   g  b  a 
 			{ 55, 58, 6, 255 }, //trick  
 			{ 58, 5, 5, 255 }, //sword  
@@ -4533,9 +4589,10 @@ struct ColorPresets {
 			{ 5, 58, 12, 255 }, //royal  
 			{ 58, 5, 49, 255 }, //quick  
 			{ 58, 28, 5, 255 }, //doppel 
+            { 5, 57, 58, 255 }, //vergil
 		};
 
-		uint8 allRed[6][4] = {
+		uint8 allRed[7][4] = {
 			// r   g  b  a 
 			{ 29, 0, 0, 255 }, //trick  
 			{ 29, 0, 0, 255 }, //sword  
@@ -4543,6 +4600,7 @@ struct ColorPresets {
 			{ 29, 0, 0, 255 }, //royal  
 			{ 29, 0, 0, 255 }, //quick  
 			{ 29, 0, 0, 255 }, //doppel 
+            { 0, 25, 30, 255 } // vergil
 		};
     } StyleSwitchFlux;
 
@@ -4669,6 +4727,10 @@ struct ColorPresets {
 		} Aura;
 	} ColorDMC3Default;
 
+    struct LockOnColors {
+		uint32 Dante = 0xDE1C4CFF;
+		uint32 Vergil = 0x0C85C5FF;
+    } LockOnColors;
 };
 
 extern ColorPresets colorPresets;

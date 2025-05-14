@@ -7,8 +7,16 @@ extern g_CameraSensitivity_NewSensAddr:QWORD
 CameraSensitivityDetour1 PROC
     push r14
     mov r14, g_CameraSensitivity_NewSensAddr
-    movaps xmm9, [r14]
-    movups [rdi+1d4h], xmm9
+
+    sub     rsp, 20h             ; Allocate space for xmm1 (16 bytes), align stack
+    movdqu  [rsp], xmm0          ; Save xmm1
+
+    movups xmm0, [r14]
+    movdqu  [rdi+1d4h], xmm0
+
+    movdqu  xmm0, [rsp]          ; Restore xmm1
+    add     rsp, 20h             ; Restore stack from xmm1 save
+
     pop r14
     jmp qword ptr [g_CameraSensitivity_ReturnAddr1]
 
@@ -18,8 +26,16 @@ CameraSensitivityDetour1 ENDP
 CameraSensitivityDetour2 PROC
     push r14
     mov r14, g_CameraSensitivity_NewSensAddr
-    movaps xmm9, [r14]
-    movups [rdi+1d4h], xmm9
+
+    sub     rsp, 20h             ; Allocate space for xmm1 (16 bytes), align stack
+    movdqu  [rsp], xmm0          ; Save xmm1
+
+    movups xmm0, [r14]
+    movdqu [rdi+1d4h], xmm0
+
+    movdqu  xmm0, [rsp]          ; Restore xmm1
+    add     rsp, 20h             ; Restore stack from xmm1 save
+
     pop r14
     jmp qword ptr [g_CameraSensitivity_ReturnAddr2]
 

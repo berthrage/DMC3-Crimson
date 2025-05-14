@@ -7,6 +7,7 @@ float sexy_clamp(const float val, const float minVal, const float maxVal);
 float smoothstep(float edge0, float edge1, float x);
 std::uint32_t Uint8toAABBGGRR(uint8 colorUint8[4]);
 ImVec4 HexToImVec4(uint32_t hexColor);
+std::uint32_t HexToAABBGGRR(uint32_t hex);
 bool IsAddressValidAndWritable(uintptr_t address);
 
 

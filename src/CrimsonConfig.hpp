@@ -26,6 +26,14 @@ enum {
 };
 }
 
+namespace STYLESDISPLAY {
+enum {
+	OFF,
+	WITH_BROKEN_GLASS,
+	NO_BROKEN_GLASS,
+};
+}
+
 namespace RIGHTSTICKCENTERCAM {
 enum {
 	OFF,
@@ -112,20 +120,26 @@ struct CrimsonConfig {
 
 	struct CrimsonHudAddons {
 		bool positionings = true;
+		uint8 stylesDisplay = STYLESDISPLAY::WITH_BROKEN_GLASS;
+		bool displayStyleNames = true;
 		bool redOrbCounter = true;
 		bool royalGauge = true;
 		bool styleRanksMeter = true;
 		bool lockOn = true;
 		bool stunDisplacementNumericHud = false;
+		bool lockOnColorsCharacter = true;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
-				std::make_pair("fovMultiplier", &CrimsonHudAddons::positionings),
+				std::make_pair("positionings", &CrimsonHudAddons::positionings),
+				std::make_pair("stylesDisplay", &CrimsonHudAddons::stylesDisplay),
+				std::make_pair("displayStyleNames", &CrimsonHudAddons::displayStyleNames),
                 std::make_pair("redOrbCounter", &CrimsonHudAddons::redOrbCounter),
                 std::make_pair("royalGauge", &CrimsonHudAddons::royalGauge),
                 std::make_pair("styleRanksMeter", &CrimsonHudAddons::styleRanksMeter),
                 std::make_pair("lockOn", &CrimsonHudAddons::lockOn),
-				std::make_pair("stunDisplacementNumericHud", &CrimsonHudAddons::stunDisplacementNumericHud)
+				std::make_pair("stunDisplacementNumericHud", &CrimsonHudAddons::stunDisplacementNumericHud),
+				std::make_pair("lockOnColorsCharacter", &CrimsonHudAddons::lockOnColorsCharacter)
 			);
 		}
 	} CrimsonHudAddons;
@@ -182,14 +196,15 @@ struct CrimsonConfig {
 		struct Flux {
 			bool enable = true;
 
-			uint8 color[6][4] = {
+			uint8 color[7][4] = {
 				// r   g  b  a 
-				{ 55, 58, 6, 255 }, //trick  
-				{ 58, 5, 5, 255 }, //sword  
-				{ 13, 5, 58, 255 }, //gun    
-				{ 5, 58, 12, 255 }, //royal  
-				{ 58, 5, 49, 255 }, //quick  
-				{ 58, 28, 5, 255 }, //doppel 
+				{ 29, 29, 0, 255 }, //trick  
+				{ 26, 0, 0, 255 }, //sword  
+				{ 0, 8, 34, 255 }, //gun    
+				{ 0, 35, 6, 255 }, //royal  
+				{ 26, 0, 35, 255 }, //quick  
+				{ 30, 14, 0, 255 }, //doppel 
+				{ 0, 25, 30, 255 } // vergil
 			};
 
 			static constexpr auto Metadata() {

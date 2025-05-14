@@ -26,6 +26,17 @@ std::uint32_t Uint8toAABBGGRR(uint8 colorUint8[4]) {
     return color;
 }
 
+std::uint32_t HexToAABBGGRR(uint32_t hex) {
+	// Map hex to RGBA
+	uint8_t r = (hex >> 24) & 0xFF;
+	uint8_t g = (hex >> 16) & 0xFF;
+	uint8_t b = (hex >> 8) & 0xFF;
+	uint8_t a = hex & 0xFF;
+
+	// Convert RGBA to AABBGGRR
+	return (a << 24) | (b << 16) | (g << 8) | r;
+}
+
 ImVec4 HexToImVec4(uint32_t hexColor) {
 	float r = ((hexColor >> 24) & 0xFF) / 255.0f;
 	float g = ((hexColor >> 16) & 0xFF) / 255.0f;

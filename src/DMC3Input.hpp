@@ -48,7 +48,8 @@ public:
     uint16_t change_sword; //0x0018
     uint16_t default_camera; //0x001A
     uint16_t taunt; //0x001C
-}; //Size: 0x001E
+	uint16_t start; //0x001E
+}; //Size: 0x0020
 void InitBindings();
 void SwapXInputButtonsCoop(uint8 index, XINPUT_STATE* gamepad);
 

@@ -6,8 +6,12 @@
 
 namespace TAB {
 enum {
-    DANTE,
-    VERGIL,
+    DANTE_DEVILARM,
+    DANTE_GUN,
+    DANTE_STYLE,
+    VERGIL_DEVILARM,
+    VERGIL_GUN,
+    VERGIL_STYLE,
     ITEMS,
     COUNT,
 };

@@ -86,7 +86,7 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, ui
     case CHARACTER::DANTE: {
 		characterData.character = CHARACTER::DANTE;
 		
-        characterData = {CHARACTER::DANTE, 0, false, false, CHARACTER::DANTE, 0,
+        characterData = {CHARACTER::DANTE, 0, true, false, CHARACTER::DANTE, 0,
             {
                 {
                     STYLE::TRICKSTER,
@@ -144,7 +144,7 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, ui
         break;
     };
     case CHARACTER::VERGIL: {
-        characterData = {CHARACTER::VERGIL, 0, false, false, CHARACTER::DANTE, 0,
+        characterData = {CHARACTER::VERGIL, 0, true, false, CHARACTER::DANTE, 0,
             {
                 {
                     STYLE::DARK_SLAYER,
@@ -197,7 +197,7 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, ui
 void ApplyDefaultPlayerData(PlayerData& playerData) {
     playerData.switchButton = GAMEPAD::RIGHT_STICK_CLICK;
 
-    playerData.characterCount = 2;
+    playerData.characterCount = 1;
     playerData.characterIndex = 0;
 
     old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
@@ -299,47 +299,6 @@ template <typename T, new_size_t length> rapidjson::Value& CreateMembers_Vec4(ra
     return newMember;
 }
 
-void CreateMembers_TextureDataContent(rapidjson::Value& member, Config::TextureData& config) {
-    CreateMembers_Vec2(member, "size", config.size);
-    CreateMembers_Vec2(member, "pos", config.pos);
-}
-
-template <typename T, new_size_t length>
-rapidjson::Value& CreateMembers_TextureData(rapidjson::Value& member, T (&name)[length], Config::TextureData& config) {
-    auto& newMember = Create<struct_t>(member, name);
-
-    CreateMembers_TextureDataContent(newMember, config);
-
-    return newMember;
-}
-
-template <typename T, new_size_t length>
-rapidjson::Value& CreateMembers_TextureDataArray(rapidjson::Value& member, T (&name)[length], Config::TextureData (&config)[5]) {
-    auto& newMember = CreateArray<struct_t, 5>(member, name);
-
-    for_all(index, 5) {
-        auto& member2 = newMember[index];
-        auto& config2 = config[index];
-
-        CreateMembers_TextureDataContent(member2, config2);
-    }
-
-    return newMember;
-}
-
-template <typename T, new_size_t length>
-rapidjson::Value& CreateMembers_WeaponSwitchControllerTextureData(
-    rapidjson::Value& member, T (&name)[length], Config::WeaponSwitchControllerTextureData& config) {
-    auto& newMember = Create<struct_t>(member, name);
-
-    CreateMembers_TextureDataArray(newMember, "backgrounds", config.backgrounds);
-    CreateMembers_TextureDataArray(newMember, "icons", config.icons);
-    CreateMembers_TextureDataArray(newMember, "highlights", config.highlights);
-    CreateMembers_TextureData(newMember, "arrow", config.arrow);
-
-    return newMember;
-}
-
 void CreateMembers_ConfigCreateEnemyActorDataContent(rapidjson::Value& member, ConfigCreateEnemyActorData& config) {
     Create<uint32>(member, "enemy", config.enemy);
     Create<uint32>(member, "variant", config.variant);
@@ -392,7 +351,6 @@ void CreateMembers(Config& config_) {
             CreateMembers_PlayerDataContent(member2, config2);
         }
     }
-
 
     {
         auto& member = Create<struct_t>(crimsonConfigRoot, "Arcade");
@@ -514,11 +472,6 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "resetPermissions", config.resetPermissions);
 
     CreateArray<float, CHANNEL::MAX>(member, "channelVolumes", config.channelVolumes);
-
-    CreateMembers_WeaponSwitchControllerTextureData(
-        member, "meleeWeaponSwitchControllerTextureData", config.meleeWeaponSwitchControllerTextureData);
-    CreateMembers_WeaponSwitchControllerTextureData(
-        member, "rangedWeaponSwitchControllerTextureData", config.rangedWeaponSwitchControllerTextureData);
 
     Create<bool>(member, "forceIconFocus", config.forceIconFocus);
     Create<bool>(member, "skipIntro", config.skipIntro);
@@ -720,27 +673,6 @@ void ToJSON_Vec4(rapidjson::Value& member, vec4& config) {
     Set<float>(member["a"], config.a);
 }
 
-void ToJSON_TextureData(rapidjson::Value& member, Config::TextureData& config) {
-    ToJSON_Vec2(member["size"], config.size);
-    ToJSON_Vec2(member["pos"], config.pos);
-}
-
-void ToJSON_TextureDataArray(rapidjson::Value& member, Config::TextureData (&config)[5]) {
-    for_all(index, 5) {
-        auto& member2 = member[index];
-        auto& config2 = config[index];
-
-        ToJSON_TextureData(member2, config2);
-    }
-}
-
-void ToJSON_WeaponSwitchControllerTextureData(rapidjson::Value& member, Config::WeaponSwitchControllerTextureData& config) {
-    ToJSON_TextureDataArray(member["backgrounds"], config.backgrounds);
-    ToJSON_TextureDataArray(member["icons"], config.icons);
-    ToJSON_TextureDataArray(member["highlights"], config.highlights);
-    ToJSON_TextureData(member["arrow"], config.arrow);
-}
-
 void ToJSON_ConfigCreateEnemyActorData(rapidjson::Value& member, ConfigCreateEnemyActorData& config) {
     Set<uint32>(member["enemy"], config.enemy);
     Set<uint32>(member["variant"], config.variant);
@@ -926,12 +858,6 @@ void ToJSON(Config& config_) {
     SetArray<float, CHANNEL::MAX>(member["channelVolumes"], config.channelVolumes);
 
 
-    ToJSON_WeaponSwitchControllerTextureData(
-        member["meleeWeaponSwitchControllerTextureData"], config.meleeWeaponSwitchControllerTextureData);
-    ToJSON_WeaponSwitchControllerTextureData(
-        member["rangedWeaponSwitchControllerTextureData"], config.rangedWeaponSwitchControllerTextureData);
-
-
     Set<bool>(member["forceIconFocus"], config.forceIconFocus);
     Set<bool>(member["skipIntro"], config.skipIntro);
     Set<bool>(member["skipCutscenes"], config.skipCutscenes);
@@ -1078,29 +1004,6 @@ void ToConfig_Vec4(vec4& config, rapidjson::Value& member) {
     config.z = Get<float>(member["z"]);
     config.a = Get<float>(member["a"]);
 }
-
-
-void ToConfig_TextureData(Config::TextureData& config, rapidjson::Value& member) {
-    ToConfig_Vec2(config.size, member["size"]);
-    ToConfig_Vec2(config.pos, member["pos"]);
-}
-
-void ToConfig_TextureDataArray(Config::TextureData (&config)[5], rapidjson::Value& member) {
-    for_all(index, 5) {
-        auto& config2 = config[index];
-        auto& member2 = member[index];
-
-        ToConfig_TextureData(config2, member2);
-    }
-}
-
-void ToConfig_WeaponSwitchControllerTextureData(Config::WeaponSwitchControllerTextureData& config, rapidjson::Value& member) {
-    ToConfig_TextureDataArray(config.backgrounds, member["backgrounds"]);
-    ToConfig_TextureDataArray(config.icons, member["icons"]);
-    ToConfig_TextureDataArray(config.highlights, member["highlights"]);
-    ToConfig_TextureData(config.arrow, member["arrow"]);
-}
-
 
 void ToConfig_ConfigCreateEnemyActorData(ConfigCreateEnemyActorData& config, rapidjson::Value& member) {
     config.enemy   = Get<uint32>(member["enemy"]);
@@ -1295,11 +1198,6 @@ void ToConfig(Config& config_) {
     config.resetPermissions          = Get<bool>(member["resetPermissions"]);
 
     GetArray<float, CHANNEL::MAX>(config.channelVolumes, member["channelVolumes"]);
-
-    ToConfig_WeaponSwitchControllerTextureData(
-        config.meleeWeaponSwitchControllerTextureData, member["meleeWeaponSwitchControllerTextureData"]);
-    ToConfig_WeaponSwitchControllerTextureData(
-        config.rangedWeaponSwitchControllerTextureData, member["rangedWeaponSwitchControllerTextureData"]);
 
     config.forceIconFocus              = Get<bool>(member["forceIconFocus"]);
     config.skipIntro                   = Get<bool>(member["skipIntro"]);

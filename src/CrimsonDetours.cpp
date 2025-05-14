@@ -1,6 +1,6 @@
-
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include <algorithm>
+#include "CrimsonEnemyAITarget.hpp"
 #include "Core/Core.hpp"
 #include <stdio.h>
 #include "Utility/Detour.hpp"
@@ -16,6 +16,7 @@
 #include "CrimsonPatches.hpp"
 #include "CrimsonLDK.hpp"
 #include "Actor.hpp"
+
 
 namespace CrimsonDetours {
 
@@ -176,7 +177,7 @@ void StyleRankHudNoFadeoutDetour();
 
 // ShootRemapDown
 std::uint64_t g_ShootRemapDown_ReturnAddr;
-//void ShootRemapDownDetour();
+void ShootRemapDownDetour();
 std::uint64_t g_ShootRemapHold_ReturnAddr;
 //void ShootRemapHoldDetour();
 std::uint16_t g_ShootRemap_NewMap;
@@ -597,6 +598,27 @@ void ToggleDTInfusedRoyalguardDetours(bool enable) {
 	run = enable;
 }
 
+//void ToggleShootRemapDown(bool enable) {
+//	using namespace Utility;
+//	static bool run = false;
+//
+//	if (run == enable) {
+//		return;
+//	}
+//
+//	// ---------- INJECTING HERE ----------
+//	//dmc3.exe + 1E6A62: 0F B7 44 45 0A - movzx eax, word ptr[rbp + rax * 2 + 0A]
+//	// ---------- DONE INJECTING  ----------
+//	//dmc3.exe + 1E6A67 : 66 85 83 E4 74 00 00 - test[rbx + 000074E4], ax
+//	//dmc3.exe + 1E6A6E : 75 0A - jne dmc3.exe + 1E6A7A
+//	static std::unique_ptr<Utility::Detour_t> ShootRemapDownHook =
+//		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E6A62, &ShootRemapDownDetour, 5);
+//	g_ShootRemapDown_ReturnAddr = ShootRemapDownHook->GetReturnAddress();
+//	ShootRemapDownHook->Toggle(enable);
+//
+//	run = enable;
+//}
+
 void ToggleFasterTurnRate(bool enable) {
 	using namespace Utility;
 	static bool run = false;
@@ -680,6 +702,7 @@ void ToggleCustomCameraPositioning(bool enable) {
 void ToggleCustomCameraSensitivity(bool enable) {
 	using namespace Utility;
 	static bool run = false;
+	// This detour isn't used anymore due to causing issues with Low/Default FollowUpSpeed
 
 	if (run == enable) {
 		return;

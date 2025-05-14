@@ -31,7 +31,8 @@ static BindTable s_defaultBinds = {
     .lock_on = 0x8,
     .change_sword = 0x2,
     .default_camera = 0x400,
-    .taunt = 0x100
+    .taunt = 0x100,
+    .start = 0x800
 };
 
 static std::array<std::vector<CrimsonXinputBinding>, 4> s_bindsPlayer = {{
@@ -42,15 +43,16 @@ static std::array<std::vector<CrimsonXinputBinding>, 4> s_bindsPlayer = {{
         { XINPUT_GAMEPAD_DPAD_DOWN,      XINPUT_GAMEPAD_DPAD_DOWN,      "EQUIP SCREEN (DOWN)" },
         { XINPUT_GAMEPAD_DPAD_RIGHT,     XINPUT_GAMEPAD_DPAD_RIGHT,     "MAP SCREEN (RIGHT)" },
         { XINPUT_GAMEPAD_DPAD_LEFT,      XINPUT_GAMEPAD_DPAD_LEFT,      "FILE SCREEN (LEFT)" },
-        { XINPUT_GAMEPAD_B,              XINPUT_GAMEPAD_B,              "MEELE ATTACK"},
+        { XINPUT_GAMEPAD_Y,              XINPUT_GAMEPAD_Y,              "MEELE ATTACK"},
         { XINPUT_GAMEPAD_A,              XINPUT_GAMEPAD_A,              "JUMP" },
-        { XINPUT_GAMEPAD_Y,              XINPUT_GAMEPAD_Y,              "STYLE ACTION" },
+        { XINPUT_GAMEPAD_B,              XINPUT_GAMEPAD_B,              "STYLE ACTION" },
         { XINPUT_GAMEPAD_X,              XINPUT_GAMEPAD_X,              "SHOOT" },
         { XINPUT_GAMEPAD_LEFT_SHOULDER,  XINPUT_GAMEPAD_LEFT_SHOULDER,  "DEVIL TRIGGER" },
         { XINPUT_GAMEPAD_LEFT_THUMB,     XINPUT_GAMEPAD_LEFT_THUMB,     "CHANGE TARGET" },
         { XINPUT_GAMEPAD_RIGHT_SHOULDER, XINPUT_GAMEPAD_RIGHT_SHOULDER, "LOCK ON" },
         { XINPUT_GAMEPAD_RIGHT_THUMB,    XINPUT_GAMEPAD_RIGHT_THUMB,    "DEFAULT CAMERA" },
-        { XINPUT_GAMEPAD_BACK,           XINPUT_GAMEPAD_BACK,           "TAUNT" }
+        { XINPUT_GAMEPAD_BACK,           XINPUT_GAMEPAD_BACK,           "TAUNT" },
+        { XINPUT_GAMEPAD_START,          XINPUT_GAMEPAD_START,          "START" }
     },
     // second player
     {
@@ -66,7 +68,8 @@ static std::array<std::vector<CrimsonXinputBinding>, 4> s_bindsPlayer = {{
         { XINPUT_GAMEPAD_LEFT_THUMB,     XINPUT_GAMEPAD_LEFT_THUMB,     "CHANGE TARGET" },
         { XINPUT_GAMEPAD_RIGHT_SHOULDER, XINPUT_GAMEPAD_RIGHT_SHOULDER, "LOCK ON" },
         { XINPUT_GAMEPAD_RIGHT_THUMB,    XINPUT_GAMEPAD_RIGHT_THUMB,    "DEFAULT CAMERA" },
-        { XINPUT_GAMEPAD_BACK,           XINPUT_GAMEPAD_BACK,           "TAUNT" }
+        { XINPUT_GAMEPAD_BACK,           XINPUT_GAMEPAD_BACK,           "TAUNT" },
+		{ XINPUT_GAMEPAD_START,          XINPUT_GAMEPAD_START,          "START" }
     },
     // third player
     {
@@ -82,7 +85,8 @@ static std::array<std::vector<CrimsonXinputBinding>, 4> s_bindsPlayer = {{
         { XINPUT_GAMEPAD_LEFT_THUMB,     XINPUT_GAMEPAD_LEFT_THUMB,     "CHANGE TARGET" },
         { XINPUT_GAMEPAD_RIGHT_SHOULDER, XINPUT_GAMEPAD_RIGHT_SHOULDER, "LOCK ON" },
         { XINPUT_GAMEPAD_RIGHT_THUMB,    XINPUT_GAMEPAD_RIGHT_THUMB,    "DEFAULT CAMERA" },
-        { XINPUT_GAMEPAD_BACK,           XINPUT_GAMEPAD_BACK,           "TAUNT" }
+        { XINPUT_GAMEPAD_BACK,           XINPUT_GAMEPAD_BACK,           "TAUNT" },
+		{ XINPUT_GAMEPAD_START,          XINPUT_GAMEPAD_START,          "START" }
     },
     // fourth player
     {
@@ -98,7 +102,8 @@ static std::array<std::vector<CrimsonXinputBinding>, 4> s_bindsPlayer = {{
         { XINPUT_GAMEPAD_LEFT_THUMB,     XINPUT_GAMEPAD_LEFT_THUMB,     "CHANGE TARGET" },
         { XINPUT_GAMEPAD_RIGHT_SHOULDER, XINPUT_GAMEPAD_RIGHT_SHOULDER, "LOCK ON" },
         { XINPUT_GAMEPAD_RIGHT_THUMB,    XINPUT_GAMEPAD_RIGHT_THUMB,    "DEFAULT CAMERA" },
-        { XINPUT_GAMEPAD_BACK,           XINPUT_GAMEPAD_BACK,           "TAUNT" }
+        { XINPUT_GAMEPAD_BACK,           XINPUT_GAMEPAD_BACK,           "TAUNT" },
+		{ XINPUT_GAMEPAD_START,          XINPUT_GAMEPAD_START,          "START" }
     }
 }};
 
@@ -119,7 +124,7 @@ void InitBindings()
 }
 
 void SwapXInputButtonsCoop(uint8 plindex, XINPUT_STATE* state) {
-    if(activeConfig.Actor.playerCount < 2) { return; }
+    if (activeConfig.Actor.playerCount > 1 || !activeConfig.Actor.enable) { return; }
     std::vector<CrimsonXinputBinding>& playerBinds = s_bindsPlayer[plindex];
     std::vector<uint16> buttons(playerBinds.size(), 0x0);
     size_t btnIndex = 0;

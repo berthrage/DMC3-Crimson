@@ -609,7 +609,7 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
     { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // sword
     { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // gun
     { actorData.position.x, actorData.position.y - royalAdjustment, actorData.position.z }, // royal
-    { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // quick
+    { actorData.position.x, actorData.position.y - royalAdjustment - 20.0f, actorData.position.z }, // quick
     { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // dopp
     { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // dt
     { actorData.position.x, actorData.position.y + 130.f, actorData.position.z }, // dte
@@ -636,10 +636,7 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
             else if (styleid == 2) {
                 offset[0] = -200.0f * sizeDistance;
             }
-            else if (styleid == 4) {
-                offset[0] = 250.0f * sizeDistance;
-            }
-            else if (styleid == 5) {
+            else if (styleid == STYLE::DOPPELGANGER) {
                 offset[0] = -250.0f * sizeDistance;
             }
 			SetStyleSwitchFxWork((SsFxType) styleid, stylesWorldPos[styleid], sstext->color[styleid], sstext->alpha[styleid], offset, sstext->time[styleid], sizeDistance);

@@ -305,15 +305,18 @@ template <typename varType> bool GUI_RadioButton(const char* label, varType& var
     return update;
 }
 
-bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequired = false, 
-    bool legacyTag = false, const char* tooltip = "", float separatorSize = UI::g_UIContext.DefaultFontSize * 23.35f);
+bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequired = false,  
+    bool legacyTag = false, bool wipTag = false, const char* tooltip = "", 
+    float separatorSize = UI::g_UIContext.DefaultFontSize * 23.35f);
 
-void GUI_Title(const char* title, bool ccsRequired = false, bool legacyTag = false,
+void GUI_Title(const char* title, bool ccsRequired = false, bool legacyTag = false, bool wipTag = false,
     const char* tooltip = "", float separatorSize = UI::g_UIContext.DefaultFontSize * 23.35f);
 
 bool GUI_CCSRequirementButton();
 
 bool GUI_LegacyButton();
+
+bool GUI_WIPButton();
 
 bool GUI_Color(const char* label, float (&var)[4], ImGuiColorEditFlags flags = 0);
 

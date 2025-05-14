@@ -190,7 +190,7 @@ bool GUI_ButtonCombo(const char* label, uint16_t& currentButton) {
 }
 
 bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequired, 
-    bool legacyTag, const char* tooltip, float separatorSize) {
+    bool legacyTag, bool wipTag, const char* tooltip, float separatorSize) {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
@@ -206,6 +206,11 @@ bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequi
 		ImGui::SameLine();
 		GUI_LegacyButton();
     }
+
+	if (wipTag) {
+		ImGui::SameLine();
+		GUI_WIPButton();
+	}
 
     if ((std::string)tooltip != "") {
 		ImGui::SameLine();
@@ -223,7 +228,7 @@ bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequi
 }
 
 void GUI_Title(const char* title, bool ccsRequired,
-	bool legacyTag, const char* tooltip, float separatorSize) {
+	bool legacyTag, bool wipTag, const char* tooltip, float separatorSize) {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
@@ -238,6 +243,11 @@ void GUI_Title(const char* title, bool ccsRequired,
 	if (legacyTag) {
 		ImGui::SameLine();
 		GUI_LegacyButton();
+	}
+
+	if (wipTag) {
+		ImGui::SameLine();
+		GUI_WIPButton();
 	}
 
 	if (tooltip != "") {
@@ -317,6 +327,47 @@ bool GUI_LegacyButton() {
 		ImGui::PopFont();
 		ImGui::PopStyleVar();
 	}
+
+	if (wasDisabled) {
+		// Restore disabled state
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+	}
+
+	return false;
+}
+
+bool GUI_WIPButton() {
+	// Check if parent window is disabled by checking its alpha
+	float currentAlpha = ImGui::GetStyle().Alpha;
+	bool wasDisabled = currentAlpha < 1.0f; // Approximate check for disabled state
+
+	if (wasDisabled) {
+		// Only restore the item flag but keep the alpha (for visual appearance)
+		ImGui::PopItemFlag();
+	}
+
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	ImGui::PushStyleColor(ImGuiCol_Button, CrimsonUtil::HexToImVec4(0xB5B5B5FF));
+	ImGui::PushStyleColor(ImGuiCol_Text, CrimsonUtil::HexToImVec4(0x000000FF));
+	ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.69f]);
+
+	ImGui::SmallButton("WIP");
+
+	ImGui::PopFont();
+	ImGui::PopItemFlag();
+	ImGui::PopStyleColor(2);
+
+	if (ImGui::IsItemHovered()) {
+		// Push full opacity for tooltip
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+		ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+		ImGui::SetTooltip("This is an Experimental/Work-In-Progress feature.\n"
+			"It's likely to have missing properties and/or bugs.");
+		ImGui::PopFont();
+		ImGui::PopStyleVar();
+	}
+	
 
 	if (wasDisabled) {
 		// Restore disabled state

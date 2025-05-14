@@ -114,15 +114,15 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	general.inertia = false;
 	general.sprint = true;
 	general.freeformSoftLock = true;
-	//general.bufferlessReversals = false;
+	general.holdToCrazyCombo = true;
 	general.dmc4LockOnDirection = true;
-	general.disableHeightRestriction = true;
-	//general.improvedBufferedReversals = false;
 	general.increasedJCSpheres = false;
-	general.disableJCRestriction = false;
+	general.disableJCRestriction = true;
 	general.increasedEnemyJuggleTime = false;
 	general.disableSoulEaterInvis = false;
-	//general.fasterTurnRate = false;
+	general.disableHeightRestriction = true;
+	general.fasterTurnRate = true;
+
 
 	// Dante section
 	auto& dante = preset.Gameplay.Dante;
@@ -158,6 +158,8 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	vergil.airRisingSun = true;
 	vergil.airLunarPhase = true;
 	vergil.altJudgementCutInput = true;
+	vergil.yamatoRisingSun = false;
+	vergil.mirageTrigger = false;
 	//vergil.adjustRisingSunPos = "Off"; // or whatever vanilla used
 	//vergil.adjustLunarPhasePos = "Off";
 
@@ -200,7 +202,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	general.disableJCRestriction = true;
 	general.increasedEnemyJuggleTime = true;
 	general.disableSoulEaterInvis = true;
-	//general.fasterTurnRate = false;
+	general.fasterTurnRate = true;
 
 	// Dante section
 	auto& dante = preset.Gameplay.Dante;
@@ -236,6 +238,8 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	vergil.airRisingSun = true;
 	vergil.airLunarPhase = true;
 	vergil.altJudgementCutInput = true;
+	vergil.yamatoRisingSun = true;
+	vergil.mirageTrigger = true;
 	//vergil.adjustRisingSunPos = "Off"; // or whatever vanilla used
 	//vergil.adjustLunarPhasePos = "Off";
 
@@ -277,7 +281,9 @@ static const CrimsonConfigGameplay CRIMSON_PRESET = CreateCrimsonPreset();
 const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 	CrimsonConfigGameplayMask mask{};
 	// Example: these fields are optional for Vanilla
+	mask.Gameplay.General.characterHotswap = false;
 	mask.Gameplay.General.crazyComboMashRequirement = false;
+	mask.Gameplay.General.holdToShoot = false;
 	mask.Gameplay.General.vanillaWeaponSwitchDelay = false;
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
@@ -317,9 +323,25 @@ const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 // Mask for Style Switcher preset: all fields checked except these
 const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	CrimsonConfigGameplayMask mask{};
+	mask.Gameplay.General.characterHotswap = false;
 	mask.Gameplay.General.holdToCrazyCombo = false;
+	mask.Gameplay.General.holdToShoot = false;
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.bufferlessReversals = false;
+	mask.Gameplay.General.dmc4LockOnDirection = false;
+	mask.Gameplay.General.fasterTurnRate = false;
+	
+	// NEW MOVES are optional
+	mask.Gameplay.Dante.airRevolver = false;
+	mask.Gameplay.Dante.airTornado = false;
+	mask.Gameplay.Dante.airRisingDragonWhirlwind = false;
+	mask.Gameplay.Dante.airAgniRudraWhirlwind = false;
+	mask.Gameplay.Dante.airStinger = false;
+	mask.Gameplay.Vergil.airLunarPhase = false;
+	mask.Gameplay.Vergil.airRisingSun = false;
+	mask.Gameplay.Vergil.airStinger = false;
+	mask.Gameplay.Vergil.yamatoRisingSun = false;
+
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
 	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
@@ -359,8 +381,23 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 // Mask for Crimson preset: all fields checked except these
 const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	CrimsonConfigGameplayMask mask{};
+	mask.Gameplay.General.characterHotswap = false;
+	mask.Gameplay.General.holdToShoot = false;
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.bufferlessReversals = false;
+	mask.Gameplay.General.fasterTurnRate = false;
+
+	// NEW MOVES are optional
+	mask.Gameplay.Dante.airRevolver = false;
+	mask.Gameplay.Dante.airTornado = false;
+	mask.Gameplay.Dante.airRisingDragonWhirlwind = false;
+	mask.Gameplay.Dante.airAgniRudraWhirlwind = false;
+	mask.Gameplay.Dante.airStinger = false;
+	mask.Gameplay.Vergil.airLunarPhase = false;
+	mask.Gameplay.Vergil.airRisingSun = false;
+	mask.Gameplay.Vergil.airStinger = false;
+	mask.Gameplay.Vergil.yamatoRisingSun = false;
+
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
 	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
@@ -434,11 +471,76 @@ void CrimsonGameModes::SetGameMode(uint8 mode) {
 	case GAMEMODEPRESETS::STYLE_SWITCHER:
 		AssignMembersMasked(activeCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
 		AssignMembersMasked(queuedCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
+		activeCrimsonGameplay.Gameplay.General.fasterTurnRate = true;
+		queuedCrimsonGameplay.Gameplay.General.fasterTurnRate = true;
+
+		activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
+		queuedCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airRevolver = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airRevolver = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airTornado = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airTornado = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airStinger = false;
+		queuedCrimsonGameplay.Gameplay.Dante.airStinger = false;
+
+		activeCrimsonGameplay.Gameplay.Vergil.airLunarPhase = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.airLunarPhase = true;
+
+		activeCrimsonGameplay.Gameplay.Vergil.airRisingSun = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.airRisingSun = true;
+
+		activeCrimsonGameplay.Gameplay.Vergil.airStinger = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.airStinger = true;
+
+		activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun = false;
+		queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun = false;
 		queuedConfig.Actor.enable = true;
 		break;
 	case GAMEMODEPRESETS::CRIMSON:
 		AssignMembersMasked(activeCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
 		AssignMembersMasked(queuedCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
+		activeCrimsonGameplay.Gameplay.General.fasterTurnRate = true;
+		queuedCrimsonGameplay.Gameplay.General.fasterTurnRate = true;
+
+		activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
+		queuedCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airRevolver = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airRevolver = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airTornado = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airTornado = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind = true;
+
+		activeCrimsonGameplay.Gameplay.Dante.airStinger = true;
+		queuedCrimsonGameplay.Gameplay.Dante.airStinger = true;
+
+		activeCrimsonGameplay.Gameplay.Vergil.airLunarPhase = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.airLunarPhase = true;
+
+		activeCrimsonGameplay.Gameplay.Vergil.airRisingSun = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.airRisingSun = true;
+
+		activeCrimsonGameplay.Gameplay.Vergil.airStinger = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.airStinger = true;
+
+		activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun = true;
+
 		queuedConfig.Actor.enable = true;
 		break;
 	default:

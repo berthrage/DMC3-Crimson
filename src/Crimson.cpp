@@ -225,7 +225,6 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonPatches::ToggleHideLockOn(false);
         CrimsonPatches::ToggleHideLockOn(activeConfig.hideLockOn || activeCrimsonConfig.CrimsonHudAddons.lockOn);
         CrimsonDetours::ToggleHideStyleRankHUD(activeCrimsonConfig.HudOptions.hideStyleMeter);
-        CrimsonDetours::ToggleCustomCameraSensitivity(true);
 
         ToggleHideBossHUD(false);
         ToggleHideBossHUD(activeConfig.hideBossHUD);
@@ -249,6 +248,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleInfiniteMagicPoints(activeCrimsonGameplay.Cheats.Training.infiniteDT);
         ToggleDisableTimer(activeCrimsonGameplay.Cheats.Training.disableTimers);
         ToggleInfiniteBullets(activeCrimsonGameplay.Cheats.Training.infiniteBossLadyBullets);
+        
 
         // Why are we calling these with false first???? - Answer: See Line 119
 
@@ -276,12 +276,13 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
             CrimsonDetours::ToggleHoldToCrazyCombo(false);
         }
         
+        CrimsonPatches::HoldToAutoFire(activeCrimsonGameplay.Gameplay.General.holdToShoot);
         CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
         CrimsonDetours::ToggleStyleRankHudNoFadeout(activeConfig.disableStyleRankHudFadeout);
         CrimsonDetours::ToggleDMC4LockOnDirection(activeCrimsonGameplay.Gameplay.General.dmc4LockOnDirection);
         CrimsonDetours::ToggleFasterTurnRate(activeCrimsonGameplay.Gameplay.General.fasterTurnRate);
         CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonGameplay.Gameplay.General.increasedEnemyJuggleTime);
-        CrimsonPatches::SetEnemyDTMode(activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode);
+        //CrimsonPatches::SetEnemyDTMode(activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode);
         CrimsonDetours::ToggleCerberusCrashFix(true);
 
         CrimsonPatches::DisableBlendingEffects(false);

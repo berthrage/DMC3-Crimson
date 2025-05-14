@@ -14,6 +14,13 @@ void StyleMeterWindows();
 void LockOnWindows();
 void StunDisplacementLockOnWindows();
 void ShieldLockOnWindows();
+void StyleDisplayWindow();
+void StyleTextDisplayWindow();
+void StyleEXPDisplayWindow();
+void StyleLvlDispWindow();
+void RoyalGaugeDispWindow();
+void MirageGaugeMainPlayer();
+
 
 struct FadeState {
 	float alpha = 0.0f;

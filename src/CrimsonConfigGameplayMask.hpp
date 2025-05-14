@@ -7,10 +7,12 @@ struct CrimsonConfigGameplayMask {
 		struct General {
 			bool inertia = true;
 			bool sprint = true;
+			bool characterHotswap = true;
 			bool freeformSoftLock = true;
 			bool bufferlessReversals = true;
 			bool dmc4LockOnDirection = true;
 			bool holdToCrazyCombo = true;
+			bool holdToShoot = true;
 			bool crazyComboMashRequirement = true;
 			bool disableHeightRestriction = true;
 			bool improvedBufferedReversals = true;
@@ -25,10 +27,12 @@ struct CrimsonConfigGameplayMask {
 				return std::make_tuple(
 					std::make_pair("inertia", &General::inertia),
 					std::make_pair("sprint", &General::sprint),
+					std::make_pair("characterHotswap",&General::characterHotswap),
 					std::make_pair("freeformSoftLock", &General::freeformSoftLock),
 					std::make_pair("bufferlessReversals", &General::bufferlessReversals),
 					std::make_pair("dmc4LockOnDirection", &General::dmc4LockOnDirection),
 					std::make_pair("holdToCrazyCombo", &General::holdToCrazyCombo),
+					std::make_pair("holdToShoot", &General::holdToShoot),
 					std::make_pair("crazyComboMashRequirement", &General::crazyComboMashRequirement),
 					std::make_pair("disableHeightRestriction", &General::disableHeightRestriction),
 					std::make_pair("improvedBufferedReversals", &General::improvedBufferedReversals),
@@ -102,8 +106,11 @@ struct CrimsonConfigGameplayMask {
 			bool airRisingSun = true;
 			bool airLunarPhase = true;
 			bool altJudgementCutInput = true;
+			bool yamatoRisingSun = true;
+			bool mirageTrigger = true;
 			bool adjustRisingSunPos = true;
 			bool adjustLunarPhasePos = true;
+			
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
@@ -114,6 +121,8 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("airRisingSun", &Vergil::airRisingSun),
 					std::make_pair("airLunarPhase", &Vergil::airLunarPhase),
 					std::make_pair("altJudgementCutInput", &Vergil::altJudgementCutInput),
+					std::make_pair("yamatoRisingSun", &Vergil::yamatoRisingSun),
+					std::make_pair("mirageTrigger", &Vergil::mirageTrigger),
 					std::make_pair("adjustRisingSunPos", &Vergil::adjustRisingSunPos),
 					std::make_pair("adjustLunarPhasePos", &Vergil::adjustLunarPhasePos)
 				);

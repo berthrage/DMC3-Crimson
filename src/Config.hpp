@@ -126,11 +126,10 @@ struct Config {
     bool hideBeowulfDante  = false;
     bool hideBeowulfVergil = false;
 
-    uint8 dotShadow = DOT_SHADOW::DEFAULT;
+    uint8 dotShadow = DOT_SHADOW::DISABLE;
 
     bool noDevilForm = false;
-    
-
+   
     bool resetPermissions = false;
 
     float channelVolumes[CHANNEL::MAX] = {
@@ -147,164 +146,6 @@ struct Config {
         1.0f,
     };
 
-    struct TextureData {
-        vec2 size;
-        vec2 pos;
-    };
-
-    struct WeaponSwitchControllerTextureData {
-        TextureData backgrounds[5];
-        TextureData icons[5];
-        TextureData highlights[5];
-        TextureData arrow;
-    };
-
-    WeaponSwitchControllerTextureData meleeWeaponSwitchControllerTextureData = {
-        {
-            {
-                {256, 256},
-                {1442, 403},
-            },
-            {
-                {256, 256},
-                {1651, 555},
-            },
-            {
-                {256, 256},
-                {1571, 801},
-            },
-            {
-                {256, 256},
-                {1313, 801},
-            },
-            {
-                {256, 256},
-                {1233, 555},
-            },
-        },
-        {
-            {
-                {256, 256},
-                {1442, 403},
-            },
-            {
-                {256, 256},
-                {1651, 555},
-            },
-            {
-                {256, 256},
-                {1571, 801},
-            },
-            {
-                {256, 256},
-                {1313, 801},
-            },
-            {
-                {256, 256},
-                {1233, 555},
-            },
-        },
-        {
-            {
-                {256, 256},
-                {1442, 403},
-            },
-            {
-                {256, 256},
-                {1651, 555},
-            },
-            {
-                {256, 256},
-                {1571, 801},
-            },
-            {
-                {256, 256},
-                {1313, 801},
-            },
-            {
-                {256, 256},
-                {1233, 555},
-            },
-        },
-        {
-            {128, 128},
-            {1506, 671},
-        },
-    };
-
-    WeaponSwitchControllerTextureData rangedWeaponSwitchControllerTextureData = {
-        {
-            {
-                {256, 256},
-                {222, 403},
-            },
-            {
-                {256, 256},
-                {431, 555},
-            },
-            {
-                {256, 256},
-                {351, 801},
-            },
-            {
-                {256, 256},
-                {93, 801},
-            },
-            {
-                {256, 256},
-                {13, 555},
-            },
-        },
-        {
-            {
-                {256, 256},
-                {222, 403},
-            },
-            {
-                {256, 256},
-                {431, 555},
-            },
-            {
-                {256, 256},
-                {351, 801},
-            },
-            {
-                {256, 256},
-                {93, 801},
-            },
-            {
-                {256, 256},
-                {13, 555},
-            },
-        },
-        {
-            {
-                {256, 256},
-                {222, 403},
-            },
-            {
-                {256, 256},
-                {431, 555},
-            },
-            {
-                {256, 256},
-                {351, 801},
-            },
-            {
-                {256, 256},
-                {93, 801},
-            },
-            {
-                {256, 256},
-                {13, 555},
-            },
-        },
-        {
-            {128, 128},
-            {286, 671},
-        },
-    };
-
     bool forceIconFocus = false;
 
     bool skipIntro     = false;
@@ -312,7 +153,7 @@ struct Config {
 
     bool enableFileMods = true;
 
-    float frameRate = 80;
+    float frameRate = 120;
     uint8 vSync     = 1;
 
     bool hideMouseCursor = false;
@@ -433,9 +274,8 @@ struct Config {
     
     std::string selectedHUD = "Crimson HUD";
 
-    bool disableBlendingEffects = true;
+    bool disableBlendingEffects = false;
     bool framerateResponsiveGameSpeed = true;
-
     bool playDTReadySFXAtMissionStart = true;
 };
 
@@ -443,8 +283,6 @@ struct Config {
 // static_assert((offsetof(Config, kalinaAnnHookGrenadeTime) % 0x10) == 0);
 // static_assert((offsetof(Config, kalinaAnnHookMultiplier) % 0x10) == 0);
 // static_assert((offsetof(Config, barsData) % 0x10) == 0);
-
-
 
 #pragma pack(pop)
 
