@@ -13,6 +13,7 @@ BACKUP your save files! Crimson has extensive save syncing built-in and things s
 • deepdarkkapustka - Reverse Engineering, Tooling, General Programmer  
 • Darkness - Backend, Devops, General Programmer, Reverse Engineering  
 • Charlie - Community Manager, Tester, Q&A  
+• The Hitchhiker - General Programmer, Reverse Engineering 
 
 ## Contributions by
 • Cynuma - Artist  
