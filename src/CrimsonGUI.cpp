@@ -357,9 +357,9 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 				ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize * 0.9f]);
 
 				// NEW VERSION AVAILABLE
-// 				if (InfoButton(newVersionText.c_str())) {
-// 					ShellExecute(0, 0, "https://github.com/berthrage/Devil-May-Cry-3-Crimson/releases/new", 0, 0, SW_SHOW);
-// 				}
+ 				if (InfoButton(newVersionText.c_str())) {
+ 					ShellExecute(0, 0, "https://github.com/berthrage/Devil-May-Cry-3-Crimson/releases/new", 0, 0, SW_SHOW);
+ 				}
 
 				ImGui::PopFont();
 
@@ -11375,7 +11375,7 @@ void InputRemapOptions() {
 		}
 	}
 
-	DrawKeybindEditor(buttonPairs);
+	/*DrawKeybindEditor(buttonPairs);*/
 	
 	ImGui::PopStyleColor();
 	ImGui::PopFont();
@@ -11386,7 +11386,7 @@ void GameplaySection() {
 	DanteGameplayOptions();
 	VergilGameplayOptions();
 	ExtraDifficultyGameplayOptions();
-	//InputRemapOptions();
+	InputRemapOptions();
 }
 
 #pragma endregion
@@ -12059,38 +12059,51 @@ void Main(IDXGISwapChain* pSwapChain) {
 		);
 
 		WebAPICalls::GetInstance().SetPatronsCallback([&](WebAPIResult res, std::vector<Patron_t> patrons) {
-			    if (res == WebAPIResult::Success) {
-			    	UI::g_UIContext.PatronsRich.clear();
-                    UI::g_UIContext.PatronsRichAF.clear();
+			if (res == WebAPIResult::Success)
+			{
+				UI::g_UIContext.PatronsDT.clear();
+				UI::g_UIContext.PatronsSDT.clear();
+				UI::g_UIContext.PatronsLDK.clear();
 
-                    for (const auto& patron : patrons) {
-                        switch (patron.Tier) {
-                        case PatreonTiers_t::Rich:
-                        {
-                            UI::g_UIContext.PatronsRich.push_back(patron.UserName);
+				for (const auto &patron : patrons)
+				{
+					switch (patron.Tier)
+					{
+					case PatreonTiers_t::DT:
+					{
+						UI::g_UIContext.PatronsDT.push_back(patron.ShownName);
 
-                            // Set the name of the tier to be displayed
-                            UI::g_UIContext.TierNames[(size_t)PatreonTiers_t::Rich] = patron.TierName;
-                        }
-                            break;
+						// Set the name of the tier to be displayed
+						UI::g_UIContext.TierNames[(size_t)patron.Tier] = patron.TierName;
+					}
+					break;
 
-                        case PatreonTiers_t::RichAF:
-                        {
-                            UI::g_UIContext.PatronsRichAF.push_back(patron.UserName);
+					case PatreonTiers_t::SDT:
+					{
+						UI::g_UIContext.PatronsSDT.push_back(patron.ShownName);
 
-                            // Set the name of the tier to be displayed
-                            UI::g_UIContext.TierNames[(size_t)PatreonTiers_t::RichAF] = patron.TierName;
-                        }
-                            break;
+						// Set the name of the tier to be displayed
+						UI::g_UIContext.TierNames[(size_t)patron.Tier] = patron.TierName;
+					}
+					break;
 
-                        default:
-                            break;
-                        }
-                    }
-			    }
+					case PatreonTiers_t::LDK:
+					{
+						UI::g_UIContext.PatronsSDT.push_back(patron.ShownName);
 
-			    UI::patronsQueueResult = res;
+						// Set the name of the tier to be displayed
+						UI::g_UIContext.TierNames[(size_t)patron.Tier] = patron.TierName;
+					}
+					break;
+
+					default:
+						break;
+					}
+				}
 			}
+
+			UI::patronsQueueResult = res;
+													  }
 		);
 
 		versionCheckerThread = std::thread{
@@ -13651,39 +13664,59 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				}
 				ImGui::PopFont();
 
-                if (UI::patronsQueueResult == WebAPIResult::Success || UI::patronsQueueResult == WebAPIResult::Awaiting) {
-                    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.5f);
+				if (UI::patronsQueueResult == WebAPIResult::Success || UI::patronsQueueResult == WebAPIResult::Awaiting)
+				{
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.5f);
 
-                    ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
-                    {
-                        ImGui::Text(UI::g_UIContext.TierNames[(size_t)PatreonTiers_t::RichAF].c_str());
-                    }
-                    ImGui::PopFont();
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
+					{
+						ImGui::Text(UI::g_UIContext.TierNames[(size_t)PatreonTiers_t::LDK].c_str());
+					}
+					ImGui::PopFont();
 
-                    ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
-                    {
-                        for (const auto& richAF : context.PatronsRichAF) {
-                            ImGui::Text(richAF.c_str());
-                        }
-                    }
-                    ImGui::PopFont();
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+					{
+						for (const auto &richAF : context.PatronsLDK)
+						{
+							ImGui::Text(richAF.c_str());
+						}
+					}
+					ImGui::PopFont();
 
-                    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.5f);
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.5f);
 
-                    ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
-                    {
-                        ImGui::Text(UI::g_UIContext.TierNames[(size_t)PatreonTiers_t::Rich].c_str());
-                    }
-                    ImGui::PopFont();
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
+					{
+						ImGui::Text(UI::g_UIContext.TierNames[(size_t)PatreonTiers_t::SDT].c_str());
+					}
+					ImGui::PopFont();
 
-                    ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
-                    {
-                        for (const auto& rich : context.PatronsRich) {
-                            ImGui::Text(rich.c_str());
-                        }
-                    }
-                    ImGui::PopFont();
-                }
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+					{
+						for (const auto &rich : context.PatronsSDT)
+						{
+							ImGui::Text(rich.c_str());
+						}
+					}
+					ImGui::PopFont();
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.5f);
+
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
+					{
+						ImGui::Text(UI::g_UIContext.TierNames[(size_t)PatreonTiers_t::DT].c_str());
+					}
+					ImGui::PopFont();
+
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+					{
+						for (const auto &rich : context.PatronsDT)
+						{
+							ImGui::Text(rich.c_str());
+						}
+					}
+					ImGui::PopFont();
+				}
 			}
 			ImGui::EndChild();
 		}

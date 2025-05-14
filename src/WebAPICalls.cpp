@@ -12,6 +12,12 @@
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "Normaliz.lib")
 
+struct PatronTier_t
+{
+	std::string Name;
+	PatreonTiers_t ID;
+};
+
 static size_t CurlWriteCallback(void* data, size_t size, size_t nmemb, void* clientp)
 {
 	std::string* responseJSON = (std::string*)clientp;
@@ -66,7 +72,7 @@ void WebAPICalls::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 		return;
 	}
 
-	constexpr char url[] = "https://api.github.com/repos/amir-120/Blender-RE-Engine-Model/releases/latest";
+	constexpr char url[] = "https://crimson-api-redirect.vercel.app/latest-release";
 
 	curl_easy_setopt(curlInstance, CURLOPT_URL, url);
 	curl_easy_setopt(curlInstance, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
@@ -94,8 +100,17 @@ void WebAPICalls::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 		if (m_VersionCallback) {
 			rapidjson::Document d;
 			d.Parse(responseJSON.c_str());
-		
-			rapidjson::Value& tagValue = d["tag_name"];
+
+			if (!(d.HasMember("githubResponseStatus") && d["githubResponseStatus"].GetUint64() == 200 && d.HasMember("latestReleaseInfo") && !d["latestReleaseInfo"].IsNull())) // Patron results are valid
+			{
+				m_PatronsCallback(WebAPIResult::PatreonError, {});
+
+				return;
+			}
+
+			rapidjson::Value &info = d["latestReleaseInfo"];
+
+			rapidjson::Value& tagValue = info["tag_name"];
 		
 			// The format is always ( <Major>.<Minor>.<Patch><HotfixLetter> ) the hotfix letter is optional
 			if (auto tag = tagValue.GetString(); (char)tolower(tag[0]) == 'v') {
@@ -129,7 +144,7 @@ void WebAPICalls::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 				// Date
 				{
 					{
-						rapidjson::Value& createdAtValue = d["created_at"];
+						rapidjson::Value& createdAtValue = info["created_at"];
 
 						auto tp = ParseISO8601(createdAtValue.GetString());
 
@@ -140,7 +155,7 @@ void WebAPICalls::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 					}
 
 					{
-						rapidjson::Value& createdAtValue = d["published_at"];
+						rapidjson::Value& createdAtValue = info["published_at"];
 
 						auto tp = ParseISO8601(createdAtValue.GetString());
 
@@ -153,7 +168,7 @@ void WebAPICalls::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 
 				// URL
 				{
-					rapidjson::Value& createdAtValue = d["assets"][0]["browser_download_url"];
+					rapidjson::Value& createdAtValue = info["created_at"];
 				
 					queuedVersion.DirectURL = createdAtValue.GetString();
 				}
@@ -181,11 +196,37 @@ void WebAPICalls::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 	curl_easy_cleanup(curlInstance);
 }
 
+PatronTier_t GetMostValuableTier(const std::vector<std::string>& tierNames)
+{	
+	int32_t maxTierScore = -1;
+	PatreonTiers_t mvtID = PatreonTiers_t::Invalid;
+
+	for (const std::string tier : tierNames)
+	{
+		for (size_t i = 0; i < sizeof(PATRON_TIER_NAMES) / sizeof(decltype(*PATRON_TIER_NAMES)); i++)
+		{
+			std::string toCompare = std::string(PATRON_TIER_NAMES[i]);
+			if (tier == toCompare)
+			{
+				maxTierScore = i;
+				mvtID = PATRON_TIER_IDS[i];
+			}
+		}
+	}
+
+	if (maxTierScore != -1)
+	{
+		return {
+			.Name = std::string(PATRON_TIER_NAMES[maxTierScore]),
+			.ID = mvtID
+		};
+	}
+
+	return { .Name = "", .ID = PatreonTiers_t::Invalid };
+}
+
 void WebAPICalls::QueuePatrons(size_t timeOutMS /*= 0*/)
 {
-	// Todo: fix the online api for patrons, then remove the return
-	return;
-
 	CURL* curlInstance = curl_easy_init();
 
 	if (curlInstance == nullptr) {
@@ -216,7 +257,14 @@ void WebAPICalls::QueuePatrons(size_t timeOutMS /*= 0*/)
 			rapidjson::Document d;
 			d.Parse(responseJSON.c_str());
 
-			rapidjson::Value& patrons = d["patrons"];
+			if (!(d.HasMember("patreonResponseStatus") && d["patreonResponseStatus"].GetUint64() == 200 && d.HasMember("patronList") && !d["patronList"].IsNull())) // Patron results are valid
+			{
+				m_PatronsCallback(WebAPIResult::PatreonError, {});
+
+				return;
+			}
+
+			rapidjson::Value& patrons = d["patronList"];
 
 			std::vector<Patron_t> patronsVec{};
 
@@ -225,23 +273,24 @@ void WebAPICalls::QueuePatrons(size_t timeOutMS /*= 0*/)
 
 				PatreonTiers_t tier;
 
-				switch (patron["tier_id"].GetUint64()) {
-				// Rich
-				case 9668149:
-					tier = PatreonTiers_t::Rich;
-					break;
+				rapidjson::Value &patronTiers = patron["tiers"];
 
-				// Rich AF
-				case 9668242:
-					tier = PatreonTiers_t::RichAF;
-					break;
-
-				default:
-					break;
+				std::vector<std::string> tierNames;
+				tierNames.reserve(patronTiers.Size());
+				for (size_t j = 0; j < patronTiers.Size(); j++)
+				{
+					tierNames.push_back(patronTiers[j].GetString());
 				}
 
-				patronsVec.emplace_back(patron["user_name"].GetString(), patron["tier_name"].GetString(), 
-										patron["user_id"].GetUint64(), patron["tier_id"].GetUint64(), tier);
+				const auto mostValuableTier = GetMostValuableTier(tierNames);
+
+				const auto fullName = patron["fullName"].IsNull() ? "" : std::string_view(patron["fullName"].GetString());
+				const auto vanity = patron["vanity"].IsNull() ? "" : std::string_view(patron["vanity"].GetString());
+
+				const std::string shownName = std::string(vanity.empty() ? fullName : vanity);
+				
+				if (!shownName.empty() && mostValuableTier.ID != PatreonTiers_t::Invalid && mostValuableTier.ID != PatreonTiers_t::Free)
+					patronsVec.emplace_back(shownName, mostValuableTier.Name, mostValuableTier.ID);
 			}
 
 			if (m_PatronsCallback)

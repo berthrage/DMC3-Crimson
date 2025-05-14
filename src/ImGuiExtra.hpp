@@ -161,11 +161,15 @@ namespace UI {
 
 		std::string TierNames[(size_t)PatreonTiers_t::Size]{};
 
-		std::vector<std::string> PatronsRich{
+		std::vector<std::string> PatronsDT{
 			"Loading..."
 		};
 
-		std::vector<std::string> PatronsRichAF{
+		std::vector<std::string> PatronsSDT{
+			"Loading..."
+		};
+
+		std::vector<std::string> PatronsLDK{
 			"Loading..."
 		};
 

@@ -22,28 +22,35 @@ struct Version_t {
 	std::string DirectURL;
 };
 
-enum class PatreonTiers_t : uint64_t {
-	Rich = 0,
-	RichAF,
+enum class PatreonTiers_t : int64_t
+{
+	Invalid = 0,
+	Free,
+	DT,
+	SDT,
+	LDK,
 
 	Size,
 };
 
 enum class WebAPIResult : uint64_t {
 	Success = 0,
+	CURLNotInitialized,
 	Awaiting,
 	Timeout,
-	CURLNotInitialized,
+	PatreonError,
+	GithubError,
 	UnknownError,
 };
 
 struct Patron_t {
-	std::string UserName;
+	std::string ShownName;
 	std::string TierName;
-	uint64_t UserID;
-	uint64_t TierID;
 	PatreonTiers_t Tier;
 };
+
+constexpr std::string_view PATRON_TIER_NAMES[] = { "Free", "Devil Trigger Tier", "Sin Devil Trigger Tier", "Legendary Dark Knight Tier" };
+constexpr PatreonTiers_t PATRON_TIER_IDS[] = { PatreonTiers_t::Free, PatreonTiers_t::DT, PatreonTiers_t::SDT, PatreonTiers_t::LDK };
 
 class WebAPICalls {
 public:
