@@ -357,9 +357,9 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 				ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize * 0.9f]);
 
 				// NEW VERSION AVAILABLE
-// 				if (InfoButton(newVersionText.c_str())) {
-// 					ShellExecute(0, 0, "https://github.com/berthrage/Devil-May-Cry-3-Crimson/releases/new", 0, 0, SW_SHOW);
-// 				}
+ 				if (InfoButton(newVersionText.c_str())) {
+ 					ShellExecute(0, 0, "https://github.com/berthrage/Devil-May-Cry-3-Crimson/releases/new", 0, 0, SW_SHOW);
+ 				}
 
 				ImGui::PopFont();
 
