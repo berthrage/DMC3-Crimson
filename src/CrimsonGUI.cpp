@@ -11375,7 +11375,7 @@ void InputRemapOptions() {
 		}
 	}
 
-	DrawKeybindEditor(buttonPairs);
+	/*DrawKeybindEditor(buttonPairs);*/
 	
 	ImGui::PopStyleColor();
 	ImGui::PopFont();
@@ -11386,7 +11386,7 @@ void GameplaySection() {
 	DanteGameplayOptions();
 	VergilGameplayOptions();
 	ExtraDifficultyGameplayOptions();
-	//InputRemapOptions();
+	InputRemapOptions();
 }
 
 #pragma endregion
