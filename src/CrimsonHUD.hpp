@@ -18,6 +18,7 @@ void StyleDisplayWindow();
 void StyleTextDisplayWindow();
 void StyleEXPDisplayWindow();
 void StyleLvlDispWindow();
+void RoyalGaugeDispWindow();
 void MirageGaugeMainPlayer();
 
 

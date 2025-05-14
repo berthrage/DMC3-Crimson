@@ -8015,6 +8015,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
+			ImGui::Text("royalguardDamage: %g", actorData.royalguardReleaseDamage);
 			ImGui::Text("styleExpPoints: %g", actorData.styleExpPoints);
 			ImGui::Text("Actor Base Addr: %x", actorData.baseAddr);
 			ImGui::Text("TrickDash Timer: %g", crimsonPlayer[0].trickDashTimer);
@@ -11384,7 +11385,7 @@ void GameplaySection() {
 	DanteGameplayOptions();
 	VergilGameplayOptions();
 	ExtraDifficultyGameplayOptions();
-	InputRemapOptions();
+	//InputRemapOptions();
 }
 
 #pragma endregion
@@ -13850,6 +13851,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonHUD::StyleTextDisplayWindow();
 	CrimsonHUD::StyleLvlDispWindow();
 	CrimsonHUD::StyleEXPDisplayWindow();
+	CrimsonHUD::RoyalGaugeDispWindow();
 	CrimsonHUD::MirageGaugeMainPlayer();
 
 	UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;

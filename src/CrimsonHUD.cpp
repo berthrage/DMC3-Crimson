@@ -160,6 +160,8 @@ static Texture2DD3D11* styleExpBarBorderVergil{ nullptr };
 static Texture2DD3D11* styleExpBarFill{ nullptr };
 static Texture2DD3D11* styleLevelDiamond{ nullptr };
 
+static Texture2DD3D11* royalGaugeCircle{ nullptr };
+
 
 void InitRedOrbTexture(ID3D11Device* pd3dDevice) {
 	//RedOrbTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "RedorbVanilla3.png").c_str(), pd3dDevice);
@@ -312,6 +314,8 @@ void InitStyleGlassTextures(ID3D11Device* pd3dDevice) {
 	styleExpBarFill = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\exp\\style-exp-inside.png").c_str(), pd3dDevice);
 	styleLevelDiamond = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\exp\\diamondLevel.png").c_str(), pd3dDevice);
 
+	royalGaugeCircle = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\royal\\gauge.png").c_str(), pd3dDevice);
+
 	assert(tSmall);
 	assert(tBig);
 	assert(sSmall);
@@ -357,6 +361,7 @@ void InitStyleGlassTextures(ID3D11Device* pd3dDevice) {
 	assert(styleExpBarBorderVergil);
 	assert(styleExpBarFill);
 	assert(styleLevelDiamond);
+	assert(royalGaugeCircle);
 }
 
 
@@ -2746,6 +2751,120 @@ void StyleLvlDispWindow() {
 		ImVec2(0, 0), ImVec2(1, 1),
 		diamondStyleColor
 	);
+
+	ImGui::End();
+}
+
+void RoyalGaugeDispWindow() {
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+	if (!(InGame() && !g_inGameCutscene)) {
+		return;
+	}
+	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.stylesDisplay || !activeConfig.Actor.enable) {
+		return;
+	}
+
+	auto& character = mainActorData.character;
+	if (character != CHARACTER::DANTE) return;
+
+	float alpha = hudData.topLeftAlpha / 127.0f;
+	float royalGaugeTextureSizeX = (200.0f * 0.5f) * scaleFactorY;
+	float royalGaugeTextureSizeY = (200.0f * 0.5f) * scaleFactorY;
+
+	ImVec2 royalGaugeWindowSize = ImVec2(
+		royalGaugeTextureSizeX + (50.0f * 3 * scaleFactorY),
+		royalGaugeTextureSizeY + (50.0f * 3 * scaleFactorY));
+
+	// Center of the screen
+	float screenCenterX = ImGui::GetIO().DisplaySize.x * 0.5f;
+	float screenCenterY = ImGui::GetIO().DisplaySize.y * 0.5f;
+
+	ImVec2 royalGaugeWindowPos =
+		ImVec2(
+			screenCenterX - (845.0f * scaleFactorY),
+			83.0f * scaleFactorY);
+
+	ImGui::SetNextWindowSize(royalGaugeWindowSize);
+	ImGui::SetNextWindowPos(royalGaugeWindowPos);
+
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	ImGui::Begin("RoyalGaugeWindow", nullptr, windowFlags);
+
+	float textureWidth = royalGaugeTextureSizeX;
+	float textureHeight = royalGaugeTextureSizeY;
+	ImVec2 windowPos = ImGui::GetWindowPos();
+	ImVec2 texturePos = ImVec2(
+		windowPos.x,
+		windowPos.y + (royalGaugeWindowSize.y - textureHeight) * 0.5f
+	);
+
+	float royalGaugeFraction = 1.0f; // Should be 0.0f to 1.0f
+	float royalGaugeFraction2 = mainActorData.royalguardReleaseDamage / 9000.0f; // Should be 0.0f to 1.0f
+
+	ImColor pinkColor = ImColor(UI::SwapColorEndianness(0x221b67FF));
+	pinkColor.Value.w = alpha;
+
+
+	if (mainActorData.style == STYLE::ROYALGUARD) {
+		// LARGE CIRCLE (Pie)
+		
+
+			DrawRotatedImagePie(
+				royalGaugeCircle->GetTexture(),
+				texturePos,
+				ImVec2(textureWidth, textureHeight),
+				0.0f,
+				pinkColor,
+				royalGaugeFraction
+		);
+
+			DrawRotatedImagePie(
+				royalGaugeCircle->GetTexture(),
+				texturePos,
+				ImVec2(textureWidth, textureHeight),
+				0.0f,
+				ImColor(1.0f, 1.0f, 1.0f, alpha),
+				royalGaugeFraction2
+			);
+	} else {
+		// Small CIRCLE (Pie, scaled and centered over the big one)
+		float smallScale = 0.6f;
+		float smallWidth = textureWidth * smallScale;
+		float smallHeight = textureHeight * smallScale;
+		ImVec2 smallPos = ImVec2(
+			texturePos.x + (textureWidth - smallWidth) * 0.5f,
+			texturePos.y + (textureHeight - smallHeight) * 0.5f - (15.0f * scaleFactorY)
+		);
+		DrawRotatedImagePie(
+			royalGaugeCircle->GetTexture(),
+			smallPos,
+			ImVec2(smallWidth, smallHeight),
+			0.0f,
+			pinkColor,
+			royalGaugeFraction
+		);
+
+		DrawRotatedImagePie(
+			royalGaugeCircle->GetTexture(),
+			smallPos,
+			ImVec2(smallWidth, smallHeight),
+			0.0f,
+			ImColor(1.0f, 1.0f, 1.0f, alpha),
+			royalGaugeFraction2
+		);
+	}
 
 	ImGui::End();
 }
