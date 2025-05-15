@@ -5215,8 +5215,8 @@ ShopExperienceStyleHelper shopHelpersDanteStyle[] = {
 };
 
 ShopExperienceStyleHelper shopHelpersVergilStyle[] = {
-	{"Dark Slayer Level 2", 25,STYLE::DARK_SLAYER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
-	{"Dark Slayer Level 3", 100,STYLE::DARK_SLAYER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
+	{"Dark Slayer Level 2", 20000,STYLE::DARK_SLAYER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
+	{"Dark Slayer Level 3", 30000,STYLE::DARK_SLAYER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
 };
 
 
@@ -5226,7 +5226,7 @@ ShopExperienceHelper shopHelpersVergil[] = {
 	{"Yamato Judgement Cut Level 1",UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_1, 10000, -1, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2,-1,-1},
 	{"Yamato Judgement Cut Level 2",UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2, 20000, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_1, -1,-1,-1},
 	{"Beowulf Starfall Level 2",UNLOCK_VERGIL::BEOWULF_STARFALL_LEVEL_2, 7500, -1, -1,-1,-1},
-	{"Beowulf Rising Sun", 5000,UNLOCK_VERGIL::BEOWULF_RISING_SUN, -1, -1,-1,-1},
+	{"Beowulf Rising Sun",UNLOCK_VERGIL::BEOWULF_RISING_SUN, 5000, -1, -1,-1,-1},
 	{"Beowulf Lunar Phase Level 2",UNLOCK_VERGIL::BEOWULF_LUNAR_PHASE_LEVEL_2, 15000, -1, -1,-1,-1},
 	{"Yamato & Force Edge Helm Breaker Level 2",UNLOCK_VERGIL::YAMATO_FORCE_EDGE_HELM_BREAKER_LEVEL_2, 13000, -1, -1,-1,-1},
 	{"Yamato & Force Edge Stinger Level 1",UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1, 5000, -1, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_2,-1,-1},
@@ -5618,6 +5618,11 @@ void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelp
 				}
 				else {
 					ImGui::Text("%u (%u%% off!)", rorb_cost_calculated, percentage_discount);
+					ImGui::SameLine();
+					GUI_PopDisable(priceCondition);
+					TooltipHelper("(?)", "Discount is based on XP earned for this style. Resets on purchase.");
+					GUI_PushDisable(priceCondition);
+
 				}
 			}
 			GUI_PopDisable(priceCondition);
