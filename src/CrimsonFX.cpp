@@ -474,16 +474,23 @@ void DelayedComboFXController(byte8* actorBaseAddr) {
 			weapon == delayedComboFX.weaponThatStartedMove) {
 
             // SFX
-			CrimsonSDL::PlayDelayedCombo1(actorData.newPlayerIndex);
-
+			if (activeCrimsonConfig.SFX.delayedComboEffectType == DELAYEDCOMBOSFX::TYPE_A) {
+				CrimsonSDL::PlayDelayedCombo2(actorData.newPlayerIndex);
+			} else {
+				CrimsonSDL::PlayDelayedCombo1(actorData.newPlayerIndex);
+			}
+			
+			
             // VFX
-			auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
-			uint8 vfxColor[4] = { 48, 0, 10, 255 };
-			uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(vfxColor);
-			CrimsonDetours::CreateEffectDetour(pPlayer, delayedComboFX.bank, delayedComboFX.id, 1, true, actualColor, 1.2f);
+			if (activeCrimsonConfig.VFX.delayedComboVFX) {
+				auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
+				uint8 vfxColor[4] = { 48, 0, 10, 255 };
+				uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(vfxColor);
+				CrimsonDetours::CreateEffectDetour(pPlayer, delayedComboFX.bank, delayedComboFX.id, 1, true, actualColor, 1.2f);
 
-            // VIBRATION
-			CrimsonSDL::VibrateController(playerIndex, 0, 0x5555, 130);
+				// VIBRATION
+				CrimsonSDL::VibrateController(playerIndex, 0, 0x5555, 130);
+			}
 
 
 			delayedComboFX.playCount++;

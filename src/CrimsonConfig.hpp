@@ -42,6 +42,13 @@ enum {
 };
 }
 
+namespace DELAYEDCOMBOSFX {
+enum {
+	TYPE_A,
+	TYPE_B
+};
+}
+
 struct CrimsonConfig {
 	struct MultiplayerBars2D {
 		bool show = true;
@@ -254,6 +261,16 @@ struct CrimsonConfig {
 
 	} StyleSwitchFX;
 
+	struct VFX {
+		bool delayedComboVFX = true;
+
+		static constexpr auto Metadata() {
+			return std::make_tuple(
+				std::make_pair("delayedComboVFX", &VFX::delayedComboVFX)
+			);
+		}
+	} VFX;
+
 	struct SFX {
 		uint8 changeGunNew = 1;
 		uint8 changeDevilArmNew = 1;
@@ -270,6 +287,8 @@ struct CrimsonConfig {
 		uint32 quicksilverInVolume = 50;
 		uint32 styleRankAnnouncerVolume = 255;
 		uint32 styleRankAnnouncerCooldownSeconds = 20;
+		uint8 delayedComboEffectType = 0;
+		uint8 delayedComboIndicatorVolume = 100;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -287,7 +306,8 @@ struct CrimsonConfig {
                 std::make_pair("doppelgangerOutVolume", &SFX::doppelgangerOutVolume),
                 std::make_pair("quicksilverInVolume", &SFX::quicksilverInVolume),
                 std::make_pair("styleRankAnnouncerVolume", &SFX::styleRankAnnouncerVolume),
-                std::make_pair("styleRankAnnouncerCooldownSeconds", &SFX::styleRankAnnouncerCooldownSeconds)
+                std::make_pair("styleRankAnnouncerCooldownSeconds", &SFX::styleRankAnnouncerCooldownSeconds),
+				std::make_pair("delayedComboIndicatorVolume", &SFX::delayedComboIndicatorVolume)	
 			);
 		}
 	} SFX;
@@ -454,6 +474,7 @@ struct CrimsonConfig {
 			std::make_pair("HudOptions", &CrimsonConfig::HudOptions),
             std::make_pair("Camera", &CrimsonConfig::Camera),
             std::make_pair("StyleSwitchFX", &CrimsonConfig::StyleSwitchFX),
+			std::make_pair("VFX", &CrimsonConfig::VFX),
             std::make_pair("SFX", &CrimsonConfig::SFX),
 			std::make_pair("PlayerProperties", &CrimsonConfig::PlayerProperties),
 			std::make_pair("System", &CrimsonConfig::System),

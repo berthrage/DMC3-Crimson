@@ -1744,6 +1744,17 @@ constexpr uint8 enemyDTModes[] = {
 	ENEMYDTMODE::NO_ENEMY_DT,
 };
 
+constexpr uint8 delayedComboSFXMap[] = {
+	DELAYEDCOMBOSFX::TYPE_A,
+	DELAYEDCOMBOSFX::TYPE_B,
+};
+
+const char* delayedComboSFXNames[] = {
+	"Type A",
+	"Type B",
+};
+
+
 static_assert(countof(trackFilenames) == countof(trackNames));
 
 #pragma endregion
@@ -9744,6 +9755,22 @@ void SoundSection(size_t defaultFontSize) {
 			GUI_InputDefault2<uint32>("Activation Volume", activeCrimsonConfig.SFX.quicksilverInVolume, queuedCrimsonConfig.SFX.quicksilverInVolume, defaultCrimsonConfig.SFX.quicksilverInVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::PopItemWidth();
 
+			ImGui::TableNextColumn();
+
+			ImGui::Text("");
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("DELAYED COMBO SFX");
+			ImGui::PopFont();
+
+			UI::ComboMapValue2("SFX Type",
+				delayedComboSFXNames,
+				delayedComboSFXMap,
+				activeCrimsonConfig.SFX.delayedComboEffectType,
+				queuedCrimsonConfig.SFX.delayedComboEffectType);
+
+			GUI_Slider2<uint8>("Volume", activeCrimsonConfig.SFX.delayedComboIndicatorVolume, queuedCrimsonConfig.SFX.delayedComboIndicatorVolume, 0, 100);
+
 			ImGui::EndTable();
 		}
 	}
@@ -10004,6 +10031,8 @@ void VisualSection(size_t defaultFontSize) {
     
 
 	ImGui::Text("");
+
+	GUI_TitleCheckbox2("DELAYED COMBO VFX / VIBRATION", activeCrimsonConfig.VFX.delayedComboVFX, queuedCrimsonConfig.VFX.delayedComboVFX, true);
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 

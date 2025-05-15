@@ -702,12 +702,18 @@ void PlayDevilTriggerReady(int playerIndex) {
 }
 
 void PlayDelayedCombo1(int playerIndex) {
-    fn_Mix_Volume(CHANNEL::initialDelayedCombo1 + playerIndex, 18);
-    fn_Mix_PlayChannel(CHANNEL::initialDelayedCombo1 + playerIndex, delayedCombo1, 0);
+    // TYPE B - DmC ping
+	float slider = activeCrimsonConfig.SFX.delayedComboIndicatorVolume / 100.0f; // 1.0 to 0.0
+	int volumeDelayed1 = (int)(11.0f * slider); // 18 at 100%, 0 at 0%
+	fn_Mix_Volume(CHANNEL::initialDelayedCombo1 + playerIndex, volumeDelayed1);
+	fn_Mix_PlayChannel(CHANNEL::initialDelayedCombo1 + playerIndex, delayedCombo1, 0);
 }
 
 void PlayDelayedCombo2(int playerIndex) {
-    fn_Mix_Volume(CHANNEL::initialDelayedCombo2 + playerIndex, 100);
+    // TYPE A - Less Intrusive
+	float slider = activeCrimsonConfig.SFX.delayedComboIndicatorVolume / 100.0f; 
+	int volumeDelayed2 = (int)(50.0f * slider); 
+    fn_Mix_Volume(CHANNEL::initialDelayedCombo2 + playerIndex, volumeDelayed2);
     fn_Mix_PlayChannel(CHANNEL::initialDelayedCombo2 + playerIndex, delayedCombo2, 0);
 }
 
