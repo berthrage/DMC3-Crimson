@@ -103,7 +103,10 @@ void PreparePlayersDataBeforeSpawn() {
 
 			crimsonPlayer[playerIndex].hitPoints = sessionData.hitPoints;
 			crimsonPlayer[playerIndex].maxHitPoints = sessionData.hitPoints;
-			crimsonPlayer[playerIndex].style = sessionData.style;
+			//stop breaking the style shop you bastards
+			//by skipping the style override on secret mission start, we prevent dante's current style level from becoming desynced with its original style.
+			if (g_secretMission == 0)
+				crimsonPlayer[playerIndex].style = sessionData.style;
 			crimsonPlayer[playerIndex].magicPoints = sessionData.magicPoints;
 			crimsonPlayer[playerIndex].maxMagicPoints = sessionData.magicPoints;
 			crimsonPlayer[playerIndex].vergilDoppelganger.miragePoints = 2000;
