@@ -15,6 +15,7 @@ namespace CrimsonOnTick {
 	void GeneralCameraOptionsController();
 	void AirTauntDetoursController();
 	void PauseSFXWhenPaused();
+	void TrackMissionStyleLevels();
 	void OverrideEnemyTargetPosition();
 	void WeaponProgressionTracking();
 	void FixM7DevilTriggerUnlocking();

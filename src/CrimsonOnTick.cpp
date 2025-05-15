@@ -788,6 +788,24 @@ void PauseSFXWhenPaused() {
 	}
 }
 
+void TrackMissionStyleLevels() {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_10723) {
+		return;
+	}
+	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
+	
+	if (missionData.frameCount <= 0 && g_scene != SCENE::MISSION_START && g_scene != SCENE::LOAD) {
+		for (int style = 0; style < STYLE::MAX; style++) {
+			heldStyleExpDataDante.missionStyleLevels[style] = ExpConfig::sessionExpDataDante.styleLevels[style];
+			heldStyleExpDataVergil.missionStyleLevels[style] = ExpConfig::sessionExpDataVergil.styleLevels[style];
+		}
+	}
+	
+}
+
 #pragma endregion
 
 #pragma region EnemyGameplay

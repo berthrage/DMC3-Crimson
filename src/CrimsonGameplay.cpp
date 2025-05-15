@@ -99,11 +99,11 @@ void UpdateCrimsonPlayerData() {
             actorData.hitPoints = sessionData.hitPoints;
             crimsonPlayer[playerIndex].hitPoints = sessionData.hitPoints;
         }
-        
-        crimsonPlayer[playerIndex].maxHitPoints = actorData.maxHitPoints;
+
+		crimsonPlayer[playerIndex].style = actorData.style;
+		crimsonPlayer[playerIndex].maxHitPoints = actorData.maxHitPoints;
 		crimsonPlayer[playerIndex].magicPoints = actorData.magicPoints;
-		crimsonPlayer[playerIndex].maxMagicPoints = actorData.maxMagicPoints;
-        crimsonPlayer[playerIndex].style = actorData.style;
+        crimsonPlayer[playerIndex].maxMagicPoints = actorData.maxMagicPoints;
         crimsonPlayer[playerIndex].actorMode = actorData.mode;
         crimsonPlayer[playerIndex].royalguardReleaseDamage = actorData.royalguardReleaseDamage;
         if (eventData.event == EVENT::MAIN && actorData.dtExplosionCharge > 300 && g_inGameDelayed) {

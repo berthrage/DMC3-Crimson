@@ -1735,11 +1735,11 @@ void SavePlayerActorExp() {
         return;
     }
 
-	auto name_7058 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	auto missionDataAddr = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
 
-	auto& missionData = *reinterpret_cast<MissionData*>(name_7058);
-	auto& queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData*>(name_7058 + 0xC0);
-	auto& activeMissionActorData = *reinterpret_cast<ActiveMissionActorData*>(name_7058 + 0x16C);
+	auto& missionData = *reinterpret_cast<MissionData*>(missionDataAddr);
+	auto& queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData*>(missionDataAddr + 0xC0);
+	auto& activeMissionActorData = *reinterpret_cast<ActiveMissionActorData*>(missionDataAddr + 0x16C);
 
     // Only player 1's active actor can accumulate exp.
     // Default actors are not updated.

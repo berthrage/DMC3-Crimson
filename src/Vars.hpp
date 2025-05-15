@@ -5314,6 +5314,7 @@ struct HeldStyleExpData {
     int styleLevel = 0;
     int accumulatedStyleLevels[6] = { 0 };
     float accumulatedStylePoints[6] = { 0 };
+    int missionStyleLevels[6] = { 0 };
 };
 
 extern HeldStyleExpData heldStyleExpDataDante;

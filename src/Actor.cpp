@@ -2789,14 +2789,19 @@ byte8* SpawnActor(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
             actorData.hitPoints = crimsonPlayer[newPlayerIndex].hitPoints;
         }
 
-
-        actorData.maxHitPoints = crimsonPlayer[newPlayerIndex].maxHitPoints;
-        actorData.maxMagicPoints = crimsonPlayer[newPlayerIndex].maxMagicPoints;
-        actorData.magicPoints = crimsonPlayer[newPlayerIndex].magicPoints;
+		actorData.maxHitPoints = crimsonPlayer[newPlayerIndex].maxHitPoints;
+		actorData.maxMagicPoints = crimsonPlayer[newPlayerIndex].maxMagicPoints;
+		actorData.magicPoints = crimsonPlayer[newPlayerIndex].magicPoints;
 
         if (actorData.character == CHARACTER::DANTE) {
             actorData.style = crimsonPlayer[playerIndex].style;
         }
+
+		HeldStyleExpData& heldStyleExpData = (actorData.character == CHARACTER::DANTE)
+			? heldStyleExpDataDante
+			: heldStyleExpDataVergil;
+        actorData.styleLevel = heldStyleExpData.missionStyleLevels[actorData.style];
+        
         actorData.royalguardReleaseDamage = crimsonPlayer[newPlayerIndex].royalguardReleaseDamage;
         actorData.dtExplosionCharge = crimsonPlayer[newPlayerIndex].dtExplosionCharge;
         crimsonPlayer[newPlayerIndex].vergilDoppelganger.drainStart = false; // very important to ensure drainTimer doesn't stay on when respawning
