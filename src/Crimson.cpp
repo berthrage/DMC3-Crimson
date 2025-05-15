@@ -284,6 +284,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonGameplay.Gameplay.General.increasedEnemyJuggleTime);
         //CrimsonPatches::SetEnemyDTMode(activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode);
         CrimsonDetours::ToggleCerberusCrashFix(true);
+        CrimsonDetours::ToggleVergilM3CrashFix(true);
 
         CrimsonPatches::DisableBlendingEffects(false);
         CrimsonPatches::DisableBlendingEffects(activeConfig.disableBlendingEffects);

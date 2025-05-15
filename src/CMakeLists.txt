@@ -9,6 +9,7 @@ set(MASM_SRC
     masm/FasterTurnRate.asm
     masm/GuardBreakToNormalBlock.asm
     masm/FixCrashCerberus.asm
+    masm/FixCrashVergilM3.asm
     masm/HideStyleRankHUD.asm
     masm/HudHPSeparation.asm
     masm/HudStyleBarPosAsm.asm

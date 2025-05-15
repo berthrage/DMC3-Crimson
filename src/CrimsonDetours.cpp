@@ -94,6 +94,11 @@ std::uint64_t g_FixCrashCerberus_ReturnAddr;
 std::uint64_t g_FixCrashCerberus_PlayerStructAddr;
 void FixCrashCerberusDetour();
 
+// FixCrashVergilM3
+std::uint64_t g_FixCrashVergilM3_ReturnAddr;
+std::uint64_t g_FixCrashVergilM3_JumpAddr;
+void FixCrashVergilM3Detour();
+
 // HoldToCrazyCombo
 std::uint64_t g_HoldToCrazyCombo_ReturnAddr;
 void HoldToCrazyComboDetour();
@@ -967,6 +972,28 @@ void ToggleCerberusCrashFix(bool enable) {
   
 	
     run = enable;
+}
+
+void ToggleVergilM3CrashFix(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// FixCrashVergilM3
+	// dmc3.exe+324B45 - 66 44 3B 20 - cmp r12w,[rax]  <-- rax is getting null sometimes, so we do a null check before
+	// dmc3.exe+324B49 - 7C 3E  - jl dmc3.exe+324B89
+	static std::unique_ptr<Utility::Detour_t> FixCrashVergilM3Hook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x324B45, &FixCrashVergilM3Detour, 6);
+	g_FixCrashVergilM3_ReturnAddr = FixCrashVergilM3Hook->GetReturnAddress();
+	g_FixCrashVergilM3_JumpAddr = (uintptr_t)appBaseAddr + 0x324B89;
+
+	FixCrashVergilM3Hook->Toggle(enable);
+
+	run = enable;
 }
 
 }
