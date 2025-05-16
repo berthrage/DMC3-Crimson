@@ -261,7 +261,7 @@ void MultiplayerCameraPositioningController() {
 	float playerWeight = 5.0f;  // Weight for playable characters
 	float enemyWeight = 1.0f;   // Weight for enemies
 	float totalWeight = 0.0f;
-	auto aliveCount = 0;
+	int alivePlayerCount = 0; // Track number of players still alive
 
 	// Loop through player data
 	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
@@ -275,7 +275,7 @@ void MultiplayerCameraPositioningController() {
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 		auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
 		if (!actorData.dead) {
-			aliveCount++;
+			alivePlayerCount++;
 		}
 		// Apply player weight to their position
 		g_customCameraPos[0] += actorData.position.x * playerWeight;
@@ -293,9 +293,12 @@ void MultiplayerCameraPositioningController() {
 			entityCount++;
 		}
 	}
-	if (aliveCount<=1 && activeConfig.Actor.playerCount > 1) {
+
+	// Turn off multiplayer camera when active player count is > 1 and only one player is alive
+	if (alivePlayerCount<=1 && activeConfig.Actor.playerCount > 1) {
 		triggerMPCam = false;
 	}
+
 	// Loop through enemy data
 	for (auto enemy : enemyVectorData.metadata) {
 		if (!enemy.baseAddr) continue;
