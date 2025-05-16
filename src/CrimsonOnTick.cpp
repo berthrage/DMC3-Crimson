@@ -268,11 +268,13 @@ void MultiplayerCameraPositioningController() {
 	static float lerpFactor = lerpFactorOutTransition;
 	static std::chrono::time_point<std::chrono::steady_clock> transitionToMPStartTime;
 	static bool isTransitionTimerActive = false;
+	bool triggerMPCam = activeCrimsonConfig.Camera.multiplayerCamera? true : false;
 
 	int entityCount = 0; // Track valid entities for averaging
 	float playerWeight = 5.0f;  // Weight for playable characters
 	float enemyWeight = 1.0f;   // Weight for enemies
 	float totalWeight = 0.0f;
+	int alivePlayerCount = 0; // Track number of players still alive
 
 	// Loop through player data
 	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
@@ -285,7 +287,9 @@ void MultiplayerCameraPositioningController() {
 		}
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 		auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
-
+		if (!actorData.dead) {
+			alivePlayerCount++;
+		}
 		// Apply player weight to their position
 		g_customCameraPos[0] += actorData.position.x * playerWeight;
 		g_customCameraPos[1] += actorData.position.y * playerWeight;
@@ -301,6 +305,11 @@ void MultiplayerCameraPositioningController() {
 			totalWeight += playerWeight;
 			entityCount++;
 		}
+	}
+
+	// Turn off multiplayer camera when active player count is > 1 and only one player is alive
+	if (alivePlayerCount<=1 && activeConfig.Actor.playerCount > 1) {
+		triggerMPCam = false;
 	}
 
 	// Loop through enemy data
@@ -355,7 +364,6 @@ void MultiplayerCameraPositioningController() {
 
 	float cameraDistanceMP = (eventData.room >= ROOM::BLOODY_PALACE_1 && eventData.room <= ROOM::BLOODY_PALACE_10) || eventData.room? 2800.0f : 1900.0f;
 
-	bool triggerMPCam = activeCrimsonConfig.Camera.multiplayerCamera? true : false;
 	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
 		float distanceTo1P = g_plEntityTo1PDistances[i];
 
