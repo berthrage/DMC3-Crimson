@@ -98,19 +98,29 @@ void PreparePlayersDataBeforeSpawn() {
 	}
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10371[8]);
 
+	auto missionDataPtr = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!missionDataPtr) {
+		return;
+	}
+	auto& missionData = *reinterpret_cast<MissionData*>(missionDataPtr);
+	auto& queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData*>(missionDataPtr + 0xC0);
+	auto& activeMissionActorData = *reinterpret_cast<ActiveMissionActorData*>(missionDataPtr + 0x16C);
+
 	if (g_scene != SCENE::GAME || (g_scene == SCENE::GAME && eventData.event == EVENT::DEATH)) {
 		for (int playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {
-
-			crimsonPlayer[playerIndex].hitPoints = sessionData.hitPoints;
-			crimsonPlayer[playerIndex].maxHitPoints = sessionData.hitPoints;
+			//write from active missiondata here instead of session so that we can use purchased but unsaved blorbs
+			crimsonPlayer[playerIndex].hitPoints = activeMissionActorData.hitPoints;
+			crimsonPlayer[playerIndex].maxHitPoints = activeMissionActorData.maxHitPoints;
 			//stop breaking the style shop you bastards
 			//by skipping the style override on secret mission start, we prevent dante's current style level from becoming desynced with its original style.
 			if (g_secretMission == 0)
 				crimsonPlayer[playerIndex].style = sessionData.style;
-			crimsonPlayer[playerIndex].magicPoints = sessionData.magicPoints;
-			crimsonPlayer[playerIndex].maxMagicPoints = sessionData.magicPoints;
+			//write from active missiondata here instead of session so that we can use purchased but unsaved porbs
+			crimsonPlayer[playerIndex].magicPoints = activeMissionActorData.magicPoints;
+			crimsonPlayer[playerIndex].maxMagicPoints = activeMissionActorData.maxMagicPoints;
 			crimsonPlayer[playerIndex].vergilDoppelganger.miragePoints = 2000;
-			crimsonPlayer[playerIndex].vergilDoppelganger.maxMiragePoints = sessionData.magicPoints;
+			//max mirage points should now use latest purchased porbs
+			crimsonPlayer[playerIndex].vergilDoppelganger.maxMiragePoints = activeMissionActorData.magicPoints;
 			crimsonPlayer[playerIndex].royalguardReleaseDamage = 0;
 		}
 	}

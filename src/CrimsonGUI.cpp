@@ -5719,8 +5719,10 @@ void UpdateStatsAfterPurchase(const ShopItemHelper& itemHelper, ActiveMissionAct
 			value = (actorData.maxHitPoints + 1000);
 			actorData.hitPoints = actorData.maxHitPoints = value;
 		}();
+		//stop serp from overwriting blorb to session data on purchase, now if you reset mission without saving the max HP increase shouldn't be saved
+		//activeMissionActorData.hitPoints = activeMissionActorData.maxHitPoints = sessionData.hitPoints = value;
+		 activeMissionActorData.hitPoints = activeMissionActorData.maxHitPoints = value;
 
-		activeMissionActorData.hitPoints = activeMissionActorData.maxHitPoints = sessionData.hitPoints = value;
 
 		for (uint8 playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {
 			for (uint8 characterIndex = 0; characterIndex < CHARACTER_COUNT; ++characterIndex) {
@@ -5751,6 +5753,9 @@ void UpdateStatsAfterPurchase(const ShopItemHelper& itemHelper, ActiveMissionAct
 
 		activeMissionActorData.magicPoints = activeMissionActorData.maxMagicPoints = sessionData.magicPoints = value;
 
+		//stop serp from overwriting porb to session data on purchase, now if you reset mission without saving the max DT increase shouldn't be saved
+		//activeMissionActorData.magicPoints = activeMissionActorData.maxMagicPoints = sessionData.magicPoints = value;
+		activeMissionActorData.magicPoints = activeMissionActorData.maxMagicPoints = value;
 		for (uint8 playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {
 			for (uint8 characterIndex = 0; characterIndex < CHARACTER_COUNT; ++characterIndex) {
 				for (uint8 entityIndex = 0; entityIndex < ENTITY_COUNT; ++entityIndex) {
@@ -5774,7 +5779,7 @@ void HandleItemPurchase(uint8 itemHelperIndex, MissionData& missionData, ActiveM
 
 	uint8& itemCount = missionData.itemCounts[itemHelper.itemIndex];
 	uint8& buyCount = missionData.buyCounts[itemHelper.buyIndex];
-
+	
 	if ((itemCount >= itemHelper.maxItemCount) || (missionData.redOrbs < price)) {
 		PlaySound(0, 19);
 		return;
