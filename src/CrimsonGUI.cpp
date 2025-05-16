@@ -5738,14 +5738,14 @@ void UpdateStatsAfterPurchase(const ShopItemHelper& itemHelper, ActiveMissionAct
 		}
 	}
 	else if (itemHelper.itemIndex == ITEM::PURPLE_ORB) {
-		float value = (activeMissionActorData.maxMagicPoints + 500);
+		float value = (activeMissionActorData.maxMagicPoints + 1000);
 
 		[&]() {
 			if (!g_defaultNewActorData[0].baseAddr) {
 				return;
 			}
 			auto& actorData = *reinterpret_cast<PlayerActorData*>(g_defaultNewActorData[0].baseAddr);
-			value = (actorData.maxMagicPoints + 500);
+			value = (actorData.maxMagicPoints + 1000);
 			actorData.magicPoints = actorData.maxMagicPoints = value;
 		}();
 
@@ -5762,6 +5762,7 @@ void UpdateStatsAfterPurchase(const ShopItemHelper& itemHelper, ActiveMissionAct
 					auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 
 					activeMissionActorData.magicPoints = activeMissionActorData.maxMagicPoints = value;
+					actorData.magicPoints = actorData.maxMagicPoints = value;
 				}
 			}
 		}
