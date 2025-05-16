@@ -5751,8 +5751,6 @@ void UpdateStatsAfterPurchase(const ShopItemHelper& itemHelper, ActiveMissionAct
 			actorData.magicPoints = actorData.maxMagicPoints = value;
 		}();
 
-		activeMissionActorData.magicPoints = activeMissionActorData.maxMagicPoints = sessionData.magicPoints = value;
-
 		//stop serp from overwriting porb to session data on purchase, now if you reset mission without saving the max DT increase shouldn't be saved
 		//activeMissionActorData.magicPoints = activeMissionActorData.maxMagicPoints = sessionData.magicPoints = value;
 		activeMissionActorData.magicPoints = activeMissionActorData.maxMagicPoints = value;
