@@ -5664,7 +5664,7 @@ void ShowItemTab(MissionData& missionData, QueuedMissionActorData& queuedMission
 		uint8& itemCount = missionData.itemCounts[itemHelper.itemIndex];
 		uint8& buyCount = missionData.buyCounts[itemHelper.buyIndex];
 
-		if (itemHelper.itemIndex == ITEM::PURPLE_ORB && !unlockDevilTrigger) {
+		if ((itemHelper.itemIndex == ITEM::PURPLE_ORB || itemHelper.itemIndex == ITEM::DEVIL_STAR) && !unlockDevilTrigger) {
 			continue;
 		}
 
