@@ -5364,54 +5364,28 @@ void ShopWindow() {
 				if (ImGui::BeginTabItem(tabNames[tabIndex])) {
 					ImGui::Text("");
 
-					if (missionData.frameCount <= 0) {
-						switch (tabIndex) {
-						case TAB::DANTE_DEVILARM:
-							ShowExperienceTab(ExpConfig::sessionExpDataDante, shopHelpersDante, sizeof(shopHelpersDante) / sizeof(ShopExperienceHelper), missionData);
-							break;
-						case TAB::DANTE_GUN:
-							ShowExperienceTab(ExpConfig::sessionExpDataDante, shopHelpersDanteGuns, sizeof(shopHelpersDanteGuns) / sizeof(ShopExperienceHelper), missionData);
-							break;
-						case TAB::DANTE_STYLE:
-							ShowExperienceStyleTab(ExpConfig::sessionExpDataDante, shopHelpersDanteStyle, sizeof(shopHelpersDanteStyle) / sizeof(ShopExperienceStyleHelper), missionData, CHARACTER::DANTE);
-							break;
-						case TAB::VERGIL_DEVILARM:
-							ShowExperienceTab(ExpConfig::sessionExpDataVergil, shopHelpersVergil, sizeof(shopHelpersVergil) / sizeof(ShopExperienceHelper), missionData);
-							break;
-						case TAB::VERGIL_GUN:
-							ShowExperienceTab(ExpConfig::sessionExpDataVergil, shopHelpersVergilGuns, sizeof(shopHelpersVergilGuns) / sizeof(ShopExperienceHelper), missionData);
-							break;
-						case TAB::VERGIL_STYLE:
-							ShowExperienceStyleTab(ExpConfig::sessionExpDataVergil, shopHelpersVergilStyle, sizeof(shopHelpersVergilStyle) / sizeof(ShopExperienceStyleHelper), missionData, CHARACTER::VERGIL);
-							break;
-						case TAB::ITEMS:
-							ShowItemTab(missionData, queuedMissionActorData, activeMissionActorData, unlockDevilTrigger);
-							break;
-						}
-					} else {
-						switch (tabIndex) {
-						case TAB::DANTE_DEVILARM:
-							ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDante, sizeof(shopHelpersDante) / sizeof(ShopExperienceHelper), missionData);
-							break;
-						case TAB::DANTE_GUN:
-							ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDanteGuns, sizeof(shopHelpersDanteGuns) / sizeof(ShopExperienceHelper), missionData);
-							break;
-						case TAB::DANTE_STYLE:
-							ShowExperienceStyleTab(ExpConfig::missionExpDataDante, shopHelpersDanteStyle, sizeof(shopHelpersDanteStyle) / sizeof(ShopExperienceStyleHelper), missionData, CHARACTER::DANTE);
-							break;
-						case TAB::VERGIL_DEVILARM:
-							ShowExperienceTab(ExpConfig::missionExpDataVergil, shopHelpersVergil, sizeof(shopHelpersVergil) / sizeof(ShopExperienceHelper), missionData);
-							break;
-						case TAB::VERGIL_GUN:
-							ShowExperienceTab(ExpConfig::missionExpDataVergil, shopHelpersVergilGuns, sizeof(shopHelpersVergilGuns) / sizeof(ShopExperienceHelper), missionData);
-							break;
-						case TAB::VERGIL_STYLE:
-							ShowExperienceStyleTab(ExpConfig::missionExpDataVergil, shopHelpersVergilStyle, sizeof(shopHelpersVergilStyle) / sizeof(ShopExperienceStyleHelper), missionData, CHARACTER::VERGIL);
-							break;
-						case TAB::ITEMS:
-							ShowItemTab(missionData, queuedMissionActorData, activeMissionActorData, unlockDevilTrigger);
-							break;
-						}
+					switch (tabIndex) {
+					case TAB::DANTE_DEVILARM:
+						ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDante, sizeof(shopHelpersDante) / sizeof(ShopExperienceHelper), missionData);
+						break;
+					case TAB::DANTE_GUN:
+						ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDanteGuns, sizeof(shopHelpersDanteGuns) / sizeof(ShopExperienceHelper), missionData);
+						break;
+					case TAB::DANTE_STYLE:
+						ShowExperienceStyleTab(ExpConfig::missionExpDataDante, shopHelpersDanteStyle, sizeof(shopHelpersDanteStyle) / sizeof(ShopExperienceStyleHelper), missionData, CHARACTER::DANTE);
+						break;
+					case TAB::VERGIL_DEVILARM:
+						ShowExperienceTab(ExpConfig::missionExpDataVergil, shopHelpersVergil, sizeof(shopHelpersVergil) / sizeof(ShopExperienceHelper), missionData);
+						break;
+					case TAB::VERGIL_GUN:
+						ShowExperienceTab(ExpConfig::missionExpDataVergil, shopHelpersVergilGuns, sizeof(shopHelpersVergilGuns) / sizeof(ShopExperienceHelper), missionData);
+						break;
+					case TAB::VERGIL_STYLE:
+						ShowExperienceStyleTab(ExpConfig::missionExpDataVergil, shopHelpersVergilStyle, sizeof(shopHelpersVergilStyle) / sizeof(ShopExperienceStyleHelper), missionData, CHARACTER::VERGIL);
+						break;
+					case TAB::ITEMS:
+						ShowItemTab(missionData, queuedMissionActorData, activeMissionActorData, unlockDevilTrigger);
+						break;
 					}
 
 					ImGui::EndTabItem();
@@ -5628,17 +5602,8 @@ void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelp
 				PlaySound(0, 18);
 				expData.styleLevels[helper.styleid] = helper.stylelevel;
 				expData.styleExpPoints[helper.styleid] = 0;
-				queuedMissionActorData.styleLevels[helper.styleid] = helper.stylelevel;
-				activeMissionActorData.styleLevel = helper.stylelevel;
 				heldStyleExpData.missionStyleLevels[helper.styleid] = helper.stylelevel;
-				//heldStyleExpDataDante.styleLevel = helper.stylelevel;
-				//heldStyleExpDataVergil.accumulatedStyleLevels[helper.styleid] = helper.stylelevel;
-				//heldStyleExpDataVergil.styleLevel = helper.stylelevel;
-				//heldStyleExpDataDante.accumulatedStylePoints[helper.styleid] = 0;
-				//heldStyleExpDataVergil.accumulatedStylePoints[helper.styleid] = 0;
-// 				HeldStyleExpData& heldStyleExpData = (actorData.character == CHARACTER::DANTE)
-// 					? heldStyleExpDataDante
-// 					: heldStyleExpDataVergil;
+				heldStyleExpData.accumulatedStylePoints[helper.styleid] = 0;
 				ExpConfig::UpdatePlayerActorExps();
 				};
 			bool condition = !(expData.styleLevels[helper.styleid] + 1 == helper.stylelevel);
@@ -7930,6 +7895,10 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("Sprint Timer:  %g", crimsonPlayer[0].sprint.timer);
                 ImGui::Text("Sprint Run Timer:  %u", crimsonPlayer[0].sprint.runTimer);
 				ImGui::Text("missionStyleLevels sword: %u", heldStyleExpDataDante.missionStyleLevels[0]);
+				ImGui::Text("missionStyleLevels gun: %u", heldStyleExpDataDante.missionStyleLevels[1]);
+				ImGui::Text("missionStyleLevels trick: %u", heldStyleExpDataDante.missionStyleLevels[2]);
+				ImGui::Text("missionStyleLevels royal: %u", heldStyleExpDataDante.missionStyleLevels[3]);
+				ImGui::Text("accumulatedStylePts sword: %u", heldStyleExpDataDante.accumulatedStylePoints[0]);
 
 
                 if (CrimsonSDL::IsMusicPlaying() == 0) {
@@ -8076,6 +8045,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
+			ImGui::Text("actorData styleLevel: %u", actorData.styleLevel);
 			ImGui::Text("frameCOunt Mission: %u", missionData.frameCount);
 			ImGui::Text("heldStyleLevels sword: %u", heldStyleExpDataDante.accumulatedStyleLevels[0]);
 			ImGui::Text("expDataStyleLevels sword: %u", ExpConfig::missionExpDataDante.styleLevels[0]);

@@ -797,10 +797,12 @@ void TrackMissionStyleLevels() {
 	}
 	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
 	
-	if (missionData.frameCount <= 0 && g_scene != SCENE::MISSION_START && g_scene != SCENE::LOAD) {
+	if (missionData.frameCount <= 0 && g_scene != SCENE::MISSION_START && g_scene != SCENE::GAME) {
 		for (int style = 0; style < STYLE::MAX; style++) {
 			heldStyleExpDataDante.missionStyleLevels[style] = ExpConfig::sessionExpDataDante.styleLevels[style];
 			heldStyleExpDataVergil.missionStyleLevels[style] = ExpConfig::sessionExpDataVergil.styleLevels[style];
+			heldStyleExpDataDante.accumulatedStyleLevels[style] = ExpConfig::sessionExpDataDante.styleLevels[style];
+			heldStyleExpDataVergil.accumulatedStyleLevels[style] = ExpConfig::sessionExpDataVergil.styleLevels[style];
 		}
 	}
 	

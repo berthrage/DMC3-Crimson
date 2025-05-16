@@ -2799,7 +2799,12 @@ byte8* SpawnActor(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
 		HeldStyleExpData& heldStyleExpData = (actorData.character == CHARACTER::DANTE)
 			? heldStyleExpDataDante
 			: heldStyleExpDataVergil;
+        ExpConfig::ExpData& expData = (actorData.character == CHARACTER::DANTE)
+            ? ExpConfig::missionExpDataDante
+            : ExpConfig::missionExpDataVergil;
+
         actorData.styleLevel = heldStyleExpData.missionStyleLevels[actorData.style];
+        actorData.styleExpPoints = expData.styleExpPoints[actorData.style];
         
         actorData.royalguardReleaseDamage = crimsonPlayer[newPlayerIndex].royalguardReleaseDamage;
         actorData.dtExplosionCharge = crimsonPlayer[newPlayerIndex].dtExplosionCharge;
@@ -3313,7 +3318,8 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 		? heldStyleExpDataDante
 		: heldStyleExpDataVergil;
 
-	heldStyleExpData.accumulatedStyleLevels[actorData.style] = actorData.styleLevel;
+
+    heldStyleExpData.accumulatedStyleLevels[actorData.style] = actorData.styleLevel;
 	heldStyleExpData.accumulatedStylePoints[actorData.style] = actorData.styleExpPoints;
     
 	if (IsActiveActor(actorData)) {
