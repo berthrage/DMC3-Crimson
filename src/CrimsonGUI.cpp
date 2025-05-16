@@ -5461,7 +5461,7 @@ void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helper
 					continue;
 			}
 			if (helper.gun > -1) {
-				if (!weaponProgression.devilArmUnlocks[helper.gun])
+				if (!weaponProgression.gunUnlocks[helper.gun])
 					continue;
 			}
 
