@@ -4188,9 +4188,6 @@ void RenderWorldSpaceMultiplayerBar(
 	if (!showBars && !activeCrimsonConfig.MultiplayerBarsWorldSpace.show) {
 		return;
 	}
-	if (activeConfig.hideMainHUD) {
-		return;
-	}
 
 	auto playerIndex = actorData.newPlayerIndex;
 	auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
