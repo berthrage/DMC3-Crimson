@@ -288,6 +288,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 
         CrimsonPatches::DisableBlendingEffects(false);
         CrimsonPatches::DisableBlendingEffects(activeConfig.disableBlendingEffects);
+        CrimsonDetours::ToggleGreenOrbsMPRegen(true);
 
 
         // Remove FMODGetCodecDescription Label

@@ -16,6 +16,7 @@ set(MASM_SRC
     masm/DisableDriveHoldAsm.asm
     masm/CustomCameraPositioning.asm
     masm/FreeformSoftLockHelper.asm
+    masm/GreenOrbsMPRegen.asm
     masm/DMC4LockOnDirection.asm
     masm/EnemyAITarget.asm
     masm/SetAirTauntAsm.asm

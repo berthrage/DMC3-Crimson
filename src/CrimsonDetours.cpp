@@ -196,6 +196,11 @@ void ArtemisInstantFullChargeDetour1();
 std::uint64_t g_ArtemisReworkJumpAddr1;
 void ArtemisInstantFullChargeDetour2();
 std::uint64_t g_ArtemisReworkJumpAddr2;
+
+// GreenOrbsMultiplayerRegen
+void GreenOrbsMPRegenDetour();
+std::uint64_t g_GreenOrbsMPRegen_ReturnAddr;
+void* g_GreenOrbsMPRegen_Call;
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -456,6 +461,25 @@ uint16 ActorCameraDirectionToEnemyCameraDirection(PlayerActorData& actorData) {
 
 float CalculateIdealTurnRateSpeed(PlayerActorData& actorData) {
 	return actorData.speed * 1.9f;
+}
+
+void RegenerateMultiplayerPlayersHP(std::uint64_t hpRegen64) {
+	auto hpRegen = *reinterpret_cast<float*>(&hpRegen64);
+
+	for (uint8 playerIndex = 1; playerIndex < activeConfig.Actor.playerCount; playerIndex++) {
+		auto& playerData = GetPlayerData(playerIndex);
+		auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+
+		if (!newActorData.baseAddr) {
+			continue;
+		}
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+
+		if (!actorData.dead) {
+			actorData.hitPoints += hpRegen;
+		}
+	}
 }
 
 void InitDetours() {
@@ -855,9 +879,30 @@ void AirTauntDetours(bool enable) {
 	g_SetAirTaunt_Call = (uintptr_t)appBaseAddr + 0x1E09D0;
 	setAirTauntHook->Toggle(enable);
 
-    SkyLaunchDetours(enable);
+	SkyLaunchDetours(enable);
 
     run = enable;
+}
+
+void ToggleGreenOrbsMPRegen(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// GreenOrbsMPRegen
+	// Player ptr in RDX
+	// dmc3.exe + 1B6E29 - F3 0F 58 82 1C 41 00 00   - addss xmm0,[rdx+0000411C] { Adding to player's hp value (green orb regen)
+	// dmc3.exe + 1B6E34 - F3 0F 11 82 1C 41 00 00 - movss[rdx + 0000411C], xmm0{ Regenerated using green orbs }
+	static std::unique_ptr<Utility::Detour_t> GreenOrbsMPRegenHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1B6E29, &GreenOrbsMPRegenDetour, 8);
+	g_GreenOrbsMPRegen_ReturnAddr = GreenOrbsMPRegenHook->GetReturnAddress();
+	g_GreenOrbsMPRegen_Call = &RegenerateMultiplayerPlayersHP;
+	GreenOrbsMPRegenHook->Toggle(enable);
+
+	run = enable;
 }
 
 void RerouteRedOrbsCounterAlpha(bool enable, volatile uint16_t& alphaVar) {
