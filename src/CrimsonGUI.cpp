@@ -12228,8 +12228,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 		float comboBoxWidth = width * 0.8f;
 
-		std::array<const char*, 3> modes{ "VANLLA MODE", "STYLE SWITCHER MODE", "CRIMSON MODE" };
-		std::array<const char*, 4> modesWCustom{ "VANLLA MODE", "STYLE SWITCHER MODE", "CRIMSON MODE", "CUSTOM MODE" };
+		std::array<const char*, 3> modes{ "VANILLA MODE", "STYLE SWITCHER MODE", "CRIMSON MODE" };
+		std::array<const char*, 4> modesWCustom{ "VANILLA MODE", "STYLE SWITCHER MODE", "CRIMSON MODE", "CUSTOM MODE" };
 
 		ImGui::SetNextItemWidth(comboBoxWidth);
 
