@@ -118,7 +118,7 @@ void PreparePlayersDataBeforeSpawn() {
 			}
 			//get the default character.
 			auto& vanillaActorData = *reinterpret_cast<PlayerActorData*>(g_playerActorBaseAddrs[0]);
-			log(vanillaActorData.maxHitPoints);
+			//Log(vanillaActorData.maxHitPoints);
 			//get the one actually used in game
 			auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
 			//if the actor's one exceeds the default, we picked up a blorb.
@@ -632,6 +632,7 @@ void ForceThirdPersonCameraController() {
 	}
 
 	if (activeCrimsonConfig.Camera.forceThirdPerson) {
+		// Room Exceptions for TPS cam
 		if (eventData.room == ROOM::LOST_SOULS_NIRVANA && eventData.event != EVENT::TELEPORT) {
 			CrimsonPatches::ForceThirdPersonCamera(false);
 		} else {
@@ -639,6 +640,7 @@ void ForceThirdPersonCameraController() {
 			
 		}
 
+		// Disable Boss Camera Exceptions
 		if (!(eventData.room == 228 && eventData.position == 0)) { // Adding only Geryon Part 1 as an exception for now.
 			Camera::ToggleDisableBossCamera(true);
 		} else {
