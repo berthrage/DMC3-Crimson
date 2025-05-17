@@ -106,6 +106,39 @@ void PreparePlayersDataBeforeSpawn() {
 	auto& queuedMissionActorData = *reinterpret_cast<QueuedMissionActorData*>(missionDataPtr + 0xC0);
 	auto& activeMissionActorData = *reinterpret_cast<ActiveMissionActorData*>(missionDataPtr + 0x16C);
 
+	//if we're in game
+	if (g_scene == SCENE::GAME) {
+		//see if we can grab chracter1 for actor1
+		auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+		if (!pool_10222 || !pool_10222[3]) {}
+		else {
+
+			if (!g_playerActorBaseAddrs[0]) {
+				return;
+			}
+			//get the default character.
+			auto& vanillaActorData = *reinterpret_cast<PlayerActorData*>(g_playerActorBaseAddrs[0]);
+			log(vanillaActorData.maxHitPoints);
+			//get the one actually used in game
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+			//if the actor's one exceeds the default, we picked up a blorb.
+			//therefore, we update the default, along with active & queued mission data.
+			//Don't write to session, that'll save when it shouldn't.
+			if (actorData.maxHitPoints > vanillaActorData.maxHitPoints){
+				vanillaActorData.maxHitPoints = actorData.maxHitPoints;
+				vanillaActorData.hitPoints = actorData.hitPoints;
+				//not sure if these ones are necessary. 
+				activeMissionActorData.maxHitPoints = actorData.maxHitPoints;
+				queuedMissionActorData.hitPoints = actorData.maxHitPoints;
+				//basically does the crimsonPlayer update when this orb collection happens
+				for (int playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {
+					crimsonPlayer[playerIndex].hitPoints = activeMissionActorData.maxHitPoints;
+					crimsonPlayer[playerIndex].maxHitPoints = activeMissionActorData.maxHitPoints;
+				}
+			}
+		}
+	}
+
 	if (g_scene != SCENE::GAME || (g_scene == SCENE::GAME && eventData.event == EVENT::DEATH)) {
 		for (int playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {
 			//write from active missiondata here instead of session so that we can use purchased but unsaved blorbs
