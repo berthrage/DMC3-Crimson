@@ -2790,10 +2790,10 @@ byte8* SpawnActor(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
     if (actorData.character == CHARACTER::DANTE || actorData.character == CHARACTER::VERGIL) {
         // Pass data to the new actor from UpdateCrimsonPlayerData 
         if (eventData.event != EVENT::DEATH) {
-            actorData.hitPoints = vanillaActorData.hitPoints;
-			actorData.maxHitPoints = vanillaActorData.maxHitPoints;
-			actorData.maxMagicPoints = vanillaActorData.maxMagicPoints;
-			actorData.magicPoints = vanillaActorData.magicPoints;
+            actorData.hitPoints = crimsonPlayer[newPlayerIndex].hitPoints;
+			actorData.maxHitPoints = crimsonPlayer[newPlayerIndex].maxHitPoints;
+			actorData.maxMagicPoints = crimsonPlayer[newPlayerIndex].maxMagicPoints;
+			actorData.magicPoints = crimsonPlayer[newPlayerIndex].magicPoints;
         }
 
         if (actorData.character == CHARACTER::DANTE) {
