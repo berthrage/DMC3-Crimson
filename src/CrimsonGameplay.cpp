@@ -1799,6 +1799,11 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
         if (action == ACTION_DANTE::SHOTGUN_AIR_FIREWORKS && lastAction == CERBERUS_AIR_FLICKER) {
             actorData.verticalPullMultiplier = -0.95f;
         }
+
+		// Fix for the weird carry over to Beowulf Rising Dragon Whirlwind
+		if (action == ACTION_DANTE::BEOWULF_RISING_DRAGON_WHIRLWIND && lastAction == CERBERUS_AIR_FLICKER) {
+			actorData.verticalPullMultiplier = -1.35f;
+		}
 	} 
     
     // Fix for the weird carry over to air hike/jump cancel
@@ -1856,6 +1861,12 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
 		if (action == ACTION_DANTE::SHOTGUN_AIR_FIREWORKS && (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 
             || lastAction == AGNI_RUDRA_SKY_DANCE_PART_2)) {
 			actorData.verticalPullMultiplier = -0.95f;
+		}
+
+		// Fix for the weird carry over to Beowulf Rising Dragon Whirlwind
+		if (action == ACTION_DANTE::BEOWULF_RISING_DRAGON_WHIRLWIND && (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1
+			|| lastAction == AGNI_RUDRA_SKY_DANCE_PART_2)) {
+			actorData.verticalPullMultiplier = -1.35f;
 		}
     }
 
