@@ -1756,20 +1756,20 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
     if (!actorBaseAddr) {
         return;
     }
-    auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     auto playerIndex = actorData.newPlayerIndex;
-    auto& gamepad    = GetGamepad(actorData.newPlayerIndex);
+    auto& gamepad = GetGamepad(actorData.newPlayerIndex);
 
-    auto* tweak     = &crimsonPlayer[playerIndex].airRaveTweak;
-    auto action     = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].action : crimsonPlayer[playerIndex].actionClone;
+    auto* tweak = &crimsonPlayer[playerIndex].airRaveTweak;
+    auto action = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].action : crimsonPlayer[playerIndex].actionClone;
     auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
-    auto event      = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].event : crimsonPlayer[playerIndex].eventClone;
-    auto motion     = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
+    auto event = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].event : crimsonPlayer[playerIndex].eventClone;
+    auto motion = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
     auto& state = actorData.state;
     auto actionTimer =
         (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 
-    if (event == ACTOR_EVENT::ATTACK && state & STATE::IN_AIR && actorData.character == CHARACTER::DANTE) {
+    if (event == ACTOR_EVENT::ATTACK && event != ACTOR_EVENT::AIR_HIKE && event != ACTOR_EVENT::JUMP_CANCEL && event != ACTOR_EVENT::JUMP && state & STATE::IN_AIR && actorData.character == CHARACTER::DANTE) {
 
         if (action == CERBERUS_AIR_FLICKER) {
 
@@ -1795,11 +1795,17 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
             actorData.verticalPullMultiplier = -1.2f;
         }
 
-		// Fix for weird Fireworks carry over on vertical mult.
-		if (action == ACTION_DANTE::SHOTGUN_AIR_FIREWORKS && lastAction == CERBERUS_AIR_FLICKER) {
-			actorData.verticalPullMultiplier = -0.95f;
-		}
-    }
+        // Fix for weird Fireworks carry over on vertical mult.
+        if (action == ACTION_DANTE::SHOTGUN_AIR_FIREWORKS && lastAction == CERBERUS_AIR_FLICKER) {
+            actorData.verticalPullMultiplier = -0.95f;
+        }
+	} 
+    
+    // Fix for the weird carry over to air hike/jump cancel
+    if ((event == ACTOR_EVENT::AIR_HIKE || event == ACTOR_EVENT::JUMP_CANCEL) && action == CERBERUS_AIR_FLICKER) {
+        actorData.verticalPullMultiplier = -1.5f;
+		return;
+	}
 }
 
 void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
@@ -1852,6 +1858,13 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
 			actorData.verticalPullMultiplier = -0.95f;
 		}
     }
+
+	// Fix for the weird carry over to air hike/jump cancel
+	if ((event == ACTOR_EVENT::AIR_HIKE || event == ACTOR_EVENT::JUMP_CANCEL) && (action == AGNI_RUDRA_SKY_DANCE_PART_1
+		|| lastAction == AGNI_RUDRA_SKY_DANCE_PART_2)) {
+		actorData.verticalPullMultiplier = -1.5f;
+		return;
+	}
 }
 
 #pragma endregion
