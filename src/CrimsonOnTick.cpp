@@ -599,6 +599,27 @@ CameraData* GetSafeCameraData() {
 	return cameraDataPtr;
 }
 
+/// <summary>
+/// Does logic for camera exceptions to handle intricacies of room transitions
+/// </summary>
+/// <param name="room">room the camera should be disabled in </param>
+/// <param name="mission">mission the room should have the camera disabled for</param>
+/// <param name="position">position you enter the room from that the camera should be disabled for</param>
+/// <returns>true/false on tic depending on that camera exception</returns>
+bool evaluateRoomCameraException(SessionData& sessionData, EventData& eventData, NextEventData& nextEventData, uint32 room, uint32 mission = 0, uint32 position = 0)
+{
+	////hackjob optimization 
+	if (sessionData.mission != mission)
+		return false;
+	//true in states for which we are exiting the current room but haven't left yet.
+	bool isRoomTransition = (eventData.event == EVENT::TELEPORT || eventData.event == EVENT::DELETE || eventData.event == EVENT::END);
+	//basically this check will turn off the camera as we transition to the new room
+	bool nextroom = (sessionData.mission == mission && nextEventData.room == room && nextEventData.position == position && isRoomTransition);
+	//this will keep the camera off in the room its disabled for.
+	bool currentroom = (sessionData.mission == mission && eventData.room == room && eventData.position == position) && !isRoomTransition;
+	
+	return nextroom || currentroom;
+}
 
 void ForceThirdPersonCameraController() {
 	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
@@ -610,6 +631,16 @@ void ForceThirdPersonCameraController() {
 	if (eventData.event == EVENT::TELEPORT) {
 		CrimsonPatches::ForceThirdPersonCamera(true);
 	}
+
+
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	//get event & nextevent
+	auto pool_12959 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_12959 || !pool_12959[12]) {
+		return;
+	}
+	auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12959[12]);
 
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	static bool checkIfGameHasAlreadyLoaded2 = false;
@@ -633,7 +664,15 @@ void ForceThirdPersonCameraController() {
 
 	if (activeCrimsonConfig.Camera.forceThirdPerson) {
 		// Room Exceptions for TPS cam
-		if (eventData.room == ROOM::LOST_SOULS_NIRVANA && eventData.event != EVENT::TELEPORT) {
+		//reference room, position, mission. Check nextEventData 
+		bool roomExceptions = (
+			(eventData.room == ROOM::LOST_SOULS_NIRVANA && eventData.event != EVENT::TELEPORT)
+			//Vergil approach 
+			|| evaluateRoomCameraException(sessionData,eventData,nextEventData,ROOM::PEAK_OF_DARKNESS, 7, 0)
+			//||(/* scenario 3*/)
+			//||(/* scenario 4*/)
+			);
+		if (roomExceptions){
 			CrimsonPatches::ForceThirdPersonCamera(false);
 		} else {
 			CrimsonPatches::ForceThirdPersonCamera(true);
