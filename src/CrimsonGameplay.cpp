@@ -922,6 +922,13 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
 				actorData.position.y = v->storedLunarPhaseLv1PosY - 20.0f;
 			}
         }
+
+		// Fix for the weird carry over to air hike/jump cancel
+		if ((event == ACTOR_EVENT::JUMP_CANCEL) && 
+            (action == ACTION_VERGIL::BEOWULF_LUNAR_PHASE_LEVEL_1 || action == ACTION_VERGIL::BEOWULF_LUNAR_PHASE_LEVEL_2)) {
+			actorData.verticalPullMultiplier = -1.5f;
+			return;
+		}
     }
 }
 
