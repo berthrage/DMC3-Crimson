@@ -126,7 +126,7 @@ void PreparePlayersDataBeforeSpawn() {
 			//Don't write to session, that'll save when it shouldn't.
 			if (actorData.maxHitPoints > vanillaActorData.maxHitPoints){
 				vanillaActorData.maxHitPoints = actorData.maxHitPoints;
-				vanillaActorData.hitPoints = actorData.hitPoints;
+				//vanillaActorData.hitPoints = actorData.hitPoints;
 				//not sure if these ones are necessary. 
 				activeMissionActorData.maxHitPoints = actorData.maxHitPoints;
 				queuedMissionActorData.hitPoints = actorData.maxHitPoints;
