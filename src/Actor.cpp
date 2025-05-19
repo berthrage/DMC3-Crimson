@@ -2917,54 +2917,6 @@ void ResetMotionStateLegacy(byte8* actorBaseAddr) {
     }
 }
 
-void doubleTapQuickTracker(byte8* actorBaseAddr) {
-
-    if (!actorBaseAddr) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    if (!actorData.cloneActorBaseAddr) {
-        return; // RULES OUT DOPPELGANGER OUT
-    }
-    quickDoubleTap.trackerRunning = true;
-    quickDoubleTap.canChange      = true;
-    while (quickDoubleTap.buffer > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        quickDoubleTap.buffer--;
-    }
-
-
-    if (quickDoubleTap.buffer == 0) {
-        quickDoubleTap.buffer         = quickDoubleTap.bufferDuration;
-        quickDoubleTap.canChange      = false;
-        quickDoubleTap.trackerRunning = false;
-    }
-}
-
-void doubleTapDoppTracker(byte8* actorBaseAddr) {
-
-    if (!actorBaseAddr) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    if (!actorData.cloneActorBaseAddr) {
-        return; // RULES OUT DOPPELGANGER OUT
-    }
-    doppDoubleTap.trackerRunning = true;
-    doppDoubleTap.canChange      = true;
-    while (doppDoubleTap.buffer > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        doppDoubleTap.buffer--;
-    }
-
-
-    if (doppDoubleTap.buffer == 0) {
-        doppDoubleTap.buffer         = doppDoubleTap.bufferDuration;
-        doppDoubleTap.canChange      = false;
-        doppDoubleTap.trackerRunning = false;
-    }
-}
-
 // @Update
 void ActivateDevil(PlayerActorData& actorData, bool playSFX) {
     switch (actorData.character) {
@@ -3308,148 +3260,185 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
 }
 
 void StyleSwitchController(byte8* actorBaseAddr) {
-    if (!actorBaseAddr) {
-        return;
-    }
-    auto& actorData     = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    auto& playerData    = GetPlayerData(actorData);
-    auto& characterData = GetCharacterData(actorData);
-    auto playerIndex = actorData.newPlayerIndex;
-    auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto& playerData = GetPlayerData(actorData);
+	auto& characterData = GetCharacterData(actorData);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 	// Accumulate EXP
 	HeldStyleExpData& heldStyleExpData = (actorData.character == CHARACTER::DANTE)
 		? heldStyleExpDataDante
 		: heldStyleExpDataVergil;
 
-
-    heldStyleExpData.accumulatedStyleLevels[actorData.style] = actorData.styleLevel;
+	heldStyleExpData.accumulatedStyleLevels[actorData.style] = actorData.styleLevel;
 	heldStyleExpData.accumulatedStylePoints[actorData.style] = actorData.styleExpPoints;
-    
+
 	if (IsActiveActor(actorData)) {
 		ExpConfig::SavePlayerActorExp(); // then store it in ExpData
 	}
 
-    CrimsonFX::StyleSwitchDrawText(actorBaseAddr);
-    //ExpConfig::UpdateStylesExpertises(actorBaseAddr, actorData.style);
+	CrimsonFX::StyleSwitchDrawText(actorBaseAddr);
+	//ExpConfig::UpdateStylesExpertises(actorBaseAddr, actorData.style);
 
-    {
-        // Doppelganger StyleSwitch
-        bool condition = (actorData.buttons[2] & playerData.switchButton);
+	{
+		// Doppelganger StyleSwitch
+		bool condition = (actorData.buttons[2] & playerData.switchButton);
 
+		if (condition) {
+			return;
+		}
+	}
 
-        if (condition) {
-            return;
-        }
-    }
+	// --- DOUBLE TAP LOGIC ---
+	// Helper lambda for double-tap logic
+	auto handleDoubleTap = [](auto& tapData, bool buttonPressed, bool styleUnlocked) {
+		using namespace std::chrono;
+		auto now = steady_clock::now();
 
-    if (actorData.character == CHARACTER::DANTE) {
-        if (actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN) && actorData.style != 2) {
+		if (buttonPressed && styleUnlocked) {
+			if (!tapData.trackerRunning) {
+				tapData.trackerRunning = true;
+				tapData.canChange = false;
+				tapData.lastTapTime = now;
+				tapData.tapCount = 1;
+			} else {
+				auto elapsed = duration_cast<milliseconds>(now - tapData.lastTapTime).count();
+				if (elapsed <= tapData.bufferDuration) {
+					tapData.tapCount++;
+					tapData.lastTapTime = now;
+					if (tapData.tapCount == 2) {
+						tapData.canChange = true;
+					}
+				} else {
+					// Too slow, reset
+					tapData.tapCount = 1;
+					tapData.lastTapTime = now;
+					tapData.canChange = false;
+				}
+			}
+		} else if (tapData.trackerRunning) {
+			auto elapsed = duration_cast<milliseconds>(now - tapData.lastTapTime).count();
+			if (elapsed > tapData.bufferDuration) {
+				tapData.trackerRunning = false;
+				tapData.canChange = false;
+				tapData.tapCount = 0;
+			}
+		}
+		};
 
-            StyleSwitch(actorBaseAddr, 2); // TRICKSTER
-        }
+	auto resetDoubleTap = [](auto& tapData) {
+		tapData.trackerRunning = false;
+		tapData.canChange = false;
+		tapData.tapCount = 0;
+		};
 
-        if (actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 0) {
-            StyleSwitch(actorBaseAddr, 0); // SWORDMASTER
-        }
+    // --- STYLE SWITCH / BUTTON HANDLING ---
+	if (actorData.character == CHARACTER::DANTE) {
+		if (actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN) && actorData.style != 2) {
+			StyleSwitch(actorBaseAddr, 2); // TRICKSTER
+            resetDoubleTap(quickDoubleTap[playerIndex]);
+			resetDoubleTap(doppDoubleTap[playerIndex]);
+		}
 
-        if (actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 1) {
-            StyleSwitch(actorBaseAddr, 1); // GUNSLINGER
-        }
+		if (actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 0) {
+			StyleSwitch(actorBaseAddr, 0); // SWORDMASTER
+			resetDoubleTap(quickDoubleTap[playerIndex]);
+			resetDoubleTap(doppDoubleTap[playerIndex]);
+		}
 
-        if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 3) {
-            StyleSwitch(actorBaseAddr, 3); // ROYALGUARD
-        }
+		if (actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 1) {
+			StyleSwitch(actorBaseAddr, 1); // GUNSLINGER
+			resetDoubleTap(quickDoubleTap[playerIndex]);
+		}
 
-        // START QUICKSILVER DOUBLE TAP BUFFER
-        if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN)) {
-            if (!quickDoubleTap.trackerRunning) {
-                std::thread doubletapquicktracker(doubleTapQuickTracker, actorBaseAddr);
-                doubletapquicktracker.detach();
-            }
-        }
+		if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 3) {
+			StyleSwitch(actorBaseAddr, 3); // ROYALGUARD
+			resetDoubleTap(doppDoubleTap[playerIndex]);
+		}
 
-        // START DOPPELGANGER DOUBLE TAP BUFFER
-        if (actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN)) {
-            if (!doppDoubleTap.trackerRunning) {
-                std::thread doubletapdopptracker(doubleTapDoppTracker, actorBaseAddr);
-                doubletapdopptracker.detach();
-            }
-        }
+		// --- DOUBLE TAP HANDLING ---
+		handleDoubleTap(quickDoubleTap[playerIndex],
+			actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN),
+			sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER]);
 
-        if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 4 && quickDoubleTap.canChange &&
-            !actorData.newIsClone && 
-            sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER]) {
+		handleDoubleTap(doppDoubleTap[playerIndex],
+			actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN),
+			sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER]);
+		// --- END DOUBLE TAP HANDLING ---
 
-            StyleSwitch(actorBaseAddr, 4); // QUICKSILVER
-        }
+		if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 4 && 
+            quickDoubleTap[playerIndex].canChange &&
+			!actorData.newIsClone &&
+			sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER]) {
 
-        if (actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5 && doppDoubleTap.canChange &&
-            !actorData.newIsClone &&
+			StyleSwitch(actorBaseAddr, 4); // QUICKSILVER
+			resetDoubleTap(quickDoubleTap[playerIndex]); // Reset after switch
+		}
+
+		if (actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5 && 
+            doppDoubleTap[playerIndex].canChange &&
+			!actorData.newIsClone &&
 			sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER]) {
 
-            StyleSwitch(actorBaseAddr, 5); // DOPPELGANGER
-        }
+			StyleSwitch(actorBaseAddr, 5); // DOPPELGANGER
+			resetDoubleTap(doppDoubleTap[playerIndex]); // Reset after switch
+		}
 
-    } else if (actorData.character == CHARACTER::VERGIL) {
-        if (actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN) && actorData.style != 2) {
+	} else if (actorData.character == CHARACTER::VERGIL) {
+		if (actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN) && actorData.style != 2) {
+			StyleSwitch(actorBaseAddr, 2); // DARKSLAYER
+		}
 
-            StyleSwitch(actorBaseAddr, 2); // DARKSLAYER
-        }
+		if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 4 && !actorData.newIsClone && activeCrimsonGameplay.Cheats.Vergil.quicksilverStyle) {
+			StyleSwitch(actorBaseAddr, 4); // QUICKSILVER
+		}
 
-        if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 4 && !actorData.newIsClone && activeCrimsonGameplay.Cheats.Vergil.quicksilverStyle) {
-            StyleSwitch(actorBaseAddr, 4); // QUICKSILVER
-        }
+		// MIRAGE TRIGGER - ACTIVATES DOPPELGANGER WITH ONE BUTTON PRESS FOR VERGIL -- consumes Mirage Gauge
+		auto& vergilDopp = crimsonPlayer[playerIndex].vergilDoppelganger;
+		if (activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger &&
+			(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) || actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN))
+			&& actorData.style != 5 && !actorData.newIsClone && vergilDopp.cooldownTime <= 0) {
 
-        // MIRAGE TRIGGER - ACTIVATES DOPPELGANGER WITH ONE BUTTON PRESS FOR VERGIL -- consumes Mirage Gauge
-        auto& vergilDopp = crimsonPlayer[playerIndex].vergilDoppelganger;
-        if (activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger && 
-            (actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) || actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN))
-            && actorData.style != 5 && !actorData.newIsClone && vergilDopp.cooldownTime <= 0) {
+			vergilDopp.cooldownTime = vergilDopp.cooldownDuration;
 
-            vergilDopp.cooldownTime = vergilDopp.cooldownDuration;
-           
-            
+			if (!actorData.doppelganger && vergilDopp.miragePoints > 0) {
+				ActivateDoppelganger(actorData);
 
-            if (!actorData.doppelganger && vergilDopp.miragePoints > 0) {
-                ActivateDoppelganger(actorData);
-
-
-                if (!activeCrimsonGameplay.Cheats.Training.infiniteDT && actorData.costume != 2 &&
-                    actorData.costume !=
-                        4) { // if Infinite Magic Points is on or using Super/Super Corrupted Vergil, DT drain doesn't trigger.
+				if (!activeCrimsonGameplay.Cheats.Training.infiniteDT && actorData.costume != 2 &&
+					actorData.costume != 4) { // if Infinite Magic Points is on or using Super/Super Corrupted Vergil, DT drain doesn't trigger.
 					// Calculate the amount of time that has already passed based on the current DT
 					vergilDopp.drainTime = (1.0f - (vergilDopp.miragePoints / maxMiragePointsAmount)) * vergilDopp.totalDrainDuration;
-                    vergilDopp.drainStart = true;
-                    
-                    
-                }
+					vergilDopp.drainStart = true;
+				}
 
-                actorData.doppelganger = true;
-            } else if (actorData.doppelganger) {
-                DeactivateDoppelganger(actorData);
+				actorData.doppelganger = true;
+			} else if (actorData.doppelganger) {
+				DeactivateDoppelganger(actorData);
 
-                actorData.doppelganger = false;
-                vergilDopp.drainStart = false;
-            }
-        }
+				actorData.doppelganger = false;
+				vergilDopp.drainStart = false;
+			}
+		}
 
-        if (actorData.doppelganger && vergilDopp.miragePoints <= 0) {
-            DeactivateDoppelganger(actorData);
-            vergilDopp.drainStart = false;
-            actorData.doppelganger = false;
-        }
-    }
+		if (actorData.doppelganger && vergilDopp.miragePoints <= 0) {
+			DeactivateDoppelganger(actorData);
+			vergilDopp.drainStart = false;
+			actorData.doppelganger = false;
+		}
+	}
 
-    auto& vergilDopp = crimsonPlayer[playerIndex].vergilDoppelganger;
-    if (vergilDopp.drainStart) {
-        vergilDopp.miragePoints = CrimsonGameplay::DrainMirageGauge(vergilDopp.miragePoints, vergilDopp.drainTime, vergilDopp.totalDrainDuration);
-    }
+	auto& vergilDopp = crimsonPlayer[playerIndex].vergilDoppelganger;
+	if (vergilDopp.drainStart) {
+		vergilDopp.miragePoints = CrimsonGameplay::DrainMirageGauge(vergilDopp.miragePoints, vergilDopp.drainTime, vergilDopp.totalDrainDuration);
+	}
 
-
-    if (actorData.devil && actorData.magicPoints < 50) {
-        CrimsonSDL::PlayDevilTriggerOut(actorData.newPlayerIndex);
-    }
+	if (actorData.devil && actorData.magicPoints < 50) {
+		CrimsonSDL::PlayDevilTriggerOut(actorData.newPlayerIndex);
+	}
 }
 
 // @Todo: Update Nero Angelo fix.

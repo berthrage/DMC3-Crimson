@@ -554,8 +554,8 @@ int styleVFXCountMax = 1;
 
 float siytimer = 0;
 
-DoubleTap quickDoubleTap;
-DoubleTap doppDoubleTap;
+DoubleTap quickDoubleTap[PLAYER_COUNT];
+DoubleTap doppDoubleTap[PLAYER_COUNT];
 
 bool inGunShoot;
 bool gunShootInverted   = false;

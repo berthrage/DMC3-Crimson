@@ -2500,7 +2500,7 @@ void StyleTextDisplayWindow() {
 
 	// --- Slide Animation State ---
 	static double slideStartTime = 0.0;
-	const float slideDuration = 0.1f;
+	const float slideDuration = 0.2f;
 	static bool sliding = false;
 
 	int currentStyle = mainActorData.style;

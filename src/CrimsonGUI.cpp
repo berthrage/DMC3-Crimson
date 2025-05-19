@@ -8240,8 +8240,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("Mixer  %s", MixerInitialization);
             ImGui::Text("Mixer2  %s", MixerInitialization2);*/
 
-            ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap.buffer);
-            ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap.buffer);
+            ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap[0].buffer);
+            ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap[0].buffer);
 
             ImGui::Text("Magic Points Dopp %g", currentDTDoppOn);
             ImGui::Text("Magic Points Dopp DT %g", currentDTDoppDTOn);
