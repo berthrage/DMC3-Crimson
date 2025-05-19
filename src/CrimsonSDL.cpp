@@ -761,26 +761,34 @@ bool DTEStartIsPlaying(int playerIndex) {
     return ChannelIsPlaying(CHANNEL::initialDTEStart + playerIndex);
 }
 
-void PlayDTExplosionStart(int playerIndex, int volume) {
+void PlayDTExplosionStart(int playerIndex) {
     // starts at channel 312, to 315 for 4P
+	float slider = activeCrimsonConfig.SFX.dTEStartLoopVolume / 100.0f;
+	int volume = (int)(50.0f * slider);
     fn_Mix_Volume(CHANNEL::initialDTEStart + playerIndex, volume);
     fn_Mix_PlayChannel(CHANNEL::initialDTEStart + playerIndex, dtExplosionStart, 0);
 }
 
-void PlayDTExplosionLoop(int playerIndex, int volume) {
+void PlayDTExplosionLoop(int playerIndex) {
 	// starts at channel 316, to 319 for 4P
+	float slider = activeCrimsonConfig.SFX.dTEStartLoopVolume / 100.0f;
+	int volume = (int)(50.0f * slider);
 	fn_Mix_Volume(CHANNEL::initialDTELoop + playerIndex, volume);
 	fn_Mix_PlayChannel(CHANNEL::initialDTELoop + playerIndex, dtExplosionLoop, -1);
 }
 
-void PlayDTExplosionFinish(int playerIndex, int volume) {
+void PlayDTExplosionFinish(int playerIndex) {
     // starts at channel 320, to 323 for 4P
+	float slider = activeCrimsonConfig.SFX.dTEFinishVolume / 100.0f;
+	int volume = (int)(130.0f * slider);
     fn_Mix_Volume(CHANNEL::initialDTEFinish + playerIndex, volume);
     fn_Mix_PlayChannel(CHANNEL::initialDTEFinish + playerIndex, dtExplosionFinish, 0);
 }
 
-void PlayDTEExplosionRelease(int playerIndex, int volume) {
+void PlayDTEExplosionRelease(int playerIndex, float volumeMultiplier) {
     // starts at channel 324, to 327 for 4P
+	float slider = activeCrimsonConfig.SFX.dTEReleaseVolume / 100.0f;
+	int volume = (int)((85.0f * volumeMultiplier) * slider);
 	fn_Mix_Volume(CHANNEL::initialDTERelease + playerIndex, volume);
 	fn_Mix_PlayChannel(CHANNEL::initialDTERelease + playerIndex, dtExplosionRelease, 0);
 }
@@ -809,14 +817,18 @@ void PlayGuard(int playerIndex) {
 
 void PlayRoyalBlock(int playerIndex) {
 	auto initialChannel = CHANNEL::initialRoyalBlock + (5 * playerIndex);
+	float slider = activeCrimsonConfig.SFX.royalBlockVolume / 100.0f;
+	int volume = (int)(44.0f * slider);
 
-	PlayOnChannels(initialChannel, initialChannel + 4, royalBlock, 57);
+	PlayOnChannels(initialChannel, initialChannel + 4, royalBlock, volume);
 }
 
 void PlayNormalBlock(int playerIndex) {
 	auto initialChannel = CHANNEL::initialBlock + (5 * playerIndex);
+	float slider = activeCrimsonConfig.SFX.normalBlockVolume / 100.0f;
+	int volume = (int)(20.0f * slider);
 
-	PlayOnChannels(initialChannel, initialChannel + 4, normalBlock, 20);
+	PlayOnChannels(initialChannel, initialChannel + 4, normalBlock, volume);
 }
 
 void PlayNewMissionClearSong() {

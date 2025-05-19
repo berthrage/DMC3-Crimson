@@ -290,6 +290,11 @@ struct CrimsonConfig {
 		uint32 styleRankAnnouncerCooldownSeconds = 20;
 		uint8 delayedComboEffectType = 0;
 		uint8 delayedComboIndicatorVolume = 100;
+		uint8 royalBlockVolume = 100;
+		uint8 normalBlockVolume = 100;
+		uint8 dTEStartLoopVolume = 100;
+		uint8 dTEFinishVolume = 100;
+		uint8 dTEReleaseVolume = 100;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -309,7 +314,13 @@ struct CrimsonConfig {
 				std::make_pair("quickOutVolume", &SFX::quickOutVolume),
                 std::make_pair("announcerVolume", &SFX::announcerVolume),
                 std::make_pair("styleRankAnnouncerCooldownSeconds", &SFX::styleRankAnnouncerCooldownSeconds),
-				std::make_pair("delayedComboIndicatorVolume", &SFX::delayedComboIndicatorVolume)	
+				std::make_pair("delayedComboIndicatorVolume", &SFX::delayedComboIndicatorVolume),
+				std::make_pair("delayedComboEffectType", &SFX::delayedComboEffectType),
+				std::make_pair("royalBlockVolume", &SFX::royalBlockVolume),
+				std::make_pair("normalBlockVolume", &SFX::normalBlockVolume),
+				std::make_pair("dTEStartLoopVolume", &SFX::dTEStartLoopVolume),
+				std::make_pair("dTEFinishVolume", &SFX::dTEFinishVolume),
+				std::make_pair("dTEReleaseVolume", &SFX::dTEReleaseVolume)
 			);
 		}
 	} SFX;

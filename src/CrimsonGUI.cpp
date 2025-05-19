@@ -9798,10 +9798,40 @@ void SoundSection(size_t defaultFontSize) {
 			GUI_Slider2<uint8>("Volume", activeCrimsonConfig.SFX.delayedComboIndicatorVolume, queuedCrimsonConfig.SFX.delayedComboIndicatorVolume, 0, 100);
 			ImGui::PopItemWidth();
 
-// 			ImGui::TableNextColumn();
-// 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
-// 			ImGui::Text("ROYALGUARD SFX");
-// 			ImGui::PopFont();
+			ImGui::TableNextColumn();
+			ImGui::Text("");
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("ROYALGUARD SFX");
+			ImGui::PopFont();
+
+			ImGui::PushItemWidth(itemWidth* smallerComboMult);
+			GUI_Slider2<uint8>("Royal Block Volume", activeCrimsonConfig.SFX.royalBlockVolume, queuedCrimsonConfig.SFX.royalBlockVolume, 0, 100);
+			ImGui::PopItemWidth();
+
+			ImGui::PushItemWidth(itemWidth* smallerComboMult);
+			GUI_Slider2<uint8>("Normal Block Volume", activeCrimsonConfig.SFX.normalBlockVolume, queuedCrimsonConfig.SFX.normalBlockVolume, 0, 100);
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+			ImGui::Text("");
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("DT EXPLOSION SFX");
+			ImGui::PopFont();
+
+			ImGui::PushItemWidth(itemWidth* smallerComboMult);
+			GUI_Slider2<uint8>("Start/Loop Volume", activeCrimsonConfig.SFX.dTEStartLoopVolume, queuedCrimsonConfig.SFX.dTEStartLoopVolume, 0, 100);
+			ImGui::PopItemWidth();
+
+			ImGui::PushItemWidth(itemWidth* smallerComboMult);
+			GUI_Slider2<uint8>("Finish Volume", activeCrimsonConfig.SFX.dTEFinishVolume, queuedCrimsonConfig.SFX.dTEFinishVolume, 0, 100);
+			ImGui::PopItemWidth();
+
+			ImGui::PushItemWidth(itemWidth* smallerComboMult);
+			GUI_Slider2<uint8>("Release Volume", activeCrimsonConfig.SFX.dTEReleaseVolume, queuedCrimsonConfig.SFX.dTEReleaseVolume, 0, 100);
+			ImGui::PopItemWidth();
+
 			ImGui::EndTable();
 		}
 	}

@@ -224,14 +224,14 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
     
     // SFX START
 	if (actorData.dtExplosionCharge > 500 && !sfxStarted) {
-		CrimsonSDL::PlayDTExplosionStart(playerIndex, 50);
+		CrimsonSDL::PlayDTExplosionStart(playerIndex);
 
         sfxStarted = true;
 	}
 
     // SFX LOOP
     if (!CrimsonSDL::DTEStartIsPlaying(playerIndex) && sfxStarted && !sfxLooped) {
-		CrimsonSDL::PlayDTExplosionLoop(playerIndex, 50);
+		CrimsonSDL::PlayDTExplosionLoop(playerIndex);
 
         sfxLooped = true;
     }
@@ -240,7 +240,7 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
 	if (actorData.dtExplosionCharge >= maxDT) {
 		CrimsonSDL::InterruptDTExplosionSFX(playerIndex);
 		if (!sfxFinished) {
-			CrimsonSDL::PlayDTExplosionFinish(playerIndex, 150);
+			CrimsonSDL::PlayDTExplosionFinish(playerIndex);
 		}
         
 		sfxFinished = true;
@@ -273,7 +273,7 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
     // RELEASE
     if (!(gamepad.buttons[0] & GetBinding(BINDING::DEVIL_TRIGGER)) && sfxStarted) {
 		CrimsonSDL::InterruptDTExplosionSFX(playerIndex);
-		CrimsonSDL::PlayDTEExplosionRelease(playerIndex, 200 * releaseVolumeMult);
+		CrimsonSDL::PlayDTEExplosionRelease(playerIndex, releaseVolumeMult);
 
         if (releaseVolumeMult > 0.4f) {
             CrimsonSDL::VibrateController(actorData.newPlayerIndex, 0, 0x5555 * releaseVolumeMult, 800);
