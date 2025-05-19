@@ -19,4 +19,5 @@ namespace CrimsonOnTick {
 	void OverrideEnemyTargetPosition();
 	void WeaponProgressionTracking();
 	void FixM7DevilTriggerUnlocking();
+	void FixChannel2Volume();
 }

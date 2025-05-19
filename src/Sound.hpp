@@ -115,7 +115,7 @@ void SetVolume(uint8 channelIndex, float volume);
 
 inline void UpdateVolumes() {
     old_for_all(uint8, channelIndex, CHANNEL::MAX) {
-        SetVolume(channelIndex, activeConfig.channelVolumes[channelIndex]);
+        SetVolume(channelIndex, activeCrimsonConfig.Sound.channelVolumes[channelIndex] / 100.0f);
     }
 }
 

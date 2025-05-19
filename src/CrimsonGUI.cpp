@@ -9691,7 +9691,7 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Volume", activeCrimsonConfig.SFX.changeWeaponVolume, queuedCrimsonConfig.SFX.changeWeaponVolume, defaultCrimsonConfig.SFX.changeWeaponVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("Volume", activeCrimsonConfig.SFX.changeWeaponEffectVolume, queuedCrimsonConfig.SFX.changeWeaponEffectVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
@@ -9701,11 +9701,11 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Effect Volume", activeCrimsonConfig.SFX.styleChangeEffectVolume, queuedCrimsonConfig.SFX.styleChangeEffectVolume, defaultCrimsonConfig.SFX.styleChangeEffectVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("Effect Volume", activeCrimsonConfig.SFX.styleChangeVolume, queuedCrimsonConfig.SFX.styleChangeVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("VO Volume", activeCrimsonConfig.SFX.styleChangeVOVolume, queuedCrimsonConfig.SFX.styleChangeVOVolume, defaultCrimsonConfig.SFX.styleChangeVOVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("VO Volume", activeCrimsonConfig.SFX.styleChangeVoiceOverVolume, queuedCrimsonConfig.SFX.styleChangeVoiceOverVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
@@ -9715,7 +9715,7 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Volume", activeCrimsonConfig.SFX.styleRankAnnouncerVolume, queuedCrimsonConfig.SFX.styleRankAnnouncerVolume, defaultCrimsonConfig.SFX.styleRankAnnouncerVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("Volume", activeCrimsonConfig.SFX.announcerVolume, queuedCrimsonConfig.SFX.announcerVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
@@ -9733,15 +9733,19 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation L1 Volume", activeCrimsonConfig.SFX.devilTriggerInL1Volume, queuedCrimsonConfig.SFX.devilTriggerInL1Volume, defaultCrimsonConfig.SFX.devilTriggerInL1Volume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("In L1 Volume", activeCrimsonConfig.SFX.dTInL1Volume, queuedCrimsonConfig.SFX.dTInL1Volume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation L2 Volume", activeCrimsonConfig.SFX.devilTriggerInL2Volume, queuedCrimsonConfig.SFX.devilTriggerInL2Volume, defaultCrimsonConfig.SFX.devilTriggerInL2Volume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("In L2 Volume", activeCrimsonConfig.SFX.dTInL2Volume, queuedCrimsonConfig.SFX.dTInL2Volume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("DT Ready Volume", activeCrimsonConfig.SFX.devilTriggerReadyVolume, queuedCrimsonConfig.SFX.devilTriggerReadyVolume, defaultCrimsonConfig.SFX.devilTriggerReadyVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("Out Volume", activeCrimsonConfig.SFX.dTOutVolume, queuedCrimsonConfig.SFX.dTOutVolume, 0, 100);
+			ImGui::PopItemWidth();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_Slider2<uint8>("DT Ready Volume", activeCrimsonConfig.SFX.dTReadyVolume, queuedCrimsonConfig.SFX.dTReadyVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
@@ -9753,11 +9757,11 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation Volume", activeCrimsonConfig.SFX.doppelgangerInVolume, queuedCrimsonConfig.SFX.doppelgangerInVolume, defaultCrimsonConfig.SFX.doppelgangerInVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("In Volume", activeCrimsonConfig.SFX.doppelInVolume, queuedCrimsonConfig.SFX.doppelInVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Deactivation Volume", activeCrimsonConfig.SFX.doppelgangerOutVolume, queuedCrimsonConfig.SFX.doppelgangerOutVolume, defaultCrimsonConfig.SFX.doppelgangerOutVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("Out Volume", activeCrimsonConfig.SFX.doppelOutVolume, queuedCrimsonConfig.SFX.doppelOutVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
@@ -9769,7 +9773,11 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation Volume", activeCrimsonConfig.SFX.quicksilverInVolume, queuedCrimsonConfig.SFX.quicksilverInVolume, defaultCrimsonConfig.SFX.quicksilverInVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("In Volume", activeCrimsonConfig.SFX.quickInVolume, queuedCrimsonConfig.SFX.quickInVolume, 0, 100);
+			ImGui::PopItemWidth();
+
+			ImGui::PushItemWidth(itemWidth* smallerComboMult);
+			GUI_Slider2<uint8>("Out Volume", activeCrimsonConfig.SFX.quickOutVolume, queuedCrimsonConfig.SFX.quickOutVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
@@ -9780,6 +9788,7 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::Text("DELAYED COMBO SFX");
 			ImGui::PopFont();
 
+			ImGui::PushItemWidth(itemWidth* smallerComboMult);
 			UI::ComboMapValue2("SFX Type",
 				delayedComboSFXNames,
 				delayedComboSFXMap,
@@ -9787,7 +9796,12 @@ void SoundSection(size_t defaultFontSize) {
 				queuedCrimsonConfig.SFX.delayedComboEffectType);
 
 			GUI_Slider2<uint8>("Volume", activeCrimsonConfig.SFX.delayedComboIndicatorVolume, queuedCrimsonConfig.SFX.delayedComboIndicatorVolume, 0, 100);
+			ImGui::PopItemWidth();
 
+// 			ImGui::TableNextColumn();
+// 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+// 			ImGui::Text("ROYALGUARD SFX");
+// 			ImGui::PopFont();
 			ImGui::EndTable();
 		}
 	}
@@ -9819,10 +9833,12 @@ void SoundSection(size_t defaultFontSize) {
 
 				ImGui::TableNextColumn();
 
-				ImGui::PushItemWidth(itemWidth * smallerComboMult);
-				if (GUI_InputDefault2(Sound_channelNames[channelIndex], activeConfig.channelVolumes[channelIndex], queuedConfig.channelVolumes[channelIndex], defaultConfig.channelVolumes[channelIndex], 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-					SetVolume(channelIndex, activeConfig.channelVolumes[channelIndex]);
+				ImGui::PushItemWidth(itemWidth* smallerComboMult);
+				if (GUI_Slider2<uint8>(Sound_channelNames[channelIndex],
+					activeCrimsonConfig.Sound.channelVolumes[channelIndex], queuedCrimsonConfig.Sound.channelVolumes[channelIndex], 0, 100)) {
+					SetVolume(channelIndex, activeCrimsonConfig.Sound.channelVolumes[channelIndex] / 100.0f);
 				}
+
 				ImGui::PopItemWidth();
 			}
 
@@ -13889,7 +13905,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	MissionDataWindow();
 	RegionDataWindow();
 	SoundWindow();
-
+	
 	scaleFactorX = ImGui::GetIO().DisplaySize.x / 1920;
 	scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
 	scaledFontSize = UI::g_UIContext.DefaultFontSize * scaleFactorY;
@@ -13914,6 +13930,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
 	CrimsonOnTick::OverrideEnemyTargetPosition();
 	CrimsonOnTick::TrackMissionStyleLevels();
+	
 
 	if (activeConfig.Actor.enable) {
 		ExpConfig::TransferUnlocksToVanilla();
@@ -13962,7 +13979,6 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 
     HandleSaveTimer(activeConfig.frameRate);
     ImGui::PopStyleColor();
-
     // static bool enable = true;
     // ImGui::ShowDemoWindow(&enable);
 }

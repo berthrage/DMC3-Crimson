@@ -2833,7 +2833,7 @@ void ApplySkyLaunchProperties(byte8* actorBaseAddr) {
         StoreSkyLaunchProperties(actorData);
         if (!skyLaunch.forceJustFrameReleaseToggledOff) {
 
-            SetVolume(2, activeConfig.channelVolumes[2]);
+            SetVolume(2, activeCrimsonConfig.Sound.channelVolumes[2] / 100.0f);
             //CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
             skyLaunch.forceJustFrameReleaseToggledOff = true;
         }
