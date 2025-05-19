@@ -1536,6 +1536,8 @@ void StunDisplacementLockOnWindows() {
 		}
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 
+		if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
+
 		// Update angle
 		float deltaTime = ImGui::GetIO().DeltaTime;
 		lockOnAngle[playerIndex] += spinSpeed * deltaTime;
@@ -1827,6 +1829,8 @@ void ShieldLockOnWindows() {
 			continue; // FIX: Use continue instead of return to avoid mismatched Begin/End
 		}
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+
+		if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
 
 		// Update angle
 		float deltaTime = ImGui::GetIO().DeltaTime;
