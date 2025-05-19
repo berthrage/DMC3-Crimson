@@ -8801,8 +8801,6 @@ void UpdateColorMatrices(PlayerActorData& actorData) {
 inline void QuicksilverFunction(byte8* actorBaseAddr, bool enable) {
     if (!actorBaseAddr) {
         return;
-    } else if (actorBaseAddr != g_playerActorBaseAddrs[2]) {
-        return;
     }
 
     g_quicksilver = enable;
