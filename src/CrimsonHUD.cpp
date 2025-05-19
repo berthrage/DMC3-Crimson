@@ -2012,6 +2012,12 @@ void StyleDisplayWindow() {
 	const float scaleDuration = 0.1f;
 	static float currentScale = 1.0f;
 
+	// --- Compass Letter Flash Animation State ---
+	static double compassFlashStartTime = 0.0;
+	static bool compassFlashing = false;
+	const float compassFlashDuration = 0.25f;
+	static ImColor compassLastFlashColor = ImColor(0xDE1C4CFF);
+
 	auto& character = mainActorData.character;
 	float inGameAlpha = hudData.topLeftAlpha / 127.0f;
 
@@ -2029,6 +2035,10 @@ void StyleDisplayWindow() {
 		// Scale logic
 		scaleStartTime = ImGui::GetTime();
 		scaling = true;
+		// Compass Letter Flash logic
+		compassFlashStartTime = ImGui::GetTime();
+		compassFlashing = true;
+		compassLastFlashColor = GetStyleFlashColor(currentStyle, character);
 		prevStyle = currentStyle;
 		prevCharacter = currentCharacter;
 	}
@@ -2157,14 +2167,11 @@ void StyleDisplayWindow() {
 				texturePos, ImVec2(styleGlassTextureSizeX, styleGlassTextureSizeY), colorWithAlpha);
 
 			// --- Scaling Animation for Active Compass Texture ---
-			// Only scale the active compass texture
-			// Scaling anim: ease out back, 0.8 -> 1.0 over 0.3s
 			float scale = 1.0f;
 			if (scaling) {
 				float t = static_cast<float>(ImGui::GetTime() - scaleStartTime);
 				if (t < scaleDuration) {
 					float norm = t / scaleDuration;
-					// Ease out back (s = overshoot)
 					const float s = 9.70158f;
 					float ease = 1.0f + s * powf(norm - 1.0f, 3) + s * (norm - 1.0f) * powf(norm - 1.0f, 2);
 					scale = ImLerp(0.87f, 1.0f, ease);
@@ -2179,13 +2186,36 @@ void StyleDisplayWindow() {
 				texturePos.y + (textureHeight - scaledSize.y) * 0.5f
 			);
 
+			// --- Flash Color Animation for Active Compass Texture ---
+			ImColor compassColorWithAlpha = ImColor(1.0f, 1.0f, 1.0f, inGameAlpha);
+			ImVec4 flashV = compassLastFlashColor;
+			ImVec4 whiteV = ImVec4(1.0f, 1.0f, 1.0f, inGameAlpha);
+			ImVec4 baseV = ImLerp(flashV, whiteV, 1.0f);
+			baseV.w = inGameAlpha;
+
+			if (compassFlashing) {
+				float t = static_cast<float>(ImGui::GetTime() - compassFlashStartTime);
+				if (t < compassFlashDuration) {
+					float lerpT = t / compassFlashDuration;
+					lerpT = ImClamp(lerpT, 0.0f, 1.0f);
+					ImVec4 lerped = ImLerp(flashV, baseV, lerpT); // Lerp from 100% color to 45% color
+					lerped.w = inGameAlpha;
+					compassColorWithAlpha = ImColor(lerped);
+				} else {
+					compassFlashing = false;
+					compassColorWithAlpha = ImColor(baseV);
+				}
+			} else {
+				compassColorWithAlpha = ImColor(baseV);
+			}
+
 			if (usedActiveCompassTexture) {
 				ImGui::GetWindowDrawList()->AddImage(
 					usedActiveCompassTexture,
 					scaledPos,
 					ImVec2(scaledPos.x + scaledSize.x, scaledPos.y + scaledSize.y),
 					ImVec2(0, 0), ImVec2(1, 1),
-					colorWithAlpha
+					compassColorWithAlpha
 				);
 			}
 		}
@@ -2346,6 +2376,25 @@ void StyleDisplayWindow() {
 			texturePos.x += shakeOffsetX;
 			texturePos.y += shakeOffsetY;
 
+			// --- Scaling Animation for Glass Texture (same as style letter) ---
+			float scale = 1.0f;
+			if (scaling) {
+				float t = static_cast<float>(ImGui::GetTime() - scaleStartTime);
+				if (t < scaleDuration) {
+					float norm = t / scaleDuration;
+					const float s = -5.70158f;
+					float ease = 1.0f + s * powf(norm - 1.0f, 3) + s * (norm - 1.0f) * powf(norm - 1.0f, 2);
+					scale = ImLerp(0.87f, 1.0f, ease);
+				} else {
+					scale = 1.0f;
+				}
+			}
+			ImVec2 scaledSize = ImVec2(textureWidth * scale, textureHeight * scale);
+			ImVec2 scaledPos = ImVec2(
+				texturePos.x + (textureWidth - scaledSize.x) * 0.5f,
+				texturePos.y + (textureHeight - scaledSize.y) * 0.5f
+			);
+
 			ImColor colorWithAlpha(1.0f, 1.0f, 1.0f, inGameAlpha);
 
 			auto usedGlassTexture = tricksterGlass->GetTexture();
@@ -2381,12 +2430,12 @@ void StyleDisplayWindow() {
 				}
 			}
 
-			// Draw the texture
+			// Draw the texture with scaling
 			if (usedGlassTexture) {
 				ImGui::GetWindowDrawList()->AddImage(
 					usedGlassTexture,
-					texturePos,
-					ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight),
+					scaledPos,
+					ImVec2(scaledPos.x + scaledSize.x, scaledPos.y + scaledSize.y),
 					ImVec2(0, 0), ImVec2(1, 1),
 					colorWithAlpha
 				);
@@ -2417,8 +2466,8 @@ void StyleTextDisplayWindow() {
 	auto& character = mainActorData.character;
 
 	if (!activeCrimsonConfig.CrimsonHudAddons.displayStyleNames) return;
-	
 	if (character != CHARACTER::DANTE) return;
+
 	float styleTextTextureSizeX = (1100.0f * 0.5f) * scaleFactorY;
 	float styleTextTextureSizeY = (200.00f * 0.5f) * scaleFactorY;
 
@@ -2449,6 +2498,11 @@ void StyleTextDisplayWindow() {
 	const float blurDuration = 0.13f;
 	static bool showBlur = false;
 
+	// --- Slide Animation State ---
+	static double slideStartTime = 0.0;
+	const float slideDuration = 0.2f;
+	static bool sliding = false;
+
 	int currentStyle = mainActorData.style;
 	int currentCharacter = mainActorData.character;
 
@@ -2456,6 +2510,7 @@ void StyleTextDisplayWindow() {
 	if (currentStyle != prevStyle || currentCharacter != prevCharacter) {
 		blurStartTime = ImGui::GetTime();
 		showBlur = true;
+		sliding = false; // Reset sliding, will start after blur
 		prevStyle = currentStyle;
 		prevCharacter = currentCharacter;
 	}
@@ -2515,6 +2570,8 @@ void StyleTextDisplayWindow() {
 				blurActive = true;
 			} else {
 				showBlur = false;
+				sliding = true;
+				slideStartTime = ImGui::GetTime();
 			}
 		}
 
@@ -2527,10 +2584,27 @@ void StyleTextDisplayWindow() {
 				ImColor(1.0f, 1.0f, 1.0f, alpha)
 			);
 		} else if (usedActiveTextTexture) {
+			// --- Slide Animation for non-blurred text ---
+			float offsetX = 0.0f;
+			if (sliding) {
+				float t = static_cast<float>(ImGui::GetTime() - slideStartTime);
+				if (t < slideDuration) {
+					float norm = t / slideDuration;
+					// Ease out back (bouncy) curve
+					const float s = 1.70158f * 1.2f; // slightly more bounce
+					float ease = 1.0f + s * powf(norm - 1.0f, 3) + s * (norm - 1.0f) * powf(norm - 1.0f, 2);
+					offsetX = ImLerp(-100.0f * scaleFactorY, 0.0f, ease);
+				} else {
+					sliding = false;
+					offsetX = 0.0f;
+				}
+			}
+			ImVec2 animatedPos = ImVec2(texturePos.x + offsetX, texturePos.y);
+
 			ImGui::GetWindowDrawList()->AddImage(
 				usedActiveTextTexture,
-				texturePos,
-				ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight),
+				animatedPos,
+				ImVec2(animatedPos.x + textureWidth, animatedPos.y + textureHeight),
 				ImVec2(0, 0), ImVec2(1, 1),
 				ImColor(1.0f, 1.0f, 1.0f, alpha)
 			);
@@ -2576,7 +2650,7 @@ void StyleEXPDisplayWindow() {
 	// Apply your negative offset from center
 	ImVec2 styleExpDispWindowPos = ImVec2(
 		screenCenterX - (830.0f * scaleFactorY),
-		210 * scaleFactorY);
+		180 * scaleFactorY);
 
 	ImGui::SetNextWindowSize(styleExpDispWindowSize);
 	ImGui::SetNextWindowPos(styleExpDispWindowPos);
@@ -2598,6 +2672,8 @@ void StyleEXPDisplayWindow() {
 		expShaking = true;
 		prevExpStyle = currentExpStyle;
 	}
+
+	if (mainActorData.styleLevel == 2) return;
 
 	ImGui::Begin("StyleExpDisplayWindow", nullptr, windowFlags);
 
