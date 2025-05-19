@@ -3159,7 +3159,15 @@ void CharacterSection(size_t defaultFontSize) {
 
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushItemWidth(itemWidth);
-	GUI_Slider<uint8>("Number of Players", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT);
+	if (GUI_Slider<uint8>("Number of Players", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT)) {
+		if (queuedConfig.Actor.playerCount > 1) {
+			activeCrimsonConfig.Camera.multiplayerCamera = true;
+			queuedCrimsonConfig.Camera.multiplayerCamera = true;
+		} else {
+			activeConfig.enablePVPFixes = false;
+			queuedConfig.enablePVPFixes = false;
+		}
+	}
 	UI::Combo2("DMC3 Costume Game Progression", costumeRespectsProgressionNames, activeConfig.costumeRespectsProgression,
 		queuedConfig.costumeRespectsProgression);
 
@@ -3178,24 +3186,15 @@ void CharacterSection(size_t defaultFontSize) {
 
 			ImGui::TableSetupColumn("c2", 0, columnWidth * 2.0f);
 			ImGui::TableNextRow(0, rowWidth);
-			ImGui::TableNextColumn();
-
-
-			if (GUI_Checkbox2("Boss Lady Fixes", activeConfig.enableBossLadyFixes, queuedConfig.enableBossLadyFixes)) {
-				ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
-			}
 
 			ImGui::TableNextColumn();
 
-
-			if (GUI_Checkbox2("Boss Vergil Fixes", activeConfig.enableBossVergilFixes, queuedConfig.enableBossVergilFixes)) {
-				ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
-			}
-
-
-			ImGui::TableNextColumn();
-
+			GUI_PushDisable(queuedConfig.Actor.playerCount <= 1);
 			GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Allows you to set up PVP Multiplayer.\n"
+				"WARNING: This option WILL break actual enemies (they will freeze). Use with caution.");
+			GUI_PopDisable(queuedConfig.Actor.playerCount <= 1);
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
@@ -7495,11 +7494,10 @@ void LegacyDDMKCharactersSection() {
 		ImGui::PopItemWidth();
 		};
 
+	GUI_PushDisable(!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters);
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 	ImGui::Text("LADY OPTIONS");
 	ImGui::PopFont();
-
-	GUI_PushDisable(!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters);
 
 	// Table layout for Lady's Kalina Ann options
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
@@ -7533,6 +7531,37 @@ void LegacyDDMKCharactersSection() {
 		ImGui::TableNextColumn();
 		LadyInput("Hook Grenade Time", activeConfig.kalinaAnnHookGrenadeTime,
 			queuedConfig.kalinaAnnHookGrenadeTime, defaultConfig.kalinaAnnHookGrenadeTime, 10.0f);
+
+		ImGui::EndTable();
+	}
+
+	ImGui::Text("");
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+	ImGui::Text("CHARACTER FIXES");
+	ImGui::PopFont();
+
+	if (ImGui::BeginTable("CharacterFixesTable", 3)) {
+		ImGui::TableSetupColumn("col1", 0, columnWidth * 2.0f);
+		ImGui::TableSetupColumn("col2", 0, columnWidth * 2.0f);
+
+		ImGui::TableNextRow(0, rowHeight);
+		ImGui::TableNextColumn();
+		if (GUI_Checkbox2("Boss Lady Fixes", activeConfig.enableBossLadyFixes, queuedConfig.enableBossLadyFixes)) {
+			ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Allows you to more properly test Legacy Playable Boss Lady.\n"
+			"WARNING: This checkbox WILL break the actual Boss Lady (ENEMY). Use with caution.");
+
+		ImGui::TableNextColumn();
+
+
+		if (GUI_Checkbox2("Boss Vergil Fixes", activeConfig.enableBossVergilFixes, queuedConfig.enableBossVergilFixes)) {
+			ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Allows you to more properly test Legacy Playable Boss Vergil.\n"
+			"WARNING: This checkbox WILL break the actual Boss Vergil (ENEMY). Use with caution.");
 
 		ImGui::EndTable();
 	}
@@ -8211,8 +8240,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("Mixer  %s", MixerInitialization);
             ImGui::Text("Mixer2  %s", MixerInitialization2);*/
 
-            ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap.buffer);
-            ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap.buffer);
+            ImGui::Text("Quick Double Tap Buffer %u", quickDoubleTap[0].buffer);
+            ImGui::Text("Dopp Double Tap Buffer %u", doppDoubleTap[0].buffer);
 
             ImGui::Text("Magic Points Dopp %g", currentDTDoppOn);
             ImGui::Text("Magic Points Dopp DT %g", currentDTDoppDTOn);
@@ -9691,7 +9720,7 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Volume", activeCrimsonConfig.SFX.changeWeaponVolume, queuedCrimsonConfig.SFX.changeWeaponVolume, defaultCrimsonConfig.SFX.changeWeaponVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("Volume", activeCrimsonConfig.SFX.changeWeaponEffectVolume, queuedCrimsonConfig.SFX.changeWeaponEffectVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
@@ -9701,11 +9730,11 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Effect Volume", activeCrimsonConfig.SFX.styleChangeEffectVolume, queuedCrimsonConfig.SFX.styleChangeEffectVolume, defaultCrimsonConfig.SFX.styleChangeEffectVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("Effect Volume", activeCrimsonConfig.SFX.styleChangeVolume, queuedCrimsonConfig.SFX.styleChangeVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("VO Volume", activeCrimsonConfig.SFX.styleChangeVOVolume, queuedCrimsonConfig.SFX.styleChangeVOVolume, defaultCrimsonConfig.SFX.styleChangeVOVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("VO Volume", activeCrimsonConfig.SFX.styleChangeVoiceOverVolume, queuedCrimsonConfig.SFX.styleChangeVoiceOverVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
@@ -9715,7 +9744,7 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Volume", activeCrimsonConfig.SFX.styleRankAnnouncerVolume, queuedCrimsonConfig.SFX.styleRankAnnouncerVolume, defaultCrimsonConfig.SFX.styleRankAnnouncerVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("Volume", activeCrimsonConfig.SFX.announcerVolume, queuedCrimsonConfig.SFX.announcerVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
@@ -9733,15 +9762,19 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation L1 Volume", activeCrimsonConfig.SFX.devilTriggerInL1Volume, queuedCrimsonConfig.SFX.devilTriggerInL1Volume, defaultCrimsonConfig.SFX.devilTriggerInL1Volume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("In L1 Volume", activeCrimsonConfig.SFX.dTInL1Volume, queuedCrimsonConfig.SFX.dTInL1Volume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation L2 Volume", activeCrimsonConfig.SFX.devilTriggerInL2Volume, queuedCrimsonConfig.SFX.devilTriggerInL2Volume, defaultCrimsonConfig.SFX.devilTriggerInL2Volume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("In L2 Volume", activeCrimsonConfig.SFX.dTInL2Volume, queuedCrimsonConfig.SFX.dTInL2Volume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("DT Ready Volume", activeCrimsonConfig.SFX.devilTriggerReadyVolume, queuedCrimsonConfig.SFX.devilTriggerReadyVolume, defaultCrimsonConfig.SFX.devilTriggerReadyVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("Out Volume", activeCrimsonConfig.SFX.dTOutVolume, queuedCrimsonConfig.SFX.dTOutVolume, 0, 100);
+			ImGui::PopItemWidth();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_Slider2<uint8>("DT Ready Volume", activeCrimsonConfig.SFX.dTReadyVolume, queuedCrimsonConfig.SFX.dTReadyVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
@@ -9753,11 +9786,11 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation Volume", activeCrimsonConfig.SFX.doppelgangerInVolume, queuedCrimsonConfig.SFX.doppelgangerInVolume, defaultCrimsonConfig.SFX.doppelgangerInVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("In Volume", activeCrimsonConfig.SFX.doppelInVolume, queuedCrimsonConfig.SFX.doppelInVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Deactivation Volume", activeCrimsonConfig.SFX.doppelgangerOutVolume, queuedCrimsonConfig.SFX.doppelgangerOutVolume, defaultCrimsonConfig.SFX.doppelgangerOutVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("Out Volume", activeCrimsonConfig.SFX.doppelOutVolume, queuedCrimsonConfig.SFX.doppelOutVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
@@ -9769,7 +9802,11 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::PopFont();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Activation Volume", activeCrimsonConfig.SFX.quicksilverInVolume, queuedCrimsonConfig.SFX.quicksilverInVolume, defaultCrimsonConfig.SFX.quicksilverInVolume, 10, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_Slider2<uint8>("In Volume", activeCrimsonConfig.SFX.quickInVolume, queuedCrimsonConfig.SFX.quickInVolume, 0, 100);
+			ImGui::PopItemWidth();
+
+			ImGui::PushItemWidth(itemWidth* smallerComboMult);
+			GUI_Slider2<uint8>("Out Volume", activeCrimsonConfig.SFX.quickOutVolume, queuedCrimsonConfig.SFX.quickOutVolume, 0, 100);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
@@ -9780,6 +9817,7 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::Text("DELAYED COMBO SFX");
 			ImGui::PopFont();
 
+			ImGui::PushItemWidth(itemWidth* smallerComboMult);
 			UI::ComboMapValue2("SFX Type",
 				delayedComboSFXNames,
 				delayedComboSFXMap,
@@ -9787,6 +9825,41 @@ void SoundSection(size_t defaultFontSize) {
 				queuedCrimsonConfig.SFX.delayedComboEffectType);
 
 			GUI_Slider2<uint8>("Volume", activeCrimsonConfig.SFX.delayedComboIndicatorVolume, queuedCrimsonConfig.SFX.delayedComboIndicatorVolume, 0, 100);
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+			ImGui::Text("");
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("ROYALGUARD SFX");
+			ImGui::PopFont();
+
+			ImGui::PushItemWidth(itemWidth* smallerComboMult);
+			GUI_Slider2<uint8>("Royal Block Volume", activeCrimsonConfig.SFX.royalBlockVolume, queuedCrimsonConfig.SFX.royalBlockVolume, 0, 100);
+			ImGui::PopItemWidth();
+
+			ImGui::PushItemWidth(itemWidth* smallerComboMult);
+			GUI_Slider2<uint8>("Normal Block Volume", activeCrimsonConfig.SFX.normalBlockVolume, queuedCrimsonConfig.SFX.normalBlockVolume, 0, 100);
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+			ImGui::Text("");
+
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+			ImGui::Text("DT EXPLOSION SFX");
+			ImGui::PopFont();
+
+			ImGui::PushItemWidth(itemWidth* smallerComboMult);
+			GUI_Slider2<uint8>("Start/Loop Volume", activeCrimsonConfig.SFX.dTEStartLoopVolume, queuedCrimsonConfig.SFX.dTEStartLoopVolume, 0, 100);
+			ImGui::PopItemWidth();
+
+			ImGui::PushItemWidth(itemWidth* smallerComboMult);
+			GUI_Slider2<uint8>("Finish Volume", activeCrimsonConfig.SFX.dTEFinishVolume, queuedCrimsonConfig.SFX.dTEFinishVolume, 0, 100);
+			ImGui::PopItemWidth();
+
+			ImGui::PushItemWidth(itemWidth* smallerComboMult);
+			GUI_Slider2<uint8>("Release Volume", activeCrimsonConfig.SFX.dTEReleaseVolume, queuedCrimsonConfig.SFX.dTEReleaseVolume, 0, 100);
+			ImGui::PopItemWidth();
 
 			ImGui::EndTable();
 		}
@@ -9819,10 +9892,12 @@ void SoundSection(size_t defaultFontSize) {
 
 				ImGui::TableNextColumn();
 
-				ImGui::PushItemWidth(itemWidth * smallerComboMult);
-				if (GUI_InputDefault2(Sound_channelNames[channelIndex], activeConfig.channelVolumes[channelIndex], queuedConfig.channelVolumes[channelIndex], defaultConfig.channelVolumes[channelIndex], 0.1f, "%g", ImGuiInputTextFlags_EnterReturnsTrue)) {
-					SetVolume(channelIndex, activeConfig.channelVolumes[channelIndex]);
+				ImGui::PushItemWidth(itemWidth* smallerComboMult);
+				if (GUI_Slider2<uint8>(Sound_channelNames[channelIndex],
+					activeCrimsonConfig.Sound.channelVolumes[channelIndex], queuedCrimsonConfig.Sound.channelVolumes[channelIndex], 0, 100)) {
+					SetVolume(channelIndex, activeCrimsonConfig.Sound.channelVolumes[channelIndex] / 100.0f);
 				}
+
 				ImGui::PopItemWidth();
 			}
 
@@ -13889,7 +13964,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	MissionDataWindow();
 	RegionDataWindow();
 	SoundWindow();
-
+	
 	scaleFactorX = ImGui::GetIO().DisplaySize.x / 1920;
 	scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
 	scaledFontSize = UI::g_UIContext.DefaultFontSize * scaleFactorY;
@@ -13914,6 +13989,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
 	CrimsonOnTick::OverrideEnemyTargetPosition();
 	CrimsonOnTick::TrackMissionStyleLevels();
+	
 
 	if (activeConfig.Actor.enable) {
 		ExpConfig::TransferUnlocksToVanilla();
@@ -13962,7 +14038,6 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 
     HandleSaveTimer(activeConfig.frameRate);
     ImGui::PopStyleColor();
-
     // static bool enable = true;
     // ImGui::ShowDemoWindow(&enable);
 }

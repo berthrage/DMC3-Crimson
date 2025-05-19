@@ -4886,14 +4886,16 @@ extern float rainstormMomentum;
 extern float highTimeRotation;
 
 struct DoubleTap {
-    int bufferDuration  = 150;
+    int bufferDuration  = 200;
     int buffer          = bufferDuration;
     bool canChange      = false;
     bool trackerRunning = false;
+	std::chrono::steady_clock::time_point lastTapTime = {};
+	int tapCount = 0;
 };
 
-extern DoubleTap quickDoubleTap;
-extern DoubleTap doppDoubleTap;
+extern DoubleTap quickDoubleTap[PLAYER_COUNT];
+extern DoubleTap doppDoubleTap[PLAYER_COUNT];
 
 extern bool inGunShoot;
 extern bool gunShootInverted;

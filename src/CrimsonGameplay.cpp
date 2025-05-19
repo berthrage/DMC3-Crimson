@@ -832,6 +832,7 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
         return;
     }
     auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    if (actorData.character != CHARACTER::VERGIL) return;
     auto playerIndex = actorData.newPlayerIndex;
     auto& gamepad    = GetGamepad(actorData.newPlayerIndex);
 
@@ -1764,6 +1765,7 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
     auto playerIndex = actorData.newPlayerIndex;
     auto& gamepad = GetGamepad(actorData.newPlayerIndex);
 
@@ -1830,6 +1832,7 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
         return;
     }
     auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
     auto playerIndex = actorData.newPlayerIndex;
     auto& gamepad    = GetGamepad(actorData.newPlayerIndex);
 
@@ -2347,7 +2350,7 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 
 
 void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
-	if (!actorBaseAddr) {
+	if (!actorBaseAddr || (uintptr_t)actorBaseAddr >= 0xFFFFFFFFFF) {
 		return;
 	}
 
@@ -2392,22 +2395,10 @@ void GetLockedOnEnemyHitPoints(byte8* actorBaseAddr) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& lockedOnEnemyHP = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyHP : crimsonPlayer[playerIndex].lockedOnEnemyHPClone;
 	auto& lockedOnEnemyMaxHP = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMaxHP : crimsonPlayer[playerIndex].lockedOnEnemyMaxHPClone;
-
-// 	auto pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-// 	if (!pool_2128 || !pool_2128[8]) return;
-// 	auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
-// 
-//     for (std::size_t enemyIndex = 0; enemyIndex < enemyVectorData.count; ++enemyIndex) {
-//         auto& enemy = enemyVectorData.metadata[enemyIndex];
-//         if (!enemy.baseAddr) continue;
-//         auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
-//         if (!enemyData.baseAddr) continue;
-// 
-// 		// store all hit points in a vector only once, to count as max hit points
-//     }
 
 	if (actorData.lockOnData.targetBaseAddr60 != 0) {
 		auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60); // -0x60 very important don't forget
@@ -2515,6 +2506,7 @@ void GetLockedOnEnemyStunDisplacement(byte8* actorBaseAddr) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& lockedOnEnemyStun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyStun : crimsonPlayer[playerIndex].lockedOnEnemyStunClone;
 	auto& lockedOnEnemyDisplacement = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyDisplacement : crimsonPlayer[playerIndex].lockedOnEnemyDisplacementClone;
@@ -2631,6 +2623,8 @@ void CalculateLockedOnEnemyLastStunDisplacementValue(byte8* actorBaseAddr) {
 	auto playerIndex = actorData.newPlayerIndex;
 	uint32_t entityIdx = actorData.newEntityIndex;
 
+    if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
+
 	auto& lockedOnEnemyStun = (entityIdx == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyStun : crimsonPlayer[playerIndex].lockedOnEnemyStunClone;
 	auto& lockedOnEnemyDisplacement = (entityIdx == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyDisplacement : crimsonPlayer[playerIndex].lockedOnEnemyDisplacementClone;
 	auto& lockedOnEnemyMinusStun = (entityIdx == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMinusStun : crimsonPlayer[playerIndex].lockedOnEnemyMinusStunClone;
@@ -2673,6 +2667,7 @@ void GetLockedOnEnemyShield(byte8* actorBaseAddr) {
 	auto& lockedOnEnemyShield = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyShield : crimsonPlayer[playerIndex].lockedOnEnemyShieldClone;
 	auto& lockedOnEnemyMaxShield = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMaxShield : crimsonPlayer[playerIndex].lockedOnEnemyMaxShieldClone;
 
+    if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
 
 	if (actorData.lockOnData.targetBaseAddr60 != 0) {
 		auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60); // -0x60 very important don't forget
@@ -2709,7 +2704,11 @@ void GetLockedOnEnemyShield(byte8* actorBaseAddr) {
 #pragma region DanteAirTaunt
 
 
-void TrackRoyalReleaseAndSkyLaunch(PlayerActorData& actorData) {
+void TrackRoyalReleaseAndSkyLaunch(byte8* actorBaseAddr) {
+	if (!actorBaseAddr || (uintptr_t)actorBaseAddr >= 0xFFFFFFFFFF) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     if (actorData.character != CHARACTER::DANTE) return;
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& royalRelease = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].royalRelease : crimsonPlayer[playerIndex].royalReleaseClone;
@@ -2788,10 +2787,11 @@ void StoreSkyLaunchProperties(PlayerActorData& actorData) {
 
 
 void ApplySkyLaunchProperties(byte8* actorBaseAddr) {
-    if (!actorBaseAddr) {
+    if (!actorBaseAddr || (uintptr_t)actorBaseAddr >= 0xFFFFFFFFFF) {
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
     auto playerIndex = actorData.newPlayerIndex;
     auto& action      = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].action : crimsonPlayer[playerIndex].actionClone;
     auto& state       = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
@@ -2833,7 +2833,7 @@ void ApplySkyLaunchProperties(byte8* actorBaseAddr) {
         StoreSkyLaunchProperties(actorData);
         if (!skyLaunch.forceJustFrameReleaseToggledOff) {
 
-            SetVolume(2, activeConfig.channelVolumes[2]);
+            SetVolume(2, activeCrimsonConfig.Sound.channelVolumes[2] / 100.0f);
             //CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeConfig.Royalguard.forceJustFrameRelease);
             skyLaunch.forceJustFrameReleaseToggledOff = true;
         }

@@ -274,43 +274,78 @@ struct CrimsonConfig {
 	struct SFX {
 		uint8 changeGunNew = 1;
 		uint8 changeDevilArmNew = 1;
-		uint32 changeWeaponVolume = 30;
-		uint32 styleChangeEffectVolume = 10;
-		uint32 styleChangeVOVolume = 50;
-		uint32 sprintVolume = 20;
-		uint32 devilTriggerInL1Volume = 40;
-		uint32 devilTriggerInL2Volume = 20;
-		uint32 devilTriggerOutVolume = 50;
-		uint32 devilTriggerReadyVolume = 110;
-		uint32 doppelgangerInVolume = 50;
-		uint32 doppelgangerOutVolume = 50;
-		uint32 quicksilverInVolume = 50;
-		uint32 styleRankAnnouncerVolume = 255;
+		uint8 changeWeaponEffectVolume = 100;
+		uint8 styleChangeVolume = 100;
+		uint8 styleChangeVoiceOverVolume = 100;
+		uint8 sprintEffectVolume = 100;
+		uint8 dTInL1Volume = 100;
+		uint8 dTInL2Volume = 100;
+		uint8 dTOutVolume = 100;
+		uint8 dTReadyVolume = 100;
+		uint8 doppelInVolume = 100;
+		uint8 doppelOutVolume = 100;
+		uint8 quickInVolume = 100;
+		uint8 quickOutVolume = 100;
+		uint8 announcerVolume = 100;
 		uint32 styleRankAnnouncerCooldownSeconds = 20;
 		uint8 delayedComboEffectType = 0;
 		uint8 delayedComboIndicatorVolume = 100;
+		uint8 royalBlockVolume = 100;
+		uint8 normalBlockVolume = 100;
+		uint8 dTEStartLoopVolume = 100;
+		uint8 dTEFinishVolume = 100;
+		uint8 dTEReleaseVolume = 100;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
 				std::make_pair("changeGunNew", &SFX::changeGunNew),
                 std::make_pair("changeDevilArmNew", &SFX::changeDevilArmNew),
-                std::make_pair("changeWeaponVolume", &SFX::changeWeaponVolume),
-                std::make_pair("styleChangeEffectVolume", &SFX::styleChangeEffectVolume),
-                std::make_pair("styleChangeVOVolume", &SFX::styleChangeVOVolume),
-                std::make_pair("sprintVolume", &SFX::sprintVolume),
-                std::make_pair("devilTriggerInL1Volume", &SFX::devilTriggerInL1Volume),
-                std::make_pair("devilTriggerInL2Volume", &SFX::devilTriggerInL2Volume),
-                std::make_pair("devilTriggerOutVolume", &SFX::devilTriggerOutVolume),
-                std::make_pair("devilTriggerReadyVolume", &SFX::devilTriggerReadyVolume),
-                std::make_pair("doppelgangerInVolume", &SFX::doppelgangerInVolume),
-                std::make_pair("doppelgangerOutVolume", &SFX::doppelgangerOutVolume),
-                std::make_pair("quicksilverInVolume", &SFX::quicksilverInVolume),
-                std::make_pair("styleRankAnnouncerVolume", &SFX::styleRankAnnouncerVolume),
+                std::make_pair("changeWeaponEffectVolume", &SFX::changeWeaponEffectVolume),
+                std::make_pair("styleChangeVolume", &SFX::styleChangeVolume),
+                std::make_pair("styleChangeVoiceOverVolume", &SFX::styleChangeVoiceOverVolume),
+                std::make_pair("sprintEffectVolume", &SFX::sprintEffectVolume),
+                std::make_pair("dTInL1Volume", &SFX::dTInL1Volume),
+                std::make_pair("dTInL2Volume", &SFX::dTInL2Volume),
+                std::make_pair("dTOutVolume", &SFX::dTOutVolume),
+                std::make_pair("dTReadyVolume", &SFX::dTReadyVolume),
+                std::make_pair("doppelInVolume", &SFX::doppelInVolume),
+                std::make_pair("doppelOutVolume", &SFX::doppelOutVolume),
+                std::make_pair("quickInVolume", &SFX::quickInVolume),
+				std::make_pair("quickOutVolume", &SFX::quickOutVolume),
+                std::make_pair("announcerVolume", &SFX::announcerVolume),
                 std::make_pair("styleRankAnnouncerCooldownSeconds", &SFX::styleRankAnnouncerCooldownSeconds),
-				std::make_pair("delayedComboIndicatorVolume", &SFX::delayedComboIndicatorVolume)	
+				std::make_pair("delayedComboIndicatorVolume", &SFX::delayedComboIndicatorVolume),
+				std::make_pair("delayedComboEffectType", &SFX::delayedComboEffectType),
+				std::make_pair("royalBlockVolume", &SFX::royalBlockVolume),
+				std::make_pair("normalBlockVolume", &SFX::normalBlockVolume),
+				std::make_pair("dTEStartLoopVolume", &SFX::dTEStartLoopVolume),
+				std::make_pair("dTEFinishVolume", &SFX::dTEFinishVolume),
+				std::make_pair("dTEReleaseVolume", &SFX::dTEReleaseVolume)
 			);
 		}
 	} SFX;
+
+	struct Sound {
+		uint8 channelVolumes[CHANNEL::MAX] = {
+			100,
+			100,
+			100,
+			100,
+			100,
+			100,
+			100,
+			100,
+			100,
+			100,
+			100,
+		};
+
+		static constexpr auto Metadata() {
+			return std::make_tuple(
+				std::make_pair("channelVolumes", &Sound::channelVolumes)
+			);
+		}
+	} Sound;
 
 	struct PlayerProperties {
 		uint8 playerColor[PLAYER_COUNT][4] = {
@@ -476,6 +511,7 @@ struct CrimsonConfig {
             std::make_pair("StyleSwitchFX", &CrimsonConfig::StyleSwitchFX),
 			std::make_pair("VFX", &CrimsonConfig::VFX),
             std::make_pair("SFX", &CrimsonConfig::SFX),
+			std::make_pair("Sound", &CrimsonConfig::Sound),
 			std::make_pair("PlayerProperties", &CrimsonConfig::PlayerProperties),
 			std::make_pair("System", &CrimsonConfig::System),
 			std::make_pair("CachedSettings", &CrimsonConfig::CachedSettings)

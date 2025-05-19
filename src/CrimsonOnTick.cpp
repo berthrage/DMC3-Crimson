@@ -186,7 +186,7 @@ void CrimsonMissionClearSong() {
 		CrimsonSDL::FadeOutNewMissionClearSong();
 
 		// Restore original Channnel Volume
-		SetVolume(9, activeConfig.channelVolumes[9]);
+		SetVolume(9, activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f);
 
 		missionClearSongPlayed = false;
 	}

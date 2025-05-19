@@ -471,8 +471,6 @@ void CreateMembers(Config& config_) {
     Create<bool>(member, "noDevilForm", config.noDevilForm);
     Create<bool>(member, "resetPermissions", config.resetPermissions);
 
-    CreateArray<float, CHANNEL::MAX>(member, "channelVolumes", config.channelVolumes);
-
     Create<bool>(member, "forceIconFocus", config.forceIconFocus);
     Create<bool>(member, "skipIntro", config.skipIntro);
     Create<bool>(member, "skipCutscenes", config.skipCutscenes);
@@ -855,9 +853,6 @@ void ToJSON(Config& config_) {
     Set<bool>(member["noDevilForm"], config.noDevilForm);
     Set<bool>(member["resetPermissions"], config.resetPermissions);
 
-    SetArray<float, CHANNEL::MAX>(member["channelVolumes"], config.channelVolumes);
-
-
     Set<bool>(member["forceIconFocus"], config.forceIconFocus);
     Set<bool>(member["skipIntro"], config.skipIntro);
     Set<bool>(member["skipCutscenes"], config.skipCutscenes);
@@ -1196,8 +1191,6 @@ void ToConfig(Config& config_) {
     config.dotShadow                 = Get<uint8>(member["dotShadow"]);
     config.noDevilForm               = Get<bool>(member["noDevilForm"]);
     config.resetPermissions          = Get<bool>(member["resetPermissions"]);
-
-    GetArray<float, CHANNEL::MAX>(config.channelVolumes, member["channelVolumes"]);
 
     config.forceIconFocus              = Get<bool>(member["forceIconFocus"]);
     config.skipIntro                   = Get<bool>(member["skipIntro"]);

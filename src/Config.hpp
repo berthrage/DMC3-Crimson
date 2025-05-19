@@ -132,20 +132,6 @@ struct Config {
    
     bool resetPermissions = false;
 
-    float channelVolumes[CHANNEL::MAX] = {
-        1.0f,
-        1.0f,
-        1.0f,
-        1.0f,
-        1.0f,
-        1.0f,
-        1.0f,
-        1.0f,
-        1.0f,
-        1.0f,
-        1.0f,
-    };
-
     bool forceIconFocus = false;
 
     bool skipIntro     = false;
