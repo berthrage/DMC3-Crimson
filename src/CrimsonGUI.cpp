@@ -3159,7 +3159,15 @@ void CharacterSection(size_t defaultFontSize) {
 
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushItemWidth(itemWidth);
-	GUI_Slider<uint8>("Number of Players", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT);
+	if (GUI_Slider<uint8>("Number of Players", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT)) {
+		if (queuedConfig.Actor.playerCount > 1) {
+			activeCrimsonConfig.Camera.multiplayerCamera = true;
+			queuedCrimsonConfig.Camera.multiplayerCamera = true;
+		} else {
+			activeConfig.enablePVPFixes = false;
+			queuedConfig.enablePVPFixes = false;
+		}
+	}
 	UI::Combo2("DMC3 Costume Game Progression", costumeRespectsProgressionNames, activeConfig.costumeRespectsProgression,
 		queuedConfig.costumeRespectsProgression);
 
@@ -3178,24 +3186,15 @@ void CharacterSection(size_t defaultFontSize) {
 
 			ImGui::TableSetupColumn("c2", 0, columnWidth * 2.0f);
 			ImGui::TableNextRow(0, rowWidth);
-			ImGui::TableNextColumn();
-
-
-			if (GUI_Checkbox2("Boss Lady Fixes", activeConfig.enableBossLadyFixes, queuedConfig.enableBossLadyFixes)) {
-				ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
-			}
 
 			ImGui::TableNextColumn();
 
-
-			if (GUI_Checkbox2("Boss Vergil Fixes", activeConfig.enableBossVergilFixes, queuedConfig.enableBossVergilFixes)) {
-				ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
-			}
-
-
-			ImGui::TableNextColumn();
-
+			GUI_PushDisable(queuedConfig.Actor.playerCount <= 1);
 			GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Allows you to set up PVP Multiplayer.\n"
+				"WARNING: This option WILL break actual enemies (they will freeze). Use with caution.");
+			GUI_PopDisable(queuedConfig.Actor.playerCount <= 1);
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
@@ -7495,11 +7494,10 @@ void LegacyDDMKCharactersSection() {
 		ImGui::PopItemWidth();
 		};
 
+	GUI_PushDisable(!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters);
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 	ImGui::Text("LADY OPTIONS");
 	ImGui::PopFont();
-
-	GUI_PushDisable(!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters);
 
 	// Table layout for Lady's Kalina Ann options
 	const float columnWidth = 0.5f * queuedConfig.globalScale;
@@ -7533,6 +7531,37 @@ void LegacyDDMKCharactersSection() {
 		ImGui::TableNextColumn();
 		LadyInput("Hook Grenade Time", activeConfig.kalinaAnnHookGrenadeTime,
 			queuedConfig.kalinaAnnHookGrenadeTime, defaultConfig.kalinaAnnHookGrenadeTime, 10.0f);
+
+		ImGui::EndTable();
+	}
+
+	ImGui::Text("");
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+	ImGui::Text("CHARACTER FIXES");
+	ImGui::PopFont();
+
+	if (ImGui::BeginTable("CharacterFixesTable", 3)) {
+		ImGui::TableSetupColumn("col1", 0, columnWidth * 2.0f);
+		ImGui::TableSetupColumn("col2", 0, columnWidth * 2.0f);
+
+		ImGui::TableNextRow(0, rowHeight);
+		ImGui::TableNextColumn();
+		if (GUI_Checkbox2("Boss Lady Fixes", activeConfig.enableBossLadyFixes, queuedConfig.enableBossLadyFixes)) {
+			ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Allows you to more properly test Legacy Playable Boss Lady.\n"
+			"WARNING: This checkbox WILL break the actual Boss Lady (ENEMY). Use with caution.");
+
+		ImGui::TableNextColumn();
+
+
+		if (GUI_Checkbox2("Boss Vergil Fixes", activeConfig.enableBossVergilFixes, queuedConfig.enableBossVergilFixes)) {
+			ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Allows you to more properly test Legacy Playable Boss Vergil.\n"
+			"WARNING: This checkbox WILL break the actual Boss Vergil (ENEMY). Use with caution.");
 
 		ImGui::EndTable();
 	}
