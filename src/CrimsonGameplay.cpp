@@ -832,6 +832,7 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
         return;
     }
     auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    if (actorData.character != CHARACTER::VERGIL) return;
     auto playerIndex = actorData.newPlayerIndex;
     auto& gamepad    = GetGamepad(actorData.newPlayerIndex);
 
@@ -1764,6 +1765,7 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
     auto playerIndex = actorData.newPlayerIndex;
     auto& gamepad = GetGamepad(actorData.newPlayerIndex);
 
@@ -1830,6 +1832,7 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
         return;
     }
     auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
     auto playerIndex = actorData.newPlayerIndex;
     auto& gamepad    = GetGamepad(actorData.newPlayerIndex);
 
@@ -2347,7 +2350,7 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 
 
 void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
-	if (!actorBaseAddr) {
+	if (!actorBaseAddr || (uintptr_t)actorBaseAddr >= 0xFFFFFFFFFF) {
 		return;
 	}
 
@@ -2701,7 +2704,11 @@ void GetLockedOnEnemyShield(byte8* actorBaseAddr) {
 #pragma region DanteAirTaunt
 
 
-void TrackRoyalReleaseAndSkyLaunch(PlayerActorData& actorData) {
+void TrackRoyalReleaseAndSkyLaunch(byte8* actorBaseAddr) {
+	if (!actorBaseAddr || (uintptr_t)actorBaseAddr >= 0xFFFFFFFFFF) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     if (actorData.character != CHARACTER::DANTE) return;
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& royalRelease = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].royalRelease : crimsonPlayer[playerIndex].royalReleaseClone;
@@ -2780,10 +2787,11 @@ void StoreSkyLaunchProperties(PlayerActorData& actorData) {
 
 
 void ApplySkyLaunchProperties(byte8* actorBaseAddr) {
-    if (!actorBaseAddr) {
+    if (!actorBaseAddr || (uintptr_t)actorBaseAddr >= 0xFFFFFFFFFF) {
         return;
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
     auto playerIndex = actorData.newPlayerIndex;
     auto& action      = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].action : crimsonPlayer[playerIndex].actionClone;
     auto& state       = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
