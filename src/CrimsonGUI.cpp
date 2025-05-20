@@ -8076,6 +8076,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
+			ImGui::Text("cameraHittingWall: %u", g_cameraHittingWall);
 			ImGui::Text("actorData styleLevel: %u", actorData.styleLevel);
 			ImGui::Text("frameCOunt Mission: %u", missionData.frameCount);
 			ImGui::Text("heldStyleLevels sword: %u", heldStyleExpDataDante.accumulatedStyleLevels[0]);

@@ -151,6 +151,11 @@ float* g_CameraSensitivity_NewSensAddr = nullptr;
 void CameraSensitivityDetour1();
 void CameraSensitivityDetour2();
 
+// CamHittingWall
+std::uint64_t g_CamHittingWall_ReturnAddr;
+void CamHittingWallDetour();
+bool* g_CamHittingWall_ConditionalAddr = nullptr;
+
 // RerouteRedOrbsCounterAlpha
 std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr1;
 std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr2;
@@ -499,6 +504,15 @@ void InitDetours() {
 	g_AddToMirageGauge_ReturnAddr = AddToMirageGaugeHook->GetReturnAddress();
 	AddToMirageGaugeHook->Toggle(true);
 	g_AddToMirageGaugeCall = &AddingToPlayersMirageGauge;
+
+	// CameraHittingWallDetection
+	// dmc3.exe+60301 - 45 8B F7              - mov r14d,r15d
+	// dmc3.exe+60304 - 85 C0                 - test eax,eax { Camera Hitting Wall ? }
+	static std::unique_ptr<Utility::Detour_t> CamHittingWallHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x60301, &CamHittingWallDetour, 5);
+	g_CamHittingWall_ReturnAddr = CamHittingWallHook->GetReturnAddress();
+	g_CamHittingWall_ConditionalAddr = &g_cameraHittingWall;
+	CamHittingWallHook->Toggle(true);
 
     // CreateEffect
     createEffectCallA  = (uintptr_t)appBaseAddr + 0x2E7CA0;

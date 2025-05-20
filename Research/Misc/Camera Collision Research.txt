@@ -1,0 +1,12 @@
+Camera collision research
+Inside dmc3.exe+56855 - E8 86990000           - call dmc3.exe+601E0:
+
+dmc3.exe+60301 - 45 8B F7              - mov r14d,r15d
+dmc3.exe+60304 - 85 C0                 - test eax,eax
+dmc3.exe+60306 - 0F8E 5F010000         - jng dmc3.exe+6046B { Skip cam collision rotation stop 1 } change to
+dmc3.exe+60306 - E9 60010000           - jmp dmc3.exe+6046B { Skip cam collision rotation stop 1 }
+
+dmc3.exe+60520 - 0F8E 1D020000         - jng dmc3.exe+60743 { Skip cam collision rotation stop 2 }
+dmc3.exe+60520 - E9 1E020000           - jmp dmc3.exe+60743 { Skip cam collision rotation stop 2 }
+
+

@@ -5354,6 +5354,7 @@ extern bool g_isParanoramicCamActive;
 
 extern __declspec(align(16)) float g_customCameraPos[4];
 extern __declspec(align(16)) float g_customCameraSensitivity;
+extern bool g_cameraHittingWall;
 
 constexpr BossHelper bossHelpers[] = {
     {6, 2, "afs/sound/Boss_01.adx"},      // Cerberus

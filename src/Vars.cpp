@@ -677,5 +677,6 @@ float g_rotationBeforeCalculation = 0;
 float g_rotationCalculated = 0;
 __declspec(align(16)) float g_customCameraPos[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 __declspec(align(16)) float g_customCameraSensitivity = 0.0f;
+bool g_cameraHittingWall = true;
 
 #pragma endregion
