@@ -43,6 +43,15 @@ void FrameResponsiveGameSpeed() {
 	g_FrameRate = 1.0f / deltaTime;
 	g_FrameRateTimeMultiplier = 60.0f / g_FrameRate;
 
+	// Exponential smoothing for the rounded multiplier stability
+	static float smoothedMultiplier = g_FrameRateTimeMultiplier;
+	float smoothingFactor = 0.05f; // Lower = smoother, higher = more responsive
+	smoothedMultiplier = smoothingFactor * g_FrameRateTimeMultiplier + (1.0f - smoothingFactor) * smoothedMultiplier;
+
+	// Round to nearest 0.1
+	float step = 0.1f;
+	g_FrameRateTimeMultiplierRounded = std::round(smoothedMultiplier / step) * step;
+
 	// Ignore deltaTime spikes that result from alt-tabbing, loading screens, etc.
 	float freezeThreshold = 1.0f / 50.0f; // Skips <50 FPS frames
 	if (deltaTime > freezeThreshold) {
@@ -56,7 +65,9 @@ void FrameResponsiveGameSpeed() {
 
 	if (activeConfig.framerateResponsiveGameSpeed) {
 		// Cutscene audio is so timing sensitive that we can't truly sync the FPS to the game speed while in them.
-		const float adjustedSpeed = g_scene != SCENE::CUTSCENE ? gameSpeedBase * g_FrameRateTimeMultiplier : gameSpeedBase * g_frameRateMultiplier;
+		// This would be properly solved if we had some method of audio stretching. Maybe: SDL_SetAudioStreamFrequencyRatio?
+		const float adjustedSpeed = g_scene != SCENE::CUTSCENE ? gameSpeedBase * g_FrameRateTimeMultiplier : 
+			gameSpeedBase * g_FrameRateTimeMultiplierRounded;
 		if (g_scene == SCENE::CUTSCENE) Speed::Toggle(true);
 
 		activeConfig.Speed.turbo = adjustedSpeed;

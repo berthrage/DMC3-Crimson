@@ -7834,6 +7834,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
         if (activeConfig.debugOverlayData.showFrameRateMultiplier) {
             ImGui::Text("g_frameRateMultiplier %g", g_frameRateMultiplier);
 			ImGui::Text("g_FrameRateTimeMultiplier %g", g_FrameRateTimeMultiplier);
+			ImGui::Text("g_FrameRateTimeMultiplierRounded %g", g_FrameRateTimeMultiplierRounded);
         }
 
         if (activeConfig.debugOverlayData.showFocus || activeConfig.debugOverlayData.showFPS || activeConfig.debugOverlayData.showSizes ||

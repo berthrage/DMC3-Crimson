@@ -4965,6 +4965,7 @@ extern bool styleChanged[6];
 
 extern float g_FrameRate;
 extern float g_FrameRateTimeMultiplier;
+extern float g_FrameRateTimeMultiplierRounded;
 extern bool g_inCombat;
 extern bool g_inBossfight;
 extern int g_bossQuantity;
