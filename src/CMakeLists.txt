@@ -131,6 +131,8 @@ file(GLOB MAIN_SRC
     CrimsonGUI.hpp
     CrimsonHUD.cpp
     CrimsonHUD.hpp
+    CrimsonCameraController.cpp
+    CrimsonCameraController.hpp
     CrimsonLDK.cpp
     CrimsonLDK.hpp
     CrimsonUtil.cpp

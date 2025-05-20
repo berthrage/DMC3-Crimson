@@ -15,6 +15,7 @@
 #include <iostream>
 #include "CrimsonPatches.hpp"
 #include "CrimsonLDK.hpp"
+#include "CrimsonCameraController.cpp"
 #include "Actor.hpp"
 
 
@@ -488,6 +489,7 @@ void InitDetours() {
 
 	// cEnemySetCtrl__spawnGuy_sub_1401A4680
 	//dmc3.exe+1A4680 - 40 57 - push rdi
+	CameraCtrlInitDetour();
 	LdkInitDetour();
 
 	// AddToMirageGauge
