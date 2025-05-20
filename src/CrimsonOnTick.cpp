@@ -599,27 +599,27 @@ CameraData* GetSafeCameraData() {
 	return cameraDataPtr;
 }
 
-/// <summary>
-/// Does logic for camera exceptions to handle intricacies of room transitions
-/// </summary>
-/// <param name="room">room the camera should be disabled in </param>
-/// <param name="mission">mission the room should have the camera disabled for</param>
-/// <param name="position">position you enter the room from that the camera should be disabled for</param>
-/// <returns>true/false on tic depending on that camera exception</returns>
-bool evaluateRoomCameraException(SessionData& sessionData, EventData& eventData, NextEventData& nextEventData, uint32 room, uint32 mission = 0, uint32 position = 0)
-{
-	////hackjob optimization 
-	if (sessionData.mission != mission)
-		return false;
-	//true in states for which we are exiting the current room but haven't left yet.
-	bool isRoomTransition = (eventData.event == EVENT::TELEPORT || eventData.event == EVENT::DELETE || eventData.event == EVENT::END);
-	//basically this check will turn off the camera as we transition to the new room
-	bool nextroom = (sessionData.mission == mission && nextEventData.room == room && nextEventData.position == position && isRoomTransition);
-	//this will keep the camera off in the room its disabled for.
-	bool currentroom = (sessionData.mission == mission && eventData.room == room && eventData.position == position) && !isRoomTransition;
-	
-	return nextroom || currentroom;
-}
+///// <summary>
+///// Does logic for camera exceptions to handle intricacies of room transitions
+///// </summary>
+///// <param name="room">room the camera should be disabled in </param>
+///// <param name="mission">mission the room should have the camera disabled for</param>
+///// <param name="position">position you enter the room from that the camera should be disabled for</param>
+///// <returns>true/false on tic depending on that camera exception</returns>
+//bool evaluateRoomCameraException(SessionData& sessionData, EventData& eventData, NextEventData& nextEventData, uint32 room, uint32 mission = 0, uint32 position = 0)
+//{
+//	////hackjob optimization 
+//	if (sessionData.mission != mission)
+//		return false;
+//	//true in states for which we are exiting the current room but haven't left yet.
+//	bool isRoomTransition = (eventData.event == EVENT::TELEPORT || eventData.event == EVENT::DELETE || eventData.event == EVENT::END);
+//	//basically this check will turn off the camera as we transition to the new room
+//	bool nextroom = (sessionData.mission == mission && nextEventData.room == room && nextEventData.position == position && isRoomTransition);
+//	//this will keep the camera off in the room its disabled for.
+//	bool currentroom = (sessionData.mission == mission && eventData.room == room && eventData.position == position) && !isRoomTransition;
+//	
+//	return nextroom || currentroom;
+//}
 
 void ForceThirdPersonCameraController() {
 	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
@@ -665,40 +665,40 @@ void ForceThirdPersonCameraController() {
 	if (activeCrimsonConfig.Camera.forceThirdPerson) {
 		// Room Exceptions for TPS cam
 		//reference room, position, mission. Check nextEventData 
-		bool roomExceptions = (
-			(eventData.room == ROOM::LOST_SOULS_NIRVANA && eventData.event != EVENT::TELEPORT)
-			//Vergil approach 
-			|| evaluateRoomCameraException(sessionData,eventData,nextEventData,ROOM::PEAK_OF_DARKNESS, 7, 0)
-			//m8 exception
-			|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_INTESTINES_2, 8, 0)
-			|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_INTESTINES_5, 8, 0)
-			//unfortunately forces boss cam in leviathan heart which we might not want
-			//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_HEARTCORE, 8, 0)
-			// m9 exception
-			//laser puzzle
-			|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_GARDEN, 9, 0)
-			//lake room (camera highlights progression + free cam gets stuck on a wall trying to reach a secret area
-			|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 0)
-			|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 1)
-			|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 2)
-			//nevan?
-			// || evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUNKEN_OPERA_HOUSE, 9, 0)
-			// m10 exception 
-			//this should only happen in position 2 on the other side of the cave where you collect the m10 mask
-			|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LIMESTONE_CAVERN, 10, 2)
-			|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 0)
-			|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 1)
-			|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 2)
-			//
-			//||(/* scenario 3*/)
-			//||(/* scenario 4*/)
-			);
-		if (roomExceptions){
-			CrimsonPatches::ForceThirdPersonCamera(false);
-		} else {
-			CrimsonPatches::ForceThirdPersonCamera(true);
-			
-		}
+		//bool roomExceptions = (
+		//	(eventData.room == ROOM::LOST_SOULS_NIRVANA && eventData.event != EVENT::TELEPORT)
+		//	//Vergil approach 
+		//	|| evaluateRoomCameraException(sessionData,eventData,nextEventData,ROOM::PEAK_OF_DARKNESS, 7, 0)
+		//	//m8 exception
+		//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_INTESTINES_2, 8, 0)
+		//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_INTESTINES_5, 8, 0)
+		//	//unfortunately forces boss cam in leviathan heart which we might not want
+		//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_HEARTCORE, 8, 0)
+		//	// m9 exception
+		//	//laser puzzle
+		//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_GARDEN, 9, 0)
+		//	//lake room (camera highlights progression + free cam gets stuck on a wall trying to reach a secret area
+		//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 0)
+		//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 1)
+		//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 2)
+		//	//nevan?
+		//	// || evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUNKEN_OPERA_HOUSE, 9, 0)
+		//	// m10 exception 
+		//	//this should only happen in position 2 on the other side of the cave where you collect the m10 mask
+		//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LIMESTONE_CAVERN, 10, 2)
+		//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 0)
+		//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 1)
+		//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 2)
+		//	//
+		//	//||(/* scenario 3*/)
+		//	//||(/* scenario 4*/)
+		//	);
+		//if (roomExceptions){
+		//	CrimsonPatches::ForceThirdPersonCamera(false);
+		//} else {
+		//	CrimsonPatches::ForceThirdPersonCamera(true);
+		//	
+		//}
 
 		// Disable Boss Camera Exceptions
 		if (!(eventData.room == 228 && eventData.position == 0)) { // Adding only Geryon Part 1 as an exception for now.
