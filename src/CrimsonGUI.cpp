@@ -8693,8 +8693,12 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth);
-			if (UI::ComboVectorString2("Select HUD", HUDdirectories, activeConfig.selectedHUD, queuedConfig.selectedHUD)) {
+			if (UI::ComboVectorString("Select HUD", HUDdirectories, queuedConfig.selectedHUD)) {
 				copyHUDtoGame();
+			}
+			if (queuedConfig.selectedHUD != activeConfig.selectedHUD) {
+				auto restartStrColor = CrimsonUtil::HexToImVec4(0x1DD6FFFF);
+				ImGui::TextColored(restartStrColor, "Restart the game to properly apply new HUD.");
 			}
 			ImGui::PopItemWidth();
 
