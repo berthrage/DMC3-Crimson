@@ -3348,7 +3348,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
         }
 
         // START QUICKSILVER DOUBLE TAP BUFFER
-        if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN)) {
+        if (actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN)) { //Makes double tap D-pad Right to switch to Quicksilver - ProjectXsent
             if (!quickDoubleTap.trackerRunning) {
                 std::thread doubletapquicktracker(doubleTapQuickTracker, actorBaseAddr);
                 doubletapquicktracker.detach();
@@ -3363,7 +3363,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
             }
         }
 
-        if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 4 && quickDoubleTap.canChange &&
+        if (actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) && actorData.style != 4 && quickDoubleTap.canChange && //Makes double tap D-pad Right to switch to Quicksilver - ProjectXsent
             !actorData.newIsClone && 
             sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER]) {
 
