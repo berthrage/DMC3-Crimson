@@ -400,6 +400,10 @@ void HandleDynamicSPCameraDistance(float& cameraDistance, float groundDistance, 
 	if (!pool_166 || !pool_166[3]) return;
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
 
+	if (activeConfig.Actor.playerCount == 1) {
+		activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
+	}
+
 	if (!(mainActorData.state & STATE::IN_AIR)) {
 		if (cameraDistance > groundDistance) {
 			cameraDistance = groundDistance;
@@ -440,6 +444,10 @@ void HandlePanoramicSPCameraDistance(float& cameraDistance, float groundDistance
 
 	float maxDistance = (mainActorData.state & STATE::IN_AIR) ? 1000.0f : 780.0f; // Maximum allowed camera distance
 	bool needZoomOut = false;
+
+
+		
+	
 
 	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
 		float distanceTo1P = g_plEntityTo1PDistances[i];
@@ -609,16 +617,33 @@ void HandlePanoramicSPCameraDistance(float& cameraDistance, float groundDistance
 	}
 }
 
-
-
 void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistanceSP, float airDistanceSP) {
 	static auto lastAdjustmentTime = std::chrono::steady_clock::now();
 	const auto timeThreshold = std::chrono::milliseconds(1000); // 1 second delay
 	static auto lastWallClearTime = std::chrono::steady_clock::now();
 	const auto wallCooldown = std::chrono::milliseconds(800); // Cooldown after wall collision
 
+	static bool fovWasIncreased = false;
+	const float maxFovMultiplier = 2.0f;
+	const float fovIncreaseSpeed = 0.02f; // Per frame, adjust as needed
+	const float fovDecreaseSpeed = 0.02f; // Per frame, adjust as needed
+
+	static auto allInCenterStartTime = std::chrono::steady_clock::time_point{};
+	const auto allInCenterCooldown = std::chrono::milliseconds(400); // 400ms debounce
+
+	// Always restore FOV if this function is called but MPcam can't be used
+	if (!appBaseAddr) {
+		activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
+		fovWasIncreased = false;
+		return;
+	}
+
 	auto pool_11962 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-	if (!pool_11962 || !pool_11962[8]) return;
+	if (!pool_11962 || !pool_11962[8]) {
+		activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
+		fovWasIncreased = false;
+		return;
+	}
 	auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
 
 	const float baseResX = 1920.0f;
@@ -633,18 +658,16 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 	const float screenMarginForZoomOut = 300.0f * scaleFactorX;
 
 	float maxDistance = 2800.0f; // Maximum allowed camera distance
-	bool outOfView = false;
 
-	// Check if any entity needs the camera to zoom out
+	// Check if all players are within multiplayer camera range
+	bool allPlayersWithinMPCam = true;
 	bool needZoomOut = false;
 	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
 		float distanceTo1P = g_plEntityTo1PDistances[i];
-
 		float cameraDistanceMP = (eventData.room >= ROOM::BLOODY_PALACE_1 && eventData.room <= ROOM::BLOODY_PALACE_10) ? 2800.0f : 1900.0f;
-
 		if (distanceTo1P >= cameraDistanceMP) {
-			HandleDynamicSPCameraDistance(cameraDistance, groundDistanceSP, airDistanceSP);
-			return; // Early exit, no need to adjust further
+			allPlayersWithinMPCam = false;
+			break;
 		}
 
 		auto& screenPos = g_plEntityScreenPositions[i];
@@ -657,15 +680,71 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 		}
 	}
 
-	// Additional check: Are all entities within the screen margin for zooming in?
-	bool allEntitiesInCenter = true;
+	// If MPcam is not active, always reset FOV and return
+	if (!allPlayersWithinMPCam) {
+		activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
+		fovWasIncreased = false;
+		HandleDynamicSPCameraDistance(cameraDistance, groundDistanceSP, airDistanceSP);
+		return;
+	}
+
+	// Check if all entities are comfortably in the center (for FOV restore)
+	bool allEntitiesInCenterForFov = true;
 	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
 		auto& screenPos = g_plEntityScreenPositions[i];
-
 		if (screenPos.x <= screenMarginForZoomIn || screenPos.x >= (screenWidth - screenMarginForZoomIn) ||
 			screenPos.y <= screenMarginForZoomIn || screenPos.y >= (screenHeight - screenMarginForZoomIn)) {
-			allEntitiesInCenter = false;
-			break; // Early exit if any entity is near the edge
+			allEntitiesInCenterForFov = false;
+			break;
+		}
+	}
+
+	// Determine if any player is near the edge (need more FOV)
+	bool anyPlayerNearEdge = false;
+	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
+		auto& screenPos = g_plEntityScreenPositions[i];
+		if (screenPos.x <= screenMarginForZoomOut || screenPos.x >= (screenWidth - screenMarginForZoomOut) ||
+			screenPos.y <= screenMarginForZoomOut || screenPos.y >= (screenHeight - screenMarginForZoomOut)) {
+			anyPlayerNearEdge = true;
+			break;
+		}
+	}
+
+	// Debounce: Only restore FOV if all players have been in the center for at least 400ms
+	auto now = std::chrono::steady_clock::now();
+	static bool debounceActive = false;
+	if (allEntitiesInCenterForFov) {
+		if (!debounceActive) {
+			allInCenterStartTime = now;
+			debounceActive = true;
+		}
+	} else {
+		debounceActive = false;
+	}
+
+	// Gradual FOV adjustment logic
+	float& fovMultiplier = activeCrimsonConfig.Camera.fovMultiplier;
+	const float queuedFov = queuedCrimsonConfig.Camera.fovMultiplier;
+	if ((g_cameraHittingWall > 0) && cameraDistance <= groundDistanceSP + 0.1f && anyPlayerNearEdge) {
+		// Save previous FOV only once when starting to increase
+		if (!fovWasIncreased) {
+			fovWasIncreased = true;
+		}
+		// Gradually increase FOV up to maxFovMultiplier
+		if (fovMultiplier < maxFovMultiplier) {
+			fovMultiplier += fovIncreaseSpeed * g_frameRateMultiplier;
+			if (fovMultiplier > maxFovMultiplier) fovMultiplier = maxFovMultiplier;
+		}
+	} else {
+		// Only restore FOV if all players have been in the center for at least 400ms
+		if (fovWasIncreased && debounceActive && (now - allInCenterStartTime) > allInCenterCooldown) {
+			if (fovMultiplier > queuedFov) {
+				fovMultiplier -= fovDecreaseSpeed * g_frameRateMultiplier;
+				if (fovMultiplier < queuedFov) fovMultiplier = queuedFov;
+			} else {
+				fovMultiplier = queuedFov;
+				fovWasIncreased = false;
+			}
 		}
 	}
 
@@ -691,7 +770,7 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 				auto timeSinceLastAdjustment = currentTime - lastAdjustmentTime;
 
 				// Only adjust the camera if the cooldown time has passed and all entities are in the center
-				if (timeSinceLastAdjustment > timeThreshold && allEntitiesInCenter) {
+				if (timeSinceLastAdjustment > timeThreshold && allEntitiesInCenterForFov) {
 					if (cameraDistance > groundDistanceSP) {
 						cameraDistance -= 10.0f * g_frameRateMultiplier;
 						if (cameraDistance < groundDistanceSP) {
@@ -714,7 +793,7 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 			auto timeSinceLastAdjustment = currentTime - lastAdjustmentTime;
 
 			// Only adjust the camera if the cooldown time has passed and all entities are in the center
-			if (timeSinceLastAdjustment > timeThreshold && allEntitiesInCenter) {
+			if (timeSinceLastAdjustment > timeThreshold && allEntitiesInCenterForFov) {
 				if (cameraDistance > groundDistanceSP) {
 					cameraDistance -= 10.0f * g_frameRateMultiplier;
 					if (cameraDistance < groundDistanceSP) {
@@ -725,7 +804,6 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 		}
 	}
 }
-
 
 void CameraDistanceController(CameraData* cameraData, CameraControlMetadata& cameraMetadata) {
 	if (activeCrimsonConfig.Camera.distance == 0 || cameraMetadata.fixedCameraAddr != 0) { // Far (Vanilla Default) // check if the camera is in a fixed pos mode
