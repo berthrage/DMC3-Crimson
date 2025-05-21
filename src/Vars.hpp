@@ -275,6 +275,17 @@ enum {
     CLONE,
 };
 };
+namespace CAMERA_TYPE {
+    enum {
+        FIXED,
+        TYPE1,
+        TYPE2,
+        TYPE3,
+        THIRD_PERSON,
+        TYPE5
+    };
+};
+
 
 namespace CHARACTER {
 enum {
@@ -2480,11 +2491,28 @@ struct CameraControlMetadata {
 
 static_assert(offsetof(CameraControlMetadata, fixedCameraAddr) == 0x4B0);
 
-struct CameraSwitchArrayData {
-    _(9969);
-    uint8 currentCamIndex; // 0x4B0
+
+struct CameraSwitchData {
+    _(1);
+    uint8 type; // 0x20
+    _(30);
 };
 
+static_assert(sizeof(CameraSwitchData) == 32);
+
+struct CameraSwitchArrayData {
+    _(152); //0x98
+    //uintptr_t cameraArrayBase;
+    CameraSwitchData* switches[80];
+    _(9177);
+    //_(480);
+    //_(9809);
+    //_(9969);
+    uint8 currentCamIndex; // 0x26F1
+};
+
+const static int value = offsetof(CameraSwitchArrayData, currentCamIndex);
+static_assert(offsetof(CameraSwitchArrayData, switches) == 0x98);
 static_assert(offsetof(CameraSwitchArrayData, currentCamIndex) == 0x26F1);
 // $CameraDataStart
 

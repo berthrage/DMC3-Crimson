@@ -29,6 +29,7 @@ static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 		return res;
 	}
 
+	auto& cameraswitchInfo = *reinterpret_cast<CameraSwitchArrayData*>(a1);
 	return res;
 
 }
