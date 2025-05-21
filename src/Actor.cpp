@@ -2969,6 +2969,23 @@ void DeactivateDevil(PlayerActorData& actorData, bool playSFX = true) {
     // StopDevilTriggerLoop();
 }
 
+void DeactivateDevilHaywire(PlayerActorData& actorData) {
+    switch (actorData.character) {
+    case CHARACTER::DANTE:
+    {
+        auto& actorData2 = *reinterpret_cast<PlayerActorDataDante*>(&actorData);
+        UpdateForm(actorData2);
+        break;
+    }
+    case CHARACTER::VERGIL:
+    {
+        auto& actorData2 = *reinterpret_cast<PlayerActorDataVergil*>(&actorData);
+        UpdateForm(actorData2);
+        break;
+    }
+    }
+}
+
 void ActivateDoppelganger(PlayerActorData& actorData) {
     LogFunction(actorData.operator byte8*());
     auto& characterData = GetCharacterData(actorData);

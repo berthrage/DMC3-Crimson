@@ -147,8 +147,28 @@ void PreparePlayersDataBeforeSpawn() {
 					crimsonPlayer[playerIndex].maxHitPoints = activeMissionActorData.maxHitPoints;
 				}
 			}
+
+			
+			// HAYWIRE FIX FOR HORSE BOSS RESPAWNING
+			if (sessionData.mission == 12) {
+				if (!g_haywireNeoGenerator) {
+					if (vanillaActorData.hitPoints != vanillaActorData.maxHitPoints) {
+						vanillaActorData.hitPoints = vanillaActorData.maxHitPoints;
+					}
+
+					if (vanillaActorData.magicPoints != vanillaActorData.maxMagicPoints) {
+						vanillaActorData.magicPoints = vanillaActorData.maxMagicPoints;
+					}
+
+				}
+
+				vanillaActorData.devil = false;
+				DeactivateDevilHaywire(vanillaActorData);
+			} 
+
 		}
 	}
+
 
 	if (g_scene != SCENE::GAME || (g_scene == SCENE::GAME && eventData.event == EVENT::DEATH)) {
 		for (int playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {

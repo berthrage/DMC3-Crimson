@@ -428,6 +428,8 @@ void SetNextScreen(EventData& eventData);
 
 #pragma endregion
 
+void DeactivateDevilHaywire(PlayerActorData& actorData);
+
 #pragma region Scenes
 
 namespace Actor {
