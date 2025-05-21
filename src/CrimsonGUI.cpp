@@ -5344,6 +5344,27 @@ void ShopWindow() {
 		ImGui::Text("%u", missionData.redOrbs);
 		ImGui::PopFont();
 		ImGui::Text("");
+		auto BACKGROUND_FADED_TEXT = u8"Divinity Statue";
+		ImFont* fadedFont = UI::g_ImGuiFont_RussoOne256;
+		float fadedFontSize = scaledFontSize * 4.8f;
+
+		ImVec2 bgFadedTextSize = ImGui::CalcTextSize((const char*)BACKGROUND_FADED_TEXT, nullptr, false, fadedFontSize);
+
+		// Get window position and size
+		ImVec2 winPos = ImGui::GetWindowPos();
+		ImVec2 winSize = ImGui::GetWindowSize();
+
+		float rightMargin = 600.0f * scaleFactorY;
+
+		float x = winPos.x + winSize.x - bgFadedTextSize.x - rightMargin;
+		float y = winPos.y + 15.0f * scaleFactorY; // top margin
+
+		ImGui::GetWindowDrawList()->AddText(
+			fadedFont, fadedFontSize,
+			ImVec2(x, y),
+			UI::SwapColorEndianness(0xFFFFFF10),
+			(const char*)BACKGROUND_FADED_TEXT
+		);
 
 // 		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
 // 			auto& gamepad = GetGamepad(playerIndex);
@@ -14030,6 +14051,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonGameModes::TrackCheats();
 	CrimsonGameModes::TrackMissionResultGameMode();
 	CrimsonOnTick::CrimsonMissionClearSong();
+	CrimsonOnTick::DivinityStatueSong();
 
 	CrimsonSDL::CheckAndOpenControllers();
 	CrimsonSDL::UpdateJoysticks();

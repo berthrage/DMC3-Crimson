@@ -214,12 +214,34 @@ void CrimsonMissionClearSong() {
 	}
 	else if (g_scene != SCENE::MISSION_RESULT && missionClearSongPlayed) {
 		// Fade it out
-		CrimsonSDL::FadeOutNewMissionClearSong();
+		CrimsonSDL::FadeOutMusic();
 
 		// Restore original Channnel Volume
 		SetVolume(9, activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f);
 
 		missionClearSongPlayed = false;
+	}
+}
+
+void DivinityStatueSong() {
+	static bool songPlayed = false;
+	if (g_showShop && !songPlayed
+		&& (gameModeData.missionResultGameMode == GAMEMODEPRESETS::CRIMSON
+			|| gameModeData.missionResultGameMode == GAMEMODEPRESETS::CUSTOM)) {
+		// Mute Music Channel Volume
+		SetVolume(9, 0);
+
+		// Play song
+		CrimsonSDL::PlayDivinityStatueSong();
+		songPlayed = true;
+	} else if (!g_showShop && songPlayed) {
+		// Fade it out
+		CrimsonSDL::FadeOutMusic();
+
+		// Restore original Channnel Volume
+		SetVolume(9, activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f);
+
+		songPlayed = false;
 	}
 }
 

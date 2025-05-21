@@ -4,9 +4,9 @@ namespace CrimsonOnTick {
 	extern bool inputtingFPS;
 	void FrameResponsiveGameSpeed();
 	void GameTrackDetection();
-	void CorrectFrameRateCutscenes();
 	void PreparePlayersDataBeforeSpawn();
 	void CrimsonMissionClearSong();
+	void DivinityStatueSong();
 	void DisableBlendingEffectsController();
 	void StyleMeterMultiplayer();
 	void DetermineActiveEntitiesCount();
@@ -19,5 +19,4 @@ namespace CrimsonOnTick {
 	void OverrideEnemyTargetPosition();
 	void WeaponProgressionTracking();
 	void FixM7DevilTriggerUnlocking();
-	void FixChannel2Volume();
 }
