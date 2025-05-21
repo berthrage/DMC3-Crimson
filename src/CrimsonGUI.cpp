@@ -193,7 +193,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			window->DrawList->AddImage(logo, logoPos, logoSize);
 
 			// BETA Notice 
-			const char* text = "0.3a DEVELOPMENT PREVIEW BUILD";
+			const char* text = "BETA";
 			ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 0.8f]);
 			ImVec2 textSize = ImGui::CalcTextSize(text);
 			float padding = scaledFontSize * 0.2f;
@@ -683,7 +683,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			// Middle footer section
 			{
 				constexpr auto BACKGROUND_FADED_TEXT = u8"C•Team";
-				constexpr auto CREDIT_TEXT = u8"Berthrage • SSSiyan • deepdarkkapustka • Darkness • Charlie • The Hitchhiker  ";
+				constexpr auto CREDIT_TEXT = u8"Berthrage • SSSiyan • deepdarkkapustka • Darkness • Charlie • The Hitchhiker • RaccMoon ";
 				constexpr auto ABOUT_BUTTON_TEXT = "ABOUT";
 
 				ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
@@ -11691,7 +11691,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[versionFontSize]);
 
 	// Format the version string
-	std::string versionStr = std::format("v{}.{}", UI::g_UIContext.CurrentVersion.Major, UI::g_UIContext.CurrentVersion.Minor);
+	std::string versionStr = std::format("v{}.{}{}", UI::g_UIContext.CurrentVersion.Major, UI::g_UIContext.CurrentVersion.Minor, UI::g_UIContext.CurrentVersion.PatchLetter);
 	std::string versionText = "BETA " + versionStr;
 
 	// Calculate text size
@@ -13668,6 +13668,37 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.7f);
 
+				// RaccMoon
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+					{
+						ImGui::Text("Testing, Q&A");
+					}
+					ImGui::PopFont();
+
+					ImGui::Separator();
+
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+					{
+						ImGui::Text("RaccMoon");
+					}
+					ImGui::PopFont();
+
+					ImGui::SameLine();
+
+					const ImVec2 socialsBBFrameSize{ 4.0f + ImGui::GetFontSize(), 4.0f + ImGui::GetFontSize() };
+					const ImVec2 currentCursorPos = ImGui::GetCursorScreenPos();
+
+					ImGui::SetCursorScreenPos(ImVec2{ window->ContentRegionRect.Max.x - socialsBBFrameSize.x, currentCursorPos.y });
+
+					if (fnDrawSocialButton("raccyoutube", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+						ShellExecute(0, 0, "https://www.youtube.com/@rakunuki3565", 0, 0, SW_SHOW);
+					}
+
+				}
+
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.7f);
+
 				// Additional Work
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 1.2f)]);
@@ -13694,8 +13725,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 							ImGui::SameLine();
  							
-							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
- 									ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
+							if (fnDrawSocialButton("cynumatwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+ 									ShellExecute(0, 0, "https://x.com/Cynumaa", 0, 0, SW_SHOW);
 							}
 						}
 						ImGui::PopFont();
@@ -13714,11 +13745,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						{
 							ImGui::Text("Omar Nabelse");
 
-							ImGui::SameLine();
-
-							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
-								ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
-							}
 						}
 						ImGui::PopFont();
 					}
@@ -13735,12 +13761,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
 						{
 							ImGui::Text("Che");
-
-							ImGui::SameLine();
-
-							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
-								ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
-							}
 						}
 						ImGui::PopFont();
 					}
@@ -13762,6 +13782,28 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
 								ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
+							}
+						}
+						ImGui::PopFont();
+					}
+
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+						{
+							ImGui::Text("Programmer");
+						}
+						ImGui::PopFont();
+
+						ImGui::Separator();
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Text("adil");
+
+							ImGui::SameLine();
+
+							if (fnDrawSocialButton("adilgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://github.com/adilahmeddev", 0, 0, SW_SHOW);
 							}
 						}
 						ImGui::PopFont();
