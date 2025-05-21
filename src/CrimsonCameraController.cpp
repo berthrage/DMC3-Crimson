@@ -24,13 +24,66 @@ static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 
 	s_cameraEnable = cameraConfig.forceThirdPerson;
 
-	uintptr_t res = trampoline(a1,a2);
-	if (!res || !s_cameraEnable) {
+	uintptr_t res = trampoline(a1, a2);
+
+
+	if (!s_cameraEnable) {
 		return res;
 	}
 
 	auto& cameraswitchInfo = *reinterpret_cast<CameraSwitchArrayData*>(a1);
-	return res;
+	//make sure it's a valid index
+
+
+
+	if (cameraswitchInfo.currentCamIndex == 255) {
+		return res;
+	}
+
+	//get event & nextevent
+	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10298 || !pool_10298[8]) {
+		return res;
+	}
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+
+	auto pool_12959 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_12959 || !pool_12959[12]) {
+		return res;
+	}
+	auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12959[12]);
+
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	s_currentCameraIndex = cameraswitchInfo.currentCamIndex;
+	//bool roomExceptions = (
+	//	//
+	//	//||(/* scenario 3*/)
+	//	//||(/* scenario 4*/)
+	//	);
+	//if (roomExceptions) {
+	//	CrimsonPatches::ForceThirdPersonCamera(false);
+	//}
+	//else {
+	//	CrimsonPatches::ForceThirdPersonCamera(true);
+
+	//}
+	//specifically keeps the third person camera for the laser section in this room activated.
+	if (sessionData.mission == 9 && eventData.room == ROOM::SUBTERRANEAN_GARDEN && s_currentCameraIndex == 2) {
+		CrimsonPatches::ForceThirdPersonCamera(false);
+	}
+	else {
+		//forces the reenabling of the third person camera I hope
+		cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type = CAMERA_TYPE::THIRD_PERSON;
+		CrimsonPatches::ForceThirdPersonCamera(true);
+	}
+	//let's see what this does
+	//CrimsonPatches::ForceThirdPersonCamera(true);
+	//cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type = CAMERA_TYPE::THIRD_PERSON;
+	
+	
+	//we need to multiply our access by 4 to get the actual cameras. 
+	return trampoline(a1, a2);;
 
 }
 
@@ -97,7 +150,7 @@ static uintptr_t  __fastcall sub_14023EEF0(int64_t a1) {
 		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_HEARTCORE, 8, 0)
 		// m9 exception
 		//laser puzzle
-		|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_GARDEN, 9, 0)
+		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_GARDEN, 9, 0)
 		//lake room (camera highlights progression + free cam gets stuck on a wall trying to reach a secret area
 		|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 0)
 		|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 1)
