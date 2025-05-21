@@ -1708,7 +1708,7 @@ void AerialRaveGravityTweaks(byte8* actorBaseAddr) {
     auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     auto playerIndex = actorData.newPlayerIndex;
 
-    auto* tweak    = &crimsonPlayer[playerIndex].airRaveTweak;
+    auto* tweak    = &crimsonPlayer[playerIndex].airFlickerTweak;
     auto& action    = actorData.action;
     auto& event     = actorData.eventData[0].event;
     auto& state     = actorData.state;
@@ -1757,134 +1757,129 @@ void AerialRaveGravityTweaks(byte8* actorBaseAddr) {
 }
 
 void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
-    // Reduces gravity while air flickering, while also adding weights into account.
-    // Take into account that Vanilla gravity fall off is VericalPullMultiplier = -1.5f. - Mia
-    using namespace ACTION_DANTE;
+	// Reduces gravity while air flickering, while also adding weights into account.
+	// Take into account that Vanilla gravity fall off is VericalPullMultiplier = -1.5f. - Mia
+	using namespace ACTION_DANTE;
 
-    if (!actorBaseAddr) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
-    auto playerIndex = actorData.newPlayerIndex;
-    auto& gamepad = GetGamepad(actorData.newPlayerIndex);
-
-    auto* tweak = &crimsonPlayer[playerIndex].airRaveTweak;
-    auto action = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].action : crimsonPlayer[playerIndex].actionClone;
-    auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
-    auto event = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].event : crimsonPlayer[playerIndex].eventClone;
-    auto motion = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
-    auto& state = actorData.state;
-    auto actionTimer =
-        (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
-
-    if (event == ACTOR_EVENT::ATTACK && event != ACTOR_EVENT::AIR_HIKE && event != ACTOR_EVENT::JUMP_CANCEL && event != ACTOR_EVENT::JUMP && state & STATE::IN_AIR && actorData.character == CHARACTER::DANTE) {
-
-        if (action == CERBERUS_AIR_FLICKER) {
-
-
-            if (motion == 7) {
-
-                // Reduces Gravity Fall-off
-                actorData.verticalPullMultiplier = -0.05 + (-0.15f * actorData.airSwordAttackCount); // Vanilla value is -0.27f
-            } else {
-
-                if ((actorData.style == STYLE::SWORDMASTER) && gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
-
-                    actorData.state &= ~STATE::BUSY; // Allows you to cancel into another Flicker during the falling animation.
-                }
-
-                // Reduces Gravity Fall-off
-                actorData.verticalPullMultiplier = -1.5f;
-            }
-        }
-
-        // Fix for the weird carry over to EbonyIvory Normal Shot
-        if (action == ACTION_DANTE::EBONY_IVORY_AIR_NORMAL_SHOT && lastAction == CERBERUS_AIR_FLICKER) {
-            actorData.verticalPullMultiplier = -1.2f;
-        }
-
-        // Fix for weird Fireworks carry over on vertical mult.
-        if (action == ACTION_DANTE::SHOTGUN_AIR_FIREWORKS && lastAction == CERBERUS_AIR_FLICKER) {
-            actorData.verticalPullMultiplier = -0.95f;
-        }
-
-		// Fix for the weird carry over to Beowulf Rising Dragon Whirlwind
-		if (action == ACTION_DANTE::BEOWULF_RISING_DRAGON_WHIRLWIND && lastAction == CERBERUS_AIR_FLICKER) {
-			actorData.verticalPullMultiplier = -1.35f;
-		}
-	} 
-    
-    // Fix for the weird carry over to air hike/jump cancel
-    if ((event == ACTOR_EVENT::AIR_HIKE || event == ACTOR_EVENT::JUMP_CANCEL) && action == CERBERUS_AIR_FLICKER) {
-        actorData.verticalPullMultiplier = -1.5f;
+	if (!actorBaseAddr) {
 		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
+
+	auto* tweak = (actorData.newEntityIndex == ENTITY::MAIN) ? &crimsonPlayer[playerIndex].airFlickerTweak : 
+        &crimsonPlayer[playerIndex].airFlickerTweakClone;
+	auto action = actorData.action;
+	auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
+	auto event =  actorData.eventData[0].event;
+	auto motion = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
+	auto& state = actorData.state;
+	auto actionTimer =
+		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
+    auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
+
+	// Fix for the weird carry over to air hike/jump cancel
+	if ((event == ACTOR_EVENT::AIR_HIKE || event == ACTOR_EVENT::JUMP_CANCEL) && action == CERBERUS_AIR_FLICKER) {
+		actorData.verticalPullMultiplier = -1.5f;
+		tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag on jump cancel/air hike
+		return;
+	}
+
+	if (event == ACTOR_EVENT::ATTACK && event != ACTOR_EVENT::AIR_HIKE && event != ACTOR_EVENT::JUMP_CANCEL && event != ACTOR_EVENT::JUMP && state & STATE::IN_AIR && actorData.character == CHARACTER::DANTE) {
+
+		if (action == CERBERUS_AIR_FLICKER) {
+			if (!tweak->hasAppliedVerticalPullMultiplier) {
+				if (motion == 7) {
+					// Reduces Gravity Fall-off
+					actorData.verticalPullMultiplier = -0.05f + (-0.15f * actorData.airSwordAttackCount); // Vanilla value is -0.27f
+				} else {
+					if ((actorData.style == STYLE::SWORDMASTER) && (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))) {
+						actorData.state &= ~STATE::BUSY; // Allows you to cancel into another Flicker during the falling animation.
+					}
+					// Reduces Gravity Fall-off
+					actorData.verticalPullMultiplier = -1.5f;
+				}
+				tweak->hasAppliedVerticalPullMultiplier = true;
+			}
+		} else {
+			tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag when not in flicker
+		}
+
+        // INTENTIONAL VERTICAL INERTIA BLEED TO OTHER MOVES AFTER 0.7 seconds AND NOT JCING / AIRHIKING
+        if (action != CERBERUS_AIR_FLICKER && lastAction == CERBERUS_AIR_FLICKER && lastActionTime > 0.7f) {
+            actorData.verticalPullMultiplier = -0.05f + (-0.15f * (actorData.airSwordAttackCount + 6)); // Vanilla value is -0.27f
+        }
+
+	} 
+    if (action != CERBERUS_AIR_FLICKER || event != ACTOR_EVENT::ATTACK) {
+		// Reset flag if not in the action or the attack event
+		tweak->hasAppliedVerticalPullMultiplier = false;
 	}
 }
 
 void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
-    // Reduces gravity while sky dancing, while also adding weights into account.
-    // This is also combined with the SkyDanceTweak in SetAction,
-    // which separates Sky Dance Part 3 into its own ability, triggered by lock on + forward + style. - Mia
-    using namespace ACTION_DANTE;
+	// Reduces gravity while sky dancing, while also adding weights into account.
+	// This is also combined with the SkyDanceTweak in SetAction,
+	// which separates Sky Dance Part 3 into its own ability, triggered by lock on + forward + style. - Mia
+	using namespace ACTION_DANTE;
 
-    if (!actorBaseAddr) {
-        return;
-    }
-    auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
-    auto playerIndex = actorData.newPlayerIndex;
-    auto& gamepad    = GetGamepad(actorData.newPlayerIndex);
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
 
-    auto* tweak     = &crimsonPlayer[playerIndex].airRaveTweak;
-    auto action     = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].action : crimsonPlayer[playerIndex].actionClone;
-    auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
-    auto event      = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].event : crimsonPlayer[playerIndex].eventClone;
-    auto lastEvent  = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastEvent : crimsonPlayer[playerIndex].lastEventClone;
-    auto motion     = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
-    auto& state = actorData.state;
-    auto actionTimer =
+	auto* tweak = (actorData.newEntityIndex == ENTITY::MAIN) ? &crimsonPlayer[playerIndex].skyDanceTweak :
+		&crimsonPlayer[playerIndex].skyDanceTweakClone;
+    auto action = actorData.action;
+	auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
+    auto event = actorData.eventData[0].event;
+	auto motion = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
+	auto& state = actorData.state;
+	auto actionTimer =
 		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 
-    bool inSkyDance = (action == AGNI_RUDRA_SKY_DANCE_PART_1 || action == AGNI_RUDRA_SKY_DANCE_PART_2);
-
-    bool inSkyDanceLastAction = (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 || lastAction == AGNI_RUDRA_SKY_DANCE_PART_2);
-
-
-    if (event == ACTOR_EVENT::ATTACK && state & STATE::IN_AIR && actorData.character == CHARACTER::DANTE) {
-
-        if (inSkyDance) {
-
-            if (actionTimer < 0.6f) {
-                actorData.verticalPullMultiplier = (-0.04f * (actorData.airSwordAttackCount * 1.6f)); // Vanilla value is -0.04f
-            } else {
-                actorData.verticalPullMultiplier = -1.5f; // Vanilla value is -0.04f
-            }
-        }
-
-        // Fix for the weird carry over to EbonyIvory Normal Shot
-        if (action == ACTION_DANTE::EBONY_IVORY_AIR_NORMAL_SHOT && inSkyDanceLastAction) {
-            actorData.verticalPullMultiplier = -1.2f;
-        }
-
-		// Fix for weird Fireworks carry over on vertical mult.
-		if (action == ACTION_DANTE::SHOTGUN_AIR_FIREWORKS && (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 
-            || lastAction == AGNI_RUDRA_SKY_DANCE_PART_2)) {
-			actorData.verticalPullMultiplier = -0.95f;
-		}
-
-		// Fix for the weird carry over to Beowulf Rising Dragon Whirlwind
-		if (action == ACTION_DANTE::BEOWULF_RISING_DRAGON_WHIRLWIND && (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1
-			|| lastAction == AGNI_RUDRA_SKY_DANCE_PART_2)) {
-			actorData.verticalPullMultiplier = -1.35f;
-		}
-    }
+	bool inSkyDance = (action == AGNI_RUDRA_SKY_DANCE_PART_1 || action == AGNI_RUDRA_SKY_DANCE_PART_2);
+	bool inSkyDanceLastAction = (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 || lastAction == AGNI_RUDRA_SKY_DANCE_PART_2);
+    auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
 
 	// Fix for the weird carry over to air hike/jump cancel
-	if ((event == ACTOR_EVENT::AIR_HIKE || event == ACTOR_EVENT::JUMP_CANCEL) && (action == AGNI_RUDRA_SKY_DANCE_PART_1
-		|| lastAction == AGNI_RUDRA_SKY_DANCE_PART_2)) {
+	if ((event == ACTOR_EVENT::AIR_HIKE || event == ACTOR_EVENT::JUMP_CANCEL) &&
+		(action == AGNI_RUDRA_SKY_DANCE_PART_1 || action == AGNI_RUDRA_SKY_DANCE_PART_2)) {
 		actorData.verticalPullMultiplier = -1.5f;
+		tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag on jump cancel/air hike
 		return;
+	}
+
+	if (event == ACTOR_EVENT::ATTACK && event != ACTOR_EVENT::AIR_HIKE && event != ACTOR_EVENT::JUMP_CANCEL && event != ACTOR_EVENT::JUMP
+		&& state & STATE::IN_AIR && actorData.character == CHARACTER::DANTE) {
+
+		if (inSkyDance) {
+			if (!tweak->hasAppliedVerticalPullMultiplier) {
+				if (actionTimer < 0.6f) {
+					actorData.verticalPullMultiplier = (-0.04f * (actorData.airSwordAttackCount * 1.6f)); // Vanilla value is -0.04f
+				} else {
+					actorData.verticalPullMultiplier = -1.5f; // Vanilla value is -0.04f
+				}
+				tweak->hasAppliedVerticalPullMultiplier = true;
+			}
+		} else {
+			tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag when not in Sky Dance
+		}
+
+        // INTENTIONAL VERTICAL INERTIA BLEED TO OTHER MOVES AFTER 0.7 seconds AND NOT JCING / AIRHIKING
+		if (!inSkyDance && (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 || lastAction == AGNI_RUDRA_SKY_DANCE_PART_2) && lastActionTime > 0.7f) {
+            actorData.verticalPullMultiplier = (-0.04f * ((actorData.airSwordAttackCount + 6) * 1.6f)); // Vanilla value is -0.04f
+		}
+	}    
+
+    if (!inSkyDance || event != ACTOR_EVENT::ATTACK) {
+		// Reset flag if not in the action or the attack event
+		tweak->hasAppliedVerticalPullMultiplier = false;
 	}
 }
 

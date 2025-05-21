@@ -5103,10 +5103,11 @@ struct DTEVFX {
     float time = 0;
 };
 
-struct AirRaveTweak {
+struct MoveGravityTweak {
     float gravity           = 0;
     bool gravityPre4Changed = false;
     bool gravity4Changed    = false;
+    bool hasAppliedVerticalPullMultiplier = false;
 };
 
 extern bool inertiaFixesEnabled;
@@ -5204,6 +5205,7 @@ struct CrimsonPlayerData {
     int currentAction = 0;
     int currentAnim   = 0;
     float actionTimer = 0;
+    float lastActionTime = 0;
     float animTimer   = 0;
     float eventTimer = 0;
     float trickDashTimer = 0;
@@ -5255,8 +5257,8 @@ struct CrimsonPlayerData {
 	float lockedOnEnemyMaxDisplacement = 0;
     float lockedOnEnemyMinusStun = 0;
 	float lockedOnEnemyMinusDisplacement = 0;
-
-    AirRaveTweak airRaveTweak;
+    MoveGravityTweak airFlickerTweak;
+    MoveGravityTweak skyDanceTweak;
 
     uintptr_t clonePtr;
     uint8 actionClone     = 0;
@@ -5270,6 +5272,7 @@ struct CrimsonPlayerData {
     int currentActionClone = 0;
     int currentAnimClone   = 0;
     float actionTimerClone = 0;
+    float lastActionTimeClone = 0;
     float animTimerClone   = 0;
     float eventTimerClone = 0;
     float trickDashTimerClone = 0;
@@ -5307,6 +5310,8 @@ struct CrimsonPlayerData {
 	float lockedOnEnemyMaxDisplacementClone = 0;
 	float lockedOnEnemyMinusStunClone = 0;
 	float lockedOnEnemyMinusDisplacementClone = 0;
+	MoveGravityTweak airFlickerTweakClone;
+	MoveGravityTweak skyDanceTweakClone;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];

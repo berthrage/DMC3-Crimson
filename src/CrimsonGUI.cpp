@@ -8097,6 +8097,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
+			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
+			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
 			ImGui::Text("cameraHittingWall: %u", g_cameraHittingWall);
 			ImGui::Text("actorData styleLevel: %u", actorData.styleLevel);
 			ImGui::Text("frameCOunt Mission: %u", missionData.frameCount);
@@ -8106,8 +8108,6 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			ImGui::Text("styleExpPoints: %g", actorData.styleExpPoints);
 			ImGui::Text("Actor Base Addr: %x", actorData.baseAddr);
 			ImGui::Text("TrickDash Timer: %g", crimsonPlayer[0].trickDashTimer);
-			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
-			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
 			ImGui::Text("ACTION:  %u", actorData.action);
 			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
 			ImGui::Text("lockOnEnemyMinusStun: %g", crimsonPlayer[0].lockedOnEnemyMinusStun);
