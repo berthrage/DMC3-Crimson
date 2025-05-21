@@ -2258,16 +2258,6 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 	}
 
 	multiplayerWheelsLoaded = true; 
-
-	for (uint8 playerIndex = 1; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
-		auto& meleeWheel = meleeWeaponWheel[playerIndex];
-		auto& rangedWheel = rangedWeaponWheel[playerIndex];
-
-		if (!meleeWheel->m_loaded) {
-			multiplayerWheelsLoaded = false; 
-			break;
-		}
-	}
 }
 
 void WorldSpaceWeaponWheels1PController(IDXGISwapChain* pSwapChain) {
