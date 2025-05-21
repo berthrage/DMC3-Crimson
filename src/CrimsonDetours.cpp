@@ -490,6 +490,7 @@ void InitDetours() {
 	// cEnemySetCtrl__spawnGuy_sub_1401A4680
 	//dmc3.exe+1A4680 - 40 57 - push rdi
 	CameraCtrlInitDetour();
+	CameraSwitchInitDetour();
 	LdkInitDetour();
 
 	// AddToMirageGauge

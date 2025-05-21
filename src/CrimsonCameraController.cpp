@@ -9,9 +9,28 @@
 #include "CrimsonConfig.hpp"
 
 static std::unique_ptr<Utility::Detour_t> cameraControllerConstructionHook;
+static std::unique_ptr<Utility::Detour_t> cameraSwitchAccessHook;
 static constexpr auto CTRL_PROC_OFFSET() { return 0x23EEF0; }
+static constexpr auto CAM_SWITCH_OFFSET() { return 0x055880; }
 static bool s_cameraEnable{ true };
 
+static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
+	typedef int64_t(__fastcall* sub_140055880)(int64_t,char);
+	auto& cameraConfig = activeCrimsonConfig.Camera;
+
+	uintptr_t trampoline_raw = cameraSwitchAccessHook->GetTrampoline();
+	sub_140055880 trampoline = (sub_140055880)trampoline_raw;
+
+	s_cameraEnable = cameraConfig.forceThirdPerson;
+
+	uintptr_t res = trampoline(a1,a2);
+	if (!res || !s_cameraEnable) {
+		return res;
+	}
+
+	return res;
+
+}
 
 /// <summary>
 /// Does logic for camera exceptions to handle intricacies of room transitions
@@ -115,5 +134,15 @@ void CameraCtrlInitDetour() {
 			(uintptr_t)&sub_14023EEF0,
 			NULL, "camera_ctr_detour");
 	bool res = cameraControllerConstructionHook->Toggle();
+	assert(res);
+}
+
+void CameraSwitchInitDetour() {
+	cameraSwitchAccessHook =
+		std::make_unique<Utility::Detour_t>(
+			(uintptr_t)appBaseAddr + CAM_SWITCH_OFFSET(),
+			(uintptr_t)&sub_140055880,
+			NULL, "camera_switch_detour");
+	bool res = cameraSwitchAccessHook->Toggle();
 	assert(res);
 }
