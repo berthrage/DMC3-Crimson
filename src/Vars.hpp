@@ -2480,6 +2480,12 @@ struct CameraControlMetadata {
 
 static_assert(offsetof(CameraControlMetadata, fixedCameraAddr) == 0x4B0);
 
+struct CameraSwitchArrayData {
+    _(9969);
+    uint8 currentCamIndex; // 0x4B0
+};
+
+static_assert(offsetof(CameraSwitchArrayData, currentCamIndex) == 0x26F1);
 // $CameraDataStart
 
 struct CameraData {

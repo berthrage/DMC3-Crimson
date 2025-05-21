@@ -15,7 +15,7 @@
 #include <iostream>
 #include "CrimsonPatches.hpp"
 #include "CrimsonLDK.hpp"
-#include "CrimsonCameraController.cpp"
+#include "CrimsonCameraController.hpp"
 #include "Actor.hpp"
 
 

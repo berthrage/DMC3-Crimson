@@ -115,6 +115,8 @@ file(GLOB MAIN_SRC
     CrimsonConfigGameplay.hpp
     CrimsonConfigGameplayMask.hpp
     CrimsonConfigHandling.h
+    CrimsonCameraController.cpp
+    CrimsonCameraController.hpp
     CrimsonDetours.cpp
     CrimsonDetours.hpp
     CrimsonEnemyAITarget.cpp
@@ -131,8 +133,6 @@ file(GLOB MAIN_SRC
     CrimsonGUI.hpp
     CrimsonHUD.cpp
     CrimsonHUD.hpp
-    CrimsonCameraController.cpp
-    CrimsonCameraController.hpp
     CrimsonLDK.cpp
     CrimsonLDK.hpp
     CrimsonUtil.cpp

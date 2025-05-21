@@ -7,6 +7,7 @@
 #include <cassert>
 #include "Vars.hpp"
 #include "CrimsonConfig.hpp"
+#include "CrimsonPatches.hpp"
 
 static std::unique_ptr<Utility::Detour_t> cameraControllerConstructionHook;
 static std::unique_ptr<Utility::Detour_t> cameraSwitchAccessHook;
