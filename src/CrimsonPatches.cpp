@@ -394,7 +394,6 @@ void CameraFollowUpSpeedController(CameraData& cameraData, CameraControlMetadata
 	}
 }
 
-
 void HandleDynamicSPCameraDistance(float& cameraDistance, float groundDistance, float airDistance) {
 	auto pool_166 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!pool_166 || !pool_166[3]) return;
@@ -408,8 +407,7 @@ void HandleDynamicSPCameraDistance(float& cameraDistance, float groundDistance, 
 		if (cameraDistance > groundDistance) {
 			cameraDistance = groundDistance;
 		}
-	}
-	else {
+	} else {
 		if (cameraDistance > (groundDistance - 10)) {
 			cameraDistance = airDistance;
 		}

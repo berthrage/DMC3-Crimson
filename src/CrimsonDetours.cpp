@@ -482,7 +482,7 @@ void RegenerateMultiplayerPlayersHP(std::uint64_t hpRegen64) {
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 
 		if (!actorData.dead) {
-			actorData.hitPoints += hpRegen;
+			actorData.hitPoints += (hpRegen);
 		}
 	}
 }

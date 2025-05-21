@@ -1377,7 +1377,7 @@ void WeaponProgressionTracking() {
 void FixM7DevilTriggerUnlocking() {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
-	if ((g_scene == SCENE::MISSION_RESULT && sessionData.mission == 7) || 
+	if ((g_scene == SCENE::MISSION_RESULT && sessionData.mission == 8) || 
 		(g_scene == SCENE::MISSION_START && sessionData.mission == 8)) {
 		if (!sessionData.unlockDevilTrigger && sessionData.magicPoints == 0) {
 			sessionData.unlockDevilTrigger = true;
