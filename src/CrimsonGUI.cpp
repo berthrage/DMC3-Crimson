@@ -71,6 +71,7 @@
 #include "CrimsonDetours.hpp"
 #include "UI\Texture2DD3D11.hpp"
 #include "UI\EmbeddedImages.hpp"
+#include "CrimsonCameraController.hpp"
 
 #include "DebugDrawDX11.hpp"
 
@@ -193,7 +194,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			window->DrawList->AddImage(logo, logoPos, logoSize);
 
 			// BETA Notice 
-			const char* text = "BETA";
+			const char* text = "0.3b DEVELOPMENT BUILD";
 			ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 0.8f]);
 			ImVec2 textSize = ImGui::CalcTextSize(text);
 			float padding = scaledFontSize * 0.2f;
@@ -7981,6 +7982,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("position     %u", eventData.event);
                 ImGui::Text("nextRoom     %u", nextEventData.room);
                 ImGui::Text("nextPosition %u", nextEventData.position);
+				ImGui::Text("Camera Index %i", CrimsonCameraController::s_currentCameraIndex);
             }();
 
             ImGui::Text("");
