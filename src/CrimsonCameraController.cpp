@@ -14,11 +14,16 @@ static std::unique_ptr<Utility::Detour_t> cameraSwitchAccessHook;
 static constexpr auto CTRL_PROC_OFFSET() { return 0x23EEF0; }
 static constexpr auto CAM_SWITCH_OFFSET() { return 0x055880; }
 static bool s_cameraEnable{ true };
+//dynamic camera switch idea, need to check if option was just enabled
+static bool s_cameraEnableOld{ true };
 static bool s_tpsRoomException{ false };
 
 namespace CrimsonCameraController {
 	uint32 g_currentCameraIndex = 0;
+	uint32 g_currentCameraType = 0;
 }
+
+uint32 SUBTERRANEAN_LAKECamNum = 13;
 
 static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 	typedef int64_t(__fastcall* sub_140055880)(int64_t, char);
@@ -27,16 +32,71 @@ static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 	uintptr_t trampoline_raw = cameraSwitchAccessHook->GetTrampoline();
 	sub_140055880 trampoline = (sub_140055880)trampoline_raw;
 
+	uintptr_t res; //will store function result when we calculate it
+
 	s_cameraEnable = cameraConfig.forceThirdPerson;
 
-	uintptr_t res = trampoline(a1, a2);
+	//getting the camera switch info
+	auto& cameraswitchInfo = *reinterpret_cast<CameraSwitchArrayData*>(a1);
 
-
-	if (!s_cameraEnable) {
-		return res;
+	//store the current index and type for the debug cam.
+	CrimsonCameraController::g_currentCameraIndex = cameraswitchInfo.currentCamIndex;
+	//only access the camera type if we have a valid camera index.
+	if (CrimsonCameraController::g_currentCameraIndex != 255) {
+		CrimsonCameraController::g_currentCameraType = cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type;
 	}
 
-	auto& cameraswitchInfo = *reinterpret_cast<CameraSwitchArrayData*>(a1);
+	/*
+	Explaining what I'm doing here.
+	The idea is simple: siyan figured out we could force the first person cam by saying that every attempt to transition to fixed cam was invalid.
+	This worked but broke when trying to re-enable freecam. Once the game had fround a valid fixed cam, 
+	it would no longer default to the third person camera it used when it couldn't find anything else.
+	However, it wouldn't transition to any new fixed cameras either, so it would just be stuck on the current camera as you moved further and further away.
+	To resolve this, we can access the new cam the game is trying to switch to, and make that a first person camera. 
+	This works, but now we've permanently made that camera third person instead of fixed. Not good.
+	So, let's try changing the type, running the camera switch function, then changing the camera type back
+	*/
+
+	//This scenario is used when TPS is already on. We just maintain the invalid camera pointer like so.
+	if (s_cameraEnable && s_cameraEnableOld) {
+		cameraswitchInfo.currentCamIndex = 255;
+	}
+
+	bool camera_overriden = false;
+
+	//if camera was just turned on and there's a valid camera ID we're trying to swap to,
+	if (s_cameraEnable && !s_cameraEnableOld && (cameraswitchInfo.currentCamIndex != 255)) {
+
+		//we make the new camera we're switching to third person.
+		//Note: we already backed up the current camera type to the corresponding global variable, so we don't need to back it up here.
+		cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type = CAMERA_TYPE::THIRD_PERSON;
+		//we set this marker to let us know we performed the overwrite operation.
+		camera_overriden = true;
+	}
+
+	//we now finally run the function
+	res = trampoline(a1, a2);
+
+	//last step: if we just performed a camera overwrite, we have some cleanup to do.
+	if (camera_overriden) {
+		//now that we've run the function, we should be able to swap back to the old camera type (i hope).
+		cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type = CrimsonCameraController::g_currentCameraType;
+		//we also let the system know that the override happened, and we don't need to do it until TPS is toggled off and on again.
+		s_cameraEnableOld = true;
+	}
+
+
+	//we reset s_cameraEnableOld if we're turning the TPS camera off, but no other special steps are required for that:
+	//we should just be returning to normal vanilla behavior.
+	if (!s_cameraEnable) {
+		s_cameraEnableOld = false;
+	}
+
+	//return the result of the run function, and boom! Dynamic camera swap between TPS and Fixed.
+	return res;
+
+
+
 	//make sure it's a valid index
 
 
@@ -63,7 +123,22 @@ static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
-	CrimsonCameraController::g_currentCameraIndex = cameraswitchInfo.currentCamIndex;
+	//first gimmick can we replace siyan patch by doing the following:
+	//cameraswitchInfo.currentCamIndex = 255;
+	//new subterrainean lake logic test
+	//if (eventData.room == ROOM::SUBTERRANEAN_LAKE) {
+	//	for (uint32 i = 0; i < SUBTERRANEAN_LAKECamNum;i++) {
+	//		if (i != 0 && i != 5 && i != 11)
+	//			cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type = CAMERA_TYPE::THIRD_PERSON;
+	//	}
+	//	//big brain play: we toggle the patch off (we probably won't need the patch going forward tbh)
+	//	CrimsonPatches::ForceThirdPersonCamera(false);
+	//	if (cameraswitchInfo.currentCamIndex != 0 && cameraswitchInfo.currentCamIndex != 5 && cameraswitchInfo.currentCamIndex != 11)
+	//		cameraswitchInfo.currentCamIndex = 255;
+	//}
+
+	
+
 	//bool roomExceptions = (
 	//	//
 	//	//||(/* scenario 3*/)
@@ -79,17 +154,18 @@ static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 	//specifically keeps the third person camera for the laser section in this room activated.
 
 
-	bool exceptions = (eventData.room == ROOM::SUBTERRANEAN_GARDEN && CrimsonCameraController::g_currentCameraIndex == 2)
-		|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 0)
-		|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 5)
-		|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 11);
+	bool exceptions = ((eventData.room == ROOM::SUBTERRANEAN_GARDEN && CrimsonCameraController::g_currentCameraIndex == 2)
+		//|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 0)
+		//|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 5)
+		//|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 11)
+		);
 	if (exceptions) {
-		CrimsonPatches::ForceThirdPersonCamera(false);
+		//CrimsonPatches::ForceThirdPersonCamera(false);
 	}
 	else {
 		//forces the reenabling of the third person camera I hope
-		cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type = CAMERA_TYPE::THIRD_PERSON;
-		CrimsonPatches::ForceThirdPersonCamera(true);
+		//cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type = CAMERA_TYPE::THIRD_PERSON;
+		//CrimsonPatches::ForceThirdPersonCamera(true);
 	}
 	//let's see what this does
 	//CrimsonPatches::ForceThirdPersonCamera(true);
@@ -97,7 +173,7 @@ static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 	
 	
 	//we need to multiply our access by 4 to get the actual cameras. 
-	return trampoline(a1, a2);;
+	return res;
 
 }
 
@@ -182,11 +258,11 @@ static uintptr_t  __fastcall sub_14023EEF0(int64_t a1) {
 		//||(/* scenario 4*/)
 		);
 	if (roomExceptions) {
-		CrimsonPatches::ForceThirdPersonCamera(false);
+		//CrimsonPatches::ForceThirdPersonCamera(false);
 		s_tpsRoomException = true;
 	}
 	else {
-		CrimsonPatches::ForceThirdPersonCamera(true);
+		//CrimsonPatches::ForceThirdPersonCamera(true);
 		s_tpsRoomException = false;
 	}
 

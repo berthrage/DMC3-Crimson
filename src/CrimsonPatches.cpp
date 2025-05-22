@@ -888,12 +888,12 @@ void ForceThirdPersonCamera(bool enable) {
 
 
 	if (enable) {
-		_nop((char*)(appBaseAddr + 0x558AC), 2);
+		//_nop((char*)(appBaseAddr + 0x558AC), 2);
         _patch((char*)(appBaseAddr + 0x5EBC6), (char*)"\xEB\x14", 2); // jmp dmc3.exe + 5EBDC
 	}
 	else {
 		// Restore the original instruction at dmc3.exe + 27E86A
-		_patch((char*)(appBaseAddr + 0x558AC), (char*)"\x75\x12", 2);
+		//_patch((char*)(appBaseAddr + 0x558AC), (char*)"\x75\x12", 2);
         _patch((char*)(appBaseAddr + 0x5EBC6), (char*)"\x7F\x14", 2);
 	}
 
