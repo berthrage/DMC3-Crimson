@@ -8087,7 +8087,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
-			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
+			
+			ImGui::Text("MovePart %u", actorData.recoverState[0]);
 			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
 			ImGui::Text("cameraHittingWall: %u", g_cameraHittingWall);
 			ImGui::Text("actorData styleLevel: %u", actorData.styleLevel);
@@ -10973,16 +10974,28 @@ void VergilGameplayOptions() {
 
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
-			if (GUI_Checkbox2("Yamato Rising Sun",
-				activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun,
-				queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun)) {
+			if (GUI_Checkbox2("Yamato Rising Star",
+				activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingStar,
+				queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingStar)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
 			GUI_WIPButton();
 			ImGui::SameLine();
-			TooltipHelper("(?)", "With Yamato, at the end of any move: Lock On + Back + Melee.");
+			TooltipHelper("(?)", "With Yamato: During Rapid Slash HOLD Melee Button.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Yamato High Time",
+				activeCrimsonGameplay.Gameplay.Vergil.yamatoHighTime,
+				queuedCrimsonGameplay.Gameplay.Vergil.yamatoHighTime)) {
+			}
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "With Yamato: Lock On + Back + HOLD Melee");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();

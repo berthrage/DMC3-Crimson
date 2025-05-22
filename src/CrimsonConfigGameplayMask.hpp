@@ -106,7 +106,8 @@ struct CrimsonConfigGameplayMask {
 			bool airRisingSun = true;
 			bool airLunarPhase = true;
 			bool altJudgementCutInput = true;
-			bool yamatoRisingSun = true;
+			bool yamatoRisingStar = true;
+			bool yamatoHighTime = true;
 			bool mirageTrigger = true;
 			bool adjustRisingSunPos = true;
 			bool adjustLunarPhasePos = true;
@@ -121,7 +122,8 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("airRisingSun", &Vergil::airRisingSun),
 					std::make_pair("airLunarPhase", &Vergil::airLunarPhase),
 					std::make_pair("altJudgementCutInput", &Vergil::altJudgementCutInput),
-					std::make_pair("yamatoRisingSun", &Vergil::yamatoRisingSun),
+					std::make_pair("yamatoRisingStar", &Vergil::yamatoRisingStar),
+					std::make_pair("yamatoHighTime", &Vergil::yamatoHighTime),
 					std::make_pair("mirageTrigger", &Vergil::mirageTrigger),
 					std::make_pair("adjustRisingSunPos", &Vergil::adjustRisingSunPos),
 					std::make_pair("adjustLunarPhasePos", &Vergil::adjustLunarPhasePos)

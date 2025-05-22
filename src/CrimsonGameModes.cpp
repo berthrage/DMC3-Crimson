@@ -158,7 +158,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	vergil.airRisingSun = true;
 	vergil.airLunarPhase = true;
 	vergil.altJudgementCutInput = true;
-	vergil.yamatoRisingSun = false;
+	vergil.yamatoRisingStar = false;
 	vergil.mirageTrigger = false;
 	//vergil.adjustRisingSunPos = "Off"; // or whatever vanilla used
 	//vergil.adjustLunarPhasePos = "Off";
@@ -238,8 +238,9 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	vergil.airRisingSun = true;
 	vergil.airLunarPhase = true;
 	vergil.altJudgementCutInput = true;
-	vergil.yamatoRisingSun = true;
+	vergil.yamatoRisingStar = true;
 	vergil.mirageTrigger = true;
+	vergil.yamatoHighTime = true;
 	//vergil.adjustRisingSunPos = "Off"; // or whatever vanilla used
 	//vergil.adjustLunarPhasePos = "Off";
 
@@ -340,7 +341,8 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Gameplay.Vergil.airLunarPhase = false;
 	mask.Gameplay.Vergil.airRisingSun = false;
 	mask.Gameplay.Vergil.airStinger = false;
-	mask.Gameplay.Vergil.yamatoRisingSun = false;
+	mask.Gameplay.Vergil.yamatoRisingStar = false;
+	mask.Gameplay.Vergil.yamatoHighTime = false;
 
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
@@ -396,7 +398,8 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.Vergil.airLunarPhase = false;
 	mask.Gameplay.Vergil.airRisingSun = false;
 	mask.Gameplay.Vergil.airStinger = false;
-	mask.Gameplay.Vergil.yamatoRisingSun = false;
+	mask.Gameplay.Vergil.yamatoRisingStar = false;
+	mask.Gameplay.Vergil.yamatoHighTime = false;
 
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
@@ -501,8 +504,12 @@ void CrimsonGameModes::SetGameMode(uint8 mode) {
 		activeCrimsonGameplay.Gameplay.Vergil.airStinger = true;
 		queuedCrimsonGameplay.Gameplay.Vergil.airStinger = true;
 
-		activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun = false;
-		queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun = false;
+		activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingStar = false;
+		queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingStar = false;
+
+		activeCrimsonGameplay.Gameplay.Vergil.yamatoHighTime = false;
+		queuedCrimsonGameplay.Gameplay.Vergil.yamatoHighTime = false;
+
 		queuedConfig.Actor.enable = true;
 		break;
 	case GAMEMODEPRESETS::CRIMSON:
@@ -538,8 +545,11 @@ void CrimsonGameModes::SetGameMode(uint8 mode) {
 		activeCrimsonGameplay.Gameplay.Vergil.airStinger = true;
 		queuedCrimsonGameplay.Gameplay.Vergil.airStinger = true;
 
-		activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun = true;
-		queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun = true;
+		activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingStar = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingStar = true;
+
+		activeCrimsonGameplay.Gameplay.Vergil.yamatoHighTime = true;
+		queuedCrimsonGameplay.Gameplay.Vergil.yamatoHighTime = true;
 
 		queuedConfig.Actor.enable = true;
 		break;

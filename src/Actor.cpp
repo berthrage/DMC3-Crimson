@@ -3997,6 +3997,8 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CrimsonPatches::RainstormLift(activeCrimsonGameplay.Gameplay.Dante.rainstormLift);
     CrimsonPatches::ReduceAirTornadoDamage(activeCrimsonGameplay.Gameplay.Dante.airTornado);
     CrimsonGameplay::FixAirStingerCancelTime(actorBaseAddr);
+    CrimsonGameplay::VergilRisingStar(actorBaseAddr);
+    CrimsonGameplay::VergilYamatoHighTime(actorBaseAddr);
     CrimsonGameplay::FasterDTRapidSlash(actorBaseAddr);
     CrimsonGameplay::LastEventStateQueue(actorBaseAddr);
     CrimsonGameplay::DTInfusedRoyalguardController(actorBaseAddr);
@@ -9189,6 +9191,8 @@ void SetAction(byte8* actorBaseAddr) {
     auto& gamepad = GetGamepad(playerIndex);
     auto& action = actorData.action;
     auto& lastAction = actorData.lastAction;
+    auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime :
+        crimsonPlayer[playerIndex].lastActionTimeClone;
     bool inRebellionAttack = (action == REBELLION_COMBO_1_PART_1 || action == REBELLION_COMBO_1_PART_2 ||
         action == REBELLION_COMBO_1_PART_3 || action == REBELLION_COMBO_2_PART_2 || action == REBELLION_COMBO_2_PART_3);
 
@@ -9384,16 +9388,6 @@ void SetAction(byte8* actorBaseAddr) {
                    crimsonPlayer[playerIndex].b2F.forwardCommand) {
             actorData.action = YAMATO_FORCE_EDGE_ROUND_TRIP;
         }
-
-        // YAMATO RISING SUN -- WIP
-        else if (activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun && actorData.action == YAMATO_UPPER_SLASH_PART_1 && actionTimer > 0.4f &&
-            (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK))) {
-            actorData.action = BEOWULF_RISING_SUN;
-        }
-//         else if (actorData.action == YAMATO_AERIAL_RAVE_PART_1) {
-//             actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;  -- air judgement cut test
-//             
-//         }
 
         break;
     }

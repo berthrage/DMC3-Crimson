@@ -719,6 +719,9 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
     }
 }
 
+using MyFunc_t = void(*)(byte8* actorBaseAddr, void* actionData);
+MyFunc_t MyFunc = (MyFunc_t)(appBaseAddr + 0x1E0800);
+
 void ImprovedCancelsVergilController(byte8* actorBaseAddr) {
 	using namespace ACTION_VERGIL;
 
@@ -747,6 +750,8 @@ void ImprovedCancelsVergilController(byte8* actorBaseAddr) {
 
 	auto& playerData = GetPlayerData(playerIndex);
 	auto& gamepad = GetGamepad(playerIndex);
+    auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : 
+        crimsonPlayer[playerIndex].actionTimerClone;
 
 	static bool executes[PLAYER_COUNT][ENTITY_COUNT] = {};
 	static bool prevStyleButton[PLAYER_COUNT][ENTITY_COUNT] = {};
@@ -804,6 +809,85 @@ void ImprovedCancelsVergilController(byte8* actorBaseAddr) {
 #pragma endregion
 
 #pragma region VergilGameplay
+
+void VergilRisingStar(byte8* actorBaseAddr) {
+	using namespace ACTION_VERGIL;
+
+	if (!actorBaseAddr || (actorBaseAddr == g_playerActorBaseAddrs[0]) || (actorBaseAddr == g_playerActorBaseAddrs[1])) {
+		return;
+	}
+
+	if (!activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingStar) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto entityIndex = actorData.newEntityIndex;
+	auto& playerData = GetPlayerData(playerIndex);
+	auto& gamepad = GetGamepad(playerIndex);
+	auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer :
+		crimsonPlayer[playerIndex].actionTimerClone;
+	static bool applied[PLAYER_COUNT][ENTITY_COUNT] = { false };
+	auto& apply = applied[playerIndex][entityIndex];
+
+	// --- Melee button hold timer ---
+	static float meleeButtonHold[PLAYER_COUNT][ENTITY_COUNT] = {};
+	constexpr float MELEE_HOLD_TIME = 0.2f; // 200 ms
+
+	bool meleeDown = (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK)) != 0;
+
+	if (meleeDown) {
+		meleeButtonHold[playerIndex][entityIndex] += ImGui::GetIO().DeltaTime;
+	} else {
+		meleeButtonHold[playerIndex][entityIndex] = 0.0f;
+	}
+	// ------------------------------
+
+	if (actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 &&
+		actionTimer > 0.55f && actionTimer < 0.60f &&
+		meleeButtonHold[playerIndex][entityIndex] >= MELEE_HOLD_TIME) {
+		actorData.action = BEOWULF_RISING_SUN;
+		actorData.recoverState[0] = 0;
+	}
+
+	// Research on cutting animations
+	// if (actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 && !apply && actorData.recoverState[0] == 1) {
+	//     actorData.action = YAMATO_RAPID_SLASH_LEVEL_2;
+	//     actorData.recoverState[0] = 2;
+	//     apply = true;
+	// }
+	//
+	// if (actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 && apply && (actorData.recoverState[0] == 2 || actorData.recoverState[0] == 3)) {
+	//     apply = false;
+	// }
+}
+
+void VergilYamatoHighTime(byte8* actorBaseAddr) {
+	using namespace ACTION_VERGIL;
+
+	if (!actorBaseAddr || (actorBaseAddr == g_playerActorBaseAddrs[0]) || (actorBaseAddr == g_playerActorBaseAddrs[1])) {
+		return;
+	}
+
+	if (!activeCrimsonGameplay.Gameplay.Vergil.yamatoHighTime) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto entityIndex = actorData.newEntityIndex;
+	auto& playerData = GetPlayerData(playerIndex);
+	auto& gamepad = GetGamepad(playerIndex);
+	auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer :
+		crimsonPlayer[playerIndex].actionTimerClone;
+
+	if (actorData.action == YAMATO_UPPER_SLASH_PART_1
+		&& actionTimer > 0.36f && actionTimer < 0.5f && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK))) {
+		actorData.action = YAMATO_FORCE_EDGE_HIGH_TIME;
+
+		actorData.recoverState[0] = 1;
+	}
+}
+
 
 bool startingFromGround[PLAYER_COUNT] = { true };
 bool risingSunActive[PLAYER_COUNT] = { false };
