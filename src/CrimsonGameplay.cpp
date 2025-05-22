@@ -916,8 +916,8 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
     auto& gamepad    = GetGamepad(actorData.newPlayerIndex);
 
     auto* v     = (actorData.newEntityIndex == 0) ? &crimsonPlayer[playerIndex].vergilMoves : &crimsonPlayer[playerIndex].vergilMovesClone;
-    auto action = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].action : crimsonPlayer[playerIndex].actionClone;
-    auto event  = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].event : crimsonPlayer[playerIndex].eventClone;
+    auto action = actorData.action;
+    auto event  = actorData.eventData[0].event;
     auto motion = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
     auto state  = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
     auto actionTimer =
