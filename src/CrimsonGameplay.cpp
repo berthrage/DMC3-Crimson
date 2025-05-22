@@ -880,12 +880,21 @@ void VergilYamatoHighTime(byte8* actorBaseAddr) {
 	auto& gamepad = GetGamepad(playerIndex);
 	auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer :
 		crimsonPlayer[playerIndex].actionTimerClone;
+    auto tiltDirection = GetRelativeTiltDirection(actorData);
 
 	if (actorData.action == YAMATO_UPPER_SLASH_PART_1
 		&& actionTimer > 0.36f && actionTimer < 0.5f && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK))) {
 		actorData.action = YAMATO_FORCE_EDGE_HIGH_TIME;
 
 		actorData.recoverState[0] = 1;
+	}
+
+	if (actorData.action == YAMATO_UPPER_SLASH_PART_2
+		&& actionTimer > 0.16f && actionTimer < 0.5f && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK))
+        && tiltDirection == TILT_DIRECTION::DOWN) {
+		actorData.action = YAMATO_FORCE_EDGE_HIGH_TIME;
+
+		actorData.recoverState[0] = 0;
 	}
 }
 
