@@ -15,6 +15,10 @@ static constexpr auto CTRL_PROC_OFFSET() { return 0x23EEF0; }
 static constexpr auto CAM_SWITCH_OFFSET() { return 0x055880; }
 static bool s_cameraEnable{ true };
 
+namespace CrimsonCameraController {
+	uint32 s_currentCameraIndex = 0;
+}
+
 static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 	typedef int64_t(__fastcall* sub_140055880)(int64_t,char);
 	auto& cameraConfig = activeCrimsonConfig.Camera;

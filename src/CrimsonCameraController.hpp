@@ -1,6 +1,8 @@
 #pragma once
+#include "Core/Core.hpp"
+
 void CameraCtrlInitDetour();
 void CameraSwitchInitDetour();
 namespace CrimsonCameraController{
-	static int s_currentCameraIndex{ 0 };
+	extern uint32 s_currentCameraIndex;
 };
