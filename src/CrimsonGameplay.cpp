@@ -829,13 +829,15 @@ void VergilRisingStar(byte8* actorBaseAddr) {
 		crimsonPlayer[playerIndex].actionTimerClone;
 	static bool applied[PLAYER_COUNT][ENTITY_COUNT] = { false };
 	auto& apply = applied[playerIndex][entityIndex];
-    auto tiltDirection = GetRelativeTiltDirection(actorData);
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
+	static bool closeToEnemy[PLAYER_COUNT][ENTITY_COUNT] = { false };
+	auto& closeEnemy = closeToEnemy[playerIndex][entityIndex];
 
 	// --- Melee button hold timer ---
 	static float meleeButtonHold[PLAYER_COUNT][ENTITY_COUNT] = {};
 	constexpr float MELEE_HOLD_TIME = 0.2f; // 200 ms
 
-	bool meleeDown = (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK)) != 0 && tiltDirection == TILT_DIRECTION::UP;
+	bool meleeDown = (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK)) != 0;
 
 	if (meleeDown) {
 		meleeButtonHold[playerIndex][entityIndex] += ImGui::GetIO().DeltaTime;
@@ -844,11 +846,45 @@ void VergilRisingStar(byte8* actorBaseAddr) {
 	}
 	// ------------------------------
 
-	if (actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 &&
+	// Reset closeEnemy each frame
+	closeEnemy = false;
+
+    if (actorData.lockOnData.targetBaseAddr60 != nullptr) {
+        auto& enemyData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60);
+
+        glm::vec3 playerPos(actorData.position.x, actorData.position.y, actorData.position.z);
+        glm::vec3 enemyPos(enemyData.position.x, enemyData.position.y, enemyData.position.z);
+
+        float distanceToPlayer = glm::distance(playerPos, enemyPos);
+
+        if (distanceToPlayer <= 100.0f) {
+            closeEnemy = true;
+        }
+    }
+	
+	// Improved transition logic:
+	// Only allow transition if action is YAMATO_RAPID_SLASH_LEVEL_2 and timer is in the correct window
+	// and either the button is held long enough OR player is close to an enemy and button is held long enough
+	bool canTransition =
+		actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 &&
 		actionTimer > 0.55f && actionTimer < 0.60f &&
-		meleeButtonHold[playerIndex][entityIndex] >= MELEE_HOLD_TIME) {
+		meleeButtonHold[playerIndex][entityIndex] >= MELEE_HOLD_TIME && tiltDirection == TILT_DIRECTION::UP;
+
+	bool canTransitionClose =
+		actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 &&
+		closeEnemy &&
+		meleeButtonHold[playerIndex][entityIndex] >= MELEE_HOLD_TIME && tiltDirection == TILT_DIRECTION::UP;
+
+	// Only allow transition once per action
+	if ((canTransition || canTransitionClose)) {
 		actorData.action = BEOWULF_RISING_SUN;
 		actorData.recoverState[0] = 0;
+		apply = true;
+	}
+
+	// Reset apply flag when action changes away from YAMATO_RAPID_SLASH_LEVEL_2
+	if (actorData.action != YAMATO_RAPID_SLASH_LEVEL_2 && apply) {
+		apply = false;
 	}
 
 	// Research on cutting animations
