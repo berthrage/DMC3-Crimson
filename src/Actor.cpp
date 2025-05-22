@@ -9344,7 +9344,9 @@ void SetAction(byte8* actorBaseAddr) {
 
         // BACK TO FORWARD JUDGEMENT CUT INPUT
         if (activeCrimsonGameplay.Gameplay.Vergil.altJudgementCutInput &&
-            (actorData.action == YAMATO_RAPID_SLASH_LEVEL_1 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_2) &&
+            (actorData.action == YAMATO_RAPID_SLASH_LEVEL_1 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 ||
+                actorData.action == YAMATO_COMBO_PART_1 || actorData.action == YAMATO_COMBO_PART_2 || 
+                actorData.action == YAMATO_COMBO_PART_3) &&
             crimsonPlayer[playerIndex].b2F.forwardCommand) {
             actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
         }
@@ -9373,7 +9375,12 @@ void SetAction(byte8* actorBaseAddr) {
         } 
         // ROUND TRIP TWEAKS
         else if (activeCrimsonGameplay.Gameplay.Vergil.roundTripTweaks &&
-                   (actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1 || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2) &&
+                   (actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1 
+                       || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2 ||
+                       actorData.action == YAMATO_FORCE_EDGE_COMBO_PART_1 || 
+                       actorData.action == YAMATO_FORCE_EDGE_COMBO_PART_2 ||
+                       actorData.action == YAMATO_FORCE_EDGE_COMBO_PART_3 ||
+                       actorData.action == YAMATO_FORCE_EDGE_COMBO_PART_4) &&
                    crimsonPlayer[playerIndex].b2F.forwardCommand) {
             actorData.action = YAMATO_FORCE_EDGE_ROUND_TRIP;
         }
