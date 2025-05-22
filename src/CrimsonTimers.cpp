@@ -42,7 +42,7 @@ void ActionTimers() {
             auto inAttack = (actorData.eventData[0].event == ACTOR_EVENT::ATTACK);
             auto& currentAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAction : crimsonPlayer[playerIndex].currentActionClone;
             auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
-
+            auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
 
             if (inAttack) {
                 if (eventData.event != EVENT::PAUSE) {
@@ -55,6 +55,7 @@ void ActionTimers() {
 
             // Reset Timer By Action
             if (actorData.action != currentAction) {
+                lastActionTime = actionTimer;
                 actionTimer = 0;
                 currentAction = actorData.action;
             }

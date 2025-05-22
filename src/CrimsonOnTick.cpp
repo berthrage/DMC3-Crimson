@@ -43,6 +43,15 @@ void FrameResponsiveGameSpeed() {
 	g_FrameRate = 1.0f / deltaTime;
 	g_FrameRateTimeMultiplier = 60.0f / g_FrameRate;
 
+	// Exponential smoothing for the rounded multiplier stability
+	static float smoothedMultiplier = g_FrameRateTimeMultiplier;
+	float smoothingFactor = 0.05f; // Lower = smoother, higher = more responsive
+	smoothedMultiplier = smoothingFactor * g_FrameRateTimeMultiplier + (1.0f - smoothingFactor) * smoothedMultiplier;
+
+	// Round to nearest 0.1
+	float step = 0.1f;
+	g_FrameRateTimeMultiplierRounded = std::round(smoothedMultiplier / step) * step;
+
 	// Ignore deltaTime spikes that result from alt-tabbing, loading screens, etc.
 	float freezeThreshold = 1.0f / 50.0f; // Skips <50 FPS frames
 	if (deltaTime > freezeThreshold) {
@@ -56,7 +65,9 @@ void FrameResponsiveGameSpeed() {
 
 	if (activeConfig.framerateResponsiveGameSpeed) {
 		// Cutscene audio is so timing sensitive that we can't truly sync the FPS to the game speed while in them.
-		const float adjustedSpeed = g_scene != SCENE::CUTSCENE ? gameSpeedBase * g_FrameRateTimeMultiplier : gameSpeedBase * g_frameRateMultiplier;
+		// This would be properly solved if we had some method of audio stretching. Maybe: SDL_SetAudioStreamFrequencyRatio?
+		const float adjustedSpeed = g_scene != SCENE::CUTSCENE ? gameSpeedBase * g_FrameRateTimeMultiplier : 
+			gameSpeedBase * g_FrameRateTimeMultiplierRounded;
 		if (g_scene == SCENE::CUTSCENE) Speed::Toggle(true);
 
 		activeConfig.Speed.turbo = adjustedSpeed;
@@ -136,8 +147,28 @@ void PreparePlayersDataBeforeSpawn() {
 					crimsonPlayer[playerIndex].maxHitPoints = activeMissionActorData.maxHitPoints;
 				}
 			}
+
+			
+			// HAYWIRE FIX FOR HORSE BOSS RESPAWNING
+			if (sessionData.mission == 12) {
+				if (!g_haywireNeoGenerator) {
+					if (vanillaActorData.hitPoints != vanillaActorData.maxHitPoints) {
+						vanillaActorData.hitPoints = vanillaActorData.maxHitPoints;
+					}
+
+					if (vanillaActorData.magicPoints != vanillaActorData.maxMagicPoints) {
+						vanillaActorData.magicPoints = vanillaActorData.maxMagicPoints;
+					}
+
+				}
+
+				vanillaActorData.devil = false;
+				DeactivateDevilHaywire(vanillaActorData);
+			} 
+
 		}
 	}
+
 
 	if (g_scene != SCENE::GAME || (g_scene == SCENE::GAME && eventData.event == EVENT::DEATH)) {
 		for (int playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {
@@ -183,12 +214,34 @@ void CrimsonMissionClearSong() {
 	}
 	else if (g_scene != SCENE::MISSION_RESULT && missionClearSongPlayed) {
 		// Fade it out
-		CrimsonSDL::FadeOutNewMissionClearSong();
+		CrimsonSDL::FadeOutMusic();
 
 		// Restore original Channnel Volume
 		SetVolume(9, activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f);
 
 		missionClearSongPlayed = false;
+	}
+}
+
+void DivinityStatueSong() {
+	static bool songPlayed = false;
+	if (g_showShop && !songPlayed
+		&& (gameModeData.missionResultGameMode == GAMEMODEPRESETS::CRIMSON
+			|| gameModeData.missionResultGameMode == GAMEMODEPRESETS::CUSTOM)) {
+		// Mute Music Channel Volume
+		SetVolume(9, 0);
+
+		// Play song
+		CrimsonSDL::PlayDivinityStatueSong();
+		songPlayed = true;
+	} else if (!g_showShop && songPlayed) {
+		// Fade it out
+		CrimsonSDL::FadeOutMusic();
+
+		// Restore original Channnel Volume
+		SetVolume(9, activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f);
+
+		songPlayed = false;
 	}
 }
 
@@ -296,18 +349,60 @@ void MultiplayerCameraPositioningController() {
 	g_customCameraPos[2] = 0.0f; // Z
 	g_customCameraPos[3] = 1.0f; // W
 
-	const float lerpFactorOutTransition = 0.2f; 
+	const float lerpFactorOutTransition = 0.2f;
 	const float lerpFactorInTransition = 0.01f;
 	static float lerpFactor = lerpFactorOutTransition;
 	static std::chrono::time_point<std::chrono::steady_clock> transitionToMPStartTime;
 	static bool isTransitionTimerActive = false;
-	bool triggerMPCam = activeCrimsonConfig.Camera.multiplayerCamera? true : false;
+	bool triggerMPCam = activeCrimsonConfig.Camera.multiplayerCamera ? true : false;
 
 	int entityCount = 0; // Track valid entities for averaging
 	float playerWeight = 5.0f;  // Weight for playable characters
 	float enemyWeight = 1.0f;   // Weight for enemies
 	float totalWeight = 0.0f;
 	int alivePlayerCount = 0; // Track number of players still alive
+
+	// --- Camera collision jitter detection variables ---
+	static int lastCameraWallValue = 0;
+	static int jitterCount = 0;
+	static auto lastJitterTime = std::chrono::steady_clock::now();
+	static bool inJitterState = false;
+	static auto jitterStateStartTime = std::chrono::steady_clock::now();
+
+	// Detect rapid oscillation of g_cameraHittingWall
+	if (g_cameraHittingWall > 1) {
+		if (g_cameraHittingWall != lastCameraWallValue) {
+			auto now = std::chrono::steady_clock::now();
+			float dt = std::chrono::duration<float>(now - lastJitterTime).count();
+			lastJitterTime = now;
+			if (dt < 0.1f) { // Oscillation detected
+				jitterCount++;
+				if (jitterCount > 2 && !inJitterState) {
+					inJitterState = true;
+					jitterStateStartTime = now;
+				}
+			} else {
+				jitterCount = 0;
+			}
+			lastCameraWallValue = g_cameraHittingWall;
+		}
+	} else {
+		jitterCount = 0;
+		inJitterState = false;
+	}
+
+	// If jitter state, increase smoothing (reduce lerp factor)
+	float jitterLerpFactor = lerpFactor;
+	if (inJitterState) {
+		jitterLerpFactor = 0.01f; // Very slow movement to smooth out jitter
+		// Optionally, after a short time, exit jitter state to avoid getting stuck
+		auto now = std::chrono::steady_clock::now();
+		float jitterDuration = std::chrono::duration<float>(now - jitterStateStartTime).count();
+		if (jitterDuration > 0.5f) {
+			inJitterState = false;
+			jitterCount = 0;
+		}
+	}
 
 	// Loop through player data
 	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
@@ -341,7 +436,7 @@ void MultiplayerCameraPositioningController() {
 	}
 
 	// Turn off multiplayer camera when active player count is > 1 and only one player is alive
-	if (alivePlayerCount<=1 && activeConfig.Actor.playerCount > 1) {
+	if (alivePlayerCount <= 1 && activeConfig.Actor.playerCount > 1) {
 		triggerMPCam = false;
 	}
 
@@ -395,12 +490,12 @@ void MultiplayerCameraPositioningController() {
 	clonePos.y = cloneMainActorData.position.y;
 	clonePos.z = cloneMainActorData.position.z;
 
-	float cameraDistanceMP = (eventData.room >= ROOM::BLOODY_PALACE_1 && eventData.room <= ROOM::BLOODY_PALACE_10) || eventData.room? 2800.0f : 1900.0f;
+	float cameraDistanceMP = (eventData.room >= ROOM::BLOODY_PALACE_1 && eventData.room <= ROOM::BLOODY_PALACE_10) ? 2800.0f : 1900.0f;
 
 	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
 		float distanceTo1P = g_plEntityTo1PDistances[i];
 
-		if (distanceTo1P >= 2800.0) {
+		if (distanceTo1P >= cameraDistanceMP) {
 			triggerMPCam = false;
 		}
 	}
@@ -430,7 +525,6 @@ void MultiplayerCameraPositioningController() {
 		}
 	}
 
-
 	// Only set triggerPanoramicCam to false if all enemies are far enough
 	triggerPanoramicCam = !allEnemiesFarAway && activeCrimsonConfig.Camera.panoramicCamera;
 
@@ -450,8 +544,7 @@ void MultiplayerCameraPositioningController() {
 				currentCameraPos = glm::vec3(mainActorData.position.x, mainActorData.position.y, mainActorData.position.z);
 			}
 
-		}
-		else {
+		} else {
 			// Normal cam mode: focus on main actor position
 			g_customCameraPos[0] = mainActorData.position.x;
 			g_customCameraPos[1] = mainActorData.position.y;
@@ -474,7 +567,7 @@ void MultiplayerCameraPositioningController() {
 				transitionToMPStartTime = std::chrono::steady_clock::now();
 				isTransitionTimerActive = true;
 			}
-			
+
 			// Calculate elapsed time
 			auto now = std::chrono::steady_clock::now();
 			auto elapsedTime = std::chrono::duration<float>(now - transitionToMPStartTime).count();
@@ -482,21 +575,19 @@ void MultiplayerCameraPositioningController() {
 			if (elapsedTime < 0.5f) {
 				if (std::fabs(mainActorData.horizontalPull) < 30 && std::fabs(mainActorData.verticalPull) < 30) {
 					lerpFactor = lerpFactorInTransition;
-				}
-				else {
+				} else {
 					lerpFactor = 0.3f;
 				}
-				
-			}
-			else {
+			} else {
 				lerpFactor = lerpFactorOutTransition;
 			}
 
-			currentCameraPos.x = CrimsonUtil::lerp(currentCameraPos.x, g_customCameraPos[0], lerpFactor);
-			currentCameraPos.y = CrimsonUtil::lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactor);
-			currentCameraPos.z = CrimsonUtil::lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactor);
+			// Use jitterLerpFactor if in jitter state, otherwise normal lerpFactor
+			float usedLerp = inJitterState ? jitterLerpFactor : lerpFactor;
 
-			
+			currentCameraPos.x = CrimsonUtil::lerp(currentCameraPos.x, g_customCameraPos[0], usedLerp);
+			currentCameraPos.y = CrimsonUtil::lerp(currentCameraPos.y, g_customCameraPos[1], usedLerp);
+			currentCameraPos.z = CrimsonUtil::lerp(currentCameraPos.z, g_customCameraPos[2], usedLerp);
 
 			float distanceLerp = glm::distance(currentCameraPos, currentCustomCamPos);
 
@@ -508,17 +599,15 @@ void MultiplayerCameraPositioningController() {
 			g_customCameraPos[0] = currentCameraPos.x;
 			g_customCameraPos[1] = currentCameraPos.y;
 			g_customCameraPos[2] = currentCameraPos.z;
-			
-		}
-		else {
+
+		} else {
 			currentCameraPos = currentCustomCamPos;
 			isTransitionTimerActive = false;
 			g_customCameraPos[0] = mainActorData.position.x;
 			g_customCameraPos[1] = mainActorData.position.y;
 			g_customCameraPos[2] = mainActorData.position.z;
 		}
-	}
-	else {
+	} else {
 		// SINGLE PLAYER
 		// Only average out camera position between clone and player if their distance
 		// exceeds minDistance (to prevent bugging out when clone is spawning)
@@ -526,9 +615,9 @@ void MultiplayerCameraPositioningController() {
 
 		if (triggerPanoramicCam && g_inCombat) {
 			// Panoramic Camera mode: calculate average camera position
-// 			g_customCameraPos[0] /= totalWeight;
-// 			g_customCameraPos[1] /= totalWeight;
-// 			g_customCameraPos[2] /= totalWeight;
+//          g_customCameraPos[0] /= totalWeight;
+//          g_customCameraPos[1] /= totalWeight;
+//          g_customCameraPos[2] /= totalWeight;
 			g_customCameraPos[0] = mainActorData.position.x;
 			g_customCameraPos[1] = mainActorData.position.y;
 			g_customCameraPos[2] = mainActorData.position.z;
@@ -538,8 +627,7 @@ void MultiplayerCameraPositioningController() {
 				g_isParanoramicCamActive = true;
 				currentCameraPos = glm::vec3(mainActorData.position.x, mainActorData.position.y, mainActorData.position.z);
 			}
-		}
-		else {
+		} else {
 			// Normal cam mode: focus on main actor position
 			g_customCameraPos[0] = mainActorData.position.x;
 			g_customCameraPos[1] = mainActorData.position.y;
@@ -555,27 +643,22 @@ void MultiplayerCameraPositioningController() {
 
 		// Gradual transition between MPCam and normal cam (if a transition is occurring)
 		if (g_isParanoramicCamActive) {
-			float lerpFactor = 0.05f;  // Adjust this factor for smoother or faster transitions
-			currentCameraPos.x = CrimsonUtil::lerp(currentCameraPos.x, g_customCameraPos[0], lerpFactor);
-			currentCameraPos.y = CrimsonUtil::lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactor);
-			currentCameraPos.z = CrimsonUtil::lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactor);
-// 
-			g_customCameraPos[0] = mainActorData.position.x;
-			g_customCameraPos[1] = mainActorData.position.y;
-			g_customCameraPos[2] = mainActorData.position.z;
+			float lerpFactorSP = inJitterState ? 0.01f : 0.05f;  // Use slow lerp if jittering
+			currentCameraPos.x = CrimsonUtil::lerp(currentCameraPos.x, g_customCameraPos[0], lerpFactorSP);
+			currentCameraPos.y = CrimsonUtil::lerp(currentCameraPos.y, g_customCameraPos[1], lerpFactorSP);
+			currentCameraPos.z = CrimsonUtil::lerp(currentCameraPos.z, g_customCameraPos[2], lerpFactorSP);
 
-// 			g_customCameraPos[0] = currentCameraPos.x;
-// 			g_customCameraPos[1] = currentCameraPos.y;
-// 			g_customCameraPos[2] = currentCameraPos.z;
-		}
-		else {
+			g_customCameraPos[0] = currentCameraPos.x;
+			g_customCameraPos[1] = currentCameraPos.y;
+			g_customCameraPos[2] = currentCameraPos.z;
+		} else {
 			g_customCameraPos[0] = mainActorData.position.x;
 			g_customCameraPos[1] = mainActorData.position.y;
 			g_customCameraPos[2] = mainActorData.position.z;
 		}
-		
+
 	}
-	
+
 	// Disable Lock On Cam when MP Cam is active
 	CrimsonPatches::DisableLockOnCamera(g_isMPCamActive);
 
@@ -910,12 +993,21 @@ void TrackMissionStyleLevels() {
 	}
 	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
 	
-	if (missionData.frameCount <= 0 && g_scene != SCENE::MISSION_START && g_scene != SCENE::GAME && g_scene != SCENE::CUTSCENE) {
+	if (!activeConfig.Arcade.enable) {
+		if (missionData.frameCount <= 0 && g_scene != SCENE::MISSION_START && g_scene != SCENE::GAME && g_scene != SCENE::CUTSCENE) {
+			for (int style = 0; style < STYLE::MAX; style++) {
+				heldStyleExpDataDante.missionStyleLevels[style] = ExpConfig::sessionExpDataDante.styleLevels[style];
+				heldStyleExpDataVergil.missionStyleLevels[style] = ExpConfig::sessionExpDataVergil.styleLevels[style];
+				heldStyleExpDataDante.accumulatedStyleLevels[style] = ExpConfig::sessionExpDataDante.styleLevels[style];
+				heldStyleExpDataVergil.accumulatedStyleLevels[style] = ExpConfig::sessionExpDataVergil.styleLevels[style];
+			}
+		}
+	} else {
 		for (int style = 0; style < STYLE::MAX; style++) {
-			heldStyleExpDataDante.missionStyleLevels[style] = ExpConfig::sessionExpDataDante.styleLevels[style];
-			heldStyleExpDataVergil.missionStyleLevels[style] = ExpConfig::sessionExpDataVergil.styleLevels[style];
-			heldStyleExpDataDante.accumulatedStyleLevels[style] = ExpConfig::sessionExpDataDante.styleLevels[style];
-			heldStyleExpDataVergil.accumulatedStyleLevels[style] = ExpConfig::sessionExpDataVergil.styleLevels[style];
+			heldStyleExpDataDante.missionStyleLevels[style] = 2;
+			heldStyleExpDataVergil.missionStyleLevels[style] = 2;
+			heldStyleExpDataDante.accumulatedStyleLevels[style] = 2;
+			heldStyleExpDataVergil.accumulatedStyleLevels[style] = 2;
 		}
 	}
 	
@@ -1396,7 +1488,7 @@ void WeaponProgressionTracking() {
 void FixM7DevilTriggerUnlocking() {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
-	if ((g_scene == SCENE::MISSION_RESULT && sessionData.mission == 7) || 
+	if ((g_scene == SCENE::MISSION_RESULT && sessionData.mission == 8) || 
 		(g_scene == SCENE::MISSION_START && sessionData.mission == 8)) {
 		if (!sessionData.unlockDevilTrigger && sessionData.magicPoints == 0) {
 			sessionData.unlockDevilTrigger = true;

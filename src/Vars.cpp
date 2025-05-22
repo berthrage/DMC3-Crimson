@@ -598,6 +598,7 @@ bool styleChanged[6] = {false, false, false, false, false, false};
 
 float g_FrameRate = 0;
 float g_FrameRateTimeMultiplier = 0;
+float g_FrameRateTimeMultiplierRounded = 0;
 bool g_inCombat = false;
 bool g_inBossfight = false;
 int g_bossQuantity = 0;
@@ -676,5 +677,6 @@ float g_rotationBeforeCalculation = 0;
 float g_rotationCalculated = 0;
 __declspec(align(16)) float g_customCameraPos[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 __declspec(align(16)) float g_customCameraSensitivity = 0.0f;
+bool g_cameraHittingWall = true;
 
 #pragma endregion

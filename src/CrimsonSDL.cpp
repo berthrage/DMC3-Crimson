@@ -73,6 +73,7 @@ Mix_Chunk* guard;
 Mix_Chunk* royalBlock;
 Mix_Chunk* normalBlock;
 Mix_Music* missionClearSong;
+Mix_Music* divinityStatueSong;
 
 // Mix Channels used
 namespace CHANNEL {
@@ -192,6 +193,7 @@ void LoadAllSFX() {
 
 
 		missionClearSong = fn_Mix_LoadMUS(((std::string)Paths::sounds + "\\music\\missionclear.mp3").c_str());
+        divinityStatueSong = fn_Mix_LoadMUS(((std::string)Paths::sounds + "\\music\\divinitystatue.mp3").c_str());
 
 
 		cacheAudioFiles = true;
@@ -832,11 +834,16 @@ void PlayNormalBlock(int playerIndex) {
 }
 
 void PlayNewMissionClearSong() {
-    fn_Mix_VolumeMusic(77 * activeCrimsonConfig.Sound.channelVolumes[9]);
+    fn_Mix_VolumeMusic(60 * (activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f));
     fn_Mix_FadeInMusic(missionClearSong, -1, 500);
 }
 
-void FadeOutNewMissionClearSong() {
+void PlayDivinityStatueSong() {
+	fn_Mix_VolumeMusic(57 * (activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f));
+	fn_Mix_FadeInMusic(divinityStatueSong, -1, 500);
+}
+
+void FadeOutMusic() {
     fn_Mix_FadeOutMusic(500);
 }
 

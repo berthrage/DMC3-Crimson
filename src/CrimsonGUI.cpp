@@ -193,7 +193,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			window->DrawList->AddImage(logo, logoPos, logoSize);
 
 			// BETA Notice 
-			const char* text = "0.3a DEVELOPMENT PREVIEW BUILD";
+			const char* text = "BETA";
 			ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 0.8f]);
 			ImVec2 textSize = ImGui::CalcTextSize(text);
 			float padding = scaledFontSize * 0.2f;
@@ -683,7 +683,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			// Middle footer section
 			{
 				constexpr auto BACKGROUND_FADED_TEXT = u8"C•Team";
-				constexpr auto CREDIT_TEXT = u8"Berthrage • SSSiyan • deepdarkkapustka • Darkness • Charlie • The Hitchhiker  ";
+				constexpr auto CREDIT_TEXT = u8"Berthrage • SSSiyan • deepdarkkapustka • Darkness • Charlie • The Hitchhiker • RaccMoon ";
 				constexpr auto ABOUT_BUTTON_TEXT = "ABOUT";
 
 				ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
@@ -2258,16 +2258,6 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 	}
 
 	multiplayerWheelsLoaded = true; 
-
-	for (uint8 playerIndex = 1; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
-		auto& meleeWheel = meleeWeaponWheel[playerIndex];
-		auto& rangedWheel = rangedWeaponWheel[playerIndex];
-
-		if (!meleeWheel->m_loaded) {
-			multiplayerWheelsLoaded = false; 
-			break;
-		}
-	}
 }
 
 void WorldSpaceWeaponWheels1PController(IDXGISwapChain* pSwapChain) {
@@ -5344,6 +5334,27 @@ void ShopWindow() {
 		ImGui::Text("%u", missionData.redOrbs);
 		ImGui::PopFont();
 		ImGui::Text("");
+		auto BACKGROUND_FADED_TEXT = u8"Divinity Statue";
+		ImFont* fadedFont = UI::g_ImGuiFont_RussoOne256;
+		float fadedFontSize = scaledFontSize * 4.8f;
+
+		ImVec2 bgFadedTextSize = ImGui::CalcTextSize((const char*)BACKGROUND_FADED_TEXT, nullptr, false, fadedFontSize);
+
+		// Get window position and size
+		ImVec2 winPos = ImGui::GetWindowPos();
+		ImVec2 winSize = ImGui::GetWindowSize();
+
+		float rightMargin = 600.0f * scaleFactorY;
+
+		float x = winPos.x + winSize.x - bgFadedTextSize.x - rightMargin;
+		float y = winPos.y + 15.0f * scaleFactorY; // top margin
+
+		ImGui::GetWindowDrawList()->AddText(
+			fadedFont, fadedFontSize,
+			ImVec2(x, y),
+			UI::SwapColorEndianness(0xFFFFFF10),
+			(const char*)BACKGROUND_FADED_TEXT
+		);
 
 // 		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
 // 			auto& gamepad = GetGamepad(playerIndex);
@@ -7834,6 +7845,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
         if (activeConfig.debugOverlayData.showFrameRateMultiplier) {
             ImGui::Text("g_frameRateMultiplier %g", g_frameRateMultiplier);
 			ImGui::Text("g_FrameRateTimeMultiplier %g", g_FrameRateTimeMultiplier);
+			ImGui::Text("g_FrameRateTimeMultiplierRounded %g", g_FrameRateTimeMultiplierRounded);
         }
 
         if (activeConfig.debugOverlayData.showFocus || activeConfig.debugOverlayData.showFPS || activeConfig.debugOverlayData.showSizes ||
@@ -8075,6 +8087,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
+			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
+			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
+			ImGui::Text("cameraHittingWall: %u", g_cameraHittingWall);
 			ImGui::Text("actorData styleLevel: %u", actorData.styleLevel);
 			ImGui::Text("frameCOunt Mission: %u", missionData.frameCount);
 			ImGui::Text("heldStyleLevels sword: %u", heldStyleExpDataDante.accumulatedStyleLevels[0]);
@@ -8083,8 +8098,6 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			ImGui::Text("styleExpPoints: %g", actorData.styleExpPoints);
 			ImGui::Text("Actor Base Addr: %x", actorData.baseAddr);
 			ImGui::Text("TrickDash Timer: %g", crimsonPlayer[0].trickDashTimer);
-			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
-			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
 			ImGui::Text("ACTION:  %u", actorData.action);
 			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
 			ImGui::Text("lockOnEnemyMinusStun: %g", crimsonPlayer[0].lockedOnEnemyMinusStun);
@@ -8692,8 +8705,12 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth);
-			if (UI::ComboVectorString2("Select HUD", HUDdirectories, activeConfig.selectedHUD, queuedConfig.selectedHUD)) {
+			if (UI::ComboVectorString("Select HUD", HUDdirectories, queuedConfig.selectedHUD)) {
 				copyHUDtoGame();
+			}
+			if (queuedConfig.selectedHUD != activeConfig.selectedHUD) {
+				auto restartStrColor = CrimsonUtil::HexToImVec4(0x1DD6FFFF);
+				ImGui::TextColored(restartStrColor, "Restart the game to properly apply new HUD.");
 			}
 			ImGui::PopItemWidth();
 
@@ -11664,7 +11681,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[versionFontSize]);
 
 	// Format the version string
-	std::string versionStr = std::format("v{}.{}", UI::g_UIContext.CurrentVersion.Major, UI::g_UIContext.CurrentVersion.Minor);
+	std::string versionStr = std::format("v{}.{}{}", UI::g_UIContext.CurrentVersion.Major, UI::g_UIContext.CurrentVersion.Minor, UI::g_UIContext.CurrentVersion.PatchLetter);
 	std::string versionText = "BETA " + versionStr;
 
 	// Calculate text size
@@ -13641,6 +13658,37 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.7f);
 
+				// RaccMoon
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+					{
+						ImGui::Text("Testing, Q&A");
+					}
+					ImGui::PopFont();
+
+					ImGui::Separator();
+
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+					{
+						ImGui::Text("RaccMoon");
+					}
+					ImGui::PopFont();
+
+					ImGui::SameLine();
+
+					const ImVec2 socialsBBFrameSize{ 4.0f + ImGui::GetFontSize(), 4.0f + ImGui::GetFontSize() };
+					const ImVec2 currentCursorPos = ImGui::GetCursorScreenPos();
+
+					ImGui::SetCursorScreenPos(ImVec2{ window->ContentRegionRect.Max.x - socialsBBFrameSize.x, currentCursorPos.y });
+
+					if (fnDrawSocialButton("raccyoutube", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+						ShellExecute(0, 0, "https://www.youtube.com/@rakunuki3565", 0, 0, SW_SHOW);
+					}
+
+				}
+
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.7f);
+
 				// Additional Work
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 1.2f)]);
@@ -13667,8 +13715,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 							ImGui::SameLine();
  							
-							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
- 									ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
+							if (fnDrawSocialButton("cynumatwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+ 									ShellExecute(0, 0, "https://x.com/Cynumaa", 0, 0, SW_SHOW);
 							}
 						}
 						ImGui::PopFont();
@@ -13687,11 +13735,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						{
 							ImGui::Text("Omar Nabelse");
 
-							ImGui::SameLine();
-
-							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
-								ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
-							}
 						}
 						ImGui::PopFont();
 					}
@@ -13708,12 +13751,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
 						{
 							ImGui::Text("Che");
-
-							ImGui::SameLine();
-
-							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
-								ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
-							}
 						}
 						ImGui::PopFont();
 					}
@@ -13735,6 +13772,28 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
 								ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
+							}
+						}
+						ImGui::PopFont();
+					}
+
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+						{
+							ImGui::Text("Programmer");
+						}
+						ImGui::PopFont();
+
+						ImGui::Separator();
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Text("adil");
+
+							ImGui::SameLine();
+
+							if (fnDrawSocialButton("adilgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://github.com/adilahmeddev", 0, 0, SW_SHOW);
 							}
 						}
 						ImGui::PopFont();
@@ -14024,6 +14083,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonGameModes::TrackCheats();
 	CrimsonGameModes::TrackMissionResultGameMode();
 	CrimsonOnTick::CrimsonMissionClearSong();
+	CrimsonOnTick::DivinityStatueSong();
 
 	CrimsonSDL::CheckAndOpenControllers();
 	CrimsonSDL::UpdateJoysticks();

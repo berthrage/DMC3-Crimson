@@ -51,7 +51,8 @@ void PlayGuard(int playerIndex);
 void PlayRoyalBlock(int playerIndex);
 void PlayNormalBlock(int playerIndex);
 void PlayNewMissionClearSong();
-void FadeOutNewMissionClearSong();
+void PlayDivinityStatueSong();
+void FadeOutMusic();
 int IsMusicPlaying();
 
 }
