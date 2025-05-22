@@ -421,23 +421,14 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
     using namespace ACTION_DANTE;
     using namespace NEXT_ACTION_REQUEST_POLICY;
 
-    /*if (
-            !actorBaseAddr ||
-            (actorBaseAddr == g_playerActorBaseAddrs[0]) ||
-            (actorBaseAddr == g_playerActorBaseAddrs[1]))
-    {
-            return;
-    }*/
-
     if (!actorBaseAddr) {
         return;
     }
-    auto& actorData    = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    auto lockOn        = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
     auto tiltDirection = GetRelativeTiltDirection(actorData);
     auto playerIndex = actorData.newPlayerIndex;
     auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
-
 
     bool inCancellableActionRebellion =
         (actorData.action == REBELLION_COMBO_1_PART_1 || actorData.action == REBELLION_COMBO_1_PART_1 ||
@@ -470,8 +461,6 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
             actorData.action == AGNI_RUDRA_TWISTER || actorData.action == AGNI_RUDRA_TEMPEST ||
             actorData.action == AGNI_RUDRA_WHIRLWIND_LAUNCH);
 
-    // || actorData.action == AGNI_RUDRA_CROSSED_SWORDS || actorData.action == AGNI_RUDRA_CRAWLER
-
     bool inCancellableActionNevan =
         (actorData.action == NEVAN_TUNE_UP || actorData.action == NEVAN_COMBO_1 || actorData.action == NEVAN_COMBO_2 ||
             actorData.action == NEVAN_JAM_SESSION || actorData.action == NEVAN_BAT_RIFT_LEVEL_1 ||
@@ -480,46 +469,94 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
             actorData.action == NEVAN_CRAZY_ROLL || actorData.action == NEVAN_DISTORTION);
 
     bool inCancellableActionBeowulf = (actorData.action == BEOWULF_COMBO_1_PART_1 || actorData.action == BEOWULF_COMBO_1_PART_2 ||
-                                       actorData.action == BEOWULF_COMBO_1_PART_3 || actorData.action == BEOWULF_COMBO_2_PART_3 ||
-                                       actorData.action == BEOWULF_COMBO_2_PART_4 || actorData.action == BEOWULF_BEAST_UPPERCUT ||
-                                       actorData.action == BEOWULF_HYPER_FIST || actorData.action == BEOWULF_TORNADO);
+        actorData.action == BEOWULF_COMBO_1_PART_3 || actorData.action == BEOWULF_COMBO_2_PART_3 ||
+        actorData.action == BEOWULF_COMBO_2_PART_4 || actorData.action == BEOWULF_BEAST_UPPERCUT ||
+        actorData.action == BEOWULF_HYPER_FIST || actorData.action == BEOWULF_TORNADO);
 
     bool inCancellableActionGuns =
         (actorData.action == EBONY_IVORY_WILD_STOMP || actorData.action == ARTEMIS_ACID_RAIN || actorData.action == KALINA_ANN_GRAPPLE);
 
     bool inCancellableActionAirSwordmaster =
         ((actorData.action == REBELLION_AERIAL_RAVE_PART_1 || actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
-             actorData.action == REBELLION_AERIAL_RAVE_PART_3 || actorData.action == REBELLION_AERIAL_RAVE_PART_4) ||
+            actorData.action == REBELLION_AERIAL_RAVE_PART_3 || actorData.action == REBELLION_AERIAL_RAVE_PART_4) ||
             (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
                 actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) ||
             (actorData.action == NEVAN_AIR_SLASH_PART_1 || actorData.action == NEVAN_AIR_SLASH_PART_2) ||
             (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO));
 
     bool inCancellableActionAirGunslinger = (actorData.action == SHOTGUN_AIR_FIREWORKS || actorData.action == ARTEMIS_AIR_NORMAL_SHOT ||
-                                             actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT);
+        actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT);
     bool inGunsMove = (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == SHOTGUN_AIR_NORMAL_SHOT ||
         actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT || actorData.action == SPIRAL_NORMAL_SHOT
         || actorData.action == SPIRAL_TRICK_SHOT || actorData.action == KALINA_ANN_NORMAL_SHOT);
 
-
-    if (playerIndex >= PLAYER_COUNT) {
-        playerIndex = 0;
-    }
-
+    if (playerIndex >= PLAYER_COUNT) playerIndex = 0;
     auto characterIndex = actorData.newCharacterIndex;
-    if (characterIndex >= CHARACTER_COUNT) {
-        characterIndex = 0;
-    }
-
+    if (characterIndex >= CHARACTER_COUNT) characterIndex = 0;
     auto entityIndex = actorData.newEntityIndex;
-    if (entityIndex >= ENTITY_COUNT) {
-        entityIndex = 0;
-    }
+    if (entityIndex >= ENTITY_COUNT) entityIndex = 0;
 
     auto& playerData = GetPlayerData(playerIndex);
-
     auto& gamepad = GetGamepad(playerIndex);
     auto& skyLaunch = crimsonPlayer[playerIndex].skyLaunch;
+
+    // --- Button press detection arrays ---
+    static bool prevStyleButton[PLAYER_COUNT][ENTITY_COUNT] = {};
+    static bool prevShootButton[PLAYER_COUNT][ENTITY_COUNT] = {};
+    static bool prevStyleButton2[PLAYER_COUNT][ENTITY_COUNT] = {};
+
+    // Buffer for style button press (per player/entity)
+    static float styleButtonBuffer[PLAYER_COUNT][ENTITY_COUNT] = {};
+    constexpr float STYLE_BUTTON_BUFFER_TIME = 0.2f; // 200ms buffer
+
+    // Buffer for gunslinger style button (per player/entity)
+    static float gunStyleButtonBuffer[PLAYER_COUNT][ENTITY_COUNT] = {};
+    constexpr float GUN_STYLE_BUTTON_BUFFER_TIME = 0.2f;
+
+    // Buffer for rainstorm style button (per player/entity)
+    static float rainstormStyleButtonBuffer[PLAYER_COUNT][ENTITY_COUNT] = {};
+    constexpr float RAINSTORM_STYLE_BUTTON_BUFFER_TIME = 0.2f;
+
+    // Buffer for swordmaster cancel (per player/entity)
+    static float swordmasterStyleButtonBuffer[PLAYER_COUNT][ENTITY_COUNT] = {};
+    constexpr float SWORDMASTER_STYLE_BUTTON_BUFFER_TIME = 0.2f;
+
+    // Buffer for gunshot cancel (per player/entity)
+    static float gunshotButtonBuffer[PLAYER_COUNT][ENTITY_COUNT] = {};
+    constexpr float GUNSHOT_BUTTON_BUFFER_TIME = 0.2f;
+
+    // Detect button press (not hold)
+    bool styleButtonDown = (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) != 0;
+    bool styleButtonPressed = styleButtonDown && !prevStyleButton[playerIndex][entityIndex];
+    prevStyleButton[playerIndex][entityIndex] = styleButtonDown;
+
+    bool shootButtonDown = (gamepad.buttons[0] & GetBinding(BINDING::SHOOT)) != 0;
+    bool shootButtonPressed = shootButtonDown && !prevShootButton[playerIndex][entityIndex];
+    prevShootButton[playerIndex][entityIndex] = shootButtonDown;
+
+    // For buttons[2] (used in some cancels)
+    bool styleButton2Down = (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) != 0;
+    bool styleButton2Pressed = styleButton2Down && !prevStyleButton2[playerIndex][entityIndex];
+    prevStyleButton2[playerIndex][entityIndex] = styleButton2Down;
+    // -------------------------------------
+
+    // Lambda for updating a buffer
+    auto updateBuffer = [](bool pressed, float& buffer, float bufferTime, float deltaTime) {
+        if (pressed) {
+            buffer = bufferTime;
+        } else if (buffer > 0.0f) {
+            buffer -= deltaTime;
+            if (buffer < 0.0f) buffer = 0.0f;
+        }
+        };
+
+    // Update all buffers
+    updateBuffer(styleButtonPressed, styleButtonBuffer[playerIndex][entityIndex], STYLE_BUTTON_BUFFER_TIME, ImGui::GetIO().DeltaTime);
+    updateBuffer(styleButtonPressed, gunStyleButtonBuffer[playerIndex][entityIndex], GUN_STYLE_BUTTON_BUFFER_TIME, ImGui::GetIO().DeltaTime);
+    updateBuffer(styleButton2Pressed, rainstormStyleButtonBuffer[playerIndex][entityIndex], RAINSTORM_STYLE_BUTTON_BUFFER_TIME, ImGui::GetIO().DeltaTime);
+    updateBuffer(styleButton2Pressed, swordmasterStyleButtonBuffer[playerIndex][entityIndex], SWORDMASTER_STYLE_BUTTON_BUFFER_TIME, ImGui::GetIO().DeltaTime);
+    updateBuffer((actorData.buttons[2] & GetBinding(BINDING::SHOOT)) && !prevShootButton[playerIndex][entityIndex],
+        gunshotButtonBuffer[playerIndex][entityIndex], GUNSHOT_BUTTON_BUFFER_TIME, ImGui::GetIO().DeltaTime);
 
     static bool executes[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][4] = {};
     auto& cancels = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].cancels : crimsonPlayer[playerIndex].cancelsClone;
@@ -529,7 +566,6 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
         && actorData.style == STYLE::TRICKSTER && !doingAirTrick);
     auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
     auto& policyTrick = actorData.nextActionRequestPolicy[TRICKSTER_DARK_SLAYER];
-
 
     if (actorData.character == CHARACTER::DANTE) {
 
@@ -542,46 +578,44 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
         }
 
         // Improve Twister/Tempest Trick Buffering
-		if (actorData.action == AGNI_RUDRA_TWISTER || actorData.action == AGNI_RUDRA_TEMPEST) {
-			policyTrick = BUFFER;
-			if (doingAirTrick && actionTimer > 0.50f) {
-				policyTrick = EXECUTE;
-			}
-		}
+        if (actorData.action == AGNI_RUDRA_TWISTER || actorData.action == AGNI_RUDRA_TEMPEST) {
+            policyTrick = BUFFER;
+            if (doingAirTrick && actionTimer > 0.50f) {
+                policyTrick = EXECUTE;
+            }
+        }
 
-		// Improved Air Swordmaster Moves Trick Buffering
-		if (actorData.action == CERBERUS_AIR_FLICKER || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 
+        // Improved Air Swordmaster Moves Trick Buffering
+        if (actorData.action == CERBERUS_AIR_FLICKER || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1
             || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3
             || actorData.action == BEOWULF_THE_HAMMER || actorData.action == BEOWULF_TORNADO) {
-			policyTrick = BUFFER;
-			if (doingAirTrick && actionTimer > 0.15f) {
+            policyTrick = BUFFER;
+            if (doingAirTrick && actionTimer > 0.15f) {
                 policyTrick = EXECUTE;
-			}
-		}
+            }
+        }
 
-		// Improved Cerberus' Crystal/Million Carats Trick Buffering
-		if (actorData.action == CERBERUS_CRYSTAL || actorData.action == CERBERUS_MILLION_CARATS) {
-			policyTrick = BUFFER;
-			if (doingAirTrick && actionTimer > 0.45f) {
-				policyTrick = EXECUTE;
-			}
-		}
+        // Improved Cerberus' Crystal/Million Carats Trick Buffering
+        if (actorData.action == CERBERUS_CRYSTAL || actorData.action == CERBERUS_MILLION_CARATS) {
+            policyTrick = BUFFER;
+            if (doingAirTrick && actionTimer > 0.45f) {
+                policyTrick = EXECUTE;
+            }
+        }
 
         // Dante's Trickster Actions Cancels Most Things (w/ cooldown)
         if ((actorData.style == STYLE::TRICKSTER) &&
             (actorData.eventData[0].event != ACTOR_EVENT::TRICKSTER_DASH &&
-                    (inCancellableActionRebellion || inCancellableActionCerberus || inCancellableActionAgni || inCancellableActionNevan ||
-                        inCancellableActionBeowulf || inCancellableActionGuns || inCancellableActionAirSwordmaster ||
-                        inCancellableActionAirGunslinger || actorData.action == EBONY_IVORY_RAIN_STORM) ||
+                (inCancellableActionRebellion || inCancellableActionCerberus || inCancellableActionAgni || inCancellableActionNevan ||
+                    inCancellableActionBeowulf || inCancellableActionGuns || inCancellableActionAirSwordmaster ||
+                    inCancellableActionAirGunslinger || actorData.action == EBONY_IVORY_RAIN_STORM) ||
                 skyLaunch.executing || actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_SKY_STAR) && (policy == BUFFER || policy == EXECUTE)) {
-            if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
-
-				if (cancels.canTrick) {
-
-					actorData.state &= ~STATE::BUSY;
-
-					cancels.canTrick = false;
-				}
+            if (styleButtonBuffer[playerIndex][entityIndex] > 0.0f) { // previously gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)
+                if (cancels.canTrick) {
+                    actorData.state &= ~STATE::BUSY;
+                    cancels.canTrick = false;
+                    styleButtonBuffer[playerIndex][entityIndex] = 0.0f; // consume buffer
+                }
             }
         }
 
@@ -591,14 +625,12 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
             (inCancellableActionAirSwordmaster || inCancellableActionAirGunslinger || actorData.eventData[0].event == 23 ||
                 actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK || actorData.motionData[0].index == 15) &&
             actorData.action != EBONY_IVORY_RAIN_STORM) {
-            if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
-
-				if (cancels.canGun) {
-
-					actorData.state &= ~STATE::BUSY;
-
-					cancels.canGun = false;
-				}
+            if (gunStyleButtonBuffer[playerIndex][entityIndex] > 0.0f) { // previously gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)
+                if (cancels.canGun) {
+                    actorData.state &= ~STATE::BUSY;
+                    cancels.canGun = false;
+                    gunStyleButtonBuffer[playerIndex][entityIndex] = 0.0f; // consume buffer
+                }
             }
         }
 
@@ -606,38 +638,32 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
         if ((actorData.style == STYLE::GUNSLINGER) && (actorData.state == STATE::IN_AIR || actorData.state == 65538) &&
             (crimsonPlayer[playerIndex].cancels.canRainstorm) && (actorData.action == EBONY_IVORY_RAIN_STORM)) {
             if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) {
-
-				if (cancels.canRainstorm) {
-
-					actorData.state &= ~STATE::BUSY;
-
-				    cancels.canRainstorm = false;
-				}
+                if (cancels.canRainstorm) {
+                    actorData.state &= ~STATE::BUSY;
+                    cancels.canRainstorm = false;
+                    //rainstormStyleButtonBuffer[playerIndex][entityIndex] = 0.0f; // consume buffer
+                }
             }
         }
 
         // This prevents the double Rainstorm from happening (but I still left it on Fireworks and Artemis Shots).
         if (actorData.action == EBONY_IVORY_RAIN_STORM && actorData.motionData[0].index == 15) {
-
-			if (cancels.canRainstorm) {
-
-				cancels.canRainstorm = false;
-			}
+            if (cancels.canRainstorm) {
+                cancels.canRainstorm = false;
+            }
         }
 
         // Reset Timers if you jump cancel
-		if (actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
-			cancels.canTrick = true;
-			cancels.canGun = true;
-			cancels.canRainstorm = true;
-		}
+        if (actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
+            cancels.canTrick = true;
+            cancels.canGun = true;
+            cancels.canRainstorm = true;
+        }
     }
 
     old_for_all(uint8, buttonIndex, 4) {
         auto& execute = executes[playerIndex][characterIndex][entityIndex][buttonIndex];
-
         auto& button = playerData.removeBusyFlagButtons[buttonIndex];
-
 
         if (actorData.character == CHARACTER::DANTE) {
 
@@ -646,32 +672,29 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
 
             if ((actorData.style == STYLE::SWORDMASTER) &&
                 (eventActor == ACTOR_EVENT::TRICKSTER_SKY_STAR || eventActor == ACTOR_EVENT::TRICKSTER_DASH)) {
-                if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) {
-
+                if (swordmasterStyleButtonBuffer[playerIndex][entityIndex] > 0.0f) { // previously actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)
                     if (execute) {
                         execute = false;
-
                         actorData.state &= ~STATE::BUSY;
+                        swordmasterStyleButtonBuffer[playerIndex][entityIndex] = 0.0f; // consume buffer
                     }
-                } else {
+                } else if (!styleButton2Down) {
                     execute = true;
                 }
             }
 
             // Cancel Final Aerial Rave Knockback with Gunshot.
             if (actorData.action == REBELLION_AERIAL_RAVE_PART_4 && actorData.eventData[0].event == 17) {
-                if (actorData.buttons[2] & GetBinding(BINDING::SHOOT)) {
-
+                if (gunshotButtonBuffer[playerIndex][entityIndex] > 0.0f) { // previously actorData.buttons[2] & GetBinding(BINDING::SHOOT)
                     if (execute) {
                         execute = false;
-
                         actorData.state &= ~STATE::BUSY;
+                        gunshotButtonBuffer[playerIndex][entityIndex] = 0.0f; // consume buffer
                     }
-                } else {
+                } else if (!shootButtonDown) {
                     execute = true;
                 }
             }
-
 
             /*if ((actorData.style == STYLE::ROYALGUARD) &&
                             (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)))
@@ -694,8 +717,6 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
             }*/
         }
     }
-
-    
 }
 
 void ImprovedCancelsVergilController(byte8* actorBaseAddr) {
