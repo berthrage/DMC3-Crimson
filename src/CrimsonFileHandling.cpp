@@ -44,7 +44,6 @@ std::vector<std::string> getFiles(const std::string& path) {
 	} catch (const fs::filesystem_error& e) {
 		const char* errorMsg = e.what();
 		Log(errorMsg);
-		// Optionally, handle or rethrow
 	}
 	return files;
 }

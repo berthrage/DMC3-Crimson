@@ -698,136 +698,86 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
     
 }
 
-
 void ImprovedCancelsVergilController(byte8* actorBaseAddr) {
-    using namespace ACTION_VERGIL;
+	using namespace ACTION_VERGIL;
 
-    if (!actorBaseAddr || (actorBaseAddr == g_playerActorBaseAddrs[0]) || (actorBaseAddr == g_playerActorBaseAddrs[1])) {
-        return;
-    }
+	if (!actorBaseAddr || (actorBaseAddr == g_playerActorBaseAddrs[0]) || (actorBaseAddr == g_playerActorBaseAddrs[1])) {
+		return;
+	}
 
-    if (!actorBaseAddr) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
-    auto tiltDirection = GetRelativeTiltDirection(actorData);
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
 
-    auto playerIndex = actorData.newPlayerIndex;
-    if (playerIndex >= PLAYER_COUNT) {
-        playerIndex = 0;
-    }
+	auto playerIndex = actorData.newPlayerIndex;
+	if (playerIndex >= PLAYER_COUNT) {
+		playerIndex = 0;
+	}
 
-    auto characterIndex = actorData.newCharacterIndex;
-    if (characterIndex >= CHARACTER_COUNT) {
-        characterIndex = 0;
-    }
+	auto characterIndex = actorData.newCharacterIndex;
+	if (characterIndex >= CHARACTER_COUNT) {
+		characterIndex = 0;
+	}
 
-    auto entityIndex = actorData.newEntityIndex;
-    if (entityIndex >= ENTITY_COUNT) {
-        entityIndex = 0;
-    }
+	auto entityIndex = actorData.newEntityIndex;
+	if (entityIndex >= ENTITY_COUNT) {
+		entityIndex = 0;
+	}
 
-    auto& playerData = GetPlayerData(playerIndex);
+	auto& playerData = GetPlayerData(playerIndex);
+	auto& gamepad = GetGamepad(playerIndex);
 
-    auto& gamepad = GetGamepad(playerIndex);
+	static bool executes[PLAYER_COUNT][ENTITY_COUNT] = {};
+	static bool prevStyleButton[PLAYER_COUNT][ENTITY_COUNT] = {};
+	static float cancelTimers[PLAYER_COUNT][ENTITY_COUNT] = {};
 
-    static bool executes[PLAYER_COUNT][ENTITY_COUNT][4] = {};
-    static float cancelTimers[PLAYER_COUNT][ENTITY_COUNT][4] = {};
-    static bool prevStyleButton[PLAYER_COUNT][ENTITY_COUNT] = {};
+	constexpr float COOLDOWN_MS = 700.0f;
 
-    constexpr float COOLDOWN_MS = 600.0f;
+	float deltaTime = ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier) * 1000.0f; // to ms
 
-    float deltaTime = ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier) * 1000.0f; // to ms
+	// Detect button press (not hold)
+	bool styleButtonDown = (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) != 0;
+	bool styleButtonPressed = styleButtonDown && !prevStyleButton[playerIndex][entityIndex];
+	prevStyleButton[playerIndex][entityIndex] = styleButtonDown;
 
-    // Detect button press (not hold)
-    bool styleButtonDown = (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) != 0;
-    bool styleButtonPressed = styleButtonDown && !prevStyleButton[playerIndex][entityIndex];
-    prevStyleButton[playerIndex][entityIndex] = styleButtonDown;
+	auto& execute = executes[playerIndex][entityIndex];
+	auto& timer = cancelTimers[playerIndex][entityIndex];
 
-    old_for_all(uint8, buttonIndex, 4) {
-        auto& execute = executes[playerIndex][entityIndex][buttonIndex];
-        auto& button = playerData.removeBusyFlagButtons[buttonIndex];
-        auto& timer = cancelTimers[playerIndex][entityIndex][buttonIndex];
+	if (timer > 0.0f) {
+		timer -= deltaTime;
+		if (timer < 0.0f) timer = 0.0f;
+	}
 
-        if (timer > 0.0f) {
-            timer -= deltaTime;
-            if (timer < 0.0f) timer = 0.0f;
-        }
+	// Aggregate all cancel conditions
+	bool canCancel = false;
 
-        // Darkslayer Trick Cancels Everything
-        if (actorData.character == CHARACTER::VERGIL && actorData.state != STATE::IN_AIR && actorData.state != 65538) {
-            if (styleButtonPressed) {
-                if (execute && timer <= 0.0f) {
-                    execute = false;
-                    timer = COOLDOWN_MS;
-                    actorData.state &= ~STATE::BUSY;
-                }
-            } else if (!styleButtonDown) {
-                execute = true;
-            }
-        }
+	if (actorData.character == CHARACTER::VERGIL) {
+		// Darkslayer Trick Cancel (ground)
+		if (actorData.state != STATE::IN_AIR && actorData.state != 65538 && styleButtonPressed) {
+			canCancel = true;
+		}
+		// TRICK UP (air)
+		else if ((actorData.state & STATE::IN_AIR) && styleButtonPressed && lockOn && tiltDirection == TILT_DIRECTION::UP && actorData.trickUpCount > 0) {
+			canCancel = true;
+		}
+		// TRICK DOWN (air)
+		else if ((actorData.state & STATE::IN_AIR) && styleButtonPressed && lockOn && tiltDirection == TILT_DIRECTION::DOWN && actorData.trickDownCount > 0) {
+			canCancel = true;
+		}
+		// AIR TRICK (air)
+		else if ((actorData.state & STATE::IN_AIR) && styleButtonPressed &&
+			(((lockOn && tiltDirection == TILT_DIRECTION::NEUTRAL) || !lockOn) && actorData.airTrickCount > 0)) {
+			canCancel = true;
+		}
+	}
 
-        // TRICK UP
-        if (actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
-            if (styleButtonPressed && lockOn && tiltDirection == TILT_DIRECTION::UP &&
-                actorData.trickUpCount > 0) {
-                if (execute && timer <= 0.0f) {
-                    execute = false;
-                    timer = COOLDOWN_MS;
-                    actorData.state &= ~STATE::BUSY;
-                }
-            } else if (!styleButtonDown) {
-                execute = true;
-            }
-        }
-
-        // TRICK DOWN
-        if (actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
-            if (styleButtonPressed && lockOn && tiltDirection == TILT_DIRECTION::DOWN &&
-                actorData.trickDownCount > 0) {
-                if (execute && timer <= 0.0f) {
-                    execute = false;
-                    timer = COOLDOWN_MS;
-                    actorData.state &= ~STATE::BUSY;
-                }
-            } else if (!styleButtonDown) {
-                execute = true;
-            }
-        }
-
-        // AIR TRICK
-        if (actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
-            if (styleButtonPressed && ((lockOn && tiltDirection == TILT_DIRECTION::NEUTRAL) || !lockOn) &&
-                actorData.airTrickCount > 0) {
-                if (execute && timer <= 0.0f) {
-                    execute = false;
-                    timer = COOLDOWN_MS;
-                    actorData.state &= ~STATE::BUSY;
-                }
-            } else if (!styleButtonDown) {
-                execute = true;
-            }
-        }
-
-        /*if(actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
-                if(actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2 && airStingerEnd.timer < 150) {
-                        if (execute)
-                        {
-                                execute = false;
-
-                                actorData.state &= ~STATE::BUSY;
-                        }
-
-
-                }
-                else
-                {
-                execute = true;
-                }
-
-        }*/
-    }
+	if (canCancel && execute && timer <= 0.0f) {
+		execute = false;
+		timer = COOLDOWN_MS;
+		actorData.state &= ~STATE::BUSY;
+	} else if (!styleButtonDown) {
+		execute = true;
+	}
 }
 
 #pragma endregion
