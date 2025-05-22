@@ -4,5 +4,5 @@
 void CameraCtrlInitDetour();
 void CameraSwitchInitDetour();
 namespace CrimsonCameraController{
-	extern uint32 s_currentCameraIndex;
+	extern uint32 g_currentCameraIndex;
 };

@@ -16,7 +16,7 @@ static constexpr auto CAM_SWITCH_OFFSET() { return 0x055880; }
 static bool s_cameraEnable{ true };
 
 namespace CrimsonCameraController {
-	uint32 s_currentCameraIndex = 0;
+	uint32 g_currentCameraIndex = 0;
 }
 
 static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
@@ -59,7 +59,7 @@ static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
-	CrimsonCameraController::s_currentCameraIndex = cameraswitchInfo.currentCamIndex;
+	CrimsonCameraController::g_currentCameraIndex = cameraswitchInfo.currentCamIndex;
 	//bool roomExceptions = (
 	//	//
 	//	//||(/* scenario 3*/)
@@ -73,7 +73,7 @@ static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 
 	//}
 	//specifically keeps the third person camera for the laser section in this room activated.
-	if (sessionData.mission == 9 && eventData.room == ROOM::SUBTERRANEAN_GARDEN && CrimsonCameraController::s_currentCameraIndex == 2) {
+	if (sessionData.mission == 9 && eventData.room == ROOM::SUBTERRANEAN_GARDEN && CrimsonCameraController::g_currentCameraIndex == 2) {
 		CrimsonPatches::ForceThirdPersonCamera(false);
 	}
 	else {
