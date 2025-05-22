@@ -46,6 +46,9 @@ static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 		CrimsonCameraController::g_currentCameraType = cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type;
 	}
 
+
+	//res = trampoline(a1, a2);
+	//return res;
 	/*
 	Explaining what I'm doing here.
 	The idea is simple: siyan figured out we could force the first person cam by saying that every attempt to transition to fixed cam was invalid.
@@ -91,6 +94,10 @@ static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 	if (!s_cameraEnable) {
 		s_cameraEnableOld = false;
 	}
+
+	//We're currently running into an issue where dante's direction doesn't update as the camera turns. I'm not sure why, so we're going to try and restore camera index
+	//see if that helps
+	cameraswitchInfo.currentCamIndex = CrimsonCameraController::g_currentCameraIndex;
 
 	//return the result of the run function, and boom! Dynamic camera swap between TPS and Fixed.
 	return res;
@@ -195,7 +202,9 @@ bool evaluateRoomCameraException(SessionData& sessionData, EventData& eventData,
 }
 
 static uintptr_t  __fastcall sub_14023EEF0(int64_t a1) {
-
+	//new addition, only for scenario where the first part of this patch is removed
+	CrimsonPatches::ForceThirdPersonCamera(true);
+	
 	typedef int64_t(__fastcall* sub_14023EEF0)(int64_t);
 	//typedef uintptr_t(__fastcall* spawGuyTrampoline)(uintptr_t, float*);
 	//auto& ldkModeConfig = activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode;
