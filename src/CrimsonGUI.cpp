@@ -10981,9 +10981,7 @@ void VergilGameplayOptions() {
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
-			GUI_WIPButton();
-			ImGui::SameLine();
-			TooltipHelper("(?)", "With Yamato: During Rapid Slash HOLD Melee Button.");
+			TooltipHelper("(?)", "With Yamato: During Rapid Slash HOLD Melee + Forward.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();

@@ -829,12 +829,13 @@ void VergilRisingStar(byte8* actorBaseAddr) {
 		crimsonPlayer[playerIndex].actionTimerClone;
 	static bool applied[PLAYER_COUNT][ENTITY_COUNT] = { false };
 	auto& apply = applied[playerIndex][entityIndex];
+    auto tiltDirection = GetRelativeTiltDirection(actorData);
 
 	// --- Melee button hold timer ---
 	static float meleeButtonHold[PLAYER_COUNT][ENTITY_COUNT] = {};
 	constexpr float MELEE_HOLD_TIME = 0.2f; // 200 ms
 
-	bool meleeDown = (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK)) != 0;
+	bool meleeDown = (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK)) != 0 && tiltDirection == TILT_DIRECTION::UP;
 
 	if (meleeDown) {
 		meleeButtonHold[playerIndex][entityIndex] += ImGui::GetIO().DeltaTime;
