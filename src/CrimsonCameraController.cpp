@@ -14,13 +14,14 @@ static std::unique_ptr<Utility::Detour_t> cameraSwitchAccessHook;
 static constexpr auto CTRL_PROC_OFFSET() { return 0x23EEF0; }
 static constexpr auto CAM_SWITCH_OFFSET() { return 0x055880; }
 static bool s_cameraEnable{ true };
+static bool s_tpsRoomException{ false };
 
 namespace CrimsonCameraController {
 	uint32 g_currentCameraIndex = 0;
 }
 
 static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
-	typedef int64_t(__fastcall* sub_140055880)(int64_t,char);
+	typedef int64_t(__fastcall* sub_140055880)(int64_t, char);
 	auto& cameraConfig = activeCrimsonConfig.Camera;
 
 	uintptr_t trampoline_raw = cameraSwitchAccessHook->GetTrampoline();
@@ -43,6 +44,9 @@ static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 	if (cameraswitchInfo.currentCamIndex == 255) {
 		return res;
 	}
+	//don't need to mess with this if we've already confirmed fix cam for entire room
+	if (s_tpsRoomException)
+		return res;
 
 	//get event & nextevent
 	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
@@ -73,7 +77,13 @@ static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 
 	//}
 	//specifically keeps the third person camera for the laser section in this room activated.
-	if (sessionData.mission == 9 && eventData.room == ROOM::SUBTERRANEAN_GARDEN && CrimsonCameraController::g_currentCameraIndex == 2) {
+
+
+	bool exceptions = (eventData.room == ROOM::SUBTERRANEAN_GARDEN && CrimsonCameraController::g_currentCameraIndex == 2)
+		|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 0)
+		|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 5)
+		|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 11);
+	if (exceptions) {
 		CrimsonPatches::ForceThirdPersonCamera(false);
 	}
 	else {
@@ -156,27 +166,28 @@ static uintptr_t  __fastcall sub_14023EEF0(int64_t a1) {
 		//laser puzzle
 		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_GARDEN, 9, 0)
 		//lake room (camera highlights progression + free cam gets stuck on a wall trying to reach a secret area
-		|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 0)
-		|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 1)
-		|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 2)
+		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 0)
+		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 1)
+		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 2)
 		//nevan?
 		// || evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUNKEN_OPERA_HOUSE, 9, 0)
 		// m10 exception 
 		//this should only happen in position 2 on the other side of the cave where you collect the m10 mask
 		|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LIMESTONE_CAVERN, 10, 2)
-		|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 0)
-		|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 1)
-		|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 2)
+		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 0)
+		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 1)
+		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 2)
 		//
 		//||(/* scenario 3*/)
 		//||(/* scenario 4*/)
 		);
 	if (roomExceptions) {
 		CrimsonPatches::ForceThirdPersonCamera(false);
+		s_tpsRoomException = true;
 	}
 	else {
 		CrimsonPatches::ForceThirdPersonCamera(true);
-
+		s_tpsRoomException = false;
 	}
 
 	//custom code
