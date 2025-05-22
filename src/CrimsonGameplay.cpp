@@ -1048,62 +1048,6 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
     }
 }
 
-void FasterDTRapidSlash(byte8* actorBaseAddr) {
-    using namespace ACTION_DANTE;
-    using namespace ACTION_VERGIL;
-    if (!actorBaseAddr || !activeCrimsonGameplay.Gameplay.Vergil.fasterDTRapidSlash) {
-        return;
-    }
-    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-
-    if ((actorData.motionData[0].index == 8 || actorData.motionData[0].index == 10) &&
-        (actorData.action == YAMATO_RAPID_SLASH_LEVEL_1 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_2)) {
-
-        inRapidSlash = true;
-    } else {
-        inRapidSlash = false;
-    }
-
-
-    if (actorData.character == CHARACTER::VERGIL) {
-
-        if ((actorData.motionData[0].index == 51 || actorData.motionData[0].index == 2) &&
-            !inRapidSlash) { // Coudln't figure out a way to not bug this out then to store this out of walking anim
-            // Storing the original speeds
-            fasterRapidSlash.storedSpeedDevil[0] = activeCrimsonGameplay.Cheats.Speed.dTVergil[0];
-            fasterRapidSlash.storedSpeedDevil[1] = activeCrimsonGameplay.Cheats.Speed.dTVergil[1];
-            fasterRapidSlash.storedSpeedDevil[2] = activeCrimsonGameplay.Cheats.Speed.dTVergil[2];
-            fasterRapidSlash.storedSpeedDevil[3] = activeCrimsonGameplay.Cheats.Speed.dTVergil[3];
-        }
-
-        if (actorData.devil == 1) {
-            if (inRapidSlash && !fasterRapidSlash.newSpeedSet) {
-
-
-                // Setting the new speed
-                activeCrimsonGameplay.Cheats.Speed.dTVergil[0] = fasterRapidSlash.newSpeed;
-                activeCrimsonGameplay.Cheats.Speed.dTVergil[1] = fasterRapidSlash.newSpeed;
-                activeCrimsonGameplay.Cheats.Speed.dTVergil[2] = fasterRapidSlash.newSpeed;
-                activeCrimsonGameplay.Cheats.Speed.dTVergil[3] = fasterRapidSlash.newSpeed;
-
-                fasterRapidSlash.newSpeedSet = true;
-            } else if (!inRapidSlash && fasterRapidSlash.newSpeedSet) {
-
-
-                // Restoring the original speeds
-                activeCrimsonGameplay.Cheats.Speed.dTVergil[0] = fasterRapidSlash.storedSpeedDevil[0];
-                activeCrimsonGameplay.Cheats.Speed.dTVergil[1] = fasterRapidSlash.storedSpeedDevil[1];
-                activeCrimsonGameplay.Cheats.Speed.dTVergil[2] = fasterRapidSlash.storedSpeedDevil[2];
-                activeCrimsonGameplay.Cheats.Speed.dTVergil[3] = fasterRapidSlash.storedSpeedDevil[3];
-
-
-                fasterRapidSlash.newSpeedSet = false;
-            }
-        }
-    }
-}
-
-
 void FasterDarkslayerTricks() {
     auto pool_12311 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
     if (!pool_12311 || !pool_12311[3]) {

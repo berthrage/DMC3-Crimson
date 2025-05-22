@@ -3999,7 +3999,6 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CrimsonGameplay::FixAirStingerCancelTime(actorBaseAddr);
     CrimsonGameplay::VergilRisingStar(actorBaseAddr);
     CrimsonGameplay::VergilYamatoHighTime(actorBaseAddr);
-    CrimsonGameplay::FasterDTRapidSlash(actorBaseAddr);
     CrimsonGameplay::LastEventStateQueue(actorBaseAddr);
     CrimsonGameplay::DTInfusedRoyalguardController(actorBaseAddr);
     CrimsonFX::StyleRankHudFadeoutController();
@@ -8381,8 +8380,27 @@ void UpdateActorSpeed(byte8* baseAddr) {
 
                         devilIndex += 3;
                     }
+                    static bool inRapidSlashPlayers[PLAYER_COUNT][ENTITY_COUNT] = { false };
+                    auto& inRapidSlashPlayer = inRapidSlashPlayers[playerIndex][entityIndex];
+					if ((actorData.motionData[0].index == 8 || actorData.motionData[0].index == 10) &&
+						(actorData.action == ACTION_VERGIL::YAMATO_RAPID_SLASH_LEVEL_1 || actorData.action == ACTION_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2)) {
 
-                    value *= activeCrimsonGameplay.Cheats.Speed.dTVergil[devilIndex];
+						inRapidSlashPlayer = true;
+					} else {
+						inRapidSlashPlayer = false;
+					}
+
+                    if (!activeCrimsonGameplay.Gameplay.Vergil.fasterDTRapidSlash) {
+                        value *= activeCrimsonGameplay.Cheats.Speed.dTVergil[devilIndex];
+                    } else {
+						
+                        if (inRapidSlashPlayer) {
+                            value *= (activeCrimsonGameplay.Cheats.Speed.dTVergil[devilIndex] + 0.8f);
+                        } else {
+                            value *= (activeCrimsonGameplay.Cheats.Speed.dTVergil[devilIndex]);
+                        }
+
+                    }
 
                     break;
                 }
