@@ -193,7 +193,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			window->DrawList->AddImage(logo, logoPos, logoSize);
 
 			// BETA Notice 
-			const char* text = "BETA";
+			const char *text = "BETA";
 			ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 0.8f]);
 			ImVec2 textSize = ImGui::CalcTextSize(text);
 			float padding = scaledFontSize * 0.2f;
@@ -356,9 +356,12 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 
 				ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize * 0.9f]);
 
+				std::string latestVersionURL = UI::g_UIContext.LatestVersionURL.empty() ? 
+					"https://github.com/berthrage/Devil-May-Cry-3-Crimson/releases/latest" : UI::g_UIContext.LatestVersionURL;
+
 				// NEW VERSION AVAILABLE
  				if (InfoButton(newVersionText.c_str())) {
- 					ShellExecute(0, 0, "https://github.com/berthrage/Devil-May-Cry-3-Crimson/releases/new", 0, 0, SW_SHOW);
+ 					ShellExecute(0, 0, latestVersionURL.c_str(), 0, 0, SW_SHOW);
  				}
 
 				ImGui::PopFont();
@@ -12181,25 +12184,26 @@ void Main(IDXGISwapChain* pSwapChain) {
 			    if (res == WebAPIResult::Success) {
 					UI::g_UIContext.LatestVersion.Major = latestVersion.Major;
 					UI::g_UIContext.LatestVersion.Minor = latestVersion.Minor;
+					UI::g_UIContext.LatestVersion.PatchLetter = latestVersion.PatchLetter;
 
 			    	UI::g_UIContext.LatestUpdateDate.Year = latestVersion.PublishTime.Local.tm_year + 1900;
 			    	UI::g_UIContext.LatestUpdateDate.Month = latestVersion.PublishTime.Local.tm_mon + 1;
 			    	UI::g_UIContext.LatestUpdateDate.Day = latestVersion.PublishTime.Local.tm_mday;
 
-                    UI::g_UIContext.LatestVersionURL = latestVersion.DirectURL;
+                    UI::g_UIContext.LatestVersionURL = latestVersion.DownloadURL;
 
-					if (UI::g_UIContext.LatestVersion.Major > UI::g_UIContext.CurrentVersion.Major) 
+					if (UI::g_UIContext.LatestVersion.Major > UI::g_UIContext.CurrentVersion.Major)
                     {
 						UI::g_UIContext.NewVersionAvailable = true;
 					}
 					else if (UI::g_UIContext.LatestVersion.Major == UI::g_UIContext.CurrentVersion.Major &&
-						        UI::g_UIContext.LatestVersion.Minor > UI::g_UIContext.CurrentVersion.Minor) 
+						        UI::g_UIContext.LatestVersion.Minor > UI::g_UIContext.CurrentVersion.Minor)
                     {
 						UI::g_UIContext.NewVersionAvailable = true;
 					}
                     else if (UI::g_UIContext.LatestVersion.Major == UI::g_UIContext.CurrentVersion.Major &&
                                 UI::g_UIContext.LatestVersion.Minor == UI::g_UIContext.CurrentVersion.Minor &&
-                                UI::g_UIContext.LatestVersion.PatchLetter > UI::g_UIContext.CurrentVersion.PatchLetter)
+								UI::g_UIContext.LatestVersion.PatchLetter > UI::g_UIContext.CurrentVersion.PatchLetter)
                     {
                         UI::g_UIContext.NewVersionAvailable = true;
                     }
@@ -12244,7 +12248,7 @@ void Main(IDXGISwapChain* pSwapChain) {
 
 					case PatreonTiers_t::LDK:
 					{
-						UI::g_UIContext.PatronsSDT.push_back(patron.ShownName);
+						UI::g_UIContext.PatronsLDK.push_back(patron.ShownName);
 
 						// Set the name of the tier to be displayed
 						UI::g_UIContext.TierNames[(size_t)patron.Tier] = patron.TierName;
@@ -13970,7 +13974,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			{
 				auto window = ImGui::GetCurrentWindow();
 				constexpr const char* THX_TEXT = "Thank you all for playing and supporting the project!";
-				constexpr const char* LICENCE_BUTTON_TEXT = "LICENCE";
+				constexpr const char* LICENSE_BUTTON_TEXT = "LICENSE";
 				constexpr const char* COPYRIGHT_TEXT = "Copyright (c) 2025 Berthrage";
 
 				{
@@ -13980,11 +13984,11 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
 				{
-					const float licenceButtonWidth = ImGui::CalcTextSize(LICENCE_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
+					const float licenseButtonWidth = ImGui::CalcTextSize(LICENSE_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
 
 					ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
-					ImGui::SetCursorScreenPos(ImVec2{ areaMin.x + (areaSize.x - licenceButtonWidth) * 0.5f, areaMin.y + scaledFontSize * 2.0f });
-					UI::InfoButton(LICENCE_BUTTON_TEXT);
+					ImGui::SetCursorScreenPos(ImVec2{ areaMin.x + (areaSize.x - licenseButtonWidth) * 0.5f, areaMin.y + scaledFontSize * 2.0f });
+					UI::InfoButton(LICENSE_BUTTON_TEXT);
 					ImGui::PopStyleVar();
 				}
 				ImGui::PopFont();

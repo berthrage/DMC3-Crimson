@@ -168,9 +168,9 @@ void WebAPICalls::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 
 				// URL
 				{
-					rapidjson::Value& createdAtValue = info["created_at"];
+					rapidjson::Value& downloadUrl = info["download_url"];
 				
-					queuedVersion.DirectURL = createdAtValue.GetString();
+					queuedVersion.DownloadURL = downloadUrl.GetString();
 				}
 
 				m_VersionCallback(WebAPIResult::Success, queuedVersion);
@@ -198,7 +198,7 @@ void WebAPICalls::QueueLatestRelease(size_t timeOutMS /*= 0*/)
 
 PatronTier_t GetMostValuableTier(const std::vector<std::string>& tierNames)
 {	
-	int32_t maxTierScore = -1;
+	int64_t maxTierScore = -1;
 	PatreonTiers_t mvtID = PatreonTiers_t::Invalid;
 
 	for (const std::string tier : tierNames)
@@ -206,7 +206,7 @@ PatronTier_t GetMostValuableTier(const std::vector<std::string>& tierNames)
 		for (size_t i = 0; i < sizeof(PATRON_TIER_NAMES) / sizeof(decltype(*PATRON_TIER_NAMES)); i++)
 		{
 			std::string toCompare = std::string(PATRON_TIER_NAMES[i]);
-			if (tier == toCompare)
+			if (tier == toCompare && (int64_t)i > maxTierScore)
 			{
 				maxTierScore = i;
 				mvtID = PATRON_TIER_IDS[i];
