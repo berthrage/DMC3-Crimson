@@ -709,10 +709,9 @@ void ImprovedCancelsVergilController(byte8* actorBaseAddr) {
     if (!actorBaseAddr) {
         return;
     }
-    auto& actorData    = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    auto lockOn        = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
     auto tiltDirection = GetRelativeTiltDirection(actorData);
-
 
     auto playerIndex = actorData.newPlayerIndex;
     if (playerIndex >= PLAYER_COUNT) {
@@ -733,65 +732,80 @@ void ImprovedCancelsVergilController(byte8* actorBaseAddr) {
 
     auto& gamepad = GetGamepad(playerIndex);
 
-    static bool executes[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][4] = {};
+    static bool executes[PLAYER_COUNT][ENTITY_COUNT][4] = {};
+    static float cancelTimers[PLAYER_COUNT][ENTITY_COUNT][4] = {};
+    static bool prevStyleButton[PLAYER_COUNT][ENTITY_COUNT] = {};
 
+    constexpr float COOLDOWN_MS = 600.0f;
+
+    float deltaTime = ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier) * 1000.0f; // to ms
+
+    // Detect button press (not hold)
+    bool styleButtonDown = (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) != 0;
+    bool styleButtonPressed = styleButtonDown && !prevStyleButton[playerIndex][entityIndex];
+    prevStyleButton[playerIndex][entityIndex] = styleButtonDown;
 
     old_for_all(uint8, buttonIndex, 4) {
-        auto& execute = executes[playerIndex][characterIndex][entityIndex][buttonIndex];
-
+        auto& execute = executes[playerIndex][entityIndex][buttonIndex];
         auto& button = playerData.removeBusyFlagButtons[buttonIndex];
+        auto& timer = cancelTimers[playerIndex][entityIndex][buttonIndex];
+
+        if (timer > 0.0f) {
+            timer -= deltaTime;
+            if (timer < 0.0f) timer = 0.0f;
+        }
 
         // Darkslayer Trick Cancels Everything
         if (actorData.character == CHARACTER::VERGIL && actorData.state != STATE::IN_AIR && actorData.state != 65538) {
-            if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) {
-                if (execute) {
+            if (styleButtonPressed) {
+                if (execute && timer <= 0.0f) {
                     execute = false;
-
+                    timer = COOLDOWN_MS;
                     actorData.state &= ~STATE::BUSY;
                 }
-            } else {
+            } else if (!styleButtonDown) {
                 execute = true;
             }
         }
 
         // TRICK UP
         if (actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
-            if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && lockOn && tiltDirection == TILT_DIRECTION::UP &&
+            if (styleButtonPressed && lockOn && tiltDirection == TILT_DIRECTION::UP &&
                 actorData.trickUpCount > 0) {
-                if (execute) {
+                if (execute && timer <= 0.0f) {
                     execute = false;
-
+                    timer = COOLDOWN_MS;
                     actorData.state &= ~STATE::BUSY;
                 }
-            } else {
+            } else if (!styleButtonDown) {
                 execute = true;
             }
         }
 
         // TRICK DOWN
         if (actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
-            if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && lockOn && tiltDirection == TILT_DIRECTION::DOWN &&
+            if (styleButtonPressed && lockOn && tiltDirection == TILT_DIRECTION::DOWN &&
                 actorData.trickDownCount > 0) {
-                if (execute) {
+                if (execute && timer <= 0.0f) {
                     execute = false;
-
+                    timer = COOLDOWN_MS;
                     actorData.state &= ~STATE::BUSY;
                 }
-            } else {
+            } else if (!styleButtonDown) {
                 execute = true;
             }
         }
 
         // AIR TRICK
         if (actorData.character == CHARACTER::VERGIL && actorData.state & STATE::IN_AIR) {
-            if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && (lockOn && tiltDirection == TILT_DIRECTION::NEUTRAL || !lockOn) &&
+            if (styleButtonPressed && ((lockOn && tiltDirection == TILT_DIRECTION::NEUTRAL) || !lockOn) &&
                 actorData.airTrickCount > 0) {
-                if (execute) {
+                if (execute && timer <= 0.0f) {
                     execute = false;
-
+                    timer = COOLDOWN_MS;
                     actorData.state &= ~STATE::BUSY;
                 }
-            } else {
+            } else if (!styleButtonDown) {
                 execute = true;
             }
         }
