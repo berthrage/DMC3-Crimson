@@ -26,8 +26,35 @@ namespace CrimsonCameraController {
 	uint32 g_currentCameraIndex = 0;
 	uint32 g_currentCameraType = 0;
 	static CAMERA_UPDATE_TYPE s_updateStatus{ ON_THIRD_PERSON };
-
+	/// <summary>
+	/// The function that determines whether the third person camera should have an exception.
+	/// Controls logic for ANY exception. (or it will, we'll worry about the boss stuff later).
+	/// If you want to toggle TPS off for something, PUT THE LOGIC HERE. DON'T PUT IT ANYWHERE ELSE.
+	/// ESPECIALLY DON'T TRY TO TURN OFF THE TPS CAMERA IN THE GUI.
+	/// </summary>
+	/// <returns>true if we should ignore forced TPS cam at time of function call</returns>
 	bool CheckInternalException() {
+
+		//get event & nextevent
+		auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+		if (!pool_10298 || !pool_10298[8]) {
+			return false;
+		}
+		auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+
+		auto pool_12959 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+		if (!pool_12959 || !pool_12959[12]) {
+			return false;
+		}
+		auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12959[12]);
+
+		auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+
+		//bool exceptions = ((eventData.room == ROOM::SUBTERRANEAN_GARDEN && CrimsonCameraController::g_currentCameraIndex == 2)
+		//|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 0)
+		//|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 5)
+		//|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 11)
 		return false;
 	}
 
@@ -75,19 +102,19 @@ namespace CrimsonCameraController {
 					s_cameraEnable = false;
 					return CAMERA_UPDATE_TYPE::THIRD_PERSON_TO_FIXED;
 				}
-				//maintaining tps
+				//maintaining tps camera on
 				else {
 					return CAMERA_UPDATE_TYPE::ON_THIRD_PERSON;
 				}
 			}
 			//if internal camera disabled, we're either keeping it off due to an exception or about to turn it on. 
 			else {
-				//keeping off due to exception
+				//keeping TPS off due to exception
 				if (s_tpsException) {
 					return CAMERA_UPDATE_TYPE::ON_FIXED;
 				}
 
-				//about to turn on 
+				//no exception, about to turn on third person camera again.
 				else {
 					s_cameraEnable = true;
 					return CAMERA_UPDATE_TYPE::FIXED_TO_THIRD_PERSON;
@@ -95,6 +122,7 @@ namespace CrimsonCameraController {
 			}
 		}
 
+		Log("Third Person Camera UpdateCrimsonCameraState() function broke horribly! invalid return!");
 		//THIS SHOULD NEVER CALL
 		return CAMERA_UPDATE_TYPE::ON_FIXED;
 	}
@@ -124,8 +152,6 @@ static uintptr_t __fastcall sub_140055880(int64_t cameraSwitchArrayDataAddress, 
 
 	uintptr_t res; //will store function result when we calculate it
 
-	s_cameraEnable = cameraConfig.forceThirdPerson;
-
 	//getting the camera switch info
 	auto& cameraswitchInfo = *reinterpret_cast<CameraSwitchArrayData*>(cameraSwitchArrayDataAddress);
 
@@ -133,12 +159,18 @@ static uintptr_t __fastcall sub_140055880(int64_t cameraSwitchArrayDataAddress, 
 	CrimsonCameraController::g_currentCameraIndex = cameraswitchInfo.currentCamIndex;
 	//only access the camera type if we have a valid camera index.
 	if (CrimsonCameraController::g_currentCameraIndex != 255) {
+		//we need to multiply the index by 4 to get the actual camera. 
 		CrimsonCameraController::g_currentCameraType = cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type;
 	}
+	//if camera index is 255 then perform vanilla behavior and bail.
+	else {
+		res = trampoline(cameraSwitchArrayDataAddress, a2);
+		return res;
+	}
 
+	//Past this point, the camera is trying to change to valid camera.
+	//That unfortunately means it's now our problem.
 
-	//res = trampoline(a1, a2);
-	//return res;
 	/*
 	Explaining what I'm doing here.
 	The idea is simple: siyan figured out we could force the first person cam by saying that every attempt to transition to fixed cam was invalid.
@@ -147,43 +179,53 @@ static uintptr_t __fastcall sub_140055880(int64_t cameraSwitchArrayDataAddress, 
 	However, it wouldn't transition to any new fixed cameras either, so it would just be stuck on the current camera as you moved further and further away.
 	To resolve this, we can access the new cam the game is trying to switch to, and make that a first person camera. 
 	This works, but now we've permanently made that camera third person instead of fixed. Not good.
-	So, let's try changing the type, running the camera switch function, then changing the camera type back
+	So, let's try changing the camera type, running the camera switch function, then changing the camera type back
 	*/
 
-	//This scenario is used when TPS is already on. We just maintain the invalid camera pointer like so.
-	if (s_cameraEnable && s_cameraEnableOld) {
-		cameraswitchInfo.currentCamIndex = 255;
-	}
 
-	bool camera_overriden = false;
+	//first we evaluate what behavior we want.
 
-	//if camera was just turned on and there's a valid camera ID we're trying to swap to,
-	if (s_cameraEnable && !s_cameraEnableOld && (cameraswitchInfo.currentCamIndex != 255)) {
+	CrimsonCameraController::s_updateStatus = CrimsonCameraController::UpdateCrimsonCameraState();
 
-		//we make the new camera we're switching to third person.
-		//Note: we already backed up the current camera type to the corresponding global variable, so we don't need to back it up here.
-		cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type = CAMERA_TYPE::THIRD_PERSON;
-		//we set this marker to let us know we performed the overwrite operation.
-		camera_overriden = true;
-	}
+	//Then we perform one of four behaviors. 
+	//First 2 should just be vanilla behavior,
+	//third one makes the camera index invalid so the controller can't try swapping to a new camera, 
+	//the fourth one is the complicated one and restores TPS mid room.
+	switch (CrimsonCameraController::s_updateStatus) {
+		//vanilla behavior, no changes required.
+		case CrimsonCameraController::CAMERA_UPDATE_TYPE::ON_FIXED:
+			res = trampoline(cameraSwitchArrayDataAddress, a2);
+			break;
 
-	//we now finally run the function
-	res = trampoline(cameraSwitchArrayDataAddress, a2);
+		//vanilla behavior, no changes required.
+		case CrimsonCameraController::CAMERA_UPDATE_TYPE::THIRD_PERSON_TO_FIXED:
+			res = trampoline(cameraSwitchArrayDataAddress, a2);
+			break;
 
-	//last step: if we just performed a camera overwrite, we have some cleanup to do.
-	if (camera_overriden) {
-		//now that we've run the function, we should be able to swap back to the old camera type (i hope).
-		cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type = CrimsonCameraController::g_currentCameraType;
-		//we also let the system know that the override happened, and we don't need to do it until TPS is toggled off and on again.
-		s_cameraEnableOld = true;
-	}
+		//This scenario is used when TPS is already on. We just maintain the invalid camera pointer like so.
+		case CrimsonCameraController::CAMERA_UPDATE_TYPE::ON_THIRD_PERSON:
+			cameraswitchInfo.currentCamIndex = 255;
+			res = trampoline(cameraSwitchArrayDataAddress, a2);
+			break;
 
+		//if camera was just turned on and there's a valid camera ID we're trying to swap to,
+		case CrimsonCameraController::CAMERA_UPDATE_TYPE::FIXED_TO_THIRD_PERSON:
+			//we make the new camera we're switching to third person.
+			//Note: we already backed up the current camera type to the corresponding global variable, so we don't need to back it up here.
 
-	//we reset s_cameraEnableOld if we're turning the TPS camera off, but no other special steps are required for that:
-	//we should just be returning to normal vanilla behavior.
-	if (!s_cameraEnable) {
-		s_cameraEnableOld = false;
-	}
+			cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type = CAMERA_TYPE::THIRD_PERSON;
+			//we now finally run the function
+			res = trampoline(cameraSwitchArrayDataAddress, a2);
+			//now that we've run the function, we swap back to the old camera type
+			cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type = CrimsonCameraController::g_currentCameraType;
+			break;
+
+		//should literally never call
+		default:
+			Log("Third Person Camera sub_140055880 function broke horribly! invalid case state!");
+			res = trampoline(cameraSwitchArrayDataAddress, a2);
+			break;
+	};
 
 	//We're currently running into an issue where dante's direction doesn't update as the camera turns. I'm not sure why, so we're going to try and restore camera index
 	//see if that helps
@@ -191,87 +233,6 @@ static uintptr_t __fastcall sub_140055880(int64_t cameraSwitchArrayDataAddress, 
 
 	//return the result of the run function, and boom! Dynamic camera swap between TPS and Fixed.
 	return res;
-
-
-
-	//make sure it's a valid index
-
-
-
-	if (cameraswitchInfo.currentCamIndex == 255) {
-		return res;
-	}
-	//don't need to mess with this if we've already confirmed fix cam for entire room
-	if (s_tpsException)
-		return res;
-
-	//get event & nextevent
-	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-	if (!pool_10298 || !pool_10298[8]) {
-		return res;
-	}
-	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
-
-	auto pool_12959 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-	if (!pool_12959 || !pool_12959[12]) {
-		return res;
-	}
-	auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12959[12]);
-
-	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-
-	//first gimmick can we replace siyan patch by doing the following:
-	//cameraswitchInfo.currentCamIndex = 255;
-	//new subterrainean lake logic test
-	//if (eventData.room == ROOM::SUBTERRANEAN_LAKE) {
-	//	for (uint32 i = 0; i < SUBTERRANEAN_LAKECamNum;i++) {
-	//		if (i != 0 && i != 5 && i != 11)
-	//			cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type = CAMERA_TYPE::THIRD_PERSON;
-	//	}
-	//	//big brain play: we toggle the patch off (we probably won't need the patch going forward tbh)
-	//	CrimsonPatches::ForceThirdPersonCamera(false);
-	//	if (cameraswitchInfo.currentCamIndex != 0 && cameraswitchInfo.currentCamIndex != 5 && cameraswitchInfo.currentCamIndex != 11)
-	//		cameraswitchInfo.currentCamIndex = 255;
-	//}
-
-	
-
-	//bool roomExceptions = (
-	//	//
-	//	//||(/* scenario 3*/)
-	//	//||(/* scenario 4*/)
-	//	);
-	//if (roomExceptions) {
-	//	CrimsonPatches::ForceThirdPersonCamera(false);
-	//}
-	//else {
-	//	CrimsonPatches::ForceThirdPersonCamera(true);
-
-	//}
-	//specifically keeps the third person camera for the laser section in this room activated.
-
-
-	bool exceptions = ((eventData.room == ROOM::SUBTERRANEAN_GARDEN && CrimsonCameraController::g_currentCameraIndex == 2)
-		//|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 0)
-		//|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 5)
-		//|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 11)
-		);
-	if (exceptions) {
-		//CrimsonPatches::ForceThirdPersonCamera(false);
-	}
-	else {
-		//forces the reenabling of the third person camera I hope
-		//cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type = CAMERA_TYPE::THIRD_PERSON;
-		//CrimsonPatches::ForceThirdPersonCamera(true);
-	}
-	//let's see what this does
-	//CrimsonPatches::ForceThirdPersonCamera(true);
-	//cameraswitchInfo.switches[cameraswitchInfo.currentCamIndex * 4]->type = CAMERA_TYPE::THIRD_PERSON;
-	
-	
-	//we need to multiply our access by 4 to get the actual cameras. 
-	return res;
-
 }
 
 /// <summary>
@@ -313,65 +274,65 @@ static uintptr_t  __fastcall sub_14023EEF0(int64_t a1) {
 
 
 	uintptr_t res = trampoline(a1);
-	//if (!res || !s_cameraEnable) {
-		return res;
+	////if (!res || !s_cameraEnable) {
+	//	return res;
+	////}
+
+
+
+	////get event & nextevent
+	//auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	//if (!pool_10298 || !pool_10298[8]) {
+	//	return res;
+	//}
+	//auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+
+	//auto pool_12959 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	//if (!pool_12959 || !pool_12959[12]) {
+	//	return res;
+	//}
+	//auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12959[12]);
+
+	//auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	//bool roomExceptions = (
+	//	(eventData.room == ROOM::LOST_SOULS_NIRVANA && eventData.event != EVENT::TELEPORT)
+	//	//Vergil approach 
+	//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::PEAK_OF_DARKNESS, 7, 0)
+	//	//m8 exception
+	//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_INTESTINES_2, 8, 0)
+	//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_INTESTINES_5, 8, 0)
+	//	//unfortunately forces boss cam in leviathan heart which we might not want
+	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_HEARTCORE, 8, 0)
+	//	// m9 exception
+	//	//laser puzzle
+	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_GARDEN, 9, 0)
+	//	//lake room (camera highlights progression + free cam gets stuck on a wall trying to reach a secret area
+	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 0)
+	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 1)
+	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 2)
+	//	//nevan?
+	//	// || evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUNKEN_OPERA_HOUSE, 9, 0)
+	//	// m10 exception 
+	//	//this should only happen in position 2 on the other side of the cave where you collect the m10 mask
+	//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LIMESTONE_CAVERN, 10, 2)
+	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 0)
+	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 1)
+	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 2)
+	//	//
+	//	//||(/* scenario 3*/)
+	//	//||(/* scenario 4*/)
+	//	);
+	//if (roomExceptions) {
+	//	//CrimsonPatches::ForceThirdPersonCamera(false);
+	//	s_tpsException = true;
+	//}
+	//else {
+	//	//CrimsonPatches::ForceThirdPersonCamera(true);
+	//	s_tpsException = false;
 	//}
 
-
-
-	//get event & nextevent
-	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-	if (!pool_10298 || !pool_10298[8]) {
-		return res;
-	}
-	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
-
-	auto pool_12959 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-	if (!pool_12959 || !pool_12959[12]) {
-		return res;
-	}
-	auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12959[12]);
-
-	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-
-	bool roomExceptions = (
-		(eventData.room == ROOM::LOST_SOULS_NIRVANA && eventData.event != EVENT::TELEPORT)
-		//Vergil approach 
-		|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::PEAK_OF_DARKNESS, 7, 0)
-		//m8 exception
-		|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_INTESTINES_2, 8, 0)
-		|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_INTESTINES_5, 8, 0)
-		//unfortunately forces boss cam in leviathan heart which we might not want
-		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_HEARTCORE, 8, 0)
-		// m9 exception
-		//laser puzzle
-		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_GARDEN, 9, 0)
-		//lake room (camera highlights progression + free cam gets stuck on a wall trying to reach a secret area
-		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 0)
-		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 1)
-		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 2)
-		//nevan?
-		// || evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUNKEN_OPERA_HOUSE, 9, 0)
-		// m10 exception 
-		//this should only happen in position 2 on the other side of the cave where you collect the m10 mask
-		|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LIMESTONE_CAVERN, 10, 2)
-		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 0)
-		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 1)
-		//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 2)
-		//
-		//||(/* scenario 3*/)
-		//||(/* scenario 4*/)
-		);
-	if (roomExceptions) {
-		//CrimsonPatches::ForceThirdPersonCamera(false);
-		s_tpsException = true;
-	}
-	else {
-		//CrimsonPatches::ForceThirdPersonCamera(true);
-		s_tpsException = false;
-	}
-
-	//custom code
+	////custom code
 	return res;
 }
 
