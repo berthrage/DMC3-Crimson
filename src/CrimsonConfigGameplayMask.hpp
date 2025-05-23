@@ -110,6 +110,7 @@ struct CrimsonConfigGameplayMask {
 			bool mirageTrigger = true;
 			bool adjustRisingSunPos = true;
 			bool adjustLunarPhasePos = true;
+			bool yamatoRisingStar = true;
 			
 
 			static constexpr auto Metadata() {
@@ -125,6 +126,7 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("mirageTrigger", &Vergil::mirageTrigger),
 					std::make_pair("adjustRisingSunPos", &Vergil::adjustRisingSunPos),
 					std::make_pair("adjustLunarPhasePos", &Vergil::adjustLunarPhasePos)
+					std::make_pair("yamatoRisingStar", &Vergil::yamatoRisingStar)
 				);
 			}
 		} Vergil;

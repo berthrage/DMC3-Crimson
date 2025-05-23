@@ -129,6 +129,7 @@ struct CrimsonConfigGameplay {
 			bool altJudgementCutInput = false;
 			bool yamatoRisingSun = true;
 			bool mirageTrigger = true;
+			bool yamatoRisingStar = true;
 			std::string adjustRisingSunPos = "From Air";
 			std::string adjustLunarPhasePos = "From Air";
 
@@ -145,6 +146,7 @@ struct CrimsonConfigGameplay {
 					std::make_pair("mirageTrigger", &Vergil::mirageTrigger),
 					std::make_pair("adjustRisingSunPos", &Vergil::adjustRisingSunPos),
 					std::make_pair("adjustLunarPhasePos", &Vergil::adjustLunarPhasePos)
+					std::make_pair("yamatoRisingStar", &Vergil::yamatoRisingStar)
 				);
 			}
         } Vergil;

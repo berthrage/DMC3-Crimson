@@ -9365,6 +9365,18 @@ void SetAction(byte8* actorBaseAddr) {
             (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK))) {
             actorData.action = BEOWULF_RISING_SUN;
         }
+
+
+        else if
+            (
+                activeCrimsonGameplay.Gameplay.General.yamatoRisingStar &&
+                (actorData.action == YAMATO_UPPER_SLASH_PART_2) &&
+                lockOn &&
+                (tiltDirection == TILT_DIRECTION::DOWN)
+                )
+        {
+            actorData.action = YAMATO_FORCE_EDGE_HIGH_TIME_LAUNCH;
+        }
 //         else if (actorData.action == YAMATO_AERIAL_RAVE_PART_1) {
 //             actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;  -- air judgement cut test
 //             

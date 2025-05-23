@@ -10842,6 +10842,16 @@ void VergilGameplayOptions() {
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
+			if (GUI_Checkbox2("Yamato Rising Star",
+				activeCrimsonGameplay.Gameplay.General.yamatoRisingStar,
+				queuedCrimsonGameplay.Gameplay.General.yamatoRisingStar)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", " Lock On + Back + Melee x2 to launch.\n"
+				"Return to neutral to do the normal followup.");
+
+
+			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Mirage Trigger",
 				activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger,
