@@ -34,6 +34,7 @@ set (ASM_FLAGS)
 
 set(CXX_LIBS
     d3d11.lib
+    dxgi.lib
     d3dcompiler.lib
     dinput8.lib
     #xinput.lib
@@ -262,6 +263,11 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 
 set_target_properties(${PROJECT_NAME} PROPERTIES 
 OUTPUT_NAME Crimson)
+
+add_custom_command(TARGET Crimson POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Crimson> ${DMC_INSTALL_DIR}/Crimson.dll
+	COMMENT "Copying Crimson.dll"
+)
 
 project(dinput8_injector)
 
