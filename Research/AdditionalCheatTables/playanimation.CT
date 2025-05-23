@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>2895</ID>
+      <Description>"play animation"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+alloc(calleffect,128,dmc3.exe)
+registersymbol(calleffect)
+createthread(calleffect2)
+calleffect:
+dd (float)0.0 // start frame
+calleffect2:
+  push rcx
+  push rdx
+  push r8
+  push r9
+  push rax
+  sub rsp,40
+
+  mov rcx,[dmc3.exe+168]
+  mov rcx,[rcx+C90E28]
+  mov rcx,[rcx+18]           // player ptr
+  mov rbx, rcx               // player ptr again
+  mov edx,5                  // bank
+  mov r8d,3                  // id
+  movss xmm3,[calleffect]    // start frame
+  mov byte ptr [rsp+30],0    // some ptr
+  mov byte ptr [rsp+28],0    // some ptr
+  mov byte ptr [rsp+20],255  // unkn
+  call dmc3.exe+1EFB90
+
+  mov byte ptr [rbx+00003E10],1 // move part 1
+  mov word ptr [rbx+000039C7],0101 // idk man
+
+  add rsp,40
+  pop rax
+  pop r9
+  pop r8
+  pop rdx
+  pop rcx
+
+return:
+  ret
+
+[DISABLE]
+dealloc(calleffect)
+unregistersymbol(calleffect)
+</AssemblerScript>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>2896</ID>
+          <Description>"player ptr"</Description>
+          <LastState Value="00000000047D2A40" RealAddress="01A4A818"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>8 Bytes</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>18</Offset>
+            <Offset>00C90E28</Offset>
+          </Offsets>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

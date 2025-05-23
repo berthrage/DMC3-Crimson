@@ -3218,6 +3218,7 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
 		case STYLE::TRICKSTER:     group = 2; index = 1; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
 		case STYLE::ROYALGUARD:    group = 2; index = 2; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
         case STYLE::QUICKSILVER:   group = 2; index = 1;  actorData.motionArchives[2] = File_staticFiles[pl001_00_2]; break;
+        //case STYLE::QUICKSILVER:   group = 3; index = 13;  actorData.motionArchives[3] = vergil_pl021_00_3; break;
         case STYLE::DOPPELGANGER:  group = 2; index = 3; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
 		}
 
@@ -8348,6 +8349,12 @@ void UpdateActorSpeed(byte8* baseAddr) {
 
                 if (!actorData.devil) {
                     value *= activeCrimsonGameplay.Cheats.Speed.human;
+
+                    if (actorData.character == CHARACTER::VERGIL && actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN) {
+                        value *= (activeCrimsonGameplay.Cheats.Speed.human + 0.8f);
+                    } else {
+                        value *= (activeCrimsonGameplay.Cheats.Speed.human);
+                    }
 
                     goto Return;
                 }

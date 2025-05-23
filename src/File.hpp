@@ -23,6 +23,7 @@ struct FileManager : Container<> {
 extern FileManager File_staticFiles;
 extern FileManager File_dynamicFiles;
 extern byte8* demo_pl000_00_3;
+extern byte8* vergil_pl021_00_3;
 
 void File_UpdateFileData(FileData& fileData, uint16 cacheFileIndex);
 
