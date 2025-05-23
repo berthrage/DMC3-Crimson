@@ -51,11 +51,93 @@ namespace CrimsonCameraController {
 		auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 
-		//bool exceptions = ((eventData.room == ROOM::SUBTERRANEAN_GARDEN && CrimsonCameraController::g_currentCameraIndex == 2)
-		//|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 0)
-		//|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 5)
-		//|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 11)
-		return false;
+
+		bool exceptions = ((false
+
+
+			//MISSION 3:
+			//|| (eventData.room == ROOM::SLUM_66_AVENUE)
+			//|| (eventData.room == ROOM::CHAMBER_OF_ECHOES
+			//MISSION 4:
+			//fun little angle when you enter this room for the first time
+			|| (eventData.room == ROOM::SILENCE_STATUARY && CrimsonCameraController::g_currentCameraIndex == 1)
+			//fucking gigapede
+			//that said boss cam overrides elsewhere unless we ALWAYS want this one to be fixed.
+			//|| (eventData.room == ROOM::GIANTWALKER_CHAMBER && sessionData.mission == 4)
+			|| (eventData.room == ROOM::INCANDESCENT_SPACE && CrimsonCameraController::g_currentCameraIndex == 1)
+			//MISSION 5:
+			//MISSION 6:
+			//MISSION 7:
+			
+			//Elevator
+			|| (eventData.room == ROOM::CHAMBER_OF_ECHOES && CrimsonCameraController::g_currentCameraIndex == 26)
+			|| (eventData.room == ROOM::CHAMBER_OF_ECHOES && CrimsonCameraController::g_currentCameraIndex == 23)
+
+			//camera kinda cramped
+			|| (eventData.room == ROOM::CURSED_SKULL_CHAMBER && CrimsonCameraController::g_currentCameraIndex == 0)
+			//vergil approach
+			
+			|| (eventData.room == ROOM::PEAK_OF_DARKNESS)
+			//MISSION 8:
+			//half covered up shop statue in leviathan, might prevent people missing it idk
+			|| (eventData.room == ROOM::LEVIATHANS_INTESTINES && CrimsonCameraController::g_currentCameraIndex == 2)
+			
+			//pre-fight boss room.
+			//Camera goes back to third person after moving around a bit once the bossfight starts! Kinda jarring but maybe ok?
+			|| (eventData.room == ROOM::LEVIATHANS_HEARTCORE && CrimsonCameraController::g_currentCameraIndex == 0)
+			
+			//gigapede chase 1
+			|| (eventData.room == ROOM::LEVIATHANS_INTESTINES_2)
+			//gigapede chase 2
+			|| (eventData.room == ROOM::LEVIATHANS_INTESTINES_5)
+
+			//half covered up shop statue in leviathan, might prevent people missing it idk (dark mode)
+			|| (eventData.room == ROOM::LEVIATHANS_INTESTINES_6 && CrimsonCameraController::g_currentCameraIndex == 2)
+			//MISSION 9:
+			//laser puzzle gets fixed cam in mission
+			|| eventData.room == ROOM::SUBTERRANEAN_GARDEN && CrimsonCameraController::g_currentCameraIndex == 2)
+			//lake room (camera highlights progression + free cam gets stuck on a wall trying to reach a secret area
+			//Weird behavior entering lake from the caverns where entire room is fixed cam.
+			// Might be due to the fact that the room is just loading in?
+			|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 0)
+			//added to make some platforming less goofy
+			|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 2)
+			|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 5)
+			|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 11)
+			//nevan?
+			// || evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUNKEN_OPERA_HOUSE, 9, 0)
+			//MISSION 10:
+			//this should only happen in position 2 on the other side of the cave where you collect the m10 mask
+			|| (eventData.room == ROOM::LIMESTONE_CAVERN && CrimsonCameraController::g_currentCameraIndex == 6)
+			|| (eventData.room == ROOM::LIMESTONE_CAVERN && CrimsonCameraController::g_currentCameraIndex == 8)
+
+			//MISSION 11:
+			// This room has a weird puzzle. 
+			//|| (eventData.room == ROOM::ALTAR_OF_EVIL)
+			//room edges.
+			|| (eventData.room == ROOM::ALTAR_OF_EVIL && CrimsonCameraController::g_currentCameraIndex == 7)
+			|| (eventData.room == ROOM::ALTAR_OF_EVIL && CrimsonCameraController::g_currentCameraIndex == 8)
+			//hey break this wall dumbass
+			|| (eventData.room == ROOM::ALTAR_OF_EVIL && CrimsonCameraController::g_currentCameraIndex == 16)
+			//Platform 1 of the train with the agni rudra adjudicator.
+			//|| (eventData.room == ROOM::TEMPERANCE_WAGON_2)
+
+			//I love hifi rush!
+			|| (eventData.room == ROOM::TEMPERANCE_WAGON && CrimsonCameraController::g_currentCameraIndex == 2)
+			//Beowulf approach
+			|| (eventData.room == ROOM::TEMPERANCE_WAGON_3 && CrimsonCameraController::g_currentCameraIndex == 0)
+			|| (eventData.room == ROOM::TEMPERANCE_WAGON_3 && CrimsonCameraController::g_currentCameraIndex == 2)
+			//MISSION 12:
+			//MISSION 13:
+			//MISSION 14:
+			//MISSION 15:
+			//MISSION 16:
+			//MISSION 17:
+			//MISSION 18:
+			//MISSION 19:
+			//MISSION 20:
+			);
+		return exceptions;
 	}
 
 	/// <summary>
@@ -260,79 +342,12 @@ bool evaluateRoomCameraException(SessionData& sessionData, EventData& eventData,
 /// <returns></returns>
 static uintptr_t  __fastcall sub_14023EEF0(int64_t a1) {
 	//new addition, only for scenario where the first part of this patch is removed
-	CrimsonPatches::ForceThirdPersonCamera(true);
-	
+	//CrimsonPatches::ForceThirdPersonCamera(true);	
 	typedef int64_t(__fastcall* sub_14023EEF0)(int64_t);
-	//typedef uintptr_t(__fastcall* spawGuyTrampoline)(uintptr_t, float*);
-	//auto& ldkModeConfig = activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode;
-	//auto& cameraConfig = activeCrimsonConfig.Camera;
-
 	uintptr_t trampoline_raw = cameraControllerConstructionHook->GetTrampoline();
 	sub_14023EEF0 trampoline = (sub_14023EEF0)trampoline_raw;
 
-	//s_cameraEnable = cameraConfig.forceThirdPerson;
-
-
 	uintptr_t res = trampoline(a1);
-	////if (!res || !s_cameraEnable) {
-	//	return res;
-	////}
-
-
-
-	////get event & nextevent
-	//auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-	//if (!pool_10298 || !pool_10298[8]) {
-	//	return res;
-	//}
-	//auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
-
-	//auto pool_12959 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-	//if (!pool_12959 || !pool_12959[12]) {
-	//	return res;
-	//}
-	//auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12959[12]);
-
-	//auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-
-	//bool roomExceptions = (
-	//	(eventData.room == ROOM::LOST_SOULS_NIRVANA && eventData.event != EVENT::TELEPORT)
-	//	//Vergil approach 
-	//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::PEAK_OF_DARKNESS, 7, 0)
-	//	//m8 exception
-	//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_INTESTINES_2, 8, 0)
-	//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_INTESTINES_5, 8, 0)
-	//	//unfortunately forces boss cam in leviathan heart which we might not want
-	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LEVIATHANS_HEARTCORE, 8, 0)
-	//	// m9 exception
-	//	//laser puzzle
-	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_GARDEN, 9, 0)
-	//	//lake room (camera highlights progression + free cam gets stuck on a wall trying to reach a secret area
-	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 0)
-	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 1)
-	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 9, 2)
-	//	//nevan?
-	//	// || evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUNKEN_OPERA_HOUSE, 9, 0)
-	//	// m10 exception 
-	//	//this should only happen in position 2 on the other side of the cave where you collect the m10 mask
-	//	|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::LIMESTONE_CAVERN, 10, 2)
-	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 0)
-	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 1)
-	//	//|| evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUBTERRANEAN_LAKE, 10, 2)
-	//	//
-	//	//||(/* scenario 3*/)
-	//	//||(/* scenario 4*/)
-	//	);
-	//if (roomExceptions) {
-	//	//CrimsonPatches::ForceThirdPersonCamera(false);
-	//	s_tpsException = true;
-	//}
-	//else {
-	//	//CrimsonPatches::ForceThirdPersonCamera(true);
-	//	s_tpsException = false;
-	//}
-
-	////custom code
 	return res;
 }
 
