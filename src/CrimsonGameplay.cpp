@@ -931,14 +931,52 @@ void VergilYamatoHighTime(byte8* actorBaseAddr) {
 	}
 }
 
-void VergilYamatoHighTime(byte8* actorBaseAddr) {
+void VergilAirTauntRisingSunDetection(byte8* actorBaseAddr) {
+    using namespace ACTION_VERGIL;
+
+    if (!actorBaseAddr || (actorBaseAddr == g_playerActorBaseAddrs[0]) || (actorBaseAddr == g_playerActorBaseAddrs[1])) {
+        return;
+    }
+
+    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    auto playerIndex = actorData.newPlayerIndex;
+    auto entityIndex = actorData.newEntityIndex;
+    auto& playerData = GetPlayerData(playerIndex);
+    auto& gamepad = GetGamepad(playerIndex);
+    auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer :
+        crimsonPlayer[playerIndex].actionTimerClone;
+    auto& inAirTauntRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inAirTauntRisingSun :
+        crimsonPlayer[playerIndex].inAirTauntRisingSunClone;
+
+    if (actorData.action == BEOWULF_RISING_SUN
+        && actionTimer > 0.01f && actionTimer < 0.1f && (gamepad.buttons[0] & GetBinding(BINDING::TAUNT))) {
+
+        inAirTauntRisingSun = true;
+    }
+
+
+    if ((actorData.action == BEOWULF_RISING_SUN && actionTimer > 1.0f) ||
+        (actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK ||
+            actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN ||
+            actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP
+            ) && inAirTauntRisingSun) {
+       
+        inAirTauntRisingSun = false;
+    }
+
+    if (actorData.action != BEOWULF_RISING_SUN && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK))) {
+        inAirTauntRisingSun = false;
+    }
+}
+
+void VergilAirRisingSun(byte8* actorBaseAddr) {
 	using namespace ACTION_VERGIL;
 
 	if (!actorBaseAddr || (actorBaseAddr == g_playerActorBaseAddrs[0]) || (actorBaseAddr == g_playerActorBaseAddrs[1])) {
 		return;
 	}
 
-	if (!activeCrimsonGameplay.Gameplay.Vergil.yamatoHighTime) {
+	if (!activeCrimsonGameplay.Gameplay.Vergil.airRisingSun) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
@@ -948,23 +986,24 @@ void VergilYamatoHighTime(byte8* actorBaseAddr) {
 	auto& gamepad = GetGamepad(playerIndex);
 	auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer :
 		crimsonPlayer[playerIndex].actionTimerClone;
-    auto tiltDirection = GetRelativeTiltDirection(actorData);
+	auto& inAirTauntRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inAirTauntRisingSun :
+		crimsonPlayer[playerIndex].inAirTauntRisingSunClone;
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
+	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
 
-	if (actorData.action == YAMATO_UPPER_SLASH_PART_1
-		&& actionTimer > 0.36f && actionTimer < 0.5f && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK))) {
-		actorData.action = YAMATO_FORCE_EDGE_HIGH_TIME;
 
-		actorData.recoverState[0] = 1;
-	}
+	if (activeCrimsonGameplay.Gameplay.Vergil.airRisingSun && actionTimer > 0.05f && actionTimer < 0.2f && (actorData.action == BEOWULF_STARFALL_LEVEL_2 ||
+		actorData.action == BEOWULF_STARFALL_LEVEL_1)
+		&& lockOn && (tiltDirection == TILT_DIRECTION::DOWN) && actorData.newAirRisingSunCount < 1) {
 
-	if (actorData.action == YAMATO_UPPER_SLASH_PART_2
-		&& actionTimer > 0.03f && actionTimer < 0.5f && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK))
-        && tiltDirection == TILT_DIRECTION::DOWN) {
-		actorData.action = YAMATO_FORCE_EDGE_HIGH_TIME;
-
-		actorData.recoverState[0] = 0;
+		if (ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::BEOWULF_RISING_SUN]) {
+			actorData.action = BEOWULF_RISING_SUN;
+			actorData.recoverState[0] = 0;
+			actorData.newAirRisingSunCount++;
+		}
 	}
 }
+
 
 
 bool startingFromGround[PLAYER_COUNT] = { true };
@@ -991,6 +1030,8 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
     auto actionTimer =
         (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
     auto animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
+    auto& inAirTauntRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inAirTauntRisingSun :
+        crimsonPlayer[playerIndex].inAirTauntRisingSunClone;
     
     if (actorData.character == CHARACTER::VERGIL) {
 
@@ -1011,21 +1052,14 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
 
 
         // Take configs into account if new positionings will be applied or not
-        if (activeCrimsonGameplay.Gameplay.Vergil.adjustRisingSunPos == "From Air") {
-			if (action != BEOWULF_RISING_SUN) {
-				if (!(state & STATE::IN_AIR)) {
-					v->startingRisingSunFromGround = true;
-				} else {
-					v->startingRisingSunFromGround = false;
-				}
+		if (action != BEOWULF_RISING_SUN) {
+			if (!(state & STATE::IN_AIR)) {
+				v->startingRisingSunFromGround = true;
+			} else {
+				v->startingRisingSunFromGround = false;
 			}
-		} else if (activeCrimsonGameplay.Gameplay.Vergil.adjustRisingSunPos == "Always") {
-			v->startingRisingSunFromGround = false;
-		} else if (activeCrimsonGameplay.Gameplay.Vergil.adjustRisingSunPos == "Off") {
-			v->startingRisingSunFromGround = true;
 		}
 
-		
         if (activeCrimsonGameplay.Gameplay.Vergil.adjustLunarPhasePos == "From Air") {
             if (action != BEOWULF_LUNAR_PHASE_LEVEL_1 && action != BEOWULF_LUNAR_PHASE_LEVEL_2) {
                 if (!(state & STATE::IN_AIR)) {
@@ -1044,7 +1078,7 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
         if (event == ACTOR_EVENT::ATTACK && state & STATE::IN_AIR) {
 
             // Adjusts Vergil Pos to be lower when starting Ground/Air Rising Sun
-            if (action == BEOWULF_RISING_SUN && !v->startingRisingSunFromGround) {
+            if (action == BEOWULF_RISING_SUN && inAirTauntRisingSun) {
 
                 if (actionTimer <= 0.6f) {
                     actorData.verticalPullMultiplier = 0.0f;

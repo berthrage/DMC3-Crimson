@@ -5260,6 +5260,7 @@ struct CrimsonPlayerData {
     MoveGravityTweak airFlickerTweak;
     MoveGravityTweak skyDanceTweak;
     bool inRisingStar = false;
+    bool inAirTauntRisingSun = false;
 
     uintptr_t clonePtr;
     uint8 actionClone     = 0;
@@ -5314,6 +5315,7 @@ struct CrimsonPlayerData {
 	MoveGravityTweak airFlickerTweakClone;
 	MoveGravityTweak skyDanceTweakClone;
     bool inRisingStarClone = false;
+    bool inAirTauntRisingSunClone = false;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];

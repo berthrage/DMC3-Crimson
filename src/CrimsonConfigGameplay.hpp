@@ -130,7 +130,6 @@ struct CrimsonConfigGameplay {
 			bool yamatoRisingStar = true;
 			bool yamatoHighTime = true;
 			bool mirageTrigger = true;
-			std::string adjustRisingSunPos = "From Air";
 			std::string adjustLunarPhasePos = "From Air";
 
 			static constexpr auto Metadata() {
@@ -145,7 +144,6 @@ struct CrimsonConfigGameplay {
 					std::make_pair("yamatoRisingStar", &Vergil::yamatoRisingStar),
 					std::make_pair("yamatoHighTime", &Vergil::yamatoHighTime),
 					std::make_pair("mirageTrigger", &Vergil::mirageTrigger),
-					std::make_pair("adjustRisingSunPos", &Vergil::adjustRisingSunPos),
 					std::make_pair("adjustLunarPhasePos", &Vergil::adjustLunarPhasePos)
 				);
 			}

@@ -4000,6 +4000,8 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CrimsonGameplay::FixAirStingerCancelTime(actorBaseAddr);
     CrimsonGameplay::VergilRisingStar(actorBaseAddr);
     CrimsonGameplay::VergilYamatoHighTime(actorBaseAddr);
+    CrimsonGameplay::VergilAirRisingSun(actorBaseAddr);
+    CrimsonGameplay::VergilAirTauntRisingSunDetection(actorBaseAddr);
     CrimsonGameplay::LastEventStateQueue(actorBaseAddr);
     CrimsonGameplay::DTInfusedRoyalguardController(actorBaseAddr);
     CrimsonFX::StyleRankHudFadeoutController();
@@ -8233,6 +8235,10 @@ void UpdateActorSpeed(byte8* baseAddr) {
 					crimsonPlayer[playerIndex].actionTimerClone;
 				auto& inRisingStar = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inRisingStar :
 					crimsonPlayer[playerIndex].inRisingStarClone;
+				auto& inAirTauntRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inAirTauntRisingSun :
+					crimsonPlayer[playerIndex].inAirTauntRisingSunClone;
+                auto* vergilMoves = (actorData.newEntityIndex == 0) ? &crimsonPlayer[playerIndex].vergilMoves : 
+                    &crimsonPlayer[playerIndex].vergilMovesClone;
 
 
                 if (activeCrimsonGameplay.Gameplay.General.sprint) {
@@ -8353,22 +8359,24 @@ void UpdateActorSpeed(byte8* baseAddr) {
                     goto Return;
                 }
 
-// 				if (!actorData.devil) {
-// 					if (actorData.character == CHARACTER::VERGIL &&
-// 						actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN &&
-// 						(actionTimer < 0.3f) && inRisingStar) {
-// 						value *= (activeCrimsonGameplay.Cheats.Speed.human + 2.4f);
-// 					} else {
-// 						value *= (activeCrimsonGameplay.Cheats.Speed.human);
-// 					}
-// 					goto Return;
-// 				}
-
-                if (!actorData.devil) {
-					value *= (activeCrimsonGameplay.Cheats.Speed.human);
-					
+				if (!actorData.devil) {
+                    // IF IN AIR RISING SUN -- reduce initial wind up
+					if (actorData.character == CHARACTER::VERGIL &&
+						actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN &&
+						(actionTimer < 0.3f) && !inRisingStar && actorData.newAirRisingSunCount >= 1 &&
+                        (!vergilMoves->startingRisingSunFromGround || inAirTauntRisingSun)) {
+						value *= (activeCrimsonGameplay.Cheats.Speed.human + 2.4f);
+					} else {
+						value *= (activeCrimsonGameplay.Cheats.Speed.human);
+					}
 					goto Return;
-                }
+				}
+
+//                 if (!actorData.devil) {
+// 					value *= (activeCrimsonGameplay.Cheats.Speed.human);
+// 					
+// 					goto Return;
+//                 }
 
                 switch (actorData.character) {
                 case CHARACTER::DANTE: {
@@ -8414,6 +8422,10 @@ void UpdateActorSpeed(byte8* baseAddr) {
 						
                         if (inRapidSlashPlayer) {
                             value *= (activeCrimsonGameplay.Cheats.Speed.dTVergil[devilIndex] + 0.8f);
+                        } else if (actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN &&
+                            (actionTimer < 0.3f) && !inRisingStar && actorData.newAirRisingSunCount >= 1
+                            && (!vergilMoves->startingRisingSunFromGround || inAirTauntRisingSun)) {
+                            value *= (activeCrimsonGameplay.Cheats.Speed.dTVergil[devilIndex] + 2.4f);
                         } else {
                             value *= (activeCrimsonGameplay.Cheats.Speed.dTVergil[devilIndex]);
                         }
@@ -9402,6 +9414,7 @@ void SetAction(byte8* actorBaseAddr) {
 				actorData.action = BEOWULF_LUNAR_PHASE_LEVEL_1;
             }
         } 
+		
         // FORCE EDGE AIR STINGER
 		else if (activeCrimsonGameplay.Gameplay.Vergil.airStinger && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1] &&
                    (actorData.newAirStingerCount < activeConfig.YamatoForceEdge.airStingerCount[index]) && lockOn &&

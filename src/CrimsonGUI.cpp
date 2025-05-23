@@ -8090,7 +8090,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
-			ImGui::Text("inRisingStar %u", crimsonPlayer[0].inRisingStar);
+			ImGui::Text("inAirTauntRisingSun %u", crimsonPlayer[0].inAirTauntRisingSun);
 			ImGui::Text("MovePart %u", actorData.recoverState[0]);
 			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
 			ImGui::Text("cameraHittingWall: %u", g_cameraHittingWall);
@@ -11011,20 +11011,6 @@ void VergilGameplayOptions() {
 			TooltipHelper("(?)", "Press Left or Right D-Pad to summon Doppelganger.\n"
 			"Vergil's Doppelganger uses a separate resource called Mirage Gauge, indicated on his HUD as a white bar.\n"
 			"Mirage Gauge refills like DT (but is separate from it), and can be turned on/off at will, without a minimum amount required.");
-			GUI_PopDisable(!activeConfig.Actor.enable);
-
-			ImGui::TableNextColumn();
-			GUI_PushDisable(!activeConfig.Actor.enable);
-			ImGui::PushItemWidth(itemWidth * 0.5f);
-			UI::ComboVectorString2("Alt. Rising Sun Positioning",
-				VergilMoveAdjustmentsNames,
-				activeCrimsonGameplay.Gameplay.Vergil.adjustRisingSunPos,
-				queuedCrimsonGameplay.Gameplay.Vergil.adjustRisingSunPos);
-			ImGui::PopItemWidth();
-			ImGui::SameLine();
-			GUI_CCSRequirementButton();
-			ImGui::SameLine();
-			TooltipHelper("(?)", "Stops Rising Sun from going upwards, still launches enemy.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
