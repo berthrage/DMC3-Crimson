@@ -3273,6 +3273,7 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
         CrimsonFX::SetStyleSwitchDrawTextTime(style, actorBaseAddr);
     }
 
+    // Make Top Left HUD Visible briefly after StyleSwtiching
     hudData.topLeftAlpha = 127.0f;
     hudData.topLeftAlphaTimer = 80.0f * (1.0f / g_FrameRateTimeMultiplier);
 }
@@ -3286,6 +3287,11 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 	auto& characterData = GetCharacterData(actorData);
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 
 	// Accumulate EXP
 	HeldStyleExpData& heldStyleExpData = (actorData.character == CHARACTER::DANTE)
@@ -3425,17 +3431,24 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 
 			if (!actorData.doppelganger && vergilDopp.miragePoints > 0) {
 				ActivateDoppelganger(actorData);
+				// Make Top Left HUD Visible briefly after MirageTrigger
+				hudData.topLeftAlpha = 127.0f;
+				hudData.topLeftAlphaTimer = 80.0f * (1.0f / g_FrameRateTimeMultiplier);
 
 				if (!activeCrimsonGameplay.Cheats.Training.infiniteDT && actorData.costume != 2 &&
 					actorData.costume != 4) { // if Infinite Magic Points is on or using Super/Super Corrupted Vergil, DT drain doesn't trigger.
 					// Calculate the amount of time that has already passed based on the current DT
 					vergilDopp.drainTime = (1.0f - (vergilDopp.miragePoints / maxMiragePointsAmount)) * vergilDopp.totalDrainDuration;
 					vergilDopp.drainStart = true;
+					
 				}
 
 				actorData.doppelganger = true;
 			} else if (actorData.doppelganger) {
 				DeactivateDoppelganger(actorData);
+				// Make Top Left HUD Visible briefly after MirageTrigger
+				hudData.topLeftAlpha = 127.0f;
+				hudData.topLeftAlphaTimer = 80.0f * (1.0f / g_FrameRateTimeMultiplier);
 
 				actorData.doppelganger = false;
 				vergilDopp.drainStart = false;

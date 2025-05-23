@@ -162,6 +162,9 @@ static Texture2DD3D11* styleLevelDiamond{ nullptr };
 
 static Texture2DD3D11* royalGaugeCircle{ nullptr };
 
+static Texture2DD3D11* mirageGaugeDpadTexture{ nullptr };
+static Texture2DD3D11* mirageGaugeDpadActiveTexture{ nullptr };
+
 
 void InitRedOrbTexture(ID3D11Device* pd3dDevice) {
 	//RedOrbTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "RedorbVanilla3.png").c_str(), pd3dDevice);
@@ -362,6 +365,13 @@ void InitStyleGlassTextures(ID3D11Device* pd3dDevice) {
 	assert(styleExpBarFill);
 	assert(styleLevelDiamond);
 	assert(royalGaugeCircle);
+}
+
+void InitMirageGaugeTextures(ID3D11Device* pd3dDevice) {
+	mirageGaugeDpadTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\miragegauge\\dpad.png").c_str(), pd3dDevice);
+	mirageGaugeDpadActiveTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "crimsonHud\\miragegauge\\dpad-active.png").c_str(), pd3dDevice);
+	assert(mirageGaugeDpadTexture);
+	assert(mirageGaugeDpadActiveTexture);
 }
 
 
@@ -2813,8 +2823,8 @@ void StyleLvlDispWindow() {
 
 	ImGui::GetWindowDrawList()->AddImage(
 		styleLevelDiamond->GetTexture(),
-		diamondMin + ImVec2(20, 0),
-		diamondMax + ImVec2(20, 0),
+		diamondMin + ImVec2(20 * scaleFactorY, 0),
+		diamondMax + ImVec2(20 * scaleFactorY, 0),
 		ImVec2(0, 0), ImVec2(1, 1),
 		diamondStyleColor
 	);
@@ -2826,8 +2836,8 @@ void StyleLvlDispWindow() {
 
 	ImGui::GetWindowDrawList()->AddImage(
 		styleLevelDiamond->GetTexture(),
-		diamondMin + ImVec2(40, 0),
-		diamondMax + ImVec2(40, 0),
+		diamondMin + ImVec2(40 * scaleFactorY, 0),
+		diamondMax + ImVec2(40 * scaleFactorY, 0),
 		ImVec2(0, 0), ImVec2(1, 1),
 		diamondStyleColor
 	);
@@ -2965,28 +2975,98 @@ void MirageGaugeMainPlayer() {
 		return;
 	}
 	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
 
 	auto miragePoints = crimsonPlayer[0].vergilDoppelganger.miragePoints / crimsonPlayer[0].vergilDoppelganger.maxMiragePoints;
-	float miragePointsColor[4] = { 1.0f , 1.0f, 1.0, hudData.topLeftAlpha / 127.0f };
-	float progressBarBgColor[4] = { 0.2f , 0.2f, 0.2f, hudData.topLeftAlpha / 127.0f };
+	auto& mirageTriggerActive = mainActorData.doppelganger;
 
+	float dpadTextureWidth = (200.0f * 0.17f) * scaleFactorY;
+	float dpadTextureHeight = (200.0f * 0.17f) * scaleFactorY;
 
 	// Adjust the size of the bar
-	float barLength = 130.0f * (crimsonPlayer[0].vergilDoppelganger.maxMiragePoints / maxMiragePointsAmount);
+	float barLength = 130.0f * (crimsonPlayer[0].vergilDoppelganger.maxMiragePoints / maxMiragePointsAmount) * scaleFactorY;
 	vec2 size = { barLength, 10.0f * scaleFactorY };
 
-	// Calculate position 
-	float posX = 90.0f * scaleFactorY;
-	float posY = 170.0f * scaleFactorY;
+	// Calculate positions
+	float padding = 8.0f * scaleFactorY;
+	float posX = 70.0f * scaleFactorY;
+	float posY = 150.0f * scaleFactorY;
+
+	// The bar's X position is shifted to the right by the dpad texture width + padding
+	float barPosX = posX + dpadTextureWidth + padding;
 
 	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
 		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
 
+	// Window size should fit both dpad and bar
+	float windowWidth = dpadTextureWidth + padding + barLength + (50.0f * scaleFactorY);
+	float windowHeight = std::max(dpadTextureHeight, 70.0f * scaleFactorY);
+
 	ImGui::SetNextWindowPos(ImVec2(posX, posY));
+	ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
+
+	// --- Fade logic ---
+	static float fade = 0.0f;
+	static bool prevActive = false;
+	const float fadeSpeed = 6.0f * ImGui::GetIO().DeltaTime; // Adjust speed as needed
+
+	if (mirageTriggerActive) {
+		fade += fadeSpeed;
+		if (fade > 1.0f) fade = 1.0f;
+	} else {
+		fade -= fadeSpeed;
+		if (fade < 0.0f) fade = 0.0f;
+	}
+	prevActive = mirageTriggerActive;
+
+	// Colors
+	ImVec4 inactiveColor = CrimsonUtil::HexToImVec4(0xFFFFFFFF);
+	ImVec4 activeColor = CrimsonUtil::HexToImVec4(0x0791d9FF);
+
+	// Lerp between inactive and active color based on fade
+	ImVec4 mirageGaugeColor;
+	mirageGaugeColor.x = inactiveColor.x + (activeColor.x - inactiveColor.x) * fade;
+	mirageGaugeColor.y = inactiveColor.y + (activeColor.y - inactiveColor.y) * fade;
+	mirageGaugeColor.z = inactiveColor.z + (activeColor.z - inactiveColor.z) * fade;
+	mirageGaugeColor.w = (hudData.topLeftAlpha / 127.0f);
+
+	float miragePointsColor[4] = { 1.0f , 1.0f, 1.0, hudData.topLeftAlpha / 127.0f };
+	float progressBarBgColor[4] = { 0.2f , 0.2f, 0.2f, hudData.topLeftAlpha / 127.0f };
 
 	if (ImGui::Begin("MirageMainPlayer", &show, windowFlags)) {
-		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&miragePointsColor));
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		ImVec2 windowPos = ImGui::GetWindowPos();
+
+		// Draw dpad texture at the left
+		ImVec2 dpadPos = ImVec2(windowPos.x, (windowPos.y + 19.0f * scaleFactorY));
+		drawList->AddImage(
+			mirageGaugeDpadTexture->GetTexture(),
+			dpadPos,
+			ImVec2(dpadPos.x + dpadTextureWidth, dpadPos.y + dpadTextureHeight),
+			ImVec2(0, 0), ImVec2(1, 1),
+			*reinterpret_cast<ImColor*>(&miragePointsColor)
+		);
+		// Draw active overlay with fade
+		if (fade > 0.0f) {
+			ImColor fadeColor = ImColor(mirageGaugeColor);
+			drawList->AddImage(
+				mirageGaugeDpadActiveTexture->GetTexture(),
+				dpadPos,
+				ImVec2(dpadPos.x + dpadTextureWidth, dpadPos.y + dpadTextureHeight),
+				ImVec2(0, 0), ImVec2(1, 1),
+				fadeColor
+			);
+		}
+
+		// Move cursor to the right for the bar
+		ImGui::SetCursorPos(ImVec2(dpadTextureWidth + padding, (windowHeight - size.y) * 0.5f));
+
+		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, mirageGaugeColor);
 		ImGui::PushStyleColor(ImGuiCol_FrameBg, *reinterpret_cast<ImVec4*>(&progressBarBgColor));
 		ImGui::PushStyleColor(ImGuiCol_Border, *reinterpret_cast<ImVec4*>(&progressBarBgColor));
 		ImGui::ProgressBar(miragePoints, *reinterpret_cast<ImVec2*>(&size), "");
@@ -3003,6 +3083,7 @@ void InitTextures(ID3D11Device* pd3dDevice) {
 	InitStyleRankTextures(pd3dDevice);
 	InitLockOnTexture(pd3dDevice);
 	InitStyleGlassTextures(pd3dDevice);
+	InitMirageGaugeTextures(pd3dDevice);
 }
 
 }
