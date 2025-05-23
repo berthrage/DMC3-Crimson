@@ -28,7 +28,7 @@ namespace CrimsonCameraController {
 	static CAMERA_UPDATE_TYPE s_updateStatus{ ON_THIRD_PERSON };
 
 	bool CheckInternalException() {
-
+		return false;
 	}
 
 	/// <summary>
@@ -66,6 +66,7 @@ namespace CrimsonCameraController {
 
 		//from this point, we are dealing with scenarios where cameraConfig.forceThirdPerson is true
 		else {
+			//this variable will have a value of true whenever we want to override third person camera without turning the mod off.
 			s_tpsException = CheckInternalException();
 			//if internal camera is enabled at this point, we know that we're either maintaining TPS or about to turn it off bc of exception. 
 			if (s_cameraEnable) {
@@ -93,7 +94,12 @@ namespace CrimsonCameraController {
 				}
 			}
 		}
+
+		//THIS SHOULD NEVER CALL
+		return CAMERA_UPDATE_TYPE::ON_FIXED;
 	}
+
+
 
 }
 
