@@ -13,19 +13,103 @@ static std::unique_ptr<Utility::Detour_t> cameraControllerConstructionHook;
 static std::unique_ptr<Utility::Detour_t> cameraSwitchAccessHook;
 static constexpr auto CTRL_PROC_OFFSET() { return 0x23EEF0; }
 static constexpr auto CAM_SWITCH_OFFSET() { return 0x055880; }
+
 static bool s_cameraEnable{ true };
-//dynamic camera switch idea, need to check if option was just enabled
+
+
+//this variable is to be removed
 static bool s_cameraEnableOld{ true };
-static bool s_tpsRoomException{ false };
+
+static bool s_tpsException{ false };
 
 namespace CrimsonCameraController {
 	uint32 g_currentCameraIndex = 0;
 	uint32 g_currentCameraType = 0;
+	static CAMERA_UPDATE_TYPE s_updateStatus{ ON_THIRD_PERSON };
+
+	bool CheckInternalException() {
+
+	}
+
+	/// <summary>
+	/// This is basically a glorified wrapper for simplifying the camera change logic.
+	/// It uses 3 variables:
+	/// activeCrimsonConfig.Camera.forceThirdPerson, the state of the TPS mod in gui
+	/// s_cameraEnable, whether this file is currently forcing the TPS camera
+	/// and s_tpsException, whether something in game is overriding the TPS preferences to make the camera fixed
+	/// 
+	/// and returns an enum value which corresponds to 1 of 4 behaviors in the sub_140055880 function.
+	/// 
+	/// THIS LOGIC IS NOT WHERE YOU SHOULD EDIT SPECIAL CONDITIONS FOR OVERRIDING TPS. 
+	/// THOSE SHOULD BE DONE IN CheckInternalException function above.
+	/// Thank you. -Hitch
+	/// </summary>
+	/// <returns></returns>
+	CAMERA_UPDATE_TYPE UpdateCrimsonCameraState() {
+
+		//get the TPS camera gui state
+		auto& cameraConfig = activeCrimsonConfig.Camera;
+
+		//if TPS is off, we're either turning the camera off or it's already off.
+		if (!cameraConfig.forceThirdPerson){
+
+			if (!s_cameraEnable) {
+				return CAMERA_UPDATE_TYPE::ON_FIXED;
+			}
+
+			//tps just turned off in options
+			if (s_cameraEnable) {
+				s_cameraEnable = false;
+				return CAMERA_UPDATE_TYPE::THIRD_PERSON_TO_FIXED;
+			}
+		}
+
+		//from this point, we are dealing with scenarios where cameraConfig.forceThirdPerson is true
+		else {
+			s_tpsException = CheckInternalException();
+			//if internal camera is enabled at this point, we know that we're either maintaining TPS or about to turn it off bc of exception. 
+			if (s_cameraEnable) {
+				//turning off bc of exception
+				if (s_tpsException) {
+					s_cameraEnable = false;
+					return CAMERA_UPDATE_TYPE::THIRD_PERSON_TO_FIXED;
+				}
+				//maintaining tps
+				else {
+					return CAMERA_UPDATE_TYPE::ON_THIRD_PERSON;
+				}
+			}
+			//if internal camera disabled, we're either keeping it off due to an exception or about to turn it on. 
+			else {
+				//keeping off due to exception
+				if (s_tpsException) {
+					return CAMERA_UPDATE_TYPE::ON_FIXED;
+				}
+
+				//about to turn on 
+				else {
+					s_cameraEnable = true;
+					return CAMERA_UPDATE_TYPE::FIXED_TO_THIRD_PERSON;
+				}
+			}
+		}
+	}
+
 }
 
-uint32 SUBTERRANEAN_LAKECamNum = 13;
 
-static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
+
+uint32 SUBTERRANEAN_LAKECamNum = 13;
+/// <summary>
+/// A detour that occurs on the Camera change function.
+/// This function is called when the game wants to update the current camera being used.
+/// By adjusting the properties of CameraSwitchArrayData, we can change how cameras in the room behave,
+/// or outright prevent the game from using any of them and forcing the game to use the default third person camera.
+/// </summary>
+/// <param name="cameraSwitchArrayDataAddress">ingame address of the CameraSwitchArrayData data type.</param>
+/// <param name="a2">unknown</param>
+/// <returns></returns>
+static uintptr_t __fastcall sub_140055880(int64_t cameraSwitchArrayDataAddress, char a2) {
 	typedef int64_t(__fastcall* sub_140055880)(int64_t, char);
 	auto& cameraConfig = activeCrimsonConfig.Camera;
 
@@ -37,7 +121,7 @@ static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 	s_cameraEnable = cameraConfig.forceThirdPerson;
 
 	//getting the camera switch info
-	auto& cameraswitchInfo = *reinterpret_cast<CameraSwitchArrayData*>(a1);
+	auto& cameraswitchInfo = *reinterpret_cast<CameraSwitchArrayData*>(cameraSwitchArrayDataAddress);
 
 	//store the current index and type for the debug cam.
 	CrimsonCameraController::g_currentCameraIndex = cameraswitchInfo.currentCamIndex;
@@ -78,7 +162,7 @@ static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 	}
 
 	//we now finally run the function
-	res = trampoline(a1, a2);
+	res = trampoline(cameraSwitchArrayDataAddress, a2);
 
 	//last step: if we just performed a camera overwrite, we have some cleanup to do.
 	if (camera_overriden) {
@@ -112,7 +196,7 @@ static uintptr_t __fastcall sub_140055880(int64_t a1, char a2) {
 		return res;
 	}
 	//don't need to mess with this if we've already confirmed fix cam for entire room
-	if (s_tpsRoomException)
+	if (s_tpsException)
 		return res;
 
 	//get event & nextevent
@@ -201,6 +285,12 @@ bool evaluateRoomCameraException(SessionData& sessionData, EventData& eventData,
 	return nextroom;
 }
 
+/// <summary>
+/// This function is in the process of being phased out, it used to toggle tps patch based on room exceptions, 
+/// but that logic is being moved to the detour above which is per camera.
+/// </summary>
+/// <param name="a1"></param>
+/// <returns></returns>
 static uintptr_t  __fastcall sub_14023EEF0(int64_t a1) {
 	//new addition, only for scenario where the first part of this patch is removed
 	CrimsonPatches::ForceThirdPersonCamera(true);
@@ -208,18 +298,18 @@ static uintptr_t  __fastcall sub_14023EEF0(int64_t a1) {
 	typedef int64_t(__fastcall* sub_14023EEF0)(int64_t);
 	//typedef uintptr_t(__fastcall* spawGuyTrampoline)(uintptr_t, float*);
 	//auto& ldkModeConfig = activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode;
-	auto& cameraConfig = activeCrimsonConfig.Camera;
+	//auto& cameraConfig = activeCrimsonConfig.Camera;
 
 	uintptr_t trampoline_raw = cameraControllerConstructionHook->GetTrampoline();
 	sub_14023EEF0 trampoline = (sub_14023EEF0)trampoline_raw;
 
-	s_cameraEnable = cameraConfig.forceThirdPerson;
+	//s_cameraEnable = cameraConfig.forceThirdPerson;
 
 
 	uintptr_t res = trampoline(a1);
-	if (!res || !s_cameraEnable) {
+	//if (!res || !s_cameraEnable) {
 		return res;
-	}
+	//}
 
 
 
@@ -268,11 +358,11 @@ static uintptr_t  __fastcall sub_14023EEF0(int64_t a1) {
 		);
 	if (roomExceptions) {
 		//CrimsonPatches::ForceThirdPersonCamera(false);
-		s_tpsRoomException = true;
+		s_tpsException = true;
 	}
 	else {
 		//CrimsonPatches::ForceThirdPersonCamera(true);
-		s_tpsRoomException = false;
+		s_tpsException = false;
 	}
 
 	//custom code

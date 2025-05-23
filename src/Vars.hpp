@@ -275,6 +275,10 @@ enum {
     CLONE,
 };
 };
+/// <summary>
+/// Types of camera used in game.
+/// Needs more research but important for us is Third person camera is value 4.
+/// </summary>
 namespace CAMERA_TYPE {
     enum {
         FIXED,
@@ -2491,24 +2495,43 @@ struct CameraControlMetadata {
 
 static_assert(offsetof(CameraControlMetadata, fixedCameraAddr) == 0x4B0);
 
-
+/// <summary>
+/// An ingame data structure that corresponds to a single camera currently loaded in the room.
+/// </summary>
 struct CameraSwitchData {
     _(1);
+    /// <summary>
+    /// the type of camera.
+    /// offset is 1.
+    /// see CAMERA_TYPE for possible values.
+    /// </summary>
     uint8 type; // 0x20
     _(30);
 };
 
 static_assert(sizeof(CameraSwitchData) == 32);
-
+/// <summary>
+/// An ingame data structure that stores references to cameras in the current room.
+/// </summary>
 struct CameraSwitchArrayData {
     _(152); //0x98
-    //uintptr_t cameraArrayBase;
+    /// <summary>
+    /// an array of CameraSwitchData that stores data about each camera currently in the room.
+    /// offset is 0x98. The size of these elements is wider than a standard pointer at 32 bytes.
+    /// Thus, element 1 is at switches[4], element 2 is at switches[8], etc.
+    /// </summary>
     CameraSwitchData* switches[80];
     _(9177);
     //_(480);
     //_(9809);
     //_(9969);
-    uint8 currentCamIndex; // 0x26F1
+    /// <summary>
+    /// the key used to access the camera in switches the game is currently using.
+    /// offset is 0x26F1.
+    /// When this value is -1 or 255, the game can't find a camera to swap to. 
+    /// We can use this to surpress transitions to fixed cameras for the forced TPS camera option.
+    /// </summary>
+    uint8 currentCamIndex;
 };
 
 const static int value = offsetof(CameraSwitchArrayData, currentCamIndex);
