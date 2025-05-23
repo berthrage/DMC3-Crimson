@@ -50,7 +50,5 @@ link_directories(${CMAKE_PROJECT_NAME} PUBLIC ${CMAKE_BINARY_DIR}/lib)
 # Store the root folder
 set(PROJECT_ROOT ${CMAKE_CURRENT_LIST_DIR})
 
-set(DMC_INSTALL_DIR "C:/Program Files (x86)/Steam/steamapps/common/Devil May Cry HD Collection")
-
 add_subdirectory(ThirdParty)
 add_subdirectory(src)
