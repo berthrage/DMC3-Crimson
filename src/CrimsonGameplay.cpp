@@ -827,6 +827,8 @@ void VergilRisingStar(byte8* actorBaseAddr) {
 	auto& gamepad = GetGamepad(playerIndex);
 	auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer :
 		crimsonPlayer[playerIndex].actionTimerClone;
+    auto& inRisingStar = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inRisingStar :
+        crimsonPlayer[playerIndex].inRisingStarClone;
 	static bool applied[PLAYER_COUNT][ENTITY_COUNT] = { false };
 	auto& apply = applied[playerIndex][entityIndex];
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
@@ -866,37 +868,32 @@ void VergilRisingStar(byte8* actorBaseAddr) {
 	// Only allow transition if action is YAMATO_RAPID_SLASH_LEVEL_2 and timer is in the correct window
 	// and either the button is held long enough OR player is close to an enemy and button is held long enough
 	bool canTransition =
-		actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 &&
+		(actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_1) &&
 		actionTimer > 0.55f && actionTimer < 0.60f &&
 		meleeButtonHold[playerIndex][entityIndex] >= MELEE_HOLD_TIME && tiltDirection == TILT_DIRECTION::UP;
 
 	bool canTransitionClose =
-		actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 &&
+        (actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_1) &&
 		closeEnemy &&
 		meleeButtonHold[playerIndex][entityIndex] >= MELEE_HOLD_TIME && tiltDirection == TILT_DIRECTION::UP;
 
 	// Only allow transition once per action
 	if ((canTransition || canTransitionClose)) {
 		actorData.action = BEOWULF_RISING_SUN;
-		actorData.recoverState[0] = 0;
-		apply = true;
+        PlayAnimation(actorData, 4, 11, 20.0f, 0, 0, -1);
+		actorData.recoverState[0] = 1;
+        //actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] = File_staticFiles[pl021_00_4];
+		 inRisingStar = true;
 	}
 
 	// Reset apply flag when action changes away from YAMATO_RAPID_SLASH_LEVEL_2
-	if (actorData.action != YAMATO_RAPID_SLASH_LEVEL_2 && apply) {
-		apply = false;
+	if ((actorData.action == BEOWULF_RISING_SUN && actionTimer > 0.8f) || 
+        (actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK ||
+            actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN ||
+            actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP
+        ) && inRisingStar) {
+		inRisingStar = false;
 	}
-
-	// Research on cutting animations
-	// if (actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 && !apply && actorData.recoverState[0] == 1) {
-	//     actorData.action = YAMATO_RAPID_SLASH_LEVEL_2;
-	//     actorData.recoverState[0] = 2;
-	//     apply = true;
-	// }
-	//
-	// if (actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 && apply && (actorData.recoverState[0] == 2 || actorData.recoverState[0] == 3)) {
-	//     apply = false;
-	// }
 }
 
 void VergilYamatoHighTime(byte8* actorBaseAddr) {
@@ -926,7 +923,42 @@ void VergilYamatoHighTime(byte8* actorBaseAddr) {
 	}
 
 	if (actorData.action == YAMATO_UPPER_SLASH_PART_2
-		&& actionTimer > 0.16f && actionTimer < 0.5f && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK))
+		&& actionTimer > 0.03f && actionTimer < 0.5f && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK))
+        && tiltDirection == TILT_DIRECTION::DOWN) {
+		actorData.action = YAMATO_FORCE_EDGE_HIGH_TIME;
+
+		actorData.recoverState[0] = 0;
+	}
+}
+
+void VergilYamatoHighTime(byte8* actorBaseAddr) {
+	using namespace ACTION_VERGIL;
+
+	if (!actorBaseAddr || (actorBaseAddr == g_playerActorBaseAddrs[0]) || (actorBaseAddr == g_playerActorBaseAddrs[1])) {
+		return;
+	}
+
+	if (!activeCrimsonGameplay.Gameplay.Vergil.yamatoHighTime) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto entityIndex = actorData.newEntityIndex;
+	auto& playerData = GetPlayerData(playerIndex);
+	auto& gamepad = GetGamepad(playerIndex);
+	auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer :
+		crimsonPlayer[playerIndex].actionTimerClone;
+    auto tiltDirection = GetRelativeTiltDirection(actorData);
+
+	if (actorData.action == YAMATO_UPPER_SLASH_PART_1
+		&& actionTimer > 0.36f && actionTimer < 0.5f && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK))) {
+		actorData.action = YAMATO_FORCE_EDGE_HIGH_TIME;
+
+		actorData.recoverState[0] = 1;
+	}
+
+	if (actorData.action == YAMATO_UPPER_SLASH_PART_2
+		&& actionTimer > 0.03f && actionTimer < 0.5f && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK))
         && tiltDirection == TILT_DIRECTION::DOWN) {
 		actorData.action = YAMATO_FORCE_EDGE_HIGH_TIME;
 

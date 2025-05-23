@@ -8192,6 +8192,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
                         continue;
                     }
                     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+					
 
                     bool match = false;
 
@@ -8223,10 +8224,15 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 }
                 auto& actorData      = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
                 auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+                float limit = 0.3f;
 
                 auto lockOn        = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
                 auto tiltDirection = GetRelativeTiltDirection(actorData);
                 auto& gamepad      = GetGamepad(0);
+				auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer :
+					crimsonPlayer[playerIndex].actionTimerClone;
+				auto& inRisingStar = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inRisingStar :
+					crimsonPlayer[playerIndex].inRisingStarClone;
 
 
                 if (activeCrimsonGameplay.Gameplay.General.sprint) {
@@ -8347,16 +8353,21 @@ void UpdateActorSpeed(byte8* baseAddr) {
                     goto Return;
                 }
 
+// 				if (!actorData.devil) {
+// 					if (actorData.character == CHARACTER::VERGIL &&
+// 						actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN &&
+// 						(actionTimer < 0.3f) && inRisingStar) {
+// 						value *= (activeCrimsonGameplay.Cheats.Speed.human + 2.4f);
+// 					} else {
+// 						value *= (activeCrimsonGameplay.Cheats.Speed.human);
+// 					}
+// 					goto Return;
+// 				}
+
                 if (!actorData.devil) {
-                    value *= activeCrimsonGameplay.Cheats.Speed.human;
-
-                    if (actorData.character == CHARACTER::VERGIL && actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN) {
-                        value *= (activeCrimsonGameplay.Cheats.Speed.human + 0.8f);
-                    } else {
-                        value *= (activeCrimsonGameplay.Cheats.Speed.human);
-                    }
-
-                    goto Return;
+					value *= (activeCrimsonGameplay.Cheats.Speed.human);
+					
+					goto Return;
                 }
 
                 switch (actorData.character) {

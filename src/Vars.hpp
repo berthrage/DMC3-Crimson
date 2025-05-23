@@ -5259,6 +5259,7 @@ struct CrimsonPlayerData {
 	float lockedOnEnemyMinusDisplacement = 0;
     MoveGravityTweak airFlickerTweak;
     MoveGravityTweak skyDanceTweak;
+    bool inRisingStar = false;
 
     uintptr_t clonePtr;
     uint8 actionClone     = 0;
@@ -5312,6 +5313,7 @@ struct CrimsonPlayerData {
 	float lockedOnEnemyMinusDisplacementClone = 0;
 	MoveGravityTweak airFlickerTweakClone;
 	MoveGravityTweak skyDanceTweakClone;
+    bool inRisingStarClone = false;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];

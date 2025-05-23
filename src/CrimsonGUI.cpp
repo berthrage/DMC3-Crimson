@@ -8090,7 +8090,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
-			
+			ImGui::Text("inRisingStar %u", crimsonPlayer[0].inRisingStar);
 			ImGui::Text("MovePart %u", actorData.recoverState[0]);
 			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
 			ImGui::Text("cameraHittingWall: %u", g_cameraHittingWall);
