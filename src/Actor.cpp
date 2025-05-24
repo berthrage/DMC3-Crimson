@@ -2814,11 +2814,11 @@ byte8* SpawnActor(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
         actorData.dtExplosionCharge = crimsonPlayer[newPlayerIndex].dtExplosionCharge;
         crimsonPlayer[newPlayerIndex].vergilDoppelganger.drainStart = false; // very important to ensure drainTimer doesn't stay on when respawning
 
-        actorData.styleData.rank = crimsonPlayer[newPlayerIndex].styleData.rank;
-        actorData.styleData.meter = crimsonPlayer[newPlayerIndex].styleData.meter;
-        actorData.styleData.quotient = crimsonPlayer[newPlayerIndex].styleData.quotient;
-        actorData.styleData.dividend = crimsonPlayer[newPlayerIndex].styleData.dividend;
-        actorData.styleData.divisor = crimsonPlayer[newPlayerIndex].styleData.divisor;
+        actorData.styleData.rank = vanillaActorData.styleData.rank;
+        actorData.styleData.meter = vanillaActorData.styleData.meter;
+        actorData.styleData.quotient = vanillaActorData.styleData.quotient;
+        actorData.styleData.dividend = vanillaActorData.styleData.dividend;
+        actorData.styleData.divisor = vanillaActorData.styleData.divisor;
     }
 
     return actorBaseAddr;

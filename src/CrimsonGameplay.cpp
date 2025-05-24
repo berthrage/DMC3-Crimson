@@ -896,6 +896,7 @@ void VergilRisingStar(byte8* actorBaseAddr) {
             actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN ||
             actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP
         ) && inRisingStar) {
+        //actorData.motionArchives[MOTION_GROUP_VERGIL::BEOWULF] = File_staticFiles[pl021_00_4];
 		inRisingStar = false;
 	}
 }
