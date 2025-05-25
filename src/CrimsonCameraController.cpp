@@ -74,10 +74,10 @@ namespace CrimsonCameraController {
 			|| (eventData.room == ROOM::CHAMBER_OF_ECHOES && CrimsonCameraController::g_currentCameraIndex == 23)
 
 			//camera kinda cramped
-			|| (eventData.room == ROOM::CURSED_SKULL_CHAMBER && CrimsonCameraController::g_currentCameraIndex == 0)
+			|| (sessionData.mission == 7 && eventData.room == ROOM::CURSED_SKULL_CHAMBER && CrimsonCameraController::g_currentCameraIndex == 0)
 			//vergil approach
-			
-			|| (eventData.room == ROOM::PEAK_OF_DARKNESS)
+			|| (sessionData.mission == 7 && eventData.room == ROOM::MOONLIGHT_MILE)
+			|| (sessionData.mission == 7 && eventData.room == ROOM::PEAK_OF_DARKNESS)
 			//MISSION 8:
 			//half covered up shop statue in leviathan, might prevent people missing it idk
 			|| (eventData.room == ROOM::LEVIATHANS_INTESTINES && CrimsonCameraController::g_currentCameraIndex == 2)
@@ -100,10 +100,11 @@ namespace CrimsonCameraController {
 			//Weird behavior entering lake from the caverns where entire room is fixed cam.
 			// Might be due to the fact that the room is just loading in?
 			|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 0)
-			//added to make some platforming less goofy
-			|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 2)
 			|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 5)
 			|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 11)
+			//added to make some platforming less goofy
+			|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 2)
+			
 			//nevan?
 			// || evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUNKEN_OPERA_HOUSE, 9, 0)
 			//MISSION 10:
@@ -118,24 +119,81 @@ namespace CrimsonCameraController {
 			|| (eventData.room == ROOM::ALTAR_OF_EVIL && CrimsonCameraController::g_currentCameraIndex == 7)
 			|| (eventData.room == ROOM::ALTAR_OF_EVIL && CrimsonCameraController::g_currentCameraIndex == 8)
 			//hey break this wall dumbass
-			|| (eventData.room == ROOM::ALTAR_OF_EVIL && CrimsonCameraController::g_currentCameraIndex == 16)
+			|| (sessionData.mission == 11 && eventData.room == ROOM::ALTAR_OF_EVIL && CrimsonCameraController::g_currentCameraIndex == 16)
 			//Platform 1 of the train with the agni rudra adjudicator.
 			//|| (eventData.room == ROOM::TEMPERANCE_WAGON_2)
 
 			//I love hifi rush!
-			|| (eventData.room == ROOM::TEMPERANCE_WAGON && CrimsonCameraController::g_currentCameraIndex == 2)
-			//Beowulf approach
-			|| (eventData.room == ROOM::TEMPERANCE_WAGON_3 && CrimsonCameraController::g_currentCameraIndex == 0)
-			|| (eventData.room == ROOM::TEMPERANCE_WAGON_3 && CrimsonCameraController::g_currentCameraIndex == 2)
+			|| (eventData.room == ROOM::TEMPERANCE_WAGON)
+			//Beowulf approach (but only for m11 because you need to leave in a hurry)
+			|| (sessionData.mission == 11 && eventData.room == ROOM::TEMPERANCE_WAGON_3 && CrimsonCameraController::g_currentCameraIndex == 0)
+			|| (sessionData.mission == 11 && eventData.room == ROOM::TEMPERANCE_WAGON_3 && CrimsonCameraController::g_currentCameraIndex == 2)
 			//MISSION 12:
+			// 218 spiral corridor camera index 0
+			|| (eventData.room == ROOM::SPIRAL_CORRIDOR && CrimsonCameraController::g_currentCameraIndex == 0)
 			//MISSION 13:
+			//230 spiral staircase camera index 0
+			|| (eventData.room == ROOM::SPIRAL_STAIRCASE && CrimsonCameraController::g_currentCameraIndex == 0)
+			//233 laser puzzle camera index 0
+			//but only for this mission bc we come back here later
+			|| (sessionData.mission == 13 && eventData.room == ROOM::VESTIBULE && CrimsonCameraController::g_currentCameraIndex == 0)
+			//hidden room
+			|| (sessionData.mission == 13 && eventData.room == ROOM::VESTIBULE && CrimsonCameraController::g_currentCameraIndex == 2)
 			//MISSION 14:
+			//back to the lake, we might want to indicate you can go behind the elevator so you can pick up spiral.
+			|| (eventData.room == ROOM::SUBTERRAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 0)
+			//its honestly harder to see in this room with TPS.
+			|| (eventData.room == ROOM::TOP_OBSIDIAN_PATH)
+			
+			//|| (eventData.room == ROOM::SUBTERRAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 0)
 			//MISSION 15:
+			//there's one of those red orb crystals up there and you'll never see it unless the camera indicates it.
+			|| (eventData.room == ROOM::FORBIDDEN_LAND_FRONT && CrimsonCameraController::g_currentCameraIndex == 0)
+			
+			//whoever decided you needed to go through this room sideways should go to hell
+			|| (eventData.room == ROOM::ROUNDED_PATHWAY_4 && CrimsonCameraController::g_currentCameraIndex == 2)
+			|| (eventData.room == ROOM::ROUNDED_PATHWAY_4 && CrimsonCameraController::g_currentCameraIndex == 4)
+			//cool view
+			|| (eventData.room == ROOM::TOP_SUBTERRIA_LACK && CrimsonCameraController::g_currentCameraIndex == 1)
+			//thing you can get stuck on again
+			|| (eventData.room == ROOM::TOP_SUBTERRIA_LACK && CrimsonCameraController::g_currentCameraIndex == 0)
+			//blorb hint
+			|| (sessionData.mission == 15 && eventData.room == ROOM::ALTAR_OF_EVIL_PATHWAY && CrimsonCameraController::g_currentCameraIndex == 0)
+			|| (sessionData.mission == 15 && eventData.room == ROOM::ALTAR_OF_EVIL_PATHWAY && CrimsonCameraController::g_currentCameraIndex == 2)
+			//elevator ride up
+			|| (sessionData.mission == 15 && eventData.room == ROOM::DEVILSPROUT_LIFT && CrimsonCameraController::g_currentCameraIndex == 2)
 			//MISSION 16:
+			//lmao I got nothin
 			//MISSION 17:
+			//cool view at start
+			|| (eventData.room == ROOM::THE_DARK_CORRIDOR_2 && CrimsonCameraController::g_currentCameraIndex == 2)
+			|| (eventData.room == ROOM::TRIAL_OF_SKILL_2 && CrimsonCameraController::g_currentCameraIndex == 1)
+			//jump pad outside tower
+			|| (eventData.room == ROOM::PITCH_BLACK_VOID_2 && CrimsonCameraController::g_currentCameraIndex == 1)
+			//moonlight mile happens again
+			|| (sessionData.mission == 17 && eventData.room == ROOM::MOONLIGHT_MILE)
+			|| (sessionData.mission == 17 && eventData.room == ROOM::DARK_PACT_CHAMBER)
+			//doppelganger fight
+			|| (sessionData.mission == 17 && eventData.room == ROOM::APPARITION_INCARNATE)
+			
 			//MISSION 18:
+			//intro room has some cool cameras
+			|| (sessionData.mission == 18 && eventData.room == ROOM::UNSACRED_HELLGATE)
+			//feet (cam 0 only, bc we have to fight fallen in this room and we don't need to make that harder than it already is)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::ROAD_TO_DESPAIR && CrimsonCameraController::g_currentCameraIndex == 0)
+			
+			//OK. So in all seriousness. We could *try* and do something where we make each individual camera in the room a player tracker 
+			// and see if it will orient properly, but like
+			// it'd defeat the purpose of this room.
+			//anyway exception given to the boss rush room because the camera is like that.
+			|| (eventData.room == ROOM::LOST_SOULS_NIRVANA)
+			//I am gigapeding out
+			//|| (sessionData.mission == 18 && eventData.room == ROOM::GIANTWALKER_REBORN && CrimsonCameraController::g_currentCameraIndex == 0)
 			//MISSION 19:
+			//approach to arkham
+			|| (eventData.room == ROOM::END_OF_THE_LINE)
 			//MISSION 20:
+			//It's literally the vergil fight
 			);
 		return exceptions;
 	}
