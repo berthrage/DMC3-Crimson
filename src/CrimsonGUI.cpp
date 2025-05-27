@@ -12024,8 +12024,11 @@ void GamepadToggleShowMain() {
 	for (int i = 0; i < 4; ++i) {
 		if (CrimsonSDL::controllers[i] != NULL) {
 			// Combination of buttons to check
-			bool combination = (CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK) && 
-                CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK));
+			bool combination = (
+				CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK) &&
+				CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK) &&
+				!CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_TOUCHPAD)
+				);
 
 			// Combination pressed and was not pressed before, toggle GUI and set window focus
 			if (combination && !g_showMain && gamepadCombinationMainRelease[i]) {
