@@ -6942,6 +6942,16 @@ void ResetSkyStar(PlayerActorData& actorData) {
     DebugLog("inAir      %u", inAir);
     DebugLog("lastInAir  %u", lastInAir);
 
+	auto& playerIndex = actorData.newPlayerIndex;
+	auto& airCounts = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].airCounts : crimsonPlayer[playerIndex].airCountsClone;
+
+    if (actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
+        actorData.newAirStingerCount = 0;
+		airCounts.airTornado = 0;
+		airCounts.airRisingSunWhirlwind = 0;
+		airCounts.airAgniRudraWhirlwind = 0;
+    }
+ 
     if (
         // Dante Air Stinger
 		((actorData.character == CHARACTER::DANTE) && (actorData.action == 0) &&
@@ -6959,9 +6969,6 @@ void ResetSkyStar(PlayerActorData& actorData) {
             (actorData.lastAction == ACTION_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_2) && !inAir && lastInAir)) {
         return;
     }
-
-    auto& playerIndex = actorData.newPlayerIndex;
-    auto& airCounts = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].airCounts : crimsonPlayer[playerIndex].airCountsClone;
 
     actorData.newAirHikeCount    = 0;
     actorData.newKickJumpCount   = 0;
