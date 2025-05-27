@@ -8090,7 +8090,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
-			ImGui::Text("mirageTrigger %u", actorData.doppelganger);
+			ImGui::Text("skyLaunch Executing %u", crimsonPlayer[0].skyLaunch.executing);
+			ImGui::Text("inertia airguard %g", crimsonPlayer[0].inertia.airGuard.cachedPull);
 			ImGui::Text("mirageGauge %g", crimsonPlayer[0].vergilDoppelganger.miragePoints);
 			ImGui::Text("maxMirageGauge %g", crimsonPlayer[0].vergilDoppelganger.maxMiragePoints);
 			ImGui::Text("MovePart %u", actorData.recoverState[0]);

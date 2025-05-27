@@ -625,7 +625,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
             (inCancellableActionAirSwordmaster || inCancellableActionAirGunslinger || actorData.eventData[0].event == 23 ||
                 actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK || actorData.motionData[0].index == 15) &&
             actorData.action != EBONY_IVORY_RAIN_STORM) {
-            if (gunStyleButtonBuffer[playerIndex][entityIndex] > 0.0f) { // previously gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)
+            if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) { // previously gunStyleButtonBuffer[playerIndex][entityIndex] > 0.0f
                 if (cancels.canGun) {
                     actorData.state &= ~STATE::BUSY;
                     cancels.canGun = false;
@@ -672,7 +672,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
 
             if ((actorData.style == STYLE::SWORDMASTER) &&
                 (eventActor == ACTOR_EVENT::TRICKSTER_SKY_STAR || eventActor == ACTOR_EVENT::TRICKSTER_DASH)) {
-                if (swordmasterStyleButtonBuffer[playerIndex][entityIndex] > 0.0f) { // previously actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)
+                if (actorData.buttons[2] & GetBinding(BINDING::STYLE_ACTION)) { // previously swordmasterStyleButtonBuffer[playerIndex][entityIndex] > 0.0f
                     if (execute) {
                         execute = false;
                         actorData.state &= ~STATE::BUSY;
@@ -685,7 +685,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
 
             // Cancel Final Aerial Rave Knockback with Gunshot.
             if (actorData.action == REBELLION_AERIAL_RAVE_PART_4 && actorData.eventData[0].event == 17) {
-                if (gunshotButtonBuffer[playerIndex][entityIndex] > 0.0f) { // previously actorData.buttons[2] & GetBinding(BINDING::SHOOT)
+                if (actorData.buttons[2] & GetBinding(BINDING::SHOOT)) { // previously gunshotButtonBuffer[playerIndex][entityIndex] > 0.0f
                     if (execute) {
                         execute = false;
                         actorData.state &= ~STATE::BUSY;
@@ -1395,6 +1395,8 @@ void StoreInertia(byte8* actorBaseAddr) {
 	auto action = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].action : crimsonPlayer[playerIndex].actionClone;
 	auto motion = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
 	auto event = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].event : crimsonPlayer[playerIndex].eventClone;
+    auto lastEvent = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastEvent : crimsonPlayer[playerIndex].lastEventClone;
+    auto& skyLaunch = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].skyLaunch : crimsonPlayer[playerIndex].skyLaunchClone;
 	auto state = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
 	auto horizontalPull =
 		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].horizontalPull : crimsonPlayer[playerIndex].horizontalPullClone;
@@ -1406,6 +1408,7 @@ void StoreInertia(byte8* actorBaseAddr) {
 		(action == AGNI_RUDRA_SKY_DANCE_PART_1 || action == AGNI_RUDRA_SKY_DANCE_PART_2 || action == AGNI_RUDRA_SKY_DANCE_PART_3);
 
 	auto& animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
+    auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 	auto& guardflyTimer = i->guardflyTimer;
 
 
@@ -1477,20 +1480,37 @@ void StoreInertia(byte8* actorBaseAddr) {
 			i->airGuard.cachedRotation = actorData.rotation;
 		}
 
+		bool inGuardFlyableMoves = (action == BEOWULF_KILLER_BEE || (action == NEVAN_VORTEX && actorData.horizontalPull > 20.0f && actionTimer < 0.95f) || 
+            ((action == ROYALGUARD_AIR_RELEASE_2 || action == ROYALGUARD_RELEASE_2) && actorData.horizontalPull > 20.0f));
+
 		// Important for Guardflying.
 		if (!actorData.airGuard && event != ACTOR_EVENT::JUMP_CANCEL && event != ACTOR_EVENT::AIR_HIKE) {
 			if (event == ACTOR_EVENT::TRICKSTER_SKY_STAR) {
 				i->airGuard.cachedPull = 28.0f;
 			}
 			else if (event == ACTOR_EVENT::ATTACK) {
-				if (action == BEOWULF_KILLER_BEE) {
+				if (inGuardFlyableMoves) {
 
 					i->airGuard.cachedPull = 28.0f;
 				}
-			}
-			else {
+			} else {
 				i->airGuard.cachedPull = 3.0f;
 			}
+			
+		} 
+
+        if (action == NEVAN_VORTEX && i->airGuard.cachedPull == 28.0f && actionTimer > 0.95f) {
+			i->airGuard.cachedPull = 3.0f;  // Reset pull after 0.95s to cut the end of Vortex, preventing Vortex guardfly out of thin air - Berth.
+        }
+
+		if ((action == ROYALGUARD_RELEASE_2 ||
+            action == ROYALGUARD_AIR_RELEASE_2 ) && i->airGuard.cachedPull == 28.0f && actionTimer > 0.4f) {
+			i->airGuard.cachedPull = 3.0f;  // Same reasoning as Vortex.
+		}
+
+		if ((action == ROYALGUARD_RELEASE_2 ||
+			action == ROYALGUARD_AIR_RELEASE_2) && i->airGuard.cachedPull == 28.0f && skyLaunch.executing) {
+			i->airGuard.cachedPull = 3.0f;  // Prevent Sky Launch from being guardflyable.
 		}
 	}
 
