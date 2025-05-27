@@ -150,7 +150,7 @@ void PreparePlayersDataBeforeSpawn() {
 
 			
 			// HAYWIRE FIX FOR HORSE BOSS RESPAWNING
-			if (sessionData.mission == 12) {
+			if (sessionData.mission == 12 && activeConfig.Actor.enable) {
 				if (!g_haywireNeoGenerator) {
 					if (vanillaActorData.hitPoints != vanillaActorData.maxHitPoints) {
 						vanillaActorData.hitPoints = vanillaActorData.maxHitPoints;
@@ -160,8 +160,10 @@ void PreparePlayersDataBeforeSpawn() {
 						vanillaActorData.magicPoints = vanillaActorData.maxMagicPoints;
 					}
 
+				} else {
+					vanillaActorData.hitPoints = vanillaActorData.maxHitPoints;
 				}
-
+				
 				vanillaActorData.devil = false;
 				DeactivateDevilHaywire(vanillaActorData);
 			} 
