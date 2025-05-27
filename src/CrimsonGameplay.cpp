@@ -1480,7 +1480,8 @@ void StoreInertia(byte8* actorBaseAddr) {
 			i->airGuard.cachedRotation = actorData.rotation;
 		}
 
-		bool inGuardFlyableMoves = (action == BEOWULF_KILLER_BEE || (action == NEVAN_VORTEX && actorData.horizontalPull > 20.0f && actionTimer < 0.95f) || 
+		bool inGuardFlyableMoves = ((action == BEOWULF_KILLER_BEE && actorData.horizontalPull > 20.0f) || 
+            (action == NEVAN_VORTEX && actorData.horizontalPull > 20.0f && actionTimer < 0.95f) ||
             ((action == ROYALGUARD_AIR_RELEASE_2 || action == ROYALGUARD_RELEASE_2) && actorData.horizontalPull > 20.0f));
 
 		// Important for Guardflying.
