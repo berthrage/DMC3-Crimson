@@ -4035,7 +4035,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
 	}
 
 	if (activeCrimsonGameplay.Gameplay.Vergil.darkslayerTrickCancels) {
-        CrimsonGameplay::ImprovedCancelsVergilController(actorBaseAddr);
+        CrimsonGameplay::DarkslayerCancelsVergilController(actorBaseAddr);
 	}
     
 

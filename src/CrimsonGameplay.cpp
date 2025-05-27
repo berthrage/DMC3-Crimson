@@ -719,10 +719,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
     }
 }
 
-using MyFunc_t = void(*)(byte8* actorBaseAddr, void* actionData);
-MyFunc_t MyFunc = (MyFunc_t)(appBaseAddr + 0x1E0800);
-
-void ImprovedCancelsVergilController(byte8* actorBaseAddr) {
+void DarkslayerCancelsVergilController(byte8* actorBaseAddr) {
 	using namespace ACTION_VERGIL;
 
 	if (!actorBaseAddr || (actorBaseAddr == g_playerActorBaseAddrs[0]) || (actorBaseAddr == g_playerActorBaseAddrs[1])) {
@@ -739,14 +736,8 @@ void ImprovedCancelsVergilController(byte8* actorBaseAddr) {
 	}
 
 	auto characterIndex = actorData.newCharacterIndex;
-	if (characterIndex >= CHARACTER_COUNT) {
-		characterIndex = 0;
-	}
-
 	auto entityIndex = actorData.newEntityIndex;
-	if (entityIndex >= ENTITY_COUNT) {
-		entityIndex = 0;
-	}
+
 
 	auto& playerData = GetPlayerData(playerIndex);
 	auto& gamepad = GetGamepad(playerIndex);
@@ -762,7 +753,7 @@ void ImprovedCancelsVergilController(byte8* actorBaseAddr) {
 	float deltaTime = ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier) * 1000.0f; // to ms
 
 	// Detect button press (not hold)
-	bool styleButtonDown = (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) != 0;
+	bool styleButtonDown = (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) != 0;
 	bool styleButtonPressed = styleButtonDown && !prevStyleButton[playerIndex][entityIndex];
 	prevStyleButton[playerIndex][entityIndex] = styleButtonDown;
 
