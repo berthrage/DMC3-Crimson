@@ -13332,7 +13332,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.4f);
 
-				auto fnDrawSocialButton = [window](const void* id, const size_t socialID, const ImVec2 size, const char* tooltip = nullptr)->bool {
+				auto fnDrawSocialButton = [window](const void* id, const size_t socialID, const ImVec2 size, const char* tooltip = nullptr) -> bool {
 					const auto bbTuple = g_Image_SocialIcons.GetUVRect(socialID);
 
 					const ImRect bbUV{
@@ -13345,19 +13345,18 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
 					//ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
 					{
-						ImGui::PushID(id);
+						ImGui::PushID(id); // Ensure unique ID context for each button
 						const ImGuiID calcedID = window->GetID("#socialButton");
-						ImGui::PopID();
 
 						clicked = ImGui::ImageButtonEx(calcedID, socialIcons.GetTexture(), size,
 							bbUV.Min, bbUV.Max, ImVec2{ 2.0f, 2.0f },
 							ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f }, ImVec4{ 1.0f , 1.0f, 1.0f, 1.0f });
-					    
-						if (tooltip != nullptr && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-						{
+
+						if (tooltip != nullptr && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
 							ImGui::SetTooltip(tooltip);
 						}
-                    }
+						ImGui::PopID(); // Pop after button creation to maintain correct ID scope
+					}
 					//ImGui::PopStyleColor();
 					ImGui::PopStyleVar();
 
@@ -13423,7 +13422,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				// Mia
 				{
-					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.8f)]);
 					{
 						ImGui::Text("Project Director, Lead Programmer, Artist, Reverse Engineering");
 					}
@@ -13483,9 +13482,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				// Sarah
 				{
-					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.8f)]);
 					{
-						ImGui::Text("Reverse Engineering, Gameplay Programmer, Q&A, Testing");
+						ImGui::Text("Reverse Engineering, Lead Gameplay Programmer, Q&A, Testing");
 					}
 					ImGui::PopFont();
 
@@ -13515,7 +13514,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
 					{
-						ImGui::Text("Reverse Engineering, Tooling, Graphics Programmer");
+						ImGui::Text("Reverse Engineering, Tooling, General Programmer");
 					}
 					ImGui::PopFont();
 
@@ -13585,7 +13584,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
 					{
-						ImGui::Text("Community Manager, Testing, Q&A");
+						ImGui::Text("Community Manager, Testing, Q&A, Game Design Assistant");
 					}
 					ImGui::PopFont();
 
@@ -13703,6 +13702,35 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.2f);
 
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+						{
+							ImGui::Text("Video Producer, Promoter");
+						}
+						ImGui::PopFont();
+
+						ImGui::Separator();
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Text("Dany Sterkhov");
+
+							ImGui::SameLine();
+
+							if (fnDrawSocialButton("danycuhrayzeeyoutube", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://www.youtube.com/@Cuhrayzee", 0, 0, SW_SHOW);
+							}
+
+							ImGui::SameLine();
+
+							if (fnDrawSocialButton("danycuhrayzeetwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://x.com/cuhrayzeee", 0, 0, SW_SHOW);
+							}
+
+						}
+						ImGui::PopFont();
+					}
+
 
 					{
 						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
@@ -13718,9 +13746,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 							ImGui::Text("Cynuma");
 
 							ImGui::SameLine();
- 							
+
 							if (fnDrawSocialButton("cynumatwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
- 									ShellExecute(0, 0, "https://x.com/Cynumaa", 0, 0, SW_SHOW);
+								ShellExecute(0, 0, "https://x.com/Cynumaa", 0, 0, SW_SHOW);
 							}
 						}
 						ImGui::PopFont();
@@ -13774,8 +13802,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 							ImGui::SameLine();
 
-							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
-								ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
+							if (fnDrawSocialButton("vainiusstwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://x.com/vainiuss1", 0, 0, SW_SHOW);
 							}
 						}
 						ImGui::PopFont();
@@ -13795,9 +13823,33 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 							ImGui::Text("adil");
 
 							ImGui::SameLine();
+							ImGui::Spacing();
 
 							if (fnDrawSocialButton("adilgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
 								ShellExecute(0, 0, "https://github.com/adilahmeddev", 0, 0, SW_SHOW);
+							}
+						}
+						ImGui::PopFont();
+					}
+
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+						{
+							ImGui::Text("Programmer");
+						}
+						ImGui::PopFont();
+
+						ImGui::Separator();
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Text("Airdragon");
+
+							ImGui::SameLine();
+							ImGui::Spacing();
+
+							if (fnDrawSocialButton("airdragongithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize() + 2, ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://github.com/Airdragon50", 0, 0, SW_SHOW);
 							}
 						}
 						ImGui::PopFont();
