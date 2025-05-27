@@ -6950,6 +6950,7 @@ void ResetSkyStar(PlayerActorData& actorData) {
 		airCounts.airTornado = 0;
 		airCounts.airRisingSunWhirlwind = 0;
 		airCounts.airAgniRudraWhirlwind = 0;
+        actorData.newAirRisingSunCount = 0;
     }
  
     if (
