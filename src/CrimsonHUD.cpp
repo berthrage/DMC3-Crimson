@@ -1997,7 +1997,7 @@ void StyleDisplayWindow() {
 	if (!(InGame() && !g_inGameCutscene)) {
 		return;
 	}
-	if (!activeCrimsonConfig.CrimsonHudAddons.stylesDisplay) {
+	if (!activeCrimsonConfig.CrimsonHudAddons.stylesDisplay || g_inCredits) {
 		return;
 	}
 	// dmc3.exe + 27E86A - C7 86 38 69 00 00 00 00 48 43 - mov[rsi + 00006938], 43480000 { Top Left Count Alpha Timer
@@ -2470,7 +2470,7 @@ void StyleTextDisplayWindow() {
 	if (!(InGame() && !g_inGameCutscene)) {
 		return;
 	}
-	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.stylesDisplay) {
+	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.stylesDisplay || g_inCredits) {
 		return;
 	}
 	auto& character = mainActorData.character;
@@ -2637,7 +2637,7 @@ void StyleEXPDisplayWindow() {
 	if (!(InGame() && !g_inGameCutscene)) {
 		return;
 	}
-	if (!activeCrimsonConfig.CrimsonHudAddons.stylesDisplay) {
+	if (!activeCrimsonConfig.CrimsonHudAddons.stylesDisplay || g_inCredits) {
 		return;
 	}
 
@@ -2763,7 +2763,7 @@ void StyleLvlDispWindow() {
 	if (!(InGame() && !g_inGameCutscene)) {
 		return;
 	}
-	if (!activeCrimsonConfig.CrimsonHudAddons.stylesDisplay) {
+	if (!activeCrimsonConfig.CrimsonHudAddons.stylesDisplay || g_inCredits) {
 		return;
 	}
 	
@@ -2859,7 +2859,7 @@ void RoyalGaugeDispWindow() {
 	if (!(InGame() && !g_inGameCutscene)) {
 		return;
 	}
-	if (!activeCrimsonConfig.CrimsonHudAddons.stylesDisplay) {
+	if (!activeCrimsonConfig.CrimsonHudAddons.stylesDisplay || g_inCredits) {
 		return;
 	}
 
