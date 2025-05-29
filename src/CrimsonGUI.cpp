@@ -3182,13 +3182,6 @@ void CharacterSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
-			GUI_PushDisable(queuedConfig.Actor.playerCount <= 1);
-			GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
-			ImGui::SameLine();
-			TooltipHelper("(?)", "Allows you to set up PVP Multiplayer.\n"
-				"WARNING: This option WILL break actual enemies (they will freeze). Use with caution.");
-			GUI_PopDisable(queuedConfig.Actor.playerCount <= 1);
-
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
@@ -3239,6 +3232,15 @@ void CharacterSection(size_t defaultFontSize) {
 				
 			}
 			ImGui::PopFont();
+			ImGui::TableNextColumn();
+			ImGui::Text("");
+
+			GUI_PushDisable(queuedConfig.Actor.playerCount <= 1);
+			GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
+			ImGui::SameLine();
+			TooltipHelper("(?) WARNING", "Allows you to set up PVP Multiplayer.\n"
+				"WARNING: This option WILL break actual enemies (they will freeze). Use with caution.", 2048.0f, true);
+			GUI_PopDisable(queuedConfig.Actor.playerCount <= 1);
 
 			ImGui::EndTable();
 		}
@@ -7488,6 +7490,13 @@ void LegacyDDMKCharactersSection() {
 				sizeof(queuedConfig.kalinaAnnHookGrenadeTime));
 			CopyMemory(&activeConfig.kalinaAnnHookGrenadeTime, &queuedConfig.kalinaAnnHookGrenadeTime,
 				sizeof(activeConfig.kalinaAnnHookGrenadeTime));
+
+			CopyMemory(&queuedConfig.enableBossVergilFixes, &defaultConfig.enableBossVergilFixes,
+				sizeof(queuedConfig.enableBossVergilFixes));
+
+			CopyMemory(&queuedConfig.enableBossLadyFixes, &defaultConfig.enableBossLadyFixes,
+				sizeof(queuedConfig.enableBossLadyFixes));
+			
 		}
 	}
 
@@ -7558,8 +7567,8 @@ void LegacyDDMKCharactersSection() {
 			ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
 		}
 		ImGui::SameLine();
-		TooltipHelper("(?)", "Allows you to more properly test Legacy Playable Boss Lady.\n"
-			"WARNING: This checkbox WILL break the actual Boss Lady (ENEMY). Use with caution.");
+		TooltipHelper("(?) WARNING", "Allows you to more properly test Legacy Playable Boss Lady.\n"
+			"WARNING: This checkbox WILL break the actual Boss Lady (ENEMY). Use with caution.", 2048.0f, true);
 
 		ImGui::TableNextColumn();
 
@@ -7568,8 +7577,8 @@ void LegacyDDMKCharactersSection() {
 			ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
 		}
 		ImGui::SameLine();
-		TooltipHelper("(?)", "Allows you to more properly test Legacy Playable Boss Vergil.\n"
-			"WARNING: This checkbox WILL break the actual Boss Vergil (ENEMY). Use with caution.");
+		TooltipHelper("(?) WARNING", "Allows you to more properly test Legacy Playable Boss Vergil.\n"
+			"WARNING: This checkbox WILL break the actual Boss Vergil (ENEMY). Use with caution.", 2048.0f, true);
 
 		ImGui::EndTable();
 	}
