@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="38">
+  <CheatEntries>
+    <CheatEntry>
+      <ID>686</ID>
+      <Description>"RTTI"</Description>
+      <LastState Activated="1"/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+{$Lua}
+s=createMemScan()
+
+s.firstScan(soExactValue, vtString, rtRounded, '.?AV', '', getAddress(process) ,getAddress(process)+getAddress(getModuleSize(process)) ,"*W*X*C" ,fsmNotAligned ,'1' ,false ,true, false, true);
+s.waitTillDone()
+
+fl=createFoundList(s)
+
+names={}
+fl.initialize()
+
+sll=createStringList()
+for i=1,fl.Count do
+  local a=tonumber(fl[i-1],16)
+  names[i]={}
+  names[i].name=readString(tonumber(fl[i-1],16)+4)
+  names[i].address=a-0x10
+  sll.add(names[i].name)
+end
+
+r,selstring=showSelectionList('RTTI Classes','Select the class to find instances of',sll)
+if (r==-1) then return end
+sll.destroy()
+
+print("You picked "..selstring)
+a=names[r+1].address
+if targetIs64Bit() then
+  a=a-getAddress(process)
+end
+
+fl.deinitialize()
+print(string.format("Scanning for %x", a))
+s=createMemScan()
+s.firstScan(soExactValue, vtDword, rtRounded, string.format("%x",a), '', getAddress(process) ,getAddress(process)+getAddress(getModuleSize(process)) ,"*W*X*C" ,fsmNotAligned ,'1' ,true ,true, false, true);
+s.waitTillDone()
+fl=createFoundList(s)
+fl.initialize()
+print("found "..fl.Count.." results")
+
+RTTIInfo={}
+for i=1,fl.Count do
+  local a=tonumber(fl[i-1],16)
+  a=a-12
+  print(string.format("%x", a))
+  if readBytes(a,1)==1 then
+    table.insert(RTTIInfo,a)
+  end
+end
+
+print("after checking only "..#RTTIInfo.." left")
+
+if targetIs64Bit() then
+  scantype=vtQword
+  pointersize=8
+else
+  scantype=vtDword
+  pointersize=4
+end
+
+vtables={}
+
+for i=1,#RTTIInfo do
+  a=RTTIInfo[i]
+  fl.deinitialize()
+  print(string.format("Scanning for %x", a))
+  s.firstScan(soExactValue, scantype, rtRounded, string.format("%x",a), '', getAddress(process) ,getAddress(process)+getAddress(getModuleSize(process)) ,"*W*X*C" ,fsmNotAligned ,'1' ,true ,true, false, true);
+  s.waitTillDone()
+  fl.initialize()
+
+  for j=1,fl.Count do
+    local b=tonumber(fl[j-1],16)+pointersize
+	table.insert(vtables, b)
+	print(string.format("%x", b))
+  end
+end
+
+print(#vtables.." vtables found")
+
+--scan instances
+
+instances={}
+
+for i=1,#vtables do
+  a=vtables[i]
+  fl.deinitialize()
+  print(string.format("Scanning for %x", a))
+  s=createMemScan()
+  s.firstScan(soExactValue, scantype, rtRounded, string.format("%x",a), '', 0 ,0xffffffffffffffff ,"*W*X*C" ,fsmNotAligned ,'1' ,true ,true, false, true);
+  s.waitTillDone()
+  fl=createFoundList(s)
+  fl.initialize()
+
+  for j=1,fl.Count do
+    table.insert(instances, tonumber(fl[j-1],16))
+  end
+end
+
+print("The following instances of the class "..selstring.." where found")
+for i=1,#instances do
+  print(string.format("%x",instances[i]))
+end
+
+[DISABLE]
+
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+  <UserdefinedSymbols/>
+</CheatTable>

@@ -283,6 +283,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonDetours::ToggleFasterTurnRate(activeCrimsonGameplay.Gameplay.General.fasterTurnRate);
         CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonGameplay.Gameplay.General.increasedEnemyJuggleTime);
         //CrimsonPatches::SetEnemyDTMode(activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode);
+        CrimsonDetours::ToggleFixBallsHangHitSpeed(true);
         CrimsonDetours::ToggleCerberusCrashFix(true);
         CrimsonDetours::ToggleVergilM3CrashFix(true);
 
