@@ -19,7 +19,7 @@ struct Version_t {
 		tm UTC;
 	} CreateTime, PublishTime;
 
-	std::string DirectURL;
+	std::string DownloadURL;
 };
 
 enum class PatreonTiers_t : int64_t

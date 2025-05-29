@@ -68,6 +68,7 @@ struct CrimsonConfigGameplayMask {
 			bool airHikeCoreAbility = true;
 			bool altNevanVortex = true;
 			bool artemisRework = true;
+			bool swapArtemisMultiLockNormalShot = true;
 			bool swapDancePierceInputs = true;
 
 			static constexpr auto Metadata() {
@@ -93,6 +94,7 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("airHikeCoreAbility", &Dante::airHikeCoreAbility),
 					std::make_pair("altNevanVortex", &Dante::altNevanVortex),
 					std::make_pair("artemisRework", &Dante::artemisRework),
+					std::make_pair("swapArtemisMultiLockNormalShot", &Dante::swapArtemisMultiLockNormalShot),
 					std::make_pair("swapDancePierceInputs", &Dante::swapDancePierceInputs)
 				);
 			}
@@ -106,9 +108,9 @@ struct CrimsonConfigGameplayMask {
 			bool airRisingSun = true;
 			bool airLunarPhase = true;
 			bool altJudgementCutInput = true;
-			bool yamatoRisingSun = true;
+			bool yamatoRisingStar = true;
+			bool yamatoHighTime = true;
 			bool mirageTrigger = true;
-			bool adjustRisingSunPos = true;
 			bool adjustLunarPhasePos = true;
 			
 
@@ -121,9 +123,9 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("airRisingSun", &Vergil::airRisingSun),
 					std::make_pair("airLunarPhase", &Vergil::airLunarPhase),
 					std::make_pair("altJudgementCutInput", &Vergil::altJudgementCutInput),
-					std::make_pair("yamatoRisingSun", &Vergil::yamatoRisingSun),
+					std::make_pair("yamatoRisingStar", &Vergil::yamatoRisingStar),
+					std::make_pair("yamatoHighTime", &Vergil::yamatoHighTime),
 					std::make_pair("mirageTrigger", &Vergil::mirageTrigger),
-					std::make_pair("adjustRisingSunPos", &Vergil::adjustRisingSunPos),
 					std::make_pair("adjustLunarPhasePos", &Vergil::adjustLunarPhasePos)
 				);
 			}
@@ -272,14 +274,12 @@ struct CrimsonConfigGameplayMask {
 			bool forceRoyalRelease = true;
 			bool infiniteShredder = true;
 			bool infiniteSwordPierce = true;
-			bool swapArtemisMultiLockNormalShot = true;
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
 					std::make_pair("forceRoyalRelease", &Dante::forceRoyalRelease),
 					std::make_pair("infiniteShredder", &Dante::infiniteShredder),
-					std::make_pair("infiniteSwordPierce", &Dante::infiniteSwordPierce),
-					std::make_pair("swapArtemisMultiLockNormalShot", &Dante::swapArtemisMultiLockNormalShot)
+					std::make_pair("infiniteSwordPierce", &Dante::infiniteSwordPierce)
 				);
 			}
 		} Dante;

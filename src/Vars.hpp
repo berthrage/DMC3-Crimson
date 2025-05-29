@@ -5021,10 +5021,11 @@ extern bool inRapidSlash;
 extern bool styleChanged[6];
 
 extern float g_FrameRate;
-extern float g_FrameRateTimeMultiplier;
+extern "C" float g_FrameRateTimeMultiplier;
 extern float g_FrameRateTimeMultiplierRounded;
 extern bool g_inCombat;
 extern bool g_inBossfight;
+extern bool g_inCredits;
 extern int g_bossQuantity;
 extern bool g_inGameDelayed;
 extern bool g_inGameCutscene;
@@ -5316,6 +5317,8 @@ struct CrimsonPlayerData {
 	float lockedOnEnemyMinusDisplacement = 0;
     MoveGravityTweak airFlickerTweak;
     MoveGravityTweak skyDanceTweak;
+    bool inRisingStar = false;
+    bool inAirTauntRisingSun = false;
 
     uintptr_t clonePtr;
     uint8 actionClone     = 0;
@@ -5369,6 +5372,8 @@ struct CrimsonPlayerData {
 	float lockedOnEnemyMinusDisplacementClone = 0;
 	MoveGravityTweak airFlickerTweakClone;
 	MoveGravityTweak skyDanceTweakClone;
+    bool inRisingStarClone = false;
+    bool inAirTauntRisingSunClone = false;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];

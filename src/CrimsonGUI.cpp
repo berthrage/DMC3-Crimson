@@ -194,7 +194,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			window->DrawList->AddImage(logo, logoPos, logoSize);
 
 			// BETA Notice 
-			const char* text = "0.3b DEVELOPMENT BUILD";
+			const char *text = "BETA";
 			ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 0.8f]);
 			ImVec2 textSize = ImGui::CalcTextSize(text);
 			float padding = scaledFontSize * 0.2f;
@@ -357,9 +357,12 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 
 				ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize * 0.9f]);
 
+				std::string latestVersionURL = UI::g_UIContext.LatestVersionURL.empty() ? 
+					"https://github.com/berthrage/Devil-May-Cry-3-Crimson/releases/latest" : UI::g_UIContext.LatestVersionURL;
+
 				// NEW VERSION AVAILABLE
  				if (InfoButton(newVersionText.c_str())) {
- 					ShellExecute(0, 0, "https://github.com/berthrage/Devil-May-Cry-3-Crimson/releases/new", 0, 0, SW_SHOW);
+ 					ShellExecute(0, 0, latestVersionURL.c_str(), 0, 0, SW_SHOW);
  				}
 
 				ImGui::PopFont();
@@ -3180,13 +3183,6 @@ void CharacterSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
-			GUI_PushDisable(queuedConfig.Actor.playerCount <= 1);
-			GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
-			ImGui::SameLine();
-			TooltipHelper("(?)", "Allows you to set up PVP Multiplayer.\n"
-				"WARNING: This option WILL break actual enemies (they will freeze). Use with caution.");
-			GUI_PopDisable(queuedConfig.Actor.playerCount <= 1);
-
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
@@ -3237,6 +3233,15 @@ void CharacterSection(size_t defaultFontSize) {
 				
 			}
 			ImGui::PopFont();
+			ImGui::TableNextColumn();
+			ImGui::Text("");
+
+			GUI_PushDisable(queuedConfig.Actor.playerCount <= 1);
+			GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
+			ImGui::SameLine();
+			TooltipHelper("(?) WARNING", "Allows you to set up PVP Multiplayer.\n"
+				"WARNING: This option WILL break actual enemies (they will freeze). Use with caution.", 2048.0f, true);
+			GUI_PopDisable(queuedConfig.Actor.playerCount <= 1);
 
 			ImGui::EndTable();
 		}
@@ -4105,9 +4110,6 @@ void Render1PAttributes(const char* name, PlayerActorData& actorData) {
 	if (!showBars && !activeCrimsonConfig.MultiplayerBars2D.show) {
 		return;
 	}
-	if (activeConfig.hideMainHUD) {
-		return;
-	}
 
 	auto playerIndex = actorData.newPlayerIndex;
 
@@ -4279,9 +4281,6 @@ void RenderWorldSpaceMultiplayerBar(
 
 void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 	if (!showBars && !(activeConfig.Actor.enable && InGame())) {
-		return;
-	}
-	if (activeConfig.hideMainHUD) {
 		return;
 	}
 
@@ -7492,6 +7491,13 @@ void LegacyDDMKCharactersSection() {
 				sizeof(queuedConfig.kalinaAnnHookGrenadeTime));
 			CopyMemory(&activeConfig.kalinaAnnHookGrenadeTime, &queuedConfig.kalinaAnnHookGrenadeTime,
 				sizeof(activeConfig.kalinaAnnHookGrenadeTime));
+
+			CopyMemory(&queuedConfig.enableBossVergilFixes, &defaultConfig.enableBossVergilFixes,
+				sizeof(queuedConfig.enableBossVergilFixes));
+
+			CopyMemory(&queuedConfig.enableBossLadyFixes, &defaultConfig.enableBossLadyFixes,
+				sizeof(queuedConfig.enableBossLadyFixes));
+			
 		}
 	}
 
@@ -7562,8 +7568,8 @@ void LegacyDDMKCharactersSection() {
 			ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
 		}
 		ImGui::SameLine();
-		TooltipHelper("(?)", "Allows you to more properly test Legacy Playable Boss Lady.\n"
-			"WARNING: This checkbox WILL break the actual Boss Lady (ENEMY). Use with caution.");
+		TooltipHelper("(?) WARNING", "Allows you to more properly test Legacy Playable Boss Lady.\n"
+			"WARNING: This checkbox WILL break the actual Boss Lady (ENEMY). Use with caution.", 2048.0f, true);
 
 		ImGui::TableNextColumn();
 
@@ -7572,8 +7578,8 @@ void LegacyDDMKCharactersSection() {
 			ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
 		}
 		ImGui::SameLine();
-		TooltipHelper("(?)", "Allows you to more properly test Legacy Playable Boss Vergil.\n"
-			"WARNING: This checkbox WILL break the actual Boss Vergil (ENEMY). Use with caution.");
+		TooltipHelper("(?) WARNING", "Allows you to more properly test Legacy Playable Boss Vergil.\n"
+			"WARNING: This checkbox WILL break the actual Boss Vergil (ENEMY). Use with caution.", 2048.0f, true);
 
 		ImGui::EndTable();
 	}
@@ -8089,8 +8095,12 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				return;
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
-
-			ImGui::Text("Vertical Pull  %g", actorData.verticalPull);
+			ImGui::Text("airCounts tatsu %u", crimsonPlayer[0].airCounts.airTornado);
+			ImGui::Text("skyLaunch Executing %u", crimsonPlayer[0].skyLaunch.executing);
+			ImGui::Text("inertia airguard %g", crimsonPlayer[0].inertia.airGuard.cachedPull);
+			ImGui::Text("mirageGauge %g", crimsonPlayer[0].vergilDoppelganger.miragePoints);
+			ImGui::Text("maxMirageGauge %g", crimsonPlayer[0].vergilDoppelganger.maxMiragePoints);
+			ImGui::Text("MovePart %u", actorData.recoverState[0]);
 			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
 			ImGui::Text("cameraHittingWall: %u", g_cameraHittingWall);
 			ImGui::Text("actorData styleLevel: %u", actorData.styleLevel);
@@ -10772,6 +10782,17 @@ void DanteGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
+			if (GUI_Checkbox2("Swap Artemis' Inputs",
+				activeCrimsonGameplay.Gameplay.Dante.swapArtemisMultiLockNormalShot,
+				queuedCrimsonGameplay.Gameplay.Dante.swapArtemisMultiLockNormalShot)) {
+				ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonGameplay.Gameplay.Dante.swapArtemisMultiLockNormalShot);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Swaps Artemis' Multi-Lock and Normal Shot inputs/funcionality.\n"
+				"Multi-Lock fires from Normal Shot, and Normal Shot goes to Gunslinger.");
+
+			ImGui::TableNextColumn();
+
 			if (GUI_Checkbox2("Cut Nevan Air Slash Knockback",
 				activeCrimsonGameplay.Gameplay.Dante.disableAirSlashKnockback,
 				queuedCrimsonGameplay.Gameplay.Dante.disableAirSlashKnockback)) {
@@ -10845,17 +10866,6 @@ void DanteCheatOptions() {
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Makes Rebellion's Sword Pierce last for an indefinite amount of time.");
-
-			ImGui::TableNextColumn();
-
-			if (GUI_Checkbox2("Swap Artemis' Multi-Lock / Normal Shot",
-				activeCrimsonGameplay.Cheats.Dante.swapArtemisMultiLockNormalShot,
-				queuedCrimsonGameplay.Cheats.Dante.swapArtemisMultiLockNormalShot)) {
-				ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonGameplay.Cheats.Dante.swapArtemisMultiLockNormalShot);
-			}
-			ImGui::SameLine();
-			TooltipHelper("(?)", "Swaps Artemis' Multi-Lock and Normal Shot inputs/funcionality.\n"
-				"Multi-Lock fires from Normal Shot, and Normal Shot goes to Gunslinger.");
 
 			ImGui::EndTable();
 		}
@@ -10976,16 +10986,26 @@ void VergilGameplayOptions() {
 
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
-			if (GUI_Checkbox2("Yamato Rising Sun",
-				activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun,
-				queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingSun)) {
+			if (GUI_Checkbox2("Yamato Rising Star",
+				activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingStar,
+				queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingStar)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
-			GUI_WIPButton();
+			TooltipHelper("(?)", "With Yamato: During Rapid Slash HOLD Melee + Forward.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Yamato High Time",
+				activeCrimsonGameplay.Gameplay.Vergil.yamatoHighTime,
+				queuedCrimsonGameplay.Gameplay.Vergil.yamatoHighTime)) {
+			}
 			ImGui::SameLine();
-			TooltipHelper("(?)", "With Yamato, at the end of any move: Lock On + Back + Melee.");
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "With Yamato: Lock On + Back + HOLD Melee");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
@@ -11000,20 +11020,6 @@ void VergilGameplayOptions() {
 			TooltipHelper("(?)", "Press Left or Right D-Pad to summon Doppelganger.\n"
 			"Vergil's Doppelganger uses a separate resource called Mirage Gauge, indicated on his HUD as a white bar.\n"
 			"Mirage Gauge refills like DT (but is separate from it), and can be turned on/off at will, without a minimum amount required.");
-			GUI_PopDisable(!activeConfig.Actor.enable);
-
-			ImGui::TableNextColumn();
-			GUI_PushDisable(!activeConfig.Actor.enable);
-			ImGui::PushItemWidth(itemWidth * 0.5f);
-			UI::ComboVectorString2("Alt. Rising Sun Positioning",
-				VergilMoveAdjustmentsNames,
-				activeCrimsonGameplay.Gameplay.Vergil.adjustRisingSunPos,
-				queuedCrimsonGameplay.Gameplay.Vergil.adjustRisingSunPos);
-			ImGui::PopItemWidth();
-			ImGui::SameLine();
-			GUI_CCSRequirementButton();
-			ImGui::SameLine();
-			TooltipHelper("(?)", "Stops Rising Sun from going upwards, still launches enemy.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
@@ -12024,8 +12030,11 @@ void GamepadToggleShowMain() {
 	for (int i = 0; i < 4; ++i) {
 		if (CrimsonSDL::controllers[i] != NULL) {
 			// Combination of buttons to check
-			bool combination = (CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK) && 
-                CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK));
+			bool combination = (
+				CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK) &&
+				CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK) &&
+				!CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_TOUCHPAD)
+				);
 
 			// Combination pressed and was not pressed before, toggle GUI and set window focus
 			if (combination && !g_showMain && gamepadCombinationMainRelease[i]) {
@@ -12173,25 +12182,26 @@ void Main(IDXGISwapChain* pSwapChain) {
 			    if (res == WebAPIResult::Success) {
 					UI::g_UIContext.LatestVersion.Major = latestVersion.Major;
 					UI::g_UIContext.LatestVersion.Minor = latestVersion.Minor;
+					UI::g_UIContext.LatestVersion.PatchLetter = latestVersion.PatchLetter;
 
 			    	UI::g_UIContext.LatestUpdateDate.Year = latestVersion.PublishTime.Local.tm_year + 1900;
 			    	UI::g_UIContext.LatestUpdateDate.Month = latestVersion.PublishTime.Local.tm_mon + 1;
 			    	UI::g_UIContext.LatestUpdateDate.Day = latestVersion.PublishTime.Local.tm_mday;
 
-                    UI::g_UIContext.LatestVersionURL = latestVersion.DirectURL;
+                    UI::g_UIContext.LatestVersionURL = latestVersion.DownloadURL;
 
-					if (UI::g_UIContext.LatestVersion.Major > UI::g_UIContext.CurrentVersion.Major) 
+					if (UI::g_UIContext.LatestVersion.Major > UI::g_UIContext.CurrentVersion.Major)
                     {
 						UI::g_UIContext.NewVersionAvailable = true;
 					}
 					else if (UI::g_UIContext.LatestVersion.Major == UI::g_UIContext.CurrentVersion.Major &&
-						        UI::g_UIContext.LatestVersion.Minor > UI::g_UIContext.CurrentVersion.Minor) 
+						        UI::g_UIContext.LatestVersion.Minor > UI::g_UIContext.CurrentVersion.Minor)
                     {
 						UI::g_UIContext.NewVersionAvailable = true;
 					}
                     else if (UI::g_UIContext.LatestVersion.Major == UI::g_UIContext.CurrentVersion.Major &&
                                 UI::g_UIContext.LatestVersion.Minor == UI::g_UIContext.CurrentVersion.Minor &&
-                                UI::g_UIContext.LatestVersion.PatchLetter > UI::g_UIContext.CurrentVersion.PatchLetter)
+								UI::g_UIContext.LatestVersion.PatchLetter > UI::g_UIContext.CurrentVersion.PatchLetter)
                     {
                         UI::g_UIContext.NewVersionAvailable = true;
                     }
@@ -12236,7 +12246,7 @@ void Main(IDXGISwapChain* pSwapChain) {
 
 					case PatreonTiers_t::LDK:
 					{
-						UI::g_UIContext.PatronsSDT.push_back(patron.ShownName);
+						UI::g_UIContext.PatronsLDK.push_back(patron.ShownName);
 
 						// Set the name of the tier to be displayed
 						UI::g_UIContext.TierNames[(size_t)patron.Tier] = patron.TierName;
@@ -12436,7 +12446,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				bool isSelected = size_t(context.SelectedGameMode) == i;
 
 				if (ImGui::Selectable(modes[i], isSelected)) {
-					CrimsonGameModes::SetGameMode((uint8)i);
+					CrimsonGameModes::SetGameModePreset((uint8)i);
 					CrimsonGameplay::AdjustDMC4MobilitySettings();
 					::GUI::save = true;
 				}
@@ -13331,7 +13341,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.4f);
 
-				auto fnDrawSocialButton = [window](const void* id, const size_t socialID, const ImVec2 size, const char* tooltip = nullptr)->bool {
+				auto fnDrawSocialButton = [window](const void* id, const size_t socialID, const ImVec2 size, const char* tooltip = nullptr) -> bool {
 					const auto bbTuple = g_Image_SocialIcons.GetUVRect(socialID);
 
 					const ImRect bbUV{
@@ -13344,19 +13354,18 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
 					//ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
 					{
-						ImGui::PushID(id);
+						ImGui::PushID(id); // Ensure unique ID context for each button
 						const ImGuiID calcedID = window->GetID("#socialButton");
-						ImGui::PopID();
 
 						clicked = ImGui::ImageButtonEx(calcedID, socialIcons.GetTexture(), size,
 							bbUV.Min, bbUV.Max, ImVec2{ 2.0f, 2.0f },
 							ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f }, ImVec4{ 1.0f , 1.0f, 1.0f, 1.0f });
-					    
-						if (tooltip != nullptr && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-						{
+
+						if (tooltip != nullptr && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
 							ImGui::SetTooltip(tooltip);
 						}
-                    }
+						ImGui::PopID(); // Pop after button creation to maintain correct ID scope
+					}
 					//ImGui::PopStyleColor();
 					ImGui::PopStyleVar();
 
@@ -13422,7 +13431,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				// Mia
 				{
-					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.8f)]);
 					{
 						ImGui::Text("Project Director, Lead Programmer, Artist, Reverse Engineering");
 					}
@@ -13482,9 +13491,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				// Sarah
 				{
-					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.8f)]);
 					{
-						ImGui::Text("Reverse Engineering, Gameplay Programmer, Q&A, Testing");
+						ImGui::Text("Reverse Engineering, Lead Gameplay Programmer, Q&A, Testing");
 					}
 					ImGui::PopFont();
 
@@ -13514,7 +13523,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
 					{
-						ImGui::Text("Reverse Engineering, Tooling, Graphics Programmer");
+						ImGui::Text("Reverse Engineering, Tooling, General Programmer");
 					}
 					ImGui::PopFont();
 
@@ -13584,7 +13593,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
 					{
-						ImGui::Text("Community Manager, Testing, Q&A");
+						ImGui::Text("Community Manager, Testing, Q&A, Game Design Assistant");
 					}
 					ImGui::PopFont();
 
@@ -13702,6 +13711,35 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.2f);
 
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+						{
+							ImGui::Text("Video Producer, Promoter");
+						}
+						ImGui::PopFont();
+
+						ImGui::Separator();
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Text("Dany Sterkhov");
+
+							ImGui::SameLine();
+
+							if (fnDrawSocialButton("danycuhrayzeeyoutube", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://www.youtube.com/@Cuhrayzee", 0, 0, SW_SHOW);
+							}
+
+							ImGui::SameLine();
+
+							if (fnDrawSocialButton("danycuhrayzeetwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://x.com/cuhrayzeee", 0, 0, SW_SHOW);
+							}
+
+						}
+						ImGui::PopFont();
+					}
+
 
 					{
 						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
@@ -13717,9 +13755,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 							ImGui::Text("Cynuma");
 
 							ImGui::SameLine();
- 							
+
 							if (fnDrawSocialButton("cynumatwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
- 									ShellExecute(0, 0, "https://x.com/Cynumaa", 0, 0, SW_SHOW);
+								ShellExecute(0, 0, "https://x.com/Cynumaa", 0, 0, SW_SHOW);
 							}
 						}
 						ImGui::PopFont();
@@ -13773,8 +13811,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 							ImGui::SameLine();
 
-							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
-								ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
+							if (fnDrawSocialButton("vainiusstwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://x.com/vainiuss1", 0, 0, SW_SHOW);
 							}
 						}
 						ImGui::PopFont();
@@ -13794,9 +13832,33 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 							ImGui::Text("adil");
 
 							ImGui::SameLine();
+							ImGui::Spacing();
 
 							if (fnDrawSocialButton("adilgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
 								ShellExecute(0, 0, "https://github.com/adilahmeddev", 0, 0, SW_SHOW);
+							}
+						}
+						ImGui::PopFont();
+					}
+
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+						{
+							ImGui::Text("Programmer");
+						}
+						ImGui::PopFont();
+
+						ImGui::Separator();
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Text("Airdragon");
+
+							ImGui::SameLine();
+							ImGui::Spacing();
+
+							if (fnDrawSocialButton("airdragongithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize() + 2, ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://github.com/Airdragon50", 0, 0, SW_SHOW);
 							}
 						}
 						ImGui::PopFont();
@@ -13962,7 +14024,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			{
 				auto window = ImGui::GetCurrentWindow();
 				constexpr const char* THX_TEXT = "Thank you all for playing and supporting the project!";
-				constexpr const char* LICENCE_BUTTON_TEXT = "LICENCE";
+				constexpr const char* LICENSE_BUTTON_TEXT = "LICENSE";
 				constexpr const char* COPYRIGHT_TEXT = "Copyright (c) 2025 Berthrage";
 
 				{
@@ -13972,11 +14034,11 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[context.DefaultFontSize]);
 				{
-					const float licenceButtonWidth = ImGui::CalcTextSize(LICENCE_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
+					const float licenseButtonWidth = ImGui::CalcTextSize(LICENSE_BUTTON_TEXT).x + style.FramePadding.x * 2.0f;
 
 					ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
-					ImGui::SetCursorScreenPos(ImVec2{ areaMin.x + (areaSize.x - licenceButtonWidth) * 0.5f, areaMin.y + scaledFontSize * 2.0f });
-					UI::InfoButton(LICENCE_BUTTON_TEXT);
+					ImGui::SetCursorScreenPos(ImVec2{ areaMin.x + (areaSize.x - licenseButtonWidth) * 0.5f, areaMin.y + scaledFontSize * 2.0f });
+					UI::InfoButton(LICENSE_BUTTON_TEXT);
 					ImGui::PopStyleVar();
 				}
 				ImGui::PopFont();
@@ -14045,6 +14107,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     // outside of In Game.
     
   	CrimsonOnTick::FrameResponsiveGameSpeed();
+	CrimsonOnTick::InCreditsDetection();
 	CrimsonOnTick::WeaponProgressionTracking();
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
 	CrimsonOnTick::FixM7DevilTriggerUnlocking();

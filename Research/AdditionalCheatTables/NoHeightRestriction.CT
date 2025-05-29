@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>20</ID>
+      <Description>"No Height Restriction"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+dmc3.exe+1E61BB: // 0x7FF6623F61BB
+db 90 90 90 90 90 90 // rainstorm
+
+dmc3.exe+1E621D: // 0x7FF6623F621D
+db 90 90 90 90 90 90 // rave
+
+dmc3.exe+1E61EC: // 0x7FF6623F61EC
+db 90 90 90 90 90 90 // helm breaker
+
+[DISABLE]
+dmc3.exe+1E61BB:
+db 0F 86 F4 00 00 00 // jbe dmc3.exe+1E62B5
+
+dmc3.exe+1E621D:
+db 0F 86 92 00 00 00 // jbe dmc3.exe+1E62B5
+
+dmc3.exe+1E61EC:
+db 0F 86 C3 00 00 00 // jbe dmc3.exe+1E62B5
+
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

@@ -14,6 +14,6 @@ namespace Paths {
 
 #endif
 std::vector<std::string> getDirectories(std::string path);
-std::vector<std::string> getFiles(std::string path);
+std::vector<std::string> getFiles(const std::string& path);
 void getHUDsDirectories();
 void copyHUDtoGame();

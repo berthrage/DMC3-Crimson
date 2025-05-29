@@ -337,6 +337,8 @@ FileManager File_dynamicFiles;
 FileDataTypeData fileDataTypeData[CACHE_FILE_COUNT] = {};
 
 byte8* demo_pl000_00_3 = 0;
+byte8* vergil_pl021_00_3 = 0;
+byte8* newRisingStar_pl021_00_4 = 0;
 
 void File_UpdateFileData(FileData& fileData, uint16 cacheFileIndex) {
     SetMemory(&fileData, 0, sizeof(fileData));
@@ -560,13 +562,22 @@ bool File_Init() {
     // Demo Rebellion Motion File
     [&]() {
         const char* filename = "demo_pl000_00_3.pac";
+        const char* vergilYamatoFilename = "pl021_00_3.pac";
+        const char* newRisingStarYamatoFilename = "newRisingStar_pl021_00_4.pac";
 
         auto& file = demo_pl000_00_3 = File_staticFiles.Push(filename);
+        auto& file2 = vergil_pl021_00_3 = File_staticFiles.Push(vergilYamatoFilename);
+        auto& file3 = newRisingStar_pl021_00_4 = File_staticFiles.Push(newRisingStarYamatoFilename);
         if (!file) {
+            return;
+        }
+        if (!file2) {
             return;
         }
 
         AdjustPointers(file);
+        AdjustPointers(file2);
+        AdjustPointers(file3);
     }();
 
 

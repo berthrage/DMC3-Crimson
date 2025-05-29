@@ -31,17 +31,20 @@ std::vector<std::string> getDirectories(std::string path) {
 	return directories;
 }
 
-std::vector<std::string> getFiles(std::string path) {
+std::vector<std::string> getFiles(const std::string& path) {
 	std::vector<std::string> files;
-
-	if (fs::exists(path) && fs::is_directory(path)) {
-		for (const auto& entry : fs::directory_iterator(path)) {
-			if (entry.is_regular_file()) {
-				files.push_back(entry.path().filename().string());
+	try {
+		if (fs::exists(path) && fs::is_directory(path)) {
+			for (const auto& entry : fs::directory_iterator(path)) {
+				if (entry.is_regular_file()) {
+					files.push_back(entry.path().filename().string());
+				}
 			}
 		}
+	} catch (const fs::filesystem_error& e) {
+		const char* errorMsg = e.what();
+		Log(errorMsg);
 	}
-
 	return files;
 }
 

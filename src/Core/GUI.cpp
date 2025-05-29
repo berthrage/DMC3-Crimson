@@ -433,13 +433,18 @@ ID3D11ShaderResourceView* CreateTexture(const char* filename, ID3D11Device* devi
 }
 
 // @Research: Consider inline.
-void TooltipHelper(const char* name, const char* description, float x) {
+void TooltipHelper(const char* name, const char* description, float x, bool extraAttention) {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	auto scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
 
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
-    ImGui::TextDisabled(name);
+    if (!extraAttention) {
+		ImGui::TextDisabled(name);
+	} else {
+		auto restartStrColor = CrimsonUtil::HexToImVec4(0x1DD6FFFF);
+		ImGui::TextColored(restartStrColor, name);
+	}
 
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
