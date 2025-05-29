@@ -655,6 +655,8 @@ DelayedComboFX delayedComboFX;
 
 bool changedFrameRateCorrection = false;
 
+std::vector<std::string> HUDdirectories;
+
 float frameRateSpeedMultiplier = 0;
 
 // 0 - 1P, 1 - 1P clone, 2 - 2P, 3 - 2P clone, 4 - 3P, 5 - 3P clone, 6 - 4P, 7 - 4P clone

@@ -4107,9 +4107,6 @@ void Render1PAttributes(const char* name, PlayerActorData& actorData) {
 	if (!showBars && !activeCrimsonConfig.MultiplayerBars2D.show) {
 		return;
 	}
-	if (activeConfig.hideMainHUD) {
-		return;
-	}
 
 	auto playerIndex = actorData.newPlayerIndex;
 
@@ -4281,9 +4278,6 @@ void RenderWorldSpaceMultiplayerBar(
 
 void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 	if (!showBars && !(activeConfig.Actor.enable && InGame())) {
-		return;
-	}
-	if (activeConfig.hideMainHUD) {
 		return;
 	}
 
