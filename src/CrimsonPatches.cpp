@@ -397,7 +397,7 @@ void HandleDynamicSPCameraDistance(float& cameraDistance, float groundDistance, 
 	if (!pool_166 || !pool_166[3]) return;
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
 
-	if (activeConfig.Actor.playerCount == 1) {
+	if (activeConfig.Actor.playerCount == 1 || !activeConfig.Actor.enable || mainActorData.mode >= ACTOR_MODE::MISSION_18) {
 		activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
 	}
 
@@ -614,6 +614,10 @@ void HandlePanoramicSPCameraDistance(float& cameraDistance, float groundDistance
 }
 
 void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistanceSP, float airDistanceSP) {
+	auto pool_166 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_166 || !pool_166[3]) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
+
 	static auto lastAdjustmentTime = std::chrono::steady_clock::now();
 	const auto timeThreshold = std::chrono::milliseconds(1000); // 1 second delay
 	static auto lastWallClearTime = std::chrono::steady_clock::now();
@@ -632,6 +636,11 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 		activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
 		fovWasIncreased = false;
 		return;
+	}
+
+	// Restoring FOV when transitioning from MPcam to SPcam
+	if (activeConfig.Actor.playerCount == 1 || !activeConfig.Actor.enable || mainActorData.mode >= ACTOR_MODE::MISSION_18) {
+		activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
 	}
 
 	auto pool_11962 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
@@ -814,13 +823,13 @@ void CameraDistanceController(CameraData* cameraData, CameraControlMetadata& cam
 
 	if (activeCrimsonConfig.Camera.distance == 2) { // Dynamic
 
-        if (g_isMPCamActive) {
+        if (g_isMPCamActive && activeConfig.Actor.enable) {
             HandleMultiplayerCameraDistance(cameraData->distance, 430, 580);
         }
         else if (g_isParanoramicCamActive && g_inCombat) {
             HandlePanoramicSPCameraDistance(cameraData->distance, 430, 580);
         }
-        else if (!(g_isMPCamActive || (g_isParanoramicCamActive && g_inCombat))){
+        else if (!(g_isMPCamActive || (g_isParanoramicCamActive && g_inCombat) || activeConfig.Actor.enable)){
             HandleDynamicSPCameraDistance(cameraData->distance, 430, 580);
         }
 	}

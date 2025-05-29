@@ -601,6 +601,7 @@ float g_FrameRateTimeMultiplier = 0;
 float g_FrameRateTimeMultiplierRounded = 0;
 bool g_inCombat = false;
 bool g_inBossfight = false;
+bool g_inCredits = false;
 int g_bossQuantity = 0;
 bool g_inGameDelayed = false;
 bool g_inGameCutscene = false;

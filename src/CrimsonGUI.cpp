@@ -14095,6 +14095,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     // outside of In Game.
     
   	CrimsonOnTick::FrameResponsiveGameSpeed();
+	CrimsonOnTick::InCreditsDetection();
 	CrimsonOnTick::WeaponProgressionTracking();
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
 	CrimsonOnTick::FixM7DevilTriggerUnlocking();

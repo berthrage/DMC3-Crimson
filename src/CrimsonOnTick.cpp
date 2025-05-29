@@ -101,6 +101,16 @@ void GameTrackDetection() {
 	g_gameTrackPlaying = (std::string)reinterpret_cast<char*>(appBaseAddr + 0xD23906);
 }
 
+void InCreditsDetection() {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	auto pool_19326 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_19326 || !pool_19326[12]) {
+		return;
+	}
+	auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_19326[12]);
+	g_inCredits = (sessionData.mission == 20) && (nextEventData.room == 12);
+}
+
 void PreparePlayersDataBeforeSpawn() {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
@@ -346,6 +356,22 @@ void MultiplayerCameraPositioningController() {
 	if (!pool_11962 || !pool_11962[8]) return;
 	auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
 
+	auto pool_19326 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_19326 || !pool_19326[12]) {
+		return;
+	}
+	auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_19326[12]);
+
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	// Fix for Arkham Pt.2 (and for M20 Credits) transitioning if doppelganger or multiplayer is active,
+	// preventing the camera from going into the Shadow Realm or stuck on a wall.
+	if (mainActorData.mode == ACTOR_MODE::MISSION_19 || mainActorData.mode == ACTOR_MODE::MISSION_18 ||
+		(sessionData.mission == 20) && (nextEventData.room == 12)) {
+		CrimsonDetours::ToggleCustomCameraPositioning(false);
+		return;
+	}
+	
 	g_customCameraPos[0] = 0.0f; // X
 	g_customCameraPos[1] = 0.0f; // Y
 	g_customCameraPos[2] = 0.0f; // Z
@@ -665,7 +691,9 @@ void MultiplayerCameraPositioningController() {
 	CrimsonPatches::DisableLockOnCamera(g_isMPCamActive);
 
 	// Activate multiplayer camera positioning
-	CrimsonDetours::ToggleCustomCameraPositioning(g_isMPCamActive && activeCrimsonConfig.Camera.multiplayerCamera);
+	CrimsonDetours::ToggleCustomCameraPositioning(g_isMPCamActive && 
+		activeCrimsonConfig.Camera.multiplayerCamera &&
+		mainActorData.mode != ACTOR_MODE::MISSION_19);
 }
 
 CameraData* GetSafeCameraData() {
