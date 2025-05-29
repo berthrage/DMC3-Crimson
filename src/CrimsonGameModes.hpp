@@ -3,7 +3,8 @@
 #include <cmath>
 
 namespace CrimsonGameModes {
-void SetGameMode(uint8 mode);
+void SetGameModePreset(uint8 mode);
+void SetGameModeMasked(uint8 mode);
 void TrackGameMode();
 void TrackCheats();
 void TrackMissionResultGameMode();
@@ -170,6 +171,47 @@ void AssignMembersMasked(T& dst, const T& src, const MaskT& mask) {
 	constexpr auto configMeta = T::Metadata();
 	constexpr auto maskMeta = MaskT::Metadata();
 	AssignMembersMaskedImpl(dst, src, mask, configMeta, maskMeta,
+		std::make_index_sequence<std::tuple_size<decltype(configMeta)>::value>{});
+}
+
+// For array types (leaf)
+template<typename T, size_t N>
+void AssignMemberPreset(T(&dst)[N], const T(&src)[N], bool mask) {
+	for (size_t i = 0; i < N; ++i) {
+		dst[i] = src[i];
+	}
+}
+// For bool mask members (leaf)
+template<typename T, typename MaskT>
+typename std::enable_if<std::is_same<MaskT, bool>::value && !std::is_array<T>::value, void>::type
+AssignMemberPreset(T& dst, const T& src, const MaskT& mask) {
+	dst = src;
+}
+// Forward declaration for struct mask members (recurse)
+template<typename T, typename MaskT>
+void AssignMembersPreset(T& dst, const T& src, const MaskT& mask);
+// For struct mask members (recurse)
+template<typename T, typename MaskT>
+typename std::enable_if<!std::is_same<MaskT, bool>::value, void>::type
+AssignMemberPreset(T& dst, const T& src, const MaskT& mask) {
+	AssignMembersPreset(dst, src, mask);
+}
+// Helper for preset member assignment
+template<typename T, typename MaskT, typename Tuple1, typename Tuple2, std::size_t... I>
+void AssignMembersPresetImpl(T& dst, const T& src, const MaskT& mask,
+	const Tuple1& configMeta, const Tuple2& maskMeta, std::index_sequence<I...>) {
+	(AssignMemberPreset(
+		dst.*(std::get<I>(configMeta).second),
+		src.*(std::get<I>(configMeta).second),
+		mask.*(std::get<I>(maskMeta).second)
+	), ...);
+}
+// Preset member assignment
+template<typename T, typename MaskT>
+void AssignMembersPreset(T& dst, const T& src, const MaskT& mask) {
+	constexpr auto configMeta = T::Metadata();
+	constexpr auto maskMeta = MaskT::Metadata();
+	AssignMembersPresetImpl(dst, src, mask, configMeta, maskMeta,
 		std::make_index_sequence<std::tuple_size<decltype(configMeta)>::value>{});
 }
 }

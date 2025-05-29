@@ -227,7 +227,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	dante.airHikeCoreAbility = true;
 	dante.altNevanVortex = true;
 	dante.artemisRework = true;
-	//dante.swapDancePierceInputs = false;
+	dante.swapDancePierceInputs = true;
 
 	// Vergil section
 	auto& vergil = preset.Gameplay.Vergil;
@@ -331,6 +331,7 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Gameplay.General.bufferlessReversals = false;
 	mask.Gameplay.General.dmc4LockOnDirection = false;
 	mask.Gameplay.General.fasterTurnRate = false;
+	mask.Gameplay.Dante.swapArtemisMultiLockNormalShot = false;
 	
 	// NEW MOVES are optional
 	mask.Gameplay.Dante.airRevolver = false;
@@ -388,6 +389,7 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.bufferlessReversals = false;
 	mask.Gameplay.General.fasterTurnRate = false;
+	mask.Gameplay.Dante.swapArtemisMultiLockNormalShot = false;
 
 	// NEW MOVES are optional
 	mask.Gameplay.Dante.airRevolver = false;
@@ -463,8 +465,38 @@ const CrimsonConfigGameplay& GetCurrentPreset(uint8 mode) {
 	}
 }
 
+void CrimsonGameModes::SetGameModePreset(uint8 mode) {
+	// This function sets the game mode using full assignment,
+	// meaning it updates all fields in the Gameplay and Cheats structures,
+	// regardless of whether they are obligatory for the mode or not.
+	switch (mode) {
+	case GAMEMODEPRESETS::VANILLA:
+ 		AssignMembersPreset(activeCrimsonGameplay, VANILLA_PRESET, VANILLA_MASK);
+		AssignMembersPreset(queuedCrimsonGameplay, VANILLA_PRESET, VANILLA_MASK);
+		queuedConfig.Actor.enable = false;
+		break;
+	case GAMEMODEPRESETS::STYLE_SWITCHER:
+		AssignMembersPreset(activeCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
+		AssignMembersPreset(queuedCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
+		queuedConfig.Actor.enable = true;
+		break;
+	case GAMEMODEPRESETS::CRIMSON:
+		AssignMembersPreset(activeCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
+		AssignMembersPreset(queuedCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
+		queuedConfig.Actor.enable = true;
+		break;
+	default:
+		break;
+	}
+	// Set the preset field explicitly
+	activeCrimsonGameplay.GameMode.preset = mode;
+	queuedCrimsonGameplay.GameMode.preset = mode;
+}
 
-void CrimsonGameModes::SetGameMode(uint8 mode) {
+void CrimsonGameModes::SetGameModeMasked(uint8 mode) {
+	// This function sets the game mode using masked assignment,
+	// meaning it only updates fields that are obligatory,
+	// while ignoring the options that aren't obligatory for the mode.
 	switch (mode) {
 	case GAMEMODEPRESETS::VANILLA:
 		AssignMembersMasked(activeCrimsonGameplay, VANILLA_PRESET, VANILLA_MASK);
@@ -474,83 +506,11 @@ void CrimsonGameModes::SetGameMode(uint8 mode) {
 	case GAMEMODEPRESETS::STYLE_SWITCHER:
 		AssignMembersMasked(activeCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
 		AssignMembersMasked(queuedCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
-		activeCrimsonGameplay.Gameplay.General.fasterTurnRate = true;
-		queuedCrimsonGameplay.Gameplay.General.fasterTurnRate = true;
-
-		activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
-		queuedCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
-
-		activeCrimsonGameplay.Gameplay.Dante.airRevolver = true;
-		queuedCrimsonGameplay.Gameplay.Dante.airRevolver = true;
-
-		activeCrimsonGameplay.Gameplay.Dante.airTornado = true;
-		queuedCrimsonGameplay.Gameplay.Dante.airTornado = true;
-
-		activeCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind = true;
-		queuedCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind = true;
-
-		activeCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind = true;
-		queuedCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind = true;
-
-		activeCrimsonGameplay.Gameplay.Dante.airStinger = false;
-		queuedCrimsonGameplay.Gameplay.Dante.airStinger = false;
-
-		activeCrimsonGameplay.Gameplay.Vergil.airLunarPhase = true;
-		queuedCrimsonGameplay.Gameplay.Vergil.airLunarPhase = true;
-
-		activeCrimsonGameplay.Gameplay.Vergil.airRisingSun = true;
-		queuedCrimsonGameplay.Gameplay.Vergil.airRisingSun = true;
-
-		activeCrimsonGameplay.Gameplay.Vergil.airStinger = true;
-		queuedCrimsonGameplay.Gameplay.Vergil.airStinger = true;
-
-		activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingStar = false;
-		queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingStar = false;
-
-		activeCrimsonGameplay.Gameplay.Vergil.yamatoHighTime = false;
-		queuedCrimsonGameplay.Gameplay.Vergil.yamatoHighTime = false;
-
 		queuedConfig.Actor.enable = true;
 		break;
 	case GAMEMODEPRESETS::CRIMSON:
 		AssignMembersMasked(activeCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
 		AssignMembersMasked(queuedCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
-		activeCrimsonGameplay.Gameplay.General.fasterTurnRate = true;
-		queuedCrimsonGameplay.Gameplay.General.fasterTurnRate = true;
-
-		activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
-		queuedCrimsonGameplay.Gameplay.General.holdToCrazyCombo = true;
-
-		activeCrimsonGameplay.Gameplay.Dante.airRevolver = true;
-		queuedCrimsonGameplay.Gameplay.Dante.airRevolver = true;
-
-		activeCrimsonGameplay.Gameplay.Dante.airTornado = true;
-		queuedCrimsonGameplay.Gameplay.Dante.airTornado = true;
-
-		activeCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind = true;
-		queuedCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind = true;
-
-		activeCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind = true;
-		queuedCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind = true;
-
-		activeCrimsonGameplay.Gameplay.Dante.airStinger = true;
-		queuedCrimsonGameplay.Gameplay.Dante.airStinger = true;
-
-		activeCrimsonGameplay.Gameplay.Vergil.airLunarPhase = true;
-		queuedCrimsonGameplay.Gameplay.Vergil.airLunarPhase = true;
-
-		activeCrimsonGameplay.Gameplay.Vergil.airRisingSun = true;
-		queuedCrimsonGameplay.Gameplay.Vergil.airRisingSun = true;
-
-		activeCrimsonGameplay.Gameplay.Vergil.airStinger = true;
-		queuedCrimsonGameplay.Gameplay.Vergil.airStinger = true;
-
-		activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingStar = true;
-		queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingStar = true;
-
-		activeCrimsonGameplay.Gameplay.Vergil.yamatoHighTime = true;
-		queuedCrimsonGameplay.Gameplay.Vergil.yamatoHighTime = true;
-
 		queuedConfig.Actor.enable = true;
 		break;
 	default:
@@ -589,7 +549,7 @@ void CrimsonGameModes::TrackGameMode() {
 	// If the matched preset differs from the current preset, update it
 	if (matchedPreset != currentActivePreset) {
 		if (matchedPreset != GAMEMODEPRESETS::CUSTOM) {
-			SetGameMode(matchedPreset);
+			SetGameModeMasked(matchedPreset);
 		} else {
 			activeCrimsonGameplay.GameMode.preset = GAMEMODEPRESETS::CUSTOM;
 			queuedCrimsonGameplay.GameMode.preset = GAMEMODEPRESETS::CUSTOM;

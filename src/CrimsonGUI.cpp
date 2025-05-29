@@ -10779,6 +10779,17 @@ void DanteGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
+			if (GUI_Checkbox2("Swap Artemis' Inputs",
+				activeCrimsonGameplay.Gameplay.Dante.swapArtemisMultiLockNormalShot,
+				queuedCrimsonGameplay.Gameplay.Dante.swapArtemisMultiLockNormalShot)) {
+				ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonGameplay.Gameplay.Dante.swapArtemisMultiLockNormalShot);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Swaps Artemis' Multi-Lock and Normal Shot inputs/funcionality.\n"
+				"Multi-Lock fires from Normal Shot, and Normal Shot goes to Gunslinger.");
+
+			ImGui::TableNextColumn();
+
 			if (GUI_Checkbox2("Cut Nevan Air Slash Knockback",
 				activeCrimsonGameplay.Gameplay.Dante.disableAirSlashKnockback,
 				queuedCrimsonGameplay.Gameplay.Dante.disableAirSlashKnockback)) {
@@ -10852,17 +10863,6 @@ void DanteCheatOptions() {
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Makes Rebellion's Sword Pierce last for an indefinite amount of time.");
-
-			ImGui::TableNextColumn();
-
-			if (GUI_Checkbox2("Swap Artemis' Multi-Lock / Normal Shot",
-				activeCrimsonGameplay.Cheats.Dante.swapArtemisMultiLockNormalShot,
-				queuedCrimsonGameplay.Cheats.Dante.swapArtemisMultiLockNormalShot)) {
-				ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonGameplay.Cheats.Dante.swapArtemisMultiLockNormalShot);
-			}
-			ImGui::SameLine();
-			TooltipHelper("(?)", "Swaps Artemis' Multi-Lock and Normal Shot inputs/funcionality.\n"
-				"Multi-Lock fires from Normal Shot, and Normal Shot goes to Gunslinger.");
 
 			ImGui::EndTable();
 		}
@@ -12443,7 +12443,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				bool isSelected = size_t(context.SelectedGameMode) == i;
 
 				if (ImGui::Selectable(modes[i], isSelected)) {
-					CrimsonGameModes::SetGameMode((uint8)i);
+					CrimsonGameModes::SetGameModePreset((uint8)i);
 					CrimsonGameplay::AdjustDMC4MobilitySettings();
 					::GUI::save = true;
 				}
