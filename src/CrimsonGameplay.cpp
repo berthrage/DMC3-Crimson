@@ -1104,9 +1104,16 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
 			}
         }
 
-		// Fix for the weird carry over to air hike/jump cancel
+		// Fix for the weird carry over to air hike/jump cancel from Lunar Phase
 		if ((event == ACTOR_EVENT::JUMP_CANCEL) && 
             (action == ACTION_VERGIL::BEOWULF_LUNAR_PHASE_LEVEL_1 || action == ACTION_VERGIL::BEOWULF_LUNAR_PHASE_LEVEL_2)) {
+			actorData.verticalPullMultiplier = -1.5f;
+			return;
+		}
+
+		// Fix for the weird carry over to air hike/jump cancel from Rising Sun
+		if ((event == ACTOR_EVENT::JUMP_CANCEL) &&
+			(action == ACTION_VERGIL::BEOWULF_RISING_SUN)) {
 			actorData.verticalPullMultiplier = -1.5f;
 			return;
 		}
