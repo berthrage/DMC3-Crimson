@@ -738,6 +738,9 @@ void ForceThirdPersonCameraController() {
 }
 
 void FixInitialCameraRotation(EventData& eventData, PlayerActorData& mainActorData, CameraData* cameraData, bool& setCamPos) {
+	if (!activeCrimsonConfig.Camera.forceThirdPerson) {
+		return;
+	}
 	if (!setCamPos) {
 		if (!g_inGameCutscene) {
 			constexpr float TWO_PI = 6.283185307f;
