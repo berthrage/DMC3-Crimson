@@ -622,14 +622,15 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
         // Gunslinger Cancels Most Things (w/ cooldown)
         //  They can also cancel themselves.
         if ((actorData.style == STYLE::GUNSLINGER) && (actorData.state == STATE::IN_AIR || actorData.state == 65538) &&
-            (inCancellableActionAirSwordmaster || inCancellableActionAirGunslinger || actorData.eventData[0].event == 23 ||
-                actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK || actorData.motionData[0].index == 15) &&
+            (inCancellableActionAirSwordmaster || inCancellableActionAirGunslinger || actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_SKY_STAR ||
+				actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK || actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL || 
+                actorData.motionData[0].index == 15) &&
             actorData.action != EBONY_IVORY_RAIN_STORM) {
             if (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) { // previously gunStyleButtonBuffer[playerIndex][entityIndex] > 0.0f
                 if (cancels.canGun) {
                     actorData.state &= ~STATE::BUSY;
                     cancels.canGun = false;
-                    gunStyleButtonBuffer[playerIndex][entityIndex] = 0.0f; // consume buffer
+                    //gunStyleButtonBuffer[playerIndex][entityIndex] = 0.0f; // consume buffer
                 }
             }
         }

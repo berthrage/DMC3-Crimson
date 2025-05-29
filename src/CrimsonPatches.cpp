@@ -49,23 +49,36 @@ void DisableHeightRestriction(bool enable) {
 		return;
 	}
 
-    uintptr_t raveAddr      = 0x20149524;
-    uintptr_t rainstormAddr = 0x20149708;
-    uintptr_t airMeleeAddr  = 0x2014970C;
-
 	if (activeCrimsonGameplay.Gameplay.General.disableHeightRestriction) {
-		*(float*)(raveAddr) = 0.0f;
-		*(float*)(rainstormAddr) = 0.0f;
-		*(float*)(airMeleeAddr) = 0.0f;
+		//dmc3.exe + 1E61BB: // 0x7FF6623F61BB
+		//db 90 90 90 90 90 90 // rainstorm
+		_patch((char*)(appBaseAddr + 0x1E61BB), (char*)"\x90\x90\x90\x90\x90\x90", 6); // Rainstorm
+
+		//dmc3.exe + 1E621D: // 0x7FF6623F621D
+		//db 90 90 90 90 90 90 // rave
+		_patch((char*)(appBaseAddr + 0x1E621D), (char*)"\x90\x90\x90\x90\x90\x90", 6); // Rave
+
+		//dmc3.exe + 1E61EC: // 0x7FF6623F61EC
+		//db 90 90 90 90 90 90 // helm breaker
+		_patch((char*)(appBaseAddr + 0x1E61EC), (char*)"\x90\x90\x90\x90\x90\x90", 6); // Helm Breaker
+
 
 		_patch((char*)(appBaseAddr + 0x1E62AF), (char*)"\xE9\x2B\xFD\xFF\xFF\x90", 6); // Vergil Yamato and Beowulf
 		_nop((char*)(appBaseAddr + 0x1E61EC), 6);                                      // Vergil Force Edge
-	}
-	else {
-		*(float*)(raveAddr) = 80.0f;
-		*(float*)(rainstormAddr) = 200.0f;
-		*(float*)(airMeleeAddr) = 120.0f;
+		
+	} else {
+// 		dmc3.exe + 1E61BB:
+// 		db 0F 86 F4 00 00 00 // jbe dmc3.exe+1E62B5
+// 
+// 		dmc3.exe + 1E621D :
+// 		db 0F 86 92 00 00 00 // jbe dmc3.exe+1E62B5
+// 
+// 		dmc3.exe + 1E61EC :
+// 		db 0F 86 C3 00 00 00 // jbe dmc3.exe+1E62B5
 
+		_patch((char*)(appBaseAddr + 0x1E61BB), (char*)"\x0F\x86\xF4\x00\x00\x00", 6);
+		_patch((char*)(appBaseAddr + 0x1E621D), (char*)"\x0F\x86\x92\x00\x00\x00", 6);
+		_patch((char*)(appBaseAddr + 0x1E61EC), (char*)"\x0F\x86\xC3\x00\x00\x00", 6);
 		_patch((char*)(appBaseAddr + 0x1E62AF), (char*)"\x0F\x87\x2A\xFD\xFF\xFF", 6);
 		_patch((char*)(appBaseAddr + 0x1E61EC), (char*)"\x0F\x86\xC3\x00\x00\x00", 6);
 	}
