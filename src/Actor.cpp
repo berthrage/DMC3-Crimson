@@ -2814,11 +2814,11 @@ byte8* SpawnActor(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
         actorData.dtExplosionCharge = crimsonPlayer[newPlayerIndex].dtExplosionCharge;
         crimsonPlayer[newPlayerIndex].vergilDoppelganger.drainStart = false; // very important to ensure drainTimer doesn't stay on when respawning
 
-        actorData.styleData.rank = crimsonPlayer[newPlayerIndex].styleData.rank;
-        actorData.styleData.meter = crimsonPlayer[newPlayerIndex].styleData.meter;
-        actorData.styleData.quotient = crimsonPlayer[newPlayerIndex].styleData.quotient;
-        actorData.styleData.dividend = crimsonPlayer[newPlayerIndex].styleData.dividend;
-        actorData.styleData.divisor = crimsonPlayer[newPlayerIndex].styleData.divisor;
+        actorData.styleData.rank = vanillaActorData.styleData.rank;
+        actorData.styleData.meter = vanillaActorData.styleData.meter;
+        actorData.styleData.quotient = vanillaActorData.styleData.quotient;
+        actorData.styleData.dividend = vanillaActorData.styleData.dividend;
+        actorData.styleData.divisor = vanillaActorData.styleData.divisor;
     }
 
     return actorBaseAddr;
@@ -3273,6 +3273,7 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
         CrimsonFX::SetStyleSwitchDrawTextTime(style, actorBaseAddr);
     }
 
+    // Make Top Left HUD Visible briefly after StyleSwtiching
     hudData.topLeftAlpha = 127.0f;
     hudData.topLeftAlphaTimer = 80.0f * (1.0f / g_FrameRateTimeMultiplier);
 }
@@ -3286,6 +3287,11 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 	auto& characterData = GetCharacterData(actorData);
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 
 	// Accumulate EXP
 	HeldStyleExpData& heldStyleExpData = (actorData.character == CHARACTER::DANTE)
@@ -3425,17 +3431,24 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 
 			if (!actorData.doppelganger && vergilDopp.miragePoints > 0) {
 				ActivateDoppelganger(actorData);
+				// Make Top Left HUD Visible briefly after MirageTrigger
+				hudData.topLeftAlpha = 127.0f;
+				hudData.topLeftAlphaTimer = 80.0f * (1.0f / g_FrameRateTimeMultiplier);
 
 				if (!activeCrimsonGameplay.Cheats.Training.infiniteDT && actorData.costume != 2 &&
 					actorData.costume != 4) { // if Infinite Magic Points is on or using Super/Super Corrupted Vergil, DT drain doesn't trigger.
 					// Calculate the amount of time that has already passed based on the current DT
 					vergilDopp.drainTime = (1.0f - (vergilDopp.miragePoints / maxMiragePointsAmount)) * vergilDopp.totalDrainDuration;
 					vergilDopp.drainStart = true;
+					
 				}
 
 				actorData.doppelganger = true;
 			} else if (actorData.doppelganger) {
 				DeactivateDoppelganger(actorData);
+				// Make Top Left HUD Visible briefly after MirageTrigger
+				hudData.topLeftAlpha = 127.0f;
+				hudData.topLeftAlphaTimer = 80.0f * (1.0f / g_FrameRateTimeMultiplier);
 
 				actorData.doppelganger = false;
 				vergilDopp.drainStart = false;
@@ -4022,7 +4035,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
 	}
 
 	if (activeCrimsonGameplay.Gameplay.Vergil.darkslayerTrickCancels) {
-        CrimsonGameplay::ImprovedCancelsVergilController(actorBaseAddr);
+        CrimsonGameplay::DarkslayerCancelsVergilController(actorBaseAddr);
 	}
     
 
@@ -6929,6 +6942,17 @@ void ResetSkyStar(PlayerActorData& actorData) {
     DebugLog("inAir      %u", inAir);
     DebugLog("lastInAir  %u", lastInAir);
 
+	auto& playerIndex = actorData.newPlayerIndex;
+	auto& airCounts = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].airCounts : crimsonPlayer[playerIndex].airCountsClone;
+
+    if (actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
+        actorData.newAirStingerCount = 0;
+		airCounts.airTornado = 0;
+		airCounts.airRisingSunWhirlwind = 0;
+		airCounts.airAgniRudraWhirlwind = 0;
+        actorData.newAirRisingSunCount = 0;
+    }
+ 
     if (
         // Dante Air Stinger
 		((actorData.character == CHARACTER::DANTE) && (actorData.action == 0) &&
@@ -6946,9 +6970,6 @@ void ResetSkyStar(PlayerActorData& actorData) {
             (actorData.lastAction == ACTION_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_2) && !inAir && lastInAir)) {
         return;
     }
-
-    auto& playerIndex = actorData.newPlayerIndex;
-    auto& airCounts = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].airCounts : crimsonPlayer[playerIndex].airCountsClone;
 
     actorData.newAirHikeCount    = 0;
     actorData.newKickJumpCount   = 0;
@@ -8127,6 +8148,15 @@ void UpdateActorSpeed(byte8* baseAddr) {
         return;
     }
     auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_12857[3]);
+    
+    // Chained Balls Speed - Making it consistent across framerates (unnecessary because it already is, but reference is nice)
+    // The OnHit Speed fix is present at CrimsonDetours::ToggleFixBallsHangHitSpeed
+	if (*reinterpret_cast<uintptr_t*>(baseAddr) == (uintptr_t)appBaseAddr + 0x4E61B0) {
+		auto& actorData = *reinterpret_cast<ActorDataBase*>(baseAddr);
+        auto value = (IsTurbo()) ? 1.2f : 1.0f;
+        actorData.speed = value * g_FrameRateTimeMultiplier;
+        return;
+	}
 
 	CrimsonPatches::InertiaFixes();
     CrimsonDetours::ToggleGuardGravityAlteration(activeCrimsonGameplay.Gameplay.General.inertia);
@@ -8169,16 +8199,16 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 auto& playerData = GetPlayerData(playerIndex);
 
                 auto& characterData = GetCharacterData(playerIndex, characterIndex, entityIndex);
-                auto& newActorData  = GetNewActorData(playerIndex, characterIndex, entityIndex);
+                auto& newActorData = GetNewActorData(playerIndex, characterIndex, entityIndex);
 
                 auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-                auto& activeNewActorData  = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+                auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
 
                 auto& leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
-                auto& leadNewActorData  = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
+                auto& leadNewActorData = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
 
                 auto& mainCharacterData = GetCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
-                auto& mainNewActorData  = GetNewActorData(playerIndex, characterIndex, ENTITY::MAIN);
+                auto& mainNewActorData = GetNewActorData(playerIndex, characterIndex, ENTITY::MAIN);
 
 
                 auto actorBaseAddr = newActorData.baseAddr;
@@ -8194,7 +8224,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
                         continue;
                     }
                     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-					
+
 
                     bool match = false;
 
@@ -8224,27 +8254,27 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 if (!actorBaseAddr) {
                     continue;
                 }
-                auto& actorData      = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+                auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
                 auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
                 float limit = 0.3f;
 
-                auto lockOn        = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+                auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
                 auto tiltDirection = GetRelativeTiltDirection(actorData);
-                auto& gamepad      = GetGamepad(0);
-				auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer :
-					crimsonPlayer[playerIndex].actionTimerClone;
-				auto& inRisingStar = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inRisingStar :
-					crimsonPlayer[playerIndex].inRisingStarClone;
-				auto& inAirTauntRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inAirTauntRisingSun :
-					crimsonPlayer[playerIndex].inAirTauntRisingSunClone;
-                auto* vergilMoves = (actorData.newEntityIndex == 0) ? &crimsonPlayer[playerIndex].vergilMoves : 
+                auto& gamepad = GetGamepad(0);
+                auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer :
+                    crimsonPlayer[playerIndex].actionTimerClone;
+                auto& inRisingStar = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inRisingStar :
+                    crimsonPlayer[playerIndex].inRisingStarClone;
+                auto& inAirTauntRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inAirTauntRisingSun :
+                    crimsonPlayer[playerIndex].inAirTauntRisingSunClone;
+                auto* vergilMoves = (actorData.newEntityIndex == 0) ? &crimsonPlayer[playerIndex].vergilMoves :
                     &crimsonPlayer[playerIndex].vergilMovesClone;
 
 
                 if (activeCrimsonGameplay.Gameplay.General.sprint) {
                     CrimsonGameplay::SprintAbility(actorBaseAddr);
                 }
-				
+
 
                 // InertiaController(actorData.cloneActorBaseAddr);
                 CrimsonGameplay::BackToForwardInputs(actorBaseAddr);
@@ -8274,10 +8304,10 @@ void UpdateActorSpeed(byte8* baseAddr) {
 
                 CrimsonGameplay::FreeformSoftLockController(actorBaseAddr);
 
-				if (activeCrimsonGameplay.Gameplay.General.inertia) {
+                if (activeCrimsonGameplay.Gameplay.General.inertia) {
                     CrimsonGameplay::StoreInertia(actorBaseAddr);
-					CrimsonGameplay::InertiaController(actorBaseAddr);
-				}
+                    CrimsonGameplay::InertiaController(actorBaseAddr);
+                }
 
                 CrimsonGameplay::DMC4Mobility(actorBaseAddr);
                 // Doppelganger's attacks can now hold/increase your style meter
@@ -8286,15 +8316,15 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 CrimsonGameplay::InCombatDetection();
 
 
-//                 if (!g_haywireNeoGenerator) {
-//                     actorData.mode = ACTOR_MODE::MISSION_19;
-//                 }
+                //                 if (!g_haywireNeoGenerator) {
+                //                     actorData.mode = ACTOR_MODE::MISSION_19;
+                //                 }
 
-                //CrimsonGameplay::FasterDarkslayerTricks();
-                // FasterDTRapidSlash(actorBaseAddr);
+                                //CrimsonGameplay::FasterDarkslayerTricks();
+                                // FasterDTRapidSlash(actorBaseAddr);
 
 
-                // actorData.styleData.meter = 200;
+                                // actorData.styleData.meter = 200;
 
 
                 relativeTiltController = (actorData.cameraDirection - (gamepad.leftStickPosition));
@@ -8322,12 +8352,14 @@ void UpdateActorSpeed(byte8* baseAddr) {
                     // Geryon's Quicksilver could be on.
 
                     switch (quicksilverStage) {
-                    case TO_ON: {
+                    case TO_ON:
+                    {
                         value = 0;
 
                         goto Return;
                     }
-                    case ON: {
+                    case ON:
+                    {
                         value *= 0.2f;
 
                         goto Return;
@@ -8359,27 +8391,28 @@ void UpdateActorSpeed(byte8* baseAddr) {
                     goto Return;
                 }
 
-				if (!actorData.devil) {
+                if (!actorData.devil) {
                     // IF IN AIR RISING SUN -- reduce initial wind up
-					if (actorData.character == CHARACTER::VERGIL &&
-						actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN &&
-						(actionTimer < 0.3f) && !inRisingStar && actorData.newAirRisingSunCount >= 1 &&
+                    if (actorData.character == CHARACTER::VERGIL &&
+                        actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN &&
+                        (actionTimer < 0.3f) && !inRisingStar && actorData.newAirRisingSunCount >= 1 &&
                         (!vergilMoves->startingRisingSunFromGround || inAirTauntRisingSun)) {
-						value *= (activeCrimsonGameplay.Cheats.Speed.human + 2.4f);
-					} else {
-						value *= (activeCrimsonGameplay.Cheats.Speed.human);
-					}
-					goto Return;
-				}
+                        value *= (activeCrimsonGameplay.Cheats.Speed.human + 2.4f);
+                    } else {
+                        value *= (activeCrimsonGameplay.Cheats.Speed.human);
+                    }
+                    goto Return;
+                }
 
-//                 if (!actorData.devil) {
-// 					value *= (activeCrimsonGameplay.Cheats.Speed.human);
-// 					
-// 					goto Return;
-//                 }
+                //                 if (!actorData.devil) {
+                // 					value *= (activeCrimsonGameplay.Cheats.Speed.human);
+                // 					
+                // 					goto Return;
+                //                 }
 
                 switch (actorData.character) {
-                case CHARACTER::DANTE: {
+                case CHARACTER::DANTE:
+                {
                     auto devilIndex = actorData.meleeWeaponIndex;
                     if (devilIndex > 4) {
                         devilIndex = 0;
@@ -8393,7 +8426,8 @@ void UpdateActorSpeed(byte8* baseAddr) {
 
                     break;
                 }
-                case CHARACTER::VERGIL: {
+                case CHARACTER::VERGIL:
+                {
                     auto devilIndex = actorData.queuedMeleeWeaponIndex;
                     if (devilIndex > 2) {
                         devilIndex = 0;
@@ -8408,18 +8442,18 @@ void UpdateActorSpeed(byte8* baseAddr) {
                     }
                     static bool inRapidSlashPlayers[PLAYER_COUNT][ENTITY_COUNT] = { false };
                     auto& inRapidSlashPlayer = inRapidSlashPlayers[playerIndex][entityIndex];
-					if ((actorData.motionData[0].index == 8 || actorData.motionData[0].index == 10) &&
-						(actorData.action == ACTION_VERGIL::YAMATO_RAPID_SLASH_LEVEL_1 || actorData.action == ACTION_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2)) {
+                    if ((actorData.motionData[0].index == 8 || actorData.motionData[0].index == 10) &&
+                        (actorData.action == ACTION_VERGIL::YAMATO_RAPID_SLASH_LEVEL_1 || actorData.action == ACTION_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2)) {
 
-						inRapidSlashPlayer = true;
-					} else {
-						inRapidSlashPlayer = false;
-					}
+                        inRapidSlashPlayer = true;
+                    } else {
+                        inRapidSlashPlayer = false;
+                    }
 
                     if (!activeCrimsonGameplay.Gameplay.Vergil.fasterDTRapidSlash) {
                         value *= activeCrimsonGameplay.Cheats.Speed.dTVergil[devilIndex];
                     } else {
-						
+
                         if (inRapidSlashPlayer) {
                             value *= (activeCrimsonGameplay.Cheats.Speed.dTVergil[devilIndex] + 0.8f);
                         } else if (actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN &&

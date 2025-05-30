@@ -11,7 +11,7 @@ void UpdateCrimsonPlayerData();
 void FixAirStingerCancelTime(byte8* actorBaseAddr);
 void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr);
 void ImprovedCancelsDanteController(byte8* actorBaseAddr);
-void ImprovedCancelsVergilController(byte8* actorBaseAddr);
+void DarkslayerCancelsVergilController(byte8* actorBaseAddr);
 void VergilRisingStar(byte8* actorBaseAddr);
 void VergilYamatoHighTime(byte8* actorBaseAddr);
 void VergilAdjustAirMovesPos(byte8* actorBaseAddr);

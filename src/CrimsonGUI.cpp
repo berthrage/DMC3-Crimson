@@ -3182,13 +3182,6 @@ void CharacterSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
-			GUI_PushDisable(queuedConfig.Actor.playerCount <= 1);
-			GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
-			ImGui::SameLine();
-			TooltipHelper("(?)", "Allows you to set up PVP Multiplayer.\n"
-				"WARNING: This option WILL break actual enemies (they will freeze). Use with caution.");
-			GUI_PopDisable(queuedConfig.Actor.playerCount <= 1);
-
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
@@ -3239,6 +3232,15 @@ void CharacterSection(size_t defaultFontSize) {
 				
 			}
 			ImGui::PopFont();
+			ImGui::TableNextColumn();
+			ImGui::Text("");
+
+			GUI_PushDisable(queuedConfig.Actor.playerCount <= 1);
+			GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
+			ImGui::SameLine();
+			TooltipHelper("(?) WARNING", "Allows you to set up PVP Multiplayer.\n"
+				"WARNING: This option WILL break actual enemies (they will freeze). Use with caution.", 2048.0f, true);
+			GUI_PopDisable(queuedConfig.Actor.playerCount <= 1);
 
 			ImGui::EndTable();
 		}
@@ -4107,9 +4109,6 @@ void Render1PAttributes(const char* name, PlayerActorData& actorData) {
 	if (!showBars && !activeCrimsonConfig.MultiplayerBars2D.show) {
 		return;
 	}
-	if (activeConfig.hideMainHUD) {
-		return;
-	}
 
 	auto playerIndex = actorData.newPlayerIndex;
 
@@ -4281,9 +4280,6 @@ void RenderWorldSpaceMultiplayerBar(
 
 void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 	if (!showBars && !(activeConfig.Actor.enable && InGame())) {
-		return;
-	}
-	if (activeConfig.hideMainHUD) {
 		return;
 	}
 
@@ -7494,6 +7490,13 @@ void LegacyDDMKCharactersSection() {
 				sizeof(queuedConfig.kalinaAnnHookGrenadeTime));
 			CopyMemory(&activeConfig.kalinaAnnHookGrenadeTime, &queuedConfig.kalinaAnnHookGrenadeTime,
 				sizeof(activeConfig.kalinaAnnHookGrenadeTime));
+
+			CopyMemory(&queuedConfig.enableBossVergilFixes, &defaultConfig.enableBossVergilFixes,
+				sizeof(queuedConfig.enableBossVergilFixes));
+
+			CopyMemory(&queuedConfig.enableBossLadyFixes, &defaultConfig.enableBossLadyFixes,
+				sizeof(queuedConfig.enableBossLadyFixes));
+			
 		}
 	}
 
@@ -7564,8 +7567,8 @@ void LegacyDDMKCharactersSection() {
 			ToggleBossLadyFixes(activeConfig.enableBossLadyFixes);
 		}
 		ImGui::SameLine();
-		TooltipHelper("(?)", "Allows you to more properly test Legacy Playable Boss Lady.\n"
-			"WARNING: This checkbox WILL break the actual Boss Lady (ENEMY). Use with caution.");
+		TooltipHelper("(?) WARNING", "Allows you to more properly test Legacy Playable Boss Lady.\n"
+			"WARNING: This checkbox WILL break the actual Boss Lady (ENEMY). Use with caution.", 2048.0f, true);
 
 		ImGui::TableNextColumn();
 
@@ -7574,8 +7577,8 @@ void LegacyDDMKCharactersSection() {
 			ToggleBossVergilFixes(activeConfig.enableBossVergilFixes);
 		}
 		ImGui::SameLine();
-		TooltipHelper("(?)", "Allows you to more properly test Legacy Playable Boss Vergil.\n"
-			"WARNING: This checkbox WILL break the actual Boss Vergil (ENEMY). Use with caution.");
+		TooltipHelper("(?) WARNING", "Allows you to more properly test Legacy Playable Boss Vergil.\n"
+			"WARNING: This checkbox WILL break the actual Boss Vergil (ENEMY). Use with caution.", 2048.0f, true);
 
 		ImGui::EndTable();
 	}
@@ -8089,8 +8092,11 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				return;
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
-
-			ImGui::Text("inAirTauntRisingSun %u", crimsonPlayer[0].inAirTauntRisingSun);
+			ImGui::Text("airCounts tatsu %u", crimsonPlayer[0].airCounts.airTornado);
+			ImGui::Text("skyLaunch Executing %u", crimsonPlayer[0].skyLaunch.executing);
+			ImGui::Text("inertia airguard %g", crimsonPlayer[0].inertia.airGuard.cachedPull);
+			ImGui::Text("mirageGauge %g", crimsonPlayer[0].vergilDoppelganger.miragePoints);
+			ImGui::Text("maxMirageGauge %g", crimsonPlayer[0].vergilDoppelganger.maxMiragePoints);
 			ImGui::Text("MovePart %u", actorData.recoverState[0]);
 			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
 			ImGui::Text("cameraHittingWall: %u", g_cameraHittingWall);
@@ -10773,6 +10779,17 @@ void DanteGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
+			if (GUI_Checkbox2("Swap Artemis' Inputs",
+				activeCrimsonGameplay.Gameplay.Dante.swapArtemisMultiLockNormalShot,
+				queuedCrimsonGameplay.Gameplay.Dante.swapArtemisMultiLockNormalShot)) {
+				ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonGameplay.Gameplay.Dante.swapArtemisMultiLockNormalShot);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Swaps Artemis' Multi-Lock and Normal Shot inputs/funcionality.\n"
+				"Multi-Lock fires from Normal Shot, and Normal Shot goes to Gunslinger.");
+
+			ImGui::TableNextColumn();
+
 			if (GUI_Checkbox2("Cut Nevan Air Slash Knockback",
 				activeCrimsonGameplay.Gameplay.Dante.disableAirSlashKnockback,
 				queuedCrimsonGameplay.Gameplay.Dante.disableAirSlashKnockback)) {
@@ -10846,17 +10863,6 @@ void DanteCheatOptions() {
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Makes Rebellion's Sword Pierce last for an indefinite amount of time.");
-
-			ImGui::TableNextColumn();
-
-			if (GUI_Checkbox2("Swap Artemis' Multi-Lock / Normal Shot",
-				activeCrimsonGameplay.Cheats.Dante.swapArtemisMultiLockNormalShot,
-				queuedCrimsonGameplay.Cheats.Dante.swapArtemisMultiLockNormalShot)) {
-				ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonGameplay.Cheats.Dante.swapArtemisMultiLockNormalShot);
-			}
-			ImGui::SameLine();
-			TooltipHelper("(?)", "Swaps Artemis' Multi-Lock and Normal Shot inputs/funcionality.\n"
-				"Multi-Lock fires from Normal Shot, and Normal Shot goes to Gunslinger.");
 
 			ImGui::EndTable();
 		}
@@ -12021,8 +12027,11 @@ void GamepadToggleShowMain() {
 	for (int i = 0; i < 4; ++i) {
 		if (CrimsonSDL::controllers[i] != NULL) {
 			// Combination of buttons to check
-			bool combination = (CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK) && 
-                CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK));
+			bool combination = (
+				CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK) &&
+				CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK) &&
+				!CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_TOUCHPAD)
+				);
 
 			// Combination pressed and was not pressed before, toggle GUI and set window focus
 			if (combination && !g_showMain && gamepadCombinationMainRelease[i]) {
@@ -12434,7 +12443,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				bool isSelected = size_t(context.SelectedGameMode) == i;
 
 				if (ImGui::Selectable(modes[i], isSelected)) {
-					CrimsonGameModes::SetGameMode((uint8)i);
+					CrimsonGameModes::SetGameModePreset((uint8)i);
 					CrimsonGameplay::AdjustDMC4MobilitySettings();
 					::GUI::save = true;
 				}
@@ -13329,7 +13338,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.4f);
 
-				auto fnDrawSocialButton = [window](const void* id, const size_t socialID, const ImVec2 size, const char* tooltip = nullptr)->bool {
+				auto fnDrawSocialButton = [window](const void* id, const size_t socialID, const ImVec2 size, const char* tooltip = nullptr) -> bool {
 					const auto bbTuple = g_Image_SocialIcons.GetUVRect(socialID);
 
 					const ImRect bbUV{
@@ -13342,19 +13351,18 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
 					//ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.f, 0.f, 0.f, 0.f));
 					{
-						ImGui::PushID(id);
+						ImGui::PushID(id); // Ensure unique ID context for each button
 						const ImGuiID calcedID = window->GetID("#socialButton");
-						ImGui::PopID();
 
 						clicked = ImGui::ImageButtonEx(calcedID, socialIcons.GetTexture(), size,
 							bbUV.Min, bbUV.Max, ImVec2{ 2.0f, 2.0f },
 							ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f }, ImVec4{ 1.0f , 1.0f, 1.0f, 1.0f });
-					    
-						if (tooltip != nullptr && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-						{
+
+						if (tooltip != nullptr && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
 							ImGui::SetTooltip(tooltip);
 						}
-                    }
+						ImGui::PopID(); // Pop after button creation to maintain correct ID scope
+					}
 					//ImGui::PopStyleColor();
 					ImGui::PopStyleVar();
 
@@ -13420,7 +13428,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				// Mia
 				{
-					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.8f)]);
 					{
 						ImGui::Text("Project Director, Lead Programmer, Artist, Reverse Engineering");
 					}
@@ -13480,9 +13488,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				// Sarah
 				{
-					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.8f)]);
 					{
-						ImGui::Text("Reverse Engineering, Gameplay Programmer, Q&A, Testing");
+						ImGui::Text("Reverse Engineering, Lead Gameplay Programmer, Q&A, Testing");
 					}
 					ImGui::PopFont();
 
@@ -13512,7 +13520,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
 					{
-						ImGui::Text("Reverse Engineering, Tooling, Graphics Programmer");
+						ImGui::Text("Reverse Engineering, Tooling, General Programmer");
 					}
 					ImGui::PopFont();
 
@@ -13582,7 +13590,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				{
 					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
 					{
-						ImGui::Text("Community Manager, Testing, Q&A");
+						ImGui::Text("Community Manager, Testing, Q&A, Game Design Assistant");
 					}
 					ImGui::PopFont();
 
@@ -13700,6 +13708,35 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.2f);
 
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+						{
+							ImGui::Text("Video Producer, Promoter");
+						}
+						ImGui::PopFont();
+
+						ImGui::Separator();
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Text("Dany Sterkhov");
+
+							ImGui::SameLine();
+
+							if (fnDrawSocialButton("danycuhrayzeeyoutube", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://www.youtube.com/@Cuhrayzee", 0, 0, SW_SHOW);
+							}
+
+							ImGui::SameLine();
+
+							if (fnDrawSocialButton("danycuhrayzeetwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://x.com/cuhrayzeee", 0, 0, SW_SHOW);
+							}
+
+						}
+						ImGui::PopFont();
+					}
+
 
 					{
 						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
@@ -13715,9 +13752,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 							ImGui::Text("Cynuma");
 
 							ImGui::SameLine();
- 							
+
 							if (fnDrawSocialButton("cynumatwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
- 									ShellExecute(0, 0, "https://x.com/Cynumaa", 0, 0, SW_SHOW);
+								ShellExecute(0, 0, "https://x.com/Cynumaa", 0, 0, SW_SHOW);
 							}
 						}
 						ImGui::PopFont();
@@ -13771,8 +13808,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 							ImGui::SameLine();
 
-							if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
-								ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
+							if (fnDrawSocialButton("vainiusstwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://x.com/vainiuss1", 0, 0, SW_SHOW);
 							}
 						}
 						ImGui::PopFont();
@@ -13792,9 +13829,33 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 							ImGui::Text("adil");
 
 							ImGui::SameLine();
+							ImGui::Spacing();
 
 							if (fnDrawSocialButton("adilgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
 								ShellExecute(0, 0, "https://github.com/adilahmeddev", 0, 0, SW_SHOW);
+							}
+						}
+						ImGui::PopFont();
+					}
+
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+						{
+							ImGui::Text("Programmer");
+						}
+						ImGui::PopFont();
+
+						ImGui::Separator();
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Text("Airdragon");
+
+							ImGui::SameLine();
+							ImGui::Spacing();
+
+							if (fnDrawSocialButton("airdragongithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize() + 2, ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://github.com/Airdragon50", 0, 0, SW_SHOW);
 							}
 						}
 						ImGui::PopFont();
@@ -14043,6 +14104,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     // outside of In Game.
     
   	CrimsonOnTick::FrameResponsiveGameSpeed();
+	CrimsonOnTick::InCreditsDetection();
 	CrimsonOnTick::WeaponProgressionTracking();
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
 	CrimsonOnTick::FixM7DevilTriggerUnlocking();

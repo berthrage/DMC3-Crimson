@@ -324,7 +324,7 @@ bool GUI_Color2(const char* label, float (&var)[4], float (&var2)[4], ImGuiColor
 
 ID3D11ShaderResourceView* CreateTexture(const char* filename, ID3D11Device* device);
 
-void TooltipHelper(const char* name, const char* description, float x = 2048.0f);
+void TooltipHelper(const char* name, const char* description, float x = 2048.0f, bool extraAttention = false);
 
 void DescriptionHelper(const char* description, float width = 500.0f);
 

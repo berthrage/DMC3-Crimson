@@ -9,6 +9,7 @@ set(MASM_SRC
     masm/DisableStaggerRoyalguard.asm
     masm/FasterTurnRate.asm
     masm/GuardBreakToNormalBlock.asm
+    masm/FixBallsHangHitSpeed.asm
     masm/FixCrashCerberus.asm
     masm/FixCrashVergilM3.asm
     masm/HideStyleRankHUD.asm

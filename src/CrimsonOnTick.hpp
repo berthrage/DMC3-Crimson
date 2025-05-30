@@ -4,6 +4,7 @@ namespace CrimsonOnTick {
 	extern bool inputtingFPS;
 	void FrameResponsiveGameSpeed();
 	void GameTrackDetection();
+	void InCreditsDetection();
 	void PreparePlayersDataBeforeSpawn();
 	void CrimsonMissionClearSong();
 	void DivinityStatueSong();

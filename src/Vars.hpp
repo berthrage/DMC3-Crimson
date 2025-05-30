@@ -4964,10 +4964,11 @@ extern bool inRapidSlash;
 extern bool styleChanged[6];
 
 extern float g_FrameRate;
-extern float g_FrameRateTimeMultiplier;
+extern "C" float g_FrameRateTimeMultiplier;
 extern float g_FrameRateTimeMultiplierRounded;
 extern bool g_inCombat;
 extern bool g_inBossfight;
+extern bool g_inCredits;
 extern int g_bossQuantity;
 extern bool g_inGameDelayed;
 extern bool g_inGameCutscene;

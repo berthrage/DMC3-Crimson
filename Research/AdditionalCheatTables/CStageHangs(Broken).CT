@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>2890</ID>
+      <Description>"GetCStageSetHangAddr"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+aobscanmodule(fddfggfddgf,dmc3.exe,F3 0F 59 43 18) // should be unique
+alloc(newmem,$1000,fddfggfddgf)
+label(code)
+label(return)
+registersymbol(CStageSetHangAddr)
+
+newmem:
+CStageSetHangAddr:
+dq 0
+newmem2:
+  push rbx
+  mov rbx,[rbx]
+  cmp [rbx],7FF67293B2A0 // CStageSetHang vtable entry 0
+  pop rbx
+  jne code
+  mov [CStageSetHangAddr], rbx
+code:
+  mulss xmm0,[rbx+18]
+  jmp return
+
+fddfggfddgf:
+  jmp newmem2
+return:
+registersymbol(fddfggfddgf)
+
+[DISABLE]
+fddfggfddgf:
+  db F3 0F 59 43 18
+unregistersymbol(fddfggfddgf)
+dealloc(newmem)
+unregistersymbol(CStageSetHangAddr)
+</AssemblerScript>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>2891</ID>
+          <Description>"CStageSetHangAddr"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>8 Bytes</VariableType>
+          <Address>CStageSetHangAddr</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2892</ID>
+          <Description>"+14 delta"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>CStageSetHangAddr</Address>
+          <Offsets>
+            <Offset>14</Offset>
+          </Offsets>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

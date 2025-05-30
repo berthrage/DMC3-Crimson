@@ -181,6 +181,15 @@ std::uint64_t g_FasterTurnRate_ReturnAddr;
 std::uint64_t g_FasterTurnRateCallAddr;
 void FasterTurnRateDetour();
 
+// FixFPSSpeedIssues
+std::uint64_t g_FixFPSSpeedIssues_ReturnAddr;
+void FixFPSSpeedIssuesDetour();
+void* g_FixFPSSpeedIssuesCall;
+
+// FixBallsHangHitSpeed
+std::uint64_t g_FixBallsHangHitSpeed_ReturnAddr;
+void FixBallsHangHitSpeedDetour();
+
 // StyleRankHUDNoFadeout
 std::uint64_t g_StyleRankHudNoFadeout_ReturnAddr;
 void StyleRankHudNoFadeoutDetour();
@@ -1003,7 +1012,40 @@ void ToggleStyleRankHudNoFadeout(bool enable) {
     else {
         StyleRankHudNoFadeoutHook->Toggle(false);
     }
-	
+}
+
+void ToggleFPSSpeedIssues(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// FixFPSIssues
+	// dmc3.exe+3261C3 - E8 98 07 00 00           - call dmc3.exe+326960
+	// dmc3.exe+3261C8 - F3 0F 59 43 18         - mulss xmm0,[rbx+18] <-- Our detour here
+	// dmc3.exe+3261CD - F3 0F 11 43 14         - movss [rbx+14],xmm0 <-- UpdateActorSpeed detours here (Actor.cpp)
+// 	static std::unique_ptr<Utility::Detour_t> FixFPSSpeedIssuesHook =
+// 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x3261C8, &FixFPSSpeedIssuesDetour, 5);
+// 	g_FixFPSSpeedIssues_ReturnAddr = FixFPSSpeedIssuesHook->GetReturnAddress();
+// 	FixFPSSpeedIssuesHook->Toggle(enable);
+// 	run = enable;
+}
+
+void ToggleFixBallsHangHitSpeed(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+	// FixBallsHangHitSpeed
+	// dmc3.exe + 25C2DD - F3 0F 10 5E B4 - movss xmm3, [rsi - 4C]
+
+	static std::unique_ptr<Utility::Detour_t> FixBallsHangHitSpeedHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25C2DD, &FixBallsHangHitSpeedDetour, 5);
+	g_FixBallsHangHitSpeed_ReturnAddr = FixBallsHangHitSpeedHook->GetReturnAddress();
+	FixBallsHangHitSpeedHook->Toggle(enable);
+	run = enable;
 }
 
 void ToggleCerberusCrashFix(bool enable) {
