@@ -3180,7 +3180,7 @@ struct PlayerActorDataBase : ActorDataBase {
     uint8 royalguardReleaseEffectIndex; // 0x6381
     _(1);
     float royalguardReleaseDamage; // 0x6384
-    float var_6388;                // 0x6388
+    float guardTimer;                // 0x6388
     float var_638C;                // 0x638C
     _(64);
     uint32 var_63D0;         // 0x63D0
@@ -3324,7 +3324,7 @@ static_assert(offsetof(PlayerActorDataBase, airGuard) == 0x6378);
 static_assert(offsetof(PlayerActorDataBase, royalguardReleaseLevel) == 0x6380);
 //static_assert(offsetof(PlayerActorDataBase, royalguardReleaseEffectIndex) == 0x6381);
 static_assert(offsetof(PlayerActorDataBase, royalguardReleaseDamage) == 0x6384);
-static_assert(offsetof(PlayerActorDataBase, var_6388) == 0x6388);
+static_assert(offsetof(PlayerActorDataBase, guardTimer) == 0x6388);
 static_assert(offsetof(PlayerActorDataBase, var_638C) == 0x638C);
 static_assert(offsetof(PlayerActorDataBase, var_63D0) == 0x63D0);
 static_assert(offsetof(PlayerActorDataBase, quicksilverStage) == 0x63D4);
