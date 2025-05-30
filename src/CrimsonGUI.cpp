@@ -3156,6 +3156,8 @@ void CharacterSection(size_t defaultFontSize) {
 		if (queuedConfig.Actor.playerCount > 1) {
 			activeCrimsonConfig.Camera.multiplayerCamera = true;
 			queuedCrimsonConfig.Camera.multiplayerCamera = true;
+			activeCrimsonConfig.Camera.forceThirdPerson = true;
+			queuedCrimsonConfig.Camera.forceThirdPerson = true;
 		} else {
 			activeConfig.enablePVPFixes = false;
 			queuedConfig.enablePVPFixes = false;
@@ -4746,9 +4748,11 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
+			GUI_PushDisable(activeConfig.Actor.playerCount > 1);
 			GUI_Checkbox2("Force Third Person Camera", activeCrimsonConfig.Camera.forceThirdPerson, queuedCrimsonConfig.Camera.forceThirdPerson);
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Replaces every Fixed Camera with the Third Person Camera. Disables Boss Cam automatically.");
+			TooltipHelper("(?)", "Replaces every Fixed Camera with the Third Person Camera. Disables Boss Cam automatically. Will always be enabled on Multiplayer.");
+			GUI_PopDisable(activeConfig.Actor.playerCount > 1);
 
 			ImGui::TableNextColumn();
 
@@ -4817,8 +4821,10 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.autoAdjust = 0;
 			queuedCrimsonConfig.Camera.autoAdjust = 0;
 
-			activeCrimsonConfig.Camera.forceThirdPerson = false;
-			queuedCrimsonConfig.Camera.forceThirdPerson = false;
+			if (activeConfig.Actor.playerCount <= 1) {
+				activeCrimsonConfig.Camera.forceThirdPerson = false;
+				queuedCrimsonConfig.Camera.forceThirdPerson = false;
+			}
 
 			activeCrimsonConfig.Camera.panoramicCamera = false;
 			queuedCrimsonConfig.Camera.panoramicCamera = false;
@@ -4863,8 +4869,10 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.autoAdjust = 0;
 			queuedCrimsonConfig.Camera.autoAdjust = 0;
 
-			activeCrimsonConfig.Camera.forceThirdPerson = false;
-			queuedCrimsonConfig.Camera.forceThirdPerson = false;
+			if (activeConfig.Actor.playerCount <= 1) {
+				activeCrimsonConfig.Camera.forceThirdPerson = false;
+				queuedCrimsonConfig.Camera.forceThirdPerson = false;
+			}
 
 			activeCrimsonConfig.Camera.panoramicCamera = false;
 			queuedCrimsonConfig.Camera.panoramicCamera = false;
