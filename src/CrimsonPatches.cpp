@@ -832,6 +832,10 @@ void CameraDistanceController(CameraData* cameraData, CameraControlMetadata& cam
 		if (cameraData->distance > 350) {
 			cameraData->distance = 350.0f;
 		}
+
+		if (activeCrimsonConfig.Camera.fovMultiplier != queuedCrimsonConfig.Camera.fovMultiplier) {
+			activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
+		}
 	}
 
 	if (activeCrimsonConfig.Camera.distance == 2) { // Dynamic
@@ -864,10 +868,16 @@ void CameraLockOnDistanceController() {
 
 
     if (activeCrimsonConfig.Camera.lockOnDistance == 0) {
+		if (activeCrimsonConfig.Camera.fovMultiplier != queuedCrimsonConfig.Camera.fovMultiplier) {
+			activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
+		}
         return;
     }
 
     if (activeCrimsonConfig.Camera.lockOnDistance == 1) {
+		if (activeCrimsonConfig.Camera.fovMultiplier != queuedCrimsonConfig.Camera.fovMultiplier) {
+			activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
+		}
         cameraData.distanceLockOn = 360.0f;
     }
 
