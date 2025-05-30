@@ -1944,6 +1944,13 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
 		return;
 	}
 
+    // Fix for the weird carry over to air hike/jump cancel
+	if ((event == ACTOR_EVENT::ATTACK && action == AGNI_RUDRA_WHIRLWIND_LAUNCH) && lastAction == CERBERUS_AIR_FLICKER) {
+		actorData.verticalPullMultiplier = -1.35f;
+		tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag on jump cancel/air hike
+		return;
+	}
+
 	if (event == ACTOR_EVENT::ATTACK && event != ACTOR_EVENT::AIR_HIKE && event != ACTOR_EVENT::JUMP_CANCEL && event != ACTOR_EVENT::JUMP && state & STATE::IN_AIR && actorData.character == CHARACTER::DANTE) {
 
 		if (action == CERBERUS_AIR_FLICKER) {
@@ -2008,6 +2015,14 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
 	if ((event == ACTOR_EVENT::AIR_HIKE || event == ACTOR_EVENT::JUMP_CANCEL) &&
 		(action == AGNI_RUDRA_SKY_DANCE_PART_1 || action == AGNI_RUDRA_SKY_DANCE_PART_2)) {
 		actorData.verticalPullMultiplier = -1.5f;
+		tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag on jump cancel/air hike
+		return;
+	}
+
+	// Fix for the weird carry over to air hike/jump cancel
+	if ((event == ACTOR_EVENT::ATTACK && action == AGNI_RUDRA_WHIRLWIND_LAUNCH) && (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 ||
+        lastAction == AGNI_RUDRA_SKY_DANCE_PART_2)) {
+		actorData.verticalPullMultiplier = -1.35f;
 		tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag on jump cancel/air hike
 		return;
 	}
