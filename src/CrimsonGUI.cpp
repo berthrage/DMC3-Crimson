@@ -1227,6 +1227,11 @@ const char* costumeNamesVergil[] = {
 	"Super Corrupted Vergil",
 };
 
+const char* costumeNamesLady[] = {
+	"DMC3",
+	"Ridersuit",
+};
+
 const char* weaponSwitchTypeNames[] = {
 	"Linear",
 	"Arbitrary",
@@ -2619,8 +2624,11 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 					if (queuedCharacterData.character == CHARACTER::DANTE) {
 						UI::Combo2("Costume", costumeNamesDante, activeCharacterData.costume, queuedCharacterData.costume);
-					} else if (queuedCharacterData.character == CHARACTER::VERGIL) {
+					} else if (queuedCharacterData.character == CHARACTER::VERGIL || queuedCharacterData.character == CHARACTER::BOB || 
+						queuedCharacterData.character == CHARACTER::BOSS_VERGIL) {
 						UI::Combo2("Costume", costumeNamesVergil, activeCharacterData.costume, queuedCharacterData.costume);
+					} else if (queuedCharacterData.character == CHARACTER::LADY || queuedCharacterData.character == CHARACTER::BOSS_LADY) {
+						UI::Combo2("Costume", costumeNamesLady, activeCharacterData.costume, queuedCharacterData.costume);
 					}
 					
 					GUI_PopDisable(condition);
@@ -2650,8 +2658,10 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 					if (queuedCharacterData.forceFilesCharacter == CHARACTER::DANTE) {
 						UI::Combo2("Force Files Costume", costumeNamesDante, activeCharacterData.forceFilesCostume, queuedCharacterData.forceFilesCostume);
-					} else {
+					} else if (queuedCharacterData.forceFilesCharacter == CHARACTER::VERGIL)  {
 						UI::Combo2("Force Files Costume", costumeNamesVergil, activeCharacterData.forceFilesCostume, queuedCharacterData.forceFilesCostume);
+					} else if (queuedCharacterData.forceFilesCharacter == CHARACTER::LADY || queuedCharacterData.forceFilesCharacter == CHARACTER::BOSS_LADY) {
+						UI::Combo2("Force Files Costume", costumeNamesLady, activeCharacterData.forceFilesCostume, queuedCharacterData.forceFilesCostume);
 					}
 				}
 				//if we are dante and haven't unlocked doppelganger, we shouldn't show this menu option.
@@ -3235,7 +3245,6 @@ void CharacterSection(size_t defaultFontSize) {
 			}
 			ImGui::PopFont();
 			ImGui::TableNextColumn();
-			ImGui::Text("");
 
 			GUI_PushDisable(queuedConfig.Actor.playerCount <= 1);
 			GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
@@ -3372,12 +3381,16 @@ void ArcadeSection(size_t defaultFontSize) {
 			auto queuedCharacterData = GetQueuedCharacterData(0, 0, 0);
 			bool disableCondition = queuedConfig.Actor.enable;
 
-
-
 			if (activeConfig.Arcade.mission > 0 && (queuedCharacterData.ignoreCostume || !queuedConfig.Actor.enable)) {
 				ImGui::TableNextColumn();
-				GUI_InputDefault2<uint8>("Costume", activeConfig.Arcade.costume, queuedConfig.Arcade.costume, defaultConfig.Arcade.costume, 1,
-					"%u", ImGuiInputTextFlags_EnterReturnsTrue);
+				if (queuedConfig.Arcade.character == CHARACTER::DANTE) {
+					UI::Combo2("Costume", costumeNamesDante, activeConfig.Arcade.costume, queuedConfig.Arcade.costume);
+				} else if (queuedConfig.Arcade.character == CHARACTER::VERGIL) {
+					UI::Combo2("Costume", costumeNamesVergil, activeConfig.Arcade.costume, queuedConfig.Arcade.costume);
+				} else if (queuedConfig.Arcade.character == CHARACTER::LADY || queuedConfig.Arcade.character == CHARACTER::BOSS_LADY) {
+					UI::Combo2("Costume", costumeNamesLady, activeConfig.Arcade.costume, queuedConfig.Arcade.costume);
+				}
+
 			}
 
 
@@ -3421,8 +3434,9 @@ void ArcadeSection(size_t defaultFontSize) {
 
 				GUI_PushDisable(condition);
 
-				GUI_InputDefault2<uint32>("", activeConfig.Arcade.room, queuedConfig.Arcade.room, defaultConfig.Arcade.room, 1, "%u",
-					ImGuiInputTextFlags_EnterReturnsTrue);
+				ImGui::PushItemWidth(itemWidth * 1.3f);
+				UI::ComboMapValue2("", roomNames, roomsMapu32, activeConfig.Arcade.room, queuedConfig.Arcade.room, 0);
+				ImGui::PopItemWidth();
 
 				GUI_PopDisable(condition);
 
@@ -3990,16 +4004,20 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 	ImVec2 progressBarSize = ImVec2(buttonSize.x, 7.0f * scaleFactorY);
 	float progressBarPadding = 1.0f * scaleFactorY;  // Space between progress bars
 
+	ImVec4 hitColor = CrimsonUtil::HexToImVec4(0x43fe65FF);
+	ImVec4 magicColor = CrimsonUtil::HexToImVec4(0xde1c4cFF);
+	ImVec4 magicColorVergil = { 0.06f, 0.74f, 0.81f, 1.0f };
+
 	// HP Bar
 	ImGui::SetCursorScreenPos(ImVec2(buttonPos.x, buttonPos.y + (buttonSize.y * 0.75f)));
-	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.hitColor));
+	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&hitColor));
 	ImGui::ProgressBar(actorData.hitPoints / actorData.maxHitPoints, progressBarSize, "");
 	ImGui::PopStyleColor();
 
 	// DT Bar
 	ImGui::SetCursorScreenPos(ImVec2(buttonPos.x, buttonPos.y + (buttonSize.y * 0.75f) + progressBarSize.y + progressBarPadding));
-	auto& magicColor = actorData.character != CHARACTER::VERGIL ? activeData.magicColor : activeData.magicColorVergil;
-	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(magicColor));
+	auto& magicColorChosen = actorData.character != CHARACTER::VERGIL ? magicColor : magicColorVergil;
+	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, magicColorChosen);
 	ImGui::ProgressBar(actorData.magicPoints / actorData.maxMagicPoints, progressBarSize, "");
 	ImGui::PopStyleColor();
 
@@ -4018,8 +4036,8 @@ void RenderMultiplayerBar(
 		return;
 	}
 	const float alpha = ImLerp(0.27f, 1.0f, 1.0);
-	float hitColor[4] = { 0.29f , 0.99f, 0.44f, 1.0f };
-	float magicColor[4] = { 0.78f, 0.05f, 0.41f, 1.0f };
+	ImVec4 hitColor = CrimsonUtil::HexToImVec4(0x43fe65FF);
+	ImVec4 magicColor[4] = CrimsonUtil::HexToImVec4(0xde1c4cFF);
 	float magicColorVergil[4] = { 0.06f, 0.74f, 0.81f, 1.0f };
 
 	const float baseSpacing = 0.37f;
@@ -4195,9 +4213,12 @@ void RenderWorldSpaceMultiplayerBar(
 
 	const float t = CrimsonUtil::smoothstep(0.0f, 1390.0f, crimsonPlayer[playerIndex].cameraPlayerDistance);
 	const float alpha = ImLerp(0.27f, 1.0f, t);
-	activeData.hitColor[3] = alpha;
-	activeData.magicColor[3] = alpha;
-	activeData.magicColorVergil[3] = alpha;
+	ImVec4 hitColor = CrimsonUtil::HexToImVec4(0x43fe65FF);
+	ImVec4 magicColor = CrimsonUtil::HexToImVec4(0xde1c4cFF);
+	ImVec4 magicColorVergil= { 0.06f, 0.74f, 0.81f, 1.0f };
+	hitColor.z = alpha;
+	magicColor.z = alpha;
+	magicColorVergil.z = alpha;
 
 	// If player is outside view: Handle Out of View Icons and stop rendering WorldSpace Bars
 	if (playerScreenPosition.x < screenMargin || playerScreenPosition.x > screenWidth - screenMargin ||
@@ -4230,14 +4251,14 @@ void RenderWorldSpaceMultiplayerBar(
 		ImGui::SetWindowFontScale(scaleFactorY);
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, alpha));
-		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.hitColor));
+		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&hitColor));
 		ImGui::ProgressBar(hitPoints, sizeDistance, "");
 		ImGui::PopStyleColor(2);
 
 		if (actorData.character != CHARACTER::VERGIL) {
-			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColor));
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&magicColor));
 		} else {
-			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColorVergil));
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&magicColorVergil));
 		}
 		ImGui::ProgressBar(magicPoints, sizeDistance, "");
 		ImGui::PopStyleColor();

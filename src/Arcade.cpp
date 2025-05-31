@@ -66,7 +66,14 @@ void InitSession() {
 
     SetMemory(sessionData.weaponAndStyleUnlocks, 1, sizeof(sessionData.weaponAndStyleUnlocks));
 
-    sessionData.costume            = activeConfig.Arcade.costume;
+	auto& activeCharacterData = GetActiveCharacterData(0, 0, 0);
+	auto& queuedCharacterData = GetQueuedCharacterData(0, 0, 0);
+
+    if (!queuedCharacterData.ignoreCostume) {
+        sessionData.costume = activeCharacterData.costume;
+    } else {
+		sessionData.costume = activeConfig.Arcade.costume;
+    }
     sessionData.unlockDevilTrigger = true;
     sessionData.hitPoints          = activeConfig.Arcade.hitPoints;
     sessionData.magicPoints        = activeConfig.Arcade.magicPoints;

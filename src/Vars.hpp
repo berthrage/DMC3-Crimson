@@ -2207,6 +2207,7 @@ static_assert(sizeof(BloodyPalaceData) == 2088);
 constexpr size_t ROOMS_COUNT = 189;
 extern const char* roomNames[ROOMS_COUNT];
 extern const uint16 roomsMap[ROOMS_COUNT];
+extern const uint32 roomsMapu32[ROOMS_COUNT];
 
 struct EventData {
     _(24);
