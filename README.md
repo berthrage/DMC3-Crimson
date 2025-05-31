@@ -1,4 +1,4 @@
-<img src="Public/fulllogo-with-fullcredits.png" alt="Logo" style="width: 2400px;"/>  
+![banner](Public/fulllogo-with-fullcredits.png)
 
 ## PATCH NOTES BETA LAUNCH BUILD 0.3
 Coming soon.
@@ -8,21 +8,21 @@ BACKUP your save files! Crimson has extensive save syncing built-in and things s
 
 ## CREDITS
 # C•Team  
-• Berthrage - Project Director, Lead Programmer, Artist, Reverse Engineering  
-• Siyan - Reverse Engineering, Gameplay Programmer, Q&A, Testing  
-• deepdarkkapustka - Reverse Engineering, Tooling, General Programmer  
-• Darkness - Backend, Devops, General Programmer, Reverse Engineering  
-• Charlie - Community Manager, Tester, Q&A  
-• The Hitchhiker - General Programmer, Reverse Engineering 
+- [Berthrage](https://github.com/berthrage) - Project Director, Lead Programmer, Artist, Reverse Engineering
+- [Siyan](https://github.com/SSSiyan) - Reverse Engineering, Gameplay Programmer, Q&A, Testing
+- [deepdarkkapustka](https://github.com/muhopensores) - Reverse Engineering, Tooling, General Programmer
+- [Darkness](https://github.com/amir-120) - Backend, Devops, General Programmer, Reverse Engineering
+- Charlie - Community Manager, Tester, Q&A
+- [The Hitchhiker](https://github.com/hitchhikingthrough) - General Programmer, Reverse Engineering 
 
 ## Contributions by
-• Cynuma - Artist  
-• Omar Nabelse - 3D Artist  
-• Che - Mod Tooling  
-• Vainiuss1 - Artist  
+- Cynuma - Artist
+- Omar Nabelse - 3D Artist
+- Che - Mod Tooling
+- Vainiuss1 - Artist
 
 # DDMK
-• serpentiem - Original DDMK's Developer  
+- [serpentiem](https://github.com/serpentiem) - [Original DDMK](https://github.com/serpentiem/ddmk)'s Developer
 
 # DMC3 Crimson is a free, open-source and non-commercial project
 C•Team is an independent development group and is not affiliated with, endorsed by, or sponsored by CAPCOM Co., Ltd. All trademarks, including Devil May Cry, are the property of their respective owners. This project is a non-commercial initiative made out of passion and respect for the original work.  
@@ -30,5 +30,4 @@ C•Team is an independent development group and is not affiliated with, endorse
 Warning: Be careful about downloading supposed Crimson builds from unofficial sources, they could be fake and/or contain malicious code.
 
 ## LICENSE
-DMC3 Crimson is licensed under the [zlib license](https://github.com/berthrage/Devil-May-Cry-3-Crimson/blob/main/LICENSE) and includes [DMCHDFix by Lyall](https://github.com/Lyall/DMCHDFix) packaged in. The rest of the licenses should be contained [here](https://github.com/serpentiem/ddmk/tree/master/ThirdParty).
-
+DMC3 Crimson is licensed under the [zlib license](https://github.com/berthrage/Devil-May-Cry-3-Crimson/blob/main/LICENSE) and includes [DMCHDFix by Lyall](https://github.com/Lyall/DMCHDFix) packaged in. The rest of the licenses should be contained [here](https://github.com/berthrage/Devil-May-Cry-3-Crimson/tree/master/ThirdParty).
