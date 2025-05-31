@@ -32,7 +32,7 @@ struct CrimsonConfigGameplay {
 			bool bufferlessReversals = true;
 			bool dmc4LockOnDirection = true;
             bool holdToCrazyCombo = true;
-			bool holdToShoot = true;
+			bool holdToShoot = false;
 			uint8 crazyComboMashRequirement = 6;
 			bool disableHeightRestriction = true;
 			bool improvedBufferedReversals = true;
