@@ -209,6 +209,12 @@ void EventHandler(EventData& eventData) {
     
 	//CrimsonOnTick::OverrideEnemyTargetPosition();
 
+    auto pool_66 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E30);
+    if (!pool_66 || !pool_66[1]) {
+        return;
+    }
+    auto eventFlags = reinterpret_cast<byte32*>(pool_66[1]);
+
 
     auto event = eventData.event;
     if (event >= COUNT) {
@@ -231,13 +237,17 @@ void EventHandler(EventData& eventData) {
 
     [&]() {
         auto funcName = eventFuncNames[event];
-
         auto& run = g_eventRun[event];
 
         if (!run) {
             run = true;
+            Log("Sub Event %u", eventData.subevent);
+            Log("Screen %u", eventData.screen);
+            Log("Next Screen %u", eventData.nextScreen);
 
-
+            DebugLog("flag 14 -  %X", eventFlags[14]);
+            DebugLog("flag 15 -  %X", eventFlags[15]);
+            DebugLog("flag 20 -  %X", eventFlags[20]);
             switch (event) {
             case INIT: {
                 Log(funcName);

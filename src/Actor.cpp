@@ -13658,8 +13658,13 @@ void SceneGame() {
     DebugLog("position      %u", eventData.position);
     DebugLog("next room     %u", nextEventData.room);
     DebugLog("next position %u", nextEventData.position);
+    DebugLog("event flag address %u", &eventFlags[20])
     DebugLog("flags         %X", eventFlags[20]);
 
+    //Let's say we didn't fight arkham 2 and pretend we did. -Hitch 2025
+    //tied to hold to shoot bc im too lazy to setup a proper toggle right now
+    if ((sessionData.mission == 19) && (nextEventData.room == 421) && (eventFlags[20] == 1) && activeCrimsonGameplay.Gameplay.General.holdToShoot)
+        eventFlags[20] = 2;
     // This determines that the Actor System gets temporarily deactivated at certain points 
     // where it would crash the game otherwise (mission 19 Battle of Brothers, as an example). - Mia
     if (((sessionData.mission == 18) && (nextEventData.room == 403)) ||
