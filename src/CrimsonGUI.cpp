@@ -9901,7 +9901,7 @@ void SoundSection(size_t defaultFontSize) {
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
-	ImGui::Text("IM-GAME SOUND VOLUMES");
+	ImGui::Text("IN-GAME SOUND VOLUMES");
 
 	ImGui::PopFont();
 
