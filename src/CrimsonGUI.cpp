@@ -4612,6 +4612,8 @@ void BossRushSection(size_t defaultFontSize) {
 		GUI_Checkbox2(
 			"Skip Arkham Part 1", activeConfig.BossRush.Mission19.skipArkhamPart1, queuedConfig.BossRush.Mission19.skipArkhamPart1);
 
+		GUI_Checkbox2(
+			"Skip Arkham Part 2", activeConfig.BossRush.Mission19.skipArkhamPart2, queuedConfig.BossRush.Mission19.skipArkhamPart2);
 
 		ImGui::EndTable();
 

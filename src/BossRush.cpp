@@ -415,7 +415,9 @@ void EventMain() {
         if ((eventData.room == bossHelpers[BOSS::ARKHAM_PART_1].room) && (eventFlags[20] == 0)) {
             PlayTrack(bossHelpers[BOSS::ARKHAM_PART_1].track);
         } else if ((eventData.room == bossHelpers[BOSS::ARKHAM_PART_2].room) && (eventFlags[20] == 1)) {
-            PlayTrack(bossHelpers[BOSS::ARKHAM_PART_2].track);
+            //stop playing the music jackass
+            if (!activeConfig.BossRush.Mission19.skipArkhamPart2)
+                PlayTrack(bossHelpers[BOSS::ARKHAM_PART_2].track);
         }
         break;
     }

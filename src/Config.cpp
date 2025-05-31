@@ -408,6 +408,7 @@ void CreateMembers(Config& config_) {
             auto& config2 = config.Mission19;
 
             Create<bool>(member2, "skipArkhamPart1", config2.skipArkhamPart1);
+            Create<bool>(member2, "skipArkhamPart2", config2.skipArkhamPart2);
         }
     }
 
@@ -793,6 +794,7 @@ void ToJSON(Config& config_) {
             auto& config2 = config.Mission19;
 
             Set<bool>(member2["skipArkhamPart1"], config2.skipArkhamPart1);
+            Set<bool>(member2["skipArkhamPart2"], config2.skipArkhamPart2);
         }
     }
 
@@ -1131,6 +1133,7 @@ void ToConfig(Config& config_) {
             auto& member2 = member["Mission19"];
 
             config2.skipArkhamPart1 = Get<bool>(member2["skipArkhamPart1"]);
+            config2.skipArkhamPart2 = Get<bool>(member2["skipArkhamPart2"]);
         }
     }
 

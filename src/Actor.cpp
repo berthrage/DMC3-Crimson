@@ -13663,8 +13663,18 @@ void SceneGame() {
 
     //Let's say we didn't fight arkham 2 and pretend we did. -Hitch 2025
     //tied to hold to shoot bc im too lazy to setup a proper toggle right now
-    if ((sessionData.mission == 19) && (nextEventData.room == 421) && (eventFlags[20] == 1) && activeCrimsonGameplay.Gameplay.General.holdToShoot)
-        eventFlags[20] = 2;
+    //if ((sessionData.mission == 19) && (nextEventData.room == 421) && (eventFlags[20] == 1) && activeCrimsonGameplay.Gameplay.General.holdToShoot)
+    //    eventFlags[20] = 2;
+    if ((sessionData.mission == 19) && (nextEventData.room == 421) && (eventFlags[20] == 1) && activeConfig.BossRush.enable && activeConfig.BossRush.Mission19.skipArkhamPart2) {
+        CrimsonPatches::EndBossFight(true);
+        PlayTrack("");
+        SetVolume(9, 0);
+    }
+    else {
+        CrimsonPatches::EndBossFight(false);
+        SetVolume(9, activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f);
+    }
+
     // This determines that the Actor System gets temporarily deactivated at certain points 
     // where it would crash the game otherwise (mission 19 Battle of Brothers, as an example). - Mia
     if (((sessionData.mission == 18) && (nextEventData.room == 403)) ||

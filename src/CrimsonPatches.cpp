@@ -42,6 +42,31 @@ namespace CrimsonPatches {
 		run = enable;
 	}
 
+	/// <summary>
+	/// It's time for the clown to bow out. 
+	/// </summary>
+	/// <param name="enable"></param>
+	void EndBossFight(bool enable) {
+		static bool run = false;
+
+		if (run == enable) {
+			return;
+		}
+
+		if (enable) {
+			//one of these is air, one is ground, I forget which is which.
+			_patch((char*)(appBaseAddr + 0x1A8656), (char*)"\x28", 1);
+			_patch((char*)(appBaseAddr + 0x23C377), (char*)"\x90\x90", 2);
+
+		}
+		else {
+			_patch((char*)(appBaseAddr + 0x1A8656), (char*)"\x2C", 1);
+			_patch((char*)(appBaseAddr + 0x23C377), (char*)"\x7C\x0B", 2);
+		}
+		run = enable;
+	}
+
+
 void DisableHeightRestriction(bool enable) {
 	static bool run = false;
 
