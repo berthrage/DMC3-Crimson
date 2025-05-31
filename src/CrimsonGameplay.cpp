@@ -1931,7 +1931,7 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
 	auto action = actorData.action;
 	auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
 	auto event =  actorData.eventData[0].event;
-	auto motion = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
+    auto motion = actorData.motionData[0].index;
 	auto& state = actorData.state;
 	auto actionTimer =
 		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
@@ -2002,7 +2002,7 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
     auto action = actorData.action;
 	auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
     auto event = actorData.eventData[0].event;
-	auto motion = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
+    auto motion = actorData.motionData[0].index;
 	auto& state = actorData.state;
 	auto actionTimer =
 		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
