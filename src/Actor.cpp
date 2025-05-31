@@ -13667,12 +13667,9 @@ void SceneGame() {
     //    eventFlags[20] = 2;
     if ((sessionData.mission == 19) && (nextEventData.room == 421) && (eventFlags[20] == 1) && activeConfig.BossRush.enable && activeConfig.BossRush.Mission19.skipArkhamPart2) {
         CrimsonPatches::EndBossFight(true);
-        PlayTrack("");
-        SetVolume(9, 0);
     }
     else {
         CrimsonPatches::EndBossFight(false);
-        SetVolume(9, activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f);
     }
 
     // This determines that the Actor System gets temporarily deactivated at certain points 

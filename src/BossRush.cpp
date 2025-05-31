@@ -318,6 +318,14 @@ bool SetTrack(const char* filename) {
         return false;
     }
 
+
+    //arkham 2 audio skip
+    
+    if ((sessionData.mission == 19) && activeConfig.BossRush.Mission19.skipArkhamPart2 && (nextEventData.room == bossHelpers[BOSS::ARKHAM_PART_2].room) &&
+        (strcmp(filename, bossHelpers[BOSS::ARKHAM_PART_2].track) == 0)) {
+        return false;
+    }
+
     return true;
 }
 
