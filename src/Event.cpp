@@ -124,7 +124,7 @@ void SetContinueRoom() {
 bool SetTrack(byte8* dest, const char* filename, uint32 arg3, uint32 arg4) {
     Log("%s %llX %s %u %u", FUNC_NAME, dest, filename, arg3, arg4);
     //here you go berth
-    //g_gameTrackPlaying = filename;
+    g_gameTrackPlaying = filename;
     return BossRush::SetTrack(filename);
 }
 
