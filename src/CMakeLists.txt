@@ -34,7 +34,7 @@ set (ASM_LIBS)
 set (ASM_FLAGS)
 
 set(CXX_LIBS
-    d3d11.lib
+    d3d11.lib    
     d3dcompiler.lib
     dinput8.lib
     #xinput.lib

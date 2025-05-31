@@ -96,7 +96,6 @@ namespace Hooks {
 void Init() {
     LogFunction();
 
-
     Install((appBaseAddr + 0x34F308), ::Base::Windows::RegisterClassExW, ::Hook::Windows::RegisterClassExW);
 #if 0 // TODO(): window message pump gets stuck... uhh investigate further?
 	Install

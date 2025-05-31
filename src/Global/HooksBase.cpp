@@ -672,12 +672,60 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
 #endif
         FUNC_NAME, pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels, SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice,
         pFeatureLevel, ppImmediateContext);
-
-    auto result = ::Base::D3D11::D3D11CreateDeviceAndSwapChain(pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels,
-        SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
-
-    auto error = GetLastError();
-
+    DXGI_SWAP_CHAIN_DESC swapChainDesc = *pSwapChainDesc;
+    D3D_FEATURE_LEVEL levels[] = { D3D_FEATURE_LEVEL_11_1 };
+    UINT deviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+#ifdef _DEBUG
+    deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif             
+    IDXGIFactory1* pFactory;
+    CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)(&pFactory));    
+    for (int i = 0; pFactory->EnumAdapters(i, &pAdapter) != DXGI_ERROR_NOT_FOUND; i++)
+    {
+        DXGI_ADAPTER_DESC adapterDesc{};
+        pAdapter->GetDesc(&adapterDesc);
+        Log("Found device %d: %S", i, (wchar_t*)adapterDesc.Description);
+        break;
+    }
+    HRESULT hr = D3D11CreateDevice(
+        pAdapter,
+        D3D_DRIVER_TYPE_UNKNOWN,
+        0,                
+        deviceFlags,      
+        levels,           
+        ARRAYSIZE(levels),
+        D3D11_SDK_VERSION,
+        ppDevice,         
+        NULL,             
+        ppImmediateContext
+    );
+    assert(SUCCEEDED(hr) && "D3D11 device creation failure.");
+    IDXGIOutput* pOutput = nullptr;
+    hr = pAdapter->EnumOutputs(0, &pOutput);
+    assert(SUCCEEDED(hr) && "Failed to enumerate DXGI Output.");
+    DXGI_MODE_DESC desiredMode{}, matchingMode{};
+    desiredMode.Width = swapChainDesc.BufferDesc.Width;
+    desiredMode.Height = swapChainDesc.BufferDesc.Height;
+    desiredMode.Format = swapChainDesc.BufferDesc.Format;
+    // Match highest available refresh rates
+    desiredMode.RefreshRate.Numerator = 1000;
+    desiredMode.RefreshRate.Denominator = 1;
+    hr = pOutput->FindClosestMatchingMode(&desiredMode, &matchingMode, *ppDevice);
+    assert(SUCCEEDED(hr) && "Failed to match display mode!");
+	Log("Display: %dx%d@%fHz", matchingMode.Width, matchingMode.Height,
+		static_cast<float>(matchingMode.RefreshRate.Numerator) / static_cast<float>(matchingMode.RefreshRate.Denominator));    
+    swapChainDesc.BufferDesc = matchingMode;    
+    // Create the Swapchain
+    auto result = pFactory->CreateSwapChain(
+        *ppDevice,
+        &swapChainDesc,
+        ppSwapChain
+    );
+    assert(SUCCEEDED(result) && "Failed to create the Swapchain!");
+    auto error = GetLastError();       
+    pFactory->Release();
+    pOutput->Release();
+    
     ::D3D11::device        = *ppDevice;
     ::D3D11::deviceContext = *ppImmediateContext;
     ::DXGI::swapChain      = *ppSwapChain;

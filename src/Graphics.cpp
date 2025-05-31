@@ -250,6 +250,33 @@ void Toggle(bool enable) {
         *frameRateAddr = 60;
     }
 
+    // Remove framerate lock
+    {        
+        auto addr = (appBaseAddr + 0x2C5EB0);
+        auto jumpAddr = (appBaseAddr + 0x2C5F1D);
+		auto destAddr = (appBaseAddr + 0x2C5F29);
+        constexpr uint64 size = 2;
+        /*        
+		dmc3.exe+2C5F1D - 76 0A - jbe dmc3.exe+2C5F29
+        */
+
+        static Function func = {};
+
+        constexpr byte8 sect0[] = {
+			0xEB, 0x0A, // jmp dmc3.exe+2C5F29
+        };
+
+        if (!run) {
+            backupHelper.Save(jumpAddr, size);            
+        }
+
+        if (enable) {
+            WriteShortJump(jumpAddr, destAddr);
+        }
+        else {
+            backupHelper.Restore(jumpAddr);
+        }
+    }
 
     {
         auto addr             = (appBaseAddr + 0x2C5EB0);
