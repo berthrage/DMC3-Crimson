@@ -5069,7 +5069,22 @@ void CustomDamageSection() {
 			ImGui::PopFont();
 			DamageDataInput(activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult, 
 				queuedCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult, defaultCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult);
+			ImGui::SameLine();
+			{
+				static bool toggled = false;
+				if (GUI_Button("One Hit Kills Player")) {
 
+					if (!toggled) {
+						toggled = true;
+						activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult = queuedCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult = 500.0f;
+					}
+					else {
+						toggled = false;
+						activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult = queuedCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult =
+							defaultCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult;
+					}
+				}
+			}
 			ImGui::TableNextColumn();
 
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
@@ -5080,7 +5095,7 @@ void CustomDamageSection() {
 			ImGui::SameLine();
 			{
 				static bool toggled = false;
-				if (GUI_Button("One Hit Kill")) {
+				if (GUI_Button("One Hit Kills Enemy")) {
 
 					if (!toggled) {
 						toggled = true;
@@ -5094,19 +5109,7 @@ void CustomDamageSection() {
 				}
 			}
 
-			static bool toggled = false;
-			if (GUI_Button("COME ON! KILL MEE")) {
 
-				if (!toggled) {
-					toggled = true;
-					activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult = queuedCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult = 500.0f;
-				}
-				else {
-					toggled = false;
-					activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult = queuedCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult =
-						defaultCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult;
-				}
-			}
 
 			GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.customDamage);
 			ImGui::EndTable();
