@@ -5093,6 +5093,21 @@ void CustomDamageSection() {
 					}
 				}
 			}
+
+			static bool toggled = false;
+			if (GUI_Button("COME ON! KILL MEE")) {
+
+				if (!toggled) {
+					toggled = true;
+					activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult = queuedCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult = 500.0f;
+				}
+				else {
+					toggled = false;
+					activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult = queuedCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult =
+						defaultCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult;
+				}
+			}
+
 			GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.customDamage);
 			ImGui::EndTable();
 		}
