@@ -1067,6 +1067,37 @@ void Event_Toggle(bool enable) {
         }
     }
 
+    // Continue Game Over
+    {
+        auto addr = (appBaseAddr + 0x23BCF8);
+        auto jumpAddr = (appBaseAddr + 0x23BCFF);
+        constexpr new_size_t size = 7;
+        /*
+        dmc3.exe+23BCF8: C7 43 2C 06 00 00 00           - mov [rbx+2C],00000006
+        dmc3.exe+23BCFF: FE 43 24                       - inc byte ptr [rbx+24]
+        */
+
+        static Function func = {};
+
+        constexpr byte8 sect1[] = {
+            mov_rcx_rbx,
+        };
+
+        if (!run) {
+            backupHelper.Save(addr, size);
+            func = CreateFunction(SetNextScreen, jumpAddr, (FunctionFlags_SaveRegisters | FunctionFlags_NoResult), size, sizeof(sect1));
+            CopyMemory(func.sect0, addr, size, MemoryFlags_VirtualProtectSource);
+            CopyMemory(func.sect1, sect1, sizeof(sect1));
+        }
+
+        if (enable) {
+            WriteJump(addr, func.addr, (size - 5));
+        }
+        else {
+            backupHelper.Restore(addr);
+        }
+    }
+
 
     // Pause Quit Mission
     {
