@@ -89,7 +89,7 @@ namespace CrimsonBetterArkham2 {
 			if (!enemyData.baseAddr) continue;
 
 			//for now, we'll use this to end the arkham fight
-			if (enemyData.enemy == 53 && enemyData.hitPointsArkham < 1.0f)
+			if (enemyData.enemy == 53 && enemyData.hitPointsArkham < 1.0f && fightActive)
 				CrimsonBetterArkham2::fightEnding = true;
 		}
 
