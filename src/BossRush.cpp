@@ -2,6 +2,7 @@
 
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "BossRush.hpp"
+#include "CrimsonPatches.hpp"
 #include "Core/Core.hpp"
 #include "Internal.hpp"
 #include "Config.hpp"
@@ -429,6 +430,31 @@ void EventMain() {
         }
         break;
     }
+    }
+}
+
+void SceneGame()
+{
+    auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+
+    auto pool_19326 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+    if (!pool_19326 || !pool_19326[12]) {
+        return;
+    }
+    auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_19326[12]);
+
+    auto pool_19337 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E30);
+    if (!pool_19337 || !pool_19337[1]) {
+        return;
+    }
+    auto eventFlags = reinterpret_cast<byte32*>(pool_19337[1]);
+
+    //skip arkham 2
+    //OK this is a bad solution that we'll need to work on but for now,
+    //this also checks if the betterarkham2 option is enabled so it doesn't break that mod by accident
+    if ((sessionData.mission == 19) && (nextEventData.room == 421) && (eventFlags[20] == 1) && (activeConfig.BossRush.enable && activeConfig.BossRush.Mission19.skipArkhamPart2)) {
+        CrimsonPatches::EndBossFight(true);
     }
 }
 

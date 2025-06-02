@@ -72,6 +72,7 @@
 #include "UI\Texture2DD3D11.hpp"
 #include "UI\EmbeddedImages.hpp"
 #include "CrimsonCameraController.hpp"
+#include "CrimsonBetterArkham2.hpp"
 
 #include "DebugDrawDX11.hpp"
 
@@ -11257,6 +11258,13 @@ void ExtraDifficultyGameplayOptions() {
 			"Instant Enemy DT will apply Enemy DT instantly when they spawn on DMD.\n"
 		"No Enemy DT will make it so enemy DT never occurs, even on DMD.");
 
+		ImGui::TableNextColumn();
+		GUI_Checkbox2("Better Arkham 2",
+			activeCrimsonGameplay.Gameplay.ExtraDifficulty.betterArkham2,
+			queuedCrimsonGameplay.Gameplay.ExtraDifficulty.betterArkham2);
+		ImGui::TableNextColumn();
+		CrimsonBetterArkham2::DebugGui();
+		
 		ImGui::EndTable();
 	}
 
@@ -14125,6 +14133,9 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     
 	// Calling this from GUI Render is the safest way to ensure this will run on-tick properly
     // outside of In Game.
+
+	//Putting the arkham kill teleport update here because the teleport tool used the gui update anyway, so I'm doing the same thing basically.
+	CrimsonBetterArkham2::OnTick();
     
   	CrimsonOnTick::FrameResponsiveGameSpeed();
 	CrimsonOnTick::InCreditsDetection();

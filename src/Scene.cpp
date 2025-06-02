@@ -2,6 +2,8 @@
 #include "Scene.hpp"
 #include "Core/Core.hpp"
 #include "Actor.hpp"
+#include "CrimsonBetterArkham2.hpp"
+#include "BossRush.hpp"
 #include "Config.hpp"
 #include "Exp.hpp"
 #include "Global.hpp"
@@ -162,7 +164,9 @@ void SceneHandler() {
     }
     case GAME: {
         Log(funcName);
-
+        CrimsonPatches::EndBossFight(false);
+        CrimsonBetterArkham2::SceneGame();
+        BossRush::SceneGame();
         Actor::SceneGame();
 
         break;

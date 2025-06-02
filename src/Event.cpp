@@ -14,6 +14,7 @@
 #include "CrimsonOnTick.hpp"
 #include "CrimsonSDL.hpp"
 #include "CrimsonGameplay.hpp"
+#include "CrimsonBetterArkham2.hpp"
 
 #include "Core/Macros.h"
 
@@ -259,6 +260,7 @@ void EventHandler(EventData& eventData) {
                 Log(funcName);
 
                 Actor::EventMain();
+                CrimsonBetterArkham2::EventMain();
                 BossRush::EventMain();
                 Sound::EventMain();
 
@@ -488,6 +490,7 @@ void ContinueGoldOrb() {
 }
 
 void Continue() {
+    CrimsonBetterArkham2::Continue();
     LogFunction();
 }
 
@@ -522,7 +525,8 @@ bool MissionStartTriggerCustomizeMenu(byte8* addr) {
 
 void SetNextScreen(EventData& eventData) {
     Log("%s %u", FUNC_NAME, eventData.nextScreen);
-
+    //THIS MUST COME BEFORE ACTOR OTHERWISE THE ACTOR MODULE WILL DISABLE FOR THE WRONG PART OF THE BETTER ARKHAM 2 FIGHT
+    CrimsonBetterArkham2::SetNextScreen(eventData);
     Actor::SetNextScreen(eventData);
     SecretMission::SetNextScreen(eventData);
 }

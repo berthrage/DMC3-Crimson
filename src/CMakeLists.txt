@@ -117,6 +117,8 @@ file(GLOB MAIN_SRC
     CrimsonConfigGameplay.hpp
     CrimsonConfigGameplayMask.hpp
     CrimsonConfigHandling.h
+    CrimsonBetterArkham2.cpp
+    CrimsonBetterArkham2.hpp
     CrimsonCameraController.cpp
     CrimsonCameraController.hpp
     CrimsonDetours.cpp
