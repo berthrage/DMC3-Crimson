@@ -13,4 +13,5 @@ namespace CrimsonBetterArkham2 {
 	void SceneGame();
 	void EventMain();
 	void DebugGui();
+	void BlackoutArkham2OriginalScene();
 };

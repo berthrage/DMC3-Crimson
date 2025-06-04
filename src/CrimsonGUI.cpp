@@ -14160,6 +14160,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	WorldSpaceWeaponWheels1PController(pSwapChain);
 	WorldSpaceWeaponWheelsController(pSwapChain);
  	CrimsonHUD::RedOrbCounterWindow();
+	CrimsonBetterArkham2::BlackoutArkham2OriginalScene();
  	CrimsonHUD::CheatsHUDIndicatorWindow();
  	CrimsonHUD::CheatHotkeysPopUpWindow();
  	CrimsonHUD::StyleMeterWindows();

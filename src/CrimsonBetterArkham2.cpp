@@ -193,4 +193,53 @@ namespace CrimsonBetterArkham2 {
 			CreateEnemyActor(arkham2data, 0);
 		}
 	}
+
+	void BlackoutArkham2OriginalScene() {
+		auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+		auto pool_19315 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+		if (!pool_19315 || !pool_19315[8]) {
+			return;
+		}
+		auto& eventData = *reinterpret_cast<EventData*>(pool_19315[8]);
+
+		auto pool_19326 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+		if (!pool_19326 || !pool_19326[12]) {
+			return;
+		}
+		auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_19326[12]);
+
+		auto pool_19337 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E30);
+		if (!pool_19337 || !pool_19337[1]) {
+			return;
+		}
+		auto eventFlags = reinterpret_cast<byte32*>(pool_19337[1]);
+
+		if ((sessionData.mission == 19) && activeCrimsonGameplay.Gameplay.ExtraDifficulty.betterArkham2 
+			&& g_scene == SCENE::GAME) {
+			if (eventFlags[20] == 1) {
+				ImGuiViewport* viewport = ImGui::GetMainViewport();
+				ImGui::SetNextWindowPos(viewport->Pos);
+				ImGui::SetNextWindowSize(viewport->Size);
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+				ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+					ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+					ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+				ImGui::Begin("BlackoutArkham2Window", nullptr, windowFlags);
+
+				ImDrawList* draw_list = ImGui::GetWindowDrawList();
+				ImVec2 p0 = viewport->Pos;
+				ImVec2 p1 = ImVec2(viewport->Pos.x + viewport->Size.x, viewport->Pos.y + viewport->Size.y);
+				draw_list->AddRectFilled(p0, p1, IM_COL32(0, 0, 0, 255));
+
+				ImGui::End();
+				ImGui::PopStyleVar(3);
+			}
+		}
+	}
 };
