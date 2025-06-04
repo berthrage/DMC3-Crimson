@@ -67,6 +67,12 @@ void SetEnemyDTMode(uint8 mode);
 
 #pragma endregion
 
+# pragma region Level
+
+void DisableDoorsInstancing(bool enable);
+
+#pragma endregion
+
 #pragma region Damage
 
 void StopDamageToCerberus(bool enable);

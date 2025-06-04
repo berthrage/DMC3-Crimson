@@ -228,6 +228,14 @@ std::uint64_t g_ArtemisReworkJumpAddr2;
 void GreenOrbsMPRegenDetour();
 std::uint64_t g_GreenOrbsMPRegen_ReturnAddr;
 void* g_GreenOrbsMPRegen_Call;
+
+// PortalsHide
+void PortalsHideDetour();
+std::uint64_t g_PortalsHide_ReturnAddr;
+
+// PortalsMute
+void PortalsMuteDetour();
+std::uint64_t g_PortalsMute_ReturnAddr;
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -1028,6 +1036,28 @@ void ToggleStyleRankHudNoFadeout(bool enable) {
         StyleRankHudNoFadeoutHook->Toggle(false);
     }
 }
+
+// void ToggleHideAndMutePortals(bool enable) {
+// 	using namespace Utility;
+// 	static bool run = false;
+// 	if (run == enable) {
+// 		return;
+// 	}
+// 
+// 	// HidePortals
+// 	static std::unique_ptr<Utility::Detour_t> HidePortalsHook =
+// 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1F6B2A, &PortalsHideDetour, 5);
+// 	g_PortalsHide_ReturnAddr = HidePortalsHook->GetReturnAddress();
+// 	HidePortalsHook->Toggle(enable);
+// 
+// 	// MutePortals
+// 	static std::unique_ptr<Utility::Detour_t> MutePortalsHook =
+// 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1F6B2A, &PortalsMuteDetour, 5);
+// 	g_PortalsMute_ReturnAddr = MutePortalsHook->GetReturnAddress();
+// 	MutePortalsHook->Toggle(enable);
+// 
+// 	run = enable;
+// }
 
 void ToggleFPSSpeedIssues(bool enable) {
 	using namespace Utility;

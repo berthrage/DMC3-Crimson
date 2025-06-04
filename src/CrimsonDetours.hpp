@@ -123,10 +123,10 @@ void AirTauntDetours(bool enable);
 void RerouteRedOrbsCounterAlpha(bool enable, volatile uint16_t& alphaVar);
 void ToggleGreenOrbsMPRegen(bool enable);
 void ToggleClassicHUDPositionings(bool enable);
+void ToggleHideAndMutePortals(bool enable);
 void ToggleStyleRankHudNoFadeout(bool enable);
 void ToggleFixBallsHangHitSpeed(bool enable);
 void ToggleCerberusCrashFix(bool enable);
 void ToggleVergilM3CrashFix(bool enable);
 void ToggleArkhamPt2GrabCrashFix(bool enable);
-
 }

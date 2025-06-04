@@ -16,6 +16,7 @@ set(MASM_SRC
     masm/HideStyleRankHUD.asm
     masm/HudHPSeparation.asm
     masm/HudStyleBarPosAsm.asm
+    masm/PortalsHideAndMute.asm
     masm/DisableDriveHoldAsm.asm
     masm/CustomCameraPositioning.asm
     masm/FreeformSoftLockHelper.asm

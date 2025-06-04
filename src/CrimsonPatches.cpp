@@ -1517,6 +1517,28 @@ void SetEnemyDTMode(uint8 mode) {
 
 #pragma endregion
 
+# pragma region Level
+
+void DisableDoorsInstancing(bool enable) {
+	// This disables the instancing of doors in levels. Useful for Void and Better Arkham Pt.2
+
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// dmc3.exe+1A9B90 - E8 2B 02 00 00           - call dmc3.exe+1A9DC0
+	if (enable) {
+		_nop((char*)(appBaseAddr + 0x1A9B90), 5); 
+	} else {
+		_patch((char*)(appBaseAddr + 0x1A9B90), (char*)"\xE8\x2B\x02\x00\x00", 5); 
+	}
+	run = enable;
+}
+
+#pragma endregion
+
 # pragma region Damage
 
 void StopDamageToCerberus(bool enable) {
