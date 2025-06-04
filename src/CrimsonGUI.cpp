@@ -7072,7 +7072,7 @@ void DebugSection() {
 		}();
 		}
 		ImGui::SameLine();
-		TooltipHelper("(?)", "Fix wrong values. Can be accessed while in the mission select menu. Save your game after applying a fix.");
+		TooltipHelper("(?)", "Fixes the missing Devil Arm/Gun 2nd Slot. Can be accessed while in the Mission Select menu. Save your game after applying a fix.");
 		ImGui::Text("");
 
 		if (GUI_Checkbox2(
