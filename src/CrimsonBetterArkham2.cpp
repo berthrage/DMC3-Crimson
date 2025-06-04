@@ -27,6 +27,51 @@ namespace CrimsonBetterArkham2 {
 		fightEnding = false;
 		return;
 	};
+
+	/// <summary>
+	/// Overrides the music trigger when skipping the real arkham 2 boss fight
+	/// </summary>
+	/// <param name="filename"></param>
+	/// <returns>false if we need to skip the arkham music</returns>
+	bool SetTrack(const char* filename) {
+		if (!activeConfig.BossRush.enable) {
+			return true;
+		}
+
+		LogFunction();
+
+		auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+		auto pool_328 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+		if (!pool_328 || !pool_328[8]) {
+			return true;
+		}
+		auto& eventData = *reinterpret_cast<EventData*>(pool_328[8]);
+
+		auto pool_369 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+		if (!pool_369 || !pool_369[12]) {
+			return true;
+		}
+		auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_369[12]);
+
+		auto pool_410 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E30);
+		if (!pool_410 || !pool_410[1]) {
+			return true;
+		}
+		auto eventFlags = reinterpret_cast<byte32*>(pool_410[1]);
+
+		//arkham 2 audio skip
+
+		if ((sessionData.mission == 19) 
+			&& activeCrimsonGameplay.Gameplay.ExtraDifficulty.betterArkham2 
+			&& (eventFlags[20] == 1) &&
+			(strcmp(filename, bossHelpers[BOSS::ARKHAM_PART_2].track) == 0)) {
+			return false;
+		}
+
+		return true;
+	}
+
 	/// <summary>
 	/// Sets the fight to not active when the player:
 	/// restarts the mission
@@ -143,7 +188,7 @@ namespace CrimsonBetterArkham2 {
 		DebugLog("next room     %u", nextEventData.room);
 		DebugLog("next position %u", nextEventData.position);
 		DebugLog("event flag address %u", &eventFlags[20])
-			DebugLog("flags         %X", eventFlags[20]);
+		DebugLog("flags         %X", eventFlags[20]);
 
 		//Let's say we didn't fight arkham 2 and pretend we did. -Hitch 2025
 		if ((sessionData.mission == 19) && (nextEventData.room == 421) && activeCrimsonGameplay.Gameplay.ExtraDifficulty.betterArkham2) {
@@ -154,6 +199,19 @@ namespace CrimsonBetterArkham2 {
 				//spawn our own arkham
 
 				//configure actors here
+				//suprise dante/vergil time
+				//if (queuedConfig.Actor.playerCount == 1) {
+				//	activeConfig.Actor.playerCount = 2;
+				//	auto playerdata = GetActivePlayerData(1);
+				//	playerdata.activeCharacterIndex = 0;
+				//	playerdata.characterCount = 1;
+				//	auto& activeCharacterData = GetActiveCharacterData(1, 0, 0);
+				//	activeCharacterData.meleeWeaponCount = 2;
+				//	activeCharacterData.meleeWeapons[0] = WEAPON::YAMATO_VERGIL;
+				//	activeCharacterData.meleeWeapons[0] = WEAPON::BEOWULF_VERGIL;
+				//	ApplyDefaultCharacterData(activeCharacterData, CHARACTER::VERGIL, 1, 0);
+				//}
+				
 				//this shouldn't need to be called, the skip is toggled off by default unless a scenechange needs it
 				//CrimsonPatches::EndBossFight(false);
 

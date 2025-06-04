@@ -8,6 +8,7 @@
 #include "Vars.hpp"
 namespace CrimsonBetterArkham2 {
 	void Continue();
+	bool SetTrack(const char* filename);
 	void SetNextScreen(EventData& eventData);
 	void OnTick();
 	void SceneGame();

@@ -126,7 +126,9 @@ bool SetTrack(byte8* dest, const char* filename, uint32 arg3, uint32 arg4) {
     Log("%s %llX %s %u %u", FUNC_NAME, dest, filename, arg3, arg4);
     //here you go berth
     g_gameTrackPlaying = filename;
-    return BossRush::SetTrack(filename);
+    //we want to allow for any false to make the whole thing false here I think
+    bool returnval = (BossRush::SetTrack(filename) && CrimsonBetterArkham2::SetTrack(filename));
+    return returnval;
 }
 
 
