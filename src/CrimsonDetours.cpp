@@ -114,6 +114,18 @@ std::uint64_t g_CerbDamageFix_JmpAddr;
 float g_cerbDamageValue;
 void CerbDamageFixDetour();
 
+// FixCrashArkhamPt2Grab
+std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr1;
+void FixCrashArkhamPt2GrabDetour1();
+std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr2;
+void FixCrashArkhamPt2GrabDetour2();
+std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr3;
+void FixCrashArkhamPt2GrabDetour3();
+std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr4;
+void FixCrashArkhamPt2GrabDetour4();
+std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr5;
+void FixCrashArkhamPt2GrabDetour5();
+
 // HoldToCrazyCombo
 std::uint64_t g_HoldToCrazyCombo_ReturnAddr;
 void HoldToCrazyComboDetour();
@@ -1163,6 +1175,54 @@ void ToggleCerbDamageFix(bool enable) {
 	g_CerbDamageFix_ReturnAddr = CerbDamageFixHook->GetReturnAddress();
 	g_CerbDamageFix_JmpAddr = (uintptr_t)appBaseAddr + 0x10B7E7; // Jump to the next instruction after the detour
 	CerbDamageFixHook->Toggle(enable);
+	run = enable;
+}
+
+void ToggleArkhamPt2GrabCrashFix(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// Detour1
+	// dmc3.exe + 32E5F4 - 0F 10 01 - movups xmm0, [rcx] // actorPos in rcx
+	// dmc3.exe + 32E5F7 - 0F 28 D0 - movaps xmm2,xmm0
+	static std::unique_ptr<Utility::Detour_t> FixCrashArkhamPt2GrabHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x32E5F4, &FixCrashArkhamPt2GrabDetour1, 6);
+	g_FixCrashArkhamPt2Grab_ReturnAddr1 = FixCrashArkhamPt2GrabHook1->GetReturnAddress();
+	FixCrashArkhamPt2GrabHook1->Toggle(enable);
+
+	// Detour2
+	// dmc3.exe + 2C6813 - 0F 10 01 - movups xmm0,[rcx] { Enigma Rotate to Target }
+	// dmc3.exe + 2C6816 - 0F 5C C1               - subps xmm0,xmm1
+	static std::unique_ptr<Utility::Detour_t> FixCrashArkhamPt2GrabHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2C6813, &FixCrashArkhamPt2GrabDetour2, 6);
+	g_FixCrashArkhamPt2Grab_ReturnAddr2 = FixCrashArkhamPt2GrabHook2->GetReturnAddress();
+	FixCrashArkhamPt2GrabHook2->Toggle(enable);
+
+	// Detour3
+	// dmc3.exe + 16725C - F3 0F 58 83 80 00 00 00   - addss xmm0,[rbx+00000080] { Arkham Leeches Jump Attack 2 Target Position }
+	static std::unique_ptr<Utility::Detour_t> FixCrashArkhamPt2GrabHook3 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x16725C, &FixCrashArkhamPt2GrabDetour3, 8);
+	g_FixCrashArkhamPt2Grab_ReturnAddr3 = FixCrashArkhamPt2GrabHook3->GetReturnAddress();
+	FixCrashArkhamPt2GrabHook3->Toggle(enable);
+
+	// Detour4
+	// dmc3.exe + 1672B9 - F3 0F 58 83 88 00 00 00   - addss xmm0,[rbx+00000088]
+	static std::unique_ptr<Utility::Detour_t> FixCrashArkhamPt2GrabHook4 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1672B9, &FixCrashArkhamPt2GrabDetour4, 8);
+	g_FixCrashArkhamPt2Grab_ReturnAddr4 = FixCrashArkhamPt2GrabHook4->GetReturnAddress();
+	FixCrashArkhamPt2GrabHook4->Toggle(enable);
+
+	// Detour5
+	// dmc3.exe+1675B3 - 0F 28 82 80 00 00 00      - movaps xmm0,[rdx+00000080] { Arkham Leeches Jump Attack Target Position }
+	static std::unique_ptr<Utility::Detour_t> FixCrashArkhamPt2GrabHook5 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1675B3, &FixCrashArkhamPt2GrabDetour5, 7);
+	g_FixCrashArkhamPt2Grab_ReturnAddr5 = FixCrashArkhamPt2GrabHook5->GetReturnAddress();
+	FixCrashArkhamPt2GrabHook5->Toggle(enable);
+
 	run = enable;
 }
 
