@@ -127,5 +127,6 @@ void ToggleStyleRankHudNoFadeout(bool enable);
 void ToggleFixBallsHangHitSpeed(bool enable);
 void ToggleCerberusCrashFix(bool enable);
 void ToggleVergilM3CrashFix(bool enable);
+void ToggleArkhamPt2GrabCrashFix(bool enable);
 
 }
