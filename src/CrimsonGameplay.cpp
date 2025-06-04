@@ -1931,7 +1931,7 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
 	auto action = actorData.action;
 	auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
 	auto event =  actorData.eventData[0].event;
-	auto motion = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
+    auto motion = actorData.motionData[0].index;
 	auto& state = actorData.state;
 	auto actionTimer =
 		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
@@ -1940,6 +1940,13 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
 	// Fix for the weird carry over to air hike/jump cancel
 	if ((event == ACTOR_EVENT::AIR_HIKE || event == ACTOR_EVENT::JUMP_CANCEL) && action == CERBERUS_AIR_FLICKER) {
 		actorData.verticalPullMultiplier = -1.5f;
+		tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag on jump cancel/air hike
+		return;
+	}
+
+    // Fix for the weird carry over to air hike/jump cancel
+	if ((event == ACTOR_EVENT::ATTACK && action == AGNI_RUDRA_WHIRLWIND_LAUNCH) && lastAction == CERBERUS_AIR_FLICKER) {
+		actorData.verticalPullMultiplier = -1.35f;
 		tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag on jump cancel/air hike
 		return;
 	}
@@ -1995,7 +2002,7 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
     auto action = actorData.action;
 	auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
     auto event = actorData.eventData[0].event;
-	auto motion = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
+    auto motion = actorData.motionData[0].index;
 	auto& state = actorData.state;
 	auto actionTimer =
 		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
@@ -2008,6 +2015,14 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
 	if ((event == ACTOR_EVENT::AIR_HIKE || event == ACTOR_EVENT::JUMP_CANCEL) &&
 		(action == AGNI_RUDRA_SKY_DANCE_PART_1 || action == AGNI_RUDRA_SKY_DANCE_PART_2)) {
 		actorData.verticalPullMultiplier = -1.5f;
+		tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag on jump cancel/air hike
+		return;
+	}
+
+	// Fix for the weird carry over to air hike/jump cancel
+	if ((event == ACTOR_EVENT::ATTACK && action == AGNI_RUDRA_WHIRLWIND_LAUNCH) && (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 ||
+        lastAction == AGNI_RUDRA_SKY_DANCE_PART_2)) {
+		actorData.verticalPullMultiplier = -1.35f;
 		tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag on jump cancel/air hike
 		return;
 	}

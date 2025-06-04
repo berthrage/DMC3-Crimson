@@ -1424,8 +1424,8 @@ void LockOnWindows() {
 		float offsetY = 0.39f * sizeDistance.y;
 
 		ImVec2 texturePos = ImVec2(
-			lockedEnemyScreenPosition.x - (sizeDistance.x / 2.0f) + offsetX,
-			lockedEnemyScreenPosition.y - (sizeDistance.y / 2.0f) + offsetY
+			lockedEnemyScreenPosition.x - (sizeDistance.x / 2.0f) + offsetX - (offsetX * 0.03f * playerIndex),
+			lockedEnemyScreenPosition.y - (sizeDistance.y / 2.0f) + offsetY - (offsetY *  0.03f * playerIndex)
 		);
 
 		ImVec2 windowPos = ImVec2(
