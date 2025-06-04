@@ -1037,27 +1037,30 @@ void ToggleStyleRankHudNoFadeout(bool enable) {
     }
 }
 
-// void ToggleHideAndMutePortals(bool enable) {
-// 	using namespace Utility;
-// 	static bool run = false;
-// 	if (run == enable) {
-// 		return;
-// 	}
-// 
-// 	// HidePortals
-// 	static std::unique_ptr<Utility::Detour_t> HidePortalsHook =
-// 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1F6B2A, &PortalsHideDetour, 5);
-// 	g_PortalsHide_ReturnAddr = HidePortalsHook->GetReturnAddress();
-// 	HidePortalsHook->Toggle(enable);
-// 
-// 	// MutePortals
-// 	static std::unique_ptr<Utility::Detour_t> MutePortalsHook =
-// 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1F6B2A, &PortalsMuteDetour, 5);
-// 	g_PortalsMute_ReturnAddr = MutePortalsHook->GetReturnAddress();
-// 	MutePortalsHook->Toggle(enable);
-// 
-// 	run = enable;
-// }
+void ToggleHideAndMutePortals(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// HidePortals
+	// dmc3.exe + 270B85 - 66 89 44 24 28        - mov [rsp+28],ax
+	static std::unique_ptr<Utility::Detour_t> HidePortalsHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x270B85, &PortalsHideDetour, 5);
+	g_PortalsHide_ReturnAddr = HidePortalsHook->GetReturnAddress();
+	HidePortalsHook->Toggle(enable);
+
+	// MutePortals
+	// dmc3.exe + 26D07E - 89 03                 - mov [rbx],eax
+	// dmc3.exe + 26D080 - 48 8D 5B 04           - lea rbx,[rbx+04]
+	static std::unique_ptr<Utility::Detour_t> MutePortalsHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x26D07E, &PortalsMuteDetour, 6);
+	g_PortalsMute_ReturnAddr = MutePortalsHook->GetReturnAddress();
+	MutePortalsHook->Toggle(enable);
+
+	run = enable;
+}
 
 void ToggleFPSSpeedIssues(bool enable) {
 	using namespace Utility;

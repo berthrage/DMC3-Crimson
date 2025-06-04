@@ -156,6 +156,9 @@ namespace CrimsonBetterArkham2 {
 				//configure actors here
 				//this shouldn't need to be called, the skip is toggled off by default unless a scenechange needs it
 				//CrimsonPatches::EndBossFight(false);
+
+// 				CrimsonPatches::DisableDoorsInstancing(true);
+// 				CrimsonDetours::ToggleHideAndMutePortals(true);
 			}
 			else if (eventFlags[20] == 2 && fightEnding) {
 				eventFlags[20] = 1;

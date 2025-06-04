@@ -3,19 +3,22 @@
 extern g_PortalsHide_ReturnAddr:QWORD
 
 .CODE
-HidePortals PROC 
-    cmp rcx, 80h
-    je JmpOut
+PortalsHideDetour PROC 
+    cmp eax, 1E7h
+    je Replace
+    jmp ActualCode
+
+Replace:
+    mov eax, 1h
     jmp ActualCode
 
 ActualCode:
-    movups xmm0, [rcx]
-    movaps xmm2,xmm0
+    mov [rsp+28h], ax
 
 JmpOut:
     jmp qword ptr [g_PortalsHide_ReturnAddr]
 
-HidePortals ENDP
+PortalsHideDetour ENDP
 
 ; MutePortals
 .DATA
@@ -23,13 +26,19 @@ extern g_PortalsMute_ReturnAddr:QWORD
 
 .CODE
 PortalsMuteDetour PROC 
-    cmp rcx, 80h
-    je JmpOut
+    cmp eax, 53h
+    je Replace
+    cmp eax, 52h
+    je Replace
+    jmp ActualCode
+
+Replace:
+    mov eax, 1h
     jmp ActualCode
 
 ActualCode:
-    movups xmm0,[rcx]
-    subps xmm0,xmm1
+    mov [rbx],eax
+    lea rbx,[rbx+4h]
 
 JmpOut:
     jmp qword ptr [g_PortalsMute_ReturnAddr]
