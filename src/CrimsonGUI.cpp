@@ -7034,7 +7034,45 @@ void DebugSection() {
 		TooltipHelper("(?)", "Applies to sessionData. Needs Mission Restart for it to take effect.");
 		ImGui::Text("");
 
+		//Reset Weapons Button
+		if (GUI_Button("Reset Weapons"))
+		{
+			[&]()
+			{
+				SetMemory
+				(
+				sessionData.weapons,
+				0,
+				sizeof(sessionData.weapons)
+				);
 
+			switch (sessionData.character)
+			{
+			case CHARACTER::DANTE:
+			{
+				sessionData.weapons[0] = WEAPON::REBELLION;
+				sessionData.weapons[1] = WEAPON::CERBERUS;
+				sessionData.weapons[2] = WEAPON::EBONY_IVORY;
+				sessionData.weapons[3] = WEAPON::SHOTGUN;
+				sessionData.weapons[4] = WEAPON::VOID;
+				break;
+			}
+			case CHARACTER::VERGIL:
+			{
+				sessionData.weapons[0] = WEAPON::YAMATO_VERGIL;
+				sessionData.weapons[1] = WEAPON::BEOWULF_VERGIL;
+				sessionData.weapons[2] = WEAPON::YAMATO_FORCE_EDGE;
+				sessionData.weapons[3] = WEAPON::VOID;
+				sessionData.weapons[4] = WEAPON::VOID;
+				break;
+			}
+			}
+			sessionData.meleeWeaponIndex = 0;
+			sessionData.rangedWeaponIndex = 2;
+		}();
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Fix wrong values. Can be accessed while in the mission select menu. Save your game after applying a fix.");
 		ImGui::Text("");
 
 		if (GUI_Checkbox2(
