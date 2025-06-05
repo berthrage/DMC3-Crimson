@@ -134,6 +134,14 @@ namespace CrimsonBetterArkham2 {
 			return false;
 		}
 
+
+		// mute arkham 2 bob music 
+		if ((sessionData.mission == 19)
+			&& (eventFlags[20] == 1) &&
+			(strcmp(filename, bossHelpers[BOSS::ARKHAM_PART_2].track) == 0)) {
+			return false;
+		}
+
 		return true;
 	}
 
@@ -382,13 +390,13 @@ namespace CrimsonBetterArkham2 {
 				eventData.event = EVENT::TELEPORT;
 			}
 
-			// Loop through enemy data
+			// Loop through enemy data to cut the music right when akrham 2 is defeated
 			for (auto enemy : enemyVectorData.metadata) {
 				if (!enemy.baseAddr) continue;
 				auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
 				if (!enemyData.baseAddr) continue;
 
-				if (enemyData.enemy == 53 && enemyData.hitPointsArkham < 1.0f && fightActive) {
+				if (enemyData.enemy == 53 && enemyData.hitPointsArkham <= 1.0f && CrimsonBetterArkham2::fightEnding) {
 					CrimsonSDL::FadeOutMusic(100);
 				}
 			}
