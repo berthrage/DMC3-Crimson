@@ -7039,12 +7039,7 @@ void DebugSection() {
 		{
 			[&]()
 			{
-				SetMemory
-				(
-				sessionData.weapons,
-				0,
-				sizeof(sessionData.weapons)
-				);
+			SetMemory(sessionData.weapons, 0, sizeof(sessionData.weapons));
 
 			switch (sessionData.character)
 			{
@@ -7072,7 +7067,20 @@ void DebugSection() {
 		}();
 		}
 		ImGui::SameLine();
-		TooltipHelper("(?)", "Fixes the missing Devil Arm/Gun 2nd Slot. Can be accessed while in the Mission Select menu. Save your game after applying a fix.");
+		TooltipHelper("(?)", "Fixes the missing Devil Arm/Gun 2nd Slot. Must be pressed while in the Mission Select menu.");
+		ImGui::Text("");
+
+		//Reset Gun Levels Button
+		if (GUI_Button("Reset Gun Levels"))
+		{
+			[&]()
+			{
+				SetMemory(sessionData.rangedWeaponLevels, 0, sizeof(sessionData.rangedWeaponLevels));
+			}
+			();
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Resets the Gun Levels to 1. Must be pressed while in the Mission Select menu.");
 		ImGui::Text("");
 
 		if (GUI_Checkbox2(
