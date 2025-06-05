@@ -1,4 +1,6 @@
 #include "CrimsonBetterArkham2.hpp"
+#include "Sound.hpp"
+#include "CrimsonSDL.hpp"
 
 namespace CrimsonBetterArkham2 {
 	static bool fightActive{ false };
@@ -121,6 +123,7 @@ namespace CrimsonBetterArkham2 {
 			return true;
 		}
 		auto eventFlags = reinterpret_cast<byte32*>(pool_410[1]);
+		const char* cutsceneTrack = "afs/sound/m19_b01.adx"; 
 
 		//arkham 2 audio skip
 		//the logic here is weird, we check if fightActive is true even though we want to mute the music after the fight
@@ -238,15 +241,26 @@ namespace CrimsonBetterArkham2 {
 	/// </summary>
 	void OnTick()
 	{
-		if (!InGame())
-			return;
-
 		//we're doing a lot here, let's not do it unless we need to.
 		if (!activeCrimsonGameplay.Gameplay.ExtraDifficulty.betterArkham2)
 			return;
 
 		auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+		static bool musicPlayed = false;
+		static bool volumeRestored = false;
 
+		// Properly restoring Demo Volume and fading out music when not in game scene
+		if (g_scene != SCENE::GAME) {
+			if (musicPlayed) {
+				CrimsonSDL::FadeOutMusic(100);
+				musicPlayed = false;
+			}
+
+			if (!volumeRestored) {
+				SetVolume(CHANNEL::DEMO, activeCrimsonConfig.Sound.channelVolumes[CHANNEL::DEMO] / 100.0f);
+				volumeRestored = true;
+			}
+		}
 		auto pool_19315 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 		if (!pool_19315 || !pool_19315[8]) {
 			return;
@@ -270,108 +284,144 @@ namespace CrimsonBetterArkham2 {
 		auto pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 		if (!pool_2128 || !pool_2128[8]) return;
 		auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
-
 		auto eventFlags = reinterpret_cast<byte32*>(pool_19337[1]);
 
-		//Teleport when fight ends to go to real arkham2 fight (this was put here for ez gui testing)
-		if (sessionData.mission == 19
-			&& eventData.room == 421
-			&& activeCrimsonGameplay.Gameplay.ExtraDifficulty.betterArkham2
-			&& eventFlags[20] == 2
-			&& CrimsonBetterArkham2::fightEnding)
-		{
-			nextEventData.room = 421;
-			eventData.event = EVENT::TELEPORT;
-		}
+		if (InGame()) {
 
-		//this ensures we don't accidentally get stuck in a teleport loop where we keep trying to exit a phase over and over
-		if (fightPhase != nextFightPhase)
-			return;
-		if (!fightActive)
-			return;
-		//move through phases.
-		switch (fightPhase) {
-			//Fight begins, dante & vergil vs arkham
+			//Teleport when fight ends to go to real arkham2 fight (this was put here for ez gui testing)
+			if (sessionData.mission == 19
+				&& eventData.room == 421
+				&& activeCrimsonGameplay.Gameplay.ExtraDifficulty.betterArkham2
+				&& eventFlags[20] == 2
+				&& CrimsonBetterArkham2::fightEnding) {
+				nextEventData.room = 421;
+				eventData.event = EVENT::TELEPORT;
+			}
+
+			//this ensures we don't accidentally get stuck in a teleport loop where we keep trying to exit a phase over and over
+			if (fightPhase != nextFightPhase)
+				return;
+			if (!fightActive)
+				return;
+			//move through phases.
+			switch (fightPhase) {
+				//Fight begins, dante & vergil vs arkham
 			case PHASE_1:
 				if (isEndArkhamLobby(enemyVectorData))
 					nextFightPhase = PHASE_2;
-			break;
-			//cerberus arena, dante & vergil vs cerberus
+				break;
+				//cerberus arena, dante & vergil vs cerberus
 			case PHASE_2:
 				if (isEndCerberusPhase(enemyVectorData))
 					nextFightPhase = PHASE_3;
-			break;
-			//arkham lobby 2
+				break;
+				//arkham lobby 2
 			case PHASE_3:
 				if (isEndArkhamLobby(enemyVectorData))
 					nextFightPhase = PHASE_4;
 				break;
-			//agni rudra fight
+				//agni rudra fight
 			case PHASE_4:
 				if (isEndAgniRudraPhase(enemyVectorData))
 					nextFightPhase = PHASE_5;
 				break;
-			//arkham lobby 3
+				//arkham lobby 3
 			case PHASE_5:
 				if (isEndArkhamLobby(enemyVectorData))
 					nextFightPhase = PHASE_6;
 				break;
-			//beowulf fight
+				//beowulf fight
 			case PHASE_6:
 				if (isEndBeowulfPhase(enemyVectorData))
 					nextFightPhase = PHASE_7;
 				break;
-			//final arkham fight
+				//final arkham fight
 			case PHASE_7:
 				if (isEndArkhamLobby(enemyVectorData))
 					CrimsonBetterArkham2::fightEnding = true;
 				break;
+			}
+
+			if (fightPhase != nextFightPhase) {
+				switch (nextFightPhase) {
+					//arkham phases
+				case PHASE_3:
+				case PHASE_5:
+				case PHASE_7:
+					nextEventData.room = ROOM::FORBIDDEN_NIRVANA_2;
+					eventData.event = EVENT::TELEPORT;
+					break;
+					//cerb
+				case PHASE_2:
+					nextEventData.room = ROOM::ICE_GUARDIAN_REBORN;
+					eventData.event = EVENT::TELEPORT;
+					break;
+					//agni rudra
+				case PHASE_4:
+					nextEventData.room = ROOM::FIRESTORM_REBORN;
+					eventData.event = EVENT::TELEPORT;
+					break;
+					//beowulf
+				case PHASE_6:
+					nextEventData.room = ROOM::LIGHTBEAST_REBORN;
+					eventData.event = EVENT::TELEPORT;
+					break;
+
+				default:
+					DebugLog("invalid fight phase transition!")
+						break;
+				}
+			}
+			//Teleport when fight ends to go to real arkham2 fight
+			if (sessionData.mission == 19
+				&& eventData.room == 421
+				&& activeCrimsonGameplay.Gameplay.ExtraDifficulty.betterArkham2
+				&& eventFlags[20] == 2
+				&& CrimsonBetterArkham2::fightEnding) {
+				nextEventData.room = 421;
+				eventData.event = EVENT::TELEPORT;
+			}
+
+			// Loop through enemy data
+			for (auto enemy : enemyVectorData.metadata) {
+				if (!enemy.baseAddr) continue;
+				auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
+				if (!enemyData.baseAddr) continue;
+
+				if (enemyData.enemy == 53 && enemyData.hitPointsArkham < 1.0f && fightActive) {
+					CrimsonSDL::FadeOutMusic(100);
+				}
+			}
+
+			if (sessionData.mission == 19
+				&& eventData.room == 421
+				&& activeCrimsonGameplay.Gameplay.ExtraDifficulty.betterArkham2
+				&& eventFlags[20] == 2
+				&& CrimsonBetterArkham2::fightEnding) {
+				nextEventData.room = 421;
+				eventData.event = EVENT::TELEPORT;
+			}
+
+			// Muting the cutscene while we're in the fight
+			if (sessionData.mission == 19
+				&& activeCrimsonGameplay.Gameplay.ExtraDifficulty.betterArkham2
+				&& eventFlags[20] == 2) {
+
+				SetVolume(CHANNEL::DEMO, 0);
+				volumeRestored = false;
+			}
 		}
 
-
-
-
-		
-
-		if (fightPhase != nextFightPhase) {
-			switch(nextFightPhase){
-			//arkham phases
-			case PHASE_3:
-			case PHASE_5:
-			case PHASE_7:
-				nextEventData.room = ROOM::FORBIDDEN_NIRVANA_2;
-				eventData.event = EVENT::TELEPORT;
-				break;
-			//cerb
-			case PHASE_2:
-				nextEventData.room = ROOM::ICE_GUARDIAN_REBORN;
-				eventData.event = EVENT::TELEPORT;
-				break;
-			//agni rudra
-			case PHASE_4:
-				nextEventData.room = ROOM::FIRESTORM_REBORN;
-				eventData.event = EVENT::TELEPORT;
-				break;
-			//beowulf
-			case PHASE_6:
-				nextEventData.room = ROOM::LIGHTBEAST_REBORN;
-				eventData.event = EVENT::TELEPORT;
-				break;
-
-			default:
-				DebugLog("invalid fight phase transition!")
-				break;
-			}
-		}		
-		//Teleport when fight ends to go to real arkham2 fight
 		if (sessionData.mission == 19
-			&& eventData.room == 421
 			&& activeCrimsonGameplay.Gameplay.ExtraDifficulty.betterArkham2
-			&& eventFlags[20] == 2
-			&& CrimsonBetterArkham2::fightEnding)
-		{
-			nextEventData.room = 421;
-			eventData.event = EVENT::TELEPORT;
+			&& eventFlags[20] == 2) {
+
+			if (g_scene == SCENE::GAME) {
+				if (!musicPlayed) {
+					CrimsonSDL::PlayBattleOfBrothersSong();
+					musicPlayed = true;
+				}
+			}
 		}
 	}
 

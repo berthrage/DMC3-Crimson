@@ -14182,6 +14182,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonGameModes::TrackMissionResultGameMode();
 	CrimsonOnTick::CrimsonMissionClearSong();
 	CrimsonOnTick::DivinityStatueSong();
+	CrimsonSDL::ReduceMusicVolumeInPause();
 
 	CrimsonSDL::CheckAndOpenControllers();
 	CrimsonSDL::UpdateJoysticks();
