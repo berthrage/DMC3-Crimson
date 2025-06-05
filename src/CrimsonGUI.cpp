@@ -7034,7 +7034,53 @@ void DebugSection() {
 		TooltipHelper("(?)", "Applies to sessionData. Needs Mission Restart for it to take effect.");
 		ImGui::Text("");
 
+		//Reset Weapons Button
+		if (GUI_Button("Reset Weapons"))
+		{
+			[&]()
+			{
+			SetMemory(sessionData.weapons, 0, sizeof(sessionData.weapons));
 
+			switch (sessionData.character)
+			{
+			case CHARACTER::DANTE:
+			{
+				sessionData.weapons[0] = WEAPON::REBELLION;
+				sessionData.weapons[1] = WEAPON::CERBERUS;
+				sessionData.weapons[2] = WEAPON::EBONY_IVORY;
+				sessionData.weapons[3] = WEAPON::SHOTGUN;
+				sessionData.weapons[4] = WEAPON::VOID;
+				break;
+			}
+			case CHARACTER::VERGIL:
+			{
+				sessionData.weapons[0] = WEAPON::YAMATO_VERGIL;
+				sessionData.weapons[1] = WEAPON::BEOWULF_VERGIL;
+				sessionData.weapons[2] = WEAPON::YAMATO_FORCE_EDGE;
+				sessionData.weapons[3] = WEAPON::VOID;
+				sessionData.weapons[4] = WEAPON::VOID;
+				break;
+			}
+			}
+			sessionData.meleeWeaponIndex = 0;
+			sessionData.rangedWeaponIndex = 2;
+		}();
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Fixes the missing Devil Arm/Gun 2nd Slot. Must be pressed while in the Mission Select menu.");
+		ImGui::Text("");
+
+		//Reset Gun Levels Button
+		if (GUI_Button("Reset Gun Levels"))
+		{
+			[&]()
+			{
+				SetMemory(sessionData.rangedWeaponLevels, 0, sizeof(sessionData.rangedWeaponLevels));
+			}
+			();
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Resets the Gun Levels to 1. Must be pressed while in the Mission Select menu.");
 		ImGui::Text("");
 
 		if (GUI_Checkbox2(
