@@ -2,6 +2,7 @@
 #include "Core/Core.hpp"
 #include "CrimsonGUI.hpp"
 #include "CrimsonPatches.hpp"
+#include "CrimsonDetours.hpp"
 #include "Actor.hpp"
 #include "Config.hpp"
 #include "Global.hpp"
