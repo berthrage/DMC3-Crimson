@@ -373,6 +373,8 @@ template <typename T> bool IsNeroAngelo(T& actorData) {
 
 void ToggleNoDevilForm(bool enable);
 void SpawnActors();
+void DecommissionDoppelgangers();
+void DeactivateDoppelganger(PlayerActorData& actorData);
 
 #pragma endregion
 

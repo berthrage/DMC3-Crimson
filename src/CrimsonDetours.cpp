@@ -126,6 +126,14 @@ void FixCrashArkhamPt2GrabDetour4();
 std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr5;
 void FixCrashArkhamPt2GrabDetour5();
 
+// FixCrashArkhamPt2Doppel
+std::uint64_t g_FixCrashArkhamPt2Doppel_ReturnAddr1;
+std::uint64_t g_FixCrashArkhamPt2Doppel_CallAddr1;
+void FixCrashArkhamPt2DoppelDetour1();
+std::uint64_t g_FixCrashArkhamPt2Doppel_ReturnAddr2;
+std::uint64_t g_FixCrashArkhamPt2Doppel_CallAddr2;
+void FixCrashArkhamPt2DoppelDetour2();
+
 // HoldToCrazyCombo
 std::uint64_t g_HoldToCrazyCombo_ReturnAddr;
 void HoldToCrazyComboDetour();
@@ -1222,6 +1230,35 @@ void ToggleArkhamPt2GrabCrashFix(bool enable) {
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1675B3, &FixCrashArkhamPt2GrabDetour5, 7);
 	g_FixCrashArkhamPt2Grab_ReturnAddr5 = FixCrashArkhamPt2GrabHook5->GetReturnAddress();
 	FixCrashArkhamPt2GrabHook5->Toggle(enable);
+
+	run = enable;
+}
+
+void ToggleArkhamPt2DoppelCrashFix(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// Detour1
+	// dmc3.exe + 337744 - 48 03 08              - add rcx,[rax]
+	// dmc3.exe + 337747 - E8 9E F4 00 00           - call dmc3.exe+346BEA { ->->VCRUNTIME140.memset }
+	static std::unique_ptr<Utility::Detour_t> FixCrashArkhamPt2DoppelHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x337744, &FixCrashArkhamPt2DoppelDetour1, 8);
+	g_FixCrashArkhamPt2Doppel_ReturnAddr1 = FixCrashArkhamPt2DoppelHook1->GetReturnAddress();
+	g_FixCrashArkhamPt2Doppel_CallAddr1 = (uintptr_t)appBaseAddr + 0x346BEA; // VCRUNTIME140.memset
+	FixCrashArkhamPt2DoppelHook1->Toggle(enable);
+
+	// Detour2
+	// dmc3.exe + 337753 - FF 48 20 - dec[rax + 20]
+	// dmc3.exe + 337756 - E8 45 1B FF FF           - call dmc3.exe+3292A0
+	static std::unique_ptr<Utility::Detour_t> FixCrashArkhamPt2DoppelHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x337753, &FixCrashArkhamPt2DoppelDetour2, 8);
+	g_FixCrashArkhamPt2Doppel_ReturnAddr2 = FixCrashArkhamPt2DoppelHook2->GetReturnAddress();
+	g_FixCrashArkhamPt2Doppel_CallAddr2 = (uintptr_t)appBaseAddr + 0x3292A0; 
+	FixCrashArkhamPt2DoppelHook2->Toggle(true);
 
 	run = enable;
 }

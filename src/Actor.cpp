@@ -3089,6 +3089,7 @@ void DeactivateDoppelganger(PlayerActorData& actorData) {
     EndMotion(cloneActorData);
 
     CrimsonSDL::PlayDoppelgangerOut(actorData.newPlayerIndex);
+    actorData.doppelganger = false;
     
 }
 
@@ -8967,6 +8968,7 @@ void DecommissionDoppelgangers() {
        // actorData.cloneStatus = CLONE_STATUS::DECOMMISSION;
 
         DeactivateDoppelganger(actorData);
+        
         crimsonPlayer[actorIndex].vergilDoppelganger.drainStart = false;
     }
 }

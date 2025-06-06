@@ -197,7 +197,7 @@ namespace CrimsonCameraController {
 			//MISSION 20:
 			//It's literally the vergil fight
 			);
-		return exceptions;
+		return false;
 	}
 
 	/// <summary>
