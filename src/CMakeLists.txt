@@ -10,6 +10,7 @@ set(MASM_SRC
     masm/FasterTurnRate.asm
     masm/GuardBreakToNormalBlock.asm
     masm/FixBallsHangHitSpeed.asm
+    masm/FixCrashArkhamPt2Doppel.asm
     masm/FixCrashArkhamPt2Grab.asm
     masm/FixCrashCerberus.asm
     masm/FixCrashVergilM3.asm

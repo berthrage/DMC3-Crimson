@@ -129,4 +129,5 @@ void ToggleFixBallsHangHitSpeed(bool enable);
 void ToggleCerberusCrashFix(bool enable);
 void ToggleVergilM3CrashFix(bool enable);
 void ToggleArkhamPt2GrabCrashFix(bool enable);
+void ToggleArkhamPt2DoppelCrashFix(bool enable);
 }

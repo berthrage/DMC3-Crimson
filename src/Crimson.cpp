@@ -287,6 +287,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonDetours::ToggleCerberusCrashFix(true);
         CrimsonDetours::ToggleVergilM3CrashFix(true);
         CrimsonDetours::ToggleArkhamPt2GrabCrashFix(true);
+        CrimsonDetours::ToggleArkhamPt2DoppelCrashFix(true);
 
         CrimsonPatches::DisableBlendingEffects(false);
         CrimsonPatches::DisableBlendingEffects(activeConfig.disableBlendingEffects);
