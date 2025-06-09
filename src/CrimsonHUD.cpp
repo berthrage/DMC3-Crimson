@@ -1107,7 +1107,7 @@ void RedOrbCounterWindow() {
 
 	// Adjust the text position
 	ImGui::SetWindowFontScale(scaleFactorY);
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSize]);
+	ImGui::PushFont(UI::g_ImGuiFont_RedOrbRusso[fontSize]);
 	ImVec2 textSize = ImGui::CalcTextSize(orbCountStr.c_str(), nullptr, true);
 	ImVec2 textPos = ImVec2(windowSize.x - textSize.x - 74.0f * scaleFactorY, (windowSize.y - textSize.y) / 2);
 

@@ -83,6 +83,7 @@ project(Crimson LANGUAGES CXX C ASM_MASM)
 
 file(GLOB FONTS_HDR Fonts/RobotoMedium.hpp
                     Fonts/RussoOneRegular.hpp
+		    Fonts/RedOrbRusso.hpp
 )
 
 file(GLOB GLOBAL_SRC 
