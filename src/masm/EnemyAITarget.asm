@@ -6,7 +6,36 @@ extern g_StandardEnemyTargetCheckCall:QWORD
 StandardEnemyTargetDetour PROC
     ; EnemySpecificStruct is in RCX
     ; EnemyStruct is in RDI
-    ret
+    ; Player is in RDX
+    push 	rax
+    push    rcx
+	push	rdx
+	push 	r8
+	push	r9
+	push	r10
+	push	r11
+	push	rbx
+	push	rdi
+    ;sub     rsp, 20h             ; Allocate space for xmm1 (16 bytes), align stack
+    ;movdqu  [rsp], xmm1          ; Save xmm1
+    call qword ptr [g_StandardEnemyTargetCheckCall]  
+    movaps xmm0, [rax+80h]
+    jmp Jmpout
+
+Jmpout:
+    pop		rdi
+	pop		rbx
+	pop		r11
+	pop 	r10
+	pop		r9
+	pop 	r8
+	pop		rdx
+    pop     rcx
+	pop 	rax
+    jmp qword ptr [g_StandardEnemyTarget_ReturnAddr]
+
+OriginalCode:
+    movaps xmm0, [rdx + 80h]
 
 StandardEnemyTargetDetour ENDP
 

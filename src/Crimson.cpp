@@ -1,4 +1,5 @@
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
+#include "CrimsonEnemyAITarget.hpp"
 #include "Core/Core.hpp"
 #include "Core/Input.hpp"
 #include "CrimsonDetours.hpp"
@@ -38,6 +39,7 @@
 #include "Core/DebugSwitch.hpp"
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonGameModes.hpp"
+
 
 
 uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
@@ -293,6 +295,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonDetours::ToggleFixBallsHangHitSpeed(true);
         CrimsonDetours::ToggleCerberusCrashFix(true);
         CrimsonDetours::ToggleVergilM3CrashFix(true);
+		CrimsonEnemyAITarget::EnemyAIMultiplayerTargettingDetours(true);
 
         CrimsonPatches::DisableBlendingEffects(false);
         CrimsonPatches::DisableBlendingEffects(activeConfig.disableBlendingEffects);

@@ -146,7 +146,7 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x616EB, &StandardEnemyTargetDetour, 7);
 	g_StandardEnemyTarget_ReturnAddr = StandardEnemyTargetHook->GetReturnAddress();
 	g_StandardEnemyTargetCheckCall = &EnigmaTargetAimSwitch;
-	StandardEnemyTargetHook->Toggle(false);
+	StandardEnemyTargetHook->Toggle(true);
 
 	// EngimaSetTargetAim
 	// dmc3.exe + 1BB04C - 44 0F 28 89 80 00 00 00 - movaps xmm9, [rcx + 00000080] { Enigma Set Target Position to Aim 1, player in rcx, enemyaddr pointer is in r12+0x28 }
