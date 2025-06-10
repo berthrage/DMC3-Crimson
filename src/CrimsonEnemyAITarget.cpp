@@ -67,9 +67,14 @@ uintptr_t EnemyTargetPlayerSelection(const glm::vec3& enemyPosition, bool hasVal
 		if (!hasValidEnemyPosition)
 			continue; // Skip distance check if we don't know the enemy position
 
+		if (actorData.dead) {
+			continue; // Skip dead players
+		}
+
 		distanceToPlayer[playerIndex] = glm::distance(enemyPosition, playerPosition[playerIndex]);
 
 		if (distanceToPlayer[playerIndex] < closestDistance) {
+
 			closestDistance = distanceToPlayer[playerIndex];
 			closestPlayerAddr = (uintptr_t)actorData.baseAddr;
 		}
@@ -78,7 +83,7 @@ uintptr_t EnemyTargetPlayerSelection(const glm::vec3& enemyPosition, bool hasVal
 	return closestPlayerAddr;
 }
 
-uintptr_t EnigmaTargetAimSwitch(uintptr_t ptrToLockedOnEnemyAddr) {
+uintptr_t EnemyTargetAimSwitchPlayerAddr(uintptr_t ptrToLockedOnEnemyAddr) {
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	while (!pool_10222 || !pool_10222[3]) {
 		continue;
@@ -141,12 +146,19 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 // 	// StandardEnemyTarget
 	// dmc3.exe + 616EB - 0F 28 82 80 00 00 00 - movaps xmm0, [rdx + 00000080] { Standard Enemy Set Target Position }
 	// dmc3.exe + 616F2 - 0F 29 41 40 - movaps[rcx + 40], xmm0{ followup to standard target pos }
-	// Works for all Hells enemies.
+	// Works for all Hells enemies
+	// Hell Vanguard
+	// Doppelganger
+	// Lady
+	// Vergil (basic attacks only)
+	// Agni and Rudra
+	// The Fallen
+	// Dullahans (not sword attack)
 	static std::unique_ptr<Utility::Detour_t> StandardEnemyTargetHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x616EB, &StandardEnemyTargetDetour, 7);
 	g_StandardEnemyTarget_ReturnAddr = StandardEnemyTargetHook->GetReturnAddress();
-	g_StandardEnemyTargetCheckCall = &EnigmaTargetAimSwitch;
-	StandardEnemyTargetHook->Toggle(true);
+	g_StandardEnemyTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	StandardEnemyTargetHook->Toggle(enable);
 
 	// EngimaSetTargetAim
 	// dmc3.exe + 1BB04C - 44 0F 28 89 80 00 00 00 - movaps xmm9, [rcx + 00000080] { Enigma Set Target Position to Aim 1, player in rcx, enemyaddr pointer is in r12+0x28 }
@@ -154,8 +166,8 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	static std::unique_ptr<Utility::Detour_t> EnigmaSetTargetAimHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1BB04C, &EnigmaSetTargetAimDetour, 8);
 	g_EngimaSetAim_ReturnAddr = EnigmaSetTargetAimHook->GetReturnAddress();
-	g_EnigmaSetAimCheckCall = &EnigmaTargetAimSwitch; 
-	EnigmaSetTargetAimHook->Toggle(enable);
+	g_EnigmaSetAimCheckCall = &EnemyTargetAimSwitchPlayerAddr; 
+	EnigmaSetTargetAimHook->Toggle(false);
 
 	// EngimaSetRotationToTarget
 	// dmc3.exe + 2C6813 - 0F 10 01 - movups xmm0, [rcx] { Enigma Rotate to Target
@@ -164,7 +176,7 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	static std::unique_ptr<Utility::Detour_t> EnigmaSetRotationToTargetHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2C6813, &EnigmaSetRotationToTargetDetour, 6);
 	g_EngimaSetRotation_ReturnAddr = EnigmaSetRotationToTargetHook->GetReturnAddress();
-	g_EnigmaSetRotationCheckCall = &EnigmaTargetAimSwitch;
+	g_EnigmaSetRotationCheckCall = &EnemyTargetAimSwitchPlayerAddr;
 	EnigmaSetRotationToTargetHook->Toggle(false);
 
 	// BeowulfSetTargetAttack
@@ -174,7 +186,7 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	static std::unique_ptr<Utility::Detour_t> BeowulfSetTargetHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2C688F, &BeowulfSetTargetAttackDetour, 6);
 	g_BeowulfSetTarget_ReturnAddr = BeowulfSetTargetHook->GetReturnAddress();
-	g_BeowulfSetTargetCheckCall = &EnigmaTargetAimSwitch;
+	g_BeowulfSetTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
 	BeowulfSetTargetHook->Toggle(false);
 
 	// FixMPLockOn

@@ -1,4 +1,5 @@
 set(MASM_SRC
+    masm/CommonMacros.inc
     masm/SampleMod.asm
     masm/GuardGravity.asm
     masm/AddToMirageGauge.asm

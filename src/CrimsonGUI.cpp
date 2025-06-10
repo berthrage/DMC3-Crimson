@@ -14162,7 +14162,6 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
 	CrimsonOnTick::FixM7DevilTriggerUnlocking();
 	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
-	//CrimsonOnTick::OverrideEnemyTargetPosition();
 	CrimsonOnTick::TrackMissionStyleLevels();
 	
 
