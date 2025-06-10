@@ -1048,21 +1048,13 @@ void OverrideEnemyTargetPosition() {
 		auto& enemy = *reinterpret_cast<EnemyActorData*>(enemyMeta.baseAddr);
 		if (!enemy.baseAddr) continue;
 
-		// check validity before getting distance
-		auto& enemyId = enemy.enemy;
-		if (enemyId < 0 || enemyId >= ENEMY::COUNT) {
-			continue;
-		}
-		if (enemyId == ENEMY::BLOOD_GOYLE) {
-			continue;
-		}
-
 		glm::vec3 enemyPosition = { enemy.position.x, enemy.position.y, enemy.position.z };
 
 		glm::vec3 playerPosition[PLAYER_COUNT];
 		float distanceToPlayer[PLAYER_COUNT];
 		uintptr_t closestPlayerAddr = (uintptr_t)mainActorData.baseAddr;
 		float closestDistance = 9000.0f;
+		auto& enemyId = enemy.enemy;
 
 		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; playerIndex++) {
 // 			auto& playerData = GetPlayerData(playerIndex);
@@ -1082,50 +1074,59 @@ void OverrideEnemyTargetPosition() {
 			playerPosition[playerIndex] = { actorData.position.x, actorData.position.y, actorData.position.z };
 			distanceToPlayer[playerIndex] = glm::distance(enemyPosition, playerPosition[playerIndex]);
 
+			bool isAgniRudra = (enemyId >= ENEMY::AGNI_RUDRA_ALL && enemyId <= ENEMY::AGNI_RUDRA_BLUE);
+
+			if (!enemy.baseAddr) {
+				continue;
+			}
+
+			if (enemyId == ENEMY::BLOOD_GOYLE) {
+				continue;
+			}
+
 			if (distanceToPlayer[playerIndex] < closestDistance) {
 				closestDistance = distanceToPlayer[playerIndex];
-				
-				if (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::WRATH_4 && enemy.hitPointsHells > 0) {
+				if ((enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::WRATH_4) && enemy.hitPointsHells > 20) {
 					enemy.targetPosition = actorData.position;
 				}
 
-				if (enemyId >= ENEMY::GREED_1 && enemyId <= ENEMY::GREED_4 && enemy.hitPointsHells > 0) {
+				if (enemyId >= ENEMY::GREED_1 && enemyId <= ENEMY::GREED_4 && enemy.hitPointsHells > 20) {
 					enemy.targetPositionGreed = actorData.position;
 				}
 
-				if (enemyId == ENEMY::ABYSS && enemy.hitPointsHells > 0) {
+				if (enemyId == ENEMY::ABYSS && enemy.hitPointsHells > 20) {
 					enemy.targetPositionAbyss = actorData.position;
 				}
 
-				if (enemyId == ENEMY::ENVY && enemy.hitPointsHells > 0) {
+				if (enemyId == ENEMY::ENVY && enemy.hitPointsHells > 20) {
 					enemy.targetPositionEnvy = actorData.position;
 				}
 
-				if (enemyId == ENEMY::HELL_VANGUARD && enemy.hitPointsHells > 0) {
+				if (enemyId == ENEMY::HELL_VANGUARD && enemy.hitPointsHells > 20) {
 					enemy.targetPositionHellVanguard = actorData.position;
 				}
 
-				if (enemyId == ENEMY::DOPPELGANGER && enemy.hitPointsDoppelganger > 0) {
+				if (enemyId == ENEMY::DOPPELGANGER && enemy.hitPointsDoppelganger > 20) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 
-				if (enemyId == ENEMY::THE_FALLEN && enemy.hitPointsTheFallen > 0) {
+				if (enemyId == ENEMY::THE_FALLEN && enemy.hitPointsTheFallen > 20) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 
-				if (enemyId == ENEMY::DULLAHAN && enemy.hitPointsDullahan > 0) {
+				if (enemyId == ENEMY::DULLAHAN && enemy.hitPointsDullahan > 20) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 
-				if (enemyId == ENEMY::BEOWULF && enemy.hitPointsBeowulf > 0) {
+				if (enemyId == ENEMY::BEOWULF && enemy.hitPointsBeowulf > 20) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 
-				if (enemyId == ENEMY::VERGIL && enemy.hitPointsVergil > 0) {
+				if (enemyId == ENEMY::VERGIL && enemy.hitPointsVergil > 20) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 
-				if (enemyId == ENEMY::LADY && enemy.hitPointsLady > 0) {
+				if (enemyId == ENEMY::LADY && enemy.hitPointsLady > 20) {
 					enemy.targetPositionDullahan = actorData.position;
 				}
 			}
