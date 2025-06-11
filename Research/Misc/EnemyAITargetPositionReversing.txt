@@ -5,7 +5,7 @@ dmc3.exe+616F2 - 0F 29 41 40            - movaps [rcx+40],xmm0 { followup to sta
 Hells:
 Every single one uses +616EB only, including Hell Vanguard. // DONE
 
-Arachne:
+Arachne: // DONE
 dmc3.exe+C5A40 - 0F 28 83 80 00 00 00      - movaps xmm0,[rbx+00000080] { Arachne Set Target Position for Circling Around }
 dmc3.exe+BF553 - 0F 28 82 80 00 00 00      - movaps xmm0,[rdx+00000080] { Arachne Set Target Position for Jump Attack }
 
@@ -22,15 +22,16 @@ dmc3.exe+2C6813 - 0F 10 01               - movups xmm0,[rcx] { Enigma Rotate to 
 dmc3.exe+1BB04C - 44 0F 28 89 80 00 00 00   - movaps xmm9,[rcx+00000080] { Enigma Set Target Position to Aim 1 } == addr in r12 + 0x28 to find pointer pointing to LockedOnEnemyAddr.
 
 Bloodgoyle:
-dmc3.exe+E7EC2 - 44 0F 10 02            - movups xmm8,[rdx] { Bloodgoyle Dive Target Position}
+dmc3.exe+E7EC2 - 44 0F 10 02            - movups xmm8,[rdx] { Bloodgoyle Dive Target Position} // DONE
 dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
+dmc3.exe+2C6813 - 0F 10 01               - movups xmm0,[rcx] { Enigma Rotate to Target }
 
 Soul Eater:
 dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
 And some other one that is already nop'ed, not Bloodgoyle Dive
 
 All Chess-Pieces:
-Using one of the above that isn't +616EB
+Using one of the above that isn't +616EB nor DullahanMaybeUsed nor Arachne
 
 Cerberus:
 dmc3.exe+10E89E - F3 0F 10 87 80 00 00 00   - movss xmm0,[rdi+00000080] { Cerberus Set Position to Target - Red }

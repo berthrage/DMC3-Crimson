@@ -49,6 +49,16 @@ extern "C" {
 	void BloodgoyleDiveTargetDetour();
 	void* g_BloodgoyleDiveTargetCheckCall;
 
+	// ArachneCirclingAroundDetour
+	std::uint64_t g_ArachneCirclingAround_ReturnAddr;
+	void ArachneCirclingAroundDetour();
+	void* g_ArachneCirclingAroundCheckCall;
+
+	// ArachneJumpAttackDetour
+	std::uint64_t g_ArachneJumpAttack_ReturnAddr;
+	void ArachneJumpAttackDetour();
+	void* g_ArachneJumpAttackCheckCall;
+
 	// FixMPLockOn
 	std::uint64_t g_FixMPLockOn_ReturnAddr;
 	void FixMPLockOnDetour();
@@ -219,6 +229,24 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	g_BloodgoyleDiveTarget_ReturnAddr = BloodgoyleDiveTargetHook->GetReturnAddress();
 	g_BloodgoyleDiveTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
 	BloodgoyleDiveTargetHook->Toggle(enable);
+
+	// ArachneCirclingAroundDetour
+	// dmc3.exe+C5A40 - 0F 28 83 80 00 00 00      - movaps xmm0,[rbx+00000080] { Arachne Set Target Position for Circling Around }
+	// Player in RBX, LockedOnEnemyAddr in RDI+60h
+	static std::unique_ptr<Utility::Detour_t> ArachneCirclingAroundHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xC5A40, &ArachneCirclingAroundDetour, 7);
+	g_ArachneCirclingAround_ReturnAddr = ArachneCirclingAroundHook->GetReturnAddress();
+	g_ArachneCirclingAroundCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	ArachneCirclingAroundHook->Toggle(enable);
+
+	// ArachneJumpAttackDetour
+	// dmc3.exe+BF553 - 0F 28 82 80 00 00 00      - movaps xmm0,[rdx+00000080] { Arachne Set Target Position for Jump Attack }
+	// Player in RDX, LockedOnEnemyAddr in RCX+60h
+	static std::unique_ptr<Utility::Detour_t> ArachneJumpAttackHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xBF553, &ArachneJumpAttackDetour, 7);
+	g_ArachneJumpAttack_ReturnAddr = ArachneJumpAttackHook->GetReturnAddress();
+	g_ArachneJumpAttackCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	ArachneJumpAttackHook->Toggle(enable);
 
 
 	// FixMPLockOn

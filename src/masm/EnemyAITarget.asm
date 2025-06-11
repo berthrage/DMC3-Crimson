@@ -222,6 +222,61 @@ OriginalCode:
 BloodgoyleDiveTargetDetour ENDP
 
 
+;ArachneCirclingAroundDetour
+.DATA
+extern g_ArachneCirclingAroundCheckCall:QWORD
+extern g_ArachneCirclingAround_ReturnAddr:QWORD
+
+.CODE
+ArachneCirclingAroundDetour PROC
+    ; Player in RBX
+    ; LockedOnEnemyAddr in RDI+60h
+    PushAllXmmExcept xmm0
+    PushAllRegs
+    add rdi, 60h ; Get the EnemyStruct from RDI
+    mov rcx, rdi
+    call qword ptr [g_ArachneCirclingAroundCheckCall]  
+    movaps xmm0, [rax+80h]
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegs
+    PopAllXmmExcept xmm0
+    jmp qword ptr [g_ArachneCirclingAround_ReturnAddr]
+
+OriginalCode:
+    movaps xmm0, [rbx+80h]
+
+ArachneCirclingAroundDetour ENDP
+
+
+;ArachneJumpAttackDetour
+.DATA
+extern g_ArachneJumpAttackCheckCall:QWORD
+extern g_ArachneJumpAttack_ReturnAddr:QWORD
+
+.CODE
+ArachneJumpAttackDetour PROC
+    ; Player in RDX
+    ; LockedOnEnemyAddr in RCX+60h
+    PushAllXmmExcept xmm0
+    PushAllRegs
+    add rcx, 60h ; Get the LockedOnEnemyAddr from RCX
+    call qword ptr [g_ArachneJumpAttackCheckCall]  
+    movaps xmm0, [rax+80h]
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegs
+    PopAllXmmExcept xmm0
+    jmp qword ptr [g_ArachneJumpAttack_ReturnAddr]
+
+OriginalCode:
+    movaps xmm0, [rdx+80h]
+
+ArachneJumpAttackDetour ENDP
+
+
 ;FixMPLockOnDetour
 .DATA
 extern g_FixMPLockOn_ReturnAddr:QWORD
