@@ -122,59 +122,104 @@ EnigmaSetRotationToTargetDetour ENDP
 
 
 
-;BeowulfSetTargetAttackDetour
+;DullahanMaybeUsedDetour
 .DATA
-extern g_BeowulfSetTarget_ReturnAddr:QWORD
-extern g_BeowulfSetTargetCheckCall:QWORD
+extern g_DullahanMaybeUsed_ReturnAddr:QWORD
+extern g_DullahanMaybeUsedCheckCall:QWORD
 
 .CODE
-BeowulfSetTargetAttackDetour PROC
+DullahanMaybeUsedDetour PROC
     ; PlayerPosition in RCX
     ; LockedOnEnemyAddrPosition in RDX
-    push    rax
-    push    rcx
-    push    rdx
-    push    r8
-    push    r9
-    push    r10
-    push    r11
-    push    rbx
-    push    rdi
+    PushAllXmmExcept xmm0
+    PushAllRegs
+    sub rdx, 20h ; Get the EnemyStruct from RDX
+    mov rcx, rdx
+    call qword ptr [g_DullahanMaybeUsedCheckCall]  
+    movups xmm0, [rax+80h]
+    jmp Jmpout
 
-    sub     rsp, 48h          ; Reserve space for xmm1–xmm3
-    movdqu  [rsp+00h], xmm1
-    movdqu  [rsp+10h], xmm2
-    movdqu  [rsp+20h], xmm3
+Jmpout:
+    PopAllRegs
+    PopAllXmmExcept xmm0
+    mov rsi, rdx
+    jmp qword ptr [g_DullahanMaybeUsed_ReturnAddr]
 
-    mov     r13, rdx
-    mov     r14, [r13-80h]
-    mov     rcx, r14
-    call    qword ptr [g_BeowulfSetTargetCheckCall]
+OriginalCode:
+    movups xmm0, [rcx]
+    mov rsi, rdx
+    
+DullahanMaybeUsedDetour ENDP
 
-    ; Use result in rax
-    mov     rcx, rax
-    movups  xmm0, [rcx+80h]
 
-    ; Restore xmm registers
-    movdqu  xmm1, [rsp+00h]
-    movdqu  xmm2, [rsp+10h]
-    movdqu  xmm3, [rsp+20h]
-    add     rsp, 48h
+;BeowulfAttackTargetDetour
+.DATA
+extern g_BeowulfAttackTarget_ReturnAddr:QWORD
+extern g_BeowulfAttackTargetCheckCall:QWORD
 
-    ; Restore other registers
-    pop     rdi
-    pop     rbx
-    pop     r11
-    pop     r10
-    pop     r9
-    pop     r8
-    pop     rdx
-    pop     rcx
-    pop     rax
-    mov     rsi, rdx         
-    jmp     qword ptr [g_BeowulfSetTarget_ReturnAddr]
-BeowulfSetTargetAttackDetour ENDP
+.CODE
+BeowulfAttackTargetDetour PROC
+    ; PlayerPosition in RCX and RDX
+    ; PlayerStruct in RBX
+    ; we gotta take LockedOnEnemyAddr from PlayerStruct
+    ;PushAllXmmExcept xmm0
+    PushAllRegs
+    add rbx, 6328h ; Get the EnemyStruct from RDX
+    mov rcx, [rbx]
+    sub rsp, 8 
+    call qword ptr [g_BeowulfAttackTargetCheckCall]  
+    add rsp, 8
+    movss xmm1, dword ptr [rax+80h]
+    movss xmm0, dword ptr [rax+88h]
+    subss xmm0, dword ptr [rax+130h] 
+    subss xmm1, dword ptr [rax+138h]
 
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegs
+    ;PopAllXmmExcept xmm0
+    jmp qword ptr [g_BeowulfAttackTarget_ReturnAddr]
+
+OriginalCode:
+    movss xmm1, dword ptr [rcx]
+    movss xmm0, dword ptr [rcx+08h]
+    subss xmm0, dword ptr[rdx+08h]
+    subss xmm1, dword ptr [rdx]
+    
+BeowulfAttackTargetDetour ENDP
+
+
+.DATA
+extern g_BloodgoyleDiveTargetCheckCall:QWORD
+extern g_BloodgoyleDiveTarget_ReturnAddr:QWORD
+
+.CODE
+BloodgoyleDiveTargetDetour PROC
+    ; EnemyPos is in RCX
+    ; EnemyStruct is in RDI+60
+    ; PlayerPos is in RDX
+    PushAllXmmExcept xmm8
+    PushAllRegs
+    add rdi, 60h ; Get the EnemyStruct from RDI
+    ;add rdi, 60h
+    mov rcx, rdi
+    ;mov rcx, [rcx+20h] ; cenemycom to cenemy
+    call qword ptr [g_BloodgoyleDiveTargetCheckCall]  
+    movups xmm8, [rax+80h]
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegs
+    PopAllXmmExcept xmm8
+    subps xmm8, xmm0
+    jmp qword ptr [g_BloodgoyleDiveTarget_ReturnAddr]
+
+OriginalCode:
+    movups xmm8, [rdx]
+    subps xmm8, xmm0
+
+BloodgoyleDiveTargetDetour ENDP
 
 
 ;FixMPLockOnDetour

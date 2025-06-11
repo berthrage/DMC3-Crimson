@@ -34,10 +34,20 @@ extern "C" {
 	void EnigmaSetRotationToTargetDetour();
 	void* g_EnigmaSetRotationCheckCall;
 
-	// BeowulfSetTargetAttack
-	std::uint64_t g_BeowulfSetTarget_ReturnAddr;
-	void BeowulfSetTargetAttackDetour();
-	void* g_BeowulfSetTargetCheckCall;
+	// DullahanMaybeUsed
+	std::uint64_t g_DullahanMaybeUsed_ReturnAddr;
+	void DullahanMaybeUsedDetour();
+	void* g_DullahanMaybeUsedCheckCall;
+
+	// BeowulfAttackTargetPos
+	std::uint64_t g_BeowulfAttackTarget_ReturnAddr;
+	void BeowulfAttackTargetDetour();
+	void* g_BeowulfAttackTargetCheckCall;
+
+	// BloodgoyleDiveTargetPos
+	std::uint64_t g_BloodgoyleDiveTarget_ReturnAddr;
+	void BloodgoyleDiveTargetDetour();
+	void* g_BloodgoyleDiveTargetCheckCall;
 
 	// FixMPLockOn
 	std::uint64_t g_FixMPLockOn_ReturnAddr;
@@ -171,7 +181,7 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 
 	// EngimaSetRotationToTarget
 	// dmc3.exe + 2C6813 - 0F 10 01 - movups xmm0, [rcx] { Enigma Rotate to Target
-	// dmc3.exe + 2C6816 - 0F 5C C1 - subps xmm0, xmm1 -- we have to replicate it in the detour
+	// dmc3.exe + 2C6816 - 0F 5C C1 - subps xmm0, xmm1 
 	// Geryon bugs out, Beowulf rotates to secondary players but doesn't attack them
 	static std::unique_ptr<Utility::Detour_t> EnigmaSetRotationToTargetHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2C6813, &EnigmaSetRotationToTargetDetour, 6);
@@ -179,15 +189,37 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	g_EnigmaSetRotationCheckCall = &EnemyTargetAimSwitchPlayerAddr;
 	EnigmaSetRotationToTargetHook->Toggle(false);
 
-	// BeowulfSetTargetAttack
+	// DullahanMaybeUsed
 	// dmc3.exe + 2C688F - 0F 10 01 - movups xmm0, [rcx] { Dullahan Maybe This is used ? Also Judgement Cut }
 	// dmc3.exe + 2C6892 - 48 8B F2 - mov rsi, rdx
-	// Doesn't work. Crashes with Dullahans
-	static std::unique_ptr<Utility::Detour_t> BeowulfSetTargetHook =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2C688F, &BeowulfSetTargetAttackDetour, 6);
-	g_BeowulfSetTarget_ReturnAddr = BeowulfSetTargetHook->GetReturnAddress();
-	g_BeowulfSetTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
-	BeowulfSetTargetHook->Toggle(false);
+	// Does nothing?
+	static std::unique_ptr<Utility::Detour_t> DullahanMaybeUsedHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2C688F, &DullahanMaybeUsedDetour, 6);
+	g_DullahanMaybeUsed_ReturnAddr = DullahanMaybeUsedHook->GetReturnAddress();
+	g_DullahanMaybeUsedCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	DullahanMaybeUsedHook->Toggle(enable);
+
+	// BeowulfAttackTargetPos
+	// dmc3.exe+32E630 - F3 0F 10 09            - movss xmm1,[rcx] { BeowulfAttackTargetPos }
+	// dmc3.exe+32E634 - F3 0F 10 41 08         - movss xmm0,[rcx+08]
+	// dmc3.exe+32E639 - F3 0F 5C 42 08         - subss xmm0,[rdx+08]
+	// dmc3.exe+32E63E - F3 0F 5C 0A            - subss xmm1,[rdx]
+	static std::unique_ptr<Utility::Detour_t> BeowulfAttackTargetHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x32E630, &BeowulfAttackTargetDetour, 18);
+	g_BeowulfAttackTarget_ReturnAddr = BeowulfAttackTargetHook->GetReturnAddress();
+	g_BeowulfAttackTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	BeowulfAttackTargetHook->Toggle(false);
+
+
+	// BloodgoyleDiveTargetPos
+	// dmc3.exe+E7EC2 - 44 0F 10 02            - movups xmm8,[rdx] { Bloodgoyle Dive Target Position}
+	// dmc3.exe+E7EC6 - 44 0F 5C C0            - subps xmm8,xmm0
+	static std::unique_ptr<Utility::Detour_t> BloodgoyleDiveTargetHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xE7EC2, &BloodgoyleDiveTargetDetour, 8);
+	g_BloodgoyleDiveTarget_ReturnAddr = BloodgoyleDiveTargetHook->GetReturnAddress();
+	g_BloodgoyleDiveTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	BloodgoyleDiveTargetHook->Toggle(enable);
+
 
 	// FixMPLockOn
 	// dmc3.exe + 1E8A0E - 48 89 8B 28 63 00 00 - mov[rbx + 00006328], rcx{ Choose Target for Lock On without locking on }

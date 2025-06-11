@@ -55,6 +55,8 @@ Beowulf:
 Uses +616EB // Done but needs the other stuff
 dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
 dmc3.exe+2C6813 - 0F 10 01               - movups xmm0,[rcx] { Enigma Rotate to Target }
+dmc3.exe+32E630 - F3 0F 10 09            - movss xmm1,[rcx] { BeowulfAttackTargetPos }
+
 
 Doppelganger:
 Uses +616EB // Done but they don't attack secondary targets
