@@ -59,6 +59,11 @@ extern "C" {
 	void ArachneJumpAttackDetour();
 	void* g_ArachneJumpAttackCheckCall;
 
+	// VergilBlinkPositionDetour
+	std::uint64_t g_VergilBlinkPosition_ReturnAddr;
+	void VergilBlinkPositionDetour();
+	void* g_VergilBlinkPositionCheckCall;
+
 	// FixMPLockOn
 	std::uint64_t g_FixMPLockOn_ReturnAddr;
 	void FixMPLockOnDetour();
@@ -247,6 +252,15 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	g_ArachneJumpAttack_ReturnAddr = ArachneJumpAttackHook->GetReturnAddress();
 	g_ArachneJumpAttackCheckCall = &EnemyTargetAimSwitchPlayerAddr;
 	ArachneJumpAttackHook->Toggle(enable);
+
+	// VergilBlinkPositionDetour
+	// dmc3.exe+1871C5 - 0F 58 81 80 00 00 00      - addps xmm0,[rcx+00000080] { Vergil Blink/Trick Target Position }
+	// Player in RCX, LockedOnEnemyAddr in RDI+60h
+	static std::unique_ptr<Utility::Detour_t> VergilBlinkPositionHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1871C5, &VergilBlinkPositionDetour, 7);
+	g_VergilBlinkPosition_ReturnAddr = VergilBlinkPositionHook->GetReturnAddress();
+	g_VergilBlinkPositionCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	VergilBlinkPositionHook->Toggle(enable);
 
 
 	// FixMPLockOn

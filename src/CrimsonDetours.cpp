@@ -432,7 +432,6 @@ void AddingToPlayersMirageGauge(PlayerActorData& actorData, std::uint64_t amount
         vergilDopp.miragePoints = newMiragePoints;
 	}
     return;
-
 }
 
 bool CheckForceRoyalReleaseForSkyLaunch(PlayerActorData& actorData) {

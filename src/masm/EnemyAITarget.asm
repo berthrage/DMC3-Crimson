@@ -277,6 +277,37 @@ OriginalCode:
 ArachneJumpAttackDetour ENDP
 
 
+;VergilBlinkPositionDetour
+.DATA
+extern g_VergilBlinkPositionCheckCall:QWORD
+extern g_VergilBlinkPosition_ReturnAddr:QWORD
+float_temp dq 0.0
+
+.CODE
+VergilBlinkPositionDetour PROC
+    ; Player in RCX
+    ; LockedOnEnemyAddr in RDI+60h
+    PushAllXmm
+    PushAllRegs
+    add rdi, 60h ; Get the LockedOnEnemyAddr from RDI
+    mov rcx, rdi
+    call qword ptr [g_VergilBlinkPositionCheckCall]  
+    movaps xmm1, dword ptr [rax+80h] 
+    movaps dword ptr [float_temp], xmm1 ; preserve rax+80h state
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegs
+    PopAllXmm
+    addps xmm0, dword ptr [float_temp]
+    jmp qword ptr [g_VergilBlinkPosition_ReturnAddr]
+
+OriginalCode:
+    addps xmm0, [rcx+80h]
+
+VergilBlinkPositionDetour ENDP
+
+
 ;FixMPLockOnDetour
 .DATA
 extern g_FixMPLockOn_ReturnAddr:QWORD
