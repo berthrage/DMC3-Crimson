@@ -1091,7 +1091,6 @@ void RedOrbCounterWindow() {
 	float edgeOffsetX = 70.0f * scaleFactorY;
 	float edgeOffsetY = 30.0f * scaleFactorY;
 	ImVec2 windowPos = ImVec2(displaySize.x - windowSize.x - edgeOffsetX, edgeOffsetY);
-	//ImVec2 windowPos = ImVec2(displaySize.x - windowSize.x - 70.0f * scaleFactorX, 30.0f * scaleFactorY);
 
 	ImGui::SetNextWindowSize(windowSize);
 	ImGui::SetNextWindowPos(windowPos);
@@ -1119,42 +1118,44 @@ void RedOrbCounterWindow() {
 	case(GAMEMODEPRESETS::VANILLA):
 		redOrbGameMode = RedOrbVanillaTexture;
 		break;
-
 	case(GAMEMODEPRESETS::STYLE_SWITCHER):
 		redOrbGameMode = RedOrbStyleSwitcherTexture;
 		break;
-
 	case(GAMEMODEPRESETS::CRIMSON):
 		redOrbGameMode = RedOrbCrimsonTexture;
 		break;
-
 	case(GAMEMODEPRESETS::CUSTOM):
 		redOrbGameMode = RedOrbCustomTexture;
 		break;
-
 	default:
 		redOrbGameMode = RedOrbCrimsonTexture;
 		break;
-
 	}
 
 	// Render the texture or a white square if the texture is not valid
 	if (redOrbGameMode->IsValid()) {
-		// 		DrawRotatedImage(
-		// 			RedOrbTexture->GetTexture(),
-		// 			texturePos,
-		// 			ImVec2(textureWidth, textureHeight),
-		// 			IM_PI / 2.0f, // 90 degrees in radians
-		// 			colorWithAlpha
-		// 		);
 		ImGui::GetWindowDrawList()->AddImage(redOrbGameMode->GetTexture(), texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImVec2(0, 0), ImVec2(1, 1), colorWithAlpha);
-	} else {
+	}
+	else {
 		ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
 	}
 
-	// Render the orb count text
-	ImGui::SetCursorPos(ImVec2(textPos.x, textPos.y));
-	ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, alpha), "%s", orbCountStr.c_str());
+	// Render the orb count text with a red shadow using AddText
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	ImFont* font = UI::g_ImGuiFont_RedOrbRusso[fontSize];
+	ImVec2 screenTextPos = ImGui::GetWindowPos() + textPos;
+
+	// Shadow offset and color
+	ImVec2 shadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY);
+	ImU32 shadowColor = ImColor(1.0f, 0.0f, 0.0f, alpha * 0.7f); // Red, slightly transparent
+
+	// Main text color
+	ImU32 mainColor = ImColor(1.0f, 1.0f, 1.0f, alpha);
+
+	// Draw shadow
+	drawList->AddText(font, fontSize * scaleFactorY, screenTextPos + shadowOffset, shadowColor, orbCountStr.c_str());
+	// Draw main text
+	drawList->AddText(font, fontSize * scaleFactorY, screenTextPos, mainColor, orbCountStr.c_str());
 
 	ImGui::PopFont();
 	ImGui::End();
