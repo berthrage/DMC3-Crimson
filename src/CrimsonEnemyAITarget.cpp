@@ -41,6 +41,7 @@ extern "C" {
 
 	// BeowulfAttackTargetPos
 	std::uint64_t g_BeowulfAttackTarget_ReturnAddr;
+	std::uint64_t g_BeowulfAttackTarget_CallAddr;
 	void BeowulfAttackTargetDetour();
 	void* g_BeowulfAttackTargetCheckCall;
 
@@ -48,6 +49,12 @@ extern "C" {
 	std::uint64_t g_BloodgoyleDiveTarget_ReturnAddr;
 	void BloodgoyleDiveTargetDetour();
 	void* g_BloodgoyleDiveTargetCheckCall;
+
+	// BloodgoyleRotationTarget
+	std::uint64_t g_BloodgoyleRotationTarget_ReturnAddr;
+	std::uint64_t g_BloodgoyleRotationTarget_CallAddr;
+	void BloodgoyleRotationTargetDetour();
+	void* g_BloodgoyleRotationTargetCheckCall;
 
 	// ArachneCirclingAroundDetour
 	std::uint64_t g_ArachneCirclingAround_ReturnAddr;
@@ -215,15 +222,14 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	DullahanMaybeUsedHook->Toggle(enable);
 
 	// BeowulfAttackTargetPos
-	// dmc3.exe+32E630 - F3 0F 10 09            - movss xmm1,[rcx] { BeowulfAttackTargetPos }
-	// dmc3.exe+32E634 - F3 0F 10 41 08         - movss xmm0,[rcx+08]
-	// dmc3.exe+32E639 - F3 0F 5C 42 08         - subss xmm0,[rdx+08]
-	// dmc3.exe+32E63E - F3 0F 5C 0A            - subss xmm1,[rdx]
+	// dmc3.exe+2C68C2 - E8 69 7D 06 00           - call dmc3.exe+32E630 { Beowulf Attack Distance Function }
+	// PlayerPos in RCX, EnemyPos in RDX
 	static std::unique_ptr<Utility::Detour_t> BeowulfAttackTargetHook =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x32E630, &BeowulfAttackTargetDetour, 18);
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2C68C2, &BeowulfAttackTargetDetour, 5);
 	g_BeowulfAttackTarget_ReturnAddr = BeowulfAttackTargetHook->GetReturnAddress();
+	g_BeowulfAttackTarget_CallAddr = (uintptr_t)appBaseAddr + 0x32E630;
 	g_BeowulfAttackTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
-	BeowulfAttackTargetHook->Toggle(false);
+	BeowulfAttackTargetHook->Toggle(enable);
 
 
 	// BloodgoyleDiveTargetPos
@@ -234,6 +240,17 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	g_BloodgoyleDiveTarget_ReturnAddr = BloodgoyleDiveTargetHook->GetReturnAddress();
 	g_BloodgoyleDiveTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
 	BloodgoyleDiveTargetHook->Toggle(enable);
+
+	// BloodgoyleRotationTarget
+	// dmc3.exe+E8142 - E8 C9 E6 1D 00           - call dmc3.exe+2C6810 { BloodgoyleRotationFunc }
+	// PlayerPos in RCX, EnemyPos in RDX
+	static std::unique_ptr<Utility::Detour_t> BloodgoyleRotationTargetHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xE8142, &BloodgoyleRotationTargetDetour, 5);
+	g_BloodgoyleRotationTarget_ReturnAddr = BloodgoyleRotationTargetHook->GetReturnAddress();
+	g_BloodgoyleRotationTarget_CallAddr = (uintptr_t)appBaseAddr + 0x2C6810; // BloodgoyleRotationFunc
+	g_BloodgoyleRotationTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	BloodgoyleRotationTargetHook->Toggle(enable);
+
 
 	// ArachneCirclingAroundDetour
 	// dmc3.exe+C5A40 - 0F 28 83 80 00 00 00      - movaps xmm0,[rbx+00000080] { Arachne Set Target Position for Circling Around }

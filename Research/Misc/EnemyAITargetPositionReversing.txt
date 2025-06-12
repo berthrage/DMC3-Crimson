@@ -25,6 +25,8 @@ Bloodgoyle:
 dmc3.exe+E7EC2 - 44 0F 10 02            - movups xmm8,[rdx] { Bloodgoyle Dive Target Position} // DONE
 dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
 dmc3.exe+2C6813 - 0F 10 01               - movups xmm0,[rcx] { Enigma Rotate to Target }
+dmc3.exe+E8142 - E8 C9E61D00           - call dmc3.exe+2C6810 { BloodgoyleRotationFunc }
+
 
 Soul Eater:
 dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
@@ -57,6 +59,18 @@ Uses +616EB // Done but needs the other stuff
 dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
 dmc3.exe+2C6813 - 0F 10 01               - movups xmm0,[rcx] { Enigma Rotate to Target }
 dmc3.exe+32E630 - F3 0F 10 09            - movss xmm1,[rcx] { BeowulfAttackTargetPos }
+dmc3.exe+2C68C2 - E8 69 7D 06 00           - call dmc3.exe+32E630 { Beowulf Attack Distance Function }
+dmc3.exe+148F2C - E8 AFE31700           - call dmc3.exe+2C72E0 { BeowulfRotationTrackingWalk }
+dmc3.exe+14AC47 - E8 C4BB1700           - call dmc3.exe+2C6810 { BeowulfRotationTrackingAttack1 }
+dmc3.exe+14B657 - E8 B4B11700           - call dmc3.exe+2C6810 { BeowulfRotationTrackingAttack2 }
+dmc3.exe+14A2E7 - E8 24C51700           - call dmc3.exe+2C6810 { BeowulfRotationTrackingAttack3 }
+dmc3.exe+14B8ED - E8 1EAF1700           - call dmc3.exe+2C6810
+
+
+
+
+
+
 
 
 Doppelganger:
@@ -64,7 +78,7 @@ Uses +616EB // Done but they don't attack secondary targets
 
 Vergil:
 Uses +616EB // Done
-dmc3.exe+1871C5 - 0F 58 81 80 00 00 00      - addps xmm0,[rcx+00000080] { Vergil Blink/Trick Target Position }
+dmc3.exe+1871C5 - 0F 58 81 80 00 00 00      - addps xmm0,[rcx+0000mm0080] { Vergil Blink/Trick Target Position } // DONE
 dmc3.exe+1B269C - 0F 10 0F               - movups xmm1,[rdi] { Vergil Attack After Blocking }
 dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ? Also Judgement Cut }
 

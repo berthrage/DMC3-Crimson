@@ -78,45 +78,27 @@ extern g_EnigmaSetRotationCheckCall:QWORD
 .CODE
 EnigmaSetRotationToTargetDetour PROC
     ; PlayerPosition in RCX
-    ; LockedOnEnemyAddr in RBX
-    push    rax
-    push    rdx
-    push    r8
-    push    r9
-    push    r10
-    push    r11
-    push    rbx
-    push    rdi
-
-    sub     rsp, 20h             ; Allocate space for xmm1 (16 bytes), align stack
-    movdqu  [rsp], xmm1          ; Save xmm1
-
-    mov     rcx, rbx
-    sub     rsp, 28h             ; shadow space (20h) + 8 for alignment
+    ; LockedOnEnemyAddr in RDX
+    PushAllXmmExcept xmm0
+    PushAllRegsExcept rcx
+    add rdx, 60h ; Get the LockedOnEnemyAddr from RBX
+    mov rcx, rdx       
     ; Call C++ function
-    call    qword ptr [g_EnigmaSetRotationCheckCall]
-    add     rsp, 28h
-
-    ; Use result in rax
-    mov     rcx, rax
-    movups  xmm0, [rcx+80h]
-
-    movdqu  xmm1, [rsp]          ; Restore xmm1
-    add     rsp, 20h             ; Restore stack from xmm1 save
-
-    subps   xmm0, xmm1
-
-    ; Restore registers
+    call qword ptr [g_EnigmaSetRotationCheckCall]
+    add rax, 80h 
+    mov rcx, rax
+    movups  xmm0, [rcx]
+    jmp Jmpout
+ 
 Jmpout:
-    pop     rdi
-    pop     rbx
-    pop     r11
-    pop     r10
-    pop     r9
-    pop     r8
-    pop     rdx
-    pop     rax
+    PopAllRegsExcept rcx
+    PopAllXmmExcept xmm0
+    subps   xmm0, xmm1
     jmp     qword ptr [g_EngimaSetRotation_ReturnAddr]
+
+OriginalCode:
+    movups xmm0, [rcx]
+    subps xmm0, xmm1
 
 EnigmaSetRotationToTargetDetour ENDP
 
@@ -132,15 +114,19 @@ DullahanMaybeUsedDetour PROC
     ; PlayerPosition in RCX
     ; LockedOnEnemyAddrPosition in RDX
     PushAllXmmExcept xmm0
-    PushAllRegs
+    PushAllRegsExcept rcx
     sub rdx, 20h ; Get the EnemyStruct from RDX
     mov rcx, rdx
-    call qword ptr [g_DullahanMaybeUsedCheckCall]  
-    movups xmm0, [rax+80h]
+    sub rsp, 8
+    call qword ptr [g_DullahanMaybeUsedCheckCall] 
+    add rsp, 8
+    add rax, 80h
+    mov rcx, rax
+    movups xmm0, [rcx]
     jmp Jmpout
 
 Jmpout:
-    PopAllRegs
+    PopAllRegsExcept rcx
     PopAllXmmExcept xmm0
     mov rsi, rdx
     jmp qword ptr [g_DullahanMaybeUsed_ReturnAddr]
@@ -155,37 +141,32 @@ DullahanMaybeUsedDetour ENDP
 ;BeowulfAttackTargetDetour
 .DATA
 extern g_BeowulfAttackTarget_ReturnAddr:QWORD
+extern g_BeowulfAttackTarget_CallAddr:QWORD
 extern g_BeowulfAttackTargetCheckCall:QWORD
 
 .CODE
 BeowulfAttackTargetDetour PROC
-    ; PlayerPosition in RCX and RDX
-    ; PlayerStruct in RBX
-    ; we gotta take LockedOnEnemyAddr from PlayerStruct
-    ;PushAllXmmExcept xmm0
-    PushAllRegs
-    add rbx, 6328h ; Get the EnemyStruct from RDX
-    mov rcx, [rbx]
-    sub rsp, 8 
+    ; PlayerPosition in RCX 
+    ; EnemyPos in RDX
+    PushAllXmm
+    PushAllRegsExcept rcx
+    sub rdx, 20h ; Get the LockedOnEnemyAddr from RDX
+    mov rcx, rdx
+    sub rsp, 8
     call qword ptr [g_BeowulfAttackTargetCheckCall]  
     add rsp, 8
-    movss xmm1, dword ptr [rax+80h]
-    movss xmm0, dword ptr [rax+88h]
-    subss xmm0, dword ptr [rax+130h] 
-    subss xmm1, dword ptr [rax+138h]
-
+    add rax, 80h
+    mov rcx, rax
     jmp Jmpout
 
 Jmpout:
-    PopAllRegs
-    ;PopAllXmmExcept xmm0
+    PopAllRegsExcept rcx
+    PopAllXmm
+    call [g_BeowulfAttackTarget_CallAddr]
     jmp qword ptr [g_BeowulfAttackTarget_ReturnAddr]
 
 OriginalCode:
-    movss xmm1, dword ptr [rcx]
-    movss xmm0, dword ptr [rcx+08h]
-    subss xmm0, dword ptr[rdx+08h]
-    subss xmm1, dword ptr [rdx]
+    call [g_BeowulfAttackTarget_CallAddr]
     
 BeowulfAttackTargetDetour ENDP
 
@@ -220,6 +201,38 @@ OriginalCode:
     subps xmm8, xmm0
 
 BloodgoyleDiveTargetDetour ENDP
+
+; BloodgoyleRotationTargetDetour
+.DATA
+extern g_BloodgoyleRotationTargetCheckCall:QWORD
+extern g_BloodgoyleRotationTarget_ReturnAddr:QWORD
+extern g_BloodgoyleRotationTarget_CallAddr:QWORD
+
+.CODE
+BloodgoyleRotationTargetDetour PROC
+    ; PlayerPosition in RCX 
+    ; EnemyPos in RDX
+    PushAllXmm
+    PushAllRegsExcept rcx
+    sub rdx, 20h ; Get the LockedOnEnemyAddr from RDX
+    mov rcx, rdx
+    sub rsp, 8
+    call qword ptr [g_BloodgoyleRotationTargetCheckCall]  
+    add rsp, 8
+    add rax, 80h
+    mov rcx, rax
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegsExcept rcx
+    PopAllXmm
+    call [g_BloodgoyleRotationTarget_CallAddr]
+    jmp qword ptr [g_BloodgoyleRotationTarget_ReturnAddr]
+
+OriginalCode:
+    call [g_BloodgoyleRotationTarget_CallAddr]
+
+BloodgoyleRotationTargetDetour ENDP
 
 
 ;ArachneCirclingAroundDetour

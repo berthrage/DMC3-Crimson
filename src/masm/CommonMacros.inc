@@ -270,3 +270,83 @@ PopAllXmmExcept MACRO skipReg:REQ
     ENDIF
     add     rsp, 100h
 ENDM
+
+PushAllRegsExcept MACRO skipReg:REQ
+    pushfq
+    IFIDNI <skipReg>, <rax>
+    ELSE
+        push rax
+    ENDIF
+    IFIDNI <skipReg>, <rcx>
+    ELSE
+        push rcx
+    ENDIF
+    IFIDNI <skipReg>, <rdx>
+    ELSE
+        push rdx
+    ENDIF
+    IFIDNI <skipReg>, <r8>
+    ELSE
+        push r8
+    ENDIF
+    IFIDNI <skipReg>, <r9>
+    ELSE
+        push r9
+    ENDIF
+    IFIDNI <skipReg>, <r10>
+    ELSE
+        push r10
+    ENDIF
+    IFIDNI <skipReg>, <r11>
+    ELSE
+        push r11
+    ENDIF
+    IFIDNI <skipReg>, <rbx>
+    ELSE
+        push rbx
+    ENDIF
+    IFIDNI <skipReg>, <rdi>
+    ELSE
+        push rdi
+    ENDIF
+ENDM
+
+PopAllRegsExcept MACRO skipReg:REQ
+    IFIDNI <skipReg>, <rdi>
+    ELSE
+        pop rdi
+    ENDIF
+    IFIDNI <skipReg>, <rbx>
+    ELSE
+        pop rbx
+    ENDIF
+    IFIDNI <skipReg>, <r11>
+    ELSE
+        pop r11
+    ENDIF
+    IFIDNI <skipReg>, <r10>
+    ELSE
+        pop r10
+    ENDIF
+    IFIDNI <skipReg>, <r9>
+    ELSE
+        pop r9
+    ENDIF
+    IFIDNI <skipReg>, <r8>
+    ELSE
+        pop r8
+    ENDIF
+    IFIDNI <skipReg>, <rdx>
+    ELSE
+        pop rdx
+    ENDIF
+    IFIDNI <skipReg>, <rcx>
+    ELSE
+        pop rcx
+    ENDIF
+    IFIDNI <skipReg>, <rax>
+    ELSE
+        pop rax
+    ENDIF
+    popfq
+ENDM
