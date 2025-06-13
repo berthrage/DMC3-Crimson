@@ -287,6 +287,9 @@ bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
     case POLE_PLAY:
         return true;
 
+	case CERBERUS_FLICKER:
+		return true;
+
     case CERBERUS_WINDMILL:
         return true;
 
