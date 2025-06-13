@@ -238,17 +238,17 @@ bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
     switch (actorData.action) { // from vars, namespace ACTION_DANTE {
 
     case REBELLION_STINGER_LEVEL_1:
-        if (std::clamp<float>(actionTimer, 0.2f, 0.3f) == actionTimer && inputException) {
+        if (std::clamp<float>(actionTimer, 0.22f, 0.3f) == actionTimer && inputException) {
             return true;
         }
         break;
     case REBELLION_STINGER_LEVEL_2:
-        if (std::clamp<float>(actionTimer, 0.2f, 0.3f) == actionTimer && inputException) {
+        if (std::clamp<float>(actionTimer, 0.22f, 0.3f) == actionTimer && inputException) {
             return true;
         }
         break;
     case REBELLION_MILLION_STAB:
-        if (std::clamp<float>(actionTimer, 0.2f, 10.0f) == actionTimer && inputException) {
+        if (std::clamp<float>(actionTimer, 0.22f, 10.0f) == actionTimer && inputException) {
             return true;
         }
         break;
