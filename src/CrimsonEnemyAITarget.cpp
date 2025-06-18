@@ -54,8 +54,75 @@ extern "C" {
 	std::uint64_t g_BloodgoyleRotationTarget_ReturnAddr;
 	std::uint64_t g_BloodgoyleRotationTarget_CallAddr;
 	void BloodgoyleRotationTargetDetour();
-	void* g_BloodgoyleRotationTargetCheckCall;
+	void* g_BloodgoyleRotationTargetCheckCall;	
 
+	// ChessPawnAttackTarget
+	std::uint64_t g_ChessPawnAttackTarget_ReturnAddr;
+	std::uint64_t g_ChessPawnAttackTarget_CallAddr;
+	void ChessPawnAttackTargetDetour();
+	void* g_ChessPawnAttackTargetCheckCall;
+
+	// ChessKnightAttackTarget
+	std::uint64_t g_ChessKnightAttackTarget_ReturnAddr;
+	std::uint64_t g_ChessKnightAttackTarget_CallAddr;
+	void ChessKnightAttackTargetDetour();
+	void* g_ChessKnightAttackTargetCheckCall;
+
+	// ChessBishopRotationTarget
+	std::uint64_t g_ChessBishopRotationTarget_ReturnAddr;
+	std::uint64_t g_ChessBishopRotationTarget_CallAddr;
+	void ChessBishopRotationTargetDetour();
+	void* g_ChessBishopRotationTargetCheckCall;
+
+	// ChessBishopAttackTarget
+	std::uint64_t g_ChessBishopAttackTarget_ReturnAddr;
+	std::uint64_t g_ChessBishopAttackTarget_CallAddr;
+	void ChessBishopAttackTargetDetour();
+	void* g_ChessBishopAttackTargetCheckCall;
+
+	// ChessBishopAttack2Target
+	std::uint64_t g_ChessBishopAttack2Target_ReturnAddr;
+	std::uint64_t g_ChessBishopAttack2Target_CallAddr;
+	void ChessBishopAttack2TargetDetour();
+	void* g_ChessBishopAttack2TargetCheckCall;
+
+	// ChessBishopAttack2TargetDetour2
+	std::uint64_t g_ChessBishopAttack2Target2_ReturnAddr;
+	std::uint64_t g_ChessBishopAttack2Target2_CallAddr;
+	std::uint64_t g_ChessBishopAttack2Target2_JmpAddr;
+	void ChessBishopAttack2TargetDetour2();
+
+	// ChessBishopAttack2TargetDetour3
+	std::uint64_t g_ChessBishopAttack2Target3_ReturnAddr;
+	std::uint64_t g_ChessBishopAttack2Target3_CallAddr;
+	std::uint64_t g_ChessBishopAttack2Target3_JmpAddr;
+	void ChessBishopAttack2TargetDetour3();
+
+
+	// ChessRookAttackTarget
+	std::uint64_t g_ChessRookAttackTarget_ReturnAddr;
+	std::uint64_t g_ChessRookAttackTarget_CallAddr;
+	void ChessRookAttackTargetDetour();
+	void* g_ChessRookAttackTargetCheckCall;
+
+	// ChessRookAttackTargetDetour2
+	std::uint64_t g_ChessRookAttackTarget2_ReturnAddr;
+	std::uint64_t g_ChessRookAttackTarget2_CallAddr;
+	std::uint64_t g_ChessRookAttackTarget2_JmpAddr;
+	void ChessRookAttackTargetDetour2();
+
+	// ChessRookAttackTargetDetour3
+	std::uint64_t g_ChessRookAttackTarget3_ReturnAddr;
+	std::uint64_t g_ChessRookAttackTarget3_CallAddr;
+	std::uint64_t g_ChessRookAttackTarget3_JmpAddr;
+	void ChessRookAttackTargetDetour3();
+
+	// ChessKingAttackTarget
+	std::uint64_t g_ChessKingAttackTarget_ReturnAddr;
+	std::uint64_t g_ChessKingAttackTarget_CallAddr;
+	void ChessKingAttackTargetDetour();
+	void* g_ChessKingAttackTargetCheckCall;
+	
 	// ArachneCirclingAroundDetour
 	std::uint64_t g_ArachneCirclingAround_ReturnAddr;
 	void ArachneCirclingAroundDetour();
@@ -204,7 +271,7 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	// EngimaSetRotationToTarget
 	// dmc3.exe + 2C6813 - 0F 10 01 - movups xmm0, [rcx] { Enigma Rotate to Target
 	// dmc3.exe + 2C6816 - 0F 5C C1 - subps xmm0, xmm1 
-	// Geryon bugs out, Beowulf rotates to secondary players but doesn't attack them
+	// We use this to find out calls.
 	static std::unique_ptr<Utility::Detour_t> EnigmaSetRotationToTargetHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2C6813, &EnigmaSetRotationToTargetDetour, 6);
 	g_EngimaSetRotation_ReturnAddr = EnigmaSetRotationToTargetHook->GetReturnAddress();
@@ -214,12 +281,13 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	// DullahanMaybeUsed
 	// dmc3.exe + 2C688F - 0F 10 01 - movups xmm0, [rcx] { Dullahan Maybe This is used ? Also Judgement Cut }
 	// dmc3.exe + 2C6892 - 48 8B F2 - mov rsi, rdx
-	// Does nothing?
+	// PlayerPos in RCX, EnemyPos in RDX
+	// We use this to find out calls.
 	static std::unique_ptr<Utility::Detour_t> DullahanMaybeUsedHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2C688F, &DullahanMaybeUsedDetour, 6);
 	g_DullahanMaybeUsed_ReturnAddr = DullahanMaybeUsedHook->GetReturnAddress();
 	g_DullahanMaybeUsedCheckCall = &EnemyTargetAimSwitchPlayerAddr;
-	DullahanMaybeUsedHook->Toggle(enable);
+	DullahanMaybeUsedHook->Toggle(false);
 
 	// BeowulfAttackTargetPos
 	// dmc3.exe+2C68C2 - E8 69 7D 06 00           - call dmc3.exe+32E630 { Beowulf Attack Distance Function }
@@ -244,6 +312,7 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	// BloodgoyleRotationTarget
 	// dmc3.exe+E8142 - E8 C9 E6 1D 00           - call dmc3.exe+2C6810 { BloodgoyleRotationFunc }
 	// PlayerPos in RCX, EnemyPos in RDX
+	// Also works for ChessPawn and ChessKnight
 	static std::unique_ptr<Utility::Detour_t> BloodgoyleRotationTargetHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xE8142, &BloodgoyleRotationTargetDetour, 5);
 	g_BloodgoyleRotationTarget_ReturnAddr = BloodgoyleRotationTargetHook->GetReturnAddress();
@@ -251,6 +320,120 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	g_BloodgoyleRotationTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
 	BloodgoyleRotationTargetHook->Toggle(enable);
 
+	// ChessPawnAttackTargetDetour
+	// dmc3.exe+F25B8 - E8 B3421D00           - call dmc3.exe+2C6870 { ChessPawnAttackTarget }
+	// PlayerPos in RCX, EnemyPos in RDX
+	static std::unique_ptr<Utility::Detour_t> ChessPawnAttackTargetHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xF25B8, &ChessPawnAttackTargetDetour, 5);
+	g_ChessPawnAttackTarget_ReturnAddr = ChessPawnAttackTargetHook->GetReturnAddress();
+	g_ChessPawnAttackTarget_CallAddr = (uintptr_t)appBaseAddr + 0x2C6870; // ChessPawnAttackTarget
+	g_ChessPawnAttackTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	ChessPawnAttackTargetHook->Toggle(enable);
+
+	// ChessKnightAttackTargetDetour
+	// dmc3.exe+F2C98 - E8 D33B1D00           - call dmc3.exe+2C6870 { ChessKnightAttackTarget }
+	// PlayerPos in RCX, EnemyPos in RDX
+	static std::unique_ptr<Utility::Detour_t> ChessKnightAttackTargetHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xF2C98, &ChessKnightAttackTargetDetour, 5);
+	g_ChessKnightAttackTarget_ReturnAddr = ChessKnightAttackTargetHook->GetReturnAddress();
+	g_ChessKnightAttackTarget_CallAddr = (uintptr_t)appBaseAddr + 0x2C6870; // ChessKnightAttackTarget
+	g_ChessKnightAttackTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	ChessKnightAttackTargetHook->Toggle(enable);
+
+
+	// ChessBishopRotationTarget
+	// dmc3.exe+EF871 - E8 9A 6F 1D 00           - call dmc3.exe+2C6810 { ChessBishopRotationTarget }
+	// EnemyPos in RDX
+	static std::unique_ptr<Utility::Detour_t> ChessBishopRotationTargetHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xEF871, &ChessBishopRotationTargetDetour, 5);
+	g_ChessBishopRotationTarget_ReturnAddr = ChessBishopRotationTargetHook->GetReturnAddress();
+	g_ChessBishopRotationTarget_CallAddr = (uintptr_t)appBaseAddr + 0x2C6810; 
+	g_ChessBishopRotationTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	ChessBishopRotationTargetHook->Toggle(enable);
+
+	// ChessBishopAttackTargetDetour
+	// dmc3.exe+F3DB3 - E8 B8 2A 1D 00           - call dmc3.exe+2C6870 { ChessBishopAttackTarget }
+	// PlayerPos in RCX, EnemyPos in RDX
+	// Works for JudgementCut
+	static std::unique_ptr<Utility::Detour_t> ChessBishopAttackTargetHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xF3DB3, &ChessBishopAttackTargetDetour, 5);
+	g_ChessBishopAttackTarget_ReturnAddr = ChessBishopAttackTargetHook->GetReturnAddress();
+	g_ChessBishopAttackTarget_CallAddr = (uintptr_t)appBaseAddr + 0x2C6870; // ChessBishopAttackTarget
+	g_ChessBishopAttackTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	ChessBishopAttackTargetHook->Toggle(enable);
+
+	// ChessBishopAttack2TargetDetour
+	// dmc3.exe+F3423 - E8 18 DD FF FF           - call dmc3.exe+F1140 { ChessBishopAttack2Func }
+	// PlayerPos in R8, EnemyPos in RDX
+	static std::unique_ptr<Utility::Detour_t> ChessBishopAttack2Hook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xF3423, &ChessBishopAttack2TargetDetour, 5);
+	g_ChessBishopAttack2Target_ReturnAddr = ChessBishopAttack2Hook->GetReturnAddress();
+	g_ChessBishopAttack2Target_CallAddr = (uintptr_t)appBaseAddr + 0xF1140; // ChessBishopAttack2Func
+	g_ChessBishopAttack2TargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	ChessBishopAttack2Hook->Toggle(enable);
+
+	// ChessBishopAttack2TargetDetour2
+	// dmc3.exe+F342D - E8 4E4DFFFF           - call dmc3.exe+E8180
+	// dmc3.exe+E818F - E9 5C642400           - jmp dmc3.exe+32E5F0 < -- inside dmc3.exe+E8180
+	// PlayerPos in R8
+	static std::unique_ptr<Utility::Detour_t> ChessBishopAttack2TargetHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xF342D, &ChessBishopAttack2TargetDetour2, 5);
+	g_ChessBishopAttack2Target2_ReturnAddr = ChessBishopAttack2TargetHook2->GetReturnAddress();
+	g_ChessBishopAttack2Target2_CallAddr = (uintptr_t)appBaseAddr + 0xE8180; 
+	g_ChessBishopAttack2Target2_JmpAddr = (uintptr_t)appBaseAddr + 0x32E5F0; // ChessBishopAttack2Func
+	ChessBishopAttack2TargetHook2->Toggle(enable);
+
+	// ChessBishopAttack2TargetDetour3
+	// dmc3.exe+F343A - E8 414DFFFF           - call dmc3.exe+E8180
+	// dmc3.exe+E818F - E9 5C642400           - jmp dmc3.exe+32E5F0 < -- inside dmc3.exe+E8180
+	static std::unique_ptr<Utility::Detour_t> ChessBishopAttack2TargetHook3 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xF343A, &ChessBishopAttack2TargetDetour3, 5);
+	g_ChessBishopAttack2Target3_ReturnAddr = ChessBishopAttack2TargetHook3->GetReturnAddress();
+	g_ChessBishopAttack2Target3_CallAddr = (uintptr_t)appBaseAddr + 0xE8180;
+	g_ChessBishopAttack2Target3_JmpAddr = (uintptr_t)appBaseAddr + 0x32E5F0; 
+	ChessBishopAttack2TargetHook3->Toggle(enable);
+
+
+	// ChessRookAttackTargetDetour
+	// dmc3.exe+F5037 - E8 E4 C1 FF FF           - call dmc3.exe+F1220 { ChessRookAttack }
+	// PlayerPos in R8, EnemyPos in RDX
+	static std::unique_ptr<Utility::Detour_t> ChessRookAttackHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xF5037, &ChessRookAttackTargetDetour, 5);
+	g_ChessRookAttackTarget_ReturnAddr = ChessRookAttackHook->GetReturnAddress();
+	g_ChessRookAttackTarget_CallAddr = (uintptr_t)appBaseAddr + 0xF1220; // ChessRookAttack
+	g_ChessRookAttackTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	ChessRookAttackHook->Toggle(enable);
+
+	// ChessRookAttackTargetDetour2
+	// dmc3.exe+F5041 - E8 3A31FFFF           - call dmc3.exe+E8180
+	// dmc3.exe+E818F - E9 5C642400           - jmp dmc3.exe+32E5F0 < -- inside dmc3.exe+E8180
+	static std::unique_ptr<Utility::Detour_t> ChessRookAttackTargetHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xF5041, &ChessRookAttackTargetDetour2, 5);
+	g_ChessRookAttackTarget2_ReturnAddr = ChessRookAttackTargetHook2->GetReturnAddress();
+	g_ChessRookAttackTarget2_CallAddr = (uintptr_t)appBaseAddr + 0xE8180;
+	g_ChessRookAttackTarget2_JmpAddr = (uintptr_t)appBaseAddr + 0x32E5F0; 
+	ChessRookAttackTargetHook2->Toggle(enable);
+
+	// ChessRookAttackTargetDetour3
+	// dmc3.exe+F504E - E8 2D31FFFF           - call dmc3.exe+E8180
+	// dmc3.exe+E818F - E9 5C642400           - jmp dmc3.exe+32E5F0 < -- inside dmc3.exe+E8180
+	static std::unique_ptr<Utility::Detour_t> ChessRookAttackTargetHook3 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xF504E, &ChessRookAttackTargetDetour3, 5);
+	g_ChessRookAttackTarget3_ReturnAddr = ChessRookAttackTargetHook3->GetReturnAddress();
+	g_ChessRookAttackTarget3_CallAddr = (uintptr_t)appBaseAddr + 0xE8180;
+	g_ChessRookAttackTarget3_JmpAddr = (uintptr_t)appBaseAddr + 0x32E5F0;
+	ChessRookAttackTargetHook3->Toggle(enable);
+
+	// ChessKingAttackTargetDetour
+	// dmc3.exe+F7293 - E8 D8F51C00           - call dmc3.exe+2C6870
+	// PlayerPos in RCX, EnemyPos in RDX
+	// This is not it. It has to be a call that when noping, the enemy actor still moves but doesn't attack.
+	static std::unique_ptr<Utility::Detour_t> ChessKingAttackHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xF7293, &ChessKingAttackTargetDetour, 5);
+	g_ChessKingAttackTarget_ReturnAddr = ChessKingAttackHook->GetReturnAddress();
+	g_ChessKingAttackTarget_CallAddr = (uintptr_t)appBaseAddr + 0x2C6870; 
+	g_ChessKingAttackTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	ChessKingAttackHook->Toggle(false);
 
 	// ArachneCirclingAroundDetour
 	// dmc3.exe+C5A40 - 0F 28 83 80 00 00 00      - movaps xmm0,[rbx+00000080] { Arachne Set Target Position for Circling Around }

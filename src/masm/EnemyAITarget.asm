@@ -148,7 +148,6 @@ extern g_BeowulfAttackTargetCheckCall:QWORD
 BeowulfAttackTargetDetour PROC
     ; PlayerPosition in RCX 
     ; EnemyPos in RDX
-    PushAllXmm
     PushAllRegsExcept rcx
     sub rdx, 20h ; Get the LockedOnEnemyAddr from RDX
     mov rcx, rdx
@@ -161,7 +160,6 @@ BeowulfAttackTargetDetour PROC
 
 Jmpout:
     PopAllRegsExcept rcx
-    PopAllXmm
     call [g_BeowulfAttackTarget_CallAddr]
     jmp qword ptr [g_BeowulfAttackTarget_ReturnAddr]
 
@@ -233,6 +231,313 @@ OriginalCode:
     call [g_BloodgoyleRotationTarget_CallAddr]
 
 BloodgoyleRotationTargetDetour ENDP
+
+
+; ChessPawnAttackTargetDetour
+.DATA
+extern g_ChessPawnAttackTargetCheckCall:QWORD
+extern g_ChessPawnAttackTarget_ReturnAddr:QWORD
+extern g_ChessPawnAttackTarget_CallAddr:QWORD
+
+.CODE
+ChessPawnAttackTargetDetour PROC
+    ; PlayerPosition in RCX 
+    ; EnemyPos in RDX
+    PushAllRegsExcept rcx
+    sub rdx, 20h ; Get the LockedOnEnemyAddr from RDX
+    mov rcx, rdx
+    sub rsp, 8
+    call qword ptr [g_ChessPawnAttackTargetCheckCall]  
+    add rsp, 8
+    add rax, 80h
+    mov rcx, rax
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegsExcept rcx
+    call [g_ChessPawnAttackTarget_CallAddr]
+    jmp qword ptr [g_ChessPawnAttackTarget_ReturnAddr]
+
+OriginalCode:
+    call [g_ChessPawnAttackTarget_CallAddr]
+
+ChessPawnAttackTargetDetour ENDP
+
+
+; ChessKnightAttackTargetDetour
+.DATA
+extern g_ChessKnightAttackTargetCheckCall:QWORD
+extern g_ChessKnightAttackTarget_ReturnAddr:QWORD
+extern g_ChessKnightAttackTarget_CallAddr:QWORD
+
+.CODE
+ChessKnightAttackTargetDetour PROC
+    ; PlayerPosition in RCX 
+    ; EnemyPos in RDX
+    PushAllRegsExcept rcx
+    sub rdx, 20h ; Get the LockedOnEnemyAddr from RDX
+    mov rcx, rdx
+    sub rsp, 8
+    call qword ptr [g_ChessKnightAttackTargetCheckCall]  
+    add rsp, 8
+    add rax, 80h
+    mov rcx, rax
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegsExcept rcx
+    call [g_ChessKnightAttackTarget_CallAddr]
+    jmp qword ptr [g_ChessKnightAttackTarget_ReturnAddr]
+
+OriginalCode:
+    call [g_ChessKnightAttackTarget_CallAddr]
+
+ChessKnightAttackTargetDetour ENDP
+
+
+
+; ChessBishopRotationTargetDetour
+.DATA
+extern g_ChessBishopRotationTargetCheckCall:QWORD
+extern g_ChessBishopRotationTarget_ReturnAddr:QWORD
+extern g_ChessBishopRotationTarget_CallAddr:QWORD
+
+.CODE
+ChessBishopRotationTargetDetour PROC
+    ; PlayerPosition in RCX 
+    ; EnemyPos in RDX
+    PushAllXmm
+    PushAllRegsExcept rcx
+    sub rdx, 20h ; Get the LockedOnEnemyAddr from RDX
+    mov rcx, rdx
+    sub rsp, 8
+    call qword ptr [g_ChessBishopRotationTargetCheckCall]  
+    add rsp, 8
+    add rax, 80h
+    mov rcx, rax
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegsExcept rcx
+    PopAllXmm
+    call [g_ChessBishopRotationTarget_CallAddr]
+    jmp qword ptr [g_ChessBishopRotationTarget_ReturnAddr]
+
+OriginalCode:
+    call [g_ChessBishopRotationTarget_CallAddr]
+
+ChessBishopRotationTargetDetour ENDP
+
+; ChessBishopAttackTargetDetour
+.DATA
+extern g_ChessBishopAttackTargetCheckCall:QWORD
+extern g_ChessBishopAttackTarget_ReturnAddr:QWORD
+extern g_ChessBishopAttackTarget_CallAddr:QWORD
+
+.CODE
+ChessBishopAttackTargetDetour PROC
+    ; PlayerPosition in RCX 
+    ; EnemyPos in RDX
+    PushAllRegsExcept rcx
+    sub rdx, 20h ; Get the LockedOnEnemyAddr from RDX
+    mov rcx, rdx
+    sub rsp, 8
+    call qword ptr [g_ChessBishopAttackTargetCheckCall]  
+    add rsp, 8
+    add rax, 80h
+    mov rcx, rax
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegsExcept rcx
+    call [g_ChessBishopAttackTarget_CallAddr]
+    jmp qword ptr [g_ChessBishopAttackTarget_ReturnAddr]
+
+OriginalCode:
+    call [g_ChessBishopAttackTarget_CallAddr]
+
+ChessBishopAttackTargetDetour ENDP
+
+
+; ChessBishopAttack2TargetDetour
+.DATA
+extern g_ChessBishopAttack2TargetCheckCall:QWORD
+extern g_ChessBishopAttack2Target_ReturnAddr:QWORD
+extern g_ChessBishopAttack2Target_CallAddr:QWORD
+
+.CODE
+ChessBishopAttack2TargetDetour PROC
+    ; PlayerPosition in R8 
+    ; EnemyPos in RDX
+    PushAllRegsExcept r8
+    sub rdx, 20h ; Get the LockedOnEnemyAddr from RDX
+    mov rcx, rdx
+    sub rsp, 8
+    call qword ptr [g_ChessBishopAttack2TargetCheckCall]  
+    add rsp, 8
+    add rax, 80h
+    mov r8, rax
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegsExcept r8
+    call [g_ChessBishopAttack2Target_CallAddr]
+    jmp qword ptr [g_ChessBishopAttack2Target_ReturnAddr]
+
+OriginalCode:
+    call [g_ChessBishopAttack2Target_CallAddr]
+
+ChessBishopAttack2TargetDetour ENDP
+
+
+; ChessBishopAttack2TargetDetour2
+.DATA
+extern g_ChessBishopAttack2Target2_ReturnAddr:QWORD
+extern g_ChessBishopAttack2Target2_CallAddr:QWORD
+extern g_ChessBishopAttack2Target2_JmpAddr:QWORD
+
+.CODE
+ChessBishopAttack2TargetDetour2 PROC
+    ; PlayerPosition in R8 
+    mov rdx, r8
+    call qword ptr [g_ChessBishopAttack2Target2_JmpAddr]
+    jmp Jmpout
+
+Jmpout:
+    jmp qword ptr [g_ChessBishopAttack2Target2_ReturnAddr]
+
+OriginalCode:
+    call [g_ChessBishopAttack2Target2_CallAddr]
+
+ChessBishopAttack2TargetDetour2 ENDP
+
+
+; ChessBishopAttack2TargetDetour3
+.DATA
+extern g_ChessBishopAttack2Target3_ReturnAddr:QWORD
+extern g_ChessBishopAttack2Target3_CallAddr:QWORD
+extern g_ChessBishopAttack2Target3_JmpAddr:QWORD
+
+.CODE
+ChessBishopAttack2TargetDetour3 PROC
+    ; PlayerPosition in R8 
+    mov rdx, r8
+    call qword ptr [g_ChessBishopAttack2Target3_JmpAddr]
+    jmp Jmpout
+
+Jmpout:
+    jmp qword ptr [g_ChessBishopAttack2Target3_ReturnAddr]
+
+OriginalCode:
+    call [g_ChessBishopAttack2Target3_CallAddr]
+
+ChessBishopAttack2TargetDetour3 ENDP
+
+
+; ChessRookAttackTargetDetour
+.DATA
+extern g_ChessRookAttackTargetCheckCall:QWORD
+extern g_ChessRookAttackTarget_ReturnAddr:QWORD
+extern g_ChessRookAttackTarget_CallAddr:QWORD
+
+.CODE
+ChessRookAttackTargetDetour PROC
+    ; PlayerPosition in R8 
+    ; EnemyPos in RDX
+    PushAllRegsExcept r8
+    sub rdx, 20h ; Get the LockedOnEnemyAddr from RDX
+    mov rcx, rdx
+    sub rsp, 8
+    call qword ptr [g_ChessRookAttackTargetCheckCall]  
+    add rsp, 8
+    add rax, 80h
+    mov r8, rax
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegsExcept r8
+    call [g_ChessRookAttackTarget_CallAddr]
+    jmp qword ptr [g_ChessRookAttackTarget_ReturnAddr]
+
+OriginalCode:
+    call [g_ChessRookAttackTarget_CallAddr]
+
+ChessRookAttackTargetDetour ENDP
+
+
+; ChessRookAttackTargetDetour2
+.DATA
+extern g_ChessRookAttackTarget2_ReturnAddr:QWORD
+extern g_ChessRookAttackTarget2_CallAddr:QWORD
+extern g_ChessRookAttackTarget2_JmpAddr:QWORD
+
+.CODE
+ChessRookAttackTargetDetour2 PROC
+    ; PlayerPosition in R8 
+    mov rdx, r8
+    call qword ptr [g_ChessRookAttackTarget2_JmpAddr]
+    jmp Jmpout
+
+Jmpout:
+    jmp qword ptr [g_ChessRookAttackTarget2_ReturnAddr]
+
+OriginalCode:
+    call [g_ChessRookAttackTarget2_CallAddr]
+
+ChessRookAttackTargetDetour2 ENDP
+
+
+; ChessRookAttackTargetDetour3
+.DATA
+extern g_ChessRookAttackTarget3_ReturnAddr:QWORD
+extern g_ChessRookAttackTarget3_CallAddr:QWORD
+extern g_ChessRookAttackTarget3_JmpAddr:QWORD
+
+.CODE
+ChessRookAttackTargetDetour3 PROC
+    ; PlayerPosition in R8 
+    mov rdx, r8
+    call qword ptr [g_ChessRookAttackTarget3_JmpAddr]
+    jmp Jmpout
+
+Jmpout:
+    jmp qword ptr [g_ChessRookAttackTarget3_ReturnAddr]
+
+OriginalCode:
+    call [g_ChessRookAttackTarget3_CallAddr]
+
+ChessRookAttackTargetDetour3 ENDP
+
+
+; ChessKingAttackTargetDetour
+.DATA
+extern g_ChessKingAttackTargetCheckCall:QWORD
+extern g_ChessKingAttackTarget_ReturnAddr:QWORD
+extern g_ChessKingAttackTarget_CallAddr:QWORD
+
+.CODE
+ChessKingAttackTargetDetour PROC
+    ; PlayerPosition in RCX 
+    ; EnemyPos in RDX
+    PushAllRegsExcept rcx
+    sub rdx, 20h ; Get the LockedOnEnemyAddr from RDX
+    mov rcx, rdx
+    sub rsp, 8
+    call qword ptr [g_ChessKingAttackTargetCheckCall]  
+    add rsp, 8
+    add rax, 80h
+    mov rcx, rax
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegsExcept rcx
+    call [g_ChessKingAttackTarget_CallAddr]
+    jmp qword ptr [g_ChessKingAttackTarget_ReturnAddr]
+
+OriginalCode:
+    call [g_ChessKingAttackTarget_CallAddr]
+
+ChessKingAttackTargetDetour ENDP
 
 
 ;ArachneCirclingAroundDetour
