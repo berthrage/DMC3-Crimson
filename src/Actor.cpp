@@ -2649,7 +2649,7 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
     actorData.newForceFiles          = characterData.forceFiles;
     actorData.newForceFilesCharacter = characterData.forceFilesCharacter;
     actorData.newForceFilesCostume   = characterData.forceFilesCostume;
-    actorData.newGamepad             = playerIndex == 0? 1 : 0;
+    actorData.newGamepad             = playerIndex;
 
     if constexpr (TypeMatch<T, PlayerActorDataDante>::value) {
         UpdateActorDante(actorData);
