@@ -1111,7 +1111,7 @@ void RedOrbCounterWindow() {
 	ImVec2 textPos = ImVec2(windowSize.x - textSize.x - 74.0f * scaleFactorY, (windowSize.y - textSize.y) / 2);
 
 	// Correct the texture position by considering the window's screen position
-	ImVec2 texturePos = ImVec2(windowPos.x + textPos.x - textureWidth - 17.916f * scaleFactorY, windowPos.y + (windowSize.y - textureHeight) / 2);
+	ImVec2 texturePos = ImVec2(windowPos.x + textPos.x - textureWidth - 14.916f * scaleFactorY, windowPos.y + (windowSize.y - textureHeight) / 2);
 
 	static auto* redOrbGameMode = RedOrbCrimsonTexture;
 	switch (activeCrimsonGameplay.GameMode.preset) {
@@ -1143,17 +1143,20 @@ void RedOrbCounterWindow() {
 	// Render the orb count text with a red shadow using AddText
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 	ImFont* font = UI::g_ImGuiFont_RedOrbRusso[fontSize];
+	ImFont* backdropFont = UI::g_ImGuiFont_RedOrbRussoBackdrop[fontSize];
 	ImVec2 screenTextPos = ImGui::GetWindowPos() + textPos;
 
 	// Shadow offset and color
 	ImVec2 shadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY);
-	ImU32 shadowColor = ImColor(1.0f, 0.0f, 0.0f, alpha * 0.7f); // Red, slightly transparent
+	ImU32 shadowColor = ImColor(0.49f, 0.0f, 0.0f, alpha); // #7f0000
+	
 
 	// Main text color
-	ImU32 mainColor = ImColor(1.0f, 1.0f, 1.0f, alpha);
+	//ImU32 mainColor = ImColor(0.83f, 0.85f, 0.858f, alpha); // #D5D9DB
+	ImU32 mainColor = ImColor(1.0f, 1.0f, 1.0f, alpha); // #D5D9DB
 
 	// Draw shadow
-	drawList->AddText(font, fontSize * scaleFactorY, screenTextPos + shadowOffset, shadowColor, orbCountStr.c_str());
+	drawList->AddText(backdropFont, fontSize * scaleFactorY, screenTextPos, shadowColor, orbCountStr.c_str());
 	// Draw main text
 	drawList->AddText(font, fontSize * scaleFactorY, screenTextPos, mainColor, orbCountStr.c_str());
 
