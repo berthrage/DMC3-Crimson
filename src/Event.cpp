@@ -15,6 +15,7 @@
 #include "CrimsonSDL.hpp"
 #include "CrimsonGameplay.hpp"
 #include "CrimsonBetterArkham2.hpp"
+#include "CrimsonTrainingRoom.hpp"
 
 #include "Core/Macros.h"
 
@@ -108,6 +109,7 @@ void SetRoom() {
 
     Arcade::SetRoom();
     BossRush::SetRoom();
+    CrimsonTrainingRoom::SetRoom();
 }
 
 void SetNextRoom() {
@@ -118,7 +120,7 @@ void SetNextRoom() {
 
 void SetContinueRoom() {
     LogFunction();
-
+    CrimsonTrainingRoom::SetContinueRoom();
     BossRush::SetContinueRoom();
 }
 

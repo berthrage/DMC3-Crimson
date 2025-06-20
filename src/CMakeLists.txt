@@ -151,7 +151,9 @@ file(GLOB MAIN_SRC
     CrimsonSDL.cpp
     CrimsonSDL.hpp
     CrimsonTimers.cpp	
-    CrimsonTimers.hpp	
+    CrimsonTimers.hpp
+    CrimsonTrainingRoom.cpp
+    CrimsonTrainingRoom.hpp	
     DebugDrawDX11.cpp
     DebugDrawDX11.hpp
     DMC3Input.cpp

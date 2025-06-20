@@ -44,6 +44,7 @@
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonHUD.hpp"
 #include "CrimsonGameplay.hpp"
+#include "CrimsonTrainingRoom.hpp"
 #include "DebugDrawDX11.hpp"
 #define DEBUG_DRAW_EXPLICIT_CONTEXT
 #include "debug_draw.hpp"
@@ -1028,6 +1029,271 @@ void DrawRotatedImagePie(ImTextureID tex_id, ImVec2 pos, ImVec2 size, float angl
 		);
 	}
 }
+
+
+vec2 GetEnemyHitPoints(EnemyActorData& enemyActorData) {
+		
+		//abusing vec for fun and profit
+		vec2 enemyHP = { 0.0f,0.0f };
+		auto& enemyId = enemyActorData.enemy;
+		bool isHell = (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::HELL_VANGUARD);
+		bool isChess = (enemyId >= ENEMY::DAMNED_CHESSMEN_PAWN && enemyId <= ENEMY::DAMNED_CHESSMEN_KING);
+		bool isAgniAndRudra = (enemyId >= ENEMY::AGNI_RUDRA_ALL && enemyId <= ENEMY::AGNI_RUDRA_BLUE);
+
+		if (isHell) {
+			enemyHP.x = enemyActorData.hitPointsHells;
+			enemyHP.y = enemyActorData.maxHitPointsHells;
+		}
+		else if (enemyId == ENEMY::ARACHNE) {
+			enemyHP.x = enemyActorData.hitPointsArachne;
+			enemyHP.y = enemyActorData.maxHitPointsArachne;
+		}
+		else if (enemyId == ENEMY::THE_FALLEN) {
+			enemyHP.x = enemyActorData.hitPointsTheFallen;
+			enemyHP.y = enemyActorData.maxHitPointsTheFallen;
+		}
+		else if (enemyId == ENEMY::DULLAHAN) {
+			enemyHP.x = enemyActorData.hitPointsDullahan;
+			enemyHP.y = enemyActorData.maxHitPointsDullahan;
+		}
+		else if (enemyId == ENEMY::ENIGMA) {
+			enemyHP.x = enemyActorData.hitPointsEnigma;
+			enemyHP.y = enemyActorData.maxHitPointsEnigma;
+		}
+		else if (enemyId == ENEMY::BLOOD_GOYLE) {
+			enemyHP.x = enemyActorData.hitPointsBloodgoyle;
+			enemyHP.y = enemyActorData.maxHitPointsBloodgoyle;
+		}
+		else if (enemyId == ENEMY::SOUL_EATER) {
+			enemyHP.x = enemyActorData.hitPointsSoulEater;
+			enemyHP.y = enemyActorData.maxHitPointsSoulEater;
+		}
+		else if (isChess) {
+			enemyHP.x = enemyActorData.hitPointsChess;
+			enemyHP.y = enemyActorData.maxHitPointsChess;
+		}
+		else if (enemyId == ENEMY::GIGAPEDE) {
+			if (enemyActorData.gigapedePartAddr == 0) {
+				enemyHP.x = enemyActorData.hitPointsGigapede;
+				enemyHP.y = enemyActorData.maxHitPointsGigapede;
+			}
+			else {
+				auto& currentHitPointsGigapede = *reinterpret_cast<float*>(enemyActorData.gigapedePartAddr + 0x9BC0);
+				auto& maxHitPointsGigapede = *reinterpret_cast<float*>(enemyActorData.gigapedePartAddr + 0x95E4);
+				enemyHP.x = currentHitPointsGigapede;
+				enemyHP.y = maxHitPointsGigapede;
+			}
+		}
+		else if (enemyId == ENEMY::CERBERUS) {
+			auto& maxHitPointsCerberusRed = *reinterpret_cast<float*>(appBaseAddr + 0x5728F4); // 1650
+			auto& maxHitPointsCerberusPart1 = *reinterpret_cast<float*>(appBaseAddr + 0x5728F0); // 2400
+			auto& maxHitPointsCerberusGreen = *reinterpret_cast<float*>(appBaseAddr + 0x5728F8); // 1600
+			auto& maxHitPointsCerberusBlue = *reinterpret_cast<float*>(appBaseAddr + 0x5728FC); // 1550
+			float totalMaxHP = maxHitPointsCerberusRed + maxHitPointsCerberusPart1 + maxHitPointsCerberusRed + maxHitPointsCerberusRed; // 7200
+			enemyHP.x = enemyActorData.hitPointsCerberusTotal;
+			enemyHP.y = totalMaxHP;
+
+		}
+		else if (isAgniAndRudra) {
+			enemyHP.x = enemyActorData.hitPointsAgniRudra;
+			enemyHP.y = enemyActorData.maxHitPointsAgniRudra;
+		}
+		else if (enemyId == ENEMY::NEVAN) {
+			enemyHP.x = enemyActorData.hitPointsNevan;
+			enemyHP.y = enemyActorData.maxHitPointsNevan;
+
+		}
+		else if (enemyId == ENEMY::GERYON) {
+			// aiming at carriage
+			if (enemyActorData.hitPointsGeryonCarriage != 0) {
+				enemyHP.x = enemyActorData.hitPointsGeryonCarriage;
+				enemyHP.y = enemyActorData.maxHitPointsGeryonCarriage;
+			}
+			else {
+				enemyHP.x = enemyActorData.hitPointsGeryon;
+				enemyHP.y = enemyActorData.maxHitPointsGeryon;
+			}
+		}
+		else if (enemyId == ENEMY::BEOWULF) {
+			enemyHP.x = enemyActorData.hitPointsBeowulf;
+			enemyHP.y = enemyActorData.maxHitPointsBeowulf;
+		}
+		else if (enemyId == ENEMY::DOPPELGANGER) {
+			enemyHP.x = enemyActorData.hitPointsDoppelganger;
+			enemyHP.y = enemyActorData.maxHitPointsDoppelganger;
+		}
+		else if (enemyId == ENEMY::ARKHAM) {
+			enemyHP.x = enemyActorData.hitPointsArkham;
+			enemyHP.y = enemyActorData.maxHitPointsArkham;
+		}
+		else if (enemyId == ENEMY::ARKHAM_LEECHES) {
+			enemyHP.x = enemyActorData.hitPointsArkhamLeech;
+			enemyHP.y = enemyActorData.maxHitPointsArkhamLeech;
+		}
+		else if (enemyId == ENEMY::LADY) {
+			enemyHP.x = enemyActorData.hitPointsLady;
+			enemyHP.y = enemyActorData.maxHitPointsLady;
+		}
+		else if (enemyId == ENEMY::VERGIL) {
+			enemyHP.x = enemyActorData.hitPointsVergil;
+			enemyHP.y = enemyActorData.maxHitPointsVergil;
+		}
+		else if (enemyId == ENEMY::JESTER) {
+			enemyHP.x = enemyActorData.hitPointsJester;
+			enemyHP.y = enemyActorData.maxHitPointsJester;
+		}
+		else if (enemyId == ENEMY::LEVIATHAN_HEART) {
+			enemyHP.x = enemyActorData.hitPointsLeviathan;
+			enemyHP.y = enemyActorData.maxHitPointsLeviathan;
+
+		}
+		else {
+			enemyHP.x = -1.0f;
+			enemyHP.y = -1.0f;
+		}
+	return enemyHP;
+}
+
+
+/// <summary>
+/// Shows HP of enemies in room. Now void only!
+/// </summary>
+void EnemyHPWindow() {
+
+	auto name_7058 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_7058) {
+		return;
+	}
+	auto& missionData = *reinterpret_cast<MissionData*>(name_7058);
+	if (!(InGame() && !g_inGameCutscene)) {
+		return;
+	}
+
+	if (!CrimsonTrainingRoom::isInTrainingRoom())
+		return;
+
+
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	// This element is mandatory for non-vanilla modes
+	if (activeCrimsonGameplay.GameMode.preset >= GAMEMODEPRESETS::STYLE_SWITCHER) {
+		activeCrimsonConfig.CrimsonHudAddons.redOrbCounter = true;
+		queuedCrimsonConfig.CrimsonHudAddons.redOrbCounter = true;
+	}
+
+	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.redOrbCounter) {
+		CrimsonDetours::RerouteRedOrbsCounterAlpha(false, crimsonHud.redOrbAlpha);
+		CrimsonPatches::SetRebOrbCounterDurationTillFadeOut(false, 90);
+		return;
+	}
+
+	// Set up Rerouting Alpha to our Red Orb Counter
+	//hudData.orbsCountAlpha = 0;
+	//CrimsonDetours::RerouteRedOrbsCounterAlpha(true, crimsonHud.redOrbAlpha);
+	//CrimsonPatches::SetRebOrbCounterDurationTillFadeOut(true, crimsonHud.redOrbAlphaDurationToAlpha);
+
+	// Get the current display size
+	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+	auto& playerData = GetPlayerData(0);
+	auto& characterData = GetCharacterData(0, playerData.characterIndex, ENTITY::MAIN);
+	auto& newActorData = GetNewActorData(0, playerData.characterIndex, ENTITY::MAIN);
+	CrimsonGameplay::GetLockedOnEnemyHitPoints(0);
+	float healthFraction = crimsonPlayer[0].lockedOnEnemyHP / crimsonPlayer[0].lockedOnEnemyMaxHP;
+
+	// Define the orb count and cap it at 999999
+	int maxEnemyHP = (std::min)(999999, (int)crimsonPlayer[0].lockedOnEnemyMaxHP);
+	int enemyHP = (std::min)(999999, (int)crimsonPlayer[0].lockedOnEnemyHP);
+	std::string enemyHPString = std::to_string(enemyHP);
+	std::string maxEnemyHPString = std::to_string(maxEnemyHP);
+
+	// Adjust the font size and the proportional texture size
+	float fontSize = 37.0f;
+
+	// previously 142x200 -> 43x61; now 178x250 -> 54x76 to make space for the glow.
+	float textureBaseSizeX = 54.0f;
+	float textureBaseSizeY = 76.0f;
+	float textureWidth = textureBaseSizeX * scaleFactorY;
+	float textureHeight = textureBaseSizeY * scaleFactorY;
+	float centerX = textureWidth / 2.0f;
+	float centerY = textureHeight / 2.0f;
+
+	// Define the window size and position
+	ImVec2 windowSize = ImVec2(900.0f * scaleFactorX, 900.0f * scaleFactorY);
+	float edgeOffsetX = 70.0f * scaleFactorY;
+	float edgeOffsetY = 300.0f * scaleFactorY;
+	ImVec2 windowPos = ImVec2(displaySize.x - windowSize.x - edgeOffsetX, edgeOffsetY);
+	//ImVec2 windowPos = ImVec2(displaySize.x - windowSize.x - 70.0f * scaleFactorX, 30.0f * scaleFactorY);
+
+	ImGui::SetNextWindowSize(windowSize);
+	ImGui::SetNextWindowPos(windowPos);
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	ImGui::Begin("HPWindow", nullptr, windowFlags);
+
+	// Set the color with alpha for the Red Orb texture
+	float alpha = crimsonHud.redOrbAlpha / 127.0f;
+	ImColor colorWithAlpha(1.0f, 1.0f, 1.0f, alpha);
+
+	// Adjust the text position
+	ImGui::SetWindowFontScale(scaleFactorY);
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSize]);
+	ImVec2 textSize = ImGui::CalcTextSize(enemyHPString.c_str(), nullptr, true);
+	ImVec2 textPos = ImVec2(windowSize.x - textSize.x - 74.0f * scaleFactorY, (windowSize.y - textSize.y) / 2);
+
+	// Correct the texture position by considering the window's screen position
+	ImVec2 texturePos = ImVec2(windowPos.x + textPos.x - textureWidth - 17.916f * scaleFactorY, windowPos.y + (windowSize.y - textureHeight) / 2);
+
+	static auto* redOrbGameMode = RedOrbCrimsonTexture;
+	
+	auto pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_2128 || !pool_2128[8]) return;
+	auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
+
+
+	for (auto enemy : enemyVectorData.metadata) {
+		if (!enemy.baseAddr) continue;
+		auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
+		if (!enemyData.baseAddr) continue;
+		auto gethp = GetEnemyHitPoints(enemyData);
+
+		int localMaxEnemyHP = (std::min)(999999, (int)gethp.y);
+		int localEnemyHP = (std::min)(999999, (int)gethp.x);
+		std::string localEnemyHPString = std::to_string(localEnemyHP);
+		std::string localMaxEnemyHPString = std::to_string(localMaxEnemyHP);
+		ImGui::Text("%s", localEnemyHPString.c_str());
+		ImGui::SameLine();
+		ImGui::Text("%s", localMaxEnemyHPString.c_str());
+
+
+	};
+
+	//ImGui::SetCursorPos(ImVec2(textPos.x, textPos.y));
+	//ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, alpha), "%s", enemyHPString.c_str());
+	//ImGui::GetWindowDrawList()->AddText(UI::g_ImGuiFont_RussoOne[fontSize], fontSize, textPos, ImColor(1.0f, 1.0f, 1.0f, 1.0f), enemyHPString.c_str());
+	//textPos = ImVec2(windowSize.x - textSize.x - 74.0f * scaleFactorY, (windowSize.y - textSize.y * 2) / 2);
+	//ImGui::GetWindowDrawList()->AddText(UI::g_ImGuiFont_RussoOne[fontSize], fontSize, textPos, ImColor(1.0f, 1.0f, 1.0f, 1.0f), maxEnemyHPString.c_str());
+	// Render the orb count text
+	//ImGui::SetCursorPos(ImVec2(textPos.x, textPos.y));
+	//ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, alpha), "%s", enemyHPString.c_str());
+	//textPos = ImVec2(windowSize.x - textSize.x - 74.0f * scaleFactorY, (windowSize.y - textSize.y*2) / 2);
+	//ImGui::SetCursorPos(ImVec2(textPos.x, textPos.y));
+	
+	//ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, alpha), "%s", maxEnemyHPString.c_str());
+
+	ImGui::PopFont();
+	ImGui::End();
+}
+
 
 void RedOrbCounterWindow() {
 	assert(RedOrbTexture);

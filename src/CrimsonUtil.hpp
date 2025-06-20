@@ -1,7 +1,11 @@
 #pragma once
 #include <inttypes.h>
+#include "Vars.hpp"
 #include "../ThirdParty/ImGui/imgui.h"
 namespace CrimsonUtil {
+
+void CopyCrimsonPlayerData(CrimsonPlayerData* sourceP, CrimsonPlayerData* destP);
+
 int GetPlayerIndexFromAddr(uintptr_t playerPtr);
 float sexy_clamp(const float val, const float minVal, const float maxVal);
 float smoothstep(float edge0, float edge1, float x);

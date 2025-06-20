@@ -15,6 +15,7 @@ static int  s_bossMultiplier {3};
 
 static bool s_ldkBosses {false};
 static bool s_ldkEnable {true};
+static bool s_disableSpawns{ false };
 
 static std::unique_ptr<Utility::Detour_t> s_cEmsetCtrlSpawnGuyHook;
 
@@ -94,6 +95,9 @@ static uintptr_t __fastcall cEnemySetCtrl_spawnGuy_sub_1401A4680(uintptr_t pthis
 	} else {
 		s_dudeMultiplier = 3;
 	}
+	
+	if (s_disableSpawns)
+		return NULL;
 
 	uintptr_t res = trampoline(pthis, a2);
 	if (!res || !s_ldkEnable) {
@@ -159,6 +163,7 @@ void LdkInitDetour() {
 }
 
 void LdkDrawImGuiWidget() {
+	ImGui::Checkbox("Disable Spawns", &s_disableSpawns);
 	ImGui::Checkbox("Enable LDK", &s_ldkEnable);
 	ImGui::Checkbox("Bosses LDK", &s_ldkBosses);
 	ImGui::InputInt("Enemy multiplier", &s_dudeMultiplier);

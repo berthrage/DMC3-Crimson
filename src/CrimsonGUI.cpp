@@ -4,6 +4,8 @@
 #include "CrimsonGUI.hpp"
 #include "Core/Core.hpp"
 #include "CrimsonGameplay.hpp"
+#include "CrimsonLDK.hpp"
+#include "CrimsonTrainingRoom.hpp"
 #include "Camera.hpp"
 #include <shellapi.h>
 #include "Core/GUI.hpp"
@@ -9696,6 +9698,8 @@ void TrainingSection() {
 			if (GUI_Checkbox2("Disable Timer", activeCrimsonGameplay.Cheats.Training.disableTimers, queuedCrimsonGameplay.Cheats.Training.disableTimers)) {
 				ToggleDisableTimer(activeCrimsonGameplay.Cheats.Training.disableTimers);
 			}
+			ImGui::TableNextColumn();
+			CrimsonTrainingRoom::DrawImGuiWidget();
 			
 			if (activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters) {
 				ImGui::TableNextColumn();
@@ -11224,6 +11228,7 @@ void ExtraDifficultyGameplayOptions() {
 		ImGui::TableNextColumn();
 
 		ImGui::PushItemWidth(itemWidth * 1.0f);
+		LdkDrawImGuiWidget();
 		UI::ComboMapValue2("Legendary Dark Knight",
 			ldkModeNames,
 			ldkModes,
@@ -14160,6 +14165,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	WorldSpaceWeaponWheels1PController(pSwapChain);
 	WorldSpaceWeaponWheelsController(pSwapChain);
  	CrimsonHUD::RedOrbCounterWindow();
+	CrimsonHUD::EnemyHPWindow();
 	CrimsonBetterArkham2::BlackoutArkham2OriginalScene();
  	CrimsonHUD::CheatsHUDIndicatorWindow();
  	CrimsonHUD::CheatHotkeysPopUpWindow();

@@ -22,6 +22,7 @@
 #include "CrimsonDetours.hpp"
 #include "CrimsonUtil.hpp"
 #include "CrimsonTimers.hpp"
+#include "CrimsonTrainingRoom.hpp"
 #include "CrimsonConfigGameplay.hpp"
 #include "CrimsonGameModes.hpp"
 #include "CrimsonConfigGameplayMask.hpp"
@@ -608,7 +609,8 @@ void CrimsonGameModes::TrackCheats() {
 				currentCheats.push_back(group);
 				std::sort(currentCheats.begin(), currentCheats.end());
 			}
-			if (initializedMission && itMission == missionUsedCheats.end()) {
+			//Adding this so that turning on cheats doesn't update missionusedcheats when in void
+			if (initializedMission && itMission == missionUsedCheats.end() && !CrimsonTrainingRoom::isInTrainingRoom()) {
 				missionUsedCheats.push_back(group);
 				std::sort(missionUsedCheats.begin(), missionUsedCheats.end());
 			}

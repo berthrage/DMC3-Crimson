@@ -8,6 +8,8 @@ namespace CrimsonHUD {
 
 void InitTextures(ID3D11Device* pd3dDevice);
 void RedOrbCounterWindow();
+void EnemyHPWindow();
+vec2 GetEnemyHitPoints(EnemyActorData& enemyActorData);
 void CheatsHUDIndicatorWindow();
 void CheatHotkeysPopUpWindow();
 void StyleMeterWindows();

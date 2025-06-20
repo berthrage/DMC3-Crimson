@@ -6,9 +6,27 @@
 #include "Vars.hpp"
 #include <cstdio>
 #include "Core/Macros.h"
+#include "CrimsonUtil.hpp"
 
 namespace CrimsonUtil {
-int GetPlayerIndexFromAddr(uintptr_t playerPtr) {
+
+    /// <summary>
+    /// Hey folks, Hitch here. I'm in a hurry and don't feel like implementing this fully!
+    /// So I'm not. It's just copying variables I care about for the moment. 
+    /// Things to implement:
+    /// Vergil stuff
+    /// the rest of the fields
+    /// </summary>
+    /// <param name="sourceP"></param>
+    /// <param name="destP"></param>
+    void CopyCrimsonPlayerData(CrimsonPlayerData* sourceP, CrimsonPlayerData* destP)
+    {
+        destP->hitPoints = sourceP->hitPoints;
+        destP->magicPoints = sourceP->magicPoints;
+        destP->style = sourceP->style;
+        destP->royalguardReleaseDamage = sourceP->royalguardReleaseDamage;
+    }
+    int GetPlayerIndexFromAddr(uintptr_t playerPtr) {
     int playerIndexFound = 10; // if none is found then it'll return 10.
 
     old_for_all(uint8, playerIndex, PLAYER_COUNT) {
