@@ -120,6 +120,7 @@ extern "C" {
 	// ChessKingAttackTarget
 	std::uint64_t g_ChessKingAttackTarget_ReturnAddr;
 	std::uint64_t g_ChessKingAttackTarget_CallAddr;
+	std::uint64_t g_ChessKingAttackTarget_JmpAddr;
 	void ChessKingAttackTargetDetour();
 	void* g_ChessKingAttackTargetCheckCall;
 	
@@ -344,6 +345,7 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	// ChessBishopRotationTarget
 	// dmc3.exe+EF871 - E8 9A 6F 1D 00           - call dmc3.exe+2C6810 { ChessBishopRotationTarget }
 	// EnemyPos in RDX
+	// Affects movement for every ChessPiece other than Pawns and Knights. Also affects Queen Attacks
 	static std::unique_ptr<Utility::Detour_t> ChessBishopRotationTargetHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xEF871, &ChessBishopRotationTargetDetour, 5);
 	g_ChessBishopRotationTarget_ReturnAddr = ChessBishopRotationTargetHook->GetReturnAddress();
@@ -425,15 +427,17 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	ChessRookAttackTargetHook3->Toggle(enable);
 
 	// ChessKingAttackTargetDetour
-	// dmc3.exe+F7293 - E8 D8F51C00           - call dmc3.exe+2C6870
-	// PlayerPos in RCX, EnemyPos in RDX
-	// This is not it. It has to be a call that when noping, the enemy actor still moves but doesn't attack.
+	// dmc3.exe+F6D89 - E8 F213FFFF           - call dmc3.exe+E8180
+	// EnemyPos in RCX
+	// dmc3.exe+E818F - E9 5C642400           - jmp dmc3.exe+32E5F0 < -- inside dmc3.exe+E8180
+	// Gotta load the PlayerPos into RDX
 	static std::unique_ptr<Utility::Detour_t> ChessKingAttackHook =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xF7293, &ChessKingAttackTargetDetour, 5);
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xF6D89, &ChessKingAttackTargetDetour, 5);
 	g_ChessKingAttackTarget_ReturnAddr = ChessKingAttackHook->GetReturnAddress();
 	g_ChessKingAttackTarget_CallAddr = (uintptr_t)appBaseAddr + 0x2C6870; 
+	g_ChessKingAttackTarget_JmpAddr = (uintptr_t)appBaseAddr + 0x32E5F0; 
 	g_ChessKingAttackTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
-	ChessKingAttackHook->Toggle(false);
+	ChessKingAttackHook->Toggle(enable);
 
 	// ArachneCirclingAroundDetour
 	// dmc3.exe+C5A40 - 0F 28 83 80 00 00 00      - movaps xmm0,[rbx+00000080] { Arachne Set Target Position for Circling Around }

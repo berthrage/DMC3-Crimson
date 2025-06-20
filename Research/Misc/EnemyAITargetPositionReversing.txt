@@ -38,16 +38,13 @@ dmc3.exe+EF871 - E8 9A6F1D00           - call dmc3.exe+2C6810 { ChessBishopRotat
 dmc3.exe+F3DB3 - E8 B82A1D00           - call dmc3.exe+2C6870 { ChessBishopAttack } // Actually just Vergil Judgement Cut
 dmc3.exe+F3423 - E8 18 DD FF FF           - call dmc3.exe+F1140 { ChessBishopAttack2Func }
 dmc3.exe+F5037 - E8 E4 C1 FF FF           - call dmc3.exe+F1220 { ChessRookAttack }
-
 dmc3.exe+F25B8 - E8 B3421D00           - call dmc3.exe+2C6870 { ChessPawnAttackTarget }
 dmc3.exe+F2C98 - E8 D33B1D00           - call dmc3.exe+2C6870 { ChessKnightAttackTarget }
+dmc3.exe+2C68C2 - E8 697D0600           - call dmc3.exe+32E630 { Beowulf Attack Distance Function}
+dmc3.exe+F6D89 - E9 2A9F10C0           - jmp 100200CB8 { ChessKingAttackTarget }
+dmc3.exe+F6E4A - E8 B1000000           - call dmc3.exe+F6F00 // king attack
 
-dmc3.exe+2C68C2 - E8 697D0600           - call dmc3.exe+32E630 { Beowulf Attack Distance Function
- }
-
-dmc3.exe+F7293 - E8 D8F51C00           - call dmc3.exe+2C6870
-
-
+               
 Cerberus:
 dmc3.exe+10E89E - F3 0F 10 87 80 00 00 00   - movss xmm0,[rdi+00000080] { Cerberus Set Position to Target - Red }
 dmc3.exe+116DD8 - F3 0F 10 89 80 00 00 00   - movss xmm1,[rcx+00000080] { Cerberus Ice Ball Target Position - Blue}

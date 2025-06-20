@@ -512,26 +512,26 @@ ChessRookAttackTargetDetour3 ENDP
 ; ChessKingAttackTargetDetour
 .DATA
 extern g_ChessKingAttackTargetCheckCall:QWORD
+extern g_ChessKingAttackTarget_JmpAddr:QWORD
 extern g_ChessKingAttackTarget_ReturnAddr:QWORD
 extern g_ChessKingAttackTarget_CallAddr:QWORD
 
 .CODE
 ChessKingAttackTargetDetour PROC
-    ; PlayerPosition in RCX 
-    ; EnemyPos in RDX
-    PushAllRegsExcept rcx
-    sub rdx, 20h ; Get the LockedOnEnemyAddr from RDX
-    mov rcx, rdx
+    ; EnemyPos in RCX
+    ; Gotta load PlayerPos into RDX
+    PushAllRegsExcept rdx
+    sub rcx, 20h ; Get the LockedOnEnemyAddr from RCX
     sub rsp, 8
     call qword ptr [g_ChessKingAttackTargetCheckCall]  
     add rsp, 8
     add rax, 80h
-    mov rcx, rax
+    mov rdx, rax
     jmp Jmpout
 
 Jmpout:
-    PopAllRegsExcept rcx
-    call [g_ChessKingAttackTarget_CallAddr]
+    PopAllRegsExcept rdx
+    call [g_ChessKingAttackTarget_JmpAddr]
     jmp qword ptr [g_ChessKingAttackTarget_ReturnAddr]
 
 OriginalCode:
