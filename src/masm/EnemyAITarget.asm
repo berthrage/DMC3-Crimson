@@ -540,6 +540,33 @@ OriginalCode:
 ChessKingAttackTargetDetour ENDP
 
 
+;SoulEaterGrabTargetDetour
+.DATA
+extern g_SoulEaterGrabTargetCheckCall:QWORD
+extern g_SoulEaterGrabTarget_ReturnAddr:QWORD
+
+.CODE
+SoulEaterGrabTargetDetour PROC
+    ; EnemyPos in RBX
+    PushAllXmmExcept xmm0
+    PushAllRegs
+    sub rbx, 20h ; Get the EnemyStruct from RBX
+    mov rcx, rbx
+    call qword ptr [g_SoulEaterGrabTargetCheckCall]  
+    movaps xmm0, [rax+80h]
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegs
+    PopAllXmmExcept xmm0
+    jmp qword ptr [g_SoulEaterGrabTarget_ReturnAddr]
+
+OriginalCode:
+    movaps xmm0,[rcx+80h]
+
+SoulEaterGrabTargetDetour ENDP
+
+
 ;ArachneCirclingAroundDetour
 .DATA
 extern g_ArachneCirclingAroundCheckCall:QWORD

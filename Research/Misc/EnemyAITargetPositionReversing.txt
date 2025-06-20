@@ -2,7 +2,7 @@ Standard Enemy Target Pos:
 dmc3.exe+616EB - 0F 28 82 80 00 00 00      - movaps xmm0,[rdx+00000080] { Standard Enemy Set Target Position }
 dmc3.exe+616F2 - 0F 29 41 40            - movaps [rcx+40],xmm0 { followup to standard target pos }
 
-Hells:
+Hells: // DONE
 Every single one uses +616EB only, including Hell Vanguard. // DONE
 
 Arachne: // DONE
@@ -32,7 +32,7 @@ Soul Eater:
 dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
 And some other one that is already nop'ed, not Bloodgoyle Dive
 
-All Chess-Pieces:
+All Chess-Pieces: // DONE
 dmc3.exe+E8142 - E8 C9E61D00           - call dmc3.exe+2C6810 { BloodgoyleRotationFunc } // For Pawn and Knight Movement
 dmc3.exe+EF871 - E8 9A6F1D00           - call dmc3.exe+2C6810 { ChessBishopRotationTarget } // All the other pieces' Movement
 dmc3.exe+F3DB3 - E8 B82A1D00           - call dmc3.exe+2C6870 { ChessBishopAttack } // Actually just Vergil Judgement Cut
@@ -90,7 +90,7 @@ Vergil:
 Uses +616EB // Done
 dmc3.exe+1871C5 - 0F 58 81 80 00 00 00      - addps xmm0,[rcx+0000mm0080] { Vergil Blink/Trick Target Position } // DONE
 dmc3.exe+1B269C - 0F 10 0F               - movups xmm1,[rdi] { Vergil Attack After Blocking }
-dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ? Also Judgement Cut }
+dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ? Also Judgement Cut } // DONE
 
 Lady:
 Uses +616EB // Done

@@ -123,6 +123,11 @@ extern "C" {
 	std::uint64_t g_ChessKingAttackTarget_JmpAddr;
 	void ChessKingAttackTargetDetour();
 	void* g_ChessKingAttackTargetCheckCall;
+
+	// SoulEaterGrabTargetDetour
+	std::uint64_t g_SoulEaterGrabTarget_ReturnAddr;
+	void SoulEaterGrabTargetDetour();
+	void* g_SoulEaterGrabTargetCheckCall;
 	
 	// ArachneCirclingAroundDetour
 	std::uint64_t g_ArachneCirclingAround_ReturnAddr;
@@ -313,7 +318,8 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	// BloodgoyleRotationTarget
 	// dmc3.exe+E8142 - E8 C9 E6 1D 00           - call dmc3.exe+2C6810 { BloodgoyleRotationFunc }
 	// PlayerPos in RCX, EnemyPos in RDX
-	// Also works for ChessPawn and ChessKnight
+	// Also works for ChessPawn and ChessKnight movement.
+	// Works for Soul Eater normal attacks.
 	static std::unique_ptr<Utility::Detour_t> BloodgoyleRotationTargetHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xE8142, &BloodgoyleRotationTargetDetour, 5);
 	g_BloodgoyleRotationTarget_ReturnAddr = BloodgoyleRotationTargetHook->GetReturnAddress();
@@ -438,6 +444,17 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	g_ChessKingAttackTarget_JmpAddr = (uintptr_t)appBaseAddr + 0x32E5F0; 
 	g_ChessKingAttackTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
 	ChessKingAttackHook->Toggle(enable);
+
+	// SoulEaterGrabTargetDetour
+	// dmc3.exe+E81CB - 0F 28 81 80 00 00 00      - movaps xmm0,[rcx+00000080] { SoulEaterGrabTargetDetour }
+	// EnemyPos in RBX, gotta load PlayerPos into xmm0
+	// Result: Soul Eaters do aim the grab on secondary players, but the Grab doesn't "latch"
+	static std::unique_ptr<Utility::Detour_t> SoulEaterGrabTargetHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xE81CB, &SoulEaterGrabTargetDetour, 7);
+	g_SoulEaterGrabTarget_ReturnAddr = SoulEaterGrabTargetHook->GetReturnAddress();
+	g_SoulEaterGrabTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	SoulEaterGrabTargetHook->Toggle(enable);
+
 
 	// ArachneCirclingAroundDetour
 	// dmc3.exe+C5A40 - 0F 28 83 80 00 00 00      - movaps xmm0,[rbx+00000080] { Arachne Set Target Position for Circling Around }
