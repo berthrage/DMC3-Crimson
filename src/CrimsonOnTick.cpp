@@ -386,7 +386,7 @@ void MultiplayerCameraPositioningController() {
 
 	int entityCount = 0; // Track valid entities for averaging
 	float playerWeight = 5.0f;  // Weight for playable characters
-	float enemyWeight = 1.0f;   // Weight for enemies
+	float enemyWeight = 5.0f;   // Weight for enemies
 	float totalWeight = 0.0f;
 	int alivePlayerCount = 0; // Track number of players still alive
 
