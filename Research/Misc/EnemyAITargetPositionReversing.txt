@@ -21,6 +21,30 @@ Enigma: // Done, but no effect
 dmc3.exe+2C6813 - 0F 10 01               - movups xmm0,[rcx] { Enigma Rotate to Target }
 dmc3.exe+1BB04C - 44 0F 28 89 80 00 00 00   - movaps xmm9,[rcx+00000080] { Enigma Set Target Position to Aim 1 } == addr in r12 + 0x28 to find pointer pointing to LockedOnEnemyAddr.
 
+dmc3.exe+D9277 - E8 94D51E00           - call dmc3.exe+2C6810 { EnigmaActualRotationTarget Call }
+
+
+dmc3.exe+1E988B - E8 7016FDFF           - call dmc3.exe+1BAF00
+
+dmc3.exe+1F9147 - E8 E4541300           - call dmc3.exe+32E630
+dmc3.exe+DA953 - E8 D83C2500           - call dmc3.exe+32E630
+
+dmc3.exe+1A2CA9 - 8B 85 80000000        - mov eax,[rbp+00000080] { EnigmaAimTarget }
+// EnemyStruct in RDI, get EnemyPtr in RDI+30h, then add 60h for LockedOnEnemyAddr
+
+dmc3.exe+1A2A93 - 0F28 80 80000000      - movaps xmm0,[rax+00000080] { EnigmaAimTarget }
+
+
+dmc3.exe+DC4EA - E8 21A71E00           - call dmc3.exe+2C6C10
+
+
+
+
+
+
+
+
+
 Bloodgoyle:
 dmc3.exe+E7EC2 - 44 0F 10 02            - movups xmm8,[rdx] { Bloodgoyle Dive Target Position} // DONE
 dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
@@ -30,6 +54,8 @@ dmc3.exe+E8142 - E8 C9E61D00           - call dmc3.exe+2C6810 { BloodgoyleRotati
 
 Soul Eater:
 dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
+dmc3.exe+E94DB - E8 90D31D00           - call dmc3.exe+2C6870
+
 And some other one that is already nop'ed, not Bloodgoyle Dive
 
 All Chess-Pieces: // DONE

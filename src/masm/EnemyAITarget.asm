@@ -567,6 +567,64 @@ OriginalCode:
 SoulEaterGrabTargetDetour ENDP
 
 
+; EnigmaActualRotationTargetDetour
+.DATA
+extern g_EnigmaActualRotationTargetCheckCall:QWORD
+extern g_EnigmaActualRotationTarget_ReturnAddr:QWORD
+extern g_EnigmaActualRotationTarget_CallAddr:QWORD
+
+.CODE
+EnigmaActualRotationTargetDetour PROC
+    ; PlayerPosition in RCX 
+    ; EnemyPos in RDX
+    PushAllRegsExcept rcx
+    sub rdx, 20h ; Get the LockedOnEnemyAddr from RDX
+    mov rcx, rdx
+    sub rsp, 8
+    call qword ptr [g_EnigmaActualRotationTargetCheckCall]  
+    add rsp, 8
+    add rax, 80h
+    mov rcx, rax
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegsExcept rcx
+    call [g_EnigmaActualRotationTarget_CallAddr]
+    jmp qword ptr [g_EnigmaActualRotationTarget_ReturnAddr]
+
+OriginalCode:
+    call [g_EnigmaActualRotationTarget_CallAddr]
+
+EnigmaActualRotationTargetDetour ENDP
+
+
+;EnigmaActualAimTargetDetour
+.DATA
+extern g_EnigmaActualAimTargetCheckCall:QWORD
+extern g_EnigmaActualAimTarget_ReturnAddr:QWORD
+
+.CODE
+EnigmaActualAimTargetDetour PROC
+    ; EnemyAddr in RCX+30h
+    PushAllRegsExcept rax
+    add rax, 60h ; Get the LockOnEnemyAddr from RCX
+    mov rcx, rax
+    sub rsp, 8
+    call qword ptr [g_EnigmaActualAimTargetCheckCall]  
+    add rsp, 8
+    movaps xmm0,[rax+80h]
+    jmp Jmpout
+
+Jmpout:
+    PopAllRegsExcept rax
+    jmp qword ptr [g_EnigmaActualAimTarget_ReturnAddr]
+
+OriginalCode:
+    movaps xmm0,[rax+80h]
+
+EnigmaActualAimTargetDetour ENDP
+
+
 ;ArachneCirclingAroundDetour
 .DATA
 extern g_ArachneCirclingAroundCheckCall:QWORD

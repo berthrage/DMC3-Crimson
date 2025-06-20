@@ -128,6 +128,17 @@ extern "C" {
 	std::uint64_t g_SoulEaterGrabTarget_ReturnAddr;
 	void SoulEaterGrabTargetDetour();
 	void* g_SoulEaterGrabTargetCheckCall;
+
+	// EnigmaActualRotationTarget
+	std::uint64_t g_EnigmaActualRotationTarget_ReturnAddr;
+	std::uint64_t g_EnigmaActualRotationTarget_CallAddr;
+	void EnigmaActualRotationTargetDetour();
+	void* g_EnigmaActualRotationTargetCheckCall;
+
+	// EnigmaActualAimTargetDetour
+	std::uint64_t g_EnigmaActualAimTarget_ReturnAddr;
+	void EnigmaActualAimTargetDetour();
+	void* g_EnigmaActualAimTargetCheckCall;
 	
 	// ArachneCirclingAroundDetour
 	std::uint64_t g_ArachneCirclingAround_ReturnAddr;
@@ -453,8 +464,36 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xE81CB, &SoulEaterGrabTargetDetour, 7);
 	g_SoulEaterGrabTarget_ReturnAddr = SoulEaterGrabTargetHook->GetReturnAddress();
 	g_SoulEaterGrabTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
-	SoulEaterGrabTargetHook->Toggle(enable);
+	SoulEaterGrabTargetHook->Toggle(false);
 
+	// EnigmaActualRotationTargetDetour
+	// dmc3.exe+D9277 - E8 94D51E00           - call dmc3.exe+2C6810 { EnigmaActualRotationTarget Call }
+	// PlayerPos in RCX, EnemyPos in RDX
+	static std::unique_ptr<Utility::Detour_t> EnigmaActualRotationTargetHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xD9277, &EnigmaActualRotationTargetDetour, 5);
+	g_EnigmaActualRotationTarget_ReturnAddr = EnigmaActualRotationTargetHook->GetReturnAddress();
+	g_EnigmaActualRotationTarget_CallAddr = (uintptr_t)appBaseAddr + 0x2C6810; // EnigmaActualRotationTarget
+	g_EnigmaActualRotationTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	EnigmaActualRotationTargetHook->Toggle(enable);
+
+	// EnigmaActualAimTargetDetour
+	// dmc3.exe+1A2A93 - 0F 28 80 80 00 00 00      - movaps xmm0,[rax+00000080] { EnigmaAimTarget }
+    // EnemyStruct in RCX, get EnemyPtr in RCX+28h, then add 60h for LockedOnEnemyAddr
+	static std::unique_ptr<Utility::Detour_t> EnigmaActualAimTargetHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1A2A93, &EnigmaActualAimTargetDetour, 7);
+	g_EnigmaActualAimTarget_ReturnAddr = EnigmaActualAimTargetHook->GetReturnAddress();
+	g_EnigmaActualAimTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+	EnigmaActualAimTargetHook->Toggle(false);
+
+
+	// EnigmaActualAimTargetDetour
+	// dmc3.exe+1A2CA9 - 8B 85 80 00 00 00        - mov eax,[rbp+00000080] { EnigmaAimTarget }
+	// EnemyStruct in RDI, get EnemyPtr in RDI+30h, then add 60h for LockedOnEnemyAddr
+// 	static std::unique_ptr<Utility::Detour_t> EnigmaActualAimTargetHook =
+// 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1A2CA9, &EnigmaActualAimTargetDetour, 6);
+// 	g_EnigmaActualAimTarget_ReturnAddr = EnigmaActualAimTargetHook->GetReturnAddress();
+// 	g_EnigmaActualAimTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
+// 	EnigmaActualAimTargetHook->Toggle(enable);
 
 	// ArachneCirclingAroundDetour
 	// dmc3.exe+C5A40 - 0F 28 83 80 00 00 00      - movaps xmm0,[rbx+00000080] { Arachne Set Target Position for Circling Around }
