@@ -103,7 +103,10 @@ void FixCrashVergilM3Detour();
 // FixCrashM5
 std::uint64_t g_FixCrashM5_ReturnAddr;
 std::uint64_t g_FixCrashM5_JmpAddr;
+std::uint64_t g_FixCrashM5_ReturnAddr2;
+std::uint64_t g_FixCrashM5_JmpAddr2;
 void FixCrashM5Detour();
+void FixCrashM5Detour2();
 
 // HoldToCrazyCombo
 std::uint64_t g_HoldToCrazyCombo_ReturnAddr;
@@ -1123,6 +1126,16 @@ void ToggleMission5CrashFix(bool enable) {
 	g_FixCrashM5_ReturnAddr = FixMission5CrashHook->GetReturnAddress();
 	g_FixCrashM5_JmpAddr = (uintptr_t)appBaseAddr + 0x5A436; // Jump to the next instruction after the detour
 	FixMission5CrashHook->Toggle(enable);
+	
+	// FixCrashM5Detour2
+	// dmc3.exe+5A42B - 8B 04 82              - mov eax,[rdx+rax*4]
+	// dmc3.exe+5A42E - 85 C0                 - test eax,eax
+	static std::unique_ptr<Utility::Detour_t> FixMission5CrashHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x5A42B, &FixCrashM5Detour2, 5);
+	g_FixCrashM5_ReturnAddr2 = FixMission5CrashHook2->GetReturnAddress();
+	g_FixCrashM5_JmpAddr2 = (uintptr_t)appBaseAddr + 0x5A436; 
+	FixMission5CrashHook2->Toggle(enable);
+
 	run = enable;
 }
 
