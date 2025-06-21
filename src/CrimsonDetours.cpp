@@ -108,6 +108,12 @@ std::uint64_t g_FixCrashM5_JmpAddr2;
 void FixCrashM5Detour();
 void FixCrashM5Detour2();
 
+//Cerb Damage fix
+std::uint64_t g_CerbDamageFix_ReturnAddr;
+std::uint64_t g_CerbDamageFix_JmpAddr;
+float g_cerbDamageValue;
+void CerbDamageFixDetour();
+
 // HoldToCrazyCombo
 std::uint64_t g_HoldToCrazyCombo_ReturnAddr;
 void HoldToCrazyComboDetour();
@@ -1136,6 +1142,26 @@ void ToggleMission5CrashFix(bool enable) {
 	g_FixCrashM5_JmpAddr2 = (uintptr_t)appBaseAddr + 0x5A436; 
 	FixMission5CrashHook2->Toggle(enable);
 
+	run = enable;
+}
+
+void ToggleCerbDamageFix(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	g_cerbDamageValue = 9999.0f;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	//Cerb damage fix detour
+	//dmc3.exe + 10B7DA: 0F 2F F0 - comiss xmm6, xmm0
+	//dmc3.exe + 10B7DD : 76 08 - jna dmc3.exe + 10B7E7
+	static std::unique_ptr<Utility::Detour_t> CerbDamageFixHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x10B7DA, &CerbDamageFixDetour, 5);
+	g_CerbDamageFix_ReturnAddr = CerbDamageFixHook->GetReturnAddress();
+	g_CerbDamageFix_JmpAddr = (uintptr_t)appBaseAddr + 0x10B7E7; // Jump to the next instruction after the detour
+	CerbDamageFixHook->Toggle(enable);
 	run = enable;
 }
 

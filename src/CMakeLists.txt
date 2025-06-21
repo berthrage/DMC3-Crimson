@@ -12,7 +12,9 @@ set(MASM_SRC
     masm/GuardBreakToNormalBlock.asm
     masm/FixBallsHangHitSpeed.asm
     masm/FixCrashCerberus.asm
+	masm/CerbDamageFix.asm
     masm/FixCrashM5.asm
+	
     masm/FixCrashVergilM3.asm
     masm/HideStyleRankHUD.asm
     masm/HudHPSeparation.asm

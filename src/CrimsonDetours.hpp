@@ -128,5 +128,6 @@ void ToggleFixBallsHangHitSpeed(bool enable);
 void ToggleCerberusCrashFix(bool enable);
 void ToggleVergilM3CrashFix(bool enable);
 void ToggleMission5CrashFix(bool enable);
+void ToggleCerbDamageFix(bool enable);
 
 }
