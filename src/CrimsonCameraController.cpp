@@ -10,9 +10,11 @@
 #include "CrimsonPatches.hpp"
 
 static std::unique_ptr<Utility::Detour_t> cameraControllerConstructionHook;
+static std::unique_ptr<Utility::Detour_t> cameraWallCheckHook;
 static std::unique_ptr<Utility::Detour_t> cameraSwitchAccessHook;
 static constexpr auto CTRL_PROC_OFFSET() { return 0x23EEF0; }
 static constexpr auto CAM_SWITCH_OFFSET() { return 0x055880; }
+static constexpr auto CAM_WALL_OFFSET() { return 0x2CD340; }
 
 static bool s_cameraEnable{ true };
 
@@ -409,6 +411,53 @@ static uintptr_t  __fastcall sub_14023EEF0(int64_t a1) {
 	return res;
 }
 
+CameraData* GetSafeCameraData() {
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449 || !pool_4449[147]) {
+		return nullptr;
+	}
+
+	auto cameraDataPtr = reinterpret_cast<CameraData*>(pool_4449[147]);
+
+	// Check for known invalid pointers
+	if (!cameraDataPtr || reinterpret_cast<uintptr_t>(cameraDataPtr) & 0xFFF0000000000000) {
+		return nullptr;
+	}
+
+	return cameraDataPtr;
+}
+
+static bool __fastcall sub_1402CD340(int64_t a1, float *a2, int64_t a3) {
+	typedef bool(__fastcall* sub_1402CD340)(int64_t,float*, int64_t);
+	uintptr_t trampoline_raw = cameraWallCheckHook->GetTrampoline();
+	sub_1402CD340 trampoline = (sub_1402CD340)trampoline_raw;
+
+	bool res = trampoline(a1,a2,a3);
+	static float accessed_floats[12] = { 0.0f,0.0f,0.0f,0.0f, 0.0f,0.0f, 0.0f,0.0f, 0.0f,0.0f, 0.0f,0.0f};
+	for (int i = 0;i < 12;i++) {
+		accessed_floats[i] = a2[i + 1];
+	}
+
+	//get the camera data
+	CameraData* cameraData = GetSafeCameraData();
+	if (!cameraData) {
+		return res;
+	}
+	//metadata if we need it
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449) return res;
+	auto& cameraControlMetadata = *reinterpret_cast<CameraControlMetadata*>(pool_4449);
+	//simple concept: drop distance the closer we get to the wall.
+	if (res) {
+		//cameraData->distance = cameraData->distance - 1.0f;
+	}
+	else {
+		//cameraData->distance = cameraData->distance + 1.0f;
+	};
+	return res;
+}
+
+
 /// <summary>
 /// Creates a hook I hope
 /// </summary>
@@ -421,6 +470,20 @@ void CameraCtrlInitDetour() {
 	bool res = cameraControllerConstructionHook->Toggle();
 	assert(res);
 }
+
+/// <summary>
+/// Camera wall distance updater
+/// </summary>
+void CameraWallCheckDetour() {
+	cameraWallCheckHook =
+		std::make_unique<Utility::Detour_t>(
+			(uintptr_t)appBaseAddr + CAM_WALL_OFFSET(),
+			(uintptr_t)&sub_1402CD340,
+			NULL, "camera_wall_detour");
+	bool res = cameraWallCheckHook->Toggle();
+	assert(res);
+}
+
 
 void CameraSwitchInitDetour() {
 	cameraSwitchAccessHook =

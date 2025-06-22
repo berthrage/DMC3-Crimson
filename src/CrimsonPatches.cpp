@@ -791,12 +791,11 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 			}
 		}
 	}
-
 	// Handle camera collision and distance adjustment
 	if (g_cameraHittingWall > 1) {
 		// Immediate approach when deeply colliding
 		cameraDistance -= 40.0f * g_frameRateMultiplier; // Approach faster if needed
-		if (cameraDistance < groundDistanceSP) cameraDistance = groundDistanceSP;
+		//if (cameraDistance < groundDistanceSP) cameraDistance = groundDistanceSP;
 		lastWallClearTime = std::chrono::steady_clock::now(); // Reset cooldown
 	} else if (g_cameraHittingWall == 1) {
 		// Only allow pull-back if cooldown has passed

@@ -521,6 +521,7 @@ void InitDetours() {
 	//dmc3.exe+1A4680 - 40 57 - push rdi
 	CameraCtrlInitDetour();
 	CameraSwitchInitDetour();
+	CameraWallCheckDetour();
 	LdkInitDetour();
 
 	// AddToMirageGauge
