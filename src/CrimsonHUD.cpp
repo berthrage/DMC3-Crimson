@@ -1111,7 +1111,7 @@ void RedOrbCounterWindow() {
 	ImVec2 textPos = ImVec2(windowSize.x - textSize.x - 74.0f * scaleFactorY, (windowSize.y - textSize.y) / 2);
 
 	// Correct the texture position by considering the window's screen position
-	ImVec2 texturePos = ImVec2(windowPos.x + textPos.x - textureWidth - 14.916f * scaleFactorY, windowPos.y + (windowSize.y - textureHeight) / 2);
+	ImVec2 texturePos = ImVec2(windowPos.x + textPos.x - textureWidth - 5.916f * scaleFactorY, windowPos.y + (windowSize.y - textureHeight) / 2);
 
 	static auto* redOrbGameMode = RedOrbCrimsonTexture;
 	switch (activeCrimsonGameplay.GameMode.preset) {
