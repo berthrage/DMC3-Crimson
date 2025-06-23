@@ -5326,7 +5326,13 @@ void HandleItemSale(uint8 itemHelperIndex, MissionData& missionData, ActiveMissi
 uint32 GetItemPrice(const ShopItemHelper& itemHelper, uint8 buyCount);
 
 void ShopWindow() {
+	static bool run = false;
+	static std::chrono::steady_clock::time_point shopOpenedTime;
+	static bool shopCooldownActive = false;
+
 	if (!g_showShop) {
+		run = false;
+		shopCooldownActive = false;
 		return;
 	}
 	auto& io = ImGui::GetIO();
@@ -5341,37 +5347,55 @@ void ShopWindow() {
 
 	bool unlockDevilTrigger = (activeMissionActorData.maxMagicPoints >= 3000);
 
-	static bool run = false;
 	if (!run) {
 		// TODO: Play Divine Statue Track - Mia
 		//PlayTrack("afs/sound/Jikushinzou.ogg");
 		run = true;
+		shopOpenedTime = std::chrono::steady_clock::now();
+		shopCooldownActive = true;
 	}
 
-	float width = 1000 * scaleFactorY; 
-	float height = 900 * scaleFactorY; 
+	// Check if cooldown has expired (0.2 seconds)
+	if (shopCooldownActive) {
+		auto now = std::chrono::steady_clock::now();
+		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - shopOpenedTime).count();
+		if (elapsed >= 200) {
+			shopCooldownActive = false;
+		}
+	}
+
+	float width = 1000 * scaleFactorY;
+	float height = 900 * scaleFactorY;
 
 	ImGui::SetNextWindowSize(ImVec2(width, height));
 	ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
 
 	if (io.NavInputs[ImGuiNavInput_Cancel] && (io.NavInputsDownDuration[ImGuiNavInput_Cancel] == 0.0f)) {
 		Log("controller back button");
-		if (!io.NavVisible) {
+		if (!io.NavVisible && !shopCooldownActive) {
 			CloseShop();
+			run = false;
+			shopCooldownActive = false;
 		}
-	};
+	}
 	//Replace this with a map option at some point. 
 	if (io.KeysDown[DI8::KEY::L] && (io.KeysDownDuration[DI8::KEY::L] == 0.0f)) {
 		Log("keyboard back button");
-		//if (!io.NavVisible) {
+		if (!shopCooldownActive) {
 			CloseShop();
-		//}
-	};
+			run = false;
+			shopCooldownActive = false;
+		}
+	}
 
 	if (ImGui::Begin("ShopWindow", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
 		ImGui::SetWindowFontScale(scaleFactorY);
 		if (GUI_Button("Close")) {
-			CloseShop();
+			if (!shopCooldownActive) {
+				CloseShop();
+				run = false;
+				shopCooldownActive = false;
+			}
 		}
 		ImGui::Text("");
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
@@ -5405,13 +5429,13 @@ void ShopWindow() {
 			(const char*)BACKGROUND_FADED_TEXT
 		);
 
-// 		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
-// 			auto& gamepad = GetGamepad(playerIndex);
-// 
-// 			if ((gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))) {
-// 				CloseShop();
-// 			}
-// 		}
+		// 		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
+		// 			auto& gamepad = GetGamepad(playerIndex);
+		// 
+		// 			if ((gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))) {
+		// 				CloseShop();
+		// 			}
+		// 		}
 
 		SelectPlayerLoadoutsWeaponsTab();
 
@@ -5453,6 +5477,7 @@ void ShopWindow() {
 		ImGui::End();
 	}
 }
+
 
 void ShowStyleLevelsTab(ExpConfig::ExpData& expData, MissionData& missionData) {
 // 	auto Buy = [&]() {
@@ -8144,7 +8169,6 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				return;
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
-			ImGui::Text("lastActionTimer 1 %g", crimsonPlayer[1].lastActionTime);
 			ImGui::Text("guardTimer %g", actorData.guardTimer);
 			ImGui::Text("skyLaunch Executing %u", crimsonPlayer[0].skyLaunch.executing);
 			ImGui::Text("inertia airguard %g", crimsonPlayer[0].inertia.airGuard.cachedPull);
