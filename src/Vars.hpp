@@ -5270,6 +5270,7 @@ struct CrimsonPlayerData {
     int currentAction = 0;
     int currentAnim   = 0;
     float actionTimer = 0;
+    float actionTimerNotEventChange = 0;
     float lastActionTime = 0;
     float animTimer   = 0;
     float eventTimer = 0;
@@ -5339,6 +5340,7 @@ struct CrimsonPlayerData {
     int currentActionClone = 0;
     int currentAnimClone   = 0;
     float actionTimerClone = 0;
+	float actionTimerNotEventChangeClone = 0;
     float lastActionTimeClone = 0;
     float animTimerClone   = 0;
     float eventTimerClone = 0;

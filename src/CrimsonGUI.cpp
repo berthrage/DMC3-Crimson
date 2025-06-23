@@ -10613,7 +10613,6 @@ void DanteGameplayOptions() {
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			// Second row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
@@ -10626,6 +10625,22 @@ void DanteGameplayOptions() {
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Sky Dance Part 3 is now a separate ability executed by Lock On + Forward + Style. Tweaks Sky Dance Gravity, taking weights into account.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable || 
+				!(activeCrimsonGameplay.Gameplay.Dante.skyDanceTweaks || activeCrimsonGameplay.Gameplay.Dante.airFlickerTweaks));
+			if (GUI_Checkbox2("Downertia from Flicker/SkyDance",
+				activeCrimsonGameplay.Gameplay.Dante.downertiaFromAirFlickerSkyDance,
+				queuedCrimsonGameplay.Gameplay.Dante.downertiaFromAirFlickerSkyDance)) {
+			}
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Makes the next move executed before 0.25 seconds of uptime on Air Flicker or Sky Dance have increased downwards inertia. \n"
+				"Requires Air Flicker / Sky Dance Tweaks");
+			GUI_PopDisable(!activeConfig.Actor.enable ||
+				!(activeCrimsonGameplay.Gameplay.Dante.skyDanceTweaks || activeCrimsonGameplay.Gameplay.Dante.airFlickerTweaks));
 
 			ImGui::TableNextColumn();
 
@@ -10654,7 +10669,6 @@ void DanteGameplayOptions() {
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			// Third row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
@@ -10692,7 +10706,6 @@ void DanteGameplayOptions() {
 			TooltipHelper("(?)", "Makes rainstorm last indefinitely in the air.");
 
 			// Fourth row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("E&I Foursome Time",
@@ -10730,7 +10743,6 @@ void DanteGameplayOptions() {
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			// Fifth row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
@@ -10771,7 +10783,6 @@ void DanteGameplayOptions() {
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			// Sixth row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
@@ -10814,7 +10825,6 @@ void DanteGameplayOptions() {
 			TooltipHelper("(?)", "Makes Air Hike available for all melee weapons.");
 
 			// Seventh row - Last weapon options
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);

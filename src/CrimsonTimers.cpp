@@ -41,12 +41,15 @@ void ActionTimers() {
             if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
             auto inAttack = (actorData.eventData[0].event == ACTOR_EVENT::ATTACK);
             auto& currentAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAction : crimsonPlayer[playerIndex].currentActionClone;
+			auto& lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
+			auto& actionTimerNotEventChange = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimerNotEventChange : crimsonPlayer[playerIndex].actionTimerNotEventChangeClone;
             auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
             auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
 
             if (inAttack) {
                 if (eventData.event != EVENT::PAUSE) {
                     actionTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+					actionTimerNotEventChange += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
                 }
             }
             else {
@@ -55,8 +58,10 @@ void ActionTimers() {
 
             // Reset Timer By Action
             if (actorData.action != currentAction) {
-                lastActionTime = actionTimer;
+                lastActionTime = actionTimerNotEventChange;
                 actionTimer = 0;
+				actionTimerNotEventChange = 0;
+                lastAction = currentAction;
                 currentAction = actorData.action;
             }
         }
