@@ -1251,51 +1251,51 @@ void LastEventStateQueue(byte8* actorBaseAddr) {
 }
 
 void FreeformSoftLockController(byte8* actorBaseAddr) {
-    using namespace ACTION_DANTE;
-    using namespace ACTION_VERGIL;
-    using namespace ACTOR_EVENT;
-    if (!actorBaseAddr) {
-        return;
-    }
-    auto& actorData  = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-    auto playerIndex = actorData.newPlayerIndex;
+	using namespace ACTION_DANTE;
+	using namespace ACTION_VERGIL;
+	using namespace ACTOR_EVENT;
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
 
-    auto lockOn          = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
-    auto& gamepad        = GetGamepad(playerIndex);
-    auto tiltDirection   = GetRelativeTiltDirection(actorData);
-    auto radius          = gamepad.leftStickRadius;
-    uint16 relativeTilt  = 0;
-    relativeTilt         = (actorData.cameraDirection + actorData.leftStickPosition);
-    uint16 rotationStick = (relativeTilt - 0x8000);
-    
+	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
+	auto& gamepad = GetGamepad(playerIndex);
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
+	auto radius = gamepad.leftStickRadius;
+	uint16 relativeTilt = 0;
+	relativeTilt = (actorData.cameraDirection + actorData.leftStickPosition);
+	uint16 rotationStick = (relativeTilt - 0x8000);
 
-    auto* i = &crimsonPlayer[playerIndex].inertia;
 
-    bool inAerialRave = (actorData.action == REBELLION_AERIAL_RAVE_PART_1 || actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
-                         actorData.action == REBELLION_AERIAL_RAVE_PART_3 || actorData.action == REBELLION_AERIAL_RAVE_PART_4);
+	auto* i = &crimsonPlayer[playerIndex].inertia;
 
-    bool inSkyDance = (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
-                       actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3);
+	bool inAerialRave = (actorData.action == REBELLION_AERIAL_RAVE_PART_1 || actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+		actorData.action == REBELLION_AERIAL_RAVE_PART_3 || actorData.action == REBELLION_AERIAL_RAVE_PART_4);
 
-    bool inAir     = (actorData.state & STATE::IN_AIR);
-    bool lastInAir = (actorData.lastState & STATE::IN_AIR);
-    static uint8 currentMovePlayer[PLAYER_COUNT] = { 0 };
-    static uint8 currentMoveClone[PLAYER_COUNT] = { 0 };
-    static uint8& currentMove = (actorData.newEntityIndex == 0) ? currentMovePlayer[playerIndex] : currentMoveClone[playerIndex];
+	bool inSkyDance = (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
+		actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3);
 
-    static uint16 cachedRotationPlayer[PLAYER_COUNT] = { 0 };
-    static uint16 cachedRotationClone[PLAYER_COUNT] = { 0 };
-    static uint16& cachedRotation = (actorData.newEntityIndex == 0) ? cachedRotationPlayer[playerIndex] : cachedRotationClone[playerIndex];
+	bool inAir = (actorData.state & STATE::IN_AIR);
+	bool lastInAir = (actorData.lastState & STATE::IN_AIR);
+	static uint8 currentMovePlayer[PLAYER_COUNT] = { 0 };
+	static uint8 currentMoveClone[PLAYER_COUNT] = { 0 };
+	static uint8& currentMove = (actorData.newEntityIndex == 0) ? currentMovePlayer[playerIndex] : currentMoveClone[playerIndex];
+
+	static uint16 cachedRotationPlayer[PLAYER_COUNT] = { 0 };
+	static uint16 cachedRotationClone[PLAYER_COUNT] = { 0 };
+	static uint16& cachedRotation = (actorData.newEntityIndex == 0) ? cachedRotationPlayer[playerIndex] : cachedRotationClone[playerIndex];
 
 	auto& actionTimer =
 		(actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].actionTimerClone : crimsonPlayer[playerIndex].actionTimer;
 
-    CrimsonDetours::ToggleFreeformSoftLockHelper(activeCrimsonGameplay.Gameplay.General.freeformSoftLock);
-    float bufferTime = (activeCrimsonGameplay.Gameplay.General.bufferlessReversals)? 0.3f : 0.02f;
+	CrimsonDetours::ToggleFreeformSoftLockHelper(activeCrimsonGameplay.Gameplay.General.freeformSoftLock);
+	float bufferTime = (activeCrimsonGameplay.Gameplay.General.bufferlessReversals) ? 0.3f : 0.02f;
 
-    if (!activeCrimsonGameplay.Gameplay.General.freeformSoftLock) {
-        return;
-    }
+	if (!activeCrimsonGameplay.Gameplay.General.freeformSoftLock) {
+		return;
+	}
 
 	auto GetAutoRotation = [&]() -> uint16 {
 		return (actorData.newEntityIndex == 0)
@@ -1317,7 +1317,7 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
 		else {
 			actorData.rotation = (stickRotation != static_cast<uint16>(-1)) ? stickRotation : GetAutoRotation();;
 		}
-	};
+		};
 
 	if (actorData.eventData[0].event == ACTOR_EVENT::ATTACK) {
 
@@ -1328,18 +1328,18 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
 				// Character-specific handling for multi-part moves
 				if (actorData.character == CHARACTER::DANTE) {
 
-                    if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == ROYALGUARD_RELEASE_1 || 
-                        actorData.action == ROYALGUARD_RELEASE_2 || actorData.action == ROYALGUARD_RELEASE_3 ||
-                        actorData.action == ROYALGUARD_RELEASE_4 || actorData.action == ROYALGUARD_AIR_RELEASE_1 ||
-                        actorData.action == ROYALGUARD_AIR_RELEASE_2 || actorData.action == ROYALGUARD_AIR_RELEASE_3 ||
-                        actorData.action == ROYALGUARD_AIR_RELEASE_4) return;
+					if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT || actorData.action == ROYALGUARD_RELEASE_1 ||
+						actorData.action == ROYALGUARD_RELEASE_2 || actorData.action == ROYALGUARD_RELEASE_3 ||
+						actorData.action == ROYALGUARD_RELEASE_4 || actorData.action == ROYALGUARD_AIR_RELEASE_1 ||
+						actorData.action == ROYALGUARD_AIR_RELEASE_2 || actorData.action == ROYALGUARD_AIR_RELEASE_3 ||
+						actorData.action == ROYALGUARD_AIR_RELEASE_4) return;
 
-                    HandleRotationForMultiPartMove({ REBELLION_HIGH_TIME, REBELLION_HIGH_TIME_LAUNCH }, stickRotation);
-				}
-				else if (actorData.character == CHARACTER::VERGIL) {
-                    HandleRotationForMultiPartMove({ YAMATO_FORCE_EDGE_HIGH_TIME, YAMATO_FORCE_EDGE_HIGH_TIME_LAUNCH }, stickRotation);
-				}
-				else {
+					HandleRotationForMultiPartMove({ ROYALGUARD_RELEASE_1, ROYALGUARD_RELEASE_2 }, stickRotation);
+					HandleRotationForMultiPartMove({ ROYALGUARD_AIR_RELEASE_1, ROYALGUARD_AIR_RELEASE_2 }, stickRotation);
+					HandleRotationForMultiPartMove({ REBELLION_HIGH_TIME, REBELLION_HIGH_TIME_LAUNCH }, stickRotation);
+				} else if (actorData.character == CHARACTER::VERGIL) {
+					HandleRotationForMultiPartMove({ YAMATO_FORCE_EDGE_HIGH_TIME, YAMATO_FORCE_EDGE_HIGH_TIME_LAUNCH }, stickRotation);
+				} else {
 					// Default handling for other characters
 					actorData.rotation = (stickRotation != static_cast<uint16>(-1)) ? stickRotation : GetAutoRotation();
 				}
@@ -1348,26 +1348,21 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
 			}
 
 			cachedRotation = actorData.rotation;  // Keep cached rotation updated
+		} else if (lockOn && actionTimer < 0.1f) {
+
+			// Exceptions
+            // Royal Release as Exception to AutoRotation towards enemy
+			if (actorData.character == CHARACTER::DANTE && (
+				actorData.action == ROYALGUARD_RELEASE_2 || actorData.action == ROYALGUARD_RELEASE_3 ||
+				actorData.action == ROYALGUARD_RELEASE_4 ||
+				actorData.action == ROYALGUARD_AIR_RELEASE_2 || actorData.action == ROYALGUARD_AIR_RELEASE_3 ||
+				actorData.action == ROYALGUARD_AIR_RELEASE_4)) return;
+
+			actorData.rotation = GetAutoRotation();
+
+			cachedRotation = actorData.rotation;  // Keep cached rotation updated
 		}
-        else if (lockOn && actionTimer < 0.1f) {
-                
-                // Exceptions
-//                 if (actorData.character == CHARACTER::DANTE) {
-//                     if (actorData.action == REBELLION_HIGH_TIME || actorData.action == REBELLION_HIGH_TIME_LAUNCH) return;
-//                 }
-//                 else if (actorData.character == CHARACTER::VERGIL) {
-//                     if (actorData.action == YAMATO_FORCE_EDGE_HIGH_TIME ||  actorData.action == YAMATO_FORCE_EDGE_HIGH_TIME_LAUNCH) return;
-//                 }
-//                 else {
-                    // Default handling
-            actorData.rotation = GetAutoRotation();
-
-//                }
-
-                cachedRotation = actorData.rotation;  // Keep cached rotation updated
-        }
-	}
-	else {
+	} else {
 		if (actorData.eventData[0].lastEvent == ACTOR_EVENT::ATTACK) {
 			currentMove = 0;  // Reset move tracking after the attack
 		}
