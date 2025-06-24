@@ -4,21 +4,33 @@ PushAllRegs MACRO
     push rax
     push rcx
     push rdx
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     push r8
     push r9
     push r10
     push r11
-    push rbx
-    push rdi
+    push r12
+    push r13
+    push r14
+    push r15
 ENDM
 
 PopAllRegs MACRO
-    pop rdi
-    pop rbx
+    pop r15
+    pop r14
+    pop r13
+    pop r12
     pop r11
     pop r10
     pop r9
     pop r8
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     pop rdx
     pop rcx
     pop rax
@@ -26,10 +38,8 @@ PopAllRegs MACRO
 ENDM
 
 PushAllRegsAndXmm MACRO
-    ; Shadow space for XMM
+    ; Save XMM registers first (assume rsp is 16-byte aligned here)
     sub     rsp, 100h            ; 16 * 16 bytes
-
-    ; Save XMM registers
     movdqu  [rsp+00h],   xmm0
     movdqu  [rsp+10h],   xmm1
     movdqu  [rsp+20h],   xmm2
@@ -47,18 +57,25 @@ PushAllRegsAndXmm MACRO
     movdqu  [rsp+0E0h],  xmm14
     movdqu  [rsp+0F0h],  xmm15
 
-    ; Save GP registers
+    ; Save GP registers (same as PushAllRegs)
     pushfq
     push rax
     push rcx
     push rdx
+    push rbx
+    push rbp
+    push rsi
+    push rdi
     push r8
     push r9
     push r10
     push r11
-    push rbx
-    push rdi
+    push r12
+    push r13
+    push r14
+    push r15
 ENDM
+
 
 PopAllRegsAndXmm MACRO
     ; Restore GP registers
@@ -68,6 +85,47 @@ PopAllRegsAndXmm MACRO
     pop r10
     pop r9
     pop r8
+    pop rdx
+    pop rcx
+    pop rax
+    popfq
+
+    ; Restore XMM registers
+    movdqu  xmm0,  [rsp+00h]
+    movdqu  xmm1,  [rsp+10h]
+    movdqu  xmm2,  [rsp+20h]
+    movdqu  xmm3,  [rsp+30h]
+    movdqu  xmm4,  [rsp+40h]
+    movdqu  xmm5,  [rsp+50h]
+    movdqu  xmm6,  [rsp+60h]
+    movdqu  xmm7,  [rsp+70h]
+    movdqu  xmm8,  [rsp+80h]
+    movdqu  xmm9,  [rsp+90h]
+    movdqu  xmm10, [rsp+0A0h]
+    movdqu  xmm11, [rsp+0B0h]
+    movdqu  xmm12, [rsp+0C0h]
+    movdqu  xmm13, [rsp+0D0h]
+    movdqu  xmm14, [rsp+0E0h]
+    movdqu  xmm15, [rsp+0F0h]
+
+    ; Clean up XMM temp stack space
+    add     rsp, 100h
+ENDM
+
+PopAllRegsAndXmm MACRO
+    ; Restore GP registers in reverse order (same as PopAllRegs)
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
     pop rdx
     pop rcx
     pop rax
@@ -285,6 +343,22 @@ PushAllRegsExcept MACRO skipReg:REQ
     ELSE
         push rdx
     ENDIF
+    IFIDNI <skipReg>, <rbx>
+    ELSE
+        push rbx
+    ENDIF
+    IFIDNI <skipReg>, <rbp>
+    ELSE
+        push rbp
+    ENDIF
+    IFIDNI <skipReg>, <rsi>
+    ELSE
+        push rsi
+    ENDIF
+    IFIDNI <skipReg>, <rdi>
+    ELSE
+        push rdi
+    ENDIF
     IFIDNI <skipReg>, <r8>
     ELSE
         push r8
@@ -301,24 +375,41 @@ PushAllRegsExcept MACRO skipReg:REQ
     ELSE
         push r11
     ENDIF
-    IFIDNI <skipReg>, <rbx>
+    IFIDNI <skipReg>, <r12>
     ELSE
-        push rbx
+        push r12
     ENDIF
-    IFIDNI <skipReg>, <rdi>
+    IFIDNI <skipReg>, <r13>
     ELSE
-        push rdi
+        push r13
+    ENDIF
+    IFIDNI <skipReg>, <r14>
+    ELSE
+        push r14
+    ENDIF
+    IFIDNI <skipReg>, <r15>
+    ELSE
+        push r15
     ENDIF
 ENDM
 
+
 PopAllRegsExcept MACRO skipReg:REQ
-    IFIDNI <skipReg>, <rdi>
+    IFIDNI <skipReg>, <r15>
     ELSE
-        pop rdi
+        pop r15
     ENDIF
-    IFIDNI <skipReg>, <rbx>
+    IFIDNI <skipReg>, <r14>
     ELSE
-        pop rbx
+        pop r14
+    ENDIF
+    IFIDNI <skipReg>, <r13>
+    ELSE
+        pop r13
+    ENDIF
+    IFIDNI <skipReg>, <r12>
+    ELSE
+        pop r12
     ENDIF
     IFIDNI <skipReg>, <r11>
     ELSE
@@ -336,6 +427,22 @@ PopAllRegsExcept MACRO skipReg:REQ
     ELSE
         pop r8
     ENDIF
+    IFIDNI <skipReg>, <rdi>
+    ELSE
+        pop rdi
+    ENDIF
+    IFIDNI <skipReg>, <rsi>
+    ELSE
+        pop rsi
+    ENDIF
+    IFIDNI <skipReg>, <rbp>
+    ELSE
+        pop rbp
+    ENDIF
+    IFIDNI <skipReg>, <rbx>
+    ELSE
+        pop rbx
+    ENDIF
     IFIDNI <skipReg>, <rdx>
     ELSE
         pop rdx
@@ -350,3 +457,4 @@ PopAllRegsExcept MACRO skipReg:REQ
     ENDIF
     popfq
 ENDM
+
