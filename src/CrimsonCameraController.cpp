@@ -180,7 +180,7 @@ namespace CrimsonCameraController {
 			
 			//MISSION 18:
 			//intro room has some cool cameras
-			|| (sessionData.mission == 18 && eventData.room == ROOM::UNSACRED_HELLGATE)
+			// || (sessionData.mission == 18 && eventData.room == ROOM::UNSACRED_HELLGATE) // Experimenting with taking this off, I like the freedom of looking around this area. - Berth
 			//feet (cam 0 only, bc we have to fight fallen in this room and we don't need to make that harder than it already is)
 			|| (sessionData.mission == 18 && eventData.room == ROOM::ROAD_TO_DESPAIR && CrimsonCameraController::g_currentCameraIndex == 0)
 			
@@ -197,7 +197,7 @@ namespace CrimsonCameraController {
 			//MISSION 20:
 			//It's literally the vergil fight
 			);
-		return false;
+		return exceptions;
 	}
 
 	/// <summary>
