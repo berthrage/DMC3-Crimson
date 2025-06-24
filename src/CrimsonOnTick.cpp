@@ -803,7 +803,13 @@ void FixInitialCameraRotation(EventData& eventData, PlayerActorData& mainActorDa
 			float angle = (mainActorData.rotation / 65535.0f) * TWO_PI;
 			angle += PI;
 
-			if (eventData.room != ROOM::HEAVENRISE_CHAMBER && eventData.room != ROOM::HIGH_FLY_ZONE) angle += PI;
+			if (eventData.room != ROOM::HEAVENRISE_CHAMBER && 
+				eventData.room != ROOM::HIGH_FLY_ZONE &&
+				eventData.room != ROOM::DANTES_OFFICE_FRONT &&
+				eventData.room != ROOM::DANTES_OFFICE_FRONT_2 &&
+				(eventData.room != ROOM::TORTURE_CHAMBER && eventData.position == 1) &&
+				(eventData.room != ROOM::DEVILSPROUT_LIFT && eventData.position == 4)
+				) angle += PI;
 
 			vec3 offset;
 			offset.x = -sinf(angle) * radius;
