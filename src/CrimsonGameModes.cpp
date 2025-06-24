@@ -217,7 +217,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	dante.aerialRaveTweaks = true;
 	dante.airFlickerTweaks = true;
 	dante.skyDanceTweaks = true;
-	//dante.downertiaFromAirFlickerSkyDance = true;
+	dante.downertiaFromAirFlickerSkyDance = true;
 	dante.shotgunAirShotTweaks = true;
 	dante.driveTweaks = true;
 	dante.disableAirSlashKnockback = true;
