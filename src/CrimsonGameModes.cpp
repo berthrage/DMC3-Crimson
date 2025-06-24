@@ -86,6 +86,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	dante.altNevanVortex = false;
 	dante.artemisRework = false;
 	dante.swapDancePierceInputs = false;
+	dante.swapArtemisMultiLockNormalShot = false;
 
 	// Vergil section
 	auto& vergil = preset.Gameplay.Vergil;
@@ -289,6 +290,7 @@ const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.holdToShoot = false;
 	mask.Gameplay.General.vanillaWeaponSwitchDelay = false;
+	mask.Gameplay.Dante.swapArtemisMultiLockNormalShot = false;
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
 	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
