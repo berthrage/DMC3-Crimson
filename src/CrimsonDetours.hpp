@@ -131,4 +131,5 @@ void ToggleMission5CrashFix(bool enable);
 void ToggleCerbDamageFix(bool enable);
 void ToggleArkhamPt2GrabCrashFix(bool enable);
 void ToggleArkhamPt2DoppelCrashFix(bool enable);
+void ToggleStyleLevellingCCSFix(bool enable);
 }

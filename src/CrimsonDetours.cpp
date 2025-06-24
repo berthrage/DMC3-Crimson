@@ -250,6 +250,14 @@ std::uint64_t g_ArtemisReworkJumpAddr2;
 void GreenOrbsMPRegenDetour();
 std::uint64_t g_GreenOrbsMPRegen_ReturnAddr;
 void* g_GreenOrbsMPRegen_Call;
+
+// StyleLevellingCCSFix
+void StyleLevellingCCSFixDetour1();
+std::uint64_t g_StyleLevellingCCSFix_ReturnAddr1;
+void* g_StyleLevellingCCSFix_CheckCall1;
+void StyleLevellingCCSFixDetour2();
+std::uint64_t g_StyleLevellingCCSFix_ReturnAddr2;
+void* g_StyleLevellingCCSFix_CheckCall2;
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -531,6 +539,32 @@ void RegenerateMultiplayerPlayersHP(std::uint64_t hpRegen64) {
 			actorData.hitPoints += (hpRegen);
 		}
 	}
+}
+
+void StyleLevel1Fix(uintptr_t playerAddr) {
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
+	auto& character = actorData.character;
+// 	ExpConfig& expData = (character == CHARACTER::DANTE) 
+// 		? ExpConfig::missionExpDataDante
+// 		: ExpConfig::missionExpDataVergil;
+	HeldStyleExpData& heldStyleExpData = (character == CHARACTER::DANTE)
+		? heldStyleExpDataDante
+		: heldStyleExpDataVergil;
+	//expData.styleLevels[helper.styleid] = helper.stylelevel;
+	heldStyleExpData.missionStyleLevels[actorData.style] = 1;
+}
+
+void StyleLevel2Fix(uintptr_t playerAddr) {
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
+	auto& character = actorData.character;
+	// 	ExpConfig& expData = (character == CHARACTER::DANTE) 
+	// 		? ExpConfig::missionExpDataDante
+	// 		: ExpConfig::missionExpDataVergil;
+	HeldStyleExpData& heldStyleExpData = (character == CHARACTER::DANTE)
+		? heldStyleExpDataDante
+		: heldStyleExpDataVergil;
+	//expData.styleLevels[helper.styleid] = helper.stylelevel;
+	heldStyleExpData.missionStyleLevels[actorData.style] = 2;
 }
 
 void InitDetours() {
@@ -1259,6 +1293,33 @@ void ToggleArkhamPt2DoppelCrashFix(bool enable) {
 	g_FixCrashArkhamPt2Doppel_ReturnAddr2 = FixCrashArkhamPt2DoppelHook2->GetReturnAddress();
 	g_FixCrashArkhamPt2Doppel_CallAddr2 = (uintptr_t)appBaseAddr + 0x3292A0; 
 	FixCrashArkhamPt2DoppelHook2->Toggle(true);
+
+	run = enable;
+}
+
+void ToggleStyleLevellingCCSFix(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// StyleLevellingCCSFixDetour1
+	// dmc3.exe+1FA3D9 - C7 83 58630000 01000000 - mov [rbx+00006358],00000001 { Level up StyleLevel to lvl 2 }
+	static std::unique_ptr<Utility::Detour_t> StyleLevellingCCSFixHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1FA3D9, &StyleLevellingCCSFixDetour1, 10);
+	g_StyleLevellingCCSFix_ReturnAddr1 = StyleLevellingCCSFixHook1->GetReturnAddress();
+	g_StyleLevellingCCSFix_CheckCall1 = &StyleLevel1Fix; 
+	StyleLevellingCCSFixHook1->Toggle(enable);
+
+	// StyleLevellingCCSFixDetour2
+	// dmc3.exe+1FA343 - C7 83 58630000 02000000 - mov [rbx+00006358],00000002 { Level up StyleLevel to lvl 3 }
+	static std::unique_ptr<Utility::Detour_t> StyleLevellingCCSFixHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1FA343, &StyleLevellingCCSFixDetour2, 10);
+	g_StyleLevellingCCSFix_ReturnAddr2 = StyleLevellingCCSFixHook2->GetReturnAddress();
+	g_StyleLevellingCCSFix_CheckCall2 = &StyleLevel2Fix; 
+	StyleLevellingCCSFixHook2->Toggle(enable);
 
 	run = enable;
 }

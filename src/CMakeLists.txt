@@ -14,9 +14,8 @@ set(MASM_SRC
     masm/FixCrashArkhamPt2Doppel.asm
     masm/FixCrashArkhamPt2Grab.asm
     masm/FixCrashCerberus.asm
-	masm/CerbDamageFix.asm
+    masm/CerbDamageFix.asm
     masm/FixCrashM5.asm
-	
     masm/FixCrashVergilM3.asm
     masm/HideStyleRankHUD.asm
     masm/HudHPSeparation.asm
@@ -29,6 +28,7 @@ set(MASM_SRC
     masm/EnemyAITarget.asm
     masm/SetAirTauntAsm.asm
     masm/SkyLaunchAirTaunt.asm
+    masm/StyleLevellingCCSFix.asm
     masm/RerouteRedOrbsCounterAlpha.asm
     masm/ToggleTakeDamage.asm
     masm/VergilTricksAsm.asm
