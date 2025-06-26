@@ -526,7 +526,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
         if (*canStart) {
 			styleVFXCount++;
 			styleChanged[*style] = true;
-            DevilFluxVFX(actorData, DEVIL_FLUX::START);
+            DevilFluxVFX_1F94D0(actorData, DEVIL_FLUX::START);
             *canStart = false;
             *canEnd = true;
         }
@@ -534,7 +534,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
 
 		if (*fluxtime < 0.08f && *canEnd) {
 			styleVFXCount--;
-			DevilFluxVFX(actorData, 4);
+			DevilFluxVFX_1F94D0(actorData, 4);
 			styleChanged[*style] = false;
 			*canEnd = false;
             *fluxtime = 0;
@@ -546,7 +546,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
     if (*fluxtime <= 0 && !*canStart) {
 		for (int i = 0; i < 6; i++) {
 			if (*fluxtime <= 0 && styleChanged[i] == true) {
-				DevilFluxVFX(actorData, 4);
+				DevilFluxVFX_1F94D0(actorData, 4);
                 // This guarantess FluxEffects color will be gone by the time the effect ends
 				styleChanged[i] = false;
 			}
@@ -567,7 +567,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
 		if (*fluxtime > 0) {
 
 			if (actorData.devil == 0 && !(gamepad.buttons[2] & GetBinding(BINDING::DEVIL_TRIGGER))) {
-				DevilFluxVFX(actorData, DEVIL_FLUX::GLOW_OFF);
+				DevilFluxVFX_1F94D0(actorData, DEVIL_FLUX::GLOW_OFF);
 			}
 
 		}
@@ -577,7 +577,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
 			if (*fluxtime < 0.05f) {
 
 				if (actorData.devil == 0 && !(gamepad.buttons[2] & GetBinding(BINDING::DEVIL_TRIGGER))) {
-					DevilFluxVFX(actorData, DEVIL_FLUX::GLOW_OFF);
+					DevilFluxVFX_1F94D0(actorData, DEVIL_FLUX::GLOW_OFF);
 				}
 
 			}
@@ -587,7 +587,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
 
 
 				if (actorData.devil == 0 && !(gamepad.buttons[2] & GetBinding(BINDING::DEVIL_TRIGGER))) {
-					DevilFluxVFX(actorData, DEVIL_FLUX::GLOW_OFF);
+					DevilFluxVFX_1F94D0(actorData, DEVIL_FLUX::GLOW_OFF);
 				}
 
 			}

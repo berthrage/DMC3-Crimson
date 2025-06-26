@@ -7950,6 +7950,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("SCENE:  %u", g_scene);
                 ImGui::Text("TRACK PLAYING: %s", g_gameTrackPlaying.c_str());
 				ImGui::Text("sessionData.expertise[1]: %x", sessionData.expertise[1]);
+
 // 				for (int i = 0; i < 8; i++) {
 // 					ImGui::Text("sessionData expertise[%u]:  %x", i, sessionData.expertise[i]);
 // 				}
@@ -7991,6 +7992,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				ImGui::Text("activePreset: %u", activeCrimsonGameplay.GameMode.preset);
 				ImGui::Text("queuedPreset: %u", queuedCrimsonGameplay.GameMode.preset);
                 ImGui::Text("Quicksilver Level: %u", sessionData.styleLevels[4]);
+
 
                 /*ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
                 ImGui::Text("Sky Launch Tracker Running:  %u", skyLaunchTrackerRunning);
@@ -8036,11 +8038,11 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                     return;
                 }
 
-                auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-                if (!pool_10298 || !pool_10298[8]) {
-                    return;
-                }
-                auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+				auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+				if (!pool_10298 || !pool_10298[8]) {
+					return;
+				}
+				auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 
                 auto pool_10329 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
                 if (!pool_10329 || !pool_10329[12]) {
@@ -8054,6 +8056,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 } else {
                     ImGui::Text(eventNames[eventData.event]);
                 }
+
+				ImGui::Text("subEvent:  %u", eventData.subevent);
 
                 ImGui::Text("");
 
@@ -14196,8 +14200,10 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
 	CrimsonOnTick::FixM7DevilTriggerUnlocking();
 	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
+	CrimsonPatches::ToggleM6CrashFix(true);
+	CrimsonOnTick::UpdateMainPlayerMotionArchives();
 	CrimsonOnTick::TrackMissionStyleLevels();
-	
+	CrimsonOnTick::StyleMeterMultiplayer();
 
 	if (activeConfig.Actor.enable) {
 		ExpConfig::TransferUnlocksToVanilla();

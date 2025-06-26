@@ -9,6 +9,7 @@ namespace CrimsonOnTick {
 	void CrimsonMissionClearSong();
 	void DivinityStatueSong();
 	void DisableBlendingEffectsController();
+	void UpdateMainPlayerMotionArchives();
 	void StyleMeterMultiplayer();
 	void DetermineActiveEntitiesCount();
 	void MultiplayerCameraPositioningController();

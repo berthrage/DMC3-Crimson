@@ -42,7 +42,7 @@
 // @Remove
 #define Break(name) MessageBoxA(0, name, 0, 0)
 
-bool lastEnable   = false;
+bool actorLastEnable   = false;
 bool updateConfig = false;
 
 #pragma region Enemy
@@ -1601,11 +1601,11 @@ template <typename T> void InitModel(T& actorData, uint32 modelIndex) {
 
     auto file = File_staticFiles[pl000][5]; // @Update
 
-    InitiateModelFunc(actorData.newBodyPartData[modelIndex][UPPER_BODY], file, UPPER_BODY, 0, actorData.motionArchives,
+    InitiateModelFunc_594B0(actorData.newBodyPartData[modelIndex][UPPER_BODY], file, UPPER_BODY, 0, actorData.motionArchives,
         &actorData.newModelData[modelIndex].funcAddrs, actorData.newModelPhysicsMetadataPool[modelIndex], &actorData.motionSpeed,
         &actorData.collisionData);
 
-    InitiateModelFunc(actorData.newBodyPartData[modelIndex][LOWER_BODY], file, LOWER_BODY, 0, actorData.motionArchives,
+    InitiateModelFunc_594B0(actorData.newBodyPartData[modelIndex][LOWER_BODY], file, LOWER_BODY, 0, actorData.motionArchives,
         &actorData.newModelData[modelIndex].funcAddrs, actorData.newModelPhysicsMetadataPool[modelIndex], &actorData.motionSpeed, 0);
 
     auto dest = func_8A520(actorData.newModelData[modelIndex]);
@@ -2331,7 +2331,7 @@ template <typename T> void UpdateForm(T& actorData) {
                     actorData.queuedModelIndex = 0;
                 }
 
-                HeadflipAnimation(actorData, true);
+                HeadflipAnimation_1F97F0(actorData, true);
             }
         } else if constexpr (TypeMatch<T, PlayerActorDataVergil>::value) {
             if (actorData.neroAngelo) {
@@ -2358,33 +2358,9 @@ template <typename T> void UpdateForm(T& actorData) {
                     actorData.queuedModelIndex = 0;
                 }
 
-                HeadflipAnimation(actorData, true);
+                HeadflipAnimation_1F97F0(actorData, true);
             }
         }
-    }
-}
-
-// @Update
-template <typename T> void UpdateMotionArchives(T& actorData) {
-    constexpr uint8 count = (TypeMatch<T, PlayerActorDataDante>::value)    ? static_cast<uint8>(countof(motionArchiveHelperDante))
-                            : (TypeMatch<T, PlayerActorDataBob>::value)    ? static_cast<uint8>(countof(motionArchiveHelperBob))
-                            : (TypeMatch<T, PlayerActorDataLady>::value)   ? static_cast<uint8>(countof(motionArchiveHelperLady))
-                            : (TypeMatch<T, PlayerActorDataVergil>::value) ? static_cast<uint8>(countof(motionArchiveHelperVergil))
-                                                                           : 0;
-
-    const MotionArchiveHelper* motionArchiveHelper = (TypeMatch<T, PlayerActorDataDante>::value)    ? motionArchiveHelperDante
-                                                     : (TypeMatch<T, PlayerActorDataBob>::value)    ? motionArchiveHelperBob
-                                                     : (TypeMatch<T, PlayerActorDataLady>::value)   ? motionArchiveHelperLady
-                                                     : (TypeMatch<T, PlayerActorDataVergil>::value) ? motionArchiveHelperVergil
-                                                                                                    : 0;
-
-    old_for_all(uint8, index, count) {
-        auto& group       = motionArchiveHelper[index].group;
-        auto& cacheFileId = motionArchiveHelper[index].cacheFileId;
-
-        auto& metadata = File_staticFiles[cacheFileId];
-
-        actorData.motionArchives[group] = File_dynamicFiles.Push(metadata.addr, metadata.size);
     }
 }
 
@@ -2556,7 +2532,7 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
     auto& activeMissionActorData = *reinterpret_cast<ActiveMissionActorData*>(name_3850 + 0x16C);
 
 
-    auto actorBaseAddr = CreatePlayerCharFunc(characterData.character, 0, false);
+    auto actorBaseAddr = CreatePlayerCharFunc_1DE820(characterData.character, 0, false);
     if (!actorBaseAddr) {
         return 0;
     }
@@ -2933,7 +2909,7 @@ void ActivateDevil(PlayerActorData& actorData, bool playSFX) {
     }
 
     if (!actorData.newIsClone) {
-        DevilFluxVFX(actorData, DEVIL_FLUX::START);
+        DevilFluxVFX_1F94D0(actorData, DEVIL_FLUX::START);
     }
 
     if (playSFX) {
@@ -2959,7 +2935,7 @@ void DeactivateDevil(PlayerActorData& actorData, bool playSFX = true) {
     }
     }
 
-    DevilFluxVFX(actorData, DEVIL_FLUX::END);
+    DevilFluxVFX_1F94D0(actorData, DEVIL_FLUX::END);
 
     if (playSFX) {
         CrimsonSDL::PlayDevilTriggerOut(actorData.newPlayerIndex);
@@ -3020,8 +2996,8 @@ void ActivateDoppelganger(PlayerActorData& actorData) {
     // ActivateDevil(cloneActorData);
     // cloneActorData.devil = 1;
 
-    HeadflipAnimation(actorData, 0);
-    ActivateDoppelgangerFX(actorData, 0);
+    HeadflipAnimation_1F97F0(actorData, 0);
+    ActivateDoppelgangerFX_1EAE60(actorData, 0);
     /*
     dmc3.exe+1E92D7 - 33 D2       - xor edx,edx
     dmc3.exe+1E92D9 - 48 8B CF    - mov rcx,rdi
@@ -3034,7 +3010,7 @@ void ActivateDoppelganger(PlayerActorData& actorData) {
         EndMotion(cloneActorData);
         cloneActorData.action = 4;
     }
-    HeadflipAnimation(cloneActorData, 0);
+    HeadflipAnimation_1F97F0(cloneActorData, 0);
     cloneActorData.dead = 0;
     ActivateDevil(cloneActorData, false);
 
@@ -3070,7 +3046,7 @@ void DeactivateDoppelganger(PlayerActorData& actorData) {
     }
     auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
 
-    ActivateDoppelgangerFX(actorData, 1);
+    ActivateDoppelgangerFX_1EAE60(actorData, 1);
     /*
     dmc3.exe+1E9339 - B2 01       - mov dl,01
     dmc3.exe+1E9351 - 48 8B CF    - mov rcx,rdi
@@ -3157,7 +3133,7 @@ struct StyleSwitchAnimationState {
 StyleSwitchAnimationState switchAnimState;
 
 void PlaySwitchAnimation(byte8* actorData, uint32 group, uint32 index) {
-	PlayAnimation(actorData, group, index, -1.0f, -1, 2, 13);
+	PlayAnimation_1EFB90(actorData, group, index, -1.0f, -1, 2, 13);
 	switchAnimState.isPlaying = true;
 	switchAnimState.startTime = std::chrono::steady_clock::now();
 	switchAnimState.actorData = actorData;
@@ -3172,7 +3148,7 @@ void UpdateStyleSwitchAnimations() {
 		).count();
 
 		if (elapsed >= 30) { // 50 ms has passed
-			PlayAnimation(switchAnimState.actorData, switchAnimState.group, switchAnimState.index, -1.0f, -1, 2, 0);
+			PlayAnimation_1EFB90(switchAnimState.actorData, switchAnimState.group, switchAnimState.index, -1.0f, -1, 2, 0);
 			switchAnimState.isPlaying = false; // Reset state
 		}
 	}
@@ -3578,7 +3554,7 @@ template <typename T> void LinearMeleeWeaponSwitchController(T& actorData) {
 
 
         if (HUD_UpdateWeaponIcon(HUD_BOTTOM::MELEE_WEAPON_1, GetMeleeWeapon(actorData))) {
-            ChangeGunHudAnim(hudBottom, 1, 0); // @Todo: Enums.
+            ChangeGunHudAnim_280120(hudBottom, 1, 0); // @Todo: Enums.
         }
     }();
 
@@ -3663,7 +3639,7 @@ template <typename T> void LinearRangedWeaponSwitchController(T& actorData) {
 
 
         if (HUD_UpdateWeaponIcon(HUD_BOTTOM::RANGED_WEAPON_1, GetRangedWeapon(actorData))) {
-            ChangeGunHudAnim(hudBottom, 0, 0); // @Todo: Enums.
+            ChangeGunHudAnim_280120(hudBottom, 0, 0); // @Todo: Enums.
         }
     }();
 
@@ -7635,7 +7611,7 @@ void PlayQuicksilverMotion(byte8* actorBaseAddr, uint32 archiveIndex, uint32 fil
     }
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
 
-    auto PlayMotion = [&]() { PlayAnimation(actorBaseAddr, archiveIndex, fileIndex, -1.0f, -1, 2, 5); };
+    auto PlayMotion = [&]() { PlayAnimation_1EFB90(actorBaseAddr, archiveIndex, fileIndex, -1.0f, -1, 2, 5); };
 
     if (actorData.character == CHARACTER::VERGIL) {
         auto& motionArchive    = actorData.motionArchives[3];
@@ -13300,7 +13276,7 @@ void EventCreateMainActor(byte8* actorBaseAddr) {
     g_defaultNewActorData[0].visibility = Visibility_Hide;
 
     // @Remove
-    File_dynamicFiles.Clear();
+    //File_dynamicFiles.Clear();
 }
 
 void EventCreateCloneActor(byte8* actorBaseAddr) {
@@ -13324,7 +13300,7 @@ void EventDelete() {
         // We only get here if updateConfig was set by SceneGame.
         // So if we're here, the actor module was off.
 
-        activeConfig.Actor.enable = lastEnable;
+        activeConfig.Actor.enable = actorLastEnable;
 
         Log("Config updated.");
 
@@ -13405,7 +13381,7 @@ void EventDelete() {
     ClearActorData();
 
     // @Remove
-    File_dynamicFiles.Clear();
+    //File_dynamicFiles.Clear();
 
     g_allActorsSpawned = false;
 }
@@ -13479,9 +13455,9 @@ void InGameCutsceneStart() {
 // }
 
 void EventMain() {
-    if (!activeConfig.Actor.enable) {
-        return;
-    }
+	if (!activeConfig.Actor.enable) {
+		return;
+	}
    
     LogFunction();
 
@@ -13679,10 +13655,10 @@ void SceneGame() {
     if (
         ((sessionData.mission == 19) && (nextEventData.room == 421) && (eventFlags[20] == 1)) ||
         ((sessionData.mission == 20) && (nextEventData.room == 12))) {
-        lastEnable                = activeConfig.Actor.enable;
+        actorLastEnable                = activeConfig.Actor.enable;
         updateConfig              = true;
         activeConfig.Actor.enable = false;
-    }
+    } 
 
     Actor::Toggle(activeConfig.Actor.enable);
     CrimsonDetours::ToggleHoldToCrazyCombo(activeConfig.Actor.enable && activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);

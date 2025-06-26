@@ -56,6 +56,7 @@ void AirTauntToggleController(byte8* actorBaseAddr);
 #pragma region Fixing
 
 void CerberusCrashFixPart2(bool enable);
+void ToggleM6CrashFix(bool enable);
 
 #pragma endregion
 

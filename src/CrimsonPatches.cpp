@@ -1460,6 +1460,24 @@ void CerberusCrashFixPart2(bool enable) {
 	run = enable;
 }
 
+void ToggleM6CrashFix(bool enable) {
+	// dmc3.exe+1B82DB - 83 7C C1 04 03        - cmp dword ptr [rcx+rax*8+04],03 { 3 }
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	if (enable) {
+		// dmc3.exe+1B82DB - 90 90 90 90 90        - nop
+		_nop((char*)(appBaseAddr + 0x1B82DB), 5);
+	} else {
+		// dmc3.exe+1B82DB - 83 7C C1 04 03        - cmp dword ptr [rcx+rax*8+04],03 { 3 }
+		_patch((char*)(appBaseAddr + 0x1B82DB), (char*)"\x83\x7C\xC1\x04\x03", 5);
+	}
+	run = enable;
+}
+
 #pragma endregion
 
 # pragma region Enemy

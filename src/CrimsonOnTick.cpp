@@ -66,7 +66,7 @@ void FrameResponsiveGameSpeed() {
 	if (activeConfig.framerateResponsiveGameSpeed) {
 		// Cutscene audio is so timing sensitive that we can't truly sync the FPS to the game speed while in them.
 		// This would be properly solved if we had some method of audio stretching. Maybe: SDL_SetAudioStreamFrequencyRatio?
-		const float adjustedSpeed = g_scene != SCENE::CUTSCENE ? gameSpeedBase * g_FrameRateTimeMultiplier : 
+		const float adjustedSpeed = g_scene != SCENE::CUTSCENE ? gameSpeedBase * g_FrameRateTimeMultiplier :
 			gameSpeedBase * g_FrameRateTimeMultiplierRounded;
 		if (g_scene == SCENE::CUTSCENE) Speed::Toggle(true);
 
@@ -75,7 +75,7 @@ void FrameResponsiveGameSpeed() {
 		queuedConfig.Speed.turbo = adjustedSpeed;
 		queuedConfig.Speed.mainSpeed = adjustedSpeed;
 
-		UpdateFrameRate(); 
+		UpdateFrameRate();
 
 		// === Throttled Speed::Toggle(true) ===
 		static double lastToggleTime = 0.0;
@@ -94,7 +94,7 @@ void FrameResponsiveGameSpeed() {
 		} else if (g_inGameCutscene && speedWasEnabled) {
 			speedWasEnabled = false;
 		}
-	} 
+	}
 }
 
 void GameTrackDetection() {
@@ -131,8 +131,7 @@ void PreparePlayersDataBeforeSpawn() {
 	if (g_scene == SCENE::GAME) {
 		//see if we can grab chracter1 for actor1
 		auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-		if (!pool_10222 || !pool_10222[3]) {}
-		else {
+		if (!pool_10222 || !pool_10222[3]) {} else {
 
 			if (!g_playerActorBaseAddrs[0]) {
 				return;
@@ -145,7 +144,7 @@ void PreparePlayersDataBeforeSpawn() {
 			//if the actor's one exceeds the default, we picked up a blorb.
 			//therefore, we update the default, along with active & queued mission data.
 			//Don't write to session, that'll save when it shouldn't.
-			if (actorData.maxHitPoints > vanillaActorData.maxHitPoints){
+			if (actorData.maxHitPoints > vanillaActorData.maxHitPoints) {
 				vanillaActorData.maxHitPoints = actorData.maxHitPoints;
 				//vanillaActorData.hitPoints = actorData.hitPoints;
 				//not sure if these ones are necessary. 
@@ -158,7 +157,7 @@ void PreparePlayersDataBeforeSpawn() {
 				}
 			}
 
-			
+
 			// HAYWIRE FIX FOR HORSE BOSS RESPAWNING
 			if (sessionData.mission == 12 && activeConfig.Actor.enable) {
 				if (!g_haywireNeoGenerator) {
@@ -173,10 +172,10 @@ void PreparePlayersDataBeforeSpawn() {
 				} else {
 					vanillaActorData.hitPoints = vanillaActorData.maxHitPoints;
 				}
-				
+
 				vanillaActorData.devil = false;
 				DeactivateDevilHaywire(vanillaActorData);
-			} 
+			}
 
 		}
 	}
@@ -214,17 +213,16 @@ void PreparePlayersDataBeforeSpawn() {
 }
 
 void CrimsonMissionClearSong() {
-	if (g_scene == SCENE::MISSION_RESULT && !missionClearSongPlayed 
-		&& (gameModeData.missionResultGameMode == GAMEMODEPRESETS::CRIMSON 
-		|| gameModeData.missionResultGameMode == GAMEMODEPRESETS::CUSTOM)) {
+	if (g_scene == SCENE::MISSION_RESULT && !missionClearSongPlayed
+		&& (gameModeData.missionResultGameMode == GAMEMODEPRESETS::CRIMSON
+			|| gameModeData.missionResultGameMode == GAMEMODEPRESETS::CUSTOM)) {
 		// Mute Music Channel Volume
 		SetVolume(9, 0);
 
 		// Play song
 		CrimsonSDL::PlayNewMissionClearSong();
 		missionClearSongPlayed = true;
-	}
-	else if (g_scene != SCENE::MISSION_RESULT && missionClearSongPlayed) {
+	} else if (g_scene != SCENE::MISSION_RESULT && missionClearSongPlayed) {
 		// Fade it out
 		CrimsonSDL::FadeOutMusic();
 
@@ -261,7 +259,7 @@ void DisableBlendingEffectsController() {
 	// Disables PS2 Motion Blur among other PostProcessFX.
 
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-	
+
 	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if (!pool_10371 || !pool_10371[8]) {
 		return;
@@ -270,19 +268,55 @@ void DisableBlendingEffectsController() {
 	if (g_scene != SCENE::GAME) {
 		return;
 	}
-	
+
 	if (activeConfig.disableBlendingEffects) {
 		if (eventData.event == EVENT::MAIN || eventData.event == EVENT::PAUSE) {
 			CrimsonPatches::DisableBlendingEffects(true);
-		}
-		else {
+		} else {
 			CrimsonPatches::DisableBlendingEffects(false);
 		}
 
-	}
-	else {
+	} else {
 		CrimsonPatches::DisableBlendingEffects(false);
 	}
+}
+
+void NewUpdateMotionArchives(PlayerActorData& actorData) {
+	CharacterData& charData = GetCharacterData(actorData.newPlayerIndex, actorData.newCharacterIndex, ENTITY::MAIN);
+	 uint8 count = (charData.character == CHARACTER::DANTE) ? static_cast<uint8>(countof(motionArchiveHelperDante))
+		: (charData.character == CHARACTER::BOB) ? static_cast<uint8>(countof(motionArchiveHelperBob))
+		: (charData.character == CHARACTER::LADY) ? static_cast<uint8>(countof(motionArchiveHelperLady))
+		: (charData.character == CHARACTER::VERGIL) ? static_cast<uint8>(countof(motionArchiveHelperVergil))
+		: 0;
+
+	const MotionArchiveHelper* motionArchiveHelper = (charData.character == CHARACTER::DANTE) ? motionArchiveHelperDante
+		: (charData.character == CHARACTER::BOB) ? motionArchiveHelperBob
+		: (charData.character == CHARACTER::LADY) ? motionArchiveHelperLady
+		: (charData.character == CHARACTER::VERGIL) ? motionArchiveHelperVergil
+		: 0;
+
+	// Update motion archives
+	old_for_all(uint8, index, count) {
+		auto& group = motionArchiveHelper[index].group;
+		auto& cacheFileId = motionArchiveHelper[index].cacheFileId;
+
+		auto& metadata = File_staticFiles[cacheFileId];
+
+		actorData.motionArchives[group] = File_staticFiles[cacheFileId];
+	}
+}
+
+void UpdateMainPlayerMotionArchives() {
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	if (activeConfig.Actor.enable) {
+		return;
+	}
+	// We apply this to only Vanilla Mode to fix
+	// the animation bug caused by the CrimsonPatches::M6CrashFix
+
+	NewUpdateMotionArchives(mainActorData);
 }
 
 void StyleMeterMultiplayer() {
