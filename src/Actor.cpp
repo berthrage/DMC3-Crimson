@@ -13652,7 +13652,7 @@ void SceneGame() {
 
     // This determines that the Actor System gets temporarily deactivated at certain points 
     // where it would crash the game otherwise (mission 19 Battle of Brothers, as an example). - Mia
-    if (
+    if (((sessionData.mission == 18) && (nextEventData.room == 403)) ||
         ((sessionData.mission == 19) && (nextEventData.room == 421) && (eventFlags[20] == 1)) ||
         ((sessionData.mission == 20) && (nextEventData.room == 12))) {
         actorLastEnable                = activeConfig.Actor.enable;
