@@ -181,9 +181,16 @@ BloodgoyleDiveTargetDetour PROC
     PushAllXmmExcept xmm8
     PushAllRegs
     add rdi, 60h ; Get the EnemyStruct from RDI
-    ;add rdi, 60h
     mov rcx, rdi
     ;mov rcx, [rcx+20h] ; cenemycom to cenemy
+    cmp dword ptr [rcx+18h], 32d ; Check if the enemy is bloodgoyle or soul eater
+    jne OriginalCode
+    je ApplyTargetPos
+    cmp dword ptr [rcx+18h], 34d
+    jne OriginalCode
+    je ApplyTargetPos
+    
+ApplyTargetPos:
     call qword ptr [g_BloodgoyleDiveTargetCheckCall]  
     movups xmm8, [rax+80h]
     jmp Jmpout
@@ -195,8 +202,11 @@ Jmpout:
     jmp qword ptr [g_BloodgoyleDiveTarget_ReturnAddr]
 
 OriginalCode:
+    PopAllRegs
+    PopAllXmmExcept xmm8
     movups xmm8, [rdx]
     subps xmm8, xmm0
+    jmp qword ptr [g_BloodgoyleDiveTarget_ReturnAddr]
 
 BloodgoyleDiveTargetDetour ENDP
 
