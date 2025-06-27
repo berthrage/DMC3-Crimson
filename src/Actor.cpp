@@ -13276,7 +13276,7 @@ void EventCreateMainActor(byte8* actorBaseAddr) {
     g_defaultNewActorData[0].visibility = Visibility_Hide;
 
     // @Remove
-    //File_dynamicFiles.Clear();
+    File_dynamicFiles.Clear();
 }
 
 void EventCreateCloneActor(byte8* actorBaseAddr) {
@@ -13381,7 +13381,7 @@ void EventDelete() {
     ClearActorData();
 
     // @Remove
-    //File_dynamicFiles.Clear();
+    File_dynamicFiles.Clear();
 
     g_allActorsSpawned = false;
 }
