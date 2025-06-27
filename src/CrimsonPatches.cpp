@@ -926,7 +926,7 @@ void CameraTiltController(CameraData* cameraData, CameraControlMetadata& cameraM
     }
 
     if (activeCrimsonConfig.Camera.tilt == 1) { // Closer to Ground
-        cameraData->tilt = 0.103073f;
+        cameraData->tilt = 0.253073f;
     }
 }
 
