@@ -180,6 +180,10 @@ BloodgoyleDiveTargetDetour PROC
     ; PlayerPos is in RDX
     PushAllXmmExcept xmm8
     PushAllRegs
+    test rdi, rdi
+    je OriginalCode ; If rdi is null, jump to original code
+    cmp rdi, 1
+    je OriginalCode
     add rdi, 60h ; Get the EnemyStruct from RDI
     mov rcx, rdi
     ;mov rcx, [rcx+20h] ; cenemycom to cenemy
