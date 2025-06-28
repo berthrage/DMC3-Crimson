@@ -56,19 +56,28 @@ namespace CrimsonCameraController {
 
 		bool exceptions = ((false
 
+			//MISSION 1:
+			
+			//MISSION 2:
 
 			//MISSION 3:
 			//|| (eventData.room == ROOM::SLUM_66_AVENUE)
-			//|| (eventData.room == ROOM::CHAMBER_OF_ECHOES
+			//CERBERUS
+			|| (eventData.room == ROOM::ICE_GUARDIANS_CHAMBER && sessionData.mission == 3)
 			//MISSION 4:
+			//|| (eventData.room == ROOM::CHAMBER_OF_ECHOES
 			//fun little angle when you enter this room for the first time
 			|| (eventData.room == ROOM::SILENCE_STATUARY && CrimsonCameraController::g_currentCameraIndex == 1)
-			//fucking gigapede
-			//that said boss cam overrides elsewhere unless we ALWAYS want this one to be fixed.
-			//|| (eventData.room == ROOM::GIANTWALKER_CHAMBER && sessionData.mission == 4)
+			//GIGAPEDE
+			|| (eventData.room == ROOM::GIANTWALKER_CHAMBER && sessionData.mission == 4)
 			|| (eventData.room == ROOM::INCANDESCENT_SPACE && CrimsonCameraController::g_currentCameraIndex == 1)
 			//MISSION 5:
+			//JESTER 1
+			|| (eventData.room == ROOM::DEMON_CLOWN_CHAMBER && sessionData.mission == 5)
+			//AGNI RUDRA
+			|| (eventData.room == ROOM::FIRESTORM_CHAMBER && sessionData.mission == 5)
 			//MISSION 6:
+			
 			//MISSION 7:
 			
 			//Elevator
@@ -80,6 +89,9 @@ namespace CrimsonCameraController {
 			//vergil approach
 			|| (sessionData.mission == 7 && eventData.room == ROOM::MOONLIGHT_MILE)
 			|| (sessionData.mission == 7 && eventData.room == ROOM::PEAK_OF_DARKNESS)
+			//VERGIL 1
+			|| (sessionData.mission == 7 && eventData.room == ROOM::PEAK_OF_DARKNESS_2)
+			
 			//MISSION 8:
 			//half covered up shop statue in leviathan, might prevent people missing it idk
 			|| (eventData.room == ROOM::LEVIATHANS_INTESTINES && CrimsonCameraController::g_currentCameraIndex == 2)
@@ -87,6 +99,9 @@ namespace CrimsonCameraController {
 			//pre-fight boss room.
 			//Camera goes back to third person after moving around a bit once the bossfight starts! Kinda jarring but maybe ok?
 			|| (eventData.room == ROOM::LEVIATHANS_HEARTCORE && CrimsonCameraController::g_currentCameraIndex == 0)
+			|| (eventData.room == ROOM::LEVIATHANS_HEARTCORE && CrimsonCameraController::g_currentCameraIndex == 1)
+			//LEVIATHAN HEARTCORE:
+			|| (eventData.room == ROOM::LEVIATHANS_HEARTCORE)
 			
 			//gigapede chase 1
 			|| (eventData.room == ROOM::LEVIATHANS_INTESTINES_2)
@@ -107,7 +122,8 @@ namespace CrimsonCameraController {
 			//added to make some platforming less goofy
 			|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 2)
 			
-			//nevan?
+			//NEVAN
+			|| (eventData.room == ROOM::SUNKEN_OPERA_HOUSE && sessionData.mission == 9)
 			// || evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUNKEN_OPERA_HOUSE, 9, 0)
 			//MISSION 10:
 			//this should only happen in position 2 on the other side of the cave where you collect the m10 mask
@@ -130,9 +146,16 @@ namespace CrimsonCameraController {
 			//Beowulf approach (but only for m11 because you need to leave in a hurry)
 			|| (sessionData.mission == 11 && eventData.room == ROOM::TEMPERANCE_WAGON_3 && CrimsonCameraController::g_currentCameraIndex == 0)
 			|| (sessionData.mission == 11 && eventData.room == ROOM::TEMPERANCE_WAGON_3 && CrimsonCameraController::g_currentCameraIndex == 2)
+			//BEOWULF:
+			|| (sessionData.mission == 12 && eventData.room == ROOM::TORTURE_CHAMBER)
 			//MISSION 12:
 			// 218 spiral corridor camera index 0
 			|| (eventData.room == ROOM::SPIRAL_CORRIDOR && CrimsonCameraController::g_currentCameraIndex == 0)
+
+			//JESTER 2 GOES HERE
+			|| (sessionData.mission == 12 && eventData.room == ROOM::DEMON_CLOWN_CHAMBER)
+			//GERYON
+			|| (sessionData.mission == 12 && eventData.room == ROOM::UNDERGROUND_ARENA)
 			//MISSION 13:
 			//230 spiral staircase camera index 0
 			|| (eventData.room == ROOM::SPIRAL_STAIRCASE && CrimsonCameraController::g_currentCameraIndex == 0)
@@ -141,6 +164,7 @@ namespace CrimsonCameraController {
 			|| (sessionData.mission == 13 && eventData.room == ROOM::VESTIBULE && CrimsonCameraController::g_currentCameraIndex == 0)
 			//hidden room
 			|| (sessionData.mission == 13 && eventData.room == ROOM::VESTIBULE && CrimsonCameraController::g_currentCameraIndex == 2)
+			|| (sessionData.mission == 13 && eventData.room == ROOM::LAIR_OF_JUDGEMENT && CrimsonCameraController::g_currentCameraIndex == 2)
 			//MISSION 14:
 			//back to the lake, we might want to indicate you can go behind the elevator so you can pick up spiral.
 			|| (eventData.room == ROOM::SUBTERRAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 0)
@@ -165,11 +189,14 @@ namespace CrimsonCameraController {
 			//elevator ride up
 			|| (sessionData.mission == 15 && eventData.room == ROOM::DEVILSPROUT_LIFT && CrimsonCameraController::g_currentCameraIndex == 2)
 			//MISSION 16:
-			//lmao I got nothin
+			//LADY
+			|| (sessionData.mission == 16 && eventData.room == ROOM::THE_DIVINE_LIBRARY)
 			//MISSION 17:
 			//cool view at start
 			|| (eventData.room == ROOM::THE_DARK_CORRIDOR_2 && CrimsonCameraController::g_currentCameraIndex == 2)
 			|| (eventData.room == ROOM::TRIAL_OF_SKILL_2 && CrimsonCameraController::g_currentCameraIndex == 1)
+			//JESTER 3
+			|| (sessionData.mission == 17 && eventData.room == ROOM::DEMON_CLOWN_CHAMBER_3)
 			//jump pad outside tower
 			|| (eventData.room == ROOM::PITCH_BLACK_VOID_2 && CrimsonCameraController::g_currentCameraIndex == 1)
 			//moonlight mile happens again
@@ -190,11 +217,22 @@ namespace CrimsonCameraController {
 			//anyway exception given to the boss rush room because the camera is like that.
 			|| (eventData.room == ROOM::LOST_SOULS_NIRVANA)
 			//I am gigapeding out
-			//|| (sessionData.mission == 18 && eventData.room == ROOM::GIANTWALKER_REBORN && CrimsonCameraController::g_currentCameraIndex == 0)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::GIANTWALKER_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::ICE_GUARDIAN_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::FIRESTORM_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::LIGHTNING_WITCH_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::LIGHTBEAST_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::TIMESTEED_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::FIRESTORM_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::DEATHVOID_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::EVIL_GOD_BEAST_REBORN)
 			//MISSION 19:
 			//approach to arkham
 			|| (eventData.room == ROOM::END_OF_THE_LINE)
+
+			|| (sessionData.mission == 19 && eventData.room == ROOM::FORBIDDEN_NIRVANA_2)
 			//MISSION 20:
+			|| (eventData.room == ROOM::UNSACRED_HELLGATE_2)
 			//It's literally the vergil fight
 			);
 		return exceptions;

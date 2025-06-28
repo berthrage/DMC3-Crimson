@@ -8063,7 +8063,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 
                 ImGui::Text("room         %u", eventData.room);
                 ImGui::Text("position     %u", eventData.position);
-                ImGui::Text("position     %u", eventData.event);
+                ImGui::Text("event	      %u", eventData.event);
                 ImGui::Text("nextRoom     %u", nextEventData.room);
                 ImGui::Text("nextPosition %u", nextEventData.position);
 				ImGui::Text("Camera Index %u", CrimsonCameraController::g_currentCameraIndex);
