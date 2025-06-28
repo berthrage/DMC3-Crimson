@@ -889,7 +889,7 @@ void FixInitialCameraRotation(EventData& eventData, PlayerActorData& mainActorDa
 			cameraData->data[0].x = mainActorData.position.x + offset.x;
 			cameraData->data[0].y = mainActorData.position.y + offset.y;
 			cameraData->data[0].z = mainActorData.position.z + offset.z;
-			mainActorData.position.x = mainActorData.position.x + 1;
+			mainActorData.position.x = mainActorData.position.x + 3;
 
 			setCamPos = true;
 		}
