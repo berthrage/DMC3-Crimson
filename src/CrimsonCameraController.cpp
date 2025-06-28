@@ -8,6 +8,7 @@
 #include "Vars.hpp"
 #include "CrimsonConfig.hpp"
 #include "CrimsonPatches.hpp"
+#include "Config.hpp"
 
 static std::unique_ptr<Utility::Detour_t> cameraControllerConstructionHook;
 static std::unique_ptr<Utility::Detour_t> cameraWallCheckHook;
@@ -235,7 +236,7 @@ namespace CrimsonCameraController {
 			|| (eventData.room == ROOM::UNSACRED_HELLGATE_2)
 			//It's literally the vergil fight
 			);
-		return exceptions;
+		return exceptions && activeConfig.Actor.playerCount <= 1;
 	}
 
 	/// <summary>
