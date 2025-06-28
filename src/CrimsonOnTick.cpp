@@ -819,7 +819,7 @@ void ForceThirdPersonCameraController() {
 			&& !(eventData.room == ROOM::PEAK_OF_DARKNESS_2 && sessionData.mission == 7)
 			&& !(eventData.room == ROOM::LEVIATHANS_HEARTCORE && sessionData.mission == 8)
 			&& !(eventData.room == ROOM::SUNKEN_OPERA_HOUSE && sessionData.mission == 9)
-			&& !(eventData.room == ROOM::TORTURE_CHAMBER && sessionData.mission == 11)
+			//&& !(eventData.room == ROOM::TORTURE_CHAMBER && sessionData.mission == 11)
 			&& !(eventData.room == ROOM::DEMON_CLOWN_CHAMBER_2 && sessionData.mission == 12)
 			&& !(eventData.room == ROOM::UNDERGROUND_ARENA && sessionData.mission == 12)
 			&& !(eventData.room == ROOM::LAIR_OF_JUDGEMENT && sessionData.mission == 13)
@@ -830,11 +830,11 @@ void ForceThirdPersonCameraController() {
 			&& !(eventData.room == ROOM::GIANTWALKER_REBORN && sessionData.mission == 18)
 			&& !(eventData.room == ROOM::FIRESTORM_REBORN && sessionData.mission == 18)
 			&& !(eventData.room == ROOM::LIGHTNING_WITCH_REBORN && sessionData.mission == 18)
-			&& !(eventData.room == ROOM::LIGHTBEAST_REBORN && sessionData.mission == 18)
+			//&& !(eventData.room == ROOM::LIGHTBEAST_REBORN && sessionData.mission == 18)
 			&& !(eventData.room == ROOM::TIMESTEED_REBORN && sessionData.mission == 18)
 			&& !(eventData.room == ROOM::DEATHVOID_REBORN && sessionData.mission == 18)
 			&& !(eventData.room == ROOM::EVIL_GOD_BEAST_REBORN && sessionData.mission == 18)
-			&& !(eventData.room == ROOM::FORBIDDEN_NIRVANA_2 && sessionData.mission == 19)
+			//&& !(eventData.room == ROOM::FORBIDDEN_NIRVANA_2 && sessionData.mission == 19)
 			&& !(eventData.room == ROOM::UNSACRED_HELLGATE_2 && sessionData.mission == 20)) { // Adding only Geryon Part 1 as an exception for now.
 			Camera::ToggleDisableBossCamera(true);
 		} else {
