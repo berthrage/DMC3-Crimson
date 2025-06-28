@@ -4827,11 +4827,11 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.fovMultiplier = 1.0f;
 			queuedCrimsonConfig.Camera.fovMultiplier = 1.0f;
 
-			activeCrimsonConfig.Camera.sensitivity = 0;
-			queuedCrimsonConfig.Camera.sensitivity = 0;
+			activeCrimsonConfig.Camera.sensitivity = 2;
+			queuedCrimsonConfig.Camera.sensitivity = 2;
 
-			activeCrimsonConfig.Camera.invertX = false;
-			queuedCrimsonConfig.Camera.invertX = false;
+			activeCrimsonConfig.Camera.invertX = true;
+			queuedCrimsonConfig.Camera.invertX = true;
 
 			activeCrimsonConfig.Camera.lockedOff = false;
 			queuedCrimsonConfig.Camera.lockedOff = false;
@@ -4862,7 +4862,7 @@ void CameraSection(size_t defaultFontSize) {
 
 		ImGui::SameLine();
 
-		if (GUI_Button("Vanilla Improved")) {
+		if (GUI_Button("Vanilla with Third Person")) {
 			activeCrimsonConfig.Camera.distance = 0;
 			queuedCrimsonConfig.Camera.distance = 0;
 
@@ -4872,8 +4872,8 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.tilt = 0;
 			queuedCrimsonConfig.Camera.tilt = 0;
 
-			activeCrimsonConfig.Camera.fovMultiplier = 1.2f;
-			queuedCrimsonConfig.Camera.fovMultiplier = 1.2f;
+			activeCrimsonConfig.Camera.fovMultiplier = 1.0f;
+			queuedCrimsonConfig.Camera.fovMultiplier = 1.0f;
 
 			activeCrimsonConfig.Camera.sensitivity = 2;
 			queuedCrimsonConfig.Camera.sensitivity = 2;
@@ -4893,10 +4893,10 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.autoAdjust = 0;
 			queuedCrimsonConfig.Camera.autoAdjust = 0;
 
-			if (activeConfig.Actor.playerCount <= 1) {
-				activeCrimsonConfig.Camera.forceThirdPerson = false;
-				queuedCrimsonConfig.Camera.forceThirdPerson = false;
-			}
+			
+			activeCrimsonConfig.Camera.forceThirdPerson = true;
+			queuedCrimsonConfig.Camera.forceThirdPerson = true;
+			
 
 			activeCrimsonConfig.Camera.panoramicCamera = false;
 			queuedCrimsonConfig.Camera.panoramicCamera = false;

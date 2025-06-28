@@ -850,14 +850,22 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 
 void CameraDistanceController(CameraData* cameraData, CameraControlMetadata& cameraMetadata) {
 	if (activeCrimsonConfig.Camera.distance == 0 || cameraMetadata.fixedCameraAddr != 0) { // Far (Vanilla Default) // check if the camera is in a fixed pos mode
-		return; 
+		if (g_isMPCamActive && activeConfig.Actor.enable) {
+			HandleMultiplayerCameraDistance(cameraData->distance, 430, 580);
+		} else {
+			return;
+		}
 	}
 
 	if (activeCrimsonConfig.Camera.distance == 1) { // Closer
-		if (cameraData->distance > 350) {
+		if (g_isMPCamActive && activeConfig.Actor.enable) {
+			HandleMultiplayerCameraDistance(cameraData->distance, 430, 580);
+		} else if (cameraData->distance > 350) {
 			cameraData->distance = 350.0f;
+		} else {
+			return;
 		}
-
+		
 		if (activeCrimsonConfig.Camera.fovMultiplier != queuedCrimsonConfig.Camera.fovMultiplier) {
 			activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
 		}
