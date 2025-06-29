@@ -12,7 +12,7 @@ GreenOrbsMPRegenDetour PROC
     ; player in RDX
     PushAllXmm
     PushAllRegs
-
+    sub rsp, 28h ; Reserving shadow-space for the call
     movss dword ptr [float_temp], xmm0
    
     ; Load the float value from the stack into rcx (interpreting it as a uint64_t)
@@ -21,7 +21,7 @@ GreenOrbsMPRegenDetour PROC
 
     ; Call the C++ function to transfer HP Amount to All other players
     call qword ptr [g_GreenOrbsMPRegen_Call]
-
+    add rsp, 28h       
 
     jmp ContinueOriginalCode
 
