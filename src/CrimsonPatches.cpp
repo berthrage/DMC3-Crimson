@@ -929,11 +929,11 @@ void CameraLockOnDistanceController() {
 }
 
 void CameraTiltController(CameraData* cameraData, CameraControlMetadata& cameraMetadata) {
-    if (activeCrimsonConfig.Camera.tilt == 0 || cameraMetadata.fixedCameraAddr != 0) { // Original (Vanilla Default)
+    if (activeCrimsonConfig.Camera.verticalTilt == 0 || cameraMetadata.fixedCameraAddr != 0) { // Original (Vanilla Default)
 		cameraData->tilt = 0.253073f;
     }
 
-    if (activeCrimsonConfig.Camera.tilt == 1) { // Closer to Ground
+    if (activeCrimsonConfig.Camera.verticalTilt == 1) { // Closer to Ground
         cameraData->tilt = 0.103073f;
     }
 }

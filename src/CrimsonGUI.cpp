@@ -4723,7 +4723,7 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * 1.1f);
-			UI::Combo2("Vertical Tilt", cameraTiltNames, activeCrimsonConfig.Camera.tilt, queuedCrimsonConfig.Camera.tilt);
+			UI::Combo2("Vertical Tilt", cameraTiltNames, activeCrimsonConfig.Camera.verticalTilt, queuedCrimsonConfig.Camera.verticalTilt);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextRow(0, rowWidth);
@@ -4821,8 +4821,8 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.lockOnDistance = 0;
 			queuedCrimsonConfig.Camera.lockOnDistance = 0;
 
-			activeCrimsonConfig.Camera.tilt = 0;
-			queuedCrimsonConfig.Camera.tilt = 0;
+			activeCrimsonConfig.Camera.verticalTilt = 0;
+			queuedCrimsonConfig.Camera.verticalTilt = 0;
 
 			activeCrimsonConfig.Camera.fovMultiplier = 1.0f;
 			queuedCrimsonConfig.Camera.fovMultiplier = 1.0f;
@@ -4869,8 +4869,8 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.lockOnDistance = 0;
 			queuedCrimsonConfig.Camera.lockOnDistance = 0;
 
-			activeCrimsonConfig.Camera.tilt = 0;
-			queuedCrimsonConfig.Camera.tilt = 0;
+			activeCrimsonConfig.Camera.verticalTilt = 0;
+			queuedCrimsonConfig.Camera.verticalTilt = 0;
 
 			activeCrimsonConfig.Camera.fovMultiplier = 1.0f;
 			queuedCrimsonConfig.Camera.fovMultiplier = 1.0f;
@@ -4917,8 +4917,8 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.lockOnDistance = 2;
 			queuedCrimsonConfig.Camera.lockOnDistance = 2;
 
-			activeCrimsonConfig.Camera.tilt = 1;
-			queuedCrimsonConfig.Camera.tilt = 1;
+			activeCrimsonConfig.Camera.verticalTilt = 0;
+			queuedCrimsonConfig.Camera.verticalTilt = 0;
 
 			activeCrimsonConfig.Camera.fovMultiplier = 1.2f;
 			queuedCrimsonConfig.Camera.fovMultiplier = 1.2f;

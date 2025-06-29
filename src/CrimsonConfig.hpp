@@ -168,7 +168,7 @@ struct CrimsonConfig {
 		uint8 followUpSpeed = 2;
 		uint8 distance = 2;
 		uint8 lockOnDistance = 2;
-		uint8 tilt = 1;
+		uint8 verticalTilt = 0;
 		bool lockedOff = true;
 		bool invertX = true;
 		uint8 autoAdjust = 0;
@@ -185,7 +185,7 @@ struct CrimsonConfig {
                 std::make_pair("followUpSpeed", &Camera::followUpSpeed),
                 std::make_pair("distance", &Camera::distance),
                 std::make_pair("lockOnDistance", &Camera::lockOnDistance),
-                std::make_pair("tilt", &Camera::tilt),
+                std::make_pair("verticalTilt", &Camera::verticalTilt),
                 std::make_pair("lockedOff", &Camera::lockedOff),
                 std::make_pair("invertX", &Camera::invertX),
                 std::make_pair("autoAdjust", &Camera::autoAdjust),
