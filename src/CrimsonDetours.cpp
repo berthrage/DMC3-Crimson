@@ -111,7 +111,6 @@ void FixCrashM5Detour2();
 //Cerb Damage fix
 std::uint64_t g_CerbDamageFix_ReturnAddr;
 std::uint64_t g_CerbDamageFix_JmpAddr;
-float g_cerbDamageValue;
 void CerbDamageFixDetour();
 
 // FixCrashArkhamPt2Grab
@@ -1203,7 +1202,7 @@ void ToggleMission5CrashFix(bool enable) {
 void ToggleCerbDamageFix(bool enable) {
 	using namespace Utility;
 	static bool run = false;
-	g_cerbDamageValue = 9999.0f;
+	//g_cerbDamageValue = 9999.0f;
 	// If the function has already run in the current state, return early
 	if (run == enable) {
 		return;

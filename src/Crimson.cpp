@@ -298,7 +298,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonDetours::ToggleMission5CrashFix(true);
         CrimsonDetours::ToggleArkhamPt2GrabCrashFix(true);
         CrimsonDetours::ToggleArkhamPt2DoppelCrashFix(true);
-        CrimsonDetours::ToggleCerbDamageFix(false);
+        CrimsonDetours::ToggleCerbDamageFix(true);
         CrimsonDetours::ToggleStyleLevellingCCSFix(true);
 		CrimsonEnemyAITarget::EnemyAIMultiplayerTargettingDetours(true);
         

@@ -5139,6 +5139,9 @@ void CustomDamageSection() {
 			}
 
 
+			//I do not give a fuck.
+			if (g_cerbDamageValue != activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult)
+				g_cerbDamageValue = activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult;
 
 			GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.customDamage);
 			ImGui::EndTable();

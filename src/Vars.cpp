@@ -790,6 +790,7 @@ bool styleChanged[6] = {false, false, false, false, false, false};
 
 float g_FrameRate = 0;
 float g_FrameRateTimeMultiplier = 0;
+float g_cerbDamageValue = 1.0f;
 float g_FrameRateTimeMultiplierRounded = 0;
 bool g_inCombat = false;
 bool g_inBossfight = false;
