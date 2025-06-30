@@ -1,5 +1,6 @@
 #include "CrimsonLDK.hpp"
 #include "Utility/Detour.hpp"
+#include "Global.hpp"
 #include "../Core/Core.hpp"
 #include <memory>
 #include <array>
@@ -87,7 +88,7 @@ static uintptr_t __fastcall cEnemySetCtrl_spawnGuy_sub_1401A4680(uintptr_t pthis
 	uintptr_t trampoline_raw = s_cEmsetCtrlSpawnGuyHook->GetTrampoline();
 	spawGuyTrampoline trampoline = (spawGuyTrampoline)trampoline_raw;
 
-	s_ldkEnable = ldkModeConfig;
+	s_ldkEnable = ldkModeConfig && !(g_secretMission);
 
 	if (ldkModeConfig >= LDKMODE::SUPER_LDK) {
 		s_dudeMultiplier = 5;
