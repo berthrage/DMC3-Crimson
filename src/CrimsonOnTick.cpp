@@ -101,6 +101,40 @@ void GameTrackDetection() {
 	g_gameTrackPlaying = (std::string)reinterpret_cast<char*>(appBaseAddr + 0xD23906);
 }
 
+	if (!name_10723) {
+		return;
+	}
+	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
+
+	if (!InGame())
+		return;
+
+	auto pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_2128 || !pool_2128[8]) return;
+	auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
+
+	for (auto enemy : enemyVectorData.metadata) {
+		if (!enemy.baseAddr) continue;
+		auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
+		if (!enemyData.baseAddr) continue;
+
+		//Unlock weapons fix
+		if (enemyData.enemy == ENEMY::CERBERUS && enemyData.hitPointsCerberusTotal < -0.01f) {
+			missionData.itemCounts[ITEM::CERBERUS] = 1;
+		}
+		if (enemyData.enemy == ENEMY::AGNI_RUDRA && enemyData.hitPointsAgniRudra < -0.01f) {
+			missionData.itemCounts[ITEM::AGNI_RUDRA] = 1;
+		}
+		if (enemyData.enemy == ENEMY::NEVAN && enemyData.hitPointsNevan < -0.01f) {
+			missionData.itemCounts[ITEM::NEVAN] = 1;
+		}
+		if (enemyData.enemy == ENEMY::LADY && enemyData.hitPointsLady < -0.01f) {
+			missionData.itemCounts[ITEM::KALINA_ANN] = 1;
+		}	
+	};
+	return;
+}
+
 void InCreditsDetection() {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 	auto pool_19326 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);

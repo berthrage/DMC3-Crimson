@@ -199,6 +199,7 @@ void EventHandler(EventData& eventData) {
 
 	CrimsonGameplay::GunDTCharacterRemaps();
 	CrimsonOnTick::GameTrackDetection();
+    CrimsonOnTick::FixWeaponUnlocksDante();
 	CrimsonOnTick::DisableBlendingEffectsController();
 	CrimsonOnTick::DetermineActiveEntitiesCount();
  	CrimsonOnTick::MultiplayerCameraPositioningController();
