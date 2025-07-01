@@ -4857,10 +4857,18 @@ struct WeaponProgressionData {
 	uint8 gunsUnlockedQtt = 1;
     bool devilArmUnlocks[DEVILARMUNLOCKS::COUNT] = { false };
     bool gunUnlocks[GUNUNLOCKS::COUNT] = { false };
+	// These are the currently unlocked weapons
 	std::vector<std::string> meleeWeaponNames = { "Rebellion" };
 	std::vector<uint8> meleeWeaponIds = { WEAPON::REBELLION };
+	// "Natural" ids are the ids that are used by default when all weapons are unlocked
+    std::vector<uint8> meleeWeaponNaturalIds = { WEAPON::REBELLION, WEAPON::CERBERUS, 
+        WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE };
+    std::vector<uint8> meleeWeaponNaturalIdsVergil = { WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL,
+        WEAPON::YAMATO_FORCE_EDGE };
     std::vector<std::string> rangedWeaponNames = { "Ebony & Ivory" };
     std::vector<uint8> rangedWeaponIds = { WEAPON::EBONY_IVORY };
+    std::vector<uint8> rangedWeaponNaturalIds = { WEAPON::EBONY_IVORY, WEAPON::SHOTGUN, 
+		WEAPON::ARTEMIS, WEAPON::SPIRAL, WEAPON::KALINA_ANN };
 };
 
 extern WeaponProgressionData weaponProgression;

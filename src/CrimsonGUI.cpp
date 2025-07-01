@@ -2527,6 +2527,80 @@ void BackgroundSPMPText(const char* SPMPText) {
 
 }
 
+void CheckDanteUnlockedWeapons(CharacterData& queuedCharacterData, CharacterData& activeCharacterData, uint8 playerIndex, uint8 characterIndex) {
+	auto& lastMaxMeleeWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCount[playerIndex][characterIndex];
+	auto& lastMaxRangedWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxRangedWeaponCount[playerIndex][characterIndex];
+
+	if (queuedCharacterData.character == CHARACTER::DANTE) {
+		if (lastMaxMeleeWeaponCount > weaponProgression.rangedWeaponIds.size()) {
+			lastMaxMeleeWeaponCount = weaponProgression.rangedWeaponIds.size();
+			queuedCharacterData.meleeWeaponCount = lastMaxMeleeWeaponCount;
+			activeCharacterData.meleeWeaponCount = lastMaxMeleeWeaponCount;
+		}
+
+		if (lastMaxRangedWeaponCount > weaponProgression.rangedWeaponIds.size()) {
+			lastMaxRangedWeaponCount = weaponProgression.rangedWeaponIds.size();
+			queuedCharacterData.rangedWeaponCount = lastMaxRangedWeaponCount;
+			activeCharacterData.rangedWeaponCount = lastMaxRangedWeaponCount;
+		}
+
+		for (uint8 slotEquipped = 0; slotEquipped < 5; slotEquipped++) {
+			auto& weaponId = queuedCharacterData.meleeWeapons[slotEquipped];
+
+			// Check if weaponId exists in weaponProgression.meleeWeaponIds
+			bool found = false;
+			for (const auto& validId : weaponProgression.meleeWeaponIds) {
+				if (weaponId == validId) {
+					found = true;
+					break;
+				}
+			}
+
+			// If not found, replace with the natural ID for this slot
+			if (!found) {
+				weaponId = weaponProgression.meleeWeaponNaturalIds[slotEquipped];
+			}
+		}
+
+
+		for (uint8 slotEquipped = 0; slotEquipped < 5; slotEquipped++) {
+			auto& weaponId = queuedCharacterData.rangedWeapons[slotEquipped];
+			// Check if weaponId exists in weaponProgression.rangedWeaponIds
+			bool found = false;
+			for (const auto& validId : weaponProgression.rangedWeaponIds) {
+				if (weaponId == validId) {
+					found = true;
+					break;
+				}
+			}
+			// If not found, replace with the natural ID for this slot
+			if (!found) {
+				weaponId = weaponProgression.rangedWeaponNaturalIds[slotEquipped];
+			}
+		}
+	}
+	else if (queuedCharacterData.character == CHARACTER::VERGIL) {
+		for (uint8 slotEquipped = 0; slotEquipped < 5; slotEquipped++) {
+			auto& weaponId = queuedCharacterData.meleeWeapons[slotEquipped];
+
+			// Check if weaponId exists in weaponProgression.meleeWeaponNaturalIdsVergil
+			// since all Vergil's melee weapons are natural IDs aka unlocked already
+			bool found = false;
+			for (const auto& validId : weaponProgression.meleeWeaponNaturalIdsVergil) {
+				if (weaponId == validId) {
+					found = true;
+					break;
+				}
+			}
+
+			// If not found, replace with the natural ID for this slot
+			if (!found) {
+				weaponId = weaponProgression.meleeWeaponNaturalIds[slotEquipped];
+			}
+		}
+	}
+}
+
 void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex, size_t defaultFontSize) {
 	auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
 	auto& queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
@@ -2568,11 +2642,13 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 				if (UI::ComboMapValue("CHARACTER", crimsonCharacterNames, crimsonCharacterMap,
 					queuedCharacterData.character)) {
 					ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character, playerIndex, characterIndex);
-
+					
 					if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
 						queuedCharacterDataClone.character = queuedCharacterData.character;
 						ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
 					}
+
+					CheckDanteUnlockedWeapons(queuedCharacterData, activeCharacterData, playerIndex, characterIndex);
 
 					Actor_UpdateIndices();
 				}
@@ -2588,6 +2664,8 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 							ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
 						}
 
+						CheckDanteUnlockedWeapons(queuedCharacterData, activeCharacterData, playerIndex, characterIndex);
+
 						Actor_UpdateIndices();
 					}
 				} else {
@@ -2598,6 +2676,8 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 							queuedCharacterDataClone.character = queuedCharacterData.character;
 							ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
 						}
+
+						CheckDanteUnlockedWeapons(queuedCharacterData, activeCharacterData, playerIndex, characterIndex);
 
 						Actor_UpdateIndices();
 					}
@@ -7984,9 +8064,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 				for (int i = 0; i < weaponProgression.rangedWeaponIds.size(); i++) {
 // 					ImGui::Text("RangedWeaponId[%u]: %u", i, weaponProgression.rangedWeaponIds[i]);
 // 				}
-// 				for (int i = 0; i < weaponProgression.meleeWeaponIds.size(); i++) {
-// 					ImGui::Text("MeleeWeaponName[%u]: %s", i, weaponProgression.meleeWeaponNames[i]);
-// 				}
+ 				for (int i = 0; i < weaponProgression.meleeWeaponIds.size(); i++) {
+					ImGui::Text("MeleeWeaponName[%u]: %s", i, weaponProgression.meleeWeaponNames[i]);
+ 				}
 // 				for (size_t i = 0; i < queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeaponCount; i++) {
 // 					ImGui::Text("RangedWeaponQeued[%u]: %u", i, queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeapons[i]);
 // 				} 
