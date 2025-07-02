@@ -54,6 +54,7 @@ static constexpr std::array buggedEnemiesIds{
 	ENEMY::ARKHAM, // Blob       | CEm032 : CNonPlayer : CActor : CWork : IActor : ICollisionHandle : INonPlayer : CCom : ICom : CComAction : IComAction : IComActionState
 	ENEMY::CERBERUS, // Dog        | CEm025 : CNonPlayer : CActor : CWork : IActor : ICollisionHandle : INonPlayer : CCom : ICom : IComAction : IComActionState
 	ENEMY::LEVIATHAN_HEART,
+	ENEMY::DAMNED_CHESSMEN_PAWN,
 };
 
 static constexpr std::array undesirableEnemiesIds{
@@ -68,6 +69,8 @@ static constexpr std::array weirdEnemiesIds{
 	ENEMY::BLOOD_GOYLE, // Birds      | CEm014 : CNonPlayer : CActor : CWork : IActor : ICollisionHandle : INonPlayer : CCom : ICom : CComAction : IComAction : IComActionState
 	ENEMY::DAMNED_CHESSMEN_ROOK, // ChessPiece | CEm017 : CNonPlayer : CActor : CWork : IActor : ICollisionHandle : INonPlayer : CCom : ICom : CComAction : IComAction : IComActionState
 	ENEMY::DAMNED_CHESSMEN_KING, // ChessKing? | CEm021 : CEm017 : CNonPlayer : CActor : CWork : IActor : ICollisionHandle : INonPlayer : CCom : ICom : CComAction : IComAction : IComActionState
+	ENEMY::DAMNED_CHESSMEN_KNIGHT,
+	
 };
 
 static constexpr std::array bossEnemiesIds {
