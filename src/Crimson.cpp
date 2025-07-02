@@ -40,6 +40,7 @@
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonGameModes.hpp"
 
+#include "CrashHandler.hpp"
 
 
 uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
@@ -52,6 +53,13 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 #endif
 
         InitLog("logs", "Crimson.txt");
+
+        InstallCrashHandler(".\\logs\\crimson_crash.dmp");
+        if (!InitializeDbgHelp()) {
+            Log("Init_DbgHelp failed.");
+
+            return 0;
+        }
 
         Log("Session started.");
 
@@ -310,6 +318,10 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         // Remove FMODGetCodecDescription Label
         SetMemory((appBaseAddr + 0x5505B5), 0, 23, MemoryFlags_VirtualProtectDestination);
 
+    }
+
+    if (reason == DLL_PROCESS_DETACH) {
+        UninstallCrashHandler();
     }
 
     return 1;

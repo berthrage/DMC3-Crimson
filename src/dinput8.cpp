@@ -244,6 +244,7 @@ void Load() {
 
 byte32 DllMain(HINSTANCE instance, byte32 reason, void* reserved) {
     if (reason == DLL_PROCESS_ATTACH) {
+        MessageBoxA(NULL, "DEBUG", "DEBUG", MB_ICONINFORMATION);
         InitLog("logs", "dinput8.txt");
 
         Log("Session started.");

@@ -202,6 +202,8 @@ file(GLOB MAIN_SRC
     Window.hpp
     StyleSwitchFX.cpp
     StyleSwitchFX.hpp
+    CrashHandler.hpp
+    CrashHandler.cpp
 )
 
 file(GLOB CORE_SRC 
