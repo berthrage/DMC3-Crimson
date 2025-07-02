@@ -12,6 +12,8 @@
 #include <process.h>
 #include "Core/Core.hpp"
 
+#define USE_THREAD 1
+
 #pragma warning(push)
 #pragma warning(disable : 6011)
 inline void CrashMeDaddy() {
@@ -24,6 +26,8 @@ static char gCrashMemory[2 * 1024 * 1024] {0};
 static size_t crashMemoryOffset { 0 };
 
 char* gCrashFilePath = nullptr;
+static HANDLE gDumpEvent = nullptr;
+static HANDLE gDumpThread = nullptr;
 
 //static HANDLE gDumpEvent = nullptr;
 // not working in DLL_PROCESS_ATTACH :(
@@ -181,7 +185,7 @@ static void BuildCrashInfoText() {
 void ShowCrashHandlerMessage() {
     Log("ShowCrashHandlerMessage()\n");
 
-    const char* msg = "We're sorry, DMC3 Crimson has crashed.\n\nPress 'Ok' to open log folder\nSend crimson_crash.dmp and Crimson.txt files to the developers and describe what you were doing!";
+    const char* msg = "We're sorry, DMC3 Crimson has crashed.\n\nPress 'Ok' to open log folder\nSend crimson_crash.dmp and Crash.txt files to the developers and describe what you were doing!";
     UINT flags = MB_ICONERROR | MB_OK | MB_OKCANCEL | MB_SETFOREGROUND | MB_TOPMOST;
 
     int res = MessageBoxA(NULL, msg, MSGBOX_TITLE, flags);
@@ -233,8 +237,12 @@ static BOOL CALLBACK OpenMiniDumpCallback(void*, PMINIDUMP_CALLBACK_INPUT input,
     }
 }
 
-//static DWORD WINAPI CrashDumpThread(LPVOID param) {
+#if USE_THREAD
+static DWORD WINAPI CrashDumpThread(LPVOID param) {
+    WaitForSingleObject(gDumpEvent, INFINITE);
+#else
 static DWORD WINAPI CrashDumpProc() {
+#endif
     if (!gCrashed) {
         return 0;
     }
@@ -264,7 +272,7 @@ static DWORD WINAPI CrashDumpProc() {
 
     CloseHandle(hFile);
     // Log function cuts off symbolls if string exceeds 2048 chars... sigh
-    int length = ::strlen(gCrashMemory);
+    size_t length = ::strlen(gCrashMemory);
     for (int i = 0; i < length; i += 2048) {
         Log<false>(gCrashMemory + i);
     }
@@ -272,7 +280,7 @@ static DWORD WINAPI CrashDumpProc() {
 }
 
 static LONG WINAPI CrashDumpVectoredExceptionHandler(EXCEPTION_POINTERS* exceptionInfo) {
-#if 0
+#if 1
     if (exceptionInfo->ExceptionRecord->ExceptionCode != STATUS_HEAP_CORRUPTION) {
         return EXCEPTION_CONTINUE_SEARCH;
     }
@@ -293,7 +301,7 @@ static LONG WINAPI CrashDumpVectoredExceptionHandler(EXCEPTION_POINTERS* excepti
     gMei.ThreadId = GetCurrentThreadId();
     gMei.ExceptionPointers = exceptionInfo;
     // DOES NOT WORK IN DLL_PROCESS_ATTACH
-#if 0
+#if USE_THREAD
     // per msdn (which is backed by my experience), MiniDumpWriteDump() doesn't
     // write callstack for the calling thread correctly. We use msdn-recommended
     // work-around of spinning a thread to do the writing
@@ -327,7 +335,7 @@ static LONG WINAPI CrashDumpExceptionHandler(EXCEPTION_POINTERS* exceptionInfo) 
 
     gMei.ThreadId = GetCurrentThreadId();
     gMei.ExceptionPointers = exceptionInfo;
-#if 0
+#if USE_THREAD
     // per msdn (which is backed by my experience), MiniDumpWriteDump() doesn't
     // write callstack for the calling thread correctly. We use msdn-recommended
     // work-around of spinning a thread to do the writing
@@ -560,14 +568,13 @@ void InstallCrashHandler(const char* crashFilePath) {
     BuildSystemInfo();
 
     // DOES NOT WORK IN DLL_PROCESS_ATTACH!
-#if 0
+#if USE_THREAD
     gDumpEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
     if (!gDumpEvent) {
         Log("InstallCrashHandler: skipping because !gDumpEvent\n");
         return;
     }
-    //gDumpThread = CreateThread(nullptr, 0, CrashDumpThread, nullptr, 0, nullptr);
-    gDumpThread = (HANDLE)_beginthreadex(nullptr, 0, (_beginthreadex_proc_type)CrashDumpThread, nullptr, 0, nullptr);
+    gDumpThread = CreateThread(nullptr, 0, CrashDumpThread, nullptr, 0, nullptr);
     if (!gDumpThread) {
         Log("InstallCrashHandler: skipping because !gDumpThread\n");
         return;
@@ -582,11 +589,11 @@ void InstallCrashHandler(const char* crashFilePath) {
     // TODO: breaks starting in 17.3. Requires _HAS_EXCEPTION
     // but it is disabled by _HAS_CXX17 because P0003R5
     // https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0003r5.html
-    //::set_unexpected(onUnexpected);
+    ::set_unexpected(onUnexpected);
 }
 
 void UninstallCrashHandler() {
-#if 0
+#if USE_THREAD
     if (!gDumpEvent || !gDumpThread) {
         return;
     }
@@ -596,7 +603,7 @@ void UninstallCrashHandler() {
         SetUnhandledExceptionFilter(gPrevExceptionFilter);
     }
 
-#if 0
+#if USE_THREAD
     SetEvent(gDumpEvent);
     WaitForSingleObject(gDumpThread, 1000); // 1 sec
 

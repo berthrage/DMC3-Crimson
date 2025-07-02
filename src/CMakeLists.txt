@@ -202,8 +202,6 @@ file(GLOB MAIN_SRC
     Window.hpp
     StyleSwitchFX.cpp
     StyleSwitchFX.hpp
-    CrashHandler.hpp
-    CrashHandler.cpp
 )
 
 file(GLOB CORE_SRC 
@@ -279,7 +277,9 @@ OUTPUT_NAME Crimson)
 project(dinput8_injector)
 
 set(DI_SOURCE
-    dinput8.cpp  
+    dinput8.cpp
+    CrashHandler.hpp
+    CrashHandler.cpp
 )
 
 set(DI_CORE_SOURCE
