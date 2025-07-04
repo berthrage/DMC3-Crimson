@@ -14287,6 +14287,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonOnTick::UpdateMainPlayerMotionArchives();
 	CrimsonOnTick::TrackMissionStyleLevels();
 	CrimsonOnTick::StyleMeterMultiplayer();
+	CrimsonOnTick::PairVanillaWeaponSlots();
 
 	if (activeConfig.Actor.enable) {
 		ExpConfig::TransferUnlocksToVanilla();

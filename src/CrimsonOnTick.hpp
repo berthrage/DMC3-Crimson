@@ -7,6 +7,7 @@ namespace CrimsonOnTick {
 	void InCreditsDetection();
 	void PreparePlayersDataBeforeSpawn();
 	void FixWeaponUnlocksDante();
+	void PairVanillaWeaponSlots();
 	void CrimsonMissionClearSong();
 	void DivinityStatueSong();
 	void DisableBlendingEffectsController();

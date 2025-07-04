@@ -269,7 +269,26 @@ void FixWeaponUnlocksDante() {
 	}
 }
 
+void PairVanillaWeaponSlots() {
+	if (!activeConfig.Actor.enable) {
+		return;
+	}
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	 auto& activeCharacterData = GetActiveCharacterData(0, 0, ENTITY::MAIN);
 
+	sessionData.weapons[0] = activeCharacterData.meleeWeapons[0];
+	if (weaponProgression.meleeWeaponIds.size() > 1) {
+		sessionData.weapons[1] = activeCharacterData.meleeWeapons[1];
+	} else {
+		sessionData.weapons[1] = 255; // WEAPON::VOID;
+	}
+	sessionData.weapons[2] = activeCharacterData.rangedWeapons[0];
+	if (weaponProgression.rangedWeaponIds.size() > 1) {
+		sessionData.weapons[3] = activeCharacterData.rangedWeapons[1];
+	} else {
+		sessionData.weapons[3] = 255; // WEAPON::VOID;
+	}
+}
 
 void InCreditsDetection() {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
