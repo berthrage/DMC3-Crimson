@@ -993,6 +993,7 @@ void ForceThirdPersonCameraController() {
 				&& !(eventData.room == ROOM::SUNKEN_OPERA_HOUSE && sessionData.mission == 9)
 				//&& !(eventData.room == ROOM::TORTURE_CHAMBER && sessionData.mission == 11)
 				&& !(eventData.room == ROOM::DEMON_CLOWN_CHAMBER_2 && sessionData.mission == 12)
+				&& !(eventData.room == ROOM::UNDERGROUND_ARENA && sessionData.mission == 12)
 				&& !(eventData.room == ROOM::LAIR_OF_JUDGEMENT && sessionData.mission == 13)
 				&& !(eventData.room == ROOM::THE_DIVINE_LIBRARY && sessionData.mission == 16)
 				&& !(eventData.room == ROOM::DEMON_CLOWN_CHAMBER_3 && sessionData.mission == 17)
