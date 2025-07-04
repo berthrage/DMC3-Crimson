@@ -102,40 +102,174 @@ void GameTrackDetection() {
 }
 
 void FixWeaponUnlocksDante() {
-	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
-	if (!name_10723) {
-		return;
-	}
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	auto  name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_10723) return;
 	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
 
-	if (!InGame())
-		return;
+	auto  pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10298 || !pool_10298[8]) return;
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 
-	auto pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!InGame()) return;
+
+	auto  pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!pool_2128 || !pool_2128[8]) return;
 	auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
+
+	// Cerberus state
+	static bool cerberusExists = false;
+	bool cerberusAlive = false;
+	bool cerberusMissionContext = sessionData.mission == 3 &&
+		eventData.room == ROOM::ICE_GUARDIANS_CHAMBER;
+
+	// Agni & Rudra state
+	static bool agniRudraExists = false; 
+	bool agniRudraAlive = false;
+	bool agniRudraMissionContext = sessionData.mission == 5 &&
+		eventData.room == ROOM::FIRESTORM_CHAMBER;
+
+	// Nevan state
+	static bool nevanExists = false;
+	bool nevanAlive = false;
+	bool nevanMissionContext = sessionData.mission == 9 &&
+		eventData.room == ROOM::SUNKEN_OPERA_HOUSE;
+
+	// Geryon state
+	static bool geryonExists = false;
+	bool geryonAlive = false;
+	bool geryonMissionContext = sessionData.mission == 12 &&
+		eventData.room == ROOM::UNDERGROUND_ARENA;
+
+	// Lady state
+	static bool ladyExists = false;
+	bool ladyAlive = false;
+	bool ladyMissionContext = sessionData.mission == 16 &&
+		eventData.room == ROOM::THE_DIVINE_LIBRARY;
+
+	// Doppel state
+	static bool doppelExists = false;
+	bool doppelAlive = false;
+	bool doppelMissionContext = sessionData.mission == 17 &&
+		eventData.room == ROOM::APPARITION_INCARNATE;
 
 	for (auto enemy : enemyVectorData.metadata) {
 		if (!enemy.baseAddr) continue;
 		auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
 		if (!enemyData.baseAddr) continue;
 
-		//Unlock weapons fix
-		if (enemyData.enemy == ENEMY::CERBERUS && enemyData.hitPointsCerberusTotal < -0.01f) {
-			missionData.itemCounts[ITEM::CERBERUS] = 1;
+		// Detect initial spawn of Bossfight
+		if (enemyData.enemy == ENEMY::CERBERUS &&
+			enemyData.hitPointsCerberusTotal >= 7150 &&
+			sessionData.mission == 3 && cerberusMissionContext) {
+			cerberusExists = true;
 		}
-		if (enemyData.enemy == ENEMY::AGNI_RUDRA && enemyData.hitPointsAgniRudra < -0.01f) {
-			missionData.itemCounts[ITEM::AGNI_RUDRA] = 1;
+
+		if (enemyData.enemy == ENEMY::AGNI_RUDRA_ALL &&
+			enemyData.hitPointsAgniRudra >= enemyData.maxHitPointsAgniRudra - 50 &&
+			agniRudraMissionContext) {
+			agniRudraExists = true;
 		}
-		if (enemyData.enemy == ENEMY::NEVAN && enemyData.hitPointsNevan < -0.01f) {
-			missionData.itemCounts[ITEM::NEVAN] = 1;
+
+		if (enemyData.enemy == ENEMY::NEVAN &&
+			enemyData.hitPointsNevan >= enemyData.maxHitPointsNevan - 50 &&
+			nevanMissionContext) {
+			nevanExists = true;
 		}
-		if (enemyData.enemy == ENEMY::LADY && enemyData.hitPointsLady < -0.01f) {
-			missionData.itemCounts[ITEM::KALINA_ANN] = 1;
-		}	
-	};
-	return;
+
+		if (enemyData.enemy == ENEMY::GERYON &&
+			enemyData.hitPointsGeryon >= enemyData.maxHitPointsGeryon - 50 &&
+			geryonMissionContext) {
+			geryonExists = true;
+		}
+
+		if (enemyData.enemy == ENEMY::LADY &&
+			enemyData.hitPointsLady >= enemyData.maxHitPointsLady - 50 &&
+			ladyMissionContext) {
+			ladyExists = true;
+		}
+
+		if (enemyData.enemy == ENEMY::DOPPELGANGER &&
+			enemyData.hitPointsDoppelganger >= enemyData.maxHitPointsDoppelganger - 50 &&
+			doppelMissionContext) {
+			doppelExists = true;
+		}
+
+		// Check if boss is still alive this frame
+		if (enemyData.enemy == ENEMY::CERBERUS) {
+			cerberusAlive = true;
+		}
+
+		if (enemyData.enemy == ENEMY::AGNI_RUDRA ||
+			enemyData.enemy == ENEMY::AGNI_RUDRA_RED ||
+			enemyData.enemy == ENEMY::AGNI_RUDRA_BLUE ||
+			enemyData.enemy == ENEMY::AGNI_RUDRA_BLACK ||
+			enemyData.enemy == ENEMY::AGNI_RUDRA_ALL) {
+			agniRudraAlive = true;
+		}
+
+		if (enemyData.enemy == ENEMY::NEVAN) {
+			nevanAlive = true;
+		}
+
+		if (enemyData.enemy == ENEMY::GERYON) {
+			geryonAlive = true;
+		}
+
+		if (enemyData.enemy == ENEMY::LADY) {
+			ladyAlive = true;
+		}
+
+		if (enemyData.enemy == ENEMY::DOPPELGANGER) {
+			doppelAlive = true;
+		}
+	}
+
+	// If we saw the boss before and now they're gone, unlock the weapon
+	if (cerberusExists && !cerberusAlive && cerberusMissionContext) {
+		missionData.itemCounts[ITEM::CERBERUS] = 1;
+		cerberusExists = false;
+	} else if (!cerberusMissionContext) {
+		cerberusExists = false; 
+	}
+
+	if (agniRudraExists && !agniRudraAlive && agniRudraMissionContext) {
+		missionData.itemCounts[ITEM::AGNI_RUDRA] = 1;
+		agniRudraExists = false; 
+	} else if (!agniRudraMissionContext) {
+		agniRudraExists = false;
+	}
+
+	if (nevanExists && !nevanAlive && nevanMissionContext) {
+		missionData.itemCounts[ITEM::NEVAN] = 1;
+		nevanExists = false;
+	} else if (!nevanMissionContext) {
+		nevanExists = false;
+	}
+
+	if (geryonExists && !geryonAlive && geryonMissionContext) {
+		sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER] = 1;
+		geryonExists = false;
+	} else if (!geryonMissionContext) {
+		geryonExists = false;
+	}
+
+	if (ladyExists && !ladyAlive && ladyMissionContext) {
+		missionData.itemCounts[ITEM::KALINA_ANN] = 1;
+		ladyExists = false;
+	} else if (!ladyMissionContext) {
+		ladyExists = false;
+	}
+
+	if (doppelExists && !doppelAlive && doppelMissionContext) {
+		sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER] = 1;
+		doppelExists = false;
+	} else if (!doppelMissionContext) {
+		doppelExists = false;
+	}
 }
+
+
 
 void InCreditsDetection() {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
