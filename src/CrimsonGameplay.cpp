@@ -561,10 +561,14 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
     auto& cancels = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].cancels : crimsonPlayer[playerIndex].cancelsClone;
     bool doingAirTrick = (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)
         && actorData.style == STYLE::TRICKSTER && actorData.lockOn && tiltDirection == TILT_DIRECTION::UP);
+	bool doingSkyStar = (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)
+		&& actorData.style == STYLE::TRICKSTER);
     bool doingTricksterDash = (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && actorData.state & STATE::ON_FLOOR
         && actorData.style == STYLE::TRICKSTER && !doingAirTrick);
+    bool doingJump = (actorData.buttons[0] & GetBinding(BINDING::JUMP));
     auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
     auto& policyTrick = actorData.nextActionRequestPolicy[TRICKSTER_DARK_SLAYER];
+	auto& policyJump = actorData.nextActionRequestPolicy[JUMP_ROLL];
 
     if (actorData.character == CHARACTER::DANTE) {
 
@@ -584,15 +588,24 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
             }
         }
 
-        // Improved Air Swordmaster Moves Trick Buffering
+        // Improved Air Swordmaster Moves (and Air Stinger) Trick Buffering
         if (actorData.action == CERBERUS_AIR_FLICKER || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1
             || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3
-            || actorData.action == BEOWULF_THE_HAMMER || actorData.action == BEOWULF_TORNADO) {
+            || actorData.action == BEOWULF_THE_HAMMER || actorData.action == BEOWULF_TORNADO || 
+            (actorData.action == REBELLION_STINGER_LEVEL_1 || actorData.action == REBELLION_STINGER_LEVEL_2 && actorData.state & STATE::IN_AIR)) {
             policyTrick = BUFFER;
-            if (doingAirTrick && actionTimer > 0.15f) {
+            if (doingAirTrick || doingSkyStar && actionTimer > 0.13f) {
                 policyTrick = EXECUTE;
             }
         }
+
+		if ((actorData.action == REBELLION_STINGER_LEVEL_1 || actorData.action == REBELLION_STINGER_LEVEL_2 && actorData.state & STATE::IN_AIR)) {
+            policyJump = BUFFER;
+			if (doingJump) {
+				actorData.action = ROYALGUARD_RELEASE_1; // This cancels the ability
+				policyJump = EXECUTE;
+			}
+		}
 
         // Improved Cerberus' Crystal/Million Carats Trick Buffering
         if (actorData.action == CERBERUS_CRYSTAL || actorData.action == CERBERUS_MILLION_CARATS) {
