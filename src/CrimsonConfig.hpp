@@ -135,6 +135,8 @@ struct CrimsonConfig {
 		bool lockOn = true;
 		bool stunDisplacementNumericHud = false;
 		bool lockOnColorsCharacter = true;
+		std::string selectedStyleRanks = "Crimson";
+		std::string selectedStyleRanksAccolades = "DMC3Default";
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -146,7 +148,9 @@ struct CrimsonConfig {
                 std::make_pair("styleRanksMeter", &CrimsonHudAddons::styleRanksMeter),
                 std::make_pair("lockOn", &CrimsonHudAddons::lockOn),
 				std::make_pair("stunDisplacementNumericHud", &CrimsonHudAddons::stunDisplacementNumericHud),
-				std::make_pair("lockOnColorsCharacter", &CrimsonHudAddons::lockOnColorsCharacter)
+				std::make_pair("lockOnColorsCharacter", &CrimsonHudAddons::lockOnColorsCharacter),
+				std::make_pair("selectedStyleRanks", &CrimsonHudAddons::selectedStyleRanks),
+				std::make_pair("selectedStyleRanksAccolades", &CrimsonHudAddons::selectedStyleRanksAccolades)
 			);
 		}
 	} CrimsonHudAddons;

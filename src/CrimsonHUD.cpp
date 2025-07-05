@@ -64,6 +64,7 @@ static Texture2DD3D11* RedOrbCustomTexture{ nullptr };
 // STYLE RANK METER
 static Texture2DD3D11* DStyleRankFillTexture{ nullptr };
 static Texture2DD3D11* DStyleRankBackgroundTexture{ nullptr };
+static Texture2DD3D11* DStyleRankBackground2Texture{ nullptr };
 static Texture2DD3D11* DStyleRankBackgroundHighlightTexture{ nullptr };
 static Texture2DD3D11* DStyleRankTextTexture{ nullptr };
 static Texture2DD3D11* DStyleRankTextHighlightTexture{ nullptr };
@@ -177,50 +178,54 @@ void InitRedOrbTexture(ID3D11Device* pd3dDevice) {
 }
 
 void InitStyleRankTextures(ID3D11Device* pd3dDevice) {
-	DStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Dfill.png").c_str(), pd3dDevice);
-	DStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Dbg.png").c_str(), pd3dDevice);
-	DStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Dbghighlight.png").c_str(), pd3dDevice);
-	DStyleRankTextTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Dtext.png").c_str(), pd3dDevice);
-	DStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Dtexthighlight.png").c_str(), pd3dDevice);
+	std::string styleRanksAccoladesPath = Paths::styleRanks + (std::string)"\\" + activeCrimsonConfig.CrimsonHudAddons.selectedStyleRanks + 
+		"\\" + activeCrimsonConfig.CrimsonHudAddons.selectedStyleRanksAccolades;
+	DStyleRankFillTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Dfill.png").c_str(), pd3dDevice);
+	DStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Dbg.png").c_str(), pd3dDevice);
+	DStyleRankBackground2Texture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Dbg2.png").c_str(), pd3dDevice);
+	DStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Dbghighlight.png").c_str(), pd3dDevice);
+	DStyleRankTextTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Dtext.png").c_str(), pd3dDevice);
+	DStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Dtexthighlight.png").c_str(), pd3dDevice);
 
-	CStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Cfill.png").c_str(), pd3dDevice);
-	CStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Cbg.png").c_str(), pd3dDevice);
-	CStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Cbghighlight.png").c_str(), pd3dDevice);
-	CStyleRankTextTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Ctext.png").c_str(), pd3dDevice);
-	CStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Ctexthighlight.png").c_str(), pd3dDevice);
+	CStyleRankFillTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Cfill.png").c_str(), pd3dDevice);
+	CStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Cbg.png").c_str(), pd3dDevice);
+	CStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Cbghighlight.png").c_str(), pd3dDevice);
+	CStyleRankTextTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Ctext.png").c_str(), pd3dDevice);
+	CStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Ctexthighlight.png").c_str(), pd3dDevice);
 
-	BStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Bfill.png").c_str(), pd3dDevice);
-	BStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Bbg.png").c_str(), pd3dDevice);
-	BStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Bbghighlight.png").c_str(), pd3dDevice);
-	BStyleRankTextTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Btext.png").c_str(), pd3dDevice);
-	BStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Btexthighlight.png").c_str(), pd3dDevice);
+	BStyleRankFillTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Bfill.png").c_str(), pd3dDevice);
+	BStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Bbg.png").c_str(), pd3dDevice);
+	BStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Bbghighlight.png").c_str(), pd3dDevice);
+	BStyleRankTextTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Btext.png").c_str(), pd3dDevice);
+	BStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Btexthighlight.png").c_str(), pd3dDevice);
 
-	AStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Afill.png").c_str(), pd3dDevice);
-	AStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Abg.png").c_str(), pd3dDevice);
-	AStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Abghighlight.png").c_str(), pd3dDevice);
-	AStyleRankTextTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Atext.png").c_str(), pd3dDevice);
-	AStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Atexthighlight.png").c_str(), pd3dDevice);
+	AStyleRankFillTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Afill.png").c_str(), pd3dDevice);
+	AStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Abg.png").c_str(), pd3dDevice);
+	AStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Abghighlight.png").c_str(), pd3dDevice);
+	AStyleRankTextTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Atext.png").c_str(), pd3dDevice);
+	AStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Atexthighlight.png").c_str(), pd3dDevice);
 
-	SStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Sfill.png").c_str(), pd3dDevice);
-	SStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Sbg.png").c_str(), pd3dDevice);
-	SStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Sbghighlight.png").c_str(), pd3dDevice);
-	SStyleRankTextTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Stext.png").c_str(), pd3dDevice);
-	SStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "Stexthighlight.png").c_str(), pd3dDevice);
+	SStyleRankFillTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Sfill.png").c_str(), pd3dDevice);
+	SStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Sbg.png").c_str(), pd3dDevice);
+	SStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Sbghighlight.png").c_str(), pd3dDevice);
+	SStyleRankTextTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Stext.png").c_str(), pd3dDevice);
+	SStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "Stexthighlight.png").c_str(), pd3dDevice);
 
-	SSStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSfill.png").c_str(), pd3dDevice);
-	SSStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSbg.png").c_str(), pd3dDevice);
-	SSStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSbghighlight.png").c_str(), pd3dDevice);
-	SSStyleRankTextTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SStext.png").c_str(), pd3dDevice);
-	SSStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SStexthighlight.png").c_str(), pd3dDevice);
+	SSStyleRankFillTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "SSfill.png").c_str(), pd3dDevice);
+	SSStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "SSbg.png").c_str(), pd3dDevice);
+	SSStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "SSbghighlight.png").c_str(), pd3dDevice);
+	SSStyleRankTextTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "SStext.png").c_str(), pd3dDevice);
+	SSStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "SStexthighlight.png").c_str(), pd3dDevice);
 
-	SSSStyleRankFillTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSSfill.png").c_str(), pd3dDevice);
-	SSSStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSSbg.png").c_str(), pd3dDevice);
-	SSSStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSSbghighlight.png").c_str(), pd3dDevice);
-	SSSStyleRankTextTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSStext.png").c_str(), pd3dDevice);
-	SSSStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)Paths::assets + "\\" + "SSStexthighlight.png").c_str(), pd3dDevice);
+	SSSStyleRankFillTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "SSSfill.png").c_str(), pd3dDevice);
+	SSSStyleRankBackgroundTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "SSSbg.png").c_str(), pd3dDevice);
+	SSSStyleRankBackgroundHighlightTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "SSSbghighlight.png").c_str(), pd3dDevice);
+	SSSStyleRankTextTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "SSStext.png").c_str(), pd3dDevice);
+	SSSStyleRankTextHighlightTexture = new Texture2DD3D11(((std::string)styleRanksAccoladesPath + "\\" + "SSStexthighlight.png").c_str(), pd3dDevice);
 
 	assert(DStyleRankFillTexture);
 	assert(DStyleRankBackgroundTexture);
+	assert(DStyleRankBackground2Texture);
 	assert(DStyleRankBackgroundHighlightTexture);
 	assert(DStyleRankTextTexture);
 	assert(DStyleRankTextHighlightTexture);
@@ -615,7 +620,8 @@ void StyleMeterWindowRank(
 	float animIntensity = 1.0f,
 	ImVec2 windowPos = ImVec2(g_renderSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 	bool sSStyle = false,
-	bool sSSStyle = false
+	bool sSSStyle = false,
+	ImTextureID bgTexture2 = nullptr
 ) {
 	// Use a static map to store animation state per rank
 	static std::unordered_map<int, StyleMeterAnimState> animStates;
@@ -788,6 +794,9 @@ void StyleMeterWindowRank(
 		RenderSkewedTexture(bgHighlightTexture, actualRenderPosSSStyle, renderSize, highlightColor, animAngle, skewT);
 	}
 
+	if (bgTexture2) {
+		RenderSkewedTexture(bgTexture2, actualRenderPos, renderSize, flashBg, animAngle, skewT);
+	}
 	RenderSkewedMeterWithFill(fillTexture, actualRenderPos, renderSize, fillRatio, fillColorC, animAngle, skewT);
 	RenderSkewedTexture(bgTexture, actualRenderPos, renderSize, flashBg, animAngle, skewT);
 	RenderSkewedTexture(bgHighlightTexture, actualRenderPos, renderSize, highlightColor, animAngle, skewT);
@@ -856,7 +865,12 @@ void StyleMeterWindows() {
 		DStyleRankTextHighlightTexture->GetTexture(),
 		0x1f5d8aFF,
 		0xFFFFFFFF,
-		0x02c4ffFF
+		0x02c4ffFF,
+		1.0f,
+		ImVec2(g_renderSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
+		false,
+		false,
+		DStyleRankBackground2Texture->GetTexture()
 	);
 
 	// C

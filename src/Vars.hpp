@@ -5420,8 +5420,6 @@ struct GuiPause {
 
 extern GuiPause guiPause;
 
-extern std::vector<std::string> HUDdirectories;
-
 extern float frameRateSpeedMultiplier;
 
 // 0 - 1P, 1 - 1P clone, 2 - 2P, 3 - 2P clone, 4 - 3P, 5 - 3P clone, 6 - 4P, 7 - 4P clone

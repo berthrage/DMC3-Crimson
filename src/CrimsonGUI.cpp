@@ -8761,7 +8761,7 @@ void AdjustBackgroundColorAndTransparency() {
 }
 
 
-void InterfaceSection(size_t defaultFontSize) {
+void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 
     ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
@@ -8879,8 +8879,8 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth);
-			if (UI::ComboVectorString("Select HUD", HUDdirectories, queuedConfig.selectedHUD)) {
-				copyHUDtoGame();
+			if (UI::ComboVectorString("Select HUD", CrimsonFiles::HUDdirectories, queuedConfig.selectedHUD)) {
+				CrimsonFiles::CopyHUDtoGame();
 			}
 			if (queuedConfig.selectedHUD != activeConfig.selectedHUD) {
 				auto restartStrColor = CrimsonUtil::HexToImVec4(0x1DD6FFFF);
@@ -9008,6 +9008,25 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
+			ImGui::PushItemWidth(itemWidth);
+			if (UI::ComboVectorString2("Select Meter", CrimsonFiles::StyleRanksdirectories, activeCrimsonConfig.CrimsonHudAddons.selectedStyleRanks,
+				queuedCrimsonConfig.CrimsonHudAddons.selectedStyleRanks)) {
+				CrimsonFiles::GetStyleRanksAccoladesDirectories();
+				activeCrimsonConfig.CrimsonHudAddons.selectedStyleRanksAccolades = CrimsonFiles::StyleRanksAccoladesdirectories[0];
+				queuedCrimsonConfig.CrimsonHudAddons.selectedStyleRanksAccolades = CrimsonFiles::StyleRanksAccoladesdirectories[0];
+				CrimsonHUD::InitStyleRankTextures(pDevice);
+			}
+			ImGui::PopItemWidth();
+
+			ImGui::PushItemWidth(itemWidth);
+			if (UI::ComboVectorString2("Select Meter Accolades", CrimsonFiles::StyleRanksAccoladesdirectories, activeCrimsonConfig.CrimsonHudAddons.selectedStyleRanksAccolades,
+				queuedCrimsonConfig.CrimsonHudAddons.selectedStyleRanksAccolades)) {
+				CrimsonHUD::InitStyleRankTextures(pDevice);
+			}
+			ImGui::PopItemWidth();
+
+
+			ImGui::TableNextColumn();
 			
 			if (GUI_Checkbox2("Lock-On", activeCrimsonConfig.CrimsonHudAddons.lockOn, queuedCrimsonConfig.CrimsonHudAddons.lockOn)) {
 				CrimsonPatches::ToggleHideLockOn(activeCrimsonConfig.CrimsonHudAddons.lockOn);
@@ -9045,6 +9064,7 @@ void InterfaceSection(size_t defaultFontSize) {
 				"In Multiplayer or with this option disabled, Lock-On color is always based on PLAYER COLOR.");
 
 			GUI_PopDisable(!activeCrimsonConfig.CrimsonHudAddons.lockOn);
+
 
 			ImGui::EndTable();
 		}
@@ -13032,7 +13052,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			}
         }
         else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::Interface) {
-            getHUDsDirectories();
+            CrimsonFiles::GetHUDsDirectories();
+			CrimsonFiles::GetStyleRanksDirectories();
+			CrimsonFiles::GetStyleRanksAccoladesDirectories();
 
 			// Widget area
 			{
@@ -13046,7 +13068,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					{
-						InterfaceSection(context.DefaultFontSize);
+						InterfaceSection(context.DefaultFontSize, pDevice);
 					}
 				}
 				ImGui::EndChild();

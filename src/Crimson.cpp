@@ -91,7 +91,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ExpConfig::InitExp();
         ExpConfig::LoadExp();
 
-        copyHUDtoGame();
+        CrimsonFiles::CopyHUDtoGame();
 
         if (!Memory_Init()) {
             Log("Memory_Init failed.");
