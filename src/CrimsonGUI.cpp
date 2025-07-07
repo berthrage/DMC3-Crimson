@@ -14300,20 +14300,6 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     // outside of In Game.
     
   	CrimsonOnTick::FrameResponsiveGameSpeed();
-	CrimsonOnTick::InCreditsDetection();
-	CrimsonOnTick::WeaponProgressionTracking();
-	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
-	CrimsonOnTick::FixM7DevilTriggerUnlocking();
-	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
-	CrimsonPatches::ToggleM6CrashFix(true);
-	CrimsonOnTick::UpdateMainPlayerMotionArchives();
-	CrimsonOnTick::TrackMissionStyleLevels();
-	CrimsonOnTick::StyleMeterMultiplayer();
-	CrimsonOnTick::PairVanillaWeaponSlots();
-
-	if (activeConfig.Actor.enable) {
-		ExpConfig::TransferUnlocksToVanilla();
-	}
 
     // TIMERS
     CrimsonTimers::CallAllTimers();
@@ -14323,10 +14309,10 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	WeaponWheelsMultiplayerController(pSwapChain);
 	WorldSpaceWeaponWheels1PController(pSwapChain);
 	WorldSpaceWeaponWheelsController(pSwapChain);
- 	CrimsonHUD::RedOrbCounterWindow();
- 	CrimsonHUD::CheatsHUDIndicatorWindow();
- 	CrimsonHUD::CheatHotkeysPopUpWindow();
- 	CrimsonHUD::StyleMeterWindows();
+	CrimsonHUD::RedOrbCounterWindow();
+	CrimsonHUD::CheatsHUDIndicatorWindow();
+	CrimsonHUD::CheatHotkeysPopUpWindow();
+	CrimsonHUD::StyleMeterWindows();
 	CrimsonHUD::LockOnWindows();
 	CrimsonHUD::StunDisplacementLockOnWindows();
 	CrimsonHUD::ShieldLockOnWindows();
@@ -14340,14 +14326,6 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
 	RenderMissionResultGameModeStats();
 	RenderMissionResultCheatsUsed();
-	CrimsonGameModes::TrackGameMode();
-	CrimsonGameModes::TrackCheats();
-	CrimsonGameModes::TrackMissionResultGameMode();
-	CrimsonOnTick::CrimsonMissionClearSong();
-	CrimsonOnTick::DivinityStatueSong();
-
-	CrimsonSDL::CheckAndOpenControllers();
-	CrimsonSDL::UpdateJoysticks();
 
 
     HandleKeyBindings(keyBindings.data(), keyBindings.size());

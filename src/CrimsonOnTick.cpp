@@ -16,6 +16,7 @@
 #include "Global.hpp"
 #include "Vars.hpp"
 #include "Speed.hpp"
+#include "Utility/Detour.hpp"
 
 #include "Core/Macros.h"
 #include "Sound.hpp"
@@ -26,9 +27,18 @@
 #include "CrimsonUtil.hpp"
 #include "CrimsonTimers.hpp"
 #include "DMC3Input.hpp"
+#include "CrimsonGameModes.hpp"
 
 
 namespace CrimsonOnTick {
+
+extern "C" {
+	// PlaytimeOnTick
+	std::uint64_t g_PlaytimeOnTick_ReturnAddr;
+	void PlaytimeOnTickDetour();
+	std::uint64_t g_PlaytimeOnTickMovAddr;
+	void* g_TriggerOnTickFuncsCall;
+}
 
 bool inputtingFPS = false;
 
@@ -274,7 +284,10 @@ void PairVanillaWeaponSlots() {
 		return;
 	}
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-	 auto& activeCharacterData = GetActiveCharacterData(0, 0, ENTITY::MAIN);
+	auto& activeCharacterData = GetActiveCharacterData(0, 0, ENTITY::MAIN);
+	if (activeCharacterData.character != CHARACTER::DANTE) {
+		return;
+	}
 
 	sessionData.weapons[0] = activeCharacterData.meleeWeapons[0];
 	if (weaponProgression.meleeWeaponIds.size() > 1) {
@@ -1634,5 +1647,46 @@ void FixM7DevilTriggerUnlocking() {
 			sessionData.magicPoints = 3000;
 		}
 	}
+}
+
+void TriggerOnTickFuncs() {
+	CrimsonOnTick::InCreditsDetection();
+	CrimsonOnTick::WeaponProgressionTracking();
+	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
+	CrimsonOnTick::FixM7DevilTriggerUnlocking();
+	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
+	CrimsonOnTick::UpdateMainPlayerMotionArchives();
+ 	CrimsonOnTick::TrackMissionStyleLevels();
+ 	CrimsonOnTick::StyleMeterMultiplayer();
+	CrimsonOnTick::PairVanillaWeaponSlots();
+	CrimsonGameModes::TrackGameMode();
+	CrimsonGameModes::TrackCheats();
+	CrimsonGameModes::TrackMissionResultGameMode();
+    CrimsonOnTick::CrimsonMissionClearSong();
+	CrimsonOnTick::DivinityStatueSong();
+	CrimsonSDL::CheckAndOpenControllers();
+	CrimsonSDL::UpdateJoysticks();
+}
+
+
+void ToggleOnTickFuncs(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// We detour here for the call since this instruct gets triggered every frame and we can use it to call our stuff
+	// dmc3.exe+4F23B - 69 C8 40 7E 05 00        - imul ecx,eax,00057E40 { 360000 }
+	//dmc3.exe + 4F24F - 89 05 3B 53 51 00 - mov[dmc3.exe + 564590], eax{ Playtime increment }
+	static std::unique_ptr<Utility::Detour_t> PlaytimeOnTickHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x4F23B, &PlaytimeOnTickDetour, 6);
+	g_PlaytimeOnTick_ReturnAddr = PlaytimeOnTickHook->GetReturnAddress();
+	g_PlaytimeOnTickMovAddr = (uintptr_t)appBaseAddr + 0x564590;
+	g_TriggerOnTickFuncsCall = &TriggerOnTickFuncs;
+	PlaytimeOnTickHook->Toggle(enable);
+
+	run = enable;
 }
 }
