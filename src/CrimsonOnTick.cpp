@@ -1650,6 +1650,7 @@ void FixM7DevilTriggerUnlocking() {
 }
 
 void TriggerOnTickFuncs() {
+	// These functions run OnTick globally (in game and in menus) through Game Thread
 	CrimsonOnTick::InCreditsDetection();
 	CrimsonOnTick::WeaponProgressionTracking();
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
