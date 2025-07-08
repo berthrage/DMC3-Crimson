@@ -4779,7 +4779,7 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			GUI_PushDisable(activeCrimsonConfig.Camera.multiplayerCamera || activeCrimsonConfig.Camera.panoramicCamera);
+			GUI_PushDisable(activeCrimsonConfig.Camera.multiplayerCamera || activeCrimsonConfig.Camera.panoramicCam);
 			ImGui::PushItemWidth(itemWidth * 1.1f);
 			UI::Combo2("Distance", cameraDistanceNames, activeCrimsonConfig.Camera.distance, queuedCrimsonConfig.Camera.distance);
 			ImGui::SameLine();
@@ -4798,7 +4798,7 @@ void CameraSection(size_t defaultFontSize) {
 				"\n"
 				"Dynamic Option adjusts based on whether player is airborne.");
 			ImGui::PopItemWidth();
-			GUI_PopDisable(activeCrimsonConfig.Camera.multiplayerCamera || activeCrimsonConfig.Camera.panoramicCamera);
+			GUI_PopDisable(activeCrimsonConfig.Camera.multiplayerCamera || activeCrimsonConfig.Camera.panoramicCam);
 
 			ImGui::TableNextColumn();
 
@@ -4861,7 +4861,7 @@ void CameraSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("Panoramic Camera", activeCrimsonConfig.Camera.panoramicCamera, queuedCrimsonConfig.Camera.panoramicCamera)) {
+			if (GUI_Checkbox2("Panoramic Camera", activeCrimsonConfig.Camera.panoramicCam, queuedCrimsonConfig.Camera.panoramicCam)) {
 				if (activeCrimsonConfig.Camera.multiplayerCamera) {
 					activeCrimsonConfig.Camera.distance = 2;
 					queuedCrimsonConfig.Camera.distance = 2;
@@ -4916,8 +4916,8 @@ void CameraSection(size_t defaultFontSize) {
 				queuedCrimsonConfig.Camera.thirdPersonCamera = false;
 			}
 
-			activeCrimsonConfig.Camera.panoramicCamera = false;
-			queuedCrimsonConfig.Camera.panoramicCamera = false;
+			activeCrimsonConfig.Camera.panoramicCam = false;
+			queuedCrimsonConfig.Camera.panoramicCam = false;
 
 			activeCrimsonConfig.Camera.multiplayerCamera = true;
 			queuedCrimsonConfig.Camera.multiplayerCamera = true;
@@ -4964,8 +4964,8 @@ void CameraSection(size_t defaultFontSize) {
 			queuedCrimsonConfig.Camera.thirdPersonCamera = true;
 			
 
-			activeCrimsonConfig.Camera.panoramicCamera = false;
-			queuedCrimsonConfig.Camera.panoramicCamera = false;
+			activeCrimsonConfig.Camera.panoramicCam = false;
+			queuedCrimsonConfig.Camera.panoramicCam = false;
 
 			activeCrimsonConfig.Camera.multiplayerCamera = true;
 			queuedCrimsonConfig.Camera.multiplayerCamera = true;
@@ -5010,8 +5010,8 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.thirdPersonCamera = true;
 			queuedCrimsonConfig.Camera.thirdPersonCamera = true;
 
-			activeCrimsonConfig.Camera.panoramicCamera = false;
-			queuedCrimsonConfig.Camera.panoramicCamera = false;
+			activeCrimsonConfig.Camera.panoramicCam = true;
+			queuedCrimsonConfig.Camera.panoramicCam = true;
 
 			activeCrimsonConfig.Camera.multiplayerCamera = true;
 			queuedCrimsonConfig.Camera.multiplayerCamera = true;

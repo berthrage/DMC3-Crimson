@@ -761,7 +761,7 @@ void MultiplayerCameraPositioningController() {
 		}
 	}
 
-	bool triggerPanoramicCam = activeCrimsonConfig.Camera.panoramicCamera ? true : false;
+	bool triggerPanoramicCam = activeCrimsonConfig.Camera.panoramicCam ? true : false;
 	bool allEnemiesFarAway = true;
 
 	for (std::size_t i = 0; i < enemyVectorData.count; ++i) {
@@ -787,7 +787,7 @@ void MultiplayerCameraPositioningController() {
 	}
 
 	// Only set triggerPanoramicCam to false if all enemies are far enough
-	triggerPanoramicCam = !allEnemiesFarAway && activeCrimsonConfig.Camera.panoramicCamera;
+	triggerPanoramicCam = !allEnemiesFarAway && activeCrimsonConfig.Camera.panoramicCam;
 
 	// Camera behavior based on player count and trigger status
 	if (activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) {

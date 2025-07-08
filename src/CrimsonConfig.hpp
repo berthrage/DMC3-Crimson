@@ -179,7 +179,7 @@ struct CrimsonConfig {
 		uint8 rightStickCameraCentering = RIGHTSTICKCENTERCAM::TO_NEAREST_SIDE;
 		bool disableBossCamera = false;
 		bool multiplayerCamera = true;
-		bool panoramicCamera = false;
+		bool panoramicCam = true;
 		bool thirdPersonCamera = true;
 
 		static constexpr auto Metadata() {
@@ -196,7 +196,7 @@ struct CrimsonConfig {
                 std::make_pair("rightStickCameraCentering", &Camera::rightStickCameraCentering),
                 std::make_pair("disableBossCamera", &Camera::disableBossCamera),
 				std::make_pair("multiplayerCamera", &Camera::multiplayerCamera),
-				std::make_pair("panoramicCamera", &Camera::panoramicCamera),
+				std::make_pair("panoramicCam", &Camera::panoramicCam),
                 std::make_pair("thirdPersonCamera", &Camera::thirdPersonCamera)
 			);
 		}
