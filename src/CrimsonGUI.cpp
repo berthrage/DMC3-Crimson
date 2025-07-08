@@ -4871,7 +4871,7 @@ void CameraSection(size_t defaultFontSize) {
 				}
 			}
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Multiplayer-like Combat Camera in Single Player. Works best with Force Third Person Camera on.");
+			TooltipHelper("(?)", "A dynamic camera mode designed to enhance in-combat readability. Distances itself based on enemies' positioning.");
 
 			ImGui::EndTable();
 		}
