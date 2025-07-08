@@ -242,7 +242,7 @@ namespace CrimsonCameraController {
 	/// <summary>
 	/// This is basically a glorified wrapper for simplifying the camera change logic.
 	/// It uses 3 variables:
-	/// activeCrimsonConfig.Camera.forceThirdPerson, the state of the TPS mod in gui
+	/// activeCrimsonConfig.Camera.thirdPersonCamera, the state of the TPS mod in gui
 	/// s_cameraEnable, whether this file is currently forcing the TPS camera
 	/// and s_tpsException, whether something in game is overriding the TPS preferences to make the camera fixed
 	/// 
@@ -259,7 +259,7 @@ namespace CrimsonCameraController {
 		auto& cameraConfig = activeCrimsonConfig.Camera;
 
 		//if TPS is off, we're either turning the camera off or it's already off.
-		if (!cameraConfig.forceThirdPerson){
+		if (!cameraConfig.thirdPersonCamera){
 
 			if (!s_cameraEnable) {
 				return CAMERA_UPDATE_TYPE::ON_FIXED;
@@ -272,7 +272,7 @@ namespace CrimsonCameraController {
 			}
 		}
 
-		//from this point, we are dealing with scenarios where cameraConfig.forceThirdPerson is true
+		//from this point, we are dealing with scenarios where cameraConfig.thirdPersonCamera is true
 		else {
 			//this variable will have a value of true whenever we want to override third person camera without turning the mod off.
 			s_tpsException = CheckInternalException();

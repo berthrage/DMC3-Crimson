@@ -1008,7 +1008,7 @@ void ForceThirdPersonCameraController() {
 		}
 	}
 
-	if (activeCrimsonConfig.Camera.forceThirdPerson) {
+	if (activeCrimsonConfig.Camera.thirdPersonCamera) {
 		// Disable Boss Camera Exceptions
 
 		if (activeConfig.Actor.playerCount <= 1) { // IN SINGLE PLAYER
@@ -1059,7 +1059,7 @@ void ForceThirdPersonCameraController() {
 }
 
 void FixInitialCameraRotation(EventData& eventData, PlayerActorData& mainActorData, CameraData* cameraData, bool& setCamPos) {
-	if (!activeCrimsonConfig.Camera.forceThirdPerson) {
+	if (!activeCrimsonConfig.Camera.thirdPersonCamera) {
 		return;
 	}
 	if (!setCamPos) {

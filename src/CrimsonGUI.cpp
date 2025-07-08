@@ -3247,8 +3247,8 @@ void CharacterSection(size_t defaultFontSize) {
 		if (queuedConfig.Actor.playerCount > 1) {
 			activeCrimsonConfig.Camera.multiplayerCamera = true;
 			queuedCrimsonConfig.Camera.multiplayerCamera = true;
-			activeCrimsonConfig.Camera.forceThirdPerson = true;
-			queuedCrimsonConfig.Camera.forceThirdPerson = true;
+			activeCrimsonConfig.Camera.thirdPersonCamera = true;
+			queuedCrimsonConfig.Camera.thirdPersonCamera = true;
 		} else {
 			activeConfig.enablePVPFixes = false;
 			queuedConfig.enablePVPFixes = false;
@@ -4853,9 +4853,10 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(activeConfig.Actor.playerCount > 1);
-			GUI_Checkbox2("Force Third Person Camera", activeCrimsonConfig.Camera.forceThirdPerson, queuedCrimsonConfig.Camera.forceThirdPerson);
+			GUI_Checkbox2("Third Person Camera", activeCrimsonConfig.Camera.thirdPersonCamera, queuedCrimsonConfig.Camera.thirdPersonCamera);
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Replaces every Fixed Camera with the Third Person Camera. Disables Boss Cam automatically. Will always be enabled on Multiplayer.");
+			TooltipHelper("(?)", "Replaces (almost) every Fixed Camera with the Third Person Camera, switching to Fixed Angles when appropriate.\n"
+				"Will always be enabled on Multiplayer.");
 			GUI_PopDisable(activeConfig.Actor.playerCount > 1);
 
 			ImGui::TableNextColumn();
@@ -4926,15 +4927,15 @@ void CameraSection(size_t defaultFontSize) {
 			queuedCrimsonConfig.Camera.autoAdjust = 0;
 
 			if (activeConfig.Actor.playerCount <= 1) {
-				activeCrimsonConfig.Camera.forceThirdPerson = false;
-				queuedCrimsonConfig.Camera.forceThirdPerson = false;
+				activeCrimsonConfig.Camera.thirdPersonCamera = false;
+				queuedCrimsonConfig.Camera.thirdPersonCamera = false;
 			}
 
 			activeCrimsonConfig.Camera.panoramicCamera = false;
 			queuedCrimsonConfig.Camera.panoramicCamera = false;
 
-			// activeCrimsonConfig.Camera.multiplayerCamera = false;
-			// queuedCrimsonConfig.Camera.multiplayerCamera = false;
+			activeCrimsonConfig.Camera.multiplayerCamera = true;
+			queuedCrimsonConfig.Camera.multiplayerCamera = true;
 
 			activeCrimsonConfig.Camera.disableBossCamera = false;
 			queuedCrimsonConfig.Camera.disableBossCamera = false;
@@ -4974,8 +4975,8 @@ void CameraSection(size_t defaultFontSize) {
 			queuedCrimsonConfig.Camera.autoAdjust = 0;
 
 			
-			activeCrimsonConfig.Camera.forceThirdPerson = true;
-			queuedCrimsonConfig.Camera.forceThirdPerson = true;
+			activeCrimsonConfig.Camera.thirdPersonCamera = true;
+			queuedCrimsonConfig.Camera.thirdPersonCamera = true;
 			
 
 			activeCrimsonConfig.Camera.panoramicCamera = false;
@@ -5021,8 +5022,8 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.autoAdjust = 0;
 			queuedCrimsonConfig.Camera.autoAdjust = 0;
 
-			activeCrimsonConfig.Camera.forceThirdPerson = true;
-			queuedCrimsonConfig.Camera.forceThirdPerson = true;
+			activeCrimsonConfig.Camera.thirdPersonCamera = true;
+			queuedCrimsonConfig.Camera.thirdPersonCamera = true;
 
 			activeCrimsonConfig.Camera.panoramicCamera = false;
 			queuedCrimsonConfig.Camera.panoramicCamera = false;
