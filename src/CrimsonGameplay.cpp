@@ -854,7 +854,7 @@ void AirStingerJumpCancel(byte8* actorBaseAddr) {
     } else if (actorData.character == CHARACTER::VERGIL) {
         if ((actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1 || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2 && actorData.state & STATE::IN_AIR)) {
             policyJump = BUFFER;
-            if (doingJump && actionTimer > 0.19f) {
+            if (doingJump && actionTimer > 0.10f) {
                 actorData.permissions = 3080; // This cancels the ability
                 policyJump = EXECUTE;
             }
