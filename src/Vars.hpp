@@ -5320,6 +5320,7 @@ struct CrimsonPlayerData {
     int playerScreenAngle = 0;
     bool playerOutOfView = false;
     uint16 rotationTowardsEnemy = 0;
+	bool isCloseToEnemy = false;
     StoredAirCounts storedAirCounts;
 	AirCounts airCounts;
     float lockedOnEnemyHP = 0;
@@ -5376,6 +5377,7 @@ struct CrimsonPlayerData {
 	int cloneScreenAngle = 0;
     bool cloneOutOfView = false;
     uint16 rotationCloneTowardsEnemy = 0;
+	bool isCloseToEnemyClone = false;
     StoredAirCounts storedAirCountsClone;
     AirCounts airCountsClone;
 	float lockedOnEnemyHPClone = 0;

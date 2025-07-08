@@ -3994,6 +3994,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CrimsonGameplay::VergilAirTauntRisingSunDetection(actorBaseAddr);
     CrimsonGameplay::LastEventStateQueue(actorBaseAddr);
     CrimsonGameplay::DTInfusedRoyalguardController(actorBaseAddr);
+    CrimsonGameplay::DetectCloseToEnemy(actorBaseAddr);
     CrimsonFX::StyleRankHudFadeoutController();
     CrimsonFX::DelayedComboFXController(actorBaseAddr);
     if (sessionData.unlockDevilTrigger) {
@@ -4014,7 +4015,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
 	if (activeCrimsonGameplay.Gameplay.Vergil.darkslayerTrickCancels) {
         CrimsonGameplay::DarkslayerCancelsVergilController(actorBaseAddr);
 	}
-    
+    CrimsonGameplay::AirStingerJumpCancelVergil(actorBaseAddr);
 
     if (actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
         actorData.airSwordAttackCount = 0;

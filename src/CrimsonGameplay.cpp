@@ -566,6 +566,8 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
     bool doingTricksterDash = (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION) && actorData.state & STATE::ON_FLOOR
         && actorData.style == STYLE::TRICKSTER && !doingAirTrick);
     bool doingJump = (actorData.buttons[0] & GetBinding(BINDING::JUMP));
+    auto& closeToEnemy = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].isCloseToEnemy : crimsonPlayer[playerIndex].isCloseToEnemyClone;
+
     auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
     auto& policyTrick = actorData.nextActionRequestPolicy[TRICKSTER_DARK_SLAYER];
 	auto& policyJump = actorData.nextActionRequestPolicy[JUMP_ROLL];
@@ -599,10 +601,11 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
             }
         }
 
-		if ((actorData.action == REBELLION_STINGER_LEVEL_1 || actorData.action == REBELLION_STINGER_LEVEL_2 && actorData.state & STATE::IN_AIR)) {
+        // Air Stinger Ghetto Jump Cancelling
+		if ((actorData.action == REBELLION_STINGER_LEVEL_1 || actorData.action == REBELLION_STINGER_LEVEL_2 && actorData.state & STATE::IN_AIR) && closeToEnemy) {
             policyJump = BUFFER;
 			if (doingJump) {
-				actorData.action = ROYALGUARD_RELEASE_1; // This cancels the ability
+                actorData.permissions = 3080; // This cancels the ability
 				policyJump = EXECUTE;
 			}
 		}
@@ -734,6 +737,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
 
 void DarkslayerCancelsVergilController(byte8* actorBaseAddr) {
 	using namespace ACTION_VERGIL;
+    using namespace NEXT_ACTION_REQUEST_POLICY;
 
 	if (!actorBaseAddr || (actorBaseAddr == g_playerActorBaseAddrs[0]) || (actorBaseAddr == g_playerActorBaseAddrs[1])) {
 		return;
@@ -808,7 +812,52 @@ void DarkslayerCancelsVergilController(byte8* actorBaseAddr) {
 	} else if (!styleButtonDown) {
 		execute = true;
 	}
+
+	bool doingJump = (actorData.buttons[0] & GetBinding(BINDING::JUMP));
+	auto& closeToEnemy = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].isCloseToEnemy : crimsonPlayer[playerIndex].isCloseToEnemyClone;
+
+	auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
+	auto& policyTrick = actorData.nextActionRequestPolicy[TRICKSTER_DARK_SLAYER];
+	auto& policyJump = actorData.nextActionRequestPolicy[JUMP_ROLL];
+
+	if ((actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1 || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2 && actorData.state & STATE::IN_AIR)) {
+		policyTrick = BUFFER;
+		if (styleButtonPressed && actionTimer > 0.13f) {
+			actorData.permissions = 3080; // This is a soft version of Reset Permissions.
+			policyTrick = EXECUTE;
+		}
+	}
 }
+
+void AirStingerJumpCancelVergil(byte8* actorBaseAddr) {
+	using namespace ACTION_VERGIL;
+	using namespace NEXT_ACTION_REQUEST_POLICY;
+
+	if (!actorBaseAddr || (actorBaseAddr == g_playerActorBaseAddrs[0]) || (actorBaseAddr == g_playerActorBaseAddrs[1])) {
+		return;
+	}
+    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (actorData.character != CHARACTER::VERGIL) return;
+	auto playerIndex = actorData.newPlayerIndex;
+
+	bool doingJump = (actorData.buttons[0] & GetBinding(BINDING::JUMP));
+	auto& closeToEnemy = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].isCloseToEnemy : crimsonPlayer[playerIndex].isCloseToEnemyClone;
+
+	auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
+	auto& policyTrick = actorData.nextActionRequestPolicy[TRICKSTER_DARK_SLAYER];
+	auto& policyJump = actorData.nextActionRequestPolicy[JUMP_ROLL];
+
+	// Air Stinger Ghetto Jump Cancelling
+	if ((actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1 || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2 && actorData.state & STATE::IN_AIR) && closeToEnemy) {
+		policyJump = BUFFER;
+		if (doingJump) {
+			actorData.permissions = 3080; // This cancels the ability
+			policyJump = EXECUTE;
+		}
+	}
+}
+
+
 
 #pragma endregion
 
@@ -2878,6 +2927,43 @@ void GetLockedOnEnemyShield(byte8* actorBaseAddr) {
 		lockedOnEnemyShield = 0;
 		lockedOnEnemyMaxShield = 0;
 	}
+}
+
+void DetectCloseToEnemy(byte8* actorBaseAddr) {
+	if (!actorBaseAddr || (uintptr_t)actorBaseAddr >= 0xFFFFFFFFFF) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& closeToEnemy = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].isCloseToEnemy : crimsonPlayer[playerIndex].isCloseToEnemyClone;
+	auto pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_2128 || !pool_2128[8]) {
+		closeToEnemy = false;
+		return;
+	}
+	auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
+
+	bool foundCloseEnemy = false;
+
+	// Loop through enemy data
+	for (auto enemy : enemyVectorData.metadata) {
+		if (!enemy.baseAddr) continue;
+		auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
+		if (!enemyData.baseAddr) continue;
+
+		glm::vec3 playerPos(actorData.position.x, actorData.position.y, actorData.position.z);
+		glm::vec3 enemyPos(enemyData.position.x, enemyData.position.y, enemyData.position.z);
+
+		float distanceToPlayer = glm::distance(playerPos, enemyPos);
+
+		if (distanceToPlayer <= 150.0f) {
+			foundCloseEnemy = true;
+			break;
+		}
+	}
+
+	closeToEnemy = foundCloseEnemy;
 }
 
 #pragma endregion

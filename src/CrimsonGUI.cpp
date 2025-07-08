@@ -8256,6 +8256,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				return;
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
+			ImGui::Text("closeToEnemy %u", crimsonPlayer[0].isCloseToEnemy);
 			ImGui::Text("guardTimer %g", actorData.guardTimer);
 			ImGui::Text("skyLaunch Executing %u", crimsonPlayer[0].skyLaunch.executing);
 			ImGui::Text("inertia airguard %g", crimsonPlayer[0].inertia.airGuard.cachedPull);
