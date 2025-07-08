@@ -885,7 +885,7 @@ void CameraDistanceController(CameraControlMetadata& cameraMetadata) {
             HandlePanoramicSPCameraDistance(cameraData.distanceCam, 430, 580);
         }
 		else if (!(g_isMPCamActive || (g_isParanoramicCamActive && g_inCombat))) {
-			HandleDynamicSPCameraDistance(cameraData.distanceCam, 430, 580);
+			HandleDynamicSPCameraDistance(cameraData.distanceCam, 430, 430);
         }
 	}
 }
