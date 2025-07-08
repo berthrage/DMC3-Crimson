@@ -484,25 +484,22 @@ void DisableBlendingEffectsController() {
 }
 
 void NewUpdateMotionArchives(PlayerActorData& actorData) {
-	CharacterData& charData = GetCharacterData(actorData.newPlayerIndex, actorData.newCharacterIndex, ENTITY::MAIN);
-	 uint8 count = (charData.character == CHARACTER::DANTE) ? static_cast<uint8>(countof(motionArchiveHelperDante))
-		: (charData.character == CHARACTER::BOB) ? static_cast<uint8>(countof(motionArchiveHelperBob))
-		: (charData.character == CHARACTER::LADY) ? static_cast<uint8>(countof(motionArchiveHelperLady))
-		: (charData.character == CHARACTER::VERGIL) ? static_cast<uint8>(countof(motionArchiveHelperVergil))
+	 uint8 count = (actorData.character == CHARACTER::DANTE) ? static_cast<uint8>(countof(motionArchiveHelperDante))
+		: (actorData.character == CHARACTER::BOB) ? static_cast<uint8>(countof(motionArchiveHelperBob))
+		: (actorData.character == CHARACTER::LADY) ? static_cast<uint8>(countof(motionArchiveHelperLady))
+		: (actorData.character == CHARACTER::VERGIL) ? static_cast<uint8>(countof(motionArchiveHelperVergil))
 		: 0;
 
-	const MotionArchiveHelper* motionArchiveHelper = (charData.character == CHARACTER::DANTE) ? motionArchiveHelperDante
-		: (charData.character == CHARACTER::BOB) ? motionArchiveHelperBob
-		: (charData.character == CHARACTER::LADY) ? motionArchiveHelperLady
-		: (charData.character == CHARACTER::VERGIL) ? motionArchiveHelperVergil
+	const MotionArchiveHelper* motionArchiveHelper = (actorData.character == CHARACTER::DANTE) ? motionArchiveHelperDante
+		: (actorData.character == CHARACTER::BOB) ? motionArchiveHelperBob
+		: (actorData.character == CHARACTER::LADY) ? motionArchiveHelperLady
+		: (actorData.character == CHARACTER::VERGIL) ? motionArchiveHelperVergil
 		: 0;
 
 	// Update motion archives
 	old_for_all(uint8, index, count) {
 		auto& group = motionArchiveHelper[index].group;
 		auto& cacheFileId = motionArchiveHelper[index].cacheFileId;
-
-		auto& metadata = File_staticFiles[cacheFileId];
 
 		actorData.motionArchives[group] = File_staticFiles[cacheFileId];
 	}
