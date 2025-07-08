@@ -406,7 +406,7 @@ void CameraFollowUpSpeedController(CameraData& cameraData, CameraControlMetadata
 		}
 		};
 
-	if (activeCrimsonConfig.Camera.multiplayerCamera && activeConfig.Actor.playerCount > 1) {
+	if (activeConfig.Actor.playerCount > 1) {
 		return; // Disable follow-up speed adjustment when multiplayer camera is active
 	}
 	else {
@@ -848,10 +848,15 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 	}
 }
 
-void CameraDistanceController(CameraData* cameraData, CameraControlMetadata& cameraMetadata) {
+void CameraDistanceController(CameraControlMetadata& cameraMetadata) {
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449 || !pool_4449[147]) {
+		return;
+	}
+	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 	if (activeCrimsonConfig.Camera.distance == 0 || cameraMetadata.fixedCameraAddr != 0) { // Far (Vanilla Default) // check if the camera is in a fixed pos mode
 		if (g_isMPCamActive && activeConfig.Actor.enable) {
-			HandleMultiplayerCameraDistance(cameraData->distance, 430, 580);
+			HandleMultiplayerCameraDistance(cameraData.distanceCam, 430, 580);
 		} else {
 			return;
 		}
@@ -859,9 +864,9 @@ void CameraDistanceController(CameraData* cameraData, CameraControlMetadata& cam
 
 	if (activeCrimsonConfig.Camera.distance == 1) { // Closer
 		if (g_isMPCamActive && activeConfig.Actor.enable) {
-			HandleMultiplayerCameraDistance(cameraData->distance, 430, 580);
-		} else if (cameraData->distance > 350) {
-			cameraData->distance = 350.0f;
+			HandleMultiplayerCameraDistance(cameraData.distanceCam, 430, 580);
+		} else if (cameraData.distanceCam > 350) {
+			cameraData.distanceCam = 350.0f;
 		} else {
 			return;
 		}
@@ -874,13 +879,13 @@ void CameraDistanceController(CameraData* cameraData, CameraControlMetadata& cam
 	if (activeCrimsonConfig.Camera.distance == 2) { // Dynamic
 
         if (g_isMPCamActive && activeConfig.Actor.enable) {
-            HandleMultiplayerCameraDistance(cameraData->distance, 430, 580);
+            HandleMultiplayerCameraDistance(cameraData.distanceCam, 430, 580);
         }
         else if (g_isParanoramicCamActive && g_inCombat) {
-            HandlePanoramicSPCameraDistance(cameraData->distance, 430, 580);
+            HandlePanoramicSPCameraDistance(cameraData.distanceCam, 430, 580);
         }
-        else if (!(g_isMPCamActive || (g_isParanoramicCamActive && g_inCombat) || activeConfig.Actor.enable)){
-            HandleDynamicSPCameraDistance(cameraData->distance, 430, 580);
+		else if (!(g_isMPCamActive || (g_isParanoramicCamActive && g_inCombat))) {
+			HandleDynamicSPCameraDistance(cameraData.distanceCam, 430, 580);
         }
 	}
 }

@@ -924,7 +924,7 @@ void MultiplayerCameraPositioningController() {
 	CrimsonPatches::DisableLockOnCamera(g_isMPCamActive);
 
 	// Activate multiplayer camera positioning
-	CrimsonDetours::ToggleCustomCameraPositioning(g_isMPCamActive && 
+	CrimsonDetours::ToggleCustomCameraPositioning(g_isMPCamActive &&
 		activeCrimsonConfig.Camera.multiplayerCamera &&
 		mainActorData.mode != ACTOR_MODE::MISSION_19);
 }
@@ -1216,7 +1216,7 @@ void GeneralCameraOptionsController() {
 
 	if (cameraData != nullptr) {
 		CrimsonPatches::CameraFollowUpSpeedController(*cameraData, cameraControlMetadata);
-		CrimsonPatches::CameraDistanceController(cameraData, cameraControlMetadata);
+		CrimsonPatches::CameraDistanceController(cameraControlMetadata);
 		CrimsonPatches::CameraTiltController(cameraData, cameraControlMetadata);
 	}
 

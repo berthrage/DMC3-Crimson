@@ -24,7 +24,7 @@ void ToggleIncreasedArtemisInstantChargeResponsiveness(bool enable);
 
 void CameraSensController();
 void CameraFollowUpSpeedController(CameraData& cameraData, CameraControlMetadata& cameraMetadata);
-void CameraDistanceController(CameraData* cameraData, CameraControlMetadata& cameraMetadata);
+void CameraDistanceController(CameraControlMetadata& cameraMetadata);
 void CameraLockOnDistanceController();
 void CameraTiltController(CameraData* cameraData, CameraControlMetadata& cameraMetadata);
 void ForceThirdPersonCamera(bool enable);

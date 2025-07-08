@@ -4855,24 +4855,9 @@ void CameraSection(size_t defaultFontSize) {
 			GUI_PushDisable(activeConfig.Actor.playerCount > 1);
 			GUI_Checkbox2("Third Person Camera", activeCrimsonConfig.Camera.thirdPersonCamera, queuedCrimsonConfig.Camera.thirdPersonCamera);
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Replaces (almost) every Fixed Camera with the Third Person Camera, switching to Fixed Angles when appropriate.\n"
+			TooltipHelper("(?)", "Replaces (almost) every Fixed Camera with the Third Person Camera, switching to Fixed Angles when apropriate.\n"
 				"Will always be enabled on Multiplayer.");
 			GUI_PopDisable(activeConfig.Actor.playerCount > 1);
-
-			ImGui::TableNextColumn();
-
-			if (GUI_Checkbox2("Multiplayer Camera", activeCrimsonConfig.Camera.multiplayerCamera, queuedCrimsonConfig.Camera.multiplayerCamera)) {
-				if (activeCrimsonConfig.Camera.multiplayerCamera) {
-					activeCrimsonConfig.Camera.distance = 2;
-					queuedCrimsonConfig.Camera.distance = 2;
-
-					activeCrimsonConfig.Camera.lockOnDistance = 2;
-					queuedCrimsonConfig.Camera.lockOnDistance = 2;
-				}
-			}
-			ImGui::SameLine();
-			TooltipHelper("(?)", "A cam for Multiplayer that will take all players (and enemies) into account for positioning and distancing.\n"
-				"Triggers only in Multiplayer or if you spawn Doppelganger in SP. Works best with Force Third Person Camera on.");
 
 			ImGui::TableNextColumn();
 
@@ -5039,6 +5024,12 @@ void CameraSection(size_t defaultFontSize) {
 	ImGui::Text("");
 
 	if (activeCrimsonGameplay.Debug.debugTools) {
+		auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+		if (!pool_4449 || !pool_4449[147]) {
+			return;
+		}
+		auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+
 		GUI_Title("LIVE CAMERA READINGS");
 
 		ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
@@ -5093,7 +5084,7 @@ void CameraSection(size_t defaultFontSize) {
 					ImGui::TableNextRow(0, rowWidth);
 					ImGui::TableNextColumn();
 
-					GUI_Input("Distance", cameraData.distance, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+					GUI_Input("Distance", cameraData.distanceCam, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
 					ImGui::TableNextColumn();
 

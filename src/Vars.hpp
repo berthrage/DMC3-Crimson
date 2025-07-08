@@ -2552,7 +2552,7 @@ struct CameraData {
     _(24);
     float height;   // 0xD0
     float tilt;     // 0xD4
-    float distance; // 0xD8
+    float distanceCam; // 0xD8
     _(4);
     float distanceLockOn; // 0xE0
     _(172);
@@ -2571,7 +2571,7 @@ static_assert(offsetof(CameraData, transitionToLockOnCam) == 0x90);
 static_assert(offsetof(CameraData, targetBaseAddr) == 0xB0);
 static_assert(offsetof(CameraData, height) == 0xD0);
 static_assert(offsetof(CameraData, tilt) == 0xD4);
-static_assert(offsetof(CameraData, distance) == 0xD8);
+static_assert(offsetof(CameraData, distanceCam) == 0xD8);
 static_assert(offsetof(CameraData, distanceLockOn) == 0xE0);
 static_assert(offsetof(CameraData, camcoords1) == 0x190);
 static_assert(offsetof(CameraData, camcoords2) == 0x1B0);
