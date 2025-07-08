@@ -4015,7 +4015,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
 	if (activeCrimsonGameplay.Gameplay.Vergil.darkslayerTrickCancels) {
         CrimsonGameplay::DarkslayerCancelsVergilController(actorBaseAddr);
 	}
-    CrimsonGameplay::AirStingerJumpCancelVergil(actorBaseAddr);
+    CrimsonGameplay::AirStingerJumpCancel(actorBaseAddr);
 
     if (actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
         actorData.airSwordAttackCount = 0;

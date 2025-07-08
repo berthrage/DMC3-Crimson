@@ -600,15 +600,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
                 policyTrick = EXECUTE;
             }
         }
-
-        // Air Stinger Ghetto Jump Cancelling
-		if ((actorData.action == REBELLION_STINGER_LEVEL_1 || actorData.action == REBELLION_STINGER_LEVEL_2 && actorData.state & STATE::IN_AIR) && closeToEnemy) {
-            policyJump = BUFFER;
-			if (doingJump) {
-                actorData.permissions = 3080; // This cancels the ability
-				policyJump = EXECUTE;
-			}
-		}
+		
 
         // Improved Cerberus' Crystal/Million Carats Trick Buffering
         if (actorData.action == CERBERUS_CRYSTAL || actorData.action == CERBERUS_MILLION_CARATS) {
@@ -829,32 +821,45 @@ void DarkslayerCancelsVergilController(byte8* actorBaseAddr) {
 	}
 }
 
-void AirStingerJumpCancelVergil(byte8* actorBaseAddr) {
+void AirStingerJumpCancel(byte8* actorBaseAddr) {
 	using namespace ACTION_VERGIL;
+	using namespace ACTION_DANTE;
 	using namespace NEXT_ACTION_REQUEST_POLICY;
 
 	if (!actorBaseAddr || (actorBaseAddr == g_playerActorBaseAddrs[0]) || (actorBaseAddr == g_playerActorBaseAddrs[1])) {
 		return;
 	}
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-	if (actorData.character != CHARACTER::VERGIL) return;
+	
 	auto playerIndex = actorData.newPlayerIndex;
 
 	bool doingJump = (actorData.buttons[0] & GetBinding(BINDING::JUMP));
+    auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 	auto& closeToEnemy = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].isCloseToEnemy : crimsonPlayer[playerIndex].isCloseToEnemyClone;
 
 	auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
 	auto& policyTrick = actorData.nextActionRequestPolicy[TRICKSTER_DARK_SLAYER];
 	auto& policyJump = actorData.nextActionRequestPolicy[JUMP_ROLL];
 
-	// Air Stinger Ghetto Jump Cancelling
-	if ((actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1 || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2 && actorData.state & STATE::IN_AIR) && closeToEnemy) {
-		policyJump = BUFFER;
-		if (doingJump) {
-			actorData.permissions = 3080; // This cancels the ability
-			policyJump = EXECUTE;
+    if (actorData.character == CHARACTER::DANTE) {
+		if ((actorData.action == REBELLION_STINGER_LEVEL_1 || actorData.action == REBELLION_STINGER_LEVEL_2 && actorData.state & STATE::IN_AIR)) {
+			policyJump = BUFFER;
+			if (doingJump && actionTimer > 0.19f) {
+				actorData.permissions = 3080; // This cancels the ability
+				policyJump = EXECUTE;
+			}
 		}
-	}
+
+
+    } else if (actorData.character == CHARACTER::VERGIL) {
+        if ((actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_1 || actorData.action == YAMATO_FORCE_EDGE_STINGER_LEVEL_2 && actorData.state & STATE::IN_AIR)) {
+            policyJump = BUFFER;
+            if (doingJump && actionTimer > 0.19f) {
+                actorData.permissions = 3080; // This cancels the ability
+                policyJump = EXECUTE;
+            }
+        }
+    }
 }
 
 
