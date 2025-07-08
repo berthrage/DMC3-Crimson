@@ -314,7 +314,7 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	g_BeowulfAttackTarget_ReturnAddr = BeowulfAttackTargetHook->GetReturnAddress();
 	g_BeowulfAttackTarget_CallAddr = (uintptr_t)appBaseAddr + 0x32E630;
 	g_BeowulfAttackTargetCheckCall = &EnemyTargetAimSwitchPlayerAddr;
-	BeowulfAttackTargetHook->Toggle(enable);
+	BeowulfAttackTargetHook->Toggle(false);
 
 
 	// BloodgoyleDiveTargetPos
