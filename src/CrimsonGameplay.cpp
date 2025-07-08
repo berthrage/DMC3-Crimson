@@ -2464,22 +2464,21 @@ void SprintAbility(byte8* actorBaseAddr) {
 
 
 void GunDTCharacterRemaps() {
-    // this is for Dante/Vergil gun and DT remaps
-    // remaps are global for all controllers and only take into account player 1's current character.
+	// this is for Dante/Vergil gun and DT remaps
+	// remaps are global for all controllers and only take into account player 1's current character.
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
 
-    if (!crimsonPlayer[0].playerPtr) {
-        return;
-    }
-
-    static uint16_t* currentDTButton    = (uint16_t*)(appBaseAddr + 0xD6CE9A);
-    static uint16_t* currentShootButton = (uint16_t*)(appBaseAddr + 0xD6CE98);
-    if (crimsonPlayer[0].character == CHARACTER::DANTE) {
-        *currentDTButton    = activeCrimsonConfig.System.Remaps.danteDTButton;
-        *currentShootButton = activeCrimsonConfig.System.Remaps.danteShootButton;
-    } else if (crimsonPlayer[0].character == CHARACTER::VERGIL) {
-        *currentDTButton    = activeCrimsonConfig.System.Remaps.vergilDTButton;
-        *currentShootButton = activeCrimsonConfig.System.Remaps.vergilShootButton;
-    }
+	static uint16_t* currentDTButton = (uint16_t*)(appBaseAddr + 0xD6CE9A);
+	static uint16_t* currentShootButton = (uint16_t*)(appBaseAddr + 0xD6CE98);
+	if (mainActorData.character == CHARACTER::DANTE) {
+		*currentDTButton = activeCrimsonConfig.System.Remaps.danteDTButton;
+		*currentShootButton = activeCrimsonConfig.System.Remaps.danteShootButton;
+	} else if (mainActorData.character == CHARACTER::VERGIL) {
+		*currentDTButton = activeCrimsonConfig.System.Remaps.vergilDTButton;
+		*currentShootButton = activeCrimsonConfig.System.Remaps.vergilShootButton;
+	}
 }
 
 #include <chrono>
