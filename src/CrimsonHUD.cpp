@@ -1051,7 +1051,7 @@ void RedOrbCounterWindow() {
 		return;
 	}
 	auto& missionData = *reinterpret_cast<MissionData*>(name_7058);
-	if (!(InGame() && !g_inGameCutscene)) {
+	if (g_inGameCutscene) {
 		return;
 	}
 
@@ -1061,10 +1061,6 @@ void RedOrbCounterWindow() {
 	}
 	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_10222 || !pool_10222[3]) {
-		return;
-	}
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
 	// This element is mandatory for non-vanilla modes
 	if (activeCrimsonGameplay.GameMode.preset >= GAMEMODEPRESETS::STYLE_SWITCHER) {
 		activeCrimsonConfig.CrimsonHudAddons.redOrbCounter = true;
