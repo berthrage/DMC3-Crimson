@@ -28,6 +28,7 @@
 #include "CrimsonTimers.hpp"
 #include "DMC3Input.hpp"
 #include "CrimsonGameModes.hpp"
+#include "CrimsonCameraController.hpp"
 
 
 namespace CrimsonOnTick {
@@ -600,7 +601,14 @@ void MultiplayerCameraPositioningController() {
 	// Fix for Arkham Pt.2 (and for M20 Credits) transitioning if doppelganger or multiplayer is active,
 	// preventing the camera from going into the Shadow Realm or stuck on a wall.
 	if (mainActorData.mode == ACTOR_MODE::MISSION_19 || mainActorData.mode == ACTOR_MODE::MISSION_18 ||
-		(sessionData.mission == 20) && (nextEventData.room == 12)) {
+		((sessionData.mission == 20) && (nextEventData.room == 12))) {
+		CrimsonDetours::ToggleCustomCameraPositioning(false);
+		return;
+	}
+
+	// Prevent Panoramic Cam from bugging out Fixed Cams (like Room 227)
+	if ((eventData.room == ROOM::ROUNDED_PATHWAY_4) && 
+		activeConfig.Actor.playerCount <= 1) {
 		CrimsonDetours::ToggleCustomCameraPositioning(false);
 		return;
 	}
