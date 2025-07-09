@@ -3043,10 +3043,10 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-	if (GUI_Checkbox2("Switch characters mid-mission", activeCrimsonGameplay.Gameplay.General.characterHotswap, queuedCrimsonGameplay.Gameplay.General.characterHotswap)) {}
+	if (GUI_Checkbox2("Switch characters mid-mission", activeCrimsonGameplay.Gameplay.General.charHotswap, queuedCrimsonGameplay.Gameplay.General.charHotswap)) {}
 	
-	GUI_PushDisable(!activeCrimsonGameplay.Gameplay.General.characterHotswap);
-	if (!activeCrimsonGameplay.Gameplay.General.characterHotswap) {
+	GUI_PushDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
+	if (!activeCrimsonGameplay.Gameplay.General.charHotswap) {
 		queuedPlayerData.characterCount = 1;
 	}
 	GUI_Slider<uint8>("Number of Characters", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
@@ -3064,7 +3064,7 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 			queuedPlayerData.collisionGroup);
 
 	}
-	GUI_PopDisable(!activeCrimsonGameplay.Gameplay.General.characterHotswap);
+	GUI_PopDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
 	BackgroundPlayerText(playerIndex);
 
 

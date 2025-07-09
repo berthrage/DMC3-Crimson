@@ -7,7 +7,7 @@ struct CrimsonConfigGameplayMask {
 		struct General {
 			bool inertia = true;
 			bool sprint = true;
-			bool characterHotswap = true;
+			bool charHotswap = true;
 			bool freeformSoftLock = true;
 			bool bufferlessReversals = true;
 			bool dmc4LockOnDirection = true;
@@ -27,7 +27,7 @@ struct CrimsonConfigGameplayMask {
 				return std::make_tuple(
 					std::make_pair("inertia", &General::inertia),
 					std::make_pair("sprint", &General::sprint),
-					std::make_pair("characterHotswap",&General::characterHotswap),
+					std::make_pair("charHotswap",&General::charHotswap),
 					std::make_pair("freeformSoftLock", &General::freeformSoftLock),
 					std::make_pair("bufferlessReversals", &General::bufferlessReversals),
 					std::make_pair("dmc4LockOnDirection", &General::dmc4LockOnDirection),
