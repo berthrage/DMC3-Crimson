@@ -124,11 +124,19 @@ void Init() {
         Log("DirectInput8Create %X", DirectInput8Create);
     }
 
+    MODULEENTRY32 me32 = {};
+	me32.dwSize = sizeof(MODULEENTRY32);
+	auto snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, 0);
+	Module32First(snapshot, &me32);
+    auto appName = "dmc3.exe";
+
+
     uintptr_t base = (uintptr_t)GetModuleHandleA(NULL);
     for (const auto& entry : s_CrimsonOffsets) {
         uintptr_t address = base + entry.first;
         int result = memcmp((void*)address, entry.second.data(), entry.second.size());
-        if (result != 0) {
+        if (result != 0 && strncmp(me32.szModule, appName,
+                sizeof(appName) ) == 0) {
             Log("Check dmc3.exe + %X FAILED", address);
             MessageBoxA(NULL, "Executable checksum is wrong. Startup cannot continue", "DMC3 Crimson", MB_ICONERROR);
             std::exit(1);
