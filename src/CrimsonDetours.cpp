@@ -225,6 +225,12 @@ void* g_FixFPSSpeedIssuesCall;
 std::uint64_t g_FixBallsHangHitSpeed_ReturnAddr;
 void FixBallsHangHitSpeedDetour();
 
+// FixSecretMissionTimerFPS
+std::uint64_t g_FixSecretMissionTimerFPS_ReturnAddr;
+void FixSecretMissionTimerFPSDetour();
+std::uint64_t g_FixSecretMissionTimerFPS_ReturnAddr2;
+void FixSecretMissionTimerFPSDetour2();
+
 // StyleRankHUDNoFadeout
 std::uint64_t g_StyleRankHudNoFadeout_ReturnAddr;
 void StyleRankHudNoFadeoutDetour();
@@ -1120,6 +1126,37 @@ void ToggleFixBallsHangHitSpeed(bool enable) {
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25C2DD, &FixBallsHangHitSpeedDetour, 5);
 	g_FixBallsHangHitSpeed_ReturnAddr = FixBallsHangHitSpeedHook->GetReturnAddress();
 	FixBallsHangHitSpeedHook->Toggle(enable);
+	run = enable;
+}
+
+
+void ToggleFixSecretMissionTimerFPS(bool enable) {
+	// This will untie the Secret Mission timer from FPS settings (ie no longer spawning with half the time when playing at 120 fps).
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+	
+	// FixSecretMissionTimerFPS
+	// dmc3.exe+27C0DD - F3 0F 11 81 48 69 00 00   - movss [rcx+00006948],xmm0 { Setting secret mission timer }
+	// RCX is HUDPtr
+
+	// dmc3.exe+27EF74 - F3 0F 5C C8            - subss xmm1,xmm0
+	// dmc3.exe+27EF78 - 0F 57 C0               - xorps xmm0,xmm0
+	// dmc3.exe + 27EF7E - F3 0F 11 8F 48 69 00 00 - movss[rdi + 00006948], xmm1{ Decrement Secret Mission Timer }
+	// RDI is HUDPtr
+
+	static std::unique_ptr<Utility::Detour_t> FixSecretMissionTimerFPSHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27C0DD, &FixSecretMissionTimerFPSDetour, 8);
+	g_FixSecretMissionTimerFPS_ReturnAddr = FixSecretMissionTimerFPSHook->GetReturnAddress();
+	FixSecretMissionTimerFPSHook->Toggle(enable);
+
+	static std::unique_ptr<Utility::Detour_t> FixSecretMissionTimerFPSHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27EF74, &FixSecretMissionTimerFPSDetour2, 7);
+	g_FixSecretMissionTimerFPS_ReturnAddr2 = FixSecretMissionTimerFPSHook2->GetReturnAddress();
+	FixSecretMissionTimerFPSHook2->Toggle(enable);
+
 	run = enable;
 }
 

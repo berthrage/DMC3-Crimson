@@ -125,6 +125,7 @@ void ToggleGreenOrbsMPRegen(bool enable);
 void ToggleClassicHUDPositionings(bool enable);
 void ToggleStyleRankHudNoFadeout(bool enable);
 void ToggleFixBallsHangHitSpeed(bool enable);
+void ToggleFixSecretMissionTimerFPS(bool enable);
 void ToggleCerberusCrashFix(bool enable);
 void ToggleVergilM3CrashFix(bool enable);
 void ToggleMission5CrashFix(bool enable);

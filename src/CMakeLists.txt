@@ -17,6 +17,7 @@ set(MASM_SRC
     masm/CerbDamageFix.asm
     masm/FixCrashM5.asm
     masm/FixCrashVergilM3.asm
+    masm/FixSecretMissionTimerFPS.asm
     masm/HideStyleRankHUD.asm
     masm/HudHPSeparation.asm
     masm/HudStyleBarPosAsm.asm

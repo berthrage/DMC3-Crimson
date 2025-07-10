@@ -5038,7 +5038,7 @@ extern bool styleChanged[6];
 extern float g_FrameRate;
 extern "C" float g_FrameRateTimeMultiplier;
 extern "C" float g_cerbDamageValue;
-extern float g_FrameRateTimeMultiplierRounded;
+extern "C" float g_FrameRateTimeMultiplierRounded;
 extern bool g_inCombat;
 extern bool g_inBossfight;
 extern bool g_inCredits;
