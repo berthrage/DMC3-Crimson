@@ -4899,8 +4899,8 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.invertX = true;
 			queuedCrimsonConfig.Camera.invertX = true;
 
-			activeCrimsonConfig.Camera.lockedOff = false;
-			queuedCrimsonConfig.Camera.lockedOff = false;
+			activeCrimsonConfig.Camera.lockedOff = true;
+			queuedCrimsonConfig.Camera.lockedOff = true;
 
 			activeCrimsonConfig.Camera.rightStickCameraCentering = 2;
 			queuedCrimsonConfig.Camera.rightStickCameraCentering = 2;
