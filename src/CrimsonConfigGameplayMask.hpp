@@ -137,12 +137,14 @@ struct CrimsonConfigGameplayMask {
 			bool ldkMode = true;
 			bool mustStyleMode = true;
 			bool enemyDTMode = true;
+			bool forceDifficultyMode = true;
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
 					std::make_pair("ldkMode", &ExtraDifficulty::ldkMode),
 					std::make_pair("mustStyleMode", &ExtraDifficulty::mustStyleMode),
-					std::make_pair("enemyDTMode", &ExtraDifficulty::enemyDTMode)
+					std::make_pair("enemyDTMode", &ExtraDifficulty::enemyDTMode),
+					std::make_pair("forceDifficultyMode", &ExtraDifficulty::forceDifficultyMode)
 				);
 			}
 		} ExtraDifficulty;

@@ -108,13 +108,6 @@ void FrameResponsiveGameSpeed() {
 	}
 }
 
-void ForceChangeDifficulty() {
-	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-	//if (g_scene == SCENE::GAME) {
-		//sessionData.difficultyMode = DIFFICULTY_MODE::DANTE_MUST_DIE;
-	//}
-}
-
 void GameTrackDetection() {
 	g_gameTrackPlaying = (std::string)reinterpret_cast<char*>(appBaseAddr + 0xD23906);
 }
@@ -1669,9 +1662,38 @@ void FixM7DevilTriggerUnlocking() {
 	}
 }
 
+void ForceDifficultyController() {
+	auto& forceDifficultyMode = activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode;
+	static bool difficultySaved = false;
+	static uint32 originalDifficulty;
+
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	if (g_scene == SCENE::MISSION_START) {
+		// Save original difficulty before game starts
+		if (!difficultySaved) {
+			originalDifficulty = sessionData.difficultyMode;
+			difficultySaved = true;
+		}
+	} else if (g_scene == SCENE::GAME) {
+		if (forceDifficultyMode == DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF) {
+			return; 
+		}
+		// Apply forced difficulty
+		if (sessionData.difficultyMode != forceDifficultyMode)
+			sessionData.difficultyMode = forceDifficultyMode;
+	} else if (g_scene == SCENE::MISSION_RESULT || g_scene == SCENE::MISSION_SELECT) {
+		// Restore original difficulty
+		if (difficultySaved) {
+			sessionData.difficultyMode = originalDifficulty;
+			difficultySaved = false;
+		}
+	}
+}
+
 void TriggerOnTickFuncs() {
 	// These functions run OnTick globally (in game and in menus) through Game Thread
-	ForceChangeDifficulty();
+	ForceDifficultyController();
 	CrimsonOnTick::InCreditsDetection();
 	CrimsonOnTick::WeaponProgressionTracking();
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();

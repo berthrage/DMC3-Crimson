@@ -1753,6 +1753,26 @@ constexpr uint8 enemyDTModes[] = {
 	ENEMYDTMODE::NO_ENEMY_DT,
 };
 
+const char* forceDifficultyNames[] = {
+	"Off",
+	"Easy",
+	"Normal",
+	"Hard",
+	"Very Hard",
+	"Dante Must Die",
+	"Heaven or Hell",
+};
+
+constexpr uint32 forceDifficultyModes[] = {
+	DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF,
+	DIFFICULTY_MODE::EASY,
+	DIFFICULTY_MODE::NORMAL,
+	DIFFICULTY_MODE::HARD,
+	DIFFICULTY_MODE::VERY_HARD,
+	DIFFICULTY_MODE::DANTE_MUST_DIE,
+	DIFFICULTY_MODE::HEAVEN_OR_HELL,
+};
+
 constexpr uint8 delayedComboSFXMap[] = {
 	DELAYEDCOMBOSFX::TYPE_A,
 	DELAYEDCOMBOSFX::TYPE_B,
@@ -3727,6 +3747,10 @@ void RenderMissionResultGameModeStats() {
 	ImGui::SetNextWindowPos(difficultyWindowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
 
+	auto currentDifficultyMode = activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode != DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF ? 
+		activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode
+		: sessionData.difficultyMode;
+
 	if (ImGui::Begin("DifficultyStats", nullptr,
 		ImGuiWindowFlags_NoTitleBar |
 		ImGuiWindowFlags_NoResize |
@@ -3736,7 +3760,12 @@ void RenderMissionResultGameModeStats() {
 		ImGuiWindowFlags_NoInputs |
 		ImGuiWindowFlags_NoBackground)) {
 		 // Calculate position for difficulty text
-		const char* difficultyString = gameModeData.difficultyModeNames[sessionData.difficultyMode].c_str(); // Implement this function as needed
+		const char* difficultyString = gameModeData.difficultyModeNames[currentDifficultyMode].c_str(); // Implement this function as needed
+		if (activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode != DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF) {
+			std::string forcedDifficultyDisplay = " (Forced)";
+			std::string newDifficultyString = std::string(difficultyString) + forcedDifficultyDisplay;
+			difficultyString = newDifficultyString.c_str();
+		}
 		ImVec2 difficultyTextSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, difficultyString);
 		ImGui::SetWindowFontScale(scaleFactorY);
 
@@ -11421,6 +11450,18 @@ void ExtraDifficultyGameplayOptions() {
 		TooltipHelper("(?)", "Default setting will apply Enemy DT as normal in Dante Must Die Difficulty.\n"
 			"Instant Enemy DT will apply Enemy DT instantly when they spawn on DMD.\n"
 		"No Enemy DT will make it so enemy DT never occurs, even on DMD.");
+
+		ImGui::TableNextColumn();
+
+		ImGui::PushItemWidth(itemWidth * 0.93f);
+		UI::ComboMapValue2("Force Difficulty",
+			forceDifficultyNames,
+			forceDifficultyModes,
+			activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode,
+			queuedCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode);
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+		TooltipHelper("(?)", "This will force any difficulty you wish during the game. Useful for DMD Bloody Palace.");
 
 		ImGui::EndTable();
 	}

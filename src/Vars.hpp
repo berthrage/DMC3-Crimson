@@ -238,7 +238,8 @@ enum {
 
 namespace DIFFICULTY_MODE {
 enum {
-    EASY,
+    FORCE_DIFFICULTY_OFF = -1,
+    EASY = 0,
     NORMAL,
     HARD,
     VERY_HARD,

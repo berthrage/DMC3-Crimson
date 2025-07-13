@@ -291,9 +291,12 @@ const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 	mask.Gameplay.General.holdToShoot = false;
 	mask.Gameplay.General.vanillaWeaponSwitchDelay = false;
 	mask.Gameplay.Dante.swapArtemisMultiLockNormalShot = false;
+
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
 	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
+	mask.Gameplay.ExtraDifficulty.forceDifficultyMode = false;
+
 	mask.Cheats.Training.infiniteHP = false;
 	mask.Cheats.Training.infiniteDT = false;
 	mask.Cheats.Training.disableTimers = false;
@@ -353,6 +356,8 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
 	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
+	mask.Gameplay.ExtraDifficulty.forceDifficultyMode = false;
+
 	mask.Cheats.Vergil.chronoSwords = false;
 	mask.Cheats.Training.infiniteHP = false;
 	mask.Cheats.Training.infiniteDT = false;
@@ -412,6 +417,8 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
 	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
+	mask.Gameplay.ExtraDifficulty.forceDifficultyMode = false;
+
 	mask.Cheats.Vergil.chronoSwords = false;
 	mask.Cheats.Training.infiniteHP = false;
 	mask.Cheats.Training.infiniteDT = false;
