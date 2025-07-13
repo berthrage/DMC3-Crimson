@@ -136,7 +136,7 @@ struct CrimsonConfig {
 		bool stunDisplacementNumericHud = false;
 		bool lockOnColorsCharacter = true;
 		std::string selectedStyleRanks = "Crimson";
-		std::string selectedStyleRanksAccolades = "DMC3Default";
+		std::string selectedStyleRanksAccolades = "1 - DMC3Default";
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
