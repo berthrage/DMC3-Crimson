@@ -3736,7 +3736,7 @@ void RenderMissionResultGameModeStats() {
 		ImGuiWindowFlags_NoInputs |
 		ImGuiWindowFlags_NoBackground)) {
 		 // Calculate position for difficulty text
-		const char* difficultyString = gameModeData.difficultyModeNames[sessionData.mode].c_str(); // Implement this function as needed
+		const char* difficultyString = gameModeData.difficultyModeNames[sessionData.difficultyMode].c_str(); // Implement this function as needed
 		ImVec2 difficultyTextSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, difficultyString);
 		ImGui::SetWindowFontScale(scaleFactorY);
 
@@ -3759,7 +3759,7 @@ void RenderMissionResultGameModeStats() {
 			ImGui::Text(mustStyleMissionText.c_str());
 		}
 		ImGui::SameLine();
-		if (gameModeData.enemyDTMissionResult != ENEMYDTMODE::DEFAULT && sessionData.mode == DIFFICULTY_MODE::DANTE_MUST_DIE) {
+		if (gameModeData.enemyDTMissionResult != ENEMYDTMODE::DEFAULT && sessionData.difficultyMode == DIFFICULTY_MODE::DANTE_MUST_DIE) {
 			ImGui::Text(enemyDTMissionText.c_str());
 		}
 

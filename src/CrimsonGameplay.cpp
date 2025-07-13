@@ -2970,6 +2970,11 @@ void DetectCloseToEnemy(byte8* actorBaseAddr) {
 	closeToEnemy = foundCloseEnemy;
 }
 
+void ForceChangeDifficulty(uint8 difficultyMode) {
+    auto lel = DIFFICULTY_MODE::NORMAL;
+
+}
+
 #pragma endregion
 
 #pragma region DanteAirTaunt

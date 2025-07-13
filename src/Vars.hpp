@@ -2266,7 +2266,7 @@ static_assert(sizeof(NextEventData) == 360);
 struct SessionData {
     uint32 mission; // 0
     _(8);
-    uint32 mode;     // 0xC
+    uint32 difficultyMode;     // 0xC
     bool oneHitKill; // 0x10
     _(1);
     bool enableTutorial; // 0x12
@@ -2298,7 +2298,7 @@ struct SessionData {
 };
 
 static_assert(offsetof(SessionData, mission) == 0);
-static_assert(offsetof(SessionData, mode) == 0xC);
+static_assert(offsetof(SessionData, difficultyMode) == 0xC);
 static_assert(offsetof(SessionData, oneHitKill) == 0x10);
 static_assert(offsetof(SessionData, enableTutorial) == 0x12);
 static_assert(offsetof(SessionData, useGoldOrb) == 0x13);

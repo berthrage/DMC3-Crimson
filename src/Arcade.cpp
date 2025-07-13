@@ -29,17 +29,17 @@ void InitSession() {
     if ((sessionData.mission >= 1) && (sessionData.mission <= 20)) {
         using namespace DIFFICULTY_MODE;
 
-        uint32 mode     = 0;
+        uint32 difficultyMode     = 0;
         bool oneHitKill = false;
 
-        mode = activeConfig.Arcade.mode;
+        difficultyMode = activeConfig.Arcade.mode;
 
-        if (mode == HEAVEN_OR_HELL) {
-            mode       = HARD;
+        if (difficultyMode == HEAVEN_OR_HELL) {
+            difficultyMode       = HARD;
             oneHitKill = true;
         }
 
-        sessionData.mode       = mode;
+        sessionData.difficultyMode       = difficultyMode;
         sessionData.oneHitKill = oneHitKill;
     }
 
