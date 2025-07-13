@@ -1666,6 +1666,7 @@ void ForceDifficultyController() {
 	auto& forceDifficultyMode = activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode;
 	static bool difficultySaved = false;
 	static uint32 originalDifficulty;
+	static bool originalOneHitKill = false;
 
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
@@ -1673,6 +1674,7 @@ void ForceDifficultyController() {
 		// Save original difficulty before game starts
 		if (!difficultySaved) {
 			originalDifficulty = sessionData.difficultyMode;
+			originalOneHitKill = sessionData.oneHitKill;
 			difficultySaved = true;
 		}
 	} else if (g_scene == SCENE::GAME) {
@@ -1681,11 +1683,19 @@ void ForceDifficultyController() {
 		}
 		// Apply forced difficulty
 		if (sessionData.difficultyMode != forceDifficultyMode)
-			sessionData.difficultyMode = forceDifficultyMode;
+			if (forceDifficultyMode == DIFFICULTY_MODE::HEAVEN_OR_HELL) {
+				forceDifficultyMode = DIFFICULTY_MODE::HARD;
+				sessionData.difficultyMode = forceDifficultyMode;
+				sessionData.oneHitKill = true;
+			} else {
+				sessionData.difficultyMode = forceDifficultyMode;
+				sessionData.oneHitKill = originalOneHitKill;
+			}
 	} else if (g_scene == SCENE::MISSION_RESULT || g_scene == SCENE::MISSION_SELECT) {
 		// Restore original difficulty
 		if (difficultySaved) {
 			sessionData.difficultyMode = originalDifficulty;
+			sessionData.oneHitKill = originalOneHitKill;
 			difficultySaved = false;
 		}
 	}
