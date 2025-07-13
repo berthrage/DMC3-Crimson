@@ -108,6 +108,13 @@ void FrameResponsiveGameSpeed() {
 	}
 }
 
+void ForceChangeDifficulty() {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	//if (g_scene == SCENE::GAME) {
+		//sessionData.difficultyMode = DIFFICULTY_MODE::DANTE_MUST_DIE;
+	//}
+}
+
 void GameTrackDetection() {
 	g_gameTrackPlaying = (std::string)reinterpret_cast<char*>(appBaseAddr + 0xD23906);
 }
@@ -1664,6 +1671,7 @@ void FixM7DevilTriggerUnlocking() {
 
 void TriggerOnTickFuncs() {
 	// These functions run OnTick globally (in game and in menus) through Game Thread
+	ForceChangeDifficulty();
 	CrimsonOnTick::InCreditsDetection();
 	CrimsonOnTick::WeaponProgressionTracking();
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
