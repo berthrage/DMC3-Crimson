@@ -272,6 +272,14 @@ void FixWeaponUnlocksDante() {
 		ladyExists = false;
 	}
 
+	// Unlock Beowulf for Dante in Vergil's Campaign in Mission 14 if it hasn't happened.
+	if (sessionData.character == CHARACTER::VERGIL &&
+		sessionData.mission == 14 &&
+		eventData.room == ROOM::LAIR_OF_JUDGEMENT_RUINS &&
+		missionData.itemCounts[ITEM::BEOWULF] != 1) {
+		missionData.itemCounts[ITEM::BEOWULF] = 1;
+	}
+
 	if (doppelExists && !doppelAlive && doppelMissionContext) {
 		sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER] = 1;
 		doppelExists = false;

@@ -8044,6 +8044,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 				ImGui::Text("sessionData.quicksilverLevel: %u", sessionData.styleLevels[STYLE::QUICKSILVER]);
 // 				ImGui::Text("sessionData.doppelgangerLevel: %u", sessionData.styleLevels[STYLE::DOPPELGANGER]);
 				ImGui::Text("GunUnlockedQtt: %u", weaponProgression.gunsUnlockedQtt);
+				ImGui::Text("sessionData.character: %u", sessionData.character);
 				ImGui::Text("sessionData.unlockDevilTrigger: %u", sessionData.unlockDevilTrigger);
 				ImGui::Text("sessionData.magicPoints: %g", sessionData.magicPoints);
 				ImGui::Text("queuedCharacterData.rangedWeaponCount: %u", queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeaponCount);
