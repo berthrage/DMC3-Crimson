@@ -11244,6 +11244,15 @@ void VergilGameplayOptions() {
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
+			if (GUI_Checkbox2("Trick Up When Not Locked On",
+				activeCrimsonGameplay.Gameplay.Vergil.trickUpNoLockOn,
+				queuedCrimsonGameplay.Gameplay.Vergil.trickUpNoLockOn)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Allows Vergil to Trick Up instead of Air Tricking when using the Style Button without Lock On.\n"
+				"Similar to DMC5.");
+
+			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			ImGui::PushItemWidth(itemWidth * 0.5f);
 			UI::ComboVectorString2("Alt. Lunar Phase Positioning",

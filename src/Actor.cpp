@@ -6880,6 +6880,11 @@ uint32 AirTrickDante(PlayerActorData& actorData, uint8 action) {
 }
 
 uint32 AirTrickVergil(PlayerActorData& actorData, uint8 action) {
+    if (activeCrimsonGameplay.Gameplay.Vergil.trickUpNoLockOn && !actorData.lockOn && actorData.styleLevel > 1) {
+		return MobilityFunction<ACTOR_EVENT::DARK_SLAYER_TRICK_UP>(
+			actorData, action, actorData.newTrickUpCount, activeCrimsonGameplay.Cheats.Mobility.trickUpCount);
+    }
+
     return MobilityFunction<ACTOR_EVENT::DARK_SLAYER_AIR_TRICK>(
         actorData, action, actorData.newAirTrickCount, activeCrimsonGameplay.Cheats.Mobility.vergilAirTrickCount);
 }

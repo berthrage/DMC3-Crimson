@@ -297,6 +297,8 @@ const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
 	mask.Gameplay.ExtraDifficulty.forceDifficultyMode = false;
 
+	mask.Gameplay.Vergil.trickUpNoLockOn = false;
+
 	mask.Cheats.Training.infiniteHP = false;
 	mask.Cheats.Training.infiniteDT = false;
 	mask.Cheats.Training.disableTimers = false;
@@ -352,6 +354,7 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Gameplay.Vergil.airStinger = false;
 	mask.Gameplay.Vergil.yamatoRisingStar = false;
 	mask.Gameplay.Vergil.yamatoHighTime = false;
+	mask.Gameplay.Vergil.trickUpNoLockOn = false;
 
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
@@ -413,6 +416,7 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.Vergil.airStinger = false;
 	mask.Gameplay.Vergil.yamatoRisingStar = false;
 	mask.Gameplay.Vergil.yamatoHighTime = false;
+	mask.Gameplay.Vergil.trickUpNoLockOn = false;
 
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;

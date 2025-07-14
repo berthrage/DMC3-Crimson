@@ -113,6 +113,7 @@ struct CrimsonConfigGameplayMask {
 			bool yamatoRisingStar = true;
 			bool yamatoHighTime = true;
 			bool mirageTrigger = true;
+			bool trickUpNoLockOn = true;
 			bool adjustLunarPhasePos = true;
 			
 
@@ -128,6 +129,7 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("yamatoRisingStar", &Vergil::yamatoRisingStar),
 					std::make_pair("yamatoHighTime", &Vergil::yamatoHighTime),
 					std::make_pair("mirageTrigger", &Vergil::mirageTrigger),
+					std::make_pair("trickUpNoLockOn", &Vergil::trickUpNoLockOn),
 					std::make_pair("adjustLunarPhasePos", &Vergil::adjustLunarPhasePos)
 				);
 			}
