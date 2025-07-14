@@ -733,6 +733,7 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 	static bool ldkChanged = false;
 	static bool mustStyleChanged = false;
 	static bool enemyDTChanged = false;
+	static bool forceDifficultyChanged = false;
 
 	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
 	if (!name_10723) {
@@ -750,6 +751,7 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 	static uint8 initialEnemyDTPreset = ENEMYDTMODE::DEFAULT;
 	static uint32 initialMustStylePreset = STYLE_RANK::NONE;
 	static bool enemyDTLockedNoDT = false; 
+	static uint32 initialForceDifficulty = DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF;
 
 	if (missionData.frameCount > 0 && g_scene != SCENE::MISSION_RESULT) { // Mission is Running
 		if (!initializedMission) {
@@ -757,12 +759,14 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 			initialLDKPreset = activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode;
 			initialEnemyDTPreset = activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode;
 			initialMustStylePreset = activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode;
+			initialForceDifficulty = activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode;
 			initializedMission = true;
 			presetChanged = false;
 			ldkChanged = false;
 			mustStyleChanged = false;
 			enemyDTChanged = false;
 			enemyDTLockedNoDT = false; // Reset lock at mission start
+			forceDifficultyChanged = false;
 		} else if (activeCrimsonGameplay.GameMode.preset != initialPreset) {
 			presetChanged = true;
 			gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : activeCrimsonGameplay.GameMode.preset;
@@ -789,14 +793,23 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 			// Keep it locked
 			gameModeData.enemyDTMissionResult = ENEMYDTMODE::NO_ENEMY_DT;
 		}
+
+		if (activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode != initialForceDifficulty) {
+			forceDifficultyChanged = true;
+			if (initialForceDifficulty != DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF || forceDifficultyChanged) {
+				gameModeData.forceDifficultyResult = true;
+			} 
+		}
 	} else if (g_scene == SCENE::MISSION_RESULT) { // Mission Result Screen
 		gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : gameModeData.missionResultGameMode;
 		gameModeData.ldkNissionResult = ldkChanged ? LDKMODE::OFF : activeCrimsonGameplay.Gameplay.ExtraDifficulty.ldkMode;
 		gameModeData.mustStyleMissionResult = mustStyleChanged ? STYLE_RANK::NONE : activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode;
 		gameModeData.enemyDTMissionResult = enemyDTLockedNoDT ? ENEMYDTMODE::NO_ENEMY_DT :
 			(enemyDTChanged ? ENEMYDTMODE::DEFAULT : activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode);
+		gameModeData.forceDifficultyResult = initialForceDifficulty != DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF || forceDifficultyChanged ? true : false;
 		initializedMission = false; // Reset for next mission
 		enemyDTLockedNoDT = false;  // Reset lock after mission result
+		
 	}
 }
 

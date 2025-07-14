@@ -3760,12 +3760,14 @@ void RenderMissionResultGameModeStats() {
 		ImGuiWindowFlags_NoInputs |
 		ImGuiWindowFlags_NoBackground)) {
 		 // Calculate position for difficulty text
-		const char* difficultyString = gameModeData.difficultyModeNames[currentDifficultyMode].c_str(); // Implement this function as needed
-		if (activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode != DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF) {
-			std::string forcedDifficultyDisplay = " (Forced)";
-			std::string newDifficultyString = std::string(difficultyString) + forcedDifficultyDisplay;
-			difficultyString = newDifficultyString.c_str();
+		std::string difficultyDisplay = gameModeData.difficultyModeNames[currentDifficultyMode];
+		if (currentDifficultyMode == DIFFICULTY_MODE::HARD && sessionData.oneHitKill) {
+			difficultyDisplay = "Heaven or Hell";
 		}
+		if (activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode != DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF) {
+			difficultyDisplay += " (Forced)";
+		}
+		const char* difficultyString = difficultyDisplay.c_str();
 		ImVec2 difficultyTextSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, difficultyString);
 		ImGui::SetWindowFontScale(scaleFactorY);
 
@@ -3779,6 +3781,7 @@ void RenderMissionResultGameModeStats() {
 		std::string ldkMissionText = std::string(reinterpret_cast<const char*>(u8"• ")) + ldkModeNames[gameModeData.ldkNissionResult];
 		std::string mustStyleMissionText = std::string(reinterpret_cast<const char*>(u8"• Must Style (")) + std::string(styleRankNames[gameModeData.mustStyleMissionResult]) + ")";
 		std::string enemyDTMissionText = (std::string(reinterpret_cast<const char*>(u8"• ")) + (std::string)enemyDTModeNames[gameModeData.enemyDTMissionResult]);
+		std::string forceDifficultyText = (std::string(reinterpret_cast<const char*>(u8"• Force Difficulty")));
 
 		if (gameModeData.ldkNissionResult != LDKMODE::OFF) {
 			ImGui::Text(ldkMissionText.c_str());
@@ -3790,6 +3793,10 @@ void RenderMissionResultGameModeStats() {
 		ImGui::SameLine();
 		if (gameModeData.enemyDTMissionResult != ENEMYDTMODE::DEFAULT && sessionData.difficultyMode == DIFFICULTY_MODE::DANTE_MUST_DIE) {
 			ImGui::Text(enemyDTMissionText.c_str());
+		}
+
+		if (gameModeData.forceDifficultyResult) {
+			ImGui::Text(forceDifficultyText.c_str());
 		}
 
 		

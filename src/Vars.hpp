@@ -4908,6 +4908,7 @@ struct GameModeData {
     uint8 ldkNissionResult = LDKMODE::OFF;
     uint32 mustStyleMissionResult = STYLE_RANK::NONE;
     uint8 enemyDTMissionResult = ENEMYDTMODE::DEFAULT;
+    bool forceDifficultyResult = false;
 	std::vector<std::string> names = {
 		"VANILLA MODE",
 		"STYLE SWITCHER MODE",
