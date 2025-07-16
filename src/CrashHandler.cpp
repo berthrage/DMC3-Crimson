@@ -14,6 +14,8 @@
 
 #define USE_THREAD 1
 
+static bool s_crashHandlerInstalled { false };
+
 #pragma warning(push)
 #pragma warning(disable : 6011)
 inline void CrashMeDaddy() {
@@ -185,7 +187,7 @@ static void BuildCrashInfoText() {
 void ShowCrashHandlerMessage() {
     Log("ShowCrashHandlerMessage()\n");
 
-    const char* msg = "We're sorry, DMC3 Crimson has crashed.\n\nPress 'Ok' to open log folder\nSend crimson_crash.dmp and Crash.txt files to the developers and describe what you were doing!";
+    const char* msg = "We're sorry, DMC3 Crimson has crashed.\n\nPress 'Ok' to open log folder\nSend CrimsonCrash.dmp and Crash.txt files to the developers and describe what you were doing!";
     UINT flags = MB_ICONERROR | MB_OK | MB_OKCANCEL | MB_SETFOREGROUND | MB_TOPMOST;
 
     int res = MessageBoxA(NULL, msg, MSGBOX_TITLE, flags);
@@ -260,11 +262,13 @@ static DWORD WINAPI CrashDumpProc() {
         return 0;
     }
 
-    MINIDUMP_TYPE type = (MINIDUMP_TYPE)(MiniDumpNormal | MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory);
-    type = (MINIDUMP_TYPE)(type | MiniDumpWithDataSegs | MiniDumpWithHandleData);
+    MINIDUMP_TYPE type = (MINIDUMP_TYPE)(MiniDumpNormal | MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory | MiniDumpWithHandleData );
     if (fullDump) {
+        type = (MINIDUMP_TYPE)(type | MiniDumpWithDataSegs | MiniDumpWithCodeSegs | MiniDumpWithHandleData);
+#if 0
         type =
             (MINIDUMP_TYPE)(type | MiniDumpWithPrivateReadWriteMemory);
+#endif
     }
     MINIDUMP_CALLBACK_INFORMATION mci = {OpenMiniDumpCallback, nullptr};
 
@@ -554,6 +558,10 @@ int __cdecl _purecall() {
 }
 
 void InstallCrashHandler(const char* crashFilePath) {
+    if (s_crashHandlerInstalled == true) {
+        return;
+    }
+
     gCrashFilePath = (char*)crashFilePath;
 
     Log("InstallCrashHandler:\n  crashFilePath: '%s'\n", crashFilePath );
@@ -590,6 +598,8 @@ void InstallCrashHandler(const char* crashFilePath) {
     // but it is disabled by _HAS_CXX17 because P0003R5
     // https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0003r5.html
     ::set_unexpected(onUnexpected);
+
+    s_crashHandlerInstalled = true;
 }
 
 void UninstallCrashHandler() {
