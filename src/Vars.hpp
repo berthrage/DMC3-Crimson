@@ -4133,7 +4133,8 @@ struct EnemyActorData : ActorDataBase {
 	float hitPointsArkham; // 0x26A8
 	_(220);
 	float maxHitPointsArkham; // 0x2788
-	_(1696);
+    float healthGateHitPointsArkham; // 0x278C
+	_(1692);
 	float maxHitPointsHells; // 0x2E2C
 	_(44);
 	float hitPointsHells; // 0x2E5C
@@ -4225,6 +4226,8 @@ static_assert(offsetof(EnemyActorData, hitPointsSoulEater) == 0x1A18);
 static_assert(offsetof(EnemyActorData, hitPointsDullahan) == 0x2478);
 static_assert(offsetof(EnemyActorData, hitPointsArkham) == 0x26A8);
 static_assert(offsetof(EnemyActorData, maxHitPointsArkham) == 0x2788);
+static_assert(offsetof(EnemyActorData, healthGateHitPointsArkham) == 0x278C);
+//const bool x = (offsetof(EnemyActorData, maxHitPointsHells) == 0x2E2C);
 static_assert(offsetof(EnemyActorData, maxHitPointsHells) == 0x2E2C);
 static_assert(offsetof(EnemyActorData, stunDisplacementDataAddr) == 0x3318); 
 static_assert(offsetof(EnemyActorData, hitPointsHells) == 0x2E5C);

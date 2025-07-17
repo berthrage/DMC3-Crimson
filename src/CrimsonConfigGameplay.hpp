@@ -167,7 +167,7 @@ struct CrimsonConfigGameplay {
 					std::make_pair("ldkMode", &ExtraDifficulty::ldkMode),
 					std::make_pair("mustStyleMode", &ExtraDifficulty::mustStyleMode),
 					std::make_pair("enemyDTMode", &ExtraDifficulty::enemyDTMode),
-					std::make_pair("betterArkham2",&ExtraDifficulty::betterArkham2)
+					std::make_pair("betterArkham2",&ExtraDifficulty::betterArkham2),
 					std::make_pair("forceDifficultyMode", &ExtraDifficulty::forceDifficultyMode)
 				);
 			}

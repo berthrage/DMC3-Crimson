@@ -173,6 +173,8 @@ namespace CrimsonBetterArkham2 {
 	/// <param name="enemyVectorData"></param>
 	/// <returns></returns>
 	bool isEndArkhamLobby(EnemyVectorData& enemyVectorData) {
+		//sets the modifier for boss damage to x2 of whatever the mult currently is to make the boss die quicker and not wear out its welcome
+		//activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult * 1.;
 		for (auto enemy : enemyVectorData.metadata) {
 			if (!enemy.baseAddr) continue;
 			auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
@@ -181,6 +183,7 @@ namespace CrimsonBetterArkham2 {
 			//this decrements arkham's health so his HP bar goes down throughout the boss rush 
 			if (enemyData.enemy == ENEMY::ARKHAM && enemyData.hitPointsArkham > arkhamHealthCheckpoints[fightPhase])
 				enemyData.hitPointsArkham = arkhamHealthCheckpoints[fightPhase];
+				enemyData.healthGateHitPointsArkham = arkhamHealthCheckpoints[fightPhase];
 
 			//whenever arkham dives and sends out the dolphins, we don't fight them and advance to boss rush phase.
 			//don't do this if phase 7 tho or the fight just ends
@@ -188,7 +191,10 @@ namespace CrimsonBetterArkham2 {
 				return true;
 
 			//this health gate stops people from skipping phases 
-			if (enemyData.enemy == ENEMY::ARKHAM && enemyData.hitPointsArkham < arkhamHealthGates[fightPhase] && fightActive)
+			//			if (enemyData.enemy == ENEMY::ARKHAM && enemyData.hitPointsArkham < arkhamHealthGates[fightPhase] && fightActive)
+			//			return true;
+			//new code utilizing the arkham health gate mechanic
+			if (enemyData.enemy == ENEMY::ARKHAM && (enemyData.healthGateHitPointsArkham - enemyData.hitPointsArkham > 3000.0f || enemyData.hitPointsArkham< 1.0f)   && fightActive)
 				return true;
 
 		};
@@ -201,6 +207,10 @@ namespace CrimsonBetterArkham2 {
 	/// <param name="enemyVectorData"></param>
 	/// <returns></returns>
 	bool isEndCerberusPhase(EnemyVectorData& enemyVectorData) {
+		//sets the modifier for cerberus damage to x4 of whatever the mult currently is to make the boss die quicker and not wear out its welcome
+		g_cerbDamageValue = queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult * 4;
+		activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult * 4;
+
 		for (auto enemy : enemyVectorData.metadata) {
 			if (!enemy.baseAddr) continue;
 			auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
@@ -219,6 +229,8 @@ namespace CrimsonBetterArkham2 {
 	/// <param name="enemyVectorData"></param>
 	/// <returns></returns>
 	bool isEndBeowulfPhase(EnemyVectorData& enemyVectorData) {
+		//sets the modifier for boss damage to x2 of whatever the mult currently is to make the boss die quicker and not wear out its welcome
+		activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult * 2;
 		for (auto enemy : enemyVectorData.metadata) {
 			if (!enemy.baseAddr) continue;
 			auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
@@ -237,6 +249,8 @@ namespace CrimsonBetterArkham2 {
 /// <param name="enemyVectorData"></param>
 /// <returns></returns>
 	bool isEndAgniRudraPhase(EnemyVectorData& enemyVectorData) {
+		//sets the modifier for boss damage to x2 of whatever the mult currently is to make the boss die quicker and not wear out its welcome
+		activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult * 2;
 		if(enemyVectorData.count == 0 )
 			return true;
 		return false;
