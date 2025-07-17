@@ -2907,7 +2907,7 @@ void SpawnActors() {
     // Set playerCount to 1 back
     if (activeConfig.Actor.playerCount == 2 &&
         queuedConfig.Actor.playerCount == 1 &&
-		eventData.room != ) {
+		eventData.room != ROOM::UNSACRED_HELLGATE_2) {
         activeConfig.Actor.playerCount = 1;
     }
 
