@@ -126,8 +126,12 @@ void ToggleClassicHUDPositionings(bool enable);
 void ToggleHideAndMutePortals(bool enable);
 void ToggleStyleRankHudNoFadeout(bool enable);
 void ToggleFixBallsHangHitSpeed(bool enable);
+void ToggleFixSecretMissionTimerFPS(bool enable);
 void ToggleCerberusCrashFix(bool enable);
 void ToggleVergilM3CrashFix(bool enable);
+void ToggleMission5CrashFix(bool enable);
+void ToggleCerbDamageFix(bool enable);
 void ToggleArkhamPt2GrabCrashFix(bool enable);
 void ToggleArkhamPt2DoppelCrashFix(bool enable);
+void ToggleStyleLevellingCCSFix(bool enable);
 }

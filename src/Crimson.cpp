@@ -1,4 +1,5 @@
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
+#include "CrimsonEnemyAITarget.hpp"
 #include "Core/Core.hpp"
 #include "Core/Input.hpp"
 #include "CrimsonDetours.hpp"
@@ -38,6 +39,8 @@
 #include "Core/DebugSwitch.hpp"
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonGameModes.hpp"
+
+
 
 
 uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
@@ -89,7 +92,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ExpConfig::InitExp();
         ExpConfig::LoadExp();
 
-        copyHUDtoGame();
+        CrimsonFiles::CopyHUDtoGame();
 
         if (!Memory_Init()) {
             Log("Memory_Init failed.");
@@ -275,6 +278,13 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         else {
             CrimsonDetours::ToggleHoldToCrazyCombo(false);
         }
+
+		if (queuedConfig.Actor.playerCount > 1) {
+			activeCrimsonConfig.Camera.multiplayerCamera = true;
+			queuedCrimsonConfig.Camera.multiplayerCamera = true;
+			activeCrimsonConfig.Camera.thirdPersonCamera = true;
+			queuedCrimsonConfig.Camera.thirdPersonCamera = true;
+		}
         
         CrimsonPatches::HoldToAutoFire(activeCrimsonGameplay.Gameplay.General.holdToShoot);
         CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
@@ -284,10 +294,17 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonGameplay.Gameplay.General.increasedEnemyJuggleTime);
         //CrimsonPatches::SetEnemyDTMode(activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode);
         CrimsonDetours::ToggleFixBallsHangHitSpeed(true);
+        CrimsonDetours::ToggleFixSecretMissionTimerFPS(true);
         CrimsonDetours::ToggleCerberusCrashFix(true);
         CrimsonDetours::ToggleVergilM3CrashFix(true);
+        CrimsonDetours::ToggleMission5CrashFix(true);
+        CrimsonPatches::ToggleM6CrashFix(true);
         CrimsonDetours::ToggleArkhamPt2GrabCrashFix(true);
         CrimsonDetours::ToggleArkhamPt2DoppelCrashFix(true);
+        CrimsonDetours::ToggleCerbDamageFix(true);
+        CrimsonDetours::ToggleStyleLevellingCCSFix(true);
+		CrimsonEnemyAITarget::EnemyAIMultiplayerTargettingDetours(true);
+        
 
         CrimsonPatches::DisableBlendingEffects(false);
         CrimsonPatches::DisableBlendingEffects(activeConfig.disableBlendingEffects);

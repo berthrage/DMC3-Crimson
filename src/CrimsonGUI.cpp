@@ -195,7 +195,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			window->DrawList->AddImage(logo, logoPos, logoSize);
 
 			// BETA Notice 
-			const char *text = "BETA";
+			const char *text = "0.4 PREVIEW BUILD";
 			ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 0.8f]);
 			ImVec2 textSize = ImGui::CalcTextSize(text);
 			float padding = scaledFontSize * 0.2f;
@@ -1229,6 +1229,11 @@ const char* costumeNamesVergil[] = {
 	"Super Corrupted Vergil",
 };
 
+const char* costumeNamesLady[] = {
+	"DMC3",
+	"Ridersuit",
+};
+
 const char* weaponSwitchTypeNames[] = {
 	"Linear",
 	"Arbitrary",
@@ -1747,6 +1752,26 @@ constexpr uint8 enemyDTModes[] = {
 	ENEMYDTMODE::DEFAULT,
 	ENEMYDTMODE::INSTANT_DT,
 	ENEMYDTMODE::NO_ENEMY_DT,
+};
+
+const char* forceDifficultyNames[] = {
+	"Off",
+	"Easy",
+	"Normal",
+	"Hard",
+	"Very Hard",
+	"Dante Must Die",
+	"Heaven or Hell",
+};
+
+constexpr uint32 forceDifficultyModes[] = {
+	DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF,
+	DIFFICULTY_MODE::EASY,
+	DIFFICULTY_MODE::NORMAL,
+	DIFFICULTY_MODE::HARD,
+	DIFFICULTY_MODE::VERY_HARD,
+	DIFFICULTY_MODE::DANTE_MUST_DIE,
+	DIFFICULTY_MODE::HEAVEN_OR_HELL,
 };
 
 constexpr uint8 delayedComboSFXMap[] = {
@@ -2523,6 +2548,80 @@ void BackgroundSPMPText(const char* SPMPText) {
 
 }
 
+void CheckDanteUnlockedWeapons(CharacterData& queuedCharacterData, CharacterData& activeCharacterData, uint8 playerIndex, uint8 characterIndex) {
+	auto& lastMaxMeleeWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCount[playerIndex][characterIndex];
+	auto& lastMaxRangedWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxRangedWeaponCount[playerIndex][characterIndex];
+
+	if (queuedCharacterData.character == CHARACTER::DANTE) {
+		if (lastMaxMeleeWeaponCount > weaponProgression.rangedWeaponIds.size()) {
+			lastMaxMeleeWeaponCount = weaponProgression.rangedWeaponIds.size();
+			queuedCharacterData.meleeWeaponCount = lastMaxMeleeWeaponCount;
+			activeCharacterData.meleeWeaponCount = lastMaxMeleeWeaponCount;
+		}
+
+		if (lastMaxRangedWeaponCount > weaponProgression.rangedWeaponIds.size()) {
+			lastMaxRangedWeaponCount = weaponProgression.rangedWeaponIds.size();
+			queuedCharacterData.rangedWeaponCount = lastMaxRangedWeaponCount;
+			activeCharacterData.rangedWeaponCount = lastMaxRangedWeaponCount;
+		}
+
+		for (uint8 slotEquipped = 0; slotEquipped < 5; slotEquipped++) {
+			auto& weaponId = queuedCharacterData.meleeWeapons[slotEquipped];
+
+			// Check if weaponId exists in weaponProgression.meleeWeaponIds
+			bool found = false;
+			for (const auto& validId : weaponProgression.meleeWeaponIds) {
+				if (weaponId == validId) {
+					found = true;
+					break;
+				}
+			}
+
+			// If not found, replace with the natural ID for this slot
+			if (!found) {
+				weaponId = weaponProgression.meleeWeaponNaturalIds[slotEquipped];
+			}
+		}
+
+
+		for (uint8 slotEquipped = 0; slotEquipped < 5; slotEquipped++) {
+			auto& weaponId = queuedCharacterData.rangedWeapons[slotEquipped];
+			// Check if weaponId exists in weaponProgression.rangedWeaponIds
+			bool found = false;
+			for (const auto& validId : weaponProgression.rangedWeaponIds) {
+				if (weaponId == validId) {
+					found = true;
+					break;
+				}
+			}
+			// If not found, replace with the natural ID for this slot
+			if (!found) {
+				weaponId = weaponProgression.rangedWeaponNaturalIds[slotEquipped];
+			}
+		}
+	}
+	else if (queuedCharacterData.character == CHARACTER::VERGIL) {
+		for (uint8 slotEquipped = 0; slotEquipped < 5; slotEquipped++) {
+			auto& weaponId = queuedCharacterData.meleeWeapons[slotEquipped];
+
+			// Check if weaponId exists in weaponProgression.meleeWeaponNaturalIdsVergil
+			// since all Vergil's melee weapons are natural IDs aka unlocked already
+			bool found = false;
+			for (const auto& validId : weaponProgression.meleeWeaponNaturalIdsVergil) {
+				if (weaponId == validId) {
+					found = true;
+					break;
+				}
+			}
+
+			// If not found, replace with the natural ID for this slot
+			if (!found) {
+				weaponId = weaponProgression.meleeWeaponNaturalIds[slotEquipped];
+			}
+		}
+	}
+}
+
 void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex, size_t defaultFontSize) {
 	auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
 	auto& queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
@@ -2564,11 +2663,13 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 				if (UI::ComboMapValue("CHARACTER", crimsonCharacterNames, crimsonCharacterMap,
 					queuedCharacterData.character)) {
 					ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character, playerIndex, characterIndex);
-
+					
 					if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
 						queuedCharacterDataClone.character = queuedCharacterData.character;
 						ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
 					}
+
+					CheckDanteUnlockedWeapons(queuedCharacterData, activeCharacterData, playerIndex, characterIndex);
 
 					Actor_UpdateIndices();
 				}
@@ -2584,6 +2685,8 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 							ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
 						}
 
+						CheckDanteUnlockedWeapons(queuedCharacterData, activeCharacterData, playerIndex, characterIndex);
+
 						Actor_UpdateIndices();
 					}
 				} else {
@@ -2594,6 +2697,8 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 							queuedCharacterDataClone.character = queuedCharacterData.character;
 							ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
 						}
+
+						CheckDanteUnlockedWeapons(queuedCharacterData, activeCharacterData, playerIndex, characterIndex);
 
 						Actor_UpdateIndices();
 					}
@@ -2621,8 +2726,11 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 					if (queuedCharacterData.character == CHARACTER::DANTE) {
 						UI::Combo2("Costume", costumeNamesDante, activeCharacterData.costume, queuedCharacterData.costume);
-					} else if (queuedCharacterData.character == CHARACTER::VERGIL) {
+					} else if (queuedCharacterData.character == CHARACTER::VERGIL || queuedCharacterData.character == CHARACTER::BOB || 
+						queuedCharacterData.character == CHARACTER::BOSS_VERGIL) {
 						UI::Combo2("Costume", costumeNamesVergil, activeCharacterData.costume, queuedCharacterData.costume);
+					} else if (queuedCharacterData.character == CHARACTER::LADY || queuedCharacterData.character == CHARACTER::BOSS_LADY) {
+						UI::Combo2("Costume", costumeNamesLady, activeCharacterData.costume, queuedCharacterData.costume);
 					}
 					
 					GUI_PopDisable(condition);
@@ -2652,8 +2760,10 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 					if (queuedCharacterData.forceFilesCharacter == CHARACTER::DANTE) {
 						UI::Combo2("Force Files Costume", costumeNamesDante, activeCharacterData.forceFilesCostume, queuedCharacterData.forceFilesCostume);
-					} else {
+					} else if (queuedCharacterData.forceFilesCharacter == CHARACTER::VERGIL)  {
 						UI::Combo2("Force Files Costume", costumeNamesVergil, activeCharacterData.forceFilesCostume, queuedCharacterData.forceFilesCostume);
+					} else if (queuedCharacterData.forceFilesCharacter == CHARACTER::LADY || queuedCharacterData.forceFilesCharacter == CHARACTER::BOSS_LADY) {
+						UI::Combo2("Force Files Costume", costumeNamesLady, activeCharacterData.forceFilesCostume, queuedCharacterData.forceFilesCostume);
 					}
 				}
 				//if we are dante and haven't unlocked doppelganger, we shouldn't show this menu option.
@@ -2954,10 +3064,10 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-	if (GUI_Checkbox2("Switch characters mid-mission", activeCrimsonGameplay.Gameplay.General.characterHotswap, queuedCrimsonGameplay.Gameplay.General.characterHotswap)) {}
+	if (GUI_Checkbox2("Switch characters mid-mission", activeCrimsonGameplay.Gameplay.General.charHotswap, queuedCrimsonGameplay.Gameplay.General.charHotswap)) {}
 	
-	GUI_PushDisable(!activeCrimsonGameplay.Gameplay.General.characterHotswap);
-	if (!activeCrimsonGameplay.Gameplay.General.characterHotswap) {
+	GUI_PushDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
+	if (!activeCrimsonGameplay.Gameplay.General.charHotswap) {
 		queuedPlayerData.characterCount = 1;
 	}
 	GUI_Slider<uint8>("Number of Characters", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
@@ -2975,7 +3085,7 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 			queuedPlayerData.collisionGroup);
 
 	}
-	GUI_PopDisable(!activeCrimsonGameplay.Gameplay.General.characterHotswap);
+	GUI_PopDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
 	BackgroundPlayerText(playerIndex);
 
 
@@ -3158,6 +3268,8 @@ void CharacterSection(size_t defaultFontSize) {
 		if (queuedConfig.Actor.playerCount > 1) {
 			activeCrimsonConfig.Camera.multiplayerCamera = true;
 			queuedCrimsonConfig.Camera.multiplayerCamera = true;
+			activeCrimsonConfig.Camera.thirdPersonCamera = true;
+			queuedCrimsonConfig.Camera.thirdPersonCamera = true;
 		} else {
 			activeConfig.enablePVPFixes = false;
 			queuedConfig.enablePVPFixes = false;
@@ -3235,7 +3347,6 @@ void CharacterSection(size_t defaultFontSize) {
 			}
 			ImGui::PopFont();
 			ImGui::TableNextColumn();
-			ImGui::Text("");
 
 			GUI_PushDisable(queuedConfig.Actor.playerCount <= 1);
 			GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
@@ -3372,12 +3483,16 @@ void ArcadeSection(size_t defaultFontSize) {
 			auto queuedCharacterData = GetQueuedCharacterData(0, 0, 0);
 			bool disableCondition = queuedConfig.Actor.enable;
 
-
-
 			if (activeConfig.Arcade.mission > 0 && (queuedCharacterData.ignoreCostume || !queuedConfig.Actor.enable)) {
 				ImGui::TableNextColumn();
-				GUI_InputDefault2<uint8>("Costume", activeConfig.Arcade.costume, queuedConfig.Arcade.costume, defaultConfig.Arcade.costume, 1,
-					"%u", ImGuiInputTextFlags_EnterReturnsTrue);
+				if (queuedConfig.Arcade.character == CHARACTER::DANTE) {
+					UI::Combo2("Costume", costumeNamesDante, activeConfig.Arcade.costume, queuedConfig.Arcade.costume);
+				} else if (queuedConfig.Arcade.character == CHARACTER::VERGIL) {
+					UI::Combo2("Costume", costumeNamesVergil, activeConfig.Arcade.costume, queuedConfig.Arcade.costume);
+				} else if (queuedConfig.Arcade.character == CHARACTER::LADY || queuedConfig.Arcade.character == CHARACTER::BOSS_LADY) {
+					UI::Combo2("Costume", costumeNamesLady, activeConfig.Arcade.costume, queuedConfig.Arcade.costume);
+				}
+
 			}
 
 
@@ -3421,8 +3536,9 @@ void ArcadeSection(size_t defaultFontSize) {
 
 				GUI_PushDisable(condition);
 
-				GUI_InputDefault2<uint32>("", activeConfig.Arcade.room, queuedConfig.Arcade.room, defaultConfig.Arcade.room, 1, "%u",
-					ImGuiInputTextFlags_EnterReturnsTrue);
+				ImGui::PushItemWidth(itemWidth * 1.3f);
+				UI::ComboMapValue2("", roomNames, roomsMapu32, activeConfig.Arcade.room, queuedConfig.Arcade.room, 0);
+				ImGui::PopItemWidth();
 
 				GUI_PopDisable(condition);
 
@@ -3632,6 +3748,10 @@ void RenderMissionResultGameModeStats() {
 	ImGui::SetNextWindowPos(difficultyWindowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
 
+	auto currentDifficultyMode = activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode != DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF ? 
+		activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode
+		: sessionData.difficultyMode;
+
 	if (ImGui::Begin("DifficultyStats", nullptr,
 		ImGuiWindowFlags_NoTitleBar |
 		ImGuiWindowFlags_NoResize |
@@ -3641,7 +3761,14 @@ void RenderMissionResultGameModeStats() {
 		ImGuiWindowFlags_NoInputs |
 		ImGuiWindowFlags_NoBackground)) {
 		 // Calculate position for difficulty text
-		const char* difficultyString = gameModeData.difficultyModeNames[sessionData.mode].c_str(); // Implement this function as needed
+		std::string difficultyDisplay = gameModeData.difficultyModeNames[currentDifficultyMode];
+		if (currentDifficultyMode == DIFFICULTY_MODE::HARD && sessionData.oneHitKill) {
+			difficultyDisplay = "Heaven or Hell";
+		}
+		if (activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode != DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF) {
+			difficultyDisplay += " (Forced)";
+		}
+		const char* difficultyString = difficultyDisplay.c_str();
 		ImVec2 difficultyTextSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, difficultyString);
 		ImGui::SetWindowFontScale(scaleFactorY);
 
@@ -3655,6 +3782,7 @@ void RenderMissionResultGameModeStats() {
 		std::string ldkMissionText = std::string(reinterpret_cast<const char*>(u8"• ")) + ldkModeNames[gameModeData.ldkNissionResult];
 		std::string mustStyleMissionText = std::string(reinterpret_cast<const char*>(u8"• Must Style (")) + std::string(styleRankNames[gameModeData.mustStyleMissionResult]) + ")";
 		std::string enemyDTMissionText = (std::string(reinterpret_cast<const char*>(u8"• ")) + (std::string)enemyDTModeNames[gameModeData.enemyDTMissionResult]);
+		std::string forceDifficultyText = (std::string(reinterpret_cast<const char*>(u8"• Force Difficulty")));
 
 		if (gameModeData.ldkNissionResult != LDKMODE::OFF) {
 			ImGui::Text(ldkMissionText.c_str());
@@ -3664,8 +3792,12 @@ void RenderMissionResultGameModeStats() {
 			ImGui::Text(mustStyleMissionText.c_str());
 		}
 		ImGui::SameLine();
-		if (gameModeData.enemyDTMissionResult != ENEMYDTMODE::DEFAULT && sessionData.mode == DIFFICULTY_MODE::DANTE_MUST_DIE) {
+		if (gameModeData.enemyDTMissionResult != ENEMYDTMODE::DEFAULT && sessionData.difficultyMode == DIFFICULTY_MODE::DANTE_MUST_DIE) {
 			ImGui::Text(enemyDTMissionText.c_str());
+		}
+
+		if (gameModeData.forceDifficultyResult) {
+			ImGui::Text(forceDifficultyText.c_str());
 		}
 
 		
@@ -3990,16 +4122,20 @@ void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, floa
 	ImVec2 progressBarSize = ImVec2(buttonSize.x, 7.0f * scaleFactorY);
 	float progressBarPadding = 1.0f * scaleFactorY;  // Space between progress bars
 
+	ImVec4 hitColor = CrimsonUtil::HexToImVec4(0x43fe65FF);
+	ImVec4 magicColor = CrimsonUtil::HexToImVec4(0xde1c4cFF);
+	ImVec4 magicColorVergil = { 0.06f, 0.74f, 0.81f, 1.0f };
+
 	// HP Bar
 	ImGui::SetCursorScreenPos(ImVec2(buttonPos.x, buttonPos.y + (buttonSize.y * 0.75f)));
-	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.hitColor));
+	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&hitColor));
 	ImGui::ProgressBar(actorData.hitPoints / actorData.maxHitPoints, progressBarSize, "");
 	ImGui::PopStyleColor();
 
 	// DT Bar
 	ImGui::SetCursorScreenPos(ImVec2(buttonPos.x, buttonPos.y + (buttonSize.y * 0.75f) + progressBarSize.y + progressBarPadding));
-	auto& magicColor = actorData.character != CHARACTER::VERGIL ? activeData.magicColor : activeData.magicColorVergil;
-	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(magicColor));
+	auto& magicColorChosen = actorData.character != CHARACTER::VERGIL ? magicColor : magicColorVergil;
+	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, magicColorChosen);
 	ImGui::ProgressBar(actorData.magicPoints / actorData.maxMagicPoints, progressBarSize, "");
 	ImGui::PopStyleColor();
 
@@ -4018,8 +4154,8 @@ void RenderMultiplayerBar(
 		return;
 	}
 	const float alpha = ImLerp(0.27f, 1.0f, 1.0);
-	float hitColor[4] = { 0.29f , 0.99f, 0.44f, 1.0f };
-	float magicColor[4] = { 0.78f, 0.05f, 0.41f, 1.0f };
+	ImVec4 hitColor = CrimsonUtil::HexToImVec4(0x43fe65FF);
+	ImVec4 magicColor[4] = CrimsonUtil::HexToImVec4(0xde1c4cFF);
 	float magicColorVergil[4] = { 0.06f, 0.74f, 0.81f, 1.0f };
 
 	const float baseSpacing = 0.37f;
@@ -4195,9 +4331,12 @@ void RenderWorldSpaceMultiplayerBar(
 
 	const float t = CrimsonUtil::smoothstep(0.0f, 1390.0f, crimsonPlayer[playerIndex].cameraPlayerDistance);
 	const float alpha = ImLerp(0.27f, 1.0f, t);
-	activeData.hitColor[3] = alpha;
-	activeData.magicColor[3] = alpha;
-	activeData.magicColorVergil[3] = alpha;
+	ImVec4 hitColor = CrimsonUtil::HexToImVec4(0x43fe65FF);
+	ImVec4 magicColor = CrimsonUtil::HexToImVec4(0xde1c4cFF);
+	ImVec4 magicColorVergil= { 0.06f, 0.74f, 0.81f, 1.0f };
+	hitColor.z = alpha;
+	magicColor.z = alpha;
+	magicColorVergil.z = alpha;
 
 	// If player is outside view: Handle Out of View Icons and stop rendering WorldSpace Bars
 	if (playerScreenPosition.x < screenMargin || playerScreenPosition.x > screenWidth - screenMargin ||
@@ -4230,14 +4369,14 @@ void RenderWorldSpaceMultiplayerBar(
 		ImGui::SetWindowFontScale(scaleFactorY);
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, alpha));
-		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.hitColor));
+		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&hitColor));
 		ImGui::ProgressBar(hitPoints, sizeDistance, "");
 		ImGui::PopStyleColor(2);
 
 		if (actorData.character != CHARACTER::VERGIL) {
-			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColor));
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&magicColor));
 		} else {
-			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&activeData.magicColorVergil));
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&magicColorVergil));
 		}
 		ImGui::ProgressBar(magicPoints, sizeDistance, "");
 		ImGui::PopStyleColor();
@@ -4677,7 +4816,7 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			GUI_PushDisable(activeCrimsonConfig.Camera.multiplayerCamera || activeCrimsonConfig.Camera.panoramicCamera);
+			GUI_PushDisable(activeCrimsonConfig.Camera.multiplayerCamera || activeCrimsonConfig.Camera.panoramicCam);
 			ImGui::PushItemWidth(itemWidth * 1.1f);
 			UI::Combo2("Distance", cameraDistanceNames, activeCrimsonConfig.Camera.distance, queuedCrimsonConfig.Camera.distance);
 			ImGui::SameLine();
@@ -4696,12 +4835,12 @@ void CameraSection(size_t defaultFontSize) {
 				"\n"
 				"Dynamic Option adjusts based on whether player is airborne.");
 			ImGui::PopItemWidth();
-			GUI_PopDisable(activeCrimsonConfig.Camera.multiplayerCamera || activeCrimsonConfig.Camera.panoramicCamera);
+			GUI_PopDisable(activeCrimsonConfig.Camera.multiplayerCamera || activeCrimsonConfig.Camera.panoramicCam);
 
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * 1.1f);
-			UI::Combo2("Vertical Tilt", cameraTiltNames, activeCrimsonConfig.Camera.tilt, queuedCrimsonConfig.Camera.tilt);
+			UI::Combo2("Vertical Tilt", cameraTiltNames, activeCrimsonConfig.Camera.verticalTilt, queuedCrimsonConfig.Camera.verticalTilt);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextRow(0, rowWidth);
@@ -4750,13 +4889,16 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Force Third Person Camera", activeCrimsonConfig.Camera.forceThirdPerson, queuedCrimsonConfig.Camera.forceThirdPerson);
+			GUI_PushDisable(activeConfig.Actor.playerCount > 1);
+			GUI_Checkbox2("Third Person Camera", activeCrimsonConfig.Camera.thirdPersonCamera, queuedCrimsonConfig.Camera.thirdPersonCamera);
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Replaces every Fixed Camera with the Third Person Camera. Disables Boss Cam automatically.");
+			TooltipHelper("(?)", "Replaces (almost) every Fixed Camera with the Third Person Camera, switching to Fixed Angles when apropriate.\n"
+				"Will always be enabled on Multiplayer.");
+			GUI_PopDisable(activeConfig.Actor.playerCount > 1);
 
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("Multiplayer Camera", activeCrimsonConfig.Camera.multiplayerCamera, queuedCrimsonConfig.Camera.multiplayerCamera)) {
+			if (GUI_Checkbox2("Panoramic Camera", activeCrimsonConfig.Camera.panoramicCam, queuedCrimsonConfig.Camera.panoramicCam)) {
 				if (activeCrimsonConfig.Camera.multiplayerCamera) {
 					activeCrimsonConfig.Camera.distance = 2;
 					queuedCrimsonConfig.Camera.distance = 2;
@@ -4766,22 +4908,7 @@ void CameraSection(size_t defaultFontSize) {
 				}
 			}
 			ImGui::SameLine();
-			TooltipHelper("(?)", "A cam for Multiplayer that will take all players (and enemies) into account for positioning and distancing.\n"
-				"Triggers only in Multiplayer or if you spawn Doppelganger in SP. Works best with Force Third Person Camera on.");
-
-			ImGui::TableNextColumn();
-
-			if (GUI_Checkbox2("Panoramic Camera", activeCrimsonConfig.Camera.panoramicCamera, queuedCrimsonConfig.Camera.panoramicCamera)) {
-				if (activeCrimsonConfig.Camera.multiplayerCamera) {
-					activeCrimsonConfig.Camera.distance = 2;
-					queuedCrimsonConfig.Camera.distance = 2;
-
-					activeCrimsonConfig.Camera.lockOnDistance = 2;
-					queuedCrimsonConfig.Camera.lockOnDistance = 2;
-				}
-			}
-			ImGui::SameLine();
-			TooltipHelper("(?)", "Multiplayer-like Combat Camera in Single Player. Works best with Force Third Person Camera on.");
+			TooltipHelper("(?)", "A dynamic camera mode designed to enhance in-combat readability. Distances itself based on enemies' positioning.");
 
 			ImGui::EndTable();
 		}
@@ -4797,20 +4924,20 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.lockOnDistance = 0;
 			queuedCrimsonConfig.Camera.lockOnDistance = 0;
 
-			activeCrimsonConfig.Camera.tilt = 0;
-			queuedCrimsonConfig.Camera.tilt = 0;
+			activeCrimsonConfig.Camera.verticalTilt = 0;
+			queuedCrimsonConfig.Camera.verticalTilt = 0;
 
 			activeCrimsonConfig.Camera.fovMultiplier = 1.0f;
 			queuedCrimsonConfig.Camera.fovMultiplier = 1.0f;
 
-			activeCrimsonConfig.Camera.sensitivity = 0;
-			queuedCrimsonConfig.Camera.sensitivity = 0;
+			activeCrimsonConfig.Camera.sensitivity = 2;
+			queuedCrimsonConfig.Camera.sensitivity = 2;
 
-			activeCrimsonConfig.Camera.invertX = false;
-			queuedCrimsonConfig.Camera.invertX = false;
+			activeCrimsonConfig.Camera.invertX = true;
+			queuedCrimsonConfig.Camera.invertX = true;
 
-			activeCrimsonConfig.Camera.lockedOff = false;
-			queuedCrimsonConfig.Camera.lockedOff = false;
+			activeCrimsonConfig.Camera.lockedOff = true;
+			queuedCrimsonConfig.Camera.lockedOff = true;
 
 			activeCrimsonConfig.Camera.rightStickCameraCentering = 2;
 			queuedCrimsonConfig.Camera.rightStickCameraCentering = 2;
@@ -4821,14 +4948,16 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.autoAdjust = 0;
 			queuedCrimsonConfig.Camera.autoAdjust = 0;
 
-			activeCrimsonConfig.Camera.forceThirdPerson = false;
-			queuedCrimsonConfig.Camera.forceThirdPerson = false;
+			if (activeConfig.Actor.playerCount <= 1) {
+				activeCrimsonConfig.Camera.thirdPersonCamera = false;
+				queuedCrimsonConfig.Camera.thirdPersonCamera = false;
+			}
 
-			activeCrimsonConfig.Camera.panoramicCamera = false;
-			queuedCrimsonConfig.Camera.panoramicCamera = false;
+			activeCrimsonConfig.Camera.panoramicCam = false;
+			queuedCrimsonConfig.Camera.panoramicCam = false;
 
-			// activeCrimsonConfig.Camera.multiplayerCamera = false;
-			// queuedCrimsonConfig.Camera.multiplayerCamera = false;
+			activeCrimsonConfig.Camera.multiplayerCamera = true;
+			queuedCrimsonConfig.Camera.multiplayerCamera = true;
 
 			activeCrimsonConfig.Camera.disableBossCamera = false;
 			queuedCrimsonConfig.Camera.disableBossCamera = false;
@@ -4836,18 +4965,18 @@ void CameraSection(size_t defaultFontSize) {
 
 		ImGui::SameLine();
 
-		if (GUI_Button("Vanilla Improved")) {
+		if (GUI_Button("Vanilla with Third Person")) {
 			activeCrimsonConfig.Camera.distance = 0;
 			queuedCrimsonConfig.Camera.distance = 0;
 
 			activeCrimsonConfig.Camera.lockOnDistance = 0;
 			queuedCrimsonConfig.Camera.lockOnDistance = 0;
 
-			activeCrimsonConfig.Camera.tilt = 0;
-			queuedCrimsonConfig.Camera.tilt = 0;
+			activeCrimsonConfig.Camera.verticalTilt = 0;
+			queuedCrimsonConfig.Camera.verticalTilt = 0;
 
-			activeCrimsonConfig.Camera.fovMultiplier = 1.2f;
-			queuedCrimsonConfig.Camera.fovMultiplier = 1.2f;
+			activeCrimsonConfig.Camera.fovMultiplier = 1.0f;
+			queuedCrimsonConfig.Camera.fovMultiplier = 1.0f;
 
 			activeCrimsonConfig.Camera.sensitivity = 2;
 			queuedCrimsonConfig.Camera.sensitivity = 2;
@@ -4867,11 +4996,13 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.autoAdjust = 0;
 			queuedCrimsonConfig.Camera.autoAdjust = 0;
 
-			activeCrimsonConfig.Camera.forceThirdPerson = false;
-			queuedCrimsonConfig.Camera.forceThirdPerson = false;
+			
+			activeCrimsonConfig.Camera.thirdPersonCamera = true;
+			queuedCrimsonConfig.Camera.thirdPersonCamera = true;
+			
 
-			activeCrimsonConfig.Camera.panoramicCamera = false;
-			queuedCrimsonConfig.Camera.panoramicCamera = false;
+			activeCrimsonConfig.Camera.panoramicCam = false;
+			queuedCrimsonConfig.Camera.panoramicCam = false;
 
 			activeCrimsonConfig.Camera.multiplayerCamera = true;
 			queuedCrimsonConfig.Camera.multiplayerCamera = true;
@@ -4889,8 +5020,8 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.lockOnDistance = 2;
 			queuedCrimsonConfig.Camera.lockOnDistance = 2;
 
-			activeCrimsonConfig.Camera.tilt = 1;
-			queuedCrimsonConfig.Camera.tilt = 1;
+			activeCrimsonConfig.Camera.verticalTilt = 0;
+			queuedCrimsonConfig.Camera.verticalTilt = 0;
 
 			activeCrimsonConfig.Camera.fovMultiplier = 1.2f;
 			queuedCrimsonConfig.Camera.fovMultiplier = 1.2f;
@@ -4913,11 +5044,11 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.autoAdjust = 0;
 			queuedCrimsonConfig.Camera.autoAdjust = 0;
 
-			activeCrimsonConfig.Camera.forceThirdPerson = true;
-			queuedCrimsonConfig.Camera.forceThirdPerson = true;
+			activeCrimsonConfig.Camera.thirdPersonCamera = true;
+			queuedCrimsonConfig.Camera.thirdPersonCamera = true;
 
-			activeCrimsonConfig.Camera.panoramicCamera = false;
-			queuedCrimsonConfig.Camera.panoramicCamera = false;
+			activeCrimsonConfig.Camera.panoramicCam = true;
+			queuedCrimsonConfig.Camera.panoramicCam = true;
 
 			activeCrimsonConfig.Camera.multiplayerCamera = true;
 			queuedCrimsonConfig.Camera.multiplayerCamera = true;
@@ -4930,6 +5061,12 @@ void CameraSection(size_t defaultFontSize) {
 	ImGui::Text("");
 
 	if (activeCrimsonGameplay.Debug.debugTools) {
+		auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+		if (!pool_4449 || !pool_4449[147]) {
+			return;
+		}
+		auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+
 		GUI_Title("LIVE CAMERA READINGS");
 
 		ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
@@ -4984,7 +5121,7 @@ void CameraSection(size_t defaultFontSize) {
 					ImGui::TableNextRow(0, rowWidth);
 					ImGui::TableNextColumn();
 
-					GUI_Input("Distance", cameraData.distance, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+					GUI_Input("Distance", cameraData.distanceCam, 10.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
 					ImGui::TableNextColumn();
 
@@ -5111,6 +5248,9 @@ void CustomDamageSection() {
 			}
 
 
+			//I do not give a fuck.
+			if (g_cerbDamageValue != activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult)
+				g_cerbDamageValue = activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult;
 
 			GUI_PopDisable(!activeCrimsonGameplay.Cheats.General.customDamage);
 			ImGui::EndTable();
@@ -5298,7 +5438,13 @@ void HandleItemSale(uint8 itemHelperIndex, MissionData& missionData, ActiveMissi
 uint32 GetItemPrice(const ShopItemHelper& itemHelper, uint8 buyCount);
 
 void ShopWindow() {
+	static bool run = false;
+	static std::chrono::steady_clock::time_point shopOpenedTime;
+	static bool shopCooldownActive = false;
+
 	if (!g_showShop) {
+		run = false;
+		shopCooldownActive = false;
 		return;
 	}
 	auto& io = ImGui::GetIO();
@@ -5313,37 +5459,55 @@ void ShopWindow() {
 
 	bool unlockDevilTrigger = (activeMissionActorData.maxMagicPoints >= 3000);
 
-	static bool run = false;
 	if (!run) {
 		// TODO: Play Divine Statue Track - Mia
 		//PlayTrack("afs/sound/Jikushinzou.ogg");
 		run = true;
+		shopOpenedTime = std::chrono::steady_clock::now();
+		shopCooldownActive = true;
 	}
 
-	float width = 1000 * scaleFactorY; 
-	float height = 900 * scaleFactorY; 
+	// Check if cooldown has expired (0.2 seconds)
+	if (shopCooldownActive) {
+		auto now = std::chrono::steady_clock::now();
+		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - shopOpenedTime).count();
+		if (elapsed >= 200) {
+			shopCooldownActive = false;
+		}
+	}
+
+	float width = 1000 * scaleFactorY;
+	float height = 900 * scaleFactorY;
 
 	ImGui::SetNextWindowSize(ImVec2(width, height));
 	ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
 
 	if (io.NavInputs[ImGuiNavInput_Cancel] && (io.NavInputsDownDuration[ImGuiNavInput_Cancel] == 0.0f)) {
 		Log("controller back button");
-		if (!io.NavVisible) {
+		if (!io.NavVisible && !shopCooldownActive) {
 			CloseShop();
+			run = false;
+			shopCooldownActive = false;
 		}
-	};
+	}
 	//Replace this with a map option at some point. 
 	if (io.KeysDown[DI8::KEY::L] && (io.KeysDownDuration[DI8::KEY::L] == 0.0f)) {
 		Log("keyboard back button");
-		//if (!io.NavVisible) {
+		if (!shopCooldownActive) {
 			CloseShop();
-		//}
-	};
+			run = false;
+			shopCooldownActive = false;
+		}
+	}
 
 	if (ImGui::Begin("ShopWindow", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
 		ImGui::SetWindowFontScale(scaleFactorY);
 		if (GUI_Button("Close")) {
-			CloseShop();
+			if (!shopCooldownActive) {
+				CloseShop();
+				run = false;
+				shopCooldownActive = false;
+			}
 		}
 		ImGui::Text("");
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
@@ -5377,13 +5541,13 @@ void ShopWindow() {
 			(const char*)BACKGROUND_FADED_TEXT
 		);
 
-// 		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
-// 			auto& gamepad = GetGamepad(playerIndex);
-// 
-// 			if ((gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))) {
-// 				CloseShop();
-// 			}
-// 		}
+		// 		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
+		// 			auto& gamepad = GetGamepad(playerIndex);
+		// 
+		// 			if ((gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))) {
+		// 				CloseShop();
+		// 			}
+		// 		}
 
 		SelectPlayerLoadoutsWeaponsTab();
 
@@ -5425,6 +5589,7 @@ void ShopWindow() {
 		ImGui::End();
 	}
 }
+
 
 void ShowStyleLevelsTab(ExpConfig::ExpData& expData, MissionData& missionData) {
 // 	auto Buy = [&]() {
@@ -7897,6 +8062,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("SCENE:  %u", g_scene);
                 ImGui::Text("TRACK PLAYING: %s", g_gameTrackPlaying.c_str());
 				ImGui::Text("sessionData.expertise[1]: %x", sessionData.expertise[1]);
+
 // 				for (int i = 0; i < 8; i++) {
 // 					ImGui::Text("sessionData expertise[%u]:  %x", i, sessionData.expertise[i]);
 // 				}
@@ -7915,6 +8081,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 				ImGui::Text("sessionData.quicksilverLevel: %u", sessionData.styleLevels[STYLE::QUICKSILVER]);
 // 				ImGui::Text("sessionData.doppelgangerLevel: %u", sessionData.styleLevels[STYLE::DOPPELGANGER]);
 				ImGui::Text("GunUnlockedQtt: %u", weaponProgression.gunsUnlockedQtt);
+				ImGui::Text("sessionData.character: %u", sessionData.character);
 				ImGui::Text("sessionData.unlockDevilTrigger: %u", sessionData.unlockDevilTrigger);
 				ImGui::Text("sessionData.magicPoints: %g", sessionData.magicPoints);
 				ImGui::Text("queuedCharacterData.rangedWeaponCount: %u", queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeaponCount);
@@ -7927,9 +8094,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 				for (int i = 0; i < weaponProgression.rangedWeaponIds.size(); i++) {
 // 					ImGui::Text("RangedWeaponId[%u]: %u", i, weaponProgression.rangedWeaponIds[i]);
 // 				}
-// 				for (int i = 0; i < weaponProgression.meleeWeaponIds.size(); i++) {
-// 					ImGui::Text("MeleeWeaponName[%u]: %s", i, weaponProgression.meleeWeaponNames[i]);
-// 				}
+ 				for (int i = 0; i < weaponProgression.meleeWeaponIds.size(); i++) {
+					ImGui::Text("MeleeWeaponName[%u]: %s", i, weaponProgression.meleeWeaponNames[i]);
+ 				}
 // 				for (size_t i = 0; i < queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeaponCount; i++) {
 // 					ImGui::Text("RangedWeaponQeued[%u]: %u", i, queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeapons[i]);
 // 				} 
@@ -7938,6 +8105,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				ImGui::Text("activePreset: %u", activeCrimsonGameplay.GameMode.preset);
 				ImGui::Text("queuedPreset: %u", queuedCrimsonGameplay.GameMode.preset);
                 ImGui::Text("Quicksilver Level: %u", sessionData.styleLevels[4]);
+
 
                 /*ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
                 ImGui::Text("Sky Launch Tracker Running:  %u", skyLaunchTrackerRunning);
@@ -7983,11 +8151,11 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                     return;
                 }
 
-                auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-                if (!pool_10298 || !pool_10298[8]) {
-                    return;
-                }
-                auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+				auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+				if (!pool_10298 || !pool_10298[8]) {
+					return;
+				}
+				auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 
                 auto pool_10329 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
                 if (!pool_10329 || !pool_10329[12]) {
@@ -8002,11 +8170,13 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                     ImGui::Text(eventNames[eventData.event]);
                 }
 
+				ImGui::Text("subEvent:  %u", eventData.subevent);
+
                 ImGui::Text("");
 
                 ImGui::Text("room         %u", eventData.room);
                 ImGui::Text("position     %u", eventData.position);
-                ImGui::Text("position     %u", eventData.event);
+                ImGui::Text("event	      %u", eventData.event);
                 ImGui::Text("nextRoom     %u", nextEventData.room);
                 ImGui::Text("nextPosition %u", nextEventData.position);
 				ImGui::Text("Camera Index %u", CrimsonCameraController::g_currentCameraIndex);
@@ -8116,7 +8286,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				return;
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
-			ImGui::Text("airCounts tatsu %u", crimsonPlayer[0].airCounts.airTornado);
+			ImGui::Text("closeToEnemy %u", crimsonPlayer[0].isCloseToEnemy);
+			ImGui::Text("guardTimer %g", actorData.guardTimer);
 			ImGui::Text("skyLaunch Executing %u", crimsonPlayer[0].skyLaunch.executing);
 			ImGui::Text("inertia airguard %g", crimsonPlayer[0].inertia.airGuard.cachedPull);
 			ImGui::Text("mirageGauge %g", crimsonPlayer[0].vergilDoppelganger.miragePoints);
@@ -8621,7 +8792,7 @@ void AdjustBackgroundColorAndTransparency() {
 }
 
 
-void InterfaceSection(size_t defaultFontSize) {
+void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 
     ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
 
@@ -8739,8 +8910,8 @@ void InterfaceSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth);
-			if (UI::ComboVectorString("Select HUD", HUDdirectories, queuedConfig.selectedHUD)) {
-				copyHUDtoGame();
+			if (UI::ComboVectorString("Select HUD", CrimsonFiles::HUDdirectories, queuedConfig.selectedHUD)) {
+				CrimsonFiles::CopyHUDtoGame();
 			}
 			if (queuedConfig.selectedHUD != activeConfig.selectedHUD) {
 				auto restartStrColor = CrimsonUtil::HexToImVec4(0x1DD6FFFF);
@@ -8868,6 +9039,25 @@ void InterfaceSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
+			ImGui::PushItemWidth(itemWidth);
+			if (UI::ComboVectorString2("Select Meter", CrimsonFiles::StyleRanksdirectories, activeCrimsonConfig.CrimsonHudAddons.selectedStyleRanks,
+				queuedCrimsonConfig.CrimsonHudAddons.selectedStyleRanks)) {
+				CrimsonFiles::GetStyleRanksAccoladesDirectories();
+				activeCrimsonConfig.CrimsonHudAddons.selectedStyleRanksAccolades = CrimsonFiles::StyleRanksAccoladesdirectories[0];
+				queuedCrimsonConfig.CrimsonHudAddons.selectedStyleRanksAccolades = CrimsonFiles::StyleRanksAccoladesdirectories[0];
+				CrimsonHUD::InitStyleRankTextures(pDevice);
+			}
+			ImGui::PopItemWidth();
+
+			ImGui::PushItemWidth(itemWidth);
+			if (UI::ComboVectorString2("Select Meter Accolades", CrimsonFiles::StyleRanksAccoladesdirectories, activeCrimsonConfig.CrimsonHudAddons.selectedStyleRanksAccolades,
+				queuedCrimsonConfig.CrimsonHudAddons.selectedStyleRanksAccolades)) {
+				CrimsonHUD::InitStyleRankTextures(pDevice);
+			}
+			ImGui::PopItemWidth();
+
+
+			ImGui::TableNextColumn();
 			
 			if (GUI_Checkbox2("Lock-On", activeCrimsonConfig.CrimsonHudAddons.lockOn, queuedCrimsonConfig.CrimsonHudAddons.lockOn)) {
 				CrimsonPatches::ToggleHideLockOn(activeCrimsonConfig.CrimsonHudAddons.lockOn);
@@ -8905,6 +9095,7 @@ void InterfaceSection(size_t defaultFontSize) {
 				"In Multiplayer or with this option disabled, Lock-On color is always based on PLAYER COLOR.");
 
 			GUI_PopDisable(!activeCrimsonConfig.CrimsonHudAddons.lockOn);
+
 
 			ImGui::EndTable();
 		}
@@ -10560,7 +10751,6 @@ void DanteGameplayOptions() {
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			// Second row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
@@ -10573,6 +10763,22 @@ void DanteGameplayOptions() {
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Sky Dance Part 3 is now a separate ability executed by Lock On + Forward + Style. Tweaks Sky Dance Gravity, taking weights into account.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable || 
+				!(activeCrimsonGameplay.Gameplay.Dante.skyDanceTweaks || activeCrimsonGameplay.Gameplay.Dante.airFlickerTweaks));
+			if (GUI_Checkbox2("Downertia from Flicker/SkyDance",
+				activeCrimsonGameplay.Gameplay.Dante.downertiaFromAirFlickerSkyDance,
+				queuedCrimsonGameplay.Gameplay.Dante.downertiaFromAirFlickerSkyDance)) {
+			}
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Makes the next move executed before 0.25 seconds of uptime on Air Flicker or Sky Dance have increased downwards inertia. \n"
+				"Requires Air Flicker / Sky Dance Tweaks");
+			GUI_PopDisable(!activeConfig.Actor.enable ||
+				!(activeCrimsonGameplay.Gameplay.Dante.skyDanceTweaks || activeCrimsonGameplay.Gameplay.Dante.airFlickerTweaks));
 
 			ImGui::TableNextColumn();
 
@@ -10601,7 +10807,6 @@ void DanteGameplayOptions() {
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			// Third row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
@@ -10639,7 +10844,6 @@ void DanteGameplayOptions() {
 			TooltipHelper("(?)", "Makes rainstorm last indefinitely in the air.");
 
 			// Fourth row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("E&I Foursome Time",
@@ -10677,7 +10881,6 @@ void DanteGameplayOptions() {
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			// Fifth row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
@@ -10718,7 +10921,6 @@ void DanteGameplayOptions() {
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			// Sixth row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
@@ -10761,7 +10963,6 @@ void DanteGameplayOptions() {
 			TooltipHelper("(?)", "Makes Air Hike available for all melee weapons.");
 
 			// Seventh row - Last weapon options
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
@@ -11044,6 +11245,15 @@ void VergilGameplayOptions() {
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
+			if (GUI_Checkbox2("Trick Up When Not Locked On",
+				activeCrimsonGameplay.Gameplay.Vergil.trickUpNoLockOn,
+				queuedCrimsonGameplay.Gameplay.Vergil.trickUpNoLockOn)) {
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Allows Vergil to Trick Up instead of Air Tricking when using the Style Button without Lock On.\n"
+				"Similar to DMC5.");
+
+			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			ImGui::PushItemWidth(itemWidth * 0.5f);
 			UI::ComboVectorString2("Alt. Lunar Phase Positioning",
@@ -11265,6 +11475,17 @@ void ExtraDifficultyGameplayOptions() {
 		ImGui::TableNextColumn();
 		CrimsonBetterArkham2::DebugGui();
 		
+		ImGui::TableNextColumn();
+		ImGui::PushItemWidth(itemWidth * 0.93f);
+		UI::ComboMapValue2("Force Difficulty",
+			forceDifficultyNames,
+			forceDifficultyModes,
+			activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode,
+			queuedCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode);
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+		TooltipHelper("(?)", "This will force any difficulty you wish during the game. Useful for DMD Bloody Palace.");
+
 		ImGui::EndTable();
 	}
 
@@ -12889,7 +13110,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			}
         }
         else if (context.SelectedOptionsSubTab == UI::UIContext::OptionsSubTabs::Interface) {
-            getHUDsDirectories();
+            CrimsonFiles::GetHUDsDirectories();
+			CrimsonFiles::GetStyleRanksDirectories();
+			CrimsonFiles::GetStyleRanksAccoladesDirectories();
 
 			// Widget area
 			{
@@ -12903,7 +13126,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::PopStyleVar();
 				{
 					{
-						InterfaceSection(context.DefaultFontSize);
+						InterfaceSection(context.DefaultFontSize, pDevice);
 					}
 				}
 				ImGui::EndChild();
@@ -14138,18 +14361,6 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonBetterArkham2::OnTick();
     
   	CrimsonOnTick::FrameResponsiveGameSpeed();
-	CrimsonOnTick::InCreditsDetection();
-	CrimsonOnTick::WeaponProgressionTracking();
-	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
-	CrimsonOnTick::FixM7DevilTriggerUnlocking();
-	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
-	CrimsonOnTick::OverrideEnemyTargetPosition();
-	CrimsonOnTick::TrackMissionStyleLevels();
-	
-
-	if (activeConfig.Actor.enable) {
-		ExpConfig::TransferUnlocksToVanilla();
-	}
 
     // TIMERS
     CrimsonTimers::CallAllTimers();

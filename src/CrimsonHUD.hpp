@@ -7,6 +7,7 @@
 namespace CrimsonHUD {
 
 void InitTextures(ID3D11Device* pd3dDevice);
+void InitStyleRankTextures(ID3D11Device* pd3dDevice);
 void RedOrbCounterWindow();
 void CheatsHUDIndicatorWindow();
 void CheatHotkeysPopUpWindow();

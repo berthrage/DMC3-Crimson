@@ -12,6 +12,7 @@ void FixAirStingerCancelTime(byte8* actorBaseAddr);
 void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr);
 void ImprovedCancelsDanteController(byte8* actorBaseAddr);
 void DarkslayerCancelsVergilController(byte8* actorBaseAddr);
+void AirStingerJumpCancel(byte8* actorBaseAddr);
 void VergilRisingStar(byte8* actorBaseAddr);
 void VergilYamatoHighTime(byte8* actorBaseAddr);
 void VergilAdjustAirMovesPos(byte8* actorBaseAddr);
@@ -42,6 +43,7 @@ void GetLockedOnEnemyHitPoints(byte8* actorBaseAddr);
 void GetLockedOnEnemyStunDisplacement(byte8* actorBaseAddr);
 void CalculateLockedOnEnemyLastStunDisplacementValue(byte8* actorBaseAddr);
 void GetLockedOnEnemyShield(byte8* actorBaseAddr);
+void DetectCloseToEnemy(byte8* actorBaseAddr);
 void SkyLaunchAirTauntController(byte8* actorBaseAddr);
 void DriveTweaks(byte8* actorBaseAddr);
 

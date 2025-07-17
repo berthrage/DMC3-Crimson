@@ -238,7 +238,8 @@ enum {
 
 namespace DIFFICULTY_MODE {
 enum {
-    EASY,
+    FORCE_DIFFICULTY_OFF = -1,
+    EASY = 0,
     NORMAL,
     HARD,
     VERY_HARD,
@@ -2222,6 +2223,7 @@ static_assert(sizeof(BloodyPalaceData) == 2088);
 constexpr size_t ROOMS_COUNT = 189;
 extern const char* roomNames[ROOMS_COUNT];
 extern const uint16 roomsMap[ROOMS_COUNT];
+extern const uint32 roomsMapu32[ROOMS_COUNT];
 
 struct EventData {
     _(24);
@@ -2265,7 +2267,7 @@ static_assert(sizeof(NextEventData) == 360);
 struct SessionData {
     uint32 mission; // 0
     _(8);
-    uint32 mode;     // 0xC
+    uint32 difficultyMode;     // 0xC
     bool oneHitKill; // 0x10
     _(1);
     bool enableTutorial; // 0x12
@@ -2297,7 +2299,7 @@ struct SessionData {
 };
 
 static_assert(offsetof(SessionData, mission) == 0);
-static_assert(offsetof(SessionData, mode) == 0xC);
+static_assert(offsetof(SessionData, difficultyMode) == 0xC);
 static_assert(offsetof(SessionData, oneHitKill) == 0x10);
 static_assert(offsetof(SessionData, enableTutorial) == 0x12);
 static_assert(offsetof(SessionData, useGoldOrb) == 0x13);
@@ -2551,10 +2553,14 @@ struct CameraData {
     _(24);
     float height;   // 0xD0
     float tilt;     // 0xD4
-    float distance; // 0xD8
+    float distanceCam; // 0xD8
     _(4);
     float distanceLockOn; // 0xE0
-    _(252);
+    _(172);
+    vec4 camcoords1; //0x190
+    _(16);
+    vec4 camcoords2; //0x
+    _(32);
     float cameraLag; // 0x1E0
     _(28);
 };
@@ -2566,8 +2572,10 @@ static_assert(offsetof(CameraData, transitionToLockOnCam) == 0x90);
 static_assert(offsetof(CameraData, targetBaseAddr) == 0xB0);
 static_assert(offsetof(CameraData, height) == 0xD0);
 static_assert(offsetof(CameraData, tilt) == 0xD4);
-static_assert(offsetof(CameraData, distance) == 0xD8);
+static_assert(offsetof(CameraData, distanceCam) == 0xD8);
 static_assert(offsetof(CameraData, distanceLockOn) == 0xE0);
+static_assert(offsetof(CameraData, camcoords1) == 0x190);
+static_assert(offsetof(CameraData, camcoords2) == 0x1B0);
 static_assert(offsetof(CameraData, cameraLag) == 0x1E0);
 
 static_assert(sizeof(CameraData) == 512);
@@ -3237,7 +3245,7 @@ struct PlayerActorDataBase : ActorDataBase {
     uint8 royalguardReleaseEffectIndex; // 0x6381
     _(1);
     float royalguardReleaseDamage; // 0x6384
-    float var_6388;                // 0x6388
+    float guardTimer;                // 0x6388
     float var_638C;                // 0x638C
     _(64);
     uint32 var_63D0;         // 0x63D0
@@ -3381,7 +3389,7 @@ static_assert(offsetof(PlayerActorDataBase, airGuard) == 0x6378);
 static_assert(offsetof(PlayerActorDataBase, royalguardReleaseLevel) == 0x6380);
 //static_assert(offsetof(PlayerActorDataBase, royalguardReleaseEffectIndex) == 0x6381);
 static_assert(offsetof(PlayerActorDataBase, royalguardReleaseDamage) == 0x6384);
-static_assert(offsetof(PlayerActorDataBase, var_6388) == 0x6388);
+static_assert(offsetof(PlayerActorDataBase, guardTimer) == 0x6388);
 static_assert(offsetof(PlayerActorDataBase, var_638C) == 0x638C);
 static_assert(offsetof(PlayerActorDataBase, var_63D0) == 0x63D0);
 static_assert(offsetof(PlayerActorDataBase, quicksilverStage) == 0x63D4);
@@ -4850,10 +4858,18 @@ struct WeaponProgressionData {
 	uint8 gunsUnlockedQtt = 1;
     bool devilArmUnlocks[DEVILARMUNLOCKS::COUNT] = { false };
     bool gunUnlocks[GUNUNLOCKS::COUNT] = { false };
+	// These are the currently unlocked weapons
 	std::vector<std::string> meleeWeaponNames = { "Rebellion" };
 	std::vector<uint8> meleeWeaponIds = { WEAPON::REBELLION };
+	// "Natural" ids are the ids that are used by default when all weapons are unlocked
+    std::vector<uint8> meleeWeaponNaturalIds = { WEAPON::REBELLION, WEAPON::CERBERUS, 
+        WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE };
+    std::vector<uint8> meleeWeaponNaturalIdsVergil = { WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL,
+        WEAPON::YAMATO_FORCE_EDGE };
     std::vector<std::string> rangedWeaponNames = { "Ebony & Ivory" };
     std::vector<uint8> rangedWeaponIds = { WEAPON::EBONY_IVORY };
+    std::vector<uint8> rangedWeaponNaturalIds = { WEAPON::EBONY_IVORY, WEAPON::SHOTGUN, 
+		WEAPON::ARTEMIS, WEAPON::SPIRAL, WEAPON::KALINA_ANN };
 };
 
 extern WeaponProgressionData weaponProgression;
@@ -4892,6 +4908,7 @@ struct GameModeData {
     uint8 ldkNissionResult = LDKMODE::OFF;
     uint32 mustStyleMissionResult = STYLE_RANK::NONE;
     uint8 enemyDTMissionResult = ENEMYDTMODE::DEFAULT;
+    bool forceDifficultyResult = false;
 	std::vector<std::string> names = {
 		"VANILLA MODE",
 		"STYLE SWITCHER MODE",
@@ -5022,7 +5039,8 @@ extern bool styleChanged[6];
 
 extern float g_FrameRate;
 extern "C" float g_FrameRateTimeMultiplier;
-extern float g_FrameRateTimeMultiplierRounded;
+extern "C" float g_cerbDamageValue;
+extern "C" float g_FrameRateTimeMultiplierRounded;
 extern bool g_inCombat;
 extern bool g_inBossfight;
 extern bool g_inCredits;
@@ -5263,6 +5281,7 @@ struct CrimsonPlayerData {
     int currentAction = 0;
     int currentAnim   = 0;
     float actionTimer = 0;
+    float actionTimerNotEventChange = 0;
     float lastActionTime = 0;
     float animTimer   = 0;
     float eventTimer = 0;
@@ -5303,6 +5322,7 @@ struct CrimsonPlayerData {
     int playerScreenAngle = 0;
     bool playerOutOfView = false;
     uint16 rotationTowardsEnemy = 0;
+	bool isCloseToEnemy = false;
     StoredAirCounts storedAirCounts;
 	AirCounts airCounts;
     float lockedOnEnemyHP = 0;
@@ -5332,6 +5352,7 @@ struct CrimsonPlayerData {
     int currentActionClone = 0;
     int currentAnimClone   = 0;
     float actionTimerClone = 0;
+	float actionTimerNotEventChangeClone = 0;
     float lastActionTimeClone = 0;
     float animTimerClone   = 0;
     float eventTimerClone = 0;
@@ -5358,6 +5379,7 @@ struct CrimsonPlayerData {
 	int cloneScreenAngle = 0;
     bool cloneOutOfView = false;
     uint16 rotationCloneTowardsEnemy = 0;
+	bool isCloseToEnemyClone = false;
     StoredAirCounts storedAirCountsClone;
     AirCounts airCountsClone;
 	float lockedOnEnemyHPClone = 0;
@@ -5401,8 +5423,6 @@ struct GuiPause {
 };
 
 extern GuiPause guiPause;
-
-extern std::vector<std::string> HUDdirectories;
 
 extern float frameRateSpeedMultiplier;
 

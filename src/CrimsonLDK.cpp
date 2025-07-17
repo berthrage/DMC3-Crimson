@@ -1,5 +1,6 @@
 #include "CrimsonLDK.hpp"
 #include "Utility/Detour.hpp"
+#include "Global.hpp"
 #include "../Core/Core.hpp"
 #include <memory>
 #include <array>
@@ -53,6 +54,7 @@ static constexpr std::array buggedEnemiesIds{
 	ENEMY::ARKHAM, // Blob       | CEm032 : CNonPlayer : CActor : CWork : IActor : ICollisionHandle : INonPlayer : CCom : ICom : CComAction : IComAction : IComActionState
 	ENEMY::CERBERUS, // Dog        | CEm025 : CNonPlayer : CActor : CWork : IActor : ICollisionHandle : INonPlayer : CCom : ICom : IComAction : IComActionState
 	ENEMY::LEVIATHAN_HEART,
+	ENEMY::DAMNED_CHESSMEN_PAWN,
 };
 
 static constexpr std::array undesirableEnemiesIds{
@@ -67,6 +69,8 @@ static constexpr std::array weirdEnemiesIds{
 	ENEMY::BLOOD_GOYLE, // Birds      | CEm014 : CNonPlayer : CActor : CWork : IActor : ICollisionHandle : INonPlayer : CCom : ICom : CComAction : IComAction : IComActionState
 	ENEMY::DAMNED_CHESSMEN_ROOK, // ChessPiece | CEm017 : CNonPlayer : CActor : CWork : IActor : ICollisionHandle : INonPlayer : CCom : ICom : CComAction : IComAction : IComActionState
 	ENEMY::DAMNED_CHESSMEN_KING, // ChessKing? | CEm021 : CEm017 : CNonPlayer : CActor : CWork : IActor : ICollisionHandle : INonPlayer : CCom : ICom : CComAction : IComAction : IComActionState
+	ENEMY::DAMNED_CHESSMEN_KNIGHT,
+	
 };
 
 static constexpr std::array bossEnemiesIds {
@@ -87,7 +91,7 @@ static uintptr_t __fastcall cEnemySetCtrl_spawnGuy_sub_1401A4680(uintptr_t pthis
 	uintptr_t trampoline_raw = s_cEmsetCtrlSpawnGuyHook->GetTrampoline();
 	spawGuyTrampoline trampoline = (spawGuyTrampoline)trampoline_raw;
 
-	s_ldkEnable = ldkModeConfig;
+	s_ldkEnable = ldkModeConfig && !(g_secretMission);
 
 	if (ldkModeConfig >= LDKMODE::SUPER_LDK) {
 		s_dudeMultiplier = 5;

@@ -135,6 +135,8 @@ struct CrimsonConfig {
 		bool lockOn = true;
 		bool stunDisplacementNumericHud = false;
 		bool lockOnColorsCharacter = true;
+		std::string selectedStyleRanks = "Crimson";
+		std::string selectedStyleRanksAccolades = "1 - DMC3Default";
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -146,7 +148,9 @@ struct CrimsonConfig {
                 std::make_pair("styleRanksMeter", &CrimsonHudAddons::styleRanksMeter),
                 std::make_pair("lockOn", &CrimsonHudAddons::lockOn),
 				std::make_pair("stunDisplacementNumericHud", &CrimsonHudAddons::stunDisplacementNumericHud),
-				std::make_pair("lockOnColorsCharacter", &CrimsonHudAddons::lockOnColorsCharacter)
+				std::make_pair("lockOnColorsCharacter", &CrimsonHudAddons::lockOnColorsCharacter),
+				std::make_pair("selectedStyleRanks", &CrimsonHudAddons::selectedStyleRanks),
+				std::make_pair("selectedStyleRanksAccolades", &CrimsonHudAddons::selectedStyleRanksAccolades)
 			);
 		}
 	} CrimsonHudAddons;
@@ -168,15 +172,15 @@ struct CrimsonConfig {
 		uint8 followUpSpeed = 2;
 		uint8 distance = 2;
 		uint8 lockOnDistance = 2;
-		uint8 tilt = 1;
+		uint8 verticalTilt = 0;
 		bool lockedOff = true;
 		bool invertX = true;
 		uint8 autoAdjust = 0;
 		uint8 rightStickCameraCentering = RIGHTSTICKCENTERCAM::TO_NEAREST_SIDE;
 		bool disableBossCamera = false;
 		bool multiplayerCamera = true;
-		bool panoramicCamera = false;
-		bool forceThirdPerson = true;
+		bool panoramicCam = true;
+		bool thirdPersonCamera = true;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -185,15 +189,15 @@ struct CrimsonConfig {
                 std::make_pair("followUpSpeed", &Camera::followUpSpeed),
                 std::make_pair("distance", &Camera::distance),
                 std::make_pair("lockOnDistance", &Camera::lockOnDistance),
-                std::make_pair("tilt", &Camera::tilt),
+                std::make_pair("verticalTilt", &Camera::verticalTilt),
                 std::make_pair("lockedOff", &Camera::lockedOff),
                 std::make_pair("invertX", &Camera::invertX),
                 std::make_pair("autoAdjust", &Camera::autoAdjust),
                 std::make_pair("rightStickCameraCentering", &Camera::rightStickCameraCentering),
                 std::make_pair("disableBossCamera", &Camera::disableBossCamera),
 				std::make_pair("multiplayerCamera", &Camera::multiplayerCamera),
-				std::make_pair("panoramicCamera", &Camera::panoramicCamera),
-                std::make_pair("forceThirdPerson", &Camera::forceThirdPerson)
+				std::make_pair("panoramicCam", &Camera::panoramicCam),
+                std::make_pair("thirdPersonCamera", &Camera::thirdPersonCamera)
 			);
 		}
 	} Camera;

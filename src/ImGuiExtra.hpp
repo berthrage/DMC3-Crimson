@@ -86,6 +86,10 @@ namespace UI {
 
 	extern RussoOne_t g_ImGuiFont_RussoOne;
 
+	extern RussoOne_t g_ImGuiFont_RedOrbRusso;
+
+	extern RussoOne_t g_ImGuiFont_RedOrbRussoBackdrop;
+
 	extern ImFont* g_ImGuiFont_RussoOne256;
 
 	struct UIContext {
@@ -145,8 +149,8 @@ namespace UI {
 
 		struct {
 			uint32_t Major = 0;
-			uint32_t Minor = 3;
-			char	 PatchLetter = 'b';
+			uint32_t Minor = 4;
+			char	 PatchLetter = 'P';
 		} CurrentVersion;
 
 		struct {

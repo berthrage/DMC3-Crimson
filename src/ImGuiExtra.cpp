@@ -11,11 +11,17 @@
 namespace UI {
 #include "Fonts/RobotoMedium.hpp"
 #include "Fonts/RussoOneRegular.hpp"
+#include "Fonts/RedOrbRusso.hpp"
+#include "Fonts/RedOrbRussoBackdrop.hpp"
 #include "Core/GUI.hpp"
 
 	Roboto_t g_ImGuiFont_Roboto;
 
 	RussoOne_t g_ImGuiFont_RussoOne;
+
+	RussoOne_t g_ImGuiFont_RedOrbRusso;
+
+	RussoOne_t g_ImGuiFont_RedOrbRussoBackdrop;
 
 	UIContext g_UIContext;
 
@@ -136,6 +142,14 @@ namespace UI {
 
 		for (size_t i = 0; i < g_ImGuiFont_RussoOne.m_FontSizes.size(); i++) {
 			g_ImGuiFont_RussoOne.m_FontSizes[i] = io.Fonts->AddFontFromMemoryCompressedTTF(RussoOneRegular_compressed_data, RussoOneRegular_compressed_size, float(i + 10), nullptr, ranges.Data);
+		}
+
+		for (size_t i = 0; i < g_ImGuiFont_RedOrbRusso.m_FontSizes.size(); i++) {
+			g_ImGuiFont_RedOrbRusso.m_FontSizes[i] = io.Fonts->AddFontFromMemoryCompressedTTF(RedOrbRusso_compressed_data, RedOrbRusso_compressed_size, float(i + 10), nullptr, ranges.Data);
+		}
+
+		for (size_t i = 0; i < g_ImGuiFont_RedOrbRussoBackdrop.m_FontSizes.size(); i++) {
+			g_ImGuiFont_RedOrbRussoBackdrop.m_FontSizes[i] = io.Fonts->AddFontFromMemoryCompressedTTF(RedOrbRussoBackdrop_compressed_data, RedOrbRussoBackdrop_compressed_size, float(i + 10), nullptr, ranges.Data);
 		}
 
 		g_ImGuiFont_RussoOne256 = io.Fonts->AddFontFromMemoryCompressedTTF(RussoOneRegular_compressed_data, RussoOneRegular_compressed_size, 256.0f, nullptr, ranges.Data);

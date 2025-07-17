@@ -7,7 +7,7 @@ struct CrimsonConfigGameplayMask {
 		struct General {
 			bool inertia = true;
 			bool sprint = true;
-			bool characterHotswap = true;
+			bool charHotswap = true;
 			bool freeformSoftLock = true;
 			bool bufferlessReversals = true;
 			bool dmc4LockOnDirection = true;
@@ -27,7 +27,7 @@ struct CrimsonConfigGameplayMask {
 				return std::make_tuple(
 					std::make_pair("inertia", &General::inertia),
 					std::make_pair("sprint", &General::sprint),
-					std::make_pair("characterHotswap",&General::characterHotswap),
+					std::make_pair("charHotswap",&General::charHotswap),
 					std::make_pair("freeformSoftLock", &General::freeformSoftLock),
 					std::make_pair("bufferlessReversals", &General::bufferlessReversals),
 					std::make_pair("dmc4LockOnDirection", &General::dmc4LockOnDirection),
@@ -55,6 +55,7 @@ struct CrimsonConfigGameplayMask {
 			bool aerialRaveTweaks = true;
 			bool airFlickerTweaks = true;
 			bool skyDanceTweaks = true;
+			bool downertiaFromAirFlickerSkyDance = true;
 			bool shotgunAirShotTweaks = true;
 			bool driveTweaks = true;
 			bool disableAirSlashKnockback = true;
@@ -81,6 +82,7 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("aerialRaveTweaks", &Dante::aerialRaveTweaks),
 					std::make_pair("airFlickerTweaks", &Dante::airFlickerTweaks),
 					std::make_pair("skyDanceTweaks", &Dante::skyDanceTweaks),
+					std::make_pair("downertiaFromAirFlickerSkyDance", &Dante::downertiaFromAirFlickerSkyDance),
 					std::make_pair("shotgunAirShotTweaks", &Dante::shotgunAirShotTweaks),
 					std::make_pair("driveTweaks", &Dante::driveTweaks),
 					std::make_pair("disableAirSlashKnockback", &Dante::disableAirSlashKnockback),
@@ -111,6 +113,7 @@ struct CrimsonConfigGameplayMask {
 			bool yamatoRisingStar = true;
 			bool yamatoHighTime = true;
 			bool mirageTrigger = true;
+			bool trickUpNoLockOn = true;
 			bool adjustLunarPhasePos = true;
 			
 
@@ -126,6 +129,7 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("yamatoRisingStar", &Vergil::yamatoRisingStar),
 					std::make_pair("yamatoHighTime", &Vergil::yamatoHighTime),
 					std::make_pair("mirageTrigger", &Vergil::mirageTrigger),
+					std::make_pair("trickUpNoLockOn", &Vergil::trickUpNoLockOn),
 					std::make_pair("adjustLunarPhasePos", &Vergil::adjustLunarPhasePos)
 				);
 			}
@@ -136,6 +140,7 @@ struct CrimsonConfigGameplayMask {
 			bool mustStyleMode = true;
 			bool enemyDTMode = true;
 			bool betterArkham2 = false;
+			bool forceDifficultyMode = true;
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
@@ -143,6 +148,7 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("mustStyleMode", &ExtraDifficulty::mustStyleMode),
 					std::make_pair("enemyDTMode", &ExtraDifficulty::enemyDTMode),
 					std::make_pair("betterArkham2", &ExtraDifficulty::betterArkham2)
+					std::make_pair("forceDifficultyMode", &ExtraDifficulty::forceDifficultyMode)
 				);
 			}
 		} ExtraDifficulty;

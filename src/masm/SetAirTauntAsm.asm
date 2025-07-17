@@ -6,6 +6,8 @@ extern g_SetAirTaunt_Call:QWORD
 SetAirTauntDetour PROC ; player in rcx
     test byte ptr [rcx+3e64h], 2 ; aerial
     je CodeLabel
+    cmp dword ptr [rcx+3e00h], 44d ; event staggered
+    je ReturnLabel
     mov rdx,0000000000000011h
     cmp dword ptr [rdi+78h], 0 ; dante id
     je DanteLabel

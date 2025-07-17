@@ -3,6 +3,7 @@
 
 void CameraCtrlInitDetour();
 void CameraSwitchInitDetour();
+void CameraWallCheckDetour();
 namespace CrimsonCameraController{
 	extern uint32 g_currentCameraIndex;
 	extern uint32 g_currentCameraType;

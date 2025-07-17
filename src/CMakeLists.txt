@@ -1,4 +1,5 @@
 set(MASM_SRC
+    masm/CommonMacros.inc
     masm/SampleMod.asm
     masm/GuardGravity.asm
     masm/AddToMirageGauge.asm
@@ -13,11 +14,15 @@ set(MASM_SRC
     masm/FixCrashArkhamPt2Doppel.asm
     masm/FixCrashArkhamPt2Grab.asm
     masm/FixCrashCerberus.asm
+    masm/CerbDamageFix.asm
+    masm/FixCrashM5.asm
     masm/FixCrashVergilM3.asm
+    masm/FixSecretMissionTimerFPS.asm
     masm/HideStyleRankHUD.asm
     masm/HudHPSeparation.asm
     masm/HudStyleBarPosAsm.asm
     masm/PortalsHideAndMute.asm
+    masm/PlaytimeOnTick.asm
     masm/DisableDriveHoldAsm.asm
     masm/CustomCameraPositioning.asm
     masm/FreeformSoftLockHelper.asm
@@ -26,6 +31,7 @@ set(MASM_SRC
     masm/EnemyAITarget.asm
     masm/SetAirTauntAsm.asm
     masm/SkyLaunchAirTaunt.asm
+    masm/StyleLevellingCCSFix.asm
     masm/RerouteRedOrbsCounterAlpha.asm
     masm/ToggleTakeDamage.asm
     masm/VergilTricksAsm.asm
@@ -86,6 +92,8 @@ project(Crimson LANGUAGES CXX C ASM_MASM)
 
 file(GLOB FONTS_HDR Fonts/RobotoMedium.hpp
                     Fonts/RussoOneRegular.hpp
+		    Fonts/RedOrbRusso.hpp
+		    Fonts/RedOrbRussoBackdrop.hpp
 )
 
 file(GLOB GLOBAL_SRC 
@@ -274,7 +282,9 @@ OUTPUT_NAME Crimson)
 project(dinput8_injector)
 
 set(DI_SOURCE
-    dinput8.cpp  
+    dinput8.cpp
+    CrashHandler.hpp
+    CrashHandler.cpp
 )
 
 set(DI_CORE_SOURCE
