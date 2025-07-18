@@ -8285,6 +8285,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				return;
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
+			ImGui::Text("lastActionTime %g", crimsonPlayer[0].lastActionTime);
+			ImGui::Text("actionTImerNotEventChange %g", crimsonPlayer[0].actionTimerNotEventChange);
 			ImGui::Text("closeToEnemy %u", crimsonPlayer[0].isCloseToEnemy);
 			ImGui::Text("guardTimer %g", actorData.guardTimer);
 			ImGui::Text("skyLaunch Executing %u", crimsonPlayer[0].skyLaunch.executing);
@@ -9048,6 +9050,8 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 			}
 			ImGui::PopItemWidth();
 
+			ImGui::TableNextColumn();
+
 			ImGui::PushItemWidth(itemWidth);
 			if (UI::ComboVectorString2("Select Meter Accolades", CrimsonFiles::StyleRanksAccoladesdirectories, activeCrimsonConfig.CrimsonHudAddons.selectedStyleRanksAccolades,
 				queuedCrimsonConfig.CrimsonHudAddons.selectedStyleRanksAccolades)) {
@@ -9063,10 +9067,22 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 				if (!activeCrimsonConfig.CrimsonHudAddons.lockOn) {
 					activeCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud = false;
 					queuedCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud = false;
+					activeCrimsonConfig.CrimsonHudAddons.scaleLockOnEnemyDistance = false;
+					queuedCrimsonConfig.CrimsonHudAddons.scaleLockOnEnemyDistance = false;
 				}
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeCrimsonConfig.CrimsonHudAddons.lockOn);
+			GUI_Checkbox2("Scale Lock-On Enemy Distance", activeCrimsonConfig.CrimsonHudAddons.scaleLockOnEnemyDistance, queuedCrimsonConfig.CrimsonHudAddons.scaleLockOnEnemyDistance);
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Scales the Lock-On Display size based on how distant the Enemy is from the Camera.");
+			GUI_PopDisable(!activeCrimsonConfig.CrimsonHudAddons.lockOn);
 
 			ImGui::TableNextColumn();
 

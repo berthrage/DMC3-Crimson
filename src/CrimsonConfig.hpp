@@ -133,6 +133,7 @@ struct CrimsonConfig {
 		bool royalGauge = true;
 		bool styleRanksMeter = true;
 		bool lockOn = true;
+		bool scaleLockOnEnemyDistance = false;
 		bool stunDisplacementNumericHud = false;
 		bool lockOnColorsCharacter = true;
 		std::string selectedStyleRanks = "Crimson";
@@ -147,6 +148,7 @@ struct CrimsonConfig {
                 std::make_pair("royalGauge", &CrimsonHudAddons::royalGauge),
                 std::make_pair("styleRanksMeter", &CrimsonHudAddons::styleRanksMeter),
                 std::make_pair("lockOn", &CrimsonHudAddons::lockOn),
+				std::make_pair("scaleLockOnEnemyDistance", &CrimsonHudAddons::scaleLockOnEnemyDistance),
 				std::make_pair("stunDisplacementNumericHud", &CrimsonHudAddons::stunDisplacementNumericHud),
 				std::make_pair("lockOnColorsCharacter", &CrimsonHudAddons::lockOnColorsCharacter),
 				std::make_pair("selectedStyleRanks", &CrimsonHudAddons::selectedStyleRanks),
