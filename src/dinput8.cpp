@@ -63,7 +63,7 @@ HRESULT DirectInput8Create(HINSTANCE hinst, DWORD dwVersion, const IID& riidltf,
 #pragma comment(linker, "/EXPORT:DirectInput8Create=" DECORATED_FUNCTION_NAME)
 
     InitLog("logs", "Crash.txt");
-    InstallCrashHandler(".\\logs\\crimson_crash.dmp");
+    InstallCrashHandler(".\\logs\\CrimsonCrash.dmp");
     if (!InitializeDbgHelp()) {
         Log("Init_DbgHelp failed.");
 
