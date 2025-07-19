@@ -64,7 +64,7 @@ bool GUI_Checkbox(const char* label, bool& var) {
 
     if (update) {
         ::GUI::save = true;
-        if (activeCrimsonConfig.GUI.sounds) PlaySound(0, 25);
+        if (activeCrimsonConfig.GUI.sounds) FMOD_PlaySound(0, 25);
     }
 
     return update;

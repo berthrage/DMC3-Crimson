@@ -3,905 +3,1228 @@
 #include "Sprite.hpp"
 
 #include <filesystem>
-#include <algorithm> 
 
+std::vector<Graphics::SpriteDesc> g_SpriteDescs;
 
-namespace WW {
-    void LoadSprites(std::vector <Graphics::Sprite>& sprites, std::vector <Graphics::Sprite>& weaponSprites)
-    {
-        sprites.reserve((size_t)TextureID::Size);
-        weaponSprites.reserve((size_t)WeaponTextureID::Size);
-    
-        const std::filesystem::path textureRoot(R"(Crimson\assets\weaponwheel)");
-    
-        sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel1.png)").string().c_str()); //ColoredDantePanel1Active
-        sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel2.png)").string().c_str()); //ColoredDantePanel2Active
-        sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel3.png)").string().c_str()); //ColoredDantePanel3Active
-        sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel4.png)").string().c_str()); //ColoredDantePanel4Active
-        sprites.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel5.png)").string().c_str()); //ColoredDantePanel5Active
-    
-        sprites.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel1.png)").string().c_str()); //ColoredDantePanel1Inactive
-        sprites.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel2.png)").string().c_str()); //ColoredDantePanel2Inactive
-        sprites.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel3.png)").string().c_str()); //ColoredDantePanel3Inactive
-        sprites.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel4.png)").string().c_str()); //ColoredDantePanel4Inactive
-        sprites.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel5.png)").string().c_str()); //ColoredDantePanel5Inactive
-    
-        sprites.emplace_back((textureRoot / R"(colored\dante\arrow1.png)").string().c_str()); //ColoredDanteArrow1
-        sprites.emplace_back((textureRoot / R"(colored\dante\arrow2.png)").string().c_str()); //ColoredDanteArrow2
-        sprites.emplace_back((textureRoot / R"(colored\dante\arrow3.png)").string().c_str()); //ColoredDanteArrow3
-        sprites.emplace_back((textureRoot / R"(colored\dante\arrow4.png)").string().c_str()); //ColoredDanteArrow4
-        sprites.emplace_back((textureRoot / R"(colored\dante\arrow5.png)").string().c_str()); //ColoredDanteArrow5
-        sprites.emplace_back((textureRoot / R"(colored\dante\center.png)").string().c_str()); //ColoredDanteCenter
-    
-        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel1.png)").string().c_str()); //ColoredVergilPanel1Active
-        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel2.png)").string().c_str()); //ColoredVergilPanel2Active
-        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel3.png)").string().c_str()); //ColoredVergilPanel3Active
-        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel4.png)").string().c_str()); //ColoredVergilPanel4Active
-        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel5.png)").string().c_str()); //ColoredVergilPanel5Active
-    
-        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel1.png)").string().c_str()); //ColoredVergilPanel1Inactive
-        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel2.png)").string().c_str()); //ColoredVergilPanel2Inactive
-        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel3.png)").string().c_str()); //ColoredVergilPanel3Inactive
-        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel4.png)").string().c_str()); //ColoredVergilPanel4Inactive
-        sprites.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel5.png)").string().c_str()); //ColoredVergilPanel5Inactive
-    
-        sprites.emplace_back((textureRoot / R"(colored\vergil\arrow1.png)").string().c_str()); //ColoredVergilArrow1
-        sprites.emplace_back((textureRoot / R"(colored\vergil\arrow2.png)").string().c_str()); //ColoredVergilArrow2
-        sprites.emplace_back((textureRoot / R"(colored\vergil\arrow3.png)").string().c_str()); //ColoredVergilArrow3
-        sprites.emplace_back((textureRoot / R"(colored\vergil\arrow4.png)").string().c_str()); //ColoredVergilArrow4
-        sprites.emplace_back((textureRoot / R"(colored\vergil\arrow5.png)").string().c_str()); //ColoredVergilArrow5
-        sprites.emplace_back((textureRoot / R"(colored\vergil\center.png)").string().c_str()); //ColoredVergilCenter
-    
-        sprites.emplace_back((textureRoot / R"(colorless\panelsactive\panel1.png)").string().c_str()); //ColorlessPanel1Active
-        sprites.emplace_back((textureRoot / R"(colorless\panelsactive\panel2.png)").string().c_str()); //ColorlessPanel2Active
-        sprites.emplace_back((textureRoot / R"(colorless\panelsactive\panel3.png)").string().c_str()); //ColorlessPanel3Active
-        sprites.emplace_back((textureRoot / R"(colorless\panelsactive\panel4.png)").string().c_str()); //ColorlessPanel4Active
-        sprites.emplace_back((textureRoot / R"(colorless\panelsactive\panel5.png)").string().c_str()); //ColorlessPanel5Active
-    
-        sprites.emplace_back((textureRoot / R"(colorless\panelsinactive\panel1.png)").string().c_str()); //ColorlessPanel1Inactive
-        sprites.emplace_back((textureRoot / R"(colorless\panelsinactive\panel2.png)").string().c_str()); //ColorlessPanel2Inactive
-        sprites.emplace_back((textureRoot / R"(colorless\panelsinactive\panel3.png)").string().c_str()); //ColorlessPanel3Inactive
-        sprites.emplace_back((textureRoot / R"(colorless\panelsinactive\panel4.png)").string().c_str()); //ColorlessPanel4Inactive
-        sprites.emplace_back((textureRoot / R"(colorless\panelsinactive\panel5.png)").string().c_str()); //ColorlessPanel5Inactive
-    
-        sprites.emplace_back((textureRoot / R"(colorless\arrow1.png)").string().c_str()); //ColorlessArrow1
-        sprites.emplace_back((textureRoot / R"(colorless\arrow2.png)").string().c_str()); //ColorlessArrow2
-        sprites.emplace_back((textureRoot / R"(colorless\arrow3.png)").string().c_str()); //ColorlessArrow3
-        sprites.emplace_back((textureRoot / R"(colorless\arrow4.png)").string().c_str()); //ColorlessArrow4
-        sprites.emplace_back((textureRoot / R"(colorless\arrow5.png)").string().c_str()); //ColorlessArrow5
-        sprites.emplace_back((textureRoot / R"(colorless\center.png)").string().c_str()); //ColorlessCenter
+enum class TextureID
+{
+    ColoredDantePanel1Active = 0,
+    ColoredDantePanel2Active,
+    ColoredDantePanel3Active,
+    ColoredDantePanel4Active,
+    ColoredDantePanel5Active,
 
-		weaponSprites.emplace_back((textureRoot / R"(melee\active\rebellion-awakened.png)").string().c_str()); //RebellionAwakenedActive
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\rebellion-dormant.png)").string().c_str()); //RebellionDormantActive
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\cerberus.png)").string().c_str()); //CerberusActive
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\agnirudra.png)").string().c_str()); //AgniRudraActive
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\nevan.png)").string().c_str()); //NevanActive
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\beowulf.png)").string().c_str()); //BeowulfActive
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\forceedge-dante.png)").string().c_str()); //ForceEdgeActive
+    ColoredDantePanel1Inactive,
+    ColoredDantePanel2Inactive,
+    ColoredDantePanel3Inactive,
+    ColoredDantePanel4Inactive,
+    ColoredDantePanel5Inactive,
 
-        weaponSprites.emplace_back((textureRoot / R"(guns\active\ebonyivory.png)").string().c_str()); //EbonyIvoryActive
-        weaponSprites.emplace_back((textureRoot / R"(guns\active\shotgun.png)").string().c_str()); //ShotgunActive
-        weaponSprites.emplace_back((textureRoot / R"(guns\active\artemis.png)").string().c_str()); //ArtemisActive
-        weaponSprites.emplace_back((textureRoot / R"(guns\active\spiral.png)").string().c_str()); //SpiralActive
-        weaponSprites.emplace_back((textureRoot / R"(guns\active\kalina.png)").string().c_str()); //KalinaActive
+    ColoredDanteArrow1,
+    ColoredDanteArrow2,
+    ColoredDanteArrow3,
+    ColoredDanteArrow4,
+    ColoredDanteArrow5,
+    ColoredDanteCenter,
 
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\yamato.png)").string().c_str()); //YamatoActive
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\forceedge-vergil.png)").string().c_str()); //YamatoForceEdgeActive
+    ColoredVergilPanel1Active,
+    ColoredVergilPanel2Active,
+    ColoredVergilPanel3Active,
+    ColoredVergilPanel4Active,
+    ColoredVergilPanel5Active,
 
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\rebellion-awakened.png)").string().c_str()); //DuplicateRebellionAwakenedActive
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\rebellion-dormant.png)").string().c_str()); //DuplicateRebellionDormantActive
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\cerberus.png)").string().c_str()); //DuplicateCerberusActive
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\agnirudra.png)").string().c_str()); //DuplicateAgniRudraActive
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\nevan.png)").string().c_str()); //DuplicateNevanActive
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\beowulf.png)").string().c_str()); //DuplicateBeowulfActive
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\forceedge-dante.png)").string().c_str()); //DuplicateForceEdgeActive
+    ColoredVergilPanel1Inactive,
+    ColoredVergilPanel2Inactive,
+    ColoredVergilPanel3Inactive,
+    ColoredVergilPanel4Inactive,
+    ColoredVergilPanel5Inactive,
 
-        weaponSprites.emplace_back((textureRoot / R"(guns\active\ebonyivory.png)").string().c_str()); //DuplicateEbonyIvoryActive
-        weaponSprites.emplace_back((textureRoot / R"(guns\active\shotgun.png)").string().c_str()); //DuplicateShotgunActive
-        weaponSprites.emplace_back((textureRoot / R"(guns\active\artemis.png)").string().c_str()); //DuplicateArtemisActive
-        weaponSprites.emplace_back((textureRoot / R"(guns\active\spiral.png)").string().c_str()); //DuplicateSpiralActive
-        weaponSprites.emplace_back((textureRoot / R"(guns\active\kalina.png)").string().c_str()); //DuplicateKalinaActive
+    ColoredVergilArrow1,
+    ColoredVergilArrow2,
+    ColoredVergilArrow3,
+    ColoredVergilArrow4,
+    ColoredVergilArrow5,
+    ColoredVergilCenter,
 
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\yamato.png)").string().c_str()); //DuplicateYamatoActive
-        weaponSprites.emplace_back((textureRoot / R"(melee\active\forceedge-vergil.png)").string().c_str()); //DuplicateYamatoForceEdgeActive
+    ColorlessPanel1Active,
+    ColorlessPanel2Active,
+    ColorlessPanel3Active,
+    ColorlessPanel4Active,
+    ColorlessPanel5Active,
 
-        weaponSprites.emplace_back((textureRoot / R"(melee\inactive\rebellion-awakened.png)").string().c_str()); //RebellionAwakenedInactive
-        weaponSprites.emplace_back((textureRoot / R"(melee\inactive\rebellion-dormant.png)").string().c_str()); //RebellionDormantInactive
-        weaponSprites.emplace_back((textureRoot / R"(melee\inactive\cerberus.png)").string().c_str()); //CerberusInactive
-        weaponSprites.emplace_back((textureRoot / R"(melee\inactive\agnirudra.png)").string().c_str()); //AgniRudraInactive
-        weaponSprites.emplace_back((textureRoot / R"(melee\inactive\nevan.png)").string().c_str()); //NevanInactive
-        weaponSprites.emplace_back((textureRoot / R"(melee\inactive\beowulf.png)").string().c_str()); //BeowulfInactive
-        weaponSprites.emplace_back((textureRoot / R"(melee\inactive\forceedge-dante.png)").string().c_str()); //ForceEdgeInactive
+    ColorlessPanel1Inactive,
+    ColorlessPanel2Inactive,
+    ColorlessPanel3Inactive,
+    ColorlessPanel4Inactive,
+    ColorlessPanel5Inactive,
 
-        weaponSprites.emplace_back((textureRoot / R"(guns\inactive\ebonyivory.png)").string().c_str()); //EbonyIvoryInactive
-        weaponSprites.emplace_back((textureRoot / R"(guns\inactive\shotgun.png)").string().c_str()); //ShotgunInactive
-        weaponSprites.emplace_back((textureRoot / R"(guns\inactive\artemis.png)").string().c_str()); //ArtemisInactive
-        weaponSprites.emplace_back((textureRoot / R"(guns\inactive\spiral.png)").string().c_str()); //SpiralInactive
-        weaponSprites.emplace_back((textureRoot / R"(guns\inactive\kalina.png)").string().c_str()); //KalinaInactive
+    ColorlessArrow1,
+    ColorlessArrow2,
+    ColorlessArrow3,
+    ColorlessArrow4,
+    ColorlessArrow5,
+    ColorlessCenter,
 
-        weaponSprites.emplace_back((textureRoot / R"(melee\inactive\yamato.png)").string().c_str()); //YamatoInactive
-        weaponSprites.emplace_back((textureRoot / R"(melee\inactive\forceedge-vergil.png)").string().c_str()); //YamatoForceEdgeInactive
-        
+    RebellionAwakenedActive,
+    RebellionDormantActive,
+    CerberusActive,
+    AgniRudraActive,
+    NevanActive,
+    BeowulfActive,
+    ForceEdgeActive,
+
+    EbonyIvoryActive,
+    ShotgunActive,
+    ArtemisActive,
+    SpiralActive,
+    KalinaActive,
+
+    YamatoActive,
+    YamatoForceEdgeActive,
+
+    DuplicateRebellionAwakenedActive,
+    DuplicateRebellionDormantActive,
+    DuplicateCerberusActive,
+    DuplicateAgniRudraActive,
+    DuplicateNevanActive,
+    DuplicateBeowulfActive,
+    DuplicateForceEdgeActive,
+
+    DuplicateEbonyIvoryActive,
+    DuplicateShotgunActive,
+    DuplicateArtemisActive,
+    DuplicateSpiralActive,
+    DuplicateKalinaActive,
+
+    DuplicateYamatoActive,
+    DuplicateYamatoForceEdgeActive,
+
+    RebellionAwakenedInactive,
+    RebellionDormantInactive,
+    CerberusInactive,
+    AgniRudraInactive,
+    NevanInactive,
+    BeowulfInactive,
+    ForceEdgeInactive,
+
+    EbonyIvoryInactive,
+    ShotgunInactive,
+    ArtemisInactive,
+    SpiralInactive,
+    KalinaInactive,
+
+    YamatoInactive,
+    YamatoForceEdgeInactive,
+
+    Size
+};
+
+struct Transform
+{
+    glm::vec3 Translation;
+    glm::vec3 Rotation;
+    glm::vec3 Scale;
+};
+
+static constexpr Transform s_MeleeInactiveSlotTransforms[5] =
+{
+    { // Slot 1
+        glm::vec3(-0.142f, 0.416f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(55.120f)),
+        glm::vec3(0.244f)
+    },
+    { // Slot 2
+        glm::vec3(0.416f, 0.287f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(-12.919f)),
+        glm::vec3(0.227f)
+    },
+    { // Slot 3
+        glm::vec3(0.384f, -0.330f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(27.560f)),
+        glm::vec3(0.178f)
+    },
+    { // Slot 4
+        glm::vec3(-0.086f, -0.504f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(80.366f)),
+        glm::vec3(0.217f)
+    },
+    { // Slot 5
+        glm::vec3(-0.524f, -0.016f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(23.254f)),
+        glm::vec3(0.214f)
     }
-    
-    constexpr WeaponTextureID GetWeaponTextureID(WeaponIDs id, bool activeState)
+};
+
+static constexpr Transform s_RangedActiveSlotTransforms[5] =
+{
+    { // Slot 1
+        glm::vec3(-0.278f, 0.486f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(49.831f)),
+        glm::vec3(0.446f)
+    },
+    { // Slot 2
+        glm::vec3(0.522f, 0.293f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(-11.186f)),
+        glm::vec3(0.420f)
+    },
+    { // Slot 3
+        glm::vec3(0.472f, -0.344f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(23.390f)),
+        glm::vec3(0.388f)
+    },
+    { // Slot 4
+        glm::vec3(-0.122f, -0.540f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(78.486f)),
+        glm::vec3(0.391f)
+    },
+    { // Slot 5
+        glm::vec3(-0.594f, 0.012f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(23.254f)),
+        glm::vec3(0.359f)
+    }
+};
+
+static constexpr Transform s_MeleeActiveSlotSwitchVersTransforms[5] =
+{
+    { // Slot 1
+        glm::vec3(-0.278f, 0.546f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(49.831f)),
+        glm::vec3(0.446f)
+    },
+    { // Slot 2
+        glm::vec3(0.522f, 0.448f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(-11.186f)),
+        glm::vec3(0.420f)
+    },
+    { // Slot 3
+        glm::vec3(0.472f, -0.424f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(23.390f)),
+        glm::vec3(0.388f)
+    },
+    { // Slot 4
+        glm::vec3(-0.122f, -0.540f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(78.486f)),
+        glm::vec3(0.391f)
+    },
+    { // Slot 5
+        glm::vec3(-0.594f, 0.012f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(23.254f)),
+        glm::vec3(0.359f)
+    }
+};
+
+static constexpr Transform s_MeleeActiveSlotTransforms[5] =
+{
+    { // Slot 1
+        glm::vec3(-0.142f, 0.416f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(49.831f)),
+        glm::vec3(0.446f)
+    },
+    { // Slot 2
+        glm::vec3(0.416f, 0.287f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(-11.186f)),
+        glm::vec3(0.420f)
+    },
+    { // Slot 3
+        glm::vec3(0.384f, -0.330f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(23.390f)),
+        glm::vec3(0.388f)
+    },
+    { // Slot 4
+        glm::vec3(-0.086f, -0.504f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(78.486f)),
+        glm::vec3(0.391f)
+    },
+    { // Slot 5
+        glm::vec3(-0.524f, -0.016f, 0.0f),
+        glm::vec3(0.0f, 0.0f, glm::radians(23.254f)),
+        glm::vec3(0.359f)
+    }
+};
+
+static constexpr glm::vec3 s_WeaponInactiveSwitchVersRotations[] {
+    { // RebellionDormant
+        glm::vec3(0.0f, 0.0f, glm::radians(55.120f))
+    },
+    { // RebellionAwakened
+        glm::vec3(0.0f, 0.0f, glm::radians(55.120f))
+    },
+    { // ForceEdge
+        glm::vec3(0.0f, 0.0f, glm::radians(55.120f))
+    },
+    { // Cerberus
+        glm::vec3(0.0f, 0.0f, glm::radians(-12.919f))
+    },
+    { // AgniRudra
+        glm::vec3(0.0f, 0.0f, glm::radians(27.560f))
+    },
+    { // Nevan
+        glm::vec3(0.0f, 0.0f, glm::radians(80.366f))
+    },
+    { // Beowulf
+        glm::vec3(0.0f, 0.0f, glm::radians(23.254f))
+    },
+    { // Yamato
+        glm::vec3(0.0f, 0.0f, glm::radians(55.120f))
+    },
+    { // ForceEdgeYamato
+        glm::vec3(0.0f, 0.0f, glm::radians(27.560f))
+    },
+
+    { // EbonyIvory
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // Shotgun
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // Artemis
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // Spiral
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // KalinaAnn
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+};
+
+static constexpr glm::vec3 s_WeaponActiveSwitchVersRotations[] {
+    { // RebellionDormant
+        glm::vec3(0.0f, 0.0f, glm::radians(49.831f))
+    },
+    { // RebellionAwakened
+        glm::vec3(0.0f, 0.0f, glm::radians(49.831f))
+    },
+    { // ForceEdge
+        glm::vec3(0.0f, 0.0f, glm::radians(49.831f))
+    },
+    { // Cerberus
+        glm::vec3(0.0f, 0.0f, glm::radians(-11.186f))
+    },
+    { // AgniRudra
+        glm::vec3(0.0f, 0.0f, glm::radians(23.390f))
+    },
+    { // Nevan
+        glm::vec3(0.0f, 0.0f, glm::radians(78.486f))
+    },
+    { // Beowulf
+        glm::vec3(0.0f, 0.0f, glm::radians(23.254f))
+    },
+    { // Yamato
+        glm::vec3(0.0f, 0.0f, glm::radians(49.831f))
+    },
+    { // ForceEdgeYamato
+        glm::vec3(0.0f, 0.0f, glm::radians(23.390f))
+    },
+
+    { // EbonyIvory
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // Shotgun
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // Artemis
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // Spiral
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // KalinaAnn
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+};
+
+static constexpr glm::vec3 s_WeaponNormalRotations[]{
+    { // RebellionDormant
+        glm::vec3(0.0f, 0.0f, glm::radians(-22.572f))
+    },
+    { // RebellionAwakened
+        glm::vec3(0.0f, 0.0f, glm::radians(-22.572f))
+    },
+    { // ForceEdge
+        glm::vec3(0.0f, 0.0f, glm::radians(-22.572f))
+    },
+    { // Cerberus
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // AgniRudra
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // Nevan
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // Beowulf
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // Yamato
+        glm::vec3(0.0f, 0.0f, glm::radians(49.831f))
+    },
+    { // ForceEdgeYamato
+        glm::vec3(0.0f, 0.0f, glm::radians(23.390f))
+    },
+
+    { // EbonyIvory
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // Shotgun
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // Artemis
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // Spiral
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+    { // KalinaAnn
+        glm::vec3(0.0f, 0.0f, glm::radians(0.0f))
+    },
+};
+
+static constexpr glm::vec3 s_WeaponNormalInactiveScales[] {
+    { // RebellionDormant
+        glm::vec3(0.244f)
+    },
+    { // RebellionAwakened
+        glm::vec3(0.244f)
+    },
+    { // ForceEdge
+        glm::vec3(0.244f)
+    },
+    { // Cerberus
+        glm::vec3(0.227f)
+    },
+    { // AgniRudra
+        glm::vec3(0.178f)
+    },
+    { // Nevan
+        glm::vec3(0.217f)
+    },
+    { // Beowulf
+        glm::vec3(0.214f)
+    },
+    { // Yamato
+        glm::vec3(0.244f)
+    },
+    { // ForceEdgeYamato
+        glm::vec3(0.178f)
+    },
+
+    { // EbonyIvory
+        glm::vec3(0.214f)
+    },
+    { // Shotgun
+        glm::vec3(0.227f)
+    },
+    { // Artemis
+        glm::vec3(0.227f)
+    },
+    { // Spiral
+        glm::vec3(0.217f)
+    },
+    { // KalinaAnn
+        glm::vec3(0.214f)
+    },
+};
+
+static constexpr glm::vec3 s_WeaponNormalActiveScales[] {
+    { // RebellionDormant
+        glm::vec3(0.446f)
+    },
+    { // RebellionAwakened
+        glm::vec3(0.446f)
+    },
+    { // ForceEdge
+        glm::vec3(0.446f)
+    },
+    { // Cerberus
+        glm::vec3(0.420f)
+    },
+    { // AgniRudra
+        glm::vec3(0.388f)
+    },
+    { // Nevan
+        glm::vec3(0.391f)
+    },
+    { // Beowulf
+        glm::vec3(0.359f)
+    },
+    { // Yamato
+        glm::vec3(0.446f)
+    },
+    { // ForceEdgeYamato
+        glm::vec3(0.388f)
+    },
+
+    { // EbonyIvory
+        glm::vec3(0.391f)
+    },
+    { // Shotgun
+        glm::vec3(0.420f)
+    },
+    { // Artemis
+        glm::vec3(0.420f)
+    },
+    { // Spiral
+        glm::vec3(0.391f)
+    },
+    { // KalinaAnn
+        glm::vec3(0.359f)
+    },
+};
+
+namespace WW
+{
+    void LoadSpriteDescs()
+    {
+        g_SpriteDescs.reserve((size_t)TextureID::Size);
+
+        const std::filesystem::path textureRoot(R"(C:\Users\Darkness\Desktop\Crimson\assets\weaponwheel)");
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel1.png)").string().c_str()); //ColoredDantePanel1Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel2.png)").string().c_str()); //ColoredDantePanel2Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel3.png)").string().c_str()); //ColoredDantePanel3Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel4.png)").string().c_str()); //ColoredDantePanel4Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel5.png)").string().c_str()); //ColoredDantePanel5Active
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel1.png)").string().c_str()); //ColoredDantePanel1Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel2.png)").string().c_str()); //ColoredDantePanel2Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel3.png)").string().c_str()); //ColoredDantePanel3Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel4.png)").string().c_str()); //ColoredDantePanel4Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel5.png)").string().c_str()); //ColoredDantePanel5Inactive
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\arrow1.png)").string().c_str()); //ColoredDanteArrow1
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\arrow2.png)").string().c_str()); //ColoredDanteArrow2
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\arrow3.png)").string().c_str()); //ColoredDanteArrow3
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\arrow4.png)").string().c_str()); //ColoredDanteArrow4
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\arrow5.png)").string().c_str()); //ColoredDanteArrow5
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\center.png)").string().c_str()); //ColoredDanteCenter
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel1.png)").string().c_str()); //ColoredVergilPanel1Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel2.png)").string().c_str()); //ColoredVergilPanel2Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel3.png)").string().c_str()); //ColoredVergilPanel3Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel4.png)").string().c_str()); //ColoredVergilPanel4Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel5.png)").string().c_str()); //ColoredVergilPanel5Active
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel1.png)").string().c_str()); //ColoredVergilPanel1Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel2.png)").string().c_str()); //ColoredVergilPanel2Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel3.png)").string().c_str()); //ColoredVergilPanel3Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel4.png)").string().c_str()); //ColoredVergilPanel4Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel5.png)").string().c_str()); //ColoredVergilPanel5Inactive
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\arrow1.png)").string().c_str()); //ColoredVergilArrow1
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\arrow2.png)").string().c_str()); //ColoredVergilArrow2
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\arrow3.png)").string().c_str()); //ColoredVergilArrow3
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\arrow4.png)").string().c_str()); //ColoredVergilArrow4
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\arrow5.png)").string().c_str()); //ColoredVergilArrow5
+        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\center.png)").string().c_str()); //ColoredVergilCenter
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsactive\panel1.png)").string().c_str()); //ColorlessPanel1Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsactive\panel2.png)").string().c_str()); //ColorlessPanel2Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsactive\panel3.png)").string().c_str()); //ColorlessPanel3Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsactive\panel4.png)").string().c_str()); //ColorlessPanel4Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsactive\panel5.png)").string().c_str()); //ColorlessPanel5Active
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsinactive\panel1.png)").string().c_str()); //ColorlessPanel1Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsinactive\panel2.png)").string().c_str()); //ColorlessPanel2Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsinactive\panel3.png)").string().c_str()); //ColorlessPanel3Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsinactive\panel4.png)").string().c_str()); //ColorlessPanel4Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsinactive\panel5.png)").string().c_str()); //ColorlessPanel5Inactive
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\arrow1.png)").string().c_str()); //ColorlessArrow1
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\arrow2.png)").string().c_str()); //ColorlessArrow2
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\arrow3.png)").string().c_str()); //ColorlessArrow3
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\arrow4.png)").string().c_str()); //ColorlessArrow4
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\arrow5.png)").string().c_str()); //ColorlessArrow5
+        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\center.png)").string().c_str()); //ColorlessCenter
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\rebellion-awakened.png)").string().c_str()); //RebellionAwakenedActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\rebellion-dormant.png)").string().c_str()); //RebellionDormantActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\cerberus.png)").string().c_str()); //CerberusActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\agnirudra.png)").string().c_str()); //AgniRudraActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\nevan.png)").string().c_str()); //NevanActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\beowulf.png)").string().c_str()); //BeowulfActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\forceedge-dante.png)").string().c_str()); //ForceEdgeActive
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\ebonyivory.png)").string().c_str()); //EbonyIvoryActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\shotgun.png)").string().c_str()); //ShotgunActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\artemis.png)").string().c_str()); //ArtemisActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\spiral.png)").string().c_str()); //SpiralActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\kalina.png)").string().c_str()); //KalinaActive
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\yamato.png)").string().c_str()); //YamatoActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\forceedge-vergil.png)").string().c_str()); //YamatoForceEdgeActive
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\rebellion-awakened.png)").string().c_str()); //DuplicateRebellionAwakenedActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\rebellion-dormant.png)").string().c_str()); //DuplicateRebellionDormantActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\cerberus.png)").string().c_str()); //DuplicateCerberusActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\agnirudra.png)").string().c_str()); //DuplicateAgniRudraActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\nevan.png)").string().c_str()); //DuplicateNevanActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\beowulf.png)").string().c_str()); //DuplicateBeowulfActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\forceedge-dante.png)").string().c_str()); //DuplicateForceEdgeActive
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\ebonyivory.png)").string().c_str()); //DuplicateEbonyIvoryActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\shotgun.png)").string().c_str()); //DuplicateShotgunActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\artemis.png)").string().c_str()); //DuplicateArtemisActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\spiral.png)").string().c_str()); //DuplicateSpiralActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\kalina.png)").string().c_str()); //DuplicateKalinaActive
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\yamato.png)").string().c_str()); //DuplicateYamatoActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\forceedge-vergil.png)").string().c_str()); //DuplicateYamatoForceEdgeActive
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\rebellion-awakened.png)").string().c_str()); //RebellionAwakenedInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\rebellion-dormant.png)").string().c_str()); //RebellionDormantInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\cerberus.png)").string().c_str()); //CerberusInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\agnirudra.png)").string().c_str()); //AgniRudraInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\nevan.png)").string().c_str()); //NevanInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\beowulf.png)").string().c_str()); //BeowulfInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\forceedge-dante.png)").string().c_str()); //ForceEdgeInactive
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\inactive\ebonyivory.png)").string().c_str()); //EbonyIvoryInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\inactive\shotgun.png)").string().c_str()); //ShotgunInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\inactive\artemis.png)").string().c_str()); //ArtemisInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\inactive\spiral.png)").string().c_str()); //SpiralInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\inactive\kalina.png)").string().c_str()); //KalinaInactive
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\yamato.png)").string().c_str()); //YamatoInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\forceedge-vergil.png)").string().c_str()); //YamatoForceEdgeInactive
+    }
+
+    constexpr TextureID GetWeaponTextureID(WeaponIDs id, bool activeState)
     {
         switch (id)
         {
         case WeaponIDs::RebellionDormant:
-            return activeState ? WeaponTextureID::RebellionDormantActive : WeaponTextureID::RebellionDormantInactive;
-    
+            return activeState ? TextureID::RebellionDormantActive : TextureID::RebellionDormantInactive;
+
         case WeaponIDs::RebellionAwakened:
-            return activeState ? WeaponTextureID::RebellionAwakenedActive : WeaponTextureID::RebellionAwakenedInactive;
-    
+            return activeState ? TextureID::RebellionAwakenedActive : TextureID::RebellionAwakenedInactive;
+
         case WeaponIDs::ForceEdge:
-            return activeState ? WeaponTextureID::ForceEdgeActive : WeaponTextureID::ForceEdgeInactive;
-    
+            return activeState ? TextureID::ForceEdgeActive : TextureID::ForceEdgeInactive;
+
         case WeaponIDs::Cerberus:
-            return activeState ? WeaponTextureID::CerberusActive : WeaponTextureID::CerberusInactive;
-    
+            return activeState ? TextureID::CerberusActive : TextureID::CerberusInactive;
+
         case WeaponIDs::AgniRudra:
-            return activeState ? WeaponTextureID::AgniRudraActive : WeaponTextureID::AgniRudraInactive;
-    
+            return activeState ? TextureID::AgniRudraActive : TextureID::AgniRudraInactive;
+
         case WeaponIDs::Nevan:
-            return activeState ? WeaponTextureID::NevanActive : WeaponTextureID::NevanInactive;
-    
+            return activeState ? TextureID::NevanActive : TextureID::NevanInactive;
+
         case WeaponIDs::Beowulf:
-            return activeState ? WeaponTextureID::BeowulfActive : WeaponTextureID::BeowulfInactive;
-    
+            return activeState ? TextureID::BeowulfActive : TextureID::BeowulfInactive;
+
         case WeaponIDs::Yamato:
-            return activeState ? WeaponTextureID::YamatoActive : WeaponTextureID::YamatoInactive;
-    
+            return activeState ? TextureID::YamatoActive : TextureID::YamatoInactive;
+
         case WeaponIDs::ForceEdgeYamato:
-            return activeState ? WeaponTextureID::YamatoForceEdgeActive : WeaponTextureID::YamatoForceEdgeInactive;
-    
+            return activeState ? TextureID::YamatoForceEdgeActive : TextureID::YamatoForceEdgeInactive;
+
         case WeaponIDs::EbonyIvory:
-            return activeState ? WeaponTextureID::EbonyIvoryActive : WeaponTextureID::EbonyIvoryInactive;
-    
+            return activeState ? TextureID::EbonyIvoryActive : TextureID::EbonyIvoryInactive;
+
         case WeaponIDs::Shotgun:
-            return activeState ? WeaponTextureID::ShotgunActive : WeaponTextureID::ShotgunInactive;
-    
+            return activeState ? TextureID::ShotgunActive : TextureID::ShotgunInactive;
+
         case WeaponIDs::Artemis:
-            return activeState ? WeaponTextureID::ArtemisActive : WeaponTextureID::ArtemisInactive;
-    
+            return activeState ? TextureID::ArtemisActive : TextureID::ArtemisInactive;
+
         case WeaponIDs::Spiral:
-            return activeState ? WeaponTextureID::SpiralActive : WeaponTextureID::SpiralInactive;
-    
+            return activeState ? TextureID::SpiralActive : TextureID::SpiralInactive;
+
         case WeaponIDs::KalinaAnn:
-            return activeState ? WeaponTextureID::KalinaActive : WeaponTextureID::KalinaInactive;
-    
-        default:
-            return WeaponTextureID::Size;
-        }
-    
-        return WeaponTextureID::Size;
-    }
-
-    constexpr TextureID GetWeaponSlotTextureID(size_t slot, size_t charIdx, WeaponState state) {
-        size_t baseSlotIndex = (size_t)TextureID::Char1Slot1Inactive + (3 * slot) + (15 * charIdx);
-
-        switch (state)             
-        {
-        case WeaponState::Inactive:
-            return (TextureID)baseSlotIndex;
-
-        case WeaponState::Active:
-            return (TextureID)(baseSlotIndex + 1);
-
-        case WeaponState::Duplicate:
-            return (TextureID)(baseSlotIndex + 2);
+            return activeState ? TextureID::KalinaActive : TextureID::KalinaInactive;
 
         default:
-            return (TextureID)baseSlotIndex;
+            return TextureID::Size;
         }
-        
+
+        return TextureID::Size;
     }
-    
-    constexpr WeaponTextureID GetDupAnimationWeaponTextureID(WeaponIDs id)
+
+    constexpr TextureID GetDupAnimationWeaponTextureID(WeaponIDs id)
     {
         switch (id)
         {
         case WeaponIDs::RebellionDormant:
-            return WeaponTextureID::DuplicateRebellionDormantActive;
-    
+            return TextureID::DuplicateRebellionDormantActive;
+
         case WeaponIDs::RebellionAwakened:
-            return WeaponTextureID::DuplicateRebellionAwakenedActive;
-    
+            return TextureID::DuplicateRebellionAwakenedActive;
+
         case WeaponIDs::ForceEdge:
-            return WeaponTextureID::DuplicateForceEdgeActive;
-    
+            return TextureID::DuplicateForceEdgeActive;
+
         case WeaponIDs::Cerberus:
-            return WeaponTextureID::DuplicateCerberusActive;
-    
+            return TextureID::DuplicateCerberusActive;
+
         case WeaponIDs::AgniRudra:
-            return WeaponTextureID::DuplicateAgniRudraActive;
-    
+            return TextureID::DuplicateAgniRudraActive;
+
         case WeaponIDs::Nevan:
-            return WeaponTextureID::DuplicateNevanActive;
-    
+            return TextureID::DuplicateNevanActive;
+
         case WeaponIDs::Beowulf:
-            return WeaponTextureID::DuplicateBeowulfActive;
-    
+            return TextureID::DuplicateBeowulfActive;
+
         case WeaponIDs::Yamato:
-            return WeaponTextureID::DuplicateYamatoActive;
-    
+            return TextureID::DuplicateYamatoActive;
+
         case WeaponIDs::ForceEdgeYamato:
-            return WeaponTextureID::DuplicateYamatoForceEdgeActive;
-    
+            return TextureID::DuplicateYamatoForceEdgeActive;
+
         case WeaponIDs::EbonyIvory:
-            return WeaponTextureID::DuplicateEbonyIvoryActive;
-    
+            return TextureID::DuplicateEbonyIvoryActive;
+
         case WeaponIDs::Shotgun:
-            return WeaponTextureID::DuplicateShotgunActive;
-    
+            return TextureID::DuplicateShotgunActive;
+
         case WeaponIDs::Artemis:
-            return WeaponTextureID::DuplicateArtemisActive;
-    
+            return TextureID::DuplicateArtemisActive;
+
         case WeaponIDs::Spiral:
-            return WeaponTextureID::DuplicateSpiralActive;
-    
+            return TextureID::DuplicateSpiralActive;
+
         case WeaponIDs::KalinaAnn:
-            return WeaponTextureID::DuplicateKalinaActive;
-    
+            return TextureID::DuplicateKalinaActive;
+
         default:
-            return WeaponTextureID::Size;
+            return TextureID::Size;
         }
-    
-        return WeaponTextureID::Size;
+
+        return TextureID::Size;
     }
 
-	void DefineWeaponSprites(std::vector<WeaponIDs>(&weapons)[CHARACTER_COUNT], std::vector <Graphics::Sprite>& sprites, 
-        std::vector <Graphics::Sprite>&weaponSprites) {
-
-        size_t baseSlot = 0;
-
-        for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; charIdx++) {
-			for (size_t i = 0; i < 5; i++) {
-				if (i >= weapons[charIdx].size()) {
-					// If out of bounds of the weapon loadout, we still fill it with weapon id 0 as placeholder
-					sprites.emplace_back(weaponSprites[0]);  // Slot i Inactive Texture
-					sprites.emplace_back(weaponSprites[0]);   // Slot i Active Texture
-					sprites.emplace_back(weaponSprites[0]);       // Slot i Duplicate Texture
-				}
-				else {
-					// Filling it normally
-					sprites.emplace_back(weaponSprites[(size_t)GetWeaponTextureID(weapons[charIdx][i], false)]);  // Slot i Inactive Texture
-					sprites.emplace_back(weaponSprites[(size_t)GetWeaponTextureID(weapons[charIdx][i], true)]);   // Slot i Active Texture
-					sprites.emplace_back(weaponSprites[(size_t)GetDupAnimationWeaponTextureID(weapons[charIdx][i])]);       // Slot i Duplicate Texture
-				}
-			}
-        }
-	}
-
-    void RedefineWeaponSprites(std::vector<WeaponIDs>(&weapons)[CHARACTER_COUNT], std::vector <Graphics::Sprite>& sprites,
-        std::vector <Graphics::Sprite>&weaponSprites) {
-
-        size_t texID = (size_t)TextureID::Char1Slot1Inactive;
-        size_t texIDLast = (size_t)TextureID::Size;
-        size_t baseSlot = 0;
-
-        // Erase all weaponSprites from m_Sprites
-		sprites.erase(sprites.begin() + texID, sprites.begin() + texIDLast);
-		
-        DefineWeaponSprites(weapons, sprites, weaponSprites);
-    }
-    
     constexpr TextureID GetNeutralPanelTextureID(size_t slot, bool activeState)
     {
         switch (slot)
         {
         case 0:
             return activeState ? TextureID::ColorlessPanel1Active : TextureID::ColorlessPanel1Inactive;
-    
+
         case 1:
             return activeState ? TextureID::ColorlessPanel2Active : TextureID::ColorlessPanel2Inactive;
-    
+
         case 2:
             return activeState ? TextureID::ColorlessPanel3Active : TextureID::ColorlessPanel3Inactive;
-    
+
         case 3:
             return activeState ? TextureID::ColorlessPanel4Active : TextureID::ColorlessPanel4Inactive;
-    
+
         case 4:
             return activeState ? TextureID::ColorlessPanel5Active : TextureID::ColorlessPanel5Inactive;
-    
+
         default:
             return TextureID::Size;
         }
-    
+
         return TextureID::Size;
     }
-    
+
     constexpr TextureID GetDantePanelTextureID(size_t slot, bool activeState)
     {
         switch (slot)
         {
         case 0:
             return activeState ? TextureID::ColoredDantePanel1Active : TextureID::ColoredDantePanel1Inactive;
-    
+
         case 1:
             return activeState ? TextureID::ColoredDantePanel2Active : TextureID::ColoredDantePanel2Inactive;
-    
+
         case 2:
             return activeState ? TextureID::ColoredDantePanel3Active : TextureID::ColoredDantePanel3Inactive;
-    
+
         case 3:
             return activeState ? TextureID::ColoredDantePanel4Active : TextureID::ColoredDantePanel4Inactive;
-    
+
         case 4:
             return activeState ? TextureID::ColoredDantePanel5Active : TextureID::ColoredDantePanel5Inactive;
-    
+
         default:
             return TextureID::Size;
         }
-    
+
         return TextureID::Size;
     }
-    
+
     constexpr TextureID GetVergilPanelTextureID(size_t slot, bool activeState)
     {
         switch (slot)
         {
         case 0:
             return activeState ? TextureID::ColoredVergilPanel1Active : TextureID::ColoredVergilPanel1Inactive;
-    
+
         case 1:
             return activeState ? TextureID::ColoredVergilPanel2Active : TextureID::ColoredVergilPanel2Inactive;
-    
+
         case 2:
             return activeState ? TextureID::ColoredVergilPanel3Active : TextureID::ColoredVergilPanel3Inactive;
-    
+
         case 3:
             return activeState ? TextureID::ColoredVergilPanel4Active : TextureID::ColoredVergilPanel4Inactive;
-    
+
         case 4:
             return activeState ? TextureID::ColoredVergilPanel5Active : TextureID::ColoredVergilPanel5Inactive;
-    
+
         default:
             return TextureID::Size;
         }
-    
+
         return TextureID::Size;
     }
-    
-    
+
     constexpr TextureID GetNeutralArrowTextureID(size_t slot)
     {
         switch (slot)
         {
         case 0:
             return TextureID::ColorlessArrow1;
-    
+
         case 1:
             return TextureID::ColorlessArrow2;
-    
+
         case 2:
             return TextureID::ColorlessArrow3;
-    
+
         case 3:
             return TextureID::ColorlessArrow4;
-    
+
         case 4:
             return TextureID::ColorlessArrow5;
-    
+
         default:
             return TextureID::Size;
         }
-    
+
         return TextureID::Size;
     }
-    
+
     constexpr TextureID GetDanteArrowTextureID(size_t slot)
     {
         switch (slot)
         {
         case 0:
             return TextureID::ColoredDanteArrow1;
-    
+
         case 1:
             return TextureID::ColoredDanteArrow2;
-    
+
         case 2:
             return TextureID::ColoredDanteArrow3;
-    
+
         case 3:
             return TextureID::ColoredDanteArrow4;
-    
+
         case 4:
             return TextureID::ColoredDanteArrow5;
-    
+
         default:
             return TextureID::Size;
         }
-    
+
         return TextureID::Size;
     }
-    
+
     constexpr TextureID GetVergilArrowTextureID(size_t slot)
     {
         switch (slot)
         {
         case 0:
             return TextureID::ColoredVergilArrow1;
-    
+
         case 1:
             return TextureID::ColoredVergilArrow2;
-    
+
         case 2:
             return TextureID::ColoredVergilArrow3;
-    
+
         case 3:
             return TextureID::ColoredVergilArrow4;
-    
+
         case 4:
             return TextureID::ColoredVergilArrow5;
-    
+
         default:
             return TextureID::Size;
         }
-    
+
         return TextureID::Size;
     }
-    
-    
+
     constexpr TextureID GetPanelTextureID(WheelThemes theme, size_t panelSlot, bool activeState)
     {
         switch (theme)
         {
         case WheelThemes::Neutral:
             return GetNeutralPanelTextureID(panelSlot, activeState);
-            
+
         case WheelThemes::Dante:
             return GetDantePanelTextureID(panelSlot, activeState);
-    
+
         case WheelThemes::Vergil:
             return GetVergilPanelTextureID(panelSlot, activeState);
-    
+
         default:
             return TextureID::Size;
         }
-    
+
         return TextureID::Size;
     }
-    
+
     constexpr TextureID GetArrowTextureID(WheelThemes theme, size_t panelSlot)
     {
         switch (theme)
         {
         case WheelThemes::Neutral:
             return GetNeutralArrowTextureID(panelSlot);
-    
+
         case WheelThemes::Dante:
             return GetDanteArrowTextureID(panelSlot);
-    
+
         case WheelThemes::Vergil:
             return GetVergilArrowTextureID(panelSlot);
-    
+
         default:
             return TextureID::Size;
         }
-    
+
         return TextureID::Size;
     }
-    
+
     constexpr TextureID GetCenterTextureID(WheelThemes theme)
     {
         switch (theme)
         {
         case WheelThemes::Neutral:
             return TextureID::ColorlessCenter;
-    
+
         case WheelThemes::Dante:
             return TextureID::ColoredDanteCenter;
-    
+
         case WheelThemes::Vergil:
             return TextureID::ColoredVergilCenter;
-    
+
         default:
             return TextureID::Size;
         }
-    
+
         return TextureID::Size;
     }
-    
-    constexpr std::vector<size_t> GetSpriteIDs(WheelThemes themeID, const std::vector<WeaponIDs>(&weaponIDs)[CHARACTER_COUNT], size_t currentCharIdx)
+
+    constexpr std::vector<size_t> GetSpriteIDs(WheelThemes themeID, const std::vector<WeaponIDs>& weaponIDs)
     {
         std::vector<size_t> spriteIds;
-    
-        spriteIds.reserve(weaponIDs[currentCharIdx].size() * 6);
-    
+
+        spriteIds.reserve(weaponIDs.size() * 6);
+
         // Order matters here, back to front
         {
             spriteIds.push_back((size_t)GetCenterTextureID(themeID)); // 1st: The center piece
-    
-            for (size_t i = 0; i < weaponIDs[currentCharIdx].size(); i++)
+
+            for (size_t i = 0; i < weaponIDs.size(); i++)
             {
                 if (i > 4)
                     break;
-    
+
                 spriteIds.push_back((size_t)GetArrowTextureID(themeID, i)); // 2nd: The arrows
             }
-    
-            for (size_t i = 0; i < weaponIDs[currentCharIdx].size(); i++)
+
+            for (size_t i = 0; i < weaponIDs.size(); i++)
             {
                 if (i > 4)
                     break;
-    
+
                 spriteIds.push_back((size_t)GetPanelTextureID(themeID, i, false)); // 3rd: The inactive panels
             }
-    
-            for (size_t i = 0; i < weaponIDs[currentCharIdx].size(); i++)
+
+            for (size_t i = 0; i < weaponIDs.size(); i++)
             {
                 if (i > 4)
                     break;
-    
+
                 spriteIds.push_back((size_t)GetPanelTextureID(themeID, i, false)); // 3rd: The inactive panels
             }
-    
-            for (size_t i = 0; i < weaponIDs[currentCharIdx].size(); i++)
+
+            for (size_t i = 0; i < weaponIDs.size(); i++)
             {
                 if (i > 4)
                     break;
-    
+
                 spriteIds.push_back((size_t)GetPanelTextureID(themeID, i, true)); // 4th: The active panels
             }
 
-            for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; charIdx++) {
-                for (size_t i = 0; i < weaponIDs[charIdx].size(); i++) {
-                    if (i > 4)
-                        break;
+            for (size_t i = 0; i < weaponIDs.size(); i++)
+            {
+                if (i > 4)
+                    break;
 
-                    spriteIds.push_back((size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Inactive)); // 5th: The weapons per slot
-                    spriteIds.push_back((size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Active));
-                    spriteIds.push_back((size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate));
-
-                }
+                spriteIds.push_back((size_t)GetWeaponTextureID(weaponIDs[i], false)); // 5th: The inactive weapons
             }
 
+            for (size_t i = 0; i < weaponIDs.size(); i++)
+            {
+                if (i > 4)
+                    break;
+
+                spriteIds.push_back((size_t)GetWeaponTextureID(weaponIDs[i], true)); // 6th: The active weapons
+            }
+
+            for (size_t i = 0; i < weaponIDs.size(); i++)
+            {
+                if (i > 4)
+                    break;
+
+                spriteIds.push_back((size_t)GetDupAnimationWeaponTextureID(weaponIDs[i])); // 7th: The active weapon animation duplicates
+            }
         }
-    
+
         return spriteIds;
     }
 
-	constexpr std::vector<size_t> GetWeaponSpriteIDs(const std::vector<WeaponIDs>& weaponIDs) {
-		std::vector<size_t> spriteIds;
-
-		spriteIds.reserve(weaponIDs.size());
-
-		// Order matters here, back to front
-		{
-			for (size_t i = 0; i < weaponIDs.size(); i++) {
-				if (i > 4)
-					break;
-
-				spriteIds.push_back((size_t)GetWeaponTextureID(weaponIDs[i], false)); // 5th: The inactive weapons
-			}
-
-			for (size_t i = 0; i < weaponIDs.size(); i++) {
-				if (i > 4)
-					break;
-
-				spriteIds.push_back((size_t)GetWeaponTextureID(weaponIDs[i], true)); // 6th: The active weapons
-			}
-
-			for (size_t i = 0; i < weaponIDs.size(); i++) {
-				if (i > 4)
-					break;
-
-				spriteIds.push_back((size_t)GetDupAnimationWeaponTextureID(weaponIDs[i])); // 7th: The active weapon animation duplicates
-			}
-		}
-
-		return spriteIds;
-	}
+    std::shared_ptr<Graphics::Texture2DArrayD3D11> WeaponWheel::s_pTextureArray = {};
 
     WeaponWheel::WeaponWheel(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext, UINT width, UINT height,
-        std::vector<WeaponIDs> weapons[CHARACTER_COUNT], WheelThemes themeID, bool buttonHeld)
+        std::vector<WeaponIDs> weapons, WheelThemes themeID)
         : m_pD3D11Device(pD3D11Device), m_pD3D11DeviceContext(pD3D11DeviceContext), m_Width(width), m_Height(height),
-        m_ThemeID(themeID), m_buttonHeld(buttonHeld)
+        m_Weapons(weapons), m_ThemeID(themeID)
     {
-		// Manually copy each vector in the array
-		for (size_t i = 0; i < CHARACTER_COUNT; ++i) {
-			m_Weapons[i] = weapons[i];
-		}
+        // Load the sprite descriptors only once
+        if (g_SpriteDescs.size() == 0)
+            LoadSpriteDescs();
 
-        if (m_Sprites.size() == 0) {
-            LoadSprites(m_Sprites, m_WeaponSprites);
-            DefineWeaponSprites(m_Weapons, m_Sprites, m_WeaponSprites);
+        // Initialize the texture array for the sprites only once
+        if (!s_pTextureArray)
+        {
+            std::vector<std::string> paths;
+            paths.reserve(g_SpriteDescs.size());
+
+            for (const auto& sDesc : g_SpriteDescs)
+                paths.push_back(sDesc.GetTexturePath());
+
+            s_pTextureArray = std::make_shared<Graphics::Texture2DArrayD3D11>(paths, m_pD3D11Device);
         }
 
-        const auto spriteIDs = GetSpriteIDs(m_ThemeID, m_Weapons, m_CurrentActiveCharIndex);
+        const auto spriteIDs = GetSpriteIDs(m_ThemeID, m_Weapons);
 
-        m_pSpriteBatch = std::make_unique<Graphics::BatchedSprites>(m_pD3D11Device, m_Width, m_Height, m_Sprites, spriteIDs);
+        m_pSpriteBatch = std::make_unique<Graphics::BatchedSprites>(m_pD3D11Device, m_Width, m_Height, g_SpriteDescs, s_pTextureArray, spriteIDs);
 
         SetWeaponsTranslations();
-
         InitializeAnimations();
     }
 
     WeaponWheel::~WeaponWheel()
     {}
 
-	void WeaponWheel::SetWeaponsTranslations() {
-		for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; charIdx++) {
-			for (size_t i = 0; i < m_Weapons[charIdx].size(); i++) {
-				m_pSpriteBatch->SetTransform(
-					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Inactive),
-					s_MeleeInactiveSlotTransforms[i].Translation,
-					s_WeaponNormalRotations[(size_t)m_Weapons[charIdx][i]],
-                    s_WeaponNormalInactiveScales[(size_t)m_Weapons[charIdx][i]]
-				);
-
-                if (m_Weapons[charIdx][i] <= WeaponIDs::ForceEdgeYamato) {
-                    // MELEE WEAPONS
-
-                    if (m_Weapons[charIdx][i] != WeaponIDs::RebellionAwakened
-                        && m_Weapons[charIdx][i] != WeaponIDs::RebellionDormant
-                        && m_Weapons[charIdx][i] != WeaponIDs::ForceEdge
-                        && m_Weapons[charIdx][i] != WeaponIDs::Yamato) {
-
-                        m_pSpriteBatch->SetTransform(
-                            (size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Active),
-                            s_RangedActiveSlotTransforms[i].Translation,
-                            s_WeaponNormalRotations[(size_t)m_Weapons[charIdx][i]],
-                            s_WeaponNormalActiveScales[(size_t)m_Weapons[charIdx][i]]
-                        );
-
-                        m_pSpriteBatch->SetTransform(
-                            (size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
-                            s_RangedActiveSlotTransforms[i].Translation,
-                            s_WeaponNormalRotations[(size_t)m_Weapons[charIdx][i]],
-                            s_WeaponNormalActiveScales[(size_t)m_Weapons[charIdx][i]]
-                        );
-                    }
-                    else {
-						m_pSpriteBatch->SetTransform(
-							(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Active),
-							s_MeleeActiveSlotTransforms[i].Translation,
-							s_WeaponNormalRotations[(size_t)m_Weapons[charIdx][i]],
-							s_WeaponNormalActiveScales[(size_t)m_Weapons[charIdx][i]]
-						);
-
-						m_pSpriteBatch->SetTransform(
-							(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
-                            s_MeleeActiveSlotTransforms[i].Translation,
-							s_WeaponNormalRotations[(size_t)m_Weapons[charIdx][i]],
-							s_WeaponNormalActiveScales[(size_t)m_Weapons[charIdx][i]]
-						);
-                    }
-                }
-                else {
-                    // RANGED WEAPONS 
-
-					m_pSpriteBatch->SetTransform(
-						(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Active),
-						s_RangedActiveSlotTransforms[i].Translation,
-						s_WeaponNormalRotations[(size_t)m_Weapons[charIdx][i]],
-                        s_WeaponNormalActiveScales[(size_t)m_Weapons[charIdx][i]]
-					);
-
-					m_pSpriteBatch->SetTransform(
-						(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
-						s_RangedActiveSlotTransforms[i].Translation,
-						s_WeaponNormalRotations[(size_t)m_Weapons[charIdx][i]],
-                        s_WeaponNormalActiveScales[(size_t)m_Weapons[charIdx][i]]
-					);
-                }
-
-
-				m_pSpriteBatch->SetOpacity(
-					(size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Duplicate),
-					0.0f
-				);
-			}
-		}
-	}
-
-    void WeaponWheel::ReloadWheel(std::vector<WeaponIDs> weapons[CHARACTER_COUNT])
+    void WeaponWheel::SetWeapons(std::vector<WeaponIDs> weapons)
     {
-		// Manually copy each vector in the array
-		for (size_t i = 0; i < CHARACTER_COUNT; ++i) {
-			m_Weapons[i] = weapons[i];
-		}
+        m_PreviousWeapons = m_Weapons;
+        m_Weapons = weapons;
 
-        RedefineWeaponSprites(m_Weapons, m_Sprites, m_WeaponSprites);
-        const auto spriteIDs = GetSpriteIDs(m_ThemeID, m_Weapons, m_CurrentActiveCharIndex);
+        const auto spriteIDs = GetSpriteIDs(m_ThemeID, m_Weapons);
 
-		m_pSpriteBatch = std::make_unique<Graphics::BatchedSprites>(m_pD3D11Device, m_Width, m_Height, m_Sprites, spriteIDs);
+        m_pSpriteBatch->SetActiveSprites(spriteIDs);
 
         SetWeaponsTranslations();
 
-        UpdateSlotStates();
-    }
+        //bool shouldUnhide = unhideWheel && !IsVisible();
+        //
+        //if (shouldUnhide)
+        //    m_AnimData.ResetHidingAnimations();
 
-    void WeaponWheel::UpdateWeapons(std::vector<WeaponIDs> weapons[CHARACTER_COUNT]) {
-		// Manually copy each vector in the array
-		for (size_t i = 0; i < CHARACTER_COUNT; ++i) {
-			m_Weapons[i] = weapons[i];
-		}
+        m_AnimData.ResetHidingAnimations();
 
-        const auto spriteIDs = GetSpriteIDs(m_ThemeID, m_Weapons, m_CurrentActiveCharIndex);
-        m_pSpriteBatch->SetActiveSprites(spriteIDs);
-
-        UpdateSlotStates();
-    }
-
-    void WeaponWheel::UpdateCharIndex(size_t newCharIdx) {
-        m_CurrentActiveCharIndex = newCharIdx;
+        UpdateCurrentWheelVisibility(SpriteUpdateModes::FullyVisible);
     }
 
     void WeaponWheel::SetWheelTheme(WheelThemes themeID)
     {
         m_ThemeID = themeID;
 
-        const auto spriteIDs = GetSpriteIDs(m_ThemeID, m_Weapons, m_CurrentActiveCharIndex);
+        const auto spriteIDs = GetSpriteIDs(m_ThemeID, m_Weapons);
 
         m_pSpriteBatch->SetActiveSprites(spriteIDs);
+
+        //bool shouldUnhide = unhideWheel && !IsVisible();
+        //
+        //if (shouldUnhide)
+        //    m_AnimData.ResetHidingAnimations();
+
+        m_AnimData.ResetHidingAnimations();
+
+        UpdateCurrentWheelVisibility(SpriteUpdateModes::FullyVisible);
     }
 
-    void WeaponWheel::SetActiveSlot(size_t slot) 
+    void WeaponWheel::SetActiveSlot(size_t slot)
     {
-        m_pWheelFadeAnimation->OnReset();
-        m_pActiveWeaponFadeAnimation->OnReset();
-        m_pWeaponSwitchScaleAnimation->OnReset();
-        m_pWeaponSwitchBrightnessAnimation->OnReset();
-        m_pArrowFadeAnimation->OnReset();
-		m_pArrowBrightnessAnim->OnReset();
-        if (!m_buttonHeld) 
-            m_pAnalogArrowsFadeInAnim->OnReset();
-
+        m_PreviousActiveSlot = m_CurrentActiveSlot;
         m_CurrentActiveSlot = slot;
 
-        UpdateSlotStates();
+        //bool shouldUnhide = unhideWheel && !IsVisible();
+        //
+        //if (shouldUnhide)
+        //    m_AnimData.ResetHidingAnimations();
 
-        m_pWheelFadeAnimation->SetAlreadyTriggered(false);
-        m_pActiveWeaponFadeAnimation->SetAlreadyTriggered(false);
-        m_pWeaponSwitchBrightnessAnimation->SetAlreadyTriggered(false);
-        m_pWeaponSwitchScaleAnimation->SetAlreadyTriggered(false);
-        m_pArrowFadeAnimation->SetAlreadyTriggered(false);
-        m_pArrowBrightnessAnim->SetAlreadyTriggered(false);
-		if (!m_buttonHeld) {
-			m_pAnalogArrowsFadeInAnim->SetAlreadyTriggered(false);
-		}
+        m_AnimData.ResetHidingAnimations();
+        m_AnimData.ResetSwitchingAnimations();
 
-        m_SinceLatestChangeMs = 0.0f;
-        m_SinceLatestChangeHeldResetMs = 0.0f;
-		m_SinceLatestChangeHeldArrowMs = 0.0f;
-		m_SinceLatestChangeAnalogUsedMs = 0.0f;
+        UpdateCurrentWheelVisibility(SpriteUpdateModes::FullyVisible);
     }
 
-
-	void WeaponWheel::OnUpdate(double ts, double tsHeldReset, double tsHeldArrow, double tsAnalogUsed) 
+    void WeaponWheel::ToggleNeverHide(std::optional<bool> hide)
     {
-		
-		// Animation Start Logics
-		if (!m_pWheelFadeAnimation->IsAlreadyTriggered() && !m_pArrowFadeAnimation->IsRunning() && m_SinceLatestChangeHeldResetMs >= s_FadeDelay) {
-			m_pWheelFadeAnimation->Start();
-			m_pWheelFadeAnimation->SetAlreadyTriggered(true);
-		}
+        if (hide.has_value())
+            m_NeverHide = *hide;
+        else
+            m_NeverHide = !m_NeverHide;
 
-        if (!m_pArrowFadeAnimation->IsAlreadyTriggered() && m_SinceLatestChangeHeldArrowMs >= 40) {
-			m_pArrowFadeAnimation->Start();
-			m_pArrowFadeAnimation->SetAlreadyTriggered(true);
-		}
+        // Unhide the wheel
+        if (m_NeverHide == true)
+        {
+            // Reset the animations for hiding, so if they are in the middle of running they reset the state
+            m_AnimData.ResetHidingAnimations();
 
-        if (!m_pArrowBrightnessAnim->IsAlreadyTriggered() && m_SinceLatestChangeMs >= 5) {
-			m_pArrowBrightnessAnim->Start();
-			m_pArrowBrightnessAnim->SetAlreadyTriggered(true);
+            for (size_t i = 0; i < m_Weapons.size(); i++)
+            {
+                // Inactive slots opacity
+                if (i != m_CurrentActiveSlot)
+                {
+                    m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[i], false), 1.0f);
+                    m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, false), 1.0f);
+                }
+            }
+
+            m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
+            m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, m_CurrentActiveSlot, true), 1.0f);
+            m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), 1.0f);
+
+            m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), 1.0f);
         }
-
-		if (!m_pActiveWeaponFadeAnimation->IsAlreadyTriggered() && m_SinceLatestChangeHeldResetMs >= s_FadeDelay) {
-			m_pActiveWeaponFadeAnimation->Start();
-			m_pActiveWeaponFadeAnimation->SetAlreadyTriggered(true);
-		}
-
-		if (!m_pWeaponSwitchScaleAnimation->IsAlreadyTriggered() && m_SinceLatestChangeMs >= 5) {
-			m_pWeaponSwitchScaleAnimation->Start();
-			m_pWeaponSwitchScaleAnimation->SetAlreadyTriggered(true);
-		}
-
-		if (!m_pWeaponSwitchBrightnessAnimation->IsAlreadyTriggered() && m_SinceLatestChangeMs >= 5) {
-			m_pWeaponSwitchBrightnessAnimation->Start();
-			m_pWeaponSwitchBrightnessAnimation->SetAlreadyTriggered(true);
-		}
-
-		// Update the animations
-		if (m_pWheelFadeAnimation->IsRunning())
-			m_pWheelFadeAnimation->OnUpdate(ts);
-
-		if (m_pArrowFadeAnimation->IsRunning())
-			m_pArrowFadeAnimation->OnUpdate(ts);
-
-		if (m_pArrowBrightnessAnim->IsRunning())
-            m_pArrowBrightnessAnim->OnUpdate(ts);
-
-		if (m_pActiveWeaponFadeAnimation->IsRunning())
-			m_pActiveWeaponFadeAnimation->OnUpdate(ts);
-
-		if (m_pWeaponSwitchScaleAnimation->IsRunning())
-			m_pWeaponSwitchScaleAnimation->OnUpdate(ts);
-
-		if (m_pWeaponSwitchBrightnessAnimation->IsRunning())
-			m_pWeaponSwitchBrightnessAnimation->OnUpdate(ts);
-
-		if (m_pAnalogArrowsFadeInAnim->IsRunning())
-			m_pAnalogArrowsFadeInAnim->OnUpdate(ts);
-
-        // Increment and Reset Timers
-		m_SinceLatestChangeMs += ts;
-		
-		if (!m_buttonHeld) {
-            if (!m_alwaysShow)
-			    m_SinceLatestChangeHeldResetMs += tsHeldReset;
-			m_SinceLatestChangeHeldArrowMs += tsHeldArrow;
-		}
-		else {
-			m_SinceLatestChangeHeldResetMs = 0;
-			m_SinceLatestChangeHeldArrowMs = 0;
-		}
-
-		if (m_alwaysShow) {
-			m_SinceLatestChangeHeldResetMs = 0;
-		}
-
-		if (!m_analogMoving || !m_buttonHeld) {
-            m_SinceLatestChangeAnalogUsedMs += tsAnalogUsed;
-        }
-        else {
-            m_SinceLatestChangeAnalogUsedMs = 0;
-        }
-
-		// Analog Arrows Fade In Logic when holding the button
-        if (m_buttonHeld && m_SinceLatestChangeMs >= 550 && 
-            !m_pAnalogArrowsFadeInAnim->IsAlreadyTriggered() && m_analogSwitching) {
-			m_pAnalogArrowsFadeInAnim->Start();
-			m_pAnalogArrowsFadeInAnim->SetAlreadyTriggered(true);
-        }
-
-        // Snap Analog Arrows' opacity right away if analog moves 
-        if (m_analogSwitching) {
-			if (m_analogMoving && m_buttonHeld) {
-				for (size_t i = 0; i < m_Weapons[m_CurrentActiveCharIndex].size(); i++) {
-					if (i != m_CurrentActiveSlot) {
-						m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.45f);
-					}
-				}
-                m_pAnalogArrowsFadeInAnim->SetAlreadyTriggered(true);
-			}
-			else if (!(m_analogMoving || m_buttonHeld) && m_SinceLatestChangeAnalogUsedMs >= 160) {
-				for (size_t i = 0; i < m_Weapons[m_CurrentActiveCharIndex].size(); i++) {
-					if (i != m_CurrentActiveSlot) {
-						m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.0f);
-					}
-				}
-			}
-        }
-	}
-
-
-    void WeaponWheel::TrackButtonHeldState(bool buttonHeld) 
-    {
-        m_buttonHeld = buttonHeld;
     }
 
-    void WeaponWheel::TrackAnalogMovingState(bool analogMoving) 
+    void WeaponWheel::ToggleAnalogSwitchingUI(std::optional<bool> state)
     {
-		m_analogMoving = analogMoving;
+        // If given a state, will set it, if not toggles the mode
+        m_AnalogSwitching = state.value_or(!m_AnalogSwitching);
+
+        // Make sure the wheel is not invisble when toggling on
+        if (m_AnalogSwitching)
+        {
+            m_AnimData.ResetASUnhidingAnimations();
+            UpdateCurrentWheelVisibility(SpriteUpdateModes::FullyVisible);
+
+            m_AnimData.ResetHidingAnimations(false);
+        }
+        else
+        {
+            m_AnimData.ResetASHidingAnimations();
+            m_AnimData.ResetHidingAnimations();
+
+            m_AnimData.ResetASUnhidingAnimations(false);
+        }
     }
 
-    void WeaponWheel::TrackAnalogSwitchingConfig(bool analogSwitching)
+    bool WeaponWheel::IsVisible()
     {
-		m_analogSwitching = analogSwitching;
+        // If the timer for the hiding is already hit
+        bool hidingTimeoutHit = m_AnimData.HideTimerMs > s_FadeDelay;
+
+        return !hidingTimeoutHit || m_NeverHide || m_AnalogSwitching;
     }
 
-	void WeaponWheel::TrackAlwaysShowConfig(bool alwaysShow) 
+    void WeaponWheel::OnUpdate(double ts)
     {
-		m_alwaysShow = alwaysShow;
-	}
+        // Hiding animations
 
-    void WeaponWheel::SetLoaded(bool loaded) 
-    {
-		m_loaded = loaded;
+        bool shouldKeepVisible = m_AnalogSwitching || m_NeverHide;
+
+        if (!shouldKeepVisible && !m_AnimData.WheelFadeOut.AlreadyTriggeredFlag && m_AnimData.HideTimerMs >= s_FadeDelay)
+        {
+            m_AnimData.WheelFadeOut.RunFlag = true;
+            m_AnimData.WheelFadeOut.AlreadyTriggeredFlag = true;
+        }
+
+        if (!shouldKeepVisible && !m_AnimData.ArrowFadeOut.AlreadyTriggeredFlag && m_AnimData.HideTimerMs >= s_FadeDelay)
+        {
+            m_AnimData.ArrowFadeOut.RunFlag = true;
+            m_AnimData.ArrowFadeOut.AlreadyTriggeredFlag = true;
+        }
+
+        if (!shouldKeepVisible && !m_AnimData.ActiveWeaponFadeOut.AlreadyTriggeredFlag && m_AnimData.HideTimerMs >= s_FadeDelay)
+        {
+            m_AnimData.ActiveWeaponFadeOut.RunFlag = true;
+            m_AnimData.ActiveWeaponFadeOut.AlreadyTriggeredFlag = true;
+        }
+
+        // -----------------
+
+        // Switching Animations
+
+        if (!m_AnimData.WeaponSwitchScaleUp.AlreadyTriggeredFlag)
+        {
+            m_AnimData.WeaponSwitchScaleUp.RunFlag = true;
+            m_AnimData.WeaponSwitchScaleUp.AlreadyTriggeredFlag = true;
+        }
+
+        if (!m_AnimData.WeaponSwitchBrightness.AlreadyTriggeredFlag)
+        {
+            m_AnimData.WeaponSwitchBrightness.RunFlag = false;
+            m_AnimData.WeaponSwitchBrightness.AlreadyTriggeredFlag = true;
+        }
+
+        if (!m_AnimData.ArrowBrightness.AlreadyTriggeredFlag)
+        {
+            m_AnimData.ArrowBrightness.RunFlag = true;
+            m_AnimData.ArrowBrightness.AlreadyTriggeredFlag = true;
+        }
+
+        // -----------------
+
+        // Analog switching unhiding animations
+
+        if (m_AnalogSwitching && !m_AnimData.AnalogArrowsFadeIn.AlreadyTriggeredFlag)
+        {
+            m_AnimData.AnalogArrowsFadeIn.RunFlag = true;
+            m_AnimData.AnalogArrowsFadeIn.AlreadyTriggeredFlag = true;
+        }
+
+        // -----------------
+
+        // Analog switching hiding animations
+
+        if (!m_AnalogSwitching && !m_AnimData.AnalogArrowsFadeOut.AlreadyTriggeredFlag)
+        {
+            m_AnimData.AnalogArrowsFadeOut.RunFlag = true;
+            m_AnimData.AnalogArrowsFadeOut.AlreadyTriggeredFlag = true;
+        }
+
+        // -----------------
+
+        if (m_AnimData.WheelFadeOut.RunFlag)
+            m_AnimData.WheelFadeOut.pAnimation->OnUpdate(ts);
+
+        if (m_AnimData.ArrowFadeOut.RunFlag)
+            m_AnimData.ArrowFadeOut.pAnimation->OnUpdate(ts);
+
+        if (m_AnimData.ArrowBrightness.RunFlag)
+            m_AnimData.ArrowBrightness.pAnimation->OnUpdate(ts);
+
+        if (m_AnimData.ActiveWeaponFadeOut.RunFlag)
+            m_AnimData.ActiveWeaponFadeOut.pAnimation->OnUpdate(ts);
+
+        if (m_AnimData.WeaponSwitchScaleUp.RunFlag)
+            m_AnimData.WeaponSwitchScaleUp.pAnimation->OnUpdate(ts);
+
+        if (m_AnimData.WeaponSwitchBrightness.RunFlag)
+            m_AnimData.WeaponSwitchBrightness.pAnimation->OnUpdate(ts);
+
+        if (m_AnimData.AnalogArrowsFadeIn.RunFlag)
+            m_AnimData.AnalogArrowsFadeIn.pAnimation->OnUpdate(ts);
+
+        if (m_AnimData.AnalogArrowsFadeOut.RunFlag)
+            m_AnimData.AnalogArrowsFadeOut.pAnimation->OnUpdate(ts);
+
+        // Update timers
+        m_AnimData.AdvanceTimers(ts);
     }
 
     bool WeaponWheel::OnDraw()
@@ -924,293 +1247,451 @@ namespace WW {
         return m_pSpriteBatch->GetLastErrorCode();
     }
 
-	void WeaponWheel::InitializeAnimations() {
-		{
-			m_pWheelFadeAnimation = std::make_unique<GenericAnimation>(s_WheelFadeoutDur);
+    void WeaponWheel::InitializeAnimations()
+    {
+        // The animation descriptions are set here
 
-			// Before the animation starts
-			m_pWheelFadeAnimation->SetOnStart([this](GenericAnimation* pAnim)
-				{
-					// Ensure the state is set to normal
-					UpdateSlotStates();
-				});
+        // Wheel fading out animation
+        {
+            m_AnimData.WheelFadeOut.pAnimation =
+                std::make_unique<GenericAnimation>(s_WheelFadeoutDur, &m_AnimData.WheelFadeOut);
 
-			// On update
-			m_pWheelFadeAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
-				{
-					const auto progress = pAnim->GetProgressNormalized();
+            // Before the animation starts
+            m_AnimData.WheelFadeOut.pAnimation->SetOnStart([this](GenericAnimation* pAnim)
+                {
+                    // Ensure the state is set to normal
+                    UpdateCurrentWheelVisibility(SpriteUpdateModes::FullyVisible);
+                });
 
-					for (size_t i = 0; i < m_Weapons[m_CurrentActiveCharIndex].size(); i++) {
-						// Inactive slots opacity
-						if (i != m_CurrentActiveSlot) {
-							m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, m_CurrentActiveCharIndex, WeaponState::Inactive), 1.0f - progress);
-							m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, false), 1.0f - progress);
-						}
-						else // Active slots opacity
-						{
-							m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.0F);
-							m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, true), 1.0f - progress);
-						}
-					}
+            // On update
+            m_AnimData.WheelFadeOut.pAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
+                {
+                    const auto progress = pAnim->GetProgressNormalized();
 
-					if (m_Weapons[m_CurrentActiveCharIndex].size() > 0)
-						m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), 1.0f - progress);
-				});
+                    for (size_t i = 0; i < m_Weapons.size(); i++)
+                    {
+                        // Inactive slots opacity
+                        if (i != m_CurrentActiveSlot)
+                        {
+                            m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[i], false), 1.0f - progress);
+                            m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, false), 1.0f - progress);
+                        }
+                        else // Active slots opacity
+                        {
+                            m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 1.0f - progress);
+                            m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, true), 1.0f - progress);
+                        }
+                    }
 
-			// After the animation ends
-			m_pWheelFadeAnimation->SetOnEnd([this](GenericAnimation* pAnim)
-				{
-					m_pWheelFadeAnimation->Stop();
-				});
-			// When reset
-			m_pWheelFadeAnimation->SetOnReset([this](GenericAnimation* pAnim)
-				{
-					m_pWheelFadeAnimation->Stop();
-					UpdateSlotStates();
-				});
-		}
+                    m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), 1.0f - progress);
+                });
 
-		{
-			m_pArrowFadeAnimation = std::make_unique<GenericAnimation>(s_ArrowFadeAnimDur);
+            // After the animation ends
+            m_AnimData.WheelFadeOut.pAnimation->SetOnEnd([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
 
-			// Before the animation starts
-			m_pArrowFadeAnimation->SetOnStart([this](GenericAnimation* pAnim)
-				{
-					// Ensure the state is set to normal
-					m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
-				});
+                    pAnimState->RunFlag = false;
+                });
 
-			// On update
-			m_pArrowFadeAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
-				{
-					const auto progress = pAnim->GetProgressNormalized();
+            // When reset
+            m_AnimData.WheelFadeOut.pAnimation->SetOnReset([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
 
-					m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f - progress);
-				});
+                    pAnimState->RunFlag = false;
 
-			// After the animation ends
-			m_pArrowFadeAnimation->SetOnEnd([this](GenericAnimation* pAnim)
-				{
-					m_pArrowFadeAnimation->Stop();
-				});
-			// When reset
-			m_pArrowFadeAnimation->SetOnReset([this](GenericAnimation* pAnim)
-				{
-					m_pArrowFadeAnimation->Stop();
-				});
-		}
+                    UpdateCurrentWheelVisibility(SpriteUpdateModes::FullyVisible);
+                });
+        }
 
-		{
-			m_pArrowBrightnessAnim = std::make_unique<GenericAnimation>(s_SwitchBrightnessAnimDur);
+        // Selection arrow fading out animation
+        {
+            m_AnimData.ArrowFadeOut.pAnimation =
+                std::make_unique<GenericAnimation>(s_ArrowFadeAnimDur, &m_AnimData.ArrowFadeOut);
 
-			// Before the animation starts
-            m_pArrowBrightnessAnim->SetOnStart([this](GenericAnimation* pAnim)
-				{
-					// Ensure the active weapon is at normal brightness
-					m_pSpriteBatch->SetBrightness((size_t)GetArrowTextureID(m_ThemeID
-                        , m_CurrentActiveSlot), 1.0f);
-				});
+            // Before the animation starts
+            m_AnimData.ArrowFadeOut.pAnimation->SetOnStart([this](GenericAnimation* pAnim)
+                {
+                    // Ensure the state is set to normal
+                    m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
+                });
 
-			// On update
-            m_pArrowBrightnessAnim->SetOnUpdate([this](GenericAnimation* pAnim)
-				{
-					const auto progress = pAnim->GetProgressNormalized();
+            // On update
+            m_AnimData.ArrowFadeOut.pAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
+                {
+                    const auto progress = pAnim->GetProgressNormalized();
 
-					m_pSpriteBatch->SetBrightness((size_t)GetArrowTextureID(m_ThemeID
-                        , m_CurrentActiveSlot), progress * 5.18f);
-				});
+                    m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f - progress);
+                });
 
-			// After the animation ends
-            m_pArrowBrightnessAnim->SetOnEnd([this](GenericAnimation* pAnim)
-				{
-                    m_pArrowBrightnessAnim->Stop();
-					m_pSpriteBatch->SetBrightness((size_t)GetArrowTextureID(m_ThemeID
-						, m_CurrentActiveSlot), 1.0f);
-				});
+            // After the animation ends
+            m_AnimData.ArrowFadeOut.pAnimation->SetOnEnd([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
 
-			// When reset
-            m_pArrowBrightnessAnim->SetOnReset([this](GenericAnimation* pAnim)
-				{
-                    m_pArrowBrightnessAnim->Stop();
-					m_pSpriteBatch->SetBrightness((size_t)GetArrowTextureID(m_ThemeID
-                        , m_CurrentActiveSlot), 1.0f);
-				});
-		}
+                    pAnimState->RunFlag = false;
 
-		{
-			m_pAnalogArrowsFadeInAnim = std::make_unique<GenericAnimation>(700.0);
+                    m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 0.0f);
+                });
 
-			// Before the animation starts
-            m_pAnalogArrowsFadeInAnim->SetOnStart([this](GenericAnimation* pAnim)
-				{
-					// Ensure the state is set to normal
-// 					for (size_t i = 0; i < m_Weapons[m_CurrentActiveCharIndex].size(); i++) {
-// 						if (i != m_CurrentActiveSlot) {
-// 							m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.05f);
-// 						}
-// 					}
-				});
+            // When reset
+            m_AnimData.ArrowFadeOut.pAnimation->SetOnReset([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
 
-			// On update
-            m_pAnalogArrowsFadeInAnim->SetOnUpdate([this](GenericAnimation* pAnim)
-				{
-					const auto progress = pAnim->GetProgressNormalized();
-                    
-					for (size_t i = 0; i < m_Weapons[m_CurrentActiveCharIndex].size(); i++) {
-						if (i != m_CurrentActiveSlot) {
-							m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), std::min(0.00 + progress, 0.45));
-						}
-					}
-				});
+                    pAnimState->RunFlag = false;
 
-			// After the animation ends
-            m_pAnalogArrowsFadeInAnim->SetOnEnd([this](GenericAnimation* pAnim)
-				{
-					m_pArrowFadeAnimation->Stop();
-				});
-			// When reset
-            m_pAnalogArrowsFadeInAnim->SetOnReset([this](GenericAnimation* pAnim)
-				{
-                    m_pAnalogArrowsFadeInAnim->Stop();
-				});
-		}
+                    m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
+                });
+        }
 
-		{
-			m_pActiveWeaponFadeAnimation = std::make_unique<GenericAnimation>(s_ActiveWeaponFadeoutDur);
+        // Selection arrow brightness animation when switching weapons
+        {
+            m_AnimData.ArrowBrightness.pAnimation =
+                std::make_unique<GenericAnimation>(s_SwitchBrightnessAnimDur, &m_AnimData.ArrowBrightness);
 
-			// Before the animation starts
-			m_pActiveWeaponFadeAnimation->SetOnStart([this](GenericAnimation* pAnim)
-				{
-					// Ensure the active weapon is at full opacity
-					m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
-				});
+            // Before the animation starts
+            m_AnimData.ArrowBrightness.pAnimation->SetOnStart([this](GenericAnimation* pAnim)
+                {
+                    // Ensure the active weapon is at normal brightness
+                    m_pSpriteBatch->SetBrightness((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
+                });
 
-			// On update
-			m_pActiveWeaponFadeAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
-				{
-					const auto progress = pAnim->GetProgressNormalized();
+            // On update
+            m_AnimData.ArrowBrightness.pAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
+                {
+                    const auto progress = pAnim->GetProgressNormalized();
 
-					m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f - progress);
-				});
+                    m_pSpriteBatch->SetBrightness((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), progress * 5.18f);
+                });
 
-			// After the animation ends
-			m_pActiveWeaponFadeAnimation->SetOnEnd([this](GenericAnimation* pAnim)
-				{
-					m_pActiveWeaponFadeAnimation->Stop();
-				});
+            // After the animation ends
+            m_AnimData.ArrowBrightness.pAnimation->SetOnEnd([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
 
-			// When reset
-			m_pActiveWeaponFadeAnimation->SetOnReset([this](GenericAnimation* pAnim)
-				{
-					m_pActiveWeaponFadeAnimation->Stop();
-					UpdateSlotStates();
-				});
-		}
+                    pAnimState->RunFlag = false;
 
-		{
-			m_pWeaponSwitchBrightnessAnimation = std::make_unique<GenericAnimation>(s_SwitchBrightnessAnimDur);
+                    m_pSpriteBatch->SetBrightness((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
+                });
 
-			// Before the animation starts
-			m_pWeaponSwitchBrightnessAnimation->SetOnStart([this](GenericAnimation* pAnim)
-				{
-					// Ensure the active weapon is at normal brightness
-					m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
-				});
+            // When reset
+            m_AnimData.ArrowBrightness.pAnimation->SetOnReset([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
 
-			// On update
-			m_pWeaponSwitchBrightnessAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
-				{
-					const auto progress = pAnim->GetProgressNormalized();
+                    pAnimState->RunFlag = false;
 
-					m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), progress * 3.18f);
-				});
+                    m_pSpriteBatch->SetBrightness((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
+                    UpdateCurrentWheelVisibility(SpriteUpdateModes::FullyVisible);
+                });
+        }
 
-			// After the animation ends
-			m_pWeaponSwitchBrightnessAnimation->SetOnEnd([this](GenericAnimation* pAnim)
-				{
-					m_pWeaponSwitchBrightnessAnimation->Stop();
-					m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
-				});
+        // Active weapon sprite fading out animation
+        {
+            m_AnimData.ActiveWeaponFadeOut.pAnimation =
+                std::make_unique<GenericAnimation>(s_ActiveWeaponFadeoutDur, &m_AnimData.ActiveWeaponFadeOut);
 
-			// When reset
-			m_pWeaponSwitchBrightnessAnimation->SetOnReset([this](GenericAnimation* pAnim)
-				{
-					m_pWeaponSwitchBrightnessAnimation->Stop();
-					m_pSpriteBatch->SetBrightness((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
-				});
-		}
+            // Before the animation starts
+            m_AnimData.ActiveWeaponFadeOut.pAnimation->SetOnStart([this](GenericAnimation* pAnim)
+                {
+                    // Ensure the active weapon is at full opacity
+                    m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), 1.0f);
+                });
 
-		{
-			m_pWeaponSwitchScaleAnimation = std::make_unique<GenericAnimation>(s_SwitchScaleAnimDur);
+            // On update
+            m_AnimData.ActiveWeaponFadeOut.pAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
+                {
+                    const auto progress = pAnim->GetProgressNormalized();
 
-			// Before the animation starts
-			m_pWeaponSwitchScaleAnimation->SetOnStart([this](GenericAnimation* pAnim)
-				{
-					m_pSpriteBatch->SetOpacity(
-						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 0.0f);
+                    m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), 1.0f - progress);
+                });
 
-					m_pSpriteBatch->SetBrightness(
-						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 1.0f);
+            // After the animation ends
+            m_AnimData.ActiveWeaponFadeOut.pAnimation->SetOnEnd([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
 
-					m_pSpriteBatch->ScaleTo(
-						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), glm::vec3(1.0f));
-				});
+                    pAnimState->RunFlag = false;
+                });
 
-			// On update
-			m_pWeaponSwitchScaleAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
-				{
-					const auto progress = pAnim->GetProgressNormalized();
+            // When reset
+            m_AnimData.ActiveWeaponFadeOut.pAnimation->SetOnReset([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
 
-					m_pSpriteBatch->SetOpacity(
-						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), progress * 0.9f);
+                    pAnimState->RunFlag = false;
 
-					m_pSpriteBatch->SetBrightness(
-						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), progress * 3.18f);
+                    m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), 1.0f);
+                });
+        }
 
-					m_pSpriteBatch->ScaleTo(
-						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate),
-						s_MeleeActiveSlotTransforms[m_CurrentActiveSlot].Scale * float(progress) * 1.5f);
-				});
+        // Weapon sprite brightness animation when switching to weapon
+        {
+            m_AnimData.WeaponSwitchBrightness.pAnimation =
+                std::make_unique<GenericAnimation>(s_SwitchBrightnessAnimDur, &m_AnimData.WeaponSwitchBrightness);
 
-			// After the animation ends
-			m_pWeaponSwitchScaleAnimation->SetOnEnd([this](GenericAnimation* pAnim)
-				{
-					m_pWeaponSwitchScaleAnimation->Stop();
+            // Before the animation starts
+            m_AnimData.WeaponSwitchBrightness.pAnimation->SetOnStart([this](GenericAnimation* pAnim)
+                {
+                    // Ensure the active weapon is at normal brightness
+                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), 1.0f);
+                });
 
-					m_pSpriteBatch->SetOpacity(
-						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 0.0f);
+            // On update
+            m_AnimData.WeaponSwitchBrightness.pAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
+                {
+                    const auto progress = pAnim->GetProgressNormalized();
 
-					m_pSpriteBatch->SetBrightness(
-						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 1.0f);
+                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), progress * 3.18f);
+                });
 
-					m_pSpriteBatch->ScaleTo(
-						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), glm::vec3(1.0f));
-				});
+            // After the animation ends
+            m_AnimData.WeaponSwitchBrightness.pAnimation->SetOnEnd([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
 
-			// When reset
-			m_pWeaponSwitchScaleAnimation->SetOnReset([this](GenericAnimation* pAnim)
-				{
-					m_pWeaponSwitchScaleAnimation->Stop();
+                    pAnimState->RunFlag = false;
 
-					m_pSpriteBatch->SetOpacity(
-						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 0.0f);
+                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), 1.0f);
+                });
 
-					m_pSpriteBatch->SetBrightness(
-						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), 1.0f);
+            // When reset
+            m_AnimData.WeaponSwitchBrightness.pAnimation->SetOnReset([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
 
-					m_pSpriteBatch->ScaleTo(
-						(size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Duplicate), glm::vec3(1.0f));
-				});
-		}
+                    pAnimState->RunFlag = false;
 
-	}
+                    m_pSpriteBatch->SetBrightness((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), 1.0f);
+                });
+        }
+
+        // Weapon scale animation when switching to weapon
+        {
+            m_AnimData.WeaponSwitchScaleUp.pAnimation =
+                std::make_unique<GenericAnimation>(s_SwitchScaleAnimDur, &m_AnimData.WeaponSwitchScaleUp);
+
+            // Before the animation starts
+            m_AnimData.WeaponSwitchScaleUp.pAnimation->SetOnStart([this](GenericAnimation* pAnim)
+                {
+                    m_pSpriteBatch->SetOpacity(
+                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), 0.0f);
+
+                    m_pSpriteBatch->SetBrightness(
+                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), 1.0f);
+
+                    m_pSpriteBatch->ScaleTo(
+                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), glm::vec3(1.0f));
+                });
+
+            // On update
+            m_AnimData.WeaponSwitchScaleUp.pAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
+                {
+                    const auto progress = pAnim->GetProgressNormalized();
+
+                    m_pSpriteBatch->SetOpacity(
+                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), progress * 0.9f);
+
+                    m_pSpriteBatch->SetBrightness(
+                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), progress * 3.18f);
+
+                    m_pSpriteBatch->ScaleTo(
+                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]),
+                        s_MeleeActiveSlotTransforms[m_CurrentActiveSlot].Scale * float(progress) * 1.5f);
+                });
+
+            // After the animation ends
+            m_AnimData.WeaponSwitchScaleUp.pAnimation->SetOnEnd([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
+
+                    pAnimState->RunFlag = false;
+
+                    m_pSpriteBatch->SetOpacity(
+                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), 0.0f);
+
+                    m_pSpriteBatch->SetBrightness(
+                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), 1.0f);
+
+                    m_pSpriteBatch->ScaleTo(
+                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), glm::vec3(1.0f));
+                });
+
+            // When reset
+            m_AnimData.WeaponSwitchScaleUp.pAnimation->SetOnReset([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
+
+                    pAnimState->RunFlag = false;
+
+                    m_pSpriteBatch->SetOpacity(
+                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), 0.0f);
+
+                    m_pSpriteBatch->SetBrightness(
+                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), 1.0f);
+
+                    m_pSpriteBatch->ScaleTo(
+                        (size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), glm::vec3(1.0f));
+                });
+        }
+
+        // Analog weapon selection arrow fading in animation
+        {
+            m_AnimData.AnalogArrowsFadeIn.pAnimation =
+                std::make_unique<GenericAnimation>(s_AnalogArrowFadInAnimDur, &m_AnimData.AnalogArrowsFadeIn);
+
+            // Before the animation starts
+            m_AnimData.AnalogArrowsFadeIn.pAnimation->SetOnStart([this](GenericAnimation* pAnim)
+                {
+                    // Ensure the state is set to normal
+                    for (size_t i = 0; i < m_Weapons.size(); i++) {
+                        if (i != m_CurrentActiveSlot) {
+                            m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.05f);
+                        }
+                    }
+                });
+
+            // On update
+            m_AnimData.AnalogArrowsFadeIn.pAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
+                {
+                    const auto progress = pAnim->GetProgressNormalized();
+
+                    for (size_t i = 0; i < m_Weapons.size(); i++) {
+                        if (i != m_CurrentActiveSlot) {
+                            m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), std::min(0.0f + float(progress), 0.45f));
+                        }
+                    }
+                });
+
+            // After the animation ends
+            m_AnimData.AnalogArrowsFadeIn.pAnimation->SetOnEnd([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
+
+                    pAnimState->RunFlag = false;
+
+                    for (size_t i = 0; i < m_Weapons.size(); i++) {
+                        if (i != m_CurrentActiveSlot) {
+                            m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.45f);
+                        }
+                    }
+                });
+
+            // When reset
+            m_AnimData.AnalogArrowsFadeIn.pAnimation->SetOnReset([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
+
+                    pAnimState->RunFlag = false;
+
+                    for (size_t i = 0; i < m_Weapons.size(); i++) {
+                        if (i != m_CurrentActiveSlot) {
+                            m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.45f);
+                        }
+                    }
+                });
+        }
+
+        // Analog weapon selection arrow fading out animation
+        {
+            m_AnimData.AnalogArrowsFadeOut.pAnimation =
+                std::make_unique<GenericAnimation>(s_ArrowFadeAnimDur, &m_AnimData.AnalogArrowsFadeOut);
+
+            // Before the animation starts
+            m_AnimData.AnalogArrowsFadeOut.pAnimation->SetOnStart([this](GenericAnimation* pAnim)
+                {
+                    // Ensure the state is set to normal
+                    for (size_t i = 0; i < m_Weapons.size(); i++) {
+                        if (i != m_CurrentActiveSlot) {
+                            m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.45f);
+                        }
+                    }
+                });
+
+            // On update
+            m_AnimData.AnalogArrowsFadeOut.pAnimation->SetOnUpdate([this](GenericAnimation* pAnim)
+                {
+                    const auto progress = pAnim->GetProgressNormalized();
+
+                    for (size_t i = 0; i < m_Weapons.size(); i++) {
+                        if (i != m_CurrentActiveSlot) {
+                            m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.45f - 0.45f * float(progress));
+                        }
+                    }
+                });
+
+            // After the animation ends
+            m_AnimData.AnalogArrowsFadeOut.pAnimation->SetOnEnd([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
+
+                    pAnimState->RunFlag = false;
+
+                    for (size_t i = 0; i < m_Weapons.size(); i++) {
+                        if (i != m_CurrentActiveSlot) {
+                            m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.0f);
+                        }
+                    }
+                });
+
+            // When reset
+            m_AnimData.AnalogArrowsFadeOut.pAnimation->SetOnReset([this](GenericAnimation* pAnim)
+                {
+                    AnimState* pAnimState = reinterpret_cast<AnimState*>(pAnim->GetCustomDataPointer());
+
+                    pAnimState->RunFlag = false;
+
+                    for (size_t i = 0; i < m_Weapons.size(); i++) {
+                        if (i != m_CurrentActiveSlot) {
+                            m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.45f);
+                        }
+                    }
+                });
+        }
+    }
+
+    void WeaponWheel::SetWeaponsTranslations()
+    {
+        for (size_t i = 0; i < m_Weapons.size(); i++)
+        {
+            // Set the transformation for the inactive weapon sprites
+            m_pSpriteBatch->SetTransform(
+                (size_t)GetWeaponTextureID(m_Weapons[i], false),
+                s_MeleeInactiveSlotTransforms[i].Translation,
+                s_WeaponNormalRotations[(size_t)m_Weapons[i]],
+                s_WeaponNormalInactiveScales[(size_t)m_Weapons[i]]
+            );
+
+            // Set the transformation for the active weapon sprites
+            m_pSpriteBatch->SetTransform(
+                (size_t)GetWeaponTextureID(m_Weapons[i], true),
+                s_MeleeActiveSlotTransforms[i].Translation,
+                s_WeaponNormalRotations[(size_t)m_Weapons[i]],
+                s_WeaponNormalActiveScales[(size_t)m_Weapons[i]]
+            );
+
+            // Set the transformation for the duplicated weapon sprites
+            m_pSpriteBatch->SetTransform(
+                (size_t)GetDupAnimationWeaponTextureID(m_Weapons[i]),
+                s_MeleeActiveSlotTransforms[i].Translation,
+                s_WeaponNormalRotations[(size_t)m_Weapons[i]],
+                s_WeaponNormalActiveScales[(size_t)m_Weapons[i]]
+            );
+
+            // Set the hide the duplicated weapon sprites by default
+            m_pSpriteBatch->SetOpacity(
+                (size_t)GetDupAnimationWeaponTextureID(m_Weapons[i]),
+                0.0f
+            );
+        }
+    }
 
     void WeaponWheel::SetInactiveOpacity(float opacity)
     {
-        for (size_t i = 0; i < m_Weapons[m_CurrentActiveCharIndex].size(); i++)
-        {
-            m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, m_CurrentActiveCharIndex, WeaponState::Inactive), opacity);
-        }
+        for (const auto& weaponID : m_Weapons)
+            m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(weaponID, false), opacity);
     }
 
     void WeaponWheel::SetActiveWeaponOpacity(float opacity)
@@ -1218,56 +1699,133 @@ namespace WW {
         if (m_CurrentActiveSlot > 4) // 5 slots is max
             return;
 
-        m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), opacity);
+        m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), opacity);
     }
 
-    void WeaponWheel::UpdateSlotStates()
+    void WeaponWheel::UpdateCurrentWheelVisibility(SpriteUpdateModes mode)
     {
-        if (m_CurrentActiveSlot > 4)
+        // Before changing anything do this so if needed old state gets backed up
+
+        // Center piece
+        float centerPieceOpacity = 0.0f;
+
+        // Current active slot
+        float activePanelOpacity = 0.0f;
+        float activeWeaponOpacity = 0.0f;
+        float activeArrowVisibility = 0.0f;
+
+        switch (mode)
         {
-            for (size_t i = 0; i < m_Weapons[m_CurrentActiveCharIndex].size(); i++)
+        //case SpriteUpdateModes::KeepVisibility:
+        //{
+        //    centerPieceOpacity = m_pSpriteBatch->GetOpacity((size_t)GetCenterTextureID(m_ThemeID));
+        //
+        //    activePanelOpacity = m_pSpriteBatch->GetOpacity((size_t)GetPanelTextureID(m_ThemeID, m_PreviousActiveSlot, true));
+        //    activeWeaponOpacity = m_pSpriteBatch->GetOpacity((size_t)GetWeaponTextureID(m_PreviousWeapons[m_PreviousActiveSlot], true));
+        //    activeArrowVisibility = m_pSpriteBatch->GetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_PreviousActiveSlot));
+        //} break;
+
+        case SpriteUpdateModes::FullyVisible:
+        {
+            centerPieceOpacity = 1.0f;
+
+            activePanelOpacity = 1.0f;
+            activeWeaponOpacity = 1.0f;
+            activeArrowVisibility = 1.0f;
+        } break;
+
+        case SpriteUpdateModes::FullyHide:
+        {
+            centerPieceOpacity = 0.0f;
+
+            activePanelOpacity = 0.0f;
+            activeWeaponOpacity = 0.0f;
+            activeArrowVisibility = 0.0f;
+        } break;
+
+        default:
+            break;
+        }
+
+        // Set the state to thee normal non active state
+        for (size_t i = 0; i < m_Weapons.size(); i++) {
+            float inactiveWeaponOpacity = 0.0f;
+            float inactivePanelOpacity = 0.0f;
+
+            switch (mode)
             {
-                m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, m_CurrentActiveCharIndex, WeaponState::Inactive), 1.0f);
-                m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, m_CurrentActiveCharIndex, WeaponState::Active), 0.0f);
-                m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, false), 1.0f);
+                //case SpriteUpdateModes::KeepVisibility:
+                //{
+                //    if (i != m_PreviousActiveSlot)
+                //    {
+                //        inactiveWeaponOpacity = m_pSpriteBatch->GetOpacity((size_t)GetWeaponTextureID(m_PreviousWeapons[i], false));
+                //        inactivePanelOpacity = m_pSpriteBatch->GetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, false));
+                //    }
+                //    else
+                //    {
+                //        inactiveWeaponOpacity = m_pSpriteBatch->GetOpacity((size_t)GetWeaponTextureID(m_PreviousWeapons[i], true));
+                //        inactivePanelOpacity = m_pSpriteBatch->GetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, true));
+                //    }
+                //} break;
+
+                case SpriteUpdateModes::FullyVisible:
+                {
+                    inactiveWeaponOpacity = 1.0f;
+                    inactivePanelOpacity = 1.0f;
+                } break;
+
+                case SpriteUpdateModes::FullyHide:
+                {
+                    inactiveWeaponOpacity = 0.0f;
+                    inactivePanelOpacity = 0.0f;
+                } break;
+
+                default:
+                    break;
+            }
+
+            // Set inactive texture opacities
+            m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[i], false), inactiveWeaponOpacity);
+            m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, false), inactivePanelOpacity);
+
+            // Hide all active textures that aren't related to the current active slot
+            if (i != m_CurrentActiveSlot)
+            {
                 m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, true), 0.0f);
-                //m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 1.0f);
-            }
-
-            m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), 1.0f);
-
-            return;
-        }
-
-        // Set all inactive chars' weapons to be invisible
-        for (size_t charIdx = 0; charIdx < CHARACTER_COUNT; charIdx++) {
-            if (charIdx != m_CurrentActiveCharIndex) {
-                for (size_t i = 0; i < m_Weapons[charIdx].size(); i++) {
-                    m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Inactive), 0.0f);
-                    m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, charIdx, WeaponState::Active), 0.0f);
-                }
+                m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[i], true), 0.0f);
+                m_pSpriteBatch->SetOpacity((size_t)GetDupAnimationWeaponTextureID(m_Weapons[i]), 0.0f);
+                m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.0f);
             }
         }
 
-        for (size_t i = 0; i < m_Weapons[m_CurrentActiveCharIndex].size(); i++)
-        {
-            m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, m_CurrentActiveCharIndex, WeaponState::Inactive), 1.0f);
-            m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(i, m_CurrentActiveCharIndex, WeaponState::Active), 0.0f);
-            m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, false), 1.0f);
-            m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, i, true), 0.0f);
-            m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.0f);
-        }
+        // Set the opacity of the current slot's active weapon and panel to the opacity of the previous active slot
+        m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, m_CurrentActiveSlot, true), activePanelOpacity);
+        m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), activeWeaponOpacity);
 
-        if (m_Weapons[m_CurrentActiveCharIndex].size() > 0)
-            m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), 1.0f);
-        else 
-            m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), 0.0f);
-        
+        // Set the center piece opacity
+        m_pSpriteBatch->SetOpacity((size_t)GetCenterTextureID(m_ThemeID), centerPieceOpacity);
 
-        m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Inactive), 0.0f);
-        m_pSpriteBatch->SetOpacity((size_t)GetWeaponSlotTextureID(m_CurrentActiveSlot, m_CurrentActiveCharIndex, WeaponState::Active), 1.0f);
+        // Hide the inactive weapon texture, inactive panel texture and duplicate weapon texture for the current active slot
+        m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], false), 0.0f);
         m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, m_CurrentActiveSlot, false), 0.0f);
-        m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, m_CurrentActiveSlot, true), 1.0f);
-        m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), 1.0f);
+        m_pSpriteBatch->SetOpacity((size_t)GetDupAnimationWeaponTextureID(m_Weapons[m_CurrentActiveSlot]), 0.0f);
+
+        m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, m_CurrentActiveSlot), activeArrowVisibility);
+        m_pSpriteBatch->SetOpacity((size_t)GetPanelTextureID(m_ThemeID, m_CurrentActiveSlot, true), activePanelOpacity);
+        m_pSpriteBatch->SetOpacity((size_t)GetWeaponTextureID(m_Weapons[m_CurrentActiveSlot], true), activeWeaponOpacity);
+
+        // If in analog switching mode, make sure the other arrows are semi-visible
+        if (m_AnalogSwitching)
+        {
+            for (size_t i = 0; i < m_Weapons.size(); i++)
+            {
+                if (i != m_CurrentActiveSlot)
+                    m_pSpriteBatch->SetOpacity((size_t)GetArrowTextureID(m_ThemeID, i), 0.45f);
+            }
+        }
+
+        // Consume the old trackers
+        m_PreviousActiveSlot = m_CurrentActiveSlot;
+        m_PreviousWeapons = m_Weapons;
     }
 }

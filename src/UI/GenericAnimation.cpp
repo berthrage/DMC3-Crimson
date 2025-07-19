@@ -1,7 +1,13 @@
 #include "GenericAnimation.hpp"
 
 GenericAnimation::GenericAnimation(double durationMs)
-	: m_DurationMs(durationMs) {
+	: m_DurationMs(durationMs)
+{
+}
+
+GenericAnimation::GenericAnimation(double durationMs, void* pCustomData)
+    : m_DurationMs(durationMs), m_pCustomData(pCustomData)
+{
 }
 
 GenericAnimation::~GenericAnimation() {

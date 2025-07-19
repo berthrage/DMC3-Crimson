@@ -221,7 +221,7 @@ namespace UI {
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, !isEnabled);
 		bool ret = ButtonEx(label, size, SwapColorEndianness(0xFFFFFFFF), ImGuiButtonFlags_None);
 		if (ret) {
-			if (activeCrimsonConfig.GUI.sounds) PlaySound(0, 2);
+			if (activeCrimsonConfig.GUI.sounds) FMOD_PlaySound(0, 2);
 		}
 		ImGui::PopItemFlag();
 

@@ -3,6 +3,7 @@
 #include "GraphicsBase.hpp"
 #include "Sprite.hpp"
 #include "Texture2DArrayD3D11.hpp"
+#include "..\ThirdParty\glm\gtc\quaternion.hpp"
 
 namespace Graphics {
 class BatchedSprites : public ErrorHandled {
@@ -13,7 +14,9 @@ private:
 		size_t		IndicesOffset;
 		float		Opacity;
 		float		Brightness;
-		glm::mat4	TransformationMatrix;
+		glm::vec3	Translation;
+        glm::quat   RotationQuat;
+        glm::vec3   Scale;
 	};
 
 #pragma pack(push, 1)
@@ -38,12 +41,29 @@ private:
 #pragma pack(pop)
 
 public:
-	BatchedSprites(ID3D11Device* pD3D11Device, UINT width, UINT height, const std::vector<Sprite>& sprites,
+	BatchedSprites(ID3D11Device* pD3D11Device, UINT width, UINT height, const std::vector<SpriteDesc>& spriteDescs,
 		const std::vector<size_t> spriteIndices = {});
+
+    BatchedSprites(ID3D11Device* pD3D11Device, UINT width, UINT height, const std::vector<SpriteDesc>& spriteDescs,
+        std::shared_ptr<Texture2DArrayD3D11> pSpriteTextures, const std::vector<size_t> spriteIndices = {});
+
 	virtual ~BatchedSprites();
 
-	void UpdateSprites(ID3D11Device* pD3D11Device, const std::vector<Sprite>& sprites,
-		const std::vector<size_t> spriteIndices = {});
+	/// <summary>
+	///     Reads the sprite info list provided and prepares the necessary data for rendering,
+    ///     if the last argument (spriteTextures) is NOT provided it will load the the textures
+    ///     into video memory from disk, but if provided it will not try to reload the textures from the disk which is slow
+	/// </summary>
+	/// <param name="pD3D11Device">Pointer to the ID3D11Device to use for rendering</param>
+	/// <param name="spriteDescs">A vector tha contains the SpriteDesc objects that contain
+    /// the information about the image of each sprite </param>
+	/// <param name="spriteIndices">(Optional) A list of indices of the sprites to be batched and rendered,
+    /// if not provided, it will default to using all of the sprites</param>
+	/// <param name="pSpriteTextureArray">(Optional) A pointer to the already loaded into vram sprite texture array,
+    /// if not provided it will load the sprites into vram by reading them from the disk which is slow</param>
+	void UpdateSprites(ID3D11Device* pD3D11Device, const std::vector<SpriteDesc>& spritesInfo,
+        const std::vector<size_t> spriteIndices = {}, std::shared_ptr<Texture2DArrayD3D11> pSpriteTextureArray = {});
+
 	void SetActiveSprites(const std::vector<size_t> spriteIndices = {});
 
 	bool Initialize(ID3D11Device* pD3D11Device, UINT width, UINT height);
@@ -60,6 +80,12 @@ public:
 	void SetOpacity(size_t idx, float opacity);
 	void SetBrightness(size_t idx, float brightness);
 	void ForceUpdateSpriteInfoBuffer();
+
+    const auto& GetTranslation(size_t idx) { return m_SpritesData[idx].Translation; }
+    const auto& GetRotationQuat(size_t idx) { return m_SpritesData[idx].RotationQuat; }
+    const auto& GetScale(size_t idx) { return m_SpritesData[idx].Scale; }
+    const auto& GetOpacity(size_t idx) { return m_SpritesData[idx].Opacity; }
+    const auto& GetBrightness(size_t idx) { return m_SpritesData[idx].Brightness; }
 
 	void Reorder(const std::vector<size_t>& spriteIndices);
 
@@ -133,7 +159,7 @@ private:
 	ComPtr<ID3D11SamplerState>			m_pTextureSampler{};
 
 	std::vector<std::string>				m_TexturePaths{};
-	std::unique_ptr<Texture2DArrayD3D11>	m_pTextureArray{};
+	std::shared_ptr<Texture2DArrayD3D11>	m_pTextureArray{};
 	std::vector<SpriteInfo>					m_SpritesData{};
 
 	size_t m_CurrentVBSize{ 0 };

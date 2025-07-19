@@ -1,35 +1,51 @@
 #include "BatchedSprites.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include "glm\gtc\matrix_transform.hpp"
-#include "glm\gtx\euler_angles.hpp"
+#include "..\ThirdParty\glm\gtc\matrix_transform.hpp"
+#include "..\ThirdParty\glm\gtx\euler_angles.hpp"
+#include "..\Core\Core.hpp"
 
 #include <d3dcompiler.h>
 #include <array>
-#include "../Core/Core.hpp"
 #include <set>
 
 namespace Graphics {
-BatchedSprites::BatchedSprites(ID3D11Device* pD3D11Device, UINT width, UINT height, const std::vector<Sprite>& sprites,
-	const std::vector<size_t> spriteIndices) {
-	//Log("BatchedSprites: Constructor called with %zu sprites, size %dx%d", sprites.size(), width, height);
+BatchedSprites::BatchedSprites(ID3D11Device* pD3D11Device, UINT width, UINT height,
+    const std::vector<SpriteDesc>& spriteDescs, const std::vector<size_t> spriteIndices) {
+	//Log("BatchedSprites: Path dependent onstructor called with %zu spriteDescs, size %dx%d", spriteDescs.size(), width, height);
 
 	bool initResult = Initialize(pD3D11Device, width, height);
 	//Log("BatchedSprites: Initialize result: %s", initResult ? "SUCCESS" : "FAILED");
 
 	if (initResult) {
-		UpdateSprites(pD3D11Device, sprites, spriteIndices);
+		UpdateSprites(pD3D11Device, spriteDescs, spriteIndices);
 		//Log("BatchedSprites: UpdateSprites completed");
 	}
 
-	//Log("BatchedSprites: Constructor completed");
+	//Log("BatchedSprites: Path dependent constructor completed");
+}
+
+BatchedSprites::BatchedSprites(ID3D11Device* pD3D11Device, UINT width, UINT height,
+    const std::vector<SpriteDesc>& spriteDescs, std::shared_ptr<Texture2DArrayD3D11> pSpriteTextures,
+    const std::vector<size_t> spriteIndices) {
+    //Log("BatchedSprites: Path non-dependent constructor called with %zu spriteDescs, size %dx%d", spriteDescs.size(), width, height);
+
+    bool initResult = Initialize(pD3D11Device, width, height);
+    //Log("BatchedSprites: Initialize result: %s", initResult ? "SUCCESS" : "FAILED");
+
+    if (initResult) {
+        UpdateSprites(pD3D11Device, spriteDescs, spriteIndices, pSpriteTextures);
+        //Log("BatchedSprites: UpdateSprites completed");
+    }
+
+    //Log("BatchedSprites: Path non-dependent constructor completed");
 }
 
 BatchedSprites::~BatchedSprites() {
 }
 
-void BatchedSprites::UpdateSprites(ID3D11Device* pD3D11Device, const std::vector<Sprite>& sprites,
-	const std::vector<size_t> spriteIndices) {
+void BatchedSprites::UpdateSprites(ID3D11Device* pD3D11Device, const std::vector<SpriteDesc>& spriteDescs,
+    const std::vector<size_t> spriteIndices, std::shared_ptr<Texture2DArrayD3D11> pSpriteTextureArray) {
 	m_UpdateVertexBuffer = true;
 	m_UpdateIndexBuffer = true;
 	m_SpriteInfoUpdateQueued = true;
@@ -39,13 +55,27 @@ void BatchedSprites::UpdateSprites(ID3D11Device* pD3D11Device, const std::vector
 	m_TexturePaths.clear();
 	m_pTextureArray.reset();
 
-	const auto count = sprites.size();
+	const auto count = spriteDescs.size();
 	m_SpritesData.reserve(count);
 
 	// Process sprite data (no longer need to store vertices/indices per sprite)
 	for (size_t i = 0; i < count; i++) {
-		const auto& spriteTr = sprites[i].GetTransformationmatrix();
-		const auto& pathIdx = FindTexturePathIndex(sprites[i].GetTexturePath());
+		const auto& spriteTr = spriteDescs[i].GetTransformationmatrix();
+		const auto& pathIdx = FindTexturePathIndex(spriteDescs[i].GetTexturePath());
+
+        glm::vec3 translation = glm::vec3(spriteTr[3]);
+        glm::vec3 scale = {
+            glm::length(glm::vec3(spriteTr[0])),
+            glm::length(glm::vec3(spriteTr[1])),
+            glm::length(glm::vec3(spriteTr[2]))
+        };
+
+        glm::mat3 rot = {
+            glm::vec3(spriteTr[0]) / scale.x,
+            glm::vec3(spriteTr[1]) / scale.y,
+            glm::vec3(spriteTr[2]) / scale.z
+        };
+        glm::quat rotationQuat = glm::quat_cast(rot);
 
 		float debugOpacity = 1.0f;
 		float debugBrightness = 1.0f;
@@ -58,7 +88,9 @@ void BatchedSprites::UpdateSprites(ID3D11Device* pD3D11Device, const std::vector
 					0, // IndicesOffset not needed for instanced rendering  
 					debugOpacity,
 					debugBrightness,
-					spriteTr
+                    translation,
+                    rotationQuat,
+                    scale
 				}
 			);
 		} else {
@@ -67,17 +99,25 @@ void BatchedSprites::UpdateSprites(ID3D11Device* pD3D11Device, const std::vector
 					m_TexturePaths.size(),
 					0, // VerticesOffset not needed
 					0, // IndicesOffset not needed
-					debugOpacity,
-					debugBrightness,
-					spriteTr
+                    debugOpacity,
+                    debugBrightness,
+                    translation,
+                    rotationQuat,
+                    scale
 				}
 			);
 
-			m_TexturePaths.push_back(sprites[i].GetTexturePath());
+			m_TexturePaths.push_back(spriteDescs[i].GetTexturePath());
 		}
 	}
 
-	m_pTextureArray = std::make_unique<Texture2DArrayD3D11>(m_TexturePaths, pD3D11Device);
+    if (pSpriteTextureArray) {
+        m_pTextureArray = pSpriteTextureArray;
+    }
+    else {
+        m_pTextureArray = std::make_shared<Texture2DArrayD3D11>(m_TexturePaths, pD3D11Device);
+    }
+
 	if (!m_pTextureArray) {
 		Log("BatchedSprites: ERROR - Texture array creation failed!");
 		return;
@@ -697,12 +737,16 @@ bool BatchedSprites::CreateAndUpdateSpriteInfoBuffer(ID3D11Device* pD3D11Device)
 	infoArray.reserve(m_SpritesData.size());
 
 	for (const auto& sd : m_SpritesData) {
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), sd.Translation);
+        transform *= glm::mat4_cast(sd.RotationQuat);
+        transform = glm::scale(transform, sd.Scale);
+
 		infoArray.push_back(VERTEX_SHADER_SPRITE_INFO{
 			(uint32_t)sd.TexturePathIdx,
 			sd.Opacity,
 			sd.Brightness,
 			0,
-			sd.TransformationMatrix  
+			transform  
 			});
 	}
 
@@ -808,14 +852,16 @@ bool BatchedSprites::UpdateSpriteInfoBuffer(ID3D11DeviceContext* pD3D11DeviceCon
 		for (size_t i = 0; i < m_SpritesData.size(); i++) {
 			const auto& sd = m_SpritesData[i];
 
-			glm::mat4 matrix = sd.TransformationMatrix;
+            glm::mat4 transform = glm::translate(glm::mat4(1.0f), sd.Translation);
+            transform *= glm::mat4_cast(sd.RotationQuat);
+            transform = glm::scale(transform, sd.Scale);
 
 			infoArray.push_back(VERTEX_SHADER_SPRITE_INFO{
 				(uint32_t)sd.TexturePathIdx,
 				sd.Opacity,
 				sd.Brightness,
 				0,
-				matrix
+                transform
 				});
 		}
 	} else {
@@ -833,15 +879,16 @@ bool BatchedSprites::UpdateSpriteInfoBuffer(ID3D11DeviceContext* pD3D11DeviceCon
 
 			const auto& sd = m_SpritesData[spriteIdx];
 
-			// *** USE ORIGINAL MATRIX DIRECTLY - NO TRANSPOSITION ***
-			glm::mat4 matrix = sd.TransformationMatrix;
+            glm::mat4 transform = glm::translate(glm::mat4(1.0f), sd.Translation);
+            transform *= glm::mat4_cast(sd.RotationQuat);
+            transform = glm::scale(transform, sd.Scale);
 
 			infoArray.push_back(VERTEX_SHADER_SPRITE_INFO{
 				(uint32_t)sd.TexturePathIdx,
 				sd.Opacity,
 				sd.Brightness,
 				0,
-				matrix
+                transform
 				});
 		}
 	}
@@ -925,89 +972,45 @@ bool BatchedSprites::UpdatePixelConstantBuffer(ID3D11DeviceContext* pD3D11Device
 void BatchedSprites::Translate(size_t idx, glm::vec3 vector) {
 	m_SpriteInfoUpdateQueued = true;
 
-	m_SpritesData[idx].TransformationMatrix = glm::translate(m_SpritesData[idx].TransformationMatrix, vector);
+	m_SpritesData[idx].Translation += vector;
 }
 
 void BatchedSprites::TranslateTo(size_t idx, glm::vec3 vector) {
 	m_SpriteInfoUpdateQueued = true;
 
-	glm::vec3 currentTranslation = glm::vec3(m_SpritesData[idx].TransformationMatrix[3]); // Extract the translation
-	glm::vec3 currentScale = {
-		glm::length(glm::vec3(m_SpritesData[idx].TransformationMatrix[0])),
-		glm::length(glm::vec3(m_SpritesData[idx].TransformationMatrix[1])),
-		glm::length(glm::vec3(m_SpritesData[idx].TransformationMatrix[2]))
-	};
-	glm::mat3 currentRotationMatrix = glm::mat3(m_SpritesData[idx].TransformationMatrix);
-	currentRotationMatrix[0] = glm::normalize(m_SpritesData[idx].TransformationMatrix[0]);
-	currentRotationMatrix[1] = glm::normalize(m_SpritesData[idx].TransformationMatrix[1]);
-	currentRotationMatrix[2] = glm::normalize(m_SpritesData[idx].TransformationMatrix[2]);
-
-	glm::mat4 newTransformationMatrix = glm::mat4(1.0f);
-	newTransformationMatrix = glm::translate(newTransformationMatrix, vector);
-	newTransformationMatrix *= glm::mat4(currentRotationMatrix);
-	newTransformationMatrix = glm::scale(newTransformationMatrix, currentScale);
-
-	m_SpritesData[idx].TransformationMatrix = newTransformationMatrix;
+	m_SpritesData[idx].Translation = vector;
 }
 
-void BatchedSprites::Rotate(size_t idx, float rotation, glm::vec3 vector) {
+void BatchedSprites::Rotate(size_t idx, float rotation, glm::vec3 axis) {
 	m_SpriteInfoUpdateQueued = true;
 
-	m_SpritesData[idx].TransformationMatrix = glm::rotate(m_SpritesData[idx].TransformationMatrix, rotation, vector);
+    m_SpritesData[idx].RotationQuat = glm::angleAxis(rotation, glm::normalize(axis)) * m_SpritesData[idx].RotationQuat;
 }
 
 void BatchedSprites::RotateTo(size_t idx, float rotation, glm::vec3 axis) {
 	m_SpriteInfoUpdateQueued = true;
 
-	glm::vec3 currentTranslation = glm::vec3(m_SpritesData[idx].TransformationMatrix[3]); // Extract the translation
-	glm::vec3 currentScale = {
-		glm::length(glm::vec3(m_SpritesData[idx].TransformationMatrix[0])),
-		glm::length(glm::vec3(m_SpritesData[idx].TransformationMatrix[1])),
-		glm::length(glm::vec3(m_SpritesData[idx].TransformationMatrix[2]))
-	};
-
-	glm::vec3 targetEulerAngles = rotation * axis; // New rotation
-	glm::mat3 newRotationMatrix = glm::yawPitchRoll(targetEulerAngles.y, targetEulerAngles.x, targetEulerAngles.z);
-
-	glm::mat4 newTransformationMatrix = glm::mat4(1.0f);
-	newTransformationMatrix = glm::translate(newTransformationMatrix, currentTranslation);
-	newTransformationMatrix *= glm::mat4(newRotationMatrix);
-	newTransformationMatrix = glm::scale(newTransformationMatrix, currentScale);
-
-	m_SpritesData[idx].TransformationMatrix = newTransformationMatrix;
+    m_SpritesData[idx].RotationQuat = glm::angleAxis(rotation, glm::normalize(axis));
 }
 
 void BatchedSprites::Scale(size_t idx, glm::vec3 vector) {
 	m_SpriteInfoUpdateQueued = true;
 
-	m_SpritesData[idx].TransformationMatrix = glm::scale(m_SpritesData[idx].TransformationMatrix, vector);
+	m_SpritesData[idx].Scale *= vector;
 }
 
 void BatchedSprites::ScaleTo(size_t idx, glm::vec3 vector) {
 	m_SpriteInfoUpdateQueued = true;
 
-	glm::vec3 currentTranslation = glm::vec3(m_SpritesData[idx].TransformationMatrix[3]); // Extract the translation
-	glm::mat3 currentRotationMatrix = glm::mat3(m_SpritesData[idx].TransformationMatrix);
-	currentRotationMatrix[0] = glm::normalize(m_SpritesData[idx].TransformationMatrix[0]);
-	currentRotationMatrix[1] = glm::normalize(m_SpritesData[idx].TransformationMatrix[1]);
-	currentRotationMatrix[2] = glm::normalize(m_SpritesData[idx].TransformationMatrix[2]);
-
-	glm::mat4 newTransformationMatrix = glm::mat4(1.0f);
-	newTransformationMatrix = glm::translate(newTransformationMatrix, currentTranslation);
-	newTransformationMatrix *= glm::mat4(currentRotationMatrix);
-	newTransformationMatrix = glm::scale(newTransformationMatrix, vector);
-
-	m_SpritesData[idx].TransformationMatrix = newTransformationMatrix;
+	m_SpritesData[idx].Scale = vector;
 }
 
 void BatchedSprites::SetTransform(size_t idx, glm::vec3 translation, glm::vec3 rotation, glm::vec3 scale) {
 	m_SpriteInfoUpdateQueued = true;
 
-	glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), translation);
-	glm::mat4 rotationMatrix = glm::mat4(glm::yawPitchRoll(rotation.y, rotation.x, rotation.z));
-	glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), scale);
-
-	m_SpritesData[idx].TransformationMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+	m_SpritesData[idx].Translation = translation;
+    m_SpritesData[idx].RotationQuat = glm::quat(rotation);
+    m_SpritesData[idx].Scale = scale;
 }
 
 void BatchedSprites::SetOpacity(size_t idx, float opacity) {

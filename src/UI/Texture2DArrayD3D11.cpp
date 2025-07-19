@@ -3,7 +3,7 @@
 #include <format>
 #include <comdef.h>
 
-#include "..\..\ThirdParty\stb\stb_image.h"
+#include "stb\stb_image.h"
 
 namespace Graphics
 {

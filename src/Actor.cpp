@@ -3803,7 +3803,7 @@ template <typename T> void AnalogMeleeWeaponSwitchController(T& actorData) {
             if (activeCrimsonConfig.SFX.changeDevilArmNew == 1) {
                 CrimsonSDL::PlayChangeDevilArm();
             } else {
-                PlaySound(0, 12);
+                FMOD_PlaySound(0, 12);
             }
         }
         else {
@@ -3943,7 +3943,7 @@ template <typename T> void AnalogRangedWeaponSwitchController(T& actorData) {
 				if (activeCrimsonConfig.SFX.changeGunNew == 1) {
 					CrimsonSDL::PlayChangeGun();
 				} else {
-					PlaySound(0, 12);
+					FMOD_PlaySound(0, 12);
 				}
 
 			} else {

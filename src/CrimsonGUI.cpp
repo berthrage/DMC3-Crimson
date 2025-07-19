@@ -1,4 +1,6 @@
 ﻿// UNSTUPIFY(Disclaimer: by 5%)... POOOF
+#include "UI\WeaponWheel.hpp"
+
 #include "../ThirdParty/SDL2/SDL_gamecontroller.h"
 #include "../ThirdParty/glm/glm.hpp"
 #include "CrimsonGUI.hpp"
@@ -32,8 +34,6 @@
 #include "Training.hpp"
 #include "Window.hpp"
 #include "WebAPICalls.hpp"
-
-#include "UI\WeaponWheel.hpp"
 
 #include <cmath>
 #include <array>
@@ -2066,12 +2066,6 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 			UpdateRangedWeaponIDs(actorData, state.currentWeapons, charIndex);
 		}
 
-		if (pWeaponWheel) {
-			pWeaponWheel->ReloadWheel(state.currentWeapons);
-			pWeaponWheel->SetWheelTheme(state.charTheme);
-			pWeaponWheel->SetActiveSlot(weaponIndex);
-		}
-
 		state.oldCharWeapons[charIndex] = currentCharWeapons[charIndex];
 		state.oldPlayerDataChars[charIndex] = currentPlayerDataChars[charIndex];
 		state.oldCharCostumes[charIndex] = currentCharCostumes[charIndex];
@@ -2088,11 +2082,10 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 		pD3D11Device->GetImmediateContext(&pDeviceContext);
 
 		pWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y,
-			state.currentWeapons, activeCrimsonConfig.WeaponWheel.theme == "Crimson" ? state.charTheme : WW::WheelThemes::Neutral
-			, actorData.buttons[1] & GetBinding(isMelee ? BINDING::CHANGE_DEVIL_ARMS : BINDING::CHANGE_GUN));
+			state.currentWeapons[0], activeCrimsonConfig.WeaponWheel.theme == "Crimson" ? state.charTheme : WW::WheelThemes::Neutral);
 
 		pWeaponWheel->SetActiveSlot(weaponIndex);
-		pWeaponWheel->TrackAlwaysShowConfig(alwaysShow);
+		pWeaponWheel->ToggleNeverHide(alwaysShow);
 
 		state.oldWeaponIndex = weaponIndex;
 	}
@@ -2107,8 +2100,6 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 		} else {
 			UpdateRangedWeaponIDs(actorData, state.currentWeapons, actorData.newCharacterIndex);
 		}
-		pWeaponWheel->UpdateCharIndex(actorData.newCharacterIndex);
-		pWeaponWheel->UpdateWeapons(state.currentWeapons);
 
 		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
 			pWeaponWheel->SetWheelTheme(state.charTheme);
@@ -2143,15 +2134,20 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 	ImGui::SetNextWindowSize(wheelSize);
 	ImGui::SetNextWindowPos(cornerPositioning ? cornerPos : windowPos);
 
-	pWeaponWheel->OnUpdate(deltaTimeGameSpeed,
-		deltaTime, deltaTime, deltaTime);
-	pWeaponWheel->TrackButtonHeldState(actorData.buttons[1] & GetBinding(isMelee ? BINDING::CHANGE_DEVIL_ARMS : BINDING::CHANGE_GUN));
-	pWeaponWheel->TrackAnalogMovingState(stickUsed);
-	pWeaponWheel->TrackAnalogSwitchingConfig(analogSwitchingState);
-	pWeaponWheel->TrackAlwaysShowConfig(alwaysShow);
+	pWeaponWheel->OnUpdate(deltaTimeGameSpeed);
+
+	//bool weaponSwitchButtonDown = actorData.buttons[1] & GetBinding(isMelee ? BINDING::CHANGE_DEVIL_ARMS : BINDING::CHANGE_GUN);
+	//
+	//if (weaponSwitchButtonDown && stickUsed)
+	//	pWeaponWheel->ToggleAnalogSwitchingUI(true);
+	//else if (!weaponSwitchButtonDown)
+	//	pWeaponWheel->ToggleAnalogSwitchingUI(false);
+	pWeaponWheel->ToggleAnalogSwitchingUI(analogSwitchingState);
+
+	pWeaponWheel->ToggleNeverHide(alwaysShow);
 	state.startTime = ImGui::GetTime();
 
-	pWeaponWheel->SetLoaded(pWeaponWheel->OnDraw());
+	pWeaponWheel->OnDraw();
 
 	if (activeCrimsonConfig.WeaponWheel.hide && trackHide) {
 		return true;
@@ -5593,12 +5589,12 @@ void ShopWindow() {
 void ShowStyleLevelsTab(ExpConfig::ExpData& expData, MissionData& missionData) {
 // 	auto Buy = [&]() {
 // 		if (missionData.redOrbs < helper.price) {
-// 			PlaySound(0, 19);
+// 			FMOD_PlaySound(0, 19);
 // 			return;
 // 		}
 // 
 // 		missionData.redOrbs -= helper.price;
-// 		PlaySound(0, 18);
+// 		FMOD_PlaySound(0, 18);
 // 		expData.unlocks[helperIndex] = true;
 // 		ExpConfig::UpdatePlayerActorExps();
 // 		};
@@ -5661,19 +5657,19 @@ void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helper
 			ImGui::TableNextColumn();
 			auto Buy = [&]() {
 				if (missionData.redOrbs < helper.price) {
-					PlaySound(0, 19);
+					FMOD_PlaySound(0, 19);
 					return;
 				}
 
 				missionData.redOrbs -= helper.price;
-				PlaySound(0, 18);
+				FMOD_PlaySound(0, 18);
 				expData.unlocks[helper.id] = true;
 				ExpConfig::UpdatePlayerActorExps();
 				};
 
 			auto Sell = [&]() {
 				missionData.redOrbs += helper.price;
-				PlaySound(0, 18);
+				FMOD_PlaySound(0, 18);
 				expData.unlocks[helper.id] = false;
 
 				// Sets the flag off on sessionData expertise to also update non Actor System
@@ -5784,14 +5780,14 @@ void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelp
 			uint32 rorb_cost_calculated = helper.price - (static_cast<uint32>(helper.price / 100) * percentage_discount);
 			auto Buy = [&]() {
 				if (missionData.redOrbs < rorb_cost_calculated) {
-					PlaySound(0, 19);
+					FMOD_PlaySound(0, 19);
 					return;
 				}
 				HeldStyleExpData& heldStyleExpData = (character == CHARACTER::DANTE)
 					? heldStyleExpDataDante
 					: heldStyleExpDataVergil;
 				missionData.redOrbs -= rorb_cost_calculated;
-				PlaySound(0, 18);
+				FMOD_PlaySound(0, 18);
 				expData.styleLevels[helper.styleid] = helper.stylelevel;
 				expData.styleExpPoints[helper.styleid] = 0;
 				heldStyleExpData.missionStyleLevels[helper.styleid] = helper.stylelevel;
@@ -5971,7 +5967,7 @@ void HandleItemPurchase(uint8 itemHelperIndex, MissionData& missionData, ActiveM
 	uint8& buyCount = missionData.buyCounts[itemHelper.buyIndex];
 	
 	if ((itemCount >= itemHelper.maxItemCount) || (missionData.redOrbs < price)) {
-		PlaySound(0, 19);
+		FMOD_PlaySound(0, 19);
 		return;
 	}
 
@@ -5983,7 +5979,7 @@ void HandleItemPurchase(uint8 itemHelperIndex, MissionData& missionData, ActiveM
 	}
 
 	missionData.redOrbs -= price;
-	PlaySound(0, 18);
+	FMOD_PlaySound(0, 18);
 
 	UpdateStatsAfterPurchase(itemHelper, activeMissionActorData);
 }
@@ -6003,7 +5999,7 @@ void HandleItemSale(uint8 itemHelperIndex, MissionData& missionData, ActiveMissi
 	price = GetItemPrice(itemHelper, 0);
 
 	missionData.redOrbs += price;
-	PlaySound(0, 18);
+	FMOD_PlaySound(0, 18);
 }
 
 uint32 GetItemPrice(const ShopItemHelper& itemHelper, uint8 buyCount) {
@@ -7117,7 +7113,7 @@ void DebugSection() {
 			ImGui::Text("");
 
 			if (GUI_Button("Play Sound")) {
-				PlaySound(group, index);
+				FMOD_PlaySound(group, index);
 			}
 		}
 
@@ -12252,7 +12248,7 @@ void ToggleInfiniteHealth() {
 		activeCrimsonGameplay.Cheats.Training.infiniteHP = true;
 		cheatsPopUp.cheatText = "Toggled Infinite HP On";
     }
-	if (activeCrimsonConfig.GUI.sounds) PlaySound(0, 25); 
+	if (activeCrimsonConfig.GUI.sounds) FMOD_PlaySound(0, 25); 
 
     ToggleInfiniteHitPoints(activeCrimsonGameplay.Cheats.Training.infiniteHP);
 	cheatsPopUp.showPopUp = true;
@@ -12270,7 +12266,7 @@ void ToggleOneHitKill() {
 		activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = defaultCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult;
 		cheatsPopUp.cheatText = "Toggled One Hit Kill Off";
 	}
-	if (activeCrimsonConfig.GUI.sounds) PlaySound(0, 25); 
+	if (activeCrimsonConfig.GUI.sounds) FMOD_PlaySound(0, 25); 
 	cheatsPopUp.showPopUp = true;
 }
 

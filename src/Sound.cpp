@@ -35,7 +35,7 @@ constexpr uint32 g_sectCount[HELPER_COUNT] = {
     50,
 };
 
-void PlaySound(int32 group, int32 index) {
+void FMOD_PlaySound(int32 group, int32 index) {
     func_3391C0((appBaseAddr + 0xD6DC90), group, index, 0, 0);
 }
 

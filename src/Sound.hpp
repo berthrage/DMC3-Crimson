@@ -107,7 +107,7 @@ struct DbstMetadata {
 
 #undef _
 
-void PlaySound(int32 group, int32 index);
+void FMOD_PlaySound(int32 group, int32 index);
 
 void PlayTrack(const char* filename);
 

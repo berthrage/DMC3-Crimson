@@ -5,7 +5,7 @@
 #include <string>
 #include <format>
 
-#include "..\..\ThirdParty\stb\stb_image.h"
+#include "stb\stb_image.h"
 
 Texture2DD3D11::Texture2DD3D11(const char* filename, ID3D11Device* pd3dDevice)
 	: m_pD3DDevice(pd3dDevice)

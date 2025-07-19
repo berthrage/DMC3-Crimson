@@ -3,8 +3,8 @@
 #include <inttypes.h>
 #include <tuple>
 
-#include "..\..\ThirdParty\stb\stb_image.h"
-#include "..\..\ThirdParty\stb\stb_image_resize2.h"
+#include "../ThirdParty/stb/stb_image.h"
+#include "../ThirdParty/stb/stb_image_resize2.h"
 
 unsigned char* STBResize(const unsigned char* inputPixels, int inputW, int inputH, int inputStrideInBytes,
 	unsigned char* outputPixels, int outputW, int outputH, int outputStrideInBytes,
