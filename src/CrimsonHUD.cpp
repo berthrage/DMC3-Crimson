@@ -1260,7 +1260,7 @@ void CheatsHUDIndicatorWindow() {
 		float alpha = crimsonHud.redOrbAlpha / 127.0f;
 		ImColor colorWithAlpha(1.0f, 1.0f, 1.0f, alpha);
 		ImGui::SetWindowFontScale(scaleFactorY);
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSize]);
+		ImGui::PushFont(UI::g_ImGuiFont_Benguiat[fontSize]);
 
 		// Prepare button and text colors with alpha
 		ImVec4 buttonColor = ImColor(UI::SwapColorEndianness(gameModeData.colors[currentGameMode]));

@@ -271,7 +271,8 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			const char* ccsRestartString = "Restart mission required to update CCS.";
 			auto ccsRestartStringColor = SwapColorEndianness(0x1DD6FFFF);
 
-			window->DrawList->AddText(g_ImGuiFont_RussoOne[scaledFontSize], scaledFontSize, pos + ImVec2{ modeTextWidth, 0.0f }, gameModeStringColor, gameModeString);
+			window->DrawList->AddText(g_ImGuiFont_Benguiat[scaledFontSize], scaledFontSize, pos + ImVec2{ modeTextWidth, 0.0f }, 
+				gameModeStringColor, gameModeString);
 
 			if (activeConfig.Actor.enable != queuedConfig.Actor.enable && g_scene == SCENE::GAME) {
 				window->DrawList->AddText(g_ImGuiFont_Roboto[scaledFontSize], scaledFontSize * 0.9f, ImVec2(pos.x + (250.0f * scaleFactorY), pos.y - (35.0f * scaleFactorY)), ccsRestartStringColor, ccsRestartString);
@@ -3714,7 +3715,7 @@ void RenderMissionResultGameModeStats() {
 
 	ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
-	ImFont* font = UI::g_ImGuiFont_RussoOne[40.0f];
+	ImFont* font = UI::g_ImGuiFont_Messenger[40.0f];
 	ImGui::PushFont(font);
 
 	if (ImGui::Begin("MissionResultStats", nullptr,
@@ -3732,7 +3733,7 @@ void RenderMissionResultGameModeStats() {
 		ImVec2 textSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, missionResultGameModeString);
 		ImVec2 textPos = ImGui::GetWindowPos() + ImVec2(10.0f * scaleFactorY, 0.0f);
 
-		drawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 3.8f, textPos, gameModeStringColor, missionResultGameModeString);
+		drawList->AddText(g_ImGuiFont_Benguiat256, scaledFontSize * 3.8f, textPos, gameModeStringColor, missionResultGameModeString);
 		// 		window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 		// 			SwapColorEndianness(0xFFFFFF10), "Game Mode");
 
@@ -3866,11 +3867,11 @@ void RenderMissionResultCheatsUsed() {
 
 		ImGui::SetWindowFontScale(scaleFactorY);
 
-		ImFont* font = UI::g_ImGuiFont_RussoOne[40.0f];
+		ImFont* font = UI::g_ImGuiFont_Benguiat[40.0f];
 		ImGui::PushFont(font);
 
 		if (gameModeData.arcadeMissionEnabled) {
-			ImGui::PushFont(g_ImGuiFont_RussoOne[40.0f]);
+			ImGui::PushFont(g_ImGuiFont_Messenger[40.0f]);
 			ImGui::Text("Arcade");
 			ImGui::PopFont();
 		}
@@ -3882,7 +3883,7 @@ void RenderMissionResultCheatsUsed() {
 
 		if (gameModeData.bossRushMissionEnabled) {
 			ImGui::SameLine();
-			ImGui::PushFont(g_ImGuiFont_RussoOne[40.0f]);
+			ImGui::PushFont(g_ImGuiFont_Messenger[40.0f]);
 			ImGui::Text("Boss Rush");
 			ImGui::PopFont();
 		}
@@ -3891,7 +3892,7 @@ void RenderMissionResultCheatsUsed() {
 			ImGui::Text("CHEATS USED:");
 		
 		for (auto cheat : gameModeData.missionUsedCheats) {
-			ImGui::PushFont(g_ImGuiFont_RussoOne[23.0f]);
+			ImGui::PushFont(g_ImGuiFont_Benguiat[23.0f]);
 			ImGui::Text("%s", gameModeData.cheatsNames[cheat].c_str());
 			ImGui::PopFont();
 		}
@@ -12584,7 +12585,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		ImGui::Text("");
 
 		// Use the base font size but apply the scale factor directly to compensate for the reset
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[baseFontSize * 1.7f]);
+		ImGui::PushFont(UI::g_ImGuiFont_Benguiat[baseFontSize * 1.7f]);
 
 		float comboBoxWidth = width * 0.8f;
 

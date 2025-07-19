@@ -89,7 +89,10 @@ set(CXX_FLAGS
 
 project(Crimson LANGUAGES CXX C ASM_MASM)
 
-file(GLOB FONTS_HDR Fonts/RobotoMedium.hpp
+file(GLOB FONTS_HDR 
+                    Fonts/Benguiat.hpp
+                    Fonts/Messenger.hpp
+                    Fonts/RobotoMedium.hpp
                     Fonts/RussoOneRegular.hpp
 		    Fonts/RedOrbRusso.hpp
 		    Fonts/RedOrbRussoBackdrop.hpp

@@ -4914,7 +4914,7 @@ struct GameModeData {
 		"STYLE SWITCHER MODE",
 		"CRIMSON MODE",
 		"CUSTOM MODE",
-		"UNRATED",
+		"UNRATED GAME MODE",
 	};
     std::vector<uint32> colors = {
         0xFFFFFFFF,
