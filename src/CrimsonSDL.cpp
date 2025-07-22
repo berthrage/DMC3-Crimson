@@ -512,7 +512,7 @@ void PlayStyleChange(int playerIndex) {
 
 void PlayStyleChangeVO(int playerIndex, int style, bool doppActive) {
 	float slider = activeCrimsonConfig.SFX.styleChangeVoiceOverVolume / 100.0f;
-	int volume = (int)(80.0f * slider);
+	int volume = (int)(72.0f * slider);
     auto initialChannel = CHANNEL::initialStyleChangeVO + (20 * playerIndex);
 
     if (style == 2) {
