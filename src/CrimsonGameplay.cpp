@@ -1955,11 +1955,11 @@ void AerialRaveGravityTweaks(byte8* actorBaseAddr) {
                 } else if (actorData.airSwordAttackCount > 1) {
                     if (!tweak->gravityPre4Changed) {
 
-                        tweak->gravity += -1.0f;
+                        tweak->gravity += -0.3f;
                         tweak->gravityPre4Changed = true;
                     }
                     actorData.verticalPull           = tweak->gravity + (-0.2f * actorData.airSwordAttackCount);
-                    actorData.verticalPullMultiplier = 0;
+                    actorData.verticalPullMultiplier = -0.5 * actorData.airSwordAttackCount;
                     tweak->gravity4Changed           = false;
                 }
             } else if (action == REBELLION_AERIAL_RAVE_PART_4) {
@@ -1969,7 +1969,7 @@ void AerialRaveGravityTweaks(byte8* actorBaseAddr) {
                     tweak->gravity4Changed = true;
                 }
                 actorData.verticalPull           = tweak->gravity + (-0.2f * actorData.airSwordAttackCount);
-                actorData.verticalPullMultiplier = 0;
+                actorData.verticalPullMultiplier = -0.1 * actorData.airSwordAttackCount;
             }
         }
     }
@@ -2019,7 +2019,12 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
 			if (!tweak->hasAppliedVerticalPullMultiplier) {
 				if (motion == 7) {
 					// Reduces Gravity Fall-off
-					actorData.verticalPullMultiplier = -0.05f + (-0.15f * actorData.airSwordAttackCount); // Vanilla value is -0.27f
+                    if (actorData.airSwordAttackCount <= 1) {
+                        actorData.verticalPullMultiplier = -0.22f; // Vanilla value is -0.27f
+                    } else {
+                        actorData.verticalPullMultiplier = -0.22f + (-0.05f * actorData.airSwordAttackCount);
+                    }
+					
 
 // 					if ((actorData.style == STYLE::SWORDMASTER) && (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))) {
 // 						actorData.state &= ~STATE::BUSY; // Allows you to cancel into another Flicker during the falling animation.
