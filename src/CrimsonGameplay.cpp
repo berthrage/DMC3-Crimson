@@ -310,12 +310,13 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 
     // These are moves used by the Action Set Cancel Method, generally air ones.
     bool inCancellableMovesActionMethod =
-        (((actorData.action == REBELLION_AERIAL_RAVE_PART_1 || actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+        ((((actorData.action == REBELLION_AERIAL_RAVE_PART_1 || actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
               actorData.action == REBELLION_AERIAL_RAVE_PART_3 || actorData.action == REBELLION_AERIAL_RAVE_PART_4) ||
              (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
                  actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) ||
              (actorData.action == NEVAN_AIR_SLASH_PART_1 || actorData.action == NEVAN_AIR_SLASH_PART_2) ||
-             (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO)) &&
+             (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO)) && actionTimer >= 0.25f || (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT 
+                 && actionTimer >= 0.2f)) &&
             actorData.eventData[0].event == 17);
 
     auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
