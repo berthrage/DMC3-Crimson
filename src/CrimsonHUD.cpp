@@ -1129,7 +1129,7 @@ void RedOrbCounterWindow() {
 	std::string orbCountStr = std::to_string(orbCount);
 
 	// Adjust the font size and the proportional texture size
-	float fontSize = 37.0f;
+	float fontSize = 44.0f;
 
 	// previously 142x200 -> 43x61; now 178x250 -> 54x76 to make space for the glow.
 	float textureBaseSizeX = 54.0f;
@@ -1141,7 +1141,7 @@ void RedOrbCounterWindow() {
 
 	// Define the window size and position
 	ImVec2 windowSize = ImVec2(300.0f * scaleFactorX, 100.0f * scaleFactorY);
-	float edgeOffsetX = 70.0f * scaleFactorY;
+	float edgeOffsetX = 38.0f * scaleFactorY;
 	float edgeOffsetY = 30.0f * scaleFactorY;
 	ImVec2 windowPos = ImVec2(displaySize.x - windowSize.x - edgeOffsetX, edgeOffsetY);
 
@@ -1206,7 +1206,7 @@ void RedOrbCounterWindow() {
 
 	// Main text color
 	//ImU32 mainColor = ImColor(0.83f, 0.85f, 0.858f, alpha); // #D5D9DB
-	ImU32 mainColor = ImColor(1.0f, 1.0f, 1.0f, alpha); // #D5D9DB
+	ImU32 mainColor = ImColor(1.0f, 1.0f, 1.0f, alpha); // Pure White
 
 	// Draw shadow
 	drawList->AddText(backdropFont, fontSize * scaleFactorY, screenTextPos, shadowColor, orbCountStr.c_str());
