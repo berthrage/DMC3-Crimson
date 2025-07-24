@@ -134,6 +134,11 @@ std::uint64_t g_FixCrashArkhamPt2Doppel_ReturnAddr2;
 std::uint64_t g_FixCrashArkhamPt2Doppel_CallAddr2;
 void FixCrashArkhamPt2DoppelDetour2();
 
+// EnsureAirRisingDragonLaunch
+std::uint64_t g_EnsureAirRisingDragonLaunch_ReturnAddr;
+std::uint64_t g_EnsureAirRisingDragonLaunch_JmpAddr;
+void EnsureAirRisingDragonLaunchDetour();
+
 // HoldToCrazyCombo
 std::uint64_t g_HoldToCrazyCombo_ReturnAddr;
 void HoldToCrazyComboDetour();
@@ -986,6 +991,26 @@ void AirTauntDetours(bool enable) {
 	SkyLaunchDetours(enable);
 
     run = enable;
+}
+
+void ToggleEnsureAirRisingDragonLaunch(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// dmc3.exe+202588 - 80 BB A7 3F 00 00 00     - cmp byte ptr [rbx+00003FA7],00 { Checking TransitionMove? }
+	// dmc3.exe + 20258F - 75 16 - jne dmc3.exe + 2025A7 { Transition from Rising Dragon Launch to Whirlwind }
+	// PlayerPtr in RBX
+	static std::unique_ptr<Detour_t> EnsureAirRisingDragonLaunchHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x202588, &EnsureAirRisingDragonLaunchDetour, 7);
+	g_EnsureAirRisingDragonLaunch_ReturnAddr = EnsureAirRisingDragonLaunchHook->GetReturnAddress();
+	g_EnsureAirRisingDragonLaunch_JmpAddr = (uintptr_t)appBaseAddr + 0x202591;
+	EnsureAirRisingDragonLaunchHook->Toggle(enable);
+
+	run = enable;
 }
 
 void ToggleGreenOrbsMPRegen(bool enable) {

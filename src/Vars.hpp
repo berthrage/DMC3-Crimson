@@ -5009,7 +5009,7 @@ struct StoredAirCounts {
 };
 
 struct AirCounts {
-    uint8 airRisingSunWhirlwind = 0;
+    uint8 airRisingSunLaunch = 0;
     uint8 airAgniRudraWhirlwind = 0;
     uint8 airTornado = 0;
 };

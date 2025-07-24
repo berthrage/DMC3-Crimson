@@ -78,7 +78,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	dante.airStinger = false;
 	dante.airRevolver = false;
 	dante.airTornado = false;
-	dante.airRisingDragonWhirlwind = false;
+	dante.airRisingDragonLaunch = false;
 	dante.airAgniRudraWhirlwind = false;
 	dante.dmc4Mobility = false;
 	dante.dTInfusedRoyalguard = false;
@@ -143,7 +143,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	dante.airStinger = false;
 	dante.airRevolver = true;
 	dante.airTornado = true;
-	dante.airRisingDragonWhirlwind = false;
+	dante.airRisingDragonLaunch = false;
 	dante.airAgniRudraWhirlwind = false;
 	dante.dmc4Mobility = false;
 	dante.dTInfusedRoyalguard = false;
@@ -224,7 +224,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	dante.airStinger = true;
 	dante.airRevolver = true;
 	dante.airTornado = true;
-	dante.airRisingDragonWhirlwind = true;
+	dante.airRisingDragonLaunch = true;
 	dante.airAgniRudraWhirlwind = true;
 	dante.dmc4Mobility = true;
 	dante.dTInfusedRoyalguard = true;
@@ -346,7 +346,7 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	// NEW MOVES are optional
 	mask.Gameplay.Dante.airRevolver = false;
 	mask.Gameplay.Dante.airTornado = false;
-	mask.Gameplay.Dante.airRisingDragonWhirlwind = false;
+	mask.Gameplay.Dante.airRisingDragonLaunch = false;
 	mask.Gameplay.Dante.airAgniRudraWhirlwind = false;
 	mask.Gameplay.Dante.airStinger = false;
 	mask.Gameplay.Vergil.airLunarPhase = false;
@@ -408,7 +408,7 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	// NEW MOVES are optional
 	mask.Gameplay.Dante.airRevolver = false;
 	mask.Gameplay.Dante.airTornado = false;
-	mask.Gameplay.Dante.airRisingDragonWhirlwind = false;
+	mask.Gameplay.Dante.airRisingDragonLaunch = false;
 	mask.Gameplay.Dante.airAgniRudraWhirlwind = false;
 	mask.Gameplay.Dante.airStinger = false;
 	mask.Gameplay.Vergil.airLunarPhase = false;

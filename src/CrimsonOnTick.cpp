@@ -1709,6 +1709,7 @@ void TriggerOnTickFuncs() {
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
 	CrimsonOnTick::FixM7DevilTriggerUnlocking();
 	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
+	CrimsonDetours::ToggleEnsureAirRisingDragonLaunch(activeConfig.Actor.enable && activeCrimsonGameplay.Gameplay.Dante.airRisingDragonLaunch);
 	CrimsonOnTick::UpdateMainPlayerMotionArchives();
  	CrimsonOnTick::TrackMissionStyleLevels();
  	CrimsonOnTick::StyleMeterMultiplayer();

@@ -18,6 +18,7 @@ set(MASM_SRC
     masm/FixCrashM5.asm
     masm/FixCrashVergilM3.asm
     masm/FixSecretMissionTimerFPS.asm
+    masm/EnsureAirRisingDragonLaunch.asm
     masm/HideStyleRankHUD.asm
     masm/HudHPSeparation.asm
     masm/HudStyleBarPosAsm.asm

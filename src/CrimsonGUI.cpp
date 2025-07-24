@@ -8286,6 +8286,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				return;
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
+			ImGui::Text("actorData.state %d", actorData.state);
+			ImGui::Text("air Counts Rising Sun Launch %d", crimsonPlayer[0].airCounts.airRisingSunLaunch);
 			ImGui::Text("lastActionTime %g", crimsonPlayer[0].lastActionTime);
 			ImGui::Text("actionTImerNotEventChange %g", crimsonPlayer[0].actionTimerNotEventChange);
 			ImGui::Text("closeToEnemy %u", crimsonPlayer[0].isCloseToEnemy);
@@ -10926,9 +10928,9 @@ void DanteGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
-			if (GUI_Checkbox2("Air Rising Dragon Whirlwind",
-				activeCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind,
-				queuedCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind)) {
+			if (GUI_Checkbox2("Air Rising Dragon Launch",
+				activeCrimsonGameplay.Gameplay.Dante.airRisingDragonLaunch,
+				queuedCrimsonGameplay.Gameplay.Dante.airRisingDragonLaunch)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();

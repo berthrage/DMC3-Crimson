@@ -4021,7 +4021,6 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
         actorData.airSwordAttackCount = 0;
     }
 
-
     if ((actorData.newCharacterIndex == playerData.activeCharacterIndex) &&
         (actorData.newEntityIndex == ENTITY::MAIN)) {
 
@@ -6926,12 +6925,13 @@ void ResetSkyStar(PlayerActorData& actorData) {
     DebugLog("lastInAir  %u", lastInAir);
 
 	auto& playerIndex = actorData.newPlayerIndex;
+    auto& actionTimer = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 	auto& airCounts = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].airCounts : crimsonPlayer[playerIndex].airCountsClone;
 
     if (actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
         actorData.newAirStingerCount = 0;
 		airCounts.airTornado = 0;
-		airCounts.airRisingSunWhirlwind = 0;
+		airCounts.airRisingSunLaunch = 0;
 		airCounts.airAgniRudraWhirlwind = 0;
         actorData.newAirRisingSunCount = 0;
     }
@@ -6940,8 +6940,8 @@ void ResetSkyStar(PlayerActorData& actorData) {
         // Dante Air Stinger
 		((actorData.character == CHARACTER::DANTE) && (actorData.action == 0) &&
 			(actorData.lastAction == ACTION_DANTE::REBELLION_STINGER_LEVEL_2) && !inAir && lastInAir) ||
-        // Dante Air Rising Dragon Whirlwind
-		((actorData.character == CHARACTER::DANTE) && (actorData.action == ACTION_DANTE::BEOWULF_RISING_DRAGON_WHIRLWIND) && inAir && lastInAir) ||
+        // Dante Air Rising Dragon Launch
+        ((actorData.character == CHARACTER::DANTE) && (actorData.action == ACTION_DANTE::BEOWULF_RISING_DRAGON_LAUNCH) && inAir && lastInAir) ||
 		// Dante Agni Rudra Whirlwind
 		((actorData.character == CHARACTER::DANTE) && (actorData.action == ACTION_DANTE::AGNI_RUDRA_WHIRLWIND_LAUNCH) && inAir && lastInAir) ||
 		// Dante Air Tornado
@@ -6964,7 +6964,7 @@ void ResetSkyStar(PlayerActorData& actorData) {
     actorData.newTrickDownCount  = 0;
     actorData.newAirStingerCount = 0;
     airCounts.airTornado = 0;
-    airCounts.airRisingSunWhirlwind = 0;
+    airCounts.airRisingSunLaunch = 0;
 	airCounts.airAgniRudraWhirlwind = 0;
     
 
@@ -9365,17 +9365,22 @@ void SetAction(byte8* actorBaseAddr) {
             }
         }
 
-        // Air Rising Dragon Whirlwind
-        if ((actorData.action == BEOWULF_KILLER_BEE) && 
-            actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) &&
-            (airCounts.airRisingSunWhirlwind < 1) && activeCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind &&
-            ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::BEOWULF_RISING_DRAGON]) {
+		// Air Rising Dragon Launch
+		if ((actorData.action == BEOWULF_KILLER_BEE) && actorData.state & STATE::IN_AIR &&
+			actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) &&
+			(airCounts.airRisingSunLaunch < 1) && activeCrimsonGameplay.Gameplay.Dante.airRisingDragonLaunch &&
+			ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::BEOWULF_RISING_DRAGON]) {
 
-            if ((lockOn && tiltDirection == TILT_DIRECTION::DOWN)) {
-                actorData.action = BEOWULF_RISING_DRAGON_WHIRLWIND;
-                airCounts.airRisingSunWhirlwind++;
+            // Prevent two consecutive Launches in quick succession executing from near the ground
+            if (actorData.lastAction == BEOWULF_RISING_DRAGON_LAUNCH && actorData.state & STATE::IN_AIR) {
+                return;
             }
-        }
+
+			if ((lockOn && tiltDirection == TILT_DIRECTION::DOWN)) {
+				actorData.action = BEOWULF_RISING_DRAGON_LAUNCH;
+				airCounts.airRisingSunLaunch++;
+			}
+		}
 
         // Air Agni & Rudra Whirlwind
 		if ((actorData.action == AGNI_RUDRA_AERIAL_CROSS) &&
@@ -9473,7 +9478,7 @@ bool AirActionCheck(PlayerActorData& actorData) {
             return true;
         }
 
-        if ((actorData.state & STATE::IN_AIR) && (actorData.action == ACTION_DANTE::BEOWULF_RISING_DRAGON_WHIRLWIND) &&
+        if ((actorData.state & STATE::IN_AIR) && (actorData.action == ACTION_DANTE::BEOWULF_RISING_DRAGON_LAUNCH) &&
             (actorData.motionData[1].group == MOTION_GROUP_DANTE::BEOWULF)) {
             return true;
         }
