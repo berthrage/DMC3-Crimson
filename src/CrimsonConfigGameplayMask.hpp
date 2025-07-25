@@ -52,9 +52,7 @@ struct CrimsonConfigGameplayMask {
 			bool rainstormLift = true;
 			bool infiniteRainstorm = true;
 			bool foursomeTime = true;
-			bool aerialRaveTweaks = true;
-			bool airFlickerTweaks = true;
-			bool skyDanceTweaks = true;
+			bool aerialMovesTweaks = true;
 			bool downertiaFromAirFlickerSkyDance = true;
 			bool shotgunAirShotTweaks = true;
 			bool driveTweaks = true;
@@ -79,9 +77,7 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("rainstormLift", &Dante::rainstormLift),
 					std::make_pair("infiniteRainstorm", &Dante::infiniteRainstorm),
 					std::make_pair("foursomeTime", &Dante::foursomeTime),
-					std::make_pair("aerialRaveTweaks", &Dante::aerialRaveTweaks),
-					std::make_pair("airFlickerTweaks", &Dante::airFlickerTweaks),
-					std::make_pair("skyDanceTweaks", &Dante::skyDanceTweaks),
+					std::make_pair("aerialMovesTweaks", &Dante::aerialMovesTweaks),
 					std::make_pair("downertiaFromAirFlickerSkyDance", &Dante::downertiaFromAirFlickerSkyDance),
 					std::make_pair("shotgunAirShotTweaks", &Dante::shotgunAirShotTweaks),
 					std::make_pair("driveTweaks", &Dante::driveTweaks),

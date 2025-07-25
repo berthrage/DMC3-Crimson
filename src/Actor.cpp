@@ -8273,15 +8273,15 @@ void UpdateActorSpeed(byte8* baseAddr) {
                     CrimsonGameplay::ShotgunAirShotTweaks(actorBaseAddr);
                 }
 
-                if (activeCrimsonGameplay.Gameplay.Dante.aerialRaveTweaks) {
+                if (activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks) {
                     CrimsonGameplay::AerialRaveGravityTweaks(actorBaseAddr);
                 }
 
-                if (activeCrimsonGameplay.Gameplay.Dante.airFlickerTweaks) {
+                if (activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks) {
                     CrimsonGameplay::AirFlickerGravityTweaks(actorBaseAddr);
                 }
 
-                if (activeCrimsonGameplay.Gameplay.Dante.skyDanceTweaks) {
+                if (activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks) {
                     CrimsonGameplay::SkyDanceGravityTweaks(actorBaseAddr);
                 }
 
@@ -9395,7 +9395,7 @@ void SetAction(byte8* actorBaseAddr) {
 		}
 
         // Part of SkyDanceTweaks
-        if (activeCrimsonGameplay.Gameplay.Dante.skyDanceTweaks) {
+        if (activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks) {
             if ((actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2) &&
                 (actorData.style == STYLE::SWORDMASTER)) {
 

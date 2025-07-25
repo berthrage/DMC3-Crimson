@@ -3678,7 +3678,10 @@ void RenderMissionResultGameModeStats() {
 		scaleFactorY / 2 + (147.0f * scaleFactorY)
 	);
 
-	if (g_scene != SCENE::MISSION_RESULT) {
+	uint32 inMissionResultScreenInt = *reinterpret_cast<uint32*>(appBaseAddr + 0xCACA00);
+	bool inMissionResultScreen = inMissionResultScreenInt == 0 ? true : false;
+
+	if (g_scene != SCENE::MISSION_RESULT || !inMissionResultScreen) {
 		return;
 	}
 
@@ -3715,7 +3718,7 @@ void RenderMissionResultGameModeStats() {
 
 	ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
-	ImFont* font = UI::g_ImGuiFont_Messenger[40.0f];
+	ImFont* font = UI::g_ImGuiFont_Messenger[30.0f];
 	ImGui::PushFont(font);
 
 	if (ImGui::Begin("MissionResultStats", nullptr,
@@ -3741,8 +3744,8 @@ void RenderMissionResultGameModeStats() {
 	}
 
 	ImVec2 difficultyWindowPos = ImVec2(
-		(g_renderSize.x - windowSize.x) * 0.5f + (250.0f * scaleFactorY),
-		scaleFactorY / 2 + (210.0f * scaleFactorY)
+		(g_renderSize.x - windowSize.x) * 0.5f + (268.0f * scaleFactorY),
+		scaleFactorY / 2 + (230.0f * scaleFactorY)
 	);
 
 	ImGui::SetNextWindowPos(difficultyWindowPos, ImGuiCond_Always);
@@ -3803,6 +3806,53 @@ void RenderMissionResultGameModeStats() {
 		
 		ImGui::End();
 	}
+
+	ImGui::SetNextWindowPos(ImVec2(difficultyWindowPos.x + (70.0f), difficultyWindowPos.y + (620.0)), ImGuiCond_Always);
+	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
+
+	if (ImGui::Begin("MiscGameOptionsWindow", nullptr,
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoInputs |
+		ImGuiWindowFlags_NoBackground)) {
+
+		if (gameModeData.arcadeMissionEnabled) {
+			ImGui::PushFont(g_ImGuiFont_Messenger[25.0f]);
+			ImGui::Text("Arcade");
+			ImGui::PopFont();
+		}
+
+		if (gameModeData.arcadeMissionEnabled && gameModeData.bossRushMissionEnabled) {
+			ImGui::SameLine();
+			ImGui::Text((const char*)u8"•");
+		}
+
+		if (gameModeData.bossRushMissionEnabled) {
+			ImGui::SameLine();
+			ImGui::PushFont(g_ImGuiFont_Messenger[25.0f]);
+			ImGui::Text("Boss Rush");
+			ImGui::PopFont();
+		}
+
+		if ((gameModeData.arcadeMissionEnabled || gameModeData.bossRushMissionEnabled) &&
+			gameModeData.characterSwitchingEnabled) {
+			ImGui::SameLine();
+			ImGui::Text((const char*)u8"•");
+		}
+
+		if (gameModeData.characterSwitchingEnabled) {
+			ImGui::SameLine();
+			ImGui::PushFont(g_ImGuiFont_Messenger[25.0f]);
+			ImGui::Text("Char. Switching");
+			ImGui::PopFont();
+		}
+
+
+		ImGui::End();
+	}
 	ImGui::PopFont();
 }
 
@@ -3818,7 +3868,10 @@ void RenderMissionResultCheatsUsed() {
 		scaleFactorY / 2 + (347.0f * scaleFactorY)
 	);
 
-	if (g_scene != SCENE::MISSION_RESULT) {
+	uint32 inMissionResultScreenInt = *reinterpret_cast<uint32*>(appBaseAddr + 0xCACA00);
+	bool inMissionResultScreen = inMissionResultScreenInt == 0 ? true : false;
+
+	if (g_scene != SCENE::MISSION_RESULT || !inMissionResultScreen) {
 		return;
 	}
 
@@ -3869,24 +3922,6 @@ void RenderMissionResultCheatsUsed() {
 
 		ImFont* font = UI::g_ImGuiFont_Benguiat[40.0f];
 		ImGui::PushFont(font);
-
-		if (gameModeData.arcadeMissionEnabled) {
-			ImGui::PushFont(g_ImGuiFont_Messenger[40.0f]);
-			ImGui::Text("Arcade");
-			ImGui::PopFont();
-		}
-
-		if (gameModeData.arcadeMissionEnabled && gameModeData.bossRushMissionEnabled) {
-			ImGui::SameLine();
-			ImGui::Text((const char*)u8" • ");
-		}
-
-		if (gameModeData.bossRushMissionEnabled) {
-			ImGui::SameLine();
-			ImGui::PushFont(g_ImGuiFont_Messenger[40.0f]);
-			ImGui::Text("Boss Rush");
-			ImGui::PopFont();
-		}
 
 		if (gameModeData.missionUsedCheats.size() > 0) 
 			ImGui::Text("CHEATS USED:");
@@ -10745,47 +10780,23 @@ void DanteGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
-			if (GUI_Checkbox2("Aerial Rave Tweaks",
-				activeCrimsonGameplay.Gameplay.Dante.aerialRaveTweaks,
-				queuedCrimsonGameplay.Gameplay.Dante.aerialRaveTweaks)) {
+			if (GUI_Checkbox2("Aerial Moves Tweaks",
+				activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks,
+				queuedCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Tweaks Aerial Rave Gravity to be similar to DMC4/5, taking weights into account.");
-			GUI_PopDisable(!activeConfig.Actor.enable);
-
-			ImGui::TableNextColumn();
-
-			GUI_PushDisable(!activeConfig.Actor.enable);
-			if (GUI_Checkbox2("Air Flicker Tweaks",
-				activeCrimsonGameplay.Gameplay.Dante.airFlickerTweaks,
-				queuedCrimsonGameplay.Gameplay.Dante.airFlickerTweaks)) {
-			}
-			ImGui::SameLine();
-			GUI_CCSRequirementButton();
-			ImGui::SameLine();
-			TooltipHelper("(?)", "Tweaks Air Flicker Gravity, taking weights into account. Initial windup has less gravity than vanilla.");
-			GUI_PopDisable(!activeConfig.Actor.enable);
-
-			// Second row
-			ImGui::TableNextColumn();
-
-			GUI_PushDisable(!activeConfig.Actor.enable);
-			if (GUI_Checkbox2("Sky Dance Tweaks",
-				activeCrimsonGameplay.Gameplay.Dante.skyDanceTweaks,
-				queuedCrimsonGameplay.Gameplay.Dante.skyDanceTweaks)) {
-			}
-			ImGui::SameLine();
-			GUI_CCSRequirementButton();
-			ImGui::SameLine();
-			TooltipHelper("(?)", "Sky Dance Part 3 is now a separate ability executed by Lock On + Forward + Style. Tweaks Sky Dance Gravity, taking weights into account.");
+			TooltipHelper("(?)", "This option tweaks several aerial moves at once: \n"
+				"Tweaks Aerial Rave Gravity to be similar to DMC4/5, taking weights into account.\n"
+				"Tweaks Air Flicker Gravity, taking weights into account. Initial windup has less gravity than vanilla.\n"
+				"Sky Dance Part 3 is now a separate ability executed by Lock On + Forward + Style. Tweaks Sky Dance Gravity, taking weights into account.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable || 
-				!(activeCrimsonGameplay.Gameplay.Dante.skyDanceTweaks || activeCrimsonGameplay.Gameplay.Dante.airFlickerTweaks));
+				!(activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks));
 			if (GUI_Checkbox2("Downertia from Flicker/SkyDance",
 				activeCrimsonGameplay.Gameplay.Dante.downertiaFromAirFlickerSkyDance,
 				queuedCrimsonGameplay.Gameplay.Dante.downertiaFromAirFlickerSkyDance)) {
@@ -10796,7 +10807,7 @@ void DanteGameplayOptions() {
 			TooltipHelper("(?)", "Makes the next move executed before 0.25 seconds of uptime on Air Flicker or Sky Dance have increased downwards inertia. \n"
 				"Requires Air Flicker / Sky Dance Tweaks");
 			GUI_PopDisable(!activeConfig.Actor.enable ||
-				!(activeCrimsonGameplay.Gameplay.Dante.skyDanceTweaks || activeCrimsonGameplay.Gameplay.Dante.airFlickerTweaks));
+				!(activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks));
 
 			ImGui::TableNextColumn();
 

@@ -68,9 +68,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	dante.rainstormLift = false;
 	dante.infiniteRainstorm = false;
 	dante.foursomeTime = false;
-	dante.aerialRaveTweaks = false;
-	dante.airFlickerTweaks = false;
-	dante.skyDanceTweaks = false;
+	dante.aerialMovesTweaks = false;
 	dante.downertiaFromAirFlickerSkyDance = false;
 	dante.shotgunAirShotTweaks = false;
 	dante.driveTweaks = false;
@@ -133,9 +131,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	dante.rainstormLift = false;
 	dante.infiniteRainstorm = true;
 	dante.foursomeTime = true;
-	dante.aerialRaveTweaks = false;
-	dante.airFlickerTweaks = false;
-	dante.skyDanceTweaks = false;
+	dante.aerialMovesTweaks = false;
 	dante.downertiaFromAirFlickerSkyDance = false;
 	dante.shotgunAirShotTweaks = false;
 	dante.driveTweaks = false;
@@ -214,9 +210,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	dante.rainstormLift = true;
 	dante.infiniteRainstorm = true;
 	dante.foursomeTime = true;
-	dante.aerialRaveTweaks = true;
-	dante.airFlickerTweaks = true;
-	dante.skyDanceTweaks = true;
+	dante.aerialMovesTweaks = true;
 	dante.downertiaFromAirFlickerSkyDance = true;
 	dante.shotgunAirShotTweaks = true;
 	dante.driveTweaks = true;
@@ -727,6 +721,12 @@ void CrimsonGameModes::TrackCheats() {
 		gameModeData.bossRushMissionEnabled = true;
 	} else if (!initializedMission && !activeConfig.BossRush.enable) {
 		gameModeData.bossRushMissionEnabled = false;
+	}
+
+	if (initializedMission && activeCrimsonGameplay.Gameplay.General.charHotswap) {
+		gameModeData.characterSwitchingEnabled = true;
+	} else if (!initializedMission && !activeCrimsonGameplay.Gameplay.General.charHotswap) {
+		gameModeData.characterSwitchingEnabled = false;
 	}
 }
 
