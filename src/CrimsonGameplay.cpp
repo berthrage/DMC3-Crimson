@@ -2129,6 +2129,54 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
 	}
 }
 
+void EbonyAndIvoryAerialTweaks(byte8* actorBaseAddr) {
+	// Reduces gravity while sky dancing, while also adding weights into account.
+	// This is also combined with the SkyDanceTweak in SetAction,
+	// which separates Sky Dance Part 3 into its own ability, triggered by lock on + forward + style. - Mia
+	using namespace ACTION_DANTE;
+
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
+
+	auto* tweak = (actorData.newEntityIndex == ENTITY::MAIN) ? &crimsonPlayer[playerIndex].ebonyIvoryTweak :
+		&crimsonPlayer[playerIndex].ebonyIvoryTweakClone;
+	auto action = actorData.action;
+	auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
+	auto event = actorData.eventData[0].event;
+	auto motion = actorData.motionData[0].index;
+	auto& state = actorData.state;
+	auto actionTimer =
+		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
+
+	bool inEbonyAndIvoryAirShot = (action == EBONY_IVORY_AIR_NORMAL_SHOT);
+	auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
+
+	if (event == ACTOR_EVENT::ATTACK && event != ACTOR_EVENT::AIR_HIKE && event != ACTOR_EVENT::JUMP_CANCEL && event != ACTOR_EVENT::JUMP
+		&& state & STATE::IN_AIR && actorData.character == CHARACTER::DANTE) {
+
+        if (inEbonyAndIvoryAirShot) {
+			if (!tweak->hasAppliedVerticalPullMultiplier) {
+
+                actorData.verticalPullMultiplier = (-1.2f - (0.8f * actorData.airSwordAttackCount));  // Vanilla value is -1.25f
+
+				tweak->hasAppliedVerticalPullMultiplier = true;
+			}
+		} else {
+			tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag when not in Sky Dance
+		}
+	}
+
+	if (!inEbonyAndIvoryAirShot || event != ACTOR_EVENT::ATTACK) {
+		// Reset flag if not in the action or the attack event
+		tweak->hasAppliedVerticalPullMultiplier = false;
+	}
+}
+
 #pragma endregion
 
 #pragma region GeneralGameplay

@@ -8275,14 +8275,9 @@ void UpdateActorSpeed(byte8* baseAddr) {
 
                 if (activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks) {
                     CrimsonGameplay::AerialRaveGravityTweaks(actorBaseAddr);
-                }
-
-                if (activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks) {
                     CrimsonGameplay::AirFlickerGravityTweaks(actorBaseAddr);
-                }
-
-                if (activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks) {
                     CrimsonGameplay::SkyDanceGravityTweaks(actorBaseAddr);
+					CrimsonGameplay::EbonyAndIvoryAerialTweaks(actorBaseAddr);
                 }
 
                 CrimsonGameplay::FreeformSoftLockController(actorBaseAddr);
