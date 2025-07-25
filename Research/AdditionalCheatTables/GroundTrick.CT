@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="46">
+  <CheatEntries>
+    <CheatEntry>
+      <ID>2984</ID>
+      <Description>"Trick Y inertia"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2025-07-24
+  Author : Siyan
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+aobscanmodule(gdfgdfg,dmc3.exe,F3 0F 5E B7 34 3E 00 00) // should be unique
+alloc(newmem,$1000,gdfgdfg)
+
+label(code)
+label(return)
+
+newmem:
+dd (float)-1500
+
+newmem3:
+dd (float)100
+
+newmem2:
+  // cmp byte ptr [backforwardInputWasMade],1
+  // jne code
+  // mov byte ptr [downTrickFlag],1
+  movss xmm6,[newmem]
+  //movss xmm13, [newmem3]
+  //movss [rdi+1c0], xmm13
+code:
+  divss xmm6,[rdi+00003E34]
+  jmp return
+
+gdfgdfg:
+  jmp newmem2
+  nop 3
+return:
+registersymbol(gdfgdfg)
+
+[DISABLE]
+
+gdfgdfg:
+  db F3 0F 5E B7 34 3E 00 00
+
+unregistersymbol(gdfgdfg)
+dealloc(newmem)
+
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1F218B
+
+dmc3.exe+1F215C: 77 15                       - ja dmc3.exe+1F2173
+dmc3.exe+1F215E: 0F 57 35 6B C8 17 00        - xorps xmm6,[dmc3.exe+36E9D0]
+dmc3.exe+1F2165: EB 0C                       - jmp dmc3.exe+1F2173
+dmc3.exe+1F2167: F3 44 0F 10 05 FC B3 16 00  - movss xmm8,[dmc3.exe+35D56C]
+dmc3.exe+1F2170: 0F 28 F7                    - movaps xmm6,xmm7
+dmc3.exe+1F2173: F3 44 0F 5E 87 34 3E 00 00  - divss xmm8,[rdi+00003E34]
+dmc3.exe+1F217C: 48 8B CF                    - mov rcx,rdi
+dmc3.exe+1F217F: 0F 28 D7                    - movaps xmm2,xmm7
+dmc3.exe+1F2182: 41 0F 28 C8                 - movaps xmm1,xmm8
+dmc3.exe+1F2186: E8 C5 AE 00 00              - call dmc3.exe+1FD050
+// ---------- INJECTING HERE ----------
+dmc3.exe+1F218B: F3 0F 5E B7 34 3E 00 00     - divss xmm6,[rdi+00003E34]
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1F2193: BA 01 00 00 00              - mov edx,00000001
+dmc3.exe+1F2198: 48 8B CF                    - mov rcx,rdi
+dmc3.exe+1F219B: 0F 28 DF                    - movaps xmm3,xmm7
+dmc3.exe+1F219E: 0F 28 D6                    - movaps xmm2,xmm6
+dmc3.exe+1F21A1: E8 6A AF 00 00              - call dmc3.exe+1FD110
+dmc3.exe+1F21A6: 0F B7 87 D0 3E 00 00        - movzx eax,word ptr [rdi+00003ED0]
+dmc3.exe+1F21AD: 44 0F 28 4C 24 40           - movaps xmm9,[rsp+40]
+dmc3.exe+1F21B3: 44 0F 28 44 24 50           - movaps xmm8,[rsp+50]
+dmc3.exe+1F21B9: 0F 28 7C 24 60              - movaps xmm7,[rsp+60]
+dmc3.exe+1F21BE: 0F 28 74 24 70              - movaps xmm6,[rsp+70]
+}
+</AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2985</ID>
+      <Description>"End of trick Y inertia"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2025-07-24
+  Author : Siyan
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+
+aobscanmodule(hfgfghfhg,dmc3.exe,F3 0F 11 9B 94 00 00 00 E8 CC) // should be unique
+alloc(newmem,$1000,hfgfghfhg)
+
+label(code)
+label(return)
+
+newmem:
+dd (float)-50
+newmem2:
+  // cmp byte ptr [downTrickFlag], 1
+  // jne code
+  movss xmm3,[newmem]
+code:
+  movss [rbx+00000094],xmm3
+  jmp return
+
+hfgfghfhg:
+  jmp newmem2
+  nop 3
+return:
+registersymbol(hfgfghfhg)
+
+[DISABLE]
+
+hfgfghfhg:
+  db F3 0F 11 9B 94 00 00 00
+
+unregistersymbol(hfgfghfhg)
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1DFF07
+
+dmc3.exe+1DFECD: 40 88 AB 11 3F 00 00     - mov [rbx+00003F11],bpl
+dmc3.exe+1DFED4: 0F B7 93 C0 00 00 00     - movzx edx,word ptr [rbx+000000C0]
+dmc3.exe+1DFEDB: E9 03 01 00 00           - jmp dmc3.exe+1DFFE3
+dmc3.exe+1DFEE0: 39 AB 84 3E 00 00        - cmp [rbx+00003E84],ebp
+dmc3.exe+1DFEE6: 75 0E                    - jne dmc3.exe+1DFEF6
+dmc3.exe+1DFEE8: 0F B7 83 C0 00 00 00     - movzx eax,word ptr [rbx+000000C0]
+dmc3.exe+1DFEEF: 66 89 83 D0 3E 00 00     - mov [rbx+00003ED0],ax
+dmc3.exe+1DFEF6: F3 0F 10 44 24 70        - movss xmm0,[rsp+70]
+dmc3.exe+1DFEFC: 48 8B CB                 - mov rcx,rbx
+dmc3.exe+1DFEFF: F3 0F 11 83 A4 00 00 00  - movss [rbx+000000A4],xmm0
+// ---------- INJECTING HERE ----------
+dmc3.exe+1DFF07: F3 0F 11 9B 94 00 00 00  - movss [rbx+00000094],xmm3
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1DFF0F: E8 CC AA 01 00           - call dmc3.exe+1FA9E0
+dmc3.exe+1DFF14: F3 0F 10 8B C0 01 00 00  - movss xmm1,[rbx+000001C0]
+dmc3.exe+1DFF1C: 0F 57 D2                 - xorps xmm2,xmm2
+dmc3.exe+1DFF1F: F3 0F 59 0D 05 D6 17 00  - mulss xmm1,[dmc3.exe+35D52C]
+dmc3.exe+1DFF27: 48 8B CB                 - mov rcx,rbx
+dmc3.exe+1DFF2A: E8 21 D1 01 00           - call dmc3.exe+1FD050
+dmc3.exe+1DFF2F: 40 0F B6 C6              - movzx eax,sil
+dmc3.exe+1DFF33: 66 0F 6E C0              - movd xmm0,eax
+dmc3.exe+1DFF37: 0F 5B C0                 - cvtdq2ps xmm0,xmm0
+dmc3.exe+1DFF3A: F3 0F 11 83 34 3E 00 00  - movss [rbx+00003E34],xmm0
+}
+</AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2987</ID>
+      <Description>"Trick landing anim so you input grounded moves just before you land"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2025-07-24
+  Author : Siyan
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+aobscanmodule(fdgdfgdfg,dmc3.exe,BA 09 00 00 00 89 83 08 3E 00 00 48 8B CB 89 AB) // should be unique
+alloc(newmem,$1000,fdgdfgdfg)
+label(code)
+label(return)
+
+newmem:
+  cmp dword ptr [rbx+3e08],#18 // only affect anim if trick was previous anim
+  jne code
+  // cmp byte ptr [downTrickFlag], 1
+  // jne code
+  // mov byte ptr [downTrickFlag],0
+  mov edx,8
+  jmp return
+code:
+  mov edx,9
+  jmp return
+
+fdgdfgdfg:
+  jmp newmem
+return:
+registersymbol(fdgdfgdfg)
+
+[DISABLE]
+
+fdgdfgdfg:
+  db BA 09 00 00 00
+
+unregistersymbol(fdgdfgdfg)
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1DFFF9
+
+dmc3.exe+1DFFC3: 89 AB 74 63 00 00        - mov [rbx+00006374],ebp
+dmc3.exe+1DFFC9: 39 6B 78                 - cmp [rbx+78],ebp
+dmc3.exe+1DFFCC: 74 0E                    - je dmc3.exe+1DFFDC
+dmc3.exe+1DFFCE: 40 88 AB 11 3F 00 00     - mov [rbx+00003F11],bpl
+dmc3.exe+1DFFD5: 40 88 AB 13 3F 00 00     - mov [rbx+00003F13],bpl
+dmc3.exe+1DFFDC: 0F B7 93 D0 3E 00 00     - movzx edx,word ptr [rbx+00003ED0]
+dmc3.exe+1DFFE3: F3 0F 10 15 81 D5 17 00  - movss xmm2,[dmc3.exe+35D56C]
+dmc3.exe+1DFFEB: 48 8B CB                 - mov rcx,rbx
+dmc3.exe+1DFFEE: E8 0D B3 01 00           - call dmc3.exe+1FB300
+dmc3.exe+1DFFF3: 8B 05 EF 9F 3A 00        - mov eax,[dmc3.exe+589FE8]
+// ---------- INJECTING HERE ----------
+dmc3.exe+1DFFF9: BA 09 00 00 00           - mov edx,Crimson.stbi__vertically_flip_on_load_set+1
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1DFFFE: 89 83 08 3E 00 00        - mov [rbx+00003E08],eax
+dmc3.exe+1E0004: 48 8B CB                 - mov rcx,rbx
+dmc3.exe+1E0007: 89 AB 10 3E 00 00        - mov [rbx+00003E10],ebp
+dmc3.exe+1E000D: 48 8B 5C 24 50           - mov rbx,[rsp+50]
+dmc3.exe+1E0012: 48 8B 6C 24 58           - mov rbp,[rsp+58]
+dmc3.exe+1E0017: 48 8B 74 24 60           - mov rsi,[rsp+60]
+dmc3.exe+1E001C: 48 83 C4 40              - add rsp,40
+dmc3.exe+1E0020: 5F                       - pop rdi
+dmc3.exe+1E0021: E9 FA 09 00 00           - jmp dmc3.exe+1E0A20
+dmc3.exe+1E0026: CC                       - int 3 
+}
+</AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2988</ID>
+      <Description>"Increase Trick Horizontal Inertia &amp; MaxTrickDistance"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2025-07-24
+  Author : Mia Berth
+
+  This script does blah blah blah
+}
+
+define(address,"dmc3.exe"+1F2128)
+define(bytes,F3 44 0F 10 83 94 02 00 00)
+
+[ENABLE]
+
+assert(address,bytes)
+alloc(newmem,$1000,"dmc3.exe"+1F2128)
+
+label(code)
+label(return)
+
+newmem:
+  dd (float)1300
+newmem2:
+  movss xmm8, [newmem]
+  movss xmm0, [newmem]
+  jmp return
+
+code:
+  movss xmm8,[rbx+00000294]
+  jmp return
+
+address:
+  jmp newmem2
+  nop 4
+return:
+
+[DISABLE]
+
+address:
+  db bytes
+  // movss xmm8,[rbx+00000294]
+
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1F2128
+
+dmc3.exe+1F20E1: 0F 85 80 00 00 00           - jne dmc3.exe+1F2167
+dmc3.exe+1F20E7: 48 89 9C 24 90 00 00 00     - mov [rsp+00000090],rbx
+dmc3.exe+1F20EF: 48 8D 97 D0 3F 00 00        - lea rdx,[rdi+00003FD0]
+dmc3.exe+1F20F6: 48 8B 9F E8 3D 00 00        - mov rbx,[rdi+00003DE8]
+dmc3.exe+1F20FD: 48 8D 8F 80 00 00 00        - lea rcx,[rdi+00000080]
+dmc3.exe+1F2104: E8 27 C5 13 00              - call dmc3.exe+32E630
+dmc3.exe+1F2109: F3 0F 10 B7 D4 3F 00 00     - movss xmm6,[rdi+00003FD4]
+dmc3.exe+1F2111: F3 0F 5C 83 98 02 00 00     - subss xmm0,[rbx+00000298]
+dmc3.exe+1F2119: F3 0F 5C B7 84 00 00 00     - subss xmm6,[rdi+00000084]
+dmc3.exe+1F2121: 48 8B 87 E8 3D 00 00        - mov rax,[rdi+00003DE8]
+// ---------- INJECTING HERE ----------
+dmc3.exe+1F2128: F3 44 0F 10 83 94 02 00 00  - movss xmm8,[rbx+00000294]
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1F2131: F3 44 0F 5D C0              - minss xmm8,xmm0
+dmc3.exe+1F2136: F3 44 0F 10 88 9C 02 00 00  - movss xmm9,[rax+0000029C]
+dmc3.exe+1F213F: 0F 28 C6                    - movaps xmm0,xmm6
+dmc3.exe+1F2142: E8 49 B8 13 00              - call dmc3.exe+32D990
+dmc3.exe+1F2147: 41 0F 2F C1                 - comiss xmm0,xmm9
+dmc3.exe+1F214B: 48 8B 9C 24 90 00 00 00     - mov rbx,[rsp+00000090]
+dmc3.exe+1F2153: 76 1E                       - jna dmc3.exe+1F2173
+dmc3.exe+1F2155: 0F 2F F7                    - comiss xmm6,xmm7
+dmc3.exe+1F2158: 41 0F 28 F1                 - movaps xmm6,xmm9
+dmc3.exe+1F215C: 77 15                       - ja dmc3.exe+1F2173
+}
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+  <CheatCodes>
+    <CodeEntry>
+      <Description>Change of movss xmm8,[rbx+00000294]</Description>
+      <AddressString>dmc3.exe+1F2128</AddressString>
+      <Before>
+        <Byte>87</Byte>
+        <Byte>E8</Byte>
+        <Byte>3D</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Before>
+      <Actual>
+        <Byte>F3</Byte>
+        <Byte>44</Byte>
+        <Byte>0F</Byte>
+        <Byte>10</Byte>
+        <Byte>83</Byte>
+        <Byte>94</Byte>
+        <Byte>02</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>F3</Byte>
+        <Byte>44</Byte>
+        <Byte>0F</Byte>
+        <Byte>5D</Byte>
+        <Byte>C0</Byte>
+      </After>
+    </CodeEntry>
+  </CheatCodes>
+  <UserdefinedSymbols/>
+</CheatTable>
