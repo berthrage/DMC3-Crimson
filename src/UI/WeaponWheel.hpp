@@ -43,8 +43,13 @@ namespace WW
     class WeaponWheel
     {
     public:
-        WeaponWheel(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext, UINT width, UINT height,
-            std::vector<WeaponIDs> weapons, WheelThemes themeID = WheelThemes::Neutral);
+        WeaponWheel(
+            ID3D11Device* pD3D11Device,
+            ID3D11DeviceContext* pD3D11DeviceContext,
+            UINT width,
+            UINT height,
+            std::vector<WeaponIDs> weapons,
+            WheelThemes themeID = WheelThemes::Neutral);
         virtual ~WeaponWheel();
 
         /// <summary>
@@ -128,7 +133,37 @@ namespace WW
         /// <returns>Returns trie of the wheel is in analaog switching mode, false if not</returns>
         const auto& GetAnalogSwitchingMode() { return m_AnalogSwitching; }
 
-    private: // Structs & Types
+    private: // Types
+
+        // This object manages the IDs for the sprites used in the wheel
+        class SpriteIndices {
+        public:
+            SpriteIndices() = default;
+            ~SpriteIndices() = default;
+
+            void UpdateSprites(WheelThemes themeId, const std::vector<WeaponIDs>& weaponIds);
+
+            inline const auto& GetSpriteIds() { return m_SpriteIds; }
+            inline const auto& GetCenterPieceIdx() { return m_CenterPieceIdx; }
+            inline const auto& GetArrowIdx(size_t slot) { return m_ArrowsIdx[slot]; }
+            inline const auto& GetInactivePanelIdx(size_t slot) { return m_InactivePanelsIdx[slot]; }
+            inline const auto& GetActivePanelIdx(size_t slot) { return m_ActivePanelsIdx[slot]; }
+            inline const auto& GetInactiveWeaponIdx(size_t slot) { return m_InactiveWeaponsIdx[slot]; }
+            inline const auto& GetActiveWeaponIdx(size_t slot) { return m_ActiveWeaponsIdx[slot]; }
+            inline const auto& GetActiveWeaponAnimationDupeIdx(size_t slot) { return m_ActiveWeaponAnimationDupesIdx[slot]; }
+
+        private:
+            std::vector<size_t> m_SpriteIds;
+
+            size_t m_CenterPieceIdx;
+            std::vector<size_t> m_ArrowsIdx;
+            std::vector<size_t> m_InactivePanelsIdx;
+            std::vector<size_t> m_ActivePanelsIdx;
+            std::vector<size_t> m_InactiveWeaponsIdx;
+            std::vector<size_t> m_ActiveWeaponsIdx;
+            std::vector<size_t> m_ActiveWeaponAnimationDupesIdx;
+        };
+
         struct AnimState {
             // The animation itself
             std::unique_ptr<GenericAnimation> pAnimation;
@@ -165,6 +200,8 @@ namespace WW
         std::vector<size_t> m_PanelIDs{};
 
         WheelThemes m_ThemeID{ WheelThemes::Neutral };
+
+        SpriteIndices m_SpriteIndices;
 
         ID3D11Device* m_pD3D11Device;
         ID3D11DeviceContext* m_pD3D11DeviceContext;
@@ -240,7 +277,7 @@ namespace WW
             }
         } m_AnimData;
 
-    private: // Statics and types
+    private: // Statics
         static std::shared_ptr<Graphics::Texture2DArrayD3D11> s_pTextureArray;
 
         static constexpr double s_FadeDelay{ 583.3 };

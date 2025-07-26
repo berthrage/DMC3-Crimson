@@ -6,7 +6,7 @@
 #include <comdef.h>
 #include <d3dcompiler.h>
 
-#include "stb\stb_image.h"
+#include "..\ThirdParty\stb\stb_image.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "..\ThirdParty\glm\gtc\matrix_transform.hpp"
