@@ -10939,6 +10939,22 @@ void DanteGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
+			GUI_PushDisable(!activeConfig.Actor.enable || !activeCrimsonGameplay.Gameplay.Dante.airTornado);
+			if (GUI_Checkbox2("Swap Hammer Volcano Inputs",
+				activeCrimsonGameplay.Gameplay.Dante.swapHammerVocalnoInputs,
+				queuedCrimsonGameplay.Gameplay.Dante.swapHammerVocalnoInputs)) {
+			}
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Requires Air Tornado. Makes Hammer input become Air Lock On + Style + Forward,\n"
+				"and Volcano input to be Air Lock On + Style + Back.\n"
+				"Ground Volcano will still be Lock On + Forward + Style not to confuse with Real Impact.\n"
+				"This will swap the order in which you unlock both moves.");
+			GUI_PopDisable(!activeConfig.Actor.enable || !activeCrimsonGameplay.Gameplay.Dante.airTornado);
+
+			ImGui::TableNextColumn();
+
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Rising Dragon Launch",
 				activeCrimsonGameplay.Gameplay.Dante.airRisingDragonLaunch,
@@ -11017,7 +11033,8 @@ void DanteGameplayOptions() {
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Swaps Dance Macabre to: Lock On + Forward + Style(Swordmaster)\n"
-				"and Sword Pierce to: Lock On + Back + Style(Swordmaster");
+				"and Sword Pierce to: Lock On + Back + Style(Swordmaster)\n"
+				"This will swap the order in which you unlock both moves.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();

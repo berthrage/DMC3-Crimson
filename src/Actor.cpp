@@ -9346,14 +9346,32 @@ void SetAction(byte8* actorBaseAddr) {
         }
 
 
-        // Air Tornado
+		// Swap Beowulf The Hammer and Volcano Inputs if Air Tornado is enabled
+		if (activeCrimsonGameplay.Gameplay.Dante.swapHammerVocalnoInputs && activeCrimsonGameplay.Gameplay.Dante.airTornado) {
+			if ((actorData.action == BEOWULF_THE_HAMMER) && lockOn && (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
+				(tiltDirection == TILT_DIRECTION::DOWN)) {
+
+				actorData.action = BEOWULF_AIR_VOLCANO;
+			}
+
+			if ((actorData.action == BEOWULF_AIR_VOLCANO) && lockOn && (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
+				(tiltDirection == TILT_DIRECTION::UP)) {
+
+				actorData.action = BEOWULF_THE_HAMMER;
+			}
+		}
+
+
+        // Air Tornado  // Taking Swap Logic in mind
         if ((actorData.action == BEOWULF_THE_HAMMER) && (actorData.style == STYLE::SWORDMASTER) &&
             activeCrimsonGameplay.Gameplay.Dante.airTornado &&
             ExpConfig::missionExpDataDante.styleLevels[STYLE::SWORDMASTER] >= 2 &&
             actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION) &&
             airCounts.airTornado < 1) {
 
-            if ((lockOn && tiltDirection != TILT_DIRECTION::DOWN) || !lockOn) {
+			auto tiltDirectionExclusion = (activeCrimsonGameplay.Gameplay.Dante.swapHammerVocalnoInputs) ? TILT_DIRECTION::UP : TILT_DIRECTION::DOWN;
+
+            if ((lockOn && tiltDirection != tiltDirectionExclusion) || !lockOn) {
 
                 actorData.action = BEOWULF_TORNADO;
                 airCounts.airTornado++;
