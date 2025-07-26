@@ -461,7 +461,7 @@ namespace WW
     {
         g_SpriteDescs.reserve((size_t)TextureID::Size);
 
-        const std::filesystem::path textureRoot(R"(C:\Users\Darkness\Desktop\Crimson\assets\weaponwheel)");
+        const std::filesystem::path textureRoot(R"(Crimson\assets\weaponwheel)");
 
         g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel1.png)").string().c_str()); //ColoredDantePanel1Active
         g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel2.png)").string().c_str()); //ColoredDantePanel2Active
