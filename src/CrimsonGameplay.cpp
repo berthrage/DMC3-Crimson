@@ -1955,10 +1955,10 @@ void AerialRaveGravityTweaks(byte8* actorBaseAddr) {
                 } else if (actorData.airSwordAttackCount > 1) {
                     if (!tweak->gravityPre4Changed) {
 
-                        tweak->gravity += -0.3f;
+                        tweak->gravity += -1.0f;
                         tweak->gravityPre4Changed = true;
                     }
-                    actorData.verticalPull           = tweak->gravity + (-0.2f * actorData.airSwordAttackCount);
+                    actorData.verticalPull           = tweak->gravity + (-0.3f * actorData.airSwordAttackCount);
                     actorData.verticalPullMultiplier = -0.5 * actorData.airSwordAttackCount;
                     tweak->gravity4Changed           = false;
                 }
@@ -2162,7 +2162,7 @@ void EbonyAndIvoryAerialTweaks(byte8* actorBaseAddr) {
         if (inEbonyAndIvoryAirShot) {
 			if (!tweak->hasAppliedVerticalPullMultiplier) {
 
-                actorData.verticalPullMultiplier = (-1.2f - (0.8f * actorData.airSwordAttackCount));  // Vanilla value is -1.25f
+                actorData.verticalPullMultiplier = (-1.2f - (0.3f * actorData.airSwordAttackCount));  // Vanilla value is -1.25f
 
 				tweak->hasAppliedVerticalPullMultiplier = true;
 			}

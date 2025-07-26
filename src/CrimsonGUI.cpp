@@ -10790,6 +10790,7 @@ void DanteGameplayOptions() {
 			TooltipHelper("(?)", "This option tweaks several aerial moves at once: \n"
 				"Tweaks Aerial Rave Gravity to be similar to DMC4/5, taking weights into account.\n"
 				"Tweaks Air Flicker Gravity, taking weights into account. Initial windup has less gravity than vanilla.\n"
+				"Tweaks E&I Air Shots Gravity slightly, taking weights into account.\n"
 				"Sky Dance Part 3 is now a separate ability executed by Lock On + Forward + Style. Tweaks Sky Dance Gravity, taking weights into account.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
