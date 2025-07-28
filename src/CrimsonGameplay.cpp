@@ -3293,4 +3293,21 @@ void DriveTweaks(byte8* actorBaseAddr) {
     }*/
 }
 
+void GroundTrickFlagSet(byte8* actorBaseAddr) {
+    // Works in tandem with DanteTrickAlterations Detour in CrimsonDetours (requirement)
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (!activeCrimsonGameplay.Gameplay.Dante.groundTrick) return;
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& b2F = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].b2F : crimsonPlayer[playerIndex].b2FClone;
+
+	if (actorData.character != CHARACTER::DANTE) return;
+
+    if (actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK && b2F.forwardCommand) {
+		actorData.eventData[0].event = ACTOR_EVENT::TRICKSTER_GROUND_TRICK;
+    } 
+}
+
 }

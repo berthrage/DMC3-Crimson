@@ -8321,6 +8321,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				return;
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
+			ImGui::Text("actorData event %d", actorData.eventData[0].event);
 			ImGui::Text("actorData.state %d", actorData.state);
 			ImGui::Text("air Counts Rising Sun Launch %d", crimsonPlayer[0].airCounts.airRisingSunLaunch);
 			ImGui::Text("lastActionTime %g", crimsonPlayer[0].lastActionTime);
@@ -11048,6 +11049,20 @@ void DanteGameplayOptions() {
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Makes Artemis' Multi-Lock and Normal Shot charge instantly.\n"
 				"Nerfs Artemis' Multi-Lock and Normal Shot projectile damage by 90-percent to compensate.");
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Ground Trick",
+				activeCrimsonGameplay.Gameplay.Dante.groundTrick,
+				queuedCrimsonGameplay.Gameplay.Dante.groundTrick)) {
+			}
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "With Trickster: Lock On + Back to Forward + Style.\n"
+				"Dante Teleports to the Ground near the enemy. Requires Trickster level 3.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
 

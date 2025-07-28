@@ -47,6 +47,7 @@ void GetLockedOnEnemyShield(byte8* actorBaseAddr);
 void DetectCloseToEnemy(byte8* actorBaseAddr);
 void SkyLaunchAirTauntController(byte8* actorBaseAddr);
 void DriveTweaks(byte8* actorBaseAddr);
+void GroundTrickFlagSet(byte8* actorBaseAddr);
 
 
 }

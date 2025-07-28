@@ -269,6 +269,16 @@ void* g_StyleLevellingCCSFix_CheckCall1;
 void StyleLevellingCCSFixDetour2();
 std::uint64_t g_StyleLevellingCCSFix_ReturnAddr2;
 void* g_StyleLevellingCCSFix_CheckCall2;
+
+// DanteTrickAlterations
+std::uint64_t g_DanteTrickAlter_ReturnAddr1;
+void DanteTrickAlterationsDetour1();
+std::uint64_t g_DanteTrickAlter_ReturnAddr2;
+void DanteTrickAlterationsDetour2();
+std::uint64_t g_DanteTrickAlter_ReturnAddr3;
+void DanteTrickAlterationsDetour3();
+std::uint64_t g_DanteTrickAlter_ReturnAddr4;
+void DanteTrickAlterationsDetour4();
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -1151,6 +1161,49 @@ void ToggleFixBallsHangHitSpeed(bool enable) {
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25C2DD, &FixBallsHangHitSpeedDetour, 5);
 	g_FixBallsHangHitSpeed_ReturnAddr = FixBallsHangHitSpeedHook->GetReturnAddress();
 	FixBallsHangHitSpeedHook->Toggle(enable);
+	run = enable;
+}
+
+void ToggleDanteTrickAlterations(bool enable) {
+	// Used for Dante's Ground Trick (event 48)
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// DanteTrickAlterationsDetour1
+	// AirTrickYInertia
+	// dmc3.exe+1F218B - F3 0F 5E B7 34 3E 00 00   - divss xmm6,[rdi+00003E34]
+	static std::unique_ptr<Utility::Detour_t> DanteTrickAlterationsHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1F218B, &DanteTrickAlterationsDetour1, 8);
+	g_DanteTrickAlter_ReturnAddr1 = DanteTrickAlterationsHook->GetReturnAddress();
+	DanteTrickAlterationsHook->Toggle(enable);
+
+	// DanteTrickAlterationsDetour2
+	// End of Air Trick Y inertia
+	// dmc3.exe+1DFF07 - F3 0F 11 9B 94 00 00 00   - movss [rbx+00000094],xmm3
+	static std::unique_ptr<Utility::Detour_t> DanteTrickAlterationsHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1DFF07, &DanteTrickAlterationsDetour2, 8);
+	g_DanteTrickAlter_ReturnAddr2 = DanteTrickAlterationsHook2->GetReturnAddress();
+	DanteTrickAlterationsHook2->Toggle(enable);
+
+	// DanteTrickAlterationsDetour3
+	// Trick landing anim so you input grounded moves just before you land
+	// dmc3.exe+1DFFF9 - BA 09 00 00 00           - mov edx, 9 { 00000009 }
+	static std::unique_ptr<Utility::Detour_t> DanteTrickAlterationsHook3 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1DFFF9, &DanteTrickAlterationsDetour3, 5);
+	g_DanteTrickAlter_ReturnAddr3 = DanteTrickAlterationsHook3->GetReturnAddress();
+	DanteTrickAlterationsHook3->Toggle(enable);
+
+	// DanteTrickAlterationsDetour4
+	// Increase Air Trick Horizontal Inertia (xmm0) & MaxAirTrickDistance (xmm8)
+	// dmc3.exe + 1F2128 - F3 44 0F 10 83 94 02 00 00 - movss xmm8, [rbx + 00000294]
+	static std::unique_ptr<Utility::Detour_t> DanteTrickAlterationsHook4 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1F2128, &DanteTrickAlterationsDetour4, 10);
+	g_DanteTrickAlter_ReturnAddr4 = DanteTrickAlterationsHook4->GetReturnAddress();
+	DanteTrickAlterationsHook4->Toggle(enable);
+
 	run = enable;
 }
 

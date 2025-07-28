@@ -769,6 +769,7 @@ enum {
     DEATH,
     NEVAN_KISS,
     COUNT,
+    TRICKSTER_GROUND_TRICK,
 };
 };
 

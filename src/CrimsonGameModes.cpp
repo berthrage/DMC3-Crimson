@@ -83,6 +83,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	dante.airHikeCoreAbility = false;
 	dante.altNevanVortex = false;
 	dante.artemisRework = false;
+	dante.groundTrick = false;
 	dante.swapDancePierceInputs = false;
 	dante.swapArtemisMultiLockNormalShot = false;
 
@@ -146,6 +147,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	dante.airHikeCoreAbility = true;
 	dante.altNevanVortex = true;
 	dante.artemisRework = true;
+	dante.groundTrick = false;
 	//dante.swapDancePierceInputs = false;
 
 	// Vergil section
@@ -225,6 +227,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	dante.airHikeCoreAbility = true;
 	dante.altNevanVortex = true;
 	dante.artemisRework = true;
+	dante.groundTrick = true;
 	dante.swapDancePierceInputs = true;
 
 	// Vergil section

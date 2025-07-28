@@ -88,6 +88,7 @@ struct CrimsonConfigGameplay {
 			bool airHikeCoreAbility = true;
 			bool altNevanVortex = true;
 			bool artemisRework = true;
+			bool groundTrick = true;
 			bool swapArtemisMultiLockNormalShot = true;
 			bool swapDancePierceInputs = true;
 			bool swapHammerVocalnoInputs = true;
@@ -114,6 +115,7 @@ struct CrimsonConfigGameplay {
 					std::make_pair("airHikeCoreAbility", &Dante::airHikeCoreAbility),
 					std::make_pair("altNevanVortex", &Dante::altNevanVortex),
 					std::make_pair("artemisRework", &Dante::artemisRework),
+					std::make_pair("groundTrick", &Dante::groundTrick),
 					std::make_pair("swapArtemisMultiLockNormalShot", &Dante::swapArtemisMultiLockNormalShot),
 					std::make_pair("swapDancePierceInputs", &Dante::swapDancePierceInputs),
 					std::make_pair("swapHammerVocalnoInputs", &Dante::swapHammerVocalnoInputs)
