@@ -11957,7 +11957,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	// Game Mode Text Window
 	float gameModeFontSize = 30.0f;
 	//ImGui::PushStyleColor(ImGuiCol_Text, *reinterpret_cast<ImVec4*>(&gameModeData.colors[activeCrimsonGameplay.GameMode.preset]));
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[gameModeFontSize]);
+	ImGui::PushFont(UI::g_ImGuiFont_Benguiat[gameModeFontSize]);
 	std::string gameModeText = gameModeData.names[activeCrimsonGameplay.GameMode.preset];
 	ImVec2 gameModeTextSize = ImGui::CalcTextSize(gameModeText.c_str());
 	ImVec2 gameModeTextSizeWindowSize = ImVec2((gameModeTextSize.x + 20.0f) * scaleFactorY, 100.0f * scaleFactorY);
