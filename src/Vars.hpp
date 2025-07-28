@@ -729,7 +729,7 @@ enum {
     JUMP,
     UNKNOWN_5,
     AIR_HIKE,
-    UNKNOWN_6,
+    LANDING,
     AIR_TRICK_END,
     LOCK_ON,
     UNKNOWN_8,

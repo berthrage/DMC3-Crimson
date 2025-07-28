@@ -67,7 +67,7 @@ DanteTrickAlterationsDetour3 ENDP
 extern g_DanteTrickAlter_ReturnAddr4:QWORD
 EXTERN g_FrameRateTimeMultiplier:DWORD
 one dd 1.0
-newValue dd 2000.0
+newValue dd 2500.0
 
 .CODE
 DanteTrickAlterationsDetour4 PROC
@@ -85,6 +85,11 @@ CalculateNewValue:
 CheckIfXInertiaAboveZero:
 	movss xmm12, dword ptr [one]
 	comiss xmm0, xmm12
+	ja CheckIfNewValueIsAbove500
+	jmp OriginalCode
+
+CheckIfNewValueIsAbove500:
+	comiss xmm11, xmm8
 	ja ModifyValues
 	jmp OriginalCode
 
