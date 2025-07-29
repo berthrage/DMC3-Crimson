@@ -342,6 +342,7 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Gameplay.General.dmc4LockOnDirection = false;
 	mask.Gameplay.General.fasterTurnRate = false;
 	mask.Gameplay.Dante.swapArtemisMultiLockNormalShot = false;
+	mask.Gameplay.Dante.swapDancePierceInputs = false;
 	mask.Gameplay.Dante.swapHammerVocalnoInputs = false;
 	
 	// NEW MOVES are optional
@@ -404,6 +405,7 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.General.bufferlessReversals = false;
 	mask.Gameplay.General.fasterTurnRate = false;
 	mask.Gameplay.Dante.swapArtemisMultiLockNormalShot = false;
+	mask.Gameplay.Dante.swapDancePierceInputs = false;
 	mask.Gameplay.Dante.swapHammerVocalnoInputs = false;
 
 	mask.Gameplay.Dante.downertiaFromAirFlickerSkyDance = false; // This should be optional
