@@ -427,6 +427,7 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
 	mask.Gameplay.ExtraDifficulty.forceDifficultyMode = false;
 
+	mask.Cheats.Vergil.quicksilverStyle = false;
 	mask.Cheats.Vergil.chronoSwords = false;
 	mask.Cheats.Training.infiniteHP = false;
 	mask.Cheats.Training.infiniteDT = false;
