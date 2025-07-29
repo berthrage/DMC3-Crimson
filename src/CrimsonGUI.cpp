@@ -10824,7 +10824,7 @@ void DanteGameplayOptions() {
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Makes the next move executed before 0.25 seconds of uptime on Air Flicker or Sky Dance have increased downwards inertia. \n"
-				"Requires Air Flicker / Sky Dance Tweaks");
+				"Requires Aerial Moves Tweaks");
 			GUI_PopDisable(!activeConfig.Actor.enable ||
 				!(activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks));
 
