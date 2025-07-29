@@ -26,6 +26,8 @@
 #include "CrimsonGameModes.hpp"
 #include "CrimsonConfigGameplayMask.hpp"
 
+CrimsonConfigGameplayMask activeCrimsonGameplayMask;
+
 namespace CrimsonGameModes {
 
 bool ConfigsMatch(const CrimsonConfigGameplay& config1, const CrimsonConfigGameplay& config2) {
@@ -490,16 +492,19 @@ void CrimsonGameModes::SetGameModePreset(uint8 mode) {
 	case GAMEMODEPRESETS::VANILLA:
  		AssignMembersPreset(activeCrimsonGameplay, VANILLA_PRESET, VANILLA_MASK);
 		AssignMembersPreset(queuedCrimsonGameplay, VANILLA_PRESET, VANILLA_MASK);
+		activeCrimsonGameplayMask = VANILLA_MASK;
 		queuedConfig.Actor.enable = false;
 		break;
 	case GAMEMODEPRESETS::STYLE_SWITCHER:
 		AssignMembersPreset(activeCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
 		AssignMembersPreset(queuedCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
+		activeCrimsonGameplayMask = STYLE_SWITCHER_MASK;
 		queuedConfig.Actor.enable = true;
 		break;
 	case GAMEMODEPRESETS::CRIMSON:
 		AssignMembersPreset(activeCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
 		AssignMembersPreset(queuedCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
+		activeCrimsonGameplayMask = CRIMSON_MASK;
 		queuedConfig.Actor.enable = true;
 		break;
 	default:
@@ -518,16 +523,19 @@ void CrimsonGameModes::SetGameModeMasked(uint8 mode) {
 	case GAMEMODEPRESETS::VANILLA:
 		AssignMembersMasked(activeCrimsonGameplay, VANILLA_PRESET, VANILLA_MASK);
 		AssignMembersMasked(queuedCrimsonGameplay, VANILLA_PRESET, VANILLA_MASK);
+		activeCrimsonGameplayMask = VANILLA_MASK;
 		queuedConfig.Actor.enable = false;
 		break;
 	case GAMEMODEPRESETS::STYLE_SWITCHER:
 		AssignMembersMasked(activeCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
 		AssignMembersMasked(queuedCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
+		activeCrimsonGameplayMask = STYLE_SWITCHER_MASK;
 		queuedConfig.Actor.enable = true;
 		break;
 	case GAMEMODEPRESETS::CRIMSON:
 		AssignMembersMasked(activeCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
 		AssignMembersMasked(queuedCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
+		activeCrimsonGameplayMask = CRIMSON_MASK;
 		queuedConfig.Actor.enable = true;
 		break;
 	default:
