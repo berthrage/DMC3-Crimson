@@ -3313,9 +3313,16 @@ void GroundTrickFlagSet(byte8* actorBaseAddr) {
         newActorData.visibility = 2; // hide dante's model
     }
 
+    if (actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_GROUND_TRICK) { // guarantee attack buffer will come through
+        auto& policy = actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::MELEE_ATTACK];
+        policy = NEXT_ACTION_REQUEST_POLICY::EXECUTE;
+    }
+
     if (actorData.newEntityIndex == 1 && !actorData.doppelganger) return; // visibility set with doppel fix
 
-    if (actorData.eventData[0].event == ACTOR_EVENT::LANDING && newActorData.visibility == 2) {
+    if ((actorData.eventData[0].event == ACTOR_EVENT::LANDING || actorData.eventData[0].event == ACTOR_EVENT::STAGGER ||
+        actorData.eventData[0].event == ACTOR_EVENT::ATTACK)
+        && newActorData.visibility == 2) {
         newActorData.visibility = 0; // unhide
     }
 }
