@@ -843,8 +843,8 @@ void PlayDivinityStatueSong() {
 	fn_Mix_FadeInMusic(divinityStatueSong, -1, 500);
 }
 
-void FadeOutMusic() {
-    fn_Mix_FadeOutMusic(500);
+void FadeOutMusic(int delayMs) {
+    fn_Mix_FadeOutMusic(delayMs);
 }
 
 int IsMusicPlaying() {

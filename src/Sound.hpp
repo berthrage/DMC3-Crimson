@@ -126,4 +126,6 @@ void Toggle(bool enable);
 void EventMain();
 void EventDelete();
 void UpdateEnemyCount();
+void UpdateVolumeTransition();
+void SetVolumeGradually(int channel, float targetVolume, float durationMs = 2000.0f);
 } // namespace Sound

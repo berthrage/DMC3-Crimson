@@ -5554,12 +5554,13 @@ void ShopWindow() {
 		ImGui::Text("%u", missionData.redOrbs);
 		ImGui::PopFont();
 		ImGui::Text("");
-		auto BACKGROUND_FADED_TEXT = u8"Divinity Statue";
+		auto BACKGROUND_FADED_TEXT = g_scene != SCENE::MISSION_START ? u8"Divinity Statue" : u8"Customize";
 		ImFont* fadedFont = UI::g_ImGuiFont_RussoOne256;
 		float fadedFontSize = scaledFontSize * 4.8f;
-
-		ImVec2 bgFadedTextSize = ImGui::CalcTextSize((const char*)BACKGROUND_FADED_TEXT, nullptr, false, fadedFontSize);
-
+		
+		ImVec2 bgFadedTextSize = ImGui::CalcTextSize((const char*)BACKGROUND_FADED_TEXT, 
+				nullptr, false, fadedFontSize);
+		
 		// Get window position and size
 		ImVec2 winPos = ImGui::GetWindowPos();
 		ImVec2 winSize = ImGui::GetWindowSize();
@@ -5569,12 +5570,15 @@ void ShopWindow() {
 		float x = winPos.x + winSize.x - bgFadedTextSize.x - rightMargin;
 		float y = winPos.y + 15.0f * scaleFactorY; // top margin
 
+		// Only show Divinity Statue text if not in mission start scene
+		
 		ImGui::GetWindowDrawList()->AddText(
 			fadedFont, fadedFontSize,
 			ImVec2(x, y),
 			UI::SwapColorEndianness(0xFFFFFF10),
 			(const char*)BACKGROUND_FADED_TEXT
 		);
+		
 
 		// 		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
 		// 			auto& gamepad = GetGamepad(playerIndex);
@@ -10204,6 +10208,12 @@ void SoundSection(size_t defaultFontSize) {
 	GUI_Checkbox2("Ignore Enemy Data", activeConfig.soundIgnoreEnemyData, queuedConfig.soundIgnoreEnemyData);
 	ImGui::SameLine();
 	TooltipHelper("(?)", "Do not look at enemy data when updating the global indices.\nMost, if not all enemies will lose their sound effects if enabled.\nIntended as a workaround for playable bosses when the sound effect\ninterferences from other enemies get too annoying. - serpentiem");
+
+	GUI_Checkbox2("Override Mission Start Song", activeCrimsonConfig.Sound.overrideMissionStartSong, queuedCrimsonConfig.Sound.overrideMissionStartSong);
+	ImGui::SameLine();
+	GUI_CCSRequirementButton();
+	ImGui::SameLine();
+	TooltipHelper("(?)", "Override the Mission Start song with the Divinity Statue song while in the Customize menu.");
 
 	ImGui::Text("");
 

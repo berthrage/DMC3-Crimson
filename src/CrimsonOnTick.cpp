@@ -424,9 +424,11 @@ void PreparePlayersDataBeforeSpawn() {
 }
 
 void CrimsonMissionClearSong() {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 	if (g_scene == SCENE::MISSION_RESULT && !missionClearSongPlayed
 		&& (gameModeData.missionResultGameMode == GAMEMODEPRESETS::CRIMSON
-			|| gameModeData.missionResultGameMode == GAMEMODEPRESETS::CUSTOM)) {
+			|| gameModeData.missionResultGameMode == GAMEMODEPRESETS::CUSTOM) &&
+		sessionData.mission != 20) {
 		// Mute Music Channel Volume
 		SetVolume(9, 0);
 
@@ -450,17 +452,20 @@ void DivinityStatueSong() {
 		&& (gameModeData.missionResultGameMode == GAMEMODEPRESETS::CRIMSON
 			|| gameModeData.missionResultGameMode == GAMEMODEPRESETS::CUSTOM)) {
 		// Mute Music Channel Volume
-		SetVolume(9, 0);
+		if (g_scene == SCENE::MISSION_START && !activeCrimsonConfig.Sound.overrideMissionStartSong) {
+			return;
+		}
+		Sound::SetVolumeGradually(9, 0);
 
 		// Play song
 		CrimsonSDL::PlayDivinityStatueSong();
 		songPlayed = true;
 	} else if (!g_showShop && songPlayed) {
 		// Fade it out
-		CrimsonSDL::FadeOutMusic();
+		CrimsonSDL::FadeOutMusic(2000);
 
 		// Restore original Channnel Volume
-		SetVolume(9, activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f);
+		Sound::SetVolumeGradually(9, activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f);
 
 		songPlayed = false;
 	}
@@ -1721,6 +1726,7 @@ void TriggerOnTickFuncs() {
 	CrimsonOnTick::DivinityStatueSong();
 	CrimsonSDL::CheckAndOpenControllers();
 	CrimsonSDL::UpdateJoysticks();
+	Sound::UpdateVolumeTransition();
 }
 
 
