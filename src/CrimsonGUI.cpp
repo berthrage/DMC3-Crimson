@@ -2069,6 +2069,9 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 		state.oldCharWeapons[charIndex] = currentCharWeapons[charIndex];
 		state.oldPlayerDataChars[charIndex] = currentPlayerDataChars[charIndex];
 		state.oldCharCostumes[charIndex] = currentCharCostumes[charIndex];
+
+		if (pWeaponWheel)
+			pWeaponWheel->SetWeapons(state.currentWeapons[charIndex]);
 	}
 
 	// Instancing the Wheel class.
@@ -2094,6 +2097,7 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 		return false;
 	}
 
+	// Switching Characters
 	if (state.oldWeaponIndex != (int)weaponIndex || state.oldCharIndex != (int)charIndex) {// If changed set it
 		if (isMelee) {
 			UpdateMeleeWeaponIDs(actorData, state.currentWeapons, actorData.newCharacterIndex);
@@ -2106,16 +2110,18 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 		} else {
 			pWeaponWheel->SetWheelTheme(WW::WheelThemes::Neutral);
 		}
-
+		pWeaponWheel->SetWeapons(state.currentWeapons[charIndex]);
 		pWeaponWheel->SetActiveSlot((int)weaponIndex);
 	}
 
+	// Switching Themes
 	if (state.oldTheme != activeCrimsonConfig.WeaponWheel.theme) {
 		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
 			pWeaponWheel->SetWheelTheme(state.charTheme);
 		} else {
 			pWeaponWheel->SetWheelTheme(WW::WheelThemes::Neutral);
 		}
+		pWeaponWheel->SetWeapons(state.currentWeapons[charIndex]);
 		pWeaponWheel->SetActiveSlot((int)weaponIndex);
 	}
 
