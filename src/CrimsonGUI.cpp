@@ -3678,43 +3678,98 @@ void RenderMissionResultGameModeStats() {
 		scaleFactorY / 2 + (147.0f * scaleFactorY)
 	);
 
-	uint32 inMissionResultScreenInt = *reinterpret_cast<uint32*>(appBaseAddr + 0xCACA00);
-	bool inMissionResultScreen = inMissionResultScreenInt == 0 ? true : false;
+	// We use this to identify whether or not we're in the exact Mission Result Screen
+	uint32 inMissionResultScreenInt = *reinterpret_cast<uint32*>(appBaseAddr + 0x5CF9A0);
+	bool inMissionResultScreen = inMissionResultScreenInt == 0x14FD80 ? true : false;
+	bool shouldShow = (g_scene == SCENE::MISSION_RESULT && inMissionResultScreen);
 
-	if (g_scene != SCENE::MISSION_RESULT || !inMissionResultScreen) {
-		return;
+	// Static variables to track fade state
+	static bool wasShowing = false;
+	static float fadeStartTime = 0.0f;
+	static bool isFadingIn = false;
+	static bool isFadingOut = false;
+
+	float currentTime = ImGui::GetTime();
+	const float fadeDuration = 1.0f; // 1 second fade
+
+	// Handle fade state transitions
+	if (shouldShow && !wasShowing) {
+		// Start fade in
+		isFadingIn = true;
+		isFadingOut = false;
+		fadeStartTime = currentTime;
+	} else if (!shouldShow && wasShowing) {
+		// Start fade out
+		isFadingIn = false;
+		isFadingOut = true;
+		fadeStartTime = currentTime;
 	}
+
+	wasShowing = shouldShow;
+
+	// Calculate alpha based on fade state
+	float alpha = 1.0f;
+	if (isFadingIn) {
+		float fadeProgress = (currentTime - fadeStartTime) / fadeDuration;
+		if (fadeProgress >= 1.0f) {
+			alpha = 1.0f;
+			isFadingIn = false;
+		} else {
+			alpha = fadeProgress;
+		}
+	} else if (isFadingOut) {
+		float fadeProgress = (currentTime - fadeStartTime) / fadeDuration;
+		if (fadeProgress >= 1.0f) {
+			alpha = 0.0f;
+			isFadingOut = false;
+			return; // Completely faded out, stop rendering
+		} else {
+			alpha = 1.0f - fadeProgress;
+		}
+	} else if (!shouldShow) {
+		return; // Not showing and not fading, don't render
+	}
+
+	// Helper function to apply alpha to color
+	auto applyAlpha = [alpha](ImU32 color) -> ImU32 {
+		ImU32 a = (ImU32)(alpha * 255.0f);
+		return (color & 0x00FFFFFF) | (a << 24);
+		};
 
 	switch (gameModeData.missionResultGameMode) {
 	case GAMEMODEPRESETS::VANILLA:
 		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::VANILLA].c_str();
-		gameModeStringColor = 0xFFFFFFFF;
+		gameModeStringColor = applyAlpha(0xFFFFFFFF);
 		break;
 
 	case GAMEMODEPRESETS::STYLE_SWITCHER:
 		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::STYLE_SWITCHER].c_str();
-		gameModeStringColor = SwapColorEndianness(0xE8BA18FF);
+		gameModeStringColor = applyAlpha(SwapColorEndianness(0xE8BA18FF));
 		break;
 
 	case GAMEMODEPRESETS::CRIMSON:
 		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::CRIMSON].c_str();
-		gameModeStringColor = SwapColorEndianness(0xDA1B53FF);
+		gameModeStringColor = applyAlpha(SwapColorEndianness(0xDA1B53FF));
 		break;
 
 	case GAMEMODEPRESETS::CUSTOM:
 		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::CUSTOM].c_str();
-		gameModeStringColor = SwapColorEndianness(0x4050FFFF);
+		gameModeStringColor = applyAlpha(SwapColorEndianness(0x4050FFFF));
 		break;
 
 	case GAMEMODEPRESETS::UNRATED:
 		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::UNRATED].c_str();
-		gameModeStringColor = 0xFFFFFFFF;
+		gameModeStringColor = applyAlpha(0xFFFFFFFF);
 		break;
 
 	default:
 		missionResultGameModeString = "Unknown";
+		gameModeStringColor = applyAlpha(0xFFFFFFFF);
 		break;
 	}
+
+	// Apply alpha to ImGui style
+	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
 
 	ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
@@ -3737,8 +3792,6 @@ void RenderMissionResultGameModeStats() {
 		ImVec2 textPos = ImGui::GetWindowPos() + ImVec2(10.0f * scaleFactorY, 0.0f);
 
 		drawList->AddText(g_ImGuiFont_Benguiat256, scaledFontSize * 3.8f, textPos, gameModeStringColor, missionResultGameModeString);
-		// 		window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
-		// 			SwapColorEndianness(0xFFFFFF10), "Game Mode");
 
 		ImGui::End();
 	}
@@ -3751,7 +3804,7 @@ void RenderMissionResultGameModeStats() {
 	ImGui::SetNextWindowPos(difficultyWindowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
 
-	auto currentDifficultyMode = activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode != DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF ? 
+	auto currentDifficultyMode = activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode != DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF ?
 		activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode
 		: sessionData.difficultyMode;
 
@@ -3763,7 +3816,7 @@ void RenderMissionResultGameModeStats() {
 		ImGuiWindowFlags_NoSavedSettings |
 		ImGuiWindowFlags_NoInputs |
 		ImGuiWindowFlags_NoBackground)) {
-		 // Calculate position for difficulty text
+
 		std::string difficultyDisplay = gameModeData.difficultyModeNames[currentDifficultyMode];
 		if (currentDifficultyMode == DIFFICULTY_MODE::HARD && sessionData.oneHitKill) {
 			difficultyDisplay = "Heaven or Hell";
@@ -3775,7 +3828,6 @@ void RenderMissionResultGameModeStats() {
 		ImVec2 difficultyTextSize = font->CalcTextSizeA(font->FontSize, FLT_MAX, 0.0f, difficultyString);
 		ImGui::SetWindowFontScale(scaleFactorY);
 
-		// Center difficulty text based on game mode text
 		ImVec2 difficultyTextPos = ImGui::GetWindowPos() + ImVec2(10.0f * scaleFactorY, 0.0f);
 
 		ImGui::SetCursorScreenPos(difficultyTextPos);
@@ -3803,7 +3855,6 @@ void RenderMissionResultGameModeStats() {
 			ImGui::Text(forceDifficultyText.c_str());
 		}
 
-		
 		ImGui::End();
 	}
 
@@ -3850,10 +3901,11 @@ void RenderMissionResultGameModeStats() {
 			ImGui::PopFont();
 		}
 
-
 		ImGui::End();
 	}
+
 	ImGui::PopFont();
+	ImGui::PopStyleVar(); // Pop the alpha style var
 }
 
 
@@ -3868,43 +3920,98 @@ void RenderMissionResultCheatsUsed() {
 		scaleFactorY / 2 + (347.0f * scaleFactorY)
 	);
 
-	uint32 inMissionResultScreenInt = *reinterpret_cast<uint32*>(appBaseAddr + 0xCACA00);
-	bool inMissionResultScreen = inMissionResultScreenInt == 0 ? true : false;
+	// We use this to identify whether or not we're in the exact Mission Result Screen
+	uint32 inMissionResultScreenInt = *reinterpret_cast<uint32*>(appBaseAddr + 0x5CF9A0);
+	bool inMissionResultScreen = inMissionResultScreenInt == 0x14FD80 ? true : false;
+	bool shouldShow = (g_scene == SCENE::MISSION_RESULT && inMissionResultScreen);
 
-	if (g_scene != SCENE::MISSION_RESULT || !inMissionResultScreen) {
-		return;
+	// Static variables to track fade state
+	static bool wasShowing = false;
+	static float fadeStartTime = 0.0f;
+	static bool isFadingIn = false;
+	static bool isFadingOut = false;
+
+	float currentTime = ImGui::GetTime();
+	const float fadeDuration = 1.0f; // 1 second fade
+
+	// Handle fade state transitions
+	if (shouldShow && !wasShowing) {
+		// Start fade in
+		isFadingIn = true;
+		isFadingOut = false;
+		fadeStartTime = currentTime;
+	} else if (!shouldShow && wasShowing) {
+		// Start fade out
+		isFadingIn = false;
+		isFadingOut = true;
+		fadeStartTime = currentTime;
 	}
+
+	wasShowing = shouldShow;
+
+	// Calculate alpha based on fade state
+	float alpha = 1.0f;
+	if (isFadingIn) {
+		float fadeProgress = (currentTime - fadeStartTime) / fadeDuration;
+		if (fadeProgress >= 1.0f) {
+			alpha = 1.0f;
+			isFadingIn = false;
+		} else {
+			alpha = fadeProgress;
+		}
+	} else if (isFadingOut) {
+		float fadeProgress = (currentTime - fadeStartTime) / fadeDuration;
+		if (fadeProgress >= 1.0f) {
+			alpha = 0.0f;
+			isFadingOut = false;
+			return; // Completely faded out, stop rendering
+		} else {
+			alpha = 1.0f - fadeProgress;
+		}
+	} else if (!shouldShow) {
+		return; // Not showing and not fading, don't render
+	}
+
+	// Helper function to apply alpha to color
+	auto applyAlpha = [alpha](ImU32 color) -> ImU32 {
+		ImU32 a = (ImU32)(alpha * 255.0f);
+		return (color & 0x00FFFFFF) | (a << 24);
+		};
 
 	switch (gameModeData.missionResultGameMode) {
 	case GAMEMODEPRESETS::VANILLA:
 		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::VANILLA].c_str();
-		gameModeStringColor = 0xFFFFFFFF;
+		gameModeStringColor = applyAlpha(0xFFFFFFFF);
 		break;
 
 	case GAMEMODEPRESETS::STYLE_SWITCHER:
 		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::STYLE_SWITCHER].c_str();
-		gameModeStringColor = SwapColorEndianness(0xE8BA18FF);
+		gameModeStringColor = applyAlpha(SwapColorEndianness(0xE8BA18FF));
 		break;
 
 	case GAMEMODEPRESETS::CRIMSON:
 		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::CRIMSON].c_str();
-		gameModeStringColor = SwapColorEndianness(0xDA1B53FF);
+		gameModeStringColor = applyAlpha(SwapColorEndianness(0xDA1B53FF));
 		break;
 
 	case GAMEMODEPRESETS::CUSTOM:
 		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::CUSTOM].c_str();
-		gameModeStringColor = SwapColorEndianness(0x4050FFFF);
+		gameModeStringColor = applyAlpha(SwapColorEndianness(0x4050FFFF));
 		break;
 
 	case GAMEMODEPRESETS::UNRATED:
 		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::UNRATED].c_str();
-		gameModeStringColor = 0xFFFFFFFF;
+		gameModeStringColor = applyAlpha(0xFFFFFFFF);
 		break;
 
 	default:
 		missionResultGameModeString = "Unknown";
+		gameModeStringColor = applyAlpha(0xFFFFFFFF);
 		break;
 	}
+
+	// Apply alpha to ImGui style
+	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
 
 	ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
@@ -3923,9 +4030,9 @@ void RenderMissionResultCheatsUsed() {
 		ImFont* font = UI::g_ImGuiFont_Benguiat[40.0f];
 		ImGui::PushFont(font);
 
-		if (gameModeData.missionUsedCheats.size() > 0) 
+		if (gameModeData.missionUsedCheats.size() > 0)
 			ImGui::Text("CHEATS USED:");
-		
+
 		for (auto cheat : gameModeData.missionUsedCheats) {
 			ImGui::PushFont(g_ImGuiFont_Benguiat[23.0f]);
 			ImGui::Text("%s", gameModeData.cheatsNames[cheat].c_str());
@@ -3936,6 +4043,7 @@ void RenderMissionResultCheatsUsed() {
 	}
 
 	ImGui::End();
+	ImGui::PopStyleVar(); // Pop the alpha style var
 }
 
 

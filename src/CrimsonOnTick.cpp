@@ -425,19 +425,48 @@ void PreparePlayersDataBeforeSpawn() {
 
 void CrimsonMissionClearSong() {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	// We use this to identify whether or not we're in the exact Mission Result Screen
+	uint32 inMissionResultScreenInt = *reinterpret_cast<uint32*>(appBaseAddr + 0x5CF9A0);
+	bool inMissionResultScreen = inMissionResultScreenInt == 0x14FD80 ? true : false;
+// 	uint32 inSaveScreenInt = *reinterpret_cast<uint32*>(appBaseAddr + 0xCACA00);
+// 	bool inSaveScreen = inSaveScreenInt == 0 ? false : true;
+	static bool mission20HasPlayedOnce = false;
+	static bool mission20FadeInComplete = false;
+
+	// Only consider mission20Exception after fade-in is complete
+	auto mission20Exception = sessionData.mission == 20 && !inMissionResultScreen && mission20FadeInComplete;
+
+	// Track when Mission 20 fade-in completes
+	if (sessionData.mission == 20 && inMissionResultScreen && !mission20FadeInComplete) {
+		mission20FadeInComplete = true;
+	}
+
+	// Reset fade-in tracker when leaving Mission 20
+	if (g_scene != SCENE::MISSION_RESULT) {
+		mission20FadeInComplete = false;
+	}
+
 	if (g_scene == SCENE::MISSION_RESULT && !missionClearSongPlayed
 		&& (gameModeData.missionResultGameMode == GAMEMODEPRESETS::CRIMSON
 			|| gameModeData.missionResultGameMode == GAMEMODEPRESETS::CUSTOM) &&
-		sessionData.mission != 20) {
+		!(mission20Exception && mission20HasPlayedOnce)) {
+
 		// Mute Music Channel Volume
 		SetVolume(9, 0);
 
 		// Play song
 		CrimsonSDL::PlayNewMissionClearSong();
 		missionClearSongPlayed = true;
-	} else if (g_scene != SCENE::MISSION_RESULT && missionClearSongPlayed) {
+
+		// Mark that mission 20 has played once
+		if (sessionData.mission == 20) {
+			mission20HasPlayedOnce = true;
+		}
+	} else if ((g_scene != SCENE::MISSION_RESULT && missionClearSongPlayed) ||
+		(mission20Exception && missionClearSongPlayed)) {
 		// Fade it out
-		CrimsonSDL::FadeOutMusic();
+		CrimsonSDL::FadeOutMusic(1000);
 
 		// Restore original Channnel Volume
 		SetVolume(9, activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f);
