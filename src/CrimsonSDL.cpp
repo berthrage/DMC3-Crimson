@@ -551,10 +551,10 @@ void SetAllSFXDistance(int playerIndex, int angle, int distance) {
     if (activeConfig.Actor.playerCount > 1) {
 		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDevilArm, 20, angle, distance);
 		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialChangeGun, 20, angle, distance);
+		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChange, 20, angle, distance);
+		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChangeVO, 20, angle, distance);
     }
-    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChange, 20, angle, distance);
-    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChangeVO, 20, angle, distance);
-
+	
     fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex, angle, distance);
     fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex + 4, angle, distance); // L2
     fn_Mix_SetPosition(CHANNEL::initialDTIn + playerIndex, angle, distance);
