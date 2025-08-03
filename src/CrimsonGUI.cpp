@@ -2004,9 +2004,6 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 	auto& weaponCount = isMelee ? playerData.characterData[charIndex][ENTITY::MAIN].meleeWeaponCount : playerData.characterData[charIndex][ENTITY::MAIN].rangedWeaponCount;
 	auto activeGameSpeed = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
 
-	auto leftStick = (characterData.rangedWeaponSwitchStick == LEFT_STICK);
-	auto radius = (leftStick) ? gamepad.leftStickRadius : gamepad.rightStickRadius;
-	auto stickUsed = radius > RIGHT_STICK_DEADZONE ? true : false;
 	auto weapons = isMelee ? playerData.characterData[charIndex][ENTITY::MAIN].meleeWeapons : playerData.characterData[charIndex][ENTITY::MAIN].rangedWeapons;
 
 	// Feed old arrays for comparisons. -- only once during runtime.
@@ -2088,7 +2085,8 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 			state.currentWeapons[0], activeCrimsonConfig.WeaponWheel.theme == "Crimson" ? state.charTheme : WW::WheelThemes::Neutral);
 
 		pWeaponWheel->SetActiveSlot(weaponIndex);
-		pWeaponWheel->ToggleNeverHide(alwaysShow);
+		pWeaponWheel->ToggleAlwaysVisible(alwaysShow);
+		pWeaponWheel->ToggleAnalogSwitchingUI(false);
 
 		state.oldWeaponIndex = weaponIndex;
 	}
@@ -2133,7 +2131,7 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 	// Draw the wheel
 	static bool isOpen = true;
 
-	auto analogSwitchingState = playerIndex == 0 ? activeCrimsonConfig.WeaponWheel.analogSwitching ? true : false : true;
+	auto analogSwitchingAllowed = playerIndex == 0 ? activeCrimsonConfig.WeaponWheel.analogSwitching ? true : false : true;
 
 	static auto windowSize = ImVec2(g_renderSize.x, g_renderSize.y);
 	auto cornerPos = isMelee ? windowSize - wheelSize : ImVec2(0, windowSize.y - wheelSize.y);
@@ -2142,15 +2140,42 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 
 	pWeaponWheel->OnUpdate(deltaTimeGameSpeed);
 
-	//bool weaponSwitchButtonDown = actorData.buttons[1] & GetBinding(isMelee ? BINDING::CHANGE_DEVIL_ARMS : BINDING::CHANGE_GUN);
-	//
-	//if (weaponSwitchButtonDown && stickUsed)
-	//	pWeaponWheel->ToggleAnalogSwitchingUI(true);
-	//else if (!weaponSwitchButtonDown)
-	//	pWeaponWheel->ToggleAnalogSwitchingUI(false);
-	pWeaponWheel->ToggleAnalogSwitchingUI(analogSwitchingState);
+	// Manage analog switching mode if enabled by the user
+	if (analogSwitchingAllowed)
+	{
+		// If not in analog switching mode currently, check if it needs to be enabled
+		if (!pWeaponWheel->GetAnalogSwitchingMode())
+		{
+			bool isSwitchingButtonDown = actorData.buttons[1] & GetBinding(isMelee ? BINDING::CHANGE_DEVIL_ARMS : BINDING::CHANGE_GUN);
 
-	pWeaponWheel->ToggleNeverHide(alwaysShow);
+			bool leftStick = (characterData.rangedWeaponSwitchStick == LEFT_STICK);
+			auto radius = (leftStick) ? gamepad.leftStickRadius : gamepad.rightStickRadius;
+			bool stickUsed = radius > RIGHT_STICK_DEADZONE ? true : false;
+
+			// If swtiching button is down and stick is used, enabled analog switching mode
+			if (isSwitchingButtonDown && stickUsed)
+			{
+				pWeaponWheel->ToggleAnalogSwitchingUI(true);
+			}
+		}
+		else // If in analog switching mode, and the button is let go of, disable the analogswitching mode
+		{
+			bool isSwitchingButtonDown = actorData.buttons[1] & GetBinding(isMelee ? BINDING::CHANGE_DEVIL_ARMS : BINDING::CHANGE_GUN);
+
+			// If swtiching button is not down, disable the analog swithching mode
+			if (!isSwitchingButtonDown)
+			{
+				pWeaponWheel->ToggleAnalogSwitchingUI(false);
+			}
+		}
+	}
+
+	// If the always visible option is not correctly set, update it
+	if (pWeaponWheel->GetAlwaysVisible() != alwaysShow)
+	{
+		pWeaponWheel->ToggleAlwaysVisible(alwaysShow);
+	}
+
 	state.startTime = ImGui::GetTime();
 
 	pWeaponWheel->OnDraw();

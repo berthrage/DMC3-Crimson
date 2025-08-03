@@ -982,15 +982,15 @@ namespace WW
         UpdateCurrentWheelVisibility(SpriteUpdateModes::FullyVisible);
     }
 
-    void WeaponWheel::ToggleNeverHide(std::optional<bool> hide)
+    void WeaponWheel::ToggleAlwaysVisible(std::optional<bool> hide)
     {
         if (hide.has_value())
-            m_NeverHide = *hide;
+            m_AlwaysVisible = *hide;
         else
-            m_NeverHide = !m_NeverHide;
+            m_AlwaysVisible = !m_AlwaysVisible;
 
         // Unhide the wheel
-        if (m_NeverHide == true)
+        if (m_AlwaysVisible == true)
         {
             // Reset the animations for hiding, so if they are in the middle of running they reset the state
             m_AnimData.ResetHidingAnimations();
@@ -1040,14 +1040,14 @@ namespace WW
         // If the timer for the hiding is already hit
         bool hidingTimeoutHit = m_AnimData.HideTimerMs > s_FadeDelay;
 
-        return !hidingTimeoutHit || m_NeverHide || m_AnalogSwitching;
+        return !hidingTimeoutHit || m_AlwaysVisible || m_AnalogSwitching;
     }
 
     void WeaponWheel::OnUpdate(double ts)
     {
         // Hiding animations
 
-        bool shouldKeepVisible = m_AnalogSwitching || m_NeverHide;
+        bool shouldKeepVisible = m_AnalogSwitching || m_AlwaysVisible;
 
         if (!shouldKeepVisible && !m_AnimData.WheelFadeOut.AlreadyTriggeredFlag && m_AnimData.HideTimerMs >= s_FadeDelay)
         {

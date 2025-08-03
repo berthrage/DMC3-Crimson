@@ -75,7 +75,7 @@ namespace WW
         /// </summary>
         /// <param name="hide">If passed true, the wheel will hide after being idle, if false the wheel always stays visible
         /// if not passed anything, toggles it</param>
-        void ToggleNeverHide(std::optional<bool> hide);
+        void ToggleAlwaysVisible(std::optional<bool> hide);
 
         /// <summary>
         /// Sets the wheel into the analog switching mode, which keeps the wheel visible and draws
@@ -122,13 +122,13 @@ namespace WW
         HRESULT GetLastRenderingErrorCode();
 
         /// <summary>
-        /// Checks if the never hiding setting is turned on
+        /// Checks if the always visible setting is turned on
         /// </summary>
         /// <returns>Returns true if the wheel never hides, false if it does</returns>
-        const auto& GetNeverHide() { return m_NeverHide; }
+        const auto& GetAlwaysVisible() { return m_AlwaysVisible; }
 
         /// <summary>
-        /// Checksi if the wheel is in the analog switching mode
+        /// Checks if the wheel is in the analog switching mode
         /// </summary>
         /// <returns>Returns trie of the wheel is in analaog switching mode, false if not</returns>
         const auto& GetAnalogSwitchingMode() { return m_AnalogSwitching; }
@@ -209,7 +209,7 @@ namespace WW
         std::unique_ptr<Graphics::BatchedSprites> m_pSpriteBatch;
 
         bool m_AnalogSwitching{ false };
-        bool m_NeverHide{ false };
+        bool m_AlwaysVisible{ false };
 
         struct {
             AnimState WheelFadeOut,
