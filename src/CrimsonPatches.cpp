@@ -263,8 +263,8 @@ void ToggleIncreasedEnemyJuggleTime(bool enable) {
 	// dmc3.exe+81F70: // e&i shots // C7 83 50 01 00 00 00 00 20 41 - mov [rbx+00000150],41200000 { 10.00 }
 
 	if (enable) {
-		_patch((char*)(appBaseAddr + 0x68C3A), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\x70\x41", 10); // 15.0f
-		_patch((char*)(appBaseAddr + 0x81F70), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\x70\x41", 10);
+		_patch((char*)(appBaseAddr + 0x68C3A), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\x60\x41", 10); // 14.0f
+		_patch((char*)(appBaseAddr + 0x81F70), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\x60\x41", 10);
 	} else {
 		_patch((char*)(appBaseAddr + 0x68C3A), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\x20\x41", 10); // 10.0f
 		_patch((char*)(appBaseAddr + 0x81F70), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\x20\x41", 10);

@@ -133,15 +133,32 @@ void CalculateViewProperties(byte8* actorBaseAddr) {
 	int distanceCloneLockedEnemy = (int)cameraCloneLockedEnemyDistance / 20;
 	crimsonPlayer[playerIndex].cameraCloneLockedEnemyDistanceClamped = glm::clamp(distanceCloneLockedEnemy, 0, 255);
 
-	// Calculate the angle
-	glm::vec3 direction = glm::normalize(playerPosition - cameraPosition);
-	float angle = glm::degrees(glm::atan(direction.y, direction.x)); // Angle in degrees
+	// Calculate screen-relative angle for audio positioning
+	float screenCenterX = g_renderSize.x * 0.5f;
+	float screenOffsetX = playerScreenPosition.x - screenCenterX;
+	float normalizedOffset = screenOffsetX / (g_renderSize.x * 0.5f); // Range: -1.0 to 1.0
 
-	glm::vec3 directionClone = glm::normalize(clonePosition - cameraPosition);
-	float angleClone = glm::degrees(glm::atan(directionClone.y, directionClone.x)); 
+	// Convert to angle range suitable for SDL Mix_SetPosition (typically -180 to 180)
+	float angle = normalizedOffset * 90.0f; // Scale to -90 to +90 degrees
+
+	// Apply deadzone for center audio positioning
+	const float AUDIO_DEADZONE_ANGLE = 15.0f;
+	if (std::abs(angle) < AUDIO_DEADZONE_ANGLE) {
+		angle = 0.0f; // Force center audio
+	}
+
+	// Same calculation for clone
+	float cloneScreenOffsetX = cloneScreenPosition.x - screenCenterX;
+	float cloneNormalizedOffset = cloneScreenOffsetX / (g_renderSize.x * 0.5f);
+	float angleClone = cloneNormalizedOffset * 90.0f;
+
+	if (std::abs(angleClone) < AUDIO_DEADZONE_ANGLE) {
+		angleClone = 0.0f; 
+	}
 
 	crimsonPlayer[playerIndex].playerScreenAngle = static_cast<int>(std::round(angle));
 	crimsonPlayer[playerIndex].cloneScreenAngle = static_cast<int>(std::round(angleClone));
+
 
 	float screenWidth = g_renderSize.x;
 	float screenHeight = g_renderSize.y;

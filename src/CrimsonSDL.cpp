@@ -512,7 +512,7 @@ void PlayStyleChange(int playerIndex) {
 
 void PlayStyleChangeVO(int playerIndex, int style, bool doppActive) {
 	float slider = activeCrimsonConfig.SFX.styleChangeVoiceOverVolume / 100.0f;
-	int volume = (int)(50.0f * slider);
+	int volume = (int)(72.0f * slider);
     auto initialChannel = CHANNEL::initialStyleChangeVO + (20 * playerIndex);
 
     if (style == 2) {
@@ -552,9 +552,10 @@ void SetAllSFXDistance(int playerIndex, int angle, int distance) {
 		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDevilArm, 20, angle, distance);
 		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialChangeGun, 20, angle, distance);
     }
-    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChange, 20, angle, distance);
-    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChangeVO, 20, angle, distance);
 
+	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChange, 20, angle, distance);
+	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChangeVO, 20, angle, distance);
+	
     fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex, angle, distance);
     fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex + 4, angle, distance); // L2
     fn_Mix_SetPosition(CHANNEL::initialDTIn + playerIndex, angle, distance);
@@ -843,8 +844,8 @@ void PlayDivinityStatueSong() {
 	fn_Mix_FadeInMusic(divinityStatueSong, -1, 500);
 }
 
-void FadeOutMusic() {
-    fn_Mix_FadeOutMusic(500);
+void FadeOutMusic(int delayMs) {
+    fn_Mix_FadeOutMusic(delayMs);
 }
 
 int IsMusicPlaying() {

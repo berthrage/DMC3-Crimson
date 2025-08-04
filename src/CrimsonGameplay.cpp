@@ -310,12 +310,13 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 
     // These are moves used by the Action Set Cancel Method, generally air ones.
     bool inCancellableMovesActionMethod =
-        (((actorData.action == REBELLION_AERIAL_RAVE_PART_1 || actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
+        ((((actorData.action == REBELLION_AERIAL_RAVE_PART_1 || actorData.action == REBELLION_AERIAL_RAVE_PART_2 ||
               actorData.action == REBELLION_AERIAL_RAVE_PART_3 || actorData.action == REBELLION_AERIAL_RAVE_PART_4) ||
              (actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2 ||
                  actorData.action == AGNI_RUDRA_SKY_DANCE_PART_3) ||
              (actorData.action == NEVAN_AIR_SLASH_PART_1 || actorData.action == NEVAN_AIR_SLASH_PART_2) ||
-             (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO)) &&
+             (actorData.action == CERBERUS_AIR_FLICKER) || (actorData.action == BEOWULF_TORNADO)) && actionTimer >= 0.25f || (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT 
+                 && actionTimer >= 0.2f)) &&
             actorData.eventData[0].event == 17);
 
     auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
@@ -1957,8 +1958,8 @@ void AerialRaveGravityTweaks(byte8* actorBaseAddr) {
                         tweak->gravity += -1.0f;
                         tweak->gravityPre4Changed = true;
                     }
-                    actorData.verticalPull           = tweak->gravity + (-0.2f * actorData.airSwordAttackCount);
-                    actorData.verticalPullMultiplier = 0;
+                    actorData.verticalPull           = tweak->gravity + (-0.3f * actorData.airSwordAttackCount);
+                    actorData.verticalPullMultiplier = -0.5 * actorData.airSwordAttackCount;
                     tweak->gravity4Changed           = false;
                 }
             } else if (action == REBELLION_AERIAL_RAVE_PART_4) {
@@ -1968,7 +1969,7 @@ void AerialRaveGravityTweaks(byte8* actorBaseAddr) {
                     tweak->gravity4Changed = true;
                 }
                 actorData.verticalPull           = tweak->gravity + (-0.2f * actorData.airSwordAttackCount);
-                actorData.verticalPullMultiplier = 0;
+                actorData.verticalPullMultiplier = -0.1 * actorData.airSwordAttackCount;
             }
         }
     }
@@ -2018,7 +2019,12 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
 			if (!tweak->hasAppliedVerticalPullMultiplier) {
 				if (motion == 7) {
 					// Reduces Gravity Fall-off
-					actorData.verticalPullMultiplier = -0.05f + (-0.15f * actorData.airSwordAttackCount); // Vanilla value is -0.27f
+                    if (actorData.airSwordAttackCount <= 1) {
+                        actorData.verticalPullMultiplier = -0.22f; // Vanilla value is -0.27f
+                    } else {
+                        actorData.verticalPullMultiplier = -0.22f + (-0.05f * actorData.airSwordAttackCount);
+                    }
+					
 
 // 					if ((actorData.style == STYLE::SWORDMASTER) && (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION))) {
 // 						actorData.state &= ~STATE::BUSY; // Allows you to cancel into another Flicker during the falling animation.
@@ -2118,6 +2124,54 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
 	}    
 
     if (!inSkyDance || event != ACTOR_EVENT::ATTACK) {
+		// Reset flag if not in the action or the attack event
+		tweak->hasAppliedVerticalPullMultiplier = false;
+	}
+}
+
+void EbonyAndIvoryAerialTweaks(byte8* actorBaseAddr) {
+	// Reduces gravity while sky dancing, while also adding weights into account.
+	// This is also combined with the SkyDanceTweak in SetAction,
+	// which separates Sky Dance Part 3 into its own ability, triggered by lock on + forward + style. - Mia
+	using namespace ACTION_DANTE;
+
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
+
+	auto* tweak = (actorData.newEntityIndex == ENTITY::MAIN) ? &crimsonPlayer[playerIndex].ebonyIvoryTweak :
+		&crimsonPlayer[playerIndex].ebonyIvoryTweakClone;
+	auto action = actorData.action;
+	auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
+	auto event = actorData.eventData[0].event;
+	auto motion = actorData.motionData[0].index;
+	auto& state = actorData.state;
+	auto actionTimer =
+		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
+
+	bool inEbonyAndIvoryAirShot = (action == EBONY_IVORY_AIR_NORMAL_SHOT);
+	auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
+
+	if (event == ACTOR_EVENT::ATTACK && event != ACTOR_EVENT::AIR_HIKE && event != ACTOR_EVENT::JUMP_CANCEL && event != ACTOR_EVENT::JUMP
+		&& state & STATE::IN_AIR && actorData.character == CHARACTER::DANTE) {
+
+        if (inEbonyAndIvoryAirShot) {
+			if (!tweak->hasAppliedVerticalPullMultiplier) {
+
+                actorData.verticalPullMultiplier = (-1.2f - (0.3f * actorData.airSwordAttackCount));  // Vanilla value is -1.25f
+
+				tweak->hasAppliedVerticalPullMultiplier = true;
+			}
+		} else {
+			tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag when not in Sky Dance
+		}
+	}
+
+	if (!inEbonyAndIvoryAirShot || event != ACTOR_EVENT::ATTACK) {
 		// Reset flag if not in the action or the attack event
 		tweak->hasAppliedVerticalPullMultiplier = false;
 	}
@@ -3237,6 +3291,40 @@ void DriveTweaks(byte8* actorBaseAddr) {
 
 
     }*/
+}
+
+void GroundTrickFlagSet(byte8* actorBaseAddr) {
+    // Works in tandem with DanteTrickAlterations Detour in CrimsonDetours (requirement)
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (!activeCrimsonGameplay.Gameplay.Dante.groundTrick) return;
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& b2F = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].b2F : crimsonPlayer[playerIndex].b2FClone;
+	auto& playerData = GetPlayerData(playerIndex);
+	auto entityIndex = actorData.newEntityIndex; 
+    auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, entityIndex);
+	
+	if (actorData.character != CHARACTER::DANTE) return;
+
+    if (actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK && b2F.forwardCommand) {
+        actorData.eventData[0].event = ACTOR_EVENT::TRICKSTER_GROUND_TRICK; // set g. trick flag for the detour
+        newActorData.visibility = 2; // hide dante's model
+    }
+
+    if (actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_GROUND_TRICK) { // guarantee attack buffer will come through
+        auto& policy = actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::MELEE_ATTACK];
+        policy = NEXT_ACTION_REQUEST_POLICY::EXECUTE;
+    }
+
+    if (actorData.newEntityIndex == 1 && !actorData.doppelganger) return; // visibility set with doppel fix
+
+    if ((actorData.eventData[0].event == ACTOR_EVENT::LANDING || actorData.eventData[0].event == ACTOR_EVENT::STAGGER ||
+        actorData.eventData[0].event == ACTOR_EVENT::ATTACK)
+        && newActorData.visibility == 2) {
+        newActorData.visibility = 0; // unhide
+    }
 }
 
 }

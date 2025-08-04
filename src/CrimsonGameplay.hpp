@@ -30,6 +30,7 @@ void ShotgunAirShotTweaks(byte8* actorBaseAddr);
 void AerialRaveGravityTweaks(byte8* actorBaseAddr);
 void AirFlickerGravityTweaks(byte8* actorBaseAddr);
 void SkyDanceGravityTweaks(byte8* actorBaseAddr);
+void EbonyAndIvoryAerialTweaks(byte8* actorBaseAddr);
 void DMC4Mobility(byte8* actorBaseAddr);
 void AdjustDMC4MobilitySettings();
 void StyleMeterDoppelganger(byte8* actorBaseAddr);
@@ -46,6 +47,7 @@ void GetLockedOnEnemyShield(byte8* actorBaseAddr);
 void DetectCloseToEnemy(byte8* actorBaseAddr);
 void SkyLaunchAirTauntController(byte8* actorBaseAddr);
 void DriveTweaks(byte8* actorBaseAddr);
+void GroundTrickFlagSet(byte8* actorBaseAddr);
 
 
 }

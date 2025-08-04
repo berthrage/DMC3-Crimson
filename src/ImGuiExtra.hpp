@@ -90,6 +90,14 @@ namespace UI {
 
 	extern RussoOne_t g_ImGuiFont_RedOrbRussoBackdrop;
 
+	extern RussoOne_t g_ImGuiFont_Benguiat;
+
+	extern RussoOne_t g_ImGuiFont_Messenger;
+
+	extern ImFont* g_ImGuiFont_Benguiat256;
+
+	extern ImFont* g_ImGuiFont_Messenger256;
+
 	extern ImFont* g_ImGuiFont_RussoOne256;
 
 	struct UIContext {

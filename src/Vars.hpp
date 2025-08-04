@@ -729,7 +729,7 @@ enum {
     JUMP,
     UNKNOWN_5,
     AIR_HIKE,
-    UNKNOWN_6,
+    LANDING,
     AIR_TRICK_END,
     LOCK_ON,
     UNKNOWN_8,
@@ -769,6 +769,7 @@ enum {
     DEATH,
     NEVAN_KISS,
     COUNT,
+    TRICKSTER_GROUND_TRICK,
 };
 };
 
@@ -4914,7 +4915,7 @@ struct GameModeData {
 		"STYLE SWITCHER MODE",
 		"CRIMSON MODE",
 		"CUSTOM MODE",
-		"UNRATED",
+		"UNRATED GAME MODE",
 	};
     std::vector<uint32> colors = {
         0xFFFFFFFF,
@@ -4944,6 +4945,7 @@ struct GameModeData {
     bool isMissionInitializedCheatsUsedMission = false;
     bool arcadeMissionEnabled = false;
     bool bossRushMissionEnabled = false;
+    bool characterSwitchingEnabled = false;
 };
 
 extern GameModeData gameModeData;
@@ -5009,7 +5011,7 @@ struct StoredAirCounts {
 };
 
 struct AirCounts {
-    uint8 airRisingSunWhirlwind = 0;
+    uint8 airRisingSunLaunch = 0;
     uint8 airAgniRudraWhirlwind = 0;
     uint8 airTornado = 0;
 };
@@ -5337,6 +5339,7 @@ struct CrimsonPlayerData {
 	float lockedOnEnemyMinusDisplacement = 0;
     MoveGravityTweak airFlickerTweak;
     MoveGravityTweak skyDanceTweak;
+    MoveGravityTweak ebonyIvoryTweak;
     bool inRisingStar = false;
     bool inAirTauntRisingSun = false;
 
@@ -5394,6 +5397,7 @@ struct CrimsonPlayerData {
 	float lockedOnEnemyMinusDisplacementClone = 0;
 	MoveGravityTweak airFlickerTweakClone;
 	MoveGravityTweak skyDanceTweakClone;
+    MoveGravityTweak ebonyIvoryTweakClone;
     bool inRisingStarClone = false;
     bool inAirTauntRisingSunClone = false;
 };

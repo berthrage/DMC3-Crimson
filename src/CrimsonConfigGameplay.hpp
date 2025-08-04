@@ -73,9 +73,7 @@ struct CrimsonConfigGameplay {
 			bool rainstormLift = true;
 			bool infiniteRainstorm = true;	
 			bool foursomeTime = true;
-			bool aerialRaveTweaks = true;
-			bool airFlickerTweaks = true;
-			bool skyDanceTweaks = true;
+			bool aerialMovesTweaks = true;
 			bool downertiaFromAirFlickerSkyDance = false;
 			bool shotgunAirShotTweaks = true;
 			bool driveTweaks = true;
@@ -83,15 +81,17 @@ struct CrimsonConfigGameplay {
 			bool airStinger = true;
 			bool airRevolver = true;
 			bool airTornado = true;
-			bool airRisingDragonWhirlwind = true;
+			bool airRisingDragonLaunch = true;
 			bool airAgniRudraWhirlwind = true;
 			bool dmc4Mobility = true;
 			bool dTInfusedRoyalguard = true;
 			bool airHikeCoreAbility = true;
 			bool altNevanVortex = true;
 			bool artemisRework = true;
+			bool groundTrick = true;
 			bool swapArtemisMultiLockNormalShot = true;
 			bool swapDancePierceInputs = true;
+			bool swapHammerVocalnoInputs = true;
 
 			static constexpr auto Metadata() {
                 return std::make_tuple(
@@ -100,9 +100,7 @@ struct CrimsonConfigGameplay {
 					std::make_pair("rainstormLift", &Dante::rainstormLift),
 					std::make_pair("infiniteRainstorm", &Dante::infiniteRainstorm),
 					std::make_pair("foursomeTime", &Dante::foursomeTime),
-					std::make_pair("aerialRaveTweaks", &Dante::aerialRaveTweaks),
-					std::make_pair("airFlickerTweaks", &Dante::airFlickerTweaks),
-					std::make_pair("skyDanceTweaks", &Dante::skyDanceTweaks),
+					std::make_pair("aerialMovesTweaks", &Dante::aerialMovesTweaks),
 					std::make_pair("downertiaFromAirFlickerSkyDance", &Dante::downertiaFromAirFlickerSkyDance),
 					std::make_pair("shotgunAirShotTweaks", &Dante::shotgunAirShotTweaks),
 					std::make_pair("driveTweaks", &Dante::driveTweaks),
@@ -110,15 +108,17 @@ struct CrimsonConfigGameplay {
 					std::make_pair("airStinger", &Dante::airStinger),
 					std::make_pair("airRevolver", &Dante::airRevolver),
 					std::make_pair("airTornado", &Dante::airTornado),
-					std::make_pair("airRisingDragonWhirlwind", &Dante::airRisingDragonWhirlwind),
+					std::make_pair("airRisingDragonLaunch", &Dante::airRisingDragonLaunch),
 					std::make_pair("airAgniRudraWhirlwind", &Dante::airAgniRudraWhirlwind),
 					std::make_pair("dmc4Mobility", &Dante::dmc4Mobility),
 					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard),
 					std::make_pair("airHikeCoreAbility", &Dante::airHikeCoreAbility),
 					std::make_pair("altNevanVortex", &Dante::altNevanVortex),
 					std::make_pair("artemisRework", &Dante::artemisRework),
+					std::make_pair("groundTrick", &Dante::groundTrick),
 					std::make_pair("swapArtemisMultiLockNormalShot", &Dante::swapArtemisMultiLockNormalShot),
-					std::make_pair("swapDancePierceInputs", &Dante::swapDancePierceInputs)
+					std::make_pair("swapDancePierceInputs", &Dante::swapDancePierceInputs),
+					std::make_pair("swapHammerVocalnoInputs", &Dante::swapHammerVocalnoInputs)
 				);
 			}
         } Dante;

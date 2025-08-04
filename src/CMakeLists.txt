@@ -18,6 +18,7 @@ set(MASM_SRC
     masm/FixCrashM5.asm
     masm/FixCrashVergilM3.asm
     masm/FixSecretMissionTimerFPS.asm
+    masm/EnsureAirRisingDragonLaunch.asm
     masm/HideStyleRankHUD.asm
     masm/HudHPSeparation.asm
     masm/HudStyleBarPosAsm.asm
@@ -33,6 +34,7 @@ set(MASM_SRC
     masm/StyleLevellingCCSFix.asm
     masm/RerouteRedOrbsCounterAlpha.asm
     masm/ToggleTakeDamage.asm
+    masm/TrickAlterationsDante.asm
     masm/VergilTricksAsm.asm
     masm/StyleRankHudNoFadeout.asm
     masm/ArtemisInstantFullCharge.asm
@@ -89,7 +91,10 @@ set(CXX_FLAGS
 
 project(Crimson LANGUAGES CXX C ASM_MASM)
 
-file(GLOB FONTS_HDR Fonts/RobotoMedium.hpp
+file(GLOB FONTS_HDR 
+                    Fonts/Benguiat.hpp
+                    Fonts/Messenger.hpp
+                    Fonts/RobotoMedium.hpp
                     Fonts/RussoOneRegular.hpp
 		    Fonts/RedOrbRusso.hpp
 		    Fonts/RedOrbRussoBackdrop.hpp

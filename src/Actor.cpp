@@ -3995,8 +3995,10 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CrimsonGameplay::LastEventStateQueue(actorBaseAddr);
     CrimsonGameplay::DTInfusedRoyalguardController(actorBaseAddr);
     CrimsonGameplay::DetectCloseToEnemy(actorBaseAddr);
+    CrimsonGameplay::GroundTrickFlagSet(actorBaseAddr);
     CrimsonFX::StyleRankHudFadeoutController();
     CrimsonFX::DelayedComboFXController(actorBaseAddr);
+    
     if (sessionData.unlockDevilTrigger) {
         CrimsonFX::DTExplosionFXController(actorBaseAddr);
     }
@@ -4020,7 +4022,6 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     if (actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
         actorData.airSwordAttackCount = 0;
     }
-
 
     if ((actorData.newCharacterIndex == playerData.activeCharacterIndex) &&
         (actorData.newEntityIndex == ENTITY::MAIN)) {
@@ -6926,12 +6927,13 @@ void ResetSkyStar(PlayerActorData& actorData) {
     DebugLog("lastInAir  %u", lastInAir);
 
 	auto& playerIndex = actorData.newPlayerIndex;
+    auto& actionTimer = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 	auto& airCounts = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].airCounts : crimsonPlayer[playerIndex].airCountsClone;
 
     if (actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
         actorData.newAirStingerCount = 0;
 		airCounts.airTornado = 0;
-		airCounts.airRisingSunWhirlwind = 0;
+		airCounts.airRisingSunLaunch = 0;
 		airCounts.airAgniRudraWhirlwind = 0;
         actorData.newAirRisingSunCount = 0;
     }
@@ -6940,8 +6942,8 @@ void ResetSkyStar(PlayerActorData& actorData) {
         // Dante Air Stinger
 		((actorData.character == CHARACTER::DANTE) && (actorData.action == 0) &&
 			(actorData.lastAction == ACTION_DANTE::REBELLION_STINGER_LEVEL_2) && !inAir && lastInAir) ||
-        // Dante Air Rising Dragon Whirlwind
-		((actorData.character == CHARACTER::DANTE) && (actorData.action == ACTION_DANTE::BEOWULF_RISING_DRAGON_WHIRLWIND) && inAir && lastInAir) ||
+        // Dante Air Rising Dragon Launch
+        ((actorData.character == CHARACTER::DANTE) && (actorData.action == ACTION_DANTE::BEOWULF_RISING_DRAGON_LAUNCH) && inAir && lastInAir) ||
 		// Dante Agni Rudra Whirlwind
 		((actorData.character == CHARACTER::DANTE) && (actorData.action == ACTION_DANTE::AGNI_RUDRA_WHIRLWIND_LAUNCH) && inAir && lastInAir) ||
 		// Dante Air Tornado
@@ -6964,7 +6966,7 @@ void ResetSkyStar(PlayerActorData& actorData) {
     actorData.newTrickDownCount  = 0;
     actorData.newAirStingerCount = 0;
     airCounts.airTornado = 0;
-    airCounts.airRisingSunWhirlwind = 0;
+    airCounts.airRisingSunLaunch = 0;
 	airCounts.airAgniRudraWhirlwind = 0;
     
 
@@ -8273,16 +8275,11 @@ void UpdateActorSpeed(byte8* baseAddr) {
                     CrimsonGameplay::ShotgunAirShotTweaks(actorBaseAddr);
                 }
 
-                if (activeCrimsonGameplay.Gameplay.Dante.aerialRaveTweaks) {
+                if (activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks) {
                     CrimsonGameplay::AerialRaveGravityTweaks(actorBaseAddr);
-                }
-
-                if (activeCrimsonGameplay.Gameplay.Dante.airFlickerTweaks) {
                     CrimsonGameplay::AirFlickerGravityTweaks(actorBaseAddr);
-                }
-
-                if (activeCrimsonGameplay.Gameplay.Dante.skyDanceTweaks) {
                     CrimsonGameplay::SkyDanceGravityTweaks(actorBaseAddr);
+					CrimsonGameplay::EbonyAndIvoryAerialTweaks(actorBaseAddr);
                 }
 
                 CrimsonGameplay::FreeformSoftLockController(actorBaseAddr);
@@ -9351,31 +9348,54 @@ void SetAction(byte8* actorBaseAddr) {
         }
 
 
-        // Air Tornado
+		// Swap Beowulf The Hammer and Volcano Inputs if Air Tornado is enabled
+		if (activeCrimsonGameplay.Gameplay.Dante.swapHammerVocalnoInputs && activeCrimsonGameplay.Gameplay.Dante.airTornado) {
+			if ((actorData.action == BEOWULF_THE_HAMMER) && lockOn && (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
+				(tiltDirection == TILT_DIRECTION::DOWN)) {
+
+				actorData.action = BEOWULF_AIR_VOLCANO;
+			}
+
+			if ((actorData.action == BEOWULF_AIR_VOLCANO) && lockOn && (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
+				(tiltDirection == TILT_DIRECTION::UP)) {
+
+				actorData.action = BEOWULF_THE_HAMMER;
+			}
+		}
+
+
+        // Air Tornado  // Taking Swap Logic in mind
         if ((actorData.action == BEOWULF_THE_HAMMER) && (actorData.style == STYLE::SWORDMASTER) &&
             activeCrimsonGameplay.Gameplay.Dante.airTornado &&
             ExpConfig::missionExpDataDante.styleLevels[STYLE::SWORDMASTER] >= 2 &&
             actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION) &&
             airCounts.airTornado < 1) {
 
-            if ((lockOn && tiltDirection != TILT_DIRECTION::DOWN) || !lockOn) {
+			auto tiltDirectionExclusion = (activeCrimsonGameplay.Gameplay.Dante.swapHammerVocalnoInputs) ? TILT_DIRECTION::UP : TILT_DIRECTION::DOWN;
+
+            if ((lockOn && tiltDirection != tiltDirectionExclusion) || !lockOn) {
 
                 actorData.action = BEOWULF_TORNADO;
                 airCounts.airTornado++;
             }
         }
 
-        // Air Rising Dragon Whirlwind
-        if ((actorData.action == BEOWULF_KILLER_BEE) && 
-            actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) &&
-            (airCounts.airRisingSunWhirlwind < 1) && activeCrimsonGameplay.Gameplay.Dante.airRisingDragonWhirlwind &&
-            ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::BEOWULF_RISING_DRAGON]) {
+		// Air Rising Dragon Launch
+		if ((actorData.action == BEOWULF_KILLER_BEE) && actorData.state & STATE::IN_AIR &&
+			actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) &&
+			(airCounts.airRisingSunLaunch < 1) && activeCrimsonGameplay.Gameplay.Dante.airRisingDragonLaunch &&
+			ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::BEOWULF_RISING_DRAGON]) {
 
-            if ((lockOn && tiltDirection == TILT_DIRECTION::DOWN)) {
-                actorData.action = BEOWULF_RISING_DRAGON_WHIRLWIND;
-                airCounts.airRisingSunWhirlwind++;
+            // Prevent two consecutive Launches in quick succession executing from near the ground
+            if (actorData.lastAction == BEOWULF_RISING_DRAGON_LAUNCH && actorData.state & STATE::IN_AIR) {
+                return;
             }
-        }
+
+			if ((lockOn && tiltDirection == TILT_DIRECTION::DOWN)) {
+				actorData.action = BEOWULF_RISING_DRAGON_LAUNCH;
+				airCounts.airRisingSunLaunch++;
+			}
+		}
 
         // Air Agni & Rudra Whirlwind
 		if ((actorData.action == AGNI_RUDRA_AERIAL_CROSS) &&
@@ -9390,7 +9410,7 @@ void SetAction(byte8* actorBaseAddr) {
 		}
 
         // Part of SkyDanceTweaks
-        if (activeCrimsonGameplay.Gameplay.Dante.skyDanceTweaks) {
+        if (activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks) {
             if ((actorData.action == AGNI_RUDRA_SKY_DANCE_PART_1 || actorData.action == AGNI_RUDRA_SKY_DANCE_PART_2) &&
                 (actorData.style == STYLE::SWORDMASTER)) {
 
@@ -9473,7 +9493,7 @@ bool AirActionCheck(PlayerActorData& actorData) {
             return true;
         }
 
-        if ((actorData.state & STATE::IN_AIR) && (actorData.action == ACTION_DANTE::BEOWULF_RISING_DRAGON_WHIRLWIND) &&
+        if ((actorData.state & STATE::IN_AIR) && (actorData.action == ACTION_DANTE::BEOWULF_RISING_DRAGON_LAUNCH) &&
             (actorData.motionData[1].group == MOTION_GROUP_DANTE::BEOWULF)) {
             return true;
         }

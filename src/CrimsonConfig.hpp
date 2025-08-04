@@ -345,10 +345,12 @@ struct CrimsonConfig {
 			100,
 			100,
 		};
+		bool overrideMissionStartSong = false;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
-				std::make_pair("channelVolumes", &Sound::channelVolumes)
+				std::make_pair("channelVolumes", &Sound::channelVolumes),
+				std::make_pair("overrideMissionStartSong", &Sound::overrideMissionStartSong)
 			);
 		}
 	} Sound;
