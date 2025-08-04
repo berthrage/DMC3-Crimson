@@ -744,12 +744,11 @@ namespace Graphics {
     {
     	HRESULT hr;
     
-    	static std::vector<VERTEX_SHADER_SPRITEINSTANCE_INFO> instanceInfoArray; // Static to avoid re allocation each time
-    	instanceInfoArray.reserve(m_SpriteInstanceData.size());
+		m_InstanceInfoArray.reserve(m_SpriteInstanceData.size());
+		m_InstanceInfoArray.clear();
 
-        instanceInfoArray.clear();
     	for (const auto& sd : m_SpriteInstanceData) {
-    		instanceInfoArray.push_back(VERTEX_SHADER_SPRITEINSTANCE_INFO
+            m_InstanceInfoArray.push_back(VERTEX_SHADER_SPRITEINSTANCE_INFO
                 {
     			    .TextureIdx     = (uint32_t)sd.TextureIdx,
     			    .Opacity        = sd.Opacity,
@@ -760,7 +759,7 @@ namespace Graphics {
     			});
     	}
 
-        size_t byteSize = instanceInfoArray.size() * sizeof(decltype(instanceInfoArray)::value_type);
+        size_t byteSize = m_InstanceInfoArray.size() * sizeof(decltype(m_InstanceInfoArray)::value_type);
     
     	D3D11_BUFFER_DESC bufferDesc;
     	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
@@ -774,7 +773,7 @@ namespace Graphics {
     
     	D3D11_SUBRESOURCE_DATA initData = {};
     	ZeroMemory(&initData, sizeof(initData));
-    	initData.pSysMem = instanceInfoArray.data();
+    	initData.pSysMem = m_InstanceInfoArray.data();
     
     	hr = pD3D11Device->CreateBuffer(&bufferDesc, &initData, &m_pSpriteInstanceInfoBuffer);
     
@@ -792,20 +791,16 @@ namespace Graphics {
     {
     	HRESULT hr;
 
-        // Static so, it doesn't get reallocated every time
-    	static std::vector<VERTEX_SHADER_SPRITEINSTANCE_INFO> infoArray;
-
-        // Make sure it has enouch capacity
-    	infoArray.reserve(m_SpriteInstanceData.size());
+        m_InfoArray.reserve(m_SpriteInstanceData.size());
 
         // If no specific indices were given or buffer size doesn't match the info,
         // update the whole buffer
-        if (indices.empty() || infoArray.size() != m_SpriteInstanceData.size())
+        if (indices.empty() || m_InfoArray.size() != m_SpriteInstanceData.size())
         {
-            infoArray.clear(); // Clear the old data
+            m_InfoArray.clear(); // Clear the old data
             for (const auto& sd : m_SpriteInstanceData)
             {
-                infoArray.push_back(VERTEX_SHADER_SPRITEINSTANCE_INFO
+                m_InfoArray.push_back(VERTEX_SHADER_SPRITEINSTANCE_INFO
                     {
                         .TextureIdx     = (uint32_t)sd.TextureIdx,
                         .Opacity        = sd.Opacity,
@@ -821,7 +816,7 @@ namespace Graphics {
             for (const auto& idx : indices)
             {
                 const auto& sd = m_SpriteInstanceData[idx];
-                infoArray[idx] = VERTEX_SHADER_SPRITEINSTANCE_INFO
+                m_InfoArray[idx] = VERTEX_SHADER_SPRITEINSTANCE_INFO
                     {
                         .TextureIdx     = (uint32_t)sd.TextureIdx,
                         .Opacity        = sd.Opacity,
@@ -833,7 +828,7 @@ namespace Graphics {
             }
         }
 
-    	size_t byteSize = infoArray.size() * sizeof(decltype(infoArray)::value_type);
+    	size_t byteSize = m_InfoArray.size() * sizeof(decltype(m_InfoArray)::value_type);
     
     	if (!m_pSpriteInstanceInfoBuffer || m_CurrentSpriteInstanceInfoBufferSize != byteSize)
         {
@@ -851,7 +846,7 @@ namespace Graphics {
     		return false;
     	}
     
-    	memcpy_s(mappedResource.pData, m_CurrentSpriteInstanceInfoBufferSize, infoArray.data(), byteSize);
+    	memcpy_s(mappedResource.pData, m_CurrentSpriteInstanceInfoBufferSize, m_InfoArray.data(), byteSize);
     
     	pD3D11DeviceContext->Unmap(m_pSpriteInstanceInfoBuffer.Get(), 0);
     	return true;

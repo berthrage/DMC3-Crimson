@@ -153,6 +153,9 @@ namespace Graphics {
     	size_t m_CurrentVBSize{ 0 };
     	size_t m_CurrentIBSize{ 0 };
     	size_t m_CurrentSpriteInstanceInfoBufferSize{ 0 };
+
+		std::vector<VERTEX_SHADER_SPRITEINSTANCE_INFO> m_InstanceInfoArray;
+		std::vector<VERTEX_SHADER_SPRITEINSTANCE_INFO> m_InfoArray;
     
     private: // Statics
         static constexpr D3D11_INPUT_ELEMENT_DESC s_VertexInputLayout[] =
