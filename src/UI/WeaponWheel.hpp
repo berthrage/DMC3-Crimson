@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <d3d11.h>
+#include <chrono>
 
 #include "BatchedSprites.hpp"
 #include "GenericAnimation.hpp"
@@ -81,9 +82,18 @@ namespace WW
         /// Sets the wheel into the analog switching mode, which keeps the wheel visible and draws
         /// extra arrows for every slot
         /// </summary>
-        /// <param name="state">If given true, turns on the analog switchign mode,
+        /// <param name="state">If given true, turns on the analog switching mode,
         /// if false turns it off, if not passed anything toggles it</param>
-        void ToggleAnalogSwitchingUI(std::optional<bool> state = {});
+		/// <param name="instant">If given true, the extra arrows will appear instantly instead of fading in.
+		/// if false then the extra arrows fade in gradually.</param>
+        void ToggleAnalogSwitchingUI(std::optional<bool> state = {}, bool instant = false);
+
+		/// <summary>
+		/// Tracks if the Switching Button has been held long enough for Analog Switching UI logic to trigger
+		/// </summary>
+		/// <param name="isButtonDown">A boolean that tracks if the weapon switching button is currently being held</param>
+        /// <param name="ms">The duration, in milliseconds, on how long until the button is set as "Held Enough"</param>
+		void UpdateSwitchButtonHeldEnough(bool isButtonDown, double ms);
 
         /// <summary>
         /// Checks if the wheel is currently visible
@@ -130,8 +140,14 @@ namespace WW
         /// <summary>
         /// Checks if the wheel is in the analog switching mode
         /// </summary>
-        /// <returns>Returns trie of the wheel is in analaog switching mode, false if not</returns>
+        /// <returns>Returns true of the wheel is in analog switching mode, false if not</returns>
         const auto& GetAnalogSwitchingMode() { return m_AnalogSwitching; }
+
+		/// <summary>
+		/// Checks if the button the Switch Button has been held enough for the Analog Switching UI to trigger
+		/// </summary>
+		/// <param name="isButtonDown">Returns true if the Switching Button has been held long enough, false if not.</param>
+        const auto& GetSwitchButtonHeldEnough() { return m_heldLongEnough; }
 
     private: // Types
 
@@ -211,6 +227,11 @@ namespace WW
         bool m_AnalogSwitching{ false };
         bool m_AlwaysVisible{ false };
 
+		std::chrono::steady_clock::time_point m_buttonPressStartTime{};
+        bool m_isSwitchingButtonDown = false;
+		bool m_wasButtonDown = false;
+		bool m_heldLongEnough = false;
+
         struct {
             AnimState WheelFadeOut,
                 ArrowFadeOut,
@@ -288,5 +309,7 @@ namespace WW
             s_SwitchScaleAnimDur{ 166.6 },
             s_ArrowFadeAnimDur{ 300.0 },
             s_AnalogArrowFadInAnimDur{ 700.0 };
+
+        static constexpr float s_AnalogArrowsOpacity{ 0.55f };
     };
 }

@@ -2140,44 +2140,44 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 
 	pWeaponWheel->OnUpdate(deltaTimeGameSpeed);
 
-	// Manage analog switching mode if enabled by the user
-	if (analogSwitchingAllowed)
-	{
-		// If not in analog switching mode currently, check if it needs to be enabled
-		if (!pWeaponWheel->GetAnalogSwitchingMode())
-		{
-			bool isSwitchingButtonDown = actorData.buttons[1] & GetBinding(isMelee ? BINDING::CHANGE_DEVIL_ARMS : BINDING::CHANGE_GUN);
+	bool isSwitchingButtonDown = actorData.buttons[1] & GetBinding(isMelee ? BINDING::CHANGE_DEVIL_ARMS : BINDING::CHANGE_GUN);
+	bool leftStick = (characterData.rangedWeaponSwitchStick == LEFT_STICK);
+	auto radius = (leftStick) ? gamepad.leftStickRadius : gamepad.rightStickRadius;
+	bool stickUsed = radius > RIGHT_STICK_DEADZONE ? true : false;
 
-			bool leftStick = (characterData.rangedWeaponSwitchStick == LEFT_STICK);
-			auto radius = (leftStick) ? gamepad.leftStickRadius : gamepad.rightStickRadius;
-			bool stickUsed = radius > RIGHT_STICK_DEADZONE ? true : false;
+	if (analogSwitchingAllowed) {
+		bool leftStick = (characterData.rangedWeaponSwitchStick == LEFT_STICK);
+		auto radius = (leftStick) ? gamepad.leftStickRadius : gamepad.rightStickRadius;
+		bool stickUsed = radius > RIGHT_STICK_DEADZONE;
 
-			// If swtiching button is down and stick is used, enabled analog switching mode
-			if (isSwitchingButtonDown && stickUsed)
-			{
+		if (!pWeaponWheel->GetAnalogSwitchingMode()) {
+			if (pWeaponWheel->GetSwitchButtonHeldEnough()) {
 				pWeaponWheel->ToggleAnalogSwitchingUI(true);
 			}
-		}
-		else // If in analog switching mode, and the button is let go of, disable the analogswitching mode
-		{
-			bool isSwitchingButtonDown = actorData.buttons[1] & GetBinding(isMelee ? BINDING::CHANGE_DEVIL_ARMS : BINDING::CHANGE_GUN);
 
-			// If swtiching button is not down, disable the analog swithching mode
-			if (!isSwitchingButtonDown)
-			{
+			if ((isSwitchingButtonDown && stickUsed)) {
+				pWeaponWheel->ToggleAnalogSwitchingUI(true, true);
+			}
+		} else {
+			if (!isSwitchingButtonDown) {
 				pWeaponWheel->ToggleAnalogSwitchingUI(false);
 			}
 		}
 	}
+	
+	if (pWeaponWheel->GetAlwaysVisible() != alwaysShow) {
 
-	// If the always visible option is not correctly set, update it
-	if (pWeaponWheel->GetAlwaysVisible() != alwaysShow)
-	{
 		pWeaponWheel->ToggleAlwaysVisible(alwaysShow);
+	}
+
+	if (pWeaponWheel->GetAlwaysVisible() != isSwitchingButtonDown) {
+
+		pWeaponWheel->ToggleAlwaysVisible(isSwitchingButtonDown);
 	}
 
 	state.startTime = ImGui::GetTime();
 
+	pWeaponWheel->UpdateSwitchButtonHeldEnough(isSwitchingButtonDown, 500);
 	pWeaponWheel->OnDraw();
 
 	if (activeCrimsonConfig.WeaponWheel.hide && trackHide) {

@@ -993,7 +993,7 @@ namespace WW
         if (m_AlwaysVisible == true)
         {
             // Reset the animations for hiding, so if they are in the middle of running they reset the state
-            m_AnimData.ResetHidingAnimations();
+            //m_AnimData.ResetHidingAnimations();
 
             for (size_t i = 0; i < m_Weapons.size(); i++)
             {
@@ -1013,27 +1013,38 @@ namespace WW
         }
     }
 
-    void WeaponWheel::ToggleAnalogSwitchingUI(std::optional<bool> state)
-    {
-        // If given a state, will set it, if not toggles the mode
-        m_AnalogSwitching = state.value_or(!m_AnalogSwitching);
+	void WeaponWheel::ToggleAnalogSwitchingUI(std::optional<bool> state, bool instant) {
+		// If given a state, will set it, if not toggles the mode
+		m_AnalogSwitching = state.value_or(!m_AnalogSwitching);
 
-        // Make sure the wheel is not invisble when toggling on
-        if (m_AnalogSwitching)
-        {
-            m_AnimData.ResetASUnhidingAnimations();
-            UpdateCurrentWheelVisibility(SpriteUpdateModes::FullyVisible);
+		// Make sure the wheel is not invisible when toggling on
+		if (m_AnalogSwitching) {
+			if (instant) {
+				// Skip the fade-in animation and show instantly
+				m_AnimData.ResetASUnhidingAnimations(false);
+				UpdateCurrentWheelVisibility(SpriteUpdateModes::FullyVisible);
 
-            m_AnimData.ResetHidingAnimations(false);
-        }
-        else
-        {
-            m_AnimData.ResetASHidingAnimations();
-            m_AnimData.ResetHidingAnimations();
+				// Instantly show the analog arrows at their target opacity
+				for (size_t i = 0; i < m_Weapons.size(); i++) {
+					if (i != m_CurrentActiveSlot) {
+						m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetArrowIdx(i), s_AnalogArrowsOpacity);
+					}
+				}
 
-            m_AnimData.ResetASUnhidingAnimations(false);
-        }
-    }
+				m_AnimData.ResetHidingAnimations(false);
+			} else {
+				// Use fade-in animation as before
+				m_AnimData.ResetASUnhidingAnimations();
+				m_AnimData.ResetHidingAnimations(false);
+			}
+		} else {
+			// Fade out behavior remains the same regardless of instant parameter
+			m_AnimData.ResetASHidingAnimations();
+			m_AnimData.ResetHidingAnimations();
+
+			m_AnimData.ResetASUnhidingAnimations(false);
+		}
+	}
 
     bool WeaponWheel::IsVisible()
     {
@@ -1041,6 +1052,30 @@ namespace WW
         bool hidingTimeoutHit = m_AnimData.HideTimerMs > s_FadeDelay;
 
         return !hidingTimeoutHit || m_AlwaysVisible || m_AnalogSwitching;
+    }
+
+    void WeaponWheel::UpdateSwitchButtonHeldEnough(bool isButtonDown, double ms) {
+		if (isButtonDown) {
+			if (!m_wasButtonDown) {
+				// Button just pressed, start timer
+				m_buttonPressStartTime = std::chrono::steady_clock::now();
+				m_wasButtonDown = true;
+				m_heldLongEnough = false;
+			} else {
+				// Check if button has been held long enough
+				if (!m_heldLongEnough) {
+					auto currentTime = std::chrono::steady_clock::now();
+					auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - m_buttonPressStartTime);
+					if (elapsed.count() >= ms) {
+						m_heldLongEnough = true;
+					}
+				}
+			}
+		} else {
+			// Button not pressed, reset timer
+			m_wasButtonDown = false;
+			m_heldLongEnough = false;
+		}
     }
 
     void WeaponWheel::OnUpdate(double ts)
@@ -1472,7 +1507,7 @@ namespace WW
 
                     for (size_t i = 0; i < m_Weapons.size(); i++) {
                         if (i != m_CurrentActiveSlot) {
-                            m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetArrowIdx(i), std::min(0.0f + float(progress), 0.45f));
+                            m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetArrowIdx(i), std::min(0.0f + float(progress), s_AnalogArrowsOpacity));
                         }
                     }
                 });
@@ -1486,7 +1521,7 @@ namespace WW
 
                     for (size_t i = 0; i < m_Weapons.size(); i++) {
                         if (i != m_CurrentActiveSlot) {
-                            m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetArrowIdx(i), 0.45f);
+                            m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetArrowIdx(i), s_AnalogArrowsOpacity);
                         }
                     }
                 });
@@ -1500,7 +1535,7 @@ namespace WW
 
                     for (size_t i = 0; i < m_Weapons.size(); i++) {
                         if (i != m_CurrentActiveSlot) {
-                            m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetArrowIdx(i), 0.45f);
+                            m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetArrowIdx(i), s_AnalogArrowsOpacity);
                         }
                     }
                 });
@@ -1517,7 +1552,7 @@ namespace WW
                     // Ensure the state is set to normal
                     for (size_t i = 0; i < m_Weapons.size(); i++) {
                         if (i != m_CurrentActiveSlot) {
-                            m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetArrowIdx(i), 0.45f);
+                            m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetArrowIdx(i), s_AnalogArrowsOpacity);
                         }
                     }
                 });
@@ -1529,7 +1564,7 @@ namespace WW
 
                     for (size_t i = 0; i < m_Weapons.size(); i++) {
                         if (i != m_CurrentActiveSlot) {
-                            m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetArrowIdx(i), 0.45f - 0.45f * float(progress));
+                            m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetArrowIdx(i), s_AnalogArrowsOpacity - s_AnalogArrowsOpacity * float(progress));
                         }
                     }
                 });
@@ -1557,7 +1592,7 @@ namespace WW
 
                     for (size_t i = 0; i < m_Weapons.size(); i++) {
                         if (i != m_CurrentActiveSlot) {
-                            m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetArrowIdx(i), 0.45f);
+                            m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetArrowIdx(i), s_AnalogArrowsOpacity);
                         }
                     }
                 });
@@ -1735,7 +1770,7 @@ namespace WW
             for (size_t i = 0; i < m_Weapons.size(); i++)
             {
                 if (i != m_CurrentActiveSlot)
-                    m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetArrowIdx(i), 0.45f);
+                    m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetArrowIdx(i), 0.55f);
             }
         }
 
