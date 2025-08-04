@@ -690,7 +690,7 @@ void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr) {
         for (int i = 0; i < 6; i++) {
             if (i == style) {
                 *drawTextTimes[i] = crimsonPlayer[playerIndex].styleSwitchText.duration;
-                sstext->animSize = activeCrimsonConfig.StyleSwitchFX.Text.size;
+                sstext->animSize = 1.2f * activeCrimsonConfig.StyleSwitchFX.Text.size;
                 
             } else {
                 *drawTextTimes[i] = 0;
