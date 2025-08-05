@@ -2197,7 +2197,7 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 	return false;
 }
 
- {
+ void DummyWeaponWheelController (IDXGISwapChain* pSwapChain) {
 	// We initiate this so that texture lovoid DummyWeaponWheelController(IDXGISwapChain* pSwapChain)ading is done on startup and not when the wheel is opened in-game.
 	static WeaponWheelState dummyWWState;
 

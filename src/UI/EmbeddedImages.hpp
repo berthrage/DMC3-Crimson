@@ -258,8 +258,8 @@ public:
 protected:
 	static constexpr uint32_t	m_CompressedWidth{ 178 };
 	static constexpr uint32_t	m_CompressedHeight{ 250 };
-	static constexpr uint32_t m_ImageCompressedSize{ 58259 };
-	static			 uint32_t m_ImageCompressedData[58260 / 4];
+	static constexpr uint32_t m_ImageCompressedSize{ 97877 };
+	static			 uint32_t m_ImageCompressedData[97880 / 4];
 };
 
 extern RedOrbVanilla g_Image_RedOrbVanilla;
@@ -275,8 +275,8 @@ public:
 protected:
 	static constexpr uint32_t	m_CompressedWidth{ 178 };
 	static constexpr uint32_t	m_CompressedHeight{ 250 };
-	static constexpr uint32_t m_ImageCompressedSize{ 70421 };
-	static			 uint32_t m_ImageCompressedData[70424 / 4];
+	static constexpr uint32_t m_ImageCompressedSize{ 69773 };
+	static			 uint32_t m_ImageCompressedData[69776 / 4];
 };
 
 extern RedOrbStyleSwitcher g_Image_RedOrbStyleSwitcher;
@@ -292,8 +292,8 @@ public:
 protected:
 	static constexpr uint32_t	m_CompressedWidth{ 178 };
 	static constexpr uint32_t	m_CompressedHeight{ 250 };
-	static constexpr uint32_t m_ImageCompressedSize{ 75838 };
-	static			 uint32_t m_ImageCompressedData[75840 / 4];
+	static constexpr uint32_t m_ImageCompressedSize{ 76599 };
+	static			 uint32_t m_ImageCompressedData[76600 / 4];
 };
 
 extern RedOrbCrimson g_Image_RedOrbCrimson;
@@ -309,8 +309,8 @@ public:
 protected:
 	static constexpr uint32_t	m_CompressedWidth{ 178 };
 	static constexpr uint32_t	m_CompressedHeight{ 250 };
-	static constexpr uint32_t m_ImageCompressedSize{ 71431 };
-	static			uint32_t m_ImageCompressedData[71432 / 4];
+	static constexpr uint32_t m_ImageCompressedSize{ 70608 };
+	static			uint32_t m_ImageCompressedData[70608 / 4];
 };
 
 extern RedOrbCustom g_Image_RedOrbCustom;

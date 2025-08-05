@@ -1205,8 +1205,8 @@ void RedOrbCounterWindow() {
 	
 
 	// Main text color
-	//ImU32 mainColor = ImColor(0.83f, 0.85f, 0.858f, alpha); // #D5D9DB
-	ImU32 mainColor = ImColor(1.0f, 1.0f, 1.0f, alpha); // Pure White
+	ImU32 mainColor = ImColor(0.83f, 0.85f, 0.858f, alpha); // #D5D9DB
+	//ImU32 mainColor = ImColor(1.0f, 1.0f, 1.0f, alpha); // Pure White
 
 	// Draw shadow
 	drawList->AddText(backdropFont, fontSize * scaleFactorY, screenTextPos, shadowColor, orbCountStr.c_str());
