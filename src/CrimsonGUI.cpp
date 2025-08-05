@@ -1856,6 +1856,7 @@ void PauseWhenGUIOpened() {
 // 	}
 }
 
+std::unique_ptr<WW::WeaponWheel> dummyWeaponWheel;
 std::unique_ptr<WW::WeaponWheel> meleeWeaponWheel[PLAYER_COUNT];
 std::unique_ptr<WW::WeaponWheel> rangedWeaponWheel[PLAYER_COUNT];
 std::unique_ptr<WW::WeaponWheel>  meleeWorldSpaceWeaponWheel[PLAYER_COUNT];
@@ -2194,6 +2195,24 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 	} 
 	
 	return false;
+}
+
+ {
+	// We initiate this so that texture lovoid DummyWeaponWheelController(IDXGISwapChain* pSwapChain)ading is done on startup and not when the wheel is opened in-game.
+	static WeaponWheelState dummyWWState;
+
+	if (!dummyWeaponWheel) {
+		ID3D11DeviceContext* pDeviceContext = nullptr;
+
+		ID3D11Device* pD3D11Device = nullptr;
+
+		pSwapChain->GetDevice(IID_PPV_ARGS(&pD3D11Device));
+
+		pD3D11Device->GetImmediateContext(&pDeviceContext);
+
+		dummyWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, 100, 100,
+			dummyWWState.currentWeapons[0], activeCrimsonConfig.WeaponWheel.theme == "Crimson" ? dummyWWState.charTheme : WW::WheelThemes::Neutral);
+	}
 }
 
 void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
@@ -14620,6 +14639,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     CrimsonTimers::CallAllTimers();
 
     MultiplayerBars(pSwapChain);
+	DummyWeaponWheelController(pSwapChain);
 	WeaponWheels1PController(pSwapChain);
 	WeaponWheelsMultiplayerController(pSwapChain);
 	WorldSpaceWeaponWheels1PController(pSwapChain);

@@ -11,6 +11,8 @@
 
 namespace WW
 {
+    void LoadSpriteDescs();
+
     enum class WheelThemes
     {
         Neutral = 0,

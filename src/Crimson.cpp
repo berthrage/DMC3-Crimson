@@ -39,6 +39,7 @@
 #include "Core/DebugSwitch.hpp"
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonGameModes.hpp"
+#include "UI/WeaponWheel.hpp"
 
 
 
@@ -286,6 +287,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 			activeCrimsonConfig.Camera.thirdPersonCamera = true;
 			queuedCrimsonConfig.Camera.thirdPersonCamera = true;
 		}
+
         
         CrimsonPatches::HoldToAutoFire(activeCrimsonGameplay.Gameplay.General.holdToShoot);
         CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
@@ -310,6 +312,9 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonPatches::DisableBlendingEffects(false);
         CrimsonPatches::DisableBlendingEffects(activeConfig.disableBlendingEffects);
         CrimsonDetours::ToggleGreenOrbsMPRegen(true);
+
+        // Load Weapon WHeel's Sprites Up Front
+        WW::LoadSpriteDescs();
 
         // Remove FMODGetCodecDescription Label
         SetMemory((appBaseAddr + 0x5505B5), 0, 23, MemoryFlags_VirtualProtectDestination);

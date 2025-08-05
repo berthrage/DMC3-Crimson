@@ -903,8 +903,7 @@ namespace WW
             LoadSpriteDescs();
 
         // Initialize the texture array for the sprites only once
-        if (!s_pTextureArray)
-        {
+        if (!s_pTextureArray) {
             std::vector<std::string> paths;
             paths.reserve(g_SpriteDescs.size());
 
