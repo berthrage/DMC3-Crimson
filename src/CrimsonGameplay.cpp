@@ -3314,9 +3314,29 @@ void GroundTrickFlagSet(byte8* actorBaseAddr) {
     }
 
     if (actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_GROUND_TRICK) { // guarantee attack buffer will come through
-        auto& policy = actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::MELEE_ATTACK];
-        policy = NEXT_ACTION_REQUEST_POLICY::EXECUTE;
+        auto& policyMelee = actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::MELEE_ATTACK];
+		auto& policySword = actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::SWORDMASTER_GUNSLINGER];
+        policyMelee = NEXT_ACTION_REQUEST_POLICY::BUFFER;
+		policySword = NEXT_ACTION_REQUEST_POLICY::BUFFER; 
+        //actorData.state &= ~STATE::BUSY;
     }
+
+    if (actorData.eventData[0].event == ACTOR_EVENT::LANDING) {
+        actorData.verticalPull = -150.0f;
+		auto& policyMelee = actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::MELEE_ATTACK];
+		auto& policySword = actorData.nextActionRequestPolicy[NEXT_ACTION_REQUEST_POLICY::SWORDMASTER_GUNSLINGER];
+		policyMelee = NEXT_ACTION_REQUEST_POLICY::BUFFER;
+		policySword = NEXT_ACTION_REQUEST_POLICY::BUFFER;
+
+        if (actorData.state & STATE::ON_FLOOR) {
+			policyMelee = NEXT_ACTION_REQUEST_POLICY::EXECUTE;
+			policySword = NEXT_ACTION_REQUEST_POLICY::EXECUTE;
+			actorData.permissions = 3080; // This is a softer version of Reset Permissions.
+			actorData.state &= ~STATE::BUSY;
+        }
+    }
+
+
 
     if (actorData.newEntityIndex == 1 && !actorData.doppelganger) return; // visibility set with doppel fix
 
