@@ -585,7 +585,7 @@ void SetAllSFXDistance(int playerIndex, int angle, int distance) {
 void StyleRankCooldownTracker(int rank) {
     rankAnnouncer[rank].trackerRunning = true;
     rankAnnouncer[rank].offCooldown    = false;
-    std::this_thread::sleep_for(std::chrono::seconds(activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSeconds));
+    std::this_thread::sleep_for(std::chrono::seconds(activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSec));
     rankAnnouncer[rank].offCooldown    = true;
     rankAnnouncer[rank].trackerRunning = false;
 }
@@ -606,15 +606,16 @@ void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank
 	float slider = activeCrimsonConfig.SFX.announcerVolume / 100.0f;
 	int volume = (int)(255.0f * slider);
 
+    if (activeCrimsonConfig.SFX.onlyResetAnnouncerWhenHit && !rankAnnouncer[rank - 1].wasHit) {
+        return;
+    }
+
     if (rankAnnouncer[rank - 1].turn == 0 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
         fn_Mix_Volume(CHANNEL::initialStyleRank + (rank - 1), volume);
         fn_Mix_PlayChannel(CHANNEL::initialStyleRank + (rank - 1), styleRankWAV, 0);
         rankAnnouncer[rank - 1].turn++;
 
-        if (!rankAnnouncer[rank - 1].trackerRunning) {
-            std::thread stylerankcooldowntracker(StyleRankCooldownTracker, rank - 1);
-            stylerankcooldowntracker.detach();
-        }
+        rankAnnouncer[rank - 1].timer = activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSec;
 
 
     } else if (rankAnnouncer[rank - 1].turn == 1 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
@@ -622,13 +623,10 @@ void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank
         fn_Mix_PlayChannel(CHANNEL::initialStyleRank + (rank - 1), styleRankWAVAlt, 0);
         rankAnnouncer[rank - 1].turn = 0;
 
-        if (!rankAnnouncer[rank - 1].trackerRunning) {
-            std::thread stylerankcooldowntracker(StyleRankCooldownTracker, rank - 1);
-            stylerankcooldowntracker.detach();
-        }
+        rankAnnouncer[rank - 1].timer = activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSec;
     }
 
-
+    rankAnnouncer[rank - 1].wasHit = false;
     SetCurrentStyleRank(rank - 1);
 }
 

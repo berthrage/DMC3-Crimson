@@ -28,6 +28,7 @@ set(MASM_SRC
     masm/FreeformSoftLockHelper.asm
     masm/GreenOrbsMPRegen.asm
     masm/DMC4LockOnDirection.asm
+    masm/DTMustStyleArmor.asm
     masm/EnemyAITarget.asm
     masm/SetAirTauntAsm.asm
     masm/SkyLaunchAirTaunt.asm

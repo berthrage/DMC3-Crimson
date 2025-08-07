@@ -135,4 +135,5 @@ void ToggleCerbDamageFix(bool enable);
 void ToggleArkhamPt2GrabCrashFix(bool enable);
 void ToggleArkhamPt2DoppelCrashFix(bool enable);
 void ToggleStyleLevellingCCSFix(bool enable);
+void ToggleDTMustStyleArmor(bool enable);
 }

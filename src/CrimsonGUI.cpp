@@ -8479,6 +8479,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				return;
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
+			ImGui::Text("Crazy announcer timer %g \ was hit %d", rankAnnouncer[1].timer, rankAnnouncer[1].wasHit);
 			ImGui::Text("actorData event %d", actorData.eventData[0].event);
 			ImGui::Text("actorData.state %d", actorData.state);
 			ImGui::Text("air Counts Rising Sun Launch %d", crimsonPlayer[0].airCounts.airRisingSunLaunch);
@@ -10202,10 +10203,14 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
-			GUI_InputDefault2<uint32>("Cooldown", activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSeconds, queuedCrimsonConfig.SFX.styleRankAnnouncerCooldownSeconds, defaultCrimsonConfig.SFX.styleRankAnnouncerCooldownSeconds, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			GUI_InputDefault2<uint32>("Cooldown", activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSec, queuedCrimsonConfig.SFX.styleRankAnnouncerCooldownSec, defaultCrimsonConfig.SFX.styleRankAnnouncerCooldownSec, 1, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Duration until the Announcer can repeat the same line.\n\n(in Seconds)");
 			ImGui::PopItemWidth();
+
+			GUI_Checkbox2("Only Reset Cooldown When Hit", activeCrimsonConfig.SFX.onlyResetAnnouncerWhenHit, queuedCrimsonConfig.SFX.onlyResetAnnouncerWhenHit);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Mimics DMC5 Behavior: Announcer is only truly reset when it's off cooldown AND you got hit by an enemy");
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();

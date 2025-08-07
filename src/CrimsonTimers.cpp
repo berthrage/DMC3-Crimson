@@ -483,6 +483,21 @@ void VergilDoppelgangerDrainTimer() {
 	}
 }
 
+void StyleRankAnnouncerCDTimers() {
+    for (int rankId = 0; rankId < 7; rankId++) {
+        auto& timer = rankAnnouncer[rankId].timer;
+		auto& wasHit = rankAnnouncer[rankId].wasHit;
+		auto& offCooldown = rankAnnouncer[rankId].offCooldown;
+
+        if (timer > 0) {
+            timer -= ImGui::GetIO().DeltaTime;
+			offCooldown = false;
+        } else {
+			offCooldown = true;
+        }
+	}
+}
+
 
 void CallAllTimers() {
 	BackToForwardTimers();
@@ -500,6 +515,7 @@ void CallAllTimers() {
 	DTEVFXTimers();
 	VergilDoppelgangerCooldownTimer();
     VergilDoppelgangerDrainTimer();
+    StyleRankAnnouncerCDTimers();
 }
 
 }

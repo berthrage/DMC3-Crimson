@@ -293,7 +293,8 @@ struct CrimsonConfig {
 		uint8 quickInVolume = 100;
 		uint8 quickOutVolume = 100;
 		uint8 announcerVolume = 100;
-		uint32 styleRankAnnouncerCooldownSeconds = 20;
+		uint32 styleRankAnnouncerCooldownSec = 30;
+		bool onlyResetAnnouncerWhenHit = true;
 		uint8 delayedComboEffectType = 0;
 		uint8 delayedComboIndicatorVolume = 100;
 		uint8 royalBlockVolume = 100;
@@ -319,7 +320,8 @@ struct CrimsonConfig {
                 std::make_pair("quickInVolume", &SFX::quickInVolume),
 				std::make_pair("quickOutVolume", &SFX::quickOutVolume),
                 std::make_pair("announcerVolume", &SFX::announcerVolume),
-                std::make_pair("styleRankAnnouncerCooldownSeconds", &SFX::styleRankAnnouncerCooldownSeconds),
+                std::make_pair("styleRankAnnouncerCooldownSec", &SFX::styleRankAnnouncerCooldownSec),
+				std::make_pair("onlyResetAnnouncerWhenHit", &SFX::onlyResetAnnouncerWhenHit),
 				std::make_pair("delayedComboIndicatorVolume", &SFX::delayedComboIndicatorVolume),
 				std::make_pair("delayedComboEffectType", &SFX::delayedComboEffectType),
 				std::make_pair("royalBlockVolume", &SFX::royalBlockVolume),

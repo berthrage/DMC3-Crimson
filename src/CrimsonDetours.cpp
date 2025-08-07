@@ -279,6 +279,12 @@ std::uint64_t g_DanteTrickAlter_ReturnAddr3;
 void DanteTrickAlterationsDetour3();
 std::uint64_t g_DanteTrickAlter_ReturnAddr4;
 void DanteTrickAlterationsDetour4();
+
+// DTMustStyleArmor
+std::uint64_t g_DTMustStyleArmor_ReturnAddr;
+void DTMustStyleArmorDetour();
+void* g_DTMustStyleArmor_CheckCall1;
+void* g_DTMustStyleArmor_CheckCall2;
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -586,6 +592,16 @@ void StyleLevel2Fix(uintptr_t playerAddr) {
 		: heldStyleExpDataVergil;
 	//expData.styleLevels[helper.styleid] = helper.stylelevel;
 	heldStyleExpData.missionStyleLevels[actorData.style] = 2;
+}
+
+bool CheckIfInMustStyle() {
+	return activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode > STYLE_RANK::NONE;
+}
+
+void SetAnnouncerWasHit() {
+	for (int rankId = 0; rankId < 7; rankId++) {
+		rankAnnouncer[rankId].wasHit = true;
+	}
 }
 
 void InitDetours() {
@@ -1437,6 +1453,24 @@ void ToggleStyleLevellingCCSFix(bool enable) {
 	g_StyleLevellingCCSFix_CheckCall2 = &StyleLevel2Fix; 
 	StyleLevellingCCSFixHook2->Toggle(enable);
 
+	run = enable;
+}
+
+void ToggleDTMustStyleArmor(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+	// DTMustStyleArmorDetour
+	// dmc3.exe+27A18C - 41 8B 94 80 D4 A1 27 00  - mov edx,[r8+rax*4+0027A1D4]
+	static std::unique_ptr<Utility::Detour_t> DTMustStyleArmorHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27A18C, &DTMustStyleArmorDetour, 8);
+	g_DTMustStyleArmor_ReturnAddr = DTMustStyleArmorHook->GetReturnAddress();
+	g_DTMustStyleArmor_CheckCall1 = &CheckIfInMustStyle;
+	g_DTMustStyleArmor_CheckCall2 = &SetAnnouncerWasHit;
+	DTMustStyleArmorHook->Toggle(enable);
 	run = enable;
 }
 
