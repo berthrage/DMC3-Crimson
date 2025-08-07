@@ -11737,7 +11737,8 @@ void ExtraDifficultyGameplayOptions() {
 		UI::Combo2("Must Style", styleRankNames, activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode, queuedCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode);
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
-		TooltipHelper("(?)", "Restrict your damage to only apply at specific Style Ranks.");
+		TooltipHelper("(?)", "Restrict your damage to only apply at specific Style Ranks. \n"
+			"Being in Devil Trigger when Must Style is active will shield you from losing your Style Rank when hit.");
 
 		ImGui::TableNextColumn();
 
