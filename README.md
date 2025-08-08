@@ -4,7 +4,7 @@
 DMC3 Crimson is an Overhaul Modification for Devil May Cry 3 (HD Collection version) that aims to bring Co-Op and PVP Multiplayer, High Frame-Rate support, Quality-of-Life improvements, Gameplay changes, Visual and Sound additions, Bugfixes, Cheats and more.
 
 <img src="Public/Screenshot 1.png" alt="Logo" style="width: 400px;"/>  <img src="Public/Screenshot 2.png" alt="Logo" style="width: 400px;"/>  
-<img src="Public/Screenshot 3.png" alt="Logo" style="width: 400px;"/>  <img src="Public/Screenshot 4.png" alt="Logo" style="width: 400px;"/>
+<img src="Public/Screenshot 3.png" alt="Logo" style="width: 400px;"/>  <img src="Public/Screenshot 5.png" alt="Logo" style="width: 400px;"/>
 
 ## FEATURE SET
 • Style, Weapon and Character Switching  
