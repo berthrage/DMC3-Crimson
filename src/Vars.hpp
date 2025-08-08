@@ -5342,8 +5342,11 @@ struct CrimsonPlayerData {
     MoveGravityTweak airFlickerTweak;
     MoveGravityTweak skyDanceTweak;
     MoveGravityTweak ebonyIvoryTweak;
+    MoveGravityTweak lunarPhaseTweak;
+    MoveGravityTweak airTauntRisingSunTweak;
     bool inRisingStar = false;
     bool inAirTauntRisingSun = false;
+    bool lastInAirTauntRisingSun = false;
 
     uintptr_t clonePtr;
     uint8 actionClone     = 0;
@@ -5400,8 +5403,11 @@ struct CrimsonPlayerData {
 	MoveGravityTweak airFlickerTweakClone;
 	MoveGravityTweak skyDanceTweakClone;
     MoveGravityTweak ebonyIvoryTweakClone;
+    MoveGravityTweak lunarPhaseTweakClone;
+    MoveGravityTweak airTauntRisingSunTweakClone;
     bool inRisingStarClone = false;
     bool inAirTauntRisingSunClone = false;
+    bool lastInAirTauntRisingSunClone = false;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];

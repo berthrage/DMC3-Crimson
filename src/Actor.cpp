@@ -3992,6 +3992,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CrimsonGameplay::VergilYamatoHighTime(actorBaseAddr);
     CrimsonGameplay::VergilAirRisingSun(actorBaseAddr);
     CrimsonGameplay::VergilAirTauntRisingSunDetection(actorBaseAddr);
+    CrimsonGameplay::VergilDownertia(actorBaseAddr);
     CrimsonGameplay::LastEventStateQueue(actorBaseAddr);
     CrimsonGameplay::DTInfusedRoyalguardController(actorBaseAddr);
     CrimsonGameplay::DetectCloseToEnemy(actorBaseAddr);

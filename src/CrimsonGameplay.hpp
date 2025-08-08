@@ -18,6 +18,7 @@ void VergilYamatoHighTime(byte8* actorBaseAddr);
 void VergilAdjustAirMovesPos(byte8* actorBaseAddr);
 void VergilAirTauntRisingSunDetection(byte8* actorBaseAddr);
 void VergilAirRisingSun(byte8* actorBaseAddr);
+void VergilDownertia(byte8* actorBaseAddr);
 void FasterDarkslayerTricks();
 float DrainDTBar(float currentDT, float maxDT, float elapsedTime, bool dtOn, float drainTimeDTOn, float drainTimeDTOff);
 float DrainMirageGauge(float currentMP, float elapsedTime, float totalDrainTime);

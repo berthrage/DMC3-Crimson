@@ -10993,7 +10993,7 @@ void DanteGameplayOptions() {
 
 			GUI_PushDisable(!activeConfig.Actor.enable || 
 				!(activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks));
-			if (GUI_Checkbox2("Downertia Flicker/SkyDance",
+			if (GUI_Checkbox2("Downertia",
 				activeCrimsonGameplay.Gameplay.Dante.downertiaFromAirFlickerSkyDance,
 				queuedCrimsonGameplay.Gameplay.Dante.downertiaFromAirFlickerSkyDance,
 				activeCrimsonGameplayMask.Gameplay.Dante.downertiaFromAirFlickerSkyDance)) {
@@ -11001,7 +11001,8 @@ void DanteGameplayOptions() {
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Makes the next move executed before 0.25 seconds of uptime on Air Flicker or Sky Dance have increased downwards inertia. \n"
+			TooltipHelper("(?)", "Makes the next move executed before 0.25 seconds of uptime on Air Flicker or Sky Dance have increased downwards inertia.\n"
+				"Jump Cancelling won't interrupt this behavior.\n"
 				"Requires Aerial Moves Tweaks");
 			GUI_PopDisable(!activeConfig.Actor.enable ||
 				!(activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks));
@@ -11533,6 +11534,20 @@ void VergilGameplayOptions() {
 			TooltipHelper("(?)", "Press Left or Right D-Pad to summon Doppelganger.\n"
 			"Vergil's Doppelganger uses a separate resource called Mirage Gauge, indicated on his HUD as a white bar.\n"
 			"Mirage Gauge refills like DT (but is separate from it), and can be turned on/off at will, without a minimum amount required.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Downertia",
+				activeCrimsonGameplay.Gameplay.Vergil.downertia,
+				queuedCrimsonGameplay.Gameplay.Vergil.downertia,
+				activeCrimsonGameplayMask.Gameplay.Vergil.downertia)) {
+			}
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Executing another move before 0.35 seconds of executing Lunar Phase or Air Taunt Rising Sun will send you downwards quickly.\n"
+				"Jump Cancelling won't interrupt this behavior.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();

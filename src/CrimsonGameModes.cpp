@@ -422,6 +422,7 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.Vergil.airStinger = false;
 	mask.Gameplay.Vergil.yamatoRisingStar = false;
 	mask.Gameplay.Vergil.yamatoHighTime = false;
+	mask.Gameplay.Vergil.downertia = false;
 	mask.Gameplay.Vergil.trickUpNoLockOn = false;
 
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;

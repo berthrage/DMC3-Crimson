@@ -45,6 +45,8 @@ void ActionTimers() {
 			auto& actionTimerNotEventChange = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimerNotEventChange : crimsonPlayer[playerIndex].actionTimerNotEventChangeClone;
             auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
             auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
+            auto& inAirRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inAirTauntRisingSun : crimsonPlayer[playerIndex].inAirTauntRisingSunClone;
+            auto& lastInAirTauntRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastInAirTauntRisingSun : crimsonPlayer[playerIndex].lastInAirTauntRisingSunClone;
 
             if (inAttack) {
                 if (eventData.event != EVENT::PAUSE) {
@@ -62,6 +64,7 @@ void ActionTimers() {
                 actionTimer = 0;
 				actionTimerNotEventChange = 0;
                 lastAction = currentAction;
+                lastInAirTauntRisingSun = inAirRisingSun;
                 currentAction = actorData.action;
             }
         }

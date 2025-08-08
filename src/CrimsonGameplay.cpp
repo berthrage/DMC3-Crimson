@@ -1090,7 +1090,7 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
     auto& gamepad    = GetGamepad(actorData.newPlayerIndex);
 
     auto* v     = (actorData.newEntityIndex == 0) ? &crimsonPlayer[playerIndex].vergilMoves : &crimsonPlayer[playerIndex].vergilMovesClone;
-	auto action = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].action : crimsonPlayer[playerIndex].actionClone;
+	auto action = actorData.action;
 	auto event = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].event : crimsonPlayer[playerIndex].eventClone;
     auto motion = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
     auto state  = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
@@ -1099,6 +1099,10 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
     auto animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
     auto& inAirTauntRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inAirTauntRisingSun :
         crimsonPlayer[playerIndex].inAirTauntRisingSunClone;
+    auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
+    auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
+	auto& tweak = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].lunarPhaseTweak :
+		crimsonPlayer[playerIndex].lunarPhaseTweakClone;
     
     if (actorData.character == CHARACTER::VERGIL) {
 
@@ -1186,6 +1190,71 @@ void VergilAdjustAirMovesPos(byte8* actorBaseAddr) {
 			return;
 		}
     }
+}
+
+void VergilDownertia(byte8* actorBaseAddr) {
+	using namespace ACTION_VERGIL;
+
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (actorData.character != CHARACTER::VERGIL) return;
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
+
+	auto* v = (actorData.newEntityIndex == 0) ? &crimsonPlayer[playerIndex].vergilMoves : &crimsonPlayer[playerIndex].vergilMovesClone;
+	auto action = actorData.action;
+	auto event = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].event : crimsonPlayer[playerIndex].eventClone;
+	auto motion = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motion : crimsonPlayer[playerIndex].motionClone;
+	auto state = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].state : crimsonPlayer[playerIndex].stateClone;
+	auto actionTimer =
+		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
+	auto animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
+	auto& inAirTauntRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inAirTauntRisingSun :
+		crimsonPlayer[playerIndex].inAirTauntRisingSunClone;
+	auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
+	auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
+	auto& lunarPhaseTweak = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].lunarPhaseTweak :
+		crimsonPlayer[playerIndex].lunarPhaseTweakClone;
+	auto& airTauntRisingSunTweak = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].airTauntRisingSunTweak :
+		crimsonPlayer[playerIndex].airTauntRisingSunTweakClone;
+	auto& lastInAirTauntRisingSun = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].lastInAirTauntRisingSun :
+		crimsonPlayer[playerIndex].lastInAirTauntRisingSunClone;
+
+	if (actorData.character != CHARACTER::VERGIL || !activeCrimsonGameplay.Gameplay.Vergil.downertia) {
+		return;
+	}
+
+	// LUNAR PHASE DOWNERTIA
+	if ((action != BEOWULF_LUNAR_PHASE_LEVEL_1 || action != BEOWULF_LUNAR_PHASE_LEVEL_2) &&
+		(lastAction == BEOWULF_LUNAR_PHASE_LEVEL_1 || lastAction == BEOWULF_LUNAR_PHASE_LEVEL_2) &&
+		lastActionTime < 0.35f && !lunarPhaseTweak.hasAppliedVerticalPullMultiplier) {
+		actorData.verticalPullMultiplier = -2.0f; 
+		lunarPhaseTweak.hasAppliedVerticalPullMultiplier = true;
+	}
+
+	if ((action != BEOWULF_LUNAR_PHASE_LEVEL_1 || action != BEOWULF_LUNAR_PHASE_LEVEL_2) || event != ACTOR_EVENT::ATTACK ||
+		((action != BEOWULF_LUNAR_PHASE_LEVEL_1 || action != BEOWULF_LUNAR_PHASE_LEVEL_2) &&
+			(lastAction != BEOWULF_LUNAR_PHASE_LEVEL_1 || lastAction != BEOWULF_LUNAR_PHASE_LEVEL_2))) {
+		// Reset flag if not in the action or the attack event
+		lunarPhaseTweak.hasAppliedVerticalPullMultiplier = false;
+	}
+
+	// AIR TAUNT RISING SUN
+	if ((action != BEOWULF_RISING_SUN) &&
+		(lastAction == BEOWULF_RISING_SUN && lastInAirTauntRisingSun) &&
+		lastActionTime < 0.35f && !airTauntRisingSunTweak.hasAppliedVerticalPullMultiplier) {
+		actorData.verticalPullMultiplier = -2.0f;
+		airTauntRisingSunTweak.hasAppliedVerticalPullMultiplier = true;
+	}
+
+	if ((action != BEOWULF_RISING_SUN) || event != ACTOR_EVENT::ATTACK ||
+		((action != BEOWULF_RISING_SUN) &&
+			(lastAction != BEOWULF_RISING_SUN))) {
+		// Reset flag if not in the action or the attack event
+		airTauntRisingSunTweak.hasAppliedVerticalPullMultiplier = false;
+	}
 }
 
 void FasterDarkslayerTricks() {
