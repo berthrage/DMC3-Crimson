@@ -65,6 +65,7 @@ void ToggleM6CrashFix(bool enable);
 void DisableEnemyTargetting1PPosition(bool enable);
 void ToggleDisableSoulEaterInvis(bool enable);
 void SetEnemyDTMode(uint8 mode);
+void DisableRegularEnemyAttacks(bool enable);
 
 #pragma endregion
 

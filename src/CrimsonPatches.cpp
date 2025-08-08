@@ -1556,6 +1556,23 @@ void SetEnemyDTMode(uint8 mode) {
 	run = mode;
 }
 
+void DisableRegularEnemyAttacks(bool enable) {
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	//dmc3.exe+1C998A - 7E 15                 - jle dmc3.exe+1C99A1
+	if (enable) {
+		_patch((char*)(appBaseAddr + 0x1C998A), (char*)"\xEB\x15", 2); 
+	} else {
+		_patch((char*)(appBaseAddr + 0x1C998A), (char*)"\x7E\x15", 2); 
+	}
+
+	run = enable;
+}
+
 #pragma endregion
 
 # pragma region Damage

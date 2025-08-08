@@ -252,6 +252,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 
         ToggleInfiniteHitPoints(activeCrimsonGameplay.Cheats.Training.infiniteHP);
         ToggleInfiniteMagicPoints(activeCrimsonGameplay.Cheats.Training.infiniteDT);
+        CrimsonPatches::DisableRegularEnemyAttacks(activeCrimsonGameplay.Cheats.Training.disableRegularEnemyAttacks);
         ToggleDisableTimer(activeCrimsonGameplay.Cheats.Training.disableTimers);
         ToggleInfiniteBullets(activeCrimsonGameplay.Cheats.Training.infiniteBossLadyBullets);
         
