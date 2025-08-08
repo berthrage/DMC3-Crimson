@@ -2082,9 +2082,10 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 		pWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y,
 			state.currentWeapons[0], activeCrimsonConfig.WeaponWheel.theme == "Crimson" ? state.charTheme : WW::WheelThemes::Neutral);
 
-		pWeaponWheel->SetActiveSlot(weaponIndex);
-		pWeaponWheel->ToggleAlwaysVisible(alwaysShow);
-		pWeaponWheel->ToggleAnalogSwitchingUI(false);
+		if (pWeaponWheel) {
+			pWeaponWheel->ToggleAlwaysVisible(alwaysShow);
+			pWeaponWheel->ToggleAnalogSwitchingUI(false);
+		}
 
 		state.oldWeaponIndex = weaponIndex;
 	}
