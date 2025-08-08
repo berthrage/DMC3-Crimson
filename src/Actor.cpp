@@ -1044,46 +1044,57 @@ template <typename T> bool IsWeaponActive(T& actorData, uint8 weapon) {
         return false;
     }
 
-    switch (actorData.character) {
-    case CHARACTER::DANTE: {
+switch (actorData.character) {
+case CHARACTER::DANTE:
+{
 
-        if (!IsDanteWeapon(weapon)) {
-            return false;
-        }
-
-        if (motionData.group == (MOTION_GROUP_DANTE::REBELLION + weapon)) {
-            return true;
-        } else if (motionData.group == (MOTION_GROUP_DANTE::SWORDMASTER_REBELLION + weapon)) {
-            return true;
-        }
-
-        break;
-    }
-    case CHARACTER::VERGIL: {
-        if (!IsVergilWeapon(weapon)) {
-            return false;
-        }
-
-        if (motionData.group == (MOTION_GROUP_VERGIL::YAMATO + (weapon - WEAPON::YAMATO_VERGIL))) {
-            return true;
-        }
-
-        break;
-    }
+    if (!IsDanteWeapon(weapon)) {
+        return false;
     }
 
-    return false;
+    if (motionData.group == (MOTION_GROUP_DANTE::REBELLION + weapon)) {
+        return true;
+    } else if (motionData.group == (MOTION_GROUP_DANTE::SWORDMASTER_REBELLION + weapon)) {
+        return true;
+    }
+
+    break;
+}
+case CHARACTER::VERGIL:
+{
+    if (!IsVergilWeapon(weapon)) {
+        return false;
+    }
+
+    if (motionData.group == (MOTION_GROUP_VERGIL::YAMATO + (weapon - WEAPON::YAMATO_VERGIL))) {
+        return true;
+    }
+
+    break;
+}
+}
+
+return false;
 }
 
 #pragma region IsWeaponReady
 
 bool IsMeleeWeaponReady(PlayerActorData& actorData, uint8 weapon) {
+    auto playerIndex = actorData.newPlayerIndex;
+    auto entityIndex = actorData.newEntityIndex;
+    auto& inAirTauntRisingSun = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].inAirTauntRisingSun :
+        crimsonPlayer[playerIndex].inAirTauntRisingSunClone;
+    auto& inRisingStar = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inRisingStar :
+        crimsonPlayer[playerIndex].inRisingStarClone;
+    static bool inRepurposedRisingSun[PLAYER_COUNT][ENTITY_COUNT] = { false };
+
     if (weapon >= WEAPON::MAX) {
         return true;
     }
 
     switch (actorData.character) {
-    case CHARACTER::DANTE: {
+    case CHARACTER::DANTE:
+    {
         if (actorData.devil) {
             if (actorData.sparda) {
                 if (weapon == WEAPON::BEOWULF_DANTE) {
@@ -1126,7 +1137,8 @@ bool IsMeleeWeaponReady(PlayerActorData& actorData, uint8 weapon) {
 
         break;
     }
-    case CHARACTER::VERGIL: {
+    case CHARACTER::VERGIL:
+    {
         if (actorData.devil) {
             if (actorData.neroAngelo) {
                 return false;
@@ -1136,7 +1148,15 @@ bool IsMeleeWeaponReady(PlayerActorData& actorData, uint8 weapon) {
                 }
             }
         } else {
-            if ((weapon == WEAPON::BEOWULF_VERGIL) && activeConfig.hideBeowulfVergil) {
+            if (inRisingStar || inAirTauntRisingSun) {
+                inRepurposedRisingSun[playerIndex][entityIndex] = true;
+            } else if (inRepurposedRisingSun[playerIndex][entityIndex] && 
+                actorData.action != ACTION_VERGIL::BEOWULF_RISING_SUN) {
+                inRepurposedRisingSun[playerIndex][entityIndex] = false;
+            }
+
+            if ((weapon == WEAPON::BEOWULF_VERGIL) && (activeConfig.hideBeowulfVergil || 
+                inRepurposedRisingSun[playerIndex][entityIndex])) {
                 return false;
             }
         }
