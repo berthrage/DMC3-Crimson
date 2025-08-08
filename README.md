@@ -29,6 +29,11 @@ Though Crimson comes configured out of the box for a hassle-free experience, it 
 ## WARNING  
 BACKUP your save files! Crimson has extensive save syncing built-in and things should work just fine. But we will NOT be held responsible for loss of save game data.  
 
+# SUPPORT THE PROJECT
+DMC3 Crimson is completely free and will always be. That said, you could greatly help the project's ongoing development by opting to support [Berthrage's Patreon](https://www.patreon.com/berthrage). A big thanks in advance to those who decide to do it.  
+  
+<img src="Public/Screenshot 4.png" alt="Logo" style="width: 400px;"/>  
+
 ## CREDITS
 # C•Team  
 • Berthrage - Project Director, Lead Programmer, Artist, Reverse Engineering  
