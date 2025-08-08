@@ -194,7 +194,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			window->DrawList->AddImage(logo, logoPos, logoSize);
 
 			// BETA Notice 
-			const char *text = "0.4 PREVIEW BUILD";
+			const char *text = "BETA";
 			ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 0.8f]);
 			ImVec2 textSize = ImGui::CalcTextSize(text);
 			float padding = scaledFontSize * 0.2f;
@@ -10101,6 +10101,8 @@ void TrainingSection() {
 			if (GUI_Checkbox2("Disable Regular Enemy Attacks", activeCrimsonGameplay.Cheats.Training.disableRegularEnemyAttacks, queuedCrimsonGameplay.Cheats.Training.disableRegularEnemyAttacks)) {
 				CrimsonPatches::DisableRegularEnemyAttacks(activeCrimsonGameplay.Cheats.Training.disableRegularEnemyAttacks);
 			}
+			ImGui::SameLine();
+			GUI_WIPButton();
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Does not work for all regular enemies.");
 
