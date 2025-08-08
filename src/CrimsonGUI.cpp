@@ -3805,7 +3805,7 @@ void RenderMissionResultGameModeStats() {
 
 	case GAMEMODEPRESETS::UNRATED:
 		missionResultGameModeString = gameModeData.names[GAMEMODEPRESETS::UNRATED].c_str();
-		gameModeStringColor = applyAlpha(0xFFFFFFFF);
+		gameModeStringColor = applyAlpha(0xD5D9DBFF);
 		break;
 
 	default:
@@ -3815,7 +3815,8 @@ void RenderMissionResultGameModeStats() {
 	}
 
 	// Apply alpha to ImGui style
-	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
+	ImGui::PushStyleColor(ImGuiCol_Text, applyAlpha(0xD5D9DBFF));
+	//ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
 
 	ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
@@ -3951,7 +3952,7 @@ void RenderMissionResultGameModeStats() {
 	}
 
 	ImGui::PopFont();
-	ImGui::PopStyleVar(); // Pop the alpha style var
+	ImGui::PopStyleColor(); // Pop the alpha style var
 }
 
 
@@ -4057,7 +4058,7 @@ void RenderMissionResultCheatsUsed() {
 	}
 
 	// Apply alpha to ImGui style
-	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
+	ImGui::PushStyleColor(ImGuiCol_Text, applyAlpha(0xD5D9DBFF));
 
 	ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(windowSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
@@ -4089,7 +4090,7 @@ void RenderMissionResultCheatsUsed() {
 	}
 
 	ImGui::End();
-	ImGui::PopStyleVar(); // Pop the alpha style var
+	ImGui::PopStyleColor(); // Pop the alpha style var
 }
 
 
