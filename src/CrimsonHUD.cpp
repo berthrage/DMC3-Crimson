@@ -671,6 +671,18 @@ void StyleMeterWindowRank(
 		}
 	}
 
+	if (activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode > 0) {
+		if (currentRank < activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode) {
+			auraColor = 0xccccccFF;
+			fillColor = 0xccccccFF;
+			textColor = 0xccccccFF;
+		} else {
+			auraColor = 0xfff727FF;
+			fillColor = 0xfffdb9FF;
+			textColor = 0xece400FF;
+		}
+	}
+
 	float deltaTime = ImGui::GetIO().DeltaTime;
 	float targetAlpha = active ? 1.0f : 0.0f;
 	float fadeSpeed = 8.0f;
