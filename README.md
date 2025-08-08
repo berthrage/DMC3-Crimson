@@ -43,6 +43,7 @@ DMC3 Crimson is completely free and will always be. That said, you could greatly
 • Vainiuss1 - Artist  
 • Adil - Programmer  
 • Airdragon - Programmer  
+• Tihan - Audio Producer / Mixing  
 • And Lenam was there too  
 
 # DDMK
