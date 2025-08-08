@@ -48,6 +48,8 @@ void EnableAirTauntDetour();
 std::uint64_t g_SetAirTaunt_ReturnAddr;
 std::uint64_t g_SetAirTaunt_Call;
 void SetAirTauntDetour();
+void* g_SetAirTauntSkyLaunchCheckCall;
+void* g_SetAirTauntATRisingSunCheckCall;
 
 // Sky Launch Detours: (Dante Air Taunt)
 // SkyLaunchForceRelease 
@@ -535,6 +537,14 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
 	return false;
 }
 
+bool CheckSkyLaunchEnabled() {
+	return activeCrimsonGameplay.Gameplay.Dante.skyLaunchAirTaunt;
+}
+
+bool CheckAirTauntRisingSunEnabled() {
+	return activeCrimsonGameplay.Gameplay.Vergil.airTauntRisingSun;
+}
+
 uint16 ActorCameraDirectionToEnemyCameraDirection(PlayerActorData& actorData) {
 	if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return actorData.actorCameraDirection;
 	if (!activeConfig.Actor.enable) return actorData.actorCameraDirection;
@@ -1013,6 +1023,8 @@ void AirTauntDetours(bool enable) {
 	g_SetAirTaunt_ReturnAddr = setAirTauntHook->GetReturnAddress();
 	g_SetAirTaunt_Call = (uintptr_t)appBaseAddr + 0x1E09D0;
 	setAirTauntHook->Toggle(enable);
+	g_SetAirTauntSkyLaunchCheckCall = &CheckSkyLaunchEnabled;
+	g_SetAirTauntATRisingSunCheckCall = &CheckAirTauntRisingSunEnabled;
 
 	SkyLaunchDetours(enable);
 

@@ -11133,6 +11133,20 @@ void DanteGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Sky Launch Air Taunt",
+				activeCrimsonGameplay.Gameplay.Dante.skyLaunchAirTaunt,
+				queuedCrimsonGameplay.Gameplay.Dante.skyLaunchAirTaunt,
+				activeCrimsonGameplayMask.Gameplay.Dante.skyLaunchAirTaunt)) {
+			}
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "With any Weapon or Style: Press Taunt button while in air.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Tornado",
 				activeCrimsonGameplay.Gameplay.Dante.airTornado,
 				queuedCrimsonGameplay.Gameplay.Dante.airTornado,
@@ -11505,7 +11519,7 @@ void VergilGameplayOptions() {
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
-			TooltipHelper("(?)", "With Yamato: During Rapid Slash HOLD Melee + Forward.");
+			TooltipHelper("(?)", "With Yamato: During Rapid Slash HOLD Melee + HOLD Forward.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
@@ -11522,6 +11536,22 @@ void VergilGameplayOptions() {
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Air Taunt Rising Sun",
+				activeCrimsonGameplay.Gameplay.Vergil.airTauntRisingSun,
+				queuedCrimsonGameplay.Gameplay.Vergil.airTauntRisingSun,
+				activeCrimsonGameplayMask.Gameplay.Vergil.airTauntRisingSun)) {
+			}
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "With any Weapon: Press Taunt button while in air.\n"
+				"Differs a bit from Air Rising Sun's positioning. ");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Mirage Trigger",
 				activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger,

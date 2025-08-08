@@ -144,6 +144,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	dante.airTornado = true;
 	dante.airRisingDragonLaunch = false;
 	dante.airAgniRudraWhirlwind = false;
+	dante.skyLaunchAirTaunt = false;
 	dante.dmc4Mobility = false;
 	dante.dTInfusedRoyalguard = false;
 	dante.airHikeCoreAbility = true;
@@ -162,6 +163,8 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	vergil.airLunarPhase = true;
 	vergil.altJudgementCutInput = true;
 	vergil.yamatoRisingStar = false;
+	vergil.yamatoHighTime = false;
+	vergil.airTauntRisingSun = false;
 	vergil.mirageTrigger = false;
 	//vergil.adjustRisingSunPos = "Off"; // or whatever vanilla used
 	//vergil.adjustLunarPhasePos = "Off";
@@ -224,6 +227,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	dante.airTornado = true;
 	dante.airRisingDragonLaunch = true;
 	dante.airAgniRudraWhirlwind = true;
+	dante.skyLaunchAirTaunt = true;
 	dante.dmc4Mobility = true;
 	dante.dTInfusedRoyalguard = true;
 	dante.airHikeCoreAbility = true;
@@ -242,8 +246,10 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	vergil.airLunarPhase = true;
 	vergil.altJudgementCutInput = true;
 	vergil.yamatoRisingStar = true;
-	vergil.mirageTrigger = true;
 	vergil.yamatoHighTime = true;
+	vergil.airTauntRisingSun = true;
+	vergil.mirageTrigger = true;
+	
 	//vergil.adjustRisingSunPos = "Off"; // or whatever vanilla used
 	//vergil.adjustLunarPhasePos = "Off";
 
@@ -351,12 +357,14 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Gameplay.Dante.airTornado = false;
 	mask.Gameplay.Dante.airRisingDragonLaunch = false;
 	mask.Gameplay.Dante.airAgniRudraWhirlwind = false;
+	mask.Gameplay.Dante.skyLaunchAirTaunt = false;
 	mask.Gameplay.Dante.airStinger = false;
 	mask.Gameplay.Vergil.airLunarPhase = false;
 	mask.Gameplay.Vergil.airRisingSun = false;
 	mask.Gameplay.Vergil.airStinger = false;
 	mask.Gameplay.Vergil.yamatoRisingStar = false;
 	mask.Gameplay.Vergil.yamatoHighTime = false;
+	mask.Gameplay.Vergil.airTauntRisingSun = false;
 	mask.Gameplay.Vergil.trickUpNoLockOn = false;
 
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
@@ -416,12 +424,14 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.Dante.airTornado = false;
 	mask.Gameplay.Dante.airRisingDragonLaunch = false;
 	mask.Gameplay.Dante.airAgniRudraWhirlwind = false;
+	mask.Gameplay.Dante.skyLaunchAirTaunt = false;
 	mask.Gameplay.Dante.airStinger = false;
 	mask.Gameplay.Vergil.airLunarPhase = false;
 	mask.Gameplay.Vergil.airRisingSun = false;
 	mask.Gameplay.Vergil.airStinger = false;
 	mask.Gameplay.Vergil.yamatoRisingStar = false;
 	mask.Gameplay.Vergil.yamatoHighTime = false;
+	mask.Gameplay.Vergil.airTauntRisingSun = false;
 	mask.Gameplay.Vergil.downertia = false;
 	mask.Gameplay.Vergil.trickUpNoLockOn = false;
 

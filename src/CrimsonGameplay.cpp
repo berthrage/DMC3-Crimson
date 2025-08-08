@@ -1243,7 +1243,7 @@ void VergilDownertia(byte8* actorBaseAddr) {
 
 	// AIR TAUNT RISING SUN
 	if ((action != BEOWULF_RISING_SUN) &&
-		(lastAction == BEOWULF_RISING_SUN && lastInAirTauntRisingSun) &&
+		(lastAction == BEOWULF_RISING_SUN) &&
 		lastActionTime < 0.4f && !airTauntRisingSunTweak.hasAppliedVerticalPullMultiplier) {
 		actorData.verticalPullMultiplier = -2.0f;
 		airTauntRisingSunTweak.hasAppliedVerticalPullMultiplier = true;

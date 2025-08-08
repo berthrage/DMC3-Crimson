@@ -62,6 +62,7 @@ struct CrimsonConfigGameplayMask {
 			bool airTornado = true;
 			bool airRisingDragonLaunch = true;
 			bool airAgniRudraWhirlwind = true;
+			bool skyLaunchAirTaunt = true;
 			bool dmc4Mobility = true;
 			bool dTInfusedRoyalguard = true;
 			bool airHikeCoreAbility = true;
@@ -89,6 +90,7 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("airTornado", &Dante::airTornado),
 					std::make_pair("airRisingDragonLaunch", &Dante::airRisingDragonLaunch),
 					std::make_pair("airAgniRudraWhirlwind", &Dante::airAgniRudraWhirlwind),
+					std::make_pair("skyLaunchAirTaunt", &Dante::skyLaunchAirTaunt),
 					std::make_pair("dmc4Mobility", &Dante::dmc4Mobility),
 					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard),
 					std::make_pair("airHikeCoreAbility", &Dante::airHikeCoreAbility),
@@ -112,6 +114,7 @@ struct CrimsonConfigGameplayMask {
 			bool altJudgementCutInput = true;
 			bool yamatoRisingStar = true;
 			bool yamatoHighTime = true;
+			bool airTauntRisingSun = true;
 			bool mirageTrigger = true;
 			bool downertia = true;
 			bool trickUpNoLockOn = true;
@@ -129,6 +132,7 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("altJudgementCutInput", &Vergil::altJudgementCutInput),
 					std::make_pair("yamatoRisingStar", &Vergil::yamatoRisingStar),
 					std::make_pair("yamatoHighTime", &Vergil::yamatoHighTime),
+					std::make_pair("airTauntRisingSun", &Vergil::airTauntRisingSun),
 					std::make_pair("mirageTrigger", &Vergil::mirageTrigger),
 					std::make_pair("downertia", &Vergil::downertia),
 					std::make_pair("trickUpNoLockOn", &Vergil::trickUpNoLockOn),
