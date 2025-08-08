@@ -4,7 +4,7 @@
 DMC3 Crimson is an Overhaul Modification for Devil May Cry 3 (HD Collection version) that aims to bring Co-Op and PVP Multiplayer, High Frame-Rate support, Quality-of-Life improvements, Gameplay changes, Visual and Sound additions, Bugfixes, Cheats and more.
 
 <img src="Public/Screenshot 1.png" alt="Logo" style="width: 400px;"/>  <img src="Public/Screenshot 2.png" alt="Logo" style="width: 400px;"/>  
-<img src="Public/Screenshot 3.png" alt="Logo" style="width: 400px;"/>  <img src="Public/Screenshot 4.png" alt="Logo" style="width: 400px;"/>
+<img src="Public/Screenshot 3.png" alt="Logo" style="width: 400px;"/>  <img src="Public/Screenshot 5.png" alt="Logo" style="width: 400px;"/>
 
 ## FEATURE SET
 • Style, Weapon and Character Switching  
@@ -34,7 +34,9 @@ Though Crimson comes configured out of the box for a hassle-free experience, it 
 BACKUP your save files! Crimson has extensive save syncing built-in and things should work just fine. But we will NOT be held responsible for loss of save game data.  
 
 # SUPPORT THE PROJECT
-DMC3 Crimson is completely free and will always be. That said, you could greatly help the project's ongoing development by opting to support [Berthrage's Patreon](https://www.patreon.com/berthrage). A big thanks in advance to those who decide to do it.
+DMC3 Crimson is completely free and will always be. That said, you could greatly help the project's ongoing development by opting to support [Berthrage's Patreon](https://www.patreon.com/berthrage). A big thanks in advance to those who decide to do it.  
+  
+<img src="Public/Screenshot 4.png" alt="Logo" style="width: 400px;"/>  
 
 ## CREDITS
 # C•Team  
