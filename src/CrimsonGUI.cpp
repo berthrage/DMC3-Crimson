@@ -11546,7 +11546,7 @@ void VergilGameplayOptions() {
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Executing another move before 0.35 seconds of executing Lunar Phase or Air Taunt Rising Sun will send you downwards quickly.\n"
+			TooltipHelper("(?)", "Executing another move before about 0.35 seconds of executing Lunar Phase or Air Taunt Rising Sun will send you downwards quickly.\n"
 				"Jump Cancelling won't interrupt this behavior.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
