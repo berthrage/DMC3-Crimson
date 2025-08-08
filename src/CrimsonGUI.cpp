@@ -1997,10 +1997,6 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 		return false;
 	}
 
-	if (!isMelee && characterData.character == CHARACTER::VERGIL) {
-		return false;
-	}
-
 	auto& charIndex = actorData.newCharacterIndex;
 	auto& weaponIndex = isMelee ? characterData.meleeWeaponIndex : characterData.rangedWeaponIndex;
 	auto& weaponCount = isMelee ? playerData.characterData[charIndex][ENTITY::MAIN].meleeWeaponCount : playerData.characterData[charIndex][ENTITY::MAIN].rangedWeaponCount;
@@ -2091,6 +2087,10 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 		pWeaponWheel->ToggleAnalogSwitchingUI(false);
 
 		state.oldWeaponIndex = weaponIndex;
+	}
+
+	if (!isMelee && characterData.character == CHARACTER::VERGIL) {
+		return false;
 	}
 
 	if (!pWeaponWheel) {
