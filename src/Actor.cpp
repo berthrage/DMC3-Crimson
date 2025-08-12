@@ -4010,6 +4010,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CrimsonPatches::BulletStop(activeCrimsonGameplay.Gameplay.Dante.bulletStop);
     CrimsonPatches::RainstormLift(activeCrimsonGameplay.Gameplay.Dante.rainstormLift);
     CrimsonPatches::ReduceAirTornadoDamage(activeCrimsonGameplay.Gameplay.Dante.airTornado);
+    CrimsonGameplay::DanteDownertia(actorBaseAddr);
     CrimsonGameplay::FixAirStingerCancelTime(actorBaseAddr);
     CrimsonGameplay::VergilRisingStar(actorBaseAddr);
     CrimsonGameplay::VergilYamatoHighTime(actorBaseAddr);

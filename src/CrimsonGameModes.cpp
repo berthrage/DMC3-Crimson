@@ -71,7 +71,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	dante.infiniteRainstorm = false;
 	dante.foursomeTime = false;
 	dante.aerialMovesTweaks = false;
-	dante.downertiaFromAirFlickerSkyDance = false;
+	dante.downertiaD = false;
 	dante.shotgunAirShotTweaks = false;
 	dante.driveTweaks = false;
 	dante.disableAirSlashKnockback = false;
@@ -135,7 +135,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	dante.infiniteRainstorm = true;
 	dante.foursomeTime = true;
 	dante.aerialMovesTweaks = false;
-	dante.downertiaFromAirFlickerSkyDance = false;
+	dante.downertiaD = false;
 	dante.shotgunAirShotTweaks = false;
 	dante.driveTweaks = false;
 	dante.disableAirSlashKnockback = false;
@@ -218,7 +218,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	dante.infiniteRainstorm = true;
 	dante.foursomeTime = true;
 	dante.aerialMovesTweaks = true;
-	dante.downertiaFromAirFlickerSkyDance = true;
+	dante.downertiaD = true;
 	dante.shotgunAirShotTweaks = true;
 	dante.driveTweaks = true;
 	dante.disableAirSlashKnockback = true;
@@ -418,7 +418,7 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.Dante.swapDancePierceInputs = false;
 	mask.Gameplay.Dante.swapHammerVocalnoInputs = false;
 
-	mask.Gameplay.Dante.downertiaFromAirFlickerSkyDance = false; // This should be optional
+	mask.Gameplay.Dante.downertiaD = false; // This should be optional
 	// NEW MOVES are optional
 	mask.Gameplay.Dante.airRevolver = false;
 	mask.Gameplay.Dante.airTornado = false;

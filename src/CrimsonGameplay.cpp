@@ -2068,20 +2068,6 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
 		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
     auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
 
-	// Fix for the weird carry over to air hike/jump cancel
-// 	if ((event == ACTOR_EVENT::AIR_HIKE && action == CERBERUS_AIR_FLICKER)) {
-// 		actorData.verticalPullMultiplier = -1.5f;
-// 		tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag on jump cancel/air hike
-// 		return;
-// 	}
-
-    // Fix for the weird carry over to air hike/jump cancel
-// 	if ((event == ACTOR_EVENT::ATTACK && action == AGNI_RUDRA_WHIRLWIND_LAUNCH) && lastAction == CERBERUS_AIR_FLICKER) {
-// 		actorData.verticalPullMultiplier = -1.35f;
-// 		tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag on jump cancel/air hike
-// 		return;
-// 	}
-
 	if (event == ACTOR_EVENT::ATTACK && event != ACTOR_EVENT::AIR_HIKE && event != ACTOR_EVENT::JUMP_CANCEL && event != ACTOR_EVENT::JUMP && state & STATE::IN_AIR && actorData.character == CHARACTER::DANTE) {
 
 		if (action == CERBERUS_AIR_FLICKER) {
@@ -2108,13 +2094,6 @@ void AirFlickerGravityTweaks(byte8* actorBaseAddr) {
 		} else {
 			tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag when not in flicker
 		}
-
-        // INTENTIONAL VERTICAL INERTIA BLEED TO OTHER MOVES AFTER 0.7 seconds AND NOT JCING / AIRHIKING
-        if (action != CERBERUS_AIR_FLICKER && lastAction == CERBERUS_AIR_FLICKER && lastActionTime < 0.25f && !tweak->hasAppliedVerticalPullMultiplier &&
-            activeCrimsonGameplay.Gameplay.Dante.downertiaFromAirFlickerSkyDance) {
-            actorData.verticalPullMultiplier = -0.05f + (-0.15f * (actorData.airSwordAttackCount + 6)); // Vanilla value is -0.27f
-            tweak->hasAppliedVerticalPullMultiplier = true;
-        }
 
 	} 
     if (action != CERBERUS_AIR_FLICKER || event != ACTOR_EVENT::ATTACK || (action != CERBERUS_AIR_FLICKER && lastAction != CERBERUS_AIR_FLICKER)) {
@@ -2153,22 +2132,6 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
 	bool inSkyDanceLastAction = (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 || lastAction == AGNI_RUDRA_SKY_DANCE_PART_2);
     auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
 
-	// Fix for the weird carry over to air hike/jump cancel
-// 	if ((event == ACTOR_EVENT::AIR_HIKE || event == ACTOR_EVENT::JUMP_CANCEL) &&
-// 		(action == AGNI_RUDRA_SKY_DANCE_PART_1 || action == AGNI_RUDRA_SKY_DANCE_PART_2)) {
-// 		actorData.verticalPullMultiplier = -1.5f;
-// 		tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag on jump cancel/air hike
-// 		return;
-// 	}
-// 
-// 	// Fix for the weird carry over to air hike/jump cancel
-// 	if ((event == ACTOR_EVENT::ATTACK && action == AGNI_RUDRA_WHIRLWIND_LAUNCH) && (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 ||
-//         lastAction == AGNI_RUDRA_SKY_DANCE_PART_2)) {
-// 		actorData.verticalPullMultiplier = -1.35f;
-// 		tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag on jump cancel/air hike
-// 		return;
-// 	}
-
 	if (event == ACTOR_EVENT::ATTACK && event != ACTOR_EVENT::AIR_HIKE && event != ACTOR_EVENT::JUMP_CANCEL && event != ACTOR_EVENT::JUMP
 		&& state & STATE::IN_AIR && actorData.character == CHARACTER::DANTE) {
 
@@ -2181,14 +2144,6 @@ void SkyDanceGravityTweaks(byte8* actorBaseAddr) {
 			}
 		} else {
 			tweak->hasAppliedVerticalPullMultiplier = false; // Reset flag when not in Sky Dance
-		}
-
-        // INTENTIONAL VERTICAL INERTIA BLEED TO OTHER MOVES AFTER 0.7 seconds AND NOT JCING / AIRHIKING
-        if (!inSkyDance && (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 || lastAction == AGNI_RUDRA_SKY_DANCE_PART_2) && lastActionTime < 0.25f 
-			&& !tweak->hasAppliedVerticalPullMultiplier &&
-			activeCrimsonGameplay.Gameplay.Dante.downertiaFromAirFlickerSkyDance) {
-            actorData.verticalPullMultiplier = (-0.04f * ((actorData.airSwordAttackCount + 6) * 1.6f)); // Vanilla value is -0.04f
-			tweak->hasAppliedVerticalPullMultiplier = true;
 		}
 	}    
 
@@ -2243,6 +2198,63 @@ void EbonyAndIvoryAerialTweaks(byte8* actorBaseAddr) {
 	if (!inEbonyAndIvoryAirShot || event != ACTOR_EVENT::ATTACK) {
 		// Reset flag if not in the action or the attack event
 		tweak->hasAppliedVerticalPullMultiplier = false;
+	}
+}
+
+void DanteDownertia(byte8* actorBaseAddr) {
+	using namespace ACTION_DANTE;
+
+	if (!activeCrimsonGameplay.Gameplay.Dante.downertiaD) {
+		return;
+	}
+
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) return;
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& gamepad = GetGamepad(actorData.newPlayerIndex);
+
+	auto& airFlickerTweak = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].airFlickerTweak :
+		crimsonPlayer[playerIndex].airFlickerTweakClone;
+	auto& skyDanceTweak = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].skyDanceTweak :
+		crimsonPlayer[playerIndex].skyDanceTweakClone;
+	auto action = actorData.action;
+	auto lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
+	auto event = actorData.eventData[0].event;
+	auto motion = actorData.motionData[0].index;
+	auto& state = actorData.state;
+	auto actionTimer =
+		(actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
+
+	bool inSkyDance = (action == AGNI_RUDRA_SKY_DANCE_PART_1 || action == AGNI_RUDRA_SKY_DANCE_PART_2);
+	bool inSkyDanceLastAction = (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 || lastAction == AGNI_RUDRA_SKY_DANCE_PART_2);
+	auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
+
+
+	// AIR FLICKER DOWNERTIA
+	if (action != CERBERUS_AIR_FLICKER && lastAction == CERBERUS_AIR_FLICKER && lastActionTime < 0.30f && !airFlickerTweak.hasAppliedVerticalPullMultiplier) {
+		actorData.verticalPullMultiplier = -0.05f + (-0.15f * (actorData.airSwordAttackCount + 6)); // Vanilla value is -0.27f
+		airFlickerTweak.hasAppliedVerticalPullMultiplier = true;
+	}
+
+	if (action != CERBERUS_AIR_FLICKER || event != ACTOR_EVENT::ATTACK || (action != CERBERUS_AIR_FLICKER && lastAction != CERBERUS_AIR_FLICKER)) {
+		// Reset flag if not in the action or the attack event
+		airFlickerTweak.hasAppliedVerticalPullMultiplier = false;
+	}
+
+
+	// SKY DANCE DOWNERTIA
+	if (!inSkyDance && (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 || lastAction == AGNI_RUDRA_SKY_DANCE_PART_2) && lastActionTime < 0.30f
+		&& !skyDanceTweak.hasAppliedVerticalPullMultiplier) {
+		actorData.verticalPullMultiplier = (-0.04f * ((actorData.airSwordAttackCount + 6) * 1.6f)); // Vanilla value is -0.04f
+		skyDanceTweak.hasAppliedVerticalPullMultiplier = true;
+	}
+
+	if (!inSkyDance || event != ACTOR_EVENT::ATTACK) {
+		// Reset flag if not in the action or the attack event
+		skyDanceTweak.hasAppliedVerticalPullMultiplier = false;
 	}
 }
 

@@ -10994,21 +10994,18 @@ void DanteGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
-			GUI_PushDisable(!activeConfig.Actor.enable || 
-				!(activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks));
+			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Downertia",
-				activeCrimsonGameplay.Gameplay.Dante.downertiaFromAirFlickerSkyDance,
-				queuedCrimsonGameplay.Gameplay.Dante.downertiaFromAirFlickerSkyDance,
-				activeCrimsonGameplayMask.Gameplay.Dante.downertiaFromAirFlickerSkyDance)) {
+				activeCrimsonGameplay.Gameplay.Dante.downertiaD,
+				queuedCrimsonGameplay.Gameplay.Dante.downertiaD,
+				activeCrimsonGameplayMask.Gameplay.Dante.downertiaD)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Makes the next move executed before 0.25 seconds of uptime on Air Flicker or Sky Dance have increased downwards inertia.\n"
-				"Jump Cancelling won't interrupt this behavior.\n"
-				"Requires Aerial Moves Tweaks");
-			GUI_PopDisable(!activeConfig.Actor.enable ||
-				!(activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks));
+			TooltipHelper("(?)", "Makes the next move executed before 0.35 seconds of uptime on Air Flicker or Sky Dance have increased downwards inertia.\n"
+				"Jump Cancelling won't interrupt this behavior.\n");
+			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
 
