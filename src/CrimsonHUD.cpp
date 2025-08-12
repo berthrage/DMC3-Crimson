@@ -536,7 +536,6 @@ void RenderSkewedMeterWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, flo
 
 	// EXTREME skew and pointiness
 	float skewAmount = (1.0f - skewT) * 4.2f;
-	float pointy = (1.0f - skewT) * 6.0f;
 
 	ImVec2 fillPos = ImVec2(pos.x, pos.y + size.y - visibleHeight);
 	float fillTop = fillPos.y;
@@ -545,10 +544,10 @@ void RenderSkewedMeterWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, flo
 	ImVec2 center = ImVec2(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
 
 	ImVec2 corners[4] = {
-		ImVec2(pos.x - size.x * skewAmount, fillTop + visibleHeight * pointy),                  // Top-left
-		ImVec2(pos.x + size.x + size.x * skewAmount, fillTop + visibleHeight * pointy),         // Top-right
-		ImVec2(pos.x + size.x, fillBottom),                                                     // Bottom-right
-		ImVec2(pos.x, fillBottom)                                                               // Bottom-left
+		ImVec2(pos.x + size.x * skewAmount * 2.0f, fillTop),                                   // Top-left - far right when animating
+		ImVec2(pos.x + size.x + size.x * skewAmount, fillTop),                                 // Top-right - even further right
+		ImVec2(pos.x + size.x, fillBottom),                                                     // Bottom-right - normal
+		ImVec2(pos.x + size.x * skewAmount, fillBottom)                                        // Bottom-left - also pulled right
 	};
 
 	float uvFill = 1.0f - fillRatio;
@@ -581,13 +580,12 @@ void RenderSkewedMeterWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, flo
 void RenderSkewedTexture(ImTextureID texture, ImVec2 pos, ImVec2 size, ImColor color, float angle, float skewT) {
 	ImVec2 center = pos + size * 0.5f;
 	float skewAmount = (1.0f - skewT) * 4.2f;
-	float pointy = (1.0f - skewT) * 6.0f;
 
 	ImVec2 corners[4] = {
-		ImVec2(pos.x - size.x * skewAmount, pos.y + size.y * pointy),                  // Top-left
-		ImVec2(pos.x + size.x + size.x * skewAmount, pos.y + size.y * pointy),         // Top-right
-		ImVec2(pos.x + size.x, pos.y + size.y),                                        // Bottom-right
-		ImVec2(pos.x, pos.y + size.y)                                                  // Bottom-left
+		ImVec2(pos.x + size.x * skewAmount * 2.0f, pos.y),                             // Top-left - far right when animating
+		ImVec2(pos.x + size.x + size.x * skewAmount, pos.y),                           // Top-right - even further right
+		ImVec2(pos.x + size.x, pos.y + size.y),                                        // Bottom-right - normal
+		ImVec2(pos.x + size.x * skewAmount, pos.y + size.y)                            // Bottom-left - also pulled right
 	};
 
 	if (angle != 0.0f) {
@@ -775,11 +773,11 @@ void StyleMeterWindowRank(
 			};
 
 		float phase1 = 0.55f;
-		float centerDist = meterSize.x * 1.2f * animIntensity;
+		float centerDist = meterSize.x * animIntensity;
 
 		if (t < phase1) {
 			float t1 = easeInOut(t / phase1);
-			animOffset.x = -centerDist * (1.0f - t1);
+			animOffset.x = centerDist * (1.0f - t1);
 			skewT = t1 * 0.5f;
 			animScale = 2.8f - 1.2f * t1;
 			animAngle = (1.0f - t1) * 0.18f * sinf(t1 * 8.0f);
