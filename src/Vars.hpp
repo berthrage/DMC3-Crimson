@@ -3187,8 +3187,9 @@ struct PlayerActorDataBase : ActorDataBase {
     _(4);
     float var_3EC4; // 0x3EC4
     float var_3EC8; // 0x3EC8
-    _(6);
-    uint16 var_3ED2; // 0x3ED2
+    _(4);
+    uint16 inertiaRotation; // 0x3ED0
+    uint16 inertiaRotation2; // 0x3ED2
     _(4);
     uint16 cameraDirection; // 0x3ED8
     _(2);
@@ -3352,7 +3353,8 @@ static_assert(offsetof(PlayerActorDataBase, magicPoints) == 0x3EB8);
 static_assert(offsetof(PlayerActorDataBase, maxMagicPoints) == 0x3EBC);
 static_assert(offsetof(PlayerActorDataBase, var_3EC4) == 0x3EC4);
 static_assert(offsetof(PlayerActorDataBase, var_3EC8) == 0x3EC8);
-static_assert(offsetof(PlayerActorDataBase, var_3ED2) == 0x3ED2);
+static_assert(offsetof(PlayerActorDataBase, inertiaRotation) == 0x3ED0);
+static_assert(offsetof(PlayerActorDataBase, inertiaRotation2) == 0x3ED2);
 static_assert(offsetof(PlayerActorDataBase, cameraDirection) == 0x3ED8);
 static_assert(offsetof(PlayerActorDataBase, var_3EDC) == 0x3EDC);
 static_assert(offsetof(PlayerActorDataBase, airHikeCount) == 0x3F11);

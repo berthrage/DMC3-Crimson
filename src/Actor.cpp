@@ -182,6 +182,9 @@ template <typename T1, typename T2> void CopyState(T1& activeActorData, T2& acto
     actorData.verticalPull             = activeActorData.verticalPull;
     actorData.verticalPullMultiplier   = activeActorData.verticalPullMultiplier;
     actorData.rotation                 = activeActorData.rotation;
+    actorData.inertiaRotation = activeActorData.inertiaRotation;
+    actorData.inertiaRotation2 = activeActorData.inertiaRotation2;
+    actorData.lockOnData = activeActorData.lockOnData;
     actorData.horizontalPull           = activeActorData.horizontalPull;
     actorData.horizontalPullMultiplier = activeActorData.horizontalPullMultiplier;
 
@@ -4629,6 +4632,8 @@ void CharacterSwitchController() {
 
     actorData.position = activeActorData.position;
     actorData.rotation = activeActorData.rotation;
+    actorData.inertiaRotation = activeActorData.inertiaRotation;
+    actorData.inertiaRotation2 = activeActorData.inertiaRotation2;
 }();
 
 // Force Sync Hit & Magic Points
