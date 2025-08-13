@@ -1235,6 +1235,51 @@ void ToggleDanteTrickAlterations(bool enable) {
 	run = enable;
 }
 
+static std::unique_ptr<Utility::Detour_t> danteTrickMoveHook;
+
+static constexpr auto DANTE_TRICK_OFFSET() { return 0x1F1EF0; }
+
+
+//void __fastcall sub_1401F1EF0(int64_t mainplayer, int64_t a2, int64_t a3, int a4)
+static uintptr_t __fastcall sub_1401F1EF0(int64_t mainplayer, int64_t a2, int64_t a3, int a4) {
+	typedef int64_t(__fastcall* sub_1401F1EF0)(int64_t, int64_t, int64_t,int);
+
+	uintptr_t trampoline_raw = danteTrickMoveHook->GetTrampoline();
+	sub_1401F1EF0 trampoline = (sub_1401F1EF0)trampoline_raw;
+
+
+	uintptr_t res; //will store function result when we calculate it
+	//res = trampoline(mainplayer, a2, a3, a4);
+	
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(mainplayer);
+	if (actorData.recoverState[0] != 0) return trampoline(mainplayer, a2, a3, a4);
+	if (!activeCrimsonGameplay.Gameplay.Dante.groundTrick) return trampoline(mainplayer, a2, a3, a4);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& b2F = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].b2F : crimsonPlayer[playerIndex].b2FClone;
+	auto& playerData = GetPlayerData(playerIndex);
+	auto entityIndex = actorData.newEntityIndex;
+	auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, entityIndex);
+
+	if (actorData.character != CHARACTER::DANTE) return trampoline(mainplayer, a2, a3, a4);
+
+	if (actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK && b2F.forwardCommand) {
+		actorData.eventData[0].event = ACTOR_EVENT::TRICKSTER_GROUND_TRICK; // set g. trick flag for the detour
+		newActorData.visibility = 2; // hide dante's model
+	}
+	
+	res = trampoline(mainplayer, a2, a3,a4);
+	return res;
+}
+
+void DanteTeleportPlayerTrick() {
+	danteTrickMoveHook =
+		std::make_unique<Utility::Detour_t>(
+			(uintptr_t)appBaseAddr + DANTE_TRICK_OFFSET(),
+			(uintptr_t)&sub_1401F1EF0,
+			NULL, "dante_switch_detour");
+	bool res = danteTrickMoveHook->Toggle();
+	assert(res);
+}
 
 void ToggleFixSecretMissionTimerFPS(bool enable) {
 	// This will untie the Secret Mission timer from FPS settings (ie no longer spawning with half the time when playing at 120 fps).

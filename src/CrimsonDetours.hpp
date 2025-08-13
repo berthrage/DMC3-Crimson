@@ -126,6 +126,9 @@ void ToggleGreenOrbsMPRegen(bool enable);
 void ToggleClassicHUDPositionings(bool enable);
 void ToggleStyleRankHudNoFadeout(bool enable);
 void ToggleDanteTrickAlterations(bool enable);
+
+void DanteTeleportPlayerTrick();
+
 void ToggleFixBallsHangHitSpeed(bool enable);
 void ToggleFixSecretMissionTimerFPS(bool enable);
 void ToggleCerberusCrashFix(bool enable);

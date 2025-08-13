@@ -276,6 +276,10 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         Hooks::Init();
 
         CrimsonDetours::InitDetours();
+
+        CrimsonDetours::DanteTeleportPlayerTrick();
+
+
         if (activeConfig.Actor.enable) {
             CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
         }

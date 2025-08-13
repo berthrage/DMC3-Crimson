@@ -3378,8 +3378,8 @@ void GroundTrickFlagSet(byte8* actorBaseAddr) {
 	if (actorData.character != CHARACTER::DANTE) return;
 
     if (actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK && b2F.forwardCommand) {
-        actorData.eventData[0].event = ACTOR_EVENT::TRICKSTER_GROUND_TRICK; // set g. trick flag for the detour
-        newActorData.visibility = 2; // hide dante's model
+       // actorData.eventData[0].event = ACTOR_EVENT::TRICKSTER_GROUND_TRICK; // set g. trick flag for the detour
+       // newActorData.visibility = 2; // hide dante's model
     }
 
     if (actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_GROUND_TRICK) { // guarantee attack buffer will come through

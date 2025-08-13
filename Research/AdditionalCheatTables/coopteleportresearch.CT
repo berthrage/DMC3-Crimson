@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="46">
+  <CheatEntries>
+    <CheatEntry>
+      <ID>2973</ID>
+      <Description>"lie to trick about enemy distance"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2025-07-21
+  Author : Siyan
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+aobscanmodule(fgdfdgfgdgdf,dmc3.exe,E8 27 C5 13 00) // should be unique
+alloc(newmem,$1000,fgdfdgfgdgdf) // dmc3.exe+1F2104
+label(code)
+label(return)
+
+newmem:
+  dd (float)3600
+  dd (float)0
+  dd (float)2800
+newmem2:
+  lea rdx,[newmem]
+code:
+  call dmc3.exe+32E630
+  jmp return
+
+fgdfdgfgdgdf:
+  jmp newmem2
+return:
+registersymbol(fgdfdgfgdgdf)
+
+[DISABLE]
+fgdfdgfgdgdf:
+  db E8 27 C5 13 00
+unregistersymbol(fgdfdgfgdgdf)
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1F2104
+
+dmc3.exe+1F20C6: 44 0F 29 44 24 50           - movaps [rsp+50],xmm8
+dmc3.exe+1F20CC: 44 0F 29 4C 24 40           - movaps [rsp+40],xmm9
+dmc3.exe+1F20D2: E8 99 EA FE FF              - call dmc3.exe+1E0B70
+dmc3.exe+1F20D7: 80 BF 2C 3E 00 00 01        - cmp byte ptr [rdi+00003E2C],01
+dmc3.exe+1F20DE: 0F 57 FF                    - xorps xmm7,xmm7
+dmc3.exe+1F20E1: 0F 85 80 00 00 00           - jne dmc3.exe+1F2167
+dmc3.exe+1F20E7: 48 89 9C 24 90 00 00 00     - mov [rsp+00000090],rbx
+dmc3.exe+1F20EF: 48 8D 97 D0 3F 00 00        - lea rdx,[rdi+00003FD0]
+dmc3.exe+1F20F6: 48 8B 9F E8 3D 00 00        - mov rbx,[rdi+00003DE8]
+dmc3.exe+1F20FD: 48 8D 8F 80 00 00 00        - lea rcx,[rdi+00000080]
+// ---------- INJECTING HERE ----------
+dmc3.exe+1F2104: E8 27 C5 13 00              - call dmc3.exe+32E630
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1F2109: F3 0F 10 B7 D4 3F 00 00     - movss xmm6,[rdi+00003FD4]
+dmc3.exe+1F2111: F3 0F 5C 83 98 02 00 00     - subss xmm0,[rbx+00000298]
+dmc3.exe+1F2119: F3 0F 5C B7 84 00 00 00     - subss xmm6,[rdi+00000084]
+dmc3.exe+1F2121: 48 8B 87 E8 3D 00 00        - mov rax,[rdi+00003DE8]
+dmc3.exe+1F2128: F3 44 0F 10 83 94 02 00 00  - movss xmm8,[rbx+00000294]
+dmc3.exe+1F2131: F3 44 0F 5D C0              - minss xmm8,xmm0
+dmc3.exe+1F2136: F3 44 0F 10 88 9C 02 00 00  - movss xmm9,[rax+0000029C]
+dmc3.exe+1F213F: 0F 28 C6                    - movaps xmm0,xmm6
+dmc3.exe+1F2142: E8 49 B8 13 00              - call dmc3.exe+32D990
+dmc3.exe+1F2147: 41 0F 2F C1                 - comiss xmm0,xmm9
+}
+</AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2976</ID>
+      <Description>"lie to trick about enemy distance again because its accessed twice for some reason"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2025-07-21
+  Author : Siyan
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+
+aobscanmodule(fdgfgddfgdfg,dmc3.exe,E8 89 C6 13 00) // should be unique
+alloc(newmem,$1000,fdgfgddfgdfg) // dmc3.exe+1F1FA2
+
+label(code)
+label(return)
+
+newmem:
+  dd (float)3600
+  dd (float)0
+  dd (float)2800
+newmem2:
+  lea rdx,[newmem]
+code:
+  call dmc3.exe+32E630
+  jmp return
+
+fdgfgddfgdfg:
+  jmp newmem2
+return:
+registersymbol(fdgfgddfgdfg)
+
+[DISABLE]
+
+fdgfgddfgdfg:
+  db E8 89 C6 13 00
+
+unregistersymbol(fdgfgddfgdfg)
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1F1FA2
+
+dmc3.exe+1F1F73: 48 81 C4 80 00 00 00     - add rsp,00000080
+dmc3.exe+1F1F7A: 5F                       - pop rdi
+dmc3.exe+1F1F7B: C3                       - ret 
+dmc3.exe+1F1F7C: 0F B7 97 D0 3E 00 00     - movzx edx,word ptr [rdi+00003ED0]
+dmc3.exe+1F1F83: 48 8B CF                 - mov rcx,rdi
+dmc3.exe+1F1F86: E8 95 9E 00 00           - call dmc3.exe+1FBE20
+dmc3.exe+1F1F8B: 80 BF 2C 3E 00 00 01     - cmp byte ptr [rdi+00003E2C],01
+dmc3.exe+1F1F92: 75 2F                    - jne dmc3.exe+1F1FC3
+dmc3.exe+1F1F94: 48 8D 97 D0 3F 00 00     - lea rdx,[rdi+00003FD0]
+dmc3.exe+1F1F9B: 48 8D 8F 80 00 00 00     - lea rcx,[rdi+00000080]
+// ---------- INJECTING HERE ----------
+dmc3.exe+1F1FA2: E8 89 C6 13 00           - call dmc3.exe+32E630
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1F1FA7: 48 8B 87 E8 3D 00 00     - mov rax,[rdi+00003DE8]
+dmc3.exe+1F1FAE: F3 0F 10 88 98 02 00 00  - movss xmm1,[rax+00000298]
+dmc3.exe+1F1FB6: 0F 2F C8                 - comiss xmm1,xmm0
+dmc3.exe+1F1FB9: 76 08                    - jna dmc3.exe+1F1FC3
+dmc3.exe+1F1FBB: 48 8B CF                 - mov rcx,rdi
+dmc3.exe+1F1FBE: E8 CD 89 00 00           - call dmc3.exe+1FA990
+dmc3.exe+1F1FC3: F3 0F 10 8F 34 3E 00 00  - movss xmm1,[rdi+00003E34]
+dmc3.exe+1F1FCB: 0F 57 C0                 - xorps xmm0,xmm0
+dmc3.exe+1F1FCE: F3 0F 5C 4F 14           - subss xmm1,[rdi+14]
+dmc3.exe+1F1FD3: 0F 2F C1                 - comiss xmm0,xmm1
+}
+</AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2981</ID>
+      <Description>"lie to trick about enemy location"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2025-07-21
+  Author : Siyan
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+aobscanmodule(fggfdfdgdfg,dmc3.exe,0F B7 87 36 62 00 00 0F) // should be unique
+alloc(newmem,$1000,fggfdfdgdfg) // dmc3.exe+1F2240
+label(code)
+label(return)
+
+newmem:
+  dd (float)3600
+  dd (float)0
+  dd (float)2800
+newmem2:
+  mov rcx,rdi
+  lea rdx,[newmem]
+  call dmc3.exe+1FAC60
+code:
+  //movzx eax,word ptr [rdi+00006236]
+  jmp return
+
+fggfdfdgdfg:
+  jmp newmem2
+  nop 2
+return:
+registersymbol(fggfdfdgdfg)
+
+[DISABLE]
+fggfdfdgdfg:
+  db 0F B7 87 36 62 00 00
+unregistersymbol(fggfdfdgdfg)
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1F2240
+
+dmc3.exe+1F220F: E8 CC EC FE FF        - call dmc3.exe+1E0EE0
+dmc3.exe+1F2214: EB 0B                 - jmp dmc3.exe+1F2221
+dmc3.exe+1F2216: 41 B8 10 00 00 00     - mov r8d,Crimson.stbi__de_iphone_flag_set
+dmc3.exe+1F221C: E8 6F D9 FF FF        - call dmc3.exe+1EFB90
+dmc3.exe+1F2221: 0F B6 87 29 62 00 00  - movzx eax,byte ptr [rdi+00006229]
+dmc3.exe+1F2228: C6 87 5E 63 00 00 00  - mov byte ptr [rdi+0000635E],00
+dmc3.exe+1F222F: 88 87 2C 3E 00 00     - mov [rdi+00003E2C],al
+dmc3.exe+1F2235: 3C 01                 - cmp al,01
+dmc3.exe+1F2237: 75 17                 - jne dmc3.exe+1F2250
+dmc3.exe+1F2239: 0F 28 87 00 63 00 00  - movaps xmm0,[rdi+00006300]
+// ---------- INJECTING HERE ----------
+dmc3.exe+1F2240: 0F B7 87 36 62 00 00  - movzx eax,word ptr [rdi+00006236]
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1F2247: 0F 29 87 D0 3F 00 00  - movaps [rdi+00003FD0],xmm0
+dmc3.exe+1F224E: EB 07                 - jmp dmc3.exe+1F2257
+dmc3.exe+1F2250: 0F B7 87 C0 00 00 00  - movzx eax,word ptr [rdi+000000C0]
+dmc3.exe+1F2257: 33 D2                 - xor edx,edx
+dmc3.exe+1F2259: 66 89 87 D0 3E 00 00  - mov [rdi+00003ED0],ax
+dmc3.exe+1F2260: 48 8B CF              - mov rcx,rdi
+dmc3.exe+1F2263: E8 E8 ED FE FF        - call dmc3.exe+1E1050
+dmc3.exe+1F2268: 0F B6 87 9E 3E 00 00  - movzx eax,byte ptr [rdi+00003E9E]
+dmc3.exe+1F226F: 83 F8 07              - cmp eax,07
+dmc3.exe+1F2272: 0F 87 84 00 00 00     - ja dmc3.exe+1F22FC
+}
+</AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2955</ID>
+      <Description>"player ptr"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>8 Bytes</VariableType>
+      <Address>dmc3.exe+168</Address>
+      <Offsets>
+        <Offset>0</Offset>
+        <Offset>18</Offset>
+        <Offset>00C90E28</Offset>
+      </Offsets>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>2956</ID>
+          <Description>"+80 x"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>+80</Offset>
+            <Offset>18</Offset>
+            <Offset>00C90E28</Offset>
+          </Offsets>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2982</ID>
+          <Description>"+88 z"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>+88</Offset>
+            <Offset>18</Offset>
+            <Offset>00C90E28</Offset>
+          </Offsets>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2987</ID>
+          <Description>"event flag"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>+3e00</Offset>
+            <Offset>18</Offset>
+            <Offset>00C90E28</Offset>
+          </Offsets>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2983</ID>
+      <Description>"lie to trick about enemy distance v2"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2025-08-13
+  Author : NecessaryEvil
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+
+
+aobscanmodule(trickdistance1,dmc3.exe,48 8D 97 D0 3F 00 00 48 8B) // should be unique
+alloc(newmem,$1000,trickdistance1)
+
+label(code)
+label(OriginalCode)
+label(return)
+
+newmem:
+  dd (float)3600
+  dd (float)0
+  dd (float)2800
+code:
+  cmp word ptr [rdi+3e00], 30
+  jne OriginalCode
+  lea rdx,[newmem]
+  jmp return
+
+OriginalCode:
+  lea rdx,[rdi+00003FD0]
+  jmp return
+
+trickdistance1:
+  jmp code
+  nop 2
+return:
+registersymbol(trickdistance1)
+
+[DISABLE]
+
+trickdistance1:
+  db 48 8D 97 D0 3F 00 00
+
+unregistersymbol(trickdistance1)
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1F20EF
+
+dmc3.exe+1F20B7: 8B 88 90 02 00 00        - mov ecx,[rax+00000290]
+dmc3.exe+1F20BD: 89 8F 34 3E 00 00        - mov [rdi+00003E34],ecx
+dmc3.exe+1F20C3: 48 8B CF                 - mov rcx,rdi
+dmc3.exe+1F20C6: 44 0F 29 44 24 50        - movaps [rsp+50],xmm8
+dmc3.exe+1F20CC: 44 0F 29 4C 24 40        - movaps [rsp+40],xmm9
+dmc3.exe+1F20D2: E8 99 EA FE FF           - call dmc3.exe+1E0B70
+dmc3.exe+1F20D7: 80 BF 2C 3E 00 00 01     - cmp byte ptr [rdi+00003E2C],01
+dmc3.exe+1F20DE: 0F 57 FF                 - xorps xmm7,xmm7
+dmc3.exe+1F20E1: 0F 85 80 00 00 00        - jne dmc3.exe+1F2167
+dmc3.exe+1F20E7: 48 89 9C 24 90 00 00 00  - mov [rsp+00000090],rbx
+// ---------- INJECTING HERE ----------
+dmc3.exe+1F20EF: 48 8D 97 D0 3F 00 00     - lea rdx,[rdi+00003FD0]
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1F20F6: 48 8B 9F E8 3D 00 00     - mov rbx,[rdi+00003DE8]
+dmc3.exe+1F20FD: 48 8D 8F 80 00 00 00     - lea rcx,[rdi+00000080]
+dmc3.exe+1F2104: E8 27 C5 13 00           - call dmc3.exe+32E630
+dmc3.exe+1F2109: F3 0F 10 B7 D4 3F 00 00  - movss xmm6,[rdi+00003FD4]
+dmc3.exe+1F2111: F3 0F 5C 83 98 02 00 00  - subss xmm0,[rbx+00000298]
+dmc3.exe+1F2119: F3 0F 5C B7 84 00 00 00  - subss xmm6,[rdi+00000084]
+dmc3.exe+1F2121: 48 8B 87 E8 3D 00 00     - mov rax,[rdi+00003DE8]
+dmc3.exe+1F2128: E9 2B E2 00 C0           - jmp 100200358
+dmc3.exe+1F212D: CC                       - int 3 
+dmc3.exe+1F212E: CC                       - int 3 
+}
+</AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2984</ID>
+      <Description>"lie to trick about enemy distance 2 v2"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2025-08-13
+  Author : NecessaryEvil
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+
+aobscanmodule(trickdistance2,dmc3.exe,48 8D 97 D0 3F 00 00 48 8D) // should be unique
+alloc(newmem,$1000,trickdistance2)
+
+label(code)
+label(OriginalCode)
+label(return)
+
+newmem:
+  dd (float)3600
+  dd (float)0
+  dd (float)2800
+
+code:
+  cmp word ptr [rdi+3e00], 30
+  jne OriginalCode
+  lea rdx,[newmem]
+  jmp return
+
+OriginalCode:
+  lea rdx,[rdi+00003FD0]
+  jmp return
+
+trickdistance2:
+  jmp code
+  nop 2
+return:
+registersymbol(trickdistance2)
+
+[DISABLE]
+
+trickdistance2:
+  db 48 8D 97 D0 3F 00 00
+
+unregistersymbol(trickdistance2)
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1F1F94
+
+dmc3.exe+1F1F68: F3 0F 11 44 24 20        - movss [rsp+20],xmm0
+dmc3.exe+1F1F6E: E8 2D DE FE FF           - call dmc3.exe+1DFDA0
+dmc3.exe+1F1F73: 48 81 C4 80 00 00 00     - add rsp,00000080
+dmc3.exe+1F1F7A: 5F                       - pop rdi
+dmc3.exe+1F1F7B: C3                       - ret 
+dmc3.exe+1F1F7C: 0F B7 97 D0 3E 00 00     - movzx edx,word ptr [rdi+00003ED0]
+dmc3.exe+1F1F83: 48 8B CF                 - mov rcx,rdi
+dmc3.exe+1F1F86: E8 95 9E 00 00           - call dmc3.exe+1FBE20
+dmc3.exe+1F1F8B: 80 BF 2C 3E 00 00 01     - cmp byte ptr [rdi+00003E2C],01
+dmc3.exe+1F1F92: 75 2F                    - jne dmc3.exe+1F1FC3
+// ---------- INJECTING HERE ----------
+dmc3.exe+1F1F94: 48 8D 97 D0 3F 00 00     - lea rdx,[rdi+00003FD0]
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1F1F9B: 48 8D 8F 80 00 00 00     - lea rcx,[rdi+00000080]
+dmc3.exe+1F1FA2: E8 89 C6 13 00           - call dmc3.exe+32E630
+dmc3.exe+1F1FA7: 48 8B 87 E8 3D 00 00     - mov rax,[rdi+00003DE8]
+dmc3.exe+1F1FAE: F3 0F 10 88 98 02 00 00  - movss xmm1,[rax+00000298]
+dmc3.exe+1F1FB6: 0F 2F C8                 - comiss xmm1,xmm0
+dmc3.exe+1F1FB9: 76 08                    - jna dmc3.exe+1F1FC3
+dmc3.exe+1F1FBB: 48 8B CF                 - mov rcx,rdi
+dmc3.exe+1F1FBE: E8 CD 89 00 00           - call dmc3.exe+1FA990
+dmc3.exe+1F1FC3: F3 0F 10 8F 34 3E 00 00  - movss xmm1,[rdi+00003E34]
+dmc3.exe+1F1FCB: 0F 57 C0                 - xorps xmm0,xmm0
+}
+</AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>2985</ID>
+      <Description>"lie to trick about enemy location v2"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2025-08-13
+  Author : NecessaryEvil
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+
+aobscanmodule(tricklocation,dmc3.exe,0F B7 87 36 62 00 00 0F) // should be unique
+alloc(newmem,$1000,tricklocation)
+
+label(code)
+label(OriginalCode)
+label(return)
+
+newmem:
+  dd (float)3600
+  dd (float)0
+  dd (float)2800
+
+code:
+  cmp word ptr [rdi+3e00], 30
+  jne OriginalCode
+
+  mov rcx,rdi
+  lea rdx,[newmem]
+  call dmc3.exe+1FAC60
+  jmp return
+
+OriginalCode:
+  movzx eax,word ptr [rdi+00006236]
+  jmp return
+
+tricklocation:
+  jmp code
+  nop 2
+return:
+registersymbol(tricklocation)
+
+[DISABLE]
+
+tricklocation:
+  db 0F B7 87 36 62 00 00
+
+unregistersymbol(tricklocation)
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+1F2240
+
+dmc3.exe+1F220F: E8 CC EC FE FF        - call dmc3.exe+1E0EE0
+dmc3.exe+1F2214: EB 0B                 - jmp dmc3.exe+1F2221
+dmc3.exe+1F2216: 41 B8 10 00 00 00     - mov r8d,00000010
+dmc3.exe+1F221C: E8 6F D9 FF FF        - call dmc3.exe+1EFB90
+dmc3.exe+1F2221: 0F B6 87 29 62 00 00  - movzx eax,byte ptr [rdi+00006229]
+dmc3.exe+1F2228: C6 87 5E 63 00 00 00  - mov byte ptr [rdi+0000635E],00
+dmc3.exe+1F222F: 88 87 2C 3E 00 00     - mov [rdi+00003E2C],al
+dmc3.exe+1F2235: 3C 01                 - cmp al,01
+dmc3.exe+1F2237: 75 17                 - jne dmc3.exe+1F2250
+dmc3.exe+1F2239: 0F 28 87 00 63 00 00  - movaps xmm0,[rdi+00006300]
+// ---------- INJECTING HERE ----------
+dmc3.exe+1F2240: 0F B7 87 36 62 00 00  - movzx eax,word ptr [rdi+00006236]
+// ---------- DONE INJECTING  ----------
+dmc3.exe+1F2247: 0F 29 87 D0 3F 00 00  - movaps [rdi+00003FD0],xmm0
+dmc3.exe+1F224E: EB 07                 - jmp dmc3.exe+1F2257
+dmc3.exe+1F2250: 0F B7 87 C0 00 00 00  - movzx eax,word ptr [rdi+000000C0]
+dmc3.exe+1F2257: 33 D2                 - xor edx,edx
+dmc3.exe+1F2259: 66 89 87 D0 3E 00 00  - mov [rdi+00003ED0],ax
+dmc3.exe+1F2260: 48 8B CF              - mov rcx,rdi
+dmc3.exe+1F2263: E8 E8 ED FE FF        - call dmc3.exe+1E1050
+dmc3.exe+1F2268: 0F B6 87 9E 3E 00 00  - movzx eax,byte ptr [rdi+00003E9E]
+dmc3.exe+1F226F: 83 F8 07              - cmp eax,07
+dmc3.exe+1F2272: 0F 87 84 00 00 00     - ja dmc3.exe+1F22FC
+}
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+  <UserdefinedSymbols/>
+</CheatTable>
