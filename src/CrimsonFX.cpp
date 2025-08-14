@@ -230,6 +230,11 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
     auto& distance = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
 	static bool pausedSFX = false;
 
+	// INTERRUPT ON DEATH
+	if (actorData.dead && sfxStarted) {
+		CrimsonSDL::StopDevilTriggerLoop(playerIndex);
+		return;
+	}
 
     // SET RELEASE VOLUME MULTIPLIER
     if (actorData.dtExplosionCharge > 3000) {
@@ -249,7 +254,6 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
     // SFX LOOP
     if (!CrimsonSDL::DTEStartIsPlaying(playerIndex) && sfxStarted && !sfxLooped) {
 		CrimsonSDL::PlayDTExplosionLoop(playerIndex);
-
         sfxLooped = true;
     }
 
@@ -288,15 +292,17 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
 	}
     
     // RELEASE
-    if (!(gamepad.buttons[0] & GetBinding(BINDING::DEVIL_TRIGGER)) && sfxStarted) {
+    if (!(gamepad.buttons[0] & GetBinding(BINDING::DEVIL_TRIGGER)) && sfxStarted && !actorData.dead) {
 		CrimsonSDL::InterruptDTExplosionSFX(playerIndex);
-		CrimsonSDL::PlayDTEExplosionRelease(playerIndex, releaseVolumeMult);
+		if (actorData.dtExplosionCharge > 0) {
+			CrimsonSDL::PlayDTEExplosionRelease(playerIndex, releaseVolumeMult);
+		}
 
         if (releaseVolumeMult > 0.4f) {
             CrimsonSDL::VibrateController(actorData.newPlayerIndex, 0, 0x5555 * releaseVolumeMult, 800);
         }
         
-        if (releaseVolumeMult > 0.4f) {
+        if (releaseVolumeMult > 0.4f && actorData.dtExplosionCharge > 0) {
 			auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
 			CrimsonDetours::CreateEffectDetour(pPlayer, 3, 61, 1,true, actualColor, 1.0f);
         }

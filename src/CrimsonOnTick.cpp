@@ -1296,12 +1296,21 @@ void PauseSFXWhenPaused() {
 	}
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 
-	for (int i = 0; i < PLAYER_COUNT; ++i) {
-		if (eventData.event == EVENT::PAUSE) {
-			CrimsonSDL::PauseDTExplosionSFX(i);
+	for (uint8 playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {
+		auto& playerData = GetPlayerData(playerIndex);
+		auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+
+		if (!newActorData.baseAddr) {
+			return;
+		}
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+
+		if (eventData.event == EVENT::PAUSE || actorData.dead || eventData.event != EVENT::MAIN) {
+			CrimsonSDL::PauseDTExplosionSFX(playerIndex);
 		}
 		else {
-			CrimsonSDL::ResumeDTExplosionSFX(i);
+			CrimsonSDL::ResumeDTExplosionSFX(playerIndex);
 		}
 	}
 }
