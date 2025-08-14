@@ -798,31 +798,24 @@ void FixInitialCameraRotation(EventData& eventData, PlayerActorData& mainActorDa
 }
 
 void VajuraBugFix(CameraData* cameraData, EventData& eventData) {
-	static bool wasInCutscene = false;
-	static bool restoreCamData1 = false;
-	static bool restoreCamData2 = false;
-	static vec3 fixCamData1Vec = { 0.0f, 0.0f, 0.0f };
-	static vec3 fixCamData2Vec = { 0.0f, 0.0f, 0.0f };
+	//This is a good camera position after the player uses Vajra, maybe slightly different from the position before using Vajra, but the difference is barely noticeable. Moreover, the code is more efficient.
+	static vec3 fixCamData1Vec = { 2595.0f, 788.0f, 4401.0f };
 
-	if (eventData.room == ROOM::LIVING_STATUE_ROOM) {
-		if (g_inGameCutscene) {
-			if (!wasInCutscene) {
-				restoreCamData1 = true;
-			}
-			wasInCutscene = true;
-		} else {
-			if (restoreCamData1) {
-				cameraData->data[1].x = fixCamData1Vec.x;
-				cameraData->data[1].y = fixCamData1Vec.y;
-				cameraData->data[1].z = fixCamData1Vec.z;
-				restoreCamData1 = false;
-			} else {
-				fixCamData1Vec.x = cameraData->data[1].x;
-				fixCamData1Vec.y = cameraData->data[1].y;
-				fixCamData1Vec.z = cameraData->data[1].z;
-			}
-			wasInCutscene = false;
-		}
+	if (eventData.room == ROOM::LIVING_STATUE_ROOM && !g_inGameCutscene) {
+		//When the black screen bug occurs, the values of x, y, and z are all NaN. So we only need to check if x equals the float value NaN, which is 0xFFC00000 in hexadecimal.
+		//In the PC version of DMC3HD, the value of NaN is 0xFFC00000. However, in the DMC3HD Nintendo Switch version, the value of NaN is 0x7FC00000, and it might vary across different platforms.
+		//Regardless of whether it's 0xFFC00000 or 0x7FC00000, shifting them one bit to the left both results in 0xFF800000.
+		//Therefore, we check the value after the left shift; if it equals 0xFF800000, the bug has occurred, and we write the correct camera position to fix it.
+		float f_temp = cameraData->data[1].x;
+        unsigned int* f_bits = reinterpret_cast<unsigned int*>(&f_temp);
+        *f_bits = *f_bits << 1;
+        
+        // Check if the shifted value matches 0xff800000
+        if (*f_bits == 0xff800000) {
+            cameraData->data[1].x = fixCamData1Vec.x;
+            cameraData->data[1].y = fixCamData1Vec.y;
+            cameraData->data[1].z = fixCamData1Vec.z;
+        }
 	}
 }
 
