@@ -174,6 +174,23 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
             "%X",
 #endif
             FUNC_NAME, pSwapChain, SyncInterval, Flags);
+            
+        // Log the actual swap chain properties to verify flip model
+        DXGI_SWAP_CHAIN_DESC actualDesc = {};
+        if (SUCCEEDED(pSwapChain->GetDesc(&actualDesc))) {
+            Log("Actual swap chain - BufferCount: %u, SwapEffect: %u, Windowed: %s", 
+                actualDesc.BufferCount, 
+                actualDesc.SwapEffect,
+                actualDesc.Windowed ? "TRUE" : "FALSE");
+        }
+        
+        IDXGIDevice1* dxgiDevice = nullptr;
+        if constexpr (api == API::D3D11) {
+            if (SUCCEEDED(::D3D11::device->QueryInterface(IID_PPV_ARGS(&dxgiDevice)))) {
+                dxgiDevice->SetMaximumFrameLatency(1);
+                dxgiDevice->Release();
+            }
+        }
     }
 
     if (activeConfig.vSync != 0) {
@@ -261,7 +278,7 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
     }();
 
 
-    return ::Base::DXGI::Present(pSwapChain, SyncInterval, Flags);
+    return ::Base::DXGI::Present(pSwapChain, SyncInterval,SyncInterval == 0 ? DXGI_PRESENT_ALLOW_TEARING : Flags);
 }
 
 template <new_size_t api>

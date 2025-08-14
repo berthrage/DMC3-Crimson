@@ -673,8 +673,27 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
         FUNC_NAME, pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels, SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice,
         pFeatureLevel, ppImmediateContext);
 
+    // Create a modifiable copy of the swap chain description to enable flip model
+    DXGI_SWAP_CHAIN_DESC modifiedSwapChainDesc = *pSwapChainDesc;
+    
+    if (modifiedSwapChainDesc.SampleDesc.Count == 1 && modifiedSwapChainDesc.SampleDesc.Quality == 0) {
+        // Only enable flip model if no MSAA is being used
+        modifiedSwapChainDesc.BufferCount = max(2, modifiedSwapChainDesc.BufferCount); 
+        modifiedSwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        
+        // Force borderless windowed mode for optimal flip model performance
+        modifiedSwapChainDesc.Windowed = TRUE;
+        
+        modifiedSwapChainDesc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+        Log("Enabling flip model presentation - BufferCount: %u, SwapEffect: FLIP_DISCARD, Windowed: TRUE", 
+            modifiedSwapChainDesc.BufferCount);
+    } else {
+        Log("Cannot enable flip model - MSAA detected (Count: %u, Quality: %u)", 
+            modifiedSwapChainDesc.SampleDesc.Count, modifiedSwapChainDesc.SampleDesc.Quality);
+    }
+
     auto result = ::Base::D3D11::D3D11CreateDeviceAndSwapChain(pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels,
-        SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
+        SDKVersion, &modifiedSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
 
     auto error = GetLastError();
 
