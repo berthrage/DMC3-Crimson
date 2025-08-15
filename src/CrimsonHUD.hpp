@@ -12,6 +12,7 @@ void RedOrbCounterWindow();
 void CheatsHUDIndicatorWindow();
 void CheatHotkeysPopUpWindow();
 void StyleMeterWindows();
+void StylishPointsWindow();
 void LockOnWindows();
 void StunDisplacementLockOnWindows();
 void ShieldLockOnWindows();

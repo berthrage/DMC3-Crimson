@@ -9259,6 +9259,13 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 			}
 			ImGui::PopItemWidth();
 
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Stylish Pts Counter", activeCrimsonConfig.CrimsonHudAddons.stylishPtsCounter, queuedCrimsonConfig.CrimsonHudAddons.stylishPtsCounter);
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Mission Timer Display", activeCrimsonConfig.CrimsonHudAddons.missionTimerDisplay, queuedCrimsonConfig.CrimsonHudAddons.missionTimerDisplay);
 
 			ImGui::TableNextColumn();
 			
@@ -14724,6 +14731,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonHUD::CheatsHUDIndicatorWindow();
 	CrimsonHUD::CheatHotkeysPopUpWindow();
 	CrimsonHUD::StyleMeterWindows();
+	CrimsonHUD::StylishPointsWindow();
 	CrimsonHUD::LockOnWindows();
 	CrimsonHUD::StunDisplacementLockOnWindows();
 	CrimsonHUD::ShieldLockOnWindows();

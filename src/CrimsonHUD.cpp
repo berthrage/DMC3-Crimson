@@ -686,7 +686,7 @@ void StyleMeterWindowRank(
 	float fadeSpeed = 8.0f;
 	state.fade.alpha = SmoothLerp(state.fade.alpha, targetAlpha, fadeSpeed, deltaTime);
 
-	// Animation trigger: only when going up in rank
+	// Animation trigger: only when going up in rank (including rank 0 to rank 1)
 	if (!state.prevActive && active && currentRank > prevGlobalStyleRank) {
 		state.animTimer = 0.0f;
 		state.animating = true;
@@ -694,8 +694,12 @@ void StyleMeterWindowRank(
 	state.prevActive = active;
 
 	// Update the global previous style rank if this rank is active
+	// For rank transitions, set to 0 when no rank is active to allow rank 1 animation
 	if (active) {
 		prevGlobalStyleRank = currentRank;
+	} else if (prevGlobalStyleRank == currentRank) {
+		// When this rank becomes inactive, reset to 0 to allow proper rank 1 animation
+		prevGlobalStyleRank = 0;
 	}
 
 	// --- Animation update ---
@@ -1015,6 +1019,148 @@ void StyleMeterWindows() {
 		true,
 		SSSStyleRankBackground2Texture->GetTexture()
 	);
+}
+
+
+void StylishPointsWindow() {
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!(pool_10222 && pool_10222[3])) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	ImVec2 windowPos = ImVec2(g_renderSize.x - (340.0 * scaleFactorY), 465.0f * scaleFactorY);
+	ImVec2 windowSize = ImVec2(301.0f * scaleFactorY * 0.95f, 303.0f * scaleFactorY * 0.95f);
+	float extraLeft = (g_renderSize.y - 100.0f * scaleFactorY);
+	ImVec2 adjustedWindowPos = ImVec2(windowPos.x, windowPos.y);
+	ImVec2 adjustedWindowSize = windowSize + ImVec2(g_renderSize.x, g_renderSize.y);
+
+	auto stylePoints = (mainActorData.styleData.quotient * 100.0f);
+
+	// Animation state for stylish points text
+	static float animTimer = 0.0f;
+	static bool animating = false;
+	static bool wasVisible = false;
+	static float prevStylePoints = 0.0f;
+
+	if (mainActorData.styleData.rank <= 0 || stylePoints <= 0 
+		|| !InGame() || g_inGameCutscene || !activeCrimsonConfig.CrimsonHudAddons.stylishPtsCounter) {
+		wasVisible = false;
+		animTimer = 0.0f;
+		animating = true;
+		return;
+	}
+
+	// Animation constants
+	const float delayDuration = 0.3f; // 1 second delay
+	const float animDuration = 0.13f; // 130ms
+	const float totalDuration = delayDuration + animDuration;
+	
+	// Check if we should start animation (when stylePoints changes or first appears)
+	bool currentlyVisible = (mainActorData.styleData.rank > 0 && stylePoints > 0);
+	if (currentlyVisible && (!wasVisible)) {
+		animTimer = 0.0f;
+		animating = true;
+	}
+	wasVisible = currentlyVisible;
+	prevStylePoints = stylePoints;
+
+	// Update animation timer
+	if (animating) {
+		animTimer += ImGui::GetIO().DeltaTime;
+		if (animTimer >= totalDuration) {
+			animTimer = totalDuration;
+			animating = false;
+		}
+	}
+
+	// EaseInOutCirc function
+	auto easeInOutCirc = [](float t) -> float {
+		if (t < 0.5f) {
+			return 0.5f * (1.0f - sqrtf(1.0f - 4.0f * t * t));
+		} else {
+			return 0.5f * (sqrtf(1.0f - powf(-2.0f * t + 2.0f, 2.0f)) + 1.0f);
+		}
+	};
+
+	// Calculate animation progress and offset
+	float progress = 0.0f;
+	if (animating) {
+		if (animTimer < delayDuration) {
+			// During delay phase, progress stays at 0
+			progress = 0.0f;
+		} else {
+			// During animation phase, calculate progress from 0 to 1
+			float animPhaseTimer = animTimer - delayDuration;
+			progress = easeInOutCirc(animPhaseTimer / animDuration);
+		}
+	} else {
+		progress = 1.0f;
+	}
+	float animOffset = (1.0f - progress) * 500.0f * scaleFactorY; // Start from right (positive offset)
+
+	ImGui::SetNextWindowPos(adjustedWindowPos, ImGuiCond_Always);
+	ImGui::SetNextWindowSize(adjustedWindowSize, ImGuiCond_Always);
+
+	ImGui::Begin("StylishPointsWindow", nullptr,
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoInputs |
+		ImGuiWindowFlags_NoBackground);
+
+	
+	float fontSize = 44.0f;
+	ImGui::SetWindowFontScale(scaleFactorY);
+	
+	// Draw "Stylish PTS: " with red outline
+	ImGui::PushFont(UI::g_ImGuiFont_Benguiat[fontSize * 0.75f]);
+	ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+	ImGui::SetCursorScreenPos(ImVec2(cursorPos.x, cursorPos.y + (02.0f * scaleFactorY)));
+
+	ImVec2 textPos = ImGui::GetCursorScreenPos();
+	textPos.x += animOffset; // Apply animation offset
+	
+	// Draw red outline 
+	const char* stylishText = "Stylish PTS: ";
+	ImU32 outlineColor = ImColor(0.49f, 0.0f, 0.0f, 1.0f); // #7f0000; 
+	ImU32 textColor = IM_COL32(255, 255, 255, 255); 
+	float outlineThickness = 1.0f;
+	
+	// Draw outline by rendering text multiple times with slight offsets
+	for (int x = -outlineThickness; x <= outlineThickness; x++) {
+		for (int y = -outlineThickness; y <= outlineThickness; y++) {
+			if (x == 0 && y == 0) continue; // Skip center position
+			drawList->AddText(ImVec2(textPos.x + x, textPos.y + y), outlineColor, stylishText);
+		}
+	}
+	// Draw main text on top
+	drawList->AddText(textPos, textColor, stylishText);
+	
+	// Calculate text width for positioning
+	ImVec2 textSize = ImGui::CalcTextSize(stylishText);
+	ImGui::SetCursorScreenPos(ImVec2(textPos.x + textSize.x, textPos.y - (02.0f * scaleFactorY)));
+	ImGui::PopFont();
+	
+	// Draw stylePoints with red outline
+	ImGui::PushFont(UI::g_ImGuiFont_RedOrbRusso[fontSize]);
+	ImVec2 textPos2 = ImGui::GetCursorScreenPos();
+	ImVec2 pointsTextPos = ImVec2(textPos2.x + animOffset, textPos2.y); // Apply animation offset to points text
+	
+	// Format the stylePoints text
+	char pointsText[32];
+	snprintf(pointsText, sizeof(pointsText), "%.0f", stylePoints);
+	
+	// Draw red outline for stylePoints
+	ImGui::PushFont(UI::g_ImGuiFont_RedOrbRussoBackdrop[fontSize]);
+	drawList->AddText(pointsTextPos, outlineColor, pointsText);
+	ImGui::PopFont();
+	// Draw main text on top
+	drawList->AddText(pointsTextPos, textColor, pointsText);
+	
+	ImGui::PopFont();
+	ImGui::End();
 }
 
 void DrawRotatedImage(ImTextureID tex_id, ImVec2 pos, ImVec2 size, float angle, ImU32 color) {

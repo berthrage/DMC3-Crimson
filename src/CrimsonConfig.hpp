@@ -132,6 +132,8 @@ struct CrimsonConfig {
 		bool redOrbCounter = true;
 		bool royalGauge = true;
 		bool styleRanksMeter = true;
+		bool stylishPtsCounter = true;
+		bool missionTimerDisplay = false;
 		bool lockOn = true;
 		bool scaleLockOnEnemyDistance = false;
 		bool stunDisplacementNumericHud = false;
@@ -147,6 +149,8 @@ struct CrimsonConfig {
                 std::make_pair("redOrbCounter", &CrimsonHudAddons::redOrbCounter),
                 std::make_pair("royalGauge", &CrimsonHudAddons::royalGauge),
                 std::make_pair("styleRanksMeter", &CrimsonHudAddons::styleRanksMeter),
+				std::make_pair("missionTimerDisplay", &CrimsonHudAddons::missionTimerDisplay),
+				std::make_pair("stylishPtsCounter", &CrimsonHudAddons::stylishPtsCounter),
                 std::make_pair("lockOn", &CrimsonHudAddons::lockOn),
 				std::make_pair("scaleLockOnEnemyDistance", &CrimsonHudAddons::scaleLockOnEnemyDistance),
 				std::make_pair("stunDisplacementNumericHud", &CrimsonHudAddons::stunDisplacementNumericHud),
