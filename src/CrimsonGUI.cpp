@@ -11019,7 +11019,7 @@ void DanteGameplayOptions() {
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Makes the next move executed before 0.35 seconds of uptime on Air Flicker or Sky Dance have increased downwards inertia.\n"
+			TooltipHelper("(?)", "Makes the next move executed before 0.30 seconds of uptime on Air Flicker or Sky Dance have increased downwards inertia.\n"
 				"Jump Cancelling won't interrupt this behavior.\n");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 

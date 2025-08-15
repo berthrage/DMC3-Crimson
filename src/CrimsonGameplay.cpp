@@ -2232,6 +2232,9 @@ void DanteDownertia(byte8* actorBaseAddr) {
 	bool inSkyDanceLastAction = (lastAction == AGNI_RUDRA_SKY_DANCE_PART_1 || lastAction == AGNI_RUDRA_SKY_DANCE_PART_2);
 	auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
 
+	if (event != ACTOR_EVENT::ATTACK) {
+		return;
+	}
 
 	// AIR FLICKER DOWNERTIA
 	if (action != CERBERUS_AIR_FLICKER && lastAction == CERBERUS_AIR_FLICKER && lastActionTime < 0.30f && !airFlickerTweak.hasAppliedVerticalPullMultiplier) {
