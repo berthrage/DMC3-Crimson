@@ -3362,6 +3362,8 @@ void DriveTweaks(byte8* actorBaseAddr) {
     }*/
 }
 
+//Hitch note: The majority of this function logic should probably be moved to the sub_1401F1EF0 detour for DanteTeleportTrick. 
+//as of right now it's split over two locations. Sorry for making this a problem to begin with :(
 void GroundTrickFlagSet(byte8* actorBaseAddr) {
     // Works in tandem with DanteTrickAlterations Detour in CrimsonDetours (requirement)
 	if (!actorBaseAddr) {
@@ -3414,6 +3416,13 @@ void GroundTrickFlagSet(byte8* actorBaseAddr) {
         && newActorData.visibility == 2) {
         newActorData.visibility = 0; // unhide
     }
+
+	if ((actorData.eventData[0].event == ACTOR_EVENT::LANDING || actorData.eventData[0].event == ACTOR_EVENT::STAGGER ||
+		actorData.eventData[0].event == ACTOR_EVENT::ATTACK)
+		&& newActorData.enableCollision == 0) {
+		//newActorData.enableCollision = 1; // collideenable
+	}
+
 }
 
 }

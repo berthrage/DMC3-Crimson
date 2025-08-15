@@ -282,6 +282,17 @@ void DanteTrickAlterationsDetour3();
 std::uint64_t g_DanteTrickAlter_ReturnAddr4;
 void DanteTrickAlterationsDetour4();
 
+// DanteCoopTrick
+std::uint64_t g_DanteCoopTrick_ReturnAddr1;
+void DanteCoopTrickDetour1();
+std::uint64_t g_DanteCoopTrick_ReturnAddr2;
+void DanteCoopTrickDetour2();
+std::uint64_t g_DanteCoopTrick_ReturnAddr3;
+void DanteCoopTrickDetour3();
+std::uint64_t g_DanteCoopTrick_coordFunction;
+vec3 g_DanteCoopTrick_coopTarget{ 1.0,0.0,3.2 };
+
+
 // DTMustStyleArmor
 std::uint64_t g_DTMustStyleArmor_ReturnAddr;
 void DTMustStyleArmorDetour();
@@ -1232,6 +1243,30 @@ void ToggleDanteTrickAlterations(bool enable) {
 	g_DanteTrickAlter_ReturnAddr4 = DanteTrickAlterationsHook4->GetReturnAddress();
 	DanteTrickAlterationsHook4->Toggle(enable);
 
+	//dante co-op trick movement
+
+	//trickdistance1 overrides distance targeting for trick
+	//dmc3.exe+1F20EF: 48 8D 97 D0 3F 00 00     - lea rdx,[rdi+00003FD0]
+	static std::unique_ptr<Utility::Detour_t> DanteCoopTrickHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1F20EF, &DanteCoopTrickDetour1, 7);
+	g_DanteCoopTrick_ReturnAddr1 = DanteCoopTrickHook1->GetReturnAddress();
+	DanteCoopTrickHook1->Toggle(enable);
+
+	//trickdistance2 overrides distance targeting for trick
+	//dmc3.exe+1F1F94: 48 8D 97 D0 3F 00 00     - lea rdx,[rdi+00003FD0]
+	static std::unique_ptr<Utility::Detour_t> DanteCoopTrickHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1F1F94, &DanteCoopTrickDetour2, 7);
+	g_DanteCoopTrick_ReturnAddr2 = DanteCoopTrickHook2->GetReturnAddress();
+	DanteCoopTrickHook2->Toggle(enable);
+
+	//tricklocation overrides location targeting for trick
+	//dmc3.exe+1F2240: 0F B7 87 36 62 00 00  - movzx eax,word ptr [rdi+00006236]
+	g_DanteCoopTrick_coordFunction = (uintptr_t)appBaseAddr + 0x1FAC60;
+	static std::unique_ptr<Utility::Detour_t> DanteCoopTrickHook3 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1F2240, &DanteCoopTrickDetour3, 7);
+	g_DanteCoopTrick_ReturnAddr3 = DanteCoopTrickHook3->GetReturnAddress();
+	DanteCoopTrickHook3->Toggle(enable);
+	
 	run = enable;
 }
 
@@ -1241,6 +1276,15 @@ static constexpr auto DANTE_TRICK_OFFSET() { return 0x1F1EF0; }
 
 
 //void __fastcall sub_1401F1EF0(int64_t mainplayer, int64_t a2, int64_t a3, int a4)
+
+/// <summary>
+/// Runs throughout lifespan of dante trick events. Hooked here so we can update the trick type to allow for ground trick and co-op trick variations.
+/// </summary>
+/// <param name="mainplayer"></param>
+/// <param name="a2"></param>
+/// <param name="a3"></param>
+/// <param name="a4"></param>
+/// <returns></returns>
 static uintptr_t __fastcall sub_1401F1EF0(int64_t mainplayer, int64_t a2, int64_t a3, int a4) {
 	typedef int64_t(__fastcall* sub_1401F1EF0)(int64_t, int64_t, int64_t,int);
 
@@ -1252,21 +1296,58 @@ static uintptr_t __fastcall sub_1401F1EF0(int64_t mainplayer, int64_t a2, int64_
 	//res = trampoline(mainplayer, a2, a3, a4);
 	
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(mainplayer);
+	//if not start of trick bail out
 	if (actorData.recoverState[0] != 0) return trampoline(mainplayer, a2, a3, a4);
-	if (!activeCrimsonGameplay.Gameplay.Dante.groundTrick) return trampoline(mainplayer, a2, a3, a4);
+
+	//if not ground trick enabled bail out
+	if (!activeCrimsonGameplay.Gameplay.Dante.groundTrick) {
+		//CrimsonPatches::DanteCoopTrick(false);
+		return trampoline(mainplayer, a2, a3, a4);
+	} 
+	//get back-forward info. 
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& b2F = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].b2F : crimsonPlayer[playerIndex].b2FClone;
+
 	auto& playerData = GetPlayerData(playerIndex);
 	auto entityIndex = actorData.newEntityIndex;
 	auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, entityIndex);
-
+	//if not dante bail out
 	if (actorData.character != CHARACTER::DANTE) return trampoline(mainplayer, a2, a3, a4);
 
+	///currently for testing purposes we are linking dante ground trick and coop trick, need to redo this better later but one thing at a time.
 	if (actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK && b2F.forwardCommand) {
 		actorData.eventData[0].event = ACTOR_EVENT::TRICKSTER_GROUND_TRICK; // set g. trick flag for the detour
+		actorData.trickLockOn = 1; //force lock-on even without target
 		newActorData.visibility = 2; // hide dante's model
+		//newActorData.enableCollision = 0;
+		if (activeConfig.Actor.playerCount > 1) {
+			CrimsonPatches::DanteCoopTrick(true);
+			if (playerIndex == 0) {
+				auto& otherPlayerData = GetPlayerData(1);
+				auto entityIndex = actorData.newEntityIndex;
+				auto& otherActorData = GetNewActorData(1, otherPlayerData.activeCharacterIndex, entityIndex);
+				auto& otherPlayerActorData = *reinterpret_cast<PlayerActorData*>(otherActorData.baseAddr);
+				g_DanteCoopTrick_coopTarget.x = otherPlayerActorData.position.x;
+				g_DanteCoopTrick_coopTarget.y = otherPlayerActorData.position.y;
+				g_DanteCoopTrick_coopTarget.z = otherPlayerActorData.position.z;
+			}
+			else if (playerIndex == 1) {
+				auto& otherPlayerData = GetPlayerData(0);
+				auto entityIndex = actorData.newEntityIndex;
+				auto& otherActorData = GetNewActorData(0, otherPlayerData.activeCharacterIndex, entityIndex);
+				auto& otherPlayerActorData = *reinterpret_cast<PlayerActorData*>(otherActorData.baseAddr);
+				g_DanteCoopTrick_coopTarget.x = otherPlayerActorData.position.x;
+				g_DanteCoopTrick_coopTarget.y = otherPlayerActorData.position.y;
+				g_DanteCoopTrick_coopTarget.z = otherPlayerActorData.position.z;
+			}
+		}
+		else {
+			//CrimsonPatches::DanteCoopTrick(false);
+		}
 	}
-	
+	else if (actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK && !b2F.forwardCommand) {
+		//CrimsonPatches::DanteCoopTrick(false);
+	}
 	res = trampoline(mainplayer, a2, a3,a4);
 	return res;
 }

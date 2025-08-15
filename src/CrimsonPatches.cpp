@@ -968,6 +968,38 @@ void ForceThirdPersonCamera(bool enable) {
 	run = enable;
 }
 
+/// <summary>
+/// Allows for dante's trick action to search for coordinates even when lock-on targets aren't available.
+/// Intended to be used for teleporting to host once out of bounds.
+/// </summary>
+/// <param name="enable"></param>
+void DanteCoopTrick(bool enable) {
+	static bool run = false;
+
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	if (enable) {
+		_nop((char*)(appBaseAddr + 0x1F2237), 2);
+		_nop((char*)(appBaseAddr + 0x1F20E1), 6);
+		_nop((char*)(appBaseAddr + 0x1F1F92), 2);
+
+	}
+	else {
+		// Restore the original instruction at dmc3.exe + 1F2237
+		_patch((char*)(appBaseAddr + 0x1F2237), (char*)"\x75\x17", 2); //dmc3.exe+1F2237 - 75 17     - jne dmc3.exe+1F2250
+		_patch((char*)(appBaseAddr + 0x1F20E1), (char*)"\x75\x2F\x80\x00\x00\x00", 6); //dmc3.exe+1F20E1 - 0F 85 80 00 00 00         - jne dmc3.exe+1F2167
+		_patch((char*)(appBaseAddr + 0x1F1F92), (char*)"\x75\x2F", 2);//dmc3.exe+1F1F92 - 75 2F                 - jne dmc3.exe+1F1FC3
+
+
+	}
+	run = enable;
+}
+
+
+
 void ToggleLockedOffCamera(bool enable) {
 
 	static bool run = false;

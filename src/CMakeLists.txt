@@ -36,6 +36,7 @@ set(MASM_SRC
     masm/RerouteRedOrbsCounterAlpha.asm
     masm/ToggleTakeDamage.asm
     masm/TrickAlterationsDante.asm
+    masm/TrickAlterationsDanteCoop.asm
     masm/VergilTricksAsm.asm
     masm/StyleRankHudNoFadeout.asm
     masm/ArtemisInstantFullCharge.asm

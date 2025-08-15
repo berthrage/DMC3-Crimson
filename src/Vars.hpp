@@ -3149,8 +3149,9 @@ struct PlayerActorDataBase : ActorDataBase {
     _(382);
     byte8* actionData[6];        // 0x3DD0
     ActorEventData eventData[2]; // 0x3E00
-    uint8 recoverState[32];          // 0x3E10
-    _(4);
+    uint8 recoverState[28];          // 0x3E10
+    bool trickLockOn; //0x3E2C compared against to determine if there's a valid target for dante's Air Trick.
+    _(7);
     float motionTimer; // 0x3E34
     float idleTimer;   // 0x3E38
     _(36);
@@ -3327,6 +3328,7 @@ static_assert(offsetof(PlayerActorDataBase, var_3C50) == 0x3C50);
 static_assert(offsetof(PlayerActorDataBase, actionData) == 0x3DD0);
 static_assert(offsetof(PlayerActorDataBase, eventData) == 0x3E00);
 static_assert(offsetof(PlayerActorDataBase, recoverState) == 0x3E10);
+static_assert(offsetof(PlayerActorDataBase, trickLockOn) == 0x3E2C);
 static_assert(offsetof(PlayerActorDataBase, motionTimer) == 0x3E34);
 static_assert(offsetof(PlayerActorDataBase, idleTimer) == 0x3E38);
 static_assert(offsetof(PlayerActorDataBase, permissions) == 0x3E60);
