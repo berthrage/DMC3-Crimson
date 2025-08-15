@@ -866,6 +866,9 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
             modifiedSwapChainDesc.SampleDesc.Count, modifiedSwapChainDesc.SampleDesc.Quality);
     }
 
+    // Enable DPI awareness for consistent scaling regardless of Windows DPI settings
+    SetProcessDPIAware();
+    
     auto result = ::Base::D3D11::D3D11CreateDeviceAndSwapChain(pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels,
         SDKVersion, &modifiedSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
 
