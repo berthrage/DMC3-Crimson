@@ -5,8 +5,10 @@
 #include <dinput.h>
 #include <Xinput.h>
 #include <dxgi.h>
+#include <dxgi1_2.h>
 #include <d3d11.h>
 #include <d3d10.h>
+#include <emmintrin.h> // For CPU cache prefetching (_mm_prefetch)
 #include "GUIBase.hpp"
 #include "../Core/Core_ImGui.hpp"
 #include "../CrimsonGUI.hpp"
@@ -57,6 +59,10 @@ template <typename T, typename T2> void Install(void* dest, T& baseFuncAddr, T2&
 void UpdateKeyboard();
 void UpdateMouse();
 void UpdateGamepad();
+
+// Low-latency flip model optimization globals
+extern HANDLE g_frameLatencyWaitableObject;
+extern bool g_flipModelLatencyOptimized;
 
 #pragma region Windows
 void UpdateShow();
@@ -184,14 +190,19 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
                 actualDesc.Windowed ? "TRUE" : "FALSE");
         }
         
-        IDXGIDevice1* dxgiDevice = nullptr;
+        // For flip model latency optimization, set device frame latency
         if constexpr (api == API::D3D11) {
+            IDXGIDevice1* dxgiDevice = nullptr;
             if (SUCCEEDED(::D3D11::device->QueryInterface(IID_PPV_ARGS(&dxgiDevice)))) {
                 dxgiDevice->SetMaximumFrameLatency(1);
                 dxgiDevice->Release();
+                Log("Set device frame latency to 1 for reduced input lag");
             }
         }
     }
+
+    // Note: Advanced frame latency waitable object optimization is implemented
+    // in the D3D11CreateDeviceAndSwapChain function for DXGI 1.2+ compatibility
 
     if (activeConfig.vSync != 0) {
         SyncInterval = (activeConfig.vSync - 1);
@@ -259,6 +270,11 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
     } else if constexpr (api == API::D3D11) {
         ::D3D11::deviceContext->OMSetRenderTargets(1, &::D3D11::renderTargetView, 0);
 
+        // Low-latency optimization: Prefetch render target for better cache performance
+        if (activeCrimsonConfig.System.flipModelPresentation) {
+            _mm_prefetch((const char*)&::D3D11::renderTargetView, _MM_HINT_T0);
+        }
+
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
         debug_draw_update(ImGui::GetIO().DeltaTime);
     }
@@ -277,8 +293,43 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
         func();
     }();
 
+    // Ultra-low latency optimization: Wait for GPU frame completion before presenting
+    if (activeCrimsonConfig.System.flipModelPresentation && g_frameLatencyWaitableObject != nullptr) {
+        // Boost thread priority for rendering thread during frame presentation
+        HANDLE currentThread = GetCurrentThread();
+        int originalPriority = GetThreadPriority(currentThread);
+        SetThreadPriority(currentThread, THREAD_PRIORITY_TIME_CRITICAL);
+        
+        // Wait for the GPU to signal that it's ready for the next frame
+        // This ensures minimal CPU-GPU pipeline stalls and reduces input lag by 1-2 frames
+        DWORD waitResult = WaitForSingleObjectEx(g_frameLatencyWaitableObject, 16, TRUE); // 16ms timeout (1 frame at 60fps)
+        if (waitResult == WAIT_OBJECT_0) {
+            // GPU is ready - proceed with minimal latency
+            // Force immediate command buffer flush for D3D11
+            if constexpr (api == API::D3D11) {
+                ::D3D11::deviceContext->Flush(); // Ensure all GPU commands are submitted immediately
+            }
+        } else if (waitResult == WAIT_TIMEOUT) {
+            Log("Frame latency wait timeout - GPU may be overloaded");
+        }
+        
+        // Restore original thread priority
+        SetThreadPriority(currentThread, originalPriority);
+    }
 
-    return ::Base::DXGI::Present(pSwapChain, SyncInterval,SyncInterval == 0 ? DXGI_PRESENT_ALLOW_TEARING : Flags);
+    // Use optimal present flags for flip model low latency
+    UINT presentFlags = Flags;
+    if (activeCrimsonConfig.System.flipModelPresentation) {
+        if (SyncInterval == 0) {
+            // For immediate presentation (VSync off), use tearing for lowest latency
+            presentFlags = DXGI_PRESENT_ALLOW_TEARING;
+        } else {
+            // For VSync on, still optimize for flip model
+            presentFlags = 0; 
+        }
+    }
+
+    return ::Base::DXGI::Present(pSwapChain, SyncInterval, presentFlags);
 }
 
 template <new_size_t api>

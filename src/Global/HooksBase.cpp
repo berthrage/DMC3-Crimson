@@ -12,6 +12,7 @@
 #include "../Core/DebugSwitch.hpp"
 #include "../StyleSwitchFX.hpp"
 #include "../CrimsonHUD.hpp"
+#include <dxgi1_3.h>
 
 void UpdateMousePositionMultiplier() {
     using namespace CoreImGui::DI8;
@@ -265,7 +266,17 @@ static DWORD g_windowedExStyle = 0;
 // Key state tracking for Alt+Enter (proper keydown detection)
 static bool g_altEnterPressed = false;
 
+// Low-latency flip model optimization globals
+static HANDLE g_frameLatencyWaitableObject = nullptr;
+static bool g_flipModelLatencyOptimized = false;
+
 void ToggleBorderlessFullscreen() {
+    // Only allow borderless fullscreen if flip model presentation is enabled
+    if (!activeCrimsonConfig.System.flipModelPresentation) {
+        Log("ToggleBorderlessFullscreen: Disabled - flip model presentation is not enabled in configuration");
+        return;
+    }
+
     if (!appWindow) {
         Log("ToggleBorderlessFullscreen: appWindow is null");
         return;
@@ -407,21 +418,24 @@ void ToggleBorderlessFullscreen() {
 
 namespace Hook::Windows {
 LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lParameter) {
-    // Handle Alt+Enter 
-    if (message == WM_SYSKEYDOWN && wParameter == VK_RETURN && (lParameter & (1 << 29))) {
-        if (GetForegroundWindow() == windowHandle && !g_altEnterPressed) {
-            // Key pressed down for the first time
-            g_altEnterPressed = true;
-            Log("Alt+Enter pressed via WindowProc - triggering fullscreen toggle");
-            ToggleBorderlessFullscreen();
-            return 0; // Consume the keydown message completely
-        }
-    } else if (message == WM_SYSKEYUP && wParameter == VK_RETURN && (lParameter & (1 << 29))) {
-        if (g_altEnterPressed) {
-            g_altEnterPressed = false;
+    // Only handle Alt+Enter if flip model presentation is enabled
+    if (activeCrimsonConfig.System.flipModelPresentation) {
+        // Handle Alt+Enter 
+        if (message == WM_SYSKEYDOWN && wParameter == VK_RETURN && (lParameter & (1 << 29))) {
+            if (GetForegroundWindow() == windowHandle && !g_altEnterPressed) {
+                // Key pressed down for the first time
+                g_altEnterPressed = true;
+                Log("Alt+Enter pressed via WindowProc - triggering fullscreen toggle");
+                ToggleBorderlessFullscreen();
+                return 0; // Consume the keydown message completely
+            }
+        } else if (message == WM_SYSKEYUP && wParameter == VK_RETURN && (lParameter & (1 << 29))) {
+            if (g_altEnterPressed) {
+                g_altEnterPressed = false;
 
+            }
+            // Don't return 0 here - let the keyup message pass through to the base handler
         }
-        // Don't return 0 here - let the keyup message pass through to the base handler
     }
 
     auto result = ::Base::Windows::WindowProc(windowHandle, message, wParameter, lParameter);
@@ -849,28 +863,40 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
 
     // Create a modifiable copy of the swap chain description to enable flip model
     DXGI_SWAP_CHAIN_DESC modifiedSwapChainDesc = *pSwapChainDesc;
+    bool flipModelEnabled = false;
     
-    if (modifiedSwapChainDesc.SampleDesc.Count == 1 && modifiedSwapChainDesc.SampleDesc.Quality == 0) {
+    if (activeCrimsonConfig.System.flipModelPresentation && 
+        modifiedSwapChainDesc.SampleDesc.Count == 1 && modifiedSwapChainDesc.SampleDesc.Quality == 0) {
         // Only enable flip model if no MSAA is being used
-        modifiedSwapChainDesc.BufferCount = max(2, modifiedSwapChainDesc.BufferCount); 
+        
+        // Use exactly 2 buffers for lowest latency (double buffering)
+        modifiedSwapChainDesc.BufferCount = 2; 
         modifiedSwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         
         // Force borderless windowed mode for optimal flip model performance
         modifiedSwapChainDesc.Windowed = TRUE;
         
+        // Enable tearing for variable refresh rate and reduced latency
         modifiedSwapChainDesc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-        Log("Enabling flip model presentation - BufferCount: %u, SwapEffect: FLIP_DISCARD, Windowed: TRUE", 
-            modifiedSwapChainDesc.BufferCount);
+        
+        // Add frame latency waitable object flag for precise timing control
+        modifiedSwapChainDesc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+        
+        flipModelEnabled = true;
+        Log("Enabling flip model presentation - BufferCount: 2 (low latency), SwapEffect: FLIP_DISCARD, Windowed: TRUE, Flags: TEARING+WAITABLE"); 
+        
+        // Enable DPI awareness for consistent scaling regardless of Windows DPI settings
+        SetProcessDPIAware();
+        Log("SetProcessDPIAware() called for consistent DPI scaling");
+    } else if (!activeCrimsonConfig.System.flipModelPresentation) {
+        Log("Flip model presentation disabled by configuration - using original swap chain settings");
     } else {
         Log("Cannot enable flip model - MSAA detected (Count: %u, Quality: %u)", 
             modifiedSwapChainDesc.SampleDesc.Count, modifiedSwapChainDesc.SampleDesc.Quality);
     }
 
-    // Enable DPI awareness for consistent scaling regardless of Windows DPI settings
-    SetProcessDPIAware();
-    
     auto result = ::Base::D3D11::D3D11CreateDeviceAndSwapChain(pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels,
-        SDKVersion, &modifiedSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
+        SDKVersion, flipModelEnabled ? &modifiedSwapChainDesc : pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
 
     auto error = GetLastError();
 
@@ -933,14 +959,57 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
         //Install(&funcAddrs[13], ::Base::DXGI::ResizeBuffers, ::Hook::DXGI::ResizeBuffers<API::D3D11>);
     }();
 
-    // Disable DXGI's default Alt+Enter handling since we handle it ourselves
-    if (::DXGI::swapChain) {
+    // Only disable DXGI's default Alt+Enter handling if flip model is enabled
+    // When flip model is disabled, let DXGI handle Alt+Enter normally
+    if (flipModelEnabled && ::DXGI::swapChain) {
         IDXGIFactory* factory = nullptr;
         if (SUCCEEDED(::DXGI::swapChain->GetParent(IID_PPV_ARGS(&factory)))) {
             factory->MakeWindowAssociation(appWindow, DXGI_MWA_NO_ALT_ENTER);
             factory->Release();
             Log("Disabled DXGI Alt+Enter handling - using custom borderless fullscreen");
         }
+        
+        // Apply low-latency optimizations for flip model
+        // Try to use DXGI 1.2+ features if available, fallback to basic optimization
+        IDXGISwapChain2* swapChain2 = nullptr;
+        HRESULT hr = ::DXGI::swapChain->QueryInterface(__uuidof(IDXGISwapChain2), (void**)&swapChain2);
+        if (SUCCEEDED(hr) && swapChain2) {
+            // Set maximum frame latency to 1 for lowest possible latency
+            hr = swapChain2->SetMaximumFrameLatency(1);
+            if (SUCCEEDED(hr)) {
+                Log("Set swap chain maximum frame latency to 1 for reduced input lag");
+                
+                // Get the waitable object for precise frame timing
+                HANDLE waitableObject = swapChain2->GetFrameLatencyWaitableObject();
+                if (waitableObject != nullptr) {
+                    g_frameLatencyWaitableObject = waitableObject;
+                    g_flipModelLatencyOptimized = true;
+                    Log("Frame latency waitable object obtained and stored for ultra-low latency rendering");
+                    Log("Latency optimization: CPU-GPU synchronization enabled to minimize input lag");
+                } else {
+                    Log("Warning: Failed to obtain frame latency waitable object");
+                }
+            } else {
+                Log("Warning: Failed to set swap chain maximum frame latency (HRESULT: 0x%X)", hr);
+            }
+            swapChain2->Release();
+        } else {
+            Log("DXGI 1.2+ not available - using basic latency optimization");
+        }
+        
+        // Set device-level maximum frame latency for additional latency reduction
+        IDXGIDevice1* dxgiDevice = nullptr;
+        if (SUCCEEDED((*ppDevice)->QueryInterface(IID_PPV_ARGS(&dxgiDevice)))) {
+            hr = dxgiDevice->SetMaximumFrameLatency(1);
+            if (SUCCEEDED(hr)) {
+                Log("Set device maximum frame latency to 1");
+            } else {
+                Log("Warning: Failed to set device maximum frame latency (HRESULT: 0x%X)", hr);
+            }
+            dxgiDevice->Release();
+        }
+    } else if (!flipModelEnabled) {
+        Log("Flip model disabled - DXGI will handle Alt+Enter normally");
     }
 
 
@@ -971,8 +1040,8 @@ namespace Hook::DI8 {
 HRESULT GetDeviceStateA(IDirectInputDevice8A* pDevice, DWORD BufferSize, LPVOID Buffer) {
     HRESULT result = ::Base::DI8::GetDeviceStateA ? ::Base::DI8::GetDeviceStateA(pDevice, BufferSize, Buffer) : S_OK;
     
-    // Check if this is keyboard input (256 bytes = DIKEYBOARDSTATE)
-    if (BufferSize == 256 && Buffer && result == S_OK) {
+    // Only intercept Alt+Enter if flip model presentation is enabled
+    if (BufferSize == 256 && Buffer && result == S_OK && activeCrimsonConfig.System.flipModelPresentation) {
         BYTE* keys = static_cast<BYTE*>(Buffer);
         
         // DirectInput scan codes 
@@ -992,7 +1061,6 @@ HRESULT GetDeviceStateA(IDirectInputDevice8A* pDevice, DWORD BufferSize, LPVOID 
             keys[DIK_LMENU] = 0;
             keys[DIK_RMENU] = 0; 
             keys[DIK_RETURN] = 0;
-            Log("DirectInput Alt+Enter detected - keys cleared (toggle handled by WindowProc)");
         }
     }
     

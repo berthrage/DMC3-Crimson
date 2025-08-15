@@ -9702,7 +9702,23 @@ void SystemSection(size_t defaultFontSize) {
 
 			ImGui::PushItemWidth(itemWidth * 0.8f);
 			UI::Combo2("V-Sync", Graphics_vSyncNames, activeConfig.vSync, queuedConfig.vSync);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Synchronizes Monitor Refresh Rate with Frame Rate to eliminate Screen Tearing.\n"
+				"WARNING: if On, will introduce a considerable amount of input lag. Keep this on 'Force Off' for lower latency.");
+
 			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox("DXGI Flip Model Presentation", queuedCrimsonConfig.System.flipModelPresentation);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Alters how Exclusive Fullscreen works by forcing usage of Flip Model Presentation.\n"
+				"This setting may improve alt-tab issues, latency, enables quicker toggling between fullscreen/windowed with Alt + Enter,"
+				"\nand adds support for HDR and VRR/GSync.");
+
+			if (queuedCrimsonConfig.System.flipModelPresentation != activeCrimsonConfig.System.flipModelPresentation) {
+				ImGui::TextColored(CrimsonUtil::HexToImVec4(0x1DD6FFFF), "Requires Game Restart.");
+			}
 
 			ImGui::TableNextColumn();
 

@@ -398,10 +398,14 @@ struct CrimsonConfig {
 				);
 			}
 		} Remaps;
+		
+		bool flipModelPresentation = true;
+	
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
-				std::make_pair("Remaps", &System::Remaps)
+				std::make_pair("Remaps", &System::Remaps),
+				std::make_pair("flipModelPresentation", &System::flipModelPresentation)
 			);
 		}
 	} System;
