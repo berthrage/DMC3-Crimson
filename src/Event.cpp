@@ -417,7 +417,7 @@ void EventHandler(EventData& eventData) {
         break;
     }
     case MAIN: {
-        CharacterSwitchController();
+        
         BossLadyController();
         BossVergilController();
 

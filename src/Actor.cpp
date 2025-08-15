@@ -184,7 +184,6 @@ template <typename T1, typename T2> void CopyState(T1& activeActorData, T2& acto
     actorData.rotation                 = activeActorData.rotation;
     actorData.inertiaRotation = activeActorData.inertiaRotation;
     actorData.inertiaRotation2 = activeActorData.inertiaRotation2;
-    actorData.lockOnData = activeActorData.lockOnData;
     actorData.horizontalPull           = activeActorData.horizontalPull;
     actorData.horizontalPullMultiplier = activeActorData.horizontalPullMultiplier;
 
@@ -4001,7 +4000,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     // dd::sphere(dd_ctx(), actorWorldPos, dd::colors::Red, 15.0f);
 	UpdateStyleSwitchAnimations();
 	StyleSwitchController(actorBaseAddr);
-
+    CharacterSwitchController();
     CrimsonGameplay::UpdateCrimsonPlayerData();
     CrimsonPatches::DisableHeightRestriction(activeCrimsonGameplay.Gameplay.General.disableHeightRestriction);
     CrimsonPatches::ImprovedBufferedReversals(activeCrimsonGameplay.Gameplay.General.improvedBufferedReversals);
@@ -4379,7 +4378,6 @@ void CharacterSwitchController() {
 					actorData.meleeWeaponIndex = meleeWeapon;
                     actorData.rangedWeaponIndex = rangedWeapon;
 				}
-
             }();
 
             // If Boss enable lead actor's lock-on system.
@@ -4391,6 +4389,8 @@ void CharacterSwitchController() {
                 }
             }
         };
+
+		static vec4 lastPosition[PLAYER_COUNT] = {};
 
         if (activeCharacterData.character == CHARACTER::BOSS_LADY) {
             auto& activeActorData = *reinterpret_cast<EnemyActorDataLady*>(activeNewActorData.baseAddr);
@@ -4411,36 +4411,52 @@ void CharacterSwitchController() {
         } else {
             auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
 
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+
 			if (IsActive(activeActorData)) {
 				if (CanQueueMeleeAttack(activeActorData) && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK)) &&
 					(GetNextMeleeAction(activeCharacterData, activeNewActorData, characterData, newActorData) > 0)) {
 					UpdateHitMagicPoints();
 
-					CopyState(activeCharacterData, activeNewActorData, characterData, newActorData);
+					lastPosition[playerIndex] = activeActorData.position;
 
 					EndMotion(activeActorData);
 
 					Update();
 
+                    CopyState(activeCharacterData, activeNewActorData, characterData, newActorData);
+
 					SetNextMeleeAction(activeCharacterData, activeNewActorData, characterData, newActorData);
+
+                    actorData.position = vec4(lastPosition[playerIndex].x, lastPosition[playerIndex].y , lastPosition[playerIndex].z, lastPosition[playerIndex].a);
+
 				} else if (CanQueueStyleAction(activeActorData) && (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
 					(GetNextStyleAction(activeCharacterData, activeNewActorData, characterData, newActorData) > 0)) {
 					UpdateHitMagicPoints();
 
-					CopyState(activeCharacterData, activeNewActorData, characterData, newActorData);
+					lastPosition[playerIndex] = activeActorData.position;
 
 					EndMotion(activeActorData);
 
 					Update();
+                    CopyState(activeCharacterData, activeNewActorData, characterData, newActorData);
 
-					SetNextStyleAction(activeCharacterData, activeNewActorData, characterData, newActorData);
+                    SetNextStyleAction(activeCharacterData, activeNewActorData, characterData, newActorData);
+
+                    actorData.position = vec4(lastPosition[playerIndex].x, lastPosition[playerIndex].y, lastPosition[playerIndex].z, lastPosition[playerIndex].a);
+					
 				}
 			} else {
                 UpdateHitMagicPoints();
 
-                CopyState(activeCharacterData, activeNewActorData, characterData, newActorData, CopyStateFlags_FixPermissions);
+				lastPosition[playerIndex] = activeActorData.position;
 
-                Update();
+                 CopyState(activeCharacterData, activeNewActorData, characterData, newActorData, CopyStateFlags_FixPermissions);
+
+                 Update();
+
+				actorData.position = vec4(lastPosition[playerIndex].x, lastPosition[playerIndex].y, lastPosition[playerIndex].z, lastPosition[playerIndex].a);
+
             }
         }
     }
