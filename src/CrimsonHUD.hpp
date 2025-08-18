@@ -13,6 +13,7 @@ void CheatsHUDIndicatorWindow();
 void CheatHotkeysPopUpWindow();
 void StyleMeterWindows();
 void StylishPointsWindow();
+void MissionTimerDisplay();
 void LockOnWindows();
 void StunDisplacementLockOnWindows();
 void ShieldLockOnWindows();

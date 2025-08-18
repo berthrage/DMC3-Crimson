@@ -302,7 +302,9 @@ void UpdateFrameRate() {
 
     g_frameRateMultiplier = (60 / activeConfig.frameRate);
 
+    float multiplier = 1.0f / g_FrameRateTimeMultiplierRounded;
+
     *frequencyAddr = (defaultFrequency * static_cast<double>(g_frameRateMultiplier));
 
-    *frameRateAddr = static_cast<int32>(activeConfig.frameRate);
+    *frameRateAddr = static_cast<int32>(60.0 * multiplier);
 }

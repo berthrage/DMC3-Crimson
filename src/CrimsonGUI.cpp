@@ -1722,6 +1722,19 @@ constexpr uint8 stylesDisplayStateMap[3] = {
 	STYLESDISPLAY::NO_BROKEN_GLASS,
 };
 
+const char* missionTimerDisplayStateNames[] = {
+	"Off",
+	"Only in BP",
+	"Always",
+};
+
+constexpr uint8 missionTimerDisplayStateMap[3] = {
+	MISSIONTIMERDISPLAY::OFF,
+	MISSIONTIMERDISPLAY::ONLY_IN_BP,
+	MISSIONTIMERDISPLAY::ALWAYS,
+};
+
+
 std::vector<std::string> VergilMoveAdjustmentsNames = {
 	"Off",
 	"From Air",
@@ -9265,7 +9278,8 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Mission Timer Display", activeCrimsonConfig.CrimsonHudAddons.missionTimerDisplay, queuedCrimsonConfig.CrimsonHudAddons.missionTimerDisplay);
+			UI::ComboMapValue2("Mission Timer Display", missionTimerDisplayStateNames, missionTimerDisplayStateMap,
+				activeCrimsonConfig.CrimsonHudAddons.missionTimerDisplay, queuedCrimsonConfig.CrimsonHudAddons.missionTimerDisplay);
 
 			ImGui::TableNextColumn();
 			
@@ -14732,6 +14746,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonHUD::CheatHotkeysPopUpWindow();
 	CrimsonHUD::StyleMeterWindows();
 	CrimsonHUD::StylishPointsWindow();
+	CrimsonHUD::MissionTimerDisplay();
 	CrimsonHUD::LockOnWindows();
 	CrimsonHUD::StunDisplacementLockOnWindows();
 	CrimsonHUD::ShieldLockOnWindows();

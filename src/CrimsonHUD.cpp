@@ -1030,7 +1030,7 @@ void StylishPointsWindow() {
 	ImVec2 windowSize = ImVec2(301.0f * scaleFactorY * 0.95f, 303.0f * scaleFactorY * 0.95f);
 	float extraLeft = (g_renderSize.y - 100.0f * scaleFactorY);
 	ImVec2 adjustedWindowPos = ImVec2(windowPos.x, windowPos.y);
-	ImVec2 adjustedWindowSize = windowSize + ImVec2(g_renderSize.x, g_renderSize.y);
+	ImVec2 adjustedWindowSize = windowSize + ImVec2(g_renderSize.x, g_renderSize.y); 
 
 	auto stylePoints = (mainActorData.styleData.quotient * 100.0f);
 
@@ -1162,6 +1162,93 @@ void StylishPointsWindow() {
 	ImGui::PopFont();
 	ImGui::End();
 }
+
+void MissionTimerDisplay() {
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!(pool_10222 && pool_10222[3])) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_10723) return;
+	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
+	auto  pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10298 || !pool_10298[8]) return;
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	ImVec2 windowPos = ImVec2(g_renderSize.x * 0.5f, 10.0f * scaleFactorY);
+	ImVec2 windowSize = ImVec2(301.0f * scaleFactorY * 0.95f, 303.0f * scaleFactorY * 0.95f);
+
+	// Timer logic using ImGui::DeltaTime, only resets when frameCount is reset
+	static float shownTimer = 0.0f;
+	float frameRate = ImGui::GetIO().Framerate;
+
+	// Reset shownTimer if frameCount is reset (new mission start)
+	if (missionData.frameCount <= 0) {
+		shownTimer = 0.0f;
+	}
+
+	// Always update timer if frameCount > 0 and not in cutscene and not paused
+	if (missionData.frameCount > 0 && eventData.event == EVENT::MAIN && !g_inGameCutscene) {
+		shownTimer += ImGui::GetIO().DeltaTime;
+	}
+
+	// Convert shownTimer to hours, minutes, seconds
+	unsigned int hours = (unsigned int)(shownTimer / 3600.0f);
+	unsigned int minutes = (unsigned int)(fmod(shownTimer, 3600.0f) / 60.0f);
+	unsigned int seconds = (unsigned int)fmod(shownTimer, 60.0f);
+
+	float fontSize = 44.0f;
+	ImGui::PushFont(UI::g_ImGuiFont_RedOrbRusso[fontSize * 0.9f]);
+	char timeText[32];
+	snprintf(timeText, sizeof(timeText), " %02u:%02u:%02u", hours, minutes, seconds);
+	float textWidth = ImGui::CalcTextSize(timeText).x;
+
+	ImVec2 adjustedWindowPos = ImVec2(windowPos.x - textWidth, windowPos.y);
+	ImVec2 adjustedWindowSize = windowSize + ImVec2(g_renderSize.x, g_renderSize.y);
+
+	ImGui::SetNextWindowPos(adjustedWindowPos, ImGuiCond_Always);
+	ImGui::SetNextWindowSize(adjustedWindowSize, ImGuiCond_Always);
+	auto& config = activeCrimsonConfig.CrimsonHudAddons.missionTimerDisplay;
+
+	if (eventData.event != EVENT::MAIN || 
+		g_inGameCutscene || 
+		config == MISSIONTIMERDISPLAY::OFF ||
+		(config == MISSIONTIMERDISPLAY::ONLY_IN_BP && sessionData.mission != MISSION::BLOODY_PALACE)) {
+		return;
+	}
+
+	ImGui::Begin("MissionTimerDisplayWindow", nullptr,
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoInputs |
+		ImGuiWindowFlags_NoBackground);
+
+	ImGui::SetWindowFontScale(scaleFactorY);
+
+	ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+	ImGui::SetCursorScreenPos(ImVec2(cursorPos.x, cursorPos.y + (02.0f * scaleFactorY)));
+
+	ImVec2 textPos = ImGui::GetCursorScreenPos();
+
+	ImU32 outlineColor = ImColor(0.49f, 0.0f, 0.0f, 1.0f); // #7f0000; 
+	ImU32 textColor = IM_COL32(255, 255, 255, 255);
+	float outlineThickness = 1.0f;
+
+	// Draw red backdrop on the background
+	ImGui::PushFont(UI::g_ImGuiFont_RedOrbRussoBackdrop[fontSize * 0.9]);
+	drawList->AddText(textPos, outlineColor, timeText);
+	ImGui::PopFont();
+	// Draw main text on top
+	drawList->AddText(textPos, textColor, timeText);
+
+	ImGui::PopFont();
+	ImGui::End();
+}
+
 
 void DrawRotatedImage(ImTextureID tex_id, ImVec2 pos, ImVec2 size, float angle, ImU32 color) {
 	ImVec2 center = ImVec2(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);

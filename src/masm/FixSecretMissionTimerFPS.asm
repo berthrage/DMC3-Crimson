@@ -1,11 +1,11 @@
 .DATA
 EXTERN g_FixSecretMissionTimerFPS_ReturnAddr:QWORD
-EXTERN g_frameRateMultiplier:DWORD
+EXTERN g_FrameRateTimeMultiplierRounded:DWORD
 
 .CODE
 FixSecretMissionTimerFPSDetour PROC 
-    divss xmm0, dword ptr [g_frameRateMultiplier] ; Divide the timer by the frame rate multiplier
-    jmp OriginalCode ; We don't use "FrameRateTimeMultiplier" here since it would be innacurate to gameload FPS
+    divss xmm0, dword ptr [g_FrameRateTimeMultiplierRounded] ; Divide the timer by the frame rate multiplier
+    jmp OriginalCode ; 
     
 OriginalCode:
     movss dword ptr [rcx+6948h], xmm0

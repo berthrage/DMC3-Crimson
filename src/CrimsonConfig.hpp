@@ -34,6 +34,14 @@ enum {
 };
 }
 
+namespace MISSIONTIMERDISPLAY {
+enum {
+	OFF,
+	ONLY_IN_BP,
+	ALWAYS,
+};
+}
+
 namespace RIGHTSTICKCENTERCAM {
 enum {
 	OFF,
@@ -133,7 +141,7 @@ struct CrimsonConfig {
 		bool royalGauge = true;
 		bool styleRanksMeter = true;
 		bool stylishPtsCounter = true;
-		bool missionTimerDisplay = false;
+		uint8 missionTimerDisplay = MISSIONTIMERDISPLAY::ONLY_IN_BP;
 		bool lockOn = true;
 		bool scaleLockOnEnemyDistance = false;
 		bool stunDisplacementNumericHud = false;

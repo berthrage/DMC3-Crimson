@@ -56,11 +56,11 @@ void FrameResponsiveGameSpeed() {
 
 	// Exponential smoothing for the rounded multiplier stability
 	static float smoothedMultiplier = g_FrameRateTimeMultiplier;
-	float smoothingFactor = 0.05f; // Lower = smoother, higher = more responsive
+	float smoothingFactor = 0.02f; // Lower = smoother, higher = more responsive
 	smoothedMultiplier = smoothingFactor * g_FrameRateTimeMultiplier + (1.0f - smoothingFactor) * smoothedMultiplier;
 
 	// Round to nearest 0.1
-	float step = 0.1f;
+	float step = 0.05f;
 	g_FrameRateTimeMultiplierRounded = std::round(smoothedMultiplier / step) * step;
 
 	// Ignore deltaTime spikes that result from alt-tabbing, loading screens, etc.
