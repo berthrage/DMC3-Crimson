@@ -2670,7 +2670,9 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 	if (ensureIsMainPlayer && currentDT > 0) {
 		if (inNormalBlock) {
 			if (!normalBlocked[playerIndex]) {
-				storedDT[playerIndex] = std::max(storedDT[playerIndex] - 1500, 0.0f);
+				storedDT[playerIndex] = std::max(storedDT[playerIndex] - 2000, 0.0f);
+				storedReleaseDamage[playerIndex] = std::min(storedReleaseDamage[playerIndex] + 100, 9000.0f);
+				currentReleaseDamage = storedReleaseDamage[playerIndex];
 				if (!activeCrimsonGameplay.Cheats.Training.infiniteDT) {
 					currentDT = storedDT[playerIndex];
 				}
@@ -2687,31 +2689,33 @@ void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
 			}
 		}
 		else {
-
+			storedReleaseDamage[playerIndex] = currentReleaseDamage;
 			storedDT[playerIndex] = currentDT;
 			normalBlocked[playerIndex] = false;
 		}
 
-		if (actorData.royalBlock == 1) {
-			if (!guardBroke[playerIndex]) {
-				storedDT[playerIndex] = std::max(storedDT[playerIndex] - 1000, 0.0f);
-				storedReleaseDamage[playerIndex] = std::min(storedReleaseDamage[playerIndex] + 700, 9000.0f);
-				currentReleaseDamage = storedReleaseDamage[playerIndex];
-				if (!activeCrimsonGameplay.Cheats.Training.infiniteDT) {
-					currentDT = storedDT[playerIndex];
-				}
-				guardBroke[playerIndex] = true;
-				uint8 vfxColor[4] = { 48, 0, 10, 255 };
-                uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(vfxColor);
-				CrimsonDetours::CreateEffectDetour(actorBaseAddr, 3, 61, 15, true, actualColor, 1.3f);
-				blockResetTimes[playerIndex] = high_resolution_clock::now() + milliseconds(30); // Set reset time for guard break
-			}
-		}
-		else {
-			storedReleaseDamage[playerIndex] = currentReleaseDamage;
-			storedDT[playerIndex] = currentDT;
-			guardBroke[playerIndex] = false;
-		}
+
+		// UNLIKELY TO FIRE
+// 		if (actorData.royalBlock == 1) {
+// 			if (!guardBroke[playerIndex]) {
+// 				storedDT[playerIndex] = std::max(storedDT[playerIndex] - 1000, 0.0f);
+// 				storedReleaseDamage[playerIndex] = std::min(storedReleaseDamage[playerIndex] + 700, 9000.0f);
+// 				currentReleaseDamage = storedReleaseDamage[playerIndex];
+// 				if (!activeCrimsonGameplay.Cheats.Training.infiniteDT) {
+// 					currentDT = storedDT[playerIndex];
+// 				}
+// 				guardBroke[playerIndex] = true;
+// 				uint8 vfxColor[4] = { 48, 0, 10, 255 };
+//                 uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(vfxColor);
+// 				CrimsonDetours::CreateEffectDetour(actorBaseAddr, 3, 61, 15, true, actualColor, 1.3f);
+// 				blockResetTimes[playerIndex] = high_resolution_clock::now() + milliseconds(30); // Set reset time for guard break
+// 			}
+// 		}
+// 		else {
+// 			storedReleaseDamage[playerIndex] = currentReleaseDamage;
+// 			storedDT[playerIndex] = currentDT;
+// 			guardBroke[playerIndex] = false;
+// 		}
 
 		// Reset royalBlock to 6 if the timer has passed for both normal blocks and guard breaks
 		if ((inNormalBlock || actorData.royalBlock == 1) && high_resolution_clock::now() >= blockResetTimes[playerIndex]) {
