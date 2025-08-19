@@ -306,5 +306,6 @@ void UpdateFrameRate() {
 
     *frequencyAddr = (defaultFrequency * static_cast<double>(g_frameRateMultiplier));
 
+    // This affects the missionData.frameCount value
     *frameRateAddr = static_cast<int32>(60.0 * multiplier);
 }
