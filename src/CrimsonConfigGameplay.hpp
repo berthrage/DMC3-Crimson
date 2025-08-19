@@ -42,6 +42,7 @@ struct CrimsonConfigGameplay {
 			bool fasterTurnRate = true;
 			float vanillaWeaponSwitchDelay = 12;
 			bool disableSoulEaterInvis = true;
+			bool multiplayerDamageScaling = true;
             
 
 			static constexpr auto Metadata() {
@@ -62,7 +63,8 @@ struct CrimsonConfigGameplay {
 					std::make_pair("increasedEnemyJuggleTime", &General::increasedEnemyJuggleTime),
 					std::make_pair("fasterTurnRate", &General::fasterTurnRate),
 					std::make_pair("vanillaWeaponSwitchDelay", &General::vanillaWeaponSwitchDelay),
-					std::make_pair("disableSoulEaterInvis", &General::disableSoulEaterInvis)
+					std::make_pair("disableSoulEaterInvis", &General::disableSoulEaterInvis),
+					std::make_pair("multiplayerDamageScaling", &General::multiplayerDamageScaling)
 				);
 			}
         } General;

@@ -4948,6 +4948,7 @@ struct GameModeData {
     bool arcadeMissionEnabled = false;
     bool bossRushMissionEnabled = false;
     bool characterSwitchingEnabled = false;
+    bool multiplayerEnabled = false;
 };
 
 extern GameModeData gameModeData;

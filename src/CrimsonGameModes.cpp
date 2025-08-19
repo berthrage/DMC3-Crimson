@@ -295,6 +295,7 @@ const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.holdToShoot = false;
 	mask.Gameplay.General.vanillaWeaponSwitchDelay = false;
+	mask.Gameplay.General.multiplayerDamageScaling = false;
 	mask.Gameplay.Dante.swapArtemisMultiLockNormalShot = false;
 	mask.Gameplay.Dante.swapHammerVocalnoInputs = false;
 
@@ -769,6 +770,7 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 	static bool mustStyleChanged = false;
 	static bool enemyDTChanged = false;
 	static bool forceDifficultyChanged = false;
+	static bool multiplayerChanged = false;
 
 	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
 	if (!name_10723) {
@@ -787,6 +789,7 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 	static uint32 initialMustStylePreset = STYLE_RANK::NONE;
 	static bool enemyDTLockedNoDT = false; 
 	static uint32 initialForceDifficulty = DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF;
+	static bool initialMultiplayer = activeConfig.Actor.playerCount > 1;
 
 	if (missionData.frameCount > 0 && g_scene != SCENE::MISSION_RESULT) { // Mission is Running
 		if (!initializedMission) {
@@ -795,6 +798,7 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 			initialEnemyDTPreset = activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode;
 			initialMustStylePreset = activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode;
 			initialForceDifficulty = activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode;
+			initialMultiplayer = activeConfig.Actor.playerCount > 1;
 			initializedMission = true;
 			presetChanged = false;
 			ldkChanged = false;
@@ -802,6 +806,7 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 			enemyDTChanged = false;
 			enemyDTLockedNoDT = false; // Reset lock at mission start
 			forceDifficultyChanged = false;
+			multiplayerChanged = false;
 		} else if (activeCrimsonGameplay.GameMode.preset != initialPreset) {
 			presetChanged = true;
 			gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : activeCrimsonGameplay.GameMode.preset;
@@ -834,6 +839,14 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 			if (initialForceDifficulty != DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF || forceDifficultyChanged) {
 				gameModeData.forceDifficultyResult = true;
 			} 
+		}
+
+		bool multiplayerActive = activeConfig.Actor.playerCount > 1;
+		if (initialMultiplayer != multiplayerActive) {
+			multiplayerChanged = true;
+			gameModeData.multiplayerEnabled = false;
+		} else {
+			gameModeData.multiplayerEnabled = activeConfig.Actor.playerCount > 1;
 		}
 	} else if (g_scene == SCENE::MISSION_RESULT) { // Mission Result Screen
 		gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : gameModeData.missionResultGameMode;

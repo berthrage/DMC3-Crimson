@@ -3962,6 +3962,29 @@ void RenderMissionResultGameModeStats() {
 			ImGui::PopFont();
 		}
 
+		if ((gameModeData.arcadeMissionEnabled || gameModeData.bossRushMissionEnabled 
+			|| gameModeData.characterSwitchingEnabled) &&
+			gameModeData.multiplayerEnabled) {
+			ImGui::SameLine();
+			ImGui::Text((const char*)u8"•");
+		}
+
+		if (gameModeData.multiplayerEnabled) {
+			ImGui::SameLine();
+			ImGui::PushFont(g_ImGuiFont_Messenger[25.0f]);
+			ImGui::Text("Multiplayer");
+
+			if (activeCrimsonGameplay.Gameplay.General.multiplayerDamageScaling && 
+				!activeCrimsonGameplay.Cheats.General.customDamage) {
+				ImGui::SameLine();
+				ImGui::Text(" (Dmg Scaling %.1f)", activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult);
+			} else {
+				ImGui::SameLine();
+				ImGui::Text(" (Dmg Scaling OFF)");
+			}
+			ImGui::PopFont();
+		}
+
 		ImGui::End();
 	}
 
@@ -10954,6 +10977,28 @@ void GeneralGameplayOptions() {
 				activeCrimsonGameplayMask.Gameplay.General.disableSoulEaterInvis)) {
 				CrimsonPatches::ToggleDisableSoulEaterInvis(activeCrimsonGameplay.Gameplay.General.disableSoulEaterInvis);
 			}
+			
+			ImGui::TableNextColumn();
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Multiplayer Damage Scaling",
+				activeCrimsonGameplay.Gameplay.General.multiplayerDamageScaling,
+				queuedCrimsonGameplay.Gameplay.General.multiplayerDamageScaling,
+				activeCrimsonGameplayMask.Gameplay.General.multiplayerDamageScaling)) {
+
+				if (!activeCrimsonGameplay.Cheats.General.customDamage && 
+					!queuedCrimsonGameplay.Gameplay.General.multiplayerDamageScaling) {
+					queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 1.0f;
+					activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 1.0f;
+				}
+			}
+			GUI_PopDisable(!activeConfig.Actor.enable);
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Scales Enemy Damage Taken multiplier in proportion to how many Players are active in a session:\n"
+				"2 Players -> 0.7\n"
+				"3 Players -> 0.5\n"
+				"4 Players -> 0.4");
 
 			ImGui::EndTable();
 		}
@@ -12627,10 +12672,12 @@ void ToggleOneHitKill() {
 
 	if (!toggled) {
 		toggled = true;
+		activeCrimsonGameplay.Cheats.General.customDamage = true;
 		activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 100.0f;
 		cheatsPopUp.cheatText = "Toggled One Hit Kill On";
 	} else {
 		toggled = false;
+		activeCrimsonGameplay.Cheats.General.customDamage = queuedCrimsonGameplay.Gameplay.General.multiplayerDamageScaling;
 		activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = defaultCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult;
 		cheatsPopUp.cheatText = "Toggled One Hit Kill Off";
 	}

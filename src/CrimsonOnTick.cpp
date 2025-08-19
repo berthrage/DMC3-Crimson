@@ -1741,12 +1741,34 @@ void ForceDifficultyController() {
 			sessionData.oneHitKill = originalOneHitKill;
 			difficultySaved = false;
 		}
+	} 
+}
+
+void MultiplayerDamageScaling() {
+
+	if (!activeCrimsonGameplay.Cheats.General.customDamage && 
+		activeCrimsonGameplay.Gameplay.General.multiplayerDamageScaling) {
+
+		if (activeConfig.Actor.playerCount == 2) {
+			queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 0.7f;
+			activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 0.7f;
+		} else if (activeConfig.Actor.playerCount == 3) {
+			queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 0.5f;
+			activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 0.5f;
+		} else if (activeConfig.Actor.playerCount == 4) {
+			queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 0.4f;
+			activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 0.4f;
+		} else {
+			queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 1.0f;
+			activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 1.0f;
+		}
 	}
 }
 
 void TriggerOnTickFuncs() {
 	// These functions run OnTick globally (in game and in menus) through Game Thread
 	ForceDifficultyController();
+	MultiplayerDamageScaling();
 	CrimsonOnTick::InCreditsDetection();
 	CrimsonOnTick::WeaponProgressionTracking();
 	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
