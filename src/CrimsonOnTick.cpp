@@ -577,8 +577,8 @@ void StyleMeterMultiplayer() {
 		return;
 	}
 
-	float highestStyleRank = mainActorData.styleData.rank;
-	float highestMeter = mainActorData.styleData.meter;
+	float highestStyleRank = 0;
+	float highestMeter = 0.0f;
 
 	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
 		auto& playerData = GetPlayerData(playerIndex);
@@ -598,13 +598,11 @@ void StyleMeterMultiplayer() {
 			highestMeter = actorData.styleData.meter;
 		}
 	}
-	if (highestStyleRank > mainActorData.styleData.rank) {
-		mainActorData.styleData.rank = highestStyleRank;
-	}
 	mainActorData.styleData.rank = highestStyleRank;
-	if (highestMeter > mainActorData.styleData.meter) {
+	if (highestMeter > 400.0f) {
 		mainActorData.styleData.meter = highestMeter;
 	}
+	
 }
 
 void DetermineActiveEntitiesCount() {
