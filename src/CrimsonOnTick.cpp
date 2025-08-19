@@ -579,6 +579,7 @@ void StyleMeterMultiplayer() {
 
 	float highestStyleRank = 0;
 	float highestMeter = 0.0f;
+	float highestStyleQuotient = 0.0f;
 
 	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
 		auto& playerData = GetPlayerData(playerIndex);
@@ -597,11 +598,17 @@ void StyleMeterMultiplayer() {
 		if (actorData.styleData.meter > highestMeter) {
 			highestMeter = actorData.styleData.meter;
 		}
+		// Total Stylish PTS
+		if (actorData.styleData.quotient > highestStyleQuotient) {
+			highestStyleQuotient = actorData.styleData.quotient;
+		}
 	}
+	// We take the highest values from all players and apply them to the main player, which is the shown one.
 	mainActorData.styleData.rank = highestStyleRank;
 	if (highestMeter > 400.0f) {
 		mainActorData.styleData.meter = highestMeter;
 	}
+	mainActorData.styleData.quotient = highestStyleQuotient;
 	
 }
 
