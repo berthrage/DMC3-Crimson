@@ -13998,7 +13998,58 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { scaledFontSize * 0.4f, scaledFontSize * 0.4f });
 			ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
-			ImGui::BeginChildEx("C Team Area", cntWindow->GetID("C Team Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+			   // Make the C Team Area child window auto-scroll vertically, show scroll bar, pause on user scroll, linger at start/end
+			   static float creditsScroll = 0.0f;
+			   static double lastTime = ImGui::GetTime();
+			   static float pauseTimer = 0.0f;
+			   static float lingerStart = 1.5f; // seconds to linger at start
+			   static float lingerEnd = 1.5f;   // seconds to linger at end
+			   static bool atStart = true;
+			   static bool atEnd = false;
+
+			   double currentTime = ImGui::GetTime();
+			   float delta = float(currentTime - lastTime);
+			   lastTime = currentTime;
+			   float scrollSpeed = 25.0f; // pixels per second, adjust as needed
+
+			   ImGui::BeginChildEx("C Team Area", cntWindow->GetID("C Team Area"), ImVec2(areaSize.x, 650 * scaleFactorY), false,
+				   ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
+			   float maxScroll = ImGui::GetScrollMaxY();
+			   float userScroll = ImGui::GetScrollY();
+
+			   if (fabsf(userScroll - creditsScroll) > 1.0f) {
+				   // User scrolled, pause auto-scroll for 2 seconds
+				   pauseTimer = 2.0f;
+				   creditsScroll = userScroll;
+			   }
+
+			   if (pauseTimer > 0.0f) {
+				   pauseTimer -= delta;
+			   } else {
+				   if (creditsScroll <= 0.0f) {
+					   if (!atStart) { pauseTimer = lingerStart; atStart = true; }
+				   } else if (creditsScroll >= maxScroll) {
+					   if (!atEnd) { pauseTimer = lingerEnd; atEnd = true; }
+				   } else {
+					   atStart = false;
+					   atEnd = false;
+				   }
+				   if (pauseTimer <= 0.0f && !atEnd) {
+					   creditsScroll += scrollSpeed * delta;
+					   if (creditsScroll > maxScroll) {
+						   creditsScroll = maxScroll;
+					   }
+				   }
+				   if (atEnd && pauseTimer <= 0.0f) {
+					   creditsScroll = 0.0f;
+					   atStart = true;
+					   atEnd = false;
+					   pauseTimer = lingerStart;
+				   }
+			   }
+
+			   ImGui::SetScrollY(creditsScroll);
 			ImGui::PopStyleVar();
 			{
 				auto window = ImGui::GetCurrentWindow();
@@ -14503,7 +14554,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 							ImGui::Text("adil");
 
 							ImGui::SameLine();
-							ImGui::Spacing();
 
 							if (fnDrawSocialButton("adilgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
 								ShellExecute(0, 0, "https://github.com/adilahmeddev", 0, 0, SW_SHOW);
@@ -14526,11 +14576,48 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 							ImGui::Text("Airdragon");
 
 							ImGui::SameLine();
-							ImGui::Spacing();
 
 							if (fnDrawSocialButton("airdragongithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize() + 2, ImGui::GetFontSize() })) {
 								ShellExecute(0, 0, "https://github.com/Airdragon50", 0, 0, SW_SHOW);
 							}
+						}
+						ImGui::PopFont();
+					}
+
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+						{
+							ImGui::Text("Sound Producer");
+						}
+						ImGui::PopFont();
+
+						ImGui::Separator();
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Text("Tihan");
+
+							ImGui::SameLine();
+
+							if (fnDrawSocialButton("tihantwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize() + 2, ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://x.com/t1h4n", 0, 0, SW_SHOW);
+							}
+						}
+						ImGui::PopFont();
+					}
+
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+						{
+							ImGui::Text("Artist");
+						}
+						ImGui::PopFont();
+
+						ImGui::Separator();
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Text("And Lenam was there too");
 						}
 						ImGui::PopFont();
 					}
@@ -14576,9 +14663,60 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { scaledFontSize * 0.4f, scaledFontSize * 0.4f });
 			ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
-			ImGui::BeginChildEx("Patrons Area", cntWindow->GetID("Patrons Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
-			ImGui::PopStyleVar();
-			{
+			   // Auto-scroll logic for Patrons Area
+			   static float patronsScroll = 0.0f;
+			   static double patronsLastTime = ImGui::GetTime();
+			   static float patronsPauseTimer = 0.0f;
+			   static float patronsLingerStart = 1.5f; // seconds to linger at start
+			   static float patronsLingerEnd = 1.5f;   // seconds to linger at end
+			   static bool patronsAtStart = true;
+			   static bool patronsAtEnd = false;
+
+			   double patronsCurrentTime = ImGui::GetTime();
+			   float patronsDelta = float(patronsCurrentTime - patronsLastTime);
+			   patronsLastTime = patronsCurrentTime;
+			   float patronsScrollSpeed = 25.0f;
+
+			   ImGui::BeginChildEx("Patrons Area", cntWindow->GetID("Patrons Area"), areaSize, false,
+				   ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_AlwaysVerticalScrollbar);
+
+			   float patronsMaxScroll = ImGui::GetScrollMaxY();
+			   float patronsUserScroll = ImGui::GetScrollY();
+
+			   if (fabsf(patronsUserScroll - patronsScroll) > 1.0f) {
+				   // User scrolled, pause auto-scroll for 4 seconds
+				   patronsPauseTimer = 2.0f;
+				   patronsScroll = patronsUserScroll;
+			   }
+
+			   if (patronsPauseTimer > 0.0f) {
+				   patronsPauseTimer -= patronsDelta;
+			   } else {
+				   if (patronsScroll <= 0.0f) {
+					   if (!patronsAtStart) { patronsPauseTimer = patronsLingerStart; patronsAtStart = true; }
+				   } else if (patronsScroll >= patronsMaxScroll) {
+					   if (!patronsAtEnd) { patronsPauseTimer = patronsLingerEnd; patronsAtEnd = true; }
+				   } else {
+					   patronsAtStart = false;
+					   patronsAtEnd = false;
+				   }
+				   if (patronsPauseTimer <= 0.0f && !patronsAtEnd) {
+					   patronsScroll += patronsScrollSpeed * patronsDelta;
+					   if (patronsScroll > patronsMaxScroll) {
+						   patronsScroll = patronsMaxScroll;
+					   }
+				   }
+				   if (patronsAtEnd && patronsPauseTimer <= 0.0f) {
+					   patronsScroll = 0.0f;
+					   patronsAtStart = true;
+					   patronsAtEnd = false;
+					   patronsPauseTimer = patronsLingerStart;
+				   }
+			   }
+
+			   ImGui::SetScrollY(patronsScroll);
+			   ImGui::PopStyleVar();
+			   {
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 1.4f)]);
 				{
 					ImGui::Text("PATREON SUPPORTERS");
