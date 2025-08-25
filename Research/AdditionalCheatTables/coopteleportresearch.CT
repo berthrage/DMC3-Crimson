@@ -260,6 +260,18 @@ dmc3.exe+1F2272: 0F 87 84 00 00 00     - ja dmc3.exe+1F22FC
             <Offset>00C90E28</Offset>
           </Offsets>
         </CheatEntry>
+        <CheatEntry>
+          <ID>2988</ID>
+          <Description>"lockon"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>+3e2C</Offset>
+            <Offset>18</Offset>
+            <Offset>00C90E28</Offset>
+          </Offsets>
+        </CheatEntry>
       </CheatEntries>
     </CheatEntry>
     <CheatEntry>
@@ -503,5 +515,77 @@ dmc3.exe+1F2272: 0F 87 84 00 00 00     - ja dmc3.exe+1F22FC
 </AssemblerScript>
     </CheatEntry>
   </CheatEntries>
+  <CheatCodes>
+    <CodeEntry>
+      <Description>Change of jne dmc3.exe+1F2250</Description>
+      <AddressString>dmc3.exe+1F2237</AddressString>
+      <Before>
+        <Byte>3E</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>3C</Byte>
+        <Byte>01</Byte>
+      </Before>
+      <Actual>
+        <Byte>75</Byte>
+        <Byte>17</Byte>
+      </Actual>
+      <After>
+        <Byte>0F</Byte>
+        <Byte>28</Byte>
+        <Byte>87</Byte>
+        <Byte>00</Byte>
+        <Byte>63</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of jne dmc3.exe+1F2167</Description>
+      <AddressString>dmc3.exe+1F20E1</AddressString>
+      <Before>
+        <Byte>00</Byte>
+        <Byte>01</Byte>
+        <Byte>0F</Byte>
+        <Byte>57</Byte>
+        <Byte>FF</Byte>
+      </Before>
+      <Actual>
+        <Byte>0F</Byte>
+        <Byte>85</Byte>
+        <Byte>80</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>48</Byte>
+        <Byte>89</Byte>
+        <Byte>9C</Byte>
+        <Byte>24</Byte>
+        <Byte>90</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of jne dmc3.exe+1F1FC3</Description>
+      <AddressString>dmc3.exe+1F1F92</AddressString>
+      <Before>
+        <Byte>2C</Byte>
+        <Byte>3E</Byte>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>01</Byte>
+      </Before>
+      <Actual>
+        <Byte>75</Byte>
+        <Byte>2F</Byte>
+      </Actual>
+      <After>
+        <Byte>E9</Byte>
+        <Byte>7F</Byte>
+        <Byte>E4</Byte>
+        <Byte>00</Byte>
+        <Byte>C0</Byte>
+      </After>
+    </CodeEntry>
+  </CheatCodes>
   <UserdefinedSymbols/>
 </CheatTable>
