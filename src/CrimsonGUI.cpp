@@ -13135,38 +13135,38 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		ImGui::PopStyleColor(3);
 
 		const Texture2DD3D11* pMainLogo = nullptr;
-		{
-			static const Texture2DD3D11 vanillaLogo(g_Image_VanillaLogo.GetRGBAData(), g_Image_VanillaLogo.GetWidth(), g_Image_VanillaLogo.GetHeight(), pDevice);
-			static const Texture2DD3D11 styleSwitcherLogo(g_Image_StyleSwitcherLogo.GetRGBAData(), g_Image_StyleSwitcherLogo.GetWidth(), g_Image_StyleSwitcherLogo.GetHeight(), pDevice);
-			static const Texture2DD3D11 crimsonLogo(g_Image_CrimsonMainLogo.GetRGBAData(), g_Image_CrimsonMainLogo.GetWidth(), g_Image_CrimsonMainLogo.GetHeight(), pDevice);
-
-			float heightOffset = 0.0f;
-
-			switch (context.SelectedGameMode) {
-			case UI::UIContext::GameModes::Vanilla:
-				pMainLogo = &vanillaLogo;
-				heightOffset = baseFontSize * scaleFactorY * 2.0f;
-				break;
-
-			case UI::UIContext::GameModes::StyleSwitcher:
-				pMainLogo = &styleSwitcherLogo;
-				heightOffset = -(baseFontSize * scaleFactorY * 3.2f);
-				break;
-
-			case UI::UIContext::GameModes::Crimson:
-				pMainLogo = &crimsonLogo;
-				heightOffset = baseFontSize * scaleFactorY * 2.0f;
-				break;
-
-			default:
-				pMainLogo = &vanillaLogo;
-				break;
-			}
-
-			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2{ (cntRegion.GetWidth() - pMainLogo->GetWidth()) * align, heightOffset });
-
-			ImGui::Image(*pMainLogo, pMainLogo->GetSize());
-		}
+// 		{
+// 			static const Texture2DD3D11 vanillaLogo(g_Image_VanillaLogo.GetRGBAData(), g_Image_VanillaLogo.GetWidth(), g_Image_VanillaLogo.GetHeight(), pDevice);
+// 			static const Texture2DD3D11 styleSwitcherLogo(g_Image_StyleSwitcherLogo.GetRGBAData(), g_Image_StyleSwitcherLogo.GetWidth(), g_Image_StyleSwitcherLogo.GetHeight(), pDevice);
+// 			static const Texture2DD3D11 crimsonLogo(g_Image_CrimsonMainLogo.GetRGBAData(), g_Image_CrimsonMainLogo.GetWidth(), g_Image_CrimsonMainLogo.GetHeight(), pDevice);
+// 
+// 			float heightOffset = 0.0f;
+// 
+// 			switch (context.SelectedGameMode) {
+// 			case UI::UIContext::GameModes::Vanilla:
+// 				pMainLogo = &vanillaLogo;
+// 				heightOffset = baseFontSize * scaleFactorY * 2.0f;
+// 				break;
+// 
+// 			case UI::UIContext::GameModes::StyleSwitcher:
+// 				pMainLogo = &styleSwitcherLogo;
+// 				heightOffset = -(baseFontSize * scaleFactorY * 3.2f);
+// 				break;
+// 
+// 			case UI::UIContext::GameModes::Crimson:
+// 				pMainLogo = &crimsonLogo;
+// 				heightOffset = baseFontSize * scaleFactorY * 2.0f;
+// 				break;
+// 
+// 			default:
+// 				pMainLogo = &vanillaLogo;
+// 				break;
+// 			}
+// 
+// 			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2{ (cntRegion.GetWidth() - pMainLogo->GetWidth()) * align, heightOffset });
+// 
+// 			ImGui::Image(*pMainLogo, pMainLogo->GetSize());
+// 		}
 
 		// Bottom text
 		{
@@ -13211,6 +13211,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 			switch (context.SelectedGameMode) {
 			case UI::UIContext::GameModes::Vanilla:
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + baseFontSize * scaleFactorY * 1.0f);
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - vanillaWidth) * align);
 				ImGui::Text(MODE_INFO_TEXT_VANILLA);
 				ImGui::Text("");
@@ -13219,7 +13220,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				break;
 
 			case UI::UIContext::GameModes::StyleSwitcher:
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() - baseFontSize * scaleFactorY * 3.0f);
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + baseFontSize * scaleFactorY * 1.0f);
 
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (cntRegion.GetWidth() - swWidthLine1) * align);
 				ImGui::Text(MODE_INFO_TEXT_SW_LINE1);
