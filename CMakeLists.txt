@@ -18,6 +18,7 @@ include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/Detours/Detours/src)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/debug-draw)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/curl/include)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/openssl/include)
+include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/DirectXTK/Inc)
 include_directories(${CMAKE_SOURCE_DIR}/src/Utility)
 
 add_compile_options(/W0)
