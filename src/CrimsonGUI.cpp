@@ -10207,6 +10207,8 @@ void SoundSection(size_t defaultFontSize) {
 	const char* changeGunNewNames[] = { "DMC3 Default", "New" };
 	const char* changeDevilArmNewNames[] = { "DMC3 Default", "New" };
 
+	const char* styleSwitchNewNames[] = { "DMC3 Switch", "New" };
+
 	float smallerComboMult = 0.7f;
 
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
@@ -10255,6 +10257,10 @@ void SoundSection(size_t defaultFontSize) {
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 			ImGui::Text("STYLE SWITCH SFX");
 			ImGui::PopFont();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			UI::Combo2<uint8>("Style Change Effect", styleSwitchNewNames, activeCrimsonConfig.SFX.styleChangeNew, queuedCrimsonConfig.SFX.styleChangeNew);
+			ImGui::PopItemWidth();
 
 			ImGui::PushItemWidth(itemWidth * smallerComboMult);
 			GUI_Slider2<uint8>("Effect Volume", activeCrimsonConfig.SFX.styleChangeVolume, queuedCrimsonConfig.SFX.styleChangeVolume, 0, 100);
@@ -12261,21 +12267,21 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	ImGui::SetNextWindowPos(logoWindowPos);
 	ImGui::SetNextWindowSize(logoWindowSize);
 
-	ImGui::Begin("LogoWindow", nullptr, windowFlags);
-
-	// Fade from white to normal color
-	ImVec4 tintColor = ImLerp(ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1), fadeProgress); // default is white
-	tintColor = ImVec4(1, 1, 1, fadeProgress);
-
-	ImGui::GetWindowDrawList()->AddImage(
-		logo,
-		logoWindowPos,
-		logoSize,
-		ImVec2(0, 0), ImVec2(1, 1),
-		ImGui::ColorConvertFloat4ToU32(tintColor)
-	);
-
-	ImGui::End();
+// 	ImGui::Begin("LogoWindow", nullptr, windowFlags);
+// 
+// 	// Fade from white to normal color
+// 	ImVec4 tintColor = ImLerp(ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1), fadeProgress); // default is white
+// 	tintColor = ImVec4(1, 1, 1, fadeProgress);
+// 
+// 	ImGui::GetWindowDrawList()->AddImage(
+// 		logo,
+// 		logoWindowPos,
+// 		logoSize,
+// 		ImVec2(0, 0), ImVec2(1, 1),
+// 		ImGui::ColorConvertFloat4ToU32(tintColor)
+// 	);
+// 
+// 	ImGui::End();
 
 	// C•Team 'A Berthrage Project' window
 	float cTeamBerthrageFontSize = 30.0f;
@@ -12307,29 +12313,29 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 
 	ImGui::SetNextWindowPos(cTeamBerthrageTextWindowPos);
 	ImGui::SetNextWindowSize(cTeamBerthrageTextWindowSize);
-	ImGui::Begin("CTeamBerthrageProjectWindow", nullptr, windowFlags);
-
-	// Draw shadow
-	ImVec2 berthrageTitleTextShadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY);
-	ImGui::GetWindowDrawList()->AddText(
-		berthrageFont,
-		scaledFontSize,
-		berthrageTitleTextScreenPos + berthrageTitleTextShadowOffset,
-		IM_COL32(0, 0, 0, cTeamBerthrageAlpha),
-		(const char*)cTeamBerthrageText
-	);
-
-	// Draw normal text
-	ImGui::GetWindowDrawList()->AddText(
-		berthrageFont,
-		scaledFontSize,
-		berthrageTitleTextScreenPos,
-		IM_COL32(255, 255, 255, cTeamBerthrageAlpha),
-		(const char*)cTeamBerthrageText
-	);
-
-	
-	ImGui::End();
+// 	ImGui::Begin("CTeamBerthrageProjectWindow", nullptr, windowFlags);
+// 
+// 	// Draw shadow
+// 	ImVec2 berthrageTitleTextShadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY);
+// 	ImGui::GetWindowDrawList()->AddText(
+// 		berthrageFont,
+// 		scaledFontSize,
+// 		berthrageTitleTextScreenPos + berthrageTitleTextShadowOffset,
+// 		IM_COL32(0, 0, 0, cTeamBerthrageAlpha),
+// 		(const char*)cTeamBerthrageText
+// 	);
+// 
+// 	// Draw normal text
+// 	ImGui::GetWindowDrawList()->AddText(
+// 		berthrageFont,
+// 		scaledFontSize,
+// 		berthrageTitleTextScreenPos,
+// 		IM_COL32(255, 255, 255, cTeamBerthrageAlpha),
+// 		(const char*)cTeamBerthrageText
+// 	);
+// 
+// 	
+// 	ImGui::End();
 
 	// Game Mode Text Window
 	float gameModeFontSize = 30.0f;
@@ -12473,7 +12479,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	float creditsFontSize = 22.0f;
 	float creditsCapCoFontSize = 10.0f;
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[creditsFontSize]);
-	auto creditsText = u8"C•Team • Directed by Berthrage • DMC3 Crimson © • 2025";
+	auto creditsText = u8"C•Team • Directed by Berthrage • Project Crimson © • 2025";
 	auto creditsCapCo = "Devil May Cry is a property of Capcom Co., Ltd. All assets belong to their respective owners.";
 
 	// Calculate text sizes with correct fonts

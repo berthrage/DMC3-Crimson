@@ -3263,7 +3263,12 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
     }
 
     // Trigger SFX.
-    CrimsonSDL::PlayStyleChange(playerIndex);
+    if (activeCrimsonConfig.SFX.styleChangeNew) {
+        CrimsonSDL::PlayStyleChange(playerIndex);
+    } else {
+		FMOD_PlaySound(0, 12); FMOD_PlaySound(0, 75);
+    }
+    
     if (actorData.character == CHARACTER::DANTE) {
         CrimsonSDL::PlayStyleChangeVO(playerIndex, style, actorData.doppelganger);
     }
