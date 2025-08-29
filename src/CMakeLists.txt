@@ -51,7 +51,6 @@ set(CXX_LIBS
     #xinput.lib
     Xinput9_1_0.lib
     dxguid.lib
-    DirectXTK.lib
 
     ImGui
     libzip
@@ -211,8 +210,6 @@ file(GLOB MAIN_SRC
     Window.hpp
     StyleSwitchFX.cpp
     StyleSwitchFX.hpp
-    PacLoader.hpp
-    PacLoader.cpp
 )
 
 file(GLOB CORE_SRC 
