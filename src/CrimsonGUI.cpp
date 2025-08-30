@@ -108,7 +108,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 	// Todo: move to context
 	static bool uiElementsInitialized = false;
 	if (!uiElementsInitialized) {
-		g_Image_CrimsonHeaderLogo.ResizeByRatioW(size_t(g_UIContext.DefaultFontSize * 8.23f));
+		g_Image_CrimsonHeaderLogo.ResizeByRatioW(size_t(g_UIContext.DefaultFontSize * 12.23f));
 
 		uiElementsInitialized = true;
 	}
@@ -181,7 +181,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			auto logoWidth = logo.GetWidth() * scaleFactorY;
 			auto logoHeight = logo.GetHeight() * scaleFactorY;
 
-			ImVec2 logoPos = { (wndRect.Max.x + wndRect.Min.x) * 0.5f - logoWidth * 0.5f, wndRect.Min.y + logoHeight * 0.2f };
+			ImVec2 logoPos = { (wndRect.Max.x + wndRect.Min.x) * 0.5f - logoWidth * 0.5f, wndRect.Min.y + logoHeight * 0.3f };
 
 			window->DrawList->AddLine({ wndRect.Min.x + scaledFontSize * 1.7f, logoPos.y + logoHeight * 0.5f },
 				{ logoPos.x - scaledFontSize * 0.52f, logoPos.y + logoHeight * 0.5f }, SwapColorEndianness(0xE01D42FF));
@@ -202,7 +202,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 
 			ImVec2 buttonPos = {
 				logoPos.x + logoWidth * 0.5f - buttonSize.x * 0.5f,
-				logoPos.y + logoHeight + scaledFontSize * -0.02f // spacing below logo
+				logoPos.y + logoHeight + scaledFontSize * -0.3f // spacing below logo
 			};
 			ImVec2 buttonMax = buttonPos + buttonSize;
 
