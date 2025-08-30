@@ -58,11 +58,11 @@ DMC3 Crimson is completely free and will always be. That said, you could greatly
 # DDMK
 • serpentiem - Original DDMK's Developer  
 
-# DMC Crimson is a free, open-source and non-commercial project
+# DMC3 Crimson is a free, open-source and non-commercial project
 C•Team is an independent development group and is not affiliated with, endorsed by, or sponsored by CAPCOM Co., Ltd. All trademarks, including Devil May Cry, are the property of their respective owners. This project is a non-commercial initiative made out of passion and respect for the original work.  
 
 Warning: Be careful about downloading supposed Crimson builds from unofficial sources, they could be fake and/or contain malicious code.
 
 ## LICENSE
-DMC Crimson is licensed under the [zlib license](https://github.com/berthrage/Devil-May-Cry-3-Crimson/blob/main/LICENSE) and includes [DMCHDFix by Lyall](https://github.com/Lyall/DMCHDFix) packaged in. The rest of the licenses should be contained [here](https://github.com/serpentiem/ddmk/tree/master/ThirdParty).
+DMC3 Crimson is licensed under the [zlib license](https://github.com/berthrage/Devil-May-Cry-3-Crimson/blob/main/LICENSE) and includes [DMCHDFix by Lyall](https://github.com/Lyall/DMCHDFix) packaged in. The rest of the licenses should be contained [here](https://github.com/serpentiem/ddmk/tree/master/ThirdParty).
 
