@@ -1,7 +1,9 @@
 <img src="Public/fulllogo-with-fullcredits.png" alt="Logo" style="width: 2400px;"/>  
 
-<img src="Public/Screenshot 1.png" alt="Logo" style="width: 400px;"/>  <img src="Public/Screenshot 2.png" alt="Logo" style="width: 400px;"/>  
-<img src="Public/Screenshot 3.png" alt="Logo" style="width: 400px;"/>  <img src="Public/Screenshot 5.png" alt="Logo" style="width: 400px;"/>
+## THE ULTIMATE DMC3 EXPERIENCE  
+
+<img src="Public/Screenshot 1.png" alt="Logo" style="width: 400px;"/> <img src="Public/Screenshot 2.png" alt="Logo" style="width: 400px;"/>   
+<img src="Public/Screenshot 3.png" alt="Logo" style="width: 400px;"/> <img src="Public/Screenshot 5.png" alt="Logo" style="width: 400px;"/>  
 
 ## FEATURE SET
 • Style, Weapon and Character Switching  
