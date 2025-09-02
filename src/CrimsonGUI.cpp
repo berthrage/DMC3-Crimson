@@ -12267,21 +12267,21 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	ImGui::SetNextWindowPos(logoWindowPos);
 	ImGui::SetNextWindowSize(logoWindowSize);
 
-// 	ImGui::Begin("LogoWindow", nullptr, windowFlags);
-// 
-// 	// Fade from white to normal color
-// 	ImVec4 tintColor = ImLerp(ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1), fadeProgress); // default is white
-// 	tintColor = ImVec4(1, 1, 1, fadeProgress);
-// 
-// 	ImGui::GetWindowDrawList()->AddImage(
-// 		logo,
-// 		logoWindowPos,
-// 		logoSize,
-// 		ImVec2(0, 0), ImVec2(1, 1),
-// 		ImGui::ColorConvertFloat4ToU32(tintColor)
-// 	);
-// 
-// 	ImGui::End();
+	ImGui::Begin("LogoWindow", nullptr, windowFlags);
+
+	// Fade from white to normal color
+	ImVec4 tintColor = ImLerp(ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1), fadeProgress); // default is white
+	tintColor = ImVec4(1, 1, 1, fadeProgress);
+
+	ImGui::GetWindowDrawList()->AddImage(
+		logo,
+		logoWindowPos,
+		logoSize,
+		ImVec2(0, 0), ImVec2(1, 1),
+		ImGui::ColorConvertFloat4ToU32(tintColor)
+	);
+
+	ImGui::End();
 
 	// C•Team 'A Berthrage Project' window
 	float cTeamBerthrageFontSize = 30.0f;
@@ -12313,29 +12313,29 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 
 	ImGui::SetNextWindowPos(cTeamBerthrageTextWindowPos);
 	ImGui::SetNextWindowSize(cTeamBerthrageTextWindowSize);
-// 	ImGui::Begin("CTeamBerthrageProjectWindow", nullptr, windowFlags);
-// 
-// 	// Draw shadow
-// 	ImVec2 berthrageTitleTextShadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY);
-// 	ImGui::GetWindowDrawList()->AddText(
-// 		berthrageFont,
-// 		scaledFontSize,
-// 		berthrageTitleTextScreenPos + berthrageTitleTextShadowOffset,
-// 		IM_COL32(0, 0, 0, cTeamBerthrageAlpha),
-// 		(const char*)cTeamBerthrageText
-// 	);
-// 
-// 	// Draw normal text
-// 	ImGui::GetWindowDrawList()->AddText(
-// 		berthrageFont,
-// 		scaledFontSize,
-// 		berthrageTitleTextScreenPos,
-// 		IM_COL32(255, 255, 255, cTeamBerthrageAlpha),
-// 		(const char*)cTeamBerthrageText
-// 	);
-// 
-// 	
-// 	ImGui::End();
+	ImGui::Begin("CTeamBerthrageProjectWindow", nullptr, windowFlags);
+
+	// Draw shadow
+	ImVec2 berthrageTitleTextShadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY);
+	ImGui::GetWindowDrawList()->AddText(
+		berthrageFont,
+		scaledFontSize,
+		berthrageTitleTextScreenPos + berthrageTitleTextShadowOffset,
+		IM_COL32(0, 0, 0, cTeamBerthrageAlpha),
+		(const char*)cTeamBerthrageText
+	);
+
+	// Draw normal text
+	ImGui::GetWindowDrawList()->AddText(
+		berthrageFont,
+		scaledFontSize,
+		berthrageTitleTextScreenPos,
+		IM_COL32(255, 255, 255, cTeamBerthrageAlpha),
+		(const char*)cTeamBerthrageText
+	);
+
+	
+	ImGui::End();
 
 	// Game Mode Text Window
 	float gameModeFontSize = 30.0f;
