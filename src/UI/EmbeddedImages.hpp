@@ -258,8 +258,8 @@ public:
 protected:
 	static constexpr uint32_t	m_CompressedWidth{ 178 };
 	static constexpr uint32_t	m_CompressedHeight{ 250 };
-	static constexpr uint32_t m_ImageCompressedSize{ 97877 };
-	static			 uint32_t m_ImageCompressedData[97880 / 4];
+	static constexpr uint32_t m_ImageCompressedSize{ 108705 };
+	static			 uint32_t m_ImageCompressedData[108708 / 4];
 };
 
 extern RedOrbVanilla g_Image_RedOrbVanilla;
