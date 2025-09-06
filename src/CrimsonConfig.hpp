@@ -293,7 +293,7 @@ struct CrimsonConfig {
 		uint8 changeGunNew = 1;
 		uint8 changeDevilArmNew = 1;
 		uint8 changeWeaponEffectVolume = 100;
-		uint8 styleChangeNew = 0;
+		uint8 styleChangeNew = 1;
 		uint8 styleChangeVolume = 100;
 		uint8 styleChangeVoiceOverVolume = 100;
 		uint8 sprintEffectVolume = 100;
