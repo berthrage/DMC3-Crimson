@@ -1234,7 +1234,7 @@ void MissionTimerDisplay() {
 
 	ImVec2 textPos = ImGui::GetCursorScreenPos();
 
-	ImU32 outlineColor = ImColor(0.49f, 0.0f, 0.0f, 1.0f); // #7f0000; 
+	ImU32 outlineColor = IM_COL32(100, 10, 10, 255); // #500812
 	ImU32 textColor = IM_COL32(255, 255, 255, 255);
 	float outlineThickness = 1.0f;
 
@@ -1348,10 +1348,10 @@ void RedOrbCounterWindow() {
 	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	// This element is mandatory for non-vanilla modes
-	if (activeCrimsonGameplay.GameMode.preset >= GAMEMODEPRESETS::STYLE_SWITCHER) {
-		activeCrimsonConfig.CrimsonHudAddons.redOrbCounter = true;
-		queuedCrimsonConfig.CrimsonHudAddons.redOrbCounter = true;
-	}
+// 	if (activeCrimsonGameplay.GameMode.preset >= GAMEMODEPRESETS::STYLE_SWITCHER) {
+// 		activeCrimsonConfig.CrimsonHudAddons.redOrbCounter = true;
+// 		queuedCrimsonConfig.CrimsonHudAddons.redOrbCounter = true;
+// 	}
 
 	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.redOrbCounter) {
 		CrimsonDetours::RerouteRedOrbsCounterAlpha(false, crimsonHud.redOrbAlpha);
@@ -1444,7 +1444,7 @@ void RedOrbCounterWindow() {
 
 	// Shadow offset and color
 	ImVec2 shadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY);
-	ImU32 shadowColor = ImColor(0.49f, 0.0f, 0.0f, alpha); // #7f0000
+	ImU32 shadowColor = IM_COL32(100, 10, 10, 255 * alpha); // #500812
 	
 
 	// Main text color

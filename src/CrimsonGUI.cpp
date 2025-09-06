@@ -9258,11 +9258,11 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 
 			ImGui::TableNextColumn();
 
-			GUI_PushDisable((activeCrimsonGameplay.GameMode.preset >= GAMEMODEPRESETS::STYLE_SWITCHER) || (activeConfig.Actor.enable != queuedConfig.Actor.enable));
+			//GUI_PushDisable((activeCrimsonGameplay.GameMode.preset >= GAMEMODEPRESETS::STYLE_SWITCHER) || (activeConfig.Actor.enable != queuedConfig.Actor.enable));
 
 			GUI_Checkbox2("Red Orb Counter", activeCrimsonConfig.CrimsonHudAddons.redOrbCounter, queuedCrimsonConfig.CrimsonHudAddons.redOrbCounter);
 
-			GUI_PopDisable((activeCrimsonGameplay.GameMode.preset >= GAMEMODEPRESETS::STYLE_SWITCHER) || (activeConfig.Actor.enable != queuedConfig.Actor.enable));
+			//GUI_PopDisable((activeCrimsonGameplay.GameMode.preset >= GAMEMODEPRESETS::STYLE_SWITCHER) || (activeConfig.Actor.enable != queuedConfig.Actor.enable));
 
 			ImGui::TableNextColumn();
 
@@ -10204,10 +10204,10 @@ void TrainingSection() {
 #pragma region Training
 
 void SoundSection(size_t defaultFontSize) {
-	const char* changeGunNewNames[] = { "DMC3 Default", "New" };
-	const char* changeDevilArmNewNames[] = { "DMC3 Default", "New" };
+	const char* changeGunNewNames[] = { "DMC3 Default", "Crimson" };
+	const char* changeDevilArmNewNames[] = { "DMC3 Default", "Crimson" };
 
-	const char* styleSwitchNewNames[] = { "DMC3 Switch", "New" };
+	const char* styleSwitchNewNames[] = { "DMC3 Switch", "Crimson" };
 
 	float smallerComboMult = 0.7f;
 
