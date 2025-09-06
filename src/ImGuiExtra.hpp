@@ -193,6 +193,8 @@ namespace UI {
 			"Bini",
 			"Johnny",
 			"Matt",
+			"Che",
+			"WaifuRuns"
 		};
 	};
 
