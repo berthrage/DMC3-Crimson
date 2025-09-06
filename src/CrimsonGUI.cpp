@@ -688,7 +688,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 			// Middle footer section
 			{
 				constexpr auto BACKGROUND_FADED_TEXT = u8"C•Team";
-				constexpr auto CREDIT_TEXT = u8"Berthrage • SSSiyan • deepdarkkapustka • Darkness • Charlie • The Hitchhiker • RaccMoon ";
+				constexpr auto CREDIT_TEXT = u8"Berthrage • SSSiyan • deepdarkkapustka • Darkness • Charlie • The Hitchhiker • RaccMoon • Lenam ";
 				constexpr auto ABOUT_BUTTON_TEXT = "ABOUT";
 
 				ImGui::PushFont(g_ImGuiFont_Roboto[g_UIContext.DefaultFontSize]);
@@ -14427,6 +14427,23 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				}
 
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
+					{
+						ImGui::Text("Artist");
+					}
+					ImGui::PopFont();
+
+					ImGui::Separator();
+
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+					{
+						ImGui::Text("And Lenam was there too");
+					}
+					ImGui::PopFont();
+
+				}
+
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.7f);
 
 				// Additional Work
@@ -14611,22 +14628,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						}
 						ImGui::PopFont();
 					}
-
-					{
-						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
-						{
-							ImGui::Text("Artist");
-						}
-						ImGui::PopFont();
-
-						ImGui::Separator();
-
-						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
-						{
-							ImGui::Text("And Lenam was there too");
-						}
-						ImGui::PopFont();
-					}
 				}
 
 				ImGui::Text("");
@@ -14648,6 +14649,29 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						ImGui::SameLine();
 
 						if (fnDrawSocialButton("serpgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+							ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
+						}
+					}
+					ImGui::PopFont();
+				}
+
+				// Serp
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 1.2f)]);
+					{
+						ImGui::Text("DMCHDFix Developer");
+					}
+					ImGui::PopFont();
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.2f);
+
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+					{
+						ImGui::Text("Lyall");
+
+						ImGui::SameLine();
+
+						if (fnDrawSocialButton("lyallgithub", SocialsIcons::ID_Github, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
 							ShellExecute(0, 0, "https://github.com/serpentiem", 0, 0, SW_SHOW);
 						}
 					}
