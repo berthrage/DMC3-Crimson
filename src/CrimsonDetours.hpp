@@ -121,11 +121,19 @@ void ToggleCustomCameraSensitivity(bool enable);
 void ToggleHoldToCrazyCombo(bool enable);
 void AirTauntDetours(bool enable);
 void RerouteRedOrbsCounterAlpha(bool enable, volatile uint16_t& alphaVar);
+void ToggleEnsureAirRisingDragonLaunch(bool enable);
 void ToggleGreenOrbsMPRegen(bool enable);
 void ToggleClassicHUDPositionings(bool enable);
 void ToggleStyleRankHudNoFadeout(bool enable);
+void ToggleDanteTrickAlterations(bool enable);
 void ToggleFixBallsHangHitSpeed(bool enable);
+void ToggleFixSecretMissionTimerFPS(bool enable);
 void ToggleCerberusCrashFix(bool enable);
 void ToggleVergilM3CrashFix(bool enable);
-
+void ToggleMission5CrashFix(bool enable);
+void ToggleCerbDamageFix(bool enable);
+void ToggleArkhamPt2GrabCrashFix(bool enable);
+void ToggleArkhamPt2DoppelCrashFix(bool enable);
+void ToggleStyleLevellingCCSFix(bool enable);
+void ToggleDTMustStyleArmor(bool enable);
 }

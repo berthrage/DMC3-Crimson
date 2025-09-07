@@ -42,14 +42,14 @@ struct TextureAtlas {
     static constexpr glm::vec2 m_AtlasSize { 2048.0f, 2048.0f };
     std::array<Rect, 8> rects = {
     //      pos.x    pos.y   size.x  size.y
-    Rect { 114.0f,  111.0f,  627.0f, 257.0f }, //trick  ;
-    Rect { 1218.0f, 85.0f,   709.0f, 250.0f }, //sword  ;
-    Rect { 217.0f,  449.0f,  426.0f, 238.0f }, //gun    ;
-    Rect { 1255.0f, 446.0f,  688.0f, 258.0f }, //royal  ;
-    Rect { 1287.0f, 838.0f,  620.0f, 251.0f }, //quick  ;
-    Rect { 106.0f,  794.0f,  831.0f, 240.0f }, //doppel ;
-    Rect { 285.0f,  1138.0f, 285.0f, 244.0f }, //dt     ;
-    Rect { 1279.0f, 1138.0f, 634.0f, 253.0f }, //dte    ;
+    Rect { 94.0f,  111.0f,  727.0f, 257.0f }, //trick  ;
+    Rect { 1180.0f, 85.0f,   809.0f, 250.0f }, //sword  ;
+    Rect { 180.0f,  449.0f,  526.0f, 238.0f }, //gun    ;
+    Rect { 1215.0f, 446.0f,  788.0f, 258.0f }, //royal  ;
+    Rect { 1247.0f, 838.0f,  720.0f, 251.0f }, //quick  ;
+    Rect { 84.0f,  794.0f,  931.0f, 240.0f }, //doppel ;
+    Rect { 265.0f,  1138.0f, 385.0f, 244.0f }, //dt     ;
+    Rect { 1259.0f, 1138.0f, 734.0f, 253.0f }, //dte    ;
     };
 
     constexpr glm::vec2 uv0(const Rect& rect) const { 

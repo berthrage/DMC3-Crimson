@@ -1,6 +1,9 @@
 #pragma once
 #include <type_traits>
 #include <cmath>
+#include "CrimsonConfigGameplayMask.hpp"
+
+extern CrimsonConfigGameplayMask activeCrimsonGameplayMask;
 
 namespace CrimsonGameModes {
 void SetGameModePreset(uint8 mode);

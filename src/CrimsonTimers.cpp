@@ -41,12 +41,17 @@ void ActionTimers() {
             if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
             auto inAttack = (actorData.eventData[0].event == ACTOR_EVENT::ATTACK);
             auto& currentAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAction : crimsonPlayer[playerIndex].currentActionClone;
+			auto& lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
+			auto& actionTimerNotEventChange = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimerNotEventChange : crimsonPlayer[playerIndex].actionTimerNotEventChangeClone;
             auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
             auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
+            auto& inAirRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inAirTauntRisingSun : crimsonPlayer[playerIndex].inAirTauntRisingSunClone;
+            auto& lastInAirTauntRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastInAirTauntRisingSun : crimsonPlayer[playerIndex].lastInAirTauntRisingSunClone;
 
             if (inAttack) {
                 if (eventData.event != EVENT::PAUSE) {
                     actionTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+					actionTimerNotEventChange += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
                 }
             }
             else {
@@ -55,8 +60,11 @@ void ActionTimers() {
 
             // Reset Timer By Action
             if (actorData.action != currentAction) {
-                lastActionTime = actionTimer;
+                lastActionTime = actionTimerNotEventChange;
                 actionTimer = 0;
+				actionTimerNotEventChange = 0;
+                lastAction = currentAction;
+                lastInAirTauntRisingSun = inAirRisingSun;
                 currentAction = actorData.action;
             }
         }
@@ -478,6 +486,21 @@ void VergilDoppelgangerDrainTimer() {
 	}
 }
 
+void StyleRankAnnouncerCDTimers() {
+    for (int rankId = 0; rankId < 7; rankId++) {
+        auto& timer = rankAnnouncer[rankId].timer;
+		auto& wasHit = rankAnnouncer[rankId].wasHit;
+		auto& offCooldown = rankAnnouncer[rankId].offCooldown;
+
+        if (timer > 0) {
+            timer -= ImGui::GetIO().DeltaTime;
+			offCooldown = false;
+        } else {
+			offCooldown = true;
+        }
+	}
+}
+
 
 void CallAllTimers() {
 	BackToForwardTimers();
@@ -495,6 +518,7 @@ void CallAllTimers() {
 	DTEVFXTimers();
 	VergilDoppelgangerCooldownTimer();
     VergilDoppelgangerDrainTimer();
+    StyleRankAnnouncerCDTimers();
 }
 
 }

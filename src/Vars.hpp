@@ -238,7 +238,8 @@ enum {
 
 namespace DIFFICULTY_MODE {
 enum {
-    EASY,
+    FORCE_DIFFICULTY_OFF = -1,
+    EASY = 0,
     NORMAL,
     HARD,
     VERY_HARD,
@@ -275,6 +276,21 @@ enum {
     CLONE,
 };
 };
+/// <summary>
+/// Types of camera used in game.
+/// Needs more research but important for us is Third person camera is value 4.
+/// </summary>
+namespace CAMERA_TYPE {
+    enum {
+        FIXED,
+        TYPE1,
+        TYPE2,
+        TYPE3,
+        THIRD_PERSON,
+        TYPE5
+    };
+};
+
 
 namespace CHARACTER {
 enum {
@@ -713,7 +729,7 @@ enum {
     JUMP,
     UNKNOWN_5,
     AIR_HIKE,
-    UNKNOWN_6,
+    LANDING,
     AIR_TRICK_END,
     LOCK_ON,
     UNKNOWN_8,
@@ -753,6 +769,7 @@ enum {
     DEATH,
     NEVAN_KISS,
     COUNT,
+    TRICKSTER_GROUND_TRICK,
 };
 };
 
@@ -2251,7 +2268,7 @@ static_assert(sizeof(NextEventData) == 360);
 struct SessionData {
     uint32 mission; // 0
     _(8);
-    uint32 mode;     // 0xC
+    uint32 difficultyMode;     // 0xC
     bool oneHitKill; // 0x10
     _(1);
     bool enableTutorial; // 0x12
@@ -2283,7 +2300,7 @@ struct SessionData {
 };
 
 static_assert(offsetof(SessionData, mission) == 0);
-static_assert(offsetof(SessionData, mode) == 0xC);
+static_assert(offsetof(SessionData, difficultyMode) == 0xC);
 static_assert(offsetof(SessionData, oneHitKill) == 0x10);
 static_assert(offsetof(SessionData, enableTutorial) == 0x12);
 static_assert(offsetof(SessionData, useGoldOrb) == 0x13);
@@ -2481,6 +2498,48 @@ struct CameraControlMetadata {
 
 static_assert(offsetof(CameraControlMetadata, fixedCameraAddr) == 0x4B0);
 
+/// <summary>
+/// An ingame data structure that corresponds to a single camera currently loaded in the room.
+/// </summary>
+struct CameraSwitchData {
+    _(1);
+    /// <summary>
+    /// the type of camera.
+    /// offset is 1.
+    /// see CAMERA_TYPE for possible values.
+    /// </summary>
+    uint8 type; // 0x20
+    _(30);
+};
+
+static_assert(sizeof(CameraSwitchData) == 32);
+/// <summary>
+/// An ingame data structure that stores references to cameras in the current room.
+/// </summary>
+struct CameraSwitchArrayData {
+    _(152); //0x98
+    /// <summary>
+    /// an array of CameraSwitchData that stores data about each camera currently in the room.
+    /// offset is 0x98. The size of these elements is wider than a standard pointer at 32 bytes.
+    /// Thus, element 1 is at switches[4], element 2 is at switches[8], etc.
+    /// </summary>
+    CameraSwitchData* switches[80];
+    _(9177);
+    //_(480);
+    //_(9809);
+    //_(9969);
+    /// <summary>
+    /// the key used to access the camera in switches the game is currently using.
+    /// offset is 0x26F1.
+    /// When this value is -1 or 255, the game can't find a camera to swap to. 
+    /// We can use this to surpress transitions to fixed cameras for the forced TPS camera option.
+    /// </summary>
+    uint8 currentCamIndex;
+};
+
+const static int value = offsetof(CameraSwitchArrayData, currentCamIndex);
+static_assert(offsetof(CameraSwitchArrayData, switches) == 0x98);
+static_assert(offsetof(CameraSwitchArrayData, currentCamIndex) == 0x26F1);
 // $CameraDataStart
 
 struct CameraData {
@@ -2495,10 +2554,14 @@ struct CameraData {
     _(24);
     float height;   // 0xD0
     float tilt;     // 0xD4
-    float distance; // 0xD8
+    float distanceCam; // 0xD8
     _(4);
     float distanceLockOn; // 0xE0
-    _(252);
+    _(172);
+    vec4 camcoords1; //0x190
+    _(16);
+    vec4 camcoords2; //0x
+    _(32);
     float cameraLag; // 0x1E0
     _(28);
 };
@@ -2510,8 +2573,10 @@ static_assert(offsetof(CameraData, transitionToLockOnCam) == 0x90);
 static_assert(offsetof(CameraData, targetBaseAddr) == 0xB0);
 static_assert(offsetof(CameraData, height) == 0xD0);
 static_assert(offsetof(CameraData, tilt) == 0xD4);
-static_assert(offsetof(CameraData, distance) == 0xD8);
+static_assert(offsetof(CameraData, distanceCam) == 0xD8);
 static_assert(offsetof(CameraData, distanceLockOn) == 0xE0);
+static_assert(offsetof(CameraData, camcoords1) == 0x190);
+static_assert(offsetof(CameraData, camcoords2) == 0x1B0);
 static_assert(offsetof(CameraData, cameraLag) == 0x1E0);
 
 static_assert(sizeof(CameraData) == 512);
@@ -3122,8 +3187,9 @@ struct PlayerActorDataBase : ActorDataBase {
     _(4);
     float var_3EC4; // 0x3EC4
     float var_3EC8; // 0x3EC8
-    _(6);
-    uint16 var_3ED2; // 0x3ED2
+    _(4);
+    uint16 inertiaRotation; // 0x3ED0
+    uint16 inertiaRotation2; // 0x3ED2
     _(4);
     uint16 cameraDirection; // 0x3ED8
     _(2);
@@ -3287,7 +3353,8 @@ static_assert(offsetof(PlayerActorDataBase, magicPoints) == 0x3EB8);
 static_assert(offsetof(PlayerActorDataBase, maxMagicPoints) == 0x3EBC);
 static_assert(offsetof(PlayerActorDataBase, var_3EC4) == 0x3EC4);
 static_assert(offsetof(PlayerActorDataBase, var_3EC8) == 0x3EC8);
-static_assert(offsetof(PlayerActorDataBase, var_3ED2) == 0x3ED2);
+static_assert(offsetof(PlayerActorDataBase, inertiaRotation) == 0x3ED0);
+static_assert(offsetof(PlayerActorDataBase, inertiaRotation2) == 0x3ED2);
 static_assert(offsetof(PlayerActorDataBase, cameraDirection) == 0x3ED8);
 static_assert(offsetof(PlayerActorDataBase, var_3EDC) == 0x3EDC);
 static_assert(offsetof(PlayerActorDataBase, airHikeCount) == 0x3F11);
@@ -4794,10 +4861,18 @@ struct WeaponProgressionData {
 	uint8 gunsUnlockedQtt = 1;
     bool devilArmUnlocks[DEVILARMUNLOCKS::COUNT] = { false };
     bool gunUnlocks[GUNUNLOCKS::COUNT] = { false };
+	// These are the currently unlocked weapons
 	std::vector<std::string> meleeWeaponNames = { "Rebellion" };
 	std::vector<uint8> meleeWeaponIds = { WEAPON::REBELLION };
+	// "Natural" ids are the ids that are used by default when all weapons are unlocked
+    std::vector<uint8> meleeWeaponNaturalIds = { WEAPON::REBELLION, WEAPON::CERBERUS, 
+        WEAPON::AGNI_RUDRA, WEAPON::NEVAN, WEAPON::BEOWULF_DANTE };
+    std::vector<uint8> meleeWeaponNaturalIdsVergil = { WEAPON::YAMATO_VERGIL, WEAPON::BEOWULF_VERGIL,
+        WEAPON::YAMATO_FORCE_EDGE };
     std::vector<std::string> rangedWeaponNames = { "Ebony & Ivory" };
     std::vector<uint8> rangedWeaponIds = { WEAPON::EBONY_IVORY };
+    std::vector<uint8> rangedWeaponNaturalIds = { WEAPON::EBONY_IVORY, WEAPON::SHOTGUN, 
+		WEAPON::ARTEMIS, WEAPON::SPIRAL, WEAPON::KALINA_ANN };
 };
 
 extern WeaponProgressionData weaponProgression;
@@ -4836,12 +4911,13 @@ struct GameModeData {
     uint8 ldkNissionResult = LDKMODE::OFF;
     uint32 mustStyleMissionResult = STYLE_RANK::NONE;
     uint8 enemyDTMissionResult = ENEMYDTMODE::DEFAULT;
+    bool forceDifficultyResult = false;
 	std::vector<std::string> names = {
 		"VANILLA MODE",
 		"STYLE SWITCHER MODE",
 		"CRIMSON MODE",
 		"CUSTOM MODE",
-		"UNRATED",
+		"UNRATED GAME MODE",
 	};
     std::vector<uint32> colors = {
         0xFFFFFFFF,
@@ -4871,6 +4947,8 @@ struct GameModeData {
     bool isMissionInitializedCheatsUsedMission = false;
     bool arcadeMissionEnabled = false;
     bool bossRushMissionEnabled = false;
+    bool characterSwitchingEnabled = false;
+    bool multiplayerEnabled = false;
 };
 
 extern GameModeData gameModeData;
@@ -4910,8 +4988,10 @@ extern float storedLunarPhasePosY;
 struct RankAnnouncer {
     int turn            = 0;
     int count           = 0;
+	float timer = 0.0f;
     bool trackerRunning = false;
     bool offCooldown    = true;
+    bool wasHit = true;
 };
 
 extern RankAnnouncer rankAnnouncer[7];
@@ -4936,7 +5016,7 @@ struct StoredAirCounts {
 };
 
 struct AirCounts {
-    uint8 airRisingSunWhirlwind = 0;
+    uint8 airRisingSunLaunch = 0;
     uint8 airAgniRudraWhirlwind = 0;
     uint8 airTornado = 0;
 };
@@ -4966,7 +5046,8 @@ extern bool styleChanged[6];
 
 extern float g_FrameRate;
 extern "C" float g_FrameRateTimeMultiplier;
-extern float g_FrameRateTimeMultiplierRounded;
+extern "C" float g_cerbDamageValue;
+extern "C" float g_FrameRateTimeMultiplierRounded;
 extern bool g_inCombat;
 extern bool g_inBossfight;
 extern bool g_inCredits;
@@ -5207,6 +5288,7 @@ struct CrimsonPlayerData {
     int currentAction = 0;
     int currentAnim   = 0;
     float actionTimer = 0;
+    float actionTimerNotEventChange = 0;
     float lastActionTime = 0;
     float animTimer   = 0;
     float eventTimer = 0;
@@ -5247,6 +5329,7 @@ struct CrimsonPlayerData {
     int playerScreenAngle = 0;
     bool playerOutOfView = false;
     uint16 rotationTowardsEnemy = 0;
+	bool isCloseToEnemy = false;
     StoredAirCounts storedAirCounts;
 	AirCounts airCounts;
     float lockedOnEnemyHP = 0;
@@ -5261,8 +5344,12 @@ struct CrimsonPlayerData {
 	float lockedOnEnemyMinusDisplacement = 0;
     MoveGravityTweak airFlickerTweak;
     MoveGravityTweak skyDanceTweak;
+    MoveGravityTweak ebonyIvoryTweak;
+    MoveGravityTweak lunarPhaseTweak;
+    MoveGravityTweak airTauntRisingSunTweak;
     bool inRisingStar = false;
     bool inAirTauntRisingSun = false;
+    bool lastInAirTauntRisingSun = false;
 
     uintptr_t clonePtr;
     uint8 actionClone     = 0;
@@ -5276,6 +5363,7 @@ struct CrimsonPlayerData {
     int currentActionClone = 0;
     int currentAnimClone   = 0;
     float actionTimerClone = 0;
+	float actionTimerNotEventChangeClone = 0;
     float lastActionTimeClone = 0;
     float animTimerClone   = 0;
     float eventTimerClone = 0;
@@ -5302,6 +5390,7 @@ struct CrimsonPlayerData {
 	int cloneScreenAngle = 0;
     bool cloneOutOfView = false;
     uint16 rotationCloneTowardsEnemy = 0;
+	bool isCloseToEnemyClone = false;
     StoredAirCounts storedAirCountsClone;
     AirCounts airCountsClone;
 	float lockedOnEnemyHPClone = 0;
@@ -5316,8 +5405,12 @@ struct CrimsonPlayerData {
 	float lockedOnEnemyMinusDisplacementClone = 0;
 	MoveGravityTweak airFlickerTweakClone;
 	MoveGravityTweak skyDanceTweakClone;
+    MoveGravityTweak ebonyIvoryTweakClone;
+    MoveGravityTweak lunarPhaseTweakClone;
+    MoveGravityTweak airTauntRisingSunTweakClone;
     bool inRisingStarClone = false;
     bool inAirTauntRisingSunClone = false;
+    bool lastInAirTauntRisingSunClone = false;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];
@@ -5345,8 +5438,6 @@ struct GuiPause {
 };
 
 extern GuiPause guiPause;
-
-extern std::vector<std::string> HUDdirectories;
 
 extern float frameRateSpeedMultiplier;
 

@@ -35,7 +35,7 @@ constexpr uint32 g_sectCount[HELPER_COUNT] = {
     50,
 };
 
-void PlaySound(int32 group, int32 index) {
+void FMOD_PlaySound(int32 group, int32 index) {
     func_3391C0((appBaseAddr + 0xD6DC90), group, index, 0, 0);
 }
 
@@ -66,6 +66,17 @@ void SetVolume(uint8 channelIndex, float volume) {
         return;
     }
 }
+
+struct VolumeTransition {
+	bool active = false;
+	int channel = 0;
+	float startVolume = 0.0f;
+	float targetVolume = 0.0f;
+	float duration = 2000.0f; // milliseconds
+	float elapsedTime = 0.0f;
+};
+
+static VolumeTransition g_volumeTransition;
 
 // bool IsArchive(byte8 * addr)
 // {
@@ -1543,6 +1554,35 @@ void UpdateEnemyCount() {
 
         return;
     }
+}
+
+// Call this every frame to update volume transitions
+void UpdateVolumeTransition() {
+	if (!g_volumeTransition.active) return;
+
+	// Update elapsed time based on frame rate
+	g_volumeTransition.elapsedTime += (1000.0f / 60.0f) * g_FrameRateTimeMultiplier;
+
+	if (g_volumeTransition.elapsedTime >= g_volumeTransition.duration) {
+		// Transition complete
+		SetVolume(g_volumeTransition.channel, g_volumeTransition.targetVolume);
+		g_volumeTransition.active = false;
+	} else {
+		// Linear interpolation
+		float progress = g_volumeTransition.elapsedTime / g_volumeTransition.duration;
+		float currentVolume = g_volumeTransition.startVolume +
+			(g_volumeTransition.targetVolume - g_volumeTransition.startVolume) * progress;
+		SetVolume(g_volumeTransition.channel, currentVolume);
+	}
+}
+
+void SetVolumeGradually(int channel, float targetVolume, float durationMs) {
+	g_volumeTransition.active = true;
+	g_volumeTransition.channel = channel;
+	g_volumeTransition.startVolume = activeCrimsonConfig.Sound.channelVolumes[channel] / 100.0f; // Current volume
+	g_volumeTransition.targetVolume = targetVolume;
+	g_volumeTransition.duration = durationMs;
+	g_volumeTransition.elapsedTime = 0.0f;
 }
 
 }; // namespace Sound

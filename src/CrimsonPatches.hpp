@@ -8,6 +8,7 @@
 namespace CrimsonPatches {
 void DisableHeightRestriction(bool enable);
 void HoldToAutoFire(bool enable);
+void EndBossFight(bool enable);
 void IncreasedJCSpheres(bool enable);
 void ImprovedBufferedReversals(bool enable);
 void DisableJCRestriction(bool enable);
@@ -23,7 +24,7 @@ void ToggleIncreasedArtemisInstantChargeResponsiveness(bool enable);
 
 void CameraSensController();
 void CameraFollowUpSpeedController(CameraData& cameraData, CameraControlMetadata& cameraMetadata);
-void CameraDistanceController(CameraData* cameraData, CameraControlMetadata& cameraMetadata);
+void CameraDistanceController(CameraControlMetadata& cameraMetadata);
 void CameraLockOnDistanceController();
 void CameraTiltController(CameraData* cameraData, CameraControlMetadata& cameraMetadata);
 void ForceThirdPersonCamera(bool enable);
@@ -55,6 +56,7 @@ void AirTauntToggleController(byte8* actorBaseAddr);
 #pragma region Fixing
 
 void CerberusCrashFixPart2(bool enable);
+void ToggleM6CrashFix(bool enable);
 
 #pragma endregion
 
@@ -63,6 +65,7 @@ void CerberusCrashFixPart2(bool enable);
 void DisableEnemyTargetting1PPosition(bool enable);
 void ToggleDisableSoulEaterInvis(bool enable);
 void SetEnemyDTMode(uint8 mode);
+void DisableRegularEnemyAttacks(bool enable);
 
 #pragma endregion
 

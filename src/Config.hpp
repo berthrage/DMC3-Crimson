@@ -60,6 +60,7 @@ struct Config {
         } Mission17;
         struct {
             bool skipArkhamPart1 = false;
+            bool skipArkhamPart2 = false;
         } Mission19;
     } BossRush;
 

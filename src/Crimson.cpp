@@ -1,4 +1,5 @@
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
+#include "CrimsonEnemyAITarget.hpp"
 #include "Core/Core.hpp"
 #include "Core/Input.hpp"
 #include "CrimsonDetours.hpp"
@@ -38,6 +39,9 @@
 #include "Core/DebugSwitch.hpp"
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonGameModes.hpp"
+#include "UI/WeaponWheel.hpp"
+
+
 
 
 uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
@@ -89,7 +93,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ExpConfig::InitExp();
         ExpConfig::LoadExp();
 
-        copyHUDtoGame();
+        CrimsonFiles::CopyHUDtoGame();
 
         if (!Memory_Init()) {
             Log("Memory_Init failed.");
@@ -193,6 +197,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonGameplay.Gameplay.Dante.swapArtemisMultiLockNormalShot);
         CrimsonDetours::ToggleArtemisInstantFullCharge(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
         CrimsonPatches::ReduceArtemisProjectileDamage(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
+        CrimsonDetours::ToggleDanteTrickAlterations(true);
         ToggleChronoSwords(activeCrimsonGameplay.Cheats.Vergil.chronoSwords);
         UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
         CrimsonGameModes::SetGameModeMasked(activeCrimsonGameplay.GameMode.preset);
@@ -225,6 +230,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonPatches::ToggleHideLockOn(false);
         CrimsonPatches::ToggleHideLockOn(activeConfig.hideLockOn || activeCrimsonConfig.CrimsonHudAddons.lockOn);
         CrimsonDetours::ToggleHideStyleRankHUD(activeCrimsonConfig.HudOptions.hideStyleMeter);
+        CrimsonDetours::ToggleDTMustStyleArmor(true);
 
         ToggleHideBossHUD(false);
         ToggleHideBossHUD(activeConfig.hideBossHUD);
@@ -246,6 +252,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 
         ToggleInfiniteHitPoints(activeCrimsonGameplay.Cheats.Training.infiniteHP);
         ToggleInfiniteMagicPoints(activeCrimsonGameplay.Cheats.Training.infiniteDT);
+        CrimsonPatches::DisableRegularEnemyAttacks(activeCrimsonGameplay.Cheats.Training.disableRegularEnemyAttacks);
         ToggleDisableTimer(activeCrimsonGameplay.Cheats.Training.disableTimers);
         ToggleInfiniteBullets(activeCrimsonGameplay.Cheats.Training.infiniteBossLadyBullets);
         
@@ -279,9 +286,10 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 		if (queuedConfig.Actor.playerCount > 1) {
 			activeCrimsonConfig.Camera.multiplayerCamera = true;
 			queuedCrimsonConfig.Camera.multiplayerCamera = true;
-			activeCrimsonConfig.Camera.forceThirdPerson = true;
-			queuedCrimsonConfig.Camera.forceThirdPerson = true;
+			activeCrimsonConfig.Camera.thirdPersonCamera = true;
+			queuedCrimsonConfig.Camera.thirdPersonCamera = true;
 		}
+
         
         CrimsonPatches::HoldToAutoFire(activeCrimsonGameplay.Gameplay.General.holdToShoot);
         CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
@@ -291,12 +299,24 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonGameplay.Gameplay.General.increasedEnemyJuggleTime);
         //CrimsonPatches::SetEnemyDTMode(activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode);
         CrimsonDetours::ToggleFixBallsHangHitSpeed(true);
+        CrimsonDetours::ToggleFixSecretMissionTimerFPS(true);
         CrimsonDetours::ToggleCerberusCrashFix(true);
         CrimsonDetours::ToggleVergilM3CrashFix(true);
+        CrimsonDetours::ToggleMission5CrashFix(true);
+        CrimsonPatches::ToggleM6CrashFix(true);
+        CrimsonDetours::ToggleArkhamPt2GrabCrashFix(true);
+        CrimsonDetours::ToggleArkhamPt2DoppelCrashFix(true);
+        CrimsonDetours::ToggleCerbDamageFix(true);
+        CrimsonDetours::ToggleStyleLevellingCCSFix(true);
+		CrimsonEnemyAITarget::EnemyAIMultiplayerTargettingDetours(true);
+        
 
         CrimsonPatches::DisableBlendingEffects(false);
         CrimsonPatches::DisableBlendingEffects(activeConfig.disableBlendingEffects);
         CrimsonDetours::ToggleGreenOrbsMPRegen(true);
+
+        // Load Weapon WHeel's Sprites Up Front
+        WW::LoadSpriteDescs();
 
         // Remove FMODGetCodecDescription Label
         SetMemory((appBaseAddr + 0x5505B5), 0, 23, MemoryFlags_VirtualProtectDestination);

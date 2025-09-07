@@ -1,4 +1,5 @@
 set(MASM_SRC
+    masm/CommonMacros.inc
     masm/SampleMod.asm
     masm/GuardGravity.asm
     masm/AddToMirageGauge.asm
@@ -10,21 +11,31 @@ set(MASM_SRC
     masm/FasterTurnRate.asm
     masm/GuardBreakToNormalBlock.asm
     masm/FixBallsHangHitSpeed.asm
+    masm/FixCrashArkhamPt2Doppel.asm
+    masm/FixCrashArkhamPt2Grab.asm
     masm/FixCrashCerberus.asm
+    masm/CerbDamageFix.asm
+    masm/FixCrashM5.asm
     masm/FixCrashVergilM3.asm
+    masm/FixSecretMissionTimerFPS.asm
+    masm/EnsureAirRisingDragonLaunch.asm
     masm/HideStyleRankHUD.asm
     masm/HudHPSeparation.asm
     masm/HudStyleBarPosAsm.asm
+    masm/PlaytimeOnTick.asm
     masm/DisableDriveHoldAsm.asm
     masm/CustomCameraPositioning.asm
     masm/FreeformSoftLockHelper.asm
     masm/GreenOrbsMPRegen.asm
     masm/DMC4LockOnDirection.asm
+    masm/DTMustStyleArmor.asm
     masm/EnemyAITarget.asm
     masm/SetAirTauntAsm.asm
     masm/SkyLaunchAirTaunt.asm
+    masm/StyleLevellingCCSFix.asm
     masm/RerouteRedOrbsCounterAlpha.asm
     masm/ToggleTakeDamage.asm
+    masm/TrickAlterationsDante.asm
     masm/VergilTricksAsm.asm
     masm/StyleRankHudNoFadeout.asm
     masm/ArtemisInstantFullCharge.asm
@@ -81,8 +92,13 @@ set(CXX_FLAGS
 
 project(Crimson LANGUAGES CXX C ASM_MASM)
 
-file(GLOB FONTS_HDR Fonts/RobotoMedium.hpp
+file(GLOB FONTS_HDR 
+                    Fonts/Benguiat.hpp
+                    Fonts/Messenger.hpp
+                    Fonts/RobotoMedium.hpp
                     Fonts/RussoOneRegular.hpp
+		    Fonts/RedOrbRusso.hpp
+		    Fonts/RedOrbRussoBackdrop.hpp
 )
 
 file(GLOB GLOBAL_SRC 
@@ -117,6 +133,8 @@ file(GLOB MAIN_SRC
     CrimsonConfigGameplay.hpp
     CrimsonConfigGameplayMask.hpp
     CrimsonConfigHandling.h
+    CrimsonCameraController.cpp
+    CrimsonCameraController.hpp
     CrimsonDetours.cpp
     CrimsonDetours.hpp
     CrimsonEnemyAITarget.cpp
@@ -267,7 +285,9 @@ OUTPUT_NAME Crimson)
 project(dinput8_injector)
 
 set(DI_SOURCE
-    dinput8.cpp  
+    dinput8.cpp
+    CrashHandler.hpp
+    CrashHandler.cpp
 )
 
 set(DI_CORE_SOURCE

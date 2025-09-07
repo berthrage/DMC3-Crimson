@@ -16,6 +16,7 @@
 #include "Global.hpp"
 #include "Vars.hpp"
 #include "Speed.hpp"
+#include "Utility/Detour.hpp"
 
 #include "Core/Macros.h"
 #include "Sound.hpp"
@@ -26,9 +27,19 @@
 #include "CrimsonUtil.hpp"
 #include "CrimsonTimers.hpp"
 #include "DMC3Input.hpp"
+#include "CrimsonGameModes.hpp"
+#include "CrimsonCameraController.hpp"
 
 
 namespace CrimsonOnTick {
+
+extern "C" {
+	// PlaytimeOnTick
+	std::uint64_t g_PlaytimeOnTick_ReturnAddr;
+	void PlaytimeOnTickDetour();
+	std::uint64_t g_PlaytimeOnTickMovAddr;
+	void* g_TriggerOnTickFuncsCall;
+}
 
 bool inputtingFPS = false;
 
@@ -45,11 +56,11 @@ void FrameResponsiveGameSpeed() {
 
 	// Exponential smoothing for the rounded multiplier stability
 	static float smoothedMultiplier = g_FrameRateTimeMultiplier;
-	float smoothingFactor = 0.05f; // Lower = smoother, higher = more responsive
+	float smoothingFactor = 0.02f; // Lower = smoother, higher = more responsive
 	smoothedMultiplier = smoothingFactor * g_FrameRateTimeMultiplier + (1.0f - smoothingFactor) * smoothedMultiplier;
 
 	// Round to nearest 0.1
-	float step = 0.1f;
+	float step = 0.05f;
 	g_FrameRateTimeMultiplierRounded = std::round(smoothedMultiplier / step) * step;
 
 	// Ignore deltaTime spikes that result from alt-tabbing, loading screens, etc.
@@ -66,7 +77,7 @@ void FrameResponsiveGameSpeed() {
 	if (activeConfig.framerateResponsiveGameSpeed) {
 		// Cutscene audio is so timing sensitive that we can't truly sync the FPS to the game speed while in them.
 		// This would be properly solved if we had some method of audio stretching. Maybe: SDL_SetAudioStreamFrequencyRatio?
-		const float adjustedSpeed = g_scene != SCENE::CUTSCENE ? gameSpeedBase * g_FrameRateTimeMultiplier : 
+		const float adjustedSpeed = g_scene != SCENE::CUTSCENE ? gameSpeedBase * g_FrameRateTimeMultiplier :
 			gameSpeedBase * g_FrameRateTimeMultiplierRounded;
 		if (g_scene == SCENE::CUTSCENE) Speed::Toggle(true);
 
@@ -75,7 +86,7 @@ void FrameResponsiveGameSpeed() {
 		queuedConfig.Speed.turbo = adjustedSpeed;
 		queuedConfig.Speed.mainSpeed = adjustedSpeed;
 
-		UpdateFrameRate(); 
+		UpdateFrameRate();
 
 		// === Throttled Speed::Toggle(true) ===
 		static double lastToggleTime = 0.0;
@@ -94,11 +105,211 @@ void FrameResponsiveGameSpeed() {
 		} else if (g_inGameCutscene && speedWasEnabled) {
 			speedWasEnabled = false;
 		}
-	} 
+	}
 }
 
 void GameTrackDetection() {
 	g_gameTrackPlaying = (std::string)reinterpret_cast<char*>(appBaseAddr + 0xD23906);
+}
+
+void FixWeaponUnlocksDante() {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	auto  name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_10723) return;
+	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
+
+	auto  pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10298 || !pool_10298[8]) return;
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+
+	if (!InGame()) return;
+
+	auto  pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_2128 || !pool_2128[8]) return;
+	auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
+
+	// Cerberus state
+	static bool cerberusExists = false;
+	bool cerberusAlive = false;
+	bool cerberusMissionContext = sessionData.mission == 3 &&
+		eventData.room == ROOM::ICE_GUARDIANS_CHAMBER;
+
+	// Agni & Rudra state
+	static bool agniRudraExists = false; 
+	bool agniRudraAlive = false;
+	bool agniRudraMissionContext = sessionData.mission == 5 &&
+		eventData.room == ROOM::FIRESTORM_CHAMBER;
+
+	// Nevan state
+	static bool nevanExists = false;
+	bool nevanAlive = false;
+	bool nevanMissionContext = sessionData.mission == 9 &&
+		eventData.room == ROOM::SUNKEN_OPERA_HOUSE;
+
+	// Geryon state
+	static bool geryonExists = false;
+	bool geryonAlive = false;
+	bool geryonMissionContext = sessionData.mission == 12 &&
+		eventData.room == ROOM::UNDERGROUND_ARENA;
+
+	// Lady state
+	static bool ladyExists = false;
+	bool ladyAlive = false;
+	bool ladyMissionContext = sessionData.mission == 16 &&
+		eventData.room == ROOM::THE_DIVINE_LIBRARY;
+
+	// Doppel state
+	static bool doppelExists = false;
+	bool doppelAlive = false;
+	bool doppelMissionContext = sessionData.mission == 17 &&
+		eventData.room == ROOM::APPARITION_INCARNATE;
+
+	for (auto enemy : enemyVectorData.metadata) {
+		if (!enemy.baseAddr) continue;
+		auto& enemyData = *reinterpret_cast<EnemyActorData*>(enemy.baseAddr);
+		if (!enemyData.baseAddr) continue;
+
+		// Detect initial spawn of Bossfight
+		if (enemyData.enemy == ENEMY::CERBERUS &&
+			enemyData.hitPointsCerberusTotal >= 7150 &&
+			sessionData.mission == 3 && cerberusMissionContext) {
+			cerberusExists = true;
+		}
+
+		if (enemyData.enemy == ENEMY::AGNI_RUDRA_ALL &&
+			enemyData.hitPointsAgniRudra >= enemyData.maxHitPointsAgniRudra - 50 &&
+			agniRudraMissionContext) {
+			agniRudraExists = true;
+		}
+
+		if (enemyData.enemy == ENEMY::NEVAN &&
+			enemyData.hitPointsNevan >= enemyData.maxHitPointsNevan - 50 &&
+			nevanMissionContext) {
+			nevanExists = true;
+		}
+
+		if (enemyData.enemy == ENEMY::GERYON &&
+			enemyData.hitPointsGeryon >= enemyData.maxHitPointsGeryon - 50 &&
+			geryonMissionContext) {
+			geryonExists = true;
+		}
+
+		if (enemyData.enemy == ENEMY::LADY &&
+			enemyData.hitPointsLady >= enemyData.maxHitPointsLady - 50 &&
+			ladyMissionContext) {
+			ladyExists = true;
+		}
+
+		if (enemyData.enemy == ENEMY::DOPPELGANGER &&
+			enemyData.hitPointsDoppelganger >= enemyData.maxHitPointsDoppelganger - 50 &&
+			doppelMissionContext) {
+			doppelExists = true;
+		}
+
+		// Check if boss is still alive this frame
+		if (enemyData.enemy == ENEMY::CERBERUS) {
+			cerberusAlive = true;
+		}
+
+		if (enemyData.enemy == ENEMY::AGNI_RUDRA ||
+			enemyData.enemy == ENEMY::AGNI_RUDRA_RED ||
+			enemyData.enemy == ENEMY::AGNI_RUDRA_BLUE ||
+			enemyData.enemy == ENEMY::AGNI_RUDRA_BLACK ||
+			enemyData.enemy == ENEMY::AGNI_RUDRA_ALL) {
+			agniRudraAlive = true;
+		}
+
+		if (enemyData.enemy == ENEMY::NEVAN) {
+			nevanAlive = true;
+		}
+
+		if (enemyData.enemy == ENEMY::GERYON) {
+			geryonAlive = true;
+		}
+
+		if (enemyData.enemy == ENEMY::LADY) {
+			ladyAlive = true;
+		}
+
+		if (enemyData.enemy == ENEMY::DOPPELGANGER) {
+			doppelAlive = true;
+		}
+	}
+
+	// If we saw the boss before and now they're gone, unlock the weapon
+	if (cerberusExists && !cerberusAlive && cerberusMissionContext) {
+		missionData.itemCounts[ITEM::CERBERUS] = 1;
+		cerberusExists = false;
+	} else if (!cerberusMissionContext) {
+		cerberusExists = false; 
+	}
+
+	if (agniRudraExists && !agniRudraAlive && agniRudraMissionContext) {
+		missionData.itemCounts[ITEM::AGNI_RUDRA] = 1;
+		agniRudraExists = false; 
+	} else if (!agniRudraMissionContext) {
+		agniRudraExists = false;
+	}
+
+	if (nevanExists && !nevanAlive && nevanMissionContext) {
+		missionData.itemCounts[ITEM::NEVAN] = 1;
+		nevanExists = false;
+	} else if (!nevanMissionContext) {
+		nevanExists = false;
+	}
+
+	if (geryonExists && !geryonAlive && geryonMissionContext) {
+		sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER] = 1;
+		geryonExists = false;
+	} else if (!geryonMissionContext) {
+		geryonExists = false;
+	}
+
+	if (ladyExists && !ladyAlive && ladyMissionContext) {
+		missionData.itemCounts[ITEM::KALINA_ANN] = 1;
+		ladyExists = false;
+	} else if (!ladyMissionContext) {
+		ladyExists = false;
+	}
+
+	// Unlock Beowulf for Dante in Vergil's Campaign in Mission 14 if it hasn't happened.
+	if (sessionData.character == CHARACTER::VERGIL &&
+		sessionData.mission == 14 &&
+		eventData.room == ROOM::LAIR_OF_JUDGEMENT_RUINS &&
+		missionData.itemCounts[ITEM::BEOWULF] != 1) {
+		missionData.itemCounts[ITEM::BEOWULF] = 1;
+	}
+
+	if (doppelExists && !doppelAlive && doppelMissionContext) {
+		sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER] = 1;
+		doppelExists = false;
+	} else if (!doppelMissionContext) {
+		doppelExists = false;
+	}
+}
+
+void PairVanillaWeaponSlots() {
+	if (!activeConfig.Actor.enable) {
+		return;
+	}
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	auto& activeCharacterData = GetActiveCharacterData(0, 0, ENTITY::MAIN);
+	if (activeCharacterData.character != CHARACTER::DANTE) {
+		return;
+	}
+
+	sessionData.weapons[0] = activeCharacterData.meleeWeapons[0];
+	if (weaponProgression.meleeWeaponIds.size() > 1) {
+		sessionData.weapons[1] = activeCharacterData.meleeWeapons[1];
+	} else {
+		sessionData.weapons[1] = 255; // WEAPON::VOID;
+	}
+	sessionData.weapons[2] = activeCharacterData.rangedWeapons[0];
+	if (weaponProgression.rangedWeaponIds.size() > 1) {
+		sessionData.weapons[3] = activeCharacterData.rangedWeapons[1];
+	} else {
+		sessionData.weapons[3] = 255; // WEAPON::VOID;
+	}
 }
 
 void InCreditsDetection() {
@@ -131,8 +342,7 @@ void PreparePlayersDataBeforeSpawn() {
 	if (g_scene == SCENE::GAME) {
 		//see if we can grab chracter1 for actor1
 		auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-		if (!pool_10222 || !pool_10222[3]) {}
-		else {
+		if (!pool_10222 || !pool_10222[3]) {} else {
 
 			if (!g_playerActorBaseAddrs[0]) {
 				return;
@@ -145,7 +355,7 @@ void PreparePlayersDataBeforeSpawn() {
 			//if the actor's one exceeds the default, we picked up a blorb.
 			//therefore, we update the default, along with active & queued mission data.
 			//Don't write to session, that'll save when it shouldn't.
-			if (actorData.maxHitPoints > vanillaActorData.maxHitPoints){
+			if (actorData.maxHitPoints > vanillaActorData.maxHitPoints) {
 				vanillaActorData.maxHitPoints = actorData.maxHitPoints;
 				//vanillaActorData.hitPoints = actorData.hitPoints;
 				//not sure if these ones are necessary. 
@@ -158,7 +368,7 @@ void PreparePlayersDataBeforeSpawn() {
 				}
 			}
 
-			
+
 			// HAYWIRE FIX FOR HORSE BOSS RESPAWNING
 			if (sessionData.mission == 12 && activeConfig.Actor.enable) {
 				if (!g_haywireNeoGenerator) {
@@ -173,10 +383,10 @@ void PreparePlayersDataBeforeSpawn() {
 				} else {
 					vanillaActorData.hitPoints = vanillaActorData.maxHitPoints;
 				}
-				
+
 				vanillaActorData.devil = false;
 				DeactivateDevilHaywire(vanillaActorData);
-			} 
+			}
 
 		}
 	}
@@ -214,19 +424,49 @@ void PreparePlayersDataBeforeSpawn() {
 }
 
 void CrimsonMissionClearSong() {
-	if (g_scene == SCENE::MISSION_RESULT && !missionClearSongPlayed 
-		&& (gameModeData.missionResultGameMode == GAMEMODEPRESETS::CRIMSON 
-		|| gameModeData.missionResultGameMode == GAMEMODEPRESETS::CUSTOM)) {
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	// We use this to identify whether or not we're in the exact Mission Result Screen
+	uint32 inMissionResultScreenInt = *reinterpret_cast<uint32*>(appBaseAddr + 0x5CF9A0);
+	bool inMissionResultScreen = inMissionResultScreenInt == 0x14FD80 ? true : false;
+// 	uint32 inSaveScreenInt = *reinterpret_cast<uint32*>(appBaseAddr + 0xCACA00);
+// 	bool inSaveScreen = inSaveScreenInt == 0 ? false : true;
+	static bool mission20HasPlayedOnce = false;
+	static bool mission20FadeInComplete = false;
+
+	// Only consider mission20Exception after fade-in is complete
+	auto mission20Exception = sessionData.mission == 20 && !inMissionResultScreen && mission20FadeInComplete;
+
+	// Track when Mission 20 fade-in completes
+	if (sessionData.mission == 20 && inMissionResultScreen && !mission20FadeInComplete) {
+		mission20FadeInComplete = true;
+	}
+
+	// Reset fade-in tracker when leaving Mission 20
+	if (g_scene != SCENE::MISSION_RESULT) {
+		mission20FadeInComplete = false;
+	}
+
+	if (g_scene == SCENE::MISSION_RESULT && !missionClearSongPlayed
+		&& (gameModeData.missionResultGameMode == GAMEMODEPRESETS::CRIMSON
+			|| gameModeData.missionResultGameMode == GAMEMODEPRESETS::CUSTOM) &&
+		!(mission20Exception && mission20HasPlayedOnce)) {
+
 		// Mute Music Channel Volume
 		SetVolume(9, 0);
 
 		// Play song
 		CrimsonSDL::PlayNewMissionClearSong();
 		missionClearSongPlayed = true;
-	}
-	else if (g_scene != SCENE::MISSION_RESULT && missionClearSongPlayed) {
+
+		// Mark that mission 20 has played once
+		if (sessionData.mission == 20) {
+			mission20HasPlayedOnce = true;
+		}
+	} else if ((g_scene != SCENE::MISSION_RESULT && missionClearSongPlayed) ||
+		(mission20Exception && missionClearSongPlayed)) {
 		// Fade it out
-		CrimsonSDL::FadeOutMusic();
+		CrimsonSDL::FadeOutMusic(1000);
 
 		// Restore original Channnel Volume
 		SetVolume(9, activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f);
@@ -241,17 +481,20 @@ void DivinityStatueSong() {
 		&& (gameModeData.missionResultGameMode == GAMEMODEPRESETS::CRIMSON
 			|| gameModeData.missionResultGameMode == GAMEMODEPRESETS::CUSTOM)) {
 		// Mute Music Channel Volume
-		SetVolume(9, 0);
+		if (g_scene == SCENE::MISSION_START && !activeCrimsonConfig.Sound.overrideMissionStartSong) {
+			return;
+		}
+		Sound::SetVolumeGradually(9, 0);
 
 		// Play song
 		CrimsonSDL::PlayDivinityStatueSong();
 		songPlayed = true;
 	} else if (!g_showShop && songPlayed) {
 		// Fade it out
-		CrimsonSDL::FadeOutMusic();
+		CrimsonSDL::FadeOutMusic(2000);
 
 		// Restore original Channnel Volume
-		SetVolume(9, activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f);
+		Sound::SetVolumeGradually(9, activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f);
 
 		songPlayed = false;
 	}
@@ -261,7 +504,7 @@ void DisableBlendingEffectsController() {
 	// Disables PS2 Motion Blur among other PostProcessFX.
 
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-	
+
 	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if (!pool_10371 || !pool_10371[8]) {
 		return;
@@ -270,19 +513,52 @@ void DisableBlendingEffectsController() {
 	if (g_scene != SCENE::GAME) {
 		return;
 	}
-	
+
 	if (activeConfig.disableBlendingEffects) {
 		if (eventData.event == EVENT::MAIN || eventData.event == EVENT::PAUSE) {
 			CrimsonPatches::DisableBlendingEffects(true);
-		}
-		else {
+		} else {
 			CrimsonPatches::DisableBlendingEffects(false);
 		}
 
-	}
-	else {
+	} else {
 		CrimsonPatches::DisableBlendingEffects(false);
 	}
+}
+
+void NewUpdateMotionArchives(PlayerActorData& actorData) {
+	 uint8 count = (actorData.character == CHARACTER::DANTE) ? static_cast<uint8>(countof(motionArchiveHelperDante))
+		: (actorData.character == CHARACTER::BOB) ? static_cast<uint8>(countof(motionArchiveHelperBob))
+		: (actorData.character == CHARACTER::LADY) ? static_cast<uint8>(countof(motionArchiveHelperLady))
+		: (actorData.character == CHARACTER::VERGIL) ? static_cast<uint8>(countof(motionArchiveHelperVergil))
+		: 0;
+
+	const MotionArchiveHelper* motionArchiveHelper = (actorData.character == CHARACTER::DANTE) ? motionArchiveHelperDante
+		: (actorData.character == CHARACTER::BOB) ? motionArchiveHelperBob
+		: (actorData.character == CHARACTER::LADY) ? motionArchiveHelperLady
+		: (actorData.character == CHARACTER::VERGIL) ? motionArchiveHelperVergil
+		: 0;
+
+	// Update motion archives
+	old_for_all(uint8, index, count) {
+		auto& group = motionArchiveHelper[index].group;
+		auto& cacheFileId = motionArchiveHelper[index].cacheFileId;
+
+		actorData.motionArchives[group] = File_staticFiles[cacheFileId];
+	}
+}
+
+void UpdateMainPlayerMotionArchives() {
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	if (activeConfig.Actor.enable) {
+		return;
+	}
+	// We apply this to only Vanilla Mode to fix
+	// the animation bug caused by the CrimsonPatches::M6CrashFix
+
+	NewUpdateMotionArchives(mainActorData);
 }
 
 void StyleMeterMultiplayer() {
@@ -301,8 +577,9 @@ void StyleMeterMultiplayer() {
 		return;
 	}
 
-	float highestStyleRank = mainActorData.styleData.rank;
-	float highestMeter = mainActorData.styleData.meter;
+	float highestStyleRank = 0;
+	float highestMeter = 0.0f;
+	float highestStyleQuotient = 0.0f;
 
 	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
 		auto& playerData = GetPlayerData(playerIndex);
@@ -321,14 +598,18 @@ void StyleMeterMultiplayer() {
 		if (actorData.styleData.meter > highestMeter) {
 			highestMeter = actorData.styleData.meter;
 		}
+		// Total Stylish PTS
+		if (actorData.styleData.quotient > highestStyleQuotient) {
+			highestStyleQuotient = actorData.styleData.quotient;
+		}
 	}
-	if (highestStyleRank > mainActorData.styleData.rank) {
-		mainActorData.styleData.rank = highestStyleRank;
-	}
+	// We take the highest values from all players and apply them to the main player, which is the shown one.
 	mainActorData.styleData.rank = highestStyleRank;
-	if (highestMeter > mainActorData.styleData.meter) {
+	if (highestMeter > 400.0f) {
 		mainActorData.styleData.meter = highestMeter;
 	}
+	mainActorData.styleData.quotient = highestStyleQuotient;
+	
 }
 
 void DetermineActiveEntitiesCount() {
@@ -367,7 +648,14 @@ void MultiplayerCameraPositioningController() {
 	// Fix for Arkham Pt.2 (and for M20 Credits) transitioning if doppelganger or multiplayer is active,
 	// preventing the camera from going into the Shadow Realm or stuck on a wall.
 	if (mainActorData.mode == ACTOR_MODE::MISSION_19 || mainActorData.mode == ACTOR_MODE::MISSION_18 ||
-		(sessionData.mission == 20) && (nextEventData.room == 12)) {
+		((sessionData.mission == 20) && (nextEventData.room == 12))) {
+		CrimsonDetours::ToggleCustomCameraPositioning(false);
+		return;
+	}
+
+	// Prevent Panoramic Cam from bugging out Fixed Cams (like Room 227)
+	if ((eventData.room == ROOM::ROUNDED_PATHWAY_4) && 
+		activeConfig.Actor.playerCount <= 1) {
 		CrimsonDetours::ToggleCustomCameraPositioning(false);
 		return;
 	}
@@ -386,7 +674,7 @@ void MultiplayerCameraPositioningController() {
 
 	int entityCount = 0; // Track valid entities for averaging
 	float playerWeight = 5.0f;  // Weight for playable characters
-	float enemyWeight = 1.0f;   // Weight for enemies
+	float enemyWeight = 5.0f;   // Weight for enemies
 	float totalWeight = 0.0f;
 	int alivePlayerCount = 0; // Track number of players still alive
 
@@ -528,7 +816,7 @@ void MultiplayerCameraPositioningController() {
 		}
 	}
 
-	bool triggerPanoramicCam = activeCrimsonConfig.Camera.panoramicCamera ? true : false;
+	bool triggerPanoramicCam = activeCrimsonConfig.Camera.panoramicCam ? true : false;
 	bool allEnemiesFarAway = true;
 
 	for (std::size_t i = 0; i < enemyVectorData.count; ++i) {
@@ -554,7 +842,7 @@ void MultiplayerCameraPositioningController() {
 	}
 
 	// Only set triggerPanoramicCam to false if all enemies are far enough
-	triggerPanoramicCam = !allEnemiesFarAway && activeCrimsonConfig.Camera.panoramicCamera;
+	triggerPanoramicCam = !allEnemiesFarAway && activeCrimsonConfig.Camera.panoramicCam;
 
 	// Camera behavior based on player count and trigger status
 	if (activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) {
@@ -691,7 +979,7 @@ void MultiplayerCameraPositioningController() {
 	CrimsonPatches::DisableLockOnCamera(g_isMPCamActive);
 
 	// Activate multiplayer camera positioning
-	CrimsonDetours::ToggleCustomCameraPositioning(g_isMPCamActive && 
+	CrimsonDetours::ToggleCustomCameraPositioning(g_isMPCamActive &&
 		activeCrimsonConfig.Camera.multiplayerCamera &&
 		mainActorData.mode != ACTOR_MODE::MISSION_19);
 }
@@ -712,6 +1000,27 @@ CameraData* GetSafeCameraData() {
 	return cameraDataPtr;
 }
 
+///// <summary>
+///// Does logic for camera exceptions to handle intricacies of room transitions
+///// </summary>
+///// <param name="room">room the camera should be disabled in </param>
+///// <param name="mission">mission the room should have the camera disabled for</param>
+///// <param name="position">position you enter the room from that the camera should be disabled for</param>
+///// <returns>true/false on tic depending on that camera exception</returns>
+//bool evaluateRoomCameraException(SessionData& sessionData, EventData& eventData, NextEventData& nextEventData, uint32 room, uint32 mission = 0, uint32 position = 0)
+//{
+//	////hackjob optimization 
+//	if (sessionData.mission != mission)
+//		return false;
+//	//true in states for which we are exiting the current room but haven't left yet.
+//	bool isRoomTransition = (eventData.event == EVENT::TELEPORT || eventData.event == EVENT::DELETE || eventData.event == EVENT::END);
+//	//basically this check will turn off the camera as we transition to the new room
+//	bool nextroom = (sessionData.mission == mission && nextEventData.room == room && nextEventData.position == position && isRoomTransition);
+//	//this will keep the camera off in the room its disabled for.
+//	bool currentroom = (sessionData.mission == mission && eventData.room == room && eventData.position == position) && !isRoomTransition;
+//	
+//	return nextroom || currentroom;
+//}
 
 void ForceThirdPersonCameraController() {
 	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
@@ -720,9 +1029,19 @@ void ForceThirdPersonCameraController() {
 	}
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 
-	if (eventData.event == EVENT::TELEPORT) {
+	if ((eventData.event == EVENT::TELEPORT) || (eventData.event == EVENT::INIT)) {
 		CrimsonPatches::ForceThirdPersonCamera(true);
 	}
+
+
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	//get event & nextevent
+	auto pool_12959 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_12959 || !pool_12959[12]) {
+		return;
+	}
+	auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12959[12]);
 
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	static bool checkIfGameHasAlreadyLoaded2 = false;
@@ -744,20 +1063,49 @@ void ForceThirdPersonCameraController() {
 		}
 	}
 
-	if (activeCrimsonConfig.Camera.forceThirdPerson) {
-		// Room Exceptions for TPS cam
-		if (eventData.room == ROOM::LOST_SOULS_NIRVANA && eventData.event != EVENT::TELEPORT) {
-			CrimsonPatches::ForceThirdPersonCamera(false);
-		} else {
-			CrimsonPatches::ForceThirdPersonCamera(true);
-			
-		}
-
+	if (activeCrimsonConfig.Camera.thirdPersonCamera) {
 		// Disable Boss Camera Exceptions
-		if (!(eventData.room == 228 && eventData.position == 0)) { // Adding only Geryon Part 1 as an exception for now.
-			Camera::ToggleDisableBossCamera(true);
-		} else {
-			Camera::ToggleDisableBossCamera(false);
+
+		if (activeConfig.Actor.playerCount <= 1) { // IN SINGLE PLAYER
+			if (!(eventData.room == 228 && eventData.position == 0)
+				&& !(eventData.room == ROOM::ICE_GUARDIANS_CHAMBER && sessionData.mission == 3)
+				&& !(eventData.room == ROOM::GIANTWALKER_CHAMBER && sessionData.mission == 4)
+				&& !(eventData.room == ROOM::DEMON_CLOWN_CHAMBER && sessionData.mission == 5)
+				&& !(eventData.room == ROOM::FIRESTORM_CHAMBER && sessionData.mission == 5)
+				&& !(eventData.room == ROOM::PEAK_OF_DARKNESS_2 && sessionData.mission == 7)
+				&& !(eventData.room == ROOM::LEVIATHANS_HEARTCORE && sessionData.mission == 8)
+				&& !(eventData.room == ROOM::SUNKEN_OPERA_HOUSE && sessionData.mission == 9)
+				//&& !(eventData.room == ROOM::TORTURE_CHAMBER && sessionData.mission == 11)
+				&& !(eventData.room == ROOM::DEMON_CLOWN_CHAMBER_2 && sessionData.mission == 12)
+				&& !(eventData.room == ROOM::UNDERGROUND_ARENA && sessionData.mission == 12)
+				&& !(eventData.room == ROOM::LAIR_OF_JUDGEMENT && sessionData.mission == 13)
+				&& !(eventData.room == ROOM::THE_DIVINE_LIBRARY && sessionData.mission == 16)
+				&& !(eventData.room == ROOM::DEMON_CLOWN_CHAMBER_3 && sessionData.mission == 17)
+				&& !(eventData.room == ROOM::APPARITION_INCARNATE && sessionData.mission == 17)
+				&& !(eventData.room == ROOM::ICE_GUARDIAN_REBORN && sessionData.mission == 18)
+				&& !(eventData.room == ROOM::GIANTWALKER_REBORN && sessionData.mission == 18)
+				&& !(eventData.room == ROOM::FIRESTORM_REBORN && sessionData.mission == 18)
+				&& !(eventData.room == ROOM::LIGHTNING_WITCH_REBORN && sessionData.mission == 18)
+				//&& !(eventData.room == ROOM::LIGHTBEAST_REBORN && sessionData.mission == 18)
+				&& !(eventData.room == ROOM::TIMESTEED_REBORN && sessionData.mission == 18)
+				&& !(eventData.room == ROOM::DEATHVOID_REBORN && sessionData.mission == 18)
+				&& !(eventData.room == ROOM::EVIL_GOD_BEAST_REBORN && sessionData.mission == 18)
+				//&& !(eventData.room == ROOM::FORBIDDEN_NIRVANA_2 && sessionData.mission == 19)
+				&& !(eventData.room == ROOM::UNSACRED_HELLGATE_2 && sessionData.mission == 20)) {
+				Camera::ToggleDisableBossCamera(true);
+				CrimsonPatches::ForceThirdPersonCamera(true);
+			} else {
+				Camera::ToggleDisableBossCamera(false);
+				CrimsonPatches::ForceThirdPersonCamera(true);
+			}
+		} else { // IN MULTIPLAYER
+			if (!(eventData.room == 228 && eventData.position == 0)) {
+				Camera::ToggleDisableBossCamera(true);
+				CrimsonPatches::ForceThirdPersonCamera(true);
+			} else {
+				Camera::ToggleDisableBossCamera(false);
+				CrimsonPatches::ForceThirdPersonCamera(true);
+			}
 		}
 	} else {
 		CrimsonPatches::ForceThirdPersonCamera(false);
@@ -766,7 +1114,7 @@ void ForceThirdPersonCameraController() {
 }
 
 void FixInitialCameraRotation(EventData& eventData, PlayerActorData& mainActorData, CameraData* cameraData, bool& setCamPos) {
-	if (!activeCrimsonConfig.Camera.forceThirdPerson) {
+	if (!activeCrimsonConfig.Camera.thirdPersonCamera) {
 		return;
 	}
 	if (!setCamPos) {
@@ -780,7 +1128,13 @@ void FixInitialCameraRotation(EventData& eventData, PlayerActorData& mainActorDa
 			float angle = (mainActorData.rotation / 65535.0f) * TWO_PI;
 			angle += PI;
 
-			if (eventData.room != ROOM::HEAVENRISE_CHAMBER && eventData.room != ROOM::HIGH_FLY_ZONE) angle += PI;
+			// Exceptions to the flip
+			if (eventData.room != ROOM::HEAVENRISE_CHAMBER &&
+				eventData.room != ROOM::HIGH_FLY_ZONE &&
+				eventData.room != ROOM::SUN_MOON_CHAMBER
+				) {
+				angle += PI;
+			}
 
 			vec3 offset;
 			offset.x = -sinf(angle) * radius;
@@ -790,7 +1144,7 @@ void FixInitialCameraRotation(EventData& eventData, PlayerActorData& mainActorDa
 			cameraData->data[0].x = mainActorData.position.x + offset.x;
 			cameraData->data[0].y = mainActorData.position.y + offset.y;
 			cameraData->data[0].z = mainActorData.position.z + offset.z;
-			mainActorData.position.x = mainActorData.position.x + 1;
+			mainActorData.position.x = mainActorData.position.x + 3;
 
 			setCamPos = true;
 		}
@@ -917,7 +1271,7 @@ void GeneralCameraOptionsController() {
 
 	if (cameraData != nullptr) {
 		CrimsonPatches::CameraFollowUpSpeedController(*cameraData, cameraControlMetadata);
-		CrimsonPatches::CameraDistanceController(cameraData, cameraControlMetadata);
+		CrimsonPatches::CameraDistanceController(cameraControlMetadata);
 		CrimsonPatches::CameraTiltController(cameraData, cameraControlMetadata);
 	}
 
@@ -947,12 +1301,21 @@ void PauseSFXWhenPaused() {
 	}
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 
-	for (int i = 0; i < PLAYER_COUNT; ++i) {
-		if (eventData.event == EVENT::PAUSE) {
-			CrimsonSDL::PauseDTExplosionSFX(i);
+	for (uint8 playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {
+		auto& playerData = GetPlayerData(playerIndex);
+		auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+
+		if (!newActorData.baseAddr) {
+			return;
+		}
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+
+		if (eventData.event == EVENT::PAUSE || actorData.dead || eventData.event != EVENT::MAIN) {
+			CrimsonSDL::PauseDTExplosionSFX(playerIndex);
 		}
 		else {
-			CrimsonSDL::ResumeDTExplosionSFX(i);
+			CrimsonSDL::ResumeDTExplosionSFX(playerIndex);
 		}
 	}
 }
@@ -987,129 +1350,6 @@ void TrackMissionStyleLevels() {
 }
 
 #pragma endregion
-
-#pragma region EnemyGameplay
-
-void OverrideEnemyTargetPosition() {
-	// Run only every 200ms (0.2 seconds)
-	static double lastUpdateTime = 0.0;
-	double currentTime = ImGui::GetTime();
-	if (currentTime - lastUpdateTime < 0.2) {
-		return;
-	}
-	lastUpdateTime = currentTime;
-
-	if (g_scene != SCENE::GAME || g_inGameCutscene) {
-		CrimsonPatches::DisableEnemyTargetting1PPosition(false);
-		return;
-	} else if (g_scene == SCENE::GAME &&
-		activeConfig.Actor.enable) {
-		CrimsonPatches::DisableEnemyTargetting1PPosition(activeConfig.Actor.playerCount > 1);
-	}
-	CrimsonEnemyAITarget::EnemyAIMultiplayerTargettingDetours(activeConfig.Actor.playerCount > 1);
-
-	if (activeConfig.Actor.playerCount == 1 || g_inGameCutscene || g_scene != SCENE::GAME) return;
-
-	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_10222 || !pool_10222[3]) {
-		return;
-	}
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
-
-	auto pool_2128 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_2128 || !pool_2128[8]) return;
-	auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_2128[8]);
-
-	for (auto enemyMeta : enemyVectorData.metadata) {
-		if (!enemyMeta.baseAddr) continue;
-		auto& enemy = *reinterpret_cast<EnemyActorData*>(enemyMeta.baseAddr);
-		if (!enemy.baseAddr) continue;
-
-		glm::vec3 enemyPosition = { enemy.position.x, enemy.position.y, enemy.position.z };
-
-		glm::vec3 playerPosition[PLAYER_COUNT];
-		float distanceToPlayer[PLAYER_COUNT];
-		uintptr_t closestPlayerAddr = (uintptr_t)mainActorData.baseAddr;
-		float closestDistance = 9000.0f;
-		auto& enemyId = enemy.enemy;
-
-		for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; playerIndex++) {
-// 			auto& playerData = GetPlayerData(playerIndex);
-// 			auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-// 			auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-
-			if (!crimsonPlayer[playerIndex].playerPtr) {
-				continue;
-			}
-			auto& actorData = *reinterpret_cast<PlayerActorData*>(crimsonPlayer[playerIndex].playerPtr);
-
-			// Skip dead players
-			if (actorData.dead) {
-				continue;
-			}
-
-			playerPosition[playerIndex] = { actorData.position.x, actorData.position.y, actorData.position.z };
-			distanceToPlayer[playerIndex] = glm::distance(enemyPosition, playerPosition[playerIndex]);
-
-			bool isAgniRudra = (enemyId >= ENEMY::AGNI_RUDRA_ALL && enemyId <= ENEMY::AGNI_RUDRA_BLUE);
-
-			if (!enemy.baseAddr) {
-				continue;
-			}
-
-			if (enemyId == ENEMY::BLOOD_GOYLE) {
-				continue;
-			}
-
-			if (distanceToPlayer[playerIndex] < closestDistance) {
-				closestDistance = distanceToPlayer[playerIndex];
-				if ((enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::WRATH_4) && enemy.hitPointsHells > 20) {
-					enemy.targetPosition = actorData.position;
-				}
-
-				if (enemyId >= ENEMY::GREED_1 && enemyId <= ENEMY::GREED_4 && enemy.hitPointsHells > 20) {
-					enemy.targetPositionGreed = actorData.position;
-				}
-
-				if (enemyId == ENEMY::ABYSS && enemy.hitPointsHells > 20) {
-					enemy.targetPositionAbyss = actorData.position;
-				}
-
-				if (enemyId == ENEMY::ENVY && enemy.hitPointsHells > 20) {
-					enemy.targetPositionEnvy = actorData.position;
-				}
-
-				if (enemyId == ENEMY::HELL_VANGUARD && enemy.hitPointsHells > 20) {
-					enemy.targetPositionHellVanguard = actorData.position;
-				}
-
-				if (enemyId == ENEMY::DOPPELGANGER && enemy.hitPointsDoppelganger > 20) {
-					enemy.targetPositionDullahan = actorData.position;
-				}
-
-				if (enemyId == ENEMY::THE_FALLEN && enemy.hitPointsTheFallen > 20) {
-					enemy.targetPositionDullahan = actorData.position;
-				}
-
-				if (enemyId == ENEMY::DULLAHAN && enemy.hitPointsDullahan > 20) {
-					enemy.targetPositionDullahan = actorData.position;
-				}
-
-				if (enemyId == ENEMY::BEOWULF && enemy.hitPointsBeowulf > 20) {
-					enemy.targetPositionDullahan = actorData.position;
-				}
-
-				if (enemyId == ENEMY::VERGIL && enemy.hitPointsVergil > 20) {
-					enemy.targetPositionDullahan = actorData.position;
-				}
-
-				if (enemyId == ENEMY::LADY && enemy.hitPointsLady > 20) {
-					enemy.targetPositionDullahan = actorData.position;
-				}
-			}
-		}
-	}
-}
 
 void UpdateDevilArmProgression(uint8 unlockId, uint8 gameData, uint8 weaponId, std::string weaponName) {
 	weaponProgression.devilArmUnlocks[unlockId] = gameData;
@@ -1468,5 +1708,111 @@ void FixM7DevilTriggerUnlocking() {
 			sessionData.magicPoints = 3000;
 		}
 	}
+}
+
+void ForceDifficultyController() {
+	auto& forceDifficultyMode = activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode;
+	static bool difficultySaved = false;
+	static uint32 originalDifficulty;
+	static bool originalOneHitKill = false;
+
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	if (g_scene == SCENE::MISSION_START) {
+		// Save original difficulty before game starts
+		if (!difficultySaved) {
+			originalDifficulty = sessionData.difficultyMode;
+			originalOneHitKill = sessionData.oneHitKill;
+			difficultySaved = true;
+		}
+	} else if (g_scene == SCENE::GAME) {
+		if (forceDifficultyMode == DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF) {
+			return; 
+		}
+		// Apply forced difficulty
+		if (sessionData.difficultyMode != forceDifficultyMode)
+			if (forceDifficultyMode == DIFFICULTY_MODE::HEAVEN_OR_HELL) {
+				forceDifficultyMode = DIFFICULTY_MODE::HARD;
+				sessionData.difficultyMode = forceDifficultyMode;
+				sessionData.oneHitKill = true;
+			} else {
+				sessionData.difficultyMode = forceDifficultyMode;
+				sessionData.oneHitKill = originalOneHitKill;
+			}
+	} else if (g_scene == SCENE::MISSION_RESULT || g_scene == SCENE::MISSION_SELECT) {
+		// Restore original difficulty
+		if (difficultySaved) {
+			sessionData.difficultyMode = originalDifficulty;
+			sessionData.oneHitKill = originalOneHitKill;
+			difficultySaved = false;
+		}
+	} 
+}
+
+void MultiplayerDamageScaling() {
+
+	if (!activeCrimsonGameplay.Cheats.General.customDamage && 
+		activeCrimsonGameplay.Gameplay.General.multiplayerDamageScaling) {
+
+		if (activeConfig.Actor.playerCount == 2) {
+			queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 0.7f;
+			activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 0.7f;
+		} else if (activeConfig.Actor.playerCount == 3) {
+			queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 0.5f;
+			activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 0.5f;
+		} else if (activeConfig.Actor.playerCount == 4) {
+			queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 0.4f;
+			activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 0.4f;
+		} else {
+			queuedCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 1.0f;
+			activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult = 1.0f;
+		}
+	}
+}
+
+void TriggerOnTickFuncs() {
+	// These functions run OnTick globally (in game and in menus) through Game Thread
+	ForceDifficultyController();
+	MultiplayerDamageScaling();
+	CrimsonOnTick::InCreditsDetection();
+	CrimsonOnTick::WeaponProgressionTracking();
+	CrimsonOnTick::PreparePlayersDataBeforeSpawn();
+	CrimsonOnTick::FixM7DevilTriggerUnlocking();
+	CrimsonDetours::ToggleHoldToCrazyCombo(activeCrimsonGameplay.Gameplay.General.holdToCrazyCombo);
+	CrimsonDetours::ToggleEnsureAirRisingDragonLaunch(activeConfig.Actor.enable && activeCrimsonGameplay.Gameplay.Dante.airRisingDragonLaunch);
+	CrimsonOnTick::UpdateMainPlayerMotionArchives();
+ 	CrimsonOnTick::TrackMissionStyleLevels();
+ 	CrimsonOnTick::StyleMeterMultiplayer();
+	CrimsonOnTick::PairVanillaWeaponSlots();
+	CrimsonGameModes::TrackGameMode();
+	CrimsonGameModes::TrackCheats();
+	CrimsonGameModes::TrackMissionResultGameMode();
+    CrimsonOnTick::CrimsonMissionClearSong();
+	CrimsonOnTick::DivinityStatueSong();
+	CrimsonSDL::CheckAndOpenControllers();
+	CrimsonSDL::UpdateJoysticks();
+	Sound::UpdateVolumeTransition();
+}
+
+
+void ToggleOnTickFuncs(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// We detour here for the call since this instruct gets triggered every frame and we can use it to call our stuff
+	// dmc3.exe+4F23B - 69 C8 40 7E 05 00        - imul ecx,eax,00057E40 { 360000 }
+	//dmc3.exe + 4F24F - 89 05 3B 53 51 00 - mov[dmc3.exe + 564590], eax{ Playtime increment }
+	static std::unique_ptr<Utility::Detour_t> PlaytimeOnTickHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x4F23B, &PlaytimeOnTickDetour, 6);
+	g_PlaytimeOnTick_ReturnAddr = PlaytimeOnTickHook->GetReturnAddress();
+	g_PlaytimeOnTickMovAddr = (uintptr_t)appBaseAddr + 0x564590;
+	g_TriggerOnTickFuncsCall = &TriggerOnTickFuncs;
+	PlaytimeOnTickHook->Toggle(enable);
+
+	run = enable;
 }
 }

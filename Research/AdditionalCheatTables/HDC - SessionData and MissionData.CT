@@ -1,0 +1,682 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="46">
+  <CheatEntries>
+    <CheatEntry>
+      <ID>17</ID>
+      <Description>"General"</Description>
+      <LastState Value="" RealAddress="00000000"/>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>1</ID>
+          <Description>"Playtime"</Description>
+          <LastState Value="00005F4A" RealAddress="7FF6B6704590"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+564590</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2</ID>
+          <Description>"Progress 1"</Description>
+          <LastState Value="FFFFFFFF" RealAddress="7FF6B6704594"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+564594</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>3</ID>
+          <Description>"Progress 2"</Description>
+          <LastState Value="FFFFFFFF" RealAddress="7FF6B6704598"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+564598</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>4</ID>
+          <Description>"Progress 3"</Description>
+          <LastState Value="FFFF3FFF" RealAddress="7FF6B670459C"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+56459C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>5</ID>
+          <Description>"Progress 4"</Description>
+          <LastState Value="FFFFFFFF" RealAddress="7FF6B67045A0"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+5645A0</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>6</ID>
+          <Description>"Mission"</Description>
+          <LastState Value="8" RealAddress="7FF6B6E2F250"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F250</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>7</ID>
+          <Description>"Event"</Description>
+          <LastState Value="8" RealAddress="7FF6B6E2F254"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F254</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>8</ID>
+          <Description>"Room"</Description>
+          <LastState Value="300" RealAddress="7FF6B6E2F258"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F258</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>9</ID>
+          <Description>"Mode"</Description>
+          <LastState Value="2" RealAddress="7FF6B6E2F25C"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F25C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>10</ID>
+          <Description>"One Hit Kill"</Description>
+          <LastState Value="1" RealAddress="7FF6B6E2F260"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F260</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>11</ID>
+          <Description>"Easy Automatic On"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F261"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F261</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>12</ID>
+          <Description>"Enable Tutorial"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F262"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F262</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>13</ID>
+          <Description>"Use Gold Orb (Uses Yellow Orb if set to 0)"</Description>
+          <LastState Value="1" RealAddress="7FF6B6E2F263"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F263</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>14</ID>
+          <Description>"Character"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F264"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F264</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>84</ID>
+          <Description>"Red Orbs"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F27C"/>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F27C</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>25</ID>
+      <Description>"Items"</Description>
+      <LastState Value="" RealAddress="00000000"/>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>15</ID>
+          <Description>"Gold Orb"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F285"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F285</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>16</ID>
+          <Description>"Yellow Orb"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F286"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F286</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>18</ID>
+          <Description>"Blue Orb"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F287"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F287</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>19</ID>
+          <Description>"Purple Orb"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F288"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F288</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>20</ID>
+          <Description>"Blue Orb Fragment"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F289"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F289</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>21</ID>
+          <Description>"Vital Star L"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F290"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F290</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>22</ID>
+          <Description>"Vital Star S"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F291"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F291</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>23</ID>
+          <Description>"Devil Star"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F292"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F292</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>24</ID>
+          <Description>"Holy Water"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F293"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F293</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>38</ID>
+      <Description>"Unlocks"</Description>
+      <LastState Value="" RealAddress="00000000"/>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>26</ID>
+          <Description>"Rebellion"</Description>
+          <LastState Value="1" RealAddress="7FF6B6E2F296"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F296</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>27</ID>
+          <Description>"Cerberus"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F297"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F297</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>28</ID>
+          <Description>"Agni &amp; Rudra"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F298"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F298</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>29</ID>
+          <Description>"Nevan"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F29A"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F29A</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>30</ID>
+          <Description>"Beowulf"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F29B"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F29B</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>31</ID>
+          <Description>"Ebony &amp; Ivory"</Description>
+          <LastState Value="1" RealAddress="7FF6B6E2F29C"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F29C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>33</ID>
+          <Description>"Shotgun"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F29D"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F29D</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>32</ID>
+          <Description>"Artemis"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F29E"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F29E</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>34</ID>
+          <Description>"Spiral"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F29F"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F29F</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>35</ID>
+          <Description>"Kalina Ann"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F2A1"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2A1</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>36</ID>
+          <Description>"Quicksilver"</Description>
+          <LastState Value="1" RealAddress="7FF6B6E2F2A2"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2A2</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>37</ID>
+          <Description>"Doppelganger"</Description>
+          <LastState Value="1" RealAddress="7FF6B6E2F2A3"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2A3</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>40</ID>
+      <Description>"Items Bought"</Description>
+      <LastState Value="" RealAddress="00000000"/>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>39</ID>
+          <Description>"Vital Star S"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F2BE"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2BE</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>41</ID>
+          <Description>"Vital Star L"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F2BF"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2BF</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>42</ID>
+          <Description>"Devil Star"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F2C0"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2C0</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>43</ID>
+          <Description>"Holy Water"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F2C1"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2C1</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>44</ID>
+          <Description>"Blue Orb"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F2C2"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2C2</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>45</ID>
+          <Description>"Purple Orb"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F2C3"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2C3</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>46</ID>
+          <Description>"Gold Orb"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F2C4"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2C4</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>47</ID>
+          <Description>"Yellow Orb"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F2C5"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2C5</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>59</ID>
+      <Description>"Equipment"</Description>
+      <LastState Value="" RealAddress="00000000"/>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>48</ID>
+          <Description>"Melee Weapon Slot 1"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F2D4"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2D4</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>49</ID>
+          <Description>"Melee Weapon Slot 2"</Description>
+          <LastState Value="255" RealAddress="7FF6B6E2F2D5"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2D5</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>50</ID>
+          <Description>"Ranged Weapon Slot 1"</Description>
+          <LastState Value="5" RealAddress="7FF6B6E2F2D6"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2D6</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>51</ID>
+          <Description>"Ranged Weapon Slot 2"</Description>
+          <LastState Value="255" RealAddress="7FF6B6E2F2D7"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2D7</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>52</ID>
+          <Description>"Selected Melee Weapon"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F318"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F318</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>53</ID>
+          <Description>"Selected Ranged Weapon"</Description>
+          <LastState Value="2" RealAddress="7FF6B6E2F31C"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F31C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>54</ID>
+          <Description>"Costume"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F320"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F320</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>55</ID>
+          <Description>"Unlock Devil Trigger"</Description>
+          <LastState Value="1" RealAddress="7FF6B6E2F321"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F321</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>56</ID>
+          <Description>"Hit Points"</Description>
+          <LastState Value="6000" RealAddress="7FF6B6E2F324"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F324</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>57</ID>
+          <Description>"DT/Magic Points"</Description>
+          <LastState Value="3000" RealAddress="7FF6B6E2F328"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F328</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>58</ID>
+          <Description>"Style"</Description>
+          <LastState Value="2" RealAddress="7FF6B6E2F32C"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F32C</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>66</ID>
+      <Description>"Style Level"</Description>
+      <LastState Value="" RealAddress="00000000"/>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>60</ID>
+          <Description>"Swordmaster Level"</Description>
+          <LastState Value="1" RealAddress="7FF6B6E2F330"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F330</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>61</ID>
+          <Description>"Gunslinger Level"</Description>
+          <LastState Value="1" RealAddress="7FF6B6E2F334"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F334</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>62</ID>
+          <Description>"Trickster/Dark Slayer Level"</Description>
+          <LastState Value="1" RealAddress="7FF6B6E2F338"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F338</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>63</ID>
+          <Description>"Royalguard Level"</Description>
+          <LastState Value="1" RealAddress="7FF6B6E2F33C"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F33C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>64</ID>
+          <Description>"Quicksilver Level (No Style EXP though)"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F340"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F340</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>65</ID>
+          <Description>"Doppelganger Level (No Style EXP though)"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F344"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F344</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>73</ID>
+      <Description>"Style EXP"</Description>
+      <LastState Value="" RealAddress="00000000"/>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>67</ID>
+          <Description>"Swordmaster EXP"</Description>
+          <LastState Value="99900" RealAddress="7FF6B6E2F348"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F348</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>68</ID>
+          <Description>"Gunslinger EXP"</Description>
+          <LastState Value="99900" RealAddress="7FF6B6E2F34C"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F34C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>69</ID>
+          <Description>"Trickster/Dark Slayer EXP"</Description>
+          <LastState Value="99900" RealAddress="7FF6B6E2F350"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F350</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>70</ID>
+          <Description>"Royalguard EXP"</Description>
+          <LastState Value="99900" RealAddress="7FF6B6E2F354"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F354</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>71</ID>
+          <Description>"Quicksilver EXP (No Style EXP though)"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F358"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F358</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>72</ID>
+          <Description>"Doppelganger EXP (No Style EXP though)"</Description>
+          <LastState Value="0" RealAddress="7FF6B6E2F35C"/>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F35C</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>82</ID>
+      <Description>"Expertise"</Description>
+      <LastState Value="" RealAddress="00000000"/>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>74</ID>
+          <Description>"Expertise 1"</Description>
+          <LastState Value="FFFF5E7F" RealAddress="7FF6B6E2F360"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F360</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>75</ID>
+          <Description>"Expertise 2"</Description>
+          <LastState Value="A7FFAF5F" RealAddress="7FF6B6E2F364"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F364</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>76</ID>
+          <Description>"Expertise 3"</Description>
+          <LastState Value="AF1FFFF3" RealAddress="7FF6B6E2F368"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F368</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>77</ID>
+          <Description>"Expertise 4"</Description>
+          <LastState Value="CB9FFFF9" RealAddress="7FF6B6E2F36C"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F36C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>78</ID>
+          <Description>"Expertise 5"</Description>
+          <LastState Value="FBFBFFFE" RealAddress="7FF6B6E2F370"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F370</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>79</ID>
+          <Description>"Expertise 6"</Description>
+          <LastState Value="FFFFEFFD" RealAddress="7FF6B6E2F374"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F374</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>80</ID>
+          <Description>"Expertise 7"</Description>
+          <LastState Value="FFE3FEFF" RealAddress="7FF6B6E2F378"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F378</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>81</ID>
+          <Description>"Expertise 8"</Description>
+          <LastState Value="FFFFFFFF" RealAddress="7FF6B6E2F37C"/>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F37C</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+  </CheatEntries>
+  <UserdefinedSymbols/>
+</CheatTable>

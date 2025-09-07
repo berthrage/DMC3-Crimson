@@ -6,9 +6,12 @@ namespace CrimsonOnTick {
 	void GameTrackDetection();
 	void InCreditsDetection();
 	void PreparePlayersDataBeforeSpawn();
+	void FixWeaponUnlocksDante();
+	void PairVanillaWeaponSlots();
 	void CrimsonMissionClearSong();
 	void DivinityStatueSong();
 	void DisableBlendingEffectsController();
+	void UpdateMainPlayerMotionArchives();
 	void StyleMeterMultiplayer();
 	void DetermineActiveEntitiesCount();
 	void MultiplayerCameraPositioningController();
@@ -20,4 +23,5 @@ namespace CrimsonOnTick {
 	void OverrideEnemyTargetPosition();
 	void WeaponProgressionTracking();
 	void FixM7DevilTriggerUnlocking();
+	void ToggleOnTickFuncs(bool enable);
 }

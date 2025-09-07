@@ -46,14 +46,14 @@ void OpenShop() {
 
     g_showShop = true;
 
-    PlaySound(0, 4);
+    FMOD_PlaySound(0, 4);
 }
 
 void CloseShop() {
     DebugLogFunction();
 
     if (g_showShop) {
-        PlaySound(0, 3);
+        FMOD_PlaySound(0, 3);
     }
 
     g_showShop = false;
@@ -123,7 +123,8 @@ void SetContinueRoom() {
 
 bool SetTrack(byte8* dest, const char* filename, uint32 arg3, uint32 arg4) {
     Log("%s %llX %s %u %u", FUNC_NAME, dest, filename, arg3, arg4);
-
+    //here you go berth
+    g_gameTrackPlaying = filename;
     return BossRush::SetTrack(filename);
 }
 
@@ -198,8 +199,8 @@ void EventHandler(EventData& eventData) {
 
 	CrimsonGameplay::GunDTCharacterRemaps();
 	CrimsonOnTick::GameTrackDetection();
+    CrimsonOnTick::FixWeaponUnlocksDante();
 	CrimsonOnTick::DisableBlendingEffectsController();
-	CrimsonOnTick::StyleMeterMultiplayer();
 	CrimsonOnTick::DetermineActiveEntitiesCount();
  	CrimsonOnTick::MultiplayerCameraPositioningController();
  	CrimsonOnTick::ForceThirdPersonCameraController();
@@ -208,6 +209,12 @@ void EventHandler(EventData& eventData) {
  	CrimsonOnTick::PauseSFXWhenPaused();
     
 	//CrimsonOnTick::OverrideEnemyTargetPosition();
+
+    auto pool_66 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E30);
+    if (!pool_66 || !pool_66[1]) {
+        return;
+    }
+    auto eventFlags = reinterpret_cast<byte32*>(pool_66[1]);
 
 
     auto event = eventData.event;
@@ -231,13 +238,17 @@ void EventHandler(EventData& eventData) {
 
     [&]() {
         auto funcName = eventFuncNames[event];
-
         auto& run = g_eventRun[event];
 
         if (!run) {
             run = true;
+            Log("Sub Event %u", eventData.subevent);
+            Log("Screen %u", eventData.screen);
+            Log("Next Screen %u", eventData.nextScreen);
 
-
+            DebugLog("flag 14 -  %X", eventFlags[14]);
+            DebugLog("flag 15 -  %X", eventFlags[15]);
+            DebugLog("flag 20 -  %X", eventFlags[20]);
             switch (event) {
             case INIT: {
                 Log(funcName);
@@ -406,7 +417,7 @@ void EventHandler(EventData& eventData) {
         break;
     }
     case MAIN: {
-        CharacterSwitchController();
+        
         BossLadyController();
         BossVergilController();
 
@@ -1052,6 +1063,37 @@ void Event_Toggle(bool enable) {
         if (enable) {
             WriteJump(addr, func.addr, (size - 5));
         } else {
+            backupHelper.Restore(addr);
+        }
+    }
+
+    // Continue Game Over
+    {
+        auto addr = (appBaseAddr + 0x23BCF8);
+        auto jumpAddr = (appBaseAddr + 0x23BCFF);
+        constexpr new_size_t size = 7;
+        /*
+        dmc3.exe+23BCF8: C7 43 2C 06 00 00 00           - mov [rbx+2C],00000006
+        dmc3.exe+23BCFF: FE 43 24                       - inc byte ptr [rbx+24]
+        */
+
+        static Function func = {};
+
+        constexpr byte8 sect1[] = {
+            mov_rcx_rbx,
+        };
+
+        if (!run) {
+            backupHelper.Save(addr, size);
+            func = CreateFunction(SetNextScreen, jumpAddr, (FunctionFlags_SaveRegisters | FunctionFlags_NoResult), size, sizeof(sect1));
+            CopyMemory(func.sect0, addr, size, MemoryFlags_VirtualProtectSource);
+            CopyMemory(func.sect1, sect1, sizeof(sect1));
+        }
+
+        if (enable) {
+            WriteJump(addr, func.addr, (size - 5));
+        }
+        else {
             backupHelper.Restore(addr);
         }
     }

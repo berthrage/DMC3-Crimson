@@ -52,7 +52,7 @@ void PlayRoyalBlock(int playerIndex);
 void PlayNormalBlock(int playerIndex);
 void PlayNewMissionClearSong();
 void PlayDivinityStatueSong();
-void FadeOutMusic();
+void FadeOutMusic(int delayMs = 500);
 int IsMusicPlaying();
 
 }

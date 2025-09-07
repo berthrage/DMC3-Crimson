@@ -1,11 +1,16 @@
+INCLUDE CommonMacros.inc
 .DATA
 extern g_SetAirTaunt_ReturnAddr:QWORD
 extern g_SetAirTaunt_Call:QWORD
+extern g_SetAirTauntSkyLaunchCheckCall:QWORD
+extern g_SetAirTauntATRisingSunCheckCall:QWORD
 
 .CODE
 SetAirTauntDetour PROC ; player in rcx
     test byte ptr [rcx+3e64h], 2 ; aerial
     je CodeLabel
+    cmp dword ptr [rcx+3e00h], 44d ; event staggered
+    je ReturnLabel
     mov rdx,0000000000000011h
     cmp dword ptr [rdi+78h], 0 ; dante id
     je DanteLabel
@@ -14,10 +19,27 @@ SetAirTauntDetour PROC ; player in rcx
     jmp CodeLabel
 
 DanteLabel:
+    PushAllRegsNoFlags
+    call qword ptr [g_SetAirTauntSkyLaunchCheckCall]
+    cmp al, 1
+    PopAllRegsNoFlags
+    je ApplySkyLaunch
+    jmp ReturnLabel
+    
+
+ApplySkyLaunch:
     mov word ptr [rcx+3fa4h],0c2h
     jmp CodeLabel
 
 VergilLabel:
+    PushAllRegsNoFlags
+    call qword ptr [g_SetAirTauntATRisingSunCheckCall]
+    cmp al, 1
+    PopAllRegsNoFlags
+    je ApplyATRisingSun
+    jmp ReturnLabel
+
+ApplyATRisingSun:
     mov word ptr [rcx+3fa4h],019h
     jmp CodeLabel
 

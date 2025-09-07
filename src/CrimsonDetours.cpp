@@ -15,7 +15,9 @@
 #include <iostream>
 #include "CrimsonPatches.hpp"
 #include "CrimsonLDK.hpp"
+#include "CrimsonCameraController.hpp"
 #include "Actor.hpp"
+#include "CrimsonOnTick.hpp"
 
 
 namespace CrimsonDetours {
@@ -46,6 +48,8 @@ void EnableAirTauntDetour();
 std::uint64_t g_SetAirTaunt_ReturnAddr;
 std::uint64_t g_SetAirTaunt_Call;
 void SetAirTauntDetour();
+void* g_SetAirTauntSkyLaunchCheckCall;
+void* g_SetAirTauntATRisingSunCheckCall;
 
 // Sky Launch Detours: (Dante Air Taunt)
 // SkyLaunchForceRelease 
@@ -98,6 +102,44 @@ void FixCrashCerberusDetour();
 std::uint64_t g_FixCrashVergilM3_ReturnAddr;
 std::uint64_t g_FixCrashVergilM3_JumpAddr;
 void FixCrashVergilM3Detour();
+
+// FixCrashM5
+std::uint64_t g_FixCrashM5_ReturnAddr;
+std::uint64_t g_FixCrashM5_JmpAddr;
+std::uint64_t g_FixCrashM5_ReturnAddr2;
+std::uint64_t g_FixCrashM5_JmpAddr2;
+void FixCrashM5Detour();
+void FixCrashM5Detour2();
+
+//Cerb Damage fix
+std::uint64_t g_CerbDamageFix_ReturnAddr;
+std::uint64_t g_CerbDamageFix_JmpAddr;
+void CerbDamageFixDetour();
+
+// FixCrashArkhamPt2Grab
+std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr1;
+void FixCrashArkhamPt2GrabDetour1();
+std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr2;
+void FixCrashArkhamPt2GrabDetour2();
+std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr3;
+void FixCrashArkhamPt2GrabDetour3();
+std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr4;
+void FixCrashArkhamPt2GrabDetour4();
+std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr5;
+void FixCrashArkhamPt2GrabDetour5();
+
+// FixCrashArkhamPt2Doppel
+std::uint64_t g_FixCrashArkhamPt2Doppel_ReturnAddr1;
+std::uint64_t g_FixCrashArkhamPt2Doppel_CallAddr1;
+void FixCrashArkhamPt2DoppelDetour1();
+std::uint64_t g_FixCrashArkhamPt2Doppel_ReturnAddr2;
+std::uint64_t g_FixCrashArkhamPt2Doppel_CallAddr2;
+void FixCrashArkhamPt2DoppelDetour2();
+
+// EnsureAirRisingDragonLaunch
+std::uint64_t g_EnsureAirRisingDragonLaunch_ReturnAddr;
+std::uint64_t g_EnsureAirRisingDragonLaunch_JmpAddr;
+void EnsureAirRisingDragonLaunchDetour();
 
 // HoldToCrazyCombo
 std::uint64_t g_HoldToCrazyCombo_ReturnAddr;
@@ -190,6 +232,12 @@ void* g_FixFPSSpeedIssuesCall;
 std::uint64_t g_FixBallsHangHitSpeed_ReturnAddr;
 void FixBallsHangHitSpeedDetour();
 
+// FixSecretMissionTimerFPS
+std::uint64_t g_FixSecretMissionTimerFPS_ReturnAddr;
+void FixSecretMissionTimerFPSDetour();
+std::uint64_t g_FixSecretMissionTimerFPS_ReturnAddr2;
+void FixSecretMissionTimerFPSDetour2();
+
 // StyleRankHUDNoFadeout
 std::uint64_t g_StyleRankHudNoFadeout_ReturnAddr;
 void StyleRankHudNoFadeoutDetour();
@@ -215,6 +263,30 @@ std::uint64_t g_ArtemisReworkJumpAddr2;
 void GreenOrbsMPRegenDetour();
 std::uint64_t g_GreenOrbsMPRegen_ReturnAddr;
 void* g_GreenOrbsMPRegen_Call;
+
+// StyleLevellingCCSFix
+void StyleLevellingCCSFixDetour1();
+std::uint64_t g_StyleLevellingCCSFix_ReturnAddr1;
+void* g_StyleLevellingCCSFix_CheckCall1;
+void StyleLevellingCCSFixDetour2();
+std::uint64_t g_StyleLevellingCCSFix_ReturnAddr2;
+void* g_StyleLevellingCCSFix_CheckCall2;
+
+// DanteTrickAlterations
+std::uint64_t g_DanteTrickAlter_ReturnAddr1;
+void DanteTrickAlterationsDetour1();
+std::uint64_t g_DanteTrickAlter_ReturnAddr2;
+void DanteTrickAlterationsDetour2();
+std::uint64_t g_DanteTrickAlter_ReturnAddr3;
+void DanteTrickAlterationsDetour3();
+std::uint64_t g_DanteTrickAlter_ReturnAddr4;
+void DanteTrickAlterationsDetour4();
+
+// DTMustStyleArmor
+std::uint64_t g_DTMustStyleArmor_ReturnAddr;
+void DTMustStyleArmorDetour();
+void* g_DTMustStyleArmor_CheckCall1;
+void* g_DTMustStyleArmor_CheckCall2;
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -237,17 +309,17 @@ bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
     switch (actorData.action) { // from vars, namespace ACTION_DANTE {
 
     case REBELLION_STINGER_LEVEL_1:
-        if (std::clamp<float>(actionTimer, 0.2f, 0.3f) == actionTimer && inputException) {
+        if (std::clamp<float>(actionTimer, 0.22f, 0.3f) == actionTimer && inputException) {
             return true;
         }
         break;
     case REBELLION_STINGER_LEVEL_2:
-        if (std::clamp<float>(actionTimer, 0.2f, 0.3f) == actionTimer && inputException) {
+        if (std::clamp<float>(actionTimer, 0.22f, 0.3f) == actionTimer && inputException) {
             return true;
         }
         break;
     case REBELLION_MILLION_STAB:
-        if (std::clamp<float>(actionTimer, 0.2f, 10.0f) == actionTimer && inputException) {
+        if (std::clamp<float>(actionTimer, 0.22f, 10.0f) == actionTimer && inputException) {
             return true;
         }
         break;
@@ -285,6 +357,9 @@ bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
 
     case POLE_PLAY:
         return true;
+
+	case CERBERUS_FLICKER:
+		return true;
 
     case CERBERUS_WINDMILL:
         return true;
@@ -431,7 +506,6 @@ void AddingToPlayersMirageGauge(PlayerActorData& actorData, std::uint64_t amount
         vergilDopp.miragePoints = newMiragePoints;
 	}
     return;
-
 }
 
 bool CheckForceRoyalReleaseForSkyLaunch(PlayerActorData& actorData) {
@@ -461,6 +535,14 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
     }
 
 	return false;
+}
+
+bool CheckSkyLaunchEnabled() {
+	return activeCrimsonGameplay.Gameplay.Dante.skyLaunchAirTaunt;
+}
+
+bool CheckAirTauntRisingSunEnabled() {
+	return activeCrimsonGameplay.Gameplay.Vergil.airTauntRisingSun;
 }
 
 uint16 ActorCameraDirectionToEnemyCameraDirection(PlayerActorData& actorData) {
@@ -496,13 +578,53 @@ void RegenerateMultiplayerPlayersHP(std::uint64_t hpRegen64) {
 	}
 }
 
+void StyleLevel1Fix(uintptr_t playerAddr) {
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
+	auto& character = actorData.character;
+// 	ExpConfig& expData = (character == CHARACTER::DANTE) 
+// 		? ExpConfig::missionExpDataDante
+// 		: ExpConfig::missionExpDataVergil;
+	HeldStyleExpData& heldStyleExpData = (character == CHARACTER::DANTE)
+		? heldStyleExpDataDante
+		: heldStyleExpDataVergil;
+	//expData.styleLevels[helper.styleid] = helper.stylelevel;
+	heldStyleExpData.missionStyleLevels[actorData.style] = 1;
+}
+
+void StyleLevel2Fix(uintptr_t playerAddr) {
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
+	auto& character = actorData.character;
+	// 	ExpConfig& expData = (character == CHARACTER::DANTE) 
+	// 		? ExpConfig::missionExpDataDante
+	// 		: ExpConfig::missionExpDataVergil;
+	HeldStyleExpData& heldStyleExpData = (character == CHARACTER::DANTE)
+		? heldStyleExpDataDante
+		: heldStyleExpDataVergil;
+	//expData.styleLevels[helper.styleid] = helper.stylelevel;
+	heldStyleExpData.missionStyleLevels[actorData.style] = 2;
+}
+
+bool CheckIfInMustStyle() {
+	return activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode > STYLE_RANK::NONE;
+}
+
+void SetAnnouncerWasHit() {
+	for (int rankId = 0; rankId < 7; rankId++) {
+		rankAnnouncer[rankId].wasHit = true;
+	}
+}
+
 void InitDetours() {
     using namespace Utility;
     DetourBaseAddr = (uintptr_t)appBaseAddr;
 
 	// cEnemySetCtrl__spawnGuy_sub_1401A4680
 	//dmc3.exe+1A4680 - 40 57 - push rdi
+	CameraCtrlInitDetour();
+	CameraSwitchInitDetour();
+	CameraWallCheckDetour();
 	LdkInitDetour();
+	CrimsonOnTick::ToggleOnTickFuncs(true);
 
 	// AddToMirageGauge
 	//dmc3.exe + 1E0BB2 - F3 0F58 89 B83E0000 - addss xmm1, [rcx + 00003EB8] 
@@ -901,10 +1023,32 @@ void AirTauntDetours(bool enable) {
 	g_SetAirTaunt_ReturnAddr = setAirTauntHook->GetReturnAddress();
 	g_SetAirTaunt_Call = (uintptr_t)appBaseAddr + 0x1E09D0;
 	setAirTauntHook->Toggle(enable);
+	g_SetAirTauntSkyLaunchCheckCall = &CheckSkyLaunchEnabled;
+	g_SetAirTauntATRisingSunCheckCall = &CheckAirTauntRisingSunEnabled;
 
 	SkyLaunchDetours(enable);
 
     run = enable;
+}
+
+void ToggleEnsureAirRisingDragonLaunch(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// dmc3.exe+202588 - 80 BB A7 3F 00 00 00     - cmp byte ptr [rbx+00003FA7],00 { Checking TransitionMove? }
+	// dmc3.exe + 20258F - 75 16 - jne dmc3.exe + 2025A7 { Transition from Rising Dragon Launch to Whirlwind }
+	// PlayerPtr in RBX
+	static std::unique_ptr<Detour_t> EnsureAirRisingDragonLaunchHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x202588, &EnsureAirRisingDragonLaunchDetour, 7);
+	g_EnsureAirRisingDragonLaunch_ReturnAddr = EnsureAirRisingDragonLaunchHook->GetReturnAddress();
+	g_EnsureAirRisingDragonLaunch_JmpAddr = (uintptr_t)appBaseAddr + 0x202591;
+	EnsureAirRisingDragonLaunchHook->Toggle(enable);
+
+	run = enable;
 }
 
 void ToggleGreenOrbsMPRegen(bool enable) {
@@ -1048,6 +1192,80 @@ void ToggleFixBallsHangHitSpeed(bool enable) {
 	run = enable;
 }
 
+void ToggleDanteTrickAlterations(bool enable) {
+	// Used for Dante's Ground Trick (event 48)
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// DanteTrickAlterationsDetour1
+	// AirTrickYInertia
+	// dmc3.exe+1F218B - F3 0F 5E B7 34 3E 00 00   - divss xmm6,[rdi+00003E34]
+	static std::unique_ptr<Utility::Detour_t> DanteTrickAlterationsHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1F218B, &DanteTrickAlterationsDetour1, 8);
+	g_DanteTrickAlter_ReturnAddr1 = DanteTrickAlterationsHook->GetReturnAddress();
+	DanteTrickAlterationsHook->Toggle(enable);
+
+	// DanteTrickAlterationsDetour2
+	// End of Air Trick Y inertia
+	// dmc3.exe+1DFF07 - F3 0F 11 9B 94 00 00 00   - movss [rbx+00000094],xmm3
+	static std::unique_ptr<Utility::Detour_t> DanteTrickAlterationsHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1DFF07, &DanteTrickAlterationsDetour2, 8);
+	g_DanteTrickAlter_ReturnAddr2 = DanteTrickAlterationsHook2->GetReturnAddress();
+	DanteTrickAlterationsHook2->Toggle(enable);
+
+	// DanteTrickAlterationsDetour3
+	// Trick landing anim so you input grounded moves just before you land
+	// dmc3.exe+1DFFF9 - BA 09 00 00 00           - mov edx, 9 { 00000009 }
+	static std::unique_ptr<Utility::Detour_t> DanteTrickAlterationsHook3 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1DFFF9, &DanteTrickAlterationsDetour3, 5);
+	g_DanteTrickAlter_ReturnAddr3 = DanteTrickAlterationsHook3->GetReturnAddress();
+	DanteTrickAlterationsHook3->Toggle(enable);
+
+	// DanteTrickAlterationsDetour4
+	// Increase Air Trick Horizontal Inertia (xmm0) & MaxAirTrickDistance (xmm8)
+	// dmc3.exe + 1F2128 - F3 44 0F 10 83 94 02 00 00 - movss xmm8, [rbx + 00000294]
+	static std::unique_ptr<Utility::Detour_t> DanteTrickAlterationsHook4 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1F2128, &DanteTrickAlterationsDetour4, 10);
+	g_DanteTrickAlter_ReturnAddr4 = DanteTrickAlterationsHook4->GetReturnAddress();
+	DanteTrickAlterationsHook4->Toggle(enable);
+
+	run = enable;
+}
+
+
+void ToggleFixSecretMissionTimerFPS(bool enable) {
+	// This will untie the Secret Mission timer from FPS settings (ie no longer spawning with half the time when playing at 120 fps).
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+	
+	// FixSecretMissionTimerFPS
+	// dmc3.exe+27C0DD - F3 0F 11 81 48 69 00 00   - movss [rcx+00006948],xmm0 { Setting secret mission timer }
+	// RCX is HUDPtr
+
+	// dmc3.exe+27EF74 - F3 0F 5C C8            - subss xmm1,xmm0
+	// dmc3.exe+27EF78 - 0F 57 C0               - xorps xmm0,xmm0
+	// dmc3.exe + 27EF7E - F3 0F 11 8F 48 69 00 00 - movss[rdi + 00006948], xmm1{ Decrement Secret Mission Timer }
+	// RDI is HUDPtr
+
+	static std::unique_ptr<Utility::Detour_t> FixSecretMissionTimerFPSHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27C0DD, &FixSecretMissionTimerFPSDetour, 8);
+	g_FixSecretMissionTimerFPS_ReturnAddr = FixSecretMissionTimerFPSHook->GetReturnAddress();
+	FixSecretMissionTimerFPSHook->Toggle(enable);
+
+	static std::unique_ptr<Utility::Detour_t> FixSecretMissionTimerFPSHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27EF74, &FixSecretMissionTimerFPSDetour2, 7);
+	g_FixSecretMissionTimerFPS_ReturnAddr2 = FixSecretMissionTimerFPSHook2->GetReturnAddress();
+	FixSecretMissionTimerFPSHook2->Toggle(enable);
+
+	run = enable;
+}
+
 void ToggleCerberusCrashFix(bool enable) {
     using namespace Utility;
     static bool run = false;
@@ -1094,6 +1312,177 @@ void ToggleVergilM3CrashFix(bool enable) {
 
 	FixCrashVergilM3Hook->Toggle(enable);
 
+	run = enable;
+}
+
+void ToggleMission5CrashFix(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// FixCrashM5Detour
+	// dmc3.exe+5A422 - 39 42 04              - cmp [rdx+04],eax
+	// dmc3.exe+5A425 - 72 0F                 - jb dmc3.exe+5A436
+	static std::unique_ptr<Utility::Detour_t> FixMission5CrashHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x5A422, &FixCrashM5Detour, 5);
+	g_FixCrashM5_ReturnAddr = FixMission5CrashHook->GetReturnAddress();
+	g_FixCrashM5_JmpAddr = (uintptr_t)appBaseAddr + 0x5A436; // Jump to the next instruction after the detour
+	FixMission5CrashHook->Toggle(enable);
+	
+	// FixCrashM5Detour2
+	// dmc3.exe+5A42B - 8B 04 82              - mov eax,[rdx+rax*4]
+	// dmc3.exe+5A42E - 85 C0                 - test eax,eax
+	static std::unique_ptr<Utility::Detour_t> FixMission5CrashHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x5A42B, &FixCrashM5Detour2, 5);
+	g_FixCrashM5_ReturnAddr2 = FixMission5CrashHook2->GetReturnAddress();
+	g_FixCrashM5_JmpAddr2 = (uintptr_t)appBaseAddr + 0x5A436; 
+	FixMission5CrashHook2->Toggle(enable);
+
+	run = enable;
+}
+
+void ToggleCerbDamageFix(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	//g_cerbDamageValue = 9999.0f;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	//Cerb damage fix detour
+	//dmc3.exe + 10B7DA: 0F 2F F0 - comiss xmm6, xmm0
+	//dmc3.exe + 10B7DD : 76 08 - jna dmc3.exe + 10B7E7
+	static std::unique_ptr<Utility::Detour_t> CerbDamageFixHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x10B7DA, &CerbDamageFixDetour, 5);
+	g_CerbDamageFix_ReturnAddr = CerbDamageFixHook->GetReturnAddress();
+	g_CerbDamageFix_JmpAddr = (uintptr_t)appBaseAddr + 0x10B7E7; // Jump to the next instruction after the detour
+	CerbDamageFixHook->Toggle(enable);
+	run = enable;
+}
+
+void ToggleArkhamPt2GrabCrashFix(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// Detour1
+	// dmc3.exe + 32E5F4 - 0F 10 01 - movups xmm0, [rcx] // actorPos in rcx
+	// dmc3.exe + 32E5F7 - 0F 28 D0 - movaps xmm2,xmm0
+	static std::unique_ptr<Utility::Detour_t> FixCrashArkhamPt2GrabHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x32E5F4, &FixCrashArkhamPt2GrabDetour1, 6);
+	g_FixCrashArkhamPt2Grab_ReturnAddr1 = FixCrashArkhamPt2GrabHook1->GetReturnAddress();
+	FixCrashArkhamPt2GrabHook1->Toggle(enable);
+
+	// Detour2
+	// dmc3.exe + 2C6813 - 0F 10 01 - movups xmm0,[rcx] { Enigma Rotate to Target }
+	// dmc3.exe + 2C6816 - 0F 5C C1               - subps xmm0,xmm1
+	static std::unique_ptr<Utility::Detour_t> FixCrashArkhamPt2GrabHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2C6813, &FixCrashArkhamPt2GrabDetour2, 6);
+	g_FixCrashArkhamPt2Grab_ReturnAddr2 = FixCrashArkhamPt2GrabHook2->GetReturnAddress();
+	FixCrashArkhamPt2GrabHook2->Toggle(enable);
+
+	// Detour3
+	// dmc3.exe + 16725C - F3 0F 58 83 80 00 00 00   - addss xmm0,[rbx+00000080] { Arkham Leeches Jump Attack 2 Target Position }
+	static std::unique_ptr<Utility::Detour_t> FixCrashArkhamPt2GrabHook3 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x16725C, &FixCrashArkhamPt2GrabDetour3, 8);
+	g_FixCrashArkhamPt2Grab_ReturnAddr3 = FixCrashArkhamPt2GrabHook3->GetReturnAddress();
+	FixCrashArkhamPt2GrabHook3->Toggle(enable);
+
+	// Detour4
+	// dmc3.exe + 1672B9 - F3 0F 58 83 88 00 00 00   - addss xmm0,[rbx+00000088]
+	static std::unique_ptr<Utility::Detour_t> FixCrashArkhamPt2GrabHook4 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1672B9, &FixCrashArkhamPt2GrabDetour4, 8);
+	g_FixCrashArkhamPt2Grab_ReturnAddr4 = FixCrashArkhamPt2GrabHook4->GetReturnAddress();
+	FixCrashArkhamPt2GrabHook4->Toggle(enable);
+
+	// Detour5
+	// dmc3.exe+1675B3 - 0F 28 82 80 00 00 00      - movaps xmm0,[rdx+00000080] { Arkham Leeches Jump Attack Target Position }
+	static std::unique_ptr<Utility::Detour_t> FixCrashArkhamPt2GrabHook5 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1675B3, &FixCrashArkhamPt2GrabDetour5, 7);
+	g_FixCrashArkhamPt2Grab_ReturnAddr5 = FixCrashArkhamPt2GrabHook5->GetReturnAddress();
+	FixCrashArkhamPt2GrabHook5->Toggle(enable);
+
+	run = enable;
+}
+
+void ToggleArkhamPt2DoppelCrashFix(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// Detour1
+	// dmc3.exe + 337744 - 48 03 08              - add rcx,[rax]
+	// dmc3.exe + 337747 - E8 9E F4 00 00           - call dmc3.exe+346BEA { ->->VCRUNTIME140.memset }
+	static std::unique_ptr<Utility::Detour_t> FixCrashArkhamPt2DoppelHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x337744, &FixCrashArkhamPt2DoppelDetour1, 8);
+	g_FixCrashArkhamPt2Doppel_ReturnAddr1 = FixCrashArkhamPt2DoppelHook1->GetReturnAddress();
+	g_FixCrashArkhamPt2Doppel_CallAddr1 = (uintptr_t)appBaseAddr + 0x346BEA; // VCRUNTIME140.memset
+	FixCrashArkhamPt2DoppelHook1->Toggle(enable);
+
+	// Detour2
+	// dmc3.exe + 337753 - FF 48 20 - dec[rax + 20]
+	// dmc3.exe + 337756 - E8 45 1B FF FF           - call dmc3.exe+3292A0
+	static std::unique_ptr<Utility::Detour_t> FixCrashArkhamPt2DoppelHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x337753, &FixCrashArkhamPt2DoppelDetour2, 8);
+	g_FixCrashArkhamPt2Doppel_ReturnAddr2 = FixCrashArkhamPt2DoppelHook2->GetReturnAddress();
+	g_FixCrashArkhamPt2Doppel_CallAddr2 = (uintptr_t)appBaseAddr + 0x3292A0; 
+	FixCrashArkhamPt2DoppelHook2->Toggle(true);
+
+	run = enable;
+}
+
+void ToggleStyleLevellingCCSFix(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	// StyleLevellingCCSFixDetour1
+	// dmc3.exe+1FA3D9 - C7 83 58630000 01000000 - mov [rbx+00006358],00000001 { Level up StyleLevel to lvl 2 }
+	static std::unique_ptr<Utility::Detour_t> StyleLevellingCCSFixHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1FA3D9, &StyleLevellingCCSFixDetour1, 10);
+	g_StyleLevellingCCSFix_ReturnAddr1 = StyleLevellingCCSFixHook1->GetReturnAddress();
+	g_StyleLevellingCCSFix_CheckCall1 = &StyleLevel1Fix; 
+	StyleLevellingCCSFixHook1->Toggle(enable);
+
+	// StyleLevellingCCSFixDetour2
+	// dmc3.exe+1FA343 - C7 83 58630000 02000000 - mov [rbx+00006358],00000002 { Level up StyleLevel to lvl 3 }
+	static std::unique_ptr<Utility::Detour_t> StyleLevellingCCSFixHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1FA343, &StyleLevellingCCSFixDetour2, 10);
+	g_StyleLevellingCCSFix_ReturnAddr2 = StyleLevellingCCSFixHook2->GetReturnAddress();
+	g_StyleLevellingCCSFix_CheckCall2 = &StyleLevel2Fix; 
+	StyleLevellingCCSFixHook2->Toggle(enable);
+
+	run = enable;
+}
+
+void ToggleDTMustStyleArmor(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+	// DTMustStyleArmorDetour
+	// dmc3.exe+27A18C - 41 8B 94 80 D4 A1 27 00  - mov edx,[r8+rax*4+0027A1D4]
+	static std::unique_ptr<Utility::Detour_t> DTMustStyleArmorHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27A18C, &DTMustStyleArmorDetour, 8);
+	g_DTMustStyleArmor_ReturnAddr = DTMustStyleArmorHook->GetReturnAddress();
+	g_DTMustStyleArmor_CheckCall1 = &CheckIfInMustStyle;
+	g_DTMustStyleArmor_CheckCall2 = &SetAnnouncerWasHit;
+	DTMustStyleArmorHook->Toggle(enable);
 	run = enable;
 }
 

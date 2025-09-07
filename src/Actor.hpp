@@ -373,6 +373,8 @@ template <typename T> bool IsNeroAngelo(T& actorData) {
 
 void ToggleNoDevilForm(bool enable);
 void SpawnActors();
+void DecommissionDoppelgangers();
+void DeactivateDoppelganger(PlayerActorData& actorData);
 
 #pragma endregion
 
@@ -429,6 +431,29 @@ void SetNextScreen(EventData& eventData);
 #pragma endregion
 
 void DeactivateDevilHaywire(PlayerActorData& actorData);
+
+template <typename T> void UpdateMotionArchives(T& actorData) {
+	constexpr uint8 count = (TypeMatch<T, PlayerActorDataDante>::value) ? static_cast<uint8>(countof(motionArchiveHelperDante))
+		: (TypeMatch<T, PlayerActorDataBob>::value) ? static_cast<uint8>(countof(motionArchiveHelperBob))
+		: (TypeMatch<T, PlayerActorDataLady>::value) ? static_cast<uint8>(countof(motionArchiveHelperLady))
+		: (TypeMatch<T, PlayerActorDataVergil>::value) ? static_cast<uint8>(countof(motionArchiveHelperVergil))
+		: 0;
+
+	const MotionArchiveHelper* motionArchiveHelper = (TypeMatch<T, PlayerActorDataDante>::value) ? motionArchiveHelperDante
+		: (TypeMatch<T, PlayerActorDataBob>::value) ? motionArchiveHelperBob
+		: (TypeMatch<T, PlayerActorDataLady>::value) ? motionArchiveHelperLady
+		: (TypeMatch<T, PlayerActorDataVergil>::value) ? motionArchiveHelperVergil
+		: 0;
+
+	old_for_all(uint8, index, count) {
+		auto& group = motionArchiveHelper[index].group;
+		auto& cacheFileId = motionArchiveHelper[index].cacheFileId;
+
+		auto& metadata = File_staticFiles[cacheFileId];
+
+		actorData.motionArchives[group] = File_dynamicFiles.Push(metadata.addr, metadata.size);
+	}
+}
 
 #pragma region Scenes
 

@@ -16,6 +16,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <cstring>
+#include "CrashHandler.hpp"
 
 namespace DI8 {
 
@@ -61,6 +62,13 @@ namespace Hook::DI8 {
 HRESULT DirectInput8Create(HINSTANCE hinst, DWORD dwVersion, const IID& riidltf, LPVOID* ppvOut, LPUNKNOWN punkOuter) {
 #pragma comment(linker, "/EXPORT:DirectInput8Create=" DECORATED_FUNCTION_NAME)
 
+    InitLog("logs", "Crash.txt");
+    InstallCrashHandler(".\\logs\\CrimsonCrash.dmp");
+    if (!InitializeDbgHelp()) {
+        Log("Init_DbgHelp failed.");
+
+        return 0;
+    }
 
     return ::Base::DI8::DirectInput8Create(hinst, dwVersion, riidltf, ppvOut, punkOuter);
 }
@@ -116,11 +124,19 @@ void Init() {
         Log("DirectInput8Create %X", DirectInput8Create);
     }
 
+    MODULEENTRY32 me32 = {};
+	me32.dwSize = sizeof(MODULEENTRY32);
+	auto snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, 0);
+	Module32First(snapshot, &me32);
+    auto appName = "dmc3.exe";
+
+
     uintptr_t base = (uintptr_t)GetModuleHandleA(NULL);
     for (const auto& entry : s_CrimsonOffsets) {
         uintptr_t address = base + entry.first;
         int result = memcmp((void*)address, entry.second.data(), entry.second.size());
-        if (result != 0) {
+        if (result != 0 && strncmp(me32.szModule, appName,
+                sizeof(appName) ) == 0) {
             Log("Check dmc3.exe + %X FAILED", address);
             MessageBoxA(NULL, "Executable checksum is wrong. Startup cannot continue", "DMC3 Crimson", MB_ICONERROR);
             std::exit(1);
@@ -244,12 +260,16 @@ void Load() {
 
 byte32 DllMain(HINSTANCE instance, byte32 reason, void* reserved) {
     if (reason == DLL_PROCESS_ATTACH) {
+        //MessageBoxA(NULL, "DEBUG", "DEBUG", MB_ICONINFORMATION);
         InitLog("logs", "dinput8.txt");
 
         Log("Session started.");
 
         Init();
         Load();
+    }
+    if (reason == DLL_PROCESS_DETACH) {
+        UninstallCrashHandler();
     }
 
     return 1;
