@@ -74,7 +74,7 @@ DMC3 Crimson is completely free and will always be. That said, you could greatly
 • Darkness - Backend, Devops, General Programmer, Reverse Engineering  
 • Charlie - Community Manager, Tester, Q&A  
 • The Hitchhiker - General Programmer, Reverse Engineering   
-• RaccMoon - Tester, Q&A
+• RaccMoon - Tester, Q&A  
 • And Lenam was there too - Artist
 
 ## With additional work by 
