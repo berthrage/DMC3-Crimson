@@ -75,6 +75,7 @@ DMC3 Crimson is completely free and will always be. That said, you could greatly
 • Charlie - Community Manager, Tester, Q&A  
 • The Hitchhiker - General Programmer, Reverse Engineering   
 • RaccMoon - Tester, Q&A
+• And Lenam was there too - Artist
 
 ## With additional work by 
 • Dany Sterkhov - Video Producer, Consultant
@@ -86,7 +87,6 @@ DMC3 Crimson is completely free and will always be. That said, you could greatly
 • Airdragon - Programmer  
 • Tihan - Audio Producer / Mixing  
 • Garuda - Artist  
-• And Lenam was there too  
 
 # DDMK
 • serpentiem - Original DDMK's Developer  
