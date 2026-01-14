@@ -1,4 +1,5 @@
 #include "CrimsonTrainingRoom.hpp"
+
 //using this while we test implementation
 
 
@@ -19,9 +20,6 @@ namespace CrimsonTrainingRoom {
         if (!trainingRoomEnabled) {
             return;
         }
-
-
-
         LogFunction();
 
         if (!inTrainingRoom)
@@ -45,8 +43,6 @@ namespace CrimsonTrainingRoom {
         if (!trainingRoomEnabled) {
             return;
         }
-
-
 
         LogFunction();
 
@@ -78,6 +74,27 @@ namespace CrimsonTrainingRoom {
         nextEventData.position = static_cast<uint16>(1);
     }
 
+
+    /// <summary>
+/// Resets void stuff when:
+/// restarts the mission
+/// quits the mission
+/// finishes the mission
+/// game overs
+/// </summary>
+    void SetNextScreen(EventData& eventData) {
+        if ((eventData.nextScreen == SCREEN::MISSION_CLEAR)
+            || (eventData.nextScreen == SCREEN::GAME_OVER)
+            || (eventData.nextScreen == SCREEN::MISSION_SELECT)
+            || (eventData.nextScreen == SCREEN::MISSION_START)
+             && trainingRoomEnabled)
+
+            Arcade::ToggleOrbSkip(false);
+            Arcade::ToggleMissionStart(false);
+            inTrainingRoom = false;
+        return;
+    }
+
     void DrawImGuiWidget()
     {
         GUI_Checkbox("turn on void - debug, variable might be removed", trainingRoomEnabled);
@@ -85,8 +102,22 @@ namespace CrimsonTrainingRoom {
         if (inTrainingRoom) {
             buttontext = exitString;
         }
-        if (!InGame())
+        if (!InGame()) {
+            if (g_scene == SCENE::MISSION_START) {
+                //when pressing the button on the mission start screen, we want to be taken straight into the game. 
+                //going to need an exception for m1/places where we don't want it to work obviously.
+
+                //also we might need to check whether collecting Worbs in training room will break the Worb collection message in m8.
+                if (GUI_Button(buttontext)) {
+                    Arcade::ToggleMissionStart(true);
+                    Arcade::ToggleOrbSkip(true);
+                    inTrainingRoom = !inTrainingRoom;
+                }
+            }
             return;
+        }
+
+        //code here allows instantly entering the void from a specific room. 
 
         if (GUI_Button(buttontext)) {
             
@@ -112,10 +143,11 @@ namespace CrimsonTrainingRoom {
             auto& missionData = *reinterpret_cast<MissionData*>(missionDataPtr);
 
 
+            
             if (inTrainingRoom) {
                 backupData = eventData;
                 preTrainingRoomMissionData = missionData;
-                
+                Arcade::ToggleOrbSkip(true);
                 
                 nextEventData.room = ROOM::DEBUG_ROOM_5;
                 nextEventData.position = 0;
@@ -125,7 +157,7 @@ namespace CrimsonTrainingRoom {
 
             }
             else {
-
+                Arcade::ToggleOrbSkip(false);
                 missionData = preTrainingRoomMissionData;
                 nextEventData.room = backupData.room;
                 nextEventData.position = backupData.position;

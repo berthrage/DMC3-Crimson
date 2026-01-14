@@ -8,4 +8,7 @@ void SetCharacter(byte8* dest);
 void SetRoom();
 void EventCreateMainActor(byte8* baseAddr);
 void Toggle(bool enable);
+void ToggleMissionSelect(bool enable);
+void ToggleMissionStart(bool enable);
+void ToggleOrbSkip(bool enable);
 } // namespace Arcade

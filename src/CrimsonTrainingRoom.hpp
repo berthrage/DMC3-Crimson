@@ -4,12 +4,14 @@
 #include "CrimsonPatches.hpp"
 #include "CrimsonDetours.hpp"
 #include "Actor.hpp"
+#include "Arcade.hpp"
 #include "Config.hpp"
 #include "Global.hpp"
 #include "Vars.hpp"
 
 namespace CrimsonTrainingRoom {
 	void SetRoom();
+	void SetNextScreen(EventData& eventData);
 	void SetContinueRoom();
 	void DrawImGuiWidget();
 	bool isInTrainingRoom();

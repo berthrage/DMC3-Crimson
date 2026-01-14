@@ -3315,6 +3315,32 @@ void ArcadeSection(size_t defaultFontSize) {
 		Arcade::Toggle(activeConfig.Arcade.enable);
 	}
 
+	if (GUI_Button("Mission select on")) {
+		Arcade::ToggleMissionSelect(true);
+	}
+
+	if (GUI_Button("Mission select off")) {
+		Arcade::ToggleMissionSelect(false);
+	}
+
+	if (GUI_Button("Mission start on")) {
+		Arcade::ToggleMissionStart(true);
+	}
+
+	if (GUI_Button("Mission start off")) {
+		Arcade::ToggleMissionStart(false);
+	}
+
+	if (GUI_Button("orb skip on")) {
+		Arcade::ToggleOrbSkip(true);
+	}
+
+	if (GUI_Button("orb skip off")) {
+		Arcade::ToggleOrbSkip(false);
+	}
+
+
+
 	ImGui::PushItemWidth(itemWidth);
 
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);

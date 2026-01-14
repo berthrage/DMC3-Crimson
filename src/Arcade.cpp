@@ -209,6 +209,7 @@ void EventCreateMainActor(byte8* baseAddr) {
 }
 
 
+
 void Toggle(bool enable) {
     LogFunction(enable);
 
@@ -237,46 +238,12 @@ void Toggle(bool enable) {
 
 
     // Skip Mission Select
-    {
-        auto addr                 = (appBaseAddr + 0x243299);
-        constexpr new_size_t size = 2;
-        /*
-        dmc3.exe+243299 - 74 13                   - je dmc3.exe+2432AE
-        dmc3.exe+24329B - C7 05 83143500 01000000 - mov [dmc3.exe+594728],00000001
-        */
-
-        if (!run) {
-            backupHelper.Save(addr, size);
-        }
-
-        if (enable) {
-            Write<byte8>(addr, 0xEB);
-        } else {
-            backupHelper.Restore(addr);
-        }
-    }
+    ToggleMissionSelect(enable);
 
 
     // Force Mission Start
-    {
-        auto addr                 = (appBaseAddr + 0x2411F5);
-        constexpr new_size_t size = 2;
-        /*
-        dmc3.exe+2411F5 - 74 4F    - je dmc3.exe+241246
-        dmc3.exe+2411F7 - 83 F8 01 - cmp eax,01
-        */
 
-        if (!run) {
-            backupHelper.Save(addr, size);
-        }
-
-        if (enable) {
-            Write<byte8>(addr, 0xEB);
-        } else {
-            backupHelper.Restore(addr);
-        }
-    }
-
+    ToggleMissionStart(enable);
 
     // Force Costume
     {
@@ -321,8 +288,73 @@ void Toggle(bool enable) {
 
 
     // Skip Orb Notifications
+    ToggleOrbSkip(enable);
+
+
+    run = true;
+}
+
+void ToggleMissionSelect(bool enable)
+{
+    LogFunction(enable);
+
+    static bool run = false;
     {
-        auto addr                 = (appBaseAddr + 0x1AA791);
+        auto addr = (appBaseAddr + 0x243299);
+        constexpr new_size_t size = 2;
+        /*
+        dmc3.exe+243299 - 74 13                   - je dmc3.exe+2432AE
+        dmc3.exe+24329B - C7 05 83143500 01000000 - mov [dmc3.exe+594728],00000001
+        */
+
+        if (!run) {
+            backupHelper.Save(addr, size);
+        }
+
+        if (enable) {
+            Write<byte8>(addr, 0xEB);
+        }
+        else {
+            backupHelper.Restore(addr);
+        }
+    }
+    run = true;
+}
+
+void ToggleMissionStart(bool enable)
+{
+    LogFunction(enable);
+
+    static bool run = false;
+    {
+        auto addr = (appBaseAddr + 0x2411F5);
+        constexpr new_size_t size = 2;
+        /*
+        dmc3.exe+2411F5 - 74 4F    - je dmc3.exe+241246
+        dmc3.exe+2411F7 - 83 F8 01 - cmp eax,01
+        */
+
+        if (!run) {
+            backupHelper.Save(addr, size);
+        }
+
+        if (enable) {
+            Write<byte8>(addr, 0xEB);
+        }
+        else {
+            backupHelper.Restore(addr);
+        }
+    }
+    run = true;
+}
+
+void ToggleOrbSkip(bool enable)
+{
+    LogFunction(enable);
+
+    static bool run = false;
+    {
+        auto addr = (appBaseAddr + 0x1AA791);
         constexpr new_size_t size = 2;
         /*
         dmc3.exe+1AA791 - 75 18          - jne dmc3.exe+1AA7AB
@@ -335,12 +367,11 @@ void Toggle(bool enable) {
 
         if (enable) {
             Write<byte8>(addr, 0xEB);
-        } else {
+        }
+        else {
             backupHelper.Restore(addr);
         }
     }
-
-
     run = true;
 }
 

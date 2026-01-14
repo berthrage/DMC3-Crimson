@@ -533,6 +533,7 @@ void SetNextScreen(EventData& eventData) {
     CrimsonBetterArkham2::SetNextScreen(eventData);
     Actor::SetNextScreen(eventData);
     SecretMission::SetNextScreen(eventData);
+    CrimsonTrainingRoom::SetNextScreen(eventData);
 }
 
 
