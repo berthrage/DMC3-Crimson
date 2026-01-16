@@ -5,8 +5,14 @@
 
 
 
+//redundant variable
+static bool trainingRoomEnabled{ true };
 
-static bool trainingRoomEnabled{ false };
+
+static bool fromMissionStart{ false };
+static bool fromInGame{ false };
+
+//Tracks whether we are in training currently
 static bool inTrainingRoom{ false };
 const char* enterString{ "Enter Void" };
 const char* exitString{ "Exit Void" };
@@ -17,9 +23,9 @@ static EventData backupData;
 namespace CrimsonTrainingRoom {
     void SetRoom() {
 
-        if (!trainingRoomEnabled) {
-            return;
-        }
+        //if (!trainingRoomEnabled) {
+        //    return;
+        //}
         LogFunction();
 
         if (!inTrainingRoom)
@@ -40,9 +46,9 @@ namespace CrimsonTrainingRoom {
     }
 
     void SetContinueRoom() {
-        if (!trainingRoomEnabled) {
-            return;
-        }
+        //if (!trainingRoomEnabled) {
+        //    return;
+        //}
 
         LogFunction();
 
@@ -86,18 +92,50 @@ namespace CrimsonTrainingRoom {
         if ((eventData.nextScreen == SCREEN::MISSION_CLEAR)
             || (eventData.nextScreen == SCREEN::GAME_OVER)
             || (eventData.nextScreen == SCREEN::MISSION_SELECT)
-            || (eventData.nextScreen == SCREEN::MISSION_START)
-             && trainingRoomEnabled)
-
-            Arcade::ToggleOrbSkip(false);
-            Arcade::ToggleMissionStart(false);
-            inTrainingRoom = false;
+            || (eventData.nextScreen == SCREEN::MISSION_START))
+            ToggleTrainingRoom(false);
+            fromMissionStart = false;
         return;
     }
 
+    
+    /// <summary>
+    /// Called in shop window to provide a button to enter training room. returns true when void is entered and we need to close the shop menu.
+    /// </summary>
+    /// <returns></returns>
+    bool DrawShopWidget()
+    {
+        bool returnval = false;
+        auto buttontext = enterString;
+
+        if (InGame()) {
+            //this is the implementation for accessing the training room from a mid mission shop.
+            if (inTrainingRoom) {
+                buttontext = exitString;
+            }
+        }else if(g_scene == SCENE::MISSION_START){
+            //this is the implementation for accessing the training room from the mission start shop.
+            if (GUI_Button(buttontext)) {
+                fromMissionStart = true;
+                ToggleTrainingRoom(true);
+                returnval = true;
+            }
+        }
+        return returnval;
+    }
+
+    void ToggleTrainingRoom(bool enable){
+        //by including the arcade mode enable, we ensure that when we exit training mode we don't accidentally turn off arcade mode features.
+        Arcade::ToggleMissionStart(enable || activeConfig.Arcade.enable);
+        Arcade::ToggleOrbSkip(enable || activeConfig.Arcade.enable);
+        ToggleSkipCutscenes(enable || activeConfig.skipCutscenes);
+        inTrainingRoom = enable;
+    }
+
+    //old menu option, contains implementation for in-game training room that will need to be reworked.
     void DrawImGuiWidget()
     {
-        GUI_Checkbox("turn on void - debug, variable might be removed", trainingRoomEnabled);
+        //GUI_Checkbox("turn on void - debug, variable might be removed", trainingRoomEnabled);
         auto buttontext = enterString;
         if (inTrainingRoom) {
             buttontext = exitString;
@@ -111,6 +149,7 @@ namespace CrimsonTrainingRoom {
                 if (GUI_Button(buttontext)) {
                     Arcade::ToggleMissionStart(true);
                     Arcade::ToggleOrbSkip(true);
+                    ToggleSkipCutscenes(true);
                     inTrainingRoom = !inTrainingRoom;
                 }
             }

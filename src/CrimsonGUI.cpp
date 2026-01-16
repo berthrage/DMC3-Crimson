@@ -5383,6 +5383,12 @@ void ShopWindow() {
 		ImGui::Text("%u", missionData.redOrbs);
 		ImGui::PopFont();
 		ImGui::Text("");
+		ImGui::SameLine();
+
+		//For closing shop when training room selected.
+		if (CrimsonTrainingRoom::DrawShopWidget()) {
+			CloseShop();
+		}
 		auto BACKGROUND_FADED_TEXT = u8"Divinity Statue";
 		ImFont* fadedFont = UI::g_ImGuiFont_RussoOne256;
 		float fadedFontSize = scaledFontSize * 4.8f;
@@ -9725,7 +9731,8 @@ void TrainingSection() {
 				ToggleDisableTimer(activeCrimsonGameplay.Cheats.Training.disableTimers);
 			}
 			ImGui::TableNextColumn();
-			CrimsonTrainingRoom::DrawImGuiWidget();
+			//GUI_Checkbox("turn on void - debug, variable might be removed", CrimsonTrainingRoom::trainingRoomEnabled);
+			CrimsonTrainingRoom::DrawShopWidget();
 			
 			if (activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters) {
 				ImGui::TableNextColumn();

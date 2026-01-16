@@ -14,5 +14,7 @@ namespace CrimsonTrainingRoom {
 	void SetNextScreen(EventData& eventData);
 	void SetContinueRoom();
 	void DrawImGuiWidget();
+	bool DrawShopWidget();
 	bool isInTrainingRoom();
+	void ToggleTrainingRoom(bool enable);
 };
