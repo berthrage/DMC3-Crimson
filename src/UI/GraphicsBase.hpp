@@ -8,7 +8,7 @@
 #include <string>
 
 #define GLM_FORCE_ROW_MAJOR
-#include "glm/glm.hpp"
+#include "..\ThirdParty\glm\glm.hpp"
 
 namespace Graphics 
 {

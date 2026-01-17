@@ -29,17 +29,17 @@ void InitSession() {
     if ((sessionData.mission >= 1) && (sessionData.mission <= 20)) {
         using namespace DIFFICULTY_MODE;
 
-        uint32 mode     = 0;
+        uint32 difficultyMode     = 0;
         bool oneHitKill = false;
 
-        mode = activeConfig.Arcade.mode;
+        difficultyMode = activeConfig.Arcade.mode;
 
-        if (mode == HEAVEN_OR_HELL) {
-            mode       = HARD;
+        if (difficultyMode == HEAVEN_OR_HELL) {
+            difficultyMode       = HARD;
             oneHitKill = true;
         }
 
-        sessionData.mode       = mode;
+        sessionData.difficultyMode       = difficultyMode;
         sessionData.oneHitKill = oneHitKill;
     }
 
@@ -66,7 +66,14 @@ void InitSession() {
 
     SetMemory(sessionData.weaponAndStyleUnlocks, 1, sizeof(sessionData.weaponAndStyleUnlocks));
 
-    sessionData.costume            = activeConfig.Arcade.costume;
+	auto& activeCharacterData = GetActiveCharacterData(0, 0, 0);
+	auto& queuedCharacterData = GetQueuedCharacterData(0, 0, 0);
+
+    if (!queuedCharacterData.ignoreCostume) {
+        sessionData.costume = activeCharacterData.costume;
+    } else {
+		sessionData.costume = activeConfig.Arcade.costume;
+    }
     sessionData.unlockDevilTrigger = true;
     sessionData.hitPoints          = activeConfig.Arcade.hitPoints;
     sessionData.magicPoints        = activeConfig.Arcade.magicPoints;

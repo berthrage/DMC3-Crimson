@@ -2,10 +2,10 @@ Standard Enemy Target Pos:
 dmc3.exe+616EB - 0F 28 82 80 00 00 00      - movaps xmm0,[rdx+00000080] { Standard Enemy Set Target Position }
 dmc3.exe+616F2 - 0F 29 41 40            - movaps [rcx+40],xmm0 { followup to standard target pos }
 
-Hells:
+Hells: // DONE
 Every single one uses +616EB only, including Hell Vanguard. // DONE
 
-Arachne:
+Arachne: // DONE
 dmc3.exe+C5A40 - 0F 28 83 80 00 00 00      - movaps xmm0,[rbx+00000080] { Arachne Set Target Position for Circling Around }
 dmc3.exe+BF553 - 0F 28 82 80 00 00 00      - movaps xmm0,[rdx+00000080] { Arachne Set Target Position for Jump Attack }
 
@@ -21,17 +21,56 @@ Enigma: // Done, but no effect
 dmc3.exe+2C6813 - 0F 10 01               - movups xmm0,[rcx] { Enigma Rotate to Target }
 dmc3.exe+1BB04C - 44 0F 28 89 80 00 00 00   - movaps xmm9,[rcx+00000080] { Enigma Set Target Position to Aim 1 } == addr in r12 + 0x28 to find pointer pointing to LockedOnEnemyAddr.
 
+dmc3.exe+D9277 - E8 94D51E00           - call dmc3.exe+2C6810 { EnigmaActualRotationTarget Call }
+
+
+dmc3.exe+1E988B - E8 7016FDFF           - call dmc3.exe+1BAF00
+
+dmc3.exe+1F9147 - E8 E4541300           - call dmc3.exe+32E630
+dmc3.exe+DA953 - E8 D83C2500           - call dmc3.exe+32E630
+
+dmc3.exe+1A2CA9 - 8B 85 80000000        - mov eax,[rbp+00000080] { EnigmaAimTarget }
+// EnemyStruct in RDI, get EnemyPtr in RDI+30h, then add 60h for LockedOnEnemyAddr
+
+dmc3.exe+1A2A93 - 0F28 80 80000000      - movaps xmm0,[rax+00000080] { EnigmaAimTarget }
+
+
+dmc3.exe+DC4EA - E8 21A71E00           - call dmc3.exe+2C6C10
+
+
+
+
+
+
+
+
+
 Bloodgoyle:
-dmc3.exe+E7EC2 - 44 0F 10 02            - movups xmm8,[rdx] { Bloodgoyle Dive Target Position}
+dmc3.exe+E7EC2 - 44 0F 10 02            - movups xmm8,[rdx] { Bloodgoyle Dive Target Position} // DONE
 dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
+dmc3.exe+2C6813 - 0F 10 01               - movups xmm0,[rcx] { Enigma Rotate to Target }
+dmc3.exe+E8142 - E8 C9E61D00           - call dmc3.exe+2C6810 { BloodgoyleRotationFunc }
+
 
 Soul Eater:
 dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
+dmc3.exe+E94DB - E8 90D31D00           - call dmc3.exe+2C6870
+
 And some other one that is already nop'ed, not Bloodgoyle Dive
 
-All Chess-Pieces:
-Using one of the above that isn't +616EB
+All Chess-Pieces: // DONE
+dmc3.exe+E8142 - E8 C9E61D00           - call dmc3.exe+2C6810 { BloodgoyleRotationFunc } // For Pawn and Knight Movement
+dmc3.exe+EF871 - E8 9A6F1D00           - call dmc3.exe+2C6810 { ChessBishopRotationTarget } // All the other pieces' Movement
+dmc3.exe+F3DB3 - E8 B82A1D00           - call dmc3.exe+2C6870 { ChessBishopAttack } // Actually just Vergil Judgement Cut
+dmc3.exe+F3423 - E8 18 DD FF FF           - call dmc3.exe+F1140 { ChessBishopAttack2Func }
+dmc3.exe+F5037 - E8 E4 C1 FF FF           - call dmc3.exe+F1220 { ChessRookAttack }
+dmc3.exe+F25B8 - E8 B3421D00           - call dmc3.exe+2C6870 { ChessPawnAttackTarget }
+dmc3.exe+F2C98 - E8 D33B1D00           - call dmc3.exe+2C6870 { ChessKnightAttackTarget }
+dmc3.exe+2C68C2 - E8 697D0600           - call dmc3.exe+32E630 { Beowulf Attack Distance Function}
+dmc3.exe+F6D89 - E9 2A9F10C0           - jmp 100200CB8 { ChessKingAttackTarget }
+dmc3.exe+F6E4A - E8 B1000000           - call dmc3.exe+F6F00 // king attack
 
+               
 Cerberus:
 dmc3.exe+10E89E - F3 0F 10 87 80 00 00 00   - movss xmm0,[rdi+00000080] { Cerberus Set Position to Target - Red }
 dmc3.exe+116DD8 - F3 0F 10 89 80 00 00 00   - movss xmm1,[rcx+00000080] { Cerberus Ice Ball Target Position - Blue}
@@ -55,15 +94,29 @@ Beowulf:
 Uses +616EB // Done but needs the other stuff
 dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ?  }
 dmc3.exe+2C6813 - 0F 10 01               - movups xmm0,[rcx] { Enigma Rotate to Target }
+dmc3.exe+32E630 - F3 0F 10 09            - movss xmm1,[rcx] { BeowulfAttackTargetPos }
+dmc3.exe+2C68C2 - E8 69 7D 06 00           - call dmc3.exe+32E630 { Beowulf Attack Distance Function }
+dmc3.exe+148F2C - E8 AFE31700           - call dmc3.exe+2C72E0 { BeowulfRotationTrackingWalk }
+dmc3.exe+14AC47 - E8 C4BB1700           - call dmc3.exe+2C6810 { BeowulfRotationTrackingAttack1 }
+dmc3.exe+14B657 - E8 B4B11700           - call dmc3.exe+2C6810 { BeowulfRotationTrackingAttack2 }
+dmc3.exe+14A2E7 - E8 24C51700           - call dmc3.exe+2C6810 { BeowulfRotationTrackingAttack3 }
+dmc3.exe+14B8ED - E8 1EAF1700           - call dmc3.exe+2C6810 
+
+
+
+
+
+
+
 
 Doppelganger:
 Uses +616EB // Done but they don't attack secondary targets
 
 Vergil:
 Uses +616EB // Done
-dmc3.exe+1871C5 - 0F 58 81 80 00 00 00      - addps xmm0,[rcx+00000080] { Vergil Blink/Trick Target Position }
+dmc3.exe+1871C5 - 0F 58 81 80 00 00 00      - addps xmm0,[rcx+0000mm0080] { Vergil Blink/Trick Target Position } // DONE
 dmc3.exe+1B269C - 0F 10 0F               - movups xmm1,[rdi] { Vergil Attack After Blocking }
-dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ? Also Judgement Cut }
+dmc3.exe+2C688F - 0F 10 01               - movups xmm0,[rcx] { Dullahan Maybe This is used ? Also Judgement Cut } // DONE
 
 Lady:
 Uses +616EB // Done

@@ -45,7 +45,7 @@ bool GUI_ResetButton();
 
 bool GUI_Checkbox(const char* label, bool& var);
 
-bool GUI_Checkbox2(const char* label, bool& var, bool& var2);
+bool GUI_Checkbox2(const char* label, bool& var, bool& var2, bool maskVar = false);
 
 // @Extend
 template <typename T> bool GUI_Input(const char* label, T& var, T step = 1, const char* format = 0, ImGuiInputTextFlags flags = 0) {
@@ -312,6 +312,10 @@ bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequi
 void GUI_Title(const char* title, bool ccsRequired = false, bool legacyTag = false, bool wipTag = false,
     const char* tooltip = "", float separatorSize = UI::g_UIContext.DefaultFontSize * 23.35f);
 
+bool GUI_RequiredForGameModeButton(bool gameModeOption);
+
+bool GUI_RequiredForGameModeStringButton(std::string gameModeOption);
+
 bool GUI_CCSRequirementButton();
 
 bool GUI_LegacyButton();
@@ -321,6 +325,20 @@ bool GUI_WIPButton();
 bool GUI_Color(const char* label, float (&var)[4], ImGuiColorEditFlags flags = 0);
 
 bool GUI_Color2(const char* label, float (&var)[4], float (&var2)[4], ImGuiColorEditFlags flags = 0);
+
+template <typename varType>
+bool GUI_ComboVectorString2(const char* label, std::vector<std::string>(&names), varType& var, varType& var2,
+    bool maskVar = false, ImGuiComboFlags flags = 0) {
+
+	auto update = UI::ComboVectorString2(label, names, var, var2, flags);
+
+	if (maskVar) {
+        ImGui::SameLine();
+        GUI_RequiredForGameModeStringButton(var);
+	}
+
+	return update;
+}
 
 ID3D11ShaderResourceView* CreateTexture(const char* filename, ID3D11Device* device);
 

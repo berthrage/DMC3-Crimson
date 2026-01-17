@@ -1027,7 +1027,7 @@ extern vec2 g_windowSize;
 extern vec2 g_clientSize;
 extern vec2 g_renderSize;
 
-extern float g_frameRateMultiplier;
+extern "C" float g_frameRateMultiplier;
 
 POINT GetWindowSize(HWND windowHandle);
 POINT GetClientSize(HWND windowHandle);

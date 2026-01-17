@@ -107,7 +107,7 @@ struct DbstMetadata {
 
 #undef _
 
-void PlaySound(int32 group, int32 index);
+void FMOD_PlaySound(int32 group, int32 index);
 
 void PlayTrack(const char* filename);
 
@@ -126,4 +126,6 @@ void Toggle(bool enable);
 void EventMain();
 void EventDelete();
 void UpdateEnemyCount();
+void UpdateVolumeTransition();
+void SetVolumeGradually(int channel, float targetVolume, float durationMs = 2000.0f);
 } // namespace Sound

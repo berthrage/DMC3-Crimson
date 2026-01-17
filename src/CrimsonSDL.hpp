@@ -55,6 +55,7 @@ void PlayDivinityStatueSong();
 void PlayBattleOfBrothersSong();
 void FadeOutMusic(float fadeoutTime = 500);
 void ReduceMusicVolumeInPause();
+void FadeOutMusic(int delayMs = 500);
 int IsMusicPlaying();
 
 }

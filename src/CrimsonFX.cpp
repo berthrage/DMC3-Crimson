@@ -133,15 +133,32 @@ void CalculateViewProperties(byte8* actorBaseAddr) {
 	int distanceCloneLockedEnemy = (int)cameraCloneLockedEnemyDistance / 20;
 	crimsonPlayer[playerIndex].cameraCloneLockedEnemyDistanceClamped = glm::clamp(distanceCloneLockedEnemy, 0, 255);
 
-	// Calculate the angle
-	glm::vec3 direction = glm::normalize(playerPosition - cameraPosition);
-	float angle = glm::degrees(glm::atan(direction.y, direction.x)); // Angle in degrees
+	// Calculate screen-relative angle for audio positioning
+	float screenCenterX = g_renderSize.x * 0.5f;
+	float screenOffsetX = playerScreenPosition.x - screenCenterX;
+	float normalizedOffset = screenOffsetX / (g_renderSize.x * 0.5f); // Range: -1.0 to 1.0
 
-	glm::vec3 directionClone = glm::normalize(clonePosition - cameraPosition);
-	float angleClone = glm::degrees(glm::atan(directionClone.y, directionClone.x)); 
+	// Convert to angle range suitable for SDL Mix_SetPosition (typically -180 to 180)
+	float angle = normalizedOffset * 90.0f; // Scale to -90 to +90 degrees
+
+	// Apply deadzone for center audio positioning
+	const float AUDIO_DEADZONE_ANGLE = 15.0f;
+	if (std::abs(angle) < AUDIO_DEADZONE_ANGLE) {
+		angle = 0.0f; // Force center audio
+	}
+
+	// Same calculation for clone
+	float cloneScreenOffsetX = cloneScreenPosition.x - screenCenterX;
+	float cloneNormalizedOffset = cloneScreenOffsetX / (g_renderSize.x * 0.5f);
+	float angleClone = cloneNormalizedOffset * 90.0f;
+
+	if (std::abs(angleClone) < AUDIO_DEADZONE_ANGLE) {
+		angleClone = 0.0f; 
+	}
 
 	crimsonPlayer[playerIndex].playerScreenAngle = static_cast<int>(std::round(angle));
 	crimsonPlayer[playerIndex].cloneScreenAngle = static_cast<int>(std::round(angleClone));
+
 
 	float screenWidth = g_renderSize.x;
 	float screenHeight = g_renderSize.y;
@@ -213,6 +230,11 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
     auto& distance = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
 	static bool pausedSFX = false;
 
+	// INTERRUPT ON DEATH
+	if (actorData.dead && sfxStarted) {
+		CrimsonSDL::StopDevilTriggerLoop(playerIndex);
+		return;
+	}
 
     // SET RELEASE VOLUME MULTIPLIER
     if (actorData.dtExplosionCharge > 3000) {
@@ -232,7 +254,6 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
     // SFX LOOP
     if (!CrimsonSDL::DTEStartIsPlaying(playerIndex) && sfxStarted && !sfxLooped) {
 		CrimsonSDL::PlayDTExplosionLoop(playerIndex);
-
         sfxLooped = true;
     }
 
@@ -271,15 +292,17 @@ void DTExplosionFXController(byte8* actorBaseAddr) {
 	}
     
     // RELEASE
-    if (!(gamepad.buttons[0] & GetBinding(BINDING::DEVIL_TRIGGER)) && sfxStarted) {
+    if (!(gamepad.buttons[0] & GetBinding(BINDING::DEVIL_TRIGGER)) && sfxStarted && !actorData.dead) {
 		CrimsonSDL::InterruptDTExplosionSFX(playerIndex);
-		CrimsonSDL::PlayDTEExplosionRelease(playerIndex, releaseVolumeMult);
+		if (actorData.dtExplosionCharge > 0) {
+			CrimsonSDL::PlayDTEExplosionRelease(playerIndex, releaseVolumeMult);
+		}
 
         if (releaseVolumeMult > 0.4f) {
             CrimsonSDL::VibrateController(actorData.newPlayerIndex, 0, 0x5555 * releaseVolumeMult, 800);
         }
         
-        if (releaseVolumeMult > 0.4f) {
+        if (releaseVolumeMult > 0.4f && actorData.dtExplosionCharge > 0) {
 			auto pPlayer = (void*)crimsonPlayer[playerIndex].playerPtr;
 			CrimsonDetours::CreateEffectDetour(pPlayer, 3, 61, 1,true, actualColor, 1.0f);
         }
@@ -526,7 +549,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
         if (*canStart) {
 			styleVFXCount++;
 			styleChanged[*style] = true;
-            DevilFluxVFX(actorData, DEVIL_FLUX::START);
+            DevilFluxVFX_1F94D0(actorData, DEVIL_FLUX::START);
             *canStart = false;
             *canEnd = true;
         }
@@ -534,7 +557,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
 
 		if (*fluxtime < 0.08f && *canEnd) {
 			styleVFXCount--;
-			DevilFluxVFX(actorData, 4);
+			DevilFluxVFX_1F94D0(actorData, 4);
 			styleChanged[*style] = false;
 			*canEnd = false;
             *fluxtime = 0;
@@ -546,7 +569,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
     if (*fluxtime <= 0 && !*canStart) {
 		for (int i = 0; i < 6; i++) {
 			if (*fluxtime <= 0 && styleChanged[i] == true) {
-				DevilFluxVFX(actorData, 4);
+				DevilFluxVFX_1F94D0(actorData, 4);
                 // This guarantess FluxEffects color will be gone by the time the effect ends
 				styleChanged[i] = false;
 			}
@@ -567,7 +590,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
 		if (*fluxtime > 0) {
 
 			if (actorData.devil == 0 && !(gamepad.buttons[2] & GetBinding(BINDING::DEVIL_TRIGGER))) {
-				DevilFluxVFX(actorData, DEVIL_FLUX::GLOW_OFF);
+				DevilFluxVFX_1F94D0(actorData, DEVIL_FLUX::GLOW_OFF);
 			}
 
 		}
@@ -577,7 +600,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
 			if (*fluxtime < 0.05f) {
 
 				if (actorData.devil == 0 && !(gamepad.buttons[2] & GetBinding(BINDING::DEVIL_TRIGGER))) {
-					DevilFluxVFX(actorData, DEVIL_FLUX::GLOW_OFF);
+					DevilFluxVFX_1F94D0(actorData, DEVIL_FLUX::GLOW_OFF);
 				}
 
 			}
@@ -587,7 +610,7 @@ void StyleSwitchFlux(byte8* actorBaseAddr) {
 
 
 				if (actorData.devil == 0 && !(gamepad.buttons[2] & GetBinding(BINDING::DEVIL_TRIGGER))) {
-					DevilFluxVFX(actorData, DEVIL_FLUX::GLOW_OFF);
+					DevilFluxVFX_1F94D0(actorData, DEVIL_FLUX::GLOW_OFF);
 				}
 
 			}
@@ -673,7 +696,7 @@ void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr) {
         for (int i = 0; i < 6; i++) {
             if (i == style) {
                 *drawTextTimes[i] = crimsonPlayer[playerIndex].styleSwitchText.duration;
-                sstext->animSize = activeCrimsonConfig.StyleSwitchFX.Text.size;
+                sstext->animSize = 1.2f * activeCrimsonConfig.StyleSwitchFX.Text.size;
                 
             } else {
                 *drawTextTimes[i] = 0;

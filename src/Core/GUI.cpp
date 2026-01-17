@@ -64,18 +64,24 @@ bool GUI_Checkbox(const char* label, bool& var) {
 
     if (update) {
         ::GUI::save = true;
-        if (activeCrimsonConfig.GUI.sounds) PlaySound(0, 25);
+        if (activeCrimsonConfig.GUI.sounds) FMOD_PlaySound(0, 25);
     }
 
     return update;
 }
 
-bool GUI_Checkbox2(const char* label, bool& var, bool& var2) {
+bool GUI_Checkbox2(const char* label, bool& var, bool& var2, bool maskVar) {
     auto update = GUI_Checkbox(label, var2);
 
     if (update) {
         var = var2;
     }
+
+	if (maskVar) {
+		ImGui::SameLine();
+
+		GUI_RequiredForGameModeButton(var);
+	}
 
     return update;
 }
@@ -257,6 +263,94 @@ void GUI_Title(const char* title, bool ccsRequired,
 
 	UI::SeparatorEx(separatorSize * CrimsonGUI::scaleFactorY);
 	ImGui::Text("");
+}
+
+bool GUI_RequiredForGameModeButton(bool gameModeOption) {
+	if (activeCrimsonGameplay.GameMode.preset == GAMEMODEPRESETS::CUSTOM) return false;
+	float currentAlpha = ImGui::GetStyle().Alpha;
+	bool wasDisabled = currentAlpha < 1.0f; // Approximate check for disabled66uk. state
+
+	if (wasDisabled) {
+		// Only restore the item flag but keep the alpha (for visual appearance)
+		ImGui::PopItemFlag();
+	}
+
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	ImGui::PushStyleColor(ImGuiCol_Button, CrimsonUtil::HexToImVec4(gameModeData.colors[activeCrimsonGameplay.GameMode.preset]));
+	ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.69f]);
+
+	ImGui::SmallButton("");
+
+	ImGui::PopFont();
+	ImGui::PopItemFlag();
+	ImGui::PopStyleColor();
+
+	if (ImGui::IsItemHovered()) {
+		// Push full opacity for tooltip
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+		ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+		
+		std::string tooltipText = "";
+		if (gameModeOption) {
+			tooltipText = "This option is required to be ON for " + gameModeData.names[activeCrimsonGameplay.GameMode.preset];
+		} else {
+			tooltipText = "This option is required to be OFF for " + gameModeData.names[activeCrimsonGameplay.GameMode.preset];
+		}
+
+		ImGui::SetTooltip(tooltipText.c_str());
+		ImGui::PopFont();
+		ImGui::PopStyleVar();
+	}
+
+	if (wasDisabled) {
+		// Restore disabled state
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+	}
+
+	return false;
+}
+
+bool GUI_RequiredForGameModeStringButton(std::string gameModeOption) {
+	if (activeCrimsonGameplay.GameMode.preset == GAMEMODEPRESETS::CUSTOM) return false;
+	float currentAlpha = ImGui::GetStyle().Alpha;
+	bool wasDisabled = currentAlpha < 1.0f; // Approximate check for disabled66uk. state
+
+	if (wasDisabled) {
+		// Only restore the item flag but keep the alpha (for visual appearance)
+		ImGui::PopItemFlag();
+	}
+
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	ImGui::PushStyleColor(ImGuiCol_Button, CrimsonUtil::HexToImVec4(gameModeData.colors[activeCrimsonGameplay.GameMode.preset]));
+	ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.69f]);
+
+	ImGui::SmallButton("");
+
+	ImGui::PopFont();
+	ImGui::PopItemFlag();
+	ImGui::PopStyleColor();
+
+	if (ImGui::IsItemHovered()) {
+		// Push full opacity for tooltip
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+		ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+
+		std::string tooltipText = "";
+		tooltipText = "This option is required as " + gameModeOption + " for " + gameModeData.names[activeCrimsonGameplay.GameMode.preset];
+
+		ImGui::SetTooltip(tooltipText.c_str());
+		ImGui::PopFont();
+		ImGui::PopStyleVar();
+	}
+
+	if (wasDisabled) {
+		// Restore disabled state
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+	}
+
+	return false;
 }
 
 bool GUI_CCSRequirementButton() {

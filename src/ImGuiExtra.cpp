@@ -9,15 +9,31 @@
 #include "UI/EmbeddedImages.hpp"
 
 namespace UI {
+#include "Fonts/Benguiat.hpp"
+#include "Fonts/Messenger.hpp"
 #include "Fonts/RobotoMedium.hpp"
 #include "Fonts/RussoOneRegular.hpp"
+#include "Fonts/RedOrbRusso.hpp"
+#include "Fonts/RedOrbRussoBackdrop.hpp"
 #include "Core/GUI.hpp"
 
 	Roboto_t g_ImGuiFont_Roboto;
 
 	RussoOne_t g_ImGuiFont_RussoOne;
 
+	RussoOne_t g_ImGuiFont_RedOrbRusso;
+
+	RussoOne_t g_ImGuiFont_Benguiat;
+
+	RussoOne_t g_ImGuiFont_Messenger;
+
+	RussoOne_t g_ImGuiFont_RedOrbRussoBackdrop;
+
 	UIContext g_UIContext;
+
+	ImFont* g_ImGuiFont_Benguiat256 = nullptr;
+
+	ImFont* g_ImGuiFont_Messenger256 = nullptr;
 
 	ImFont* g_ImGuiFont_RussoOne256 = nullptr;
 
@@ -138,6 +154,26 @@ namespace UI {
 			g_ImGuiFont_RussoOne.m_FontSizes[i] = io.Fonts->AddFontFromMemoryCompressedTTF(RussoOneRegular_compressed_data, RussoOneRegular_compressed_size, float(i + 10), nullptr, ranges.Data);
 		}
 
+		for (size_t i = 0; i < g_ImGuiFont_RedOrbRusso.m_FontSizes.size(); i++) {
+			g_ImGuiFont_RedOrbRusso.m_FontSizes[i] = io.Fonts->AddFontFromMemoryCompressedTTF(RedOrbRusso_compressed_data, RedOrbRusso_compressed_size, float(i + 10), nullptr, ranges.Data);
+		}
+
+		for (size_t i = 0; i < g_ImGuiFont_RedOrbRussoBackdrop.m_FontSizes.size(); i++) {
+			g_ImGuiFont_RedOrbRussoBackdrop.m_FontSizes[i] = io.Fonts->AddFontFromMemoryCompressedTTF(RedOrbRussoBackdrop_compressed_data, RedOrbRussoBackdrop_compressed_size, float(i + 10), nullptr, ranges.Data);
+		}
+
+		for (size_t i = 0; i < g_ImGuiFont_Benguiat.m_FontSizes.size(); i++) {
+			g_ImGuiFont_Benguiat.m_FontSizes[i] = io.Fonts->AddFontFromMemoryCompressedTTF(Benguiat_compressed_data, Benguiat_compressed_size, float(i + 10), nullptr, ranges.Data);
+		}
+
+		for (size_t i = 0; i < g_ImGuiFont_Messenger.m_FontSizes.size(); i++) {
+			g_ImGuiFont_Messenger.m_FontSizes[i] = io.Fonts->AddFontFromMemoryCompressedTTF(Messenger_compressed_data, Messenger_compressed_size, float(i + 10), nullptr, ranges.Data);
+		}
+
+		g_ImGuiFont_Benguiat256 = io.Fonts->AddFontFromMemoryCompressedTTF(Benguiat_compressed_data, Benguiat_compressed_size, 80.0f, nullptr, ranges.Data);
+
+		g_ImGuiFont_Messenger256 = io.Fonts->AddFontFromMemoryCompressedTTF(Messenger_compressed_data, Messenger_compressed_size, 100.0f, nullptr, ranges.Data);
+
 		g_ImGuiFont_RussoOne256 = io.Fonts->AddFontFromMemoryCompressedTTF(RussoOneRegular_compressed_data, RussoOneRegular_compressed_size, 256.0f, nullptr, ranges.Data);
 
 		io.FontDefault = g_ImGuiFont_Roboto[18];
@@ -207,7 +243,7 @@ namespace UI {
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, !isEnabled);
 		bool ret = ButtonEx(label, size, SwapColorEndianness(0xFFFFFFFF), ImGuiButtonFlags_None);
 		if (ret) {
-			if (activeCrimsonConfig.GUI.sounds) PlaySound(0, 2);
+			if (activeCrimsonConfig.GUI.sounds) FMOD_PlaySound(0, 2);
 		}
 		ImGui::PopItemFlag();
 

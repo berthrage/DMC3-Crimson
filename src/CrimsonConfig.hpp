@@ -34,6 +34,14 @@ enum {
 };
 }
 
+namespace MISSIONTIMERDISPLAY {
+enum {
+	OFF,
+	ONLY_IN_BP,
+	ALWAYS,
+};
+}
+
 namespace RIGHTSTICKCENTERCAM {
 enum {
 	OFF,
@@ -132,9 +140,14 @@ struct CrimsonConfig {
 		bool redOrbCounter = true;
 		bool royalGauge = true;
 		bool styleRanksMeter = true;
+		bool stylishPtsCounter = true;
+		uint8 missionTimerDisplay = MISSIONTIMERDISPLAY::ONLY_IN_BP;
 		bool lockOn = true;
+		bool scaleLockOnEnemyDistance = false;
 		bool stunDisplacementNumericHud = false;
 		bool lockOnColorsCharacter = true;
+		std::string selectedStyleRanks = "Crimson";
+		std::string selectedStyleRanksAccolades = "1 - DMC3Default";
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -144,9 +157,14 @@ struct CrimsonConfig {
                 std::make_pair("redOrbCounter", &CrimsonHudAddons::redOrbCounter),
                 std::make_pair("royalGauge", &CrimsonHudAddons::royalGauge),
                 std::make_pair("styleRanksMeter", &CrimsonHudAddons::styleRanksMeter),
+				std::make_pair("missionTimerDisplay", &CrimsonHudAddons::missionTimerDisplay),
+				std::make_pair("stylishPtsCounter", &CrimsonHudAddons::stylishPtsCounter),
                 std::make_pair("lockOn", &CrimsonHudAddons::lockOn),
+				std::make_pair("scaleLockOnEnemyDistance", &CrimsonHudAddons::scaleLockOnEnemyDistance),
 				std::make_pair("stunDisplacementNumericHud", &CrimsonHudAddons::stunDisplacementNumericHud),
-				std::make_pair("lockOnColorsCharacter", &CrimsonHudAddons::lockOnColorsCharacter)
+				std::make_pair("lockOnColorsCharacter", &CrimsonHudAddons::lockOnColorsCharacter),
+				std::make_pair("selectedStyleRanks", &CrimsonHudAddons::selectedStyleRanks),
+				std::make_pair("selectedStyleRanksAccolades", &CrimsonHudAddons::selectedStyleRanksAccolades)
 			);
 		}
 	} CrimsonHudAddons;
@@ -168,15 +186,15 @@ struct CrimsonConfig {
 		uint8 followUpSpeed = 2;
 		uint8 distance = 2;
 		uint8 lockOnDistance = 2;
-		uint8 tilt = 1;
+		uint8 verticalTilt = 0;
 		bool lockedOff = true;
 		bool invertX = true;
 		uint8 autoAdjust = 0;
 		uint8 rightStickCameraCentering = RIGHTSTICKCENTERCAM::TO_NEAREST_SIDE;
 		bool disableBossCamera = false;
 		bool multiplayerCamera = true;
-		bool panoramicCamera = false;
-		bool forceThirdPerson = true;
+		bool panoramicCam = true;
+		bool thirdPersonCamera = true;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -185,15 +203,15 @@ struct CrimsonConfig {
                 std::make_pair("followUpSpeed", &Camera::followUpSpeed),
                 std::make_pair("distance", &Camera::distance),
                 std::make_pair("lockOnDistance", &Camera::lockOnDistance),
-                std::make_pair("tilt", &Camera::tilt),
+                std::make_pair("verticalTilt", &Camera::verticalTilt),
                 std::make_pair("lockedOff", &Camera::lockedOff),
                 std::make_pair("invertX", &Camera::invertX),
                 std::make_pair("autoAdjust", &Camera::autoAdjust),
                 std::make_pair("rightStickCameraCentering", &Camera::rightStickCameraCentering),
                 std::make_pair("disableBossCamera", &Camera::disableBossCamera),
 				std::make_pair("multiplayerCamera", &Camera::multiplayerCamera),
-				std::make_pair("panoramicCamera", &Camera::panoramicCamera),
-                std::make_pair("forceThirdPerson", &Camera::forceThirdPerson)
+				std::make_pair("panoramicCam", &Camera::panoramicCam),
+                std::make_pair("thirdPersonCamera", &Camera::thirdPersonCamera)
 			);
 		}
 	} Camera;
@@ -275,6 +293,7 @@ struct CrimsonConfig {
 		uint8 changeGunNew = 1;
 		uint8 changeDevilArmNew = 1;
 		uint8 changeWeaponEffectVolume = 100;
+		uint8 styleChangeNew = 1;
 		uint8 styleChangeVolume = 100;
 		uint8 styleChangeVoiceOverVolume = 100;
 		uint8 sprintEffectVolume = 100;
@@ -287,7 +306,8 @@ struct CrimsonConfig {
 		uint8 quickInVolume = 100;
 		uint8 quickOutVolume = 100;
 		uint8 announcerVolume = 100;
-		uint32 styleRankAnnouncerCooldownSeconds = 20;
+		uint32 styleRankAnnouncerCooldownSec = 30;
+		bool onlyResetAnnouncerWhenHit = true;
 		uint8 delayedComboEffectType = 0;
 		uint8 delayedComboIndicatorVolume = 100;
 		uint8 royalBlockVolume = 100;
@@ -301,6 +321,7 @@ struct CrimsonConfig {
 				std::make_pair("changeGunNew", &SFX::changeGunNew),
                 std::make_pair("changeDevilArmNew", &SFX::changeDevilArmNew),
                 std::make_pair("changeWeaponEffectVolume", &SFX::changeWeaponEffectVolume),
+				std::make_pair("styleChangeNew", &SFX::styleChangeNew),
                 std::make_pair("styleChangeVolume", &SFX::styleChangeVolume),
                 std::make_pair("styleChangeVoiceOverVolume", &SFX::styleChangeVoiceOverVolume),
                 std::make_pair("sprintEffectVolume", &SFX::sprintEffectVolume),
@@ -313,7 +334,8 @@ struct CrimsonConfig {
                 std::make_pair("quickInVolume", &SFX::quickInVolume),
 				std::make_pair("quickOutVolume", &SFX::quickOutVolume),
                 std::make_pair("announcerVolume", &SFX::announcerVolume),
-                std::make_pair("styleRankAnnouncerCooldownSeconds", &SFX::styleRankAnnouncerCooldownSeconds),
+                std::make_pair("styleRankAnnouncerCooldownSec", &SFX::styleRankAnnouncerCooldownSec),
+				std::make_pair("onlyResetAnnouncerWhenHit", &SFX::onlyResetAnnouncerWhenHit),
 				std::make_pair("delayedComboIndicatorVolume", &SFX::delayedComboIndicatorVolume),
 				std::make_pair("delayedComboEffectType", &SFX::delayedComboEffectType),
 				std::make_pair("royalBlockVolume", &SFX::royalBlockVolume),
@@ -339,10 +361,12 @@ struct CrimsonConfig {
 			100,
 			100,
 		};
+		bool overrideMissionStartSong = false;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
-				std::make_pair("channelVolumes", &Sound::channelVolumes)
+				std::make_pair("channelVolumes", &Sound::channelVolumes),
+				std::make_pair("overrideMissionStartSong", &Sound::overrideMissionStartSong)
 			);
 		}
 	} Sound;
@@ -388,10 +412,14 @@ struct CrimsonConfig {
 				);
 			}
 		} Remaps;
+		
+		bool flipModelPresentation = true;
+	
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
-				std::make_pair("Remaps", &System::Remaps)
+				std::make_pair("Remaps", &System::Remaps),
+				std::make_pair("flipModelPresentation", &System::flipModelPresentation)
 			);
 		}
 	} System;

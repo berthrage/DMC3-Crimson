@@ -48,14 +48,14 @@ void OpenShop() {
 
     g_showShop = true;
 
-    PlaySound(0, 4);
+    FMOD_PlaySound(0, 4);
 }
 
 void CloseShop() {
     DebugLogFunction();
 
     if (g_showShop) {
-        PlaySound(0, 3);
+        FMOD_PlaySound(0, 3);
     }
 
     g_showShop = false;
@@ -204,8 +204,8 @@ void EventHandler(EventData& eventData) {
 
 	CrimsonGameplay::GunDTCharacterRemaps();
 	CrimsonOnTick::GameTrackDetection();
+    CrimsonOnTick::FixWeaponUnlocksDante();
 	CrimsonOnTick::DisableBlendingEffectsController();
-	CrimsonOnTick::StyleMeterMultiplayer();
 	CrimsonOnTick::DetermineActiveEntitiesCount();
  	CrimsonOnTick::MultiplayerCameraPositioningController();
  	CrimsonOnTick::ForceThirdPersonCameraController();
@@ -423,7 +423,7 @@ void EventHandler(EventData& eventData) {
         break;
     }
     case MAIN: {
-        CharacterSwitchController();
+        
         BossLadyController();
         BossVergilController();
 

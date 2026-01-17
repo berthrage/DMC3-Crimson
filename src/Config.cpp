@@ -1,4 +1,4 @@
-#include <stdio.h>
+    #include <stdio.h>
 #include <string.h>
 
 #include "Core/RapidJSON.h"
@@ -1575,8 +1575,7 @@ void InitExp() {
 ExpertiseHelper expertiseHelpersDanteSwordmasterLevel2[] = {
     {0, 0x8000}, // Sword Pierce (0x4000)
     {1, 0x1000}, // Crystal
-    {2, 0x4}, // Crawler
-    {2, 0x4000000}, // Feedback
+    {2, 0x10000004 }, // Crawler and Feedback
     {3, 0x30000000}, // Ground and Air Volcano (0x20000000)
 };
 

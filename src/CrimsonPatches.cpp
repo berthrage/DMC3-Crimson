@@ -263,8 +263,8 @@ void ToggleIncreasedEnemyJuggleTime(bool enable) {
 	// dmc3.exe+81F70: // e&i shots // C7 83 50 01 00 00 00 00 20 41 - mov [rbx+00000150],41200000 { 10.00 }
 
 	if (enable) {
-		_patch((char*)(appBaseAddr + 0x68C3A), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\x70\x41", 10); // 15.0f
-		_patch((char*)(appBaseAddr + 0x81F70), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\x70\x41", 10);
+		_patch((char*)(appBaseAddr + 0x68C3A), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\x60\x41", 10); // 14.0f
+		_patch((char*)(appBaseAddr + 0x81F70), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\x60\x41", 10);
 	} else {
 		_patch((char*)(appBaseAddr + 0x68C3A), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\x20\x41", 10); // 10.0f
 		_patch((char*)(appBaseAddr + 0x81F70), (char*)"\xC7\x83\x50\x01\x00\x00\x00\x00\x20\x41", 10);
@@ -406,7 +406,7 @@ void CameraFollowUpSpeedController(CameraData& cameraData, CameraControlMetadata
 		}
 		};
 
-	if (activeCrimsonConfig.Camera.multiplayerCamera && activeConfig.Actor.playerCount > 1) {
+	if (activeConfig.Actor.playerCount > 1) {
 		return; // Disable follow-up speed adjustment when multiplayer camera is active
 	}
 	else {
@@ -707,7 +707,8 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 	bool needZoomOut = false;
 	for (int i = 0; i < activeConfig.Actor.playerCount * 2; i++) {
 		float distanceTo1P = g_plEntityTo1PDistances[i];
-		float cameraDistanceMP = (eventData.room >= ROOM::BLOODY_PALACE_1 && eventData.room <= ROOM::BLOODY_PALACE_10) ? 2800.0f : 1900.0f;
+		float cameraDistanceMP = ((eventData.room >= ROOM::BLOODY_PALACE_1 && eventData.room <= ROOM::BLOODY_PALACE_10) || eventData.room == ROOM::DAMNED_CHESS_BOARD ||
+			eventData.room == ROOM::UNSACRED_HELLGATE) ? 2800.0f : 1900.0f;
 		if (distanceTo1P >= cameraDistanceMP) {
 			allPlayersWithinMPCam = false;
 			break;
@@ -790,12 +791,11 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 			}
 		}
 	}
-
 	// Handle camera collision and distance adjustment
 	if (g_cameraHittingWall > 1) {
 		// Immediate approach when deeply colliding
 		cameraDistance -= 40.0f * g_frameRateMultiplier; // Approach faster if needed
-		if (cameraDistance < groundDistanceSP) cameraDistance = groundDistanceSP;
+		//if (cameraDistance < groundDistanceSP) cameraDistance = groundDistanceSP;
 		lastWallClearTime = std::chrono::steady_clock::now(); // Reset cooldown
 	} else if (g_cameraHittingWall == 1) {
 		// Only allow pull-back if cooldown has passed
@@ -848,27 +848,44 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 	}
 }
 
-void CameraDistanceController(CameraData* cameraData, CameraControlMetadata& cameraMetadata) {
+void CameraDistanceController(CameraControlMetadata& cameraMetadata) {
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449 || !pool_4449[147]) {
+		return;
+	}
+	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 	if (activeCrimsonConfig.Camera.distance == 0 || cameraMetadata.fixedCameraAddr != 0) { // Far (Vanilla Default) // check if the camera is in a fixed pos mode
-		return; 
+		if (g_isMPCamActive && activeConfig.Actor.enable) {
+			HandleMultiplayerCameraDistance(cameraData.distanceCam, 430, 580);
+		} else {
+			return;
+		}
 	}
 
 	if (activeCrimsonConfig.Camera.distance == 1) { // Closer
-		if (cameraData->distance > 350) {
-			cameraData->distance = 350.0f;
+		if (g_isMPCamActive && activeConfig.Actor.enable) {
+			HandleMultiplayerCameraDistance(cameraData.distanceCam, 430, 580);
+		} else if (cameraData.distanceCam > 350) {
+			cameraData.distanceCam = 350.0f;
+		} else {
+			return;
+		}
+		
+		if (activeCrimsonConfig.Camera.fovMultiplier != queuedCrimsonConfig.Camera.fovMultiplier) {
+			activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
 		}
 	}
 
 	if (activeCrimsonConfig.Camera.distance == 2) { // Dynamic
 
         if (g_isMPCamActive && activeConfig.Actor.enable) {
-            HandleMultiplayerCameraDistance(cameraData->distance, 430, 580);
+            HandleMultiplayerCameraDistance(cameraData.distanceCam, 430, 580);
         }
         else if (g_isParanoramicCamActive && g_inCombat) {
-            HandlePanoramicSPCameraDistance(cameraData->distance, 430, 580);
+            HandlePanoramicSPCameraDistance(cameraData.distanceCam, 430, 580);
         }
-        else if (!(g_isMPCamActive || (g_isParanoramicCamActive && g_inCombat) || activeConfig.Actor.enable)){
-            HandleDynamicSPCameraDistance(cameraData->distance, 430, 580);
+		else if (!(g_isMPCamActive || (g_isParanoramicCamActive && g_inCombat))) {
+			HandleDynamicSPCameraDistance(cameraData.distanceCam, 430, 430);
         }
 	}
 }
@@ -889,10 +906,16 @@ void CameraLockOnDistanceController() {
 
 
     if (activeCrimsonConfig.Camera.lockOnDistance == 0) {
+		if (activeCrimsonConfig.Camera.fovMultiplier != queuedCrimsonConfig.Camera.fovMultiplier) {
+			activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
+		}
         return;
     }
 
     if (activeCrimsonConfig.Camera.lockOnDistance == 1) {
+		if (activeCrimsonConfig.Camera.fovMultiplier != queuedCrimsonConfig.Camera.fovMultiplier) {
+			activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
+		}
         cameraData.distanceLockOn = 360.0f;
     }
 
@@ -911,11 +934,11 @@ void CameraLockOnDistanceController() {
 }
 
 void CameraTiltController(CameraData* cameraData, CameraControlMetadata& cameraMetadata) {
-    if (activeCrimsonConfig.Camera.tilt == 0 || cameraMetadata.fixedCameraAddr != 0) { // Original (Vanilla Default)
-        return;
+    if (activeCrimsonConfig.Camera.verticalTilt == 0 || cameraMetadata.fixedCameraAddr != 0) { // Original (Vanilla Default)
+		cameraData->tilt = 0.253073f;
     }
 
-    if (activeCrimsonConfig.Camera.tilt == 1) { // Closer to Ground
+    if (activeCrimsonConfig.Camera.verticalTilt == 1) { // Closer to Ground
         cameraData->tilt = 0.103073f;
     }
 }
@@ -1450,6 +1473,24 @@ void CerberusCrashFixPart2(bool enable) {
 	run = enable;
 }
 
+void ToggleM6CrashFix(bool enable) {
+	// dmc3.exe+1B82DB - 83 7C C1 04 03        - cmp dword ptr [rcx+rax*8+04],03 { 3 }
+	static bool run = false;
+	// If the function has already run in the current state, return early
+	if (run == enable) {
+		return;
+	}
+
+	if (enable) {
+		// dmc3.exe+1B82DB - 90 90 90 90 90        - nop
+		_nop((char*)(appBaseAddr + 0x1B82DB), 5);
+	} else {
+		// dmc3.exe+1B82DB - 83 7C C1 04 03        - cmp dword ptr [rcx+rax*8+04],03 { 3 }
+		_patch((char*)(appBaseAddr + 0x1B82DB), (char*)"\x83\x7C\xC1\x04\x03", 5);
+	}
+	run = enable;
+}
+
 #pragma endregion
 
 # pragma region Enemy
@@ -1513,6 +1554,23 @@ void SetEnemyDTMode(uint8 mode) {
 		_patch((char*)(appBaseAddr + 0x61066), (char*)"\x74\x18", 2); // Change the jmp back to a je
 	}
 	run = mode;
+}
+
+void DisableRegularEnemyAttacks(bool enable) {
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	//dmc3.exe+1C998A - 7E 15                 - jle dmc3.exe+1C99A1
+	if (enable) {
+		_patch((char*)(appBaseAddr + 0x1C998A), (char*)"\xEB\x15", 2); 
+	} else {
+		_patch((char*)(appBaseAddr + 0x1C998A), (char*)"\x7E\x15", 2); 
+	}
+
+	run = enable;
 }
 
 #pragma endregion

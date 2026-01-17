@@ -13,12 +13,17 @@ namespace Paths {
 	const char* config = "Crimson\\configs";
 	const char* sounds = "Crimson\\sound";
 	const char* huds = "Crimson\\huds";
+	const char* styleRanks = "Crimson\\assets\\styleranks";
 	const char* weaponwheel = "Crimson\\weaponwheel";
 	const char* gameMods = "data\\dmc3\\GData.afs";
 }
 
+namespace CrimsonFiles {
+std::vector<std::string> HUDdirectories;
+std::vector<std::string> StyleRanksdirectories;
+std::vector<std::string> StyleRanksAccoladesdirectories;
 
-std::vector<std::string> getDirectories(std::string path) {
+std::vector<std::string> GetDirectories(std::string path) {
 	std::vector<std::string> directories;
 
 	if (fs::exists(path) && fs::is_directory(path)) {
@@ -31,7 +36,7 @@ std::vector<std::string> getDirectories(std::string path) {
 	return directories;
 }
 
-std::vector<std::string> getFiles(const std::string& path) {
+std::vector<std::string> GetFiles(const std::string& path) {
 	std::vector<std::string> files;
 	try {
 		if (fs::exists(path) && fs::is_directory(path)) {
@@ -48,13 +53,22 @@ std::vector<std::string> getFiles(const std::string& path) {
 	return files;
 }
 
-void getHUDsDirectories() {
-	HUDdirectories = getDirectories(Paths::huds);
+void GetHUDsDirectories() {
+	HUDdirectories = GetDirectories(Paths::huds);
 }
 
-void copyHUDtoGame() {
+void GetStyleRanksDirectories() {
+	StyleRanksdirectories = GetDirectories(Paths::styleRanks);
+}
+
+void GetStyleRanksAccoladesDirectories() {
+	std::string styleRanksAccoladesPath = Paths::styleRanks + (std::string)"\\" + activeCrimsonConfig.CrimsonHudAddons.selectedStyleRanks + "\\";
+	StyleRanksAccoladesdirectories = GetDirectories(styleRanksAccoladesPath.c_str());
+}
+
+void CopyHUDtoGame() {
 	std::string hudPath = Paths::huds + (std::string)"\\" + activeConfig.selectedHUD;
-	std::vector<std::string> files = getFiles(hudPath);
+	std::vector<std::string> files = GetFiles(hudPath);
 	std::vector<std::string> HUDFilenames = { "id100.pac", "id100V.pac" };
 
 	for (const auto& target : HUDFilenames) {
@@ -66,23 +80,21 @@ void copyHUDtoGame() {
 				fs::copy_file(sourceFile, destinationFile, fs::copy_options::overwrite_existing);
 
 				std::cout << "HUD File copied successfully! " << "(" << target << ")" << std::endl;
-			}
-			catch (const fs::filesystem_error& e) {
+			} catch (const fs::filesystem_error& e) {
 				std::cerr << "Filesystem error: " << e.what() << std::endl;
 				std::cerr << "Error code: " << e.code() << std::endl;
 				std::cerr << "Source: " << e.path1() << std::endl;
 				std::cerr << "Destination: " << e.path2() << std::endl;
-			}
-			catch (const std::exception& e) {
+			} catch (const std::exception& e) {
 				std::cerr << "Standard exception: " << e.what() << std::endl;
-			}
-			catch (...) {
+			} catch (...) {
 				std::cerr << "Unknown exception caught!" << std::endl;
 			}
-			
+
 		}
 	}
 
+}
 }
 
 

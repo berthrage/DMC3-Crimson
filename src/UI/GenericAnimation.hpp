@@ -6,6 +6,7 @@ class GenericAnimation
 {
 public:
     GenericAnimation(double durationMs);
+    GenericAnimation(double durationMs, void* pCustomData);
     virtual ~GenericAnimation();
 
     virtual void OnUpdate(double ts);
@@ -38,17 +39,15 @@ public:
     const auto& GetLastTimeStep() const { return m_LastTimeStepMs; }
     const auto& GetProgressTimeMs() const { return m_ProgressTimeMs; }
 
-    const double GetProgressNormalized() const;
+    void SetCustomDataPointer(void* pCustomData) { m_pCustomData = pCustomData; }
+    const auto& GetCustomDataPointer() { return m_pCustomData; }
 
-    bool IsAlreadyTriggered() const { return m_AlreadyTriggered; }
-    void SetAlreadyTriggered(bool value) { m_AlreadyTriggered = value; }
-    void Start() { m_IsRunning = true; }
-    void Stop() { m_IsRunning = false; }
+    const double GetProgressNormalized() const;
 
 private:
     std::function<void(GenericAnimation*)> m_OnStart{}, m_OnEnd{}, m_OnStop{}, m_OnReset{}, m_OnUpdate{};
 
     bool m_IsRunning{ false };
-    bool m_AlreadyTriggered{ false };
     double m_DurationMs{ 0.0f }, m_LastTimeStepMs{ 0.0f }, m_ProgressTimeMs{ 0.0f };
+    void* m_pCustomData{ nullptr };
 };

@@ -8,11 +8,14 @@
 #include "Vars.hpp"
 #include "CrimsonConfig.hpp"
 #include "CrimsonPatches.hpp"
+#include "Config.hpp"
 
 static std::unique_ptr<Utility::Detour_t> cameraControllerConstructionHook;
+static std::unique_ptr<Utility::Detour_t> cameraWallCheckHook;
 static std::unique_ptr<Utility::Detour_t> cameraSwitchAccessHook;
 static constexpr auto CTRL_PROC_OFFSET() { return 0x23EEF0; }
 static constexpr auto CAM_SWITCH_OFFSET() { return 0x055880; }
+static constexpr auto CAM_WALL_OFFSET() { return 0x2CD340; }
 
 static bool s_cameraEnable{ true };
 
@@ -54,19 +57,28 @@ namespace CrimsonCameraController {
 
 		bool exceptions = ((false
 
+			//MISSION 1:
+			
+			//MISSION 2:
 
 			//MISSION 3:
 			//|| (eventData.room == ROOM::SLUM_66_AVENUE)
-			//|| (eventData.room == ROOM::CHAMBER_OF_ECHOES
+			//CERBERUS
+			|| (eventData.room == ROOM::ICE_GUARDIANS_CHAMBER && sessionData.mission == 3)
 			//MISSION 4:
+			//|| (eventData.room == ROOM::CHAMBER_OF_ECHOES
 			//fun little angle when you enter this room for the first time
 			|| (eventData.room == ROOM::SILENCE_STATUARY && CrimsonCameraController::g_currentCameraIndex == 1)
-			//fucking gigapede
-			//that said boss cam overrides elsewhere unless we ALWAYS want this one to be fixed.
-			//|| (eventData.room == ROOM::GIANTWALKER_CHAMBER && sessionData.mission == 4)
+			//GIGAPEDE
+			|| (eventData.room == ROOM::GIANTWALKER_CHAMBER && sessionData.mission == 4)
 			|| (eventData.room == ROOM::INCANDESCENT_SPACE && CrimsonCameraController::g_currentCameraIndex == 1)
 			//MISSION 5:
+			//JESTER 1
+			|| (eventData.room == ROOM::DEMON_CLOWN_CHAMBER && sessionData.mission == 5)
+			//AGNI RUDRA
+			|| (eventData.room == ROOM::FIRESTORM_CHAMBER && sessionData.mission == 5)
 			//MISSION 6:
+			
 			//MISSION 7:
 			
 			//Elevator
@@ -78,6 +90,9 @@ namespace CrimsonCameraController {
 			//vergil approach
 			|| (sessionData.mission == 7 && eventData.room == ROOM::MOONLIGHT_MILE)
 			|| (sessionData.mission == 7 && eventData.room == ROOM::PEAK_OF_DARKNESS)
+			//VERGIL 1
+			|| (sessionData.mission == 7 && eventData.room == ROOM::PEAK_OF_DARKNESS_2)
+			
 			//MISSION 8:
 			//half covered up shop statue in leviathan, might prevent people missing it idk
 			|| (eventData.room == ROOM::LEVIATHANS_INTESTINES && CrimsonCameraController::g_currentCameraIndex == 2)
@@ -85,6 +100,9 @@ namespace CrimsonCameraController {
 			//pre-fight boss room.
 			//Camera goes back to third person after moving around a bit once the bossfight starts! Kinda jarring but maybe ok?
 			|| (eventData.room == ROOM::LEVIATHANS_HEARTCORE && CrimsonCameraController::g_currentCameraIndex == 0)
+			|| (eventData.room == ROOM::LEVIATHANS_HEARTCORE && CrimsonCameraController::g_currentCameraIndex == 1)
+			//LEVIATHAN HEARTCORE:
+			|| (eventData.room == ROOM::LEVIATHANS_HEARTCORE)
 			
 			//gigapede chase 1
 			|| (eventData.room == ROOM::LEVIATHANS_INTESTINES_2)
@@ -105,7 +123,8 @@ namespace CrimsonCameraController {
 			//added to make some platforming less goofy
 			|| (eventData.room == ROOM::SUBTERRANEAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 2)
 			
-			//nevan?
+			//NEVAN
+			|| (eventData.room == ROOM::SUNKEN_OPERA_HOUSE && sessionData.mission == 9)
 			// || evaluateRoomCameraException(sessionData, eventData, nextEventData, ROOM::SUNKEN_OPERA_HOUSE, 9, 0)
 			//MISSION 10:
 			//this should only happen in position 2 on the other side of the cave where you collect the m10 mask
@@ -128,9 +147,16 @@ namespace CrimsonCameraController {
 			//Beowulf approach (but only for m11 because you need to leave in a hurry)
 			|| (sessionData.mission == 11 && eventData.room == ROOM::TEMPERANCE_WAGON_3 && CrimsonCameraController::g_currentCameraIndex == 0)
 			|| (sessionData.mission == 11 && eventData.room == ROOM::TEMPERANCE_WAGON_3 && CrimsonCameraController::g_currentCameraIndex == 2)
+			//BEOWULF:
+			|| (sessionData.mission == 12 && eventData.room == ROOM::TORTURE_CHAMBER)
 			//MISSION 12:
 			// 218 spiral corridor camera index 0
 			|| (eventData.room == ROOM::SPIRAL_CORRIDOR && CrimsonCameraController::g_currentCameraIndex == 0)
+
+			//JESTER 2 GOES HERE
+			|| (sessionData.mission == 12 && eventData.room == ROOM::DEMON_CLOWN_CHAMBER)
+			//GERYON
+			|| (sessionData.mission == 12 && eventData.room == ROOM::UNDERGROUND_ARENA)
 			//MISSION 13:
 			//230 spiral staircase camera index 0
 			|| (eventData.room == ROOM::SPIRAL_STAIRCASE && CrimsonCameraController::g_currentCameraIndex == 0)
@@ -139,6 +165,7 @@ namespace CrimsonCameraController {
 			|| (sessionData.mission == 13 && eventData.room == ROOM::VESTIBULE && CrimsonCameraController::g_currentCameraIndex == 0)
 			//hidden room
 			|| (sessionData.mission == 13 && eventData.room == ROOM::VESTIBULE && CrimsonCameraController::g_currentCameraIndex == 2)
+			|| (sessionData.mission == 13 && eventData.room == ROOM::LAIR_OF_JUDGEMENT && CrimsonCameraController::g_currentCameraIndex == 2)
 			//MISSION 14:
 			//back to the lake, we might want to indicate you can go behind the elevator so you can pick up spiral.
 			|| (eventData.room == ROOM::SUBTERRAN_LAKE && CrimsonCameraController::g_currentCameraIndex == 0)
@@ -163,11 +190,14 @@ namespace CrimsonCameraController {
 			//elevator ride up
 			|| (sessionData.mission == 15 && eventData.room == ROOM::DEVILSPROUT_LIFT && CrimsonCameraController::g_currentCameraIndex == 2)
 			//MISSION 16:
-			//lmao I got nothin
+			//LADY
+			|| (sessionData.mission == 16 && eventData.room == ROOM::THE_DIVINE_LIBRARY)
 			//MISSION 17:
 			//cool view at start
 			|| (eventData.room == ROOM::THE_DARK_CORRIDOR_2 && CrimsonCameraController::g_currentCameraIndex == 2)
 			|| (eventData.room == ROOM::TRIAL_OF_SKILL_2 && CrimsonCameraController::g_currentCameraIndex == 1)
+			//JESTER 3
+			|| (sessionData.mission == 17 && eventData.room == ROOM::DEMON_CLOWN_CHAMBER_3)
 			//jump pad outside tower
 			|| (eventData.room == ROOM::PITCH_BLACK_VOID_2 && CrimsonCameraController::g_currentCameraIndex == 1)
 			//moonlight mile happens again
@@ -178,7 +208,7 @@ namespace CrimsonCameraController {
 			
 			//MISSION 18:
 			//intro room has some cool cameras
-			|| (sessionData.mission == 18 && eventData.room == ROOM::UNSACRED_HELLGATE)
+			// || (sessionData.mission == 18 && eventData.room == ROOM::UNSACRED_HELLGATE) // Experimenting with taking this off, I like the freedom of looking around this area. - Berth
 			//feet (cam 0 only, bc we have to fight fallen in this room and we don't need to make that harder than it already is)
 			|| (sessionData.mission == 18 && eventData.room == ROOM::ROAD_TO_DESPAIR && CrimsonCameraController::g_currentCameraIndex == 0)
 			
@@ -188,20 +218,31 @@ namespace CrimsonCameraController {
 			//anyway exception given to the boss rush room because the camera is like that.
 			|| (eventData.room == ROOM::LOST_SOULS_NIRVANA)
 			//I am gigapeding out
-			//|| (sessionData.mission == 18 && eventData.room == ROOM::GIANTWALKER_REBORN && CrimsonCameraController::g_currentCameraIndex == 0)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::GIANTWALKER_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::ICE_GUARDIAN_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::FIRESTORM_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::LIGHTNING_WITCH_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::LIGHTBEAST_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::TIMESTEED_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::FIRESTORM_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::DEATHVOID_REBORN)
+			|| (sessionData.mission == 18 && eventData.room == ROOM::EVIL_GOD_BEAST_REBORN)
 			//MISSION 19:
 			//approach to arkham
 			|| (eventData.room == ROOM::END_OF_THE_LINE)
+
+			|| (sessionData.mission == 19 && eventData.room == ROOM::FORBIDDEN_NIRVANA_2)
 			//MISSION 20:
+			|| (eventData.room == ROOM::UNSACRED_HELLGATE_2)
 			//It's literally the vergil fight
 			);
-		return exceptions;
+		return exceptions && activeConfig.Actor.playerCount <= 1;
 	}
 
 	/// <summary>
 	/// This is basically a glorified wrapper for simplifying the camera change logic.
 	/// It uses 3 variables:
-	/// activeCrimsonConfig.Camera.forceThirdPerson, the state of the TPS mod in gui
+	/// activeCrimsonConfig.Camera.thirdPersonCamera, the state of the TPS mod in gui
 	/// s_cameraEnable, whether this file is currently forcing the TPS camera
 	/// and s_tpsException, whether something in game is overriding the TPS preferences to make the camera fixed
 	/// 
@@ -218,7 +259,7 @@ namespace CrimsonCameraController {
 		auto& cameraConfig = activeCrimsonConfig.Camera;
 
 		//if TPS is off, we're either turning the camera off or it's already off.
-		if (!cameraConfig.forceThirdPerson){
+		if (!cameraConfig.thirdPersonCamera){
 
 			if (!s_cameraEnable) {
 				return CAMERA_UPDATE_TYPE::ON_FIXED;
@@ -231,7 +272,7 @@ namespace CrimsonCameraController {
 			}
 		}
 
-		//from this point, we are dealing with scenarios where cameraConfig.forceThirdPerson is true
+		//from this point, we are dealing with scenarios where cameraConfig.thirdPersonCamera is true
 		else {
 			//this variable will have a value of true whenever we want to override third person camera without turning the mod off.
 			s_tpsException = CheckInternalException();
@@ -409,6 +450,53 @@ static uintptr_t  __fastcall sub_14023EEF0(int64_t a1) {
 	return res;
 }
 
+CameraData* GetSafeCameraData() {
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449 || !pool_4449[147]) {
+		return nullptr;
+	}
+
+	auto cameraDataPtr = reinterpret_cast<CameraData*>(pool_4449[147]);
+
+	// Check for known invalid pointers
+	if (!cameraDataPtr || reinterpret_cast<uintptr_t>(cameraDataPtr) & 0xFFF0000000000000) {
+		return nullptr;
+	}
+
+	return cameraDataPtr;
+}
+
+static bool __fastcall sub_1402CD340(int64_t a1, float *a2, int64_t a3) {
+	typedef bool(__fastcall* sub_1402CD340)(int64_t,float*, int64_t);
+	uintptr_t trampoline_raw = cameraWallCheckHook->GetTrampoline();
+	sub_1402CD340 trampoline = (sub_1402CD340)trampoline_raw;
+
+	bool res = trampoline(a1,a2,a3);
+	static float accessed_floats[12] = { 0.0f,0.0f,0.0f,0.0f, 0.0f,0.0f, 0.0f,0.0f, 0.0f,0.0f, 0.0f,0.0f};
+	for (int i = 0;i < 12;i++) {
+		accessed_floats[i] = a2[i + 1];
+	}
+
+	//get the camera data
+	CameraData* cameraData = GetSafeCameraData();
+	if (!cameraData) {
+		return res;
+	}
+	//metadata if we need it
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449) return res;
+	auto& cameraControlMetadata = *reinterpret_cast<CameraControlMetadata*>(pool_4449);
+	//simple concept: drop distance the closer we get to the wall.
+	if (res) {
+		//cameraData->distance = cameraData->distance - 1.0f;
+	}
+	else {
+		//cameraData->distance = cameraData->distance + 1.0f;
+	};
+	return res;
+}
+
+
 /// <summary>
 /// Creates a hook I hope
 /// </summary>
@@ -421,6 +509,20 @@ void CameraCtrlInitDetour() {
 	bool res = cameraControllerConstructionHook->Toggle();
 	assert(res);
 }
+
+/// <summary>
+/// Camera wall distance updater
+/// </summary>
+void CameraWallCheckDetour() {
+	cameraWallCheckHook =
+		std::make_unique<Utility::Detour_t>(
+			(uintptr_t)appBaseAddr + CAM_WALL_OFFSET(),
+			(uintptr_t)&sub_1402CD340,
+			NULL, "camera_wall_detour");
+	bool res = cameraWallCheckHook->Toggle();
+	assert(res);
+}
+
 
 void CameraSwitchInitDetour() {
 	cameraSwitchAccessHook =
