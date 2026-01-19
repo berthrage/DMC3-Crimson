@@ -108,7 +108,7 @@ static std::array<std::vector<CrimsonXinputBinding>, 4> s_bindsPlayer = {{
 }};
 
 void ToggleCursor() {
-    if (g_showMain || g_showShop) {
+    if (g_showMain || g_showShop || g_showTraining) {
         Windows_ToggleCursor(true);
     } else {
         Windows_ToggleCursor(!activeConfig.hideMouseCursor);
