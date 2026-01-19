@@ -48,6 +48,7 @@ extern bool g_show;
 extern bool g_lastShow;
 extern bool g_showMain;
 extern bool g_showShop;
+extern bool g_showTraining;
 
 extern uint8 g_scene;
 

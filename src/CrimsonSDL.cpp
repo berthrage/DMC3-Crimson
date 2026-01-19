@@ -857,31 +857,33 @@ void FadeOutMusic(float fadeoutTime) {
 }
 
 void ReduceMusicVolumeInPause() {
-	auto pool_19315 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-	if (!pool_19315 || !pool_19315[8]) {
-		return;
-	}
-	auto& eventData = *reinterpret_cast<EventData*>(pool_19315[8]);
-	static int previousVolume = -1; 
+    auto pool_19315 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+    if (!pool_19315 || !pool_19315[8]) {
+        return;
+    }
+    auto& eventData = *reinterpret_cast<EventData*>(pool_19315[8]);
+    static int previousVolume = -1;
 
-	if (g_scene == SCENE::GAME) {
-		if (eventData.event == EVENT::PAUSE) {
+    if (g_scene == SCENE::GAME) {
+        if (eventData.event == EVENT::PAUSE) {
 
-			// Save current volume if not already saved
-			if (previousVolume == -1) {
-				previousVolume = fn_Mix_GetMusicVolume(battleOfBrothersSong);
-			}
-			// Reduce volume to 30% of configured value
-			int reducedVolume = static_cast<int>(previousVolume * 0.5f);
-			fn_Mix_VolumeMusic(reducedVolume);
-		} else if (eventData.event == EVENT::MAIN) {
-			// Restore previous volume if it was changed
-			if (previousVolume != -1) {
-				fn_Mix_VolumeMusic(previousVolume);
-				previousVolume = -1;
-			}
-		}
-	}
+            // Save current volume if not already saved
+            if (previousVolume == -1) {
+                previousVolume = fn_Mix_GetMusicVolume(battleOfBrothersSong);
+            }
+            // Reduce volume to 30% of configured value
+            int reducedVolume = static_cast<int>(previousVolume * 0.5f);
+            fn_Mix_VolumeMusic(reducedVolume);
+        }
+        else if (eventData.event == EVENT::MAIN) {
+            // Restore previous volume if it was changed
+            if (previousVolume != -1) {
+                fn_Mix_VolumeMusic(previousVolume);
+                previousVolume = -1;
+            }
+        }
+    }
+}
 void FadeOutMusic(int delayMs) {
     fn_Mix_FadeOutMusic(delayMs);
 }

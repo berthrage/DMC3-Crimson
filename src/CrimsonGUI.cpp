@@ -5693,6 +5693,18 @@ void HandleItemPurchase(uint8 itemHelperIndex, MissionData& missionData, ActiveM
 void HandleItemSale(uint8 itemHelperIndex, MissionData& missionData, ActiveMissionActorData& activeMissionActorData);
 uint32 GetItemPrice(const ShopItemHelper& itemHelper, uint8 buyCount);
 
+void TrainingWindow() {
+	static bool run = false;
+	static std::chrono::steady_clock::time_point shopOpenedTime;
+	static bool shopCooldownActive = false;
+
+	if (!g_showShop) {
+		run = false;
+		shopCooldownActive = false;
+		return;
+	}
+}
+
 void ShopWindow() {
 	static bool run = false;
 	static std::chrono::steady_clock::time_point shopOpenedTime;
@@ -7370,6 +7382,8 @@ void DebugSection() {
 
 		GUI_Checkbox("g_showShop", g_showShop);
 
+		GUI_Checkbox("g_showTraining", g_showTraining);
+
 		GUI_Input<float>("saveTimeout", GUI::saveTimeout, 1.0f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
 
 
@@ -7767,6 +7781,42 @@ void EnemySpawnerToolSection() {
 				}
 			}
 		}
+		//We need enemy.event variables for all enemies before we can properly implement this.
+		//ImGui::TableNextColumn();
+		//if (GUI_Button("Kill All Enemies (currently just hells)")) {
+		//	auto pool_9347 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+		//	if (pool_9347 && pool_9347[8]) {
+		//		auto& enemyVectorData = *reinterpret_cast<EnemyVectorData*>(pool_9347[8]);
+		//		old_for_all(uint32, enemyIndex, countof(enemyVectorData.metadata)) {
+		//			auto& metadata = enemyVectorData.metadata[enemyIndex];
+		//			if (!metadata.baseAddr) continue;
+
+		//			auto& actor = *reinterpret_cast<EnemyActorData*>(metadata.baseAddr);
+		//			if (!actor.baseAddr) continue;
+		//			switch (actor.enemy) {
+		//			case ENEMY::PRIDE_1:
+		//			case ENEMY::PRIDE_2:
+		//			case ENEMY::PRIDE_3:
+		//			case ENEMY::PRIDE_4:
+		//			case ENEMY::GLUTTONY_1:
+		//			case ENEMY::GLUTTONY_2:
+		//			case ENEMY::GLUTTONY_3:
+		//			case ENEMY::GLUTTONY_4:
+		//			case ENEMY::GREED_1:
+		//			case ENEMY::GREED_2:
+		//			case ENEMY::GREED_3:
+		//			case ENEMY::GREED_4:
+		//			case ENEMY::LUST_1:
+		//			case ENEMY::LUST_2:
+		//			case ENEMY::LUST_3:
+		//			case ENEMY::LUST_4:
+		//				actor.hitPointsHells = 0.0;
+		//			default:
+		//				DebugLog("unknown enemy");
+		//			}
+		//		}
+		//	}
+		//}
 		ImGui::EndTable();
 	}
 

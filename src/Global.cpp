@@ -42,6 +42,7 @@ bool g_show     = false;
 bool g_lastShow = false;
 bool g_showMain = false;
 bool g_showShop = false;
+bool g_showTraining = false;
 
 uint8 g_scene = 0;
 
