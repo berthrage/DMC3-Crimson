@@ -11,7 +11,7 @@ static bool trainingRoomEnabled{ true };
 
 static bool fromMissionStart{ false };
 static bool fromInGame{ false };
-
+static uint16 room{ ROOM::DEBUG_ROOM_5 };
 //Tracks whether we are in training currently
 static bool inTrainingRoom{ false };
 const char* enterString{ "Enter Void" };
@@ -21,6 +21,7 @@ MissionData preTrainingRoomMissionData;
 static EventData backupData;
 
 namespace CrimsonTrainingRoom {
+
     void SetRoom() {
 
         //if (!trainingRoomEnabled) {
@@ -41,8 +42,9 @@ namespace CrimsonTrainingRoom {
 
 
         if ((sessionData.mission >= 1) && (sessionData.mission <= 20) && !activeConfig.BossRush.enable && !activeConfig.Arcade.enable) {
-            nextEventData.room = ROOM::DEBUG_ROOM_5;
+            nextEventData.room = room;
         }
+        
     }
 
     void SetContinueRoom() {
@@ -76,7 +78,7 @@ namespace CrimsonTrainingRoom {
         auto eventFlags = reinterpret_cast<byte32*>(pool_371[1]);
 
 
-        nextEventData.room = ROOM::DEBUG_ROOM_5;
+        nextEventData.room = room;
         nextEventData.position = static_cast<uint16>(1);
     }
 
@@ -98,6 +100,37 @@ namespace CrimsonTrainingRoom {
         return;
     }
 
+
+    void DrawRoomSelect() {
+        //ImGui::PushItemWidth(itemWidth * 1.3f);
+        UI::ComboMapValue("", roomNames, roomsMap, room, 0);
+        //ImGui::PopItemWidth();
+        if (GUI_Button("Reset Training"))
+        {
+            if (!InGame()) {
+                return;
+            }
+
+            auto pool_12898 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+            if (!pool_12898 || !pool_12898[8]) {
+                return;
+            }
+            auto& eventData = *reinterpret_cast<EventData*>(pool_12898[8]);
+
+            auto pool_12959 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+            if (!pool_12959 || !pool_12959[12]) {
+                return;
+            }
+            auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12959[12]);
+
+
+            nextEventData.room = static_cast<uint16>(room);
+            nextEventData.position = static_cast<uint16>(eventData.position);
+
+
+            eventData.event = EVENT::TELEPORT;
+        }
+    }
     
     /// <summary>
     /// Called in shop window to provide a button to enter training room. returns true when void is entered and we need to close the shop menu.
