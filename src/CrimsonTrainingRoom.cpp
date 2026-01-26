@@ -118,6 +118,11 @@ namespace CrimsonTrainingRoom {
         //ImGui::PushItemWidth(itemWidth * 1.3f);
         UI::ComboMapValue("", roomNames, roomsMap, room, 0);
         //ImGui::PopItemWidth();
+        if (InPauseMenu()) {
+            if (GUI_Button("Return to mission start")) {
+                return;
+            }
+        }
         if (GUI_Button("Reset Training"))
         {
             if (!InGame()) {

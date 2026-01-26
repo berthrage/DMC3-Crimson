@@ -146,6 +146,24 @@ bool InGame() {
     return true;
 }
 
+bool InPauseMenu() {
+    if (g_scene != SCENE::GAME) {
+        return false;
+    }
+
+    auto pool_205 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+    if (!pool_205 || !pool_205[8]) {
+        return false;
+    }
+    auto& eventData = *reinterpret_cast<EventData*>(pool_205[8]);
+
+    if (eventData.event != EVENT::PAUSE) {
+        return false;
+    }
+
+    return true;
+}
+
 bool& IsTurbo() {
     return *reinterpret_cast<bool*>(appBaseAddr + 0xD6CEA9);
 }

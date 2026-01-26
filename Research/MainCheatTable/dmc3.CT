@@ -20393,6 +20393,97 @@ dmc3.exe+2025BB: 48 8B CB                 - mov rcx,rbx
       <VariableType>4 Bytes</VariableType>
       <Address>0C51A754</Address>
     </CheatEntry>
+    <CheatEntry>
+      <ID>3472</ID>
+      <Description>"Pause Menu Override"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>{ Game   : dmc3.exe
+  Version: 
+  Date   : 2026-01-26
+  Author : NecessaryEvil
+
+  This script does blah blah blah
+}
+
+[ENABLE]
+
+aobscanmodule(pausemenuoverride,dmc3.exe,8B 82 D4 00 00 00 74) // should be unique
+alloc(newmem,$1000,pausemenuoverride)
+
+label(code)
+label(return)
+
+newmem:
+
+code:
+  mov eax,[rdx+000000D4]
+  jmp return
+
+pausemenuoverride:
+  jmp newmem
+  nop
+return:
+registersymbol(pausemenuoverride)
+
+[DISABLE]
+
+pausemenuoverride:
+  db 8B 82 D4 00 00 00
+
+unregistersymbol(pausemenuoverride)
+dealloc(newmem)
+
+{
+// ORIGINAL CODE - INJECTION POINT: dmc3.exe+23D6C0
+
+dmc3.exe+23D68B: E8 C0 8B 08 00           - call dmc3.exe+2C6250
+dmc3.exe+23D690: 80 3D 6D B1 A6 00 00     - cmp byte ptr [dmc3.exe+CA8804],00
+dmc3.exe+23D697: 0F 85 16 03 00 00        - jne dmc3.exe+23D9B3
+dmc3.exe+23D69D: 0F B6 4B 24              - movzx ecx,byte ptr [rbx+24]
+dmc3.exe+23D6A1: 85 C9                    - test ecx,ecx
+dmc3.exe+23D6A3: 0F 84 F0 01 00 00        - je dmc3.exe+23D899
+dmc3.exe+23D6A9: 83 F9 01                 - cmp ecx,01
+dmc3.exe+23D6AC: 0F 85 E4 02 00 00        - jne dmc3.exe+23D996
+dmc3.exe+23D6B2: 80 3D 18 60 A6 00 00     - cmp byte ptr [dmc3.exe+CA36D1],00
+dmc3.exe+23D6B9: 48 8B 93 88 B0 01 00     - mov rdx,[rbx+0001B088]
+// ---------- INJECTING HERE ----------
+dmc3.exe+23D6C0: 8B 82 D4 00 00 00        - mov eax,[rdx+000000D4]
+// ---------- DONE INJECTING  ----------
+dmc3.exe+23D6C6: 74 05                    - je dmc3.exe+23D6CD
+dmc3.exe+23D6C8: 8D 41 01                 - lea eax,[rcx+01]
+dmc3.exe+23D6CB: EB 09                    - jmp dmc3.exe+23D6D6
+dmc3.exe+23D6CD: 83 F8 05                 - cmp eax,05
+dmc3.exe+23D6D0: 0F 87 C0 02 00 00        - ja dmc3.exe+23D996
+dmc3.exe+23D6D6: 4C 8D 05 23 29 DC FF     - lea r8,[dmc3.exe]
+dmc3.exe+23D6DD: 48 98                    - cdqe 
+dmc3.exe+23D6DF: 41 8B 8C 80 BC D9 23 00  - mov ecx,[r8+rax*4+0023D9BC]
+dmc3.exe+23D6E7: 49 03 C8                 - add rcx,r8
+dmc3.exe+23D6EA: FF E1                    - jmp rcx
+}
+</AssemblerScript>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3477</ID>
+      <Description>"Pause menu index pointer 1"</Description>
+      <ShowAsHex>1</ShowAsHex>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>4 Bytes</VariableType>
+      <Address>dmc3.exe+CA8968</Address>
+      <Offsets>
+        <Offset>D4</Offset>
+      </Offsets>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3478</ID>
+      <Description>"Pause menu index pointer 2"</Description>
+      <ShowAsHex>1</ShowAsHex>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>4 Bytes</VariableType>
+      <Address>dmc3.exe+CF2880</Address>
+      <Offsets>
+        <Offset>D4</Offset>
+      </Offsets>
+    </CheatEntry>
   </CheatEntries>
   <CheatCodes>
     <CodeEntry>

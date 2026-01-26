@@ -85,6 +85,7 @@ extern float g_magicPoints[PLAYER_COUNT];
 void ToggleSkipIntro(bool enable);
 void ToggleSkipCutscenes(bool enable);
 bool InGame();
+bool InPauseMenu();
 
 bool& IsTurbo();
 bool& InCutscene();
