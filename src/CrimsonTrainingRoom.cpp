@@ -94,9 +94,13 @@ namespace CrimsonTrainingRoom {
         if ((eventData.nextScreen == SCREEN::MISSION_CLEAR)
             || (eventData.nextScreen == SCREEN::GAME_OVER)
             || (eventData.nextScreen == SCREEN::MISSION_SELECT)
-            || (eventData.nextScreen == SCREEN::MISSION_START))
+            || (eventData.nextScreen == SCREEN::MISSION_START)) {
+            if (eventData.nextScreen == SCREEN::MISSION_SELECT && inTrainingRoom)
+                eventData.nextScreen = SCREEN::MISSION_START;
             ToggleTrainingRoom(false);
             fromMissionStart = false;
+        }
+
         return;
     }
 
