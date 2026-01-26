@@ -11,6 +11,7 @@ static bool trainingRoomEnabled{ true };
 
 static bool fromMissionStart{ false };
 static bool fromInGame{ false };
+static bool queueReset{ false };
 static uint16 room{ ROOM::DEBUG_ROOM_5 };
 //Tracks whether we are in training currently
 static bool inTrainingRoom{ false };
@@ -19,6 +20,9 @@ const char* exitString{ "Exit Void" };
 CrimsonPlayerData preTrainingRoomCrimsonPlayer[20];
 MissionData preTrainingRoomMissionData;
 static EventData backupData;
+
+//we may have to move this stuff to a separate file if we want to use it in other mods. 
+static constexpr auto MENU_ACTION_OFFSET() { return 0xCA8968; }
 
 namespace CrimsonTrainingRoom {
 
@@ -120,19 +124,22 @@ namespace CrimsonTrainingRoom {
 
     void DrawRoomSelect() {
         //ImGui::PushItemWidth(itemWidth * 1.3f);
-        UI::ComboMapValue("", roomNames, roomsMap, room, 0);
+        if (UI::ComboMapValue("", roomNames, roomsMap, room, 0))
+            queueReset = false;
         //ImGui::PopItemWidth();
         if (InPauseMenu()) {
             if (GUI_Button("Return to mission start")) {
                 return;
             }
         }
-        if (GUI_Button("Reset Training"))
+        GUI_Checkbox("Reset Training", queueReset);
+        if (queueReset)
         {
             if (!InGame()) {
                 return;
             }
 
+            queueReset = false;
             auto pool_12898 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
             if (!pool_12898 || !pool_12898[8]) {
                 return;

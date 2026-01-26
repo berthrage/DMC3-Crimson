@@ -12760,7 +12760,7 @@ void ToggleInfiniteHealth() {
 }
 
 void UseHolyWater() {
-	if (!activeConfig.Actor.enable || !InGame()) {
+	if (!activeConfig.Actor.enable || (!InGame() && !InPauseMenu())) {
 		return;
 	}
 
@@ -12936,14 +12936,21 @@ void PreventEmptyCrimsonGUIHotkey() {
 	}
 }
 
+//void CloseTraining() {
+//	g_showTraining = false;
+//	if (g_scene == SCENE::GAME) {
+//		PlayTrack("");
+//	}
+//}
+
 void TrainingWindow() {
 	static bool run = false;
-	static std::chrono::steady_clock::time_point shopOpenedTime;
-	static bool shopCooldownActive = false;
+	static std::chrono::steady_clock::time_point trainingOpenedTime;
+	static bool trainingCooldownActive = false;
 
 	if (!g_showTraining) {
 		run = false;
-		shopCooldownActive = false;
+		trainingCooldownActive = false;
 		return;
 	}
 	auto& io = ImGui::GetIO();
@@ -12962,16 +12969,16 @@ void TrainingWindow() {
 		// TODO: Play Divine Statue Track - Mia
 		//PlayTrack("afs/sound/Jikushinzou.ogg");
 		run = true;
-		shopOpenedTime = std::chrono::steady_clock::now();
-		shopCooldownActive = true;
+		trainingOpenedTime = std::chrono::steady_clock::now();
+		trainingCooldownActive = true;
 	}
 
 	// Check if cooldown has expired (0.2 seconds)
-	if (shopCooldownActive) {
+	if (trainingCooldownActive) {
 		auto now = std::chrono::steady_clock::now();
-		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - shopOpenedTime).count();
+		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - trainingOpenedTime).count();
 		if (elapsed >= 200) {
-			shopCooldownActive = false;
+			trainingCooldownActive = false;
 		}
 	}
 
@@ -12983,29 +12990,29 @@ void TrainingWindow() {
 
 	if (io.NavInputs[ImGuiNavInput_Cancel] && (io.NavInputsDownDuration[ImGuiNavInput_Cancel] == 0.0f)) {
 		Log("controller back button");
-		if (!io.NavVisible && !shopCooldownActive) {
+		if (!io.NavVisible && !trainingCooldownActive) {
 			//CloseShop();
 			run = false;
-			shopCooldownActive = false;
+			trainingCooldownActive = false;
 		}
 	}
 	//Replace this with a map option at some point. 
 	if (io.KeysDown[DI8::KEY::L] && (io.KeysDownDuration[DI8::KEY::L] == 0.0f)) {
 		Log("keyboard back button");
-		if (!shopCooldownActive) {
+		if (!trainingCooldownActive) {
 			//CloseShop();
 			run = false;
-			shopCooldownActive = false;
+			trainingCooldownActive = false;
 		}
 	}
 
 	if (ImGui::Begin("TrainingWindow", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
 		ImGui::SetWindowFontScale(scaleFactorY);
 		if (GUI_Button("Close")) {
-			if (!shopCooldownActive) {
+			if (!trainingCooldownActive) {
 				//CloseShop();
 				run = false;
-				shopCooldownActive = false;
+				trainingCooldownActive = false;
 			}
 		}
 

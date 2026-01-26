@@ -63,6 +63,28 @@ void CloseShop() {
     g_shopTimer = (activeConfig.frameRate * (g_shopTimeout / 1000));
 }
 
+void OpenTraining() {
+    DebugLogFunction();
+
+    if (CrimsonTrainingRoom::isInTrainingRoom())
+        g_showTraining = true;
+
+    FMOD_PlaySound(0, 4);
+}
+
+void CloseTraining() {
+    DebugLogFunction();
+
+    if (g_showTraining) {
+        FMOD_PlaySound(0, 3);
+    }
+
+    g_showTraining = false;
+
+    //g_shopTimer = (activeConfig.frameRate * (g_shopTimeout / 1000));
+}
+
+
 
 namespace Shop {
 
@@ -286,7 +308,6 @@ void EventHandler(EventData& eventData) {
             }
             case PAUSE: {
                 DebugLog(funcName);
-
                 break;
             }
             case STATUS: {
@@ -362,6 +383,7 @@ void EventHandler(EventData& eventData) {
             }
             case MAIN: {
                 DebugLog(funcName);
+                CloseTraining();
 
                 break;
             }
@@ -372,7 +394,7 @@ void EventHandler(EventData& eventData) {
             }
             case PAUSE: {
                 DebugLog(funcName);
-
+                OpenTraining();
                 break;
             }
             case STATUS: {
