@@ -100,6 +100,19 @@ namespace CrimsonTrainingRoom {
         return;
     }
 
+    /// <summary>
+    /// Clear music when loading into void
+    /// </summary>
+    /// <param name="filename"></param>
+    /// <returns></returns>
+    bool SetTrack(const char* filename) {
+        if (!inTrainingRoom) {
+            return true;
+        }
+
+        LogFunction();
+        return false;
+    }
 
     void DrawRoomSelect() {
         //ImGui::PushItemWidth(itemWidth * 1.3f);
