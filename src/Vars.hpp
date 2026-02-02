@@ -2583,6 +2583,14 @@ static_assert(sizeof(CameraData) == 512);
 
 // $CameraDataEnd
 
+// $PauseMenuStart
+struct PauseMenuMetadata {
+    _(212);
+    uint32 menuIndex; //0xD4
+};
+static_assert(offsetof(PauseMenuMetadata, menuIndex) == 0xD4);
+// $PauseMenuEnd
+
 struct NewArchiveMetadata {
     byte8 signature[4];
     uint32 fileCount;

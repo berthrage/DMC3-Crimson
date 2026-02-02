@@ -85,6 +85,18 @@ void CloseTraining() {
 }
 
 
+namespace Training {
+
+    void EventDelete() {
+        if (!activeConfig.Actor.enable) {
+            return;
+        }
+
+        LogFunction();
+
+        CloseTraining();
+    }
+}; // namespace Shop
 
 namespace Shop {
 
@@ -352,6 +364,7 @@ void EventHandler(EventData& eventData) {
 
                 Actor::EventDelete();
                 Shop::EventDelete();
+                Training::EventDelete();
                 Sound::EventDelete();
 
                 break;

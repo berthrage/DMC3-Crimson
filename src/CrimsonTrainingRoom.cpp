@@ -121,15 +121,19 @@ namespace CrimsonTrainingRoom {
         LogFunction();
         return false;
     }
-
+    void MenuInteraction(uint32 index) {
+        auto& menuData = *reinterpret_cast<PauseMenuMetadata**>(appBaseAddr + 0xCA8968);
+        menuData->menuIndex = index;
+    }
     void DrawRoomSelect() {
         //ImGui::PushItemWidth(itemWidth * 1.3f);
+
         if (UI::ComboMapValue("", roomNames, roomsMap, room, 0))
             queueReset = false;
         //ImGui::PopItemWidth();
         if (InPauseMenu()) {
             if (GUI_Button("Return to mission start")) {
-                return;
+                MenuInteraction(3);
             }
         }
         GUI_Checkbox("Reset Training", queueReset);

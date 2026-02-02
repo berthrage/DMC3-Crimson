@@ -17,6 +17,7 @@ namespace CrimsonTrainingRoom {
 	void SetContinueRoom();
 	bool SetTrack(const char* filename);
 	void DrawImGuiWidget();
+	void MenuInteraction(uint32 index);
 	void DrawRoomSelect();
 	
 	bool DrawShopWidget();
