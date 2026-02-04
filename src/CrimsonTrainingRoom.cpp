@@ -195,6 +195,8 @@ namespace CrimsonTrainingRoom {
         Arcade::ToggleMissionStart(enable || activeConfig.Arcade.enable);
         Arcade::ToggleOrbSkip(enable || activeConfig.Arcade.enable);
         ToggleSkipCutscenes(enable || activeConfig.skipCutscenes);
+        CrimsonPatches::DisableDoorsInstancing(enable);
+        CrimsonDetours::ToggleHideAndMutePortals(enable);
         inTrainingRoom = enable;
     }
 
