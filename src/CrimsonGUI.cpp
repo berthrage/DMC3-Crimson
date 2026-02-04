@@ -5457,7 +5457,7 @@ void CustomDamageSection() {
 			ImGui::TableSetupColumn("b1", 0, columnWidth);
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
-
+			GUI_Checkbox2("Disable Player Damage", activeCrimsonGameplay.Cheats.Damage.playerReceiveDmgDisable, queuedCrimsonGameplay.Cheats.Damage.playerReceiveDmgDisable);
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 			ImGui::Text("PLAYER RECEIVED DAMAGE MULT.");
 			ImGui::PopFont();
@@ -5481,6 +5481,7 @@ void CustomDamageSection() {
 			}
 			ImGui::TableNextColumn();
 
+			GUI_Checkbox2("Disable Enemy Damage", activeCrimsonGameplay.Cheats.Damage.enemyRecieveDmgDisable, queuedCrimsonGameplay.Cheats.Damage.enemyRecieveDmgDisable);
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 			ImGui::Text("ENEMY RECEIVED DAMAGE MULT.");
 			ImGui::PopFont();
@@ -13058,7 +13059,12 @@ void TrainingWindow() {
 				ImGui::TableNextRow(0, rowWidth);
 				ImGui::TableNextColumn();
 
-				if (GUI_Checkbox2("Infinite Hit Points", activeCrimsonGameplay.Cheats.Training.infiniteHP, queuedCrimsonGameplay.Cheats.Training.infiniteHP)) {
+				GUI_Checkbox2("Disable Player Damage", activeCrimsonGameplay.Cheats.Damage.playerReceiveDmgDisable, queuedCrimsonGameplay.Cheats.Damage.playerReceiveDmgDisable);
+				ImGui::TableNextColumn();
+				GUI_Checkbox2("Disable Enemy Damage", activeCrimsonGameplay.Cheats.Damage.enemyRecieveDmgDisable, queuedCrimsonGameplay.Cheats.Damage.enemyRecieveDmgDisable);
+
+				ImGui::TableNextColumn();
+				if (GUI_Checkbox2("Disable all damage", activeCrimsonGameplay.Cheats.Training.infiniteHP, queuedCrimsonGameplay.Cheats.Training.infiniteHP)) {
 					ToggleInfiniteHitPoints(activeCrimsonGameplay.Cheats.Training.infiniteHP);
 				}
 

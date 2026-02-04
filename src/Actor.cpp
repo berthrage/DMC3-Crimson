@@ -8624,6 +8624,9 @@ float ApplyDamage(byte8* dest, float value) {
             match = true;
 
             value *= activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult;
+            if (activeCrimsonGameplay.Cheats.Damage.playerReceiveDmgDisable)
+                value = 0.0f;
+            
         }
     }();
 
@@ -8643,7 +8646,8 @@ float ApplyDamage(byte8* dest, float value) {
             match = true;
 
             value *= activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult;
-
+            if (activeCrimsonGameplay.Cheats.Damage.playerReceiveDmgDisable)
+                value = 0.0f;
             break;
         }
     }
@@ -8651,7 +8655,8 @@ float ApplyDamage(byte8* dest, float value) {
     // Enemy
     if (!match) {
         value *= activeCrimsonGameplay.Cheats.Damage.enemyReceivedDmgMult;
-
+        if (activeCrimsonGameplay.Cheats.Damage.enemyRecieveDmgDisable)
+            value = 0.0f;
         auto pool_13274 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
         if (!pool_13274 || !pool_13274[3]) {
             return value;

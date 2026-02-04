@@ -241,11 +241,14 @@ struct CrimsonConfigGameplay {
 		struct Damage {
 			float playerReceivedDmgMult = 1.0f;
 			float enemyReceivedDmgMult = 1.0f;
-
+			bool playerReceiveDmgDisable = false;
+			bool enemyRecieveDmgDisable = false;
 			static constexpr auto Metadata() {
 				return std::make_tuple(
 					std::make_pair("playerReceivedDmgMult", &Damage::playerReceivedDmgMult),
-					std::make_pair("enemyReceivedDmgMult", &Damage::enemyReceivedDmgMult)
+					std::make_pair("enemyReceivedDmgMult", &Damage::enemyReceivedDmgMult),
+					std::make_pair("playerReceiveDmgDisable", &Damage::playerReceiveDmgDisable),
+					std::make_pair("enemyRecieveDmgDisable", &Damage::enemyRecieveDmgDisable)
 				);
 			}
 		} Damage;
