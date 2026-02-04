@@ -11985,7 +11985,6 @@ void ExtraDifficultyGameplayOptions() {
 		ImGui::TableNextColumn();
 		CrimsonBetterArkham2::DebugGui();
 		ImGui::TableNextColumn();
-
 		ImGui::PushItemWidth(itemWidth * 0.93f);
 		UI::ComboMapValue2("Force Difficulty",
 			forceDifficultyNames,
