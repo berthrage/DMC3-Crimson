@@ -9417,6 +9417,7 @@ void SetAction(byte8* actorBaseAddr) {
             activeCrimsonGameplay.Gameplay.Dante.airTornado &&
             ExpConfig::missionExpDataDante.styleLevels[STYLE::SWORDMASTER] >= 2 &&
             actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION) &&
+		    (tiltDirection != TILT_DIRECTION::NEUTRAL) &&
             airCounts.airTornado < 1) {
 
 			auto tiltDirectionExclusion = (activeCrimsonGameplay.Gameplay.Dante.swapHammerVocalnoInputs) ? TILT_DIRECTION::UP : TILT_DIRECTION::DOWN;
