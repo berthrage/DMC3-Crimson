@@ -195,7 +195,10 @@ namespace CrimsonTrainingRoom {
         Arcade::ToggleMissionStart(enable || activeConfig.Arcade.enable);
         Arcade::ToggleOrbSkip(enable || activeConfig.Arcade.enable);
         ToggleSkipCutscenes(enable || activeConfig.skipCutscenes);
-        GUI_Checkbox2("Auto Spawn", activeConfig.enemyAutoSpawn, queuedConfig.enemyAutoSpawn);
+        
+        //Bro why the fuck was this in HERE??
+        //GUI_Checkbox2("Auto Spawn", activeConfig.enemyAutoSpawn, queuedConfig.enemyAutoSpawn);
+        
         CrimsonPatches::DisableDoorsInstancing(enable);
         CrimsonDetours::ToggleHideAndMutePortals(enable);
         inTrainingRoom = enable;
