@@ -886,9 +886,20 @@ void MultiplayerCameraPositioningController() {
 	playerPos.y = mainActorData.position.y;
 	playerPos.z = mainActorData.position.z;
 
-	clonePos.x = cloneMainActorData.position.x;
-	clonePos.y = cloneMainActorData.position.y;
-	clonePos.z = cloneMainActorData.position.z;
+	//Prevents crash on debug mode cause by clonemainactordata being a nullptr
+	if (cloneMainActorData != nullptr) {
+
+		clonePos.x = cloneMainActorData.position.x;
+		clonePos.y = cloneMainActorData.position.y;
+		clonePos.z = cloneMainActorData.position.z;
+
+	}
+	else {
+		clonePos.x = mainActorData.position.x;
+		clonePos.y = mainActorData.position.y;
+		clonePos.z = mainActorData.position.z;
+	}
+	//end of crash fix
 
 	float cameraDistanceMP = (eventData.room >= ROOM::BLOODY_PALACE_1 && eventData.room <= ROOM::BLOODY_PALACE_10) ? 2800.0f : 1900.0f;
 	float cameraDistanceMPEnable = cameraDistanceMP * (2.0f / 3.0f);
