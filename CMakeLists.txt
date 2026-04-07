@@ -18,6 +18,8 @@ include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/Detours/Detours/src)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/debug-draw)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/curl/include)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/openssl/include)
+include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/Effekseer/src/Effekseer)
+include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/Effekseer/src/EffekseerRendererDX11)
 include_directories(${CMAKE_SOURCE_DIR}/src/Utility)
 
 add_compile_options(/W0)
@@ -52,3 +54,4 @@ set(PROJECT_ROOT ${CMAKE_CURRENT_LIST_DIR})
 
 add_subdirectory(ThirdParty)
 add_subdirectory(src)
+

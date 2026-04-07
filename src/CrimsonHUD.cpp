@@ -1175,27 +1175,6 @@ void MissionTimerDisplay() {
 	if (!pool_10298 || !pool_10298[8]) return;
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-	ImVec2 windowPos = ImVec2(g_renderSize.x * 0.5f, 10.0f * scaleFactorY);
-	ImVec2 windowSize = ImVec2(301.0f * scaleFactorY * 0.95f, 303.0f * scaleFactorY * 0.95f);
-
-	// Timer logic using ImGui::DeltaTime, only resets when frameCount is reset
-	static float shownTimer = 0.0f;
-	float frameRate = ImGui::GetIO().Framerate;
-
-	// Reset shownTimer if frameCount is reset (new mission start)
-	if (missionData.frameCount <= 0) {
-		shownTimer = 0.0f;
-	}
-
-	// Always update timer if frameCount > 0 and not in cutscene and not paused
-	if (missionData.frameCount > 0 && eventData.event == EVENT::MAIN && !g_inGameCutscene) {
-		shownTimer += ImGui::GetIO().DeltaTime;
-	}
-
-	// Convert shownTimer to hours, minutes, seconds
-	unsigned int hours = (unsigned int)(shownTimer / 3600.0f);
-	unsigned int minutes = (unsigned int)(fmod(shownTimer, 3600.0f) / 60.0f);
-	unsigned int seconds = (unsigned int)fmod(shownTimer, 60.0f);
 
 	auto& config = activeCrimsonConfig.CrimsonHudAddons.missionTimerDisplay;
 
@@ -1206,6 +1185,14 @@ void MissionTimerDisplay() {
 		(config == MISSIONTIMERDISPLAY::ONLY_IN_BP && sessionData.mission != MISSION::BLOODY_PALACE)) {
 		return;
 	}
+
+	ImVec2 windowPos = ImVec2(g_renderSize.x * 0.5f, 10.0f * scaleFactorY);
+	ImVec2 windowSize = ImVec2(301.0f * scaleFactorY * 0.95f, 303.0f * scaleFactorY * 0.95f);
+
+	// Convert shown missionTimer to hours, minutes, seconds
+	unsigned int hours = (unsigned int)(g_missionTimer / 3600.0f);
+	unsigned int minutes = (unsigned int)(fmod(g_missionTimer, 3600.0f) / 60.0f);
+	unsigned int seconds = (unsigned int)fmod(g_missionTimer, 60.0f);
 
 	float fontSize = 44.0f;
 	ImGui::PushFont(UI::g_ImGuiFont_RedOrbRusso[fontSize * 0.9f]);
@@ -1218,7 +1205,6 @@ void MissionTimerDisplay() {
 
 	ImGui::SetNextWindowPos(adjustedWindowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(adjustedWindowSize, ImGuiCond_Always);
-	
 
 	ImGui::Begin("MissionTimerDisplayWindow", nullptr,
 		ImGuiWindowFlags_NoTitleBar |

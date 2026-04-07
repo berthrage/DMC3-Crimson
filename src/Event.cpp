@@ -243,7 +243,6 @@ static_assert(countof(newEventFuncNames) == EVENT::COUNT);
 void EventHandler(EventData& eventData) {
     using namespace EVENT;
 
-	CrimsonGameplay::GunDTCharacterRemaps();
 	CrimsonOnTick::GameTrackDetection();
     CrimsonOnTick::FixWeaponUnlocksDante();
 	CrimsonOnTick::DisableBlendingEffectsController();

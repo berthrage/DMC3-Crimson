@@ -20,6 +20,7 @@ enum {
 namespace CrimsonGUI {
 extern float scaleFactorX;
 extern float scaleFactorY;
+extern float scaleFactor;
 extern float scaledFontSize;
 extern float itemWidth;
 }

@@ -390,8 +390,6 @@ void ToggleBossVergilFixes(bool enable);
 
 #pragma region Speed
 
-void ToggleRebellionHoldDrive(bool enable);
-
 #pragma endregion
 
 void ToggleDeplete(bool enable);

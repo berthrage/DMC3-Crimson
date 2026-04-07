@@ -6,6 +6,8 @@
 #include "Utility/Detour.hpp"
 #include <intrin.h>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include "CrimsonUtil.hpp"
 #include "DMC3Input.hpp"
 #include "Global.hpp"
@@ -18,7 +20,8 @@
 #include "CrimsonCameraController.hpp"
 #include "Actor.hpp"
 #include "CrimsonOnTick.hpp"
-
+#include "CrimsonEfk.hpp"
+#include "Internal.hpp"
 
 namespace CrimsonDetours {
 
@@ -198,6 +201,12 @@ std::uint64_t g_CamHittingWall_ReturnAddr;
 void CamHittingWallDetour();
 bool* g_CamHittingWall_ConditionalAddr = nullptr;
 
+// ConfirmSetAction
+std::uint64_t g_ConfirmSetAction_ReturnAddr;
+std::uint64_t g_ConfirmSetAction_FuncCall;
+void ConfirmSetActionDetour();
+void* g_ConfirmSetActionCheckCall;
+
 // RerouteRedOrbsCounterAlpha
 std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr1;
 std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr2;
@@ -217,6 +226,12 @@ void FreeformSoftLockHelperDetour();
 std::uint64_t g_DMC4LockOnDirection_ReturnAddr;
 void DMC4LockOnDirectionDetour();
 void* g_DMC4LockOnDirectionCall;
+
+// InterceptCollisions
+std::uint64_t g_InterceptCollisions_ReturnAddr;
+void InterceptCollisionsDetour();
+void* g_DrawCollisionsCall;
+void* g_InterceptCollisionsCall;
 
 // FasterTurnRate
 std::uint64_t g_FasterTurnRate_ReturnAddr;
@@ -300,36 +315,41 @@ bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
     using namespace ACTION_DANTE;
 
     auto playerIndex = CrimsonUtil::GetPlayerIndexFromAddr((uintptr_t)actorData.baseAddr); // simply using actorData.newPlayerIndex also works here.
+	auto entityIndex = actorData.newEntityIndex;
 
     auto tiltDirection = GetRelativeTiltDirection(actorData);
 
     auto inputException = !(actorData.lockOn && (tiltDirection == TILT_DIRECTION::UP || tiltDirection == TILT_DIRECTION::DOWN));
 
     auto inputExceptionNevanJamSession = !(tiltDirection == TILT_DIRECTION::LEFT);
+	auto& gamepad = GetGamepad(playerIndex);
 
     // if the player ptr we fetched is a Clone then we use action/animTimers Clone, if not then use the normal ones instead.
-    auto actionTimer =
-        (actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].actionTimerClone : crimsonPlayer[playerIndex].actionTimer;
-    auto animTimer = (actorData.newEntityIndex == 1) ? crimsonPlayer[playerIndex].animTimerClone : crimsonPlayer[playerIndex].animTimer;
+	auto actionTimer =
+		(entityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
+	auto animTimer =
+		(entityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
+	auto motionIndex = actorData.motionData[0].index;
+	auto& stingerInput = (entityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].stingerInput : crimsonPlayer[playerIndex].stingerInputClone;
 
 
     switch (actorData.action) { // from vars, namespace ACTION_DANTE {
 
     case REBELLION_STINGER_LEVEL_1:
-        if (std::clamp<float>(actionTimer, 0.22f, 0.3f) == actionTimer && inputException) {
+        if (motionIndex == 16 && stingerInput.meleeButtonHold >= 0.1f && !stingerInput.meleeReleasedStinger && inputException) {
             return true;
         }
         break;
     case REBELLION_STINGER_LEVEL_2:
-        if (std::clamp<float>(actionTimer, 0.22f, 0.3f) == actionTimer && inputException) {
+        if (motionIndex == 42 && stingerInput.meleeButtonHold >= 0.2f && !stingerInput.meleeReleasedStinger && inputException) {
             return true;
         }
         break;
-    case REBELLION_MILLION_STAB:
-        if (std::clamp<float>(actionTimer, 0.22f, 10.0f) == actionTimer && inputException) {
-            return true;
-        }
-        break;
+	case REBELLION_MILLION_STAB:
+		if (std::clamp<float>(actionTimer, 0.22f, 10.0f) == actionTimer && inputException) {
+			return true;
+		}
+		break;
     case REBELLION_COMBO_2_PART_2:
         if (std::clamp<float>(actionTimer, 0.0f, 0.90f) == actionTimer && inputException) {
             return true;
@@ -621,6 +641,306 @@ void SetAnnouncerWasHit() {
 	}
 }
 
+namespace DriveCol {
+	// Track effect handles per collision instance
+	enum class DriveFxPhase : uint8_t { Part1, Part2, Part3 };
+	struct DriveInstanceState {
+		EffekseerHandle handle{};
+		DriveFxPhase phase = DriveFxPhase::Part1;
+
+		// Enables custom vertical pathing (Y) for this projectile instance.
+		bool hasLockedTargetHeight = false;
+		// Enables custom horizontal pathing (XZ) for this projectile instance.
+		bool hasLockedDirection = false;
+		// Tracks whether we have previous projectile position for step accumulation.
+		bool hasLastProjectilePos = false;
+
+		// Spawn/start values used to build deterministic pathing.
+		float startY = 0.0f;
+		float lockedTargetY = 0.0f;
+		float startX = 0.0f;
+		float startZ = 0.0f;
+
+		// Last frame projectile world position (for measuring traveled distance this frame).
+		float lastProjectileX = 0.0f;
+		float lastProjectileZ = 0.0f;
+
+		// Horizontal distance to target sampled at spawn (for normalized slope math).
+		float targetDistXZ = 1.0f;
+		// Locked horizontal direction sampled at spawn.
+		float dirX = 0.0f;
+		float dirZ = 0.0f;
+
+		// Monotonic traveled distance along the path; never decreases.
+		float furthestTraveledXZ = 0.0f;
+		// Constant Y increase per 1 unit of XZ travel (fixed at spawn time).
+		float verticalSlopePerXZ = 0.0f;
+	};
+
+	struct DriveMetadataState {
+		std::unordered_map<uint32, DriveInstanceState> effectsByInstanceId;
+	};
+
+	static std::unordered_map<uintptr_t, DriveMetadataState> s_driveEffectsByMetadata;
+	static std::unordered_map<uintptr_t, float> s_lastDriveVerticalSlopeByShooter;
+
+	void HandleDriveCollisionLogic(CollisionDataMetadata* collisionMeta, uintptr_t metadataKey) {
+       // Keep effect loading lazy (first use) so initialization order remains identical to pre-refactor behavior.
+		static constexpr const wchar_t* driveParticlePath = L"Crimson\\vfx\\drive.efkefc";
+		static EffekseerRefHandle driveParticleRef = CrimsonEfk::LoadEffect(driveParticlePath, 40.0f);
+
+		static constexpr const wchar_t* drive2ParticlePath = L"Crimson\\vfx\\drive2.efkefc";
+		static EffekseerRefHandle drive2ParticleRef = CrimsonEfk::LoadEffect(drive2ParticlePath, 40.0f);
+
+		static constexpr const wchar_t* drive3ParticlePath = L"Crimson\\vfx\\drive3.efkefc";
+		static EffekseerRefHandle drive3ParticleRef = CrimsonEfk::LoadEffect(drive3ParticlePath, 40.0f);
+
+		const bool isDriveCollision =
+			reinterpret_cast<uintptr_t>(collisionMeta->dmgDataAddr) == reinterpret_cast<uintptr_t>(appBaseAddr + 0x5CB1E0);
+
+		if (isDriveCollision) {
+			auto& collisionData = *reinterpret_cast<CollisionData*>(collisionMeta->collisionDataAddr);
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(collisionData.playerBaseAddr);
+			auto& drive = (actorData.newEntityIndex == 0) ? crimsonPlayer[actorData.newPlayerIndex].drive : crimsonPlayer[actorData.newPlayerIndex].driveClone;
+
+			auto& metadataState = s_driveEffectsByMetadata[metadataKey];
+
+			// Latch phase at spawn per instanceId inside this metadata stream.
+			if (metadataState.effectsByInstanceId.find(collisionMeta->instanceId) == metadataState.effectsByInstanceId.end()) {
+				const auto desiredPhase = drive.inPart3
+					? DriveFxPhase::Part3
+					: (drive.inPart2 ? DriveFxPhase::Part2 : DriveFxPhase::Part1);
+
+				EffekseerHandle handle{};
+				if (desiredPhase == DriveFxPhase::Part3) {
+                 handle = CrimsonEfk::PlayEffectAtMatrix(drive3ParticleRef, collisionMeta->matrix1, NULL);
+				}
+				else if (desiredPhase == DriveFxPhase::Part2) {
+                 handle = CrimsonEfk::PlayEffectAtMatrix(drive2ParticleRef, collisionMeta->matrix1, NULL);
+				}
+				else {
+                  handle = CrimsonEfk::PlayEffectAtMatrix(driveParticleRef, collisionMeta->matrix1, NULL);
+				}
+
+				DriveInstanceState instanceState{};
+				instanceState.handle = handle;
+				instanceState.phase = desiredPhase;
+				vec4& matrixPos = *reinterpret_cast<vec4*>(&collisionMeta->matrix1[12]);
+				vec4& hitboxPos = *reinterpret_cast<vec4*>(&collisionMeta->hitboxPos);
+
+				auto& projectileData = *reinterpret_cast<ActorDataBase*>(collisionData.baseAddr);
+				instanceState.startX = hitboxPos.x;
+				instanceState.startZ = hitboxPos.z;
+				instanceState.startY = hitboxPos.y + 50.0f;
+				instanceState.lastProjectileX = projectileData.position.x;
+				instanceState.lastProjectileZ = projectileData.position.z;
+				instanceState.hasLastProjectilePos = true;
+
+				// Lock-on logic is evaluated once at projectile spawn.
+				// The result is latched into instanceState so trajectory remains stable afterward.
+				if (actorData.lockOnData.targetBaseAddr60 != 0) {
+					const uintptr_t shooterKey = reinterpret_cast<uintptr_t>(collisionData.playerBaseAddr);
+					auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60);
+					const float dx = enemyActorData.position.x - instanceState.startX;
+					const float dz = enemyActorData.position.z - instanceState.startZ;
+					const float targetDistXZRaw = std::sqrt(dx * dx + dz * dz);
+					instanceState.targetDistXZ = (std::max)(0.001f, targetDistXZRaw);
+
+					// Cap vertical targeting by angle so very close lock-on targets don't force extreme upward arcs.
+					constexpr float maxVerticalAimAngleDeg = 40.0f;
+					constexpr float degToRad = 0.01745329251994329577f;
+					const float maxVerticalDelta = std::tan(maxVerticalAimAngleDeg * degToRad) * instanceState.targetDistXZ;
+					const float desiredVerticalDelta = (std::max)(0.0f, enemyActorData.position.y - instanceState.startY);
+
+					constexpr float minTrackingDistanceXZ = 120.0f;
+					const bool targetTooClose = targetDistXZRaw < minTrackingDistanceXZ;
+					const bool hitsAngleCap = desiredVerticalDelta > maxVerticalDelta;
+
+					// Decision gate:
+					// - Normal case: lock to enemy (custom XZ + custom Y).
+					// - Close/capped case: reuse previous valid vertical slope for this shooter,
+					//   but keep default forward XZ (no custom direction lock).
+					if (!targetTooClose && !hitsAngleCap) {
+						instanceState.lockedTargetY = instanceState.startY + desiredVerticalDelta;
+						instanceState.verticalSlopePerXZ = (instanceState.lockedTargetY - instanceState.startY) / instanceState.targetDistXZ;
+						instanceState.hasLockedTargetHeight = true;
+						instanceState.dirX = dx / instanceState.targetDistXZ;
+						instanceState.dirZ = dz / instanceState.targetDistXZ;
+						instanceState.hasLockedDirection = true;
+						s_lastDriveVerticalSlopeByShooter[shooterKey] = instanceState.verticalSlopePerXZ;
+					}
+					else {
+						auto previousSlopeIt = s_lastDriveVerticalSlopeByShooter.find(shooterKey);
+						if (previousSlopeIt != s_lastDriveVerticalSlopeByShooter.end()) {
+							instanceState.verticalSlopePerXZ = previousSlopeIt->second;
+							instanceState.hasLockedTargetHeight = true;
+							instanceState.hasLockedDirection = false; // keep default forward XZ travel
+						}
+					}
+				}
+
+				metadataState.effectsByInstanceId[collisionMeta->instanceId] = instanceState;
+			}
+
+			auto instanceIt = metadataState.effectsByInstanceId.find(collisionMeta->instanceId);
+			const DriveFxPhase latchedPhase = (instanceIt != metadataState.effectsByInstanceId.end())
+				? instanceIt->second.phase
+				: DriveFxPhase::Part1;
+
+			vec4& matrixPos = *reinterpret_cast<vec4*>(&collisionMeta->matrix1[12]);
+			vec4& hitboxPos = *reinterpret_cast<vec4*>(&collisionMeta->hitboxPos);
+			// When locked on to an enemy, apply custom trajectory logic to steer towards the target.
+			if (instanceIt != metadataState.effectsByInstanceId.end() && instanceIt->second.hasLockedTargetHeight) {
+				auto& projectileData = *reinterpret_cast<ActorDataBase*>(collisionData.baseAddr);
+				auto& state = instanceIt->second;
+
+				// Accumulate horizontal travel by per-frame XZ step length.
+				// This avoids jitter from recomputing from spawn every frame.
+				float traveledXZ = state.furthestTraveledXZ;
+				if (state.hasLastProjectilePos) {
+					const float stepDx = projectileData.position.x - state.lastProjectileX;
+					const float stepDz = projectileData.position.z - state.lastProjectileZ;
+					traveledXZ += std::sqrt(stepDx * stepDx + stepDz * stepDz);
+				}
+				state.lastProjectileX = projectileData.position.x;
+				state.lastProjectileZ = projectileData.position.z;
+				state.hasLastProjectilePos = true;
+
+				// Keep progression monotonic so path never changes mid-flight.
+				traveledXZ = (std::max)(state.furthestTraveledXZ, traveledXZ);
+				state.furthestTraveledXZ = traveledXZ;
+
+				
+
+				// Custom vertical steering along a fixed slope from spawn.
+				const float desiredY = state.startY + state.verticalSlopePerXZ * traveledXZ;
+				matrixPos.y = desiredY;
+				hitboxPos.y = desiredY;
+			}
+			else { // When no enemy is locked-on to, just apply a simple vertical offset to keep particles above the ground.
+				matrixPos.y += 120.0f;
+				hitboxPos.y += 120.0f;
+			}
+
+			if (latchedPhase == DriveFxPhase::Part2) {
+				vec3 right = { collisionMeta->matrix1[0], collisionMeta->matrix1[1], collisionMeta->matrix1[2] };
+				right.y = 0.0f;
+				float len = std::sqrt(right.x * right.x + right.z * right.z);
+				if (len > 0.0001f) { right.x /= len; right.z /= len; }
+
+				constexpr float leftOffset = -80.0f;
+				const float ox = -right.x * leftOffset;
+				const float oz = -right.z * leftOffset;
+
+				auto& projectileData = *reinterpret_cast<ActorDataBase*>(collisionData.baseAddr);
+				matrixPos.x += ox; matrixPos.z += oz;
+				hitboxPos.x += ox; hitboxPos.z += oz;
+				//projectileData.position.x += ox; projectileData.position.z += oz;
+				//projectileData.position.x += 200.0f;
+			}
+		}
+		else {
+			// Only stop effect tied to THIS instance (not globally)
+			auto metadataIt = s_driveEffectsByMetadata.find(metadataKey);
+			if (metadataIt != s_driveEffectsByMetadata.end()) {
+				for (auto& kvp : metadataIt->second.effectsByInstanceId) {
+					CrimsonEfk::StopEffect(kvp.second.handle);
+				}
+				s_driveEffectsByMetadata.erase(metadataIt);
+			}
+		}
+	}
+}
+
+float InterceptingCollisions(byte8* metadataAddr, float radius) {
+	auto collisionMeta = reinterpret_cast<CollisionDataMetadata*>(metadataAddr);
+
+	if (!collisionMeta) {
+		return radius;
+	}
+
+	const uintptr_t metadataKey = reinterpret_cast<uintptr_t>(metadataAddr);
+
+	// Context: Every move seems to have a specific offset from PlayerAddr for its collision data.
+	// We can use this to both id which move the collision pertains to and which player it belongs to / spawned it.
+	// You can identify this offset by putting a breakpoint at dmc3.exe + 2CCC98 and looking at RBX, 
+	// which points to the collisionMetadata struct. For attack hitboxes, it will usually end at ...0x420 (for Vergil) and 0x760 (for Dante).
+	// so just look at the relation between moveOffsetAddr (+0x20) and the playerAddr to get the hitbox offset for each move.
+	// This detour call is placed right before the game writes the radius value for the hitbox, 
+	// so we can check for specific moves and modify their hitbox size if we want to.
+	// Conversely, we can also use the dmgDatastruct and playerAddr present in the Collision Structs to id them (more reliable). 
+	// - Mia
+
+	DriveCol::HandleDriveCollisionLogic(collisionMeta, metadataKey);
+
+	// Yamato High Time hitbox increase
+	uintptr_t yamatoHighTimeOffset = (uintptr_t)collisionMeta->moveOffsetAddr - 0x66640;
+	uintptr_t yamatoHighTimeOffsetDT = (uintptr_t)collisionMeta->moveOffsetAddr - 0x7CA40; // +0x16400 from yamatoHighTimeOffset, for DT version of the move, DT has slightly larger radius?
+	uintptr_t yamatoHighTimeOffsetClone = (uintptr_t)collisionMeta->moveOffsetAddr - 0x17A640; // +0x114000 from yamatoHighTimeOffset
+
+	// Checking for all Players and Clones
+	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; playerIndex++) {
+		for (uint8 entityIndex = 0; entityIndex < 2; entityIndex++) {
+			auto& playerData = GetPlayerData(playerIndex);
+			auto& characterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, entityIndex);
+			auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, entityIndex);
+
+			if (!newActorData.baseAddr) {
+				continue;
+			}
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+			auto& inYamatoHighTime = (entityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].inYamatoHighTime :
+				crimsonPlayer[playerIndex].inYamatoHighTimeClone;
+
+			if ((((yamatoHighTimeOffset == (uintptr_t)newActorData.baseAddr) && crimsonPlayer[playerIndex].inYamatoHighTime) ||
+				(yamatoHighTimeOffsetClone == (uintptr_t)newActorData.baseAddr) && crimsonPlayer[playerIndex].inYamatoHighTimeClone) ||
+				(yamatoHighTimeOffsetDT == (uintptr_t)newActorData.baseAddr) && crimsonPlayer[playerIndex].inYamatoHighTime) {
+
+				return radius * 3.5f;
+			}
+
+		}
+	}
+
+
+	return radius;
+}
+
+void DebugDrawCollisions(byte8* metadataAddr) {
+	if (!activeCrimsonGameplay.Debug.showHitboxes || !activeCrimsonGameplay.Debug.debugTools) {
+		return;
+	}
+
+	auto& collisionMeta = *reinterpret_cast<CollisionDataMetadata*>(metadataAddr);
+
+	vec3 right = { collisionMeta.matrix1[0], collisionMeta.matrix1[1], collisionMeta.matrix1[2] };
+	vec3 up = { collisionMeta.matrix1[4], collisionMeta.matrix1[5], collisionMeta.matrix1[6] };
+	vec3 forward = { collisionMeta.matrix1[8], collisionMeta.matrix1[9], collisionMeta.matrix1[10] };
+
+	vec4 position = { collisionMeta.matrix1[12], collisionMeta.matrix1[13], collisionMeta.matrix1[14],  collisionMeta.matrix1[15] };
+
+	dd::circle(dd_ctx(), *(ddVec3*)&collisionMeta.hitboxPos, *(ddVec3*)&up, dd::colors::Coral, collisionMeta.hitboxRadius, 8, 32);
+	dd::circle(dd_ctx(), *(ddVec3*)&collisionMeta.hitboxPos, *(ddVec3*)&right, dd::colors::Chartreuse, collisionMeta.hitboxRadius, 8, 32);
+	dd::circle(dd_ctx(), *(ddVec3*)&collisionMeta.hitboxPos, *(ddVec3*)&forward, dd::colors::Crimson, collisionMeta.hitboxRadius, 8, 32);
+}
+
+bool CheckIfCanExecuteAction(uintptr_t playerAddr, uint32 event) {
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
+	uint8 playerIndex = actorData.newPlayerIndex;
+	uint8 entityIndex = actorData.newEntityIndex;
+	auto& jCut = (entityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].jCut : crimsonPlayer[playerIndex].jCutClone;
+
+// 	if (jCut.isJustFrameCharged || jCut.isAfterJustFrameCharged || actorData.action == ACTION_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2 || actorData.eventData[0].event == 33) {
+// 		return false;
+// 	}
+
+// 	if (jCut.performing) {
+// 		return false;
+// 	}
+
+	return true;
+}
+
 void InitDetours() {
     using namespace Utility;
     DetourBaseAddr = (uintptr_t)appBaseAddr;
@@ -631,6 +951,7 @@ void InitDetours() {
 	CameraSwitchInitDetour();
 	CameraWallCheckDetour();
 	LdkInitDetour();
+	CrimsonEfk::EffekInitRenderHook();
 	CrimsonOnTick::ToggleOnTickFuncs(true);
 
 	// AddToMirageGauge
@@ -657,7 +978,15 @@ void InitDetours() {
     createEffectCallB  = (uintptr_t)appBaseAddr + 0x1FAA50;
     createEffectRBXMov = (uintptr_t)appBaseAddr + 0xC18AF8;
 
-       
+	// InterceptCollisions
+	// dmc3.exe + 2CCC98 - F3 0F 11 8B 40 01 00 00 - movss[rbx + 00000140], xmm1 { Assigning Hitbox Radius }
+	static std::unique_ptr<Utility::Detour_t> InterceptCollisionsHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2CCC98, &InterceptCollisionsDetour, 8);
+	g_InterceptCollisions_ReturnAddr = InterceptCollisionsHook->GetReturnAddress();
+	g_DrawCollisionsCall = &DebugDrawCollisions;
+	g_InterceptCollisionsCall = &InterceptingCollisions;
+	InterceptCollisionsHook->Toggle(true);
+
     // VergilNeutralTrick // func is already detoured, Crimson.MobilityFunction<27>+B1
     // static std::unique_ptr<Utility::Detour_t> VergilNeutralTrickHook = std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x0,
     // &VergilNeutralTrickDetour, 5); g_VergilNeutralTrick_ReturnAddr = VergilNeutralTrickHook->GetReturnAddress();
@@ -1056,6 +1385,29 @@ void ToggleEnsureAirRisingDragonLaunch(bool enable) {
 	EnsureAirRisingDragonLaunchHook->Toggle(enable);
 
 	run = enable;
+}
+
+void ToggleConfirmSetAction(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+
+	if (run == enable) {
+		return;
+	}
+
+	// dmc3.exe+1E6DAF - E8 4C9AFFFF           - call dmc3.exe+1E0800 -- TriggerEvent call
+	// RCX is playerPtr, RDX is event ID (0x11)
+
+	g_ConfirmSetAction_FuncCall = (uintptr_t)appBaseAddr + 0x1E0800;
+
+	static std::unique_ptr<Utility::Detour_t> ConfirmSetActionHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1E6DAF, &ConfirmSetActionDetour, 5);
+	g_ConfirmSetAction_ReturnAddr = ConfirmSetActionHook->GetReturnAddress();
+	ConfirmSetActionHook->Toggle(enable);
+	g_ConfirmSetActionCheckCall = &CheckIfCanExecuteAction;
+	
+	run = enable;
+
 }
 
 void ToggleGreenOrbsMPRegen(bool enable) {

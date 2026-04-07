@@ -11,6 +11,7 @@
 
 #include "../Core/DebugSwitch.hpp"
 #include "../StyleSwitchFX.hpp"
+#include "../CrimsonEfk.hpp"
 #include "../CrimsonHUD.hpp"
 #include <dxgi1_3.h>
 
@@ -70,10 +71,20 @@ void WindowSize3() {
 void UpdateKeyboard() {
     keyboard.Update();
 
-    CoreImGui::DI8::UpdateKeyboard(&keyboard.state);
-
+    // Only update ImGui keyboard state from DirectInput if ImGui doesn't want keyboard capture
+    // When WantCaptureKeyboard is true, ImGui_ImplWin32_WndProcHandler handles input via Windows messages
+    if (!ImGui::GetIO().WantCaptureKeyboard) {
+        CoreImGui::DI8::UpdateKeyboard(&keyboard.state);
+    }
 
     auto& state = keyboard.state;
+
+    UpdateKeyboardConfigCapture(state.keys);
+
+    // Block game input when ImGui wants keyboard input
+    if (ImGui::GetIO().WantCaptureKeyboard) {
+        return;
+    }
 
 
     for_all(index, keyBindings.size()) {
@@ -416,8 +427,18 @@ void ToggleBorderlessFullscreen() {
     }
 }
 
+// Forward declaration for ImGui Win32 backend handler
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 namespace Hook::Windows {
 LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lParameter) {
+    // Let ImGui's Win32 backend handle the message first - this is CRITICAL for proper text input
+    // This handles WM_CHAR, WM_KEYDOWN, WM_KEYUP, WM_MOUSEMOVE, etc. internally
+    if (ImGui_ImplWin32_WndProcHandler(windowHandle, message, wParameter, lParameter)) {
+        // ImGui handled the message and consumed it - don't pass it to the game
+        return true;
+    }
+
     // Only handle Alt+Enter if flip model presentation is enabled
     if (activeCrimsonConfig.System.flipModelPresentation) {
         // Handle Alt+Enter 
@@ -499,15 +520,6 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
     }
     case WM_SETCURSOR: {
         CoreImGui::UpdateMouseCursor(windowHandle);
-
-        break;
-    }
-    case WM_CHAR: {
-        auto character = static_cast<uint16>(wParameter);
-
-        auto& io = ImGui::GetIO();
-
-        io.AddInputCharacter(character);
 
         break;
     }
@@ -861,78 +873,136 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
         FUNC_NAME, pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels, SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice,
         pFeatureLevel, ppImmediateContext);
 
-    // Create a modifiable copy of the swap chain description to enable flip model
-    DXGI_SWAP_CHAIN_DESC modifiedSwapChainDesc = *pSwapChainDesc;
-    bool flipModelEnabled = false;
-    
-    if (activeCrimsonConfig.System.flipModelPresentation && 
-        modifiedSwapChainDesc.SampleDesc.Count == 1 && modifiedSwapChainDesc.SampleDesc.Quality == 0) {
-        // Only enable flip model if no MSAA is being used
-        
-        // Use exactly 2 buffers for lowest latency (double buffering)
-        modifiedSwapChainDesc.BufferCount = 2; 
-        modifiedSwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-        
-        // Force borderless windowed mode for optimal flip model performance
-        modifiedSwapChainDesc.Windowed = TRUE;
-        
-        // Enable tearing for variable refresh rate and reduced latency
-        modifiedSwapChainDesc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-        
-        // Add frame latency waitable object flag for precise timing control
-        modifiedSwapChainDesc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-        
-        flipModelEnabled = true;
-        Log("Enabling flip model presentation - BufferCount: 2 (low latency), SwapEffect: FLIP_DISCARD, Windowed: TRUE, Flags: TEARING+WAITABLE"); 
-        
-        // Enable DPI awareness for consistent scaling regardless of Windows DPI settings
-        SetProcessDPIAware();
-        Log("SetProcessDPIAware() called for consistent DPI scaling");
-    } else if (!activeCrimsonConfig.System.flipModelPresentation) {
-        Log("Flip model presentation disabled by configuration - using original swap chain settings");
-    } else {
-        Log("Cannot enable flip model - MSAA detected (Count: %u, Quality: %u)", 
-            modifiedSwapChainDesc.SampleDesc.Count, modifiedSwapChainDesc.SampleDesc.Quality);
-    }
+	// Create a modifiable copy of the swap chain description
+	DXGI_SWAP_CHAIN_DESC modifiedSwapChainDesc = *pSwapChainDesc;
+	bool flipModelEnabled = false;
 
-    auto result = ::Base::D3D11::D3D11CreateDeviceAndSwapChain(pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels,
-        SDKVersion, flipModelEnabled ? &modifiedSwapChainDesc : pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
+	if (activeCrimsonConfig.System.flipModelPresentation && 
+		modifiedSwapChainDesc.SampleDesc.Count == 1 && modifiedSwapChainDesc.SampleDesc.Quality == 0) {
+		flipModelEnabled = true;
+		SetProcessDPIAware();
+		Log("SetProcessDPIAware() called for consistent DPI scaling");
+	} else if (!activeCrimsonConfig.System.flipModelPresentation) {
+		Log("Flip model presentation disabled by configuration - using original swap chain settings");
+	} else {
+		Log("Cannot enable flip model - MSAA detected (Count: %u, Quality: %u)", 
+			modifiedSwapChainDesc.SampleDesc.Count, modifiedSwapChainDesc.SampleDesc.Quality);
+	}
 
-    auto error = GetLastError();
+	HRESULT result = S_OK;
 
-    ::D3D11::device        = *ppDevice;
-    ::D3D11::deviceContext = *ppImmediateContext;
-    ::DXGI::swapChain      = *ppSwapChain;
+	// Use DXGI 1.2 SwapChain upgrade strictly for Flip Model scaling support.
+	if (flipModelEnabled && ppSwapChain) {
+		Log("Flip Model requested: Executing DXGI 1.2 CreateSwapChainForHwnd upgrade...");
 
-    appWindow = pSwapChainDesc->OutputWindow;
+		ID3D11Device* localDevice = nullptr;
+		ID3D11DeviceContext* localContext = nullptr;
 
-    UpdateGlobalWindowSize();
-    UpdateGlobalClientSize();
-    UpdateGlobalRenderSize(pSwapChainDesc->BufferDesc.Width, pSwapChainDesc->BufferDesc.Height);
+		// 1. Create Device ONLY (pass nullptr for SwapChain details)
+		result = ::Base::D3D11::D3D11CreateDeviceAndSwapChain(pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels,
+			SDKVersion, nullptr, nullptr, &localDevice, pFeatureLevel, &localContext);
 
-    CoreImGui::UpdateDisplaySize(pSwapChainDesc->BufferDesc.Width, pSwapChainDesc->BufferDesc.Height);
+		if (SUCCEEDED(result)) {
+			// 2. Extract factories and build DXGI 1.2 chain
+			IDXGIDevice* dxgiDevice = nullptr;
+			localDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice);
+			if (dxgiDevice) {
+				IDXGIAdapter* dxgiAdapter = nullptr;
+				dxgiDevice->GetAdapter(&dxgiAdapter);
+				if (dxgiAdapter) {
+					IDXGIFactory2* factory2 = nullptr;
+					dxgiAdapter->GetParent(__uuidof(IDXGIFactory2), (void**)&factory2);
+					if (factory2) {
+						DXGI_SWAP_CHAIN_DESC1 desc1 = {};
+						desc1.Width = modifiedSwapChainDesc.BufferDesc.Width;
+						desc1.Height = modifiedSwapChainDesc.BufferDesc.Height;
+						desc1.Format = modifiedSwapChainDesc.BufferDesc.Format;
+						desc1.SampleDesc = modifiedSwapChainDesc.SampleDesc;
+						desc1.BufferUsage = modifiedSwapChainDesc.BufferUsage;
+						desc1.BufferCount = 2; // Flip model needs 2+ buffers
+						desc1.Scaling = DXGI_SCALING_STRETCH; // Enables decoupled window/render resolution
+						desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+						desc1.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED; 
+						desc1.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
-    UpdateMousePositionMultiplier();
+						DXGI_SWAP_CHAIN_FULLSCREEN_DESC fsDesc = {};
+						fsDesc.Windowed = TRUE;
 
-    DXGI_SWAP_CHAIN_DESC swapDesc{};
-    ::DXGI::swapChain->GetDesc(&swapDesc);
+						IDXGISwapChain1* swapChain1 = nullptr;
+						HRESULT hr = factory2->CreateSwapChainForHwnd(
+							localDevice, pSwapChainDesc->OutputWindow, 
+							&desc1, &fsDesc, nullptr, &swapChain1);
 
-    if (!ImGui_ImplWin32_Init(swapDesc.OutputWindow)) {
-        Log("%s Failed to initialize ImGui on D3D11 -> ImGui_ImplWin32_Init.", FUNC_NAME);
-        return result;
-    }
+						if (SUCCEEDED(hr)) {
+							*ppSwapChain = swapChain1;
+							Log("Successfully created DXGI 1.2 SwapChain with STRETCH scaling.");
+						} else {
+							Log("Failed to create DXGI 1.2 SwapChain: %X", hr);
+						}
+						factory2->Release();
+					}
+					dxgiAdapter->Release();
+				}
+				dxgiDevice->Release();
+			}
+		}
 
-    if (!ImGui_ImplDX11_Init(::D3D11::device, ::D3D11::deviceContext)) {
-        Log("%s Failed to initialize ImGui on D3D11 -> ImGui_ImplDX11_Init.", FUNC_NAME);
-        return result;
-    }
+// 		IDXGIFactory* factory = nullptr;
+// 		if (SUCCEEDED(::DXGI::swapChain->GetParent(IID_PPV_ARGS(&factory)))) {
+// 			// Add DXGI_MWA_NO_WINDOW_CHANGES to prevent DXGI from messing with Alt-Tab focus
+// 			factory->MakeWindowAssociation(appWindow, DXGI_MWA_NO_ALT_ENTER | DXGI_MWA_NO_WINDOW_CHANGES);
+// 			factory->Release();
+// 			Log("Disabled DXGI Alt+Enter & Window Change handling - using custom borderless fullscreen");
+// 		}
 
-    CreateRenderTarget<API::D3D11>();
+		if (ppDevice) *ppDevice = localDevice;
+		if (ppImmediateContext) *ppImmediateContext = localContext;
 
-    CrimsonHUD::InitTextures(::D3D11::device);
-    InitStyleSwitchFxTexture(::D3D11::device);
-    debug_draw_init(
-        (void*)::D3D11::device, (void*)::D3D11::deviceContext, pSwapChainDesc->BufferDesc.Width, pSwapChainDesc->BufferDesc.Height);
+	} else {
+		Log("Enabling Standard D3D11 SwapChain presentation");
+		result = ::Base::D3D11::D3D11CreateDeviceAndSwapChain(pAdapter, DriverType, Software, Flags, pFeatureLevels, FeatureLevels,
+			SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice, pFeatureLevel, ppImmediateContext);
+	}
+
+	auto error = GetLastError();
+
+	::D3D11::device        = *ppDevice;
+	::D3D11::deviceContext = *ppImmediateContext;
+	::DXGI::swapChain      = *ppSwapChain;
+
+	appWindow = pSwapChainDesc->OutputWindow;
+
+	UpdateGlobalWindowSize();
+	UpdateGlobalClientSize();
+	// Make sure we inform rendering logic of our potentially higher/mutated resolution so drawing math adapts:
+	UpdateGlobalRenderSize(modifiedSwapChainDesc.BufferDesc.Width, modifiedSwapChainDesc.BufferDesc.Height);
+
+	CoreImGui::UpdateDisplaySize(modifiedSwapChainDesc.BufferDesc.Width, modifiedSwapChainDesc.BufferDesc.Height);
+
+	UpdateMousePositionMultiplier();
+
+	DXGI_SWAP_CHAIN_DESC swapDesc{};
+	::DXGI::swapChain->GetDesc(&swapDesc);
+
+	if (!ImGui_ImplWin32_Init(swapDesc.OutputWindow)) {
+		Log("%s Failed to initialize ImGui on D3D11 -> ImGui_ImplWin32_Init.", FUNC_NAME);
+		return result;
+	}
+
+	if (!ImGui_ImplDX11_Init(::D3D11::device, ::D3D11::deviceContext)) {
+		Log("%s Failed to initialize ImGui on D3D11 -> ImGui_ImplDX11_Init.", FUNC_NAME);
+		return result;
+	}
+
+	CreateRenderTarget<API::D3D11>();
+
+	CrimsonHUD::InitTextures(::D3D11::device);
+	InitStyleSwitchFxTexture(::D3D11::device);
+	debug_draw_init(
+		(void*)::D3D11::device, (void*)::D3D11::deviceContext, modifiedSwapChainDesc.BufferDesc.Width, modifiedSwapChainDesc.BufferDesc.Height);
+
+	bool efk = CrimsonEfk::EffekInit(::D3D11::device, ::D3D11::deviceContext, modifiedSwapChainDesc.BufferDesc.Width, modifiedSwapChainDesc.BufferDesc.Height);
+    assert(efk);
 
     [&]() {
         auto func = D3D11CreateDeviceAndSwapChain_func;
@@ -1063,9 +1133,9 @@ HRESULT GetDeviceStateA(IDirectInputDevice8A* pDevice, DWORD BufferSize, LPVOID 
             keys[DIK_RETURN] = 0;
         }
     }
-    
-    // Blocks DI8 Keyboard Input while GUI is Open
-    if (g_show || GetForegroundWindow() != appWindow) {
+
+    // Blocks DI8 Keyboard Input while GUI is Open or ImGui wants keyboard input
+    if (g_show || ImGui::GetIO().WantCaptureKeyboard || GetForegroundWindow() != appWindow) {
         SetMemory(Buffer, 0, BufferSize);
     }
 
@@ -1087,14 +1157,14 @@ namespace Base::XI {
 namespace Hook::XI {
 
 DWORD XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pState) {
+	SwapXInputButtonsCoop(dwUserIndex, pState);
+
 	// Blocks XInput Gamepad Input while GUI is Open
-    if (g_show) {
-        SetMemory(pState, 0, sizeof(XINPUT_STATE));
-    }
+	if (g_show) {
+		SetMemory(pState, 0, sizeof(XINPUT_STATE));
+	}
 
-    SwapXInputButtonsCoop(dwUserIndex, pState);
-
-    return 0;
+	return 0;
 }
 
 }; // namespace Hook::XI

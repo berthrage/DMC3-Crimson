@@ -2,6 +2,7 @@
 
 namespace CrimsonOnTick {
 	extern bool inputtingFPS;
+	void LevelFullyLoadedDelay();
 	void FrameResponsiveGameSpeed();
 	void GameTrackDetection();
 	void InCreditsDetection();
@@ -15,6 +16,7 @@ namespace CrimsonOnTick {
 	void StyleMeterMultiplayer();
 	void DetermineActiveEntitiesCount();
 	void MultiplayerCameraPositioningController();
+	void CameraShakeController();
 	void ForceThirdPersonCameraController();
 	void GeneralCameraOptionsController();
 	void AirTauntDetoursController();

@@ -1895,7 +1895,7 @@ void UpdatePlayerActorExp(byte8* actorBaseAddr) {
         styleLevel = expData.styleLevels[actorData.style];
     }
 	
-	if (styleLevel >= 2) {
+	if (styleLevel >= 3) {
 		styleExpPoints = 100000;
 	}
 	else {

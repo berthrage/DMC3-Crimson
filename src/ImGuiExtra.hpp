@@ -63,6 +63,7 @@ namespace UI {
 		std::array<ImFont*, 40> m_FontSizes;
 
 		friend void SetStyleCrimson();
+		friend void BuildFontsCrimson();
 	};
 
 	class RussoOne_t {
@@ -80,6 +81,7 @@ namespace UI {
 		std::array<ImFont*, 40> m_FontSizes;
 
 		friend void SetStyleCrimson();
+		friend void BuildFontsCrimson();
 	};
 
 	extern Roboto_t g_ImGuiFont_Roboto;
@@ -158,7 +160,7 @@ namespace UI {
 		struct {
 			uint32_t Major = 0;
 			uint32_t Minor = 4;
-			char	 PatchLetter = 0;
+			char	 PatchLetter = 'a';
 		} CurrentVersion;
 
 		struct {
@@ -213,6 +215,8 @@ namespace UI {
 	}
 
 	void SetStyleCrimson();
+
+	void BuildFontsCrimson();
 
 	bool ButtonEx(const char* label, const ImVec2& size_arg, ImU32 hover_text_color, ImGuiButtonFlags flags);
 

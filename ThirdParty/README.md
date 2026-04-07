@@ -66,3 +66,16 @@ Files used:
 
 * All `.c` and `.h` files from the root directory
 * `README`
+
+
+
+## Effekseer
+
+* Source: https://github.com/effekseer/Effekseer
+* Version 1.7.3.0 [8c1ca976632e092b206fa676de0e9baea004fb6e](https://github.com/effekseer/Effekseer/commit/8c1ca976632e092b206fa676de0e9baea004fb6e) 24 December 2025
+* License: MIT
+
+Files used:
+
+* All `.cpp` and `.h` files from the Effekseer directory
+* `README`

@@ -122,6 +122,7 @@ void ToggleHoldToCrazyCombo(bool enable);
 void AirTauntDetours(bool enable);
 void RerouteRedOrbsCounterAlpha(bool enable, volatile uint16_t& alphaVar);
 void ToggleEnsureAirRisingDragonLaunch(bool enable);
+void ToggleConfirmSetAction(bool enable);
 void ToggleGreenOrbsMPRegen(bool enable);
 void ToggleClassicHUDPositionings(bool enable);
 void ToggleHideAndMutePortals(bool enable);

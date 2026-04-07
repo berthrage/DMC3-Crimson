@@ -5,9 +5,11 @@ set(MASM_SRC
     masm/AddToMirageGauge.asm
     masm/CameraHittingWall.asm
     masm/CameraSensitivity.asm
+    masm/ConfirmSetAction.asm
     masm/CreateEffect.asm
     masm/HoldToCrazyComboAsm.asm
     masm/DisableStaggerRoyalguard.asm
+    masm/InterceptCollisions.asm
     masm/FasterTurnRate.asm
     masm/GuardBreakToNormalBlock.asm
     masm/FixBallsHangHitSpeed.asm
@@ -57,6 +59,9 @@ set(CXX_LIBS
     libzip
     zlib
     Detours
+
+    EffekseerRendererDX11
+    Effekseer
 
     debug ${CMAKE_SOURCE_DIR}/ThirdParty/curl/lib/x64-debug/libcurl_a_debug.lib optimized ${CMAKE_SOURCE_DIR}/ThirdParty/curl/lib/x64-release/libcurl_a.lib
     debug ${CMAKE_SOURCE_DIR}/ThirdParty/openssl/lib/x64-debug/libcrypto_static.lib optimized ${CMAKE_SOURCE_DIR}/ThirdParty/openssl/lib/x64-release/libcrypto_static.lib
@@ -203,9 +208,7 @@ file(GLOB MAIN_SRC
     Sound.hpp
     SoundRelocations.cpp
     SoundRelocations.hpp
-    Speed.cpp
-    Speed.hpp
-    Training.cpp
+    Speed.cpp Speed.hpp Training.cpp
     Training.hpp
     Vars.cpp
     Vars.hpp
@@ -215,6 +218,8 @@ file(GLOB MAIN_SRC
     Window.hpp
     StyleSwitchFX.cpp
     StyleSwitchFX.hpp
+    CrimsonEfk.hpp
+    CrimsonEfk.cpp
 )
 
 file(GLOB CORE_SRC 
@@ -323,3 +328,4 @@ target_link_libraries(${PROJECT_NAME} PUBLIC ${CXX_LIBS}) # Dependencies
 
 set_target_properties(${PROJECT_NAME} PROPERTIES 
 OUTPUT_NAME dinput8_injector)
+

@@ -1,12 +1,15 @@
 #pragma once
 
 #include <vector>
+#include <cstdint>
 
 #include "Core/Core.hpp"
 #include "ImGuiExtra.hpp"
 #include "Core/Macros.h"
 #include "DebugDrawDX11.hpp"
 #include <string>
+#include "Effekseer.h"
+#include "CrimsonEfk.hpp"
 
 #pragma push_macro("VOID")
 #pragma push_macro("IGNORE")
@@ -55,6 +58,23 @@ enum {
     KALINA_ANN_LEVEL_3,
 
     COUNT,
+    //Modded moves start
+    REBELLION_STINGER_AIR,
+
+    CERBERUS_REVOLVER_AIR,
+
+    AGNI_RUDRA_WHIRLWIND_AIR,
+
+    BEOWULF_RISING_DRAGON_AIR,
+    
+
+    //BEOWULF_TORNADO_AIR,
+    SWORDMASTER_MODDED_MOVES,
+    //GROUND_TRICK,
+    TRICKSTER_MODDED_MOVES,
+    //DT_ROYAL_GUARD,
+    ROYALGUARD_MODDED_MOVES,
+    MOD_COUNT,
 };
 };
 
@@ -79,6 +99,20 @@ enum {
     SPIRAL_SWORDS,
 
     COUNT,
+    //Modded moves start
+    BEOWULF_RISING_SUN_AIR,
+    BEOWULF_LUNAR_PHASE_AIR,
+
+    YAMATO_HIGH_TIME,
+    YAMATO_RISING_STAR,
+
+    YAMATO_FORCE_EDGE_STINGER_AIR,
+
+    DARK_SLAYER_MODDED_MOVES,
+
+    MIRAGE_TRIGGER,
+
+    MOD_COUNT,
 };
 };
 
@@ -655,6 +689,7 @@ enum {
     POLE_PLAY,
     ROYAL_BLOCK,
     ROYAL_AIR_BLOCK,
+    REBELLION_QUICK_DRIVE,
 };
 };
 
@@ -2438,31 +2473,64 @@ static_assert(sizeof(StyleData) == 352);
 
 // $StyleDataEnd
 
+struct Matrix44 {
+	float matrix1[16]; //0x00
+	float matrix2[16];
+	float matrix3[16];
+	float matrix4[16];
+	float matrix5[16];
+	float matrix6[16];
+	float matrix7[16];
+	float matrix8[16];
+	float matrix9[16];
+	float matrix10[16];
+	float matrix11[16];
+	float matrix12[16];
+	float matrix13[16];
+	float matrix14[16];
+	float matrix15[16];
+	float matrix16[16];
+};
+
+//static_assert(sizeof(Matrix44) == 0x40);
+
 // $CollisionDataMetadataStart
 
 struct CollisionDataMetadata {
-    _(48);
-    vec4 data[8]; // 0x30
+    _(12);
+    uint32 instanceId; //0xC
+    _(8);
+    float radiusCopy; // 0x18
+    _(4);
+    byte8* moveOffsetAddr; // 0x20
+    _(8);
+    float matrix1[16]; // 0x30
+    float matrix2[16];
     _(32);
     void* collisionDataAddr; // 0xD0
     _(8);
-    vec4 data2[3];   // 0xE0
+    vec4 pos2[3];   // 0xE0
     byte8* files[2]; // 0x110
     uint32 mode;     // 0x120
     _(12);
-    vec4 data3;             // 0x130
-    float heightAdjustment; // 0x140
+    vec4 hitboxPos;             // 0x130
+    float hitboxRadius; // 0x140
+    _(460);
+    byte8* dmgDataAddr; // 0x310
 };
 
-static_assert(offsetof(CollisionDataMetadata, data) == 0x30);
+static_assert(offsetof(CollisionDataMetadata, instanceId) == 0xC);
+static_assert(offsetof(CollisionDataMetadata, radiusCopy) == 0x18);
+static_assert(offsetof(CollisionDataMetadata, moveOffsetAddr) == 0x20);
+static_assert(offsetof(CollisionDataMetadata, matrix1) == 0x30);
 static_assert(offsetof(CollisionDataMetadata, collisionDataAddr) == 0xD0);
-static_assert(offsetof(CollisionDataMetadata, data2) == 0xE0);
+static_assert(offsetof(CollisionDataMetadata, pos2) == 0xE0);
 static_assert(offsetof(CollisionDataMetadata, files) == 0x110);
 static_assert(offsetof(CollisionDataMetadata, mode) == 0x120);
-static_assert(offsetof(CollisionDataMetadata, data3) == 0x130);
-static_assert(offsetof(CollisionDataMetadata, heightAdjustment) == 0x140);
+static_assert(offsetof(CollisionDataMetadata, hitboxPos) == 0x130);
+static_assert(offsetof(CollisionDataMetadata, hitboxRadius) == 0x140);
+static_assert(offsetof(CollisionDataMetadata, dmgDataAddr) == 0x310);
 
-static_assert(sizeof(CollisionDataMetadata) == 324);
 
 // $CollisionDataMetadataEnd
 
@@ -2479,6 +2547,8 @@ struct CollisionData {
     byte32 flags; // 0x140
     _(204);
     vec4 data[8]; // 0x210
+    _(272);
+	byte8* playerBaseAddr; // 0x3A0
 };
 
 static_assert(offsetof(CollisionData, group) == 4);
@@ -2486,8 +2556,22 @@ static_assert(offsetof(CollisionData, metadataAddr) == 0x88);
 static_assert(offsetof(CollisionData, baseAddr) == 0x130);
 static_assert(offsetof(CollisionData, flags) == 0x140);
 static_assert(offsetof(CollisionData, data) == 0x210);
+static_assert(offsetof(CollisionData, playerBaseAddr) == 0x3A0);
 
-static_assert(sizeof(CollisionData) == 656);
+struct CollisionDataPlayer {
+	_(4);
+	uint32 group; // 4
+	_(128);
+	CollisionDataMetadata* metadataAddr; // 0x88
+	_(160);
+	byte8* baseAddr; // 0x130
+	_(8);
+	byte32 flags; // 0x140
+	_(204);
+	vec4 data[8]; // 0x210
+};
+
+static_assert(sizeof(CollisionDataPlayer) == 656);
 
 // $CollisionDataEnd
 
@@ -2752,9 +2836,12 @@ struct ShadowData {
 static_assert(sizeof(ShadowData) == 0xC0);
 
 struct PhysicsData {
-    _(240);
+    _(0x30);
+    vec4 bonePosition; // 0x30
+    _(0xB0);
 };
 
+static_assert(offsetof(PhysicsData, bonePosition) == 0x30);
 static_assert(sizeof(PhysicsData) == 0xF0);
 
 struct PhysicsLinkData {
@@ -2791,6 +2878,19 @@ struct ModelPartitionData {
 
 static_assert(sizeof(ModelPartitionData) == 0x380);
 
+// class cDrawReverse
+// {
+// public:
+// 	_(24); //0x0000
+// 	uint8_t drawBool; //0x0018
+// 	_(495); //0x0019
+// 	Matrix44* bones; //0x0208
+// 	_(1384); //0x0210
+// 	uint64_t end; //0x0778
+// }; //Size: 0x0780
+// 
+// static_assert(offsetof(cDrawReverse, bones) == 0x208);
+
 struct ModelData {
     _(8);
     byte8** funcAddrs; // 8
@@ -2799,7 +2899,9 @@ struct ModelData {
     bool physics; // 0x19
     _(358);
     ModelPartitionData* modelPartitionData; // 0x180
-    _(888);
+    _(128);
+    Matrix44* bones; // 0x208
+    _(752);
     struct {
         _(84);
         float duration[2]; // 0x554
@@ -2813,11 +2915,13 @@ struct ModelData {
     _(196);
 };
 
+using cDrawReverse = ModelData;
+
 static_assert(offsetof(ModelData, funcAddrs) == 8);
 static_assert(offsetof(ModelData, visible) == 0x18);
 static_assert(offsetof(ModelData, physics) == 0x19);
 static_assert(offsetof(ModelData, modelPartitionData) == 0x180);
-
+static_assert(offsetof(ModelData, bones) == 0x208);
 static_assert(offsetof(ModelData, Motion.duration) == 0x554);
 static_assert(offsetof(ModelData, Motion.duration2) == 0x594);
 static_assert(offsetof(ModelData, Motion.init) == 0x690);
@@ -3120,6 +3224,25 @@ static_assert(offsetof(ActorDataBase, rotation) == 0xC0);*/
 
 // static_assert(sizeof(ActorDataBase) == 200);
 
+
+struct Sword {
+	_(276);
+	uint8 playerBoneAttachment; // 0x114
+	uint8 sheathPlayerBoneAttachment; // 0x115
+    _(10);
+	byte8* actorBaseAddr; // 0x120
+    _(8);
+    ModelData* swordcDraw; // 0x130
+    _(3384);
+    bool hideYamatoTip; // 0xE70
+};
+
+static_assert(offsetof(Sword, playerBoneAttachment) == 0x114);
+static_assert(offsetof(Sword, sheathPlayerBoneAttachment) == 0x115);
+static_assert(offsetof(Sword, actorBaseAddr) == 0x120);
+static_assert(offsetof(Sword, swordcDraw) == 0x130);
+static_assert(offsetof(Sword, hideYamatoTip) == 0xE70);
+
 struct PlayerActorDataBase : ActorDataBase {
     _(80);
     uint8 id; // 0x118
@@ -3144,7 +3267,7 @@ struct PlayerActorDataBase : ActorDataBase {
     MotionData motionDataMirror[3]; // 0x39B4
     _(2);
     uint32 var_39BC;                    // 0x39BC
-    uint8 var_39C0[16];                 // 0x39C0
+    uint8 weaponMotionState[16];        // 0x39C0
     uint32 nextActionRequestPolicy[16]; // 0x39D0
     uint8 var_3A10[8];                  // 0x3A10
     uint32 shadow;                      // 0x3A18
@@ -3295,7 +3418,7 @@ struct PlayerActorDataBase : ActorDataBase {
     _(36);
     BodyPartData bodyPartData[3][2]; // 0x6950
     _(576);
-    CollisionData collisionData; // 0x7250
+    CollisionDataPlayer collisionData; // 0x7250
     byte16 buttons[4];           // 0x74E0
     _(16);
     uint16 rightStickPosition; // 0x74F8
@@ -3325,7 +3448,7 @@ static_assert(offsetof(PlayerActorDataBase, motionArchives) == 0x38A0);
 static_assert(offsetof(PlayerActorDataBase, motionData) == 0x39B0);
 static_assert(offsetof(PlayerActorDataBase, motionDataMirror) == 0x39B4);
 static_assert(offsetof(PlayerActorDataBase, var_39BC) == 0x39BC);
-static_assert(offsetof(PlayerActorDataBase, var_39C0) == 0x39C0);
+static_assert(offsetof(PlayerActorDataBase, weaponMotionState) == 0x39C0);
 static_assert(offsetof(PlayerActorDataBase, nextActionRequestPolicy) == 0x39D0);
 static_assert(offsetof(PlayerActorDataBase, var_3A10) == 0x3A10);
 static_assert(offsetof(PlayerActorDataBase, shadow) == 0x3A18);
@@ -4018,6 +4141,47 @@ static_assert(offsetof(PlayerActorDataVergil, newAirRisingSunCount) == 0x1CAE4);
 static_assert(offsetof(PlayerActorDataVergil, newEffectIndices) == 0x1CAF0);
 static_assert(offsetof(PlayerActorDataVergil, newLastVar) == 0x1CB20);
 
+namespace CREATE_EFFECT_BONE_LOOKUP {
+constexpr uint32 BONES_PER_MODEL_VARIANT = 0x18;
+constexpr uint32 BASE_POOL_MODEL_VARIANTS = 4;
+constexpr uint32 NEW_POOL_MODEL_VARIANTS = 7;
+constexpr uint32 BASE_POOL_BONE_SLOTS = BASE_POOL_MODEL_VARIANTS * BONES_PER_MODEL_VARIANT;
+constexpr uint32 NEW_POOL_BONE_SLOTS = NEW_POOL_MODEL_VARIANTS * BONES_PER_MODEL_VARIANT;
+
+inline uint32 GetCreateEffectBoneSlot(const PlayerActorData& actorData, uint32 effectBoneIdx) {
+    // Mirrors CreateEffect.asm logic:
+    // if devil trigger model or clone model is in use, offset by 0x18 * activeModelIndexMirror.
+    if (actorData.devil || actorData.newEntityIndex != ENTITY::MAIN) {
+        return effectBoneIdx + (BONES_PER_MODEL_VARIANT * actorData.activeModelIndexMirror);
+    }
+
+    return effectBoneIdx;
+}
+
+inline PhysicsMetadata* GetBoneMetadataFromBasePool(PlayerActorDataBase& actorDataBase, uint32 boneSlot) {
+    if (boneSlot >= BASE_POOL_BONE_SLOTS) {
+        return nullptr;
+    }
+
+    auto* flatPool = &actorDataBase.modelPhysicsMetadataPool[0][0];
+    return flatPool[boneSlot];
+}
+
+inline PhysicsMetadata* GetBoneMetadataFromNewPool(PlayerActorData& actorData, uint32 boneSlot) {
+    if (boneSlot >= NEW_POOL_BONE_SLOTS) {
+        return nullptr;
+    }
+
+    auto* flatPool = &actorData.newModelPhysicsMetadataPool[0][0];
+    return flatPool[boneSlot];
+}
+
+inline PhysicsData* GetBonePhysicsData(PhysicsMetadata* boneMetadata) {
+    // CreateEffect uses [boneMetadata + 0x110], which maps to PhysicsMetadata::physicsData.
+    return boneMetadata ? boneMetadata->physicsData : nullptr;
+}
+}
+
 
 // float maxHitPointsDullahan; // 0x238
 // float hitPointsDullahan; // 0x2478
@@ -4319,7 +4483,7 @@ static_assert(offsetof(EnemyActorDataPride, state) == 0x3A38);
 
 struct EnemyActorDataLady : ActorDataBase {
     _(21400);
-    CollisionData collisionData; // 0x5460
+    CollisionDataPlayer collisionData; // 0x5460
     _(104);
     float hitPoints; // 0x5758
     _(556);
@@ -4360,7 +4524,7 @@ struct EnemyActorDataVergil : ActorDataBase {
     _(272);
     float nextEventTimer; // 0x1D8
     _(58964);
-    CollisionData collisionData; // 0xE830
+    CollisionDataPlayer collisionData; // 0xE830
     _(104);
     float hitPoints; // 0xEB28
     _(584);
@@ -5023,6 +5187,8 @@ struct StoredAirCounts {
     uint8 airHike = 0;
     uint8 airStinger = 0;
     uint8 airTornado = 0;
+    uint8 airSwordAttack = 0;
+    uint8 airGunAttack = 0;
     bool cancelTrackerRunning = false;
 };
 
@@ -5059,6 +5225,7 @@ extern float g_FrameRate;
 extern "C" float g_FrameRateTimeMultiplier;
 extern "C" float g_cerbDamageValue;
 extern "C" float g_FrameRateTimeMultiplierRounded;
+extern "C" float g_missionTimer;
 extern bool g_inCombat;
 extern bool g_inBossfight;
 extern bool g_inCredits;
@@ -5066,6 +5233,8 @@ extern int g_bossQuantity;
 extern bool g_inGameDelayed;
 extern bool g_inGameCutscene;
 extern bool g_inMainMenu;
+extern bool g_inGUIPause;
+extern bool g_levelFullyLoadedDelay;
 extern bool g_allActorsSpawned;
 extern bool g_HudVisible;
 extern std::string g_gameTrackPlaying;
@@ -5113,12 +5282,29 @@ extern SprintVFX sprintVFX;
 
 extern int notHoldingMelee;
 
-struct Drive {
+struct DanteDriveRework {
+	EffekseerHandle chargeEffectHandle;
+    EffekseerHandle quickDriveChargeEffectHandle;
+	EffekseerHandle level1EffectHandle;
+	EffekseerHandle level2EffectHandle;
+    EffekseerHandle level3EffectHandle;
+    bool quickDriveEffectPlayed = false;
+    bool chargeEffectPlayed = false;
     bool level1EffectPlayed = false;
     bool level2EffectPlayed = false;
     bool level3EffectPlayed = false;
-    float timer             = 0;
-    bool runTimer           = false;
+    float levelTimer             = 0;
+    bool runLevelTimer           = false;
+    bool inQuickDrive = false;
+    bool part2Played = false;
+    bool part3Played = false;
+    bool inPart2 = false;
+    bool inPart3 = false;
+    bool meleePressedForOverdrive = false;
+    float motion19Timer = 0.0f;
+    bool resetMotion19Timer = false;
+    float effectInterruptTime = 8.0f;
+    bool sfxLooped = false;
 };
 ;
 
@@ -5174,6 +5360,11 @@ struct BackToForward {
     bool forwardCommand          = false;
     float forwardDuration        = 0.2f;
     float forwardBuffer          = forwardDuration;
+};
+
+struct StyleSwitchVFX {
+    EffekseerHandle handles[10] = { 0 };
+    EffekseerHandle swooshHandles[10] = { 0 };
 };
 
 struct StyleSwitchText {
@@ -5265,6 +5456,32 @@ struct VergilDoppelganger {
     bool drainStart = false;
 };
 
+namespace JDC_STATE {
+    enum {
+        NORMAL_GROUNDED,
+        NORMAL_AIR,
+        JUST_FRAME_GROUNDED,
+        JUST_FRAME_AIR,
+    };
+};
+
+struct VergilJudgementCut {
+    uint8 state = JDC_STATE::NORMAL_GROUNDED;
+    uint32 actionWhenChargeStarted = 100;
+    float meleeButtonHold = 0.0f;
+    float meleeHoldTime = 0.0f;
+    float meleeMaxHoldTime = 0.0f;
+    bool isJustFrameCharged = false;
+    bool isAfterJustFrameCharged = false;
+    bool performing = false;
+    bool fireSound = true;
+};
+
+struct DanteStingerInput {
+    float meleeButtonHold = 0.0f;
+    bool meleeReleasedStinger = false;
+};
+
 extern bool inRoyalBlock;
 extern bool inGuardfly;
 extern float rainstormPull;
@@ -5300,6 +5517,7 @@ struct CrimsonPlayerData {
     int currentAnim   = 0;
     float actionTimer = 0;
     float actionTimerNotEventChange = 0;
+    float actionTimerNotTrickChange = 0;
     float lastActionTime = 0;
     float animTimer   = 0;
     float eventTimer = 0;
@@ -5307,13 +5525,13 @@ struct CrimsonPlayerData {
     uint32 currentEvent = 0;
     bool active;
     bool inNewDrive   = false;
-    bool inQuickDrive = false;
     Sprint sprint;
-    Drive drive;
+    DanteDriveRework drive;
     std::vector<uint32> lastEvents{0};
     int lastLastEvent = 0;
     std::vector<byte32> lastStates{0};
     byte32 lastLastState = 0;
+    bool canRoyalMagnetism = true;
     float horizontalPull;
     VergilMoveAdjustments vergilMoves;
     Inertia inertia;
@@ -5321,6 +5539,7 @@ struct CrimsonPlayerData {
     RoyalRelease royalRelease;
     ImprovedCancels cancels;
     BackToForward b2F;
+    StyleSwitchVFX styleSwitchVFX;
     StyleSwitchText styleSwitchText;
     DTESFX dTESFX;
     DTEVFX dTEVFX;
@@ -5359,8 +5578,12 @@ struct CrimsonPlayerData {
     MoveGravityTweak lunarPhaseTweak;
     MoveGravityTweak airTauntRisingSunTweak;
     bool inRisingStar = false;
+    bool inYamatoHighTime = false;
     bool inAirTauntRisingSun = false;
     bool lastInAirTauntRisingSun = false;
+    EffekseerHandle yamatoGroundedHighTimeHandle;
+    VergilJudgementCut jCut;
+    DanteStingerInput stingerInput;
 
     uintptr_t clonePtr;
     uint8 actionClone     = 0;
@@ -5375,6 +5598,7 @@ struct CrimsonPlayerData {
     int currentAnimClone   = 0;
     float actionTimerClone = 0;
 	float actionTimerNotEventChangeClone = 0;
+    float actionTimerNotTrickChangeClone = 0;
     float lastActionTimeClone = 0;
     float animTimerClone   = 0;
     float eventTimerClone = 0;
@@ -5384,9 +5608,12 @@ struct CrimsonPlayerData {
     int lastLastEventClone = 0;
     std::vector<byte32> lastStatesClone{0};
     byte32 lastLastStateClone = 0;
+	bool canRoyalMagnetismClone = true;
     float horizontalPullClone;
+    DanteDriveRework driveClone;
     RoyalRelease royalReleaseClone;
     SkyLaunch skyLaunchClone;
+    StyleSwitchVFX styleSwitchVFXClone;
     VergilMoveAdjustments vergilMovesClone;
     ImprovedCancels cancelsClone;
     BackToForward b2FClone;
@@ -5420,8 +5647,12 @@ struct CrimsonPlayerData {
     MoveGravityTweak lunarPhaseTweakClone;
     MoveGravityTweak airTauntRisingSunTweakClone;
     bool inRisingStarClone = false;
+	bool inYamatoHighTimeClone = false;
     bool inAirTauntRisingSunClone = false;
     bool lastInAirTauntRisingSunClone = false;
+    EffekseerHandle yamatoGroundedHighTimeHandleClone;
+	VergilJudgementCut jCutClone;
+    DanteStingerInput stingerInputClone;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];
@@ -5441,14 +5672,6 @@ extern HeldStyleExpData heldStyleExpDataVergil;
 extern bool devilTriggerReadyPlayed;
 
 extern bool missionClearSongPlayed;
-
-struct GuiPause {
-    bool in       = false;
-    float timer   = 0.5f;
-    bool canPause = false;
-};
-
-extern GuiPause guiPause;
 
 extern float frameRateSpeedMultiplier;
 

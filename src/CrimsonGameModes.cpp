@@ -52,6 +52,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	auto& general = preset.Gameplay.General;
 	general.inertia = false;
 	general.sprint = false;
+	general.extramoves = false;
 	general.freeformSoftLock = false;
 	general.bufferlessReversals = false;
 	general.dmc4LockOnDirection = false;
@@ -74,7 +75,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	dante.aerialMovesTweaks = false;
 	dante.downertiaD = false;
 	dante.shotgunAirShotTweaks = false;
-	dante.driveTweaks = false;
+	dante.driveRework = false;
 	dante.disableAirSlashKnockback = false;
 	dante.airStinger = false;
 	dante.airRevolver = false;
@@ -98,7 +99,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	vergil.airStinger = false;
 	vergil.airRisingSun = false;
 	vergil.airLunarPhase = false;
-	vergil.altJudgementCutInput = false;
+	vergil.judgementCutRework = false;
 	//vergil.adjustRisingSunPos = "Off"; // or whatever vanilla used
 	//vergil.adjustLunarPhasePos = "Off";
 
@@ -117,6 +118,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	auto& general = preset.Gameplay.General;
 	general.inertia = false;
 	general.sprint = true;
+	general.extramoves = false;
 	general.freeformSoftLock = true;
 	general.holdToCrazyCombo = true;
 	general.dmc4LockOnDirection = true;
@@ -138,7 +140,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	dante.aerialMovesTweaks = false;
 	dante.downertiaD = false;
 	dante.shotgunAirShotTweaks = false;
-	dante.driveTweaks = false;
+	dante.driveRework = false;
 	dante.disableAirSlashKnockback = false;
 	dante.airStinger = false;
 	dante.airRevolver = true;
@@ -162,7 +164,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	vergil.airStinger = true;
 	vergil.airRisingSun = true;
 	vergil.airLunarPhase = true;
-	vergil.altJudgementCutInput = true;
+	vergil.judgementCutRework = false;
 	vergil.yamatoRisingStar = false;
 	vergil.yamatoHighTime = false;
 	vergil.airTauntRisingSun = false;
@@ -198,6 +200,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	auto& general = preset.Gameplay.General;
 	general.inertia = true;
 	general.sprint = true;
+	general.extramoves = true;
 	general.freeformSoftLock = true;
 	//general.bufferlessReversals = false;
 	general.dmc4LockOnDirection = true;
@@ -221,7 +224,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	dante.aerialMovesTweaks = true;
 	dante.downertiaD = true;
 	dante.shotgunAirShotTweaks = true;
-	dante.driveTweaks = true;
+	dante.driveRework = true;
 	dante.disableAirSlashKnockback = true;
 	dante.airStinger = true;
 	dante.airRevolver = true;
@@ -245,7 +248,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	vergil.airStinger = true;
 	vergil.airRisingSun = true;
 	vergil.airLunarPhase = true;
-	vergil.altJudgementCutInput = true;
+	vergil.judgementCutRework = true;
 	vergil.yamatoRisingStar = true;
 	vergil.yamatoHighTime = true;
 	vergil.airTauntRisingSun = true;
@@ -333,6 +336,7 @@ const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 	mask.Cheats.Mobility.trickUpCount = false;
 	mask.Cheats.Mobility.trickDownCount = false;
 	mask.Debug.debugTools = false;
+	mask.Debug.showHitboxes = false;
 	mask.Cheats.General.enemySpawnerTool = false;
 	mask.Cheats.General.teleporterTool = false;
 
@@ -401,6 +405,7 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Cheats.Mobility.trickUpCount = false;
 	mask.Cheats.Mobility.trickDownCount = false;
 	mask.Debug.debugTools = false;
+	mask.Debug.showHitboxes = false;
 	mask.Cheats.General.enemySpawnerTool = false;
 	mask.Cheats.General.teleporterTool = false;
 
@@ -470,6 +475,7 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Cheats.Mobility.trickUpCount = false;
 	mask.Cheats.Mobility.trickDownCount = false;
 	mask.Debug.debugTools = false;
+	mask.Debug.showHitboxes = false;
 	mask.Cheats.General.enemySpawnerTool = false;
 	mask.Cheats.General.teleporterTool = false;
 

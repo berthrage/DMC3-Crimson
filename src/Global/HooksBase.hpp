@@ -20,6 +20,7 @@
 #include "../../ThirdParty/ImGui/Backend/imgui_impl_dx11.h"
 #include "../StyleSwitchFX.hpp"
 #include "../CrimsonSDL.hpp"
+#include "../CrimsonEfk.hpp"
 
 namespace API {
 enum {
@@ -224,6 +225,7 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
         ImGui_ImplDX10_NewFrame();
         ImGui_ImplWin32_NewFrame();
     } else if constexpr (api == API::D3D11) {
+        CrimsonEfk::CaptureDepthStencilForPresent(::D3D11::deviceContext);
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
     }
@@ -268,6 +270,8 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
 
         ImGui_ImplDX10_RenderDrawData(ImGui::GetDrawData());
     } else if constexpr (api == API::D3D11) {
+        CrimsonEfk::EffekIncFrames();
+
         ::D3D11::deviceContext->OMSetRenderTargets(1, &::D3D11::renderTargetView, 0);
 
         // Low-latency optimization: Prefetch render target for better cache performance
@@ -293,28 +297,8 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
         func();
     }();
 
-    // Ultra-low latency optimization: Wait for GPU frame completion before presenting
-    if (activeCrimsonConfig.System.flipModelPresentation && g_frameLatencyWaitableObject != nullptr) {
-        // Boost thread priority for rendering thread during frame presentation
-        HANDLE currentThread = GetCurrentThread();
-        int originalPriority = GetThreadPriority(currentThread);
-        SetThreadPriority(currentThread, THREAD_PRIORITY_TIME_CRITICAL);
-        
-        // Wait for the GPU to signal that it's ready for the next frame
-        // This ensures minimal CPU-GPU pipeline stalls and reduces input lag by 1-2 frames
-        DWORD waitResult = WaitForSingleObjectEx(g_frameLatencyWaitableObject, 16, TRUE); // 16ms timeout (1 frame at 60fps)
-        if (waitResult == WAIT_OBJECT_0) {
-            // GPU is ready - proceed with minimal latency
-            // Force immediate command buffer flush for D3D11
-            if constexpr (api == API::D3D11) {
-                ::D3D11::deviceContext->Flush(); // Ensure all GPU commands are submitted immediately
-            }
-        } else if (waitResult == WAIT_TIMEOUT) {
-            Log("Frame latency wait timeout - GPU may be overloaded");
-        }
-        
-        // Restore original thread priority
-        SetThreadPriority(currentThread, originalPriority);
+    if constexpr (api == API::D3D11) {
+        CrimsonEfk::EffekRenderOnPresent(::D3D11::deviceContext);
     }
 
     // Use optimal present flags for flip model low latency
@@ -329,7 +313,34 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
         }
     }
 
-    return ::Base::DXGI::Present(pSwapChain, SyncInterval, presentFlags);
+    HRESULT presentResult = ::Base::DXGI::Present(pSwapChain, SyncInterval, presentFlags);
+
+    // Low latency optimization: Wait for GPU frame completion after presenting
+    // This blocks the game from starting the next frame's logic/input until the GPU is ready.
+    if (activeCrimsonConfig.System.flipModelPresentation && g_frameLatencyWaitableObject != nullptr) {
+        // Boost thread priority for rendering thread during Wait
+        HANDLE currentThread = GetCurrentThread();
+        int originalPriority = GetThreadPriority(currentThread);
+        SetThreadPriority(currentThread, THREAD_PRIORITY_TIME_CRITICAL);
+
+        // Wait up to 1 second. (Don't use 16ms, as that breaks if framerate dips below 60fps)
+        DWORD waitResult = WaitForSingleObjectEx(g_frameLatencyWaitableObject, 1000, TRUE); 
+        if (waitResult == WAIT_OBJECT_0) {
+            // GPU is ready. The next line of game engine code executed will be input polling!
+			 // GPU is ready - proceed with minimal latency
+			// Force immediate command buffer flush for D3D11
+			if constexpr (api == API::D3D11) {
+				::D3D11::deviceContext->Flush(); // Ensure all GPU commands are submitted immediately
+			}
+        } else if (waitResult == WAIT_TIMEOUT) {
+            Log("Frame latency wait timeout - GPU may be overloaded or crashed");
+        }
+
+        // Restore original thread priority
+        SetThreadPriority(currentThread, originalPriority);
+    }
+
+    return presentResult;
 }
 
 template <new_size_t api>

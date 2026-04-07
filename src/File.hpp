@@ -25,6 +25,17 @@ extern FileManager File_dynamicFiles;
 extern byte8* demo_pl000_00_3;
 extern byte8* vergil_pl021_00_3;
 extern byte8* newRisingStar_pl021_00_4; 
+extern byte8* newYamatoHighTime_pl021_00_5;
+extern byte8* newBaseDanteAnims_pl000_00_0;
+extern byte8* newBaseVergilAnims_pl021_00_0;
+extern byte8* newStyleSwitching01_pl000_00_4;
+extern byte8* newStyleSwitching02_pl000_00_4;
+extern byte8* newJudgementCut_pl021_00_3;
+extern byte8* newJudgementCutAir_pl021_00_3;
+extern byte8* newJudgementCutAirJF_pl021_00_3;
+extern byte8* newDrivePart1_pl000_00_3;
+extern byte8* newDrivePart2_pl000_00_3;
+extern byte8* newDrivePart3_pl000_00_3;
 
 void File_UpdateFileData(FileData& fileData, uint16 cacheFileIndex);
 

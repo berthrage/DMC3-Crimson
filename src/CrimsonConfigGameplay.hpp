@@ -26,6 +26,7 @@ struct CrimsonConfigGameplay {
 
         struct General {
 			bool inertia = true;
+			bool extramoves = true;
 			bool sprint = true;
 			bool charHotswap = false;
 			bool freeformSoftLock = true;
@@ -78,7 +79,7 @@ struct CrimsonConfigGameplay {
 			bool aerialMovesTweaks = true;
 			bool downertiaD = false;
 			bool shotgunAirShotTweaks = true;
-			bool driveTweaks = true;
+			bool driveRework = true;
 			bool disableAirSlashKnockback = true;
 			bool airStinger = true;
 			bool airRevolver = true;
@@ -106,7 +107,7 @@ struct CrimsonConfigGameplay {
 					std::make_pair("aerialMovesTweaks", &Dante::aerialMovesTweaks),
 					std::make_pair("downertiaD", &Dante::downertiaD),
 					std::make_pair("shotgunAirShotTweaks", &Dante::shotgunAirShotTweaks),
-					std::make_pair("driveTweaks", &Dante::driveTweaks),
+					std::make_pair("driveRework", &Dante::driveRework),
 					std::make_pair("disableAirSlashKnockback", &Dante::disableAirSlashKnockback),
 					std::make_pair("airStinger", &Dante::airStinger),
 					std::make_pair("airRevolver", &Dante::airRevolver),
@@ -134,7 +135,7 @@ struct CrimsonConfigGameplay {
 			bool airStinger = true;
 			bool airRisingSun = true;
 			bool airLunarPhase = true;
-			bool altJudgementCutInput = false;
+			bool judgementCutRework = false;
 			bool yamatoRisingStar = true;
 			bool yamatoHighTime = true;
 			bool airTauntRisingSun = true;
@@ -151,7 +152,7 @@ struct CrimsonConfigGameplay {
 					std::make_pair("airStinger", &Vergil::airStinger),
 					std::make_pair("airRisingSun", &Vergil::airRisingSun),
 					std::make_pair("airLunarPhase", &Vergil::airLunarPhase),
-					std::make_pair("altJudgementCutInput", &Vergil::altJudgementCutInput),
+					std::make_pair("judgementCutRework", &Vergil::judgementCutRework),
 					std::make_pair("yamatoRisingStar", &Vergil::yamatoRisingStar),
 					std::make_pair("yamatoHighTime", &Vergil::yamatoHighTime),
 					std::make_pair("airTauntRisingSun", &Vergil::airTauntRisingSun),
@@ -378,10 +379,12 @@ struct CrimsonConfigGameplay {
 
 	struct Debug {
 		bool debugTools = false;
+		bool showHitboxes = false;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
-				std::make_pair("debugTools", &Debug::debugTools)
+				std::make_pair("debugTools", &Debug::debugTools),
+				std::make_pair("showHitboxes", &Debug::showHitboxes)
 			);
 		}
 	} Debug;

@@ -11,6 +11,9 @@
 #pragma optimize("", off) // Disable all optimizations
 #pragma pack(push, 8)
 
+#define NUM_GAMEPADBINDS 16
+#define NUM_KEYBINDS 24
+
 namespace HUDELEMENTSCALESTATE {
 enum {
 	SMALL,
@@ -50,6 +53,14 @@ enum {
 };
 }
 
+namespace CAMERASHAKE {
+	enum {
+		OFF,
+		ONLY_IN_SINGLE_PLAYER_CAM,
+		ALWAYS_ON
+	};
+}
+
 namespace DELAYEDCOMBOSFX {
 enum {
 	TYPE_A,
@@ -57,10 +68,18 @@ enum {
 };
 }
 
+namespace STYLESWITCHVFXTYPE {
+	enum {
+	CRIMSON,
+	NSWITCH
+};
+}
+
 struct CrimsonConfig {
 	struct MultiplayerBars2D {
 		bool show = true;
 		uint8 show1PAttributes = HUDELEMENTSHOWSTATE::ONLY_IN_MP;
+
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -183,14 +202,15 @@ struct CrimsonConfig {
 	struct Camera {
 		float fovMultiplier = 1.2f;
 		uint8 sensitivity = 2;
-		uint8 followUpSpeed = 2;
+		uint8 followUpSpd = 0;
 		uint8 distance = 2;
 		uint8 lockOnDistance = 2;
 		uint8 verticalTilt = 0;
 		bool lockedOff = true;
 		bool invertX = true;
 		uint8 autoAdjust = 0;
-		uint8 rightStickCameraCentering = RIGHTSTICKCENTERCAM::TO_NEAREST_SIDE;
+		uint8 rightStickCameraCentering = RIGHTSTICKCENTERCAM::ON;
+		uint8 cameraShake = CAMERASHAKE::ONLY_IN_SINGLE_PLAYER_CAM;
 		bool disableBossCamera = false;
 		bool multiplayerCamera = true;
 		bool panoramicCam = true;
@@ -200,7 +220,7 @@ struct CrimsonConfig {
 			return std::make_tuple(
 				std::make_pair("fovMultiplier", &Camera::fovMultiplier),
 				std::make_pair("sensitivity", &Camera::sensitivity),
-                std::make_pair("followUpSpeed", &Camera::followUpSpeed),
+                std::make_pair("followUpSpd", &Camera::followUpSpd),
                 std::make_pair("distance", &Camera::distance),
                 std::make_pair("lockOnDistance", &Camera::lockOnDistance),
                 std::make_pair("verticalTilt", &Camera::verticalTilt),
@@ -208,6 +228,7 @@ struct CrimsonConfig {
                 std::make_pair("invertX", &Camera::invertX),
                 std::make_pair("autoAdjust", &Camera::autoAdjust),
                 std::make_pair("rightStickCameraCentering", &Camera::rightStickCameraCentering),
+				std::make_pair("cameraShake", &Camera::cameraShake),
                 std::make_pair("disableBossCamera", &Camera::disableBossCamera),
 				std::make_pair("multiplayerCamera", &Camera::multiplayerCamera),
 				std::make_pair("panoramicCam", &Camera::panoramicCam),
@@ -220,6 +241,7 @@ struct CrimsonConfig {
 
 		struct Flux {
 			bool enable = true;
+			uint8 type = STYLESWITCHVFXTYPE::CRIMSON;
 
 			uint8 color[7][4] = {
 				// r   g  b  a 
@@ -235,6 +257,7 @@ struct CrimsonConfig {
 			static constexpr auto Metadata() {
 				return std::make_tuple(
 					std::make_pair("enable", &StyleSwitchFX::Flux::enable),
+					std::make_pair("type", &StyleSwitchFX::Flux::type),
                     std::make_pair("color", &StyleSwitchFX::Flux::color)
 				);
 			}
@@ -281,10 +304,24 @@ struct CrimsonConfig {
 
 	struct VFX {
 		bool delayedComboVFX = true;
+		uint8 delayedComboColor[4] = { 48, 0, 10, 255 };
+		bool royalBlockVFX = true;
+		uint8 royalBlockColor[4] = { 226, 4, 50, 255 };
+		bool dtExplosionVFX = true;
+		uint8 dtExplosionColorDante[4] = { 48, 0, 10, 255 };
+		uint8 dtExplosionColorVergil[4] = { 2, 16, 43, 255 };
+		bool dtActivationVibration = true;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
-				std::make_pair("delayedComboVFX", &VFX::delayedComboVFX)
+				std::make_pair("delayedComboVFX", &VFX::delayedComboVFX),
+				std::make_pair("delayedComboColor", &VFX::delayedComboColor),
+				std::make_pair("royalBlockVFX", &VFX::royalBlockVFX),
+				std::make_pair("royalBlockColor", &VFX::royalBlockColor),
+				std::make_pair("dtExplosionVFX", &VFX::dtExplosionVFX),
+				std::make_pair("dtExplosionColorDante", &VFX::dtExplosionColorDante),
+				std::make_pair("dtExplosionColorVergil", &VFX::dtExplosionColorVergil),
+				std::make_pair("dtActivationVibration", &VFX::dtActivationVibration)
 			);
 		}
 	} VFX;
@@ -397,28 +434,123 @@ struct CrimsonConfig {
 	} PlayerProperties;
 
 	struct System {
-		struct Remaps {
-			uint16_t danteDTButton = 0x0004;
-			uint16_t danteShootButton = 0x0080;
-			uint16_t vergilDTButton = 0x0080;
-			uint16_t vergilShootButton = 0x0004;
+		struct ButtonConfig {
+			uint16_t dante1P[NUM_GAMEPADBINDS] = {
+				0x1000, 0x4000, 0x2000, 0x8000,
+				0x10,   0x40,   0x20,   0x80,
+				0x4,    0x1,    0x200,  0x8,
+				0x2,    0x400,  0x100,  0x800
+			};
+
+			uint16_t vergil1P[NUM_GAMEPADBINDS] = {
+				0x1000, 0x4000, 0x2000, 0x8000,
+				0x10,   0x40,   0x20,   0x80,
+				0x4,    0x1,    0x200,  0x8,
+				0x2,    0x400,  0x100,  0x800
+			};
+
+			uint16_t dante2P[NUM_GAMEPADBINDS] = {
+				0x1000, 0x4000, 0x2000, 0x8000,
+				0x10,   0x40,   0x20,   0x80,
+				0x4,    0x1,    0x200,  0x8,
+				0x2,    0x400,  0x100,  0x800
+			};
+
+			uint16_t vergil2P[NUM_GAMEPADBINDS] = {
+				0x1000, 0x4000, 0x2000, 0x8000,
+				0x10,   0x40,   0x20,   0x80,
+				0x4,    0x1,    0x200,  0x8,
+				0x2,    0x400,  0x100,  0x800
+			};
+
+			uint16_t dante3P[NUM_GAMEPADBINDS] = {
+				0x1000, 0x4000, 0x2000, 0x8000,
+				0x10,   0x40,   0x20,   0x80,
+				0x4,    0x1,    0x200,  0x8,
+				0x2,    0x400,  0x100,  0x800
+			};
+
+			uint16_t vergil3P[NUM_GAMEPADBINDS] = {
+				0x1000, 0x4000, 0x2000, 0x8000,
+				0x10,   0x40,   0x20,   0x80,
+				0x4,    0x1,    0x200,  0x8,
+				0x2,    0x400,  0x100,  0x800
+			};
+
+			uint16_t dante4P[NUM_GAMEPADBINDS] = {
+				0x1000, 0x4000, 0x2000, 0x8000,
+				0x10,   0x40,   0x20,   0x80,
+				0x4,    0x1,    0x200,  0x8,
+				0x2,    0x400,  0x100,  0x800
+			};
+
+			uint16_t vergil4P[NUM_GAMEPADBINDS] = {
+				0x1000, 0x4000, 0x2000, 0x8000,
+				0x10,   0x40,   0x20,   0x80,
+				0x4,    0x1,    0x200,  0x8,
+				0x2,    0x400,  0x100,  0x800
+			};
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
-					std::make_pair("danteDTButton", &Remaps::danteDTButton),
-					std::make_pair("danteShootButton", &Remaps::danteShootButton),
-					std::make_pair("vergilDTButton", &Remaps::vergilDTButton),
-					std::make_pair("vergilShootButton", &Remaps::vergilShootButton)
+					std::make_pair("dante1P", &ButtonConfig::dante1P),
+					std::make_pair("vergil1P", &ButtonConfig::vergil1P),
+					std::make_pair("dante2P", &ButtonConfig::dante2P),
+					std::make_pair("vergil2P", &ButtonConfig::vergil2P),
+					std::make_pair("dante3P", &ButtonConfig::dante3P),
+					std::make_pair("vergil3P", &ButtonConfig::vergil3P),
+					std::make_pair("dante4P", &ButtonConfig::dante4P),
+					std::make_pair("vergil4P", &ButtonConfig::vergil4P)
 				);
 			}
-		} Remaps;
-		
+		} ButtonConfig;
+
+		struct KeyboardConfig {
+			uint32 keybinds[NUM_KEYBINDS] = {
+				DI8::KEY::LEFT_SHIFT, // keyboard_0(HDCdefault: 54) - SELECT / TAUNT - dmc3.exe+5611A0
+				DI8::KEY::U, // keyboard_1(HDCdefault: 49) - LB / DEVIL TRIGGER - dmc3.exe+5611A4
+				DI8::KEY::C, // keyboard_2(HDCdefault: 46) - LS / CHANGE TARGET - dmc3.exe + 5611A8
+				DI8::KEY::ONE, // keyboard_3(HDCdefault: 2) - DPAD UP - dmc3.exe + 5611AC
+				DI8::KEY::TWO, // keyboard_4(HDCdefault: 3) - DPAD RIGHT - dmc3.exe + 5611B0
+				DI8::KEY::FOUR, // keyboard_5(HDCdefault: 5) - DPAD DOWN - dmc3.exe + 5611B4
+				DI8::KEY::THREE, // keyboard_6(HDCdefault: 4) - DPAD LEFT - dmc3.exe + 5611B8
+				DI8::KEY::M, // keyboard_7(HDCdefault: 50) - START - dmc3.exe + 5611BC
+				DI8::KEY::SPACE, // keyboard_8(HDCdefault: 57) - RB / LOCK ON - dmc3.exe + 5611C0
+				DI8::KEY::F, // keyboard_9(HDCdefault: 33) - RS / DEFAULT CAMERA - dmc3.exe + 5611C4
+				DI8::KEY::I, // keyboard_10(HDCdefault: 23) - Y / MELEE ATK - dmc3.exe + 5611C8
+				DI8::KEY::L, // keyboard_11(HDCdefault: 38) - B / STYLE - dmc3.exe + 5611CC
+				DI8::KEY::K, // keyboard_12(HDCdefault: 37) - A / JUMP - dmc3.exe + 5611D0
+				DI8::KEY::J, // keyboard_13(HDCdefault: 36) - X / SHOOT - dmc3.exe + 5611D4
+				DI8::KEY::W, // keyboard_14(HDCdefault: 17) - LEFT ANALOG UP - dmc3.exe + 5611D8
+				DI8::KEY::D, // keyboard_15(HDCdefault: 32) - LEFT ANALOG RIGHT - dmc3.exe + 5611DC
+				DI8::KEY::S, // keyboard_16(0HDCdefault: 31) - LEFT ANALOG DOWN - dmc3.exe + 5611E0
+				DI8::KEY::A, // keyboard_17(HDCdefault: 30) - LEFT ANALOG LEFT - dmc3.exe + 5611E4
+				DI8::KEY::UP, // keyboard_18(HDCdefault: 72) - RIGHT ANALOG UP - dmc3.exe+5611E8
+				DI8::KEY::RIGHT, // keyboard_19(HDCdefault: 77) - RIGHT ANALOG RIGHT - dmc3.exe+5611EC
+				DI8::KEY::DOWN, // keyboard_20(HDCdefault: 80) - RIGHT ANALOG DOWN - dmc3.exe+5611F0
+				DI8::KEY::LEFT, // keyboard_21(HDCdefault: 75) - RIGHT ANALOG LEFT - dmc3.exe+5611F4
+				DI8::KEY::Q, // keyboard_22(HDCdefault: 16) - LT / CHANGE GUN - dmc3.exe + 5611F8
+				DI8::KEY::E, // keyboard_23(HDCdefault: 18) - RT / CHANGE DEVIL ARM - dmc3.exe + 5611FC
+			};
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("keybinds", &KeyboardConfig::keybinds)
+				);
+			}
+
+		} KeyboardConfig;
+
+		uint8 xinputSlots[PLAYER_COUNT] = { 0, 1, 2, 3 };
+
 		bool flipModelPresentation = true;
-	
+
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
-				std::make_pair("Remaps", &System::Remaps),
+				std::make_pair("ButtonConfig", &System::ButtonConfig),
+				std::make_pair("KeyboardConfig", &System::KeyboardConfig),
+				std::make_pair("xinputSlots", &System::xinputSlots),
 				std::make_pair("flipModelPresentation", &System::flipModelPresentation)
 			);
 		}

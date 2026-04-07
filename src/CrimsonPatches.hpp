@@ -6,6 +6,7 @@
 #pragma region GameplayImprovements
 
 namespace CrimsonPatches {
+void PauseGameTime(bool enable);
 void DisableHeightRestriction(bool enable);
 void HoldToAutoFire(bool enable);
 void EndBossFight(bool enable);
@@ -27,6 +28,7 @@ void CameraFollowUpSpeedController(CameraData& cameraData, CameraControlMetadata
 void CameraDistanceController(CameraControlMetadata& cameraMetadata);
 void CameraLockOnDistanceController();
 void CameraTiltController(CameraData* cameraData, CameraControlMetadata& cameraMetadata);
+void DisableCameraShake(bool enable);
 void ForceThirdPersonCamera(bool enable);
 void ToggleLockedOffCamera(bool enable);
 void DisableLockOnCamera(bool enable);

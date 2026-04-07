@@ -7,6 +7,7 @@ struct CrimsonConfigGameplayMask {
 		struct General {
 			bool inertia = true;
 			bool sprint = true;
+			bool extramoves = true;
 			bool charHotswap = true;
 			bool freeformSoftLock = true;
 			bool bufferlessReversals = true;
@@ -28,6 +29,7 @@ struct CrimsonConfigGameplayMask {
 				return std::make_tuple(
 					std::make_pair("inertia", &General::inertia),
 					std::make_pair("sprint", &General::sprint),
+					std::make_pair("extramoves", &General::extramoves),
 					std::make_pair("charHotswap",&General::charHotswap),
 					std::make_pair("freeformSoftLock", &General::freeformSoftLock),
 					std::make_pair("bufferlessReversals", &General::bufferlessReversals),
@@ -57,7 +59,7 @@ struct CrimsonConfigGameplayMask {
 			bool aerialMovesTweaks = true;
 			bool downertiaD = true;
 			bool shotgunAirShotTweaks = true;
-			bool driveTweaks = true;
+			bool driveRework = true;
 			bool disableAirSlashKnockback = true;
 			bool airStinger = true;
 			bool airRevolver = true;
@@ -85,7 +87,7 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("aerialMovesTweaks", &Dante::aerialMovesTweaks),
 					std::make_pair("downertiaD", &Dante::downertiaD),
 					std::make_pair("shotgunAirShotTweaks", &Dante::shotgunAirShotTweaks),
-					std::make_pair("driveTweaks", &Dante::driveTweaks),
+					std::make_pair("driveRework", &Dante::driveRework),
 					std::make_pair("disableAirSlashKnockback", &Dante::disableAirSlashKnockback),
 					std::make_pair("airStinger", &Dante::airStinger),
 					std::make_pair("airRevolver", &Dante::airRevolver),
@@ -113,7 +115,7 @@ struct CrimsonConfigGameplayMask {
 			bool airStinger = true;
 			bool airRisingSun = true;
 			bool airLunarPhase = true;
-			bool altJudgementCutInput = true;
+			bool judgementCutRework = true;
 			bool yamatoRisingStar = true;
 			bool yamatoHighTime = true;
 			bool airTauntRisingSun = true;
@@ -131,7 +133,7 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("airStinger", &Vergil::airStinger),
 					std::make_pair("airRisingSun", &Vergil::airRisingSun),
 					std::make_pair("airLunarPhase", &Vergil::airLunarPhase),
-					std::make_pair("altJudgementCutInput", &Vergil::altJudgementCutInput),
+					std::make_pair("judgementCutRework", &Vergil::judgementCutRework),
 					std::make_pair("yamatoRisingStar", &Vergil::yamatoRisingStar),
 					std::make_pair("yamatoHighTime", &Vergil::yamatoHighTime),
 					std::make_pair("airTauntRisingSun", &Vergil::airTauntRisingSun),
@@ -340,10 +342,12 @@ struct CrimsonConfigGameplayMask {
 
 	struct Debug {
 		bool debugTools = true;
+		bool showHitboxes = true;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
-				std::make_pair("debugTools", &Debug::debugTools)
+				std::make_pair("debugTools", &Debug::debugTools),
+				std::make_pair("showHitboxes", &Debug::showHitboxes)
 			);
 		}
 	} Debug;

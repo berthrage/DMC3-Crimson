@@ -35,7 +35,7 @@
 #include "CrimsonSDL.hpp"
 #include "CrimsonPatches.hpp"
 #include "CrimsonDetours.hpp"
-
+#include "CrimsonEfk.hpp"
 // @Remove
 #define g_enableLockOnFixes true
 
@@ -1568,6 +1568,10 @@ template <typename T> void UpdateCostumeFileData(T& actorData) {
             swordFileId = plwp_sword3;
         }
 
+        if (actorData.action == ACTION_DANTE::REBELLION_COMBO_1_PART_1) {
+            swordFileId = plwp_sword3;
+		}
+
         File_UpdateFileData(140, swordFileId);
     }
 }
@@ -2991,7 +2995,9 @@ void ActivateDevil(PlayerActorData& actorData, bool playSFX) {
     }
 
     //VIBRATE
-    CrimsonSDL::VibrateController(actorData.newPlayerIndex, 0, 0x2222, 300);
+    if (activeCrimsonConfig.VFX.dtActivationVibration) {
+        CrimsonSDL::VibrateController(actorData.newPlayerIndex, 0, 0x2222, 300);
+    }
     // PlayDevilTriggerLoop();
 }
 
@@ -3223,8 +3229,13 @@ void UpdateStyleSwitchAnimations() {
 
 		if (elapsed >= 30) { // 50 ms has passed
 			PlayAnimation_1EFB90(switchAnimState.actorData, switchAnimState.group, switchAnimState.index, -1.0f, -1, 2, 0);
-			switchAnimState.isPlaying = false; // Reset state
 		}
+
+        if (elapsed >= 40) {
+            auto& actorData = *reinterpret_cast<PlayerActorData*>(switchAnimState.actorData);
+            actorData.motionArchives[2] = File_staticFiles[pl000_00_2];
+            switchAnimState.isPlaying = false; // Reset state
+        }
 	}
 }
 
@@ -3244,6 +3255,10 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
 		return;
 	}
 	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+	auto& styleSwitchVFX = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].styleSwitchVFX : 
+        crimsonPlayer[playerIndex].styleSwitchVFXClone;
+
+    actorData.style = style; // Changes the style.
 
     // Very important for proper Style EXP to function
     // this is essentially changing which style is going to be accumulated
@@ -3264,19 +3279,19 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
 		uint32 group = 2, index = 0;
         
 		switch (style) {
-		case STYLE::SWORDMASTER:   group = 2; index = 0; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
-		case STYLE::GUNSLINGER:    group = 25; index = 0; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
-		case STYLE::TRICKSTER:     group = 2; index = 1; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
-		case STYLE::ROYALGUARD:    group = 2; index = 2; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
-        case STYLE::QUICKSILVER:   group = 2; index = 1;  actorData.motionArchives[2] = File_staticFiles[pl001_00_2]; break;
+		case STYLE::SWORDMASTER:   group = 2; index = 1; actorData.motionArchives[MOTION_GROUP_DANTE::TAUNTS] = newStyleSwitching01_pl000_00_4; break;
+		case STYLE::GUNSLINGER:    group = 2; index = 2; actorData.motionArchives[MOTION_GROUP_DANTE::TAUNTS] = newStyleSwitching01_pl000_00_4; break;
+		case STYLE::TRICKSTER:     group = 2; index = 0; actorData.motionArchives[MOTION_GROUP_DANTE::TAUNTS] = newStyleSwitching01_pl000_00_4; break;
+		case STYLE::ROYALGUARD:    group = 2; index = 0; actorData.motionArchives[MOTION_GROUP_DANTE::TAUNTS] = newStyleSwitching02_pl000_00_4; break;
+        case STYLE::QUICKSILVER:   group = 2; index = 1;  actorData.motionArchives[MOTION_GROUP_DANTE::TAUNTS] = newStyleSwitching02_pl000_00_4; break;
         //case STYLE::QUICKSILVER:   group = 3; index = 13;  actorData.motionArchives[3] = vergil_pl021_00_3; break;
-        case STYLE::DOPPELGANGER:  group = 2; index = 3; actorData.motionArchives[2] = File_staticFiles[pl000_00_2]; break;
+        case STYLE::DOPPELGANGER:  group = 2; index = 2; actorData.motionArchives[MOTION_GROUP_DANTE::TAUNTS] = newStyleSwitching02_pl000_00_4; break;
 		}
 
 		PlaySwitchAnimation(actorBaseAddr, group, index);
+        CrimsonSDL::PlaySnap(actorBaseAddr);
     }
-    
-    actorData.style = style; // Changes the style.
+   
     UpdateStyle(actorData); // Updates Style EXP
 
     // Summons Style Switch VFX (leftover from DT In Effect).
@@ -3298,8 +3313,18 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
     if (activeCrimsonConfig.StyleSwitchFX.Flux.enable) {
         uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(activeCrimsonConfig.StyleSwitchFX.Flux.color[styleColorIndex]);
         uint32 vergilColor = CrimsonUtil::Uint8toAABBGGRR(activeCrimsonConfig.StyleSwitchFX.Flux.color[6]);
-        CrimsonDetours::CreateEffectDetour(actorBaseAddr, 3, 144, 1, true, 
-            actorData.character == CHARACTER::DANTE ? actualColor : vergilColor, 0.73f);
+//         CrimsonDetours::CreateEffectDetour(actorBaseAddr, 3, 144, 1, true, 
+//             actorData.character == CHARACTER::DANTE ? actualColor : vergilColor, 0.73f);
+
+        if (activeCrimsonConfig.StyleSwitchFX.Flux.type == STYLESWITCHVFXTYPE::CRIMSON) {
+			CrimsonFX::StyleSwitchFluxCrimson(actorData, styleSwitchVFX.handles, styleSwitchVFX.swooshHandles, style,
+				actorData.character == CHARACTER::DANTE ? actualColor : vergilColor);
+		}
+        else if (activeCrimsonConfig.StyleSwitchFX.Flux.type == STYLESWITCHVFXTYPE::NSWITCH) {
+			CrimsonFX::StyleSwitchFluxNS(actorData, styleSwitchVFX.handles, styleSwitchVFX.swooshHandles, style,
+				actorData.character == CHARACTER::DANTE ? actualColor : vergilColor);
+        }
+        
     }
 
     if (!actorData.cloneActorBaseAddr) {
@@ -3342,12 +3367,26 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 	auto& playerData = GetPlayerData(actorData);
 	auto& characterData = GetCharacterData(actorData);
 	auto playerIndex = actorData.newPlayerIndex;
+    auto& styleSwitchVFX = (actorData.newEntityIndex == ENTITY::MAIN)
+        ? crimsonPlayer[playerIndex].styleSwitchVFX
+        : crimsonPlayer[playerIndex].styleSwitchVFXClone;
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
 	if (!name_80) {
 		return;
 	}
 	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+
+    // Hide Fluxes during Air Trick, restore visibility once condition ends
+    {
+        const bool hideFluxes = (actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK);
+
+        for (uint8 i = 0; i < 10; i++) {
+            if (CrimsonEfk::IsPlaying(styleSwitchVFX.handles[i])) {
+                CrimsonEfk::SetVisible(styleSwitchVFX.handles[i], !hideFluxes);
+            }
+        }
+    }
 
 	// Accumulate EXP
 	HeldStyleExpData& heldStyleExpData = (actorData.character == CHARACTER::DANTE)
@@ -4054,7 +4093,16 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
         return false;
     }
 
-    // dd::sphere(dd_ctx(), actorWorldPos, dd::colors::Red, 15.0f);
+    UpdateCostumeFileData(actorData);
+    UpdateModel(actorData);
+
+    //dd::sphere(dd_ctx(), actorWorldPos, dd::colors::Red, 15.0f);
+
+    // NOTE(): usage example idk where to stick this properly
+    //static EffekseerRefHandle particleHandle = EffekseerLoadEffect(L"Sample\\00_Version16\\Aura01.efkefc", 100.0f);
+    //if ((ImGui::GetFrameCount() % 220) == 0) {
+    //    EffekseerHandle particle = EffekseerPlayEffect(particleHandle, actorData.position, actorData);
+    //}
 	UpdateStyleSwitchAnimations();
 	StyleSwitchController(actorBaseAddr);
     CharacterSwitchController();
@@ -4065,11 +4113,14 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CrimsonPatches::DisableJCRestriction(activeCrimsonGameplay.Gameplay.General.disableJCRestriction);
     CrimsonPatches::BulletStop(activeCrimsonGameplay.Gameplay.Dante.bulletStop);
     CrimsonPatches::RainstormLift(activeCrimsonGameplay.Gameplay.Dante.rainstormLift);
-    CrimsonPatches::ReduceAirTornadoDamage(activeCrimsonGameplay.Gameplay.Dante.airTornado);
+    //Base off extra moves and whether we have swordmaster lvl 4
+    CrimsonPatches::ReduceAirTornadoDamage(activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::SWORDMASTER_MODDED_MOVES]);
     CrimsonGameplay::DanteDownertia(actorBaseAddr);
+    CrimsonGameplay::DanteStingerInputCrazyCombo(actorBaseAddr);
     CrimsonGameplay::FixAirStingerCancelTime(actorBaseAddr);
     CrimsonGameplay::VergilRisingStar(actorBaseAddr);
     CrimsonGameplay::VergilYamatoHighTime(actorBaseAddr);
+	CrimsonGameplay::VergilJudgementCutRework(actorBaseAddr);
     CrimsonGameplay::VergilAirRisingSun(actorBaseAddr);
     CrimsonGameplay::VergilAirTauntRisingSunDetection(actorBaseAddr);
     CrimsonGameplay::VergilDownertia(actorBaseAddr);
@@ -4079,6 +4130,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CrimsonGameplay::GroundTrickFlagSet(actorBaseAddr);
     CrimsonFX::StyleRankHudFadeoutController();
     CrimsonFX::DelayedComboFXController(actorBaseAddr);
+    CrimsonGameplay::DanteDriveRework(actorBaseAddr);
     
     if (sessionData.unlockDevilTrigger) {
         CrimsonFX::DTExplosionFXController(actorBaseAddr);
@@ -4121,6 +4173,8 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
             LinearRangedWeaponSwitchController(actorData);
         }
     }
+
+	auto& collisionMeta = *reinterpret_cast<CollisionDataMetadata*>(actorData.collisionData.metadataAddr);
 
 // 	if (actorData.action == ACTION_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2 && crimsonPlayer[playerIndex].actionTimer > 0.7f && actorData.buttons[1] & GetBinding(BINDING::MELEE_ATTACK)) {
 // 		actorData.action = ACTION_VERGIL::BEOWULF_RISING_SUN;
@@ -4178,6 +4232,8 @@ bool IsBossLadyActive(EnemyActorDataLady& actorData) {
 
     return false;
 }
+
+
 
 template <typename T> bool CanQueueMeleeAttack(T& actorData) {
     using namespace NEXT_ACTION_REQUEST_POLICY;
@@ -4547,8 +4603,8 @@ void CharacterSwitchController() {
     uint16* activeRotationAddr = 0;
     uint16* rotationAddr       = 0;
 
-    CollisionData* activeCollisionDataAddr = 0;
-    CollisionData* collisionDataAddr       = 0;
+    CollisionDataPlayer* activeCollisionDataAddr = 0;
+    CollisionDataPlayer* collisionDataAddr       = 0;
 
     if (!newActorData.baseAddr) {
         continue;
@@ -4676,18 +4732,28 @@ void CharacterSwitchController() {
         auto& activeMetadata = *activeMetadataAddr;
         auto& metadata       = *metadataAddr;
 
-        metadata.data2[0] = activeMetadata.data2[0];
-        metadata.data2[1] = activeMetadata.data2[1];
-        metadata.data2[2] = activeMetadata.data2[2];
+        vec4& matrixPos = *reinterpret_cast<vec4*>(&metadata.matrix1[12]);
+        vec4& activeMatrixPos = *reinterpret_cast<vec4*>(&activeMetadata.matrix1[12]);
+
+        metadata.pos2[0] = activeMetadata.pos2[0];
+        metadata.pos2[1] = activeMetadata.pos2[1];
+        metadata.pos2[2] = activeMetadata.pos2[2];
+
+        metadata.hitboxPos.x = activeMetadata.hitboxPos.x;
+		metadata.hitboxPos.y = activeMetadata.hitboxPos.y + 400.0f;
+		metadata.hitboxPos.z = activeMetadata.hitboxPos.z;
+        metadata.hitboxPos.a = 1.0f;
+
+		matrixPos.y = activeMatrixPos.y + 400.0f;
 
         // metadata.data2[0] = activePosition;
-        metadata.data2[0].a = 1.0f;
+        metadata.pos2[0].a = 1.0f;
 
         // metadata.data2[1] = activePosition;
-        metadata.data2[1].a = 1.0f;
+        metadata.pos2[1].a = 1.0f;
 
         // metadata.data2[2] = activePosition;
-        metadata.data2[2].a = 1.0f;
+        metadata.pos2[2].a = 1.0f;
     }();
 }
 }
@@ -6981,7 +7047,7 @@ uint32 AirTrickDante(PlayerActorData& actorData, uint8 action) {
 }
 
 uint32 AirTrickVergil(PlayerActorData& actorData, uint8 action) {
-    if (activeCrimsonGameplay.Gameplay.Vergil.trickUpNoLockOn && !actorData.lockOn && actorData.styleLevel > 1) {
+    if (activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::DARK_SLAYER_MODDED_MOVES] && !actorData.lockOn && actorData.styleLevel > 1) {
 		return MobilityFunction<ACTOR_EVENT::DARK_SLAYER_TRICK_UP>(
 			actorData, action, actorData.newTrickUpCount, activeCrimsonGameplay.Cheats.Mobility.trickUpCount);
     }
@@ -8182,35 +8248,6 @@ void ToggleCerberusDamage(bool enable) {
     run = true;
 }
 
-
-void ToggleRebellionHoldDrive(bool enable) {
-    LogFunction(enable);
-
-    static bool run = false;
-
-    {
-        auto addr                 = (appBaseAddr + 0x211581);
-        auto dest                 = (appBaseAddr + 0x211583);
-        constexpr new_size_t size = 2;
-        /*
-        dmc3.exe+211581 - 74 15             - je dmc3.exe+211598
-        dmc3.exe+211583 - 80 BE 133E0000 00 - cmp byte ptr [rsi+00003E13],00
-        */
-
-        if (!run) {
-            backupHelper.Save(addr, size);
-        }
-
-        if (enable) {
-            WriteAddress(addr, dest, size);
-        } else {
-            backupHelper.Restore(addr);
-        }
-    }
-
-    run = true;
-}
-
 void UpdateActorSpeed(byte8* baseAddr) {
 
     if (!baseAddr) {
@@ -8245,6 +8282,7 @@ void UpdateActorSpeed(byte8* baseAddr) {
 
 	CrimsonPatches::InertiaFixes();
     CrimsonDetours::ToggleGuardGravityAlteration(activeCrimsonGameplay.Gameplay.General.inertia);
+   
 
     // Sky Launch needs to be called from here for maximum on tick speed so that its position is properly
     // applied in real-time. - Mia
@@ -8355,16 +8393,13 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 auto* vergilMoves = (actorData.newEntityIndex == 0) ? &crimsonPlayer[playerIndex].vergilMoves :
                     &crimsonPlayer[playerIndex].vergilMovesClone;
 
-
                 if (activeCrimsonGameplay.Gameplay.General.sprint) {
                     CrimsonGameplay::SprintAbility(actorBaseAddr);
                 }
 
-
                 // InertiaController(actorData.cloneActorBaseAddr);
                 CrimsonGameplay::BackToForwardInputs(actorBaseAddr);
                 CrimsonGameplay::VergilAdjustAirMovesPos(actorBaseAddr);
-                CrimsonGameplay::DriveTweaks(actorBaseAddr);
                 CrimsonGameplay::GravityCorrections(actorBaseAddr);
 
                 if (activeCrimsonGameplay.Gameplay.Dante.artemisRework) {
@@ -9332,6 +9367,10 @@ float* GetYamatoForceEdgeStingerRange(PlayerActorData& actorData) {
 uint32 GetYamatoJudgementCutCount(PlayerActorData& actorData) {
     uint8 index = (actorData.devil) ? 1 : 0;
 
+    if (activeCrimsonGameplay.Gameplay.Vergil.judgementCutRework) {
+        return static_cast<uint32>(0);
+    }
+
     return static_cast<uint32>(activeCrimsonGameplay.Cheats.Vergil.judgementCutCount[index]);
 }
 
@@ -9352,6 +9391,7 @@ void SetAction(byte8* actorBaseAddr) {
     
 
     auto playerIndex = actorData.newPlayerIndex;
+	auto entityIndex = actorData.newEntityIndex;
     auto& actionTimer =
         (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
     auto& b2F = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].b2F : crimsonPlayer[playerIndex].b2FClone;
@@ -9366,6 +9406,15 @@ void SetAction(byte8* actorBaseAddr) {
 
     bool wasRebellionAttack = (lastAction == REBELLION_COMBO_1_PART_1 || lastAction == REBELLION_COMBO_1_PART_2 ||
         lastAction == REBELLION_COMBO_1_PART_3 || lastAction == REBELLION_COMBO_2_PART_2 || lastAction == REBELLION_COMBO_2_PART_3);
+	auto& drive = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].drive : crimsonPlayer[playerIndex].driveClone;
+	auto& inYamatoHighTime = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].inYamatoHighTime : 
+        crimsonPlayer[playerIndex].inYamatoHighTimeClone;
+	static constexpr const wchar_t* weaponParticlePath = L"Crimson\\vfx\\yamato_sword.efkefc";
+	static EffekseerRefHandle weaponParticleRef = CrimsonEfk::LoadEffect(weaponParticlePath, 1.0f);
+	auto& yamatoGroundedHighTimeHandle = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].yamatoGroundedHighTimeHandle :
+		crimsonPlayer[playerIndex].yamatoGroundedHighTimeHandleClone;
+	cDrawReverse playerVergilcDraw = actorData.newModelData[actorData.activeModelIndexMirror]; // activeModelIndex == which DT or Non-DT model
+	Matrix44* playerBoneMatrix = reinterpret_cast<Matrix44*>(playerVergilcDraw.bones);
 
 
 
@@ -9374,13 +9423,15 @@ void SetAction(byte8* actorBaseAddr) {
 
     switch (actorData.character) {
     case CHARACTER::DANTE: {
-      
-
-        actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = File_staticFiles[pl000_00_3];
+        
+        // Resetting Drive anim
+        if (!drive.inQuickDrive) {
+            actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = File_staticFiles[pl000_00_3];
+        }
 
         // AIR STINGER
-        if (activeCrimsonGameplay.Gameplay.Dante.airStinger &&
-            ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1] &&
+        if (ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::REBELLION_STINGER_AIR] &&
+            activeCrimsonGameplay.Gameplay.General.extramoves &&
             (actorData.action == REBELLION_HELM_BREAKER) &&
             (actorData.newAirStingerCount < activeConfig.Rebellion.airStingerCount[index]) && lockOn &&
             (tiltDirection == TILT_DIRECTION::UP)) {
@@ -9389,18 +9440,25 @@ void SetAction(byte8* actorBaseAddr) {
             actorData.newAirStingerCount++;
 
         // DRIVE
-        } else if (activeCrimsonGameplay.Gameplay.Dante.driveTweaks &&
+        } else if (activeCrimsonGameplay.Gameplay.Dante.driveRework &&
             ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::REBELLION_DRIVE]
             && !wasRebellionAttack &&
                    (actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1 || 
                        action == REBELLION_COMBO_1_PART_1) &&
                    b2F.forwardCommand) {
 
-            ToggleRebellionHoldDrive(true);
+            // Prevent consecutive Drives
+            if (actorData.lastAction == REBELLION_DRIVE_1) {
+                return;
+            }
+
+            CrimsonGameplay::ToggleRebellionHoldDrive(true);
             actorData.action = REBELLION_DRIVE_1;
+            actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = newDrivePart1_pl000_00_3;
 
         // AIR REVOLVER
-        } else if (activeCrimsonGameplay.Gameplay.Dante.airRevolver &&
+        } else if (activeCrimsonGameplay.Gameplay.General.extramoves && 
+            ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::CERBERUS_REVOLVER_AIR] &&
             (actorData.action == CERBERUS_SWING) && lockOn &&
                    (tiltDirection == TILT_DIRECTION::UP)) {
             actorData.action = CERBERUS_REVOLVER_LEVEL_2;
@@ -9412,22 +9470,22 @@ void SetAction(byte8* actorBaseAddr) {
         }
 
         // QUICK DRIVE
-        if (activeCrimsonGameplay.Gameplay.Dante.driveTweaks &&
+        if (activeCrimsonGameplay.Gameplay.Dante.driveRework &&
             ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::REBELLION_DRIVE] &&
             (wasRebellionAttack) && (demo_pl000_00_3 != 0) &&
             (actorData.action == REBELLION_STINGER_LEVEL_2 || actorData.action == REBELLION_STINGER_LEVEL_1) &&
             b2F.forwardCommand) {
             actorData.action = REBELLION_DRIVE_1;
 
-            crimsonPlayer[playerIndex].inQuickDrive = true;
+            drive.inQuickDrive = true;
 
-            ToggleRebellionHoldDrive(false);
+            CrimsonGameplay::ToggleRebellionHoldDrive(false);
             actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = demo_pl000_00_3;
 
             actorData.newQuickDrive = true;
 
         } else {
-            crimsonPlayer[playerIndex].inQuickDrive = false;
+            drive.inQuickDrive = false;
         }
 
         // Swap Sword Pierce and Dance Macabre
@@ -9454,7 +9512,7 @@ void SetAction(byte8* actorBaseAddr) {
 
 
 		// Swap Beowulf The Hammer and Volcano Inputs if Air Tornado is enabled
-		if (activeCrimsonGameplay.Gameplay.Dante.swapHammerVocalnoInputs && activeCrimsonGameplay.Gameplay.Dante.airTornado) {
+        if (activeCrimsonGameplay.Gameplay.Dante.swapHammerVocalnoInputs && (activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::SWORDMASTER_MODDED_MOVES])) {
 			if ((actorData.action == BEOWULF_THE_HAMMER) && lockOn && (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
 				(tiltDirection == TILT_DIRECTION::DOWN)) {
 
@@ -9471,7 +9529,8 @@ void SetAction(byte8* actorBaseAddr) {
 
         // Air Tornado  // Taking Swap Logic in mind
         if ((actorData.action == BEOWULF_THE_HAMMER) && (actorData.style == STYLE::SWORDMASTER) &&
-            activeCrimsonGameplay.Gameplay.Dante.airTornado &&
+            activeCrimsonGameplay.Gameplay.General.extramoves && 
+            ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::SWORDMASTER_MODDED_MOVES] &&
             ExpConfig::missionExpDataDante.styleLevels[STYLE::SWORDMASTER] >= 2 &&
             actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION) &&
             airCounts.airTornado < 1) {
@@ -9488,8 +9547,8 @@ void SetAction(byte8* actorBaseAddr) {
 		// Air Rising Dragon Launch
 		if ((actorData.action == BEOWULF_KILLER_BEE) && actorData.state & STATE::IN_AIR &&
 			actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) &&
-			(airCounts.airRisingSunLaunch < 1) && activeCrimsonGameplay.Gameplay.Dante.airRisingDragonLaunch &&
-			ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::BEOWULF_RISING_DRAGON]) {
+			(airCounts.airRisingSunLaunch < 1) && activeCrimsonGameplay.Gameplay.General.extramoves &&
+			ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::BEOWULF_RISING_DRAGON_AIR]) {
 
             // Prevent two consecutive Launches in quick succession executing from near the ground
             if (actorData.lastAction == BEOWULF_RISING_DRAGON_LAUNCH && actorData.state & STATE::IN_AIR) {
@@ -9505,9 +9564,8 @@ void SetAction(byte8* actorBaseAddr) {
         // Air Agni & Rudra Whirlwind
 		if ((actorData.action == AGNI_RUDRA_AERIAL_CROSS) &&
 			actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) &&
-			(airCounts.airAgniRudraWhirlwind < 1) && activeCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind &&
-			ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::AGNI_RUDRA_WHIRLWIND]) {
-
+			(airCounts.airAgniRudraWhirlwind < 1) &&
+			ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::AGNI_RUDRA_WHIRLWIND_AIR]) {
 			if ((lockOn && tiltDirection == TILT_DIRECTION::DOWN)) {
 				actorData.action = AGNI_RUDRA_WHIRLWIND_LAUNCH;
 				airCounts.airAgniRudraWhirlwind++;
@@ -9537,16 +9595,9 @@ void SetAction(byte8* actorBaseAddr) {
     case CHARACTER::VERGIL: {
         using namespace ACTION_VERGIL;
 
-        // BACK TO FORWARD JUDGEMENT CUT INPUT
-        if (activeCrimsonGameplay.Gameplay.Vergil.altJudgementCutInput &&
-            (actorData.action == YAMATO_RAPID_SLASH_LEVEL_1 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 ||
-                actorData.action == YAMATO_COMBO_PART_1 || actorData.action == YAMATO_COMBO_PART_2 || 
-                actorData.action == YAMATO_COMBO_PART_3) &&
-            crimsonPlayer[playerIndex].b2F.forwardCommand) {
-            actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
-        }
         // AIR LUNAR PHASE
-        else if (activeCrimsonGameplay.Gameplay.Vergil.airLunarPhase && (actorData.action == BEOWULF_STARFALL_LEVEL_2 ||
+        if (activeCrimsonGameplay.Gameplay.General.extramoves && 
+            ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::BEOWULF_LUNAR_PHASE_AIR] && (actorData.action == BEOWULF_STARFALL_LEVEL_2 ||
             actorData.action == BEOWULF_STARFALL_LEVEL_1) 
             && lockOn && (tiltDirection == TILT_DIRECTION::UP)) {
 
@@ -9559,7 +9610,8 @@ void SetAction(byte8* actorBaseAddr) {
         } 
 		
         // FORCE EDGE AIR STINGER
-		else if (activeCrimsonGameplay.Gameplay.Vergil.airStinger && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1] &&
+		else if (activeCrimsonGameplay.Gameplay.General.extramoves && 
+            ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_AIR] &&
                    (actorData.newAirStingerCount < activeConfig.YamatoForceEdge.airStingerCount[index]) && lockOn &&
                    (tiltDirection == TILT_DIRECTION::UP) &&
 			       (actorData.action == YAMATO_FORCE_EDGE_HELM_BREAKER_LEVEL_1 ||
@@ -9580,6 +9632,15 @@ void SetAction(byte8* actorBaseAddr) {
                    crimsonPlayer[playerIndex].b2F.forwardCommand) {
             actorData.action = YAMATO_FORCE_EDGE_ROUND_TRIP;
         }
+        // GROUNDED YAMATO HIGH TIME (AFTER UPPER SLASH 1)
+		else if ((actorData.action == YAMATO_UPPER_SLASH_PART_2) &&
+			actorData.lockOn && (tiltDirection == TILT_DIRECTION::DOWN)) {
+
+			actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO_FORCE_EDGE] = newYamatoHighTime_pl021_00_5; // Swap Force Edge High Time animation
+			actorData.action = YAMATO_FORCE_EDGE_HIGH_TIME;
+
+            inYamatoHighTime = true;
+		}
 
         break;
     }
@@ -9587,6 +9648,8 @@ void SetAction(byte8* actorBaseAddr) {
 }
 
 bool AirActionCheck(PlayerActorData& actorData) {
+    auto& jCut = (actorData.newEntityIndex == 0) ? crimsonPlayer[actorData.newPlayerIndex].jCut :
+		crimsonPlayer[actorData.newPlayerIndex].jCutClone;
 
     switch (actorData.character) {
     case CHARACTER::DANTE: {
@@ -9621,11 +9684,11 @@ bool AirActionCheck(PlayerActorData& actorData) {
 			return true;
 		}
 
-        // Enable Air Judgement Cut on air test -- unfinished
-// 		if ((actorData.state & STATE::IN_AIR) && (actorData.action == ACTION_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2) &&
-// 			(actorData.motionData[1].group == MOTION_GROUP_VERGIL::YAMATO)) {
-// 			return true;
-// 		}
+
+		if ((actorData.state & STATE::IN_AIR) && (actorData.action == ACTION_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2) &&
+            (actorData.motionData[1].group == MOTION_GROUP_VERGIL::YAMATO) && activeCrimsonGameplay.Gameplay.Vergil.judgementCutRework) {
+			return true;
+		}
 
         break;
     }

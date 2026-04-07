@@ -339,6 +339,18 @@ FileDataTypeData fileDataTypeData[CACHE_FILE_COUNT] = {};
 byte8* demo_pl000_00_3 = 0;
 byte8* vergil_pl021_00_3 = 0;
 byte8* newRisingStar_pl021_00_4 = 0;
+byte8* newYamatoHighTime_pl021_00_5 = 0;
+byte8* newBaseDanteAnims_pl000_00_0 = 0;
+byte8* newBaseVergilAnims_pl021_00_0 = 0;
+byte8* newStyleSwitching01_pl000_00_4 = 0;
+byte8* newStyleSwitching02_pl000_00_4 = 0;
+byte8* newJudgementCut_pl021_00_3 = 0;
+byte8* newJudgementCutAir_pl021_00_3 = 0;
+byte8* newJudgementCutAirJF_pl021_00_3 = 0;
+byte8* newDrivePart1_pl000_00_3 = 0;
+byte8* newDrivePart2_pl000_00_3 = 0;
+byte8* newDrivePart3_pl000_00_3 = 0;
+
 
 void File_UpdateFileData(FileData& fileData, uint16 cacheFileIndex) {
     SetMemory(&fileData, 0, sizeof(fileData));
@@ -559,15 +571,38 @@ bool File_Init() {
     }
 
 
-    // Demo Rebellion Motion File
+    // New Animation Files
     [&]() {
         const char* filename = "demo_pl000_00_3.pac";
+        
         const char* vergilYamatoFilename = "pl021_00_3.pac";
         const char* newRisingStarYamatoFilename = "newRisingStar_pl021_00_4.pac";
+		const char* newYamatoHighTimeFilename = "newYamatoHighTime_pl021_00_5.pac";
+		const char* newBaseDanteAnimsFilename = "newBaseDanteAnims_pl000_00_0.pac";
+		const char* newBaseVergilAnimsFilename = "newBaseVergilAnims_pl021_00_0.pac";
+		const char* newStyleSwitching01Filename = "newStyleSwitching01_pl000_00_4.pac";
+		const char* newStyleSwitching02Filename = "newStyleSwitching02_pl000_00_4.pac";
+		const char* newJudgementCutFilename = "newJudgementCut_pl021_00_3.pac";
+		const char* newJudgementCutAirFilename = "newJudgementCutAir_pl021_00_3.pac";
+		const char* newJudgementCutAirJFFilename = "newJudgementCutAirJF_pl021_00_3.pac";
+		const char* newDrivePart1Filename = "newDrivePart1_pl000_00_3.pac";
+		const char* newDrivePart2Filename = "newDrivePart2_pl000_00_3.pac";
+		const char* newDrivePart3Filename = "newDrivePart3_pl000_00_3.pac";
 
         auto& file = demo_pl000_00_3 = File_staticFiles.Push(filename);
         auto& file2 = vergil_pl021_00_3 = File_staticFiles.Push(vergilYamatoFilename);
         auto& file3 = newRisingStar_pl021_00_4 = File_staticFiles.Push(newRisingStarYamatoFilename);
+		auto& file4 = newYamatoHighTime_pl021_00_5 = File_staticFiles.Push(newYamatoHighTimeFilename);
+		auto& file5 = newBaseDanteAnims_pl000_00_0 = File_staticFiles.Push(newBaseDanteAnimsFilename);
+		auto& file6 = newBaseVergilAnims_pl021_00_0 = File_staticFiles.Push(newBaseVergilAnimsFilename);
+		auto& file7 = newStyleSwitching01_pl000_00_4 = File_staticFiles.Push(newStyleSwitching01Filename);
+		auto& file8 = newStyleSwitching02_pl000_00_4 = File_staticFiles.Push(newStyleSwitching02Filename);
+		auto& file9 = newJudgementCut_pl021_00_3 = File_staticFiles.Push(newJudgementCutFilename);
+		auto& file10 = newJudgementCutAir_pl021_00_3 = File_staticFiles.Push(newJudgementCutAirFilename);
+		auto& file11 = newJudgementCutAirJF_pl021_00_3 = File_staticFiles.Push(newJudgementCutAirJFFilename);
+		auto& file12 = newDrivePart1_pl000_00_3 = File_staticFiles.Push(newDrivePart1Filename);
+		auto& file13 = newDrivePart2_pl000_00_3 = File_staticFiles.Push(newDrivePart2Filename);
+		auto& file14 = newDrivePart3_pl000_00_3 = File_staticFiles.Push(newDrivePart3Filename);
         if (!file) {
             return;
         }
@@ -578,6 +613,14 @@ bool File_Init() {
         AdjustPointers(file);
         AdjustPointers(file2);
         AdjustPointers(file3);
+        AdjustPointers(file4);
+		AdjustPointers(file5);
+		AdjustPointers(file6);
+		AdjustPointers(file7);
+		AdjustPointers(file8);
+		AdjustPointers(file9);
+		AdjustPointers(file10);
+		AdjustPointers(file11);
     }();
 
 

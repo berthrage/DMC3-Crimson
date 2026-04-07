@@ -21,6 +21,47 @@
 
 namespace CrimsonTimers {
 
+void MissionTimer() {
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!(pool_10222 && pool_10222[3])) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_10723) return;
+	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
+	auto  pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10298 || !pool_10298[8]) return;
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	static bool inGame = false;
+
+	float frameRate = ImGui::GetIO().Framerate;
+
+	if (g_scene == SCENE::GAME) {
+		inGame = true;
+	}
+
+	if (inGame && g_scene == SCENE::MISSION_RESULT) {
+		// convert shownTimer to frameCount and apply it to missionData.frameCount
+		int convertedFrames = static_cast<int>(g_missionTimer * ImGui::GetIO().Framerate + 0.5f); // round
+		missionData.frameCount = convertedFrames;
+		inGame = false;
+	}
+
+	// Reset shownTimer if frameCount is reset (new mission start)
+	if (missionData.frameCount <= 0) {
+        g_missionTimer = 0.0f;
+	}
+
+	float gameSpeedBase = IsTurbo() ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
+
+	float gameSpeedMultiplier = (gameSpeedBase / g_FrameRateTimeMultiplier);
+
+	// Always update timer if frameCount > 0 and not in cutscene and not paused
+	if (missionData.frameCount > 0 && eventData.event == EVENT::MAIN && !g_inGameCutscene && !g_inGUIPause) {
+        g_missionTimer += ImGui::GetIO().DeltaTime * gameSpeedMultiplier;
+	}
+}
+
 void ActionTimers() {
 	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if (!pool_10371 || !pool_10371[8]) return;
@@ -44,6 +85,7 @@ void ActionTimers() {
 			auto& lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
 			auto& actionTimerNotEventChange = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimerNotEventChange : crimsonPlayer[playerIndex].actionTimerNotEventChangeClone;
             auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
+			auto& actionTimerNotTrickChange = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimerNotTrickChange : crimsonPlayer[playerIndex].actionTimerNotTrickChangeClone;
             auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
             auto& inAirRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inAirTauntRisingSun : crimsonPlayer[playerIndex].inAirTauntRisingSunClone;
             auto& lastInAirTauntRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastInAirTauntRisingSun : crimsonPlayer[playerIndex].lastInAirTauntRisingSunClone;
@@ -58,11 +100,25 @@ void ActionTimers() {
                 actionTimer = 0;
             }
 
+			if (inAttack || actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK ||
+				actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN ||
+				actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP ||
+                actorData.eventData[0].event == ACTOR_EVENT::LANDING || actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
+				actionTimerNotTrickChange += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+            }
+            else {
+				actionTimerNotTrickChange = 0;
+            }
+
             // Reset Timer By Action
             if (actorData.action != currentAction) {
                 lastActionTime = actionTimerNotEventChange;
                 actionTimer = 0;
 				actionTimerNotEventChange = 0;
+				if (actorData.action != ACTION_VERGIL::DARK_SLAYER_AIR_TRICK && 
+                    actorData.action != ACTION_VERGIL::DARK_SLAYER_TRICK_DOWN &&
+					actorData.action != ACTION_VERGIL::DARK_SLAYER_TRICK_UP &&
+                    actorData.action != 0) actionTimerNotTrickChange = 0;
                 lastAction = currentAction;
                 lastInAirTauntRisingSun = inAirRisingSun;
                 currentAction = actorData.action;
@@ -255,20 +311,6 @@ void SprintTimer() {
             // sprint.timer = sprint.timeToTrigger;
             crimsonPlayer[playerIndex].sprint.runTimer  = false;
             crimsonPlayer[playerIndex].sprint.canSprint = true;
-        }
-    }
-}
-
-void DriveTimer() {
-
-    old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-
-
-        if (crimsonPlayer[playerIndex].drive.runTimer) {
-
-            crimsonPlayer[playerIndex].drive.timer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
-        } else {
-            crimsonPlayer[playerIndex].drive.timer = 0;
         }
     }
 }
@@ -504,6 +546,7 @@ void StyleRankAnnouncerCDTimers() {
 
 void CallAllTimers() {
 	BackToForwardTimers();
+    MissionTimer();
 	ActionTimers();
 	AnimTimers();
     EventTimers();
@@ -511,7 +554,6 @@ void CallAllTimers() {
     GuardflyTimers();
 	SiyTimerFunc();
 	SprintTimer();
-	DriveTimer();
 	ImprovedCancelsTimers();
 	StyleSwitchTextTimers();
 	StyleSwitchFluxTimers();

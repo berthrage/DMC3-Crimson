@@ -1,6 +1,7 @@
 ﻿// UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "UI\WeaponWheel.hpp"
 
+#include "CrimsonEfk.hpp"
 #include "../ThirdParty/SDL2/SDL_gamecontroller.h"
 #include "../ThirdParty/glm/glm.hpp"
 #include "CrimsonGUI.hpp"
@@ -80,6 +81,7 @@
 
 #include "ImGui/imgui.h"
 #include "CrimsonHUD.hpp"
+#include "CrimsonFX.hpp"
 
 #define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
 #define LOAD_SDL_FUNCTION(X) fn_##X = GetSDLFunction<decltype(X)*>(#X)
@@ -88,6 +90,7 @@
 namespace CrimsonGUI {
 float scaleFactorX;
 float scaleFactorY;
+float scaleFactor;
 float scaledFontSize;
 float itemWidth;
 }
@@ -1259,6 +1262,28 @@ uint8 rightStickCenterCamMap[] = {
 	2,
 };
 
+const char* cameraShakeNames[] = {
+	"Off",
+	"Only in Single Player Cam",
+	"Always On",
+};
+
+uint8 cameraShakeMap[] = {
+	0,
+	1,
+	2,
+};
+
+const char* styleSwitchTypeNames[] = {
+	"Crimson",
+	"DMC3 Switch",
+};
+
+uint8 styleSwitchTypeMap[] = {
+	0,
+	1,
+};
+
 const char* styleRankNames[] = {
 	"None",
 	"Dope",
@@ -1806,70 +1831,18 @@ static_assert(countof(trackFilenames) == countof(trackNames));
 #pragma endregion
 
 void PauseWhenGUIOpened() {
-	auto pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-	if (!pool_10298 || !pool_10298[8]) {
-		return;
-	}
-	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
-
-	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
-	if (!name_10723) {
-		return;
-	}
-	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
-
-
-
-	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_10222 || !pool_10222[3]) {
-		return;
-	}
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
-
-	static uint32 storedFrameCount = 0;
-	if (g_inGameCutscene || !activeCrimsonConfig.GUI.pauseWhenOpened) {
-		return;
-	}
-
-	// We add this timer so we can safely (aka no crash) say when we can pause the game by setting speed to 0.
-	if (g_scene != SCENE::GAME || eventData.event != EVENT::MAIN) {
-		guiPause.timer = 0.5f;
-		guiPause.canPause = false;
-		g_inGameDelayed = false;
-	}
-	else {
-		g_inGameDelayed = true;
-
-		if (guiPause.timer > 0) {
-			guiPause.timer -= ImGui::GetIO().DeltaTime;
+	if (activeCrimsonConfig.GUI.pauseWhenOpened) {
+		if (g_show) {
+			CrimsonPatches::PauseGameTime(true);
+			g_inGUIPause = true;
+		} else {
+			CrimsonPatches::PauseGameTime(false);
+			g_inGUIPause = false;
 		}
+	} else {
+		CrimsonPatches::PauseGameTime(false);
+		g_inGUIPause = false;
 	}
-
-	if (guiPause.timer <= 0) {
-		guiPause.canPause = true;
-	}
-// 
-// 
-// 	if (!g_show || !guiPause.canPause) {
-// 		storedFrameCount = missionData.frameCount; // This stores the game's timer.
-// 		activeConfig.Speed.mainSpeed = queuedConfig.Speed.mainSpeed; // This resumes the game speed
-// 		activeConfig.Speed.turbo = queuedConfig.Speed.turbo;
-// 		Speed::Toggle(true); 
-// 		guiPause.in = false;
-// 
-// 	}
-// 	else if (g_show && !guiPause.in && guiPause.canPause) {
-// 		activeConfig.Speed.mainSpeed = 0;  // This pauses the game speed
-// 		activeConfig.Speed.turbo = 0;
-// 		Speed::Toggle(true); // Toggle Speed on and off to set the new speed
-// 		Speed::Toggle(false);
-// 		guiPause.in = true;
-// 	}
-// 
-// 
-// 	if (g_showMain) {
-// 		missionData.frameCount = storedFrameCount;  // This pauses the game's timer.
-// 	}
 }
 
 std::unique_ptr<WW::WeaponWheel> dummyWeaponWheel;
@@ -3206,6 +3179,9 @@ void SelectPlayerLoadoutsWeaponsTab() {
 
 	uint8 activePlayerIndex;
 
+	ImGui::PushFont(UI::g_ImGuiFont_Benguiat[defaultFontSize * 1.0]);
+	ImGui::Text("PLAYER SETTINGS / LOADOUTS");
+	ImGui::PopFont();
 
 	if (ImGui::BeginTable("CharacterTable", 2)) {
 
@@ -3303,86 +3279,116 @@ void CharacterSection(size_t defaultFontSize) {
 		ImGui::PopFont();
 	}
 	UI::SeparatorEx(defaultFontSize * 23.35f);
-	
+
 	GUI_PushDisable(actorCondition);
 
 	ImGui::Text("");
-
-	SelectPlayerLoadoutsWeaponsTab();
-
-	GUI_PopDisable(actorCondition);
-
-	
-	GUI_PushDisable(actorCondition);
-
-	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
-	
-
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-	const char* SPMPText = (queuedConfig.Actor.playerCount == 1) ? SPMPText = "SINGLE PLAYER" : SPMPText = "MULTIPLAYER";
-	ImGui::Text(SPMPText);
-	ImGui::PopFont();
-	BackgroundSPMPText(SPMPText);
-	
-
-	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-	ImGui::PushItemWidth(itemWidth);
-	if (GUI_Slider<uint8>("Number of Players", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT)) {
-		if (queuedConfig.Actor.playerCount > 1) {
-			activeCrimsonConfig.Camera.multiplayerCamera = true;
-			queuedCrimsonConfig.Camera.multiplayerCamera = true;
-			activeCrimsonConfig.Camera.thirdPersonCamera = true;
-			queuedCrimsonConfig.Camera.thirdPersonCamera = true;
-		} else {
-			activeConfig.enablePVPFixes = false;
-			queuedConfig.enablePVPFixes = false;
-		}
-	}
-	UI::Combo2("DMC3 Costume Game Progression", costumeRespectsProgressionNames, activeConfig.costumeRespectsProgression,
-		queuedConfig.costumeRespectsProgression);
-
-	ImGui::SameLine();
-	TooltipHelper("(?)", "Makes DMC3 Costume update as the game progresses, as in the Vanilla game.\n"
-		"\n"
-		"'Crimson' updates Vergil's Costume at Mission 1."
-
-	);
 
 	{
 		const float columnWidth = 0.6f * queuedConfig.globalScale;
 		const float rowWidth = 40.0f * queuedConfig.globalScale;
 
-		if (ImGui::BeginTable("ActorSystemTable", 3)) {
+		if (ImGui::BeginTable("ActorPlayersTable", 2)) {
 
 			ImGui::TableSetupColumn("c2", 0, columnWidth * 2.0f);
 			ImGui::TableNextRow(0, rowWidth);
 
 			ImGui::TableNextColumn();
 
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
+			const char* SPMPText = (queuedConfig.Actor.playerCount == 1) ? SPMPText = "SINGLE PLAYER" : SPMPText = "MULTIPLAYER";
+			ImGui::Text(SPMPText);
+			ImGui::PopFont();
+			BackgroundSPMPText(SPMPText);
+
+
+			ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+			ImGui::PushItemWidth(itemWidth);
+			if (GUI_Slider<uint8>("Number of Players", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT)) {
+				if (queuedConfig.Actor.playerCount > 1) {
+					activeCrimsonConfig.Camera.multiplayerCamera = true;
+					queuedCrimsonConfig.Camera.multiplayerCamera = true;
+					activeCrimsonConfig.Camera.thirdPersonCamera = true;
+					queuedCrimsonConfig.Camera.thirdPersonCamera = true;
+				} else {
+					activeConfig.enablePVPFixes = false;
+					queuedConfig.enablePVPFixes = false;
+				}
+			}
+
+			ImGui::TableNextColumn();
+
+			ImGui::Text("");
+
+			if (GUI_Button("BUTTON CONFIGURATION")) {
+				g_showControllerRemap = true;
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Open the controller button remapping window to customize button bindings for each player and character.");
+
+			ImGui::TableNextColumn();
+
+
+			ImGui::PushItemWidth(itemWidth);
+			UI::Combo2("DMC3 Costume Game Progression", costumeRespectsProgressionNames, activeConfig.costumeRespectsProgression,
+				queuedConfig.costumeRespectsProgression);
+			ImGui::PopItemWidth();
+
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Makes DMC3 Costume update as the game progresses, as in the Vanilla game.\n"
+				"\n"
+				"'Crimson' updates Vergil's Costume at Mission 1.");
+
+
+			ImGui::EndTable();
+		}
+	}
+
+	{
+		const float columnWidth = 0.6f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+		if (ImGui::BeginTable("ActorSystemTable", 2)) {
+
+			ImGui::TableSetupColumn("c2", 0, columnWidth * 2.0f);
 			ImGui::TableNextRow(0, rowWidth);
+
 			ImGui::TableNextColumn();
 
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 			ImGui::Text("PLAYER NAMES / COLORS");
-			
-			for (int playerIndex = 0; playerIndex < PLAYER_COUNT; playerIndex++) {
+
+			// Static persistent buffers for player names - survive across frames for proper ImGui text editing
+			static char s_playerNameBuffers[PLAYER_COUNT][20] = {};
+			static bool s_buffersInitialized = false;
+
+			// Initialize buffers once from config
+			if (!s_buffersInitialized) {
+				for (int i = 0; i < PLAYER_COUNT; i++) {
+					const std::string& configName = queuedCrimsonConfig.PlayerProperties.playerName[i];
+					size_t copyLen = (configName.length() < 19) ? configName.length() : 19;
+					memcpy(s_playerNameBuffers[i], configName.c_str(), copyLen);
+					s_playerNameBuffers[i][copyLen] = '\0';
+				}
+				s_buffersInitialized = true;
+			}
+
+			for (int playerIndex = 0; playerIndex < queuedConfig.Actor.playerCount; playerIndex++) {
 
 				ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-				std::string& playerNameActive = activeCrimsonConfig.PlayerProperties.playerName[playerIndex];
-				std::string& playerNameQueued = queuedCrimsonConfig.PlayerProperties.playerName[playerIndex];
-				char buffer[20] = { 0 }; 
-				strncpy(buffer, playerNameQueued.c_str(), sizeof(buffer) - 1);
-				buffer[20 - 1] = '\0';
 
 				std::string inputLabel = "##playerName" + std::to_string(playerIndex);
 				ImGui::PushItemWidth(itemWidth * 1.3f);
-				if (ImGui::InputText(inputLabel.c_str(), buffer, sizeof(buffer))) {
-					playerNameActive = std::string(buffer);
-					playerNameQueued = std::string(buffer);
+
+				// ImGui edits the persistent buffer directly
+				if (ImGui::InputText(inputLabel.c_str(), s_playerNameBuffers[playerIndex], 20)) {
+					activeCrimsonConfig.PlayerProperties.playerName[playerIndex] = s_playerNameBuffers[playerIndex];
+					queuedCrimsonConfig.PlayerProperties.playerName[playerIndex] = s_playerNameBuffers[playerIndex];
 					GUI::save = true;
 				}
-				ImGui::PopFont();
+
 				ImGui::PopItemWidth();
+				ImGui::PopFont();
 
 				ImGui::SameLine();
 				GUI_Color2("", activeCrimsonConfig.PlayerProperties.playerColor[playerIndex], queuedCrimsonConfig.PlayerProperties.playerColor[playerIndex]);
@@ -3397,24 +3403,19 @@ void CharacterSection(size_t defaultFontSize) {
 						sizeof(queuedCrimsonConfig.PlayerProperties.playerColor[playerIndex]));
 				}
 
-				if (playerIndex == 1) {
-					ImGui::TableNextRow(0, rowWidth);
-				}
-				
-				ImGui::TableNextColumn();
-				if (playerIndex == 0) {
-					ImGui::Text("");
-				}
-				
-				
+
 			}
 			ImGui::PopFont();
 			ImGui::TableNextColumn();
+
+			ImGui::Text("");
+			ImGui::Text("");
 
 			GUI_PushDisable(queuedConfig.Actor.playerCount <= 1);
 			GUI_Checkbox2("PVP Fixes", activeConfig.enablePVPFixes, queuedConfig.enablePVPFixes);
 			ImGui::SameLine();
 			TooltipHelper("(?) WARNING", "Allows you to set up PVP Multiplayer.\n"
+				"Lock On in PVP requires an enemy spawned in order to work properly.\n"
 				"WARNING: This option WILL break actual enemies (they will freeze). Use with caution.", 2048.0f, true);
 			GUI_PopDisable(queuedConfig.Actor.playerCount <= 1);
 
@@ -3422,30 +3423,16 @@ void CharacterSection(size_t defaultFontSize) {
 		}
 	}
 
-	// Deprecated DDMK Options
+	SelectPlayerLoadoutsWeaponsTab();
 
-// 	GUI_Checkbox2("Update Lock-Ons", activeConfig.updateLockOns, queuedConfig.updateLockOns);
-// 
-// 	GUI_Checkbox2("Force Sync Hit & Magic Points", activeConfig.forceSyncHitMagicPoints, queuedConfig.forceSyncHitMagicPoints);
-// 
-// 
-// 	GUI_Checkbox2("Reset Permissions", activeConfig.resetPermissions, queuedConfig.resetPermissions);
-// 	ImGui::SameLine();
-// 	TooltipHelper("(?)", "Press the taunt button to reset the actor's permissions.\n"
-// 		"Useful when getting stuck.");
+	GUI_PopDisable(actorCondition);
 
-	// 
-// 	GUI_Checkbox2("Unlock Everything (Absolute Unit)", activeConfig.absoluteUnit, queuedConfig.absoluteUnit);
-// 	ImGui::SameLine();
-// 	TooltipHelper("(?)",
-// 		"I mastered the art of jump-cancelling before I was born.\n"
-// 		"I beat the game 5000+ times.\n"
-// 		"Star-raving on 3x turbo amuses me.\n"
-// 		"Other \"players\" complaining about wrist pain makes me cringe.\n"
-// 		"I'm a GROWN, ASS, MAN.\n"
-// 		"I can absolutely, positively, under no circumstances be bothered with leveling up again.",
-// 		500);
 
+	GUI_PushDisable(actorCondition);
+
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
+
+	
 
 	GUI_PopDisable(actorCondition);
 	ImGui::PopStyleColor();
@@ -4411,7 +4398,7 @@ void RenderMultiplayerBar(
 	}
 	const float alpha = ImLerp(0.27f, 1.0f, 1.0);
 	ImVec4 hitColor = CrimsonUtil::HexToImVec4(0x43fe65FF);
-	ImVec4 magicColor[4] = CrimsonUtil::HexToImVec4(0xde1c4cFF);
+	ImVec4 magicColor[4] = { CrimsonUtil::HexToImVec4(0xde1c4cFF),CrimsonUtil::HexToImVec4(0xde1c4cFF),CrimsonUtil::HexToImVec4(0xde1c4cFF),CrimsonUtil::HexToImVec4(0xde1c4cFF) };
 	float magicColorVergil[4] = { 0.06f, 0.74f, 0.81f, 1.0f };
 
 	const float baseSpacing = 0.37f;
@@ -5066,7 +5053,7 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * 1.1f);
-			UI::Combo2("Follow-Up Speed", cameraFollowUpSpeedNames, activeCrimsonConfig.Camera.followUpSpeed, queuedCrimsonConfig.Camera.followUpSpeed);
+			UI::Combo2("Follow-Up Speed", cameraFollowUpSpeedNames, activeCrimsonConfig.Camera.followUpSpd, queuedCrimsonConfig.Camera.followUpSpd);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextRow(0, rowWidth);
@@ -5122,8 +5109,15 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth * 0.87f);
-			UI::ComboMapValue2("Right Stick Camera Centering", rightStickCenterCamNames, rightStickCenterCamMap,
+			UI::ComboMapValue2("Camera Centering", rightStickCenterCamNames, rightStickCenterCamMap,
 				activeCrimsonConfig.Camera.rightStickCameraCentering, queuedCrimsonConfig.Camera.rightStickCameraCentering);
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * 1.27f);
+			UI::ComboMapValue2("Camera Shake", cameraShakeNames, cameraShakeMap,
+				activeCrimsonConfig.Camera.cameraShake, queuedCrimsonConfig.Camera.cameraShake);
 			ImGui::PopItemWidth();
 
 			ImGui::TableNextColumn();
@@ -5198,8 +5192,8 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.rightStickCameraCentering = 2;
 			queuedCrimsonConfig.Camera.rightStickCameraCentering = 2;
 
-			activeCrimsonConfig.Camera.followUpSpeed = 0;
-			queuedCrimsonConfig.Camera.followUpSpeed = 0;
+			activeCrimsonConfig.Camera.followUpSpd = 0;
+			queuedCrimsonConfig.Camera.followUpSpd = 0;
 
 			activeCrimsonConfig.Camera.autoAdjust = 0;
 			queuedCrimsonConfig.Camera.autoAdjust = 0;
@@ -5246,8 +5240,8 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.rightStickCameraCentering = 1;
 			queuedCrimsonConfig.Camera.rightStickCameraCentering = 1;
 
-			activeCrimsonConfig.Camera.followUpSpeed = 0;
-			queuedCrimsonConfig.Camera.followUpSpeed = 0;
+			activeCrimsonConfig.Camera.followUpSpd = 0;
+			queuedCrimsonConfig.Camera.followUpSpd = 0;
 
 			activeCrimsonConfig.Camera.autoAdjust = 0;
 			queuedCrimsonConfig.Camera.autoAdjust = 0;
@@ -5294,8 +5288,8 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.rightStickCameraCentering = 1;
 			queuedCrimsonConfig.Camera.rightStickCameraCentering = 1;
 
-			activeCrimsonConfig.Camera.followUpSpeed = 2;
-			queuedCrimsonConfig.Camera.followUpSpeed = 2;
+			activeCrimsonConfig.Camera.followUpSpd = 2;
+			queuedCrimsonConfig.Camera.followUpSpd = 2;
 
 			activeCrimsonConfig.Camera.autoAdjust = 0;
 			queuedCrimsonConfig.Camera.autoAdjust = 0;
@@ -5555,56 +5549,65 @@ const char* tabNames[] = {
 
 struct ShopExperienceHelper {
 	const char* name;
+	const char* description;
 	int64 id;
 	uint32 price;
 	int64 last;
 	int64 next;
 	int64 devilarm;
 	int64 gun;
+	int64 child[5];
 };
 
 struct ShopExperienceStyleHelper {
 	const char* name;
+	const char* description;
 	uint32 price;
 	int64 styleid;
 	int64 stylelevel;
 	int64 styleexp;
+	int64 moddedunlock;
+	int64 moddedchild;
 };
 
 
 ShopExperienceHelper shopHelpersDante[] = {
-	{"Rebellion Stinger Level 1",UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1, 2500, -1, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_2,-1,-1},
-	{"Rebellion Stinger Level 2",UNLOCK_DANTE::REBELLION_STINGER_LEVEL_2, 10000, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1, -1,-1,-1},
-	{"Rebellion Drive",UNLOCK_DANTE::REBELLION_DRIVE, 10000, -1, -1,-1,-1},
-	{"Air Hike",UNLOCK_DANTE::REBELLION_AIR_HIKE, 20000, -1, -1,-1,-1},
-	{"Cerberus Revolver Level 2",UNLOCK_DANTE::CERBERUS_REVOLVER_LEVEL_2, 15000, -1, -1,DEVILARMUNLOCKS::CERBERUS,-1},
-	{"Cerberus Windmill",UNLOCK_DANTE::CERBERUS_WINDMILL, 7500, -1, -1,DEVILARMUNLOCKS::CERBERUS,-1},
-	{"Agni & Rudra Jet-Stream Level 2",UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_2, 10000, -1, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_3,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
-	{"Agni & Rudra Jet-Stream Level 3",UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_3, 15000, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_2, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
-	{"Agni & Rudra Whirlwind",UNLOCK_DANTE::AGNI_RUDRA_WHIRLWIND, 7500, -1, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
+	{"Rebellion Stinger Level 1","",UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1, 2500, -1, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_2,-1,-1, {UNLOCK_DANTE::REBELLION_STINGER_AIR,-1,-1,-1,-1}},
+	{"Rebellion Stinger Level 2","",UNLOCK_DANTE::REBELLION_STINGER_LEVEL_2, 10000, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Rebellion Air Stinger","Lock On + Forward + Melee while in air.",UNLOCK_DANTE::REBELLION_STINGER_AIR, 5000, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Rebellion Drive","",UNLOCK_DANTE::REBELLION_DRIVE, 10000, -1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Air Hike","",UNLOCK_DANTE::REBELLION_AIR_HIKE, 20000, -1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Cerberus Revolver Level 2","",UNLOCK_DANTE::CERBERUS_REVOLVER_LEVEL_2, 15000, -1, -1,DEVILARMUNLOCKS::CERBERUS,-1, {-1,-1,-1,-1,-1}},
+	{"Cerberus Air Revolver","Lock On + Forward + Melee while in air.",UNLOCK_DANTE::CERBERUS_REVOLVER_AIR, 5000, -1, -1,DEVILARMUNLOCKS::CERBERUS,-1, {-1,-1,-1,-1,-1}},
+	{"Cerberus Windmill","",UNLOCK_DANTE::CERBERUS_WINDMILL, 7500, -1, -1,DEVILARMUNLOCKS::CERBERUS,-1, {-1,-1,-1,-1,-1}},
+	{"Agni & Rudra Jet-Stream Level 2","",UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_2, 10000, -1, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_3,DEVILARMUNLOCKS::AGNI_RUDRA,-1, {-1,-1,-1,-1,-1}},
+	{"Agni & Rudra Jet-Stream Level 3","",UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_3, 15000, UNLOCK_DANTE::AGNI_RUDRA_JET_STREAM_LEVEL_2, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1, {-1,-1,-1,-1,-1}},
+	{"Agni & Rudra Whirlwind","",UNLOCK_DANTE::AGNI_RUDRA_WHIRLWIND, 7500, -1, UNLOCK_DANTE::AGNI_RUDRA_WHIRLWIND_AIR,DEVILARMUNLOCKS::AGNI_RUDRA,-1, {-1,-1,-1,-1,-1}},
+	{"Agni & Rudra Air Whirlwind","LockOn + Back + Melee while in air",UNLOCK_DANTE::AGNI_RUDRA_WHIRLWIND_AIR, 10000, UNLOCK_DANTE::AGNI_RUDRA_WHIRLWIND, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1, {-1,-1,-1,-1,-1}},
 	//{"Agni & Rudra Air Hike",UNLOCK_DANTE::AGNI_RUDRA_AIR_HIKE, 20000, -1, -1,DEVILARMUNLOCKS::AGNI_RUDRA,-1},
-	{"Nevan Reverb Shock Level 1",UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_1, 7500, -1, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_2,DEVILARMUNLOCKS::NEVAN,-1},
-	{"Nevan Reverb Shock Level 2",UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_2, 15000, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_1, -1,DEVILARMUNLOCKS::NEVAN,-1},
-	{"Nevan Bat Rift Level 2",UNLOCK_DANTE::NEVAN_BAT_RIFT_LEVEL_2, 10000, -1, -1,DEVILARMUNLOCKS::NEVAN,-1},
-	{"Nevan Air Raid",UNLOCK_DANTE::NEVAN_AIR_RAID, 20000, -1, -1,DEVILARMUNLOCKS::NEVAN,-1},
-	{"Nevan Volume Up",UNLOCK_DANTE::NEVAN_VOLUME_UP, 20000, -1, -1,DEVILARMUNLOCKS::NEVAN,-1},
-	{"Beowulf Straight Level 2",UNLOCK_DANTE::BEOWULF_STRAIGHT_LEVEL_2, 10000, -1, -1,DEVILARMUNLOCKS::BEOWULF,-1},
-	{"Beowulf Beast Uppercut",UNLOCK_DANTE::BEOWULF_BEAST_UPPERCUT, 7500, -1, UNLOCK_DANTE::BEOWULF_RISING_DRAGON,DEVILARMUNLOCKS::BEOWULF,-1},
-	{"Beowulf Rising Dragon",UNLOCK_DANTE::BEOWULF_RISING_DRAGON, 15000, UNLOCK_DANTE::BEOWULF_BEAST_UPPERCUT, -1,DEVILARMUNLOCKS::BEOWULF,-1},
+	{"Nevan Reverb Shock Level 1","",UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_1, 7500, -1, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_2,DEVILARMUNLOCKS::NEVAN,-1, {-1,-1,-1,-1,-1}},
+	{"Nevan Reverb Shock Level 2","",UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_2, 15000, UNLOCK_DANTE::NEVAN_REVERB_SHOCK_LEVEL_1, -1,DEVILARMUNLOCKS::NEVAN,-1, {-1,-1,-1,-1,-1}},
+	{"Nevan Bat Rift Level 2","",UNLOCK_DANTE::NEVAN_BAT_RIFT_LEVEL_2, 10000, -1, -1,DEVILARMUNLOCKS::NEVAN,-1, {-1,-1,-1,-1,-1}},
+	{"Nevan Air Raid","",UNLOCK_DANTE::NEVAN_AIR_RAID, 20000, -1, -1,DEVILARMUNLOCKS::NEVAN,-1, {-1,-1,-1,-1,-1}},
+	{"Nevan Volume Up","",UNLOCK_DANTE::NEVAN_VOLUME_UP, 20000, -1, -1,DEVILARMUNLOCKS::NEVAN,-1, {-1,-1,-1,-1,-1}},
+	{"Beowulf Straight Level 2","",UNLOCK_DANTE::BEOWULF_STRAIGHT_LEVEL_2, 10000, -1, -1,DEVILARMUNLOCKS::BEOWULF,-1, {-1,-1,-1,-1,-1}},
+	{"Beowulf Beast Uppercut","",UNLOCK_DANTE::BEOWULF_BEAST_UPPERCUT, 7500, -1, UNLOCK_DANTE::BEOWULF_RISING_DRAGON,DEVILARMUNLOCKS::BEOWULF,-1, {-1,-1,-1,-1,-1}},
+	{"Beowulf Rising Dragon","",UNLOCK_DANTE::BEOWULF_RISING_DRAGON, 15000, UNLOCK_DANTE::BEOWULF_BEAST_UPPERCUT, UNLOCK_DANTE::BEOWULF_RISING_DRAGON_AIR, DEVILARMUNLOCKS::BEOWULF,-1, {-1,-1,-1,-1,-1}},
+	{"Beowulf Air Dragon","LockOn + Back + Melee while in air",UNLOCK_DANTE::BEOWULF_RISING_DRAGON_AIR, 20000, UNLOCK_DANTE::BEOWULF_RISING_DRAGON, -1,DEVILARMUNLOCKS::BEOWULF,-1, {-1,-1,-1,-1,-1}},
 	//{"Beowulf Air Hike",UNLOCK_DANTE::BEOWULF_AIR_HIKE, 20000, -1, -1,DEVILARMUNLOCKS::BEOWULF,-1},
 };
 
 ShopExperienceHelper shopHelpersDanteGuns[] = {
-	{"Ebony & Ivory Level 2",UNLOCK_DANTE::EBONY_IVORY_LEVEL_2, 5000, -1, UNLOCK_DANTE::EBONY_IVORY_LEVEL_3,-1,-1},
-	{"Ebony & Ivory Level 3",UNLOCK_DANTE::EBONY_IVORY_LEVEL_3, 10000, UNLOCK_DANTE::EBONY_IVORY_LEVEL_2, -1,-1,-1},
-	{"Shotgun Level 2",UNLOCK_DANTE::SHOTGUN_LEVEL_2, 10000, -1, UNLOCK_DANTE::SHOTGUN_LEVEL_3,-1,GUNUNLOCKS::SHOTGUN},
-	{"Shotgun Level 3",UNLOCK_DANTE::SHOTGUN_LEVEL_3, 20000, UNLOCK_DANTE::SHOTGUN_LEVEL_2, -1,-1,GUNUNLOCKS::SHOTGUN},
-	{"Artemis Level 2",UNLOCK_DANTE::ARTEMIS_LEVEL_2, 10000, -1, UNLOCK_DANTE::ARTEMIS_LEVEL_3,-1,GUNUNLOCKS::ARTEMIS},
-	{"Artemis Level 3",UNLOCK_DANTE::ARTEMIS_LEVEL_3, 20000, UNLOCK_DANTE::ARTEMIS_LEVEL_2, -1,-1,GUNUNLOCKS::ARTEMIS},
-	{"Spiral Level 2",UNLOCK_DANTE::SPIRAL_LEVEL_2, 7500, -1, UNLOCK_DANTE::SPIRAL_LEVEL_3,-1,GUNUNLOCKS::SPIRAL},
-	{"Spiral Level 3",UNLOCK_DANTE::SPIRAL_LEVEL_3, 15000, UNLOCK_DANTE::SPIRAL_LEVEL_2, -1,-1,GUNUNLOCKS::SPIRAL},
-	{"Kalina Ann Level 2",UNLOCK_DANTE::KALINA_ANN_LEVEL_2, 5000, -1, UNLOCK_DANTE::KALINA_ANN_LEVEL_3,-1,GUNUNLOCKS::KALINA_ANN},
-	{"Kalina Ann Level 3",UNLOCK_DANTE::KALINA_ANN_LEVEL_3, 10000, UNLOCK_DANTE::KALINA_ANN_LEVEL_2, -1,-1,GUNUNLOCKS::KALINA_ANN},
+	{"Ebony & Ivory Level 2","",UNLOCK_DANTE::EBONY_IVORY_LEVEL_2, 5000, -1, UNLOCK_DANTE::EBONY_IVORY_LEVEL_3,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Ebony & Ivory Level 3","",UNLOCK_DANTE::EBONY_IVORY_LEVEL_3, 10000, UNLOCK_DANTE::EBONY_IVORY_LEVEL_2, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Shotgun Level 2","",UNLOCK_DANTE::SHOTGUN_LEVEL_2, 10000, -1, UNLOCK_DANTE::SHOTGUN_LEVEL_3,-1,GUNUNLOCKS::SHOTGUN, {-1,-1,-1,-1,-1}},
+	{"Shotgun Level 3","",UNLOCK_DANTE::SHOTGUN_LEVEL_3, 20000, UNLOCK_DANTE::SHOTGUN_LEVEL_2, -1,-1,GUNUNLOCKS::SHOTGUN, {-1,-1,-1,-1,-1}},
+	{"Artemis Level 2","",UNLOCK_DANTE::ARTEMIS_LEVEL_2, 10000, -1, UNLOCK_DANTE::ARTEMIS_LEVEL_3,-1,GUNUNLOCKS::ARTEMIS, {-1,-1,-1,-1,-1}},
+	{"Artemis Level 3","",UNLOCK_DANTE::ARTEMIS_LEVEL_3, 20000, UNLOCK_DANTE::ARTEMIS_LEVEL_2, -1,-1,GUNUNLOCKS::ARTEMIS, {-1,-1,-1,-1,-1}},
+	{"Spiral Level 2","",UNLOCK_DANTE::SPIRAL_LEVEL_2, 7500, -1, UNLOCK_DANTE::SPIRAL_LEVEL_3,-1,GUNUNLOCKS::SPIRAL, {-1,-1,-1,-1,-1}},
+	{"Spiral Level 3","",UNLOCK_DANTE::SPIRAL_LEVEL_3, 15000, UNLOCK_DANTE::SPIRAL_LEVEL_2, -1,-1,GUNUNLOCKS::SPIRAL, {-1,-1,-1,-1,-1}},
+	{"Kalina Ann Level 2","",UNLOCK_DANTE::KALINA_ANN_LEVEL_2, 5000, -1, UNLOCK_DANTE::KALINA_ANN_LEVEL_3,-1,GUNUNLOCKS::KALINA_ANN, {-1,-1,-1,-1,-1}},
+	{"Kalina Ann Level 3","",UNLOCK_DANTE::KALINA_ANN_LEVEL_3, 10000, UNLOCK_DANTE::KALINA_ANN_LEVEL_2, -1,-1,GUNUNLOCKS::KALINA_ANN, {-1,-1,-1,-1,-1}},
 };
 
 ShopExperienceStyleHelper shopHelpersDanteStyle[] = {
@@ -5614,46 +5617,57 @@ ShopExperienceStyleHelper shopHelpersDanteStyle[] = {
 //	{"Quicksilver Level 2", 20000, STYLE::QUICKSILVER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
 //	{"Quicksilver Level 3", 30000, STYLE::QUICKSILVER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
 
-	{"Swordmaster Level 2", 20000, STYLE::SWORDMASTER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
-	{"Swordmaster Level 3", 30000, STYLE::SWORDMASTER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
+	{"Swordmaster Level 2", "",20000, STYLE::SWORDMASTER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO,-1,-1},
+	{"Swordmaster Level 3","", 30000, STYLE::SWORDMASTER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,-1,UNLOCK_DANTE::SWORDMASTER_MODDED_MOVES},
+	{"Swordmaster Level 4","With Beowulf: Neutral + Style while in air. Reduces Tornado damage across the board. Carries inertia.", 15000, STYLE::SWORDMASTER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE, UNLOCK_DANTE::SWORDMASTER_MODDED_MOVES,-1},
 	
-	{"Gunslinger Level 2", 20000, STYLE::GUNSLINGER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
-	{"Gunslinger Level 3", 30000, STYLE::GUNSLINGER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
+	{"Gunslinger Level 2", "", 20000, STYLE::GUNSLINGER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO,-1,-1},
+	{"Gunslinger Level 3","", 30000, STYLE::GUNSLINGER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,-1,-1},
 
-	{"Trickster Level 2", 20000, STYLE::TRICKSTER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
-	{"Trickster Level 3", 30000, STYLE::TRICKSTER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
+	{"Trickster Level 2", "",20000, STYLE::TRICKSTER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO,-1,-1},
+	{"Trickster Level 3", "",30000, STYLE::TRICKSTER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,-1,UNLOCK_DANTE::TRICKSTER_MODDED_MOVES},
+	{"Trickster Level 4", "Lock On + Back to Forward + Style.\n"
+				"Dante Teleports to the Ground near the enemy.",15000, STYLE::TRICKSTER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,UNLOCK_DANTE::TRICKSTER_MODDED_MOVES,-1},
 
-	{"Royal Guard Level 2", 20000, STYLE::ROYALGUARD,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
-	{"Royal Guard Level 3", 30000, STYLE::ROYALGUARD,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
+	{"Royal Guard Level 2", "",20000, STYLE::ROYALGUARD,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO,-1,-1},
+	{"Royal Guard Level 3", "",30000, STYLE::ROYALGUARD,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,-1,UNLOCK_DANTE::ROYALGUARD_MODDED_MOVES},
+	{"Royal Guard Level 4", "Royalguard Normal Blocks will consume DT instead, until you're low on DT. This will also prevent Guard Breaks by converting them into Normal Blocks.",15000, STYLE::ROYALGUARD,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,UNLOCK_DANTE::ROYALGUARD_MODDED_MOVES,-1},
 
 
 };
 
 ShopExperienceStyleHelper shopHelpersVergilStyle[] = {
-	{"Dark Slayer Level 2", 20000,STYLE::DARK_SLAYER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO},
-	{"Dark Slayer Level 3", 30000,STYLE::DARK_SLAYER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE},
+	{"Dark Slayer Level 2", "",20000,STYLE::DARK_SLAYER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO,-1,-1},
+	{"Dark Slayer Level 3", "",30000,STYLE::DARK_SLAYER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,-1,UNLOCK_VERGIL::DARK_SLAYER_MODDED_MOVES},
+	{"Dark Slayer Level 4", "Allows Vergil to Trick Up instead of Air Tricking when using the Style Button without Lock On.\n"
+				"Similar to DMC5.",15000,STYLE::DARK_SLAYER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,UNLOCK_VERGIL::DARK_SLAYER_MODDED_MOVES,-1},
 };
 
 
 ShopExperienceHelper shopHelpersVergil[] = {
-	{"Yamato Rapid Slash Level 1",UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_1, 5000, -1, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2,-1,-1},
-	{"Yamato Rapid Slash Level 2",UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2, 15000, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_1, -1,-1,-1},
-	{"Yamato Judgement Cut Level 1",UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_1, 10000, -1, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2,-1,-1},
-	{"Yamato Judgement Cut Level 2",UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2, 20000, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_1, -1,-1,-1},
-	{"Beowulf Starfall Level 2",UNLOCK_VERGIL::BEOWULF_STARFALL_LEVEL_2, 7500, -1, -1,-1,-1},
-	{"Beowulf Rising Sun",UNLOCK_VERGIL::BEOWULF_RISING_SUN, 5000, -1, -1,-1,-1},
-	{"Beowulf Lunar Phase Level 2",UNLOCK_VERGIL::BEOWULF_LUNAR_PHASE_LEVEL_2, 15000, -1, -1,-1,-1},
-	{"Yamato & Force Edge Helm Breaker Level 2",UNLOCK_VERGIL::YAMATO_FORCE_EDGE_HELM_BREAKER_LEVEL_2, 13000, -1, -1,-1,-1},
-	{"Yamato & Force Edge Stinger Level 1",UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1, 5000, -1, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_2,-1,-1},
-	{"Yamato & Force Edge Stinger Level 2",UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_2, 10000, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1, -1,-1,-1},
-	{"Yamato & Force Edge Round Trip",UNLOCK_VERGIL::YAMATO_FORCE_EDGE_ROUND_TRIP, 10000, -1, -1,-1,-1},
+	{"Yamato Rapid Slash Level 1","",UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_1, 5000, -1, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2,-1,-1, {UNLOCK_VERGIL::YAMATO_RISING_STAR,-1,-1,-1,-1}},
+	{"Yamato Rapid Slash Level 2","",UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_2, 15000, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Yamato Rising Star","During Rapid Slash HOLD Melee.",UNLOCK_VERGIL::YAMATO_RISING_STAR, 10000, UNLOCK_VERGIL::YAMATO_RAPID_SLASH_LEVEL_1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Yamato High Time","Lock On + Back + HOLD Melee",UNLOCK_VERGIL::YAMATO_HIGH_TIME, 7500, -1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Yamato Judgement Cut Level 1","",UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_1, 10000, -1, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Yamato Judgement Cut Level 2","",UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2, 20000, UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Beowulf Starfall Level 2","",UNLOCK_VERGIL::BEOWULF_STARFALL_LEVEL_2, 7500, -1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Beowulf Rising Sun","",UNLOCK_VERGIL::BEOWULF_RISING_SUN, 5000, -1, UNLOCK_VERGIL::BEOWULF_RISING_SUN_AIR,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Beowulf Air Rising Sun","Lock On + Back + Melee while in air",UNLOCK_VERGIL::BEOWULF_RISING_SUN_AIR, 10000, UNLOCK_VERGIL::BEOWULF_RISING_SUN, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Beowulf Lunar Phase Level 2","",UNLOCK_VERGIL::BEOWULF_LUNAR_PHASE_LEVEL_2, 15000, -1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Beowulf Air Lunar Phase","Lock On + Forward + Melee while in air.",UNLOCK_VERGIL::BEOWULF_LUNAR_PHASE_AIR, 20000, -1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Yamato & Force Edge Helm Breaker Level 2","",UNLOCK_VERGIL::YAMATO_FORCE_EDGE_HELM_BREAKER_LEVEL_2, 13000, -1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Yamato & Force Edge Stinger Level 1","",UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1, 5000, -1, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_2,-1,-1, {UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_AIR,-1,-1,-1,-1}},
+	{"Yamato & Force Edge Stinger Level 2","",UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_2, 10000, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Yamato & Force Edge Air Stinger","Lock On + Forward + Melee while in air.",UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_AIR, 7500, UNLOCK_VERGIL::YAMATO_FORCE_EDGE_STINGER_LEVEL_1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Yamato & Force Edge Round Trip","",UNLOCK_VERGIL::YAMATO_FORCE_EDGE_ROUND_TRIP, 10000, -1, -1,-1,-1, {-1,-1,-1,-1,-1}},
 
 };
 
 ShopExperienceHelper shopHelpersVergilGuns[] = {
-	{"Summoned Swords Level 2", UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, 7500, -1, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3,-1,-1},
-	{"Summoned Swords Level 3", UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3, 15000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, -1,-1,-1},
-	{"Spiral Swords",UNLOCK_VERGIL::SPIRAL_SWORDS, 20000, -1, -1,-1,-1},
+	{"Summoned Swords Level 2","", UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, 7500, -1, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Summoned Swords Level 3","", UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3, 15000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Spiral Swords","",UNLOCK_VERGIL::SPIRAL_SWORDS, 20000, -1, -1,-1,-1, {-1,-1,-1,-1,-1}},
 };
 
 
@@ -5686,7 +5700,7 @@ enum {
 };
 
 // Function Declarations
-void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount, MissionData& missionData);
+void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount, MissionData& missionData,uint64 baseMoveCount);
 void ShowExperienceStyleTab(ExpConfig::ExpData& expData,ShopExperienceStyleHelper* styleHelpers, new_size_t styleHelperCount, MissionData& missionData, uint8 character);
 
 void ShowItemTab(MissionData& missionData, QueuedMissionActorData& queuedMissionActorData, ActiveMissionActorData& activeMissionActorData, bool unlockDevilTrigger);
@@ -5749,9 +5763,10 @@ void ShopWindow() {
 			shopCooldownActive = false;
 		}
 	}
-	//Replace this with a map option at some point. 
-	if (io.KeysDown[DI8::KEY::L] && (io.KeysDownDuration[DI8::KEY::L] == 0.0f)) {
-		Log("keyboard back button");
+	
+	//Keyboard back key handling
+	int keyboardBackKey = activeCrimsonConfig.System.KeyboardConfig.keybinds[11]; // L key is default, but can be rebound in the config.
+	if (io.KeysDown[keyboardBackKey] && (io.KeysDownDuration[keyboardBackKey] == 0.0f)) {
 		if (!shopCooldownActive) {
 			CloseShop();
 			run = false;
@@ -5827,19 +5842,19 @@ void ShopWindow() {
 
 					switch (tabIndex) {
 					case TAB::DANTE_DEVILARM:
-						ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDante, sizeof(shopHelpersDante) / sizeof(ShopExperienceHelper), missionData);
+						ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDante, sizeof(shopHelpersDante) / sizeof(ShopExperienceHelper), missionData,UNLOCK_DANTE::COUNT);
 						break;
 					case TAB::DANTE_GUN:
-						ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDanteGuns, sizeof(shopHelpersDanteGuns) / sizeof(ShopExperienceHelper), missionData);
+						ShowExperienceTab(ExpConfig::missionExpDataDante, shopHelpersDanteGuns, sizeof(shopHelpersDanteGuns) / sizeof(ShopExperienceHelper), missionData, UNLOCK_DANTE::COUNT);
 						break;
 					case TAB::DANTE_STYLE:
 						ShowExperienceStyleTab(ExpConfig::missionExpDataDante, shopHelpersDanteStyle, sizeof(shopHelpersDanteStyle) / sizeof(ShopExperienceStyleHelper), missionData, CHARACTER::DANTE);
 						break;
 					case TAB::VERGIL_DEVILARM:
-						ShowExperienceTab(ExpConfig::missionExpDataVergil, shopHelpersVergil, sizeof(shopHelpersVergil) / sizeof(ShopExperienceHelper), missionData);
+						ShowExperienceTab(ExpConfig::missionExpDataVergil, shopHelpersVergil, sizeof(shopHelpersVergil) / sizeof(ShopExperienceHelper), missionData, UNLOCK_VERGIL::COUNT);
 						break;
 					case TAB::VERGIL_GUN:
-						ShowExperienceTab(ExpConfig::missionExpDataVergil, shopHelpersVergilGuns, sizeof(shopHelpersVergilGuns) / sizeof(ShopExperienceHelper), missionData);
+						ShowExperienceTab(ExpConfig::missionExpDataVergil, shopHelpersVergilGuns, sizeof(shopHelpersVergilGuns) / sizeof(ShopExperienceHelper), missionData, UNLOCK_VERGIL::COUNT);
 						break;
 					case TAB::VERGIL_STYLE:
 						ShowExperienceStyleTab(ExpConfig::missionExpDataVergil, shopHelpersVergilStyle, sizeof(shopHelpersVergilStyle) / sizeof(ShopExperienceStyleHelper), missionData, CHARACTER::VERGIL);
@@ -5897,7 +5912,7 @@ void ShowStyleLevelsTab(ExpConfig::ExpData& expData, MissionData& missionData) {
 }
 
 
-void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount, MissionData& missionData) {
+void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helpers, new_size_t helperCount, MissionData& missionData, uint64 baseMoveCount) {
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 	const float columnWidth = 0.48f * queuedConfig.globalScale;
@@ -5927,6 +5942,13 @@ void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helper
 					continue;
 			}
 
+			//Don't show modded moves if the modded moves aren't turned on
+			if (helper.id > baseMoveCount && !activeCrimsonGameplay.Gameplay.General.extramoves)
+			{
+				if (expData.unlocks[helper.id] == false)
+					continue;
+			}
+				//
 			columnTracker++;
 			ImGui::TableNextColumn();
 			auto Buy = [&]() {
@@ -5945,6 +5967,14 @@ void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helper
 				missionData.redOrbs += helper.price;
 				FMOD_PlaySound(0, 18);
 				expData.unlocks[helper.id] = false;
+				//Make sure everything relying on this move is properly disabled
+				if (helper.next > -1)
+					expData.unlocks[helper.next] = false;
+				for (int64 childIndex = 0; childIndex < 5; ++childIndex) {
+					if(helper.child[childIndex] > -1)
+						expData.unlocks[helper.child[childIndex]] = false;
+				}
+
 
 				// Sets the flag off on sessionData expertise to also update non Actor System
 	// 			const auto& expertiseHelper =
@@ -5961,8 +5991,21 @@ void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helper
 
 			// Begin a new row
 			ImGui::BeginGroup();
-
-			if (GUI_Button(helper.name, ImVec2(400.0f * scaleFactorY, 80.0f * scaleFactorY))) {
+			bool result = GUI_Button(helper.name, ImVec2(320.0f * scaleFactorY, 80.0f * scaleFactorY));
+			if (helper.description != "")
+			{
+				if (ImGui::IsItemHovered()) {
+					ImGui::BeginTooltip();
+					ImGui::SetWindowFontScale(scaleFactorY);
+					ImGui::PushTextWrapPos(320.0f * scaleFactorY);
+					ImGui::Text(helper.description);
+					ImGui::PopTextWrapPos();
+					ImGui::EndTooltip();
+				}
+				//TooltipHelper("(?)", helper.description);
+			}
+			if (result) {
+				
 				Buy();
 			}
 
@@ -5984,18 +6027,40 @@ void ShowExperienceTab(ExpConfig::ExpData& expData, ShopExperienceHelper* helper
 			ImGui::Text("%u", helper.price);
 			GUI_PopDisable(priceCondition);
 
+			
+			
+
 			// Display the sell button in a new column
 			ImGui::EndGroup(); // End the group for the current row
 			ImGui::TableNextColumn();
-			if (expData.unlocks[helper.id]) {
-				condition = ((helper.next > -1) && expData.unlocks[helper.next]);
+			//if (expData.unlocks[helper.id]) {
+				//check if there's a "next move" and if it's unlocked. That means we shouldn't be able to refund. 
+				condition = !expData.unlocks[helper.id] ||((helper.next > -1) && expData.unlocks[helper.next]);
+				//if next is a modded move and extra moves is off, ignore that requirement 
+				//if ((helper.next > baseMoveCount) && !activeCrimsonGameplay.Gameplay.General.extramoves)
+					//condition = false;
+				//check for extra children 
+				if (!condition) {
+					//hardcoded to 5 because I was being lazy, updated to base off array size when convenient
+					for (int64 childIndex = 0; childIndex < 5; ++childIndex) {
+
+						//should stop these pre-requisites from being valid if they're modded and we're disabled. 
+						//if (helper.child[childIndex] > baseMoveCount && !activeCrimsonGameplay.Gameplay.General.extramoves)
+							//continue;
+
+						condition = ((helper.child[childIndex] > -1) && expData.unlocks[helper.child[childIndex]]);
+						if (condition)
+							break;
+					}
+				}
+
 				GUI_PushDisable(condition);
 
 				if (GUI_Button("Sell",ImVec2(80.0f * scaleFactorY, 80.0f * scaleFactorY))) {
 					Sell();
 				}
 				GUI_PopDisable(condition);
-			}
+			//}
 
 
 			
@@ -6027,10 +6092,13 @@ void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelp
 	const float columnWidth = 0.48f * queuedConfig.globalScale;
 	const float rowHeight = 40.0f * queuedConfig.globalScale;
 	int columnTracker = 0;
-	if (ImGui::BeginTable("SkillTable", 2)) {
-		ImGui::TableSetupColumn("Col1", ImGuiTableColumnFlags_WidthAuto, 400.0f * scaleFactorY); // Default to 100.0f
-		ImGui::TableSetupColumn("Col2", ImGuiTableColumnFlags_WidthAuto, 400.0f * scaleFactorY); // Default to 100.0f
-
+	if (ImGui::BeginTable("SkillTable", 6)) {
+		ImGui::TableSetupColumn("Col1", ImGuiTableColumnFlags_WidthAuto, 250.0f * scaleFactorY); // Default to 100.0f
+		ImGui::TableSetupColumn("SellCol1", ImGuiTableColumnFlags_WidthAuto, 50.0f * scaleFactorY); // Default to 200.0f
+		ImGui::TableSetupColumn("Col2", ImGuiTableColumnFlags_WidthAuto, 250.0f * scaleFactorY); // Default to 100.0f
+		ImGui::TableSetupColumn("SellCol2", ImGuiTableColumnFlags_WidthAuto, 50.0f * scaleFactorY); // Default to 200.0f
+		ImGui::TableSetupColumn("Col3", ImGuiTableColumnFlags_WidthAuto, 250.0f * scaleFactorY); // Default to 100.0f
+		ImGui::TableSetupColumn("SellCol3", ImGuiTableColumnFlags_WidthAuto, 50.0f * scaleFactorY); // Default to 200.0f
 		for (size_t helperIndex = 0; helperIndex < styleHelperCount; ++helperIndex) {
 			auto& helper = styleHelpers[helperIndex];
 
@@ -6041,78 +6109,211 @@ void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelp
 				if (helper.styleid == STYLE::DOPPELGANGER and !sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER])
 					continue;
 			}
-			ImGui::TableNextColumn();
-			//calculates how far through leveling up a style you were as a percentage
-			uint32 percentage_discount = static_cast<uint32>(floor(100 * expData.styleExpPoints[helper.styleid] / helper.styleexp));
-			if (percentage_discount < 0)
-				percentage_discount = 0;
-			if (percentage_discount > 100)
-				percentage_discount = 100;
 
-			//calculates cost of red orbs as the base price with a percentage discount based on how close you were to leveling up style
-			//so 30% of the exp to level 2 = 30% discount
-			uint32 rorb_cost_calculated = helper.price - (static_cast<uint32>(helper.price / 100) * percentage_discount);
-			auto Buy = [&]() {
-				if (missionData.redOrbs < rorb_cost_calculated) {
-					FMOD_PlaySound(0, 19);
-					return;
-				}
-				HeldStyleExpData& heldStyleExpData = (character == CHARACTER::DANTE)
-					? heldStyleExpDataDante
-					: heldStyleExpDataVergil;
-				missionData.redOrbs -= rorb_cost_calculated;
-				FMOD_PlaySound(0, 18);
-				expData.styleLevels[helper.styleid] = helper.stylelevel;
-				expData.styleExpPoints[helper.styleid] = 0;
-				heldStyleExpData.missionStyleLevels[helper.styleid] = helper.stylelevel;
-				heldStyleExpData.accumulatedStylePoints[helper.styleid] = 0;
-				ExpConfig::UpdatePlayerActorExps();
+			//Just making sure our style id is in range
+			if (helper.styleid >= STYLE::MAX)
+				continue;
+
+			//Check if we're doing modded style or vanilla style
+			if (helper.moddedunlock > -1) {
+				//don't show if extra_shop disabled AND modded move not already purchased (expData.unlocks[moddedunlock] false)
+				if (!activeCrimsonGameplay.Gameplay.General.extramoves && !expData.unlocks[helper.moddedunlock])
+					continue;
+
+
+				ImGui::TableNextColumn();
+				//calculates how far through leveling up a style you were as a percentage
+
+				auto Buy = [&]() {
+					if (missionData.redOrbs < helper.price) {
+						FMOD_PlaySound(0, 19);
+						return;
+					}
+
+					missionData.redOrbs -= helper.price;
+					FMOD_PlaySound(0, 18);
+					expData.unlocks[helper.moddedunlock] = true;
+					ExpConfig::UpdatePlayerActorExps();
 				};
-			bool condition = !(expData.styleLevels[helper.styleid] + 1 == helper.stylelevel);
-			GUI_PushDisable(condition);
 
-			// Begin a new row
-			ImGui::BeginGroup();
 
-			if (GUI_Button(helper.name, ImVec2(500.0f * scaleFactorY, 80.0f * scaleFactorY))) {
-				Buy();
-			}
+				auto Sell = [&]() {
+					missionData.redOrbs += helper.price;
+					FMOD_PlaySound(0, 18);
+					expData.unlocks[helper.moddedunlock] = false;
+					ExpConfig::UpdatePlayerActorExps();
+					};
 
-			GUI_PopDisable(condition);
+				//Buy Button gui element starts
+				bool condition = expData.unlocks[helper.moddedunlock] || (expData.styleLevels[helper.styleid] != STYLE_LEVEL::LEVEL_THREE);
+				GUI_PushDisable(condition);
 
-			// Display price and bullet point in a new column
-			ImGui::SameLine(120);
+				// Begin a new row
+				ImGui::BeginGroup();
+				
 
-			bool priceCondition = (missionData.redOrbs < rorb_cost_calculated);
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
-			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
-			constexpr auto BULLET = u8"•";
-			ImGui::Text((const char*)BULLET);
-			ImGui::PopFont();
-			ImGui::PopStyleColor();
+				if (GUI_Button(helper.name, ImVec2(200.0f * scaleFactorY, 80.0f * scaleFactorY))) {
+					Buy();
+				}
 
-			GUI_PushDisable(priceCondition);
-			ImGui::SameLine();
-			if (expData.styleLevels[helper.styleid] >= helper.stylelevel) {
-				ImGui::Text("Sold out!");
+				if (helper.description != "")
+				{
+					if (ImGui::IsItemHovered()) {
+						ImGui::BeginTooltip();
+						ImGui::SetWindowFontScale(scaleFactorY);
+						ImGui::PushTextWrapPos(180.0f * scaleFactorY);
+						ImGui::Text(helper.description);
+						ImGui::PopTextWrapPos();
+						ImGui::EndTooltip();
+					}
+					//TooltipHelper("(?)", helper.description);
+				}
+
+				GUI_PopDisable(condition);
+
+				// Display price and bullet point in a new column
+				ImGui::SameLine(90);
+
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
+				constexpr auto BULLET = u8"•";
+				ImGui::Text((const char*)BULLET);
+				ImGui::PopFont();
+				ImGui::PopStyleColor();
+				ImGui::SameLine();
+				ImGui::Text("%u", helper.price);
+
+				//Sell button begins:
+				// Display the sell button in a new column
+				ImGui::EndGroup(); // End the group for the current row
+				ImGui::TableNextColumn();
+				//Disable selling when: The item is not our current style level OR if there's a modded style linked to this style that's been purchased.
+				bool sellcondition = !expData.unlocks[helper.moddedunlock];
+				GUI_PushDisable(sellcondition);
+
+				if (GUI_Button("Sell", ImVec2(80.0f * scaleFactorY, 80.0f * scaleFactorY))) {
+					Sell();
+				}
+				GUI_PopDisable(sellcondition);
+
+
+				ImGui::Spacing(); // Add spacing between rows
+				ImGui::TableNextRow(0, rowHeight);
+
+
 			}
 			else {
-				if (rorb_cost_calculated == helper.price) {
-					ImGui::Text("%u", rorb_cost_calculated);
+				ImGui::TableNextColumn();
+				//calculates how far through leveling up a style you were as a percentage
+				uint32 percentage_discount = static_cast<uint32>(floor(100 * expData.styleExpPoints[helper.styleid] / helper.styleexp));
+				if (percentage_discount < 0)
+					percentage_discount = 0;
+				if (percentage_discount > 100)
+					percentage_discount = 100;
+
+				//calculates cost of red orbs as the base price with a percentage discount based on how close you were to leveling up style
+				//so 30% of the exp to level 2 = 30% discount
+				uint32 rorb_cost_calculated = helper.price - (static_cast<uint32>(helper.price / 100) * percentage_discount);
+
+
+				auto Buy = [&]() {
+					if (missionData.redOrbs < rorb_cost_calculated) {
+						FMOD_PlaySound(0, 19);
+						return;
+					}
+					HeldStyleExpData& heldStyleExpData = (character == CHARACTER::DANTE)
+						? heldStyleExpDataDante
+						: heldStyleExpDataVergil;
+					missionData.redOrbs -= rorb_cost_calculated;
+					FMOD_PlaySound(0, 18);
+					expData.styleLevels[helper.styleid] = helper.stylelevel;
+					expData.styleExpPoints[helper.styleid] = 0;
+					heldStyleExpData.missionStyleLevels[helper.styleid] = helper.stylelevel;
+					heldStyleExpData.accumulatedStylePoints[helper.styleid] = 0;
+					ExpConfig::UpdatePlayerActorExps();
+					};
+
+
+				auto Sell = [&]() {
+					missionData.redOrbs += helper.price;
+					FMOD_PlaySound(0, 18);
+					HeldStyleExpData& heldStyleExpData = (character == CHARACTER::DANTE)
+						? heldStyleExpDataDante
+						: heldStyleExpDataVergil;
+
+					expData.styleLevels[helper.styleid] = helper.stylelevel - 1;
+					expData.styleExpPoints[helper.styleid] = 0;
+					heldStyleExpData.missionStyleLevels[helper.styleid] = helper.stylelevel - 1;
+					heldStyleExpData.accumulatedStylePoints[helper.styleid] = 0;
+					ExpConfig::UpdatePlayerActorExps();
+					};
+
+				//Buy Button gui element starts
+				bool condition = !(expData.styleLevels[helper.styleid] + 1 == helper.stylelevel);
+				GUI_PushDisable(condition);
+
+				// Begin a new row
+				ImGui::BeginGroup();
+
+				if (GUI_Button(helper.name, ImVec2(200.0f * scaleFactorY, 80.0f * scaleFactorY))) {
+					Buy();
+				}
+
+				GUI_PopDisable(condition);
+
+				// Display price and bullet point in a new column
+				ImGui::SameLine(90);
+
+				bool priceCondition = (missionData.redOrbs < rorb_cost_calculated) || condition;
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
+				constexpr auto BULLET = u8"•";
+				ImGui::Text((const char*)BULLET);
+				ImGui::PopFont();
+				ImGui::PopStyleColor();
+
+
+				GUI_PushDisable(priceCondition);
+				ImGui::SameLine();
+				if (expData.styleLevels[helper.styleid] >= helper.stylelevel) {
+					ImGui::Text("Sold out!");
 				}
 				else {
-					ImGui::Text("%u (%u%% off!)", rorb_cost_calculated, percentage_discount);
-					ImGui::SameLine();
-					GUI_PopDisable(priceCondition);
-					TooltipHelper("(?)", "Discount is based on XP earned for this style. Resets on purchase.");
-					GUI_PushDisable(priceCondition);
+					if (rorb_cost_calculated == helper.price) {
+						ImGui::Text("%u", rorb_cost_calculated);
+					}
+					else {
+						ImGui::Text("%u (%u%% off!)", rorb_cost_calculated, percentage_discount);
+						ImGui::SameLine();
+						GUI_PopDisable(priceCondition);
+						TooltipHelper("(?)", "Discount is based on XP earned for this style. Resets on purchase.");
+						GUI_PushDisable(priceCondition);
 
+					}
+				}
+				GUI_PopDisable(priceCondition);
+
+
+
+				//Sell button begins:
+				// Display the sell button in a new column
+				ImGui::EndGroup(); // End the group for the current row
+				ImGui::TableNextColumn();
+				//Disable selling when: The item is not our current style level OR if there's a modded style linked to this style that's been purchased.
+				bool sellcondition = (expData.styleLevels[helper.styleid] != helper.stylelevel) || (helper.moddedchild > -1 && expData.unlocks[helper.moddedchild]);
+				GUI_PushDisable(sellcondition);
+
+				if (GUI_Button("Sell", ImVec2(80.0f * scaleFactorY, 80.0f * scaleFactorY))) {
+					Sell();
+				}
+				GUI_PopDisable(sellcondition);
+
+
+				if (helper.stylelevel == STYLE_LEVEL::LEVEL_THREE && (helper.moddedchild == -1 || !activeCrimsonGameplay.Gameplay.General.extramoves)) {
+					ImGui::Spacing(); // Add spacing between rows
+					ImGui::TableNextRow(0, rowHeight);
 				}
 			}
-			GUI_PopDisable(priceCondition);
-
-			ImGui::EndGroup(); // End the group for the current row
-			ImGui::Spacing(); // Add spacing between rows
 		}
 		ImGui::EndTable();
 	}
@@ -7340,10 +7541,13 @@ void DebugSection() {
 
 		ImGui::Text("");
 
+		GUI_Checkbox2("Show Hitboxes", activeCrimsonGameplay.Debug.showHitboxes, queuedCrimsonGameplay.Debug.showHitboxes);
+
 		if (ImGui::Button("heheh")) {
 			CrimsonDetours::SampleModDetour1();
 		}
 
+		CrimsonEfk::EffekDrawImgui();
 		// if (ImGui::Button("EnableCrazyComboHook")){
 		//	HoldToCrazyComboHook->Toggle(true);
 		// }
@@ -8270,6 +8474,20 @@ void MiscCheatsSection() {
 		ImGui::TableNextRow(0, rowHeight);
 		ImGui::TableNextColumn();
 
+		
+
+		auto name_6975 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+		if (!name_6975) {
+			
+		}
+		else {
+			auto& missionData = *reinterpret_cast<MissionData*>(name_6975);
+			ImGui::PushItemWidth(200);
+			GUI_Input<uint32>("Red Orbs", missionData.redOrbs, 1000, "%u", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+		}
+
+
 		MiscCheatInput("Quicksilver Depletion", activeCrimsonGameplay.Cheats.Misc.quicksilverDepletion, queuedCrimsonGameplay.Cheats.Misc.quicksilverDepletion,
 			defaultCrimsonGameplay.Cheats.Misc.quicksilverDepletion);
 
@@ -8401,17 +8619,17 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 // 				for (int i = 0; i < weaponProgression.rangedWeaponIds.size(); i++) {
 // 					ImGui::Text("RangedWeaponId[%u]: %u", i, weaponProgression.rangedWeaponIds[i]);
 // 				}
- 				for (int i = 0; i < weaponProgression.meleeWeaponIds.size(); i++) {
-					ImGui::Text("MeleeWeaponName[%u]: %s", i, weaponProgression.meleeWeaponNames[i]);
- 				}
+//  				for (int i = 0; i < weaponProgression.meleeWeaponIds.size(); i++) {
+// 					ImGui::Text("MeleeWeaponName[%u]: %s", i, weaponProgression.meleeWeaponNames[i]);
+//  				}
 // 				for (size_t i = 0; i < queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeaponCount; i++) {
 // 					ImGui::Text("RangedWeaponQeued[%u]: %u", i, queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeapons[i]);
 // 				} 
 				
                // ImGui::Text("Gamepad Style Button: %u", gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION));
-				ImGui::Text("activePreset: %u", activeCrimsonGameplay.GameMode.preset);
-				ImGui::Text("queuedPreset: %u", queuedCrimsonGameplay.GameMode.preset);
-                ImGui::Text("Quicksilver Level: %u", sessionData.styleLevels[4]);
+// 				ImGui::Text("activePreset: %u", activeCrimsonGameplay.GameMode.preset);
+// 				ImGui::Text("queuedPreset: %u", queuedCrimsonGameplay.GameMode.preset);
+//                 ImGui::Text("Quicksilver Level: %u", sessionData.styleLevels[4]);
 
 
                 /*ImGui::Text("Sky Launch:  %u", executingSkyLaunch);
@@ -8593,10 +8811,36 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				return;
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
+
+			ImGui::Text("drive level2Effect : %d", crimsonPlayer[0].drive.inPart2);
+			ImGui::Text("drive level3Effect : %d", crimsonPlayer[0].drive.inPart3);
+			ImGui::Text("yamatoHighTimeClone : %d", crimsonPlayer[0].inYamatoHighTimeClone);
+			ImGui::Text("yamatoMotionState : %d", actorData.weaponMotionState[7]);
+			ImGui::Text("airSwordAttackCount : %d", actorData.airSwordAttackCount);
+			ImGui::Text("airGunAttackCount: %d", actorData.airGunAttackCount);
+			ImGui::Text("inYamatoHighTime : %d", crimsonPlayer[0].inYamatoHighTime);
+			ImGui::Text("drive levelTimer: %g", crimsonPlayer[0].drive.levelTimer);
+			ImGui::Text("actor speed: %g", actorData.speed);
+			ImGui::Text("inertia Rotation : %g", actorData.inertiaRotation);
+			ImGui::Text("Jcut MeleeHoldTime:  %g", crimsonPlayer[0].jCut.meleeHoldTime);
+			ImGui::Text("meleeHold jcut %g", crimsonPlayer[0].jCut.meleeButtonHold);
+			ImGui::Text("meleeHold stinger %g", crimsonPlayer[0].stingerInput.meleeButtonHold);
+			ImGui::Text("melee Released Stinger %u", crimsonPlayer[0].stingerInput.meleeReleasedStinger);
+			ImGui::Text("ACTION:  %u", actorData.action);
+			ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
+			ImGui::Text("action Timer Trick not change:  %g", crimsonPlayer[0].actionTimerNotTrickChange);
+			ImGui::Text("Event Data %u", actorData.eventData[0].event);
+			ImGui::Text("Actor Data Permissions: %d", actorData.permissions);
+			ImGui::Text("isAJustFrameCharged %d", crimsonPlayer[0].jCut.isJustFrameCharged);
+			ImGui::Text("isAfterJustFrameCharged %d", crimsonPlayer[0].jCut.isAfterJustFrameCharged);
+			ImGui::Text("jCut performing %d", crimsonPlayer[0].jCut.performing);
+			ImGui::Text("Motion Data 1: %u", crimsonPlayer[0].motion);
+			ImGui::Text("characterData.weapon %d", characterData.meleeWeapons[characterData.meleeWeaponIndex]);
 			ImGui::Text("Crazy announcer timer %g \ was hit %d", rankAnnouncer[1].timer, rankAnnouncer[1].wasHit);
 			ImGui::Text("actorData event %d", actorData.eventData[0].event);
 			ImGui::Text("actorData.state %d", actorData.state);
-			ImGui::Text("air Counts Rising Sun Launch %d", crimsonPlayer[0].airCounts.airRisingSunLaunch);
+			ImGui::Text("air Counts Rising Sun %d", actorData.newAirRisingSunCount);
+			ImGui::Text("inRisingStar %d", crimsonPlayer[0].inRisingStar);
 			ImGui::Text("lastActionTime %g", crimsonPlayer[0].lastActionTime);
 			ImGui::Text("actionTImerNotEventChange %g", crimsonPlayer[0].actionTimerNotEventChange);
 			ImGui::Text("closeToEnemy %u", crimsonPlayer[0].isCloseToEnemy);
@@ -8616,8 +8860,6 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			ImGui::Text("styleExpPoints: %g", actorData.styleExpPoints);
 			ImGui::Text("Actor Base Addr: %x", actorData.baseAddr);
 			ImGui::Text("TrickDash Timer: %g", crimsonPlayer[0].trickDashTimer);
-			ImGui::Text("ACTION:  %u", actorData.action);
-			ImGui::Text("Event Data 1 %u", actorData.eventData[0]);
 			ImGui::Text("lockOnEnemyMinusStun: %g", crimsonPlayer[0].lockedOnEnemyMinusStun);
 			ImGui::Text("lockOnEnemyMinusDisplacement: %g", crimsonPlayer[0].lockedOnEnemyMinusDisplacement);
 			ImGui::Text("gameModeData.mustStyleMissionResult: %u", gameModeData.mustStyleMissionResult);
@@ -8657,10 +8899,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			ImGui::Text("Royal Block: %u", actorData.royalBlock);
 			ImGui::Text("Guard: %u", actorData.guard);
 			ImGui::Text("maxDT: %g", actorData.maxMagicPoints);
-			ImGui::Text("Motion Data 1: %u", crimsonPlayer[0].motion);
 			ImGui::Text("anim Timer Main Actor:  %g", crimsonPlayer[0].animTimer);
 			ImGui::Text("anim Timer Clone:  %g", crimsonPlayer[0].animTimerClone);
-			ImGui::Text("action Timer Main Actor:  %g", crimsonPlayer[0].actionTimer);
 			ImGui::Text("action Timer Clone:  %g", crimsonPlayer[0].actionTimerClone);
 			ImGui::Text("AIR GUARD: %u", actorData.airGuard);
 			ImGui::Text("GUARDFLY PULL: %g", crimsonPlayer[0].inertia.airGuard.cachedPull);
@@ -9918,6 +10158,11 @@ void SystemSection(size_t defaultFontSize) {
 				"(without Frame Rate-Responsive Game Speed on) will tag you at the Mission End screen.");
 			GUI_PopDisable(!IsTurbo());
 
+			ImGui::TableNextColumn();
+
+			bool* turboSetting = reinterpret_cast<bool*>(appBaseAddr + 0xD6CEA9);
+
+			GUI_Checkbox("Turbo Mode", *turboSetting);
 
 			ImGui::EndTable();
 		}
@@ -9959,7 +10204,7 @@ void SystemSection(size_t defaultFontSize) {
 				ToggleSkipCutscenes(activeConfig.skipCutscenes);
 			}
 
-            // Enable File Mods will be a json file only option for now, don't see much need for it in the GUI. - Mia
+			// Enable File Mods will be a json file only option for now, don't see much need for it in the GUI. - Mia
 // 			ImGui::TableNextRow(0, rowWidth);
 // 			ImGui::TableNextColumn();
 // 
@@ -10568,6 +10813,12 @@ void VisualSection(size_t defaultFontSize) {
     GUI_Checkbox2("STYLE SWITCH FLUX", activeCrimsonConfig.StyleSwitchFX.Flux.enable, queuedCrimsonConfig.StyleSwitchFX.Flux.enable);
 	ImGui::PopFont();
 
+	ImGui::SameLine();
+	ImGui::PushItemWidth(itemWidth);
+	UI::ComboMapValue2("Type", styleSwitchTypeNames, styleSwitchTypeMap,
+		activeCrimsonConfig.StyleSwitchFX.Flux.type, queuedCrimsonConfig.StyleSwitchFX.Flux.type);
+	ImGui::PopItemWidth();
+
 	for (int style = 0; style < 6; style++) {
 	
 		if (style > 0) {
@@ -10746,7 +10997,89 @@ void VisualSection(size_t defaultFontSize) {
 
 	ImGui::Text("");
 
-	GUI_TitleCheckbox2("DELAYED COMBO VFX / VIBRATION", activeCrimsonConfig.VFX.delayedComboVFX, queuedCrimsonConfig.VFX.delayedComboVFX, true);
+	GUI_Title("CRIMSON VFX OPTIONS");
+
+	{
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+
+		if (ImGui::BeginTable("MiscVisualOptionsTable", 3)) {
+
+			ImGui::TableSetupColumn("h1", 0, columnWidth * 2.5f);
+			ImGui::TableNextRow(0, rowWidth * 0.1f);
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Delayed Combo VFX / Vibration", activeCrimsonConfig.VFX.delayedComboVFX, queuedCrimsonConfig.VFX.delayedComboVFX);
+
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			GUI_Color2("", activeCrimsonConfig.VFX.delayedComboColor, queuedCrimsonConfig.VFX.delayedComboColor);
+			ImGui::SameLine();
+			if (GUI_Button("D")) {
+				CopyMemory(&activeCrimsonConfig.VFX.delayedComboColor, &defaultCrimsonConfig.VFX.delayedComboColor,
+					sizeof(activeCrimsonConfig.VFX.delayedComboColor));
+				CopyMemory(&queuedCrimsonConfig.VFX.delayedComboColor, &defaultCrimsonConfig.VFX.delayedComboColor,
+					sizeof(queuedCrimsonConfig.VFX.delayedComboColor));
+			}
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Royal Block VFX", activeCrimsonConfig.VFX.royalBlockVFX, queuedCrimsonConfig.VFX.royalBlockVFX);
+
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			GUI_Color2("", activeCrimsonConfig.VFX.royalBlockColor, queuedCrimsonConfig.VFX.royalBlockColor);
+			ImGui::SameLine();
+			if (GUI_Button("D")) {
+				CopyMemory(&activeCrimsonConfig.VFX.royalBlockColor, &defaultCrimsonConfig.VFX.royalBlockColor,
+					sizeof(activeCrimsonConfig.VFX.royalBlockColor));
+				CopyMemory(&queuedCrimsonConfig.VFX.royalBlockColor, &defaultCrimsonConfig.VFX.royalBlockColor,
+					sizeof(queuedCrimsonConfig.VFX.royalBlockColor));
+			}
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("DT Explosion VFX", activeCrimsonConfig.VFX.dtExplosionVFX, queuedCrimsonConfig.VFX.dtExplosionVFX);
+
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			GUI_Color2("", activeCrimsonConfig.VFX.dtExplosionColorDante, queuedCrimsonConfig.VFX.dtExplosionColorDante);
+			ImGui::SameLine();
+			GUI_Color2("", activeCrimsonConfig.VFX.dtExplosionColorVergil, queuedCrimsonConfig.VFX.dtExplosionColorVergil);
+			ImGui::SameLine();
+			if (GUI_Button("D")) {
+				CopyMemory(&activeCrimsonConfig.VFX.dtExplosionColorDante, &defaultCrimsonConfig.VFX.dtExplosionColorDante,
+					sizeof(activeCrimsonConfig.VFX.dtExplosionColorDante));
+				CopyMemory(&queuedCrimsonConfig.VFX.dtExplosionColorDante, &defaultCrimsonConfig.VFX.dtExplosionColorDante,
+					sizeof(queuedCrimsonConfig.VFX.dtExplosionColorDante));
+				
+				CopyMemory(&activeCrimsonConfig.VFX.dtExplosionColorVergil, &defaultCrimsonConfig.VFX.dtExplosionColorVergil,
+					sizeof(activeCrimsonConfig.VFX.dtExplosionColorVergil));
+				CopyMemory(&queuedCrimsonConfig.VFX.dtExplosionColorVergil, &defaultCrimsonConfig.VFX.dtExplosionColorVergil,
+					sizeof(queuedCrimsonConfig.VFX.dtExplosionColorVergil));
+			}
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("DT Activation Vibration", activeCrimsonConfig.VFX.dtActivationVibration, queuedCrimsonConfig.VFX.dtActivationVibration);
+
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+
+
+			ImGui::PopItemWidth();
+
+			ImGui::EndTable();
+		}
+	}
+	
+	ImGui::Text("");
+
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 
@@ -10872,6 +11205,22 @@ void GeneralGameplayOptions() {
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Expanded Movelist",
+				activeCrimsonGameplay.Gameplay.General.extramoves,
+				queuedCrimsonGameplay.Gameplay.General.extramoves,
+				activeCrimsonGameplayMask.Gameplay.General.extramoves)) {
+			}
+
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Enables new moves for dante & vergil that can be purchased from the shop.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
 
 			if (GUI_Checkbox2("Hold To Shoot Gun",
 				activeCrimsonGameplay.Gameplay.General.holdToShoot,
@@ -11191,15 +11540,16 @@ void DanteGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
-			if (GUI_Checkbox2("Drive Tweaks",
-				activeCrimsonGameplay.Gameplay.Dante.driveTweaks,
-				queuedCrimsonGameplay.Gameplay.Dante.driveTweaks,
-				activeCrimsonGameplayMask.Gameplay.Dante.driveTweaks)) {
+			if (GUI_Checkbox2("Drive Rework",
+				activeCrimsonGameplay.Gameplay.Dante.driveRework,
+				queuedCrimsonGameplay.Gameplay.Dante.driveRework,
+				activeCrimsonGameplayMask.Gameplay.Dante.driveRework)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Drive is now inputted by Lock On + Back to Forward + Melee and can be held for more damage. Do Quick Drive by performing Drive after a Rebellion attack.");
+			TooltipHelper("(?)", "Drive is now inputted by Lock On + Back to Forward + Melee, can be held for more damage and is now a three part attack like DMC4/5.\n"
+				"Do Quick Drive by performing Drive after a Rebellion attack.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			// Third row
@@ -11256,7 +11606,7 @@ void DanteGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
-			GUI_PushDisable(!activeConfig.Actor.enable);
+			/*GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Stinger",
 				activeCrimsonGameplay.Gameplay.Dante.airStinger,
 				queuedCrimsonGameplay.Gameplay.Dante.airStinger,
@@ -11268,24 +11618,24 @@ void DanteGameplayOptions() {
 			TooltipHelper("(?)", "With Rebellion: Lock On + Forward + Melee while in air.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
-			ImGui::TableNextColumn();
+			ImGui::TableNextColumn();*/
 
-			GUI_PushDisable(!activeConfig.Actor.enable);
-			if (GUI_Checkbox2("Air Revolver",
-				activeCrimsonGameplay.Gameplay.Dante.airRevolver,
-				queuedCrimsonGameplay.Gameplay.Dante.airRevolver,
-				activeCrimsonGameplayMask.Gameplay.Dante.airRevolver)) {
-			}
-			ImGui::SameLine();
-			GUI_CCSRequirementButton();
-			ImGui::SameLine();
-			TooltipHelper("(?)", "With Cerberus: Lock On + Forward + Melee while in air.");
-			GUI_PopDisable(!activeConfig.Actor.enable);
+			//GUI_PushDisable(!activeConfig.Actor.enable);
+			//if (GUI_Checkbox2("Air Revolver",
+			//	activeCrimsonGameplay.Gameplay.Dante.airRevolver,
+			//	queuedCrimsonGameplay.Gameplay.Dante.airRevolver,
+			//	activeCrimsonGameplayMask.Gameplay.Dante.airRevolver)) {
+			//}
+			//ImGui::SameLine();
+			//GUI_CCSRequirementButton();
+			//ImGui::SameLine();
+			//TooltipHelper("(?)", "With Cerberus: Lock On + Forward + Melee while in air.");
+			//GUI_PopDisable(!activeConfig.Actor.enable);
 
-			// Fifth row
-			ImGui::TableNextColumn();
+			//// Fifth row
+			//ImGui::TableNextColumn();
 
-			GUI_PushDisable(!activeConfig.Actor.enable);
+			/*GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Agni & Rudra Whirlwind",
 				activeCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind,
 				queuedCrimsonGameplay.Gameplay.Dante.airAgniRudraWhirlwind,
@@ -11297,7 +11647,7 @@ void DanteGameplayOptions() {
 			TooltipHelper("(?)", "With Agni & Rudra: LockOn + Back + Melee while in air.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
-			ImGui::TableNextColumn();
+			ImGui::TableNextColumn();*/
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Sky Launch Air Taunt",
@@ -11313,7 +11663,7 @@ void DanteGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
-			GUI_PushDisable(!activeConfig.Actor.enable);
+			/*GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Tornado",
 				activeCrimsonGameplay.Gameplay.Dante.airTornado,
 				queuedCrimsonGameplay.Gameplay.Dante.airTornado,
@@ -11325,9 +11675,9 @@ void DanteGameplayOptions() {
 			TooltipHelper("(?)", "With Beowulf: Neutral + Style while in air. Reduces Tornado damage across the board. Carries inertia.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
-			ImGui::TableNextColumn();
+			ImGui::TableNextColumn();*/
 
-			GUI_PushDisable(!activeConfig.Actor.enable || !activeCrimsonGameplay.Gameplay.Dante.airTornado);
+			GUI_PushDisable(!activeConfig.Actor.enable || !(activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::SWORDMASTER_MODDED_MOVES]));
 			if (GUI_Checkbox2("Swap Hammer Volcano Inputs",
 				activeCrimsonGameplay.Gameplay.Dante.swapHammerVocalnoInputs,
 				queuedCrimsonGameplay.Gameplay.Dante.swapHammerVocalnoInputs,
@@ -11340,9 +11690,9 @@ void DanteGameplayOptions() {
 				"and Volcano input to be Air Lock On + Style + Back.\n"
 				"Ground Volcano will still be Lock On + Forward + Style not to confuse with Real Impact.\n"
 				"This will swap the order in which you unlock both moves.");
-			GUI_PopDisable(!activeConfig.Actor.enable || !activeCrimsonGameplay.Gameplay.Dante.airTornado);
+			GUI_PopDisable(!activeConfig.Actor.enable || !(activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::SWORDMASTER_MODDED_MOVES]));
 
-			ImGui::TableNextColumn();
+			/*ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Rising Dragon Launch",
@@ -11354,7 +11704,7 @@ void DanteGameplayOptions() {
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
 			TooltipHelper("(?)", "With Beowulf: LockOn + Back + Melee while in air.");
-			GUI_PopDisable(!activeConfig.Actor.enable);
+			GUI_PopDisable(!activeConfig.Actor.enable);*/
 
 			// Sixth row
 			ImGui::TableNextColumn();
@@ -11374,7 +11724,7 @@ void DanteGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
-			GUI_PushDisable(!activeConfig.Actor.enable);
+			/*GUI_PushDisable(!activeConfig.Actor.enable);
 			if (!activeConfig.Actor.enable) {
 				activeCrimsonGameplay.Gameplay.Dante.dTInfusedRoyalguard = false;
 			}
@@ -11389,7 +11739,7 @@ void DanteGameplayOptions() {
 			TooltipHelper("(?)", "Royalguard Normal Blocks will consume DT instead, until you're low on DT. This will also prevent Guard Breaks by converting them into Normal Blocks.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
-			ImGui::TableNextColumn();
+			ImGui::TableNextColumn();*/
 
 			// Adding Air Hike section
 			if (GUI_Checkbox2("Air Hike Core Ability",
@@ -11447,7 +11797,7 @@ void DanteGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
-			GUI_PushDisable(!activeConfig.Actor.enable);
+			/*GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Ground Trick",
 				activeCrimsonGameplay.Gameplay.Dante.groundTrick,
 				queuedCrimsonGameplay.Gameplay.Dante.groundTrick,
@@ -11460,7 +11810,7 @@ void DanteGameplayOptions() {
 				"Dante Teleports to the Ground near the enemy. Requires Trickster level 3.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
-			ImGui::TableNextColumn();
+			ImGui::TableNextColumn();*/
 
 			if (GUI_Checkbox2("Swap Artemis' Inputs",
 				activeCrimsonGameplay.Gameplay.Dante.swapArtemisMultiLockNormalShot,
@@ -11625,7 +11975,7 @@ void VergilGameplayOptions() {
 			// Second row
 			ImGui::TableNextRow(0, rowHeight * 0.5f);
 			ImGui::TableNextColumn();
-			GUI_PushDisable(!activeConfig.Actor.enable);
+			/*GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Stinger",
 				activeCrimsonGameplay.Gameplay.Vergil.airStinger,
 				queuedCrimsonGameplay.Gameplay.Vergil.airStinger,
@@ -11637,8 +11987,8 @@ void VergilGameplayOptions() {
 			TooltipHelper("(?)", "With Force Edge : Lock On + Forward + Melee while in air.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
-			ImGui::TableNextColumn();
-			GUI_PushDisable(!activeConfig.Actor.enable);
+			ImGui::TableNextColumn();*/
+			/*GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Rising Sun",
 				activeCrimsonGameplay.Gameplay.Vergil.airRisingSun,
 				queuedCrimsonGameplay.Gameplay.Vergil.airRisingSun,
@@ -11663,21 +12013,21 @@ void VergilGameplayOptions() {
 			TooltipHelper("(?)", "With Beowulf: Lock On + Forward + Melee while in air.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
-			ImGui::TableNextColumn();
+			ImGui::TableNextColumn();*/
 			GUI_PushDisable(!activeConfig.Actor.enable);
-			if (GUI_Checkbox2("Alternate Judgement Cut Input",
-				activeCrimsonGameplay.Gameplay.Vergil.altJudgementCutInput,
-				queuedCrimsonGameplay.Gameplay.Vergil.altJudgementCutInput,
-				activeCrimsonGameplayMask.Gameplay.Vergil.altJudgementCutInput)) {
+			if (GUI_Checkbox2("Judgement Cut Rework",
+				activeCrimsonGameplay.Gameplay.Vergil.judgementCutRework,
+				queuedCrimsonGameplay.Gameplay.Vergil.judgementCutRework,
+				activeCrimsonGameplayMask.Gameplay.Vergil.judgementCutRework)) {
 			}
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
-			TooltipHelper("(?)", "With Yamato: Lock On + Back to Forward + Melee.");
+			TooltipHelper("(?)", "Makes Judgement Cut behave like it does in 4SE/5 with Just Frame inputs.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
-			GUI_PushDisable(!activeConfig.Actor.enable);
+			/*GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Yamato Rising Star",
 				activeCrimsonGameplay.Gameplay.Vergil.yamatoRisingStar,
 				queuedCrimsonGameplay.Gameplay.Vergil.yamatoRisingStar,
@@ -11686,7 +12036,7 @@ void VergilGameplayOptions() {
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
-			TooltipHelper("(?)", "With Yamato: During Rapid Slash HOLD Melee + HOLD Forward.");
+			TooltipHelper("(?)", "With Yamato: During Rapid Slash HOLD Melee.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
@@ -11702,7 +12052,7 @@ void VergilGameplayOptions() {
 			TooltipHelper("(?)", "With Yamato: Lock On + Back + HOLD Melee");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
-			ImGui::TableNextColumn();
+			ImGui::TableNextColumn();*/
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Air Taunt Rising Sun",
@@ -11747,7 +12097,7 @@ void VergilGameplayOptions() {
 				"Jump Cancelling won't interrupt this behavior.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
-			ImGui::TableNextColumn();
+			/*ImGui::TableNextColumn();
 			if (GUI_Checkbox2("Trick Up When Not Locked On",
 				activeCrimsonGameplay.Gameplay.Vergil.trickUpNoLockOn,
 				queuedCrimsonGameplay.Gameplay.Vergil.trickUpNoLockOn,
@@ -11755,7 +12105,7 @@ void VergilGameplayOptions() {
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Allows Vergil to Trick Up instead of Air Tricking when using the Style Button without Lock On.\n"
-				"Similar to DMC5.");
+				"Similar to DMC5.");*/
 
 			ImGui::TableNextColumn();
 			GUI_PushDisable(!activeConfig.Actor.enable);
@@ -12228,76 +12578,11 @@ void DrawKeybindEditor(const std::vector<std::pair<uint16_t, const char*>>& butt
     //ImGui::End();
 }
 
-void InputRemapOptions() {
-	auto& defaultFontSize = UI::g_UIContext.DefaultFontSize;
-	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
-
-	GUI_Title("INPUT REMAPS", false, false, true, "Remaps are global for all controllers, will only take into account Player 1's active Character for the switch.");
-
-	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
-
-	{
-		const float columnWidth = 0.5f * queuedConfig.globalScale;
-		const float rowHeight = 40.0f * queuedConfig.globalScale;
-
-		if (ImGui::BeginTable("InputRemapsTable", 3)) {
-			ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
-			ImGui::TableSetupColumn("b2", 0, columnWidth * 2.0f);
-			ImGui::TableSetupColumn("b3", 0, columnWidth * 2.0f);
-
-			// First row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
-			ImGui::TableNextColumn();
-
-			ImGui::PushItemWidth(itemWidth * 0.8f);
-			GUI_ButtonCombo2("Dante DT Button",
-				activeCrimsonConfig.System.Remaps.danteDTButton,
-				queuedCrimsonConfig.System.Remaps.danteDTButton);
-			ImGui::PopItemWidth();
-
-			ImGui::TableNextColumn();
-
-			ImGui::PushItemWidth(itemWidth * 0.8f);
-			GUI_ButtonCombo2("Dante Shoot Button",
-				activeCrimsonConfig.System.Remaps.danteShootButton,
-				queuedCrimsonConfig.System.Remaps.danteShootButton);
-			ImGui::PopItemWidth();
-
-			// Second row
-			ImGui::TableNextRow(0, rowHeight * 0.5f);
-			ImGui::TableNextColumn();
-
-			ImGui::PushItemWidth(itemWidth * 0.8f);
-			GUI_ButtonCombo2("Vergil DT Button",
-				activeCrimsonConfig.System.Remaps.vergilDTButton,
-				queuedCrimsonConfig.System.Remaps.vergilDTButton);
-			ImGui::PopItemWidth();
-
-			ImGui::TableNextColumn();
-
-			ImGui::PushItemWidth(itemWidth * 0.8f);
-			GUI_ButtonCombo2("Vergil Shoot Button",
-				activeCrimsonConfig.System.Remaps.vergilShootButton,
-				queuedCrimsonConfig.System.Remaps.vergilShootButton);
-			ImGui::PopItemWidth();
-
-			ImGui::EndTable();
-		}
-	}
-
-	/*DrawKeybindEditor(buttonPairs);*/
-	
-	ImGui::PopStyleColor();
-	ImGui::PopFont();
-}
-
 void GameplaySection() {
  	GeneralGameplayOptions();
 	DanteGameplayOptions();
 	VergilGameplayOptions();
 	ExtraDifficultyGameplayOptions();
-	InputRemapOptions();
 }
 
 
@@ -13162,6 +13447,14 @@ void Main(IDXGISwapChain* pSwapChain) {
 
     static bool doOnce = false;
 	static std::thread versionCheckerThread;
+
+	auto& io = ImGui::GetIO();
+	int keyboardBackKey = activeCrimsonConfig.System.KeyboardConfig.keybinds[11];
+
+	// Allow keyboard exit
+	if ((io.KeysDown[DI8::KEY::ESCAPE] && (io.KeysDownDuration[DI8::KEY::ESCAPE] == 0.0f))) {
+		CloseMain();
+	}
 
     if (!doOnce) {
         doOnce = true;
@@ -15239,7 +15532,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 
 void GUI_Render(IDXGISwapChain* pSwapChain) {
-
     if (g_scene != SCENE::GAME) {
         devilTriggerReadyPlayed = !activeConfig.playDTReadySFXAtMissionStart;
     }
@@ -15251,8 +15543,11 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     AdjustBackgroundColorAndTransparency();
 
     Welcome();
+	StoreHDCKeybinds();
+	OverrideHDCKeybinds();
     Main(pSwapChain);
     Shop::ShopWindow();
+	ShowButtonConfigWindow();
 	TrainingWindow();
 	RenderMainMenuInfo(pSwapChain);
 
@@ -15266,6 +15561,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	
 	scaleFactorX = ImGui::GetIO().DisplaySize.x / 1920;
 	scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
+	scaleFactor = (scaleFactorX + scaleFactorY) / 2.0f;
 	scaledFontSize = UI::g_UIContext.DefaultFontSize * scaleFactorY;
 	itemWidth = scaledFontSize * 8.0f;
 
@@ -15285,6 +15581,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonBetterArkham2::OnTick();
     
   	CrimsonOnTick::FrameResponsiveGameSpeed();
+	CrimsonOnTick::LevelFullyLoadedDelay();
 
     // TIMERS
     CrimsonTimers::CallAllTimers();
@@ -15348,6 +15645,7 @@ void GUI_Init() {
     UpdateGlobalScale();
 
     UI::SetStyleCrimson();
+	UI::BuildFontsCrimson();
 
     Actor_UpdateIndices();
     Arcade_UpdateIndices();

@@ -35,7 +35,7 @@ float saveTimeout = 1000; // in ms
 bool GUI_Button(const char* label, const ImVec2& size) {
     UI::PushID();
     auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
-    ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+    ImGui::PushFont(UI::g_ImGuiFont_Benguiat[defaultFontSize * 1.1f]);
     auto update = ImGui::Button(label, size);
     ImGui::PopFont();
     UI::PopID();
@@ -480,6 +480,36 @@ bool GUI_ButtonCombo2(const char* label, uint16_t& currentButton, uint16_t& curr
 
 	return update;
 }
+
+bool GUI_CloseX(bool crimsonColor) {
+	// Create a close button 'X' at the top right
+	float scaleFactor = (CrimsonGUI::scaleFactorX + CrimsonGUI::scaleFactorY) * 0.5f; // Average for more balanced scaling
+	float closeButtonSize = 24.0f * scaleFactor;
+	ImVec2 windowSize = ImGui::GetWindowSize();
+	if (crimsonColor) {
+		ImGui::PushStyleColor(ImGuiCol_Button, UI::SwapColorEndianness(0xDA1B53FF));
+	} else {
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+	}
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1, 1, 1, 0.1f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1, 1, 1, 0.2f));
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));       // remove inner padding
+	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);              // no rounding
+	
+	ImGui::SetCursorPos(ImVec2(windowSize.x - closeButtonSize - 20.0f * scaleFactor, 10.0f * scaleFactor));
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[UI::g_UIContext.DefaultFontSize * 1.2f]);
+	if (ImGui::Button("X", ImVec2(closeButtonSize, closeButtonSize))) {
+		ImGui::PopFont();
+		ImGui::PopStyleVar(2);
+		ImGui::PopStyleColor(3);
+		return true;
+	}
+	ImGui::PopFont();
+	ImGui::PopStyleVar(2);
+	ImGui::PopStyleColor(3);
+
+	return false;
+}
 #pragma endregion
 
 ID3D11ShaderResourceView* CreateTexture(const char* filename, ID3D11Device* device) {
@@ -748,22 +778,9 @@ void KeyBinding::Popup() {
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.2f]);
 		ImGui::Text("Capturing Inputs...");
 		ImGui::SameLine();
-		// Create a close button 'X' at the top right
-		float closeButtonSize = 24.0f * scaleFactor;
-		ImVec2 windowSize = ImGui::GetWindowSize();
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1, 1, 1, 0.1f));
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1, 1, 1, 0.2f));
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));       // remove inner padding
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);              // no rounding
-		ImGui::SetCursorPos(ImVec2(windowSize.x - closeButtonSize - 20.0f * scaleFactor, 10.0f * scaleFactor));
-		ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 1.2f]);
-		if (ImGui::Button("X", ImVec2(closeButtonSize, closeButtonSize))) {
+		if (GUI_CloseX()) {
 			showPopup = false;
 		}
-		ImGui::PopFont();
-		ImGui::PopStyleVar(2);
-		ImGui::PopStyleColor(3);
 
 		ImGui::PopFont();
 		ImGui::Text("");

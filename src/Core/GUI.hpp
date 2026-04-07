@@ -322,6 +322,8 @@ bool GUI_LegacyButton();
 
 bool GUI_WIPButton();
 
+bool GUI_CloseX(bool crimsonColor = false);
+
 bool GUI_Color(const char* label, float (&var)[4], ImGuiColorEditFlags flags = 0);
 
 bool GUI_Color2(const char* label, float (&var)[4], float (&var2)[4], ImGuiColorEditFlags flags = 0);

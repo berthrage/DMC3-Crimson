@@ -83,7 +83,7 @@ namespace UI {
 
 		style.Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 		style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.858f, 0.929f, 0.886f, 0.280f);
-		style.Colors[ImGuiCol_WindowBg] = ImVec4(0.207f, 0.156f, 0.168f, queuedCrimsonConfig.GUI.opacity);
+		style.Colors[ImGuiCol_WindowBg] = ImVec4(0.1f, 0.1f, 0.1f, queuedCrimsonConfig.GUI.opacity);
 		style.Colors[ImGuiCol_WindowBgText] = ImVec4(0.207f, 0.156f, 0.168f, 1.0f);
 		style.Colors[ImGuiCol_ChildBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
 		style.Colors[ImGuiCol_PopupBg] = ImVec4(0.200f, 0.219f, 0.266f, 0.899f);
@@ -103,7 +103,7 @@ namespace UI {
 		style.Colors[ImGuiCol_CheckMark] = ImVec4(0.886f, 0.070f, 0.235f, 1.0f);
 		style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.855f, 0.106f, 0.325f, 1.0f);
 		style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.980f, 0.278f, 0.261f, 1.0f);
-		style.Colors[ImGuiCol_Button] = ImVec4(0.199f, 0.215f, 0.266f, 0.490f);
+		style.Colors[ImGuiCol_Button] = ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(0xDA1B53FF));
 		style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.529f, 0.184f, 0.254f, 0.858f);
 		style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.788f, 0.062f, 0.211f, 1.0f);
 		style.Colors[ImGuiCol_Header] = ImVec4(0.690f, 0.054f, 0.184f, 0.494f);
@@ -135,6 +135,12 @@ namespace UI {
 		style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 0.699f);
 		style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.800f, 0.800f, 0.800f, 0.200f);
 		style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.800f, 0.800f, 0.800f, 0.349f);
+
+		
+	}
+
+	void BuildFontsCrimson() {
+		ImGuiStyle& style = ImGui::GetStyle();
 
 		// Fonts
 		auto& io = ImGui::GetIO();

@@ -268,9 +268,6 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleRebellionInfiniteShredder(false);
         ToggleRebellionInfiniteShredder(activeCrimsonGameplay.Cheats.Dante.infiniteShredder);
 
-        ToggleRebellionHoldDrive(false);
-        ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
-
         XI::new_Init("xinput9_1_0.dll");
 
         Hooks::Init();
@@ -298,6 +295,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonDetours::ToggleFasterTurnRate(activeCrimsonGameplay.Gameplay.General.fasterTurnRate);
         CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonGameplay.Gameplay.General.increasedEnemyJuggleTime);
         //CrimsonPatches::SetEnemyDTMode(activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode);
+        CrimsonDetours::ToggleConfirmSetAction(true);
         CrimsonDetours::ToggleFixBallsHangHitSpeed(true);
         CrimsonDetours::ToggleFixSecretMissionTimerFPS(true);
         CrimsonDetours::ToggleCerberusCrashFix(true);
@@ -315,7 +313,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonPatches::DisableBlendingEffects(activeConfig.disableBlendingEffects);
         CrimsonDetours::ToggleGreenOrbsMPRegen(true);
 
-        // Load Weapon WHeel's Sprites Up Front
+        // Load Weapon Wheel's Sprites Up Front
         WW::LoadSpriteDescs();
 
         // Remove FMODGetCodecDescription Label
