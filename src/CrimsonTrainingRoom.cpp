@@ -12,7 +12,7 @@ static bool trainingRoomEnabled{ true };
 static bool fromMissionStart{ false };
 static bool fromInGame{ false };
 static bool queueReset{ false };
-static uint16 room{ ROOM::DEBUG_ROOM_5 };
+static uint16 room{ ROOM::DEBUG_ROOM_10 };
 //Tracks whether we are in training currently
 static bool inTrainingRoom{ false };
 const char* enterString{ "Enter Void" };
