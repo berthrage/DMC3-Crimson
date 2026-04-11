@@ -2655,376 +2655,6 @@ void CheckDanteUnlockedWeapons(CharacterData& queuedCharacterData, CharacterData
 	}
 }
 
-void Actor_CharacterTabSelect(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex, size_t defaultFontSize) {
-	auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
-	auto& queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
-
-	auto& activeCharacterDataClone = GetActiveCharacterData(playerIndex, characterIndex, 1);
-	auto& queuedCharacterDataClone = GetQueuedCharacterData(playerIndex, characterIndex, 1);
-
-	auto& mainActiveCharacterData = GetActiveCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
-	auto& mainQueuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
-
-	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-
-	auto& playerData = GetPlayerData(playerIndex);
-	auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-
-	ImU32 checkmarkColor = UI::SwapColorEndianness(0xFFFFFFFF);
-
-	if ((entityIndex == ENTITY::CLONE) && (mainQueuedCharacterData.character >= CHARACTER::MAX)) {
-		return;
-	}
-
-	ImGui::Text("");
-	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
-
-	{
-		const float columnWidth = 0.8f * queuedConfig.globalScale;
-		const float rowWidth = 40.0f * queuedConfig.globalScale;
-
-		if (ImGui::BeginTable("CharacterSelection", 1)) {
-
-			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-			ImGui::TableSetupColumn("c1", 0, columnWidth);
-			ImGui::TableNextRow(0, rowWidth);
-			ImGui::TableNextColumn();
-
-			ImGui::PushItemWidth(itemWidth);
-
-			if (!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters) {
-				if (UI::ComboMapValue("CHARACTER", crimsonCharacterNames, crimsonCharacterMap,
-					queuedCharacterData.character)) {
-					ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character, playerIndex, characterIndex);
-
-					if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
-						queuedCharacterDataClone.character = queuedCharacterData.character;
-						ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
-					}
-
-					CheckDanteUnlockedWeapons(queuedCharacterData, activeCharacterData, playerIndex, characterIndex);
-
-					Actor_UpdateIndices();
-				}
-
-			}
-			else {
-				if ((playerIndex == 0) && (characterIndex > 0)) {
-					if (UI::ComboMap("CHARACTER", ddmkCharacterNames, ddmkCharactersMap, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
-						queuedCharacterData.character)) {
-						ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character, playerIndex, characterIndex);
-
-						if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
-							queuedCharacterDataClone.character = queuedCharacterData.character;
-							ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
-						}
-
-						CheckDanteUnlockedWeapons(queuedCharacterData, activeCharacterData, playerIndex, characterIndex);
-
-						Actor_UpdateIndices();
-					}
-				}
-				else {
-					if (UI::Combo("CHARACTER", ddmkCharacter2PNames, queuedCharacterData.character)) {
-						ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character, playerIndex, characterIndex);
-
-						if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
-							queuedCharacterDataClone.character = queuedCharacterData.character;
-							ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
-						}
-
-						CheckDanteUnlockedWeapons(queuedCharacterData, activeCharacterData, playerIndex, characterIndex);
-
-						Actor_UpdateIndices();
-					}
-				}
-			}
-
-			ImGui::PopItemWidth();
-			ImGui::PopFont();
-
-			BackgroundPlayerText(playerIndex);
-			ImGui::EndTable();
-		}
-	}
-
-	ImGui::Text("");
-
-	/*ImGui::Text("Styles");
-
-	old_for_all(uint8, styleIndex, STYLE_COUNT)
-	{
-			if constexpr (debug)
-			{
-					ImGui::Text("");
-					ImGui::Text("%u", styleIndex);
-			}
-
-			UI::ComboMap
-			(
-					"",
-					buttonNames,
-					buttons,
-					Actor_styleButtonIndices[playerIndex][characterIndex][entityIndex][styleIndex],
-					queuedCharacterData.styleButtons[styleIndex],
-					ImGuiComboFlags_HeightLargest
-			);
-
-			if constexpr (!debug)
-			{
-					ImGui::SameLine();
-			}
-
-			switch (queuedCharacterData.character)
-			{
-					case CHARACTER::DANTE:
-					{
-							UI::ComboMap
-							(
-									"",
-									styleNamesDante,
-									stylesDante,
-									Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][0],
-									queuedCharacterData.styles[styleIndex][0]
-							);
-
-							if constexpr (!debug)
-							{
-									ImGui::SameLine();
-							}
-
-							UI::ComboMap
-							(
-									"",
-									styleNamesDante,
-									stylesDante,
-									Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][1],
-									queuedCharacterData.styles[styleIndex][1]
-							);
-
-							break;
-					}
-					case CHARACTER::VERGIL:
-					{
-							UI::ComboMap
-							(
-									"",
-									styleNamesVergil,
-									stylesVergil,
-									Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][0],
-									queuedCharacterData.styles[styleIndex][0]
-							);
-
-							if constexpr (debug)
-							{
-									ImGui::SameLine();
-							}
-
-							UI::ComboMap
-							(
-									"",
-									styleNamesVergil,
-									stylesVergil,
-									Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][1],
-									queuedCharacterData.styles[styleIndex][1]
-							);
-
-							break;
-					}
-			}
-	}
-
-	ImGui::PopItemWidth();*/
-
-	ImGui::PopStyleColor();
-
-	//if (queuedCharacterData.character != CHARACTER::DANTE && queuedCharacterData.character != CHARACTER::VERGIL) {
-	//	return;
-	//}
-
-	//ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-	//ImGui::Text("WEAPON LOADOUT");
-	////GUI_SectionEnd(SectionFlags_NoNewLine);
-	//ImGui::PopFont();
-
-	//ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-	//{
-	//	const float columnWidth = 0.5f * queuedConfig.globalScale;
-	//	const float rowWidth = 40.0f * queuedConfig.globalScale;
-
-	//	if (ImGui::BeginTable("WeaponLoadout", 2)) {
-
-	//		ImGui::TableNextRow(0, rowWidth);
-
-	//		if (queuedCharacterData.character == CHARACTER::DANTE) {
-
-	//			ImGui::TableNextColumn();
-
-	//			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
-	//			ImGui::Text("RANGED");
-	//			ImGui::PopFont();
-
-
-	//			ImGui::PushItemWidth(itemWidth);
-
-	//			auto rangedSlider = [&]() {
-	//				if (queuedCharacterData.character == activeCharacterData.character) {
-	//					if (GUI_Slider2<uint8>("", queuedCharacterData.rangedWeaponCount,
-	//						activeCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1)) {
-	//						if (!newActorData.baseAddr) return;
-	//						auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-	//						auto& characterData = GetCharacterData(actorData);
-	//					}
-	//				}
-	//				else {
-	//					GUI_Slider<uint8>("", queuedCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1);
-	//				}
-	//				};
-
-	//			rangedSlider();
-
-	//			old_for_all(uint8, rangedWeaponIndex, weaponProgression.gunsUnlockedQtt + 1) {
-	//				bool condition = (rangedWeaponIndex >= queuedCharacterData.rangedWeaponCount);
-
-	//				GUI_PushDisable(condition);
-
-	//				// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
-	//				if (queuedCharacterData.character == activeCharacterData.character) {
-	//					if (UI::ComboMapVector2("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
-	//						queuedCharacterData.rangedWeapons[rangedWeaponIndex], activeCharacterData.rangedWeapons[rangedWeaponIndex])) {
-
-	//						if (!newActorData.baseAddr) break;
-	//						auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-	//						actorData.rangedWeaponIndex = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
-	//					}
-	//				}
-	//				else {
-	//					UI::ComboMapVector("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
-	//						queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
-	//				}
-
-	//				// Doppelganger will now have same weapons equipped as Dante - Mia.
-	//				queuedCharacterDataClone.rangedWeapons[rangedWeaponIndex] = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
-
-	//				GUI_PopDisable(condition);
-	//			}
-	//		}
-
-	//		ImGui::TableNextColumn();
-
-	//		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.0f]);
-	//		ImGui::Text("MELEE");
-	//		ImGui::PopFont();
-
-	//		ImGui::PushItemWidth(itemWidth);
-
-
-	//		if (queuedCharacterData.character == CHARACTER::DANTE) {
-	//			auto meleeSlider = [&]() {
-	//				if (queuedCharacterData.character == activeCharacterData.character) {
-	//					if (GUI_Slider2<uint8>("", queuedCharacterData.meleeWeaponCount,
-	//						activeCharacterData.meleeWeaponCount, 1, weaponProgression.devilArmsUnlockedQtt + 1)) {
-	//						if (!newActorData.baseAddr) return;
-	//						auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-	//						auto& characterData = GetCharacterData(actorData);
-	//					}
-	//				}
-	//				else {
-	//					GUI_Slider<uint8>("", queuedCharacterData.meleeWeaponCount, 1, weaponProgression.devilArmsUnlockedQtt + 1);
-	//				}
-	//				};
-
-	//			meleeSlider();
-
-	//			queuedCharacterDataClone.meleeWeaponCount = queuedCharacterData.meleeWeaponCount;
-
-
-	//			old_for_all(uint8, meleeWeaponIndex, weaponProgression.devilArmsUnlockedQtt + 1) {
-	//				bool condition = (meleeWeaponIndex >= queuedCharacterData.meleeWeaponCount);
-
-	//				GUI_PushDisable(condition);
-
-	//				// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
-	//				if (queuedCharacterData.character == activeCharacterData.character) {
-	//					if (UI::ComboMapVector2("", weaponProgression.meleeWeaponNames, weaponProgression.meleeWeaponIds,
-	//						queuedCharacterData.meleeWeapons[meleeWeaponIndex], activeCharacterData.meleeWeapons[meleeWeaponIndex])) {
-
-	//						if (!newActorData.baseAddr) break;
-	//						auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-	//						actorData.meleeWeaponIndex = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
-	//					}
-	//				}
-	//				else {
-	//					UI::ComboMapVector("", weaponProgression.meleeWeaponNames, weaponProgression.meleeWeaponIds,
-	//						queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
-	//				}
-
-	//				// Doppelganger will now have same weapons equipped as Dante - Mia.
-	//				queuedCharacterDataClone.meleeWeapons[meleeWeaponIndex] = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
-
-	//				GUI_PopDisable(condition);
-	//			}
-	//		}
-	//		else if (queuedCharacterData.character == CHARACTER::VERGIL) {
-	//			auto meleeSlider = [&]() {
-	//				if (queuedCharacterData.character == activeCharacterData.character) {
-	//					if (GUI_Slider2<uint8>("", queuedCharacterData.meleeWeaponCount,
-	//						activeCharacterData.meleeWeaponCount, 1, WEAPON_COUNT_VERGIL)) {
-	//						if (!newActorData.baseAddr) return;
-	//						auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-	//						auto& characterData = GetCharacterData(actorData);
-	//					}
-	//				}
-	//				else {
-	//					GUI_Slider<uint8>("", queuedCharacterData.meleeWeaponCount, 1, WEAPON_COUNT_VERGIL);
-	//				}
-	//				};
-
-	//			meleeSlider();
-
-	//			queuedCharacterDataClone.meleeWeaponCount = queuedCharacterData.meleeWeaponCount;
-
-
-	//			old_for_all(uint8, meleeWeaponIndex, WEAPON_COUNT_VERGIL) {
-	//				bool condition = (meleeWeaponIndex >= queuedCharacterData.meleeWeaponCount);
-
-	//				GUI_PushDisable(condition);
-
-	//				// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
-	//				if (queuedCharacterData.character == activeCharacterData.character) {
-	//					if (UI::ComboMapValue2("", meleeWeaponNamesVergil, meleeWeaponsVergil,
-	//						queuedCharacterData.meleeWeapons[meleeWeaponIndex], activeCharacterData.meleeWeapons[meleeWeaponIndex])) {
-
-	//						if (!newActorData.baseAddr) break;
-	//						auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-	//						actorData.meleeWeaponIndex = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
-	//					}
-	//				}
-	//				else {
-	//					UI::ComboMapValue("", meleeWeaponNamesVergil, meleeWeaponsVergil,
-	//						queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
-	//				}
-
-	//				// Doppelganger will now have same weapons equipped as Dante - Mia.
-	//				queuedCharacterDataClone.meleeWeapons[meleeWeaponIndex] = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
-
-	//				GUI_PopDisable(condition);
-	//			}
-	//		}
-	//	}
-	//	//I think one of these is ranged weapons and we only pop it if we're dante?
-	//	if (queuedCharacterData.character == CHARACTER::DANTE) {
-	//		ImGui::PopItemWidth();
-	//	};
-	//	ImGui::PopItemWidth();
-
-	//	ImGui::EndTable();
-
-	//}
-	//ImGui::PopFont();
-}
-
-
 void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex, size_t defaultFontSize) {
 	auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
 	auto& queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
@@ -3057,10 +2687,10 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
 			ImGui::TableSetupColumn("c1", 0, columnWidth);
-			//ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			/*ImGui::PushItemWidth(itemWidth);
+			ImGui::PushItemWidth(itemWidth);
 
 			if (!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters) {
 				if (UI::ComboMapValue("CHARACTER", crimsonCharacterNames, crimsonCharacterMap,
@@ -3108,7 +2738,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 				}
 			}
 
-			ImGui::PopItemWidth();*/
+			ImGui::PopItemWidth();
 			ImGui::PopFont();
 
 			BackgroundPlayerText(playerIndex);
@@ -3576,9 +3206,7 @@ void SelectPlayerLoadoutsWeaponsTab() {
 						activeConfig.Actor.playerData[playerIndex] = profile.playerData[profile.profileIndex];
 						queuedConfig.Actor.playerData[playerIndex] = profile.playerData[profile.profileIndex];
 					};
-
-					if (profile.profileIndex == PROFILE::CHARSWAP)
-						Actor_PlayerTab(playerIndex, defaultFontSize);
+					Actor_PlayerTab(playerIndex, defaultFontSize);
 					activePlayerIndex = playerIndex;
 
 
@@ -3602,35 +3230,26 @@ void SelectPlayerLoadoutsWeaponsTab() {
 			auto& activePlayerData = GetActivePlayerData(activePlayerIndex);
 			auto& queuedPlayerData = GetQueuedPlayerData(activePlayerIndex);
 
-			if (ExpConfig::sessionProfileData[activePlayerIndex].profileIndex == PROFILE::CHARSWAP) {
-				old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
-					auto condition = (characterIndex >= queuedPlayerData.characterCount);
 
-					GUI_PushDisable(condition);
+			old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
+				auto condition = (characterIndex >= queuedPlayerData.characterCount);
 
-					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+				GUI_PushDisable(condition);
 
-					if (ImGui::BeginTabItem(characterIndexNames[characterIndex])) {
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 
-						Actor_CharacterTabSelect(activePlayerIndex, characterIndex, 0, defaultFontSize);
-						Actor_CharacterTab(activePlayerIndex, characterIndex, 0, defaultFontSize);
+				if (ImGui::BeginTabItem(characterIndexNames[characterIndex])) {
 
-						ImGui::EndTabItem();
-					}
+					Actor_CharacterTab(activePlayerIndex, characterIndex, 0, defaultFontSize);
 
-					ImGui::PopFont();
-
-					GUI_PopDisable(condition);
+					ImGui::EndTabItem();
 				}
-			}
-			//For Dante/Vergil profiles
-			else {
-				BackgroundPlayerText(activePlayerIndex);
-				ImGui::PushFont(UI::g_ImGuiFont_Benguiat[defaultFontSize * 1.0]);
-				ImGui::Text(crimsonCharacterNames[ExpConfig::sessionProfileData[activePlayerIndex].profileIndex]);
+
 				ImGui::PopFont();
-				Actor_CharacterTab(activePlayerIndex, 0, 0, defaultFontSize);
+
+				GUI_PopDisable(condition);
 			}
+
 			ImGui::EndTabBar();
 		}
 
