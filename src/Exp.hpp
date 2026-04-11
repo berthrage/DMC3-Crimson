@@ -10,7 +10,6 @@ struct ExpData {
     float styleExpPoints[STYLE::MAX];
     bool unlocks[64];
     bool hasPairedWithActorSystem;
-    ProfileData profileData[PLAYER_COUNT] = {};
     ExpData& operator=(ExpData& expData) {
         CopyMemory(this, &expData, sizeof(*this));
 

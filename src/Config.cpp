@@ -1370,15 +1370,17 @@ void CreateProfile(rapidjson::Value& member, ProfileData& profile) {
 /// </summary>
 /// <param name="member">JSON corresponding to a specific profile data array, most likely subset of ExpData json.</param>
 /// <param name="profileData">Array of profileData structs for each player in the save file.</param>
-void ToJSON_ProfileData(rapidjson::Value& member, ProfileData(&profileData)[PLAYER_COUNT]) {
-    for_all(playerIndex, PLAYER_COUNT) {
-        auto& profileData_json = member[playerIndex];
-        auto& profileData2 = profileData[playerIndex];
-        JSON::Set<uint8>(profileData_json["profileIndex"], profileData2.profileIndex);
-        for_all(profileIndex, PROFILE_COUNT) {
-            auto& playerData_json = profileData_json["playerData"][profileIndex];
-            auto& playerData = profileData2.playerData[profileIndex];
-            JSON::ToJSON_PlayerData(playerData_json, playerData);
+void ToJSON_ProfileData(rapidjson::Value& member, ProfileData(&profileDataArray)[SAVE_COUNT][PLAYER_COUNT]) {
+    for_all(saveIndex, SAVE_COUNT) {
+        for_all(playerIndex, PLAYER_COUNT) {
+            auto& profileData_json = member[saveIndex][playerIndex];
+            auto& profileData2 = profileDataArray[saveIndex][playerIndex];
+            JSON::Set<uint8>(profileData_json["profileIndex"], profileData2.profileIndex);
+            for_all(profileIndex, PROFILE_COUNT) {
+                auto& playerData_json = profileData_json["playerData"][profileIndex];
+                auto& playerData = profileData2.playerData[profileIndex];
+                JSON::ToJSON_PlayerData(playerData_json, playerData);
+            }
         }
     }
 }
@@ -1387,17 +1389,17 @@ void ToJSON_ProfileData(rapidjson::Value& member, ProfileData(&profileData)[PLAY
 /// </summary>
 /// <param name="profileData">Array of profileData structs for each player in the save file.</param>
 /// <param name="member">JSON corresponding to a specific profile data array, most likely subset of ExpData json.</param>
-void ToExp_ProfileData(ProfileData(&profileData)[PLAYER_COUNT], rapidjson::Value& member) {
-    //void ToExp_ExpData(ExpData(&expData)[SAVE_COUNT], rapidjson::Value & member) {
-    for_all(index, PLAYER_COUNT) {
-        auto& profileData_json = member[index];
-        auto& profileData2 = profileData[index];
-        profileData2.profileIndex = JSON::Get<uint8>(profileData_json["profileIndex"]);
-
-        for_all(profileIndex, PROFILE_COUNT) {
-            auto& playerData_json = profileData_json["playerData"][profileIndex];
-            auto& playerData = profileData2.playerData[profileIndex];
-            JSON::ToConfig_PlayerData(playerData,playerData_json);
+void ToExp_ProfileData(ProfileData(&profileDataArray)[SAVE_COUNT][PLAYER_COUNT], rapidjson::Value& member) {
+    for_all(saveIndex, SAVE_COUNT) {
+        for_all(playerIndex, PLAYER_COUNT) {
+            auto& profileData_json = member[saveIndex][playerIndex];
+            auto& profileData = profileDataArray[saveIndex][playerIndex];
+            profileData.profileIndex = JSON::Get<uint8>(profileData_json["profileIndex"]);
+            for_all(profileIndex, PROFILE_COUNT) {
+                auto& playerData_json = profileData_json["playerData"][profileIndex];
+                auto& playerData = profileData.playerData[profileIndex];
+                JSON::ToConfig_PlayerData(playerData, playerData_json);
+            }
         }
     }
 };
@@ -1415,6 +1417,7 @@ ExpData savedExpDataDante[SAVE_COUNT] = {};
 ExpData missionExpDataVergil           = {};
 ExpData sessionExpDataVergil           = {};
 ExpData savedExpDataVergil[SAVE_COUNT] = {};
+ProfileData profiles[SAVE_COUNT][PLAYER_COUNT] = {};
 
 inline bool Enable() {
     return activeConfig.Actor.enable;
@@ -1447,14 +1450,24 @@ void CreateMembers_ExpData(rapidjson::Value& member, ExpData (&expData)[SAVE_COU
         CreateArray<float, STYLE::MAX>(savefile_json, "styleExpPoints", expData2.styleExpPoints);
         CreateArray<bool, 64>(savefile_json, "unlocks", expData2.unlocks);
         Create<bool>(savefile_json, "hasPairedWithActorSystem", expData2.hasPairedWithActorSystem);
-        CreateArray<struct_t, PLAYER_COUNT>(savefile_json, "profileData");
-        for_all(playerIndex, PLAYER_COUNT) {
-            auto& player_profile_json = savefile_json["profileData"][playerIndex];
-            auto& config3 = expData2.profileData[playerIndex];
-            //auto& playerData = JSON::CreateArray<struct_t, PLAYER_COUNT>(member, "playerData");
-            CreateProfile(player_profile_json, config3);
-        }
+        //CreateArray<struct_t, PLAYER_COUNT>(savefile_json, "profileData");
+        //for_all(playerIndex, PLAYER_COUNT) {
+        //    auto& player_profile_json = savefile_json["profileData"][playerIndex];
+        //    auto& config3 = expData2.profileData[playerIndex];
+        //    //auto& playerData = JSON::CreateArray<struct_t, PLAYER_COUNT>(member, "playerData");
+        //    CreateProfile(player_profile_json, config3);
+        //}
 
+    }
+}
+
+void CreateMembers_ProfileData(rapidjson::Value& member, ProfileData(&profileDataArray)[SAVE_COUNT][PLAYER_COUNT]) {
+    for_all(saveIndex, SAVE_COUNT) {
+        for_all(playerIndex, PLAYER_COUNT) {
+            auto& profile_json = member[saveIndex][playerIndex];
+            auto& profileData = profileDataArray[saveIndex][playerIndex];
+            CreateProfile(profile_json, profileData);
+        }
     }
 }
 
@@ -1466,12 +1479,16 @@ void CreateMembers() {
 
     CreateArray<struct_t, SAVE_COUNT>(crimsonConfigRoot, "Vergil");
     CreateMembers_ExpData(crimsonConfigRoot["Vergil"], savedExpDataVergil);
+
+    CreateArray2<struct_t, SAVE_COUNT, PLAYER_COUNT>(crimsonConfigRoot, "profiles");
+    CreateMembers_ProfileData(crimsonConfigRoot["profiles"], profiles);
 }
 
 #pragma endregion
 
 
 #pragma region ToJSON
+
 
 void ToJSON_ExpData(rapidjson::Value& member, ExpData (&expData)[SAVE_COUNT]) {
     for_all(index, SAVE_COUNT) {
@@ -1482,15 +1499,14 @@ void ToJSON_ExpData(rapidjson::Value& member, ExpData (&expData)[SAVE_COUNT]) {
         SetArray<float, STYLE::MAX>(member2["styleExpPoints"], expData2.styleExpPoints);
         SetArray<bool, 64>(member2["unlocks"], expData2.unlocks);
         Set<bool>(member2["hasPairedWithActorSystem"], expData2.hasPairedWithActorSystem);
-        ToJSON_ProfileData(member2["profileData"], expData2.profileData);
     }
 }
 
 void ToJSON() {
     DebugLogFunction();
-
     ToJSON_ExpData(crimsonConfigRoot["Dante"], savedExpDataDante);
     ToJSON_ExpData(crimsonConfigRoot["Vergil"], savedExpDataVergil);
+    ToJSON_ProfileData(crimsonConfigRoot["profiles"], profiles);
 }
 
 #pragma endregion
@@ -1507,7 +1523,7 @@ void ToExp_ExpData(ExpData (&expData)[SAVE_COUNT], rapidjson::Value& member) {
         GetArray<float, STYLE::MAX>(expData2.styleExpPoints, member2["styleExpPoints"]);
         GetArray<bool, 64>(expData2.unlocks, member2["unlocks"]);
         expData2.hasPairedWithActorSystem = Get<bool>(member2["hasPairedWithActorSystem"]);
-        ToExp_ProfileData(expData2.profileData, member2["profileData"]);
+       
     }
 }
 
@@ -1516,6 +1532,7 @@ void ToExp() {
 
     ToExp_ExpData(savedExpDataDante, crimsonConfigRoot["Dante"]);
     ToExp_ExpData(savedExpDataVergil, crimsonConfigRoot["Vergil"]);
+    ToExp_ProfileData(profiles, crimsonConfigRoot["profiles"]);
 }
 
 #pragma endregion
@@ -1630,6 +1647,12 @@ void LoadExp() {
 
     sessionExpDataDante  = savedExpDataDante[saveIndex];
     sessionExpDataVergil = savedExpDataVergil[saveIndex];
+
+    for_all(playerIndex, PLAYER_COUNT) {
+        auto& profileData = profiles[saveIndex][playerIndex];
+        activeConfig.Actor.playerData[playerIndex] = profileData.playerData[profileData.profileIndex];
+    }
+
 }
 
 void InitExp() {
