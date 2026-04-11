@@ -41,6 +41,10 @@ extern ExpData missionExpDataVergil;
 extern ExpData sessionExpDataVergil;
 extern ExpData savedExpDataVergil[SAVE_COUNT];
 
+extern ProfileData missionProfileData[PLAYER_COUNT];
+extern ProfileData sessionProfileData[PLAYER_COUNT];
+extern ProfileData profiles[SAVE_COUNT][PLAYER_COUNT];
+
 void SaveExp();
 void LoadExp();
 void InitExp();

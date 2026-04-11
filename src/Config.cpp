@@ -1417,6 +1417,9 @@ ExpData savedExpDataDante[SAVE_COUNT] = {};
 ExpData missionExpDataVergil           = {};
 ExpData sessionExpDataVergil           = {};
 ExpData savedExpDataVergil[SAVE_COUNT] = {};
+
+ProfileData missionProfileData[PLAYER_COUNT] = {};
+ProfileData sessionProfileData[PLAYER_COUNT] = {};
 ProfileData profiles[SAVE_COUNT][PLAYER_COUNT] = {};
 
 inline bool Enable() {
@@ -1565,6 +1568,12 @@ void SaveExp() {
     if (g_scene != SCENE::BOOT) {
         savedExpDataDante[saveIndex] = sessionExpDataDante;
         savedExpDataVergil[saveIndex] = sessionExpDataVergil;
+
+        //saves the player loadout to the relevant profile. 
+        for_all(playerIndex, PLAYER_COUNT) {
+            profiles[saveIndex][playerIndex] = sessionProfileData[playerIndex];
+        }
+        
     }
 
 
@@ -1649,6 +1658,7 @@ void LoadExp() {
     sessionExpDataVergil = savedExpDataVergil[saveIndex];
 
     for_all(playerIndex, PLAYER_COUNT) {
+        sessionProfileData[playerIndex] = profiles[saveIndex][playerIndex];
         auto& profileData = profiles[saveIndex][playerIndex];
         activeConfig.Actor.playerData[playerIndex] = profileData.playerData[profileData.profileIndex];
     }

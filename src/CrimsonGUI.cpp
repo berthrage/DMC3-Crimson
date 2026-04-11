@@ -3191,15 +3191,21 @@ void SelectPlayerLoadoutsWeaponsTab() {
 		if (ImGui::BeginTabBar("PlayerTabs")) {
 			old_for_all(uint8, playerIndex, PLAYER_COUNT) {
 				auto condition = (playerIndex >= queuedConfig.Actor.playerCount);
-
+				auto& profile = ExpConfig::sessionProfileData[playerIndex];//ExpConfig::profiles[g_saveIndex][playerIndex];
+				uint8 profile_index = profile.profileIndex;
 				GUI_PushDisable(condition);
 
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 
 				if (ImGui::BeginTabItem(playerIndexNames[playerIndex])) {
 					//ImGui::Text("");
-
-
+					if (GUI_Slider<uint8>("Profile #", profile.profileIndex, 0, PROFILE_COUNT - 1)) {
+						Log("changed active profile");
+						profile.playerData[profile_index] = queuedConfig.Actor.playerData[playerIndex];
+						
+						activeConfig.Actor.playerData[playerIndex] = profile.playerData[profile.profileIndex];
+						queuedConfig.Actor.playerData[playerIndex] = profile.playerData[profile.profileIndex];
+					};
 					Actor_PlayerTab(playerIndex, defaultFontSize);
 					activePlayerIndex = playerIndex;
 
