@@ -3433,7 +3433,7 @@ void CharacterSection(size_t defaultFontSize) {
 
 	GUI_PopDisable(actorCondition);
 	ImGui::PopStyleColor();
-	ImGui::PopItemWidth();
+	//ImGui::PopItemWidth();
 	ImGui::PopFont();
 }
 

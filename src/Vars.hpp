@@ -154,6 +154,7 @@ enum {
 
 enum {
     PLAYER_COUNT              = 4,
+    PROFILE_COUNT             = 3,
     ENTITY_COUNT              = 2,
     CHARACTER_COUNT           = 3,
     STYLE_COUNT               = 4,
@@ -331,6 +332,14 @@ namespace CAMERA_TYPE {
     };
 };
 
+namespace PROFILE {
+    enum {
+        DANTE,
+        VERGIL,
+        CHARSWAP,
+        MAX,
+    };
+};
 
 namespace CHARACTER {
 enum {
@@ -3191,6 +3200,14 @@ struct PlayerData {
         GAMEPAD::LEFT,
     };
 };
+
+
+struct ProfileData {
+    uint8 profileIndex;
+    //Dante, Vergil, CharSwap
+    PlayerData playerData[PROFILE_COUNT] = {};
+};
+
 
 // $ActorDataStart
 

@@ -1345,6 +1345,63 @@ void InitConfig() {
 // 		});
 // }
 
+
+//void CreatePlayerData(rapidjson::Value& member, ProfileData(&profileData)[PLAYER_COUNT])
+
+/// <summary>
+/// Creates the JSON fields for a ProfileData struct
+/// & Sets up the playerdata structs in the profileData struct with default valuea
+/// </summary>
+/// <param name="member">Json to store the values in</param>
+/// <param name="profile">Profile data struct</param>
+void CreateProfile(rapidjson::Value& member, ProfileData& profile) {
+    JSON::Create<uint8>(member, "profileIndex", profile.profileIndex);
+    JSON::CreateArray<struct_t, PROFILE_COUNT>(member, "playerData");
+    for_all(index, PROFILE_COUNT) {
+        auto& member2 = member["playerData"][index];
+        auto& config2 = profile.playerData[index];
+        //auto& playerData = JSON::CreateArray<struct_t, PLAYER_COUNT>(member, "playerData");
+        ApplyDefaultPlayerData(config2);
+        JSON::CreateMembers_PlayerDataContent(member2, config2);
+    }
+}
+/// <summary>
+/// Sets the values of the JSON based on the contents of each ProfileData element.
+/// </summary>
+/// <param name="member">JSON corresponding to a specific profile data array, most likely subset of ExpData json.</param>
+/// <param name="profileData">Array of profileData structs for each player in the save file.</param>
+void ToJSON_ProfileData(rapidjson::Value& member, ProfileData(&profileData)[PLAYER_COUNT]) {
+    for_all(playerIndex, PLAYER_COUNT) {
+        auto& profileData_json = member[playerIndex];
+        auto& profileData2 = profileData[playerIndex];
+        JSON::Set<uint8>(profileData_json["profileIndex"], profileData2.profileIndex);
+        for_all(profileIndex, PROFILE_COUNT) {
+            auto& playerData_json = profileData_json["playerData"][profileIndex];
+            auto& playerData = profileData2.playerData[profileIndex];
+            JSON::ToJSON_PlayerData(playerData_json, playerData);
+        }
+    }
+}
+/// <summary>
+/// Sets the values of each ProfileData element based on the contents of the JSON.
+/// </summary>
+/// <param name="profileData">Array of profileData structs for each player in the save file.</param>
+/// <param name="member">JSON corresponding to a specific profile data array, most likely subset of ExpData json.</param>
+void ToExp_ProfileData(ProfileData(&profileData)[PLAYER_COUNT], rapidjson::Value& member) {
+    //void ToExp_ExpData(ExpData(&expData)[SAVE_COUNT], rapidjson::Value & member) {
+    for_all(index, PLAYER_COUNT) {
+        auto& profileData_json = member[index];
+        auto& profileData2 = profileData[index];
+        profileData2.profileIndex = JSON::Get<uint8>(profileData_json["profileIndex"]);
+
+        for_all(profileIndex, PROFILE_COUNT) {
+            auto& playerData_json = profileData_json["playerData"][profileIndex];
+            auto& playerData = profileData2.playerData[profileIndex];
+            JSON::ToConfig_PlayerData(playerData,playerData_json);
+        }
+    }
+};
+
 namespace ExpConfig {
 inline const char* directoryName = Paths::config;
 inline const char* fileName      = "CrimsonExp.json";
@@ -1376,15 +1433,28 @@ namespace JSON {
 
 #pragma region CreateMembers
 
+/// <summary>
+/// Creates the JSON fields for the ExpData structs for each save file.
+/// </summary>
+/// <param name="member"></param>
+/// <param name="expData"></param>
 void CreateMembers_ExpData(rapidjson::Value& member, ExpData (&expData)[SAVE_COUNT]) {
-    for_all(index, SAVE_COUNT) {
-        auto& member2  = member[index];
-        auto& expData2 = expData[index];
+    for_all(saveIndex, SAVE_COUNT) {
+        auto& savefile_json  = member[saveIndex];
+        auto& expData2 = expData[saveIndex];
 
-        CreateArray<uint32, STYLE::MAX>(member2, "styleLevels", expData2.styleLevels);
-        CreateArray<float, STYLE::MAX>(member2, "styleExpPoints", expData2.styleExpPoints);
-        CreateArray<bool, 64>(member2, "unlocks", expData2.unlocks);
-        Create<bool>(member2, "hasPairedWithActorSystem", expData2.hasPairedWithActorSystem);
+        CreateArray<uint32, STYLE::MAX>(savefile_json, "styleLevels", expData2.styleLevels);
+        CreateArray<float, STYLE::MAX>(savefile_json, "styleExpPoints", expData2.styleExpPoints);
+        CreateArray<bool, 64>(savefile_json, "unlocks", expData2.unlocks);
+        Create<bool>(savefile_json, "hasPairedWithActorSystem", expData2.hasPairedWithActorSystem);
+        CreateArray<struct_t, PLAYER_COUNT>(savefile_json, "profileData");
+        for_all(playerIndex, PLAYER_COUNT) {
+            auto& player_profile_json = savefile_json["profileData"][playerIndex];
+            auto& config3 = expData2.profileData[playerIndex];
+            //auto& playerData = JSON::CreateArray<struct_t, PLAYER_COUNT>(member, "playerData");
+            CreateProfile(player_profile_json, config3);
+        }
+
     }
 }
 
@@ -1412,6 +1482,7 @@ void ToJSON_ExpData(rapidjson::Value& member, ExpData (&expData)[SAVE_COUNT]) {
         SetArray<float, STYLE::MAX>(member2["styleExpPoints"], expData2.styleExpPoints);
         SetArray<bool, 64>(member2["unlocks"], expData2.unlocks);
         Set<bool>(member2["hasPairedWithActorSystem"], expData2.hasPairedWithActorSystem);
+        ToJSON_ProfileData(member2["profileData"], expData2.profileData);
     }
 }
 
@@ -1436,6 +1507,7 @@ void ToExp_ExpData(ExpData (&expData)[SAVE_COUNT], rapidjson::Value& member) {
         GetArray<float, STYLE::MAX>(expData2.styleExpPoints, member2["styleExpPoints"]);
         GetArray<bool, 64>(expData2.unlocks, member2["unlocks"]);
         expData2.hasPairedWithActorSystem = Get<bool>(member2["hasPairedWithActorSystem"]);
+        ToExp_ProfileData(expData2.profileData, member2["profileData"]);
     }
 }
 
@@ -1472,9 +1544,12 @@ void SaveExp() {
         sessionExpDataDante  = missionExpDataDante;
         sessionExpDataVergil = missionExpDataVergil;
     }
+    //If saving on boot, we are (most likely) generating expData for the first time, and thus do not want to overwrite it with blank sessionExpData.
+    if (g_scene != SCENE::BOOT) {
+        savedExpDataDante[saveIndex] = sessionExpDataDante;
+        savedExpDataVergil[saveIndex] = sessionExpDataVergil;
+    }
 
-    savedExpDataDante[saveIndex]  = sessionExpDataDante;
-    savedExpDataVergil[saveIndex] = sessionExpDataVergil;
 
 // 	if (sessionData.character == CHARACTER::DANTE) {
 // 		sessionData.expertise[0] = 0xFFFF5E7F;
@@ -2442,6 +2517,9 @@ void InitSession() {
 
     sessionExpDataDante  = {};
     sessionExpDataVergil = {};
+    //Hitch says he doesn't know if these are necessary yet.
+    //JSON::CreateDefaultProfile(sessionExpDataDante.profileData);
+    //JSON::CreateDefaultProfile(sessionExpDataVergil.profileData);
 }
 
 void SceneMissionStart() {
