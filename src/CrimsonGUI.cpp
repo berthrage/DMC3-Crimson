@@ -3203,7 +3203,7 @@ void SelectPlayerLoadoutsWeaponsTab() {
 						Log("changed active profile");
 						profile.playerData[profile_index] = queuedConfig.Actor.playerData[playerIndex];
 						
-						activeConfig.Actor.playerData[playerIndex] = profile.playerData[profile.profileIndex];
+						//activeConfig.Actor.playerData[playerIndex] = profile.playerData[profile.profileIndex];
 						queuedConfig.Actor.playerData[playerIndex] = profile.playerData[profile.profileIndex];
 					};
 					Actor_PlayerTab(playerIndex, defaultFontSize);
