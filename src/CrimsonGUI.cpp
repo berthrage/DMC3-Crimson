@@ -3191,7 +3191,9 @@ void SelectPlayerLoadoutsWeaponsTab() {
 		if (ImGui::BeginTabBar("PlayerTabs")) {
 			old_for_all(uint8, playerIndex, PLAYER_COUNT) {
 				auto condition = (playerIndex >= queuedConfig.Actor.playerCount);
-				auto& profile = ExpConfig::sessionProfileData[playerIndex];//ExpConfig::profiles[g_saveIndex][playerIndex];
+				//Get either the mission or session profile data depending on where we are.
+				auto& profile = ExpConfig::sessionProfileData[playerIndex];
+					//= (g_scene == SCENE::GAME ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex]);//ExpConfig::profiles[g_saveIndex][playerIndex];
 				uint8 profile_index = profile.profileIndex;
 				GUI_PushDisable(condition);
 
@@ -3205,6 +3207,9 @@ void SelectPlayerLoadoutsWeaponsTab() {
 						
 						//activeConfig.Actor.playerData[playerIndex] = profile.playerData[profile.profileIndex];
 						queuedConfig.Actor.playerData[playerIndex] = profile.playerData[profile.profileIndex];
+
+						//auto& mainQueuedCharacterData = GetActiveCharacterData(playerIndex, activeConfig.Actor.playerData[playerIndex].ch, ENTITY::MAIN);
+						//if(activeConfig.Actor)
 					};
 					Actor_PlayerTab(playerIndex, defaultFontSize);
 					activePlayerIndex = playerIndex;

@@ -1567,6 +1567,15 @@ void SaveExp() {
     if (g_scene == SCENE::GAME) {
         sessionExpDataDante  = missionExpDataDante;
         sessionExpDataVergil = missionExpDataVergil;
+
+
+        //If we're saving mid-game, that means we want to update the mission
+        for_all(playerIndex, PLAYER_COUNT) {
+            auto& profileData = missionProfileData[playerIndex];
+            profileData.playerData[profileData.profileIndex] = queuedConfig.Actor.playerData[playerIndex];
+            sessionProfileData[playerIndex] = missionProfileData[playerIndex];
+        }
+        
     }
     //If saving on boot, we are (most likely) generating expData for the first time, and thus do not want to overwrite it with blank sessionExpData.
     if (g_scene != SCENE::BOOT) {
@@ -2576,6 +2585,9 @@ void SceneMissionStart() {
 
     missionExpDataDante  = sessionExpDataDante;
     missionExpDataVergil = sessionExpDataVergil;
+    for_all(playerIndex, PLAYER_COUNT) {
+        missionProfileData[playerIndex] = sessionProfileData[playerIndex];
+    }
 }
 
 void SceneMissionResult() {
@@ -2587,6 +2599,12 @@ void SceneMissionResult() {
 
     sessionExpDataDante  = missionExpDataDante;
     sessionExpDataVergil = missionExpDataVergil;
+
+    for_all(playerIndex, PLAYER_COUNT) {
+        sessionProfileData[playerIndex] = missionProfileData[playerIndex];
+    }
+
+
 }
 
 void IncStyleExpPoints(byte8* actorBaseAddr) {
