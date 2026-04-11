@@ -1362,6 +1362,9 @@ void CreateProfile(rapidjson::Value& member, ProfileData& profile) {
         auto& config2 = profile.playerData[index];
         //auto& playerData = JSON::CreateArray<struct_t, PLAYER_COUNT>(member, "playerData");
         ApplyDefaultPlayerData(config2);
+        //Like a vergin
+        ApplyDefaultCharacterData(config2.characterData[0][0], (index == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE, 0, 0);
+        ApplyDefaultCharacterData(config2.characterData[0][1], (index == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE, 0, 0);
         JSON::CreateMembers_PlayerDataContent(member2, config2);
     }
 }
@@ -1568,6 +1571,13 @@ void SaveExp() {
     if (g_scene != SCENE::BOOT) {
         savedExpDataDante[saveIndex] = sessionExpDataDante;
         savedExpDataVergil[saveIndex] = sessionExpDataVergil;
+
+        //Backs up the current Actor playerData to the sessionProfileData for the profile currently in use for all players.  
+        for_all(playerIndex, PLAYER_COUNT) {
+            sessionProfileData[playerIndex].playerData[sessionProfileData[playerIndex].profileIndex] = queuedConfig.Actor.playerData[playerIndex];
+            //profile.playerData[profile_index] = 
+        }
+        
 
         //saves the player loadout to the relevant profile. 
         for_all(playerIndex, PLAYER_COUNT) {
