@@ -2697,7 +2697,8 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 			ImGui::TableNextColumn();
 
 			ImGui::PushItemWidth(itemWidth);
-
+			ImGui::Text("%s", crimsonProfileNames[profileIndex]);
+			if (profileIndex == PROFILE::CHARSWAP){
 			if (!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters) {
 				if (UI::ComboMapValue("CHARACTER", crimsonCharacterNames, crimsonCharacterMap,
 					queuedCharacterData.character)) {
@@ -2742,6 +2743,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 						Actor_UpdateIndices();
 					}
 				}
+			}
 			}
 
 			ImGui::PopItemWidth();
@@ -3092,7 +3094,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 	ImGui::PopFont();
 }
 
-void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
+void Actor_PlayerTab(uint8 playerIndex,uint8 profileIndex, size_t defaultFontSize) {
 	auto& activePlayerData = GetActivePlayerData(playerIndex);
 	auto& queuedPlayerData = GetQueuedPlayerData(playerIndex);
 
@@ -3103,23 +3105,25 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-	if (GUI_Checkbox2("Switch characters mid-mission", activeCrimsonGameplay.Gameplay.General.charHotswap, queuedCrimsonGameplay.Gameplay.General.charHotswap)) {}
-	
-	GUI_PushDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
-	if (!activeCrimsonGameplay.Gameplay.General.charHotswap) {
-		queuedPlayerData.characterCount = 1;
+	if (profileIndex == PROFILE::CHARSWAP) {
+		if (GUI_Checkbox2("Switch characters mid-mission", activeCrimsonGameplay.Gameplay.General.charHotswap, queuedCrimsonGameplay.Gameplay.General.charHotswap)) {}
+
+		GUI_PushDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
+		if (!activeCrimsonGameplay.Gameplay.General.charHotswap) {
+			queuedPlayerData.characterCount = 1;
+		}
+		GUI_Slider<uint8>("Number of Characters", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
+
+
+		UI::ComboMap2("Switch Button", buttonNames, buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton, queuedPlayerData.switchButton,
+			ImGuiComboFlags_HeightLargest);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Press to Switch Loadouts or Characters.\n"
+			"Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n");
 	}
-	GUI_Slider<uint8>("Number of Characters", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
-
-
-	UI::ComboMap2("Switch Button", buttonNames, buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton, queuedPlayerData.switchButton,
-		ImGuiComboFlags_HeightLargest);
-	ImGui::SameLine();
-	TooltipHelper("(?)", "Press to Switch Loadouts or Characters.\n"
-		"Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n");
 	
 	GUI_PopDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
-	if (activeConfig.Actor.playerCount > 1) {
+	if (queuedConfig.Actor.playerCount > 1) {
 
 		UI::ComboMap("Type (Collision Group)", collisionGroupNames, collisionGroups, Actor_collisionGroupIndices[playerIndex],
 			queuedPlayerData.collisionGroup);
@@ -3230,7 +3234,7 @@ void SelectPlayerLoadoutsWeaponsTab() {
 						//auto& mainQueuedCharacterData = GetActiveCharacterData(playerIndex, activeConfig.Actor.playerData[playerIndex].ch, ENTITY::MAIN);
 						//if(activeConfig.Actor)
 					};
-					Actor_PlayerTab(playerIndex, defaultFontSize);
+					Actor_PlayerTab(playerIndex,profile_index[playerIndex], defaultFontSize);
 					activePlayerIndex = playerIndex;
 
 
@@ -3254,25 +3258,34 @@ void SelectPlayerLoadoutsWeaponsTab() {
 			auto& activePlayerData = GetActivePlayerData(activePlayerIndex);
 			auto& queuedPlayerData = GetQueuedPlayerData(activePlayerIndex);
 
+			if (profile_index[activePlayerIndex] == PROFILE::CHARSWAP) {
 
-			old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
-				auto condition = (characterIndex >= queuedPlayerData.characterCount);
+				old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
+					auto condition = (characterIndex >= queuedPlayerData.characterCount);
 
-				GUI_PushDisable(condition);
+					GUI_PushDisable(condition);
 
-				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 
-				if (ImGui::BeginTabItem(characterIndexNames[characterIndex])) {
+					if (ImGui::BeginTabItem(characterIndexNames[characterIndex])) {
 
-					//pass the profile_index being used by the GUI for the current player
-					Actor_CharacterTab(activePlayerIndex, characterIndex, 0, profile_index[activePlayerIndex], defaultFontSize);
+						//pass the profile_index being used by the GUI for the current player
+						Actor_CharacterTab(activePlayerIndex, characterIndex, 0, profile_index[activePlayerIndex], defaultFontSize);
 
-					ImGui::EndTabItem();
+						ImGui::EndTabItem();
+					}
+
+					ImGui::PopFont();
+
+					GUI_PopDisable(condition);
 				}
-
+			}
+			else {
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+				//pass the profile_index being used by the GUI for the current player
+				//Char index for normal profiles is a big old 0
+				Actor_CharacterTab(activePlayerIndex, 0, 0, profile_index[activePlayerIndex], defaultFontSize);
 				ImGui::PopFont();
-
-				GUI_PopDisable(condition);
 			}
 
 			ImGui::EndTabBar();
