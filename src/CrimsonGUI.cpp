@@ -3117,14 +3117,14 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 	ImGui::SameLine();
 	TooltipHelper("(?)", "Press to Switch Loadouts or Characters.\n"
 		"Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n");
-
-	if (playerIndex != 0) {
+	
+	GUI_PopDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
+	if (activeConfig.Actor.playerCount > 1) {
 
 		UI::ComboMap("Type (Collision Group)", collisionGroupNames, collisionGroups, Actor_collisionGroupIndices[playerIndex],
 			queuedPlayerData.collisionGroup);
 
 	}
-	GUI_PopDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
 	BackgroundPlayerText(playerIndex);
 
 
