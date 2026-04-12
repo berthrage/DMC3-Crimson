@@ -2661,7 +2661,7 @@ void CheckDanteUnlockedWeapons(CharacterData& queuedCharacterData, CharacterData
 	}
 }
 
-void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex, size_t defaultFontSize) {
+void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex, uint8 profileIndex, size_t defaultFontSize) {
 	auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
 	auto& queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
 
@@ -2930,7 +2930,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 		if (ImGui::BeginTable("WeaponLoadout", 2)) {
 
 			ImGui::TableNextRow(0, rowWidth);
-			auto& profile = (g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
+			//auto& profile = (g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
 			if (queuedCharacterData.character == CHARACTER::DANTE) {
 
 				ImGui::TableNextColumn();
@@ -2943,9 +2943,9 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 				ImGui::PushItemWidth(itemWidth);
 
 				auto rangedSlider = [&]() {
-					if (queuedCharacterData.character == activeCharacterData.character && profile.profileIndex == g_playerProfile[playerIndex]) {
-						if (GUI_Slider2<uint8>("", queuedCharacterData.rangedWeaponCount,
-							activeCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1)) {
+					if (queuedCharacterData.character == activeCharacterData.character && profileIndex == g_playerProfile[playerIndex]) {
+						if (GUI_Slider2<uint8>("", activeCharacterData.rangedWeaponCount, 
+							queuedCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1)) {
 							if (!newActorData.baseAddr) return;
 							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 							auto& characterData = GetCharacterData(actorData);
@@ -2963,9 +2963,9 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 					GUI_PushDisable(condition);
 
 					// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
-					if (queuedCharacterData.character == activeCharacterData.character && profile.profileIndex == g_playerProfile[playerIndex]) {
+					if (queuedCharacterData.character == activeCharacterData.character && profileIndex == g_playerProfile[playerIndex]) {
 						if (UI::ComboMapVector2("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
-							queuedCharacterData.rangedWeapons[rangedWeaponIndex], activeCharacterData.rangedWeapons[rangedWeaponIndex])) {
+							activeCharacterData.rangedWeapons[rangedWeaponIndex], queuedCharacterData.rangedWeapons[rangedWeaponIndex])) {
 
 							if (!newActorData.baseAddr) break;
 							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
@@ -2994,9 +2994,9 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 			if (queuedCharacterData.character == CHARACTER::DANTE) {
 				auto meleeSlider = [&]() {
-					if (queuedCharacterData.character == activeCharacterData.character && profile.profileIndex == g_playerProfile[playerIndex]) {
-						if (GUI_Slider2<uint8>("", queuedCharacterData.meleeWeaponCount,
-							activeCharacterData.meleeWeaponCount, 1, weaponProgression.devilArmsUnlockedQtt + 1)) {
+					if (queuedCharacterData.character == activeCharacterData.character && profileIndex == g_playerProfile[playerIndex]) {
+						if (GUI_Slider2<uint8>("", activeCharacterData.meleeWeaponCount, 
+							queuedCharacterData.meleeWeaponCount, 1, weaponProgression.devilArmsUnlockedQtt + 1)) {
 							if (!newActorData.baseAddr) return;
 							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 							auto& characterData = GetCharacterData(actorData);
@@ -3017,9 +3017,9 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 					GUI_PushDisable(condition);
 
 					// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
-					if (queuedCharacterData.character == activeCharacterData.character && profile.profileIndex == g_playerProfile[playerIndex]) {
+					if (queuedCharacterData.character == activeCharacterData.character && profileIndex == g_playerProfile[playerIndex]) {
 						if (UI::ComboMapVector2("", weaponProgression.meleeWeaponNames, weaponProgression.meleeWeaponIds,
-							queuedCharacterData.meleeWeapons[meleeWeaponIndex], activeCharacterData.meleeWeapons[meleeWeaponIndex])) {
+							activeCharacterData.meleeWeapons[meleeWeaponIndex], queuedCharacterData.meleeWeapons[meleeWeaponIndex])) {
 
 							if (!newActorData.baseAddr) break;
 							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
@@ -3037,7 +3037,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 				}
 			} else if (queuedCharacterData.character == CHARACTER::VERGIL) {
 				auto meleeSlider = [&]() {
-					if (queuedCharacterData.character == activeCharacterData.character && profile.profileIndex == g_playerProfile[playerIndex]) {
+					if (queuedCharacterData.character == activeCharacterData.character && profileIndex == g_playerProfile[playerIndex]) {
 						if (GUI_Slider2<uint8>("", queuedCharacterData.meleeWeaponCount,
 							activeCharacterData.meleeWeaponCount, 1, WEAPON_COUNT_VERGIL)) {
 							if (!newActorData.baseAddr) return;
@@ -3060,7 +3060,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 					GUI_PushDisable(condition);
 
 					// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
-					if (queuedCharacterData.character == activeCharacterData.character && profile.profileIndex == g_playerProfile[playerIndex]) {
+					if (queuedCharacterData.character == activeCharacterData.character && profileIndex == g_playerProfile[playerIndex]) {
 						if (UI::ComboMapValue2("", meleeWeaponNamesVergil, meleeWeaponsVergil,
 							queuedCharacterData.meleeWeapons[meleeWeaponIndex], activeCharacterData.meleeWeapons[meleeWeaponIndex])) {
 
@@ -3181,6 +3181,19 @@ void SelectPlayerLoadoutsWeaponsTab() {
 	const float rowWidth = 40.0f * queuedConfig.globalScale;
 
 	uint8 activePlayerIndex;
+	uint8 profile_index[PLAYER_COUNT];
+
+	for_all(playerIndex, PLAYER_COUNT) {
+		//Get either the mission or session profile data depending on where we are.
+				//If in game or in mission start scenes, we want missionprofile, otherwise we want session profile (I think). 
+				//In theory we should only be looking at this alongside the customize screen in GAME & MISSION_START,
+				//but because this is also viewable in the player tab, we fall back on sessionProfileData there.
+		auto& profile = (g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
+		//store the profileIndex values for this GUI update.
+		profile_index[playerIndex] = profile.profileIndex;
+		//load the profile PlayerData into the queued config.
+		queuedConfig.Actor.playerData[playerIndex] = profile.playerData[profile_index[playerIndex]];
+	}
 
 	ImGui::PushFont(UI::g_ImGuiFont_Benguiat[defaultFontSize * 1.0]);
 	ImGui::Text("PLAYER SETTINGS / LOADOUTS");
@@ -3197,13 +3210,10 @@ void SelectPlayerLoadoutsWeaponsTab() {
 		if (ImGui::BeginTabBar("PlayerTabs")) {
 			old_for_all(uint8, playerIndex, PLAYER_COUNT) {
 				auto condition = (playerIndex >= queuedConfig.Actor.playerCount);
-				//Get either the mission or session profile data depending on where we are.
-				//If in game or in mission start scenes, we want missionprofile, otherwise we want session profile (I think). 
-				//In theory we should only be looking at this alongside the customize screen in GAME & MISSION_START,
-				//but because this is also viewable in the player tab, we fall back on sessionProfileData there.
+				
 				auto& profile = (g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
 					 //ExpConfig::profiles[g_saveIndex][playerIndex];
-				uint8 profile_index = profile.profileIndex;
+				//uint8 profile_index = profile.profileIndex;
 				GUI_PushDisable(condition);
 
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
@@ -3212,10 +3222,10 @@ void SelectPlayerLoadoutsWeaponsTab() {
 					//ImGui::Text("");
 					if (GUI_Slider<uint8>("Profile #", profile.profileIndex, 0, PROFILE_COUNT - 1)) {
 						Log("changed active profile");
-						profile.playerData[profile_index] = queuedConfig.Actor.playerData[playerIndex];
+						//profile.playerData[profile_index] = queuedConfig.Actor.playerData[playerIndex];
 						
 						//activeConfig.Actor.playerData[playerIndex] = profile.playerData[profile.profileIndex];
-						queuedConfig.Actor.playerData[playerIndex] = profile.playerData[profile.profileIndex];
+						//queuedConfig.Actor.playerData[playerIndex] = profile.playerData[profile.profileIndex];
 
 						//auto& mainQueuedCharacterData = GetActiveCharacterData(playerIndex, activeConfig.Actor.playerData[playerIndex].ch, ENTITY::MAIN);
 						//if(activeConfig.Actor)
@@ -3254,7 +3264,8 @@ void SelectPlayerLoadoutsWeaponsTab() {
 
 				if (ImGui::BeginTabItem(characterIndexNames[characterIndex])) {
 
-					Actor_CharacterTab(activePlayerIndex, characterIndex, 0, defaultFontSize);
+					//pass the profile_index being used by the GUI for the current player
+					Actor_CharacterTab(activePlayerIndex, characterIndex, 0, profile_index[activePlayerIndex], defaultFontSize);
 
 					ImGui::EndTabItem();
 				}
@@ -3269,6 +3280,18 @@ void SelectPlayerLoadoutsWeaponsTab() {
 
 		ImGui::EndTable();
 
+	}
+	//Save updated values back to relevant 
+	for_all(playerIndex, PLAYER_COUNT) {
+		//Get either the mission or session profile data depending on where we are.
+				//If in game or in mission start scenes, we want missionprofile, otherwise we want session profile (I think). 
+				//In theory we should only be looking at this alongside the customize screen in GAME & MISSION_START,
+				//but because this is also viewable in the player tab, we fall back on sessionProfileData there.
+		auto& profile = (g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
+		//store the profileIndex values for this GUI update.
+		
+		//load the profile PlayerData into the queued config.
+		profile.playerData[profile_index[playerIndex]] = queuedConfig.Actor.playerData[playerIndex];
 	}
 
 }
