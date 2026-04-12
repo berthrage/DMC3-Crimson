@@ -1562,6 +1562,8 @@ bool CheckIfWeaponIdIsUnlocked(uint8 weaponId) {
 
 std::string GetWeaponNameById(uint8 weaponId) {
 	switch (weaponId) {
+	case WEAPON::REBELLION:
+		return "Rebellion";
 	case WEAPON::CERBERUS:
 		return "Cerberus";
 	case WEAPON::AGNI_RUDRA:
@@ -1570,6 +1572,8 @@ std::string GetWeaponNameById(uint8 weaponId) {
 		return "Nevan";
 	case WEAPON::BEOWULF_DANTE:
 		return "Beowulf";
+	case WEAPON::EBONY_IVORY:
+		return "Ebony & Ivory";
 	case WEAPON::SHOTGUN:
 		return "Shotgun";
 	case WEAPON::ARTEMIS:
