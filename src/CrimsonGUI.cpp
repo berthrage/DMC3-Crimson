@@ -1097,6 +1097,12 @@ const char* crimsonCharacterNames[] = {
 	"Vergil",
 };
 
+const char* crimsonProfileNames[] = {
+	"Dante",
+	"Vergil",
+	"Charswap"
+};
+
 constexpr uint8 crimsonCharacterMap[] = {
 	CHARACTER::DANTE,
 	CHARACTER::VERGIL,
@@ -2924,7 +2930,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 		if (ImGui::BeginTable("WeaponLoadout", 2)) {
 
 			ImGui::TableNextRow(0, rowWidth);
-
+			auto& profile = (g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
 			if (queuedCharacterData.character == CHARACTER::DANTE) {
 
 				ImGui::TableNextColumn();
@@ -2937,7 +2943,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 				ImGui::PushItemWidth(itemWidth);
 
 				auto rangedSlider = [&]() {
-					if (queuedCharacterData.character == activeCharacterData.character) {
+					if (queuedCharacterData.character == activeCharacterData.character && profile.profileIndex == g_playerProfile[playerIndex]) {
 						if (GUI_Slider2<uint8>("", queuedCharacterData.rangedWeaponCount,
 							activeCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1)) {
 							if (!newActorData.baseAddr) return;
@@ -2957,7 +2963,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 					GUI_PushDisable(condition);
 
 					// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
-					if (queuedCharacterData.character == activeCharacterData.character) {
+					if (queuedCharacterData.character == activeCharacterData.character && profile.profileIndex == g_playerProfile[playerIndex]) {
 						if (UI::ComboMapVector2("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
 							queuedCharacterData.rangedWeapons[rangedWeaponIndex], activeCharacterData.rangedWeapons[rangedWeaponIndex])) {
 
@@ -2988,7 +2994,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 			if (queuedCharacterData.character == CHARACTER::DANTE) {
 				auto meleeSlider = [&]() {
-					if (queuedCharacterData.character == activeCharacterData.character) {
+					if (queuedCharacterData.character == activeCharacterData.character && profile.profileIndex == g_playerProfile[playerIndex]) {
 						if (GUI_Slider2<uint8>("", queuedCharacterData.meleeWeaponCount,
 							activeCharacterData.meleeWeaponCount, 1, weaponProgression.devilArmsUnlockedQtt + 1)) {
 							if (!newActorData.baseAddr) return;
@@ -3011,7 +3017,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 					GUI_PushDisable(condition);
 
 					// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
-					if (queuedCharacterData.character == activeCharacterData.character) {
+					if (queuedCharacterData.character == activeCharacterData.character && profile.profileIndex == g_playerProfile[playerIndex]) {
 						if (UI::ComboMapVector2("", weaponProgression.meleeWeaponNames, weaponProgression.meleeWeaponIds,
 							queuedCharacterData.meleeWeapons[meleeWeaponIndex], activeCharacterData.meleeWeapons[meleeWeaponIndex])) {
 
@@ -3031,7 +3037,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 				}
 			} else if (queuedCharacterData.character == CHARACTER::VERGIL) {
 				auto meleeSlider = [&]() {
-					if (queuedCharacterData.character == activeCharacterData.character) {
+					if (queuedCharacterData.character == activeCharacterData.character && profile.profileIndex == g_playerProfile[playerIndex]) {
 						if (GUI_Slider2<uint8>("", queuedCharacterData.meleeWeaponCount,
 							activeCharacterData.meleeWeaponCount, 1, WEAPON_COUNT_VERGIL)) {
 							if (!newActorData.baseAddr) return;
@@ -3054,7 +3060,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 					GUI_PushDisable(condition);
 
 					// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
-					if (queuedCharacterData.character == activeCharacterData.character) {
+					if (queuedCharacterData.character == activeCharacterData.character && profile.profileIndex == g_playerProfile[playerIndex]) {
 						if (UI::ComboMapValue2("", meleeWeaponNamesVergil, meleeWeaponsVergil,
 							queuedCharacterData.meleeWeapons[meleeWeaponIndex], activeCharacterData.meleeWeapons[meleeWeaponIndex])) {
 
@@ -3192,8 +3198,11 @@ void SelectPlayerLoadoutsWeaponsTab() {
 			old_for_all(uint8, playerIndex, PLAYER_COUNT) {
 				auto condition = (playerIndex >= queuedConfig.Actor.playerCount);
 				//Get either the mission or session profile data depending on where we are.
-				auto& profile = ExpConfig::sessionProfileData[playerIndex];
-					//= (g_scene == SCENE::GAME ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex]);//ExpConfig::profiles[g_saveIndex][playerIndex];
+				//If in game or in mission start scenes, we want missionprofile, otherwise we want session profile (I think). 
+				//In theory we should only be looking at this alongside the customize screen in GAME & MISSION_START,
+				//but because this is also viewable in the player tab, we fall back on sessionProfileData there.
+				auto& profile = (g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
+					 //ExpConfig::profiles[g_saveIndex][playerIndex];
 				uint8 profile_index = profile.profileIndex;
 				GUI_PushDisable(condition);
 
@@ -8526,6 +8535,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
                 ImGui::Text("SCENE:  %u", g_scene);
                 ImGui::Text("TRACK PLAYING: %s", g_gameTrackPlaying.c_str());
 				ImGui::Text("sessionData.expertise[1]: %x", sessionData.expertise[1]);
+				for_all(playerIndex, activeConfig.Actor.playerCount) {
+					ImGui::Text("Player %u active: profile: %s", playerIndex, crimsonProfileNames[g_playerProfile[playerIndex]]);
+				}
 
 // 				for (int i = 0; i < 8; i++) {
 // 					ImGui::Text("sessionData expertise[%u]:  %x", i, sessionData.expertise[i]);

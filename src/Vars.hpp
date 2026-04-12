@@ -5270,6 +5270,7 @@ extern bool g_levelFullyLoadedDelay;
 extern bool g_allActorsSpawned;
 extern bool g_HudVisible;
 extern std::string g_gameTrackPlaying;
+extern uint8 g_playerProfile[PLAYER_COUNT];
 
 extern bool exceptionShot;
 
