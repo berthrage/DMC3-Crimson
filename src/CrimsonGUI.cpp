@@ -3033,6 +3033,8 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 					}
 
 					// Doppelganger will now have same weapons equipped as Dante - Mia.
+					// Not if the doppelganger is Vergil though, that'd be problematic. - Hitch.
+					if (queuedCharacterDataClone.character == queuedCharacterData.character)
 					queuedCharacterDataClone.meleeWeapons[meleeWeaponIndex] = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
 
 					GUI_PopDisable(condition);
@@ -3120,9 +3122,10 @@ void Actor_PlayerTab(uint8 playerIndex,uint8 profileIndex, size_t defaultFontSiz
 		ImGui::SameLine();
 		TooltipHelper("(?)", "Press to Switch Loadouts or Characters.\n"
 			"Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n");
+		GUI_PopDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
 	}
 	
-	GUI_PopDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
+	
 	if (queuedConfig.Actor.playerCount > 1) {
 
 		UI::ComboMap("Type (Collision Group)", collisionGroupNames, collisionGroups, Actor_collisionGroupIndices[playerIndex],
@@ -5778,7 +5781,7 @@ void ShopWindow() {
 	}
 
 	float width = 1000 * scaleFactorY;
-	float height = 900 * scaleFactorY;
+	float height = 1080 * scaleFactorY;
 
 	ImGui::SetNextWindowSize(ImVec2(width, height));
 	ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
@@ -5854,12 +5857,16 @@ void ShopWindow() {
 		// 				CloseShop();
 		// 			}
 		// 		}
-
+		
 		SelectPlayerLoadoutsWeaponsTab();
+		ImGuiWindow* cntWindow = ImGui::GetCurrentWindow();
+		//const ImVec2 regionSize = 
+		const ImVec2 areaSize = ImGui::GetContentRegionAvail() * ImVec2{ 0.98f, 0.95f };
 
 		if (ImGui::BeginTabBar("ShopTabs")) {
 			for (uint8 tabIndex = 0; tabIndex < TAB::COUNT; ++tabIndex) {
 				if (ImGui::BeginTabItem(tabNames[tabIndex])) {
+					ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
 					ImGui::Text("");
 
 					switch (tabIndex) {
@@ -5885,7 +5892,7 @@ void ShopWindow() {
 						ShowItemTab(missionData, queuedMissionActorData, activeMissionActorData, unlockDevilTrigger);
 						break;
 					}
-
+					ImGui::EndChild();
 					ImGui::EndTabItem();
 				}
 			}
