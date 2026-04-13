@@ -3186,7 +3186,10 @@ void SelectPlayerLoadoutsWeaponsTab() {
 
 	const float columnWidth = 0.8f * queuedConfig.globalScale;
 	const float rowWidth = 40.0f * queuedConfig.globalScale;
-
+	uint8 vergilvalue = *reinterpret_cast<uint8*>(appBaseAddr + 0x564595);
+	vergilvalue = vergilvalue >> 4;
+	bool vergilunlocked = vergilvalue && 1;
+	//Log(costumevalue);
 	uint8 activePlayerIndex;
 	uint8 profile_index[PLAYER_COUNT];
 
@@ -3227,16 +3230,14 @@ void SelectPlayerLoadoutsWeaponsTab() {
 
 				if (ImGui::BeginTabItem(playerIndexNames[playerIndex])) {
 					//ImGui::Text("");
-					if (GUI_Slider<uint8>("Profile #", profile.profileIndex, 0, PROFILE_COUNT - 1)) {
-						Log("changed active profile");
-						//profile.playerData[profile_index] = queuedConfig.Actor.playerData[playerIndex];
-						
-						//activeConfig.Actor.playerData[playerIndex] = profile.playerData[profile.profileIndex];
-						//queuedConfig.Actor.playerData[playerIndex] = profile.playerData[profile.profileIndex];
-
-						//auto& mainQueuedCharacterData = GetActiveCharacterData(playerIndex, activeConfig.Actor.playerData[playerIndex].ch, ENTITY::MAIN);
-						//if(activeConfig.Actor)
-					};
+					if (vergilunlocked){
+						if (GUI_Slider<uint8>("Profile #", profile.profileIndex, 0, PROFILE_COUNT - 1)) {
+							Log("changed active profile");
+						};
+					}
+					else {
+						profile.profileIndex = 0;
+					}
 					Actor_PlayerTab(playerIndex,profile_index[playerIndex], defaultFontSize);
 					activePlayerIndex = playerIndex;
 
