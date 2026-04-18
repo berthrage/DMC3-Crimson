@@ -424,6 +424,52 @@ namespace UI {
 	}
 
 	template <typename varType, uint8_t mapItemCount>
+	bool ComboMapValue(const char* label,
+		const char* (&names)[mapItemCount],
+		const varType(&map)[mapItemCount],
+		varType& var,
+		uint8_t start_position,
+		ImGuiComboFlags flags = 0) {
+		using namespace ImGui;
+		bool update = false;
+
+		int currentIndex = -1;
+		for (uint8_t i = 0; i < mapItemCount; ++i) {
+			if (map[i] == var) {
+				currentIndex = i;
+				break;
+			}
+		}
+
+		const char* currentLabel = (currentIndex >= 0) ? names[currentIndex] : "Unknown";
+
+		PushID();
+
+		if (BeginCombo(label, currentLabel, ImVec2{ 0.0f, 0.0f }, 0.6f, flags)) {
+			for (uint8_t i = start_position; i < mapItemCount; ++i) {
+				bool selected = (map[i] == var);
+
+				PushID();
+				if (Selectable(names[i], &selected)) {
+					var = map[i];
+					update = true;
+				}
+				PopID();
+			}
+			EndCombo();
+		}
+
+		PopID();
+
+		if (update) {
+			::GUI::save = true;
+		}
+
+		return update;
+	}
+
+
+	template <typename varType, uint8_t mapItemCount>
 	bool ComboMapValue2(const char* label,
 		const char* (&names)[mapItemCount],
 		const varType(&map)[mapItemCount],

@@ -12,7 +12,6 @@ static bool trainingRoomEnabled{ true };
 static bool fromMissionStart{ false };
 static bool fromInGame{ false };
 static bool queueReset{ false };
-static uint16 room{ ROOM::DEBUG_ROOM_10 };
 //Tracks whether we are in training currently
 static bool inTrainingRoom{ false };
 const char* enterString{ "Enter Void" };
@@ -46,7 +45,7 @@ namespace CrimsonTrainingRoom {
 
 
         if ((sessionData.mission >= 1) && (sessionData.mission <= 20) && !activeConfig.BossRush.enable && !activeConfig.Arcade.enable) {
-            nextEventData.room = room;
+            nextEventData.room = activeCrimsonGameplay.Cheats.Training.trainingRoomID;
         }
         
     }
@@ -82,7 +81,7 @@ namespace CrimsonTrainingRoom {
         auto eventFlags = reinterpret_cast<byte32*>(pool_371[1]);
 
 
-        nextEventData.room = room;
+        nextEventData.room = activeCrimsonGameplay.Cheats.Training.trainingRoomID;
         nextEventData.position = static_cast<uint16>(1);
     }
 
@@ -128,8 +127,12 @@ namespace CrimsonTrainingRoom {
     void DrawRoomSelect() {
         //ImGui::PushItemWidth(itemWidth * 1.3f);
 
-        if (UI::ComboMapValue("", roomNames, roomsMap, room, 0))
+        //183 is the start of modded room selection.
+        if (UI::ComboMapValue("", roomNames, roomsMap, queuedCrimsonGameplay.Cheats.Training.trainingRoomID, 183, 0)) {
+            activeCrimsonGameplay.Cheats.Training.trainingRoomID = queuedCrimsonGameplay.Cheats.Training.trainingRoomID;
             queueReset = false;
+        }
+            
         //ImGui::PopItemWidth();
         if (InPauseMenu()) {
             if (GUI_Button("Return to mission start")) {
@@ -157,7 +160,7 @@ namespace CrimsonTrainingRoom {
             auto& nextEventData = *reinterpret_cast<NextEventData*>(pool_12959[12]);
 
 
-            nextEventData.room = static_cast<uint16>(room);
+            nextEventData.room = static_cast<uint16>(activeCrimsonGameplay.Cheats.Training.trainingRoomID);
             nextEventData.position = static_cast<uint16>(eventData.position);
 
 
@@ -260,7 +263,7 @@ namespace CrimsonTrainingRoom {
                 preTrainingRoomMissionData = missionData;
                 Arcade::ToggleOrbSkip(true);
                 
-                nextEventData.room = ROOM::DEBUG_ROOM_5;
+                nextEventData.room = activeCrimsonGameplay.Cheats.Training.trainingRoomID;
                 nextEventData.position = 0;
                 for (int playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {
                     CrimsonUtil::CopyCrimsonPlayerData(&crimsonPlayer[playerIndex], &preTrainingRoomCrimsonPlayer[playerIndex]);
