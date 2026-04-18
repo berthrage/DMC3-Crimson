@@ -335,12 +335,12 @@ const char* roomNames[ROOMS_COUNT] = {
 	"902 - Debug Room",
 	"903 - Debug Room",
 	"904 - Debug Room",
-	"905 - Debug Room",
-	"906 - Debug Room",
-	"907 - Debug Room",
-	"908 - Debug Room",
-	"909 - Debug Room",
-	"910 - Debug Room"
+	"905 - Outside Dante's Office",//"905 - Debug Room",
+	"906 - Vergil 1 Arena",//"906 - Debug Room",
+	"907 - Bloody Palace",//"907 - Debug Room",
+	"908 - Geryon Arena",//"908 - Debug Room",
+	"909 - Trial Of The Warrior",//"909 - Debug Room",
+	"910 - Godless Cube Room"//"910 - Debug Room"
 };
 
 constexpr uint16_t roomsMap[ROOMS_COUNT] = {
