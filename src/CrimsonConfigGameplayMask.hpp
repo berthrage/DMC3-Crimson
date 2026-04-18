@@ -199,6 +199,7 @@ struct CrimsonConfigGameplayMask {
 		struct Training {
 			bool infiniteHP = true;
 			bool infiniteDT = true;
+			bool trainingRoomID = true;
 			bool disableRegularEnemyAttacks = true;
 			bool disableTimers = true;
 			bool infiniteBossLadyBullets = true;
@@ -207,6 +208,7 @@ struct CrimsonConfigGameplayMask {
 				return std::make_tuple(
 					std::make_pair("infiniteHP", &Training::infiniteHP),
 					std::make_pair("infiniteDT", &Training::infiniteDT),
+					std::make_pair("trainingRoomID", &Training::trainingRoomID),
 					std::make_pair("disableRegularEnemyAttacks", &Training::disableRegularEnemyAttacks),
 					std::make_pair("disableTimers", &Training::disableTimers),
 					std::make_pair("infiniteBossLadyBullets", &Training::infiniteBossLadyBullets)
