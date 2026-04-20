@@ -2767,7 +2767,7 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
     actorData.newPlayerIndex         = playerIndex;
     actorData.newCharacterIndex      = characterIndex;
     actorData.newEntityIndex         = entityIndex;
-    actorData.newForceFiles          = true;//characterData.forceFiles;
+    actorData.newForceFiles          = characterData.forceFiles;
     actorData.newForceFilesCharacter = characterData.forceFilesCharacter;
     //sets progression based cosmetic character ID
     actorData.newForceFilesCostume   = GetProgressionCostume(sessionData, characterData);//characterData.forceFilesCostume;

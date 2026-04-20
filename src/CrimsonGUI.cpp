@@ -2817,6 +2817,9 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 				// New costume select for dante & vergil
 				if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
+					//We always force file for dante & vergil. 
+					queuedCharacterData.forceFiles = true;
+					//Super Costume Mode selection - independently select the super costume mode from the actual costume.
 					if (queuedCharacterData.character == CHARACTER::DANTE) {
 						UI::ComboMapValue2("Super Costume Type", cheatNames, cheatModesDante,activeCharacterData.costume,queuedCharacterData.costume);
 					}
