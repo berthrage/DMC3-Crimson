@@ -1243,6 +1243,62 @@ const char* costumeNamesLady[] = {
 	"Ridersuit",
 };
 
+const char* costumeNamesMapDante[] = {
+	"Default Costume",
+	"DMC3 Coat",
+	"DMC3 Coatless",
+	"DMC3 Torn",
+	"DMC1",
+	"DMC1 Coatless",
+	"Sparda",
+};
+
+const char* costumeNamesMapVergil[] = {
+	"Default Costume",
+	"DMC3 Coat",
+	"DMC3 Coatless",
+	"Corrupted Vergil",
+};
+
+constexpr uint8 costumeMapDante[] = {
+	COSTUME::GAME_PROGRESSION,
+	COSTUME::DANTE_DEFAULT,
+	COSTUME::DANTE_DEFAULT_NO_COAT,
+	COSTUME::DANTE_DEFAULT_TORN,
+	COSTUME::DANTE_DMC1,
+	COSTUME::DANTE_DMC1_NO_COAT,
+	COSTUME::DANTE_SPARDA,
+};
+
+constexpr uint8 costumeMapVergil[] = {
+	COSTUME::GAME_PROGRESSION,
+	COSTUME::VERGIL_DEFAULT,
+	COSTUME::VERGIL_DEFAULT_NO_COAT,
+	COSTUME::VERGIL_NERO_ANGELO,
+};
+
+
+const char* cheatNames[] = {
+	"Use Default Costume",
+	"Off",
+	"Super Costume 1",
+	"Super Costume 2",
+};
+
+constexpr uint8 cheatModesDante[] = {
+	COSTUME::GAME_PROGRESSION,
+	COSTUME::DANTE_DEFAULT,
+	COSTUME::DANTE_DEFAULT_TORN_INFINITE_MAGIC_POINTS,
+	COSTUME::DANTE_SPARDA_INFINITE_MAGIC_POINTS,
+};
+
+constexpr uint8 cheatModesVergil[] = {
+	COSTUME::GAME_PROGRESSION,
+	COSTUME::VERGIL_DEFAULT,
+	COSTUME::VERGIL_DEFAULT_INFINITE_MAGIC_POINTS,
+	COSTUME::VERGIL_NERO_ANGELO_INFINITE_MAGIC_POINTS,
+};
+
 const char* weaponSwitchTypeNames[] = {
 	"Linear",
 	"Arbitrary",
@@ -2760,6 +2816,30 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 				ImGui::PushItemWidth(itemWidth);
 
 				// Costume
+				if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
+					if (queuedCharacterData.character == CHARACTER::DANTE) {
+						UI::ComboMapValue2("Super Costume Type", cheatNames, cheatModesDante,activeCharacterData.costume,queuedCharacterData.costume);
+					}
+					else if (queuedCharacterData.character == CHARACTER::VERGIL) {
+						UI::ComboMapValue2("Super Costume Type", cheatNames, cheatModesVergil, activeCharacterData.costume, queuedCharacterData.costume);
+					}
+
+					if (UI::Combo("Costume List", ddmkCharacter2PNames, queuedCharacterData.forceFilesCharacter)) {
+						queuedCharacterDataClone.forceFilesCharacter = queuedCharacterData.forceFilesCharacter;
+					}
+
+					if (queuedCharacterData.forceFilesCharacter == CHARACTER::DANTE) {
+						UI::ComboMapValue2("Costume", costumeNamesMapDante,costumeMapDante, activeCharacterData.forceFilesCostume, queuedCharacterData.forceFilesCostume);
+					}
+					else if (queuedCharacterData.forceFilesCharacter == CHARACTER::VERGIL) {
+						UI::ComboMapValue2("Costume", costumeNamesMapVergil, costumeMapVergil, activeCharacterData.forceFilesCostume, queuedCharacterData.forceFilesCostume);
+					}
+					else if (queuedCharacterData.forceFilesCharacter == CHARACTER::LADY || queuedCharacterData.forceFilesCharacter == CHARACTER::BOSS_LADY) {
+						UI::Combo2("Costume", costumeNamesLady, activeCharacterData.forceFilesCostume, queuedCharacterData.forceFilesCostume);
+					}
+
+				}
+				else {
 				{
 					bool condition = queuedCharacterData.ignoreCostume || queuedCharacterData.forceFiles;
 
@@ -2807,6 +2887,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 						UI::Combo2("Force Files Costume", costumeNamesLady, activeCharacterData.forceFilesCostume, queuedCharacterData.forceFilesCostume);
 					}
 				}
+			}
 				//if we are dante and haven't unlocked doppelganger, we shouldn't show this menu option.
 				if (!queuedCharacterData.character == CHARACTER::DANTE || sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER]) {
 					if (UI::Combo("Doppelganger", ddmkCharacter2PNames, queuedCharacterDataClone.character)) {

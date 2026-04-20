@@ -2542,6 +2542,119 @@ template <typename T> void UpdateWeapons(T& actorData) {
     UpdateMeleeWeapon(actorData);
     UpdateRangedWeapon(actorData);
 }
+/// <summary>
+/// Returns the cosmetic ID of the costume based on session & characterData settings.
+/// If characterData.forceFilesCostume = -1, then we want to use sessionData costume & base it off game progression when appropriate. 
+/// </summary>
+/// <param name="sessionData"></param>
+/// <param name="characterData"></param>
+/// <returns>a value within the costume list for the character</returns>
+uint8 GetProgressionCostume(SessionData& sessionData, CharacterData& characterData) {
+    //if we aren't pulling from sessiondata, then we just use the forceFilesCostume.
+
+    uint8 const gameprogression = COSTUME::GAME_PROGRESSION;
+
+    if (characterData.forceFilesCostume != gameprogression) {
+        return characterData.forceFilesCostume;
+    }
+    auto selectedCostume = sessionData.costume;
+
+    if (characterData.character == CHARACTER::DANTE &&
+        (activeConfig.costumeRespectsProgression == 1 || activeConfig.costumeRespectsProgression == 2) && selectedCostume == COSTUME::DANTE_DEFAULT) {
+
+        if (sessionData.mission == 1) {
+            return COSTUME::DANTE_DEFAULT_NO_COAT;
+        }
+        else if (sessionData.mission >= 2 && sessionData.mission <= 6) {
+            return COSTUME::DANTE_DEFAULT;
+        }
+        else if (sessionData.mission >= 8) {
+            return COSTUME::DANTE_DEFAULT_TORN;
+        }
+    }
+    else if (characterData.character == CHARACTER::VERGIL && (activeConfig.costumeRespectsProgression == 2) && selectedCostume == COSTUME::VERGIL_DEFAULT) {
+
+        if (sessionData.mission == 1) {
+            return COSTUME::VERGIL_DEFAULT_NO_COAT;
+        }
+        else {
+            return COSTUME::VERGIL_DEFAULT;
+        }
+
+    }
+    else {
+        //default to 0 when in doubt
+        if (selectedCostume == gameprogression)
+            selectedCostume = 0;
+
+        {
+            auto character = characterData.character;
+            if (character >= CHARACTER::MAX) {
+                character = 0;
+            }
+
+            auto& costumeCount = costumeCounts[character];
+
+            if (selectedCostume >= costumeCount) {
+                selectedCostume = 0;
+            }
+        }
+
+        
+        
+    }
+    return selectedCostume;
+}
+
+/// <summary>
+/// Sets the actorData sparda & nelo angelo values based of the costumeID from force Files.
+/// Draw from actorData itself, call after costumeID values set.
+/// </summary>
+/// <typeparam name="T">class based on PlayerActorDataBase</typeparam>
+/// <param name="actorData">actorData for the actor being created</param>
+/// <param name="characterData">parameters for creating the character</param>
+/// <param name="entityIndex"></param>
+template <typename T> void SetSpardaNeroValue(T& actorData, CharacterData& characterData) {
+    bool value = false;
+    if (actorData.newForceFilesCharacter == CHARACTER::DANTE) {
+        switch (actorData.newForceFilesCostume) {
+        case COSTUME::DANTE_DMC1:
+        case COSTUME::DANTE_DMC1_NO_COAT:
+        case COSTUME::DANTE_SPARDA:
+        case COSTUME::DANTE_SPARDA_INFINITE_MAGIC_POINTS: {
+            value = true;
+
+            break;
+        }
+        }
+    }
+    else if (actorData.newForceFilesCharacter == CHARACTER::VERGIL) {
+        switch (actorData.newForceFilesCostume) {
+        case COSTUME::VERGIL_NERO_ANGELO:
+        case COSTUME::VERGIL_NERO_ANGELO_INFINITE_MAGIC_POINTS: {
+            value = true;
+
+            break;
+        }
+        }
+    }
+    if constexpr (TypeMatch<T, PlayerActorDataDante>::value) {
+        actorData.sparda = (actorData.newEntityIndex == 0) ? value : false;
+        characterData.sparda = (actorData.newEntityIndex == 0) ? value : false;
+    }
+    else if constexpr (TypeMatch<T, PlayerActorDataVergil>::value) {
+        actorData.neroAngelo = (actorData.newEntityIndex == 0) ? value : false;
+        characterData.neloAngelo = (actorData.newEntityIndex == 0) ? value : false;
+    }
+}
+
+
+uint8 GetCheatCostumeID(uint8 costumeID, uint8 cheatMode) {
+    if (cheatMode == COSTUME::GAME_PROGRESSION) {
+        return costumeID;
+    }
+    return cheatMode;
+}
 
 template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
 
@@ -2571,7 +2684,7 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
 
     actorData.shadow     = 1;
     actorData.lastShadow = 1;
-    auto selectedCostume = (characterData.ignoreCostume) ? sessionData.costume : characterData.costume;
+   /* auto selectedCostume = (characterData.ignoreCostume) ? sessionData.costume : characterData.costume;
 
     if (characterData.character == CHARACTER::DANTE &&
         (activeConfig.costumeRespectsProgression == 1 || activeConfig.costumeRespectsProgression == 2) && selectedCostume == 0) {
@@ -2593,11 +2706,11 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
 
     } else {
         actorData.costume = selectedCostume;
-    }
+    }*/
 
     // Necessary when for example character is Vergil and session character is Dante.
     // Since Dante has more costumes, the index could go out of range.
-    {
+   /* {
         auto character = characterData.character;
         if (character >= CHARACTER::MAX) {
             character = 0;
@@ -2608,10 +2721,10 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
         if (actorData.costume >= costumeCount) {
             actorData.costume = 0;
         }
-    }
+    }*/
 
     // @Update
-    {
+    /*{
         bool value = false;
 
         if constexpr (TypeMatch<T, PlayerActorDataDante>::value) {
@@ -2641,18 +2754,24 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
             actorData.neroAngelo = (entityIndex == 0) ? value : false;
             characterData.neloAngelo = (entityIndex == 0) ? value : false;
         }
-    }
+    }*/
 
-    UpdateCostumeFileData(actorData);
+    //UpdateCostumeFileData(actorData);
 
     actorData.newPlayerIndex         = playerIndex;
     actorData.newCharacterIndex      = characterIndex;
     actorData.newEntityIndex         = entityIndex;
-    actorData.newForceFiles          = characterData.forceFiles;
+    actorData.newForceFiles          = true;//characterData.forceFiles;
     actorData.newForceFilesCharacter = characterData.forceFilesCharacter;
-    actorData.newForceFilesCostume   = characterData.forceFilesCostume;
+    //sets progression based cosmetic character ID
+    actorData.newForceFilesCostume   = GetProgressionCostume(sessionData, characterData);//characterData.forceFilesCostume;
+    //sets progression based cheat mode
+    actorData.costume = GetCheatCostumeID(actorData.newForceFilesCostume, characterData.costume);
     actorData.newGamepad             = playerIndex;
+    SetSpardaNeroValue<T>(actorData, characterData);
 
+    //Trying to call costume file Data after settings. 
+    UpdateCostumeFileData(actorData);
     if constexpr (TypeMatch<T, PlayerActorDataDante>::value) {
         UpdateActorDante(actorData);
     } else {
