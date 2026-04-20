@@ -376,7 +376,7 @@ enum {
     MAX_BOB    = 1,
     MAX_LADY   = 2,
     MAX_VERGIL = 5,
-    GAME_PROGRESSION = 9,
+    GAME_PROGRESSION = 9, //value used to determine if we want to default to the costume index in sessionData
 };
 };
 

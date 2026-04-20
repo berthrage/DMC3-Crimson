@@ -2815,7 +2815,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 				ImGui::TableNextColumn();
 				ImGui::PushItemWidth(itemWidth);
 
-				// Costume
+				// New costume select for dante & vergil
 				if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
 					if (queuedCharacterData.character == CHARACTER::DANTE) {
 						UI::ComboMapValue2("Super Costume Type", cheatNames, cheatModesDante,activeCharacterData.costume,queuedCharacterData.costume);
@@ -2824,6 +2824,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 						UI::ComboMapValue2("Super Costume Type", cheatNames, cheatModesVergil, activeCharacterData.costume, queuedCharacterData.costume);
 					}
 
+					//Costume list - select from costumes from dante, vergil, lady.
 					if (UI::Combo("Costume List", ddmkCharacter2PNames, queuedCharacterData.forceFilesCharacter)) {
 						//Reset Costume index to default when changing costume list. 
 						queuedCharacterDataClone.forceFilesCharacter = queuedCharacterData.forceFilesCharacter;
@@ -2841,6 +2842,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 						}
 					}
 
+					//Actual costume lists, Dante & Vergil use comboMap2 to allow for the new COSTUME::GAME_PROGRESSION option to be selected.
 					if (queuedCharacterData.forceFilesCharacter == CHARACTER::DANTE) {
 						UI::ComboMapValue2("Costume", costumeNamesMapDante,costumeMapDante, activeCharacterData.forceFilesCostume, queuedCharacterData.forceFilesCostume);
 					}

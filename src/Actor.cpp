@@ -2648,7 +2648,12 @@ template <typename T> void SetSpardaNeroValue(T& actorData, CharacterData& chara
     }
 }
 
-
+/// <summary>
+/// Very simple wrapper that returns the cheat mode unless game_progression is set, in which case we use the ID of the costume to determine cheat mode.
+/// </summary>
+/// <param name="costumeID"></param>
+/// <param name="cheatMode"></param>
+/// <returns></returns>
 uint8 GetCheatCostumeID(uint8 costumeID, uint8 cheatMode) {
     if (cheatMode == COSTUME::GAME_PROGRESSION) {
         return costumeID;
@@ -2684,6 +2689,7 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
 
     actorData.shadow     = 1;
     actorData.lastShadow = 1;
+    //Removing old progression logic
    /* auto selectedCostume = (characterData.ignoreCostume) ? sessionData.costume : characterData.costume;
 
     if (characterData.character == CHARACTER::DANTE &&
@@ -2768,6 +2774,7 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
     //sets progression based cheat mode
     actorData.costume = GetCheatCostumeID(actorData.newForceFilesCostume, characterData.costume);
     actorData.newGamepad             = playerIndex;
+    //Sets modified DT based off the cosmetic value of the actorData already set. 
     SetSpardaNeroValue<T>(actorData, characterData);
 
     //Trying to call costume file Data after settings. 
