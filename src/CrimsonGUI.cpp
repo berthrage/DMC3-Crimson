@@ -2825,7 +2825,20 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 					}
 
 					if (UI::Combo("Costume List", ddmkCharacter2PNames, queuedCharacterData.forceFilesCharacter)) {
+						//Reset Costume index to default when changing costume list. 
 						queuedCharacterDataClone.forceFilesCharacter = queuedCharacterData.forceFilesCharacter;
+						switch (queuedCharacterData.forceFilesCharacter) {
+						case(CHARACTER::DANTE):
+								queuedCharacterData.forceFilesCostume = COSTUME::GAME_PROGRESSION;
+							break;
+						case(CHARACTER::VERGIL):
+								queuedCharacterData.forceFilesCostume = COSTUME::GAME_PROGRESSION;
+							break;
+						case(CHARACTER::BOSS_LADY):
+						case(CHARACTER::LADY):
+								queuedCharacterData.forceFilesCostume = COSTUME::LADY_DEFAULT;
+							break;
+						}
 					}
 
 					if (queuedCharacterData.forceFilesCharacter == CHARACTER::DANTE) {
