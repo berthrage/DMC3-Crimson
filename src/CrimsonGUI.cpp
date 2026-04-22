@@ -2826,7 +2826,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 					else if (queuedCharacterData.character == CHARACTER::VERGIL) {
 						UI::ComboMapValue2("Super Costume Type", cheatNames, cheatModesVergil, activeCharacterData.costume, queuedCharacterData.costume);
 					}
-
+					ImGui::Text("");
 					//Costume list - select from costumes from dante, vergil, lady.
 					if (UI::Combo("Costume List", ddmkCharacter2PNames, queuedCharacterData.forceFilesCharacter)) {
 						//Reset Costume index to default when changing costume list. 
