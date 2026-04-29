@@ -1057,9 +1057,6 @@ void PlayBattleOfBrothersSong() {
 	fn_Mix_FadeInMusic(battleOfBrothersSong, -1, 500);
 }
 
-void FadeOutMusic(float fadeoutTime) {
-    fn_Mix_FadeOutMusic(fadeoutTime);
-}
 
 void ReduceMusicVolumeInPause() {
 	auto pool_19315 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
@@ -1087,6 +1084,7 @@ void ReduceMusicVolumeInPause() {
 			}
 		}
 	}
+}
 void FadeOutMusic(int delayMs) {
     fn_Mix_FadeOutMusic(delayMs);
 }
