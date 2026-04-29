@@ -16,6 +16,7 @@
 #include <iostream>
 #include <unordered_set>
 #include "Global.hpp"
+#include <deque>
 
 namespace CrimsonSDL {
 
@@ -73,6 +74,13 @@ Mix_Chunk* delayedDrive;
 Mix_Chunk* guard;
 Mix_Chunk* royalBlock;
 Mix_Chunk* normalBlock;
+Mix_Chunk* jdc;
+Mix_Chunk* jdcJustFrame;
+Mix_Chunk* jdcCharge;
+Mix_Chunk* driveStart;
+Mix_Chunk* driveLoop;
+Mix_Chunk* driveLevelUp;
+Mix_Chunk* snap;
 Mix_Music* missionClearSong;
 Mix_Music* divinityStatueSong;
 Mix_Music* battleOfBrothersSong;
@@ -100,8 +108,17 @@ namespace CHANNEL {
     constexpr int initialDTEFinish = 381; // to 384, 1 channel per player
     constexpr int initialDTERelease = 385; // to 388, 1 channel per player
     constexpr int initialGuard = 389; // to 396, 2 channels per player
-    constexpr int initialRoyalBlock = 397; // to 421, 5 channels per player
+    constexpr int initialRoyalBlock = 397; // to 421, 5 channels per player 
     constexpr int initialBlock = 422; // to 441, 5 channels per player
+	constexpr int initialJDC = 442; // to 481, 10 channels per player
+    constexpr int initialJDCCharge = 482; // to 485, 1 channel per player
+    constexpr int initialSnap = 486; // to 525, 10 channels per player
+	constexpr int initialDrive = 526; // to 529, 1 channels per player
+	constexpr int initialDriveLevelUp = 530; // to 537, 2 channels per player
+	constexpr int initialDriveLoop = 538; // to 541, 1 channel per player
+	constexpr int initialDriveClone = 542; // to 545, 1 channel per player
+	constexpr int initialDriveLevelUpClone = 546; // to 553, 2 channels per player
+	constexpr int initialDriveLoopClone = 554; // to 557, 1 channel per player
 }
 
 #define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
@@ -122,7 +139,6 @@ SDL_FUNCTION_DECLRATION(Mix_AllocateChannels)             = NULL;
 SDL_FUNCTION_DECLRATION(Mix_ReserveChannels)              = NULL;
 SDL_FUNCTION_DECLRATION(Mix_LoadWAV)                      = NULL;
 SDL_FUNCTION_DECLRATION(Mix_LoadMUS)                      = NULL;
-SDL_FUNCTION_DECLRATION(Mix_FadeOutChannel)               = NULL;
 SDL_FUNCTION_DECLRATION(Mix_Playing)                      = NULL;
 SDL_FUNCTION_DECLRATION(Mix_Pause)                        = NULL;
 SDL_FUNCTION_DECLRATION(Mix_Resume)                       = NULL;
@@ -130,6 +146,8 @@ SDL_FUNCTION_DECLRATION(Mix_Volume)                       = NULL;
 SDL_FUNCTION_DECLRATION(Mix_SetPosition)                  = NULL;
 SDL_FUNCTION_DECLRATION(Mix_PlayChannel)                  = NULL;
 SDL_FUNCTION_DECLRATION(Mix_HaltChannel)                  = NULL;
+SDL_FUNCTION_DECLRATION(Mix_FadeOutChannel)				  = NULL;
+SDL_FUNCTION_DECLRATION(Mix_FadeInChannel)                = NULL;
 SDL_FUNCTION_DECLRATION(Mix_VolumeMusic)                  = NULL;
 SDL_FUNCTION_DECLRATION(Mix_GetMusicVolume)               = NULL;
 SDL_FUNCTION_DECLRATION(Mix_FadeInMusic)                  = NULL;
@@ -192,7 +210,13 @@ void LoadAllSFX() {
         guard = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\guard.wav").c_str());
         royalBlock = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\blockroyal.wav").c_str());
         normalBlock = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\block.wav").c_str());
-
+		jdc = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\jdc.wav").c_str());
+		jdcJustFrame = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\jdc_justframe.wav").c_str());
+		jdcCharge = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\jdc_charge.wav").c_str());
+		driveStart = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\drive_start.wav").c_str());
+		driveLoop = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\drive_loop.wav").c_str());
+		driveLevelUp = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\drive_levelup.wav").c_str());
+		snap = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\snap.wav").c_str());
 
 
 		missionClearSong = fn_Mix_LoadMUS(((std::string)Paths::sounds + "\\music\\missionclear.mp3").c_str());
@@ -273,6 +297,7 @@ void InitSDL() {
         LOAD_MIXER_FUNCTION(Mix_LoadWAV);
         LOAD_MIXER_FUNCTION(Mix_LoadMUS);
         LOAD_MIXER_FUNCTION(Mix_FadeOutChannel);
+		LOAD_MIXER_FUNCTION(Mix_FadeInChannel);
         LOAD_MIXER_FUNCTION(Mix_Playing);
         LOAD_MIXER_FUNCTION(Mix_Pause);
         LOAD_MIXER_FUNCTION(Mix_Resume);
@@ -280,6 +305,7 @@ void InitSDL() {
         LOAD_MIXER_FUNCTION(Mix_PlayChannel);
         LOAD_MIXER_FUNCTION(Mix_SetPosition);
         LOAD_MIXER_FUNCTION(Mix_HaltChannel);
+		LOAD_MIXER_FUNCTION(Mix_FadeOutChannel);
         LOAD_MIXER_FUNCTION(Mix_VolumeMusic);
         LOAD_MIXER_FUNCTION(Mix_GetMusicVolume);
         LOAD_MIXER_FUNCTION(Mix_FadeInMusic);
@@ -374,12 +400,88 @@ void InitSDL() {
 
 
     // CHUNKS OF SOUND
-    fn_Mix_AllocateChannels(500);
+    fn_Mix_AllocateChannels(1000);
 
     // RESERVES SELECT EFFECT SOUND FOR CHANNELS 100 AND ABOVE
     fn_Mix_ReserveChannels(100);
 
     LoadAllSFX();
+}
+
+void PlayOnChannels(int initialChannel, int finalChannel, Mix_Chunk* sfx, int volume) {
+
+	for (int i = initialChannel; i <= finalChannel; i++) {
+		if (!fn_Mix_Playing(i)) {
+			fn_Mix_Volume(i, volume);
+			fn_Mix_PlayChannel(i, sfx, 0);
+			break;
+		}
+	}
+}
+
+void InterruptChannels(int initialChannel, int finalChannel) {
+
+	for (int i = initialChannel; i <= finalChannel; i++) {
+		if (fn_Mix_Playing(i)) {
+			fn_Mix_HaltChannel(i);
+			break;
+		}
+	}
+}
+
+struct SnapEvent {
+	byte8* actorBaseAddr;
+	uint32       initialStyle;
+	int         playerIndex;
+	int         volume;
+	bool        playDouble;
+	bool        secondSnapPending;
+	std::chrono::steady_clock::time_point fireAt;
+};
+
+static std::deque<SnapEvent> snapQueue;
+
+void TickSnapQueue() {
+	const auto now = std::chrono::steady_clock::now();
+
+	for (auto it = snapQueue.begin(); it != snapQueue.end(); ) {
+		if (now < it->fireAt) {
+			++it;
+			continue;
+		}
+
+		auto& ev = *it;
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(ev.actorBaseAddr);
+		const auto style = actorData.style;
+		const bool canPlaySnap = (actorData.eventData[0].event == 1 && actorData.character == CHARACTER::DANTE);
+		const auto initialChannel = CHANNEL::initialSnap + (10 * ev.playerIndex);
+
+		if (!ev.secondSnapPending) {
+			// First snap
+			if (canPlaySnap && ev.initialStyle == style)
+				PlayOnChannels(initialChannel, initialChannel + 9, snap, ev.volume);
+			else
+				ev.playDouble = false;
+
+			if (style != STYLE::GUNSLINGER && style != STYLE::ROYALGUARD)
+				ev.playDouble = false;
+
+			if (ev.playDouble) {
+				// Re-queue for the second snap
+				ev.secondSnapPending = true;
+				ev.fireAt = now + std::chrono::milliseconds(40);
+				++it;
+				continue;
+			}
+		}
+		else {
+			// Second snap
+			if (canPlaySnap && (style == STYLE::GUNSLINGER || style == STYLE::ROYALGUARD))
+				PlayOnChannels(initialChannel, initialChannel + 9, snap, ev.volume);
+		}
+
+		it = snapQueue.erase(it);
+	}
 }
 
 
@@ -402,6 +504,7 @@ void CheckAndOpenControllers() {
 
 void UpdateJoysticks() {
     fn_SDL_JoystickUpdate();
+    TickSnapQueue();
 }
 
 void VibrateController(int controllerIndex, Uint16 rumbleStrengthLowFreq, Uint16 rumbleStrengthHighFreq, int rumbleDuration) {
@@ -426,19 +529,6 @@ void FadeOutChannels(int channelException, int initialChannel, int numChannels, 
     }
 }
 
-void PlayOnChannels(int initialChannel, int finalChannel, Mix_Chunk* sfx, int volume) {
-
-    for (int i = initialChannel; i <= finalChannel; i++) {
-        if (!fn_Mix_Playing(i)) {
-            fn_Mix_Volume(i, volume);
-            fn_Mix_PlayChannel(i, sfx, 0);
-            break;
-        } else {
-            i++;
-        }
-    }
-}
-
 void PlayOnChannelsFadeOut(int initialChannel, int finalChannel, Mix_Chunk* sfx, int volume, int fadeOutms) {
     int channelBeingPlayed = 0;
 
@@ -448,8 +538,6 @@ void PlayOnChannelsFadeOut(int initialChannel, int finalChannel, Mix_Chunk* sfx,
             fn_Mix_PlayChannel(i, sfx, 0);
             channelBeingPlayed = i;
             break;
-        } else {
-            i++;
         }
     }
 
@@ -463,13 +551,10 @@ void PlayOnChannelsFadeOutPosition(int initialChannel, int finalChannel, Mix_Chu
 	for (int i = initialChannel; i <= finalChannel; i++) {
 		if (!fn_Mix_Playing(i)) {
 			fn_Mix_Volume(i, volume);
-            fn_Mix_SetPosition(i, angle, distance);
+			fn_Mix_SetPosition(i, angle, distance);
 			fn_Mix_PlayChannel(i, sfx, 0);
 			channelBeingPlayed = i;
 			break;
-		}
-		else {
-			i++;
 		}
 	}
 
@@ -517,7 +602,7 @@ void PlayStyleChange(int playerIndex) {
 
 void PlayStyleChangeVO(int playerIndex, int style, bool doppActive) {
 	float slider = activeCrimsonConfig.SFX.styleChangeVoiceOverVolume / 100.0f;
-	int volume = (int)(50.0f * slider);
+	int volume = (int)(46.08f * slider);
     auto initialChannel = CHANNEL::initialStyleChangeVO + (20 * playerIndex);
 
     if (style == 2) {
@@ -541,6 +626,49 @@ void PlayStyleChangeVO(int playerIndex, int style, bool doppActive) {
     }
 }
 
+void PlaySnap(byte8* actorBaseAddr) {
+	if (!actorBaseAddr) return;
+
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	const auto initialStyle = actorData.style;
+	const auto playerIndex = actorData.newPlayerIndex;
+	const auto actorSpeed = actorData.speed;  // adjust field name as needed
+
+	if (actorData.eventData[0].event != 1 || actorData.character != CHARACTER::DANTE)
+		return;
+
+	float slider = 5.0f / 100.0f;
+	int   volume = (int)(255.0f * slider);
+
+	std::chrono::milliseconds delay{ 0 };
+	bool playDouble = false;
+
+	switch (initialStyle) {
+	case STYLE::SWORDMASTER:  delay = std::chrono::milliseconds(300); break;
+	case STYLE::GUNSLINGER:   delay = std::chrono::milliseconds(300); playDouble = true; break;
+	case STYLE::TRICKSTER:    delay = std::chrono::milliseconds(300); break;
+	case STYLE::ROYALGUARD:   delay = std::chrono::milliseconds(300); playDouble = true; break;
+	case STYLE::QUICKSILVER:  delay = std::chrono::milliseconds(300); break;
+	case STYLE::DOPPELGANGER: delay = std::chrono::milliseconds(300); break;
+	}
+
+	if (actorSpeed > 0.0f) {
+		delay = std::chrono::milliseconds(
+			static_cast<long long>(delay.count() / (actorData.speed / g_FrameRateTimeMultiplier))
+		);
+	}
+
+	snapQueue.push_back({
+		.actorBaseAddr = actorBaseAddr,
+		.initialStyle = initialStyle,
+		.playerIndex = playerIndex,
+		.volume = volume,
+		.playDouble = playDouble,
+		.secondSnapPending = false,
+		.fireAt = std::chrono::steady_clock::now() + delay,
+		});
+}
+
 void SetSFXDistanceMultipleChannels(int playerIndex, int initialChannel, int numberChannelsPerPlayer, int angle, int distance) {
     auto initialChannelPlayer = initialChannel + (numberChannelsPerPlayer * playerIndex);
 
@@ -557,9 +685,10 @@ void SetAllSFXDistance(int playerIndex, int angle, int distance) {
 		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDevilArm, 20, angle, distance);
 		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialChangeGun, 20, angle, distance);
     }
-    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChange, 20, angle, distance);
-    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChangeVO, 20, angle, distance);
 
+	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChange, 20, angle, distance);
+	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChangeVO, 20, angle, distance);
+	
     fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex, angle, distance);
     fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex + 4, angle, distance); // L2
     fn_Mix_SetPosition(CHANNEL::initialDTIn + playerIndex, angle, distance);
@@ -584,12 +713,21 @@ void SetAllSFXDistance(int playerIndex, int angle, int distance) {
     SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialGuard, 2, angle, distance);
     SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialRoyalBlock, 5, angle, distance);
     SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialBlock, 5, angle, distance);
+    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialJDC, 10, angle, distance);
+	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialJDCCharge, 1, angle, distance);
+	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialSnap, 10, angle, distance);
+	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDrive, 1, angle, distance);
+	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDriveLoop, 1, angle, distance);
+	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDriveLevelUp, 2, angle, distance);
+	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDriveClone, 1, angle, distance);
+	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDriveLoopClone, 1, angle, distance);
+	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDriveLevelUpClone, 2, angle, distance);
 }
 
 void StyleRankCooldownTracker(int rank) {
     rankAnnouncer[rank].trackerRunning = true;
     rankAnnouncer[rank].offCooldown    = false;
-    std::this_thread::sleep_for(std::chrono::seconds(activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSeconds));
+    std::this_thread::sleep_for(std::chrono::seconds(activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSec));
     rankAnnouncer[rank].offCooldown    = true;
     rankAnnouncer[rank].trackerRunning = false;
 }
@@ -610,15 +748,16 @@ void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank
 	float slider = activeCrimsonConfig.SFX.announcerVolume / 100.0f;
 	int volume = (int)(255.0f * slider);
 
+    if (activeCrimsonConfig.SFX.onlyResetAnnouncerWhenHit && !rankAnnouncer[rank - 1].wasHit) {
+        return;
+    }
+
     if (rankAnnouncer[rank - 1].turn == 0 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
         fn_Mix_Volume(CHANNEL::initialStyleRank + (rank - 1), volume);
         fn_Mix_PlayChannel(CHANNEL::initialStyleRank + (rank - 1), styleRankWAV, 0);
         rankAnnouncer[rank - 1].turn++;
 
-        if (!rankAnnouncer[rank - 1].trackerRunning) {
-            std::thread stylerankcooldowntracker(StyleRankCooldownTracker, rank - 1);
-            stylerankcooldowntracker.detach();
-        }
+        rankAnnouncer[rank - 1].timer = activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSec;
 
 
     } else if (rankAnnouncer[rank - 1].turn == 1 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
@@ -626,13 +765,10 @@ void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank
         fn_Mix_PlayChannel(CHANNEL::initialStyleRank + (rank - 1), styleRankWAVAlt, 0);
         rankAnnouncer[rank - 1].turn = 0;
 
-        if (!rankAnnouncer[rank - 1].trackerRunning) {
-            std::thread stylerankcooldowntracker(StyleRankCooldownTracker, rank - 1);
-            stylerankcooldowntracker.detach();
-        }
+        rankAnnouncer[rank - 1].timer = activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSec;
     }
 
-
+    rankAnnouncer[rank - 1].wasHit = false;
     SetCurrentStyleRank(rank - 1);
 }
 
@@ -734,6 +870,38 @@ void PlayQuicksilverOut() {
 
 	fn_Mix_Volume(CHANNEL::quickOut, volume);
 	fn_Mix_PlayChannel(CHANNEL::quickOut, quicksilverOut, 0);
+}
+
+void PlayJDC(int playerIndex, bool justFrame, float delay) {
+
+	auto initialChannel = CHANNEL::initialJDC + (10 * playerIndex);
+
+	auto playSound = [=]() {
+		float slider = 90 / 100.0f;
+		int volume = (int)(72.0f * slider);
+		if (justFrame) {
+			PlayOnChannels(initialChannel, initialChannel + 9, jdcJustFrame, volume);
+		} else {
+			PlayOnChannels(initialChannel, initialChannel + 9, jdc, volume);
+		}
+	};
+
+	if (delay > 0) {
+		std::thread([=]() {
+			std::this_thread::sleep_for(std::chrono::milliseconds((int)delay));
+			playSound();
+		}).detach();
+	} else {
+		playSound();
+	}
+}
+
+void PlayJDCCharge(int playerIndex) {
+    auto initialChannel = CHANNEL::initialJDCCharge + (playerIndex);
+    float slider = 10 / 100.0f;
+    int volume = (int)(65.0f * slider);
+    fn_Mix_Volume(CHANNEL::initialJDCCharge + playerIndex, volume);
+    fn_Mix_PlayChannel(CHANNEL::initialJDCCharge + playerIndex, jdcCharge, 0);
 }
 
 void PlayDevilTriggerReady(int playerIndex) {
@@ -838,6 +1006,42 @@ void PlayNormalBlock(int playerIndex) {
 	PlayOnChannels(initialChannel, initialChannel + 4, normalBlock, volume);
 }
 
+void PlayDriveStart(int playerIndex, int entityIndex) {
+	auto initialChannel = (entityIndex == 0) ? CHANNEL::initialDrive + playerIndex : CHANNEL::initialDriveClone + playerIndex;
+	float slider = 7.0f / 100.0f;
+	int   volume = (int)(255.0f * slider);
+	fn_Mix_Volume(initialChannel, volume);
+	fn_Mix_FadeInChannel(initialChannel, driveStart, 0, 400);
+}
+
+void PlayDriveLoop(int playerIndex, int entityIndex) {
+	auto initialChannel = (entityIndex == 0) ? CHANNEL::initialDriveLoop + playerIndex : CHANNEL::initialDriveLoopClone + playerIndex;
+	float slider = 7.0f / 100.0f;
+	int   volume = (int)(255.0f * slider);
+	fn_Mix_Volume(initialChannel, volume);
+	fn_Mix_PlayChannel(initialChannel, driveLoop, -1);
+}
+
+void PlayDriveLevelUp(int playerIndex, int entityIndex) {
+	auto initialChannel = (entityIndex == 0) ? CHANNEL::initialDriveLevelUp + (2 * playerIndex) : 
+		CHANNEL::initialDriveLevelUpClone + (2 * playerIndex);
+	float slider = 10.0f / 100.0f;
+	int   volume = (int)(255.0f * slider);
+	PlayOnChannels(initialChannel, initialChannel + 1, driveLevelUp, volume);
+}
+
+void InterruptDriveSFX(int playerIndex, int entityIndex) {
+	auto initialChannelStart = (entityIndex == 0) ? CHANNEL::initialDrive + playerIndex : CHANNEL::initialDriveClone + playerIndex;
+	auto initialChannelLoop = (entityIndex == 0) ? CHANNEL::initialDriveLoop + playerIndex : CHANNEL::initialDriveLoopClone + playerIndex;
+	fn_Mix_FadeOutChannel(initialChannelStart, 100);
+	fn_Mix_FadeOutChannel(initialChannelLoop, 100);
+}
+
+bool DriveStartIsPlaying(int playerIndex, int entityIndex) {
+	auto initialChannel = (entityIndex == 0) ? CHANNEL::initialDrive + playerIndex : CHANNEL::initialDriveClone + playerIndex;
+	return ChannelIsPlaying(initialChannel);
+}
+
 void PlayNewMissionClearSong() {
     fn_Mix_VolumeMusic(60 * (activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f));
     fn_Mix_FadeInMusic(missionClearSong, -1, 500);
@@ -883,6 +1087,8 @@ void ReduceMusicVolumeInPause() {
 			}
 		}
 	}
+void FadeOutMusic(int delayMs) {
+    fn_Mix_FadeOutMusic(delayMs);
 }
 
 int IsMusicPlaying() {

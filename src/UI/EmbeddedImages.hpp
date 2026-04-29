@@ -3,8 +3,8 @@
 #include <inttypes.h>
 #include <tuple>
 
-#include "..\..\ThirdParty\stb\stb_image.h"
-#include "..\..\ThirdParty\stb\stb_image_resize2.h"
+#include "../ThirdParty/stb/stb_image.h"
+#include "../ThirdParty/stb/stb_image_resize2.h"
 
 unsigned char* STBResize(const unsigned char* inputPixels, int inputW, int inputH, int inputStrideInBytes,
 	unsigned char* outputPixels, int outputW, int outputH, int outputStrideInBytes,
@@ -52,8 +52,8 @@ public:
 protected:
 	static constexpr uint32_t	m_CompressedWidth{ 1598 };
 	static constexpr uint32_t	m_CompressedHeight{ 317 };
-	static constexpr uint32_t	m_ImageCompressedSize{ 493597 };
-	static			 uint32_t	m_ImageCompressedData[493600 / 4];
+	static constexpr uint32_t	m_ImageCompressedSize{ 465059 };
+	static			 uint32_t	m_ImageCompressedData[465060 / 4];
 };
 
 extern CrimsonHeaderLogo g_Image_CrimsonHeaderLogo;
@@ -258,8 +258,8 @@ public:
 protected:
 	static constexpr uint32_t	m_CompressedWidth{ 178 };
 	static constexpr uint32_t	m_CompressedHeight{ 250 };
-	static constexpr uint32_t m_ImageCompressedSize{ 58259 };
-	static			 uint32_t m_ImageCompressedData[58260 / 4];
+	static constexpr uint32_t m_ImageCompressedSize{ 108705 };
+	static			 uint32_t m_ImageCompressedData[108708 / 4];
 };
 
 extern RedOrbVanilla g_Image_RedOrbVanilla;
@@ -275,8 +275,8 @@ public:
 protected:
 	static constexpr uint32_t	m_CompressedWidth{ 178 };
 	static constexpr uint32_t	m_CompressedHeight{ 250 };
-	static constexpr uint32_t m_ImageCompressedSize{ 70421 };
-	static			 uint32_t m_ImageCompressedData[70424 / 4];
+	static constexpr uint32_t m_ImageCompressedSize{ 73262 };
+	static			 uint32_t m_ImageCompressedData[73264 / 4];
 };
 
 extern RedOrbStyleSwitcher g_Image_RedOrbStyleSwitcher;
@@ -292,8 +292,8 @@ public:
 protected:
 	static constexpr uint32_t	m_CompressedWidth{ 178 };
 	static constexpr uint32_t	m_CompressedHeight{ 250 };
-	static constexpr uint32_t m_ImageCompressedSize{ 75838 };
-	static			 uint32_t m_ImageCompressedData[75840 / 4];
+	static constexpr uint32_t m_ImageCompressedSize{ 79996 };
+	static			 uint32_t m_ImageCompressedData[79996 / 4];
 };
 
 extern RedOrbCrimson g_Image_RedOrbCrimson;
@@ -309,8 +309,8 @@ public:
 protected:
 	static constexpr uint32_t	m_CompressedWidth{ 178 };
 	static constexpr uint32_t	m_CompressedHeight{ 250 };
-	static constexpr uint32_t m_ImageCompressedSize{ 71431 };
-	static			uint32_t m_ImageCompressedData[71432 / 4];
+	static constexpr uint32_t m_ImageCompressedSize{ 69765 };
+	static			uint32_t m_ImageCompressedData[69768 / 4];
 };
 
 extern RedOrbCustom g_Image_RedOrbCustom;

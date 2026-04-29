@@ -6,6 +6,7 @@
 #include "Core/Macros.h"
 
 #include "Core/DebugSwitch.hpp"
+#include "CrimsonConfigGameplay.hpp"
 
 namespace DXGI {
 
@@ -147,6 +148,10 @@ bool InGame() {
 
 bool& IsTurbo() {
     return *reinterpret_cast<bool*>(appBaseAddr + 0xD6CEA9);
+}
+
+float GetCurrentGameSpeed() {
+    return (IsTurbo()) ? activeCrimsonGameplay.Cheats.Speed.turboGame : activeCrimsonGameplay.Cheats.Speed.defaultGame;
 }
 
 bool& InCutscene() {

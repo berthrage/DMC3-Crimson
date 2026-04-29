@@ -86,6 +86,7 @@ void ToggleSkipCutscenes(bool enable);
 bool InGame();
 
 bool& IsTurbo();
+extern float GetCurrentGameSpeed();
 bool& InCutscene();
 bool InCredits();
 

@@ -1,0 +1,4 @@
+CREATE EFFECT CALLS:
+dmc3.exe+20EE2F - E8 6C8E0D00           - call dmc3.exe+2E7CA0 { Point Blank CC effect CreateEffectA }
+dmc3.exe+211B95 - E8 06610D00           - call dmc3.exe+2E7CA0 { Million Stab CC Effect CreateEffectA }
+dmc3.exe+20B217 - E8 84CA0D00           - call dmc3.exe+2E7CA0 { Tornado's CC Effect CreateEffectA }

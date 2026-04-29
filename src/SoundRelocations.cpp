@@ -62,9 +62,34 @@ void UpdateGlobalHelperIndices(byte8* bodyPartDataAddr) {
                     if (baseAddr != newActorData.baseAddr) {
                         continue;
                     }
+                    auto& inAirTornado = (entityIndex == 0) ? crimsonPlayer[playerIndex].inAirTornado : 
+                        crimsonPlayer[playerIndex].inAirTornadoClone;
+                    auto& skyLaunch = (entityIndex == 0) ? crimsonPlayer[playerIndex].skyLaunch : 
+						crimsonPlayer[playerIndex].skyLaunchClone;
 
+                    auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+                    if (actorData.character == CHARACTER::DANTE) {
+                        if (actorData.eventData[0].event == 1) {
+                            // Mute the Style Switching Animations with Taunts for Dante.
+                            g_helperIndices[CHANNEL::COMMON] = HELPER_STYLE_WEAPON_VERGIL_NERO_ANGELO;
+                            g_helperIndices[CHANNEL::STYLE_WEAPON] = HELPER_STYLE_WEAPON_VERGIL_NERO_ANGELO;
+                            continue;
+                        }
 
-                    // Log("Match baseAddr %llX", baseAddr);
+                        if (inAirTornado && actorData.motionData[0].index == 5) {
+                            // Mute YOU'RE GROUNDED from Dante's Air Tornado.
+							g_helperIndices[CHANNEL::COMMON] = HELPER_STYLE_WEAPON_VERGIL_NERO_ANGELO;
+                            g_helperIndices[CHANNEL::STYLE_WEAPON] = HELPER_STYLE_WEAPON_VERGIL_NERO_ANGELO;
+                            continue;
+                        }
+
+                        if (skyLaunch.executing) {
+							// Mute the Sky Launch's Royal Release SFX.
+							g_helperIndices[CHANNEL::COMMON] = HELPER_STYLE_WEAPON_VERGIL_NERO_ANGELO;
+							g_helperIndices[CHANNEL::STYLE_WEAPON] = HELPER_STYLE_WEAPON_VERGIL_NERO_ANGELO;
+							continue;
+                        }
+                    }
 
 
                     if (characterData.character == CHARACTER::BOSS_LADY) {

@@ -1,0 +1,26 @@
+[ENABLE]
+aobscanmodule(fhgfghfgh,dmc3.exe,45 8D 67 05 66 66 66 0F 1F 84 00 00 00 00 00) // should be unique
+alloc(newmem,$1000,fhgfghfgh) // dmc3.exe+32CE31
+label(code)
+label(return)
+// addr is a cooldown int - when it decs to 0, it is allowed to scroll one more option.
+// it is also written a higher value when you first click a direction, by dmc3.exe+32CE92 to set the initial wait a bit longer
+newmem:
+
+code:
+  //lea r12d,[r15+05] // load 0x5
+  lea r12d, [r15+10] // load 0x10
+  nop word ptr [rax+rax+00000000]
+  jmp return
+
+fhgfghfgh:
+  jmp newmem
+  nop A
+return:
+registersymbol(fhgfghfgh)
+
+[DISABLE]
+fhgfghfgh:
+  db 45 8D 67 05 66 66 66 0F 1F 84 00 00 00 00 00
+unregistersymbol(fhgfghfgh)
+dealloc(newmem)

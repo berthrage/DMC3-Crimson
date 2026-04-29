@@ -49,6 +49,10 @@ struct vec3 {
     float x;
     float y;
     float z;
+
+    // NOTE(): added for effekseer interop
+    operator float* () { return &x; }
+    operator const float* () const { return &x; }
 };
 
 struct vec4 {
@@ -56,6 +60,10 @@ struct vec4 {
     float y;
     float z;
     float a;
+
+    // NOTE(): added for effekseer interop
+    operator float* () { return &x; }
+    operator const float* () const { return &x; }
 };
 
 struct struct_t {};

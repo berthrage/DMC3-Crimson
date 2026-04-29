@@ -1,5 +1,5 @@
 .DATA
-extern DetourBaseAddr:QWORD
+extern g_appBaseAddr:QWORD
 extern createEffectRBXMov:QWORD
 extern createEffectCallA:QWORD
 extern createEffectCallB:QWORD
@@ -26,7 +26,7 @@ CreateEffectDetour PROC
 	push	rdi
 	
 	xor 	r8,r8 ; not sure what this is used for
-	mov 	rbx, [DetourBaseAddr]
+	mov 	rbx, [g_appBaseAddr]
 	mov 	rbx, [rbx + 0C18AF8h]
 	mov 	rbx, [rbx + 0C90E28h]
 	test 	rbx, rbx

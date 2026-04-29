@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>2886</ID>
+      <Description>"Don't lose style when hit while in dt"</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+aobscanmodule(fgfgh,dmc3.exe,41 8B 94 80 D4 A1 27 00) // should be unique
+// dmc3.exe+27A18C
+alloc(newmem,$1000,fgfgh)
+label(code)
+label(return)
+
+newmem:
+  cmp byte ptr [rsi+3E9B], 1 // hit player's dt
+  jne code
+  ret
+
+code:
+  mov edx,[r8+rax*4+0027A1D4] // before switch for each style rank loss
+  jmp return
+
+fgfgh:
+  jmp newmem
+  nop 3
+return:
+registersymbol(fgfgh)
+
+[DISABLE]
+fgfgh:
+  db 41 8B 94 80 D4 A1 27 00
+unregistersymbol(fgfgh)
+dealloc(newmem)
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

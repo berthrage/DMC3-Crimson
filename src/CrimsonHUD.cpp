@@ -47,6 +47,7 @@
 #include "DebugDrawDX11.hpp"
 #define DEBUG_DRAW_EXPLICIT_CONTEXT
 #include "debug_draw.hpp"
+#include <Backend/imgui_impl_dx11.cpp>
 
 namespace CrimsonHUD {
 
@@ -535,7 +536,6 @@ void RenderSkewedMeterWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, flo
 
 	// EXTREME skew and pointiness
 	float skewAmount = (1.0f - skewT) * 4.2f;
-	float pointy = (1.0f - skewT) * 6.0f;
 
 	ImVec2 fillPos = ImVec2(pos.x, pos.y + size.y - visibleHeight);
 	float fillTop = fillPos.y;
@@ -544,10 +544,10 @@ void RenderSkewedMeterWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, flo
 	ImVec2 center = ImVec2(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
 
 	ImVec2 corners[4] = {
-		ImVec2(pos.x - size.x * skewAmount, fillTop + visibleHeight * pointy),                  // Top-left
-		ImVec2(pos.x + size.x + size.x * skewAmount, fillTop + visibleHeight * pointy),         // Top-right
-		ImVec2(pos.x + size.x, fillBottom),                                                     // Bottom-right
-		ImVec2(pos.x, fillBottom)                                                               // Bottom-left
+		ImVec2(pos.x + size.x * skewAmount * 2.0f, fillTop),                                   // Top-left - far right when animating
+		ImVec2(pos.x + size.x + size.x * skewAmount, fillTop),                                 // Top-right - even further right
+		ImVec2(pos.x + size.x, fillBottom),                                                     // Bottom-right - normal
+		ImVec2(pos.x + size.x * skewAmount, fillBottom)                                        // Bottom-left - also pulled right
 	};
 
 	float uvFill = 1.0f - fillRatio;
@@ -580,13 +580,12 @@ void RenderSkewedMeterWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, flo
 void RenderSkewedTexture(ImTextureID texture, ImVec2 pos, ImVec2 size, ImColor color, float angle, float skewT) {
 	ImVec2 center = pos + size * 0.5f;
 	float skewAmount = (1.0f - skewT) * 4.2f;
-	float pointy = (1.0f - skewT) * 6.0f;
 
 	ImVec2 corners[4] = {
-		ImVec2(pos.x - size.x * skewAmount, pos.y + size.y * pointy),                  // Top-left
-		ImVec2(pos.x + size.x + size.x * skewAmount, pos.y + size.y * pointy),         // Top-right
-		ImVec2(pos.x + size.x, pos.y + size.y),                                        // Bottom-right
-		ImVec2(pos.x, pos.y + size.y)                                                  // Bottom-left
+		ImVec2(pos.x + size.x * skewAmount * 2.0f, pos.y),                             // Top-left - far right when animating
+		ImVec2(pos.x + size.x + size.x * skewAmount, pos.y),                           // Top-right - even further right
+		ImVec2(pos.x + size.x, pos.y + size.y),                                        // Bottom-right - normal
+		ImVec2(pos.x + size.x * skewAmount, pos.y + size.y)                            // Bottom-left - also pulled right
 	};
 
 	if (angle != 0.0f) {
@@ -670,12 +669,24 @@ void StyleMeterWindowRank(
 		}
 	}
 
+	if (activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode > 0) {
+		if (currentRank < activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode) {
+			auraColor = 0xccccccFF;
+			fillColor = 0xccccccFF;
+			textColor = 0xccccccFF;
+		} else {
+			auraColor = 0xfff727FF;
+			fillColor = 0xfffdb9FF;
+			textColor = 0xece400FF;
+		}
+	}
+
 	float deltaTime = ImGui::GetIO().DeltaTime;
 	float targetAlpha = active ? 1.0f : 0.0f;
 	float fadeSpeed = 8.0f;
 	state.fade.alpha = SmoothLerp(state.fade.alpha, targetAlpha, fadeSpeed, deltaTime);
 
-	// Animation trigger: only when going up in rank
+	// Animation trigger: only when going up in rank (including rank 0 to rank 1)
 	if (!state.prevActive && active && currentRank > prevGlobalStyleRank) {
 		state.animTimer = 0.0f;
 		state.animating = true;
@@ -683,8 +694,12 @@ void StyleMeterWindowRank(
 	state.prevActive = active;
 
 	// Update the global previous style rank if this rank is active
+	// For rank transitions, set to 0 when no rank is active to allow rank 1 animation
 	if (active) {
 		prevGlobalStyleRank = currentRank;
+	} else if (prevGlobalStyleRank == currentRank) {
+		// When this rank becomes inactive, reset to 0 to allow proper rank 1 animation
+		prevGlobalStyleRank = 0;
 	}
 
 	// --- Animation update ---
@@ -762,11 +777,11 @@ void StyleMeterWindowRank(
 			};
 
 		float phase1 = 0.55f;
-		float centerDist = meterSize.x * 1.2f * animIntensity;
+		float centerDist = meterSize.x * animIntensity;
 
 		if (t < phase1) {
 			float t1 = easeInOut(t / phase1);
-			animOffset.x = -centerDist * (1.0f - t1);
+			animOffset.x = centerDist * (1.0f - t1);
 			skewT = t1 * 0.5f;
 			animScale = 2.8f - 1.2f * t1;
 			animAngle = (1.0f - t1) * 0.18f * sinf(t1 * 8.0f);
@@ -1006,6 +1021,224 @@ void StyleMeterWindows() {
 	);
 }
 
+
+void StylishPointsWindow() {
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!(pool_10222 && pool_10222[3])) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	ImVec2 windowPos = ImVec2(g_renderSize.x - (340.0 * scaleFactorY), 465.0f * scaleFactorY);
+	ImVec2 windowSize = ImVec2(301.0f * scaleFactorY * 0.95f, 303.0f * scaleFactorY * 0.95f);
+	float extraLeft = (g_renderSize.y - 100.0f * scaleFactorY);
+	ImVec2 adjustedWindowPos = ImVec2(windowPos.x, windowPos.y);
+	ImVec2 adjustedWindowSize = windowSize + ImVec2(g_renderSize.x, g_renderSize.y); 
+
+	auto stylePoints = (mainActorData.styleData.quotient * 100.0f);
+
+	// Animation state for stylish points text
+	static float animTimer = 0.0f;
+	static bool animating = false;
+	static bool wasVisible = false;
+	static float prevStylePoints = 0.0f;
+
+	if (mainActorData.styleData.rank <= 0 || stylePoints <= 0 
+		|| !InGame() || g_inGameCutscene || !activeCrimsonConfig.CrimsonHudAddons.stylishPtsCounter) {
+		wasVisible = false;
+		animTimer = 0.0f;
+		animating = true;
+		return;
+	}
+
+	// Animation constants
+	const float delayDuration = 0.3f; // 1 second delay
+	const float animDuration = 0.13f; // 130ms
+	const float totalDuration = delayDuration + animDuration;
+	
+	// Check if we should start animation (when stylePoints changes or first appears)
+	bool currentlyVisible = (mainActorData.styleData.rank > 0 && stylePoints > 0);
+	if (currentlyVisible && (!wasVisible)) {
+		animTimer = 0.0f;
+		animating = true;
+	}
+	wasVisible = currentlyVisible;
+	prevStylePoints = stylePoints;
+
+	// Update animation timer
+	if (animating) {
+		animTimer += ImGui::GetIO().DeltaTime;
+		if (animTimer >= totalDuration) {
+			animTimer = totalDuration;
+			animating = false;
+		}
+	}
+
+	// EaseInOutCirc function
+	auto easeInOutCirc = [](float t) -> float {
+		if (t < 0.5f) {
+			return 0.5f * (1.0f - sqrtf(1.0f - 4.0f * t * t));
+		} else {
+			return 0.5f * (sqrtf(1.0f - powf(-2.0f * t + 2.0f, 2.0f)) + 1.0f);
+		}
+	};
+
+	// Calculate animation progress and offset
+	float progress = 0.0f;
+	if (animating) {
+		if (animTimer < delayDuration) {
+			// During delay phase, progress stays at 0
+			progress = 0.0f;
+		} else {
+			// During animation phase, calculate progress from 0 to 1
+			float animPhaseTimer = animTimer - delayDuration;
+			progress = easeInOutCirc(animPhaseTimer / animDuration);
+		}
+	} else {
+		progress = 1.0f;
+	}
+	float animOffset = (1.0f - progress) * 500.0f * scaleFactorY; // Start from right (positive offset)
+
+	ImGui::SetNextWindowPos(adjustedWindowPos, ImGuiCond_Always);
+	ImGui::SetNextWindowSize(adjustedWindowSize, ImGuiCond_Always);
+
+	ImGui::Begin("StylishPointsWindow", nullptr,
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoInputs |
+		ImGuiWindowFlags_NoBackground);
+
+	
+	float fontSize = 44.0f;
+	ImGui::SetWindowFontScale(scaleFactorY);
+	
+	// Draw "Stylish PTS: " with red outline
+	ImGui::PushFont(UI::g_ImGuiFont_Benguiat[fontSize * 0.75f]);
+	ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+	ImGui::SetCursorScreenPos(ImVec2(cursorPos.x, cursorPos.y + (02.0f * scaleFactorY)));
+
+	ImVec2 textPos = ImGui::GetCursorScreenPos();
+	textPos.x += animOffset; // Apply animation offset
+	
+	// Draw red outline 
+	const char* stylishText = "Stylish PTS: ";
+	ImU32 outlineColor = ImColor(0.49f, 0.0f, 0.0f, 1.0f); // #7f0000; 
+	ImU32 textColor = IM_COL32(255, 255, 255, 255); 
+	float outlineThickness = 1.0f;
+	
+	// Draw outline by rendering text multiple times with slight offsets
+	for (int x = -outlineThickness; x <= outlineThickness; x++) {
+		for (int y = -outlineThickness; y <= outlineThickness; y++) {
+			if (x == 0 && y == 0) continue; // Skip center position
+			drawList->AddText(ImVec2(textPos.x + x, textPos.y + y), outlineColor, stylishText);
+		}
+	}
+	// Draw main text on top
+	drawList->AddText(textPos, textColor, stylishText);
+	
+	// Calculate text width for positioning
+	ImVec2 textSize = ImGui::CalcTextSize(stylishText);
+	ImGui::SetCursorScreenPos(ImVec2(textPos.x + textSize.x, textPos.y - (02.0f * scaleFactorY)));
+	ImGui::PopFont();
+	
+	// Draw stylePoints with red outline
+	ImGui::PushFont(UI::g_ImGuiFont_RedOrbRusso[fontSize]);
+	ImVec2 textPos2 = ImGui::GetCursorScreenPos();
+	ImVec2 pointsTextPos = ImVec2(textPos2.x + animOffset, textPos2.y); // Apply animation offset to points text
+	
+	// Format the stylePoints text
+	char pointsText[32];
+	snprintf(pointsText, sizeof(pointsText), "%.0f", stylePoints);
+	
+	// Draw red outline for stylePoints
+	ImGui::PushFont(UI::g_ImGuiFont_RedOrbRussoBackdrop[fontSize]);
+	drawList->AddText(pointsTextPos, outlineColor, pointsText);
+	ImGui::PopFont();
+	// Draw main text on top
+	drawList->AddText(pointsTextPos, textColor, pointsText);
+	
+	ImGui::PopFont();
+	ImGui::End();
+}
+
+void MissionTimerDisplay() {
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!(pool_10222 && pool_10222[3])) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_10723) return;
+	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
+	auto  pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10298 || !pool_10298[8]) return;
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+
+	auto& config = activeCrimsonConfig.CrimsonHudAddons.missionTimerDisplay;
+
+	// Display conditions
+	if (eventData.event != EVENT::MAIN ||
+		g_inGameCutscene ||
+		config == MISSIONTIMERDISPLAY::OFF ||
+		(config == MISSIONTIMERDISPLAY::ONLY_IN_BP && sessionData.mission != MISSION::BLOODY_PALACE)) {
+		return;
+	}
+
+	ImVec2 windowPos = ImVec2(g_renderSize.x * 0.5f, 10.0f * scaleFactorY);
+	ImVec2 windowSize = ImVec2(301.0f * scaleFactorY * 0.95f, 303.0f * scaleFactorY * 0.95f);
+
+	// Convert shown missionTimer to hours, minutes, seconds
+	unsigned int hours = (unsigned int)(g_missionTimer / 3600.0f);
+	unsigned int minutes = (unsigned int)(fmod(g_missionTimer, 3600.0f) / 60.0f);
+	unsigned int seconds = (unsigned int)fmod(g_missionTimer, 60.0f);
+
+	float fontSize = 44.0f;
+	ImGui::PushFont(UI::g_ImGuiFont_RedOrbRusso[fontSize * 0.9f]);
+	char timeText[32];
+	snprintf(timeText, sizeof(timeText), " %02u:%02u:%02u", hours, minutes, seconds);
+	float textWidth = ImGui::CalcTextSize(timeText).x;
+
+	ImVec2 adjustedWindowPos = ImVec2(windowPos.x - textWidth, windowPos.y);
+	ImVec2 adjustedWindowSize = windowSize + ImVec2(g_renderSize.x, g_renderSize.y);
+
+	ImGui::SetNextWindowPos(adjustedWindowPos, ImGuiCond_Always);
+	ImGui::SetNextWindowSize(adjustedWindowSize, ImGuiCond_Always);
+
+	ImGui::Begin("MissionTimerDisplayWindow", nullptr,
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoInputs |
+		ImGuiWindowFlags_NoBackground);
+
+	ImGui::SetWindowFontScale(scaleFactorY);
+
+	ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+	ImGui::SetCursorScreenPos(ImVec2(cursorPos.x, cursorPos.y + (02.0f * scaleFactorY)));
+
+	ImVec2 textPos = ImGui::GetCursorScreenPos();
+
+	ImU32 outlineColor = IM_COL32(100, 10, 10, 255); // #500812
+	ImU32 textColor = IM_COL32(255, 255, 255, 255);
+	float outlineThickness = 1.0f;
+
+	// Draw red backdrop on the background
+	ImGui::PushFont(UI::g_ImGuiFont_RedOrbRussoBackdrop[fontSize * 0.9]);
+	drawList->AddText(textPos, outlineColor, timeText);
+	ImGui::PopFont();
+	// Draw main text on top
+	drawList->AddText(textPos, textColor, timeText);
+
+	ImGui::PopFont();
+	ImGui::End();
+}
+
+
 void DrawRotatedImage(ImTextureID tex_id, ImVec2 pos, ImVec2 size, float angle, ImU32 color) {
 	ImVec2 center = ImVec2(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
 
@@ -1104,10 +1337,10 @@ void RedOrbCounterWindow() {
 	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	// This element is mandatory for non-vanilla modes
-	if (activeCrimsonGameplay.GameMode.preset >= GAMEMODEPRESETS::STYLE_SWITCHER) {
-		activeCrimsonConfig.CrimsonHudAddons.redOrbCounter = true;
-		queuedCrimsonConfig.CrimsonHudAddons.redOrbCounter = true;
-	}
+// 	if (activeCrimsonGameplay.GameMode.preset >= GAMEMODEPRESETS::STYLE_SWITCHER) {
+// 		activeCrimsonConfig.CrimsonHudAddons.redOrbCounter = true;
+// 		queuedCrimsonConfig.CrimsonHudAddons.redOrbCounter = true;
+// 	}
 
 	if (activeConfig.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.redOrbCounter) {
 		CrimsonDetours::RerouteRedOrbsCounterAlpha(false, crimsonHud.redOrbAlpha);
@@ -1128,7 +1361,7 @@ void RedOrbCounterWindow() {
 	std::string orbCountStr = std::to_string(orbCount);
 
 	// Adjust the font size and the proportional texture size
-	float fontSize = 37.0f;
+	float fontSize = 44.0f;
 
 	// previously 142x200 -> 43x61; now 178x250 -> 54x76 to make space for the glow.
 	float textureBaseSizeX = 54.0f;
@@ -1140,7 +1373,7 @@ void RedOrbCounterWindow() {
 
 	// Define the window size and position
 	ImVec2 windowSize = ImVec2(300.0f * scaleFactorX, 100.0f * scaleFactorY);
-	float edgeOffsetX = 70.0f * scaleFactorY;
+	float edgeOffsetX = 38.0f * scaleFactorY;
 	float edgeOffsetY = 30.0f * scaleFactorY;
 	ImVec2 windowPos = ImVec2(displaySize.x - windowSize.x - edgeOffsetX, edgeOffsetY);
 
@@ -1200,12 +1433,12 @@ void RedOrbCounterWindow() {
 
 	// Shadow offset and color
 	ImVec2 shadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY);
-	ImU32 shadowColor = ImColor(0.49f, 0.0f, 0.0f, alpha); // #7f0000
+	ImU32 shadowColor = IM_COL32(100, 10, 10, 255 * alpha); // #500812
 	
 
 	// Main text color
 	//ImU32 mainColor = ImColor(0.83f, 0.85f, 0.858f, alpha); // #D5D9DB
-	ImU32 mainColor = ImColor(1.0f, 1.0f, 1.0f, alpha); // #D5D9DB
+	ImU32 mainColor = ImColor(1.0f, 1.0f, 1.0f, alpha); // Pure White
 
 	// Draw shadow
 	drawList->AddText(backdropFont, fontSize * scaleFactorY, screenTextPos, shadowColor, orbCountStr.c_str());
@@ -1259,7 +1492,7 @@ void CheatsHUDIndicatorWindow() {
 		float alpha = crimsonHud.redOrbAlpha / 127.0f;
 		ImColor colorWithAlpha(1.0f, 1.0f, 1.0f, alpha);
 		ImGui::SetWindowFontScale(scaleFactorY);
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSize]);
+		ImGui::PushFont(UI::g_ImGuiFont_Benguiat[fontSize]);
 
 		// Prepare button and text colors with alpha
 		ImVec4 buttonColor = ImColor(UI::SwapColorEndianness(gameModeData.colors[currentGameMode]));
@@ -1456,6 +1689,7 @@ void LockOnWindows() {
 		crimsonPlayer[playerIndex].cameraLockedEnemyDistance = glm::distance(lockedEnemyPosition, cameraPosition);
 		int distanceLockedEnemy = (int)crimsonPlayer[playerIndex].cameraLockedEnemyDistance / 20;
 		crimsonPlayer[playerIndex].cameraLockedEnemyDistanceClamped = glm::clamp(distanceLockedEnemy, 0, 255);
+		auto& scaleLockOnEnemyDistance = activeCrimsonConfig.CrimsonHudAddons.scaleLockOnEnemyDistance;
 
 		// Adjusts size dynamically based on the distance between Camera and Playerfloat minDistance = 5.0f;
 		float textureBaseSizeX = 600.0f * scaleFactorY;
@@ -1469,15 +1703,15 @@ void LockOnWindows() {
 			(textureBaseSizeY * (1.0f / (safeDistance / 40)))
 		};
 
-		float textureWidth = sizeDistance.x * 0.25f;
-		float textureHeight = sizeDistance.y * 0.25f;
+		float textureWidth = !scaleLockOnEnemyDistance ? textureBaseSizeX * 0.25f : sizeDistance.x * 0.25f;
+		float textureHeight = !scaleLockOnEnemyDistance ? textureBaseSizeX * 0.25f : sizeDistance.y * 0.25f;
 
-		ImVec2 windowSize = ImVec2(sizeDistance.x, sizeDistance.y);
+		ImVec2 windowSize = ImVec2(700.0f * scaleFactorY, 700.0f * scaleFactorY);
 		float edgeOffsetX = 350.0f * scaleFactorY;
 		float edgeOffsetY = 350.0f * scaleFactorY;
 
-		float offsetX = 0.38f * sizeDistance.x;
-		float offsetY = 0.39f * sizeDistance.y;
+		float offsetX = 0.45f;
+		float offsetY = 0.39f;
 
 		ImVec2 texturePos = ImVec2(
 			lockedEnemyScreenPosition.x - (sizeDistance.x / 2.0f) + offsetX - (offsetX * 0.03f * playerIndex),
@@ -1539,11 +1773,23 @@ void LockOnWindows() {
 		float targetAlpha = lockOnActive ? 1.0f : 0.0f;
 		lockOnFade[playerIndex].alpha = SmoothLerp(lockOnFade[playerIndex].alpha, targetAlpha, fadeSpeed, ImGui::GetIO().DeltaTime);
 
+		// Calculate centered texture position within the window
+		ImVec2 windowContentPos = ImGui::GetWindowPos();
+		ImVec2 centeredTexturePos = !scaleLockOnEnemyDistance ? 
+			ImVec2(
+				windowContentPos.x + (windowSize.x - textureWidth) * (0.5f - (0.010f * playerIndex)),
+				windowContentPos.y + (windowSize.y - textureHeight) * (0.47f - (0.010f * playerIndex))) 
+			:
+			ImVec2(
+			windowContentPos.x + (windowSize.x - textureWidth) * (0.5f - ((0.010f * (sizeDistance.x / 400.0f)) * playerIndex)),
+			windowContentPos.y + (windowSize.y - textureHeight) * (0.47f - ((0.010f  * (sizeDistance.y / 400.0f)) * playerIndex))
+		);
+
 		if (lockOnFade[playerIndex].alpha > 0.01f) {
 			if (LockOnTexture->IsValid()) {
 				DrawRotatedImagePie(
 					LockOnTexture->GetTexture(),
-					texturePos,
+					centeredTexturePos,
 					ImVec2(textureWidth, textureHeight),
 					lockOnAngle[playerIndex],
 					colorWithAlpha,
@@ -1551,7 +1797,7 @@ void LockOnWindows() {
 				);
 				DrawRotatedImagePie(
 					LockOnForegroundTexture->GetTexture(),
-					texturePos,
+					centeredTexturePos,
 					ImVec2(textureWidth, textureHeight),
 					lockOnAngle[playerIndex],
 					fgColorWithAlpha,
@@ -1613,6 +1859,7 @@ void StunDisplacementLockOnWindows() {
 
 		auto distanceClamped = crimsonPlayer[playerIndex].cameraLockedEnemyDistanceClamped;
 		auto& lockedEnemyScreenPosition = crimsonPlayer[playerIndex].lockedEnemyScreenPosition;
+		auto& scaleLockOnEnemyDistance = activeCrimsonConfig.CrimsonHudAddons.scaleLockOnEnemyDistance;
 
 		// Adjusts size dynamically based on the distance between Camera and Playerfloat minDistance = 5.0f;
 		float textureBaseSizeX = 600.0f * scaleFactorY;
@@ -1624,40 +1871,23 @@ void StunDisplacementLockOnWindows() {
 		// DISPLACEMENT LOCK-ON (OUTER DARKER CIRCLE)
 
 		ImVec2 sizeDistance = {
-			(textureBaseSizeX * (1.0f / (safeDistance / 30))),
-			(textureBaseSizeY * (1.0f / (safeDistance / 30)))
+			(textureBaseSizeX * (1.0f / (safeDistance / 40))),
+			(textureBaseSizeY * (1.0f / (safeDistance / 40)))
 		};
 
-		float textureWidth = sizeDistance.x * 0.25f;
-		float textureHeight = sizeDistance.y * 0.25f;
+		float textureWidth = !scaleLockOnEnemyDistance ? textureBaseSizeX * 0.18f : sizeDistance.x * 0.18f;
+		float textureHeight = !scaleLockOnEnemyDistance ? textureBaseSizeX * 0.18f : sizeDistance.y * 0.18f;
 
-		ImVec2 windowSize = ImVec2(sizeDistance.x, sizeDistance.y);
+		ImVec2 windowSize = ImVec2(700.0f * scaleFactorY, 700.0f * scaleFactorY);
+		float edgeOffsetX = 350.0f * scaleFactorY;
+		float edgeOffsetY = 350.0f * scaleFactorY;
 
-		// --- Calculate the Regular Lock On's center exactly as in LockOnWindows ---
-		float regularBaseSizeX = 600.0f * scaleFactorY;
-		float regularBaseSizeY = 581.0f * scaleFactorY;
-		float regularSafeDistance = (std::max)((float)crimsonPlayer[playerIndex].cameraLockedEnemyDistanceClamped, 5.0f);
-		ImVec2 regularSizeDistance = {
-			(regularBaseSizeX * (1.0f / (regularSafeDistance / 40))),
-			(regularBaseSizeY * (1.0f / (regularSafeDistance / 40)))
-		};
-		float regularOffsetX = 0.38f * regularSizeDistance.x;
-		float regularOffsetY = 0.39f * regularSizeDistance.y;
-		ImVec2 regularTexturePos = ImVec2(
-			lockedEnemyScreenPosition.x - (regularSizeDistance.x / 2.0f) + regularOffsetX,
-			lockedEnemyScreenPosition.y - (regularSizeDistance.y / 2.0f) + regularOffsetY
-		);
-		float regularTextureWidth = regularSizeDistance.x * 0.25f;
-		float regularTextureHeight = regularSizeDistance.y * 0.25f;
-		ImVec2 regularCenter = ImVec2(
-			regularTexturePos.x + (regularTextureWidth / 2.0f),
-			regularTexturePos.y + (regularTextureHeight / 2.0f)
-		);
+		float offsetX = 0.45f;
+		float offsetY = 0.39f;
 
-		// --- Center the DisplacementLockOn on the Regular Lock On ---
 		ImVec2 texturePos = ImVec2(
-			regularCenter.x - (textureWidth / 2.0f),
-			regularCenter.y - (textureHeight / 2.0f)
+			lockedEnemyScreenPosition.x - (sizeDistance.x / 2.0f) + offsetX - (offsetX * 0.03f * playerIndex),
+			lockedEnemyScreenPosition.y - (sizeDistance.y / 2.0f) + offsetY - (offsetY * 0.03f * playerIndex)
 		);
 
 		ImVec2 windowPos = ImVec2(
@@ -1710,11 +1940,18 @@ void StunDisplacementLockOnWindows() {
 		float targetAlpha = lockOnActive ? 1.0f : 0.0f;
 		lockOnFade[playerIndex].alpha = SmoothLerp(lockOnFade[playerIndex].alpha, targetAlpha, fadeSpeed, ImGui::GetIO().DeltaTime);
 
+		// Calculate centered texture position within the window
+		ImVec2 windowContentPos = ImGui::GetWindowPos();
+		ImVec2 centeredTexturePos = ImVec2(
+			windowContentPos.x + (windowSize.x - textureWidth) * 0.5f,
+			windowContentPos.y + (windowSize.y - textureHeight) * 0.47f
+		);
+
 		if (lockOnFade[playerIndex].alpha > 0.01f) {
 			if (LockOnTexture->IsValid()) {
 				DrawRotatedImagePie(
 					LockOnStunTexture->GetTexture(),
-					texturePos,
+					centeredTexturePos,
 					ImVec2(textureWidth, textureHeight),
 					lockOnAngle[playerIndex],
 					colorWithAlpha,
@@ -1722,7 +1959,7 @@ void StunDisplacementLockOnWindows() {
 				);
 				DrawRotatedImagePie(
 					LockOnForegroundTexture->GetTexture(),
-					texturePos,
+					centeredTexturePos,
 					ImVec2(textureWidth, textureHeight),
 					lockOnAngle[playerIndex],
 					fgColorWithAlpha,
@@ -1735,33 +1972,59 @@ void StunDisplacementLockOnWindows() {
 			if (actorData.lockOnData.targetBaseAddr60 != 0) {
 				auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60); // -0x60 very important don't forget
 
-				float textureBaseSizeXStun = 300.0f * scaleFactorY;
-				float textureBaseSizeYStun = 290.50f * scaleFactorY;
+
+				ImVec2 sizeDistance = {
+					(textureBaseSizeX * (1.0f / (safeDistance / 40))),
+					(textureBaseSizeY * (1.0f / (safeDistance / 40)))
+				};
+
+				float textureWidth = !scaleLockOnEnemyDistance ? textureBaseSizeX * 0.18f : sizeDistance.x * 0.18f;
+				float textureHeight = !scaleLockOnEnemyDistance ? textureBaseSizeX * 0.18f : sizeDistance.y * 0.18f;
+
+				ImVec2 windowSize = ImVec2(700.0f * scaleFactorY, 700 * scaleFactorY);
+				float edgeOffsetX = 350.0f * scaleFactorY;
+				float edgeOffsetY = 350.0f * scaleFactorY;
+
+				float offsetX = 0.45f;
+				float offsetY = 0.39f;
+
+				ImVec2 texturePos = ImVec2(
+					lockedEnemyScreenPosition.x - (sizeDistance.x / 2.0f) + offsetX - (offsetX * 0.03f * playerIndex),
+					lockedEnemyScreenPosition.y - (sizeDistance.y / 2.0f) + offsetY - (offsetY * 0.03f * playerIndex)
+				);
+
+				ImVec2 windowPos = ImVec2(
+					texturePos.x + (sizeDistance.x / 2.0f) - (windowSize.x / 2.0f),
+					texturePos.y + (sizeDistance.y / 2.0f) - (windowSize.y / 2.0f)
+				);
+
+				float textureBaseSizeXStun = 600.0f * scaleFactorY;
+				float textureBaseSizeYStun = 581.0f * scaleFactorY;
 
 				// STUN LOCK-ON (INNER LIGHTER CIRCLE)
 
 				ImVec2 sizeDistanceStun = {
-					(textureBaseSizeXStun * (1.0f / (safeDistance / 35))),
-					(textureBaseSizeYStun * (1.0f / (safeDistance / 35)))
+					(textureBaseSizeXStun * (1.0f / (safeDistance / 40))),
+					(textureBaseSizeYStun * (1.0f / (safeDistance / 40)))
 				};
 
-				float textureWidthStun = sizeDistanceStun.x * 0.25f;
-				float textureHeightStun = sizeDistanceStun.y * 0.25f;
+				float textureWidthStun = textureBaseSizeXStun * 0.10f;
+				float textureHeightStun = textureBaseSizeYStun * 0.10f;
 
 				ImVec2 windowSizeStun = ImVec2(sizeDistanceStun.x, sizeDistanceStun.y);
 
 				// --- Center the StunLockOn on the Regular Lock On ---
 				ImVec2 texturePosStun = ImVec2(
-					regularCenter.x - (textureWidthStun / 2.0f),
-					regularCenter.y - (textureHeightStun / 2.0f)
+					lockedEnemyScreenPosition.x - (sizeDistance.x / 2.0f) + offsetX - (offsetX * 0.03f * playerIndex),
+					lockedEnemyScreenPosition.y - (sizeDistance.y / 2.0f) + offsetY - (offsetY * 0.03f * playerIndex)
 				);
 
 				ImVec2 windowPosStun = ImVec2(
 					texturePosStun.x + (sizeDistanceStun.x / 2.0f) - (windowSize.x / 2.0f),
 					texturePosStun.y + (sizeDistanceStun.y / 2.0f) - (windowSize.y / 2.0f)
 				);
-				ImGui::SetNextWindowSize(windowSizeStun);
-				ImGui::SetNextWindowPos(windowPosStun);
+				ImGui::SetNextWindowSize(windowSize);
+				ImGui::SetNextWindowPos(windowPos);
 
 				std::string windowNameStun = "LockOnStunWindow" + std::to_string(playerIndex);
 
@@ -1783,12 +2046,20 @@ void StunDisplacementLockOnWindows() {
 
 				ImColor colorStunWithAlpha(poppedColorStun);
 
+				// Calculate centered texture position for the STUN window
+				ImVec2 windowContentPosStun = ImGui::GetWindowPos();
+				ImVec2 centeredTexturePosStun = ImVec2(
+					windowContentPosStun.x + (windowSize.x - textureWidthStun) * 0.5f,
+					windowContentPosStun.y + (windowSize.y - textureHeightStun) * 0.47f
+				);
+
+
 				float stunFraction = 1.0f - (lockedOnEnemyStun / lockedOnEnemyMaxStun);
 
 				if (LockOnTexture->IsValid()) {
 					DrawRotatedImagePie(
 						LockOnStunTexture->GetTexture(),
-						texturePosStun,
+						centeredTexturePosStun,
 						ImVec2(textureWidthStun, textureHeightStun),
 						lockOnAngle[playerIndex],
 						colorStunWithAlpha,
@@ -1796,7 +2067,7 @@ void StunDisplacementLockOnWindows() {
 					);
 					DrawRotatedImagePie(
 						LockOnForegroundTexture->GetTexture(),
-						texturePosStun,
+						centeredTexturePosStun,
 						ImVec2(textureWidthStun, textureHeightStun),
 						lockOnAngle[playerIndex],
 						fgColorWithAlpha,
@@ -1909,6 +2180,9 @@ void ShieldLockOnWindows() {
 		auto& lockedEnemyScreenPosition = crimsonPlayer[playerIndex].lockedEnemyScreenPosition;
 
 		// Adjusts size dynamically based on the distance between Camera and Playerfloat minDistance = 5.0f;
+		auto& scaleLockOnEnemyDistance = activeCrimsonConfig.CrimsonHudAddons.scaleLockOnEnemyDistance;
+
+		// Adjusts size dynamically based on the distance between Camera and Playerfloat minDistance = 5.0f;
 		float textureBaseSizeX = 600.0f * scaleFactorY;
 		float textureBaseSizeY = 581.0f * scaleFactorY;
 
@@ -1916,39 +2190,23 @@ void ShieldLockOnWindows() {
 		float safeDistance = (std::max)((float)crimsonPlayer[playerIndex].cameraLockedEnemyDistanceClamped, minDistance);
 
 		ImVec2 sizeDistance = {
-			(textureBaseSizeX * (1.0f / (safeDistance / 30))),
-			(textureBaseSizeY * (1.0f / (safeDistance / 30)))
+			(textureBaseSizeX * (1.0f / (safeDistance / 40))),
+			(textureBaseSizeY * (1.0f / (safeDistance / 40)))
 		};
 
-		float textureWidth = sizeDistance.x * 0.25f;
-		float textureHeight = sizeDistance.y * 0.25f;
+		float textureWidth = !scaleLockOnEnemyDistance ? textureBaseSizeX * 0.18f : sizeDistance.x * 0.18f;
+		float textureHeight = !scaleLockOnEnemyDistance ? textureBaseSizeX * 0.18f : sizeDistance.y * 0.18f;
 
-		ImVec2 windowSize = ImVec2(sizeDistance.x, sizeDistance.y);
-		// --- Calculate the Regular Lock On's center exactly as in LockOnWindows ---
-		float regularBaseSizeX = 600.0f * scaleFactorY;
-		float regularBaseSizeY = 581.0f * scaleFactorY;
-		float regularSafeDistance = (std::max)((float)crimsonPlayer[playerIndex].cameraLockedEnemyDistanceClamped, 5.0f);
-		ImVec2 regularSizeDistance = {
-			(regularBaseSizeX * (1.0f / (regularSafeDistance / 40))),
-			(regularBaseSizeY * (1.0f / (regularSafeDistance / 40)))
-		};
-		float regularOffsetX = 0.38f * regularSizeDistance.x;
-		float regularOffsetY = 0.39f * regularSizeDistance.y;
-		ImVec2 regularTexturePos = ImVec2(
-			lockedEnemyScreenPosition.x - (regularSizeDistance.x / 2.0f) + regularOffsetX,
-			lockedEnemyScreenPosition.y - (regularSizeDistance.y / 2.0f) + regularOffsetY
-		);
-		float regularTextureWidth = regularSizeDistance.x * 0.25f;
-		float regularTextureHeight = regularSizeDistance.y * 0.25f;
-		ImVec2 regularCenter = ImVec2(
-			regularTexturePos.x + (regularTextureWidth / 2.0f),
-			regularTexturePos.y + (regularTextureHeight / 2.0f)
-		);
+		ImVec2 windowSize = ImVec2(700.0f * scaleFactorY, 700.0f * scaleFactorY);
+		float edgeOffsetX = 350.0f * scaleFactorY;
+		float edgeOffsetY = 350.0f * scaleFactorY;
 
-		// --- Center the StunDisplacementLockOn on the Regular Lock On ---
+		float offsetX = 0.45f;
+		float offsetY = 0.39f;
+
 		ImVec2 texturePos = ImVec2(
-			regularCenter.x - (textureWidth / 2.0f),
-			regularCenter.y - (textureHeight / 2.0f)
+			lockedEnemyScreenPosition.x - (sizeDistance.x / 2.0f) + offsetX - (offsetX * 0.03f * playerIndex),
+			lockedEnemyScreenPosition.y - (sizeDistance.y / 2.0f) + offsetY - (offsetY * 0.03f * playerIndex)
 		);
 
 		ImVec2 windowPos = ImVec2(
@@ -1997,11 +2255,18 @@ void ShieldLockOnWindows() {
 		float targetAlpha = lockOnActive ? 1.0f : 0.0f;
 		lockOnFade[playerIndex].alpha = SmoothLerp(lockOnFade[playerIndex].alpha, targetAlpha, fadeSpeed, ImGui::GetIO().DeltaTime);
 
+		// Calculate centered texture position within the window
+		ImVec2 windowContentPos = ImGui::GetWindowPos();
+		ImVec2 centeredTexturePos = ImVec2(
+			windowContentPos.x + (windowSize.x - textureWidth) * 0.5f,
+			windowContentPos.y + (windowSize.y - textureHeight) * 0.47f
+		);
+
 		if (lockOnFade[playerIndex].alpha > 0.01f) {
 			if (LockOnTexture->IsValid()) {
 				DrawRotatedImagePie(
 					LockOnShieldTexture->GetTexture(),
-					texturePos,
+					centeredTexturePos,
 					ImVec2(textureWidth, textureHeight),
 					lockOnAngle[playerIndex],
 					colorWithAlpha,
@@ -2009,7 +2274,7 @@ void ShieldLockOnWindows() {
 				);
 				DrawRotatedImagePie(
 					LockOnShieldTexture->GetTexture(),
-					texturePos,
+					centeredTexturePos,
 					ImVec2(textureWidth, textureHeight),
 					lockOnAngle[playerIndex],
 					fgColorWithAlpha,
@@ -2667,6 +2932,7 @@ void StyleTextDisplayWindow() {
 			}
 			ImVec2 animatedPos = ImVec2(texturePos.x + offsetX, texturePos.y);
 
+
 			ImGui::GetWindowDrawList()->AddImage(
 				usedActiveTextTexture,
 				animatedPos,
@@ -2961,7 +3227,6 @@ void RoyalGaugeDispWindow() {
 
 	ImColor pinkColor = ImColor(UI::SwapColorEndianness(0x221b67FF));
 	pinkColor.Value.w = alpha;
-
 
 	if (mainActorData.style == STYLE::ROYALGUARD) {
 		// LARGE CIRCLE (Pie)

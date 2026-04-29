@@ -45,7 +45,7 @@ bool GUI_ResetButton();
 
 bool GUI_Checkbox(const char* label, bool& var);
 
-bool GUI_Checkbox2(const char* label, bool& var, bool& var2);
+bool GUI_Checkbox2(const char* label, bool& var, bool& var2, bool maskVar = false);
 
 // @Extend
 template <typename T> bool GUI_Input(const char* label, T& var, T step = 1, const char* format = 0, ImGuiInputTextFlags flags = 0) {
@@ -56,6 +56,112 @@ template <typename T> bool GUI_Input(const char* label, T& var, T step = 1, cons
 
     if (update) {
         ::GUI::save = true;
+    }
+
+    return update;
+}
+
+inline bool GUI_SliderFloat(const char* label, float& var, const float min, const float max, const float step,
+    const char* format = "%.1f");
+
+inline bool GUI_SliderFloatDefault(const char* label, float& var, float& defaultVar, const float min, const float max,
+    const float step, const char* format = "%.1f") {
+    auto& window = *ImGui::GetCurrentWindow();
+    auto& style = ImGui::GetStyle();
+
+    auto buttonSize = ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight());
+    auto itemWidth = window.DC.ItemWidth;
+
+    if (window.DC.ItemWidthStack.Size > 0) {
+        window.DC.ItemWidth -= (buttonSize.x + style.ItemInnerSpacing.x);
+        window.DC.ItemWidthStack.back() = window.DC.ItemWidth;
+    }
+
+    auto update = GUI_SliderFloat("", var, min, max, step, format);
+
+    ImGui::SameLine(0, style.ItemInnerSpacing.x);
+    if (GUI_Button("D", buttonSize)) {
+        var = defaultVar;
+        if (var < min) {
+            var = min;
+        } else if (var > max) {
+            var = max;
+        }
+        update = true;
+        GUI::save = true;
+    }
+
+    ImGui::SameLine(0, style.ItemInnerSpacing.x);
+    ImGui::Text(label);
+
+    if (window.DC.ItemWidthStack.Size > 0) {
+        window.DC.ItemWidth = itemWidth;
+        window.DC.ItemWidthStack.back() = window.DC.ItemWidth;
+    }
+
+    return update;
+}
+
+inline bool GUI_Slider2FloatDefault(const char* label, float& var, float& var2, float& defaultVar, const float min, const float max,
+    const float step, const char* format = "%.1f") {
+    auto update = GUI_SliderFloatDefault(label, var2, defaultVar, min, max, step, format);
+
+    if (update) {
+        var = var2;
+    }
+
+    return update;
+}
+
+inline bool GUI_SliderFloat(const char* label, float& var, const float min, const float max, const float step,
+    const char* format) {
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    ImGuiIO& io = ImGui::GetIO();
+
+    UI::PushID();
+    auto update = ImGui::SliderScalar(label, ImGuiDataType_Float, &var, &min, &max, format);
+
+    if (ImGui::IsItemHovered()) {
+        window->Flags |= ImGuiWindowFlags_NoScrollbar;
+        window->Flags |= ImGuiWindowFlags_NoScrollWithMouse;
+
+        const float sliderStep = (step > 0.0f) ? step : 1.0f;
+
+        if (io.MouseWheel < 0) {
+            if (var > min) {
+                var -= sliderStep;
+                update = true;
+            }
+        } else if (io.MouseWheel > 0) {
+            if (var < max) {
+                var += sliderStep;
+                update = true;
+            }
+        }
+    }
+    UI::PopID();
+
+    if (update) {
+        const float sliderStep = (step > 0.0f) ? step : 1.0f;
+
+        var = min + std::round((var - min) / sliderStep) * sliderStep;
+        if (var < min) {
+            var = min;
+        } else if (var > max) {
+            var = max;
+        }
+        GUI::save = true;
+    }
+
+    return update;
+}
+
+inline bool GUI_Slider2Float(const char* label, float& var, float& var2, const float min, const float max, const float step,
+    const char* format = "%.1f") {
+    auto update = GUI_SliderFloat(label, var2, min, max, step, format);
+
+    if (update) {
+        var = var2;
     }
 
     return update;
@@ -128,8 +234,7 @@ bool GUI_InputDefault2(
 template <typename T>
 bool GUI_InputDefault2SpeedCalc(
 	const char* label, T& var, T& var2, T& defaultVar, const T step = 1, const char* format = 0, ImGuiInputTextFlags flags = 0) {
-	auto defaultVarCalculated = defaultVar * g_frameRateMultiplier;
-	auto update = GUI_InputDefault2(label, var, var2, defaultVarCalculated, step, format, flags);
+	auto update = GUI_InputDefault2(label, var, var2, defaultVar, step, format, flags);
 
 	if (update) {
 		Speed::Toggle(true);
@@ -312,15 +417,35 @@ bool GUI_TitleCheckbox2(const char* title, bool& var1, bool& var2, bool ccsRequi
 void GUI_Title(const char* title, bool ccsRequired = false, bool legacyTag = false, bool wipTag = false,
     const char* tooltip = "", float separatorSize = UI::g_UIContext.DefaultFontSize * 23.35f);
 
+bool GUI_RequiredForGameModeButton(bool gameModeOption);
+
+bool GUI_RequiredForGameModeStringButton(std::string gameModeOption);
+
 bool GUI_CCSRequirementButton();
 
 bool GUI_LegacyButton();
 
 bool GUI_WIPButton();
 
+bool GUI_CloseX(bool crimsonColor = false);
+
 bool GUI_Color(const char* label, float (&var)[4], ImGuiColorEditFlags flags = 0);
 
 bool GUI_Color2(const char* label, float (&var)[4], float (&var2)[4], ImGuiColorEditFlags flags = 0);
+
+template <typename varType>
+bool GUI_ComboVectorString2(const char* label, std::vector<std::string>(&names), varType& var, varType& var2,
+    bool maskVar = false, ImGuiComboFlags flags = 0) {
+
+	auto update = UI::ComboVectorString2(label, names, var, var2, flags);
+
+	if (maskVar) {
+        ImGui::SameLine();
+        GUI_RequiredForGameModeStringButton(var);
+	}
+
+	return update;
+}
 
 ID3D11ShaderResourceView* CreateTexture(const char* filename, ID3D11Device* device);
 

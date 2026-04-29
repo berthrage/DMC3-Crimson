@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable>
+  <CheatEntries>
+    <CheatEntry>
+      <ID>3001</ID>
+      <Description>"drive collides with enemies not walls "</Description>
+      <LastState/>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+dmc3.exe+1CBA20:
+mov byte ptr [rdx],03
+[DISABLE]
+dmc3.exe+1CBA20:
+mov byte ptr [rdx],05
+</AssemblerScript>
+    </CheatEntry>
+  </CheatEntries>
+</CheatTable>

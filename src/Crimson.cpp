@@ -39,6 +39,8 @@
 #include "Core/DebugSwitch.hpp"
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonGameModes.hpp"
+#include "UI/WeaponWheel.hpp"
+#include "CrimsonHighFPSFixes.hpp"
 
 
 
@@ -184,6 +186,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleDamage(true);
 
         UpdateCrazyComboLevelMultiplier();
+        CrimsonHighFPSFixes::ToggleAllFixes(true);
 
         ToggleAirHikeCoreAbility(activeCrimsonGameplay.Gameplay.Dante.airHikeCoreAbility);
         CrimsonPatches::ToggleRoyalguardForceJustFrameRelease(activeCrimsonGameplay.Cheats.Dante.forceRoyalRelease);
@@ -196,6 +199,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonGameplay.Gameplay.Dante.swapArtemisMultiLockNormalShot);
         CrimsonDetours::ToggleArtemisInstantFullCharge(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
         CrimsonPatches::ReduceArtemisProjectileDamage(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
+        CrimsonDetours::ToggleDanteTrickAlterations(true);
         ToggleChronoSwords(activeCrimsonGameplay.Cheats.Vergil.chronoSwords);
         UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
         CrimsonGameModes::SetGameModeMasked(activeCrimsonGameplay.GameMode.preset);
@@ -228,6 +232,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonPatches::ToggleHideLockOn(false);
         CrimsonPatches::ToggleHideLockOn(activeConfig.hideLockOn || activeCrimsonConfig.CrimsonHudAddons.lockOn);
         CrimsonDetours::ToggleHideStyleRankHUD(activeCrimsonConfig.HudOptions.hideStyleMeter);
+        CrimsonDetours::ToggleDTMustStyleArmor(true);
 
         ToggleHideBossHUD(false);
         ToggleHideBossHUD(activeConfig.hideBossHUD);
@@ -249,6 +254,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 
         ToggleInfiniteHitPoints(activeCrimsonGameplay.Cheats.Training.infiniteHP);
         ToggleInfiniteMagicPoints(activeCrimsonGameplay.Cheats.Training.infiniteDT);
+        CrimsonPatches::DisableRegularEnemyAttacks(activeCrimsonGameplay.Cheats.Training.disableRegularEnemyAttacks);
         ToggleDisableTimer(activeCrimsonGameplay.Cheats.Training.disableTimers);
         ToggleInfiniteBullets(activeCrimsonGameplay.Cheats.Training.infiniteBossLadyBullets);
         
@@ -263,9 +269,6 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 
         ToggleRebellionInfiniteShredder(false);
         ToggleRebellionInfiniteShredder(activeCrimsonGameplay.Cheats.Dante.infiniteShredder);
-
-        ToggleRebellionHoldDrive(false);
-        ToggleRebellionHoldDrive(activeConfig.rebellionHoldDrive);
 
         XI::new_Init("xinput9_1_0.dll");
 
@@ -285,20 +288,23 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 			activeCrimsonConfig.Camera.thirdPersonCamera = true;
 			queuedCrimsonConfig.Camera.thirdPersonCamera = true;
 		}
+
         
         CrimsonPatches::HoldToAutoFire(activeCrimsonGameplay.Gameplay.General.holdToShoot);
         CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
         CrimsonDetours::ToggleStyleRankHudNoFadeout(activeConfig.disableStyleRankHudFadeout);
         CrimsonDetours::ToggleDMC4LockOnDirection(activeCrimsonGameplay.Gameplay.General.dmc4LockOnDirection);
-        CrimsonDetours::ToggleFasterTurnRate(activeCrimsonGameplay.Gameplay.General.fasterTurnRate);
+        CrimsonDetours::ToggleTurnRateFix(true);
         CrimsonPatches::ToggleIncreasedEnemyJuggleTime(activeCrimsonGameplay.Gameplay.General.increasedEnemyJuggleTime);
         //CrimsonPatches::SetEnemyDTMode(activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode);
+        CrimsonDetours::ToggleConfirmSetAction(true);
         CrimsonDetours::ToggleFixBallsHangHitSpeed(true);
         CrimsonDetours::ToggleFixSecretMissionTimerFPS(true);
         CrimsonDetours::ToggleCerberusCrashFix(true);
         CrimsonDetours::ToggleVergilM3CrashFix(true);
         CrimsonDetours::ToggleMission5CrashFix(true);
         CrimsonPatches::ToggleM6CrashFix(true);
+        CrimsonPatches::ToggleTempFixHighFPSEnigmaShls(true);
         CrimsonDetours::ToggleArkhamPt2GrabCrashFix(true);
         CrimsonDetours::ToggleArkhamPt2DoppelCrashFix(true);
         CrimsonDetours::ToggleCerbDamageFix(true);
@@ -309,6 +315,9 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonPatches::DisableBlendingEffects(false);
         CrimsonPatches::DisableBlendingEffects(activeConfig.disableBlendingEffects);
         CrimsonDetours::ToggleGreenOrbsMPRegen(true);
+
+        // Load Weapon Wheel's Sprites Up Front
+        WW::LoadSpriteDescs();
 
         // Remove FMODGetCodecDescription Label
         SetMemory((appBaseAddr + 0x5505B5), 0, 23, MemoryFlags_VirtualProtectDestination);

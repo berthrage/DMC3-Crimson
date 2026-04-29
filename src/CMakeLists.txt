@@ -5,12 +5,16 @@ set(MASM_SRC
     masm/AddToMirageGauge.asm
     masm/CameraHittingWall.asm
     masm/CameraSensitivity.asm
+    masm/ConfirmSetAction.asm
     masm/CreateEffect.asm
     masm/HoldToCrazyComboAsm.asm
     masm/DisableStaggerRoyalguard.asm
-    masm/FasterTurnRate.asm
+    masm/InterceptCollisions.asm
+    masm/JudgementCutDetours.asm
+    masm/TurnRateFix.asm
     masm/GuardBreakToNormalBlock.asm
     masm/FixBallsHangHitSpeed.asm
+    masm/FixBlendingEffects.asm
     masm/FixCrashArkhamPt2Doppel.asm
     masm/FixCrashArkhamPt2Grab.asm
     masm/FixCrashCerberus.asm
@@ -18,6 +22,7 @@ set(MASM_SRC
     masm/FixCrashM5.asm
     masm/FixCrashVergilM3.asm
     masm/FixSecretMissionTimerFPS.asm
+    masm/EnsureAirRisingDragonLaunch.asm
     masm/HideStyleRankHUD.asm
     masm/HudHPSeparation.asm
     masm/HudStyleBarPosAsm.asm
@@ -28,12 +33,15 @@ set(MASM_SRC
     masm/FreeformSoftLockHelper.asm
     masm/GreenOrbsMPRegen.asm
     masm/DMC4LockOnDirection.asm
+    masm/DTMustStyleArmor.asm
     masm/EnemyAITarget.asm
+    masm/ShotgunShlSpawnAnglePointBlank.asm
     masm/SetAirTauntAsm.asm
     masm/SkyLaunchAirTaunt.asm
     masm/StyleLevellingCCSFix.asm
     masm/RerouteRedOrbsCounterAlpha.asm
     masm/ToggleTakeDamage.asm
+    masm/TrickAlterationsDante.asm
     masm/VergilTricksAsm.asm
     masm/StyleRankHudNoFadeout.asm
     masm/ArtemisInstantFullCharge.asm
@@ -54,6 +62,9 @@ set(CXX_LIBS
     libzip
     zlib
     Detours
+
+    EffekseerRendererDX11
+    Effekseer
 
     debug ${CMAKE_SOURCE_DIR}/ThirdParty/curl/lib/x64-debug/libcurl_a_debug.lib optimized ${CMAKE_SOURCE_DIR}/ThirdParty/curl/lib/x64-release/libcurl_a.lib
     debug ${CMAKE_SOURCE_DIR}/ThirdParty/openssl/lib/x64-debug/libcrypto_static.lib optimized ${CMAKE_SOURCE_DIR}/ThirdParty/openssl/lib/x64-release/libcrypto_static.lib
@@ -90,7 +101,10 @@ set(CXX_FLAGS
 
 project(Crimson LANGUAGES CXX C ASM_MASM)
 
-file(GLOB FONTS_HDR Fonts/RobotoMedium.hpp
+file(GLOB FONTS_HDR 
+                    Fonts/Benguiat.hpp
+                    Fonts/Messenger.hpp
+                    Fonts/RobotoMedium.hpp
                     Fonts/RussoOneRegular.hpp
 		    Fonts/RedOrbRusso.hpp
 		    Fonts/RedOrbRussoBackdrop.hpp
@@ -146,6 +160,8 @@ file(GLOB MAIN_SRC
     CrimsonGameplay.hpp
     CrimsonGUI.cpp
     CrimsonGUI.hpp
+    CrimsonHighFPSFixes.cpp
+    CrimsonHighFPSFixes.hpp
     CrimsonHUD.cpp
     CrimsonHUD.hpp
     CrimsonLDK.cpp
@@ -195,9 +211,7 @@ file(GLOB MAIN_SRC
     Sound.hpp
     SoundRelocations.cpp
     SoundRelocations.hpp
-    Speed.cpp
-    Speed.hpp
-    Training.cpp
+    Speed.cpp Speed.hpp Training.cpp
     Training.hpp
     Vars.cpp
     Vars.hpp
@@ -207,6 +221,8 @@ file(GLOB MAIN_SRC
     Window.hpp
     StyleSwitchFX.cpp
     StyleSwitchFX.hpp
+    CrimsonEfk.hpp
+    CrimsonEfk.cpp
 )
 
 file(GLOB CORE_SRC 
@@ -315,3 +331,4 @@ target_link_libraries(${PROJECT_NAME} PUBLIC ${CXX_LIBS}) # Dependencies
 
 set_target_properties(${PROJECT_NAME} PROPERTIES 
 OUTPUT_NAME dinput8_injector)
+

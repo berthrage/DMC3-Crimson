@@ -8,6 +8,7 @@
 #include "Core/Macros.h"
 
 #include "Core/DebugSwitch.hpp"
+#include "../ThirdParty/ImGui/imgui.h"
 
 
 double defaultFrequency = 0;
@@ -251,6 +252,36 @@ void Toggle(bool enable) {
     }
 
 
+    // Remove framerate lock
+    // Credits to mos9527 for this research
+    {
+        auto addr = (appBaseAddr + 0x2C5EB0);
+        auto jumpAddr = (appBaseAddr + 0x2C5F1D);
+        auto destAddr = (appBaseAddr + 0x2C5F29);
+        constexpr uint64 size = 2;
+        /*
+        dmc3.exe+2C5F1D - 76 0A - jbe dmc3.exe+2C5F29
+        */
+
+        static Function func = {};
+
+        constexpr byte8 sect0[] = {
+            0xEB, 0x0A, // jmp dmc3.exe+2C5F29
+        };
+
+        if (!run) {
+            backupHelper.Save(jumpAddr, size);
+        }
+
+        if (enable) {
+            WriteShortJump(jumpAddr, destAddr);
+        }
+        else {
+            backupHelper.Restore(jumpAddr);
+        }
+    }
+
+
     {
         auto addr             = (appBaseAddr + 0x2C5EB0);
         auto jumpAddr         = (appBaseAddr + 0x2C5EB5);
@@ -298,11 +329,19 @@ void UpdateFrameRate() {
 	}
 	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
 
-    //LogFunction();
+	// Use ONLY measured frame rate
+	float runtimeFrameRate = g_FrameRate;
 
-    g_frameRateMultiplier = (60 / activeConfig.frameRate);
+	if (runtimeFrameRate <= 1.0f) {
+		runtimeFrameRate = 60.0f;
+	}
 
-    *frequencyAddr = (defaultFrequency * static_cast<double>(g_frameRateMultiplier));
+	g_frameRateMultiplier = (60.0f / runtimeFrameRate);
 
-    *frameRateAddr = static_cast<int32>(activeConfig.frameRate);
+	// Keep frequency neutral
+    //*frequencyAddr = (defaultFrequency * static_cast<double>(60 / activeCrimsonConfig.System.fpsCap));
+    *frequencyAddr = defaultFrequency;
+
+	// Update mission frame counter rate
+	*frameRateAddr = static_cast<int32>(runtimeFrameRate + 0.5f);
 }

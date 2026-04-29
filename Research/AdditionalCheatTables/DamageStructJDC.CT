@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="46">
+  <CheatEntries>
+    <CheatEntry>
+      <ID>2921</ID>
+      <Description>"Get JDC Damage struct"</Description>
+      <VariableType>Auto Assembler Script</VariableType>
+      <AssemblerScript>[ENABLE]
+//define(DamageStruct,dmc3.exe+5CB000) // close up
+define(DamageStruct,dmc3.exe+5CDF40) // distance
+registersymbol(DamageStruct)
+[DISABLE]
+unregistersymbol(DamageStruct)
+</AssemblerScript>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>2920</ID>
+          <Description>"+0 knockbackAnimation"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>DamageStruct</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2922</ID>
+          <Description>"+4"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>DamageStruct+4</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2923</ID>
+          <Description>"+8"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>DamageStruct+8</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2924</ID>
+          <Description>"+C ProjectileDmg"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>DamageStruct+C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2925</ID>
+          <Description>"+10"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>DamageStruct+10</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2926</ID>
+          <Description>"+14 displacement"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>DamageStruct+14</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2927</ID>
+          <Description>"+18 angle"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>DamageStruct+18</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2928</ID>
+          <Description>"+1C"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>DamageStruct+1C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2929</ID>
+          <Description>"+20"</Description>
+          <ShowAsSigned>1</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>DamageStruct+20</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2930</ID>
+          <Description>"+24"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>DamageStruct+24</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2931</ID>
+          <Description>"+28"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>DamageStruct+28</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2932</ID>
+          <Description>"+2C"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>DamageStruct+2C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2933</ID>
+          <Description>"+30"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>DamageStruct+30</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2934</ID>
+          <Description>"+34"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>DamageStruct+34</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2935</ID>
+          <Description>"+38"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>DamageStruct+38</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2936</ID>
+          <Description>"+3C"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>DamageStruct+3C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2937</ID>
+          <Description>"+40 knockbackSpeed"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>DamageStruct+40</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2938</ID>
+          <Description>"+44"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>DamageStruct+44</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2939</ID>
+          <Description>"+48"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>DamageStruct+48</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2940</ID>
+          <Description>"+4C"</Description>
+          <ShowAsSigned>1</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>DamageStruct+4C</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+  </CheatEntries>
+  <UserdefinedSymbols/>
+</CheatTable>

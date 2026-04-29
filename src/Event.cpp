@@ -47,19 +47,19 @@ void OpenShop() {
 
     g_showShop = true;
 
-    PlaySound(0, 4);
+    FMOD_PlaySound(0, 4);
 }
 
 void CloseShop() {
     DebugLogFunction();
 
     if (g_showShop) {
-        PlaySound(0, 3);
+        FMOD_PlaySound(0, 3);
     }
 
     g_showShop = false;
 
-    g_shopTimer = (activeConfig.frameRate * (g_shopTimeout / 1000));
+    g_shopTimer = (g_FrameRate * (g_shopTimeout / 1000));
 }
 
 
@@ -200,7 +200,6 @@ static_assert(countof(newEventFuncNames) == EVENT::COUNT);
 void EventHandler(EventData& eventData) {
     using namespace EVENT;
 
-	CrimsonGameplay::GunDTCharacterRemaps();
 	CrimsonOnTick::GameTrackDetection();
     CrimsonOnTick::FixWeaponUnlocksDante();
 	CrimsonOnTick::DisableBlendingEffectsController();
@@ -421,7 +420,7 @@ void EventHandler(EventData& eventData) {
         break;
     }
     case MAIN: {
-        CharacterSwitchController();
+        
         BossLadyController();
         BossVergilController();
 

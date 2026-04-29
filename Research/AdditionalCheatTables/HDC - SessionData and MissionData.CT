@@ -4,13 +4,11 @@
     <CheatEntry>
       <ID>17</ID>
       <Description>"General"</Description>
-      <LastState Value="" RealAddress="00000000"/>
       <GroupHeader>1</GroupHeader>
       <CheatEntries>
         <CheatEntry>
           <ID>1</ID>
           <Description>"Playtime"</Description>
-          <LastState Value="00005F4A" RealAddress="7FF6B6704590"/>
           <ShowAsHex>1</ShowAsHex>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
@@ -19,7 +17,6 @@
         <CheatEntry>
           <ID>2</ID>
           <Description>"Progress 1"</Description>
-          <LastState Value="FFFFFFFF" RealAddress="7FF6B6704594"/>
           <ShowAsHex>1</ShowAsHex>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
@@ -28,7 +25,6 @@
         <CheatEntry>
           <ID>3</ID>
           <Description>"Progress 2"</Description>
-          <LastState Value="FFFFFFFF" RealAddress="7FF6B6704598"/>
           <ShowAsHex>1</ShowAsHex>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
@@ -37,7 +33,6 @@
         <CheatEntry>
           <ID>4</ID>
           <Description>"Progress 3"</Description>
-          <LastState Value="FFFF3FFF" RealAddress="7FF6B670459C"/>
           <ShowAsHex>1</ShowAsHex>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
@@ -46,7 +41,6 @@
         <CheatEntry>
           <ID>5</ID>
           <Description>"Progress 4"</Description>
-          <LastState Value="FFFFFFFF" RealAddress="7FF6B67045A0"/>
           <ShowAsHex>1</ShowAsHex>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
@@ -55,7 +49,6 @@
         <CheatEntry>
           <ID>6</ID>
           <Description>"Mission"</Description>
-          <LastState Value="8" RealAddress="7FF6B6E2F250"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
           <Address>dmc3.exe+C8F250</Address>
@@ -63,7 +56,6 @@
         <CheatEntry>
           <ID>7</ID>
           <Description>"Event"</Description>
-          <LastState Value="8" RealAddress="7FF6B6E2F254"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
           <Address>dmc3.exe+C8F254</Address>
@@ -71,7 +63,6 @@
         <CheatEntry>
           <ID>8</ID>
           <Description>"Room"</Description>
-          <LastState Value="300" RealAddress="7FF6B6E2F258"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
           <Address>dmc3.exe+C8F258</Address>
@@ -79,7 +70,6 @@
         <CheatEntry>
           <ID>9</ID>
           <Description>"Mode"</Description>
-          <LastState Value="2" RealAddress="7FF6B6E2F25C"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
           <Address>dmc3.exe+C8F25C</Address>
@@ -87,7 +77,6 @@
         <CheatEntry>
           <ID>10</ID>
           <Description>"One Hit Kill"</Description>
-          <LastState Value="1" RealAddress="7FF6B6E2F260"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F260</Address>
@@ -95,7 +84,6 @@
         <CheatEntry>
           <ID>11</ID>
           <Description>"Easy Automatic On"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F261"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F261</Address>
@@ -103,7 +91,6 @@
         <CheatEntry>
           <ID>12</ID>
           <Description>"Enable Tutorial"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F262"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F262</Address>
@@ -111,7 +98,6 @@
         <CheatEntry>
           <ID>13</ID>
           <Description>"Use Gold Orb (Uses Yellow Orb if set to 0)"</Description>
-          <LastState Value="1" RealAddress="7FF6B6E2F263"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F263</Address>
@@ -119,7 +105,6 @@
         <CheatEntry>
           <ID>14</ID>
           <Description>"Character"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F264"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F264</Address>
@@ -127,7 +112,6 @@
         <CheatEntry>
           <ID>84</ID>
           <Description>"Red Orbs"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F27C"/>
           <VariableType>4 Bytes</VariableType>
           <Address>dmc3.exe+C8F27C</Address>
         </CheatEntry>
@@ -136,13 +120,11 @@
     <CheatEntry>
       <ID>25</ID>
       <Description>"Items"</Description>
-      <LastState Value="" RealAddress="00000000"/>
       <GroupHeader>1</GroupHeader>
       <CheatEntries>
         <CheatEntry>
           <ID>15</ID>
           <Description>"Gold Orb"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F285"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F285</Address>
@@ -150,7 +132,6 @@
         <CheatEntry>
           <ID>16</ID>
           <Description>"Yellow Orb"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F286"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F286</Address>
@@ -158,7 +139,6 @@
         <CheatEntry>
           <ID>18</ID>
           <Description>"Blue Orb"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F287"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F287</Address>
@@ -166,7 +146,6 @@
         <CheatEntry>
           <ID>19</ID>
           <Description>"Purple Orb"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F288"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F288</Address>
@@ -174,7 +153,6 @@
         <CheatEntry>
           <ID>20</ID>
           <Description>"Blue Orb Fragment"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F289"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F289</Address>
@@ -182,7 +160,6 @@
         <CheatEntry>
           <ID>21</ID>
           <Description>"Vital Star L"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F290"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F290</Address>
@@ -190,7 +167,6 @@
         <CheatEntry>
           <ID>22</ID>
           <Description>"Vital Star S"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F291"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F291</Address>
@@ -198,7 +174,6 @@
         <CheatEntry>
           <ID>23</ID>
           <Description>"Devil Star"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F292"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F292</Address>
@@ -206,7 +181,6 @@
         <CheatEntry>
           <ID>24</ID>
           <Description>"Holy Water"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F293"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F293</Address>
@@ -216,13 +190,11 @@
     <CheatEntry>
       <ID>38</ID>
       <Description>"Unlocks"</Description>
-      <LastState Value="" RealAddress="00000000"/>
       <GroupHeader>1</GroupHeader>
       <CheatEntries>
         <CheatEntry>
           <ID>26</ID>
           <Description>"Rebellion"</Description>
-          <LastState Value="1" RealAddress="7FF6B6E2F296"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F296</Address>
@@ -230,7 +202,6 @@
         <CheatEntry>
           <ID>27</ID>
           <Description>"Cerberus"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F297"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F297</Address>
@@ -238,7 +209,6 @@
         <CheatEntry>
           <ID>28</ID>
           <Description>"Agni &amp; Rudra"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F298"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F298</Address>
@@ -246,7 +216,6 @@
         <CheatEntry>
           <ID>29</ID>
           <Description>"Nevan"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F29A"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F29A</Address>
@@ -254,7 +223,6 @@
         <CheatEntry>
           <ID>30</ID>
           <Description>"Beowulf"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F29B"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F29B</Address>
@@ -262,7 +230,6 @@
         <CheatEntry>
           <ID>31</ID>
           <Description>"Ebony &amp; Ivory"</Description>
-          <LastState Value="1" RealAddress="7FF6B6E2F29C"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F29C</Address>
@@ -270,7 +237,6 @@
         <CheatEntry>
           <ID>33</ID>
           <Description>"Shotgun"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F29D"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F29D</Address>
@@ -278,7 +244,6 @@
         <CheatEntry>
           <ID>32</ID>
           <Description>"Artemis"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F29E"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F29E</Address>
@@ -286,7 +251,6 @@
         <CheatEntry>
           <ID>34</ID>
           <Description>"Spiral"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F29F"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F29F</Address>
@@ -294,7 +258,6 @@
         <CheatEntry>
           <ID>35</ID>
           <Description>"Kalina Ann"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F2A1"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F2A1</Address>
@@ -302,7 +265,6 @@
         <CheatEntry>
           <ID>36</ID>
           <Description>"Quicksilver"</Description>
-          <LastState Value="1" RealAddress="7FF6B6E2F2A2"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F2A2</Address>
@@ -310,7 +272,6 @@
         <CheatEntry>
           <ID>37</ID>
           <Description>"Doppelganger"</Description>
-          <LastState Value="1" RealAddress="7FF6B6E2F2A3"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F2A3</Address>
@@ -320,13 +281,11 @@
     <CheatEntry>
       <ID>40</ID>
       <Description>"Items Bought"</Description>
-      <LastState Value="" RealAddress="00000000"/>
       <GroupHeader>1</GroupHeader>
       <CheatEntries>
         <CheatEntry>
           <ID>39</ID>
           <Description>"Vital Star S"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F2BE"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F2BE</Address>
@@ -334,7 +293,6 @@
         <CheatEntry>
           <ID>41</ID>
           <Description>"Vital Star L"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F2BF"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F2BF</Address>
@@ -342,7 +300,6 @@
         <CheatEntry>
           <ID>42</ID>
           <Description>"Devil Star"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F2C0"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F2C0</Address>
@@ -350,7 +307,6 @@
         <CheatEntry>
           <ID>43</ID>
           <Description>"Holy Water"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F2C1"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F2C1</Address>
@@ -358,7 +314,6 @@
         <CheatEntry>
           <ID>44</ID>
           <Description>"Blue Orb"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F2C2"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F2C2</Address>
@@ -366,7 +321,6 @@
         <CheatEntry>
           <ID>45</ID>
           <Description>"Purple Orb"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F2C3"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F2C3</Address>
@@ -374,7 +328,6 @@
         <CheatEntry>
           <ID>46</ID>
           <Description>"Gold Orb"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F2C4"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F2C4</Address>
@@ -382,7 +335,6 @@
         <CheatEntry>
           <ID>47</ID>
           <Description>"Yellow Orb"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F2C5"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F2C5</Address>
@@ -392,13 +344,11 @@
     <CheatEntry>
       <ID>59</ID>
       <Description>"Equipment"</Description>
-      <LastState Value="" RealAddress="00000000"/>
       <GroupHeader>1</GroupHeader>
       <CheatEntries>
         <CheatEntry>
           <ID>48</ID>
           <Description>"Melee Weapon Slot 1"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F2D4"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F2D4</Address>
@@ -406,7 +356,6 @@
         <CheatEntry>
           <ID>49</ID>
           <Description>"Melee Weapon Slot 2"</Description>
-          <LastState Value="255" RealAddress="7FF6B6E2F2D5"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F2D5</Address>
@@ -414,7 +363,6 @@
         <CheatEntry>
           <ID>50</ID>
           <Description>"Ranged Weapon Slot 1"</Description>
-          <LastState Value="5" RealAddress="7FF6B6E2F2D6"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F2D6</Address>
@@ -422,7 +370,6 @@
         <CheatEntry>
           <ID>51</ID>
           <Description>"Ranged Weapon Slot 2"</Description>
-          <LastState Value="255" RealAddress="7FF6B6E2F2D7"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F2D7</Address>
@@ -430,7 +377,6 @@
         <CheatEntry>
           <ID>52</ID>
           <Description>"Selected Melee Weapon"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F318"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F318</Address>
@@ -438,7 +384,6 @@
         <CheatEntry>
           <ID>53</ID>
           <Description>"Selected Ranged Weapon"</Description>
-          <LastState Value="2" RealAddress="7FF6B6E2F31C"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F31C</Address>
@@ -446,7 +391,6 @@
         <CheatEntry>
           <ID>54</ID>
           <Description>"Costume"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F320"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F320</Address>
@@ -454,7 +398,6 @@
         <CheatEntry>
           <ID>55</ID>
           <Description>"Unlock Devil Trigger"</Description>
-          <LastState Value="1" RealAddress="7FF6B6E2F321"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F321</Address>
@@ -462,7 +405,6 @@
         <CheatEntry>
           <ID>56</ID>
           <Description>"Hit Points"</Description>
-          <LastState Value="6000" RealAddress="7FF6B6E2F324"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Float</VariableType>
           <Address>dmc3.exe+C8F324</Address>
@@ -470,7 +412,6 @@
         <CheatEntry>
           <ID>57</ID>
           <Description>"DT/Magic Points"</Description>
-          <LastState Value="3000" RealAddress="7FF6B6E2F328"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Float</VariableType>
           <Address>dmc3.exe+C8F328</Address>
@@ -478,7 +419,6 @@
         <CheatEntry>
           <ID>58</ID>
           <Description>"Style"</Description>
-          <LastState Value="2" RealAddress="7FF6B6E2F32C"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F32C</Address>
@@ -488,13 +428,11 @@
     <CheatEntry>
       <ID>66</ID>
       <Description>"Style Level"</Description>
-      <LastState Value="" RealAddress="00000000"/>
       <GroupHeader>1</GroupHeader>
       <CheatEntries>
         <CheatEntry>
           <ID>60</ID>
           <Description>"Swordmaster Level"</Description>
-          <LastState Value="1" RealAddress="7FF6B6E2F330"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F330</Address>
@@ -502,7 +440,6 @@
         <CheatEntry>
           <ID>61</ID>
           <Description>"Gunslinger Level"</Description>
-          <LastState Value="1" RealAddress="7FF6B6E2F334"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F334</Address>
@@ -510,7 +447,6 @@
         <CheatEntry>
           <ID>62</ID>
           <Description>"Trickster/Dark Slayer Level"</Description>
-          <LastState Value="1" RealAddress="7FF6B6E2F338"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F338</Address>
@@ -518,7 +454,6 @@
         <CheatEntry>
           <ID>63</ID>
           <Description>"Royalguard Level"</Description>
-          <LastState Value="1" RealAddress="7FF6B6E2F33C"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F33C</Address>
@@ -526,7 +461,6 @@
         <CheatEntry>
           <ID>64</ID>
           <Description>"Quicksilver Level (No Style EXP though)"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F340"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F340</Address>
@@ -534,7 +468,6 @@
         <CheatEntry>
           <ID>65</ID>
           <Description>"Doppelganger Level (No Style EXP though)"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F344"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Byte</VariableType>
           <Address>dmc3.exe+C8F344</Address>
@@ -544,13 +477,11 @@
     <CheatEntry>
       <ID>73</ID>
       <Description>"Style EXP"</Description>
-      <LastState Value="" RealAddress="00000000"/>
       <GroupHeader>1</GroupHeader>
       <CheatEntries>
         <CheatEntry>
           <ID>67</ID>
           <Description>"Swordmaster EXP"</Description>
-          <LastState Value="99900" RealAddress="7FF6B6E2F348"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Float</VariableType>
           <Address>dmc3.exe+C8F348</Address>
@@ -558,7 +489,6 @@
         <CheatEntry>
           <ID>68</ID>
           <Description>"Gunslinger EXP"</Description>
-          <LastState Value="99900" RealAddress="7FF6B6E2F34C"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Float</VariableType>
           <Address>dmc3.exe+C8F34C</Address>
@@ -566,7 +496,6 @@
         <CheatEntry>
           <ID>69</ID>
           <Description>"Trickster/Dark Slayer EXP"</Description>
-          <LastState Value="99900" RealAddress="7FF6B6E2F350"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Float</VariableType>
           <Address>dmc3.exe+C8F350</Address>
@@ -574,7 +503,6 @@
         <CheatEntry>
           <ID>70</ID>
           <Description>"Royalguard EXP"</Description>
-          <LastState Value="99900" RealAddress="7FF6B6E2F354"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Float</VariableType>
           <Address>dmc3.exe+C8F354</Address>
@@ -582,7 +510,6 @@
         <CheatEntry>
           <ID>71</ID>
           <Description>"Quicksilver EXP (No Style EXP though)"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F358"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Float</VariableType>
           <Address>dmc3.exe+C8F358</Address>
@@ -590,7 +517,6 @@
         <CheatEntry>
           <ID>72</ID>
           <Description>"Doppelganger EXP (No Style EXP though)"</Description>
-          <LastState Value="0" RealAddress="7FF6B6E2F35C"/>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>Float</VariableType>
           <Address>dmc3.exe+C8F35C</Address>
@@ -600,13 +526,11 @@
     <CheatEntry>
       <ID>82</ID>
       <Description>"Expertise"</Description>
-      <LastState Value="" RealAddress="00000000"/>
       <GroupHeader>1</GroupHeader>
       <CheatEntries>
         <CheatEntry>
           <ID>74</ID>
           <Description>"Expertise 1"</Description>
-          <LastState Value="FFFF5E7F" RealAddress="7FF6B6E2F360"/>
           <ShowAsHex>1</ShowAsHex>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
@@ -615,7 +539,6 @@
         <CheatEntry>
           <ID>75</ID>
           <Description>"Expertise 2"</Description>
-          <LastState Value="A7FFAF5F" RealAddress="7FF6B6E2F364"/>
           <ShowAsHex>1</ShowAsHex>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
@@ -624,7 +547,6 @@
         <CheatEntry>
           <ID>76</ID>
           <Description>"Expertise 3"</Description>
-          <LastState Value="AF1FFFF3" RealAddress="7FF6B6E2F368"/>
           <ShowAsHex>1</ShowAsHex>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
@@ -633,7 +555,6 @@
         <CheatEntry>
           <ID>77</ID>
           <Description>"Expertise 4"</Description>
-          <LastState Value="CB9FFFF9" RealAddress="7FF6B6E2F36C"/>
           <ShowAsHex>1</ShowAsHex>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
@@ -642,7 +563,6 @@
         <CheatEntry>
           <ID>78</ID>
           <Description>"Expertise 5"</Description>
-          <LastState Value="FBFBFFFE" RealAddress="7FF6B6E2F370"/>
           <ShowAsHex>1</ShowAsHex>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
@@ -651,7 +571,6 @@
         <CheatEntry>
           <ID>79</ID>
           <Description>"Expertise 6"</Description>
-          <LastState Value="FFFFEFFD" RealAddress="7FF6B6E2F374"/>
           <ShowAsHex>1</ShowAsHex>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
@@ -660,7 +579,6 @@
         <CheatEntry>
           <ID>80</ID>
           <Description>"Expertise 7"</Description>
-          <LastState Value="FFE3FEFF" RealAddress="7FF6B6E2F378"/>
           <ShowAsHex>1</ShowAsHex>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
@@ -669,7 +587,6 @@
         <CheatEntry>
           <ID>81</ID>
           <Description>"Expertise 8"</Description>
-          <LastState Value="FFFFFFFF" RealAddress="7FF6B6E2F37C"/>
           <ShowAsHex>1</ShowAsHex>
           <ShowAsSigned>0</ShowAsSigned>
           <VariableType>4 Bytes</VariableType>
@@ -677,6 +594,962 @@
         </CheatEntry>
       </CheatEntries>
     </CheatEntry>
+    <CheatEntry>
+      <ID>85</ID>
+      <Description>"Turbo Mode"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Byte</VariableType>
+      <Address>dmc3.exe+D6CEA9</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3456</ID>
+      <Description>"missionData +0"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>4 Bytes</VariableType>
+      <Address>dmc3.exe+168</Address>
+      <Offsets>
+        <Offset>0</Offset>
+        <Offset>C90E30</Offset>
+      </Offsets>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>3521</ID>
+          <Description>"+38 redOrbsCount"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>38</Offset>
+            <Offset>C90E30</Offset>
+          </Offsets>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>3457</ID>
+          <Description>"+3C ItemsCountArray -- Start"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>3C</Offset>
+            <Offset>C90E30</Offset>
+          </Offsets>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>3522</ID>
+          <Description>"+3C ItemsCountArray -- Cerberus"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>53</Offset>
+            <Offset>C90E30</Offset>
+          </Offsets>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>3458</ID>
+          <Description>"+A8 frameCount"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>A8</Offset>
+            <Offset>C90E30</Offset>
+          </Offsets>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
   </CheatEntries>
   <UserdefinedSymbols/>
+  <DisassemblerComments>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+80644</Address>
+      <Comment>SPAWNS
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+15E710</Address>
+      <Comment>%s scarecrow arm spawn
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+338AA2</Address>
+      <Comment>spawns most enemies
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+338AA4</Address>
+      <Comment>%s
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3AB88A</Address>
+      <Comment>dont nop this it crashes
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3AB8B1</Address>
+      <Comment>no
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3AB8B6</Address>
+      <Comment>no
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3AB8BB</Address>
+      <Comment>no
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3AB8C0</Address>
+      <Comment>no
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3CEDA7</Address>
+      <Comment>crossunder ban distance
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3CEDC8</Address>
+      <Comment>crash 
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3D3445</Address>
+      <Comment>get isLockedOn?
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3D3534</Address>
+      <Comment>part 2 starts here
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3D3710</Address>
+      <Comment>effects
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3EA52F</Address>
+      <Comment>rk address
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+411B38</Address>
+      <Comment>call to get damage and knockback stuff from files
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+4158DC</Address>
+      <Comment>stops them turning red before exploding
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+4DC540</Address>
+      <Comment>SPAWNS
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"Mary.dll"+769B0</Address>
+      <Comment>MoreSetActionMeleeAttack
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>045F8E47</Address>
+      <Comment>mission 19 crash part2
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+300C6</Address>
+      <Comment>Controls something for Character anim
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+558AC</Address>
+      <Comment>Force Fixed Cameras to go 
+to Third Person Camera instead
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+569AD</Address>
+      <Comment>Setting this byte to 1 will trigger locked on cam
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+569E6</Address>
+      <Comment>Arkham Charge Attack Yellow Target Position ?
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+571BC</Address>
+      <Comment>Determine camera's X by player pos
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+5EBC6</Address>
+      <Comment>TPSCamera
+Collision to keep it going to tight spaces
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+60304</Address>
+      <Comment>Camera Hitting Wall ?
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+60306</Address>
+      <Comment>Skip cam collision rotation stop 1
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+60520</Address>
+      <Comment>Skip cam collision rotation stop 2
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+606D1</Address>
+      <Comment>Skip cam collision rotation stop
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+60F43</Address>
+      <Comment>Devil Trigger enemy
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+6105F</Address>
+      <Comment>Checking if it goes into DT
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+616EB</Address>
+      <Comment>Standard Enemy Set Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+616F2</Address>
+      <Comment>followup to standard target pos
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+881F1</Address>
+      <Comment>gets damage
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+881F7</Address>
+      <Comment>gets knockback knockup thing
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+90C9D</Address>
+      <Comment>set aura colour
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+BF553</Address>
+      <Comment>Arachne Set Target Position for Jump Attack
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+C5A40</Address>
+      <Comment>Arachne Set Target Position for Circling Around
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+D5419</Address>
+      <Comment>Dullahan Sword Up Attack Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+D9277</Address>
+      <Comment>EnigmaActualRotationTarget Call
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+E7A12</Address>
+      <Comment>BloodgoyleRotationFunc
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+E7EC2</Address>
+      <Comment>Bloodgoyle Dive Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+E8142</Address>
+      <Comment>BloodgoyleRotationFunc
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+E81CB</Address>
+      <Comment>SoulEaterGrabTargetDetour
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+E94E2</Address>
+      <Comment>Soul Eater goes visible
+
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+EC4CF</Address>
+      <Comment>SoulEaterGrabTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+EF871</Address>
+      <Comment>ChessBishopRotationTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+F25B8</Address>
+      <Comment>ChessPawnAttackTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+F2C98</Address>
+      <Comment>ChessKnightAttackTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+F3DB3</Address>
+      <Comment>ChessBishopAttackTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+F6D89</Address>
+      <Comment>ChessKingAttackTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+10E89E</Address>
+      <Comment>Cerberus Set Position to Target
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+116DD8</Address>
+      <Comment>Cerberus Ice Ball Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+117F33</Address>
+      <Comment>Cerberus Ice From Above Attack Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+12C6ED</Address>
+      <Comment>Nevan's Kiss Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+12CE41</Address>
+      <Comment>Nevan Forward Spikes Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+133D85</Address>
+      <Comment>Apply Nevan Shield Damage 1
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+134548</Address>
+      <Comment>Nevan Lightning Balls Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+135085</Address>
+      <Comment>noping this makes it so nevan never loses her shield
+but it still damages it
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+135097</Address>
+      <Comment>Apply Nevan Shield Damage 2
+
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+136363</Address>
+      <Comment>Nevan Lightning Balls 2 Target Position DON'T YOU LIKE THIS
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+137DBF</Address>
+      <Comment>Nevan Bolt From Above Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+148EEF</Address>
+      <Comment>BeowulfRotateToTargetAttack
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+14AC47</Address>
+      <Comment>Beowulf SetRotation To Target
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1603DC</Address>
+      <Comment>Arkham Leeches Circling Around Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+163DD5</Address>
+      <Comment>Arkham Spikes Attack Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+16725C</Address>
+      <Comment>Arkham Leeches Jump Attack 2 Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1675B3</Address>
+      <Comment>Arkham Leeches Jump Attack Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1871C5</Address>
+      <Comment>Vergil Blink/Trick Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1A2A93</Address>
+      <Comment>EnigmaAimTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1A345A</Address>
+      <Comment>EnigmaAimTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1B269C</Address>
+      <Comment>Vergil Attack After Blocking
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1B6E29</Address>
+      <Comment>Adding to player's hp value (green orb regen)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1B6E34</Address>
+      <Comment>Regenerated using green orbs
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1BB04C</Address>
+      <Comment>Enigma Set Target Position to Aim 1
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1DF20C</Address>
+      <Comment>Set Dante's default expertise
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1DF212</Address>
+      <Comment>Set Dante's default expertise [1]
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1DF220</Address>
+      <Comment>Set Dante's default expertise [3]
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1E64C6</Address>
+      <Comment>start of style actions
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1E65D5</Address>
+      <Comment>sets rdx 11
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1E6D8A</Address>
+      <Comment>SetActionMeleeAttack
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1E7C16</Address>
+      <Comment>Geryon Carriage hit Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EB689</Address>
+      <Comment>shoot remap
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EB691</Address>
+      <Comment>controller mapping
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EBF42</Address>
+      <Comment>Set actorCameraDirection
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EC45A</Address>
+      <Comment>Determine stagger dmg (on eax) to royal block
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EEDF7</Address>
+      <Comment>257, Release Level 1,
+this will affect RoyalguardReleaseLevel
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EEE27</Address>
+      <Comment>770, Release Level 2
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EEE4A</Address>
+      <Comment>1283, Release Level 3
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EFC6C</Address>
+      <Comment>Process Lower Part Animation
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1F7086</Address>
+      <Comment>release, attack
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1F8DB0</Address>
+      <Comment>mission 19 actor system crashes here
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA343</Address>
+      <Comment>Level up StyleLevel to lvl 3
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA3D9</Address>
+      <Comment>Level up StyleLevel to lvl 2
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA484</Address>
+      <Comment>Loading player rotation onto r11d
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA48C</Address>
+      <Comment>Loading rotation towards enemy, 
+but still needs calculations (rotationUncalculated)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA493</Address>
+      <Comment>Subtracts uncalculatedRotation to currentRotation 
+(rotationDifference)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA49A</Address>
+      <Comment>if rotationDifference is below or equal 0
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA49C</Address>
+      <Comment>if not, Load in Rotation Offset into eax
+
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4A6</Address>
+      <Comment>if rotationDifference &lt;= rotationOffset
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4A8</Address>
+      <Comment>if not, move rotationOffset into edx
+replacing rotationDifference
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4AB</Address>
+      <Comment>let's do calculations 
+with rotationOffset as basis
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4AD</Address>
+      <Comment>load in RotationOffset into r10d
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4B5</Address>
+      <Comment>move rotationDifference into ecx
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4B8</Address>
+      <Comment>Invert rotationDifference's sign
+inside ecx
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4BD</Address>
+      <Comment>if (rotationDifferenceInverted &lt;= rotationOffset)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4BF</Address>
+      <Comment>if not load rotationOffset into edx
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4C3</Address>
+      <Comment>invert rotationOffset's sign
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4C8</Address>
+      <Comment>let's start Calculations
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4CB</Address>
+      <Comment>move rotationPreppedForCalc into eax
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4D9</Address>
+      <Comment>multiply rotationPreppedForCalc by 360
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4E1</Address>
+      <Comment>multiplying by 0.00001525878906
+therefore normalizing into a range 0 - 1
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4E9</Address>
+      <Comment>multiply by actor speed
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA509</Address>
+      <Comment>Final step to Set Rotation Towards Enemy, 
+adding to current rotation
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA50D</Address>
+      <Comment>Set Character Rotation when doing directional move
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC453</Address>
+      <Comment>x motion
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC468</Address>
+      <Comment>black screen
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC47D</Address>
+      <Comment>z motion
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC608</Address>
+      <Comment>multiply by 360
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC617</Address>
+      <Comment>multiply by speed (rbp + 14)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC624</Address>
+      <Comment>divide it by 360
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC63C</Address>
+      <Comment>multiply by player speed
+Determines Character Turn Rate
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC64E</Address>
+      <Comment>divide it by 360
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC65E</Address>
+      <Comment>Add in to rotation
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FDF10</Address>
+      <Comment>attacks and release
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+201251</Address>
+      <Comment>tracking
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+202588</Address>
+      <Comment>Checking TransitionMove?
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20258F</Address>
+      <Comment>Transition from Rising Dragon Launch to Whirlwind
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+209BAE</Address>
+      <Comment>the really cool spin
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20B7F0</Address>
+      <Comment>release??
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20BD57</Address>
+      <Comment>This drains RGGauge on tick until move is completed
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20BD61</Address>
+      <Comment>This is updating RGGauge HUD
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20DAF0</Address>
+      <Comment>compare flicker inertia to 2.0f
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20DAF7</Address>
+      <Comment>if inertia is less than 2, don't kill it
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F53D</Address>
+      <Comment>cmp that stops rave happening
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F53F</Address>
+      <Comment>%s set freefall speed
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F58C</Address>
+      <Comment>rotation of inertia maybe
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F5DD</Address>
+      <Comment>rave 1 motion
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F5FC</Address>
+      <Comment>rave 1 turn speed
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F60B</Address>
+      <Comment>rave 1 push forward
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F61B</Address>
+      <Comment>rave 1 push forward
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F63F</Address>
+      <Comment>rave 1 float
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+211BA5</Address>
+      <Comment>crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+215EF3</Address>
+      <Comment>noping this makes the blinding effect go away
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+215F03</Address>
+      <Comment>Differentiate MultiLock/Normal Shot
+If equals goes to MultiLock
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+215F05</Address>
+      <Comment>Normal Shot Func
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+215F0C</Address>
+      <Comment>MultiLock func
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+23D3C1</Address>
+      <Comment>Add to missionData.frameCount
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27C0DD</Address>
+      <Comment>Setting secret mission timer
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27E524</Address>
+      <Comment>style hud falls off left
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27E529</Address>
+      <Comment>style hud falls off
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27E830</Address>
+      <Comment>Red Orb Alpha
+Check if Fade Out is needed
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27E850</Address>
+      <Comment>Red Orb Count Alpha
+Iterating on loop for fade out
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27E85C</Address>
+      <Comment>Reb Orb Count Alpha
+Setting it to 0
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27E874</Address>
+      <Comment>Red Orb Count Alpha
+Setting max alpha value (127)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2BAF85</Address>
+      <Comment>%s crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2BAFB3</Address>
+      <Comment>crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2BAFE8</Address>
+      <Comment>crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2BB08C</Address>
+      <Comment>style bar colours
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2BB1BF</Address>
+      <Comment>kills style letter dont nop this
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2BB1C7</Address>
+      <Comment>kills style letter dont nop this
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2C6813</Address>
+      <Comment>Enigma Rotate to Target
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2C688F</Address>
+      <Comment>Dullahan Maybe This is used ? Also Judgement Cut
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2C68C2</Address>
+      <Comment>Beowulf Attack Distance Function
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+3153EA</Address>
+      <Comment>breaks effect
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+315B92</Address>
+      <Comment>crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+315E92</Address>
+      <Comment>crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+3161EA</Address>
+      <Comment>doesnt reenable
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+32E630</Address>
+      <Comment>BeowulfAttackTargetPos
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+5CA0C6</Address>
+      <Comment>Sends Knockback Value to Air Slash pt. 1
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>7FF6AEE6AF43</Address>
+      <Comment>%s crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>7FF7B30C47B0</Address>
+      <Comment>SetActionMeleeAttack
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>7FF7BE2A5ED0</Address>
+      <Comment>Moving TPS Cam into proper orbit
+</Comment>
+    </DisassemblerComment>
+  </DisassemblerComments>
 </CheatTable>

@@ -26,6 +26,8 @@
 #include "CrimsonGameModes.hpp"
 #include "CrimsonConfigGameplayMask.hpp"
 
+CrimsonConfigGameplayMask activeCrimsonGameplayMask;
+
 namespace CrimsonGameModes {
 
 bool ConfigsMatch(const CrimsonConfigGameplay& config1, const CrimsonConfigGameplay& config2) {
@@ -49,8 +51,10 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	auto& general = preset.Gameplay.General;
 	general.inertia = false;
 	general.sprint = false;
+	general.extramoves = false;
 	general.freeformSoftLock = false;
 	general.bufferlessReversals = false;
+	general.reversalWindow = false;
 	general.dmc4LockOnDirection = false;
 	general.holdToCrazyCombo = false;
 	general.disableHeightRestriction = false;
@@ -60,6 +64,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	general.increasedEnemyJuggleTime = false;
 	general.fasterTurnRate = false;
 	general.disableSoulEaterInvis = false;
+	general.consecutiveDirectionalMoves = false;
 
 	// Dante section
 	auto& dante = preset.Gameplay.Dante;
@@ -68,23 +73,22 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	dante.rainstormLift = false;
 	dante.infiniteRainstorm = false;
 	dante.foursomeTime = false;
-	dante.aerialRaveTweaks = false;
-	dante.airFlickerTweaks = false;
-	dante.skyDanceTweaks = false;
-	dante.downertiaFromAirFlickerSkyDance = false;
+	dante.aerialMovesTweaks = false;
+	dante.downertiaD = false;
 	dante.shotgunAirShotTweaks = false;
-	dante.driveTweaks = false;
+	dante.driveRework = false;
 	dante.disableAirSlashKnockback = false;
 	dante.airStinger = false;
 	dante.airRevolver = false;
 	dante.airTornado = false;
-	dante.airRisingDragonWhirlwind = false;
+	dante.airRisingDragonLaunch = false;
 	dante.airAgniRudraWhirlwind = false;
 	dante.dmc4Mobility = false;
 	dante.dTInfusedRoyalguard = false;
 	dante.airHikeCoreAbility = false;
 	dante.altNevanVortex = false;
 	dante.artemisRework = false;
+	dante.groundTrick = false;
 	dante.swapDancePierceInputs = false;
 	dante.swapArtemisMultiLockNormalShot = false;
 
@@ -96,7 +100,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	vergil.airStinger = false;
 	vergil.airRisingSun = false;
 	vergil.airLunarPhase = false;
-	vergil.altJudgementCutInput = false;
+	vergil.judgementCutRework = false;
 	//vergil.adjustRisingSunPos = "Off"; // or whatever vanilla used
 	//vergil.adjustLunarPhasePos = "Off";
 
@@ -115,6 +119,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	auto& general = preset.Gameplay.General;
 	general.inertia = false;
 	general.sprint = true;
+	general.extramoves = false;
 	general.freeformSoftLock = true;
 	general.holdToCrazyCombo = true;
 	general.dmc4LockOnDirection = true;
@@ -124,7 +129,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	general.disableSoulEaterInvis = false;
 	general.disableHeightRestriction = true;
 	general.fasterTurnRate = true;
-
+	general.consecutiveDirectionalMoves = false;
 
 	// Dante section
 	auto& dante = preset.Gameplay.Dante;
@@ -133,23 +138,23 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	dante.rainstormLift = false;
 	dante.infiniteRainstorm = true;
 	dante.foursomeTime = true;
-	dante.aerialRaveTweaks = false;
-	dante.airFlickerTweaks = false;
-	dante.skyDanceTweaks = false;
-	dante.downertiaFromAirFlickerSkyDance = false;
+	dante.aerialMovesTweaks = false;
+	dante.downertiaD = false;
 	dante.shotgunAirShotTweaks = false;
-	dante.driveTweaks = false;
+	dante.driveRework = false;
 	dante.disableAirSlashKnockback = false;
 	dante.airStinger = false;
 	dante.airRevolver = true;
 	dante.airTornado = true;
-	dante.airRisingDragonWhirlwind = false;
+	dante.airRisingDragonLaunch = false;
 	dante.airAgniRudraWhirlwind = false;
+	dante.skyLaunchAirTaunt = false;
 	dante.dmc4Mobility = false;
 	dante.dTInfusedRoyalguard = false;
 	dante.airHikeCoreAbility = true;
 	dante.altNevanVortex = true;
 	dante.artemisRework = true;
+	dante.groundTrick = false;
 	//dante.swapDancePierceInputs = false;
 
 	// Vergil section
@@ -160,8 +165,10 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	vergil.airStinger = true;
 	vergil.airRisingSun = true;
 	vergil.airLunarPhase = true;
-	vergil.altJudgementCutInput = true;
+	vergil.judgementCutRework = false;
 	vergil.yamatoRisingStar = false;
+	vergil.yamatoHighTime = false;
+	vergil.airTauntRisingSun = false;
 	vergil.mirageTrigger = false;
 	//vergil.adjustRisingSunPos = "Off"; // or whatever vanilla used
 	//vergil.adjustLunarPhasePos = "Off";
@@ -194,8 +201,9 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	auto& general = preset.Gameplay.General;
 	general.inertia = true;
 	general.sprint = true;
+	general.extramoves = true;
 	general.freeformSoftLock = true;
-	//general.bufferlessReversals = false;
+	//general.bufferlessReversals = false
 	general.dmc4LockOnDirection = true;
 	general.holdToCrazyCombo = true;
 	general.crazyComboMashRequirement = 3;
@@ -206,6 +214,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	general.increasedEnemyJuggleTime = true;
 	general.disableSoulEaterInvis = true;
 	general.fasterTurnRate = true;
+	general.consecutiveDirectionalMoves = true;
 
 	// Dante section
 	auto& dante = preset.Gameplay.Dante;
@@ -214,23 +223,23 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	dante.rainstormLift = true;
 	dante.infiniteRainstorm = true;
 	dante.foursomeTime = true;
-	dante.aerialRaveTweaks = true;
-	dante.airFlickerTweaks = true;
-	dante.skyDanceTweaks = true;
-	dante.downertiaFromAirFlickerSkyDance = true;
+	dante.aerialMovesTweaks = true;
+	dante.downertiaD = true;
 	dante.shotgunAirShotTweaks = true;
-	dante.driveTweaks = true;
+	dante.driveRework = true;
 	dante.disableAirSlashKnockback = true;
 	dante.airStinger = true;
 	dante.airRevolver = true;
 	dante.airTornado = true;
-	dante.airRisingDragonWhirlwind = true;
+	dante.airRisingDragonLaunch = true;
 	dante.airAgniRudraWhirlwind = true;
+	dante.skyLaunchAirTaunt = true;
 	dante.dmc4Mobility = true;
 	dante.dTInfusedRoyalguard = true;
 	dante.airHikeCoreAbility = true;
 	dante.altNevanVortex = true;
 	dante.artemisRework = true;
+	dante.groundTrick = true;
 	dante.swapDancePierceInputs = true;
 
 	// Vergil section
@@ -241,10 +250,12 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	vergil.airStinger = true;
 	vergil.airRisingSun = true;
 	vergil.airLunarPhase = true;
-	vergil.altJudgementCutInput = true;
+	vergil.judgementCutRework = true;
 	vergil.yamatoRisingStar = true;
-	vergil.mirageTrigger = true;
 	vergil.yamatoHighTime = true;
+	vergil.airTauntRisingSun = true;
+	vergil.mirageTrigger = true;
+	
 	//vergil.adjustRisingSunPos = "Off"; // or whatever vanilla used
 	//vergil.adjustLunarPhasePos = "Off";
 
@@ -290,7 +301,9 @@ const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.holdToShoot = false;
 	mask.Gameplay.General.vanillaWeaponSwitchDelay = false;
+	mask.Gameplay.General.multiplayerDamageScaling = false;
 	mask.Gameplay.Dante.swapArtemisMultiLockNormalShot = false;
+	mask.Gameplay.Dante.swapHammerVocalnoInputs = false;
 
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
@@ -301,12 +314,15 @@ const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 
 	mask.Cheats.Training.infiniteHP = false;
 	mask.Cheats.Training.infiniteDT = false;
+	mask.Cheats.Training.disableRegularEnemyAttacks = false;
 	mask.Cheats.Training.disableTimers = false;
 	mask.Cheats.Training.infiniteBossLadyBullets = false;
 	mask.Cheats.General.customDamage = false;
 	mask.Cheats.Damage.playerReceivedDmgMult = false;
 	mask.Cheats.Damage.enemyReceivedDmgMult = false;
 	mask.Cheats.General.customSpeed = false;
+	mask.Cheats.Speed.defaultGame = false;
+	mask.Cheats.Speed.turboGame = false;
 	mask.Cheats.Speed.enemy = false;
 	mask.Cheats.Speed.human = false;
 	mask.Cheats.Speed.dTDante = false;
@@ -324,6 +340,7 @@ const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 	mask.Cheats.Mobility.trickUpCount = false;
 	mask.Cheats.Mobility.trickDownCount = false;
 	mask.Debug.debugTools = false;
+	mask.Debug.showHitboxes = false;
 	mask.Cheats.General.enemySpawnerTool = false;
 	mask.Cheats.General.teleporterTool = false;
 
@@ -339,21 +356,26 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Gameplay.General.holdToShoot = false;
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.bufferlessReversals = false;
+	mask.Gameplay.General.reversalWindow = false;
 	mask.Gameplay.General.dmc4LockOnDirection = false;
 	mask.Gameplay.General.fasterTurnRate = false;
 	mask.Gameplay.Dante.swapArtemisMultiLockNormalShot = false;
+	mask.Gameplay.Dante.swapDancePierceInputs = false;
+	mask.Gameplay.Dante.swapHammerVocalnoInputs = false;
 	
 	// NEW MOVES are optional
 	mask.Gameplay.Dante.airRevolver = false;
 	mask.Gameplay.Dante.airTornado = false;
-	mask.Gameplay.Dante.airRisingDragonWhirlwind = false;
+	mask.Gameplay.Dante.airRisingDragonLaunch = false;
 	mask.Gameplay.Dante.airAgniRudraWhirlwind = false;
+	mask.Gameplay.Dante.skyLaunchAirTaunt = false;
 	mask.Gameplay.Dante.airStinger = false;
 	mask.Gameplay.Vergil.airLunarPhase = false;
 	mask.Gameplay.Vergil.airRisingSun = false;
 	mask.Gameplay.Vergil.airStinger = false;
 	mask.Gameplay.Vergil.yamatoRisingStar = false;
 	mask.Gameplay.Vergil.yamatoHighTime = false;
+	mask.Gameplay.Vergil.airTauntRisingSun = false;
 	mask.Gameplay.Vergil.trickUpNoLockOn = false;
 
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
@@ -364,12 +386,15 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Cheats.Vergil.chronoSwords = false;
 	mask.Cheats.Training.infiniteHP = false;
 	mask.Cheats.Training.infiniteDT = false;
+	mask.Cheats.Training.disableRegularEnemyAttacks = false;
 	mask.Cheats.Training.disableTimers = false;
 	mask.Cheats.Training.infiniteBossLadyBullets = false;
 	mask.Cheats.General.customDamage = false;
 	mask.Cheats.Damage.playerReceivedDmgMult = false;
 	mask.Cheats.Damage.enemyReceivedDmgMult = false;
 	mask.Cheats.General.customSpeed = false;
+	mask.Cheats.Speed.defaultGame = false;
+	mask.Cheats.Speed.turboGame = false;
 	mask.Cheats.Speed.enemy = false;
 	mask.Cheats.Speed.human = false;
 	mask.Cheats.Speed.dTDante = false;
@@ -387,6 +412,7 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Cheats.Mobility.trickUpCount = false;
 	mask.Cheats.Mobility.trickDownCount = false;
 	mask.Debug.debugTools = false;
+	mask.Debug.showHitboxes = false;
 	mask.Cheats.General.enemySpawnerTool = false;
 	mask.Cheats.General.teleporterTool = false;
 
@@ -401,21 +427,26 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.General.holdToShoot = false;
 	mask.Gameplay.General.crazyComboMashRequirement = false;
 	mask.Gameplay.General.bufferlessReversals = false;
+	mask.Gameplay.General.reversalWindow = false;
 	mask.Gameplay.General.fasterTurnRate = false;
 	mask.Gameplay.Dante.swapArtemisMultiLockNormalShot = false;
+	mask.Gameplay.Dante.swapDancePierceInputs = false;
+	mask.Gameplay.Dante.swapHammerVocalnoInputs = false;
 
-	mask.Gameplay.Dante.downertiaFromAirFlickerSkyDance = false; // This should be optional
-	// NEW MOVES are optional
+	mask.Gameplay.Dante.downertiaD = false; // This should be optional
 	mask.Gameplay.Dante.airRevolver = false;
 	mask.Gameplay.Dante.airTornado = false;
-	mask.Gameplay.Dante.airRisingDragonWhirlwind = false;
+	mask.Gameplay.Dante.airRisingDragonLaunch = false;
 	mask.Gameplay.Dante.airAgniRudraWhirlwind = false;
+	mask.Gameplay.Dante.skyLaunchAirTaunt = false;
 	mask.Gameplay.Dante.airStinger = false;
 	mask.Gameplay.Vergil.airLunarPhase = false;
 	mask.Gameplay.Vergil.airRisingSun = false;
 	mask.Gameplay.Vergil.airStinger = false;
 	mask.Gameplay.Vergil.yamatoRisingStar = false;
 	mask.Gameplay.Vergil.yamatoHighTime = false;
+	mask.Gameplay.Vergil.airTauntRisingSun = false;
+	mask.Gameplay.Vergil.downertia = false;
 	mask.Gameplay.Vergil.trickUpNoLockOn = false;
 
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
@@ -423,15 +454,19 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.ExtraDifficulty.enemyDTMode = false;
 	mask.Gameplay.ExtraDifficulty.forceDifficultyMode = false;
 
+	mask.Cheats.Vergil.quicksilverStyle = false;
 	mask.Cheats.Vergil.chronoSwords = false;
 	mask.Cheats.Training.infiniteHP = false;
 	mask.Cheats.Training.infiniteDT = false;
+	mask.Cheats.Training.disableRegularEnemyAttacks = false;
 	mask.Cheats.Training.disableTimers = false;
 	mask.Cheats.Training.infiniteBossLadyBullets = false;
 	mask.Cheats.General.customDamage = false;
 	mask.Cheats.Damage.playerReceivedDmgMult = false;
 	mask.Cheats.Damage.enemyReceivedDmgMult = false;
 	mask.Cheats.General.customSpeed = false;
+	mask.Cheats.Speed.defaultGame = false;
+	mask.Cheats.Speed.turboGame = false;
 	mask.Cheats.Speed.enemy = false;
 	mask.Cheats.Speed.human = false;
 	mask.Cheats.Speed.dTDante = false;
@@ -449,6 +484,7 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Cheats.Mobility.trickUpCount = false;
 	mask.Cheats.Mobility.trickDownCount = false;
 	mask.Debug.debugTools = false;
+	mask.Debug.showHitboxes = false;
 	mask.Cheats.General.enemySpawnerTool = false;
 	mask.Cheats.General.teleporterTool = false;
 
@@ -490,16 +526,19 @@ void CrimsonGameModes::SetGameModePreset(uint8 mode) {
 	case GAMEMODEPRESETS::VANILLA:
  		AssignMembersPreset(activeCrimsonGameplay, VANILLA_PRESET, VANILLA_MASK);
 		AssignMembersPreset(queuedCrimsonGameplay, VANILLA_PRESET, VANILLA_MASK);
+		activeCrimsonGameplayMask = VANILLA_MASK;
 		queuedConfig.Actor.enable = false;
 		break;
 	case GAMEMODEPRESETS::STYLE_SWITCHER:
 		AssignMembersPreset(activeCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
 		AssignMembersPreset(queuedCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
+		activeCrimsonGameplayMask = STYLE_SWITCHER_MASK;
 		queuedConfig.Actor.enable = true;
 		break;
 	case GAMEMODEPRESETS::CRIMSON:
 		AssignMembersPreset(activeCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
 		AssignMembersPreset(queuedCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
+		activeCrimsonGameplayMask = CRIMSON_MASK;
 		queuedConfig.Actor.enable = true;
 		break;
 	default:
@@ -518,16 +557,19 @@ void CrimsonGameModes::SetGameModeMasked(uint8 mode) {
 	case GAMEMODEPRESETS::VANILLA:
 		AssignMembersMasked(activeCrimsonGameplay, VANILLA_PRESET, VANILLA_MASK);
 		AssignMembersMasked(queuedCrimsonGameplay, VANILLA_PRESET, VANILLA_MASK);
+		activeCrimsonGameplayMask = VANILLA_MASK;
 		queuedConfig.Actor.enable = false;
 		break;
 	case GAMEMODEPRESETS::STYLE_SWITCHER:
 		AssignMembersMasked(activeCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
 		AssignMembersMasked(queuedCrimsonGameplay, STYLE_SWITCHER_PRESET, STYLE_SWITCHER_MASK);
+		activeCrimsonGameplayMask = STYLE_SWITCHER_MASK;
 		queuedConfig.Actor.enable = true;
 		break;
 	case GAMEMODEPRESETS::CRIMSON:
 		AssignMembersMasked(activeCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
 		AssignMembersMasked(queuedCrimsonGameplay, CRIMSON_PRESET, CRIMSON_MASK);
+		activeCrimsonGameplayMask = CRIMSON_MASK;
 		queuedConfig.Actor.enable = true;
 		break;
 	default:
@@ -657,6 +699,8 @@ void CrimsonGameModes::TrackCheats() {
 	// === CHEATS::SPEED ===
 	bool speedChanged =
 		activeCheats.General.customSpeed != currentPreset.Cheats.General.customSpeed ||
+		activeCheats.Speed.defaultGame != currentPreset.Cheats.Speed.defaultGame ||
+		activeCheats.Speed.turboGame != currentPreset.Cheats.Speed.turboGame ||
 		activeCheats.Speed.enemy != currentPreset.Cheats.Speed.enemy ||
 		activeCheats.Speed.human != currentPreset.Cheats.Speed.human ||
 		activeCheats.Speed.quicksilverPlayer != currentPreset.Cheats.Speed.quicksilverPlayer ||
@@ -728,6 +772,12 @@ void CrimsonGameModes::TrackCheats() {
 	} else if (!initializedMission && !activeConfig.BossRush.enable) {
 		gameModeData.bossRushMissionEnabled = false;
 	}
+
+	if (initializedMission && activeCrimsonGameplay.Gameplay.General.charHotswap) {
+		gameModeData.characterSwitchingEnabled = true;
+	} else if (!initializedMission && !activeCrimsonGameplay.Gameplay.General.charHotswap) {
+		gameModeData.characterSwitchingEnabled = false;
+	}
 }
 
 void CrimsonGameModes::TrackMissionResultGameMode() {
@@ -738,6 +788,7 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 	static bool mustStyleChanged = false;
 	static bool enemyDTChanged = false;
 	static bool forceDifficultyChanged = false;
+	static bool multiplayerChanged = false;
 
 	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
 	if (!name_10723) {
@@ -756,6 +807,7 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 	static uint32 initialMustStylePreset = STYLE_RANK::NONE;
 	static bool enemyDTLockedNoDT = false; 
 	static uint32 initialForceDifficulty = DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF;
+	static bool initialMultiplayer = activeConfig.Actor.playerCount > 1;
 
 	if (missionData.frameCount > 0 && g_scene != SCENE::MISSION_RESULT) { // Mission is Running
 		if (!initializedMission) {
@@ -764,6 +816,7 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 			initialEnemyDTPreset = activeCrimsonGameplay.Gameplay.ExtraDifficulty.enemyDTMode;
 			initialMustStylePreset = activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode;
 			initialForceDifficulty = activeCrimsonGameplay.Gameplay.ExtraDifficulty.forceDifficultyMode;
+			initialMultiplayer = activeConfig.Actor.playerCount > 1;
 			initializedMission = true;
 			presetChanged = false;
 			ldkChanged = false;
@@ -771,6 +824,7 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 			enemyDTChanged = false;
 			enemyDTLockedNoDT = false; // Reset lock at mission start
 			forceDifficultyChanged = false;
+			multiplayerChanged = false;
 		} else if (activeCrimsonGameplay.GameMode.preset != initialPreset) {
 			presetChanged = true;
 			gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : activeCrimsonGameplay.GameMode.preset;
@@ -803,6 +857,14 @@ void CrimsonGameModes::TrackMissionResultGameMode() {
 			if (initialForceDifficulty != DIFFICULTY_MODE::FORCE_DIFFICULTY_OFF || forceDifficultyChanged) {
 				gameModeData.forceDifficultyResult = true;
 			} 
+		}
+
+		bool multiplayerActive = activeConfig.Actor.playerCount > 1;
+		if (initialMultiplayer != multiplayerActive) {
+			multiplayerChanged = true;
+			gameModeData.multiplayerEnabled = false;
+		} else {
+			gameModeData.multiplayerEnabled = activeConfig.Actor.playerCount > 1;
 		}
 	} else if (g_scene == SCENE::MISSION_RESULT) { // Mission Result Screen
 		gameModeData.missionResultGameMode = presetChanged ? GAMEMODEPRESETS::UNRATED : gameModeData.missionResultGameMode;

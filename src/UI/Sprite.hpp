@@ -4,12 +4,12 @@
 
 namespace Graphics
 {
-	class Sprite : public Drawable
+	class SpriteDesc : public Drawable
 	{
 	public:
-		Sprite(std::string texturePath, Rect bb = { -1.0f, 1.0f, 1.0f, -1.0f },
+		SpriteDesc(std::string texturePath, Rect bb = { -1.0f, 1.0f, 1.0f, -1.0f },
 			Rect uv = { 0.0f, 0.0f, 1.0f, 1.0f });
-		virtual ~Sprite();
+		virtual ~SpriteDesc();
 
 		const auto& GetTexturePath() const { return m_TexturePath; };
 

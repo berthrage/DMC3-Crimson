@@ -1,0 +1,3 @@
+SOUND EFFECT CALLS:
+dmc3.exe+20EE82 - E8 99A41200           - call dmc3.exe+339320 { Point Blank CC Sound Effect }
+dmc3.exe+20B26C - E8 AFE01200           - call dmc3.exe+339320 { Tornado's CC Sound Effect }

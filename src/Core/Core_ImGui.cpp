@@ -108,12 +108,8 @@ void UpdateKeyboard(DIKEYBOARDSTATE* stateAddr) {
     io.KeyShift = ((state.keys[KEY::LEFT_SHIFT] & 0x80) || (state.keys[KEY::RIGHT_SHIFT] & 0x80)) ? true : false;
     io.KeyAlt   = ((state.keys[KEY::LEFT_ALT] & 0x80) || (state.keys[KEY::RIGHT_ALT] & 0x80)) ? true : false;
 
-    SetMemory(io.KeysDown, 0, 256);
-
     for_all(index, 256) {
-        if (state.keys[index] & 0x80) {
-            io.KeysDown[index] = true;
-        }
+        io.KeysDown[index] = (state.keys[index] & 0x80) ? true : false;
     }
 }
 

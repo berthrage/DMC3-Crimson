@@ -2,7 +2,7 @@
 
 namespace Graphics
 {
-    Sprite::Sprite(std::string texturePath, Rect bb, Rect uv)
+    SpriteDesc::SpriteDesc(std::string texturePath, Rect bb, Rect uv)
         : m_TexturePath(texturePath),
         Drawable(
             // Quad
@@ -16,6 +16,6 @@ namespace Graphics
             )
     {}
 
-    Sprite::~Sprite()
+    SpriteDesc::~SpriteDesc()
     {}
 }

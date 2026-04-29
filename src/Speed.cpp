@@ -11,6 +11,64 @@
 
 namespace Speed {
 
+static float GetFrameResponsiveMultiplier() {
+    if (g_FrameRateTimeMultiplier > 0.0f) {
+        return g_FrameRateTimeMultiplier;
+    }
+    return 1.0f;
+}
+
+static float g_effectiveMainSpeed = 1.0f;
+static float g_effectiveTurboSpeed = 1.2f;
+static float g_effectiveCutsceneSpeed = 1.0f;
+
+void UpdateEffectiveSpeeds() {
+    float multiplier = GetFrameResponsiveMultiplier();
+    g_effectiveMainSpeed = activeCrimsonGameplay.Cheats.Speed.defaultGame * multiplier;
+    g_effectiveTurboSpeed = activeCrimsonGameplay.Cheats.Speed.turboGame * multiplier;
+    g_effectiveCutsceneSpeed = 1.0f * multiplier;
+}
+
+static float GetEffectiveGlobalSpeed() {
+    return IsTurbo() ? g_effectiveTurboSpeed : g_effectiveMainSpeed;
+}
+
+void ApplyRuntimeGlobalSpeed() {
+	auto pool_C90E10 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_C90E10 || !pool_C90E10[5]) {
+		return;
+	}
+	auto& eventData = *reinterpret_cast<CSceneGameMain*>(pool_C90E10[5]);
+
+    auto speeds = reinterpret_cast<float*>(appBaseAddr + 0xCF2D90);
+
+    // Handling menu speeds
+	if (activeCrimsonConfig.System.disableMenuTransitions) {
+        if (eventData.event != EVENT::MAIN) {
+            speeds[SPEED::GLOBAL] = 1.0f * 10000.0f;
+            speeds[SPEED::GLOBAL_4] = 1.0f * 1000.0f;
+        }
+		else {
+			speeds[SPEED::GLOBAL_4] = 1.0f;
+		}
+    }
+    else {
+        if (eventData.event != EVENT::MAIN) {
+			speeds[SPEED::GLOBAL] = g_effectiveCutsceneSpeed;
+        }
+    }
+
+	// Handling Cutscene speeds and Main game speed
+	if (g_scene == SCENE::CUTSCENE) {
+		speeds[SPEED::GLOBAL] = g_effectiveCutsceneSpeed;
+	}
+	else {
+		if (eventData.event == EVENT::MAIN) {
+            speeds[SPEED::GLOBAL] = GetEffectiveGlobalSpeed();
+        }
+	}
+}
+
 void Toggle(bool enable) {
     //LogFunction();
 
@@ -31,7 +89,7 @@ void Toggle(bool enable) {
         }
 
         if (enable) {
-            Write<float>((addr + 2), activeConfig.Speed.mainSpeed);
+            Write<float>((addr + 2), g_effectiveMainSpeed);
         } else {
             backupHelper.Restore(addr);
         }
@@ -51,7 +109,7 @@ void Toggle(bool enable) {
         }
 
         if (enable) {
-            Write((addr + 6), activeConfig.Speed.mainSpeed);
+            Write<float>((addr + 6), g_effectiveCutsceneSpeed);
         } else {
             backupHelper.Restore(addr);
         }
@@ -78,7 +136,7 @@ void Toggle(bool enable) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<float**>(func.sect0 + 2) = &activeConfig.Speed.turbo;
+            *reinterpret_cast<float**>(func.sect0 + 2) = &g_effectiveTurboSpeed;
         }
 
         if (enable) {
@@ -142,14 +200,6 @@ void Toggle(bool enable) {
             backupHelper.Restore(addr);
         }
     }
-
-
-    if (g_scene == SCENE::GAME) {
-        auto speeds = reinterpret_cast<float*>(appBaseAddr + 0xCF2D90);
-
-        speeds[SPEED::GLOBAL] = (IsTurbo()) ? activeConfig.Speed.turbo : activeConfig.Speed.mainSpeed;
-    }
-
 
     run = true;
 }

@@ -6,6 +6,7 @@
 #pragma region GameplayImprovements
 
 namespace CrimsonPatches {
+void PauseGameTime(bool enable);
 void DisableHeightRestriction(bool enable);
 void HoldToAutoFire(bool enable);
 void EndBossFight(bool enable);
@@ -14,9 +15,12 @@ void ImprovedBufferedReversals(bool enable);
 void DisableJCRestriction(bool enable);
 void BulletStop(bool enable);
 void RainstormLift(bool enable);
+void DriveProjectileThroughWalls(bool enable);
 void ToggleIncreasedEnemyJuggleTime(bool enable);
 void DisableAirSlashKnockback(bool enable);
 void ToggleIncreasedArtemisInstantChargeResponsiveness(bool enable);
+void ToggleKillPointBlankCCEffects(bool enable);
+void ToggleKillTornadoCCEffects(bool enable);
 
 #pragma endregion
 
@@ -27,6 +31,7 @@ void CameraFollowUpSpeedController(CameraData& cameraData, CameraControlMetadata
 void CameraDistanceController(CameraControlMetadata& cameraMetadata);
 void CameraLockOnDistanceController();
 void CameraTiltController(CameraData* cameraData, CameraControlMetadata& cameraMetadata);
+void DisableCameraShake(bool enable);
 void ForceThirdPersonCamera(bool enable);
 void ToggleLockedOffCamera(bool enable);
 void DisableLockOnCamera(bool enable);
@@ -57,6 +62,9 @@ void AirTauntToggleController(byte8* actorBaseAddr);
 
 void CerberusCrashFixPart2(bool enable);
 void ToggleM6CrashFix(bool enable);
+void ToggleTempFixHighFPSEnigmaShls(bool enable);
+void MenuScrollTapSpeedFix(bool enable);
+void KillTurnRateTruncation(bool enable);
 
 #pragma endregion
 
@@ -65,6 +73,7 @@ void ToggleM6CrashFix(bool enable);
 void DisableEnemyTargetting1PPosition(bool enable);
 void ToggleDisableSoulEaterInvis(bool enable);
 void SetEnemyDTMode(uint8 mode);
+void DisableRegularEnemyAttacks(bool enable);
 
 #pragma endregion
 

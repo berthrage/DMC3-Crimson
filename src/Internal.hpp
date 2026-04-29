@@ -161,7 +161,7 @@ extern func_1DFDA0_t func_1DFDA0; // (byte8 *, uint32, uint8, float32, float32, 
 extern func_1FB300_t func_1FB300; // (byte8 * actorData, uint32 direction, float32 value)
 extern func_1E09D0_t func_1E09D0; // (byte8 * actorBaseAddr, uint32 event)
 extern func_175210_t func_175210; // (vec4 *, vec4 *, __m128)
-extern func_1E0800_t func_1E0800; // (byte8 * actorData, uint32 index, uint32, uint32)
+extern func_1E0800_t func_1E0800_TriggerEvent; // (byte8 * actorData, uint32 index, uint32, uint32)
 extern func_211100_t func_211100; // (byte8 * actorData)
 extern func_1F01F0_t func_1F01F0; // (byte8 * actorData, uint32 index)
 extern func_2F74E0_t func_2F74E0; // (byte8 * dest, uint32 index)

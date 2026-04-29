@@ -26,10 +26,12 @@ struct CrimsonConfigGameplay {
 
         struct General {
 			bool inertia = true;
+			bool extramoves = true;
 			bool sprint = true;
 			bool charHotswap = false;
 			bool freeformSoftLock = true;
 			bool bufferlessReversals = true;
+			float reversalWindow = 115.0f;
 			bool dmc4LockOnDirection = true;
             bool holdToCrazyCombo = true;
 			bool holdToShoot = false;
@@ -42,15 +44,19 @@ struct CrimsonConfigGameplay {
 			bool fasterTurnRate = true;
 			float vanillaWeaponSwitchDelay = 12;
 			bool disableSoulEaterInvis = true;
+			bool multiplayerDamageScaling = true;
+			bool consecutiveDirectionalMoves = true;
             
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
 					std::make_pair("inertia", &General::inertia),
+					std::make_pair("extramoves", &General::extramoves),
 					std::make_pair("sprint", &General::sprint),
 					std::make_pair("charHotswap",&General::charHotswap),
 					std::make_pair("freeformSoftLock", &General::freeformSoftLock),
 					std::make_pair("bufferlessReversals", &General::bufferlessReversals),
+					std::make_pair("reversalWindow", &General::reversalWindow),
 					std::make_pair("dmc4LockOnDirection", &General::dmc4LockOnDirection),
                     std::make_pair("holdToCrazyCombo", &General::holdToCrazyCombo),
 					std::make_pair("holdToShoot", &General::holdToShoot),
@@ -62,7 +68,9 @@ struct CrimsonConfigGameplay {
 					std::make_pair("increasedEnemyJuggleTime", &General::increasedEnemyJuggleTime),
 					std::make_pair("fasterTurnRate", &General::fasterTurnRate),
 					std::make_pair("vanillaWeaponSwitchDelay", &General::vanillaWeaponSwitchDelay),
-					std::make_pair("disableSoulEaterInvis", &General::disableSoulEaterInvis)
+					std::make_pair("disableSoulEaterInvis", &General::disableSoulEaterInvis),
+					std::make_pair("multiplayerDamageScaling", &General::multiplayerDamageScaling),
+					std::make_pair("consecutiveDirectionalMoves", &General::consecutiveDirectionalMoves)
 				);
 			}
         } General;
@@ -73,25 +81,26 @@ struct CrimsonConfigGameplay {
 			bool rainstormLift = true;
 			bool infiniteRainstorm = true;	
 			bool foursomeTime = true;
-			bool aerialRaveTweaks = true;
-			bool airFlickerTweaks = true;
-			bool skyDanceTweaks = true;
-			bool downertiaFromAirFlickerSkyDance = false;
+			bool aerialMovesTweaks = true;
+			bool downertiaD = false;
 			bool shotgunAirShotTweaks = true;
-			bool driveTweaks = true;
+			bool driveRework = true;
 			bool disableAirSlashKnockback = true;
 			bool airStinger = true;
 			bool airRevolver = true;
 			bool airTornado = true;
-			bool airRisingDragonWhirlwind = true;
+			bool airRisingDragonLaunch = true;
 			bool airAgniRudraWhirlwind = true;
+			bool skyLaunchAirTaunt = true;
 			bool dmc4Mobility = true;
 			bool dTInfusedRoyalguard = true;
 			bool airHikeCoreAbility = true;
 			bool altNevanVortex = true;
 			bool artemisRework = true;
+			bool groundTrick = true;
 			bool swapArtemisMultiLockNormalShot = true;
 			bool swapDancePierceInputs = true;
+			bool swapHammerVocalnoInputs = true;
 
 			static constexpr auto Metadata() {
                 return std::make_tuple(
@@ -100,25 +109,26 @@ struct CrimsonConfigGameplay {
 					std::make_pair("rainstormLift", &Dante::rainstormLift),
 					std::make_pair("infiniteRainstorm", &Dante::infiniteRainstorm),
 					std::make_pair("foursomeTime", &Dante::foursomeTime),
-					std::make_pair("aerialRaveTweaks", &Dante::aerialRaveTweaks),
-					std::make_pair("airFlickerTweaks", &Dante::airFlickerTweaks),
-					std::make_pair("skyDanceTweaks", &Dante::skyDanceTweaks),
-					std::make_pair("downertiaFromAirFlickerSkyDance", &Dante::downertiaFromAirFlickerSkyDance),
+					std::make_pair("aerialMovesTweaks", &Dante::aerialMovesTweaks),
+					std::make_pair("downertiaD", &Dante::downertiaD),
 					std::make_pair("shotgunAirShotTweaks", &Dante::shotgunAirShotTweaks),
-					std::make_pair("driveTweaks", &Dante::driveTweaks),
+					std::make_pair("driveRework", &Dante::driveRework),
 					std::make_pair("disableAirSlashKnockback", &Dante::disableAirSlashKnockback),
 					std::make_pair("airStinger", &Dante::airStinger),
 					std::make_pair("airRevolver", &Dante::airRevolver),
 					std::make_pair("airTornado", &Dante::airTornado),
-					std::make_pair("airRisingDragonWhirlwind", &Dante::airRisingDragonWhirlwind),
+					std::make_pair("airRisingDragonLaunch", &Dante::airRisingDragonLaunch),
 					std::make_pair("airAgniRudraWhirlwind", &Dante::airAgniRudraWhirlwind),
+					std::make_pair("skyLaunchAirTaunt", &Dante::skyLaunchAirTaunt),
 					std::make_pair("dmc4Mobility", &Dante::dmc4Mobility),
 					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard),
 					std::make_pair("airHikeCoreAbility", &Dante::airHikeCoreAbility),
 					std::make_pair("altNevanVortex", &Dante::altNevanVortex),
 					std::make_pair("artemisRework", &Dante::artemisRework),
+					std::make_pair("groundTrick", &Dante::groundTrick),
 					std::make_pair("swapArtemisMultiLockNormalShot", &Dante::swapArtemisMultiLockNormalShot),
-					std::make_pair("swapDancePierceInputs", &Dante::swapDancePierceInputs)
+					std::make_pair("swapDancePierceInputs", &Dante::swapDancePierceInputs),
+					std::make_pair("swapHammerVocalnoInputs", &Dante::swapHammerVocalnoInputs)
 				);
 			}
         } Dante;
@@ -130,10 +140,12 @@ struct CrimsonConfigGameplay {
 			bool airStinger = true;
 			bool airRisingSun = true;
 			bool airLunarPhase = true;
-			bool altJudgementCutInput = false;
+			bool judgementCutRework = false;
 			bool yamatoRisingStar = true;
 			bool yamatoHighTime = true;
+			bool airTauntRisingSun = true;
 			bool mirageTrigger = true;
+			bool downertia = true;
 			bool trickUpNoLockOn = true;
 			std::string adjustLunarPhasePos = "From Air";
 
@@ -145,10 +157,12 @@ struct CrimsonConfigGameplay {
 					std::make_pair("airStinger", &Vergil::airStinger),
 					std::make_pair("airRisingSun", &Vergil::airRisingSun),
 					std::make_pair("airLunarPhase", &Vergil::airLunarPhase),
-					std::make_pair("altJudgementCutInput", &Vergil::altJudgementCutInput),
+					std::make_pair("judgementCutRework", &Vergil::judgementCutRework),
 					std::make_pair("yamatoRisingStar", &Vergil::yamatoRisingStar),
 					std::make_pair("yamatoHighTime", &Vergil::yamatoHighTime),
+					std::make_pair("airTauntRisingSun", &Vergil::airTauntRisingSun),
 					std::make_pair("mirageTrigger", &Vergil::mirageTrigger),
+					std::make_pair("downertia", &Vergil::downertia),
 					std::make_pair("trickUpNoLockOn", &Vergil::trickUpNoLockOn),
 					std::make_pair("adjustLunarPhasePos", &Vergil::adjustLunarPhasePos)
 				);
@@ -215,6 +229,7 @@ struct CrimsonConfigGameplay {
 		struct Training {
 			bool infiniteHP = false;
 			bool infiniteDT = false;
+			bool disableRegularEnemyAttacks = false;
 			bool disableTimers = false;
 			bool infiniteBossLadyBullets = false;
 
@@ -222,6 +237,7 @@ struct CrimsonConfigGameplay {
 				return std::make_tuple(
 					std::make_pair("infiniteHP", &Training::infiniteHP),
 					std::make_pair("infiniteDT", &Training::infiniteDT),
+					std::make_pair("disableRegularEnemyAttacks", &Training::disableRegularEnemyAttacks),
 					std::make_pair("disableTimers", &Training::disableTimers),
 					std::make_pair("infiniteBossLadyBullets", &Training::infiniteBossLadyBullets)
 				);
@@ -241,6 +257,8 @@ struct CrimsonConfigGameplay {
 		} Damage;
 
 		struct Speed {
+			float defaultGame = 1.0f;
+			float turboGame = 1.2f;
 			float enemy = 1.0f;
 			float human = 1.0f;
 			float dTDante[6] = {
@@ -263,6 +281,8 @@ struct CrimsonConfigGameplay {
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
+					std::make_pair("defaultGame", &Speed::defaultGame),
+					std::make_pair("turboGame", &Speed::turboGame),
 					std::make_pair("enemy", &Speed::enemy),
 					std::make_pair("human", &Speed::human),
 					std::make_pair("dTDante", &Speed::dTDante),
@@ -365,10 +385,12 @@ struct CrimsonConfigGameplay {
 
 	struct Debug {
 		bool debugTools = false;
+		bool showHitboxes = false;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
-				std::make_pair("debugTools", &Debug::debugTools)
+				std::make_pair("debugTools", &Debug::debugTools),
+				std::make_pair("showHitboxes", &Debug::showHitboxes)
 			);
 		}
 	} Debug;
@@ -405,9 +427,16 @@ struct CrimsonConfigGameplay {
 // - CrimsonConfigGameplay is a struct that contains all gameplay-related configurations.
 // - Mia
 
+extern CrimsonConfigGameplay activeCrimsonGameplay;
 extern CrimsonConfigGameplay defaultCrimsonGameplay;
 extern CrimsonConfigGameplay queuedCrimsonGameplay;
-extern CrimsonConfigGameplay activeCrimsonGameplay;
+
+extern "C" {
+	// Exported pointers for MASM access
+	extern bool* g_FasterTurnRateSettingAddr;
+}
+
+
 
 #pragma pack(pop)
 #pragma optimize("", on) // Re-enable optimizations

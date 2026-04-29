@@ -18,6 +18,8 @@ include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/Detours/Detours/src)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/debug-draw)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/curl/include)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/openssl/include)
+include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/Effekseer/src/Effekseer)
+include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/Effekseer/src/EffekseerRendererDX11)
 include_directories(${CMAKE_SOURCE_DIR}/src/Utility)
 
 add_compile_options(/W0)
@@ -28,8 +30,11 @@ add_compile_options(/Ob1)
 # Add O2 optimization for Release
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2")
 
+# Add debug symbols for Release and also use Incremental linking to speed up the build process
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
-set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG:FULL /OPT:REF /OPT:ICF")
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG:FULL /INCREMENTAL /OPT:NOREF /OPT:NOICF")
+set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG:FULL /INCREMENTAL /OPT:NOREF /OPT:NOICF")
+set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "${CMAKE_MODULE_LINKER_FLAGS_RELEASE} /DEBUG:FULL /INCREMENTAL /OPT:NOREF /OPT:NOICF")
 
 # set output directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -52,3 +57,4 @@ set(PROJECT_ROOT ${CMAKE_CURRENT_LIST_DIR})
 
 add_subdirectory(ThirdParty)
 add_subdirectory(src)
+

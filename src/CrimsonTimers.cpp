@@ -21,6 +21,43 @@
 
 namespace CrimsonTimers {
 
+void MissionTimer() {
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!(pool_10222 && pool_10222[3])) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_10723) return;
+	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
+	auto  pool_10298 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_10298 || !pool_10298[8]) return;
+	auto& eventData = *reinterpret_cast<EventData*>(pool_10298[8]);
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	static bool inGame = false;
+
+	float frameRate = ImGui::GetIO().Framerate;
+
+	if (g_scene == SCENE::GAME) {
+		inGame = true;
+	}
+
+	if (inGame && g_scene == SCENE::MISSION_RESULT) {
+		// convert shownTimer to frameCount and apply it to missionData.frameCount
+		int convertedFrames = static_cast<int>(g_missionTimer * ImGui::GetIO().Framerate + 0.5f); // round
+		missionData.frameCount = convertedFrames;
+		inGame = false;
+	}
+
+	// Reset shownTimer if frameCount is reset (new mission start)
+	if (missionData.frameCount <= 0) {
+        g_missionTimer = 0.0f;
+	}
+
+	// Always update timer if frameCount > 0 and not in cutscene and not paused
+	if (missionData.frameCount > 0 && eventData.event == EVENT::MAIN && !g_inGameCutscene && !g_inGUIPause) {
+        g_missionTimer += g_deltaTime * GetCurrentGameSpeed();
+	}
+}
+
 void ActionTimers() {
 	auto pool_10371 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if (!pool_10371 || !pool_10371[8]) return;
@@ -44,7 +81,10 @@ void ActionTimers() {
 			auto& lastAction = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastAction : crimsonPlayer[playerIndex].lastActionClone;
 			auto& actionTimerNotEventChange = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimerNotEventChange : crimsonPlayer[playerIndex].actionTimerNotEventChangeClone;
             auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
+			auto& actionTimerNotTrickChange = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimerNotTrickChange : crimsonPlayer[playerIndex].actionTimerNotTrickChangeClone;
             auto& lastActionTime = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastActionTime : crimsonPlayer[playerIndex].lastActionTimeClone;
+            auto& inAirRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inAirTauntRisingSun : crimsonPlayer[playerIndex].inAirTauntRisingSunClone;
+            auto& lastInAirTauntRisingSun = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].lastInAirTauntRisingSun : crimsonPlayer[playerIndex].lastInAirTauntRisingSunClone;
 
             if (inAttack) {
                 if (eventData.event != EVENT::PAUSE) {
@@ -56,12 +96,27 @@ void ActionTimers() {
                 actionTimer = 0;
             }
 
+			if (inAttack || actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK ||
+				actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN ||
+				actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP ||
+                actorData.eventData[0].event == ACTOR_EVENT::LANDING || actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
+				actionTimerNotTrickChange += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+            }
+            else {
+				actionTimerNotTrickChange = 0;
+            }
+
             // Reset Timer By Action
             if (actorData.action != currentAction) {
                 lastActionTime = actionTimerNotEventChange;
                 actionTimer = 0;
 				actionTimerNotEventChange = 0;
+				if (actorData.action != ACTION_VERGIL::DARK_SLAYER_AIR_TRICK && 
+                    actorData.action != ACTION_VERGIL::DARK_SLAYER_TRICK_DOWN &&
+					actorData.action != ACTION_VERGIL::DARK_SLAYER_TRICK_UP &&
+                    actorData.action != 0) actionTimerNotTrickChange = 0;
                 lastAction = currentAction;
+                lastInAirTauntRisingSun = inAirRisingSun;
                 currentAction = actorData.action;
             }
         }
@@ -89,7 +144,7 @@ void AnimTimers() {
             if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
             auto& currentAnim = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].currentAnim : crimsonPlayer[playerIndex].currentAnimClone;
             auto& actorMotion = actorData.motionData[0].index;
-            auto& animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].animTimer : crimsonPlayer[playerIndex].animTimerClone;
+            auto& animTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].motionTimer : crimsonPlayer[playerIndex].motionTimerClone;
 
 
             // Reset Timer By Animation IDs
@@ -179,6 +234,40 @@ void TrickDashTimers () {
 	}
 }
 
+void EbonyAndIvoryTimers() {
+    using namespace ACTION_DANTE;
+	static uint32 currentEvent[PLAYER_COUNT][ENTITY_COUNT] = { 0 };
+
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+		old_for_all(uint8, entityIndex, ENTITY_COUNT) {
+			auto& playerData = GetPlayerData(playerIndex);
+
+			auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, entityIndex);
+
+			auto actorBaseAddr = newActorData.baseAddr;
+
+			if (!actorBaseAddr) {
+				continue;
+			}
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+			if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
+
+			auto& actorEvent = actorData.eventData[0].event;
+			auto& eAndIShotTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].eAndIShotTimer : crimsonPlayer[playerIndex].eAndIShotTimerClone;
+
+
+			// Reset Timer by Event ID or Style button press
+			if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT) {
+				eAndIShotTimer += g_deltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+
+				if (actorData.buttons[0] & GetBinding(BINDING::SHOOT)) {
+					eAndIShotTimer = 0;
+				}
+			}
+		}
+	}
+}
+
 std::chrono::steady_clock::time_point guardflyStartTime;
 
 void ResetGuardflyTimer(float timer) {
@@ -252,20 +341,6 @@ void SprintTimer() {
             // sprint.timer = sprint.timeToTrigger;
             crimsonPlayer[playerIndex].sprint.runTimer  = false;
             crimsonPlayer[playerIndex].sprint.canSprint = true;
-        }
-    }
-}
-
-void DriveTimer() {
-
-    old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-
-
-        if (crimsonPlayer[playerIndex].drive.runTimer) {
-
-            crimsonPlayer[playerIndex].drive.timer += (ImGui::GetIO().DeltaTime * crimsonPlayer[playerIndex].speed) / g_FrameRateTimeMultiplier;
-        } else {
-            crimsonPlayer[playerIndex].drive.timer = 0;
         }
     }
 }
@@ -483,23 +558,40 @@ void VergilDoppelgangerDrainTimer() {
 	}
 }
 
+void StyleRankAnnouncerCDTimers() {
+    for (int rankId = 0; rankId < 7; rankId++) {
+        auto& timer = rankAnnouncer[rankId].timer;
+		auto& wasHit = rankAnnouncer[rankId].wasHit;
+		auto& offCooldown = rankAnnouncer[rankId].offCooldown;
+
+        if (timer > 0) {
+            timer -= ImGui::GetIO().DeltaTime;
+			offCooldown = false;
+        } else {
+			offCooldown = true;
+        }
+	}
+}
+
 
 void CallAllTimers() {
 	BackToForwardTimers();
+    MissionTimer();
 	ActionTimers();
 	AnimTimers();
     EventTimers();
     TrickDashTimers();
+    EbonyAndIvoryTimers();
     GuardflyTimers();
 	SiyTimerFunc();
 	SprintTimer();
-	DriveTimer();
 	ImprovedCancelsTimers();
 	StyleSwitchTextTimers();
 	StyleSwitchFluxTimers();
 	DTEVFXTimers();
 	VergilDoppelgangerCooldownTimer();
     VergilDoppelgangerDrainTimer();
+    StyleRankAnnouncerCDTimers();
 }
 
 }

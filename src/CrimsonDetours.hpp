@@ -82,9 +82,6 @@ void FreeformSoftLockHelperDetour();
 // DMC4/5LockOnDirection
 void DMC4LockOnDirectionDetour();
 
-// FasterTurnRate
-void FasterTurnRateDetour();
-
 // StyleRankHudNoFadeout
 void StyleRankHudNoFadeoutDetour();
 
@@ -112,7 +109,7 @@ void ToggleGuardGravityAlteration(bool enable);
 void ToggleDisableDriveHold(bool enable);
 void ToggleHideStyleRankHUD(bool enable);
 void ToggleDTInfusedRoyalguardDetours(bool enable);
-void ToggleFasterTurnRate(bool enable);
+void ToggleTurnRateFix(bool enable);
 void ToggleShootRemapDown(bool enable);
 void ToggleFreeformSoftLockHelper(bool enable);
 void ToggleDMC4LockOnDirection(bool enable);
@@ -121,10 +118,15 @@ void ToggleCustomCameraSensitivity(bool enable);
 void ToggleHoldToCrazyCombo(bool enable);
 void AirTauntDetours(bool enable);
 void RerouteRedOrbsCounterAlpha(bool enable, volatile uint16_t& alphaVar);
+void ToggleEnsureAirRisingDragonLaunch(bool enable);
+void ToggleConfirmSetAction(bool enable);
 void ToggleGreenOrbsMPRegen(bool enable);
 void ToggleClassicHUDPositionings(bool enable);
 void ToggleHideAndMutePortals(bool enable);
 void ToggleStyleRankHudNoFadeout(bool enable);
+void ToggleDanteTrickAlterations(bool enable);
+void ToggleShotgunShlSpawnAnglePointBlank(bool enable);
+void ToggleJudgementCutDetours(bool enable);
 void ToggleFixBallsHangHitSpeed(bool enable);
 void ToggleFixSecretMissionTimerFPS(bool enable);
 void ToggleCerberusCrashFix(bool enable);
@@ -134,4 +136,5 @@ void ToggleCerbDamageFix(bool enable);
 void ToggleArkhamPt2GrabCrashFix(bool enable);
 void ToggleArkhamPt2DoppelCrashFix(bool enable);
 void ToggleStyleLevellingCCSFix(bool enable);
+void ToggleDTMustStyleArmor(bool enable);
 }

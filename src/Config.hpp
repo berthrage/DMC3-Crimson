@@ -110,11 +110,6 @@ struct Config {
     } Rebellion;
 
     struct {
-        float mainSpeed = 1.0f;
-        float turbo     = 1.2f;
-    } Speed;
-
-    struct {
         float stingerDuration[2]    = {16, 16};
         float stingerRange[2]       = {560, 560};
         uint8 airStingerCount[2]    = {1, 1};
@@ -140,7 +135,6 @@ struct Config {
 
     bool enableFileMods = true;
 
-    float frameRate = 120;
     uint8 vSync     = 1;
 
     bool hideMouseCursor = false;

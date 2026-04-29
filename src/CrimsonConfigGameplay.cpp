@@ -4,3 +4,5 @@
 CrimsonConfigGameplay defaultCrimsonGameplay;
 CrimsonConfigGameplay queuedCrimsonGameplay;
 CrimsonConfigGameplay activeCrimsonGameplay;
+
+bool* g_FasterTurnRateSettingAddr = nullptr;

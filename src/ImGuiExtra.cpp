@@ -9,6 +9,8 @@
 #include "UI/EmbeddedImages.hpp"
 
 namespace UI {
+#include "Fonts/Benguiat.hpp"
+#include "Fonts/Messenger.hpp"
 #include "Fonts/RobotoMedium.hpp"
 #include "Fonts/RussoOneRegular.hpp"
 #include "Fonts/RedOrbRusso.hpp"
@@ -21,9 +23,17 @@ namespace UI {
 
 	RussoOne_t g_ImGuiFont_RedOrbRusso;
 
+	RussoOne_t g_ImGuiFont_Benguiat;
+
+	RussoOne_t g_ImGuiFont_Messenger;
+
 	RussoOne_t g_ImGuiFont_RedOrbRussoBackdrop;
 
 	UIContext g_UIContext;
+
+	ImFont* g_ImGuiFont_Benguiat256 = nullptr;
+
+	ImFont* g_ImGuiFont_Messenger256 = nullptr;
 
 	ImFont* g_ImGuiFont_RussoOne256 = nullptr;
 
@@ -73,7 +83,7 @@ namespace UI {
 
 		style.Colors[ImGuiCol_Text] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 		style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.858f, 0.929f, 0.886f, 0.280f);
-		style.Colors[ImGuiCol_WindowBg] = ImVec4(0.207f, 0.156f, 0.168f, queuedCrimsonConfig.GUI.opacity);
+		style.Colors[ImGuiCol_WindowBg] = ImVec4(0.1f, 0.1f, 0.1f, queuedCrimsonConfig.GUI.opacity);
 		style.Colors[ImGuiCol_WindowBgText] = ImVec4(0.207f, 0.156f, 0.168f, 1.0f);
 		style.Colors[ImGuiCol_ChildBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
 		style.Colors[ImGuiCol_PopupBg] = ImVec4(0.200f, 0.219f, 0.266f, 0.899f);
@@ -93,7 +103,7 @@ namespace UI {
 		style.Colors[ImGuiCol_CheckMark] = ImVec4(0.886f, 0.070f, 0.235f, 1.0f);
 		style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.855f, 0.106f, 0.325f, 1.0f);
 		style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.980f, 0.278f, 0.261f, 1.0f);
-		style.Colors[ImGuiCol_Button] = ImVec4(0.199f, 0.215f, 0.266f, 0.490f);
+		style.Colors[ImGuiCol_Button] = ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(0xDA1B53FF));
 		style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.529f, 0.184f, 0.254f, 0.858f);
 		style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.788f, 0.062f, 0.211f, 1.0f);
 		style.Colors[ImGuiCol_Header] = ImVec4(0.690f, 0.054f, 0.184f, 0.494f);
@@ -126,6 +136,12 @@ namespace UI {
 		style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.800f, 0.800f, 0.800f, 0.200f);
 		style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.800f, 0.800f, 0.800f, 0.349f);
 
+		
+	}
+
+	void BuildFontsCrimson() {
+		ImGuiStyle& style = ImGui::GetStyle();
+
 		// Fonts
 		auto& io = ImGui::GetIO();
 
@@ -151,6 +167,18 @@ namespace UI {
 		for (size_t i = 0; i < g_ImGuiFont_RedOrbRussoBackdrop.m_FontSizes.size(); i++) {
 			g_ImGuiFont_RedOrbRussoBackdrop.m_FontSizes[i] = io.Fonts->AddFontFromMemoryCompressedTTF(RedOrbRussoBackdrop_compressed_data, RedOrbRussoBackdrop_compressed_size, float(i + 10), nullptr, ranges.Data);
 		}
+
+		for (size_t i = 0; i < g_ImGuiFont_Benguiat.m_FontSizes.size(); i++) {
+			g_ImGuiFont_Benguiat.m_FontSizes[i] = io.Fonts->AddFontFromMemoryCompressedTTF(Benguiat_compressed_data, Benguiat_compressed_size, float(i + 10), nullptr, ranges.Data);
+		}
+
+		for (size_t i = 0; i < g_ImGuiFont_Messenger.m_FontSizes.size(); i++) {
+			g_ImGuiFont_Messenger.m_FontSizes[i] = io.Fonts->AddFontFromMemoryCompressedTTF(Messenger_compressed_data, Messenger_compressed_size, float(i + 10), nullptr, ranges.Data);
+		}
+
+		g_ImGuiFont_Benguiat256 = io.Fonts->AddFontFromMemoryCompressedTTF(Benguiat_compressed_data, Benguiat_compressed_size, 80.0f, nullptr, ranges.Data);
+
+		g_ImGuiFont_Messenger256 = io.Fonts->AddFontFromMemoryCompressedTTF(Messenger_compressed_data, Messenger_compressed_size, 100.0f, nullptr, ranges.Data);
 
 		g_ImGuiFont_RussoOne256 = io.Fonts->AddFontFromMemoryCompressedTTF(RussoOneRegular_compressed_data, RussoOneRegular_compressed_size, 256.0f, nullptr, ranges.Data);
 
@@ -221,7 +249,7 @@ namespace UI {
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, !isEnabled);
 		bool ret = ButtonEx(label, size, SwapColorEndianness(0xFFFFFFFF), ImGuiButtonFlags_None);
 		if (ret) {
-			if (activeCrimsonConfig.GUI.sounds) PlaySound(0, 2);
+			if (activeCrimsonConfig.GUI.sounds) FMOD_PlaySound(0, 2);
 		}
 		ImGui::PopItemFlag();
 
