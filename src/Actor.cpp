@@ -1130,6 +1130,10 @@ bool IsMeleeWeaponReady(PlayerActorData& actorData, uint8 weapon) {
         }
 
         if (actorData.devil && actorData.sparda) {
+            if (actorData.meleeWeaponIndex == weapon) {
+                return true; // Fixes some attacks not registering when using DT and Sparda.
+            }
+
             return false;
         }
 
