@@ -13,12 +13,13 @@ namespace CrimsonBetterArkham2 {
 		PHASE_5, //arkham lobby 3
 		PHASE_6, //beowulf
 		PHASE_7, //arkham lobby final
+		PHASE_VANILLA,
 	};
 	//when arkham drops below this point in a phase, he should move to next phase
-	float arkhamHealthGates[] = {7500.0f,0.0f,5000.0f,0.0f,2500,0.0f,1.0f};
+	float arkhamHealthGates[] = {7500.0f,0.0f,5000.0f,0.0f,2500,0.0f,1.0f,1.0f};
 
 	//arkham shouldn't have more health than this in his respective phases. This simulates the boss phase damaging him.
-	float arkhamHealthCheckpoints[] = { 9000.0f,0.0f,6000.0f,0.0f,3500.0f,0.0f,1000.0f };
+	float arkhamHealthCheckpoints[] = { 9000.0f,0.0f,6000.0f,0.0f,3500.0f,0.0f,1000.0f,9000.0f};
 
 	//current phase of the fight
 	static int fightPhase{ CrimsonBetterArkham2::PHASE_1 };
@@ -187,7 +188,7 @@ namespace CrimsonBetterArkham2 {
 
 			//whenever arkham dives and sends out the dolphins, we don't fight them and advance to boss rush phase.
 			//don't do this if phase 7 tho or the fight just ends
-			if (enemyData.enemy == ENEMY::ARKHAM_LEECHES && fightActive && !(fightPhase == PHASE_7))
+			if (enemyData.enemy == ENEMY::ARKHAM_LEECHES && fightActive && !(fightPhase == PHASE_7 || fightPhase == PHASE_VANILLA))
 				return true;
 
 			//this health gate stops people from skipping phases 
@@ -362,6 +363,10 @@ namespace CrimsonBetterArkham2 {
 				if (isEndArkhamLobby(enemyVectorData))
 					CrimsonBetterArkham2::fightEnding = true;
 				break;
+			case PHASE_VANILLA:
+				if (isEndArkhamLobby(enemyVectorData))
+					CrimsonBetterArkham2::fightEnding = true;
+				break;
 			}
 
 			if (fightPhase != nextFightPhase) {
@@ -370,6 +375,7 @@ namespace CrimsonBetterArkham2 {
 				case PHASE_3:
 				case PHASE_5:
 				case PHASE_7:
+				case PHASE_VANILLA:
 					nextEventData.room = ROOM::FORBIDDEN_NIRVANA_2;
 					eventData.event = EVENT::TELEPORT;
 					break;
@@ -491,8 +497,8 @@ namespace CrimsonBetterArkham2 {
 			if (eventFlags[20] == 1) {
 				eventFlags[20] = 2;
 				fightActive = true;
-				fightPhase = PHASE_1;
-				nextFightPhase = PHASE_1;
+				fightPhase = PHASE_VANILLA; //normally phase 1 but disabled for now
+				nextFightPhase = PHASE_VANILLA; //normally phase 1 but disabled for now
 				fightEnding = false;
 				//spawn our own arkham
 
@@ -578,6 +584,11 @@ namespace CrimsonBetterArkham2 {
 		}
 		if (sessionData.mission == 19 && (nextEventData.room == ROOM::FORBIDDEN_NIRVANA_2) && eventFlags[20] == 2 && nextFightPhase == PHASE_7) {
 			fightPhase = PHASE_7;
+			CreateEnemyActor(arkham2Data, 0);
+		}
+
+		if (sessionData.mission == 19 && (nextEventData.room == ROOM::FORBIDDEN_NIRVANA_2) && eventFlags[20] == 2 && nextFightPhase == PHASE_VANILLA) {
+			fightPhase = PHASE_VANILLA;
 			CreateEnemyActor(arkham2Data, 0);
 		}
 
