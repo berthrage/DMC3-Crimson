@@ -10068,6 +10068,14 @@ void SystemSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
+			GUI_Checkbox2("Low Latency Input", activeCrimsonConfig.System.lowLatencyInput, queuedCrimsonConfig.System.lowLatencyInput);
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Exprimental Feature: Samples controller input at the latest possible moment (GPU present) aside from the game's own native tick.\n"
+					"Reduces input lag at any framerate. WARNING: Moderate performance cost from double-processing inputs.");
+			}
+
+			ImGui::TableNextColumn();
+
 
 			if (GUI_Checkbox2("Force Focus", activeConfig.forceWindowFocus, queuedConfig.forceWindowFocus)) {
 				ToggleForceWindowFocus(activeConfig.forceWindowFocus);
@@ -15262,7 +15270,7 @@ void ExperimentalInputUpdate() {
 	}
 	if (hasEnteredMainScene) {
 		for (uint8 playerIndex = 0; playerIndex < 4; playerIndex++) {
-			InputsUpdate_sub_14032CFE0(0x140D54A10, playerIndex, 0);
+			InputsUpdate_sub_14032CFE0((uintptr_t)appBaseAddr + 0xD54A10, playerIndex, 0);
 		}
 	}
 }
@@ -15311,7 +15319,9 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     
 	// Calling this from GUI Render is the safest way to ensure this will run on-tick properly
 	// outside of In Game.32CFE0
-	//ExperimentalInputUpdate();
+	if (activeCrimsonConfig.System.lowLatencyInput) {
+		ExperimentalInputUpdate();
+	}
 
 	CrimsonOnTick::FrameResponsiveGameSpeed();
 	CrimsonOnTick::LevelFullyLoadedDelay();

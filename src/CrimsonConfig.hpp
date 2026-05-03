@@ -576,6 +576,8 @@ struct CrimsonConfig {
 
 		bool disableMenuTransitions = false;
 
+		bool lowLatencyInput = true;
+
 		struct BlendingEffects {
 			bool ghosting = false;
 			bool colorFilter = true;
@@ -605,7 +607,8 @@ struct CrimsonConfig {
 				std::make_pair("flipModelPresentation", &System::flipModelPresentation),
 				std::make_pair("fpsCap", &System::fpsCap),
 				std::make_pair("fpsUnlocked", &System::fpsUnlocked),
-				std::make_pair("disableMenuTransitions", &System::disableMenuTransitions),
+				std::make_pair("disableMenuTransitions", &System::disableMenuTransitions),	
+				std::make_pair("lowLatencyInput", &System::lowLatencyInput),				
 				std::make_pair("BlendingEffects", &System::BlendingEffects)
 			);
 		}
