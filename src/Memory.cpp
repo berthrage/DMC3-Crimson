@@ -41,18 +41,32 @@ bool Memory_Init() {
 
     // 256 actually
 
-    // Increase main memory from 260 MB to 300 MB.
+    // Increase main memory from 260 MB to 512 MB.
     {
-        constexpr uint32 size = (300 * 1024 * 1024);
+        constexpr uint32 size = (512 * 1024 * 1024);
         Write<uint32>((appBaseAddr + 0x30195), size);
         Write<uint32>((appBaseAddr + 0x301AB), size);
     }
 
     // Increase section from 5 MB to 16 MB.
     {
-        constexpr uint32 size = (64 * 1024 * 1024);
+        constexpr uint32 size = (128 * 1024 * 1024);
         Write<uint32>((appBaseAddr + 0x2C6065), size);
         Write<uint32>((appBaseAddr + 0x2C6082), size);
+    }
+
+    // Increase internal allocation pools (enemies, textures, models).
+    {
+        constexpr uint32 size = (256 * 1024 * 1024);
+        
+        // mov edx, size  (2nd arg — allocation cap)
+        //Write<uint32>((appBaseAddr + 0x2C6030), size); -- crashes
+        //Write<uint32>((appBaseAddr + 0x2C6064), size); -- crashes
+        //Write<uint32>((appBaseAddr + 0x2C6098), size); -- crashes
+
+        // mov r9d, size  (4th arg — different pool param)
+       //Write<uint32>((appBaseAddr + 0x2C604C), size); // -- crashes
+        Write<uint32>((appBaseAddr + 0x2C6080), size);
     }
 
     {
