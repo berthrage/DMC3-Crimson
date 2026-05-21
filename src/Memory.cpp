@@ -18,6 +18,48 @@ auto GetMemoryAddress() {
     return Memory_main;
 }
 
+void PatchD3D() {
+    //140042E26:
+    //shl rax,13
+    Write<uint32>((appBaseAddr + 0x42E26), 0x13E0C148);
+
+    //140042E42:
+    //shl eax,13
+    Write<uint32>((appBaseAddr + 0x42E42), 0x8913E0C1);
+
+    //140042EA7:
+    //shl rcx,13
+    Write<uint32>((appBaseAddr + 0x42EA7), 0x13E1C148);
+
+    //140042EBE:
+    //shl eax,13
+    Write<uint32>((appBaseAddr + 0x42EBE), 0x8913E0C1);
+
+    //140042EF4:
+    //mov eax,004E0000
+    //nop
+    Write<uint32>((appBaseAddr + 0x42EF4), 0x4E0000B8);
+    Write<uint32>((appBaseAddr + 0x42EF8), 0x33459000);
+
+    //140042F04:
+    //mov qword ptr [r14+000017C8], 4E0000
+    Write<uint32>((appBaseAddr + 0x42F04), 0xC886C749);
+    Write<uint32>((appBaseAddr + 0x42F08), 0x00000017);
+    Write<uint32>((appBaseAddr + 0x42F0C), 0x89004E00);
+
+    //140042F45:
+    //mov eax,009C0000
+    //nop
+    Write<uint32>((appBaseAddr + 0x42F45), 0x9C0000B8);
+    Write<uint32>((appBaseAddr + 0x42F49), 0x8D489000);
+
+    //140042F60:
+    //mov qword ptr [r14+00001800], 9C0000
+    Write<uint32>((appBaseAddr + 0x42F60), 0x0086C749);
+    Write<uint32>((appBaseAddr + 0x42F64), 0x00000018);
+    Write<uint32>((appBaseAddr + 0x42F68), 0x89009C00);
+}
+
 void PatchArenaSizes()
 {
 	constexpr uint32 ROOT_ALLOC_SIZE = 0x20400000;
@@ -108,6 +150,7 @@ bool Memory_Init() {
     }
 
     PatchArenaSizes();
+    PatchD3D();
     // 256 actually
 
     // Increase main memory from 260 MB to 512 MB.
