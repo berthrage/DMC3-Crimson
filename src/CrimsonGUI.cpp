@@ -14071,8 +14071,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		auto previewValue = context.SelectedGameMode == UI::UIContext::GameModes::Custom ? modesWCustom[size_t(context.SelectedGameMode)] :
 			modes[size_t(context.SelectedGameMode)];
 
-		static bool tieVisualStyleToGameMode = false;
-
 		if (UI::BeginCombo("##Game Mode", previewValue, { 0.5f, 0.5f }, 0.9f)) {
 			ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
 
@@ -14130,7 +14128,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				if (ImGui::Selectable(modes[i], isSelected)) {
 					CrimsonGameModes::SetGameModePreset((uint8)i);
 					CrimsonGameplay::AdjustDMC4MobilitySettings();
-					if (tieVisualStyleToGameMode) {
+					if (activeCrimsonConfig.VisualStyle.tieVisualStyleToGameMode) {
 						CrimsonVisualStyle::SetVisualStylePreset((uint8)i); // maps Vanilla->Classic, SS->Hybrid, Crimso->Modern
 					}
 					::GUI::save = true;
@@ -14201,7 +14199,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, vsFrameBGHovered);
 			ImGui::PushStyleColor(ImGuiCol_Text, vsTextColor);
 
-			GUI_PushDisable(tieVisualStyleToGameMode);
+			GUI_PushDisable(activeCrimsonConfig.VisualStyle.tieVisualStyleToGameMode);
 
 			if (UI::BeginCombo("##Visual Style", previewValue, { 0.5f, 0.5f }, 0.9f)) {
 				ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
@@ -14244,7 +14242,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 					if (ImGui::Selectable(visualModes[i], isSelected)) {
 						CrimsonVisualStyle::SetVisualStylePreset((uint8)i);
-						tieVisualStyleToGameMode = false;
 						::GUI::save = true;
 					}
 
@@ -14274,7 +14271,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::EndCombo();
 			}
 
-			GUI_PopDisable(tieVisualStyleToGameMode);
+			GUI_PopDisable(activeCrimsonConfig.VisualStyle.tieVisualStyleToGameMode);
 
 			ImGui::PopStyleColor(3);
 			ImGui::PopFont(); // Pop Benguiat[baseFontSize * 0.9f] from the Visual Style section above
