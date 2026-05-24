@@ -707,11 +707,11 @@ void StyleMeterWindowRank(
 		}
 	}
 
-	if (g_styleMeterForceHidden) {
-		active = false;
-		fillRatio = 0.0f;
-		state.animating = false;
-	}
+// 	if (g_styleMeterForceHidden) {
+// 		active = false;
+// 		fillRatio = 0.0f;
+// 		state.animating = false;
+// 	}
 
 	if (activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode > 0) {
 		if (currentRank < activeCrimsonGameplay.Gameplay.ExtraDifficulty.mustStyleMode) {
@@ -938,18 +938,19 @@ void StyleMeterWindows() {
 	if (activeCrimsonConfig.HudOptions.hideStyleMeter) {
 		return;
 	}
-
-	float deltaTime = ImGui::GetIO().DeltaTime;
-	if (!InGame() || g_inGameCutscene) {
-		g_styleMeterOutOfCombatTimer = 0.0f;
-		g_styleMeterForceHidden = false;
-	} else if (g_inCombat) {
-		g_styleMeterOutOfCombatTimer = 0.0f;
-		g_styleMeterForceHidden = false;
-	} else {
-		g_styleMeterOutOfCombatTimer += deltaTime;
-		g_styleMeterForceHidden = g_styleMeterOutOfCombatTimer >= 3.0f;
-	}
+	
+	// postponing this until we get better inCombat detection
+// 	float deltaTime = ImGui::GetIO().DeltaTime;
+// 	if (!InGame() || g_inGameCutscene) {
+// 		g_styleMeterOutOfCombatTimer = 0.0f;
+// 		g_styleMeterForceHidden = false;
+// 	} else if (g_inCombat) {
+// 		g_styleMeterOutOfCombatTimer = 0.0f;
+// 		g_styleMeterForceHidden = false;
+// 	} else {
+// 		g_styleMeterOutOfCombatTimer += deltaTime;
+// 		g_styleMeterForceHidden = g_styleMeterOutOfCombatTimer >= 3.0f;
+// 	}
 
 	CrimsonDetours::ToggleHideStyleRankHUD(activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter); // Hide the original style rank HUD
 
