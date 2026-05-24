@@ -3135,10 +3135,10 @@ void ActivateDoppelganger(PlayerActorData& actorData) {
         cloneCharacterData.meleeWeapons[0] = WEAPON::YAMATO_VERGIL;
         cloneCharacterData.meleeWeapons[1] = WEAPON::BEOWULF_VERGIL;
         cloneCharacterData.meleeWeapons[2] = WEAPON::YAMATO_FORCE_EDGE;
-        cloneCharacterData.meleeWeaponIndex = 0;
+        cloneCharacterData.meleeWeaponIndex = characterData.meleeWeaponIndex;
 
-        cloneActorData.queuedMeleeWeaponIndex = 0;
-        cloneActorData.activeMeleeWeaponIndex = 0;
+        cloneActorData.queuedMeleeWeaponIndex = characterData.meleeWeaponIndex;
+        cloneActorData.activeMeleeWeaponIndex = characterData.meleeWeaponIndex;
     }
     cloneActorData.hitPoints = 20000;
     cloneActorData.dead = 0;
