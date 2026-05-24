@@ -2310,6 +2310,7 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 			return;
 		}
 	}
+
 	auto& gamepad = GetGamepad(actorData.newGamepad);
 	auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer :
 		crimsonPlayer[playerIndex].actionTimerClone;
@@ -2351,6 +2352,10 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 
 	ApplyJDCFlyingArc(actorData);
 	AirJDCCancellingController(actorData);
+
+	if (actorData.neroAngelo && actorData.devil) {
+		return; // Disable Judgement Cuts in Nelo Angelo state
+	}
 
 	// FIX: reset latch only after AIR_TRICK_END fully exits
 	if (actorData.eventData[0].event != ACTOR_EVENT::AIR_TRICK_END) {
