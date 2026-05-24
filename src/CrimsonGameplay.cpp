@@ -2009,8 +2009,8 @@ void VergilYamatoHighTime(byte8* actorBaseAddr) {
 
 float ComputeDynamicJDCHoldTime(const PlayerActorData& actorData, bool inAir, bool inRisingStar, bool startedInAir) {
 	using namespace ACTION_VERGIL;
-	constexpr float MELEE_HOLD_TIME_GROUNDED = 0.7f;
-	constexpr float MELEE_HOLD_TIME_AIR = 0.6f;
+	constexpr float MELEE_HOLD_TIME_GROUNDED = 0.6f;
+	constexpr float MELEE_HOLD_TIME_AIR = 0.5f;
 	auto& jCut = (actorData.newEntityIndex == 0) ? crimsonPlayer[actorData.newPlayerIndex].jCut : 
 		crimsonPlayer[actorData.newPlayerIndex].jCutClone;
 
@@ -2440,7 +2440,8 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 
 			if (actorData.action != DARK_SLAYER_AIR_TRICK && 
 				actorData.action != DARK_SLAYER_TRICK_DOWN && 
-				actorData.action != DARK_SLAYER_TRICK_UP) {
+				actorData.action != DARK_SLAYER_TRICK_UP &&
+				actorData.action != 0) {
 				jCut.meleeButtonHold = 0.0f; // Reset hold time when action changes to prevent buffering to interfere with Just Frame timing
 			}
 		}
@@ -2455,7 +2456,7 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 
 		bool inJFWindow = (jCut.meleeButtonHold >= jCut.meleeHoldTime &&
 			jCut.meleeButtonHold <= jCut.meleeMaxHoldTime &&
-			actionTimerNotTrickChange >= jCut.meleeHoldTime);
+			(actionTimerNotTrickChange >= jCut.meleeHoldTime));
 
 		// JUST FRAME WINDOW ENTER
 		if (inJFWindow) {
@@ -2527,6 +2528,7 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 			}
 			
 			actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
+			actorData.recoverState[0] = 0; 
 			CrimsonReversedCalls::TriggerCPlayerEvent_sub_1401E0800((uintptr_t)&actorData, ACTOR_EVENT::ATTACK, 0, -1);
 			actionTimer = 0.0f;
 			
@@ -2568,6 +2570,10 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 		jdcDefaultsApplied = false;
 		charSettings2.jdcRadius = 220.0f;
 		charSettings2.jdcDelay1 = 10.0f;
+	}
+	else if (jCut.state == JDC_STATE::NORMAL_AIR) {
+		jdcDefaultsApplied = false;
+		charSettings2.jdcDelay1 = 12.0f;
 	}
 	else if (!isJudgementCutAction) {
 		bool anyJustFrameJdcActive = false;
