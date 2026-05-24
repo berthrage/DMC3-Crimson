@@ -610,7 +610,9 @@ void DisableBlendingEffectsController() {
 		CrimsonPatches::DisableGhostingEffect(!activeCrimsonConfig.System.BlendingEffects.ghosting);
 		CrimsonPatches::DisableColorFilterEffect(!activeCrimsonConfig.System.BlendingEffects.colorFilter);
 		CrimsonPatches::DisableBloomEffect(!activeCrimsonConfig.System.BlendingEffects.bloom);
-		CrimsonPatches::DisableFogMistEffect(!activeCrimsonConfig.System.BlendingEffects.fogMist);
+		//CrimsonPatches::DisableFogMistEffect(!activeCrimsonConfig.System.BlendingEffects.fogMist);
+		// Fog/Mist disabling is currently buggy and can stop teleports at mission 7 start,
+		// needs more testing before we can safely enable it for users.
 		CrimsonPatches::DisableWarpingEffect(!activeCrimsonConfig.System.BlendingEffects.warp);
 		CrimsonPatches::DisableAllBlendingEffects(activeCrimsonConfig.System.BlendingEffects.disableAll);
 	}
@@ -618,7 +620,6 @@ void DisableBlendingEffectsController() {
 		CrimsonPatches::DisableGhostingEffect(false);
 		CrimsonPatches::DisableColorFilterEffect(false);
 		CrimsonPatches::DisableBloomEffect(false);
-		CrimsonPatches::DisableFogMistEffect(false);
 		CrimsonPatches::DisableWarpingEffect(false);
 		CrimsonPatches::DisableAllBlendingEffects(false);
 	}

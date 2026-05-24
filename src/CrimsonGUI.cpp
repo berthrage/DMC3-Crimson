@@ -10438,13 +10438,14 @@ void SystemSection(size_t defaultFontSize) {
 
 				ImGui::TableNextColumn();
 
-				GUI_Checkbox2("Fog / Mist", activeCrimsonConfig.System.BlendingEffects.fogMist,
-					queuedCrimsonConfig.System.BlendingEffects.fogMist);
-				if (ImGui::IsItemHovered()) {
-					ImGui::SetTooltip("This toggle won't apply to screen transitions or cutscenes. Needs room reload to apply.");
-				}
-
-				ImGui::TableNextColumn();
+				// Buggy, it's stopping teleports at mission 7, needs testing before it gets enabled again for users
+// 				GUI_Checkbox2("Fog / Mist", activeCrimsonConfig.System.BlendingEffects.fogMist,
+// 					queuedCrimsonConfig.System.BlendingEffects.fogMist);
+// 				if (ImGui::IsItemHovered()) {
+// 					ImGui::SetTooltip("This toggle won't apply to screen transitions or cutscenes. Needs room reload to apply.");
+// 				}
+// 
+// 				ImGui::TableNextColumn();
 
 				GUI_Checkbox2("Warping", activeCrimsonConfig.System.BlendingEffects.warp,
 					queuedCrimsonConfig.System.BlendingEffects.warp);
@@ -12085,15 +12086,19 @@ void DanteGameplayOptions() {
 				"\nharkening to the old DMC1 days. Makes shotgun charge slightly faster.");
 			ImGui::TableNextColumn();
 
+			GUI_PushDisable(!activeConfig.Actor.enable);
 			GUI_Checkbox2("Doppelganger Split Sync",
 				activeCrimsonGameplay.Gameplay.Dante.doppelgangerSplitSync,
 				queuedCrimsonGameplay.Gameplay.Dante.doppelgangerSplitSync,
 				activeCrimsonGameplayMask.Gameplay.Dante.doppelgangerSplitSync);
 			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
 			TooltipHelper("(?)", "(Dante Only) Doppelganger spawns fully synchronized with your current Style setup. \n"
 				"While in Doppelganger Style, press Lock-On + Style Action to summon or dismiss Doppelganger. \n"
 				"Pressing Style Action without Lock-On lets you change Weapons and Styles exclusively for Doppelganger,\n"
 				"causing it to desync from Dante's current Style configuration until resummoned.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
 
