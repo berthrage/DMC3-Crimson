@@ -1497,12 +1497,21 @@ void ReloadHUDController() {
 		return;
 	}
 	auto& eventData = *reinterpret_cast<CSceneGameMain*>(pool_C90E10[5]);
+	auto name = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E28);
+	if (!name) {
+		return;
+	}
+	name -= 0x180;
+	auto hudTop = *reinterpret_cast<byte8**>(name + 0x1B070);
+	if (!hudTop) {
+		return;
+	}
+
 
 	// When outside valid gameplay events or in a cutscene, reset the flag and bail out.
 	// No HUD reload should happen in these states.
 	if ((eventData.event != EVENT::MAIN && eventData.event != EVENT::PAUSE &&
-		eventData.event != EVENT::MESSAGE && eventData.event != EVENT::ITEM) ||
-		g_inGameCutscene) {
+		eventData.event != EVENT::MESSAGE && eventData.event != EVENT::ITEM)) {
 		hudReloaded = false;
 		return;
 	}
