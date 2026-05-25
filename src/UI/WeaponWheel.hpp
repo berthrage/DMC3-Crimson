@@ -19,6 +19,10 @@ namespace WW
         Dante,
         Vergil,
 
+        NeutralEarlyBeta,
+        DanteEarlyBeta,
+        VergilEarlyBeta,
+
         Size
     };
 
