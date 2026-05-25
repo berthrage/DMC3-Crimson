@@ -123,7 +123,8 @@ enum {
 
     SPRINT,
     RISING_SUN_AIR_TAUNT,
-
+    SUMMON_SWORDS_LEVEL_4,
+    STORM_SWORDS_MODDED,
     MOD_COUNT,
 };
 };

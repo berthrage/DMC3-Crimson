@@ -366,7 +366,7 @@ namespace CrimsonFastcallDetours{
 	 }
 
 	 // STORM SWORDS
-	 if (activeCrimsonGameplay.Gameplay.Vergil.stormSwordsLaunches) {
+	 if (activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::STORM_SWORDS_MODDED]) {
 		 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.summonedSwordStormSwordsShl)) {
 			 newDmgData.knockbackAnimation = 3;
 			 newDmgData.displacement = 60.0f;
@@ -377,7 +377,7 @@ namespace CrimsonFastcallDetours{
 	 }
 
 	 // FASTER SUMMONED SWORDS
-	 if (activeCrimsonGameplay.Gameplay.Vergil.fasterSummonedSwords) {
+	 if (activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::SUMMON_SWORDS_LEVEL_4]) {
 		 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.summonedSwordShl)) {
 			 newDmgData.dmgValue = 25.0f; // Default is 50.0f, we reduce it to compensate for the increased speed and hit frequency.
 			 newDmgData.hitStopDuration = 8.0f; // Default is 3.0f, we increase this to compensate for the frequency of the hits.

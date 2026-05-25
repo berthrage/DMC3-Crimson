@@ -5876,8 +5876,11 @@ ShopExperienceHelper shopHelpersVergil[] = {
 
 ShopExperienceHelper shopHelpersVergilGuns[] = {
 	{"Summoned Swords Level 2","", UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, 7500, -1, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3,-1,-1, {-1,-1,-1,-1,-1}},
-	{"Summoned Swords Level 3","", UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3, 15000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, -1,-1,-1, {-1,-1,-1,-1,-1}},
-	{"Spiral Swords","",UNLOCK_VERGIL::SPIRAL_SWORDS, 20000, -1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Summoned Swords Level 3","", UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3, 15000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, UNLOCK_VERGIL::SUMMON_SWORDS_LEVEL_4,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Summoned Swords Level 4","DMC4/5 style summon swords.\nIncreases the speed of summoned swords by 2x, decreases their damage by half and increases hitstop.",UNLOCK_VERGIL::SUMMON_SWORDS_LEVEL_4, 20000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Spiral Swords Level 1","",UNLOCK_VERGIL::SPIRAL_SWORDS, 20000,-1, UNLOCK_VERGIL::STORM_SWORDS_MODDED,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Spiral Swords Level 2","Makes Storm Swords (Swords Formation Around Enemies) Launch Them.\n"
+				"Displacement damage changes to 60.0 per sword from 0.0.",UNLOCK_VERGIL::STORM_SWORDS_MODDED, 10000, UNLOCK_VERGIL::SPIRAL_SWORDS, -1,-1,-1, {-1,-1,-1,-1,-1}},
 };
 
 
@@ -12418,24 +12421,24 @@ void VergilGameplayOptions() {
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 
-			ImGui::TableNextColumn();
+			//ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Storm Swords Launches",
-				activeCrimsonGameplay.Gameplay.Vergil.stormSwordsLaunches,
-				queuedCrimsonGameplay.Gameplay.Vergil.stormSwordsLaunches,
-				activeCrimsonGameplayMask.Gameplay.Vergil.stormSwordsLaunches);
-			ImGui::SameLine();
-			TooltipHelper("(?)", "Makes Storm Swords (Swords Formation Around Enemies) Launch Them.\n"
-				"Displacement damage changes to 60.0 per sword from 0.0.");
+			//GUI_Checkbox2("Storm Swords Launches",
+			//	activeCrimsonGameplay.Gameplay.Vergil.stormSwordsLaunches,
+			//	queuedCrimsonGameplay.Gameplay.Vergil.stormSwordsLaunches,
+			//	activeCrimsonGameplayMask.Gameplay.Vergil.stormSwordsLaunches);
+			//ImGui::SameLine();
+			//TooltipHelper("(?)", "Makes Storm Swords (Swords Formation Around Enemies) Launch Them.\n"
+			//	"Displacement damage changes to 60.0 per sword from 0.0.");
 
-			GUI_Checkbox2("Faster Summoned Swords",
-				activeCrimsonGameplay.Gameplay.Vergil.fasterSummonedSwords,
-				queuedCrimsonGameplay.Gameplay.Vergil.fasterSummonedSwords,
-				activeCrimsonGameplayMask.Gameplay.Vergil.fasterSummonedSwords);
-			ImGui::SameLine();
-			GUI_WIPButton();
-			ImGui::SameLine();
-			TooltipHelper("(?)", "Increases the speed of summoned swords by 2x, decreases their damage by half and increases hitstop.");
+			//GUI_Checkbox2("Faster Summoned Swords",
+			//	activeCrimsonGameplay.Gameplay.Vergil.fasterSummonedSwords,
+			//	queuedCrimsonGameplay.Gameplay.Vergil.fasterSummonedSwords,
+			//	activeCrimsonGameplayMask.Gameplay.Vergil.fasterSummonedSwords);
+			//ImGui::SameLine();
+			//GUI_WIPButton();
+			//ImGui::SameLine();
+			//TooltipHelper("(?)", "Increases the speed of summoned swords by 2x, decreases their damage by half and increases hitstop.");
 
 			ImGui::EndTable();
 		}
