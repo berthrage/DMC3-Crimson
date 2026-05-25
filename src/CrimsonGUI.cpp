@@ -12407,6 +12407,17 @@ void VergilGameplayOptions() {
 			TooltipHelper("(?)", "Stops Lunar Phase from going upwards, enemy behavior intact.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Storm Swords Launches",
+				activeCrimsonGameplay.Gameplay.Vergil.stormSwordsLaunches,
+				queuedCrimsonGameplay.Gameplay.Vergil.stormSwordsLaunches,
+				activeCrimsonGameplayMask.Gameplay.Vergil.stormSwordsLaunches);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Makes Storm Swords (Swords Formation Around Enemies) Launch Them.\n"
+				"Displacement damage changes to 60.0 per sword from 0.0.");
+
 			ImGui::EndTable();
 		}
 	}

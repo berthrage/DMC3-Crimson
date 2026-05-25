@@ -365,6 +365,17 @@ namespace CrimsonFastcallDetours{
 		 }
 	 }
 
+	 // STORM SWORDS
+	 if (activeCrimsonGameplay.Gameplay.Vergil.stormSwordsLaunches) {
+		 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.summonedSwordStormSwordsShl)) {
+			 newDmgData.knockbackAnimation = 3;
+			 newDmgData.displacement = 60.0f;
+			 // 		newDmgData.angle = 90.0f; -- sends them to the moon (DMC5-like) if you uncomment and set kb animation to 7 :D - Berthrage
+			 // 		newDmgData.knockbackImpact = 23.0f;
+			 modified = true;
+		 }
+	 }
+
 	 trampoline(CDamageCalcAddr, modified ? &newDmgData : dmgData, actorAddr60, floatArray);  // call the original, then fall through
 	 return;
  }

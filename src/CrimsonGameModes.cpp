@@ -111,6 +111,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	vergil.airLunarPhase = false;
 	vergil.judgementCutRework = false;
 	vergil.noAirLunarPhaseLift = false;
+	vergil.stormSwordsLaunches = false;
 
 	// Cheats: disabled
 	preset.Cheats = defaultCrimsonGameplay.Cheats;
@@ -182,6 +183,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	vergil.airTauntRisingSun = false;
 	vergil.mirageTrigger = false;
 	vergil.noAirLunarPhaseLift = false;
+	vergil.stormSwordsLaunches = false;
 
 	// Cheats section
 	preset.Cheats.General = defaultCrimsonGameplay.Cheats.General;
@@ -266,6 +268,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	vergil.airTauntRisingSun = true;
 	vergil.mirageTrigger = true;
 	vergil.noAirLunarPhaseLift = true;
+	vergil.stormSwordsLaunches = true;
 
 	preset.Cheats.General = defaultCrimsonGameplay.Cheats.General;
 	preset.Cheats.Damage = defaultCrimsonGameplay.Cheats.Damage;
