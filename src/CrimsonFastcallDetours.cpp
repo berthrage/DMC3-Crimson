@@ -237,14 +237,6 @@ namespace CrimsonFastcallDetours{
 			 modified = true;
 		 }
 	 }
-	 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.shotgunShl2)) {
-		 if (backslide.performing) {
-			 newDmgData.displacement = 60.0f; // default is 60.0f
-			 newDmgData.dmgValue = 70.0f; // default is 70.0f
-
-			 modified = true;
-		 }
-	 }
 
 	 // SKY LAUNCH
 	 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.goldRoyalRelease)) {
