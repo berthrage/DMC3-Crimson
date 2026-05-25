@@ -3102,7 +3102,7 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
 				actorData.action == ROYALGUARD_RELEASE_4 ||
 				actorData.action == ROYALGUARD_AIR_RELEASE_2 || actorData.action == ROYALGUARD_AIR_RELEASE_3 ||
 				actorData.action == ROYALGUARD_AIR_RELEASE_4 ||
-				actorData.action == REBELLION_LEAP ||
+				actorData.action == REBELLION_STINGER_LEAP ||
 				(actorData.action == SHOTGUN_POINT_BLANK && backslide.performing))) return;
 
 			actorData.rotation = GetAutoRotation();
@@ -3562,7 +3562,8 @@ void StoreInertia(byte8* actorBaseAddr) {
 
 		bool inGuardFlyableMoves = ((action == BEOWULF_KILLER_BEE && actorData.horizontalPull > 05.0f) || 
             (action == NEVAN_VORTEX && actorData.horizontalPull > 20.0f && actionTimer < 0.95f) ||
-            ((action == ROYALGUARD_AIR_RELEASE_2 || action == ROYALGUARD_RELEASE_2) && actorData.horizontalPull > 20.0f));
+            ((action == ROYALGUARD_AIR_RELEASE_2 || action == ROYALGUARD_RELEASE_2) && actorData.horizontalPull > 20.0f) ||
+			(action == REBELLION_STINGER_LEAP && actorData.horizontalPull >= 18.0f));
 
 		bool inSlowerGuarflyableMoves = (action == NEVAN_AIR_PLAY && actorData.horizontalPull > 4.0f);
 
@@ -3604,19 +3605,20 @@ void StoreInertia(byte8* actorBaseAddr) {
 
 	// GUARDFLY TIMING
 	float timing = 0.14f;
-	if (i->airGuard.cachedPull == 28.0f && event == ACTOR_EVENT::JUMP_CANCEL && (actorData.eventData[0].lastEvent == ACTOR_EVENT::ATTACK || actorData.eventData[0].lastEvent == ACTOR_EVENT::TRICKSTER_SKY_STAR ||
+	if (i->airGuard.cachedPull >= 17.0f && event == ACTOR_EVENT::JUMP_CANCEL && 
+		(actorData.eventData[0].lastEvent == ACTOR_EVENT::ATTACK || actorData.eventData[0].lastEvent == ACTOR_EVENT::TRICKSTER_SKY_STAR ||
 		actorData.eventData[0].lastEvent == ACTOR_EVENT::JUMP_CANCEL)) {
 
 		if (guardflyTimer > timing) {
 			i->airGuard.cachedPull = 3.0f;  // Reset pull 
 		}
 
-		if (actorData.horizontalPull == 28.0f && event != ACTOR_EVENT::AIR_HIKE) {
+		if (actorData.horizontalPull >= 17.0f && event != ACTOR_EVENT::AIR_HIKE) {
 			CrimsonTimers::ResetGuardflyTimer(guardflyTimer);
 		}
 	}
 	// Handle Air Hike Event (Separate from Jump Cancel)
-	else if (i->airGuard.cachedPull == 28.0f && event == ACTOR_EVENT::AIR_HIKE) {
+	else if (i->airGuard.cachedPull >= 17.0f && event == ACTOR_EVENT::AIR_HIKE) {
 
 		if (animTimer < 0.01f) {
 			CrimsonTimers::ResetGuardflyTimer(guardflyTimer);
@@ -3626,9 +3628,12 @@ void StoreInertia(byte8* actorBaseAddr) {
 			i->airGuard.cachedPull = 3.0f;  // Reset pull after 0.3s
 		}
 
-		if (actorData.horizontalPull == 28.0f) {
+		if (actorData.horizontalPull >= 17.0f) {
 			CrimsonTimers::ResetGuardflyTimer(guardflyTimer);
 		}
+	} 
+	else if (action == REBELLION_STINGER_LEAP) { // Leap is an exception to the timing rule. Its guardfly timer will only proceed on air hike instead of move start.
+		CrimsonTimers::ResetGuardflyTimer(guardflyTimer); // Prevent the timer from starting / accumulating.
 	}
 }
 

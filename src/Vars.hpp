@@ -559,7 +559,7 @@ enum {
     REBELLION_HELM_BREAKER,
     REBELLION_STINGER_LEVEL_1,
     REBELLION_STINGER_LEVEL_2,
-    REBELLION_LEAP,
+    REBELLION_STINGER_LEAP,
     REBELLION_HIGH_TIME,
     REBELLION_HIGH_TIME_LAUNCH,
     REBELLION_KICK_1,
@@ -3366,6 +3366,8 @@ struct DamageDataAddrOffsets {
 
 	// --- Vergil ---
 	uintptr_t jdcShl = 0x5CDF40;
+    uintptr_t summonedSwordShl = 0x5CDD10;
+    uintptr_t summonedSwordStormSwordsShl = 0x5CDE50; // Sword Formation around Enemies
     uintptr_t yamatoUpperSlash1Hit = 0x5CCE10;
     uintptr_t yamatoRave1Hit = 0x5CCF00;
 	uintptr_t yamatoRave2Hit = 0x5CCF50;
