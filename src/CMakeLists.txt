@@ -61,6 +61,7 @@ set(MASM_SRC
     masm/FixSummonedSwordsInitialTravel.asm
     masm/ChargeMechanicsCPlayer.asm
     masm/CItemOrbPickupAllPlayers.asm
+    masm/FasterSummonedSwords.asm
 )
 
 set (ASM_LIBS)

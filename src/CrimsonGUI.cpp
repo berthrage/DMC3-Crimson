@@ -12428,6 +12428,15 @@ void VergilGameplayOptions() {
 			TooltipHelper("(?)", "Makes Storm Swords (Swords Formation Around Enemies) Launch Them.\n"
 				"Displacement damage changes to 60.0 per sword from 0.0.");
 
+			GUI_Checkbox2("Faster Summoned Swords",
+				activeCrimsonGameplay.Gameplay.Vergil.fasterSummonedSwords,
+				queuedCrimsonGameplay.Gameplay.Vergil.fasterSummonedSwords,
+				activeCrimsonGameplayMask.Gameplay.Vergil.fasterSummonedSwords);
+			ImGui::SameLine();
+			GUI_WIPButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Increases the speed of summoned swords by 2x, decreases their damage by half and increases hitstop.");
+
 			ImGui::EndTable();
 		}
 	}

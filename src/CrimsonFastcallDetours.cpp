@@ -376,6 +376,15 @@ namespace CrimsonFastcallDetours{
 		 }
 	 }
 
+	 // FASTER SUMMONED SWORDS
+	 if (activeCrimsonGameplay.Gameplay.Vergil.fasterSummonedSwords) {
+		 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.summonedSwordShl)) {
+			 newDmgData.dmgValue = 25.0f; // Default is 50.0f, we reduce it to compensate for the increased speed and hit frequency.
+			 newDmgData.hitStopDuration = 8.0f; // Default is 3.0f, we increase this to compensate for the frequency of the hits.
+			 modified = true;
+		 }
+	 }
+
 	 trampoline(CDamageCalcAddr, modified ? &newDmgData : dmgData, actorAddr60, floatArray);  // call the original, then fall through
 	 return;
  }

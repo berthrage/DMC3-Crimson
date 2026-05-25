@@ -119,7 +119,9 @@ void CheckTotalResultsScreenDetour();
 // ChargeMechanicsCPlayer
 void ChargeMechanicsCPlayerDetour();
 // CItemOrbPickupAllPlayers
-void CItemOrbPickupAllPlayersDetour();}
+void CItemOrbPickupAllPlayersDetour();
+// FasterSummonedSwords
+void FasterSummonedSwordsDetour();}
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
@@ -164,4 +166,5 @@ void FixEnemyAttackCooldowns(bool enable);
 void CheckTotalResultsScreen(bool enable);
 void ChargeMechanicsCPlayer(bool enable);
 void CItemOrbPickupAllPlayers(bool enable);
+void FasterSummonedSwords(bool enable);
 }

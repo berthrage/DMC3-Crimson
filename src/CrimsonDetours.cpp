@@ -404,6 +404,10 @@ std::uint64_t g_CItemOrbPickupAllPlayers_BoneMatrixCall;
 void CItemOrbPickupAllPlayersDetour();
 void CItemOrbPickupAllPlayersDetour2();
 void* g_CItemOrbPickupAllPlayersCheckCall; 
+
+// FasterSummonedSwords
+std::uint64_t g_FasterSummonedSwords_ReturnAddr;
+void FasterSummonedSwordsDetour();
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -2519,6 +2523,25 @@ void CItemOrbPickupAllPlayers(bool enable) {
 	run = enable;
 }
 
+void FasterSummonedSwords(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From CPl021Shl01SummonedSwordUpdate_sub_1401DB140:
+	// dmc3.exe+1DB14E - 0F B6 53 08 - movzx edx,byte ptr [rbx+08]
+	// dmc3.exe+1DB152 - 85 D2                 - test edx,edx
+	static std::unique_ptr<Utility::Detour_t> fasterSummonedSwordsHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1DB14E, &FasterSummonedSwordsDetour, 6);
+	g_FasterSummonedSwords_ReturnAddr = fasterSummonedSwordsHook->GetReturnAddress();
+
+	fasterSummonedSwordsHook->Toggle(enable);
+
+	run = enable;
+}
+
 void ToggleAllDetours(bool enable) {
 	CheckScreenBreak(enable);
 	CheckMissionResultScreen(enable);
@@ -2527,6 +2550,7 @@ void ToggleAllDetours(bool enable) {
 	CheckTotalResultsScreen(enable);
 	ChargeMechanicsCPlayer(enable);
 	CItemOrbPickupAllPlayers(enable);
+	FasterSummonedSwords(enable);
 }
 
 }
