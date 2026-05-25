@@ -3102,6 +3102,7 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
 				actorData.action == ROYALGUARD_RELEASE_4 ||
 				actorData.action == ROYALGUARD_AIR_RELEASE_2 || actorData.action == ROYALGUARD_AIR_RELEASE_3 ||
 				actorData.action == ROYALGUARD_AIR_RELEASE_4 ||
+				actorData.action == REBELLION_LEAP ||
 				(actorData.action == SHOTGUN_POINT_BLANK && backslide.performing))) return;
 
 			actorData.rotation = GetAutoRotation();
