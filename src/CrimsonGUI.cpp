@@ -13073,12 +13073,16 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	}
 	
 
+	const float legalFontSize = 20.0f;
+
 	// Version Text Window
-	float versionFontSize = 20.0f;
-	ImGui::PushFont(UI::g_ImGuiFont_Benguiat[versionFontSize]);
+	float versionFontSize = legalFontSize;
+	ImFont* versionFont = UI::g_ImGuiFont_Benguiat[versionFontSize];
+	float versionScaledFontSize = versionFont->FontSize * scaleFactorY;
+	ImGui::PushFont(versionFont);
 
 	// Format the version string
-	std::string versionStr = std::format("V{}.{}{}", UI::g_UIContext.CurrentVersion.Major, UI::g_UIContext.CurrentVersion.Minor, UI::g_UIContext.CurrentVersion.PatchLetter);
+	std::string versionStr = std::format("v{}.{}{}", UI::g_UIContext.CurrentVersion.Major, UI::g_UIContext.CurrentVersion.Minor, UI::g_UIContext.CurrentVersion.PatchLetter);
 	std::string versionText = "BETA " + versionStr;
 
 	// Calculate text size
@@ -13099,7 +13103,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	// Offset the position to align the text correctly
 	ImVec2 versionTextSizeWindowPos = ImVec2(
 		centerX + (800.0f * scaleFactorY), // Center horizontally
-		879.0f * scaleFactorY // Center vertically
+		979.0f * scaleFactorY // Center vertically
 	);
 
 	// Ensure the position stays within bounds
@@ -13107,13 +13111,29 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	versionTextSizeWindowPos.y = (std::max)(0.0f, versionTextSizeWindowPos.y);
 
 	// Set the window position and size
-	//ImGui::SetNextWindowPos(versionTextSizeWindowPos);
-	//ImGui::SetNextWindowSize(versionTextSizeWindowSize);
+	ImGui::SetNextWindowPos(versionTextSizeWindowPos);
+	ImGui::SetNextWindowSize(versionTextSizeWindowSize);
 
-	//ImGui::Begin("VersionTextWindow", nullptr, windowFlags);
+	ImGui::Begin("VersionTextWindow", nullptr, windowFlags);
 
-	//ImGui::SetWindowFontScale(scaleFactorY);
-	//ImGui::Text(versionText.c_str());
+	ImGui::SetWindowFontScale(scaleFactorY);
+	ImVec2 versionTextScreenPos = ImGui::GetCursorScreenPos();
+	ImVec2 versionTextShadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY);
+	ImDrawList* versionDrawList = ImGui::GetWindowDrawList();
+	versionDrawList->AddText(
+		versionFont,
+		versionScaledFontSize,
+		versionTextScreenPos + versionTextShadowOffset,
+		IM_COL32(0, 0, 0, 255),
+		versionText.c_str()
+	);
+	versionDrawList->AddText(
+		versionFont,
+		versionScaledFontSize,
+		versionTextScreenPos,
+		ImColor(LerpFadeToBlack(ImVec4(0.46f, 0.46f, 0.46f, 1.0f))),
+		versionText.c_str()
+	);
 
 
 	//ImGui::End();
@@ -13193,7 +13213,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 
 	// Credits Text Window
 	float creditsFontSize = 20.0f;
-	float creditsCapCoFontSize = 20.0f;
+	float creditsCapCoFontSize = legalFontSize;
 	ImGui::PushFont(UI::g_ImGuiFont_Benguiat[creditsFontSize]);
 	auto OGcreditsText = u8"©CAPCOM CO., LTD. 2005, 2018 ALL RIGHTS RESERVED./ILLUSTRATIONS: Kazuma Kaneko/ATLUS";
 	auto creditsText = u8"C•TEAM • DIRECTED BY BERTHRAGE • PROJECT CRIMSON © • 2025";
