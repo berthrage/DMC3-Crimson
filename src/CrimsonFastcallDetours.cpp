@@ -204,7 +204,7 @@ namespace CrimsonFastcallDetours{
 	 bool modified = false;
 	 DamageData newDmgData = *dmgData; // copy of the original DmgData pointer so we can modify it without affecting the original struct's parameters
 
-	 if (activeCrimsonGameplay.Gameplay.Dante.chargedShotgunLifts) {
+	 if (activeCrimsonGameplay.Gameplay.Dante.chargedShotgunLaunches) {
 		 // CHARGED SHOTGUN SHL
 		 if (((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.shotgunChargedShl))) {
 			 newDmgData.knockbackAnimation = 3.0f;

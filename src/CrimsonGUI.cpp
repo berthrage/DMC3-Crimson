@@ -12072,12 +12072,12 @@ void DanteGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Charged Shotgun Lifts",
-				activeCrimsonGameplay.Gameplay.Dante.chargedShotgunLifts,
-				queuedCrimsonGameplay.Gameplay.Dante.chargedShotgunLifts,
-				activeCrimsonGameplayMask.Gameplay.Dante.chargedShotgunLifts);
+			GUI_Checkbox2("Charged Shotgun Launches",
+				activeCrimsonGameplay.Gameplay.Dante.chargedShotgunLaunches,
+				queuedCrimsonGameplay.Gameplay.Dante.chargedShotgunLaunches,
+				activeCrimsonGameplayMask.Gameplay.Dante.chargedShotgunLaunches);
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Makes Charged Shots Shotgun lift enemies instead of knocking them back,"
+			TooltipHelper("(?)", "Makes Charged Shots Shotgun launch enemies instead of knocking them back,"
 				"\nharkening to the old DMC1 days. Makes shotgun charge slightly faster.");
 			ImGui::TableNextColumn();
 

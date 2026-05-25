@@ -1297,7 +1297,7 @@ bool CheckChargeMechanics(uintptr_t playerAddr) {
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
 	auto playerIndex = actorData.newPlayerIndex;
 
-	if (activeCrimsonGameplay.Gameplay.Dante.chargedShotgunLifts && actorData.activeRangedWeapon == WEAPON::SHOTGUN) {
+	if (activeCrimsonGameplay.Gameplay.Dante.chargedShotgunLaunches && actorData.activeRangedWeapon == WEAPON::SHOTGUN) {
 		return true;
 	}
 	

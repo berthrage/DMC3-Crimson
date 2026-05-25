@@ -101,7 +101,7 @@ struct CrimsonConfigGameplay {
 			bool swapArtemisMultiLockNormalShot = true;
 			bool swapDancePierceInputs = true;
 			bool swapHammerVocalnoInputs = true;
-			bool chargedShotgunLifts = false;
+			bool chargedShotgunLaunches = true;
 			bool doppelgangerSplitSync = true;
 			bool quickGrapple = true;
 
@@ -132,7 +132,7 @@ struct CrimsonConfigGameplay {
 					std::make_pair("swapArtemisMultiLockNormalShot", &Dante::swapArtemisMultiLockNormalShot),
 					std::make_pair("swapDancePierceInputs", &Dante::swapDancePierceInputs),
 					std::make_pair("swapHammerVocalnoInputs", &Dante::swapHammerVocalnoInputs),
-					std::make_pair("chargedShotgunLifts", &Dante::chargedShotgunLifts),
+					std::make_pair("chargedShotgunLaunches", &Dante::chargedShotgunLaunches),
 					std::make_pair("doppelgangerSplitSync", &Dante::doppelgangerSplitSync),
 					std::make_pair("quickGrapple", &Dante::quickGrapple)
 				);

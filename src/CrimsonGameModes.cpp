@@ -97,7 +97,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	dante.groundTrick = false;
 	dante.swapDancePierceInputs = false;
 	dante.swapArtemisMultiLockNormalShot = false;
-	dante.chargedShotgunLifts = false;
+	dante.chargedShotgunLaunches = false;
 	dante.doppelgangerSplitSync = false;
 	dante.quickGrapple = false;
 
@@ -165,7 +165,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	dante.artemisRework = true;
 	dante.groundTrick = false;
 	//dante.swapDancePierceInputs = false;
-	dante.chargedShotgunLifts = false;
+	dante.chargedShotgunLaunches = false;
 	dante.doppelgangerSplitSync = false;
 	dante.quickGrapple = false;
 
@@ -437,7 +437,6 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.Dante.swapArtemisMultiLockNormalShot = false;
 	mask.Gameplay.Dante.swapDancePierceInputs = false;
 	mask.Gameplay.Dante.swapHammerVocalnoInputs = false;
-	mask.Gameplay.Dante.chargedShotgunLifts = false;
 
 	mask.Gameplay.Dante.downertiaD = false; // This should be optional
 	mask.Gameplay.Dante.airRevolver = false;
