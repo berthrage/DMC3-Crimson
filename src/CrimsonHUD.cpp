@@ -2085,22 +2085,24 @@ void StunDisplacementLockOnWindows() {
 
 		if (lockOnFade[playerIndex].alpha > 0.01f) {
 			if (LockOnTexture->IsValid()) {
-				DrawRotatedImagePie(
-					LockOnStunTexture->GetTexture(),
-					centeredTexturePos,
-					ImVec2(textureWidth, textureHeight),
-					lockOnAngle[playerIndex],
-					colorWithAlpha,
-					displacementFraction
-				);
-				DrawRotatedImagePie(
-					LockOnForegroundTexture->GetTexture(),
-					centeredTexturePos,
-					ImVec2(textureWidth, textureHeight),
-					lockOnAngle[playerIndex],
-					fgColorWithAlpha,
-					displacementFraction
-				);
+				if (activeCrimsonConfig.CrimsonHudAddons.lockOnStunDisplacement) {
+					DrawRotatedImagePie(
+						LockOnStunTexture->GetTexture(),
+						centeredTexturePos,
+						ImVec2(textureWidth, textureHeight),
+						lockOnAngle[playerIndex],
+						colorWithAlpha,
+						displacementFraction
+					);
+					DrawRotatedImagePie(
+						LockOnForegroundTexture->GetTexture(),
+						centeredTexturePos,
+						ImVec2(textureWidth, textureHeight),
+						lockOnAngle[playerIndex],
+						fgColorWithAlpha,
+						displacementFraction
+					);
+				}
 			} else {
 				ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
 			}
@@ -2192,25 +2194,27 @@ void StunDisplacementLockOnWindows() {
 
 				float stunFraction = 1.0f - (lockedOnEnemyStun / lockedOnEnemyMaxStun);
 
-				if (LockOnTexture->IsValid()) {
-					DrawRotatedImagePie(
-						LockOnStunTexture->GetTexture(),
-						centeredTexturePosStun,
-						ImVec2(textureWidthStun, textureHeightStun),
-						lockOnAngle[playerIndex],
-						colorStunWithAlpha,
-						stunFraction
-					);
-					DrawRotatedImagePie(
-						LockOnForegroundTexture->GetTexture(),
-						centeredTexturePosStun,
-						ImVec2(textureWidthStun, textureHeightStun),
-						lockOnAngle[playerIndex],
-						fgColorWithAlpha,
-						stunFraction
-					);
-				} else {
-					ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
+				if (activeCrimsonConfig.CrimsonHudAddons.lockOnStunDisplacement) {
+					if (LockOnTexture->IsValid()) {
+						DrawRotatedImagePie(
+							LockOnStunTexture->GetTexture(),
+							centeredTexturePosStun,
+							ImVec2(textureWidthStun, textureHeightStun),
+							lockOnAngle[playerIndex],
+							colorStunWithAlpha,
+							stunFraction
+						);
+						DrawRotatedImagePie(
+							LockOnForegroundTexture->GetTexture(),
+							centeredTexturePosStun,
+							ImVec2(textureWidthStun, textureHeightStun),
+							lockOnAngle[playerIndex],
+							fgColorWithAlpha,
+							stunFraction
+						);
+					} else {
+						ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
+					}
 				}
 
 				// STUN / DISPLACEMENT NUMERIC HUD
