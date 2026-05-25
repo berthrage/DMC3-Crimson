@@ -4538,6 +4538,38 @@ void SprintAbility(byte8* actorBaseAddr) {
     }
 }
 
+void StopSprintAbility(byte8* actorBaseAddr) {
+
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& sprintData = crimsonPlayer[playerIndex].sprint;
+	auto& playerData = GetPlayerData(actorData);
+	if (!IsActiveCharacterActor(actorData)) {
+		return;
+	}
+
+	if ((actorData.newCharacterIndex != playerData.activeCharacterIndex) || (actorData.newEntityIndex != ENTITY::MAIN)) {
+		return;
+	}
+
+	if (sprintData.isSprinting) {
+		if (actorData.character == CHARACTER::DANTE) {
+			actorData.motionArchives[MOTION_GROUP_DANTE::BASE] = File_staticFiles[pl000_00_0];
+		} else if (actorData.character == CHARACTER::VERGIL) {
+			actorData.motionArchives[MOTION_GROUP_VERGIL::BASE] = File_staticFiles[pl021_00_0];
+		}
+	}
+
+	sprintData.canSprint = false;
+	sprintData.runTimer = false;
+	sprintData.isSprinting = false;
+	sprintData.SFXPlayed = false;
+	sprintData.VFXPlayed = false;
+}
+
 #include <chrono>
 
 void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
@@ -5932,4 +5964,5 @@ void BoBPartnerTeleport(byte8* actorBaseAddr) {
 	TeleportToPlayer(actorData, mainActorData);
 }
 
-}
+} // namespace CrimsonGameplay
+

@@ -8766,11 +8766,13 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 //    CrimsonGameplay::SprintAbility(actorBaseAddr);
                 //}
 
-                if (activeCrimsonGameplay.Gameplay.General.extramoves) {
-                    if (actorData.character == CHARACTER::DANTE && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::SPRINT])
-                        CrimsonGameplay::SprintAbility(actorBaseAddr);
-                    if (actorData.character == CHARACTER::VERGIL && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::SPRINT])
-                        CrimsonGameplay::SprintAbility(actorBaseAddr);
+                bool sprintUnlocked = activeCrimsonGameplay.Gameplay.General.extramoves &&
+                    ((actorData.character == CHARACTER::DANTE && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::SPRINT]) ||
+                     (actorData.character == CHARACTER::VERGIL && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::SPRINT]));
+                if (sprintUnlocked) {
+                    CrimsonGameplay::SprintAbility(actorBaseAddr);
+                } else {
+                    CrimsonGameplay::StopSprintAbility(actorBaseAddr);
                 }
                 // InertiaController(actorData.cloneActorBaseAddr);
                 CrimsonGameplay::BackToForwardInputs(actorBaseAddr);
