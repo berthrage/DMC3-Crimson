@@ -991,8 +991,8 @@ namespace WW
         // Unhide the wheel
         if (m_AlwaysVisible == true)
         {
-            // Reset the animations for hiding, so if they are in the middle of running they reset the state
-            //m_AnimData.ResetHidingAnimations();
+            // Reset the hiding animation state so fade-out can trigger again after forced visibility.
+            m_AnimData.ResetHidingAnimations();
 
             for (size_t i = 0; i < m_Weapons.size(); i++)
             {
