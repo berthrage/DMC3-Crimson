@@ -21,6 +21,14 @@ enum {
 	};
 }
 
+namespace SWORDFORMATIONSHORTCUT {
+	enum {
+		OFF,
+		ON,
+		INVERTED,
+	};
+}
+
 struct CrimsonConfigGameplay {
 	struct Gameplay {
 
@@ -154,8 +162,8 @@ struct CrimsonConfigGameplay {
 			bool downertia = true;
 			bool trickUpNoLockOn = true;
 			bool noAirLunarPhaseLift = true;
-			bool stormSwordsLaunches = true;
-			bool fasterSummonedSwords = true;
+			uint8 swordFormationsShortcut = SWORDFORMATIONSHORTCUT::ON;
+			bool stormSwordsDownedEnemyFix = true;
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
@@ -173,8 +181,8 @@ struct CrimsonConfigGameplay {
 					std::make_pair("downertia", &Vergil::downertia),
 					std::make_pair("trickUpNoLockOn", &Vergil::trickUpNoLockOn),
 					std::make_pair("noAirLunarPhaseLift", &Vergil::noAirLunarPhaseLift),
-					std::make_pair("stormSwordsLaunches", &Vergil::stormSwordsLaunches),
-					std::make_pair("fasterSummonedSwords", &Vergil::fasterSummonedSwords)
+					std::make_pair("swordFormationsShortcut", &Vergil::swordFormationsShortcut),
+					std::make_pair("stormSwordsDownedEnemyFix", &Vergil::stormSwordsDownedEnemyFix)
 				);
 			}
         } Vergil;

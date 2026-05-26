@@ -6,7 +6,9 @@ EXTERN g_ChargeMechanicsCPlayerCheckCall:QWORD
 EXTERN g_ChargeMechanicsCPlayer_ConstAddr:QWORD
 EXTERN g_FrameRateTimeMultiplier:DWORD
 newChargeShotgunValue dd 100.0
-constOne dd 1.0
+chargeShotgunAddInc dd 1.0
+chargeFormationAddInc dd 3.0
+
 
 .CODE
 ; From DMC3_sub_1401EB3D0:
@@ -19,13 +21,26 @@ CheckIfInChargeMechanic:
     mov rcx, rdi ; player in rdi
     call qword ptr [g_ChargeMechanicsCPlayerCheckCall]
     cmp al, 1
-    jne OriginalCode
-    sub rsp, 20h
-    PopAllRegs
+    je ModifyChargeShotgun
+    cmp al, 2
+    je ModifySummonedSwordsFormationCharge
+    jmp OriginalCode
 
 ModifyChargeShotgun:
+    sub rsp, 20h
+    PopAllRegs
     movdqu [rsp], xmm3
-    movss xmm3, dword ptr [constOne]
+    movss xmm3, dword ptr [chargeShotgunAddInc]
+    jmp ContinueModifyChargeTime
+
+ModifySummonedSwordsFormationCharge:
+    sub rsp, 20h
+    PopAllRegs
+    movdqu [rsp], xmm3
+    movss xmm3, dword ptr [chargeFormationAddInc]
+    jmp ContinueModifyChargeTime
+
+ContinueModifyChargeTime:
     mulss xmm3, dword ptr [g_FrameRateTimeMultiplier]
     addss xmm0, xmm3
     movdqu xmm3, [rsp]

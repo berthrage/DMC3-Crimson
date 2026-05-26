@@ -66,6 +66,10 @@ namespace CrimsonReversedCalls {
 		return GAME_CALL_SAFE(0x1E0800, uint32, uintptr_t, int, int, int)(playerAddr, eventIndex, a3, a4);
 	}
 
+	uint8 CPlayerSetSwordFormationTargetIndex_sub_140224180(uintptr_t playerActorAddr) {
+		return GAME_CALL_SAFE(0x224180, uint8, uintptr_t)(playerActorAddr);
+	}
+
 	void PlayAnimation_sub_1401EFB90(uintptr_t actorAddr, uint32 group, int index, float initialFrame, uint8 a5, uint8 a6, uint8 nFrames) {
 		GAME_CALL_SAFE(0x1EFB90, void, uintptr_t, uint32, int, float, uint8, uint8, uint8)(actorAddr, group, index, initialFrame, a5, a6, nFrames);
 	}

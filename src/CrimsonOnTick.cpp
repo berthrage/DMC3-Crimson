@@ -2123,6 +2123,12 @@ void CallGameplayFuncs() {
 		CrimsonGameplay::CalculateRotationTowardsEnemy(playerActor);
 		CrimsonGameplay::CalculateRotationTowardsEnemy(playerActor.cloneActorBaseAddr);
 	}
+
+	CrimsonDetours::FasterSummonedSwords(activeCrimsonGameplay.Gameplay.General.extramoves &&
+		ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::SUMMON_SWORDS_LEVEL_4]);
+	CrimsonDetours::SummonedSwordsFormationShortcuts(activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut >=
+		SWORDFORMATIONSHORTCUT::ON);
+	CrimsonDetours::StormSwordsDownedEnemyFix(activeCrimsonGameplay.Gameplay.Vergil.stormSwordsDownedEnemyFix);
 }
 
 void TriggerOnTickFuncs() {

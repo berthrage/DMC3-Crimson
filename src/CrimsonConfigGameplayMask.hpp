@@ -133,8 +133,8 @@ struct CrimsonConfigGameplayMask {
 			bool downertia = true;
 			bool trickUpNoLockOn = true;
 			bool noAirLunarPhaseLift = true;
-			bool stormSwordsLaunches = true;
-			bool fasterSummonedSwords = true;
+			bool swordFormationsShortcut = true;
+			bool stormSwordsDownedEnemyFix = true;
 			
 
 			static constexpr auto Metadata() {
@@ -153,8 +153,8 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("downertia", &Vergil::downertia),
 					std::make_pair("trickUpNoLockOn", &Vergil::trickUpNoLockOn),
 					std::make_pair("noAirLunarPhaseLift", &Vergil::noAirLunarPhaseLift),
-					std::make_pair("stormSwordsLaunches", &Vergil::stormSwordsLaunches),
-					std::make_pair("fasterSummonedSwords", &Vergil::fasterSummonedSwords)
+					std::make_pair("swordFormationsShortcut", &Vergil::swordFormationsShortcut),
+					std::make_pair("stormSwordsDownedEnemyFix", &Vergil::stormSwordsDownedEnemyFix)
 				);
 			}
 		} Vergil;

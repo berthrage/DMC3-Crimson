@@ -6,6 +6,7 @@
 #include <array>
 #include <string>
 #include <iostream>
+#include <type_traits>
 
 static inline ImVec2 operator*(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x * rhs, lhs.y * rhs); }
 static inline ImVec2 operator/(const ImVec2& lhs, const float rhs) { return ImVec2(lhs.x / rhs, lhs.y / rhs); }
@@ -283,8 +284,9 @@ namespace UI {
 		return update;
 	}
 
-	template <typename varType>
-	bool ComboVectorString(const char* label, std::vector<std::string>(&names), varType& var, ImGuiComboFlags flags = 0) {
+	// Overload for std::string: var IS the selected value (original behavior)
+	template <typename = void>
+	bool ComboVectorString(const char* label, std::vector<std::string>(&names), std::string& var, ImGuiComboFlags flags = 0) {
 		bool update = false;
 
 		std::vector<const char*> namescStr;
@@ -295,10 +297,9 @@ namespace UI {
 
 		PushID();
 
-
 		if (BeginCombo(label, var.c_str(), ImVec2{0.0f, 0.0f}, 0.6f, flags)) {
 			for (int i = 0; i < names.size(); i++) {
-				bool selected = (strcmp(namescStr[i], var.c_str()) == 0) ? true : false;
+				bool selected = (strcmp(namescStr[i], var.c_str()) == 0);
 
 				PushID();
 
@@ -312,7 +313,45 @@ namespace UI {
 
 			ImGui::EndCombo();
 		}
-		
+
+		PopID();
+
+		if (update) {
+			::GUI::save = true;
+		}
+
+		return update;
+	}
+
+	// Template for numeric types: var is an index into names
+	template <typename varType>
+		auto ComboVectorString(const char* label, std::vector<std::string>(&names), varType& var, ImGuiComboFlags flags = 0) -> std::enable_if_t<std::is_arithmetic_v<varType>, bool> {
+		bool update = false;
+
+		std::vector<const char*> namescStr;
+
+		for (const auto& name : names) {
+			namescStr.push_back(name.c_str());
+		}
+
+		PushID();
+
+		if (BeginCombo(label, names[var].c_str(), ImVec2{0.0f, 0.0f}, 0.6f, flags)) {
+			for (int i = 0; i < names.size(); i++) {
+				bool selected = (i == var);
+
+				PushID();
+
+				if (Selectable(namescStr[i], &selected)) {
+					update = true;
+					var = static_cast<varType>(i);
+				}
+
+				PopID();
+			}
+
+			ImGui::EndCombo();
+		}
 
 		PopID();
 

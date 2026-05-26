@@ -1716,6 +1716,12 @@ const char* trackNames[] = {
 	"ZZZ",
 };
 
+std::vector<std::string> SwordFormationShortcutNames = {
+	"Off",
+	"On",
+	"Inverted",
+};
+
 std::vector<std::string> weaponWheelThemeNames = {
 	"Crimson",
 	"Crimson Early Beta",
@@ -12421,24 +12427,26 @@ void VergilGameplayOptions() {
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 
-			//ImGui::TableNextColumn();
+			ImGui::TableNextColumn();
 
-			//GUI_Checkbox2("Storm Swords Launches",
-			//	activeCrimsonGameplay.Gameplay.Vergil.stormSwordsLaunches,
-			//	queuedCrimsonGameplay.Gameplay.Vergil.stormSwordsLaunches,
-			//	activeCrimsonGameplayMask.Gameplay.Vergil.stormSwordsLaunches);
-			//ImGui::SameLine();
-			//TooltipHelper("(?)", "Makes Storm Swords (Swords Formation Around Enemies) Launch Them.\n"
-			//	"Displacement damage changes to 60.0 per sword from 0.0.");
+			ImGui::PushItemWidth(itemWidth * 0.5f);
+			GUI_ComboVectorString2("Sword Formations Shortcut",
+				SwordFormationShortcutNames,
+				activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut,
+				queuedCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut,
+				activeCrimsonGameplayMask.Gameplay.Vergil.swordFormationsShortcut);
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Go directly to Blistering Swords or Storm Swords without needing Spiral Swords beforehand.\n"
+				"Lock On + Forward + Shoot: Blistering Swords, Lock On + Backwards + Shoot: Storm Swords. \n"
+				"Both Inputs can be inverted with this option. Makes Shoot Button Hold Time much shorter to get to any Swords Formation.");
 
-			//GUI_Checkbox2("Faster Summoned Swords",
-			//	activeCrimsonGameplay.Gameplay.Vergil.fasterSummonedSwords,
-			//	queuedCrimsonGameplay.Gameplay.Vergil.fasterSummonedSwords,
-			//	activeCrimsonGameplayMask.Gameplay.Vergil.fasterSummonedSwords);
-			//ImGui::SameLine();
-			//GUI_WIPButton();
-			//ImGui::SameLine();
-			//TooltipHelper("(?)", "Increases the speed of summoned swords by 2x, decreases their damage by half and increases hitstop.");
+			GUI_Checkbox2("Storm Swords Downed Enemy Fix",
+			activeCrimsonGameplay.Gameplay.Vergil.stormSwordsDownedEnemyFix,
+			queuedCrimsonGameplay.Gameplay.Vergil.stormSwordsDownedEnemyFix,
+			activeCrimsonGameplayMask.Gameplay.Vergil.stormSwordsDownedEnemyFix);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Fixes the radius on Storm Swords so it can properly hit downed enemies.");
 
 			ImGui::EndTable();
 		}
@@ -13158,7 +13166,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	);
 
 
-	//ImGui::End();
+	ImGui::End();
 	ImGui::PopFont();
 
 	// GUI Hotket Text Window

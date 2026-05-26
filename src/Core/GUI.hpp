@@ -441,7 +441,7 @@ bool GUI_ComboVectorString2(const char* label, std::vector<std::string>(&names),
 
 	if (maskVar) {
         ImGui::SameLine();
-        GUI_RequiredForGameModeStringButton(var);
+        GUI_RequiredForGameModeStringButton(names[var]);
 	}
 
 	return update;

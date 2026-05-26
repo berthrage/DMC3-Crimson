@@ -62,6 +62,8 @@ set(MASM_SRC
     masm/ChargeMechanicsCPlayer.asm
     masm/CItemOrbPickupAllPlayers.asm
     masm/FasterSummonedSwords.asm
+    masm/SummonedSwordsFormationShortcuts.asm
+    masm/StormSwordsDownedEnemyFix.asm
 )
 
 set (ASM_LIBS)
