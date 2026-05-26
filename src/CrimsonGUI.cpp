@@ -5883,9 +5883,10 @@ ShopExperienceHelper shopHelpersVergil[] = {
 ShopExperienceHelper shopHelpersVergilGuns[] = {
 	{"Summoned Swords Level 2","", UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, 7500, -1, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3,-1,-1, {-1,-1,-1,-1,-1}},
 	{"Summoned Swords Level 3","", UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3, 15000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, UNLOCK_VERGIL::SUMMON_SWORDS_LEVEL_4,-1,-1, {-1,-1,-1,-1,-1}},
-	{"Summoned Swords Level 4","DMC4/5 style summon swords.\nIncreases the speed of summoned swords by 2x, decreases their damage by half and increases hitstop.",UNLOCK_VERGIL::SUMMON_SWORDS_LEVEL_4, 20000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Summoned Swords Level 4","Increases the speed of summoned swords by 2x, decreases their damage by half and increases hitstop from 3.0 to 8.0.\n"
+	"Extra Speed DOES NOT apply to Blistering Swords.",UNLOCK_VERGIL::SUMMON_SWORDS_LEVEL_4, 20000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3, -1,-1,-1, {-1,-1,-1,-1,-1}},
 	{"Spiral Swords Level 1","",UNLOCK_VERGIL::SPIRAL_SWORDS, 20000,-1, UNLOCK_VERGIL::STORM_SWORDS_MODDED,-1,-1, {-1,-1,-1,-1,-1}},
-	{"Spiral Swords Level 2","Makes Storm Swords (Swords Formation Around Enemies) Launch Them.\n"
+	{"Spiral Swords Level 2","Makes Storm Swords Launch Enemies. 60.0 displacement damage per sword hit.\n"
 				"Displacement damage changes to 60.0 per sword from 0.0.",UNLOCK_VERGIL::STORM_SWORDS_MODDED, 10000, UNLOCK_VERGIL::SPIRAL_SWORDS, -1,-1,-1, {-1,-1,-1,-1,-1}},
 };
 
@@ -15757,7 +15758,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					ImGui::PopFont();
 				}
 
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.7f);
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.9f);
 
 				// Additional Work
 				{
@@ -15767,7 +15768,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					}
 					ImGui::PopFont();
 
-					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.2f);
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.8f);
 
 					{
 						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
@@ -15985,6 +15986,86 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						ImGui::PopFont();
 					}
 
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.9f);
+
+					// PlayTesters
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 1.2f)]);
+						{
+							ImGui::Text("PlayTesters");
+						}
+						ImGui::PopFont();
+
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.8f);
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Separator();
+
+							ImGui::Text("Akaragitsune");
+						}
+						ImGui::PopFont();
+
+						ImGui::SameLine();
+
+						const ImVec2 socialsBBFrameSize{ 4.0f * 2.0f + 2.0f * ImGui::GetFontSize(), 4.0f + ImGui::GetFontSize() };
+						const ImVec2 currentCursorPos = ImGui::GetCursorScreenPos();
+
+						ImGui::SetCursorScreenPos(ImVec2{ window->ContentRegionRect.Max.x - socialsBBFrameSize.x, currentCursorPos.y });
+
+						if (fnDrawSocialButton("akaragitsunetwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+							ShellExecute(0, 0, "https://x.com/Akaragitsune", 0, 0, SW_SHOW);
+						}
+
+						ImGui::SameLine(0.0f, 0.0f);
+
+						if (fnDrawSocialButton("akaragitsuneyoutube", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+							ShellExecute(0, 0, "https://www.youtube.com/@akaragitsune", 0, 0, SW_SHOW);
+						}
+
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.8f);
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Separator();
+
+							ImGui::Text("Danliam");
+
+							ImGui::SameLine();
+
+							const ImVec2 socialsBBFrameSize{ 4.0f + ImGui::GetFontSize(), 4.0f + ImGui::GetFontSize() };
+							const ImVec2 currentCursorPos = ImGui::GetCursorScreenPos();
+
+							ImGui::SetCursorScreenPos(ImVec2{ window->ContentRegionRect.Max.x - socialsBBFrameSize.x, currentCursorPos.y });
+
+							if (fnDrawSocialButton("danliamyoutube", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://www.youtube.com/@danliamdmc", 0, 0, SW_SHOW);
+							}
+						}
+						ImGui::PopFont();
+
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.8f);
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Separator();
+
+							ImGui::Text("Nelo47Angelo");
+
+							ImGui::SameLine();
+
+							const ImVec2 socialsBBFrameSize{ 4.0f + ImGui::GetFontSize(), 4.0f + ImGui::GetFontSize() };
+							const ImVec2 currentCursorPos = ImGui::GetCursorScreenPos();
+
+							ImGui::SetCursorScreenPos(ImVec2{ window->ContentRegionRect.Max.x - socialsBBFrameSize.x, currentCursorPos.y });
+
+							if (fnDrawSocialButton("nelo47angeloyoutube", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://www.youtube.com/channel/UCiwtZmUDGGuEP0Ze2KsBSSQ", 0, 0, SW_SHOW);
+							}
+						}
+						ImGui::PopFont();
+					}
+
 					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.8f);
 
 					{
@@ -15992,7 +16073,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						{
 							ImGui::Text("Thanks to Spritzkrieg for the express permission\n"
 								"to airdragon50 to use and modify his Original PS2 \n"
-								"Textures pack.");
+								"Textures Pack and Subtitle Alignment and Grammar Fix.");
 						}
 						ImGui::PopFont();
 					}
@@ -16013,6 +16094,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
 					{
+						ImGui::Separator();
+
 						ImGui::Text("serpentiem");
 
 						ImGui::SameLine();
@@ -16043,6 +16126,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
 					{
+						ImGui::Separator();
+
 						ImGui::Text("Lyall");
 
 						ImGui::SameLine();
