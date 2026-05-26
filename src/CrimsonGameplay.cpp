@@ -1785,7 +1785,7 @@ void VergilRisingStar(byte8* actorBaseAddr) {
 	// and either the button is held long enough OR player is close to an enemy and button is held long enough
 	bool canTransition =
 		(actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_1) &&
-		actionTimer > 0.52f && actionTimer < 0.60f &&
+		actionTimer > 0.57f && actionTimer < 0.60f &&
 		risingStarInput.meleeButtonHold >= MELEE_HOLD_TIME &&
 		!risingStarInput.meleeReleasedRisingStar &&
 		meleeWeaponEquipped == WEAPON::YAMATO_VERGIL;
