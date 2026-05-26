@@ -235,6 +235,9 @@ namespace CrimsonCameraController {
 			//MISSION 20:
 			|| (eventData.room == ROOM::UNSACRED_HELLGATE_2)
 			//It's literally the vergil fight
+
+			//I HATE GIGAPEDE
+			|| (sessionData.mission == MISSION::BLOODY_PALACE && eventData.room == ROOM::BLOODY_PALACE_BOSS_2)
 			);
 		return exceptions && activeConfig.Actor.playerCount <= 1;
 	}
