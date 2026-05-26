@@ -280,7 +280,7 @@ namespace CrimsonFastcallDetours{
 
 		 // Apply damage based on cached level
 		 switch (shlActorData.damageLevel) {
-		 case 5: newDmgData.dmgValue = 80.0f;  break;
+		 case 5: newDmgData.dmgValue = 112.0f;  break;
 		 case 4: newDmgData.dmgValue = 200.0f; break;
 		 case 3: newDmgData.dmgValue = 700.0f; break;
 		 case 2: newDmgData.dmgValue = 300.0f; break;
