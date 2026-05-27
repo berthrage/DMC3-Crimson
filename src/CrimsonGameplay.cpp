@@ -2114,7 +2114,7 @@ float ComputeDynamicJDCHoldTime(const PlayerActorData& actorData, bool inAir, bo
 	else if ((actorData.action == ACTION_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_1 ||
 		actorData.action == ACTION_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2) &&
 		jCut.state == JDC_STATE::JUST_FRAME_AIR) {
-		return 0.42f;
+		return 0.5f;
 	}
 	else if (inRisingStar) {
 		return 1.0f; 
