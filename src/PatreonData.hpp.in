@@ -1,0 +1,6 @@
+#pragma once
+namespace UI {
+inline constexpr const char* EMBEDDED_PATRONS_JSON = R"-JSON-(
+@EMBEDDED_PATRONS_JSON@
+)-JSON-";
+}

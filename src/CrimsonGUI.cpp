@@ -20,6 +20,7 @@
 #include "DMC3Input.hpp"
 #include "File.hpp"
 #include "ImGuiExtra.hpp"
+#include "Patreon.hpp"
 #include "FMOD.hpp"
 #include "Graphics.hpp"
 #include "Internal.hpp"
@@ -10295,12 +10296,14 @@ void SystemSection(size_t defaultFontSize) {
 
             ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Unlocked FPS", activeCrimsonConfig.System.fpsUnlocked, queuedCrimsonConfig.System.fpsUnlocked);
+			GUI_Checkbox2("Unlocked Framerate", activeCrimsonConfig.System.fpsUnlocked, queuedCrimsonConfig.System.fpsUnlocked);
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("This neat experimental feature completely eliminates input lag and greatly boosts game responsiveness.\n"
 					"We're actively polishing it, some bugs may still occur.\n"
 					"If you find any, please report them on our GitHub issue tracker or Discord server.");
 			}
+			ImGui::SameLine();
+			GUI_WIPButton();
 
 			ImGui::TableNextColumn();
 
@@ -13994,10 +13997,16 @@ void Main(IDXGISwapChain* pSwapChain) {
 						break;
 					}
 				}
-			}
 
-			UI::patronsQueueResult = res;
-													  }
+				UI::patronsQueueResult = res;
+			}
+			else
+			{
+				// API failed — use compiled-in data from src/patrons.json
+				UI::LoadDefaultPatrons();
+				UI::patronsQueueResult = WebAPIResult::Success;
+			}
+		}
 		);
 
 		versionCheckerThread = std::thread{

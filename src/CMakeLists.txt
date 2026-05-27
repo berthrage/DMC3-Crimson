@@ -120,6 +120,14 @@ set(CXX_FLAGS
 
 project(Crimson LANGUAGES CXX C ASM_MASM)
 
+# Embed patrons.json as a C++ string literal at compile time
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/patrons.json" EMBEDDED_PATRONS_JSON)
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/PatreonData.hpp.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/PatreonData.hpp"
+    @ONLY
+)
+
 file(GLOB FONTS_HDR 
                     Fonts/Benguiat.hpp
                     Fonts/Messenger.hpp
@@ -184,6 +192,10 @@ file(GLOB MAIN_SRC
     CrimsonLicense.hpp
     CrimsonOnboarding.cpp
     CrimsonOnboarding.hpp
+    Patreon.hpp
+    PatreonData.hpp.in
+    patrons.json
+    parse_patreon.py
     CrimsonHighFPSFixes.cpp
     CrimsonHighFPSFixes.hpp
     CrimsonHUD.cpp
@@ -316,6 +328,7 @@ add_library(${PROJECT_NAME} SHARED
             ${CORE_SRC}
 )
 
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${CXX_LIBS}) # Dependencies
 target_compile_options(${PROJECT_NAME} PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:${CXX_FLAGS}>
