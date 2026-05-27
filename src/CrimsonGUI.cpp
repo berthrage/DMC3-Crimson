@@ -13283,7 +13283,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 
 	// Format the version string
 	std::string versionStr = std::format("v{}.{}{}", UI::g_UIContext.CurrentVersion.Major, UI::g_UIContext.CurrentVersion.Minor, UI::g_UIContext.CurrentVersion.PatchLetter);
-	std::string versionText = "BETA " + versionStr;
+	std::string versionText = "" + versionStr;
 
 	// Calculate text size
 	ImVec2 versionTextSize = ImGui::CalcTextSize(versionText.c_str());

@@ -148,7 +148,7 @@ namespace UI {
 		// Add custom ranges to the font
 		ImVector<ImWchar> ranges;
 		ImFontGlyphRangesBuilder builder;
-		builder.AddText((const char*)u8"�");
+		builder.AddChar(0x2022);
 		builder.AddRanges(io.Fonts->GetGlyphRangesDefault());
 		builder.BuildRanges(&ranges);
 

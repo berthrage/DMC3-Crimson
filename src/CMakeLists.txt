@@ -102,6 +102,7 @@ set(CXX_FLAGS
     /Zc:preprocessor
     /Zc:wchar_t
     /Zc:char8_t
+    /utf-8
     /Zc:externC-
     /W3
     /wd4005 # macro redefinition
