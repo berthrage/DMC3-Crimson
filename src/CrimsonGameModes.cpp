@@ -97,6 +97,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	dante.groundTrick = false;
 	dante.swapDancePierceInputs = false;
 	dante.swapArtemisMultiLockNormalShot = false;
+	dante.swapHammerVocalnoInputs = false;
 	dante.chargedShotgunLaunches = false;
 	dante.doppelgangerSplitSync = false;
 	dante.quickGrapple = false;
@@ -107,12 +108,16 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	vergil.fasterDTRapidSlash = false;
 	vergil.roundTripTweaks = false;
 	vergil.airStinger = false;
+	vergil.mirageTrigger = false;
+	vergil.trickUpNoLockOn = false;
+	vergil.downertia = false;
 	vergil.airRisingSun = false;
 	vergil.airLunarPhase = false;
 	vergil.judgementCutRework = false;
 	vergil.noAirLunarPhaseLift = false;
 	vergil.swordFormationsShortcut = false;
 	vergil.stormSwordsDownedEnemyFix = false;
+
 
 	// Cheats: disabled
 	preset.Cheats = defaultCrimsonGameplay.Cheats;

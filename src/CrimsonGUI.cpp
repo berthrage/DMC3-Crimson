@@ -10593,6 +10593,9 @@ void SystemSection(size_t defaultFontSize) {
 			if (GUI_Checkbox2("Skip Cutscenes", activeConfig.skipCutscenes, queuedConfig.skipCutscenes)) {
 				ToggleSkipCutscenes(activeConfig.skipCutscenes);
 			}
+			ImGui::SameLine();
+			TooltipHelper("(?) WARNING", "This option has been known to cause memory corruption on some PCs,\n"
+				"causing you to crash when reading an in-game message or interacting with an item, be wary of it.", 2048.0f, true);
 
 			ImGui::TableNextColumn();
 
