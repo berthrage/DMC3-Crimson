@@ -26,6 +26,7 @@ void StyleLvlDispWindow();
 void RoyalGaugeDispWindow();
 void MirageGaugeMainPlayer();
 Texture2DD3D11 *getCrimsonGradient();
+Texture2DD3D11 *getRedOrbTexture();
 
 struct FadeState {
 	float alpha = 0.0f;

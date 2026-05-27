@@ -3627,6 +3627,11 @@ Texture2DD3D11 *getCrimsonGradient()
 	return crimsonTitleGradient;
 }
 
+Texture2DD3D11 *getRedOrbTexture()
+{
+	return RedOrbTexture;
+}
+
 
 
 void InitTextures(ID3D11Device* pd3dDevice) {
