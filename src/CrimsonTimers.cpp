@@ -18,6 +18,7 @@
 
 #include "Core/Macros.h"
 #include "DMC3Input.hpp"
+#include "CrimsonGameplay.hpp"
 
 namespace CrimsonTimers {
 
@@ -74,6 +75,9 @@ void ActionTimers() {
                 continue;
             }
             auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+            if (!CrimsonGameplay::IsActiveCharacterActor(actorData)) {
+                continue;
+            }
             auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
             if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) continue;
             auto inAttack = (actorData.eventData[0].event == ACTOR_EVENT::ATTACK);
@@ -99,7 +103,8 @@ void ActionTimers() {
 			if (inAttack || actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK ||
 				actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_DOWN ||
 				actorData.eventData[0].event == ACTOR_EVENT::DARK_SLAYER_TRICK_UP ||
-                actorData.eventData[0].event == ACTOR_EVENT::LANDING || actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL) {
+                actorData.eventData[0].event == ACTOR_EVENT::LANDING || actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL ||
+                actorData.eventData[0].event == ACTOR_EVENT::AIR_TRICK_END) {
 				actionTimerNotTrickChange += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
             }
             else {

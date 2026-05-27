@@ -3135,10 +3135,10 @@ void ActivateDoppelganger(PlayerActorData& actorData) {
         cloneCharacterData.meleeWeapons[0] = WEAPON::YAMATO_VERGIL;
         cloneCharacterData.meleeWeapons[1] = WEAPON::BEOWULF_VERGIL;
         cloneCharacterData.meleeWeapons[2] = WEAPON::YAMATO_FORCE_EDGE;
-        cloneCharacterData.meleeWeaponIndex = 0;
+        cloneCharacterData.meleeWeaponIndex = characterData.meleeWeaponIndex;
 
-        cloneActorData.queuedMeleeWeaponIndex = 0;
-        cloneActorData.activeMeleeWeaponIndex = 0;
+        cloneActorData.queuedMeleeWeaponIndex = characterData.meleeWeaponIndex;
+        cloneActorData.activeMeleeWeaponIndex = characterData.meleeWeaponIndex;
     }
     cloneActorData.hitPoints = 20000;
     cloneActorData.dead = 0;
@@ -8766,11 +8766,13 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 //    CrimsonGameplay::SprintAbility(actorBaseAddr);
                 //}
 
-                if (activeCrimsonGameplay.Gameplay.General.extramoves) {
-                    if (actorData.character == CHARACTER::DANTE && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::SPRINT])
-                        CrimsonGameplay::SprintAbility(actorBaseAddr);
-                    if (actorData.character == CHARACTER::VERGIL && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::SPRINT])
-                        CrimsonGameplay::SprintAbility(actorBaseAddr);
+                bool sprintUnlocked = activeCrimsonGameplay.Gameplay.General.extramoves &&
+                    ((actorData.character == CHARACTER::DANTE && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::SPRINT]) ||
+                     (actorData.character == CHARACTER::VERGIL && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::SPRINT]));
+                if (sprintUnlocked) {
+                    CrimsonGameplay::SprintAbility(actorBaseAddr);
+                } else {
+                    CrimsonGameplay::StopSprintAbility(actorBaseAddr);
                 }
                 // InertiaController(actorData.cloneActorBaseAddr);
                 CrimsonGameplay::BackToForwardInputs(actorBaseAddr);
@@ -14237,10 +14239,7 @@ void SceneGame() {
 
     // This determines that the Actor System gets temporarily deactivated at certain points 
     // where it would crash the game otherwise (mission 19 Battle of Brothers, as an example). - Mia
-    if (((sessionData.mission == 18) && (nextEventData.room == 403) && !activeConfig.debugOverlayData.enable) ||
-        ((sessionData.mission == 19) && (nextEventData.room == 421) && (eventFlags[20] == 1))
-        || ((sessionData.mission == 20) && (nextEventData.room == 12)&& !activeConfig.debugOverlayData.enable)
-        ) {
+    if (((sessionData.mission == 19) && (nextEventData.room == 421) && (eventFlags[20] == 1))) {
         actorLastEnable                = activeConfig.Actor.enable;
         updateConfig              = true;
         activeConfig.Actor.enable = false;

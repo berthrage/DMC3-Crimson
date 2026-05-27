@@ -610,7 +610,9 @@ void DisableBlendingEffectsController() {
 		CrimsonPatches::DisableGhostingEffect(!activeCrimsonConfig.System.BlendingEffects.ghosting);
 		CrimsonPatches::DisableColorFilterEffect(!activeCrimsonConfig.System.BlendingEffects.colorFilter);
 		CrimsonPatches::DisableBloomEffect(!activeCrimsonConfig.System.BlendingEffects.bloom);
-		CrimsonPatches::DisableFogMistEffect(!activeCrimsonConfig.System.BlendingEffects.fogMist);
+		//CrimsonPatches::DisableFogMistEffect(!activeCrimsonConfig.System.BlendingEffects.fogMist);
+		// Fog/Mist disabling is currently buggy and can stop teleports at mission 7 start,
+		// needs more testing before we can safely enable it for users.
 		CrimsonPatches::DisableWarpingEffect(!activeCrimsonConfig.System.BlendingEffects.warp);
 		CrimsonPatches::DisableAllBlendingEffects(activeCrimsonConfig.System.BlendingEffects.disableAll);
 	}
@@ -618,7 +620,6 @@ void DisableBlendingEffectsController() {
 		CrimsonPatches::DisableGhostingEffect(false);
 		CrimsonPatches::DisableColorFilterEffect(false);
 		CrimsonPatches::DisableBloomEffect(false);
-		CrimsonPatches::DisableFogMistEffect(false);
 		CrimsonPatches::DisableWarpingEffect(false);
 		CrimsonPatches::DisableAllBlendingEffects(false);
 	}
@@ -1497,12 +1498,21 @@ void ReloadHUDController() {
 		return;
 	}
 	auto& eventData = *reinterpret_cast<CSceneGameMain*>(pool_C90E10[5]);
+	auto name = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E28);
+	if (!name) {
+		return;
+	}
+	name -= 0x180;
+	auto hudTop = *reinterpret_cast<byte8**>(name + 0x1B070);
+	if (!hudTop) {
+		return;
+	}
+
 
 	// When outside valid gameplay events or in a cutscene, reset the flag and bail out.
 	// No HUD reload should happen in these states.
 	if ((eventData.event != EVENT::MAIN && eventData.event != EVENT::PAUSE &&
-		eventData.event != EVENT::MESSAGE && eventData.event != EVENT::ITEM) ||
-		g_inGameCutscene) {
+		eventData.event != EVENT::MESSAGE && eventData.event != EVENT::ITEM)) {
 		hudReloaded = false;
 		return;
 	}
@@ -2101,6 +2111,7 @@ void CallGameplayFuncs() {
 	if (activeConfig.Actor.enable) {
 		ForEachSpawnedPlayerActor([&](PlayerActorData& playerActor, NewActorData&, uint8, uint8, uint8) {
 			CrimsonGameplay::CalculateRotationTowardsEnemy(playerActor);
+			CrimsonGameplay::VergilTrackSwordFormationBuffer(playerActor);
 		});
 	}
 	else {
@@ -2112,7 +2123,14 @@ void CallGameplayFuncs() {
 		CrimsonDetours::ToggleDisableDriveHold(false);
 		CrimsonGameplay::CalculateRotationTowardsEnemy(playerActor);
 		CrimsonGameplay::CalculateRotationTowardsEnemy(playerActor.cloneActorBaseAddr);
+		CrimsonGameplay::VergilTrackSwordFormationBuffer(playerActor);
 	}
+
+	CrimsonDetours::FasterSummonedSwords(activeCrimsonGameplay.Gameplay.General.extramoves &&
+		ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::SUMMON_SWORDS_LEVEL_4]);
+	CrimsonDetours::SummonedSwordsFormationShortcuts(activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut >=
+		SWORDFORMATIONSHORTCUT::ON);
+	CrimsonDetours::StormSwordsDownedEnemyFix(activeCrimsonGameplay.Gameplay.Vergil.stormSwordsDownedEnemyFix);
 }
 
 void TriggerOnTickFuncs() {

@@ -123,7 +123,8 @@ enum {
 
     SPRINT,
     RISING_SUN_AIR_TAUNT,
-
+    SUMMON_SWORDS_LEVEL_4,
+    STORM_SWORDS_MODDED,
     MOD_COUNT,
 };
 };
@@ -559,7 +560,7 @@ enum {
     REBELLION_HELM_BREAKER,
     REBELLION_STINGER_LEVEL_1,
     REBELLION_STINGER_LEVEL_2,
-    REBELLION_LEAP,
+    REBELLION_STINGER_LEAP,
     REBELLION_HIGH_TIME,
     REBELLION_HIGH_TIME_LAUNCH,
     REBELLION_KICK_1,
@@ -3366,6 +3367,9 @@ struct DamageDataAddrOffsets {
 
 	// --- Vergil ---
 	uintptr_t jdcShl = 0x5CDF40;
+    uintptr_t summonedSwordShl = 0x5CDD10;
+    uintptr_t summonedSwordStormSwordsShl = 0x5CDE50; // Sword Formation around Enemies
+    uintptr_t summonedSwordBlisteringSwordsShl = 0x5CDEA0;
     uintptr_t yamatoUpperSlash1Hit = 0x5CCE10;
     uintptr_t yamatoRave1Hit = 0x5CCF00;
 	uintptr_t yamatoRave2Hit = 0x5CCF50;
@@ -5796,6 +5800,21 @@ namespace BUFFER_ROYAL {
 	};
 }
 
+namespace BUFFER_SWORD_FORMATION {
+	enum {
+		SPIRAL_SWORDS,
+		STORM_SWORDS,
+		BLISTERING_SWORDS,
+	};
+}
+
+struct SwordFormationTracker {
+    float gracePeriodTimer = 0.0;
+	uint8 bufferedFormation = BUFFER_SWORD_FORMATION::SPIRAL_SWORDS;
+	bool formationBuffered = false;
+    float resetTimer = 0.0f; 
+};
+
 
 struct CrimsonPlayerData {
     uintptr_t playerPtr;
@@ -5898,6 +5917,7 @@ struct CrimsonPlayerData {
 	VergilRisingStarInput risingStarInput;
     BulletMagnetism bulletMagnetism;
     uint8 bufferRoyal = 0;
+	SwordFormationTracker swordFormationTracker;
     //this isn't a value mirrored between player & doppelganger, it's only for the player and it effects doppelganger behavior.
     bool lockCloneStyle = false;
 
@@ -5977,6 +5997,7 @@ struct CrimsonPlayerData {
 	VergilRisingStarInput risingStarInputClone;
     BulletMagnetism bulletMagnetismClone;
 	uint8 bufferRoyalClone = 0;
+	SwordFormationTracker swordFormationTrackerClone;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];

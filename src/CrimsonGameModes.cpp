@@ -97,7 +97,8 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	dante.groundTrick = false;
 	dante.swapDancePierceInputs = false;
 	dante.swapArtemisMultiLockNormalShot = false;
-	dante.chargedShotgunLifts = false;
+	dante.swapHammerVocalnoInputs = false;
+	dante.chargedShotgunLaunches = false;
 	dante.doppelgangerSplitSync = false;
 	dante.quickGrapple = false;
 
@@ -107,10 +108,16 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	vergil.fasterDTRapidSlash = false;
 	vergil.roundTripTweaks = false;
 	vergil.airStinger = false;
+	vergil.mirageTrigger = false;
+	vergil.trickUpNoLockOn = false;
+	vergil.downertia = false;
 	vergil.airRisingSun = false;
 	vergil.airLunarPhase = false;
 	vergil.judgementCutRework = false;
 	vergil.noAirLunarPhaseLift = false;
+	vergil.swordFormationsShortcut = false;
+	vergil.stormSwordsDownedEnemyFix = false;
+
 
 	// Cheats: disabled
 	preset.Cheats = defaultCrimsonGameplay.Cheats;
@@ -164,7 +171,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	dante.artemisRework = true;
 	dante.groundTrick = false;
 	//dante.swapDancePierceInputs = false;
-	dante.chargedShotgunLifts = false;
+	dante.chargedShotgunLaunches = false;
 	dante.doppelgangerSplitSync = false;
 	dante.quickGrapple = false;
 
@@ -182,6 +189,8 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	vergil.airTauntRisingSun = false;
 	vergil.mirageTrigger = false;
 	vergil.noAirLunarPhaseLift = false;
+	vergil.swordFormationsShortcut = false;
+	vergil.stormSwordsDownedEnemyFix = false;
 
 	// Cheats section
 	preset.Cheats.General = defaultCrimsonGameplay.Cheats.General;
@@ -266,6 +275,8 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	vergil.airTauntRisingSun = true;
 	vergil.mirageTrigger = true;
 	vergil.noAirLunarPhaseLift = true;
+	vergil.swordFormationsShortcut = true;
+	vergil.stormSwordsDownedEnemyFix = true;
 
 	preset.Cheats.General = defaultCrimsonGameplay.Cheats.General;
 	preset.Cheats.Damage = defaultCrimsonGameplay.Cheats.Damage;
@@ -377,6 +388,8 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Gameplay.Dante.swapHammerVocalnoInputs = false;
 	
 	mask.Gameplay.Vergil.trickUpNoLockOn = false;
+	mask.Gameplay.Vergil.swordFormationsShortcut = false;
+	mask.Gameplay.Vergil.stormSwordsDownedEnemyFix = false;
 
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;
@@ -434,7 +447,6 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.Dante.swapArtemisMultiLockNormalShot = false;
 	mask.Gameplay.Dante.swapDancePierceInputs = false;
 	mask.Gameplay.Dante.swapHammerVocalnoInputs = false;
-	mask.Gameplay.Dante.chargedShotgunLifts = false;
 
 	mask.Gameplay.Dante.downertiaD = false; // This should be optional
 	mask.Gameplay.Dante.airRevolver = false;
@@ -451,6 +463,7 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.Vergil.airTauntRisingSun = false;
 	mask.Gameplay.Vergil.downertia = false;
 	mask.Gameplay.Vergil.trickUpNoLockOn = false;
+	mask.Gameplay.Vergil.swordFormationsShortcut = false;
 
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
 	mask.Gameplay.ExtraDifficulty.mustStyleMode = false;

@@ -1700,6 +1700,72 @@ uint16 GetRotationTowardsEnemy(byte8* actorBaseAddr) {
 
 #pragma region VergilGameplay
 
+void VergilTrackSwordFormationBuffer(byte8* actorBaseAddr) {
+	if (!actorBaseAddr || (uintptr_t)actorBaseAddr >= 0xFFFFFFFFFF) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (!IsActiveCharacterActor(actorData)) return;
+	if (actorData.character != CHARACTER::VERGIL) return;
+	uint8 playerIndex = (activeConfig.Actor.enable) ? actorData.newPlayerIndex : 0;
+	uint8 entityIndex = (activeConfig.Actor.enable) ? actorData.newEntityIndex : (actorData.isClone ? 1 : 0);
+	auto& sf = (entityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].swordFormationTracker :
+		crimsonPlayer[playerIndex].swordFormationTrackerClone;
+	auto gamepad = GetGamepad(actorData.newGamepad);
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
+	bool shootDown = (activeConfig.Actor.enable) ? (gamepad.buttons[0] & GetBinding(BINDING::SHOOT)) != 0 : 
+		(actorData.buttons[0] & GetBinding(BINDING::SHOOT)) != 0;
+	const float spiralHoldTimer = *reinterpret_cast<const float*>(actorBaseAddr + 0x68F8);
+	const float GRACE_PERIOD = 0.2f; // 200 ms grace period after input to allow for formation change
+	const float graceDelta = ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+	bool spiralSwordsActive = *reinterpret_cast<bool*>(actorBaseAddr + 0xB598);
+	// This function processes the buffered formation request towards CheckSummonedSwordFormationShortcutInput at CrimsonDetours.cpp
+
+	if (shootDown && sf.gracePeriodTimer < GRACE_PERIOD) {
+		sf.gracePeriodTimer = (std::min)(GRACE_PERIOD, sf.gracePeriodTimer + graceDelta);
+	}
+
+ 	// Reset timer: counts up while Spiral Swords is NOT active
+	// When it reaches RESET_DELAY, the buffered formation is cleared.
+	const float RESET_DELAY = 0.3f; // 100 ms
+	if (spiralHoldTimer <= 0.0f) {
+		sf.resetTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+		if (sf.resetTimer >= RESET_DELAY) {
+			if (sf.formationBuffered) {
+				sf.gracePeriodTimer = 0.0f;
+				sf.formationBuffered = false;
+				sf.resetTimer = 0.0f;
+			}
+		}
+	} else {
+		sf.resetTimer = 0.0f;
+	}
+
+	// case 2: Blistering Swords
+	// case 1: Storm Swords
+	// case 0: Spiral Swords
+	if (sf.gracePeriodTimer < GRACE_PERIOD && !sf.formationBuffered) {
+		if (actorData.lockOn && shootDown && tiltDirection == TILT_DIRECTION::UP) {
+			sf.bufferedFormation =
+				activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut == SWORDFORMATIONSHORTCUT::INVERTED ?
+					1 : 2;
+		}
+		else if (actorData.lockOn && shootDown && tiltDirection == TILT_DIRECTION::DOWN) {
+			sf.bufferedFormation =
+				activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut == SWORDFORMATIONSHORTCUT::INVERTED ?
+					2 : 1;
+		}
+		else  {
+			sf.bufferedFormation = 0;
+		}
+	
+		if (sf.gracePeriodTimer > 0.05f) {
+			sf.formationBuffered = true;
+		}
+	}
+	
+}
+
 void VergilRisingStar(byte8* actorBaseAddr) {
 	using namespace ACTION_VERGIL;
 
@@ -1785,7 +1851,7 @@ void VergilRisingStar(byte8* actorBaseAddr) {
 	// and either the button is held long enough OR player is close to an enemy and button is held long enough
 	bool canTransition =
 		(actorData.action == YAMATO_RAPID_SLASH_LEVEL_2 || actorData.action == YAMATO_RAPID_SLASH_LEVEL_1) &&
-		actionTimer > 0.52f && actionTimer < 0.60f &&
+		actionTimer > 0.57f && actionTimer < 0.60f &&
 		risingStarInput.meleeButtonHold >= MELEE_HOLD_TIME &&
 		!risingStarInput.meleeReleasedRisingStar &&
 		meleeWeaponEquipped == WEAPON::YAMATO_VERGIL;
@@ -2009,8 +2075,8 @@ void VergilYamatoHighTime(byte8* actorBaseAddr) {
 
 float ComputeDynamicJDCHoldTime(const PlayerActorData& actorData, bool inAir, bool inRisingStar, bool startedInAir) {
 	using namespace ACTION_VERGIL;
-	constexpr float MELEE_HOLD_TIME_GROUNDED = 0.7f;
-	constexpr float MELEE_HOLD_TIME_AIR = 0.6f;
+	constexpr float MELEE_HOLD_TIME_GROUNDED = 0.6f;
+	constexpr float MELEE_HOLD_TIME_AIR = 0.5f;
 	auto& jCut = (actorData.newEntityIndex == 0) ? crimsonPlayer[actorData.newPlayerIndex].jCut : 
 		crimsonPlayer[actorData.newPlayerIndex].jCutClone;
 
@@ -2048,7 +2114,7 @@ float ComputeDynamicJDCHoldTime(const PlayerActorData& actorData, bool inAir, bo
 	else if ((actorData.action == ACTION_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_1 ||
 		actorData.action == ACTION_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2) &&
 		jCut.state == JDC_STATE::JUST_FRAME_AIR) {
-		return 0.42f;
+		return 0.5f;
 	}
 	else if (inRisingStar) {
 		return 1.0f; 
@@ -2266,6 +2332,34 @@ void ApplyJDCFlyingArc(byte8* actorBaseAddr) {
 	}
 }
 
+void AirJDCJumpCancelVergil(byte8* actorBaseAddr) {
+	using namespace ACTION_VERGIL;
+	using namespace NEXT_ACTION_REQUEST_POLICY;
+
+	if (!actorBaseAddr || (actorBaseAddr == g_playerActorBaseAddrs[0]) || (actorBaseAddr == g_playerActorBaseAddrs[1])) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (actorData.character != CHARACTER::VERGIL) return;
+	auto playerIndex = actorData.newPlayerIndex;
+
+	bool doingJump = (actorData.buttons[0] & GetBinding(BINDING::JUMP));
+	auto& closeToEnemy = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].isCloseToEnemy : crimsonPlayer[playerIndex].isCloseToEnemyClone;
+
+	auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
+	auto& policyTrick = actorData.nextActionRequestPolicy[TRICKSTER_DARK_SLAYER];
+	auto& policyJump = actorData.nextActionRequestPolicy[JUMP_ROLL];
+
+	// Air JDC Ghetto Jump Cancelling
+	if ((actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_2 && actorData.state & STATE::IN_AIR) && closeToEnemy) {
+		policyJump = BUFFER;
+		if (doingJump) {
+			actorData.permissions = 3080; // This cancels the ability
+			policyJump = EXECUTE;
+		}
+	}
+}
+
 void VergilJudgementCutRework(byte8* actorBaseAddr) {
 	using namespace ACTION_VERGIL;
 	using namespace NEXT_ACTION_REQUEST_POLICY;
@@ -2310,6 +2404,7 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 			return;
 		}
 	}
+
 	auto& gamepad = GetGamepad(actorData.newGamepad);
 	auto& actionTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].actionTimer :
 		crimsonPlayer[playerIndex].actionTimerClone;
@@ -2351,38 +2446,15 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 
 	ApplyJDCFlyingArc(actorData);
 	AirJDCCancellingController(actorData);
+	AirJDCJumpCancelVergil(actorData);
+
+	if (actorData.neroAngelo && actorData.devil) {
+		return; // Disable Judgement Cuts in Nelo Angelo state
+	}
 
 	// FIX: reset latch only after AIR_TRICK_END fully exits
 	if (actorData.eventData[0].event != ACTOR_EVENT::AIR_TRICK_END) {
 		consumedAirTrickEnd[playerIndex][entityIndex] = false;
-	}
-
-	// JUDGEMENT CUT SFX
-	if ((actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_2 ||
-		actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_1)) {
-
-		if (actorData.motionData[0].index == 14) {
-			if (actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCutAirJF_pl021_00_3 ||
-				actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCut_pl021_00_3) {
-				if (jCut.fireSound) {
-					CrimsonSDL::PlayJDC(playerIndex, true, 0);
-					CrimsonReversedCalls::PlaySFXWithPos_ByType_sub_140339930((uintptr_t)appBaseAddr + 0xD6DC90, 
-						8, (uintptr_t)&actorData.position, 11);
-					jCut.fireSound = false;
-				}
-
-			}
-			else if (actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCutAir_pl021_00_3) {
-				if (jCut.fireSound) {
-					CrimsonReversedCalls::PlaySFXWithPos_ByType_sub_140339930((uintptr_t)appBaseAddr + 0xD6DC90, 
-						8, (uintptr_t)&actorData.position, 11);
-					jCut.fireSound = false;
-				}
-			}
-		}
-		else {
-			jCut.fireSound = true; // Reset sound trigger for next hit in the move
-		}
 	}
 
 	if (actorData.queuedMeleeWeaponIndex != 0 && actorData.action != YAMATO_FORCE_EDGE_COMBO_PART_4) {
@@ -2440,7 +2512,8 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 
 			if (actorData.action != DARK_SLAYER_AIR_TRICK && 
 				actorData.action != DARK_SLAYER_TRICK_DOWN && 
-				actorData.action != DARK_SLAYER_TRICK_UP) {
+				actorData.action != DARK_SLAYER_TRICK_UP &&
+				actorData.action != 0) {
 				jCut.meleeButtonHold = 0.0f; // Reset hold time when action changes to prevent buffering to interfere with Just Frame timing
 			}
 		}
@@ -2455,7 +2528,7 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 
 		bool inJFWindow = (jCut.meleeButtonHold >= jCut.meleeHoldTime &&
 			jCut.meleeButtonHold <= jCut.meleeMaxHoldTime &&
-			actionTimerNotTrickChange >= jCut.meleeHoldTime);
+			(actionTimerNotTrickChange >= jCut.meleeHoldTime));
 
 		// JUST FRAME WINDOW ENTER
 		if (inJFWindow) {
@@ -2527,6 +2600,7 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 			}
 			
 			actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
+			actorData.recoverState[0] = 0; 
 			CrimsonReversedCalls::TriggerCPlayerEvent_sub_1401E0800((uintptr_t)&actorData, ACTOR_EVENT::ATTACK, 0, -1);
 			actionTimer = 0.0f;
 			
@@ -2537,6 +2611,35 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 		jCut.isJustFrameCharged = false; // Reset charge when released
 		jCut.isAfterJustFrameCharged = false;
 		indicatorFired[playerIndex][entityIndex] = false;
+	}
+
+	// JUDGEMENT CUT SFX
+	if ((actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_2 ||
+		actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_1)) {
+
+		if (actorData.motionData[0].index == 14) {
+			// Playing at SetJDCPosAtMatrix at CrimsonDetours.cpp
+// 			if (actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCutAirJF_pl021_00_3 ||
+// 				actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCut_pl021_00_3) {
+// 				if (jCut.fireSound) {
+// 					CrimsonSDL::PlayJDC(playerIndex, true, 0);
+// 					CrimsonReversedCalls::PlaySFXWithPos_ByType_sub_140339930((uintptr_t)appBaseAddr + 0xD6DC90,
+// 						8, (uintptr_t)&actorData.position, 11);
+// 					jCut.fireSound = false;
+// 				}
+// 
+// 			}
+			if (actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCutAir_pl021_00_3) {
+				if (jCut.fireSound) {
+					CrimsonReversedCalls::PlaySFXWithPos_ByType_sub_140339930((uintptr_t)appBaseAddr + 0xD6DC90,
+						8, (uintptr_t)&actorData.position, 11);
+					jCut.fireSound = false;
+				}
+			}
+		}
+		else {
+			jCut.fireSound = true; // Reset sound trigger for next hit in the move
+		}
 	}
 
     bool isJudgementCutAction = (actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_2 || actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_1);
@@ -2568,6 +2671,10 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 		jdcDefaultsApplied = false;
 		charSettings2.jdcRadius = 220.0f;
 		charSettings2.jdcDelay1 = 10.0f;
+	}
+	else if (jCut.state == JDC_STATE::NORMAL_AIR) {
+		jdcDefaultsApplied = false;
+		charSettings2.jdcDelay1 = 12.0f;
 	}
 	else if (!isJudgementCutAction) {
 		bool anyJustFrameJdcActive = false;
@@ -3091,6 +3198,7 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
 				actorData.action == ROYALGUARD_RELEASE_4 ||
 				actorData.action == ROYALGUARD_AIR_RELEASE_2 || actorData.action == ROYALGUARD_AIR_RELEASE_3 ||
 				actorData.action == ROYALGUARD_AIR_RELEASE_4 ||
+				actorData.action == REBELLION_STINGER_LEAP ||
 				(actorData.action == SHOTGUN_POINT_BLANK && backslide.performing))) return;
 
 			actorData.rotation = GetAutoRotation();
@@ -3550,7 +3658,8 @@ void StoreInertia(byte8* actorBaseAddr) {
 
 		bool inGuardFlyableMoves = ((action == BEOWULF_KILLER_BEE && actorData.horizontalPull > 05.0f) || 
             (action == NEVAN_VORTEX && actorData.horizontalPull > 20.0f && actionTimer < 0.95f) ||
-            ((action == ROYALGUARD_AIR_RELEASE_2 || action == ROYALGUARD_RELEASE_2) && actorData.horizontalPull > 20.0f));
+            ((action == ROYALGUARD_AIR_RELEASE_2 || action == ROYALGUARD_RELEASE_2) && actorData.horizontalPull > 20.0f) ||
+			(action == REBELLION_STINGER_LEAP && actorData.horizontalPull >= 18.0f));
 
 		bool inSlowerGuarflyableMoves = (action == NEVAN_AIR_PLAY && actorData.horizontalPull > 4.0f);
 
@@ -3592,19 +3701,20 @@ void StoreInertia(byte8* actorBaseAddr) {
 
 	// GUARDFLY TIMING
 	float timing = 0.14f;
-	if (i->airGuard.cachedPull == 28.0f && event == ACTOR_EVENT::JUMP_CANCEL && (actorData.eventData[0].lastEvent == ACTOR_EVENT::ATTACK || actorData.eventData[0].lastEvent == ACTOR_EVENT::TRICKSTER_SKY_STAR ||
+	if (i->airGuard.cachedPull >= 17.0f && event == ACTOR_EVENT::JUMP_CANCEL && 
+		(actorData.eventData[0].lastEvent == ACTOR_EVENT::ATTACK || actorData.eventData[0].lastEvent == ACTOR_EVENT::TRICKSTER_SKY_STAR ||
 		actorData.eventData[0].lastEvent == ACTOR_EVENT::JUMP_CANCEL)) {
 
 		if (guardflyTimer > timing) {
 			i->airGuard.cachedPull = 3.0f;  // Reset pull 
 		}
 
-		if (actorData.horizontalPull == 28.0f && event != ACTOR_EVENT::AIR_HIKE) {
+		if (actorData.horizontalPull >= 17.0f && event != ACTOR_EVENT::AIR_HIKE) {
 			CrimsonTimers::ResetGuardflyTimer(guardflyTimer);
 		}
 	}
 	// Handle Air Hike Event (Separate from Jump Cancel)
-	else if (i->airGuard.cachedPull == 28.0f && event == ACTOR_EVENT::AIR_HIKE) {
+	else if (i->airGuard.cachedPull >= 17.0f && event == ACTOR_EVENT::AIR_HIKE) {
 
 		if (animTimer < 0.01f) {
 			CrimsonTimers::ResetGuardflyTimer(guardflyTimer);
@@ -3614,9 +3724,12 @@ void StoreInertia(byte8* actorBaseAddr) {
 			i->airGuard.cachedPull = 3.0f;  // Reset pull after 0.3s
 		}
 
-		if (actorData.horizontalPull == 28.0f) {
+		if (actorData.horizontalPull >= 17.0f) {
 			CrimsonTimers::ResetGuardflyTimer(guardflyTimer);
 		}
+	} 
+	else if (action == REBELLION_STINGER_LEAP) { // Leap is an exception to the timing rule. Its guardfly timer will only proceed on air hike instead of move start.
+		CrimsonTimers::ResetGuardflyTimer(guardflyTimer); // Prevent the timer from starting / accumulating.
 	}
 }
 
@@ -4525,6 +4638,38 @@ void SprintAbility(byte8* actorBaseAddr) {
 			sprintData.isSprinting = false;
 		}
     }
+}
+
+void StopSprintAbility(byte8* actorBaseAddr) {
+
+	if (!actorBaseAddr) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& sprintData = crimsonPlayer[playerIndex].sprint;
+	auto& playerData = GetPlayerData(actorData);
+	if (!IsActiveCharacterActor(actorData)) {
+		return;
+	}
+
+	if ((actorData.newCharacterIndex != playerData.activeCharacterIndex) || (actorData.newEntityIndex != ENTITY::MAIN)) {
+		return;
+	}
+
+	if (sprintData.isSprinting) {
+		if (actorData.character == CHARACTER::DANTE) {
+			actorData.motionArchives[MOTION_GROUP_DANTE::BASE] = File_staticFiles[pl000_00_0];
+		} else if (actorData.character == CHARACTER::VERGIL) {
+			actorData.motionArchives[MOTION_GROUP_VERGIL::BASE] = File_staticFiles[pl021_00_0];
+		}
+	}
+
+	sprintData.canSprint = false;
+	sprintData.runTimer = false;
+	sprintData.isSprinting = false;
+	sprintData.SFXPlayed = false;
+	sprintData.VFXPlayed = false;
 }
 
 #include <chrono>
@@ -5795,13 +5940,12 @@ void GroundTrickFlagSet(byte8* actorBaseAddr) {
         }
     }
 
-
-
     if (actorData.newEntityIndex == 1 && !actorData.doppelganger) return; // visibility set with doppel fix
 
-    if ((actorData.eventData[0].event == ACTOR_EVENT::LANDING || actorData.eventData[0].event == ACTOR_EVENT::STAGGER ||
-        actorData.eventData[0].event == ACTOR_EVENT::ATTACK)
-        && newActorData.visibility == 2) {
+    // Unhide Dante once the ground trick is complete (event transitions away from TRICKSTER_GROUND_TRICK).
+    // Previously only checked LANDING/STAGGER/ATTACK, but the event can change to other values
+    // (e.g. NONE/idle, JUMP) leaving Dante permanently invisible.
+    if (newActorData.visibility == 2 && actorData.eventData[0].event != ACTOR_EVENT::TRICKSTER_GROUND_TRICK) {
         newActorData.visibility = 0; // unhide
     }
 }
@@ -5921,4 +6065,5 @@ void BoBPartnerTeleport(byte8* actorBaseAddr) {
 	TeleportToPlayer(actorData, mainActorData);
 }
 
-}
+} // namespace CrimsonGameplay
+

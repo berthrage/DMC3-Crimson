@@ -4,6 +4,8 @@
 
 #include <filesystem>
 
+#include "../Core/Core.hpp"
+
 std::vector<Graphics::SpriteDesc> g_SpriteDescs;
 
 enum class TextureID
@@ -98,6 +100,44 @@ enum class TextureID
 
     YamatoInactive,
     YamatoForceEdgeInactive,
+
+    BetaDantePanel1Active,
+    BetaDantePanel2Active,
+    BetaDantePanel3Active,
+    BetaDantePanel4Active,
+    BetaDantePanel5Active,
+
+    BetaDantePanel1Inactive,
+    BetaDantePanel2Inactive,
+    BetaDantePanel3Inactive,
+    BetaDantePanel4Inactive,
+    BetaDantePanel5Inactive,
+
+    BetaDanteArrow1,
+    BetaDanteArrow2,
+    BetaDanteArrow3,
+    BetaDanteArrow4,
+    BetaDanteArrow5,
+    BetaDanteCenter,
+
+    BetaVergilPanel1Active,
+    BetaVergilPanel2Active,
+    BetaVergilPanel3Active,
+    BetaVergilPanel4Active,
+    BetaVergilPanel5Active,
+
+    BetaVergilPanel1Inactive,
+    BetaVergilPanel2Inactive,
+    BetaVergilPanel3Inactive,
+    BetaVergilPanel4Inactive,
+    BetaVergilPanel5Inactive,
+
+    BetaVergilArrow1,
+    BetaVergilArrow2,
+    BetaVergilArrow3,
+    BetaVergilArrow4,
+    BetaVergilArrow5,
+    BetaVergilCenter,
 
     Size
 };
@@ -463,62 +503,62 @@ namespace WW
 
         const std::filesystem::path textureRoot(R"(Crimson\assets\weaponwheel)");
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel1.png)").string().c_str()); //ColoredDantePanel1Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel2.png)").string().c_str()); //ColoredDantePanel2Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel3.png)").string().c_str()); //ColoredDantePanel3Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel4.png)").string().c_str()); //ColoredDantePanel4Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsactive\panel5.png)").string().c_str()); //ColoredDantePanel5Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsactive\panel1.png)").string().c_str()); //ColoredDantePanel1Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsactive\panel2.png)").string().c_str()); //ColoredDantePanel2Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsactive\panel3.png)").string().c_str()); //ColoredDantePanel3Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsactive\panel4.png)").string().c_str()); //ColoredDantePanel4Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsactive\panel5.png)").string().c_str()); //ColoredDantePanel5Active
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel1.png)").string().c_str()); //ColoredDantePanel1Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel2.png)").string().c_str()); //ColoredDantePanel2Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel3.png)").string().c_str()); //ColoredDantePanel3Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel4.png)").string().c_str()); //ColoredDantePanel4Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\panelsinactive\panel5.png)").string().c_str()); //ColoredDantePanel5Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsinactive\panel1.png)").string().c_str()); //ColoredDantePanel1Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsinactive\panel2.png)").string().c_str()); //ColoredDantePanel2Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsinactive\panel3.png)").string().c_str()); //ColoredDantePanel3Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsinactive\panel4.png)").string().c_str()); //ColoredDantePanel4Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsinactive\panel5.png)").string().c_str()); //ColoredDantePanel5Inactive
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\arrow1.png)").string().c_str()); //ColoredDanteArrow1
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\arrow2.png)").string().c_str()); //ColoredDanteArrow2
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\arrow3.png)").string().c_str()); //ColoredDanteArrow3
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\arrow4.png)").string().c_str()); //ColoredDanteArrow4
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\arrow5.png)").string().c_str()); //ColoredDanteArrow5
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\dante\center.png)").string().c_str()); //ColoredDanteCenter
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\arrow1.png)").string().c_str()); //ColoredDanteArrow1
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\arrow2.png)").string().c_str()); //ColoredDanteArrow2
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\arrow3.png)").string().c_str()); //ColoredDanteArrow3
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\arrow4.png)").string().c_str()); //ColoredDanteArrow4
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\arrow5.png)").string().c_str()); //ColoredDanteArrow5
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\center.png)").string().c_str()); //ColoredDanteCenter
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel1.png)").string().c_str()); //ColoredVergilPanel1Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel2.png)").string().c_str()); //ColoredVergilPanel2Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel3.png)").string().c_str()); //ColoredVergilPanel3Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel4.png)").string().c_str()); //ColoredVergilPanel4Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsactive\panel5.png)").string().c_str()); //ColoredVergilPanel5Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsactive\panel1.png)").string().c_str()); //ColoredVergilPanel1Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsactive\panel2.png)").string().c_str()); //ColoredVergilPanel2Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsactive\panel3.png)").string().c_str()); //ColoredVergilPanel3Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsactive\panel4.png)").string().c_str()); //ColoredVergilPanel4Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsactive\panel5.png)").string().c_str()); //ColoredVergilPanel5Active
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel1.png)").string().c_str()); //ColoredVergilPanel1Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel2.png)").string().c_str()); //ColoredVergilPanel2Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel3.png)").string().c_str()); //ColoredVergilPanel3Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel4.png)").string().c_str()); //ColoredVergilPanel4Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\panelsinactive\panel5.png)").string().c_str()); //ColoredVergilPanel5Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsinactive\panel1.png)").string().c_str()); //ColoredVergilPanel1Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsinactive\panel2.png)").string().c_str()); //ColoredVergilPanel2Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsinactive\panel3.png)").string().c_str()); //ColoredVergilPanel3Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsinactive\panel4.png)").string().c_str()); //ColoredVergilPanel4Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsinactive\panel5.png)").string().c_str()); //ColoredVergilPanel5Inactive
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\arrow1.png)").string().c_str()); //ColoredVergilArrow1
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\arrow2.png)").string().c_str()); //ColoredVergilArrow2
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\arrow3.png)").string().c_str()); //ColoredVergilArrow3
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\arrow4.png)").string().c_str()); //ColoredVergilArrow4
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\arrow5.png)").string().c_str()); //ColoredVergilArrow5
-        g_SpriteDescs.emplace_back((textureRoot / R"(colored\vergil\center.png)").string().c_str()); //ColoredVergilCenter
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\arrow1.png)").string().c_str()); //ColoredVergilArrow1
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\arrow2.png)").string().c_str()); //ColoredVergilArrow2
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\arrow3.png)").string().c_str()); //ColoredVergilArrow3
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\arrow4.png)").string().c_str()); //ColoredVergilArrow4
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\arrow5.png)").string().c_str()); //ColoredVergilArrow5
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\center.png)").string().c_str()); //ColoredVergilCenter
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsactive\panel1.png)").string().c_str()); //ColorlessPanel1Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsactive\panel2.png)").string().c_str()); //ColorlessPanel2Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsactive\panel3.png)").string().c_str()); //ColorlessPanel3Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsactive\panel4.png)").string().c_str()); //ColorlessPanel4Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsactive\panel5.png)").string().c_str()); //ColorlessPanel5Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsactive\panel1.png)").string().c_str()); //ColorlessPanel1Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsactive\panel2.png)").string().c_str()); //ColorlessPanel2Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsactive\panel3.png)").string().c_str()); //ColorlessPanel3Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsactive\panel4.png)").string().c_str()); //ColorlessPanel4Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsactive\panel5.png)").string().c_str()); //ColorlessPanel5Active
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsinactive\panel1.png)").string().c_str()); //ColorlessPanel1Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsinactive\panel2.png)").string().c_str()); //ColorlessPanel2Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsinactive\panel3.png)").string().c_str()); //ColorlessPanel3Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsinactive\panel4.png)").string().c_str()); //ColorlessPanel4Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\panelsinactive\panel5.png)").string().c_str()); //ColorlessPanel5Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsinactive\panel1.png)").string().c_str()); //ColorlessPanel1Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsinactive\panel2.png)").string().c_str()); //ColorlessPanel2Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsinactive\panel3.png)").string().c_str()); //ColorlessPanel3Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsinactive\panel4.png)").string().c_str()); //ColorlessPanel4Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsinactive\panel5.png)").string().c_str()); //ColorlessPanel5Inactive
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\arrow1.png)").string().c_str()); //ColorlessArrow1
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\arrow2.png)").string().c_str()); //ColorlessArrow2
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\arrow3.png)").string().c_str()); //ColorlessArrow3
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\arrow4.png)").string().c_str()); //ColorlessArrow4
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\arrow5.png)").string().c_str()); //ColorlessArrow5
-        g_SpriteDescs.emplace_back((textureRoot / R"(colorless\center.png)").string().c_str()); //ColorlessCenter
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\arrow1.png)").string().c_str()); //ColorlessArrow1
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\arrow2.png)").string().c_str()); //ColorlessArrow2
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\arrow3.png)").string().c_str()); //ColorlessArrow3
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\arrow4.png)").string().c_str()); //ColorlessArrow4
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\arrow5.png)").string().c_str()); //ColorlessArrow5
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\center.png)").string().c_str()); //ColorlessCenter
 
         g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\rebellion-awakened.png)").string().c_str()); //RebellionAwakenedActive
         g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\rebellion-dormant.png)").string().c_str()); //RebellionDormantActive
@@ -553,6 +593,44 @@ namespace WW
 
         g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\yamato.png)").string().c_str()); //YamatoInactive
         g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\forceedge-vergil.png)").string().c_str()); //YamatoForceEdgeInactive
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsactive\panel1.png)").string().c_str()); //BetaDantePanel1Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsactive\panel2.png)").string().c_str()); //BetaDantePanel2Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsactive\panel3.png)").string().c_str()); //BetaDantePanel3Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsactive\panel4.png)").string().c_str()); //BetaDantePanel4Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsactive\panel5.png)").string().c_str()); //BetaDantePanel5Active
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsinactive\panel1.png)").string().c_str()); //BetaDantePanel1Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsinactive\panel2.png)").string().c_str()); //BetaDantePanel2Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsinactive\panel3.png)").string().c_str()); //BetaDantePanel3Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsinactive\panel4.png)").string().c_str()); //BetaDantePanel4Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsinactive\panel5.png)").string().c_str()); //BetaDantePanel5Inactive
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\arrow1.png)").string().c_str()); //BetaDanteArrow1
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\arrow2.png)").string().c_str()); //BetaDanteArrow2
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\arrow3.png)").string().c_str()); //BetaDanteArrow3
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\arrow4.png)").string().c_str()); //BetaDanteArrow4
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\arrow5.png)").string().c_str()); //BetaDanteArrow5
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\center.png)").string().c_str()); //BetaDanteCenter
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsactive\panel1.png)").string().c_str()); //BetaVergilPanel1Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsactive\panel2.png)").string().c_str()); //BetaVergilPanel2Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsactive\panel3.png)").string().c_str()); //BetaVergilPanel3Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsactive\panel4.png)").string().c_str()); //BetaVergilPanel4Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsactive\panel5.png)").string().c_str()); //BetaVergilPanel5Active
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsinactive\panel1.png)").string().c_str()); //BetaVergilPanel1Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsinactive\panel2.png)").string().c_str()); //BetaVergilPanel2Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsinactive\panel3.png)").string().c_str()); //BetaVergilPanel3Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsinactive\panel4.png)").string().c_str()); //BetaVergilPanel4Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsinactive\panel5.png)").string().c_str()); //BetaVergilPanel5Inactive
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\arrow1.png)").string().c_str()); //BetaVergilArrow1
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\arrow2.png)").string().c_str()); //BetaVergilArrow2
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\arrow3.png)").string().c_str()); //BetaVergilArrow3
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\arrow4.png)").string().c_str()); //BetaVergilArrow4
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\arrow5.png)").string().c_str()); //BetaVergilArrow5
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\center.png)").string().c_str()); //BetaVergilCenter
     }
 
     constexpr TextureID GetWeaponTextureID(WeaponIDs id, bool activeState)
@@ -764,6 +842,110 @@ namespace WW
         return TextureID::Size;
     }
 
+    constexpr TextureID GetBetaDantePanelTextureID(size_t slot, bool activeState)
+    {
+        switch (slot)
+        {
+        case 0:
+            return activeState ? TextureID::BetaDantePanel1Active : TextureID::BetaDantePanel1Inactive;
+
+        case 1:
+            return activeState ? TextureID::BetaDantePanel2Active : TextureID::BetaDantePanel2Inactive;
+
+        case 2:
+            return activeState ? TextureID::BetaDantePanel3Active : TextureID::BetaDantePanel3Inactive;
+
+        case 3:
+            return activeState ? TextureID::BetaDantePanel4Active : TextureID::BetaDantePanel4Inactive;
+
+        case 4:
+            return activeState ? TextureID::BetaDantePanel5Active : TextureID::BetaDantePanel5Inactive;
+
+        default:
+            return TextureID::Size;
+        }
+
+        return TextureID::Size;
+    }
+
+    constexpr TextureID GetBetaVergilPanelTextureID(size_t slot, bool activeState)
+    {
+        switch (slot)
+        {
+        case 0:
+            return activeState ? TextureID::BetaVergilPanel1Active : TextureID::BetaVergilPanel1Inactive;
+
+        case 1:
+            return activeState ? TextureID::BetaVergilPanel2Active : TextureID::BetaVergilPanel2Inactive;
+
+        case 2:
+            return activeState ? TextureID::BetaVergilPanel3Active : TextureID::BetaVergilPanel3Inactive;
+
+        case 3:
+            return activeState ? TextureID::BetaVergilPanel4Active : TextureID::BetaVergilPanel4Inactive;
+
+        case 4:
+            return activeState ? TextureID::BetaVergilPanel5Active : TextureID::BetaVergilPanel5Inactive;
+
+        default:
+            return TextureID::Size;
+        }
+
+        return TextureID::Size;
+    }
+
+    constexpr TextureID GetBetaDanteArrowTextureID(size_t slot)
+    {
+        switch (slot)
+        {
+        case 0:
+            return TextureID::BetaDanteArrow1;
+
+        case 1:
+            return TextureID::BetaDanteArrow2;
+
+        case 2:
+            return TextureID::BetaDanteArrow3;
+
+        case 3:
+            return TextureID::BetaDanteArrow4;
+
+        case 4:
+            return TextureID::BetaDanteArrow5;
+
+        default:
+            return TextureID::Size;
+        }
+
+        return TextureID::Size;
+    }
+
+    constexpr TextureID GetBetaVergilArrowTextureID(size_t slot)
+    {
+        switch (slot)
+        {
+        case 0:
+            return TextureID::BetaVergilArrow1;
+
+        case 1:
+            return TextureID::BetaVergilArrow2;
+
+        case 2:
+            return TextureID::BetaVergilArrow3;
+
+        case 3:
+            return TextureID::BetaVergilArrow4;
+
+        case 4:
+            return TextureID::BetaVergilArrow5;
+
+        default:
+            return TextureID::Size;
+        }
+
+        return TextureID::Size;
+    }
+
     constexpr TextureID GetPanelTextureID(WheelThemes theme, size_t panelSlot, bool activeState)
     {
         switch (theme)
@@ -776,6 +958,12 @@ namespace WW
 
         case WheelThemes::Vergil:
             return GetVergilPanelTextureID(panelSlot, activeState);
+
+        case WheelThemes::BetaDante:
+            return GetBetaDantePanelTextureID(panelSlot, activeState);
+
+        case WheelThemes::BetaVergil:
+            return GetBetaVergilPanelTextureID(panelSlot, activeState);
 
         default:
             return TextureID::Size;
@@ -797,6 +985,12 @@ namespace WW
         case WheelThemes::Vergil:
             return GetVergilArrowTextureID(panelSlot);
 
+        case WheelThemes::BetaDante:
+            return GetBetaDanteArrowTextureID(panelSlot);
+
+        case WheelThemes::BetaVergil:
+            return GetBetaVergilArrowTextureID(panelSlot);
+
         default:
             return TextureID::Size;
         }
@@ -816,6 +1010,12 @@ namespace WW
 
         case WheelThemes::Vergil:
             return TextureID::ColoredVergilCenter;
+
+        case WheelThemes::BetaDante:
+            return TextureID::BetaDanteCenter;
+
+        case WheelThemes::BetaVergil:
+            return TextureID::BetaVergilCenter;
 
         default:
             return TextureID::Size;
@@ -899,8 +1099,10 @@ namespace WW
         m_Weapons(weapons), m_ThemeID(themeID)
     {
         // Load the sprite descriptors only once
-        if (g_SpriteDescs.size() == 0)
+        if (g_SpriteDescs.size() == 0) {
             LoadSpriteDescs();
+            Log("[WeaponWheel] Loaded %zu sprite descriptors from 'Crimson\\assets\\weaponwheel'", g_SpriteDescs.size());
+        }
 
         // Initialize the texture array for the sprites only once
         if (!s_pTextureArray) {
@@ -911,11 +1113,14 @@ namespace WW
                 paths.push_back(sDesc.GetTexturePath());
 
             s_pTextureArray = std::make_shared<Graphics::Texture2DArrayD3D11>(paths, m_pD3D11Device);
+            Log("[WeaponWheel] Texture array created with %zu textures", paths.size());
         }
 
         m_SpriteIndices.UpdateSprites(m_ThemeID, m_Weapons);
 
         m_pSpriteBatch = std::make_unique<Graphics::BatchedSprites>(m_pD3D11Device, m_Width, m_Height, g_SpriteDescs, s_pTextureArray, m_SpriteIndices.GetSpriteIds());
+
+        Log("[WeaponWheel] Weapon wheel initialized with theme %d", (int)m_ThemeID);
 
         SetWeaponsTranslations();
         InitializeAnimations();
@@ -948,6 +1153,8 @@ namespace WW
     void WeaponWheel::SetWheelTheme(WheelThemes themeID)
     {
         m_ThemeID = themeID;
+
+        //Log("[WeaponWheel] Theme changed to %d", (int)themeID);
 
         m_SpriteIndices.UpdateSprites(m_ThemeID, m_Weapons);
 
@@ -991,8 +1198,8 @@ namespace WW
         // Unhide the wheel
         if (m_AlwaysVisible == true)
         {
-            // Reset the animations for hiding, so if they are in the middle of running they reset the state
-            //m_AnimData.ResetHidingAnimations();
+            // Reset the hiding animation state so fade-out can trigger again after forced visibility.
+            m_AnimData.ResetHidingAnimations();
 
             for (size_t i = 0; i < m_Weapons.size(); i++)
             {

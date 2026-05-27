@@ -61,6 +61,9 @@ set(MASM_SRC
     masm/FixSummonedSwordsInitialTravel.asm
     masm/ChargeMechanicsCPlayer.asm
     masm/CItemOrbPickupAllPlayers.asm
+    masm/FasterSummonedSwords.asm
+    masm/SummonedSwordsFormationShortcuts.asm
+    masm/StormSwordsDownedEnemyFix.asm
 )
 
 set (ASM_LIBS)
@@ -99,6 +102,7 @@ set(CXX_FLAGS
     /Zc:preprocessor
     /Zc:wchar_t
     /Zc:char8_t
+    /utf-8
     /Zc:externC-
     /W3
     /wd4005 # macro redefinition
@@ -116,6 +120,19 @@ set(CXX_FLAGS
 )
 
 project(Crimson LANGUAGES CXX C ASM_MASM)
+
+# Generate PatreonData.hpp from patrons.json at build time (not configure time)
+# so that editing patrons.json and rebuilding picks up changes automatically.
+set(PATREONDATA_HPP "${CMAKE_CURRENT_BINARY_DIR}/PatreonData.hpp")
+add_custom_command(
+    OUTPUT  "${PATREONDATA_HPP}"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/patrons.json"
+    COMMAND ${CMAKE_COMMAND}
+        "-DSRC_DIR=${CMAKE_CURRENT_SOURCE_DIR}"
+        "-DOUTPUT_FILE=${PATREONDATA_HPP}"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/embed_patrons.cmake"
+    COMMENT "Generating PatreonData.hpp from patrons.json"
+)
 
 file(GLOB FONTS_HDR 
                     Fonts/Benguiat.hpp
@@ -181,6 +198,10 @@ file(GLOB MAIN_SRC
     CrimsonLicense.hpp
     CrimsonOnboarding.cpp
     CrimsonOnboarding.hpp
+    Patreon.hpp
+    embed_patrons.cmake
+    patrons.json
+    parse_patreon.py
     CrimsonHighFPSFixes.cpp
     CrimsonHighFPSFixes.hpp
     CrimsonHUD.cpp
@@ -295,7 +316,7 @@ set(UI_SRC
 )
 
 source_group("Global" FILES ${GLOBAL_SRC})
-source_group("Crimson" FILES ${MAIN_SRC})
+source_group("Crimson" FILES ${MAIN_SRC} "${PATREONDATA_HPP}")
 source_group("Core" FILES ${CORE_SRC})
 source_group("Utility" FILES ${UTILITY_SRC})
 source_group("ASM" FILES ${MASM_SRC})
@@ -311,8 +332,10 @@ add_library(${PROJECT_NAME} SHARED
 
             ${GLOBAL_SRC}
             ${CORE_SRC}
+            "${PATREONDATA_HPP}"
 )
 
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${CXX_LIBS}) # Dependencies
 target_compile_options(${PROJECT_NAME} PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:${CXX_FLAGS}>

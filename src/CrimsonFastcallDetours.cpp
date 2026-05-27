@@ -204,11 +204,12 @@ namespace CrimsonFastcallDetours{
 	 bool modified = false;
 	 DamageData newDmgData = *dmgData; // copy of the original DmgData pointer so we can modify it without affecting the original struct's parameters
 
-	 if (activeCrimsonGameplay.Gameplay.Dante.chargedShotgunLifts) {
+	 if (activeCrimsonGameplay.Gameplay.Dante.chargedShotgunLaunches) {
 		 // CHARGED SHOTGUN SHL
 		 if (((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.shotgunChargedShl))) {
 			 newDmgData.knockbackAnimation = 3.0f;
 			 newDmgData.displacement = 30.0f;
+			 //newDmgData.dmgValue = 7.0f; // default is 7.0f, for reference, normal shotgun's dmg is 5.0f
 			 modified = true;
 		 }
 		 if (((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.shotgunChargedShl2))) {
@@ -230,25 +231,18 @@ namespace CrimsonFastcallDetours{
 	 }
 
 	 // BACKSLIDE 
-	 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.shotgunShl)) {
-		 if (backslide.performing) {
+	 if (backslide.performing) {
+		 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.shotgunShl)) {
+
 			 newDmgData.displacement = 27.0f; // default is 7.0f
 			 newDmgData.dmgValue = 20.0f; // default is 5.0f
 			 modified = true;
 		 }
 	 }
-	 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.shotgunShl2)) {
-		 if (backslide.performing) {
-			 newDmgData.displacement = 60.0f; // default is 60.0f
-			 newDmgData.dmgValue = 70.0f; // default is 70.0f
-
-			 modified = true;
-		 }
-	 }
 
 	 // SKY LAUNCH
-	 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.goldRoyalRelease)) {
-		 if (skyLaunch.executing) {
+	 if (skyLaunch.executing) {
+		 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.goldRoyalRelease)) {
 			 newDmgData.hitStopDuration = 7.0f;
 			 newDmgData.stun = 80.0f; // default is 600.0f
 			 newDmgData.displacement = 60.0f; // default is 60.0f
@@ -288,7 +282,7 @@ namespace CrimsonFastcallDetours{
 
 		 // Apply damage based on cached level
 		 switch (shlActorData.damageLevel) {
-		 case 5: newDmgData.dmgValue = 80.0f;  break;
+		 case 5: newDmgData.dmgValue = 112.0f;  break;
 		 case 4: newDmgData.dmgValue = 200.0f; break;
 		 case 3: newDmgData.dmgValue = 700.0f; break;
 		 case 2: newDmgData.dmgValue = 300.0f; break;
@@ -369,6 +363,26 @@ namespace CrimsonFastcallDetours{
 	 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.forceEdgeHighTimeHit)) {
 		 if (inYamatoHighTime) {
 			 newDmgData.hitStopDuration = 1.0f;
+			 modified = true;
+		 }
+	 }
+
+	 // STORM SWORDS
+	 if (activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::STORM_SWORDS_MODDED]) {
+		 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.summonedSwordStormSwordsShl)) {
+			 newDmgData.knockbackAnimation = 3;
+			 newDmgData.displacement = 60.0f;
+			 // 		newDmgData.angle = 90.0f; -- sends them to the moon (DMC5-like) if you uncomment and set kb animation to 7 :D - Berthrage
+			 // 		newDmgData.knockbackImpact = 23.0f;
+			 modified = true;
+		 }
+	 }
+
+	 // FASTER SUMMONED SWORDS
+	 if (activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::SUMMON_SWORDS_LEVEL_4]) {
+		 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.summonedSwordShl)) {
+			 newDmgData.dmgValue = 25.0f; // Default is 50.0f, we reduce it to compensate for the increased speed and hit frequency.
+			 newDmgData.hitStopDuration = 8.0f; // Default is 3.0f, we increase this to compensate for the frequency of the hits.
 			 modified = true;
 		 }
 	 }

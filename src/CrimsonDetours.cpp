@@ -29,6 +29,7 @@
 #include "CrimsonReversedCalls.hpp"
 #include "Internal.hpp"
 #include "CrimsonDetours.hpp"
+#include "CrimsonSDL.hpp"
 
 namespace CrimsonDetours {
 
@@ -395,7 +396,7 @@ void* g_NoAirLunarPhaseLiftCheckCall;
 std::uint64_t g_ChargeMechanicsCPlayer_ReturnAddr;
 std::uint64_t g_ChargeMechanicsCPlayer_ConstAddr;
 void ChargeMechanicsCPlayerDetour();
-void* g_ChargeMechanicsCPlayerCheckCall;  // Uncomment if calling C++ functions from ASM
+void* g_ChargeMechanicsCPlayerCheckCall;  
 
 // CItemOrbPickupAllPlayers
 std::uint64_t g_CItemOrbPickupAllPlayers_ReturnAddr;
@@ -404,6 +405,19 @@ std::uint64_t g_CItemOrbPickupAllPlayers_BoneMatrixCall;
 void CItemOrbPickupAllPlayersDetour();
 void CItemOrbPickupAllPlayersDetour2();
 void* g_CItemOrbPickupAllPlayersCheckCall; 
+
+// FasterSummonedSwords
+std::uint64_t g_FasterSummonedSwords_ReturnAddr;
+void FasterSummonedSwordsDetour();
+
+// SummonedSwordsFormationShortcuts
+std::uint64_t g_SummonedSwordsFormationShortcuts_ReturnAddr;
+void SummonedSwordsFormationShortcutsDetour();
+void* g_SummonedSwordsFormationShortcutsCheckCall;  
+
+// StormSwordsDownedEnemyFix
+std::uint64_t g_StormSwordsDownedEnemyFix_ReturnAddr;
+void StormSwordsDownedEnemyFixDetour();
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -824,6 +838,15 @@ void SetJDCPositionAtMatrix(uintptr_t shlAddr) {
 
 	if (isJustFrameJdc) {
 		shlActorData.justFrame = true; // Mark the SHL as a Just Frame JDC for use in Damage logic
+		PlayerActorData& actorData = *reinterpret_cast<PlayerActorData*>(shlActorData.playerActorAddr);
+		uint8 playerIndex = actorData.newPlayerIndex;
+		auto& jCut = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[actorData.newPlayerIndex].jCut : crimsonPlayer[actorData.newPlayerIndex].jCutClone;
+		if (jCut.fireSound) {
+			CrimsonSDL::PlayJDC(playerIndex, true, 0);
+			CrimsonReversedCalls::PlaySFXWithPos_ByType_sub_140339930((uintptr_t)appBaseAddr + 0xD6DC90,
+				8, (uintptr_t)&actorData.position, 11);
+			jCut.fireSound = false;
+		}
 
 		auto extraIt = s_extraAddrToSource.find(shlActorBaseAddr);
 		if (extraIt != s_extraAddrToSource.end()) {
@@ -1293,15 +1316,26 @@ bool CheckIfInAirLunarPhase(uintptr_t playerAddr) {
 	return false;
 }
 
-bool CheckChargeMechanics(uintptr_t playerAddr) {
+uint8 CheckChargeMechanics(uintptr_t playerAddr) {
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
 	auto playerIndex = actorData.newPlayerIndex;
 
-	if (activeCrimsonGameplay.Gameplay.Dante.chargedShotgunLifts && actorData.activeRangedWeapon == WEAPON::SHOTGUN) {
-		return true;
+	if (actorData.character == CHARACTER::DANTE) {
+
+		if (activeCrimsonGameplay.Gameplay.Dante.chargedShotgunLaunches &&
+			actorData.activeRangedWeapon == WEAPON::SHOTGUN) {
+			return 1;
+		}
 	}
-	
-	return false;
+	else if (actorData.character == CHARACTER::VERGIL) {
+		if (actorData.buttons[0] & GetBinding(BINDING::SHOOT) && 
+			activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut >=
+			SWORDFORMATIONSHORTCUT::ON) {
+			return 2;
+		}
+	}
+
+	return 0;
 }
 
 uintptr_t CheckPlayerClosestToOrb(uintptr_t playerAddr, vec4* orbPos) {
@@ -1326,6 +1360,51 @@ uintptr_t CheckPlayerClosestToOrb(uintptr_t playerAddr, vec4* orbPos) {
 	});
 
 	return closestAddr;
+}
+
+uint8 CheckSummonedSwordFormationShortcutInput(uintptr_t playerAddr, uintptr_t shlAddr) {
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
+	uint8 playerIndex = actorData.newPlayerIndex;
+	uint8 entityIndex = actorData.newEntityIndex;
+	auto& gamepad = GetGamepad(actorData.newGamepad);
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
+	bool spiralSwordsActive = *reinterpret_cast<bool*>(playerAddr + 0xB598);
+	bool spiralSwordsActive2 = *reinterpret_cast<bool*>(shlAddr + 0x9);
+	float spiralHoldTimer = *reinterpret_cast<float*>(playerAddr + 0x68F8);
+	const float GRACE_PERIOD = 0.2f; // 200 ms grace period after input to allow for formation change
+	const float graceDelta = ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+	bool shootDown = (gamepad.buttons[0] & GetBinding(BINDING::SHOOT)) != 0;
+	auto& sf = (entityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].swordFormationTracker :
+		crimsonPlayer[playerIndex].swordFormationTrackerClone;
+	// This function interacts with CrimsonGameplay::VergilTrackSwordFormationBuffer in order to lock directional inputs once you confirm
+	// the formation you want. Making it easier to choose between Blistering/Storm/Spiral Swords.
+	// case 2: Blistering Swords
+	// case 1: Storm Swords
+	// case 0: Spiral Swords
+	*(BYTE*)(playerAddr + 0xB5E6) = CrimsonReversedCalls::CPlayerSetSwordFormationTargetIndex_sub_140224180(playerAddr);
+
+	if (spiralSwordsActive2 && sf.bufferedFormation == 0) {
+		if (actorData.lockOn && shootDown && tiltDirection == TILT_DIRECTION::UP) {
+			return
+				activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut == SWORDFORMATIONSHORTCUT::INVERTED ?
+				1 : 2;
+		}
+		else if (actorData.lockOn && shootDown && tiltDirection == TILT_DIRECTION::DOWN) {
+			return
+				activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut == SWORDFORMATIONSHORTCUT::INVERTED ?
+				2 : 1;
+		}
+		else {
+			return  0;
+		}
+
+		if (sf.gracePeriodTimer > 0.05f) {
+			// lock the Desired Formation
+			sf.formationBuffered = true;
+		}
+	}
+
+	return sf.bufferedFormation;
 }
 
 void InitDetours() {
@@ -2519,6 +2598,61 @@ void CItemOrbPickupAllPlayers(bool enable) {
 	run = enable;
 }
 
+void FasterSummonedSwords(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From CPl021Shl01SummonedSwordUpdate_sub_1401DB140:
+	// dmc3.exe+1DB14E - 0F B6 53 08 - movzx edx,byte ptr [rbx+08]
+	// dmc3.exe+1DB152 - 85 D2                 - test edx,edx
+	static std::unique_ptr<Utility::Detour_t> fasterSummonedSwordsHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1DB14E, &FasterSummonedSwordsDetour, 6);
+	g_FasterSummonedSwords_ReturnAddr = fasterSummonedSwordsHook->GetReturnAddress();
+
+	fasterSummonedSwordsHook->Toggle(enable);
+
+	run = enable;
+}
+
+
+void SummonedSwordsFormationShortcuts(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From CPl021Shl01SummonedSword_SpiralSwordsUpdate_sub_1401D9770:
+	// dmc3.exe+1D98B5 - 8B 82 D8 B5 00 00 - mov eax,[rdx+0000B5D8] { Checking player queued SwordFormation state }
+	static std::unique_ptr<Utility::Detour_t> summonedSwordsFormationShortcutsHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D98B5, &SummonedSwordsFormationShortcutsDetour, 6);
+	g_SummonedSwordsFormationShortcuts_ReturnAddr = summonedSwordsFormationShortcutsHook->GetReturnAddress();
+	g_SummonedSwordsFormationShortcutsCheckCall = &CheckSummonedSwordFormationShortcutInput;  
+	summonedSwordsFormationShortcutsHook->Toggle(enable);
+
+	run = enable;
+}
+
+void StormSwordsDownedEnemyFix(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From CPl021Shl01SummonedSword_StormSwords_SetPos_sub_1401D9DD0:
+	// dmc3.exe+1D9F2D - F3 0F 58 15 23 72 19 00 - addss xmm2,[dmc3.exe+371158] { 100.0f - Storm Swords radius around enemy }
+	static std::unique_ptr<Utility::Detour_t> stormSwordsDownedEnemyFixHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D9F2D, &StormSwordsDownedEnemyFixDetour, 8);
+	g_StormSwordsDownedEnemyFix_ReturnAddr = stormSwordsDownedEnemyFixHook->GetReturnAddress();
+	stormSwordsDownedEnemyFixHook->Toggle(enable);
+
+	run = enable;
+}
+
 void ToggleAllDetours(bool enable) {
 	CheckScreenBreak(enable);
 	CheckMissionResultScreen(enable);
@@ -2527,6 +2661,9 @@ void ToggleAllDetours(bool enable) {
 	CheckTotalResultsScreen(enable);
 	ChargeMechanicsCPlayer(enable);
 	CItemOrbPickupAllPlayers(enable);
+	SummonedSwordsFormationShortcuts(activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut >= 
+		SWORDFORMATIONSHORTCUT::ON);
+	StormSwordsDownedEnemyFix(activeCrimsonGameplay.Gameplay.Vergil.stormSwordsDownedEnemyFix);
 }
 
-}
+}	

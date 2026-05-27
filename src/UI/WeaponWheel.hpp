@@ -18,6 +18,8 @@ namespace WW
         Neutral = 0,
         Dante,
         Vergil,
+        BetaDante,
+        BetaVergil,
 
         Size
     };

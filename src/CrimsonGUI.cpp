@@ -20,6 +20,7 @@
 #include "DMC3Input.hpp"
 #include "File.hpp"
 #include "ImGuiExtra.hpp"
+#include "Patreon.hpp"
 #include "FMOD.hpp"
 #include "Graphics.hpp"
 #include "Internal.hpp"
@@ -162,6 +163,10 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 	style.ColumnsMinSpacing = 6.0f * scaleFactorUltrawideY;
 	style.ScrollbarSize = 13.0f * scaleFactorY;
 	style.ScrollbarRounding = 16.0f * scaleFactorY;
+	style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.10f, 0.05f, 0.05f, 0.50f);
+	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.588f, 0.094f, 0.235f, 1.00f);
+	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.729f, 0.122f, 0.294f, 1.00f);
+	style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.439f, 0.071f, 0.176f, 1.00f);
 	style.GrabMinSize = 20.0f * scaleFactorY;
 	style.GrabRounding = 2.0f * scaleFactorY;
 	style.TabRounding = 4.0f * scaleFactorY;
@@ -1716,8 +1721,15 @@ const char* trackNames[] = {
 	"ZZZ",
 };
 
+std::vector<std::string> SwordFormationShortcutNames = {
+	"Off",
+	"On",
+	"Inverted",
+};
+
 std::vector<std::string> weaponWheelThemeNames = {
 	"Crimson",
+	"Crimson Early Beta",
 	"DMC3 Switch",
 };
 
@@ -2100,8 +2112,15 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 
 		pD3D11Device->GetImmediateContext(&pDeviceContext);
 
+		auto initialTheme = WW::WheelThemes::Neutral;
+		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
+			initialTheme = state.charTheme;
+		} else if (activeCrimsonConfig.WeaponWheel.theme == "Crimson Early Beta") {
+			initialTheme = state.charTheme == WW::WheelThemes::Dante ? WW::WheelThemes::BetaDante : WW::WheelThemes::BetaVergil;
+		}
+
 		pWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y,
-			state.currentWeapons[0], activeCrimsonConfig.WeaponWheel.theme == "Crimson" ? state.charTheme : WW::WheelThemes::Neutral);
+			state.currentWeapons[0], initialTheme);
 
 		if (pWeaponWheel) {
 			pWeaponWheel->ToggleAlwaysVisible(alwaysShow);
@@ -2127,22 +2146,26 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 			UpdateRangedWeaponIDs(actorData, state.currentWeapons, actorData.newCharacterIndex);
 		}
 
+		auto newTheme = WW::WheelThemes::Neutral;
 		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
-			pWeaponWheel->SetWheelTheme(state.charTheme);
-		} else {
-			pWeaponWheel->SetWheelTheme(WW::WheelThemes::Neutral);
+			newTheme = state.charTheme;
+		} else if (activeCrimsonConfig.WeaponWheel.theme == "Crimson Early Beta") {
+			newTheme = state.charTheme == WW::WheelThemes::Dante ? WW::WheelThemes::BetaDante : WW::WheelThemes::BetaVergil;
 		}
+		pWeaponWheel->SetWheelTheme(newTheme);
 		pWeaponWheel->SetWeapons(state.currentWeapons[charIndex]);
 		pWeaponWheel->SetActiveSlot((int)weaponIndex);
 	}
 
 	// Switching Themes
 	if (state.oldTheme != activeCrimsonConfig.WeaponWheel.theme) {
+		auto switchTheme = WW::WheelThemes::Neutral;
 		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
-			pWeaponWheel->SetWheelTheme(state.charTheme);
-		} else {
-			pWeaponWheel->SetWheelTheme(WW::WheelThemes::Neutral);
+			switchTheme = state.charTheme;
+		} else if (activeCrimsonConfig.WeaponWheel.theme == "Crimson Early Beta") {
+			switchTheme = state.charTheme == WW::WheelThemes::Dante ? WW::WheelThemes::BetaDante : WW::WheelThemes::BetaVergil;
 		}
+		pWeaponWheel->SetWheelTheme(switchTheme);
 		pWeaponWheel->SetWeapons(state.currentWeapons[charIndex]);
 		pWeaponWheel->SetActiveSlot((int)weaponIndex);
 	}
@@ -5771,7 +5794,7 @@ ShopExperienceHelper shopHelpersDante[] = {
 	{"Rebellion Stinger Level 2","",UNLOCK_DANTE::REBELLION_STINGER_LEVEL_2, 10000, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1, -1,-1,-1, {-1,-1,-1,-1,-1}},
 	{"Rebellion Air Stinger","Lock On + Forward + Melee while in air.",UNLOCK_DANTE::REBELLION_STINGER_AIR, 5000, UNLOCK_DANTE::REBELLION_STINGER_LEVEL_1, -1,-1,-1, {-1,-1,-1,-1,-1}},
 	{"Rebellion Drive","",UNLOCK_DANTE::REBELLION_DRIVE, 10000, -1, UNLOCK_DANTE::REBELLION_OVERDRIVE,-1,-1, {-1,-1,-1,-1,-1}},
-	{"Rebellion Overdrive","Hold Melee during Drive to charge, then release and press Melee again during the swing to perform OverDrive.\nQuick Drive can also be held to charge for 1s, then press Melee during the swing for OverDrive.",UNLOCK_DANTE::REBELLION_OVERDRIVE, 10000, UNLOCK_DANTE::REBELLION_DRIVE, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Rebellion Overdrive","Hold Melee during Drive to charge, then while releasing the projectile, press Melee again to perform Overdrive.\nQuick Drive can also be held to charge for 1s, then press Melee during the swing for Overdrive.",UNLOCK_DANTE::REBELLION_OVERDRIVE, 10000, UNLOCK_DANTE::REBELLION_DRIVE, -1,-1,-1, {-1,-1,-1,-1,-1}},
 	{"Air Hike","",UNLOCK_DANTE::REBELLION_AIR_HIKE, 20000, -1, -1,-1,-1, {-1,-1,-1,-1,-1}},
 	{"Cerberus Revolver Level 2","",UNLOCK_DANTE::CERBERUS_REVOLVER_LEVEL_2, 15000, -1, -1,DEVILARMUNLOCKS::CERBERUS,-1, {-1,-1,-1,-1,-1}},
 	{"Cerberus Air Revolver","Lock On + Forward + Melee while in air.",UNLOCK_DANTE::CERBERUS_REVOLVER_AIR, 5000, -1, -1,DEVILARMUNLOCKS::CERBERUS,-1, {-1,-1,-1,-1,-1}},
@@ -5815,21 +5838,21 @@ ShopExperienceStyleHelper shopHelpersDanteStyle[] = {
 
 	{"Swordmaster Level 2", "",20000, STYLE::SWORDMASTER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO,-1,-1},
 	{"Swordmaster Level 3","", 30000, STYLE::SWORDMASTER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,-1,UNLOCK_DANTE::SWORDMASTER_MODDED_MOVES},
-	{"Swordmaster Level 4","With Beowulf: Neutral + Style while in air. Reduces Tornado damage across the board. Carries inertia.", 15000, STYLE::SWORDMASTER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE, UNLOCK_DANTE::SWORDMASTER_MODDED_MOVES,-1},
+	{"Swordmaster Level 4","Air Tornado: With Beowulf: Neutral + Style while in air. Reduces Tornado damage across the board. Carries inertia.", 15000, STYLE::SWORDMASTER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE, UNLOCK_DANTE::SWORDMASTER_MODDED_MOVES,-1},
 	
 	{"Gunslinger Level 2", "", 20000, STYLE::GUNSLINGER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO,-1,-1},
 	{"Gunslinger Level 3","", 30000, STYLE::GUNSLINGER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,-1,UNLOCK_DANTE::GUNSLINGER_MODDED_MOVES},
-	{"Gunslinger Level 4", "With Coyote-A: Lock On + Back + Style. Dante performs backslide, hitting enemies behind him.",15000, STYLE::GUNSLINGER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,UNLOCK_DANTE::GUNSLINGER_MODDED_MOVES,-1},
+	{"Gunslinger Level 4", "Backslide: With Coyote-A: Lock On + Back + Style. Dante performs backslide, hitting enemies behind him.",15000, STYLE::GUNSLINGER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,UNLOCK_DANTE::GUNSLINGER_MODDED_MOVES,-1},
 
 
 	{"Trickster Level 2", "",20000, STYLE::TRICKSTER,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO,-1,-1},
 	{"Trickster Level 3", "",30000, STYLE::TRICKSTER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,-1,UNLOCK_DANTE::TRICKSTER_MODDED_MOVES},
-	{"Trickster Level 4", "Lock On + Back to Forward + Style.\n"
+	{"Trickster Level 4", "Ground Trick: Lock On + Back to Forward + Style.\n"
 				"Dante Teleports to the Ground near the enemy.",15000, STYLE::TRICKSTER,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,UNLOCK_DANTE::TRICKSTER_MODDED_MOVES,-1},
 
 	{"Royal Guard Level 2", "",20000, STYLE::ROYALGUARD,STYLE_LEVEL::LEVEL_TWO,STYLE_LEVEL_EXP::LEVEL_TWO,-1,-1},
 	{"Royal Guard Level 3", "",30000, STYLE::ROYALGUARD,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,-1,UNLOCK_DANTE::ROYALGUARD_MODDED_MOVES},
-	{"Royal Guard Level 4", "Royalguard Normal Blocks will consume DT instead, until you're low on DT. This will also prevent Guard Breaks by converting them into Normal Blocks.",15000, STYLE::ROYALGUARD,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,UNLOCK_DANTE::ROYALGUARD_MODDED_MOVES,-1},
+	{"Royal Guard Level 4", "DT-Infused Royalguard: Normal Blocks will consume DT instead, until you're low on DT. This will also prevent Guard Breaks by converting them into Normal Blocks.",15000, STYLE::ROYALGUARD,STYLE_LEVEL::LEVEL_THREE,STYLE_LEVEL_EXP::LEVEL_THREE,UNLOCK_DANTE::ROYALGUARD_MODDED_MOVES,-1},
 
 
 };
@@ -5866,8 +5889,12 @@ ShopExperienceHelper shopHelpersVergil[] = {
 
 ShopExperienceHelper shopHelpersVergilGuns[] = {
 	{"Summoned Swords Level 2","", UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, 7500, -1, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3,-1,-1, {-1,-1,-1,-1,-1}},
-	{"Summoned Swords Level 3","", UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3, 15000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, -1,-1,-1, {-1,-1,-1,-1,-1}},
-	{"Spiral Swords","",UNLOCK_VERGIL::SPIRAL_SWORDS, 20000, -1, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Summoned Swords Level 3","", UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3, 15000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_2, UNLOCK_VERGIL::SUMMON_SWORDS_LEVEL_4,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Summoned Swords Level 4","Increases the speed of summoned swords by 2x, decreases their damage by half and increases hitstop from 3.0 to 8.0.\n"
+	"Extra Speed DOES NOT apply to Blistering Swords.",UNLOCK_VERGIL::SUMMON_SWORDS_LEVEL_4, 20000, UNLOCK_VERGIL::SUMMONED_SWORDS_LEVEL_3, -1,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Spiral Swords Level 1","",UNLOCK_VERGIL::SPIRAL_SWORDS, 20000,-1, UNLOCK_VERGIL::STORM_SWORDS_MODDED,-1,-1, {-1,-1,-1,-1,-1}},
+	{"Storm Swords Level 2","Makes Storm Swords Launch Enemies. 60.0 displacement damage per sword hit.\n"
+				"Displacement damage changes to 60.0 per sword from 0.0.",UNLOCK_VERGIL::STORM_SWORDS_MODDED, 10000, UNLOCK_VERGIL::SPIRAL_SWORDS, -1,-1,-1, {-1,-1,-1,-1,-1}},
 };
 
 
@@ -5947,8 +5974,8 @@ void ShopWindow() {
 		}
 	}
 
-	float width = 1000 * scaleFactorY;
-	float height = 900 * scaleFactorY;
+	float width = 1500 * scaleFactorY;
+	float height = 1020 * scaleFactorY;
 
 	ImGui::SetNextWindowSize(ImVec2(width, height));
 	ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
@@ -5974,7 +6001,15 @@ void ShopWindow() {
 
 	if (ImGui::Begin("ShopWindow", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
 		ImGui::SetWindowFontScale(scaleFactorY);
-		if (GUI_Button("Close")) {
+		// Darken button colors for the shop UI
+		ImGui::PushStyleColor(ImGuiCol_Button, UI::SwapColorEndianness(0x96183CFF));
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, UI::SwapColorEndianness(0xBA1F4BFF));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, UI::SwapColorEndianness(0x70122DFF));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.10f, 0.05f, 0.05f, 0.50f));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, UI::SwapColorEndianness(0x96183CFF));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, UI::SwapColorEndianness(0xBA1F4BFF));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, UI::SwapColorEndianness(0x70122DFF));
+		if (GUI_CloseX(true)) {
 			if (!shopCooldownActive) {
 				CloseShop();
 				run = false;
@@ -5983,16 +6018,43 @@ void ShopWindow() {
 		}
 		ImGui::Text("");
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 2.0f]);
-		constexpr auto BULLET = u8"•";
-		ImGui::Text((const char*)BULLET);
+		ImGui::PushFont(UI::g_ImGuiFont_RedOrbRusso[UI::g_UIContext.DefaultFontSize * 2.0f]);
+		// Red orb icon instead of bullet
+		if (auto* orbTex = CrimsonHUD::getRedOrbTexture(); orbTex && orbTex->IsValid()) {
+			constexpr float ORB_ASPECT = 142.0f / 200.0f;
+			float orbHeight = UI::g_UIContext.DefaultFontSize * 2.0f * scaleFactorY;
+			float orbWidth = orbHeight * ORB_ASPECT;
+			ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+			ImVec2 orbSize(orbWidth, orbHeight);
+			ImGui::GetWindowDrawList()->AddImage(orbTex->GetTexture(), cursorPos, cursorPos + orbSize);
+			ImGui::Dummy(orbSize);
+		} else {
+			constexpr auto BULLET = u8"•";
+			ImGui::Text((const char*)BULLET);
+		}
 		ImGui::PopStyleColor();
 		ImGui::SameLine();
-		ImGui::Text("%u", missionData.redOrbs);
+
+		// Red orb count with backdrop shadow (same styling as RedOrbCounterWindow)
+		{
+			char numBuf[32];
+			snprintf(numBuf, sizeof(numBuf), "%u", missionData.redOrbs);
+			float fontSizePx = UI::g_UIContext.DefaultFontSize * 2.0f * scaleFactorY;
+			ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+			ImU32 shadowColor = IM_COL32(100, 10, 10, 255);
+			ImU32 textColor = IM_COL32(255, 255, 255, 255);
+			ImGui::GetWindowDrawList()->AddText(
+				UI::g_ImGuiFont_RedOrbRussoBackdrop[UI::g_UIContext.DefaultFontSize * 2.0f],
+				fontSizePx, cursorPos, shadowColor, numBuf);
+			ImGui::GetWindowDrawList()->AddText(
+				UI::g_ImGuiFont_RedOrbRusso[UI::g_UIContext.DefaultFontSize * 2.0f],
+				fontSizePx, cursorPos, textColor, numBuf);
+			ImGui::Dummy(ImVec2(ImGui::CalcTextSize(numBuf).x, fontSizePx));
+		}
 		ImGui::PopFont();
 		ImGui::Text("");
 		auto BACKGROUND_FADED_TEXT = g_scene != SCENE::MISSION_START ? u8"Divinity Statue" : u8"Customize";
-		ImFont* fadedFont = UI::g_ImGuiFont_RussoOne256;
+		ImFont* fadedFont = UI::g_ImGuiFont_Benguiat256;
 		float fadedFontSize = scaledFontSize * 4.8f;
 		
 		ImVec2 bgFadedTextSize = ImGui::CalcTextSize((const char*)BACKGROUND_FADED_TEXT, 
@@ -6029,7 +6091,10 @@ void ShopWindow() {
 
 		if (ImGui::BeginTabBar("ShopTabs")) {
 			for (uint8 tabIndex = 0; tabIndex < TAB::COUNT; ++tabIndex) {
-				if (ImGui::BeginTabItem(tabNames[tabIndex])) {
+				ImGui::PushFont(UI::g_ImGuiFont_Benguiat[UI::g_UIContext.DefaultFontSize * 1.08f]);
+				bool tabOpen = ImGui::BeginTabItem(tabNames[tabIndex]);
+				ImGui::PopFont();
+				if (tabOpen) {
 					ImGui::Text("");
 
 					switch (tabIndex) {
@@ -6062,6 +6127,7 @@ void ShopWindow() {
 			ImGui::EndTabBar();
 		}
 
+		ImGui::PopStyleColor(7);
 		ImGui::End();
 	}
 }
@@ -6110,36 +6176,33 @@ void ShowExperienceTab(int charID, ExpConfig::ExpData& expData, ShopExperienceHe
 	const float columnWidth = 0.48f * queuedConfig.globalScale;
 	const float rowHeight = 40.0f * queuedConfig.globalScale;
 	int columnTracker = 0;
+	// Center the table within the available width
+	{
+		float availW = ImGui::GetContentRegionAvail().x;
+		float tableW = (675.0f + 155.0f + 675.0f + 155.0f) * scaleFactorY;
+		float off = (availW - tableW) * 0.5f;
+		if (off > 0.0f) ImGui::SetCursorPosX(off);
+	}
 	if (ImGui::BeginTable("SkillTable", 4)) {
-		ImGui::TableSetupColumn("Col1", ImGuiTableColumnFlags_WidthAuto, 400.0f * scaleFactorY); // Default to 100.0f
-		ImGui::TableSetupColumn("SellCol1", ImGuiTableColumnFlags_WidthAuto, 80.0f * scaleFactorY); // Default to 200.0f
-		ImGui::TableSetupColumn("Col2", ImGuiTableColumnFlags_WidthAuto, 400.0f * scaleFactorY); // Default to 100.0f
-		ImGui::TableSetupColumn("SellCol2", ImGuiTableColumnFlags_WidthAuto, 80.0f * scaleFactorY); // Default to 200.0f
-		//ImGui::TableSetupColumn("Col1", 0, columnWidth * 2.0f);
-		//ImGui::TableSetupColumn("SellCol1", 0, columnWidth * 2.0f);
-		//ImGui::TableSetupColumn("Col2", 0, columnWidth * 2.0f);
-		//ImGui::TableSetupColumn("SellCol2", 0, columnWidth * 2.0f);
+		ImGui::TableSetupColumn("Col1", ImGuiTableColumnFlags_WidthAuto, 675.0f * scaleFactorY); // Default to 100.0f
+		ImGui::TableSetupColumn("SellCol1", ImGuiTableColumnFlags_WidthAuto, 155.0f * scaleFactorY); // Default to 200.0f
+		ImGui::TableSetupColumn("Col2", ImGuiTableColumnFlags_WidthAuto, 675.0f * scaleFactorY); // Default to 100.0f
+		ImGui::TableSetupColumn("SellCol2", ImGuiTableColumnFlags_WidthAuto, 155.0f * scaleFactorY); // Default to 200.0f
 		ImGui::TableNextRow(0, rowHeight);
 
 		for (size_t helperIndex = 0; helperIndex < helperCount; ++helperIndex) {
 			auto& helper = helpers[helperIndex];
 
-			if (helper.devilarm > -1) {
-				if (!weaponProgression.devilArmUnlocks[helper.devilarm])
-					continue;
-			}
-			if (helper.gun > -1) {
-				if (!weaponProgression.gunUnlocks[helper.gun])
-					continue;
-			}
+			// Check if the item is accessible (prerequisites met)
+			bool canAccess = true;
+			if (helper.devilarm > -1 && !weaponProgression.devilArmUnlocks[helper.devilarm])
+				canAccess = false;
+			if (helper.gun > -1 && !weaponProgression.gunUnlocks[helper.gun])
+				canAccess = false;
+			// Don't allow buying modded moves if extra moves are turned off (still show if already purchased)
+			if (helper.id > baseMoveCount && !activeCrimsonGameplay.Gameplay.General.extramoves && !expData.unlocks[helper.id])
+				canAccess = false;
 
-			//Don't show modded moves if the modded moves aren't turned on
-			if (helper.id > baseMoveCount && !activeCrimsonGameplay.Gameplay.General.extramoves)
-			{
-				if (expData.unlocks[helper.id] == false)
-					continue;
-			}
-				//
 			columnTracker++;
 			ImGui::TableNextColumn();
 			auto Buy = [&]() {
@@ -6180,25 +6243,43 @@ void ShowExperienceTab(int charID, ExpConfig::ExpData& expData, ShopExperienceHe
 				ExpConfig::UpdatePlayerActorExps();
 				};
 
-			bool condition = (expData.unlocks[helper.id] || ((helper.last > -1) && !expData.unlocks[helper.last]));
+			bool alreadyPurchased = expData.unlocks[helper.id];
+			bool condition = (alreadyPurchased || ((helper.last > -1) && !expData.unlocks[helper.last]) || !canAccess);
 			GUI_PushDisable(condition);
 
 			// Begin a new row
 			ImGui::BeginGroup();
-			bool result = GUI_Button(helper.name, ImVec2(320.0f * scaleFactorY, 80.0f * scaleFactorY));
+			if (alreadyPurchased) {
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+			}
+			ImVec2 btnSize(555.0f * scaleFactorY, 80.0f * scaleFactorY);
+			ImVec2 btnPos = ImGui::GetCursorScreenPos();
+			bool result = GUI_Button(helper.name, btnSize);
+			if (alreadyPurchased) {
+				ImGui::PopStyleColor(3);
+				const char* soldOutText = "SOLD OUT";
+				ImGui::PushFont(UI::g_ImGuiFont_Benguiat[UI::g_UIContext.DefaultFontSize * 0.7f]);
+				ImVec2 textSize = ImGui::CalcTextSize(soldOutText);
+				float pad = 6.0f * scaleFactorY;
+				ImVec2 textPos(btnPos.x + btnSize.x - textSize.x - pad, btnPos.y + btnSize.y - textSize.y - pad);
+				ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(), textPos, IM_COL32(200, 60, 60, 255), soldOutText);
+				ImGui::PopFont();
+			}
 			if (helper.description != "")
 			{
-				if (ImGui::IsItemHovered()) {
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
 					ImGui::BeginTooltip();
 					ImGui::SetWindowFontScale(scaleFactorY);
-					ImGui::PushTextWrapPos(320.0f * scaleFactorY);
+					ImGui::PushTextWrapPos(555.0f * scaleFactorY);
 					ImGui::Text(helper.description);
 					ImGui::PopTextWrapPos();
 					ImGui::EndTooltip();
 				}
 				//TooltipHelper("(?)", helper.description);
 			}
-			if (result) {
+			if (result && canAccess) {
 				
 				Buy();
 			}
@@ -6209,16 +6290,44 @@ void ShowExperienceTab(int charID, ExpConfig::ExpData& expData, ShopExperienceHe
 			ImGui::SameLine(120 * scaleFactorY);
 
 			bool priceCondition = (missionData.redOrbs < helper.price);
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
-			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
-			constexpr auto BULLET = u8"•";
-			ImGui::Text((const char*)BULLET);
-			ImGui::PopFont();
-			ImGui::PopStyleColor();
+			// Red orb icon instead of bullet
+			if (auto* orbTex = CrimsonHUD::getRedOrbTexture(); orbTex && orbTex->IsValid()) {
+				constexpr float ORB_ASPECT = 142.0f / 200.0f;
+				float orbHeight = UI::g_UIContext.DefaultFontSize * 1.5f * scaleFactorY;
+				float orbWidth = orbHeight * ORB_ASPECT;
+				ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+				ImVec2 orbSize(orbWidth, orbHeight);
+				ImGui::GetWindowDrawList()->AddImage(orbTex->GetTexture(), cursorPos, cursorPos + orbSize);
+				ImGui::Dummy(orbSize);
+			} else {
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
+				constexpr auto BULLET = u8"•";
+				ImGui::Text((const char*)BULLET);
+				ImGui::PopFont();
+				ImGui::PopStyleColor();
+			}
 
 			GUI_PushDisable(priceCondition);
 			ImGui::SameLine();
-			ImGui::Text("%u", helper.price);
+
+			// Price with backdrop shadow (same styling as RedOrbCounterWindow)
+			{
+				char numBuf[32];
+				snprintf(numBuf, sizeof(numBuf), "%u", helper.price);
+				float fontSizePx = UI::g_UIContext.DefaultFontSize * 1.5f * scaleFactorY;
+				ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+				ImU32 shadowColor = priceCondition ? IM_COL32(30, 3, 3, 255) : IM_COL32(100, 10, 10, 255);
+				ImU32 textColor = priceCondition ? IM_COL32(80, 80, 80, 255) : IM_COL32(255, 255, 255, 255);
+				ImGui::GetWindowDrawList()->AddText(
+					UI::g_ImGuiFont_RedOrbRussoBackdrop[UI::g_UIContext.DefaultFontSize * 1.5f],
+					fontSizePx, cursorPos, shadowColor, numBuf);
+				ImGui::GetWindowDrawList()->AddText(
+					UI::g_ImGuiFont_RedOrbRusso[UI::g_UIContext.DefaultFontSize * 1.5f],
+					fontSizePx, cursorPos, textColor, numBuf);
+				ImVec2 ts = UI::g_ImGuiFont_RedOrbRusso[UI::g_UIContext.DefaultFontSize * 1.5f]->CalcTextSizeA(fontSizePx, FLT_MAX, 0.0f, numBuf);
+				ImGui::Dummy(ts);
+			}
 			GUI_PopDisable(priceCondition);
 
 			
@@ -6286,22 +6395,30 @@ void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelp
 	const float columnWidth = 0.48f * queuedConfig.globalScale;
 	const float rowHeight = 40.0f * queuedConfig.globalScale;
 	int columnTracker = 0;
+	// Center the table within the available width
+	{
+		float availW = ImGui::GetContentRegionAvail().x;
+		float tableW = (455.0f + 110.0f + 455.0f + 110.0f + 455.0f + 110.0f) * scaleFactorY;
+		float off = (availW - tableW) * 0.5f;
+		if (off > 0.0f) ImGui::SetCursorPosX(off);
+	}
 	if (ImGui::BeginTable("SkillTable", 6)) {
-		ImGui::TableSetupColumn("Col1", ImGuiTableColumnFlags_WidthAuto, 250.0f * scaleFactorY); // Default to 100.0f
-		ImGui::TableSetupColumn("SellCol1", ImGuiTableColumnFlags_WidthAuto, 50.0f * scaleFactorY); // Default to 200.0f
-		ImGui::TableSetupColumn("Col2", ImGuiTableColumnFlags_WidthAuto, 250.0f * scaleFactorY); // Default to 100.0f
-		ImGui::TableSetupColumn("SellCol2", ImGuiTableColumnFlags_WidthAuto, 50.0f * scaleFactorY); // Default to 200.0f
-		ImGui::TableSetupColumn("Col3", ImGuiTableColumnFlags_WidthAuto, 250.0f * scaleFactorY); // Default to 100.0f
-		ImGui::TableSetupColumn("SellCol3", ImGuiTableColumnFlags_WidthAuto, 50.0f * scaleFactorY); // Default to 200.0f
+		ImGui::TableSetupColumn("Col1", ImGuiTableColumnFlags_WidthAuto, 455.0f * scaleFactorY); // Default to 100.0f
+		ImGui::TableSetupColumn("SellCol1", ImGuiTableColumnFlags_WidthAuto, 110.0f * scaleFactorY); // Default to 200.0f
+		ImGui::TableSetupColumn("Col2", ImGuiTableColumnFlags_WidthAuto, 455.0f * scaleFactorY); // Default to 100.0f
+		ImGui::TableSetupColumn("SellCol2", ImGuiTableColumnFlags_WidthAuto, 110.0f * scaleFactorY); // Default to 200.0f
+		ImGui::TableSetupColumn("Col3", ImGuiTableColumnFlags_WidthAuto, 455.0f * scaleFactorY); // Default to 100.0f
+		ImGui::TableSetupColumn("SellCol3", ImGuiTableColumnFlags_WidthAuto, 110.0f * scaleFactorY); // Default to 200.0f
 		for (size_t helperIndex = 0; helperIndex < styleHelperCount; ++helperIndex) {
 			auto& helper = styleHelpers[helperIndex];
 
-			//check to see if we have the styles in question.
+			//Check if the style is owned (for styles that can be missed like Quicksilver/Doppelganger)
+			bool styleOwned = true;
 			if (helper.styleid > -1) {
 				if (helper.styleid == STYLE::QUICKSILVER and !sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER])
-					continue;
+					styleOwned = false;
 				if (helper.styleid == STYLE::DOPPELGANGER and !sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER])
-					continue;
+					styleOwned = false;
 			}
 
 			//Just making sure our style id is in range
@@ -6310,9 +6427,10 @@ void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelp
 
 			//Check if we're doing modded style or vanilla style
 			if (helper.moddedunlock > -1) {
-				//don't show if extra_shop disabled AND modded move not already purchased (expData.unlocks[moddedunlock] false)
+				//don't allow buying if extra_shop disabled AND modded move not already purchased (expData.unlocks[moddedunlock] false)
+				bool canAccess = styleOwned;
 				if (!activeCrimsonGameplay.Gameplay.General.extramoves && !expData.unlocks[helper.moddedunlock])
-					continue;
+					canAccess = false;
 
 
 				ImGui::TableNextColumn();
@@ -6339,23 +6457,42 @@ void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelp
 					};
 
 				//Buy Button gui element starts
-				bool condition = expData.unlocks[helper.moddedunlock] || (expData.styleLevels[helper.styleid] != STYLE_LEVEL::LEVEL_THREE);
+				bool alreadyPurchased = expData.unlocks[helper.moddedunlock];
+				bool condition = alreadyPurchased || (expData.styleLevels[helper.styleid] != STYLE_LEVEL::LEVEL_THREE) || !canAccess;
 				GUI_PushDisable(condition);
 
 				// Begin a new row
 				ImGui::BeginGroup();
 				
-
-				if (GUI_Button(helper.name, ImVec2(200.0f * scaleFactorY, 80.0f * scaleFactorY))) {
-					Buy();
+				if (alreadyPurchased) {
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+				}
+				ImVec2 btnSize(375.0f * scaleFactorY, 80.0f * scaleFactorY);
+				ImVec2 btnPos = ImGui::GetCursorScreenPos();
+				if (GUI_Button(helper.name, btnSize)) {
+					if (canAccess) {
+						Buy();
+					}
+				}
+				if (alreadyPurchased) {
+					ImGui::PopStyleColor(3);
+					const char* soldOutText = "SOLD OUT";
+					ImGui::PushFont(UI::g_ImGuiFont_Benguiat[UI::g_UIContext.DefaultFontSize * 0.7f]);
+					ImVec2 textSize = ImGui::CalcTextSize(soldOutText);
+					float pad = 6.0f * scaleFactorY;
+					ImVec2 textPos(btnPos.x + btnSize.x - textSize.x - pad, btnPos.y + btnSize.y - textSize.y - pad);
+					ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(), textPos, IM_COL32(200, 60, 60, 255), soldOutText);
+					ImGui::PopFont();
 				}
 
 				if (helper.description != "")
 				{
-					if (ImGui::IsItemHovered()) {
+					if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
 						ImGui::BeginTooltip();
 						ImGui::SetWindowFontScale(scaleFactorY);
-						ImGui::PushTextWrapPos(180.0f * scaleFactorY);
+						ImGui::PushTextWrapPos(375.0f * scaleFactorY);
 						ImGui::Text(helper.description);
 						ImGui::PopTextWrapPos();
 						ImGui::EndTooltip();
@@ -6368,14 +6505,42 @@ void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelp
 				// Display price and bullet point in a new column
 				ImGui::SameLine(90);
 
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
-				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
-				constexpr auto BULLET = u8"•";
-				ImGui::Text((const char*)BULLET);
-				ImGui::PopFont();
-				ImGui::PopStyleColor();
+				// Red orb icon instead of bullet
+				if (auto* orbTex = CrimsonHUD::getRedOrbTexture(); orbTex && orbTex->IsValid()) {
+					constexpr float ORB_ASPECT = 142.0f / 200.0f;
+					float orbHeight = UI::g_UIContext.DefaultFontSize * 1.5f * scaleFactorY;
+					float orbWidth = orbHeight * ORB_ASPECT;
+					ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+					ImVec2 orbSize(orbWidth, orbHeight);
+					ImGui::GetWindowDrawList()->AddImage(orbTex->GetTexture(), cursorPos, cursorPos + orbSize);
+					ImGui::Dummy(orbSize);
+				} else {
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
+					constexpr auto BULLET = u8"•";
+					ImGui::Text((const char*)BULLET);
+					ImGui::PopFont();
+					ImGui::PopStyleColor();
+				}
 				ImGui::SameLine();
-				ImGui::Text("%u", helper.price);
+
+				// Price with backdrop shadow (same styling as RedOrbCounterWindow)
+				{
+					char numBuf[32];
+					snprintf(numBuf, sizeof(numBuf), "%u", helper.price);
+					float fontSizePx = UI::g_UIContext.DefaultFontSize * 1.5f * scaleFactorY;
+					ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+					ImU32 shadowColor = IM_COL32(100, 10, 10, 255);
+					ImU32 textColor = IM_COL32(255, 255, 255, 255);
+					ImGui::GetWindowDrawList()->AddText(
+						UI::g_ImGuiFont_RedOrbRussoBackdrop[UI::g_UIContext.DefaultFontSize * 1.5f],
+						fontSizePx, cursorPos, shadowColor, numBuf);
+					ImGui::GetWindowDrawList()->AddText(
+						UI::g_ImGuiFont_RedOrbRusso[UI::g_UIContext.DefaultFontSize * 1.5f],
+						fontSizePx, cursorPos, textColor, numBuf);
+					ImVec2 ts = UI::g_ImGuiFont_RedOrbRusso[UI::g_UIContext.DefaultFontSize * 1.5f]->CalcTextSizeA(fontSizePx, FLT_MAX, 0.0f, numBuf);
+				ImGui::Dummy(ts);
+				}
 
 				//Sell button begins:
 				// Display the sell button in a new column
@@ -6444,45 +6609,76 @@ void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelp
 
 				//Buy Button gui element starts
 				bool condition = !(expData.styleLevels[helper.styleid] + 1 == helper.stylelevel);
-				GUI_PushDisable(condition);
+				bool alreadyPurchased = (expData.styleLevels[helper.styleid] >= helper.stylelevel);
+				GUI_PushDisable(condition || alreadyPurchased);
 
 				// Begin a new row
 				ImGui::BeginGroup();
 
-				if (GUI_Button(helper.name, ImVec2(200.0f * scaleFactorY, 80.0f * scaleFactorY))) {
+				if (alreadyPurchased) {
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+				}
+				if (GUI_Button(alreadyPurchased ? "SOLD OUT" : helper.name, ImVec2(375.0f * scaleFactorY, 80.0f * scaleFactorY))) {
 					Buy();
 				}
+				if (alreadyPurchased) {
+					ImGui::PopStyleColor(3);
+				}
 
-				GUI_PopDisable(condition);
+				GUI_PopDisable(condition || alreadyPurchased);
 
 				// Display price and bullet point in a new column
 				ImGui::SameLine(90);
 
-				bool priceCondition = (missionData.redOrbs < rorb_cost_calculated) || condition;
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
-				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
-				constexpr auto BULLET = u8"•";
-				ImGui::Text((const char*)BULLET);
-				ImGui::PopFont();
-				ImGui::PopStyleColor();
+				bool priceCondition = (missionData.redOrbs < rorb_cost_calculated) || condition || alreadyPurchased;
+				// Red orb icon instead of bullet
+				if (auto* orbTex = CrimsonHUD::getRedOrbTexture(); orbTex && orbTex->IsValid()) {
+					constexpr float ORB_ASPECT = 142.0f / 200.0f;
+					float orbHeight = UI::g_UIContext.DefaultFontSize * 1.5f * scaleFactorY;
+					float orbWidth = orbHeight * ORB_ASPECT;
+					ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+					ImVec2 orbSize(orbWidth, orbHeight);
+					ImGui::GetWindowDrawList()->AddImage(orbTex->GetTexture(), cursorPos, cursorPos + orbSize);
+					ImGui::Dummy(orbSize);
+				} else {
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
+					constexpr auto BULLET = u8"•";
+					ImGui::Text((const char*)BULLET);
+					ImGui::PopFont();
+					ImGui::PopStyleColor();
+				}
 
 
 				GUI_PushDisable(priceCondition);
 				ImGui::SameLine();
-				if (expData.styleLevels[helper.styleid] >= helper.stylelevel) {
-					ImGui::Text("Sold out!");
-				}
-				else {
-					if (rorb_cost_calculated == helper.price) {
-						ImGui::Text("%u", rorb_cost_calculated);
-					}
-					else {
-						ImGui::Text("%u (%u%% off!)", rorb_cost_calculated, percentage_discount);
+				if (!alreadyPurchased) {
+					float fontSizePx = UI::g_UIContext.DefaultFontSize * 1.5f * scaleFactorY;
+					ImU32 shadowColor = priceCondition ? IM_COL32(30, 3, 3, 255) : IM_COL32(100, 10, 10, 255);
+					ImU32 textColor = priceCondition ? IM_COL32(80, 80, 80, 255) : IM_COL32(255, 255, 255, 255);
+
+					// Price with backdrop shadow (same styling as RedOrbCounterWindow)
+					char numBuf[32];
+					snprintf(numBuf, sizeof(numBuf), "%u", rorb_cost_calculated);
+					ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+					ImGui::GetWindowDrawList()->AddText(
+						UI::g_ImGuiFont_RedOrbRussoBackdrop[UI::g_UIContext.DefaultFontSize * 1.5f],
+						fontSizePx, cursorPos, shadowColor, numBuf);
+					ImGui::GetWindowDrawList()->AddText(
+						UI::g_ImGuiFont_RedOrbRusso[UI::g_UIContext.DefaultFontSize * 1.5f],
+						fontSizePx, cursorPos, textColor, numBuf);
+					ImVec2 ts = UI::g_ImGuiFont_RedOrbRusso[UI::g_UIContext.DefaultFontSize * 1.5f]->CalcTextSizeA(fontSizePx, FLT_MAX, 0.0f, numBuf);
+					ImGui::Dummy(ts);
+
+					if (rorb_cost_calculated != helper.price) {
+						ImGui::SameLine(0, 0);
+						ImGui::Text(" (%u%% off!)", percentage_discount);
 						ImGui::SameLine();
 						GUI_PopDisable(priceCondition);
 						TooltipHelper("(?)", "Discount is based on XP earned for this style. Resets on purchase.");
 						GUI_PushDisable(priceCondition);
-
 					}
 				}
 				GUI_PopDisable(priceCondition);
@@ -6531,22 +6727,50 @@ void ShowItemTab(MissionData& missionData, QueuedMissionActorData& queuedMission
 			continue;
 		uint32 price = GetItemPrice(itemHelper, buyCount);
 
-		if (GUI_Button(itemNames[itemHelper.itemIndex], ImVec2(500.0f * scaleFactorY, 80.0f * scaleFactorY))) {
+		if (GUI_Button(itemNames[itemHelper.itemIndex], ImVec2(875.0f * scaleFactorY, 80.0f * scaleFactorY))) {
 			HandleItemPurchase(itemHelperIndex, missionData, activeMissionActorData, price);
 		}
 		ImGui::SameLine(120);
 
 		bool priceCondition = (missionData.redOrbs < price);
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
-		constexpr auto BULLET = u8"•";
-		ImGui::Text((const char*)BULLET);
-		ImGui::PopFont();
-		ImGui::PopStyleColor();
+		// Red orb icon instead of bullet
+		if (auto* orbTex = CrimsonHUD::getRedOrbTexture(); orbTex && orbTex->IsValid()) {
+			constexpr float ORB_ASPECT = 142.0f / 200.0f;
+			float orbHeight = UI::g_UIContext.DefaultFontSize * 1.5f * scaleFactorY;
+			float orbWidth = orbHeight * ORB_ASPECT;
+			ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+			ImVec2 orbSize(orbWidth, orbHeight);
+			ImGui::GetWindowDrawList()->AddImage(orbTex->GetTexture(), cursorPos, cursorPos + orbSize);
+			ImGui::Dummy(orbSize);
+		} else {
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[UI::g_UIContext.DefaultFontSize * 1.5f]);
+			constexpr auto BULLET = u8"•";
+			ImGui::Text((const char*)BULLET);
+			ImGui::PopFont();
+			ImGui::PopStyleColor();
+		}
 
 		GUI_PushDisable(priceCondition);
 		ImGui::SameLine();
-		ImGui::Text("%u", price);
+
+		// Price with backdrop shadow (same styling as RedOrbCounterWindow)
+		{
+			char numBuf[32];
+			snprintf(numBuf, sizeof(numBuf), "%u", price);
+			float fontSizePx = UI::g_UIContext.DefaultFontSize * 1.5f * scaleFactorY;
+			ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+			ImU32 shadowColor = priceCondition ? IM_COL32(30, 3, 3, 255) : IM_COL32(100, 10, 10, 255);
+			ImU32 textColor = priceCondition ? IM_COL32(80, 80, 80, 255) : IM_COL32(255, 255, 255, 255);
+			ImGui::GetWindowDrawList()->AddText(
+				UI::g_ImGuiFont_RedOrbRussoBackdrop[UI::g_UIContext.DefaultFontSize * 1.5f],
+				fontSizePx, cursorPos, shadowColor, numBuf);
+			ImGui::GetWindowDrawList()->AddText(
+				UI::g_ImGuiFont_RedOrbRusso[UI::g_UIContext.DefaultFontSize * 1.5f],
+				fontSizePx, cursorPos, textColor, numBuf);
+			ImVec2 ts = UI::g_ImGuiFont_RedOrbRusso[UI::g_UIContext.DefaultFontSize * 1.5f]->CalcTextSizeA(fontSizePx, FLT_MAX, 0.0f, numBuf);
+			ImGui::Dummy(ts);
+		}
 		GUI_PopDisable(priceCondition);
 
 		ImGui::SameLine(300);
@@ -9004,7 +9228,11 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
-			ImGui::Text("activeRangedWeapon: %u", actorData.activeRangedWeapon);
+			ImGui::Text("spiralHoldTimer: %g", *reinterpret_cast<const float*>(actorData + 0x68F8));
+			ImGui::Text("spiralSwordsActive: %u", *reinterpret_cast<bool*>(actorData + 0xB598));
+			ImGui::Text("desiredFormation: %u", crimsonPlayer[0].swordFormationTracker.bufferedFormation);
+			ImGui::Text("gracePeriodTimer: %g", crimsonPlayer[0].swordFormationTracker.gracePeriodTimer);
+			ImGui::Text("formationBuffered: %u", crimsonPlayer[0].swordFormationTracker.formationBuffered);
 			ImGui::Text("trickUpCount: %u", actorData.newTrickUpCount);
 			ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
 			ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
@@ -9834,13 +10062,8 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("Stun/Displacement Numeric HUD", activeCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud, queuedCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud)) {
-				if (activeCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud) {
-					activeCrimsonConfig.CrimsonHudAddons.lockOn = true;
-					queuedCrimsonConfig.CrimsonHudAddons.lockOn = true;
-					CrimsonPatches::ToggleHideLockOn(activeCrimsonConfig.CrimsonHudAddons.lockOn);
-				} 
-			}
+			GUI_Checkbox2("Stun/Displacement Numeric HUD", activeCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud, queuedCrimsonConfig.CrimsonHudAddons.stunDisplacementNumericHud);
+			
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Show numerical stun and displacement values on lock-on (Hells enemies only).\nLast Move minus value updates each 200ms. Requires CrimsonHUD's Lock-On.");
 
@@ -10280,12 +10503,14 @@ void SystemSection(size_t defaultFontSize) {
 
             ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Unlocked FPS", activeCrimsonConfig.System.fpsUnlocked, queuedCrimsonConfig.System.fpsUnlocked);
+			GUI_Checkbox2("Unlocked Frame Rate", activeCrimsonConfig.System.fpsUnlocked, queuedCrimsonConfig.System.fpsUnlocked);
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("This neat experimental feature completely eliminates input lag and greatly boosts game responsiveness.\n"
 					"We're actively polishing it, some bugs may still occur.\n"
 					"If you find any, please report them on our GitHub issue tracker or Discord server.");
 			}
+			ImGui::SameLine();
+			GUI_WIPButton();
 
 			ImGui::TableNextColumn();
 
@@ -10368,6 +10593,9 @@ void SystemSection(size_t defaultFontSize) {
 			if (GUI_Checkbox2("Skip Cutscenes", activeConfig.skipCutscenes, queuedConfig.skipCutscenes)) {
 				ToggleSkipCutscenes(activeConfig.skipCutscenes);
 			}
+			ImGui::SameLine();
+			TooltipHelper("(?) WARNING", "This option has been known to cause memory corruption on some PCs,\n"
+				"causing you to crash when reading an in-game message or interacting with an item, be wary of it.", 2048.0f, true);
 
 			ImGui::TableNextColumn();
 
@@ -10438,13 +10666,14 @@ void SystemSection(size_t defaultFontSize) {
 
 				ImGui::TableNextColumn();
 
-				GUI_Checkbox2("Fog / Mist", activeCrimsonConfig.System.BlendingEffects.fogMist,
-					queuedCrimsonConfig.System.BlendingEffects.fogMist);
-				if (ImGui::IsItemHovered()) {
-					ImGui::SetTooltip("This toggle won't apply to screen transitions or cutscenes. Needs room reload to apply.");
-				}
-
-				ImGui::TableNextColumn();
+				// Buggy, it's stopping teleports at mission 7, needs testing before it gets enabled again for users
+// 				GUI_Checkbox2("Fog / Mist", activeCrimsonConfig.System.BlendingEffects.fogMist,
+// 					queuedCrimsonConfig.System.BlendingEffects.fogMist);
+// 				if (ImGui::IsItemHovered()) {
+// 					ImGui::SetTooltip("This toggle won't apply to screen transitions or cutscenes. Needs room reload to apply.");
+// 				}
+// 
+// 				ImGui::TableNextColumn();
 
 				GUI_Checkbox2("Warping", activeCrimsonConfig.System.BlendingEffects.warp,
 					queuedCrimsonConfig.System.BlendingEffects.warp);
@@ -12076,24 +12305,28 @@ void DanteGameplayOptions() {
 
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Charged Shotgun Lifts",
-				activeCrimsonGameplay.Gameplay.Dante.chargedShotgunLifts,
-				queuedCrimsonGameplay.Gameplay.Dante.chargedShotgunLifts,
-				activeCrimsonGameplayMask.Gameplay.Dante.chargedShotgunLifts);
+			GUI_Checkbox2("Charged Shotgun Launches",
+				activeCrimsonGameplay.Gameplay.Dante.chargedShotgunLaunches,
+				queuedCrimsonGameplay.Gameplay.Dante.chargedShotgunLaunches,
+				activeCrimsonGameplayMask.Gameplay.Dante.chargedShotgunLaunches);
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Makes Charged Shots Shotgun lift enemies instead of knocking them back,"
+			TooltipHelper("(?)", "Makes Charged Shots Shotgun launch enemies instead of knocking them back,"
 				"\nharkening to the old DMC1 days. Makes shotgun charge slightly faster.");
 			ImGui::TableNextColumn();
 
+			GUI_PushDisable(!activeConfig.Actor.enable);
 			GUI_Checkbox2("Doppelganger Split Sync",
 				activeCrimsonGameplay.Gameplay.Dante.doppelgangerSplitSync,
 				queuedCrimsonGameplay.Gameplay.Dante.doppelgangerSplitSync,
 				activeCrimsonGameplayMask.Gameplay.Dante.doppelgangerSplitSync);
 			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
 			TooltipHelper("(?)", "(Dante Only) Doppelganger spawns fully synchronized with your current Style setup. \n"
 				"While in Doppelganger Style, press Lock-On + Style Action to summon or dismiss Doppelganger. \n"
 				"Pressing Style Action without Lock-On lets you change Weapons and Styles exclusively for Doppelganger,\n"
 				"causing it to desync from Dante's current Style configuration until resummoned.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();
 
@@ -12406,6 +12639,28 @@ void VergilGameplayOptions() {
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Stops Lunar Phase from going upwards, enemy behavior intact.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
+
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * 0.5f);
+			GUI_ComboVectorString2("Sword Formations Shortcut",
+				SwordFormationShortcutNames,
+				activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut,
+				queuedCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut,
+				activeCrimsonGameplayMask.Gameplay.Vergil.swordFormationsShortcut);
+			ImGui::PopItemWidth();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Go directly to Blistering Swords or Storm Swords without needing Spiral Swords beforehand.\n"
+				"Lock On + Forward + Shoot: Blistering Swords, Lock On + Backwards + Shoot: Storm Swords. \n"
+				"Both Inputs can be inverted with this option. Makes Shoot Button Hold Time much shorter to get to any Swords Formation.");
+
+			GUI_Checkbox2("Storm Swords Downed Enemy Fix",
+			activeCrimsonGameplay.Gameplay.Vergil.stormSwordsDownedEnemyFix,
+			queuedCrimsonGameplay.Gameplay.Vergil.stormSwordsDownedEnemyFix,
+			activeCrimsonGameplayMask.Gameplay.Vergil.stormSwordsDownedEnemyFix);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Fixes the radius on Storm Swords so it can properly hit downed enemies.");
 
 			ImGui::EndTable();
 		}
@@ -13062,13 +13317,17 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	}
 	
 
+	const float legalFontSize = 20.0f;
+
 	// Version Text Window
-	float versionFontSize = 20.0f;
-	ImGui::PushFont(UI::g_ImGuiFont_Benguiat[versionFontSize]);
+	float versionFontSize = legalFontSize;
+	ImFont* versionFont = UI::g_ImGuiFont_Benguiat[versionFontSize];
+	float versionScaledFontSize = versionFont->FontSize * scaleFactorY;
+	ImGui::PushFont(versionFont);
 
 	// Format the version string
-	std::string versionStr = std::format("V{}.{}{}", UI::g_UIContext.CurrentVersion.Major, UI::g_UIContext.CurrentVersion.Minor, UI::g_UIContext.CurrentVersion.PatchLetter);
-	std::string versionText = "BETA " + versionStr;
+	std::string versionStr = std::format("v{}.{}{}", UI::g_UIContext.CurrentVersion.Major, UI::g_UIContext.CurrentVersion.Minor, UI::g_UIContext.CurrentVersion.PatchLetter);
+	std::string versionText = "" + versionStr;
 
 	// Calculate text size
 	ImVec2 versionTextSize = ImGui::CalcTextSize(versionText.c_str());
@@ -13088,7 +13347,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	// Offset the position to align the text correctly
 	ImVec2 versionTextSizeWindowPos = ImVec2(
 		centerX + (800.0f * scaleFactorY), // Center horizontally
-		879.0f * scaleFactorY // Center vertically
+		979.0f * scaleFactorY // Center vertically
 	);
 
 	// Ensure the position stays within bounds
@@ -13096,16 +13355,32 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	versionTextSizeWindowPos.y = (std::max)(0.0f, versionTextSizeWindowPos.y);
 
 	// Set the window position and size
-	//ImGui::SetNextWindowPos(versionTextSizeWindowPos);
-	//ImGui::SetNextWindowSize(versionTextSizeWindowSize);
+	ImGui::SetNextWindowPos(versionTextSizeWindowPos);
+	ImGui::SetNextWindowSize(versionTextSizeWindowSize);
 
-	//ImGui::Begin("VersionTextWindow", nullptr, windowFlags);
+	ImGui::Begin("VersionTextWindow", nullptr, windowFlags);
 
-	//ImGui::SetWindowFontScale(scaleFactorY);
-	//ImGui::Text(versionText.c_str());
+	ImGui::SetWindowFontScale(scaleFactorY);
+	ImVec2 versionTextScreenPos = ImGui::GetCursorScreenPos();
+	ImVec2 versionTextShadowOffset = ImVec2(2.0f * scaleFactorY, 2.0f * scaleFactorY);
+	ImDrawList* versionDrawList = ImGui::GetWindowDrawList();
+	versionDrawList->AddText(
+		versionFont,
+		versionScaledFontSize,
+		versionTextScreenPos + versionTextShadowOffset,
+		IM_COL32(0, 0, 0, 255),
+		versionText.c_str()
+	);
+	versionDrawList->AddText(
+		versionFont,
+		versionScaledFontSize,
+		versionTextScreenPos,
+		ImColor(LerpFadeToBlack(ImVec4(0.46f, 0.46f, 0.46f, 1.0f))),
+		versionText.c_str()
+	);
 
 
-	//ImGui::End();
+	ImGui::End();
 	ImGui::PopFont();
 
 	// GUI Hotket Text Window
@@ -13182,7 +13457,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 
 	// Credits Text Window
 	float creditsFontSize = 20.0f;
-	float creditsCapCoFontSize = 20.0f;
+	float creditsCapCoFontSize = legalFontSize;
 	ImGui::PushFont(UI::g_ImGuiFont_Benguiat[creditsFontSize]);
 	auto OGcreditsText = u8"©CAPCOM CO., LTD. 2005, 2018 ALL RIGHTS RESERVED./ILLUSTRATIONS: Kazuma Kaneko/ATLUS";
 	auto creditsText = u8"C•TEAM • DIRECTED BY BERTHRAGE • PROJECT CRIMSON © • 2025";
@@ -13932,10 +14207,16 @@ void Main(IDXGISwapChain* pSwapChain) {
 						break;
 					}
 				}
-			}
 
-			UI::patronsQueueResult = res;
-													  }
+				UI::patronsQueueResult = res;
+			}
+			else
+			{
+				// API failed — use compiled-in data from src/patrons.json
+				UI::LoadDefaultPatrons();
+				UI::patronsQueueResult = WebAPIResult::Success;
+			}
+		}
 		);
 
 		versionCheckerThread = std::thread{
@@ -14066,8 +14347,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 		auto previewValue = context.SelectedGameMode == UI::UIContext::GameModes::Custom ? modesWCustom[size_t(context.SelectedGameMode)] :
 			modes[size_t(context.SelectedGameMode)];
 
-		static bool tieVisualStyleToGameMode = false;
-
 		if (UI::BeginCombo("##Game Mode", previewValue, { 0.5f, 0.5f }, 0.9f)) {
 			ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
 
@@ -14125,7 +14404,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				if (ImGui::Selectable(modes[i], isSelected)) {
 					CrimsonGameModes::SetGameModePreset((uint8)i);
 					CrimsonGameplay::AdjustDMC4MobilitySettings();
-					if (tieVisualStyleToGameMode) {
+					if (activeCrimsonConfig.VisualStyle.tieVisualStyleToGameMode) {
 						CrimsonVisualStyle::SetVisualStylePreset((uint8)i); // maps Vanilla->Classic, SS->Hybrid, Crimso->Modern
 					}
 					::GUI::save = true;
@@ -14196,7 +14475,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 			ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, vsFrameBGHovered);
 			ImGui::PushStyleColor(ImGuiCol_Text, vsTextColor);
 
-			GUI_PushDisable(tieVisualStyleToGameMode);
+			GUI_PushDisable(activeCrimsonConfig.VisualStyle.tieVisualStyleToGameMode);
 
 			if (UI::BeginCombo("##Visual Style", previewValue, { 0.5f, 0.5f }, 0.9f)) {
 				ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, { 0.5f, 0.5f });
@@ -14239,7 +14518,6 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 					if (ImGui::Selectable(visualModes[i], isSelected)) {
 						CrimsonVisualStyle::SetVisualStylePreset((uint8)i);
-						tieVisualStyleToGameMode = false;
 						::GUI::save = true;
 					}
 
@@ -14269,7 +14547,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::EndCombo();
 			}
 
-			GUI_PopDisable(tieVisualStyleToGameMode);
+			GUI_PopDisable(activeCrimsonConfig.VisualStyle.tieVisualStyleToGameMode);
 
 			ImGui::PopStyleColor(3);
 			ImGui::PopFont(); // Pop Benguiat[baseFontSize * 0.9f] from the Visual Style section above
@@ -15699,7 +15977,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					ImGui::PopFont();
 				}
 
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.7f);
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.9f);
 
 				// Additional Work
 				{
@@ -15709,7 +15987,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					}
 					ImGui::PopFont();
 
-					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.2f);
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.8f);
 
 					{
 						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 0.9f)]);
@@ -15927,6 +16205,86 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						ImGui::PopFont();
 					}
 
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.9f);
+
+					// PlayTesters
+					{
+						ImGui::PushFont(UI::g_ImGuiFont_RussoOne[uint64_t(context.DefaultFontSize * 1.2f)]);
+						{
+							ImGui::Text("PlayTesters");
+						}
+						ImGui::PopFont();
+
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.8f);
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Separator();
+
+							ImGui::Text("Akaragitsune");
+						}
+						ImGui::PopFont();
+
+						ImGui::SameLine();
+
+						const ImVec2 socialsBBFrameSize{ 4.0f * 2.0f + 2.0f * ImGui::GetFontSize(), 4.0f + ImGui::GetFontSize() };
+						const ImVec2 currentCursorPos = ImGui::GetCursorScreenPos();
+
+						ImGui::SetCursorScreenPos(ImVec2{ window->ContentRegionRect.Max.x - socialsBBFrameSize.x, currentCursorPos.y });
+
+						if (fnDrawSocialButton("akaragitsunetwitter", SocialsIcons::ID_Twitter, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+							ShellExecute(0, 0, "https://x.com/Akaragitsune", 0, 0, SW_SHOW);
+						}
+
+						ImGui::SameLine(0.0f, 0.0f);
+
+						if (fnDrawSocialButton("akaragitsuneyoutube", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+							ShellExecute(0, 0, "https://www.youtube.com/@akaragitsune", 0, 0, SW_SHOW);
+						}
+
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.8f);
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Separator();
+
+							ImGui::Text("Danliam");
+
+							ImGui::SameLine();
+
+							const ImVec2 socialsBBFrameSize{ 4.0f + ImGui::GetFontSize(), 4.0f + ImGui::GetFontSize() };
+							const ImVec2 currentCursorPos = ImGui::GetCursorScreenPos();
+
+							ImGui::SetCursorScreenPos(ImVec2{ window->ContentRegionRect.Max.x - socialsBBFrameSize.x, currentCursorPos.y });
+
+							if (fnDrawSocialButton("danliamyoutube", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://www.youtube.com/@danliamdmc", 0, 0, SW_SHOW);
+							}
+						}
+						ImGui::PopFont();
+
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.8f);
+
+						ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
+						{
+							ImGui::Separator();
+
+							ImGui::Text("Nelo47Angelo");
+
+							ImGui::SameLine();
+
+							const ImVec2 socialsBBFrameSize{ 4.0f + ImGui::GetFontSize(), 4.0f + ImGui::GetFontSize() };
+							const ImVec2 currentCursorPos = ImGui::GetCursorScreenPos();
+
+							ImGui::SetCursorScreenPos(ImVec2{ window->ContentRegionRect.Max.x - socialsBBFrameSize.x, currentCursorPos.y });
+
+							if (fnDrawSocialButton("nelo47angeloyoutube", SocialsIcons::ID_YouTube, ImVec2{ ImGui::GetFontSize(), ImGui::GetFontSize() })) {
+								ShellExecute(0, 0, "https://www.youtube.com/channel/UCiwtZmUDGGuEP0Ze2KsBSSQ", 0, 0, SW_SHOW);
+							}
+						}
+						ImGui::PopFont();
+					}
+
 					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + scaledFontSize * 0.8f);
 
 					{
@@ -15934,7 +16292,7 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 						{
 							ImGui::Text("Thanks to Spritzkrieg for the express permission\n"
 								"to airdragon50 to use and modify his Original PS2 \n"
-								"Textures pack.");
+								"Textures Pack and Subtitle Alignment and Grammar Fix.");
 						}
 						ImGui::PopFont();
 					}
@@ -15955,6 +16313,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
 					{
+						ImGui::Separator();
+
 						ImGui::Text("serpentiem");
 
 						ImGui::SameLine();
@@ -15985,6 +16345,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 					ImGui::PushFont(UI::g_ImGuiFont_Roboto[uint64_t(context.DefaultFontSize * 1.0f)]);
 					{
+						ImGui::Separator();
+
 						ImGui::Text("Lyall");
 
 						ImGui::SameLine();

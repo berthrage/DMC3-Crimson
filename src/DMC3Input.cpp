@@ -681,7 +681,7 @@ void ShowButtonConfigWindow() {
                         ImGui::PushID(i);
                         ImGui::Text(s_keybindActionNames[i]);
                         ImGui::SameLine(kbRowLabelX);
-                        const char* keyName = (activeKeybinds[i] < 256) ? DI8::keyNames[activeKeybinds[i]] : "???";
+                        const char* keyName = (activeKeybinds[i] > 0 && activeKeybinds[i] < 256) ? DI8::keyNames[activeKeybinds[i]] : "UNBOUND";
                         if (GUI_Button(keyName, ImVec2(kbButtonW, 0))) {
                             s_kbCapture.open       = true;
                             s_kbCapture.index      = i;
@@ -689,6 +689,16 @@ void ShowButtonConfigWindow() {
                             s_kbCapture.hasConflict = false;
                             s_kbCapture.conflictText[0] = '\0';
                             memset(s_kbCapture.executes, 0, sizeof(s_kbCapture.executes));
+                        }
+                        ImGui::SameLine();
+                        if (GUI_Button("X", ImVec2(22.0f * scaleY, 0))) {
+                            activeKeybinds[i] = 0;
+                            queuedKeybinds[i] = 0;
+                            byte8* addr = (appBaseAddr + 0x5611A0) + (i * 4);
+                            protectionHelper.Push(addr, 4);
+                            *(uint32_t*)addr = 0;
+                            protectionHelper.Pop();
+                            GUI::save = true;
                         }
                         ImGui::PopID();
                     }
@@ -712,6 +722,12 @@ void ShowButtonConfigWindow() {
                             s_kbCapture.hasConflict = false;
                             s_kbCapture.conflictText[0] = '\0';
                             memset(s_kbCapture.executes, 0, sizeof(s_kbCapture.executes));
+                        }
+                        ImGui::SameLine();
+                        if (GUI_Button("X", ImVec2(22.0f * scaleY, 0))) {
+                            dwActiveKeybinds[i] = 0;
+                            dwQueuedKeybinds[i] = 0;
+                            GUI::save = true;
                         }
                         ImGui::PopID();
                     }

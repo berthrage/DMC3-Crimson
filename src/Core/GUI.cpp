@@ -457,7 +457,8 @@ bool GUI_WIPButton() {
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
 		ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 		ImGui::SetTooltip("This is an Experimental/Work-In-Progress feature.\n"
-			"It's likely to have missing properties and/or bugs.");
+			"It's likely to have bugs or we're unsure about its impact on game balance.\n" 
+			"Please give us feedback on it so we can improve it.");
 		ImGui::PopFont();
 		ImGui::PopStyleVar();
 	}

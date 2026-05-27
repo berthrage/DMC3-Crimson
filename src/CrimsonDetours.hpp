@@ -119,7 +119,13 @@ void CheckTotalResultsScreenDetour();
 // ChargeMechanicsCPlayer
 void ChargeMechanicsCPlayerDetour();
 // CItemOrbPickupAllPlayers
-void CItemOrbPickupAllPlayersDetour();}
+void CItemOrbPickupAllPlayersDetour();
+// FasterSummonedSwords
+void FasterSummonedSwordsDetour();
+// SummonedSwordsFormationShortcuts
+void SummonedSwordsFormationShortcutsDetour();
+// StormSwordsDownedEnemyFix
+void StormSwordsDownedEnemyFixDetour();}
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
@@ -164,4 +170,7 @@ void FixEnemyAttackCooldowns(bool enable);
 void CheckTotalResultsScreen(bool enable);
 void ChargeMechanicsCPlayer(bool enable);
 void CItemOrbPickupAllPlayers(bool enable);
+void FasterSummonedSwords(bool enable);
+void SummonedSwordsFormationShortcuts(bool enable);
+void StormSwordsDownedEnemyFix(bool enable);
 }

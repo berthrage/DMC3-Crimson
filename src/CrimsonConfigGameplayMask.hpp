@@ -80,7 +80,7 @@ struct CrimsonConfigGameplayMask {
 			bool swapArtemisMultiLockNormalShot = true;
 			bool swapDancePierceInputs = true;
 			bool swapHammerVocalnoInputs = true;
-			bool chargedShotgunLifts = true;
+			bool chargedShotgunLaunches = true;
 			bool doppelgangerSplitSync = true;
 			bool quickGrapple = true;
 
@@ -111,7 +111,7 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("swapArtemisMultiLockNormalShot", &Dante::swapArtemisMultiLockNormalShot),
 					std::make_pair("swapDancePierceInputs", &Dante::swapDancePierceInputs),
 					std::make_pair("swapHammerVocalnoInputs", &Dante::swapHammerVocalnoInputs),
-					std::make_pair("chargedShotgunLifts", &Dante::chargedShotgunLifts),
+					std::make_pair("chargedShotgunLaunches", &Dante::chargedShotgunLaunches),
 					std::make_pair("doppelgangerSplitSync", &Dante::doppelgangerSplitSync),
 					std::make_pair("quickGrapple", &Dante::quickGrapple)
 				);
@@ -133,6 +133,8 @@ struct CrimsonConfigGameplayMask {
 			bool downertia = true;
 			bool trickUpNoLockOn = true;
 			bool noAirLunarPhaseLift = true;
+			bool swordFormationsShortcut = true;
+			bool stormSwordsDownedEnemyFix = true;
 			
 
 			static constexpr auto Metadata() {
@@ -150,7 +152,9 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("mirageTrigger", &Vergil::mirageTrigger),
 					std::make_pair("downertia", &Vergil::downertia),
 					std::make_pair("trickUpNoLockOn", &Vergil::trickUpNoLockOn),
-					std::make_pair("noAirLunarPhaseLift", &Vergil::noAirLunarPhaseLift)
+					std::make_pair("noAirLunarPhaseLift", &Vergil::noAirLunarPhaseLift),
+					std::make_pair("swordFormationsShortcut", &Vergil::swordFormationsShortcut),
+					std::make_pair("stormSwordsDownedEnemyFix", &Vergil::stormSwordsDownedEnemyFix)
 				);
 			}
 		} Vergil;
