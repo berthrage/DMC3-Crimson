@@ -1729,7 +1729,6 @@ std::vector<std::string> SwordFormationShortcutNames = {
 
 std::vector<std::string> weaponWheelThemeNames = {
 	"Crimson",
-	"Crimson Early Beta",
 	"DMC3 Switch",
 };
 
@@ -2009,23 +2008,6 @@ struct WeaponWheelState {
 	double startTime = ImGui::GetTime();
 };
 
-static WW::WheelThemes GetWeaponWheelThemeFromConfig(const std::string& themeName, WW::WheelThemes charTheme) {
-	if (themeName == "Crimson") {
-		return charTheme;
-	}
-	if (themeName == "Crimson Early Beta") {
-		switch (charTheme) {
-		case WW::WheelThemes::Dante:
-			return WW::WheelThemes::DanteEarlyBeta;
-		case WW::WheelThemes::Vergil:
-			return WW::WheelThemes::VergilEarlyBeta;
-		default:
-			return WW::WheelThemes::NeutralEarlyBeta;
-		}
-	}
-	return WW::WheelThemes::Neutral;
-}
-
 bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChain, std::unique_ptr<WW::WeaponWheel>& pWeaponWheel, 
 	const char* windowName, bool cornerPositioning, ImVec2 windowPos, ImVec2 wheelSize, 
 	bool alwaysShow, bool trackHide, bool isMelee, WeaponWheelState& state,
@@ -2130,7 +2112,7 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 		pD3D11Device->GetImmediateContext(&pDeviceContext);
 
 		pWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y,
-			state.currentWeapons[0], GetWeaponWheelThemeFromConfig(activeCrimsonConfig.WeaponWheel.theme, state.charTheme));
+			state.currentWeapons[0], activeCrimsonConfig.WeaponWheel.theme == "Crimson" ? state.charTheme : WW::WheelThemes::Neutral);
 
 		if (pWeaponWheel) {
 			pWeaponWheel->ToggleAlwaysVisible(alwaysShow);
@@ -2156,14 +2138,22 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 			UpdateRangedWeaponIDs(actorData, state.currentWeapons, actorData.newCharacterIndex);
 		}
 
-		pWeaponWheel->SetWheelTheme(GetWeaponWheelThemeFromConfig(activeCrimsonConfig.WeaponWheel.theme, state.charTheme));
+		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
+			pWeaponWheel->SetWheelTheme(state.charTheme);
+		} else {
+			pWeaponWheel->SetWheelTheme(WW::WheelThemes::Neutral);
+		}
 		pWeaponWheel->SetWeapons(state.currentWeapons[charIndex]);
 		pWeaponWheel->SetActiveSlot((int)weaponIndex);
 	}
 
 	// Switching Themes
 	if (state.oldTheme != activeCrimsonConfig.WeaponWheel.theme) {
-		pWeaponWheel->SetWheelTheme(GetWeaponWheelThemeFromConfig(activeCrimsonConfig.WeaponWheel.theme, state.charTheme));
+		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
+			pWeaponWheel->SetWheelTheme(state.charTheme);
+		} else {
+			pWeaponWheel->SetWheelTheme(WW::WheelThemes::Neutral);
+		}
 		pWeaponWheel->SetWeapons(state.currentWeapons[charIndex]);
 		pWeaponWheel->SetActiveSlot((int)weaponIndex);
 	}
@@ -2298,7 +2288,7 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 		pD3D11Device->GetImmediateContext(&pDeviceContext);
 
 		dummyWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, 100, 100,
-			dummyWWState.currentWeapons[0], GetWeaponWheelThemeFromConfig(activeCrimsonConfig.WeaponWheel.theme, dummyWWState.charTheme));
+			dummyWWState.currentWeapons[0], activeCrimsonConfig.WeaponWheel.theme == "Crimson" ? dummyWWState.charTheme : WW::WheelThemes::Neutral);
 	}
 }
 
@@ -13281,7 +13271,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 
 	// Format the version string
 	std::string versionStr = std::format("v{}.{}{}", UI::g_UIContext.CurrentVersion.Major, UI::g_UIContext.CurrentVersion.Minor, UI::g_UIContext.CurrentVersion.PatchLetter);
-	std::string versionText = "" + versionStr;
+	std::string versionText = "BETA " + versionStr;
 
 	// Calculate text size
 	ImVec2 versionTextSize = ImGui::CalcTextSize(versionText.c_str());
