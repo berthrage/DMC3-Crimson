@@ -2450,7 +2450,7 @@ ImColor GetStyleFlashColor(int style, uint8 character) {
 	case STYLE::TRICKSTER:     if (character == CHARACTER::DANTE) return ImColor(UI::SwapColorEndianness(0xf4dc07FF)); 
 								else return ImColor(UI::SwapColorEndianness(0x44bccdFF)); // Yellow / Light Blue
 	case STYLE::SWORDMASTER:   return ImColor(UI::SwapColorEndianness(0xf30202FF)); // Red
-	case STYLE::GUNSLINGER:    return ImColor(UI::SwapColorEndianness(0x0c59f6FF)); // Blue
+	case STYLE::GUNSLINGER:    return ImColor(UI::SwapColorEndianness(0x0096bfff)); // Blue
 	case STYLE::ROYALGUARD:    return ImColor(UI::SwapColorEndianness(0x00fe27FF)); // Green
 	case STYLE::DOPPELGANGER:  return ImColor(UI::SwapColorEndianness(0xfe5102FF)); // Orange
 	case STYLE::QUICKSILVER:   if (character == CHARACTER::DANTE) return ImColor(UI::SwapColorEndianness(0xd40af0FF));
@@ -3247,11 +3247,22 @@ void StyleEXPDisplayWindow() {
 
 
 void StyleLvlDispWindow() {
-	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_10222 || !pool_10222[3]) {
+	PlayerActorData* actorDataPtr = nullptr;
+	auto& playerData = GetPlayerData(0);
+	if (activeConfig.Actor.enable) {
+		auto& activeNewActorData = GetNewActorData(0, playerData.activeCharacterIndex, ENTITY::MAIN);
+		if (activeNewActorData.baseAddr) {
+			actorDataPtr = reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+		}
+	}
+	else {
+		actorDataPtr = GetVanillaPlayerActor();
+	}
+
+	if (!actorDataPtr) {
 		return;
 	}
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto& actorData = *actorDataPtr;
 	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
 	if (!name_80) {
 		return;
@@ -3264,9 +3275,9 @@ void StyleLvlDispWindow() {
 		return;
 	}
 	
-	if (mainActorData.style == STYLE::DOPPELGANGER || mainActorData.style == STYLE::QUICKSILVER) return;
+	if (actorData.style == STYLE::DOPPELGANGER || actorData.style == STYLE::QUICKSILVER) return;
 
-	auto& character = mainActorData.character;
+	uint8 character = actorData.character;
 	if (character != CHARACTER::DANTE && character != CHARACTER::VERGIL) return;
 	float alpha = hudData.topLeftAlpha / 127.0f;
 	float styleLvlTextureSizeX = (76.0f * 0.17f) * scaleFactorY;
@@ -3282,7 +3293,7 @@ void StyleLvlDispWindow() {
 
 	ImVec2 styleLvlDispWindowPosDefault = character == CHARACTER::DANTE ? 
 		ImVec2(
-		screenCenterX - (896.0f * scaleFactorY),
+		screenCenterX - (920.0f * scaleFactorY),
 		67.0f * scaleFactorY) : 
 		ImVec2(
 		screenCenterX - (858.0f * scaleFactorY),
@@ -3303,7 +3314,7 @@ void StyleLvlDispWindow() {
 
 	ImGui::Begin("StyleLvlDisplayWindow", nullptr, windowFlags);
 
-	ImColor diamondStyleColor = GetStyleFlashColor(mainActorData.style, character);
+	ImColor diamondStyleColor = GetStyleFlashColor(actorData.style, character);
 	diamondStyleColor.Value.w = alpha;
 
 	ImVec2 windowPos = ImGui::GetWindowPos();
@@ -3319,7 +3330,7 @@ void StyleLvlDispWindow() {
 	);
 
 
-	if (mainActorData.styleLevel == 0) {
+	if (actorData.styleLevel == 0) {
 		ImGui::End(); 
 		return;
 	}
@@ -3332,7 +3343,7 @@ void StyleLvlDispWindow() {
 		diamondStyleColor
 	);
 
-	if (mainActorData.styleLevel == 1) {
+	if (actorData.styleLevel == 1) {
 		ImGui::End();
 		return;
 	}
@@ -3341,6 +3352,25 @@ void StyleLvlDispWindow() {
 		styleLevelDiamond->GetTexture(),
 		diamondMin + ImVec2(40 * scaleFactorY, 0),
 		diamondMax + ImVec2(40 * scaleFactorY, 0),
+		ImVec2(0, 0), ImVec2(1, 1),
+		diamondStyleColor
+	);
+
+	bool isInStyleLevel4 = actorData.character == CHARACTER::DANTE && (
+		(actorData.style == STYLE::SWORDMASTER && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::SWORDMASTER_MODDED_MOVES]) ||
+		(actorData.style == STYLE::TRICKSTER && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::TRICKSTER_MODDED_MOVES]) ||
+		(actorData.style == STYLE::ROYALGUARD && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::ROYALGUARD_MODDED_MOVES]) ||
+		(actorData.style == STYLE::GUNSLINGER && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::GUNSLINGER_MODDED_MOVES]) );
+
+	if (!isInStyleLevel4) {
+		ImGui::End();
+		return;
+	}
+
+	ImGui::GetWindowDrawList()->AddImage(
+		styleLevelDiamond->GetTexture(),
+		diamondMin + ImVec2(60 * scaleFactorY, 0),
+		diamondMax + ImVec2(60 * scaleFactorY, 0),
 		ImVec2(0, 0), ImVec2(1, 1),
 		diamondStyleColor
 	);
