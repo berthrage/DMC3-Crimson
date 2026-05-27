@@ -120,12 +120,17 @@ set(CXX_FLAGS
 
 project(Crimson LANGUAGES CXX C ASM_MASM)
 
-# Embed patrons.json as a C++ string literal at compile time
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/patrons.json" EMBEDDED_PATRONS_JSON)
-configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/PatreonData.hpp.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/PatreonData.hpp"
-    @ONLY
+# Generate PatreonData.hpp from patrons.json at build time (not configure time)
+# so that editing patrons.json and rebuilding picks up changes automatically.
+set(PATREONDATA_HPP "${CMAKE_CURRENT_BINARY_DIR}/PatreonData.hpp")
+add_custom_command(
+    OUTPUT  "${PATREONDATA_HPP}"
+    DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/patrons.json"
+    COMMAND ${CMAKE_COMMAND}
+        "-DSRC_DIR=${CMAKE_CURRENT_SOURCE_DIR}"
+        "-DOUTPUT_FILE=${PATREONDATA_HPP}"
+        -P "${CMAKE_CURRENT_SOURCE_DIR}/embed_patrons.cmake"
+    COMMENT "Generating PatreonData.hpp from patrons.json"
 )
 
 file(GLOB FONTS_HDR 
@@ -193,7 +198,7 @@ file(GLOB MAIN_SRC
     CrimsonOnboarding.cpp
     CrimsonOnboarding.hpp
     Patreon.hpp
-    PatreonData.hpp.in
+    embed_patrons.cmake
     patrons.json
     parse_patreon.py
     CrimsonHighFPSFixes.cpp
@@ -310,7 +315,7 @@ set(UI_SRC
 )
 
 source_group("Global" FILES ${GLOBAL_SRC})
-source_group("Crimson" FILES ${MAIN_SRC})
+source_group("Crimson" FILES ${MAIN_SRC} "${PATREONDATA_HPP}")
 source_group("Core" FILES ${CORE_SRC})
 source_group("Utility" FILES ${UTILITY_SRC})
 source_group("ASM" FILES ${MASM_SRC})
@@ -326,6 +331,7 @@ add_library(${PROJECT_NAME} SHARED
 
             ${GLOBAL_SRC}
             ${CORE_SRC}
+            "${PATREONDATA_HPP}"
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
