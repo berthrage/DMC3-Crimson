@@ -163,6 +163,10 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 	style.ColumnsMinSpacing = 6.0f * scaleFactorUltrawideY;
 	style.ScrollbarSize = 13.0f * scaleFactorY;
 	style.ScrollbarRounding = 16.0f * scaleFactorY;
+	style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.10f, 0.05f, 0.05f, 0.50f);
+	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.588f, 0.094f, 0.235f, 1.00f);
+	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.729f, 0.122f, 0.294f, 1.00f);
+	style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.439f, 0.071f, 0.176f, 1.00f);
 	style.GrabMinSize = 20.0f * scaleFactorY;
 	style.GrabRounding = 2.0f * scaleFactorY;
 	style.TabRounding = 4.0f * scaleFactorY;
@@ -5999,6 +6003,10 @@ void ShopWindow() {
 		ImGui::PushStyleColor(ImGuiCol_Button, UI::SwapColorEndianness(0x96183CFF));
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, UI::SwapColorEndianness(0xBA1F4BFF));
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, UI::SwapColorEndianness(0x70122DFF));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.10f, 0.05f, 0.05f, 0.50f));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, UI::SwapColorEndianness(0x96183CFF));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, UI::SwapColorEndianness(0xBA1F4BFF));
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, UI::SwapColorEndianness(0x70122DFF));
 		if (GUI_CloseX(true)) {
 			if (!shopCooldownActive) {
 				CloseShop();
@@ -6117,7 +6125,7 @@ void ShopWindow() {
 			ImGui::EndTabBar();
 		}
 
-		ImGui::PopStyleColor(3);
+		ImGui::PopStyleColor(7);
 		ImGui::End();
 	}
 }

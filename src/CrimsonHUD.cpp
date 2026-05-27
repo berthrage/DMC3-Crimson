@@ -3629,6 +3629,9 @@ Texture2DD3D11 *getCrimsonGradient()
 
 Texture2DD3D11 *getRedOrbTexture()
 {
+	if (!activeCrimsonConfig.CrimsonHudAddons.redOrbCounter && RedOrbVanillaTexture && RedOrbVanillaTexture->IsValid()) {
+		return RedOrbVanillaTexture;
+	}
 	return RedOrbTexture;
 }
 
