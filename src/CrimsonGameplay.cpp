@@ -1719,6 +1719,7 @@ void VergilTrackSwordFormationBuffer(byte8* actorBaseAddr) {
 	const float GRACE_PERIOD = 0.2f; // 200 ms grace period after input to allow for formation change
 	const float graceDelta = ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
 	bool spiralSwordsActive = *reinterpret_cast<bool*>(actorBaseAddr + 0xB598);
+	// This function processes the buffered formation request towards CheckSummonedSwordFormationShortcutInput at CrimsonDetours.cpp
 
 	if (shootDown && sf.gracePeriodTimer < GRACE_PERIOD) {
 		sf.gracePeriodTimer = (std::min)(GRACE_PERIOD, sf.gracePeriodTimer + graceDelta);

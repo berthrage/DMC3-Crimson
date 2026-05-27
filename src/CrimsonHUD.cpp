@@ -3439,7 +3439,18 @@ void RoyalGaugeDispWindow() {
 		windowPos.y + (royalGaugeWindowSize.y - textureHeight) * 0.5f
 	);
 
-	float royalGaugeFraction = 1.0f; // Should be 0.0f to 1.0f
+	float divisorRGLevel = 0.0;
+	if (heldStyleExpDataDante.missionStyleLevels[STYLE::ROYALGUARD] == 0) {
+		divisorRGLevel = 3000.0f;
+	}
+	else if (heldStyleExpDataDante.missionStyleLevels[STYLE::ROYALGUARD] == 1) {
+		divisorRGLevel = 6000.0f;
+	}
+	else if (heldStyleExpDataDante.missionStyleLevels[STYLE::ROYALGUARD] == 2) {
+		divisorRGLevel = 9000.0f;
+	}
+
+	float royalGaugeFraction = divisorRGLevel / 9000.0f; // Should be 0.0f to 1.0f
 	float royalGaugeFraction2 = mainActorData.royalguardReleaseDamage / 9000.0f; // Should be 0.0f to 1.0f
 
 	ImColor pinkColor = ImColor(UI::SwapColorEndianness(0x221b67FF));
@@ -3447,8 +3458,6 @@ void RoyalGaugeDispWindow() {
 
 	if (mainActorData.style == STYLE::ROYALGUARD) {
 		// LARGE CIRCLE (Pie)
-		
-
 			DrawRotatedImagePie(
 				royalGaugeCircle->GetTexture(),
 				texturePos,

@@ -1366,7 +1366,11 @@ uint8 CheckSummonedSwordFormationShortcutInput(uintptr_t playerAddr, uintptr_t s
 	bool shootDown = (gamepad.buttons[0] & GetBinding(BINDING::SHOOT)) != 0;
 	auto& sf = (entityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].swordFormationTracker :
 		crimsonPlayer[playerIndex].swordFormationTrackerClone;
-
+	// This function interacts with CrimsonGameplay::VergilTrackSwordFormationBuffer in order to lock directional inputs once you confirm
+	// the formation you want. Making it easier to choose between Blistering/Storm/Spiral Swords.
+	// case 2: Blistering Swords
+	// case 1: Storm Swords
+	// case 0: Spiral Swords
 	*(BYTE*)(playerAddr + 0xB5E6) = CrimsonReversedCalls::CPlayerSetSwordFormationTargetIndex_sub_140224180(playerAddr);
 
 	if (spiralSwordsActive2 && sf.bufferedFormation == 0) {

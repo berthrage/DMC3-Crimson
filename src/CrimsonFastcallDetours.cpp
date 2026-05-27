@@ -209,6 +209,7 @@ namespace CrimsonFastcallDetours{
 		 if (((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.shotgunChargedShl))) {
 			 newDmgData.knockbackAnimation = 3.0f;
 			 newDmgData.displacement = 30.0f;
+			 //newDmgData.dmgValue = 7.0f; // default is 7.0f, for reference, normal shotgun's dmg is 5.0f
 			 modified = true;
 		 }
 		 if (((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.shotgunChargedShl2))) {
@@ -230,8 +231,9 @@ namespace CrimsonFastcallDetours{
 	 }
 
 	 // BACKSLIDE 
-	 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.shotgunShl)) {
-		 if (backslide.performing) {
+	 if (backslide.performing) {
+		 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.shotgunShl)) {
+
 			 newDmgData.displacement = 27.0f; // default is 7.0f
 			 newDmgData.dmgValue = 20.0f; // default is 5.0f
 			 modified = true;
@@ -239,8 +241,8 @@ namespace CrimsonFastcallDetours{
 	 }
 
 	 // SKY LAUNCH
-	 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.goldRoyalRelease)) {
-		 if (skyLaunch.executing) {
+	 if (skyLaunch.executing) {
+		 if ((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.goldRoyalRelease)) {
 			 newDmgData.hitStopDuration = 7.0f;
 			 newDmgData.stun = 80.0f; // default is 600.0f
 			 newDmgData.displacement = 60.0f; // default is 60.0f
