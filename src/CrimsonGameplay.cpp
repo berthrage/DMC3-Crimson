@@ -5910,13 +5910,12 @@ void GroundTrickFlagSet(byte8* actorBaseAddr) {
         }
     }
 
-
-
     if (actorData.newEntityIndex == 1 && !actorData.doppelganger) return; // visibility set with doppel fix
 
-    if ((actorData.eventData[0].event == ACTOR_EVENT::LANDING || actorData.eventData[0].event == ACTOR_EVENT::STAGGER ||
-        actorData.eventData[0].event == ACTOR_EVENT::ATTACK)
-        && newActorData.visibility == 2) {
+    // Unhide Dante once the ground trick is complete (event transitions away from TRICKSTER_GROUND_TRICK).
+    // Previously only checked LANDING/STAGGER/ATTACK, but the event can change to other values
+    // (e.g. NONE/idle, JUMP) leaving Dante permanently invisible.
+    if (newActorData.visibility == 2 && actorData.eventData[0].event != ACTOR_EVENT::TRICKSTER_GROUND_TRICK) {
         newActorData.visibility = 0; // unhide
     }
 }
