@@ -2457,34 +2457,6 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 		consumedAirTrickEnd[playerIndex][entityIndex] = false;
 	}
 
-	// JUDGEMENT CUT SFX
-	if ((actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_2 ||
-		actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_1)) {
-
-		if (actorData.motionData[0].index == 14) {
-			if (actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCutAirJF_pl021_00_3 ||
-				actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCut_pl021_00_3) {
-				if (jCut.fireSound) {
-					CrimsonSDL::PlayJDC(playerIndex, true, 0);
-					CrimsonReversedCalls::PlaySFXWithPos_ByType_sub_140339930((uintptr_t)appBaseAddr + 0xD6DC90, 
-						8, (uintptr_t)&actorData.position, 11);
-					jCut.fireSound = false;
-				}
-
-			}
-			else if (actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCutAir_pl021_00_3) {
-				if (jCut.fireSound) {
-					CrimsonReversedCalls::PlaySFXWithPos_ByType_sub_140339930((uintptr_t)appBaseAddr + 0xD6DC90, 
-						8, (uintptr_t)&actorData.position, 11);
-					jCut.fireSound = false;
-				}
-			}
-		}
-		else {
-			jCut.fireSound = true; // Reset sound trigger for next hit in the move
-		}
-	}
-
 	if (actorData.queuedMeleeWeaponIndex != 0 && actorData.action != YAMATO_FORCE_EDGE_COMBO_PART_4) {
 		chargeInitialized[playerIndex][entityIndex] = false;
 		jCut.meleeButtonHold = 0.0f;
@@ -2639,6 +2611,34 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 		jCut.isJustFrameCharged = false; // Reset charge when released
 		jCut.isAfterJustFrameCharged = false;
 		indicatorFired[playerIndex][entityIndex] = false;
+	}
+
+	// JUDGEMENT CUT SFX
+	if ((actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_2 ||
+		actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_1)) {
+
+		if (actorData.motionData[0].index == 14) {
+			if (actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCutAirJF_pl021_00_3 ||
+				actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCut_pl021_00_3) {
+				if (jCut.fireSound) {
+					CrimsonSDL::PlayJDC(playerIndex, true, 0);
+					CrimsonReversedCalls::PlaySFXWithPos_ByType_sub_140339930((uintptr_t)appBaseAddr + 0xD6DC90,
+						8, (uintptr_t)&actorData.position, 11);
+					jCut.fireSound = false;
+				}
+
+			}
+			else if (actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCutAir_pl021_00_3) {
+				if (jCut.fireSound) {
+					CrimsonReversedCalls::PlaySFXWithPos_ByType_sub_140339930((uintptr_t)appBaseAddr + 0xD6DC90,
+						8, (uintptr_t)&actorData.position, 11);
+					jCut.fireSound = false;
+				}
+			}
+		}
+		else {
+			jCut.fireSound = true; // Reset sound trigger for next hit in the move
+		}
 	}
 
     bool isJudgementCutAction = (actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_2 || actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_1);
