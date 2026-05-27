@@ -1358,27 +1358,39 @@ uint8 CheckSummonedSwordFormationShortcutInput(uintptr_t playerAddr, uintptr_t s
 	uint8 entityIndex = actorData.newEntityIndex;
 	auto& gamepad = GetGamepad(actorData.newGamepad);
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
-	bool spiralFullyActive = *(BYTE*)(shlAddr + 0x9) == 1 &&
-		*(BYTE*)(shlAddr + 0xA) >= 2;
-	bool shootButtonDown = (gamepad.buttons[0] & GetBinding(BINDING::SHOOT)) != 0;
+	bool spiralSwordsActive = *reinterpret_cast<bool*>(playerAddr + 0xB598);
+	bool spiralSwordsActive2 = *reinterpret_cast<bool*>(shlAddr + 0x9);
+	float spiralHoldTimer = *reinterpret_cast<float*>(playerAddr + 0x68F8);
+	const float GRACE_PERIOD = 0.2f; // 200 ms grace period after input to allow for formation change
+	const float graceDelta = ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+	bool shootDown = (gamepad.buttons[0] & GetBinding(BINDING::SHOOT)) != 0;
+	auto& sf = (entityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].swordFormationTracker :
+		crimsonPlayer[playerIndex].swordFormationTrackerClone;
 
-	// case 2: Blistering Swords
-	// case 1: Storm Swords
-	// case 0: Spiral Swords
+	*(BYTE*)(playerAddr + 0xB5E6) = CrimsonReversedCalls::CPlayerSetSwordFormationTargetIndex_sub_140224180(playerAddr);
 
-	if (actorData.lockOn && shootButtonDown && tiltDirection == TILT_DIRECTION::UP) {
-		// This needs to be done in order to update the target index for the sword formations, otherwise its targetting will be stale.
-		*(BYTE*)(playerAddr + 0xB5E6) = CrimsonReversedCalls::CPlayerSetSwordFormationTargetIndex_sub_140224180(playerAddr);
+	if (spiralSwordsActive2 && sf.bufferedFormation == 0) {
+		if (actorData.lockOn && shootDown && tiltDirection == TILT_DIRECTION::UP) {
+			return
+				activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut == SWORDFORMATIONSHORTCUT::INVERTED ?
+				1 : 2;
+		}
+		else if (actorData.lockOn && shootDown && tiltDirection == TILT_DIRECTION::DOWN) {
+			return
+				activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut == SWORDFORMATIONSHORTCUT::INVERTED ?
+				2 : 1;
+		}
+		else {
+			return  0;
+		}
 
-		return activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut == SWORDFORMATIONSHORTCUT::INVERTED ? 1 : 2;
+		if (sf.gracePeriodTimer > 0.05f) {
+			// lock the Desired Formation
+			sf.formationBuffered = true;
+		}
 	}
-	else if (actorData.lockOn && shootButtonDown && tiltDirection == TILT_DIRECTION::DOWN) {
 
-		*(BYTE*)(playerAddr + 0xB5E6) = CrimsonReversedCalls::CPlayerSetSwordFormationTargetIndex_sub_140224180(playerAddr);
-		return activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut == SWORDFORMATIONSHORTCUT::INVERTED ? 2 : 1;
-	}
-	
-	return 0;
+	return sf.bufferedFormation;
 }
 
 void InitDetours() {

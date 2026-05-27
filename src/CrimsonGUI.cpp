@@ -9025,7 +9025,11 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			}
 			auto& savingInGameData = *reinterpret_cast<SavingInGameData*>(savingInGameDataAddr);
 
-			ImGui::Text("activeRangedWeapon: %u", actorData.activeRangedWeapon);
+			ImGui::Text("spiralHoldTimer: %g", *reinterpret_cast<const float*>(actorData + 0x68F8));
+			ImGui::Text("spiralSwordsActive: %u", *reinterpret_cast<bool*>(actorData + 0xB598));
+			ImGui::Text("desiredFormation: %u", crimsonPlayer[0].swordFormationTracker.bufferedFormation);
+			ImGui::Text("gracePeriodTimer: %g", crimsonPlayer[0].swordFormationTracker.gracePeriodTimer);
+			ImGui::Text("formationBuffered: %u", crimsonPlayer[0].swordFormationTracker.formationBuffered);
 			ImGui::Text("trickUpCount: %u", actorData.newTrickUpCount);
 			ImGui::Text("Horizontal Pull  %g", actorData.horizontalPull);
 			ImGui::Text("Horizontal Pull Multiplier %g", actorData.horizontalPullMultiplier);
@@ -10296,7 +10300,7 @@ void SystemSection(size_t defaultFontSize) {
 
             ImGui::TableNextColumn();
 
-			GUI_Checkbox2("Unlocked Framerate", activeCrimsonConfig.System.fpsUnlocked, queuedCrimsonConfig.System.fpsUnlocked);
+			GUI_Checkbox2("Unlocked Frame Rate", activeCrimsonConfig.System.fpsUnlocked, queuedCrimsonConfig.System.fpsUnlocked);
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("This neat experimental feature completely eliminates input lag and greatly boosts game responsiveness.\n"
 					"We're actively polishing it, some bugs may still occur.\n"

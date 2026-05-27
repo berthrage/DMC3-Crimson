@@ -1700,6 +1700,71 @@ uint16 GetRotationTowardsEnemy(byte8* actorBaseAddr) {
 
 #pragma region VergilGameplay
 
+void VergilTrackSwordFormationBuffer(byte8* actorBaseAddr) {
+	if (!actorBaseAddr || (uintptr_t)actorBaseAddr >= 0xFFFFFFFFFF) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (!IsActiveCharacterActor(actorData)) return;
+	if (actorData.character != CHARACTER::VERGIL) return;
+	uint8 playerIndex = (activeConfig.Actor.enable) ? actorData.newPlayerIndex : 0;
+	uint8 entityIndex = (activeConfig.Actor.enable) ? actorData.newEntityIndex : (actorData.isClone ? 1 : 0);
+	auto& sf = (entityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].swordFormationTracker :
+		crimsonPlayer[playerIndex].swordFormationTrackerClone;
+	auto gamepad = GetGamepad(actorData.newGamepad);
+	auto tiltDirection = GetRelativeTiltDirection(actorData);
+	bool shootDown = (activeConfig.Actor.enable) ? (gamepad.buttons[0] & GetBinding(BINDING::SHOOT)) != 0 : 
+		(actorData.buttons[0] & GetBinding(BINDING::SHOOT)) != 0;
+	const float spiralHoldTimer = *reinterpret_cast<const float*>(actorBaseAddr + 0x68F8);
+	const float GRACE_PERIOD = 0.2f; // 200 ms grace period after input to allow for formation change
+	const float graceDelta = ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+	bool spiralSwordsActive = *reinterpret_cast<bool*>(actorBaseAddr + 0xB598);
+
+	if (shootDown && sf.gracePeriodTimer < GRACE_PERIOD) {
+		sf.gracePeriodTimer = (std::min)(GRACE_PERIOD, sf.gracePeriodTimer + graceDelta);
+	}
+
+ 	// Reset timer: counts up while Spiral Swords is NOT active
+	// When it reaches RESET_DELAY, the buffered formation is cleared.
+	const float RESET_DELAY = 0.3f; // 100 ms
+	if (spiralHoldTimer <= 0.0f) {
+		sf.resetTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+		if (sf.resetTimer >= RESET_DELAY) {
+			if (sf.formationBuffered) {
+				sf.gracePeriodTimer = 0.0f;
+				sf.formationBuffered = false;
+				sf.resetTimer = 0.0f;
+			}
+		}
+	} else {
+		sf.resetTimer = 0.0f;
+	}
+
+	// case 2: Blistering Swords
+	// case 1: Storm Swords
+	// case 0: Spiral Swords
+	if (sf.gracePeriodTimer < GRACE_PERIOD && !sf.formationBuffered) {
+		if (actorData.lockOn && shootDown && tiltDirection == TILT_DIRECTION::UP) {
+			sf.bufferedFormation =
+				activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut == SWORDFORMATIONSHORTCUT::INVERTED ?
+					1 : 2;
+		}
+		else if (actorData.lockOn && shootDown && tiltDirection == TILT_DIRECTION::DOWN) {
+			sf.bufferedFormation =
+				activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut == SWORDFORMATIONSHORTCUT::INVERTED ?
+					2 : 1;
+		}
+		else  {
+			sf.bufferedFormation = 0;
+		}
+	
+		if (sf.gracePeriodTimer > 0.05f) {
+			sf.formationBuffered = true;
+		}
+	}
+	
+}
+
 void VergilRisingStar(byte8* actorBaseAddr) {
 	using namespace ACTION_VERGIL;
 

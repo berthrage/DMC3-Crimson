@@ -5800,6 +5800,21 @@ namespace BUFFER_ROYAL {
 	};
 }
 
+namespace BUFFER_SWORD_FORMATION {
+	enum {
+		SPIRAL_SWORDS,
+		STORM_SWORDS,
+		BLISTERING_SWORDS,
+	};
+}
+
+struct SwordFormationTracker {
+    float gracePeriodTimer = 0.0;
+	uint8 bufferedFormation = BUFFER_SWORD_FORMATION::SPIRAL_SWORDS;
+	bool formationBuffered = false;
+    float resetTimer = 0.0f; 
+};
+
 
 struct CrimsonPlayerData {
     uintptr_t playerPtr;
@@ -5902,6 +5917,7 @@ struct CrimsonPlayerData {
 	VergilRisingStarInput risingStarInput;
     BulletMagnetism bulletMagnetism;
     uint8 bufferRoyal = 0;
+	SwordFormationTracker swordFormationTracker;
     //this isn't a value mirrored between player & doppelganger, it's only for the player and it effects doppelganger behavior.
     bool lockCloneStyle = false;
 
@@ -5981,6 +5997,7 @@ struct CrimsonPlayerData {
 	VergilRisingStarInput risingStarInputClone;
     BulletMagnetism bulletMagnetismClone;
 	uint8 bufferRoyalClone = 0;
+	SwordFormationTracker swordFormationTrackerClone;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];

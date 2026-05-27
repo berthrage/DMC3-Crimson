@@ -247,6 +247,74 @@ dmc3.exe+1D9F62: 66 0F 6E D0              - movd xmm2,eax
 }
 </AssemblerScript>
     </CheatEntry>
+    <CheatEntry>
+      <ID>6</ID>
+      <Description>"No description"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Float</VariableType>
+      <Address>140371158</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3029</ID>
+      <Description>"+0 playerAddr"</Description>
+      <ShowAsHex>1</ShowAsHex>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>8 Bytes</VariableType>
+      <Address>dmc3.exe+168</Address>
+      <Offsets>
+        <Offset>18</Offset>
+        <Offset>00C90E28</Offset>
+      </Offsets>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3028</ID>
+      <Description>"+68f8 spiral swords timer"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Float</VariableType>
+      <Address>dmc3.exe+168</Address>
+      <Offsets>
+        <Offset>68f8</Offset>
+        <Offset>18</Offset>
+        <Offset>00C90E28</Offset>
+      </Offsets>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3030</ID>
+      <Description>"+B5d6"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Byte</VariableType>
+      <Address>dmc3.exe+168</Address>
+      <Offsets>
+        <Offset>B5dd</Offset>
+        <Offset>18</Offset>
+        <Offset>00C90E28</Offset>
+      </Offsets>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3034</ID>
+      <Description>"base"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Float</VariableType>
+      <Address>85FCE40</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3031</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>08608409</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3032</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>0860840B</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3033</ID>
+      <Description>"No description"</Description>
+      <VariableType>Byte</VariableType>
+      <Address>086083D8</Address>
+    </CheatEntry>
   </CheatEntries>
   <CheatCodes>
     <CodeEntry>
@@ -1030,6 +1098,28 @@ dmc3.exe+1D9F62: 66 0F 6E D0              - movd xmm2,eax
         <Byte>FF</Byte>
         <Byte>41</Byte>
         <Byte>0F</Byte>
+      </After>
+    </CodeEntry>
+    <CodeEntry>
+      <Description>Change of jne dmc3.exe+1D9F35</Description>
+      <AddressString>dmc3.exe+1D9F2B</AddressString>
+      <Before>
+        <Byte>00</Byte>
+        <Byte>00</Byte>
+        <Byte>40</Byte>
+        <Byte>84</Byte>
+        <Byte>FF</Byte>
+      </Before>
+      <Actual>
+        <Byte>75</Byte>
+        <Byte>08</Byte>
+      </Actual>
+      <After>
+        <Byte>E9</Byte>
+        <Byte>46</Byte>
+        <Byte>74</Byte>
+        <Byte>12</Byte>
+        <Byte>C0</Byte>
       </After>
     </CodeEntry>
   </CheatCodes>

@@ -2111,6 +2111,7 @@ void CallGameplayFuncs() {
 	if (activeConfig.Actor.enable) {
 		ForEachSpawnedPlayerActor([&](PlayerActorData& playerActor, NewActorData&, uint8, uint8, uint8) {
 			CrimsonGameplay::CalculateRotationTowardsEnemy(playerActor);
+			CrimsonGameplay::VergilTrackSwordFormationBuffer(playerActor);
 		});
 	}
 	else {
@@ -2122,6 +2123,7 @@ void CallGameplayFuncs() {
 		CrimsonDetours::ToggleDisableDriveHold(false);
 		CrimsonGameplay::CalculateRotationTowardsEnemy(playerActor);
 		CrimsonGameplay::CalculateRotationTowardsEnemy(playerActor.cloneActorBaseAddr);
+		CrimsonGameplay::VergilTrackSwordFormationBuffer(playerActor);
 	}
 
 	CrimsonDetours::FasterSummonedSwords(activeCrimsonGameplay.Gameplay.General.extramoves &&

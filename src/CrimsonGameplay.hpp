@@ -16,6 +16,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr);
 void ImprovedCancelsDanteController(byte8* actorBaseAddr);
 void DarkslayerCancelsVergilController(byte8* actorBaseAddr);
 void AirStingerJumpCancel(byte8* actorBaseAddr);
+void VergilTrackSwordFormationBuffer(byte8* actorBaseAddr);
 void VergilRisingStar(byte8* actorBaseAddr);
 void VergilYamatoHighTime(byte8* actorBaseAddr);
 void VergilJudgementCutRework(byte8* actorBaseAddr);
