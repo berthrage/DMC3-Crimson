@@ -6243,12 +6243,30 @@ void ShowExperienceTab(int charID, ExpConfig::ExpData& expData, ShopExperienceHe
 				ExpConfig::UpdatePlayerActorExps();
 				};
 
-			bool condition = (expData.unlocks[helper.id] || ((helper.last > -1) && !expData.unlocks[helper.last]) || !canAccess);
+			bool alreadyPurchased = expData.unlocks[helper.id];
+			bool condition = (alreadyPurchased || ((helper.last > -1) && !expData.unlocks[helper.last]) || !canAccess);
 			GUI_PushDisable(condition);
 
 			// Begin a new row
 			ImGui::BeginGroup();
-			bool result = GUI_Button(helper.name, ImVec2(555.0f * scaleFactorY, 80.0f * scaleFactorY));
+			if (alreadyPurchased) {
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+			}
+			ImVec2 btnSize(555.0f * scaleFactorY, 80.0f * scaleFactorY);
+			ImVec2 btnPos = ImGui::GetCursorScreenPos();
+			bool result = GUI_Button(helper.name, btnSize);
+			if (alreadyPurchased) {
+				ImGui::PopStyleColor(3);
+				const char* soldOutText = "SOLD OUT";
+				ImGui::PushFont(UI::g_ImGuiFont_Benguiat[UI::g_UIContext.DefaultFontSize * 0.7f]);
+				ImVec2 textSize = ImGui::CalcTextSize(soldOutText);
+				float pad = 6.0f * scaleFactorY;
+				ImVec2 textPos(btnPos.x + btnSize.x - textSize.x - pad, btnPos.y + btnSize.y - textSize.y - pad);
+				ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(), textPos, IM_COL32(200, 60, 60, 255), soldOutText);
+				ImGui::PopFont();
+			}
 			if (helper.description != "")
 			{
 				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
@@ -6299,8 +6317,8 @@ void ShowExperienceTab(int charID, ExpConfig::ExpData& expData, ShopExperienceHe
 				snprintf(numBuf, sizeof(numBuf), "%u", helper.price);
 				float fontSizePx = UI::g_UIContext.DefaultFontSize * 1.5f * scaleFactorY;
 				ImVec2 cursorPos = ImGui::GetCursorScreenPos();
-				ImU32 shadowColor = IM_COL32(100, 10, 10, 255);
-				ImU32 textColor = IM_COL32(255, 255, 255, 255);
+				ImU32 shadowColor = priceCondition ? IM_COL32(30, 3, 3, 255) : IM_COL32(100, 10, 10, 255);
+				ImU32 textColor = priceCondition ? IM_COL32(80, 80, 80, 255) : IM_COL32(255, 255, 255, 255);
 				ImGui::GetWindowDrawList()->AddText(
 					UI::g_ImGuiFont_RedOrbRussoBackdrop[UI::g_UIContext.DefaultFontSize * 1.5f],
 					fontSizePx, cursorPos, shadowColor, numBuf);
@@ -6439,17 +6457,34 @@ void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelp
 					};
 
 				//Buy Button gui element starts
-				bool condition = expData.unlocks[helper.moddedunlock] || (expData.styleLevels[helper.styleid] != STYLE_LEVEL::LEVEL_THREE) || !canAccess;
+				bool alreadyPurchased = expData.unlocks[helper.moddedunlock];
+				bool condition = alreadyPurchased || (expData.styleLevels[helper.styleid] != STYLE_LEVEL::LEVEL_THREE) || !canAccess;
 				GUI_PushDisable(condition);
 
 				// Begin a new row
 				ImGui::BeginGroup();
 				
-
-				if (GUI_Button(helper.name, ImVec2(375.0f * scaleFactorY, 80.0f * scaleFactorY))) {
+				if (alreadyPurchased) {
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+				}
+				ImVec2 btnSize(375.0f * scaleFactorY, 80.0f * scaleFactorY);
+				ImVec2 btnPos = ImGui::GetCursorScreenPos();
+				if (GUI_Button(helper.name, btnSize)) {
 					if (canAccess) {
 						Buy();
 					}
+				}
+				if (alreadyPurchased) {
+					ImGui::PopStyleColor(3);
+					const char* soldOutText = "SOLD OUT";
+					ImGui::PushFont(UI::g_ImGuiFont_Benguiat[UI::g_UIContext.DefaultFontSize * 0.7f]);
+					ImVec2 textSize = ImGui::CalcTextSize(soldOutText);
+					float pad = 6.0f * scaleFactorY;
+					ImVec2 textPos(btnPos.x + btnSize.x - textSize.x - pad, btnPos.y + btnSize.y - textSize.y - pad);
+					ImGui::GetWindowDrawList()->AddText(ImGui::GetFont(), ImGui::GetFontSize(), textPos, IM_COL32(200, 60, 60, 255), soldOutText);
+					ImGui::PopFont();
 				}
 
 				if (helper.description != "")
@@ -6574,21 +6609,30 @@ void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelp
 
 				//Buy Button gui element starts
 				bool condition = !(expData.styleLevels[helper.styleid] + 1 == helper.stylelevel);
-				GUI_PushDisable(condition);
+				bool alreadyPurchased = (expData.styleLevels[helper.styleid] >= helper.stylelevel);
+				GUI_PushDisable(condition || alreadyPurchased);
 
 				// Begin a new row
 				ImGui::BeginGroup();
 
-				if (GUI_Button(helper.name, ImVec2(375.0f * scaleFactorY, 80.0f * scaleFactorY))) {
+				if (alreadyPurchased) {
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+				}
+				if (GUI_Button(alreadyPurchased ? "SOLD OUT" : helper.name, ImVec2(375.0f * scaleFactorY, 80.0f * scaleFactorY))) {
 					Buy();
 				}
+				if (alreadyPurchased) {
+					ImGui::PopStyleColor(3);
+				}
 
-				GUI_PopDisable(condition);
+				GUI_PopDisable(condition || alreadyPurchased);
 
 				// Display price and bullet point in a new column
 				ImGui::SameLine(90);
 
-				bool priceCondition = (missionData.redOrbs < rorb_cost_calculated) || condition;
+				bool priceCondition = (missionData.redOrbs < rorb_cost_calculated) || condition || alreadyPurchased;
 				// Red orb icon instead of bullet
 				if (auto* orbTex = CrimsonHUD::getRedOrbTexture(); orbTex && orbTex->IsValid()) {
 					constexpr float ORB_ASPECT = 142.0f / 200.0f;
@@ -6610,13 +6654,10 @@ void ShowExperienceStyleTab(ExpConfig::ExpData& expData, ShopExperienceStyleHelp
 
 				GUI_PushDisable(priceCondition);
 				ImGui::SameLine();
-				if (expData.styleLevels[helper.styleid] >= helper.stylelevel) {
-					ImGui::Text("Sold out!");
-				}
-				else {
+				if (!alreadyPurchased) {
 					float fontSizePx = UI::g_UIContext.DefaultFontSize * 1.5f * scaleFactorY;
-					ImU32 shadowColor = IM_COL32(100, 10, 10, 255);
-					ImU32 textColor = IM_COL32(255, 255, 255, 255);
+					ImU32 shadowColor = priceCondition ? IM_COL32(30, 3, 3, 255) : IM_COL32(100, 10, 10, 255);
+					ImU32 textColor = priceCondition ? IM_COL32(80, 80, 80, 255) : IM_COL32(255, 255, 255, 255);
 
 					// Price with backdrop shadow (same styling as RedOrbCounterWindow)
 					char numBuf[32];
@@ -6719,8 +6760,8 @@ void ShowItemTab(MissionData& missionData, QueuedMissionActorData& queuedMission
 			snprintf(numBuf, sizeof(numBuf), "%u", price);
 			float fontSizePx = UI::g_UIContext.DefaultFontSize * 1.5f * scaleFactorY;
 			ImVec2 cursorPos = ImGui::GetCursorScreenPos();
-			ImU32 shadowColor = IM_COL32(100, 10, 10, 255);
-			ImU32 textColor = IM_COL32(255, 255, 255, 255);
+			ImU32 shadowColor = priceCondition ? IM_COL32(30, 3, 3, 255) : IM_COL32(100, 10, 10, 255);
+			ImU32 textColor = priceCondition ? IM_COL32(80, 80, 80, 255) : IM_COL32(255, 255, 255, 255);
 			ImGui::GetWindowDrawList()->AddText(
 				UI::g_ImGuiFont_RedOrbRussoBackdrop[UI::g_UIContext.DefaultFontSize * 1.5f],
 				fontSizePx, cursorPos, shadowColor, numBuf);
