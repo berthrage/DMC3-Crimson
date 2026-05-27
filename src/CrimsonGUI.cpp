@@ -1729,6 +1729,7 @@ std::vector<std::string> SwordFormationShortcutNames = {
 
 std::vector<std::string> weaponWheelThemeNames = {
 	"Crimson",
+	"Crimson Early Beta",
 	"DMC3 Switch",
 };
 
@@ -2111,8 +2112,15 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 
 		pD3D11Device->GetImmediateContext(&pDeviceContext);
 
+		auto initialTheme = WW::WheelThemes::Neutral;
+		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
+			initialTheme = state.charTheme;
+		} else if (activeCrimsonConfig.WeaponWheel.theme == "Crimson Early Beta") {
+			initialTheme = state.charTheme == WW::WheelThemes::Dante ? WW::WheelThemes::BetaDante : WW::WheelThemes::BetaVergil;
+		}
+
 		pWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, wheelSize.x, wheelSize.y,
-			state.currentWeapons[0], activeCrimsonConfig.WeaponWheel.theme == "Crimson" ? state.charTheme : WW::WheelThemes::Neutral);
+			state.currentWeapons[0], initialTheme);
 
 		if (pWeaponWheel) {
 			pWeaponWheel->ToggleAlwaysVisible(alwaysShow);
@@ -2138,22 +2146,26 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 			UpdateRangedWeaponIDs(actorData, state.currentWeapons, actorData.newCharacterIndex);
 		}
 
+		auto newTheme = WW::WheelThemes::Neutral;
 		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
-			pWeaponWheel->SetWheelTheme(state.charTheme);
-		} else {
-			pWeaponWheel->SetWheelTheme(WW::WheelThemes::Neutral);
+			newTheme = state.charTheme;
+		} else if (activeCrimsonConfig.WeaponWheel.theme == "Crimson Early Beta") {
+			newTheme = state.charTheme == WW::WheelThemes::Dante ? WW::WheelThemes::BetaDante : WW::WheelThemes::BetaVergil;
 		}
+		pWeaponWheel->SetWheelTheme(newTheme);
 		pWeaponWheel->SetWeapons(state.currentWeapons[charIndex]);
 		pWeaponWheel->SetActiveSlot((int)weaponIndex);
 	}
 
 	// Switching Themes
 	if (state.oldTheme != activeCrimsonConfig.WeaponWheel.theme) {
+		auto switchTheme = WW::WheelThemes::Neutral;
 		if (activeCrimsonConfig.WeaponWheel.theme == "Crimson") {
-			pWeaponWheel->SetWheelTheme(state.charTheme);
-		} else {
-			pWeaponWheel->SetWheelTheme(WW::WheelThemes::Neutral);
+			switchTheme = state.charTheme;
+		} else if (activeCrimsonConfig.WeaponWheel.theme == "Crimson Early Beta") {
+			switchTheme = state.charTheme == WW::WheelThemes::Dante ? WW::WheelThemes::BetaDante : WW::WheelThemes::BetaVergil;
 		}
+		pWeaponWheel->SetWheelTheme(switchTheme);
 		pWeaponWheel->SetWeapons(state.currentWeapons[charIndex]);
 		pWeaponWheel->SetActiveSlot((int)weaponIndex);
 	}

@@ -96,10 +96,10 @@ namespace UI {
 		style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.592f, 0.047f, 0.156f, 1.0f);
 		style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.200f, 0.219f, 0.266f, 0.75f);
 		style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-		style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.200f, 0.219f, 0.266f, 0.0f);
-		style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-		style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.772f, 0.215f, 0.215f, 0.780f);
-		style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.788f, 0.062f, 0.211f, 1.0f);
+		style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.10f, 0.05f, 0.05f, 0.50f);
+		style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.588f, 0.094f, 0.235f, 1.00f);
+		style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.729f, 0.122f, 0.294f, 1.00f);
+		style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.439f, 0.071f, 0.176f, 1.00f);
 		style.Colors[ImGuiCol_CheckMark] = ImVec4(0.886f, 0.070f, 0.235f, 1.0f);
 		style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.855f, 0.106f, 0.325f, 1.0f);
 		style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.980f, 0.278f, 0.261f, 1.0f);
@@ -148,7 +148,7 @@ namespace UI {
 		// Add custom ranges to the font
 		ImVector<ImWchar> ranges;
 		ImFontGlyphRangesBuilder builder;
-		builder.AddText((const char*)u8"•");
+		builder.AddText((const char*)u8"ï¿½");
 		builder.AddRanges(io.Fonts->GetGlyphRangesDefault());
 		builder.BuildRanges(&ranges);
 
