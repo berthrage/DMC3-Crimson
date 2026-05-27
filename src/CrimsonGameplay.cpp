@@ -2618,17 +2618,18 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 		actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_1)) {
 
 		if (actorData.motionData[0].index == 14) {
-			if (actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCutAirJF_pl021_00_3 ||
-				actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCut_pl021_00_3) {
-				if (jCut.fireSound) {
-					CrimsonSDL::PlayJDC(playerIndex, true, 0);
-					CrimsonReversedCalls::PlaySFXWithPos_ByType_sub_140339930((uintptr_t)appBaseAddr + 0xD6DC90,
-						8, (uintptr_t)&actorData.position, 11);
-					jCut.fireSound = false;
-				}
-
-			}
-			else if (actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCutAir_pl021_00_3) {
+			// Playing at SetJDCPosAtMatrix at CrimsonDetours.cpp
+// 			if (actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCutAirJF_pl021_00_3 ||
+// 				actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCut_pl021_00_3) {
+// 				if (jCut.fireSound) {
+// 					CrimsonSDL::PlayJDC(playerIndex, true, 0);
+// 					CrimsonReversedCalls::PlaySFXWithPos_ByType_sub_140339930((uintptr_t)appBaseAddr + 0xD6DC90,
+// 						8, (uintptr_t)&actorData.position, 11);
+// 					jCut.fireSound = false;
+// 				}
+// 
+// 			}
+			if (actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCutAir_pl021_00_3) {
 				if (jCut.fireSound) {
 					CrimsonReversedCalls::PlaySFXWithPos_ByType_sub_140339930((uintptr_t)appBaseAddr + 0xD6DC90,
 						8, (uintptr_t)&actorData.position, 11);

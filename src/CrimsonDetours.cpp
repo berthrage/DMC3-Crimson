@@ -29,6 +29,7 @@
 #include "CrimsonReversedCalls.hpp"
 #include "Internal.hpp"
 #include "CrimsonDetours.hpp"
+#include "CrimsonSDL.hpp"
 
 namespace CrimsonDetours {
 
@@ -837,6 +838,15 @@ void SetJDCPositionAtMatrix(uintptr_t shlAddr) {
 
 	if (isJustFrameJdc) {
 		shlActorData.justFrame = true; // Mark the SHL as a Just Frame JDC for use in Damage logic
+		PlayerActorData& actorData = *reinterpret_cast<PlayerActorData*>(shlActorData.playerActorAddr);
+		uint8 playerIndex = actorData.newPlayerIndex;
+		auto& jCut = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[actorData.newPlayerIndex].jCut : crimsonPlayer[actorData.newPlayerIndex].jCutClone;
+		if (jCut.fireSound) {
+			CrimsonSDL::PlayJDC(playerIndex, true, 0);
+			CrimsonReversedCalls::PlaySFXWithPos_ByType_sub_140339930((uintptr_t)appBaseAddr + 0xD6DC90,
+				8, (uintptr_t)&actorData.position, 11);
+			jCut.fireSound = false;
+		}
 
 		auto extraIt = s_extraAddrToSource.find(shlActorBaseAddr);
 		if (extraIt != s_extraAddrToSource.end()) {
