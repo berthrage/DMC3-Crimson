@@ -2332,6 +2332,34 @@ void ApplyJDCFlyingArc(byte8* actorBaseAddr) {
 	}
 }
 
+void AirJDCJumpCancelVergil(byte8* actorBaseAddr) {
+	using namespace ACTION_VERGIL;
+	using namespace NEXT_ACTION_REQUEST_POLICY;
+
+	if (!actorBaseAddr || (actorBaseAddr == g_playerActorBaseAddrs[0]) || (actorBaseAddr == g_playerActorBaseAddrs[1])) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (actorData.character != CHARACTER::VERGIL) return;
+	auto playerIndex = actorData.newPlayerIndex;
+
+	bool doingJump = (actorData.buttons[0] & GetBinding(BINDING::JUMP));
+	auto& closeToEnemy = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].isCloseToEnemy : crimsonPlayer[playerIndex].isCloseToEnemyClone;
+
+	auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
+	auto& policyTrick = actorData.nextActionRequestPolicy[TRICKSTER_DARK_SLAYER];
+	auto& policyJump = actorData.nextActionRequestPolicy[JUMP_ROLL];
+
+	// Air JDC Ghetto Jump Cancelling
+	if ((actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_2 && actorData.state & STATE::IN_AIR) && closeToEnemy) {
+		policyJump = BUFFER;
+		if (doingJump) {
+			actorData.permissions = 3080; // This cancels the ability
+			policyJump = EXECUTE;
+		}
+	}
+}
+
 void VergilJudgementCutRework(byte8* actorBaseAddr) {
 	using namespace ACTION_VERGIL;
 	using namespace NEXT_ACTION_REQUEST_POLICY;
@@ -2418,6 +2446,7 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 
 	ApplyJDCFlyingArc(actorData);
 	AirJDCCancellingController(actorData);
+	AirJDCJumpCancelVergil(actorData);
 
 	if (actorData.neroAngelo && actorData.devil) {
 		return; // Disable Judgement Cuts in Nelo Angelo state
