@@ -809,6 +809,7 @@ bool g_inGUIPause = false;
 bool g_levelFullyLoadedDelay = false;
 bool g_allActorsSpawned = false;
 std::string g_gameTrackPlaying;
+uint8 g_playerProfile[PLAYER_COUNT] = {0,0,0,0};
 
 bool exceptionShot = false;
 

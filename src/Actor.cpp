@@ -14176,6 +14176,7 @@ void SceneGame() {
     old_for_all(uint8, playerIndex, PLAYER_COUNT) {
         auto& activePlayerData = GetActivePlayerData(playerIndex);
         auto& queuedPlayerData = GetQueuedPlayerData(playerIndex);
+        g_playerProfile[playerIndex] = ExpConfig::missionProfileData[playerIndex].profileIndex;
 
         queuedPlayerData.characterIndex       = activePlayerData.characterIndex;
         queuedPlayerData.lastCharacterIndex   = activePlayerData.lastCharacterIndex;

@@ -161,6 +161,7 @@ enum {
 
 enum {
     PLAYER_COUNT              = 4,
+    PROFILE_COUNT             = 3,
     ENTITY_COUNT              = 2,
     CHARACTER_COUNT           = 3,
     STYLE_COUNT               = 4,
@@ -339,6 +340,14 @@ namespace CAMERA_TYPE {
     };
 };
 
+namespace PROFILE {
+    enum {
+        DANTE,
+        VERGIL,
+        CHARSWAP,
+        MAX,
+    };
+};
 
 namespace CHARACTER {
 enum {
@@ -3208,6 +3217,14 @@ struct PlayerData {
     };
 };
 
+
+struct ProfileData {
+    uint8 profileIndex;
+    //Dante, Vergil, CharSwap
+    PlayerData playerData[PROFILE_COUNT] = {};
+};
+
+
 // $ActorDataStart
 
 struct ActorDataBase {
@@ -5510,6 +5527,7 @@ extern bool g_levelFullyLoadedDelay;
 extern bool g_allActorsSpawned;
 extern bool g_HudVisible;
 extern std::string g_gameTrackPlaying;
+extern uint8 g_playerProfile[PLAYER_COUNT];
 
 extern bool exceptionShot;
 

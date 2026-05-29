@@ -10,7 +10,6 @@ struct ExpData {
     float styleExpPoints[STYLE::MAX];
     bool unlocks[64];
     bool hasPairedWithActorSystem;
-
     ExpData& operator=(ExpData& expData) {
         CopyMemory(this, &expData, sizeof(*this));
 
@@ -41,6 +40,10 @@ extern ExpData savedExpDataDante[SAVE_COUNT];
 extern ExpData missionExpDataVergil;
 extern ExpData sessionExpDataVergil;
 extern ExpData savedExpDataVergil[SAVE_COUNT];
+
+extern ProfileData missionProfileData[PLAYER_COUNT];
+extern ProfileData sessionProfileData[PLAYER_COUNT];
+extern ProfileData profiles[SAVE_COUNT][PLAYER_COUNT];
 
 void SaveExp();
 void LoadExp();
