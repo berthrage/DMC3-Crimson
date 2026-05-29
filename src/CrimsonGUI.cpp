@@ -3330,9 +3330,26 @@ void SelectPlayerLoadoutsWeaponsTab() {
 				if (ImGui::BeginTabItem(playerIndexNames[playerIndex])) {
 					//ImGui::Text("");
 					if (vergilunlocked){
-						if (GUI_Slider<uint8>("Profile #", profile.profileIndex, 0, PROFILE_COUNT - 1)) {
-							Log("changed active profile");
-						};
+
+						bool profile_selected = (profile.profileIndex == PROFILE::DANTE);
+						GUI_PushDisable(profile_selected);
+						if (GUI_Button("DANTE")) {
+							profile.profileIndex = PROFILE::DANTE;
+							Log("changed profile to dante");
+						}
+						GUI_PopDisable(profile_selected);
+						//ImGui::PushStyleColor(ImGuiCol_Button, { 12, 133, 197, 255 });
+						ImGui::SameLine();
+						GUI_PushDisable(!profile_selected);
+						if (GUI_Button("VERGIL")) {
+							profile.profileIndex = PROFILE::VERGIL;
+							Log("changed profile to Vergil");
+						}
+						GUI_PopDisable(!profile_selected);
+						//ImGui::PopStyleColor();
+						//if (GUI_Slider<uint8>("Profile #", profile.profileIndex, 0, PROFILE_COUNT - 1)) {
+						//	Log("changed active profile");
+						//};
 					}
 					else {
 						profile.profileIndex = 0;
