@@ -161,7 +161,7 @@ enum {
 
 enum {
     PLAYER_COUNT              = 4,
-    PROFILE_COUNT             = 3,
+    PROFILE_COUNT             = 2,
     ENTITY_COUNT              = 2,
     CHARACTER_COUNT           = 3,
     STYLE_COUNT               = 4,
@@ -344,7 +344,6 @@ namespace PROFILE {
     enum {
         DANTE,
         VERGIL,
-        CHARSWAP,
         MAX,
     };
 };

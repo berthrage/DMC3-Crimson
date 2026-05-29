@@ -2788,7 +2788,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 			ImGui::PushItemWidth(itemWidth);
 			ImGui::Text("%s", crimsonProfileNames[profileIndex]);
-			if (profileIndex == PROFILE::CHARSWAP){
+			if (characterIndex > 0/*profileIndex == PROFILE::CHARSWAP*/){
 			if (!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters) {
 				if (UI::ComboMapValue("CHARACTER", crimsonCharacterNames, crimsonCharacterMap,
 					queuedCharacterData.character)) {
@@ -3197,7 +3197,7 @@ void Actor_PlayerTab(uint8 playerIndex,uint8 profileIndex, size_t defaultFontSiz
 
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-	if (profileIndex == PROFILE::CHARSWAP) {
+	//if (profileIndex == PROFILE::CHARSWAP) {
 		if (GUI_Checkbox2("Switch characters mid-mission", activeCrimsonGameplay.Gameplay.General.charHotswap, queuedCrimsonGameplay.Gameplay.General.charHotswap)) {}
 
 		GUI_PushDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
@@ -3213,7 +3213,7 @@ void Actor_PlayerTab(uint8 playerIndex,uint8 profileIndex, size_t defaultFontSiz
 		TooltipHelper("(?)", "Press to Switch Loadouts or Characters.\n"
 			"Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n");
 		GUI_PopDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
-	}
+	//}
 	
 	
 	if (queuedConfig.Actor.playerCount > 1) {
@@ -3352,7 +3352,7 @@ void SelectPlayerLoadoutsWeaponsTab() {
 			auto& activePlayerData = GetActivePlayerData(activePlayerIndex);
 			auto& queuedPlayerData = GetQueuedPlayerData(activePlayerIndex);
 
-			if (profile_index[activePlayerIndex] == PROFILE::CHARSWAP) {
+			if (activePlayerData.characterCount > 1/*profile_index[activePlayerIndex] == PROFILE::CHARSWAP*/) {
 
 				old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
 					auto condition = (characterIndex >= queuedPlayerData.characterCount);
