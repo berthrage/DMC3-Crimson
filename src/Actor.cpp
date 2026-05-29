@@ -2922,13 +2922,13 @@ void SpawnActors() {
     old_for_all(uint8, playerIndex, activeConfig.Actor.playerCount) {
         auto& playerData = GetPlayerData(playerIndex);
 
-        if (playerData.characterIndex >= playerData.characterCount) {
+        if (playerData.characterIndex >= playerData.getCharacterCount()) {
             playerData.characterIndex = 0;
         }
 
         playerData.activeCharacterIndex = playerData.lastCharacterIndex = playerData.characterIndex;
 
-        old_for_all(uint8, characterIndex, playerData.characterCount) {
+        old_for_all(uint8, characterIndex, playerData.getCharacterCount()) {
             auto actorBaseAddr = SpawnActor(playerIndex, characterIndex, ENTITY::MAIN);
 
             if (!actorBaseAddr) {
@@ -4614,7 +4614,7 @@ void CharacterSwitchController() {
         {
             auto& playerData = GetPlayerData(playerIndex);
 
-            if (playerData.characterCount < 2) {
+            if (playerData.getCharacterCount() < 2) {
                 continue;
             }
         }
@@ -4686,7 +4686,7 @@ void CharacterSwitchController() {
 
                     playerData.characterIndex++;
                    
-                    if (playerData.characterIndex >= playerData.characterCount) {
+                    if (playerData.characterIndex >= playerData.getCharacterCount()) {
                         playerData.characterIndex = 0;
                     }
                 }

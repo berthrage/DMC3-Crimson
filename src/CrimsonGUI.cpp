@@ -3197,22 +3197,32 @@ void Actor_PlayerTab(uint8 playerIndex,uint8 profileIndex, size_t defaultFontSiz
 
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-	//if (profileIndex == PROFILE::CHARSWAP) {
-		if (GUI_Checkbox2("Switch characters mid-mission", activeCrimsonGameplay.Gameplay.General.charHotswap, queuedCrimsonGameplay.Gameplay.General.charHotswap)) {}
-
-		GUI_PushDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
-		if (!activeCrimsonGameplay.Gameplay.General.charHotswap) {
-			queuedPlayerData.characterCount = 1;
+	//create bool value for char swap type so it can be toggled. This will be replaced with a combo box in the future once tag team is ready. 
+	bool condition = queuedPlayerData.charSwapType != CHARSWAPTYPE::OFF;
+	if (GUI_Checkbox("Switch characters mid-mission", condition)) {
+		if (condition) {
+			//don't update active bc I'm pretty sure it can lead to a game crash, let the game do that normally.
+			//activePlayerData.charSwapType = CHARSWAPTYPE::CHARSWAP;
+			queuedPlayerData.charSwapType = CHARSWAPTYPE::CHARSWAP;
 		}
-		GUI_Slider<uint8>("Number of Characters", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
+		else{
+			//activePlayerData.charSwapType = CHARSWAPTYPE::OFF;
+			queuedPlayerData.charSwapType = CHARSWAPTYPE::OFF;
+		}
+
+	};
+
+	GUI_PushDisable(!condition);
+	//Slider is now 2-3 range only. turn the checkbox off if you just want 1.
+	GUI_Slider<uint8>("Number of Characters", queuedPlayerData.characterCount, 2, CHARACTER_COUNT);
 
 
-		UI::ComboMap2("Switch Button", buttonNames, buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton, queuedPlayerData.switchButton,
-			ImGuiComboFlags_HeightLargest);
-		ImGui::SameLine();
-		TooltipHelper("(?)", "Press to Switch Loadouts or Characters.\n"
-			"Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n");
-		GUI_PopDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
+	UI::ComboMap2("Switch Button", buttonNames, buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton, queuedPlayerData.switchButton,
+		ImGuiComboFlags_HeightLargest);
+	ImGui::SameLine();
+	TooltipHelper("(?)", "Press to Switch Loadouts or Characters.\n"
+		"Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n");
+	GUI_PopDisable(!condition);
 	//}
 	
 	
@@ -3310,10 +3320,9 @@ void SelectPlayerLoadoutsWeaponsTab() {
 		if (ImGui::BeginTabBar("PlayerTabs")) {
 			old_for_all(uint8, playerIndex, PLAYER_COUNT) {
 				auto condition = (playerIndex >= queuedConfig.Actor.playerCount);
-				
+				//responsible for loading the correct profile from mission or session data depending on context.
+				//we have to get missionprofiledata so that live weapon updates still work i'm pretty sure. 
 				auto& profile = (g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
-					 //ExpConfig::profiles[g_saveIndex][playerIndex];
-				//uint8 profile_index = profile.profileIndex;
 				GUI_PushDisable(condition);
 
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
@@ -3351,8 +3360,8 @@ void SelectPlayerLoadoutsWeaponsTab() {
 
 			auto& activePlayerData = GetActivePlayerData(activePlayerIndex);
 			auto& queuedPlayerData = GetQueuedPlayerData(activePlayerIndex);
-
-			if (activePlayerData.characterCount > 1/*profile_index[activePlayerIndex] == PROFILE::CHARSWAP*/) {
+			//makes it so we check if charswapping is on before we show the character tabs.
+			if (queuedPlayerData.charSwapType != CHARSWAPTYPE::OFF) {
 
 				old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
 					auto condition = (characterIndex >= queuedPlayerData.characterCount);
@@ -3377,7 +3386,7 @@ void SelectPlayerLoadoutsWeaponsTab() {
 			else {
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 				//pass the profile_index being used by the GUI for the current player
-				//Char index for normal profiles is a big old 0
+				//pass 0 here as our char index bc char swapper not turned on.
 				Actor_CharacterTab(activePlayerIndex, 0, 0, profile_index[activePlayerIndex], defaultFontSize);
 				ImGui::PopFont();
 			}
@@ -13726,7 +13735,7 @@ void MoveToMainActor() {
     old_for_each(uint8, playerIndex, 1, activeConfig.Actor.playerCount) {
         auto& playerData = GetActivePlayerData(playerIndex);
 
-        old_for_all(uint8, characterIndex, playerData.characterCount) {
+		old_for_all(uint8, characterIndex, playerData.getCharacterCount()) {
             old_for_all(uint8, entityIndex, ENTITY_COUNT) {
                 auto& playerData = GetPlayerData(playerIndex);
 

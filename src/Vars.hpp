@@ -347,6 +347,15 @@ namespace PROFILE {
         MAX,
     };
 };
+//Potential values for character swapper mode per player. TAGTEAM is not ready yet.
+namespace CHARSWAPTYPE {
+    enum {
+        OFF,
+        CHARSWAP,
+        TAGTEAM,
+    };
+};
+
 
 namespace CHARACTER {
 enum {
@@ -3196,7 +3205,9 @@ struct CharacterData {
 
 struct PlayerData {
     uint8 collisionGroup;
-
+    // use values in CHARSWAPTYPE Enum. Used to check if char swapping enabled for specific player.
+    //uint8 instead of bool to future proof for tag-team mode
+    uint8 charSwapType;
     byte16 switchButton;
 
     uint8 characterCount;
@@ -3207,7 +3218,10 @@ struct PlayerData {
     CharacterData characterData[CHARACTER_COUNT][ENTITY_COUNT];
 
     bool removeBusyFlag;
-
+    //Returns a smart character count based on whether the charSwapType is a char swap value.
+    uint8 getCharacterCount() {
+        return (charSwapType != CHARSWAPTYPE::OFF) ? characterCount : 1;
+    };
     byte16 removeBusyFlagButtons[4] = {
         GAMEPAD::UP,
         GAMEPAD::RIGHT,

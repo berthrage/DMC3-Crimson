@@ -196,8 +196,8 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, ui
 
 void ApplyDefaultPlayerData(PlayerData& playerData) {
     playerData.switchButton = GAMEPAD::RIGHT_STICK_CLICK;
-
-    playerData.characterCount = 1;
+    playerData.charSwapType = 0;
+    playerData.characterCount = 2;
     playerData.characterIndex = 0;
 
     old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
@@ -253,6 +253,7 @@ void CreateMembers_CharacterDataContent(rapidjson::Value& member, CharacterData&
 
 
 void CreateMembers_PlayerDataContent(rapidjson::Value& member, PlayerData& config) {
+    Create<uint8>(member, "charSwapType", config.charSwapType);
     Create<uint8>(member, "collisionGroup", config.collisionGroup);
     Create<uint16>(member, "switchButton", config.switchButton);
     Create<uint8>(member, "characterCount", config.characterCount);
@@ -619,6 +620,7 @@ void ToJSON_CharacterData(rapidjson::Value& member, CharacterData& config) {
 
 void ToJSON_PlayerData(rapidjson::Value& member, PlayerData& config) {
     Set<uint8>(member["collisionGroup"], config.collisionGroup);
+    Set<uint8>(member["charSwapType"], config.charSwapType);
     Set<byte16>(member["switchButton"], config.switchButton);
     Set<uint8>(member["characterCount"], config.characterCount);
     Set<uint8>(member["characterIndex"], config.characterIndex);
@@ -927,6 +929,7 @@ void ToConfig_CharacterData(CharacterData& config, rapidjson::Value& member) {
 
 void ToConfig_PlayerData(PlayerData& config, rapidjson::Value& member) {
     config.collisionGroup       = Get<uint8>(member["collisionGroup"]);
+    config.charSwapType         = Get<uint8>(member["charSwapType"]);
     config.switchButton         = Get<byte16>(member["switchButton"]);
     config.characterCount       = Get<uint8>(member["characterCount"]);
     config.characterIndex       = Get<uint8>(member["characterIndex"]);
