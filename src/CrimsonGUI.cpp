@@ -3300,7 +3300,7 @@ void SelectPlayerLoadoutsWeaponsTab() {
 				//but because this is also viewable in the player tab, we fall back on sessionProfileData there.
 		//auto& profile = (g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
 		//store the profileIndex values for this GUI update.
-		//profile_index[playerIndex] = profile.profileIndex;
+		profile_index[playerIndex] = queuedConfig.Actor.playerProfileData[playerIndex].profileIndex;
 		//load the profile PlayerData into the queued config.
 		//queuedConfig.Actor.playerData[playerIndex] = profile.playerData[profile_index[playerIndex]];
 	}
@@ -3322,7 +3322,7 @@ void SelectPlayerLoadoutsWeaponsTab() {
 				auto condition = (playerIndex >= queuedConfig.Actor.playerCount);
 				//responsible for loading the correct profile from mission or session data depending on context.
 				//we have to get missionprofiledata so that live weapon updates still work i'm pretty sure. 
-				auto& profile = (g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
+				auto& profile = queuedConfig.Actor.playerProfileData[playerIndex];//(g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
 				GUI_PushDisable(condition);
 
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
@@ -6209,7 +6209,7 @@ void ShopWindow() {
 						ShowItemTab(missionData, queuedMissionActorData, activeMissionActorData, unlockDevilTrigger);
 						break;
 					}
-					ImGui::EndChild();
+					//ImGui::EndChild();
 					ImGui::EndTabItem();
 				}
 			}
