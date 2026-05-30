@@ -1841,6 +1841,16 @@ void WeaponProgressionTracking() {
 				}
 			}
 
+			if (activeCharacterData.character == CHARACTER::VERGIL && activeCharacterData.meleeWeaponCount > WEAPON_COUNT_VERGIL)
+				activeCharacterData.meleeWeaponCount = WEAPON_COUNT_VERGIL;
+			if (queuedCharacterData.character == CHARACTER::VERGIL && queuedCharacterData.meleeWeaponCount > WEAPON_COUNT_VERGIL)
+				queuedCharacterData.meleeWeaponCount = WEAPON_COUNT_VERGIL;
+
+			if (activeCharacterData.character == CHARACTER::VERGIL && activeCharacterData.meleeWeaponCount == 0)
+				activeCharacterData.meleeWeaponCount = 1;
+			if (queuedCharacterData.character == CHARACTER::VERGIL && queuedCharacterData.meleeWeaponCount == 0)
+				queuedCharacterData.meleeWeaponCount = 1;
+
 			if (activeCharacterData.character != CHARACTER::DANTE) {
 				break;
 			}
@@ -1923,10 +1933,12 @@ void WeaponProgressionTracking() {
 			if (queuedCharacterData.meleeWeaponCount == 0)
 				queuedCharacterData.meleeWeaponCount = 1;
 
-			if (activeCharacterData.meleeWeaponCount > weaponProgression.devilArmsUnlockedQtt + 1)
+			if (activeCharacterData.character == CHARACTER::DANTE && activeCharacterData.meleeWeaponCount > weaponProgression.devilArmsUnlockedQtt + 1)
 				activeCharacterData.meleeWeaponCount = weaponProgression.devilArmsUnlockedQtt + 1;
-			if (queuedCharacterData.meleeWeaponCount > weaponProgression.devilArmsUnlockedQtt + 1)
+			if (queuedCharacterData.character == CHARACTER::DANTE && queuedCharacterData.meleeWeaponCount > weaponProgression.devilArmsUnlockedQtt + 1)
 				queuedCharacterData.meleeWeaponCount = weaponProgression.devilArmsUnlockedQtt + 1;
+			
+
 			// GUNS
 			if (weaponProgression.gunsUnlockedQtt != previousGunsUnlockedQtt) {
 
@@ -1990,9 +2002,9 @@ void WeaponProgressionTracking() {
 				if (queuedCharacterData.rangedWeaponCount == 0)
 					queuedCharacterData.rangedWeaponCount = 1;
 
-				if (activeCharacterData.rangedWeaponCount > weaponProgression.gunsUnlockedQtt + 1);
+				if (activeCharacterData.rangedWeaponCount > weaponProgression.gunsUnlockedQtt + 1)
 					activeCharacterData.rangedWeaponCount = weaponProgression.gunsUnlockedQtt + 1;
-				if (queuedCharacterData.rangedWeaponCount > weaponProgression.gunsUnlockedQtt + 1);
+				if (queuedCharacterData.rangedWeaponCount > weaponProgression.gunsUnlockedQtt + 1)
 					queuedCharacterData.rangedWeaponCount = weaponProgression.gunsUnlockedQtt + 1;
 			}
 		}
