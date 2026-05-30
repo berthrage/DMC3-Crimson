@@ -1923,6 +1923,10 @@ void WeaponProgressionTracking() {
 			if (queuedCharacterData.meleeWeaponCount == 0)
 				queuedCharacterData.meleeWeaponCount = 1;
 
+			if (activeCharacterData.meleeWeaponCount > weaponProgression.devilArmsUnlockedQtt + 1)
+				activeCharacterData.meleeWeaponCount = weaponProgression.devilArmsUnlockedQtt + 1;
+			if (queuedCharacterData.meleeWeaponCount > weaponProgression.devilArmsUnlockedQtt + 1)
+				queuedCharacterData.meleeWeaponCount = weaponProgression.devilArmsUnlockedQtt + 1;
 			// GUNS
 			if (weaponProgression.gunsUnlockedQtt != previousGunsUnlockedQtt) {
 
@@ -1985,6 +1989,11 @@ void WeaponProgressionTracking() {
 					activeCharacterData.rangedWeaponCount = 1;
 				if (queuedCharacterData.rangedWeaponCount == 0)
 					queuedCharacterData.rangedWeaponCount = 1;
+
+				if (activeCharacterData.rangedWeaponCount > weaponProgression.gunsUnlockedQtt + 1);
+					activeCharacterData.rangedWeaponCount = weaponProgression.gunsUnlockedQtt + 1;
+				if (queuedCharacterData.rangedWeaponCount > weaponProgression.gunsUnlockedQtt + 1);
+					queuedCharacterData.rangedWeaponCount = weaponProgression.gunsUnlockedQtt + 1;
 			}
 		}
 	}
