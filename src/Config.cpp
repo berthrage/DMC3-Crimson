@@ -2547,6 +2547,9 @@ void SceneMissionStart() {
 
     missionExpDataDante  = sessionExpDataDante;
     missionExpDataVergil = sessionExpDataVergil;
+    //makes arcade mode not scuffed.
+    if (Max())
+        return;
     for_all(playerIndex, PLAYER_COUNT) {
         missionProfileData[playerIndex] = sessionProfileData[playerIndex];
         queuedConfig.Actor.playerProfileData[playerIndex] = missionProfileData[playerIndex];
