@@ -3298,11 +3298,11 @@ void SelectPlayerLoadoutsWeaponsTab() {
 				//If in game or in mission start scenes, we want missionprofile, otherwise we want session profile (I think). 
 				//In theory we should only be looking at this alongside the customize screen in GAME & MISSION_START,
 				//but because this is also viewable in the player tab, we fall back on sessionProfileData there.
-		auto& profile = (g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
+		//auto& profile = (g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
 		//store the profileIndex values for this GUI update.
-		profile_index[playerIndex] = profile.profileIndex;
+		//profile_index[playerIndex] = profile.profileIndex;
 		//load the profile PlayerData into the queued config.
-		queuedConfig.Actor.playerData[playerIndex] = profile.playerData[profile_index[playerIndex]];
+		//queuedConfig.Actor.playerData[playerIndex] = profile.playerData[profile_index[playerIndex]];
 	}
 
 	ImGui::PushFont(UI::g_ImGuiFont_Benguiat[defaultFontSize * 1.0]);
@@ -3424,7 +3424,7 @@ void SelectPlayerLoadoutsWeaponsTab() {
 		//store the profileIndex values for this GUI update.
 		
 		//load the profile PlayerData into the queued config.
-		profile.playerData[profile_index[playerIndex]] = queuedConfig.Actor.playerData[playerIndex];
+		//profile.playerData[profile_index[playerIndex]] = queuedConfig.Actor.playerData[playerIndex];
 	}
 
 }
@@ -9110,7 +9110,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 				ImGui::Text("sessionData.character: %u", sessionData.character);
 				ImGui::Text("sessionData.unlockDevilTrigger: %u", sessionData.unlockDevilTrigger);
 				ImGui::Text("sessionData.magicPoints: %g", sessionData.magicPoints);
-				ImGui::Text("queuedCharacterData.rangedWeaponCount: %u", queuedConfig.Actor.playerData[0].characterData[0][0].rangedWeaponCount);
+				ImGui::Text("queuedCharacterData.rangedWeaponCount: %u", GetQueuedPlayerData(0).characterData[0][0].rangedWeaponCount);
 // 				for (auto cheat : gameModeData.currentlyUsedCheats) {
 // 					ImGui::Text("Cheat: %s", gameModeData.cheatsNames[cheat]);
 // 				}
@@ -9300,7 +9300,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]); // 0x498 = 1176 / 8 = 147
 			auto& cameraControlMetadata = *reinterpret_cast<CameraControlMetadata*>(pool_4449);
 
-			auto& costume = activeConfig.Actor.playerData[0].characterData[0]->costume;
+			auto& costume = GetActivePlayerData(0).characterData[0]->costume;
 
 // 			auto& enemy = enemyVectorData.metadata[0];
 // 			if (!enemy.baseAddr) return;

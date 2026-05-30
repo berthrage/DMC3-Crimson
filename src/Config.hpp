@@ -20,7 +20,7 @@ struct Config {
     struct {
         bool enable                         = true;
         uint8 playerCount                   = 1;
-        PlayerData playerData[PLAYER_COUNT] = {};
+        PlayerProfileData playerProfileData[PLAYER_COUNT] = {};
     } Actor;
 
     struct {

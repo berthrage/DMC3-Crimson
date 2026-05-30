@@ -1821,9 +1821,8 @@ void WeaponProgressionTracking() {
 	for (size_t playerIndex = 0; playerIndex < PLAYER_COUNT; playerIndex++) {
 		for (size_t characterIndex = 0; characterIndex < CHARACTER_COUNT; characterIndex++) {
 			//we're going to break this pretty hard, so disabling for the moment while I swap things over.
-			return;
-			auto& activeCharacterData = activeConfig.Actor.playerData[playerIndex].characterData[characterIndex][ENTITY::MAIN];
-			auto& queuedCharacterData = queuedConfig.Actor.playerData[playerIndex].characterData[characterIndex][ENTITY::MAIN];
+			auto& activeCharacterData = GetActivePlayerData((uint8)playerIndex).characterData[characterIndex][ENTITY::MAIN];
+			auto& queuedCharacterData = GetQueuedPlayerData((uint8)playerIndex).characterData[characterIndex][ENTITY::MAIN];
 
 			auto& lastMaxMeleeWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCount[playerIndex][characterIndex];
 			auto& lastMaxRangedWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxRangedWeaponCount[playerIndex][characterIndex];

@@ -32,15 +32,15 @@ Config activeConfig;
 // $GetDataStart
 
 PlayerData& GetDefaultPlayerData(uint8 playerIndex) {
-    return defaultConfig.Actor.playerData[playerIndex];
+    return defaultConfig.Actor.playerProfileData[playerIndex].GetPlayerData();
 }
 
 PlayerData& GetActivePlayerData(uint8 playerIndex) {
-    return activeConfig.Actor.playerData[playerIndex];
+    return activeConfig.Actor.playerProfileData[playerIndex].GetPlayerData();
 }
 
 PlayerData& GetQueuedPlayerData(uint8 playerIndex) {
-    return queuedConfig.Actor.playerData[playerIndex];
+    return queuedConfig.Actor.playerProfileData[playerIndex].GetPlayerData();
 }
 
 PlayerData& GetPlayerData(uint8 playerIndex) {
@@ -277,6 +277,28 @@ void CreateMembers_PlayerDataContent(rapidjson::Value& member, PlayerData& confi
 }
 
 
+/// <summary>
+/// Creates the JSON fields for a PlayerProfileData struct
+/// & Sets up the playerdata structs in the profileData struct with default valuea
+/// </summary>
+/// <param name="member">Json to store the values in</param>
+/// <param name="profile">Profile data struct</param>
+void CreateMembers_ProfileDataContent(rapidjson::Value& member, PlayerProfileData& profile) {
+    Create<uint8>(member, "profileIndex", profile.profileIndex);
+    CreateArray<struct_t, PROFILE_COUNT>(member, "playerData");
+    for_all(index, PROFILE_COUNT) {
+        auto& member2 = member["playerData"][index];
+        auto& config2 = profile.playerData[index];
+        //auto& playerData = JSON::CreateArray<struct_t, PLAYER_COUNT>(member, "playerData");
+        ApplyDefaultPlayerData(config2);
+        //Like a vergin
+        ApplyDefaultCharacterData(config2.characterData[0][0], (index == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE, 0, 0);
+        ApplyDefaultCharacterData(config2.characterData[0][1], (index == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE, 0, 0);
+
+        CreateMembers_PlayerDataContent(member2, config2);
+    }
+}
+
 template <typename T, new_size_t length> rapidjson::Value& CreateMembers_Vec2(rapidjson::Value& member, T (&name)[length], vec2& config) {
     auto& newMember = Create<struct_t>(member, name);
 
@@ -340,13 +362,13 @@ void CreateMembers(Config& config_) {
         Create<bool>(member, "enable", config.enable);
         Create<uint8>(member, "playerCount", config.playerCount);
 
-        auto& playerData = CreateArray<struct_t, PLAYER_COUNT>(member, "playerData");
+        auto& playerData = CreateArray<struct_t, PLAYER_COUNT>(member, "playerProfileData");
 
         for_all(playerIndex, PLAYER_COUNT) {
             auto& member2 = playerData[playerIndex];
-            auto& config2 = config.playerData[playerIndex];
+            auto& config2 = config.playerProfileData[playerIndex];
 
-            CreateMembers_PlayerDataContent(member2, config2);
+            CreateMembers_ProfileDataContent(member2, config2);
         }
     }
 
@@ -637,6 +659,12 @@ void ToJSON_PlayerData(rapidjson::Value& member, PlayerData& config) {
     SetArray<byte16, 4>(member["removeBusyFlagButtons"], config.removeBusyFlagButtons);
 }
 
+void ToJSON_ProfileData(rapidjson::Value& member, PlayerProfileData& config) {
+    Set<uint8>(member["profileIndex"], config.profileIndex);
+    for_all(profileIndex, PROFILE_COUNT) {
+        JSON::ToJSON_PlayerData(member["playerData"][profileIndex], config.playerData[profileIndex]);
+    }
+}
 void ToJSON_Vec2(rapidjson::Value& member, vec2& config) {
     Set<float>(member["x"], config.x);
     Set<float>(member["y"], config.y);
@@ -710,7 +738,7 @@ void ToJSON(Config& config_) {
 
 
         for_all(playerIndex, PLAYER_COUNT) {
-            ToJSON_PlayerData(member["playerData"][playerIndex], config.playerData[playerIndex]);
+            ToJSON_ProfileData(member["playerProfileData"][playerIndex], config.playerProfileData[playerIndex]);
         }
     }
 
@@ -946,6 +974,13 @@ void ToConfig_PlayerData(PlayerData& config, rapidjson::Value& member) {
     GetArray<byte16, 4>(config.removeBusyFlagButtons, member["removeBusyFlagButtons"]);
 }
 
+void ToConfig_ProfileData(PlayerProfileData& config, rapidjson::Value& member) {
+    config.profileIndex = Get<uint8>(member["profileIndex"]);
+    for_all(profileIndex, PROFILE_COUNT) {
+        ToConfig_PlayerData(config.playerData[profileIndex], member["playerData"][profileIndex]);
+    }
+};
+
 void ToConfig_Vec2(vec2& config, rapidjson::Value& member) {
     config.x = Get<float>(member["x"]);
     config.y = Get<float>(member["y"]);
@@ -1028,7 +1063,7 @@ void ToConfig(Config& config_) {
         config.playerCount = Get<uint8>(member["playerCount"]);
 
         for_all(playerIndex, PLAYER_COUNT) {
-            ToConfig_PlayerData(config.playerData[playerIndex], member["playerData"][playerIndex]);
+            ToConfig_ProfileData(config.playerProfileData[playerIndex], member["playerProfileData"][playerIndex]);
         }
     }
 
@@ -1220,9 +1255,10 @@ void InitConfig() {
 
 
     old_for_all(uint8, playerIndex, PLAYER_COUNT) {
-        ApplyDefaultPlayerData(defaultConfig.Actor.playerData[playerIndex]);
-        ApplyDefaultPlayerData(queuedConfig.Actor.playerData[playerIndex]);
-        ApplyDefaultPlayerData(activeConfig.Actor.playerData[playerIndex]);
+        
+        ApplyDefaultPlayerData(GetDefaultPlayerData(playerIndex));
+        ApplyDefaultPlayerData(GetQueuedPlayerData(playerIndex));
+        ApplyDefaultPlayerData(GetActivePlayerData(playerIndex));
     }
 
 
@@ -1280,33 +1316,13 @@ void InitConfig() {
 
 //void CreatePlayerData(rapidjson::Value& member, ProfileData(&profileData)[PLAYER_COUNT])
 
-/// <summary>
-/// Creates the JSON fields for a ProfileData struct
-/// & Sets up the playerdata structs in the profileData struct with default valuea
-/// </summary>
-/// <param name="member">Json to store the values in</param>
-/// <param name="profile">Profile data struct</param>
-void CreateProfile(rapidjson::Value& member, ProfileData& profile) {
-    JSON::Create<uint8>(member, "profileIndex", profile.profileIndex);
-    JSON::CreateArray<struct_t, PROFILE_COUNT>(member, "playerData");
-    for_all(index, PROFILE_COUNT) {
-        auto& member2 = member["playerData"][index];
-        auto& config2 = profile.playerData[index];
-        //auto& playerData = JSON::CreateArray<struct_t, PLAYER_COUNT>(member, "playerData");
-        ApplyDefaultPlayerData(config2);
-        //Like a vergin
-        ApplyDefaultCharacterData(config2.characterData[0][0], (index == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE, 0, 0);
-        ApplyDefaultCharacterData(config2.characterData[0][1], (index == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE, 0, 0);
 
-        JSON::CreateMembers_PlayerDataContent(member2, config2);
-    }
-}
 /// <summary>
-/// Sets the values of the JSON based on the contents of each ProfileData element.
+/// Sets the values of the JSON based on the contents of each PlayerProfileData element.
 /// </summary>
 /// <param name="member">JSON corresponding to a specific profile data array, most likely subset of ExpData json.</param>
 /// <param name="profileData">Array of profileData structs for each player in the save file.</param>
-void ToJSON_ProfileData(rapidjson::Value& member, ProfileData(&profileDataArray)[SAVE_COUNT][PLAYER_COUNT]) {
+void ToJSON_ProfileData(rapidjson::Value& member, PlayerProfileData(&profileDataArray)[SAVE_COUNT][PLAYER_COUNT]) {
     for_all(saveIndex, SAVE_COUNT) {
         for_all(playerIndex, PLAYER_COUNT) {
             auto& profileData_json = member[saveIndex][playerIndex];
@@ -1321,11 +1337,11 @@ void ToJSON_ProfileData(rapidjson::Value& member, ProfileData(&profileDataArray)
     }
 }
 /// <summary>
-/// Sets the values of each ProfileData element based on the contents of the JSON.
+/// Sets the values of each PlayerProfileData element based on the contents of the JSON.
 /// </summary>
 /// <param name="profileData">Array of profileData structs for each player in the save file.</param>
 /// <param name="member">JSON corresponding to a specific profile data array, most likely subset of ExpData json.</param>
-void ToExp_ProfileData(ProfileData(&profileDataArray)[SAVE_COUNT][PLAYER_COUNT], rapidjson::Value& member) {
+void ToExp_ProfileData(PlayerProfileData(&profileDataArray)[SAVE_COUNT][PLAYER_COUNT], rapidjson::Value& member) {
     for_all(saveIndex, SAVE_COUNT) {
         for_all(playerIndex, PLAYER_COUNT) {
             auto& profileData_json = member[saveIndex][playerIndex];
@@ -1354,9 +1370,9 @@ ExpData missionExpDataVergil           = {};
 ExpData sessionExpDataVergil           = {};
 ExpData savedExpDataVergil[SAVE_COUNT] = {};
 
-ProfileData missionProfileData[PLAYER_COUNT] = {};
-ProfileData sessionProfileData[PLAYER_COUNT] = {};
-ProfileData profiles[SAVE_COUNT][PLAYER_COUNT] = {};
+PlayerProfileData missionProfileData[PLAYER_COUNT] = {};
+PlayerProfileData sessionProfileData[PLAYER_COUNT] = {};
+PlayerProfileData profiles[SAVE_COUNT][PLAYER_COUNT] = {};
 
 inline bool Enable() {
     return activeConfig.Actor.enable;
@@ -1400,12 +1416,12 @@ void CreateMembers_ExpData(rapidjson::Value& member, ExpData (&expData)[SAVE_COU
     }
 }
 
-void CreateMembers_ProfileData(rapidjson::Value& member, ProfileData(&profileDataArray)[SAVE_COUNT][PLAYER_COUNT]) {
+void CreateMembers_ProfileData(rapidjson::Value& member, PlayerProfileData(&profileDataArray)[SAVE_COUNT][PLAYER_COUNT]) {
     for_all(saveIndex, SAVE_COUNT) {
         for_all(playerIndex, PLAYER_COUNT) {
             auto& profile_json = member[saveIndex][playerIndex];
             auto& profileData = profileDataArray[saveIndex][playerIndex];
-            CreateProfile(profile_json, profileData);
+            ::JSON::CreateMembers_ProfileDataContent(profile_json, profileData);
         }
     }
 }
@@ -1503,8 +1519,7 @@ void SaveExp() {
 
         //If we're saving mid-game, that means we want to update the mission
         for_all(playerIndex, PLAYER_COUNT) {
-            auto& profileData = missionProfileData[playerIndex];
-            profileData.playerData[profileData.profileIndex] = queuedConfig.Actor.playerData[playerIndex];
+            missionProfileData[playerIndex] = queuedConfig.Actor.playerProfileData[playerIndex];
             sessionProfileData[playerIndex] = missionProfileData[playerIndex];
         }
         
@@ -1516,8 +1531,7 @@ void SaveExp() {
 
         //Saves the queuedActor playerData to the sessionProfileData for the profile currently in use for all players.  
         for_all(playerIndex, PLAYER_COUNT) {
-            auto& profileData = sessionProfileData[playerIndex];
-            profileData.playerData[profileData.profileIndex] = queuedConfig.Actor.playerData[playerIndex];
+            auto& profileData = sessionProfileData[playerIndex] = queuedConfig.Actor.playerProfileData[playerIndex];
         }
 
         //saves the sessionProfileData to the relevant save slot for each player. 
@@ -1611,9 +1625,8 @@ void LoadExp() {
 
     for_all(playerIndex, PLAYER_COUNT) {
         sessionProfileData[playerIndex] = profiles[saveIndex][playerIndex];
-        auto& profileData = sessionProfileData[playerIndex];
-        activeConfig.Actor.playerData[playerIndex] = profileData.playerData[profileData.profileIndex];
-        queuedConfig.Actor.playerData[playerIndex] = profileData.playerData[profileData.profileIndex];
+        activeConfig.Actor.playerProfileData[playerIndex] = sessionProfileData[playerIndex];
+        queuedConfig.Actor.playerProfileData[playerIndex] = sessionProfileData[playerIndex];
     }
 
 }

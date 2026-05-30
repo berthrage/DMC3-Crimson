@@ -3231,10 +3231,13 @@ struct PlayerData {
 };
 
 
-struct ProfileData {
-    uint8 profileIndex;
+struct PlayerProfileData {
+    uint8 profileIndex = 0;
     //Dante, Vergil, CharSwap
     PlayerData playerData[PROFILE_COUNT] = {};
+    PlayerData& GetPlayerData() {
+        return playerData[profileIndex];
+    };
 };
 
 
