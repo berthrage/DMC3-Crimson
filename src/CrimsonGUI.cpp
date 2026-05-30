@@ -2678,8 +2678,8 @@ void BackgroundSPMPText(const char* SPMPText) {
 }
 
 void CheckDanteUnlockedWeapons(CharacterData& queuedCharacterData, CharacterData& activeCharacterData, uint8 playerIndex, uint8 characterIndex) {
-	auto& lastMaxMeleeWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCount[playerIndex][characterIndex];
-	auto& lastMaxRangedWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxRangedWeaponCount[playerIndex][characterIndex];
+	auto lastMaxMeleeWeaponCount = 5;//queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCount[playerIndex][characterIndex];
+	auto lastMaxRangedWeaponCount = 5;//queuedCrimsonConfig.CachedSettings.lastMaxRangedWeaponCount[playerIndex][characterIndex];
 
 	if (queuedCharacterData.character == CHARACTER::DANTE) {
 		if (lastMaxMeleeWeaponCount > weaponProgression.rangedWeaponIds.size()) {

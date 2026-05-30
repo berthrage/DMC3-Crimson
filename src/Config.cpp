@@ -75,12 +75,9 @@ CharacterData& GetCharacterData(uint8 playerIndex, uint8 characterIndex, uint8 e
 
 void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, uint8 playerIndex, uint8 characterIndex) {
     //SetMemory(&characterData, 0, sizeof(CharacterData));
-	auto& lastEquippedMeleeWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedMeleeWeapons[playerIndex][characterIndex];
-	auto& lastEquippedRangedWeapons = queuedCrimsonConfig.CachedSettings.lastEquippedRangedWeapons[playerIndex][characterIndex];
-    auto& lastEquippedMeleeWeaponsVergil = queuedCrimsonConfig.CachedSettings.lastEquippedMeleeWeaponsVergil[playerIndex][characterIndex];
-	auto& lastMaxMeleeWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCount[playerIndex][characterIndex];
-	auto& lastMaxRangedWeaponCount = queuedCrimsonConfig.CachedSettings.lastMaxRangedWeaponCount[playerIndex][characterIndex];
-	auto& lastMaxMeleeWeaponCountVergil = queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCountVergil[playerIndex][characterIndex];
+    uint8 lastMaxMeleeWeaponCount = 5;
+    uint8 lastMaxRangedWeaponCount = 5;
+    uint8 lastMaxMeleeWeaponCountVergil = 5;
 
     switch (character) {
     case CHARACTER::DANTE: {
@@ -115,19 +112,19 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, ui
             0, lastMaxMeleeWeaponCount,
 
             {
-                lastEquippedMeleeWeapons[0],
-				lastEquippedMeleeWeapons[1],
-				lastEquippedMeleeWeapons[2],
-				lastEquippedMeleeWeapons[3],
-				lastEquippedMeleeWeapons[4],
+                WEAPON::REBELLION,
+				WEAPON::CERBERUS,
+				WEAPON::AGNI_RUDRA,
+				WEAPON::NEVAN,
+				WEAPON::BEOWULF_DANTE,
             },
             0, 0, WEAPON_SWITCH_TYPE::LINEAR, RIGHT_STICK, lastMaxRangedWeaponCount,
             {
-                lastEquippedRangedWeapons[0],
-				lastEquippedRangedWeapons[1],
-				lastEquippedRangedWeapons[2],
-				lastEquippedRangedWeapons[3],
-				lastEquippedRangedWeapons[4],
+                WEAPON::EBONY_IVORY,
+				WEAPON::SHOTGUN,
+				WEAPON::ARTEMIS,
+				WEAPON::SPIRAL,
+				WEAPON::KALINA_ANN,
             },
             0, 0, WEAPON_SWITCH_TYPE::LINEAR, RIGHT_STICK};
 
@@ -172,9 +169,9 @@ void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, ui
             },
             0, lastMaxMeleeWeaponCountVergil,
             {
-                lastEquippedMeleeWeaponsVergil[0],
-				lastEquippedMeleeWeaponsVergil[1],
-				lastEquippedMeleeWeaponsVergil[2],
+                WEAPON::YAMATO_VERGIL,
+				WEAPON::BEOWULF_VERGIL,
+				WEAPON::YAMATO_FORCE_EDGE,
             },
             0, 0, WEAPON_SWITCH_TYPE::LINEAR, RIGHT_STICK};
         characterData.rangedWeaponCount = 0;
