@@ -2549,6 +2549,7 @@ void SceneMissionStart() {
     missionExpDataVergil = sessionExpDataVergil;
     for_all(playerIndex, PLAYER_COUNT) {
         missionProfileData[playerIndex] = sessionProfileData[playerIndex];
+        queuedConfig.Actor.playerProfileData[playerIndex] = missionProfileData[playerIndex];
     }
 }
 
@@ -2564,6 +2565,7 @@ void SceneMissionResult() {
 
     for_all(playerIndex, PLAYER_COUNT) {
         sessionProfileData[playerIndex] = missionProfileData[playerIndex];
+        queuedConfig.Actor.playerProfileData[playerIndex] = sessionProfileData[playerIndex];
     }
 
 
