@@ -7,8 +7,8 @@ DMC3 Crimson is an Overhaul Modification for Devil May Cry 3 (HD Collection vers
 <img src="Public/Screenshot 3.png" alt="Logo" style="width: 400px;"/>  <img src="Public/Screenshot 5.png" alt="Logo" style="width: 400px;"/>
 
 ## FEATURE SET
+• High / Unlocked Frame Rate support (with reduced input lag for the HD Collection port, and many High FPS fixes)  
 • Style, Weapon and Character Switching  
-• High Frame-Rate support (with reduced input lag for the HD Collection port)  
 • Co-Op and PVP Multiplayer (with a Custom Multiplayer Camera)  
 • Huge Gameplay changes including Inertia and Guardflying from DMC4  
 • Quality of Life changes such as Hold to Crazy Combo, Bufferless Reversals   
@@ -46,18 +46,25 @@ DMC3 Crimson is completely free and will always be. That said, you could greatly
 • Charlie - Community Manager, Tester, Q&A  
 • The Hitchhiker - General Programmer, Reverse Engineering   
 • RaccMoon - Tester, Q&A  
-• And Lenam was there too - Artist
-
+• Lenam Lorbington - Lead 2D Artist  
+• ZippoIG - Lead VFX Artist  
+• Airdragon - 3D & 2D Artist, Animation  
+• Vainiuss1 - 3D & 2D Artist, Animation  
+  
 ## With additional work by 
 • Dany Sterkhov - Video Producer, Consultant
 • Che - Mod Tooling, Research  
 • Cynuma - Artist  
 • Omar Nabelse - 3D Artist  
-• Vainiuss1 - Artist  
 • Adil - Programmer  
-• Airdragon - Programmer  
 • Tihan - Audio Producer / Mixing  
 • Garuda - Artist  
+• mos9527 - Programmer  
+
+## Playtesting by
+• Akaragitsune  
+• Danliam  
+• Nelo47Angelo  
 
 # DDMK
 • serpentiem - Original DDMK's Developer  
@@ -65,11 +72,24 @@ DMC3 Crimson is completely free and will always be. That said, you could greatly
 # DMCHDFix
 • Lyall
 
+## ORIGINAL PS2 TEXTURES
+• Thanks to Spritzkrieg for the express permission to airdragon50 to utilize and modify his Original PS2 Textures Pack and Subtitle Alignment and Grammar Fix.  
+
 # DMC3 Crimson is a free, open-source and non-commercial project
 C•Team is an independent development group and is not affiliated with, endorsed by, or sponsored by CAPCOM Co., Ltd. All trademarks, including Devil May Cry, are the property of their respective owners. This project is a non-commercial initiative made out of passion and respect for the original work.  
 
 Warning: Be careful about downloading supposed Crimson builds from unofficial sources, they could be fake and/or contain malicious code.
 
 ## LICENSE
-DMC3 Crimson is licensed under the [zlib license](https://github.com/berthrage/Devil-May-Cry-3-Crimson/blob/main/LICENSE) and includes [DMCHDFix by Lyall](https://github.com/Lyall/DMCHDFix) packaged in. The rest of the licenses should be contained [here](https://github.com/serpentiem/ddmk/tree/master/ThirdParty).
+DMC3 Crimson is licensed under the [zlib license](https://github.com/berthrage/Devil-May-Cry-3-Crimson/blob/main/LICENSE) and includes [DMCHDFix by Lyall](https://github.com/Lyall/DMCHDFix) packaged in. All Third Party Libraries' Licenses are included.
+
+## THIRD PARTY LIBRARIES
+[SDL3](https://github.com/libsdl-org/SDL)  
+[OpenGL Mathematics (GLM)](https://github.com/g-truc/glm)  
+[Effekseer](https://github.com/effekseer/Effekseer)  
+[Dear ImGui](https://github.com/ocornut/imgui)  
+[libzip](https://github.com/nih-at/libzip)  
+[rapidjson](https://github.com/Tencent/rapidjson)  
+[std](https://github.com/nothings/stb)  
+[zlib](https://github.com/madler/zlib)  
 
