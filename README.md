@@ -75,6 +75,7 @@ DMC3 Crimson is completely free and will always be. That said, you could greatly
 ## ORIGINAL PS2 TEXTURES
 • Thanks to Spritzkrieg for the express permission to airdragon50 to utilize and modify his Original PS2 Textures Pack and Subtitle Alignment and Grammar Fix.  
 
+  
 # DMC3 Crimson is a free, open-source and non-commercial project
 C•Team is an independent development group and is not affiliated with, endorsed by, or sponsored by CAPCOM Co., Ltd. All trademarks, including Devil May Cry, are the property of their respective owners. This project is a non-commercial initiative made out of passion and respect for the original work.  
 
