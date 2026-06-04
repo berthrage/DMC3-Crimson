@@ -52,8 +52,9 @@ DMC3 Crimson is completely free and will always be. That said, you could greatly
 • Vainiuss1 - 3D & 2D Artist, Animation  
   
 ## With additional work by 
-• Dany Sterkhov - Video Producer, Consultant
-• Che - Mod Tooling, Research  
+• Dany Sterkhov - Video Producer, Consultant  
+• Che - Mod Tooling, Research    
+• Garlic Goblin - Artist  
 • Cynuma - Artist  
 • Omar Nabelse - 3D Artist  
 • Adil - Programmer  
