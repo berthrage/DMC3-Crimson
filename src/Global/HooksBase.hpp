@@ -68,6 +68,9 @@ void UpdateGamepad();
 extern HANDLE g_frameLatencyWaitableObject;
 extern bool g_flipModelLatencyOptimized;
 
+// When true, the Present hook skips all rendering.
+extern bool g_appInactive;
+
 #pragma region Windows
 void UpdateShow();
 
@@ -205,6 +208,19 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
         }
     }
 
+    // Skip all rendering while backgrounded — only keep the swap chain alive.
+    static bool prevInactive = false;
+    if (g_appInactive && !prevInactive) {
+        Log("Present: window inactive — skipping render");
+    }
+    prevInactive = g_appInactive;
+    if (g_appInactive) {
+        HRESULT hr = ::Base::DXGI::Present(pSwapChain, SyncInterval,
+            (activeCrimsonConfig.System.flipModelPresentation && SyncInterval == 0)
+                ? DXGI_PRESENT_ALLOW_TEARING : Flags);
+        return hr;
+    }
+
     // Note: Advanced frame latency waitable object optimization is implemented
     // in the D3D11CreateDeviceAndSwapChain function for DXGI 1.2+ compatibility
 
@@ -327,19 +343,26 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
 
     HRESULT presentResult = ::Base::DXGI::Present(pSwapChain, SyncInterval, presentFlags);
 
-	static double g_currentCap = -1.0;
-	constexpr double maxFPSAllowed = 500.0;
+    // DXGI_STATUS_OCCLUDED: window is minimized/occluded. Log once, skip limiter.
+    if (presentResult == 0x087A0001) {
+        static bool loggedOccluded = false;
+        if (!loggedOccluded) {
+            loggedOccluded = true;
+            Log("Present: swap chain occluded");
+        }
+        return presentResult;
+    }
 
-	double newCap = activeCrimsonConfig.System.fpsUnlocked
-		? maxFPSAllowed
-		: (activeCrimsonConfig.System.fpsCap < maxFPSAllowed ? activeCrimsonConfig.System.fpsCap : maxFPSAllowed);
+	double newCap = activeCrimsonConfig.System.fpsCap;
+    static double g_currentCap = -1.0;
 
 	if (g_currentCap != newCap) {
 		g_currentCap = newCap;
-		FPSLimiter_Init(newCap);
+		FPSLimiter_Init(g_currentCap);
 	}
 
-	FPSLimiter_Apply();
+    if (!activeCrimsonConfig.System.fpsUnlocked)
+        FPSLimiter_Apply();
 
     return presentResult;
 }

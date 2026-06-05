@@ -268,6 +268,10 @@ void FPSLimiter_Apply() {
 	if (!g_fpsLimiterInitialized || g_targetFrameTime <= 0.0)
 		return;
 
+	// Don't accumulate lag debt while backgrounded.
+	if (g_appInactive)
+		return;
+
 	LARGE_INTEGER now;
 	QueryPerformanceCounter(&now);
 
@@ -326,6 +330,8 @@ static bool g_altEnterPressed = false;
 // Low-latency flip model optimization globals
 static HANDLE g_frameLatencyWaitableObject = nullptr;
 static bool g_flipModelLatencyOptimized = false;
+
+bool g_appInactive = false;
 
 void ToggleBorderlessFullscreen() {
     // Only allow borderless fullscreen if flip model presentation is enabled
@@ -533,6 +539,32 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
 
 
     switch (message) {
+    case WM_ACTIVATEAPP: {
+        if (wParameter) {
+            Log("WM_ACTIVATEAPP: activating — forcing window to foreground");
+            // Force DWM to acknowledge activation, bypassing the game's broken
+            // recovery that forceWindowFocus patches prevent from firing.
+            ShowWindow(windowHandle, SW_RESTORE);
+            SetWindowPos(windowHandle, HWND_TOP, 0, 0, 0, 0,
+                SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+            g_lastPresentTime.QuadPart = 0;
+            g_appInactive = false;
+        } else {
+            Log("WM_ACTIVATEAPP: deactivating");
+            g_appInactive = true;
+        }
+        break;
+    }
+    case WM_SETFOCUS: {
+        Log("WM_SETFOCUS: window gained focus");
+        g_appInactive = false;
+        break;
+    }
+    case WM_KILLFOCUS: {
+        Log("WM_KILLFOCUS: window lost focus");
+        g_appInactive = true;
+        break;
+    }
     case WM_SIZE: {
         if (!appWindow) {
             break;
@@ -1085,9 +1117,12 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
     if (flipModelEnabled && ::DXGI::swapChain) {
         IDXGIFactory* factory = nullptr;
         if (SUCCEEDED(::DXGI::swapChain->GetParent(IID_PPV_ARGS(&factory)))) {
-            factory->MakeWindowAssociation(appWindow, DXGI_MWA_NO_ALT_ENTER);
+            // DXGI_MWA_NO_WINDOW_CHANGES: prevent DXGI from reacting to
+            // window style changes during alt-tab transitions.
+            factory->MakeWindowAssociation(appWindow,
+                DXGI_MWA_NO_ALT_ENTER | DXGI_MWA_NO_WINDOW_CHANGES);
             factory->Release();
-            Log("Disabled DXGI Alt+Enter handling - using custom borderless fullscreen");
+            Log("Disabled DXGI Alt+Enter & Window Change handling - using custom borderless fullscreen");
         }
         
         // Apply low-latency optimizations for flip model
