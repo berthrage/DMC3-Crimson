@@ -551,6 +551,7 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
             g_appInactive = false;
         } else {
             Log("WM_ACTIVATEAPP: deactivating");
+            ReleaseCapture();
             g_appInactive = true;
         }
         break;
@@ -562,6 +563,7 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
     }
     case WM_KILLFOCUS: {
         Log("WM_KILLFOCUS: window lost focus");
+        ReleaseCapture();
         g_appInactive = true;
         break;
     }
