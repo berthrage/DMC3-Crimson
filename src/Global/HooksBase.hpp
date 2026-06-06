@@ -208,6 +208,17 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
         }
     }
 
+    // Bail immediately if not the foreground window. 
+    if (GetForegroundWindow() != appWindow) {
+        static bool loggedFg = false;
+        if (!loggedFg) { loggedFg = true; Log("Present: not foreground — skip"); }
+        HRESULT hr = ::Base::DXGI::Present(pSwapChain, SyncInterval,
+            (activeCrimsonConfig.System.flipModelPresentation && SyncInterval == 0)
+                ? DXGI_PRESENT_ALLOW_TEARING : Flags);
+        if (hr != 0x087A0001) loggedFg = false;
+        return hr;
+    }
+
     // Skip all rendering while backgrounded — only keep the swap chain alive.
     static bool prevInactive = false;
     if (g_appInactive && !prevInactive) {
@@ -270,8 +281,10 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
 
     ImGui_ImplWin32_GetDpiScaleForHwnd(swapDesc.OutputWindow);
 
-    io.MousePos.x *= (swapDesc.BufferDesc.Width / g_clientSize.x);
-    io.MousePos.y *= (swapDesc.BufferDesc.Height / g_clientSize.y);
+    if (g_clientSize.x > 0 && g_clientSize.y > 0) {
+        io.MousePos.x *= (swapDesc.BufferDesc.Width / g_clientSize.x);
+        io.MousePos.y *= (swapDesc.BufferDesc.Height / g_clientSize.y);
+    }
 
     Timestep();
 
