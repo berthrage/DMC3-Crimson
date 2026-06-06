@@ -209,28 +209,28 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
     }
 
     // Bail immediately if not the foreground window. 
-    if (GetForegroundWindow() != appWindow) {
-        static bool loggedFg = false;
-        if (!loggedFg) { loggedFg = true; Log("Present: not foreground — skip"); }
-        HRESULT hr = ::Base::DXGI::Present(pSwapChain, SyncInterval,
-            (activeCrimsonConfig.System.flipModelPresentation && SyncInterval == 0)
-                ? DXGI_PRESENT_ALLOW_TEARING : Flags);
-        if (hr != 0x087A0001) loggedFg = false;
-        return hr;
-    }
+//     if (GetForegroundWindow() != appWindow) {
+//         static bool loggedFg = false;
+//         if (!loggedFg) { loggedFg = true; Log("Present: not foreground — skip"); }
+//         HRESULT hr = ::Base::DXGI::Present(pSwapChain, SyncInterval,
+//             (activeCrimsonConfig.System.flipModelPresentation && SyncInterval == 0)
+//                 ? DXGI_PRESENT_ALLOW_TEARING : Flags);
+//         if (hr != 0x087A0001) loggedFg = false;
+//         return hr;
+//     }
 
     // Skip all rendering while backgrounded — only keep the swap chain alive.
-    static bool prevInactive = false;
-    if (g_appInactive && !prevInactive) {
-        Log("Present: window inactive — skipping render");
-    }
-    prevInactive = g_appInactive;
-    if (g_appInactive) {
-        HRESULT hr = ::Base::DXGI::Present(pSwapChain, SyncInterval,
-            (activeCrimsonConfig.System.flipModelPresentation && SyncInterval == 0)
-                ? DXGI_PRESENT_ALLOW_TEARING : Flags);
-        return hr;
-    }
+//     static bool prevInactive = false;
+//     if (g_appInactive && !prevInactive) {
+//         Log("Present: window inactive — skipping render");
+//     }
+//     prevInactive = g_appInactive;
+//     if (g_appInactive) {
+//         HRESULT hr = ::Base::DXGI::Present(pSwapChain, SyncInterval,
+//             (activeCrimsonConfig.System.flipModelPresentation && SyncInterval == 0)
+//                 ? DXGI_PRESENT_ALLOW_TEARING : Flags);
+//         return hr;
+//     }
 
     // Note: Advanced frame latency waitable object optimization is implemented
     // in the D3D11CreateDeviceAndSwapChain function for DXGI 1.2+ compatibility

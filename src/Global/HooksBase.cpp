@@ -552,6 +552,9 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
         } else {
             Log("WM_ACTIVATEAPP: deactivating");
             ReleaseCapture();
+            if (::DXGI::swapChain) {
+                ::DXGI::swapChain->SetFullscreenState(FALSE, nullptr);
+            }
             g_appInactive = true;
         }
         break;
@@ -564,6 +567,9 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
     case WM_KILLFOCUS: {
         Log("WM_KILLFOCUS: window lost focus");
         ReleaseCapture();
+        if (::DXGI::swapChain) {
+            ::DXGI::swapChain->SetFullscreenState(FALSE, nullptr);
+        }
         g_appInactive = true;
         break;
     }
