@@ -5,6 +5,8 @@
 #include "../CrimsonHUD.hpp"
 #include "../CrimsonEfkPreload.hpp"
 
+long g_flipSkip = 0;
+
 // Construction
 
 SwapChainWrapper::SwapChainWrapper(IDXGISwapChain* real, ID3D11Device* device, ID3D11DeviceContext* context, HWND hWnd)
@@ -129,10 +131,12 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::GetLastPresentCount(UINT* pLastPrese
 // Present
 
 HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flags) {
-    // Bail immediately when we're not the active window.
-    // If we don't, DWM blocks on our ImGui work during alt-tab.
-//     if (g_appInactive)
-//         return m_real->Present(SyncInterval, Flags);
+    // Skip a few frames after focus regain, controller drivers need
+    // time to re-acquire their devices without stalling us.
+    if (g_flipSkip > 0) {
+        g_flipSkip--;
+        return m_real->Present(SyncInterval, Flags);
+    }
 
     // First-frame init — deferring this here means we don't need to
     // worry about the device context being ready during creation.

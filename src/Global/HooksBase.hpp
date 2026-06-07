@@ -64,6 +64,8 @@ extern bool g_flipModelLatencyOptimized;
 // When true, the Present hook skips all rendering.
 extern bool g_appInactive;
 
+extern long g_flipSkip;
+
 #pragma region Windows
 void UpdateShow();
 
