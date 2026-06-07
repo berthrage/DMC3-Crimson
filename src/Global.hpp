@@ -7,7 +7,6 @@
 #include <Xinput.h>
 #include <dxgi.h>
 #include <d3d11.h>
-#include <d3d10.h>
 
 #include "Core/DataTypes.hpp"
 #include "Core/Input.hpp"
@@ -18,13 +17,6 @@ namespace DXGI {
 extern IDXGISwapChain* swapChain;
 
 };
-
-namespace D3D10 {
-
-extern ID3D10Device* device;
-extern ID3D10RenderTargetView* renderTargetView;
-
-}; // namespace D3D10
 
 namespace D3D11 {
 

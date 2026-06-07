@@ -329,8 +329,8 @@ static DWORD g_windowedExStyle = 0;
 static bool g_altEnterPressed = false;
 
 // Low-latency flip model optimization globals
-static HANDLE g_frameLatencyWaitableObject = nullptr;
-static bool g_flipModelLatencyOptimized = false;
+HANDLE g_frameLatencyWaitableObject = nullptr;
+bool g_flipModelLatencyOptimized = false;
 
 bool g_appInactive = false;
 
@@ -817,139 +817,9 @@ void Timestep() {
 }
 
 #pragma region DXGI
-namespace Base::DXGI {
-::DXGI::Present_t Present             = 0;
-::DXGI::ResizeBuffers_t ResizeBuffers = 0;
-}; // namespace Base::DXGI
 
-namespace Hook::DXGI {
-
-typedef void (*Present_func_t)();
-
-Present_func_t Present_func = 0;
-
-}; // namespace Hook::DXGI
-
-#pragma endregion
-
-
-#pragma region D3D10
-namespace Base::D3D10 {
-
-::D3D10::D3D10CreateDeviceAndSwapChain_t D3D10CreateDeviceAndSwapChain = 0;
-
-};
-
-namespace Hook::D3D10 {
-D3D10CreateDeviceAndSwapChain_func_t D3D10CreateDeviceAndSwapChain_func = 0;
-
-HRESULT D3D10CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D10_DRIVER_TYPE DriverType, HMODULE Software, UINT Flags, UINT SDKVersion,
-    DXGI_SWAP_CHAIN_DESC* pSwapChainDesc, IDXGISwapChain** ppSwapChain, ID3D10Device** ppDevice) {
-    Log(
-#ifdef _WIN64
-        "%s "
-        "%llX "
-        "%X "
-        "%llX "
-        "%X "
-        "%X "
-        "%llX "
-        "%llX "
-        "%llX",
-#else
-        "%s "
-        "%X "
-        "%X "
-        "%X "
-        "%X "
-        "%X "
-        "%X "
-        "%X "
-        "%X",
-#endif
-        FUNC_NAME, pAdapter, DriverType, Software, Flags, SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice);
-
-    auto result = ::Base::D3D10::D3D10CreateDeviceAndSwapChain(
-        pAdapter, DriverType, Software, Flags, SDKVersion, pSwapChainDesc, ppSwapChain, ppDevice);
-
-    auto error = GetLastError();
-
-    ::D3D10::device   = *ppDevice;
-    ::DXGI::swapChain = *ppSwapChain;
-
-    appWindow = pSwapChainDesc->OutputWindow;
-
-    UpdateGlobalWindowSize();
-    UpdateGlobalClientSize();
-    UpdateGlobalRenderSize(pSwapChainDesc->BufferDesc.Width, pSwapChainDesc->BufferDesc.Height);
-
-    CoreImGui::UpdateDisplaySize(pSwapChainDesc->BufferDesc.Width, pSwapChainDesc->BufferDesc.Height);
-
-    UpdateMousePositionMultiplier();
-
-    DXGI_SWAP_CHAIN_DESC swapDesc{};
-    ::DXGI::swapChain->GetDesc(&swapDesc);
-
-    if (!ImGui_ImplWin32_Init(swapDesc.OutputWindow)) {
-        Log("%s Failed to initialize ImGui on D3D10 -> ImGui_ImplWin32_Init.", FUNC_NAME);
-        return result;
-    }
-
-    if (!ImGui_ImplDX10_Init(::D3D10::device)) {
-        Log("%s Failed to initialize ImGui on D3D10 -> ImGui_ImplDX10_Init.", FUNC_NAME);
-        return result;
-    }
-
-    CreateRenderTarget<API::D3D10>();
-
-
-    [&]() {
-        auto func = D3D10CreateDeviceAndSwapChain_func;
-        if (!func) {
-            return;
-        }
-
-        func();
-    }();
-
-
-    [&]() {
-        if ((result != 0) || !ppSwapChain || !*ppSwapChain) {
-            return;
-        }
-
-        auto funcAddrs = *reinterpret_cast<byte8***>(*ppSwapChain);
-        if (!funcAddrs) {
-            return;
-        }
-
-        //Install(&funcAddrs[8], ::Base::DXGI::Present, ::Hook::DXGI::Present<API::D3D10>);
-
-        Install(&funcAddrs[13], ::Base::DXGI::ResizeBuffers, ::Hook::DXGI::ResizeBuffers<API::D3D10>);
-    }();
-
-    // Always prevent DXGI from reacting to window style changes during alt-tab transitions
-    if (::DXGI::swapChain) {
-        IDXGIFactory* factory = nullptr;
-        if (SUCCEEDED(::DXGI::swapChain->GetParent(IID_PPV_ARGS(&factory)))) {
-            factory->MakeWindowAssociation(appWindow,
-                DXGI_MWA_NO_ALT_ENTER | DXGI_MWA_NO_WINDOW_CHANGES);
-            factory->Release();
-        }
-    }
-
-
-    CreateKeyboard();
-    CreateMouse();
-    CreateGamepad();
-
-
-    SetLastError(error);
-
-    return result;
-}
-
-}; // namespace Hook::D3D10
+// Legacy Present callback — called at end of SwapChainWrapper::Present.
+Present_func_t Present_func = nullptr;
 
 #pragma endregion
 
@@ -1123,20 +993,9 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
 		return result;
 	}
 
-	CreateRenderTarget<API::D3D11>();
-
-	CrimsonHUD::InitTextures(::D3D11::device);
-	InitStyleSwitchFxTexture(::D3D11::device);
-	debug_draw_init(
-		(void*)::D3D11::device, (void*)::D3D11::deviceContext, modifiedSwapChainDesc.BufferDesc.Width, modifiedSwapChainDesc.BufferDesc.Height);
-
-	bool efk = CrimsonEfk::EffekInit(::D3D11::device, ::D3D11::deviceContext, modifiedSwapChainDesc.BufferDesc.Width, modifiedSwapChainDesc.BufferDesc.Height);
-    assert(efk);
-
-    // Preload ALL Effekseer effects now so the game never stutters on first use.
-    if (efk) {
-        CrimsonEfkPreload::PreloadAll();
-    }
+    // Render target, Effekseer, HUD, debug draw, and ImGui DX11 are
+    // all deferred to the first Present() inside SwapChainWrapper.
+    // No point doing it here when the device context might not be ready.
 
     [&]() {
         auto func = D3D11CreateDeviceAndSwapChain_func;
@@ -1148,22 +1007,22 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
     }();
 
 
+    // Give the game our wrapper instead of the real swap chain.
+    // No VTABLE patching — Present interception lives inside the wrapper.
     [&]() {
         if ((result != 0) || !ppSwapChain || !*ppSwapChain) {
             return;
         }
 
-        auto funcAddrs = *reinterpret_cast<byte8***>(*ppSwapChain);
-        if (!funcAddrs) {
-            return;
+        auto* wrapper = new SwapChainWrapper(*ppSwapChain, *ppDevice, *ppImmediateContext, appWindow);
+        if (wrapper) {
+            *ppSwapChain = wrapper;
+            ::DXGI::swapChain = wrapper;
+            Log("SwapChainWrapper created — game will use wrapped Present");
         }
-
-        Install(&funcAddrs[8], ::Base::DXGI::Present, ::Hook::DXGI::Present<API::D3D11>);
-
-        //Install(&funcAddrs[13], ::Base::DXGI::ResizeBuffers, ::Hook::DXGI::ResizeBuffers<API::D3D11>);
     }();
 
-    // Always prevent DXGI from reacting to window style changes during alt-tab transitions
+    // Keep DXGI from messing with our window on alt-tab.
     if (::DXGI::swapChain) {
         IDXGIFactory* factory = nullptr;
         if (SUCCEEDED(::DXGI::swapChain->GetParent(IID_PPV_ARGS(&factory)))) {
@@ -1175,8 +1034,7 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
     }
 
     if (flipModelEnabled) {
-        // Apply low-latency optimizations for flip model.
-        // Try to use DXGI 1.2+ features if available.
+        // Low-latency flip model goodies.
         IDXGISwapChain2* swapChain2 = nullptr;
         HRESULT hr = ::DXGI::swapChain->QueryInterface(__uuidof(IDXGISwapChain2), (void**)&swapChain2);
         if (SUCCEEDED(hr) && swapChain2) {

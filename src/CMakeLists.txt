@@ -151,6 +151,8 @@ file(GLOB GLOBAL_SRC
     Global/GUIBase.hpp
     Global/HooksBase.cpp
     Global/HooksBase.hpp
+    Global/SwapChainWrapper.cpp
+    Global/SwapChainWrapper.hpp
 )
 
 file(GLOB MAIN_SRC

@@ -1,13 +1,13 @@
 #pragma once
 
 #include "../Core/Core.hpp"
+#include "../Global.hpp"
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 #include <Xinput.h>
 #include <dxgi.h>
 #include <dxgi1_2.h>
 #include <d3d11.h>
-#include <d3d10.h>
 #include <emmintrin.h> // For CPU cache prefetching (_mm_prefetch)
 #include "GUIBase.hpp"
 #include "../Core/Core_ImGui.hpp"
@@ -16,18 +16,11 @@
 #include "../DebugDrawDX11.hpp"
 #include "../../ThirdParty/ImGui/imgui.h"
 #include "../../ThirdParty/ImGui/Backend/imgui_impl_win32.h"
-#include "../../ThirdParty/ImGui/Backend/imgui_impl_dx10.h"
 #include "../../ThirdParty/ImGui/Backend/imgui_impl_dx11.h"
+#include "SwapChainWrapper.hpp"
 #include "../StyleSwitchFX.hpp"
 #include "../CrimsonSDL.hpp"
 #include "../CrimsonEfk.hpp"
-
-namespace API {
-enum {
-    D3D10,
-    D3D11,
-};
-};
 
 void FPSLimiter_Init(double fps);
 void FPSLimiter_Apply();
@@ -109,346 +102,31 @@ HANDLE CreateFileW(LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode,
 } // namespace Hook::Windows
 #pragma endregion
 
-template <new_size_t api> void CreateRenderTarget() {
-    LogFunction();
-
-    if constexpr (api == API::D3D10) {
-        ID3D10Texture2D* backBuffer = 0;
-        ::DXGI::swapChain->GetBuffer(0, IID_ID3D10Texture2D, reinterpret_cast<void**>(&backBuffer));
-        ::D3D10::device->CreateRenderTargetView(backBuffer, 0, &::D3D10::renderTargetView);
-        backBuffer->Release();
-
-    } else if constexpr (api == API::D3D11) {
-        ID3D11Texture2D* backBuffer = 0;
-        ::DXGI::swapChain->GetBuffer(0, IID_ID3D11Texture2D, reinterpret_cast<void**>(&backBuffer));
-        ::D3D11::device->CreateRenderTargetView(backBuffer, 0, &::D3D11::renderTargetView);
+inline void CreateRenderTarget() {
+    ID3D11Texture2D* backBuffer = nullptr;
+    ::DXGI::swapChain->GetBuffer(0, IID_ID3D11Texture2D, reinterpret_cast<void**>(&backBuffer));
+    if (backBuffer) {
+        ::D3D11::device->CreateRenderTargetView(backBuffer, nullptr, &::D3D11::renderTargetView);
         backBuffer->Release();
     }
 }
 
-template <new_size_t api> void RemoveRenderTarget() {
-    LogFunction();
-
-    if constexpr (api == API::D3D10) {
-        if (!::D3D10::renderTargetView) {
-            return;
-        }
-        float clearColor[4] = {};
-        ::D3D10::device->ClearRenderTargetView(::D3D10::renderTargetView, clearColor);
-        ::D3D10::renderTargetView->Release();
-        ::D3D10::renderTargetView = 0;
-
-    } else if constexpr (api == API::D3D11) {
-        if (!::D3D11::renderTargetView) {
-            return;
-        }
-        float clearColor[4] = {};
-        ::D3D11::deviceContext->ClearRenderTargetView(::D3D11::renderTargetView, clearColor);
-        ::D3D11::renderTargetView->Release();
-        ::D3D11::renderTargetView = 0;
-    }
+inline void RemoveRenderTarget() {
+    if (!::D3D11::renderTargetView)
+        return;
+    float clearColor[4] = {};
+    ::D3D11::deviceContext->ClearRenderTargetView(::D3D11::renderTargetView, clearColor);
+    ::D3D11::renderTargetView->Release();
+    ::D3D11::renderTargetView = nullptr;
 }
 
 void Timestep();
 
 #pragma region DXGI
-namespace DXGI {
-
-typedef HRESULT (*Present_t)(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags);
-typedef HRESULT (*ResizeBuffers_t)(
-    IDXGISwapChain* SwapChain, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags);
-}; // namespace DXGI
-
-
-namespace Base::DXGI {
-extern ::DXGI::Present_t Present;
-extern ::DXGI::ResizeBuffers_t ResizeBuffers;
-}; // namespace Base::DXGI
-
-namespace Hook::DXGI {
+// Old Present / ResizeBuffers hooks are gone — SwapChainWrapper handles
+// all of that now. Kept the Present_func typedef for backwards compat.
 typedef void (*Present_func_t)();
 extern Present_func_t Present_func;
-
-template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags) {
-    static bool run = false;
-    if (!run) {
-        run = true;
-
-        Log(
-#ifdef _WIN64
-            "%s "
-            "%llX "
-            "%u "
-            "%X",
-#else
-            "%s "
-            "%X "
-            "%u "
-            "%X",
-#endif
-            FUNC_NAME, pSwapChain, SyncInterval, Flags);
-            
-        // Log the actual swap chain properties to verify flip model
-        DXGI_SWAP_CHAIN_DESC actualDesc = {};
-        if (SUCCEEDED(pSwapChain->GetDesc(&actualDesc))) {
-            Log("Actual swap chain - BufferCount: %u, SwapEffect: %u, Windowed: %s", 
-                actualDesc.BufferCount, 
-                actualDesc.SwapEffect,
-                actualDesc.Windowed ? "TRUE" : "FALSE");
-        }
-        
-        // For flip model latency optimization, set device frame latency
-        if constexpr (api == API::D3D11) {
-            IDXGIDevice1* dxgiDevice = nullptr;
-            if (SUCCEEDED(::D3D11::device->QueryInterface(IID_PPV_ARGS(&dxgiDevice)))) {
-                dxgiDevice->SetMaximumFrameLatency(1);
-                dxgiDevice->Release();
-                Log("Set device frame latency to 1 for reduced input lag");
-            }
-        }
-    }
-
-    // Bail immediately if not the foreground window. 
-//     if (GetForegroundWindow() != appWindow) {
-//         static bool loggedFg = false;
-//         if (!loggedFg) { loggedFg = true; Log("Present: not foreground — skip"); }
-//         HRESULT hr = ::Base::DXGI::Present(pSwapChain, SyncInterval,
-//             (activeCrimsonConfig.System.flipModelPresentation && SyncInterval == 0)
-//                 ? DXGI_PRESENT_ALLOW_TEARING : Flags);
-//         if (hr != 0x087A0001) loggedFg = false;
-//         return hr;
-//     }
-
-    // Skip all rendering while backgrounded — only keep the swap chain alive.
-//     static bool prevInactive = false;
-//     if (g_appInactive && !prevInactive) {
-//         Log("Present: window inactive — skipping render");
-//     }
-//     prevInactive = g_appInactive;
-//     if (g_appInactive) {
-//         HRESULT hr = ::Base::DXGI::Present(pSwapChain, SyncInterval,
-//             (activeCrimsonConfig.System.flipModelPresentation && SyncInterval == 0)
-//                 ? DXGI_PRESENT_ALLOW_TEARING : Flags);
-//         return hr;
-//     }
-
-    // Note: Advanced frame latency waitable object optimization is implemented
-    // in the D3D11CreateDeviceAndSwapChain function for DXGI 1.2+ compatibility
-
-    // Test: If the window is inactive, skip all ImGui and input work.
-    if (g_appInactive) {
-        return ::Base::DXGI::Present(pSwapChain, SyncInterval, Flags);
-    }
-
-    if (activeConfig.vSync != 0) {
-        SyncInterval = (activeConfig.vSync - 1);
-    }
-	static uint32 prevWidth = 0;
-	static uint32 prevHeight = 0;
-
-    UpdateShow();
-
-
-    UpdateKeyboard();
-    UpdateMouse();
-    UpdateGamepad();
-
-    //XI::UpdateGamepad();
-
-
-    if constexpr (api == API::D3D10) {
-        ImGui_ImplDX10_NewFrame();
-        ImGui_ImplWin32_NewFrame();
-    } else if constexpr (api == API::D3D11) {
-        CrimsonEfk::CaptureDepthStencilForPresent(::D3D11::deviceContext);
-        ImGui_ImplDX11_NewFrame();
-        ImGui_ImplWin32_NewFrame();
-    }
-
-    DXGI_SWAP_CHAIN_DESC swapDesc = {};
-    pSwapChain->GetDesc(&swapDesc);
-
-	uint32 width = swapDesc.BufferDesc.Width;
-	uint32 height = swapDesc.BufferDesc.Height;
-
-    auto& io = ImGui::GetIO();
-	// Only update if the size has changed
-	if (width != prevWidth || height != prevHeight) {
-		prevWidth = width;
-		prevHeight = height;
-
-		UpdateGlobalRenderSize(width, height);
-        UpdateGlobalClientSize();
-        UpdateGlobalWindowSize();
-
-	}
-    io.DisplaySize = ImVec2((float)width, (float)height);
-
-    ImGui_ImplWin32_GetDpiScaleForHwnd(swapDesc.OutputWindow);
-
-    if (g_clientSize.x > 0 && g_clientSize.y > 0) {
-        io.MousePos.x *= (swapDesc.BufferDesc.Width / g_clientSize.x);
-        io.MousePos.y *= (swapDesc.BufferDesc.Height / g_clientSize.y);
-    }
-
-    Timestep();
-
-    ImGui::NewFrame();
-
-    CrimsonSDL::InitSDL();
-    GUI_Render(pSwapChain);
-
-    DrawStyleSwitchFxTexture();
-
-    ImGui::Render();
-
-    if constexpr (api == API::D3D10) {
-        ::D3D10::device->OMSetRenderTargets(1, &::D3D10::renderTargetView, 0);
-
-        ImGui_ImplDX10_RenderDrawData(ImGui::GetDrawData());
-    } else if constexpr (api == API::D3D11) {
-        CrimsonEfk::EffekIncFrames();
-
-        ::D3D11::deviceContext->OMSetRenderTargets(1, &::D3D11::renderTargetView, 0);
-
-        // Low-latency optimization: Prefetch render target for better cache performance
-        if (activeCrimsonConfig.System.flipModelPresentation) {
-            _mm_prefetch((const char*)&::D3D11::renderTargetView, _MM_HINT_T0);
-        }
-
-        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-        debug_draw_update(ImGui::GetIO().DeltaTime);
-    }
-
-    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-        ImGui::UpdatePlatformWindows();
-        ImGui::RenderPlatformWindowsDefault();
-    }
-
-    [&]() {
-        auto func = Present_func;
-        if (!func) {
-            return;
-        }
-
-        func();
-    }();
-
-    if constexpr (api == API::D3D11) {
-        CrimsonEfk::EffekRenderOnPresent(::D3D11::deviceContext);
-    }
-
-    // Use optimal present flags for flip model low latency
-    UINT presentFlags = Flags;
-    if (activeCrimsonConfig.System.flipModelPresentation) {
-        if (SyncInterval == 0) {
-            // For immediate presentation (VSync off), use tearing for lowest latency
-            presentFlags = DXGI_PRESENT_ALLOW_TEARING;
-        } else {
-            // For VSync on, still optimize for flip model
-            presentFlags = 0; 
-        }
-    }
-
-    // Non-blocking GPU sync: poll the frame latency waitable object before Present.
-    // If the GPU is still busy with the previous frame, WaitForSingleObject(x, 0)
-    // returns immediately without blocking. The FPS limiter's spin-wait will then
-    // naturally back-pressure the CPU until the GPU catches up, preventing the
-    // render queue from building up latency.
-    if (activeCrimsonConfig.System.flipModelPresentation && g_frameLatencyWaitableObject != nullptr) {
-        WaitForSingleObject(g_frameLatencyWaitableObject, 0);
-    }
-
-    HRESULT presentResult = ::Base::DXGI::Present(pSwapChain, SyncInterval, presentFlags);
-
-    // DXGI_STATUS_OCCLUDED: window is minimized/occluded. Log once, skip limiter.
-    if (presentResult == 0x087A0001) {
-        static bool loggedOccluded = false;
-        if (!loggedOccluded) {
-            loggedOccluded = true;
-            Log("Present: swap chain occluded");
-        }
-        return presentResult;
-    }
-
-	double newCap = activeCrimsonConfig.System.fpsCap;
-    static double g_currentCap = -1.0;
-
-	if (g_currentCap != newCap) {
-		g_currentCap = newCap;
-		FPSLimiter_Init(g_currentCap);
-	}
-
-    if (!activeCrimsonConfig.System.fpsUnlocked)
-        FPSLimiter_Apply();
-
-    return presentResult;
-}
-
-template <new_size_t api>
-HRESULT ResizeBuffers(IDXGISwapChain* SwapChain, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags) {
-    Log(
-#ifdef _WIN64
-        "%s "
-        "%llX "
-        "%u "
-        "%u "
-        "%u "
-        "%d "
-        "%X",
-#else
-        "%s "
-        "%X "
-        "%u "
-        "%u "
-        "%u "
-        "%d "
-        "%X",
-#endif
-        FUNC_NAME, SwapChain, BufferCount, Width, Height, NewFormat, SwapChainFlags);
-
-    RemoveRenderTarget<api>();
-
-
-    auto result = ::Base::DXGI::ResizeBuffers(SwapChain, BufferCount, Width, Height, NewFormat, SwapChainFlags);
-
-    auto error = GetLastError();
-
-    CreateRenderTarget<api>();
-
-
-    UpdateGlobalWindowSize();
-    UpdateGlobalClientSize();
-    UpdateGlobalRenderSize(Width, Height);
-
-
-    SetLastError(error);
-
-    return result;
-}
-} // namespace Hook::DXGI
-#pragma endregion
-
-#pragma region D3D10
-
-namespace D3D10 {
-typedef decltype(D3D10CreateDeviceAndSwapChain)* D3D10CreateDeviceAndSwapChain_t;
-};
-
-namespace Base::D3D10 {
-extern ::D3D10::D3D10CreateDeviceAndSwapChain_t D3D10CreateDeviceAndSwapChain;
-};
-
-namespace Hook::D3D10 {
-typedef void (*D3D10CreateDeviceAndSwapChain_func_t)();
-
-extern D3D10CreateDeviceAndSwapChain_func_t D3D10CreateDeviceAndSwapChain_func;
-
-HRESULT D3D10CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D10_DRIVER_TYPE DriverType, HMODULE Software, UINT Flags, UINT SDKVersion,
-    DXGI_SWAP_CHAIN_DESC* pSwapChainDesc, IDXGISwapChain** ppSwapChain, ID3D10Device** ppDevice);
-
-
-} // namespace Hook::D3D10
 #pragma endregion
 
 #pragma region D3D11
