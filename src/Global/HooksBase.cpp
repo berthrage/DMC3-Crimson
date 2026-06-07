@@ -542,8 +542,7 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
     case WM_ACTIVATEAPP: {
         if (wParameter) {
             Log("WM_ACTIVATEAPP: activating — forcing window to foreground");
-            // Force DWM to acknowledge activation, bypassing the game's broken
-            // recovery that forceWindowFocus patches prevent from firing.
+            LockSetForegroundWindow(LSFW_UNLOCK);
             ShowWindow(windowHandle, SW_RESTORE);
             SetWindowPos(windowHandle, HWND_TOP, 0, 0, 0, 0,
                 SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
@@ -555,6 +554,7 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
             if (::DXGI::swapChain) {
                 ::DXGI::swapChain->SetFullscreenState(FALSE, nullptr);
             }
+            AllowSetForegroundWindow(ASFW_ANY);
             g_appInactive = true;
         }
         break;
@@ -570,6 +570,7 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
         if (::DXGI::swapChain) {
             ::DXGI::swapChain->SetFullscreenState(FALSE, nullptr);
         }
+        AllowSetForegroundWindow(ASFW_ANY);
         g_appInactive = true;
         break;
     }
