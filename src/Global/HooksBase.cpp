@@ -381,6 +381,8 @@ static void ActivateWindow(HWND hWnd, bool active) {
         // Reset FPS limiter baseline so we don't burst frames after focus regain.
         g_lastPresentTime.QuadPart = 0;
 
+        g_flipSkip = 3;
+
         // Release any keys that were held when focus was lost (Alt, Tab, etc.).
         ReleaseStuckKeys();
     } else {
@@ -575,6 +577,22 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
         }
     }
 
+    // Handle focus messages before the game sees them
+    switch (message) {
+    case WM_ACTIVATEAPP: {
+        ActivateWindow(windowHandle, wParameter != FALSE);
+        break;
+    }
+    case WM_SETFOCUS: {
+        ActivateWindow(windowHandle, true);
+        break;
+    }
+    case WM_KILLFOCUS: {
+        ActivateWindow(windowHandle, false);
+        break;
+    }
+    }
+
     auto result = ::Base::Windows::WindowProc(windowHandle, message, wParameter, lParameter);
 
     auto error = GetLastError();
@@ -603,18 +621,6 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
 
 
     switch (message) {
-    case WM_ACTIVATEAPP: {
-        ActivateWindow(windowHandle, wParameter != FALSE);
-        break;
-    }
-    case WM_SETFOCUS: {
-        ActivateWindow(windowHandle, true);
-        break;
-    }
-    case WM_KILLFOCUS: {
-        ActivateWindow(windowHandle, false);
-        break;
-    }
     case WM_SIZE: {
         if (!appWindow) {
             break;
@@ -988,10 +994,7 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
 		return result;
 	}
 
-	if (!ImGui_ImplDX11_Init(::D3D11::device, ::D3D11::deviceContext)) {
-		Log("%s Failed to initialize ImGui on D3D11 -> ImGui_ImplDX11_Init.", FUNC_NAME);
-		return result;
-	}
+	// ImGui DX11 init is deferred to first Present() — see SwapChainWrapper.
 
     // Render target, Effekseer, HUD, debug draw, and ImGui DX11 are
     // all deferred to the first Present() inside SwapChainWrapper.
@@ -1128,6 +1131,7 @@ HRESULT GetDeviceStateA(IDirectInputDevice8A* pDevice, DWORD BufferSize, LPVOID 
     // Blocks DI8 Keyboard Input while GUI is Open or ImGui wants keyboard input
     if (g_show || ImGui::GetIO().WantCaptureKeyboard || GetForegroundWindow() != appWindow) {
         SetMemory(Buffer, 0, BufferSize);
+        return S_OK;
     }
 
     return result;
