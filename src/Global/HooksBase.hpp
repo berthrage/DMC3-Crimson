@@ -235,6 +235,11 @@ template <new_size_t api> HRESULT Present(IDXGISwapChain* pSwapChain, UINT SyncI
     // Note: Advanced frame latency waitable object optimization is implemented
     // in the D3D11CreateDeviceAndSwapChain function for DXGI 1.2+ compatibility
 
+    // Test: If the window is inactive, skip all ImGui and input work.
+    if (g_appInactive) {
+        return ::Base::DXGI::Present(pSwapChain, SyncInterval, Flags);
+    }
+
     if (activeConfig.vSync != 0) {
         SyncInterval = (activeConfig.vSync - 1);
     }

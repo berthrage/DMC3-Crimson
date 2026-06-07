@@ -16,6 +16,7 @@
 #include "../CrimsonHUD.hpp"
 #include <dxgi1_3.h>
 #include <timeapi.h>
+#include <utility>
 #pragma comment(lib, "winmm.lib")
 
 void UpdateMousePositionMultiplier() {
@@ -333,6 +334,69 @@ static bool g_flipModelLatencyOptimized = false;
 
 bool g_appInactive = false;
 
+// Stuck-key tracking
+// Snapshot held keys on focus loss; release them on regain.
+static BYTE g_lastKeyState[256] = {};
+
+static void ReleaseStuckKeys() {
+    INPUT inputs[256] = {};
+    int   numInputs   = 0;
+
+    for (SHORT vKey = VK_CANCEL; vKey <= 255; ++vKey) {
+        if (std::exchange(g_lastKeyState[vKey], FALSE) != FALSE) {
+            if ((GetAsyncKeyState(vKey) & 0x8000) != 0x0) {
+                const UINT   scanCode = MapVirtualKey(vKey, MAPVK_VK_TO_VSC);
+                const DWORD  flags    = ((scanCode & 0xE100) != 0 ? KEYEVENTF_EXTENDEDKEY : 0)
+                                      | KEYEVENTF_SCANCODE
+                                      | KEYEVENTF_KEYUP;
+
+                inputs[numInputs++] = INPUT{
+                    .type = INPUT_KEYBOARD,
+                    .ki   = KEYBDINPUT{
+                        .wVk         = (WORD)vKey,
+                        .wScan       = (WORD)scanCode,
+                        .dwFlags     = flags,
+                        .time        = 0,
+                        .dwExtraInfo = 0}};
+            }
+        }
+        if (vKey == VK_CANCEL)
+            vKey = VK_BACK - 1;
+    }
+
+    if (numInputs > 0)
+        SendInput(numInputs, inputs, sizeof(INPUT));
+}
+
+
+static void ActivateWindow(HWND hWnd, bool active) {
+    const bool wasActive = !g_appInactive;
+
+    if (wasActive == active)
+        return;
+
+    g_appInactive = !active;
+
+    if (active) {
+        // Reset FPS limiter baseline so we don't burst frames after focus regain.
+        g_lastPresentTime.QuadPart = 0;
+
+        // Release any keys that were held when focus was lost (Alt, Tab, etc.).
+        ReleaseStuckKeys();
+    } else {
+        // Snapshot currently held keys so we can release them on regain.
+        for (SHORT vKey = VK_CANCEL; vKey <= 255; ++vKey) {
+            if ((GetAsyncKeyState(vKey) & 0x8000) != 0x0)
+                g_lastKeyState[vKey] = TRUE;
+            if (vKey == VK_CANCEL)
+                vKey = VK_BACK - 1;
+        }
+
+        // Unconfine cursor so the user can interact with other windows.
+        ClipCursor(nullptr);
+    }
+}
+
 void ToggleBorderlessFullscreen() {
     // Only allow borderless fullscreen if flip model presentation is enabled
     if (!activeCrimsonConfig.System.flipModelPresentation) {
@@ -540,38 +604,15 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
 
     switch (message) {
     case WM_ACTIVATEAPP: {
-        if (wParameter) {
-            Log("WM_ACTIVATEAPP: activating — forcing window to foreground");
-            LockSetForegroundWindow(LSFW_UNLOCK);
-            ShowWindow(windowHandle, SW_RESTORE);
-            SetWindowPos(windowHandle, HWND_TOP, 0, 0, 0, 0,
-                SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-            g_lastPresentTime.QuadPart = 0;
-            g_appInactive = false;
-        } else {
-            Log("WM_ACTIVATEAPP: deactivating");
-            ReleaseCapture();
-            if (::DXGI::swapChain) {
-                ::DXGI::swapChain->SetFullscreenState(FALSE, nullptr);
-            }
-            AllowSetForegroundWindow(ASFW_ANY);
-            g_appInactive = true;
-        }
+        ActivateWindow(windowHandle, wParameter != FALSE);
         break;
     }
     case WM_SETFOCUS: {
-        Log("WM_SETFOCUS: window gained focus");
-        g_appInactive = false;
+        ActivateWindow(windowHandle, true);
         break;
     }
     case WM_KILLFOCUS: {
-        Log("WM_KILLFOCUS: window lost focus");
-        ReleaseCapture();
-        if (::DXGI::swapChain) {
-            ::DXGI::swapChain->SetFullscreenState(FALSE, nullptr);
-        }
-        AllowSetForegroundWindow(ASFW_ANY);
-        g_appInactive = true;
+        ActivateWindow(windowHandle, false);
         break;
     }
     case WM_SIZE: {
@@ -887,11 +928,12 @@ HRESULT D3D10CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D10_DRIVER_TYPE 
         Install(&funcAddrs[13], ::Base::DXGI::ResizeBuffers, ::Hook::DXGI::ResizeBuffers<API::D3D10>);
     }();
 
-    // Disable DXGI's default Alt+Enter handling since we handle it ourselves
+    // Always prevent DXGI from reacting to window style changes during alt-tab transitions
     if (::DXGI::swapChain) {
         IDXGIFactory* factory = nullptr;
         if (SUCCEEDED(::DXGI::swapChain->GetParent(IID_PPV_ARGS(&factory)))) {
-            factory->MakeWindowAssociation(appWindow, DXGI_MWA_NO_ALT_ENTER);
+            factory->MakeWindowAssociation(appWindow,
+                DXGI_MWA_NO_ALT_ENTER | DXGI_MWA_NO_WINDOW_CHANGES);
             factory->Release();
         }
     }
@@ -1121,36 +1163,32 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
         //Install(&funcAddrs[13], ::Base::DXGI::ResizeBuffers, ::Hook::DXGI::ResizeBuffers<API::D3D11>);
     }();
 
-    // Only disable DXGI's default Alt+Enter handling if flip model is enabled
-    // When flip model is disabled, let DXGI handle Alt+Enter normally
-    if (flipModelEnabled && ::DXGI::swapChain) {
+    // Always prevent DXGI from reacting to window style changes during alt-tab transitions
+    if (::DXGI::swapChain) {
         IDXGIFactory* factory = nullptr;
         if (SUCCEEDED(::DXGI::swapChain->GetParent(IID_PPV_ARGS(&factory)))) {
-            // DXGI_MWA_NO_WINDOW_CHANGES: prevent DXGI from reacting to
-            // window style changes during alt-tab transitions.
             factory->MakeWindowAssociation(appWindow,
                 DXGI_MWA_NO_ALT_ENTER | DXGI_MWA_NO_WINDOW_CHANGES);
             factory->Release();
-            Log("Disabled DXGI Alt+Enter & Window Change handling - using custom borderless fullscreen");
+            Log("Disabled DXGI Alt+Enter & Window Change handling");
         }
-        
-        // Apply low-latency optimizations for flip model
-        // Try to use DXGI 1.2+ features if available, fallback to basic optimization
+    }
+
+    if (flipModelEnabled) {
+        // Apply low-latency optimizations for flip model.
+        // Try to use DXGI 1.2+ features if available.
         IDXGISwapChain2* swapChain2 = nullptr;
         HRESULT hr = ::DXGI::swapChain->QueryInterface(__uuidof(IDXGISwapChain2), (void**)&swapChain2);
         if (SUCCEEDED(hr) && swapChain2) {
-            // Set maximum frame latency to 1 for lowest possible latency
             hr = swapChain2->SetMaximumFrameLatency(1);
             if (SUCCEEDED(hr)) {
                 Log("Set swap chain maximum frame latency to 1 for reduced input lag");
-                
-                // Get the waitable object for precise frame timing
+
                 HANDLE waitableObject = swapChain2->GetFrameLatencyWaitableObject();
                 if (waitableObject != nullptr) {
                     g_frameLatencyWaitableObject = waitableObject;
                     g_flipModelLatencyOptimized = true;
                     Log("Frame latency waitable object obtained and stored for ultra-low latency rendering");
-                    Log("Latency optimization: CPU-GPU synchronization enabled to minimize input lag");
                 } else {
                     Log("Warning: Failed to obtain frame latency waitable object");
                 }
@@ -1161,8 +1199,8 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
         } else {
             Log("DXGI 1.2+ not available - using basic latency optimization");
         }
-        
-        // Set device-level maximum frame latency for additional latency reduction
+
+        // Set device-level maximum frame latency for additional latency reduction.
         IDXGIDevice1* dxgiDevice = nullptr;
         if (SUCCEEDED((*ppDevice)->QueryInterface(IID_PPV_ARGS(&dxgiDevice)))) {
             hr = dxgiDevice->SetMaximumFrameLatency(1);
@@ -1173,8 +1211,6 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
             }
             dxgiDevice->Release();
         }
-    } else if (!flipModelEnabled) {
-        Log("Flip model disabled - DXGI will handle Alt+Enter normally");
     }
 
 
