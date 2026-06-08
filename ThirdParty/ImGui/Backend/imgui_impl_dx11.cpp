@@ -319,7 +319,8 @@ static void ImGui_ImplDX11_CreateFontsTexture()
         srvDesc.Texture2D.MipLevels = desc.MipLevels;
         srvDesc.Texture2D.MostDetailedMip = 0;
         g_pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &g_pFontTextureView);
-        pTexture->Release();
+        if (pTexture)
+         pTexture->Release();
     }
 
     // Store our identifier

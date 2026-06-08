@@ -409,6 +409,17 @@ void ToggleBorderlessFullscreen() {
         // Check if we're already in borderless fullscreen mode
         // Borderless fullscreen typically has WS_POPUP style and covers the monitor
         bool isBorderless = (currentStyle & WS_POPUP) && !(currentStyle & WS_CAPTION);
+
+        if (!isBorderless && !(currentStyle & WS_CAPTION)) {
+            RECT wr;
+            GetWindowRect(appWindow, &wr);
+            HMONITOR hm = MonitorFromWindow(appWindow, MONITOR_DEFAULTTOPRIMARY);
+            MONITORINFO mi = { sizeof(MONITORINFO) };
+            GetMonitorInfo(hm, &mi);
+            if (wr.left <= mi.rcMonitor.left && wr.top <= mi.rcMonitor.top &&
+                wr.right >= mi.rcMonitor.right && wr.bottom >= mi.rcMonitor.bottom)
+                isBorderless = true;
+        }
         
         if (isBorderless) {
             RECT windowRect;
@@ -461,11 +472,29 @@ void ToggleBorderlessFullscreen() {
         g_window.borderless.exStyle = GetWindowLongA(appWindow, GWL_EXSTYLE);
         GetWindowRect(appWindow, &g_window.borderless.windowRect);
 
-        // Get primary monitor info
+        if (!(g_window.borderless.style & WS_CAPTION)) {
+            g_window.borderless.style   = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+            g_window.borderless.exStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+        }
+
         HMONITOR hMonitor = MonitorFromWindow(appWindow, MONITOR_DEFAULTTOPRIMARY);
         MONITORINFO monitorInfo = {};
         monitorInfo.cbSize = sizeof(MONITORINFO);
         GetMonitorInfo(hMonitor, &monitorInfo);
+
+        int monW = monitorInfo.rcMonitor.right  - monitorInfo.rcMonitor.left;
+        int monH = monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top;
+        int svW  = g_window.borderless.windowRect.right  - g_window.borderless.windowRect.left;
+        int svH  = g_window.borderless.windowRect.bottom - g_window.borderless.windowRect.top;
+
+        if (svW >= monW && svH >= monH) {
+            int defW = (int)(monW * 0.92f);
+            int defH = (int)(monH * 0.92f);
+            g_window.borderless.windowRect.left   = monitorInfo.rcMonitor.left + (monW - defW) / 2;
+            g_window.borderless.windowRect.top    = monitorInfo.rcMonitor.top  + (monH - defH) / 2;
+            g_window.borderless.windowRect.right  = g_window.borderless.windowRect.left + defW;
+            g_window.borderless.windowRect.bottom = g_window.borderless.windowRect.top  + defH;
+        }
 
         Log("Transitioning to borderless fullscreen...");
 
@@ -515,7 +544,6 @@ void ToggleBorderlessFullscreen() {
             Log("Using default windowed rect (saved rect was invalid): %dx%d", defaultWidth, defaultHeight);
         }
 
-        // Restore windowed mode
         SetWindowLongA(appWindow, GWL_STYLE, g_window.borderless.style);
         SetWindowLongA(appWindow, GWL_EXSTYLE, g_window.borderless.exStyle);
 
@@ -524,6 +552,14 @@ void ToggleBorderlessFullscreen() {
             g_window.borderless.windowRect.right - g_window.borderless.windowRect.left,
             g_window.borderless.windowRect.bottom - g_window.borderless.windowRect.top,
             SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+
+        RECT verifyRect;
+        GetWindowRect(appWindow, &verifyRect);
+        DWORD verifyStyle = GetWindowLongA(appWindow, GWL_STYLE);
+            verifyStyle,
+            verifyRect.left, verifyRect.top,
+            verifyRect.right - verifyRect.left,
+            verifyRect.bottom - verifyRect.top;
 
         g_window.borderless.active = false;
         
