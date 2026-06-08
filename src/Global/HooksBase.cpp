@@ -381,7 +381,7 @@ static void ActivateWindow(HWND hWnd, bool active) {
         // Reset FPS limiter baseline so we don't burst frames after focus regain.
         g_lastPresentTime.QuadPart = 0;
 
-        g_flipSkip = 3;
+        //g_flipSkip = 3;
 
         // Release any keys that were held when focus was lost (Alt, Tab, etc.).
         ReleaseStuckKeys();
@@ -583,12 +583,35 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
         ActivateWindow(windowHandle, wParameter != FALSE);
         break;
     }
+    case WM_ACTIVATE: {
+        // WA_ACTIVE/WA_CLICKACTIVE = we're being activated by the user.
+        // WA_INACTIVE = we're losing focus. Handled alongside ACTIVATEAPP.
+        bool active = LOWORD(wParameter) != WA_INACTIVE;
+        if (active != !g_appInactive)
+            ActivateWindow(windowHandle, active);
+        break;
+    }
+    case WM_NCACTIVATE: {
+        // Non-client activation, window frame is being clicked.
+        ActivateWindow(windowHandle, wParameter != FALSE);
+        break;
+    }
     case WM_SETFOCUS: {
         ActivateWindow(windowHandle, true);
         break;
     }
     case WM_KILLFOCUS: {
         ActivateWindow(windowHandle, false);
+        break;
+    }
+    case WM_MOUSEACTIVATE: {
+        // User clicked the window while it was in the background.
+        // Activate and eat the message so the game doesn't see a
+        // spurious mouse click on regain.
+        if (g_appInactive) {
+            ActivateWindow(windowHandle, true);
+            return MA_ACTIVATE;
+        }
         break;
     }
     }

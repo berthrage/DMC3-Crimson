@@ -51,4 +51,5 @@ private:
     ID3D11DeviceContext* m_context;
     HWND                 m_hWnd;
     LONG                 m_refCount;
+    UINT                 m_version;
 };

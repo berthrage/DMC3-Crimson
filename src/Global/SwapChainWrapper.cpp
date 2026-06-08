@@ -1,5 +1,6 @@
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "SwapChainWrapper.hpp"
+#include <dxgi1_4.h>
 #include "HooksBase.hpp"
 #include "../Core/Macros.h"
 #include "../CrimsonHUD.hpp"
@@ -14,7 +15,8 @@ SwapChainWrapper::SwapChainWrapper(IDXGISwapChain* real, ID3D11Device* device, I
     , m_device(device)
     , m_context(context)
     , m_hWnd(hWnd)
-    , m_refCount(1) {
+    , m_refCount(1)
+    , m_version(0) {
     // Keep the real chain alive as long as we're around.
     if (m_real)
         m_real->AddRef();
@@ -255,6 +257,46 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
 
     // Present — the one that actually hits the GPU.
     HRESULT hr = m_real->Present(SyncInterval, presentFlags);
+
+    // If Present blew up with a mode-change error, try fixing the swap
+    // chain. DXGI_PRESENT_TEST tells us what's wrong, then we walk a
+    // ResizeBuffers → ResizeTarget → toggle-fullscreen recovery chain.
+    if (FAILED(hr) && hr != 0x087A0001) {
+        HRESULT probe = m_real->Present(SyncInterval, DXGI_PRESENT_TEST);
+
+        if (probe == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS) {
+            DXGI_SWAP_CHAIN_DESC desc = {};
+            m_real->GetDesc(&desc);
+
+            if (FAILED(m_real->ResizeBuffers(desc.BufferCount,
+                desc.BufferDesc.Width, desc.BufferDesc.Height,
+                desc.BufferDesc.Format, desc.Flags))) {
+
+                DXGI_MODE_DESC md = desc.BufferDesc;
+                m_real->ResizeTarget(&md);
+
+                if (FAILED(m_real->ResizeBuffers(desc.BufferCount,
+                    desc.BufferDesc.Width, desc.BufferDesc.Height,
+                    desc.BufferDesc.Format, desc.Flags))) {
+
+                    BOOL fs = FALSE;
+                    m_real->GetFullscreenState(&fs, nullptr);
+                    if (SUCCEEDED(m_real->SetFullscreenState(!fs, nullptr)))
+                        m_real->ResizeBuffers(desc.BufferCount,
+                            desc.BufferDesc.Width, desc.BufferDesc.Height,
+                            desc.BufferDesc.Format, desc.Flags);
+                }
+            }
+
+            RemoveRenderTarget();
+            CreateRenderTarget();
+            UpdateGlobalWindowSize();
+            UpdateGlobalClientSize();
+            UpdateGlobalRenderSize(desc.BufferDesc.Width, desc.BufferDesc.Height);
+
+            hr = m_real->Present(SyncInterval, presentFlags);
+        }
+    }
 
     // Occluded
     if (hr == 0x087A0001) {
