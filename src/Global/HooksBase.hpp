@@ -57,12 +57,41 @@ void UpdateKeyboard();
 void UpdateMouse();
 void UpdateGamepad();
 
+
+struct CrimsonWindow {
+    HWND  hWnd   = nullptr;
+    bool  active = true;
+
+    // game = what the game thinks; actual = what we've really set.
+    struct {
+        RECT  window = {};
+        RECT  client = {};
+        DWORD style  = 0;
+    } game, actual;
+
+    // Borderless toggle state.
+    struct {
+        bool  active     = false;
+        RECT  windowRect = {};
+        DWORD style      = 0;
+        DWORD exStyle    = 0;
+        bool  altPressed = false;
+    } borderless;
+
+    // Stuck keys — snapshot on focus loss, release on regain.
+    BYTE  lastKeyState[256] = {};
+
+    bool  wantBackgroundRender() const { return !active; }
+};
+
+extern CrimsonWindow g_window;
+
+// g_window.active is canonical; g_appInactive mirrors it for compat.
+extern bool g_appInactive;
+
 // Low-latency flip model optimization globals
 extern HANDLE g_frameLatencyWaitableObject;
 extern bool g_flipModelLatencyOptimized;
-
-// When true, the Present hook skips all rendering.
-extern bool g_appInactive;
 
 extern long g_flipSkip;
 

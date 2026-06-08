@@ -270,7 +270,7 @@ void FPSLimiter_Apply() {
 		return;
 
 	// Don't accumulate lag debt while backgrounded.
-	if (g_appInactive)
+	if (!g_window.active)
 		return;
 
 	LARGE_INTEGER now;
@@ -320,30 +320,21 @@ namespace Base::Windows {
 ::Windows::CreateFileW_t CreateFileW           = 0;
 }; // namespace Base::Windows
 
-static bool g_isBorderlessFullscreen = false;
-static RECT g_windowedRect = {};
-static DWORD g_windowedStyle = 0;
-static DWORD g_windowedExStyle = 0;
-
-// Key state tracking for Alt+Enter (proper keydown detection)
-static bool g_altEnterPressed = false;
+CrimsonWindow g_window;
 
 // Low-latency flip model optimization globals
 HANDLE g_frameLatencyWaitableObject = nullptr;
 bool g_flipModelLatencyOptimized = false;
 
+// Mirrors g_window.active for compat with external code.
 bool g_appInactive = false;
-
-// Stuck-key tracking
-// Snapshot held keys on focus loss; release them on regain.
-static BYTE g_lastKeyState[256] = {};
 
 static void ReleaseStuckKeys() {
     INPUT inputs[256] = {};
     int   numInputs   = 0;
 
     for (SHORT vKey = VK_CANCEL; vKey <= 255; ++vKey) {
-        if (std::exchange(g_lastKeyState[vKey], FALSE) != FALSE) {
+        if (std::exchange(g_window.lastKeyState[vKey], FALSE) != FALSE) {
             if ((GetAsyncKeyState(vKey) & 0x8000) != 0x0) {
                 const UINT   scanCode = MapVirtualKey(vKey, MAPVK_VK_TO_VSC);
                 const DWORD  flags    = ((scanCode & 0xE100) != 0 ? KEYEVENTF_EXTENDEDKEY : 0)
@@ -370,18 +361,15 @@ static void ReleaseStuckKeys() {
 
 
 static void ActivateWindow(HWND hWnd, bool active) {
-    const bool wasActive = !g_appInactive;
-
-    if (wasActive == active)
+    if (g_window.active == active)
         return;
 
-    g_appInactive = !active;
+    g_window.active = active;
+    g_appInactive   = !active;   // mirror for compat
 
     if (active) {
         // Reset FPS limiter baseline so we don't burst frames after focus regain.
         g_lastPresentTime.QuadPart = 0;
-
-        //g_flipSkip = 3;
 
         // Release any keys that were held when focus was lost (Alt, Tab, etc.).
         ReleaseStuckKeys();
@@ -389,7 +377,7 @@ static void ActivateWindow(HWND hWnd, bool active) {
         // Snapshot currently held keys so we can release them on regain.
         for (SHORT vKey = VK_CANCEL; vKey <= 255; ++vKey) {
             if ((GetAsyncKeyState(vKey) & 0x8000) != 0x0)
-                g_lastKeyState[vKey] = TRUE;
+                g_window.lastKeyState[vKey] = TRUE;
             if (vKey == VK_CANCEL)
                 vKey = VK_BACK - 1;
         }
@@ -438,10 +426,10 @@ void ToggleBorderlessFullscreen() {
                                (windowRect.bottom >= monitorInfo.rcMonitor.bottom);
             
             if (coversMonitor) {
-                g_isBorderlessFullscreen = true;
+                g_window.borderless.active = true;
                 // Set default windowed state (will be overridden when user switches to windowed)
-                g_windowedStyle = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
-                g_windowedExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+                g_window.borderless.style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+                g_window.borderless.exStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
                 
                 // Use a reasonable default windowed size (92% of monitor)
                 int defaultWidth = (monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left) * 0.92f;
@@ -449,29 +437,29 @@ void ToggleBorderlessFullscreen() {
                 int centerX = monitorInfo.rcMonitor.left + (monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left - defaultWidth) / 2;
                 int centerY = monitorInfo.rcMonitor.top + (monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top - defaultHeight) / 2;
                 
-                g_windowedRect.left = centerX;
-                g_windowedRect.top = centerY;
-                g_windowedRect.right = centerX + defaultWidth;
-                g_windowedRect.bottom = centerY + defaultHeight;
+                g_window.borderless.windowRect.left = centerX;
+                g_window.borderless.windowRect.top = centerY;
+                g_window.borderless.windowRect.right = centerX + defaultWidth;
+                g_window.borderless.windowRect.bottom = centerY + defaultHeight;
                 
                 Log("Detected initial borderless fullscreen state - set default windowed size: %dx%d", defaultWidth, defaultHeight);
             } else {
-                g_isBorderlessFullscreen = false;
+                g_window.borderless.active = false;
                 Log("Detected initial windowed state");
             }
         } else {
-            g_isBorderlessFullscreen = false;
+            g_window.borderless.active = false;
             Log("Detected initial windowed state");
         }
     }
 
-    Log("Starting window transition - current state: %s", g_isBorderlessFullscreen ? "borderless" : "windowed");
+    Log("Starting window transition - current state: %s", g_window.borderless.active ? "borderless" : "windowed");
 
-    if (!g_isBorderlessFullscreen) {
+    if (!g_window.borderless.active) {
         // Save current windowed state
-        g_windowedStyle = GetWindowLongA(appWindow, GWL_STYLE);
-        g_windowedExStyle = GetWindowLongA(appWindow, GWL_EXSTYLE);
-        GetWindowRect(appWindow, &g_windowedRect);
+        g_window.borderless.style = GetWindowLongA(appWindow, GWL_STYLE);
+        g_window.borderless.exStyle = GetWindowLongA(appWindow, GWL_EXSTYLE);
+        GetWindowRect(appWindow, &g_window.borderless.windowRect);
 
         // Get primary monitor info
         HMONITOR hMonitor = MonitorFromWindow(appWindow, MONITOR_DEFAULTTOPRIMARY);
@@ -492,7 +480,7 @@ void ToggleBorderlessFullscreen() {
             monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top,
             SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 
-        g_isBorderlessFullscreen = true;
+        g_window.borderless.active = true;
         
         Log("Switched to borderless fullscreen: %dx%d", 
             monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
@@ -501,13 +489,13 @@ void ToggleBorderlessFullscreen() {
         Log("Transitioning to windowed mode...");
 
         // Validate saved windowed state
-        if (g_windowedStyle == 0) {
-            g_windowedStyle = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
-            g_windowedExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+        if (g_window.borderless.style == 0) {
+            g_window.borderless.style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+            g_window.borderless.exStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
             Log("Using default windowed style (saved state was invalid)");
         }
         
-        if (g_windowedRect.right <= g_windowedRect.left || g_windowedRect.bottom <= g_windowedRect.top) {
+        if (g_window.borderless.windowRect.right <= g_window.borderless.windowRect.left || g_window.borderless.windowRect.bottom <= g_window.borderless.windowRect.top) {
             // Invalid saved rect, create a reasonable default
             HMONITOR hMonitor = MonitorFromWindow(appWindow, MONITOR_DEFAULTTOPRIMARY);
             MONITORINFO monitorInfo = {};
@@ -519,29 +507,29 @@ void ToggleBorderlessFullscreen() {
             int centerX = monitorInfo.rcMonitor.left + (monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left - defaultWidth) / 2;
             int centerY = monitorInfo.rcMonitor.top + (monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top - defaultHeight) / 2;
             
-            g_windowedRect.left = centerX;
-            g_windowedRect.top = centerY;
-            g_windowedRect.right = centerX + defaultWidth;
-            g_windowedRect.bottom = centerY + defaultHeight;
+            g_window.borderless.windowRect.left = centerX;
+            g_window.borderless.windowRect.top = centerY;
+            g_window.borderless.windowRect.right = centerX + defaultWidth;
+            g_window.borderless.windowRect.bottom = centerY + defaultHeight;
             
             Log("Using default windowed rect (saved rect was invalid): %dx%d", defaultWidth, defaultHeight);
         }
 
         // Restore windowed mode
-        SetWindowLongA(appWindow, GWL_STYLE, g_windowedStyle);
-        SetWindowLongA(appWindow, GWL_EXSTYLE, g_windowedExStyle);
+        SetWindowLongA(appWindow, GWL_STYLE, g_window.borderless.style);
+        SetWindowLongA(appWindow, GWL_EXSTYLE, g_window.borderless.exStyle);
 
         SetWindowPos(appWindow, HWND_NOTOPMOST,
-            g_windowedRect.left, g_windowedRect.top,
-            g_windowedRect.right - g_windowedRect.left,
-            g_windowedRect.bottom - g_windowedRect.top,
+            g_window.borderless.windowRect.left, g_window.borderless.windowRect.top,
+            g_window.borderless.windowRect.right - g_window.borderless.windowRect.left,
+            g_window.borderless.windowRect.bottom - g_window.borderless.windowRect.top,
             SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 
-        g_isBorderlessFullscreen = false;
+        g_window.borderless.active = false;
         
         Log("Switched to windowed mode: %dx%d", 
-            g_windowedRect.right - g_windowedRect.left,
-            g_windowedRect.bottom - g_windowedRect.top);
+            g_window.borderless.windowRect.right - g_window.borderless.windowRect.left,
+            g_window.borderless.windowRect.bottom - g_window.borderless.windowRect.top);
     }
 }
 
@@ -561,16 +549,16 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
     if (activeCrimsonConfig.System.flipModelPresentation) {
         // Handle Alt+Enter 
         if (message == WM_SYSKEYDOWN && wParameter == VK_RETURN && (lParameter & (1 << 29))) {
-            if (GetForegroundWindow() == windowHandle && !g_altEnterPressed) {
+            if (GetForegroundWindow() == windowHandle && !g_window.borderless.altPressed) {
                 // Key pressed down for the first time
-                g_altEnterPressed = true;
+                g_window.borderless.altPressed = true;
                 Log("Alt+Enter pressed via WindowProc - triggering fullscreen toggle");
                 ToggleBorderlessFullscreen();
                 return 0; // Consume the keydown message completely
             }
         } else if (message == WM_SYSKEYUP && wParameter == VK_RETURN && (lParameter & (1 << 29))) {
-            if (g_altEnterPressed) {
-                g_altEnterPressed = false;
+            if (g_window.borderless.altPressed) {
+                g_window.borderless.altPressed = false;
 
             }
             // Don't return 0 here - let the keyup message pass through to the base handler
@@ -584,11 +572,11 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
         break;
     }
     case WM_ACTIVATE: {
-        // WA_ACTIVE/WA_CLICKACTIVE = we're being activated by the user.
-        // WA_INACTIVE = we're losing focus. Handled alongside ACTIVATEAPP.
-        bool active = LOWORD(wParameter) != WA_INACTIVE;
-        if (active != !g_appInactive)
-            ActivateWindow(windowHandle, active);
+        // WA_ACTIVE/WA_CLICKACTIVE = we're gaining focus.
+        // WA_INACTIVE = we're losing it. Handled alongside ACTIVATEAPP.
+        bool becomingActive = LOWORD(wParameter) != WA_INACTIVE;
+        if (becomingActive != g_window.active)
+            ActivateWindow(windowHandle, becomingActive);
         break;
     }
     case WM_NCACTIVATE: {
@@ -606,9 +594,9 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
     }
     case WM_MOUSEACTIVATE: {
         // User clicked the window while it was in the background.
-        // Activate and eat the message so the game doesn't see a
-        // spurious mouse click on regain.
-        if (g_appInactive) {
+        // Activate and eat the message so the game doesn't get a
+        // stray mouse click on regain.
+        if (!g_window.active) {
             ActivateWindow(windowHandle, true);
             return MA_ACTIVATE;
         }
@@ -999,6 +987,7 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
 	::DXGI::swapChain      = *ppSwapChain;
 
 	appWindow = pSwapChainDesc->OutputWindow;
+	g_window.hWnd = appWindow;
 
 	UpdateGlobalWindowSize();
 	UpdateGlobalClientSize();
