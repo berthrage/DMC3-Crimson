@@ -1,5 +1,16 @@
 #define SDL_MAIN_HANDLED
-#include "../ThirdParty/SDL2/SDL.h"
+#include "../ThirdParty/SDL3/SDL.h"
+/* SDL3 renamed SDL_RWops to SDL_IOStream. Alias for SDL2_mixer compatibility. */
+typedef SDL_IOStream SDL_RWops;
+/* SDL3 removed SDL_bool; SDL2_mixer.h still uses it. */
+#define SDL_bool bool
+/* SDL3 removed SDL_MIX_MAXVOLUME; SDL2_mixer.h uses it. */
+#define SDL_MIX_MAXVOLUME 128
+/* Skip SDL2's SDL_rwops.h (its SDL_ReadU8/SDL_WriteU8 conflict with SDL3's SDL_iostream.h).
+   The typedef above provides all SDL_mixer.h needs from it. */
+#define SDL_rwops_h_
+/* SDL3 removed the SDL_version struct; SDL2_mixer.h uses it as a pointer. Forward-declare. */
+struct SDL_version;
 #include "../ThirdParty/SDL2/SDL_mixer.h"
 #include <string>
 #include <thread>
@@ -20,13 +31,13 @@
 
 namespace CrimsonSDL {
 
-SDL_GameController* mainController = NULL;
-std::vector<SDL_GameController*> controllers(4, NULL);
+SDL_Gamepad* mainController = NULL;
+std::vector<SDL_Gamepad*> controllers(4, NULL);
 std::unordered_set<SDL_JoystickID> currentlyConnected;
-std::string SDL2Initialization   = "";
+std::string SDL3Initialization   = "";
 std::string MixerInitialization  = "";
 std::string MixerInitialization2 = "";
-bool SDL2Init                    = false;
+bool SDL3Init                    = false;
 bool cacheAudioFiles             = false;
 Mix_Chunk* changeGun;
 Mix_Chunk* changeDevilArm;
@@ -127,14 +138,14 @@ namespace CHANNEL {
 
 SDL_FUNCTION_DECLRATION(SDL_Init)                         = NULL;
 SDL_FUNCTION_DECLRATION(SDL_PollEvent)                    = NULL;
+SDL_FUNCTION_DECLRATION(Mix_OpenAudioDevice)              = NULL;
 SDL_FUNCTION_DECLRATION(Mix_OpenAudio)                    = NULL;
 SDL_FUNCTION_DECLRATION(Mix_Init)                         = NULL;
-SDL_FUNCTION_DECLRATION(SDL_NumJoysticks)                 = NULL;
-SDL_FUNCTION_DECLRATION(SDL_GameControllerOpen)           = NULL;
-SDL_FUNCTION_DECLRATION(SDL_GameControllerClose)          = NULL;
-SDL_FUNCTION_DECLRATION(SDL_GameControllerGetPlayerIndex) = NULL;
-SDL_FUNCTION_DECLRATION(SDL_GameControllerGetJoystick)    = NULL;
-SDL_FUNCTION_DECLRATION(SDL_HapticOpenFromJoystick)       = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GetGamepads)                 = NULL;
+SDL_FUNCTION_DECLRATION(SDL_OpenGamepad)                  = NULL;
+SDL_FUNCTION_DECLRATION(SDL_CloseGamepad)                 = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GetGamepadPlayerIndex)        = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GetGamepadJoystick)           = NULL;
 SDL_FUNCTION_DECLRATION(Mix_AllocateChannels)             = NULL;
 SDL_FUNCTION_DECLRATION(Mix_ReserveChannels)              = NULL;
 SDL_FUNCTION_DECLRATION(Mix_LoadWAV)                      = NULL;
@@ -153,14 +164,14 @@ SDL_FUNCTION_DECLRATION(Mix_GetMusicVolume)               = NULL;
 SDL_FUNCTION_DECLRATION(Mix_FadeInMusic)                  = NULL;
 SDL_FUNCTION_DECLRATION(Mix_FadeOutMusic)                 = NULL;
 SDL_FUNCTION_DECLRATION(Mix_PlayingMusic)                 = NULL;
-SDL_FUNCTION_DECLRATION(SDL_GameControllerGetButton)      = NULL;
-SDL_FUNCTION_DECLRATION(SDL_JoystickInstanceID)           = NULL;
-SDL_FUNCTION_DECLRATION(SDL_JoystickGetDeviceInstanceID)  = NULL;
-SDL_FUNCTION_DECLRATION(SDL_JoystickUpdate)               = NULL;
-SDL_FUNCTION_DECLRATION(SDL_GameControllerName)           = NULL;
-SDL_FUNCTION_DECLRATION(SDL_IsGameController)             = NULL;
-SDL_FUNCTION_DECLRATION(SDL_GameControllerRumble)         = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GetGamepadButton)             = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GetGamepadID)        = NULL;
+SDL_FUNCTION_DECLRATION(SDL_UpdateGamepads)              = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GetGamepadName)               = NULL;
+SDL_FUNCTION_DECLRATION(SDL_IsGamepad)                    = NULL;
+SDL_FUNCTION_DECLRATION(SDL_RumbleGamepad)                = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetError)                     = NULL;
+SDL_FUNCTION_DECLRATION(SDL_free)                         = NULL;
 
 void LoadAllSFX() {
 	if (!cacheAudioFiles) {
@@ -228,38 +239,41 @@ void LoadAllSFX() {
 	}
 }
 
-void AddController(int index) {
-	if (fn_SDL_IsGameController(index)) {
-		SDL_GameController* controller = fn_SDL_GameControllerOpen(index);
-		if (controller) {
-			SDL_JoystickID instanceID = fn_SDL_JoystickInstanceID(fn_SDL_GameControllerGetJoystick(controller));
+void AddController(SDL_JoystickID instanceID) {
+	if (fn_SDL_IsGamepad == NULL || fn_SDL_OpenGamepad == NULL) return;
+	if (fn_SDL_IsGamepad(instanceID)) {
+		SDL_Gamepad* gamepad = fn_SDL_OpenGamepad(instanceID);
+		if (gamepad) {
 			currentlyConnected.insert(instanceID);
 			bool assigned = false;
 			for (auto& ctrl : controllers) {
 				if (ctrl == NULL) {
-					ctrl = controller;
+					ctrl = gamepad;
 					assigned = true;
 					break;
 				}
 			}
 			if (!assigned) {
-				std::cerr << "Too many controllers connected. Ignoring controller " << index << "\n";
-				fn_SDL_GameControllerClose(controller);
+				std::cerr << "Too many controllers connected. Ignoring controller " << instanceID << "\n";
+				fn_SDL_CloseGamepad(gamepad);
 			}
 			else {
-				std::cout << "Opened controller " << index << ": " << fn_SDL_GameControllerName(controller) << std::endl;
+				const char* name = (fn_SDL_GetGamepadName != NULL) ? fn_SDL_GetGamepadName(gamepad) : "Unknown";
+				std::cout << "Opened controller " << instanceID << ": " << name << std::endl;
 			}
 		}
 		else {
-			std::cerr << "Could not open controller " << index << ": " << fn_SDL_GetError() << std::endl;
+			const char* err = (fn_SDL_GetError != NULL) ? fn_SDL_GetError() : "Unknown error";
+			std::cerr << "Could not open controller " << instanceID << ": " << err << std::endl;
 		}
 	}
 }
 
 void RemoveController(SDL_JoystickID instanceID) {
+	if (fn_SDL_GetGamepadID == NULL || fn_SDL_CloseGamepad == NULL) return;
 	for (int i = 0; i < controllers.size(); ++i) {
-		if (controllers[i] && fn_SDL_JoystickInstanceID(fn_SDL_GameControllerGetJoystick(controllers[i])) == instanceID) {
-			fn_SDL_GameControllerClose(controllers[i]);
+		if (controllers[i] && fn_SDL_GetGamepadID(controllers[i]) == instanceID) {
+			fn_SDL_CloseGamepad(controllers[i]);
 			controllers[i] = NULL;
 			currentlyConnected.erase(instanceID);
 			std::cout << "Closed controller at index " << i << "  instanceID: " << instanceID << "\n";
@@ -269,35 +283,64 @@ void RemoveController(SDL_JoystickID instanceID) {
 }
 
 void InitControllers() {
-	for (int i = 0; i < fn_SDL_NumJoysticks(); ++i) {
-        AddController(i);
+	if (fn_SDL_GetGamepads == NULL || fn_SDL_free == NULL) return;
+	int count;
+	SDL_JoystickID* joysticks = fn_SDL_GetGamepads(&count);
+	if (joysticks) {
+		for (int i = 0; i < count; ++i) {
+			AddController(joysticks[i]);
+		}
+		fn_SDL_free(joysticks);
 	}
 }
 
 void InitSDL() {
-    if (!SDL2Init) {
-        // Get the function addresses
+    if (!SDL3Init) {
+        // --- Phase 1: Load SDL3 core functions and init SDL3 ---
         LOAD_SDL_FUNCTION(SDL_Init);
+
+		if (fn_SDL_Init == NULL) {
+			SDL3Initialization = "SDL3 Error: SDL_Init not found";
+			MessageBoxA(NULL,
+				"SDL3.dll could not be loaded.\n\nPlease ensure SDL3.dll is present in the game folder.\n\nThe application will now close.",
+				"Crimson - Missing Dependency", MB_OK | MB_ICONERROR);
+			exit(1);
+		}
+
+		// SDL3: SDL_Init returns bool; SDL_INIT_HAPTIC removed (merged into GAMEPAD)
+		if (!fn_SDL_Init(SDL_INIT_GAMEPAD)) {
+			SDL3Initialization = std::string("SDL3 Error: ") + (fn_SDL_GetError ? fn_SDL_GetError() : "unknown");
+			MessageBoxA(NULL,
+				"SDL3.dll could not be loaded.\n\nPlease ensure SDL3.dll is present in the game folder.\n\nThe application will now close.",
+				"Crimson - Missing Dependency", MB_OK | MB_ICONERROR);
+			exit(1);
+		}
+		SDL3Initialization = "SDL3 Success";
+		Log((SDL3Initialization).c_str());
         LOAD_SDL_FUNCTION(SDL_PollEvent);
-        LOAD_SDL_FUNCTION(SDL_NumJoysticks);
-        LOAD_SDL_FUNCTION(SDL_GameControllerOpen);
-        LOAD_SDL_FUNCTION(SDL_GameControllerClose);
-        LOAD_SDL_FUNCTION(SDL_GameControllerGetPlayerIndex);
-        LOAD_SDL_FUNCTION(SDL_GameControllerGetJoystick);
-        LOAD_SDL_FUNCTION(SDL_GameControllerGetButton);
-        LOAD_SDL_FUNCTION(SDL_IsGameController);
-        LOAD_SDL_FUNCTION(SDL_GameControllerName);
-        LOAD_SDL_FUNCTION(SDL_GameControllerRumble);
-        LOAD_SDL_FUNCTION(SDL_JoystickInstanceID);
-        LOAD_SDL_FUNCTION(SDL_JoystickGetDeviceInstanceID);
-        LOAD_SDL_FUNCTION(SDL_JoystickUpdate);
+        LOAD_SDL_FUNCTION(SDL_GetGamepads);
+        LOAD_SDL_FUNCTION(SDL_OpenGamepad);
+		LOAD_SDL_FUNCTION(SDL_CloseGamepad);
+		LOAD_SDL_FUNCTION(SDL_GetGamepadPlayerIndex);
+        LOAD_SDL_FUNCTION(SDL_GetGamepadJoystick);
+        LOAD_SDL_FUNCTION(SDL_GetGamepadButton);
+        LOAD_SDL_FUNCTION(SDL_IsGamepad);
+        LOAD_SDL_FUNCTION(SDL_GetGamepadName);
+        LOAD_SDL_FUNCTION(SDL_RumbleGamepad);
+        LOAD_SDL_FUNCTION(SDL_GetGamepadID);
+        LOAD_SDL_FUNCTION(SDL_UpdateGamepads);
         LOAD_SDL_FUNCTION(SDL_GetError);
+        LOAD_SDL_FUNCTION(SDL_free);
+
+       
+
+        // --- Phase 2: Load SDL2_mixer (only after SDL3 is initialized) ---
         LOAD_MIXER_FUNCTION(Mix_AllocateChannels);
         LOAD_MIXER_FUNCTION(Mix_ReserveChannels);
         LOAD_MIXER_FUNCTION(Mix_LoadWAV);
         LOAD_MIXER_FUNCTION(Mix_LoadMUS);
         LOAD_MIXER_FUNCTION(Mix_FadeOutChannel);
-		LOAD_MIXER_FUNCTION(Mix_FadeInChannel);
+        LOAD_MIXER_FUNCTION(Mix_FadeInChannel);
         LOAD_MIXER_FUNCTION(Mix_Playing);
         LOAD_MIXER_FUNCTION(Mix_Pause);
         LOAD_MIXER_FUNCTION(Mix_Resume);
@@ -305,110 +348,108 @@ void InitSDL() {
         LOAD_MIXER_FUNCTION(Mix_PlayChannel);
         LOAD_MIXER_FUNCTION(Mix_SetPosition);
         LOAD_MIXER_FUNCTION(Mix_HaltChannel);
-		LOAD_MIXER_FUNCTION(Mix_FadeOutChannel);
         LOAD_MIXER_FUNCTION(Mix_VolumeMusic);
         LOAD_MIXER_FUNCTION(Mix_GetMusicVolume);
         LOAD_MIXER_FUNCTION(Mix_FadeInMusic);
         LOAD_MIXER_FUNCTION(Mix_FadeOutMusic);
         LOAD_MIXER_FUNCTION(Mix_PlayingMusic);
-        LOAD_MIXER_FUNCTION(Mix_OpenAudio);
+		LOAD_MIXER_FUNCTION(Mix_OpenAudio);
+        LOAD_MIXER_FUNCTION(Mix_OpenAudioDevice);
         LOAD_MIXER_FUNCTION(Mix_Init);
-        
 
-        if (fn_SDL_NumJoysticks == NULL) {
-            // TODO: Handle the error
-        }
+		Log("Mix_OpenAudioDevice: %p", fn_Mix_OpenAudioDevice);
+		Log("Mix_OpenAudio: %p", fn_Mix_OpenAudio);
+		Log("Mix_Init: %p", fn_Mix_Init);
 
-        if (fn_SDL_GameControllerOpen == NULL) {
-            // TODO: Handle the error
-        }
-
-        if (fn_SDL_GameControllerGetPlayerIndex == NULL) {
-            // TODO: Handle the error
-        }
-
-        if (fn_SDL_GameControllerGetJoystick == NULL) {
-            // TODO: Handle the error
-        }
-
-        if (fn_SDL_HapticOpenFromJoystick == NULL) {
-            // TODO: Handle the error
-        }
-
-        if (fn_Mix_AllocateChannels == NULL) {
-            // TODO: Handle the error
-        }
-
-        if (fn_Mix_ReserveChannels == NULL) {
-            // TODO: Handle the error
-        }
-        if (fn_Mix_LoadWAV == NULL) {
-            // TODO: Handle the error
-        }
-
-        if (fn_Mix_LoadMUS == NULL) {
-            // TODO: Handle the error
-        }
-
-        if (fn_SDL_Init == NULL) {
-            // TODO: Handle the error
-        }
-
-        if (fn_Mix_OpenAudio == NULL) {
-            // TODO: Handle the error
-        }
-
-        if (fn_Mix_Init == NULL) {
-            // TODO: Handle the error
-        }
-
-        if (fn_SDL_Init(SDL_INIT_AUDIO | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER) == -1) {
-            SDL2Initialization = "SDL2 Error";
+        // SDL2_mixer: returns 0 on success, -1 on error
+        if (fn_Mix_OpenAudioDevice != NULL) {
+            if (fn_Mix_OpenAudioDevice(44100, SDL_AUDIO_S16LE, 2, 512, NULL, 0) == -1) {
+                MixerInitialization = "Mixer Error";
+            } else {
+                MixerInitialization = "Mixer Success";
+            }
         } else {
-            SDL2Initialization = "SDL2 Success";
+            
+            if (fn_Mix_OpenAudio != NULL) {
+                if (fn_Mix_OpenAudio(44100, SDL_AUDIO_S16LE, 2, 512) == -1) {
+                    MixerInitialization = "Mixer Error (OpenAudio fallback)";
+                } else {
+                    MixerInitialization = "Mixer Success (OpenAudio fallback)";
+                }
+            } else {
+                MixerInitialization = "Mixer Error: OpenAudioDevice/OpenAudio not found";
+            }
         }
 
-        if (fn_Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 512) == -1) {
-            MixerInitialization = "Mixer Error";
-        } else {
-            MixerInitialization = "Mixer Success";
-        }
+		Log((MixerInitialization).c_str());
 
-        int flags = MIX_INIT_OGG | MIX_INIT_MP3;
-        if (!fn_Mix_Init(flags)) {
-            MixerInitialization2 = "Mixer2 Error";
+        // Mix_Init returns bitmask of loaded codecs (0 = nothing loaded = failure)
+        if (fn_Mix_Init != NULL) {
+            int flags = MIX_INIT_OGG | MIX_INIT_MP3;
+            int result = fn_Mix_Init(flags);
+            if (!result) {
+                MixerInitialization2 = "Mixer2 Error";
+            } else if ((result & flags) != flags) {
+                MixerInitialization2 = "Mixer2 Partial";
+            } else {
+                MixerInitialization2 = "Mixer2 Succes";
+            }
         } else {
-            MixerInitialization2 = "Mixer2 Success";
+            MixerInitialization2 = "Mixer2 Error: Mix_Init not found";
         }
 
         mainController = NULL;
-        for (int i = 0; i < 4; ++i) {
-            mainController = fn_SDL_GameControllerOpen(i);
-            if (mainController) {
-                break;
+        if (fn_SDL_GetGamepads != NULL && fn_SDL_IsGamepad != NULL && fn_SDL_OpenGamepad != NULL && fn_SDL_free != NULL) {
+            int joyCount;
+            SDL_JoystickID* joysticks = fn_SDL_GetGamepads(&joyCount);
+            if (joysticks) {
+                for (int i = 0; i < joyCount && i < 4; ++i) {
+                    if (fn_SDL_IsGamepad(joysticks[i])) {
+                        mainController = fn_SDL_OpenGamepad(joysticks[i]);
+                        if (mainController) {
+                            break;
+                        }
+                    }
+                }
+                fn_SDL_free(joysticks);
             }
         }
 
 
-        int controllerIndex = fn_SDL_GameControllerGetPlayerIndex(mainController);
+        int controllerIndex = (fn_SDL_GetGamepadPlayerIndex != NULL && mainController != NULL)
+            ? fn_SDL_GetGamepadPlayerIndex(mainController) : -1;
 
         InitControllers();
         CrimsonUtil::ReverseNonNull(controllers);
 
-        SDL2Init = true;
+        if (!g_SDL3Mixer) {
+            MessageBoxA(NULL,
+                "SDL2.dll / SDL2_mixer.dll could not be loaded.\n\nPlease ensure both SDL2.dll and SDL2_mixer.dll are present in the game folder.\n\nThe application will now close.",
+                "Crimson - Missing Dependency", MB_OK | MB_ICONERROR);
+            exit(1);
+        }
+
+        SDL3Init = true;
     }
 
 
     // CHUNKS OF SOUND
-    fn_Mix_AllocateChannels(1000);
+    if (fn_Mix_AllocateChannels != NULL) {
+        fn_Mix_AllocateChannels(1000);
+    }
 
     // RESERVES SELECT EFFECT SOUND FOR CHANNELS 100 AND ABOVE
-    fn_Mix_ReserveChannels(100);
+    if (fn_Mix_ReserveChannels != NULL) {
+        fn_Mix_ReserveChannels(100);
+    }
 
-    LoadAllSFX();
+    if (fn_Mix_LoadWAV != NULL && fn_Mix_LoadMUS != NULL) {
+        LoadAllSFX();
+    }
 }
 
 void PlayOnChannels(int initialChannel, int finalChannel, Mix_Chunk* sfx, int volume) {
+    if (!SDL3Init || fn_Mix_Playing == NULL || fn_Mix_Volume == NULL || fn_Mix_PlayChannel == NULL) return;
 
 	for (int i = initialChannel; i <= finalChannel; i++) {
 		if (!fn_Mix_Playing(i)) {
@@ -420,6 +461,7 @@ void PlayOnChannels(int initialChannel, int finalChannel, Mix_Chunk* sfx, int vo
 }
 
 void InterruptChannels(int initialChannel, int finalChannel) {
+    if (!SDL3Init || fn_Mix_Playing == NULL || fn_Mix_HaltChannel == NULL) return;
 
 	for (int i = initialChannel; i <= finalChannel; i++) {
 		if (fn_Mix_Playing(i)) {
@@ -486,34 +528,40 @@ void TickSnapQueue() {
 
 
 bool IsControllerButtonDown(int controllerIndex, int button) {
-   return fn_SDL_GameControllerGetButton(controllers[controllerIndex], (SDL_GameControllerButton)button);
+   if (fn_SDL_GetGamepadButton == NULL || controllers[controllerIndex] == NULL) return false;
+   return fn_SDL_GetGamepadButton(controllers[controllerIndex], (SDL_GamepadButton)button);
 }
 
 
 void CheckAndOpenControllers() {
+	if (fn_SDL_PollEvent == NULL) return;
 	SDL_Event event;
 
 	while (fn_SDL_PollEvent(&event)) {
-		if (event.type == SDL_CONTROLLERDEVICEADDED) {
-			AddController(event.cdevice.which);
-		} else if (event.type == SDL_CONTROLLERDEVICEREMOVED) {
-			RemoveController(event.cdevice.which); 
+		if (event.type == SDL_EVENT_GAMEPAD_ADDED) {
+			AddController(event.gdevice.which);
+		} else if (event.type == SDL_EVENT_GAMEPAD_REMOVED) {
+			RemoveController(event.gdevice.which); 
 		}
 	}
 }
 
 void UpdateJoysticks() {
-    fn_SDL_JoystickUpdate();
+    if (fn_SDL_UpdateGamepads != NULL) {
+        fn_SDL_UpdateGamepads();
+    }
     TickSnapQueue();
 }
 
 void VibrateController(int controllerIndex, Uint16 rumbleStrengthLowFreq, Uint16 rumbleStrengthHighFreq, int rumbleDuration) {
+    if (fn_SDL_RumbleGamepad == NULL) return;
     if (controllers[controllerIndex] != NULL) {
-		if (fn_SDL_GameControllerRumble(controllers[controllerIndex], rumbleStrengthLowFreq, rumbleStrengthHighFreq, rumbleDuration) == 0) {
-			//std::cout << "SWEET VIBRATION " << controllerIndex << std::endl;
+		if (fn_SDL_RumbleGamepad(controllers[controllerIndex], rumbleStrengthLowFreq, rumbleStrengthHighFreq, rumbleDuration)) {
+			// rumble started successfully
 		}
 		else {
-			std::cerr << "Vibration ERROR " << 0 << ": " << fn_SDL_GetError() << std::endl;
+			const char* err = (fn_SDL_GetError != NULL) ? fn_SDL_GetError() : "Unknown";
+			std::cerr << "Vibration ERROR " << controllerIndex << ": " << err << std::endl;
 		}
     }
 }
@@ -530,6 +578,7 @@ void FadeOutChannels(int channelException, int initialChannel, int numChannels, 
 }
 
 void PlayOnChannelsFadeOut(int initialChannel, int finalChannel, Mix_Chunk* sfx, int volume, int fadeOutms) {
+    if (!SDL3Init) return;
     int channelBeingPlayed = 0;
 
     for (int i = initialChannel; i <= finalChannel; i++) {
@@ -545,6 +594,7 @@ void PlayOnChannelsFadeOut(int initialChannel, int finalChannel, Mix_Chunk* sfx,
 }
 
 void PlayOnChannelsFadeOutPosition(int initialChannel, int finalChannel, Mix_Chunk* sfx, int volume, int fadeOutms, int angle, int distance) {
+    if (!SDL3Init) return;
 	int channelBeingPlayed = 0;
 
 
@@ -670,6 +720,7 @@ void PlaySnap(byte8* actorBaseAddr) {
 }
 
 void SetSFXDistanceMultipleChannels(int playerIndex, int initialChannel, int numberChannelsPerPlayer, int angle, int distance) {
+    if (!SDL3Init || fn_Mix_SetPosition == NULL) return;
     auto initialChannelPlayer = initialChannel + (numberChannelsPerPlayer * playerIndex);
 
     for (int i = initialChannelPlayer; i <= (initialChannelPlayer + (numberChannelsPerPlayer - 1)); i++) {
@@ -929,6 +980,7 @@ void PlayDelayedCombo2(int playerIndex) {
 }
 
 bool ChannelIsPlaying(int channel) {
+    if (!SDL3Init || fn_Mix_Playing == NULL) return false;
     return fn_Mix_Playing(channel);
 }
 
@@ -1043,33 +1095,40 @@ bool DriveStartIsPlaying(int playerIndex, int entityIndex) {
 }
 
 void PlayNewMissionClearSong() {
+    if (!SDL3Init || fn_Mix_VolumeMusic == NULL || fn_Mix_FadeInMusic == NULL) return;
     fn_Mix_VolumeMusic(60 * (activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f));
     fn_Mix_FadeInMusic(missionClearSong, -1, 500);
 }
 
 void PlayDivinityStatueSong() {
+    if (!SDL3Init || fn_Mix_VolumeMusic == NULL || fn_Mix_FadeInMusic == NULL) return;
 	fn_Mix_VolumeMusic(57 * (activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f));
 	fn_Mix_FadeInMusic(divinityStatueSong, -1, 500);
 }
 
 void FadeOutMusic(int delayMs) {
+    if (!SDL3Init || fn_Mix_FadeOutMusic == NULL) return;
     fn_Mix_FadeOutMusic(delayMs);
 }
 
 int IsMusicPlaying() {
+    if (!SDL3Init || fn_Mix_PlayingMusic == NULL) return 0;
     return fn_Mix_PlayingMusic();
 }
 
 void PlayBattleOfBrothersSong() {
+    if (!SDL3Init || fn_Mix_VolumeMusic == NULL || fn_Mix_FadeInMusic == NULL) return;
 	fn_Mix_VolumeMusic(31 * (activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f));
 	fn_Mix_FadeInMusic(battleOfBrothersSong, -1, 500);
 }
 
 void FadeOutMusic(float fadeoutTime) {
+    if (!SDL3Init || fn_Mix_FadeOutMusic == NULL) return;
     fn_Mix_FadeOutMusic(fadeoutTime);
 }
 
 void ReduceMusicVolumeInPause() {
+    if (!SDL3Init || fn_Mix_GetMusicVolume == NULL || fn_Mix_VolumeMusic == NULL) return;
 	auto pool_19315 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if (!pool_19315 || !pool_19315[8]) {
 		return;

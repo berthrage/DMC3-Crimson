@@ -218,7 +218,7 @@ void Load() {
             "dmc2.exe",
             "Lucia.dll",
         },
-        {"dmc3.exe", "Crimson.dll", "SDL2.dll", "SDL2_mixer.dll"},
+        {"dmc3.exe", "Crimson.dll", "SDL3.dll", "SDL2_mixer.dll"},
         {
             "dmc4.exe",
             "Kyrie.dll",

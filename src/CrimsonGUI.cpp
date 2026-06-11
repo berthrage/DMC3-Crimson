@@ -2,7 +2,7 @@
 #include "UI\WeaponWheel.hpp"
 
 #include "CrimsonEfk.hpp"
-#include "../ThirdParty/SDL2/SDL_gamecontroller.h"
+#include "../ThirdParty/SDL3/SDL_gamepad.h"
 #include "../ThirdParty/glm/glm.hpp"
 #include "CrimsonGUI.hpp"
 #include "CrimsonLicense.hpp"
@@ -66,7 +66,7 @@
 #include "Core/Macros.h"
 
 #include "Core/DebugSwitch.hpp"
-#include <SDL_joystick.h>
+#include "../ThirdParty/SDL3/SDL_joystick.h"
 #include "CrimsonTimers.hpp"
 #include "CrimsonOnTick.hpp"
 #include "CrimsonGameModes.hpp"
@@ -9436,7 +9436,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("styleRankCount Dismal Off Cooldown %u", rankAnnouncer[0].offCooldown);
             ImGui::Text("styleRankCount Crazy Off Cooldown %u", rankAnnouncer[1].offCooldown);*/
 
-            /*ImGui::Text("SDL2 %s", SDL2Initialization);
+            /*ImGui::Text("SDL3 %s", SDL3Initialization);
             ImGui::Text("Mixer  %s", MixerInitialization);
             ImGui::Text("Mixer2  %s", MixerInitialization2);*/
 
@@ -13749,9 +13749,9 @@ void GamepadToggleShowMain() {
 		if (CrimsonSDL::controllers[i] != NULL) {
 			// Combination of buttons to check
 			bool combination = (
-				CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_LEFTSTICK) &&
-				CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_RIGHTSTICK) &&
-				!CrimsonSDL::IsControllerButtonDown(i, SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_TOUCHPAD)
+				CrimsonSDL::IsControllerButtonDown(i, SDL_GamepadButton::SDL_GAMEPAD_BUTTON_LEFT_STICK) &&
+				CrimsonSDL::IsControllerButtonDown(i, SDL_GamepadButton::SDL_GAMEPAD_BUTTON_RIGHT_STICK) &&
+				!CrimsonSDL::IsControllerButtonDown(i, SDL_GamepadButton::SDL_GAMEPAD_BUTTON_TOUCHPAD)
 				);
 
 			// Combination pressed and was not pressed before, toggle GUI and set window focus

@@ -1,16 +1,16 @@
 #pragma once
 #include <string>
-#include "SDL.h"
+#include "../ThirdParty/SDL3/SDL.h"
 
 namespace CrimsonSDL {
 
-extern std::string SDL2Initialization;
+extern std::string SDL3Initialization;
 extern std::string MixerInitialization;
 extern std::string MixerInitialization2;
-extern bool SDL2Init;
+extern bool SDL3Init;
 extern bool cacheAudioFiles;
-extern SDL_GameController* mainController;
-extern std::vector<SDL_GameController*> controllers;
+extern SDL_Gamepad* mainController;
+extern std::vector<SDL_Gamepad*> controllers;
 
 void InitSDL();
 bool IsControllerButtonDown(int controllerIndex, int button);
