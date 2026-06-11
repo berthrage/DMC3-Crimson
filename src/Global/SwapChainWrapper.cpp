@@ -226,7 +226,7 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
 
     CrimsonEfk::EffekIncFrames();
     CrimsonEfk::EffekRenderOnPresent(m_context);
-    debug_draw_update(io.DeltaTime);
+    debug_draw_update(CrimsonClock::DeltaTime());
 
     // ImGui viewport extension (docking etc.)
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {

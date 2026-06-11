@@ -11,6 +11,8 @@
 
 #include "DataTypes.hpp"
 
+#include "../CrimsonClock.hpp"
+
 #undef CopyMemory
 
 extern bool noLog;

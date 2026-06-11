@@ -53,34 +53,34 @@ void FrameResponsiveGameSpeed() {
 		return;
 	}
 
-	// Calculate Delta Time Manually
-	static double lastTime = ImGui::GetTime();
-	double currentTime = ImGui::GetTime();
-	float deltaTime = static_cast<float>(currentTime - lastTime);
+	// Independent QPC timer — measures actual game-tick delta.
+	static LARGE_INTEGER s_freq = {};
+	static LARGE_INTEGER s_last = {};
+	static bool s_init = false;
+	if (!s_init) {
+		QueryPerformanceFrequency(&s_freq);
+		QueryPerformanceCounter(&s_last);
+		s_init = true;
+		return;
+	}
+	LARGE_INTEGER s_now;
+	QueryPerformanceCounter(&s_now);
+	float deltaTime = (float)(s_now.QuadPart - s_last.QuadPart) / (float)s_freq.QuadPart;
+	s_last = s_now;
 
 	if (deltaTime <= 0.0f) {
-		lastTime = currentTime;
 		return;
 	}
 
-	// Ignore hitch/pause frames before updating frame-rate responsive multipliers.
-	// This prevents stalled delta from contaminating speed math after resume.
 	float hitchThreshold = 0.06f;
 	if (deltaTime > hitchThreshold || g_inGUIPause) {
-		lastTime = currentTime;
 		return;
 	}
-
-	lastTime = currentTime;
 
 	g_deltaTime = deltaTime;
 
-  // Compute frame rate and multiplier.
-	// Use measured tick delta for speed math (authoritative for simulation pacing),
-	// while keeping ImGui framerate for UI/debug display.
 	float measuredFrameRate = 1.0f / deltaTime;
-	float imguiFrameRate = ImGui::GetIO().Framerate;
-	g_FrameRate = (imguiFrameRate > 1.0f) ? imguiFrameRate : measuredFrameRate;
+	g_FrameRate = measuredFrameRate;
 	g_FrameRateTimeMultiplier = 60.0f / measuredFrameRate;
 
 	// Exponential smoothing for the rounded multiplier stability
@@ -96,6 +96,9 @@ void FrameResponsiveGameSpeed() {
 	// Effective runtime scaling is applied in Speed::Toggle using g_FrameRateTimeMultiplier.
 	UpdateFrameRate();
 
+	// Also tick the Crimson clock — ensures DeltaTime() works
+	// even when SwapChainWrapper is absent (e.g. RenderDoc capture mode).
+	CrimsonClock::Tick();
 
 	Speed::Toggle(true);
 	Speed::UpdateEffectiveSpeeds();

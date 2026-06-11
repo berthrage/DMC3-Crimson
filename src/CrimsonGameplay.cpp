@@ -901,7 +901,7 @@ void DanteStingerInputCrazyCombo(byte8* actorBaseAddr) {
 	bool meleeDown = (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK)) != 0;
 
 	if (meleeDown) {
-		stingerInput.meleeButtonHold += ImGui::GetIO().DeltaTime;
+		stingerInput.meleeButtonHold += CrimsonClock::DeltaTime();
 	}
 	else {
 		stingerInput.meleeButtonHold = 0.0f;
@@ -1358,12 +1358,12 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
         };
 
     // Update all buffers
-    updateBuffer(styleButtonPressed, styleButtonBuffer[playerIndex][entityIndex], STYLE_BUTTON_BUFFER_TIME, ImGui::GetIO().DeltaTime);
-    updateBuffer(styleButtonPressed, gunStyleButtonBuffer[playerIndex][entityIndex], GUN_STYLE_BUTTON_BUFFER_TIME, ImGui::GetIO().DeltaTime);
-    updateBuffer(styleButton2Pressed, rainstormStyleButtonBuffer[playerIndex][entityIndex], RAINSTORM_STYLE_BUTTON_BUFFER_TIME, ImGui::GetIO().DeltaTime);
-    updateBuffer(styleButton2Pressed, swordmasterStyleButtonBuffer[playerIndex][entityIndex], SWORDMASTER_STYLE_BUTTON_BUFFER_TIME, ImGui::GetIO().DeltaTime);
+    updateBuffer(styleButtonPressed, styleButtonBuffer[playerIndex][entityIndex], STYLE_BUTTON_BUFFER_TIME, CrimsonClock::DeltaTime());
+    updateBuffer(styleButtonPressed, gunStyleButtonBuffer[playerIndex][entityIndex], GUN_STYLE_BUTTON_BUFFER_TIME, CrimsonClock::DeltaTime());
+    updateBuffer(styleButton2Pressed, rainstormStyleButtonBuffer[playerIndex][entityIndex], RAINSTORM_STYLE_BUTTON_BUFFER_TIME, CrimsonClock::DeltaTime());
+    updateBuffer(styleButton2Pressed, swordmasterStyleButtonBuffer[playerIndex][entityIndex], SWORDMASTER_STYLE_BUTTON_BUFFER_TIME, CrimsonClock::DeltaTime());
     updateBuffer((actorData.buttons[2] & GetBinding(BINDING::SHOOT)) && !prevShootButton[playerIndex][entityIndex],
-        gunshotButtonBuffer[playerIndex][entityIndex], GUNSHOT_BUTTON_BUFFER_TIME, ImGui::GetIO().DeltaTime);
+        gunshotButtonBuffer[playerIndex][entityIndex], GUNSHOT_BUTTON_BUFFER_TIME, CrimsonClock::DeltaTime());
 
     static bool executes[PLAYER_COUNT][CHARACTER_COUNT][ENTITY_COUNT][4] = {};
     auto& cancels = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].cancels : crimsonPlayer[playerIndex].cancelsClone;
@@ -1577,7 +1577,7 @@ void DarkslayerCancelsVergilController(byte8* actorBaseAddr) {
 
 	constexpr float COOLDOWN_MS = 700.0f;
 
-	float deltaTime = ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier) * 1000.0f; // to ms
+	float deltaTime = CrimsonClock::DeltaTime() * (actorData.speed / g_FrameRateTimeMultiplier) * 1000.0f; // to ms
 
 	// Detect button press (not hold)
 	bool styleButtonDown = (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) != 0;
@@ -1717,7 +1717,7 @@ void VergilTrackSwordFormationBuffer(byte8* actorBaseAddr) {
 		(actorData.buttons[0] & GetBinding(BINDING::SHOOT)) != 0;
 	const float spiralHoldTimer = *reinterpret_cast<const float*>(actorBaseAddr + 0x68F8);
 	const float GRACE_PERIOD = 0.2f; // 200 ms grace period after input to allow for formation change
-	const float graceDelta = ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+	const float graceDelta = CrimsonClock::DeltaTime() * (actorData.speed / g_FrameRateTimeMultiplier);
 	bool spiralSwordsActive = *reinterpret_cast<bool*>(actorBaseAddr + 0xB598);
 	// This function processes the buffered formation request towards CheckSummonedSwordFormationShortcutInput at CrimsonDetours.cpp
 
@@ -1729,7 +1729,7 @@ void VergilTrackSwordFormationBuffer(byte8* actorBaseAddr) {
 	// When it reaches RESET_DELAY, the buffered formation is cleared.
 	const float RESET_DELAY = 0.3f; // 100 ms
 	if (spiralHoldTimer <= 0.0f) {
-		sf.resetTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+		sf.resetTimer += CrimsonClock::DeltaTime() * (actorData.speed / g_FrameRateTimeMultiplier);
 		if (sf.resetTimer >= RESET_DELAY) {
 			if (sf.formationBuffered) {
 				sf.gracePeriodTimer = 0.0f;
@@ -1815,7 +1815,7 @@ void VergilRisingStar(byte8* actorBaseAddr) {
 	bool meleeDown = (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK)) != 0;
 
 	if (meleeDown) {
-		risingStarInput.meleeButtonHold += ImGui::GetIO().DeltaTime;
+		risingStarInput.meleeButtonHold += CrimsonClock::DeltaTime();
 	} else {
 		risingStarInput.meleeButtonHold = 0.0f;
 	}
@@ -1985,7 +1985,7 @@ void VergilYamatoHighTime(byte8* actorBaseAddr) {
 	bool meleeDown = (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK)) != 0;
 
 	if (meleeDown) {
-		meleeButtonHold[playerIndex][entityIndex] += ImGui::GetIO().DeltaTime;
+		meleeButtonHold[playerIndex][entityIndex] += CrimsonClock::DeltaTime();
 	}
 	else {
 		meleeButtonHold[playerIndex][entityIndex] = 0.0f;
@@ -2160,7 +2160,7 @@ void AirJDCCancellingController(byte8* actorBaseAddr) {
 	constexpr float COOLDOWN_MS = 700.0f;
 	constexpr float MOVE_PART_2_CANCEL_WINDOW = 300.0f; // seconds
 
-	float deltaTime = ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier) * 1000.0f; // to ms
+	float deltaTime = CrimsonClock::DeltaTime() * (actorData.speed / g_FrameRateTimeMultiplier) * 1000.0f; // to ms
 
 	// Detect style button press (edge, not hold) for trick cancels
 	bool styleButtonDown = (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) != 0;
@@ -2524,7 +2524,7 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 		float JUST_FRAME_WINDOW = (startedInAir[playerIndex][entityIndex] ? JUST_FRAME_WINDOW_AIR : JUST_FRAME_WINDOW_GROUND) * speedFactor;
 		jCut.meleeMaxHoldTime = jCut.meleeHoldTime + JUST_FRAME_WINDOW;
 
-		jCut.meleeButtonHold += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+		jCut.meleeButtonHold += CrimsonClock::DeltaTime() * (actorData.speed / g_FrameRateTimeMultiplier);
 
 		bool inJFWindow = (jCut.meleeButtonHold >= jCut.meleeHoldTime &&
 			jCut.meleeButtonHold <= jCut.meleeMaxHoldTime &&
@@ -3524,7 +3524,7 @@ void BulletMagnetism(byte8* actorBaseAddr) {
 			bulletMagnetism.gunButtonTimer = 0.0f;
 		}
 		else {
-			bulletMagnetism.gunButtonTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+			bulletMagnetism.gunButtonTimer += CrimsonClock::DeltaTime() * (actorData.speed / g_FrameRateTimeMultiplier);
 		}
 	}
 	else {
@@ -5409,7 +5409,7 @@ void DanteDriveRework(byte8* actorBaseAddr) {
 
 	// Increment timer while in motion 19
 	if (actorData.motionData[0].index == 19 && actorData.action == REBELLION_DRIVE_1) {
-		drive.motion19Timer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+		drive.motion19Timer += CrimsonClock::DeltaTime() * (actorData.speed / g_FrameRateTimeMultiplier);
 	}
 
 
@@ -5449,7 +5449,7 @@ void DanteDriveRework(byte8* actorBaseAddr) {
 
 	// Incrementing level timer
 	if (drive.runLevelTimer && (actorData.motionData[0].index == 17 || actorData.motionData[0].index == 18)) {
-		drive.levelTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+		drive.levelTimer += CrimsonClock::DeltaTime() * (actorData.speed / g_FrameRateTimeMultiplier);
 	}
 	else if (!drive.runLevelTimer) {
 		drive.levelTimer = 0.0f;
@@ -5605,7 +5605,7 @@ void DanteDriveRework(byte8* actorBaseAddr) {
 			if (hasOverDrive) {
 				// QuickDrive charge timer: runs during charging (not in motion 19 swing)
 				if (actorData.motionData[0].index != 19 && !drive.quickChargeComplete) {
-					drive.quickChargeTimer += ImGui::GetIO().DeltaTime * (actorData.speed / g_FrameRateTimeMultiplier);
+					drive.quickChargeTimer += CrimsonClock::DeltaTime() * (actorData.speed / g_FrameRateTimeMultiplier);
 
 					// Start looping VFX (regular Drive's charge VFX)
 					if (!drive.quickChargeVfxPlaying) {

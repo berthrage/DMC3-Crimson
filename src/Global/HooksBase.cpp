@@ -864,7 +864,9 @@ void Timestep() {
 
     QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&currentCounter));
 
-    ImGui::GetIO().DeltaTime = (static_cast<float>(currentCounter - mainCounter) / static_cast<float>(frequency));
+    float dt = (static_cast<float>(currentCounter - mainCounter) / static_cast<float>(frequency));
+    if (ImGui::GetCurrentContext()) ImGui::GetIO().DeltaTime = dt;
+    CrimsonClock::Tick();
 
     mainCounter = currentCounter;
 }

@@ -664,7 +664,7 @@ void HandlePanoramicSPCameraDistance(float& cameraDistance, float groundDistance
 		if (now - lastWallClearTime > wallCooldown) {
 			if (g_inCombat) {
 				// Handle camera distance adjustment based on screen position
-				float deltaTime = ImGui::GetIO().DeltaTime;
+				float deltaTime = CrimsonClock::DeltaTime();
 				if (needZoomOut) {
 					lastAdjustmentTime = std::chrono::steady_clock::now(); // Reset timer
 					cameraDistance += (maxDistance - cameraDistance) * (1.0f - std::exp(-10.0f * deltaTime));
@@ -691,7 +691,7 @@ void HandlePanoramicSPCameraDistance(float& cameraDistance, float groundDistance
 					}
 				}
 			} else {
-				float deltaTime = ImGui::GetIO().DeltaTime;
+				float deltaTime = CrimsonClock::DeltaTime();
 				// Smoothly reset to ground distance when out of combat or returning to the ground
 				if (std::abs(cameraDistance - groundDistance) > 5.0f) { // Deadzone
 					cameraDistance += (groundDistance - cameraDistance) * (1.0f - std::exp(-3.0f * deltaTime));
@@ -704,7 +704,7 @@ void HandlePanoramicSPCameraDistance(float& cameraDistance, float groundDistance
 		// Not colliding, normal logic
 		if (g_inCombat) {
 			// Handle camera distance adjustment based on screen position
-			float deltaTime = ImGui::GetIO().DeltaTime;
+			float deltaTime = CrimsonClock::DeltaTime();
 			if (needZoomOut) {
 				lastAdjustmentTime = std::chrono::steady_clock::now(); // Reset timer
 				cameraDistance += (maxDistance - cameraDistance) * (1.0f - std::exp(-10.0f * deltaTime));
@@ -731,7 +731,7 @@ void HandlePanoramicSPCameraDistance(float& cameraDistance, float groundDistance
 				}
 			}
 		} else {
-			float deltaTime = ImGui::GetIO().DeltaTime;
+			float deltaTime = CrimsonClock::DeltaTime();
 			// Smoothly reset to ground distance when out of combat or returning to the ground
 			if (std::abs(cameraDistance - groundDistance) > 5.0f) {
 				cameraDistance += (groundDistance - cameraDistance) * (1.0f - std::exp(-3.0f * deltaTime));
@@ -914,7 +914,7 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 		auto now = std::chrono::steady_clock::now();
 		if (now - lastWallClearTime > wallCooldown) {
 			// Handle camera distance adjustment using frame-rate independent smooth damping
-			float deltaTime = ImGui::GetIO().DeltaTime;
+			float deltaTime = CrimsonClock::DeltaTime();
 			if (needZoomOut) {
 				lastAdjustmentTime = std::chrono::steady_clock::now(); // Reset timer
 				// Exponentially smooth towards max distance
@@ -935,7 +935,7 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 		}
 	} else {
 		// Not colliding, normal logic (Using smooth damping)
-		float deltaTime = ImGui::GetIO().DeltaTime;
+		float deltaTime = CrimsonClock::DeltaTime();
 		if (needZoomOut) {
 			lastAdjustmentTime = std::chrono::steady_clock::now(); // Reset timer
 			cameraDistance += (maxDistance - cameraDistance) * (1.0f - std::exp(-10.0f * deltaTime));
@@ -1907,7 +1907,7 @@ void MenuScrollTapSpeedFix(bool enable) {
 
 
 	// TIME GATE (100ms) — unconditional
-	double now = ImGui::GetTime();
+	double now = CrimsonClock::Time();
 	if ((now - lastUpdateTime) < 0.1)
 		return;
 

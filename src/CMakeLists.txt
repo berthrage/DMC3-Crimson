@@ -179,6 +179,8 @@ file(GLOB MAIN_SRC
     CrimsonConfigHandling.h
     CrimsonBetterArkham2.cpp
     CrimsonBetterArkham2.hpp
+    CrimsonClock.cpp
+    CrimsonClock.hpp
     CrimsonCameraController.cpp
     CrimsonCameraController.hpp
     CrimsonDetours.cpp
