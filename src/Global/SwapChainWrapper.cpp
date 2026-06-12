@@ -5,8 +5,7 @@
 #include "../Core/Macros.h"
 #include "../CrimsonHUD.hpp"
 #include "../CrimsonEfkPreload.hpp"
-
-long g_flipSkip = 0;
+#include "../NvApiReflex.hpp"
 
 // Construction
 
@@ -133,13 +132,6 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::GetLastPresentCount(UINT* pLastPrese
 // Present
 
 HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flags) {
-    // Skip a few frames after focus regain, controller drivers need
-    // time to re-acquire their devices without stalling us.
-    if (g_flipSkip > 0) {
-        g_flipSkip--;
-        return m_real->Present(SyncInterval, Flags);
-    }
-
     // First-frame init — deferring this here means we don't need to
     // worry about the device context being ready during creation.
     static bool s_firstFrameInitDone = false;
@@ -166,6 +158,47 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
         }
 
         FPSLimiter_Init(500.0);
+
+        // Always initialize NVAPI on first frame — needed for PCL Stats
+        // (NVIDIA App overlay) regardless of Reflex toggle state.
+        if (GetNvApiReflex().Initialize(m_device)) {
+            Log("%s NVAPI loaded — PCL Stats active", FUNC_NAME);
+
+            // Configure Reflex low-latency mode if enabled in config
+            if (activeCrimsonConfig.System.nvidiaReflex) {
+                double reflexCap = activeCrimsonConfig.System.fpsUnlocked
+                    ? 0.0 : activeCrimsonConfig.System.fpsCap;
+                if (GetNvApiReflex().Configure(
+                        true,
+                        reflexCap,
+                        activeCrimsonConfig.System.nvidiaReflexBoost,
+                        true)) {
+                    Log("%s NVIDIA Reflex low-latency mode enabled", FUNC_NAME);
+                } else {
+                    Log("%s NVIDIA Reflex unavailable — falling back to CPU limiter", FUNC_NAME);
+                }
+            }
+        } else {
+            Log("%s NVAPI not available — PCL Stats and Reflex disabled", FUNC_NAME);
+        }
+    }
+
+    // ── Frame pacing
+    // NVIDIA Reflex: Sleep() at frame start lets the driver pace frames
+    // at the GPU-optimal point. Only active when Reflex is toggled on AND
+    // successfully configured. Falls back to CPU FPS limiter otherwise.
+    if (!activeCrimsonConfig.System.fpsUnlocked) {
+        if (activeCrimsonConfig.System.nvidiaReflex && !GetNvApiReflex().Sleep()) {
+            FPSLimiter_Apply();
+        } else if (!activeCrimsonConfig.System.nvidiaReflex) {
+            FPSLimiter_Apply();
+        }
+    }
+
+    // NVIDIA Reflex / PCL Stats: begin frame marker (SIMULATION_START)
+    static uint64_t s_reflexFrameID = 0;
+    if (GetNvApiReflex().IsNvApiLoaded()) {
+        GetNvApiReflex().BeginFrame(s_reflexFrameID);
     }
 
     // VSync
@@ -219,6 +252,12 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
     DrawStyleSwitchFxTexture();
     ImGui::Render();
 
+    // NVIDIA Reflex / PCL Stats: end simulation, begin render submission
+    if (GetNvApiReflex().IsNvApiLoaded()) {
+        GetNvApiReflex().SetLatencyMarker(SIMULATION_END, s_reflexFrameID);
+        GetNvApiReflex().SetLatencyMarker(RENDERSUBMIT_START, s_reflexFrameID);
+    }
+
     // Render
     m_context->OMSetRenderTargets(1, &::D3D11::renderTargetView, nullptr);
 
@@ -255,8 +294,19 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
         func();
     }();
 
+    // NVIDIA Reflex / PCL Stats: end render submission, mark present start
+    if (GetNvApiReflex().IsNvApiLoaded()) {
+        GetNvApiReflex().SetLatencyMarker(RENDERSUBMIT_END, s_reflexFrameID);
+        GetNvApiReflex().SetLatencyMarker(PRESENT_START, s_reflexFrameID);
+    }
+
     // Present — the one that actually hits the GPU.
     HRESULT hr = m_real->Present(SyncInterval, presentFlags);
+
+    // NVIDIA Reflex / PCL Stats: mark present end
+    if (GetNvApiReflex().IsNvApiLoaded()) {
+        GetNvApiReflex().SetLatencyMarker(PRESENT_END, s_reflexFrameID);
+    }
 
     // If Present blew up with a mode-change error, try fixing the swap
     // chain. DXGI_PRESENT_TEST tells us what's wrong, then we walk a
@@ -310,14 +360,78 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
 
     // FPS
     static double g_currentCap = -1.0;
+    static bool   g_wasUnlocked = false;
+    static bool   g_wasReflexOn = false;
+    static bool   s_reflexJustToggled = false;
     double newCap = activeCrimsonConfig.System.fpsCap;
-    if (g_currentCap != newCap) {
+    bool   newUnlocked = activeCrimsonConfig.System.fpsUnlocked;
+    bool   newReflexOn = activeCrimsonConfig.System.nvidiaReflex;
+    bool   newReflexBoost = activeCrimsonConfig.System.nvidiaReflexBoost;
+
+    if (g_currentCap != newCap || g_wasUnlocked != newUnlocked || g_wasReflexOn != newReflexOn) {
+        // Log what changed
+        if (g_wasReflexOn != newReflexOn) {
+            Log("Reflex toggle: %s -> %s (user changed setting)",
+                g_wasReflexOn ? "ON" : "OFF",
+                newReflexOn ? "ON" : "OFF");
+            s_reflexJustToggled = true;
+        }
+
         g_currentCap = newCap;
-        FPSLimiter_Init(g_currentCap);
+        g_wasUnlocked = newUnlocked;
+        g_wasReflexOn = newReflexOn;
+
+        // When fpsUnlocked, pass 0 as the cap so Reflex/FPSLimiter don't enforce a limit.
+        double reflexCap = newUnlocked ? 0.0 : newCap;
+
+        // Update Reflex configuration when FPS cap, unlock state, or Reflex toggle changes
+        if (newReflexOn && GetNvApiReflex().IsNvApiLoaded()) {
+            GetNvApiReflex().Configure(
+                true,
+                reflexCap,
+                newReflexBoost,
+                true);
+        } else if (!newReflexOn && GetNvApiReflex().IsAvailable()) {
+            // Reflex toggled off — disable low-latency mode but keep PCL Stats active
+            GetNvApiReflex().Configure(false, 0.0f, false, false);
+        }
+
+        // Keep CPU-side limiter in sync when Reflex isn't handling pacing
+        if (!newReflexOn || !GetNvApiReflex().IsAvailable()) {
+            FPSLimiter_Init(reflexCap);
+        }
     }
 
-    if (!activeCrimsonConfig.System.fpsUnlocked)
-        FPSLimiter_Apply();
+    {
+        static LARGE_INTEGER s_verifyTime = {};
+        static LARGE_INTEGER s_verifyFreq = {};
+        static bool          s_verifyArmed = false;
+        if (s_reflexJustToggled) {
+            s_reflexJustToggled = false;
+            QueryPerformanceFrequency(&s_verifyFreq);
+            QueryPerformanceCounter(&s_verifyTime);
+            s_verifyTime.QuadPart += s_verifyFreq.QuadPart * 2; // +2s
+            s_verifyArmed = true;
+        }
+        if (s_verifyArmed) {
+            LARGE_INTEGER now;
+            QueryPerformanceCounter(&now);
+            if (now.QuadPart >= s_verifyTime.QuadPart) {
+                s_verifyArmed = false;
+                bool     driverLL = false, driverBoost = false, driverGS = false;
+                uint32_t driverInterval = 0;
+                if (GetNvApiReflex().GetSleepStatus(driverLL, driverBoost, driverInterval, driverGS)) {
+                    Log("Reflex driver state: LowLatency=%d Interval=%uus GameSleep=%d",
+                        driverLL, driverInterval, driverGS);
+                }
+            }
+        }
+    }
+
+    // Increment frame counter (for PCL Stats / Reflex markers)
+    if (GetNvApiReflex().IsNvApiLoaded()) {
+        ++s_reflexFrameID;
+    }
 
     return hr;
 }

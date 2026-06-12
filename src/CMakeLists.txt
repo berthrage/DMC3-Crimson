@@ -275,6 +275,8 @@ file(GLOB MAIN_SRC
     CrimsonEfk.cpp
     CrimsonEfkPreload.cpp
     CrimsonEfkPreload.hpp
+    NvApiReflex.cpp
+    NvApiReflex.hpp
 )
 
 file(GLOB CORE_SRC 

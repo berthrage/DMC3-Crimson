@@ -47,6 +47,9 @@ bool GUI_Checkbox(const char* label, bool& var);
 
 bool GUI_Checkbox2(const char* label, bool& var, bool& var2, bool maskVar = false);
 
+inline void GUI_PushDisabled() { ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.4f); }
+inline void GUI_PopDisabled()  { ImGui::PopStyleVar(); }
+
 // @Extend
 template <typename T> bool GUI_Input(const char* label, T& var, T step = 1, const char* format = 0, ImGuiInputTextFlags flags = 0) {
     UI::PushID();

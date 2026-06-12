@@ -636,6 +636,9 @@ struct CrimsonConfig {
 		float fpsCap = 120.0f;
 		bool fpsUnlocked = false;
 
+		bool nvidiaReflex = false;
+		bool nvidiaReflexBoost = false;
+
 		bool disableMenuFadeouts = false;
 
 		struct BlendingEffects {
@@ -670,6 +673,8 @@ struct CrimsonConfig {
 				std::make_pair("flipModelPresentation", &System::flipModelPresentation),
 				std::make_pair("fpsCap", &System::fpsCap),
 				std::make_pair("fpsUnlocked", &System::fpsUnlocked),
+				std::make_pair("nvidiaReflex", &System::nvidiaReflex),
+				std::make_pair("nvidiaReflexBoost", &System::nvidiaReflexBoost),
 				std::make_pair("disableMenuFadeouts", &System::disableMenuFadeouts),
 				std::make_pair("BlendingEffects", &System::BlendingEffects),
 				std::make_pair("windowSizeX",&System::windowSizeX),

@@ -10539,7 +10539,26 @@ void SystemSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
-	
+			// NVIDIA Reflex
+			GUI_Checkbox2("NVIDIA Reflex Low Latency", activeCrimsonConfig.System.nvidiaReflex, queuedCrimsonConfig.System.nvidiaReflex);
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("NVIDIA Reflex dynamically reduces input latency by synchronizing the CPU and GPU.\n"
+					"Requires an NVIDIA GeForce GTX 900 series or newer GPU and driver version 456.38+.\n"
+					"Disables the CPU-based FPS limiter in favor of GPU-optimal frame pacing.");
+			}
+
+			if (activeCrimsonConfig.System.nvidiaReflex) {
+				ImGui::SameLine();
+				GUI_Checkbox2("Boost", activeCrimsonConfig.System.nvidiaReflexBoost, queuedCrimsonConfig.System.nvidiaReflexBoost);
+				if (ImGui::IsItemHovered()) {
+					ImGui::SetTooltip("Reflex Boost keeps the GPU clocks high for even lower latency,\n"
+						"at the cost of higher power consumption. Recommended for competitive play.");
+				}
+			}
+
+			ImGui::TableNextColumn();
+
+
 			GUI_Checkbox2("Disable Menu Fadeouts", activeCrimsonConfig.System.disableMenuFadeouts, queuedCrimsonConfig.System.disableMenuFadeouts);
 				
 			
