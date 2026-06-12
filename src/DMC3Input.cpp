@@ -16,6 +16,7 @@
 #include "ImGuiExtra.hpp"
 #include "CrimsonGUI.hpp"
 #include "CrimsonConfig.hpp"
+#include "CrimsonSDL.hpp"
 
 #define NUM_BINDS_WITHOUT_START 15
 
@@ -327,6 +328,7 @@ static void CUIDControl_Close() {
 
 static const char* GetXInputControllerName(DWORD userIndex) {
     static std::string s_names[PLAYER_COUNT];
+    static bool        s_isSdlName[PLAYER_COUNT] = { false };
     static DWORD       s_lastCheck[PLAYER_COUNT] = {};
     static DWORD       s_tick = 0;
     ++s_tick;
@@ -334,12 +336,30 @@ static const char* GetXInputControllerName(DWORD userIndex) {
     if (userIndex >= (DWORD)PLAYER_COUNT) return "Unknown";
 
     // Refresh every ~300 calls (UI frames) to catch connect/disconnect
-    if ((s_tick - s_lastCheck[userIndex]) <= 300u) return s_names[userIndex].c_str();
+    if ((s_tick - s_lastCheck[userIndex]) <= 300u && !s_names[userIndex].empty())
+        return s_names[userIndex].c_str();
     s_lastCheck[userIndex] = s_tick;
 
     XINPUT_CAPABILITIES caps = {};
     if (XInputGetCapabilities(userIndex, XINPUT_FLAG_GAMEPAD, &caps) != ERROR_SUCCESS) {
         s_names[userIndex] = "Disconnected";
+        s_isSdlName[userIndex] = false;
+        return s_names[userIndex].c_str();
+    }
+
+    // Prefer the real controller name from SDL (bypasses Steam Input emulated names).
+    // Once we get an SDL name, stick with it — never fall back to HID names
+    // for this slot, which prevents flickering between real/emulated names.
+    const char* sdlName = CrimsonSDL::GetControllerNameForXInputSlot((int)userIndex);
+    if (sdlName && sdlName[0]) {
+        s_names[userIndex] = sdlName;
+        s_isSdlName[userIndex] = true;
+        return s_names[userIndex].c_str();
+    }
+
+    // If we previously had an SDL name, keep using it even if SDL temporarily
+    // can't provide one (e.g. during controller remap). It will refresh next cycle.
+    if (s_isSdlName[userIndex] && !s_names[userIndex].empty()) {
         return s_names[userIndex].c_str();
     }
 

@@ -27,6 +27,7 @@ struct SDL_version;
 #include <iostream>
 #include <unordered_set>
 #include <deque>
+#include <cctype>
 #include "Global.hpp"
 
 namespace CrimsonSDL {
@@ -34,6 +35,8 @@ namespace CrimsonSDL {
 SDL_Gamepad* mainController = NULL;
 std::vector<SDL_Gamepad*> controllers(4, NULL);
 std::unordered_set<SDL_JoystickID> currentlyConnected;
+SDL_Gamepad* sdlGamepadByXiSlot[4] = {NULL, NULL, NULL, NULL};
+std::vector<SDL_Gamepad*> sdlGamepadsExtra;
 std::string SDL3Initialization   = "";
 std::string MixerInitialization  = "";
 std::string MixerInitialization2 = "";
@@ -172,6 +175,8 @@ SDL_FUNCTION_DECLRATION(SDL_IsGamepad)                    = NULL;
 SDL_FUNCTION_DECLRATION(SDL_RumbleGamepad)                = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetError)                     = NULL;
 SDL_FUNCTION_DECLRATION(SDL_free)                         = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GetGamepadPath)               = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GetGamepadPathForID)          = NULL;
 
 void LoadAllSFX() {
 	if (!cacheAudioFiles) {
@@ -239,6 +244,9 @@ void LoadAllSFX() {
 	}
 }
 
+// Forward declarations for controller management functions
+void RemapSdlControllers();
+
 void AddController(SDL_JoystickID instanceID) {
 	if (fn_SDL_IsGamepad == NULL || fn_SDL_OpenGamepad == NULL) return;
 	if (fn_SDL_IsGamepad(instanceID)) {
@@ -261,6 +269,7 @@ void AddController(SDL_JoystickID instanceID) {
 				const char* name = (fn_SDL_GetGamepadName != NULL) ? fn_SDL_GetGamepadName(gamepad) : "Unknown";
 				std::cout << "Opened controller " << instanceID << ": " << name << std::endl;
 			}
+			RemapSdlControllers();
 		}
 		else {
 			const char* err = (fn_SDL_GetError != NULL) ? fn_SDL_GetError() : "Unknown error";
@@ -280,6 +289,7 @@ void RemoveController(SDL_JoystickID instanceID) {
 			break;
 		}
 	}
+	RemapSdlControllers();
 }
 
 void InitControllers() {
@@ -292,6 +302,223 @@ void InitControllers() {
 		}
 		fn_SDL_free(joysticks);
 	}
+	RemapSdlControllers();
+}
+
+// Normalize a HID device path for cross-API comparison.
+// Lowercases and strips ALL HID collection filter segments (e.g. "&IG_00",
+// "&MI_03", "&COL01") between the PID and the instance ID separator.
+// This makes paths from different SDL backends (XInput vs HIDAPI vs WGI)
+// comparable, while preserving the unique device instance ID.
+static std::string NormalizeHidPath(const char* path) {
+	if (!path || !path[0]) return {};
+
+	std::string result(path);
+	// Lowercase
+	for (auto& c : result) c = (char)tolower((unsigned char)c);
+
+	// Find "pid_" to locate the PID segment
+	size_t pidPos = result.find("pid_");
+	if (pidPos == std::string::npos) return result;
+
+	// PID is 4 hex digits: "pid_XXXX" → end at pidPos + 8
+	size_t pidEnd = pidPos + 8;
+	if (pidEnd > result.size()) return result;
+
+	// Find the next '#' after the PID (start of instance container ID)
+	size_t hashPos = result.find('#', pidEnd);
+	if (hashPos == std::string::npos) return result;
+
+	// Strip all filter metadata between PID digits and the '#'
+	// e.g. "...&pid_09cc&ig_00&mi_03#container..." → "...&pid_09cc#container..."
+	result.erase(pidEnd, hashPos - pidEnd);
+
+	return result;
+}
+
+// Returns the XInput slot (0-3) that corresponds to the given SDL gamepad path,
+// or -1 if the path doesn't match any XInput device.
+//
+// SDL3 returns different path formats depending on the backend:
+//   XInput backend:  "XInput#0", "XInput#1", etc.
+//   HIDAPI backend:  "\\?\HID#VID_XXXX&PID_XXXX&...#instance#..."
+// This function handles both.
+int GetXInputSlotForHIDPath(const char* sdlPath) {
+	if (!sdlPath || !sdlPath[0]) return -1;
+
+	// --- Fast path: SDL XInput backend returns "XInput#N" ---
+	{
+		std::string lower(sdlPath);
+		for (auto& c : lower) c = (char)tolower((unsigned char)c);
+
+		// Match "xinput#N" where N is a digit 0-3
+		const char* prefix = "xinput#";
+		size_t prefixLen = 7;
+		if (lower.compare(0, prefixLen, prefix) == 0 && lower.size() > prefixLen) {
+			char digit = lower[prefixLen];
+			if (digit >= '0' && digit <= '3') {
+				return (int)(digit - '0');
+			}
+		}
+		// Match "xinput controller N" (alternative format)
+		const char* prefixAlt = "xinput controller ";
+		size_t prefixAltLen = 18;
+		if (lower.compare(0, prefixAltLen, prefixAlt) == 0 && lower.size() > prefixAltLen) {
+			char digit = lower[prefixAltLen];
+			if (digit >= '0' && digit <= '3') {
+				return (int)(digit - '0');
+			}
+		}
+	}
+
+	// --- Slow path: HIDAPI backend returns HID device paths ---
+	// Normalize the SDL path (strips vendor filter segments)
+	std::string sdlPathNormalized = NormalizeHidPath(sdlPath);
+	// If the path doesn't look like a HID path (no "vid_"), skip RawInput matching
+	if (sdlPathNormalized.find("vid_") == std::string::npos)
+		return -1;
+
+	UINT count = 0;
+	if (GetRawInputDeviceList(nullptr, &count, sizeof(RAWINPUTDEVICELIST)) != 0 || count == 0)
+		return -1;
+
+	std::vector<RAWINPUTDEVICELIST> list(count);
+	if (GetRawInputDeviceList(list.data(), &count, sizeof(RAWINPUTDEVICELIST)) == (UINT)-1)
+		return -1;
+
+	DWORD xiSlot = 0;
+	for (const auto& dev : list) {
+		if (dev.dwType != RIM_TYPEHID) continue;
+
+		UINT len = 0;
+		GetRawInputDeviceInfoA(dev.hDevice, RIDI_DEVICENAME, nullptr, &len);
+		if (len == 0) continue;
+
+		std::string path(len, '\0');
+		if (GetRawInputDeviceInfoA(dev.hDevice, RIDI_DEVICENAME, path.data(), &len) == (UINT)-1)
+			continue;
+
+		if (!path.empty() && path.back() == '\0') path.pop_back();
+
+		// Only XInput HID devices contain "IG_" in their path
+		if (path.find("IG_") == std::string::npos) continue;
+
+		std::string xiPathNormalized = NormalizeHidPath(path.c_str());
+
+		if (sdlPathNormalized == xiPathNormalized) {
+			return (int)xiSlot;
+		}
+
+		if (++xiSlot >= 4) break;
+	}
+
+	return -1;
+}
+
+void RemapSdlControllers() {
+	// Clear existing mapping
+	for (int i = 0; i < 4; ++i) sdlGamepadByXiSlot[i] = NULL;
+	sdlGamepadsExtra.clear();
+
+	if (fn_SDL_GetGamepadPath == NULL) return;
+
+	// First pass: build XInput-mapped slots and collect their normalized paths
+	std::string xiNormalizedPaths[4];
+
+	// Iterate all open SDL gamepads from the controllers vector
+	for (SDL_Gamepad* pad : controllers) {
+		if (pad == NULL) continue;
+
+		const char* path = fn_SDL_GetGamepadPath(pad);
+		if (!path) continue;
+
+		int xiSlot = GetXInputSlotForHIDPath(path);
+		if (xiSlot >= 0 && xiSlot < 4) {
+			// XInput-mapped controller
+			if (sdlGamepadByXiSlot[xiSlot] == NULL) {
+				sdlGamepadByXiSlot[xiSlot] = pad;
+				xiNormalizedPaths[xiSlot] = NormalizeHidPath(path);
+			} else {
+				// Slot already occupied; store as extra
+				sdlGamepadsExtra.push_back(pad);
+			}
+		}
+	}
+
+	// Second pass: add non-XInput controllers, skipping those that are the same
+	// physical device as an XInput-mapped controller (e.g. PS4 native vs XInput-emulated)
+	for (SDL_Gamepad* pad : controllers) {
+		if (pad == NULL) continue;
+
+		const char* path = fn_SDL_GetGamepadPath(pad);
+		if (!path) continue;
+
+		int xiSlot = GetXInputSlotForHIDPath(path);
+		if (xiSlot >= 0 && xiSlot < 4 && sdlGamepadByXiSlot[xiSlot] == pad) {
+			// Already placed in XInput slot; skip
+			continue;
+		}
+		if (xiSlot >= 0 && xiSlot < 4 && sdlGamepadByXiSlot[xiSlot] != NULL) {
+			// XInput slot occupied by another pad; already pushed to extras in first pass
+			continue;
+		}
+
+		// Non-XInput controller — check if it's the same physical device as any XInput-mapped one
+		std::string normPath = NormalizeHidPath(path);
+		bool isDuplicate = false;
+		for (int i = 0; i < 4; ++i) {
+			if (sdlGamepadByXiSlot[i] != NULL && !xiNormalizedPaths[i].empty()
+				&& normPath == xiNormalizedPaths[i]) {
+				isDuplicate = true;
+				break;
+			}
+		}
+
+		if (!isDuplicate) {
+			sdlGamepadsExtra.push_back(pad);
+		}
+	}
+}
+
+SDL_Gamepad* GetControllerForPlayer(int playerIndex) {
+	if (playerIndex < 0 || playerIndex >= 4) return NULL;
+	int xiSlot = (int)activeCrimsonConfig.System.xinputSlots[playerIndex];
+	if (xiSlot >= 0 && xiSlot < 4 && sdlGamepadByXiSlot[xiSlot] != NULL) {
+		return sdlGamepadByXiSlot[xiSlot];
+	}
+	// Safety fallback: if the expected XInput slot has no SDL gamepad mapped,
+	// try the first available controller (either from extras or any xiSlot).
+	if (!sdlGamepadsExtra.empty()) {
+		return sdlGamepadsExtra[0];
+	}
+	// Last resort: try any populated xiSlot
+	for (int i = 0; i < 4; ++i) {
+		if (sdlGamepadByXiSlot[i] != NULL) return sdlGamepadByXiSlot[i];
+	}
+	return NULL;
+}
+
+SDL_Gamepad* GetControllerByPhysicalSlot(int xiSlot) {
+	if (xiSlot < 0 || xiSlot >= 4) return NULL;
+	return sdlGamepadByXiSlot[xiSlot];
+}
+
+const char* GetControllerNameForXInputSlot(int xiSlot) {
+	if (xiSlot >= 0 && xiSlot < 4) {
+		SDL_Gamepad* pad = sdlGamepadByXiSlot[xiSlot];
+		if (pad != NULL && fn_SDL_GetGamepadName != NULL) {
+			return fn_SDL_GetGamepadName(pad);
+		}
+	}
+	// If no XInput-mapped controller, try extras (native SDL controllers).
+	// Use xiSlot as an index into extras to provide stable per-slot names.
+	if (!sdlGamepadsExtra.empty() && xiSlot >= 0) {
+		size_t idx = (size_t)xiSlot % sdlGamepadsExtra.size();
+		if (fn_SDL_GetGamepadName != NULL) {
+			return fn_SDL_GetGamepadName(sdlGamepadsExtra[idx]);
+		}
+	}
+	return NULL;
 }
 
 void InitSDL() {
@@ -331,6 +558,8 @@ void InitSDL() {
         LOAD_SDL_FUNCTION(SDL_UpdateGamepads);
         LOAD_SDL_FUNCTION(SDL_GetError);
         LOAD_SDL_FUNCTION(SDL_free);
+        LOAD_SDL_FUNCTION(SDL_GetGamepadPath);
+        LOAD_SDL_FUNCTION(SDL_GetGamepadPathForID);
 
        
 
@@ -420,7 +649,7 @@ void InitSDL() {
             ? fn_SDL_GetGamepadPlayerIndex(mainController) : -1;
 
         InitControllers();
-        CrimsonUtil::ReverseNonNull(controllers);
+        RemapSdlControllers();
 
         if (!g_SDL3Mixer) {
             MessageBoxA(NULL,
@@ -527,9 +756,14 @@ void TickSnapQueue() {
 }
 
 
+bool IsGamepadButtonDown(SDL_Gamepad* gamepad, int button) {
+	if (fn_SDL_GetGamepadButton == NULL || gamepad == NULL) return false;
+	return fn_SDL_GetGamepadButton(gamepad, (SDL_GamepadButton)button);
+}
+
 bool IsControllerButtonDown(int controllerIndex, int button) {
-   if (fn_SDL_GetGamepadButton == NULL || controllers[controllerIndex] == NULL) return false;
-   return fn_SDL_GetGamepadButton(controllers[controllerIndex], (SDL_GamepadButton)button);
+	SDL_Gamepad* pad = GetControllerForPlayer(controllerIndex);
+	return IsGamepadButtonDown(pad, button);
 }
 
 
@@ -555,8 +789,9 @@ void UpdateJoysticks() {
 
 void VibrateController(int controllerIndex, Uint16 rumbleStrengthLowFreq, Uint16 rumbleStrengthHighFreq, int rumbleDuration) {
     if (fn_SDL_RumbleGamepad == NULL) return;
-    if (controllers[controllerIndex] != NULL) {
-		if (fn_SDL_RumbleGamepad(controllers[controllerIndex], rumbleStrengthLowFreq, rumbleStrengthHighFreq, rumbleDuration)) {
+    SDL_Gamepad* pad = GetControllerForPlayer(controllerIndex);
+    if (pad != NULL) {
+		if (fn_SDL_RumbleGamepad(pad, rumbleStrengthLowFreq, rumbleStrengthHighFreq, rumbleDuration)) {
 			// rumble started successfully
 		}
 		else {

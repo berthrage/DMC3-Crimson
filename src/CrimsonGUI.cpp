@@ -13759,44 +13759,54 @@ void GamepadToggleShowMain() {
 		return;
 	}
 
-    static bool gamepadCombinationMainRelease[PLAYER_COUNT] = { false };
+	// Up to 4 XInput-mapped controllers + up to 8 native non-XInput controllers
+	static bool gamepadCombinationMainRelease[12] = { false };
 
 	//prevents double toggle
 	bool updatinggui = false;
-	// Loop through each controller
-	for (int i = 0; i < 4; ++i) {
-		if (CrimsonSDL::controllers[i] != NULL) {
-			// Combination of buttons to check
-			bool combination = (
-				CrimsonSDL::IsControllerButtonDown(i, SDL_GamepadButton::SDL_GAMEPAD_BUTTON_LEFT_STICK) &&
-				CrimsonSDL::IsControllerButtonDown(i, SDL_GamepadButton::SDL_GAMEPAD_BUTTON_RIGHT_STICK) &&
-				!CrimsonSDL::IsControllerButtonDown(i, SDL_GamepadButton::SDL_GAMEPAD_BUTTON_TOUCHPAD)
-				);
 
-			// Combination pressed and was not pressed before, toggle GUI and set window focus
-			if (combination && !g_showMain && gamepadCombinationMainRelease[i]) {
-				if(!updatinggui){
-					updatinggui = true;
-					ToggleCrimsonGUI();
-					ImGui::SetWindowFocus(DMC3C_TITLE);
-				}
-				gamepadCombinationMainRelease[i] = false;
-			}
+	auto checkPad = [&](SDL_Gamepad* pad, int releaseIndex) {
+		if (!pad) return;
 
-			// Combination released, update release state
-			if (!combination && !gamepadCombinationMainRelease[i]) {
-				gamepadCombinationMainRelease[i] = true;
-			}
+		bool combination = (
+			CrimsonSDL::IsGamepadButtonDown(pad, SDL_GamepadButton::SDL_GAMEPAD_BUTTON_LEFT_STICK) &&
+			CrimsonSDL::IsGamepadButtonDown(pad, SDL_GamepadButton::SDL_GAMEPAD_BUTTON_RIGHT_STICK) &&
+			!CrimsonSDL::IsGamepadButtonDown(pad, SDL_GamepadButton::SDL_GAMEPAD_BUTTON_TOUCHPAD)
+			);
 
-			// Combination pressed, GUI shown, and was not pressed before, toggle GUI
-			if (combination && g_showMain && gamepadCombinationMainRelease[i]) {
-				if (!updatinggui) {
-					updatinggui = true;
-					ToggleCrimsonGUI();
-				}
-				gamepadCombinationMainRelease[i] = false;
+		// Combination pressed and was not pressed before, toggle GUI and set window focus
+		if (combination && !g_showMain && gamepadCombinationMainRelease[releaseIndex]) {
+			if(!updatinggui){
+				updatinggui = true;
+				ToggleCrimsonGUI();
+				ImGui::SetWindowFocus(DMC3C_TITLE);
 			}
+			gamepadCombinationMainRelease[releaseIndex] = false;
 		}
+
+		// Combination released, update release state
+		if (!combination && !gamepadCombinationMainRelease[releaseIndex]) {
+			gamepadCombinationMainRelease[releaseIndex] = true;
+		}
+
+		// Combination pressed, GUI shown, and was not pressed before, toggle GUI
+		if (combination && g_showMain && gamepadCombinationMainRelease[releaseIndex]) {
+			if (!updatinggui) {
+				updatinggui = true;
+				ToggleCrimsonGUI();
+			}
+			gamepadCombinationMainRelease[releaseIndex] = false;
+		}
+	};
+
+	// Check XInput-mapped controllers (physical slots 0-3)
+	for (int i = 0; i < 4; ++i) {
+		checkPad(CrimsonSDL::sdlGamepadByXiSlot[i], i);
+	}
+
+	// Check native non-XInput controllers (PS4/PS5/Switch, etc.)
+	for (size_t i = 0; i < CrimsonSDL::sdlGamepadsExtra.size() && (i + 4) < 12; ++i) {
+		checkPad(CrimsonSDL::sdlGamepadsExtra[i], (int)(i + 4));
 	}
 
 
