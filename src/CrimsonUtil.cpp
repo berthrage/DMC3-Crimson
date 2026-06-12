@@ -20,6 +20,39 @@ int GetPlayerIndexFromAddr(uintptr_t playerPtr) {
     return playerIndexFound;
 }
 
+std::string GetWeaponNameById(uint8 weaponId) {
+	switch (weaponId) {
+	case WEAPON::REBELLION:
+		return "Rebellion";
+	case WEAPON::CERBERUS:
+		return "Cerberus";
+	case WEAPON::AGNI_RUDRA:
+		return "Agni & Rudra";
+	case WEAPON::NEVAN:
+		return "Nevan";
+	case WEAPON::BEOWULF_DANTE:
+		return "Beowulf";
+	case WEAPON::EBONY_IVORY:
+		return "Ebony & Ivory";
+	case WEAPON::SHOTGUN:
+		return "Shotgun";
+	case WEAPON::ARTEMIS:
+		return "Artemis";
+	case WEAPON::SPIRAL:
+		return "Spiral";
+	case WEAPON::KALINA_ANN:
+		return "Kalina Ann";
+	case WEAPON::YAMATO_VERGIL:
+		return "Yamato";
+	case WEAPON::BEOWULF_VERGIL:
+		return "Beowulf";
+	case WEAPON::YAMATO_FORCE_EDGE:
+		return "Force Edge";
+}
+
+	return "GREVIOUS ERROR";
+}
+
 std::uint32_t Uint8toAABBGGRR(uint8 colorUint8[4]) {
     // Combine into AABBGGRR format
     std::uint32_t color = (colorUint8[3] << 24) | (colorUint8[2] << 16) | (colorUint8[1] << 8) | colorUint8[0];

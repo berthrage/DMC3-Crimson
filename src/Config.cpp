@@ -73,7 +73,7 @@ CharacterData& GetCharacterData(uint8 playerIndex, uint8 characterIndex, uint8 e
 
 // $GetDataEnd
 
-void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character, uint8 playerIndex, uint8 characterIndex) {
+void ApplyDefaultCharacterData(CharacterData& characterData, uint8 character) {
     //SetMemory(&characterData, 0, sizeof(CharacterData));
     uint8 lastMaxMeleeWeaponCount = 5;
     uint8 lastMaxRangedWeaponCount = 5;
@@ -200,7 +200,7 @@ void ApplyDefaultPlayerData(PlayerData& playerData) {
     old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
         old_for_all(uint8, entityIndex, ENTITY_COUNT) {
             ApplyDefaultCharacterData(
-                playerData.characterData[characterIndex][entityIndex], (characterIndex == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE, 0, 0);
+                playerData.characterData[characterIndex][entityIndex], (characterIndex == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE);
         }
     }
 }
@@ -292,8 +292,8 @@ void CreateMembers_ProfileDataContent(rapidjson::Value& member, PlayerProfileDat
         //auto& playerData = JSON::CreateArray<struct_t, PLAYER_COUNT>(member, "playerData");
         ApplyDefaultPlayerData(config2);
         //Like a vergin
-        ApplyDefaultCharacterData(config2.characterData[0][0], (index == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE, 0, 0);
-        ApplyDefaultCharacterData(config2.characterData[0][1], (index == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE, 0, 0);
+        ApplyDefaultCharacterData(config2.characterData[0][0], (index == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE);
+        ApplyDefaultCharacterData(config2.characterData[0][1], (index == 1) ? CHARACTER::VERGIL : CHARACTER::DANTE);
 
         CreateMembers_PlayerDataContent(member2, config2);
     }

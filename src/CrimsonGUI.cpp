@@ -2677,7 +2677,7 @@ void BackgroundSPMPText(const char* SPMPText) {
 
 }
 
-void CheckDanteUnlockedWeapons(CharacterData& queuedCharacterData, CharacterData& activeCharacterData, uint8 playerIndex, uint8 characterIndex) {
+void CheckDanteUnlockedWeapons(CharacterData& queuedCharacterData, CharacterData& activeCharacterData) {
 	auto lastMaxMeleeWeaponCount = 5;//queuedCrimsonConfig.CachedSettings.lastMaxMeleeWeaponCount[playerIndex][characterIndex];
 	auto lastMaxRangedWeaponCount = 5;//queuedCrimsonConfig.CachedSettings.lastMaxRangedWeaponCount[playerIndex][characterIndex];
 
@@ -2751,6 +2751,114 @@ void CheckDanteUnlockedWeapons(CharacterData& queuedCharacterData, CharacterData
 	}
 }
 
+/// <summary>
+/// Responsible for applying default character data when updating character select combo box.
+/// </summary>
+/// <param name="activeCharacterData"></param>
+/// <param name="queuedCharacterData"></param>
+/// <param name="queuedCharacterDataClone">doppelganger</param>
+void OnChangeCharacterData(CharacterData& activeCharacterData, CharacterData& queuedCharacterData, CharacterData& queuedCharacterDataClone) {
+	ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character);
+
+	if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
+		queuedCharacterDataClone.character = queuedCharacterData.character;
+		ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
+	}
+
+	CheckDanteUnlockedWeapons(queuedCharacterData, activeCharacterData);
+
+	Actor_UpdateIndices();
+};
+
+
+/// <summary>
+/// Draws combo box + slider for updating queued loadout. This is menu only
+/// </summary>
+/// <typeparam name="mapItemCount">max # of weapons determined by array</typeparam>
+/// <param name="queuedWeaponCount">pass QueuedCharacterData.XXXWeaponCount</param>
+/// <param name="maxWeapons"># weapons unlocked</param>
+/// <param name="weaponIds">ids of weapons unlocked</param>
+/// <param name="queuedWeapons">pass QueuedCharacterData.XXXWeapons</param>
+/// <param name="cloneWeapons">pass QueuedDoppelCharacterData.XXXWeapons</param>
+template <uint8_t mapItemCount>
+void QueuedLoadoutUpdate(
+	uint8& queuedWeaponCount,
+	uint8 maxWeapons,
+	std::vector<uint8> weaponIds,
+	uint8(&queuedWeapons)[mapItemCount],
+	uint8(&cloneWeapons)[mapItemCount]) {
+	std::vector<std::string> weaponNames;
+	for (uint8 id : weaponIds) {
+		weaponNames.push_back(CrimsonUtil::GetWeaponNameById(id));
+	}
+	
+	GUI_Slider<uint8>("", queuedWeaponCount, 1, maxWeapons);
+	old_for_all(uint8, weaponIndex, maxWeapons) {
+		bool condition = (weaponIndex >= queuedWeaponCount);
+
+		GUI_PushDisable(condition);
+
+		// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
+		UI::ComboMapVector("", weaponNames, weaponIds,
+			queuedWeapons[weaponIndex]);
+
+		// Doppelganger will now have same weapons equipped as Dante - Mia.
+		cloneWeapons[weaponIndex] = queuedWeapons[weaponIndex];
+
+		GUI_PopDisable(condition);
+	}
+}
+/// <summary>
+/// Draws Combo Box + Slider for updating weapon loadouts. Used to update the characters loadout mid-mission.
+/// </summary>
+/// <typeparam name="mapItemCount">max # of weapons determined by array</typeparam>
+/// <param name="activeWeaponCount">pass ActiveCharacterData.XXXWeaponCount</param>
+/// <param name="queuedWeaponCount">pass QueuedCharacterData.XXXWeaponCount</param>
+/// <param name="maxWeapons"># weapons unlocked</param>
+/// <param name="weaponIds">ids of weapons unlocked</param>
+/// <param name="activeWeapons">pass ActiveCharacterData.XXXWeapons</param>
+/// <param name="queuedWeapons">pass QueuedCharacterData.XXXWeapons</param>
+/// <param name="cloneWeapons">pass QueuedDoppelCharacterData.XXXWeapons</param>
+/// <returns>returns -1 if no weapons updated, or the index of the updated weapon. </returns>
+template <uint8_t mapItemCount>
+uint8 LiveLoadoutUpdate(uint8& activeWeaponCount,
+	uint8& queuedWeaponCount, 
+	uint8 maxWeapons, 
+	std::vector<uint8> weaponIds, 
+	uint8(&activeWeapons)[mapItemCount],
+	uint8(&queuedWeapons)[mapItemCount],
+	uint8(&cloneWeapons)[mapItemCount]) {
+
+	uint8 newactorweaponindex = -1;
+	
+	std::vector<std::string> weaponNames;
+	for (uint8 id : weaponIds) {
+		weaponNames.push_back(CrimsonUtil::GetWeaponNameById(id));
+	}
+
+	GUI_Slider2<uint8>("", activeWeaponCount, queuedWeaponCount, 1, maxWeapons);
+
+
+	old_for_all(uint8, weaponIndex, maxWeapons) {
+		bool condition = (weaponIndex >= queuedWeaponCount);
+
+		GUI_PushDisable(condition);
+
+		// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
+
+		if (UI::ComboMapVector2("", weaponNames, weaponIds,
+			activeWeapons[weaponIndex], queuedWeapons[weaponIndex])) {
+			newactorweaponindex = queuedWeapons[weaponIndex];
+		}
+		
+
+		// Doppelganger will now have same weapons equipped as Dante - Mia.
+		cloneWeapons[weaponIndex] = queuedWeapons[weaponIndex];
+
+		GUI_PopDisable(condition);
+	}
+	return newactorweaponindex;
+}
 void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex, uint8 profileIndex, size_t defaultFontSize) {
 	auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
 	auto& queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
@@ -2788,52 +2896,27 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 			ImGui::PushItemWidth(itemWidth);
 			ImGui::Text("%s", crimsonProfileNames[profileIndex]);
+			//Only show character select if not index 0
 			if (characterIndex > 0/*profileIndex == PROFILE::CHARSWAP*/){
-			if (!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters) {
-				if (UI::ComboMapValue("CHARACTER", crimsonCharacterNames, crimsonCharacterMap,
-					queuedCharacterData.character)) {
-					ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character, playerIndex, characterIndex);
-					
-					if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
-						queuedCharacterDataClone.character = queuedCharacterData.character;
-						ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
-					}
-
-					CheckDanteUnlockedWeapons(queuedCharacterData, activeCharacterData, playerIndex, characterIndex);
-
-					Actor_UpdateIndices();
-				}
-				
-			} else {
-				if ((playerIndex == 0) && (characterIndex > 0)) {
-					if (UI::ComboMap("CHARACTER", ddmkCharacterNames, ddmkCharactersMap, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
+				//Use this unless legacy characters
+				if (!activeCrimsonGameplay.Cheats.General.legacyDDMKCharacters) {
+					if (UI::ComboMapValue("CHARACTER", crimsonCharacterNames, crimsonCharacterMap,
 						queuedCharacterData.character)) {
-						ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character, playerIndex, characterIndex);
-
-						if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
-							queuedCharacterDataClone.character = queuedCharacterData.character;
-							ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
-						}
-
-						CheckDanteUnlockedWeapons(queuedCharacterData, activeCharacterData, playerIndex, characterIndex);
-
-						Actor_UpdateIndices();
+						OnChangeCharacterData(activeCharacterData, queuedCharacterData, queuedCharacterDataClone);
 					}
 				} else {
-					if (UI::Combo("CHARACTER", ddmkCharacter2PNames, queuedCharacterData.character)) {
-						ApplyDefaultCharacterData(queuedCharacterData, queuedCharacterData.character, playerIndex, characterIndex);
-
-						if (queuedCharacterData.character == CHARACTER::DANTE || queuedCharacterData.character == CHARACTER::VERGIL) {
-							queuedCharacterDataClone.character = queuedCharacterData.character;
-							ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
+					//Only show boss characters for P1 (for reasons??)
+					if (playerIndex == 0) {
+						if (UI::ComboMap("CHARACTER", ddmkCharacterNames, ddmkCharactersMap, Actor_newCharacterIndices[playerIndex][characterIndex][entityIndex],
+							queuedCharacterData.character)) {
+							OnChangeCharacterData(activeCharacterData, queuedCharacterData, queuedCharacterDataClone);
 						}
-
-						CheckDanteUnlockedWeapons(queuedCharacterData, activeCharacterData, playerIndex, characterIndex);
-
-						Actor_UpdateIndices();
+					} else {
+						if (UI::Combo("CHARACTER", ddmkCharacter2PNames, queuedCharacterData.character)) {
+							OnChangeCharacterData(activeCharacterData, queuedCharacterData, queuedCharacterDataClone);
+						}
 					}
 				}
-			}
 			}
 
 			ImGui::PopItemWidth();
@@ -2854,17 +2937,24 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 					bool condition = queuedCharacterData.ignoreCostume || queuedCharacterData.forceFiles;
 
 					GUI_PushDisable(condition);
-
-					if (queuedCharacterData.character == CHARACTER::DANTE) {
-						UI::Combo2("Costume", costumeNamesDante, activeCharacterData.costume, queuedCharacterData.costume);
-					} else if (queuedCharacterData.character == CHARACTER::VERGIL || queuedCharacterData.character == CHARACTER::BOB || 
-						queuedCharacterData.character == CHARACTER::BOSS_VERGIL) {
-						UI::Combo2("Costume", costumeNamesVergil, activeCharacterData.costume, queuedCharacterData.costume);
-					} else if (queuedCharacterData.character == CHARACTER::LADY || queuedCharacterData.character == CHARACTER::BOSS_LADY) {
-						UI::Combo2("Costume", costumeNamesLady, activeCharacterData.costume, queuedCharacterData.costume);
+					switch (queuedCharacterData.character) {
+						case CHARACTER::DANTE:
+							UI::Combo2("Costume", costumeNamesDante, activeCharacterData.costume, queuedCharacterData.costume);
+							break;
+						case CHARACTER::VERGIL:
+						case CHARACTER::BOB:
+						case CHARACTER::BOSS_VERGIL:
+							UI::Combo2("Costume", costumeNamesVergil, activeCharacterData.costume, queuedCharacterData.costume);
+							break;
+						case CHARACTER::LADY:
+						case CHARACTER::BOSS_LADY:
+							UI::Combo2("Costume", costumeNamesLady, activeCharacterData.costume, queuedCharacterData.costume);
+							break;
+						default:
+							break;
 					}
-					
 					GUI_PopDisable(condition);
+
 
 					if (GUI_Checkbox("Use In-Game Setting ", queuedCharacterData.ignoreCostume)) {
 						queuedCharacterDataClone.ignoreCostume = queuedCharacterData.ignoreCostume;
@@ -2900,7 +2990,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 				//if we are dante and haven't unlocked doppelganger, we shouldn't show this menu option.
 				if (!queuedCharacterData.character == CHARACTER::DANTE || sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER]) {
 					if (UI::Combo("Doppelganger", ddmkCharacter2PNames, queuedCharacterDataClone.character)) {
-						ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
+						ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character);
 
 						Actor_UpdateIndices();
 					}
@@ -2916,92 +3006,6 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 	}
 
 	ImGui::Text("");
-
-	/*ImGui::Text("Styles");
-
-	old_for_all(uint8, styleIndex, STYLE_COUNT)
-	{
-			if constexpr (debug)
-			{
-					ImGui::Text("");
-					ImGui::Text("%u", styleIndex);
-			}
-
-			UI::ComboMap
-			(
-					"",
-					buttonNames,
-					buttons,
-					Actor_styleButtonIndices[playerIndex][characterIndex][entityIndex][styleIndex],
-					queuedCharacterData.styleButtons[styleIndex],
-					ImGuiComboFlags_HeightLargest
-			);
-
-			if constexpr (!debug)
-			{
-					ImGui::SameLine();
-			}
-
-			switch (queuedCharacterData.character)
-			{
-					case CHARACTER::DANTE:
-					{
-							UI::ComboMap
-							(
-									"",
-									styleNamesDante,
-									stylesDante,
-									Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][0],
-									queuedCharacterData.styles[styleIndex][0]
-							);
-
-							if constexpr (!debug)
-							{
-									ImGui::SameLine();
-							}
-
-							UI::ComboMap
-							(
-									"",
-									styleNamesDante,
-									stylesDante,
-									Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][1],
-									queuedCharacterData.styles[styleIndex][1]
-							);
-
-							break;
-					}
-					case CHARACTER::VERGIL:
-					{
-							UI::ComboMap
-							(
-									"",
-									styleNamesVergil,
-									stylesVergil,
-									Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][0],
-									queuedCharacterData.styles[styleIndex][0]
-							);
-
-							if constexpr (debug)
-							{
-									ImGui::SameLine();
-							}
-
-							UI::ComboMap
-							(
-									"",
-									styleNamesVergil,
-									stylesVergil,
-									Actor_styleIndices[playerIndex][characterIndex][entityIndex][styleIndex][1],
-									queuedCharacterData.styles[styleIndex][1]
-							);
-
-							break;
-					}
-			}
-	}
-
-	ImGui::PopItemWidth();*/
 
 	ImGui::PopStyleColor();
 
@@ -3033,45 +3037,32 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 
 				ImGui::PushItemWidth(itemWidth);
-
-				auto rangedSlider = [&]() {
-					if (queuedCharacterData.character == activeCharacterData.character && profileIndex == g_playerProfile[playerIndex]) {
-						if (GUI_Slider2<uint8>("", activeCharacterData.rangedWeaponCount, 
-							queuedCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1)) {
-							if (!newActorData.baseAddr) return;
-							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-							auto& characterData = GetCharacterData(actorData);
-						}
-					} else {
-						GUI_Slider<uint8>("", queuedCharacterData.rangedWeaponCount, 1, weaponProgression.gunsUnlockedQtt + 1);
+				if (g_scene == SCENE::MAIN) {
+					QueuedLoadoutUpdate(queuedCharacterData.rangedWeaponCount,
+						RANGED_WEAPON_COUNT_DANTE,
+						weaponProgression.rangedWeaponNaturalIds,
+						queuedCharacterData.rangedWeapons,
+						queuedCharacterDataClone.rangedWeapons);
+				}
+				if (queuedCharacterData.character == activeCharacterData.character && profileIndex == g_playerProfile[playerIndex]) {
+					auto weaponIndex = LiveLoadoutUpdate(activeCharacterData.rangedWeaponCount,
+						queuedCharacterData.rangedWeaponCount,
+						weaponProgression.gunsUnlockedQtt+1,
+						weaponProgression.rangedWeaponIds,
+						activeCharacterData.rangedWeapons,
+						queuedCharacterData.rangedWeapons,
+						queuedCharacterDataClone.rangedWeapons);
+					if (weaponIndex != -1 && newActorData.baseAddr != nullptr) {
+						auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+						actorData.rangedWeaponIndex = weaponIndex;
 					}
-					};
-
-				rangedSlider();
-
-				old_for_all(uint8, rangedWeaponIndex, weaponProgression.gunsUnlockedQtt + 1) {
-					bool condition = (rangedWeaponIndex >= queuedCharacterData.rangedWeaponCount);
-
-					GUI_PushDisable(condition);
-
-					// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
-					if (queuedCharacterData.character == activeCharacterData.character && profileIndex == g_playerProfile[playerIndex]) {
-						if (UI::ComboMapVector2("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
-							activeCharacterData.rangedWeapons[rangedWeaponIndex], queuedCharacterData.rangedWeapons[rangedWeaponIndex])) {
-
-							if (!newActorData.baseAddr) break;
-							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-							actorData.rangedWeaponIndex = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
-						}
-					} else {
-						UI::ComboMapVector("", weaponProgression.rangedWeaponNames, weaponProgression.rangedWeaponIds,
-							queuedCharacterData.rangedWeapons[rangedWeaponIndex]);
-					}
-
-					// Doppelganger will now have same weapons equipped as Dante - Mia.
-					queuedCharacterDataClone.rangedWeapons[rangedWeaponIndex] = queuedCharacterData.rangedWeapons[rangedWeaponIndex];
-
-					GUI_PopDisable(condition);
+				}
+				else {
+					QueuedLoadoutUpdate(queuedCharacterData.rangedWeaponCount,
+						weaponProgression.gunsUnlockedQtt+1,
+						weaponProgression.rangedWeaponIds,
+						queuedCharacterData.rangedWeapons,
+						queuedCharacterDataClone.rangedWeapons);
 				}
 			}
 
@@ -3085,49 +3076,26 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 
 
 			if (queuedCharacterData.character == CHARACTER::DANTE) {
-				auto meleeSlider = [&]() {
-					if (queuedCharacterData.character == activeCharacterData.character && profileIndex == g_playerProfile[playerIndex]) {
-						if (GUI_Slider2<uint8>("", activeCharacterData.meleeWeaponCount, 
-							queuedCharacterData.meleeWeaponCount, 1, weaponProgression.devilArmsUnlockedQtt + 1)) {
-							if (!newActorData.baseAddr) return;
-							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-							auto& characterData = GetCharacterData(actorData);
-						}
-					} else {
-						GUI_Slider<uint8>("", queuedCharacterData.meleeWeaponCount, 1, weaponProgression.devilArmsUnlockedQtt + 1);
+				if (queuedCharacterData.character == activeCharacterData.character && profileIndex == g_playerProfile[playerIndex]) {
+					auto weaponIndex = LiveLoadoutUpdate(activeCharacterData.meleeWeaponCount,
+						queuedCharacterData.meleeWeaponCount,
+						weaponProgression.devilArmsUnlockedQtt + 1,
+						weaponProgression.meleeWeaponIds,
+						activeCharacterData.meleeWeapons,
+						queuedCharacterData.meleeWeapons,
+						queuedCharacterDataClone.meleeWeapons);
+
+					if (weaponIndex != -1 && newActorData.baseAddr != nullptr) {
+						auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+						actorData.meleeWeaponIndex = weaponIndex;
 					}
-					};
-
-				meleeSlider();
-
-				queuedCharacterDataClone.meleeWeaponCount = queuedCharacterData.meleeWeaponCount;
-
-
-				old_for_all(uint8, meleeWeaponIndex, weaponProgression.devilArmsUnlockedQtt + 1) {
-					bool condition = (meleeWeaponIndex >= queuedCharacterData.meleeWeaponCount);
-
-					GUI_PushDisable(condition);
-
-					// Check if the queuedCharacter matches the activeCharacter for realTime WeaponSwitching
-					if (queuedCharacterData.character == activeCharacterData.character && profileIndex == g_playerProfile[playerIndex]) {
-						if (UI::ComboMapVector2("", weaponProgression.meleeWeaponNames, weaponProgression.meleeWeaponIds,
-							activeCharacterData.meleeWeapons[meleeWeaponIndex], queuedCharacterData.meleeWeapons[meleeWeaponIndex])) {
-
-							if (!newActorData.baseAddr) break;
-							auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-							actorData.meleeWeaponIndex = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
-						}
-					} else {
-						UI::ComboMapVector("", weaponProgression.meleeWeaponNames, weaponProgression.meleeWeaponIds,
-							queuedCharacterData.meleeWeapons[meleeWeaponIndex]);
-					}
-
-					// Doppelganger will now have same weapons equipped as Dante - Mia.
-					// Not if the doppelganger is Vergil though, that'd be problematic. - Hitch.
-					if (queuedCharacterDataClone.character == queuedCharacterData.character)
-					queuedCharacterDataClone.meleeWeapons[meleeWeaponIndex] = queuedCharacterData.meleeWeapons[meleeWeaponIndex];
-
-					GUI_PopDisable(condition);
+				}
+				else {
+					QueuedLoadoutUpdate(queuedCharacterData.meleeWeaponCount,
+						weaponProgression.devilArmsUnlockedQtt + 1,
+						weaponProgression.meleeWeaponIds,
+						queuedCharacterData.meleeWeapons,
+						queuedCharacterDataClone.meleeWeapons);
 				}
 			} else if (queuedCharacterData.character == CHARACTER::VERGIL) {
 				auto meleeSlider = [&]() {
