@@ -269,10 +269,6 @@ void FPSLimiter_Apply() {
 	if (!g_fpsLimiterInitialized || g_targetFrameTime <= 0.0)
 		return;
 
-	// Don't accumulate lag debt while backgrounded.
-	if (!g_window.active)
-		return;
-
 	LARGE_INTEGER now;
 	QueryPerformanceCounter(&now);
 

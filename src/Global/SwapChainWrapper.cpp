@@ -7,6 +7,11 @@
 #include "../CrimsonEfkPreload.hpp"
 #include "../NvApiReflex.hpp"
 
+namespace {
+    constexpr double kMaxFpsCap = 500.0;
+    inline double ClampFpsCap(double cap) { return cap > kMaxFpsCap ? kMaxFpsCap : cap; }
+}
+
 // Construction
 
 SwapChainWrapper::SwapChainWrapper(IDXGISwapChain* real, ID3D11Device* device, ID3D11DeviceContext* context, HWND hWnd)
@@ -164,10 +169,11 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
         if (GetNvApiReflex().Initialize(m_device)) {
             Log("%s NVAPI loaded — PCL Stats active", FUNC_NAME);
 
-            // Configure Reflex low-latency mode if enabled in config
+            // Configure Reflex low-latency mode if enabled in config.
+            // fpsUnlocked is now capped at kMaxFpsCap (500) instead of unlimited.
             if (activeCrimsonConfig.System.nvidiaReflex) {
                 double reflexCap = activeCrimsonConfig.System.fpsUnlocked
-                    ? 0.0 : activeCrimsonConfig.System.fpsCap;
+                    ? kMaxFpsCap : ClampFpsCap(activeCrimsonConfig.System.fpsCap);
                 if (GetNvApiReflex().Configure(
                         true,
                         reflexCap,
@@ -187,12 +193,11 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
     // NVIDIA Reflex: Sleep() at frame start lets the driver pace frames
     // at the GPU-optimal point. Only active when Reflex is toggled on AND
     // successfully configured. Falls back to CPU FPS limiter otherwise.
-    if (!activeCrimsonConfig.System.fpsUnlocked) {
-        if (activeCrimsonConfig.System.nvidiaReflex && !GetNvApiReflex().Sleep()) {
-            FPSLimiter_Apply();
-        } else if (!activeCrimsonConfig.System.nvidiaReflex) {
-            FPSLimiter_Apply();
-        }
+    // Always runs regardless of fpsUnlocked, the cap is clamped to kMaxFpsCap.
+    if (activeCrimsonConfig.System.nvidiaReflex && !GetNvApiReflex().Sleep()) {
+        FPSLimiter_Apply();
+    } else if (!activeCrimsonConfig.System.nvidiaReflex) {
+        FPSLimiter_Apply();
     }
 
     // NVIDIA Reflex / PCL Stats: begin frame marker (SIMULATION_START)
@@ -381,8 +386,8 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
         g_wasUnlocked = newUnlocked;
         g_wasReflexOn = newReflexOn;
 
-        // When fpsUnlocked, pass 0 as the cap so Reflex/FPSLimiter don't enforce a limit.
-        double reflexCap = newUnlocked ? 0.0 : newCap;
+        // Cap at kMaxFpsCap (500) — even "unlocked" mode is now clamped.
+        double reflexCap = newUnlocked ? kMaxFpsCap : ClampFpsCap(newCap);
 
         // Update Reflex configuration when FPS cap, unlock state, or Reflex toggle changes
         if (newReflexOn && GetNvApiReflex().IsNvApiLoaded()) {
