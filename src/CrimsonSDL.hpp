@@ -2,6 +2,9 @@
 #include <string>
 #include "../ThirdParty/SDL3/SDL.h"
 
+// Forward-declare XINPUT_STATE so we can reference it without pulling in Xinput.h
+typedef struct _XINPUT_STATE XINPUT_STATE;
+
 namespace CrimsonSDL {
 
 extern std::string SDL3Initialization;
@@ -26,6 +29,7 @@ SDL_Gamepad* GetControllerByPhysicalSlot(int xiSlot);
 const char* GetControllerNameForXInputSlot(int xiSlot);
 bool IsNativeControllerConnected();
 bool IsNativeControllerButtonDown(int button);
+bool PopulateXInputStateFromSdlSlot(int xiSlot, XINPUT_STATE* pState);
 void PlayChangeDevilArm();
 void PlayChangeGun();
 void PlayChangeDevilArmMP();

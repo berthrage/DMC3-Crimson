@@ -28,6 +28,7 @@ struct SDL_version;
 #include <unordered_set>
 #include <deque>
 #include <cctype>
+#include <Xinput.h>
 #include "Global.hpp"
 
 namespace CrimsonSDL {
@@ -177,6 +178,7 @@ SDL_FUNCTION_DECLRATION(SDL_GetError)                     = NULL;
 SDL_FUNCTION_DECLRATION(SDL_free)                         = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetGamepadPath)               = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetGamepadPathForID)          = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GetGamepadAxis)               = NULL;
 
 void LoadAllSFX() {
 	if (!cacheAudioFiles) {
@@ -477,9 +479,9 @@ void RemapSdlControllers() {
 		for (size_t i = 0; i < sdlGamepadsExtra.size(); ++i) {
 			const char* name = (fn_SDL_GetGamepadName != NULL)
 				? fn_SDL_GetGamepadName(sdlGamepadsExtra[i]) : "?";
-			Log("RemapSdlControllers: extra[%zu]     -> \"%s\"", i, name);
+			Log("RemapSdlControllers: SDL[%zu]        -> \"%s\"", i, name);
 		}
-		Log("RemapSdlControllers: %d XInput + %zu extra = %zu total",
+		Log("RemapSdlControllers: %d XInput + %zu SDL = %zu total",
 			xiCount, sdlGamepadsExtra.size(), (size_t)xiCount + sdlGamepadsExtra.size());
 	}
 }
@@ -487,17 +489,15 @@ void RemapSdlControllers() {
 SDL_Gamepad* GetControllerForPlayer(int playerIndex) {
 	if (playerIndex < 0 || playerIndex >= 4) return NULL;
 	int xiSlot = (int)activeCrimsonConfig.System.xinputSlots[playerIndex];
+	// Sentinel values ≥ 4 indicate SDL slot N (where N = xiSlot - 4)
+	if (xiSlot >= 4) {
+		size_t extrasIdx = (size_t)(xiSlot - 4);
+		if (extrasIdx < sdlGamepadsExtra.size())
+			return sdlGamepadsExtra[extrasIdx];
+		return NULL;
+	}
 	if (xiSlot >= 0 && xiSlot < 4 && sdlGamepadByXiSlot[xiSlot] != NULL) {
 		return sdlGamepadByXiSlot[xiSlot];
-	}
-	// Safety fallback: if the expected XInput slot has no SDL gamepad mapped,
-	// try the first available controller (either from extras or any xiSlot).
-	if (!sdlGamepadsExtra.empty()) {
-		return sdlGamepadsExtra[0];
-	}
-	// Last resort: try any populated xiSlot
-	for (int i = 0; i < 4; ++i) {
-		if (sdlGamepadByXiSlot[i] != NULL) return sdlGamepadByXiSlot[i];
 	}
 	return NULL;
 }
@@ -513,13 +513,13 @@ const char* GetControllerNameForXInputSlot(int xiSlot) {
 		if (pad != NULL && fn_SDL_GetGamepadName != NULL) {
 			return fn_SDL_GetGamepadName(pad);
 		}
+		return NULL;
 	}
-	// If no XInput-mapped controller, try extras (native SDL controllers).
-	// Use xiSlot as an index into extras to provide stable per-slot names.
-	if (!sdlGamepadsExtra.empty() && xiSlot >= 0) {
-		size_t idx = (size_t)xiSlot % sdlGamepadsExtra.size();
-		if (fn_SDL_GetGamepadName != NULL) {
-			return fn_SDL_GetGamepadName(sdlGamepadsExtra[idx]);
+	// Sentinel values ≥ 4 indicate SDL slot N (where N = xiSlot - 4)
+	if (xiSlot >= 4 && !sdlGamepadsExtra.empty()) {
+		size_t extrasIdx = (size_t)(xiSlot - 4);
+		if (extrasIdx < sdlGamepadsExtra.size() && fn_SDL_GetGamepadName != NULL) {
+			return fn_SDL_GetGamepadName(sdlGamepadsExtra[extrasIdx]);
 		}
 	}
 	return NULL;
@@ -537,6 +537,76 @@ bool IsNativeControllerButtonDown(int button) {
 		}
 	}
 	return false;
+}
+
+// Populate an XINPUT_STATE from an SDL gamepad.
+// Returns true if the state was successfully populated.
+static bool PopulateXInputStateFromSDL(SDL_Gamepad* pad, XINPUT_STATE* pState) {
+	if (pad == NULL || pState == NULL || fn_SDL_GetGamepadButton == NULL) return false;
+
+	ZeroMemory(pState, sizeof(XINPUT_STATE));
+
+	static DWORD s_packetNumber = 0;
+	pState->dwPacketNumber = ++s_packetNumber;
+
+	WORD& btns = pState->Gamepad.wButtons;
+	auto btn = [&](SDL_GamepadButton b) { return fn_SDL_GetGamepadButton(pad, b); };
+
+	if (btn(SDL_GAMEPAD_BUTTON_DPAD_UP))         btns |= XINPUT_GAMEPAD_DPAD_UP;
+	if (btn(SDL_GAMEPAD_BUTTON_DPAD_DOWN))       btns |= XINPUT_GAMEPAD_DPAD_DOWN;
+	if (btn(SDL_GAMEPAD_BUTTON_DPAD_LEFT))       btns |= XINPUT_GAMEPAD_DPAD_LEFT;
+	if (btn(SDL_GAMEPAD_BUTTON_DPAD_RIGHT))      btns |= XINPUT_GAMEPAD_DPAD_RIGHT;
+	if (btn(SDL_GAMEPAD_BUTTON_START))           btns |= XINPUT_GAMEPAD_START;
+	if (btn(SDL_GAMEPAD_BUTTON_BACK))            btns |= XINPUT_GAMEPAD_BACK;
+	if (btn(SDL_GAMEPAD_BUTTON_LEFT_STICK))      btns |= XINPUT_GAMEPAD_LEFT_THUMB;
+	if (btn(SDL_GAMEPAD_BUTTON_RIGHT_STICK))     btns |= XINPUT_GAMEPAD_RIGHT_THUMB;
+	if (btn(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER))   btns |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+	if (btn(SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER))  btns |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+	if (btn(SDL_GAMEPAD_BUTTON_SOUTH))           btns |= XINPUT_GAMEPAD_A;
+	if (btn(SDL_GAMEPAD_BUTTON_EAST))            btns |= XINPUT_GAMEPAD_B;
+	if (btn(SDL_GAMEPAD_BUTTON_WEST))            btns |= XINPUT_GAMEPAD_X;
+	if (btn(SDL_GAMEPAD_BUTTON_NORTH))           btns |= XINPUT_GAMEPAD_Y;
+
+	// Axes (thumb sticks and triggers)
+	if (fn_SDL_GetGamepadAxis != NULL) {
+		pState->Gamepad.sThumbLX = fn_SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTX);
+		// SDL Y-axis is inverted vs XInput (SDL: up=-, XInput: up=+).
+		// Negate, but handle -32768 which can't be negated in Sint16.
+		Sint16 ly = fn_SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFTY);
+		Sint16 ry = fn_SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_RIGHTY);
+		pState->Gamepad.sThumbLY = (ly == -32768) ? 32767 : -ly;
+		pState->Gamepad.sThumbRY = (ry == -32768) ? 32767 : -ry;
+		pState->Gamepad.sThumbRX = fn_SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_RIGHTX);
+
+		// SDL triggers: 0-32767, XInput triggers: 0-255
+		Sint16 lt = fn_SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER);
+		Sint16 rt = fn_SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER);
+		pState->Gamepad.bLeftTrigger  = (BYTE)((lt > 0) ? (lt * 255 / 32767) : 0);
+		pState->Gamepad.bRightTrigger = (BYTE)((rt > 0) ? (rt * 255 / 32767) : 0);
+	}
+
+	return true;
+}
+
+// Populate an XINPUT_STATE from the SDL gamepad mapped to a physical XInput slot.
+// Returns true if state was populated, false if no SDL controller is available
+// for this slot (caller should fall back to real XInput).
+bool PopulateXInputStateFromSdlSlot(int xiSlot, XINPUT_STATE* pState) {
+	if (xiSlot < 0 || pState == NULL) return false;
+
+	SDL_Gamepad* pad = NULL;
+
+	// Sentinel values ≥ 4 indicate SDL slot N (where N = xiSlot - 4)
+	if (xiSlot >= 4) {
+		size_t extrasIdx = (size_t)(xiSlot - 4);
+		if (extrasIdx < sdlGamepadsExtra.size()) {
+			pad = sdlGamepadsExtra[extrasIdx];
+		}
+	} else if (xiSlot < 4) {
+		pad = sdlGamepadByXiSlot[xiSlot];
+	}
+
+	return PopulateXInputStateFromSDL(pad, pState);
 }
 
 void InitSDL() {
@@ -578,6 +648,7 @@ void InitSDL() {
         LOAD_SDL_FUNCTION(SDL_free);
         LOAD_SDL_FUNCTION(SDL_GetGamepadPath);
         LOAD_SDL_FUNCTION(SDL_GetGamepadPathForID);
+        LOAD_SDL_FUNCTION(SDL_GetGamepadAxis);
 
        
 

@@ -327,6 +327,19 @@ static void CUIDControl_Close() {
 }
 
 static const char* GetXInputControllerName(DWORD userIndex) {
+    // Sentinel values ≥ 4 indicate SDL slots
+    if (userIndex >= 4) {
+        static std::string s_sdlNames[8];
+        size_t extrasIdx = (size_t)(userIndex - 4);
+        const char* name = CrimsonSDL::GetControllerNameForXInputSlot((int)userIndex);
+        if (name && name[0]) {
+            s_sdlNames[extrasIdx] = name;
+        } else {
+            s_sdlNames[extrasIdx] = "SDL Controller";
+        }
+        return s_sdlNames[extrasIdx].c_str();
+    }
+
     static std::string s_names[PLAYER_COUNT];
     static bool        s_isSdlName[PLAYER_COUNT] = { false };
     static DWORD       s_lastCheck[PLAYER_COUNT] = {};
@@ -535,6 +548,7 @@ void ShowButtonConfigWindow() {
 	bool shouldClose = false;
 
 	static std::array<int, PLAYER_COUNT> s_selectedCharacterSlotByPlayer = {};
+	static std::array<int, PLAYER_COUNT> s_comboSelection = {};
 
 	const float scaleY      = CrimsonGUI::scaleFactorY;
 	const float scaleF      = (CrimsonGUI::scaleFactorX + CrimsonGUI::scaleFactorY) * 0.5f;
@@ -600,33 +614,72 @@ void ShowButtonConfigWindow() {
 					ImGui::TextDisabled("[%s]", GetXInputControllerName((DWORD)activeCrimsonConfig.System.xinputSlots[i]));
 
 					{
-						char slotLabel[4][64];
-						const char* slotPtrs[4];
+						// Build a unified slot list: XInput 0-3 + SDL
+						char slotLabels[4 + 8][64];
+						const char* slotPtrs[4 + 8];
+						int slotCount = 0;
+
 						for (int s = 0; s < 4; s++) {
-							snprintf(slotLabel[s], sizeof(slotLabel[s]), "Slot %d  [%s]", s, GetXInputControllerName((DWORD)s));
-							slotPtrs[s] = slotLabel[s];
+							snprintf(slotLabels[slotCount], sizeof(slotLabels[slotCount]),
+								"XInput %d  [%s]", s, GetXInputControllerName((DWORD)s));
+							slotPtrs[slotCount] = slotLabels[slotCount];
+							slotCount++;
 						}
-						int currentSlot = activeCrimsonConfig.System.xinputSlots[i];
+						for (size_t s = 0; s < CrimsonSDL::sdlGamepadsExtra.size() && slotCount < 12; s++) {
+							const char* name = "Unknown";
+							if (CrimsonSDL::sdlGamepadsExtra[s] != NULL) {
+								name = CrimsonSDL::GetControllerNameForXInputSlot((int)(s + 4));
+								if (!name || !name[0]) name = "SDL Controller";
+							}
+							snprintf(slotLabels[slotCount], sizeof(slotLabels[slotCount]),
+								"SDL %zu  [%s]", s, name);
+							slotPtrs[slotCount] = slotLabels[slotCount];
+							slotCount++;
+						}
+
+						// Read current selection from config (handle sentinel values)
+						uint8 cfgSlot = activeCrimsonConfig.System.xinputSlots[i];
+						int currentSlot = (cfgSlot >= 4) ? (int)(cfgSlot - 4 + 4) : (int)cfgSlot;
 						sprintf(buffer, "##ctrl%d", i);
-						if (ImGui::Combo(buffer, &currentSlot, slotPtrs, 4)) {
-							activeCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
-							queuedCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
+						if (ImGui::Combo(buffer, &currentSlot, slotPtrs, slotCount)) {
+							if (currentSlot < 4) {
+								activeCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
+								queuedCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
+							} else {
+								uint8 sentinel = (uint8)(4 + (currentSlot - 4));
+								activeCrimsonConfig.System.xinputSlots[i] = sentinel;
+								queuedCrimsonConfig.System.xinputSlots[i] = sentinel;
+							}
 							GUI::save = true;
 						}
 						ImGui::SameLine();
 						sprintf(buffer, "<##prev%d", i);
 						if (ImGui::Button(buffer)) {
-							const uint8 next = (currentSlot == 0) ? 3 : (uint8)(currentSlot - 1);
-							activeCrimsonConfig.System.xinputSlots[i] = next;
-							queuedCrimsonConfig.System.xinputSlots[i] = next;
+							currentSlot = (currentSlot == 0) ? (slotCount - 1) : (currentSlot - 1);
+							s_comboSelection[i] = currentSlot;
+							if (currentSlot < 4) {
+								activeCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
+								queuedCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
+							} else {
+								uint8 sentinel = (uint8)(4 + (currentSlot - 4));
+								activeCrimsonConfig.System.xinputSlots[i] = sentinel;
+								queuedCrimsonConfig.System.xinputSlots[i] = sentinel;
+							}
 							GUI::save = true;
 						}
 						ImGui::SameLine();
 						sprintf(buffer, ">##next%d", i);
 						if (ImGui::Button(buffer)) {
-							const uint8 next = (uint8)((currentSlot + 1) % 4);
-							activeCrimsonConfig.System.xinputSlots[i] = next;
-							queuedCrimsonConfig.System.xinputSlots[i] = next;
+							currentSlot = (currentSlot + 1) % slotCount;
+							s_comboSelection[i] = currentSlot;
+							if (currentSlot < 4) {
+								activeCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
+								queuedCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
+							} else {
+								uint8 sentinel = (uint8)(4 + (currentSlot - 4));
+								activeCrimsonConfig.System.xinputSlots[i] = sentinel;
+								queuedCrimsonConfig.System.xinputSlots[i] = sentinel;
+							}
 							GUI::save = true;
 						}
 					}
@@ -873,11 +926,20 @@ void ToggleCursor() {
 // internal per-player state is populated with the correct physical controller data before
 // the game ever reads from it.
 static DWORD WINAPI Hooked_XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pState) {
-	// Here we change the user index to the physical slot index according to xinputSlots mapping. 
-    const DWORD physSlot = (dwUserIndex < (DWORD)PLAYER_COUNT)
-        ? (DWORD)activeCrimsonConfig.System.xinputSlots[dwUserIndex]
-        : dwUserIndex;
-    return s_XInputGetStateHook->GetTrampoline<decltype(&XInputGetState)>()(physSlot, pState);
+	if (!pState) return ERROR_INVALID_PARAMETER;
+
+	const DWORD physSlot = (dwUserIndex < (DWORD)PLAYER_COUNT)
+		? (DWORD)activeCrimsonConfig.System.xinputSlots[dwUserIndex]
+		: dwUserIndex;
+
+	// Try SDL first — this enables pure-SDL controllers (PS4/PS5/Switch)
+	// to control the game without XInput emulation.
+	if (CrimsonSDL::PopulateXInputStateFromSdlSlot((int)physSlot, pState)) {
+		return ERROR_SUCCESS;
+	}
+
+	// Fall back to real XInput for controllers not visible to SDL
+	return s_XInputGetStateHook->GetTrampoline<decltype(&XInputGetState)>()(physSlot, pState);
 }
 
 static DWORD __fastcall Hooked_dmc3_XInputWrapper(DWORD dwUserIndex, XINPUT_STATE* pState) {
