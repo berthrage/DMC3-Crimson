@@ -30,6 +30,7 @@ struct SDL_version;
 #include <cctype>
 #include <Xinput.h>
 #include "Global.hpp"
+#include "DMC3Input.hpp"
 
 namespace CrimsonSDL {
 
@@ -304,7 +305,6 @@ void InitControllers() {
 		}
 		fn_SDL_free(joysticks);
 	}
-	RemapSdlControllers();
 }
 
 // Normalize a HID device path for cross-API comparison.
@@ -417,6 +417,99 @@ int GetXInputSlotForHIDPath(const char* sdlPath) {
 	return -1;
 }
 
+// Returns a normalized HID path that uniquely identifies the physical device
+// behind a gamepad, enabling cross-backend deduplication.
+// - XInput-backend pads (path "XInput#N") are resolved via RawInput to their
+//   underlying HID path, then normalized.
+// - HIDAPI / WGI pads are normalized directly via NormalizeHidPath.
+// Returns empty string if the device cannot be identified.
+static std::string GetNormalizedPathForPad(SDL_Gamepad* pad) {
+	if (!pad || !fn_SDL_GetGamepadPath) return {};
+
+	const char* path = fn_SDL_GetGamepadPath(pad);
+	if (!path || !path[0]) return {};
+
+	std::string lower(path);
+	for (auto& c : lower) c = (char)tolower((unsigned char)c);
+
+	// --- XInput backend: resolve virtual slot to underlying HID path ---
+	if (lower.compare(0, 7, "xinput#") == 0 && lower.size() > 7) {
+		int xiSlot = lower[7] - '0';
+		if (xiSlot < 0 || xiSlot >= 4) return {};
+
+		UINT count = 0;
+		if (GetRawInputDeviceList(nullptr, &count, sizeof(RAWINPUTDEVICELIST)) != 0 || count == 0)
+			return {};
+
+		std::vector<RAWINPUTDEVICELIST> list(count);
+		if (GetRawInputDeviceList(list.data(), &count, sizeof(RAWINPUTDEVICELIST)) == (UINT)-1)
+			return {};
+
+		DWORD slot = 0;
+		for (const auto& dev : list) {
+			if (dev.dwType != RIM_TYPEHID) continue;
+
+			UINT len = 0;
+			GetRawInputDeviceInfoA(dev.hDevice, RIDI_DEVICENAME, nullptr, &len);
+			if (len == 0) continue;
+
+			std::string xiPath(len, '\0');
+			if (GetRawInputDeviceInfoA(dev.hDevice, RIDI_DEVICENAME, xiPath.data(), &len) == (UINT)-1)
+				continue;
+
+			if (!xiPath.empty() && xiPath.back() == '\0') xiPath.pop_back();
+			if (xiPath.find("IG_") == std::string::npos) continue;
+
+			if (slot == (DWORD)xiSlot) {
+				return NormalizeHidPath(xiPath.c_str());
+			}
+
+			if (++slot >= 4) break;
+		}
+		return {};
+	}
+
+	// "xinput controller N" alternative format
+	if (lower.compare(0, 18, "xinput controller ") == 0 && lower.size() > 18) {
+		int xiSlot = lower[18] - '0';
+		if (xiSlot < 0 || xiSlot >= 4) return {};
+		// Same resolution as above; inline for simplicity
+		UINT count = 0;
+		if (GetRawInputDeviceList(nullptr, &count, sizeof(RAWINPUTDEVICELIST)) != 0 || count == 0)
+			return {};
+
+		std::vector<RAWINPUTDEVICELIST> list(count);
+		if (GetRawInputDeviceList(list.data(), &count, sizeof(RAWINPUTDEVICELIST)) == (UINT)-1)
+			return {};
+
+		DWORD slot = 0;
+		for (const auto& dev : list) {
+			if (dev.dwType != RIM_TYPEHID) continue;
+
+			UINT len = 0;
+			GetRawInputDeviceInfoA(dev.hDevice, RIDI_DEVICENAME, nullptr, &len);
+			if (len == 0) continue;
+
+			std::string xiPath(len, '\0');
+			if (GetRawInputDeviceInfoA(dev.hDevice, RIDI_DEVICENAME, xiPath.data(), &len) == (UINT)-1)
+				continue;
+
+			if (!xiPath.empty() && xiPath.back() == '\0') xiPath.pop_back();
+			if (xiPath.find("IG_") == std::string::npos) continue;
+
+			if (slot == (DWORD)xiSlot) {
+				return NormalizeHidPath(xiPath.c_str());
+			}
+
+			if (++slot >= 4) break;
+		}
+		return {};
+	}
+
+	// --- HIDAPI / WGI / other backends: normalize directly ---
+	return NormalizeHidPath(path);
+}
+
 void RemapSdlControllers() {
 	// Clear existing mapping
 	for (int i = 0; i < 4; ++i) sdlGamepadByXiSlot[i] = NULL;
@@ -444,9 +537,8 @@ void RemapSdlControllers() {
 	}
 
 	// Second pass: all remaining pads go to extras.
-	// Native controllers are kept EVEN if they duplicate an XInput-mapped one,
-	// because they provide unique features (touchpad, gyro, lightbar) that the
-	// XInput-emulated handle cannot expose.
+	// Duplicates (same physical device via different SDL backends) are
+	// filtered out by the deduplication pass below.
 	for (SDL_Gamepad* pad : controllers) {
 		if (pad == NULL) continue;
 
@@ -463,6 +555,80 @@ void RemapSdlControllers() {
 
 		// Non-XInput controller (or native duplicate of an XInput controller)
 		sdlGamepadsExtra.push_back(pad);
+	}
+
+	// === Deduplication pass ===
+	// Remove controllers from sdlGamepadsExtra that represent the same
+	// physical device as one already mapped in sdlGamepadByXiSlot, or that
+	// appear multiple times within extras itself.
+	// Uses normalized HID paths (preserving device instance ID) so two
+	// genuinely different controllers of the same model are NOT conflated.
+	{
+		std::unordered_set<std::string> seenPaths;
+
+		// Seed with normalized paths of XInput-slot controllers
+		for (int i = 0; i < 4; ++i) {
+			if (sdlGamepadByXiSlot[i] != NULL) {
+				std::string np = GetNormalizedPathForPad(sdlGamepadByXiSlot[i]);
+				if (!np.empty()) seenPaths.insert(np);
+			}
+		}
+
+		// Filter extras: keep first occurrence, skip duplicates
+		std::vector<SDL_Gamepad*> deduped;
+		for (SDL_Gamepad* pad : sdlGamepadsExtra) {
+			if (pad == NULL) continue;
+			std::string np = GetNormalizedPathForPad(pad);
+			if (np.empty()) {
+				// Cannot identify; keep it (safer than losing a controller)
+				deduped.push_back(pad);
+			} else if (seenPaths.find(np) == seenPaths.end()) {
+				seenPaths.insert(np);
+				deduped.push_back(pad);
+			}
+			// else: duplicate — skip
+		}
+		sdlGamepadsExtra = std::move(deduped);
+	}
+
+	// === Player auto-assignment ===
+	// For each player whose configured physical XInput slot has no
+	// controller, assign the next available SDL controller (sentinel ≥ 4).
+	// Pre-scans already-assigned sentinels so that multiple invocations of
+	// RemapSdlControllers (e.g. during init) never give two players the
+	// same SDL controller.
+	// Does NOT move SDL controllers into XInput slots.
+	{
+		size_t sdlCount = sdlGamepadsExtra.size();
+
+		// Track which SDL indices are already claimed by any player
+		bool sentinelUsed[8] = {}; // up to 8 SDL extras
+		for (int p = 0; p < PLAYER_COUNT; ++p) {
+			uint8 slot = activeCrimsonConfig.System.xinputSlots[p];
+			if (slot >= 4 && (size_t)(slot - 4) < sdlCount) {
+				sentinelUsed[slot - 4] = true; // still valid
+			} else if (slot >= 4) {
+				// Sentinel points to a removed SDL controller; reset to dead
+				activeCrimsonConfig.System.xinputSlots[p] = 0;
+				queuedCrimsonConfig.System.xinputSlots[p] = 0;
+			}
+		}
+
+		// Assign unused SDL controllers to players with dead XInput slots
+		int nextSdl = 0;
+		for (int p = 0; p < PLAYER_COUNT; ++p) {
+			uint8 slot = activeCrimsonConfig.System.xinputSlots[p];
+			bool dead = (slot < 4 && sdlGamepadByXiSlot[slot] == NULL);
+			if (dead) {
+				while (nextSdl < (int)sdlCount && sentinelUsed[nextSdl]) ++nextSdl;
+				if (nextSdl < (int)sdlCount) {
+					activeCrimsonConfig.System.xinputSlots[p] = (uint8)(4 + nextSdl);
+					queuedCrimsonConfig.System.xinputSlots[p] = (uint8)(4 + nextSdl);
+					sentinelUsed[nextSdl] = true;
+					++nextSdl;
+				}
+			}
+		}
 	}
 
 	// Log controller mapping summary (after all processing)
@@ -739,6 +905,12 @@ void InitSDL() {
 
         InitControllers();
         RemapSdlControllers();
+
+        // Install XInput hooks now that SDL controllers are mapped.
+        // This must happen here (not earlier in Crimson.cpp) because
+        // Hooked_XInputGetState depends on sdlGamepadByXiSlot/sdlGamepadsExtra
+        // which are only populated after InitControllers/RemapSdlControllers.
+        InitBindings();
 
         if (!g_SDL3Mixer) {
             MessageBoxA(NULL,

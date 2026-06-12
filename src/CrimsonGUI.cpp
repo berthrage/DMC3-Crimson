@@ -13759,8 +13759,8 @@ void GamepadToggleShowMain() {
 		return;
 	}
 
-	// Up to 4 XInput-mapped controllers
-	static bool gamepadCombinationMainRelease[4] = { false };
+	// Up to 4 XInput-mapped + 8 SDL controllers
+	static bool gamepadCombinationMainRelease[4 + 8] = { false };
 
 	//prevents double toggle
 	bool updatinggui = false;
@@ -13802,6 +13802,11 @@ void GamepadToggleShowMain() {
 	// Check XInput-mapped controllers (physical slots 0-3)
 	for (int i = 0; i < 4; ++i) {
 		checkPad(CrimsonSDL::sdlGamepadByXiSlot[i], i);
+	}
+
+	// Check SDL-only controllers (extras)
+	for (size_t i = 0; i < CrimsonSDL::sdlGamepadsExtra.size() && i < 8; ++i) {
+		checkPad(CrimsonSDL::sdlGamepadsExtra[i], (int)(4 + i));
 	}
 
 
