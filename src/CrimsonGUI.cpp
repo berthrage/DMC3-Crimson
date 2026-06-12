@@ -13759,8 +13759,8 @@ void GamepadToggleShowMain() {
 		return;
 	}
 
-	// Up to 4 XInput-mapped controllers + up to 8 native non-XInput controllers
-	static bool gamepadCombinationMainRelease[12] = { false };
+	// Up to 4 XInput-mapped controllers
+	static bool gamepadCombinationMainRelease[4] = { false };
 
 	//prevents double toggle
 	bool updatinggui = false;
@@ -13802,11 +13802,6 @@ void GamepadToggleShowMain() {
 	// Check XInput-mapped controllers (physical slots 0-3)
 	for (int i = 0; i < 4; ++i) {
 		checkPad(CrimsonSDL::sdlGamepadByXiSlot[i], i);
-	}
-
-	// Check native non-XInput controllers (PS4/PS5/Switch, etc.)
-	for (size_t i = 0; i < CrimsonSDL::sdlGamepadsExtra.size() && (i + 4) < 12; ++i) {
-		checkPad(CrimsonSDL::sdlGamepadsExtra[i], (int)(i + 4));
 	}
 
 

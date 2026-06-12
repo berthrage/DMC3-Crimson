@@ -24,6 +24,8 @@ void RemapSdlControllers();
 SDL_Gamepad* GetControllerForPlayer(int playerIndex);
 SDL_Gamepad* GetControllerByPhysicalSlot(int xiSlot);
 const char* GetControllerNameForXInputSlot(int xiSlot);
+bool IsNativeControllerConnected();
+bool IsNativeControllerButtonDown(int button);
 void PlayChangeDevilArm();
 void PlayChangeGun();
 void PlayChangeDevilArmMP();

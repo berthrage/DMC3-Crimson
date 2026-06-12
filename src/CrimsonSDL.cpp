@@ -422,10 +422,7 @@ void RemapSdlControllers() {
 
 	if (fn_SDL_GetGamepadPath == NULL) return;
 
-	// First pass: build XInput-mapped slots and collect their normalized paths
-	std::string xiNormalizedPaths[4];
-
-	// Iterate all open SDL gamepads from the controllers vector
+	// First pass: place XInput-matching controllers into their slots
 	for (SDL_Gamepad* pad : controllers) {
 		if (pad == NULL) continue;
 
@@ -433,11 +430,10 @@ void RemapSdlControllers() {
 		if (!path) continue;
 
 		int xiSlot = GetXInputSlotForHIDPath(path);
+
 		if (xiSlot >= 0 && xiSlot < 4) {
-			// XInput-mapped controller
 			if (sdlGamepadByXiSlot[xiSlot] == NULL) {
 				sdlGamepadByXiSlot[xiSlot] = pad;
-				xiNormalizedPaths[xiSlot] = NormalizeHidPath(path);
 			} else {
 				// Slot already occupied; store as extra
 				sdlGamepadsExtra.push_back(pad);
@@ -445,8 +441,10 @@ void RemapSdlControllers() {
 		}
 	}
 
-	// Second pass: add non-XInput controllers, skipping those that are the same
-	// physical device as an XInput-mapped controller (e.g. PS4 native vs XInput-emulated)
+	// Second pass: all remaining pads go to extras.
+	// Native controllers are kept EVEN if they duplicate an XInput-mapped one,
+	// because they provide unique features (touchpad, gyro, lightbar) that the
+	// XInput-emulated handle cannot expose.
 	for (SDL_Gamepad* pad : controllers) {
 		if (pad == NULL) continue;
 
@@ -455,28 +453,34 @@ void RemapSdlControllers() {
 
 		int xiSlot = GetXInputSlotForHIDPath(path);
 		if (xiSlot >= 0 && xiSlot < 4 && sdlGamepadByXiSlot[xiSlot] == pad) {
-			// Already placed in XInput slot; skip
-			continue;
+			continue; // Already placed in XInput slot
 		}
 		if (xiSlot >= 0 && xiSlot < 4 && sdlGamepadByXiSlot[xiSlot] != NULL) {
-			// XInput slot occupied by another pad; already pushed to extras in first pass
-			continue;
+			continue; // XInput slot occupied by another pad; already pushed to extras
 		}
 
-		// Non-XInput controller — check if it's the same physical device as any XInput-mapped one
-		std::string normPath = NormalizeHidPath(path);
-		bool isDuplicate = false;
+		// Non-XInput controller (or native duplicate of an XInput controller)
+		sdlGamepadsExtra.push_back(pad);
+	}
+
+	// Log controller mapping summary (after all processing)
+	{
+		int xiCount = 0;
 		for (int i = 0; i < 4; ++i) {
-			if (sdlGamepadByXiSlot[i] != NULL && !xiNormalizedPaths[i].empty()
-				&& normPath == xiNormalizedPaths[i]) {
-				isDuplicate = true;
-				break;
+			if (sdlGamepadByXiSlot[i] != NULL) {
+				++xiCount;
+				const char* name = (fn_SDL_GetGamepadName != NULL)
+					? fn_SDL_GetGamepadName(sdlGamepadByXiSlot[i]) : "?";
+				Log("RemapSdlControllers: XInput slot %d -> \"%s\"", i, name);
 			}
 		}
-
-		if (!isDuplicate) {
-			sdlGamepadsExtra.push_back(pad);
+		for (size_t i = 0; i < sdlGamepadsExtra.size(); ++i) {
+			const char* name = (fn_SDL_GetGamepadName != NULL)
+				? fn_SDL_GetGamepadName(sdlGamepadsExtra[i]) : "?";
+			Log("RemapSdlControllers: extra[%zu]     -> \"%s\"", i, name);
 		}
+		Log("RemapSdlControllers: %d XInput + %zu extra = %zu total",
+			xiCount, sdlGamepadsExtra.size(), (size_t)xiCount + sdlGamepadsExtra.size());
 	}
 }
 
@@ -519,6 +523,20 @@ const char* GetControllerNameForXInputSlot(int xiSlot) {
 		}
 	}
 	return NULL;
+}
+
+bool IsNativeControllerConnected() {
+	return !sdlGamepadsExtra.empty();
+}
+
+bool IsNativeControllerButtonDown(int button) {
+	if (fn_SDL_GetGamepadButton == NULL) return false;
+	for (SDL_Gamepad* pad : sdlGamepadsExtra) {
+		if (pad != NULL && fn_SDL_GetGamepadButton(pad, (SDL_GamepadButton)button)) {
+			return true;
+		}
+	}
+	return false;
 }
 
 void InitSDL() {

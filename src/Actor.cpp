@@ -4665,6 +4665,11 @@ void CharacterSwitchController() {
             }
             auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
             auto& gamepad = GetGamepad(actorData.newGamepad);
+            // Map native SDL controller touchpad to character switch for all players
+//             if (CrimsonSDL::IsNativeControllerButtonDown(SDL_GAMEPAD_BUTTON_TOUCHPAD)) {
+//                 Log("SDL CONTROLLER PRESSED");
+//                 gamepad.buttons[0] |= playerData.switchButton;
+//             }
 			if (!activeCrimsonConfig.GUI.disableGamepadShortcut) {
 				// Shortcut is enabled
 				condition = (gamepad.buttons[0] & playerData.switchButton) &&
