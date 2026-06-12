@@ -43,7 +43,7 @@ extern ExpData savedExpDataVergil[SAVE_COUNT];
 
 extern PlayerProfileData missionProfileData[PLAYER_COUNT];
 extern PlayerProfileData sessionProfileData[PLAYER_COUNT];
-extern PlayerProfileData profiles[SAVE_COUNT][PLAYER_COUNT];
+extern PlayerProfileData profiles[SAVE_COUNT+1][PLAYER_COUNT];
 
 void SaveExp();
 void LoadExp();
@@ -65,6 +65,7 @@ void MarkAsPairedWithActorSystem();
 
 namespace Exp {
 void InitSession();
+void SceneMain();
 void SceneMissionStart();
 void SceneMissionResult();
 void IncStyleExpPoints(byte8* actorBaseAddr);

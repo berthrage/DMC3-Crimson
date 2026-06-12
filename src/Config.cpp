@@ -1322,8 +1322,8 @@ void InitConfig() {
 /// </summary>
 /// <param name="member">JSON corresponding to a specific profile data array, most likely subset of ExpData json.</param>
 /// <param name="profileData">Array of profileData structs for each player in the save file.</param>
-void ToJSON_ProfileData(rapidjson::Value& member, PlayerProfileData(&profileDataArray)[SAVE_COUNT][PLAYER_COUNT]) {
-    for_all(saveIndex, SAVE_COUNT) {
+void ToJSON_ProfileData(rapidjson::Value& member, PlayerProfileData(&profileDataArray)[SAVE_COUNT+1][PLAYER_COUNT]) {
+    for_all(saveIndex, SAVE_COUNT+1) {
         for_all(playerIndex, PLAYER_COUNT) {
             auto& profileData_json = member[saveIndex][playerIndex];
             auto& profileData2 = profileDataArray[saveIndex][playerIndex];
@@ -1341,8 +1341,8 @@ void ToJSON_ProfileData(rapidjson::Value& member, PlayerProfileData(&profileData
 /// </summary>
 /// <param name="profileData">Array of profileData structs for each player in the save file.</param>
 /// <param name="member">JSON corresponding to a specific profile data array, most likely subset of ExpData json.</param>
-void ToExp_ProfileData(PlayerProfileData(&profileDataArray)[SAVE_COUNT][PLAYER_COUNT], rapidjson::Value& member) {
-    for_all(saveIndex, SAVE_COUNT) {
+void ToExp_ProfileData(PlayerProfileData(&profileDataArray)[SAVE_COUNT+1][PLAYER_COUNT], rapidjson::Value& member) {
+    for_all(saveIndex, SAVE_COUNT+1) {
         for_all(playerIndex, PLAYER_COUNT) {
             auto& profileData_json = member[saveIndex][playerIndex];
             auto& profileData = profileDataArray[saveIndex][playerIndex];
@@ -1372,7 +1372,7 @@ ExpData savedExpDataVergil[SAVE_COUNT] = {};
 
 PlayerProfileData missionProfileData[PLAYER_COUNT] = {};
 PlayerProfileData sessionProfileData[PLAYER_COUNT] = {};
-PlayerProfileData profiles[SAVE_COUNT][PLAYER_COUNT] = {};
+PlayerProfileData profiles[SAVE_COUNT+1][PLAYER_COUNT] = {};
 
 inline bool Enable() {
     return activeConfig.Actor.enable;
@@ -1416,8 +1416,8 @@ void CreateMembers_ExpData(rapidjson::Value& member, ExpData (&expData)[SAVE_COU
     }
 }
 
-void CreateMembers_ProfileData(rapidjson::Value& member, PlayerProfileData(&profileDataArray)[SAVE_COUNT][PLAYER_COUNT]) {
-    for_all(saveIndex, SAVE_COUNT) {
+void CreateMembers_ProfileData(rapidjson::Value& member, PlayerProfileData(&profileDataArray)[SAVE_COUNT+1][PLAYER_COUNT]) {
+    for_all(saveIndex, SAVE_COUNT+1) {
         for_all(playerIndex, PLAYER_COUNT) {
             auto& profile_json = member[saveIndex][playerIndex];
             auto& profileData = profileDataArray[saveIndex][playerIndex];
@@ -1435,7 +1435,7 @@ void CreateMembers() {
     CreateArray<struct_t, SAVE_COUNT>(crimsonConfigRoot, "Vergil");
     CreateMembers_ExpData(crimsonConfigRoot["Vergil"], savedExpDataVergil);
 
-    CreateArray2<struct_t, SAVE_COUNT, PLAYER_COUNT>(crimsonConfigRoot, "profiles");
+    CreateArray2<struct_t, SAVE_COUNT+1, PLAYER_COUNT>(crimsonConfigRoot, "profiles");
     CreateMembers_ProfileData(crimsonConfigRoot["profiles"], profiles);
 }
 
@@ -2524,18 +2524,38 @@ void MarkAsPairedWithActorSystem() {
 namespace Exp {
 
 void InitSession() {
-    if (!Enable()) {
-        return;
-    }
-
+    //if (!Enable()) {
+    //    return;
+   //}
 
     LogFunction();
-
+    if (g_scene == SCENE::MAIN || queuedConfig.Arcade.enable) {
+        for_all(playerIndex, PLAYER_COUNT) {
+            //This makes scene main load the arcade profile data (I hope)
+            sessionProfileData[playerIndex] = ExpConfig::profiles[SAVE_COUNT][playerIndex];
+            missionProfileData[playerIndex] = sessionProfileData[playerIndex];
+            queuedConfig.Actor.playerProfileData[playerIndex] = missionProfileData[playerIndex];
+            activeConfig.Actor.playerProfileData[playerIndex] = missionProfileData[playerIndex];
+        }
+    }
     sessionExpDataDante  = {};
     sessionExpDataVergil = {};
     //Hitch says he doesn't know if these are necessary yet.
     //JSON::CreateDefaultProfile(sessionExpDataDante.profileData);
     //JSON::CreateDefaultProfile(sessionExpDataVergil.profileData);
+}
+
+void SceneMain() {
+    if (!Enable()) {
+        return;
+    }
+
+    LogFunction();
+    Exp::InitSession();
+    //missionExpDataDante = sessionExpDataDante;
+    //missionExpDataVergil = sessionExpDataVergil;
+    //makes arcade mode not scuffed.
+
 }
 
 void SceneMissionStart() {
