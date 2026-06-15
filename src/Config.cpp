@@ -21,9 +21,11 @@ using namespace DI8;
 inline const char* directoryName = Paths::config;
 inline const char* fileName      = "CrimsonConfig.json";
 inline const char* fileNameGameplay = "CrimsonConfigGameplay.json";
+inline const char* fileNameInput = "CrimsonInput.json";
 
 char locationConfig[64] = {};
 char locationConfigGameplay[64] = {};
+char locationConfigInput[64] = {};
 
 Config defaultConfig;
 Config queuedConfig;

@@ -20,6 +20,7 @@
 #include "debug_draw.hpp"
 #include "CrimsonUtil.hpp"
 #include "DMC3Input.hpp"
+#include "CrimsonInput.hpp"
 #include "Global.hpp"
 #include "ActorBase.hpp"
 #include "ActorRelocations.hpp"
@@ -4282,7 +4283,7 @@ template <typename T> void AnalogRangedWeaponSwitchController(T& actorData) {
 template <typename T> void DirectWeaponSwitchKeyboardController(T& actorData) {
     auto& characterData = GetCharacterData(actorData);
     const auto& ks       = keyboard.state.keys;
-    const uint32* dwBinds = activeCrimsonConfig.System.KeyboardConfig.directWeaponKeybinds;
+    const uint32* dwBinds = activeCrimsonInput.KeyboardConfig.directWeaponKeybinds;
 
     // Edge-detection state: true = key was down last frame, so we ignore it this frame.
     static bool s_prevDown_melee[5] = {};

@@ -1,6 +1,7 @@
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "DMC3Input.hpp"
 #include "Config.hpp"
+#include "CrimsonInput.hpp"
 #include "Global.hpp"
 #include "Vars.hpp"
 
@@ -129,25 +130,25 @@ static BindTable s_PlayerDefaultBinds[PLAYER_COUNT] = {
 
 // References to active/queued config inputs for each player and character.
 uint16_t(*activeConfigInputs[PLAYER_COUNT][2])[NUM_GAMEPADBINDS] = {
-	{ &activeCrimsonConfig.System.ButtonConfig.dante1P,
-	  &activeCrimsonConfig.System.ButtonConfig.vergil1P },
-	{ &activeCrimsonConfig.System.ButtonConfig.dante2P,
-	  &activeCrimsonConfig.System.ButtonConfig.vergil2P },
-	{ &activeCrimsonConfig.System.ButtonConfig.dante3P,
-	  &activeCrimsonConfig.System.ButtonConfig.vergil3P },
-	{ &activeCrimsonConfig.System.ButtonConfig.dante4P,
-	  &activeCrimsonConfig.System.ButtonConfig.vergil4P }
+	{ &activeCrimsonInput.ButtonConfig.dante1P,
+	  &activeCrimsonInput.ButtonConfig.vergil1P },
+	{ &activeCrimsonInput.ButtonConfig.dante2P,
+	  &activeCrimsonInput.ButtonConfig.vergil2P },
+	{ &activeCrimsonInput.ButtonConfig.dante3P,
+	  &activeCrimsonInput.ButtonConfig.vergil3P },
+	{ &activeCrimsonInput.ButtonConfig.dante4P,
+	  &activeCrimsonInput.ButtonConfig.vergil4P }
 };
 
 uint16_t(*queuedConfigInputs[PLAYER_COUNT][2])[NUM_GAMEPADBINDS] = {
-	{ &queuedCrimsonConfig.System.ButtonConfig.dante1P,
-	  &queuedCrimsonConfig.System.ButtonConfig.vergil1P },
-	{ &queuedCrimsonConfig.System.ButtonConfig.dante2P,
-	  &queuedCrimsonConfig.System.ButtonConfig.vergil2P },
-	{ &queuedCrimsonConfig.System.ButtonConfig.dante3P,
-	  &queuedCrimsonConfig.System.ButtonConfig.vergil3P },
-	{ &queuedCrimsonConfig.System.ButtonConfig.dante4P,
-	  &queuedCrimsonConfig.System.ButtonConfig.vergil4P }
+	{ &queuedCrimsonInput.ButtonConfig.dante1P,
+	  &queuedCrimsonInput.ButtonConfig.vergil1P },
+	{ &queuedCrimsonInput.ButtonConfig.dante2P,
+	  &queuedCrimsonInput.ButtonConfig.vergil2P },
+	{ &queuedCrimsonInput.ButtonConfig.dante3P,
+	  &queuedCrimsonInput.ButtonConfig.vergil3P },
+	{ &queuedCrimsonInput.ButtonConfig.dante4P,
+	  &queuedCrimsonInput.ButtonConfig.vergil4P }
 };
 
 struct BTImGuiCtx {
@@ -506,7 +507,7 @@ static bool FindKeyboardBindConflict(uint32 key, bool isDirectWeapon, int index,
         return false;
     }
 
-    const uint32* keybinds = activeCrimsonConfig.System.KeyboardConfig.keybinds;
+    const uint32* keybinds = activeCrimsonInput.KeyboardConfig.keybinds;
     for (int i = 0; i < NUM_KEYBINDS; i++) {
         if (!isDirectWeapon && i == index) {
             continue;
@@ -517,7 +518,7 @@ static bool FindKeyboardBindConflict(uint32 key, bool isDirectWeapon, int index,
         }
     }
 
-    const uint32* directBinds = activeCrimsonConfig.System.KeyboardConfig.directWeaponKeybinds;
+    const uint32* directBinds = activeCrimsonInput.KeyboardConfig.directWeaponKeybinds;
     for (int i = 0; i < NUM_DIRECT_WEAPON_BINDS; i++) {
         if (isDirectWeapon && i == index) {
             continue;
@@ -567,7 +568,7 @@ void ShowButtonConfigWindow() {
 	ImGui::SetNextWindowPos(ImVec2(g_renderSize.x * 0.5f, g_renderSize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     auto& io = ImGui::GetIO();
-    int keyboardBackKey = activeCrimsonConfig.System.KeyboardConfig.keybinds[11];
+    int keyboardBackKey = activeCrimsonInput.KeyboardConfig.keybinds[11];
 
 	ImGui::Begin("Button Configuration", &shouldClose, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar); {
 		ImGui::SetWindowFontScale(scaleY);
@@ -732,12 +733,12 @@ void ShowButtonConfigWindow() {
 
 		} else {
 			// ======================== KEYBOARD TAB ========================
-			uint32* activeKeybinds  = activeCrimsonConfig.System.KeyboardConfig.keybinds;
-			uint32* queuedKeybinds  = queuedCrimsonConfig.System.KeyboardConfig.keybinds;
-			uint32* defaultKeybinds = defaultCrimsonConfig.System.KeyboardConfig.keybinds;
+			uint32* activeKeybinds  = activeCrimsonInput.KeyboardConfig.keybinds;
+			uint32* queuedKeybinds  = queuedCrimsonInput.KeyboardConfig.keybinds;
+			uint32* defaultKeybinds = defaultCrimsonInput.KeyboardConfig.keybinds;
 
-            uint32* dwActiveKeybinds = activeCrimsonConfig.System.KeyboardConfig.directWeaponKeybinds;
-            uint32* dwQueuedKeybinds = queuedCrimsonConfig.System.KeyboardConfig.directWeaponKeybinds;
+            uint32* dwActiveKeybinds = activeCrimsonInput.KeyboardConfig.directWeaponKeybinds;
+            uint32* dwQueuedKeybinds = queuedCrimsonInput.KeyboardConfig.directWeaponKeybinds;
 
             const float kbRowLabelX = 210.0f * scaleY;
             const float kbButtonW   = 150.0f * scaleY;
@@ -1023,7 +1024,7 @@ void OverrideHDCKeybinds() {
 
 		for (int i = 0; i < NUM_KEYBINDS; i++) {
 			byte8* currentAddr = baseAddr + (i * 4);
-			*(uint32_t*)currentAddr = activeCrimsonConfig.System.KeyboardConfig.keybinds[i];
+			*(uint32_t*)currentAddr = activeCrimsonInput.KeyboardConfig.keybinds[i];
 			Log("  keybind[%2d] = 0x%08X = int: %d", i, *(uint32_t*)currentAddr,
                 *(uint32_t*)currentAddr);
 		}
@@ -1069,11 +1070,11 @@ void UpdateKeyboardConfigCapture(byte8* state) {
             }
 
             if (s_kbCapture.isDirectWeapon) {
-                activeCrimsonConfig.System.KeyboardConfig.directWeaponKeybinds[s_kbCapture.index] = preview;
-                queuedCrimsonConfig.System.KeyboardConfig.directWeaponKeybinds[s_kbCapture.index] = preview;
+                activeCrimsonInput.KeyboardConfig.directWeaponKeybinds[s_kbCapture.index] = preview;
+                queuedCrimsonInput.KeyboardConfig.directWeaponKeybinds[s_kbCapture.index] = preview;
             } else {
-                activeCrimsonConfig.System.KeyboardConfig.keybinds[s_kbCapture.index] = preview;
-                queuedCrimsonConfig.System.KeyboardConfig.keybinds[s_kbCapture.index] = preview;
+                activeCrimsonInput.KeyboardConfig.keybinds[s_kbCapture.index] = preview;
+                queuedCrimsonInput.KeyboardConfig.keybinds[s_kbCapture.index] = preview;
 
                 byte8* currentAddr = (appBaseAddr + 0x5611A0) + (s_kbCapture.index * 4);
                 protectionHelper.Push(currentAddr, 4);

@@ -1,8 +1,10 @@
 rapidjson::Document crimsonConfigRoot = {};
 rapidjson::Document crimsonConfigGameplayRoot = {};
+rapidjson::Document crimsonInputRoot = {};
 
 rapidjson::Value::AllocatorType* g_allocator = 0;
 rapidjson::Document::AllocatorType* g_gameplay_allocator = 0;
+rapidjson::Document::AllocatorType* g_input_allocator = 0;
 
 bool IsString(rapidjson::Value& member) {
 	return member.IsString();

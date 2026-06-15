@@ -328,6 +328,14 @@ void LoadConfig();
 void LoadConfigGameplay();
 #endif
 
+#ifndef NO_SAVE
+void SaveConfigInput();
+#endif
+
+#ifndef NO_LOAD
+void LoadConfigInput();
+#endif
+
 #ifndef NO_INIT
 void InitConfig();
 #endif

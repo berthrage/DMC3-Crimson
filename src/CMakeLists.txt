@@ -178,6 +178,8 @@ file(GLOB MAIN_SRC
     CrimsonConfigGameplay.hpp
     CrimsonConfigGameplayMask.hpp
     CrimsonConfigHandling.h
+    CrimsonInput.cpp
+    CrimsonInput.hpp
     CrimsonBetterArkham2.cpp
     CrimsonBetterArkham2.hpp
     CrimsonClock.cpp

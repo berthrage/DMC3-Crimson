@@ -4,6 +4,7 @@
 #include "CrimsonConfigHandling.h"
 #include <filewritestream.h>
 #include <../CrimsonConfigGameplay.hpp>
+#include <../CrimsonInput.hpp>
 #pragma optimize("", off) // Disable all optimizations
 #ifdef NO_SAVE
 void SaveConfigFunction()
@@ -61,6 +62,29 @@ void SaveConfigGameplay() {
 	fclose(fp_g);
 }
 
+void SaveConfigInput() {
+#ifndef NO_SAVE
+	LogFunction();
+#endif
+	using namespace rapidjson;
+	using namespace JSON;
+
+	SerializeConfig(crimsonInputRoot, queuedCrimsonInput, crimsonInputRoot.GetAllocator());
+
+	FILE* fp_i = fopen(locationConfigInput, "w");
+	if (!fp_i) {
+		Log("Failed to open Input file for writing.");
+		return;
+	}
+
+	char writeBuffer_i[65536];
+	FileWriteStream os_i(fp_i, writeBuffer_i, sizeof(writeBuffer_i));
+	PrettyWriter<FileWriteStream> prettyWriterInput(os_i);
+
+	crimsonInputRoot.Accept(prettyWriterInput);
+	fclose(fp_i);
+}
+
 
 #ifdef NO_LOAD
 void LoadConfigFunction()
@@ -116,6 +140,52 @@ void LoadConfig()
 
 	ToConfig(queuedConfig);
 	ParseConfig(crimsonConfigRoot, queuedCrimsonConfig);
+
+	// === BEGIN INPUT BIND MIGRATION ===
+	// If CrimsonConfig.json still has ButtonConfig/KeyboardConfig in System
+	// and CrimsonInput.json does not exist yet, migrate the binds before
+	// the main config save would wipe them out.
+	if (crimsonConfigRoot.HasMember("System") && crimsonConfigRoot["System"].IsObject()) {
+		auto& sys = crimsonConfigRoot["System"];
+		if (sys.HasMember("ButtonConfig") || sys.HasMember("KeyboardConfig")) {
+			// Check if CrimsonInput.json already exists on disk
+			FILE* testInput = fopen(locationConfigInput, "r");
+			if (!testInput) {
+				Log("Migrating button/keyboard binds from CrimsonConfig.json to CrimsonInput.json");
+
+				// Build a temp JSON doc from the old bind data
+				crimsonInputRoot.SetObject();
+				auto& inputAlloc = crimsonInputRoot.GetAllocator();
+
+				if (sys.HasMember("ButtonConfig")) {
+					rapidjson::Value btnCfg;
+					btnCfg.CopyFrom(sys["ButtonConfig"], inputAlloc);
+					crimsonInputRoot.AddMember("ButtonConfig", btnCfg, inputAlloc);
+				}
+				if (sys.HasMember("KeyboardConfig")) {
+					rapidjson::Value kbCfg;
+					kbCfg.CopyFrom(sys["KeyboardConfig"], inputAlloc);
+					crimsonInputRoot.AddMember("KeyboardConfig", kbCfg, inputAlloc);
+				}
+
+				// Parse into queued/active CrimsonInput
+				ParseConfig(crimsonInputRoot, queuedCrimsonInput);
+				CopyMemory(&activeCrimsonInput, &queuedCrimsonInput, sizeof(activeCrimsonInput));
+
+				// Save CrimsonInput.json
+				SerializeConfig(crimsonInputRoot, queuedCrimsonInput, inputAlloc);
+				SaveConfigInput();
+
+				// Remove old members from main config root so SaveConfig won't rewrite them
+				sys.RemoveMember("ButtonConfig");
+				sys.RemoveMember("KeyboardConfig");
+			} else {
+				fclose(testInput);
+			}
+		}
+	}
+	// === END INPUT BIND MIGRATION ===
+
 	CopyMemory(&activeConfig, &queuedConfig, sizeof(activeConfig));
 	CopyMemory(&activeCrimsonConfig, &queuedCrimsonConfig, sizeof(activeCrimsonConfig));
 
@@ -170,6 +240,52 @@ void LoadConfigGameplay() {
 	SaveConfigGameplay();
 }
 
+void LoadConfigInput() {
+#ifndef NO_LOAD
+	LogFunction();
+#endif
+	using namespace rapidjson;
+	using namespace JSON;
+
+	auto fileInput = LoadFile(locationConfigInput);
+	if (!fileInput) {
+		Log("LoadFile Input failed.");
+
+		crimsonInputRoot.SetObject();
+		g_input_allocator = &crimsonInputRoot.GetAllocator();
+
+		SerializeConfig(crimsonInputRoot, defaultCrimsonInput, crimsonInputRoot.GetAllocator());
+		CopyMemory(&queuedCrimsonInput, &defaultCrimsonInput, sizeof(queuedCrimsonInput));
+		CopyMemory(&activeCrimsonInput, &queuedCrimsonInput, sizeof(activeCrimsonInput));
+
+		SaveConfigInput();
+		return;
+	}
+
+	auto nameInput = const_cast<const char*>(reinterpret_cast<char*>(fileInput));
+	auto& resultInput = crimsonInputRoot.Parse(nameInput);
+
+	if (resultInput.HasParseError()) {
+		auto code = resultInput.GetParseError();
+		auto off = resultInput.GetErrorOffset();
+
+		Log("Parse Input failed. "
+#ifdef _WIN64
+			"%u %llu",
+#else
+			"%u %u",
+#endif
+			code, off);
+
+		return;
+	}
+
+	ParseConfig(crimsonInputRoot, queuedCrimsonInput);
+	CopyMemory(&activeCrimsonInput, &queuedCrimsonInput, sizeof(activeCrimsonInput));
+
+	SaveConfigInput();
+}
+
 #ifdef NO_INIT
 void InitConfigFunction()
 #else
@@ -187,11 +303,14 @@ void InitConfig()
 
 	snprintf(locationConfig, sizeof(locationConfig), "%s/%s", directoryName, fileName);
 	snprintf(locationConfigGameplay, sizeof(locationConfigGameplay), "%s/%s", directoryName, fileNameGameplay);
+	snprintf(locationConfigInput, sizeof(locationConfigInput), "%s/%s", directoryName, fileNameInput);
 
 	crimsonConfigRoot.SetObject();
 	crimsonConfigGameplayRoot.SetObject();
+	crimsonInputRoot.SetObject();
 
 	g_allocator = &crimsonConfigRoot.GetAllocator();
 	g_gameplay_allocator = &crimsonConfigGameplayRoot.GetAllocator();
+	g_input_allocator = &crimsonInputRoot.GetAllocator();
 }
 #pragma optimize("", on) // Re-enable optimizations
