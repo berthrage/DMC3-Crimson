@@ -798,6 +798,7 @@ bool g_screenBreakTriggered = false;
 bool g_inMissionResultScreen = false;
 bool g_inMissionResultBPScreen = false;
 bool g_inTotalResultsScreen = false;
+uint8 g_vibrationPlayerIndex = 0;
 bool g_inCombat = false;
 bool g_inBossfight = false;
 bool g_inCredits = false;
