@@ -11,7 +11,7 @@
 #pragma optimize("", off) // Disable all optimizations
 #pragma pack(push, 8)
 
-#define NUM_GAMEPADBINDS 16
+#define NUM_GAMEPADBINDS 17
 #define NUM_KEYBINDS 24
 #define NUM_DIRECT_WEAPON_BINDS 10
 

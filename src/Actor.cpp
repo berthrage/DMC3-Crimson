@@ -3513,7 +3513,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 
 	{
 		// Doppelganger StyleSwitch
-		bool condition = (actorData.buttons[2] & playerData.switchButton);
+		bool condition = (actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON));
 
 		if (condition) {
 			return;
@@ -3727,8 +3727,8 @@ template <typename T> void LinearMeleeWeaponSwitchController(T& actorData) {
     bool back    = false;
 
     {
-        bool condition = (actorData.buttons[0] & playerData.switchButton) ||
-            (actorData.buttons[2] & playerData.switchButton);
+        bool condition = (actorData.buttons[0] & GetBinding(BINDING::SWITCH_BUTTON)) ||
+            (actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON));
 
         bool dantecondition = GetDanteDoppelSwitchCondition(actorData);
         // Doppelganger Weapon Switch
@@ -3838,8 +3838,8 @@ template <typename T> void LinearRangedWeaponSwitchController(T& actorData) {
 
     {
         bool condition =
-            (actorData.buttons[0] & playerData.switchButton) ||
-            (actorData.buttons[2] & playerData.switchButton);
+            (actorData.buttons[0] & GetBinding(BINDING::SWITCH_BUTTON)) ||
+            (actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON));
 
         bool dantecondition = GetDanteDoppelSwitchCondition(actorData);
         // Doppelganger Weapon Switch
@@ -3962,8 +3962,8 @@ template <typename T> void AnalogMeleeWeaponSwitchController(T& actorData) {
     };
     auto& playerData = GetPlayerData(actorData);
     {
-        bool condition = (actorData.buttons[0] & playerData.switchButton) ||
-            (actorData.buttons[2] & playerData.switchButton);
+        bool condition = (actorData.buttons[0] & GetBinding(BINDING::SWITCH_BUTTON)) ||
+            (actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON));
         bool dantecondition = GetDanteDoppelSwitchCondition(actorData);
         // Doppelganger Weapon Switch
         if (actorData.newEntityIndex == ENTITY::MAIN) {
@@ -4164,8 +4164,8 @@ template <typename T> void AnalogRangedWeaponSwitchController(T& actorData) {
 
     auto& playerData = GetPlayerData(actorData);
     {
-        bool condition = (actorData.buttons[0] & playerData.switchButton) ||
-            (actorData.buttons[2] & playerData.switchButton);
+        bool condition = (actorData.buttons[0] & GetBinding(BINDING::SWITCH_BUTTON)) ||
+            (actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON));
         bool dantecondition = GetDanteDoppelSwitchCondition(actorData);
         // Doppelganger Weapon Switch
         if (actorData.newEntityIndex == ENTITY::MAIN) {
@@ -4740,6 +4740,27 @@ void CharacterSwitchController() {
                 playerData.characterIndex++;
                 if (playerData.characterIndex >= playerData.characterCount) {
                     playerData.characterIndex = 0;
+                }
+            }
+        }
+
+        // SWITCH-BUTTON CHARACTER SWITCH (single press, configurable)
+        if (activeCrimsonGameplay.Gameplay.General.switchButtonCharSwitch) {
+            auto& playerData = GetPlayerData(playerIndex);
+            auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+            if (activeNewActorData.baseAddr) {
+                auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+                static bool execSwitchBtn[PLAYER_COUNT] = {};
+                auto& exec = execSwitchBtn[playerIndex];
+                bool pressed = (activeActorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON));
+                if (pressed && exec) {
+                    exec = false;
+                    playerData.characterIndex++;
+                    if (playerData.characterIndex >= playerData.characterCount) {
+                        playerData.characterIndex = 0;
+                    }
+                } else if (!pressed) {
+                    exec = true;
                 }
             }
         }
@@ -9335,7 +9356,7 @@ void ToggleStyleFixes(bool enable) {
 bool DevilButtonCheck(PlayerActorData& actorData) {
     auto& playerData = GetPlayerData(actorData);
 
-    bool condition = (actorData.buttons[0] & playerData.switchButton);
+    bool condition = (actorData.buttons[0] & GetBinding(BINDING::SWITCH_BUTTON));
 
     if (actorData.newEntityIndex == ENTITY::MAIN) {
         if (condition) {

@@ -50,7 +50,8 @@ public:
     uint16_t default_camera; //0x001A
     uint16_t taunt; //0x001C
 	uint16_t start; //0x001E
-}; //Size: 0x0020
+	uint16_t switch_button; //0x0020
+}; //Size: 0x0022
 void InitBindings();
 void SwapXInputButtonsCoop(uint8 index, XINPUT_STATE* gamepad);
 void ShowButtonConfigWindow();

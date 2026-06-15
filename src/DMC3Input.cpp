@@ -19,7 +19,7 @@
 #include "CrimsonConfig.hpp"
 #include "CrimsonSDL.hpp"
 
-#define NUM_BINDS_WITHOUT_START 15
+#define NUM_BINDS_WITHOUT_START 17
 
 // NOTE(): writing bind table at that particular place seems to work fine for me... idk, needs testing?
 static std::unique_ptr<Utility::Detour_t> s_ButtonToActionHook;
@@ -48,7 +48,8 @@ static BindTable s_PlayerDefaultBinds[PLAYER_COUNT] = {
         .change_sword = 0x2,
         .default_camera = 0x400,
         .taunt = 0x100,
-        .start = 0x800
+        .start = 0x800,
+        .switch_button = 0x400
     },
 #ifdef MY_BINDS_TEST
     {
@@ -67,7 +68,8 @@ static BindTable s_PlayerDefaultBinds[PLAYER_COUNT] = {
         .change_sword = 0x2,
         .default_camera = 0x400,
         .taunt = 0x100,
-        .start = 0x800
+        .start = 0x800,
+        .switch_button = 0x400
     },
 #else
     {
@@ -86,7 +88,8 @@ static BindTable s_PlayerDefaultBinds[PLAYER_COUNT] = {
         .change_sword = 0x2,
         .default_camera = 0x400,
         .taunt = 0x100,
-        .start = 0x800
+        .start = 0x800,
+        .switch_button = 0x400
     },
 #endif
     {
@@ -105,7 +108,8 @@ static BindTable s_PlayerDefaultBinds[PLAYER_COUNT] = {
         .change_sword = 0x2,
         .default_camera = 0x400,
         .taunt = 0x100,
-        .start = 0x800
+        .start = 0x800,
+        .switch_button = 0x400
     },
     {
         .up = 0x1000,
@@ -123,7 +127,8 @@ static BindTable s_PlayerDefaultBinds[PLAYER_COUNT] = {
         .change_sword = 0x2, 
         .default_camera = 0x400,
         .taunt = 0x100,
-        .start = 0x800
+        .start = 0x800,
+        .switch_button = 0x400
     },
 };
 
@@ -168,6 +173,8 @@ struct BTImGuiCtx {
         "CHANGE SWORD",
         "DEFAULT CAMERA",
         "TAUNT",
+        "START",
+        "SWITCH BUTTON",
     };
     const char* items[NUM_BINDS_WITHOUT_START] = {
         "DPAD UP",
@@ -185,6 +192,8 @@ struct BTImGuiCtx {
         "RIGHT TRIGGER",
         "RIGHT THUMB",
         "BACK",
+        "START",
+        "RIGHT THUMB",
     };
     uint16_t values[NUM_BINDS_WITHOUT_START] = {
         0x1000,
@@ -202,6 +211,8 @@ struct BTImGuiCtx {
         0x2,
         0x400,
         0x100,
+        0x800,
+        0x400,
     };
 };
 
@@ -221,7 +232,8 @@ static BindTable s_defaultBinds = {
     .change_sword = 0x2,
     .default_camera = 0x400,
     .taunt = 0x100,
-    .start = 0x800
+    .start = 0x800,
+    .switch_button = 0x400
 };
 
 static uint8_t GetCharacterBindSlot(const PlayerActorData* actorData) {
@@ -285,7 +297,8 @@ static void __fastcall sub_1401EB170(PlayerActorData* a1) {
     mainBinds->change_sword = configBinds[12];
     mainBinds->default_camera = configBinds[13];
     mainBinds->taunt = configBinds[14];
-    //mainBinds->start = configBinds[15]; // Start is actually handled somewhere else, 
+    mainBinds->start = configBinds[15];
+    mainBinds->switch_button = configBinds[16]; 
     // otherwise we overwrite to D6CEA9 (turbo mode boolean) which isn't ideal.
 
     s_ButtonToActionHook->GetTrampoline<decltype(&sub_1401EB170)>()(a1);
@@ -722,6 +735,8 @@ void ShowButtonConfigWindow() {
 						memcpy(queuedButtonConfig,  defaultButtonConfig, sizeof(BindTable));
 						memcpy(activeButtonConfig,  defaultButtonConfig, sizeof(BindTable));
 					}
+
+					if (GUI_Checkbox2("Use Switch Button for Character Switching", activeCrimsonGameplay.Gameplay.General.switchButtonCharSwitch, queuedCrimsonGameplay.Gameplay.General.switchButtonCharSwitch)) {}
 
 					ImGui::TableNextColumn();
 					if (i == 1 || i == 2) {

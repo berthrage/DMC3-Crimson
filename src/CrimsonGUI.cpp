@@ -2189,8 +2189,8 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 	pWeaponWheel->OnUpdate(deltaTimeGameSpeed);
 
 	bool isSwitchingButtonDown = actorData.buttons[1] & GetBinding(isMelee ? BINDING::CHANGE_DEVIL_ARMS : BINDING::CHANGE_GUN);
-	bool isSwitchButtonDown = (actorData.buttons[0] & playerData.switchButton) ||
-		(actorData.buttons[2] & playerData.switchButton);
+	bool isSwitchButtonDown = (actorData.buttons[0] & GetBinding(BINDING::SWITCH_BUTTON)) ||
+		(actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON));
 
 	auto GetDanteDoppelSwitchCondition = [](PlayerActorData& actorData) {
 		if (!activeCrimsonGameplay.Gameplay.Dante.doppelgangerSplitSync)
@@ -2580,7 +2580,8 @@ void Actor_UpdateIndices() {
 
 		UpdateMapIndex(collisionGroups, Actor_collisionGroupIndices[playerIndex], queuedPlayerData.collisionGroup);
 
-		UpdateMapIndex(buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton);
+		byte16 switchBinding = GetBinding(BINDING::SWITCH_BUTTON);
+		UpdateMapIndex(buttons, Actor_buttonIndices[playerIndex], switchBinding);
  
 		old_for_all(uint8, characterIndex, CHARACTER_COUNT) {
 			old_for_all(uint8, entityIndex, ENTITY_COUNT) {
@@ -3195,14 +3196,6 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 		queuedPlayerData.characterCount = 1;
 	}
 	GUI_Slider<uint8>("Number of Characters", queuedPlayerData.characterCount, 1, CHARACTER_COUNT);
-
-
-	UI::ComboMap2("Switch Button", buttonNames, buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton, queuedPlayerData.switchButton,
-		ImGuiComboFlags_HeightLargest);
-	ImGui::SameLine();
-	TooltipHelper("(?)", "Press to Switch Loadouts.\n"
-		"Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n"
-		"Double Tap D-pad Up to Switch Characters.\n");
 
 	if (playerIndex != 0) {
 

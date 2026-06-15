@@ -237,6 +237,8 @@ enum {
     CHANGE_DEVIL_ARMS,
     DEFAULT_CAMERA,
     TAUNT,
+    START,
+    SWITCH_BUTTON,
 };
 };
 
@@ -3188,8 +3190,6 @@ struct CharacterData {
 
 struct PlayerData {
     uint8 collisionGroup;
-
-    byte16 switchButton;
 
     uint8 characterCount;
     uint8 characterIndex;

@@ -8,8 +8,7 @@ struct CrimsonConfigGameplayMask {
 			bool inertia = true;
 			bool extramoves = true;
 			bool sprint = true;
-			bool charHotswap = true;
-			bool freeformSoftLock = true;
+			bool charHotswap = true;		bool switchButtonCharSwitch = true;			bool freeformSoftLock = true;
 			bool bufferlessReversals = true;
 			bool reversalWindow = true;
 			bool dmc4LockOnDirection = true;
@@ -32,8 +31,7 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("inertia", &General::inertia),
 					std::make_pair("extramoves", &General::extramoves),
 					std::make_pair("sprint", &General::sprint),
-					std::make_pair("charHotswap",&General::charHotswap),
-					std::make_pair("freeformSoftLock", &General::freeformSoftLock),
+					std::make_pair("charHotswap",&General::charHotswap),				std::make_pair("switchButtonCharSwitch", &General::switchButtonCharSwitch),					std::make_pair("freeformSoftLock", &General::freeformSoftLock),
 					std::make_pair("bufferlessReversals", &General::bufferlessReversals),
 					std::make_pair("reversalWindow", &General::reversalWindow),
 					std::make_pair("dmc4LockOnDirection", &General::dmc4LockOnDirection),
