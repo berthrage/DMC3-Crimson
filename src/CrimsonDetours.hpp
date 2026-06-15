@@ -125,7 +125,9 @@ void FasterSummonedSwordsDetour();
 // SummonedSwordsFormationShortcuts
 void SummonedSwordsFormationShortcutsDetour();
 // StormSwordsDownedEnemyFix
-void StormSwordsDownedEnemyFixDetour();}
+void StormSwordsDownedEnemyFixDetour();
+// FixMPXinputVibration
+void FixMPXinputVibrationDetour();}
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
@@ -173,4 +175,5 @@ void CItemOrbPickupAllPlayers(bool enable);
 void FasterSummonedSwords(bool enable);
 void SummonedSwordsFormationShortcuts(bool enable);
 void StormSwordsDownedEnemyFix(bool enable);
+void FixMPXinputVibration(bool enable);
 }

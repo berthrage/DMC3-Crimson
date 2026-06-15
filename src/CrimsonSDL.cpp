@@ -29,6 +29,7 @@ struct SDL_version;
 #include <deque>
 #include <cctype>
 #include <Xinput.h>
+#include "Core/Input.hpp"
 #include "Global.hpp"
 #include "DMC3Input.hpp"
 
@@ -601,6 +602,26 @@ void RemapSdlControllers() {
 	{
 		size_t sdlCount = sdlGamepadsExtra.size();
 
+		// First, detect which XInput slots (0-3) have physical controllers
+		// connected — either via SDL or the real XInput API. This prevents
+		// SDL controllers from stealing slots that belong to XInput
+		// controllers the game hasn't assigned to players yet.
+		// Uses the unhooked XI::new_XInputGetState so that subsequent
+		// hotplug calls (when the XInputGetState hook is live) still
+		// query real hardware instead of being remapped through
+		// xinputSlots[] sentinels.
+		bool xiSlotOccupied[4] = {};
+		for (int slot = 0; slot < 4; ++slot) {
+			if (sdlGamepadByXiSlot[slot] != NULL) {
+				xiSlotOccupied[slot] = true;
+			} else if (XI::new_XInputGetState != NULL) {
+				XINPUT_STATE state;
+				if (XI::new_XInputGetState((DWORD)slot, &state) == ERROR_SUCCESS) {
+					xiSlotOccupied[slot] = true;
+				}
+			}
+		}
+
 		// Track which SDL indices are already claimed by any player
 		bool sentinelUsed[8] = {}; // up to 8 SDL extras
 		for (int p = 0; p < PLAYER_COUNT; ++p) {
@@ -618,7 +639,7 @@ void RemapSdlControllers() {
 		int nextSdl = 0;
 		for (int p = 0; p < PLAYER_COUNT; ++p) {
 			uint8 slot = activeCrimsonConfig.System.xinputSlots[p];
-			bool dead = (slot < 4 && sdlGamepadByXiSlot[slot] == NULL);
+			bool dead = (slot < 4 && !xiSlotOccupied[slot]);
 			if (dead) {
 				while (nextSdl < (int)sdlCount && sentinelUsed[nextSdl]) ++nextSdl;
 				if (nextSdl < (int)sdlCount) {
@@ -1059,6 +1080,41 @@ void VibrateController(int controllerIndex, Uint16 rumbleStrengthLowFreq, Uint16
 			const char* err = (fn_SDL_GetError != NULL) ? fn_SDL_GetError() : "Unknown";
 			std::cerr << "Vibration ERROR " << controllerIndex << ": " << err << std::endl;
 		}
+    }
+}
+
+void VibrateControllerByPhysicalSlot(int xiSlot, Uint16 rumbleLow, Uint16 rumbleHigh) {
+    if (fn_SDL_RumbleGamepad == NULL) return;
+    Uint32 duration = (rumbleLow == 0 && rumbleHigh == 0) ? 0 : 5000;
+
+    // Reverse-lookup: find which player (if any) is mapped to this physical
+    // XInput slot via xinputSlots[]. This handles SDL-only controllers
+    // (PS4/PS5/Switch) that live in sdlGamepadsExtra and are mapped to
+    // a physical slot through a sentinel value (≥4).
+    for (int p = 0; p < PLAYER_COUNT; ++p) {
+        if ((int)activeCrimsonConfig.System.xinputSlots[p] == xiSlot) {
+            SDL_Gamepad* pad = GetControllerForPlayer(p);
+            if (pad != NULL) {
+                fn_SDL_RumbleGamepad(pad, rumbleLow, rumbleHigh, duration);
+            }
+            return;
+        }
+    }
+
+    // Fallback: no player explicitly maps to this physical slot — try the
+    // direct sdlGamepadByXiSlot[] entry (XInput controller at this slot).
+    SDL_Gamepad* pad = GetControllerByPhysicalSlot(xiSlot);
+    if (pad != NULL) {
+        fn_SDL_RumbleGamepad(pad, rumbleLow, rumbleHigh, duration);
+        return;
+    }
+
+    // Second fallback: all controllers are SDL-only (in sdlGamepadsExtra,
+    // mapped via sentinel values). Vibrate player 0's controller since
+    // the game always targets the active player for vibration.
+    pad = GetControllerForPlayer(0);
+    if (pad != NULL) {
+        fn_SDL_RumbleGamepad(pad, rumbleLow, rumbleHigh, duration);
     }
 }
 

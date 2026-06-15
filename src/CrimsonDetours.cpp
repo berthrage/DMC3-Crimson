@@ -418,6 +418,12 @@ void* g_SummonedSwordsFormationShortcutsCheckCall;
 // StormSwordsDownedEnemyFix
 std::uint64_t g_StormSwordsDownedEnemyFix_ReturnAddr;
 void StormSwordsDownedEnemyFixDetour();
+
+// FixMPXinputVibration
+std::uint64_t g_FixMPXinputVibration_ReturnAddr;
+void FixMPXinputVibrationDetour();
+std::uint64_t g_FixMPXinputVibration_CallAddr;
+void* g_FixMPXinputVibrationCheckCall;  
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -1405,6 +1411,21 @@ uint8 CheckSummonedSwordFormationShortcutInput(uintptr_t playerAddr, uintptr_t s
 	}
 
 	return sf.bufferedFormation;
+}
+
+void UpdatePlayerIndexVibration(uintptr_t playerAddr) {
+	if (!playerAddr || playerAddr < 0x6000000) {
+		g_vibrationPlayerIndex = 0;
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
+
+	if (!activeConfig.Actor.enable) {
+		g_vibrationPlayerIndex = 0;
+	}
+	else {
+		g_vibrationPlayerIndex = actorData.newPlayerIndex;
+	}
 }
 
 void InitDetours() {
@@ -2653,6 +2674,25 @@ void StormSwordsDownedEnemyFix(bool enable) {
 	run = enable;
 }
 
+void FixMPXinputVibration(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From PreXinputSendVibrationSignal_sub_140312190:
+	// dmc3.exe+3121DD - E8 0E A6 01 00           - call dmc3.XinputSendVibrationSignal_sub_14032C7F0 { player in rsp+10 } 
+	static std::unique_ptr<Utility::Detour_t> fixMPXinputVibrationHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x3121DD, &FixMPXinputVibrationDetour, 5);
+	g_FixMPXinputVibration_ReturnAddr = fixMPXinputVibrationHook->GetReturnAddress();
+	g_FixMPXinputVibration_CallAddr = (uintptr_t)appBaseAddr + 0x32C7F0;
+	g_FixMPXinputVibrationCheckCall = &UpdatePlayerIndexVibration;  
+	fixMPXinputVibrationHook->Toggle(enable);
+
+	run = enable;
+}
+
 void ToggleAllDetours(bool enable) {
 	CheckScreenBreak(enable);
 	CheckMissionResultScreen(enable);
@@ -2664,6 +2704,7 @@ void ToggleAllDetours(bool enable) {
 	SummonedSwordsFormationShortcuts(activeCrimsonGameplay.Gameplay.Vergil.swordFormationsShortcut >= 
 		SWORDFORMATIONSHORTCUT::ON);
 	StormSwordsDownedEnemyFix(activeCrimsonGameplay.Gameplay.Vergil.stormSwordsDownedEnemyFix);
+	FixMPXinputVibration(enable);
 }
 
 }	

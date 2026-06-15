@@ -13,13 +13,17 @@
 #include "Vars.hpp"
 #include "CrimsonConfig.hpp"
 #include "CrimsonReversedCalls.hpp"
+#include <Xinput.h>
+#include "CrimsonSDL.hpp"
 using namespace Utility;
 namespace CrimsonFastcallDetours{
 
  static constexpr auto DANTE_TAUNT_OFFSET() { return 0x1FE860; }
  static constexpr auto VERGIL_TAUNT_OFFSET() { return 0x21A220; }
+ static constexpr auto XINPUT_APPLY_VIBRATION_OFFSET() { return 0x042050; }
  static std::unique_ptr<Utility::Detour_t> s_DanteTauntHook;
  static std::unique_ptr<Utility::Detour_t> s_VergilTauntHook;
+ static std::unique_ptr<Utility::Detour_t> s_XinputApplyVibrationHook;
  std::random_device randomDevice;
  std::mt19937 rng(randomDevice());
 
@@ -168,6 +172,69 @@ namespace CrimsonFastcallDetours{
              (uintptr_t)&CPlNewVergilTauntController_sub_14021A220,
              NULL, "vergil_taunt_detour");
      bool res = s_VergilTauntHook->Toggle();
+     assert(res);
+ }
+
+
+ // Hook for the game's XInput vibration wrapper at appBaseAddr+0x042050.
+ // The original reads *(a1+4) for the XInput slot, but every player vibration commands always leads to player 1.
+ // We use g_vibrationPlayerIndex set by the FixMPXinputVibration Detour to route vibration to
+ // the correct controller: XInput controllers (slot 0-3) use XInputSetState on the
+ // physical slot; SDL-only controllers (sentinel ≥4) use CrimsonSDL::VibrateController.
+ // a2[0] = left motor on/off, a2[1] = right motor on/off.
+ static __int64 __fastcall XinputApplyVibrationInGame_sub_140042050(__int64 a1, uint8* a2) {
+     // Build vibration values (same logic as original)
+     uint8* disableFlag = reinterpret_cast<uint8*>(appBaseAddr + 0xCA8800);
+     Uint16 leftMotor  = (a2 && !*disableFlag && a2[0]) ? 0xFFFFF : 0;
+     Uint16 rightMotor = (a2 && !*disableFlag && a2[1]) ? 0xFFFFF : 0;
+
+     // Helper: route vibration to a single player based on their assigned slot type.
+     auto vibratePlayer = [&](int playerIndex) {
+         uint8 slot = activeCrimsonConfig.System.xinputSlots[playerIndex];
+         if (slot < 4) {
+             // Physical XInput slot — use XInputSetState directly
+             XINPUT_VIBRATION vib = { leftMotor, rightMotor };
+             XInputSetState((DWORD)slot, &vib);
+         } else {
+             // SDL-only controller (sentinel ≥4)
+             int duration = (leftMotor == 0 && rightMotor == 0) ? 0 : 5000;
+             CrimsonSDL::VibrateController(playerIndex, leftMotor, rightMotor, duration);
+         }
+     };
+
+     // Check if we're in the main game. Outside of MAIN (menus, cutscenes, etc.),
+     // broadcast the vibration to all players.
+     // For in-game stop commands: g_vibrationPlayerIndex is only set on vibration
+     // start, so a stop might target the wrong player if two controllers
+     // vibrated simultaneously, we broadcast to all as a hacky solution but it seems to work quite well. - Berthrage
+     bool inMainGame = false;
+     auto pool_C90E10 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+     if (pool_C90E10 && pool_C90E10[5]) {
+         auto& eventData = *reinterpret_cast<CSceneGameMain*>(pool_C90E10[5]);
+         inMainGame = (eventData.event == EVENT::MAIN);
+     }
+
+     bool isStop = (leftMotor == 0 && rightMotor == 0);
+
+     if (!inMainGame || isStop) {
+         for (int i = 0; i < PLAYER_COUNT; ++i) {
+             vibratePlayer(i);
+         }
+     } else {
+         // In-game start: route only to the player who triggered it.
+         vibratePlayer(g_vibrationPlayerIndex);
+     }
+
+     return 1;
+ }
+
+ void ModdedXinputVibrationDetour() {
+     s_XinputApplyVibrationHook =
+         std::make_unique<Utility::Detour_t>(
+             (uintptr_t)appBaseAddr + XINPUT_APPLY_VIBRATION_OFFSET(),
+             (uintptr_t)&XinputApplyVibrationInGame_sub_140042050,
+             NULL, "xinput_apply_vibration_detour");
+     bool res = s_XinputApplyVibrationHook->Toggle();
      assert(res);
  }
 
@@ -465,6 +532,7 @@ namespace CrimsonFastcallDetours{
      ModdedTauntVergilDetour();
      ModdedDamageCalcDetour();
 	 ModdedCollisionDmgHitstopToPlayerDetour();
+     ModdedXinputVibrationDetour();
  }
 }
 
