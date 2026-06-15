@@ -748,6 +748,8 @@ float siytimer = 0;
 
 DoubleTap quickDoubleTap[PLAYER_COUNT];
 DoubleTap doppDoubleTap[PLAYER_COUNT];
+DoubleTap charSwitchDoubleTap[PLAYER_COUNT];
+CharSwitchStyleState charSwitchStyleState[PLAYER_COUNT][CHARACTER_COUNT];
 
 bool inGunShoot;
 bool gunShootInverted   = false;

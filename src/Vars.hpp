@@ -5413,6 +5413,14 @@ struct DoubleTap {
 
 extern DoubleTap quickDoubleTap[PLAYER_COUNT];
 extern DoubleTap doppDoubleTap[PLAYER_COUNT];
+extern DoubleTap charSwitchDoubleTap[PLAYER_COUNT];
+
+struct CharSwitchStyleState {
+    int preSwitchStyle = -1;                                       // style before D-pad Up was pressed
+    std::chrono::steady_clock::time_point styleChangeTime = {};   // when D-pad Up changed the style
+    bool revertPending = false;                                    // restore preSwitchStyle on next activation
+};
+extern CharSwitchStyleState charSwitchStyleState[PLAYER_COUNT][CHARACTER_COUNT];
 
 extern bool inGunShoot;
 extern bool gunShootInverted;

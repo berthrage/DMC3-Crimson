@@ -3566,6 +3566,11 @@ void StyleSwitchController(byte8* actorBaseAddr) {
     // --- STYLE SWITCH / BUTTON HANDLING ---
 	if (actorData.character == CHARACTER::DANTE) {
 		if (actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN) && actorData.style != 2) {
+			// Record pre-switch style for potential reversion on character switch return
+			auto& state = charSwitchStyleState[playerIndex][actorData.newCharacterIndex];
+			state.preSwitchStyle = actorData.style;
+			state.styleChangeTime = std::chrono::steady_clock::now();
+
 			StyleSwitch(actorBaseAddr, 2); // TRICKSTER
             resetDoubleTap(quickDoubleTap[playerIndex]);
 			resetDoubleTap(doppDoubleTap[playerIndex]);
@@ -3575,16 +3580,19 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 			StyleSwitch(actorBaseAddr, 0); // SWORDMASTER
 			resetDoubleTap(quickDoubleTap[playerIndex]);
 			resetDoubleTap(doppDoubleTap[playerIndex]);
+			resetDoubleTap(charSwitchDoubleTap[playerIndex]);
 		}
 
 		if (actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 1) {
 			StyleSwitch(actorBaseAddr, 1); // GUNSLINGER
 			resetDoubleTap(quickDoubleTap[playerIndex]);
+			resetDoubleTap(charSwitchDoubleTap[playerIndex]);
 		}
 
 		if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 3) {
 			StyleSwitch(actorBaseAddr, 3); // ROYALGUARD
 			resetDoubleTap(doppDoubleTap[playerIndex]);
+			resetDoubleTap(charSwitchDoubleTap[playerIndex]);
 		}
 
 		// --- DOUBLE TAP HANDLING ---
@@ -3617,6 +3625,11 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 
 	} else if (actorData.character == CHARACTER::VERGIL) {
 		if (actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN) && actorData.style != 2) {
+			// Record pre-switch style for potential reversion on character switch return
+			auto& state = charSwitchStyleState[playerIndex][actorData.newCharacterIndex];
+			state.preSwitchStyle = actorData.style;
+			state.styleChangeTime = std::chrono::steady_clock::now();
+
 			StyleSwitch(actorBaseAddr, 2); // DARKSLAYER
 		}
 
@@ -4599,11 +4612,17 @@ template <typename T> bool CanQueueStyleAction(T& actorData) {
 }
 
 void CharacterSwitchController() {
+    // Guard: only run once per frame (WeaponSwitchController calls us per-actor)
+    static int lastFrame = -1;
+    int currentFrame = ImGui::GetFrameCount();
+    if (lastFrame == currentFrame) {
+        return;
+    }
+    lastFrame = currentFrame;
+
     if (!activeConfig.Actor.enable || InCutscene()) {
         return;
     }
-
-    static bool executes[PLAYER_COUNT] = {};
 
     // static float hitPoints  [PLAYER_COUNT] = {};
     // static float magicPoints[PLAYER_COUNT] = {};
@@ -4653,51 +4672,75 @@ void CharacterSwitchController() {
         }
 
 
-        // MAKE THE SWITCH
+        // DOUBLE-TAP CHARACTER SWITCH (D-pad Up)
         {
-            auto& execute = executes[playerIndex];
-
             auto& playerData = GetPlayerData(playerIndex);
 
-			static bool condition = false;
-            auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-            if (!newActorData.baseAddr) {
+            // Read from active character's actor data — same actor StyleSwitchController uses
+            auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+            if (!activeNewActorData.baseAddr) {
                 continue;
             }
-            auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-            auto& gamepad = GetGamepad(actorData.newGamepad);
-            // Map native SDL controller touchpad to character switch for all players
-//             if (CrimsonSDL::IsNativeControllerButtonDown(SDL_GAMEPAD_BUTTON_TOUCHPAD)) {
-//                 Log("SDL CONTROLLER PRESSED");
-//                 gamepad.buttons[0] |= playerData.switchButton;
-//             }
-			if (!activeCrimsonConfig.GUI.disableGamepadShortcut) {
-				// Shortcut is enabled
-				condition = (gamepad.buttons[0] & playerData.switchButton) &&
-					!(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_TARGET));
-			} else {
-				// Shortcut is disabled
-				if (playerData.switchButton == GAMEPAD::LEFT_PLUS_RIGHT_STICK_CLICK) {
-					condition = (gamepad.buttons[0] & GetBinding(BINDING::DEFAULT_CAMERA)) &&
-						(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_TARGET));
-				} else {
-					condition = (gamepad.buttons[0] & playerData.switchButton);
-				}
-			}
-				
-            // Adding Change Target Button (Left Stick) check to prevent Char/Loadout Switching when opening GUI with gamepad (L3 + R3)
-            if (condition) {
-                if (execute) {
-                    execute = false;
+            auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
 
-                    playerData.characterIndex++;
-                   
-                    if (playerData.characterIndex >= playerData.characterCount) {
-                        playerData.characterIndex = 0;
+            bool buttonPressed = (activeActorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN));
+
+            // Double-tap state machine (same pattern as QS/DG handleDoubleTap)
+            {
+                using namespace std::chrono;
+                auto now = steady_clock::now();
+
+                auto& tapData = charSwitchDoubleTap[playerIndex];
+                if (buttonPressed) {
+                    if (!tapData.trackerRunning) {
+                        tapData.trackerRunning = true;
+                        tapData.canChange = false;
+                        tapData.lastTapTime = now;
+                        tapData.tapCount = 1;
+                    } else {
+                        auto elapsed = duration_cast<milliseconds>(now - tapData.lastTapTime).count();
+                        if (elapsed <= tapData.bufferDuration) {
+                            tapData.tapCount++;
+                            tapData.lastTapTime = now;
+                            if (tapData.tapCount == 2) {
+                                tapData.canChange = true;
+                            }
+                        } else {
+                            tapData.tapCount = 1;
+                            tapData.lastTapTime = now;
+                            tapData.canChange = false;
+                        }
+                    }
+                } else if (tapData.trackerRunning) {
+                    auto elapsed = duration_cast<milliseconds>(now - tapData.lastTapTime).count();
+                    if (elapsed > tapData.bufferDuration) {
+                        tapData.trackerRunning = false;
+                        tapData.canChange = false;
+                        tapData.tapCount = 0;
                     }
                 }
-            } else {
-                execute = true;
+            }
+
+            if (charSwitchDoubleTap[playerIndex].canChange) {
+                charSwitchDoubleTap[playerIndex].trackerRunning = false;
+                charSwitchDoubleTap[playerIndex].canChange = false;
+                charSwitchDoubleTap[playerIndex].tapCount = 0;
+
+                // Mark departing character for style reversion if Trickster/Darkslayer was brief
+                {
+                    auto& state = charSwitchStyleState[playerIndex][playerData.activeCharacterIndex];
+                    auto now = std::chrono::steady_clock::now();
+                    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        now - state.styleChangeTime).count();
+                    if (elapsed < 500) {
+                        state.revertPending = true;
+                    }
+                }
+
+                playerData.characterIndex++;
+                if (playerData.characterIndex >= playerData.characterCount) {
+                    playerData.characterIndex = 0;
+                }
             }
         }
 
@@ -4784,7 +4827,20 @@ void CharacterSwitchController() {
             ToggleActor(activeCharacterData, activeNewActorData, false);
 
             ToggleActor(characterData, newActorData, true);
-			
+
+            // Revert style if the character was switched away from quickly via double-tap
+            {
+                auto& state = charSwitchStyleState[playerIndex][playerData.activeCharacterIndex];
+                if (state.revertPending && state.preSwitchStyle >= 0 && newActorData.baseAddr) {
+                    auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+                    if (actorData.style != state.preSwitchStyle) {
+                        actorData.style = state.preSwitchStyle;
+                        UpdateStyle(actorData);
+                    }
+                    state.revertPending = false;
+                }
+            }
+
 
 
             [&]() {

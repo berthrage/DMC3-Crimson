@@ -3200,8 +3200,9 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 	UI::ComboMap2("Switch Button", buttonNames, buttons, Actor_buttonIndices[playerIndex], activePlayerData.switchButton, queuedPlayerData.switchButton,
 		ImGuiComboFlags_HeightLargest);
 	ImGui::SameLine();
-	TooltipHelper("(?)", "Press to Switch Loadouts or Characters.\n"
-		"Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n");
+	TooltipHelper("(?)", "Press to Switch Loadouts.\n"
+		"Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n"
+		"Double Tap D-pad Up to Switch Characters.\n");
 
 	if (playerIndex != 0) {
 

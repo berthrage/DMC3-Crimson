@@ -2116,6 +2116,7 @@ void CallGameplayFuncs() {
 			CrimsonGameplay::CalculateRotationTowardsEnemy(playerActor);
 			CrimsonGameplay::VergilTrackSwordFormationBuffer(playerActor);
 		});
+		CharacterSwitchController();
 	}
 	else {
 		PlayerActorData* playerActorDataPtr = GetVanillaPlayerActor();
