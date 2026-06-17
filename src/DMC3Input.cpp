@@ -33,102 +33,102 @@ static std::unique_ptr<Utility::Detour_t> s_XInputGetStateHook;
 // Per-player defaults (historical behavior). These are copied into per-character slots at runtime.
 static BindTable s_PlayerDefaultBinds[PLAYER_COUNT] = {
     {
-        .up = 0x1000,
-        .down = 0x4000,
-        .right = 0x2000,
-        .left = 0x8000,
-        .melee_atk = 0x10,
-        .jump = 0x40,
-        .style = 0x20,
-        .shoot = 0x80,
-        .dt = 0x4,
-        .change_gun = 0x1,
-        .change_target = 0x200,
-        .lock_on = 0x8,
-        .change_sword = 0x2,
-        .default_camera = 0x400,
-        .taunt = 0x100,
-        .start = 0x800,
-        .switch_button = 0x400
+        .up = GAMEPAD::UP,
+        .down = GAMEPAD::DOWN,
+        .right = GAMEPAD::RIGHT,
+        .left = GAMEPAD::LEFT,
+        .melee_atk = GAMEPAD::Y,
+        .jump = GAMEPAD::A,
+        .style = GAMEPAD::B,
+        .shoot = GAMEPAD::X,
+        .dt = GAMEPAD::LEFT_SHOULDER,
+        .change_gun = GAMEPAD::LEFT_TRIGGER,
+        .change_target = GAMEPAD::LEFT_STICK_CLICK,
+        .lock_on = GAMEPAD::RIGHT_SHOULDER,
+        .change_sword = GAMEPAD::RIGHT_TRIGGER,
+        .default_camera = GAMEPAD::RIGHT_STICK_CLICK,
+        .taunt = GAMEPAD::BACK,
+        .start = GAMEPAD::START,
+        .switch_button = GAMEPAD::RIGHT_STICK_CLICK
     },
 #ifdef MY_BINDS_TEST
     {
-        .up = 0x1000,
-        .down = 0x4000,
-        .right = 0x2000,
-        .left = 0x8000,
-        .melee_atk = 0x40,
-        .jump = 0x20,
-        .style = 0x10,
-        .shoot = 0x80,
-        .dt = 0x4,
-        .change_gun = 0x1,
-        .change_target = 0x200,
-        .lock_on = 0x8,
-        .change_sword = 0x2,
-        .default_camera = 0x400,
-        .taunt = 0x100,
-        .start = 0x800,
-        .switch_button = 0x400
+        .up = GAMEPAD::UP,
+        .down = GAMEPAD::DOWN,
+        .right = GAMEPAD::RIGHT,
+        .left = GAMEPAD::LEFT,
+        .melee_atk = GAMEPAD::A,
+        .jump = GAMEPAD::B,
+        .style = GAMEPAD::Y,
+        .shoot = GAMEPAD::X,
+        .dt = GAMEPAD::LEFT_SHOULDER,
+        .change_gun = GAMEPAD::LEFT_TRIGGER,
+        .change_target = GAMEPAD::LEFT_STICK_CLICK,
+        .lock_on = GAMEPAD::RIGHT_SHOULDER,
+        .change_sword = GAMEPAD::RIGHT_TRIGGER,
+        .default_camera = GAMEPAD::RIGHT_STICK_CLICK,
+        .taunt = GAMEPAD::BACK,
+        .start = GAMEPAD::START,
+        .switch_button = GAMEPAD::RIGHT_STICK_CLICK
     },
 #else
     {
-        .up = 0x1000,
-        .down = 0x4000,
-        .right = 0x2000,
-        .left = 0x8000,
-        .melee_atk = 0x10,
-        .jump = 0x40,
-        .style = 0x20,
-        .shoot = 0x80,
-        .dt = 0x4,
-        .change_gun = 0x1,
-        .change_target = 0x200,
-        .lock_on = 0x8,
-        .change_sword = 0x2,
-        .default_camera = 0x400,
-        .taunt = 0x100,
-        .start = 0x800,
-        .switch_button = 0x400
+        .up = GAMEPAD::UP,
+        .down = GAMEPAD::DOWN,
+        .right = GAMEPAD::RIGHT,
+        .left = GAMEPAD::LEFT,
+        .melee_atk = GAMEPAD::Y,
+        .jump = GAMEPAD::A,
+        .style = GAMEPAD::B,
+        .shoot = GAMEPAD::X,
+        .dt = GAMEPAD::LEFT_SHOULDER,
+        .change_gun = GAMEPAD::LEFT_TRIGGER,
+        .change_target = GAMEPAD::LEFT_STICK_CLICK,
+        .lock_on = GAMEPAD::RIGHT_SHOULDER,
+        .change_sword = GAMEPAD::RIGHT_TRIGGER,
+        .default_camera = GAMEPAD::RIGHT_STICK_CLICK,
+        .taunt = GAMEPAD::BACK,
+        .start = GAMEPAD::START,
+        .switch_button = GAMEPAD::RIGHT_STICK_CLICK
     },
 #endif
     {
-        .up = 0x1000,
-        .down = 0x4000,
-        .right = 0x2000,
-        .left = 0x8000,
-        .melee_atk = 0x10,
-        .jump = 0x40,
-        .style = 0x20,
-        .shoot = 0x80,
-        .dt = 0x4,
-        .change_gun = 0x1,
-        .change_target = 0x200,
-        .lock_on = 0x8,
-        .change_sword = 0x2,
-        .default_camera = 0x400,
-        .taunt = 0x100,
-        .start = 0x800,
-        .switch_button = 0x400
+        .up = GAMEPAD::UP,
+        .down = GAMEPAD::DOWN,
+        .right = GAMEPAD::RIGHT,
+        .left = GAMEPAD::LEFT,
+        .melee_atk = GAMEPAD::Y,
+        .jump = GAMEPAD::A,
+        .style = GAMEPAD::B,
+        .shoot = GAMEPAD::X,
+        .dt = GAMEPAD::LEFT_SHOULDER,
+        .change_gun = GAMEPAD::LEFT_TRIGGER,
+        .change_target = GAMEPAD::LEFT_STICK_CLICK,
+        .lock_on = GAMEPAD::RIGHT_SHOULDER,
+        .change_sword = GAMEPAD::RIGHT_TRIGGER,
+        .default_camera = GAMEPAD::RIGHT_STICK_CLICK,
+        .taunt = GAMEPAD::BACK,
+        .start = GAMEPAD::START,
+        .switch_button = GAMEPAD::RIGHT_STICK_CLICK
     },
     {
-        .up = 0x1000,
-        .down = 0x4000,
-        .right = 0x2000,
-        .left = 0x8000,
-        .melee_atk = 0x10,
-        .jump = 0x40,
-        .style = 0x20,
-        .shoot = 0x80,
-        .dt = 0x4,
-        .change_gun = 0x1,
-        .change_target = 0x200,
-        .lock_on = 0x8,
-        .change_sword = 0x2, 
-        .default_camera = 0x400,
-        .taunt = 0x100,
-        .start = 0x800,
-        .switch_button = 0x400
+        .up = GAMEPAD::UP,
+        .down = GAMEPAD::DOWN,
+        .right = GAMEPAD::RIGHT,
+        .left = GAMEPAD::LEFT,
+        .melee_atk = GAMEPAD::Y,
+        .jump = GAMEPAD::A,
+        .style = GAMEPAD::B,
+        .shoot = GAMEPAD::X,
+        .dt = GAMEPAD::LEFT_SHOULDER,
+        .change_gun = GAMEPAD::LEFT_TRIGGER,
+        .change_target = GAMEPAD::LEFT_STICK_CLICK,
+        .lock_on = GAMEPAD::RIGHT_SHOULDER,
+        .change_sword = GAMEPAD::RIGHT_TRIGGER, 
+        .default_camera = GAMEPAD::RIGHT_STICK_CLICK,
+        .taunt = GAMEPAD::BACK,
+        .start = GAMEPAD::START,
+        .switch_button = GAMEPAD::RIGHT_STICK_CLICK
     },
 };
 
@@ -193,47 +193,47 @@ struct BTImGuiCtx {
         "RIGHT THUMB",
         "BACK",
         "START",
-        "RIGHT THUMB",
+        "",
     };
     uint16_t values[NUM_BINDS_WITHOUT_START] = {
-        0x1000,
-        0x4000,
-        0x2000,
-        0x8000,
-        0x10,
-        0x40,
-        0x20,
-        0x80,
-        0x4,
-        0x1,
-        0x200,
-        0x8,
-        0x2,
-        0x400,
-        0x100,
-        0x800,
-        0x400,
+        GAMEPAD::UP,
+        GAMEPAD::DOWN,
+        GAMEPAD::RIGHT,
+        GAMEPAD::LEFT,
+        GAMEPAD::Y,
+        GAMEPAD::A,
+        GAMEPAD::B,
+        GAMEPAD::X,
+        GAMEPAD::LEFT_SHOULDER,
+        GAMEPAD::LEFT_TRIGGER,
+        GAMEPAD::LEFT_STICK_CLICK,
+        GAMEPAD::RIGHT_SHOULDER,
+        GAMEPAD::RIGHT_TRIGGER,
+        GAMEPAD::RIGHT_STICK_CLICK,
+        GAMEPAD::BACK,
+        GAMEPAD::START,
+        GAMEPAD::RIGHT_STICK_CLICK,
     };
 };
 
 static BindTable s_defaultBinds = {
-    .up = 0x1000,
-    .down = 0x4000,
-    .right = 0x2000,
-    .left = 0x8000,
-    .melee_atk = 0x10,
-    .jump = 0x40,
-    .style = 0x20,
-    .shoot = 0x80,
-    .dt = 0x4,
-    .change_gun = 0x1,
-    .change_target = 0x200,
-    .lock_on = 0x8,
-    .change_sword = 0x2,
-    .default_camera = 0x400,
-    .taunt = 0x100,
-    .start = 0x800,
-    .switch_button = 0x400
+    .up = GAMEPAD::UP,
+    .down = GAMEPAD::DOWN,
+    .right = GAMEPAD::RIGHT,
+    .left = GAMEPAD::LEFT,
+    .melee_atk = GAMEPAD::Y,
+    .jump = GAMEPAD::A,
+    .style = GAMEPAD::B,
+    .shoot = GAMEPAD::X,
+    .dt = GAMEPAD::LEFT_SHOULDER,
+    .change_gun = GAMEPAD::LEFT_TRIGGER,
+    .change_target = GAMEPAD::LEFT_STICK_CLICK,
+    .lock_on = GAMEPAD::RIGHT_SHOULDER,
+    .change_sword = GAMEPAD::RIGHT_TRIGGER,
+    .default_camera = GAMEPAD::RIGHT_STICK_CLICK,
+    .taunt = GAMEPAD::BACK,
+    .start = GAMEPAD::START,
+    .switch_button = GAMEPAD::RIGHT_STICK_CLICK
 };
 
 static uint8_t GetCharacterBindSlot(const PlayerActorData* actorData) {
@@ -723,20 +723,48 @@ void ShowButtonConfigWindow() {
 					uint16_t* queuedButtonConfig  = queuedConfigInputs[i][selectedSlot][0];
 					uint16_t* defaultButtonConfig = (&s_defaultBinds.up);
 					for (int j = 0; j < NUM_BINDS_WITHOUT_START; j++) {
+						if (j == (NUM_BINDS_WITHOUT_START - 1)) {
+							ImGui::Spacing();
+							ImGui::Separator();
+							ImGui::TextDisabled("Per-Player (shared across characters)");
+						}
 						ImGui::PushID(i);
 						ImGui::PushID(j);
-						UI::ComboMapValue2<uint16_t, NUM_BINDS_WITHOUT_START>(ctxControl.actions[j], ctxControl.items,
-							ctxControl.values, activeButtonConfig[j], queuedButtonConfig[j]);
+						if (j == (NUM_BINDS_WITHOUT_START - 1)) {
+							// SWITCH BUTTON: always reads from Dante slot, syncs to Vergil
+							uint16_t* switchActive = &(*activeConfigInputs[i][0])[j];
+							uint16_t* switchQueued = &(*queuedConfigInputs[i][0])[j];
+							UI::ComboMapValue2<uint16_t, NUM_BINDS_WITHOUT_START>(ctxControl.actions[j], ctxControl.items,
+								ctxControl.values, *switchActive, *switchQueued);
+							if (ImGui::IsItemHovered()) {
+								ImGui::SetTooltip("Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n"
+									"Double Tap D-pad Up to switch characters. The Switch Button can also be set to Switch Characters with a toggle.");
+							}
+							// Sync to Vergil slot whenever the active value changes
+							if (*switchActive != (*activeConfigInputs[i][1])[j]) {
+								(*activeConfigInputs[i][1])[j] = *switchActive;
+							}
+							if (*switchQueued != (*queuedConfigInputs[i][1])[j]) {
+								(*queuedConfigInputs[i][1])[j] = *switchQueued;
+							}
+						} else {
+							UI::ComboMapValue2<uint16_t, NUM_BINDS_WITHOUT_START>(ctxControl.actions[j], ctxControl.items,
+								ctxControl.values, activeButtonConfig[j], queuedButtonConfig[j]);
+						}
 						ImGui::PopID();
 						ImGui::PopID();
 					}
+
+                    GUI_Checkbox2("Use Switch Button for Character Switching", activeCrimsonInput.switchButtonCharSwitch[i], queuedCrimsonInput.switchButtonCharSwitch[i]);
 
 					if (GUI_Button("Restore Defaults")) {
 						memcpy(queuedButtonConfig,  defaultButtonConfig, sizeof(BindTable));
 						memcpy(activeButtonConfig,  defaultButtonConfig, sizeof(BindTable));
+						activeCrimsonInput.switchButtonCharSwitch[i] = defaultCrimsonInput.switchButtonCharSwitch[i];
+						queuedCrimsonInput.switchButtonCharSwitch[i] = defaultCrimsonInput.switchButtonCharSwitch[i];
 					}
 
-					if (GUI_Checkbox2("Use Switch Button for Character Switching", activeCrimsonGameplay.Gameplay.General.switchButtonCharSwitch, queuedCrimsonGameplay.Gameplay.General.switchButtonCharSwitch)) {}
+					
 
 					ImGui::TableNextColumn();
 					if (i == 1 || i == 2) {

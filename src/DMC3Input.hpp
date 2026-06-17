@@ -61,6 +61,7 @@ void OverrideHDCKeybinds();
 extern bool g_showControllerRemap;
 extern bool g_showKeyboardConfig;
 extern uint32 g_hdcKeybinds[NUM_KEYBINDS];
+extern uint16_t(*activeConfigInputs[PLAYER_COUNT][2])[NUM_GAMEPADBINDS];
 
 #endif
 

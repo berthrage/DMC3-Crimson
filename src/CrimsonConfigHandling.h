@@ -255,6 +255,9 @@ void ParseField(const Value& obj, const char* name, T& value) {
 					else if constexpr (TypeMatch<std::remove_extent_t<T>, int>::value) {
 						value[index++] = static_cast<int>(elem.GetInt());
 					}
+					else if constexpr (TypeMatch<std::remove_extent_t<T>, bool>::value) {
+						value[index++] = elem.GetBool();
+					}
 					else if constexpr (std::is_floating_point_v<std::remove_extent_t<T>>) {
 						value[index++] = elem.GetFloat();
 					}

@@ -4745,23 +4745,51 @@ void CharacterSwitchController() {
         }
 
         // SWITCH-BUTTON CHARACTER SWITCH (single press, configurable)
-        if (activeCrimsonGameplay.Gameplay.General.switchButtonCharSwitch) {
+        static bool executesSwBtn[PLAYER_COUNT] = {};
+        if (activeCrimsonInput.switchButtonCharSwitch[playerIndex]) {
             auto& playerData = GetPlayerData(playerIndex);
-            auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-            if (activeNewActorData.baseAddr) {
-                auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
-                static bool execSwitchBtn[PLAYER_COUNT] = {};
-                auto& exec = execSwitchBtn[playerIndex];
-                bool pressed = (activeActorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON));
-                if (pressed && exec) {
-                    exec = false;
+
+            auto& leadNewActorData = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
+            if (!leadNewActorData.baseAddr) {
+                continue;
+            }
+            auto& leadActorData = *reinterpret_cast<PlayerActorData*>(leadNewActorData.baseAddr);
+            auto& gamepad = GetGamepad(leadActorData.newGamepad);
+
+            // Read switch button per-player directly from CrimsonInput (not GetBinding, which is a global singleton)
+            byte16 switchBtn = (*activeConfigInputs[playerIndex][0])[BINDING::SWITCH_BUTTON];
+
+            // --- Original condition logic (preserved from old R3 switchButton code) ---
+            static bool condition = false;
+            if (!activeCrimsonConfig.GUI.disableGamepadShortcut) {
+                condition = (gamepad.buttons[0] & switchBtn) &&
+                    !(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_TARGET));
+            } else {
+                if (switchBtn == GAMEPAD::LEFT_PLUS_RIGHT_STICK_CLICK) {
+                    condition = (gamepad.buttons[0] & GetBinding(BINDING::DEFAULT_CAMERA)) &&
+                        (gamepad.buttons[0] & GetBinding(BINDING::CHANGE_TARGET));
+                } else {
+                    condition = (gamepad.buttons[0] & switchBtn);
+                }
+            }
+
+            auto& execute = executesSwBtn[playerIndex];
+            static int switchCooldown[PLAYER_COUNT] = {};
+            auto& cooldown = switchCooldown[playerIndex];
+
+            if (cooldown > 0) {
+                cooldown--;
+            } else if (condition) {
+                if (execute) {
+                    execute = false;
+                    cooldown = 10;
                     playerData.characterIndex++;
                     if (playerData.characterIndex >= playerData.characterCount) {
                         playerData.characterIndex = 0;
                     }
-                } else if (!pressed) {
-                    exec = true;
                 }
+            } else {
+                execute = true;
             }
         }
 

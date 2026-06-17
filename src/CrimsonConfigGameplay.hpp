@@ -61,7 +61,6 @@ struct CrimsonConfigGameplay {
 					std::make_pair("extramoves", &General::extramoves),
 					std::make_pair("sprint", &General::sprint),
 					std::make_pair("charHotswap",&General::charHotswap),
-				std::make_pair("switchButtonCharSwitch", &General::switchButtonCharSwitch),
 					std::make_pair("freeformSoftLock", &General::freeformSoftLock),
 					std::make_pair("bufferlessReversals", &General::bufferlessReversals),
 					std::make_pair("reversalWindow", &General::reversalWindow),
