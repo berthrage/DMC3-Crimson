@@ -5824,6 +5824,15 @@ struct SwordFormationTracker {
     float resetTimer = 0.0f; 
 };
 
+struct CharSwitchTeleportData {
+	bool pending = false;
+	bool setupDone = false;
+	bool outgoingWasGrounded = false;
+	float targetX = 0.0f;
+	float targetY = 0.0f;
+	float targetZ = 0.0f;
+};
+
 
 struct CrimsonPlayerData {
     uintptr_t playerPtr;
@@ -5929,6 +5938,7 @@ struct CrimsonPlayerData {
 	SwordFormationTracker swordFormationTracker;
     //this isn't a value mirrored between player & doppelganger, it's only for the player and it effects doppelganger behavior.
     bool lockCloneStyle = false;
+    CharSwitchTeleportData charSwitchTeleport;
 
     uintptr_t clonePtr;
     uint8 actionClone     = 0;
@@ -6007,6 +6017,7 @@ struct CrimsonPlayerData {
     BulletMagnetism bulletMagnetismClone;
 	uint8 bufferRoyalClone = 0;
 	SwordFormationTracker swordFormationTrackerClone;
+    CharSwitchTeleportData charSwitchTeleportClone;
 };
 
 extern CrimsonPlayerData crimsonPlayer[20];

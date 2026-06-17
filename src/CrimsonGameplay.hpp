@@ -64,5 +64,6 @@ void RevivePlayer(uint8 playerIndex, bool ignoreGorbCost = true);
 void UpdateRevivePlayer(byte8* actorBaseAddr);
 void TeleportToPartyLeader(byte8* actorBaseAddr);
 void BoBPartnerTeleport(byte8* actorBaseAddr);
+void CharSwitchTeleportController(byte8* actorBaseAddr);
 
 }

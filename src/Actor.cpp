@@ -4433,6 +4433,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
 	UpdateStyleSwitchAnimations();
 	StyleSwitchController(actorBaseAddr);
     CharacterSwitchController();
+    CrimsonGameplay::CharSwitchTeleportController(actorBaseAddr);
     CrimsonGameplay::UpdateCrimsonPlayerData();
     CrimsonPatches::DisableHeightRestriction(activeCrimsonGameplay.Gameplay.General.disableHeightRestriction);
     CrimsonPatches::ImprovedBufferedReversals(activeCrimsonGameplay.Gameplay.General.improvedBufferedReversals);
@@ -4612,71 +4613,61 @@ template <typename T> bool CanQueueStyleAction(T& actorData) {
 }
 
 void CharacterSwitchController() {
-    // Guard: only run once per frame (WeaponSwitchController calls us per-actor)
-    static int lastFrame = -1;
-    int currentFrame = ImGui::GetFrameCount();
-    if (lastFrame == currentFrame) {
+    // ── Frame guard: run once per frame (called per-actor by WeaponSwitchController) ──
+    static double lastTime = -1.0;
+    double currentTime = CrimsonClock::Time();
+    if (lastTime == currentTime) {
         return;
     }
-    lastFrame = currentFrame;
+    lastTime = currentTime;
 
     if (!activeConfig.Actor.enable || InCutscene()) {
         return;
     }
 
-    // static float hitPoints  [PLAYER_COUNT] = {};
-    // static float magicPoints[PLAYER_COUNT] = {};
-
-    //candidate 1
     old_for_all(uint8, playerIndex, activeConfig.Actor.playerCount) {
 
-
+        // ── Skip players with only 1 character 
         {
             auto& playerData = GetPlayerData(playerIndex);
-
             if (playerData.characterCount < 2) {
                 continue;
             }
         }
 
+        // ── Skip if Doppelganger is active 
         auto IsDoppelgangerActive = [&]() -> bool {
             auto& playerData = GetPlayerData(playerIndex);
-            
-            auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-            auto& newActorData  = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-
-            auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-            auto& activeNewActorData  = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-
-            auto& leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
-            auto& leadNewActorData  = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
-
-            auto& mainCharacterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-            auto& mainNewActorData  = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-
-
-            if (activeCharacterData.character >= CHARACTER::MAX) {
-                return false;
+            auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+            if (activeNewActorData.baseAddr) {
+                auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+                return activeActorData.doppelganger;
             }
-
-            if (!activeNewActorData.baseAddr) {
-                return false;
-            }
-            auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
-
-            return activeActorData.doppelganger;
+            return false;
         };
 
         if (IsDoppelgangerActive()) {
             continue;
         }
 
+        // ── Skip if current actor is Staggered or inside Nevan Kiss ──
+        {
+            auto& playerData = GetPlayerData(playerIndex);
+            auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+            if (activeNewActorData.baseAddr) {
+                auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+                auto currentEvent = activeActorData.eventData[0].event;
+                if (currentEvent == ACTOR_EVENT::STAGGER || currentEvent == ACTOR_EVENT::NEVAN_KISS) {
+                    continue;
+                }
+            }
+        }
 
-        // DOUBLE-TAP CHARACTER SWITCH (D-pad Up)
+        // INPUT DETECTION — two ways to request a character switch
+        // ── Method A: Double-tap D-pad Up (ITEM_SCREEN binding) ──
         {
             auto& playerData = GetPlayerData(playerIndex);
 
-            // Read from active character's actor data — same actor StyleSwitchController uses
             auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
             if (!activeNewActorData.baseAddr) {
                 continue;
@@ -4685,7 +4676,7 @@ void CharacterSwitchController() {
 
             bool buttonPressed = (activeActorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN));
 
-            // Double-tap state machine (same pattern as QS/DG handleDoubleTap)
+            // Double-tap state machine: detect two taps within bufferDuration
             {
                 using namespace std::chrono;
                 auto now = steady_clock::now();
@@ -4703,15 +4694,17 @@ void CharacterSwitchController() {
                             tapData.tapCount++;
                             tapData.lastTapTime = now;
                             if (tapData.tapCount == 2) {
-                                tapData.canChange = true;
+                                tapData.canChange = true;   // Double-tap confirmed!
                             }
                         } else {
+                            // Too slow — restart as new first tap
                             tapData.tapCount = 1;
                             tapData.lastTapTime = now;
                             tapData.canChange = false;
                         }
                     }
                 } else if (tapData.trackerRunning) {
+                    // Button released — expire the buffer after timeout
                     auto elapsed = duration_cast<milliseconds>(now - tapData.lastTapTime).count();
                     if (elapsed > tapData.bufferDuration) {
                         tapData.trackerRunning = false;
@@ -4721,12 +4714,14 @@ void CharacterSwitchController() {
                 }
             }
 
+            // Double-tap confirmed: advance to next character
             if (charSwitchDoubleTap[playerIndex].canChange) {
                 charSwitchDoubleTap[playerIndex].trackerRunning = false;
                 charSwitchDoubleTap[playerIndex].canChange = false;
                 charSwitchDoubleTap[playerIndex].tapCount = 0;
 
-                // Mark departing character for style reversion if Trickster/Darkslayer was brief
+                // If departing character briefly used Trickster/Darkslayer (<500ms),
+                // mark for style reversion so they return to their original style
                 {
                     auto& state = charSwitchStyleState[playerIndex][playerData.activeCharacterIndex];
                     auto now = std::chrono::steady_clock::now();
@@ -4737,6 +4732,7 @@ void CharacterSwitchController() {
                     }
                 }
 
+                // Cycle to next character (wrap around)
                 playerData.characterIndex++;
                 if (playerData.characterIndex >= playerData.characterCount) {
                     playerData.characterIndex = 0;
@@ -4744,8 +4740,7 @@ void CharacterSwitchController() {
             }
         }
 
-        // SWITCH-BUTTON CHARACTER SWITCH (single press, configurable)
-        static bool executesSwBtn[PLAYER_COUNT] = {};
+        // ── Method B: Configurable switch button (single press with cooldown) ──
         if (activeCrimsonInput.switchButtonCharSwitch[playerIndex]) {
             auto& playerData = GetPlayerData(playerIndex);
 
@@ -4756,11 +4751,9 @@ void CharacterSwitchController() {
             auto& leadActorData = *reinterpret_cast<PlayerActorData*>(leadNewActorData.baseAddr);
             auto& gamepad = GetGamepad(leadActorData.newGamepad);
 
-            // Read switch button per-player directly from CrimsonInput (not GetBinding, which is a global singleton)
             byte16 switchBtn = (*activeConfigInputs[playerIndex][0])[BINDING::SWITCH_BUTTON];
 
-            // --- Original condition logic (preserved from old R3 switchButton code) ---
-            static bool condition = false;
+            bool condition = false;
             if (!activeCrimsonConfig.GUI.disableGamepadShortcut) {
                 condition = (gamepad.buttons[0] & switchBtn) &&
                     !(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_TARGET));
@@ -4773,40 +4766,54 @@ void CharacterSwitchController() {
                 }
             }
 
-            auto& execute = executesSwBtn[playerIndex];
-            static int switchCooldown[PLAYER_COUNT] = {};
-            auto& cooldown = switchCooldown[playerIndex];
+            // Time-based edge-trigger with cooldown to prevent rapid cycling.
+            // Uses steady_clock (like Method A) so input noise after cooldown
+            // expiry cannot cause spurious re-triggers.
+            {
+                using namespace std::chrono;
+                auto now = steady_clock::now();
 
-            if (cooldown > 0) {
-                cooldown--;
-            } else if (condition) {
-                if (execute) {
-                    execute = false;
-                    cooldown = 10;
-                    playerData.characterIndex++;
-                    if (playerData.characterIndex >= playerData.characterCount) {
-                        playerData.characterIndex = 0;
+                static steady_clock::time_point s_lastSwitchTime[PLAYER_COUNT] = {};
+                static bool                      s_switchArmed[PLAYER_COUNT] = {true, true, true, true};
+
+                auto& armed    = s_switchArmed[playerIndex];
+                auto& lastTime = s_lastSwitchTime[playerIndex];
+
+                constexpr auto kCooldownMs = 300;
+
+                if (condition && armed) {
+                    auto elapsed = duration_cast<milliseconds>(now - lastTime).count();
+                    if (elapsed >= kCooldownMs) {
+                        armed    = false;
+                        lastTime = now;
+                        playerData.characterIndex++;
+                        if (playerData.characterIndex >= playerData.characterCount) {
+                            playerData.characterIndex = 0;
+                        }
+                    }
+                } else if (!condition) {
+                    // Only re-arm after the button has been released for at
+                    // least the cooldown period, preventing input noise from
+                    // accidentally re-arming the trigger.
+                    auto elapsed = duration_cast<milliseconds>(now - lastTime).count();
+                    if (elapsed >= kCooldownMs) {
+                        armed = true;
                     }
                 }
-            } else {
-                execute = true;
             }
         }
 
+        // SWITCH EXECUTION — perform the actual character swap
+
+        // ── Resolve references ──
         auto& playerData = GetPlayerData(playerIndex);
 
-        auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-        auto& newActorData  = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-
+        auto& characterData       = GetCharacterData(playerIndex, playerData.characterIndex,       ENTITY::MAIN);
+        auto& newActorData        = GetNewActorData(playerIndex, playerData.characterIndex,        ENTITY::MAIN);
         auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-        auto& activeNewActorData  = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-
-        auto& leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
-        auto& leadNewActorData  = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
-
-        auto& mainCharacterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-        auto& mainNewActorData  = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-
+        auto& activeNewActorData  = GetNewActorData(playerIndex, playerData.activeCharacterIndex,   ENTITY::MAIN);
+        auto& leadCharacterData   = GetCharacterData(playerIndex, 0,                               ENTITY::MAIN);
+        auto& leadNewActorData    = GetNewActorData(playerIndex, 0,                                 ENTITY::MAIN);
 
         if (!leadNewActorData.baseAddr) {
             continue;
@@ -4817,10 +4824,10 @@ void CharacterSwitchController() {
             continue;
         }
         auto& gamepad = GetGamepad(leadActorData.newGamepad);
+
+        // ── Toggle input when characterIndex changes (pre-switch step) ──
         if (playerData.lastCharacterIndex != playerData.characterIndex) {
             playerData.lastCharacterIndex = playerData.characterIndex;
-
-            // @Todo: Prefer < CHARACTER::MAX.
 
             if (activeCharacterData.character == CHARACTER::BOSS_LADY) {
                 auto& activeActorData = *reinterpret_cast<EnemyActorDataLady*>(activeNewActorData.baseAddr);
@@ -4828,56 +4835,55 @@ void CharacterSwitchController() {
                 auto& activeActorData = *reinterpret_cast<EnemyActorDataVergil*>(activeNewActorData.baseAddr);
             } else {
                 auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
-
+                // Enable input on incoming character, disable on outgoing
                 ToggleInput(activeActorData, (playerData.characterIndex == playerData.activeCharacterIndex) ? true : false);
             }
         }
 
+        // ── 500ms game-speed cooldown between character switches ──
+        static float s_charSwitchCooldown[PLAYER_COUNT] = {};
+
+        // Advance the cooldown accumulator each frame (respects game speed)
+        if (s_charSwitchCooldown[playerIndex] > 0.0f) {
+            s_charSwitchCooldown[playerIndex] -= CrimsonClock::DeltaTime() * (leadActorData.speed / g_FrameRateTimeMultiplier);
+            if (s_charSwitchCooldown[playerIndex] < 0.0f) {
+                s_charSwitchCooldown[playerIndex] = 0.0f;
+            }
+        }
+
+        // ── No switch pending — already on the requested character ──
         if (playerData.characterIndex == playerData.activeCharacterIndex) {
             continue;
         }
 
-        // At this point we have a valid new character index and we know that
-        // we want another character.
+        // ── Enforce the 500ms game-speed cooldown ──
+        if (s_charSwitchCooldown[playerIndex] > 0.0f) {
+            // Cooldown still active — cancel the pending switch
+            playerData.characterIndex = playerData.activeCharacterIndex;
+            continue;
+        }
 
-        // @Research: Consider Save instead.
+        // ── Lambda: snapshot HP/DT from outgoing character before swap ──
         auto UpdateHitMagicPoints = [&]() {
-            auto& playerData = GetPlayerData(playerIndex);
-
-            auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-            auto& newActorData  = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-
-            auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-            auto& activeNewActorData  = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-
-            auto& leadCharacterData = GetCharacterData(playerIndex, 0, ENTITY::MAIN);
-            auto& leadNewActorData  = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
-
-            auto& mainCharacterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-            auto& mainNewActorData  = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-
-
-            if (activeCharacterData.character >= CHARACTER::MAX) {
-                return;
-            }
-
+            auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
             if (!activeNewActorData.baseAddr) {
                 return;
             }
             auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
-
             g_hitPoints[playerIndex]   = activeActorData.hitPoints;
             g_magicPoints[playerIndex] = activeActorData.magicPoints;
         };
 
+        // ── Lambda: execute the swap (deactivate old, activate new, update HUD) ──
         auto Update = [&]() {
             playerData.activeCharacterIndex = playerData.characterIndex;
+            s_charSwitchCooldown[playerIndex] = 0.5f;
 
+            // Deactivate outgoing character, activate incoming character
             ToggleActor(activeCharacterData, activeNewActorData, false);
-
             ToggleActor(characterData, newActorData, true);
 
-            // Revert style if the character was switched away from quickly via double-tap
+            // Revert style on incoming character if they were quick-swapped away earlier
             {
                 auto& state = charSwitchStyleState[playerIndex][playerData.activeCharacterIndex];
                 if (state.revertPending && state.preSwitchStyle >= 0 && newActorData.baseAddr) {
@@ -4890,56 +4896,57 @@ void CharacterSwitchController() {
                 }
             }
 
-
-
+            // Update HUD and main actor for player 0
             [&]() {
                 if (playerIndex != 0) {
                     return;
                 }
-
-                if (characterData.character >= CHARACTER::MAX) {
-                    SetMainActor(leadActorData);
-
-                    return;
-                }
-
                 if (!newActorData.baseAddr) {
                     return;
                 }
                 auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 
+                if (characterData.character >= CHARACTER::MAX) {
+                    SetMainActor(leadActorData);
+                    return;
+                }
+
                 SetMainActor(actorData);
 
+                // Refresh all HUD elements for the new character
                 HUD_UpdateStyleIcon(actorData.style, characterData.character);
-				HUD_UpdateHPBar(characterData.character);
-				HUD_UpdateLockOn(characterData.character);
+                HUD_UpdateHPBar(characterData.character);
+                HUD_UpdateLockOn(characterData.character);
                 HUD_UpdateDevilTriggerGauge(characterData.character);
                 HUD_UpdateDevilTriggerLightning(characterData.character);
                 HUD_UpdateDevilTriggerExplosion(characterData.character);
 
-				if (actorData.character == CHARACTER::DANTE) {
+                // Restore Dante's weapon indices
+                if (actorData.character == CHARACTER::DANTE) {
                     auto meleeWeapon = GetMeleeWeapon(actorData);
                     auto rangedWeapon = GetRangedWeapon(actorData);
-					actorData.meleeWeaponIndex = meleeWeapon;
+                    actorData.meleeWeaponIndex = meleeWeapon;
                     actorData.rangedWeaponIndex = rangedWeapon;
-				}
+                }
             }();
 
-            // If Boss enable lead actor's lock-on system.
+            // If the new active character is a boss, enable lock-on on lead actor
             {
                 auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-
-                if ((activeCharacterData.character == CHARACTER::BOSS_LADY) || (activeCharacterData.character == CHARACTER::BOSS_VERGIL)) {
+                if ((activeCharacterData.character == CHARACTER::BOSS_LADY) ||
+                    (activeCharacterData.character == CHARACTER::BOSS_VERGIL)) {
                     leadActorData.newButtonMask = GetBinding(BINDING::LOCK_ON) | GetBinding(BINDING::CHANGE_TARGET);
                 }
             }
         };
 
-		static vec4 lastPosition[PLAYER_COUNT] = {};
 
+        // DISPATCH — choose switch pathway based on outgoing character's state
+        static vec4 lastPosition[PLAYER_COUNT] = {};
+
+        // ── Boss Lady / Boss Vergil: simple instant swap ──
         if (activeCharacterData.character == CHARACTER::BOSS_LADY) {
             auto& activeActorData = *reinterpret_cast<EnemyActorDataLady*>(activeNewActorData.baseAddr);
-
             if (IsBossLadyActive(activeActorData)) {
                 continue;
             } else {
@@ -4947,61 +4954,103 @@ void CharacterSwitchController() {
             }
         } else if (activeCharacterData.character == CHARACTER::BOSS_VERGIL) {
             auto& activeActorData = *reinterpret_cast<EnemyActorDataVergil*>(activeNewActorData.baseAddr);
-
             if (IsBossVergilActive(activeActorData)) {
                 continue;
             } else {
                 Update();
             }
         } else {
+            // ── Standard character (Dante/Vergil) ──
             auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+            auto& actorData       = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 
-			auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+            if (IsActive(activeActorData)) {
+                // Outgoing character IS mid-action -> buffered-attack switch
 
-			if (IsActive(activeActorData)) {
-				if (CanQueueMeleeAttack(activeActorData) && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK)) &&
-					(GetNextMeleeAction(activeCharacterData, activeNewActorData, characterData, newActorData) > 0)) {
-					UpdateHitMagicPoints();
 
-					lastPosition[playerIndex] = activeActorData.position;
-
-					EndMotion(activeActorData);
-
-					Update();
-
+                // Path 1: Melee-buffered switch (melee button held during swap)
+                if (CanQueueMeleeAttack(activeActorData) && (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK)) &&
+                    (GetNextMeleeAction(activeCharacterData, activeNewActorData, characterData, newActorData) > 0)) {
+                    UpdateHitMagicPoints();
+                    lastPosition[playerIndex] = activeActorData.position;
+                    EndMotion(activeActorData);
+                    Update();
                     CopyState(activeCharacterData, activeNewActorData, characterData, newActorData);
-
-					SetNextMeleeAction(activeCharacterData, activeNewActorData, characterData, newActorData);
-
-                    actorData.position = vec4(lastPosition[playerIndex].x, lastPosition[playerIndex].y , lastPosition[playerIndex].z, lastPosition[playerIndex].a);
-
-				} else if (CanQueueStyleAction(activeActorData) && (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
-					(GetNextStyleAction(activeCharacterData, activeNewActorData, characterData, newActorData) > 0)) {
-					UpdateHitMagicPoints();
-
-					lastPosition[playerIndex] = activeActorData.position;
-
-					EndMotion(activeActorData);
-
-					Update();
-                    CopyState(activeCharacterData, activeNewActorData, characterData, newActorData);
-
-                    SetNextStyleAction(activeCharacterData, activeNewActorData, characterData, newActorData);
-
+                    SetNextMeleeAction(activeCharacterData, activeNewActorData, characterData, newActorData);
                     actorData.position = vec4(lastPosition[playerIndex].x, lastPosition[playerIndex].y, lastPosition[playerIndex].z, lastPosition[playerIndex].a);
-					
-				}
-			} else {
+
+                    // Queue Air Trick teleport for the incoming character
+                    {
+                        auto& tpData = crimsonPlayer[playerIndex].charSwitchTeleport;
+                        tpData.targetX = lastPosition[playerIndex].x;
+                        tpData.targetY = lastPosition[playerIndex].y;
+                        tpData.targetZ = lastPosition[playerIndex].z;
+                        tpData.setupDone = false;
+                        tpData.outgoingWasGrounded = !(activeActorData.state & STATE::IN_AIR);
+                        tpData.pending = true;
+                    }
+
+                // Path 2: Style-buffered switch (style button held during swap)
+                } else if (CanQueueStyleAction(activeActorData) && (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
+                    (GetNextStyleAction(activeCharacterData, activeNewActorData, characterData, newActorData) > 0)) {
+                    UpdateHitMagicPoints();
+                    lastPosition[playerIndex] = activeActorData.position;
+                    EndMotion(activeActorData);
+                    Update();
+                    CopyState(activeCharacterData, activeNewActorData, characterData, newActorData);
+                    SetNextStyleAction(activeCharacterData, activeNewActorData, characterData, newActorData);
+                    actorData.position = vec4(lastPosition[playerIndex].x, lastPosition[playerIndex].y, lastPosition[playerIndex].z, lastPosition[playerIndex].a);
+
+                    // Queue Air Trick teleport for the incoming character
+                    {
+                        auto& tpData = crimsonPlayer[playerIndex].charSwitchTeleport;
+                        tpData.targetX = lastPosition[playerIndex].x;
+                        tpData.targetY = lastPosition[playerIndex].y;
+                        tpData.targetZ = lastPosition[playerIndex].z;
+                        tpData.setupDone = false;
+                        tpData.outgoingWasGrounded = !(activeActorData.state & STATE::IN_AIR);
+                        tpData.pending = true;
+                    }
+
+                // Path 3: Active but no buffered attack queued (e.g. Vergil has no
+                // style actions) -- still swap with position copy and teleport.
+                } else {
+                    UpdateHitMagicPoints();
+                    lastPosition[playerIndex] = activeActorData.position;
+                    EndMotion(activeActorData);
+                    Update();
+                    CopyState(activeCharacterData, activeNewActorData, characterData, newActorData, CopyStateFlags_FixPermissions);
+                    actorData.position = vec4(lastPosition[playerIndex].x, lastPosition[playerIndex].y, lastPosition[playerIndex].z, lastPosition[playerIndex].a);
+
+                    // Queue Air Trick teleport for the incoming character
+                    {
+                        auto& tpData = crimsonPlayer[playerIndex].charSwitchTeleport;
+                        tpData.targetX = lastPosition[playerIndex].x;
+                        tpData.targetY = lastPosition[playerIndex].y;
+                        tpData.targetZ = lastPosition[playerIndex].z;
+                        tpData.setupDone = false;
+                        tpData.outgoingWasGrounded = !(activeActorData.state & STATE::IN_AIR);
+                        tpData.pending = true;
+                    }
+                }
+            } else {
+                // Outgoing character is IDLE -> instant position swap
                 UpdateHitMagicPoints();
+                lastPosition[playerIndex] = activeActorData.position;
+                CopyState(activeCharacterData, activeNewActorData, characterData, newActorData, CopyStateFlags_FixPermissions);
+                Update();
+                actorData.position = vec4(lastPosition[playerIndex].x, lastPosition[playerIndex].y, lastPosition[playerIndex].z, lastPosition[playerIndex].a);
 
-				lastPosition[playerIndex] = activeActorData.position;
-
-                 CopyState(activeCharacterData, activeNewActorData, characterData, newActorData, CopyStateFlags_FixPermissions);
-
-                 Update();
-
-				actorData.position = vec4(lastPosition[playerIndex].x, lastPosition[playerIndex].y, lastPosition[playerIndex].z, lastPosition[playerIndex].a);
-
+                // Queue Air Trick teleport for the incoming character
+                {
+                    auto& tpData = crimsonPlayer[playerIndex].charSwitchTeleport;
+                    tpData.targetX = lastPosition[playerIndex].x;
+                    tpData.targetY = lastPosition[playerIndex].y;
+                    tpData.targetZ = lastPosition[playerIndex].z;
+                    tpData.setupDone = false;
+                    tpData.outgoingWasGrounded = !(activeActorData.state & STATE::IN_AIR);
+                    tpData.pending = true;
+                }
             }
         }
     }
