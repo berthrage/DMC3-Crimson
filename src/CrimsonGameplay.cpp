@@ -6136,19 +6136,19 @@ void CharSwitchTeleportController(byte8* actorBaseAddr) {
 						actorData.position.y = tpData.targetY;
 						actorData.position.z = tpData.targetZ;
 
-						// Transfer horizontal inertia from the outgoing character.
-						if (tpData.hasStoredInertia) {
-							actorData.horizontalPull = tpData.storedHorizontalPull;
-							actorData.horizontalPullMultiplier = tpData.storedHorizontalPullMultiplier;
-							actorData.inertiaRotation = tpData.storedInertiaRotation;
-						}
-
 						// Clear pending once the trick event is no longer active.
 						uint32 ev = actorData.eventData[0].event;
 						bool inTrickEvent = (ev == ACTOR_EVENT::TRICKSTER_AIR_TRICK
 							|| ev == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK
 							|| ev == ACTOR_EVENT::TRICKSTER_GROUND_TRICK
 							|| ev == ACTOR_EVENT::LANDING);
+
+						// Transfer horizontal inertia from the outgoing character.
+						if (tpData.hasStoredInertia && inTrickEvent) {
+							actorData.horizontalPull = tpData.storedHorizontalPull;
+							actorData.horizontalPullMultiplier = tpData.storedHorizontalPullMultiplier;
+							actorData.inertiaRotation = tpData.storedInertiaRotation;
+						}
 
 						if (!inTrickEvent) {
 							tpData.pending = false;
