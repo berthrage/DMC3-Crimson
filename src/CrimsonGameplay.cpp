@@ -5902,8 +5902,8 @@ void GroundTrickFlagSet(byte8* actorBaseAddr) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-   if (!IsActiveCharacterActor(actorData)) return;
-	if (!(activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::TRICKSTER_MODDED_MOVES])) return;
+	if (!IsActiveCharacterActor(actorData)) return;
+	
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& b2F = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].b2F : crimsonPlayer[playerIndex].b2FClone;
 	auto& playerData = GetPlayerData(playerIndex);
@@ -5913,6 +5913,7 @@ void GroundTrickFlagSet(byte8* actorBaseAddr) {
 	if (actorData.character != CHARACTER::DANTE) return;
 
     if (actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK && b2F.forwardCommand) {
+		if (!(activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::TRICKSTER_MODDED_MOVES])) return;
         actorData.eventData[0].event = ACTOR_EVENT::TRICKSTER_GROUND_TRICK; // set g. trick flag for the detour
         newActorData.visibility = 2; // hide dante's model
     }
