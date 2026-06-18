@@ -5831,6 +5831,10 @@ struct CharSwitchTeleportData {
 	float targetX = 0.0f;
 	float targetY = 0.0f;
 	float targetZ = 0.0f;
+	float storedHorizontalPull = 0.0f;
+	float storedHorizontalPullMultiplier = 0.0f;
+	uint16 storedInertiaRotation = 0;
+	bool hasStoredInertia = false;
 };
 
 

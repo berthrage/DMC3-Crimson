@@ -4614,12 +4614,12 @@ template <typename T> bool CanQueueStyleAction(T& actorData) {
 
 void CharacterSwitchController() {
     // ── Frame guard: run once per frame (called per-actor by WeaponSwitchController) ──
-    static double lastTime = -1.0;
-    double currentTime = CrimsonClock::Time();
-    if (lastTime == currentTime) {
-        return;
-    }
-    lastTime = currentTime;
+	static double lastTime = -1.0;
+	double currentTime = CrimsonClock::Time();
+	if (lastTime == currentTime) {
+		return;
+	}
+	lastTime = currentTime;
 
     if (!activeConfig.Actor.enable || InCutscene()) {
         return;
@@ -4987,6 +4987,10 @@ void CharacterSwitchController() {
                         tpData.targetZ = lastPosition[playerIndex].z;
                         tpData.setupDone = false;
                         tpData.outgoingWasGrounded = !(activeActorData.state & STATE::IN_AIR);
+                        tpData.storedHorizontalPull = activeActorData.horizontalPull;
+                        tpData.storedHorizontalPullMultiplier = activeActorData.horizontalPullMultiplier;
+                        tpData.storedInertiaRotation = activeActorData.inertiaRotation;
+                        tpData.hasStoredInertia = true;
                         tpData.pending = true;
                     }
 
@@ -5009,6 +5013,10 @@ void CharacterSwitchController() {
                         tpData.targetZ = lastPosition[playerIndex].z;
                         tpData.setupDone = false;
                         tpData.outgoingWasGrounded = !(activeActorData.state & STATE::IN_AIR);
+                        tpData.storedHorizontalPull = activeActorData.horizontalPull;
+                        tpData.storedHorizontalPullMultiplier = activeActorData.horizontalPullMultiplier;
+                        tpData.storedInertiaRotation = activeActorData.inertiaRotation;
+                        tpData.hasStoredInertia = true;
                         tpData.pending = true;
                     }
 
@@ -5030,6 +5038,10 @@ void CharacterSwitchController() {
                         tpData.targetZ = lastPosition[playerIndex].z;
                         tpData.setupDone = false;
                         tpData.outgoingWasGrounded = !(activeActorData.state & STATE::IN_AIR);
+                        tpData.storedHorizontalPull = activeActorData.horizontalPull;
+                        tpData.storedHorizontalPullMultiplier = activeActorData.horizontalPullMultiplier;
+                        tpData.storedInertiaRotation = activeActorData.inertiaRotation;
+                        tpData.hasStoredInertia = true;
                         tpData.pending = true;
                     }
                 }
@@ -5049,6 +5061,10 @@ void CharacterSwitchController() {
                     tpData.targetZ = lastPosition[playerIndex].z;
                     tpData.setupDone = false;
                     tpData.outgoingWasGrounded = !(activeActorData.state & STATE::IN_AIR);
+                    tpData.storedHorizontalPull = activeActorData.horizontalPull;
+                    tpData.storedHorizontalPullMultiplier = activeActorData.horizontalPullMultiplier;
+                    tpData.storedInertiaRotation = activeActorData.inertiaRotation;
+                    tpData.hasStoredInertia = true;
                     tpData.pending = true;
                 }
             }

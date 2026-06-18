@@ -6071,13 +6071,6 @@ void CharSwitchTeleportController(byte8* actorBaseAddr) {
 	// Runs once per frame (frame-guarded) and iterates all players so that
 	// pending teleports are never missed due to per-actor loop ordering.
 
-	static double lastTime = -1.0;
-	double currentTime = CrimsonClock::Time();
-	if (lastTime == currentTime) {
-		return;
-	}
-	lastTime = currentTime;
-
 	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
 		auto& playerData = GetPlayerData(playerIndex);
 
@@ -6092,7 +6085,7 @@ void CharSwitchTeleportController(byte8* actorBaseAddr) {
 					if (!tpData.setupDone) {
 						// Store air counts BEFORE triggering the trick.
 						// The trick will consume mobility counts (trickUp, airTrick, etc.);
-						// we capture the fresh values now so they can be restored on cancel.
+						// we capture the fresh values now so they can be restored after reset.
 						if (actorData.character == CHARACTER::DANTE) {
 							StoreAirCounts(newActorData.baseAddr);
 						} else if (actorData.character == CHARACTER::VERGIL) {
@@ -6122,92 +6115,35 @@ void CharSwitchTeleportController(byte8* actorBaseAddr) {
 								(uintptr_t)newActorData.baseAddr, ACTOR_EVENT::DARK_SLAYER_AIR_TRICK, 0, 0);
 						}
 
-						tpData.setupDone = true;
-
-					} else {
-						// Snap position to exact target every frame during trick
-						actorData.position.x = tpData.targetX;
-						actorData.position.y = tpData.targetY;
-						actorData.position.z = tpData.targetZ;
-
-						// Wait for the player to press melee or style to cancel
-						// the trick (events 24/27/48/8/9).
-						uint32 ev = actorData.eventData[0].event;
-						bool inTrickEvent = (ev == ACTOR_EVENT::TRICKSTER_AIR_TRICK
-							|| ev == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK
-							|| ev == ACTOR_EVENT::TRICKSTER_GROUND_TRICK
-							|| ev == ACTOR_EVENT::LANDING);
-
-						if (!inTrickEvent) {
-							tpData.pending = false;
-						} else {
-							auto& gamepad = GetGamepad(actorData.newGamepad);
-							bool pressMelee = (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK)) != 0;
-							bool pressStyle = (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) != 0;
-							if (pressMelee || pressStyle) {
-								// Restore air counts that were stored before the trick started.
-								actorData.permissions = 3080;
-								actorData.state &= ~STATE::BUSY;
-								if (actorData.character == CHARACTER::DANTE) {
-									std::thread t(AirCancelCountsTracker, newActorData.baseAddr);
-									t.detach();
-								} else if (actorData.character == CHARACTER::VERGIL) {
-									std::thread t(AirCancelCountsTrackerVergil, newActorData.baseAddr);
-									t.detach();
-								}
-								tpData.pending = false;
-							}
-						}
-					}
-				}
-			}
-		}
-
-		// Check clone entity
-		{
-			auto& tpData = crimsonPlayer[playerIndex].charSwitchTeleportClone;
-			if (tpData.pending) {
-				auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::CLONE);
-				if (newActorData.baseAddr) {
-					auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
-
-					if (!tpData.setupDone) {
-						// Store air counts BEFORE triggering the trick.
-						// The trick will consume mobility counts (trickUp, airTrick, etc.);
-						// we capture the fresh values now so they can be restored on cancel.
+						// Reset permissions after the trick so the character can act immediately.
+						actorData.permissions = 3080;
+						actorData.state &= ~STATE::BUSY;
+						
+						// Restore air counts that were stored before the trick started.
 						if (actorData.character == CHARACTER::DANTE) {
-							StoreAirCounts(newActorData.baseAddr);
+							std::thread t(AirCancelCountsTracker, newActorData.baseAddr);
+							t.detach();
 						} else if (actorData.character == CHARACTER::VERGIL) {
-							StoreAirCountsVergil(newActorData.baseAddr);
-						}
-
-						actorData.position.x = tpData.targetX + 100.0f;
-						actorData.position.y = tpData.targetY + 50.0f;
-						actorData.position.z = tpData.targetZ;
-
-						if (actorData.character == CHARACTER::DANTE) {
-							actorData.action = ACTION_DANTE::TRICKSTER_AIR_TRICK;
-							CrimsonReversedCalls::TriggerCPlayerEvent_sub_1401E0800(
-								(uintptr_t)newActorData.baseAddr, ACTOR_EVENT::TRICKSTER_AIR_TRICK, 0, 0);
-							if (tpData.outgoingWasGrounded) {
-								actorData.eventData[0].event = ACTOR_EVENT::TRICKSTER_GROUND_TRICK;
-								newActorData.visibility = 2;
-							}
-						}
-						else if (actorData.character == CHARACTER::VERGIL) {
-							actorData.action = ACTION_VERGIL::DARK_SLAYER_AIR_TRICK;
-							CrimsonReversedCalls::TriggerCPlayerEvent_sub_1401E0800(
-								(uintptr_t)newActorData.baseAddr, ACTOR_EVENT::DARK_SLAYER_AIR_TRICK, 0, 0);
+							std::thread t(AirCancelCountsTrackerVergil, newActorData.baseAddr);
+							t.detach();
 						}
 
 						tpData.setupDone = true;
 
 					} else {
-						// Snap position to exact target every frame during trick
+						// Snap position to exact target every frame while trick is active
 						actorData.position.x = tpData.targetX;
 						actorData.position.y = tpData.targetY;
 						actorData.position.z = tpData.targetZ;
 
+						// Transfer horizontal inertia from the outgoing character.
+						if (tpData.hasStoredInertia) {
+							actorData.horizontalPull = tpData.storedHorizontalPull;
+							actorData.horizontalPullMultiplier = tpData.storedHorizontalPullMultiplier;
+							actorData.inertiaRotation = tpData.storedInertiaRotation;
+						}
+
+						// Clear pending once the trick event is no longer active.
 						uint32 ev = actorData.eventData[0].event;
 						bool inTrickEvent = (ev == ACTOR_EVENT::TRICKSTER_AIR_TRICK
 							|| ev == ACTOR_EVENT::DARK_SLAYER_AIR_TRICK
@@ -6216,23 +6152,6 @@ void CharSwitchTeleportController(byte8* actorBaseAddr) {
 
 						if (!inTrickEvent) {
 							tpData.pending = false;
-						} else {
-							auto& gamepad = GetGamepad(actorData.newGamepad);
-							bool pressMelee = (gamepad.buttons[0] & GetBinding(BINDING::MELEE_ATTACK)) != 0;
-							bool pressStyle = (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) != 0;
-							if (pressMelee || pressStyle) {
-								// Restore air counts that were stored before the trick started.
-								actorData.permissions = 3080;
-								actorData.state &= ~STATE::BUSY;
-								if (actorData.character == CHARACTER::DANTE) {
-									std::thread t(AirCancelCountsTracker, newActorData.baseAddr);
-									t.detach();
-								} else if (actorData.character == CHARACTER::VERGIL) {
-									std::thread t(AirCancelCountsTrackerVergil, newActorData.baseAddr);
-									t.detach();
-								}
-								tpData.pending = false;
-							}
 						}
 					}
 				}
