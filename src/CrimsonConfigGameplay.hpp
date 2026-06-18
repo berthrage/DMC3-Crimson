@@ -102,6 +102,7 @@ struct CrimsonConfigGameplay {
 			bool skyLaunchAirTaunt = true;
 			bool dmc4Mobility = true;
 			bool dTInfusedRoyalguard = true;
+			bool automaticRoyalGuard = false;
 			bool airHikeCoreAbility = true;
 			bool altNevanVortex = true;
 			bool artemisRework = true;
@@ -133,6 +134,7 @@ struct CrimsonConfigGameplay {
 					std::make_pair("skyLaunchAirTaunt", &Dante::skyLaunchAirTaunt),
 					std::make_pair("dmc4Mobility", &Dante::dmc4Mobility),
 					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard),
+					std::make_pair("automaticRoyalGuard", &Dante::automaticRoyalGuard),
 					std::make_pair("airHikeCoreAbility", &Dante::airHikeCoreAbility),
 					std::make_pair("altNevanVortex", &Dante::altNevanVortex),
 					std::make_pair("artemisRework", &Dante::artemisRework),

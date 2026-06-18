@@ -1153,7 +1153,8 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 		}
 		else if (bufferRoyal > BUFFER_ROYAL::ROYAL_BLOCK ||
 			(actorData.style == STYLE::ROYALGUARD &&
-				(actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)))) {
+				((actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) ||
+				 activeCrimsonGameplay.Gameplay.Dante.automaticRoyalGuard))) {
 
 			func_1E0800_TriggerEvent(actorData, ACTOR_EVENT::ROYALGUARD_BLOCK, 0, 0);
 
@@ -1185,7 +1186,9 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 			func_1E0800_TriggerEvent(actorData, ACTOR_EVENT::ATTACK, 0, 0);
 		}
 		else if (bufferRoyal == BUFFER_ROYAL::ROYAL_AIR_BLOCK ||
-			actorData.style == STYLE::ROYALGUARD && (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) &&
+			actorData.style == STYLE::ROYALGUARD &&
+			((actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) ||
+			 activeCrimsonGameplay.Gameplay.Dante.automaticRoyalGuard) &&
 			actorData.eventData[0].event != ACTOR_EVENT::LANDING) {
 			if (actorData.action == EBONY_IVORY_AIR_NORMAL_SHOT && actorData.eventData[0].event != ACTOR_EVENT::ROYALGUARD_BLOCK) {
 				actorData.airGunAttackCount += 5;
@@ -4675,6 +4678,29 @@ void StopSprintAbility(byte8* actorBaseAddr) {
 #include <chrono>
 
 void DTInfusedRoyalguardController(byte8* actorBaseAddr) {
+	// --- Automatic Royal Guard: DMC4-style code patch on the player hit-handler. ---
+	// Forces the block-result the game computes to "perfect royal block" (eax=3), so every
+	// incoming attack is Royal Blocked with no input + no damage. It is just a byte patch the
+	// game runs on its own thread -> cannot crash, unlike CALLING the block function.
+	//   dmc3.exe+0x1EC455:  call <block-eval> (E8 D6 1F 00 00)  ->  mov eax,3 (B8 03 00 00 00)
+	{
+		static bool s_argApplied = false;
+		bool want = activeCrimsonGameplay.Gameplay.Dante.automaticRoyalGuard;
+		if (want != s_argApplied) {
+			uint8* a = (uint8*)appBaseAddr + 0x1EC455;
+			const uint8 patchBytes[5] = { 0xB8, 0x03, 0x00, 0x00, 0x00 }; // mov eax,3
+			const uint8 origBytes[5]  = { 0xE8, 0xD6, 0x1F, 0x00, 0x00 }; // call <block-eval>
+			const uint8* src = want ? patchBytes : origBytes;
+			DWORD oldProt;
+			if (VirtualProtect(a, 5, PAGE_EXECUTE_READWRITE, &oldProt)) {
+				for (int i = 0; i < 5; i++) a[i] = src[i];
+				VirtualProtect(a, 5, oldProt, &oldProt);
+				FlushInstructionCache(GetCurrentProcess(), a, 5);
+				s_argApplied = want;
+			}
+		}
+	}
+
 	// This makes normal block consume DT instead of health, when DT is above 0,
 	// guard breaks occur only when DT is exhausted
 

@@ -11963,6 +11963,21 @@ void DanteGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
+			if (GUI_Checkbox2("Automatic Royal Guard",
+				activeCrimsonGameplay.Gameplay.Dante.automaticRoyalGuard,
+				queuedCrimsonGameplay.Gameplay.Dante.automaticRoyalGuard,
+				activeCrimsonGameplayMask.Gameplay.Dante.automaticRoyalGuard)) {
+			}
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "While in Royalguard style, Dante automatically Royal Blocks "
+				"incoming attacks with no input - no damage taken. Switch styles to attack.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable);
 			if (GUI_Checkbox2("Aerial Moves Tweaks",
 				activeCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks,
 				queuedCrimsonGameplay.Gameplay.Dante.aerialMovesTweaks,
