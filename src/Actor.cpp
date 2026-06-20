@@ -38,6 +38,8 @@
 #include "CrimsonPatches.hpp"
 #include "CrimsonDetours.hpp"
 #include "CrimsonEfk.hpp"
+#include "CrimsonEfkPreload.hpp"
+#include "CrimsonReversedCalls.hpp"
 // @Remove
 #define g_enableLockOnFixes true
 
@@ -802,6 +804,9 @@ void ToggleActor(CharacterData& characterData, NewActorData& newActorData, bool 
         auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 
         ToggleActor(actorData, enable);
+
+        newActorData.visibility      = (enable) ? Visibility_Default : Visibility_Hide;
+        newActorData.enableCollision = enable;
     }
 };
 
@@ -4612,6 +4617,8 @@ template <typename T> bool CanQueueStyleAction(T& actorData) {
     return false;
 }
 
+bool g_charSwitchDelayedHide = false; 
+
 void CharacterSwitchController() {
     // ── Frame guard: run once per frame (called per-actor by WeaponSwitchController) ──
 	static double lastTime = -1.0;
@@ -4635,7 +4642,70 @@ void CharacterSwitchController() {
             }
         }
 
-        // ── Skip if Doppelganger is active 
+        // ── Skip if current actor is Staggered or inside Nevan Kiss ──
+        {
+            auto& playerData = GetPlayerData(playerIndex);
+            auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+            if (activeNewActorData.baseAddr) {
+                auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+                auto currentEvent = activeActorData.eventData[0].event;
+                if (currentEvent == ACTOR_EVENT::STAGGER || currentEvent == ACTOR_EVENT::NEVAN_KISS) {
+                    continue;
+                }
+            }
+        }
+
+        // ── Process pending-hide timer (departing character stays visible for 2s then vanishes) ──
+        if (g_charSwitchDelayedHide) {
+            auto& pendingHide = crimsonPlayer[playerIndex].charSwitchPendingHide;
+            if (pendingHide.pending) {
+                pendingHide.timer += CrimsonClock::DeltaTime() * (crimsonPlayer[playerIndex].speed / g_FrameRateTimeMultiplier);
+
+                // Trigger 180° turn + jump 100ms after switch.
+                // Retry each frame until the JUMP event actually takes hold, as the
+                // departing character may temporarily reject the event (busy, airborne etc.).
+                if (!pendingHide.jumpTriggered && pendingHide.timer >= CharSwitchPendingHide::jumpDelay) {
+                    auto& jumpCharacterData = GetCharacterData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                    auto& jumpNewActorData  = GetNewActorData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                    if (jumpNewActorData.baseAddr && jumpCharacterData.character < CHARACTER::MAX) {
+                        auto& jumpActorData = *reinterpret_cast<PlayerActorData*>(jumpNewActorData.baseAddr);
+                        jumpActorData.rotation += 0x8000; // half-turn (180 degrees)
+                        CrimsonReversedCalls::TriggerCPlayerEvent_sub_1401E0800(
+                            (uintptr_t)jumpNewActorData.baseAddr, ACTOR_EVENT::JUMP, 0, 0);
+                        // Confirm the engine accepted the jump
+                        if (jumpActorData.eventData[0].event == ACTOR_EVENT::JUMP) {
+                            pendingHide.jumpTriggered = true;
+                        }
+                    } else {
+                        pendingHide.jumpTriggered = true; // nothing to jump, stop retrying
+                    }
+                }
+
+                // Re-enable collision after the initial 300ms disable window
+                if (!pendingHide.collisionRestored && pendingHide.timer >= CharSwitchPendingHide::collisionDisableDuration) {
+                    auto& hideCharacterData = GetCharacterData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                    auto& hideNewActorData  = GetNewActorData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                    hideNewActorData.enableCollision = true;
+                    pendingHide.collisionRestored = true;
+                }
+
+                if (pendingHide.timer >= CharSwitchPendingHide::duration) {
+                    auto& oldCharacterData = GetCharacterData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                    auto& oldNewActorData  = GetNewActorData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                    // Spawn Risingstar VFX at the departing character's world position.
+                    // Pass nullptr so the effect stays in place after the actor teleports away.
+                    if (oldNewActorData.baseAddr && oldCharacterData.character < CHARACTER::MAX) {
+                        auto& oldActorData = *reinterpret_cast<PlayerActorData*>(oldNewActorData.baseAddr);
+                        CrimsonEfk::PlayEffect(CrimsonEfkPreload::risingStar_PoseHit_Handle,
+                            oldActorData.position.x, oldActorData.position.y, oldActorData.position.z, nullptr);
+                    }
+                    ToggleActor(oldCharacterData, oldNewActorData, false);
+                    pendingHide.pending = false;
+                }
+            }
+        }
+
+        // ── Doppelganger active: only block new switch initiation, let hide timer finish ──
         auto IsDoppelgangerActive = [&]() -> bool {
             auto& playerData = GetPlayerData(playerIndex);
             auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
@@ -4648,19 +4718,6 @@ void CharacterSwitchController() {
 
         if (IsDoppelgangerActive()) {
             continue;
-        }
-
-        // ── Skip if current actor is Staggered or inside Nevan Kiss ──
-        {
-            auto& playerData = GetPlayerData(playerIndex);
-            auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-            if (activeNewActorData.baseAddr) {
-                auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
-                auto currentEvent = activeActorData.eventData[0].event;
-                if (currentEvent == ACTOR_EVENT::STAGGER || currentEvent == ACTOR_EVENT::NEVAN_KISS) {
-                    continue;
-                }
-            }
         }
 
         // INPUT DETECTION — two ways to request a character switch
@@ -4732,6 +4789,17 @@ void CharacterSwitchController() {
                     }
                 }
 
+                // Clear any previous pending-hide before starting a new switch
+                if (g_charSwitchDelayedHide) {
+                    auto& pendingHide = crimsonPlayer[playerIndex].charSwitchPendingHide;
+                    if (pendingHide.pending) {
+                        auto& prevCharacterData = GetCharacterData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                        auto& prevNewActorData  = GetNewActorData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                        ToggleActor(prevCharacterData, prevNewActorData, false);
+                        pendingHide.pending = false;
+                    }
+                }
+
                 // Cycle to next character (wrap around)
                 playerData.characterIndex++;
                 if (playerData.characterIndex >= playerData.characterCount) {
@@ -4786,6 +4854,18 @@ void CharacterSwitchController() {
                     if (elapsed >= kCooldownMs) {
                         armed    = false;
                         lastTime = now;
+
+                        // Clear any previous pending-hide before starting a new switch
+                        if (g_charSwitchDelayedHide) {
+                            auto& pendingHide = crimsonPlayer[playerIndex].charSwitchPendingHide;
+                            if (pendingHide.pending) {
+                                auto& prevCharacterData = GetCharacterData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                                auto& prevNewActorData  = GetNewActorData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                                ToggleActor(prevCharacterData, prevNewActorData, false);
+                                pendingHide.pending = false;
+                            }
+                        }
+
                         playerData.characterIndex++;
                         if (playerData.characterIndex >= playerData.characterCount) {
                             playerData.characterIndex = 0;
@@ -4876,11 +4956,50 @@ void CharacterSwitchController() {
 
         // ── Lambda: execute the swap (deactivate old, activate new, update HUD) ──
         auto Update = [&]() {
+            uint8 outgoingCharacterIndex = playerData.activeCharacterIndex; // save before we change it
             playerData.activeCharacterIndex = playerData.characterIndex;
             s_charSwitchCooldown[playerIndex] = 0.5f;
 
-            // Deactivate outgoing character, activate incoming character
-            ToggleActor(activeCharacterData, activeNewActorData, false);
+            if (g_charSwitchDelayedHide) {
+                // Start delayed hide for outgoing character (keep visible, freeze inputs, hide after 2s)
+                {
+                    auto& pendingHide = crimsonPlayer[playerIndex].charSwitchPendingHide;
+                    // If there was a previous pending hide, force-hide it now
+                    if (pendingHide.pending) {
+                        auto& prevCharacterData = GetCharacterData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                        auto& prevNewActorData  = GetNewActorData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                        ToggleActor(prevCharacterData, prevNewActorData, false);
+                    }
+                    // Setup the new pending hide for the outgoing character
+                    pendingHide.pending = true;
+                    pendingHide.timer = 0.0f;
+                    pendingHide.characterIndex = outgoingCharacterIndex;
+                    pendingHide.collisionRestored = false;
+                    pendingHide.jumpTriggered = false;
+
+                    // Freeze inputs and keep visibility for the outgoing character
+                    if (activeNewActorData.baseAddr) {
+                        if (activeCharacterData.character == CHARACTER::BOSS_LADY) {
+                            activeNewActorData.visibility = Visibility_Default;
+                            activeNewActorData.enableCollision = false;
+                        } else if (activeCharacterData.character == CHARACTER::BOSS_VERGIL) {
+                            activeNewActorData.visibility = Visibility_Default;
+                            activeNewActorData.enableCollision = false;
+                        } else {
+                            auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+                            ToggleInput(activeActorData, false);
+                            activeNewActorData.visibility = Visibility_Default;
+                            activeActorData.visibility = (g_quicksilver) ? 2 : 1;
+                            activeNewActorData.enableCollision = false;
+                            activeActorData.shadow = 0;
+                        }
+                    }
+                }
+            } else {
+                // Original instant-hide behavior
+                ToggleActor(activeCharacterData, activeNewActorData, false);
+            }
+            // Activate incoming character
             ToggleActor(characterData, newActorData, true);
 
             // Revert style on incoming character if they were quick-swapped away earlier
@@ -5111,6 +5230,14 @@ void CharacterSwitchController() {
 
     if ((characterIndex == playerData.activeCharacterIndex) && (entityIndex == ENTITY::MAIN)) {
         continue;
+    }
+
+    // ── Skip pending-hide characters so they stay frozen at switch position ──
+    if (g_charSwitchDelayedHide) {
+        auto& pendingHide = crimsonPlayer[playerIndex].charSwitchPendingHide;
+        if (pendingHide.pending && characterIndex == pendingHide.characterIndex && entityIndex == ENTITY::MAIN) {
+            continue;
+        }
     }
 
     auto IsDoppelgangerActive = [&]() -> bool {
@@ -14175,6 +14302,19 @@ void EventDeath() {
 
 
     DecommissionDoppelgangers();
+
+    // Force-clear any pending character hides on death
+    if (g_charSwitchDelayedHide) {
+        old_for_all(uint8, playerIndex, activeConfig.Actor.playerCount) {
+            auto& pendingHide = crimsonPlayer[playerIndex].charSwitchPendingHide;
+            if (pendingHide.pending) {
+                auto& oldCharacterData = GetCharacterData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                auto& oldNewActorData  = GetNewActorData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                ToggleActor(oldCharacterData, oldNewActorData, false);
+                pendingHide.pending = false;
+            }
+        }
+    }
 }
 
 // export void EventContinue()
@@ -14226,6 +14366,19 @@ void InGameCutsceneStart() {
     }
 
     DecommissionDoppelgangers();
+
+    // Force-clear any pending character hides when entering a cutscene
+    if (g_charSwitchDelayedHide) {
+        old_for_all(uint8, playerIndex, activeConfig.Actor.playerCount) {
+            auto& pendingHide = crimsonPlayer[playerIndex].charSwitchPendingHide;
+            if (pendingHide.pending) {
+                auto& oldCharacterData = GetCharacterData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                auto& oldNewActorData  = GetNewActorData(playerIndex, pendingHide.characterIndex, ENTITY::MAIN);
+                ToggleActor(oldCharacterData, oldNewActorData, false);
+                pendingHide.pending = false;
+            }
+        }
+    }
 }
 
 // export void EventInGameCutsceneEnd()
