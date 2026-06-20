@@ -27,6 +27,11 @@ add_compile_options("$<$<CONFIG:Release>:/MT>")
 add_compile_options("$<$<CONFIG:Debug>:/MTd>")
 add_compile_options(/Ob1)
 
+# Disable ImGui's built-in XInput gamepad handler (slot 0 only).
+# Crimson provides its own multi-controller navigation via SDL
+# in CoreImGui::XI::UpdateGamepad().
+add_compile_definitions(IMGUI_IMPL_WIN32_DISABLE_GAMEPAD)
+
 # Add O2 optimization for Release
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2")
 

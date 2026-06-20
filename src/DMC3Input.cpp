@@ -319,7 +319,7 @@ public:
 	uint8_t N000020DF; //0x2E43
 }; //Size: 0x2E44
 
-static CUIDControl* g_control_ui = nullptr;
+CUIDControl* g_control_ui = nullptr;
 bool g_showControllerRemap = false;
 uint32 g_hdcKeybinds[NUM_KEYBINDS];
 

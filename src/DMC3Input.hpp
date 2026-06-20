@@ -52,6 +52,10 @@ public:
 	uint16_t start; //0x001E
 	uint16_t switch_button; //0x0020
 }; //Size: 0x0022
+struct CUIDControl;
+
+extern CUIDControl* g_control_ui;
+
 void InitBindings();
 void SwapXInputButtonsCoop(uint8 index, XINPUT_STATE* gamepad);
 void ShowButtonConfigWindow();

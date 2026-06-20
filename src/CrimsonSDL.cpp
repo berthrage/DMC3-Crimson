@@ -728,7 +728,7 @@ bool IsNativeControllerButtonDown(int button) {
 
 // Populate an XINPUT_STATE from an SDL gamepad.
 // Returns true if the state was successfully populated.
-static bool PopulateXInputStateFromSDL(SDL_Gamepad* pad, XINPUT_STATE* pState) {
+bool PopulateXInputStateFromSDL(SDL_Gamepad* pad, XINPUT_STATE* pState) {
 	if (pad == NULL || pState == NULL || fn_SDL_GetGamepadButton == NULL) return false;
 
 	ZeroMemory(pState, sizeof(XINPUT_STATE));

@@ -15,6 +15,7 @@
 #include "../Config.hpp"
 #include "../DebugDrawDX11.hpp"
 #include "../../ThirdParty/ImGui/imgui.h"
+#define IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
 #include "../../ThirdParty/ImGui/Backend/imgui_impl_win32.h"
 #include "../../ThirdParty/ImGui/Backend/imgui_impl_dx11.h"
 #include "SwapChainWrapper.hpp"

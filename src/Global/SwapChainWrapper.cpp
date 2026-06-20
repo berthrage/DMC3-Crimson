@@ -232,6 +232,7 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
     UpdateKeyboard();
     UpdateMouse();
     UpdateGamepad();
+    XI::UpdateGamepad();
 
     // ImGui
     CrimsonEfk::CaptureDepthStencilForPresent(m_context);

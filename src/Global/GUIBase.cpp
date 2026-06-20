@@ -351,14 +351,6 @@ void OpenMain() {
     g_showMain = true;
 
     ImGui::SetWindowFocus(DMC3C_TITLE);
-    //  Required here since g_show could be false, but we still need the data.
-    //  Otherwise the menu could auto-close.
-
-    using namespace XI;
-
-    new_XInputGetState(0, &state);
-
-    ::CoreImGui::XI::UpdateGamepad(&state);
 
     if (activeCrimsonConfig.GUI.sounds) FMOD_PlaySound(0, 4);
 }

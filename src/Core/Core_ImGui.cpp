@@ -8,6 +8,7 @@
 #include <d3d10_1.h>
 #include <d3dcompiler.h>
 #include "Input.hpp"
+#include "../CrimsonSDL.hpp"
 
 #include "Macros.h"
 
@@ -173,49 +174,72 @@ ButtonHelper buttonHelpers[] = {
     {ImGuiNavInput_TweakFast, GAMEPAD::RIGHT_SHOULDER},
 };
 
-void UpdateGamepad(XINPUT_STATE* stateAddr) {
+// Forward declaration — defined below
+static void MergeGamepadState(const XINPUT_GAMEPAD& gamepad);
 
+void UpdateGamepad(XINPUT_STATE* /*stateAddr*/) {
+    auto& io = ImGui::GetIO();
+    SetMemory(io.NavInputs, 0, sizeof(io.NavInputs));
+    bool anyConnected = false;
 
-    if (!stateAddr) {
-        return;
+    // NOTE: stateAddr is a DIJOYSTATE* cast to XINPUT_STATE* —
+    // completely wrong memory layout, so we skip it.  All gamepad
+    // input comes from the real XInput API and Crimson's SDL layer.
+    //
+    // MergeGamepadState uses MAX merge: only sets 1.0 for pressed
+    // buttons, never clears.  This lets any controller press any
+    // button without another controller erasing it.
+
+    XINPUT_STATE xi;
+
+    // 1. XInput slots 0-3 (unhooked — reads real controller state)
+    for (DWORD s = 0; s < 4; ++s) {
+        ZeroMemory(&xi, sizeof(xi));
+        if (new_XInputGetState(s, &xi) == ERROR_SUCCESS) {
+            anyConnected = true;
+            MergeGamepadState(xi.Gamepad);
+        }
     }
 
+    // 2. SDL-only controllers (PS4/PS5/Switch, etc.)
+    for (size_t i = 0; i < CrimsonSDL::sdlGamepadsExtra.size(); ++i) {
+        if (CrimsonSDL::sdlGamepadsExtra[i]) {
+            ZeroMemory(&xi, sizeof(xi));
+            if (CrimsonSDL::PopulateXInputStateFromSDL(
+                    CrimsonSDL::sdlGamepadsExtra[i], &xi)) {
+                anyConnected = true;
+                MergeGamepadState(xi.Gamepad);
+            }
+        }
+    }
 
-    auto& state = *stateAddr;
+    if (anyConnected)
+        io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
+}
 
-
+// Merge one controller's gamepad state into io.NavInputs[].
+// Takes the MAX of current and new values so all controllers
+// can contribute simultaneously without overwriting each other.
+static void MergeGamepadState(const XINPUT_GAMEPAD& gamepad) {
     auto& io = ImGui::GetIO();
-
-
-    SetMemory(io.NavInputs, 0, sizeof(io.NavInputs));
-
-
-    new_XInputGetState(0, &state);
-
 
     for_all(helperIndex, countof(buttonHelpers)) {
         auto& helper = buttonHelpers[helperIndex];
-
-        io.NavInputs[helper.id] = (state.Gamepad.wButtons & helper.flag) ? 1.0f : 0;
+        if (gamepad.wButtons & helper.flag)
+            io.NavInputs[helper.id] = 1.0f;
     }
 
-
-    auto Update = [&](int NAV_NO, float VALUE, float V0, float V1) {
+    auto MergeAnalog = [&](int NAV_NO, float VALUE, float V0, float V1) {
         float vn = (float)(VALUE - V0) / (float)(V1 - V0);
-
-        if (vn > 1.0f) {
-            vn = 1.0f;
-        }
-
-        if ((vn > 0.0f) && (io.NavInputs[NAV_NO] < vn)) {
+        if (vn > 1.0f) vn = 1.0f;
+        if (vn > io.NavInputs[NAV_NO])
             io.NavInputs[NAV_NO] = vn;
-        }
     };
 
-    Update(ImGuiNavInput_LStickLeft, state.Gamepad.sThumbLX, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32768);
-    Update(ImGuiNavInput_LStickRight, state.Gamepad.sThumbLX, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
-    Update(ImGuiNavInput_LStickUp, state.Gamepad.sThumbLY, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
-    Update(ImGuiNavInput_LStickDown, state.Gamepad.sThumbLY, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32767);
+    MergeAnalog(ImGuiNavInput_LStickLeft, gamepad.sThumbLX, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32768);
+    MergeAnalog(ImGuiNavInput_LStickRight, gamepad.sThumbLX, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
+    MergeAnalog(ImGuiNavInput_LStickUp, gamepad.sThumbLY, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
+    MergeAnalog(ImGuiNavInput_LStickDown, gamepad.sThumbLY, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32767);
 }
 }; // namespace XI
 
