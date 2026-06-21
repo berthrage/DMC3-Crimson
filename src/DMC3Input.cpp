@@ -546,7 +546,15 @@ static bool FindKeyboardBindConflict(uint32 key, bool isDirectWeapon, int index,
 }
 
 void ShowButtonConfigWindow() {
-	if (!g_control_ui && !g_showControllerRemap && !g_showKeyboardConfig) {
+	static bool s_wasOpen = false;
+	bool isOpen = (g_control_ui || g_showControllerRemap || g_showKeyboardConfig);
+
+	if (isOpen != s_wasOpen) {
+		s_wasOpen = isOpen;
+		ToggleCursor();
+	}
+
+	if (!isOpen) {
 		return;
 	}
 
@@ -556,7 +564,6 @@ void ShowButtonConfigWindow() {
 		s_tab = 1;
 	}
 
-	ToggleCursor();
 	BTImGuiCtx ctxControl{};
 	const auto nplayers = queuedConfig.Actor.playerCount;
 	bool shouldClose = false;
@@ -583,7 +590,7 @@ void ShowButtonConfigWindow() {
     auto& io = ImGui::GetIO();
     int keyboardBackKey = activeCrimsonInput.KeyboardConfig.keybinds[11];
 
-	ImGui::Begin("Button Configuration", &shouldClose, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar); {
+	ImGui::Begin("Button Configuration", &shouldClose, ImGuiWindowFlags_NoTitleBar); {
 		ImGui::SetWindowFontScale(scaleY);
 
 		if (GUI_CloseX() || (io.KeysDown[keyboardBackKey] && (io.KeysDownDuration[keyboardBackKey] == 0.0f))
@@ -628,34 +635,42 @@ void ShowButtonConfigWindow() {
 					ImGui::TextDisabled("[%s]", GetXInputControllerName((DWORD)activeCrimsonConfig.System.xinputSlots[i]));
 
 					{
-						// Build a unified slot list: XInput 0-3 + SDL
-						char slotLabels[4 + 8][64];
-						const char* slotPtrs[4 + 8];
-						int slotCount = 0;
+						// Build a unified slot list (cached, rebuilt only when SDL extras change)
+						static char s_slotLabels[4 + 8][64];
+						static const char* s_slotPtrs[4 + 8];
+						static int s_slotCount = 0;
+						static size_t s_cachedSdlExtrasSize = (size_t)-1;
 
-						for (int s = 0; s < 4; s++) {
-							snprintf(slotLabels[slotCount], sizeof(slotLabels[slotCount]),
-								"XInput %d  [%s]", s, GetXInputControllerName((DWORD)s));
-							slotPtrs[slotCount] = slotLabels[slotCount];
-							slotCount++;
-						}
-						for (size_t s = 0; s < CrimsonSDL::sdlGamepadsExtra.size() && slotCount < 12; s++) {
-							const char* name = "Unknown";
-							if (CrimsonSDL::sdlGamepadsExtra[s] != NULL) {
-								name = CrimsonSDL::GetControllerNameForXInputSlot((int)(s + 4));
-								if (!name || !name[0]) name = "SDL Controller";
+						if (s_cachedSdlExtrasSize != CrimsonSDL::sdlGamepadsExtra.size()) {
+							s_cachedSdlExtrasSize = CrimsonSDL::sdlGamepadsExtra.size();
+							s_slotCount = 0;
+
+							for (int s = 0; s < 4; s++) {
+								snprintf(s_slotLabels[s_slotCount], sizeof(s_slotLabels[s_slotCount]),
+									"XInput %d  [%s]", s, GetXInputControllerName((DWORD)s));
+								s_slotPtrs[s_slotCount] = s_slotLabels[s_slotCount];
+								s_slotCount++;
 							}
-							snprintf(slotLabels[slotCount], sizeof(slotLabels[slotCount]),
-								"SDL %zu  [%s]", s, name);
-							slotPtrs[slotCount] = slotLabels[slotCount];
-							slotCount++;
+							for (size_t s = 0; s < CrimsonSDL::sdlGamepadsExtra.size() && s_slotCount < 12; s++) {
+								const char* name = "Unknown";
+								if (CrimsonSDL::sdlGamepadsExtra[s] != NULL) {
+									name = CrimsonSDL::GetControllerNameForXInputSlot((int)(s + 4));
+									if (!name || !name[0]) name = "SDL Controller";
+								}
+								snprintf(s_slotLabels[s_slotCount], sizeof(s_slotLabels[s_slotCount]),
+									"SDL %zu  [%s]", s, name);
+								s_slotPtrs[s_slotCount] = s_slotLabels[s_slotCount];
+								s_slotCount++;
+							}
 						}
+
+						int slotCount = s_slotCount;
 
 						// Read current selection from config (handle sentinel values)
 						uint8 cfgSlot = activeCrimsonConfig.System.xinputSlots[i];
 						int currentSlot = (cfgSlot >= 4) ? (int)(cfgSlot - 4 + 4) : (int)cfgSlot;
 						sprintf(buffer, "##ctrl%d", i);
-						if (ImGui::Combo(buffer, &currentSlot, slotPtrs, slotCount)) {
+						if (ImGui::Combo(buffer, &currentSlot, s_slotPtrs, slotCount)) {
 							if (currentSlot < 4) {
 								activeCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
 								queuedCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
