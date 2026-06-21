@@ -1421,9 +1421,15 @@ void UpdatePlayerIndexVibration(uintptr_t playerAddr) {
 		g_skipVibration = (g_currentVibrationIntensity < 0.04f);
 		return;
 	}
+	auto pool_C90E10 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (!pool_C90E10 || !pool_C90E10[5]) {
+		return;
+	}
+	auto& eventData = *reinterpret_cast<CSceneGameMain*>(pool_C90E10[5]);
+
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
 
-	if (!activeConfig.Actor.enable) {
+	if (!activeConfig.Actor.enable || eventData.event != EVENT::MAIN) {
 		g_vibrationPlayerIndex = 0;
 		g_currentVibrationIntensity = activeCrimsonInput.vibrationIntensity[0] / 100.0f;
 		g_skipVibration = (g_currentVibrationIntensity < 0.04f);
