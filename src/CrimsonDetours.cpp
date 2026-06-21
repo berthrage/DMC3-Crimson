@@ -14,6 +14,7 @@
 #include <vector>
 #include "CrimsonUtil.hpp"
 #include "DMC3Input.hpp"
+#include "CrimsonInput.hpp"
 #include "Global.hpp"
 
 #include "Core/Macros.h"
@@ -1416,15 +1417,21 @@ uint8 CheckSummonedSwordFormationShortcutInput(uintptr_t playerAddr, uintptr_t s
 void UpdatePlayerIndexVibration(uintptr_t playerAddr) {
 	if (!playerAddr || playerAddr < 0x6000000) {
 		g_vibrationPlayerIndex = 0;
+		g_currentVibrationIntensity = activeCrimsonInput.vibrationIntensity[0] / 100.0f;
+		g_skipVibration = (g_currentVibrationIntensity < 0.04f);
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
 
 	if (!activeConfig.Actor.enable) {
 		g_vibrationPlayerIndex = 0;
+		g_currentVibrationIntensity = activeCrimsonInput.vibrationIntensity[0] / 100.0f;
+		g_skipVibration = (g_currentVibrationIntensity < 0.04f);
 	}
 	else {
 		g_vibrationPlayerIndex = actorData.newPlayerIndex;
+		g_currentVibrationIntensity = activeCrimsonInput.vibrationIntensity[actorData.newPlayerIndex] / 100.0f;
+		g_skipVibration = (g_currentVibrationIntensity < 0.04f);
 	}
 }
 

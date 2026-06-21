@@ -5,6 +5,9 @@ EXTERN g_FixMPXinputVibration_ReturnAddr:QWORD
 EXTERN g_FixMPXinputVibration_CallAddr:QWORD
 EXTERN g_FixMPXinputVibrationCheckCall:QWORD        
 EXTERN g_FrameRateTimeMultiplier:DWORD
+EXTERN g_vibrationPlayerIndex:WORD
+EXTERN g_currentVibrationIntensity:DWORD
+EXTERN g_skipVibration:BYTE
 vibrationDuration dd 0
 
 .CODE
@@ -27,13 +30,18 @@ FixVibrationIntensity:
     PushAllRegsAndXmm
     movss xmm0, dword ptr [vibrationDuration] 
     divss xmm0, dword ptr [g_FrameRateTimeMultiplier]
+    mulss xmm0, dword ptr [g_currentVibrationIntensity]
     movss dword ptr [vibrationDuration], xmm0
     PopAllRegsAndXmm
+    cmp byte ptr [g_skipVibration], 0
+    jne SkipVibrationSignal
     mov r13d, dword ptr [vibrationDuration]
     mov [rsp + 20h], r13d
 
 CallSendVibrationSignal:
     call qword ptr [g_FixMPXinputVibration_CallAddr]
+
+SkipVibrationSignal:
     jmp qword ptr [g_FixMPXinputVibration_ReturnAddr]
 
 FixMPXinputVibrationDetour ENDP

@@ -1070,6 +1070,8 @@ void UpdateJoysticks() {
 }
 
 void VibrateController(int controllerIndex, Uint16 rumbleStrengthLowFreq, Uint16 rumbleStrengthHighFreq, int rumbleDuration) {
+	uint8* disableFlag = reinterpret_cast<uint8*>(appBaseAddr + 0xCA8800);
+	if (*disableFlag) return;
     if (fn_SDL_RumbleGamepad == NULL) return;
     SDL_Gamepad* pad = GetControllerForPlayer(controllerIndex);
     if (pad != NULL) {

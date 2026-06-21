@@ -757,11 +757,15 @@ void ShowButtonConfigWindow() {
 
                     GUI_Checkbox2("Use Switch Button for Character Switching", activeCrimsonInput.switchButtonCharSwitch[i], queuedCrimsonInput.switchButtonCharSwitch[i]);
 
+					GUI_Slider2Float("Vibration Intensity", activeCrimsonInput.vibrationIntensity[i], queuedCrimsonInput.vibrationIntensity[i], 0.0f, 100.0f, 1.0f, "%.0f%%");
+
 					if (GUI_Button("Restore Defaults")) {
 						memcpy(queuedButtonConfig,  defaultButtonConfig, sizeof(BindTable));
 						memcpy(activeButtonConfig,  defaultButtonConfig, sizeof(BindTable));
 						activeCrimsonInput.switchButtonCharSwitch[i] = defaultCrimsonInput.switchButtonCharSwitch[i];
 						queuedCrimsonInput.switchButtonCharSwitch[i] = defaultCrimsonInput.switchButtonCharSwitch[i];
+						activeCrimsonInput.vibrationIntensity[i] = defaultCrimsonInput.vibrationIntensity[i];
+						queuedCrimsonInput.vibrationIntensity[i] = defaultCrimsonInput.vibrationIntensity[i];
 					}
 
 					
