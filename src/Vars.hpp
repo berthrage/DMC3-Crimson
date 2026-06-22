@@ -207,7 +207,115 @@ enum {
     RIGHT = 0x2000,
     DOWN  = 0x4000,
     LEFT  = 0x8000,
+
+    // Touchpad zones — use values > 0xFFFF to distinguish from XInput wButtons bits.
+    // These are never stored directly in the 16-bit BindTable; instead, when the
+    // touchpad is pressed, the OTHER slot's standard button is injected into the
+    // gamepad state so the BindTable comparison succeeds.
+    TOUCHPAD_LEFT          = 0x00010001,
+    TOUCHPAD_RIGHT         = 0x00010002,
+    TOUCHPAD_TOP_LEFT      = 0x00010003,
+    TOUCHPAD_TOP_RIGHT     = 0x00010004,
+    TOUCHPAD_BOTTOM_LEFT   = 0x00010005,
+    TOUCHPAD_BOTTOM_RIGHT  = 0x00010006,
+    TOUCHPAD_FIRST = TOUCHPAD_LEFT,
+    TOUCHPAD_LAST  = TOUCHPAD_BOTTOM_RIGHT,
 };
+
+// Returns a display name for a gamepad button code (uint32_t to accommodate touchpad sentinels).
+inline const char* ButtonName(uint32_t code) {
+    switch (code) {
+        case 0:                           return "---";
+        case LEFT_TRIGGER:                return "LEFT TRIGGER";
+        case RIGHT_TRIGGER:               return "RIGHT TRIGGER";
+        case LEFT_SHOULDER:               return "LEFT SHOULDER";
+        case RIGHT_SHOULDER:              return "RIGHT SHOULDER";
+        case Y:                           return "Y";
+        case B:                           return "B";
+        case A:                           return "A";
+        case X:                           return "X";
+        case BACK:                        return "BACK";
+        case LEFT_STICK_CLICK:            return "LEFT THUMB";
+        case RIGHT_STICK_CLICK:           return "RIGHT THUMB";
+        case LEFT_PLUS_RIGHT_STICK_CLICK: return "L3+R3";
+        case START:                       return "START";
+        case UP:                          return "DPAD UP";
+        case RIGHT:                       return "DPAD RIGHT";
+        case DOWN:                        return "DPAD DOWN";
+        case LEFT:                        return "DPAD LEFT";
+        // Touchpad zones
+        case TOUCHPAD_LEFT:               return "TOUCHPAD LEFT";
+        case TOUCHPAD_RIGHT:              return "TOUCHPAD RIGHT";
+        case TOUCHPAD_TOP_LEFT:           return "TOUCHPAD TOP-LEFT";
+        case TOUCHPAD_TOP_RIGHT:          return "TOUCHPAD TOP-RIGHT";
+        case TOUCHPAD_BOTTOM_LEFT:        return "TOUCHPAD BOTTOM-LEFT";
+        case TOUCHPAD_BOTTOM_RIGHT:       return "TOUCHPAD BOTTOM-RIGHT";
+        default:                          return "???";
+    }
+}
+
+// Returns true if a touchpad zone binding matches a pressed touchpad zone.
+// Half-zone bindings (LEFT/RIGHT) match all sub-quadrants on that side.
+// Quadrant bindings match exactly.
+inline bool TouchpadZoneMatches(uint32_t binding, uint32_t pressedZone) {
+    if (binding == pressedZone) return true;
+    // Half-zone LEFT matches all left-side quadrants
+    if (binding == TOUCHPAD_LEFT && (pressedZone == TOUCHPAD_TOP_LEFT || pressedZone == TOUCHPAD_BOTTOM_LEFT))
+        return true;
+    // Half-zone RIGHT matches all right-side quadrants
+    if (binding == TOUCHPAD_RIGHT && (pressedZone == TOUCHPAD_TOP_RIGHT || pressedZone == TOUCHPAD_BOTTOM_RIGHT))
+        return true;
+    return false;
+}
+
+// Returns true if a code is a touchpad zone.
+inline bool IsTouchpadZone(uint32_t code) {
+    return code >= TOUCHPAD_FIRST && code <= TOUCHPAD_LAST;
+}
+
+// Converts standard XInput wButtons bitmask to the game's internal GAMEPAD format.
+inline uint32_t FromXInput(uint16_t wButtons) {
+    uint32_t result = 0;
+    // Standard XInput constants → game's GAMEPAD format mapping
+    if (wButtons & 0x0001) result |= UP;                // XINPUT_GAMEPAD_DPAD_UP → GAMEPAD::UP
+    if (wButtons & 0x0002) result |= DOWN;              // XINPUT_GAMEPAD_DPAD_DOWN → GAMEPAD::DOWN
+    if (wButtons & 0x0004) result |= LEFT;              // XINPUT_GAMEPAD_DPAD_LEFT → GAMEPAD::LEFT
+    if (wButtons & 0x0008) result |= RIGHT;             // XINPUT_GAMEPAD_DPAD_RIGHT → GAMEPAD::RIGHT
+    if (wButtons & 0x0010) result |= START;             // XINPUT_GAMEPAD_START → GAMEPAD::START
+    if (wButtons & 0x0020) result |= BACK;              // XINPUT_GAMEPAD_BACK → GAMEPAD::BACK
+    if (wButtons & 0x0040) result |= LEFT_STICK_CLICK;  // XINPUT_GAMEPAD_LEFT_THUMB → GAMEPAD::LEFT_STICK_CLICK
+    if (wButtons & 0x0080) result |= RIGHT_STICK_CLICK; // XINPUT_GAMEPAD_RIGHT_THUMB → GAMEPAD::RIGHT_STICK_CLICK
+    if (wButtons & 0x0100) result |= LEFT_SHOULDER;     // XINPUT_GAMEPAD_LEFT_SHOULDER → GAMEPAD::LEFT_SHOULDER
+    if (wButtons & 0x0200) result |= RIGHT_SHOULDER;    // XINPUT_GAMEPAD_RIGHT_SHOULDER → GAMEPAD::RIGHT_SHOULDER
+    if (wButtons & 0x1000) result |= A;                 // XINPUT_GAMEPAD_A → GAMEPAD::A
+    if (wButtons & 0x2000) result |= B;                 // XINPUT_GAMEPAD_B → GAMEPAD::B
+    if (wButtons & 0x4000) result |= X;                 // XINPUT_GAMEPAD_X → GAMEPAD::X
+    if (wButtons & 0x8000) result |= Y;                 // XINPUT_GAMEPAD_Y → GAMEPAD::Y
+    return result;
+}
+
+// Converts a single game's GAMEPAD bit to the corresponding standard XInput bit.
+// Returns 0 if the GAMEPAD value is a touchpad zone (no XInput equivalent).
+inline uint16_t ToXInput(uint32_t gameBit) {
+    switch (gameBit) {
+        case UP:               return 0x0001; // XINPUT_GAMEPAD_DPAD_UP
+        case DOWN:             return 0x0002; // XINPUT_GAMEPAD_DPAD_DOWN
+        case LEFT:             return 0x0004; // XINPUT_GAMEPAD_DPAD_LEFT
+        case RIGHT:            return 0x0008; // XINPUT_GAMEPAD_DPAD_RIGHT
+        case START:            return 0x0010; // XINPUT_GAMEPAD_START
+        case BACK:             return 0x0020; // XINPUT_GAMEPAD_BACK
+        case LEFT_STICK_CLICK: return 0x0040; // XINPUT_GAMEPAD_LEFT_THUMB
+        case RIGHT_STICK_CLICK:return 0x0080; // XINPUT_GAMEPAD_RIGHT_THUMB
+        case LEFT_SHOULDER:    return 0x0100; // XINPUT_GAMEPAD_LEFT_SHOULDER
+        case RIGHT_SHOULDER:   return 0x0200; // XINPUT_GAMEPAD_RIGHT_SHOULDER
+        case A:                return 0x1000; // XINPUT_GAMEPAD_A
+        case B:                return 0x2000; // XINPUT_GAMEPAD_B
+        case X:                return 0x4000; // XINPUT_GAMEPAD_X
+        case Y:                return 0x8000; // XINPUT_GAMEPAD_Y
+        default:               return 0;      // touchpad or combo, no XInput equivalent
+    }
+}
+
 };
 
 namespace DIRECTION {

@@ -4819,7 +4819,8 @@ void CharacterSwitchController() {
             auto& leadActorData = *reinterpret_cast<PlayerActorData*>(leadNewActorData.baseAddr);
             auto& gamepad = GetGamepad(leadActorData.newGamepad);
 
-            byte16 switchBtn = (*activeConfigInputs[playerIndex][0])[BINDING::SWITCH_BUTTON];
+            uint32_t switchBtnRaw = (*activeConfigInputs[playerIndex][0])[BINDING::SWITCH_BUTTON].slotA;
+            byte16 switchBtn = (byte16)(switchBtnRaw & 0xFFFF);
 
             bool condition = false;
             if (!activeCrimsonConfig.GUI.disableGamepadShortcut) {

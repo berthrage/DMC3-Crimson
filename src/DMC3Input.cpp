@@ -14,10 +14,12 @@
 #include "Utility/Detour.hpp"
 #include "Xinput.h"
 #include "Core/GUI.hpp"
+#include "Core/Input.hpp"
 #include "ImGuiExtra.hpp"
 #include "CrimsonGUI.hpp"
 #include "CrimsonConfig.hpp"
 #include "CrimsonSDL.hpp"
+#include "Actor.hpp"
 
 #define NUM_BINDS_WITHOUT_START 17
 
@@ -134,7 +136,8 @@ static BindTable s_PlayerDefaultBinds[PLAYER_COUNT] = {
 
 
 // References to active/queued config inputs for each player and character.
-uint16_t(*activeConfigInputs[PLAYER_COUNT][2])[NUM_GAMEPADBINDS] = {
+// Each bind is a BindPair (slotA, slotB).
+CrimsonInput::BindPair(*activeConfigInputs[PLAYER_COUNT][2])[NUM_GAMEPADBINDS] = {
 	{ &activeCrimsonInput.ButtonConfig.dante1P,
 	  &activeCrimsonInput.ButtonConfig.vergil1P },
 	{ &activeCrimsonInput.ButtonConfig.dante2P,
@@ -145,7 +148,7 @@ uint16_t(*activeConfigInputs[PLAYER_COUNT][2])[NUM_GAMEPADBINDS] = {
 	  &activeCrimsonInput.ButtonConfig.vergil4P }
 };
 
-uint16_t(*queuedConfigInputs[PLAYER_COUNT][2])[NUM_GAMEPADBINDS] = {
+CrimsonInput::BindPair(*queuedConfigInputs[PLAYER_COUNT][2])[NUM_GAMEPADBINDS] = {
 	{ &queuedCrimsonInput.ButtonConfig.dante1P,
 	  &queuedCrimsonInput.ButtonConfig.vergil1P },
 	{ &queuedCrimsonInput.ButtonConfig.dante2P,
@@ -156,84 +159,35 @@ uint16_t(*queuedConfigInputs[PLAYER_COUNT][2])[NUM_GAMEPADBINDS] = {
 	  &queuedCrimsonInput.ButtonConfig.vergil4P }
 };
 
-struct BTImGuiCtx {
-    const char* actions[NUM_BINDS_WITHOUT_START] = {
-        "UP",
-        "DOWN",
-        "RIGHT",
-        "LEFT",
-        "MELEE ATK",
-        "JUMP",
-        "STYLE",
-        "SHOOT",
-        "DT",
-        "CHANGE GUN",
-        "CHANGE TARGET",
-        "LOCK ON",
-        "CHANGE SWORD",
-        "DEFAULT CAMERA",
-        "TAUNT",
-        "START",
-        "SWITCH BUTTON",
-    };
-    const char* items[NUM_BINDS_WITHOUT_START] = {
-        "DPAD UP",
-        "DPAD DOWN",
-        "DPAD RIGHT",
-        "DPAD LEFT",
-        "Y",
-        "A",
-        "B",
-        "X",
-        "LEFT SHOULDER",
-        "LEFT TRIGGER",
-        "LEFT THUMB",
-        "RIGHT SHOULDER",
-        "RIGHT TRIGGER",
-        "RIGHT THUMB",
-        "BACK",
-        "START",
-        "",
-    };
-    uint16_t values[NUM_BINDS_WITHOUT_START] = {
-        GAMEPAD::UP,
-        GAMEPAD::DOWN,
-        GAMEPAD::RIGHT,
-        GAMEPAD::LEFT,
-        GAMEPAD::Y,
-        GAMEPAD::A,
-        GAMEPAD::B,
-        GAMEPAD::X,
-        GAMEPAD::LEFT_SHOULDER,
-        GAMEPAD::LEFT_TRIGGER,
-        GAMEPAD::LEFT_STICK_CLICK,
-        GAMEPAD::RIGHT_SHOULDER,
-        GAMEPAD::RIGHT_TRIGGER,
-        GAMEPAD::RIGHT_STICK_CLICK,
-        GAMEPAD::BACK,
-        GAMEPAD::START,
-        GAMEPAD::RIGHT_STICK_CLICK,
-    };
+// Default bindings in the new dual-slot format (BindPair).
+// Slot A = traditional GAMEPAD value, Slot B = 0 unbound (except TAUNT: TOUCHPAD_RIGHT).
+static const CrimsonInput::BindPair s_defaultBinds[NUM_GAMEPADBINDS] = {
+	{ GAMEPAD::UP,                  0 },                          // UP
+	{ GAMEPAD::DOWN,                0 },                          // DOWN
+	{ GAMEPAD::RIGHT,               0 },                          // RIGHT
+	{ GAMEPAD::LEFT,                0 },                          // LEFT
+	{ GAMEPAD::Y,                   0 },                          // MELEE ATK
+	{ GAMEPAD::A,                   0 },                          // JUMP
+	{ GAMEPAD::B,                   0 },                          // STYLE
+	{ GAMEPAD::X,                   0 },                          // SHOOT
+	{ GAMEPAD::LEFT_SHOULDER,       0 },                          // DT
+	{ GAMEPAD::LEFT_TRIGGER,        0 },                          // CHANGE GUN
+	{ GAMEPAD::LEFT_STICK_CLICK,    0 },                          // CHANGE TARGET
+	{ GAMEPAD::RIGHT_SHOULDER,      0 },                          // LOCK ON
+	{ GAMEPAD::RIGHT_TRIGGER,       0 },                          // CHANGE SWORD
+	{ GAMEPAD::RIGHT_STICK_CLICK,   0 },                          // DEFAULT CAMERA
+	{ GAMEPAD::BACK,                GAMEPAD::TOUCHPAD_RIGHT },    // TAUNT
+	{ GAMEPAD::START,               0 },                          // START
+	{ GAMEPAD::RIGHT_STICK_CLICK,   0 },                          // SWITCH BUTTON
 };
 
-static BindTable s_defaultBinds = {
-    .up = GAMEPAD::UP,
-    .down = GAMEPAD::DOWN,
-    .right = GAMEPAD::RIGHT,
-    .left = GAMEPAD::LEFT,
-    .melee_atk = GAMEPAD::Y,
-    .jump = GAMEPAD::A,
-    .style = GAMEPAD::B,
-    .shoot = GAMEPAD::X,
-    .dt = GAMEPAD::LEFT_SHOULDER,
-    .change_gun = GAMEPAD::LEFT_TRIGGER,
-    .change_target = GAMEPAD::LEFT_STICK_CLICK,
-    .lock_on = GAMEPAD::RIGHT_SHOULDER,
-    .change_sword = GAMEPAD::RIGHT_TRIGGER,
-    .default_camera = GAMEPAD::RIGHT_STICK_CLICK,
-    .taunt = GAMEPAD::BACK,
-    .start = GAMEPAD::START,
-    .switch_button = GAMEPAD::RIGHT_STICK_CLICK
+// Action names for the new UI (matches BTImGuiCtx old action names)
+static const char* s_gamepadActionNames[NUM_BINDS_WITHOUT_START] = {
+	"UP", "DOWN", "RIGHT", "LEFT",
+	"MELEE ATK", "JUMP", "STYLE", "SHOOT",
+	"DT", "CHANGE GUN", "CHANGE TARGET", "LOCK ON",
+	"CHANGE SWORD", "DEFAULT CAMERA", "TAUNT", "START",
+	"SWITCH BUTTON",
 };
 
 static uint8_t GetCharacterBindSlot(const PlayerActorData* actorData) {
@@ -264,6 +218,49 @@ static uint8_t GetCharacterBindSlot(const PlayerActorData* actorData) {
     return 0;
 }
 
+static uint8_t GetCharacterBindSlotFromPlayerIndex(uint8 playerIndex) {
+	PlayerActorData* actorDataPtr = nullptr;
+	auto& playerData = GetPlayerData(playerIndex);
+
+	if (activeConfig.Actor.enable) {
+		auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+		if (activeNewActorData.baseAddr) {
+			actorDataPtr = reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+		}
+	}
+	else {
+		actorDataPtr = GetVanillaPlayerActor();
+	}
+	if (!actorDataPtr) {
+		return 0;
+	}
+	auto& actorData = *actorDataPtr;
+	uint8 character = actorData.character;
+
+
+	const auto characterIndex = static_cast<uint8_t>(actorData.character);
+
+	// Only Dante/Vergil are relevant for activeButtonConfig switching.
+	if (characterIndex == static_cast<uint8_t>(CHARACTER::VERGIL)) {
+		return 1;
+	}
+	if (characterIndex == static_cast<uint8_t>(CHARACTER::DANTE)) {
+		return 0;
+	}
+
+	// Fallback: if the game uses raw 0/1 slots, honor them.
+	if (characterIndex == 1) {
+		return 1;
+	}
+
+	// If CHARACTER_COUNT is a constexpr/enum (not a macro), #if won't work. Use a runtime check.
+	if (CHARACTER_COUNT > 1 && characterIndex < CHARACTER_COUNT) {
+		return characterIndex;
+	}
+
+	return 0;
+}
+
 static void __fastcall sub_1401EB170(PlayerActorData* a1) {
     if (!a1) {
         s_ButtonToActionHook->GetTrampoline<decltype(&sub_1401EB170)>()(a1);
@@ -280,26 +277,33 @@ static void __fastcall sub_1401EB170(PlayerActorData* a1) {
         return;
     }
 
-    const uint16_t* configBinds = (*activeConfigInputs[playerIndex][characterSlot]);
+    const CrimsonInput::BindPair* configBinds = (*activeConfigInputs[playerIndex][characterSlot]);
 
-    mainBinds->up = configBinds[0];
-    mainBinds->down = configBinds[1];
-    mainBinds->right = configBinds[2];
-    mainBinds->left = configBinds[3];
-    mainBinds->melee_atk = configBinds[4];
-    mainBinds->jump = configBinds[5];
-    mainBinds->style = configBinds[6];
-    mainBinds->shoot = configBinds[7];
-    mainBinds->dt = configBinds[8];
-    mainBinds->change_gun = configBinds[9];
-    mainBinds->change_target = configBinds[10];
-    mainBinds->lock_on = configBinds[11];
-    mainBinds->change_sword = configBinds[12];
-    mainBinds->default_camera = configBinds[13];
-    mainBinds->taunt = configBinds[14];
-    mainBinds->start = configBinds[15];
-    mainBinds->switch_button = configBinds[16]; 
-    // otherwise we overwrite to D6CEA9 (turbo mode boolean) which isn't ideal.
+    // Combine both slots. Touchpad zones (> 0xFFFF) are excluded from BindTable
+    // and handled via gamepad state injection in Hooked_XInputGetState.
+    #define BINDVAL(idx) (uint16_t)( \
+        ((configBinds[idx].slotA <= 0xFFFF ? configBinds[idx].slotA : 0) | \
+         (configBinds[idx].slotB <= 0xFFFF ? configBinds[idx].slotB : 0)) & 0xFFFF)
+
+    mainBinds->up              = BINDVAL(0);
+    mainBinds->down            = BINDVAL(1);
+    mainBinds->right           = BINDVAL(2);
+    mainBinds->left            = BINDVAL(3);
+    mainBinds->melee_atk       = BINDVAL(4);
+    mainBinds->jump            = BINDVAL(5);
+    mainBinds->style           = BINDVAL(6);
+    mainBinds->shoot           = BINDVAL(7);
+    mainBinds->dt              = BINDVAL(8);
+    mainBinds->change_gun      = BINDVAL(9);
+    mainBinds->change_target   = BINDVAL(10);
+    mainBinds->lock_on         = BINDVAL(11);
+    mainBinds->change_sword    = BINDVAL(12);
+    mainBinds->default_camera  = BINDVAL(13);
+    mainBinds->taunt           = BINDVAL(14);
+    mainBinds->start           = BINDVAL(15);
+    mainBinds->switch_button   = BINDVAL(16);
+
+    #undef BINDVAL
 
     s_ButtonToActionHook->GetTrampoline<decltype(&sub_1401EB170)>()(a1);
 }
@@ -545,6 +549,19 @@ static bool FindKeyboardBindConflict(uint32 key, bool isDirectWeapon, int index,
     return false;
 }
 
+struct GPCaptureState {
+    bool   open          = false;
+    int    playerIndex   = -1;
+    int    actionIndex   = -1;
+    int    slotIndex     = 0;     // 0 = A (primary), 1 = B (secondary)
+    uint32_t previewButton = 0;
+    bool   waitingForRelease = false; // skip the button that opened the popup
+};
+
+static GPCaptureState s_gpCapture;
+
+static std::array<int, PLAYER_COUNT> s_selectedCharacterSlotByPlayer = {};
+
 void ShowButtonConfigWindow() {
 	static bool s_wasOpen = false;
 	bool isOpen = (g_control_ui || g_showControllerRemap || g_showKeyboardConfig);
@@ -558,25 +575,24 @@ void ShowButtonConfigWindow() {
 		return;
 	}
 
+	// Poll gamepad capture state while window is open
+	UpdateGamepadConfigCapture();
+
 	// If opened specifically via g_showKeyboardConfig, start on the keyboard tab.
 	static int s_tab = 0; // 0 = Controller, 1 = Keyboard
 	if (g_showKeyboardConfig && !g_showControllerRemap && !g_control_ui) {
 		s_tab = 1;
 	}
 
-	BTImGuiCtx ctxControl{};
 	const auto nplayers = queuedConfig.Actor.playerCount;
 	bool shouldClose = false;
 
-	static std::array<int, PLAYER_COUNT> s_selectedCharacterSlotByPlayer = {};
 	static std::array<int, PLAYER_COUNT> s_comboSelection = {};
 
 	const float scaleY      = CrimsonGUI::scaleFactorY;
 	const float scaleF      = (CrimsonGUI::scaleFactorX + CrimsonGUI::scaleFactorY) * 0.5f;
 	float width             = g_renderSize.x / 1.40f;
 	float height            = g_renderSize.y / 1.10f;
-	const float columnWidth = 0.5f  * queuedConfig.globalScale;
-	const float rowWidth    = 40.0f * queuedConfig.globalScale;
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,  ImVec2(20.0f * scaleF, 20.0f * scaleF));
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 20.0f * scaleF);
@@ -622,176 +638,263 @@ void ShowButtonConfigWindow() {
 
 		if (s_tab == 0) {
 			// ======================== CONTROLLER TAB ========================
-			char buffer[33] = {};
-			ImGui::BeginTable(buffer, 2); {
-				ImGui::TableSetupColumn("b1", 0, columnWidth * 2.0f);
-				ImGui::TableNextRow(0, rowWidth);
-				ImGui::TableNextColumn();
+			char buffer[64] = {};
+			const float gpRowLabelX = 170.0f * scaleY;
+			const float gpSlotButtonW = 150.0f * scaleY;
+			const float gpClearButtonW = 22.0f * scaleY;
+			const float gpListHeight = height - 280.0f * scaleY;
 
-				for (int i = 0; i < nplayers && i < PLAYER_COUNT; i++) {
-					sprintf(buffer, "%dP", i + 1);
-					ImGui::Text(buffer);
-					ImGui::SameLine();
-					ImGui::TextDisabled("[%s]", GetXInputControllerName((DWORD)activeCrimsonConfig.System.xinputSlots[i]));
+			ImGui::BeginChild("##gp_scroll", ImVec2(0, gpListHeight), false); {
 
-					{
-						// Build a unified slot list (cached, rebuilt only when SDL extras change)
-						static char s_slotLabels[4 + 8][64];
-						static const char* s_slotPtrs[4 + 8];
-						static int s_slotCount = 0;
-						static size_t s_cachedSdlExtrasSize = (size_t)-1;
+			for (int i = 0; i < nplayers && i < PLAYER_COUNT; i++) {
+				sprintf(buffer, "%dP", i + 1);
+				ImGui::Separator();
+				ImGui::Text(buffer);
+				ImGui::SameLine();
+				ImGui::TextDisabled("[%s]", GetXInputControllerName((DWORD)activeCrimsonConfig.System.xinputSlots[i]));
 
-						if (s_cachedSdlExtrasSize != CrimsonSDL::sdlGamepadsExtra.size()) {
-							s_cachedSdlExtrasSize = CrimsonSDL::sdlGamepadsExtra.size();
-							s_slotCount = 0;
+				// XInput/SDL slot selector (cached)
+				{
+					static char s_slotLabels[4 + 8][64];
+					static const char* s_slotPtrs[4 + 8];
+					static int s_slotCount = 0;
+					static size_t s_cachedSdlExtrasSize = (size_t)-1;
 
-							for (int s = 0; s < 4; s++) {
-								snprintf(s_slotLabels[s_slotCount], sizeof(s_slotLabels[s_slotCount]),
-									"XInput %d  [%s]", s, GetXInputControllerName((DWORD)s));
-								s_slotPtrs[s_slotCount] = s_slotLabels[s_slotCount];
-								s_slotCount++;
-							}
-							for (size_t s = 0; s < CrimsonSDL::sdlGamepadsExtra.size() && s_slotCount < 12; s++) {
-								const char* name = "Unknown";
-								if (CrimsonSDL::sdlGamepadsExtra[s] != NULL) {
-									name = CrimsonSDL::GetControllerNameForXInputSlot((int)(s + 4));
-									if (!name || !name[0]) name = "SDL Controller";
-								}
-								snprintf(s_slotLabels[s_slotCount], sizeof(s_slotLabels[s_slotCount]),
-									"SDL %zu  [%s]", s, name);
-								s_slotPtrs[s_slotCount] = s_slotLabels[s_slotCount];
-								s_slotCount++;
-							}
+					if (s_cachedSdlExtrasSize != CrimsonSDL::sdlGamepadsExtra.size()) {
+						s_cachedSdlExtrasSize = CrimsonSDL::sdlGamepadsExtra.size();
+						s_slotCount = 0;
+						for (int s = 0; s < 4; s++) {
+							snprintf(s_slotLabels[s_slotCount], sizeof(s_slotLabels[s_slotCount]),
+								"XInput %d  [%s]", s, GetXInputControllerName((DWORD)s));
+							s_slotPtrs[s_slotCount] = s_slotLabels[s_slotCount];
+							s_slotCount++;
 						}
-
-						int slotCount = s_slotCount;
-
-						// Read current selection from config (handle sentinel values)
-						uint8 cfgSlot = activeCrimsonConfig.System.xinputSlots[i];
-						int currentSlot = (cfgSlot >= 4) ? (int)(cfgSlot - 4 + 4) : (int)cfgSlot;
-						sprintf(buffer, "##ctrl%d", i);
-						if (ImGui::Combo(buffer, &currentSlot, s_slotPtrs, slotCount)) {
-							if (currentSlot < 4) {
-								activeCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
-								queuedCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
-							} else {
-								uint8 sentinel = (uint8)(4 + (currentSlot - 4));
-								activeCrimsonConfig.System.xinputSlots[i] = sentinel;
-								queuedCrimsonConfig.System.xinputSlots[i] = sentinel;
+						for (size_t s = 0; s < CrimsonSDL::sdlGamepadsExtra.size() && s_slotCount < 12; s++) {
+							const char* name = "Unknown";
+							if (CrimsonSDL::sdlGamepadsExtra[s] != NULL) {
+								name = CrimsonSDL::GetControllerNameForXInputSlot((int)(s + 4));
+								if (!name || !name[0]) name = "SDL Controller";
 							}
-							GUI::save = true;
-						}
-						ImGui::SameLine();
-						sprintf(buffer, "<##prev%d", i);
-						if (ImGui::Button(buffer)) {
-							currentSlot = (currentSlot == 0) ? (slotCount - 1) : (currentSlot - 1);
-							s_comboSelection[i] = currentSlot;
-							if (currentSlot < 4) {
-								activeCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
-								queuedCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
-							} else {
-								uint8 sentinel = (uint8)(4 + (currentSlot - 4));
-								activeCrimsonConfig.System.xinputSlots[i] = sentinel;
-								queuedCrimsonConfig.System.xinputSlots[i] = sentinel;
-							}
-							GUI::save = true;
-						}
-						ImGui::SameLine();
-						sprintf(buffer, ">##next%d", i);
-						if (ImGui::Button(buffer)) {
-							currentSlot = (currentSlot + 1) % slotCount;
-							s_comboSelection[i] = currentSlot;
-							if (currentSlot < 4) {
-								activeCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
-								queuedCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
-							} else {
-								uint8 sentinel = (uint8)(4 + (currentSlot - 4));
-								activeCrimsonConfig.System.xinputSlots[i] = sentinel;
-								queuedCrimsonConfig.System.xinputSlots[i] = sentinel;
-							}
-							GUI::save = true;
+							snprintf(s_slotLabels[s_slotCount], sizeof(s_slotLabels[s_slotCount]),
+								"SDL %zu  [%s]", s, name);
+							s_slotPtrs[s_slotCount] = s_slotLabels[s_slotCount];
+							s_slotCount++;
 						}
 					}
 
-					int& selectedSlot = s_selectedCharacterSlotByPlayer[i];
-					if (selectedSlot < 0 || selectedSlot >= CHARACTER_COUNT) {
-						selectedSlot = 0;
-					}
-
-					if (CHARACTER_COUNT > 1) {
-						ImGui::PushID(i);
-						if (ImGui::BeginTabBar("##CharacterTabs")) {
-							if (ImGui::BeginTabItem("Dante")) {
-								selectedSlot = 0;
-								ImGui::EndTabItem();
-							}
-							if (ImGui::BeginTabItem("Vergil")) {
-								selectedSlot = 1;
-								ImGui::EndTabItem();
-							}
-							ImGui::EndTabBar();
-						}
-						ImGui::PopID();
-					}
-
-					uint16_t* activeButtonConfig  = activeConfigInputs[i][selectedSlot][0];
-					uint16_t* queuedButtonConfig  = queuedConfigInputs[i][selectedSlot][0];
-					uint16_t* defaultButtonConfig = (&s_defaultBinds.up);
-					for (int j = 0; j < NUM_BINDS_WITHOUT_START; j++) {
-						if (j == (NUM_BINDS_WITHOUT_START - 1)) {
-							ImGui::Spacing();
-							ImGui::Separator();
-							ImGui::TextDisabled("Per-Player (shared across characters)");
-						}
-						ImGui::PushID(i);
-						ImGui::PushID(j);
-						if (j == (NUM_BINDS_WITHOUT_START - 1)) {
-							// SWITCH BUTTON: always reads from Dante slot, syncs to Vergil
-							uint16_t* switchActive = &(*activeConfigInputs[i][0])[j];
-							uint16_t* switchQueued = &(*queuedConfigInputs[i][0])[j];
-							UI::ComboMapValue2<uint16_t, NUM_BINDS_WITHOUT_START>(ctxControl.actions[j], ctxControl.items,
-								ctxControl.values, *switchActive, *switchQueued);
-							if (ImGui::IsItemHovered()) {
-								ImGui::SetTooltip("Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n"
-									"Double Tap D-pad Up to switch characters. The Switch Button can also be set to Switch Characters with a toggle.");
-							}
-							// Sync to Vergil slot whenever the active value changes
-							if (*switchActive != (*activeConfigInputs[i][1])[j]) {
-								(*activeConfigInputs[i][1])[j] = *switchActive;
-							}
-							if (*switchQueued != (*queuedConfigInputs[i][1])[j]) {
-								(*queuedConfigInputs[i][1])[j] = *switchQueued;
-							}
+					int slotCount = s_slotCount;
+					uint8 cfgSlot = activeCrimsonConfig.System.xinputSlots[i];
+					int currentSlot = (cfgSlot >= 4) ? (int)(cfgSlot - 4 + 4) : (int)cfgSlot;
+					sprintf(buffer, "##ctrl%d", i);
+					if (ImGui::Combo(buffer, &currentSlot, s_slotPtrs, slotCount)) {
+						if (currentSlot < 4) {
+							activeCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
+							queuedCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
 						} else {
-							UI::ComboMapValue2<uint16_t, NUM_BINDS_WITHOUT_START>(ctxControl.actions[j], ctxControl.items,
-								ctxControl.values, activeButtonConfig[j], queuedButtonConfig[j]);
+							uint8 sentinel = (uint8)(4 + (currentSlot - 4));
+							activeCrimsonConfig.System.xinputSlots[i] = sentinel;
+							queuedCrimsonConfig.System.xinputSlots[i] = sentinel;
 						}
-						ImGui::PopID();
-						ImGui::PopID();
+						GUI::save = true;
 					}
-
-                    GUI_Checkbox2("Use Switch Button for Character Switching", activeCrimsonInput.switchButtonCharSwitch[i], queuedCrimsonInput.switchButtonCharSwitch[i]);
-
-					GUI_Slider2Float("Vibration Intensity", activeCrimsonInput.vibrationIntensity[i], queuedCrimsonInput.vibrationIntensity[i], 0.0f, 100.0f, 1.0f, "%.0f%%");
-
-					if (GUI_Button("Restore Defaults")) {
-						memcpy(queuedButtonConfig,  defaultButtonConfig, sizeof(BindTable));
-						memcpy(activeButtonConfig,  defaultButtonConfig, sizeof(BindTable));
-						activeCrimsonInput.switchButtonCharSwitch[i] = defaultCrimsonInput.switchButtonCharSwitch[i];
-						queuedCrimsonInput.switchButtonCharSwitch[i] = defaultCrimsonInput.switchButtonCharSwitch[i];
-						activeCrimsonInput.vibrationIntensity[i] = defaultCrimsonInput.vibrationIntensity[i];
-						queuedCrimsonInput.vibrationIntensity[i] = defaultCrimsonInput.vibrationIntensity[i];
+					ImGui::SameLine();
+					sprintf(buffer, "<##prev%d", i);
+					if (ImGui::Button(buffer)) {
+						currentSlot = (currentSlot == 0) ? (slotCount - 1) : (currentSlot - 1);
+						s_comboSelection[i] = currentSlot;
+						if (currentSlot < 4) {
+							activeCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
+							queuedCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
+						} else {
+							uint8 sentinel = (uint8)(4 + (currentSlot - 4));
+							activeCrimsonConfig.System.xinputSlots[i] = sentinel;
+							queuedCrimsonConfig.System.xinputSlots[i] = sentinel;
+						}
+						GUI::save = true;
 					}
-
-					
-
-					ImGui::TableNextColumn();
-					if (i == 1 || i == 2) {
-						ImGui::Text("");
+					ImGui::SameLine();
+					sprintf(buffer, ">##next%d", i);
+					if (ImGui::Button(buffer)) {
+						currentSlot = (currentSlot + 1) % slotCount;
+						s_comboSelection[i] = currentSlot;
+						if (currentSlot < 4) {
+							activeCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
+							queuedCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
+						} else {
+							uint8 sentinel = (uint8)(4 + (currentSlot - 4));
+							activeCrimsonConfig.System.xinputSlots[i] = sentinel;
+							queuedCrimsonConfig.System.xinputSlots[i] = sentinel;
+						}
+						GUI::save = true;
 					}
 				}
+
+				// Touchpad division mode
+				{
+					const char* divisionModes[] = { "Halves (Left/Right)", "Quadrants (4 Zones)" };
+					ImGui::SameLine();
+					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 20.0f * scaleF);
+					ImGui::Text("Touchpad:");
+					ImGui::SameLine();
+					int divMode = (int)activeCrimsonInput.touchpadDivisionMode[i];
+					sprintf(buffer, "##tpdiv%d", i);
+					if (ImGui::Combo(buffer, &divMode, divisionModes, 2)) {
+						activeCrimsonInput.touchpadDivisionMode[i] = (uint8_t)divMode;
+						queuedCrimsonInput.touchpadDivisionMode[i] = (uint8_t)divMode;
+						GUI::save = true;
+					}
+				}
+
+				// Dante/Vergil character tabs
+				int& selectedSlot = s_selectedCharacterSlotByPlayer[i];
+				if (selectedSlot < 0 || selectedSlot >= CHARACTER_COUNT) {
+					selectedSlot = 0;
+				}
+				if (CHARACTER_COUNT > 1) {
+					ImGui::Spacing();
+					ImGui::PushID(i);
+					ImGui::Text("Character:");
+					ImGui::SameLine();
+					if (ImGui::BeginTabBar("##CharacterTabs")) {
+						if (ImGui::BeginTabItem("Dante")) {
+							selectedSlot = 0;
+							ImGui::EndTabItem();
+						}
+						if (ImGui::BeginTabItem("Vergil")) {
+							selectedSlot = 1;
+							ImGui::EndTabItem();
+						}
+						ImGui::EndTabBar();
+					}
+					ImGui::PopID();
+				}
+
+				CrimsonInput::BindPair* activeButtonConfig  = (*activeConfigInputs[i][selectedSlot]);
+				CrimsonInput::BindPair* queuedButtonConfig  = (*queuedConfigInputs[i][selectedSlot]);
+
+				// Column headers
+				ImGui::Text("Action");
+				ImGui::SameLine(gpRowLabelX);
+				ImGui::Text("Slot A");
+				ImGui::SameLine(gpRowLabelX + gpSlotButtonW + gpClearButtonW + 10.0f * scaleF);
+				ImGui::Text("Slot B");
+
+				for (int j = 0; j < NUM_BINDS_WITHOUT_START; j++) {
+					if (j == (NUM_BINDS_WITHOUT_START - 1)) {
+						ImGui::Spacing();
+						ImGui::Separator();
+						ImGui::TextDisabled("Per-Player (shared across characters)");
+					}
+
+					ImGui::PushID(i * 100 + j);
+
+					// Action label
+					ImGui::Text("%s", s_gamepadActionNames[j]);
+
+					// Slot A button
+					ImGui::SameLine(gpRowLabelX);
+					ImGui::PushID(0); // slot 0
+					uint32* slotAPtr = (j == (NUM_BINDS_WITHOUT_START - 1))
+						? &(*activeConfigInputs[i][0])[j].slotA  // SWITCH always reads Dante
+						: &activeButtonConfig[j].slotA;
+					const char* slotAName = GAMEPAD::ButtonName(*slotAPtr);
+					sprintf(buffer, "%s##A", slotAName);
+					if (GUI_Button(buffer, ImVec2(gpSlotButtonW, 0))) {
+						if (!s_gpCapture.open) {
+							s_gpCapture.open          = true;
+							s_gpCapture.playerIndex   = i;
+							s_gpCapture.actionIndex   = j;
+							s_gpCapture.slotIndex     = 0;
+							s_gpCapture.previewButton = *slotAPtr;
+							s_gpCapture.waitingForRelease = true;
+						}
+					}
+					ImGui::SameLine();
+					// Clear slot A
+					sprintf(buffer, "X##clrA");
+					if (GUI_Button(buffer, ImVec2(gpClearButtonW, 0))) {
+						*slotAPtr = 0;
+						if (j == (NUM_BINDS_WITHOUT_START - 1)) {
+							(*activeConfigInputs[i][1])[j].slotA = 0;
+							(*queuedConfigInputs[i][1])[j].slotA = 0;
+						}
+						queuedButtonConfig[j].slotA = 0;
+						GUI::save = true;
+					}
+					ImGui::PopID();
+
+					// Slot B button
+					ImGui::SameLine(gpRowLabelX + gpSlotButtonW + gpClearButtonW + 10.0f * scaleF);
+					ImGui::PushID(1); // slot 1
+					uint32* slotBPtr = (j == (NUM_BINDS_WITHOUT_START - 1))
+						? &(*activeConfigInputs[i][0])[j].slotB
+						: &activeButtonConfig[j].slotB;
+					const char* slotBName = GAMEPAD::ButtonName(*slotBPtr);
+					sprintf(buffer, "%s##B", slotBName);
+					if (GUI_Button(buffer, ImVec2(gpSlotButtonW, 0))) {
+						if (!s_gpCapture.open) {
+							s_gpCapture.open          = true;
+							s_gpCapture.playerIndex   = i;
+							s_gpCapture.actionIndex   = j;
+							s_gpCapture.slotIndex     = 1;
+							s_gpCapture.previewButton = *slotBPtr;
+							s_gpCapture.waitingForRelease = true;
+						}
+					}
+					ImGui::SameLine();
+					// Clear slot B
+					sprintf(buffer, "X##clrB");
+					if (GUI_Button(buffer, ImVec2(gpClearButtonW, 0))) {
+						*slotBPtr = 0;
+						if (j == (NUM_BINDS_WITHOUT_START - 1)) {
+							(*activeConfigInputs[i][1])[j].slotB = 0;
+							(*queuedConfigInputs[i][1])[j].slotB = 0;
+						}
+						queuedButtonConfig[j].slotB = 0;
+						GUI::save = true;
+					}
+					ImGui::PopID();
+
+					ImGui::PopID(); // i*100 + j
+				}
+
+				// Switch button character switch toggle
+				GUI_Checkbox2("Use Switch Button for Character Switching",
+					activeCrimsonInput.switchButtonCharSwitch[i],
+					queuedCrimsonInput.switchButtonCharSwitch[i]);
+
+				// Vibration intensity
+				GUI_Slider2Float("Vibration Intensity",
+					activeCrimsonInput.vibrationIntensity[i],
+					queuedCrimsonInput.vibrationIntensity[i],
+					0.0f, 100.0f, 1.0f, "%.0f%%");
+
+				// Restore Defaults
+				if (GUI_Button("Restore Defaults")) {
+					for (int j = 0; j < NUM_BINDS_WITHOUT_START; j++) {
+						activeButtonConfig[j].slotA = s_defaultBinds[j].slotA;
+						activeButtonConfig[j].slotB = s_defaultBinds[j].slotB;
+						queuedButtonConfig[j].slotA = s_defaultBinds[j].slotA;
+						queuedButtonConfig[j].slotB = s_defaultBinds[j].slotB;
+					}
+					// Sync switch button to Vergil
+(*activeConfigInputs[i][1])[16].slotA = s_defaultBinds[16].slotA;
+				(*activeConfigInputs[i][1])[16].slotB = s_defaultBinds[16].slotB;
+				(*queuedConfigInputs[i][1])[16].slotA = s_defaultBinds[16].slotA;
+				(*queuedConfigInputs[i][1])[16].slotB = s_defaultBinds[16].slotB;
+
+					activeCrimsonInput.switchButtonCharSwitch[i] = defaultCrimsonInput.switchButtonCharSwitch[i];
+					queuedCrimsonInput.switchButtonCharSwitch[i] = defaultCrimsonInput.switchButtonCharSwitch[i];
+					activeCrimsonInput.vibrationIntensity[i] = defaultCrimsonInput.vibrationIntensity[i];
+					queuedCrimsonInput.vibrationIntensity[i] = defaultCrimsonInput.vibrationIntensity[i];
+					activeCrimsonInput.touchpadDivisionMode[i] = defaultCrimsonInput.touchpadDivisionMode[i];
+					queuedCrimsonInput.touchpadDivisionMode[i] = defaultCrimsonInput.touchpadDivisionMode[i];
+					GUI::save = true;
+				}
 			}
-			ImGui::EndTable();
+
+			}
+			ImGui::EndChild();
 
 		} else {
 			// ======================== KEYBOARD TAB ========================
@@ -968,6 +1071,68 @@ void ShowButtonConfigWindow() {
 		}
 	}
 
+	// Gamepad capture popup (shown above the main window when capturing a button)
+	if (s_gpCapture.open && s_gpCapture.actionIndex >= 0 && s_gpCapture.playerIndex >= 0) {
+		const float popupScale = scaleF;
+		float popupWidth  = 420.0f * popupScale;
+		float popupHeight = 200.0f * popupScale;
+
+		ImGui::SetNextWindowSize(ImVec2(popupWidth, popupHeight));
+		ImGui::SetNextWindowPos(ImVec2((g_renderSize.x - popupWidth) * 0.5f, (g_renderSize.y - popupHeight) * 0.5f));
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,  ImVec2(20.0f * popupScale, 20.0f * popupScale));
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 20.0f * popupScale);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 0.92f));
+
+		bool popupOpen = s_gpCapture.open;
+		char gpPopupTitle[32];
+		snprintf(gpPopupTitle, sizeof(gpPopupTitle), "GPRebind##%d", s_gpCapture.playerIndex);
+		if (ImGui::Begin(gpPopupTitle, &popupOpen, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
+			ImGui::SetWindowFontScale(popupScale);
+
+			auto gpFontSize = UI::g_UIContext.DefaultFontSize;
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[gpFontSize * 1.2f]);
+			const char* actionName = (s_gpCapture.actionIndex >= 0 && s_gpCapture.actionIndex < NUM_BINDS_WITHOUT_START)
+				? s_gamepadActionNames[s_gpCapture.actionIndex] : "???";
+			ImGui::Text("Rebinding: %s (Slot %c) for %dP", actionName,
+				s_gpCapture.slotIndex == 0 ? 'A' : 'B', s_gpCapture.playerIndex + 1);
+			ImGui::SameLine();
+			if (GUI_CloseX()) {
+				s_gpCapture.open = false;
+				s_gpCapture.actionIndex = -1;
+			}
+			ImGui::PopFont();
+
+			ImGui::Text("");
+			ImGui::Text("");
+
+			const char* previewName = GAMEPAD::ButtonName(s_gpCapture.previewButton);
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[gpFontSize * 1.3f]);
+			CenterText(previewName);
+			ImGui::PopFont();
+
+			ImGui::Text("");
+			ImGui::Text("");
+
+			if (s_gpCapture.waitingForRelease) {
+				CenterText("Release all buttons, then press a gamepad button...");
+			} else {
+				CenterText("START to confirm, B to cancel");
+			}
+		}
+		ImGui::End();
+		ImGui::PopStyleColor();
+		ImGui::PopStyleVar(4);
+
+		if (!popupOpen) {
+			s_gpCapture.open          = false;
+			s_gpCapture.actionIndex   = -1;
+			s_gpCapture.playerIndex   = -1;
+		}
+	}
+
 	if (shouldClose) {
 		if (g_control_ui) {
 			CUIDControl_Close();
@@ -985,6 +1150,149 @@ void ToggleCursor() {
     }
 }
 
+void UpdateGamepadConfigCapture() {
+	if (!s_gpCapture.open || s_gpCapture.actionIndex < 0 || s_gpCapture.playerIndex < 0) {
+		return;
+	}
+
+	static uint32_t s_prevButtons = 0;
+	static uint32_t s_prevTouchpad = 0;
+
+	const int pi = s_gpCapture.playerIndex;
+	const int physSlot = (int)activeCrimsonConfig.System.xinputSlots[pi];
+
+	// Poll gamepad state: try SDL first (handles SDL controllers and XInput via SDL),
+	// then fall back to raw XInput for pure XInput controllers.
+	XINPUT_STATE xiState = {};
+	bool xiValid = false;
+
+	// SDL covers both SDL-native controllers and XInput controllers visible via SDL.
+	if (physSlot >= 0 && physSlot < 4) {
+		if (CrimsonSDL::PopulateXInputStateFromSdlSlot(physSlot, &xiState)) {
+			xiValid = true;
+		}
+	} else if (physSlot >= 4) {
+		// Sentinel SDL slot: look up in sdlGamepadsExtra
+		size_t extrasIdx = (size_t)(physSlot - 4);
+		if (extrasIdx < CrimsonSDL::sdlGamepadsExtra.size()) {
+			SDL_Gamepad* pad = CrimsonSDL::sdlGamepadsExtra[extrasIdx];
+			if (pad && CrimsonSDL::PopulateXInputStateFromSDL(pad, &xiState)) {
+				xiValid = true;
+			}
+		}
+	}
+	// Fall back to raw XInput for slots 0-3 not covered by SDL.
+	if (!xiValid && physSlot >= 0 && physSlot < 4) {
+		if (XI::new_XInputGetState && XI::new_XInputGetState((DWORD)physSlot, &xiState) == ERROR_SUCCESS) {
+			xiValid = true;
+		}
+	}
+
+	// SDL gamepad for touchpad
+	SDL_Gamepad* sdlPad = NULL;
+	if (physSlot >= 0 && physSlot < 4) {
+		sdlPad = CrimsonSDL::GetControllerByPhysicalSlot(physSlot);
+	} else if (physSlot >= 4) {
+		size_t extrasIdx = (size_t)(physSlot - 4);
+		if (extrasIdx < CrimsonSDL::sdlGamepadsExtra.size()) {
+			sdlPad = CrimsonSDL::sdlGamepadsExtra[extrasIdx];
+		}
+	}
+
+	// Convert standard XInput wButtons to the game's internal GAMEPAD format
+	uint32_t curButtons = xiValid ? GAMEPAD::FromXInput(xiState.Gamepad.wButtons) : 0;
+	uint32_t curTouchpad = 0;
+	if (sdlPad) {
+		bool useQuadrants = (activeCrimsonInput.touchpadDivisionMode[pi] != 0);
+		curTouchpad = CrimsonSDL::GetTouchpadZone(sdlPad, useQuadrants);
+	}
+
+	// Handle START (confirm) and B (cancel) — check in GAMEPAD format
+	if (xiValid) {
+		// START to confirm (rising edge)
+		if ((curButtons & GAMEPAD::START) && !(s_prevButtons & GAMEPAD::START)) {
+			if (!s_gpCapture.waitingForRelease && s_gpCapture.previewButton != 0) {
+				int j = s_gpCapture.actionIndex;
+				int slot = s_gpCapture.slotIndex;
+				int charSlot = s_selectedCharacterSlotByPlayer[pi];
+				if (charSlot < 0 || charSlot >= 2) charSlot = 0;
+				CrimsonInput::BindPair* activeCfg = (*activeConfigInputs[pi][charSlot]);
+				CrimsonInput::BindPair* queuedCfg = (*queuedConfigInputs[pi][charSlot]);
+
+				if (j == (NUM_BINDS_WITHOUT_START - 1)) {
+					if (slot == 0) {
+						(*activeConfigInputs[pi][0])[j].slotA = s_gpCapture.previewButton;
+						(*activeConfigInputs[pi][1])[j].slotA = s_gpCapture.previewButton;
+						(*queuedConfigInputs[pi][0])[j].slotA = s_gpCapture.previewButton;
+						(*queuedConfigInputs[pi][1])[j].slotA = s_gpCapture.previewButton;
+					} else {
+						(*activeConfigInputs[pi][0])[j].slotB = s_gpCapture.previewButton;
+						(*activeConfigInputs[pi][1])[j].slotB = s_gpCapture.previewButton;
+						(*queuedConfigInputs[pi][0])[j].slotB = s_gpCapture.previewButton;
+						(*queuedConfigInputs[pi][1])[j].slotB = s_gpCapture.previewButton;
+					}
+				} else {
+					if (slot == 0) {
+						activeCfg[j].slotA = s_gpCapture.previewButton;
+						queuedCfg[j].slotA = s_gpCapture.previewButton;
+					} else {
+						activeCfg[j].slotB = s_gpCapture.previewButton;
+						queuedCfg[j].slotB = s_gpCapture.previewButton;
+					}
+				}
+				GUI::save = true;
+				s_gpCapture.open = false;
+				s_gpCapture.actionIndex = -1;
+			}
+			s_prevButtons = curButtons;
+			s_prevTouchpad = curTouchpad;
+			return;
+		}
+
+		// B to cancel (rising edge)
+		if ((curButtons & GAMEPAD::B) && !(s_prevButtons & GAMEPAD::B)) {
+			s_gpCapture.open = false;
+			s_gpCapture.actionIndex = -1;
+			s_prevButtons = curButtons;
+			s_prevTouchpad = curTouchpad;
+			return;
+		}
+	}
+
+	// Waiting-for-release phase: skip until all buttons are released,
+	// then reset edge-detection state so the first press is cleanly detected.
+	if (s_gpCapture.waitingForRelease) {
+		if (curButtons == 0 && curTouchpad == 0) {
+			s_gpCapture.waitingForRelease = false;
+			s_prevButtons = 0;
+			s_prevTouchpad = 0;
+		} else {
+			s_prevButtons = curButtons;
+			s_prevTouchpad = curTouchpad;
+		}
+		return;
+	}
+
+	// Detect touchpad press (rising edge: was 0, now non-zero)
+	if (curTouchpad != 0 && s_prevTouchpad == 0) {
+		s_gpCapture.previewButton = curTouchpad;
+		s_prevButtons = curButtons;
+		s_prevTouchpad = curTouchpad;
+		return;
+	}
+
+	// Detect XInput button press: find newly-pressed bits (rising edges)
+	uint32_t newButtons = curButtons & ~s_prevButtons;
+	if (newButtons != 0) {
+		// Map the first newly-pressed bit back to a GAMEPAD constant
+		// Since GAMEPAD enum values ARE the XInput wButtons bits, we can use the bit directly
+		s_gpCapture.previewButton = newButtons;
+	}
+
+	s_prevButtons = curButtons;
+	s_prevTouchpad = curTouchpad;
+}
+
 // Remapping Xinput Slots is applied inside this hook at the XInputGetState level, so dmc3_XInputWrapper's
 // internal per-player state is populated with the correct physical controller data before
 // the game ever reads from it.
@@ -995,14 +1303,54 @@ static DWORD WINAPI Hooked_XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pStat
 		? (DWORD)activeCrimsonConfig.System.xinputSlots[dwUserIndex]
 		: dwUserIndex;
 
-	// Try SDL first — this enables pure-SDL controllers (PS4/PS5/Switch)
-	// to control the game without XInput emulation.
+	DWORD result;
 	if (CrimsonSDL::PopulateXInputStateFromSdlSlot((int)physSlot, pState)) {
-		return ERROR_SUCCESS;
+		result = ERROR_SUCCESS;
+	} else {
+		result = s_XInputGetStateHook->GetTrampoline<decltype(&XInputGetState)>()(physSlot, pState);
 	}
 
-	// Fall back to real XInput for controllers not visible to SDL
-	return s_XInputGetStateHook->GetTrampoline<decltype(&XInputGetState)>()(physSlot, pState);
+	// Touchpad injection: when touchpad is pressed and any character slot has a
+	// matching binding, inject the other slot's standard button into wButtons.
+	if (result == ERROR_SUCCESS && dwUserIndex < (DWORD)PLAYER_COUNT) {
+		SDL_Gamepad* sdlPad = NULL;
+		if (physSlot >= 0 && physSlot < 4) {
+			sdlPad = CrimsonSDL::GetControllerByPhysicalSlot((int)physSlot);
+		} else if (physSlot >= 4) {
+			size_t extrasIdx = (size_t)(physSlot - 4);
+			if (extrasIdx < CrimsonSDL::sdlGamepadsExtra.size())
+				sdlPad = CrimsonSDL::sdlGamepadsExtra[extrasIdx];
+		}
+
+		if (sdlPad) {
+			uint32_t touchZone = CrimsonSDL::GetTouchpadZone(sdlPad, false);
+			if (touchZone == 0)
+				touchZone = CrimsonSDL::GetTouchpadZone(sdlPad, true);
+
+			if (touchZone != 0) {
+				int pi = (int)dwUserIndex;
+				// Check character slot
+				const auto cs = GetCharacterBindSlotFromPlayerIndex(pi);
+				const CrimsonInput::BindPair* binds = (*activeConfigInputs[pi][cs]);
+				for (int a = 0; a < NUM_GAMEPADBINDS; a++) {
+					uint32_t injectBtn = 0;
+					if (GAMEPAD::TouchpadZoneMatches(binds[a].slotA, touchZone) && binds[a].slotB > 0 && binds[a].slotB <= 0xFFFF)
+						injectBtn = binds[a].slotB;
+					else if (GAMEPAD::TouchpadZoneMatches(binds[a].slotB, touchZone) && binds[a].slotA > 0 && binds[a].slotA <= 0xFFFF)
+						injectBtn = binds[a].slotA;
+
+					if (injectBtn != 0) {
+						uint16_t xiBit = GAMEPAD::ToXInput(injectBtn);
+						if (xiBit)
+							pState->Gamepad.wButtons |= xiBit;
+					}
+				}
+				
+			}
+		}
+	}
+
+	return result;
 }
 
 static DWORD __fastcall Hooked_dmc3_XInputWrapper(DWORD dwUserIndex, XINPUT_STATE* pState) {

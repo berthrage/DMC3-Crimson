@@ -21,6 +21,7 @@ extern std::vector<SDL_Gamepad*> sdlGamepadsExtra;
 void InitSDL();
 bool IsGamepadButtonDown(SDL_Gamepad* gamepad, int button);
 bool IsControllerButtonDown(int controllerIndex, int button);
+uint32_t GetTouchpadZone(SDL_Gamepad* gamepad, bool useQuadrants);
 void CheckAndOpenControllers();
 void UpdateJoysticks();
 void VibrateController(int controllerIndex, Uint16 rumbleStrengthLowFreq, Uint16 rumbleStrengthHighFreq, int rumbleDuration);

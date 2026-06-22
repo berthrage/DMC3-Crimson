@@ -181,6 +181,8 @@ SDL_FUNCTION_DECLRATION(SDL_free)                         = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetGamepadPath)               = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetGamepadPathForID)          = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetGamepadAxis)               = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GetNumGamepadTouchpads)       = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GetGamepadTouchpadFinger)     = NULL;
 
 void LoadAllSFX() {
 	if (!cacheAudioFiles) {
@@ -836,6 +838,8 @@ void InitSDL() {
         LOAD_SDL_FUNCTION(SDL_GetGamepadPath);
         LOAD_SDL_FUNCTION(SDL_GetGamepadPathForID);
         LOAD_SDL_FUNCTION(SDL_GetGamepadAxis);
+        LOAD_SDL_FUNCTION(SDL_GetNumGamepadTouchpads);
+        LOAD_SDL_FUNCTION(SDL_GetGamepadTouchpadFinger);
 
        
 
@@ -1046,6 +1050,36 @@ bool IsGamepadButtonDown(SDL_Gamepad* gamepad, int button) {
 bool IsControllerButtonDown(int controllerIndex, int button) {
 	SDL_Gamepad* pad = GetControllerForPlayer(controllerIndex);
 	return IsGamepadButtonDown(pad, button);
+}
+
+uint32_t GetTouchpadZone(SDL_Gamepad* gamepad, bool useQuadrants) {
+	if (fn_SDL_GetNumGamepadTouchpads == NULL || fn_SDL_GetGamepadTouchpadFinger == NULL || gamepad == NULL)
+		return 0;
+
+	int numTouchpads = fn_SDL_GetNumGamepadTouchpads(gamepad);
+	if (numTouchpads <= 0) return 0;
+
+	// Only poll the first touchpad (touchpad 0)
+	bool down = false;
+	float x = 0.0f, y = 0.0f, pressure = 0.0f;
+	if (!fn_SDL_GetGamepadTouchpadFinger(gamepad, 0, 0, &down, &x, &y, &pressure))
+		return 0;
+
+	if (!down || pressure <= 0.0f) return 0;
+
+	// Coords are normalized 0..1 (top-left origin)
+	if (useQuadrants) {
+		// Quadrants mode: split at x=0.5, y=0.5
+		bool top  = (y < 0.5f);
+		bool left = (x < 0.5f);
+		if (top && left)       return GAMEPAD::TOUCHPAD_TOP_LEFT;
+		if (top && !left)      return GAMEPAD::TOUCHPAD_TOP_RIGHT;
+		if (!top && left)      return GAMEPAD::TOUCHPAD_BOTTOM_LEFT;
+		else                   return GAMEPAD::TOUCHPAD_BOTTOM_RIGHT;
+	} else {
+		// Halves mode: split at x=0.5
+		return (x < 0.5f) ? GAMEPAD::TOUCHPAD_LEFT : GAMEPAD::TOUCHPAD_RIGHT;
+	}
 }
 
 
