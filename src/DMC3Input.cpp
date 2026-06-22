@@ -279,11 +279,16 @@ static void __fastcall sub_1401EB170(PlayerActorData* a1) {
 
     const CrimsonInput::BindPair* configBinds = (*activeConfigInputs[playerIndex][characterSlot]);
 
-    // Combine both slots. Touchpad zones (> 0xFFFF) are excluded from BindTable
-    // and handled via gamepad state injection in Hooked_XInputGetState.
+    // Combine both slots. Touchpad zones (> 0xFFFF) are excluded from BindTable.
+    // When both standard slots are empty but a touchpad zone is bound,
+    // fall back to the default button so injection has something to match against.
     #define BINDVAL(idx) (uint16_t)( \
         ((configBinds[idx].slotA <= 0xFFFF ? configBinds[idx].slotA : 0) | \
-         (configBinds[idx].slotB <= 0xFFFF ? configBinds[idx].slotB : 0)) & 0xFFFF)
+         (configBinds[idx].slotB <= 0xFFFF ? configBinds[idx].slotB : 0) | \
+         (((configBinds[idx].slotA <= 0xFFFF ? configBinds[idx].slotA : 0) == 0 && \
+           (configBinds[idx].slotB <= 0xFFFF ? configBinds[idx].slotB : 0) == 0 && \
+           (GAMEPAD::IsTouchpadZone(configBinds[idx].slotA) || GAMEPAD::IsTouchpadZone(configBinds[idx].slotB))) \
+          ? s_defaultBinds[idx].slotA : 0u)) & 0xFFFF)
 
     mainBinds->up              = BINDVAL(0);
     mainBinds->down            = BINDVAL(1);
@@ -1334,12 +1339,19 @@ static DWORD WINAPI Hooked_XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pStat
 				const CrimsonInput::BindPair* binds = (*activeConfigInputs[pi][cs]);
 				for (int a = 0; a < NUM_GAMEPADBINDS; a++) {
 					uint32_t injectBtn = 0;
-					if (GAMEPAD::TouchpadZoneMatches(binds[a].slotA, touchZone) && binds[a].slotB > 0 && binds[a].slotB <= 0xFFFF)
-						injectBtn = binds[a].slotB;
-					else if (GAMEPAD::TouchpadZoneMatches(binds[a].slotB, touchZone) && binds[a].slotA > 0 && binds[a].slotA <= 0xFFFF)
-						injectBtn = binds[a].slotA;
+					if (GAMEPAD::TouchpadZoneMatches(binds[a].slotA, touchZone))
+						injectBtn = (binds[a].slotB > 0 && binds[a].slotB <= 0xFFFF) ? binds[a].slotB : 0;
+					else if (GAMEPAD::TouchpadZoneMatches(binds[a].slotB, touchZone))
+						injectBtn = (binds[a].slotA > 0 && binds[a].slotA <= 0xFFFF) ? binds[a].slotA : 0;
+					else
+						continue; // This action has no touchpad binding matching the pressed zone
 
-					if (injectBtn != 0) {
+					// Fallback: if the other slot is unbound or also a touchpad,
+					// inject the default button so touchpad works standalone.
+					if (injectBtn == 0)
+						injectBtn = s_defaultBinds[a].slotA;
+
+					if (injectBtn != 0 && injectBtn <= 0xFFFF) {
 						uint16_t xiBit = GAMEPAD::ToXInput(injectBtn);
 						if (xiBit)
 							pState->Gamepad.wButtons |= xiBit;
