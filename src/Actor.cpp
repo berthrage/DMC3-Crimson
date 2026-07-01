@@ -3723,6 +3723,31 @@ template <typename T>  bool GetDanteDoppelSwitchCondition(T& actorData) {
     return false;
 };
 
+// Returns true when the per-player "Backwards Switch" binding is active
+// for this actor (checks both dual slots and touchpad zones).
+template <typename T>
+static bool IsBackwardsSwitchActive(T& actorData) {
+    const auto pi = actorData.newPlayerIndex;
+    if (pi >= PLAYER_COUNT) return false;
+
+    const auto& bind = activeCrimsonInput.ButtonConfig.backwardsSwitch[pi];
+    const uint32 slotA = bind.slotA;
+    const uint32 slotB = bind.slotB;
+
+    // Standard buttons (≤ 0xFFFF) — check actorData.buttons[0] (raw frame state)
+    const uint16 gpState = static_cast<uint16>(actorData.buttons[0]);
+    if (slotA <= 0xFFFF && (gpState & static_cast<uint16>(slotA)) != 0) return true;
+    if (slotB <= 0xFFFF && (gpState & static_cast<uint16>(slotB)) != 0) return true;
+
+    // Touchpad zones (> 0xFFFF)
+    if (slotA > 0xFFFF || slotB > 0xFFFF) {
+        if (CrimsonSDL::IsTouchpadBindingActive(pi, slotA, slotB))
+            return true;
+    }
+
+    return false;
+}
+
 // @Todo: Update Nero Angelo fix.
 template <typename T> void LinearMeleeWeaponSwitchController(T& actorData) {
     auto& playerData    = GetPlayerData(actorData);
@@ -3782,7 +3807,7 @@ template <typename T> void LinearMeleeWeaponSwitchController(T& actorData) {
     };
 
     if (actorData.buttons[2] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)) {
-        if (actorData.buttons[0] & GetBinding(BINDING::TAUNT)) {
+        if (IsBackwardsSwitchActive(actorData)) {
             Back();
         } else {
             Forward();
@@ -3893,7 +3918,7 @@ template <typename T> void LinearRangedWeaponSwitchController(T& actorData) {
     };
 
     if (actorData.buttons[2] & GetBinding(BINDING::CHANGE_GUN)) {
-        if (actorData.buttons[0] & GetBinding(BINDING::TAUNT)) {
+        if (IsBackwardsSwitchActive(actorData)) {
             Back();
         } else {
             Forward();
@@ -4079,7 +4104,7 @@ template <typename T> void AnalogMeleeWeaponSwitchController(T& actorData) {
     }
 
     if (actorData.buttons[2] & GetBinding(BINDING::CHANGE_DEVIL_ARMS)) {
-        if (actorData.buttons[0] & GetBinding(BINDING::TAUNT)) {
+        if (IsBackwardsSwitchActive(actorData)) {
             Back();
         } else {
             Forward();
@@ -4242,7 +4267,7 @@ template <typename T> void AnalogRangedWeaponSwitchController(T& actorData) {
 
 
     if (actorData.buttons[2] & GetBinding(BINDING::CHANGE_GUN)) {
-        if (actorData.buttons[0] & GetBinding(BINDING::TAUNT)) {
+        if (IsBackwardsSwitchActive(actorData)) {
             Back();
         } else {
             Forward();

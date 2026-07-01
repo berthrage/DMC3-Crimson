@@ -962,6 +962,68 @@ void ShowButtonConfigWindow() {
 					ImGui::PopID(); // i*100 + j
 				}
 
+				// ── BACKWARDS SWITCH (per-player, shared across characters) ──
+				{
+					ImGui::PushID(i * 100 + NUM_BINDS_WITHOUT_START);
+					ImGui::Text("BACKWARDS SWITCH");
+					if (ImGui::IsItemHovered()) {
+						ImGui::SetTooltip("Hold this button while switching weapons to reverse direction.\n"
+							"Defaults to the TAUNT button.");
+					}
+
+					// Slot A
+					ImGui::SameLine(gpRowLabelX);
+					ImGui::PushID(0);
+					uint32* bwSlotAPtr = &activeCrimsonInput.ButtonConfig.backwardsSwitch[i].slotA;
+					const char* bwSlotAName = GAMEPAD::ButtonName(*bwSlotAPtr);
+					sprintf(buffer, "%s##A", bwSlotAName);
+					if (GUI_Button(buffer, ImVec2(gpSlotButtonW, 0))) {
+						if (!s_gpCapture.open) {
+							s_gpCapture.open          = true;
+							s_gpCapture.playerIndex   = i;
+							s_gpCapture.actionIndex   = -2; // sentinel for backwards switch
+							s_gpCapture.slotIndex     = 0;
+							s_gpCapture.previewButton = *bwSlotAPtr;
+							s_gpCapture.waitingForRelease = true;
+						}
+					}
+					ImGui::SameLine();
+					sprintf(buffer, "X##clrA");
+					if (GUI_Button(buffer, ImVec2(gpClearButtonW, 0))) {
+						activeCrimsonInput.ButtonConfig.backwardsSwitch[i].slotA = 0;
+						queuedCrimsonInput.ButtonConfig.backwardsSwitch[i].slotA = 0;
+						GUI::save = true;
+					}
+					ImGui::PopID();
+
+					// Slot B
+					ImGui::SameLine(gpRowLabelX + gpSlotButtonW + gpClearButtonW + 10.0f * scaleF);
+					ImGui::PushID(1);
+					uint32* bwSlotBPtr = &activeCrimsonInput.ButtonConfig.backwardsSwitch[i].slotB;
+					const char* bwSlotBName = GAMEPAD::ButtonName(*bwSlotBPtr);
+					sprintf(buffer, "%s##B", bwSlotBName);
+					if (GUI_Button(buffer, ImVec2(gpSlotButtonW, 0))) {
+						if (!s_gpCapture.open) {
+							s_gpCapture.open          = true;
+							s_gpCapture.playerIndex   = i;
+							s_gpCapture.actionIndex   = -2; // sentinel for backwards switch
+							s_gpCapture.slotIndex     = 1;
+							s_gpCapture.previewButton = *bwSlotBPtr;
+							s_gpCapture.waitingForRelease = true;
+						}
+					}
+					ImGui::SameLine();
+					sprintf(buffer, "X##clrB");
+					if (GUI_Button(buffer, ImVec2(gpClearButtonW, 0))) {
+						activeCrimsonInput.ButtonConfig.backwardsSwitch[i].slotB = 0;
+						queuedCrimsonInput.ButtonConfig.backwardsSwitch[i].slotB = 0;
+						GUI::save = true;
+					}
+					ImGui::PopID();
+
+					ImGui::PopID();
+				}
+
 				// Switch button character switch toggle
 				GUI_Checkbox2("Use Switch Button for Character Switching",
 					activeCrimsonInput.switchButtonCharSwitch[i],
@@ -985,6 +1047,12 @@ void ShowButtonConfigWindow() {
 				(*activeConfigInputs[i][1])[16].slotB = s_defaultBinds[16].slotB;
 				(*queuedConfigInputs[i][1])[16].slotA = s_defaultBinds[16].slotA;
 				(*queuedConfigInputs[i][1])[16].slotB = s_defaultBinds[16].slotB;
+
+					// Restore backwards switch to default
+					activeCrimsonInput.ButtonConfig.backwardsSwitch[i].slotA = GAMEPAD::BACK;
+					activeCrimsonInput.ButtonConfig.backwardsSwitch[i].slotB = GAMEPAD::TOUCHPAD_RIGHT;
+					queuedCrimsonInput.ButtonConfig.backwardsSwitch[i].slotA = GAMEPAD::BACK;
+					queuedCrimsonInput.ButtonConfig.backwardsSwitch[i].slotB = GAMEPAD::TOUCHPAD_RIGHT;
 
 					activeCrimsonInput.switchButtonCharSwitch[i] = defaultCrimsonInput.switchButtonCharSwitch[i];
 					queuedCrimsonInput.switchButtonCharSwitch[i] = defaultCrimsonInput.switchButtonCharSwitch[i];
@@ -1176,7 +1244,7 @@ void ShowButtonConfigWindow() {
 	}
 
 	// Gamepad capture popup (shown above the main window when capturing a button)
-	if (s_gpCapture.open && s_gpCapture.actionIndex >= 0 && s_gpCapture.playerIndex >= 0) {
+	if (s_gpCapture.open && s_gpCapture.playerIndex >= 0) {
 		const float popupScale = scaleF;
 		float popupWidth  = 420.0f * popupScale;
 		float popupHeight = 200.0f * popupScale;
@@ -1198,8 +1266,10 @@ void ShowButtonConfigWindow() {
 
 			auto gpFontSize = UI::g_UIContext.DefaultFontSize;
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[gpFontSize * 1.2f]);
-			const char* actionName = (s_gpCapture.actionIndex >= 0 && s_gpCapture.actionIndex < NUM_BINDS_WITHOUT_START)
-				? s_gamepadActionNames[s_gpCapture.actionIndex] : "???";
+			const char* actionName = (s_gpCapture.actionIndex == -2)
+				? "BACKWARDS SWITCH"
+				: ((s_gpCapture.actionIndex >= 0 && s_gpCapture.actionIndex < NUM_BINDS_WITHOUT_START)
+					? s_gamepadActionNames[s_gpCapture.actionIndex] : "???");
 			ImGui::Text("Rebinding: %s (Slot %c) for %dP", actionName,
 				s_gpCapture.slotIndex == 0 ? 'A' : 'B', s_gpCapture.playerIndex + 1);
 			ImGui::SameLine();
@@ -1255,7 +1325,10 @@ void ToggleCursor() {
 }
 
 void UpdateGamepadConfigCapture() {
-	if (!s_gpCapture.open || s_gpCapture.actionIndex < 0 || s_gpCapture.playerIndex < 0) {
+	if (!s_gpCapture.open || s_gpCapture.playerIndex < 0) {
+		return;
+	}
+	if (s_gpCapture.actionIndex < 0 && s_gpCapture.actionIndex != -2) {
 		return;
 	}
 
@@ -1314,30 +1387,42 @@ void UpdateGamepadConfigCapture() {
 	auto ApplyBinding = [&](uint32_t capturedButton) {
 		int j = s_gpCapture.actionIndex;
 		int slot = s_gpCapture.slotIndex;
-		int charSlot = s_selectedCharacterSlotByPlayer[pi];
-		if (charSlot < 0 || charSlot >= 2) charSlot = 0;
-		CrimsonInput::BindPair* activeCfg = (*activeConfigInputs[pi][charSlot]);
-		CrimsonInput::BindPair* queuedCfg = (*queuedConfigInputs[pi][charSlot]);
 
-		if (j == (NUM_BINDS_WITHOUT_START - 1)) {
+		if (j == -2) {
+			// Backwards switch (per-player, not per-character)
 			if (slot == 0) {
-				(*activeConfigInputs[pi][0])[j].slotA = capturedButton;
-				(*activeConfigInputs[pi][1])[j].slotA = capturedButton;
-				(*queuedConfigInputs[pi][0])[j].slotA = capturedButton;
-				(*queuedConfigInputs[pi][1])[j].slotA = capturedButton;
+				activeCrimsonInput.ButtonConfig.backwardsSwitch[pi].slotA = capturedButton;
+				queuedCrimsonInput.ButtonConfig.backwardsSwitch[pi].slotA = capturedButton;
 			} else {
-				(*activeConfigInputs[pi][0])[j].slotB = capturedButton;
-				(*activeConfigInputs[pi][1])[j].slotB = capturedButton;
-				(*queuedConfigInputs[pi][0])[j].slotB = capturedButton;
-				(*queuedConfigInputs[pi][1])[j].slotB = capturedButton;
+				activeCrimsonInput.ButtonConfig.backwardsSwitch[pi].slotB = capturedButton;
+				queuedCrimsonInput.ButtonConfig.backwardsSwitch[pi].slotB = capturedButton;
 			}
 		} else {
-			if (slot == 0) {
-				activeCfg[j].slotA = capturedButton;
-				queuedCfg[j].slotA = capturedButton;
+			int charSlot = s_selectedCharacterSlotByPlayer[pi];
+			if (charSlot < 0 || charSlot >= 2) charSlot = 0;
+			CrimsonInput::BindPair* activeCfg = (*activeConfigInputs[pi][charSlot]);
+			CrimsonInput::BindPair* queuedCfg = (*queuedConfigInputs[pi][charSlot]);
+
+			if (j == (NUM_BINDS_WITHOUT_START - 1)) {
+				if (slot == 0) {
+					(*activeConfigInputs[pi][0])[j].slotA = capturedButton;
+					(*activeConfigInputs[pi][1])[j].slotA = capturedButton;
+					(*queuedConfigInputs[pi][0])[j].slotA = capturedButton;
+					(*queuedConfigInputs[pi][1])[j].slotA = capturedButton;
+				} else {
+					(*activeConfigInputs[pi][0])[j].slotB = capturedButton;
+					(*activeConfigInputs[pi][1])[j].slotB = capturedButton;
+					(*queuedConfigInputs[pi][0])[j].slotB = capturedButton;
+					(*queuedConfigInputs[pi][1])[j].slotB = capturedButton;
+				}
 			} else {
-				activeCfg[j].slotB = capturedButton;
-				queuedCfg[j].slotB = capturedButton;
+				if (slot == 0) {
+					activeCfg[j].slotA = capturedButton;
+					queuedCfg[j].slotA = capturedButton;
+				} else {
+					activeCfg[j].slotB = capturedButton;
+					queuedCfg[j].slotB = capturedButton;
+				}
 			}
 		}
 		GUI::save = true;

@@ -347,6 +347,7 @@ enum {
     TAUNT,
     START,
     SWITCH_BUTTON,
+    BACKWARDS_SWITCH,
 };
 };
 

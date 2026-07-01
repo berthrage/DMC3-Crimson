@@ -97,6 +97,14 @@ struct CrimsonInput {
 			{GAMEPAD::RIGHT_STICK_CLICK, 0}  // SWITCH_BUTTON
 		};
 
+		// Per-player backwards switch (shared across characters).
+		BindPair backwardsSwitch[PLAYER_COUNT] = {
+			{GAMEPAD::BACK, GAMEPAD::TOUCHPAD_RIGHT},
+			{GAMEPAD::BACK, GAMEPAD::TOUCHPAD_RIGHT},
+			{GAMEPAD::BACK, GAMEPAD::TOUCHPAD_RIGHT},
+			{GAMEPAD::BACK, GAMEPAD::TOUCHPAD_RIGHT},
+		};
+
 		static constexpr auto Metadata() {
 			return std::make_tuple(
 				std::make_pair("dante1P", &ButtonConfig::dante1P),
@@ -106,7 +114,8 @@ struct CrimsonInput {
 				std::make_pair("dante3P", &ButtonConfig::dante3P),
 				std::make_pair("vergil3P", &ButtonConfig::vergil3P),
 				std::make_pair("dante4P", &ButtonConfig::dante4P),
-				std::make_pair("vergil4P", &ButtonConfig::vergil4P)
+				std::make_pair("vergil4P", &ButtonConfig::vergil4P),
+				std::make_pair("backwardsSwitch", &ButtonConfig::backwardsSwitch)
 			);
 		}
 	} ButtonConfig;
