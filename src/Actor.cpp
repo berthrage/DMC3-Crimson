@@ -3730,7 +3730,8 @@ static bool IsBackwardsSwitchActive(T& actorData) {
     const auto pi = actorData.newPlayerIndex;
     if (pi >= PLAYER_COUNT) return false;
 
-    const auto& bind = activeCrimsonInput.ButtonConfig.backwardsSwitch[pi];
+    // Read from slot 0 (Dante) — shared across characters, like Switch Button.
+    const auto& bind = (*activeConfigInputs[pi][0])[BINDING::BACKWARDS_SWITCH];
     const uint32 slotA = bind.slotA;
     const uint32 slotB = bind.slotB;
 

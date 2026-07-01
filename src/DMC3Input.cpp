@@ -21,7 +21,7 @@
 #include "CrimsonSDL.hpp"
 #include "Actor.hpp"
 
-#define NUM_BINDS_WITHOUT_START 17
+#define NUM_BINDS_WITHOUT_START 18
 
 // NOTE(): writing bind table at that particular place seems to work fine for me... idk, needs testing?
 static std::unique_ptr<Utility::Detour_t> s_ButtonToActionHook;
@@ -178,7 +178,8 @@ static const CrimsonInput::BindPair s_defaultBinds[NUM_GAMEPADBINDS] = {
 	{ GAMEPAD::RIGHT_STICK_CLICK,   0 },                          // DEFAULT CAMERA
 	{ GAMEPAD::BACK,                GAMEPAD::TOUCHPAD_RIGHT },    // TAUNT
 	{ GAMEPAD::START,               0 },                          // START
-	{ GAMEPAD::RIGHT_STICK_CLICK,   0 },                          // SWITCH BUTTON
+	{ GAMEPAD::RIGHT_STICK_CLICK,   0 },                          // SWITCH BUTTON (16)
+	{ GAMEPAD::BACK,                GAMEPAD::TOUCHPAD_RIGHT },    // BACKWARDS SWITCH (17)
 };
 
 // Action names for the new UI (matches BTImGuiCtx old action names)
@@ -187,7 +188,7 @@ static const char* s_gamepadActionNames[NUM_BINDS_WITHOUT_START] = {
 	"MELEE ATK", "JUMP", "STYLE", "SHOOT",
 	"DT", "CHANGE GUN", "CHANGE TARGET", "LOCK ON",
 	"CHANGE SWORD", "DEFAULT CAMERA", "TAUNT", "START",
-	"SWITCH BUTTON",
+	"SWITCH BUTTON", "BACKWARDS SWITCH",
 };
 
 static uint8_t GetCharacterBindSlot(const PlayerActorData* actorData) {
@@ -310,7 +311,7 @@ static void __fastcall sub_1401EB170(PlayerActorData* a1) {
     // Fix: replace those entries with the action's default button.
     if ((mainBinds->start & GAMEPAD::START) == 0) {
         uint16_t* fields = &mainBinds->up;
-        for (int a = 0; a < NUM_GAMEPADBINDS; a++) {
+        for (int a = 0; a < 17; a++) {
             if (a == 15) continue;
             if (fields[a] == GAMEPAD::START) {
                 fields[a] = (uint16_t)s_defaultBinds[a].slotA;
@@ -352,7 +353,7 @@ static void __fastcall sub_1401EB170(PlayerActorData* a1) {
         }
         uint32_t physicalButtons = xiValid ? GAMEPAD::FromXInput(xiState.Gamepad.wButtons) : 0;
 
-        for (int a = 0; a < NUM_GAMEPADBINDS; a++) {
+        for (int a = 0; a < 17; a++) {
             if (fields[a] != 0) continue;
 
             uint32_t rawA = configBinds[a].slotA;
@@ -372,7 +373,7 @@ static void __fastcall sub_1401EB170(PlayerActorData* a1) {
             uint32_t btn = s_defaultBinds[a].slotA;
 
             bool conflicts = false;
-            for (int other = 0; other < NUM_GAMEPADBINDS; other++) {
+            for (int other = 0; other < 17; other++) {
                 if (other == a) continue;
                 if (fields[other] & btn) { conflicts = true; break; }
             }
@@ -389,7 +390,7 @@ static void __fastcall sub_1401EB170(PlayerActorData* a1) {
                 for (uint32_t bit : candidates) {
                     if (bit == GAMEPAD::START) continue;
                     bool bitOk = true;
-                    for (int other = 0; other < NUM_GAMEPADBINDS; other++) {
+                    for (int other = 0; other < 17; other++) {
                         if (other == a) continue;
                         if (fields[other] & bit) { bitOk = false; break; }
                     }
@@ -399,7 +400,7 @@ static void __fastcall sub_1401EB170(PlayerActorData* a1) {
                 if (!found && physicalButtons == 0) {
                     // Suppress conflicting button from other actions'
                     // BindTable entries (touchpad is sole input).
-                    for (int other = 0; other < NUM_GAMEPADBINDS; other++) {
+                    for (int other = 0; other < 17; other++) {
                         if (other == a) continue;
                         if (fields[other] & btn)
                             fields[other] &= ~((uint16_t)btn);
@@ -872,7 +873,9 @@ void ShowButtonConfigWindow() {
 				CrimsonInput::BindPair* queuedButtonConfig  = (*queuedConfigInputs[i][selectedSlot]);
 
 				for (int j = 0; j < NUM_BINDS_WITHOUT_START; j++) {
-					if (j == (NUM_BINDS_WITHOUT_START - 1)) {
+					const bool isSharedAction = (j >= 16); // SWITCH_BUTTON and BACKWARDS_SWITCH
+
+					if (j == 16) { // separator before SWITCH_BUTTON
 						ImGui::Spacing();
 						ImGui::Separator();
 						ImGui::TextDisabled("Per-Player (shared across characters)");
@@ -882,16 +885,20 @@ void ShowButtonConfigWindow() {
 
 					// Action label
 					ImGui::Text("%s", s_gamepadActionNames[j]);
-					if (j == (NUM_BINDS_WITHOUT_START - 1) && ImGui::IsItemHovered()) {
+					if (j == 16 && ImGui::IsItemHovered()) {
 						ImGui::SetTooltip("Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n"
 							"Double Tap D-pad Up to switch characters. The Switch Button can also be set to Switch Characters with a toggle.");
+					}
+					if (j == 17 && ImGui::IsItemHovered()) {
+						ImGui::SetTooltip("Hold this button while switching weapons to reverse direction.\n"
+							"Defaults to the TAUNT button.");
 					}
 
 					// Slot A button
 					ImGui::SameLine(gpRowLabelX);
 					ImGui::PushID(0); // slot 0
-					uint32* slotAPtr = (j == (NUM_BINDS_WITHOUT_START - 1))
-						? &(*activeConfigInputs[i][0])[j].slotA  // SWITCH always reads Dante
+					uint32* slotAPtr = isSharedAction
+						? &(*activeConfigInputs[i][0])[j].slotA  // shared binds always read Dante
 						: &activeButtonConfig[j].slotA;
 					const char* slotAName = GAMEPAD::ButtonName(*slotAPtr);
 					sprintf(buffer, "%s##A", slotAName);
@@ -905,16 +912,20 @@ void ShowButtonConfigWindow() {
 							s_gpCapture.waitingForRelease = true;
 						}
 					}
-					if (j == (NUM_BINDS_WITHOUT_START - 1) && ImGui::IsItemHovered()) {
+					if (j == 16 && ImGui::IsItemHovered()) {
 						ImGui::SetTooltip("Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n"
 							"Double Tap D-pad Up to switch characters. The Switch Button can also be set to Switch Characters with a toggle.");
+					}
+					if (j == 17 && ImGui::IsItemHovered()) {
+						ImGui::SetTooltip("Hold this button while switching weapons to reverse direction.\n"
+							"Defaults to the TAUNT button.");
 					}
 					ImGui::SameLine();
 					// Clear slot A
 					sprintf(buffer, "X##clrA");
 					if (GUI_Button(buffer, ImVec2(gpClearButtonW, 0))) {
 						*slotAPtr = 0;
-						if (j == (NUM_BINDS_WITHOUT_START - 1)) {
+						if (isSharedAction) {
 							(*activeConfigInputs[i][1])[j].slotA = 0;
 							(*queuedConfigInputs[i][1])[j].slotA = 0;
 						}
@@ -926,7 +937,7 @@ void ShowButtonConfigWindow() {
 					// Slot B button
 					ImGui::SameLine(gpRowLabelX + gpSlotButtonW + gpClearButtonW + 10.0f * scaleF);
 					ImGui::PushID(1); // slot 1
-					uint32* slotBPtr = (j == (NUM_BINDS_WITHOUT_START - 1))
+					uint32* slotBPtr = isSharedAction
 						? &(*activeConfigInputs[i][0])[j].slotB
 						: &activeButtonConfig[j].slotB;
 					const char* slotBName = GAMEPAD::ButtonName(*slotBPtr);
@@ -941,16 +952,20 @@ void ShowButtonConfigWindow() {
 							s_gpCapture.waitingForRelease = true;
 						}
 					}
-					if (j == (NUM_BINDS_WITHOUT_START - 1) && ImGui::IsItemHovered()) {
+					if (j == 16 && ImGui::IsItemHovered()) {
 						ImGui::SetTooltip("Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n"
 							"Double Tap D-pad Up to switch characters. The Switch Button can also be set to Switch Characters with a toggle.");
+					}
+					if (j == 17 && ImGui::IsItemHovered()) {
+						ImGui::SetTooltip("Hold this button while switching weapons to reverse direction.\n"
+							"Defaults to the TAUNT button.");
 					}
 					ImGui::SameLine();
 					// Clear slot B
 					sprintf(buffer, "X##clrB");
 					if (GUI_Button(buffer, ImVec2(gpClearButtonW, 0))) {
 						*slotBPtr = 0;
-						if (j == (NUM_BINDS_WITHOUT_START - 1)) {
+						if (isSharedAction) {
 							(*activeConfigInputs[i][1])[j].slotB = 0;
 							(*queuedConfigInputs[i][1])[j].slotB = 0;
 						}
@@ -960,68 +975,6 @@ void ShowButtonConfigWindow() {
 					ImGui::PopID();
 
 					ImGui::PopID(); // i*100 + j
-				}
-
-				// ── BACKWARDS SWITCH (per-player, shared across characters) ──
-				{
-					ImGui::PushID(i * 100 + NUM_BINDS_WITHOUT_START);
-					ImGui::Text("BACKWARDS SWITCH");
-					if (ImGui::IsItemHovered()) {
-						ImGui::SetTooltip("Hold this button while switching weapons to reverse direction.\n"
-							"Defaults to the TAUNT button.");
-					}
-
-					// Slot A
-					ImGui::SameLine(gpRowLabelX);
-					ImGui::PushID(0);
-					uint32* bwSlotAPtr = &activeCrimsonInput.ButtonConfig.backwardsSwitch[i].slotA;
-					const char* bwSlotAName = GAMEPAD::ButtonName(*bwSlotAPtr);
-					sprintf(buffer, "%s##A", bwSlotAName);
-					if (GUI_Button(buffer, ImVec2(gpSlotButtonW, 0))) {
-						if (!s_gpCapture.open) {
-							s_gpCapture.open          = true;
-							s_gpCapture.playerIndex   = i;
-							s_gpCapture.actionIndex   = -2; // sentinel for backwards switch
-							s_gpCapture.slotIndex     = 0;
-							s_gpCapture.previewButton = *bwSlotAPtr;
-							s_gpCapture.waitingForRelease = true;
-						}
-					}
-					ImGui::SameLine();
-					sprintf(buffer, "X##clrA");
-					if (GUI_Button(buffer, ImVec2(gpClearButtonW, 0))) {
-						activeCrimsonInput.ButtonConfig.backwardsSwitch[i].slotA = 0;
-						queuedCrimsonInput.ButtonConfig.backwardsSwitch[i].slotA = 0;
-						GUI::save = true;
-					}
-					ImGui::PopID();
-
-					// Slot B
-					ImGui::SameLine(gpRowLabelX + gpSlotButtonW + gpClearButtonW + 10.0f * scaleF);
-					ImGui::PushID(1);
-					uint32* bwSlotBPtr = &activeCrimsonInput.ButtonConfig.backwardsSwitch[i].slotB;
-					const char* bwSlotBName = GAMEPAD::ButtonName(*bwSlotBPtr);
-					sprintf(buffer, "%s##B", bwSlotBName);
-					if (GUI_Button(buffer, ImVec2(gpSlotButtonW, 0))) {
-						if (!s_gpCapture.open) {
-							s_gpCapture.open          = true;
-							s_gpCapture.playerIndex   = i;
-							s_gpCapture.actionIndex   = -2; // sentinel for backwards switch
-							s_gpCapture.slotIndex     = 1;
-							s_gpCapture.previewButton = *bwSlotBPtr;
-							s_gpCapture.waitingForRelease = true;
-						}
-					}
-					ImGui::SameLine();
-					sprintf(buffer, "X##clrB");
-					if (GUI_Button(buffer, ImVec2(gpClearButtonW, 0))) {
-						activeCrimsonInput.ButtonConfig.backwardsSwitch[i].slotB = 0;
-						queuedCrimsonInput.ButtonConfig.backwardsSwitch[i].slotB = 0;
-						GUI::save = true;
-					}
-					ImGui::PopID();
-
-					ImGui::PopID();
 				}
 
 				// Switch button character switch toggle
@@ -1042,17 +995,13 @@ void ShowButtonConfigWindow() {
 						queuedButtonConfig[j].slotA = s_defaultBinds[j].slotA;
 						queuedButtonConfig[j].slotB = s_defaultBinds[j].slotB;
 					}
-					// Sync switch button to Vergil
-(*activeConfigInputs[i][1])[16].slotA = s_defaultBinds[16].slotA;
-				(*activeConfigInputs[i][1])[16].slotB = s_defaultBinds[16].slotB;
-				(*queuedConfigInputs[i][1])[16].slotA = s_defaultBinds[16].slotA;
-				(*queuedConfigInputs[i][1])[16].slotB = s_defaultBinds[16].slotB;
-
-					// Restore backwards switch to default
-					activeCrimsonInput.ButtonConfig.backwardsSwitch[i].slotA = GAMEPAD::BACK;
-					activeCrimsonInput.ButtonConfig.backwardsSwitch[i].slotB = GAMEPAD::TOUCHPAD_RIGHT;
-					queuedCrimsonInput.ButtonConfig.backwardsSwitch[i].slotA = GAMEPAD::BACK;
-					queuedCrimsonInput.ButtonConfig.backwardsSwitch[i].slotB = GAMEPAD::TOUCHPAD_RIGHT;
+					// Sync shared actions (SWITCH_BUTTON and BACKWARDS_SWITCH) to Vergil
+					for (int j = 16; j < NUM_GAMEPADBINDS; j++) {
+						(*activeConfigInputs[i][1])[j].slotA = s_defaultBinds[j].slotA;
+						(*activeConfigInputs[i][1])[j].slotB = s_defaultBinds[j].slotB;
+						(*queuedConfigInputs[i][1])[j].slotA = s_defaultBinds[j].slotA;
+						(*queuedConfigInputs[i][1])[j].slotB = s_defaultBinds[j].slotB;
+					}
 
 					activeCrimsonInput.switchButtonCharSwitch[i] = defaultCrimsonInput.switchButtonCharSwitch[i];
 					queuedCrimsonInput.switchButtonCharSwitch[i] = defaultCrimsonInput.switchButtonCharSwitch[i];
@@ -1244,7 +1193,7 @@ void ShowButtonConfigWindow() {
 	}
 
 	// Gamepad capture popup (shown above the main window when capturing a button)
-	if (s_gpCapture.open && s_gpCapture.playerIndex >= 0) {
+	if (s_gpCapture.open && s_gpCapture.actionIndex >= 0 && s_gpCapture.playerIndex >= 0) {
 		const float popupScale = scaleF;
 		float popupWidth  = 420.0f * popupScale;
 		float popupHeight = 200.0f * popupScale;
@@ -1266,10 +1215,8 @@ void ShowButtonConfigWindow() {
 
 			auto gpFontSize = UI::g_UIContext.DefaultFontSize;
 			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[gpFontSize * 1.2f]);
-			const char* actionName = (s_gpCapture.actionIndex == -2)
-				? "BACKWARDS SWITCH"
-				: ((s_gpCapture.actionIndex >= 0 && s_gpCapture.actionIndex < NUM_BINDS_WITHOUT_START)
-					? s_gamepadActionNames[s_gpCapture.actionIndex] : "???");
+			const char* actionName = (s_gpCapture.actionIndex >= 0 && s_gpCapture.actionIndex < NUM_BINDS_WITHOUT_START)
+				? s_gamepadActionNames[s_gpCapture.actionIndex] : "???";
 			ImGui::Text("Rebinding: %s (Slot %c) for %dP", actionName,
 				s_gpCapture.slotIndex == 0 ? 'A' : 'B', s_gpCapture.playerIndex + 1);
 			ImGui::SameLine();
@@ -1325,10 +1272,7 @@ void ToggleCursor() {
 }
 
 void UpdateGamepadConfigCapture() {
-	if (!s_gpCapture.open || s_gpCapture.playerIndex < 0) {
-		return;
-	}
-	if (s_gpCapture.actionIndex < 0 && s_gpCapture.actionIndex != -2) {
+	if (!s_gpCapture.open || s_gpCapture.actionIndex < 0 || s_gpCapture.playerIndex < 0) {
 		return;
 	}
 
@@ -1388,41 +1332,30 @@ void UpdateGamepadConfigCapture() {
 		int j = s_gpCapture.actionIndex;
 		int slot = s_gpCapture.slotIndex;
 
-		if (j == -2) {
-			// Backwards switch (per-player, not per-character)
+		int charSlot = s_selectedCharacterSlotByPlayer[pi];
+		if (charSlot < 0 || charSlot >= 2) charSlot = 0;
+		CrimsonInput::BindPair* activeCfg = (*activeConfigInputs[pi][charSlot]);
+		CrimsonInput::BindPair* queuedCfg = (*queuedConfigInputs[pi][charSlot]);
+
+		if (j >= 16) {
 			if (slot == 0) {
-				activeCrimsonInput.ButtonConfig.backwardsSwitch[pi].slotA = capturedButton;
-				queuedCrimsonInput.ButtonConfig.backwardsSwitch[pi].slotA = capturedButton;
+				(*activeConfigInputs[pi][0])[j].slotA = capturedButton;
+				(*activeConfigInputs[pi][1])[j].slotA = capturedButton;
+				(*queuedConfigInputs[pi][0])[j].slotA = capturedButton;
+				(*queuedConfigInputs[pi][1])[j].slotA = capturedButton;
 			} else {
-				activeCrimsonInput.ButtonConfig.backwardsSwitch[pi].slotB = capturedButton;
-				queuedCrimsonInput.ButtonConfig.backwardsSwitch[pi].slotB = capturedButton;
+				(*activeConfigInputs[pi][0])[j].slotB = capturedButton;
+				(*activeConfigInputs[pi][1])[j].slotB = capturedButton;
+				(*queuedConfigInputs[pi][0])[j].slotB = capturedButton;
+				(*queuedConfigInputs[pi][1])[j].slotB = capturedButton;
 			}
 		} else {
-			int charSlot = s_selectedCharacterSlotByPlayer[pi];
-			if (charSlot < 0 || charSlot >= 2) charSlot = 0;
-			CrimsonInput::BindPair* activeCfg = (*activeConfigInputs[pi][charSlot]);
-			CrimsonInput::BindPair* queuedCfg = (*queuedConfigInputs[pi][charSlot]);
-
-			if (j == (NUM_BINDS_WITHOUT_START - 1)) {
-				if (slot == 0) {
-					(*activeConfigInputs[pi][0])[j].slotA = capturedButton;
-					(*activeConfigInputs[pi][1])[j].slotA = capturedButton;
-					(*queuedConfigInputs[pi][0])[j].slotA = capturedButton;
-					(*queuedConfigInputs[pi][1])[j].slotA = capturedButton;
-				} else {
-					(*activeConfigInputs[pi][0])[j].slotB = capturedButton;
-					(*activeConfigInputs[pi][1])[j].slotB = capturedButton;
-					(*queuedConfigInputs[pi][0])[j].slotB = capturedButton;
-					(*queuedConfigInputs[pi][1])[j].slotB = capturedButton;
-				}
+			if (slot == 0) {
+				activeCfg[j].slotA = capturedButton;
+				queuedCfg[j].slotA = capturedButton;
 			} else {
-				if (slot == 0) {
-					activeCfg[j].slotA = capturedButton;
-					queuedCfg[j].slotA = capturedButton;
-				} else {
-					activeCfg[j].slotB = capturedButton;
-					queuedCfg[j].slotB = capturedButton;
-				}
+				activeCfg[j].slotB = capturedButton;
+				queuedCfg[j].slotB = capturedButton;
 			}
 		}
 		GUI::save = true;
@@ -1546,8 +1479,8 @@ static DWORD WINAPI Hooked_XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pStat
 				BindTable* mainBinds = (BindTable*)(appBaseAddr + 0xD6CE80 + 0xA);
 				uint16_t* btFields = &mainBinds->up;
 
-				for (int a = 0; a < NUM_GAMEPADBINDS; a++) {
-					// Skip custom actions handled by Crimson directly (e.g. Switch Button).
+				for (int a = 0; a < 17; a++) {
+					// Skip custom actions handled by Crimson directly (e.g. Switch Button, Backwards Switch).
 					// These read touchpad zones from activeConfigInputs in their own code
 					// and don't need XInput injection into the game's BindTable.
 					if (a >= 16) continue; 
