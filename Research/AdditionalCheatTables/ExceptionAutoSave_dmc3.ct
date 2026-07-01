@@ -1,0 +1,2062 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CheatTable CheatEngineTableVersion="46">
+  <CheatEntries>
+    <CheatEntry>
+      <ID>17</ID>
+      <Description>"General"</Description>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>1</ID>
+          <Description>"Playtime"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+564590</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>2</ID>
+          <Description>"Progress 1"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+564594</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>3</ID>
+          <Description>"Progress 2"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+564598</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>4</ID>
+          <Description>"Progress 3"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+56459C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>5</ID>
+          <Description>"Progress 4"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+5645A0</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>6</ID>
+          <Description>"Mission"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F250</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>7</ID>
+          <Description>"Event"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F254</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>8</ID>
+          <Description>"Room"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F258</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>9</ID>
+          <Description>"Mode"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F25C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>10</ID>
+          <Description>"One Hit Kill"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F260</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>11</ID>
+          <Description>"Easy Automatic On"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F261</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>12</ID>
+          <Description>"Enable Tutorial"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F262</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>13</ID>
+          <Description>"Use Gold Orb (Uses Yellow Orb if set to 0)"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F263</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>14</ID>
+          <Description>"Character"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F264</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>84</ID>
+          <Description>"Red Orbs"</Description>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F27C</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>25</ID>
+      <Description>"Items"</Description>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>15</ID>
+          <Description>"Gold Orb"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F285</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>16</ID>
+          <Description>"Yellow Orb"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F286</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>18</ID>
+          <Description>"Blue Orb"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F287</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>19</ID>
+          <Description>"Purple Orb"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F288</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>20</ID>
+          <Description>"Blue Orb Fragment"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F289</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>21</ID>
+          <Description>"Vital Star L"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F290</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>22</ID>
+          <Description>"Vital Star S"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F291</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>23</ID>
+          <Description>"Devil Star"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F292</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>24</ID>
+          <Description>"Holy Water"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F293</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>38</ID>
+      <Description>"Unlocks"</Description>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>26</ID>
+          <Description>"Rebellion"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F296</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>27</ID>
+          <Description>"Cerberus"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F297</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>28</ID>
+          <Description>"Agni &amp; Rudra"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F298</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>29</ID>
+          <Description>"Nevan"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F29A</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>30</ID>
+          <Description>"Beowulf"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F29B</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>31</ID>
+          <Description>"Ebony &amp; Ivory"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F29C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>33</ID>
+          <Description>"Shotgun"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F29D</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>32</ID>
+          <Description>"Artemis"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F29E</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>34</ID>
+          <Description>"Spiral"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F29F</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>35</ID>
+          <Description>"Kalina Ann"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2A1</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>36</ID>
+          <Description>"Quicksilver"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2A2</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>37</ID>
+          <Description>"Doppelganger"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2A3</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>40</ID>
+      <Description>"Items Bought"</Description>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>39</ID>
+          <Description>"Vital Star S"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2BE</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>41</ID>
+          <Description>"Vital Star L"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2BF</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>42</ID>
+          <Description>"Devil Star"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2C0</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>43</ID>
+          <Description>"Holy Water"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2C1</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>44</ID>
+          <Description>"Blue Orb"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2C2</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>45</ID>
+          <Description>"Purple Orb"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2C3</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>46</ID>
+          <Description>"Gold Orb"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2C4</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>47</ID>
+          <Description>"Yellow Orb"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2C5</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>59</ID>
+      <Description>"Equipment"</Description>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>48</ID>
+          <Description>"Melee Weapon Slot 1"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2D4</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>49</ID>
+          <Description>"Melee Weapon Slot 2"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2D5</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>50</ID>
+          <Description>"Ranged Weapon Slot 1"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2D6</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>51</ID>
+          <Description>"Ranged Weapon Slot 2"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F2D7</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>52</ID>
+          <Description>"Selected Melee Weapon"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F318</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>53</ID>
+          <Description>"Selected Ranged Weapon"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F31C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>54</ID>
+          <Description>"Costume"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F320</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>55</ID>
+          <Description>"Unlock Devil Trigger"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F321</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>56</ID>
+          <Description>"Hit Points"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F324</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>57</ID>
+          <Description>"DT/Magic Points"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F328</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>58</ID>
+          <Description>"Style"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F32C</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>66</ID>
+      <Description>"Style Level"</Description>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>60</ID>
+          <Description>"Swordmaster Level"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F330</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>61</ID>
+          <Description>"Gunslinger Level"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F334</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>62</ID>
+          <Description>"Trickster/Dark Slayer Level"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F338</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>63</ID>
+          <Description>"Royalguard Level"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F33C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>64</ID>
+          <Description>"Quicksilver Level (No Style EXP though)"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F340</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>65</ID>
+          <Description>"Doppelganger Level (No Style EXP though)"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Byte</VariableType>
+          <Address>dmc3.exe+C8F344</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>73</ID>
+      <Description>"Style EXP"</Description>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>67</ID>
+          <Description>"Swordmaster EXP"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F348</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>68</ID>
+          <Description>"Gunslinger EXP"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F34C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>69</ID>
+          <Description>"Trickster/Dark Slayer EXP"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F350</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>70</ID>
+          <Description>"Royalguard EXP"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F354</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>71</ID>
+          <Description>"Quicksilver EXP (No Style EXP though)"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F358</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>72</ID>
+          <Description>"Doppelganger EXP (No Style EXP though)"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>Float</VariableType>
+          <Address>dmc3.exe+C8F35C</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>82</ID>
+      <Description>"Expertise"</Description>
+      <GroupHeader>1</GroupHeader>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>74</ID>
+          <Description>"Expertise 1"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F360</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>75</ID>
+          <Description>"Expertise 2"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F364</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>76</ID>
+          <Description>"Expertise 3"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F368</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>77</ID>
+          <Description>"Expertise 4"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F36C</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>78</ID>
+          <Description>"Expertise 5"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F370</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>79</ID>
+          <Description>"Expertise 6"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F374</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>80</ID>
+          <Description>"Expertise 7"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F378</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>81</ID>
+          <Description>"Expertise 8"</Description>
+          <ShowAsHex>1</ShowAsHex>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+C8F37C</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>85</ID>
+      <Description>"Turbo Mode"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>Byte</VariableType>
+      <Address>dmc3.exe+D6CEA9</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3456</ID>
+      <Description>"missionData +0"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>4 Bytes</VariableType>
+      <Address>dmc3.exe+168</Address>
+      <Offsets>
+        <Offset>0</Offset>
+        <Offset>C90E30</Offset>
+      </Offsets>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>3521</ID>
+          <Description>"+38 redOrbsCount"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>38</Offset>
+            <Offset>C90E30</Offset>
+          </Offsets>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>3457</ID>
+          <Description>"+3C ItemsCountArray -- Start"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>3C</Offset>
+            <Offset>C90E30</Offset>
+          </Offsets>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>3522</ID>
+          <Description>"+3C ItemsCountArray -- Cerberus"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>53</Offset>
+            <Offset>C90E30</Offset>
+          </Offsets>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>3458</ID>
+          <Description>"+A8 frameCount"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+168</Address>
+          <Offsets>
+            <Offset>A8</Offset>
+            <Offset>C90E30</Offset>
+          </Offsets>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3524</ID>
+      <Description>"SessionData"</Description>
+      <ShowAsSigned>0</ShowAsSigned>
+      <GroupHeader>1</GroupHeader>
+      <Address>dmc3.exe+0xC8F250</Address>
+      <CheatEntries>
+        <CheatEntry>
+          <ID>3525</ID>
+          <Description>"SessionData"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>dmc3.exe+0xC8F250</Address>
+        </CheatEntry>
+        <CheatEntry>
+          <ID>3523</ID>
+          <Description>"Mission ID"</Description>
+          <ShowAsSigned>0</ShowAsSigned>
+          <VariableType>4 Bytes</VariableType>
+          <Address>(SessionData)</Address>
+        </CheatEntry>
+      </CheatEntries>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3527</ID>
+      <Description>"No description"</Description>
+      <ShowAsHex>1</ShowAsHex>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>4 Bytes</VariableType>
+      <Address>dmc3.exe+0xCF3310</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3529</ID>
+      <Description>"No description"</Description>
+      <ShowAsHex>1</ShowAsHex>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>4 Bytes</VariableType>
+      <Address>dmc3.exe+0xCF3310+8</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3528</ID>
+      <Description>"No description"</Description>
+      <ShowAsHex>1</ShowAsHex>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>4 Bytes</VariableType>
+      <Address>dmc3.exe+0xCF3310</Address>
+      <Offsets>
+        <Offset>18</Offset>
+      </Offsets>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3526</ID>
+      <Description>"Save File index a"</Description>
+      <VariableType>4 Bytes</VariableType>
+      <Address>140CF3328</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3530</ID>
+      <Description>"Save File Index b"</Description>
+      <ShowAsHex>1</ShowAsHex>
+      <ShowAsSigned>0</ShowAsSigned>
+      <VariableType>4 Bytes</VariableType>
+      <Address>dmc3.exe+D6F6B8</Address>
+    </CheatEntry>
+    <CheatEntry>
+      <ID>3531</ID>
+      <Description>"No description"</Description>
+      <VariableType>4 Bytes</VariableType>
+      <Address>dmc3.exe+D6F698</Address>
+    </CheatEntry>
+  </CheatEntries>
+  <CheatCodes>
+    <CodeEntry>
+      <Description>Change of mov eax,[dmc3.exe+D6F6B8]</Description>
+      <AddressString>dmc3.exe+33D2E3</AddressString>
+      <Before>
+        <Byte>85</Byte>
+        <Byte>E6</Byte>
+        <Byte>FC</Byte>
+        <Byte>FF</Byte>
+        <Byte>FF</Byte>
+      </Before>
+      <Actual>
+        <Byte>8B</Byte>
+        <Byte>05</Byte>
+        <Byte>CF</Byte>
+        <Byte>23</Byte>
+        <Byte>A3</Byte>
+        <Byte>00</Byte>
+      </Actual>
+      <After>
+        <Byte>83</Byte>
+        <Byte>F8</Byte>
+        <Byte>FF</Byte>
+        <Byte>0F</Byte>
+        <Byte>84</Byte>
+      </After>
+    </CodeEntry>
+  </CheatCodes>
+  <UserdefinedSymbols/>
+  <Structures StructVersion="2">
+    <Structure Name="CMcAppli" AutoFill="0" AutoCreate="1" DefaultHex="0" AutoDestroy="0" DoNotSaveLocal="0" RLECompression="1" AutoCreateStructsize="4096">
+      <Elements>
+        <Element Offset="0" Vartype="Pointer" Bytesize="8" OffsetHex="00000000" DisplayMethod="unsigned integer">
+          <Structure Name="Autocreated from 140508728" AutoFill="0" AutoCreate="1" DefaultHex="0" AutoDestroy="0" DoNotSaveLocal="0" RLECompression="1" AutoCreateStructsize="4096">
+            <Elements>
+              <Element Offset="0" Vartype="Pointer" Bytesize="8" OffsetHex="00000000" DisplayMethod="unsigned integer"/>
+              <Element Offset="8" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000008" DisplayMethod="hexadecimal"/>
+              <Element Offset="12" Vartype="4 Bytes" Bytesize="4" OffsetHex="0000000C" DisplayMethod="unsigned integer"/>
+              <Element Offset="16" Vartype="Pointer" Bytesize="8" OffsetHex="00000010" DisplayMethod="unsigned integer"/>
+              <Element Offset="24" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000018" DisplayMethod="unsigned integer"/>
+              <Element Offset="32" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000020" DisplayMethod="hexadecimal"/>
+              <Element Offset="36" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="00000024" DisplayMethod="unsigned integer"/>
+              <Element Offset="48" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000030" DisplayMethod="hexadecimal"/>
+              <Element Offset="52" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000034" DisplayMethod="unsigned integer"/>
+              <Element Offset="56" Vartype="Pointer" Bytesize="8" OffsetHex="00000038" DisplayMethod="unsigned integer"/>
+              <Element Offset="64" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000040" DisplayMethod="unsigned integer"/>
+              <Element Offset="72" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000048" DisplayMethod="hexadecimal"/>
+              <Element Offset="76" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="0000004C" DisplayMethod="unsigned integer"/>
+              <Element Offset="88" Vartype="Pointer" Bytesize="8" OffsetHex="00000058" DisplayMethod="unsigned integer"/>
+              <Element Offset="96" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="00000060" DisplayMethod="unsigned integer"/>
+              <Element Offset="112" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000070" DisplayMethod="hexadecimal"/>
+              <Element Offset="116" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="00000074" DisplayMethod="unsigned integer"/>
+              <Element Offset="128" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000080" DisplayMethod="hexadecimal"/>
+              <Element Offset="132" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000084" DisplayMethod="unsigned integer"/>
+              <Element Offset="136" Vartype="Pointer" Bytesize="8" OffsetHex="00000088" DisplayMethod="unsigned integer"/>
+              <Element Offset="144" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000090" DisplayMethod="unsigned integer"/>
+              <Element Offset="152" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000098" DisplayMethod="hexadecimal"/>
+              <Element Offset="156" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="0000009C" DisplayMethod="unsigned integer"/>
+              <Element Offset="168" Vartype="Pointer" Bytesize="8" OffsetHex="000000A8" DisplayMethod="unsigned integer"/>
+              <Element Offset="176" Vartype="4 Bytes" Bytesize="4" RLECount="8" OffsetHex="000000B0" DisplayMethod="unsigned integer"/>
+              <Element Offset="208" Vartype="4 Bytes" Bytesize="4" OffsetHex="000000D0" DisplayMethod="hexadecimal"/>
+              <Element Offset="212" Vartype="4 Bytes" Bytesize="4" OffsetHex="000000D4" DisplayMethod="unsigned integer"/>
+              <Element Offset="216" Vartype="Pointer" Bytesize="8" OffsetHex="000000D8" DisplayMethod="unsigned integer"/>
+              <Element Offset="224" Vartype="4 Bytes" Bytesize="4" RLECount="6" OffsetHex="000000E0" DisplayMethod="unsigned integer"/>
+              <Element Offset="248" Vartype="String" Bytesize="5" OffsetHex="000000F8" DisplayMethod="unsigned integer"/>
+              <Element Offset="253" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="000000FD" DisplayMethod="unsigned integer"/>
+              <Element Offset="256" Vartype="Float" Bytesize="4" RLECount="5" OffsetHex="00000100" DisplayMethod="unsigned integer"/>
+              <Element Offset="276" Vartype="Double" Bytesize="8" OffsetHex="00000114" DisplayMethod="unsigned integer"/>
+              <Element Offset="284" Vartype="4 Bytes" Bytesize="4" OffsetHex="0000011C" DisplayMethod="unsigned integer"/>
+              <Element Offset="288" Vartype="String" Bytesize="9" OffsetHex="00000120" DisplayMethod="unsigned integer"/>
+              <Element Offset="297" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="00000129" DisplayMethod="unsigned integer"/>
+              <Element Offset="300" Vartype="4 Bytes" Bytesize="4" OffsetHex="0000012C" DisplayMethod="unsigned integer"/>
+              <Element Offset="304" Vartype="String" Bytesize="11" OffsetHex="00000130" DisplayMethod="unsigned integer"/>
+              <Element Offset="315" Vartype="Byte" Bytesize="1" OffsetHex="0000013B" DisplayMethod="unsigned integer"/>
+              <Element Offset="316" Vartype="4 Bytes" Bytesize="4" OffsetHex="0000013C" DisplayMethod="unsigned integer"/>
+              <Element Offset="320" Vartype="4 Bytes" Bytesize="4" RLECount="5" OffsetHex="00000140" DisplayMethod="hexadecimal"/>
+              <Element Offset="340" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000154" DisplayMethod="unsigned integer"/>
+              <Element Offset="344" Vartype="String" Bytesize="52" OffsetHex="00000158" DisplayMethod="unsigned integer"/>
+              <Element Offset="396" Vartype="4 Bytes" Bytesize="4" RLECount="5" OffsetHex="0000018C" DisplayMethod="unsigned integer"/>
+              <Element Offset="416" Vartype="4 Bytes" Bytesize="4" OffsetHex="000001A0" DisplayMethod="hexadecimal"/>
+              <Element Offset="420" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="000001A4" DisplayMethod="unsigned integer"/>
+              <Element Offset="436" Vartype="4 Bytes" Bytesize="4" OffsetHex="000001B4" DisplayMethod="hexadecimal"/>
+              <Element Offset="440" Vartype="4 Bytes" Bytesize="4" RLECount="10" OffsetHex="000001B8" DisplayMethod="unsigned integer"/>
+              <Element Offset="480" Vartype="4 Bytes" Bytesize="4" OffsetHex="000001E0" DisplayMethod="hexadecimal"/>
+              <Element Offset="484" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="000001E4" DisplayMethod="unsigned integer"/>
+              <Element Offset="500" Vartype="4 Bytes" Bytesize="4" OffsetHex="000001F4" DisplayMethod="hexadecimal"/>
+              <Element Offset="504" Vartype="4 Bytes" Bytesize="4" RLECount="8" OffsetHex="000001F8" DisplayMethod="unsigned integer"/>
+              <Element Offset="536" Vartype="String" Bytesize="42" OffsetHex="00000218" DisplayMethod="unsigned integer"/>
+              <Element Offset="578" Vartype="Byte" Bytesize="1" RLECount="2" OffsetHex="00000242" DisplayMethod="unsigned integer"/>
+              <Element Offset="580" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000244" DisplayMethod="unsigned integer"/>
+              <Element Offset="584" Vartype="String" Bytesize="22" OffsetHex="00000248" DisplayMethod="unsigned integer"/>
+              <Element Offset="606" Vartype="Byte" Bytesize="1" RLECount="2" OffsetHex="0000025E" DisplayMethod="unsigned integer"/>
+              <Element Offset="608" Vartype="String" Bytesize="9" OffsetHex="00000260" DisplayMethod="unsigned integer"/>
+              <Element Offset="617" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="00000269" DisplayMethod="unsigned integer"/>
+              <Element Offset="620" Vartype="4 Bytes" Bytesize="4" OffsetHex="0000026C" DisplayMethod="unsigned integer"/>
+              <Element Offset="624" Vartype="String" Bytesize="15" OffsetHex="00000270" DisplayMethod="unsigned integer"/>
+              <Element Offset="639" Vartype="Byte" Bytesize="1" OffsetHex="0000027F" DisplayMethod="unsigned integer"/>
+              <Element Offset="640" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000280" DisplayMethod="unsigned integer"/>
+              <Element Offset="644" Vartype="String" Bytesize="5" OffsetHex="00000284" DisplayMethod="unsigned integer"/>
+              <Element Offset="649" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="00000289" DisplayMethod="unsigned integer"/>
+              <Element Offset="652" Vartype="String" Bytesize="5" OffsetHex="0000028C" DisplayMethod="unsigned integer"/>
+              <Element Offset="657" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="00000291" DisplayMethod="unsigned integer"/>
+              <Element Offset="660" Vartype="String" Bytesize="5" OffsetHex="00000294" DisplayMethod="unsigned integer"/>
+              <Element Offset="665" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="00000299" DisplayMethod="unsigned integer"/>
+              <Element Offset="668" Vartype="4 Bytes" Bytesize="4" OffsetHex="0000029C" DisplayMethod="unsigned integer"/>
+              <Element Offset="672" Vartype="String" Bytesize="26" OffsetHex="000002A0" DisplayMethod="unsigned integer"/>
+              <Element Offset="698" Vartype="Byte" Bytesize="1" RLECount="2" OffsetHex="000002BA" DisplayMethod="unsigned integer"/>
+              <Element Offset="700" Vartype="String" Bytesize="6" OffsetHex="000002BC" DisplayMethod="unsigned integer"/>
+              <Element Offset="706" Vartype="Byte" Bytesize="1" RLECount="2" OffsetHex="000002C2" DisplayMethod="unsigned integer"/>
+              <Element Offset="708" Vartype="String" Bytesize="7" OffsetHex="000002C4" DisplayMethod="unsigned integer"/>
+              <Element Offset="715" Vartype="Byte" Bytesize="1" OffsetHex="000002CB" DisplayMethod="unsigned integer"/>
+              <Element Offset="716" Vartype="4 Bytes" Bytesize="4" OffsetHex="000002CC" DisplayMethod="hexadecimal"/>
+              <Element Offset="720" Vartype="4 Bytes" Bytesize="4" OffsetHex="000002D0" DisplayMethod="unsigned integer"/>
+              <Element Offset="724" Vartype="Float" Bytesize="4" OffsetHex="000002D4" DisplayMethod="unsigned integer"/>
+              <Element Offset="728" Vartype="String" Bytesize="10" OffsetHex="000002D8" DisplayMethod="unsigned integer"/>
+              <Element Offset="738" Vartype="Byte" Bytesize="1" RLECount="2" OffsetHex="000002E2" DisplayMethod="unsigned integer"/>
+              <Element Offset="740" Vartype="4 Bytes" Bytesize="4" OffsetHex="000002E4" DisplayMethod="unsigned integer"/>
+              <Element Offset="744" Vartype="String" Bytesize="8" OffsetHex="000002E8" DisplayMethod="unsigned integer"/>
+              <Element Offset="752" Vartype="String" Bytesize="6" OffsetHex="000002F0" DisplayMethod="unsigned integer"/>
+              <Element Offset="758" Vartype="Byte" Bytesize="1" RLECount="2" OffsetHex="000002F6" DisplayMethod="unsigned integer"/>
+              <Element Offset="760" Vartype="String" Bytesize="5" OffsetHex="000002F8" DisplayMethod="unsigned integer"/>
+              <Element Offset="765" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="000002FD" DisplayMethod="unsigned integer"/>
+              <Element Offset="768" Vartype="String" Bytesize="9" OffsetHex="00000300" DisplayMethod="unsigned integer"/>
+              <Element Offset="777" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="00000309" DisplayMethod="unsigned integer"/>
+              <Element Offset="780" Vartype="4 Bytes" Bytesize="4" OffsetHex="0000030C" DisplayMethod="unsigned integer"/>
+              <Element Offset="784" Vartype="String" Bytesize="9" OffsetHex="00000310" DisplayMethod="unsigned integer"/>
+              <Element Offset="793" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="00000319" DisplayMethod="unsigned integer"/>
+              <Element Offset="796" Vartype="4 Bytes" Bytesize="4" OffsetHex="0000031C" DisplayMethod="unsigned integer"/>
+              <Element Offset="800" Vartype="String" Bytesize="8" OffsetHex="00000320" DisplayMethod="unsigned integer"/>
+              <Element Offset="808" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000328" DisplayMethod="unsigned integer"/>
+              <Element Offset="812" Vartype="4 Bytes" Bytesize="4" RLECount="31" OffsetHex="0000032C" DisplayMethod="hexadecimal"/>
+              <Element Offset="936" Vartype="Byte" Bytesize="1" OffsetHex="000003A8" DisplayMethod="unsigned integer"/>
+              <Element Offset="937" Vartype="String" Bytesize="4" OffsetHex="000003A9" DisplayMethod="unsigned integer"/>
+              <Element Offset="941" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="000003AD" DisplayMethod="unsigned integer"/>
+              <Element Offset="944" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000003B0" DisplayMethod="hexadecimal"/>
+              <Element Offset="952" Vartype="Float" Bytesize="4" OffsetHex="000003B8" DisplayMethod="unsigned integer"/>
+              <Element Offset="956" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="000003BC" DisplayMethod="hexadecimal"/>
+              <Element Offset="972" Vartype="Float" Bytesize="4" OffsetHex="000003CC" DisplayMethod="unsigned integer"/>
+              <Element Offset="976" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="000003D0" DisplayMethod="hexadecimal"/>
+              <Element Offset="988" Vartype="Float" Bytesize="4" OffsetHex="000003DC" DisplayMethod="unsigned integer"/>
+              <Element Offset="992" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="000003E0" DisplayMethod="hexadecimal"/>
+              <Element Offset="1008" Vartype="Float" Bytesize="4" RLECount="2" OffsetHex="000003F0" DisplayMethod="unsigned integer"/>
+              <Element Offset="1016" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="000003F8" DisplayMethod="hexadecimal"/>
+              <Element Offset="1028" Vartype="Float" Bytesize="4" OffsetHex="00000404" DisplayMethod="unsigned integer"/>
+              <Element Offset="1032" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000408" DisplayMethod="hexadecimal"/>
+              <Element Offset="1040" Vartype="Float" Bytesize="4" OffsetHex="00000410" DisplayMethod="unsigned integer"/>
+              <Element Offset="1044" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000414" DisplayMethod="hexadecimal"/>
+              <Element Offset="1048" Vartype="Byte" Bytesize="1" RLECount="8" OffsetHex="00000418" DisplayMethod="unsigned integer"/>
+              <Element Offset="1056" Vartype="Float" Bytesize="4" OffsetHex="00000420" DisplayMethod="unsigned integer"/>
+              <Element Offset="1060" Vartype="4 Bytes" Bytesize="4" RLECount="17" OffsetHex="00000424" DisplayMethod="hexadecimal"/>
+              <Element Offset="1128" Vartype="Byte" Bytesize="1" OffsetHex="00000468" DisplayMethod="unsigned integer"/>
+              <Element Offset="1129" Vartype="String" Bytesize="6" OffsetHex="00000469" DisplayMethod="unsigned integer"/>
+              <Element Offset="1135" Vartype="Byte" Bytesize="1" OffsetHex="0000046F" DisplayMethod="unsigned integer"/>
+              <Element Offset="1136" Vartype="4 Bytes" Bytesize="4" RLECount="15" OffsetHex="00000470" DisplayMethod="hexadecimal"/>
+              <Element Offset="1196" Vartype="Float" Bytesize="4" OffsetHex="000004AC" DisplayMethod="unsigned integer"/>
+              <Element Offset="1200" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="000004B0" DisplayMethod="hexadecimal"/>
+              <Element Offset="1212" Vartype="Float" Bytesize="4" OffsetHex="000004BC" DisplayMethod="unsigned integer"/>
+              <Element Offset="1216" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000004C0" DisplayMethod="hexadecimal"/>
+              <Element Offset="1224" Vartype="Float" Bytesize="4" OffsetHex="000004C8" DisplayMethod="unsigned integer"/>
+              <Element Offset="1228" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="000004CC" DisplayMethod="hexadecimal"/>
+              <Element Offset="1240" Vartype="Float" Bytesize="4" OffsetHex="000004D8" DisplayMethod="unsigned integer"/>
+              <Element Offset="1244" Vartype="4 Bytes" Bytesize="4" RLECount="5" OffsetHex="000004DC" DisplayMethod="hexadecimal"/>
+              <Element Offset="1264" Vartype="Float" Bytesize="4" OffsetHex="000004F0" DisplayMethod="unsigned integer"/>
+              <Element Offset="1268" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="000004F4" DisplayMethod="hexadecimal"/>
+              <Element Offset="1280" Vartype="Float" Bytesize="4" OffsetHex="00000500" DisplayMethod="unsigned integer"/>
+              <Element Offset="1284" Vartype="4 Bytes" Bytesize="4" RLECount="7" OffsetHex="00000504" DisplayMethod="hexadecimal"/>
+              <Element Offset="1312" Vartype="Float" Bytesize="4" RLECount="2" OffsetHex="00000520" DisplayMethod="unsigned integer"/>
+              <Element Offset="1320" Vartype="4 Bytes" Bytesize="4" RLECount="11" OffsetHex="00000528" DisplayMethod="hexadecimal"/>
+              <Element Offset="1364" Vartype="Byte" Bytesize="1" RLECount="4" OffsetHex="00000554" DisplayMethod="unsigned integer"/>
+              <Element Offset="1368" Vartype="4 Bytes" Bytesize="4" RLECount="22" OffsetHex="00000558" DisplayMethod="hexadecimal"/>
+              <Element Offset="1456" Vartype="Float" Bytesize="4" OffsetHex="000005B0" DisplayMethod="unsigned integer"/>
+              <Element Offset="1460" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000005B4" DisplayMethod="hexadecimal"/>
+              <Element Offset="1468" Vartype="Double" Bytesize="8" OffsetHex="000005BC" DisplayMethod="unsigned integer"/>
+              <Element Offset="1476" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="000005C4" DisplayMethod="hexadecimal"/>
+              <Element Offset="1492" Vartype="Float" Bytesize="4" OffsetHex="000005D4" DisplayMethod="unsigned integer"/>
+              <Element Offset="1496" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="000005D8" DisplayMethod="hexadecimal"/>
+              <Element Offset="1508" Vartype="Float" Bytesize="4" OffsetHex="000005E4" DisplayMethod="unsigned integer"/>
+              <Element Offset="1512" Vartype="4 Bytes" Bytesize="4" OffsetHex="000005E8" DisplayMethod="hexadecimal"/>
+              <Element Offset="1516" Vartype="Float" Bytesize="4" OffsetHex="000005EC" DisplayMethod="unsigned integer"/>
+              <Element Offset="1520" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="000005F0" DisplayMethod="hexadecimal"/>
+              <Element Offset="1532" Vartype="Float" Bytesize="4" OffsetHex="000005FC" DisplayMethod="unsigned integer"/>
+              <Element Offset="1536" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000600" DisplayMethod="hexadecimal"/>
+              <Element Offset="1544" Vartype="Float" Bytesize="4" OffsetHex="00000608" DisplayMethod="unsigned integer"/>
+              <Element Offset="1548" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="0000060C" DisplayMethod="hexadecimal"/>
+              <Element Offset="1560" Vartype="Float" Bytesize="4" OffsetHex="00000618" DisplayMethod="unsigned integer"/>
+              <Element Offset="1564" Vartype="4 Bytes" Bytesize="4" RLECount="35" OffsetHex="0000061C" DisplayMethod="hexadecimal"/>
+              <Element Offset="1704" Vartype="4 Bytes" Bytesize="4" OffsetHex="000006A8" DisplayMethod="unsigned integer"/>
+              <Element Offset="1708" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000006AC" DisplayMethod="hexadecimal"/>
+              <Element Offset="1716" Vartype="Float" Bytesize="4" OffsetHex="000006B4" DisplayMethod="unsigned integer"/>
+              <Element Offset="1720" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000006B8" DisplayMethod="hexadecimal"/>
+              <Element Offset="1728" Vartype="String" Bytesize="4" OffsetHex="000006C0" DisplayMethod="unsigned integer"/>
+              <Element Offset="1732" Vartype="Byte" Bytesize="1" OffsetHex="000006C4" DisplayMethod="unsigned integer"/>
+              <Element Offset="1733" Vartype="String" Bytesize="5" OffsetHex="000006C5" DisplayMethod="unsigned integer"/>
+              <Element Offset="1738" Vartype="Byte" Bytesize="1" RLECount="2" OffsetHex="000006CA" DisplayMethod="unsigned integer"/>
+              <Element Offset="1740" Vartype="Double" Bytesize="8" OffsetHex="000006CC" DisplayMethod="unsigned integer"/>
+              <Element Offset="1748" Vartype="Float" Bytesize="4" OffsetHex="000006D4" DisplayMethod="unsigned integer"/>
+              <Element Offset="1752" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000006D8" DisplayMethod="hexadecimal"/>
+              <Element Offset="1760" Vartype="Float" Bytesize="4" OffsetHex="000006E0" DisplayMethod="unsigned integer"/>
+              <Element Offset="1764" Vartype="4 Bytes" Bytesize="4" OffsetHex="000006E4" DisplayMethod="hexadecimal"/>
+              <Element Offset="1768" Vartype="Float" Bytesize="4" OffsetHex="000006E8" DisplayMethod="unsigned integer"/>
+              <Element Offset="1772" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="000006EC" DisplayMethod="hexadecimal"/>
+              <Element Offset="1784" Vartype="Float" Bytesize="4" OffsetHex="000006F8" DisplayMethod="unsigned integer"/>
+              <Element Offset="1788" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="000006FC" DisplayMethod="hexadecimal"/>
+              <Element Offset="1804" Vartype="Float" Bytesize="4" OffsetHex="0000070C" DisplayMethod="unsigned integer"/>
+              <Element Offset="1808" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000710" DisplayMethod="hexadecimal"/>
+              <Element Offset="1812" Vartype="Byte" Bytesize="1" OffsetHex="00000714" DisplayMethod="unsigned integer"/>
+              <Element Offset="1813" Vartype="String" Bytesize="4" OffsetHex="00000715" DisplayMethod="unsigned integer"/>
+              <Element Offset="1817" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="00000719" DisplayMethod="unsigned integer"/>
+              <Element Offset="1820" Vartype="Float" Bytesize="4" OffsetHex="0000071C" DisplayMethod="unsigned integer"/>
+              <Element Offset="1824" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000720" DisplayMethod="hexadecimal"/>
+              <Element Offset="1832" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000728" DisplayMethod="unsigned integer"/>
+              <Element Offset="1836" Vartype="4 Bytes" Bytesize="4" OffsetHex="0000072C" DisplayMethod="hexadecimal"/>
+              <Element Offset="1840" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="00000730" DisplayMethod="unsigned integer"/>
+              <Element Offset="1843" Vartype="2 Bytes" Bytesize="2" OffsetHex="00000733" DisplayMethod="unsigned integer"/>
+              <Element Offset="1845" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="00000735" DisplayMethod="unsigned integer"/>
+              <Element Offset="1848" Vartype="4 Bytes" Bytesize="4" RLECount="17" OffsetHex="00000738" DisplayMethod="hexadecimal"/>
+              <Element Offset="1916" Vartype="Float" Bytesize="4" OffsetHex="0000077C" DisplayMethod="unsigned integer"/>
+              <Element Offset="1920" Vartype="4 Bytes" Bytesize="4" RLECount="13" OffsetHex="00000780" DisplayMethod="hexadecimal"/>
+              <Element Offset="1972" Vartype="Float" Bytesize="4" OffsetHex="000007B4" DisplayMethod="unsigned integer"/>
+              <Element Offset="1976" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000007B8" DisplayMethod="hexadecimal"/>
+              <Element Offset="1984" Vartype="Float" Bytesize="4" OffsetHex="000007C0" DisplayMethod="unsigned integer"/>
+              <Element Offset="1988" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000007C4" DisplayMethod="hexadecimal"/>
+              <Element Offset="1996" Vartype="Float" Bytesize="4" OffsetHex="000007CC" DisplayMethod="unsigned integer"/>
+              <Element Offset="2000" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000007D0" DisplayMethod="hexadecimal"/>
+              <Element Offset="2008" Vartype="Byte" Bytesize="1" RLECount="5" OffsetHex="000007D8" DisplayMethod="unsigned integer"/>
+              <Element Offset="2013" Vartype="String" Bytesize="4" OffsetHex="000007DD" DisplayMethod="unsigned integer"/>
+              <Element Offset="2017" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="000007E1" DisplayMethod="unsigned integer"/>
+              <Element Offset="2020" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000007E4" DisplayMethod="hexadecimal"/>
+              <Element Offset="2028" Vartype="Float" Bytesize="4" OffsetHex="000007EC" DisplayMethod="unsigned integer"/>
+              <Element Offset="2032" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000007F0" DisplayMethod="hexadecimal"/>
+              <Element Offset="2040" Vartype="Float" Bytesize="4" OffsetHex="000007F8" DisplayMethod="unsigned integer"/>
+              <Element Offset="2044" Vartype="4 Bytes" Bytesize="4" RLECount="6" OffsetHex="000007FC" DisplayMethod="hexadecimal"/>
+              <Element Offset="2068" Vartype="Float" Bytesize="4" OffsetHex="00000814" DisplayMethod="unsigned integer"/>
+              <Element Offset="2072" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000818" DisplayMethod="hexadecimal"/>
+              <Element Offset="2080" Vartype="Float" Bytesize="4" OffsetHex="00000820" DisplayMethod="unsigned integer"/>
+              <Element Offset="2084" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="00000824" DisplayMethod="hexadecimal"/>
+              <Element Offset="2096" Vartype="Float" Bytesize="4" OffsetHex="00000830" DisplayMethod="unsigned integer"/>
+              <Element Offset="2100" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000834" DisplayMethod="hexadecimal"/>
+              <Element Offset="2108" Vartype="4 Bytes" Bytesize="4" OffsetHex="0000083C" DisplayMethod="unsigned integer"/>
+              <Element Offset="2112" Vartype="Double" Bytesize="8" OffsetHex="00000840" DisplayMethod="unsigned integer"/>
+              <Element Offset="2120" Vartype="Float" Bytesize="4" OffsetHex="00000848" DisplayMethod="unsigned integer"/>
+              <Element Offset="2124" Vartype="4 Bytes" Bytesize="4" OffsetHex="0000084C" DisplayMethod="unsigned integer"/>
+              <Element Offset="2128" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="00000850" DisplayMethod="hexadecimal"/>
+              <Element Offset="2140" Vartype="Float" Bytesize="4" OffsetHex="0000085C" DisplayMethod="unsigned integer"/>
+              <Element Offset="2144" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000860" DisplayMethod="hexadecimal"/>
+              <Element Offset="2152" Vartype="Float" Bytesize="4" OffsetHex="00000868" DisplayMethod="unsigned integer"/>
+              <Element Offset="2156" Vartype="4 Bytes" Bytesize="4" RLECount="8" OffsetHex="0000086C" DisplayMethod="hexadecimal"/>
+              <Element Offset="2188" Vartype="Double" Bytesize="8" OffsetHex="0000088C" DisplayMethod="unsigned integer"/>
+              <Element Offset="2196" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="00000894" DisplayMethod="hexadecimal"/>
+              <Element Offset="2208" Vartype="Byte" Bytesize="1" RLECount="8" OffsetHex="000008A0" DisplayMethod="unsigned integer"/>
+              <Element Offset="2216" Vartype="4 Bytes" Bytesize="4" RLECount="16" OffsetHex="000008A8" DisplayMethod="hexadecimal"/>
+              <Element Offset="2280" Vartype="Byte" Bytesize="1" RLECount="5" OffsetHex="000008E8" DisplayMethod="unsigned integer"/>
+              <Element Offset="2285" Vartype="String" Bytesize="4" OffsetHex="000008ED" DisplayMethod="unsigned integer"/>
+              <Element Offset="2289" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="000008F1" DisplayMethod="unsigned integer"/>
+              <Element Offset="2292" Vartype="4 Bytes" Bytesize="4" RLECount="13" OffsetHex="000008F4" DisplayMethod="hexadecimal"/>
+              <Element Offset="2344" Vartype="Float" Bytesize="4" OffsetHex="00000928" DisplayMethod="unsigned integer"/>
+              <Element Offset="2348" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="0000092C" DisplayMethod="hexadecimal"/>
+              <Element Offset="2364" Vartype="Float" Bytesize="4" OffsetHex="0000093C" DisplayMethod="unsigned integer"/>
+              <Element Offset="2368" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="00000940" DisplayMethod="hexadecimal"/>
+              <Element Offset="2384" Vartype="Float" Bytesize="4" OffsetHex="00000950" DisplayMethod="unsigned integer"/>
+              <Element Offset="2388" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="00000954" DisplayMethod="hexadecimal"/>
+              <Element Offset="2404" Vartype="Float" Bytesize="4" OffsetHex="00000964" DisplayMethod="unsigned integer"/>
+              <Element Offset="2408" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000968" DisplayMethod="hexadecimal"/>
+              <Element Offset="2416" Vartype="Float" Bytesize="4" OffsetHex="00000970" DisplayMethod="unsigned integer"/>
+              <Element Offset="2420" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="00000974" DisplayMethod="hexadecimal"/>
+              <Element Offset="2436" Vartype="Float" Bytesize="4" RLECount="2" OffsetHex="00000984" DisplayMethod="unsigned integer"/>
+              <Element Offset="2444" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="0000098C" DisplayMethod="hexadecimal"/>
+              <Element Offset="2460" Vartype="Float" Bytesize="4" OffsetHex="0000099C" DisplayMethod="unsigned integer"/>
+              <Element Offset="2464" Vartype="4 Bytes" Bytesize="4" RLECount="53" OffsetHex="000009A0" DisplayMethod="hexadecimal"/>
+              <Element Offset="2676" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000A74" DisplayMethod="unsigned integer"/>
+              <Element Offset="2680" Vartype="4 Bytes" Bytesize="4" RLECount="13" OffsetHex="00000A78" DisplayMethod="hexadecimal"/>
+              <Element Offset="2732" Vartype="Float" Bytesize="4" OffsetHex="00000AAC" DisplayMethod="unsigned integer"/>
+              <Element Offset="2736" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000AB0" DisplayMethod="hexadecimal"/>
+              <Element Offset="2744" Vartype="Float" Bytesize="4" OffsetHex="00000AB8" DisplayMethod="unsigned integer"/>
+              <Element Offset="2748" Vartype="4 Bytes" Bytesize="4" RLECount="6" OffsetHex="00000ABC" DisplayMethod="hexadecimal"/>
+              <Element Offset="2772" Vartype="Float" Bytesize="4" OffsetHex="00000AD4" DisplayMethod="unsigned integer"/>
+              <Element Offset="2776" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000AD8" DisplayMethod="hexadecimal"/>
+              <Element Offset="2784" Vartype="Float" Bytesize="4" OffsetHex="00000AE0" DisplayMethod="unsigned integer"/>
+              <Element Offset="2788" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="00000AE4" DisplayMethod="hexadecimal"/>
+              <Element Offset="2800" Vartype="Double" Bytesize="8" OffsetHex="00000AF0" DisplayMethod="unsigned integer"/>
+              <Element Offset="2808" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000AF8" DisplayMethod="hexadecimal"/>
+              <Element Offset="2816" Vartype="Float" Bytesize="4" OffsetHex="00000B00" DisplayMethod="unsigned integer"/>
+              <Element Offset="2820" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000B04" DisplayMethod="hexadecimal"/>
+              <Element Offset="2828" Vartype="Float" Bytesize="4" OffsetHex="00000B0C" DisplayMethod="unsigned integer"/>
+              <Element Offset="2832" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000B10" DisplayMethod="hexadecimal"/>
+              <Element Offset="2840" Vartype="Float" Bytesize="4" OffsetHex="00000B18" DisplayMethod="unsigned integer"/>
+              <Element Offset="2844" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="00000B1C" DisplayMethod="hexadecimal"/>
+              <Element Offset="2856" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000B28" DisplayMethod="unsigned integer"/>
+              <Element Offset="2860" Vartype="4 Bytes" Bytesize="4" RLECount="31" OffsetHex="00000B2C" DisplayMethod="hexadecimal"/>
+              <Element Offset="2984" Vartype="Byte" Bytesize="1" RLECount="4" OffsetHex="00000BA8" DisplayMethod="unsigned integer"/>
+              <Element Offset="2988" Vartype="Float" Bytesize="4" RLECount="7" OffsetHex="00000BAC" DisplayMethod="unsigned integer"/>
+              <Element Offset="3016" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000BC8" DisplayMethod="hexadecimal"/>
+              <Element Offset="3020" Vartype="Float" Bytesize="4" OffsetHex="00000BCC" DisplayMethod="unsigned integer"/>
+              <Element Offset="3024" Vartype="4 Bytes" Bytesize="4" RLECount="9" OffsetHex="00000BD0" DisplayMethod="hexadecimal"/>
+              <Element Offset="3060" Vartype="Byte" Bytesize="1" OffsetHex="00000BF4" DisplayMethod="unsigned integer"/>
+              <Element Offset="3061" Vartype="String" Bytesize="9" OffsetHex="00000BF5" DisplayMethod="unsigned integer"/>
+              <Element Offset="3070" Vartype="Byte" Bytesize="1" RLECount="2" OffsetHex="00000BFE" DisplayMethod="unsigned integer"/>
+              <Element Offset="3072" Vartype="4 Bytes" Bytesize="4" RLECount="6" OffsetHex="00000C00" DisplayMethod="hexadecimal"/>
+              <Element Offset="3096" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000C18" DisplayMethod="unsigned integer"/>
+              <Element Offset="3100" Vartype="4 Bytes" Bytesize="4" RLECount="8" OffsetHex="00000C1C" DisplayMethod="hexadecimal"/>
+              <Element Offset="3132" Vartype="String" Bytesize="5" OffsetHex="00000C3C" DisplayMethod="unsigned integer"/>
+              <Element Offset="3137" Vartype="Byte" Bytesize="1" RLECount="2" OffsetHex="00000C41" DisplayMethod="unsigned integer"/>
+              <Element Offset="3139" Vartype="2 Bytes" Bytesize="2" OffsetHex="00000C43" DisplayMethod="unsigned integer"/>
+              <Element Offset="3141" Vartype="Byte" Bytesize="1" RLECount="3" OffsetHex="00000C45" DisplayMethod="unsigned integer"/>
+              <Element Offset="3144" Vartype="4 Bytes" Bytesize="4" RLECount="9" OffsetHex="00000C48" DisplayMethod="hexadecimal"/>
+              <Element Offset="3180" Vartype="Byte" Bytesize="1" RLECount="2" OffsetHex="00000C6C" DisplayMethod="unsigned integer"/>
+              <Element Offset="3182" Vartype="2 Bytes" Bytesize="2" OffsetHex="00000C6E" DisplayMethod="unsigned integer"/>
+              <Element Offset="3184" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="00000C70" DisplayMethod="hexadecimal"/>
+              <Element Offset="3200" Vartype="Byte" Bytesize="1" OffsetHex="00000C80" DisplayMethod="unsigned integer"/>
+              <Element Offset="3201" Vartype="String" Bytesize="5" OffsetHex="00000C81" DisplayMethod="unsigned integer"/>
+              <Element Offset="3206" Vartype="Byte" Bytesize="1" RLECount="2" OffsetHex="00000C86" DisplayMethod="unsigned integer"/>
+              <Element Offset="3208" Vartype="4 Bytes" Bytesize="4" RLECount="16" OffsetHex="00000C88" DisplayMethod="hexadecimal"/>
+              <Element Offset="3272" Vartype="Float" Bytesize="4" RLECount="2" OffsetHex="00000CC8" DisplayMethod="unsigned integer"/>
+              <Element Offset="3280" Vartype="Byte" Bytesize="1" RLECount="4" OffsetHex="00000CD0" DisplayMethod="unsigned integer"/>
+              <Element Offset="3284" Vartype="Float" Bytesize="4" RLECount="5" OffsetHex="00000CD4" DisplayMethod="unsigned integer"/>
+              <Element Offset="3304" Vartype="4 Bytes" Bytesize="4" RLECount="8" OffsetHex="00000CE8" DisplayMethod="hexadecimal"/>
+              <Element Offset="3336" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000D08" DisplayMethod="unsigned integer"/>
+              <Element Offset="3340" Vartype="Byte" Bytesize="1" RLECount="4" OffsetHex="00000D0C" DisplayMethod="unsigned integer"/>
+              <Element Offset="3344" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="00000D10" DisplayMethod="hexadecimal"/>
+              <Element Offset="3360" Vartype="String" Bytesize="6" OffsetHex="00000D20" DisplayMethod="unsigned integer"/>
+              <Element Offset="3366" Vartype="Byte" Bytesize="1" RLECount="2" OffsetHex="00000D26" DisplayMethod="unsigned integer"/>
+              <Element Offset="3368" Vartype="4 Bytes" Bytesize="4" RLECount="32" OffsetHex="00000D28" DisplayMethod="hexadecimal"/>
+              <Element Offset="3496" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000DA8" DisplayMethod="unsigned integer"/>
+              <Element Offset="3500" Vartype="4 Bytes" Bytesize="4" RLECount="15" OffsetHex="00000DAC" DisplayMethod="hexadecimal"/>
+              <Element Offset="3560" Vartype="Float" Bytesize="4" RLECount="8" OffsetHex="00000DE8" DisplayMethod="unsigned integer"/>
+              <Element Offset="3592" Vartype="4 Bytes" Bytesize="4" RLECount="48" OffsetHex="00000E08" DisplayMethod="hexadecimal"/>
+              <Element Offset="3784" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000EC8" DisplayMethod="unsigned integer"/>
+              <Element Offset="3788" Vartype="4 Bytes" Bytesize="4" RLECount="10" OffsetHex="00000ECC" DisplayMethod="hexadecimal"/>
+              <Element Offset="3828" Vartype="Float" Bytesize="4" OffsetHex="00000EF4" DisplayMethod="unsigned integer"/>
+              <Element Offset="3832" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="00000EF8" DisplayMethod="hexadecimal"/>
+              <Element Offset="3848" Vartype="Float" Bytesize="4" RLECount="8" OffsetHex="00000F08" DisplayMethod="unsigned integer"/>
+              <Element Offset="3880" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000F28" DisplayMethod="unsigned integer"/>
+              <Element Offset="3884" Vartype="Float" Bytesize="4" OffsetHex="00000F2C" DisplayMethod="unsigned integer"/>
+              <Element Offset="3888" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="00000F30" DisplayMethod="hexadecimal"/>
+              <Element Offset="3900" Vartype="Float" Bytesize="4" OffsetHex="00000F3C" DisplayMethod="unsigned integer"/>
+              <Element Offset="3904" Vartype="Byte" Bytesize="1" RLECount="4" OffsetHex="00000F40" DisplayMethod="unsigned integer"/>
+              <Element Offset="3908" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000F44" DisplayMethod="hexadecimal"/>
+              <Element Offset="3912" Vartype="Float" Bytesize="4" OffsetHex="00000F48" DisplayMethod="unsigned integer"/>
+              <Element Offset="3916" Vartype="4 Bytes" Bytesize="4" RLECount="10" OffsetHex="00000F4C" DisplayMethod="hexadecimal"/>
+              <Element Offset="3956" Vartype="Float" Bytesize="4" OffsetHex="00000F74" DisplayMethod="unsigned integer"/>
+              <Element Offset="3960" Vartype="4 Bytes" Bytesize="4" RLECount="5" OffsetHex="00000F78" DisplayMethod="hexadecimal"/>
+              <Element Offset="3980" Vartype="Double" Bytesize="8" OffsetHex="00000F8C" DisplayMethod="unsigned integer"/>
+              <Element Offset="3988" Vartype="4 Bytes" Bytesize="4" RLECount="9" OffsetHex="00000F94" DisplayMethod="hexadecimal"/>
+              <Element Offset="4024" Vartype="String" Bytesize="4" OffsetHex="00000FB8" DisplayMethod="unsigned integer"/>
+              <Element Offset="4028" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000FBC" DisplayMethod="hexadecimal"/>
+              <Element Offset="4036" Vartype="Float" Bytesize="4" OffsetHex="00000FC4" DisplayMethod="unsigned integer"/>
+              <Element Offset="4040" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="00000FC8" DisplayMethod="hexadecimal"/>
+              <Element Offset="4052" Vartype="String" Bytesize="4" OffsetHex="00000FD4" DisplayMethod="unsigned integer"/>
+              <Element Offset="4056" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000FD8" DisplayMethod="hexadecimal"/>
+              <Element Offset="4060" Vartype="Byte" Bytesize="1" RLECount="2" OffsetHex="00000FDC" DisplayMethod="unsigned integer"/>
+              <Element Offset="4062" Vartype="2 Bytes" Bytesize="2" OffsetHex="00000FDE" DisplayMethod="unsigned integer"/>
+              <Element Offset="4064" Vartype="Float" Bytesize="4" OffsetHex="00000FE0" DisplayMethod="unsigned integer"/>
+              <Element Offset="4068" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="00000FE4" DisplayMethod="hexadecimal"/>
+              <Element Offset="4080" Vartype="String" Bytesize="6" OffsetHex="00000FF0" DisplayMethod="unsigned integer"/>
+              <Element Offset="4086" Vartype="Byte" Bytesize="1" RLECount="6" OffsetHex="00000FF6" DisplayMethod="unsigned integer"/>
+              <Element Offset="4092" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000FFC" DisplayMethod="hexadecimal"/>
+            </Elements>
+          </Structure>
+        </Element>
+        <Element Offset="8" Vartype="Pointer" Bytesize="8" OffsetHex="00000008" DisplayMethod="unsigned integer"/>
+        <Element Offset="16" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000010" DisplayMethod="hexadecimal"/>
+        <Element Offset="20" Vartype="4 Bytes" Bytesize="4" RLECount="3" OffsetHex="00000014" DisplayMethod="unsigned integer"/>
+        <Element Offset="32" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000020" DisplayMethod="hexadecimal"/>
+        <Element Offset="40" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="00000028" DisplayMethod="unsigned integer"/>
+        <Element Offset="56" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000038" DisplayMethod="hexadecimal"/>
+        <Element Offset="60" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="0000003C" DisplayMethod="unsigned integer"/>
+        <Element Offset="68" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000044" DisplayMethod="hexadecimal"/>
+        <Element Offset="72" Vartype="4 Bytes" Bytesize="4" RLECount="5" OffsetHex="00000048" DisplayMethod="unsigned integer"/>
+        <Element Offset="92" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="0000005C" DisplayMethod="hexadecimal"/>
+        <Element Offset="100" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="00000064" DisplayMethod="unsigned integer"/>
+        <Element Offset="116" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000074" DisplayMethod="hexadecimal"/>
+        <Element Offset="120" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000078" DisplayMethod="unsigned integer"/>
+        <Element Offset="128" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000080" DisplayMethod="hexadecimal"/>
+        <Element Offset="132" Vartype="4 Bytes" Bytesize="4" RLECount="5" OffsetHex="00000084" DisplayMethod="unsigned integer"/>
+        <Element Offset="152" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000098" DisplayMethod="hexadecimal"/>
+        <Element Offset="160" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="000000A0" DisplayMethod="unsigned integer"/>
+        <Element Offset="176" Vartype="4 Bytes" Bytesize="4" OffsetHex="000000B0" DisplayMethod="hexadecimal"/>
+        <Element Offset="180" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000000B4" DisplayMethod="unsigned integer"/>
+        <Element Offset="188" Vartype="4 Bytes" Bytesize="4" OffsetHex="000000BC" DisplayMethod="hexadecimal"/>
+        <Element Offset="192" Vartype="4 Bytes" Bytesize="4" RLECount="5" OffsetHex="000000C0" DisplayMethod="unsigned integer"/>
+        <Element Offset="212" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000000D4" DisplayMethod="hexadecimal"/>
+        <Element Offset="220" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="000000DC" DisplayMethod="unsigned integer"/>
+        <Element Offset="236" Vartype="4 Bytes" Bytesize="4" OffsetHex="000000EC" DisplayMethod="hexadecimal"/>
+        <Element Offset="240" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000000F0" DisplayMethod="unsigned integer"/>
+        <Element Offset="248" Vartype="4 Bytes" Bytesize="4" OffsetHex="000000F8" DisplayMethod="hexadecimal"/>
+        <Element Offset="252" Vartype="4 Bytes" Bytesize="4" RLECount="5" OffsetHex="000000FC" DisplayMethod="unsigned integer"/>
+        <Element Offset="272" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000110" DisplayMethod="hexadecimal"/>
+        <Element Offset="280" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="00000118" DisplayMethod="unsigned integer"/>
+        <Element Offset="296" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000128" DisplayMethod="hexadecimal"/>
+        <Element Offset="300" Vartype="4 Bytes" Bytesize="4" RLECount="8" OffsetHex="0000012C" DisplayMethod="unsigned integer"/>
+        <Element Offset="332" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="0000014C" DisplayMethod="hexadecimal"/>
+        <Element Offset="340" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="00000154" DisplayMethod="unsigned integer"/>
+        <Element Offset="356" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000164" DisplayMethod="hexadecimal"/>
+        <Element Offset="360" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000168" DisplayMethod="unsigned integer"/>
+        <Element Offset="368" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000170" DisplayMethod="hexadecimal"/>
+        <Element Offset="372" Vartype="4 Bytes" Bytesize="4" RLECount="5" OffsetHex="00000174" DisplayMethod="unsigned integer"/>
+        <Element Offset="392" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000188" DisplayMethod="hexadecimal"/>
+        <Element Offset="400" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="00000190" DisplayMethod="unsigned integer"/>
+        <Element Offset="416" Vartype="4 Bytes" Bytesize="4" OffsetHex="000001A0" DisplayMethod="hexadecimal"/>
+        <Element Offset="420" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000001A4" DisplayMethod="unsigned integer"/>
+        <Element Offset="428" Vartype="4 Bytes" Bytesize="4" OffsetHex="000001AC" DisplayMethod="hexadecimal"/>
+        <Element Offset="432" Vartype="4 Bytes" Bytesize="4" RLECount="5" OffsetHex="000001B0" DisplayMethod="unsigned integer"/>
+        <Element Offset="452" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000001C4" DisplayMethod="hexadecimal"/>
+        <Element Offset="460" Vartype="4 Bytes" Bytesize="4" RLECount="7" OffsetHex="000001CC" DisplayMethod="unsigned integer"/>
+        <Element Offset="488" Vartype="4 Bytes" Bytesize="4" OffsetHex="000001E8" DisplayMethod="hexadecimal"/>
+        <Element Offset="492" Vartype="4 Bytes" Bytesize="4" RLECount="5" OffsetHex="000001EC" DisplayMethod="unsigned integer"/>
+        <Element Offset="512" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000200" DisplayMethod="hexadecimal"/>
+        <Element Offset="520" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="00000208" DisplayMethod="unsigned integer"/>
+        <Element Offset="536" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000218" DisplayMethod="hexadecimal"/>
+        <Element Offset="540" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="0000021C" DisplayMethod="unsigned integer"/>
+        <Element Offset="548" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000224" DisplayMethod="hexadecimal"/>
+        <Element Offset="552" Vartype="4 Bytes" Bytesize="4" RLECount="5" OffsetHex="00000228" DisplayMethod="unsigned integer"/>
+        <Element Offset="572" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="0000023C" DisplayMethod="hexadecimal"/>
+        <Element Offset="580" Vartype="4 Bytes" Bytesize="4" RLECount="4" OffsetHex="00000244" DisplayMethod="unsigned integer"/>
+        <Element Offset="596" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000254" DisplayMethod="hexadecimal"/>
+        <Element Offset="600" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="00000258" DisplayMethod="unsigned integer"/>
+        <Element Offset="608" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000260" DisplayMethod="hexadecimal"/>
+        <Element Offset="612" Vartype="4 Bytes" Bytesize="4" RLECount="10" OffsetHex="00000264" DisplayMethod="unsigned integer"/>
+        <Element Offset="652" Vartype="Double" Bytesize="8" OffsetHex="0000028C" DisplayMethod="unsigned integer"/>
+        <Element Offset="660" Vartype="4 Bytes" Bytesize="4" OffsetHex="00000294" DisplayMethod="unsigned integer"/>
+        <Element Offset="664" Vartype="Pointer" Bytesize="8" OffsetHex="00000298" DisplayMethod="unsigned integer"/>
+        <Element Offset="672" Vartype="4 Bytes" Bytesize="4" RLECount="2" OffsetHex="000002A0" DisplayMethod="unsigned integer"/>
+        <Element Offset="680" Vartype="Pointer" Bytesize="8" OffsetHex="000002A8" DisplayMethod="unsigned integer"/>
+        <Element Offset="688" Vartype="4 Bytes" Bytesize="4" RLECount="17" OffsetHex="000002B0" DisplayMethod="unsigned integer"/>
+        <Element Offset="756" Vartype="4 Bytes" Bytesize="4" OffsetHex="000002F4" DisplayMethod="hexadecimal"/>
+        <Element Offset="760" Vartype="4 Bytes" Bytesize="4" RLECount="16" OffsetHex="000002F8" DisplayMethod="unsigned integer"/>
+        <Element Offset="824" Vartype="Pointer" Bytesize="8" OffsetHex="00000338" DisplayMethod="unsigned integer"/>
+        <Element Offset="832" Vartype="4 Bytes" Bytesize="4" RLECount="11" OffsetHex="00000340" DisplayMethod="unsigned integer"/>
+        <Element Offset="876" Vartype="Double" Bytesize="8" OffsetHex="0000036C" DisplayMethod="unsigned integer"/>
+        <Element Offset="884" Vartype="Float" Bytesize="4" RLECount="3" OffsetHex="00000374" DisplayMethod="unsigned integer"/>
+        <Element Offset="896" Vartype="4 Bytes" Bytesize="4" RLECount="8" OffsetHex="00000380" DisplayMethod="hexadecimal"/>
+        <Element Offset="928" Vartype="4 Bytes" Bytesize="4" RLECount="7" OffsetHex="000003A0" DisplayMethod="unsigned integer"/>
+        <Element Offset="956" Vartype="Double" Bytesize="8" OffsetHex="000003BC" DisplayMethod="unsigned integer"/>
+        <Element Offset="964" Vartype="Float" Bytesize="4" RLECount="7" OffsetHex="000003C4" DisplayMethod="unsigned integer"/>
+        <Element Offset="992" Vartype="4 Bytes" Bytesize="4" RLECount="776" OffsetHex="000003E0" DisplayMethod="unsigned integer"/>
+      </Elements>
+    </Structure>
+  </Structures>
+  <DisassemblerComments>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+80644</Address>
+      <Comment>SPAWNS
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+15E710</Address>
+      <Comment>%s scarecrow arm spawn
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+338AA2</Address>
+      <Comment>spawns most enemies
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+338AA4</Address>
+      <Comment>%s
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3AB88A</Address>
+      <Comment>dont nop this it crashes
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3AB8B1</Address>
+      <Comment>no
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3AB8B6</Address>
+      <Comment>no
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3AB8BB</Address>
+      <Comment>no
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3AB8C0</Address>
+      <Comment>no
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3CEDA7</Address>
+      <Comment>crossunder ban distance
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3CEDC8</Address>
+      <Comment>crash 
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3D3445</Address>
+      <Comment>get isLockedOn?
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3D3534</Address>
+      <Comment>part 2 starts here
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3D3710</Address>
+      <Comment>effects
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+3EA52F</Address>
+      <Comment>rk address
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+411B38</Address>
+      <Comment>call to get damage and knockback stuff from files
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+4158DC</Address>
+      <Comment>stops them turning red before exploding
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"DevilMayCry4_DX9.exe"+4DC540</Address>
+      <Comment>SPAWNS
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"Mary.dll"+769B0</Address>
+      <Comment>MoreSetActionMeleeAttack
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>045F8E47</Address>
+      <Comment>mission 19 crash part2
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+300C6</Address>
+      <Comment>Controls something for Character anim
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+558AC</Address>
+      <Comment>Force Fixed Cameras to go 
+to Third Person Camera instead
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+569AD</Address>
+      <Comment>Setting this byte to 1 will trigger locked on cam
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+569E6</Address>
+      <Comment>Arkham Charge Attack Yellow Target Position ?
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+571BC</Address>
+      <Comment>Determine camera's X by player pos
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+5EBC6</Address>
+      <Comment>TPSCamera
+Collision to keep it going to tight spaces
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+60304</Address>
+      <Comment>Camera Hitting Wall ?
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+60306</Address>
+      <Comment>Skip cam collision rotation stop 1
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+60520</Address>
+      <Comment>Skip cam collision rotation stop 2
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+606D1</Address>
+      <Comment>Skip cam collision rotation stop
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+60F43</Address>
+      <Comment>Devil Trigger enemy
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+6105F</Address>
+      <Comment>Checking if it goes into DT
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+616EB</Address>
+      <Comment>Standard Enemy Set Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+616F2</Address>
+      <Comment>followup to standard target pos
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+881F1</Address>
+      <Comment>gets damage
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+881F7</Address>
+      <Comment>gets knockback knockup thing
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+90C9D</Address>
+      <Comment>set aura colour
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+BF553</Address>
+      <Comment>Arachne Set Target Position for Jump Attack
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+C5A40</Address>
+      <Comment>Arachne Set Target Position for Circling Around
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+D5419</Address>
+      <Comment>Dullahan Sword Up Attack Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+D9277</Address>
+      <Comment>EnigmaActualRotationTarget Call
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+E7A12</Address>
+      <Comment>BloodgoyleRotationFunc
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+E7EC2</Address>
+      <Comment>Bloodgoyle Dive Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+E8142</Address>
+      <Comment>BloodgoyleRotationFunc
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+E81CB</Address>
+      <Comment>SoulEaterGrabTargetDetour
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+E94E2</Address>
+      <Comment>Soul Eater goes visible
+
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+EC4CF</Address>
+      <Comment>SoulEaterGrabTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+EF871</Address>
+      <Comment>ChessBishopRotationTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+F25B8</Address>
+      <Comment>ChessPawnAttackTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+F2C98</Address>
+      <Comment>ChessKnightAttackTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+F3DB3</Address>
+      <Comment>ChessBishopAttackTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+F6D89</Address>
+      <Comment>ChessKingAttackTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+10E89E</Address>
+      <Comment>Cerberus Set Position to Target
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+116DD8</Address>
+      <Comment>Cerberus Ice Ball Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+117F33</Address>
+      <Comment>Cerberus Ice From Above Attack Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+12C6ED</Address>
+      <Comment>Nevan's Kiss Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+12CE41</Address>
+      <Comment>Nevan Forward Spikes Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+133D85</Address>
+      <Comment>Apply Nevan Shield Damage 1
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+134548</Address>
+      <Comment>Nevan Lightning Balls Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+135085</Address>
+      <Comment>noping this makes it so nevan never loses her shield
+but it still damages it
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+135097</Address>
+      <Comment>Apply Nevan Shield Damage 2
+
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+136363</Address>
+      <Comment>Nevan Lightning Balls 2 Target Position DON'T YOU LIKE THIS
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+137DBF</Address>
+      <Comment>Nevan Bolt From Above Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+148EEF</Address>
+      <Comment>BeowulfRotateToTargetAttack
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+14AC47</Address>
+      <Comment>Beowulf SetRotation To Target
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1603DC</Address>
+      <Comment>Arkham Leeches Circling Around Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+163DD5</Address>
+      <Comment>Arkham Spikes Attack Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+16725C</Address>
+      <Comment>Arkham Leeches Jump Attack 2 Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1675B3</Address>
+      <Comment>Arkham Leeches Jump Attack Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1871C5</Address>
+      <Comment>Vergil Blink/Trick Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1A2A93</Address>
+      <Comment>EnigmaAimTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1A345A</Address>
+      <Comment>EnigmaAimTarget
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1B269C</Address>
+      <Comment>Vergil Attack After Blocking
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1B6E29</Address>
+      <Comment>Adding to player's hp value (green orb regen)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1B6E34</Address>
+      <Comment>Regenerated using green orbs
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1BB04C</Address>
+      <Comment>Enigma Set Target Position to Aim 1
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1DF20C</Address>
+      <Comment>Set Dante's default expertise
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1DF212</Address>
+      <Comment>Set Dante's default expertise [1]
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1DF220</Address>
+      <Comment>Set Dante's default expertise [3]
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1E64C6</Address>
+      <Comment>start of style actions
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1E65D5</Address>
+      <Comment>sets rdx 11
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1E6D8A</Address>
+      <Comment>SetActionMeleeAttack
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1E7C16</Address>
+      <Comment>Geryon Carriage hit Target Position
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EB689</Address>
+      <Comment>shoot remap
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EB691</Address>
+      <Comment>controller mapping
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EBF42</Address>
+      <Comment>Set actorCameraDirection
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EC45A</Address>
+      <Comment>Determine stagger dmg (on eax) to royal block
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EEDF7</Address>
+      <Comment>257, Release Level 1,
+this will affect RoyalguardReleaseLevel
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EEE27</Address>
+      <Comment>770, Release Level 2
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EEE4A</Address>
+      <Comment>1283, Release Level 3
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1EFC6C</Address>
+      <Comment>Process Lower Part Animation
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1F7086</Address>
+      <Comment>release, attack
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1F8DB0</Address>
+      <Comment>mission 19 actor system crashes here
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA343</Address>
+      <Comment>Level up StyleLevel to lvl 3
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA3D9</Address>
+      <Comment>Level up StyleLevel to lvl 2
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA484</Address>
+      <Comment>Loading player rotation onto r11d
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA48C</Address>
+      <Comment>Loading rotation towards enemy, 
+but still needs calculations (rotationUncalculated)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA493</Address>
+      <Comment>Subtracts uncalculatedRotation to currentRotation 
+(rotationDifference)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA49A</Address>
+      <Comment>if rotationDifference is below or equal 0
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA49C</Address>
+      <Comment>if not, Load in Rotation Offset into eax
+
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4A6</Address>
+      <Comment>if rotationDifference &lt;= rotationOffset
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4A8</Address>
+      <Comment>if not, move rotationOffset into edx
+replacing rotationDifference
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4AB</Address>
+      <Comment>let's do calculations 
+with rotationOffset as basis
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4AD</Address>
+      <Comment>load in RotationOffset into r10d
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4B5</Address>
+      <Comment>move rotationDifference into ecx
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4B8</Address>
+      <Comment>Invert rotationDifference's sign
+inside ecx
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4BD</Address>
+      <Comment>if (rotationDifferenceInverted &lt;= rotationOffset)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4BF</Address>
+      <Comment>if not load rotationOffset into edx
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4C3</Address>
+      <Comment>invert rotationOffset's sign
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4C8</Address>
+      <Comment>let's start Calculations
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4CB</Address>
+      <Comment>move rotationPreppedForCalc into eax
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4D9</Address>
+      <Comment>multiply rotationPreppedForCalc by 360
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4E1</Address>
+      <Comment>multiplying by 0.00001525878906
+therefore normalizing into a range 0 - 1
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA4E9</Address>
+      <Comment>multiply by actor speed
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA509</Address>
+      <Comment>Final step to Set Rotation Towards Enemy, 
+adding to current rotation
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FA50D</Address>
+      <Comment>Set Character Rotation when doing directional move
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC453</Address>
+      <Comment>x motion
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC468</Address>
+      <Comment>black screen
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC47D</Address>
+      <Comment>z motion
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC608</Address>
+      <Comment>multiply by 360
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC617</Address>
+      <Comment>multiply by speed (rbp + 14)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC624</Address>
+      <Comment>divide it by 360
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC63C</Address>
+      <Comment>multiply by player speed
+Determines Character Turn Rate
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC64E</Address>
+      <Comment>divide it by 360
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FC65E</Address>
+      <Comment>Add in to rotation
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+1FDF10</Address>
+      <Comment>attacks and release
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+201251</Address>
+      <Comment>tracking
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+202588</Address>
+      <Comment>Checking TransitionMove?
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20258F</Address>
+      <Comment>Transition from Rising Dragon Launch to Whirlwind
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+209BAE</Address>
+      <Comment>the really cool spin
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20B7F0</Address>
+      <Comment>release??
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20BD57</Address>
+      <Comment>This drains RGGauge on tick until move is completed
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20BD61</Address>
+      <Comment>This is updating RGGauge HUD
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20DAF0</Address>
+      <Comment>compare flicker inertia to 2.0f
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20DAF7</Address>
+      <Comment>if inertia is less than 2, don't kill it
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F53D</Address>
+      <Comment>cmp that stops rave happening
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F53F</Address>
+      <Comment>%s set freefall speed
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F58C</Address>
+      <Comment>rotation of inertia maybe
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F5DD</Address>
+      <Comment>rave 1 motion
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F5FC</Address>
+      <Comment>rave 1 turn speed
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F60B</Address>
+      <Comment>rave 1 push forward
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F61B</Address>
+      <Comment>rave 1 push forward
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+20F63F</Address>
+      <Comment>rave 1 float
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+211BA5</Address>
+      <Comment>crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+215EF3</Address>
+      <Comment>noping this makes the blinding effect go away
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+215F03</Address>
+      <Comment>Differentiate MultiLock/Normal Shot
+If equals goes to MultiLock
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+215F05</Address>
+      <Comment>Normal Shot Func
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+215F0C</Address>
+      <Comment>MultiLock func
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+23D3C1</Address>
+      <Comment>Add to missionData.frameCount
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27C0DD</Address>
+      <Comment>Setting secret mission timer
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27E524</Address>
+      <Comment>style hud falls off left
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27E529</Address>
+      <Comment>style hud falls off
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27E830</Address>
+      <Comment>Red Orb Alpha
+Check if Fade Out is needed
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27E850</Address>
+      <Comment>Red Orb Count Alpha
+Iterating on loop for fade out
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27E85C</Address>
+      <Comment>Reb Orb Count Alpha
+Setting it to 0
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+27E874</Address>
+      <Comment>Red Orb Count Alpha
+Setting max alpha value (127)
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2BAF85</Address>
+      <Comment>%s crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2BAFB3</Address>
+      <Comment>crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2BAFE8</Address>
+      <Comment>crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2BB08C</Address>
+      <Comment>style bar colours
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2BB1BF</Address>
+      <Comment>kills style letter dont nop this
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2BB1C7</Address>
+      <Comment>kills style letter dont nop this
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2C6813</Address>
+      <Comment>Enigma Rotate to Target
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2C688F</Address>
+      <Comment>Dullahan Maybe This is used ? Also Judgement Cut
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+2C68C2</Address>
+      <Comment>Beowulf Attack Distance Function
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+3153EA</Address>
+      <Comment>breaks effect
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+315B92</Address>
+      <Comment>crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+315E92</Address>
+      <Comment>crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+3161EA</Address>
+      <Comment>doesnt reenable
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+32E630</Address>
+      <Comment>BeowulfAttackTargetPos
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>"dmc3.exe"+5CA0C6</Address>
+      <Comment>Sends Knockback Value to Air Slash pt. 1
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>7FF6AEE6AF43</Address>
+      <Comment>%s crash
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>7FF7B30C47B0</Address>
+      <Comment>SetActionMeleeAttack
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
+      <Address>7FF7BE2A5ED0</Address>
+      <Comment>Moving TPS Cam into proper orbit
+</Comment>
+    </DisassemblerComment>
+  </DisassemblerComments>
+</CheatTable>
