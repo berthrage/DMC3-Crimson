@@ -3730,7 +3730,7 @@ static bool IsBackwardsSwitchActive(T& actorData) {
     const auto pi = actorData.newPlayerIndex;
     if (pi >= PLAYER_COUNT) return false;
 
-    // Read from slot 0 (Dante) — shared across characters, like Switch Button.
+    // Read from slot 0 (Dante) — shared across characters, like Doppel Switch Button.
     const auto& bind = (*activeConfigInputs[pi][0])[BINDING::BACKWARDS_SWITCH];
     const uint32 slotA = bind.slotA;
     const uint32 slotB = bind.slotB;
@@ -4848,7 +4848,7 @@ void CharacterSwitchController() {
             }
         }
 
-        // ── Method B: Configurable switch button (single press with cooldown) ──
+        // ── Method B: Configurable Doppel Switch Button (single press with cooldown) ──
         if (activeCrimsonInput.switchButtonCharSwitch[playerIndex]) {
             auto& playerData = GetPlayerData(playerIndex);
 

@@ -178,7 +178,7 @@ static const CrimsonInput::BindPair s_defaultBinds[NUM_GAMEPADBINDS] = {
 	{ GAMEPAD::RIGHT_STICK_CLICK,   0 },                          // DEFAULT CAMERA
 	{ GAMEPAD::BACK,                GAMEPAD::TOUCHPAD_RIGHT },    // TAUNT
 	{ GAMEPAD::START,               0 },                          // START
-	{ GAMEPAD::RIGHT_STICK_CLICK,   0 },                          // SWITCH BUTTON (16)
+	{ GAMEPAD::RIGHT_STICK_CLICK,   0 },                          // DOPPEL_SWITCH_BUTTON (16)
 	{ GAMEPAD::BACK,                GAMEPAD::TOUCHPAD_RIGHT },    // BACKWARDS SWITCH (17)
 };
 
@@ -188,7 +188,7 @@ static const char* s_gamepadActionNames[NUM_BINDS_WITHOUT_START] = {
 	"MELEE ATK", "JUMP", "STYLE", "SHOOT",
 	"DT", "CHANGE GUN", "CHANGE TARGET", "LOCK ON",
 	"CHANGE SWORD", "DEFAULT CAMERA", "TAUNT", "START",
-	"SWITCH BUTTON", "BACKWARDS SWITCH",
+	"DOPPEL SWITCH", "BACKWARDS SWITCH",
 };
 
 static uint8_t GetCharacterBindSlot(const PlayerActorData* actorData) {
@@ -873,9 +873,9 @@ void ShowButtonConfigWindow() {
 				CrimsonInput::BindPair* queuedButtonConfig  = (*queuedConfigInputs[i][selectedSlot]);
 
 				for (int j = 0; j < NUM_BINDS_WITHOUT_START; j++) {
-					const bool isSharedAction = (j >= 16); // SWITCH_BUTTON and BACKWARDS_SWITCH
+					const bool isSharedAction = (j >= 16); // DOPPEL_SWITCH_BUTTON and BACKWARDS_SWITCH
 
-					if (j == 16) { // separator before SWITCH_BUTTON
+					if (j == 16) { // separator before DOPPEL_SWITCH_BUTTON
 						ImGui::Spacing();
 						ImGui::Separator();
 						ImGui::TextDisabled("Per-Player (shared across characters)");
@@ -886,12 +886,11 @@ void ShowButtonConfigWindow() {
 					// Action label
 					ImGui::Text("%s", s_gamepadActionNames[j]);
 					if (j == 16 && ImGui::IsItemHovered()) {
-						ImGui::SetTooltip("Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n"
-							"Double Tap D-pad Up to switch characters. The Switch Button can also be set to Switch Characters with a toggle.");
+						ImGui::SetTooltip("Hold the button while pressing CHANGE GUN/CHANGE SWORD to switch Doppelganger's weapons while it's active.\n"
+							"Double Tap D-pad Up to switch characters. The Doppel Switch Button can also be set to Switch Characters with a toggle.");
 					}
 					if (j == 17 && ImGui::IsItemHovered()) {
-						ImGui::SetTooltip("Hold this button while switching weapons to reverse direction.\n"
-							"Defaults to the TAUNT button.");
+						ImGui::SetTooltip("Hold this button while switching weapons to reverse direction.");
 					}
 
 					// Slot A button
@@ -913,12 +912,11 @@ void ShowButtonConfigWindow() {
 						}
 					}
 					if (j == 16 && ImGui::IsItemHovered()) {
-						ImGui::SetTooltip("Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n"
-							"Double Tap D-pad Up to switch characters. The Switch Button can also be set to Switch Characters with a toggle.");
+						ImGui::SetTooltip("Hold the button while pressing CHANGE GUN/CHANGE SWORD to switch Doppelganger's weapons while it's active.\n"
+							"Double Tap D-pad Up to switch characters. The Doppel Switch Button can also be set to Switch Characters with a toggle.");
 					}
 					if (j == 17 && ImGui::IsItemHovered()) {
-						ImGui::SetTooltip("Hold this button while switching weapons to reverse direction.\n"
-							"Defaults to the TAUNT button.");
+						ImGui::SetTooltip("Hold this button while switching weapons to reverse direction.");
 					}
 					ImGui::SameLine();
 					// Clear slot A
@@ -953,12 +951,11 @@ void ShowButtonConfigWindow() {
 						}
 					}
 					if (j == 16 && ImGui::IsItemHovered()) {
-						ImGui::SetTooltip("Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n"
-							"Double Tap D-pad Up to switch characters. The Switch Button can also be set to Switch Characters with a toggle.");
+						ImGui::SetTooltip("Hold the button while pressing CHANGE GUN/CHANGE SWORD to switch Doppelganger's weapons while it's active.\n"
+							"Double Tap D-pad Up to switch characters. The Doppel Switch Button can also be set to Switch Characters with a toggle.");
 					}
 					if (j == 17 && ImGui::IsItemHovered()) {
-						ImGui::SetTooltip("Hold this button while switching weapons to reverse direction.\n"
-							"Defaults to the TAUNT button.");
+						ImGui::SetTooltip("Hold this button while switching weapons to reverse direction.");
 					}
 					ImGui::SameLine();
 					// Clear slot B
@@ -977,8 +974,8 @@ void ShowButtonConfigWindow() {
 					ImGui::PopID(); // i*100 + j
 				}
 
-				// Switch button character switch toggle
-				GUI_Checkbox2("Use Switch Button for Character Switching",
+				// Doppel Switch character switch toggle
+				GUI_Checkbox2("Use Doppel Switch Button for Character Switching",
 					activeCrimsonInput.switchButtonCharSwitch[i],
 					queuedCrimsonInput.switchButtonCharSwitch[i]);
 
@@ -995,7 +992,7 @@ void ShowButtonConfigWindow() {
 						queuedButtonConfig[j].slotA = s_defaultBinds[j].slotA;
 						queuedButtonConfig[j].slotB = s_defaultBinds[j].slotB;
 					}
-					// Sync shared actions (SWITCH_BUTTON and BACKWARDS_SWITCH) to Vergil
+					// Sync shared actions (DOPPEL_SWITCH_BUTTON and BACKWARDS_SWITCH) to Vergil
 					for (int j = 16; j < NUM_GAMEPADBINDS; j++) {
 						(*activeConfigInputs[i][1])[j].slotA = s_defaultBinds[j].slotA;
 						(*activeConfigInputs[i][1])[j].slotB = s_defaultBinds[j].slotB;
@@ -1480,7 +1477,7 @@ static DWORD WINAPI Hooked_XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pStat
 				uint16_t* btFields = &mainBinds->up;
 
 				for (int a = 0; a < 17; a++) {
-					// Skip custom actions handled by Crimson directly (e.g. Switch Button, Backwards Switch).
+					// Skip custom actions handled by Crimson directly (e.g. Doppel Switch Button, Backwards Switch).
 					// These read touchpad zones from activeConfigInputs in their own code
 					// and don't need XInput injection into the game's BindTable.
 					if (a >= 16) continue; 

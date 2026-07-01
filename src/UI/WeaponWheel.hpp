@@ -148,7 +148,7 @@ namespace WW
         const auto& GetAnalogSwitchingMode() { return m_AnalogSwitching; }
 
 		/// <summary>
-		/// Checks if the button the Switch Button has been held enough for the Analog Switching UI to trigger
+		/// Checks if the button the Doppel Switch Button has been held enough for the Analog Switching UI to trigger
 		/// </summary>
 		/// <param name="isButtonDown">Returns true if the Switching Button has been held long enough, false if not.</param>
         const auto& GetSwitchButtonHeldEnough() { return m_heldLongEnough; }

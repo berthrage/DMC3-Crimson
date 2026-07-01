@@ -3189,8 +3189,10 @@ void Actor_PlayerTab(uint8 playerIndex, size_t defaultFontSize) {
 
 	ImGui::PushItemWidth(itemWidth);
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
-	if (GUI_Checkbox2("Switch characters mid-mission", activeCrimsonGameplay.Gameplay.General.charHotswap, queuedCrimsonGameplay.Gameplay.General.charHotswap)) {}
-	
+	if (GUI_Checkbox2("Character Switching mid-mission", activeCrimsonGameplay.Gameplay.General.charHotswap, queuedCrimsonGameplay.Gameplay.General.charHotswap)) {}
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip("Double Tap D-pad Up to switch characters.");
+
 	GUI_PushDisable(!activeCrimsonGameplay.Gameplay.General.charHotswap);
 	if (!activeCrimsonGameplay.Gameplay.General.charHotswap) {
 		queuedPlayerData.characterCount = 1;
@@ -9849,7 +9851,6 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 			GUI_Checkbox2("Disable Gamepad Shortcut",
 				activeCrimsonConfig.GUI.disableGamepadShortcut, queuedCrimsonConfig.GUI.disableGamepadShortcut);
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Helpful for those who want to use LS + RS as the Switch Button.");
 	
 
 			ImGui::EndTable();
