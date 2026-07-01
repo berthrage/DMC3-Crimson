@@ -303,6 +303,21 @@ static void __fastcall sub_1401EB170(PlayerActorData* a1) {
     mainBinds->start           = BINDVAL(15);
     mainBinds->switch_button   = BINDVAL(16);
 
+    // START-rebound BindTable correction 
+    // When the START action (index 15) no longer includes GAMEPAD::START,
+    // any other action bound ONLY to START would break: Hooked_XInputGetState
+    // strips 0x0010 from wButtons, leaving nothing to match the BindTable.
+    // Fix: replace those entries with the action's default button.
+    if ((mainBinds->start & GAMEPAD::START) == 0) {
+        uint16_t* fields = &mainBinds->up;
+        for (int a = 0; a < NUM_GAMEPADBINDS; a++) {
+            if (a == 15) continue;
+            if (fields[a] == GAMEPAD::START) {
+                fields[a] = (uint16_t)s_defaultBinds[a].slotA;
+            }
+        }
+    }
+
     #undef BINDVAL
 
     s_ButtonToActionHook->GetTrampoline<decltype(&sub_1401EB170)>()(a1);
@@ -1277,7 +1292,7 @@ void UpdateGamepadConfigCapture() {
 		return;
 	}
 
-	// ── Detect touchpad press (rising edge) → capture immediately ──
+	// Detect touchpad press (rising edge) → capture immediately 
 	if (curTouchpad != 0 && s_prevTouchpad == 0) {
 		ApplyBinding(curTouchpad);
 		s_prevButtons  = curButtons;
@@ -1354,6 +1369,91 @@ static DWORD WINAPI Hooked_XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pStat
 					}
 				}
 				
+			}
+		}
+
+		// Bidirectional START remapping 
+		// The game's pause menu reads raw gamepad state (System B), bypassing
+		// the BindTable (System A). We bridge both directions:
+		//   1. Non-START button → START action: inject 0x0010 into wButtons.
+		//   2. Physical START → other action: strip 0x0010 from wButtons and
+		//      re-inject the other action's button bits so System A still fires.
+		{
+			int pi = (int)dwUserIndex;
+			const auto cs = GetCharacterBindSlotFromPlayerIndex(pi);
+			const CrimsonInput::BindPair* binds = (*activeConfigInputs[pi][cs]);
+
+			// START action (index 15) — what the user configured for "pause"
+			uint32_t startA = (binds[15].slotA <= 0xFFFF) ? binds[15].slotA : 0;
+			uint32_t startB = (binds[15].slotB <= 0xFFFF) ? binds[15].slotB : 0;
+			uint32_t startBinding = startA | startB;
+
+			bool physicalStartDown = (pState->Gamepad.wButtons & 0x0010) != 0;
+
+			// All standard GAMEPAD bits that have XInput equivalents (excl. combos/touchpad).
+			static constexpr uint32_t kAllGpBits[] = {
+				GAMEPAD::LEFT_TRIGGER, GAMEPAD::RIGHT_TRIGGER,
+				GAMEPAD::LEFT_SHOULDER, GAMEPAD::RIGHT_SHOULDER,
+				GAMEPAD::Y, GAMEPAD::B, GAMEPAD::A, GAMEPAD::X,
+				GAMEPAD::BACK, GAMEPAD::LEFT_STICK_CLICK, GAMEPAD::RIGHT_STICK_CLICK,
+				GAMEPAD::START,
+				GAMEPAD::UP, GAMEPAD::RIGHT, GAMEPAD::DOWN, GAMEPAD::LEFT,
+			};
+
+			if (physicalStartDown) {
+				// Physical START button pressed on the controller 
+				if ((startBinding & GAMEPAD::START) == 0) {
+					// START action no longer includes physical START — suppress pause.
+					pState->Gamepad.wButtons &= ~((WORD)0x0010);
+
+					// Re-inject alternate buttons for any other action whose binding
+					// includes GAMEPAD::START, so the BindTable (System A) still fires.
+					for (int a = 0; a < NUM_GAMEPADBINDS; a++) {
+						if (a == 15) continue; // skip START action itself
+
+						uint32_t bA = (binds[a].slotA <= 0xFFFF) ? binds[a].slotA : 0;
+						uint32_t bB = (binds[a].slotB <= 0xFFFF) ? binds[a].slotB : 0;
+						uint32_t actionBinding = bA | bB;
+
+						if ((actionBinding & GAMEPAD::START) == 0) continue;
+
+						// Extract non-START bits from this action's binding and
+						// convert each to its XInput equivalent.
+						uint32_t altBits = actionBinding & ~GAMEPAD::START;
+						if (altBits != 0) {
+							for (uint32_t bit : kAllGpBits) {
+								if (altBits & bit) {
+									uint16_t xiBit = GAMEPAD::ToXInput(bit);
+									if (xiBit)
+										pState->Gamepad.wButtons |= xiBit;
+								}
+							}
+						} else {
+							// Action is bound ONLY to START — fall back to the default
+							// button (coordinated with BindTable correction in
+							// sub_1401EB170 which already replaced START with the default).
+							uint16_t xiBit = GAMEPAD::ToXInput(s_defaultBinds[a].slotA);
+							if (xiBit)
+								pState->Gamepad.wButtons |= xiBit;
+						}
+					}
+				}
+				// else: START action still includes physical START — let it pass natively.
+			} else {
+				// Physical START NOT pressed 
+				// If a non-START button is bound to START action, inject 0x0010
+				// when that button is pressed.
+				if (startBinding != 0 && startBinding != GAMEPAD::START) {
+					uint32_t gpButtons = GAMEPAD::FromXInput(pState->Gamepad.wButtons);
+
+					bool boundPressed = false;
+					if (startA != 0 && (gpButtons & startA)) boundPressed = true;
+					if (startB != 0 && (gpButtons & startB)) boundPressed = true;
+
+					if (boundPressed) {
+						pState->Gamepad.wButtons |= 0x0010;
+					}
+				}
 			}
 		}
 	}
