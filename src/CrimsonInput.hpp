@@ -165,16 +165,12 @@ struct CrimsonInput {
 
 	float vibrationIntensity[PLAYER_COUNT] = { 100.0f, 100.0f, 100.0f, 100.0f };
 
-	// 0 = Halves (Left/Right), 1 = Quadrants (4 zones)
-	uint8_t touchpadDivisionMode[PLAYER_COUNT] = { 0, 0, 0, 0 };
-
 	static constexpr auto Metadata() {
 		return std::make_tuple(
 			std::make_pair("ButtonConfig", &CrimsonInput::ButtonConfig),
 			std::make_pair("KeyboardConfig", &CrimsonInput::KeyboardConfig),
 			std::make_pair("switchButtonCharSwitch", &CrimsonInput::switchButtonCharSwitch),
-			std::make_pair("vibrationIntensity", &CrimsonInput::vibrationIntensity),
-			std::make_pair("touchpadDivisionMode", &CrimsonInput::touchpadDivisionMode)
+			std::make_pair("vibrationIntensity", &CrimsonInput::vibrationIntensity)
 		);
 	}
 };

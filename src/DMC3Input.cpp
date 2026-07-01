@@ -279,16 +279,11 @@ static void __fastcall sub_1401EB170(PlayerActorData* a1) {
 
     const CrimsonInput::BindPair* configBinds = (*activeConfigInputs[playerIndex][characterSlot]);
 
-    // Combine both slots. Touchpad zones (> 0xFFFF) are excluded from BindTable.
-    // When both standard slots are empty but a touchpad zone is bound,
-    // fall back to the default button so injection has something to match against.
+    // Combine both slots. Touchpad zones (> 0xFFFF) are excluded from BindTable
+    // and handled via gamepad state injection in Hooked_XInputGetState.
     #define BINDVAL(idx) (uint16_t)( \
         ((configBinds[idx].slotA <= 0xFFFF ? configBinds[idx].slotA : 0) | \
-         (configBinds[idx].slotB <= 0xFFFF ? configBinds[idx].slotB : 0) | \
-         (((configBinds[idx].slotA <= 0xFFFF ? configBinds[idx].slotA : 0) == 0 && \
-           (configBinds[idx].slotB <= 0xFFFF ? configBinds[idx].slotB : 0) == 0 && \
-           (GAMEPAD::IsTouchpadZone(configBinds[idx].slotA) || GAMEPAD::IsTouchpadZone(configBinds[idx].slotB))) \
-          ? s_defaultBinds[idx].slotA : 0u)) & 0xFFFF)
+         (configBinds[idx].slotB <= 0xFFFF ? configBinds[idx].slotB : 0)) & 0xFFFF)
 
     mainBinds->up              = BINDVAL(0);
     mainBinds->down            = BINDVAL(1);
@@ -561,6 +556,8 @@ struct GPCaptureState {
     int    slotIndex     = 0;     // 0 = A (primary), 1 = B (secondary)
     uint32_t previewButton = 0;
     bool   waitingForRelease = false; // skip the button that opened the popup
+    std::chrono::steady_clock::time_point bHoldStart;
+    bool   bHoldTracking = false;       // B-track is being held; updated every frame
 };
 
 static GPCaptureState s_gpCapture;
@@ -645,13 +642,17 @@ void ShowButtonConfigWindow() {
 			// ======================== CONTROLLER TAB ========================
 			char buffer[64] = {};
 			const float gpRowLabelX = 170.0f * scaleY;
-			const float gpSlotButtonW = 150.0f * scaleY;
+			const float gpSlotButtonW = 172.5f * scaleY;
 			const float gpClearButtonW = 22.0f * scaleY;
 			const float gpListHeight = height - 280.0f * scaleY;
 
 			ImGui::BeginChild("##gp_scroll", ImVec2(0, gpListHeight), false); {
 
+		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(20.0f * scaleF, 20.0f * scaleF));
+			if (ImGui::BeginTable("##players", 2, ImGuiTableFlags_BordersInnerV)) {
+
 			for (int i = 0; i < nplayers && i < PLAYER_COUNT; i++) {
+				ImGui::TableNextColumn();
 				sprintf(buffer, "%dP", i + 1);
 				ImGui::Separator();
 				ImGui::Text(buffer);
@@ -734,21 +735,6 @@ void ShowButtonConfigWindow() {
 					}
 				}
 
-				// Touchpad division mode
-				{
-					const char* divisionModes[] = { "Halves (Left/Right)", "Quadrants (4 Zones)" };
-					ImGui::SameLine();
-					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 20.0f * scaleF);
-					ImGui::Text("Touchpad:");
-					ImGui::SameLine();
-					int divMode = (int)activeCrimsonInput.touchpadDivisionMode[i];
-					sprintf(buffer, "##tpdiv%d", i);
-					if (ImGui::Combo(buffer, &divMode, divisionModes, 2)) {
-						activeCrimsonInput.touchpadDivisionMode[i] = (uint8_t)divMode;
-						queuedCrimsonInput.touchpadDivisionMode[i] = (uint8_t)divMode;
-						GUI::save = true;
-					}
-				}
 
 				// Dante/Vergil character tabs
 				int& selectedSlot = s_selectedCharacterSlotByPlayer[i];
@@ -776,13 +762,6 @@ void ShowButtonConfigWindow() {
 
 				CrimsonInput::BindPair* activeButtonConfig  = (*activeConfigInputs[i][selectedSlot]);
 				CrimsonInput::BindPair* queuedButtonConfig  = (*queuedConfigInputs[i][selectedSlot]);
-
-				// Column headers
-				ImGui::Text("Action");
-				ImGui::SameLine(gpRowLabelX);
-				ImGui::Text("Slot A");
-				ImGui::SameLine(gpRowLabelX + gpSlotButtonW + gpClearButtonW + 10.0f * scaleF);
-				ImGui::Text("Slot B");
 
 				for (int j = 0; j < NUM_BINDS_WITHOUT_START; j++) {
 					if (j == (NUM_BINDS_WITHOUT_START - 1)) {
@@ -869,11 +848,10 @@ void ShowButtonConfigWindow() {
 					queuedCrimsonInput.switchButtonCharSwitch[i]);
 
 				// Vibration intensity
-				GUI_Slider2Float("Vibration Intensity",
-					activeCrimsonInput.vibrationIntensity[i],
-					queuedCrimsonInput.vibrationIntensity[i],
-					0.0f, 100.0f, 1.0f, "%.0f%%");
-
+			GUI_Slider2Float("Vibration Intensity",
+				activeCrimsonInput.vibrationIntensity[i],
+				queuedCrimsonInput.vibrationIntensity[i],
+				0.0f, 100.0f, 1.0f, "%.0f%%");
 				// Restore Defaults
 				if (GUI_Button("Restore Defaults")) {
 					for (int j = 0; j < NUM_BINDS_WITHOUT_START; j++) {
@@ -892,12 +870,13 @@ void ShowButtonConfigWindow() {
 					queuedCrimsonInput.switchButtonCharSwitch[i] = defaultCrimsonInput.switchButtonCharSwitch[i];
 					activeCrimsonInput.vibrationIntensity[i] = defaultCrimsonInput.vibrationIntensity[i];
 					queuedCrimsonInput.vibrationIntensity[i] = defaultCrimsonInput.vibrationIntensity[i];
-					activeCrimsonInput.touchpadDivisionMode[i] = defaultCrimsonInput.touchpadDivisionMode[i];
-					queuedCrimsonInput.touchpadDivisionMode[i] = defaultCrimsonInput.touchpadDivisionMode[i];
 					GUI::save = true;
 				}
 			}
 
+			ImGui::EndTable();
+			ImGui::PopStyleVar();
+			}
 			}
 			ImGui::EndChild();
 
@@ -1122,9 +1101,9 @@ void ShowButtonConfigWindow() {
 			ImGui::Text("");
 
 			if (s_gpCapture.waitingForRelease) {
-				CenterText("Release all buttons, then press a gamepad button...");
+				CenterText("Release all buttons, then press any button to capture...");
 			} else {
-				CenterText("START to confirm, B to cancel");
+				CenterText("Press any button to capture.  Hold B for 1s to cancel.");
 			}
 		}
 		ImGui::End();
@@ -1208,93 +1187,114 @@ void UpdateGamepadConfigCapture() {
 	uint32_t curButtons = xiValid ? GAMEPAD::FromXInput(xiState.Gamepad.wButtons) : 0;
 	uint32_t curTouchpad = 0;
 	if (sdlPad) {
-		bool useQuadrants = (activeCrimsonInput.touchpadDivisionMode[pi] != 0);
-		curTouchpad = CrimsonSDL::GetTouchpadZone(sdlPad, useQuadrants);
+		curTouchpad = CrimsonSDL::GetTouchpadZone(sdlPad);
 	}
 
-	// Handle START (confirm) and B (cancel) — check in GAMEPAD format
-	if (xiValid) {
-		// START to confirm (rising edge)
-		if ((curButtons & GAMEPAD::START) && !(s_prevButtons & GAMEPAD::START)) {
-			if (!s_gpCapture.waitingForRelease && s_gpCapture.previewButton != 0) {
-				int j = s_gpCapture.actionIndex;
-				int slot = s_gpCapture.slotIndex;
-				int charSlot = s_selectedCharacterSlotByPlayer[pi];
-				if (charSlot < 0 || charSlot >= 2) charSlot = 0;
-				CrimsonInput::BindPair* activeCfg = (*activeConfigInputs[pi][charSlot]);
-				CrimsonInput::BindPair* queuedCfg = (*queuedConfigInputs[pi][charSlot]);
+	// ── Confirm helper: apply the captured binding and close the popup ──
+	auto ApplyBinding = [&](uint32_t capturedButton) {
+		int j = s_gpCapture.actionIndex;
+		int slot = s_gpCapture.slotIndex;
+		int charSlot = s_selectedCharacterSlotByPlayer[pi];
+		if (charSlot < 0 || charSlot >= 2) charSlot = 0;
+		CrimsonInput::BindPair* activeCfg = (*activeConfigInputs[pi][charSlot]);
+		CrimsonInput::BindPair* queuedCfg = (*queuedConfigInputs[pi][charSlot]);
 
-				if (j == (NUM_BINDS_WITHOUT_START - 1)) {
-					if (slot == 0) {
-						(*activeConfigInputs[pi][0])[j].slotA = s_gpCapture.previewButton;
-						(*activeConfigInputs[pi][1])[j].slotA = s_gpCapture.previewButton;
-						(*queuedConfigInputs[pi][0])[j].slotA = s_gpCapture.previewButton;
-						(*queuedConfigInputs[pi][1])[j].slotA = s_gpCapture.previewButton;
-					} else {
-						(*activeConfigInputs[pi][0])[j].slotB = s_gpCapture.previewButton;
-						(*activeConfigInputs[pi][1])[j].slotB = s_gpCapture.previewButton;
-						(*queuedConfigInputs[pi][0])[j].slotB = s_gpCapture.previewButton;
-						(*queuedConfigInputs[pi][1])[j].slotB = s_gpCapture.previewButton;
-					}
-				} else {
-					if (slot == 0) {
-						activeCfg[j].slotA = s_gpCapture.previewButton;
-						queuedCfg[j].slotA = s_gpCapture.previewButton;
-					} else {
-						activeCfg[j].slotB = s_gpCapture.previewButton;
-						queuedCfg[j].slotB = s_gpCapture.previewButton;
-					}
-				}
-				GUI::save = true;
-				s_gpCapture.open = false;
-				s_gpCapture.actionIndex = -1;
+		if (j == (NUM_BINDS_WITHOUT_START - 1)) {
+			if (slot == 0) {
+				(*activeConfigInputs[pi][0])[j].slotA = capturedButton;
+				(*activeConfigInputs[pi][1])[j].slotA = capturedButton;
+				(*queuedConfigInputs[pi][0])[j].slotA = capturedButton;
+				(*queuedConfigInputs[pi][1])[j].slotA = capturedButton;
+			} else {
+				(*activeConfigInputs[pi][0])[j].slotB = capturedButton;
+				(*activeConfigInputs[pi][1])[j].slotB = capturedButton;
+				(*queuedConfigInputs[pi][0])[j].slotB = capturedButton;
+				(*queuedConfigInputs[pi][1])[j].slotB = capturedButton;
 			}
-			s_prevButtons = curButtons;
-			s_prevTouchpad = curTouchpad;
-			return;
+		} else {
+			if (slot == 0) {
+				activeCfg[j].slotA = capturedButton;
+				queuedCfg[j].slotA = capturedButton;
+			} else {
+				activeCfg[j].slotB = capturedButton;
+				queuedCfg[j].slotB = capturedButton;
+			}
 		}
+		GUI::save = true;
+		s_gpCapture.open = false;
+		s_gpCapture.actionIndex = -1;
+		s_gpCapture.bHoldTracking = false;
+	};
 
-		// B to cancel (rising edge)
-		if ((curButtons & GAMEPAD::B) && !(s_prevButtons & GAMEPAD::B)) {
+	// ── B-hold cancel tracking ──
+	// B is capturable, but uses hold-to-cancel: release before 1s = capture,
+	// hold for 1s = cancel.
+	bool bDownNow = (curButtons & GAMEPAD::B) != 0;
+	bool bWasDown = (s_prevButtons & GAMEPAD::B) != 0;
+	if (bDownNow && !bWasDown) {
+		// B just pressed — start hold timer
+		s_gpCapture.bHoldTracking = true;
+		s_gpCapture.bHoldStart    = std::chrono::steady_clock::now();
+	} else if (!bDownNow && bWasDown && s_gpCapture.bHoldTracking) {
+		// B just released — capture it if still within the tracking window
+		s_gpCapture.bHoldTracking = false;
+		if (!s_gpCapture.waitingForRelease) {
+			auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+				std::chrono::steady_clock::now() - s_gpCapture.bHoldStart).count();
+			if (elapsed < 1000) {
+				ApplyBinding(GAMEPAD::B);
+				s_prevButtons  = curButtons;
+				s_prevTouchpad = curTouchpad;
+				return;
+			}
+		}
+	}
+
+	if (s_gpCapture.bHoldTracking && !s_gpCapture.waitingForRelease) {
+		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::steady_clock::now() - s_gpCapture.bHoldStart).count();
+		if (elapsed >= 1000) {
+			// Cancel: B held for 1 second
 			s_gpCapture.open = false;
 			s_gpCapture.actionIndex = -1;
-			s_prevButtons = curButtons;
+			s_gpCapture.bHoldTracking = false;
+			s_prevButtons  = curButtons;
 			s_prevTouchpad = curTouchpad;
 			return;
 		}
 	}
 
-	// Waiting-for-release phase: skip until all buttons are released,
-	// then reset edge-detection state so the first press is cleanly detected.
+	// ── Waiting-for-release phase ──
 	if (s_gpCapture.waitingForRelease) {
 		if (curButtons == 0 && curTouchpad == 0) {
 			s_gpCapture.waitingForRelease = false;
-			s_prevButtons = 0;
+			s_prevButtons  = 0;
 			s_prevTouchpad = 0;
 		} else {
-			s_prevButtons = curButtons;
+			s_prevButtons  = curButtons;
 			s_prevTouchpad = curTouchpad;
 		}
 		return;
 	}
 
-	// Detect touchpad press (rising edge: was 0, now non-zero)
+	// ── Detect touchpad press (rising edge) → capture immediately ──
 	if (curTouchpad != 0 && s_prevTouchpad == 0) {
-		s_gpCapture.previewButton = curTouchpad;
-		s_prevButtons = curButtons;
+		ApplyBinding(curTouchpad);
+		s_prevButtons  = curButtons;
 		s_prevTouchpad = curTouchpad;
 		return;
 	}
 
-	// Detect XInput button press: find newly-pressed bits (rising edges)
+	// ── Detect XInput button press (rising edges) → capture immediately ──
+	// B is handled by the hold-to-cancel tracker above; all other buttons
+	// (including START) are captured on the first rising edge.
 	uint32_t newButtons = curButtons & ~s_prevButtons;
-	if (newButtons != 0) {
-		// Map the first newly-pressed bit back to a GAMEPAD constant
-		// Since GAMEPAD enum values ARE the XInput wButtons bits, we can use the bit directly
-		s_gpCapture.previewButton = newButtons;
+	uint32_t captureButtons = newButtons & ~(uint32_t)GAMEPAD::B;
+	if (captureButtons != 0) {
+		ApplyBinding(captureButtons);
 	}
 
-	s_prevButtons = curButtons;
+	s_prevButtons  = curButtons;
 	s_prevTouchpad = curTouchpad;
 }
 
@@ -1328,9 +1328,7 @@ static DWORD WINAPI Hooked_XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pStat
 		}
 
 		if (sdlPad) {
-			uint32_t touchZone = CrimsonSDL::GetTouchpadZone(sdlPad, false);
-			if (touchZone == 0)
-				touchZone = CrimsonSDL::GetTouchpadZone(sdlPad, true);
+			uint32_t touchZone = CrimsonSDL::GetTouchpadZone(sdlPad);
 
 			if (touchZone != 0) {
 				int pi = (int)dwUserIndex;
@@ -1338,20 +1336,18 @@ static DWORD WINAPI Hooked_XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pStat
 				const auto cs = GetCharacterBindSlotFromPlayerIndex(pi);
 				const CrimsonInput::BindPair* binds = (*activeConfigInputs[pi][cs]);
 				for (int a = 0; a < NUM_GAMEPADBINDS; a++) {
+					// Skip custom actions handled by Crimson directly (e.g. Switch Button).
+					// These read touchpad zones from activeConfigInputs in their own code
+					// and don't need XInput injection into the game's BindTable.
+					if (a >= 16) continue; 
+
 					uint32_t injectBtn = 0;
-					if (GAMEPAD::TouchpadZoneMatches(binds[a].slotA, touchZone))
-						injectBtn = (binds[a].slotB > 0 && binds[a].slotB <= 0xFFFF) ? binds[a].slotB : 0;
-					else if (GAMEPAD::TouchpadZoneMatches(binds[a].slotB, touchZone))
-						injectBtn = (binds[a].slotA > 0 && binds[a].slotA <= 0xFFFF) ? binds[a].slotA : 0;
-					else
-						continue; // This action has no touchpad binding matching the pressed zone
+					if (GAMEPAD::TouchpadZoneMatches(binds[a].slotA, touchZone) && binds[a].slotB > 0 && binds[a].slotB <= 0xFFFF)
+						injectBtn = binds[a].slotB;
+					else if (GAMEPAD::TouchpadZoneMatches(binds[a].slotB, touchZone) && binds[a].slotA > 0 && binds[a].slotA <= 0xFFFF)
+						injectBtn = binds[a].slotA;
 
-					// Fallback: if the other slot is unbound or also a touchpad,
-					// inject the default button so touchpad works standalone.
-					if (injectBtn == 0)
-						injectBtn = s_defaultBinds[a].slotA;
-
-					if (injectBtn != 0 && injectBtn <= 0xFFFF) {
+					if (injectBtn != 0) {
 						uint16_t xiBit = GAMEPAD::ToXInput(injectBtn);
 						if (xiBit)
 							pState->Gamepad.wButtons |= xiBit;
@@ -1510,6 +1506,7 @@ void UpdateKeyboardConfigCapture(byte8* state) {
             s_kbCapture.hasConflict = false;
             s_kbCapture.conflictText[0] = '\0';
             GUI::save = true;
+  
         }
     } else {
         exec[DI8::KEY::ENTER] = true;

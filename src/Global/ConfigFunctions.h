@@ -251,14 +251,22 @@ void LoadConfigInput() {
 	if (!fileInput) {
 		Log("LoadFile Input failed.");
 
-		crimsonInputRoot.SetObject();
-		g_input_allocator = &crimsonInputRoot.GetAllocator();
+		// Double-check: if the file actually exists on disk (fopen sees it
+		// but LoadFile didn't — e.g. path mismatch), do NOT overwrite it.
+		FILE* diskCheck = fopen(locationConfigInput, "r");
+		if (diskCheck) {
+			fclose(diskCheck);
+			Log("Input file exists on disk but LoadFile failed — skipping default creation to avoid data loss.");
+		} else {
+			crimsonInputRoot.SetObject();
+			g_input_allocator = &crimsonInputRoot.GetAllocator();
 
-		SerializeConfig(crimsonInputRoot, defaultCrimsonInput, crimsonInputRoot.GetAllocator());
-		CopyMemory(&queuedCrimsonInput, &defaultCrimsonInput, sizeof(queuedCrimsonInput));
-		CopyMemory(&activeCrimsonInput, &queuedCrimsonInput, sizeof(activeCrimsonInput));
+			SerializeConfig(crimsonInputRoot, defaultCrimsonInput, crimsonInputRoot.GetAllocator());
+			CopyMemory(&queuedCrimsonInput, &defaultCrimsonInput, sizeof(queuedCrimsonInput));
+			CopyMemory(&activeCrimsonInput, &queuedCrimsonInput, sizeof(activeCrimsonInput));
 
-		SaveConfigInput();
+			SaveConfigInput();
+		}
 		return;
 	}
 
@@ -282,8 +290,6 @@ void LoadConfigInput() {
 
 	ParseConfig(crimsonInputRoot, queuedCrimsonInput);
 	CopyMemory(&activeCrimsonInput, &queuedCrimsonInput, sizeof(activeCrimsonInput));
-
-	SaveConfigInput();
 }
 
 #ifdef NO_INIT

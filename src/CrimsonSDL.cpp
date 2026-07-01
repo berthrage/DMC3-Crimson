@@ -1052,36 +1052,71 @@ bool IsControllerButtonDown(int controllerIndex, int button) {
 	return IsGamepadButtonDown(pad, button);
 }
 
-uint32_t GetTouchpadZone(SDL_Gamepad* gamepad, bool useQuadrants) {
+uint32_t GetTouchpadZone(SDL_Gamepad* gamepad) {
 	if (fn_SDL_GetNumGamepadTouchpads == NULL || fn_SDL_GetGamepadTouchpadFinger == NULL || gamepad == NULL)
+		return 0;
+	if (fn_SDL_GetGamepadButton == NULL)
 		return 0;
 
 	int numTouchpads = fn_SDL_GetNumGamepadTouchpads(gamepad);
 	if (numTouchpads <= 0) return 0;
 
-	// Only poll the first touchpad (touchpad 0)
-	bool down = false;
-	float x = 0.0f, y = 0.0f, pressure = 0.0f;
-	if (!fn_SDL_GetGamepadTouchpadFinger(gamepad, 0, 0, &down, &x, &y, &pressure))
-		return 0;
+	// ── Per-gamepad state: lock zone at the instant of press ──
+	struct TouchState {
+		bool     buttonWasPressed = false;
+		uint32_t lockedHalf       = 0;
+	};
+	static std::unordered_map<SDL_Gamepad*, TouchState> s_state;
 
-	if (!down || pressure <= 0.0f) return 0;
+	auto& state        = s_state[gamepad];
+	bool buttonPressed  = fn_SDL_GetGamepadButton(gamepad, SDL_GAMEPAD_BUTTON_TOUCHPAD);
+	bool wasPressed     = state.buttonWasPressed;
+	state.buttonWasPressed = buttonPressed;
 
-	// Coords are normalized 0..1 (top-left origin)
-	if (useQuadrants) {
-		// Quadrants mode: split at x=0.5, y=0.5
-		bool top  = (y < 0.5f);
-		bool left = (x < 0.5f);
-		if (top && left)       return GAMEPAD::TOUCHPAD_TOP_LEFT;
-		if (top && !left)      return GAMEPAD::TOUCHPAD_TOP_RIGHT;
-		if (!top && left)      return GAMEPAD::TOUCHPAD_BOTTOM_LEFT;
-		else                   return GAMEPAD::TOUCHPAD_BOTTOM_RIGHT;
-	} else {
-		// Halves mode: split at x=0.5
-		return (x < 0.5f) ? GAMEPAD::TOUCHPAD_LEFT : GAMEPAD::TOUCHPAD_RIGHT;
+	// Rising edge — scan ALL fingers, pick the one with highest pressure.
+	// The finger actively pressing the pad exerts more capacitive pressure
+	// than a finger that is merely resting.
+	if (buttonPressed && !wasPressed) {
+		float bestX = 0.0f, bestY = 0.0f, bestPressure = -1.0f;
+		bool  found = false;
+		for (int finger = 0; finger < 16; ++finger) {
+			bool  down = false;
+			float x = 0.0f, y = 0.0f, pressure = 0.0f;
+			if (!fn_SDL_GetGamepadTouchpadFinger(gamepad, 0, finger, &down, &x, &y, &pressure))
+				break;
+			if (down && pressure > bestPressure) {
+				bestPressure = pressure;
+				bestX = x;
+				bestY = y;
+				found = true;
+			}
+		}
+		if (found) {
+			bool left = (bestX < 0.5f);
+			state.lockedHalf = left ? GAMEPAD::TOUCHPAD_LEFT : GAMEPAD::TOUCHPAD_RIGHT;
+		}
 	}
+
+	// Falling edge — clear locked zone
+	if (!buttonPressed) {
+		state.lockedHalf = 0;
+		return 0;
+	}
+
+	// Return the previously locked zone (always halves)
+	return state.lockedHalf;
 }
 
+bool IsTouchpadBindingActive(int playerIndex, uint32_t slotA, uint32_t slotB) {
+	SDL_Gamepad* sdlPad = GetControllerForPlayer(playerIndex);
+	if (!sdlPad) return false;
+
+	uint32_t touchZone = GetTouchpadZone(sdlPad);
+	if (touchZone == 0) return false;
+
+	return GAMEPAD::TouchpadZoneMatches(slotA, touchZone)
+		|| GAMEPAD::TouchpadZoneMatches(slotB, touchZone);
+}
 
 void CheckAndOpenControllers() {
 	if (fn_SDL_PollEvent == NULL) return;

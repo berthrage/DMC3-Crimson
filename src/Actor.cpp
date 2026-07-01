@@ -3518,7 +3518,9 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 
 	{
 		// Doppelganger StyleSwitch
-		bool condition = (actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON));
+		const CrimsonInput::BindPair& switchBind = (*activeConfigInputs[playerIndex][0])[BINDING::SWITCH_BUTTON];
+		bool switchButtonTouchpadActive = CrimsonSDL::IsTouchpadBindingActive(playerIndex, switchBind.slotA, switchBind.slotB);
+		bool condition = (actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON)) || switchButtonTouchpadActive;
 
 		if (condition) {
 			return;
@@ -3732,8 +3734,11 @@ template <typename T> void LinearMeleeWeaponSwitchController(T& actorData) {
     bool back    = false;
 
     {
+        const CrimsonInput::BindPair& switchBind = (*activeConfigInputs[actorData.newPlayerIndex][0])[BINDING::SWITCH_BUTTON];
+        bool switchButtonTouchpadActive = CrimsonSDL::IsTouchpadBindingActive(actorData.newPlayerIndex, switchBind.slotA, switchBind.slotB);
         bool condition = (actorData.buttons[0] & GetBinding(BINDING::SWITCH_BUTTON)) ||
-            (actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON));
+            (actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON)) ||
+            switchButtonTouchpadActive;
 
         bool dantecondition = GetDanteDoppelSwitchCondition(actorData);
         // Doppelganger Weapon Switch
@@ -3842,9 +3847,12 @@ template <typename T> void LinearRangedWeaponSwitchController(T& actorData) {
     bool update = false;
 
     {
+        const CrimsonInput::BindPair& switchBind = (*activeConfigInputs[actorData.newPlayerIndex][0])[BINDING::SWITCH_BUTTON];
+        bool switchButtonTouchpadActive = CrimsonSDL::IsTouchpadBindingActive(actorData.newPlayerIndex, switchBind.slotA, switchBind.slotB);
         bool condition =
             (actorData.buttons[0] & GetBinding(BINDING::SWITCH_BUTTON)) ||
-            (actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON));
+            (actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON)) ||
+            switchButtonTouchpadActive;
 
         bool dantecondition = GetDanteDoppelSwitchCondition(actorData);
         // Doppelganger Weapon Switch
@@ -3967,8 +3975,11 @@ template <typename T> void AnalogMeleeWeaponSwitchController(T& actorData) {
     };
     auto& playerData = GetPlayerData(actorData);
     {
+        const CrimsonInput::BindPair& switchBind = (*activeConfigInputs[playerIndex][0])[BINDING::SWITCH_BUTTON];
+        bool switchButtonTouchpadActive = CrimsonSDL::IsTouchpadBindingActive(playerIndex, switchBind.slotA, switchBind.slotB);
         bool condition = (actorData.buttons[0] & GetBinding(BINDING::SWITCH_BUTTON)) ||
-            (actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON));
+            (actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON)) ||
+            switchButtonTouchpadActive;
         bool dantecondition = GetDanteDoppelSwitchCondition(actorData);
         // Doppelganger Weapon Switch
         if (actorData.newEntityIndex == ENTITY::MAIN) {
@@ -4169,8 +4180,11 @@ template <typename T> void AnalogRangedWeaponSwitchController(T& actorData) {
 
     auto& playerData = GetPlayerData(actorData);
     {
+        const CrimsonInput::BindPair& switchBind = (*activeConfigInputs[playerIndex][0])[BINDING::SWITCH_BUTTON];
+        bool switchButtonTouchpadActive = CrimsonSDL::IsTouchpadBindingActive(playerIndex, switchBind.slotA, switchBind.slotB);
         bool condition = (actorData.buttons[0] & GetBinding(BINDING::SWITCH_BUTTON)) ||
-            (actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON));
+            (actorData.buttons[2] & GetBinding(BINDING::SWITCH_BUTTON)) ||
+            switchButtonTouchpadActive;
         bool dantecondition = GetDanteDoppelSwitchCondition(actorData);
         // Doppelganger Weapon Switch
         if (actorData.newEntityIndex == ENTITY::MAIN) {
@@ -4819,19 +4833,22 @@ void CharacterSwitchController() {
             auto& leadActorData = *reinterpret_cast<PlayerActorData*>(leadNewActorData.baseAddr);
             auto& gamepad = GetGamepad(leadActorData.newGamepad);
 
-            uint32_t switchBtnRaw = (*activeConfigInputs[playerIndex][0])[BINDING::SWITCH_BUTTON].slotA;
-            byte16 switchBtn = (byte16)(switchBtnRaw & 0xFFFF);
+            const CrimsonInput::BindPair& switchBind = (*activeConfigInputs[playerIndex][0])[BINDING::SWITCH_BUTTON];
+            byte16 switchBtn = (byte16)(switchBind.slotA & 0xFFFF);
+
+            // Check if either slot has a touchpad binding and the touchpad is pressed
+            bool touchpadActive = CrimsonSDL::IsTouchpadBindingActive(playerIndex, switchBind.slotA, switchBind.slotB);
 
             bool condition = false;
             if (!activeCrimsonConfig.GUI.disableGamepadShortcut) {
-                condition = (gamepad.buttons[0] & switchBtn) &&
+                condition = ((gamepad.buttons[0] & switchBtn) || touchpadActive) &&
                     !(gamepad.buttons[0] & GetBinding(BINDING::CHANGE_TARGET));
             } else {
                 if (switchBtn == GAMEPAD::LEFT_PLUS_RIGHT_STICK_CLICK) {
                     condition = (gamepad.buttons[0] & GetBinding(BINDING::DEFAULT_CAMERA)) &&
                         (gamepad.buttons[0] & GetBinding(BINDING::CHANGE_TARGET));
                 } else {
-                    condition = (gamepad.buttons[0] & switchBtn);
+                    condition = (gamepad.buttons[0] & switchBtn) || touchpadActive;
                 }
             }
 
@@ -9576,8 +9593,11 @@ void ToggleStyleFixes(bool enable) {
 
 bool DevilButtonCheck(PlayerActorData& actorData) {
     auto& playerData = GetPlayerData(actorData);
+    uint8 playerIndex = actorData.newPlayerIndex;
+        const CrimsonInput::BindPair& switchBind = (*activeConfigInputs[playerIndex][0])[BINDING::SWITCH_BUTTON];
+    bool switchButtonTouchpadActive = CrimsonSDL::IsTouchpadBindingActive(playerIndex, switchBind.slotA, switchBind.slotB);
 
-    bool condition = (actorData.buttons[0] & GetBinding(BINDING::SWITCH_BUTTON));
+    bool condition = (actorData.buttons[0] & GetBinding(BINDING::SWITCH_BUTTON) || switchButtonTouchpadActive);
 
     if (actorData.newEntityIndex == ENTITY::MAIN) {
         if (condition) {
