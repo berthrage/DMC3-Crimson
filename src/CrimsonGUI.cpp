@@ -3000,15 +3000,16 @@ void QueuedLoadoutGUI(uint8 playerIndex, uint8 characterIndex,bool isProgression
 	ImGui::EndTable();
 }
 
-void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex, uint8 profileIndex, size_t defaultFontSize) {
-	auto& activeCharacterData = GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
-	auto& queuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
+void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex, uint8 profileIndex, size_t defaultFontSize,bool isArcade) {
 
-	auto& activeCharacterDataClone = GetActiveCharacterData(playerIndex, characterIndex, 1);
-	auto& queuedCharacterDataClone = GetQueuedCharacterData(playerIndex, characterIndex, 1);
+	auto& activeCharacterData = isArcade ? ExpConfig::profiles[SAVE_COUNT][playerIndex].GetPlayerData().characterData[characterIndex][entityIndex] : GetActiveCharacterData(playerIndex, characterIndex, entityIndex);
+	auto& queuedCharacterData = isArcade ? ExpConfig::profiles[SAVE_COUNT][playerIndex].GetPlayerData().characterData[characterIndex][entityIndex] : GetQueuedCharacterData(playerIndex, characterIndex, entityIndex);
 
-	auto& mainActiveCharacterData = GetActiveCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
-	auto& mainQueuedCharacterData = GetQueuedCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
+	auto& activeCharacterDataClone = isArcade ? ExpConfig::profiles[SAVE_COUNT][playerIndex].GetPlayerData().characterData[characterIndex][ENTITY::CLONE] : GetActiveCharacterData(playerIndex, characterIndex, 1);
+	auto& queuedCharacterDataClone = isArcade ? ExpConfig::profiles[SAVE_COUNT][playerIndex].GetPlayerData().characterData[characterIndex][ENTITY::CLONE] : GetQueuedCharacterData(playerIndex, characterIndex, 1);
+
+	auto& mainActiveCharacterData = isArcade ? ExpConfig::profiles[SAVE_COUNT][playerIndex].GetPlayerData().characterData[characterIndex][ENTITY::MAIN] : GetActiveCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
+	auto& mainQueuedCharacterData = isArcade ? ExpConfig::profiles[SAVE_COUNT][playerIndex].GetPlayerData().characterData[characterIndex][ENTITY::MAIN] : GetQueuedCharacterData(playerIndex, characterIndex, ENTITY::MAIN);
 	
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
@@ -3163,10 +3164,10 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 	{
 
 		if (queuedCharacterData.character == activeCharacterData.character && profileIndex == g_playerProfile[playerIndex]) {
-			LiveLoadoutGUI(playerIndex, characterIndex, true);
+			LiveLoadoutGUI(playerIndex, characterIndex, !isArcade);
 		}
 		else {
-			QueuedLoadoutGUI(playerIndex, characterIndex, true);
+			QueuedLoadoutGUI(playerIndex, characterIndex, !isArcade);
 		}
 
 		//const float columnWidth = 0.5f * queuedConfig.globalScale;
@@ -3394,7 +3395,7 @@ void Actor_PlayerTab(uint8 playerIndex,uint8 profileIndex, size_t defaultFontSiz
 	ImGui::PopFont();
 }
 
-void SelectPlayerLoadoutsWeaponsTab() {
+void SelectPlayerLoadoutsWeaponsTab(bool isArcade = false) {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 
 	const float columnWidth = 0.8f * queuedConfig.globalScale;
@@ -3413,7 +3414,7 @@ void SelectPlayerLoadoutsWeaponsTab() {
 				//but because this is also viewable in the player tab, we fall back on sessionProfileData there.
 		//auto& profile = (g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
 		//store the profileIndex values for this GUI update.
-		profile_index[playerIndex] = queuedConfig.Actor.playerProfileData[playerIndex].profileIndex;
+		profile_index[playerIndex] = isArcade ? ExpConfig::profiles[SAVE_COUNT][playerIndex].profileIndex : queuedConfig.Actor.playerProfileData[playerIndex].profileIndex;
 		//load the profile PlayerData into the queued config.
 		//queuedConfig.Actor.playerData[playerIndex] = profile.playerData[profile_index[playerIndex]];
 	}
@@ -3435,7 +3436,7 @@ void SelectPlayerLoadoutsWeaponsTab() {
 				auto condition = (playerIndex >= queuedConfig.Actor.playerCount);
 				//responsible for loading the correct profile from mission or session data depending on context.
 				//we have to get missionprofiledata so that live weapon updates still work i'm pretty sure. 
-				auto& profile = queuedConfig.Actor.playerProfileData[playerIndex];//(g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
+				auto& profile = isArcade ? ExpConfig::profiles[SAVE_COUNT][playerIndex] : queuedConfig.Actor.playerProfileData[playerIndex];//(g_scene == SCENE::GAME || g_scene == SCENE::MISSION_START) ? ExpConfig::missionProfileData[playerIndex] : ExpConfig::sessionProfileData[playerIndex];
 				GUI_PushDisable(condition);
 
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
@@ -3503,7 +3504,7 @@ void SelectPlayerLoadoutsWeaponsTab() {
 					if (ImGui::BeginTabItem(characterIndexNames[characterIndex])) {
 
 						//pass the profile_index being used by the GUI for the current player
-						Actor_CharacterTab(activePlayerIndex, characterIndex, 0, profile_index[activePlayerIndex], defaultFontSize);
+						Actor_CharacterTab(activePlayerIndex, characterIndex, 0, profile_index[activePlayerIndex], defaultFontSize, isArcade);
 
 						ImGui::EndTabItem();
 					}
@@ -3517,7 +3518,7 @@ void SelectPlayerLoadoutsWeaponsTab() {
 				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 				//pass the profile_index being used by the GUI for the current player
 				//pass 0 here as our char index bc char swapper not turned on.
-				Actor_CharacterTab(activePlayerIndex, 0, 0, profile_index[activePlayerIndex], defaultFontSize);
+				Actor_CharacterTab(activePlayerIndex, 0, 0, profile_index[activePlayerIndex], defaultFontSize, isArcade);
 				ImGui::PopFont();
 			}
 
@@ -3861,9 +3862,10 @@ void ArcadeSection(size_t defaultFontSize) {
 
 			}
 			else {
-				ImGui::TableNextRow(0, rowWidth);
-				ImGui::TableNextColumn();
-				QueuedLoadoutGUI(0,0,false);
+				//ImGui::TableNextRow(0, 300* queuedConfig.globalScale);
+				//ImGui::TableNextColumn();
+				//SelectPlayerLoadoutsWeaponsTab(true);
+				//QueuedLoadoutGUI(0,0,false);
 			}
 			
 		}
@@ -3940,6 +3942,15 @@ void ArcadeSection(size_t defaultFontSize) {
 	ImGui::PopStyleColor();
 
 	ImGui::Text("");
+
+	if ((activeConfig.Arcade.mission > 0) && (activeConfig.Arcade.character == CHARACTER::DANTE) && !queuedConfig.Actor.enable) {
+		//the laziest it's ever been
+
+	}
+	else {
+		SelectPlayerLoadoutsWeaponsTab(true);
+		//QueuedLoadoutGUI(0,0,false);
+	}
 
 }
 
