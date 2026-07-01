@@ -508,8 +508,6 @@ struct CrimsonConfig {
 	} PlayerProperties;
 
 	struct System {
-		uint8 xinputSlots[PLAYER_COUNT] = { 0, 1, 2, 3 };
-
 		bool flipModelPresentation = true;
 
 		float fpsCap = 120.0f;
@@ -546,7 +544,6 @@ struct CrimsonConfig {
 		float windowPosY = 9999.0f;
 		static constexpr auto Metadata() {
 			return std::make_tuple(
-				std::make_pair("xinputSlots", &System::xinputSlots),
 				std::make_pair("flipModelPresentation", &System::flipModelPresentation),
 				std::make_pair("fpsCap", &System::fpsCap),
 				std::make_pair("fpsUnlocked", &System::fpsUnlocked),

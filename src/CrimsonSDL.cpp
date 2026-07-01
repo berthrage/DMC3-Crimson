@@ -627,26 +627,26 @@ void RemapSdlControllers() {
 		// Track which SDL indices are already claimed by any player
 		bool sentinelUsed[8] = {}; // up to 8 SDL extras
 		for (int p = 0; p < PLAYER_COUNT; ++p) {
-			uint8 slot = activeCrimsonConfig.System.xinputSlots[p];
+			uint8 slot = activeCrimsonInput.xinputSlots[p];
 			if (slot >= 4 && (size_t)(slot - 4) < sdlCount) {
 				sentinelUsed[slot - 4] = true; // still valid
 			} else if (slot >= 4) {
 				// Sentinel points to a removed SDL controller; reset to dead
-				activeCrimsonConfig.System.xinputSlots[p] = 0;
-				queuedCrimsonConfig.System.xinputSlots[p] = 0;
+				activeCrimsonInput.xinputSlots[p] = 0;
+				queuedCrimsonInput.xinputSlots[p] = 0;
 			}
 		}
 
 		// Assign unused SDL controllers to players with dead XInput slots
 		int nextSdl = 0;
 		for (int p = 0; p < PLAYER_COUNT; ++p) {
-			uint8 slot = activeCrimsonConfig.System.xinputSlots[p];
+			uint8 slot = activeCrimsonInput.xinputSlots[p];
 			bool dead = (slot < 4 && !xiSlotOccupied[slot]);
 			if (dead) {
 				while (nextSdl < (int)sdlCount && sentinelUsed[nextSdl]) ++nextSdl;
 				if (nextSdl < (int)sdlCount) {
-					activeCrimsonConfig.System.xinputSlots[p] = (uint8)(4 + nextSdl);
-					queuedCrimsonConfig.System.xinputSlots[p] = (uint8)(4 + nextSdl);
+					activeCrimsonInput.xinputSlots[p] = (uint8)(4 + nextSdl);
+					queuedCrimsonInput.xinputSlots[p] = (uint8)(4 + nextSdl);
 					sentinelUsed[nextSdl] = true;
 					++nextSdl;
 				}
@@ -677,7 +677,7 @@ void RemapSdlControllers() {
 
 SDL_Gamepad* GetControllerForPlayer(int playerIndex) {
 	if (playerIndex < 0 || playerIndex >= 4) return NULL;
-	int xiSlot = (int)activeCrimsonConfig.System.xinputSlots[playerIndex];
+	int xiSlot = (int)activeCrimsonInput.xinputSlots[playerIndex];
 	// Sentinel values ≥ 4 indicate SDL slot N (where N = xiSlot - 4)
 	if (xiSlot >= 4) {
 		size_t extrasIdx = (size_t)(xiSlot - 4);
@@ -1163,7 +1163,7 @@ void VibrateControllerByPhysicalSlot(int xiSlot, Uint16 rumbleLow, Uint16 rumble
     // (PS4/PS5/Switch) that live in sdlGamepadsExtra and are mapped to
     // a physical slot through a sentinel value (≥4).
     for (int p = 0; p < PLAYER_COUNT; ++p) {
-        if ((int)activeCrimsonConfig.System.xinputSlots[p] == xiSlot) {
+        if ((int)activeCrimsonInput.xinputSlots[p] == xiSlot) {
             SDL_Gamepad* pad = GetControllerForPlayer(p);
             if (pad != NULL) {
                 fn_SDL_RumbleGamepad(pad, rumbleLow, rumbleHigh, duration);

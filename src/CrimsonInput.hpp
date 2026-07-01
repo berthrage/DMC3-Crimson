@@ -169,6 +169,8 @@ struct CrimsonInput {
 
 	} KeyboardConfig;
 
+	uint8 xinputSlots[PLAYER_COUNT] = { 0, 1, 2, 3 };
+
 	bool switchButtonCharSwitch[PLAYER_COUNT] = {};
 
 	float vibrationIntensity[PLAYER_COUNT] = { 100.0f, 100.0f, 100.0f, 100.0f };
@@ -177,6 +179,7 @@ struct CrimsonInput {
 		return std::make_tuple(
 			std::make_pair("ButtonConfig", &CrimsonInput::ButtonConfig),
 			std::make_pair("KeyboardConfig", &CrimsonInput::KeyboardConfig),
+			std::make_pair("xinputSlots", &CrimsonInput::xinputSlots),
 			std::make_pair("switchButtonCharSwitch", &CrimsonInput::switchButtonCharSwitch),
 			std::make_pair("vibrationIntensity", &CrimsonInput::vibrationIntensity)
 		);

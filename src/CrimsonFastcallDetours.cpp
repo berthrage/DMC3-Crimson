@@ -12,6 +12,7 @@
 #include <cassert>
 #include "Vars.hpp"
 #include "CrimsonConfig.hpp"
+#include "CrimsonInput.hpp"
 #include "CrimsonReversedCalls.hpp"
 #include <Xinput.h>
 #include "CrimsonSDL.hpp"
@@ -190,7 +191,7 @@ namespace CrimsonFastcallDetours{
 
      // Helper: route vibration to a single player based on their assigned slot type.
      auto vibratePlayer = [&](int playerIndex) {
-         uint8 slot = activeCrimsonConfig.System.xinputSlots[playerIndex];
+         uint8 slot = activeCrimsonInput.xinputSlots[playerIndex];
          if (slot < 4) {
              // Physical XInput slot — use XInputSetState directly
              XINPUT_VIBRATION vib = { leftMotor, rightMotor };

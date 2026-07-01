@@ -329,7 +329,7 @@ static void __fastcall sub_1401EB170(PlayerActorData* a1) {
         uint16_t* fields = &mainBinds->up;
 
         // Read touchpad state for this player's physical slot
-        int physSlot = (int)activeCrimsonConfig.System.xinputSlots[playerIndex];
+        int physSlot = (int)activeCrimsonInput.xinputSlots[playerIndex];
         SDL_Gamepad* pad = NULL;
         if (physSlot >= 0 && physSlot < 4)
             pad = CrimsonSDL::GetControllerByPhysicalSlot(physSlot);
@@ -766,7 +766,7 @@ void ShowButtonConfigWindow() {
 				ImGui::Separator();
 				ImGui::Text(buffer);
 				ImGui::SameLine();
-				ImGui::TextDisabled("[%s]", GetXInputControllerName((DWORD)activeCrimsonConfig.System.xinputSlots[i]));
+				ImGui::TextDisabled("[%s]", GetXInputControllerName((DWORD)activeCrimsonInput.xinputSlots[i]));
 
 				// XInput/SDL slot selector (cached)
 				{
@@ -798,17 +798,17 @@ void ShowButtonConfigWindow() {
 					}
 
 					int slotCount = s_slotCount;
-					uint8 cfgSlot = activeCrimsonConfig.System.xinputSlots[i];
+					uint8 cfgSlot = activeCrimsonInput.xinputSlots[i];
 					int currentSlot = (cfgSlot >= 4) ? (int)(cfgSlot - 4 + 4) : (int)cfgSlot;
 					sprintf(buffer, "##ctrl%d", i);
 					if (ImGui::Combo(buffer, &currentSlot, s_slotPtrs, slotCount)) {
 						if (currentSlot < 4) {
-							activeCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
-							queuedCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
+							activeCrimsonInput.xinputSlots[i] = (uint8)currentSlot;
+							queuedCrimsonInput.xinputSlots[i] = (uint8)currentSlot;
 						} else {
 							uint8 sentinel = (uint8)(4 + (currentSlot - 4));
-							activeCrimsonConfig.System.xinputSlots[i] = sentinel;
-							queuedCrimsonConfig.System.xinputSlots[i] = sentinel;
+							activeCrimsonInput.xinputSlots[i] = sentinel;
+							queuedCrimsonInput.xinputSlots[i] = sentinel;
 						}
 						GUI::save = true;
 					}
@@ -818,12 +818,12 @@ void ShowButtonConfigWindow() {
 						currentSlot = (currentSlot == 0) ? (slotCount - 1) : (currentSlot - 1);
 						s_comboSelection[i] = currentSlot;
 						if (currentSlot < 4) {
-							activeCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
-							queuedCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
+							activeCrimsonInput.xinputSlots[i] = (uint8)currentSlot;
+							queuedCrimsonInput.xinputSlots[i] = (uint8)currentSlot;
 						} else {
 							uint8 sentinel = (uint8)(4 + (currentSlot - 4));
-							activeCrimsonConfig.System.xinputSlots[i] = sentinel;
-							queuedCrimsonConfig.System.xinputSlots[i] = sentinel;
+							activeCrimsonInput.xinputSlots[i] = sentinel;
+							queuedCrimsonInput.xinputSlots[i] = sentinel;
 						}
 						GUI::save = true;
 					}
@@ -833,12 +833,12 @@ void ShowButtonConfigWindow() {
 						currentSlot = (currentSlot + 1) % slotCount;
 						s_comboSelection[i] = currentSlot;
 						if (currentSlot < 4) {
-							activeCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
-							queuedCrimsonConfig.System.xinputSlots[i] = (uint8)currentSlot;
+							activeCrimsonInput.xinputSlots[i] = (uint8)currentSlot;
+							queuedCrimsonInput.xinputSlots[i] = (uint8)currentSlot;
 						} else {
 							uint8 sentinel = (uint8)(4 + (currentSlot - 4));
-							activeCrimsonConfig.System.xinputSlots[i] = sentinel;
-							queuedCrimsonConfig.System.xinputSlots[i] = sentinel;
+							activeCrimsonInput.xinputSlots[i] = sentinel;
+							queuedCrimsonInput.xinputSlots[i] = sentinel;
 						}
 						GUI::save = true;
 					}
@@ -1277,7 +1277,7 @@ void UpdateGamepadConfigCapture() {
 	static uint32_t s_prevTouchpad = 0;
 
 	const int pi = s_gpCapture.playerIndex;
-	const int physSlot = (int)activeCrimsonConfig.System.xinputSlots[pi];
+	const int physSlot = (int)activeCrimsonInput.xinputSlots[pi];
 
 	// Poll gamepad state: try SDL first (handles SDL controllers and XInput via SDL),
 	// then fall back to raw XInput for pure XInput controllers.
@@ -1440,7 +1440,7 @@ static DWORD WINAPI Hooked_XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pStat
 	if (!pState) return ERROR_INVALID_PARAMETER;
 
 	const DWORD physSlot = (dwUserIndex < (DWORD)PLAYER_COUNT)
-		? (DWORD)activeCrimsonConfig.System.xinputSlots[dwUserIndex]
+		? (DWORD)activeCrimsonInput.xinputSlots[dwUserIndex]
 		: dwUserIndex;
 
 	DWORD result;

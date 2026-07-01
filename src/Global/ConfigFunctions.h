@@ -142,12 +142,12 @@ void LoadConfig()
 	ParseConfig(crimsonConfigRoot, queuedCrimsonConfig);
 
 	// === BEGIN INPUT BIND MIGRATION ===
-	// If CrimsonConfig.json still has ButtonConfig/KeyboardConfig in System
+	// If CrimsonConfig.json still has ButtonConfig/KeyboardConfig/xinputSlots in System
 	// and CrimsonInput.json does not exist yet, migrate the binds before
 	// the main config save would wipe them out.
 	if (crimsonConfigRoot.HasMember("System") && crimsonConfigRoot["System"].IsObject()) {
 		auto& sys = crimsonConfigRoot["System"];
-		if (sys.HasMember("ButtonConfig") || sys.HasMember("KeyboardConfig")) {
+		if (sys.HasMember("ButtonConfig") || sys.HasMember("KeyboardConfig") || sys.HasMember("xinputSlots")) {
 			// Check if CrimsonInput.json already exists on disk
 			FILE* testInput = fopen(locationConfigInput, "r");
 			if (!testInput) {
@@ -167,6 +167,11 @@ void LoadConfig()
 					kbCfg.CopyFrom(sys["KeyboardConfig"], inputAlloc);
 					crimsonInputRoot.AddMember("KeyboardConfig", kbCfg, inputAlloc);
 				}
+				if (sys.HasMember("xinputSlots")) {
+					rapidjson::Value xiSlots;
+					xiSlots.CopyFrom(sys["xinputSlots"], inputAlloc);
+					crimsonInputRoot.AddMember("xinputSlots", xiSlots, inputAlloc);
+				}
 
 				// Parse into queued/active CrimsonInput
 				ParseConfig(crimsonInputRoot, queuedCrimsonInput);
@@ -179,6 +184,7 @@ void LoadConfig()
 				// Remove old members from main config root so SaveConfig won't rewrite them
 				sys.RemoveMember("ButtonConfig");
 				sys.RemoveMember("KeyboardConfig");
+				sys.RemoveMember("xinputSlots");
 			} else {
 				fclose(testInput);
 			}
