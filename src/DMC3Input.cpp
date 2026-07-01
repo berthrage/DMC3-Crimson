@@ -882,6 +882,10 @@ void ShowButtonConfigWindow() {
 
 					// Action label
 					ImGui::Text("%s", s_gamepadActionNames[j]);
+					if (j == (NUM_BINDS_WITHOUT_START - 1) && ImGui::IsItemHovered()) {
+						ImGui::SetTooltip("Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n"
+							"Double Tap D-pad Up to switch characters. The Switch Button can also be set to Switch Characters with a toggle.");
+					}
 
 					// Slot A button
 					ImGui::SameLine(gpRowLabelX);
@@ -900,6 +904,10 @@ void ShowButtonConfigWindow() {
 							s_gpCapture.previewButton = *slotAPtr;
 							s_gpCapture.waitingForRelease = true;
 						}
+					}
+					if (j == (NUM_BINDS_WITHOUT_START - 1) && ImGui::IsItemHovered()) {
+						ImGui::SetTooltip("Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n"
+							"Double Tap D-pad Up to switch characters. The Switch Button can also be set to Switch Characters with a toggle.");
 					}
 					ImGui::SameLine();
 					// Clear slot A
@@ -932,6 +940,10 @@ void ShowButtonConfigWindow() {
 							s_gpCapture.previewButton = *slotBPtr;
 							s_gpCapture.waitingForRelease = true;
 						}
+					}
+					if (j == (NUM_BINDS_WITHOUT_START - 1) && ImGui::IsItemHovered()) {
+						ImGui::SetTooltip("Hold the button while pressing L2/R2 to switch Doppelganger's weapons while it's active.\n"
+							"Double Tap D-pad Up to switch characters. The Switch Button can also be set to Switch Characters with a toggle.");
 					}
 					ImGui::SameLine();
 					// Clear slot B
