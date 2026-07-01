@@ -318,6 +318,99 @@ static void __fastcall sub_1401EB170(PlayerActorData* a1) {
         }
     }
 
+    // Touchpad-only BindTable correction 
+    // When an action's only bindings are touchpad zones (>0xFFFF), the
+    // BindTable entry is 0. Fix by setting a non-conflicting standard
+    // button so the game's comparison works when Hooked_XInputGetState
+    // injects that button into wButtons. Runs here (not in the XInput
+    // hook) so sub_1401EB170 never overwrites the correction.
+    {
+        uint16_t* fields = &mainBinds->up;
+
+        // Read touchpad state for this player's physical slot
+        int physSlot = (int)activeCrimsonConfig.System.xinputSlots[playerIndex];
+        SDL_Gamepad* pad = NULL;
+        if (physSlot >= 0 && physSlot < 4)
+            pad = CrimsonSDL::GetControllerByPhysicalSlot(physSlot);
+        else if (physSlot >= 4) {
+            size_t ei = (size_t)(physSlot - 4);
+            if (ei < CrimsonSDL::sdlGamepadsExtra.size())
+                pad = CrimsonSDL::sdlGamepadsExtra[ei];
+        }
+        uint32_t touchZone = pad ? CrimsonSDL::GetTouchpadZone(pad) : 0;
+
+        // Snapshot physical buttons for suppression gating
+        XINPUT_STATE xiState = {};
+        bool xiValid = false;
+        if (physSlot >= 0 && physSlot < 4) {
+            if (CrimsonSDL::PopulateXInputStateFromSdlSlot(physSlot, &xiState))
+                xiValid = true;
+        }
+        if (!xiValid && physSlot >= 0 && physSlot < 4) {
+            if (XI::new_XInputGetState && XI::new_XInputGetState((DWORD)physSlot, &xiState) == ERROR_SUCCESS)
+                xiValid = true;
+        }
+        uint32_t physicalButtons = xiValid ? GAMEPAD::FromXInput(xiState.Gamepad.wButtons) : 0;
+
+        for (int a = 0; a < NUM_GAMEPADBINDS; a++) {
+            if (fields[a] != 0) continue;
+
+            uint32_t rawA = configBinds[a].slotA;
+            uint32_t rawB = configBinds[a].slotB;
+            bool hasTouchpad = (rawA > 0xFFFF) || (rawB > 0xFFFF);
+            bool hasStandard = (rawA > 0 && rawA <= 0xFFFF) || (rawB > 0 && rawB <= 0xFFFF);
+            if (hasStandard || !hasTouchpad) continue;
+
+            // Only correct when the matching touchpad zone is pressed
+            // (touchZone==0 means no touchpad press — leave BindTable at 0).
+            if (touchZone == 0) continue;
+            bool zoneMatches = (rawA > 0xFFFF && GAMEPAD::TouchpadZoneMatches(rawA, touchZone))
+                            || (rawB > 0xFFFF && GAMEPAD::TouchpadZoneMatches(rawB, touchZone));
+            if (!zoneMatches) continue;
+
+            // Resolve a non-conflicting fallback button
+            uint32_t btn = s_defaultBinds[a].slotA;
+
+            bool conflicts = false;
+            for (int other = 0; other < NUM_GAMEPADBINDS; other++) {
+                if (other == a) continue;
+                if (fields[other] & btn) { conflicts = true; break; }
+            }
+
+            if (conflicts) {
+                static constexpr uint32_t candidates[] = {
+                    GAMEPAD::LEFT_TRIGGER, GAMEPAD::RIGHT_TRIGGER,
+                    GAMEPAD::LEFT_SHOULDER, GAMEPAD::RIGHT_SHOULDER,
+                    GAMEPAD::Y, GAMEPAD::B, GAMEPAD::A, GAMEPAD::X,
+                    GAMEPAD::BACK, GAMEPAD::LEFT_STICK_CLICK, GAMEPAD::RIGHT_STICK_CLICK,
+                    GAMEPAD::UP, GAMEPAD::RIGHT, GAMEPAD::DOWN, GAMEPAD::LEFT,
+                };
+                bool found = false;
+                for (uint32_t bit : candidates) {
+                    if (bit == GAMEPAD::START) continue;
+                    bool bitOk = true;
+                    for (int other = 0; other < NUM_GAMEPADBINDS; other++) {
+                        if (other == a) continue;
+                        if (fields[other] & bit) { bitOk = false; break; }
+                    }
+                    if (bitOk) { btn = bit; found = true; break; }
+                }
+
+                if (!found && physicalButtons == 0) {
+                    // Suppress conflicting button from other actions'
+                    // BindTable entries (touchpad is sole input).
+                    for (int other = 0; other < NUM_GAMEPADBINDS; other++) {
+                        if (other == a) continue;
+                        if (fields[other] & btn)
+                            fields[other] &= ~((uint16_t)btn);
+                    }
+                }
+            }
+
+            fields[a] = (uint16_t)btn;
+        }
+    }
+
     #undef BINDVAL
 
     s_ButtonToActionHook->GetTrampoline<decltype(&sub_1401EB170)>()(a1);
@@ -1350,6 +1443,12 @@ static DWORD WINAPI Hooked_XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pStat
 				// Check character slot
 				const auto cs = GetCharacterBindSlotFromPlayerIndex(pi);
 				const CrimsonInput::BindPair* binds = (*activeConfigInputs[pi][cs]);
+
+				// BindTable for temporary corrections when touchpad-only actions
+				// need a non-zero entry to match against injected defaults.
+				BindTable* mainBinds = (BindTable*)(appBaseAddr + 0xD6CE80 + 0xA);
+				uint16_t* btFields = &mainBinds->up;
+
 				for (int a = 0; a < NUM_GAMEPADBINDS; a++) {
 					// Skip custom actions handled by Crimson directly (e.g. Switch Button).
 					// These read touchpad zones from activeConfigInputs in their own code
@@ -1357,10 +1456,17 @@ static DWORD WINAPI Hooked_XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pStat
 					if (a >= 16) continue; 
 
 					uint32_t injectBtn = 0;
-					if (GAMEPAD::TouchpadZoneMatches(binds[a].slotA, touchZone) && binds[a].slotB > 0 && binds[a].slotB <= 0xFFFF)
-						injectBtn = binds[a].slotB;
-					else if (GAMEPAD::TouchpadZoneMatches(binds[a].slotB, touchZone) && binds[a].slotA > 0 && binds[a].slotA <= 0xFFFF)
-						injectBtn = binds[a].slotA;
+					if (GAMEPAD::TouchpadZoneMatches(binds[a].slotA, touchZone)) {
+						if (binds[a].slotB > 0 && binds[a].slotB <= 0xFFFF)
+							injectBtn = binds[a].slotB;
+						else
+							injectBtn = btFields[a]; // BindTable pre-resolved by sub_1401EB170
+					} else if (GAMEPAD::TouchpadZoneMatches(binds[a].slotB, touchZone)) {
+						if (binds[a].slotA > 0 && binds[a].slotA <= 0xFFFF)
+							injectBtn = binds[a].slotA;
+						else
+							injectBtn = btFields[a]; // BindTable pre-resolved by sub_1401EB170
+					}
 
 					if (injectBtn != 0) {
 						uint16_t xiBit = GAMEPAD::ToXInput(injectBtn);
