@@ -3443,7 +3443,7 @@ void SelectPlayerLoadoutsWeaponsTab(bool isArcade = false) {
 
 				if (ImGui::BeginTabItem(playerIndexNames[playerIndex])) {
 					//ImGui::Text("");
-					if (vergilunlocked){
+					if (vergilunlocked || isArcade){
 
 						bool profile_selected = (profile.profileIndex == PROFILE::DANTE);
 						GUI_PushDisable(profile_selected);
