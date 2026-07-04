@@ -3710,8 +3710,7 @@ void CharacterSection(size_t defaultFontSize) {
 			ImGui::EndTable();
 		}
 	}
-
-	SelectPlayerLoadoutsWeaponsTab();
+	SelectPlayerLoadoutsWeaponsTab(g_scene == SCENE::MAIN || queuedConfig.Arcade.enable);
 
 	GUI_PopDisable(actorCondition);
 
@@ -3948,7 +3947,7 @@ void ArcadeSection(size_t defaultFontSize) {
 
 	}
 	else {
-		SelectPlayerLoadoutsWeaponsTab(true);
+		//SelectPlayerLoadoutsWeaponsTab(true);
 		//QueuedLoadoutGUI(0,0,false);
 	}
 
