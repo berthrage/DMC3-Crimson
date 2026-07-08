@@ -2905,7 +2905,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rbx, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rbx, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -2937,7 +2937,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rbx,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -2976,7 +2976,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3005,7 +3005,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3037,7 +3037,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -3076,7 +3076,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3105,7 +3105,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3137,7 +3137,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -3176,7 +3176,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3205,7 +3205,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3237,7 +3237,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -3276,7 +3276,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3308,7 +3308,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -3347,7 +3347,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3379,7 +3379,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -3418,7 +3418,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3450,7 +3450,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -3489,7 +3489,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3521,7 +3521,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -3560,7 +3560,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3592,7 +3592,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -3631,7 +3631,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3663,7 +3663,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -3702,7 +3702,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3734,7 +3734,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -3773,7 +3773,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3802,7 +3802,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3834,7 +3834,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -3873,7 +3873,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3902,7 +3902,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -3934,7 +3934,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x42,
@@ -3974,7 +3974,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4006,7 +4006,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -4045,7 +4045,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4077,7 +4077,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -4116,7 +4116,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4148,7 +4148,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -4187,7 +4187,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4216,7 +4216,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4245,7 +4245,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4277,7 +4277,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -4316,7 +4316,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4345,7 +4345,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4374,7 +4374,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4403,7 +4403,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4435,7 +4435,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -4474,7 +4474,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4503,7 +4503,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4532,7 +4532,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4561,7 +4561,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4590,7 +4590,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4619,7 +4619,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4651,7 +4651,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -4690,7 +4690,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4719,7 +4719,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4748,7 +4748,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4777,7 +4777,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4806,7 +4806,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4838,7 +4838,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -4877,7 +4877,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4909,7 +4909,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -4948,7 +4948,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -4980,7 +4980,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -5019,7 +5019,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5051,7 +5051,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -5090,7 +5090,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5119,7 +5119,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5148,7 +5148,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5180,7 +5180,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -5219,7 +5219,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5248,7 +5248,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5277,7 +5277,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5306,7 +5306,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5335,7 +5335,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5364,7 +5364,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5393,7 +5393,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5422,7 +5422,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5454,7 +5454,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -5493,7 +5493,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5522,7 +5522,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5551,7 +5551,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5580,7 +5580,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5609,7 +5609,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5638,7 +5638,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5667,7 +5667,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5696,7 +5696,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5725,7 +5725,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5754,7 +5754,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5783,7 +5783,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5812,7 +5812,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5841,7 +5841,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5873,7 +5873,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -5912,7 +5912,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5941,7 +5941,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5970,7 +5970,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -5999,7 +5999,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6028,7 +6028,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6060,7 +6060,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -6099,7 +6099,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6128,7 +6128,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6157,7 +6157,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6186,7 +6186,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6215,7 +6215,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6244,7 +6244,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6273,7 +6273,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6305,7 +6305,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -6344,7 +6344,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6373,7 +6373,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6405,7 +6405,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -6444,7 +6444,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6473,7 +6473,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6502,7 +6502,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6534,7 +6534,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -6573,7 +6573,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rbx, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rbx, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6605,7 +6605,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rbx,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -6644,7 +6644,7 @@ void ToggleEffectRelocations(bool enable) {
         static Function func = {};
 
         constexpr byte8 sect0[] = {
-            push_rcx, mov_rcx_rdi, call, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
+            push_rcx, mov_rcx_rdi, OPCODE_CALL, pop_rcx, 0x8B, 0x84, 0x90, 0x00, 0x00, 0x00, 0x00, // mov eax,[rax+rdx*4+0000B8C0]
         };
 
         if (!run) {
@@ -6676,7 +6676,7 @@ void ToggleEffectRelocations(bool enable) {
             push_rcx,
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
             0x31,
@@ -11952,7 +11952,7 @@ void ToggleFixDevilAura(bool enable) {
         constexpr byte8 sect0[] = {
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
         };
@@ -11986,7 +11986,7 @@ void ToggleFixDevilAura(bool enable) {
         constexpr byte8 sect0[] = {
             push_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
             pop_rax,
         };

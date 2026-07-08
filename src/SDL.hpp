@@ -1,21 +1,8 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <string>
-#include "../ThirdParty/SDL3/SDL.h"
-/* SDL3 renamed SDL_RWops to SDL_IOStream. Alias for SDL2_mixer compatibility. */
-typedef SDL_IOStream SDL_RWops;
-/* SDL3 removed SDL_bool; SDL2_mixer.h still uses it. */
-#define SDL_bool bool
-/* SDL3 removed SDL_MIX_MAXVOLUME; SDL2_mixer.h uses it. */
-#define SDL_MIX_MAXVOLUME 128
-/* Skip SDL2's SDL_rwops.h (its SDL_ReadU8/SDL_WriteU8 conflict with SDL3's SDL_iostream.h).
-   The typedef above provides all SDL_mixer.h needs from it. */
-#define SDL_rwops_h_
-/* SDL3 removed the SDL_version struct; SDL2_mixer.h uses it as a pointer. Forward-declare. */
-struct SDL_version;
-#include "../ThirdParty/SDL2/SDL_mixer.h"
+// SDL3 + SDL2_mixer headers and their compat shims are now provided by the
+// precompiled header (pch.hpp). This file only declares the Crimson-specific
+// SDL runtime-loading layer.
 
 #pragma region SDL
 

@@ -9,8 +9,8 @@
 #include "..\ThirdParty\stb\stb_image.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include "..\ThirdParty\glm\gtc\matrix_transform.hpp"
-#include "..\ThirdParty\glm\gtx\euler_angles.hpp"
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 #pragma comment(lib, "d3dcompiler")
 

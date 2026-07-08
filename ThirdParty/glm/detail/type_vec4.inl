@@ -101,10 +101,10 @@ namespace detail
 		GLM_FUNC_QUALIFIER GLM_CONSTEXPR static bool call(vec<4, T, Q> const& v1, vec<4, T, Q> const& v2)
 		{
 			return
-				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.x, v2.x) &&
-				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.y, v2.y) &&
-				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.z, v2.z) &&
-				detail::compute_equal<T, std::numeric_limits<T>::is_iec559>::call(v1.w, v2.w);
+				detail::compute_equal<T>::apply(v1.x, v2.x) &&
+				detail::compute_equal<T>::apply(v1.y, v2.y) &&
+				detail::compute_equal<T>::apply(v1.z, v2.z) &&
+				detail::compute_equal<T>::apply(v1.w, v2.w);
 		}
 	};
 

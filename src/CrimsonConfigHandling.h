@@ -1,17 +1,10 @@
 #ifndef CONFIG_CRIMSON_HANDLER_H
 #define CONFIG_CRIMSON_HANDLER_H
-#include "../ThirdParty/rapidjson/document.h"
-#include "../ThirdParty/rapidjson/prettywriter.h"
-#include "../ThirdParty/rapidjson/writer.h"
-#include "../ThirdParty/rapidjson/stringbuffer.h"
-#include <tuple>
-#include <string>
-#include <cstring>
-#include <utility>
-
-using namespace rapidjson;
+// RapidJSON and STL headers are now provided by the precompiled header (pch.hpp).
 
 namespace JSON {
+
+using namespace rapidjson;
 
 // General function to serialize the config
 template <typename ConfigT>

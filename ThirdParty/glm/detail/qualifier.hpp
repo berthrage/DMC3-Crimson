@@ -58,26 +58,26 @@ namespace detail
 	template<glm::qualifier P>
 	struct is_aligned
 	{
-		static const bool value = false;
+		static constexpr bool value = false;
 	};
 
 #	if GLM_CONFIG_ALIGNED_GENTYPES == GLM_ENABLE
 		template<>
 		struct is_aligned<glm::aligned_lowp>
 		{
-			static const bool value = true;
+			static constexpr bool value = true;
 		};
 
 		template<>
 		struct is_aligned<glm::aligned_mediump>
 		{
-			static const bool value = true;
+			static constexpr bool value = true;
 		};
 
 		template<>
 		struct is_aligned<glm::aligned_highp>
 		{
-			static const bool value = true;
+			static constexpr bool value = true;
 		};
 #	endif
 

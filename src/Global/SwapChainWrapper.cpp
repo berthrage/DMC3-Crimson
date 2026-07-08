@@ -6,6 +6,9 @@
 #include "../CrimsonHUD.hpp"
 #include "../CrimsonEfkPreload.hpp"
 #include "../NvApiReflex.hpp"
+#include "../CrimsonSDL.hpp"
+#include "../CrimsonGUI.hpp"
+#include "../StyleSwitchFX.hpp"
 
 namespace {
     constexpr double kMaxFpsCap = 500.0;
