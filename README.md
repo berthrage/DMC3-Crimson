@@ -1,4 +1,12 @@
 <img src="Public/CrimReFullCredits.png" alt="Logo" style="width: 2400px;"/>  
+
+[![Discord](https://img.shields.io/discord/1162075054906019930?style=for-the-badge&logo=discord&logoColor=white&label=Devil%20May%20Cry%203%20Crimson%20Discord)](https://discord.gg/kEdHhFYm6e)
+[![Downloads](https://img.shields.io/github/downloads/berthrage/DMC3-Crimson/total?style=for-the-badge&logo=github)](https://github.com/berthrage/DMC3-Crimson/releases/latest)
+[![Release](https://img.shields.io/github/v/release/berthrage/DMC3-Crimson?style=for-the-badge&logo=github)](https://github.com/berthrage/DMC3-Crimson/releases/latest)
+[![Stars](https://img.shields.io/github/stars/berthrage/DMC3-Crimson?style=for-the-badge&logo=github)](https://github.com/berthrage/DMC3-Crimson/stargazers)
+[![X](https://img.shields.io/badge/X-Follow%20on%20X-black?style=for-the-badge&logo=x&logoColor=white)](https://x.com/Berthrage)
+[![YouTube](https://img.shields.io/badge/YouTube-Subscribe-red?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@berthrage)
+[![Patreon](https://img.shields.io/badge/Patreon-Support%20DMC3%20Crimson-F96854?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/c/berthrage)
   
 # THE ULTIMATE DMC3 EXPERIENCE   
 DMC3 Crimson is an Overhaul Modification for Devil May Cry 3 (HD Collection version) that aims to bring Co-Op and PVP Multiplayer, High Frame-Rate support, Quality-of-Life improvements, Gameplay changes, Visual and Sound additions, Bugfixes, Cheats and more.
