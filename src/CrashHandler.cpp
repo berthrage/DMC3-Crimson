@@ -2,7 +2,7 @@
 
 #include <signal.h>
 #include <eh.h>
-
+#include <shellapi.h>
 #include <Windows.h>
 #include <string>
 #include <DbgHelp.h>

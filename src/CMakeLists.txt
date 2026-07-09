@@ -324,31 +324,6 @@ set(UI_SRC
     UI/WeaponWheel.hpp
 )
 
-# ---------------------------------------------------------------------------
-# Unity (jumbo) build source files.
-# Each is a thin .cpp that #includes several real .cpp files, batching them
-# into a single translation unit to slash compiler process overhead.
-# Controlled by the CRIMSON_UNITY_BUILD option in the root CMakeLists.txt.
-# ---------------------------------------------------------------------------
-set(CRIMSON_UNITY_SRC
-    Unity/Unity_CrimsonCore.cpp
-    Unity/Unity_CrimsonGameplay.cpp
-    Unity/Unity_CrimsonConfig.cpp
-    Unity/Unity_CrimsonGUI.cpp
-    Unity/Unity_CrimsonFX.cpp
-    Unity/Unity_CrimsonInput.cpp
-    Unity/Unity_CrimsonSystems.cpp
-    Unity/Unity_GameSubsystems.cpp
-    Unity/Unity_CrimsonScene.cpp
-    Unity/Unity_CrimsonHooks.cpp
-    Unity/Unity_GlobalBase.cpp
-    Unity/Unity_Core.cpp
-    Unity/Unity_Utility.cpp
-    Unity/Unity_UI.cpp
-    Unity/Unity_Misc.cpp
-    Unity/Unity_HUD.cpp
-)
-
 source_group("Global" FILES ${GLOBAL_SRC})
 source_group("Crimson" FILES ${MAIN_SRC} "${PATREONDATA_HPP}")
 source_group("Core" FILES ${CORE_SRC})
@@ -356,28 +331,18 @@ source_group("Utility" FILES ${UTILITY_SRC})
 source_group("ASM" FILES ${MASM_SRC})
 source_group("Fonts" FILES ${FONTS_HDR})
 source_group("UI" FILES ${UI_SRC})
-source_group("Unity" FILES ${CRIMSON_UNITY_SRC})
 
-if(CRIMSON_UNITY_BUILD)
-    add_library(${PROJECT_NAME} SHARED
-                ${CRIMSON_UNITY_SRC}
-                ${MASM_SRC}
-                ${FONTS_HDR}
-                "${PATREONDATA_HPP}"
-    )
-else()
-    add_library(${PROJECT_NAME} SHARED
-                ${MAIN_SRC}
-                ${UTILITY_SRC}
-                ${MASM_SRC}
-                ${FONTS_HDR}
-                ${UI_SRC}
+add_library(${PROJECT_NAME} SHARED
+            ${MAIN_SRC}
+            ${UTILITY_SRC}
+            ${MASM_SRC}
+            ${FONTS_HDR}
+            ${UI_SRC}
 
-                ${GLOBAL_SRC}
-                ${CORE_SRC}
-                "${PATREONDATA_HPP}"
-    )
-endif()
+            ${GLOBAL_SRC}
+            ${CORE_SRC}
+            "${PATREONDATA_HPP}"
+)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${CXX_LIBS}) # Dependencies

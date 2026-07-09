@@ -22,12 +22,6 @@ include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/Effekseer/src/Effekseer)
 include_directories(${CMAKE_SOURCE_DIR}/ThirdParty/Effekseer/src/EffekseerRendererDX11)
 include_directories(${CMAKE_SOURCE_DIR}/src/Utility)
 
-# ---------------------------------------------------------------------------
-# Unity (jumbo) build option — batches multiple .cpp into single TUs.
-# Dramatically reduces compiler process overhead on low-core CPUs.
-# ---------------------------------------------------------------------------
-option(CRIMSON_UNITY_BUILD "Enable unity (jumbo) builds for faster compilation" OFF)
-
 add_compile_options(/W0)
 add_compile_options("$<$<CONFIG:Release>:/MT>")
 add_compile_options("$<$<CONFIG:Debug>:/MTd>")
