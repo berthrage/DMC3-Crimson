@@ -605,7 +605,8 @@ void DisableBlendingEffectsController() {
 	}
 
 	if (eventData.event == EVENT::INIT || eventData.event == EVENT::MAIN || eventData.event == EVENT::PAUSE ||
-		eventData.event == EVENT::ITEM || eventData.event == EVENT::DEATH || eventData.event == EVENT::MESSAGE) {
+		eventData.event == EVENT::ITEM || eventData.event == EVENT::DEATH || eventData.event == EVENT::MESSAGE ||
+		eventData.event == EVENT::STATUS) {
 		CrimsonPatches::DisableGhostingEffect(!activeCrimsonConfig.System.BlendingEffects.ghosting);
 		CrimsonPatches::DisableColorFilterEffect(!activeCrimsonConfig.System.BlendingEffects.colorFilter);
 		CrimsonPatches::DisableBloomEffect(!activeCrimsonConfig.System.BlendingEffects.bloom);
