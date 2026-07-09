@@ -3,7 +3,9 @@
 
 // Drop-in replacements for ImGui::GetTime() / ImGui::GetIO()
 // Backed by QueryPerformanceCounter — same precision as ImGui.
-// Call CrimsonClock::Tick() once per frame (in Timestep).
+// Called exactly once per frame from Timestep() (SwapChainWrapper::Present).
+// Do NOT call Tick() from any other code path — doing so would
+// produce a near-zero delta that corrupts s_Delta.
 
 namespace CrimsonClock {
 

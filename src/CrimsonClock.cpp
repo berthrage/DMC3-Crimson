@@ -19,13 +19,17 @@ void Tick() {
     }
     LARGE_INTEGER now;
     QueryPerformanceCounter(&now);
-    double elapsed = double(now.QuadPart - s_LastQpc.QuadPart)
-                   / double(s_QpcFreq.QuadPart);
-    if (elapsed < 0.0005) return;
+    const double elapsed = double(now.QuadPart - s_LastQpc.QuadPart)
+                         / double(s_QpcFreq.QuadPart);
+
+    // Tick() is called exactly once per frame (from Timestep), so
+    // elapsed is always the genuine frame delta.  No threshold needed.
     s_LastQpc = now;
-    s_Time  += elapsed;
-    s_Delta  = (float)elapsed;
-    s_Framerate = (elapsed > 0.0) ? (float)(1.0 / elapsed) : 0.0f;
+    s_Time   += elapsed;
+    s_Delta   = static_cast<float>(elapsed);
+    s_Framerate = (elapsed > 0.0)
+                ? static_cast<float>(1.0 / elapsed)
+                : 0.0f;
 }
 
 double Time()      { return s_Time; }

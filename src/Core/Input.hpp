@@ -1,8 +1,9 @@
 #pragma once
 
-// System input headers (XInput, DInput) are now provided by the precompiled
-// header (pch.hpp).
 #include "Core.hpp"
+#include <Xinput.h>
+#define DIRECTINPUT_VERSION 0x0800
+#include <dinput.h>
 
 struct InputDevice {
     IDirectInput8A* deviceInterface;

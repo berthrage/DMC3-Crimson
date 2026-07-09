@@ -288,7 +288,26 @@ void LoadConfigInput() {
 		return;
 	}
 
-	ParseConfig(crimsonInputRoot, queuedCrimsonInput);
+	// Check if the file has the old flat-array format (pre-BindPair migration).
+	// Old:  "dante1P": [17, 0, 18, 0, ...]
+	// New:  "dante1P": [{"slotA":17,"slotB":0}, ...]
+	// If elements are NOT objects, rebuild the file with defaults.
+	if (crimsonInputRoot.HasMember("ButtonConfig") && crimsonInputRoot["ButtonConfig"].IsObject()) {
+		auto& bc = crimsonInputRoot["ButtonConfig"];
+		if (bc.HasMember("dante1P") && bc["dante1P"].IsArray() && bc["dante1P"][0].IsObject() == false) {
+			Log("LoadConfigInput: old flat-array format detected, recreating file with defaults");
+			crimsonInputRoot.SetObject();
+			g_input_allocator = &crimsonInputRoot.GetAllocator();
+			SerializeConfig(crimsonInputRoot, defaultCrimsonInput, crimsonInputRoot.GetAllocator());
+			CopyMemory(&queuedCrimsonInput, &defaultCrimsonInput, sizeof(queuedCrimsonInput));
+			CopyMemory(&activeCrimsonInput, &queuedCrimsonInput, sizeof(activeCrimsonInput));
+			SaveConfigInput();
+		} else {
+			ParseConfig(crimsonInputRoot, queuedCrimsonInput);
+		}
+	} else {
+		ParseConfig(crimsonInputRoot, queuedCrimsonInput);
+	}
 	CopyMemory(&activeCrimsonInput, &queuedCrimsonInput, sizeof(activeCrimsonInput));
 }
 

@@ -96,10 +96,6 @@ void FrameResponsiveGameSpeed() {
 	// Effective runtime scaling is applied in Speed::Toggle using g_FrameRateTimeMultiplier.
 	UpdateFrameRate();
 
-	// Also tick the Crimson clock — ensures DeltaTime() works
-	// even when SwapChainWrapper is absent (e.g. RenderDoc capture mode).
-	CrimsonClock::Tick();
-
 	Speed::Toggle(true);
 	Speed::UpdateEffectiveSpeeds();
 	Speed::ApplyRuntimeGlobalSpeed();

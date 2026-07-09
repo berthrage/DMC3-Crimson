@@ -4,6 +4,12 @@
 // precompiled header (pch.hpp).
 #include <vector>
 
+#define DIRECTINPUT_VERSION 0x0800
+#include <dinput.h>
+#include <Xinput.h>
+#include <dxgi.h>
+#include <d3d11.h>
+
 #include "Core/DataTypes.hpp"
 #include "Core/Input.hpp"
 #include "Vars.hpp"

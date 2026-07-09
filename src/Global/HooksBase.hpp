@@ -7,6 +7,15 @@
 #include "GUIBase.hpp"
 #include "SwapChainWrapper.hpp"
 
+// Self-contained includes (not relying solely on the PCH)
+#include "../Core/Core_ImGui.hpp"
+#include "../CrimsonGUI.hpp"
+#include "../Config.hpp"
+#include "../DebugDrawDX11.hpp"
+#include "../StyleSwitchFX.hpp"
+#include "../CrimsonSDL.hpp"
+#include "../CrimsonEfk.hpp"
+
 void FPSLimiter_Init(double fps);
 void FPSLimiter_Apply();
 

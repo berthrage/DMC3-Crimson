@@ -92,7 +92,6 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         LoadConfigGameplay();
         LoadConfigInput();
 
-
         ExpConfig::InitExp();
         ExpConfig::LoadExp();
 

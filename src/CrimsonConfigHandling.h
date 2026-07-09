@@ -219,8 +219,10 @@ void ParseField(const Value& obj, const char* name, T& value) {
 
 			// 1D arrays
 			if constexpr (std::rank_v<T> == 1) {
+				constexpr size_t kDim0 = std::extent_v<T, 0>;
 				size_t index = 0;
 				for (const auto& elem : arr) {
+					if (index >= kDim0) break; // Bounds check
 					if constexpr (TypeMatch<std::remove_extent_t<T>, uint8>::value) {
 						value[index++] = static_cast<uint8>(elem.GetUint());
 					}
@@ -265,11 +267,15 @@ void ParseField(const Value& obj, const char* name, T& value) {
 			}
 			// 2D arrays
 			else if constexpr (std::rank_v<T> == 2) {
+				constexpr size_t kDim0 = std::extent_v<T, 0>;
+				constexpr size_t kDim1 = std::extent_v<T, 1>;
 				size_t row = 0;
 				for (const auto& subArray : arr) {
+					if (row >= kDim0) break; // Bounds check
 					const auto& innerArr = subArray.GetArray();
 					size_t col = 0;
 					for (const auto& elem : innerArr) {
+						if (col >= kDim1) break; // Bounds check
 						if constexpr (TypeMatch<std::remove_all_extents_t<T>, uint8>::value) {
 							value[row][col++] = static_cast<uint8>(elem.GetUint());
 						}
@@ -313,14 +319,20 @@ void ParseField(const Value& obj, const char* name, T& value) {
 			}
 			// 3D arrays
 			else if constexpr (std::rank_v<T> == 3) {
+				constexpr size_t kDim0 = std::extent_v<T, 0>;
+				constexpr size_t kDim1 = std::extent_v<T, 1>;
+				constexpr size_t kDim2 = std::extent_v<T, 2>;
 				size_t layer = 0;
 				for (const auto& subSubArray : arr) {
+					if (layer >= kDim0) break; // Bounds check
 					const auto& innerArr = subSubArray.GetArray();
 					size_t row = 0;
 					for (const auto& subArray : innerArr) {
+						if (row >= kDim1) break; // Bounds check
 						const auto& innerInnerArr = subArray.GetArray();
 						size_t col = 0;
 						for (const auto& elem : innerInnerArr) {
+							if (col >= kDim2) break; // Bounds check
 							if constexpr (TypeMatch<std::remove_all_extents_t<T>, uint8>::value) {
 								value[layer][row][col++] = static_cast<uint8>(elem.GetUint());
 							}
