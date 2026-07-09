@@ -4,7 +4,6 @@
 #include <eh.h>
 
 #include <Windows.h>
-#include <shellapi.h>
 #include <string>
 #include <DbgHelp.h>
 #include <tlhelp32.h>
