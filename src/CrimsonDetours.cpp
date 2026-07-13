@@ -160,6 +160,11 @@ std::uint64_t g_AdjustAirRisingDragonLaunchHeight_ReturnAddr;
 void* g_AdjustAirRisingDragonLaunchHeight_FuncCall;
 void AdjustAirRisingDragonLaunchHeightDetour();
 
+// AdjustAirWhirlwindLaunchHeight
+std::uint64_t g_AdjustAirWhirlwindLaunchHeight_ReturnAddr;
+void* g_AdjustAirWhirlwindLaunchHeightCheckCall;
+void AdjustAirWhirlwindLaunchHeightDetour();
+
 // HoldToCrazyCombo
 std::uint64_t g_HoldToCrazyCombo_ReturnAddr;
 void HoldToCrazyComboDetour();
@@ -1303,6 +1308,15 @@ float AirDragonGravityCalc(uintptr_t playerAddr) {
 	return (3.0f - airCounts.airRisingSunLaunch) * 5.0f;
 }
 
+float AirWhirlwindGravityCalc(uintptr_t playerAddr) {
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
+	uint8 playerIndex = actorData.newPlayerIndex;
+
+	auto& airCounts = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].airCounts : crimsonPlayer[playerIndex].airCountsClone;
+
+	return (3.0f - airCounts.airAgniRudraWhirlwind) * 5.0f;
+}
+
 bool CheckIfCanExecuteAction(uintptr_t playerAddr, uint32 event) {
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
 	uint8 playerIndex = actorData.newPlayerIndex;
@@ -1929,6 +1943,24 @@ void ToggleAdjustAirRisingDragonLaunchHeight(bool enable) {
 	g_AdjustAirRisingDragonLaunchHeight_FuncCall = &AirDragonGravityCalc;
 
 	AdjustAirRisingDragonLaunchHeightHook->Toggle(enable);
+
+	run = enable;
+}
+
+void AdjustAirWhirlwindLaunchHeight(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From ExecuteWhirlwindLaunchMove_sub_1401FFFF0:
+	// dmc3.exe+2000E5 - F3 0F 10 90 50 03 00 00 - movss xmm2,[rax+00000350] { new y inertia to be applied }
+	static std::unique_ptr<Utility::Detour_t> adjustAirWhirlwindLaunchHeightHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2000E5, &AdjustAirWhirlwindLaunchHeightDetour, 8);
+	g_AdjustAirWhirlwindLaunchHeight_ReturnAddr = adjustAirWhirlwindLaunchHeightHook->GetReturnAddress();
+	g_AdjustAirWhirlwindLaunchHeightCheckCall = &AirWhirlwindGravityCalc;  
+	adjustAirWhirlwindLaunchHeightHook->Toggle(enable);
 
 	run = enable;
 }

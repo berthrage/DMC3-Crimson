@@ -65,6 +65,7 @@ set(MASM_SRC
     masm/SummonedSwordsFormationShortcuts.asm
     masm/StormSwordsDownedEnemyFix.asm
     masm/FixMPXinputVibration.asm
+    masm/AdjustAirWhirlwindLaunchHeight.asm
 )
 
 set (ASM_LIBS)

@@ -2159,6 +2159,9 @@ void TriggerOnTickFuncs() {
 	CrimsonDetours::ToggleAdjustAirRisingDragonLaunchHeight(activeConfig.Actor.enable &&
 		ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::BEOWULF_RISING_DRAGON_AIR] &&
 		activeCrimsonGameplay.Gameplay.General.extramoves);
+	CrimsonDetours::AdjustAirWhirlwindLaunchHeight(activeConfig.Actor.enable &&
+		ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::AGNI_RUDRA_WHIRLWIND_AIR] &&
+		activeCrimsonGameplay.Gameplay.General.extramoves);
 	CrimsonOnTick::UpdateMainPlayerMotionArchives();
  	CrimsonOnTick::TrackMissionStyleLevels();
  	CrimsonOnTick::StyleMeterMultiplayer();

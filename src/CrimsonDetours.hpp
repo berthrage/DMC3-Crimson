@@ -127,7 +127,9 @@ void SummonedSwordsFormationShortcutsDetour();
 // StormSwordsDownedEnemyFix
 void StormSwordsDownedEnemyFixDetour();
 // FixMPXinputVibration
-void FixMPXinputVibrationDetour();}
+void FixMPXinputVibrationDetour();
+// AdjustAirWhirlwindLaunchHeight
+void AdjustAirWhirlwindLaunchHeightDetour();}
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
@@ -177,4 +179,5 @@ void FasterSummonedSwords(bool enable);
 void SummonedSwordsFormationShortcuts(bool enable);
 void StormSwordsDownedEnemyFix(bool enable);
 void FixMPXinputVibration(bool enable);
+void AdjustAirWhirlwindLaunchHeight(bool enable);
 }

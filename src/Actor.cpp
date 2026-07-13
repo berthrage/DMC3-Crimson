@@ -10295,7 +10295,6 @@ void SetAction(byte8* actorBaseAddr) {
         // Air Agni & Rudra Whirlwind
 		if ((actorData.action == AGNI_RUDRA_AERIAL_CROSS) &&
 			actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) &&
-			(airCounts.airAgniRudraWhirlwind < 1) &&
 			ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::AGNI_RUDRA_WHIRLWIND_AIR]) {
 			if ((lockOn && tiltDirection == TILT_DIRECTION::DOWN)) {
 				actorData.action = AGNI_RUDRA_WHIRLWIND_LAUNCH;
