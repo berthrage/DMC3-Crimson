@@ -720,6 +720,25 @@ void ShowButtonConfigWindow() {
 	ImGui::Begin("Button Configuration", &shouldClose, ImGuiWindowFlags_NoTitleBar); {
 		ImGui::SetWindowFontScale(scaleY);
 
+		// Background faded text (like the "Divinity Statue" text in the shop)
+		{
+			const char* fadedText = "Button Configuration";
+			ImFont* fadedFont = UI::g_ImGuiFont_Benguiat256;
+			float fadedFontSize = CrimsonGUI::scaledFontSize * 4.8f;
+			ImVec2 fadedTextSize = ImGui::CalcTextSize(fadedText, nullptr, false, fadedFontSize);
+			ImVec2 winPos = ImGui::GetWindowPos();
+			ImVec2 winSize = ImGui::GetWindowSize();
+			float rightMargin = 780.0f * scaleY;
+			float x = winPos.x + winSize.x - fadedTextSize.x - rightMargin;
+			float y = winPos.y + 15.0f * scaleY;
+			ImGui::GetWindowDrawList()->AddText(
+				fadedFont, fadedFontSize,
+				ImVec2(x, y),
+				UI::SwapColorEndianness(0xFFFFFF10),
+				fadedText
+			);
+		}
+
 		if (GUI_CloseX() || (io.KeysDown[keyboardBackKey] && (io.KeysDownDuration[keyboardBackKey] == 0.0f))
             || (io.KeysDown[DI8::KEY::ESCAPE] && (io.KeysDownDuration[DI8::KEY::ESCAPE] == 0.0f))) {
 			if (g_control_ui) {
