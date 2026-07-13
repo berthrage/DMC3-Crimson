@@ -9245,6 +9245,8 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			ImGui::Text("bufferedAction:  %u", actorData.bufferedAction);
 			ImGui::Text("gunButtonTimer : % g", crimsonPlayer[0].bulletMagnetism.gunButtonTimer);
 			ImGui::Text("inertiaRotation : % x", actorData.inertiaRotation);
+			ImGui::Text("ANIMFRAMELOWER: %g", actorData.newModelData[actorData.activeModelIndexMirror].Motion.timer[0]);
+			ImGui::Text("ANIMFRAMEUPPER: %g", actorData.newModelData[actorData.activeModelIndexMirror].Motion.timer[1]);
 			ImGui::Text("MOTION TIMER:  %g", crimsonPlayer[0].motionTimer);
 			ImGui::Text("MOTION GROUP:  %u", actorData.motionData[0].group);
 			ImGui::Text("MOTION INDEX:  %u", actorData.motionData[0].index);

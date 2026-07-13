@@ -3,6 +3,7 @@ set(MASM_SRC
     masm/SampleMod.asm
     masm/GuardGravity.asm
     masm/AddToMirageGauge.asm
+    masm/AirRisingDragonDetours.asm
     masm/CameraHittingWall.asm
     masm/CameraSensitivity.asm
     masm/ConfirmSetAction.asm
@@ -26,7 +27,6 @@ set(MASM_SRC
     masm/FixCStageSetGateSpawn.asm
     masm/FixSecretMissionTimerFPS.asm
     masm/FixStaggerGravity.asm
-    masm/EnsureAirRisingDragonLaunch.asm
     masm/HideStyleRankHUD.asm
     masm/HudHPSeparation.asm
     masm/HudStyleBarPosAsm.asm

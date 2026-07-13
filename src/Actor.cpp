@@ -10275,16 +10275,16 @@ void SetAction(byte8* actorBaseAddr) {
             CrimsonPatches::ToggleKillTornadoCCEffects(false);
         }
 
-		// Air Rising Dragon Launch
-		if ((actorData.action == BEOWULF_KILLER_BEE) && actorData.state & STATE::IN_AIR &&
+		// Air Dragon
+		if ((actorData.action == BEOWULF_KILLER_BEE || actorData.action == BEOWULF_RISING_DRAGON_LAUNCH) && actorData.state & STATE::IN_AIR &&
 			actorData.buttons[0] & GetBinding(BINDING::MELEE_ATTACK) &&
-			(airCounts.airRisingSunLaunch < 1) && activeCrimsonGameplay.Gameplay.General.extramoves &&
+			activeCrimsonGameplay.Gameplay.General.extramoves &&
 			ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::BEOWULF_RISING_DRAGON_AIR]) {
 
             // Prevent two consecutive Launches in quick succession executing from near the ground
-            if (actorData.lastAction == BEOWULF_RISING_DRAGON_LAUNCH && actorData.state & STATE::IN_AIR) {
+            /*if (actorData.lastAction == BEOWULF_RISING_DRAGON_LAUNCH && actorData.state & STATE::IN_AIR) {
                 return;
-            }
+            }*/
 
 			if ((lockOn && tiltDirection == TILT_DIRECTION::DOWN)) {
 				actorData.action = BEOWULF_RISING_DRAGON_LAUNCH;

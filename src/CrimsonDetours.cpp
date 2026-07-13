@@ -155,6 +155,11 @@ std::uint64_t g_EnsureAirRisingDragonLaunch_ReturnAddr;
 std::uint64_t g_EnsureAirRisingDragonLaunch_JmpAddr;
 void EnsureAirRisingDragonLaunchDetour();
 
+// AdjustAirRisingDragonLaunchHeight
+std::uint64_t g_AdjustAirRisingDragonLaunchHeight_ReturnAddr;
+void* g_AdjustAirRisingDragonLaunchHeight_FuncCall;
+void AdjustAirRisingDragonLaunchHeightDetour();
+
 // HoldToCrazyCombo
 std::uint64_t g_HoldToCrazyCombo_ReturnAddr;
 void HoldToCrazyComboDetour();
@@ -1289,6 +1294,15 @@ void DebugDrawCollisions(byte8* metadataAddr) {
 	dd::circle(dd_ctx(), *(ddVec3*)&collisionMeta.hitboxPos, *(ddVec3*)&forward, dd::colors::Crimson, collisionMeta.hitboxRadius, 8, 32);
 }
 
+float AirDragonGravityCalc(uintptr_t playerAddr) {
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
+	uint8 playerIndex = actorData.newPlayerIndex;
+
+	auto& airCounts = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].airCounts : crimsonPlayer[playerIndex].airCountsClone;
+
+	return (3.0f - airCounts.airRisingSunLaunch) * 5.0f;
+}
+
 bool CheckIfCanExecuteAction(uintptr_t playerAddr, uint32 event) {
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
 	uint8 playerIndex = actorData.newPlayerIndex;
@@ -1297,8 +1311,19 @@ bool CheckIfCanExecuteAction(uintptr_t playerAddr, uint32 event) {
 	auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
 	auto& gamepad = GetGamepad(actorData.newGamepad);
 	auto tiltDirection = GetRelativeTiltDirection(actorData);
+	auto& animFrameUpper = actorData.newModelData[actorData.activeModelIndexMirror].Motion.timer[1];
 
 	// Here we can block certain actions from being performed.
+
+	if (actorData.lastAction == ACTION_DANTE::BEOWULF_RISING_DRAGON_LAUNCH && actorData.state & STATE::IN_AIR &&
+		actorData.action == ACTION_DANTE::BEOWULF_RISING_DRAGON_LAUNCH && animFrameUpper < 56.0f) {
+		return false;
+	}
+
+	if (actorData.lastAction == ACTION_DANTE::AGNI_RUDRA_WHIRLWIND_LAUNCH && actorData.state & STATE::IN_AIR &&
+		actorData.action == ACTION_DANTE::AGNI_RUDRA_WHIRLWIND_LAUNCH && animFrameUpper < 56.0f) {
+		return false;
+	}
 	
 // 	if (jCut.isJustFrameCharged || jCut.isAfterJustFrameCharged || actorData.action == ACTION_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_2 || actorData.eventData[0].event == 33) {
 // 		return false;
@@ -1876,6 +1901,7 @@ void ToggleEnsureAirRisingDragonLaunch(bool enable) {
 		return;
 	}
 
+	// From ExecuteRisingDragonMove_sub_140202490:
 	// dmc3.exe+202588 - 80 BB A7 3F 00 00 00     - cmp byte ptr [rbx+00003FA7],00 { Checking TransitionMove? }
 	// dmc3.exe + 20258F - 75 16 - jne dmc3.exe + 2025A7 { Transition from Rising Dragon Launch to Whirlwind }
 	// PlayerPtr in RBX
@@ -1884,6 +1910,25 @@ void ToggleEnsureAirRisingDragonLaunch(bool enable) {
 	g_EnsureAirRisingDragonLaunch_ReturnAddr = EnsureAirRisingDragonLaunchHook->GetReturnAddress();
 	g_EnsureAirRisingDragonLaunch_JmpAddr = (uintptr_t)appBaseAddr + 0x202591;
 	EnsureAirRisingDragonLaunchHook->Toggle(enable);
+
+	run = enable;
+}
+
+void ToggleAdjustAirRisingDragonLaunchHeight(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+	// From ExecuteRisingDragonMove_sub_140202490:
+	// dmc3.exe + 202648 - F3 0F 10 90 7C 02 00 00 - movss xmm2, [rax + 0000027C] { y inertia to be applied }
+
+	static std::unique_ptr<Detour_t> AdjustAirRisingDragonLaunchHeightHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x202648, &AdjustAirRisingDragonLaunchHeightDetour, 8);
+	g_AdjustAirRisingDragonLaunchHeight_ReturnAddr = AdjustAirRisingDragonLaunchHeightHook->GetReturnAddress();
+	g_AdjustAirRisingDragonLaunchHeight_FuncCall = &AirDragonGravityCalc;
+
+	AdjustAirRisingDragonLaunchHeightHook->Toggle(enable);
 
 	run = enable;
 }
