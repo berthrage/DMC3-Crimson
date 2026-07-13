@@ -60,6 +60,7 @@ extern CUIDControl* g_control_ui;
 void InitBindings();
 void SwapXInputButtonsCoop(uint8 index, XINPUT_STATE* gamepad);
 void ShowButtonConfigWindow();
+void CloseButtonConfigWindow();
 void UpdateKeyboardConfigCapture(byte8* state);
 void UpdateGamepadConfigCapture();
 void StoreHDCKeybinds();

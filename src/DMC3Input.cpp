@@ -673,6 +673,14 @@ static GPCaptureState s_gpCapture;
 
 static std::array<int, PLAYER_COUNT> s_selectedCharacterSlotByPlayer = {};
 
+void CloseButtonConfigWindow() {
+	if (g_control_ui) {
+		CUIDControl_Close();
+	}
+	g_showControllerRemap = false;
+	g_showKeyboardConfig  = false;
+}
+
 void ShowButtonConfigWindow() {
 	static bool s_wasOpen = false;
 	bool isOpen = (g_control_ui || g_showControllerRemap || g_showKeyboardConfig);

@@ -15,6 +15,7 @@
 #include "../Core/Macros.h"
 
 #include "../Core/DebugSwitch.hpp"
+#include "../DMC3Input.hpp"
 #include "../Sound.hpp"
 
 void BuildFonts() {
@@ -359,6 +360,7 @@ void CloseMain() {
     DebugLogFunction();
 
     g_showMain = false;
+    CloseButtonConfigWindow();
     if (activeCrimsonConfig.GUI.sounds) FMOD_PlaySound(0, 3);
 }
 
