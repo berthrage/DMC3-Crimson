@@ -10,6 +10,7 @@
 #include "../Core/Macros.h"
 
 #include "../Core/DebugSwitch.hpp"
+#include "../CrimsonGUI.hpp"
 #include "../StyleSwitchFX.hpp"
 #include "../CrimsonEfk.hpp"
 #include "../CrimsonEfkPreload.hpp"

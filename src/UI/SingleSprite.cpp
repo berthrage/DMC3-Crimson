@@ -2,8 +2,8 @@
 #include "Texture2DD3D11.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include "..\ThirdParty\glm\gtc\matrix_transform.hpp"
-#include "..\ThirdParty\glm\gtx\euler_angles.hpp"
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 #define Log(...) printf(__VA_ARGS__)
 
 #include <d3dcompiler.h>

@@ -1,7 +1,5 @@
 #pragma once
-#include <string>
-#include <vector>
-#include "../ThirdParty/SDL3/SDL.h"
+// STL and SDL3 headers are now provided by the precompiled header (pch.hpp).
 
 // Forward-declare XINPUT_STATE so we can reference it without pulling in Xinput.h
 typedef struct _XINPUT_STATE XINPUT_STATE;

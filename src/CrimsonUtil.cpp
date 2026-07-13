@@ -46,7 +46,7 @@ ImVec4 HexToImVec4(uint32_t hexColor) {
 }
 
 float sexy_clamp(const float val, const float minVal, const float maxVal) {
-	return max(minVal, min(val, maxVal));
+	return std::max(minVal, std::min(val, maxVal));
 }
 
 float smoothstep(float edge0, float edge1, float x) {

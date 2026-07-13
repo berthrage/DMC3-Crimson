@@ -8808,7 +8808,7 @@ void ToggleColor(bool enable) {
         constexpr byte8 sect1[] = {
             mov_rdx_rax,
             mov_rcx_rbx,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
         };
 
@@ -8846,7 +8846,7 @@ void ToggleColor(bool enable) {
         constexpr byte8 sect1[] = {
             mov_rdx_rax,
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
             mov_rcx_rax,
         };
 
@@ -12241,7 +12241,7 @@ void Toggle(bool enable) {
 
         constexpr byte8 sect0[] = {
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
         };
 
         if (!run) {
@@ -12272,7 +12272,7 @@ void Toggle(bool enable) {
 
         constexpr byte8 sect0[] = {
             mov_rcx_rdi,
-            call,
+            OPCODE_CALL,
         };
 
         if (!run) {

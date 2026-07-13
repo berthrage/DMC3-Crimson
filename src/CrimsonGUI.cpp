@@ -78,6 +78,7 @@
 #include "UI\Texture2DD3D11.hpp"
 #include "UI\EmbeddedImages.hpp"
 #include "CrimsonCameraController.hpp"
+#include "NvApiReflex.hpp"
 #include "CrimsonBetterArkham2.hpp"
 
 #include "DebugDrawDX11.hpp"
@@ -10536,11 +10537,25 @@ void SystemSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			// NVIDIA Reflex
+			bool nvReflexAvailable = GetNvApiReflex().IsNvApiLoaded();
+			GUI_PushDisable(!nvReflexAvailable);
+			if (!nvReflexAvailable) {
+				queuedCrimsonConfig.System.nvidiaReflex = false;
+				activeCrimsonConfig.System.nvidiaReflex = false;
+			}
 			GUI_Checkbox2("NVIDIA Reflex Low Latency", activeCrimsonConfig.System.nvidiaReflex, queuedCrimsonConfig.System.nvidiaReflex);
+			GUI_PopDisable(!nvReflexAvailable);
 			if (ImGui::IsItemHovered()) {
-				ImGui::SetTooltip("NVIDIA Reflex dynamically reduces input latency by synchronizing the CPU and GPU.\n"
-					"Requires an NVIDIA GeForce GTX 900 series or newer GPU and driver version 456.38+.\n"
-					"Disables the CPU-based FPS limiter in favor of GPU-optimal frame pacing.");
+				if (!nvReflexAvailable) {
+					ImGui::SetTooltip("NVIDIA Reflex is unavailable:\n"
+						"- nvapi64.dll not found (NVIDIA driver not installed), or\n"
+						"- No NVIDIA GPU detected.\n\n"
+						"Requires an NVIDIA GeForce GTX 900 series or newer GPU and driver version 456.38+.");
+				} else {
+					ImGui::SetTooltip("NVIDIA Reflex dynamically reduces input latency by synchronizing the CPU and GPU.\n"
+						"Requires an NVIDIA GeForce GTX 900 series or newer GPU and driver version 456.38+.\n"
+						"Disables the CPU-based FPS limiter in favor of GPU-optimal frame pacing.");
+				}
 			}
 
 			if (activeCrimsonConfig.System.nvidiaReflex) {

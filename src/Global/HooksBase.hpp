@@ -1,27 +1,11 @@
 #pragma once
 
+// Heavy system/third-party headers (D3D, ImGui, SDL, etc.) are now provided
+// by the precompiled header (pch.hpp). Only project-level includes remain.
 #include "../Core/Core.hpp"
 #include "../Global.hpp"
-#define DIRECTINPUT_VERSION 0x0800
-#include <dinput.h>
-#include <Xinput.h>
-#include <dxgi.h>
-#include <dxgi1_2.h>
-#include <d3d11.h>
-#include <emmintrin.h> // For CPU cache prefetching (_mm_prefetch)
 #include "GUIBase.hpp"
-#include "../Core/Core_ImGui.hpp"
-#include "../CrimsonGUI.hpp"
-#include "../Config.hpp"
-#include "../DebugDrawDX11.hpp"
-#include "../../ThirdParty/ImGui/imgui.h"
-#define IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
-#include "../../ThirdParty/ImGui/Backend/imgui_impl_win32.h"
-#include "../../ThirdParty/ImGui/Backend/imgui_impl_dx11.h"
 #include "SwapChainWrapper.hpp"
-#include "../StyleSwitchFX.hpp"
-#include "../CrimsonSDL.hpp"
-#include "../CrimsonEfk.hpp"
 
 void FPSLimiter_Init(double fps);
 void FPSLimiter_Apply();

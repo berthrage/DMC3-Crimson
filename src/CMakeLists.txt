@@ -351,6 +351,11 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     $<$<COMPILE_LANGUAGE:ASM>:${ASM_FLAGS}>
 )
 
+# Precompiled header — the single biggest compile-time win.
+# Collects Windows SDK, D3D, ImGui, SDL, RapidJSON, and other heavy
+# system/third-party headers so they are parsed once instead of ~75 times.
+target_precompile_headers(${PROJECT_NAME} PRIVATE pch.hpp)
+
 set_target_properties(${PROJECT_NAME} PROPERTIES 
 OUTPUT_NAME Crimson)
 
@@ -385,6 +390,8 @@ add_library(${PROJECT_NAME} SHARED
 target_compile_options(${PROJECT_NAME} PRIVATE
     ${CXX_FLAGS}
 )
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE dinput8_pch.hpp)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC ${CXX_LIBS}) # Dependencies
 

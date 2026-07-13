@@ -1,10 +1,9 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+// windows.h with WIN32_LEAN_AND_MEAN is now provided by the precompiled
+// header (pch.hpp). We still need to clean up macros it defines.
 #undef DELETE
 
-#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,6 +12,10 @@
 
 #include "../CrimsonClock.hpp"
 
+// The project declares its own CopyMemory() function below.
+// windows.h #defines CopyMemory as RtlCopyMemory, which would corrupt
+// the declaration. Undefine it now that all system headers that need
+// the macro (ws2tcpip.h, etc.) have already been processed in the PCH.
 #undef CopyMemory
 
 extern bool noLog;

@@ -1,13 +1,10 @@
 #pragma once
 
+// Heavy system/third-party headers (ImGui, D3D) are now provided by the
+// precompiled header (pch.hpp).
 #include "Core.hpp"
 #include "../Speed.hpp"
-#include "../../ThirdParty/ImGui/imgui.h"
-#include "../../ThirdParty/ImGui/imgui_internal.h"
-#include <d3d11.h>
-#include <d3d10.h>
 #include "../ImGuiExtra.hpp"
-
 #include "DebugSwitch.hpp"
 
 template <typename T> struct GetImGuiDataType {

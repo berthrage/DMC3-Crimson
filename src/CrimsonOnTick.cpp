@@ -96,10 +96,6 @@ void FrameResponsiveGameSpeed() {
 	// Effective runtime scaling is applied in Speed::Toggle using g_FrameRateTimeMultiplier.
 	UpdateFrameRate();
 
-	// Also tick the Crimson clock — ensures DeltaTime() works
-	// even when SwapChainWrapper is absent (e.g. RenderDoc capture mode).
-	CrimsonClock::Tick();
-
 	Speed::Toggle(true);
 	Speed::UpdateEffectiveSpeeds();
 	Speed::ApplyRuntimeGlobalSpeed();
@@ -609,7 +605,8 @@ void DisableBlendingEffectsController() {
 	}
 
 	if (eventData.event == EVENT::INIT || eventData.event == EVENT::MAIN || eventData.event == EVENT::PAUSE ||
-		eventData.event == EVENT::ITEM || eventData.event == EVENT::DEATH || eventData.event == EVENT::MESSAGE) {
+		eventData.event == EVENT::ITEM || eventData.event == EVENT::DEATH || eventData.event == EVENT::MESSAGE ||
+		eventData.event == EVENT::STATUS) {
 		CrimsonPatches::DisableGhostingEffect(!activeCrimsonConfig.System.BlendingEffects.ghosting);
 		CrimsonPatches::DisableColorFilterEffect(!activeCrimsonConfig.System.BlendingEffects.colorFilter);
 		CrimsonPatches::DisableBloomEffect(!activeCrimsonConfig.System.BlendingEffects.bloom);
@@ -1462,7 +1459,8 @@ void GeneralCameraOptionsController() {
 	}
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
 	if (eventData.event != EVENT::MAIN && eventData.event != EVENT::PAUSE && 
-		eventData.event != EVENT::MESSAGE && eventData.event != EVENT::ITEM) {
+		eventData.event != EVENT::MESSAGE && eventData.event != EVENT::ITEM && 
+		eventData.event != EVENT::STATUS) {
 		setCamPos = false;
 		return;
 	}

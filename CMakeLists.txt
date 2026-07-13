@@ -25,21 +25,35 @@ include_directories(${CMAKE_SOURCE_DIR}/src/Utility)
 add_compile_options(/W0)
 add_compile_options("$<$<CONFIG:Release>:/MT>")
 add_compile_options("$<$<CONFIG:Debug>:/MTd>")
-add_compile_options(/Ob1)
+
+# /Ob1 (inline expansion) — keep for Release only; skip in Debug for speed
+add_compile_options("$<$<CONFIG:Release>:/Ob1>")
 
 # Disable ImGui's built-in XInput gamepad handler (slot 0 only).
 # Crimson provides its own multi-controller navigation via SDL
 # in CoreImGui::XI::UpdateGamepad().
 add_compile_definitions(IMGUI_IMPL_WIN32_DISABLE_GAMEPAD)
 
-# Add O2 optimization for Release
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2")
+# Prevent windows.h from defining min/max as preprocessor macros.
+# These corrupt GLM's use of std::numeric_limits<T>::max() and similar
+# patterns. This must be a global compile definition (not just in the PCH)
+# because the first build pass compiles sources before the PCH is ready.
+add_compile_definitions(NOMINMAX)
 
-# Add debug symbols for Release and also use Incremental linking to speed up the build process
+# --- Release flags ---------------------------------------------------------
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG:FULL /INCREMENTAL /OPT:NOREF /OPT:NOICF")
 set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG:FULL /INCREMENTAL /OPT:NOREF /OPT:NOICF")
 set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "${CMAKE_MODULE_LINKER_FLAGS_RELEASE} /DEBUG:FULL /INCREMENTAL /OPT:NOREF /OPT:NOICF")
+
+# --- Debug flags (optimized for compilation speed) -------------------------
+# /O1 (minimize size) compiles faster than /Od while still being debuggable
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /O1")
+# /Z7 embeds debug info in .obj files — avoids mspdbsrv.exe bottleneck on slow CPUs
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Z7")
+# /DEBUG:FASTLINK for faster incremental linking in Debug
+set(CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CMAKE_SHARED_LINKER_FLAGS_DEBUG} /DEBUG:FASTLINK /INCREMENTAL")
 
 # set output directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
