@@ -1881,6 +1881,7 @@ void VergilRisingStar(byte8* actorBaseAddr) {
 		//CrimsonEfk::SetAllColor(risingStarParticleHandle[playerIndex][entityIndex], vergilColor);
         
 		 inRisingStar = true;
+		 CrimsonPatches::ToggleKillRisingSunEffects(true);
 	}
 
 	// Reset apply flag when action changes away from YAMATO_RAPID_SLASH_LEVEL_2
@@ -1896,6 +1897,7 @@ void VergilRisingStar(byte8* actorBaseAddr) {
 		actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_2 && inRisingStar) {
 		actorData.motionArchives[MOTION_GROUP_VERGIL::BEOWULF] = File_staticFiles[pl021_00_4]; // Revert to default pac motion archive after Rising Star finishes or is cancelled by a trick.
 		inRisingStar = false;
+		CrimsonPatches::ToggleKillRisingSunEffects(false);
 	}
 
 	if (inRisingStar && actorData.newAirRisingSunCount > 0) {

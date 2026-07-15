@@ -412,6 +412,27 @@ void ToggleKillTornadoCCEffects(bool enable) {
 	run = enable;
 }
 
+void ToggleKillRisingSunEffects(bool enable) {
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// dmc3.exe+21DD41 - E8 EAE1E6FF           - call dmc3.PlayVFX2_sub_14008BF30 { vfx for Rising Sun Hit 1 }
+	// dmc3.exe+21DDFF - E8 2CE1E6FF           - call dmc3.PlayVFX2_sub_14008BF30 { vfx for Rising Sun hit 2 }
+
+	if (enable) {
+		_nop((char*)(appBaseAddr + 0x21DD41), 5);
+		_nop((char*)(appBaseAddr + 0x21DDFF), 5);
+	}
+	else {
+		_patch((char*)(appBaseAddr + 0x21DD41), (char*)"\xE8\xEA\xE1\xE6\xFF", 5);
+		_patch((char*)(appBaseAddr + 0x21DDFF), (char*)"\xE8\x2C\xE1\xE6\xFF", 5);
+	}
+
+	run = enable;
+}
+
 #pragma endregion
 
 #pragma region CameraStuff

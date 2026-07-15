@@ -22,6 +22,7 @@ void DisableAirSlashKnockback(bool enable);
 void ToggleIncreasedArtemisInstantChargeResponsiveness(bool enable);
 void ToggleKillPointBlankCCEffects(bool enable);
 void ToggleKillTornadoCCEffects(bool enable);
+void ToggleKillRisingSunEffects(bool enable);
 
 #pragma endregion
 
