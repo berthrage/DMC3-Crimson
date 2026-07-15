@@ -212347,6 +212347,11 @@ Determines Character Turn Rate
 </Comment>
     </DisassemblerComment>
     <DisassemblerComment>
+      <Address>"dmc3.exe"+2000E5</Address>
+      <Comment>new y inertia to be applied
+</Comment>
+    </DisassemblerComment>
+    <DisassemblerComment>
       <Address>"dmc3.exe"+201251</Address>
       <Comment>tracking
 </Comment>
