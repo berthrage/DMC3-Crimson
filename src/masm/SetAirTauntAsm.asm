@@ -28,7 +28,7 @@ DanteLabel:
     
 
 ApplySkyLaunch:
-    mov word ptr [rcx+3fa4h],0c2h
+    mov word ptr [rcx+3fa4h],040d ; cerb flicker
     jmp CodeLabel
 
 VergilLabel:

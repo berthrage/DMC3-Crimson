@@ -435,6 +435,11 @@ std::uint64_t g_FixMPXinputVibration_ReturnAddr;
 void FixMPXinputVibrationDetour();
 std::uint64_t g_FixMPXinputVibration_CallAddr;
 void* g_FixMPXinputVibrationCheckCall;  
+
+// KillWeaponMotionState
+std::uint64_t g_KillWeaponMotionState_ReturnAddr;
+void KillWeaponMotionStateDetour();
+void* g_KillWeaponMotionStateCheckCall; 
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -692,7 +697,19 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
 	return false;
 }
 
-bool CheckSkyLaunchEnabled() {
+bool CheckSkyLaunchEnabled(uintptr_t playerAddr) {
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& inAirTauntRose = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].inAirTauntRose : crimsonPlayer[playerIndex].inAirTauntRoseClone;
+	auto& actionTimer = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
+
+	if (inAirTauntRose) {
+		return false;
+	}
+
+	inAirTauntRose = true;
+	actionTimer = 0.0f;
+	actorData.motionArchives[MOTION_GROUP_DANTE::CERBERUS] = newAirTauntRose_pl000_00_4;
 	return activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::SKY_LAUNCH_AIR_TAUNT];
 }
 
@@ -1357,6 +1374,18 @@ bool CheckIfInAirLunarPhase(uintptr_t playerAddr) {
 	auto& inAirLunarPhase = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[actorData.newPlayerIndex].inAirLunarPhase
 		: crimsonPlayer[actorData.newPlayerIndex].inAirLunarPhaseClone;
 	if (inAirLunarPhase) {
+		return true;
+	}
+	return false;
+}
+
+bool CheckIfInAirTauntRose(uintptr_t playerAddr) {
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
+	if (actorData.character != CHARACTER::DANTE) return false;
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& inAirTauntRose = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[actorData.newPlayerIndex].inAirTauntRose
+		: crimsonPlayer[actorData.newPlayerIndex].inAirTauntRoseClone;
+	if (inAirTauntRose) {
 		return true;
 	}
 	return false;
@@ -2783,6 +2812,25 @@ void FixMPXinputVibration(bool enable) {
 	run = enable;
 }
 
+void KillWeaponMotionState(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From ManageWeaponMotionState_sub_1401F01F0:
+	// dmc3.exe+1F0277 - 88 8B C3 39 00 00 - mov [rbx+000039C3],cl { Update Weapon Motion State 3 (+0x39C3) Makes Swords go to hand }
+	static std::unique_ptr<Utility::Detour_t> killWeaponMotionStateHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1F0277, &KillWeaponMotionStateDetour, 6);
+	g_KillWeaponMotionState_ReturnAddr = killWeaponMotionStateHook->GetReturnAddress();
+	g_KillWeaponMotionStateCheckCall = &CheckIfInAirTauntRose;  // Uncomment if calling C++ functions
+	killWeaponMotionStateHook->Toggle(enable);
+
+	run = enable;
+}
+
+
 void ToggleAllDetours(bool enable) {
 	CheckScreenBreak(enable);
 	CheckMissionResultScreen(enable);
@@ -2795,6 +2843,7 @@ void ToggleAllDetours(bool enable) {
 		SWORDFORMATIONSHORTCUT::ON);
 	StormSwordsDownedEnemyFix(activeCrimsonGameplay.Gameplay.Vergil.stormSwordsDownedEnemyFix);
 	FixMPXinputVibration(enable);
+	KillWeaponMotionState(enable);
 }
 
 }	

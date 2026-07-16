@@ -67,6 +67,7 @@ set(MASM_SRC
     masm/FixMPXinputVibration.asm
     masm/AdjustAirWhirlwindLaunchHeight.asm
     masm/FixWpNunchakuCerberusCollisions.asm
+    masm/KillWeaponMotionState.asm
 )
 
 set (ASM_LIBS)

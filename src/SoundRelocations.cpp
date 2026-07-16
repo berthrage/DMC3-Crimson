@@ -55,6 +55,8 @@ void UpdateGlobalHelperIndices(byte8* bodyPartDataAddr) {
                                                     : crimsonPlayer[playerIndex].inAirTornadoClone;
             auto& skyLaunch = (entityIndex == 0) ? crimsonPlayer[playerIndex].skyLaunch
                                                  : crimsonPlayer[playerIndex].skyLaunchClone;
+			auto& inAirTauntRose = (entityIndex == 0) ? crimsonPlayer[playerIndex].inAirTauntRose
+				: crimsonPlayer[playerIndex].inAirTauntRoseClone;
 
             // Get characterData for the BOSS checks below (bosses go through
             // CreateEnemyActor, not CreatePlayerActor, so characterData.character
@@ -78,7 +80,7 @@ void UpdateGlobalHelperIndices(byte8* bodyPartDataAddr) {
                     return;
                 }
 
-                if (skyLaunch.executing) {
+                if (skyLaunch.executing || inAirTauntRose) {
                     // Mute the Sky Launch's Royal Release SFX.
                     g_helperIndices[CHANNEL::COMMON]      = HELPER_STYLE_WEAPON_VERGIL_NERO_ANGELO;
                     g_helperIndices[CHANNEL::STYLE_WEAPON] = HELPER_STYLE_WEAPON_VERGIL_NERO_ANGELO;

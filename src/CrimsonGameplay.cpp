@@ -5191,6 +5191,7 @@ void DetectCloseToEnemy(byte8* actorBaseAddr) {
 
 
 void TrackRoyalReleaseAndSkyLaunch(byte8* actorBaseAddr) {
+	using namespace ACTION_DANTE;
 	if (!actorBaseAddr || (uintptr_t)actorBaseAddr >= 0xFFFFFFFFFF) {
 		return;
 	}
@@ -5207,6 +5208,21 @@ void TrackRoyalReleaseAndSkyLaunch(byte8* actorBaseAddr) {
 	bool isCorrectMotionIndex = (actorData.motionData[0].index == 20 || actorData.motionData[0].index == 19);
 	bool isSkyLaunchButtonPressed = (actorData.buttons[0] & GetBinding(BINDING::TAUNT));
 	bool isRoyalReleaseButtonPressed = (actorData.buttons[0] & GetBinding(BINDING::STYLE_ACTION));
+	auto& inAirTauntRose = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].inAirTauntRose : crimsonPlayer[playerIndex].inAirTauntRoseClone;
+	auto& actionTimer = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
+
+	// Reset apply flag when action changes away from CERBERUS_SWING
+	if ((actorData.action == CERBERUS_SWING && actionTimer > 1.7f) ||
+		(actorData.action != CERBERUS_SWING) ||
+		(actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK ||
+			actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_GROUND_TRICK ||
+			actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_SKY_STAR ||
+			actorData.eventData[0].event == ACTOR_EVENT::JUMP ||
+			actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL
+			)) {
+		actorData.motionArchives[MOTION_GROUP_DANTE::CERBERUS] = File_staticFiles[pl000_00_4]; // Revert to default pac motion archive after Rose Air Taunt finishes or is cancelled by a trick.
+		inAirTauntRose = false;
+	}
 
 	// Sky Launch conditions
 	if (isInAir && isCorrectMotionIndex && isSkyLaunchAction && isSkyLaunchButtonPressed && !skyLaunch.trackerRunning && !royalRelease.executing) {

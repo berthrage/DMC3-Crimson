@@ -3461,6 +3461,10 @@ struct DamageDataAddrOffsets {
     // --- Dante ---
     uintptr_t rebellionStingerHit = 0x5C6C80;
     uintptr_t rebellionHighTime = 0x5C6C30;
+    uintptr_t rebellionRave1 = 0x5C95C0;
+	uintptr_t rebellionRave2 = 0x5C9610;
+	uintptr_t rebellionRave3 = 0x5C9660;
+	uintptr_t rebellionRave4 = 0x5C96B0;
 	uintptr_t drivePhysicalHit = 0x5C6D20;
 	uintptr_t driveShl = 0x5CB1E0;
     uintptr_t shotgunShl = 0x5CAE70;
@@ -6050,6 +6054,7 @@ struct CrimsonPlayerData {
     MoveGravityTweak airTauntRisingSunTweak;
     bool inRisingStar = false;
     bool inYamatoHighTime = false;
+    bool inAirTauntRose = false;
     bool inAirTauntRisingSun = false;
     bool lastInAirTauntRisingSun = false;
     bool inAirLunarPhase = false;
@@ -6132,6 +6137,7 @@ struct CrimsonPlayerData {
     MoveGravityTweak airTauntRisingSunTweakClone;
     bool inRisingStarClone = false;
 	bool inYamatoHighTimeClone = false;
+    bool inAirTauntRoseClone = false;
     bool inAirTauntRisingSunClone = false;
     bool lastInAirTauntRisingSunClone = false;
 	bool inAirTornadoClone = false;

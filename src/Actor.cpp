@@ -10127,6 +10127,8 @@ void SetAction(byte8* actorBaseAddr) {
         crimsonPlayer[playerIndex].inAirTornadoClone;
 	auto& inAirLunarPhase = (entityIndex == 0) ? crimsonPlayer[playerIndex].inAirLunarPhase : 
         crimsonPlayer[playerIndex].inAirLunarPhaseClone;
+	auto& inAirTauntRose = (entityIndex == 0) ? crimsonPlayer[playerIndex].inAirTauntRose :
+		crimsonPlayer[playerIndex].inAirTauntRoseClone;
 	cDrawReverse playerVergilcDraw = actorData.newModelData[actorData.activeModelIndexMirror]; // activeModelIndex == which DT or Non-DT model
 	Matrix44Ptr* playerBoneMatrix = reinterpret_cast<Matrix44Ptr*>(playerVergilcDraw.bonesMatrixesPtr);
 
@@ -10141,6 +10143,12 @@ void SetAction(byte8* actorBaseAddr) {
         // Resetting Drive anim
         if (!drive.inQuickDrive) {
             actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = File_staticFiles[pl000_00_3];
+        }
+
+        // Resetting Swing anim
+        if (inAirTauntRose && actorData.action == CERBERUS_SWING) {
+            actorData.motionArchives[MOTION_GROUP_DANTE::CERBERUS] = File_staticFiles[pl000_00_4];
+			inAirTauntRose = false;
         }
 
         // AIR STINGER

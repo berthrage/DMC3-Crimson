@@ -357,6 +357,7 @@ byte8* newDrivePart3_pl000_00_3 = 0;
 byte8* newBackslide_pl000_00_19 = 0;
 byte8* newCrimsonHUD1_0_id_100 = 0;
 byte8* newCrimsonHUD1_0_id_100V = 0;
+byte8* newAirTauntRose_pl000_00_4 = 0;
 
 void File_UpdateFileData(FileData& fileData, uint16 cacheFileIndex) {
     SetMemory(&fileData, 0, sizeof(fileData));
@@ -599,6 +600,7 @@ bool File_Init() {
         const char* newTauntDanteAnims2Filename = "newTauntDanteAnims2_pl000_00_2.pac";
         const char* newTauntVergilAnims1Filename = "newTauntVergilAnims1_pl021_00_2.pac";
         const char* newTauntVergilAnims2Filename = "newTauntVergilAnims2_pl021_00_2.pac";
+		const char* newAirTauntRoseFilename = "newAirTauntRose_pl000_00_4.pac";
         auto& file = demo_pl000_00_3 = File_staticFiles.Push(filename);
         auto& file2 = vergil_pl021_00_3 = File_staticFiles.Push(vergilYamatoFilename);
         auto& file3 = newRisingStar_pl021_00_4 = File_staticFiles.Push(newRisingStarYamatoFilename);
@@ -618,6 +620,7 @@ bool File_Init() {
         auto& file17 = newTauntDanteAnims2_pl000_00_2 = File_staticFiles.Push(newTauntDanteAnims2Filename);
         auto& file18 = newTauntVergilAnims1_pl021_00_2 = File_staticFiles.Push(newTauntVergilAnims1Filename);
         auto& file19 = newTauntVergilAnims2_pl021_00_2 = File_staticFiles.Push(newTauntVergilAnims2Filename);
+		auto& file20 = newAirTauntRose_pl000_00_4 = File_staticFiles.Push(newAirTauntRoseFilename);
 
         // Log load status for every pushed file
         Log("File load: %s — %s", filename,                  file  ? "OK" : "FAILED");
@@ -639,6 +642,7 @@ bool File_Init() {
         Log("File load: %s — %s", newTauntDanteAnims2Filename,     file17 ? "OK" : "FAILED");
         Log("File load: %s — %s", newTauntVergilAnims1Filename,    file18 ? "OK" : "FAILED");
         Log("File load: %s — %s", newTauntVergilAnims2Filename,    file19 ? "OK" : "FAILED");
+		Log("File load: %s — %s", newAirTauntRoseFilename,         file20 ? "OK" : "FAILED");
 
         if (!file) {
             return;
@@ -666,6 +670,7 @@ bool File_Init() {
         AdjustPointers(file17);
         AdjustPointers(file18);
         AdjustPointers(file19);
+		AdjustPointers(file20);
     }();
 
 
