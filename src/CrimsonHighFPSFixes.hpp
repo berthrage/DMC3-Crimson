@@ -11,4 +11,5 @@ namespace CrimsonHighFPSFixes {
 	void ToggleAllFixes(bool enable);
 	void FixBloodgoyleStormFormTime(bool enable);
 	void FixCPl021Shl01SummonedSwordsInitialTravel(bool enable);
+	void FixWpNunchakuCerberusCollisions(bool enable);
 }

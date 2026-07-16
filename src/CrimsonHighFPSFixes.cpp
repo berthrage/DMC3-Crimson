@@ -147,6 +147,10 @@ extern "C" {
 	void FixSecretMissionTimerFPSDetour();
 	std::uint64_t g_FixSecretMissionTimerFPS_ReturnAddr2;
 	void FixSecretMissionTimerFPSDetour2();
+
+	// FixWpNunchakuCerberusCollisions
+	std::uint64_t g_FixWpNunchakuCerberusCollisions_ReturnAddr;
+	void FixWpNunchakuCerberusCollisionsDetour();
 }
 
 void BlendingEffectsSpeedFixes(bool enable) {
@@ -603,6 +607,24 @@ void FixSecretMissionTimerFPS(bool enable) {
 	run = enable;
 }
 
+void FixWpNunchakuCerberusCollisions(bool enable) {
+	using namespace Utility;
+
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From WpNunchakuCollision_sub_14022F4C0:
+	// dmc3.exe+22FAFB - F3 0F 10 15 69 DA 12 00 - movss xmm2,[dmc3.exe+35D56C] { (1,00) }
+	static std::unique_ptr<Utility::Detour_t> fixWpNunchakuCerberusCollisionsHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x22FAFB, &FixWpNunchakuCerberusCollisionsDetour, 8);
+	g_FixWpNunchakuCerberusCollisions_ReturnAddr = fixWpNunchakuCerberusCollisionsHook->GetReturnAddress();
+	fixWpNunchakuCerberusCollisionsHook->Toggle(enable);
+
+	run = enable;
+}
+
 void ToggleAllFixes(bool enable) {
 	BlendingEffectsSpeedFixes(enable);
 	BossCamFixes(enable);
@@ -614,6 +636,7 @@ void ToggleAllFixes(bool enable) {
 	FixCStageSetSeal(enable);
 	FixCPl021Shl01SummonedSwordsInitialTravel(enable);
 	FixSecretMissionTimerFPS(enable);
+	FixWpNunchakuCerberusCollisions(enable);
 }
 
 
