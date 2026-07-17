@@ -153,31 +153,31 @@ void LoadConfig()
 			if (!testInput) {
 				Log("Migrating button/keyboard binds from CrimsonConfig.json to CrimsonInput.json");
 
-				// Build a temp JSON doc from the old bind data
 				crimsonInputRoot.SetObject();
 				auto& inputAlloc = crimsonInputRoot.GetAllocator();
 
-				if (sys.HasMember("ButtonConfig")) {
-					rapidjson::Value btnCfg;
-					btnCfg.CopyFrom(sys["ButtonConfig"], inputAlloc);
-					crimsonInputRoot.AddMember("ButtonConfig", btnCfg, inputAlloc);
-				}
+				// ButtonConfig format is incompatible (old flat ints vs new BindPair objects).
+				// Use defaults, gamepad binds will be reset. Keyboard/xinputSlots are migrated.
+				CopyMemory(&queuedCrimsonInput, &defaultCrimsonInput, sizeof(queuedCrimsonInput));
+				SerializeConfig(crimsonInputRoot, queuedCrimsonInput, inputAlloc);
+
 				if (sys.HasMember("KeyboardConfig")) {
+					crimsonInputRoot.RemoveMember("KeyboardConfig");
 					rapidjson::Value kbCfg;
 					kbCfg.CopyFrom(sys["KeyboardConfig"], inputAlloc);
 					crimsonInputRoot.AddMember("KeyboardConfig", kbCfg, inputAlloc);
 				}
+
 				if (sys.HasMember("xinputSlots")) {
+					crimsonInputRoot.RemoveMember("xinputSlots");
 					rapidjson::Value xiSlots;
 					xiSlots.CopyFrom(sys["xinputSlots"], inputAlloc);
 					crimsonInputRoot.AddMember("xinputSlots", xiSlots, inputAlloc);
 				}
 
-				// Parse into queued/active CrimsonInput
 				ParseConfig(crimsonInputRoot, queuedCrimsonInput);
 				CopyMemory(&activeCrimsonInput, &queuedCrimsonInput, sizeof(activeCrimsonInput));
 
-				// Save CrimsonInput.json
 				SerializeConfig(crimsonInputRoot, queuedCrimsonInput, inputAlloc);
 				SaveConfigInput();
 
