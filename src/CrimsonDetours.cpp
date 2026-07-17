@@ -440,6 +440,13 @@ void* g_FixMPXinputVibrationCheckCall;
 std::uint64_t g_KillWeaponMotionState_ReturnAddr;
 void KillWeaponMotionStateDetour();
 void* g_KillWeaponMotionStateCheckCall; 
+
+// SwingRoseAirTauntInertiaAndSpawnShl
+std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ReturnAddr;
+std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ActiveModelIndexCall;
+std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall;
+void SwingRoseAirTauntInertiaAndSpawnShlDetour();
+void* g_SwingRoseAirTauntInertiaAndSpawnShlCheckCall;  
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -2830,6 +2837,26 @@ void KillWeaponMotionState(bool enable) {
 	run = enable;
 }
 
+void SwingRoseAirTauntInertiaAndSpawnShl(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From ExecuteCerberusSwingMove_sub_140206F70:
+	// dmc3.exe+2070B6 - F3 0F 10 90 CC 03 00 00 - movss xmm2,[rax+000003CC] { x inertia mult }
+	// dmc3.exe+2070BE - F3 0F 10 88 C8 03 00 00 - movss xmm1,[rax+000003C8] { x inertia }
+	static std::unique_ptr<Utility::Detour_t> swingRoseAirTauntInertiaAndSpawnShlHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2070B6, &SwingRoseAirTauntInertiaAndSpawnShlDetour, 16);
+	g_SwingRoseAirTauntInertiaAndSpawnShl_ReturnAddr = swingRoseAirTauntInertiaAndSpawnShlHook->GetReturnAddress();
+	g_SwingRoseAirTauntInertiaAndSpawnShlCheckCall = &CheckIfInAirTauntRose;  
+	g_SwingRoseAirTauntInertiaAndSpawnShl_ActiveModelIndexCall = (uintptr_t)appBaseAddr + 0x1FAA50; // CPlayer::GetActiveModelIndex
+	g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall = (uintptr_t)appBaseAddr + 0x1D6520; // CPl000Shl10eNevanShlSetSpawn_sub_1401D6520
+	swingRoseAirTauntInertiaAndSpawnShlHook->Toggle(enable);
+
+	run = enable;
+}
 
 void ToggleAllDetours(bool enable) {
 	CheckScreenBreak(enable);
@@ -2844,6 +2871,7 @@ void ToggleAllDetours(bool enable) {
 	StormSwordsDownedEnemyFix(activeCrimsonGameplay.Gameplay.Vergil.stormSwordsDownedEnemyFix);
 	FixMPXinputVibration(enable);
 	KillWeaponMotionState(enable);
+	SwingRoseAirTauntInertiaAndSpawnShl(enable);
 }
 
 }	

@@ -131,7 +131,9 @@ void FixMPXinputVibrationDetour();
 // AdjustAirWhirlwindLaunchHeight
 void AdjustAirWhirlwindLaunchHeightDetour();
 // KillWeaponMotionState
-void KillWeaponMotionStateDetour();}
+void KillWeaponMotionStateDetour();
+// SwingRoseAirTauntInertiaAndSpawnShl
+void SwingRoseAirTauntInertiaAndSpawnShlDetour();}
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
@@ -183,4 +185,5 @@ void StormSwordsDownedEnemyFix(bool enable);
 void FixMPXinputVibration(bool enable);
 void AdjustAirWhirlwindLaunchHeight(bool enable);
 void KillWeaponMotionState(bool enable);
+void SwingRoseAirTauntInertiaAndSpawnShl(bool enable);
 }
