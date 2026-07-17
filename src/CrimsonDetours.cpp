@@ -447,6 +447,12 @@ std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ActiveModelIndexCall;
 std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall;
 void SwingRoseAirTauntInertiaAndSpawnShlDetour();
 void* g_SwingRoseAirTauntInertiaAndSpawnShlCheckCall;  
+
+// FixNevanShlPlayerSpawn
+std::uint64_t g_FixNevanShlPlayerSpawn_ReturnAddr1;
+std::uint64_t g_FixNevanShlPlayerSpawn_ReturnAddr2;
+void FixNevanShlPlayerSpawnDetour1();
+void FixNevanShlPlayerSpawnDetour2();
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -2858,6 +2864,31 @@ void SwingRoseAirTauntInertiaAndSpawnShl(bool enable) {
 	run = enable;
 }
 
+
+void FixNevanShlPlayerSpawn(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From CPl000Shl10eNevanShlSetInitialPos_sub_1401D66A0:
+	// dmc3.exe+1D670A - 48 8B 7C C8 18 - mov rdi,[rax+rcx*8+18] { load player 1 actor for initialPos }
+	static std::unique_ptr<Utility::Detour_t> fixNevanShlPlayerSpawnHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D670A, &FixNevanShlPlayerSpawnDetour1, 5);
+	g_FixNevanShlPlayerSpawn_ReturnAddr1 = fixNevanShlPlayerSpawnHook1->GetReturnAddress();
+	fixNevanShlPlayerSpawnHook1->Toggle(enable);
+
+	// From CPl000Shl10eNevanShlTravel_sub_1401D6C40:
+	// dmc3.exe+1D6C89 - 48 8B 5C D0 18 - mov rbx,[rax+rdx*8+18] { load player 1 actor for travelPos }
+	static std::unique_ptr<Utility::Detour_t> fixNevanShlPlayerSpawnHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D6C89, &FixNevanShlPlayerSpawnDetour2, 5);
+	g_FixNevanShlPlayerSpawn_ReturnAddr2 = fixNevanShlPlayerSpawnHook2->GetReturnAddress();
+	fixNevanShlPlayerSpawnHook2->Toggle(enable);
+
+	run = enable;
+}
+
 void ToggleAllDetours(bool enable) {
 	CheckScreenBreak(enable);
 	CheckMissionResultScreen(enable);
@@ -2872,6 +2903,8 @@ void ToggleAllDetours(bool enable) {
 	FixMPXinputVibration(enable);
 	KillWeaponMotionState(enable);
 	SwingRoseAirTauntInertiaAndSpawnShl(enable);
+	FixNevanShlPlayerSpawn(enable);
 }
+
 
 }	

@@ -133,7 +133,10 @@ void AdjustAirWhirlwindLaunchHeightDetour();
 // KillWeaponMotionState
 void KillWeaponMotionStateDetour();
 // SwingRoseAirTauntInertiaAndSpawnShl
-void SwingRoseAirTauntInertiaAndSpawnShlDetour();}
+void SwingRoseAirTauntInertiaAndSpawnShlDetour();
+// FixNevanShlPlayerSpawn
+void FixNevanShlPlayerSpawnDetour1();
+void FixNevanShlPlayerSpawnDetour2();}
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
@@ -186,4 +189,5 @@ void FixMPXinputVibration(bool enable);
 void AdjustAirWhirlwindLaunchHeight(bool enable);
 void KillWeaponMotionState(bool enable);
 void SwingRoseAirTauntInertiaAndSpawnShl(bool enable);
+void FixNevanShlPlayerSpawn(bool enable);
 }
