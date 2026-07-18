@@ -314,6 +314,8 @@ namespace CrimsonFastcallDetours{
 		 if (shlActorData.roseMode) {
 			 newDmgData.knockbackAnimation = 3; // default is 0
 			 newDmgData.dmgValue = 1.0f; // default is 50.0f
+			 newDmgData.stun = 80.0f; // default is 60.0f
+			 newDmgData.displacement = 60.0f; // default is 0.0f
 			 modified = true;
 		 }
 	 }
