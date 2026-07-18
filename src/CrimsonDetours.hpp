@@ -138,7 +138,9 @@ void SwingRoseAirTauntInertiaAndSpawnShlDetour();
 void FixNevanShlPlayerSpawnDetour1();
 void FixNevanShlPlayerSpawnDetour2();
 // NevanShlMarkRoseMode
-void NevanShlMarkRoseModeDetour();}
+void NevanShlMarkRoseModeDetour();
+// NevanShlSetToTravel
+void NevanShlSetToTravelDetour();}
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
@@ -193,4 +195,5 @@ void KillWeaponMotionState(bool enable);
 void AirTauntRoseSwingDetours(bool enable);
 void FixNevanShlPlayerSpawn(bool enable);
 void NevanShlMarkRoseMode(bool enable);
+void NevanShlSetToTravel(bool enable);
 }

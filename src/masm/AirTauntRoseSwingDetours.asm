@@ -31,20 +31,10 @@ SpawmCPl000Shl10e: ; (NevanShl, that's going to become Rose)
     PushAllRegs
     mov rdi, rcx
     add rsp, 28h
-    call qword ptr [g_SwingRoseAirTauntInertiaAndSpawnShl_ActiveModelIndexCall]  
+    call qword ptr [g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall]  ; CPlNevanShlSpawnType1_sub_1402127F0 
+                                                                         ; instead of CPl000Shl10eNevanShlSetSpawn_sub_1401D6520 
+                                                                         ; so initialPos is consistent
     sub rsp, 28h
-    movzx r9d, byte ptr [rdi + 0B88Dh] 
-    inc eax
-    movzx r8d, byte ptr [rdi + 0C0h]
-    mov rcx, rdi
-    mov r8b, byte ptr [neil]
-    mov [rsp + 28h], r8b
-    mov rdx, [rdi + rax * 8 + 0E5D0h]
-    movzx eax, byte ptr [rdi + 118h]
-    mov r8b, byte ptr [neil]
-    mov [rsp + 20h], r8b
-    mov rdx, [rdx + 110h]
-    call qword ptr [g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall]
     PopAllRegs
 
 AdjustRoseThrowInertia:
@@ -96,4 +86,32 @@ OriginalCode:
     jmp qword ptr [g_NevanShlMarkRoseMode_ReturnAddr]
 
 NevanShlMarkRoseModeDetour ENDP
+
+.DATA
+EXTERN g_NevanShlSetToTravel_ReturnAddr:QWORD
+
+.CODE
+; From CPl000Shl10eNevanShlSetTrajectory_sub_1401D6E70:
+; dmc3.exe+1D6E80 - 48 89 44 24 30 - mov [rsp+30],rax
+NevanShlSetToTravelDetour PROC
+    PushAllRegs
+    mov rdx, [rcx + 01A0h] ; NevanShl's collision data start
+    test rdx, rdx ; we check if collision has started before it's set to travel, 
+                  ; otherwise it will be set to travel before collision sets in
+    je OriginalCode
+    cmp byte ptr [rcx + 0E0h], 1 ; check if Rose mode
+    je SetToTravelForRose
+    jmp OriginalCode
+
+SetToTravelForRose:
+    mov r8d, 2
+    mov [rcx + 09h], r8d ; set Rose to Travel
+    jmp OriginalCode
+
+OriginalCode:
+    PopAllRegs
+    mov [rsp + 30h], rax
+    jmp qword ptr [g_NevanShlSetToTravel_ReturnAddr]
+
+NevanShlSetToTravelDetour ENDP
 END

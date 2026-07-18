@@ -451,6 +451,9 @@ void* g_SwingRoseAirTauntInertiaAndSpawnShlCheckCall;
 // NevanShlMarkRoseMode
 std::uint64_t g_NevanShlMarkRoseMode_ReturnAddr;
 void NevanShlMarkRoseModeDetour();
+// NevanShlSetToTravel
+std::uint64_t g_NevanShlSetToTravel_ReturnAddr;
+void NevanShlSetToTravelDetour();
 
 // FixNevanShlPlayerSpawn
 std::uint64_t g_FixNevanShlPlayerSpawn_ReturnAddr1;
@@ -2862,7 +2865,7 @@ void AirTauntRoseSwingDetours(bool enable) {
 	g_SwingRoseAirTauntInertiaAndSpawnShl_ReturnAddr = swingRoseAirTauntInertiaAndSpawnShlHook->GetReturnAddress();
 	g_SwingRoseAirTauntInertiaAndSpawnShlCheckCall = &CheckIfInAirTauntRose;  
 	g_SwingRoseAirTauntInertiaAndSpawnShl_ActiveModelIndexCall = (uintptr_t)appBaseAddr + 0x1FAA50; // CPlayer::GetActiveModelIndex
-	g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall = (uintptr_t)appBaseAddr + 0x1D6520; // CPl000Shl10eNevanShlSetSpawn_sub_1401D6520
+	g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall = (uintptr_t)appBaseAddr + 0x2127F0; // CPlNevanShlSpawnType1_sub_1402127F0
 	swingRoseAirTauntInertiaAndSpawnShlHook->Toggle(enable);
 
 	// From CPl000Shl10eNevanShlSetSpawn_sub_1401D6520:
@@ -2871,6 +2874,13 @@ void AirTauntRoseSwingDetours(bool enable) {
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D666C, &NevanShlMarkRoseModeDetour, 6);
 	g_NevanShlMarkRoseMode_ReturnAddr = nevanShlMarkRoseModeHook->GetReturnAddress();
 	nevanShlMarkRoseModeHook->Toggle(enable);
+
+	// From CPl000Shl10eNevanShlSetTrajectory_sub_1401D6E70:
+	// dmc3.exe+1D6E80 - 48 89 44 24 30 - mov [rsp+30],rax
+	static std::unique_ptr<Utility::Detour_t> nevanShlSetToTravelHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D6E80, &NevanShlSetToTravelDetour, 5);
+	g_NevanShlSetToTravel_ReturnAddr = nevanShlSetToTravelHook->GetReturnAddress();
+	nevanShlSetToTravelHook->Toggle(enable);
 
 	run = enable;
 }

@@ -4573,12 +4573,12 @@ static_assert(offsetof(CPl000Shl02Actor, position) == 0x80);
 static_assert(offsetof(CPl000Shl02Actor, damageLevel) == 0xA4);
 static_assert(offsetof(CPl000Shl02Actor, playerActorAddr) == 0x540);
 
-class CPl000Shl10eActor
-{
+class CPl000Shl10eActor { // NevanShl
 public:
 	char pad_0000[8]; //0x0000
 	uint8_t aliveStatus; //0x0008
-	char pad_0009[11]; //0x0009
+	uint8_t setTravel; //0x0009
+	char pad_000A[10]; //0x000A
 	float speed; //0x0014
 	float speedMultiplier; //0x0018
 	uint8_t state1; //0x001C
@@ -4592,14 +4592,21 @@ public:
 	uint16_t rotation; //0x00C0
 	char pad_00C2[30]; //0x00C2
 	bool roseMode; //0x00E0
-	char pad_00E1[863]; //0x00E1
+	char pad_00E1[191]; //0x00E1
+	uintptr_t collisionDataStart; //0x01A0
+	char pad_01A8[657]; //0x01A8
+	bool randomTravelDirection; //0x0439
+	char pad_043A[6]; //0x043A
 	uint64_t matrixPtr; //0x0440
-	char pad_0448[120]; //0x0448
+	char pad_0448[112]; //0x0448
+	float delayToInitTravel; //0x04B8
+	char pad_04BC[4]; //0x04BC
 	uint64_t playerActorAddr; //0x04C0
 	char pad_04C8[467]; //0x04C8
 }; //Size: 0x069B
 
 static_assert(offsetof(CPl000Shl10eActor, aliveStatus) == 0x8);
+static_assert(offsetof(CPl000Shl10eActor, setTravel) == 0x9);
 static_assert(offsetof(CPl000Shl10eActor, speed) == 0x14);
 static_assert(offsetof(CPl000Shl10eActor, speedMultiplier) == 0x18);
 static_assert(offsetof(CPl000Shl10eActor, state1) == 0x1C);
@@ -4607,8 +4614,11 @@ static_assert(offsetof(CPl000Shl10eActor, itselfBaseAddr) == 0x48);
 static_assert(offsetof(CPl000Shl10eActor, state2) == 0x74);
 static_assert(offsetof(CPl000Shl10eActor, position) == 0x80);
 static_assert(offsetof(CPl000Shl10eActor, rotation) == 0xC0);
+static_assert(offsetof(CPl000Shl10eActor, collisionDataStart) == 0x1A0);
 static_assert(offsetof(CPl000Shl10eActor, roseMode) == 0xE0);
+static_assert(offsetof(CPl000Shl10eActor, randomTravelDirection) == 0x439);
 static_assert(offsetof(CPl000Shl10eActor, matrixPtr) == 0x440);
+static_assert(offsetof(CPl000Shl10eActor, delayToInitTravel) == 0x4B8);
 static_assert(offsetof(CPl000Shl10eActor, playerActorAddr) == 0x4C0);
 
 struct EnemyActorData : ActorDataBase {
