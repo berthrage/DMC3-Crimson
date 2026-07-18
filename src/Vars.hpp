@@ -3476,6 +3476,7 @@ struct DamageDataAddrOffsets {
     uintptr_t shotgunPointBlankShl2 = 0x5CBEB0; // subsequent shots
     uintptr_t shotgunGunStingerShl = 0x5CB6E0;
     uintptr_t shotgunGunStingerShl2 = 0x5CB690;
+    uintptr_t nevanShl = 0x5CB4B0; // Ecstasy (Air Taunt Rose) uses it
     uintptr_t goldRoyalRelease = 0x5CAA10; // Sky Launch uses it
 
 	// --- Vergil ---
@@ -4572,6 +4573,43 @@ static_assert(offsetof(CPl000Shl02Actor, position) == 0x80);
 static_assert(offsetof(CPl000Shl02Actor, damageLevel) == 0xA4);
 static_assert(offsetof(CPl000Shl02Actor, playerActorAddr) == 0x540);
 
+class CPl000Shl10eActor
+{
+public:
+	char pad_0000[8]; //0x0000
+	uint8_t aliveStatus; //0x0008
+	char pad_0009[11]; //0x0009
+	float speed; //0x0014
+	float speedMultiplier; //0x0018
+	uint8_t state1; //0x001C
+	char pad_001D[43]; //0x001D
+	void* itselfBaseAddr; //0x0048
+	char pad_0050[36]; //0x0050
+	uint8_t state2; //0x0074
+	char pad_0075[11]; //0x0075
+	vec4 position; //0x0080
+	char pad_0090[48]; //0x0090
+	uint16_t rotation; //0x00C0
+	char pad_00C2[30]; //0x00C2
+	bool roseMode; //0x00E0
+	char pad_00E1[863]; //0x00E1
+	uint64_t matrixPtr; //0x0440
+	char pad_0448[120]; //0x0448
+	uint64_t playerActorAddr; //0x04C0
+	char pad_04C8[467]; //0x04C8
+}; //Size: 0x069B
+
+static_assert(offsetof(CPl000Shl10eActor, aliveStatus) == 0x8);
+static_assert(offsetof(CPl000Shl10eActor, speed) == 0x14);
+static_assert(offsetof(CPl000Shl10eActor, speedMultiplier) == 0x18);
+static_assert(offsetof(CPl000Shl10eActor, state1) == 0x1C);
+static_assert(offsetof(CPl000Shl10eActor, itselfBaseAddr) == 0x48);
+static_assert(offsetof(CPl000Shl10eActor, state2) == 0x74);
+static_assert(offsetof(CPl000Shl10eActor, position) == 0x80);
+static_assert(offsetof(CPl000Shl10eActor, rotation) == 0xC0);
+static_assert(offsetof(CPl000Shl10eActor, roseMode) == 0xE0);
+static_assert(offsetof(CPl000Shl10eActor, matrixPtr) == 0x440);
+static_assert(offsetof(CPl000Shl10eActor, playerActorAddr) == 0x4C0);
 
 struct EnemyActorData : ActorDataBase {
 	_(152);

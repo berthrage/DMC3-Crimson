@@ -275,25 +275,25 @@ namespace CrimsonFastcallDetours{
 	 if (activeCrimsonGameplay.Gameplay.Dante.chargedShotgunLaunches) {
 		 // CHARGED SHOTGUN SHL
 		 if (((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.shotgunChargedShl))) {
-			 newDmgData.knockbackAnimation = 3.0f;
+			 newDmgData.knockbackAnimation = 3;
 			 newDmgData.displacement = 30.0f;
 			 //newDmgData.dmgValue = 7.0f; // default is 7.0f, for reference, normal shotgun's dmg is 5.0f
 			 modified = true;
 		 }
 		 if (((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.shotgunChargedShl2))) {
-			 newDmgData.knockbackAnimation = 3.0f;
+			 newDmgData.knockbackAnimation = 3;
 			 modified = true;
 		 }
 
 		 // GUN STINGER SHL
 		 if (((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.shotgunGunStingerShl))) {
-			 newDmgData.knockbackAnimation = 3.0f;
+			 newDmgData.knockbackAnimation = 3;
 			 newDmgData.displacement = 20.0f;
 			 newDmgData.stun = 30.0f;
 			 modified = true;
 		 }
 		 if (((uintptr_t)dmgData == (uintptr_t)(appBaseAddr + damageDataOffsets.shotgunGunStingerShl2))) {
-			 newDmgData.knockbackAnimation = 3.0f;
+			 newDmgData.knockbackAnimation = 3;
 			 modified = true;
 		 }
 	 }
@@ -304,6 +304,16 @@ namespace CrimsonFastcallDetours{
 
 			 newDmgData.displacement = 27.0f; // default is 7.0f
 			 newDmgData.dmgValue = 20.0f; // default is 5.0f
+			 modified = true;
+		 }
+	 }
+
+	 // ECSTASY/ROSE THROW (NEVAN SHL)
+	 if (dmgData == (DamageData*)(appBaseAddr + damageDataOffsets.nevanShl)) {
+		 auto& shlActorData = *reinterpret_cast<CPl000Shl10eActor*>(actorAddr60 - 0x60);
+		 if (shlActorData.roseMode) {
+			 newDmgData.knockbackAnimation = 3; // default is 0
+			 newDmgData.dmgValue = 1.0f; // default is 50.0f
 			 modified = true;
 		 }
 	 }

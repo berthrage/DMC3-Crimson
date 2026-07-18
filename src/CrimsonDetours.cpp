@@ -441,12 +441,16 @@ std::uint64_t g_KillWeaponMotionState_ReturnAddr;
 void KillWeaponMotionStateDetour();
 void* g_KillWeaponMotionStateCheckCall; 
 
+// AirTauntRoseSwingDetours:
 // SwingRoseAirTauntInertiaAndSpawnShl
 std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ReturnAddr;
 std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ActiveModelIndexCall;
 std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall;
 void SwingRoseAirTauntInertiaAndSpawnShlDetour();
 void* g_SwingRoseAirTauntInertiaAndSpawnShlCheckCall;  
+// NevanShlMarkRoseMode
+std::uint64_t g_NevanShlMarkRoseMode_ReturnAddr;
+void NevanShlMarkRoseModeDetour();
 
 // FixNevanShlPlayerSpawn
 std::uint64_t g_FixNevanShlPlayerSpawn_ReturnAddr1;
@@ -2843,7 +2847,7 @@ void KillWeaponMotionState(bool enable) {
 	run = enable;
 }
 
-void SwingRoseAirTauntInertiaAndSpawnShl(bool enable) {
+void AirTauntRoseSwingDetours(bool enable) {
 	using namespace Utility;
 	static bool run = false;
 	if (run == enable) {
@@ -2860,6 +2864,13 @@ void SwingRoseAirTauntInertiaAndSpawnShl(bool enable) {
 	g_SwingRoseAirTauntInertiaAndSpawnShl_ActiveModelIndexCall = (uintptr_t)appBaseAddr + 0x1FAA50; // CPlayer::GetActiveModelIndex
 	g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall = (uintptr_t)appBaseAddr + 0x1D6520; // CPl000Shl10eNevanShlSetSpawn_sub_1401D6520
 	swingRoseAirTauntInertiaAndSpawnShlHook->Toggle(enable);
+
+	// From CPl000Shl10eNevanShlSetSpawn_sub_1401D6520:
+	// dmc3.exe+1D666C - 88 88 3C 04 00 00 - mov [rax+0000043C],cl
+	static std::unique_ptr<Utility::Detour_t> nevanShlMarkRoseModeHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D666C, &NevanShlMarkRoseModeDetour, 6);
+	g_NevanShlMarkRoseMode_ReturnAddr = nevanShlMarkRoseModeHook->GetReturnAddress();
+	nevanShlMarkRoseModeHook->Toggle(enable);
 
 	run = enable;
 }
@@ -2902,7 +2913,7 @@ void ToggleAllDetours(bool enable) {
 	StormSwordsDownedEnemyFix(activeCrimsonGameplay.Gameplay.Vergil.stormSwordsDownedEnemyFix);
 	FixMPXinputVibration(enable);
 	KillWeaponMotionState(enable);
-	SwingRoseAirTauntInertiaAndSpawnShl(enable);
+	AirTauntRoseSwingDetours(enable);
 	FixNevanShlPlayerSpawn(enable);
 }
 

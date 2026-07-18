@@ -68,7 +68,7 @@ set(MASM_SRC
     masm/AdjustAirWhirlwindLaunchHeight.asm
     masm/FixWpNunchakuCerberusCollisions.asm
     masm/KillWeaponMotionState.asm
-    masm/SwingRoseAirTauntInertiaAndSpawnShl.asm
+    masm/AirTauntRoseSwingDetours.asm
     masm/FixNevanShlPlayerSpawn.asm
 )
 

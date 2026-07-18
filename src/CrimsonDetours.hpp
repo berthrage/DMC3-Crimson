@@ -136,7 +136,9 @@ void KillWeaponMotionStateDetour();
 void SwingRoseAirTauntInertiaAndSpawnShlDetour();
 // FixNevanShlPlayerSpawn
 void FixNevanShlPlayerSpawnDetour1();
-void FixNevanShlPlayerSpawnDetour2();}
+void FixNevanShlPlayerSpawnDetour2();
+// NevanShlMarkRoseMode
+void NevanShlMarkRoseModeDetour();}
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
@@ -188,6 +190,7 @@ void StormSwordsDownedEnemyFix(bool enable);
 void FixMPXinputVibration(bool enable);
 void AdjustAirWhirlwindLaunchHeight(bool enable);
 void KillWeaponMotionState(bool enable);
-void SwingRoseAirTauntInertiaAndSpawnShl(bool enable);
+void AirTauntRoseSwingDetours(bool enable);
 void FixNevanShlPlayerSpawn(bool enable);
+void NevanShlMarkRoseMode(bool enable);
 }

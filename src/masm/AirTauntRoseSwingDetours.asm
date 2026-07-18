@@ -67,4 +67,33 @@ OriginalCode:
     jmp qword ptr [g_SwingRoseAirTauntInertiaAndSpawnShl_ReturnAddr]
 
 SwingRoseAirTauntInertiaAndSpawnShlDetour ENDP
+
+.DATA
+EXTERN g_NevanShlMarkRoseMode_ReturnAddr:QWORD
+
+.CODE
+; From CPl000Shl10eNevanShlSetSpawn_sub_1401D6520:
+; dmc3.exe+1D666C - 88 88 3C 04 00 00 - mov [rax+0000043C],cl
+NevanShlMarkRoseModeDetour PROC
+
+CheckIfInAirTauntRoseState:
+    PushAllRegs
+    add rsp, 28h
+    mov rcx, rbx
+    call qword ptr [g_SwingRoseAirTauntInertiaAndSpawnShlCheckCall]  ; check if in Air Taunt Rose state
+    sub rsp, 28h
+    cmp al, 1
+    jne OriginalCode
+    PopAllRegs
+    mov [rax + 043Ch], cl 
+    mov r8d, 1
+    mov [rax + 0E0h], r8d ; mark as Rose mode
+    jmp qword ptr [g_NevanShlMarkRoseMode_ReturnAddr]
+
+OriginalCode:
+    PopAllRegs
+    mov [rax + 043Ch], cl
+    jmp qword ptr [g_NevanShlMarkRoseMode_ReturnAddr]
+
+NevanShlMarkRoseModeDetour ENDP
 END
