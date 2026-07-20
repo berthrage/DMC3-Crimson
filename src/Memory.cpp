@@ -78,12 +78,14 @@ void PatchArenaSizes()
 
     Write<uint32>((appBaseAddr + 0x2C605B), MAIN_BLOCK_SIZE);
 
-// 	constexpr uint32 RESOURCE_HEAP_SIZE = 0x02000000;
-// 	constexpr uint32 RESOURCE_BLOCK_SIZE = 0x1000;
-// 
-// 	Write<uint32>((appBaseAddr + 0x1B8344), RESOURCE_HEAP_SIZE);
-// 		Write<uint32>((appBaseAddr + 0x1B835E), RESOURCE_HEAP_SIZE);
-// 		Write<uint32>((appBaseAddr + 0x1B8364), RESOURCE_BLOCK_SIZE);
+    // .pac scratch buffers
+	// dmc3.exe + 1B8343 - BA 00 00 00 01           - mov edx,01000000 { 16777216 } -- 16 MB
+	// dmc3.exe + 1B835C - 41 B9 00 00 00 01       - mov r9d, 01000000 { 16777216 } -- 16 MB
+	constexpr uint32 RESOURCE_HEAP_SIZE = 0x04000000; // 64 MB
+	constexpr uint32 RESOURCE_BLOCK_SIZE = 0x1000;
+	Write<uint32>((appBaseAddr + 0x1B8344), RESOURCE_HEAP_SIZE);
+	Write<uint32>((appBaseAddr + 0x1B835E), RESOURCE_HEAP_SIZE);
+	Write<uint32>((appBaseAddr + 0x1B8364), RESOURCE_BLOCK_SIZE);
 
     // Patching individual pools 
     Write<uint32>((appBaseAddr + 0x301CD), 0x00020000);
