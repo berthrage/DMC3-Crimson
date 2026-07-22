@@ -460,6 +460,12 @@ std::uint64_t g_FixNevanShlPlayerSpawn_ReturnAddr1;
 std::uint64_t g_FixNevanShlPlayerSpawn_ReturnAddr2;
 void FixNevanShlPlayerSpawnDetour1();
 void FixNevanShlPlayerSpawnDetour2();
+
+// ScreenShakeDetours
+std::uint64_t g_ScreenShakeDetours_ReturnAddr;
+std::uint64_t g_ScreenShakeDetours_ScreenShakeCallAddr;
+void ScreenShakeDetoursDetour();
+void* g_ScreenShakeDetoursCheckCall;  
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -2910,6 +2916,27 @@ void FixNevanShlPlayerSpawn(bool enable) {
 	run = enable;
 }
 
+void ScreenShakeDetours(bool enable) {
+	// We use this detour to prevent screen shake from occurring during specific moves, like Ecstasy (Air Taunt Rose Throw).
+	// We can also this to create a fancier ScreenShake in the future.
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From ManageWeaponMotionState_sub_1401F01F0:
+	// dmc3.exe+1F02F1 - E8 7A 56 13 00 - call dmc3.WeaponScreenShake_sub_140325970
+	static std::unique_ptr<Utility::Detour_t> screenShakeDetoursHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1F02F1, &ScreenShakeDetoursDetour, 5);
+	g_ScreenShakeDetours_ReturnAddr = screenShakeDetoursHook->GetReturnAddress();
+	g_ScreenShakeDetoursCheckCall = &CheckIfInAirTauntRose; 
+	g_ScreenShakeDetours_ScreenShakeCallAddr = (uintptr_t)appBaseAddr + 0x325970; // WeaponScreenShake_sub_140325970
+	screenShakeDetoursHook->Toggle(enable);
+
+	run = enable;
+}
+
 void ToggleAllDetours(bool enable) {
 	CheckScreenBreak(enable);
 	CheckMissionResultScreen(enable);
@@ -2925,7 +2952,10 @@ void ToggleAllDetours(bool enable) {
 	KillWeaponMotionState(enable);
 	AirTauntRoseSwingDetours(enable);
 	FixNevanShlPlayerSpawn(enable);
+	ScreenShakeDetours(enable);
 }
+
+
 
 
 }	

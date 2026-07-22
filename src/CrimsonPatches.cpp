@@ -1147,7 +1147,7 @@ void CameraTiltController(CameraData* cameraData, CameraControlMetadata& cameraM
 	tiltApplied = true;
 }
 
-void DisableCameraShake(bool enable) {
+void DisableScreenShake(bool enable) {
 	static bool run = false;
 
 	// If the function has already run in the current state, return early

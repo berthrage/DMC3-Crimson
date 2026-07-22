@@ -1223,14 +1223,14 @@ CameraData* GetSafeCameraData() {
 
 void CameraShakeController() {
 	if (activeCrimsonConfig.Camera.cameraShake == CAMERASHAKE::OFF) {
-		CrimsonPatches::DisableCameraShake(true);
+		CrimsonPatches::DisableScreenShake(true);
 	} else if (activeCrimsonConfig.Camera.cameraShake == CAMERASHAKE::ALWAYS_ON) {
-		CrimsonPatches::DisableCameraShake(false);
+		CrimsonPatches::DisableScreenShake(false);
 	} else if (activeCrimsonConfig.Camera.cameraShake == CAMERASHAKE::ONLY_IN_SINGLE_PLAYER_CAM) {
 		if (g_isMPCamActive) {
-			CrimsonPatches::DisableCameraShake(true);
+			CrimsonPatches::DisableScreenShake(true);
 		} else {
-			CrimsonPatches::DisableCameraShake(false);
+			CrimsonPatches::DisableScreenShake(false);
 		}
 	}
 }

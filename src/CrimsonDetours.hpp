@@ -140,7 +140,9 @@ void FixNevanShlPlayerSpawnDetour2();
 // NevanShlMarkRoseMode
 void NevanShlMarkRoseModeDetour();
 // NevanShlSetToTravel
-void NevanShlSetToTravelDetour();}
+void NevanShlSetToTravelDetour();
+// ScreenShakeDetours
+void ScreenShakeDetoursDetour();}
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
@@ -196,4 +198,5 @@ void AirTauntRoseSwingDetours(bool enable);
 void FixNevanShlPlayerSpawn(bool enable);
 void NevanShlMarkRoseMode(bool enable);
 void NevanShlSetToTravel(bool enable);
+void ScreenShakeDetours(bool enable);
 }

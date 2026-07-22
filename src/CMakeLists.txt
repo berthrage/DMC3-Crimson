@@ -70,6 +70,7 @@ set(MASM_SRC
     masm/KillWeaponMotionState.asm
     masm/AirTauntRoseSwingDetours.asm
     masm/FixNevanShlPlayerSpawn.asm
+    masm/ScreenShakeDetours.asm
 )
 
 set (ASM_LIBS)
