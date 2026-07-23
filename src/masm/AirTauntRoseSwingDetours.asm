@@ -124,7 +124,7 @@ EXTERN g_KillNevanRoseShlFX1_ReturnAddr:QWORD
 KillNevanRoseShlFX1Detour PROC
 ; NevanShlActor in rbx
 CheckIfRoseShl:
-    cmp byte ptr [rbx + 0E0h], 1 ; check if Rose mode
+    cmp byte ptr [rbx + 0E0h], 1 ; check if RoseMode
     jne OriginalCode
     jmp qword ptr [g_KillNevanRoseShlFX1_ReturnAddr]
     
@@ -133,4 +133,24 @@ OriginalCode:
     jmp qword ptr [g_KillNevanRoseShlFX1_ReturnAddr]
 
 KillNevanRoseShlFX1Detour ENDP
+
+.DATA
+EXTERN g_KillNevanRoseShlFX2_ReturnAddr:QWORD
+EXTERN g_KillNevanRoseShlFX2_SFXCall:QWORD 
+
+.CODE
+; From CPl000Shl10eNevanShlTravel_sub_1401D6C40:
+; dmc3.exe+1D6DFC - E8 2F 2B 16 00 - call dmc3.PlaySFXWithPos_ByType_sub_140339930
+KillNevanRoseShlFX2Detour PROC
+; NevanShlActor in rdi
+CheckIfRoseShl:
+    cmp byte ptr [rdi + 0E0h], 1 ; check if RoseMode
+    jne OriginalCode
+    jmp qword ptr [g_KillNevanRoseShlFX2_ReturnAddr]
+
+OriginalCode:
+    call qword ptr [g_KillNevanRoseShlFX2_SFXCall]
+    jmp qword ptr [g_KillNevanRoseShlFX2_ReturnAddr]
+
+KillNevanRoseShlFX2Detour ENDP
 END

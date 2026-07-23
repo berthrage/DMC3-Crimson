@@ -184,8 +184,4 @@ void AdjustAirWhirlwindLaunchHeight(bool enable);
 void KillWeaponMotionState(bool enable);
 void AirTauntRoseSwingDetours(bool enable);
 void FixNevanShlPlayerSpawn(bool enable);
-void NevanShlMarkRoseMode(bool enable);
-void NevanShlSetToTravel(bool enable);
-void ScreenShakeDetours(bool enable);
-void KillNevanRoseShlFX1(bool enable);
 }
