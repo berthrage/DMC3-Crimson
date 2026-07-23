@@ -476,6 +476,11 @@ void KillNevanRoseShlFX1Detour();
 std::uint64_t g_KillNevanRoseShlFX2_ReturnAddr;
 std::uint64_t g_KillNevanRoseShlFX2_SFXCall;
 void KillNevanRoseShlFX2Detour();
+
+// KillNevanRoseShlEnemyTracking
+std::uint64_t g_KillNevanRoseShlEnemyTracking_ReturnAddr;
+std::uint64_t g_KillNevanRoseShlEnemyTracking_JumpAddr;
+void KillNevanRoseShlEnemyTrackingDetour();
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -2915,6 +2920,14 @@ void AirTauntRoseSwingDetours(bool enable) {
 	g_KillNevanRoseShlFX2_ReturnAddr = killNevanRoseShlFX2Hook->GetReturnAddress();
 	g_KillNevanRoseShlFX2_SFXCall = (uintptr_t)appBaseAddr + 0x339930;
 	killNevanRoseShlFX2Hook->Toggle(enable);
+
+	// From CPl000Shl10eNevanShlTravel_sub_1401D6C40:
+	// dmc3.exe+1D6D74 - 80 BF 39 04 00 00 00 - cmp byte ptr [rdi+00000439],00 { 0 }
+	static std::unique_ptr<Utility::Detour_t> killNevanRoseShlEnemyTrackingHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D6D74, &KillNevanRoseShlEnemyTrackingDetour, 7);
+	g_KillNevanRoseShlEnemyTracking_ReturnAddr = killNevanRoseShlEnemyTrackingHook->GetReturnAddress();
+	g_KillNevanRoseShlEnemyTracking_JumpAddr = (uintptr_t)appBaseAddr + 0x1D6DAB;
+	killNevanRoseShlEnemyTrackingHook->Toggle(enable);
 
 	run = enable;
 }

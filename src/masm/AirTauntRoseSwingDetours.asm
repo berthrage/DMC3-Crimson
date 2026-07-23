@@ -153,4 +153,24 @@ OriginalCode:
     jmp qword ptr [g_KillNevanRoseShlFX2_ReturnAddr]
 
 KillNevanRoseShlFX2Detour ENDP
+
+.DATA
+EXTERN g_KillNevanRoseShlEnemyTracking_ReturnAddr:QWORD
+EXTERN g_KillNevanRoseShlEnemyTracking_JumpAddr:QWORD       
+
+.CODE
+; From CPl000Shl10eNevanShlTravel_sub_1401D6C40:
+; dmc3.exe+1D6D74 - 80 BF 39 04 00 00 00 - cmp byte ptr [rdi+00000439],00 { 0 }
+KillNevanRoseShlEnemyTrackingDetour PROC
+; NevanShlActor in rdi
+CheckIfRoseShl:
+    cmp byte ptr [rdi + 0E0h], 1 ; check if RoseMode
+    jne OriginalCode
+    jmp g_KillNevanRoseShlEnemyTracking_JumpAddr
+
+OriginalCode:
+    cmp byte ptr [rdi + 0439h], 00
+    jmp qword ptr [g_KillNevanRoseShlEnemyTracking_ReturnAddr]
+
+KillNevanRoseShlEnemyTrackingDetour ENDP
 END
