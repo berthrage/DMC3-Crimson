@@ -31,6 +31,7 @@
 #include "Internal.hpp"
 #include "CrimsonDetours.hpp"
 #include "CrimsonSDL.hpp"
+#include "CrimsonGameplay.hpp"
 
 namespace CrimsonDetours {
 
@@ -736,7 +737,10 @@ bool CheckSkyLaunchEnabled(uintptr_t playerAddr) {
 	inAirTauntRose = true;
 	actionTimer = 0.0f;
 	actorData.motionArchives[MOTION_GROUP_DANTE::CERBERUS] = newAirTauntRose_pl000_00_4;
-	return activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::SKY_LAUNCH_AIR_TAUNT];
+	bool canAirTaunt = (actorData.eventData[0].event == ACTOR_EVENT::ATTACK && CrimsonGameplay::CanQueueMeleeAttack(actorData)) || 
+		actorData.eventData[0].event != ACTOR_EVENT::ATTACK;
+	return activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::SKY_LAUNCH_AIR_TAUNT] &&
+		canAirTaunt;
 }
 
 bool CheckAirTauntRisingSunEnabled() {

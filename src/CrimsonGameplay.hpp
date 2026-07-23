@@ -5,6 +5,55 @@
 
 namespace CrimsonGameplay {
 
+template <typename T> bool CanQueueMeleeAttack(T& actorData) {
+	using namespace NEXT_ACTION_REQUEST_POLICY;
+
+	auto& policy = actorData.nextActionRequestPolicy[MELEE_ATTACK];
+
+	if ((policy == BUFFER) || (policy == EXECUTE)) {
+		return true;
+	}
+
+	return false;
+}
+
+template <typename T> bool CanQueueStyleAction(T& actorData) {
+	using namespace NEXT_ACTION_REQUEST_POLICY;
+
+	switch (actorData.style) {
+	case STYLE::SWORDMASTER:
+	case STYLE::GUNSLINGER: {
+		auto& policy = actorData.nextActionRequestPolicy[SWORDMASTER_GUNSLINGER];
+
+		if ((policy == BUFFER) || (policy == EXECUTE)) {
+			return true;
+		}
+
+		break;
+	}
+	case STYLE::TRICKSTER: {
+		auto& policy = actorData.nextActionRequestPolicy[TRICKSTER_DARK_SLAYER];
+
+		if ((policy == BUFFER) || (policy == EXECUTE)) {
+			return true;
+		}
+
+		break;
+	}
+	case STYLE::ROYALGUARD: {
+		auto& policy = actorData.nextActionRequestPolicy[ROYALGUARD];
+
+		if ((policy == BUFFER) || (policy == EXECUTE)) {
+			return true;
+		}
+
+		break;
+	}
+	}
+
+	return false;
+}
+
 extern bool startingFromGround[4];
 bool IsActiveCharacterActor(byte8* actorBaseAddr);
 void UpdateCrimsonPlayerData();
