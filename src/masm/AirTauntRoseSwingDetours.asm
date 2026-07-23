@@ -114,4 +114,23 @@ OriginalCode:
     jmp qword ptr [g_NevanShlSetToTravel_ReturnAddr]
 
 NevanShlSetToTravelDetour ENDP
+
+.DATA
+EXTERN g_KillNevanRoseShlFX1_ReturnAddr:QWORD
+
+.CODE
+; From CPl000Shl10eNevanShlUpdate_sub_1401D6C00:
+; dmc3.exe+1D6C28 - FF 90 E8 00 00 00 - call qword ptr [rax+000000E8]{ NevanShlTravelFX }
+KillNevanRoseShlFX1Detour PROC
+; NevanShlActor in rbx
+CheckIfRoseShl:
+    cmp byte ptr [rbx + 0E0h], 1 ; check if Rose mode
+    jne OriginalCode
+    jmp qword ptr [g_KillNevanRoseShlFX1_ReturnAddr]
+    
+OriginalCode:
+    call qword ptr [rax + 0E8h] ; NevanShlTravelFX
+    jmp qword ptr [g_KillNevanRoseShlFX1_ReturnAddr]
+
+KillNevanRoseShlFX1Detour ENDP
 END

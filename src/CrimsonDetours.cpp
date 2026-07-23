@@ -467,6 +467,10 @@ std::uint64_t g_ScreenShakeDetours_ReturnAddr;
 std::uint64_t g_ScreenShakeDetours_ScreenShakeCallAddr;
 void ScreenShakeDetoursDetour();
 void* g_ScreenShakeDetoursCheckCall;  
+
+// KillNevanRoseShlFX1
+std::uint64_t g_KillNevanRoseShlFX1_ReturnAddr;
+void KillNevanRoseShlFX1Detour();
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -2891,6 +2895,13 @@ void AirTauntRoseSwingDetours(bool enable) {
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D6E80, &NevanShlSetToTravelDetour, 5);
 	g_NevanShlSetToTravel_ReturnAddr = nevanShlSetToTravelHook->GetReturnAddress();
 	nevanShlSetToTravelHook->Toggle(enable);
+
+	// From CPl000Shl10eNevanShlUpdate_sub_1401D6C00:
+	// dmc3.exe+1D6C28 - FF 90 E8 00 00 00 - call qword ptr [rax+000000E8]{ NevanShlTravelFX }
+	static std::unique_ptr<Utility::Detour_t> killNevanRoseShlFX1Hook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D6C28, &KillNevanRoseShlFX1Detour, 6);
+	g_KillNevanRoseShlFX1_ReturnAddr = killNevanRoseShlFX1Hook->GetReturnAddress();
+	killNevanRoseShlFX1Hook->Toggle(enable);
 
 	run = enable;
 }
