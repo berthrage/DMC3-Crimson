@@ -42,6 +42,12 @@ extern EffekseerRefHandle driveCol_Part1_Handle;
 extern EffekseerRefHandle driveCol_Part2_Handle;
 extern EffekseerRefHandle driveCol_Part3_Handle;
 
+// Ecstasy
+extern const wchar_t* const ecstasy_Rose_Path;
+extern EffekseerRefHandle ecstasy_Rose_Handle;
+extern const wchar_t* const ecstasy_Hit_Path;
+extern EffekseerRefHandle ecstasy_Hit_Handle;
+
 // Delayed Combo
 extern const wchar_t* const delayedCombo_Rebellion_Path;
 extern const wchar_t* const delayedCombo_Cerberus_Path;

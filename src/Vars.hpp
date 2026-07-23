@@ -4597,7 +4597,7 @@ public:
 	char pad_01A8[657]; //0x01A8
 	bool randomTravelDirection; //0x0439
 	char pad_043A[6]; //0x043A
-	uint64_t matrixPtr; //0x0440
+    Matrix44Ptr* matrixPtr; //0x0440
 	char pad_0448[112]; //0x0448
 	float delayToInitTravel; //0x04B8
 	char pad_04BC[4]; //0x04BC

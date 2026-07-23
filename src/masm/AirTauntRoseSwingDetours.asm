@@ -156,7 +156,7 @@ KillNevanRoseShlFX2Detour ENDP
 
 .DATA
 EXTERN g_KillNevanRoseShlEnemyTracking_ReturnAddr:QWORD
-EXTERN g_KillNevanRoseShlEnemyTracking_JumpAddr:QWORD       
+EXTERN g_KillNevanRoseShlEnemyTracking_JumpAddr:QWORD     
 
 .CODE
 ; From CPl000Shl10eNevanShlTravel_sub_1401D6C40:
@@ -173,4 +173,30 @@ OriginalCode:
     jmp qword ptr [g_KillNevanRoseShlEnemyTracking_ReturnAddr]
 
 KillNevanRoseShlEnemyTrackingDetour ENDP
+
+.DATA
+EXTERN g_FireNevanRoseShlVFX_ReturnAddr:QWORD
+EXTERN g_NevanRoseShl_RoseEfkVFXCall:QWORD
+
+.CODE
+; From CPl000Shl10eNevanShlUpdate_sub_1401D6C00:
+; dmc3.exe+1D6C06 - 0F B6 51 08 - movzx edx,byte ptr [rcx+08]
+; dmc3.exe+1D6C0A - 48 8B D9 - mov rbx,rcx
+FireNevanRoseShlVFXDetour PROC
+; NevanShlActor in rcx
+CheckIfRoseShl:
+    cmp byte ptr [rcx + 0E0h], 1 ; check if RoseMode
+    jne OriginalCode
+    PushAllRegs
+    sub rsp, 20h
+    call qword ptr [g_NevanRoseShl_RoseEfkVFXCall]
+    add rsp, 20h
+    PopAllRegs
+
+OriginalCode:
+    movzx edx, byte ptr [rcx + 08h]
+    mov rbx, rcx
+    jmp qword ptr [g_FireNevanRoseShlVFX_ReturnAddr]
+
+FireNevanRoseShlVFXDetour ENDP
 END

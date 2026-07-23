@@ -35,452 +35,458 @@
 
 namespace CrimsonDetours {
 
-extern "C" {
-std::uint64_t g_appBaseAddr;
-
-// SampleMod
-std::uint64_t g_SampleMod_ReturnAddr1;
-//void SampleModDetour1();
-
-// GuardGravity
-std::uint64_t g_GuardGravity_ReturnAddr;
-void GuardGravityDetour();
-
-// AddToMirageGauge
-std::uint64_t g_AddToMirageGauge_ReturnAddr;
-void AddToMirageGaugeDetour();
-void* g_AddToMirageGaugeCall;
-
-// EnableAirTaunt
-std::uint64_t g_EnableAirTaunt_ReturnAddr;
-std::uint64_t g_EnableAirTaunt_ConditionalAddr;
-std::uint64_t g_EnableAirTaunt_ConditionalAddr2;
-void EnableAirTauntDetour();
-
-// SetAirTaunt
-std::uint64_t g_SetAirTaunt_ReturnAddr;
-std::uint64_t g_SetAirTaunt_Call;
-void SetAirTauntDetour();
-void* g_SetAirTauntSkyLaunchCheckCall;
-void* g_SetAirTauntATRisingSunCheckCall;
-
-// Sky Launch Detours: (Dante Air Taunt)
-// SkyLaunchForceRelease 
-std::uint64_t g_SkyLaunchForceRelease_ReturnAddr;
-void* g_skyLaunchForceReleaseCheckCall;
-void SkyLaunchForceReleaseDetour();
-
-// SkyLaunchKillRGConsumption
-void* g_skyLaunchCheckCall;
-std::uint64_t g_SkyLaunchKillRGConsumption_ReturnAddr;
-void SkyLaunchKillRGConsumptionDetour();
-
-// SkyLaunchKillReleaseLevel1
-std::uint64_t g_SkyLaunchKillReleaseLevel1_ReturnAddr;
-void SkyLaunchKillReleaseLevel1Detour();
-
-// SkyLaunchKillReleaseLevel2
-std::uint64_t g_SkyLaunchKillReleaseLevel2_ReturnAddr;
-void SkyLaunchKillReleaseLevel2Detour();
-
-// SkyLaunchKillReleaseLevel3
-std::uint64_t g_SkyLaunchKillReleaseLevel3_ReturnAddr;
-void SkyLaunchKillReleaseLevel3Detour();
-
-// SkyLaunchKillDamage
-std::uint64_t g_SkyLaunchKillDamage_ReturnAddr;
-void SkyLaunchKillDamageDetour();
-
-// SkyLaunchKillDamageToCerberus
-std::uint64_t g_SkyLaunchKillDamageCerberus_ReturnAddr;
-void SkyLaunchKillDamageCerberusDetour();
-
-// SkyLaunchKillDamageToShieldNevan
-void* g_skyLaunchCheckCall2;
-std::uint64_t g_SkyLaunchKillDamageShieldNevan_ReturnAddr;
-void SkyLaunchKillDamageShieldNevanDetour();
-
-// CreateEffect
-std::uint64_t createEffectRBXMov;
-std::uint64_t createEffectCallA;
-std::uint64_t createEffectCallB;
-//void _fastcall CreateEffectDetour(void* pPlayer, int effectBank, int effectId, int effectBoneIdx, uint32_t colo_u_r);
-
-// FixCrashCerberus
-std::uint64_t g_FixCrashCerberus_ReturnAddr;
-std::uint64_t g_FixCrashCerberus_PlayerStructAddr;
-void FixCrashCerberusDetour();
-
-// FixCrashVergilM3
-std::uint64_t g_FixCrashVergilM3_ReturnAddr;
-std::uint64_t g_FixCrashVergilM3_JumpAddr;
-void FixCrashVergilM3Detour();
-
-// FixCrashM5
-std::uint64_t g_FixCrashM5_ReturnAddr;
-std::uint64_t g_FixCrashM5_JmpAddr;
-std::uint64_t g_FixCrashM5_ReturnAddr2;
-std::uint64_t g_FixCrashM5_JmpAddr2;
-void FixCrashM5Detour();
-void FixCrashM5Detour2();
-
-//Cerb Damage fix
-std::uint64_t g_CerbDamageFix_ReturnAddr;
-std::uint64_t g_CerbDamageFix_JmpAddr;
-void CerbDamageFixDetour();
-
-// FixCrashArkhamPt2Grab
-std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr1;
-void FixCrashArkhamPt2GrabDetour1();
-std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr2;
-void FixCrashArkhamPt2GrabDetour2();
-std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr3;
-void FixCrashArkhamPt2GrabDetour3();
-std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr4;
-void FixCrashArkhamPt2GrabDetour4();
-std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr5;
-void FixCrashArkhamPt2GrabDetour5();
-std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr6;
-void FixCrashArkhamPt2GrabDetour6();
-
-// FixCrashArkhamPt2Doppel
-std::uint64_t g_FixCrashArkhamPt2Doppel_ReturnAddr1;
-std::uint64_t g_FixCrashArkhamPt2Doppel_CallAddr1;
-void FixCrashArkhamPt2DoppelDetour1();
-std::uint64_t g_FixCrashArkhamPt2Doppel_ReturnAddr2;
-std::uint64_t g_FixCrashArkhamPt2Doppel_CallAddr2;
-void FixCrashArkhamPt2DoppelDetour2();
-
-// EnsureAirRisingDragonLaunch
-std::uint64_t g_EnsureAirRisingDragonLaunch_ReturnAddr;
-std::uint64_t g_EnsureAirRisingDragonLaunch_JmpAddr;
-void EnsureAirRisingDragonLaunchDetour();
-
-// AdjustAirRisingDragonLaunchHeight
-std::uint64_t g_AdjustAirRisingDragonLaunchHeight_ReturnAddr;
-void* g_AdjustAirRisingDragonLaunchHeight_FuncCall;
-void AdjustAirRisingDragonLaunchHeightDetour();
-
-// AdjustAirWhirlwindLaunchHeight
-std::uint64_t g_AdjustAirWhirlwindLaunchHeight_ReturnAddr;
-void* g_AdjustAirWhirlwindLaunchHeightCheckCall;
-void AdjustAirWhirlwindLaunchHeightDetour();
-
-// HoldToCrazyCombo
-std::uint64_t g_HoldToCrazyCombo_ReturnAddr;
-void HoldToCrazyComboDetour();
-std::uint64_t g_holdToCrazyComboConditionalAddr;
-void* holdToCrazyComboCall;
-
-// ConvertGuardBreakIntoNormalBlock: for DT-Infused Royalguard
-std::uint64_t g_GuardBreakToNormalBlock_ReturnAddr;
-void GuardBreakToNormalBlockDetour();
-void* g_GuardBreakToNormalBlockCheckCall;
-
-// DisableStaggerRoyalguard: for DT-Infused Royalguard
-std::uint64_t g_DisableStagger_ReturnAddr;
-std::uint64_t g_DisableStagger_ConditionalAddr;
-void DisableStaggerRoyalguardDetour();
-void* g_DisableStaggerCheckCall;
-
-// ToggleTakeDamage: for DT-Infused Royalguard
-std::uint64_t g_ToggleTakeDamage_ReturnAddr;
-void ToggleTakeDamageDetour();
-void* g_ToggleTakeDamageCheckCall;
-
-// DisableDriveHold
-std::uint64_t g_DisableDriveHold_ReturnAddr;
-void DisableDriveHoldDetour();
-
-// HideStyleRankHUD
-std::uint64_t g_HideStyleRankHUD_JumpAddr;
-void HideStyleRankHUDDetour();
-
-// HudHPSeparation
-std::uint64_t g_HudHPSeparation_ReturnAddr;
-void HudHPSeparationDetour();
-
-// HudStyleBarPos
-std::uint64_t g_HudStyleBarPos_ReturnAddr;
-float g_HudStyleBarPosX;
-float g_HudStyleBarPosY;
-void HudStyleBarPosDetour();
-
-// CustomCameraPositioning
-std::uint64_t g_CustomCameraPos_ReturnAddr;
-float* g_CustomCameraPos_NewPosAddr = nullptr;
-void CustomCameraPositioningDetour();
-
-// CustomCameraSensitivity
-std::uint64_t g_CameraSensitivity_ReturnAddr1;
-std::uint64_t g_CameraSensitivity_ReturnAddr2;
-float* g_CameraSensitivity_NewSensAddr = nullptr;
-void CameraSensitivityDetour1();
-void CameraSensitivityDetour2();
-
-// CamHittingWall
-std::uint64_t g_CamHittingWall_ReturnAddr;
-void CamHittingWallDetour();
-bool* g_CamHittingWall_ConditionalAddr = nullptr;
-
-// ConfirmSetAction
-std::uint64_t g_ConfirmSetAction_ReturnAddr;
-std::uint64_t g_ConfirmSetAction_FuncCall;
-void ConfirmSetActionDetour();
-void* g_ConfirmSetActionCheckCall;
-
-// RerouteRedOrbsCounterAlpha
-std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr1;
-std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr2;
-std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr3;
-std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr4;
-std::uint64_t g_RerouteRedOrbsCounterAlpha_VariableAddr;
-void RerouteRedOrbsCounterAlphaDetour1();
-void RerouteRedOrbsCounterAlphaDetour2();
-void RerouteRedOrbsCounterAlphaDetour3();
-void RerouteRedOrbsCounterAlphaDetour4();
-
-// FreeformSoftLockHelper
-std::uint64_t g_FreeformSoftLockHelper_ReturnAddr;
-void FreeformSoftLockHelperDetour();
-
-// DMC4/5LockOnDirection
-std::uint64_t g_DMC4LockOnDirection_ReturnAddr;
-void DMC4LockOnDirectionDetour();
-void* g_DMC4LockOnDirectionCall;
-
-// InterceptCollisions
-std::uint64_t g_InterceptCollisions_ReturnAddr;
-void InterceptCollisionsDetour();
-void* g_DrawCollisionsCall;
-void* g_InterceptCollisionsCall;
-
-// FasterTurnRate
-std::uint64_t g_TurnRateFix_ReturnAddr;
-void TurnRateFixDetour();
-
-// FixFPSSpeedIssues
-std::uint64_t g_FixFPSSpeedIssues_ReturnAddr;
-void FixFPSSpeedIssuesDetour();
-void* g_FixFPSSpeedIssuesCall;
-
-// FixBallsHangHitSpeed
-std::uint64_t g_FixBallsHangHitSpeed_ReturnAddr;
-void FixBallsHangHitSpeedDetour();
-
-// StyleRankHUDNoFadeout
-std::uint64_t g_StyleRankHudNoFadeout_ReturnAddr;
-void StyleRankHudNoFadeoutDetour();
-
-// ShootRemapDown
-std::uint64_t g_ShootRemapDown_ReturnAddr;
-void ShootRemapDownDetour();
-std::uint64_t g_ShootRemapHold_ReturnAddr;
-//void ShootRemapHoldDetour();
-std::uint16_t g_ShootRemap_NewMap;
-
-// VergilNeutralTrick
-std::uint64_t g_VergilNeutralTrick_ReturnAddr;
-//void VergilNeutralTrickDetour();
-
-// Artemis Instant Full Charge
-void ArtemisInstantFullChargeDetour1();
-std::uint64_t g_ArtemisReworkJumpAddr1;
-void ArtemisInstantFullChargeDetour2();
-std::uint64_t g_ArtemisReworkJumpAddr2;
-
-// GreenOrbsMultiplayerRegen
-void GreenOrbsMPRegenDetour();
-std::uint64_t g_GreenOrbsMPRegen_ReturnAddr;
-void* g_GreenOrbsMPRegen_Call;
-
-// PortalsHide
-void PortalsHideDetour();
-std::uint64_t g_PortalsHide_ReturnAddr;
-
-// PortalsMute
-void PortalsMuteDetour();
-std::uint64_t g_PortalsMute_ReturnAddr;
-// StyleLevellingCCSFix
-void StyleLevellingCCSFixDetour1();
-std::uint64_t g_StyleLevellingCCSFix_ReturnAddr1;
-void* g_StyleLevellingCCSFix_CheckCall1;
-void StyleLevellingCCSFixDetour2();
-std::uint64_t g_StyleLevellingCCSFix_ReturnAddr2;
-void* g_StyleLevellingCCSFix_CheckCall2;
-
-// DanteTrickAlterations
-std::uint64_t g_DanteTrickAlter_ReturnAddr1;
-void DanteTrickAlterationsDetour1();
-std::uint64_t g_DanteTrickAlter_ReturnAddr2;
-void DanteTrickAlterationsDetour2();
-std::uint64_t g_DanteTrickAlter_ReturnAddr3;
-void DanteTrickAlterationsDetour3();
-std::uint64_t g_DanteTrickAlter_ReturnAddr4;
-void DanteTrickAlterationsDetour4();
-
-// ShotgunShlSpawnAnglePointBlank
-std::uint64_t g_ShotgunShlSpawnAnglePointBlank_ReturnAddr1;
-void ShotgunShlSpawnAnglePointBlankDetour();
-std::uint64_t g_ShotgunShlSpawnAnglePointBlank_ReturnAddr2;
-void ShotgunShlSpawnAnglePointBlankDetour2();
-void* g_ShotgunShlSpawnAnglePointBlankCheckCall;
-std::uint64_t g_ShotgunShlSpawnAnglePointBlankLockedOnEnemyJmp;
-
-// PointBlankShotgunFire
-std::uint64_t g_PointBlankShotgunFire_ReturnAddr;
-void PointBlankShotgunFireDetour();
-std::uint64_t g_PointBlankShotgunFireOgCall;
-std::uint64_t g_PointBlankShotgunFireTailCall_ReturnAddr;
-void PointBlankShotgunFireTailCallDetour();
-void* g_PointBlankShotgunFireDelayCall;
-std::uint64_t g_PointBlankShotgunCancelAnimTailCall;
-
-// JudgementCutDetours
-std::uint64_t g_JudgementCutSpeed_ReturnAddr;
-void JudgementCutSpeedDetour();
-std::uint64_t g_JudgementCutStartDelayCall;
-std::uint64_t g_JudgementCutSpawnCollisionCall;
-void* g_JudgementCutCheckJustFrameCall;
-
-std::uint64_t g_JudgementCutVFX_ReturnAddr;
-std::uint64_t g_JudgementCutVFX_ReturnAddr2;
-void JudgementCutVFXDetour();
-std::uint64_t g_JudgementCutRegularVFXCall;
-void* g_JudgementCutJustFrameVFXCall;
-
-std::uint64_t g_JudgementCutPosition_ReturnAddr;
-void JudgementCutPositionDetour();
-void* g_JudgementCutSetPositionCall;
-
-std::uint64_t g_JudgementCutExtraShl_ReturnAddr;
-void JudgementCutExtraShlDetour();
-void* g_JudgementCutExtraShlCall;
-
-// DTMustStyleArmor
-std::uint64_t g_DTMustStyleArmor_ReturnAddr;
-void DTMustStyleArmorDetour();
-void* g_DTMustStyleArmor_CheckCall1;
-void* g_DTMustStyleArmor_CheckCall2;
-
-// CheckScreenBreak
-std::uint64_t g_CheckScreenBreak_ReturnAddr;
-void CheckScreenBreakDetour();
-
-// CheckMissionResultScreen
-std::uint64_t g_CheckMissionResultScreen_ReturnAddr1;
-std::uint64_t g_CheckMissionResultScreen_ReturnAddr2;
-std::uint64_t g_CheckMissionResultScreen_ReturnAddr3;
-std::uint64_t g_CheckMissionResultScreen_ReturnAddr4;
-std::uint64_t g_CheckMissionResultScreen_TargetAddr1;
-std::uint64_t g_CheckMissionResultScreen_TargetAddr2;
-std::uint64_t g_CheckMissionResultScreen_TargetAddr3;
-std::uint64_t g_CheckMissionResultScreen_TargetAddr4;
-void CheckMissionResultScreenDetour1();
-void CheckMissionResultScreenDetour2();
-void CheckMissionResultScreenDetour3();
-void CheckMissionResultScreenDetour4();
-
-// CheckMissionResultBPScreen
-std::uint64_t g_CheckMissionResultBPScreen_ReturnAddr1;
-std::uint64_t g_CheckMissionResultBPScreen_ReturnAddr2;
-std::uint64_t g_CheckMissionResultBPScreen_ReturnAddr3;
-std::uint64_t g_CheckMissionResultBPScreen_ReturnAddr4;
-std::uint64_t g_CheckMissionResultBPScreen_TargetAddr1;
-std::uint64_t g_CheckMissionResultBPScreen_TargetAddr2;
-std::uint64_t g_CheckMissionResultBPScreen_TargetAddr3;
-std::uint64_t g_CheckMissionResultBPScreen_TargetAddr4;
-void CheckMissionResultBPScreenDetour1();
-void CheckMissionResultBPScreenDetour2();
-void CheckMissionResultBPScreenDetour3();
-void CheckMissionResultBPScreenDetour4();
-
-// CheckTotalResultsScreen
-std::uint64_t g_CheckTotalResultsScreen_ReturnAddr;
-void CheckTotalResultsScreenDetour();
-
-// NoAirLunarPhaseLift
-std::uint64_t g_NoAirLunarPhaseLift_ReturnAddr;
-void NoAirLunarPhaseLiftDetour();
-void* g_NoAirLunarPhaseLiftCheckCall;  
-
-// ChargeMechanicsCPlayer
-std::uint64_t g_ChargeMechanicsCPlayer_ReturnAddr;
-std::uint64_t g_ChargeMechanicsCPlayer_ConstAddr;
-void ChargeMechanicsCPlayerDetour();
-void* g_ChargeMechanicsCPlayerCheckCall;  
-
-// CItemOrbPickupAllPlayers
-std::uint64_t g_CItemOrbPickupAllPlayers_ReturnAddr;
-std::uint64_t g_CItemOrbPickupAllPlayers_ReturnAddr2;
-std::uint64_t g_CItemOrbPickupAllPlayers_BoneMatrixCall;
-void CItemOrbPickupAllPlayersDetour();
-void CItemOrbPickupAllPlayersDetour2();
-void* g_CItemOrbPickupAllPlayersCheckCall; 
-
-// FasterSummonedSwords
-std::uint64_t g_FasterSummonedSwords_ReturnAddr;
-void FasterSummonedSwordsDetour();
-
-// SummonedSwordsFormationShortcuts
-std::uint64_t g_SummonedSwordsFormationShortcuts_ReturnAddr;
-void SummonedSwordsFormationShortcutsDetour();
-void* g_SummonedSwordsFormationShortcutsCheckCall;  
-
-// StormSwordsDownedEnemyFix
-std::uint64_t g_StormSwordsDownedEnemyFix_ReturnAddr;
-void StormSwordsDownedEnemyFixDetour();
-
-// FixMPXinputVibration
-std::uint64_t g_FixMPXinputVibration_ReturnAddr;
-void FixMPXinputVibrationDetour();
-std::uint64_t g_FixMPXinputVibration_CallAddr;
-void* g_FixMPXinputVibrationCheckCall;  
-
-// KillWeaponMotionState
-std::uint64_t g_KillWeaponMotionState_ReturnAddr;
-void KillWeaponMotionStateDetour();
-void* g_KillWeaponMotionStateCheckCall; 
-
-// AirTauntRoseSwingDetours:
-// SwingRoseAirTauntInertiaAndSpawnShl
-std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ReturnAddr;
-std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ActiveModelIndexCall;
-std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall;
-void SwingRoseAirTauntInertiaAndSpawnShlDetour();
-void* g_SwingRoseAirTauntInertiaAndSpawnShlCheckCall;  
-// NevanShlMarkRoseMode
-std::uint64_t g_NevanShlMarkRoseMode_ReturnAddr;
-void NevanShlMarkRoseModeDetour();
-// NevanShlSetToTravel
-std::uint64_t g_NevanShlSetToTravel_ReturnAddr;
-void NevanShlSetToTravelDetour();
-
-// FixNevanShlPlayerSpawn
-std::uint64_t g_FixNevanShlPlayerSpawn_ReturnAddr1;
-std::uint64_t g_FixNevanShlPlayerSpawn_ReturnAddr2;
-void FixNevanShlPlayerSpawnDetour1();
-void FixNevanShlPlayerSpawnDetour2();
-
-// ScreenShakeDetours
-std::uint64_t g_ScreenShakeDetours_ReturnAddr;
-std::uint64_t g_ScreenShakeDetours_ScreenShakeCallAddr;
-void ScreenShakeDetoursDetour();
-void* g_ScreenShakeDetoursCheckCall;  
-
-// KillNevanRoseShlFX1
-std::uint64_t g_KillNevanRoseShlFX1_ReturnAddr;
-void KillNevanRoseShlFX1Detour();
-
-// KillNevanRoseShlFX2
-std::uint64_t g_KillNevanRoseShlFX2_ReturnAddr;
-std::uint64_t g_KillNevanRoseShlFX2_SFXCall;
-void KillNevanRoseShlFX2Detour();
-
-// KillNevanRoseShlEnemyTracking
-std::uint64_t g_KillNevanRoseShlEnemyTracking_ReturnAddr;
-std::uint64_t g_KillNevanRoseShlEnemyTracking_JumpAddr;
-void KillNevanRoseShlEnemyTrackingDetour();
+	extern "C" {
+		std::uint64_t g_appBaseAddr;
+
+		// SampleMod
+		std::uint64_t g_SampleMod_ReturnAddr1;
+		//void SampleModDetour1();
+
+		// GuardGravity
+		std::uint64_t g_GuardGravity_ReturnAddr;
+		void GuardGravityDetour();
+
+		// AddToMirageGauge
+		std::uint64_t g_AddToMirageGauge_ReturnAddr;
+		void AddToMirageGaugeDetour();
+		void* g_AddToMirageGaugeCall;
+
+		// EnableAirTaunt
+		std::uint64_t g_EnableAirTaunt_ReturnAddr;
+		std::uint64_t g_EnableAirTaunt_ConditionalAddr;
+		std::uint64_t g_EnableAirTaunt_ConditionalAddr2;
+		void EnableAirTauntDetour();
+
+		// SetAirTaunt
+		std::uint64_t g_SetAirTaunt_ReturnAddr;
+		std::uint64_t g_SetAirTaunt_Call;
+		void SetAirTauntDetour();
+		void* g_SetAirTauntSkyLaunchCheckCall;
+		void* g_SetAirTauntATRisingSunCheckCall;
+
+		// Sky Launch Detours: (Dante Air Taunt)
+		// SkyLaunchForceRelease 
+		std::uint64_t g_SkyLaunchForceRelease_ReturnAddr;
+		void* g_skyLaunchForceReleaseCheckCall;
+		void SkyLaunchForceReleaseDetour();
+
+		// SkyLaunchKillRGConsumption
+		void* g_skyLaunchCheckCall;
+		std::uint64_t g_SkyLaunchKillRGConsumption_ReturnAddr;
+		void SkyLaunchKillRGConsumptionDetour();
+
+		// SkyLaunchKillReleaseLevel1
+		std::uint64_t g_SkyLaunchKillReleaseLevel1_ReturnAddr;
+		void SkyLaunchKillReleaseLevel1Detour();
+
+		// SkyLaunchKillReleaseLevel2
+		std::uint64_t g_SkyLaunchKillReleaseLevel2_ReturnAddr;
+		void SkyLaunchKillReleaseLevel2Detour();
+
+		// SkyLaunchKillReleaseLevel3
+		std::uint64_t g_SkyLaunchKillReleaseLevel3_ReturnAddr;
+		void SkyLaunchKillReleaseLevel3Detour();
+
+		// SkyLaunchKillDamage
+		std::uint64_t g_SkyLaunchKillDamage_ReturnAddr;
+		void SkyLaunchKillDamageDetour();
+
+		// SkyLaunchKillDamageToCerberus
+		std::uint64_t g_SkyLaunchKillDamageCerberus_ReturnAddr;
+		void SkyLaunchKillDamageCerberusDetour();
+
+		// SkyLaunchKillDamageToShieldNevan
+		void* g_skyLaunchCheckCall2;
+		std::uint64_t g_SkyLaunchKillDamageShieldNevan_ReturnAddr;
+		void SkyLaunchKillDamageShieldNevanDetour();
+
+		// CreateEffect
+		std::uint64_t createEffectRBXMov;
+		std::uint64_t createEffectCallA;
+		std::uint64_t createEffectCallB;
+		//void _fastcall CreateEffectDetour(void* pPlayer, int effectBank, int effectId, int effectBoneIdx, uint32_t colo_u_r);
+
+		// FixCrashCerberus
+		std::uint64_t g_FixCrashCerberus_ReturnAddr;
+		std::uint64_t g_FixCrashCerberus_PlayerStructAddr;
+		void FixCrashCerberusDetour();
+
+		// FixCrashVergilM3
+		std::uint64_t g_FixCrashVergilM3_ReturnAddr;
+		std::uint64_t g_FixCrashVergilM3_JumpAddr;
+		void FixCrashVergilM3Detour();
+
+		// FixCrashM5
+		std::uint64_t g_FixCrashM5_ReturnAddr;
+		std::uint64_t g_FixCrashM5_JmpAddr;
+		std::uint64_t g_FixCrashM5_ReturnAddr2;
+		std::uint64_t g_FixCrashM5_JmpAddr2;
+		void FixCrashM5Detour();
+		void FixCrashM5Detour2();
+
+		//Cerb Damage fix
+		std::uint64_t g_CerbDamageFix_ReturnAddr;
+		std::uint64_t g_CerbDamageFix_JmpAddr;
+		void CerbDamageFixDetour();
+
+		// FixCrashArkhamPt2Grab
+		std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr1;
+		void FixCrashArkhamPt2GrabDetour1();
+		std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr2;
+		void FixCrashArkhamPt2GrabDetour2();
+		std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr3;
+		void FixCrashArkhamPt2GrabDetour3();
+		std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr4;
+		void FixCrashArkhamPt2GrabDetour4();
+		std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr5;
+		void FixCrashArkhamPt2GrabDetour5();
+		std::uint64_t g_FixCrashArkhamPt2Grab_ReturnAddr6;
+		void FixCrashArkhamPt2GrabDetour6();
+
+		// FixCrashArkhamPt2Doppel
+		std::uint64_t g_FixCrashArkhamPt2Doppel_ReturnAddr1;
+		std::uint64_t g_FixCrashArkhamPt2Doppel_CallAddr1;
+		void FixCrashArkhamPt2DoppelDetour1();
+		std::uint64_t g_FixCrashArkhamPt2Doppel_ReturnAddr2;
+		std::uint64_t g_FixCrashArkhamPt2Doppel_CallAddr2;
+		void FixCrashArkhamPt2DoppelDetour2();
+
+		// EnsureAirRisingDragonLaunch
+		std::uint64_t g_EnsureAirRisingDragonLaunch_ReturnAddr;
+		std::uint64_t g_EnsureAirRisingDragonLaunch_JmpAddr;
+		void EnsureAirRisingDragonLaunchDetour();
+
+		// AdjustAirRisingDragonLaunchHeight
+		std::uint64_t g_AdjustAirRisingDragonLaunchHeight_ReturnAddr;
+		void* g_AdjustAirRisingDragonLaunchHeight_FuncCall;
+		void AdjustAirRisingDragonLaunchHeightDetour();
+
+		// AdjustAirWhirlwindLaunchHeight
+		std::uint64_t g_AdjustAirWhirlwindLaunchHeight_ReturnAddr;
+		void* g_AdjustAirWhirlwindLaunchHeightCheckCall;
+		void AdjustAirWhirlwindLaunchHeightDetour();
+
+		// HoldToCrazyCombo
+		std::uint64_t g_HoldToCrazyCombo_ReturnAddr;
+		void HoldToCrazyComboDetour();
+		std::uint64_t g_holdToCrazyComboConditionalAddr;
+		void* holdToCrazyComboCall;
+
+		// ConvertGuardBreakIntoNormalBlock: for DT-Infused Royalguard
+		std::uint64_t g_GuardBreakToNormalBlock_ReturnAddr;
+		void GuardBreakToNormalBlockDetour();
+		void* g_GuardBreakToNormalBlockCheckCall;
+
+		// DisableStaggerRoyalguard: for DT-Infused Royalguard
+		std::uint64_t g_DisableStagger_ReturnAddr;
+		std::uint64_t g_DisableStagger_ConditionalAddr;
+		void DisableStaggerRoyalguardDetour();
+		void* g_DisableStaggerCheckCall;
+
+		// ToggleTakeDamage: for DT-Infused Royalguard
+		std::uint64_t g_ToggleTakeDamage_ReturnAddr;
+		void ToggleTakeDamageDetour();
+		void* g_ToggleTakeDamageCheckCall;
+
+		// DisableDriveHold
+		std::uint64_t g_DisableDriveHold_ReturnAddr;
+		void DisableDriveHoldDetour();
+
+		// HideStyleRankHUD
+		std::uint64_t g_HideStyleRankHUD_JumpAddr;
+		void HideStyleRankHUDDetour();
+
+		// HudHPSeparation
+		std::uint64_t g_HudHPSeparation_ReturnAddr;
+		void HudHPSeparationDetour();
+
+		// HudStyleBarPos
+		std::uint64_t g_HudStyleBarPos_ReturnAddr;
+		float g_HudStyleBarPosX;
+		float g_HudStyleBarPosY;
+		void HudStyleBarPosDetour();
+
+		// CustomCameraPositioning
+		std::uint64_t g_CustomCameraPos_ReturnAddr;
+		float* g_CustomCameraPos_NewPosAddr = nullptr;
+		void CustomCameraPositioningDetour();
+
+		// CustomCameraSensitivity
+		std::uint64_t g_CameraSensitivity_ReturnAddr1;
+		std::uint64_t g_CameraSensitivity_ReturnAddr2;
+		float* g_CameraSensitivity_NewSensAddr = nullptr;
+		void CameraSensitivityDetour1();
+		void CameraSensitivityDetour2();
+
+		// CamHittingWall
+		std::uint64_t g_CamHittingWall_ReturnAddr;
+		void CamHittingWallDetour();
+		bool* g_CamHittingWall_ConditionalAddr = nullptr;
+
+		// ConfirmSetAction
+		std::uint64_t g_ConfirmSetAction_ReturnAddr;
+		std::uint64_t g_ConfirmSetAction_FuncCall;
+		void ConfirmSetActionDetour();
+		void* g_ConfirmSetActionCheckCall;
+
+		// RerouteRedOrbsCounterAlpha
+		std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr1;
+		std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr2;
+		std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr3;
+		std::uint64_t g_RerouteRedOrbsCounterAlpha_ReturnAddr4;
+		std::uint64_t g_RerouteRedOrbsCounterAlpha_VariableAddr;
+		void RerouteRedOrbsCounterAlphaDetour1();
+		void RerouteRedOrbsCounterAlphaDetour2();
+		void RerouteRedOrbsCounterAlphaDetour3();
+		void RerouteRedOrbsCounterAlphaDetour4();
+
+		// FreeformSoftLockHelper
+		std::uint64_t g_FreeformSoftLockHelper_ReturnAddr;
+		void FreeformSoftLockHelperDetour();
+
+		// DMC4/5LockOnDirection
+		std::uint64_t g_DMC4LockOnDirection_ReturnAddr;
+		void DMC4LockOnDirectionDetour();
+		void* g_DMC4LockOnDirectionCall;
+
+		// InterceptCollisions
+		std::uint64_t g_InterceptCollisions_ReturnAddr;
+		void InterceptCollisionsDetour();
+		void* g_DrawCollisionsCall;
+		void* g_InterceptCollisionsCall;
+
+		// FasterTurnRate
+		std::uint64_t g_TurnRateFix_ReturnAddr;
+		void TurnRateFixDetour();
+
+		// FixFPSSpeedIssues
+		std::uint64_t g_FixFPSSpeedIssues_ReturnAddr;
+		void FixFPSSpeedIssuesDetour();
+		void* g_FixFPSSpeedIssuesCall;
+
+		// FixBallsHangHitSpeed
+		std::uint64_t g_FixBallsHangHitSpeed_ReturnAddr;
+		void FixBallsHangHitSpeedDetour();
+
+		// StyleRankHUDNoFadeout
+		std::uint64_t g_StyleRankHudNoFadeout_ReturnAddr;
+		void StyleRankHudNoFadeoutDetour();
+
+		// ShootRemapDown
+		std::uint64_t g_ShootRemapDown_ReturnAddr;
+		void ShootRemapDownDetour();
+		std::uint64_t g_ShootRemapHold_ReturnAddr;
+		//void ShootRemapHoldDetour();
+		std::uint16_t g_ShootRemap_NewMap;
+
+		// VergilNeutralTrick
+		std::uint64_t g_VergilNeutralTrick_ReturnAddr;
+		//void VergilNeutralTrickDetour();
+
+		// Artemis Instant Full Charge
+		void ArtemisInstantFullChargeDetour1();
+		std::uint64_t g_ArtemisReworkJumpAddr1;
+		void ArtemisInstantFullChargeDetour2();
+		std::uint64_t g_ArtemisReworkJumpAddr2;
+
+		// GreenOrbsMultiplayerRegen
+		void GreenOrbsMPRegenDetour();
+		std::uint64_t g_GreenOrbsMPRegen_ReturnAddr;
+		void* g_GreenOrbsMPRegen_Call;
+
+		// PortalsHide
+		void PortalsHideDetour();
+		std::uint64_t g_PortalsHide_ReturnAddr;
+
+		// PortalsMute
+		void PortalsMuteDetour();
+		std::uint64_t g_PortalsMute_ReturnAddr;
+		// StyleLevellingCCSFix
+		void StyleLevellingCCSFixDetour1();
+		std::uint64_t g_StyleLevellingCCSFix_ReturnAddr1;
+		void* g_StyleLevellingCCSFix_CheckCall1;
+		void StyleLevellingCCSFixDetour2();
+		std::uint64_t g_StyleLevellingCCSFix_ReturnAddr2;
+		void* g_StyleLevellingCCSFix_CheckCall2;
+
+		// DanteTrickAlterations
+		std::uint64_t g_DanteTrickAlter_ReturnAddr1;
+		void DanteTrickAlterationsDetour1();
+		std::uint64_t g_DanteTrickAlter_ReturnAddr2;
+		void DanteTrickAlterationsDetour2();
+		std::uint64_t g_DanteTrickAlter_ReturnAddr3;
+		void DanteTrickAlterationsDetour3();
+		std::uint64_t g_DanteTrickAlter_ReturnAddr4;
+		void DanteTrickAlterationsDetour4();
+
+		// ShotgunShlSpawnAnglePointBlank
+		std::uint64_t g_ShotgunShlSpawnAnglePointBlank_ReturnAddr1;
+		void ShotgunShlSpawnAnglePointBlankDetour();
+		std::uint64_t g_ShotgunShlSpawnAnglePointBlank_ReturnAddr2;
+		void ShotgunShlSpawnAnglePointBlankDetour2();
+		void* g_ShotgunShlSpawnAnglePointBlankCheckCall;
+		std::uint64_t g_ShotgunShlSpawnAnglePointBlankLockedOnEnemyJmp;
+
+		// PointBlankShotgunFire
+		std::uint64_t g_PointBlankShotgunFire_ReturnAddr;
+		void PointBlankShotgunFireDetour();
+		std::uint64_t g_PointBlankShotgunFireOgCall;
+		std::uint64_t g_PointBlankShotgunFireTailCall_ReturnAddr;
+		void PointBlankShotgunFireTailCallDetour();
+		void* g_PointBlankShotgunFireDelayCall;
+		std::uint64_t g_PointBlankShotgunCancelAnimTailCall;
+
+		// JudgementCutDetours
+		std::uint64_t g_JudgementCutSpeed_ReturnAddr;
+		void JudgementCutSpeedDetour();
+		std::uint64_t g_JudgementCutStartDelayCall;
+		std::uint64_t g_JudgementCutSpawnCollisionCall;
+		void* g_JudgementCutCheckJustFrameCall;
+
+		std::uint64_t g_JudgementCutVFX_ReturnAddr;
+		std::uint64_t g_JudgementCutVFX_ReturnAddr2;
+		void JudgementCutVFXDetour();
+		std::uint64_t g_JudgementCutRegularVFXCall;
+		void* g_JudgementCutJustFrameVFXCall;
+
+		std::uint64_t g_JudgementCutPosition_ReturnAddr;
+		void JudgementCutPositionDetour();
+		void* g_JudgementCutSetPositionCall;
+
+		std::uint64_t g_JudgementCutExtraShl_ReturnAddr;
+		void JudgementCutExtraShlDetour();
+		void* g_JudgementCutExtraShlCall;
+
+		// DTMustStyleArmor
+		std::uint64_t g_DTMustStyleArmor_ReturnAddr;
+		void DTMustStyleArmorDetour();
+		void* g_DTMustStyleArmor_CheckCall1;
+		void* g_DTMustStyleArmor_CheckCall2;
+
+		// CheckScreenBreak
+		std::uint64_t g_CheckScreenBreak_ReturnAddr;
+		void CheckScreenBreakDetour();
+
+		// CheckMissionResultScreen
+		std::uint64_t g_CheckMissionResultScreen_ReturnAddr1;
+		std::uint64_t g_CheckMissionResultScreen_ReturnAddr2;
+		std::uint64_t g_CheckMissionResultScreen_ReturnAddr3;
+		std::uint64_t g_CheckMissionResultScreen_ReturnAddr4;
+		std::uint64_t g_CheckMissionResultScreen_TargetAddr1;
+		std::uint64_t g_CheckMissionResultScreen_TargetAddr2;
+		std::uint64_t g_CheckMissionResultScreen_TargetAddr3;
+		std::uint64_t g_CheckMissionResultScreen_TargetAddr4;
+		void CheckMissionResultScreenDetour1();
+		void CheckMissionResultScreenDetour2();
+		void CheckMissionResultScreenDetour3();
+		void CheckMissionResultScreenDetour4();
+
+		// CheckMissionResultBPScreen
+		std::uint64_t g_CheckMissionResultBPScreen_ReturnAddr1;
+		std::uint64_t g_CheckMissionResultBPScreen_ReturnAddr2;
+		std::uint64_t g_CheckMissionResultBPScreen_ReturnAddr3;
+		std::uint64_t g_CheckMissionResultBPScreen_ReturnAddr4;
+		std::uint64_t g_CheckMissionResultBPScreen_TargetAddr1;
+		std::uint64_t g_CheckMissionResultBPScreen_TargetAddr2;
+		std::uint64_t g_CheckMissionResultBPScreen_TargetAddr3;
+		std::uint64_t g_CheckMissionResultBPScreen_TargetAddr4;
+		void CheckMissionResultBPScreenDetour1();
+		void CheckMissionResultBPScreenDetour2();
+		void CheckMissionResultBPScreenDetour3();
+		void CheckMissionResultBPScreenDetour4();
+
+		// CheckTotalResultsScreen
+		std::uint64_t g_CheckTotalResultsScreen_ReturnAddr;
+		void CheckTotalResultsScreenDetour();
+
+		// NoAirLunarPhaseLift
+		std::uint64_t g_NoAirLunarPhaseLift_ReturnAddr;
+		void NoAirLunarPhaseLiftDetour();
+		void* g_NoAirLunarPhaseLiftCheckCall;
+
+		// ChargeMechanicsCPlayer
+		std::uint64_t g_ChargeMechanicsCPlayer_ReturnAddr;
+		std::uint64_t g_ChargeMechanicsCPlayer_ConstAddr;
+		void ChargeMechanicsCPlayerDetour();
+		void* g_ChargeMechanicsCPlayerCheckCall;
+
+		// CItemOrbPickupAllPlayers
+		std::uint64_t g_CItemOrbPickupAllPlayers_ReturnAddr;
+		std::uint64_t g_CItemOrbPickupAllPlayers_ReturnAddr2;
+		std::uint64_t g_CItemOrbPickupAllPlayers_BoneMatrixCall;
+		void CItemOrbPickupAllPlayersDetour();
+		void CItemOrbPickupAllPlayersDetour2();
+		void* g_CItemOrbPickupAllPlayersCheckCall;
+
+		// FasterSummonedSwords
+		std::uint64_t g_FasterSummonedSwords_ReturnAddr;
+		void FasterSummonedSwordsDetour();
+
+		// SummonedSwordsFormationShortcuts
+		std::uint64_t g_SummonedSwordsFormationShortcuts_ReturnAddr;
+		void SummonedSwordsFormationShortcutsDetour();
+		void* g_SummonedSwordsFormationShortcutsCheckCall;
+
+		// StormSwordsDownedEnemyFix
+		std::uint64_t g_StormSwordsDownedEnemyFix_ReturnAddr;
+		void StormSwordsDownedEnemyFixDetour();
+
+		// FixMPXinputVibration
+		std::uint64_t g_FixMPXinputVibration_ReturnAddr;
+		void FixMPXinputVibrationDetour();
+		std::uint64_t g_FixMPXinputVibration_CallAddr;
+		void* g_FixMPXinputVibrationCheckCall;
+
+		// KillWeaponMotionState
+		std::uint64_t g_KillWeaponMotionState_ReturnAddr;
+		void KillWeaponMotionStateDetour();
+		void* g_KillWeaponMotionStateCheckCall;
+
+		// AirTauntRoseSwingDetours:
+		// SwingRoseAirTauntInertiaAndSpawnShl
+		std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ReturnAddr;
+		std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ActiveModelIndexCall;
+		std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall;
+		void SwingRoseAirTauntInertiaAndSpawnShlDetour();
+		void* g_SwingRoseAirTauntInertiaAndSpawnShlCheckCall;
+		// NevanShlMarkRoseMode
+		std::uint64_t g_NevanShlMarkRoseMode_ReturnAddr;
+		void NevanShlMarkRoseModeDetour();
+		// NevanShlSetToTravel
+		std::uint64_t g_NevanShlSetToTravel_ReturnAddr;
+		void NevanShlSetToTravelDetour();
+
+		// FixNevanShlPlayerSpawn
+		std::uint64_t g_FixNevanShlPlayerSpawn_ReturnAddr1;
+		std::uint64_t g_FixNevanShlPlayerSpawn_ReturnAddr2;
+		void FixNevanShlPlayerSpawnDetour1();
+		void FixNevanShlPlayerSpawnDetour2();
+
+		// ScreenShakeDetours
+		std::uint64_t g_ScreenShakeDetours_ReturnAddr;
+		std::uint64_t g_ScreenShakeDetours_ScreenShakeCallAddr;
+		void ScreenShakeDetoursDetour();
+		void* g_ScreenShakeDetoursCheckCall;
+
+		// KillNevanRoseShlFX1
+		std::uint64_t g_KillNevanRoseShlFX1_ReturnAddr;
+		void KillNevanRoseShlFX1Detour();
+
+		// KillNevanRoseShlFX2
+		std::uint64_t g_KillNevanRoseShlFX2_ReturnAddr;
+		std::uint64_t g_KillNevanRoseShlFX2_SFXCall;
+		void KillNevanRoseShlFX2Detour();
+
+		// KillNevanRoseShlEnemyTracking
+		std::uint64_t g_KillNevanRoseShlEnemyTracking_ReturnAddr;
+		std::uint64_t g_KillNevanRoseShlEnemyTracking_JumpAddr;
+		void KillNevanRoseShlEnemyTrackingDetour();
+		void* g_NevanRoseShl_RoseEfkVFXCall;
+	
+	// FireNevanRoseShlVFX
+	std::uint64_t g_FireNevanRoseShlVFX_ReturnAddr;
+	void FireNevanRoseShlVFXDetour();
+	// void* g_FireNevanRoseShlVFXCheckCall;  // Uncomment if calling C++ functions from ASM
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
@@ -1288,6 +1294,37 @@ namespace DriveCol {
 	}
 }
 
+namespace NevanRoseShl {
+	struct NevanInstanceState {
+		EffekseerHandle handle{};
+	};
+
+	struct NevanMetadataState {
+		std::unordered_map<uint32, NevanInstanceState> effectsByInstanceId;
+	};
+
+	static std::unordered_map<uintptr_t, NevanMetadataState> s_nevanEffectsByMetadata;
+
+	void HandleNevanRoseShlCollisionLogic(CollisionDataMetadata* collisionMeta, uintptr_t metadataKey) {
+		const bool isNevanShlCollision =
+			reinterpret_cast<uintptr_t>(collisionMeta->dmgDataAddr) == reinterpret_cast<uintptr_t>(appBaseAddr + damageDataOffsets.nevanShl);
+
+		if (isNevanShlCollision) {
+			CollisionData& collisionData = *reinterpret_cast<CollisionData*>(collisionMeta->collisionDataAddr);
+			auto& shlActorData = *reinterpret_cast<CPl000Shl10eActor*>(collisionData.baseAddr);
+
+			if (shlActorData.roseMode) {
+				auto& metadataState = s_nevanEffectsByMetadata[metadataKey];
+
+				if (metadataState.effectsByInstanceId.find(collisionMeta->instanceId) == metadataState.effectsByInstanceId.end()) {
+					EffekseerHandle handle = CrimsonEfk::PlayEffectAtMatrix(CrimsonEfkPreload::risingStar_Sword_Handle, collisionMeta->matrix1, NULL);
+					metadataState.effectsByInstanceId[collisionMeta->instanceId] = { handle };
+				}
+			}
+		}
+	}
+}
+
 float InterceptingCollisions(byte8* metadataAddr, float radius) {
 	auto collisionMeta = reinterpret_cast<CollisionDataMetadata*>(metadataAddr);
 
@@ -1308,6 +1345,7 @@ float InterceptingCollisions(byte8* metadataAddr, float radius) {
 	// - Mia
 
 	DriveCol::HandleDriveCollisionLogic(collisionMeta, metadataKey);
+	//NevanRoseShl::HandleNevanRoseShlCollisionLogic(collisionMeta, metadataKey);
 
 	// Yamato High Time hitbox increase
 	uintptr_t yamatoHighTimeOffset = (uintptr_t)collisionMeta->sourceMatrixAddr - 0x66640;
@@ -1433,6 +1471,33 @@ bool CheckIfInAirTauntRose(uintptr_t playerAddr) {
 		return true;
 	}
 	return false;
+}
+
+void PlayEcstasyRoseVFX(uintptr_t shlActorAddr) {
+	auto& shlActor = *reinterpret_cast<CPl000Shl10eActor*>(shlActorAddr);
+	static EffekseerHandle handle = {};
+	if (!handle) {
+		CrimsonEfkPreload::ecstasy_Rose_Handle = CrimsonEfk::ReloadEffect(CrimsonEfkPreload::ecstasy_Rose_Handle, CrimsonEfkPreload::ecstasy_Rose_Path, 1.0f);
+	}
+
+	if (!shlActor.matrixPtr) {
+		return;
+	}
+
+	constexpr float rotationToRadians = 6.28318530717958647692f / 65536.0f;
+	float yaw = static_cast<float>(shlActor.rotation) * rotationToRadians;
+	float c = std::cos(yaw);
+	float s = std::sin(yaw);
+
+	// Use a persistent static buffer so the follow-pointer inside
+	// PlayEffectAtMatrix stays valid across frames (no dangling pointer).
+	static float matrix[16];
+	matrix[0] = c;   matrix[4] = 0;  matrix[8] = s;   matrix[12] = shlActor.position.x;
+	matrix[1] = 0;   matrix[5] = 1;  matrix[9] = 0;   matrix[13] = shlActor.position.y;
+	matrix[2] = -s;  matrix[6] = 0;  matrix[10] = c;  matrix[14] = shlActor.position.z;
+	matrix[3] = 0;   matrix[7] = 0;  matrix[11] = 0;  matrix[15] = 1.0f;
+
+	CrimsonEfk::PlayEffectAtMatrix(CrimsonEfkPreload::ecstasy_Rose_Handle, matrix, NULL);
 }
 
 uint8 CheckChargeMechanics(uintptr_t playerAddr) {
@@ -2928,6 +2993,15 @@ void AirTauntRoseSwingDetours(bool enable) {
 	g_KillNevanRoseShlEnemyTracking_ReturnAddr = killNevanRoseShlEnemyTrackingHook->GetReturnAddress();
 	g_KillNevanRoseShlEnemyTracking_JumpAddr = (uintptr_t)appBaseAddr + 0x1D6DAB;
 	killNevanRoseShlEnemyTrackingHook->Toggle(enable);
+
+	// From CPl000Shl10eNevanShlUpdate_sub_1401D6C00:
+	// dmc3.exe+1D6C06 - 0F B6 51 08 - movzx edx,byte ptr [rcx+08]
+	// dmc3.exe+1D6C0A - 48 8B D9 - mov rbx,rcx
+	static std::unique_ptr<Utility::Detour_t> fireNevanRoseShlVFXHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D6C06, &FireNevanRoseShlVFXDetour, 7);
+	g_FireNevanRoseShlVFX_ReturnAddr = fireNevanRoseShlVFXHook->GetReturnAddress();
+	g_NevanRoseShl_RoseEfkVFXCall = &PlayEcstasyRoseVFX;
+	fireNevanRoseShlVFXHook->Toggle(enable);
 
 	run = enable;
 }

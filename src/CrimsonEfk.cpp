@@ -6,6 +6,7 @@
 
 #include <cassert>
 #include <chrono>
+#include <exception>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -410,8 +411,18 @@ public:
         if (g_efkManager == nullptr || path == nullptr)
             return -1;
 
-        g_effects.emplace_back(Effekseer::Effect::Create(g_efkManager, (const char16_t*)(path), scale));
-        return g_effects.size() - 1;
+        try {
+            auto effect = Effekseer::Effect::Create(g_efkManager, (const char16_t*)(path), scale);
+            if (effect == nullptr) {
+                Log("LoadEffect: Effect::Create returned null for '%ls'", path);
+                return -1;
+            }
+            g_effects.push_back(std::move(effect));
+            return g_effects.size() - 1;
+        } catch (const std::exception& e) {
+            Log("LoadEffect: exception '%s' while loading '%ls'", e.what(), path);
+            return -1;
+        }
     }
 
     EffekseerRefHandle LoadEffectFromMemory(const void* data, int size, float scale)
@@ -419,8 +430,18 @@ public:
         if (g_efkManager == nullptr || data == nullptr || size == 0)
             return -1;
 
-        g_effects.emplace_back(Effekseer::Effect::Create(g_efkManager, data, size, scale));
-        return g_effects.size() - 1;
+        try {
+            auto effect = Effekseer::Effect::Create(g_efkManager, data, size, scale);
+            if (effect == nullptr) {
+                Log("LoadEffectFromMemory: Effect::Create returned null");
+                return -1;
+            }
+            g_effects.push_back(std::move(effect));
+            return g_effects.size() - 1;
+        } catch (const std::exception& e) {
+            Log("LoadEffectFromMemory: exception '%s'", e.what());
+            return -1;
+        }
     }
 
     EffekseerRefHandle ReloadEffect(EffekseerRefHandle hEffect, const wchar_t* path, float scale)
@@ -429,7 +450,14 @@ public:
             return -1;
         }
 
-        auto reloaded = Effekseer::Effect::Create(g_efkManager, (const char16_t*)(path), scale);
+        Effekseer::EffectRef reloaded;
+        try {
+            reloaded = Effekseer::Effect::Create(g_efkManager, (const char16_t*)(path), scale);
+        } catch (const std::exception& e) {
+            Log("ReloadEffect: exception '%s' while reloading '%ls'", e.what(), path);
+            return hEffect;
+        }
+
         if (reloaded == nullptr) {
             return hEffect;
         }
@@ -620,6 +648,11 @@ public:
 
     void StopEffect(EffekseerHandle handle) {
         if (g_efkManager != nullptr && handle >= 0) {
+            // Immediately hide the effect so it disappears visually,
+            // even though the manager's GoingToStop/IsRemoving flags
+            // won't be processed until the next Flip() -> ExecuteEvents().
+            SetVisible(handle, false);
+
             g_efkManager->StopEffect(handle);
             ClearTrackedMatrixPtr(handle);
             ClearTrackedPosPtr(handle);

@@ -1,6 +1,7 @@
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "CrimsonEfkPreload.hpp"
 #include "CrimsonEfk.hpp"
+#include "../Core/Core.hpp"
 
 namespace CrimsonEfkPreload {
 
@@ -26,6 +27,10 @@ const wchar_t* const drive_Level3_Path      = L"Crimson\\vfx\\drive_level3.efkef
 const wchar_t* const driveCol_Part1_Path = L"Crimson\\vfx\\drive.efkefc";
 const wchar_t* const driveCol_Part2_Path = L"Crimson\\vfx\\drive2.efkefc";
 const wchar_t* const driveCol_Part3_Path = L"Crimson\\vfx\\drive3.efkefc";
+
+// Ecstasy
+const wchar_t* const ecstasy_Rose_Path = L"Crimson\\vfx\\ecstasy\\ecstasy_rose.efkefc";
+const wchar_t* const ecstasy_Hit_Path = L"Crimson\\vfx\\ecstasy\\ecstasy_hit.efkefc";
 
 // Delayed Combo
 const wchar_t* const delayedCombo_Rebellion_Path    = L"Crimson\\vfx\\delayedcombo\\rebellion.efkefc";
@@ -98,6 +103,10 @@ EffekseerRefHandle driveCol_Part1_Handle;
 EffekseerRefHandle driveCol_Part2_Handle;
 EffekseerRefHandle driveCol_Part3_Handle;
 
+// Ecstasy
+EffekseerRefHandle ecstasy_Rose_Handle;
+EffekseerRefHandle ecstasy_Hit_Handle;
+
 // Delayed Combo
 EffekseerRefHandle delayedCombo_Rebellion_Handle;
 EffekseerRefHandle delayedCombo_Cerberus_Handle;
@@ -112,53 +121,66 @@ EffekseerRefHandle styleSwitchCrimson_Swoosh_Handle[7];
 EffekseerRefHandle styleSwitchNS_Main_Handle[7];
 EffekseerRefHandle styleSwitchNS_Swoosh_Handle[7];
 
-#define PRELOAD(handle, path, scale) handle = CrimsonEfk::LoadEffect(path, scale)
+#define PRELOAD_LOG(handle, path, scale)                                          \
+    do {                                                                          \
+        handle = CrimsonEfk::LoadEffect(path, scale);                             \
+        if (handle == -1) {                                                       \
+            Log("PreloadAll: failed to load '%ls' (scale=%.1f) — skipping",       \
+                path, scale);                                                     \
+        }                                                                         \
+    } while (0)
 
 void PreloadAll() {
+    LogFunction();
+
     // Rising Star
-    PRELOAD(risingStar_Sword_Handle,  risingStar_Sword_Path,  1.0f);
-    PRELOAD(risingStar_PoseHit_Handle, risingStar_PoseHit_Path, 40.0f);
+    PRELOAD_LOG(risingStar_Sword_Handle,  risingStar_Sword_Path,  1.0f);
+    PRELOAD_LOG(risingStar_PoseHit_Handle, risingStar_PoseHit_Path, 40.0f);
 
     // JDC Charge
-    PRELOAD(jdcCharge_Handle,    jdcCharge_Path,    1.0f);
-    PRELOAD(jdcCharge_DT_Handle, jdcCharge_DT_Path, 1.0f);
+    PRELOAD_LOG(jdcCharge_Handle,    jdcCharge_Path,    1.0f);
+    PRELOAD_LOG(jdcCharge_DT_Handle, jdcCharge_DT_Path, 1.0f);
 
     // Just Frame JDC
-    PRELOAD(justFrameJDC_Handle, justFrameJDC_Path, 40.0f);
+    PRELOAD_LOG(justFrameJDC_Handle, justFrameJDC_Path, 40.0f);
 
     // Drive
-    PRELOAD(drive_Charge_Handle,      drive_Charge_Path,      1.0f);
-    PRELOAD(drive_QuickCharge_Handle, drive_QuickCharge_Path, 1.0f);
-    PRELOAD(drive_Level1_Handle,      drive_Level1_Path,      1.0f);
-    PRELOAD(drive_Level2_Handle,      drive_Level2_Path,      1.0f);
-    PRELOAD(drive_Level3_Handle,      drive_Level3_Path,      1.0f);
+    PRELOAD_LOG(drive_Charge_Handle,      drive_Charge_Path,      1.0f);
+    PRELOAD_LOG(drive_QuickCharge_Handle, drive_QuickCharge_Path, 1.0f);
+    PRELOAD_LOG(drive_Level1_Handle,      drive_Level1_Path,      1.0f);
+    PRELOAD_LOG(drive_Level2_Handle,      drive_Level2_Path,      1.0f);
+    PRELOAD_LOG(drive_Level3_Handle,      drive_Level3_Path,      1.0f);
 
     // Drive Collision
-    PRELOAD(driveCol_Part1_Handle, driveCol_Part1_Path, 40.0f);
-    PRELOAD(driveCol_Part2_Handle, driveCol_Part2_Path, 40.0f);
-    PRELOAD(driveCol_Part3_Handle, driveCol_Part3_Path, 40.0f);
+    PRELOAD_LOG(driveCol_Part1_Handle, driveCol_Part1_Path, 40.0f);
+    PRELOAD_LOG(driveCol_Part2_Handle, driveCol_Part2_Path, 40.0f);
+    PRELOAD_LOG(driveCol_Part3_Handle, driveCol_Part3_Path, 40.0f);
+
+    // Ecstasy
+	PRELOAD_LOG(ecstasy_Rose_Handle, ecstasy_Rose_Path, 1.0f);
+	PRELOAD_LOG(ecstasy_Hit_Handle, ecstasy_Hit_Path, 1.0f);
 
     // Delayed Combo
-    PRELOAD(delayedCombo_Rebellion_Handle,    delayedCombo_Rebellion_Path,    1.0f);
-    PRELOAD(delayedCombo_Cerberus_Handle,     delayedCombo_Cerberus_Path,     1.0f);
-    PRELOAD(delayedCombo_AgniRudra1_Handle,   delayedCombo_AgniRudra1_Path,  1.0f);
-    PRELOAD(delayedCombo_AgniRudra2_Handle,   delayedCombo_AgniRudra2_Path,  1.0f);
-    PRELOAD(delayedCombo_BeowulfArms_Handle,  delayedCombo_BeowulfArms_Path, 1.0f);
-    PRELOAD(delayedCombo_BeowulfLegs_Handle,  delayedCombo_BeowulfLegs_Path, 1.0f);
+    PRELOAD_LOG(delayedCombo_Rebellion_Handle,    delayedCombo_Rebellion_Path,    1.0f);
+    PRELOAD_LOG(delayedCombo_Cerberus_Handle,     delayedCombo_Cerberus_Path,     1.0f);
+    PRELOAD_LOG(delayedCombo_AgniRudra1_Handle,   delayedCombo_AgniRudra1_Path,  1.0f);
+    PRELOAD_LOG(delayedCombo_AgniRudra2_Handle,   delayedCombo_AgniRudra2_Path,  1.0f);
+    PRELOAD_LOG(delayedCombo_BeowulfArms_Handle,  delayedCombo_BeowulfArms_Path, 1.0f);
+    PRELOAD_LOG(delayedCombo_BeowulfLegs_Handle,  delayedCombo_BeowulfLegs_Path, 1.0f);
 
     // StyleSwitch — Crimson
     for (int i = 0; i < 7; ++i) {
-        PRELOAD(styleSwitchCrimson_Main_Handle[i],   styleSwitchCrimson_Main_Path[i],   40.0f);
-        PRELOAD(styleSwitchCrimson_Swoosh_Handle[i], styleSwitchCrimson_Swoosh_Path[i], 40.0f);
+        PRELOAD_LOG(styleSwitchCrimson_Main_Handle[i],   styleSwitchCrimson_Main_Path[i],   40.0f);
+        PRELOAD_LOG(styleSwitchCrimson_Swoosh_Handle[i], styleSwitchCrimson_Swoosh_Path[i], 40.0f);
     }
 
     // StyleSwitch — Nintendo Switch
     for (int i = 0; i < 7; ++i) {
-        PRELOAD(styleSwitchNS_Main_Handle[i],   styleSwitchNS_Main_Path[i],   40.0f);
-        PRELOAD(styleSwitchNS_Swoosh_Handle[i], styleSwitchNS_Swoosh_Path[i], 40.0f);
+        PRELOAD_LOG(styleSwitchNS_Main_Handle[i],   styleSwitchNS_Main_Path[i],   40.0f);
+        PRELOAD_LOG(styleSwitchNS_Swoosh_Handle[i], styleSwitchNS_Swoosh_Path[i], 40.0f);
     }
 }
 
-#undef PRELOAD
+#undef PRELOAD_LOG
 
 }
