@@ -1473,9 +1473,11 @@ bool CheckIfInAirTauntRose(uintptr_t playerAddr) {
 	return false;
 }
 
+static std::unordered_map<uintptr_t, std::array<float, 16>> s_ecstasyRoseMatrices;
+
 void PlayEcstasyRoseVFX(uintptr_t shlActorAddr) {
 	auto& shlActor = *reinterpret_cast<CPl000Shl10eActor*>(shlActorAddr);
-	static EffekseerHandle handle = {};
+	EffekseerHandle handle = {};
 	if (!handle) {
 		CrimsonEfkPreload::ecstasy_Rose_Handle = CrimsonEfk::ReloadEffect(CrimsonEfkPreload::ecstasy_Rose_Handle, CrimsonEfkPreload::ecstasy_Rose_Path, 1.0f);
 	}
@@ -1484,20 +1486,21 @@ void PlayEcstasyRoseVFX(uintptr_t shlActorAddr) {
 		return;
 	}
 
+	// Each active RoseShl gets its own persistent matrix so the follow-pointer
+	// inside PlayEffectAtMatrix stays valid and doesn't clobber other instances.
+	auto& matrix = s_ecstasyRoseMatrices[shlActorAddr];
+
 	constexpr float rotationToRadians = 6.28318530717958647692f / 65536.0f;
 	float yaw = static_cast<float>(shlActor.rotation) * rotationToRadians;
 	float c = std::cos(yaw);
 	float s = std::sin(yaw);
 
-	// Use a persistent static buffer so the follow-pointer inside
-	// PlayEffectAtMatrix stays valid across frames (no dangling pointer).
-	static float matrix[16];
 	matrix[0] = c;   matrix[4] = 0;  matrix[8] = s;   matrix[12] = shlActor.position.x;
 	matrix[1] = 0;   matrix[5] = 1;  matrix[9] = 0;   matrix[13] = shlActor.position.y;
 	matrix[2] = -s;  matrix[6] = 0;  matrix[10] = c;  matrix[14] = shlActor.position.z;
 	matrix[3] = 0;   matrix[7] = 0;  matrix[11] = 0;  matrix[15] = 1.0f;
 
-	CrimsonEfk::PlayEffectAtMatrix(CrimsonEfkPreload::ecstasy_Rose_Handle, matrix, NULL);
+	CrimsonEfk::PlayEffectAtMatrix(CrimsonEfkPreload::ecstasy_Rose_Handle, matrix.data(), NULL);
 }
 
 uint8 CheckChargeMechanics(uintptr_t playerAddr) {
