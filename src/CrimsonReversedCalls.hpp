@@ -19,6 +19,9 @@
 
 namespace CrimsonReversedCalls {
 
+	extern double CUIDPausePreUpdate_sub_14023D680(uintptr_t cSceneGameMainAddr);
+	extern uintptr_t CUIDPauseSpawn_sub_14029F260(uintptr_t a1, int a2);
+	extern uintptr_t CUIDOptionSpawn_sub_14029C4E0(uintptr_t a1);
 	extern float CalcDistanceVec4_sub_14032E5F0(vec4* a, vec4* b);
 	extern int16 InputsUpdate_sub_14032CFE0(uintptr_t inputAddr, int playerIndex, unsigned int a3);
 	extern uintptr_t SpawnCollision_sub_14005C320(uintptr_t collisionDataStruct, uint8 a2);

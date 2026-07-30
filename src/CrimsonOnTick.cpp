@@ -32,6 +32,7 @@
 #include "CrimsonHighFPSFixes.hpp"
 #include "HUD.hpp"
 #include "CrimsonGameplay.hpp"
+#include "CrimsonReversedCalls.hpp"
 
 
 namespace CrimsonOnTick {
@@ -1353,6 +1354,14 @@ void FixInitialCameraRotation(EventData& eventData, PlayerActorData& mainActorDa
 			cameraData->data[0].y = mainActorData.position.y + offset.y;
 			cameraData->data[0].z = mainActorData.position.z + offset.z;
 			mainActorData.position.x = mainActorData.position.x + 3;
+
+			auto pool_C90E10 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+			if (!pool_C90E10 || !pool_C90E10[5]) {
+				return;
+			}
+			auto& eventData = *reinterpret_cast<CSceneGameMain*>(pool_C90E10[5]);
+			CrimsonReversedCalls::CUIDPausePreUpdate_sub_14023D680((uintptr_t)&eventData);
+			eventData.event = EVENT::OPTIONS;
 
 			setCamPos = true;
 		}

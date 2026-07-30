@@ -10132,14 +10132,25 @@ void SetAction(byte8* actorBaseAddr) {
 	cDrawReverse playerVergilcDraw = actorData.newModelData[actorData.activeModelIndexMirror]; // activeModelIndex == which DT or Non-DT model
 	Matrix44Ptr* playerBoneMatrix = reinterpret_cast<Matrix44Ptr*>(playerVergilcDraw.bonesMatrixesPtr);
 
-
+	
 
     DebugLog("%s %llX %u", FUNC_NAME, actorBaseAddr, actorData.action);
 
 
     switch (actorData.character) {
     case CHARACTER::DANTE: {
-        
+
+// 		if (CrimsonReversedCalls::CUIDPauseSpawn_sub_14029F260((uintptr_t)appBaseAddr + 0xCA0300, 0)) {
+//             //eventData.event = EVENT::OPTIONS;
+//         }
+// 		auto pool_C90E10 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+// 		if (!pool_C90E10 || !pool_C90E10[5]) {
+// 			return;
+// 		}
+// 		auto& eventData = *reinterpret_cast<CSceneGameMain*>(pool_C90E10[5]);
+// 		CrimsonReversedCalls::CUIDPausePreUpdate_sub_14023D680((uintptr_t)&eventData);
+//         eventData.event = EVENT::OPTIONS;
+
         // Resetting Drive anim
         if (!drive.inQuickDrive) {
             actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = File_staticFiles[pl000_00_3];

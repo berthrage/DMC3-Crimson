@@ -15,6 +15,18 @@ namespace CrimsonReversedCalls {
 // 		return InputsUpdateFunc(inputAddr, playerIndex, a3);
 // 	}
 
+	double CUIDPausePreUpdate_sub_14023D680(uintptr_t cSceneGameMainAddr) {
+		return GAME_CALL_SAFE(0x23D680, double, uintptr_t)(cSceneGameMainAddr);
+	}
+
+	uintptr_t CUIDPauseSpawn_sub_14029F260(uintptr_t a1, int a2) {
+		return GAME_CALL_SAFE(0x29F260, uintptr_t, uintptr_t, int)(a1, a2);
+	}
+
+	uintptr_t CUIDOptionSpawn_sub_14029C4E0(uintptr_t a1) {
+		return GAME_CALL_SAFE(0x29C4E0, uintptr_t, uintptr_t)(a1);
+	}
+
 	float CalcDistanceVec4_sub_14032E5F0(vec4* a, vec4* b) {
 		return GAME_CALL_SAFE(0x32E5F0, float, vec4*, vec4*)(a, b);
 	}
