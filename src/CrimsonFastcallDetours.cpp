@@ -242,8 +242,10 @@ namespace CrimsonFastcallDetours{
 
  static constexpr auto DAMAGE_CALC_OFFSET() { return 0x088190; }
  static constexpr auto COLLISION_DAMAGE_HITSTOP_TO_PLAYER_OFFSET() { return 0x1ED460; }
+ static constexpr auto PLAY_SFX_WITH_POS_BY_TYPE_OFFSET() { return 0x339930; }
  static std::unique_ptr<Utility::Detour_t> s_DamageCalcHook;
  static std::unique_ptr<Utility::Detour_t> s_CollisionDmgHitstopToPlayerHook;
+ static std::unique_ptr<Utility::Detour_t> s_PlaySFXWithPosByTypeHook;
 
 
  static void __fastcall ApplyDamageCalc_sub_140088190(
@@ -540,12 +542,42 @@ namespace CrimsonFastcallDetours{
  }
 
 
+ static uintptr_t __fastcall PlaySFXWithPosByType_sub_140339930(uintptr_t fileAddr, uint32 index, uintptr_t posPtr, uint32 type) {
+     typedef uintptr_t(__fastcall* PlaySFXWithPosByTypeTrampoline)(uintptr_t, uint32, uintptr_t, uint32);
+     uintptr_t trampoline_raw = s_PlaySFXWithPosByTypeHook->GetTrampoline();
+     PlaySFXWithPosByTypeTrampoline trampoline = (PlaySFXWithPosByTypeTrampoline)trampoline_raw;
+
+	 volatile uintptr_t actorBase = (uintptr_t)posPtr + 0x40;
+	 auto& actorData = **reinterpret_cast<volatile PlayerActorData**>(actorBase);
+
+	 // NEW RISING STAR SFX
+	 auto& inRisingStar = (actorData.newEntityIndex == 0) ? crimsonPlayer[actorData.newPlayerIndex].inRisingStar :
+		 crimsonPlayer[actorData.newPlayerIndex].inRisingStarClone;
+	 if (type == 12 && inRisingStar) {
+		type = 11;
+	 }
+
+     return trampoline(fileAddr, index, posPtr, type);
+ }
+
+ void ModdedPlaySFXWithPosByTypeDetour() {
+     s_PlaySFXWithPosByTypeHook =
+         std::make_unique<Utility::Detour_t>(
+             (uintptr_t)appBaseAddr + PLAY_SFX_WITH_POS_BY_TYPE_OFFSET(),
+             (uintptr_t)&PlaySFXWithPosByType_sub_140339930,
+             NULL, "play_sfx_with_pos_by_type_detour");
+     bool res = s_PlaySFXWithPosByTypeHook->Toggle();
+     assert(res);
+ }
+
+
  void InitDetours() {
      ModdedTauntDetour();
      ModdedTauntVergilDetour();
      ModdedDamageCalcDetour();
 	 ModdedCollisionDmgHitstopToPlayerDetour();
      ModdedXinputVibrationDetour();
+     ModdedPlaySFXWithPosByTypeDetour();
  }
 }
 
