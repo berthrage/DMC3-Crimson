@@ -590,6 +590,7 @@ namespace CrimsonFastcallDetours{
      uintptr_t trampoline_raw = s_NevanShlTravelUpdateHook->GetTrampoline();
      NevanShlTravelUpdateTrampoline trampoline = (NevanShlTravelUpdateTrampoline)trampoline_raw;
 
+	 // ROSE SHL TRAVEL ARC (GRAVITY)
      auto& shlActorData = *reinterpret_cast<CPl000Shl10eActor*>(shlActorAddr);
 	 if (shlActorData.roseMode) {
 		 shlActorData.travelVelocity.y -= 1.0f * CrimsonClock::DeltaTime();

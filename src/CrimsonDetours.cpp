@@ -482,12 +482,17 @@ namespace CrimsonDetours {
 		std::uint64_t g_KillNevanRoseShlEnemyTracking_JumpAddr;
 		void KillNevanRoseShlEnemyTrackingDetour();
 		void* g_NevanRoseShl_RoseEfkVFXCall;
-	
-	// FireNevanRoseShlVFX
-	std::uint64_t g_FireNevanRoseShlVFX_ReturnAddr;
-	void FireNevanRoseShlVFXDetour();
-	// void* g_FireNevanRoseShlVFXCheckCall;  // Uncomment if calling C++ functions from ASM
-}
+
+		// FireNevanRoseShlVFX
+		std::uint64_t g_FireNevanRoseShlVFX_ReturnAddr;
+		void FireNevanRoseShlVFXDetour();
+
+		// MaxNevanShlDistance
+		std::uint64_t g_MaxNevanShlDistance_ReturnAddr;
+		std::uint64_t g_MaxNevanShlDistance_OgDistanceAddr;
+		void MaxNevanShlDistanceDetour();
+		void* g_MaxNevanShlDistanceCheckCall;
+	}
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
     using namespace ACTION_DANTE;
@@ -3009,6 +3014,25 @@ void AirTauntRoseSwingDetours(bool enable) {
 	run = enable;
 }
 
+void MaxNevanShlDistance(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From CPl000Shl10eNevanShlPreTrajectory_sub_1401D69C0:
+	// dmc3.exe+1D6AB2 - 0F 2F 05 5F F6 2E 00 - comiss xmm0,[dmc3.exe+4C6118] { (600.00) }
+	static std::unique_ptr<Utility::Detour_t> maxNevanShlDistanceHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D6AB2, &MaxNevanShlDistanceDetour, 7);
+	g_MaxNevanShlDistance_ReturnAddr = maxNevanShlDistanceHook->GetReturnAddress();
+	g_MaxNevanShlDistance_OgDistanceAddr = (uintptr_t)appBaseAddr + 0x4C6118;
+	g_MaxNevanShlDistanceCheckCall = &CheckIfInAirTauntRose; // TODO: Change this later to check "IncreaseMaxNevanBatsRange" setting
+	maxNevanShlDistanceHook->Toggle(enable);
+
+	run = enable;
+}
+
 
 void FixNevanShlPlayerSpawn(bool enable) {
 	using namespace Utility;
@@ -3069,6 +3093,7 @@ void ToggleAllDetours(bool enable) {
 	FixMPXinputVibration(enable);
 	KillWeaponMotionState(enable);
 	AirTauntRoseSwingDetours(enable);
+	MaxNevanShlDistance(enable);
 	FixNevanShlPlayerSpawn(enable);
 	ScreenShakeDetours(enable);
 }

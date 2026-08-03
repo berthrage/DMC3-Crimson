@@ -71,6 +71,7 @@ set(MASM_SRC
     masm/AirTauntRoseSwingDetours.asm
     masm/FixNevanShlPlayerSpawn.asm
     masm/ScreenShakeDetours.asm
+    masm/MaxNevanShlDistance.asm
 )
 
 set (ASM_LIBS)
