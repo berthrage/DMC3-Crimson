@@ -547,16 +547,27 @@ namespace CrimsonFastcallDetours{
      uintptr_t trampoline_raw = s_PlaySFXWithPosByTypeHook->GetTrampoline();
      PlaySFXWithPosByTypeTrampoline trampoline = (PlaySFXWithPosByTypeTrampoline)trampoline_raw;
 
-	 volatile uintptr_t actorBase = (uintptr_t)posPtr + 0x40;
-	 auto& actorData = **reinterpret_cast<volatile PlayerActorData**>(actorBase);
-
 	 // NEW RISING STAR SFX
-	 auto& inRisingStar = (actorData.newEntityIndex == 0) ? crimsonPlayer[actorData.newPlayerIndex].inRisingStar :
-		 crimsonPlayer[actorData.newPlayerIndex].inRisingStarClone;
-	 if (type == 12 && inRisingStar) {
-		type = 11;
+	 __try {
+		 if (posPtr < 0x190000) {
+			 volatile uintptr_t actorBase = (uintptr_t)posPtr + 0x40;
+			 auto actorPtrPtr = reinterpret_cast<volatile PlayerActorData**>(actorBase);
+			 volatile PlayerActorData* actorPtr = *actorPtrPtr; // may fault -> caught below
+			 if (actorPtr) {
+				 auto& actorData = *actorPtr;
+				 auto& inRisingStar = (actorData.newEntityIndex == 0) ? crimsonPlayer[actorData.newPlayerIndex].inRisingStar :
+					 crimsonPlayer[actorData.newPlayerIndex].inRisingStarClone;
+				 if (type == 12 && inRisingStar && actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN) {
+					 type = 11;
+				 }
+			 }
+		 }
 	 }
-
+	 __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION
+			   ? EXCEPTION_EXECUTE_HANDLER
+			   : EXCEPTION_CONTINUE_SEARCH) {
+		 // Malformed posPtr / actor chain - swallow the fault and continue.
+	 }
      return trampoline(fileAddr, index, posPtr, type);
  }
 
