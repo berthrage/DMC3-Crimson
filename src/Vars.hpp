@@ -4593,12 +4593,16 @@ public:
 	char pad_00C2[30]; //0x00C2
 	bool roseMode; //0x00E0
 	char pad_00E1[191]; //0x00E1
-	uintptr_t collisionDataStart; //0x01A0
+	uint64_t collisionDataStart; //0x01A0
 	char pad_01A8[657]; //0x01A8
 	bool randomTravelDirection; //0x0439
 	char pad_043A[6]; //0x043A
-    Matrix44Ptr* matrixPtr; //0x0440
-	char pad_0448[112]; //0x0448
+	uint64_t matrixPtr; //0x0440
+	char pad_0448[88]; //0x0448
+	vec3 travelVelocity; //0x04A0
+	char pad_04AC[4]; //0x04AC
+	float travelTime; //0x04B0
+	char pad_04B4[4]; //0x04B4
 	float delayToInitTravel; //0x04B8
 	char pad_04BC[4]; //0x04BC
 	uint64_t playerActorAddr; //0x04C0
@@ -4618,6 +4622,8 @@ static_assert(offsetof(CPl000Shl10eActor, collisionDataStart) == 0x1A0);
 static_assert(offsetof(CPl000Shl10eActor, roseMode) == 0xE0);
 static_assert(offsetof(CPl000Shl10eActor, randomTravelDirection) == 0x439);
 static_assert(offsetof(CPl000Shl10eActor, matrixPtr) == 0x440);
+static_assert(offsetof(CPl000Shl10eActor, travelVelocity) == 0x4A0);
+static_assert(offsetof(CPl000Shl10eActor, travelTime) == 0x4B0);
 static_assert(offsetof(CPl000Shl10eActor, delayToInitTravel) == 0x4B8);
 static_assert(offsetof(CPl000Shl10eActor, playerActorAddr) == 0x4C0);
 

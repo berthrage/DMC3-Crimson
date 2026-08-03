@@ -16,15 +16,18 @@
 #include "CrimsonReversedCalls.hpp"
 #include <Xinput.h>
 #include "CrimsonSDL.hpp"
+#include "CrimsonClock.hpp"
 using namespace Utility;
 namespace CrimsonFastcallDetours{
 
  static constexpr auto DANTE_TAUNT_OFFSET() { return 0x1FE860; }
  static constexpr auto VERGIL_TAUNT_OFFSET() { return 0x21A220; }
  static constexpr auto XINPUT_APPLY_VIBRATION_OFFSET() { return 0x042050; }
+ static constexpr auto NEVAN_SHL_TRAVEL_UPDATE_OFFSET() { return 0x1D6450; }
  static std::unique_ptr<Utility::Detour_t> s_DanteTauntHook;
  static std::unique_ptr<Utility::Detour_t> s_VergilTauntHook;
  static std::unique_ptr<Utility::Detour_t> s_XinputApplyVibrationHook;
+ static std::unique_ptr<Utility::Detour_t> s_NevanShlTravelUpdateHook;
  std::random_device randomDevice;
  std::mt19937 rng(randomDevice());
 
@@ -582,6 +585,29 @@ namespace CrimsonFastcallDetours{
  }
 
 
+ static uintptr_t __fastcall CPl000Shl10eNevanShlTravelUpdate_sub_1401D6450(uintptr_t shlActorAddr) {
+     typedef uintptr_t(__fastcall* NevanShlTravelUpdateTrampoline)(uintptr_t);
+     uintptr_t trampoline_raw = s_NevanShlTravelUpdateHook->GetTrampoline();
+     NevanShlTravelUpdateTrampoline trampoline = (NevanShlTravelUpdateTrampoline)trampoline_raw;
+
+     auto& shlActorData = *reinterpret_cast<CPl000Shl10eActor*>(shlActorAddr);
+	 if (shlActorData.roseMode) {
+		 shlActorData.travelVelocity.y -= 1.0f * CrimsonClock::DeltaTime();
+	 }
+
+     return trampoline(shlActorAddr);
+ }
+
+ void ModdedNevanShlTravelUpdateDetour() {
+     s_NevanShlTravelUpdateHook =
+         std::make_unique<Utility::Detour_t>(
+             (uintptr_t)appBaseAddr + NEVAN_SHL_TRAVEL_UPDATE_OFFSET(),
+             (uintptr_t)&CPl000Shl10eNevanShlTravelUpdate_sub_1401D6450,
+             NULL, "nevan_shl_travel_update_detour");
+     bool res = s_NevanShlTravelUpdateHook->Toggle();
+     assert(res);
+ }
+
  void InitDetours() {
      ModdedTauntDetour();
      ModdedTauntVergilDetour();
@@ -589,6 +615,7 @@ namespace CrimsonFastcallDetours{
 	 ModdedCollisionDmgHitstopToPlayerDetour();
      ModdedXinputVibrationDetour();
      ModdedPlaySFXWithPosByTypeDetour();
+     ModdedNevanShlTravelUpdateDetour();
  }
 }
 
