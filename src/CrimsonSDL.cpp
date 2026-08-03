@@ -24,6 +24,7 @@ struct SDL_version;
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonUtil.hpp"
 #include "Sound.hpp"
+#include "DebugDrawDX11.hpp"
 #include <iostream>
 #include <unordered_set>
 #include <deque>
@@ -98,6 +99,7 @@ Mix_Chunk* driveStart;
 Mix_Chunk* driveLoop;
 Mix_Chunk* driveLevelUp;
 Mix_Chunk* snap;
+Mix_Chunk* ecstasyHit;
 Mix_Music* missionClearSong;
 Mix_Music* divinityStatueSong;
 Mix_Music* battleOfBrothersSong;
@@ -136,6 +138,7 @@ namespace CHANNEL {
 	constexpr int initialDriveClone = 542; // to 545, 1 channel per player
 	constexpr int initialDriveLevelUpClone = 546; // to 553, 2 channels per player
 	constexpr int initialDriveLoopClone = 554; // to 557, 1 channel per player
+	constexpr int initialEcstasyHit = 558; // to 565, 2 channels per player
 }
 
 #define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
@@ -239,6 +242,7 @@ void LoadAllSFX() {
 		driveLoop = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\drive_loop.wav").c_str());
 		driveLevelUp = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\drive_levelup.wav").c_str());
 		snap = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\snap.wav").c_str());
+		ecstasyHit = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\ecstasy_hit.wav").c_str());
 
 
 		missionClearSong = fn_Mix_LoadMUS(((std::string)Paths::sounds + "\\music\\missionclear.mp3").c_str());
@@ -1679,6 +1683,42 @@ void PlayNormalBlock(int playerIndex) {
 	int volume = (int)(20.0f * slider);
 
 	PlayOnChannels(initialChannel, initialChannel + 4, normalBlock, volume);
+}
+
+void PlayEcstasyHit(uintptr_t shlActorAddr) {
+	if (!SDL3Init || fn_Mix_PlayChannel == NULL || fn_Mix_SetPosition == NULL) return;
+	if (!shlActorAddr) return;
+
+	auto& shlActor = *reinterpret_cast<CPl000Shl10eActor*>(shlActorAddr);
+	if (!shlActor.playerActorAddr) return;
+
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(shlActor.playerActorAddr);
+	const int playerIndex = actorData.newPlayerIndex;
+	if (playerIndex < 0 || playerIndex >= PLAYER_COUNT) return;
+
+	// 3D audio is anchored to the SHL's world position, using the camera as
+	// the listener — same convention as playerScreenAngle / cameraPlayerDistanceClamped.
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449 || !pool_4449[147]) return;
+	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+
+	// Distance: SHL-to-camera distance, scaled the same as cameraPlayerDistanceClamped.
+	const float dx = shlActor.position.x - cameraData.data[0].x;
+	const float dy = shlActor.position.y - cameraData.data[0].y;
+	const float dz = shlActor.position.z - cameraData.data[0].z;
+	int distance = (int)(std::sqrt(dx * dx + dy * dy + dz * dz) / 20.0f);
+	if (distance > 255) distance = 255;
+
+	// Angle: screen-relative X offset from center (matches playerScreenAngle).
+	const float screenCenterX = g_renderSize.x * 0.5f;
+	const auto screenPos = debug_draw_world_to_screen((const float*)&shlActor.position, 1.0f);
+	const float normalizedOffset = (screenPos.x - screenCenterX) / screenCenterX;
+	constexpr float audioDeadzoneAngle = 15.0f;
+	float angle = normalizedOffset * 90.0f;
+	if (std::abs(angle) < audioDeadzoneAngle) angle = 0.0f;
+
+	auto initialChannel = CHANNEL::initialEcstasyHit + (2 * playerIndex);
+	PlayOnChannelsFadeOutPosition(initialChannel, initialChannel + 1, ecstasyHit, 15, 100, (int)std::round(angle), distance);
 }
 
 void PlayDriveStart(int playerIndex, int entityIndex) {

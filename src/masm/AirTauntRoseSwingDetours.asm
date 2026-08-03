@@ -199,4 +199,29 @@ OriginalCode:
     jmp qword ptr [g_FireNevanRoseShlVFX_ReturnAddr]
 
 FireNevanRoseShlVFXDetour ENDP
+
+.DATA
+EXTERN g_FireNevanRoseShlDestroyFX_ReturnAddr:QWORD
+EXTERN g_FireNevanRoseShlDestroyFX_OgCall:QWORD     
+EXTERN g_NevanRoseShl_RoseEfkHitFXCall:QWORD
+.CODE
+; From CPl000Shl10eNevanShlPreTrajectory_sub_1401D69C0:
+; dmc3.exe+1D6ABE - E8 4D FD FF FF - call dmc3.CPl000Shl10eNevanShlDestroyFX_sub_1401D6810
+FireNevanRoseShlDestroyFXDetour PROC
+; NevanShlActor in rcx
+CheckIfRoseShl:
+    cmp byte ptr [rcx + 0E0h], 1 ; check if RoseMode
+    jne OriginalCode
+    PushAllRegs
+    sub rsp, 20h
+    call qword ptr [g_NevanRoseShl_RoseEfkHitFXCall]
+    add rsp, 20h
+    PopAllRegs
+    jmp qword ptr [g_FireNevanRoseShlDestroyFX_ReturnAddr]
+
+OriginalCode:
+    call qword ptr [g_FireNevanRoseShlDestroyFX_OgCall]
+    jmp qword ptr [g_FireNevanRoseShlDestroyFX_ReturnAddr]
+
+FireNevanRoseShlDestroyFXDetour ENDP
 END

@@ -492,7 +492,13 @@ namespace CrimsonDetours {
 		std::uint64_t g_MaxNevanShlDistance_OgDistanceAddr;
 		void MaxNevanShlDistanceDetour();
 		void* g_MaxNevanShlDistanceCheckCall;
-	}
+	
+		// FireNevanRoseShlDestroyFX
+		std::uint64_t g_FireNevanRoseShlDestroyFX_ReturnAddr;
+		std::uint64_t g_FireNevanRoseShlDestroyFX_OgCall;
+		void FireNevanRoseShlDestroyFXDetour();
+		void* g_NevanRoseShl_RoseEfkHitFXCall;
+}
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
     using namespace ACTION_DANTE;
@@ -1506,6 +1512,30 @@ void PlayEcstasyRoseVFX(uintptr_t shlActorAddr) {
 	matrix[3] = 0;   matrix[7] = 0;  matrix[11] = 0;  matrix[15] = 1.0f;
 
 	CrimsonEfk::PlayEffectAtMatrix(CrimsonEfkPreload::ecstasy_Rose_Handle, matrix.data(), NULL);
+}
+
+void PlayEcstasyRoseHitFX(uintptr_t shlActorAddr) {
+	auto& shlActor = *reinterpret_cast<CPl000Shl10eActor*>(shlActorAddr);
+	EffekseerHandle handle = {};
+	if (!handle) {
+		CrimsonEfkPreload::ecstasy_Hit_Handle = CrimsonEfk::ReloadEffect(CrimsonEfkPreload::ecstasy_Hit_Handle, CrimsonEfkPreload::ecstasy_Hit_Path, 70.0f);
+	}
+	if (!shlActor.matrixPtr) {
+		return;
+	}
+	// Each active RoseShl gets its own persistent matrix so the follow-pointer
+	// inside PlayEffectAtMatrix stays valid and doesn't clobber other instances.
+	auto& matrix = s_ecstasyRoseMatrices[shlActorAddr];
+	constexpr float rotationToRadians = 6.28318530717958647692f / 65536.0f;
+	float yaw = static_cast<float>(shlActor.rotation) * rotationToRadians;
+	float c = std::cos(yaw);
+	float s = std::sin(yaw);
+	matrix[0] = c;   matrix[4] = 0;  matrix[8] = s;   matrix[12] = shlActor.position.x;
+	matrix[1] = 0;   matrix[5] = 1;  matrix[9] = 0;   matrix[13] = shlActor.position.y;
+	matrix[2] = -s;  matrix[6] = 0;  matrix[10] = c;  matrix[14] = shlActor.position.z;
+	matrix[3] = 0;   matrix[7] = 0;  matrix[11] = 0;  matrix[15] = 1.0f;
+	CrimsonEfk::PlayEffectAtMatrix(CrimsonEfkPreload::ecstasy_Hit_Handle, matrix.data(), NULL);
+	CrimsonSDL::PlayEcstasyHit(shlActorAddr);
 }
 
 uint8 CheckChargeMechanics(uintptr_t playerAddr) {
@@ -3010,6 +3040,15 @@ void AirTauntRoseSwingDetours(bool enable) {
 	g_FireNevanRoseShlVFX_ReturnAddr = fireNevanRoseShlVFXHook->GetReturnAddress();
 	g_NevanRoseShl_RoseEfkVFXCall = &PlayEcstasyRoseVFX;
 	fireNevanRoseShlVFXHook->Toggle(enable);
+
+	// From CPl000Shl10eNevanShlPreTrajectory_sub_1401D69C0:
+	// dmc3.exe+1D6ABE - E8 4D FD FF FF - call dmc3.CPl000Shl10eNevanShlDestroyFX_sub_1401D6810
+	static std::unique_ptr<Utility::Detour_t> fireNevanRoseShlDestroyFXHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D6ABE, &FireNevanRoseShlDestroyFXDetour, 5);
+	g_FireNevanRoseShlDestroyFX_ReturnAddr = fireNevanRoseShlDestroyFXHook->GetReturnAddress();
+	g_FireNevanRoseShlDestroyFX_OgCall = (uintptr_t)appBaseAddr + 0x1D6810;
+	g_NevanRoseShl_RoseEfkHitFXCall = &PlayEcstasyRoseHitFX;
+	fireNevanRoseShlDestroyFXHook->Toggle(enable);
 
 	run = enable;
 }
