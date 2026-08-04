@@ -449,8 +449,11 @@ namespace CrimsonDetours {
 		std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall;
 		void SwingRoseAirTauntInertiaAndSpawnShlDetour();
 		void* g_SwingRoseAirTauntInertiaAndSpawnShlCheckCall;
+		void* g_SwingRoseAirTauntInertiaAndSpawnShl_SpawnDelayStartCall;
+		void SpawnNevanShlRose(uintptr_t playerAddr);
 		// NevanShlMarkRoseMode
 		std::uint64_t g_NevanShlMarkRoseMode_ReturnAddr;
+		void* g_NevanShlMarkRoseMode_CheckCall;
 		void NevanShlMarkRoseModeDetour();
 		// NevanShlSetToTravel
 		std::uint64_t g_NevanShlSetToTravel_ReturnAddr;
@@ -1482,6 +1485,61 @@ bool CheckIfInAirTauntRose(uintptr_t playerAddr) {
 		return true;
 	}
 	return false;
+}
+
+// Called from the swing detour once the Air Taunt Rose state is confirmed.
+// The actual spawn is deferred to CrimsonTimers::RoseSpawnTimers.
+void StartRoseSpawnDelay(uintptr_t playerAddr) {
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
+	if (actorData.character != CHARACTER::DANTE) return;
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& roseSpawnPending = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].roseSpawnPending
+		: crimsonPlayer[playerIndex].roseSpawnPendingClone;
+	auto& roseSpawnTimer = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].roseSpawnTimer
+		: crimsonPlayer[playerIndex].roseSpawnTimerClone;
+	auto& roseSpawnInProgress = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].roseSpawnInProgress
+		: crimsonPlayer[playerIndex].roseSpawnInProgressClone;
+	// Bail if the delay is already running, or a spawn is currently executing
+	// (the swing can re-fire while the game spawn call runs, which would
+	// otherwise re-arm the delay and spawn another rose).
+	if (roseSpawnPending || roseSpawnInProgress) {
+		return;
+	}
+	roseSpawnPending = true;
+	roseSpawnTimer = 0;
+}
+
+// True only while the delayed rose spawn call is executing, so the spawned Shl
+// gets marked as a Rose even if the Air Taunt Rose state already ended.
+void SpawnDelayedRoseShl(uintptr_t playerAddr) {
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& roseSpawnInProgress = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].roseSpawnInProgress
+		: crimsonPlayer[playerIndex].roseSpawnInProgressClone;
+	// The mark detour runs inside the spawn call, so the flag is only needed
+	// for the duration of SpawnNevanShlRose.
+	roseSpawnInProgress = true;
+	SpawnNevanShlRose(playerAddr);
+	roseSpawnInProgress = false;
+}
+
+// Called from the mark detour for every NevanShl spawn, with the Shl actor
+// (the detour site's original instruction writes to a Shl field). Resolve the
+// owner player from the Shl's playerActorAddr instead of reading
+// PlayerActorData fields from the Shl itself — those offsets are far beyond
+// the Shl struct and yielded heap garbage that pointed at a random
+// player/entity slot.
+bool CheckIfShouldMarkRoseShl(uintptr_t shlActorAddr) {
+	auto& shlActor = *reinterpret_cast<CPl000Shl10eActor*>(shlActorAddr);
+	auto playerAddr = shlActor.playerActorAddr;
+	if (!playerAddr) {
+		return false;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& roseSpawnInProgress = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].roseSpawnInProgress
+		: crimsonPlayer[playerIndex].roseSpawnInProgressClone;
+	return CheckIfInAirTauntRose(playerAddr) || roseSpawnInProgress;
 }
 
 static std::unordered_map<uintptr_t, std::array<float, 16>> s_ecstasyRoseMatrices;
@@ -2976,7 +3034,7 @@ void KillWeaponMotionState(bool enable) {
 
 	run = enable;
 }
-
+	
 void AirTauntRoseSwingDetours(bool enable) {
 	using namespace Utility;
 	static bool run = false;
@@ -2993,6 +3051,7 @@ void AirTauntRoseSwingDetours(bool enable) {
 	g_SwingRoseAirTauntInertiaAndSpawnShlCheckCall = &CheckIfInAirTauntRose;  
 	g_SwingRoseAirTauntInertiaAndSpawnShl_ActiveModelIndexCall = (uintptr_t)appBaseAddr + 0x1FAA50; // CPlayer::GetActiveModelIndex
 	g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall = (uintptr_t)appBaseAddr + 0x2127F0; // CPlNevanShlSpawnType1_sub_1402127F0
+	g_SwingRoseAirTauntInertiaAndSpawnShl_SpawnDelayStartCall = &StartRoseSpawnDelay;
 	swingRoseAirTauntInertiaAndSpawnShlHook->Toggle(enable);
 
 	// From CPl000Shl10eNevanShlSetSpawn_sub_1401D6520:
@@ -3000,6 +3059,7 @@ void AirTauntRoseSwingDetours(bool enable) {
 	static std::unique_ptr<Utility::Detour_t> nevanShlMarkRoseModeHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D666C, &NevanShlMarkRoseModeDetour, 6);
 	g_NevanShlMarkRoseMode_ReturnAddr = nevanShlMarkRoseModeHook->GetReturnAddress();
+	g_NevanShlMarkRoseMode_CheckCall = &CheckIfShouldMarkRoseShl;
 	nevanShlMarkRoseModeHook->Toggle(enable);
 
 	// From CPl000Shl10eNevanShlSetTrajectory_sub_1401D6E70:

@@ -6109,6 +6109,9 @@ struct CrimsonPlayerData {
     bool inRisingStar = false;
     bool inYamatoHighTime = false;
     bool inAirTauntRose = false;
+    bool roseSpawnPending = false;
+    float roseSpawnTimer = 0;
+    bool roseSpawnInProgress = false;
     bool inAirTauntRisingSun = false;
     bool lastInAirTauntRisingSun = false;
     bool inAirLunarPhase = false;
@@ -6192,6 +6195,9 @@ struct CrimsonPlayerData {
     bool inRisingStarClone = false;
 	bool inYamatoHighTimeClone = false;
     bool inAirTauntRoseClone = false;
+    bool roseSpawnPendingClone = false;
+    float roseSpawnTimerClone = 0;
+    bool roseSpawnInProgressClone = false;
     bool inAirTauntRisingSunClone = false;
     bool lastInAirTauntRisingSunClone = false;
 	bool inAirTornadoClone = false;

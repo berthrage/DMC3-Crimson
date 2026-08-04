@@ -5,6 +5,7 @@ EXTERN g_SwingRoseAirTauntInertiaAndSpawnShl_ReturnAddr:QWORD
 EXTERN g_SwingRoseAirTauntInertiaAndSpawnShlCheckCall:QWORD       
 EXTERN g_SwingRoseAirTauntInertiaAndSpawnShl_ActiveModelIndexCall:QWORD
 EXTERN g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall:QWORD
+EXTERN g_SwingRoseAirTauntInertiaAndSpawnShl_SpawnDelayStartCall:QWORD
 newXinertiaMult dd -0.05f
 xInertiaCap dd 10.0f
 xInertiaDiv dd 1.15f
@@ -29,11 +30,8 @@ CheckIfInAirTauntRoseState:
 
 SpawmCPl000Shl10e: ; (NevanShl, that's going to become Rose)
     PushAllRegs
-    mov rdi, rcx
     add rsp, 28h
-    call qword ptr [g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall]  ; CPlNevanShlSpawnType1_sub_1402127F0 
-                                                                         ; instead of CPl000Shl10eNevanShlSetSpawn_sub_1401D6520 
-                                                                         ; so initialPos is consistent
+    call qword ptr [g_SwingRoseAirTauntInertiaAndSpawnShl_SpawnDelayStartCall]  ; start the delayed spawn instead of spawning immediately
     sub rsp, 28h
     PopAllRegs
 
@@ -58,19 +56,28 @@ OriginalCode:
 
 SwingRoseAirTauntInertiaAndSpawnShlDetour ENDP
 
+; Called from C++ once the spawn delay elapses. Restores the register state the
+; spawn call used to see from the detour above (player in rcx, rbx and rdi).
+SpawnNevanShlRose PROC
+    mov rdi, rcx
+    mov rbx, rcx
+    jmp qword ptr [g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall]  ; CPlNevanShlSpawnType1_sub_1402127F0
+SpawnNevanShlRose ENDP
+
 .DATA
 EXTERN g_NevanShlMarkRoseMode_ReturnAddr:QWORD
+EXTERN g_NevanShlMarkRoseMode_CheckCall:QWORD
 
 .CODE
 ; From CPl000Shl10eNevanShlSetSpawn_sub_1401D6520:
 ; dmc3.exe+1D666C - 88 88 3C 04 00 00 - mov [rax+0000043C],cl
 NevanShlMarkRoseModeDetour PROC
 
-CheckIfInAirTauntRoseState:
+CheckIfShouldMarkRose:
     PushAllRegs
     add rsp, 28h
-    mov rcx, rbx
-    call qword ptr [g_SwingRoseAirTauntInertiaAndSpawnShlCheckCall]  ; check if in Air Taunt Rose state
+    mov rcx, rax ; rax holds the Shl actor here; the check resolves the owner player from the Shl's playerActorAddr
+    call qword ptr [g_NevanShlMarkRoseMode_CheckCall]  ; mark as Rose if in Air Taunt Rose state or delayed spawn in progress
     sub rsp, 28h
     cmp al, 1
     jne OriginalCode

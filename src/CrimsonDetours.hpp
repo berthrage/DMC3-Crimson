@@ -130,6 +130,8 @@ void StormSwordsDownedEnemyFixDetour();
 void FixMPXinputVibrationDetour();
 // AdjustAirWhirlwindLaunchHeight
 void AdjustAirWhirlwindLaunchHeightDetour();
+// Air Taunt Rose: delayed spawn wrapper (defined in masm/AirTauntRoseSwingDetours.asm)
+void SpawnNevanShlRose(uintptr_t playerAddr);
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
@@ -184,4 +186,9 @@ void AdjustAirWhirlwindLaunchHeight(bool enable);
 void KillWeaponMotionState(bool enable);
 void AirTauntRoseSwingDetours(bool enable);
 void FixNevanShlPlayerSpawn(bool enable);
+
+// Air Taunt Rose delayed spawn
+void StartRoseSpawnDelay(uintptr_t playerAddr);
+void SpawnDelayedRoseShl(uintptr_t playerAddr);
+bool CheckIfShouldMarkRoseShl(uintptr_t playerAddr);
 }

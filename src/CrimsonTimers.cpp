@@ -19,6 +19,7 @@
 #include "Core/Macros.h"
 #include "DMC3Input.hpp"
 #include "CrimsonGameplay.hpp"
+#include "CrimsonDetours.hpp"
 
 namespace CrimsonTimers {
 
@@ -330,6 +331,43 @@ void SiyTimerFunc() {
 	}
 }
 
+void RoseSpawnTimers() {
+	static constexpr float ROSE_SPAWN_DELAY = 0.15f;
+
+	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
+		old_for_all(uint8, entityIndex, ENTITY_COUNT) {
+			auto& playerData = GetPlayerData(playerIndex);
+
+			auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, entityIndex);
+
+			auto actorBaseAddr = newActorData.baseAddr;
+			if (!actorBaseAddr) {
+				continue;
+			}
+			auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+
+			auto& roseSpawnInProgress = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].roseSpawnInProgress : crimsonPlayer[playerIndex].roseSpawnInProgressClone;
+			// The flag may only be true while SpawnDelayedRoseShl is executing;
+			// clear any stale value so it can never persist past a frame.
+			roseSpawnInProgress = false;
+			auto& roseSpawnPending = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].roseSpawnPending : crimsonPlayer[playerIndex].roseSpawnPendingClone;
+			auto& roseSpawnTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].roseSpawnTimer : crimsonPlayer[playerIndex].roseSpawnTimerClone;
+			if (!roseSpawnPending) {
+				continue;
+			}
+
+			// The rose fires even if the Air Taunt Rose state has already ended
+			roseSpawnTimer += CrimsonClock::DeltaTime() * (actorData.speed / g_FrameRateTimeMultiplier);
+			if (roseSpawnTimer >= ROSE_SPAWN_DELAY) {
+				roseSpawnPending = false;
+				roseSpawnTimer = 0;
+				CrimsonDetours::SpawnDelayedRoseShl(reinterpret_cast<uintptr_t>(actorBaseAddr));
+				roseSpawnInProgress = false;
+			}
+		}
+	}
+}
+
 
 void SprintTimer() {
 
@@ -590,6 +628,7 @@ void CallAllTimers() {
     GuardflyTimers();
 	SiyTimerFunc();
 	SprintTimer();
+	RoseSpawnTimers();
 	ImprovedCancelsTimers();
 	StyleSwitchTextTimers();
 	StyleSwitchFluxTimers();

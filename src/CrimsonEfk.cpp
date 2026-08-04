@@ -17,6 +17,7 @@
 
 #include "CrimsonDetours.hpp"
 #include "Config.hpp"
+#include "Speed.hpp"
 
 // ============================================================================
 // GLOBALS
@@ -564,7 +565,9 @@ public:
 
         assert(player);
 
-        CrimsonDetours::CreateEffectDetour(player, fakeParticleBank, fakeParticleId, 1, 1, 0, fakeParticleTime);
+        auto gameSpeed = Speed::GetEffectiveGlobalSpeed();
+
+        CrimsonDetours::CreateEffectDetour(player, fakeParticleBank, fakeParticleId, 1, 1, 0, fakeParticleTime * gameSpeed);
 
         const auto handle = g_efkManager->Play(g_effects[hEffect], x, y, z);
         if (handle >= 0) {

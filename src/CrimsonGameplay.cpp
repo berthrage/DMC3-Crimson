@@ -5165,16 +5165,20 @@ void TrackRoyalReleaseAndSkyLaunch(byte8* actorBaseAddr) {
 	auto& actionTimer = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 
 	// Reset apply flag when action changes away from CERBERUS_SWING
-	if ((actorData.action == CERBERUS_SWING && actionTimer > 1.7f) ||
+	if ((actorData.action == CERBERUS_SWING && actionTimer > 0.7f) ||
 		(actorData.action != CERBERUS_SWING) ||
 		(actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK ||
 			actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_GROUND_TRICK ||
 			actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_SKY_STAR ||
 			actorData.eventData[0].event == ACTOR_EVENT::JUMP ||
-			actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL
+			actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL ||
+			actorData.eventData[0].event == ACTOR_EVENT::AIR_HIKE
 			)) {
 		actorData.motionArchives[MOTION_GROUP_DANTE::CERBERUS] = File_staticFiles[pl000_00_4]; // Revert to default pac motion archive after Rose Air Taunt finishes or is cancelled by a trick.
 		inAirTauntRose = false;
+		// Deliberately NOT clearing roseSpawnPending/roseSpawnTimer here: a
+		// commanded rose must still spawn after the delay even if the move is
+		// cancelled (RoseSpawnTimers handles the rest).
 	}
 
 	// Sky Launch conditions
