@@ -29,7 +29,7 @@ void UpdateEffectiveSpeeds() {
     g_effectiveCutsceneSpeed = 1.0f * multiplier;
 }
 
-static float GetEffectiveGlobalSpeed() {
+float GetEffectiveGlobalSpeed() {
     return IsTurbo() ? g_effectiveTurboSpeed : g_effectiveMainSpeed;
 }
 
