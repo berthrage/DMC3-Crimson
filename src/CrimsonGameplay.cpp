@@ -1336,6 +1336,18 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
 
     if (actorData.character == CHARACTER::DANTE) {
 
+		if ((actorData.action == BEOWULF_RISING_DRAGON_LAUNCH ||
+			actorData.action == AGNI_RUDRA_WHIRLWIND_LAUNCH) && inAir) {
+			policyTrick = BUFFER;
+			policyJump = BUFFER;
+			policy = BUFFER;
+			if (actionTimer > 0.10f) {
+				policyTrick = EXECUTE;
+				policyJump = EXECUTE;
+				policy = EXECUTE;
+			}
+		}
+
         // Improve Prop/Shredder Trick Buffering
         if (actorData.action == REBELLION_PROP || actorData.action == REBELLION_SHREDDER) {
             policyTrick = BUFFER;
