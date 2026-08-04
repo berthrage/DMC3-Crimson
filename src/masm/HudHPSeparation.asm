@@ -1,5 +1,5 @@
 .DATA
-    newSeparationValue dd 10.0f
+    newSeparationValue dd 8.5f
 
 .CODE
 extern g_HudHPSeparation_ReturnAddr:QWORD
