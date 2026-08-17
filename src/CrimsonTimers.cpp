@@ -332,7 +332,7 @@ void SiyTimerFunc() {
 }
 
 void RoseSpawnTimers() {
-	static constexpr float ROSE_SPAWN_DELAY = 0.15f;
+	static constexpr float ROSE_SPAWN_DELAY = 0.201f;
 
 	old_for_all(uint8, playerIndex, PLAYER_COUNT) {
 		old_for_all(uint8, entityIndex, ENTITY_COUNT) {
