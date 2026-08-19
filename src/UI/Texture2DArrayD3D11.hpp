@@ -9,7 +9,11 @@ namespace Graphics
 	public:
 		Texture2DArrayD3D11() = default;
 
+		// Multiple textures
 		Texture2DArrayD3D11(const std::vector<std::string>& filePaths, ID3D11Device* pD3D11Device);
+
+		// Single texture
+		Texture2DArrayD3D11(const std::string& filePath, ID3D11Device* pD3D11Device);
 
 		ID3D11ShaderResourceView* GetSrv() const { return m_SRV.Get(); }
 		int GetWidth() const { return m_Width; }

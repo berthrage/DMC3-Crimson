@@ -6,17 +6,38 @@
 #include <comdef.h>
 #include <d3dcompiler.h>
 
-#include "..\ThirdParty\stb\stb_image.h"
+#include "stb_image.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/euler_angles.hpp>
+#include "glm\gtc\matrix_transform.hpp"
+#include "glm\gtx\euler_angles.hpp"
 
 #pragma comment(lib, "d3dcompiler")
 
 namespace Graphics
 {
     using Microsoft::WRL::ComPtr;
+
+    glm::mat4 CreateTransformMatrix(
+        const glm::vec3& translation,
+        const glm::vec3& rotationEuler,
+        const glm::vec3& scale)
+    {
+        // Convert Euler to quaternion to avoid gimbal lock if needed
+        glm::quat rotationQuat = glm::quat(rotationEuler); // glm default: pitch, yaw, roll
+
+        // Compose the transform: Translation * Rotation * Scale
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), translation) *
+                              glm::mat4_cast(rotationQuat) *
+                              glm::scale(glm::mat4(1.0f), scale);
+
+        return transform;
+    }
+
+    bool EpsilonEqual(double a, double b, double epsilon)
+    {
+        return glm::abs(a - b) <= epsilon * glm::max(glm::abs(a), glm::abs(b));
+    }
 
     bool ErrorHandled::ErrorCheck(HRESULT hr, std::string file, std::string function, size_t line)
     {

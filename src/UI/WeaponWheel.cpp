@@ -503,134 +503,136 @@ namespace WW
 
         const std::filesystem::path textureRoot(R"(Crimson\assets\weaponwheel)");
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsactive\panel1.png)").string().c_str()); //ColoredDantePanel1Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsactive\panel2.png)").string().c_str()); //ColoredDantePanel2Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsactive\panel3.png)").string().c_str()); //ColoredDantePanel3Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsactive\panel4.png)").string().c_str()); //ColoredDantePanel4Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsactive\panel5.png)").string().c_str()); //ColoredDantePanel5Active
+        size_t arrIdx = 0;
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsinactive\panel1.png)").string().c_str()); //ColoredDantePanel1Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsinactive\panel2.png)").string().c_str()); //ColoredDantePanel2Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsinactive\panel3.png)").string().c_str()); //ColoredDantePanel3Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsinactive\panel4.png)").string().c_str()); //ColoredDantePanel4Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsinactive\panel5.png)").string().c_str()); //ColoredDantePanel5Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsactive\panel1.png)").string().c_str(), arrIdx++); //ColoredDantePanel1Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsactive\panel2.png)").string().c_str(), arrIdx++); //ColoredDantePanel2Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsactive\panel3.png)").string().c_str(), arrIdx++); //ColoredDantePanel3Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsactive\panel4.png)").string().c_str(), arrIdx++); //ColoredDantePanel4Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsactive\panel5.png)").string().c_str(), arrIdx++); //ColoredDantePanel5Active
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\arrow1.png)").string().c_str()); //ColoredDanteArrow1
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\arrow2.png)").string().c_str()); //ColoredDanteArrow2
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\arrow3.png)").string().c_str()); //ColoredDanteArrow3
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\arrow4.png)").string().c_str()); //ColoredDanteArrow4
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\arrow5.png)").string().c_str()); //ColoredDanteArrow5
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\center.png)").string().c_str()); //ColoredDanteCenter
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsinactive\panel1.png)").string().c_str(), arrIdx++); //ColoredDantePanel1Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsinactive\panel2.png)").string().c_str(), arrIdx++); //ColoredDantePanel2Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsinactive\panel3.png)").string().c_str(), arrIdx++); //ColoredDantePanel3Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsinactive\panel4.png)").string().c_str(), arrIdx++); //ColoredDantePanel4Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\panelsinactive\panel5.png)").string().c_str(), arrIdx++); //ColoredDantePanel5Inactive
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsactive\panel1.png)").string().c_str()); //ColoredVergilPanel1Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsactive\panel2.png)").string().c_str()); //ColoredVergilPanel2Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsactive\panel3.png)").string().c_str()); //ColoredVergilPanel3Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsactive\panel4.png)").string().c_str()); //ColoredVergilPanel4Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsactive\panel5.png)").string().c_str()); //ColoredVergilPanel5Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\arrow1.png)").string().c_str(), arrIdx++); //ColoredDanteArrow1
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\arrow2.png)").string().c_str(), arrIdx++); //ColoredDanteArrow2
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\arrow3.png)").string().c_str(), arrIdx++); //ColoredDanteArrow3
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\arrow4.png)").string().c_str(), arrIdx++); //ColoredDanteArrow4
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\arrow5.png)").string().c_str(), arrIdx++); //ColoredDanteArrow5
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\dante\center.png)").string().c_str(), arrIdx++); //ColoredDanteCenter
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsinactive\panel1.png)").string().c_str()); //ColoredVergilPanel1Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsinactive\panel2.png)").string().c_str()); //ColoredVergilPanel2Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsinactive\panel3.png)").string().c_str()); //ColoredVergilPanel3Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsinactive\panel4.png)").string().c_str()); //ColoredVergilPanel4Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsinactive\panel5.png)").string().c_str()); //ColoredVergilPanel5Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsactive\panel1.png)").string().c_str(), arrIdx++); //ColoredVergilPanel1Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsactive\panel2.png)").string().c_str(), arrIdx++); //ColoredVergilPanel2Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsactive\panel3.png)").string().c_str(), arrIdx++); //ColoredVergilPanel3Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsactive\panel4.png)").string().c_str(), arrIdx++); //ColoredVergilPanel4Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsactive\panel5.png)").string().c_str(), arrIdx++); //ColoredVergilPanel5Active
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\arrow1.png)").string().c_str()); //ColoredVergilArrow1
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\arrow2.png)").string().c_str()); //ColoredVergilArrow2
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\arrow3.png)").string().c_str()); //ColoredVergilArrow3
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\arrow4.png)").string().c_str()); //ColoredVergilArrow4
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\arrow5.png)").string().c_str()); //ColoredVergilArrow5
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\center.png)").string().c_str()); //ColoredVergilCenter
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsinactive\panel1.png)").string().c_str(), arrIdx++); //ColoredVergilPanel1Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsinactive\panel2.png)").string().c_str(), arrIdx++); //ColoredVergilPanel2Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsinactive\panel3.png)").string().c_str(), arrIdx++); //ColoredVergilPanel3Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsinactive\panel4.png)").string().c_str(), arrIdx++); //ColoredVergilPanel4Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\panelsinactive\panel5.png)").string().c_str(), arrIdx++); //ColoredVergilPanel5Inactive
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsactive\panel1.png)").string().c_str()); //ColorlessPanel1Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsactive\panel2.png)").string().c_str()); //ColorlessPanel2Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsactive\panel3.png)").string().c_str()); //ColorlessPanel3Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsactive\panel4.png)").string().c_str()); //ColorlessPanel4Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsactive\panel5.png)").string().c_str()); //ColorlessPanel5Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\arrow1.png)").string().c_str(), arrIdx++); //ColoredVergilArrow1
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\arrow2.png)").string().c_str(), arrIdx++); //ColoredVergilArrow2
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\arrow3.png)").string().c_str(), arrIdx++); //ColoredVergilArrow3
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\arrow4.png)").string().c_str(), arrIdx++); //ColoredVergilArrow4
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\arrow5.png)").string().c_str(), arrIdx++); //ColoredVergilArrow5
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson\vergil\center.png)").string().c_str(), arrIdx++); //ColoredVergilCenter
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsinactive\panel1.png)").string().c_str()); //ColorlessPanel1Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsinactive\panel2.png)").string().c_str()); //ColorlessPanel2Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsinactive\panel3.png)").string().c_str()); //ColorlessPanel3Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsinactive\panel4.png)").string().c_str()); //ColorlessPanel4Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsinactive\panel5.png)").string().c_str()); //ColorlessPanel5Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsactive\panel1.png)").string().c_str(), arrIdx++); //ColorlessPanel1Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsactive\panel2.png)").string().c_str(), arrIdx++); //ColorlessPanel2Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsactive\panel3.png)").string().c_str(), arrIdx++); //ColorlessPanel3Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsactive\panel4.png)").string().c_str(), arrIdx++); //ColorlessPanel4Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsactive\panel5.png)").string().c_str(), arrIdx++); //ColorlessPanel5Active
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\arrow1.png)").string().c_str()); //ColorlessArrow1
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\arrow2.png)").string().c_str()); //ColorlessArrow2
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\arrow3.png)").string().c_str()); //ColorlessArrow3
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\arrow4.png)").string().c_str()); //ColorlessArrow4
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\arrow5.png)").string().c_str()); //ColorlessArrow5
-        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\center.png)").string().c_str()); //ColorlessCenter
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsinactive\panel1.png)").string().c_str(), arrIdx++); //ColorlessPanel1Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsinactive\panel2.png)").string().c_str(), arrIdx++); //ColorlessPanel2Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsinactive\panel3.png)").string().c_str(), arrIdx++); //ColorlessPanel3Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsinactive\panel4.png)").string().c_str(), arrIdx++); //ColorlessPanel4Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\panelsinactive\panel5.png)").string().c_str(), arrIdx++); //ColorlessPanel5Inactive
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\rebellion-awakened.png)").string().c_str()); //RebellionAwakenedActive
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\rebellion-dormant.png)").string().c_str()); //RebellionDormantActive
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\cerberus.png)").string().c_str()); //CerberusActive
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\agnirudra.png)").string().c_str()); //AgniRudraActive
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\nevan.png)").string().c_str()); //NevanActive
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\beowulf.png)").string().c_str()); //BeowulfActive
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\forceedge-dante.png)").string().c_str()); //ForceEdgeActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\arrow1.png)").string().c_str(), arrIdx++); //ColorlessArrow1
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\arrow2.png)").string().c_str(), arrIdx++); //ColorlessArrow2
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\arrow3.png)").string().c_str(), arrIdx++); //ColorlessArrow3
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\arrow4.png)").string().c_str(), arrIdx++); //ColorlessArrow4
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\arrow5.png)").string().c_str(), arrIdx++); //ColorlessArrow5
+        g_SpriteDescs.emplace_back((textureRoot / R"(dmc3-switch\center.png)").string().c_str(), arrIdx++); //ColorlessCenter
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\ebonyivory.png)").string().c_str()); //EbonyIvoryActive
-        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\shotgun.png)").string().c_str()); //ShotgunActive
-        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\artemis.png)").string().c_str()); //ArtemisActive
-        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\spiral.png)").string().c_str()); //SpiralActive
-        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\kalina.png)").string().c_str()); //KalinaActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\rebellion-awakened.png)").string().c_str(), arrIdx++); //RebellionAwakenedActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\rebellion-dormant.png)").string().c_str(), arrIdx++); //RebellionDormantActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\cerberus.png)").string().c_str(), arrIdx++); //CerberusActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\agnirudra.png)").string().c_str(), arrIdx++); //AgniRudraActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\nevan.png)").string().c_str(), arrIdx++); //NevanActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\beowulf.png)").string().c_str(), arrIdx++); //BeowulfActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\forceedge-dante.png)").string().c_str(), arrIdx++); //ForceEdgeActive
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\yamato.png)").string().c_str()); //YamatoActive
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\forceedge-vergil.png)").string().c_str()); //YamatoForceEdgeActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\ebonyivory.png)").string().c_str(), arrIdx++); //EbonyIvoryActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\shotgun.png)").string().c_str(), arrIdx++); //ShotgunActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\artemis.png)").string().c_str(), arrIdx++); //ArtemisActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\spiral.png)").string().c_str(), arrIdx++); //SpiralActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\active\kalina.png)").string().c_str(), arrIdx++); //KalinaActive
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\rebellion-awakened.png)").string().c_str()); //RebellionAwakenedInactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\rebellion-dormant.png)").string().c_str()); //RebellionDormantInactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\cerberus.png)").string().c_str()); //CerberusInactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\agnirudra.png)").string().c_str()); //AgniRudraInactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\nevan.png)").string().c_str()); //NevanInactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\beowulf.png)").string().c_str()); //BeowulfInactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\forceedge-dante.png)").string().c_str()); //ForceEdgeInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\yamato.png)").string().c_str(), arrIdx++); //YamatoActive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\active\forceedge-vergil.png)").string().c_str(), arrIdx++); //YamatoForceEdgeActive
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(guns\inactive\ebonyivory.png)").string().c_str()); //EbonyIvoryInactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(guns\inactive\shotgun.png)").string().c_str()); //ShotgunInactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(guns\inactive\artemis.png)").string().c_str()); //ArtemisInactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(guns\inactive\spiral.png)").string().c_str()); //SpiralInactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(guns\inactive\kalina.png)").string().c_str()); //KalinaInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\rebellion-awakened.png)").string().c_str(), arrIdx++); //RebellionAwakenedInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\rebellion-dormant.png)").string().c_str(), arrIdx++); //RebellionDormantInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\cerberus.png)").string().c_str(), arrIdx++); //CerberusInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\agnirudra.png)").string().c_str(), arrIdx++); //AgniRudraInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\nevan.png)").string().c_str(), arrIdx++); //NevanInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\beowulf.png)").string().c_str(), arrIdx++); //BeowulfInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\forceedge-dante.png)").string().c_str(), arrIdx++); //ForceEdgeInactive
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\yamato.png)").string().c_str()); //YamatoInactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\forceedge-vergil.png)").string().c_str()); //YamatoForceEdgeInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\inactive\ebonyivory.png)").string().c_str(), arrIdx++); //EbonyIvoryInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\inactive\shotgun.png)").string().c_str(), arrIdx++); //ShotgunInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\inactive\artemis.png)").string().c_str(), arrIdx++); //ArtemisInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\inactive\spiral.png)").string().c_str(), arrIdx++); //SpiralInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(guns\inactive\kalina.png)").string().c_str(), arrIdx++); //KalinaInactive
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsactive\panel1.png)").string().c_str()); //BetaDantePanel1Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsactive\panel2.png)").string().c_str()); //BetaDantePanel2Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsactive\panel3.png)").string().c_str()); //BetaDantePanel3Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsactive\panel4.png)").string().c_str()); //BetaDantePanel4Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsactive\panel5.png)").string().c_str()); //BetaDantePanel5Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\yamato.png)").string().c_str(), arrIdx++); //YamatoInactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(melee\inactive\forceedge-vergil.png)").string().c_str(), arrIdx++); //YamatoForceEdgeInactive
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsinactive\panel1.png)").string().c_str()); //BetaDantePanel1Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsinactive\panel2.png)").string().c_str()); //BetaDantePanel2Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsinactive\panel3.png)").string().c_str()); //BetaDantePanel3Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsinactive\panel4.png)").string().c_str()); //BetaDantePanel4Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsinactive\panel5.png)").string().c_str()); //BetaDantePanel5Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsactive\panel1.png)").string().c_str(), arrIdx++); //BetaDantePanel1Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsactive\panel2.png)").string().c_str(), arrIdx++); //BetaDantePanel2Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsactive\panel3.png)").string().c_str(), arrIdx++); //BetaDantePanel3Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsactive\panel4.png)").string().c_str(), arrIdx++); //BetaDantePanel4Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsactive\panel5.png)").string().c_str(), arrIdx++); //BetaDantePanel5Active
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\arrow1.png)").string().c_str()); //BetaDanteArrow1
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\arrow2.png)").string().c_str()); //BetaDanteArrow2
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\arrow3.png)").string().c_str()); //BetaDanteArrow3
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\arrow4.png)").string().c_str()); //BetaDanteArrow4
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\arrow5.png)").string().c_str()); //BetaDanteArrow5
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\center.png)").string().c_str()); //BetaDanteCenter
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsinactive\panel1.png)").string().c_str(), arrIdx++); //BetaDantePanel1Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsinactive\panel2.png)").string().c_str(), arrIdx++); //BetaDantePanel2Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsinactive\panel3.png)").string().c_str(), arrIdx++); //BetaDantePanel3Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsinactive\panel4.png)").string().c_str(), arrIdx++); //BetaDantePanel4Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\panelsinactive\panel5.png)").string().c_str(), arrIdx++); //BetaDantePanel5Inactive
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsactive\panel1.png)").string().c_str()); //BetaVergilPanel1Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsactive\panel2.png)").string().c_str()); //BetaVergilPanel2Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsactive\panel3.png)").string().c_str()); //BetaVergilPanel3Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsactive\panel4.png)").string().c_str()); //BetaVergilPanel4Active
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsactive\panel5.png)").string().c_str()); //BetaVergilPanel5Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\arrow1.png)").string().c_str(), arrIdx++); //BetaDanteArrow1
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\arrow2.png)").string().c_str(), arrIdx++); //BetaDanteArrow2
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\arrow3.png)").string().c_str(), arrIdx++); //BetaDanteArrow3
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\arrow4.png)").string().c_str(), arrIdx++); //BetaDanteArrow4
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\arrow5.png)").string().c_str(), arrIdx++); //BetaDanteArrow5
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\dante\center.png)").string().c_str(), arrIdx++); //BetaDanteCenter
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsinactive\panel1.png)").string().c_str()); //BetaVergilPanel1Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsinactive\panel2.png)").string().c_str()); //BetaVergilPanel2Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsinactive\panel3.png)").string().c_str()); //BetaVergilPanel3Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsinactive\panel4.png)").string().c_str()); //BetaVergilPanel4Inactive
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsinactive\panel5.png)").string().c_str()); //BetaVergilPanel5Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsactive\panel1.png)").string().c_str(), arrIdx++); //BetaVergilPanel1Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsactive\panel2.png)").string().c_str(), arrIdx++); //BetaVergilPanel2Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsactive\panel3.png)").string().c_str(), arrIdx++); //BetaVergilPanel3Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsactive\panel4.png)").string().c_str(), arrIdx++); //BetaVergilPanel4Active
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsactive\panel5.png)").string().c_str(), arrIdx++); //BetaVergilPanel5Active
 
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\arrow1.png)").string().c_str()); //BetaVergilArrow1
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\arrow2.png)").string().c_str()); //BetaVergilArrow2
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\arrow3.png)").string().c_str()); //BetaVergilArrow3
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\arrow4.png)").string().c_str()); //BetaVergilArrow4
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\arrow5.png)").string().c_str()); //BetaVergilArrow5
-        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\center.png)").string().c_str()); //BetaVergilCenter
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsinactive\panel1.png)").string().c_str(), arrIdx++); //BetaVergilPanel1Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsinactive\panel2.png)").string().c_str(), arrIdx++); //BetaVergilPanel2Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsinactive\panel3.png)").string().c_str(), arrIdx++); //BetaVergilPanel3Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsinactive\panel4.png)").string().c_str(), arrIdx++); //BetaVergilPanel4Inactive
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\panelsinactive\panel5.png)").string().c_str(), arrIdx++); //BetaVergilPanel5Inactive
+
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\arrow1.png)").string().c_str(), arrIdx++); //BetaVergilArrow1
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\arrow2.png)").string().c_str(), arrIdx++); //BetaVergilArrow2
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\arrow3.png)").string().c_str(), arrIdx++); //BetaVergilArrow3
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\arrow4.png)").string().c_str(), arrIdx++); //BetaVergilArrow4
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\arrow5.png)").string().c_str(), arrIdx++); //BetaVergilArrow5
+        g_SpriteDescs.emplace_back((textureRoot / R"(crimson-early-beta\vergil\center.png)").string().c_str(), arrIdx++); //BetaVergilCenter
     }
 
     constexpr TextureID GetWeaponTextureID(WeaponIDs id, bool activeState)
@@ -1118,12 +1120,23 @@ namespace WW
 
         m_SpriteIndices.UpdateSprites(m_ThemeID, m_Weapons);
 
-        m_pSpriteBatch = std::make_unique<Graphics::BatchedSprites>(m_pD3D11Device, m_Width, m_Height, g_SpriteDescs, s_pTextureArray, m_SpriteIndices.GetSpriteIds());
+        m_pSpriteBatch = std::make_unique<Graphics::BatchedSprites>(
+            m_pD3D11Device,
+            m_Width,
+            m_Height,
+            g_SpriteDescs,
+            s_pTextureArray,
+            m_SpriteIndices.GetSpriteIds()
+        );
 
         Log("[WeaponWheel] Weapon wheel initialized with theme %d", (int)m_ThemeID);
 
         SetWeaponsTranslations();
         InitializeAnimations();
+
+        using RatioFlags = Graphics::BatchedSprites::RatioFlags;
+
+        m_pSpriteBatch->SetRatioFlags((int)RatioFlags::FitToVP);
     }
 
     WeaponWheel::~WeaponWheel()

@@ -3,7 +3,7 @@
 #include <format>
 #include <comdef.h>
 
-#include "..\ThirdParty\stb\stb_image.h"
+#include "stb_image.h"
 
 namespace Graphics
 {
@@ -21,11 +21,23 @@ namespace Graphics
             stbi_image_free(imageDataPtr);
     }
 
+    Texture2DArrayD3D11::Texture2DArrayD3D11(const std::string& filePath, ID3D11Device* pD3D11Device)
+    {
+        m_ImageDataPtrs.reserve(1);
+
+        // Load from disk into raw RGBA buffers
+        m_ImageDataPtrs.push_back(stbi_load(filePath.c_str(), &m_Width, &m_Height, nullptr, 4));
+
+        m_IsLoaded = Commit(pD3D11Device);
+
+        stbi_image_free(m_ImageDataPtrs[0]);
+    }
+
     bool Texture2DArrayD3D11::Commit(ID3D11Device* pD3D11Device)
     {
         HRESULT hr = S_OK;
 
-        // Create the texture array
+        // Create the texture
         D3D11_TEXTURE2D_DESC desc;
         ZeroMemory(&desc, sizeof(desc));
         desc.Width = m_Width;
@@ -54,7 +66,7 @@ namespace Graphics
         if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__))
             return false;
 
-        // Create texture array view view
+        // Create shader resource view
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
         ZeroMemory(&srvDesc, sizeof(srvDesc));
         srvDesc.Format = desc.Format;

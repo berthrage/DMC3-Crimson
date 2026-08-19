@@ -49,7 +49,7 @@ set(CMAKE_MODULE_LINKER_FLAGS_RELEASE "${CMAKE_MODULE_LINKER_FLAGS_RELEASE} /DEB
 
 # --- Debug flags (optimized for compilation speed) -------------------------
 # /O1 (minimize size) compiles faster than /Od while still being debuggable
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /O1")
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /O1")
 # /Z7 embeds debug info in .obj files — avoids mspdbsrv.exe bottleneck on slow CPUs
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Z7")
 # /DEBUG:FASTLINK for faster incremental linking in Debug

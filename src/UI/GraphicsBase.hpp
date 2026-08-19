@@ -8,11 +8,18 @@
 #include <string>
 
 #define GLM_FORCE_ROW_MAJOR
-#include <glm/glm.hpp>
+#include "glm\glm.hpp"
 
 namespace Graphics 
 {
 	using Microsoft::WRL::ComPtr;
+
+	glm::mat4 CreateTransformMatrix(
+		const glm::vec3& translation,
+		const glm::vec3& rotationEuler,
+		const glm::vec3& scale);
+
+	bool EpsilonEqual(double a, double b, double epsilon = 1e-5);
 
 #pragma pack(push, 1)
 
@@ -51,6 +58,12 @@ namespace Graphics
 
 	struct Rect {
 		float L, T, R, B;
+
+		constexpr auto GetAspectRatio() const { return glm::abs((R - L) / (B - T)); }
+	};
+
+	struct Color {
+		float R, G, B, A;
 	};
 
 	class ErrorHandled
