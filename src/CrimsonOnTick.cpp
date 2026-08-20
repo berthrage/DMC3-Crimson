@@ -32,6 +32,7 @@
 #include "CrimsonHighFPSFixes.hpp"
 #include "HUD.hpp"
 #include "CrimsonGameplay.hpp"
+#include "CrimsonHUD.hpp"
 
 
 namespace CrimsonOnTick {

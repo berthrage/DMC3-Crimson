@@ -16779,6 +16779,8 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonHUD::RoyalGaugeDispWindow();
 	CrimsonHUD::MirageGaugeMainPlayer();
 
+	CrimsonHUD::DanteHUD2Render();
+
 	UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
 	RenderMissionResultGameModeStats();
 	RenderMissionResultVersionDisplay();

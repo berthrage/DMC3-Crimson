@@ -39,7 +39,9 @@
 #include "CrimsonPatches.hpp"
 #include "CrimsonTimers.hpp"
 #include "CrimsonUtil.hpp"
+#include "CrimsonClock.hpp"
 #include "UI\EmbeddedImages.hpp"
+#include "UI/DanteHUD.hpp"
 #include "CrimsonGUI.hpp"
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonHUD.hpp"
@@ -3644,6 +3646,93 @@ void InitTextures(ID3D11Device* pd3dDevice) {
 	InitStyleGlassTextures(pd3dDevice);
 	InitMirageGaugeTextures(pd3dDevice);
 	InitGradientTextures(pd3dDevice);
+}
+
+
+// ============================================================================
+// CrimsonHUD 2.0 — Dante's HUD
+// Controls are static and maxed out for now, purely for visualization.
+// ============================================================================
+
+static std::unique_ptr<HUD::Dante::DanteHUD> s_DanteHUD2;
+
+static int s_LastAppliedStyle = -1;
+
+// Maps the game's STYLE:: enum to the HUD's HUD::Dante::Style_t enum.
+static HUD::Dante::Style_t MapGameStyleToHUD(int style)
+{
+	switch (style)
+	{
+	case STYLE::SWORDMASTER:  return HUD::Dante::Style_t::Swordmaster;
+	case STYLE::GUNSLINGER:   return HUD::Dante::Style_t::Gunslinger;
+	case STYLE::TRICKSTER:    return HUD::Dante::Style_t::Trickster;
+	case STYLE::ROYALGUARD:   return HUD::Dante::Style_t::Royalguard;
+	case STYLE::QUICKSILVER:  return HUD::Dante::Style_t::Quicksilver;
+	case STYLE::DOPPELGANGER: return HUD::Dante::Style_t::Doppleganger;
+	default:                  return HUD::Dante::Style_t::Trickster;
+	}
+}
+
+void DanteHUD2Render(){
+	if (!(
+		InGame() &&
+		!g_inGameCutscene)) {
+		return;
+	}
+	static bool show = true;
+	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
+	if (!name_80) {
+		return;
+	}
+	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
+	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_10222 || !pool_10222[3]) {
+		return;
+	}
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	if (mainActorData.character != CHARACTER::DANTE) return;
+
+	// Lazily instantiate once, keeping the 1500x430 size ratio the calculations rely on
+	if (!s_DanteHUD2) {
+
+		float scaleRatio = 1.8f;
+		s_DanteHUD2 = std::make_unique<HUD::Dante::DanteHUD>(
+			D3D11::device,
+			D3D11::deviceContext,
+			1500.0f / scaleRatio,
+			430.0f / scaleRatio	
+		);
+
+		// Static controls, maxed out for visualization
+		s_DanteHUD2->SetHUDTheme(HUD::Dante::Theme_t::Colored);
+		s_DanteHUD2->SetActiveStyleLevel(3);
+		s_DanteHUD2->SetHPLevel(20);
+		s_DanteHUD2->SetDTLevel(8);
+		s_DanteHUD2->SetRGGaugeLevel(3);
+		s_DanteHUD2->SetHPVitalityAmount(1.0f);
+		s_DanteHUD2->SetHPDamageAmount(1.0f);
+		s_DanteHUD2->SetRGGuageAmount(1.0f);
+		s_DanteHUD2->SetActiveStyleExpFillAmount(1.0f);
+		s_DanteHUD2->SetDTFill(1.0f);
+	}
+
+	// Keep the HUD's style in sync with the player's style, only when it changes
+	if (mainActorData.style != s_LastAppliedStyle)
+	{
+		s_LastAppliedStyle = mainActorData.style;
+
+		s_DanteHUD2->SetActiveStyle(MapGameStyleToHUD(mainActorData.style));
+	}
+
+	s_DanteHUD2->OnUpdate((double)CrimsonClock::DeltaTime());
+	s_DanteHUD2->OnDraw();
+
+	// Blit the HUD's offscreen render target to the screen at its native size
+	ImGui::GetForegroundDrawList()->AddImage(
+		(ImTextureID)s_DanteHUD2->GetSRV(),
+		ImVec2(0.0f, 0.0f),
+		ImVec2((float)s_DanteHUD2->GetWidth(), (float)s_DanteHUD2->GetHeight())
+	);
 }
 
 }

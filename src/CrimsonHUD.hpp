@@ -25,6 +25,7 @@ void StyleEXPDisplayWindow();
 void StyleLvlDispWindow();
 void RoyalGaugeDispWindow();
 void MirageGaugeMainPlayer();
+void DanteHUD2Render();
 Texture2DD3D11 *getCrimsonGradient();
 Texture2DD3D11 *getRedOrbTexture();
 
