@@ -3695,7 +3695,7 @@ void DanteHUD2Render(){
 	// Lazily instantiate once, keeping the 1500x430 size ratio the calculations rely on
 	if (!s_DanteHUD2) {
 
-		float scaleRatio = 1.8f;
+		float scaleRatio = 2.0f;
 		s_DanteHUD2 = std::make_unique<HUD::Dante::DanteHUD>(
 			D3D11::device,
 			D3D11::deviceContext,
