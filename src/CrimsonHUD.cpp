@@ -3658,6 +3658,7 @@ static std::unique_ptr<HUD::Dante::DanteHUD> s_DanteHUD2;
 
 static int s_LastAppliedStyle = -1;
 static float s_LastRoyalguardFill = -1.0f;
+static float s_LastDTFill = -1.0f;
 
 // Maps the game's STYLE:: enum to the HUD's HUD::Dante::Style_t enum.
 static HUD::Dante::Style_t MapGameStyleToHUD(int style)
@@ -3731,6 +3732,15 @@ void DanteHUD2Render(){
 		s_LastRoyalguardFill = royalguardFraction;
 
 		s_DanteHUD2->SetRGGuageAmount(royalguardFraction);
+	}
+
+	// DT Gauge Sync
+	const float dtFraction = mainActorData.magicPoints / 10000.0f;
+	if (dtFraction != s_LastDTFill)
+	{
+		s_LastDTFill = dtFraction;
+
+		s_DanteHUD2->SetDTFill(dtFraction);
 	}
 
 	s_DanteHUD2->OnUpdate((double)CrimsonClock::DeltaTime());
