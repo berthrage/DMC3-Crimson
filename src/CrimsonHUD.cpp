@@ -3657,6 +3657,7 @@ void InitTextures(ID3D11Device* pd3dDevice) {
 static std::unique_ptr<HUD::Dante::DanteHUD> s_DanteHUD2;
 
 static int s_LastAppliedStyle = -1;
+static float s_LastRoyalguardFill = -1.0f;
 
 // Maps the game's STYLE:: enum to the HUD's HUD::Dante::Style_t enum.
 static HUD::Dante::Style_t MapGameStyleToHUD(int style)
@@ -3711,17 +3712,25 @@ void DanteHUD2Render(){
 		s_DanteHUD2->SetRGGaugeLevel(3);
 		s_DanteHUD2->SetHPVitalityAmount(1.0f);
 		s_DanteHUD2->SetHPDamageAmount(1.0f);
-		s_DanteHUD2->SetRGGuageAmount(1.0f);
 		s_DanteHUD2->SetActiveStyleExpFillAmount(1.0f);
 		s_DanteHUD2->SetDTFill(1.0f);
 	}
 
-	// Keep the HUD's style in sync with the player's style, only when it changes
+	// Player Style sync
 	if (mainActorData.style != s_LastAppliedStyle)
 	{
 		s_LastAppliedStyle = mainActorData.style;
 
 		s_DanteHUD2->SetActiveStyle(MapGameStyleToHUD(mainActorData.style));
+	}
+
+	// RG Gauge Sync
+	const float royalguardFraction = mainActorData.royalguardReleaseDamage / 9000.0f;
+	if (royalguardFraction != s_LastRoyalguardFill)
+	{
+		s_LastRoyalguardFill = royalguardFraction;
+
+		s_DanteHUD2->SetRGGuageAmount(royalguardFraction);
 	}
 
 	s_DanteHUD2->OnUpdate((double)CrimsonClock::DeltaTime());
