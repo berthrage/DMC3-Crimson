@@ -1344,8 +1344,17 @@ void UpdateGamepadConfigCapture() {
 		}
 	}
 
-	// Convert standard XInput wButtons to the game's internal GAMEPAD format
+	// Convert standard XInput wButtons to the game's internal GAMEPAD format.
+	// Triggers are analog (0-255) rather than digital wButtons bits, so fold them
+	// into the button mask here 
+	static constexpr BYTE kTriggerCaptureThreshold = 30; // XInput default trigger deadzone
 	uint32_t curButtons = xiValid ? GAMEPAD::FromXInput(xiState.Gamepad.wButtons) : 0;
+	if (xiValid) {
+		if (xiState.Gamepad.bLeftTrigger >= kTriggerCaptureThreshold)
+			curButtons |= GAMEPAD::LEFT_TRIGGER;
+		if (xiState.Gamepad.bRightTrigger >= kTriggerCaptureThreshold)
+			curButtons |= GAMEPAD::RIGHT_TRIGGER;
+	}
 	uint32_t curTouchpad = 0;
 	if (sdlPad) {
 		curTouchpad = CrimsonSDL::GetTouchpadZone(sdlPad);

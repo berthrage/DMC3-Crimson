@@ -593,6 +593,9 @@ namespace CrimsonFastcallDetours{
 	 // ROSE SHL TRAVEL ARC (GRAVITY)
      auto& shlActorData = *reinterpret_cast<CPl000Shl10eActor*>(shlActorAddr);
 	 if (shlActorData.roseMode) {
+		// Start with some speed
+		 shlActorData.travelTime = 3.7f;
+		 // Add gravity
 		 shlActorData.travelVelocity.y -= 1.5f * (CrimsonClock::DeltaTime() * (shlActorData.speed / g_FrameRateTimeMultiplier));
 	 }
 
