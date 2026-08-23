@@ -131,6 +131,23 @@ void DanteHUD::SetDTFill(float dt)
 	UpdateDTBarOrbs(m_DTFill);
 }
 
+void DanteHUD::SetDTVisible(bool visible)
+{
+	m_DTFrameVisible = visible;
+
+	ApplyDTFrameOpacity();
+}
+
+void DanteHUD::ApplyDTFrameOpacity()
+{
+	const auto frameIdxs = m_SpriteIndices.GetDTBarFrameIdxs();
+
+	for (const auto& idx : frameIdxs)
+	{
+		m_pSpriteBatch->SetOpacity(idx, m_DTFrameVisible ? 1.0f : 0.0f);
+	}
+}
+
 void DanteHUD::SetActiveStyleLevel(size_t level)
 {
 	if (level >= 1 && level <= 3)
@@ -1681,6 +1698,7 @@ void DanteHUD::UpdateSprites()
 	SetSpritePositions();
 	SetSpriteMasks();
 	UpdateDTBarOrbs(m_DTFill);
+	ApplyDTFrameOpacity();
 }
 
 void DanteHUD::OnDrawDebugLayer()

@@ -3659,6 +3659,7 @@ static std::unique_ptr<HUD::Dante::DanteHUD> s_DanteHUD2;
 static int s_LastAppliedStyle = -1;
 static size_t s_LastHPLevel = 0;
 static size_t s_LastDTLevel = 0;
+static bool s_LastDTVisible = true;
 static float s_LastRoyalguardFill = -1.0f;
 static float s_LastDTFill = -1.0f;
 static float s_LastVitalityFill = -1.0f;
@@ -3768,6 +3769,15 @@ void DanteHUD2Render(){
 		s_LastDTLevel = dtLevel;
 
 		s_DanteHUD2->SetDTLevel(dtLevel);
+	}
+
+	// DT visibility sync: hide the DT bar frames until Devil Trigger is unlocked (maxMagicPoints >= 3000)
+	const bool dtUnlocked = mainActorData.maxMagicPoints >= 3000.0f;
+	if (dtUnlocked != s_LastDTVisible)
+	{
+		s_LastDTVisible = dtUnlocked;
+
+		s_DanteHUD2->SetDTVisible(dtUnlocked);
 	}
 
 	// RG Gauge Sync

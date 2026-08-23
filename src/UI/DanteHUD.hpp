@@ -69,6 +69,7 @@ public: // Controls
 	void SetRGGuageAmount(float rg); // 0.0f to 1.0f
 	void SetActiveStyleExpFillAmount(float exp); // 0.0f to 1.0f
 	void SetDTFill(float dt); // 0.0f to 1.0f
+	void SetDTVisible(bool visible); // Shows or hides the DT bar frames (Devil Trigger locked)
 
 public: // Types Todo: Private
 	// This object manages the IDs for the sprites used in the hud
@@ -130,6 +131,7 @@ private:
 	void UpdateRGGuage(float fraction);
 	void UpdateStyleExpBar(float fraction);
 	void UpdateDTBarOrbs(float fraction);
+	void ApplyDTFrameOpacity();
 	void UpdateSprites();
 
 private: // Debug layer
@@ -146,6 +148,8 @@ private: // Members
 
 	float	m_HPFill{ 1.0f }, m_DMGFill{ 1.0f }, m_DTFill{1.0f},
 			m_ActiveStyleExpFill{ 1.0f }, m_RoyalguardGuageFill{ 1.0f };
+
+	bool	m_DTFrameVisible{ true };
 
 	Theme_t m_ThemeID{ Theme_t::Colored };
 
