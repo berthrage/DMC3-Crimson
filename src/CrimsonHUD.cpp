@@ -3657,6 +3657,8 @@ void InitTextures(ID3D11Device* pd3dDevice) {
 static std::unique_ptr<HUD::Dante::DanteHUD> s_DanteHUD2;
 
 static int s_LastAppliedStyle = -1;
+static size_t s_LastHPLevel = 0;
+static size_t s_LastDTLevel = 0;
 static float s_LastRoyalguardFill = -1.0f;
 static float s_LastDTFill = -1.0f;
 static float s_LastVitalityFill = -1.0f;
@@ -3683,6 +3685,21 @@ static HUD::Dante::Style_t MapGameStyleToHUD(int style)
 	case STYLE::DOPPELGANGER: return HUD::Dante::Style_t::Doppleganger;
 	default:                  return HUD::Dante::Style_t::Trickster;
 	}
+}
+
+// Maps MaxHP to the HUD HP level: each level equates to 1000 max HP, up to 20000 (level 20).
+static size_t MapMaxHPToHPLevel(float maxHitPoints)
+{
+	const float level = (std::max)(0.0f, maxHitPoints / 1000.0f + 0.5f);
+	return (std::max)((size_t)1, (std::min)((size_t)20, (size_t)level));
+}
+
+// Maps MaxMagicPoints to the HUD DT level: starts at 3000 (level 1) and
+// grows by 1000 per level up to 10000 (level 8).
+static size_t MapMaxMagicToDTLevel(float maxMagicPoints)
+{
+	const float level = (std::max)(0.0f, (maxMagicPoints - 3000.0f) / 1000.0f + 0.5f);
+	return (std::max)((size_t)1, (std::min)((size_t)8, (size_t)level + (size_t)1));
 }
 
 void DanteHUD2Render(){
@@ -3735,6 +3752,24 @@ void DanteHUD2Render(){
 		s_DanteHUD2->SetActiveStyle(MapGameStyleToHUD(mainActorData.style));
 	}
 
+	// HP Level sync 
+	const size_t hpLevel = MapMaxHPToHPLevel(mainActorData.maxHitPoints);
+	if (hpLevel != s_LastHPLevel)
+	{
+		s_LastHPLevel = hpLevel;
+
+		s_DanteHUD2->SetHPLevel(hpLevel);
+	}
+
+	// DT Level sync
+	const size_t dtLevel = MapMaxMagicToDTLevel(mainActorData.maxMagicPoints);
+	if (dtLevel != s_LastDTLevel)
+	{
+		s_LastDTLevel = dtLevel;
+
+		s_DanteHUD2->SetDTLevel(dtLevel);
+	}
+
 	// RG Gauge Sync
 	const float royalguardFraction = mainActorData.royalguardReleaseDamage / 9000.0f;
 	if (royalguardFraction != s_LastRoyalguardFill)
@@ -3745,7 +3780,9 @@ void DanteHUD2Render(){
 	}
 
 	// DT Gauge Sync
-	const float dtFraction = mainActorData.magicPoints / 10000.0f;
+	const float dtFraction = mainActorData.maxMagicPoints > 0.0f
+		? mainActorData.magicPoints / mainActorData.maxMagicPoints
+		: 0.0f;
 	if (dtFraction != s_LastDTFill)
 	{
 		s_LastDTFill = dtFraction;
