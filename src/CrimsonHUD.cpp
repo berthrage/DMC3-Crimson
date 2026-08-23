@@ -3659,6 +3659,16 @@ static std::unique_ptr<HUD::Dante::DanteHUD> s_DanteHUD2;
 static int s_LastAppliedStyle = -1;
 static float s_LastRoyalguardFill = -1.0f;
 static float s_LastDTFill = -1.0f;
+static float s_LastVitalityFill = -1.0f;
+static float s_LastDamageFill = -1.0f;
+static float s_DamageSnapTimer = 0.0f;
+static constexpr float kDamageBarDelay = 1.5f;
+// Room transitions delete and re-create the player actor; HP settles to the
+// carried-over value afterwards, which is not damage. Track the actor
+// instance address and grant a grace period where HP changes snap instantly.
+static byte8* s_LastActorAddr = nullptr;
+static float s_ActorRestoreGraceTimer = 0.0f;
+static constexpr float kActorRestoreGraceDuration = 0.5f;
 
 // Maps the game's STYLE:: enum to the HUD's HUD::Dante::Style_t enum.
 static HUD::Dante::Style_t MapGameStyleToHUD(int style)
@@ -3743,7 +3753,73 @@ void DanteHUD2Render(){
 		s_DanteHUD2->SetDTFill(dtFraction);
 	}
 
-	s_DanteHUD2->OnUpdate((double)CrimsonClock::DeltaTime());
+	// HP Sync — vitality (green) follows hitPoints immediately; the damage
+	// (red) bar lags behind and snaps to vitality 1.5s after the last hit.
+	const float hpFraction = mainActorData.maxHitPoints > 0.0f
+		? mainActorData.hitPoints / mainActorData.maxHitPoints
+		: 0.0f;
+	const float deltaTime = CrimsonClock::DeltaTime();
+
+	// New actor instance (room transition): the HP carry-over that follows
+	// isn't damage, so grant a grace period where changes snap instantly.
+	if (pool_10222[3] != s_LastActorAddr)
+	{
+		s_LastActorAddr = pool_10222[3];
+
+		s_DamageSnapTimer = 0.0f;
+		s_ActorRestoreGraceTimer = kActorRestoreGraceDuration;
+	}
+
+	if (s_ActorRestoreGraceTimer > 0.0f)
+	{
+		s_ActorRestoreGraceTimer -= deltaTime;
+	}
+
+	// New damage event: restart the delay so the red bar trails the last hit.
+	if (hpFraction < s_LastVitalityFill && s_ActorRestoreGraceTimer <= 0.0f)
+	{
+		s_DamageSnapTimer = 0.0f;
+	}
+
+	if (hpFraction != s_LastVitalityFill)
+	{
+		// Healing, or a settling new actor instance, restores the damage
+		// bar instantly alongside vitality.
+		if (hpFraction > s_LastVitalityFill)
+		{
+			s_ActorRestoreGraceTimer = kActorRestoreGraceDuration;
+		}
+
+		if (hpFraction > s_LastVitalityFill || s_ActorRestoreGraceTimer > 0.0f)
+		{
+			s_DamageSnapTimer = 0.0f;
+
+			if (hpFraction != s_LastDamageFill)
+			{
+				s_LastDamageFill = hpFraction;
+
+				s_DanteHUD2->SetHPDamageAmount(hpFraction);
+			}
+		}
+
+		s_LastVitalityFill = hpFraction;
+
+		s_DanteHUD2->SetHPVitalityAmount(hpFraction);
+	}
+
+	// Accumulate the delay and snap the damage bar once it elapses.
+	if (s_LastVitalityFill >= 0.0f)
+	{
+		s_DamageSnapTimer += deltaTime;
+		if (s_DamageSnapTimer >= kDamageBarDelay && hpFraction != s_LastDamageFill)
+		{
+			s_LastDamageFill = hpFraction;
+
+			s_DanteHUD2->SetHPDamageAmount(hpFraction);
+		}
+	}
+
+	s_DanteHUD2->OnUpdate((double)deltaTime);
 	s_DanteHUD2->OnDraw();
 
 	// Blit the HUD's offscreen render target to the screen at its native size
