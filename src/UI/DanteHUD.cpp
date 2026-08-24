@@ -1096,16 +1096,19 @@ void DanteHUD::SetSpritePositions()
 	{
 		const auto idxs = m_SpriteIndices.GetDTBarOrbIdxs();
 
-		for (size_t i = 0; i < m_DTLevel + 2; i++)
+		if (m_DTLevel > 0)
 		{
-			const auto transform = GetDTBarOrb(m_ThemeID, m_HPLevel < 11 ? BarPositionID_t::Top : BarPositionID_t::Bottom, i + 1);
+			for (size_t i = 0; i < m_DTLevel + 2; i++)
+			{
+				const auto transform = GetDTBarOrb(m_ThemeID, m_HPLevel < 11 ? BarPositionID_t::Top : BarPositionID_t::Bottom, i + 1);
 
-			m_pSpriteBatch->SetTransform(
-				idxs[i],
-				{transform.Position.x, transform.Position.y, 0.0f},
-				glm::f32vec3(0.0f),
-				glm::f32vec3(transform.Scale)
-			);
+				m_pSpriteBatch->SetTransform(
+					idxs[i],
+					{ transform.Position.x, transform.Position.y, 0.0f },
+					glm::f32vec3(0.0f),
+					glm::f32vec3(transform.Scale)
+				);
+			}
 		}
 	}
 
@@ -1653,6 +1656,10 @@ void DanteHUD::UpdateStyleExpBar(float fraction)
 
 void DanteHUD::UpdateDTBarOrbs(float fraction)
 {
+	// If DT is not unlocked, do nothing
+	if (m_DTLevel == 0)
+		return;
+
 	const auto orbTextureIdxs = m_SpriteIndices.GetDTBarOrbIdxs();
 	const auto eachOrbShare   = 1.0f / (m_DTLevel + 2);
 
