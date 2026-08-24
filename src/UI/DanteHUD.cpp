@@ -131,23 +131,6 @@ void DanteHUD::SetDTFill(float dt)
 	UpdateDTBarOrbs(m_DTFill);
 }
 
-void DanteHUD::SetDTVisible(bool visible)
-{
-	m_DTFrameVisible = visible;
-
-	ApplyDTFrameOpacity();
-}
-
-void DanteHUD::ApplyDTFrameOpacity()
-{
-	const auto frameIdxs = m_SpriteIndices.GetDTBarFrameIdxs();
-
-	for (const auto& idx : frameIdxs)
-	{
-		m_pSpriteBatch->SetOpacity(idx, m_DTFrameVisible ? 1.0f : 0.0f);
-	}
-}
-
 void DanteHUD::SetActiveStyleLevel(size_t level)
 {
 	if (level >= 1 && level <= 3)
@@ -178,13 +161,13 @@ void DanteHUD::SetHPLevel(size_t level)
 
 void DanteHUD::SetDTLevel(size_t level)
 {
-	if (level >= 1 && level <= 8)
+	if (level >= 0 && level <= 8)
 	{
 		m_DTLevel = level;
 	}
 	else
 	{
-		m_DTLevel = 1;
+		m_DTLevel = 0;
 	}
 
 	UpdateSprites();
@@ -520,31 +503,37 @@ void DanteHUD::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle, 
 
 	// 12th: DT bar orbs
 	{
-		m_DTBarOrbsIdxs.clear();
-		m_DTBarOrbsIdxs.reserve(10);
-
-		for (size_t i = 0; i < dtBarLevel + 2; i++)
+		if (dtBarLevel > 0)
 		{
-			m_DTBarOrbsIdxs.push_back(m_SpriteIds.size());
+			m_DTBarOrbsIdxs.clear();
+			m_DTBarOrbsIdxs.reserve(10);
 
-			m_SpriteIds.push_back(
-				(size_t)GetDTBarOrbSpriteID(theme, false)
-			);
+			for (size_t i = 0; i < dtBarLevel + 2; i++)
+			{
+				m_DTBarOrbsIdxs.push_back(m_SpriteIds.size());
+
+				m_SpriteIds.push_back(
+					(size_t)GetDTBarOrbSpriteID(theme, false)
+				);
+			}
 		}
 	}
 
 	// 13th: DT bar frames
 	{
-		m_DTBarFrameIdxs.clear();
-		m_DTBarFrameIdxs.reserve(10);
-
-		for (size_t i = 0; i < dtBarLevel; i++)
+		if (dtBarLevel > 0)
 		{
-			m_DTBarFrameIdxs.push_back(m_SpriteIds.size());
+			m_DTBarFrameIdxs.clear();
+			m_DTBarFrameIdxs.reserve(10);
 
-			m_SpriteIds.push_back(
-				(size_t)GetDTBarFrameSpriteID(theme, i + 1)
-			);
+			for (size_t i = 0; i < dtBarLevel; i++)
+			{
+				m_DTBarFrameIdxs.push_back(m_SpriteIds.size());
+
+				m_SpriteIds.push_back(
+					(size_t)GetDTBarFrameSpriteID(theme, i + 1)
+				);
+			}
 		}
 	}
 
@@ -1698,7 +1687,6 @@ void DanteHUD::UpdateSprites()
 	SetSpritePositions();
 	SetSpriteMasks();
 	UpdateDTBarOrbs(m_DTFill);
-	ApplyDTFrameOpacity();
 }
 
 void DanteHUD::OnDrawDebugLayer()

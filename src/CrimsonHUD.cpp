@@ -3777,7 +3777,10 @@ void DanteHUD2Render(){
 	{
 		s_LastDTVisible = dtUnlocked;
 
-		s_DanteHUD2->SetDTVisible(dtUnlocked);
+		if (!dtUnlocked)
+		{
+			s_DanteHUD2->SetDTLevel(0);
+		}
 	}
 
 	// RG Gauge Sync
