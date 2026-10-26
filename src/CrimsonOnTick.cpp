@@ -502,6 +502,10 @@ bool CheckAllDead() {
 			alldead = alldead && false;
 			continue;
 		}
+		if (GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN).character >= CHARACTER::MAX) {
+			alldead = false; // Legacy boss (enemy actor): not dead from the player's point of view.
+			continue;
+		}
 		auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
 		if (activeActorData.eventData[0].event == ACTOR_EVENT::DEATH && activeActorData.recoverState[0] == 0x2) {
 			alldead = alldead && true;
@@ -1530,7 +1534,12 @@ void ReloadHUDController() {
 	auto& playerData = GetPlayerData(0);
 
 	if (activeConfig.Actor.enable) {
-		auto& activeNewActorData = GetNewActorData(0, playerData.activeCharacterIndex, ENTITY::MAIN);
+		// Legacy bosses are enemy actors, not a PlayerActorData: show the lead actor instead of reading garbage.
+		auto activeIndex = playerData.activeCharacterIndex;
+		if (GetCharacterData(0, activeIndex, ENTITY::MAIN).character >= CHARACTER::MAX) {
+			activeIndex = 0;
+		}
+		auto& activeNewActorData = GetNewActorData(0, activeIndex, ENTITY::MAIN);
 		if (activeNewActorData.baseAddr) {
 			actorDataPtr = reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
 		}

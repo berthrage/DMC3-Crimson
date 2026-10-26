@@ -2847,6 +2847,14 @@ byte8* SpawnActor(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex, bo
 		}
     }
     
+    // Legacy boss characters (Boss Lady, Boss Vergil) are created as enemy actors. Those are much smaller than
+    // PlayerActorData (for example newPlayerIndex lives at +0x1CACC), so reading and writing the player-only fields
+    // below on them touches memory that doesn't belong to the actor and corrupts the heap.
+    if (characterData.character == CHARACTER::BOSS_LADY || characterData.character == CHARACTER::BOSS_VERGIL) {
+        newActorData.baseAddr = actorBaseAddr;
+        return actorBaseAddr;
+    }
+
     auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     newActorData.baseAddr = actorBaseAddr;
     auto newPlayerIndex = actorData.newPlayerIndex;
@@ -4769,9 +4777,23 @@ void CharacterSwitchController() {
             if (!activeNewActorData.baseAddr) {
                 continue;
             }
-            auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+            // The selected character can be a legacy boss (an enemy actor): its buttons lie outside of the actor and would be read
+            // from garbage, and the lead actor only lets Lock-On through while a boss is selected. The gamepad (owned by the lead
+            // actor, always a PlayerActorData) is not masked, so the taps are read from there.
+            const bool activeIsLegacyBoss = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN).character >= CHARACTER::MAX;
+            auto tappedButtons = [&]() -> byte16 {
+                if (!activeIsLegacyBoss) {
+                    return reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr)->buttons[2];
+                }
+                auto& leadNewActorData = GetNewActorData(playerIndex, 0, ENTITY::MAIN);
+                if (!leadNewActorData.baseAddr) {
+                    return 0;
+                }
+                auto& leadActorData = *reinterpret_cast<PlayerActorData*>(leadNewActorData.baseAddr);
+                return GetGamepad(leadActorData.newGamepad).buttons[2];
+            };
 
-            bool buttonPressed = (activeActorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN));
+            bool buttonPressed = (tappedButtons() & GetBinding(BINDING::ITEM_SCREEN));
 
             // Double-tap state machine: detect two taps within bufferDuration
             {
@@ -9009,6 +9031,12 @@ void UpdateActorSpeed(byte8* baseAddr) {
 		auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
 
+		// Legacy boss characters (Boss Lady, Boss Vergil) are enemy actors, not PlayerActorData: their clone pointer and
+		// indices are not valid, so they must never reach the player-only code below.
+		if (characterData.character >= CHARACTER::MAX) {
+			continue;
+		}
+
 		if (!newActorData.baseAddr) {
 			return;
 		}
@@ -9050,6 +9078,13 @@ void UpdateActorSpeed(byte8* baseAddr) {
 
 
                 auto actorBaseAddr = newActorData.baseAddr;
+
+                // Legacy boss characters (Boss Lady, Boss Vergil) are enemy actors, not PlayerActorData. They don't have
+                // valid Crimson player/character/entity indices (they read as 255), so they must never reach the
+                // player-only code below. This used to be checked only when baseAddr != actorBaseAddr.
+                if (characterData.character >= CHARACTER::MAX) {
+                    continue;
+                }
 
                 if (baseAddr != actorBaseAddr) {
                     // At this point we only know it's not the actor, but it could be a weapon from that actor.

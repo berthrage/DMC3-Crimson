@@ -2019,6 +2019,15 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 	if (!InGame()) {
 		return false;
 	}
+
+	// Legacy boss characters (Boss Lady, Boss Vergil) are enemy actors, so their Crimson player/character/entity
+	// indices are not valid (they read as 255). They must never reach the player-indexed arrays below, otherwise
+	// state.currentWeapons[charIndex] and friends are accessed far out of bounds and memory gets corrupted.
+	if (actorData.newPlayerIndex >= PLAYER_COUNT || actorData.newCharacterIndex >= CHARACTER_COUNT ||
+		actorData.newEntityIndex >= ENTITY_COUNT) {
+		return false;
+	}
+
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 	auto playerIndex = actorData.newPlayerIndex;
@@ -4960,6 +4969,11 @@ void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 
 		auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
 		auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+
+		// Legacy bosses are enemy actors, not a PlayerActorData (their style, hit points... would be read from garbage).
+		if (activeCharacterData.character >= CHARACTER::MAX) {
+			continue;
+		}
 
 		if (!activeNewActorData.baseAddr) {
 			return;

@@ -264,8 +264,9 @@ namespace CrimsonFastcallDetours{
      DamageCalcTrampoline trampoline = (DamageCalcTrampoline)trampoline_raw;
 
 	 auto& actorData = *reinterpret_cast<PlayerActorData*>(actorAddr60 - 0x60);
-	 auto playerIndex = actorData.newPlayerIndex;
-	 auto entityIndex = actorData.newEntityIndex;
+	 // Legacy bosses (and some shells) aren't a PlayerActorData, their indices read as garbage (255).
+	 uint8 playerIndex = (actorData.newPlayerIndex < PLAYER_COUNT) ? actorData.newPlayerIndex : 0;
+	 uint8 entityIndex = (actorData.newEntityIndex < ENTITY_COUNT) ? actorData.newEntityIndex : 0;
 	 auto& inRisingStar = (entityIndex == 0) ? crimsonPlayer[playerIndex].inRisingStar :
 		 crimsonPlayer[playerIndex].inRisingStarClone;
 	 auto& inYamatoHighTime = (entityIndex == 0) ? crimsonPlayer[playerIndex].inYamatoHighTime :

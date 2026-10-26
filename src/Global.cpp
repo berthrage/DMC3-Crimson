@@ -73,6 +73,14 @@ void ClearActorData() {
 }
 
 NewActorData& GetNewActorData(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
+    // Legacy bosses are enemy actors, so the indices read from them as if they were a PlayerActorData are garbage (255).
+    if (playerIndex >= PLAYER_COUNT || characterIndex >= CHARACTER_COUNT || entityIndex >= ENTITY_COUNT) {
+        static NewActorData invalidNewActorData;
+        invalidNewActorData = {};
+
+        return invalidNewActorData;
+    }
+
     return g_newActorData[playerIndex][characterIndex][entityIndex];
 }
 
