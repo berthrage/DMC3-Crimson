@@ -1,5 +1,7 @@
 // #include "../Zip/zip.h"
 #include "../ThirdParty/libzip/zip.h"
+#include <cstring>
+#include <vector>
 #include "Memory.hpp"
 
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
@@ -336,6 +338,197 @@ FileManager File_dynamicFiles;
 
 FileDataTypeData fileDataTypeData[CACHE_FILE_COUNT] = {};
 
+// The animations of the Super Judgement Cut are the animations of the boss Vergil, which are in the game's own data: the em035.pac of the boss
+// holds a PAC of 95 animations of his body, and the move needs six of them. They are copied, in memory and at every start, into a small PAC in
+// the layout of the motion files of the player ("PAC\0", the count, the table of offsets from byte 8, the data from 0x20, 4 byte aligned).
+// Nothing of the game's data is written to the disk or shipped with the mod.
+static constexpr uint32 sjcBossAnimationIndices[] = { 85, 86, 87, 88, 89, 90 }; // the phases of the move; 88 sits between 87 and 89, 90 is the taunt
+
+// Reads a file of the game's archive (data\dmc3\dmc3-0.nbz) into memory. The caller frees it with Free.
+static byte8* ReadArchiveFile(const char* name, uint64& size) {
+    char path[128];
+    zip_error result = {};
+
+    snprintf(path, sizeof(path), "data\\dmc3\\dmc3-0.nbz");
+
+    zip* archive = zip_open(path, 0, &result.zip_err);
+    if (!archive) {
+        Log("zip_open failed. %d %s", result.zip_err, name);
+
+        return 0;
+    }
+
+    snprintf(path, sizeof(path), "GData.afs/%s", name);
+
+    zip_stat_t stats = {};
+    zip_stat_init(&stats);
+    constexpr uint64 maxSize = (128 * 1024 * 1024);
+    if ((zip_stat(archive, path, 0, &stats) != 0) || (stats.size == 0) || (stats.size > maxSize)) {
+        Log("zip_stat failed or the file is not usable. %s", name);
+
+        zip_close(archive);
+
+        return 0;
+    }
+
+    zip_file* file = zip_fopen(archive, path, 0);
+    if (!file) {
+        Log("zip_fopen failed. %s", name);
+
+        zip_close(archive);
+
+        return 0;
+    }
+
+    byte8* addr = Alloc(stats.size);
+    if (!addr) {
+        Log("Alloc failed.");
+
+        zip_fclose(file);
+        zip_close(archive);
+
+        return 0;
+    }
+
+    const auto bytesRead = zip_fread(file, addr, stats.size);
+
+    zip_fclose(file);
+    zip_close(archive);
+
+    if (static_cast<uint64>(bytesRead) != stats.size) {
+        Log("zip_fread failed. %s", name);
+
+        Free(addr);
+
+        return 0;
+    }
+
+    size = stats.size;
+
+    return addr;
+}
+
+// The slot `index` of a PAC in memory: the file lies from its offset to the next larger offset of the table (or to the end of the PAC).
+static bool PacSlot(const uint8* pac, uint64 pacSize, uint32 index, uint64& start, uint64& end) {
+    if (pacSize < 8 || memcmp(pac, "PAC\0", 4) != 0) {
+        return false;
+    }
+
+    const uint32 count = *reinterpret_cast<const uint32*>(pac + 4);
+    if ((index >= count) || ((8 + 4ull * count) > pacSize)) {
+        return false;
+    }
+
+    const uint32* offsets = reinterpret_cast<const uint32*>(pac + 8);
+
+    start = offsets[index];
+    if ((start == 0) || (start >= pacSize)) {
+        return false;
+    }
+
+    end = pacSize;
+    for (uint32 i = 0; i < count; ++i) {
+        if ((offsets[i] > start) && (offsets[i] < end)) {
+            end = offsets[i];
+        }
+    }
+
+    return true;
+}
+
+// Builds the motion PAC of the Super Judgement Cut out of em035.pac and puts it in the static files. Returns 0 (and the move is not available)
+// if anything about the data of the game is not as expected.
+static byte8* BuildSJCAnimations() {
+    uint64 size = 0;
+    byte8* em035 = ReadArchiveFile("em035.pac", size);
+    if (!em035) {
+        Log("SJC animations: em035.pac could not be read.");
+
+        return 0;
+    }
+
+    const uint8* top = reinterpret_cast<const uint8*>(em035);
+
+    // The PAC of 95 slots with at least 40 motions in it is the one of the body of the boss.
+    const uint8* body = 0;
+    uint64 bodySize   = 0;
+
+    const uint32 topCount = *reinterpret_cast<const uint32*>(top + 4);
+    for (uint32 i = 0; (i < topCount) && !body; ++i) {
+        uint64 start = 0;
+        uint64 end   = 0;
+        if (!PacSlot(top, size, i, start, end) || (end - start) < 8 || memcmp(top + start, "PAC\0", 4) != 0) {
+            continue;
+        }
+        if (*reinterpret_cast<const uint32*>(top + start + 4) != 95) {
+            continue;
+        }
+
+        uint32 motions = 0;
+        for (uint32 j = 0; j < 95; ++j) {
+            uint64 slotStart = 0;
+            uint64 slotEnd   = 0;
+            if (PacSlot(top + start, end - start, j, slotStart, slotEnd) && (slotEnd - slotStart) >= 7 &&
+                memcmp(top + start + slotStart + 4, "MOT", 3) == 0) {
+                ++motions;
+            }
+        }
+        if (motions >= 40) {
+            body     = top + start;
+            bodySize = end - start;
+        }
+    }
+
+    if (!body) {
+        Log("SJC animations: the animations of the boss were not found in em035.pac.");
+
+        Free(em035);
+
+        return 0;
+    }
+
+    constexpr uint32 slotCount = sizeof(sjcBossAnimationIndices) / sizeof(sjcBossAnimationIndices[0]);
+
+    uint64 slotStarts[slotCount] = {};
+    uint64 slotSizes[slotCount]  = {};
+
+    for (uint32 k = 0; k < slotCount; ++k) {
+        uint64 start = 0;
+        uint64 end   = 0;
+        if (!PacSlot(body, bodySize, sjcBossAnimationIndices[k], start, end) || (end - start) < 7 || memcmp(body + start + 4, "MOT", 3) != 0) {
+            Log("SJC animations: animation %u of the boss is not usable.", sjcBossAnimationIndices[k]);
+
+            Free(em035);
+
+            return 0;
+        }
+
+        slotStarts[k] = start;
+        slotSizes[k]  = end - start;
+    }
+
+    const uint64 headerSize = ((8 + 4 * slotCount) + 0x1F) & ~0x1Full;
+
+    std::vector<uint8> blob(headerSize, 0);
+    memcpy(blob.data(), "PAC\0", 4);
+    *reinterpret_cast<uint32*>(blob.data() + 4) = slotCount;
+
+    for (uint32 k = 0; k < slotCount; ++k) {
+        *reinterpret_cast<uint32*>(blob.data() + 8 + 4 * k) = static_cast<uint32>(blob.size());
+
+        blob.insert(blob.end(), body + slotStarts[k], body + slotStarts[k] + slotSizes[k]);
+        blob.resize((blob.size() + 3) & ~3ull, 0); // 4 byte aligned
+    }
+
+    Free(em035);
+
+    byte8* built = File_staticFiles.Push(reinterpret_cast<byte8*>(blob.data()), blob.size());
+
+    Log("SJC animations: %llu bytes, %u animations, %s", static_cast<unsigned long long>(blob.size()), slotCount, built ? "OK" : "Push failed");
+
+    return built;
+}
+
 byte8* demo_pl000_00_3 = 0;
 byte8* vergil_pl021_00_3 = 0;
 byte8* newRisingStar_pl021_00_4 = 0;
@@ -344,6 +537,7 @@ byte8* newBaseDanteAnims_pl000_00_0 = 0;
 byte8* newTauntDanteAnims1_pl000_00_2 = 0;
 byte8* newTauntDanteAnims2_pl000_00_2 = 0;
 byte8* newTauntVergilAnims2_pl021_00_2 = 0;
+byte8* newSJCAnims_pl021_00_2 = 0;
 byte8* newTauntVergilAnims1_pl021_00_2 = 0;
 byte8* newBaseVergilAnims_pl021_00_0 = 0;
 byte8* newStyleSwitching01_pl000_00_4 = 0;
@@ -621,6 +815,7 @@ bool File_Init() {
         auto& file18 = newTauntVergilAnims1_pl021_00_2 = File_staticFiles.Push(newTauntVergilAnims1Filename);
         auto& file19 = newTauntVergilAnims2_pl021_00_2 = File_staticFiles.Push(newTauntVergilAnims2Filename);
 		auto& file20 = newAirTauntRose_pl000_00_4 = File_staticFiles.Push(newAirTauntRoseFilename);
+        auto& file21 = newSJCAnims_pl021_00_2 = BuildSJCAnimations();
 
         // Log load status for every pushed file
         Log("File load: %s — %s", filename,                  file  ? "OK" : "FAILED");
@@ -643,6 +838,7 @@ bool File_Init() {
         Log("File load: %s — %s", newTauntVergilAnims1Filename,    file18 ? "OK" : "FAILED");
         Log("File load: %s — %s", newTauntVergilAnims2Filename,    file19 ? "OK" : "FAILED");
 		Log("File load: %s — %s", newAirTauntRoseFilename,         file20 ? "OK" : "FAILED");
+        Log("File load: SJC animations (built from em035.pac) — %s", file21 ? "OK" : "FAILED");
 
         if (!file) {
             return;
@@ -671,6 +867,7 @@ bool File_Init() {
         AdjustPointers(file18);
         AdjustPointers(file19);
 		AdjustPointers(file20);
+        AdjustPointers(file21);
     }();
 
 

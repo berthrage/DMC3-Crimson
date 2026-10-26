@@ -15,6 +15,7 @@ struct SDL_version;
 #include <string>
 #include <thread>
 #include <chrono>
+#include <random>
 
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "Core/Core.hpp"
@@ -98,6 +99,18 @@ Mix_Chunk* jdcCharge;
 Mix_Chunk* driveStart;
 Mix_Chunk* driveLoop;
 Mix_Chunk* driveLevelUp;
+// The sounds of the Super Judgement Cut are waves of the sound bank of the boss Vergil (found with the FMOD play log), played through FMOD like
+// the game does (Sound.cpp). The gain is the volume of the wave, found by listening: the volume of a line of speech, the trick (the sound in the
+// background) is quieter.
+struct SJCBossWave {
+	const char* name;
+	int wave;
+	float gain;
+};
+static constexpr SJCBossWave sjcBossWaves[] = {
+	{ "dt_in",   64, 0.8325f }, { "trick",   0, 0.4695f }, { "dt_out", 65, 0.875f },
+	{ "swing_a", 58, 1.115f  }, { "swing_b", 6, 0.8475f }, { "sheath", 69, 2.4f   },
+};
 Mix_Chunk* snap;
 Mix_Chunk* ecstasyHit;
 Mix_Music* missionClearSong;
@@ -1142,20 +1155,21 @@ void UpdateJoysticks() {
     TickSnapQueue();
 }
 
-void VibrateController(int controllerIndex, Uint16 rumbleStrengthLowFreq, Uint16 rumbleStrengthHighFreq, int rumbleDuration) {
+bool VibrateController(int controllerIndex, Uint16 rumbleStrengthLowFreq, Uint16 rumbleStrengthHighFreq, int rumbleDuration) {
 	uint8* disableFlag = reinterpret_cast<uint8*>(appBaseAddr + 0xCA8800);
-	if (*disableFlag) return;
-    if (fn_SDL_RumbleGamepad == NULL) return;
+	if (*disableFlag) return false;
+    if (fn_SDL_RumbleGamepad == NULL) return false;
     SDL_Gamepad* pad = GetControllerForPlayer(controllerIndex);
     if (pad != NULL) {
 		if (fn_SDL_RumbleGamepad(pad, rumbleStrengthLowFreq, rumbleStrengthHighFreq, rumbleDuration)) {
-			// rumble started successfully
+			return true; // rumble started successfully
 		}
 		else {
 			const char* err = (fn_SDL_GetError != NULL) ? fn_SDL_GetError() : "Unknown";
 			std::cerr << "Vibration ERROR " << controllerIndex << ": " << err << std::endl;
 		}
     }
+	return false;
 }
 
 void VibrateControllerByPhysicalSlot(int xiSlot, Uint16 rumbleLow, Uint16 rumbleHigh) {
@@ -1580,6 +1594,78 @@ void PlayJDCCharge(int playerIndex) {
     int volume = (int)(65.0f * slider);
     fn_Mix_Volume(CHANNEL::initialJDCCharge + playerIndex, volume);
     fn_Mix_PlayChannel(CHANNEL::initialJDCCharge + playerIndex, jdcCharge, 0);
+}
+
+// The volume (0 - 1 and more) of a wave of the boss Vergil: its gain and the game's own volume of the common sound channel (the one the
+// voice lines of the player Vergil belong to).
+static float BossWaveVolume(float gain) {
+	return gain * (activeCrimsonConfig.Sound.channelVolumes[::CHANNEL::COMMON] / 100.0f);
+}
+
+// One generator for the voice lines (taunt and SJC).
+static std::mt19937& VoiceRng() {
+	static std::mt19937 generator{ std::random_device{}() };
+	return generator;
+}
+
+// The gains of the voice lines of the boss: 2.5 * 4000 / rms of the wave, the same as the other sounds of the move.
+// Taunt lines of the boss: wave 54 (human form), waves 55 and 56 (devil form).
+static constexpr int   TAUNT_WAVE_HUMAN = 54;
+static constexpr int   TAUNT_WAVE_DEVIL_A     = 55;
+static constexpr int   TAUNT_WAVE_DEVIL_B     = 56;
+static constexpr float TAUNT_GAIN_HUMAN = 0.9709f;
+static constexpr float TAUNT_GAIN_DEVIL_A     = 1.0295f;
+static constexpr float TAUNT_GAIN_DEVIL_B     = 0.9022f;
+
+// The taunt of Vergil with Yamato: the game asks for its own taunt line (group 1, index 40). Here one of the lines of the boss may be played
+// instead. Human form: the game's own or wave 54. Devil form (the game has no line for it): wave 55 or 56. Returns true if a line of the boss
+// was played, so the game's own is to be left out.
+bool PlayVergilTauntVoice(int playerIndex, bool devilForm) {
+	static std::mt19937& rng = VoiceRng();
+	const int pick = static_cast<int>(rng() & 1);
+
+	if (!devilForm) {
+		if (pick == 0) {
+			return false; // the game's own line
+		}
+		return PlayBossVergilWave(TAUNT_WAVE_HUMAN, BossWaveVolume(TAUNT_GAIN_HUMAN));
+	}
+	return pick == 0 ? PlayBossVergilWave(TAUNT_WAVE_DEVIL_A, BossWaveVolume(TAUNT_GAIN_DEVIL_A))
+	                 : PlayBossVergilWave(TAUNT_WAVE_DEVIL_B, BossWaveVolume(TAUNT_GAIN_DEVIL_B));
+}
+
+// Plays one of the voice lines of the Super Judgement Cut at random and returns how long it lasts in ms (0 if it isn't there), or -1 when it is
+// the game's own taunt line (human form only): the caller plays it (see PlayGameVergilTauntLine in CrimsonFastcallDetours.cpp) and it lasts SJC_STANDARD_LINE_MS.
+int PlaySJCVoice(int playerIndex, bool devilForm) {
+	// Human form: waves 20 and 28, or the game's own taunt line (pick 2). Devil form: waves 44 and 45.
+	static constexpr int humanWaves[2]      = { 20, 28 };
+	static constexpr int devilWaves[2]      = { 44, 45 };
+	static constexpr float humanGains[2]    = { 1.19f, 0.9175f };
+	static constexpr float devilGains[2]    = { 0.825f, 0.7325f };
+	static constexpr int humanLengthsMs[2]  = { 1730, 1410 };
+	static constexpr int devilLengthsMs[2]  = { 1410, 1590 };
+
+	static std::mt19937& rng = VoiceRng();
+	const int pick = static_cast<int>(rng() % (devilForm ? 2 : 3));
+	if (!devilForm && pick == 2) {
+		return -1;
+	}
+
+	const int wave   = devilForm ? devilWaves[pick] : humanWaves[pick];
+	const float gain = devilForm ? devilGains[pick] : humanGains[pick];
+	if (!PlayBossVergilWave(wave, BossWaveVolume(gain))) {
+		return 0;
+	}
+	return devilForm ? devilLengthsMs[pick] : humanLengthsMs[pick];
+}
+
+bool PlaySJCSfx(int playerIndex, const std::string& name) {
+	for (const auto& boss : sjcBossWaves) {
+		if (name == boss.name) {
+			return PlayBossVergilWave(boss.wave, BossWaveVolume(boss.gain));
+		}
+	}
+	return false;
 }
 
 void PlayDevilTriggerReady(int playerIndex) {
