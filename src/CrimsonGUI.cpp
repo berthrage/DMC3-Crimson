@@ -2019,7 +2019,6 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 	if (!InGame()) {
 		return false;
 	}
-
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
 
 	auto playerIndex = actorData.newPlayerIndex;
