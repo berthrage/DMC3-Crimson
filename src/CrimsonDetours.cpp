@@ -928,10 +928,31 @@ static std::unordered_map<JdcSourceKey, vec3, JdcSourceKeyHash> s_primaryPosBySo
 static std::unordered_map<JdcSourceKey, vec3, JdcSourceKeyHash> s_fixedExtraPosBySource;
 static std::unordered_map<uintptr_t, JdcSourceKey> s_extraAddrToSource;
 
+// JC spheres spawned by the Super Judgement Cut (CrimsonFastcallDetours.cpp) keep the position they were created at (an enemy), the
+// tracking below must not move them to the lock-on target. Shell base address -> creation tick (entries expire, addresses get reused).
+static std::unordered_map<uintptr_t, uint64> s_sjcShlTicks;
+
+void RegisterSJCShl(uintptr_t shlBaseAddr) {
+	const uint64 now = GetTickCount64();
+	for (auto it = s_sjcShlTicks.begin(); it != s_sjcShlTicks.end();) {
+		it = ((now - it->second) > 3000) ? s_sjcShlTicks.erase(it) : std::next(it);
+	}
+	s_sjcShlTicks[shlBaseAddr] = now;
+}
+
 void SetJDCPositionAtMatrix(uintptr_t shlAddr) {
 	auto& shlActorData = *reinterpret_cast<CPl021Shl02Actor*>(shlAddr - 0x60);
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(shlActorData.playerActorAddr);
 	auto shlActorBaseAddr = shlAddr - 0x60;
+
+	auto sjcShlIt = s_sjcShlTicks.find(shlActorBaseAddr);
+	if (sjcShlIt != s_sjcShlTicks.end()) {
+		shlActorData.matrix[12] = shlActorData.position.x;
+		shlActorData.matrix[13] = shlActorData.position.y;
+		shlActorData.matrix[14] = shlActorData.position.z;
+		return;
+	}
+
 	const bool isJustFrameJdc = CheckIfInJustFrameJDC(shlActorData.playerActorAddr);
 
 	if (isJustFrameJdc) {

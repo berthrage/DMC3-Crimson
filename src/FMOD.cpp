@@ -13,6 +13,12 @@ FMOD_System_CreateSound_t FMOD_System_CreateSound = 0;
 
 FMOD_Channel_SetVolume_t FMOD_Channel_SetVolume = 0;
 
+FMOD_System_PlaySound_t FMOD_System_PlaySound = 0;
+
+FMOD_Channel_SetFrequency_t FMOD_Channel_SetFrequency = 0;
+
+FMOD_Channel_SetPaused_t FMOD_Channel_SetPaused = 0;
+
 bool FMOD_Init() {
     LogFunction();
 
@@ -81,6 +87,18 @@ bool FMOD_Init() {
         }
     }
 
+
+    // The functions that play the sounds of the Super Judgement Cut (the waves of the sound bank of the boss Vergil). Not fatal if missing:
+    // the move is then just silent.
+    {
+        FMOD_System_PlaySound       = reinterpret_cast<FMOD_System_PlaySound_t>(GetProcAddress(lib, "FMOD_System_PlaySound"));
+        FMOD_Channel_SetFrequency   = reinterpret_cast<FMOD_Channel_SetFrequency_t>(GetProcAddress(lib, "FMOD_Channel_SetFrequency"));
+        FMOD_Channel_SetPaused      = reinterpret_cast<FMOD_Channel_SetPaused_t>(GetProcAddress(lib, "FMOD_Channel_SetPaused"));
+
+        if (!FMOD_System_PlaySound || !FMOD_Channel_SetFrequency || !FMOD_Channel_SetPaused) {
+            Log("GetProcAddress failed for the playing functions of FMOD (the Super Judgement Cut will be silent).");
+        }
+    }
 
     Write<uint32>((appBaseAddr + 0x32635 + 1), FMOD_CACHE_SIZE);
     /*
