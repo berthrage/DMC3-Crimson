@@ -1366,6 +1366,15 @@ float InterceptingCollisions(byte8* metadataAddr, float radius) {
 	DriveCol::HandleDriveCollisionLogic(collisionMeta, metadataKey);
 	//NevanRoseShl::HandleNevanRoseShlCollisionLogic(collisionMeta, metadataKey);
 
+	// Shrink the rose projectile's (roseMode NevanShl) collision radius.
+	if (reinterpret_cast<uintptr_t>(collisionMeta->dmgDataAddr) == reinterpret_cast<uintptr_t>(appBaseAddr + damageDataOffsets.nevanShl)) {
+		auto& collisionData = *reinterpret_cast<CollisionData*>(collisionMeta->collisionDataAddr);
+		auto& shlActorData = *reinterpret_cast<CPl000Shl10eActor*>(collisionData.baseAddr);
+		if (shlActorData.roseMode) {
+			radius *= 0.85f;
+		}
+	}
+
 	// Yamato High Time hitbox increase
 	uintptr_t yamatoHighTimeOffset = (uintptr_t)collisionMeta->sourceMatrixAddr - 0x66640;
 	uintptr_t yamatoHighTimeOffsetDT = (uintptr_t)collisionMeta->sourceMatrixAddr - 0x7CA40; // +0x16400 from yamatoHighTimeOffset, for DT version of the move, DT has slightly larger radius?
