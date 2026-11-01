@@ -458,6 +458,11 @@ namespace CrimsonDetours {
 		// NevanShlSetToTravel
 		std::uint64_t g_NevanShlSetToTravel_ReturnAddr;
 		void NevanShlSetToTravelDetour();
+		// NevanRoseShlBoneOverride
+		std::uint64_t g_NevanRoseShlBoneOverride_ReturnAddr;
+		std::uint64_t g_NevanRoseShlBoneOverrideY_ReturnAddr;
+		void NevanRoseShlBoneOverrideDetour();
+		void NevanRoseShlBoneOverrideYDetour();
 
 		// FixNevanShlPlayerSpawn
 		std::uint64_t g_FixNevanShlPlayerSpawn_ReturnAddr1;
@@ -3068,6 +3073,20 @@ void AirTauntRoseSwingDetours(bool enable) {
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D6E80, &NevanShlSetToTravelDetour, 5);
 	g_NevanShlSetToTravel_ReturnAddr = nevanShlSetToTravelHook->GetReturnAddress();
 	nevanShlSetToTravelHook->Toggle(enable);
+
+	// From CPl000Shl10eNevanShlSetInitialPos_sub_1401D66A0:
+	// dmc3.exe+1D66A0 - 48 89 5C 24 08 - mov [rsp+08],rbx
+	static std::unique_ptr<Utility::Detour_t> nevanRoseShlBoneOverrideHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D66A0, &NevanRoseShlBoneOverrideDetour, 5);
+	g_NevanRoseShlBoneOverride_ReturnAddr = nevanRoseShlBoneOverrideHook->GetReturnAddress();
+	nevanRoseShlBoneOverrideHook->Toggle(enable);
+
+	// From CPl000Shl10eNevanShlSetInitialPos_sub_1401D66A0:
+	// dmc3.exe+1D67C5 - F3 0F 11 4E 04 - movss [rsi+04],xmm1 { final spawn Y }
+	static std::unique_ptr<Utility::Detour_t> nevanRoseShlBoneOverrideYHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D67C5, &NevanRoseShlBoneOverrideYDetour, 5);
+	g_NevanRoseShlBoneOverrideY_ReturnAddr = nevanRoseShlBoneOverrideYHook->GetReturnAddress();
+	nevanRoseShlBoneOverrideYHook->Toggle(enable);
 
 	// From CPl000Shl10eNevanShlUpdate_sub_1401D6C00:
 	// dmc3.exe+1D6C28 - FF 90 E8 00 00 00 - call qword ptr [rax+000000E8]{ NevanShlTravelFX }

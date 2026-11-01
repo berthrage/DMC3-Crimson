@@ -231,4 +231,45 @@ OriginalCode:
     jmp qword ptr [g_FireNevanRoseShlDestroyFX_ReturnAddr]
 
 FireNevanRoseShlDestroyFXDetour ENDP
+
+.DATA
+EXTERN g_NevanRoseShlBoneOverride_ReturnAddr:QWORD
+EXTERN g_NevanRoseShlBoneOverrideY_ReturnAddr:QWORD
+roseShlYliftActive db 0
+roseShlYliftAmount dd 20.0f
+
+.CODE
+; From CPl000Shl10eNevanShlSetInitialPos_sub_1401D66A0:
+; dmc3.exe+1D66A0 - 48 89 5C 24 08 - mov [rsp+08],rbx
+NevanRoseShlBoneOverrideDetour PROC
+; NevanShlActor in rcx, spawn bone in dl
+CheckIfRoseShl:
+    cmp byte ptr [rcx + 0E0h], 1 ; check if RoseMode
+    jne NotRose
+    mov dl, 9 ; force Rose shl to spawn on bone 9 (right hand)
+    mov byte ptr [roseShlYliftActive], 1
+    jmp OriginalCode
+
+NotRose:
+    mov byte ptr [roseShlYliftActive], 0
+
+OriginalCode:
+    mov [rsp + 08h], rbx
+    jmp qword ptr [g_NevanRoseShlBoneOverride_ReturnAddr]
+
+NevanRoseShlBoneOverrideDetour ENDP
+
+; From CPl000Shl10eNevanShlSetInitialPos_sub_1401D66A0:
+; dmc3.exe+1D67C5 - F3 0F 11 4E 04 - movss [rsi+04],xmm1 { final spawn Y }
+NevanRoseShlBoneOverrideYDetour PROC
+CheckIfRoseShl:
+    cmp byte ptr [roseShlYliftActive], 1
+    jne OriginalCode
+    addss xmm1, dword ptr [roseShlYliftAmount] ; lift spawn +100 on Y
+
+OriginalCode:
+    movss dword ptr [rsi + 04h], xmm1
+    jmp qword ptr [g_NevanRoseShlBoneOverrideY_ReturnAddr]
+
+NevanRoseShlBoneOverrideYDetour ENDP
 END
