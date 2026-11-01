@@ -1528,6 +1528,13 @@ void SpawnDelayedRoseShl(uintptr_t playerAddr) {
 	roseSpawnInProgress = false;
 }
 
+// Per-RoseShl Effekseer state. The matrices double as the persistent
+// follow-pointer targets for PlayEffectAtMatrix; the handle and stopped set
+// track the single infinite-duration projectile effect fired per Shl.
+static std::unordered_map<uintptr_t, std::array<float, 16>> s_ecstasyRoseMatrices;
+static std::unordered_map<uintptr_t, EffekseerHandle> s_ecstasyRoseHandles;
+static std::unordered_set<uintptr_t> s_ecstasyRoseStopped;
+
 // Called from the mark detour for every NevanShl spawn, with the Shl actor
 // (the detour site's original instruction writes to a Shl field). Resolve the
 // owner player from the Shl's playerActorAddr instead of reading
@@ -1544,18 +1551,20 @@ bool CheckIfShouldMarkRoseShl(uintptr_t shlActorAddr) {
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& roseSpawnInProgress = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].roseSpawnInProgress
 		: crimsonPlayer[playerIndex].roseSpawnInProgressClone;
-	return CheckIfInAirTauntRose(playerAddr) || roseSpawnInProgress;
+	bool shouldMark = CheckIfInAirTauntRose(playerAddr) || roseSpawnInProgress;
+	if (shouldMark) {
+		// Fresh RoseShl: drop any stale per-address projectile state so a
+		// recycled actor address can't inherit a stopped handle from a
+		// previous rose that already impacted.
+		s_ecstasyRoseHandles.erase(shlActorAddr);
+		s_ecstasyRoseStopped.erase(shlActorAddr);
+		s_ecstasyRoseMatrices.erase(shlActorAddr);
+	}
+	return shouldMark;
 }
-
-static std::unordered_map<uintptr_t, std::array<float, 16>> s_ecstasyRoseMatrices;
 
 void PlayEcstasyRoseVFX(uintptr_t shlActorAddr) {
 	auto& shlActor = *reinterpret_cast<CPl000Shl10eActor*>(shlActorAddr);
-	EffekseerHandle handle = {};
-	if (!handle) {
-		CrimsonEfkPreload::ecstasy_Rose_Handle = CrimsonEfk::ReloadEffect(CrimsonEfkPreload::ecstasy_Rose_Handle, CrimsonEfkPreload::ecstasy_Rose_Path, 1.0f);
-	}
-
 	if (!shlActor.matrixPtr) {
 		return;
 	}
@@ -1574,18 +1583,44 @@ void PlayEcstasyRoseVFX(uintptr_t shlActorAddr) {
 	matrix[2] = -s;  matrix[6] = 0;  matrix[10] = c;  matrix[14] = shlActor.position.z;
 	matrix[3] = 0;   matrix[7] = 0;  matrix[11] = 0;  matrix[15] = 1.0f;
 
-	CrimsonEfk::PlayEffectAtMatrix(CrimsonEfkPreload::ecstasy_Rose_Handle, matrix.data(), NULL);
+	// The projectile effect is infinite-duration now: fire it once and let the
+	// follow-pointer registered by PlayEffectAtMatrix keep it glued to the
+	// matrix (refreshed above every frame). Never re-fire once it's stopped.
+	if (s_ecstasyRoseStopped.count(shlActorAddr) != 0) {
+		return;
+	}
+
+	auto handleIt = s_ecstasyRoseHandles.find(shlActorAddr);
+	if (handleIt == s_ecstasyRoseHandles.end()) {
+		handleIt = s_ecstasyRoseHandles.emplace(shlActorAddr, -1).first;
+	}
+
+	if (handleIt->second < 0 || !CrimsonEfk::IsPlaying(handleIt->second)) {
+		CrimsonEfkPreload::ecstasy_Rose_Handle = CrimsonEfk::ReloadEffect(
+			CrimsonEfkPreload::ecstasy_Rose_Handle,
+			CrimsonEfkPreload::ecstasy_Rose_Path,
+			1.0f);
+		handleIt->second = CrimsonEfk::PlayEffectAtMatrix(CrimsonEfkPreload::ecstasy_Rose_Handle, matrix.data(), NULL);
+	}
 }
 
 void PlayEcstasyRoseHitFX(uintptr_t shlActorAddr) {
 	auto& shlActor = *reinterpret_cast<CPl000Shl10eActor*>(shlActorAddr);
-	EffekseerHandle handle = {};
-	if (!handle) {
-		CrimsonEfkPreload::ecstasy_Hit_Handle = CrimsonEfk::ReloadEffect(CrimsonEfkPreload::ecstasy_Hit_Handle, CrimsonEfkPreload::ecstasy_Hit_Path, 70.0f);
-	}
 	if (!shlActor.matrixPtr) {
 		return;
 	}
+
+	// Stop the infinite-duration projectile effect on impact so it doesn't keep
+	// following the Shl once the projectile is destroyed.
+	auto handleIt = s_ecstasyRoseHandles.find(shlActorAddr);
+	if (handleIt != s_ecstasyRoseHandles.end() && handleIt->second >= 0) {
+		CrimsonEfk::StopEffect(handleIt->second);
+	}
+	s_ecstasyRoseHandles.erase(shlActorAddr);
+	s_ecstasyRoseStopped.insert(shlActorAddr);
+
+	CrimsonEfkPreload::ecstasy_Hit_Handle = CrimsonEfk::ReloadEffect(CrimsonEfkPreload::ecstasy_Hit_Handle, CrimsonEfkPreload::ecstasy_Hit_Path, 70.0f);
+
 	// Each active RoseShl gets its own persistent matrix so the follow-pointer
 	// inside PlayEffectAtMatrix stays valid and doesn't clobber other instances.
 	auto& matrix = s_ecstasyRoseMatrices[shlActorAddr];
