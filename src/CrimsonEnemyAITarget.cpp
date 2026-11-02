@@ -251,6 +251,92 @@ uintptr_t FetchEnemyForLockOnTargetting(uintptr_t playerAddr) {
 
 
 
+// FetchPlayerLockOnTarget_sub_1401E8850 and the functions under it look up the
+// owning player as pool_10222[3 + actor.id]. Secondary players are all created
+// with id 0, so they read player 1's position and state. Point that slot at the
+// secondary actor while its lock-on runs.
+//
+// Candidate entries are shared between every player's list and carry a distance
+// and range flags measured from player 1 only (set in sub_1401BB640). Those are
+// rewritten from the secondary player's position for the duration of the call.
+typedef void(__fastcall* FetchPlayerLockOnTargetFn)(uintptr_t, __int64);
+static std::unique_ptr<Utility::Detour_t> s_fetchPlayerLockOnTargetHook;
+
+namespace {
+constexpr uintptr_t LOCK_ON_ENTRY_LIST_OFFSET = 0x51D0;
+constexpr size_t LOCK_ON_ENTRY_MAX = 512;
+
+struct LockOnEntrySaved {
+	uintptr_t entry;
+	float distance;
+	uint16 rangeFlags;
+};
+
+bool IsPlausiblePtr(uintptr_t p) {
+	return p > 0x10000 && p < 0x00007FFFFFFFFFFF;
+}
+
+size_t RebaseLockOnEntries(uintptr_t actorAddr, const float (&origin)[3], LockOnEntrySaved* saved) {
+	size_t count = 0;
+	uintptr_t node = *reinterpret_cast<uintptr_t*>(actorAddr + LOCK_ON_ENTRY_LIST_OFFSET);
+	while (IsPlausiblePtr(node) && count < LOCK_ON_ENTRY_MAX) {
+		const uintptr_t entry = *reinterpret_cast<uintptr_t*>(node);
+		node = *reinterpret_cast<uintptr_t*>(node + 8);
+		if (!IsPlausiblePtr(entry)) {
+			break;
+		}
+		const uintptr_t posObj = *reinterpret_cast<uintptr_t*>(entry + 0x18);
+		if (!IsPlausiblePtr(posObj)) {
+			continue;
+		}
+
+		auto& dist  = *reinterpret_cast<float*>(entry + 0x30);
+		auto& flags = *reinterpret_cast<uint16*>(entry + 4);
+		saved[count++] = {entry, dist, flags};
+
+		const float dx = origin[0] - *reinterpret_cast<float*>(posObj + 0x30);
+		const float dy = origin[1] - *reinterpret_cast<float*>(posObj + 0x34);
+		const float dz = origin[2] - *reinterpret_cast<float*>(posObj + 0x38);
+		const float d  = sqrtf(dx * dx + dy * dy + dz * dz);
+
+		uint16 f = flags & ~0xF;
+		if (d <= 3000.0f) f |= 8;
+		if (d <= 300.0f) f |= 1;
+		if (d <= 600.0f) f |= 2;
+		if (d <= 900.0f) f |= 4;
+		dist  = d;
+		flags = f;
+	}
+	return count;
+}
+}
+
+static void __fastcall FetchPlayerLockOnTargetHook(uintptr_t actorAddr, __int64 a2) {
+	const auto original = s_fetchPlayerLockOnTargetHook->GetTrampoline<FetchPlayerLockOnTargetFn>();
+
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorAddr);
+	auto pool = *reinterpret_cast<uintptr_t**>(appBaseAddr + 0xC90E28);
+	if (!pool || actorData.newPlayerIndex == 0 || actorData.newEntityIndex != ENTITY::MAIN) {
+		return original(actorAddr, a2);
+	}
+
+	uintptr_t& slot = pool[3 + actorData.id];
+	const uintptr_t previous = slot;
+	slot = actorAddr;
+
+	const float origin[3] = {actorData.position.x, actorData.position.y, actorData.position.z};
+	LockOnEntrySaved saved[LOCK_ON_ENTRY_MAX];
+	const size_t savedCount = RebaseLockOnEntries(actorAddr, origin, saved);
+
+	original(actorAddr, a2);
+
+	for (size_t i = 0; i < savedCount; i++) {
+		*reinterpret_cast<float*>(saved[i].entry + 0x30) = saved[i].distance;
+		*reinterpret_cast<uint16*>(saved[i].entry + 4)   = saved[i].rangeFlags;
+	}
+	slot = previous;
+}
+
 void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	using namespace Utility;
 
@@ -258,6 +344,12 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	if (run == enable) {
 		return;
 	}
+
+	if (!s_fetchPlayerLockOnTargetHook) {
+		s_fetchPlayerLockOnTargetHook = std::make_unique<Detour_t>(
+			(uintptr_t)appBaseAddr + 0x1E8850, &FetchPlayerLockOnTargetHook, 0, "FetchPlayerLockOnTarget_sub_1401E8850");
+	}
+	s_fetchPlayerLockOnTargetHook->Toggle(enable);
 
 // 	// StandardEnemyTarget
 	// dmc3.exe + 616EB - 0F 28 82 80 00 00 00 - movaps xmm0, [rdx + 00000080] { Standard Enemy Set Target Position }
