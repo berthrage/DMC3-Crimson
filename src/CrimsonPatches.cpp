@@ -465,7 +465,12 @@ void CameraSensController() {
 	default: sensitivityValue = 0.0523599f * g_frameRateMultiplier; sensitivityEnum = 2;
 	}
 
-	if (toggle.cameraSensitivity == sensitivityEnum && lastFrameRate == g_FrameRate) {
+	// In splitscreen each camera only updates every Nth tick, so it turns N times per update.
+	static int lastViews = 0;
+	const int views = (CrimsonSplitscreen::ViewCount() >= 2) ? CrimsonSplitscreen::ViewCount() : 1;
+	sensitivityValue *= static_cast<float>(views);
+
+	if (toggle.cameraSensitivity == sensitivityEnum && lastFrameRate == g_FrameRate && lastViews == views) {
 		return;
 	}
 	
@@ -476,6 +481,7 @@ void CameraSensController() {
 
 	toggle.cameraSensitivity = sensitivityEnum;
 	lastFrameRate = g_FrameRate;
+	lastViews = views;
 }
 
 

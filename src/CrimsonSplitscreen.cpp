@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cfloat>
+#include <cmath>
 #include <chrono>
 #include <cstdio>
 #include <cstring>
@@ -52,6 +53,11 @@ constexpr uintptr_t EVENT_POOL_OFFSET          = 0xC90E10;
 constexpr uintptr_t COCKPIT_TOP_UPDATE_OFFSET  = 0x27C0F0;
 constexpr uintptr_t COCKPIT_TOP_DRAW_OFFSET    = 0x27F1F0;
 constexpr uintptr_t COCKPIT_BOTTOM_DRAW_OFFSET = 0x281120;
+constexpr uintptr_t UPDATE_CAMERA_ORBIT_OFFSET = 0x57520;
+constexpr uintptr_t UPDATE_CAMERA_BOSS_OFFSET  = 0x50920;
+constexpr uintptr_t BOSS_CAMERA_MODE_OFFSET    = 0xC91830; // int8: 0 off, 1..0xE boss camera type, 0x80 = ending
+constexpr uintptr_t PAD_BLOCK_OFFSET           = 0xD54A10 + 0x550; // ENGINE_GAMEPAD[PLAYER_COUNT]
+static_assert(sizeof(ENGINE_GAMEPAD) == 0x2C);
 
 // CUIDCockpit00: 13 element matrices, 0x80 apart. The first is the upper HP frame.
 constexpr size_t COCKPIT_TOP_MATRIX_BASE   = 0xB0;
@@ -101,8 +107,17 @@ HudTuning s_hudTuning[HUD_LAYOUT_COUNT] = { HUD_TUNING_HALVES, HUD_TUNING_QUADS 
 
 float s_frameAspect = 16.0f / 9.0f;
 
-constexpr size_t CAM_STATE_SIZE = 0x200;
 constexpr size_t CAM_EYE_OFFSET = 0x70; // eye at 0x70, lookat at 0x80
+
+// Camera state per player: the camera control object (the final eye/lookat), the CCameraPlayer it owns
+// (third person camera, lock-on camera is one of its modes) and the CCameraBoss (boss camera).
+constexpr size_t CAM_REGION_COUNT = 3;
+constexpr size_t CAM_REGION_SIZE[CAM_REGION_COUNT] = { 0x200, 0x200, 0x2C0 };
+constexpr size_t CAM_MAX_REGION_SIZE = 0x2C0;
+constexpr size_t CAM_CTRL_PLAYER_CAMERA = 0x4A0; // CCameraCtrl: CCameraPlayer*
+constexpr size_t CAM_CTRL_BOSS_CAMERA = 0x4A8;   // CCameraCtrl: CCameraBoss*
+constexpr size_t CAM_FOLLOW_TARGET = 0xB0;       // CCameraPlayer: actor the camera follows
+constexpr size_t CAM_BOSS_STATE = 0x2B7;         // CCameraBoss: 0 = init, 1 = running, 2 = ending
 
 // Cells are half the frame wide; half tall too in the quadrant layout.
 struct Cells {
@@ -120,22 +135,40 @@ struct Cells {
 Cells s_cells;
 int s_lastViewCount = 0;
 
-// Saved camera state per player, in two regions: the camera control object and
-// the CameraData at pool[147].
+// Saved camera state per player, see CAM_REGION_SIZE.
 struct CameraSlots {
-	uint8_t state[PLAYER_COUNT][2][CAM_STATE_SIZE] = {};
+	uint8_t state[PLAYER_COUNT][CAM_REGION_COUNT][CAM_MAX_REGION_SIZE] = {};
 	bool valid[PLAYER_COUNT] = {};
 };
 CameraSlots s_camSlots;
 
+bool CameraObjectValid(const uint8_t* p) {
+	const auto address = reinterpret_cast<uintptr_t>(p);
+	return address > 0x10000 && !(address & 0xFFF0000000000000ull);
+}
+
+void CameraRegions(uint8_t* cameraControl, uint8_t* regions[CAM_REGION_COUNT]) {
+	regions[0] = cameraControl;
+	regions[1] = cameraControl ? *reinterpret_cast<uint8_t**>(cameraControl + CAM_CTRL_PLAYER_CAMERA) : nullptr;
+	regions[2] = cameraControl ? *reinterpret_cast<uint8_t**>(cameraControl + CAM_CTRL_BOSS_CAMERA) : nullptr;
+	for (int r = 1; r < CAM_REGION_COUNT; ++r) {
+		if (!CameraObjectValid(regions[r])) {
+			regions[r] = nullptr;
+		}
+	}
+}
+
 typedef __int64(__fastcall* SubmitDrawListFn)(int);
 typedef __int64(__fastcall* UpdatePlayerInputFn)(__int64);
 typedef void(__fastcall* CockpitFn)(uint8_t*);
+typedef __int64(__fastcall* UpdateCameraFn)(__int64);
 std::unique_ptr<Utility::Detour_t> s_submitDrawListHook;
 std::unique_ptr<Utility::Detour_t> s_updatePlayerInputHook;
 std::unique_ptr<Utility::Detour_t> s_cockpitUpdateHook;
 std::unique_ptr<Utility::Detour_t> s_cockpitTopDrawHook;
 std::unique_ptr<Utility::Detour_t> s_cockpitBottomDrawHook;
+std::unique_ptr<Utility::Detour_t> s_updateCameraOrbitHook;
+std::unique_ptr<Utility::Detour_t> s_updateCameraBossHook;
 
 // g_viewedCameraPlayer is advanced right after every drawn frame, so while a
 // frame is being drawn it still holds the player that frame was built for.
@@ -146,6 +179,8 @@ int FramePlayer() {
 bool SplitscreenActive() {
 	return CrimsonSplitscreen::ViewCount() >= 2;
 }
+
+uint8_t* PlayerMainActor(int player);
 
 const HudTuning& ActiveHudTuning() {
 	return s_hudTuning[(CrimsonSplitscreen::ViewCount() > 2) ? HUD_LAYOUT_QUADS : HUD_LAYOUT_HALVES];
@@ -169,9 +204,9 @@ uint32_t s_lastRoom = UINT32_MAX;
 uint8_t* s_lastCameraPtrs[2] = {};
 std::chrono::steady_clock::time_point s_settleUntil;
 
-void StartSettling() {
+void StartSettling(double seconds = SETTLE_SECONDS) {
 	s_settling = true;
-	s_settleUntil = std::chrono::steady_clock::now() + std::chrono::milliseconds(static_cast<int>(SETTLE_SECONDS * 1000.0));
+	s_settleUntil = std::chrono::steady_clock::now() + std::chrono::milliseconds(static_cast<int>(seconds * 1000.0));
 }
 
 uint32_t CurrentRoom() {
@@ -184,7 +219,12 @@ uint32_t CurrentRoom() {
 
 // Runs once per drawn frame; returns true when splitscreen can run this frame.
 bool UpdateSplitGate(uint8_t* cameraControl) {
+	static bool s_loggedOpen = false;
 	if (!CrimsonSplitscreen::GateOpen()) {
+		if (s_loggedOpen) {
+			s_loggedOpen = false;
+			Log("Splitscreen gate closed (room %u)", CurrentRoom());
+		}
 		ResetSplitState();
 		s_lastViewCount = 0;
 		s_wasOpen = false;
@@ -192,11 +232,18 @@ bool UpdateSplitGate(uint8_t* cameraControl) {
 		return false;
 	}
 
-	auto pool = *reinterpret_cast<uint8_t***>(appBaseAddr + CAMERA_CTRL_PTR_OFFSET);
-	uint8_t* cameraPtrs[2] = { cameraControl, pool ? pool[147] : nullptr };
+	uint8_t* regions[CAM_REGION_COUNT];
+	CameraRegions(cameraControl, regions);
+	// The player camera object is the room's own; the current camera pointer also switches to the boss camera.
+	uint8_t* cameraPtrs[2] = { regions[0], regions[1] };
 	const uint32_t room = CurrentRoom();
 	const bool changed = !s_wasOpen || room != s_lastRoom ||
 		cameraPtrs[0] != s_lastCameraPtrs[0] || cameraPtrs[1] != s_lastCameraPtrs[1];
+	if (changed) {
+		Log("Splitscreen reset: opened %d, room %u -> %u, camera %p %p -> %p %p", !s_wasOpen ? 1 : 0, s_lastRoom, room,
+			s_lastCameraPtrs[0], s_lastCameraPtrs[1], cameraPtrs[0], cameraPtrs[1]);
+	}
+	s_loggedOpen = true;
 	s_wasOpen = true;
 	s_lastRoom = room;
 	s_lastCameraPtrs[0] = cameraPtrs[0];
@@ -211,21 +258,88 @@ bool UpdateSplitGate(uint8_t* cameraControl) {
 	return !s_settling;
 }
 
-void SwapCameraState(uint8_t* cameraControl, int framePlayer, int viewCount) {
-	uint8_t* regions[2] = { cameraControl, nullptr };
-	auto pool = *reinterpret_cast<uint8_t***>(appBaseAddr + CAMERA_CTRL_PTR_OFFSET);
-	if (pool && pool[147] && !(reinterpret_cast<uintptr_t>(pool[147]) & 0xFFF0000000000000ull) && pool[147] != regions[0]) {
-		regions[1] = pool[147];
-	}
+// A camera that is not a number, or is far from its own player, shows the void (black view) and
+// nothing in the per-player cycle brings it back. Detect it and recover like toggling F6 does:
+// drop the saved state and let the game's own camera re-converge on the player.
+constexpr float CAM_MAX_PLAYER_DISTANCE = 4000.0f;
+constexpr int   CAM_BROKEN_FRAMES       = 12;
+constexpr double CAM_RECOVER_SETTLE_SECONDS = 1.0;
 
-	for (int r = 0; r < 2; ++r) {
+bool CameraLooksBroken(int player, const uint8_t* cameraControlState) {
+	const float* eye    = reinterpret_cast<const float*>(cameraControlState + CAM_EYE_OFFSET);
+	const float* lookat = eye + 4;
+	for (int i = 0; i < 3; ++i) {
+		if (!std::isfinite(eye[i]) || !std::isfinite(lookat[i])) {
+			return true;
+		}
+	}
+	const uint8_t* actor = PlayerMainActor(player);
+	if (!actor) {
+		return false;
+	}
+	const auto& position = reinterpret_cast<const PlayerActorData*>(actor)->position;
+	const float dx = eye[0] - position.x;
+	const float dy = eye[1] - position.y;
+	const float dz = eye[2] - position.z;
+	return (dx * dx + dy * dy + dz * dz) > CAM_MAX_PLAYER_DISTANCE * CAM_MAX_PLAYER_DISTANCE;
+}
+
+// Returns true when it reset the splitscreen state.
+bool RecoverBrokenCamera(int player, const uint8_t* cameraControlState) {
+	static int s_brokenFrames[PLAYER_COUNT] = {};
+	static std::chrono::steady_clock::time_point s_recoverAllowedAt;
+	if (!CameraLooksBroken(player, cameraControlState)) {
+		s_brokenFrames[player] = 0;
+		return false;
+	}
+	const auto now = std::chrono::steady_clock::now();
+	if (++s_brokenFrames[player] < CAM_BROKEN_FRAMES || now < s_recoverAllowedAt) {
+		return false;
+	}
+	const float* eye = reinterpret_cast<const float*>(cameraControlState + CAM_EYE_OFFSET);
+	Log("Splitscreen: camera of player %d is broken (eye %.1f %.1f %.1f), resetting", player, eye[0], eye[1], eye[2]);
+	for (int& frames : s_brokenFrames) {
+		frames = 0;
+	}
+	s_recoverAllowedAt = now + std::chrono::seconds(3);
+	ResetSplitState();
+	s_lastViewCount = 0;
+	StartSettling(CAM_RECOVER_SETTLE_SECONDS);
+	return true;
+}
+
+// The boss camera is sticky once it has ended (state 2), so every player's copy restarts when a new boss camera begins.
+void RestartBossCameraOnStart(uint8_t* bossCamera) {
+	static bool s_bossCameraWasActive = false;
+	const bool active = *reinterpret_cast<int8_t*>(appBaseAddr + BOSS_CAMERA_MODE_OFFSET) > 0;
+	if (active && !s_bossCameraWasActive) {
+		for (int p = 0; p < PLAYER_COUNT; ++p) {
+			s_camSlots.state[p][2][CAM_BOSS_STATE] = 0;
+		}
+		if (bossCamera) {
+			bossCamera[CAM_BOSS_STATE] = 0;
+		}
+	}
+	s_bossCameraWasActive = active;
+}
+
+void SwapCameraState(uint8_t* cameraControl, int framePlayer, int viewCount) {
+	uint8_t* regions[CAM_REGION_COUNT];
+	CameraRegions(cameraControl, regions);
+	RestartBossCameraOnStart(regions[2]);
+
+	for (int r = 0; r < CAM_REGION_COUNT; ++r) {
 		if (regions[r]) {
-			std::memcpy(s_camSlots.state[framePlayer][r], regions[r], CAM_STATE_SIZE);
+			std::memcpy(s_camSlots.state[framePlayer][r], regions[r], CAM_REGION_SIZE[r]);
 		}
 	}
 	s_camSlots.valid[framePlayer] = true;
 	std::memcpy(g_splitscreenCamCopy[framePlayer], s_camSlots.state[framePlayer][0], SPLITSCREEN_CAM_COPY_SIZE);
 	g_splitscreenCamCopyValid[framePlayer] = true;
+
+	if (RecoverBrokenCamera(framePlayer, s_camSlots.state[framePlayer][0])) {
+		return;
+	}
 
 	const int next = (framePlayer + 1) % viewCount;
 	if (!s_camSlots.valid[next]) {
@@ -233,8 +347,8 @@ void SwapCameraState(uint8_t* cameraControl, int framePlayer, int viewCount) {
 		const float dx = g_splitscreenPlayerPos[next][0] - g_splitscreenPlayerPos[framePlayer][0];
 		const float dy = g_splitscreenPlayerPos[next][1] - g_splitscreenPlayerPos[framePlayer][1];
 		const float dz = g_splitscreenPlayerPos[next][2] - g_splitscreenPlayerPos[framePlayer][2];
-		for (int r = 0; r < 2; ++r) {
-			std::memcpy(s_camSlots.state[next][r], s_camSlots.state[framePlayer][r], CAM_STATE_SIZE);
+		for (int r = 0; r < CAM_REGION_COUNT; ++r) {
+			std::memcpy(s_camSlots.state[next][r], s_camSlots.state[framePlayer][r], CAM_REGION_SIZE[r]);
 			auto* eyeAndLookAt = reinterpret_cast<float*>(s_camSlots.state[next][r] + CAM_EYE_OFFSET);
 			for (int v = 0; v < 2; ++v) {
 				eyeAndLookAt[v * 4 + 0] += dx;
@@ -245,9 +359,9 @@ void SwapCameraState(uint8_t* cameraControl, int framePlayer, int viewCount) {
 		s_camSlots.valid[next] = true;
 	}
 
-	for (int r = 0; r < 2; ++r) {
+	for (int r = 0; r < CAM_REGION_COUNT; ++r) {
 		if (regions[r]) {
-			std::memcpy(regions[r], s_camSlots.state[next][r], CAM_STATE_SIZE);
+			std::memcpy(regions[r], s_camSlots.state[next][r], CAM_REGION_SIZE[r]);
 		}
 	}
 	g_viewedCameraPlayer = static_cast<uint8>(next);
@@ -418,9 +532,12 @@ __int64 __fastcall UpdatePlayerInputHook(__int64 actor) {
 	}
 
 	int region = 0;
-	auto pool = *reinterpret_cast<uint8_t***>(appBaseAddr + CAMERA_CTRL_PTR_OFFSET);
-	if (pool && pool[147] == camObj) {
-		region = 1;
+	uint8_t* regions[CAM_REGION_COUNT];
+	CameraRegions(*reinterpret_cast<uint8_t**>(appBaseAddr + CAMERA_CTRL_PTR_OFFSET), regions);
+	for (int r = 1; r < CAM_REGION_COUNT; ++r) {
+		if (regions[r] == camObj) {
+			region = r;
+		}
 	}
 	constexpr size_t vecBlockSize = 0x20;
 	uint8_t backup[vecBlockSize];
@@ -451,6 +568,55 @@ bool s_hudWasSplit = false;
 uint8_t* PlayerMainActor(int player) {
 	auto& playerData = GetPlayerData(static_cast<uint8>(player));
 	return reinterpret_cast<uint8_t*>(GetNewActorData(static_cast<uint8>(player), playerData.activeCharacterIndex, ENTITY::MAIN).baseAddr);
+}
+
+// The cameras read the right stick from pad 0 (GetPadStickDirection_sub_14032CC30 /
+// GetPadRightStickDirection_sub_14032CC90) and the target actor from pool_10222[3] (reset-behind-the-player
+// angle, lock-on state, stand-still check). Each frame is built for one player, so lend the update
+// that player's pad and actor. followsActor: the player camera also keeps its target actor in +0xB0.
+__int64 UpdateCameraForPlayer(UpdateCameraFn original, __int64 camera, bool followsActor) {
+	auto* pool = *reinterpret_cast<uintptr_t**>(appBaseAddr + PLAYER_POOL_OFFSET);
+	uint8_t* actor = (SplitscreenActive() && pool) ? PlayerMainActor(FramePlayer()) : nullptr;
+	if (!actor) {
+		return original(camera);
+	}
+
+	auto* pads = reinterpret_cast<ENGINE_GAMEPAD*>(appBaseAddr + PAD_BLOCK_OFFSET);
+	const uint8 pad = reinterpret_cast<PlayerActorData*>(actor)->newGamepad;
+	const bool swapPad = pad != 0 && pad < PLAYER_COUNT;
+	ENGINE_GAMEPAD savedPad = pads[0];
+	if (swapPad) {
+		pads[0] = pads[pad];
+	}
+	const uintptr_t mainPlayerActor = pool[3];
+	pool[3] = reinterpret_cast<uintptr_t>(actor);
+	auto* followTarget = reinterpret_cast<uintptr_t*>(camera + CAM_FOLLOW_TARGET);
+	const uintptr_t savedTarget = *followTarget;
+	const bool swapTarget = followsActor && savedTarget != 0;
+	if (swapTarget) {
+		*followTarget = reinterpret_cast<uintptr_t>(actor);
+	}
+
+	const __int64 result = original(camera);
+
+	if (swapTarget) {
+		*followTarget = savedTarget;
+	}
+	pool[3] = mainPlayerActor;
+	if (swapPad) {
+		pads[0] = savedPad;
+	}
+	return result;
+}
+
+// UpdateCameraOrbit_sub_140057520: third person camera, includes the lock-on camera mode.
+__int64 __fastcall UpdateCameraOrbitHook(__int64 cameraData) {
+	return UpdateCameraForPlayer(s_updateCameraOrbitHook->GetTrampoline<UpdateCameraFn>(), cameraData, true);
+}
+
+// UpdateCameraBoss_sub_140050920
+__int64 __fastcall UpdateCameraBossHook(__int64 cameraData) {
+	return UpdateCameraForPlayer(s_updateCameraBossHook->GetTrampoline<UpdateCameraFn>(), cameraData, false);
 }
 
 // Makes the cockpit re-read HP/DT from the actor instead of smoothing from stale values.
@@ -642,11 +808,24 @@ bool GateOpen() {
 	return InGame() && !g_inGameCutscene && !InCutscene();
 }
 
+// Splitscreen is switched on (F6 with 2+ players), whether or not it is currently running.
+bool Enabled() {
+	return g_splitscreenRenderTest && activeConfig.Actor.enable && activeConfig.Actor.playerCount >= 2;
+}
+
 int ViewCount() {
 	if (!GateOpen() || s_settling) {
 		return 0;
 	}
 	return (activeConfig.Actor.playerCount > PLAYER_COUNT) ? PLAYER_COUNT : activeConfig.Actor.playerCount;
+}
+
+int CameraPlayer() {
+	return SplitscreenActive() ? FramePlayer() : 0;
+}
+
+uint8_t* CameraActor() {
+	return SplitscreenActive() ? PlayerMainActor(FramePlayer()) : nullptr;
 }
 
 const uint8_t* CameraCopy(int playerIndex) {
@@ -819,6 +998,14 @@ void InitHooks() {
 	s_cockpitBottomDrawHook = std::make_unique<Utility::Detour_t>(
 		(uintptr_t)appBaseAddr + COCKPIT_BOTTOM_DRAW_OFFSET, &CockpitBottomDrawHook, 0, "DrawCUIDCockpit02_sub_140281120");
 	s_cockpitBottomDrawHook->Toggle(true);
+
+	s_updateCameraOrbitHook = std::make_unique<Utility::Detour_t>(
+		(uintptr_t)appBaseAddr + UPDATE_CAMERA_ORBIT_OFFSET, &UpdateCameraOrbitHook, 0, "UpdateCameraOrbit_sub_140057520");
+	s_updateCameraOrbitHook->Toggle(true);
+
+	s_updateCameraBossHook = std::make_unique<Utility::Detour_t>(
+		(uintptr_t)appBaseAddr + UPDATE_CAMERA_BOSS_OFFSET, &UpdateCameraBossHook, 0, "UpdateCameraBoss_sub_140050920");
+	s_updateCameraBossHook->Toggle(true);
 }
 
 } // namespace CrimsonSplitscreen

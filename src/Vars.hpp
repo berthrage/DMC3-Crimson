@@ -2772,7 +2772,9 @@ struct CameraData {
     _(72);
     vec4 data[2]; // 0x70
     uint8 transitionToLockOnCam; // 0x90
-    _(31);
+    bool holdUntilTargetMoves; // 0x91 camera idles until the target moves away from lastTargetPos
+    _(14);
+    vec4 lastTargetPos; // 0xA0
     byte8* targetBaseAddr; // 0xB0
     _(24);
     float height;   // 0xD0
@@ -2783,8 +2785,14 @@ struct CameraData {
     _(172);
     vec4 camcoords1; //0x190
     _(16);
-    vec4 camcoords2; //0x
-    _(32);
+    vec4 camcoords2; //0x1B0
+    _(16);
+    float orbitYaw; // 0x1D0
+    float orbitSpeed; // 0x1D4 right stick turn speed, set per key press (sensitivity patch)
+    int8 orbitDirection; // 0x1D8 -1 left, 0 idle, 1 right
+    int8 recenterDirection; // 0x1D9 camera-reset swing, same sign convention
+    _(2);
+    float recenterYaw; // 0x1DC target yaw of the camera-reset swing
     float cameraLag; // 0x1E0
     _(28);
 };
@@ -2793,6 +2801,8 @@ static_assert(offsetof(CameraData, fov) == 0x20);
 static_assert(offsetof(CameraData, roll) == 0x24);
 static_assert(offsetof(CameraData, data) == 0x70);
 static_assert(offsetof(CameraData, transitionToLockOnCam) == 0x90);
+static_assert(offsetof(CameraData, holdUntilTargetMoves) == 0x91);
+static_assert(offsetof(CameraData, lastTargetPos) == 0xA0);
 static_assert(offsetof(CameraData, targetBaseAddr) == 0xB0);
 static_assert(offsetof(CameraData, height) == 0xD0);
 static_assert(offsetof(CameraData, tilt) == 0xD4);
@@ -2800,6 +2810,11 @@ static_assert(offsetof(CameraData, distanceCam) == 0xD8);
 static_assert(offsetof(CameraData, distanceLockOn) == 0xE0);
 static_assert(offsetof(CameraData, camcoords1) == 0x190);
 static_assert(offsetof(CameraData, camcoords2) == 0x1B0);
+static_assert(offsetof(CameraData, orbitYaw) == 0x1D0);
+static_assert(offsetof(CameraData, orbitSpeed) == 0x1D4);
+static_assert(offsetof(CameraData, orbitDirection) == 0x1D8);
+static_assert(offsetof(CameraData, recenterDirection) == 0x1D9);
+static_assert(offsetof(CameraData, recenterYaw) == 0x1DC);
 static_assert(offsetof(CameraData, cameraLag) == 0x1E0);
 
 static_assert(sizeof(CameraData) == 512);

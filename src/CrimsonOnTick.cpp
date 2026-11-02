@@ -761,12 +761,13 @@ void SplitscreenCameraPositioningController() {
 	}
 	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
 		auto& playerData = GetPlayerData(playerIndex);
-		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+		auto& newActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
 		if (!newActorData.baseAddr) continue;
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
 
 		glm::vec3 pos(actorData.position.x, actorData.position.y, actorData.position.z);
-		if (!s_initialized[playerIndex]) {
+		if (!std::isfinite(pos.x) || !std::isfinite(pos.y) || !std::isfinite(pos.z)) continue;
+		if (!s_initialized[playerIndex] || !std::isfinite(s_smoothed[playerIndex].x + s_smoothed[playerIndex].y + s_smoothed[playerIndex].z)) {
 			s_smoothed[playerIndex] = pos;
 			s_initialized[playerIndex] = true;
 		} else {
@@ -802,7 +803,8 @@ void SplitscreenCameraPositioningController() {
 	const bool useOverride = multiplex || (g_viewedCameraPlayer != 0);
 	g_isMPCamActive = false;
 	CrimsonDetours::ToggleCustomCameraPositioning(useOverride);
-	CrimsonPatches::DisableLockOnCamera(useOverride);
+	// Each splitscreen camera keeps its own lock-on camera; only the single-view H test camera lacks one.
+	CrimsonPatches::DisableLockOnCamera(useOverride && !multiplex);
 }
 
 void MultiplayerCameraPositioningController() {
@@ -1376,7 +1378,7 @@ void ForceThirdPersonCameraController() {
 	if (activeCrimsonConfig.Camera.thirdPersonCamera) {
 		// Disable Boss Camera Exceptions
 
-		if (activeConfig.Actor.playerCount <= 1) { // IN SINGLE PLAYER
+		if (activeConfig.Actor.playerCount <= 1 || CrimsonSplitscreen::Enabled()) { // SINGLE PLAYER, or splitscreen where every player has their own camera
 			if (!(eventData.room == 228 && eventData.position == 0)
 				&& !(eventData.room == ROOM::ICE_GUARDIANS_CHAMBER && sessionData.mission == 3)
 				&& !(eventData.room == ROOM::GIANTWALKER_CHAMBER && sessionData.mission == 4)
@@ -1494,22 +1496,27 @@ void ResetCameraToNearestSide(EventData& eventData, PlayerActorData& mainActorDa
 	if (activeCrimsonConfig.Camera.rightStickCameraCentering != RIGHTSTICKCENTERCAM::TO_NEAREST_SIDE) {
 		return;
 	}
-    static bool defaultCamSet = false;
+    static bool defaultCamSet[PLAYER_COUNT] = {};
+    const int camPlayer = CrimsonSplitscreen::CameraPlayer();
+    // Each splitscreen camera is reset by its own player.
+    auto* cameraActor = reinterpret_cast<PlayerActorData*>(CrimsonSplitscreen::CameraActor());
+    auto& actorData = cameraActor ? *cameraActor : mainActorData;
+    bool& camSet = defaultCamSet[camPlayer];
     constexpr float TWO_PI = 6.283185307f;
     constexpr float PI = 3.1415926535f;
     float radius = 200.0f;
     float radiusZ = 200.0f;
     float verticalOffset = 140.0f;
 
-    if (mainActorData.buttons[0] & GetBinding(BINDING::DEFAULT_CAMERA) && !defaultCamSet) {
+    if (actorData.buttons[0] & GetBinding(BINDING::DEFAULT_CAMERA) && !camSet) {
         if (!g_inGameCutscene) {
             // Character's forward angle in world space
-            float charAngle = (mainActorData.rotation / 65535.0f) * TWO_PI;
+            float charAngle = (actorData.rotation / 65535.0f) * TWO_PI;
            // charAngle += PI;
 
             // Use -dx, -dz so angle is from camera to character (matches forward logic)
-            float dx = cameraData->data[0].x - mainActorData.position.x;
-            float dz = cameraData->data[0].z - mainActorData.position.z;
+            float dx = cameraData->data[0].x - actorData.position.x;
+            float dz = cameraData->data[0].z - actorData.position.z;
             float camAngle = atan2f(-dx, -dz);
 
             // Normalize angles to [-PI, PI]
@@ -1531,15 +1538,15 @@ void ResetCameraToNearestSide(EventData& eventData, PlayerActorData& mainActorDa
             offset.z = -cosf(targetAngle) * radiusZ;
             offset.y = verticalOffset;
 
-            cameraData->data[0].x = mainActorData.position.x + offset.x;
-            cameraData->data[0].y = mainActorData.position.y + offset.y;
-            cameraData->data[0].z = mainActorData.position.z + offset.z;
-            mainActorData.position.x = mainActorData.position.x + 1; // Triggers camera orbit
+            cameraData->data[0].x = actorData.position.x + offset.x;
+            cameraData->data[0].y = actorData.position.y + offset.y;
+            cameraData->data[0].z = actorData.position.z + offset.z;
+            actorData.position.x = actorData.position.x + 1; // Triggers camera orbit
 
-            defaultCamSet = true;
+            camSet = true;
         }
-    } else if (!(mainActorData.buttons[0] & GetBinding(BINDING::DEFAULT_CAMERA))) {
-        defaultCamSet = false;
+    } else if (!(actorData.buttons[0] & GetBinding(BINDING::DEFAULT_CAMERA))) {
+        camSet = false;
     }
 }
 
