@@ -287,6 +287,10 @@ file(GLOB MAIN_SRC
     CrimsonEfkPreload.hpp
     CrimsonSplitscreen.cpp
     CrimsonSplitscreen.hpp
+    CrimsonMenuInput.cpp
+    CrimsonMenuInput.hpp
+    CrimsonStageInteraction.cpp
+    CrimsonStageInteraction.hpp
     NvApiReflex.cpp
     NvApiReflex.hpp
 )
