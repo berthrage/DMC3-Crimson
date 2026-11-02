@@ -483,7 +483,14 @@ void CameraFollowUpSpeedController(CameraData& cameraData, CameraControlMetadata
 	if (!pool_166 || !pool_166[3]) return;
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);
 
-	const float frameScale = (g_FrameRateTimeMultiplier > 0.0f) ? g_FrameRateTimeMultiplier : 1.0f;
+	float frameScale = (g_FrameRateTimeMultiplier > 0.0f) ? g_FrameRateTimeMultiplier : 1.0f;
+	
+	// Each player's camera only updates once every N frames in splitscreen, so scale the lag by N.
+	const int splitscreenViews = GetSplitscreenViewCount();
+	const bool isSplitscreenActive = splitscreenViews >= 2;
+	if (isSplitscreenActive) {
+		frameScale *= static_cast<float>(splitscreenViews);
+	}
 
 	if (cameraMetadata.fixedCameraAddr != 0) {
 		return; // Disable adjustment when a fixed camera is active
@@ -493,6 +500,10 @@ void CameraFollowUpSpeedController(CameraData& cameraData, CameraControlMetadata
 	static bool isLockOnTimerActive = false;
 	static byte8* targetAddr = nullptr;
 
+	// Select follow-up speed setting based on actual splitscreen state
+	uint8 selectedFollowUpSpd = isSplitscreenActive
+		? activeCrimsonConfig.Camera.followUpSpdSplitscreen 
+		: activeCrimsonConfig.Camera.followUpSpd;
 
 	auto dynamicCameraLag = [&](float normalLag, float lockOnLag, float lockOnDuration) {
 		if (mainActorData.lockOn && activeConfig.Actor.playerCount == 1) {
@@ -529,26 +540,19 @@ void CameraFollowUpSpeedController(CameraData& cameraData, CameraControlMetadata
 		}
 		};
 
-	if (activeConfig.Actor.playerCount > 1) {
-     cameraData.cameraLag = 1000.0f / frameScale;
-	}
-	else {
-		if (cameraMetadata.fixedCameraAddr == 0) {
-			switch (activeCrimsonConfig.Camera.followUpSpd) {
-			case 0: // Low (Vanilla Default)
+	if (cameraMetadata.fixedCameraAddr == 0) {
+		switch (selectedFollowUpSpd) {
+		case 0: // Low
              cameraData.cameraLag = 1000.0f / frameScale;
-				break;
-			case 1: // Medium
-                dynamicCameraLag(500.0f / frameScale, 2000.0f / frameScale, 0.5f); // Apply lockOn behavior for medium follow-up speed
-				break;
-			case 2: // High
-              dynamicCameraLag(330.0f / frameScale, 3000.0f / frameScale, 0.5f); // Apply lockOn behavior for high follow-up speed
-				break;
-			default:
-				break;
-			}
-		} else {
-			return; // Disable follow-up speed adjustment when a fixed camera is active
+			break;
+		case 1: // Medium
+                dynamicCameraLag(500.0f / frameScale, 2000.0f / frameScale, 0.5f);
+			break;
+		case 2: // High
+              dynamicCameraLag(330.0f / frameScale, 3000.0f / frameScale, 0.5f);
+			break;
+		default:
+			break;
 		}
 	}
 }
