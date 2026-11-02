@@ -388,6 +388,16 @@ bool File_Init() {
     {
         auto dest = (Memory_main + MEMORY_SIZE_MAIN);
 
+        // Static files get their own independent allocation so it doesn't
+        // compete with the main pool. Let the OS pick the address to avoid
+        // colliding with the game's own runtime allocations.
+        File_staticFiles.dataAddr = Alloc(MEMORY_SIZE_STATIC_FILES);
+        if (!File_staticFiles.dataAddr) {
+            Log("Alloc for static files failed.");
+            return false;
+        }
+        File_staticFiles.dataSize = MEMORY_SIZE_STATIC_FILES;
+
         auto Function = [&](byte8*& addr, uint64& size, uint64 size2) {
             addr = dest;
             size = size2;
@@ -395,9 +405,16 @@ bool File_Init() {
             dest += size2;
         };
 
-        Function(File_staticFiles.dataAddr, File_staticFiles.dataSize, MEMORY_SIZE_STATIC_FILES);
         Function(File_staticFiles.metadataAddr, File_staticFiles.metadataSize, MEMORY_SIZE_STATIC_FILES_METADATA);
-        Function(File_dynamicFiles.dataAddr, File_dynamicFiles.dataSize, MEMORY_SIZE_DYNAMIC_FILES);
+
+        // Dynamic files also get their own independent allocation.
+        File_dynamicFiles.dataAddr = Alloc(MEMORY_SIZE_DYNAMIC_FILES);
+        if (!File_dynamicFiles.dataAddr) {
+            Log("Alloc for dynamic files failed.");
+            return false;
+        }
+        File_dynamicFiles.dataSize = MEMORY_SIZE_DYNAMIC_FILES;
+
         Function(File_dynamicFiles.metadataAddr, File_dynamicFiles.metadataSize, MEMORY_SIZE_DYNAMIC_FILES_METADATA);
 
         if constexpr (debug) {
