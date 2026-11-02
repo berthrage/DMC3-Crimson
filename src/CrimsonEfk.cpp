@@ -16,6 +16,7 @@
 #include <wrl/client.h>
 
 #include "CrimsonDetours.hpp"
+#include "CrimsonSplitscreen.hpp"
 #include "Config.hpp"
 #include "Speed.hpp"
 
@@ -536,6 +537,28 @@ public:
     // EFFECT PLAYBACK
     // ============================================================================
 
+    // Invisible game particle that makes the game issue the particle draw call Effekseer renders from.
+    // In splitscreen each frame is built for one player's camera and the particle only exists in the frame
+    // if it is inside that camera's frustum, so every player gets one. Otherwise effects far from player 1 are never drawn.
+    static void SpawnFakeParticle(void* player, float time) {
+        static constexpr int fakeParticleBank = 3;
+        static constexpr int fakeParticleId = 4;
+
+        CrimsonDetours::CreateEffectDetour(player, fakeParticleBank, fakeParticleId, 1, 1, 0, time);
+
+        if (!CrimsonSplitscreen::Enabled()) {
+            return;
+        }
+        const int playerCount = (std::min)(static_cast<int>(activeConfig.Actor.playerCount), static_cast<int>(PLAYER_COUNT));
+        for (int playerIndex = 0; playerIndex < playerCount; playerIndex++) {
+            auto& playerData = GetPlayerData(static_cast<uint8>(playerIndex));
+            auto& newActorData = GetNewActorData(static_cast<uint8>(playerIndex), playerData.activeCharacterIndex, ENTITY::MAIN);
+            if (!newActorData.baseAddr || newActorData.baseAddr == player) {
+                continue;
+            }
+            CrimsonDetours::CreateEffectDetour(newActorData.baseAddr, fakeParticleBank, fakeParticleId, 1, 1, 0, time);
+        }
+    }
     EffekseerHandle PlayEffect(EffekseerRefHandle hEffect, float x, float y, float z, void* player) {
 
         if (g_efkManager == nullptr || !IsValidEffectHandle(hEffect)) {
@@ -559,15 +582,13 @@ public:
             }
         }
 
-        static constexpr int fakeParticleBank = 3;
-        static constexpr int fakeParticleId = 4;
         static constexpr float fakeParticleTime = 0.2f;
 
         assert(player);
 
         auto gameSpeed = Speed::GetEffectiveGlobalSpeed();
 
-        CrimsonDetours::CreateEffectDetour(player, fakeParticleBank, fakeParticleId, 1, 1, 0, fakeParticleTime * gameSpeed);
+        SpawnFakeParticle(player, fakeParticleTime * gameSpeed);
 
         const auto handle = g_efkManager->Play(g_effects[hEffect], x, y, z);
         if (handle >= 0) {
@@ -852,11 +873,8 @@ public:
        if (activeConfig.Actor.enable && (g_nextFakeParticlePulse.time_since_epoch().count() == 0 || now >= g_nextFakeParticlePulse)) {
             auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
             if (pool_10222 && pool_10222[3]) {
-                auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
-                static constexpr int fakeParticleBank = 3;
-                static constexpr int fakeParticleId = 4;
                 static constexpr float fakeParticleTime = 0.12f;
-                CrimsonDetours::CreateEffectDetour(mainActorData, fakeParticleBank, fakeParticleId, 1, 1, 0, fakeParticleTime);
+                SpawnFakeParticle(pool_10222[3], fakeParticleTime);
             }
 
             g_nextFakeParticlePulse = now + std::chrono::milliseconds(500);
