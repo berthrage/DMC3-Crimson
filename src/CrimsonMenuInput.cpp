@@ -27,11 +27,16 @@ struct Range {
 	uintptr_t end;
 };
 
+// Pause check, sub_14023B060: START opens the menu, but its d-pad shortcuts must stay with player 1
+// (other players use the d-pad for weapon switching), so only the START bit of the other pads is merged there.
+constexpr Range PAUSE_RANGE = { 0x23B060, 0x23B220 };
+constexpr uint64_t PAUSE_MASK = 0x800;
+constexpr uint64_t ALL_BITS   = ~0ull;
+
 // Not merged: gameplay code that is tied to one player.
 constexpr Range GAMEPLAY_RANGES[] = {
 	{ 0x04F000, 0x058000 }, // camera
 	{ 0x1E0000, 0x230000 }, // player actors: input update, controller, interact check
-	{ 0x23B060, 0x23B220 }, // pause shortcuts (d-pad opens menus; other players use the d-pad for weapon switching)
 	{ 0x296DB0, 0x296E93 }, // lock-on cursor
 };
 
@@ -61,7 +66,8 @@ constexpr Target TARGETS[COUNT] = {
 std::unique_ptr<Utility::Detour_t> s_hooks[COUNT];
 
 // Number of pads to combine, 0 when the call must keep answering for pad 0 only.
-int MergeCount(uintptr_t returnAddress, int pad) {
+int MergeCount(uintptr_t returnAddress, int pad, uint64_t& mask) {
+	mask = ALL_BITS;
 	if (pad != 0 || !activeConfig.Actor.enable || activeConfig.Actor.playerCount < 2) {
 		return 0;
 	}
@@ -74,15 +80,19 @@ int MergeCount(uintptr_t returnAddress, int pad) {
 			return 0;
 		}
 	}
+	if (rva >= PAUSE_RANGE.begin && rva < PAUSE_RANGE.end) {
+		mask = PAUSE_MASK;
+	}
 	return (std::min)(static_cast<int>(activeConfig.Actor.playerCount), static_cast<int>(PLAYER_COUNT));
 }
 
 template <Accessor A> uint64_t __fastcall WordHook(uintptr_t pads, int pad) {
 	const auto original = s_hooks[A]->GetTrampoline<WordFn>();
 	uint64_t result = original(pads, pad);
-	const int count = MergeCount(reinterpret_cast<uintptr_t>(_ReturnAddress()), pad);
+	uint64_t mask;
+	const int count = MergeCount(reinterpret_cast<uintptr_t>(_ReturnAddress()), pad, mask);
 	for (int other = 1; other < count; other++) {
-		result |= original(pads, other);
+		result |= original(pads, other) & mask;
 	}
 	return result;
 }
@@ -90,9 +100,10 @@ template <Accessor A> uint64_t __fastcall WordHook(uintptr_t pads, int pad) {
 uint64_t __fastcall DirectionHook(uintptr_t pads, int pad, int kind) {
 	const auto original = s_hooks[DIRECTION]->GetTrampoline<StickFn>();
 	uint64_t result = original(pads, pad, kind);
-	const int count = MergeCount(reinterpret_cast<uintptr_t>(_ReturnAddress()), pad);
+	uint64_t mask;
+	const int count = MergeCount(reinterpret_cast<uintptr_t>(_ReturnAddress()), pad, mask);
 	for (int other = 1; other < count; other++) {
-		result |= original(pads, other, kind);
+		result |= original(pads, other, kind) & mask;
 	}
 	return result;
 }
@@ -112,8 +123,15 @@ int StrongestStick(uintptr_t pads, int kind, int count, uint64_t& radius) {
 	return best;
 }
 
+// Sticks are merged everywhere except the pause check.
+int StickMergeCount(uintptr_t returnAddress, int pad) {
+	uint64_t mask;
+	const int count = MergeCount(returnAddress, pad, mask);
+	return mask == ALL_BITS ? count : 0;
+}
+
 uint64_t __fastcall RadiusHook(uintptr_t pads, int pad, int kind) {
-	const int count = MergeCount(reinterpret_cast<uintptr_t>(_ReturnAddress()), pad);
+	const int count = StickMergeCount(reinterpret_cast<uintptr_t>(_ReturnAddress()), pad);
 	uint64_t radius = s_hooks[RADIUS]->GetTrampoline<StickFn>()(pads, pad, kind);
 	if (count > 1) {
 		StrongestStick(pads, kind, count, radius);
@@ -122,7 +140,7 @@ uint64_t __fastcall RadiusHook(uintptr_t pads, int pad, int kind) {
 }
 
 uint64_t __fastcall PositionHook(uintptr_t pads, int pad, int kind) {
-	const int count = MergeCount(reinterpret_cast<uintptr_t>(_ReturnAddress()), pad);
+	const int count = StickMergeCount(reinterpret_cast<uintptr_t>(_ReturnAddress()), pad);
 	int source = pad;
 	if (count > 1) {
 		uint64_t radius = 0;
