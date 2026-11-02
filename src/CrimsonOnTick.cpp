@@ -735,7 +735,91 @@ void DetermineActiveEntitiesCount() {
 
 glm::vec3 currentCameraPos; // Stores current camera position for gradual transition
 
+// Splitscreen camera: one target per player instead of the centroid camera.
+// Secondary players come from the actor system (GetNewActorData), not pool_10222[3].
+void SplitscreenCameraPositioningController() {
+	static glm::vec3 s_smoothed[8] = {};
+	static bool s_initialized[8] = {};
+
+	float deltaTime = ImGui::GetIO().DeltaTime;
+	float smoothXZ = 1.0f - std::exp(-15.0f * deltaTime);
+	float smoothY = 1.0f - std::exp(-3.0f * deltaTime);
+
+	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
+		auto& playerData = GetPlayerData(playerIndex);
+		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
+		if (!newActorData.baseAddr) continue;
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+
+		glm::vec3 pos(actorData.position.x, actorData.position.y, actorData.position.z);
+		if (!s_initialized[playerIndex]) {
+			s_smoothed[playerIndex] = pos;
+			s_initialized[playerIndex] = true;
+		} else {
+			s_smoothed[playerIndex].x = CrimsonUtil::lerp(s_smoothed[playerIndex].x, pos.x, smoothXZ);
+			s_smoothed[playerIndex].y = CrimsonUtil::lerp(s_smoothed[playerIndex].y, pos.y, smoothY);
+			s_smoothed[playerIndex].z = CrimsonUtil::lerp(s_smoothed[playerIndex].z, pos.z, smoothXZ);
+		}
+
+		g_splitscreenPlayerPos[playerIndex][0] = s_smoothed[playerIndex].x;
+		g_splitscreenPlayerPos[playerIndex][1] = s_smoothed[playerIndex].y;
+		g_splitscreenPlayerPos[playerIndex][2] = s_smoothed[playerIndex].z;
+		g_splitscreenPlayerPos[playerIndex][3] = 1.0f;
+		if (playerIndex == 1) {
+			g_customCameraPos2[0] = s_smoothed[1].x;
+			g_customCameraPos2[1] = s_smoothed[1].y;
+			g_customCameraPos2[2] = s_smoothed[1].z;
+			g_customCameraPos2[3] = 1.0f;
+		}
+		if (playerIndex == g_viewedCameraPlayer) {
+			g_customCameraPos[0] = s_smoothed[playerIndex].x;
+			g_customCameraPos[1] = s_smoothed[playerIndex].y;
+			g_customCameraPos[2] = s_smoothed[playerIndex].z;
+			g_customCameraPos[3] = 1.0f;
+		}
+	}
+
+	// With the render test on, both cameras go through the position override.
+	const bool multiplex = g_splitscreenRenderTest && activeConfig.Actor.playerCount > 1;
+	const bool useOverride = multiplex || (g_viewedCameraPlayer != 0);
+	g_isMPCamActive = false;
+	CrimsonDetours::ToggleCustomCameraPositioning(useOverride);
+	CrimsonPatches::DisableLockOnCamera(useOverride);
+}
+
 void MultiplayerCameraPositioningController() {
+	// Dev hotkeys: H cycles the displayed camera, F6 toggles splitscreen.
+	{
+		static bool s_prevDown = false;
+		bool down = (keyboard.state.keys[DI8::KEY::H] & 0x80) != 0;
+		if (down && !s_prevDown && g_splitscreenCamera && !g_splitscreenRenderTest && activeConfig.Actor.playerCount > 1 && GetForegroundWindow() == appWindow) {
+			g_viewedCameraPlayer = (g_viewedCameraPlayer + 1) % activeConfig.Actor.playerCount;
+		}
+		s_prevDown = down;
+
+		static bool s_prevF6 = false;
+		bool f6 = (keyboard.state.keys[DI8::KEY::F6] & 0x80) != 0;
+		if (f6 && !s_prevF6 && activeConfig.Actor.playerCount > 1 && GetForegroundWindow() == appWindow) {
+			g_splitscreenRenderTest = !g_splitscreenRenderTest;
+			if (g_splitscreenRenderTest) {
+				g_splitscreenCamera = true;
+			} else {
+				g_viewedCameraPlayer = 0;
+			}
+		}
+		s_prevF6 = f6;
+	}
+
+	// Camera swapping for splitscreen happens in CrimsonSplitscreen.cpp.
+	if (g_viewedCameraPlayer >= activeConfig.Actor.playerCount) {
+		g_viewedCameraPlayer = 0;
+	}
+
+	if (g_splitscreenCamera) {
+		SplitscreenCameraPositioningController();
+		return;
+	}
+
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!pool_10222 || !pool_10222[3]) return;
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);

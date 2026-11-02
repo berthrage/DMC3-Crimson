@@ -6272,6 +6272,16 @@ extern bool g_isMPCamActive;
 extern bool g_isParanoramicCamActive;
 
 extern __declspec(align(16)) float g_customCameraPos[4];
+extern __declspec(align(16)) float g_customCameraPos2[4];
+extern bool g_splitscreenCamera;
+extern bool g_splitscreenRenderTest; // F6
+extern uint8 g_viewedCameraPlayer;
+extern float g_splitscreenPlayerPos[PLAYER_COUNT][4]; // smoothed per-player camera targets
+constexpr size_t SPLITSCREEN_CAM_COPY_SIZE = 0x100;
+// Camera object of each player's half as of its last drawn frame.
+extern uint8 g_splitscreenCamCopy[2][SPLITSCREEN_CAM_COPY_SIZE];
+extern bool g_splitscreenCamCopyValid[2];
+bool GetSplitscreenCameraEye(int playerIndex, float out[3]);
 extern __declspec(align(16)) float g_customCameraSensitivity;
 extern bool g_cameraHittingWall;
 

@@ -881,6 +881,24 @@ float g_rotationDifference = 0;
 float g_rotationBeforeCalculation = 0;
 float g_rotationCalculated = 0;
 __declspec(align(16)) float g_customCameraPos[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+__declspec(align(16)) float g_customCameraPos2[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+bool g_splitscreenCamera = true;
+bool g_splitscreenRenderTest = false;
+uint8 g_viewedCameraPlayer = 0;
+float g_splitscreenPlayerPos[PLAYER_COUNT][4] = {};
+uint8 g_splitscreenCamCopy[2][SPLITSCREEN_CAM_COPY_SIZE] = {};
+bool g_splitscreenCamCopyValid[2] = {};
+
+bool GetSplitscreenCameraEye(int playerIndex, float out[3]) {
+	if (!g_splitscreenRenderTest || playerIndex < 0 || playerIndex > 1 || !g_splitscreenCamCopyValid[playerIndex]) {
+		return false;
+	}
+	const float* eye = reinterpret_cast<const float*>(g_splitscreenCamCopy[playerIndex] + 0x70);
+	out[0] = eye[0];
+	out[1] = eye[1];
+	out[2] = eye[2];
+	return true;
+}
 __declspec(align(16)) float g_customCameraSensitivity = 0.0f;
 bool g_cameraHittingWall = true;
 

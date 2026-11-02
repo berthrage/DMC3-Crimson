@@ -1104,7 +1104,6 @@ public:
 #endif
 
     void EffekInitRenderHook() {
-
         auto hookAddr = (appBaseAddr + 0x2B555); // dmc3.exe+2B555
         auto jumpAddr = (appBaseAddr + 0x2B55A); // dmc3.exe+2B55A
         //byte8* hookAddr = (byte8*)0x1400444F7;

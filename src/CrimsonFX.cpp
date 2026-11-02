@@ -61,12 +61,18 @@ void DTReadySFX() {
 
 void ComputeLockOnScreenData(PlayerActorData& actorData, const CameraData& cameraData, uint8 playerIndex) {
 	// Compute locked enemy screen position
-	auto lockedEnemyScreenPositionDD = debug_draw_world_to_screen((const float*)&actorData.lockOnData.targetPosition, 1.0f);
+	auto lockedEnemyScreenPositionDD = debug_draw_world_to_screen_for_player((const float*)&actorData.lockOnData.targetPosition, 1.0f, playerIndex);
 	crimsonPlayer[playerIndex].lockedEnemyScreenPosition = lockedEnemyScreenPositionDD;
 
 	// Compute camera-to-locked-enemy distance and clamped value
 	glm::vec3 lockedEnemyPosition = { actorData.lockOnData.targetPosition.x, actorData.lockOnData.targetPosition.y, actorData.lockOnData.targetPosition.z };
 	glm::vec3 cameraPosition = { cameraData.data[0].x, cameraData.data[0].y, cameraData.data[0].z };
+	{
+		float splitEye[3];
+		if (GetSplitscreenCameraEye(playerIndex, splitEye)) {
+			cameraPosition = { splitEye[0], splitEye[1], splitEye[2] };
+		}
+	}
 	crimsonPlayer[playerIndex].cameraLockedEnemyDistance = glm::distance(lockedEnemyPosition, cameraPosition);
 	int distanceLockedEnemy = (int)crimsonPlayer[playerIndex].cameraLockedEnemyDistance / 20;
 	crimsonPlayer[playerIndex].cameraLockedEnemyDistanceClamped = glm::clamp(distanceLockedEnemy, 0, 255);
@@ -101,6 +107,12 @@ void CalculateViewProperties(byte8* actorBaseAddr) {
 	glm::vec3 clonePosition = { cloneActorData.position.x, cloneActorData.position.y, cloneActorData.position.z };
 	glm::vec3 mainActorPosition = { mainActorData.position.x, mainActorData.position.y, mainActorData.position.z };
 	glm::vec3 cameraPosition = { cameraData.data[0].x, cameraData.data[0].y, cameraData.data[0].z };
+	{
+		float splitEye[3];
+		if (GetSplitscreenCameraEye(playerIndex, splitEye)) {
+			cameraPosition = { splitEye[0], splitEye[1], splitEye[2] };
+		}
+	}
 	glm::vec3 cloneLockedEnemyPosition = { cloneActorData.lockOnData.targetPosition.x, cloneActorData.lockOnData.targetPosition.y, cloneActorData.lockOnData.targetPosition.z };
 
 	auto& playerTo1PDistance = crimsonPlayer[playerIndex].playerTo1PDistance;
@@ -120,10 +132,9 @@ void CalculateViewProperties(byte8* actorBaseAddr) {
 	g_plEntityTo1PDistances[indexToAssign] = playerTo1PDistance;
 	g_plEntityTo1PDistances[cloneIndexToAssign] = cloneTo1PDistance;
 
-	playerScreenPosition = debug_draw_world_to_screen((const float*)&actorData.position, 1.0f);
-	cloneScreenPosition = debug_draw_world_to_screen((const float*)&cloneActorData.position, 1.0f);
-	cloneLockedEnemyScreenPosition = debug_draw_world_to_screen((const float*)&cloneActorData.lockOnData.targetPosition, 1.0f);
-
+	playerScreenPosition = debug_draw_world_to_screen_for_player((const float*)&actorData.position, 1.0f, playerIndex);
+	cloneScreenPosition = debug_draw_world_to_screen_for_player((const float*)&cloneActorData.position, 1.0f, playerIndex);
+	cloneLockedEnemyScreenPosition = debug_draw_world_to_screen_for_player((const float*)&cloneActorData.lockOnData.targetPosition, 1.0f, playerIndex);
 	g_plEntityScreenPositions[indexToAssign] = playerScreenPosition;
 	g_plEntityScreenPositions[cloneIndexToAssign] = cloneScreenPosition;
 	
@@ -824,7 +835,7 @@ void StyleSwitchDrawText(byte8* actorBaseAddr) {
             else if (styleid == STYLE::DOPPELGANGER) {
                 offset[0] = -250.0f * sizeDistance;
             }
-			SetStyleSwitchFxWork((SsFxType) styleid, stylesWorldPos[styleid], sstext->color[styleid], sstext->alpha[styleid], offset, sstext->time[styleid], sizeDistance);
+			SetStyleSwitchFxWork((SsFxType) styleid, stylesWorldPos[styleid], sstext->color[styleid], sstext->alpha[styleid], offset, sstext->time[styleid], sizeDistance, playerIndex);
 		}
     }
     

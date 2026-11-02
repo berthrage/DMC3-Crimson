@@ -764,6 +764,12 @@ void HandlePanoramicSPCameraDistance(float& cameraDistance, float groundDistance
 }
 
 void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistanceSP, float airDistanceSP) {
+	// Splitscreen cameras keep the single-player distance and FOV.
+	if (g_splitscreenCamera) {
+		activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
+		return;
+	}
+
 	auto pool_166 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!pool_166 || !pool_166[3]) return;
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_166[3]);

@@ -15,5 +15,6 @@ void debug_draw_update(float dt);
 void debug_draw_shutdown();
 void debug_draw_projected_text(const char* text, const float pos[], const float color[], float size);
 SimpleVec3 debug_draw_world_to_screen(const float worldPos[], const float size);
+SimpleVec3 debug_draw_world_to_screen_for_player(const float worldPos[], const float size, int playerIndex);
 
 dd::ContextHandle dd_ctx();

@@ -140,10 +140,10 @@ void FreeStyleSwitchFxTexture() {
     delete g_StyleSwitchAtlasTexture;
 }
 
-void SetStyleSwitchFxWork(SsFxType sfxType, const float worldpos[3], const float color[3], float alpha, const float offset[2], float time, float size) {
+void SetStyleSwitchFxWork(SsFxType sfxType, const float worldpos[3], const float color[3], float alpha, const float offset[2], float time, float size, int playerIndex) {
     ZeroMemory(&g_StyleSwitchFxWork, sizeof(g_StyleSwitchFxWork));
     g_StyleSwitchFxWork.sfxType = sfxType;
-    SimpleVec3 screenpos = debug_draw_world_to_screen(worldpos, size);
+    SimpleVec3 screenpos = debug_draw_world_to_screen_for_player(worldpos, size, playerIndex);
     memcpy(g_StyleSwitchFxWork.pos, &screenpos, sizeof(ddVec3));
     memcpy(g_StyleSwitchFxWork.color, color, sizeof(ddVec3));
     g_StyleSwitchFxWork.alpha = alpha;

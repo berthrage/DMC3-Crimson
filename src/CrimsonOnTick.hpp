@@ -16,6 +16,7 @@ namespace CrimsonOnTick {
 	void StyleMeterMultiplayer();
 	void DetermineActiveEntitiesCount();
 	void MultiplayerCameraPositioningController();
+	void SplitscreenCameraPositioningController();
 	void CameraShakeController();
 	void ForceThirdPersonCameraController();
 	void GeneralCameraOptionsController();
