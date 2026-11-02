@@ -6,6 +6,7 @@
 #include <cstring>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <d3d11.h>
 #include <wrl/client.h>
@@ -19,8 +20,9 @@
 #include "Vars.hpp"
 
 // Splitscreen works by multiplexing in time: each frame is a normal single-camera
-// frame, built for one player, and the centre half of it is stored. The two most
-// recent halves are composited side by side after the scene is drawn.
+// frame, built for one player, and stored. The most recent frame of every player is
+// composited after the scene is drawn: 2 players as side-by-side centre crops, 3-4 players
+// as quadrants (the frame downscaled to half size; a 3rd-player layout leaves the fourth blank).
 
 namespace {
 
@@ -77,33 +79,50 @@ struct HudTuning {
 	bool showGuides;
 };
 
-constexpr HudTuning HUD_TUNING_DEFAULT = {
+enum HudLayout { HUD_LAYOUT_HALVES = 0, HUD_LAYOUT_QUADS = 1, HUD_LAYOUT_COUNT };
+
+// Halves show a centre crop of the frame, so the HUD is pulled in to its edges.
+constexpr HudTuning HUD_TUNING_HALVES = {
 	{ 0.500f, 0.500f, -21.5f, 50.0f },
 	{ 0.500f, 0.500f, 39.0f, -112.0f },
 	{ 0.500f, 0.500f, 0.0f, 112.0f },
 	false,
 };
-HudTuning s_hudTuning = HUD_TUNING_DEFAULT;
+// Quadrants show the whole downscaled frame, so only the top-left group needs a nudge.
+constexpr HudTuning HUD_TUNING_QUADS = {
+	{ 1.000f, 1.000f, -41.0f, 13.5f },
+	{ 1.000f, 1.000f, 0.0f, 0.0f },
+	{ 1.000f, 1.000f, 0.0f, 0.0f },
+	false,
+};
+HudTuning s_hudTuning[HUD_LAYOUT_COUNT] = { HUD_TUNING_HALVES, HUD_TUNING_QUADS };
 
 float s_frameAspect = 16.0f / 9.0f;
 
 constexpr size_t CAM_STATE_SIZE = 0x200;
 constexpr size_t CAM_EYE_OFFSET = 0x70; // eye at 0x70, lookat at 0x80
 
-struct Halves {
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> tex[2];
-	bool valid[2] = {};
-	UINT width = 0;
-	UINT height = 0;
+// Cells are half the frame wide; half tall too in the quadrant layout.
+struct Cells {
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> tex[PLAYER_COUNT];
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> blank;
+	// Frame copy with a mip chain; mip 1 is the half-size frame.
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> mipSource;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mipView;
+	bool valid[PLAYER_COUNT] = {};
+	UINT frameWidth = 0;
+	UINT frameHeight = 0;
 	DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
+	bool quads = false;
 };
-Halves s_halves;
+Cells s_cells;
+int s_lastViewCount = 0;
 
 // Saved camera state per player, in two regions: the camera control object and
 // the CameraData at pool[147].
 struct CameraSlots {
-	uint8_t state[2][2][CAM_STATE_SIZE] = {};
-	bool valid[2] = {};
+	uint8_t state[PLAYER_COUNT][2][CAM_STATE_SIZE] = {};
+	bool valid[PLAYER_COUNT] = {};
 };
 CameraSlots s_camSlots;
 
@@ -119,14 +138,26 @@ std::unique_ptr<Utility::Detour_t> s_cockpitBottomDrawHook;
 // g_viewedCameraPlayer is advanced right after every drawn frame, so while a
 // frame is being drawn it still holds the player that frame was built for.
 int FramePlayer() {
-	return (g_viewedCameraPlayer == 1) ? 1 : 0;
+	return (g_viewedCameraPlayer < GetSplitscreenViewCount()) ? g_viewedCameraPlayer : 0;
 }
 
 bool SplitscreenActive() {
-	return g_splitscreenRenderTest && activeConfig.Actor.playerCount >= 2;
+	return GetSplitscreenViewCount() >= 2;
 }
 
-void SwapCameraState(uint8_t* cameraControl, int framePlayer) {
+const HudTuning& ActiveHudTuning() {
+	return s_hudTuning[(GetSplitscreenViewCount() > 2) ? HUD_LAYOUT_QUADS : HUD_LAYOUT_HALVES];
+}
+
+void ResetSplitState() {
+	for (int p = 0; p < PLAYER_COUNT; ++p) {
+		s_camSlots.valid[p]        = false;
+		s_cells.valid[p]           = false;
+		g_splitscreenCamCopyValid[p] = false;
+	}
+}
+
+void SwapCameraState(uint8_t* cameraControl, int framePlayer, int viewCount) {
 	uint8_t* regions[2] = { cameraControl, nullptr };
 	auto pool = *reinterpret_cast<uint8_t***>(appBaseAddr + CAMERA_CTRL_PTR_OFFSET);
 	if (pool && pool[147] && !(reinterpret_cast<uintptr_t>(pool[147]) & 0xFFF0000000000000ull) && pool[147] != regions[0]) {
@@ -142,7 +173,7 @@ void SwapCameraState(uint8_t* cameraControl, int framePlayer) {
 	std::memcpy(g_splitscreenCamCopy[framePlayer], s_camSlots.state[framePlayer][0], SPLITSCREEN_CAM_COPY_SIZE);
 	g_splitscreenCamCopyValid[framePlayer] = true;
 
-	const int next = 1 - framePlayer;
+	const int next = (framePlayer + 1) % viewCount;
 	if (!s_camSlots.valid[next]) {
 		// First use: copy the other camera and shift it onto this player.
 		const float dx = g_splitscreenPlayerPos[next][0] - g_splitscreenPlayerPos[framePlayer][0];
@@ -172,48 +203,117 @@ void SwapCameraState(uint8_t* cameraControl, int framePlayer) {
 	g_customCameraPos[3] = 1.0f;
 }
 
-void Composite(Render* render) {
+DXGI_FORMAT TypedFormat(DXGI_FORMAT format) {
+	switch (format) {
+	case DXGI_FORMAT_R8G8B8A8_TYPELESS: return DXGI_FORMAT_R8G8B8A8_UNORM;
+	case DXGI_FORMAT_B8G8R8A8_TYPELESS: return DXGI_FORMAT_B8G8R8A8_UNORM;
+	case DXGI_FORMAT_B8G8R8X8_TYPELESS: return DXGI_FORMAT_B8G8R8X8_UNORM;
+	default: return format;
+	}
+}
+
+bool CreateCells(Render* render, const D3D11_TEXTURE2D_DESC& frameDesc, bool quads) {
+	s_cells = Cells{};
+	auto* device = render->device;
+	const UINT cellW = frameDesc.Width / 2;
+	const UINT cellH = quads ? frameDesc.Height / 2 : frameDesc.Height;
+
+	D3D11_TEXTURE2D_DESC cellDesc{};
+	cellDesc.Width            = cellW;
+	cellDesc.Height           = cellH;
+	cellDesc.MipLevels        = 1;
+	cellDesc.ArraySize        = 1;
+	cellDesc.Format           = frameDesc.Format;
+	cellDesc.SampleDesc.Count = 1;
+	cellDesc.Usage            = D3D11_USAGE_DEFAULT;
+	for (int i = 0; i < (quads ? PLAYER_COUNT : 2); ++i) {
+		if (FAILED(device->CreateTexture2D(&cellDesc, nullptr, s_cells.tex[i].GetAddressOf()))) {
+			return false;
+		}
+	}
+
+	if (quads) {
+		// 16 bytes per pixel covers every format the frame could use.
+		const UINT pitch = cellW * 16;
+		std::vector<uint8_t> zeros(static_cast<size_t>(pitch) * cellH);
+		D3D11_SUBRESOURCE_DATA init{ zeros.data(), pitch, 0 };
+		if (FAILED(device->CreateTexture2D(&cellDesc, &init, s_cells.blank.GetAddressOf()))) {
+			return false;
+		}
+
+		// Mip 1 of the frame is a filtered half-size copy; without it fall back to a centre crop.
+		D3D11_TEXTURE2D_DESC mipDesc = frameDesc;
+		mipDesc.MipLevels      = 2;
+		mipDesc.ArraySize      = 1;
+		mipDesc.Usage          = D3D11_USAGE_DEFAULT;
+		mipDesc.BindFlags      = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+		mipDesc.CPUAccessFlags = 0;
+		mipDesc.MiscFlags      = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+		D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc{};
+		viewDesc.Format                    = TypedFormat(frameDesc.Format);
+		viewDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+		viewDesc.Texture2D.MostDetailedMip = 0;
+		viewDesc.Texture2D.MipLevels       = 2;
+		g_splitscreenQuadScaled =
+			SUCCEEDED(device->CreateTexture2D(&mipDesc, nullptr, s_cells.mipSource.GetAddressOf())) &&
+			SUCCEEDED(device->CreateShaderResourceView(s_cells.mipSource.Get(), &viewDesc, s_cells.mipView.GetAddressOf()));
+		if (!g_splitscreenQuadScaled) {
+			s_cells.mipSource.Reset();
+			s_cells.mipView.Reset();
+		}
+	}
+
+	s_cells.frameWidth  = frameDesc.Width;
+	s_cells.frameHeight = frameDesc.Height;
+	s_cells.format      = frameDesc.Format;
+	s_cells.quads       = quads;
+	return true;
+}
+
+void Composite(Render* render, int player, int viewCount) {
 	ID3D11Texture2D* frame = render->renderTargets[0].texture;
 	D3D11_TEXTURE2D_DESC desc{};
 	frame->GetDesc(&desc);
-	if (desc.SampleDesc.Count != 1 || desc.Width < 8) {
+	if (desc.SampleDesc.Count != 1 || desc.Width < 8 || desc.Height < 8) {
 		return;
 	}
-	const UINT halfW = desc.Width / 2;
 	s_frameAspect = static_cast<float>(desc.Width) / static_cast<float>(desc.Height);
 
-	if (s_halves.width != halfW || s_halves.height != desc.Height || s_halves.format != desc.Format || !s_halves.tex[0]) {
-		D3D11_TEXTURE2D_DESC halfDesc{};
-		halfDesc.Width            = halfW;
-		halfDesc.Height           = desc.Height;
-		halfDesc.MipLevels        = 1;
-		halfDesc.ArraySize        = 1;
-		halfDesc.Format           = desc.Format;
-		halfDesc.SampleDesc.Count = 1;
-		halfDesc.Usage            = D3D11_USAGE_DEFAULT;
-		for (int i = 0; i < 2; ++i) {
-			s_halves.tex[i].Reset();
-			s_halves.valid[i] = false;
-			if (FAILED(render->device->CreateTexture2D(&halfDesc, nullptr, s_halves.tex[i].GetAddressOf()))) {
-				return;
-			}
+	const bool quads = viewCount > 2;
+	if (!s_cells.tex[0] || s_cells.frameWidth != desc.Width || s_cells.frameHeight != desc.Height ||
+		s_cells.format != desc.Format || s_cells.quads != quads) {
+		if (!CreateCells(render, desc, quads)) {
+			s_cells.frameWidth = 0;
+			return;
 		}
-		s_halves.width  = halfW;
-		s_halves.height = desc.Height;
-		s_halves.format = desc.Format;
 	}
 
 	auto* ctx = render->deviceContext;
-	const int player = FramePlayer();
+	const UINT cellW = desc.Width / 2;
+	const UINT cellH = quads ? desc.Height / 2 : desc.Height;
 
-	// Cropping the centre keeps the aspect ratio.
-	const D3D11_BOX centre = { desc.Width / 4, 0, 0, desc.Width / 4 + halfW, desc.Height, 1 };
-	ctx->CopySubresourceRegion(s_halves.tex[player].Get(), 0, 0, 0, 0, frame, 0, &centre);
-	s_halves.valid[player] = true;
+	if (quads && s_cells.mipSource) {
+		ctx->CopySubresourceRegion(s_cells.mipSource.Get(), 0, 0, 0, 0, frame, 0, nullptr);
+		ctx->GenerateMips(s_cells.mipView.Get());
+		ctx->CopySubresourceRegion(s_cells.tex[player].Get(), 0, 0, 0, 0, s_cells.mipSource.Get(), 1, nullptr);
+	} else {
+		// Cropping the centre keeps the aspect ratio.
+		const UINT left = desc.Width / 4;
+		const UINT top  = quads ? desc.Height / 4 : 0;
+		const D3D11_BOX centre = { left, top, 0, left + cellW, top + cellH, 1 };
+		ctx->CopySubresourceRegion(s_cells.tex[player].Get(), 0, 0, 0, 0, frame, 0, &centre);
+	}
+	s_cells.valid[player] = true;
 
-	for (int i = 0; i < 2; ++i) {
-		if (s_halves.valid[i]) {
-			ctx->CopySubresourceRegion(frame, 0, static_cast<UINT>(i) * halfW, 0, 0, s_halves.tex[i].Get(), 0, nullptr);
+	for (int i = 0; i < (quads ? PLAYER_COUNT : 2); ++i) {
+		ID3D11Texture2D* src = nullptr;
+		if (i < viewCount) {
+			src = s_cells.valid[i] ? s_cells.tex[i].Get() : nullptr;
+		} else {
+			src = s_cells.blank.Get(); // unused quadrant
+		}
+		if (src) {
+			ctx->CopySubresourceRegion(frame, 0, static_cast<UINT>(i & 1) * cellW, static_cast<UINT>(i >> 1) * cellH, 0, src, 0, nullptr);
 		}
 	}
 }
@@ -225,26 +325,32 @@ __int64 __fastcall SubmitDrawListHook(int a1) {
 
 	auto* render = reinterpret_cast<Render*>(appBaseAddr + RENDER_OFFSET);
 	auto* cameraCtrl = *reinterpret_cast<uint8_t**>(appBaseAddr + CAMERA_CTRL_PTR_OFFSET);
-	if (!g_splitscreenRenderTest || activeConfig.Actor.playerCount < 2) {
-		s_camSlots.valid[0] = s_camSlots.valid[1] = false;
-		g_splitscreenCamCopyValid[0] = g_splitscreenCamCopyValid[1] = false;
+	const int viewCount = GetSplitscreenViewCount();
+	if (viewCount < 2) {
+		ResetSplitState();
+		s_lastViewCount = 0;
 	} else if (render->device && render->deviceContext && render->renderTargets[0].texture && cameraCtrl) {
-		Composite(render);
-		SwapCameraState(cameraCtrl, FramePlayer());
+		if (viewCount != s_lastViewCount) {
+			ResetSplitState();
+			s_lastViewCount = viewCount;
+		}
+		const int player = FramePlayer();
+		Composite(render, player, viewCount);
+		SwapCameraState(cameraCtrl, player, viewCount);
 	}
 	return result;
 }
 
 // UpdatePlayerInput_sub_1401EBCF0 derives actor.cameraDirection from the live
-// camera. Actors that belong to the other player's camera get that camera's
+// camera. Actors that belong to another player's camera get that camera's
 // eye/lookat for the duration of the call, otherwise movement flips between
-// two diverging yaws every tick.
+// diverging yaws every tick.
 __int64 __fastcall UpdatePlayerInputHook(__int64 actor) {
 	const auto original = s_updatePlayerInputHook->GetTrampoline<UpdatePlayerInputFn>();
 
 	const int owner = *reinterpret_cast<uint8_t*>(actor + 0x1CACC); // newPlayerIndex
 	uint8_t* camObj = nullptr;
-	if (g_splitscreenRenderTest && activeConfig.Actor.playerCount >= 2 && owner < 2 && owner != g_viewedCameraPlayer && s_camSlots.valid[owner]) {
+	if (owner < GetSplitscreenViewCount() && owner != g_viewedCameraPlayer && s_camSlots.valid[owner]) {
 		const auto scene = *reinterpret_cast<uintptr_t*>(appBaseAddr + SCENE_STATE_PTR_OFFSET);
 		if (scene) {
 			camObj = *reinterpret_cast<uint8_t**>(scene + 0x240);
@@ -269,8 +375,8 @@ __int64 __fastcall UpdatePlayerInputHook(__int64 actor) {
 }
 
 struct CockpitSlots {
-	uint8_t state[2][COCKPIT_STATE_END - COCKPIT_STATE_BEGIN] = {};
-	bool valid[2] = {};
+	uint8_t state[PLAYER_COUNT][COCKPIT_STATE_END - COCKPIT_STATE_BEGIN] = {};
+	bool valid[PLAYER_COUNT] = {};
 };
 CockpitSlots s_cockpitSlots;
 
@@ -358,7 +464,9 @@ void __fastcall CockpitUpdateHook(uint8_t* cockpit) {
 				SyncHudIcons(mainActor, 0);
 			}
 		}
-		s_cockpitSlots.valid[0] = s_cockpitSlots.valid[1] = false;
+		for (bool& valid : s_cockpitSlots.valid) {
+			valid = false;
+		}
 		original(cockpit);
 		return;
 	}
@@ -417,10 +525,11 @@ void __fastcall CockpitTopDrawHook(uint8_t* cockpit) {
 	auto matrix = [cockpit](size_t i) {
 		return reinterpret_cast<float*>(cockpit + COCKPIT_TOP_MATRIX_BASE + COCKPIT_TOP_MATRIX_STRIDE * i);
 	};
+	const HudTuning& tuning = ActiveHudTuning();
 	float backup[COCKPIT_TOP_MATRIX_COUNT][16];
 	for (size_t i = 0; i < COCKPIT_TOP_MATRIX_COUNT; ++i) {
 		std::memcpy(backup[i], matrix(i), sizeof(backup[i]));
-		ShrinkHudMatrix(matrix(i), IsRightHudElement(i) ? s_hudTuning.topRight : s_hudTuning.topLeft);
+		ShrinkHudMatrix(matrix(i), IsRightHudElement(i) ? tuning.topRight : tuning.topLeft);
 	}
 	original(cockpit);
 	for (size_t i = 0; i < COCKPIT_TOP_MATRIX_COUNT; ++i) {
@@ -443,7 +552,7 @@ void __fastcall CockpitBottomDrawHook(uint8_t* cockpit) {
 	float backup[COCKPIT_BOTTOM_MATRIX_COUNT][16];
 	for (size_t i = 0; i < COCKPIT_BOTTOM_MATRIX_COUNT; ++i) {
 		std::memcpy(backup[i], matrix(i), sizeof(backup[i]));
-		ShrinkHudMatrix(matrix(i), s_hudTuning.bottom);
+		ShrinkHudMatrix(matrix(i), ActiveHudTuning().bottom);
 	}
 	original(cockpit);
 	for (size_t i = 0; i < COCKPIT_BOTTOM_MATRIX_COUNT; ++i) {
@@ -462,10 +571,30 @@ void HudTuningWindow(bool* open) {
 		return;
 	}
 
-	if (!SplitscreenActive()) {
+	static int s_editLayout = HUD_LAYOUT_HALVES;
+	static int s_lastActiveLayout = -1;
+	const int viewCount = GetSplitscreenViewCount();
+	if (viewCount >= 2) {
+		const int activeLayout = (viewCount > 2) ? HUD_LAYOUT_QUADS : HUD_LAYOUT_HALVES;
+		if (activeLayout != s_lastActiveLayout) {
+			s_editLayout = activeLayout;
+			s_lastActiveLayout = activeLayout;
+		}
+	}
+
+	if (viewCount < 2) {
 		ImGui::TextWrapped("Splitscreen is off (F6 with 2+ players). Values still apply once it is on.");
 	}
+	ImGui::RadioButton("Halves (2 players)", &s_editLayout, HUD_LAYOUT_HALVES);
+	ImGui::SameLine();
+	ImGui::RadioButton("Quadrants (3-4 players)", &s_editLayout, HUD_LAYOUT_QUADS);
+	HudTuning& tuning = s_hudTuning[s_editLayout];
+	const bool quads = (s_editLayout == HUD_LAYOUT_QUADS);
+
 	ImGui::Text("Frame aspect: %.3f", s_frameAspect);
+	if (quads && !g_splitscreenQuadScaled) {
+		ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "Downscale unavailable: quadrants show a centre crop.");
+	}
 	ImGui::TextWrapped("Position = original * posScale + offset (HUD units, y grows downward). "
 		"Half of the frame width is %.1f units if the HUD is 448 tall.", 448.0f * s_frameAspect * 0.5f);
 
@@ -479,22 +608,27 @@ void HudTuningWindow(bool* open) {
 			ImGui::PopID();
 		}
 	};
-	group("Top left (HP / DT / style)", s_hudTuning.topLeft);
-	group("Top right (red orbs)", s_hudTuning.topRight);
-	group("Bottom (weapons)", s_hudTuning.bottom);
+	group("Top left (HP / DT / style)", tuning.topLeft);
+	group("Top right (red orbs)", tuning.topRight);
+	group("Bottom (weapons)", tuning.bottom);
 
-	ImGui::Checkbox("Show half guides", &s_hudTuning.showGuides);
-	if (s_hudTuning.showGuides) {
+	ImGui::Checkbox("Show view guides", &tuning.showGuides);
+	if (tuning.showGuides) {
 		auto* draw = ImGui::GetForegroundDrawList();
 		const ImVec2 size = ImGui::GetIO().DisplaySize;
 		const ImU32 colour = IM_COL32(255, 0, 255, 200);
-		draw->AddLine(ImVec2(size.x * 0.5f, 0), ImVec2(size.x * 0.5f, size.y), colour);
-		draw->AddRect(ImVec2(1, 1), ImVec2(size.x * 0.5f - 1, size.y - 1), colour);
-		draw->AddRect(ImVec2(size.x * 0.5f + 1, 1), ImVec2(size.x - 1, size.y - 1), colour);
+		const int cells = quads ? PLAYER_COUNT : 2;
+		for (int i = 0; i < cells; ++i) {
+			const float x0 = static_cast<float>(i & 1) * size.x * 0.5f;
+			const float y0 = quads ? static_cast<float>(i >> 1) * size.y * 0.5f : 0.0f;
+			const float w  = size.x * 0.5f;
+			const float h  = quads ? size.y * 0.5f : size.y;
+			draw->AddRect(ImVec2(x0 + 1, y0 + 1), ImVec2(x0 + w - 1, y0 + h - 1), colour);
+		}
 	}
 
 	if (ImGui::Button("Reset")) {
-		s_hudTuning = HUD_TUNING_DEFAULT;
+		tuning = quads ? HUD_TUNING_QUADS : HUD_TUNING_HALVES;
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Copy as code")) {
@@ -504,8 +638,9 @@ void HudTuningWindow(bool* open) {
 			snprintf(line, sizeof(line), "\t{ %.3ff, %.3ff, %.1ff, %.1ff },\n", g.sizeScale, g.posScale, g.offsetX, g.offsetY);
 			return std::string(line);
 		};
-		snprintf(text, sizeof(text), "constexpr HudTuning HUD_TUNING_DEFAULT = {\n%s%s%s\tfalse,\n};\n",
-			fmt(s_hudTuning.topLeft).c_str(), fmt(s_hudTuning.topRight).c_str(), fmt(s_hudTuning.bottom).c_str());
+		snprintf(text, sizeof(text), "constexpr HudTuning %s = {\n%s%s%s\tfalse,\n};\n",
+			quads ? "HUD_TUNING_QUADS" : "HUD_TUNING_HALVES",
+			fmt(tuning.topLeft).c_str(), fmt(tuning.topRight).c_str(), fmt(tuning.bottom).c_str());
 		ImGui::SetClipboardText(text);
 	}
 

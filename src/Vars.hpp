@@ -6278,10 +6278,17 @@ extern bool g_splitscreenRenderTest; // F6
 extern uint8 g_viewedCameraPlayer;
 extern float g_splitscreenPlayerPos[PLAYER_COUNT][4]; // smoothed per-player camera targets
 constexpr size_t SPLITSCREEN_CAM_COPY_SIZE = 0x100;
-// Camera object of each player's half as of its last drawn frame.
-extern uint8 g_splitscreenCamCopy[2][SPLITSCREEN_CAM_COPY_SIZE];
-extern bool g_splitscreenCamCopyValid[2];
+// Camera object of each player's view as of its last drawn frame.
+extern uint8 g_splitscreenCamCopy[PLAYER_COUNT][SPLITSCREEN_CAM_COPY_SIZE];
+extern bool g_splitscreenCamCopyValid[PLAYER_COUNT];
+// False when 3-4 player views could not be downscaled and show a centre crop instead.
+extern bool g_splitscreenQuadScaled;
 bool GetSplitscreenCameraEye(int playerIndex, float out[3]);
+// Number of views the screen is split into (2 = halves, 3-4 = quadrants), 0 when off.
+int GetSplitscreenViewCount();
+// Maps a full-frame pixel to the view of playerIndex (frame crop -> view cell).
+void MapSplitscreenPoint(int playerIndex, float frameW, float frameH, float& x, float& y);
+const uint8* GetSplitscreenCameraCopy(int playerIndex);
 extern __declspec(align(16)) float g_customCameraSensitivity;
 extern bool g_cameraHittingWall;
 

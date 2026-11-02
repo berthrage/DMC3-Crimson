@@ -1047,23 +1047,24 @@ SimpleVec3 debug_draw_world_to_screen(const float worldPos[], const float size) 
 }
 
 // Splitscreen state (Vars.cpp / CrimsonSplitscreen.cpp).
-extern bool g_splitscreenRenderTest;
-extern uint8_t g_splitscreenCamCopy[2][0x100];
-extern bool g_splitscreenCamCopyValid[2];
+extern const unsigned char* GetSplitscreenCameraCopy(int playerIndex);
+extern void MapSplitscreenPoint(int playerIndex, float frameW, float frameH, float& x, float& y);
 
-// Projects into the splitscreen half of playerIndex using that half's camera.
+// Projects into the splitscreen view of playerIndex using that view's camera.
 SimpleVec3 debug_draw_world_to_screen_for_player(const float worldPos[], const float size, int playerIndex) {
-    if (!g_splitscreenRenderTest || playerIndex < 0 || playerIndex > 1 || !g_splitscreenCamCopyValid[playerIndex]) {
+    const unsigned char* camCopy = GetSplitscreenCameraCopy(playerIndex);
+    if (!camCopy) {
         return debug_draw_world_to_screen(worldPos, size);
     }
 
     dd::Camera cam = *g_dd_ctx->camera;
-    cam.updateMatrices(reinterpret_cast<Devil3::cCameraControl*>(g_splitscreenCamCopy[playerIndex]));
+    cam.updateMatrices(reinterpret_cast<Devil3::cCameraControl*>(const_cast<unsigned char*>(camCopy)));
 
     SimpleVec3 retval{};
     const float width = cam.windowDims[0];
-    dd::worldToScreen(g_dd_ctx->ddContext, worldPos, toFloatPtr(cam.vpMatrix), (float*)&retval, 0, 0, (int)width, (int)cam.windowDims[1], size);
-    retval.x = retval.x - width * 0.25f + static_cast<float>(playerIndex) * width * 0.5f;
+    const float height = cam.windowDims[1];
+    dd::worldToScreen(g_dd_ctx->ddContext, worldPos, toFloatPtr(cam.vpMatrix), (float*)&retval, 0, 0, (int)width, (int)height, size);
+    MapSplitscreenPoint(playerIndex, width, height, retval.x, retval.y);
     return retval;
 }
 
