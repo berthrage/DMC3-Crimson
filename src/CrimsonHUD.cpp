@@ -45,6 +45,7 @@
 #include "CrimsonHUD.hpp"
 #include "CrimsonGameplay.hpp"
 #include "CrimsonFX.hpp"
+#include "CrimsonSplitscreen.hpp"
 #include "DebugDrawDX11.hpp"
 #define DEBUG_DRAW_EXPLICIT_CONTEXT
 #include "debug_draw.hpp"
@@ -53,6 +54,23 @@
 namespace CrimsonHUD {
 
 using namespace CrimsonGUI;
+
+// Keeps the current window's drawing inside the splitscreen view of playerIndex.
+static bool PushSplitscreenViewClip(int playerIndex) {
+	const ImVec2 size = ImGui::GetIO().DisplaySize;
+	float minX, minY, maxX, maxY;
+	if (!CrimsonSplitscreen::ViewRect(playerIndex, size.x, size.y, minX, minY, maxX, maxY)) {
+		return false;
+	}
+	ImGui::PushClipRect(ImVec2(minX, minY), ImVec2(maxX, maxY), true);
+	return true;
+}
+
+static void PopSplitscreenViewClip(bool pushed) {
+	if (pushed) {
+		ImGui::PopClipRect();
+	}
+}
 
 
 // RED ORB
@@ -1763,6 +1781,7 @@ void LockOnWindows() {
 
 	// Spin speed in radians per second (adjust as needed)
 	const float spinSpeed = 0.08f; // slow spin
+	const float scaleFactorY = CrimsonGUI::scaleFactorY * CrimsonSplitscreen::ViewScale(0);
 
 	if (!activeCrimsonConfig.CrimsonHudAddons.lockOn ) {
 		CrimsonPatches::ToggleHideLockOn(activeCrimsonConfig.HudOptions.hideLockOn);
@@ -1854,6 +1873,7 @@ void LockOnWindows() {
 
 		// Only call Begin if you will always call End in this loop iteration!
 		bool windowOpen = ImGui::Begin(windowName.c_str(), nullptr, windowFlags);
+		const bool viewClipped = PushSplitscreenViewClip(playerIndex);
 
 		float alpha = 1.0f;
 
@@ -1924,6 +1944,7 @@ void LockOnWindows() {
 			}
 		}
 
+		PopSplitscreenViewClip(viewClipped);
 		ImGui::End();
 	}
 }
@@ -1951,6 +1972,7 @@ void StunDisplacementLockOnWindows() {
 
 	// Spin speed in radians per second (adjust as needed)
 	const float spinSpeed = -0.12f; // slow spin
+	const float scaleFactorY = CrimsonGUI::scaleFactorY * CrimsonSplitscreen::ViewScale(0);
 
 	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
 	if (!pool_4449 || !pool_4449[147]) {
@@ -2040,6 +2062,7 @@ void StunDisplacementLockOnWindows() {
 		std::string windowName = "LockOnDisplacementWindow" + std::to_string(playerIndex);
 
 		ImGui::Begin(windowName.c_str(), nullptr, windowFlags);
+		const bool viewClipped = PushSplitscreenViewClip(playerIndex);
 
 		float alpha = 1.0f;
 
@@ -2167,6 +2190,7 @@ void StunDisplacementLockOnWindows() {
 				std::string windowNameStun = "LockOnStunWindow" + std::to_string(playerIndex);
 
 				ImGui::Begin(windowNameStun.c_str(), nullptr, windowFlags);
+				const bool stunViewClipped = PushSplitscreenViewClip(playerIndex);
 
 				ImVec4 stunColor = ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(0xcfc4ffFF));
 
@@ -2264,10 +2288,12 @@ void StunDisplacementLockOnWindows() {
 					ImGui::PopStyleColor();
 				}
 
+				PopSplitscreenViewClip(stunViewClipped);
 				ImGui::End(); // End LockOnStunWindow
 			}
 		}
 
+		PopSplitscreenViewClip(viewClipped);
 		ImGui::End(); // End LockOnDisplacementWindow
 	}
 }
@@ -2290,6 +2316,7 @@ void ShieldLockOnWindows() {
 
 	// Spin speed in radians per second (adjust as needed)
 	const float spinSpeed = -0.12f; // slow spin
+	const float scaleFactorY = CrimsonGUI::scaleFactorY * CrimsonSplitscreen::ViewScale(0);
 
 	if (activeCrimsonConfig.HudOptions.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.lockOn) {
 		for (int i = 0; i < PLAYER_COUNT; ++i) ForceFadeOut(lockOnFade[i]);
@@ -2379,6 +2406,7 @@ void ShieldLockOnWindows() {
 		std::string windowName = "LockOnShieldWindow" + std::to_string(playerIndex);
 
 		ImGui::Begin(windowName.c_str(), nullptr, windowFlags);
+		const bool viewClipped = PushSplitscreenViewClip(playerIndex);
 
 		float alpha = 1.0f;
 
@@ -2441,6 +2469,7 @@ void ShieldLockOnWindows() {
 			}
 		}
 
+		PopSplitscreenViewClip(viewClipped);
 		ImGui::End();
 	}
 }
@@ -3634,6 +3663,428 @@ Texture2DD3D11 *getRedOrbTexture()
 	}
 	return RedOrbTexture;
 }
+
+#pragma region Player Icons
+
+// Screen area a world-space HUD element belongs to: the whole screen, or one splitscreen view.
+struct WorldHudView {
+	int viewer = -1; // splitscreen view index, -1 = whole screen
+	float minX = 0.0f;
+	float minY = 0.0f;
+	float maxX = 0.0f;
+	float maxY = 0.0f;
+	float scale = 1.0f;
+
+	float Width() const { return maxX - minX; }
+	float Height() const { return maxY - minY; }
+};
+
+static WorldHudView MakeWorldHudView(int viewer) {
+	WorldHudView view;
+	view.maxX = g_renderSize.x;
+	view.maxY = g_renderSize.y;
+	if (viewer >= 0 && CrimsonSplitscreen::ViewRect(viewer, g_renderSize.x, g_renderSize.y, view.minX, view.minY, view.maxX, view.maxY)) {
+		view.viewer = viewer;
+		view.scale = CrimsonSplitscreen::ViewScale(viewer);
+	}
+	return view;
+}
+
+static void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_pos, float screenMargin, const char* name, const WorldHudView& view) {
+	auto pool_4449 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC8FBD0);
+	if (!pool_4449 || !pool_4449[147]) return;
+	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
+
+	auto pool_12857 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool_12857 || !pool_12857[3]) return;
+	auto& mainActorData = *reinterpret_cast<PlayerActorDataDante*>(pool_12857[3]);
+
+	auto playerIndex = actorData.newPlayerIndex;
+
+	// Everything below works in view-local coordinates and is offset by the view origin at the end.
+	const float screenWidth = view.Width();
+	const float screenHeight = view.Height();
+	const float screenCenterX = screenWidth / 2.0f;
+	const float screenCenterY = screenHeight / 2.0f;
+	const size_t iconSlotBase = static_cast<size_t>((view.viewer >= 0) ? view.viewer : 0) * PLAYER_COUNT;
+
+	ImVec2 iconPosition;
+
+	glm::vec3 cameraPos = { cameraData.data[0].x, cameraData.data[0].y, cameraData.data[0].z };
+	glm::vec3 playerPos = { actorData.position.x, actorData.position.y, actorData.position.z };
+
+	// The distance shown is from the player the view belongs to, or from 1P without splitscreen.
+	float distanceToViewer = crimsonPlayer[playerIndex].playerTo1PDistance;
+	if (view.viewer >= 0) {
+		const auto& viewerPos = g_plEntityPositions[view.viewer * 2];
+		distanceToViewer = glm::distance(playerPos, glm::vec3(viewerPos.x, viewerPos.y, viewerPos.z));
+	}
+
+	// Calculate the camera's forward vector based on the main actor's (1P) position
+	glm::vec3 mainActorPos = { mainActorData.position.x, mainActorData.position.y, mainActorData.position.z };
+	SimpleVec3 cameraForwardVec = {
+		mainActorPos.x - cameraPos.x,
+		mainActorPos.y - cameraPos.y,
+		mainActorPos.z - cameraPos.z
+	};
+	if (const uint8_t* camCopy = CrimsonSplitscreen::CameraCopy(view.viewer)) {
+		// Each splitscreen view has its own camera.
+		const float* eye = reinterpret_cast<const float*>(camCopy + 0x70);
+		const float* lookAt = reinterpret_cast<const float*>(camCopy + 0x80);
+		cameraPos = { eye[0], eye[1], eye[2] };
+		cameraForwardVec = { lookAt[0] - eye[0], lookAt[1] - eye[1], lookAt[2] - eye[2] };
+	}
+
+	// Normalize the camera forward vector
+	float magnitude = sqrt(cameraForwardVec.x * cameraForwardVec.x +
+		cameraForwardVec.y * cameraForwardVec.y +
+		cameraForwardVec.z * cameraForwardVec.z);
+	cameraForwardVec.x /= magnitude;
+	cameraForwardVec.y /= magnitude;
+	cameraForwardVec.z /= magnitude;
+
+	// Calculate and normalize the vector from the camera to the player
+	SimpleVec3 cameraToPlayerVec = {
+		playerPos.x - cameraPos.x,
+		playerPos.y - cameraPos.y,
+		playerPos.z - cameraPos.z
+	};
+	float magnitudeCameraToPlayer = sqrt(cameraToPlayerVec.x * cameraToPlayerVec.x +
+		cameraToPlayerVec.y * cameraToPlayerVec.y +
+		cameraToPlayerVec.z * cameraToPlayerVec.z);
+	cameraToPlayerVec.x /= magnitudeCameraToPlayer;
+	cameraToPlayerVec.y /= magnitudeCameraToPlayer;
+	cameraToPlayerVec.z /= magnitudeCameraToPlayer;
+
+	// Determine if the player is behind the camera
+	float dotProduct = cameraToPlayerVec.x * cameraForwardVec.x +
+		cameraToPlayerVec.y * cameraForwardVec.y +
+		cameraToPlayerVec.z * cameraForwardVec.z;
+
+	bool isBehindCamera = dotProduct < 0.0f;
+
+	if (isBehindCamera) {
+		float deltaX = -cameraToPlayerVec.x;
+		float deltaY = -cameraToPlayerVec.y;
+
+		// Introduce bias towards the bottom of the screen
+		deltaY += screenHeight * 0.003f;
+
+		// Determine the screen edge closest to the player's position
+		float absDeltaX = fabs(deltaX);
+		float absDeltaY = fabs(deltaY);
+
+		if (absDeltaX > absDeltaY) {
+			// Player is more to the left or right
+			if (deltaX > 0) {
+				// Right side of the screen
+				iconPosition = ImVec2(screenWidth - screenMargin, screenCenterY + deltaY / absDeltaX * (screenHeight / 2.0f - screenMargin));
+			}
+			else {
+				// Left side of the screen
+				iconPosition = ImVec2(screenMargin, screenCenterY + deltaY / absDeltaX * (screenHeight / 2.0f - screenMargin));
+			}
+		}
+		else {
+			// Player is more to the top or bottom
+			if (deltaY > 0) {
+				// Bottom side of the screen
+				iconPosition = ImVec2(screenCenterX + deltaX / absDeltaY * (screenWidth / 2.0f - screenMargin), screenHeight - screenMargin);
+			}
+			else {
+				// Top side of the screen
+				iconPosition = ImVec2(screenCenterX + deltaX / absDeltaY * (screenWidth / 2.0f - screenMargin), screenMargin);
+			}
+		}
+	}
+	else {
+		// Apply a magnetic effect to pull the icon toward the edges of the screen
+		float deltaX = screen_pos.x - view.minX - screenCenterX;
+		float deltaY = screen_pos.y - view.minY - screenCenterY;
+		float edgePullFactor = 0.7f;
+
+		if (fabs(deltaX) > fabs(deltaY)) {
+			// More horizontal movement
+			iconPosition.x = screenCenterX + edgePullFactor * deltaX;
+			iconPosition.y = screenCenterY + edgePullFactor * deltaY * (screenHeight / screenWidth);
+		}
+		else {
+			// More vertical movement
+			iconPosition.x = screenCenterX + edgePullFactor * deltaX * (screenWidth / screenHeight);
+			iconPosition.y = screenCenterY + edgePullFactor * deltaY;
+		}
+
+		// Clamp icon position to screen edges
+		iconPosition.x = CrimsonUtil::sexy_clamp(iconPosition.x, screenMargin, screenWidth - screenMargin);
+		iconPosition.y = CrimsonUtil::sexy_clamp(iconPosition.y, screenMargin, screenHeight - screenMargin);
+	}
+
+	// Scale factor based on 1080p for responsiveness
+	float baseResX = 1920.0f;
+	float baseResY = 1080.0f;
+	float scaleFactorX = g_renderSize.x * view.scale / baseResX;
+	float scaleFactorY = g_renderSize.y * view.scale / baseResY;
+
+	ImVec2 buttonSize(80.0f * scaleFactorX, 80.0f * scaleFactorY);
+
+	// Clamp the Icon Position again to ensure Button doesn't go out of screen bounds:
+	iconPosition.x = CrimsonUtil::sexy_clamp(iconPosition.x, screenMargin, screenWidth - screenMargin - buttonSize.x + 30.0f);
+	iconPosition.y = CrimsonUtil::sexy_clamp(iconPosition.y, screenMargin, screenHeight - screenMargin - buttonSize.y + 30.0f);
+
+	auto IsOverlapping = [&](ImVec2 pos1, ImVec2 pos2, ImVec2 size) {
+		return !(pos1.x + size.x <= pos2.x || pos1.x >= pos2.x + size.x ||
+			pos1.y + size.y <= pos2.y || pos1.y >= pos2.y + size.y);
+		};
+
+	// Check for overlap between icons and reposition if necessary
+	for (int i = 0; i < PLAYER_COUNT; ++i) {
+		if (i == playerIndex) continue;
+
+		const auto& previousPos = crimsonHud.playerOutViewIconPositions[iconSlotBase + i];
+		if (IsOverlapping(iconPosition, previousPos, buttonSize)) {
+
+			// Check if both icons are near the top or bottom
+			if (iconPosition.y <= screenMargin || iconPosition.y >= screenHeight - screenMargin - buttonSize.y) {
+				// Both icons are on top or bottom, move one to the side
+				iconPosition.x += buttonSize.x + 5.0f;
+				if (iconPosition.x + buttonSize.x > screenWidth - screenMargin) {
+					// Wrap around if out of bounds horizontally
+					iconPosition.x = screenMargin;
+				}
+			}
+			// Check if both icons are near the left or right
+			else if (iconPosition.x <= screenMargin || iconPosition.x >= screenWidth - screenMargin - buttonSize.x) {
+				// Both icons are on left or right, move one up or down
+				iconPosition.y += buttonSize.y + 5.0f;
+				if (iconPosition.y + buttonSize.y > screenHeight - screenMargin) {
+					// Wrap around if out of bounds vertically
+					iconPosition.y = screenMargin;
+				}
+			}
+		}
+	}
+
+	crimsonHud.playerOutViewIconPositions[iconSlotBase + playerIndex] = iconPosition;
+
+	// Render the icon at the adjusted position with label and distance
+	ImGuiWindowFlags windowFlags =
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	ImGui::SetNextWindowPos(ImVec2(view.minX + iconPosition.x, view.minY + iconPosition.y));
+	const std::string iconWindowName = "out of view icon " + std::to_string(view.viewer) + "_" + std::to_string(playerIndex);
+	ImGui::Begin(iconWindowName.c_str(), nullptr, windowFlags);
+	if (view.viewer >= 0) {
+		ImGui::PushClipRect(ImVec2(view.minX, view.minY), ImVec2(view.maxX, view.maxY), true);
+	}
+
+	ImGui::InvisibleButton("##button", buttonSize);
+
+	// Draw the button manually
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	ImVec2 buttonPos = ImGui::GetItemRectMin();
+	ImVec2 buttonEndPos = ImGui::GetItemRectMax();
+	ImVec4 playerColor = ConvertColorFromUint8ToVec4(activeCrimsonConfig.PlayerProperties.playerColor[playerIndex]);
+	drawList->AddRectFilled(buttonPos, buttonEndPos, ImGui::GetColorU32(playerColor), 10.0f * scaleFactorX);  // Background color
+	drawList->AddRect(buttonPos, buttonEndPos, ImGui::GetColorU32(ImGuiCol_Border), 10.0f * scaleFactorX);  // Border
+
+	// Calculate luminance (perceived brightness)
+	float luminance = 0.299f * playerColor.x + 0.587f * playerColor.y + 0.114f * playerColor.z;
+	// Choose text color based on luminance
+	ImVec4 textColor = (luminance > 0.4f) ? ImVec4(0.1f, 0.1f, 0.1f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	float minFontSize = 10.0f; // Font cannot go below 10 or else ImGui asserts will come in.
+	float fontSizeDistance = (std::max)(17.0f * scaleFactorY, minFontSize);
+	float fontSizeNameLabel = (std::max)(23.0f * scaleFactorY, minFontSize);
+
+	// Draw the distance text centered inside the button
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSizeDistance]);
+	ImGui::PushStyleColor(ImGuiCol_Text, textColor);
+	std::string distanceText = std::to_string(static_cast<int>(distanceToViewer));
+	ImVec2 distanceTextSize = ImGui::CalcTextSize(distanceText.c_str());
+	ImVec2 distanceTextPos = ImVec2(
+		buttonPos.x + (buttonSize.x - distanceTextSize.x) * 0.5f,
+		buttonPos.y + 5.0f * scaleFactorY
+	);
+	drawList->AddText(distanceTextPos, ImGui::GetColorU32(ImGuiCol_Text), distanceText.c_str());
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+
+	// Draw name label (2P, 3P, etc)
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSizeNameLabel]);
+	ImGui::PushStyleColor(ImGuiCol_Text, textColor);
+	ImVec2 nameTextSize = ImGui::CalcTextSize(name);
+	ImVec2 nameTextPos = ImVec2(
+		buttonPos.x + (buttonSize.x - nameTextSize.x) * 0.5f,
+		buttonPos.y + (buttonSize.y - nameTextSize.y) * 0.5f
+	);
+	drawList->AddText(nameTextPos, ImGui::GetColorU32(ImGuiCol_Text), name);
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+
+	// Calculate positions and sizes for progress bars
+	ImVec2 progressBarSize = ImVec2(buttonSize.x, 7.0f * scaleFactorY);
+	float progressBarPadding = 1.0f * scaleFactorY;  // Space between progress bars
+
+	ImVec4 hitColor = CrimsonUtil::HexToImVec4(0x43fe65FF);
+	ImVec4 magicColor = CrimsonUtil::HexToImVec4(0xde1c4cFF);
+	ImVec4 magicColorVergil = { 0.06f, 0.74f, 0.81f, 1.0f };
+
+	// HP Bar
+	ImGui::SetCursorScreenPos(ImVec2(buttonPos.x, buttonPos.y + (buttonSize.y * 0.75f)));
+	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&hitColor));
+	ImGui::ProgressBar(actorData.hitPoints / actorData.maxHitPoints, progressBarSize, "");
+	ImGui::PopStyleColor();
+
+	// DT Bar
+	ImGui::SetCursorScreenPos(ImVec2(buttonPos.x, buttonPos.y + (buttonSize.y * 0.75f) + progressBarSize.y + progressBarPadding));
+	auto& magicColorChosen = actorData.character != CHARACTER::VERGIL ? magicColor : magicColorVergil;
+	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, magicColorChosen);
+	ImGui::ProgressBar(actorData.magicPoints / actorData.maxMagicPoints, progressBarSize, "");
+	ImGui::PopStyleColor();
+
+	if (view.viewer >= 0) {
+		ImGui::PopClipRect();
+	}
+	ImGui::End();
+}
+
+static void RenderWorldSpacePlayerIcon(const PlayerActorData& actorData, const char* name, const char* baseLabel, int viewer) {
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& activeData = activeConfig.barsData[playerIndex];
+	const float hitPoints = actorData.hitPoints / actorData.maxHitPoints;
+	const float magicPoints = actorData.magicPoints / actorData.maxMagicPoints;
+
+	const WorldHudView view = MakeWorldHudView(viewer);
+	const float scaleFactorY = CrimsonGUI::scaleFactorY * view.scale;
+	// Each splitscreen view draws its own copy of the bar, projected with that view's camera.
+	const std::string labelStorage = (view.viewer >= 0) ? (std::string(baseLabel) + "##view" + std::to_string(view.viewer)) : std::string(baseLabel);
+	const char* label = labelStorage.c_str();
+
+	auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
+	float cameraPlayerDistance = crimsonPlayer[playerIndex].cameraPlayerDistance;
+	SimpleVec3 playerScreenPosition = crimsonPlayer[playerIndex].playerScreenPosition;
+	if (view.viewer >= 0) {
+		playerScreenPosition = debug_draw_world_to_screen_for_player(reinterpret_cast<const float*>(&actorData.position), 1.0f, view.viewer);
+		float eye[3];
+		if (CrimsonSplitscreen::CameraEye(view.viewer, eye)) {
+			const glm::vec3 eyePos(eye[0], eye[1], eye[2]);
+			cameraPlayerDistance = glm::distance(glm::vec3(actorData.position.x, actorData.position.y, actorData.position.z), eyePos);
+			distanceClamped = static_cast<decltype(distanceClamped)>(glm::clamp(static_cast<int>(cameraPlayerDistance) / 20, 0, 255));
+		}
+	}
+
+	// Adjusts size dynamically based on the distance between Camera and Player
+	ImVec2 sizeDistance = { (activeData.size.x * (1.0f / ((float)distanceClamped / 20))) * scaleFactorY, (activeData.size.y * (1.0f / ((float)distanceClamped / 20))) * scaleFactorY };
+	// Coordinates below are in screen space; the view bounds are the whole screen without splitscreen.
+	const float screenMargin = 50.0f * view.scale;
+
+	const float t = CrimsonUtil::smoothstep(0.0f, 1390.0f, cameraPlayerDistance);
+	const float alpha = ImLerp(0.27f, 1.0f, t);
+	ImVec4 hitColor = CrimsonUtil::HexToImVec4(0x43fe65FF);
+	ImVec4 magicColor = CrimsonUtil::HexToImVec4(0xde1c4cFF);
+	ImVec4 magicColorVergil = { 0.06f, 0.74f, 0.81f, 1.0f };
+	hitColor.z = alpha;
+	magicColor.z = alpha;
+	magicColorVergil.z = alpha;
+
+	// If player is outside view: Handle Out of View Icons and stop rendering WorldSpace Bars
+	if (playerScreenPosition.x < view.minX + screenMargin || playerScreenPosition.x > view.maxX - screenMargin ||
+		playerScreenPosition.y < view.minY + screenMargin || playerScreenPosition.y > view.maxY - screenMargin) {
+
+		if (activeCrimsonConfig.MultiplayerBarsWorldSpace.showOutOfViewIcons) {
+			RenderOutOfViewIcon(actorData, playerScreenPosition, screenMargin, name, view);
+		}
+
+		return;
+	}
+
+	ImGui::SetNextWindowPos(ImVec2(playerScreenPosition.x - (sizeDistance.x / 2.0f), playerScreenPosition.y - sizeDistance.y));
+
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
+
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+
+	ImGuiWindowFlags windowFlags =
+		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
+
+	const bool windowOpen = ImGui::Begin(label, &activeCrimsonConfig.MultiplayerBarsWorldSpace.show, windowFlags);
+	if (view.viewer >= 0) {
+		ImGui::PushClipRect(ImVec2(view.minX, view.minY), ImVec2(view.maxX, view.maxY), true);
+	}
+	if (windowOpen) {
+		ImGui::SetWindowFontScale(scaleFactorY);
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, alpha));
+		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&hitColor));
+		ImGui::ProgressBar(hitPoints, sizeDistance, "");
+		ImGui::PopStyleColor(2);
+
+		if (actorData.character != CHARACTER::VERGIL) {
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&magicColor));
+		} else {
+			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&magicColorVergil));
+		}
+		ImGui::ProgressBar(magicPoints, sizeDistance, "");
+		ImGui::PopStyleColor();
+
+		ImVec4 playerColor = ConvertColorFromUint8ToVec4(activeCrimsonConfig.PlayerProperties.playerColor[playerIndex]);
+
+		float luminance = 0.299f * playerColor.x + 0.587f * playerColor.y + 0.114f * playerColor.z;
+		ImVec4 textColor = (luminance > 0.4f) ? ImVec4(0.1f, 0.1f, 0.1f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+		ImGui::PushStyleColor(ImGuiCol_Button, playerColor);
+		ImGui::PushStyleColor(ImGuiCol_Text, textColor);
+		ImGui::Button(name, { 30.0f * scaleFactorY, 30.0f * scaleFactorY });
+		ImGui::PopStyleColor(2);
+		ImGui::PopFont();
+
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0f]);
+		ImGui::SameLine();
+		if (actorData.character == CHARACTER::DANTE || actorData.character == CHARACTER::VERGIL) {
+			ImGui::Text("  ");
+			ImGui::SameLine(0.0f, 0);
+
+			if (actorData.character == CHARACTER::DANTE) {
+				ImGui::Text(styleNamesDanteGameplay[actorData.style]);
+			} else {
+				ImGui::Text(styleNamesVergilGameplay[actorData.style]);
+			}
+		}
+		ImGui::PopFont();
+
+		if (activeCrimsonConfig.MultiplayerBarsWorldSpace.showPlayerNames) {
+			ImGui::PushFont(UI::g_ImGuiFont_RussoOne[11.0f]);
+			ImGui::Text(activeCrimsonConfig.PlayerProperties.playerName[playerIndex].c_str());
+			ImGui::PopFont();
+		}
+	}
+
+	if (view.viewer >= 0) {
+		ImGui::PopClipRect();
+	}
+	ImGui::End();
+	ImGui::PopStyleColor();
+	ImGui::PopStyleVar(4);
+}
+
+// Splitscreen: every view gets its own copy of the player's bar and out-of-view icon.
+void WorldSpacePlayerIcons(const PlayerActorData& actorData, const char* name, const char* label) {
+	const int views = CrimsonSplitscreen::ViewCount();
+	if (views < 2) {
+		RenderWorldSpacePlayerIcon(actorData, name, label, -1);
+		return;
+	}
+	for (int viewer = 0; viewer < views; ++viewer) {
+		RenderWorldSpacePlayerIcon(actorData, name, label, viewer);
+	}
+}
+
+#pragma endregion
 
 
 

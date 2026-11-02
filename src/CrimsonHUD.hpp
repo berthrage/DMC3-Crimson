@@ -4,6 +4,7 @@
 #include "UI/Texture2DD3D11.hpp"
 #include <dxgi.h>
 
+struct PlayerActorData;
 
 namespace CrimsonHUD {
 
@@ -25,6 +26,8 @@ void StyleEXPDisplayWindow();
 void StyleLvlDispWindow();
 void RoyalGaugeDispWindow();
 void MirageGaugeMainPlayer();
+// World-space bar and out-of-view icon of a player; one copy per splitscreen view when split.
+void WorldSpacePlayerIcons(const PlayerActorData& actorData, const char* name, const char* label);
 Texture2DD3D11 *getCrimsonGradient();
 Texture2DD3D11 *getRedOrbTexture();
 

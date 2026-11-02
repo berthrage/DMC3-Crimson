@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cfloat>
+#include <chrono>
 #include <cstdio>
 #include <cstring>
 #include <memory>
@@ -47,6 +48,7 @@ constexpr uintptr_t SCENE_STATE_PTR_OFFSET  = 0xCF2330;
 constexpr uintptr_t SUBMIT_DRAW_LIST_OFFSET = 0x32D8C0;
 constexpr uintptr_t UPDATE_PLAYER_INPUT_OFFSET = 0x1EBCF0;
 constexpr uintptr_t PLAYER_POOL_OFFSET         = 0xC90E28;
+constexpr uintptr_t EVENT_POOL_OFFSET          = 0xC90E10;
 constexpr uintptr_t COCKPIT_TOP_UPDATE_OFFSET  = 0x27C0F0;
 constexpr uintptr_t COCKPIT_TOP_DRAW_OFFSET    = 0x27F1F0;
 constexpr uintptr_t COCKPIT_BOTTOM_DRAW_OFFSET = 0x281120;
@@ -138,15 +140,15 @@ std::unique_ptr<Utility::Detour_t> s_cockpitBottomDrawHook;
 // g_viewedCameraPlayer is advanced right after every drawn frame, so while a
 // frame is being drawn it still holds the player that frame was built for.
 int FramePlayer() {
-	return (g_viewedCameraPlayer < GetSplitscreenViewCount()) ? g_viewedCameraPlayer : 0;
+	return (g_viewedCameraPlayer < CrimsonSplitscreen::ViewCount()) ? g_viewedCameraPlayer : 0;
 }
 
 bool SplitscreenActive() {
-	return GetSplitscreenViewCount() >= 2;
+	return CrimsonSplitscreen::ViewCount() >= 2;
 }
 
 const HudTuning& ActiveHudTuning() {
-	return s_hudTuning[(GetSplitscreenViewCount() > 2) ? HUD_LAYOUT_QUADS : HUD_LAYOUT_HALVES];
+	return s_hudTuning[(CrimsonSplitscreen::ViewCount() > 2) ? HUD_LAYOUT_QUADS : HUD_LAYOUT_HALVES];
 }
 
 void ResetSplitState() {
@@ -155,6 +157,58 @@ void ResetSplitState() {
 		s_cells.valid[p]           = false;
 		g_splitscreenCamCopyValid[p] = false;
 	}
+}
+
+// After a room change, load or cutscene the game rebuilds the camera and HUD objects over a few
+// frames. Splitscreen stays off for this long so none of our saved per-player state is written
+// over half-initialised objects.
+constexpr double SETTLE_SECONDS = 0.05;
+bool s_settling = true;
+bool s_wasOpen = false;
+uint32_t s_lastRoom = UINT32_MAX;
+uint8_t* s_lastCameraPtrs[2] = {};
+std::chrono::steady_clock::time_point s_settleUntil;
+
+void StartSettling() {
+	s_settling = true;
+	s_settleUntil = std::chrono::steady_clock::now() + std::chrono::milliseconds(static_cast<int>(SETTLE_SECONDS * 1000.0));
+}
+
+uint32_t CurrentRoom() {
+	auto pool = *reinterpret_cast<uint8_t***>(appBaseAddr + EVENT_POOL_OFFSET);
+	if (!pool || !pool[8]) {
+		return UINT32_MAX;
+	}
+	return reinterpret_cast<EventData*>(pool[8])->room;
+}
+
+// Runs once per drawn frame; returns true when splitscreen can run this frame.
+bool UpdateSplitGate(uint8_t* cameraControl) {
+	if (!CrimsonSplitscreen::GateOpen()) {
+		ResetSplitState();
+		s_lastViewCount = 0;
+		s_wasOpen = false;
+		StartSettling();
+		return false;
+	}
+
+	auto pool = *reinterpret_cast<uint8_t***>(appBaseAddr + CAMERA_CTRL_PTR_OFFSET);
+	uint8_t* cameraPtrs[2] = { cameraControl, pool ? pool[147] : nullptr };
+	const uint32_t room = CurrentRoom();
+	const bool changed = !s_wasOpen || room != s_lastRoom ||
+		cameraPtrs[0] != s_lastCameraPtrs[0] || cameraPtrs[1] != s_lastCameraPtrs[1];
+	s_wasOpen = true;
+	s_lastRoom = room;
+	s_lastCameraPtrs[0] = cameraPtrs[0];
+	s_lastCameraPtrs[1] = cameraPtrs[1];
+	if (changed) {
+		ResetSplitState();
+		s_lastViewCount = 0;
+		StartSettling();
+	} else if (s_settling && std::chrono::steady_clock::now() >= s_settleUntil) {
+		s_settling = false;
+	}
+	return !s_settling;
 }
 
 void SwapCameraState(uint8_t* cameraControl, int framePlayer, int viewCount) {
@@ -325,9 +379,12 @@ __int64 __fastcall SubmitDrawListHook(int a1) {
 
 	auto* render = reinterpret_cast<Render*>(appBaseAddr + RENDER_OFFSET);
 	auto* cameraCtrl = *reinterpret_cast<uint8_t**>(appBaseAddr + CAMERA_CTRL_PTR_OFFSET);
-	const int viewCount = GetSplitscreenViewCount();
+	const bool ready = UpdateSplitGate(cameraCtrl);
+	const int viewCount = ready ? CrimsonSplitscreen::ViewCount() : 0;
 	if (viewCount < 2) {
-		ResetSplitState();
+		if (s_lastViewCount != 0) {
+			ResetSplitState();
+		}
 		s_lastViewCount = 0;
 	} else if (render->device && render->deviceContext && render->renderTargets[0].texture && cameraCtrl) {
 		if (viewCount != s_lastViewCount) {
@@ -350,7 +407,7 @@ __int64 __fastcall UpdatePlayerInputHook(__int64 actor) {
 
 	const int owner = *reinterpret_cast<uint8_t*>(actor + 0x1CACC); // newPlayerIndex
 	uint8_t* camObj = nullptr;
-	if (owner < GetSplitscreenViewCount() && owner != g_viewedCameraPlayer && s_camSlots.valid[owner]) {
+	if (owner < CrimsonSplitscreen::ViewCount() && owner != g_viewedCameraPlayer && s_camSlots.valid[owner]) {
 		const auto scene = *reinterpret_cast<uintptr_t*>(appBaseAddr + SCENE_STATE_PTR_OFFSET);
 		if (scene) {
 			camObj = *reinterpret_cast<uint8_t**>(scene + 0x240);
@@ -456,8 +513,20 @@ void __fastcall CockpitUpdateHook(uint8_t* cockpit) {
 	const auto original = s_cockpitUpdateHook->GetTrampoline<CockpitFn>();
 	auto* pool = *reinterpret_cast<uintptr_t**>(appBaseAddr + PLAYER_POOL_OFFSET);
 
+	// A new cockpit object (new room / mission) starts from clean state and icon models.
+	static uint8_t* s_lastCockpit = nullptr;
+	if (cockpit != s_lastCockpit) {
+		s_lastCockpit = cockpit;
+		for (bool& valid : s_cockpitSlots.valid) {
+			valid = false;
+		}
+		s_hudIcons = {};
+		s_hudWasSplit = false;
+	}
+
 	if (!SplitscreenActive() || !cockpit || !pool) {
-		if (s_hudWasSplit && cockpit && pool) {
+		// The restore calls the HUD loaders, so wait until the game is back in normal play.
+		if (s_hudWasSplit && cockpit && pool && !CrimsonSplitscreen::GateOpen() && InGame() && !g_inGameCutscene) {
 			s_hudWasSplit = false;
 			ResetCockpitSmoothing(cockpit + COCKPIT_STATE_BEGIN);
 			if (auto* mainActor = PlayerMainActor(0)) {
@@ -564,6 +633,89 @@ void __fastcall CockpitBottomDrawHook(uint8_t* cockpit) {
 
 namespace CrimsonSplitscreen {
 
+// Only while playing: scene GAME + EVENT::MAIN, outside of cutscenes. The camera and HUD objects
+// are being rebuilt otherwise.
+bool GateOpen() {
+	if (!g_splitscreenRenderTest || !activeConfig.Actor.enable || activeConfig.Actor.playerCount < 2) {
+		return false;
+	}
+	return InGame() && !g_inGameCutscene && !InCutscene();
+}
+
+int ViewCount() {
+	if (!GateOpen() || s_settling) {
+		return 0;
+	}
+	return (activeConfig.Actor.playerCount > PLAYER_COUNT) ? PLAYER_COUNT : activeConfig.Actor.playerCount;
+}
+
+const uint8_t* CameraCopy(int playerIndex) {
+	if (playerIndex < 0 || playerIndex >= ViewCount() || !g_splitscreenCamCopyValid[playerIndex]) {
+		return nullptr;
+	}
+	return g_splitscreenCamCopy[playerIndex];
+}
+
+bool CameraEye(int playerIndex, float out[3]) {
+	const uint8_t* cam = CameraCopy(playerIndex);
+	if (!cam) {
+		return false;
+	}
+	const float* eye = reinterpret_cast<const float*>(cam + CAM_EYE_OFFSET);
+	out[0] = eye[0];
+	out[1] = eye[1];
+	out[2] = eye[2];
+	return true;
+}
+
+void MapPoint(int playerIndex, float frameW, float frameH, float& x, float& y) {
+	const int count = ViewCount();
+	if (count < 2) {
+		return;
+	}
+	if (count == 2) {
+		// Halves show the centre of the frame, 1:1.
+		x = x - frameW * 0.25f + static_cast<float>(playerIndex) * frameW * 0.5f;
+		return;
+	}
+	const float cellX = static_cast<float>(playerIndex & 1) * frameW * 0.5f;
+	const float cellY = static_cast<float>(playerIndex >> 1) * frameH * 0.5f;
+	if (g_splitscreenQuadScaled) {
+		x = x * 0.5f + cellX;
+		y = y * 0.5f + cellY;
+	} else {
+		x = x - frameW * 0.25f + cellX;
+		y = y - frameH * 0.25f + cellY;
+	}
+}
+
+bool ViewRect(int playerIndex, float frameW, float frameH, float& minX, float& minY, float& maxX, float& maxY) {
+	const int count = ViewCount();
+	if (count < 2 || playerIndex < 0 || playerIndex >= count) {
+		return false;
+	}
+	if (count == 2) {
+		minX = static_cast<float>(playerIndex) * frameW * 0.5f;
+		minY = 0.0f;
+		maxX = minX + frameW * 0.5f;
+		maxY = frameH;
+		return true;
+	}
+	minX = static_cast<float>(playerIndex & 1) * frameW * 0.5f;
+	minY = static_cast<float>(playerIndex >> 1) * frameH * 0.5f;
+	maxX = minX + frameW * 0.5f;
+	maxY = minY + frameH * 0.5f;
+	return true;
+}
+
+float ViewScale(int playerIndex) {
+	const int count = ViewCount();
+	if (count < 2 || playerIndex < 0 || playerIndex >= count) {
+		return 1.0f;
+	}
+	return (count > 2 && g_splitscreenQuadScaled) ? 0.5f : 1.0f;
+}
+
 void HudTuningWindow(bool* open) {
 	ImGui::SetNextWindowSize(ImVec2(460, 0), ImGuiCond_FirstUseEver);
 	if (!ImGui::Begin("Splitscreen HUD", open)) {
@@ -573,7 +725,7 @@ void HudTuningWindow(bool* open) {
 
 	static int s_editLayout = HUD_LAYOUT_HALVES;
 	static int s_lastActiveLayout = -1;
-	const int viewCount = GetSplitscreenViewCount();
+	const int viewCount = ViewCount();
 	if (viewCount >= 2) {
 		const int activeLayout = (viewCount > 2) ? HUD_LAYOUT_QUADS : HUD_LAYOUT_HALVES;
 		if (activeLayout != s_lastActiveLayout) {

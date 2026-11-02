@@ -26,5 +26,7 @@ extern float itemWidth;
 }
 
 extern std::vector<KeyBinding> keyBindings;
+extern const char* styleNamesDanteGameplay[];
+extern const char* styleNamesVergilGameplay[];
 void GUI_Render(IDXGISwapChain* pSwapChain);
 void GUI_Init();

@@ -1,6 +1,5 @@
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "Vars.hpp"
-#include "Config.hpp"
 #undef VOID
 #undef IGNORE
 
@@ -890,53 +889,6 @@ float g_splitscreenPlayerPos[PLAYER_COUNT][4] = {};
 uint8 g_splitscreenCamCopy[PLAYER_COUNT][SPLITSCREEN_CAM_COPY_SIZE] = {};
 bool g_splitscreenCamCopyValid[PLAYER_COUNT] = {};
 bool g_splitscreenQuadScaled = true;
-
-int GetSplitscreenViewCount() {
-	if (!g_splitscreenRenderTest || activeConfig.Actor.playerCount < 2) {
-		return 0;
-	}
-	return (activeConfig.Actor.playerCount > PLAYER_COUNT) ? PLAYER_COUNT : activeConfig.Actor.playerCount;
-}
-
-const uint8* GetSplitscreenCameraCopy(int playerIndex) {
-	if (playerIndex < 0 || playerIndex >= GetSplitscreenViewCount() || !g_splitscreenCamCopyValid[playerIndex]) {
-		return nullptr;
-	}
-	return g_splitscreenCamCopy[playerIndex];
-}
-
-void MapSplitscreenPoint(int playerIndex, float frameW, float frameH, float& x, float& y) {
-	const int count = GetSplitscreenViewCount();
-	if (count < 2) {
-		return;
-	}
-	if (count == 2) {
-		// Halves show the centre of the frame, 1:1.
-		x = x - frameW * 0.25f + static_cast<float>(playerIndex) * frameW * 0.5f;
-		return;
-	}
-	const float cellX = static_cast<float>(playerIndex & 1) * frameW * 0.5f;
-	const float cellY = static_cast<float>(playerIndex >> 1) * frameH * 0.5f;
-	if (g_splitscreenQuadScaled) {
-		x = x * 0.5f + cellX;
-		y = y * 0.5f + cellY;
-	} else {
-		x = x - frameW * 0.25f + cellX;
-		y = y - frameH * 0.25f + cellY;
-	}
-}
-
-bool GetSplitscreenCameraEye(int playerIndex, float out[3]) {
-	const uint8* cam = GetSplitscreenCameraCopy(playerIndex);
-	if (!cam) {
-		return false;
-	}
-	const float* eye = reinterpret_cast<const float*>(cam + 0x70);
-	out[0] = eye[0];
-	out[1] = eye[1];
-	out[2] = eye[2];
-	return true;
-}
 __declspec(align(16)) float g_customCameraSensitivity = 0.0f;
 bool g_cameraHittingWall = true;
 

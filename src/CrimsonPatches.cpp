@@ -14,6 +14,7 @@
 
 #include "Core/Macros.h"
 #include "CrimsonUtil.hpp"
+#include "CrimsonSplitscreen.hpp"
 #include <iostream>
 #include <iomanip>
 #include "DebugDrawDX11.hpp"
@@ -486,7 +487,7 @@ void CameraFollowUpSpeedController(CameraData& cameraData, CameraControlMetadata
 	float frameScale = (g_FrameRateTimeMultiplier > 0.0f) ? g_FrameRateTimeMultiplier : 1.0f;
 	
 	// Each player's camera only updates once every N frames in splitscreen, so scale the lag by N.
-	const int splitscreenViews = GetSplitscreenViewCount();
+	const int splitscreenViews = CrimsonSplitscreen::ViewCount();
 	const bool isSplitscreenActive = splitscreenViews >= 2;
 	if (isSplitscreenActive) {
 		frameScale *= static_cast<float>(splitscreenViews);

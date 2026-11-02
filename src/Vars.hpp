@@ -5428,7 +5428,7 @@ extern bool g_disableRightStickCenterCamera;
 struct CrimsonHudData {
     volatile uint16_t redOrbAlpha = 0; // goes up to 127
     float redOrbAlphaDurationToAlpha = 200.0f;
-    std::vector<ImVec2> playerOutViewIconPositions = std::vector<ImVec2>(PLAYER_COUNT, ImVec2(0.0f, 0.0f));
+    std::vector<ImVec2> playerOutViewIconPositions = std::vector<ImVec2>(PLAYER_COUNT * PLAYER_COUNT, ImVec2(0.0f, 0.0f)); // [view][player]
 };
 
 extern CrimsonHudData crimsonHud;
@@ -6283,12 +6283,6 @@ extern uint8 g_splitscreenCamCopy[PLAYER_COUNT][SPLITSCREEN_CAM_COPY_SIZE];
 extern bool g_splitscreenCamCopyValid[PLAYER_COUNT];
 // False when 3-4 player views could not be downscaled and show a centre crop instead.
 extern bool g_splitscreenQuadScaled;
-bool GetSplitscreenCameraEye(int playerIndex, float out[3]);
-// Number of views the screen is split into (2 = halves, 3-4 = quadrants), 0 when off.
-int GetSplitscreenViewCount();
-// Maps a full-frame pixel to the view of playerIndex (frame crop -> view cell).
-void MapSplitscreenPoint(int playerIndex, float frameW, float frameH, float& x, float& y);
-const uint8* GetSplitscreenCameraCopy(int playerIndex);
 extern __declspec(align(16)) float g_customCameraSensitivity;
 extern bool g_cameraHittingWall;
 

@@ -34,6 +34,7 @@
 #include "CrimsonUtil.hpp"
 #include "CrimsonEfk.hpp"
 #include "CrimsonEfkPreload.hpp"
+#include "CrimsonSplitscreen.hpp"
 
 namespace CrimsonFX {
 
@@ -69,7 +70,7 @@ void ComputeLockOnScreenData(PlayerActorData& actorData, const CameraData& camer
 	glm::vec3 cameraPosition = { cameraData.data[0].x, cameraData.data[0].y, cameraData.data[0].z };
 	{
 		float splitEye[3];
-		if (GetSplitscreenCameraEye(playerIndex, splitEye)) {
+		if (CrimsonSplitscreen::CameraEye(playerIndex, splitEye)) {
 			cameraPosition = { splitEye[0], splitEye[1], splitEye[2] };
 		}
 	}
@@ -109,7 +110,7 @@ void CalculateViewProperties(byte8* actorBaseAddr) {
 	glm::vec3 cameraPosition = { cameraData.data[0].x, cameraData.data[0].y, cameraData.data[0].z };
 	{
 		float splitEye[3];
-		if (GetSplitscreenCameraEye(playerIndex, splitEye)) {
+		if (CrimsonSplitscreen::CameraEye(playerIndex, splitEye)) {
 			cameraPosition = { splitEye[0], splitEye[1], splitEye[2] };
 		}
 	}

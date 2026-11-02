@@ -29,6 +29,7 @@
 #include "DMC3Input.hpp"
 #include "CrimsonGameModes.hpp"
 #include "CrimsonCameraController.hpp"
+#include "CrimsonSplitscreen.hpp"
 #include "CrimsonHighFPSFixes.hpp"
 #include "HUD.hpp"
 #include "CrimsonGameplay.hpp"
@@ -745,6 +746,19 @@ void SplitscreenCameraPositioningController() {
 	float smoothXZ = 1.0f - std::exp(-15.0f * deltaTime);
 	float smoothY = 1.0f - std::exp(-3.0f * deltaTime);
 
+	// The smoothed targets are in the old room's coordinates after a room change; snap instead of gliding.
+	static uint32 s_lastRoom = UINT32_MAX;
+	uint32 currentRoom = UINT32_MAX;
+	auto pool_events = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+	if (pool_events && pool_events[8]) {
+		currentRoom = reinterpret_cast<EventData*>(pool_events[8])->room;
+	}
+	if (currentRoom != s_lastRoom || !InGame()) {
+		s_lastRoom = currentRoom;
+		for (bool& initialized : s_initialized) {
+			initialized = false;
+		}
+	}
 	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
 		auto& playerData = GetPlayerData(playerIndex);
 		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
@@ -779,8 +793,12 @@ void SplitscreenCameraPositioningController() {
 		}
 	}
 
-	// With the render test on, both cameras go through the position override.
-	const bool multiplex = g_splitscreenRenderTest && activeConfig.Actor.playerCount > 1;
+	// With splitscreen on, both cameras go through the position override.
+	const bool multiplex = CrimsonSplitscreen::ViewCount() >= 2;
+	if (g_splitscreenRenderTest && !multiplex) {
+		// Splitscreen is paused (loading, cutscene, menus): back to the normal camera.
+		g_viewedCameraPlayer = 0;
+	}
 	const bool useOverride = multiplex || (g_viewedCameraPlayer != 0);
 	g_isMPCamActive = false;
 	CrimsonDetours::ToggleCustomCameraPositioning(useOverride);
