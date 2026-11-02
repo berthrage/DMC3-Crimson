@@ -16,6 +16,9 @@ void HUD_UpdateHPBar(uint8 character);
 
 void HUD_UpdateLockOn(uint8 character);
 
+// Bumped by every HUD_Update* loader so callers can tell when the icons changed under them.
+extern uint32 g_hudIconSerial;
+
 extern byte8* g_dynamicHUD_id100;
 extern byte8* g_dynamicHUD_id100V;
 

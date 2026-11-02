@@ -80,6 +80,7 @@
 #include "CrimsonCameraController.hpp"
 #include "NvApiReflex.hpp"
 #include "CrimsonBetterArkham2.hpp"
+#include "CrimsonSplitscreen.hpp"
 
 #include "DebugDrawDX11.hpp"
 
@@ -6917,6 +6918,7 @@ void CloseShop() {
 #pragma region DebugSection
 
 bool showExpWindow = false;
+bool showSplitscreenHudWindow = false;
 bool showMissionDataWindow = false;
 bool showFileDataWindow = false;
 bool showActorWindow = false;
@@ -8074,9 +8076,15 @@ void DebugSection() {
 		if (GUI_Button("Sound")) {
 			showSoundWindow = true;
 		}
+		ImGui::SameLine();
+
+		if (GUI_Button("Splitscreen HUD")) {
+			showSplitscreenHudWindow = true;
+		}
 		ImGui::Text("");
 
 		if (GUI_Button("Close All")) {
+			showSplitscreenHudWindow = false;
 			showActorWindow = false;
 			showEventDataWindow = false;
 			showExpWindow = false;
@@ -16730,7 +16738,9 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	MissionDataWindow();
 	RegionDataWindow();
 	SoundWindow();
-	
+	if (showSplitscreenHudWindow) {
+		CrimsonSplitscreen::HudTuningWindow(&showSplitscreenHudWindow);
+	}
 	scaleFactorX = ImGui::GetIO().DisplaySize.x / 1920;
 	scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
 	scaleFactor = (scaleFactorX + scaleFactorY) / 2.0f;

@@ -188,7 +188,10 @@ void InitIcons(const std::string& selectedHUD) {
     }
 }
 
+uint32 g_hudIconSerial = 0;
+
 void HUD_UpdateStyleIcon(uint8 style, uint8 character) {
+    g_hudIconSerial++;
     if ((InCutscene()) || (InCredits()) || (style >= STYLE::MAX)) {
         return;
     }
@@ -245,6 +248,7 @@ void HUD_UpdateStyleIcon(uint8 style, uint8 character) {
 }
 
 void HUD_UpdateDevilTriggerGauge(uint8 character) {
+    g_hudIconSerial++;
     if ((InCutscene()) || (InCredits())) {
         return;
     }
@@ -290,6 +294,7 @@ void HUD_UpdateDevilTriggerGauge(uint8 character) {
 }
 
 void HUD_UpdateDevilTriggerLightning(uint8 character) {
+    g_hudIconSerial++;
     if ((InCutscene()) || (InCredits())) {
         return;
     }
@@ -335,6 +340,7 @@ void HUD_UpdateDevilTriggerLightning(uint8 character) {
 }
 
 void HUD_UpdateDevilTriggerExplosion(uint8 character) {
+    g_hudIconSerial++;
     if ((InCutscene()) || (InCredits())) {
         return;
     }
@@ -380,6 +386,7 @@ void HUD_UpdateDevilTriggerExplosion(uint8 character) {
 }
 
 bool HUD_UpdateWeaponIcon(uint8 index, uint8 weapon) {
+    g_hudIconSerial++;
     if ((InCutscene()) || (InCredits()) || (weapon >= WEAPON::MAX)) {
         return false;
     }
@@ -411,6 +418,7 @@ bool HUD_UpdateWeaponIcon(uint8 index, uint8 weapon) {
 }
 
 void HUD_UpdateHPBar(uint8 character) {
+    g_hudIconSerial++;
     if ((InCutscene()) || (InCredits())) {
         return;
     }
@@ -454,6 +462,7 @@ void HUD_UpdateHPBar(uint8 character) {
 }
 
 void HUD_UpdateLockOn(uint8 character) {
+    g_hudIconSerial++;
     if ((InCutscene()) || (InCredits())) {
         return;
     }
