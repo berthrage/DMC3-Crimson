@@ -7698,11 +7698,12 @@ uint32 Dash(PlayerActorData& actorData, uint8 action) {
         return MobilityFunction<ACTOR_EVENT::TRICKSTER_AIR_TRICK>(actorData, action, actorData.newAirTrickCount, activeCrimsonGameplay.Cheats.Mobility.danteAirTrickCount);
     }
 
-    if (activeConfig.Actor.playerCount > 1 ) {
-        auto& gamepad = GetGamepad(actorData.newGamepad);
-        if(actorData.newPlayerIndex >= 1 && ((gamepad.buttons[0] & GAMEPAD::START) != 0))
-            return MobilityFunction<ACTOR_EVENT::TRICKSTER_AIR_TRICK>(actorData, action, actorData.newAirTrickCount, activeCrimsonGameplay.Cheats.Mobility.danteAirTrickCount);
-    }
+    // Disabled for now: START pauses the game, so players 2+ can no longer TeleportToPlayer
+    //if (activeConfig.Actor.playerCount > 1 ) {
+    //    auto& gamepad = GetGamepad(actorData.newGamepad);
+    //    if(actorData.newPlayerIndex >= 1 && ((gamepad.buttons[0] & GAMEPAD::START) != 0))
+    //        return MobilityFunction<ACTOR_EVENT::TRICKSTER_AIR_TRICK>(actorData, action, actorData.newAirTrickCount, activeCrimsonGameplay.Cheats.Mobility.danteAirTrickCount);
+    //}
 
     return MobilityFunction<ACTOR_EVENT::TRICKSTER_DASH>(actorData, action, actorData.newDashCount, dashCount);
 }

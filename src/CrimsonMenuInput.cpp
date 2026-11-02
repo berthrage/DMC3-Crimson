@@ -28,7 +28,7 @@ struct Range {
 };
 
 // Pause check, sub_14023B060: START opens the menu, but its d-pad shortcuts must stay with player 1
-// (other players use the d-pad for weapon switching), so only the START bit of the other pads is merged there.
+// Alt Players having pause will disable the TeleportToPlayer Air Trick so I'm being mindful of this
 constexpr Range PAUSE_RANGE = { 0x23B060, 0x23B220 };
 constexpr uint64_t PAUSE_MASK = 0x800;
 constexpr uint64_t ALL_BITS   = ~0ull;
