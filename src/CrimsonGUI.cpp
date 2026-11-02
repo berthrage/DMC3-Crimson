@@ -5271,6 +5271,15 @@ void CameraSection(size_t defaultFontSize) {
 			UI::Combo2("Follow-Up Speed", cameraFollowUpSpeedNames, activeCrimsonConfig.Camera.followUpSpd, queuedCrimsonConfig.Camera.followUpSpd);
 			ImGui::PopItemWidth();
 
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * 1.1f);
+			UI::Combo2("Splitscreen Follow-Up Speed", cameraFollowUpSpeedNames, activeCrimsonConfig.Camera.followUpSpdSplitscreen, queuedCrimsonConfig.Camera.followUpSpdSplitscreen);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Follow-up speed for splitscreen multiplayer mode.\n"
+				"(Default: High for faster camera response with two cameras)");
+			ImGui::PopItemWidth();
+
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 

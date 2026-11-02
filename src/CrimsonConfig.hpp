@@ -245,6 +245,7 @@ struct CrimsonConfig {
 		float fovMultiplier = 1.2f;
 		uint8 sensitivity = 2;
 		uint8 followUpSpd = 0;
+		uint8 followUpSpdSplitscreen = 2;
 		uint8 distance = 2;
 		uint8 lockOnDistance = 2;
 		uint8 verticalTilt = 0;
@@ -263,6 +264,7 @@ struct CrimsonConfig {
 				std::make_pair("fovMultiplier", &Camera::fovMultiplier),
 				std::make_pair("sensitivity", &Camera::sensitivity),
                 std::make_pair("followUpSpd", &Camera::followUpSpd),
+                std::make_pair("followUpSpdSplitscreen", &Camera::followUpSpdSplitscreen),
                 std::make_pair("distance", &Camera::distance),
                 std::make_pair("lockOnDistance", &Camera::lockOnDistance),
                 std::make_pair("verticalTilt", &Camera::verticalTilt),
