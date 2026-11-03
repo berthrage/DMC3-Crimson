@@ -5,6 +5,13 @@
 namespace CrimsonSplitscreen {
 	void InitHooks();
 	void HudTuningWindow(bool* open);
+	// Single player counterpart of HudTuningWindow: tunes the top-left cockpit group.
+	void SinglePlayerHudWindow(bool* open);
+	// Transform for the ImGui addons that sit on the top-left cockpit group, so they follow the game HUD:
+	// position' = position * posScale + offset, size' = size * sizeScale, all on the final screen.
+	// view = splitscreen view (player index) or -1 for the whole screen (single player adjustment window).
+	// False when no adjustment applies (untouched, syncing off, or the view does not exist).
+	bool HudAddonTransform(int view, float screenWidth, float screenHeight, float& posScale, float& sizeScale, float& offsetX, float& offsetY);
 
 	// True while the game is in a state splitscreen can run in (playing, no cutscene); ignores the settle delay.
 	bool GateOpen();

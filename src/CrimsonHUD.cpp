@@ -72,6 +72,31 @@ static void PopSplitscreenViewClip(bool pushed) {
 	}
 }
 
+// Keeps what the current window draws inside splitscreen view `view` (-1 = no clipping). Declare it right after
+// ImGui::Begin; it works on the window's draw list, so it can outlive ImGui::End.
+struct HudViewClipGuard {
+	ImDrawList* list = nullptr;
+
+	explicit HudViewClipGuard(int view) {
+		if (view < 0) {
+			return;
+		}
+		const ImVec2 size = ImGui::GetIO().DisplaySize;
+		float minX, minY, maxX, maxY;
+		if (CrimsonSplitscreen::ViewRect(view, size.x, size.y, minX, minY, maxX, maxY)) {
+			list = ImGui::GetWindowDrawList();
+			list->PushClipRect(ImVec2(minX, minY), ImVec2(maxX, maxY), true);
+		}
+	}
+	~HudViewClipGuard() {
+		if (list) {
+			list->PopClipRect();
+		}
+	}
+	HudViewClipGuard(const HudViewClipGuard&) = delete;
+	HudViewClipGuard& operator=(const HudViewClipGuard&) = delete;
+};
+
 
 // RED ORB
 static Texture2DD3D11* RedOrbTexture{ nullptr };
@@ -543,6 +568,60 @@ void RenderExpWithFill(ImTextureID texture, ImVec2 pos, ImVec2 size, float fillR
 
 inline float StyleHudHybridPositioningOffsetX() {
 	return (440.0f - 395.0f) * scaleFactorY;
+}
+
+// HUD adjustments (CrimsonSplitscreen single player / splitscreen HUD windows) applied to the vanilla top-left cockpit.
+// The style icon/name addons sit on top of it, so they get the same position and size transform.
+struct TopLeftHudSync {
+	float scale = 1.0f;    // sizes
+	float posScale = 1.0f; // positions
+	ImVec2 offset = ImVec2(0.0f, 0.0f);
+
+	ImVec2 Pos(ImVec2 p) const {
+		return ImVec2(p.x * posScale + offset.x, p.y * posScale + offset.y);
+	}
+};
+
+// view = splitscreen view (player index), -1 = the whole screen.
+static TopLeftHudSync GetTopLeftHudSync(int view) {
+	TopLeftHudSync sync;
+	CrimsonSplitscreen::HudAddonTransform(view, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y,
+		sync.posScale, sync.scale, sync.offset.x, sync.offset.y);
+	return sync;
+}
+
+// The style addons draw once per splitscreen view, or once on the whole screen.
+template <typename F>
+static void ForEachHudView(F&& draw) {
+	const int views = CrimsonSplitscreen::ViewCount();
+	if (views < 2) {
+		draw(-1);
+		return;
+	}
+	for (int view = 0; view < views; ++view) {
+		draw(view);
+	}
+}
+
+static PlayerActorData* HudViewActor(int view) {
+	if (view < 0) {
+		auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+		return (pool_10222 && pool_10222[3]) ? reinterpret_cast<PlayerActorData*>(pool_10222[3]) : nullptr;
+	}
+	auto& playerData = GetPlayerData(static_cast<uint8>(view));
+	auto& actorData = GetNewActorData(static_cast<uint8>(view), playerData.activeCharacterIndex, ENTITY::MAIN);
+	return actorData.baseAddr ? reinterpret_cast<PlayerActorData*>(actorData.baseAddr) : nullptr;
+}
+
+static const char* HudViewWindowName(const char* name, int view) {
+	if (view < 0) {
+		return name;
+	}
+	static char buffers[16][64];
+	static int next = 0;
+	char* buffer = buffers[next++ & 15];
+	snprintf(buffer, 64, "%s##view%d", name, view);
+	return buffer;
 }
 
 void RenderTexture(ImTextureID texture, ImVec2 pos, ImVec2 size, ImColor color, float angle = 0.0f) {
@@ -2489,12 +2568,12 @@ ImColor GetStyleFlashColor(int style, uint8 character) {
 	}
 }
 
-void StyleDisplayWindow() {
-	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_10222 || !pool_10222[3]) {
+static void StyleDisplayWindowView(int view) {
+	auto* mainActorPtr = HudViewActor(view);
+	if (!mainActorPtr) {
 		return;
 	}
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto& mainActorData = *mainActorPtr;
 	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
 	if (!name_80) {
 		return;
@@ -2509,30 +2588,49 @@ void StyleDisplayWindow() {
 	// dmc3.exe + 27E86A - C7 86 38 69 00 00 00 00 48 43 - mov[rsi + 00006938], 43480000 { Top Left Count Alpha Timer
 	// setting max alpha value(127) }
 
+	// Animation state, one per view.
+	struct State {
+		int prevStyle = -1;
+		int prevCharacter = -1;
+		double shakeStartTime = 0.0;
+		bool shaking = false;
+		double flashStartTime = 0.0;
+		bool flashing = false;
+		ImColor lastFlashColor = ImColor(0xFFFFFFFF);
+		double scaleStartTime = 0.0;
+		bool scaling = false;
+		float currentScale = 1.0f;
+		double compassFlashStartTime = 0.0;
+		bool compassFlashing = false;
+		ImColor compassLastFlashColor = ImColor(0xDE1C4CFF);
+	};
+	static State states[PLAYER_COUNT + 1];
+	State& state = states[view + 1];
+
 	// --- Shake Animation State ---
-	static int prevStyle = -1;
-	static int prevCharacter = -1;
-	static double shakeStartTime = 0.0;
-	static bool shaking = false;
+	int& prevStyle = state.prevStyle;
+	int& prevCharacter = state.prevCharacter;
+	double& shakeStartTime = state.shakeStartTime;
+	bool& shaking = state.shaking;
 	const float shakeDuration = 0.1f; // seconds
 
 	// --- Flash Animation State ---
-	static double flashStartTime = 0.0;
-	static bool flashing = false;
+	double& flashStartTime = state.flashStartTime;
+	bool& flashing = state.flashing;
 	const float flashDuration = 0.6f;
-	static ImColor lastFlashColor = ImColor(0xFFFFFFFF);
+	ImColor& lastFlashColor = state.lastFlashColor;
 
 	// --- Scale Animation State ---
-	static double scaleStartTime = 0.0;
-	static bool scaling = false;
+	double& scaleStartTime = state.scaleStartTime;
+	bool& scaling = state.scaling;
 	const float scaleDuration = 0.1f;
-	static float currentScale = 1.0f;
+	float& currentScale = state.currentScale;
 
 	// --- Compass Letter Flash Animation State ---
-	static double compassFlashStartTime = 0.0;
-	static bool compassFlashing = false;
+	double& compassFlashStartTime = state.compassFlashStartTime;
+	bool& compassFlashing = state.compassFlashing;
 	const float compassFlashDuration = 0.25f;
-	static ImColor compassLastFlashColor = ImColor(0xDE1C4CFF);
+	ImColor& compassLastFlashColor = state.compassLastFlashColor;
 
 	auto& character = mainActorData.character;
 	float inGameAlpha = hudData.topLeftAlpha / 127.0f;
@@ -2585,6 +2683,13 @@ void StyleDisplayWindow() {
 		styleGlassWindowPos :
 		styleCompassHybridWindowPos;
 
+	const TopLeftHudSync hudSync = GetTopLeftHudSync(view);
+	styleGlassWindowPos = hudSync.Pos(styleGlassWindowPos);
+	styleCompassWindowPos = hudSync.Pos(styleCompassWindowPos);
+	styleGlassTextureSizeX *= hudSync.scale;
+	styleGlassTextureSizeY *= hudSync.scale;
+	styleGlassWindowSize = ImVec2(styleGlassWindowSize.x * hudSync.scale, styleGlassWindowSize.y * hudSync.scale);
+
 	ImGui::SetNextWindowSize(styleGlassWindowSize);
 	ImGui::SetNextWindowPos(styleCompassWindowPos);
 
@@ -2593,7 +2698,8 @@ void StyleDisplayWindow() {
 		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
 
 	// STYLE COMPASS
-	ImGui::Begin("StyleCompassWindow", nullptr, windowFlags);
+	ImGui::Begin(HudViewWindowName("StyleCompassWindow", view), nullptr, windowFlags);
+	HudViewClipGuard compassClip(view);
 
 	{
 		float textureWidth = styleGlassTextureSizeX;
@@ -2752,7 +2858,8 @@ void StyleDisplayWindow() {
 	ImGui::SetNextWindowPos(styleCompassWindowPos);
 
 	// STYLE BADGE
-	ImGui::Begin("StyleBadgeWindow", nullptr, windowFlags);
+	ImGui::Begin(HudViewWindowName("StyleBadgeWindow", view), nullptr, windowFlags);
+	HudViewClipGuard badgeClip(view);
 
 	{
 		float textureWidth = styleGlassTextureSizeX;
@@ -2869,7 +2976,8 @@ void StyleDisplayWindow() {
 		ImGui::SetNextWindowSize(styleGlassWindowSize);
 		ImGui::SetNextWindowPos(styleGlassWindowPos);
 
-		ImGui::Begin("StyleGlassWindow", nullptr, windowFlags);
+		ImGui::Begin(HudViewWindowName("StyleGlassWindow", view), nullptr, windowFlags);
+		HudViewClipGuard glassClip(view);
 
 		{
 			float textureWidth = styleGlassTextureSizeX;
@@ -2971,12 +3079,16 @@ void StyleDisplayWindow() {
 	}
 }
 
-void StyleTextDisplayWindow() {
-	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_10222 || !pool_10222[3]) {
+void StyleDisplayWindow() {
+	ForEachHudView(StyleDisplayWindowView);
+}
+
+static void StyleTextDisplayWindowView(int view) {
+	auto* mainActorPtr = HudViewActor(view);
+	if (!mainActorPtr) {
 		return;
 	}
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto& mainActorData = *mainActorPtr;
 	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
 	if (!name_80) {
 		return;
@@ -3013,24 +3125,42 @@ void StyleTextDisplayWindow() {
 		screenCenterX - (200.0f * scaleFactorY),
 		-20.0f * scaleFactorY);
 
+	const TopLeftHudSync hudSync = GetTopLeftHudSync(view);
+	const ImVec2 styleTextBasePos = activeCrimsonConfig.CrimsonHudAddons.positionings ? styleTextWindowPos : styleTextHybridWindowPos;
+	styleTextTextureSizeX *= hudSync.scale;
+	styleTextTextureSizeY *= hudSync.scale;
+	styleTextWindowSize = ImVec2(styleTextWindowSize.x * hudSync.scale, styleTextWindowSize.y * hudSync.scale);
+
 	ImGui::SetNextWindowSize(styleTextWindowSize);
-	ImGui::SetNextWindowPos(activeCrimsonConfig.CrimsonHudAddons.positionings ? styleTextWindowPos : styleTextHybridWindowPos);
+	ImGui::SetNextWindowPos(hudSync.Pos(styleTextBasePos));
 
 	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
 		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
 
+	// Animation state, one per view.
+	struct State {
+		int prevStyle = -1;
+		int prevCharacter = -1;
+		double blurStartTime = 0.0;
+		bool showBlur = false;
+		double slideStartTime = 0.0;
+		bool sliding = false;
+	};
+	static State states[PLAYER_COUNT + 1];
+	State& state = states[view + 1];
+
 	// --- Blur Animation State ---
-	static int prevStyle = -1;
-	static int prevCharacter = -1;
-	static double blurStartTime = 0.0;
+	int& prevStyle = state.prevStyle;
+	int& prevCharacter = state.prevCharacter;
+	double& blurStartTime = state.blurStartTime;
 	const float blurDuration = 0.13f;
-	static bool showBlur = false;
+	bool& showBlur = state.showBlur;
 
 	// --- Slide Animation State ---
-	static double slideStartTime = 0.0;
+	double& slideStartTime = state.slideStartTime;
 	const float slideDuration = 0.2f;
-	static bool sliding = false;
+	bool& sliding = state.sliding;
 
 	int currentStyle = mainActorData.style;
 	int currentCharacter = mainActorData.character;
@@ -3044,7 +3174,8 @@ void StyleTextDisplayWindow() {
 		prevCharacter = currentCharacter;
 	}
 
-	ImGui::Begin("StyleTextWindow", nullptr, windowFlags);
+	ImGui::Begin(HudViewWindowName("StyleTextWindow", view), nullptr, windowFlags);
+	HudViewClipGuard textClip(view);
 	{
 		float textureWidth = styleTextTextureSizeX;
 		float textureHeight = styleTextTextureSizeY;
@@ -3122,7 +3253,7 @@ void StyleTextDisplayWindow() {
 					// Ease out back (bouncy) curve
 					const float s = 1.70158f * 1.2f; // slightly more bounce
 					float ease = 1.0f + s * powf(norm - 1.0f, 3) + s * (norm - 1.0f) * powf(norm - 1.0f, 2);
-					offsetX = ImLerp(-100.0f * scaleFactorY, 0.0f, ease);
+					offsetX = ImLerp(-100.0f * scaleFactorY * hudSync.scale, 0.0f, ease);
 				} else {
 					sliding = false;
 					offsetX = 0.0f;
@@ -3143,12 +3274,16 @@ void StyleTextDisplayWindow() {
 	ImGui::End();
 }
 
-void StyleEXPDisplayWindow() {
-	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_10222 || !pool_10222[3]) {
+void StyleTextDisplayWindow() {
+	ForEachHudView(StyleTextDisplayWindowView);
+}
+
+static void StyleEXPDisplayWindowView(int view) {
+	auto* mainActorPtr = HudViewActor(view);
+	if (!mainActorPtr) {
 		return;
 	}
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto& mainActorData = *mainActorPtr;
 	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
 	if (!name_80) {
 		return;
@@ -3188,6 +3323,12 @@ void StyleEXPDisplayWindow() {
 		styleExpDispWindowPos.x += styleHudHyrbidPositioningOffsetX;
 	}
 
+	const TopLeftHudSync hudSync = GetTopLeftHudSync(view);
+	styleExpDispWindowPos = hudSync.Pos(styleExpDispWindowPos);
+	styleExpTextureSizeX *= hudSync.scale;
+	styleExpTextureSizeY *= hudSync.scale;
+	styleExpDispWindowSize = ImVec2(styleExpDispWindowSize.x * hudSync.scale, styleExpDispWindowSize.y * hudSync.scale);
+
 	ImGui::SetNextWindowSize(styleExpDispWindowSize);
 	ImGui::SetNextWindowPos(styleExpDispWindowPos);
 
@@ -3195,13 +3336,22 @@ void StyleEXPDisplayWindow() {
 		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
 
+	// Animation state, one per view.
+	struct State {
+		double expShakeStartTime = 0.0;
+		bool expShaking = false;
+		int prevExpStyle = -1;
+	};
+	static State states[PLAYER_COUNT + 1];
+	State& state = states[view + 1];
+
 	// --- EXP Bar Shake Animation State ---
-	static double expShakeStartTime = 0.0;
-	static bool expShaking = false;
+	double& expShakeStartTime = state.expShakeStartTime;
+	bool& expShaking = state.expShaking;
 	const float expShakeDuration = 0.1f; // seconds
 
 	// Detect style change for shake (you may want to trigger this externally)
-	static int prevExpStyle = -1;
+	int& prevExpStyle = state.prevExpStyle;
 	int currentExpStyle = mainActorData.style;
 	if (currentExpStyle != prevExpStyle) {
 		expShakeStartTime = ImGui::GetTime();
@@ -3211,7 +3361,8 @@ void StyleEXPDisplayWindow() {
 
 	if (mainActorData.styleLevel == 2) return;
 
-	ImGui::Begin("StyleExpDisplayWindow", nullptr, windowFlags);
+	ImGui::Begin(HudViewWindowName("StyleExpDisplayWindow", view), nullptr, windowFlags);
+	HudViewClipGuard expClip(view);
 
 	{
 		float textureWidth = styleExpTextureSizeX;
@@ -3274,11 +3425,16 @@ void StyleEXPDisplayWindow() {
 	ImGui::End();
 }
 
+void StyleEXPDisplayWindow() {
+	ForEachHudView(StyleEXPDisplayWindowView);
+}
 
-void StyleLvlDispWindow() {
+static void StyleLvlDispWindowView(int view) {
 	PlayerActorData* actorDataPtr = nullptr;
-	auto& playerData = GetPlayerData(0);
-	if (activeConfig.Actor.enable) {
+	if (view >= 0) {
+		actorDataPtr = HudViewActor(view);
+	} else if (activeConfig.Actor.enable) {
+		auto& playerData = GetPlayerData(0);
 		auto& activeNewActorData = GetNewActorData(0, playerData.activeCharacterIndex, ENTITY::MAIN);
 		if (activeNewActorData.baseAddr) {
 			actorDataPtr = reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
@@ -3334,6 +3490,13 @@ void StyleLvlDispWindow() {
 		styleLvlDispWindowPos.x += styleHudHyrbidPositioningOffsetX;
 	}
 
+	const TopLeftHudSync hudSync = GetTopLeftHudSync(view);
+	styleLvlDispWindowPos = hudSync.Pos(styleLvlDispWindowPos);
+	styleLvlTextureSizeX *= hudSync.scale;
+	styleLvlTextureSizeY *= hudSync.scale;
+	styleLvlDispWindowSize = ImVec2(styleLvlDispWindowSize.x * hudSync.scale, styleLvlDispWindowSize.y * hudSync.scale);
+	const float scaleFactorY = CrimsonGUI::scaleFactorY * hudSync.scale;
+
 	ImGui::SetNextWindowSize(styleLvlDispWindowSize);
 	ImGui::SetNextWindowPos(styleLvlDispWindowPos);
 
@@ -3341,7 +3504,8 @@ void StyleLvlDispWindow() {
 		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
 
-	ImGui::Begin("StyleLvlDisplayWindow", nullptr, windowFlags);
+	ImGui::Begin(HudViewWindowName("StyleLvlDisplayWindow", view), nullptr, windowFlags);
+	HudViewClipGuard lvlClip(view);
 
 	ImColor diamondStyleColor = GetStyleFlashColor(actorData.style, character);
 	diamondStyleColor.Value.w = alpha;
@@ -3407,12 +3571,16 @@ void StyleLvlDispWindow() {
 	ImGui::End();
 }
 
-void RoyalGaugeDispWindow() {
-	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_10222 || !pool_10222[3]) {
+void StyleLvlDispWindow() {
+	ForEachHudView(StyleLvlDispWindowView);
+}
+
+static void RoyalGaugeDispWindowView(int view) {
+	auto* mainActorPtr = HudViewActor(view);
+	if (!mainActorPtr) {
 		return;
 	}
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto& mainActorData = *mainActorPtr;
 	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
 	if (!name_80) {
 		return;
@@ -3451,6 +3619,13 @@ void RoyalGaugeDispWindow() {
 		royalGaugeWindowPos.x += styleHudHyrbidPositioningOffsetX;
 	}
 
+	const TopLeftHudSync hudSync = GetTopLeftHudSync(view);
+	royalGaugeWindowPos = hudSync.Pos(royalGaugeWindowPos);
+	royalGaugeTextureSizeX *= hudSync.scale;
+	royalGaugeTextureSizeY *= hudSync.scale;
+	royalGaugeWindowSize = ImVec2(royalGaugeWindowSize.x * hudSync.scale, royalGaugeWindowSize.y * hudSync.scale);
+	const float scaleFactorY = CrimsonGUI::scaleFactorY * hudSync.scale;
+
 	ImGui::SetNextWindowSize(royalGaugeWindowSize);
 	ImGui::SetNextWindowPos(royalGaugeWindowPos);
 
@@ -3458,7 +3633,8 @@ void RoyalGaugeDispWindow() {
 		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
 
-	ImGui::Begin("RoyalGaugeWindow", nullptr, windowFlags);
+	ImGui::Begin(HudViewWindowName("RoyalGaugeWindow", view), nullptr, windowFlags);
+	HudViewClipGuard royalClip(view);
 
 	float textureWidth = royalGaugeTextureSizeX;
 	float textureHeight = royalGaugeTextureSizeY;
@@ -3535,11 +3711,15 @@ void RoyalGaugeDispWindow() {
 	ImGui::End();
 }
 
+void RoyalGaugeDispWindow() {
+	ForEachHudView(RoyalGaugeDispWindowView);
+}
 
-void MirageGaugeMainPlayer() {
+static void MirageGaugeMainPlayerView(int view) {
+	const int playerIndex = (view < 0) ? 0 : view;
 	if (!(activeConfig.Actor.enable &&
 		InGame() &&
-		crimsonPlayer[0].character == CHARACTER::VERGIL &&
+		crimsonPlayer[playerIndex].character == CHARACTER::VERGIL &&
 		!g_inGameCutscene &&
 		activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger)) {
 		return;
@@ -3550,26 +3730,32 @@ void MirageGaugeMainPlayer() {
 		return;
 	}
 	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
-	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_10222 || !pool_10222[3]) {
+	auto* mainActorPtr = HudViewActor(view);
+	if (!mainActorPtr) {
 		return;
 	}
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+	auto& mainActorData = *mainActorPtr;
 
-	auto miragePoints = crimsonPlayer[0].vergilDoppelganger.miragePoints / crimsonPlayer[0].vergilDoppelganger.maxMiragePoints;
+	auto& vergilDoppelganger = crimsonPlayer[playerIndex].vergilDoppelganger;
+	auto miragePoints = vergilDoppelganger.miragePoints / vergilDoppelganger.maxMiragePoints;
 	auto& mirageTriggerActive = mainActorData.doppelganger;
+
+	const TopLeftHudSync hudSync = GetTopLeftHudSync(view);
+	const float baseScaleFactorY = CrimsonGUI::scaleFactorY;
+	const float scaleFactorY = baseScaleFactorY * hudSync.scale;
 
 	float dpadTextureWidth = (200.0f * 0.17f) * scaleFactorY;
 	float dpadTextureHeight = (200.0f * 0.17f) * scaleFactorY;
 
 	// Adjust the size of the bar
-	float barLength = 130.0f * (crimsonPlayer[0].vergilDoppelganger.maxMiragePoints / maxMiragePointsAmount) * scaleFactorY;
+	float barLength = 130.0f * (vergilDoppelganger.maxMiragePoints / maxMiragePointsAmount) * scaleFactorY;
 	vec2 size = { barLength, 10.0f * scaleFactorY };
 
 	// Calculate positions
 	float padding = 8.0f * scaleFactorY;
-	float posX = 70.0f * scaleFactorY;
-	float posY = 150.0f * scaleFactorY;
+	const ImVec2 gaugePos = hudSync.Pos(ImVec2(70.0f * baseScaleFactorY, 150.0f * baseScaleFactorY));
+	float posX = gaugePos.x;
+	float posY = gaugePos.y;
 
 	// The bar's X position is shifted to the right by the dpad texture width + padding
 	float barPosX = posX + dpadTextureWidth + padding;
@@ -3586,8 +3772,8 @@ void MirageGaugeMainPlayer() {
 	ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
 
 	// --- Fade logic ---
-	static float fade = 0.0f;
-	static bool prevActive = false;
+	static float fades[PLAYER_COUNT + 1] = {};
+	float& fade = fades[view + 1];
 	const float fadeSpeed = 6.0f * ImGui::GetIO().DeltaTime; // Adjust speed as needed
 
 	if (mirageTriggerActive) {
@@ -3597,7 +3783,6 @@ void MirageGaugeMainPlayer() {
 		fade -= fadeSpeed;
 		if (fade < 0.0f) fade = 0.0f;
 	}
-	prevActive = mirageTriggerActive;
 
 	// Colors
 	ImVec4 inactiveColor = CrimsonUtil::HexToImVec4(0xFFFFFFFF);
@@ -3613,7 +3798,8 @@ void MirageGaugeMainPlayer() {
 	float miragePointsColor[4] = { 1.0f , 1.0f, 1.0, hudData.topLeftAlpha / 127.0f };
 	float progressBarBgColor[4] = { 0.2f , 0.2f, 0.2f, hudData.topLeftAlpha / 127.0f };
 
-	if (ImGui::Begin("MirageMainPlayer", &show, windowFlags)) {
+	if (ImGui::Begin(HudViewWindowName("MirageMainPlayer", view), &show, windowFlags)) {
+		HudViewClipGuard mirageClip(view);
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		ImVec2 windowPos = ImGui::GetWindowPos();
 
@@ -3649,6 +3835,10 @@ void MirageGaugeMainPlayer() {
 	}
 
 	ImGui::End();
+}
+
+void MirageGaugeMainPlayer() {
+	ForEachHudView(MirageGaugeMainPlayerView);
 }
 
 Texture2DD3D11 *getCrimsonGradient()

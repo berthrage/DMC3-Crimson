@@ -6585,6 +6585,7 @@ void CloseShop() {
 
 bool showExpWindow = false;
 bool showSplitscreenHudWindow = false;
+bool showSinglePlayerHudWindow = false;
 bool showMissionDataWindow = false;
 bool showFileDataWindow = false;
 bool showActorWindow = false;
@@ -7747,10 +7748,16 @@ void DebugSection() {
 		if (GUI_Button("Splitscreen HUD")) {
 			showSplitscreenHudWindow = true;
 		}
+		ImGui::SameLine();
+
+		if (GUI_Button("Single Player HUD")) {
+			showSinglePlayerHudWindow = true;
+		}
 		ImGui::Text("");
 
 		if (GUI_Button("Close All")) {
 			showSplitscreenHudWindow = false;
+			showSinglePlayerHudWindow = false;
 			showActorWindow = false;
 			showEventDataWindow = false;
 			showExpWindow = false;
@@ -16406,6 +16413,9 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	SoundWindow();
 	if (showSplitscreenHudWindow) {
 		CrimsonSplitscreen::HudTuningWindow(&showSplitscreenHudWindow);
+	}
+	if (showSinglePlayerHudWindow) {
+		CrimsonSplitscreen::SinglePlayerHudWindow(&showSinglePlayerHudWindow);
 	}
 	scaleFactorX = ImGui::GetIO().DisplaySize.x / 1920;
 	scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;
