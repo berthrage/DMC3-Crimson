@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 #include "Core/DataTypes.hpp"
 
 void HUD_UpdateStyleIcon(uint8 style, uint8 character);
@@ -28,3 +30,54 @@ void ToggleHideMainHUD(bool enable);
 void ToggleHideBossHUD(bool enable);
 
 void ToggleForceVisibleHUD(bool enable);
+
+// ---- Adjustments of the original game HUD (CUIDCockpit) ----
+// The top-left group (HP / DT / style icon / flux) and the CrimsonHUD addons that sit on it move and scale as one.
+// Scale / x / y ("general") are in HUD units (HUD_HEIGHT tall, y grows downward); the calibration is shared by the
+// single player and splitscreen windows.
+
+constexpr float HUD_HEIGHT = 448.0f;
+
+// Matrix transform of a cockpit element group: position * posScale + offset, model scaled by sizeScale.
+struct HudGroupTuning {
+    float sizeScale;
+    float posScale;
+    float offsetX;
+    float offsetY;
+};
+
+struct HudGeneral {
+    float scale;
+    float offsetX;
+    float offsetY;
+};
+
+struct HudPreset {
+    const char* name;
+    HudGeneral general;
+};
+
+// The splitscreen layout in use: base groups plus the general adjustment applied on top of the top-left one.
+struct HudSplitLayout {
+    HudGroupTuning topLeft;
+    HudGroupTuning topRight;
+    HudGroupTuning bottom;
+    HudGeneral general;
+};
+
+// Hooks the cockpit draws (CUIDCockpit00 / 02) to apply the adjustments.
+void HUD_InitAdjustmentHooks();
+
+// "Single Player HUD" debug window.
+void HUD_SinglePlayerWindow(bool* open);
+
+// Controls shared with the splitscreen window.
+void HUD_GeneralControls(HudGeneral& general, const HudGeneral& defaults, const HudPreset* presets, size_t presetCount);
+void HUD_CalibrationControls();
+void HUD_DrawPivotMarker();
+
+// Transform for the ImGui addons that sit on the top-left cockpit group, so they follow the game HUD:
+// position' = position * posScale + offset, size' = size * sizeScale, on the final screen.
+// view = splitscreen view (player index) or -1 for the whole screen (single player adjustment).
+// False when no adjustment applies (untouched, syncing off, or the view does not exist).
+bool HUD_AddonTransform(int view, float screenWidth, float screenHeight, float& posScale, float& sizeScale, float& offsetX, float& offsetY);

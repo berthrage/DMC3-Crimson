@@ -176,7 +176,7 @@ enum {
     RANGED_WEAPON_COUNT_DANTE = 5,
     CREATE_ENEMY_COUNT        = 30,
     SAVE_COUNT                = 10,
-    HOTKEY_COUNT              = 6,
+    HOTKEY_COUNT              = 7,
 };
 
 
@@ -6288,8 +6288,18 @@ extern bool g_isParanoramicCamActive;
 
 extern __declspec(align(16)) float g_customCameraPos[4];
 extern __declspec(align(16)) float g_customCameraPos2[4];
-extern bool g_splitscreenCamera;
-extern bool g_splitscreenRenderTest; // F6
+// Camera used in multiplayer sessions: per-player cameras composited into views (splitscreen), the shared camera
+// that frames every player, or the single player camera following player 1. The config holds the default
+// (CrimsonConfig Camera.multiplayerCameraMode); the hotkey switches g_multiplayerCameraMode for the rest of the session.
+namespace MULTIPLAYERCAMERA {
+enum {
+    SPLITSCREEN,
+    SHARED_CAM,
+    SINGLE_PLAYER_CAM,
+    COUNT,
+};
+}
+extern uint8 g_multiplayerCameraMode;
 extern uint8 g_viewedCameraPlayer;
 extern float g_splitscreenPlayerPos[PLAYER_COUNT][4]; // smoothed per-player camera targets
 constexpr size_t SPLITSCREEN_CAM_COPY_SIZE = 0x100;

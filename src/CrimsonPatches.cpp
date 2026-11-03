@@ -776,7 +776,7 @@ void HandlePanoramicSPCameraDistance(float& cameraDistance, float groundDistance
 
 void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistanceSP, float airDistanceSP) {
 	// Splitscreen cameras keep the single-player distance and FOV.
-	if (g_splitscreenCamera) {
+	if (CrimsonSplitscreen::Enabled()) {
 		activeCrimsonConfig.Camera.fovMultiplier = queuedCrimsonConfig.Camera.fovMultiplier;
 		return;
 	}

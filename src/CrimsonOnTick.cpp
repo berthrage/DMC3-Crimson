@@ -796,46 +796,48 @@ void SplitscreenCameraPositioningController() {
 
 	// With splitscreen on, both cameras go through the position override.
 	const bool multiplex = CrimsonSplitscreen::ViewCount() >= 2;
-	if (g_splitscreenRenderTest && !multiplex) {
+	if (!multiplex) {
 		// Splitscreen is paused (loading, cutscene, menus): back to the normal camera.
 		g_viewedCameraPlayer = 0;
 	}
-	const bool useOverride = multiplex || (g_viewedCameraPlayer != 0);
 	g_isMPCamActive = false;
-	CrimsonDetours::ToggleCustomCameraPositioning(useOverride);
-	// Each splitscreen camera keeps its own lock-on camera; only the single-view H test camera lacks one.
-	CrimsonPatches::DisableLockOnCamera(useOverride && !multiplex);
+	CrimsonDetours::ToggleCustomCameraPositioning(multiplex);
+	// Each splitscreen camera keeps its own lock-on camera.
+	CrimsonPatches::DisableLockOnCamera(false);
+}
+
+// A multiplayer session starts on the configured default camera; the hotkey switches the mode for the rest of the session.
+void UpdateMultiplayerCameraMode() {
+	static uint8 s_lastDefault = UINT8_MAX;
+	static uint8 s_lastPlayerCount = 0;
+
+	const uint8 configured = (activeCrimsonConfig.Camera.multiplayerCameraMode < MULTIPLAYERCAMERA::COUNT) ?
+		activeCrimsonConfig.Camera.multiplayerCameraMode : MULTIPLAYERCAMERA::SPLITSCREEN;
+	if (configured != s_lastDefault || activeConfig.Actor.playerCount != s_lastPlayerCount) {
+		s_lastDefault = configured;
+		s_lastPlayerCount = activeConfig.Actor.playerCount;
+		g_multiplayerCameraMode = configured;
+	}
+}
+
+// Shared camera: the camera that frames every player (and the Doppelganger / Arkham fight in single player).
+// Single player camera: the game's camera following player 1 only.
+bool SharedCameraWanted() {
+	if (activeConfig.Actor.playerCount > 1) {
+		return g_multiplayerCameraMode == MULTIPLAYERCAMERA::SHARED_CAM;
+	}
+	return activeCrimsonConfig.Camera.singlePlayerSharedCamera;
 }
 
 void MultiplayerCameraPositioningController() {
-	// Dev hotkeys: H cycles the displayed camera, F6 toggles splitscreen.
-	{
-		static bool s_prevDown = false;
-		bool down = (keyboard.state.keys[DI8::KEY::H] & 0x80) != 0;
-		if (down && !s_prevDown && g_splitscreenCamera && !g_splitscreenRenderTest && activeConfig.Actor.playerCount > 1 && GetForegroundWindow() == appWindow) {
-			g_viewedCameraPlayer = (g_viewedCameraPlayer + 1) % activeConfig.Actor.playerCount;
-		}
-		s_prevDown = down;
-
-		static bool s_prevF6 = false;
-		bool f6 = (keyboard.state.keys[DI8::KEY::F6] & 0x80) != 0;
-		if (f6 && !s_prevF6 && activeConfig.Actor.playerCount > 1 && GetForegroundWindow() == appWindow) {
-			g_splitscreenRenderTest = !g_splitscreenRenderTest;
-			if (g_splitscreenRenderTest) {
-				g_splitscreenCamera = true;
-			} else {
-				g_viewedCameraPlayer = 0;
-			}
-		}
-		s_prevF6 = f6;
-	}
+	UpdateMultiplayerCameraMode();
 
 	// Camera swapping for splitscreen happens in CrimsonSplitscreen.cpp.
-	if (g_viewedCameraPlayer >= activeConfig.Actor.playerCount) {
+	if (!CrimsonSplitscreen::Enabled() || g_viewedCameraPlayer >= activeConfig.Actor.playerCount) {
 		g_viewedCameraPlayer = 0;
 	}
 
-	if (g_splitscreenCamera) {
+	if (CrimsonSplitscreen::Enabled()) {
 		SplitscreenCameraPositioningController();
 		return;
 	}
@@ -885,7 +887,7 @@ void MultiplayerCameraPositioningController() {
 	static float lerpFactor = lerpFactorOutTransition;
 	static std::chrono::time_point<std::chrono::steady_clock> transitionToMPStartTime;
 	static bool isTransitionTimerActive = false;
-	bool triggerMPCam = activeCrimsonConfig.Camera.multiplayerCamera ? true : false;
+	bool triggerMPCam = SharedCameraWanted();
 
 	int entityCount = 0; // Track valid entities for averaging
 	float playerWeight = 5.0f;  // Weight for playable characters
@@ -1283,7 +1285,6 @@ void MultiplayerCameraPositioningController() {
 
 	// Activate multiplayer camera positioning
 	CrimsonDetours::ToggleCustomCameraPositioning(g_isMPCamActive &&
-		activeCrimsonConfig.Camera.multiplayerCamera &&
 		mainActorData.mode != ACTOR_MODE::MISSION_19);
 }
 
@@ -1378,7 +1379,7 @@ void ForceThirdPersonCameraController() {
 	if (activeCrimsonConfig.Camera.thirdPersonCamera) {
 		// Disable Boss Camera Exceptions
 
-		if (activeConfig.Actor.playerCount <= 1 || CrimsonSplitscreen::Enabled()) { // SINGLE PLAYER, or splitscreen where every player has their own camera
+		if (activeConfig.Actor.playerCount <= 1 || g_multiplayerCameraMode != MULTIPLAYERCAMERA::SHARED_CAM) { // SINGLE PLAYER, or a multiplayer camera that does not frame every player (splitscreen, single player cam)
 			if (!(eventData.room == 228 && eventData.position == 0)
 				&& !(eventData.room == ROOM::ICE_GUARDIANS_CHAMBER && sessionData.mission == 3)
 				&& !(eventData.room == ROOM::GIANTWALKER_CHAMBER && sessionData.mission == 4)

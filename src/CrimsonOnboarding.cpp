@@ -455,18 +455,9 @@ namespace {
                     PlaySelectSound();
                     activeCrimsonConfig.Camera.thirdPersonCamera =
                         queuedCrimsonConfig.Camera.thirdPersonCamera = cards[i].thirdPerson;
-                    // When enabling third person, also enable panoramic and multiplayer camera
-                    if (cards[i].thirdPerson) {
-                        activeCrimsonConfig.Camera.panoramicCam =
-                            queuedCrimsonConfig.Camera.panoramicCam = true;
-                        activeCrimsonConfig.Camera.multiplayerCamera =
-                            queuedCrimsonConfig.Camera.multiplayerCamera = true;
-                    } else {
-                        activeCrimsonConfig.Camera.panoramicCam =
-                            queuedCrimsonConfig.Camera.panoramicCam = false;
-                        activeCrimsonConfig.Camera.multiplayerCamera =
-                            queuedCrimsonConfig.Camera.multiplayerCamera = true;
-                    }
+                    // When enabling third person, also enable panoramic camera
+                    activeCrimsonConfig.Camera.panoramicCam =
+                        queuedCrimsonConfig.Camera.panoramicCam = cards[i].thirdPerson;
                     AdvanceOnboarding();
                 }
             }

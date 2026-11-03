@@ -255,7 +255,8 @@ struct CrimsonConfig {
 		uint8 rightStickCameraCentering = RIGHTSTICKCENTERCAM::ON;
 		uint8 cameraShake = CAMERASHAKE::ONLY_IN_SINGLE_PLAYER_CAM;
 		bool disableBossCamera = false;
-		bool multiplayerCamera = true;
+		uint8 multiplayerCameraMode = MULTIPLAYERCAMERA::SPLITSCREEN;
+		bool singlePlayerSharedCamera = true;
 		bool panoramicCam = true;
 		bool thirdPersonCamera = true;
 
@@ -274,7 +275,8 @@ struct CrimsonConfig {
                 std::make_pair("rightStickCameraCentering", &Camera::rightStickCameraCentering),
 				std::make_pair("cameraShake", &Camera::cameraShake),
                 std::make_pair("disableBossCamera", &Camera::disableBossCamera),
-				std::make_pair("multiplayerCamera", &Camera::multiplayerCamera),
+				std::make_pair("multiplayerCameraMode", &Camera::multiplayerCameraMode),
+				std::make_pair("singlePlayerSharedCamera", &Camera::singlePlayerSharedCamera),
 				std::make_pair("panoramicCam", &Camera::panoramicCam),
                 std::make_pair("thirdPersonCamera", &Camera::thirdPersonCamera)
 			);

@@ -1287,6 +1287,18 @@ uint8 cameraShakeMap[] = {
 	2,
 };
 
+const char* multiplayerCameraNames[] = {
+	"Splitscreen",
+	"Shared Camera",
+	"Single Player Camera",
+};
+
+const char* multiplayerCameraPopUpTexts[] = {
+	"Switched to Splitscreen Camera",
+	"Switched to Shared Camera",
+	"Switched to Single Player Camera",
+};
+
 const char* styleSwitchTypeNames[] = {
 	"Crimson",
 	"DMC3 Switch",
@@ -3392,8 +3404,6 @@ void CharacterSection(size_t defaultFontSize) {
 			ImGui::PushItemWidth(itemWidth);
 			if (GUI_Slider<uint8>("Number of Players", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT)) {
 				if (queuedConfig.Actor.playerCount > 1) {
-					activeCrimsonConfig.Camera.multiplayerCamera = true;
-					queuedCrimsonConfig.Camera.multiplayerCamera = true;
 					activeCrimsonConfig.Camera.thirdPersonCamera = true;
 					queuedCrimsonConfig.Camera.thirdPersonCamera = true;
 				} else {
@@ -5030,16 +5040,36 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			if (GUI_Checkbox2("Panoramic Camera", activeCrimsonConfig.Camera.panoramicCam, queuedCrimsonConfig.Camera.panoramicCam)) {
-				if (activeCrimsonConfig.Camera.multiplayerCamera) {
-					activeCrimsonConfig.Camera.distance = 2;
-					queuedCrimsonConfig.Camera.distance = 2;
+				activeCrimsonConfig.Camera.distance = 2;
+				queuedCrimsonConfig.Camera.distance = 2;
 
-					activeCrimsonConfig.Camera.lockOnDistance = 2;
-					queuedCrimsonConfig.Camera.lockOnDistance = 2;
-				}
+				activeCrimsonConfig.Camera.lockOnDistance = 2;
+				queuedCrimsonConfig.Camera.lockOnDistance = 2;
 			}
 			ImGui::SameLine();
 			TooltipHelper("(?)", "A dynamic camera mode designed to enhance in-combat readability. Distances itself based on enemies' positioning.");
+
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Shared Camera in Single Player", activeCrimsonConfig.Camera.singlePlayerSharedCamera, queuedCrimsonConfig.Camera.singlePlayerSharedCamera);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Uses the Shared Camera, which frames every playable character, while Doppelganger is summoned\n"
+				"(and during the Arkham fight) in Single Player.");
+
+			ImGui::TableNextRow(0, rowWidth);
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * 1.27f);
+			UI::Combo2("Multiplayer Camera", multiplayerCameraNames, activeCrimsonConfig.Camera.multiplayerCameraMode, queuedCrimsonConfig.Camera.multiplayerCameraMode);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Default camera of multiplayer sessions.\n"
+				"\n"
+				"Splitscreen: every player gets their own view.\n"
+				"Shared Camera: a single camera frames every player.\n"
+				"Single Player Camera: the camera follows Player 1 only.\n"
+				"\n"
+				"Can be switched during a multiplayer session with the Toggle Multiplayer Camera hotkey (Hotkeys tab).");
+			ImGui::PopItemWidth();
 
 			ImGui::EndTable();
 		}
@@ -5087,9 +5117,6 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.panoramicCam = false;
 			queuedCrimsonConfig.Camera.panoramicCam = false;
 
-			activeCrimsonConfig.Camera.multiplayerCamera = true;
-			queuedCrimsonConfig.Camera.multiplayerCamera = true;
-
 			activeCrimsonConfig.Camera.disableBossCamera = false;
 			queuedCrimsonConfig.Camera.disableBossCamera = false;
 		}
@@ -5135,9 +5162,6 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.panoramicCam = false;
 			queuedCrimsonConfig.Camera.panoramicCam = false;
 
-			activeCrimsonConfig.Camera.multiplayerCamera = true;
-			queuedCrimsonConfig.Camera.multiplayerCamera = true;
-
 			activeCrimsonConfig.Camera.disableBossCamera = false;
 			queuedCrimsonConfig.Camera.disableBossCamera = false;
 		}
@@ -5180,9 +5204,6 @@ void CameraSection(size_t defaultFontSize) {
 
 			activeCrimsonConfig.Camera.panoramicCam = true;
 			queuedCrimsonConfig.Camera.panoramicCam = true;
-
-			activeCrimsonConfig.Camera.multiplayerCamera = true;
-			queuedCrimsonConfig.Camera.multiplayerCamera = true;
 
 			activeCrimsonConfig.Camera.disableBossCamera = false;
 			queuedCrimsonConfig.Camera.disableBossCamera = false;
@@ -13506,6 +13527,18 @@ void GamepadToggleShowMain() {
 
 }
 
+void ToggleMultiplayerCamera() {
+	if (!InGame() || activeConfig.Actor.playerCount < 2) {
+		return;
+	}
+
+	g_multiplayerCameraMode = (g_multiplayerCameraMode + 1) % MULTIPLAYERCAMERA::COUNT;
+
+	cheatsPopUp.cheatText = multiplayerCameraPopUpTexts[g_multiplayerCameraMode];
+	if (activeCrimsonConfig.GUI.sounds) FMOD_PlaySound(0, 25);
+	cheatsPopUp.showPopUp = true;
+}
+
 std::vector<KeyBinding> keyBindings = {
     {
         "Toggle Crimson Overlay",
@@ -13519,6 +13552,7 @@ std::vector<KeyBinding> keyBindings = {
     {"Reload Room", activeConfig.keyData[3], queuedConfig.keyData[3], defaultConfig.keyData[3], ReloadRoom},
     {"Move To Main Character", activeConfig.keyData[4], queuedConfig.keyData[4], defaultConfig.keyData[4], MoveToMainActor},
 	{"Freeze Enemies", activeConfig.keyData[5], queuedConfig.keyData[5], defaultConfig.keyData[5], FreezeEnemies},
+	{"Toggle Multiplayer Camera", activeConfig.keyData[6], queuedConfig.keyData[6], defaultConfig.keyData[6], ToggleMultiplayerCamera},
 	
 };
 
@@ -16415,7 +16449,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 		CrimsonSplitscreen::HudTuningWindow(&showSplitscreenHudWindow);
 	}
 	if (showSinglePlayerHudWindow) {
-		CrimsonSplitscreen::SinglePlayerHudWindow(&showSinglePlayerHudWindow);
+		HUD_SinglePlayerWindow(&showSinglePlayerHudWindow);
 	}
 	scaleFactorX = ImGui::GetIO().DisplaySize.x / 1920;
 	scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;

@@ -27,6 +27,7 @@
 #include "CrimsonOnTick.hpp"
 #include "CrimsonEfk.hpp"
 #include "CrimsonSplitscreen.hpp"
+#include "HUD.hpp"
 #include "CrimsonEfkPreload.hpp"
 #include "CrimsonReversedCalls.hpp"
 #include "Internal.hpp"
@@ -1776,6 +1777,7 @@ void InitDetours() {
 	LdkInitDetour();
 	CrimsonEfk::EffekInitRenderHook();
 	CrimsonSplitscreen::InitHooks();
+	HUD_InitAdjustmentHooks();
 	CrimsonOnTick::ToggleOnTickFuncs(true);
 
 	// AddToMirageGauge

@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cstdio>
 #include <cstring>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <vector>
@@ -51,38 +52,29 @@ constexpr uintptr_t UPDATE_PLAYER_INPUT_OFFSET = 0x1EBCF0;
 constexpr uintptr_t UPDATE_MIST_OFFSET         = 0x31AE10;
 constexpr size_t SCENE_CAMERA_MATRIX = 0x100; // pSceneStateCursor_140CF2330: 4x4 view matrix of the current tick
 constexpr size_t SCENE_CAMERA_MATRIX_SIZE = 0x40;
+constexpr size_t SCENE_PROJECTION_MATRIX = 0x140; // 4x4 matrix the HUD projects world points with (session +0x160)
 constexpr uintptr_t PLAYER_POOL_OFFSET         = 0xC90E28;
 constexpr uintptr_t EVENT_POOL_OFFSET          = 0xC90E10;
 constexpr uintptr_t COCKPIT_TOP_UPDATE_OFFSET  = 0x27C0F0;
-constexpr uintptr_t COCKPIT_TOP_DRAW_OFFSET    = 0x27F1F0;
-constexpr uintptr_t COCKPIT_BOTTOM_DRAW_OFFSET = 0x281120;
+constexpr uintptr_t LOCKON_CURSOR_UPDATE_OFFSET = 0x296DB0; // CUIDLockOnCursorUpdate_sub_140296DB0 (vtable 0x1404E9CE0 slot 0)
 constexpr uintptr_t UPDATE_CAMERA_ORBIT_OFFSET = 0x57520;
 constexpr uintptr_t UPDATE_CAMERA_BOSS_OFFSET  = 0x50920;
 constexpr uintptr_t BOSS_CAMERA_MODE_OFFSET    = 0xC91830; // int8: 0 off, 1..0xE boss camera type, 0x80 = ending
 constexpr uintptr_t PAD_BLOCK_OFFSET           = 0xD54A10 + 0x550; // ENGINE_GAMEPAD[PLAYER_COUNT]
 static_assert(sizeof(ENGINE_GAMEPAD) == 0x2C);
 
-// CUIDCockpit00: 13 element matrices, 0x80 apart. The first is the upper HP frame.
-constexpr size_t COCKPIT_TOP_MATRIX_BASE   = 0xB0;
-constexpr size_t COCKPIT_TOP_MATRIX_STRIDE = 0x80;
-constexpr size_t COCKPIT_TOP_MATRIX_COUNT  = 13;
-// Per-frame state that follows the element ModelData array (HP/DT smoothing, alpha timers).
+// CUIDCockpit00 per-frame state that follows the element ModelData array (HP/DT smoothing, alpha timers).
 constexpr size_t COCKPIT_STATE_BEGIN = 0x6880;
 constexpr size_t COCKPIT_STATE_END   = 0x7040;
-// CUIDCockpit02: two consecutive matrices.
-constexpr size_t COCKPIT_BOTTOM_MATRIX_BASE  = 0x26E0;
-constexpr size_t COCKPIT_BOTTOM_MATRIX_COUNT = 2;
+// CUIDLockOnCursor: locked target (+0x800), then the marker target lists and their scale animation. The lock-on
+// display toggle timer after them (+0x1188 / +0x118C) belongs to pad 0 and stays shared.
+constexpr size_t LOCKON_TARGET_PTR  = 0x800;
+constexpr size_t LOCKON_STATE_BEGIN = 0x10C0;
+constexpr size_t LOCKON_STATE_END   = 0x1188;
 
-// HUD space: y grows downward, x is centred on 0, 640x448 design. Each group's elements are
-// drawn at position * posScale + offset, with the model scaled by sizeScale. Tuned live from
-// the "Splitscreen HUD" window (CrimsonSplitscreen::HudTuningWindow).
-struct HudGroupTuning {
-	float sizeScale;
-	float posScale;
-	float offsetX;
-	float offsetY;
-};
-
+// Per-layout HUD tuning (the cockpit draw hooks live in HUD.cpp and read the layout in use through
+// CrimsonSplitscreen::HudLayoutInUse). Each group's elements are drawn at position * posScale + offset, with the
+// model scaled by sizeScale. Tuned live from the "Splitscreen HUD" window (CrimsonSplitscreen::HudTuningWindow).
 struct HudTuning {
 	HudGroupTuning topLeft;  // HP / DT / style icon / flux
 	HudGroupTuning topRight; // red orb counter group
@@ -108,43 +100,17 @@ constexpr HudTuning HUD_TUNING_QUADS = {
 };
 HudTuning s_hudTuning[HUD_LAYOUT_COUNT] = { HUD_TUNING_HALVES, HUD_TUNING_QUADS };
 
-constexpr float HUD_HEIGHT = 448.0f;
-constexpr uintptr_t RENDER_FRAME_STATE_OFFSET = 0xD6D300;  // pRenderFrameState_140D6D300: +0x20 / +0x22 = HUD frame width / height (int16)
-constexpr uintptr_t HUD_WIDESCREEN_FLAG_OFFSET = 0x553034; // HudWidescreenFlag_140553034
-constexpr float HUD_WIDESCREEN_WIDTH_FACTOR = 1.3f;        // visible width = frame width * this when the flag is set
-
-// Single player: the top-left group (HP / DT / style icon / flux) and the CrimsonHUD addons that sit on it move and
-// scale as one: every point goes through p' = S * p + (1 - S) * pivot + G on the screen (G = general x/y).
-// The game HUD scales around its own origin, so its matrices only get p' = S * p + G / k (k = pixels per HUD unit
-// relative to screenHeight / 448; HUD y points up), and the addons use the screen position of that HUD origin as pivot.
-// k comes from the game's HUD frame size and widescreen flag; the calibration only trims it. The general values are
-// the ones to preset.
-struct SinglePlayerHudGeneral {
-	float scale;
-	float offsetX;
-	float offsetY;
-};
-struct SinglePlayerHudCalibration {
-	float unitX; // multiplier on the derived k, x
-	float unitY; // multiplier on the derived k, y
-	float pivotX; // screen position of the HUD origin, from the screen centre, in units of screenHeight / 448
-	float pivotY;
-	float scaleRate; // game HUD scale = 1 + (S - 1) * scaleRate; the addons use S as is
-};
-struct SinglePlayerHudPreset {
-	const char* name;
-	SinglePlayerHudGeneral general;
-};
-constexpr SinglePlayerHudGeneral HUD_GENERAL_SINGLE = { 1.0f, 0.0f, 0.0f };
-constexpr SinglePlayerHudCalibration HUD_CALIBRATION_SINGLE = { 0.988f, 0.665f, -19.0f, -3.0f, 1.0f };
-constexpr SinglePlayerHudPreset HUD_PRESETS_SINGLE[] = {
+// General adjustment (scale / x / y, see HUD.hpp) per layout, applied on top of that layout's HudTuning.topLeft in
+// frame units (the frame is cropped / downscaled into the views afterwards).
+constexpr HudGeneral HUD_GENERAL_HALVES = { 1.0f, 0.0f, 0.0f };
+constexpr HudGeneral HUD_GENERAL_QUADS  = { 1.0f, 0.0f, 0.0f };
+constexpr HudPreset HUD_PRESETS_HALVES[] = {
 	{ "Default", { 1.000f, 0.0f, 0.0f } },
-	{ "Compact", { 0.810f, -2.0f, 4.0f } },
 };
-SinglePlayerHudGeneral s_singleHudGeneral = HUD_GENERAL_SINGLE;
-SinglePlayerHudCalibration s_singleHudCalibration = HUD_CALIBRATION_SINGLE;
-bool s_singleHudSyncAddons = true;
-bool s_singleHudShowPivot = false;
+constexpr HudPreset HUD_PRESETS_QUADS[] = {
+	{ "Default", { 1.000f, 0.0f, 0.0f } },
+};
+HudGeneral s_splitHudGeneral[HUD_LAYOUT_COUNT] = { HUD_GENERAL_HALVES, HUD_GENERAL_QUADS };
 
 float s_frameAspect = 16.0f / 9.0f;
 
@@ -208,8 +174,7 @@ std::unique_ptr<Utility::Detour_t> s_submitDrawListHook;
 std::unique_ptr<Utility::Detour_t> s_updatePlayerInputHook;
 std::unique_ptr<Utility::Detour_t> s_updateMistHook;
 std::unique_ptr<Utility::Detour_t> s_cockpitUpdateHook;
-std::unique_ptr<Utility::Detour_t> s_cockpitTopDrawHook;
-std::unique_ptr<Utility::Detour_t> s_cockpitBottomDrawHook;
+std::unique_ptr<Utility::Detour_t> s_lockOnCursorUpdateHook;
 std::unique_ptr<Utility::Detour_t> s_updateCameraOrbitHook;
 std::unique_ptr<Utility::Detour_t> s_updateCameraBossHook;
 
@@ -225,59 +190,24 @@ bool SplitscreenActive() {
 
 uint8_t* PlayerMainActor(int player);
 
+int ActiveHudLayout() {
+	return (CrimsonSplitscreen::ViewCount() > 2) ? HUD_LAYOUT_QUADS : HUD_LAYOUT_HALVES;
+}
+
 const HudTuning& ActiveHudTuning() {
-	return s_hudTuning[(CrimsonSplitscreen::ViewCount() > 2) ? HUD_LAYOUT_QUADS : HUD_LAYOUT_HALVES];
-}
-
-bool SinglePlayerHudTouched() {
-	const SinglePlayerHudGeneral& g = s_singleHudGeneral;
-	return g.scale != 1.0f || g.offsetX != 0.0f || g.offsetY != 0.0f;
-}
-
-// Pixels per HUD unit of the game HUD, relative to screenHeight / 448, before the calibration trim.
-struct HudFrameInfo {
-	int frameWidth = 0;
-	int frameHeight = 0;
-	bool widescreen = false;
-	float unitX = 1.0f;
-	float unitY = 1.0f;
-	bool valid = false;
-};
-
-HudFrameInfo ReadHudFrameInfo(float screenWidth, float screenHeight) {
-	HudFrameInfo info;
-	const auto* frameState = *reinterpret_cast<const uint8_t* const*>(appBaseAddr + RENDER_FRAME_STATE_OFFSET);
-	if (!CameraObjectValid(frameState) || screenWidth <= 0.0f || screenHeight <= 0.0f) {
-		return info;
-	}
-	info.frameWidth  = *reinterpret_cast<const int16_t*>(frameState + 0x20);
-	info.frameHeight = *reinterpret_cast<const int16_t*>(frameState + 0x22);
-	info.widescreen  = *reinterpret_cast<const uint8_t*>(appBaseAddr + HUD_WIDESCREEN_FLAG_OFFSET) != 0;
-	if (info.frameWidth <= 0 || info.frameHeight <= 0) {
-		return info;
-	}
-	const float visibleWidth = static_cast<float>(info.frameWidth) * (info.widescreen ? HUD_WIDESCREEN_WIDTH_FACTOR : 1.0f);
-	const float unit = screenHeight / HUD_HEIGHT;
-	info.unitX = (screenWidth / visibleWidth) / unit;
-	info.unitY = (screenHeight / static_cast<float>(info.frameHeight)) / unit;
-	info.valid = true;
-	return info;
-}
-
-// Matrix transform ShrinkHudMatrix applies: p' = p * S + G / k, around the HUD origin (y up).
-HudGroupTuning SinglePlayerTopLeftGroup() {
-	const SinglePlayerHudGeneral& g = s_singleHudGeneral;
-	const SinglePlayerHudCalibration& c = s_singleHudCalibration;
-	const HudFrameInfo frame = ReadHudFrameInfo(g_renderSize.x, g_renderSize.y);
-	const float unitX = frame.unitX * c.unitX;
-	const float unitY = frame.unitY * c.unitY;
-	const float gameScale = 1.0f + (g.scale - 1.0f) * c.scaleRate;
-	return { gameScale, gameScale, g.offsetX / unitX, -g.offsetY / unitY };
+	return s_hudTuning[ActiveHudLayout()];
 }
 
 // Camera matrix of player 1's last tick, used by the mist blending effect (see UpdateMistHook).
 uint8_t s_mistCameraMatrix[SCENE_CAMERA_MATRIX_SIZE] = {};
 bool s_mistCameraMatrixValid = false;
+
+// The HUD projection matrix each player's last completed frame ended with (see LockOnCursorUpdateHook).
+struct ProjectionSlots {
+	uint8_t matrix[PLAYER_COUNT][SCENE_CAMERA_MATRIX_SIZE] = {};
+	bool valid[PLAYER_COUNT] = {};
+};
+ProjectionSlots s_projectionSlots;
 
 void ResetSplitState() {
 	s_mistCameraMatrixValid = false;
@@ -285,6 +215,7 @@ void ResetSplitState() {
 		s_camSlots.valid[p]        = false;
 		s_cells.valid[p]           = false;
 		g_splitscreenCamCopyValid[p] = false;
+		s_projectionSlots.valid[p] = false;
 	}
 }
 
@@ -353,7 +284,7 @@ bool UpdateSplitGate(uint8_t* cameraControl) {
 }
 
 // A camera that is not a number, or is far from its own player, shows the void (black view) and
-// nothing in the per-player cycle brings it back. Detect it and recover like toggling F6 does:
+// nothing in the per-player cycle brings it back. Detect it and recover like switching the camera mode does:
 // drop the saved state and let the game's own camera re-converge on the player.
 constexpr float CAM_MAX_PLAYER_DISTANCE = 4000.0f;
 constexpr int   CAM_BROKEN_FRAMES       = 12;
@@ -600,6 +531,11 @@ __int64 __fastcall SubmitDrawListHook(int a1) {
 			s_lastViewCount = viewCount;
 		}
 		const int player = FramePlayer();
+		// The matrix the frame just finished with is the HUD projection of that player's camera.
+		if (const auto scene = *reinterpret_cast<uint8_t**>(appBaseAddr + SCENE_STATE_PTR_OFFSET)) {
+			std::memcpy(s_projectionSlots.matrix[player], scene + SCENE_PROJECTION_MATRIX, SCENE_CAMERA_MATRIX_SIZE);
+			s_projectionSlots.valid[player] = true;
+		}
 		Composite(render, player, viewCount);
 		SwapCameraState(cameraCtrl, player, viewCount);
 	}
@@ -857,72 +793,73 @@ void __fastcall CockpitUpdateHook(uint8_t* cockpit) {
 	std::memcpy(s_cockpitSlots.state[player], live, stateSize);
 }
 
-// Row-vector matrix: output x/y are columns 0/1, translation is the last row.
-void ShrinkHudMatrix(float* m, const HudGroupTuning& group) {
-	for (int row = 0; row < 3; ++row) {
-		m[row * 4 + 0] *= group.sizeScale;
-		m[row * 4 + 1] *= group.sizeScale;
-	}
-	m[12] = m[12] * group.posScale + group.offsetX;
-	m[13] = m[13] * group.posScale + group.offsetY;
-}
+struct LockOnCursorSlots {
+	uint8_t state[PLAYER_COUNT][LOCKON_STATE_END - LOCKON_STATE_BEGIN] = {};
+	uint64_t target[PLAYER_COUNT] = {};
+	bool valid[PLAYER_COUNT] = {};
+};
+LockOnCursorSlots s_lockOnSlots;
 
-// The red orb counter group is anchored to the right of the screen, the rest to the left.
-bool IsRightHudElement(size_t i) {
-	return i >= 8 && i <= 10;
-}
+// CUIDLockOnCursorUpdate_sub_140296DB0
+// The original lock-on cursor reads the lock-on button and the target list from pool_10222[3], i.e. always
+// player 1, and keeps the marker lists in the object. Each frame is built for one player, so point it at that
+// player's actor and keep the lists per player (the draw, vtable slot 2, only submits what the update just set).
+void __fastcall LockOnCursorUpdateHook(uint8_t* cursor) {
+	const auto original = s_lockOnCursorUpdateHook->GetTrampoline<CockpitFn>();
+	auto* pool = *reinterpret_cast<uintptr_t**>(appBaseAddr + PLAYER_POOL_OFFSET);
 
-// The draw copies the matrix, so it can be restored right after.
-// CUIDCockpit00 draw (vtable +0x20)
-void __fastcall CockpitTopDrawHook(uint8_t* cockpit) {
-	const auto original = s_cockpitTopDrawHook->GetTrampoline<CockpitFn>();
-	const bool split = SplitscreenActive();
-	if (!cockpit || (!split && !SinglePlayerHudTouched())) {
-		original(cockpit);
-		return;
-	}
-
-	auto matrix = [cockpit](size_t i) {
-		return reinterpret_cast<float*>(cockpit + COCKPIT_TOP_MATRIX_BASE + COCKPIT_TOP_MATRIX_STRIDE * i);
-	};
-	const HudTuning& tuning = ActiveHudTuning();
-	const HudGroupTuning singleGroup = SinglePlayerTopLeftGroup();
-	float backup[COCKPIT_TOP_MATRIX_COUNT][16];
-	for (size_t i = 0; i < COCKPIT_TOP_MATRIX_COUNT; ++i) {
-		std::memcpy(backup[i], matrix(i), sizeof(backup[i]));
-		if (split) {
-			ShrinkHudMatrix(matrix(i), IsRightHudElement(i) ? tuning.topRight : tuning.topLeft);
-		} else if (!IsRightHudElement(i)) {
-			ShrinkHudMatrix(matrix(i), singleGroup);
+	static uint8_t* s_lastCursor = nullptr;
+	if (cursor != s_lastCursor) {
+		s_lastCursor = cursor;
+		for (bool& valid : s_lockOnSlots.valid) {
+			valid = false;
 		}
 	}
-	original(cockpit);
-	for (size_t i = 0; i < COCKPIT_TOP_MATRIX_COUNT; ++i) {
-		std::memcpy(matrix(i), backup[i], sizeof(backup[i]));
-	}
-}
 
-// CUIDCockpit02 draw (vtable +0x20)
-// Its matrices are identity (the layout lives in the model).
-void __fastcall CockpitBottomDrawHook(uint8_t* cockpit) {
-	const auto original = s_cockpitBottomDrawHook->GetTrampoline<CockpitFn>();
-	if (!SplitscreenActive() || !cockpit) {
-		original(cockpit);
+	uint8_t* actor = (SplitscreenActive() && cursor && pool) ? PlayerMainActor(FramePlayer()) : nullptr;
+	if (!actor) {
+		for (bool& valid : s_lockOnSlots.valid) {
+			valid = false;
+		}
+		original(cursor);
 		return;
 	}
 
-	auto matrix = [cockpit](size_t i) {
-		return reinterpret_cast<float*>(cockpit + COCKPIT_BOTTOM_MATRIX_BASE + 0x40 * i);
-	};
-	float backup[COCKPIT_BOTTOM_MATRIX_COUNT][16];
-	for (size_t i = 0; i < COCKPIT_BOTTOM_MATRIX_COUNT; ++i) {
-		std::memcpy(backup[i], matrix(i), sizeof(backup[i]));
-		ShrinkHudMatrix(matrix(i), ActiveHudTuning().bottom);
+	const int player = FramePlayer();
+	constexpr size_t stateSize = LOCKON_STATE_END - LOCKON_STATE_BEGIN;
+	uint8_t* live = cursor + LOCKON_STATE_BEGIN;
+	auto* liveTarget = reinterpret_cast<uint64_t*>(cursor + LOCKON_TARGET_PTR);
+	if (!s_lockOnSlots.valid[player]) {
+		std::memset(s_lockOnSlots.state[player], 0, stateSize);
+		s_lockOnSlots.target[player] = 0;
+		s_lockOnSlots.valid[player] = true;
 	}
-	original(cockpit);
-	for (size_t i = 0; i < COCKPIT_BOTTOM_MATRIX_COUNT; ++i) {
-		std::memcpy(matrix(i), backup[i], sizeof(backup[i]));
+	std::memcpy(live, s_lockOnSlots.state[player], stateSize);
+	*liveTarget = s_lockOnSlots.target[player];
+
+	const uintptr_t mainPlayerActor = pool[3];
+	pool[3] = reinterpret_cast<uintptr_t>(actor);
+
+	// The cursor projects its targets with the scene's projection matrix, which at this point still belongs to
+	// whichever player's camera ran last (the other player's, every other tick). Use this player's own.
+	const auto scene = *reinterpret_cast<uint8_t**>(appBaseAddr + SCENE_STATE_PTR_OFFSET);
+	uint8_t* liveProjection = scene ? scene + SCENE_PROJECTION_MATRIX : nullptr;
+	uint8_t projectionBackup[SCENE_CAMERA_MATRIX_SIZE];
+	const bool swapProjection = liveProjection && s_projectionSlots.valid[player];
+	if (swapProjection) {
+		std::memcpy(projectionBackup, liveProjection, SCENE_CAMERA_MATRIX_SIZE);
+		std::memcpy(liveProjection, s_projectionSlots.matrix[player], SCENE_CAMERA_MATRIX_SIZE);
 	}
+
+	original(cursor);
+
+	if (swapProjection) {
+		std::memcpy(liveProjection, projectionBackup, SCENE_CAMERA_MATRIX_SIZE);
+	}
+	pool[3] = mainPlayerActor;
+
+	std::memcpy(s_lockOnSlots.state[player], live, stateSize);
+	s_lockOnSlots.target[player] = *liveTarget;
 }
 
 } // namespace
@@ -932,15 +869,15 @@ namespace CrimsonSplitscreen {
 // Only while playing: scene GAME + EVENT::MAIN, outside of cutscenes. The camera and HUD objects
 // are being rebuilt otherwise.
 bool GateOpen() {
-	if (!g_splitscreenRenderTest || !activeConfig.Actor.enable || activeConfig.Actor.playerCount < 2) {
+	if (g_multiplayerCameraMode != MULTIPLAYERCAMERA::SPLITSCREEN || !activeConfig.Actor.enable || activeConfig.Actor.playerCount < 2) {
 		return false;
 	}
 	return InGame() && !g_inGameCutscene && !InCutscene();
 }
 
-// Splitscreen is switched on (F6 with 2+ players), whether or not it is currently running.
+// Splitscreen is the active multiplayer camera (2+ players), whether or not it is currently running.
 bool Enabled() {
-	return g_splitscreenRenderTest && activeConfig.Actor.enable && activeConfig.Actor.playerCount >= 2;
+	return g_multiplayerCameraMode == MULTIPLAYERCAMERA::SPLITSCREEN && activeConfig.Actor.enable && activeConfig.Actor.playerCount >= 2;
 }
 
 int ViewCount() {
@@ -1025,6 +962,16 @@ float ViewScale(int playerIndex) {
 	return (count > 2 && g_splitscreenQuadScaled) ? 0.5f : 1.0f;
 }
 
+bool HudLayoutInUse(HudSplitLayout& out) {
+	if (!SplitscreenActive()) {
+		return false;
+	}
+	const int layout = ActiveHudLayout();
+	const HudTuning& tuning = s_hudTuning[layout];
+	out = { tuning.topLeft, tuning.topRight, tuning.bottom, s_splitHudGeneral[layout] };
+	return true;
+}
+
 void HudTuningWindow(bool* open) {
 	ImGui::SetNextWindowSize(ImVec2(460, 0), ImGuiCond_FirstUseEver);
 	if (!ImGui::Begin("Splitscreen HUD", open)) {
@@ -1044,23 +991,37 @@ void HudTuningWindow(bool* open) {
 	}
 
 	if (viewCount < 2) {
-		ImGui::TextWrapped("Splitscreen is off (F6 with 2+ players). Values still apply once it is on.");
+		ImGui::TextWrapped("Splitscreen is off (not in a multiplayer session or another multiplayer camera is selected). Values still apply once it is on.");
 	}
 	ImGui::RadioButton("Halves (2 players)", &s_editLayout, HUD_LAYOUT_HALVES);
 	ImGui::SameLine();
 	ImGui::RadioButton("Quadrants (3-4 players)", &s_editLayout, HUD_LAYOUT_QUADS);
 	HudTuning& tuning = s_hudTuning[s_editLayout];
+	HudGeneral& general = s_splitHudGeneral[s_editLayout];
 	const bool quads = (s_editLayout == HUD_LAYOUT_QUADS);
 
 	ImGui::Text("Frame aspect: %.3f", s_frameAspect);
 	if (quads && !g_splitscreenQuadScaled) {
 		ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "Downscale unavailable: quadrants show a centre crop.");
 	}
-	ImGui::TextWrapped("Position = original * posScale + offset (HUD units, y grows downward). "
-		"Half of the frame width is %.1f units if the HUD is %.0f tall.", HUD_HEIGHT * s_frameAspect * 0.5f, HUD_HEIGHT);
 
-	auto group = [](const char* label, HudGroupTuning& g) {
-		if (ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen)) {
+	ImGui::Separator();
+	ImGui::Text("General (top left + style addons)");
+	ImGui::TextWrapped("Same controls as the single player window: scale, x and y move the top-left cockpit group and the style addons "
+		"as one, on top of the layout base below (x/y in HUD units, %.0f tall, y grows downward, measured on the full frame before it is "
+		"cropped / downscaled into the views). The calibration is shared with the single player window.", HUD_HEIGHT);
+	HUD_GeneralControls(general, quads ? HUD_GENERAL_QUADS : HUD_GENERAL_HALVES,
+		quads ? HUD_PRESETS_QUADS : HUD_PRESETS_HALVES, quads ? std::size(HUD_PRESETS_QUADS) : std::size(HUD_PRESETS_HALVES));
+	HUD_CalibrationControls();
+	HUD_DrawPivotMarker();
+
+	ImGui::Separator();
+	ImGui::Text("Layout groups (raw)");
+	ImGui::TextWrapped("Raw matrix values: position = original * posScale + offset. Half of the frame width is %.1f units if the HUD is %.0f tall. "
+		"The top left group is the base the general controls adjust.", HUD_HEIGHT * s_frameAspect * 0.5f, HUD_HEIGHT);
+
+	auto group = [](const char* label, HudGroupTuning& g, ImGuiTreeNodeFlags flags) {
+		if (ImGui::CollapsingHeader(label, flags)) {
 			ImGui::PushID(label);
 			ImGui::DragFloat("sizeScale", &g.sizeScale, 0.005f, 0.05f, 2.0f, "%.3f");
 			ImGui::DragFloat("posScale", &g.posScale, 0.005f, 0.0f, 2.0f, "%.3f");
@@ -1069,9 +1030,9 @@ void HudTuningWindow(bool* open) {
 			ImGui::PopID();
 		}
 	};
-	group("Top left (HP / DT / style)", tuning.topLeft);
-	group("Top right (red orbs)", tuning.topRight);
-	group("Bottom (weapons)", tuning.bottom);
+	group("Top left base (HP / DT / style)", tuning.topLeft, ImGuiTreeNodeFlags_None);
+	group("Top right (red orbs)", tuning.topRight, ImGuiTreeNodeFlags_DefaultOpen);
+	group("Bottom (weapons)", tuning.bottom, ImGuiTreeNodeFlags_DefaultOpen);
 
 	ImGui::Checkbox("Show view guides", &tuning.showGuides);
 	if (tuning.showGuides) {
@@ -1088,150 +1049,23 @@ void HudTuningWindow(bool* open) {
 		}
 	}
 
-	if (ImGui::Button("Reset")) {
+	if (ImGui::Button("Reset all")) {
 		tuning = quads ? HUD_TUNING_QUADS : HUD_TUNING_HALVES;
+		general = quads ? HUD_GENERAL_QUADS : HUD_GENERAL_HALVES;
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Copy as code")) {
-		char text[768];
+		char text[1024];
 		auto fmt = [](const HudGroupTuning& g) {
 			char line[160];
 			snprintf(line, sizeof(line), "\t{ %.3ff, %.3ff, %.1ff, %.1ff },\n", g.sizeScale, g.posScale, g.offsetX, g.offsetY);
 			return std::string(line);
 		};
-		snprintf(text, sizeof(text), "constexpr HudTuning %s = {\n%s%s%s\tfalse,\n};\n",
+		snprintf(text, sizeof(text), "constexpr HudTuning %s = {\n%s%s%s\tfalse,\n};\nconstexpr HudGeneral %s = { %.3ff, %.1ff, %.1ff };\n",
 			quads ? "HUD_TUNING_QUADS" : "HUD_TUNING_HALVES",
-			fmt(tuning.topLeft).c_str(), fmt(tuning.topRight).c_str(), fmt(tuning.bottom).c_str());
+			fmt(tuning.topLeft).c_str(), fmt(tuning.topRight).c_str(), fmt(tuning.bottom).c_str(),
+			quads ? "HUD_GENERAL_QUADS" : "HUD_GENERAL_HALVES", general.scale, general.offsetX, general.offsetY);
 		ImGui::SetClipboardText(text);
-	}
-
-	ImGui::End();
-}
-
-bool HudAddonTransform(int view, float screenWidth, float screenHeight, float& posScale, float& sizeScale, float& offsetX, float& offsetY) {
-	if (screenWidth <= 0.0f || screenHeight <= 0.0f) {
-		return false;
-	}
-	const SinglePlayerHudCalibration& c = s_singleHudCalibration;
-	const float unit = screenHeight / HUD_HEIGHT;
-	const float pivotPxX = screenWidth * 0.5f + c.pivotX * unit;
-	const float pivotPxY = screenHeight * 0.5f + c.pivotY * unit;
-
-	if (view < 0) {
-		if (SplitscreenActive() || !s_singleHudSyncAddons || !SinglePlayerHudTouched()) {
-			return false;
-		}
-		const SinglePlayerHudGeneral& g = s_singleHudGeneral;
-		posScale = g.scale;
-		sizeScale = g.scale;
-		offsetX = (1.0f - g.scale) * pivotPxX + g.offsetX * unit;
-		offsetY = (1.0f - g.scale) * pivotPxY + g.offsetY * unit;
-		return true;
-	}
-
-	if (!SplitscreenActive() || view >= ViewCount()) {
-		return false;
-	}
-	// Same transform the cockpit gets (CockpitTopDrawHook), expressed on the frame in pixels, then mapped into the view.
-	// The cockpit scale is 1 + (S - 1) * scaleRate, so the addons undo the rate.
-	const HudGroupTuning& group = ActiveHudTuning().topLeft;
-	const HudFrameInfo frame = ReadHudFrameInfo(screenWidth, screenHeight);
-	const float rate = (c.scaleRate > 0.01f) ? c.scaleRate : 0.01f;
-	const float framePosScale = 1.0f + (group.posScale - 1.0f) / rate;
-	const float frameSizeScale = 1.0f + (group.sizeScale - 1.0f) / rate;
-	const float frameOffsetX = (1.0f - framePosScale) * pivotPxX + group.offsetX * frame.unitX * c.unitX * unit;
-	const float frameOffsetY = (1.0f - framePosScale) * pivotPxY - group.offsetY * frame.unitY * c.unitY * unit;
-
-	float originX = 0.0f, originY = 0.0f, unitPointX = 1.0f, unitPointY = 1.0f;
-	MapPoint(view, screenWidth, screenHeight, originX, originY);
-	MapPoint(view, screenWidth, screenHeight, unitPointX, unitPointY);
-	const float viewScale = unitPointX - originX;
-
-	posScale = viewScale * framePosScale;
-	sizeScale = viewScale * frameSizeScale;
-	offsetX = viewScale * frameOffsetX + originX;
-	offsetY = viewScale * frameOffsetY + originY;
-	return true;
-}
-
-void SinglePlayerHudWindow(bool* open) {
-	ImGui::SetNextWindowSize(ImVec2(440, 0), ImGuiCond_FirstUseEver);
-	if (!ImGui::Begin("Single Player HUD", open)) {
-		ImGui::End();
-		return;
-	}
-
-	SinglePlayerHudGeneral& general = s_singleHudGeneral;
-	SinglePlayerHudCalibration& calibration = s_singleHudCalibration;
-	if (SplitscreenActive()) {
-		ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "Splitscreen is running: use the Splitscreen HUD window. These values are ignored.");
-	}
-	ImGui::TextWrapped("General: moves and scales the top-left cockpit group and the style addons as one (x/y in HUD units, %.0f tall, "
-		"y grows downward).", HUD_HEIGHT);
-
-	ImGui::DragFloat("scale", &general.scale, 0.005f, 0.2f, 2.0f, "%.3f");
-	ImGui::DragFloat("x", &general.offsetX, 0.5f, -800.0f, 800.0f, "%.1f");
-	ImGui::DragFloat("y", &general.offsetY, 0.5f, -800.0f, 800.0f, "%.1f");
-	ImGui::Checkbox("Sync style icons and names", &s_singleHudSyncAddons);
-
-	if (ImGui::BeginCombo("Preset", "Apply...")) {
-		for (const SinglePlayerHudPreset& preset : HUD_PRESETS_SINGLE) {
-			if (ImGui::Selectable(preset.name)) {
-				general = preset.general;
-			}
-		}
-		ImGui::EndCombo();
-	}
-
-	if (ImGui::Button("Reset")) {
-		general = HUD_GENERAL_SINGLE;
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Copy general as code")) {
-		char text[128];
-		snprintf(text, sizeof(text), "{ \"Name\", { %.3ff, %.1ff, %.1ff } },\n", general.scale, general.offsetX, general.offsetY);
-		ImGui::SetClipboardText(text);
-	}
-
-	if (ImGui::CollapsingHeader("Calibration")) {
-		const HudFrameInfo frame = ReadHudFrameInfo(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
-		if (frame.valid) {
-			ImGui::Text("Game HUD frame %dx%d%s -> unit %.3f x %.3f", frame.frameWidth, frame.frameHeight,
-				frame.widescreen ? " (widescreen x1.3)" : "", frame.unitX, frame.unitY);
-		} else {
-			ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "Game HUD frame not available, unit 1.0 assumed.");
-		}
-		ImGui::TextWrapped("The unit (pixels per HUD unit) is derived from the game HUD frame; unitX/unitY only trim it (1.0 = as derived). "
-			"With scale 1, move x/y: if the addons run ahead of the game HUD raise the trim, if they lag lower it. "
-			"With x/y 0, change scale: if the game HUD shrinks faster or slower than the addons change scaleRate (above 1.0 = game HUD "
-			"shrinks faster), then if they still slide apart move pivotX/pivotY until they shrink toward the same point "
-			"(the marker shows the pivot the addons use).");
-		ImGui::DragFloat("unitX", &calibration.unitX, 0.001f, 0.2f, 3.0f, "%.3f");
-		ImGui::DragFloat("unitY", &calibration.unitY, 0.001f, 0.2f, 3.0f, "%.3f");
-		ImGui::DragFloat("scaleRate", &calibration.scaleRate, 0.001f, 0.2f, 3.0f, "%.3f");
-		ImGui::DragFloat("pivotX", &calibration.pivotX, 0.5f, -1200.0f, 1200.0f, "%.1f");
-		ImGui::DragFloat("pivotY", &calibration.pivotY, 0.5f, -1200.0f, 1200.0f, "%.1f");
-		ImGui::Checkbox("Show pivot marker", &s_singleHudShowPivot);
-		if (ImGui::Button("Reset calibration")) {
-			calibration = HUD_CALIBRATION_SINGLE;
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Copy calibration as code")) {
-			char text[192];
-			snprintf(text, sizeof(text), "constexpr SinglePlayerHudCalibration HUD_CALIBRATION_SINGLE = { %.3ff, %.3ff, %.1ff, %.1ff, %.3ff };\n",
-				calibration.unitX, calibration.unitY, calibration.pivotX, calibration.pivotY, calibration.scaleRate);
-			ImGui::SetClipboardText(text);
-		}
-	}
-
-	if (s_singleHudShowPivot) {
-		const ImVec2 size = ImGui::GetIO().DisplaySize;
-		const float unit = size.y / HUD_HEIGHT;
-		const ImVec2 pivot(size.x * 0.5f + calibration.pivotX * unit, size.y * 0.5f + calibration.pivotY * unit);
-		auto* draw = ImGui::GetForegroundDrawList();
-		const ImU32 colour = IM_COL32(255, 0, 255, 220);
-		draw->AddLine(ImVec2(pivot.x - 12.0f, pivot.y), ImVec2(pivot.x + 12.0f, pivot.y), colour, 2.0f);
-		draw->AddLine(ImVec2(pivot.x, pivot.y - 12.0f), ImVec2(pivot.x, pivot.y + 12.0f), colour, 2.0f);
 	}
 
 	ImGui::End();
@@ -1254,13 +1088,9 @@ void InitHooks() {
 		(uintptr_t)appBaseAddr + COCKPIT_TOP_UPDATE_OFFSET, &CockpitUpdateHook, 0, "UpdateCUIDCockpit00_sub_14027C0F0");
 	s_cockpitUpdateHook->Toggle(true);
 
-	s_cockpitTopDrawHook = std::make_unique<Utility::Detour_t>(
-		(uintptr_t)appBaseAddr + COCKPIT_TOP_DRAW_OFFSET, &CockpitTopDrawHook, 0, "DrawCUIDCockpit00_sub_14027F1F0");
-	s_cockpitTopDrawHook->Toggle(true);
-
-	s_cockpitBottomDrawHook = std::make_unique<Utility::Detour_t>(
-		(uintptr_t)appBaseAddr + COCKPIT_BOTTOM_DRAW_OFFSET, &CockpitBottomDrawHook, 0, "DrawCUIDCockpit02_sub_140281120");
-	s_cockpitBottomDrawHook->Toggle(true);
+	s_lockOnCursorUpdateHook = std::make_unique<Utility::Detour_t>(
+		(uintptr_t)appBaseAddr + LOCKON_CURSOR_UPDATE_OFFSET, &LockOnCursorUpdateHook, 0, "CUIDLockOnCursorUpdate_sub_140296DB0");
+	s_lockOnCursorUpdateHook->Toggle(true);
 
 	s_updateCameraOrbitHook = std::make_unique<Utility::Detour_t>(
 		(uintptr_t)appBaseAddr + UPDATE_CAMERA_ORBIT_OFFSET, &UpdateCameraOrbitHook, 0, "UpdateCameraOrbit_sub_140057520");

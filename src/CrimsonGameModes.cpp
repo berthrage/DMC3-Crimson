@@ -622,8 +622,6 @@ void UpdateCheatsPostPreset() {
 	}
 
 	if (queuedConfig.Actor.playerCount > 1) {
-		activeCrimsonConfig.Camera.multiplayerCamera = true;
-		queuedCrimsonConfig.Camera.multiplayerCamera = true;
 		activeCrimsonConfig.Camera.thirdPersonCamera = true;
 		queuedCrimsonConfig.Camera.thirdPersonCamera = true;
 	}

@@ -262,13 +262,17 @@ static uint8_t GetCharacterBindSlotFromPlayerIndex(uint8 playerIndex) {
 	return 0;
 }
 
+uint16 g_crimsonExtraBinds[2] = {};
+
 static void __fastcall sub_1401EB170(PlayerActorData* a1) {
     if (!a1) {
         s_ButtonToActionHook->GetTrampoline<decltype(&sub_1401EB170)>()(a1);
         return;
     }
 
-    BindTable* mainBinds = (BindTable*)(appBaseAddr + 0xD6CE80 + 0xA);
+    // Resolved here, then only the game's own entries are written to its table (see GAME_BIND_TABLE_ENTRIES).
+    BindTable resolvedBinds = {};
+    BindTable* mainBinds = &resolvedBinds;
 
     const auto playerIndex = (static_cast<uint32_t>(a1->newPlayerIndex) < PLAYER_COUNT) ? a1->newPlayerIndex : 0;
     const auto characterSlot = GetCharacterBindSlot(a1);
@@ -413,6 +417,10 @@ static void __fastcall sub_1401EB170(PlayerActorData* a1) {
     }
 
     #undef BINDVAL
+
+    CopyMemory(appBaseAddr + 0xD6CE80 + 0xA, mainBinds, GAME_BIND_TABLE_SIZE);
+    g_crimsonExtraBinds[0] = mainBinds->start;
+    g_crimsonExtraBinds[1] = mainBinds->switch_button;
 
     s_ButtonToActionHook->GetTrampoline<decltype(&sub_1401EB170)>()(a1);
 }
@@ -1509,9 +1517,6 @@ static DWORD WINAPI Hooked_XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pStat
 
 				// BindTable for temporary corrections when touchpad-only actions
 				// need a non-zero entry to match against injected defaults.
-				BindTable* mainBinds = (BindTable*)(appBaseAddr + 0xD6CE80 + 0xA);
-				uint16_t* btFields = &mainBinds->up;
-
 				for (int a = 0; a < 17; a++) {
 					// Skip custom actions handled by Crimson directly (e.g. Doppel Switch Button, Backwards Switch).
 					// These read touchpad zones from activeConfigInputs in their own code
@@ -1523,12 +1528,12 @@ static DWORD WINAPI Hooked_XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pStat
 						if (binds[a].slotB > 0 && binds[a].slotB <= 0xFFFF)
 							injectBtn = binds[a].slotB;
 						else
-							injectBtn = btFields[a]; // BindTable pre-resolved by sub_1401EB170
+							injectBtn = GetBinding((uint8)a); // BindTable pre-resolved by sub_1401EB170
 					} else if (GAMEPAD::TouchpadZoneMatches(binds[a].slotB, touchZone)) {
 						if (binds[a].slotA > 0 && binds[a].slotA <= 0xFFFF)
 							injectBtn = binds[a].slotA;
 						else
-							injectBtn = btFields[a]; // BindTable pre-resolved by sub_1401EB170
+							injectBtn = GetBinding((uint8)a); // BindTable pre-resolved by sub_1401EB170
 					}
 
 					if (injectBtn != 0) {

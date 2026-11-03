@@ -229,6 +229,8 @@ struct Config {
 		{ { DI8::KEY::F3 }, 1, true },
 	    {}, 
 	    {}, 
+	    {}, 
+	    { { DI8::KEY::F6 }, 1, true },
 	};
 
     bool absoluteUnit = false;

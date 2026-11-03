@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 #include "Core/Core.hpp"
 #include "Vars.hpp"
 #include "Xinput.h"
@@ -28,7 +30,16 @@ inline byte16 GetBinding(uint8 index) {
     return (reinterpret_cast<byte16*>(appBaseAddr + 0xD6CE80 + 0xA))[index];
 }
 #else
+// The game's own bind table is its first 15 entries (up .. taunt) at dmc3.exe+D6CE8A. The two bytes right after it
+// (dmc3.exe+D6CEA8 / +D6CEA9) are the game's Lock On Display and Turbo settings, so the Crimson-only entries
+// (START, switch button) live in g_crimsonExtraBinds instead of the game's memory.
+constexpr uint8 GAME_BIND_TABLE_ENTRIES = 15;
+extern uint16 g_crimsonExtraBinds[2]; // START, SWITCH_BUTTON
+
 inline byte16 GetBinding(uint8 index) {
+    if (index >= GAME_BIND_TABLE_ENTRIES) {
+        return g_crimsonExtraBinds[index - GAME_BIND_TABLE_ENTRIES];
+    }
     return (reinterpret_cast<byte16*>(appBaseAddr + 0xD6CE80 + 0xA))[index];
 }
 // Created with ReClass.NET 1.2 by KN4CK3R
@@ -53,6 +64,9 @@ public:
 	uint16_t start; //0x001E
 	uint16_t switch_button; //0x0020
 }; //Size: 0x0022
+static_assert(offsetof(BindTable, start) == GAME_BIND_TABLE_ENTRIES * sizeof(uint16_t));
+// Bytes of the table the game owns; everything after is Crimson-only (see GAME_BIND_TABLE_ENTRIES).
+constexpr size_t GAME_BIND_TABLE_SIZE = offsetof(BindTable, start);
 struct CUIDControl;
 
 extern CUIDControl* g_control_ui;

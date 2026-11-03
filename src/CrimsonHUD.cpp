@@ -585,7 +585,7 @@ struct TopLeftHudSync {
 // view = splitscreen view (player index), -1 = the whole screen.
 static TopLeftHudSync GetTopLeftHudSync(int view) {
 	TopLeftHudSync sync;
-	CrimsonSplitscreen::HudAddonTransform(view, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y,
+	HUD_AddonTransform(view, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y,
 		sync.posScale, sync.scale, sync.offset.x, sync.offset.y);
 	return sync;
 }
