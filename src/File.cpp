@@ -1,6 +1,7 @@
 // #include "../Zip/zip.h"
 #include "../ThirdParty/libzip/zip.h"
 #include "Memory.hpp"
+#include "CrimsonConfig.hpp"
 
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "File.hpp"
@@ -388,16 +389,6 @@ bool File_Init() {
     {
         auto dest = (Memory_main + MEMORY_SIZE_MAIN);
 
-        // Static files get their own independent allocation so it doesn't
-        // compete with the main pool. Let the OS pick the address to avoid
-        // colliding with the game's own runtime allocations.
-        File_staticFiles.dataAddr = Alloc(MEMORY_SIZE_STATIC_FILES);
-        if (!File_staticFiles.dataAddr) {
-            Log("Alloc for static files failed.");
-            return false;
-        }
-        File_staticFiles.dataSize = MEMORY_SIZE_STATIC_FILES;
-
         auto Function = [&](byte8*& addr, uint64& size, uint64 size2) {
             addr = dest;
             size = size2;
@@ -405,17 +396,25 @@ bool File_Init() {
             dest += size2;
         };
 
-        Function(File_staticFiles.metadataAddr, File_staticFiles.metadataSize, MEMORY_SIZE_STATIC_FILES_METADATA);
+        // Startup switch (DEBUG menu > MEMLIMIT INCREASE): old 128 MB / 64 MB file sizes.
+        constexpr uint64 LEGACY_STATIC_FILES_SIZE  = (128 * 1024 * 1024);
+        constexpr uint64 LEGACY_DYNAMIC_FILES_SIZE = (64 * 1024 * 1024);
+        bool legacy                                = decltype(activeCrimsonConfig.Memlimit)::available && activeCrimsonConfig.Memlimit.legacyFileMemory;
+        Log("File memory: %s", legacy ? "legacy sizes" : "increased sizes");
 
-        // Dynamic files also get their own independent allocation.
-        File_dynamicFiles.dataAddr = Alloc(MEMORY_SIZE_DYNAMIC_FILES);
-        if (!File_dynamicFiles.dataAddr) {
-            Log("Alloc for dynamic files failed.");
+        // Everything stays inside Memory_main: the engine needs file buffers in 32-bit addressable memory.
+        Function(File_staticFiles.metadataAddr, File_staticFiles.metadataSize, MEMORY_SIZE_STATIC_FILES_METADATA);
+        Function(File_dynamicFiles.metadataAddr, File_dynamicFiles.metadataSize, MEMORY_SIZE_DYNAMIC_FILES_METADATA);
+        Function(File_staticFiles.dataAddr, File_staticFiles.dataSize, legacy ? LEGACY_STATIC_FILES_SIZE : MEMORY_SIZE_STATIC_FILES);
+        Function(File_dynamicFiles.dataAddr, File_dynamicFiles.dataSize, legacy ? LEGACY_DYNAMIC_FILES_SIZE : MEMORY_SIZE_DYNAMIC_FILES);
+
+        if ((dest - Memory_main) > MEMORY_SIZE_ALL) {
+            Log("File memory does not fit in Memory_main.");
             return false;
         }
-        File_dynamicFiles.dataSize = MEMORY_SIZE_DYNAMIC_FILES;
 
-        Function(File_dynamicFiles.metadataAddr, File_dynamicFiles.metadataSize, MEMORY_SIZE_DYNAMIC_FILES_METADATA);
+        Log("File_staticFiles.dataAddr      %.16llX", File_staticFiles.dataAddr);
+        Log("File_dynamicFiles.dataAddr     %.16llX", File_dynamicFiles.dataAddr);
 
         if constexpr (debug) {
             Log("File_staticFiles.dataAddr      %.16llX", File_staticFiles.dataAddr);

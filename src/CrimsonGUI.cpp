@@ -505,6 +505,15 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 						g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::FMODJukebox;
 					}
 
+#ifndef NDEBUG
+					ImGui::SameLine(0.0f, tabButtonsGap);
+					ImGui::PushFont(g_ImGuiFont_RussoOne[g_UIContext.DefaultFontSize * 0.83f]);
+					if (TabButton("MEMLIMIT INCREASE", g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::MemlimitIncrease, true, false, subTabBtnSize)) {
+						g_UIContext.SelectedCheatsAndDebugSubTab = UIContext::CheatsAndDebugSubTabs::MemlimitIncrease;
+					}
+					ImGui::PopFont();
+#endif
+
 					ImGui::SetCursorScreenPos(cursorPosBackup);
 				}
 				break;
@@ -661,6 +670,12 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
 							SwapColorEndianness(0xFFFFFF10), "FMOD Jukebox");
 					}
+#ifndef NDEBUG
+					else if (g_UIContext.SelectedCheatsAndDebugSubTab == UIContext::CheatsAndDebugSubTabs::MemlimitIncrease) {
+						window->DrawList->AddText(g_ImGuiFont_RussoOne256, scaledFontSize * 9.6f, pos,
+							SwapColorEndianness(0xFFFFFF10), "Memlimit Increase");
+					}
+#endif
 				}
 				break;
 
@@ -7593,6 +7608,33 @@ void SoundWindow() {
     ImGui::End();
 }
 
+
+#ifndef NDEBUG
+void MemlimitIncreaseSection() {
+	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
+	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
+
+	GUI_Title("MEMLIMIT INCREASE");
+
+	ImGui::PushItemWidth(itemWidth);
+	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
+	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+
+	ImGui::TextWrapped("Check an option to turn that patch OFF. Changes apply the next time the game is launched.");
+	ImGui::Text("");
+
+	GUI_Checkbox2("Disable D3D Buffer Increase", activeCrimsonConfig.Memlimit.disableD3DBuffers, queuedCrimsonConfig.Memlimit.disableD3DBuffers);
+	GUI_Checkbox2("Disable Heap Size Increase", activeCrimsonConfig.Memlimit.disableHeapSizes, queuedCrimsonConfig.Memlimit.disableHeapSizes);
+	GUI_Checkbox2("Disable Heap Block Size Increase", activeCrimsonConfig.Memlimit.disableBlockSizes, queuedCrimsonConfig.Memlimit.disableBlockSizes);
+	GUI_Checkbox2("Disable Render Pool Increase", activeCrimsonConfig.Memlimit.disableRenderPools, queuedCrimsonConfig.Memlimit.disableRenderPools);
+	GUI_Checkbox2("Legacy File Sizes (128 MB / 64 MB)", activeCrimsonConfig.Memlimit.legacyFileMemory, queuedCrimsonConfig.Memlimit.legacyFileMemory);
+
+	ImGui::PopStyleColor();
+	ImGui::PopFont();
+	ImGui::PopItemWidth();
+	ImGui::Text("");
+}
+#endif
 
 void DebugSection() {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
@@ -15157,6 +15199,51 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 				ImGui::EndChild();
 			}
 		}
+#ifndef NDEBUG
+		else if (context.SelectedCheatsAndDebugSubTab == UI::UIContext::CheatsAndDebugSubTabs::MemlimitIncrease) {
+			// Widget area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.7f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Widget Area", cntWindow->GetID("Widget Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					MemlimitIncreaseSection();
+				}
+				ImGui::EndChild();
+			}
+
+			// Tooltip area
+			{
+				const ImVec2 areaSize = cntWindow->Size * ImVec2{ 0.3f, 0.98f };
+				const ImVec2 areaMin{ cntWindow->Pos.x + cntWindow->Size.x - areaSize.x - 0.1f * context.DefaultFontSize,
+										 cntWindow->Pos.y + context.DefaultFontSize * 0.1f };
+
+				cntWindow->DrawList->AddRect(areaMin, areaMin + areaSize, UI::SwapColorEndianness(0x585152FF));
+
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { context.DefaultFontSize * 0.4f, context.DefaultFontSize * 0.4f });
+				ImGui::SetNextWindowPos(areaMin, ImGuiCond_Always);
+				ImGui::BeginChildEx("Tooltip Area", cntWindow->GetID("Tooltip Area"), areaSize, false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+				ImGui::PopStyleVar();
+				{
+					ImGui::PushFont(UI::g_ImGuiFont_RussoOne[size_t(context.DefaultFontSize * 1.0f)]);
+					ImGui::Text("MEMLIMIT INCREASE");
+					ImGui::PopFont();
+
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
+					ImGui::PushFont(UI::g_ImGuiFont_Roboto[size_t(context.DefaultFontSize * 0.9f)]);
+
+					ImGui::TextWrapped("Turns individual memory limit patches off for troubleshooting. They are applied while the game starts, so a restart is required.");
+					ImGui::PopFont();
+				}
+				ImGui::EndChild();
+			}
+		}
+#endif
 	}
 	break;
 

@@ -135,6 +135,9 @@ namespace UI {
 			Teleporter,
 			EnemySpawner,
 			FMODJukebox,
+#ifndef NDEBUG
+			MemlimitIncrease,
+#endif
 
 			Size,
 			None

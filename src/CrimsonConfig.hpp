@@ -388,6 +388,31 @@ struct CrimsonConfig {
 		}
 	} VFX;
 
+	// Startup-only switches for the memory limit increase patches (Memory.cpp, File.cpp). All false = patches on.
+	// They are only honoured in Debug builds; Release builds ignore the values.
+	struct Memlimit {
+#ifndef NDEBUG
+		static constexpr bool available = true;
+#else
+		static constexpr bool available = false;
+#endif
+		bool disableD3DBuffers = false;
+		bool disableHeapSizes = false;
+		bool disableBlockSizes = false;
+		bool disableRenderPools = false;
+		bool legacyFileMemory = false;
+
+		static constexpr auto Metadata() {
+			return std::make_tuple(
+				std::make_pair("disableD3DBuffers", &Memlimit::disableD3DBuffers),
+				std::make_pair("disableHeapSizes", &Memlimit::disableHeapSizes),
+				std::make_pair("disableBlockSizes", &Memlimit::disableBlockSizes),
+				std::make_pair("disableRenderPools", &Memlimit::disableRenderPools),
+				std::make_pair("legacyFileMemory", &Memlimit::legacyFileMemory)
+			);
+		}
+	} Memlimit;
+
 	struct SFX {
 		uint8 changeGunNew = 1;
 		uint8 changeDevilArmNew = 1;
@@ -688,6 +713,7 @@ struct CrimsonConfig {
             std::make_pair("Camera", &CrimsonConfig::Camera),
             std::make_pair("StyleSwitchFX", &CrimsonConfig::StyleSwitchFX),
 			std::make_pair("VFX", &CrimsonConfig::VFX),
+			std::make_pair("Memlimit", &CrimsonConfig::Memlimit),
             std::make_pair("SFX", &CrimsonConfig::SFX),
 			std::make_pair("Visual", &CrimsonConfig::Visual),
 			std::make_pair("Sound", &CrimsonConfig::Sound),

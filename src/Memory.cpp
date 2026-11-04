@@ -1,6 +1,9 @@
 // @Todo: Review.
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "Memory.hpp"
+#include <cstring>
+#include "CrimsonConfig.hpp"
+#include "File.hpp"
 #include "Core/Core.hpp"
 #include "Vars.hpp"
 
@@ -16,6 +19,74 @@ byte8* valueManagerData  = 0;
 
 auto GetMemoryAddress() {
     return Memory_main;
+}
+
+// Render handle dispatch (sub_14002CC10): table[(handle & 0x3FFF) >> 2] at dmc3.exe+5E1830 holds the object, then
+// dmc3.exe+2CC95 - FF 50 08 - call qword ptr [rax+08]. A stale/poisoned object has [obj] = -1 and faults here.
+static LONG CALLBACK RenderHandleGuard(PEXCEPTION_POINTERS info) {
+    auto record = info->ExceptionRecord;
+    auto ctx    = info->ContextRecord;
+
+    if (record->ExceptionCode != EXCEPTION_ACCESS_VIOLATION || ctx->Rip != reinterpret_cast<DWORD64>(appBaseAddr + 0x2CC95)) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    static uint32 count = 0;
+    if (count++ < 16) {
+        auto obj    = ctx->Rdi;
+        auto handle = ctx->Rbx;
+        Log("RenderHandleGuard: handle %llX slot %llX obj %llX [obj] %llX mode %llX", handle, ((handle & 0x3FFF) >> 2), obj, ctx->Rax, ctx->Rbp);
+
+        MEMORY_BASIC_INFORMATION mbi = {};
+        if (VirtualQuery(reinterpret_cast<void*>(obj), &mbi, sizeof(mbi))) {
+            Log("  region base %llX alloc %llX size %llX state %X type %X protect %X", mbi.BaseAddress, mbi.AllocationBase, mbi.RegionSize, mbi.State,
+                mbi.Type, mbi.Protect);
+        }
+
+        auto Where = [&](const char* name, byte8* base, uint64 size) {
+            if (base && obj >= reinterpret_cast<uint64>(base) && obj < (reinterpret_cast<uint64>(base) + size)) {
+                Log("  inside %s +%llX", name, obj - reinterpret_cast<uint64>(base));
+            }
+        };
+        Where("Memory_main", Memory_main, MEMORY_SIZE_ALL);
+        Where("File_staticFiles", File_staticFiles.dataAddr, File_staticFiles.dataSize);
+        Where("File_dynamicFiles", File_dynamicFiles.dataAddr, File_dynamicFiles.dataSize);
+
+        // Managed heap arenas (g_HeapArena0/1/2 at dmc3.exe+CA8910, stride 0x28): map byte 0 = free block, 1 = allocated.
+        for (uint32 arenaIndex = 0; arenaIndex < 3; arenaIndex++) {
+            auto arena      = appBaseAddr + 0xCA8910 + (arenaIndex * 0x28);
+            auto memory     = *reinterpret_cast<byte8**>(arena);
+            auto data       = *reinterpret_cast<byte8**>(arena + 8);
+            auto blockCount = *reinterpret_cast<int32*>(arena + 0x10);
+            auto blockSize  = *reinterpret_cast<int32*>(arena + 0x14);
+            auto totalSize  = *reinterpret_cast<uint32*>(arena + 0x18);
+            if (!memory || !blockSize || obj < reinterpret_cast<uint64>(memory) || obj >= (reinterpret_cast<uint64>(memory) + totalSize)) {
+                continue;
+            }
+            if (obj < reinterpret_cast<uint64>(data)) {
+                Log("  heap arena %u: in the block map +%llX", arenaIndex, obj - reinterpret_cast<uint64>(memory));
+                continue;
+            }
+            auto block = (obj - reinterpret_cast<uint64>(data)) / blockSize;
+            auto used  = (block < static_cast<uint64>(blockCount)) ? memory[block] : 0xEE;
+            Log("  heap arena %u: block %llu/%d (size %X) map %X allocCount %d", arenaIndex, block, blockCount, blockSize, used,
+                *reinterpret_cast<int32*>(arena + 0x20));
+        }
+
+        // Render pools carved at the start of the root allocation (CKernelMemory_Initialize_sub_140030190).
+        constexpr uint32 poolPtrOffsets[] = {0x5D9D38, 0x5D9D40, 0x5D9D48, 0x5D9D50, 0x5D9D58, 0x5D9D60, 0x5D9D68, 0x5D9D70, 0x5D9D78, 0x5D9D80,
+            0x5D9D88, 0x5D9D90, 0x5D9D98, 0x5D9DA0, 0x5D9DA8, 0x5D9D10, 0x5D9E80, 0x5D9F00, 0x5D9E88, 0x5D9E90, 0x5D9DB0, 0x5D9E78, 0x5D9DB8};
+        for (auto offset : poolPtrOffsets) {
+            auto pool = *reinterpret_cast<uint64*>(appBaseAddr + offset);
+            if (pool && obj >= pool && (obj - pool) < 0x300000) {
+                Log("  near render pool ptr dmc3.exe+%X (%llX) +%llX", offset, pool, obj - pool);
+            }
+        }
+    }
+
+    ctx->Rip = reinterpret_cast<DWORD64>(appBaseAddr + 0x2CCEF);
+
+    return EXCEPTION_CONTINUE_EXECUTION;
 }
 
 void PatchD3D() {
@@ -60,6 +131,25 @@ void PatchD3D() {
     Write<uint32>((appBaseAddr + 0x42F68), 0x89009C00);
 }
 
+// Startup-only switches from the DEBUG menu (CHEATS & DEBUG > MEMLIMIT INCREASE): nod3d (PatchD3D), noheap (heap/section/scratch
+// arena sizes), noblocks (heap/scratch block sizes), nopools (render pools).
+static bool MemTest(const char* token) {
+    auto& config = activeCrimsonConfig.Memlimit;
+    if (!decltype(activeCrimsonConfig.Memlimit)::available) {
+        return false;
+    }
+    if (strcmp(token, "nod3d") == 0) {
+        return config.disableD3DBuffers;
+    } else if (strcmp(token, "noheap") == 0) {
+        return config.disableHeapSizes;
+    } else if (strcmp(token, "noblocks") == 0) {
+        return config.disableBlockSizes;
+    } else if (strcmp(token, "nopools") == 0) {
+        return config.disableRenderPools;
+    }
+    return false;
+}
+
 void PatchArenaSizes()
 {
 	constexpr uint32 ROOT_ALLOC_SIZE = 0x20400000;
@@ -73,19 +163,31 @@ void PatchArenaSizes()
 	Write<uint32>((appBaseAddr + 0x2C60EF), MASTER_ARENA_SIZE);
 	Write<uint32>((appBaseAddr + 0x2C6115), MASTER_ARENA_SIZE);
 
-	Write<uint32>((appBaseAddr + 0x2C6031), MAIN_HEAP_SIZE);
-	Write<uint32>((appBaseAddr + 0x2C604E), MAIN_HEAP_SIZE);
+    if (!MemTest("noheap")) {
+        Write<uint32>((appBaseAddr + 0x2C6031), MAIN_HEAP_SIZE);
+        Write<uint32>((appBaseAddr + 0x2C604E), MAIN_HEAP_SIZE);
+    }
 
-    Write<uint32>((appBaseAddr + 0x2C605B), MAIN_BLOCK_SIZE);
+    if (!MemTest("noblocks")) {
+        Write<uint32>((appBaseAddr + 0x2C605B), MAIN_BLOCK_SIZE);
+    }
 
     // .pac scratch buffers
 	// dmc3.exe + 1B8343 - BA 00 00 00 01           - mov edx,01000000 { 16777216 } -- 16 MB
 	// dmc3.exe + 1B835C - 41 B9 00 00 00 01       - mov r9d, 01000000 { 16777216 } -- 16 MB
 	constexpr uint32 RESOURCE_HEAP_SIZE = 0x04000000; // 64 MB
 	constexpr uint32 RESOURCE_BLOCK_SIZE = 0x1000;
-	Write<uint32>((appBaseAddr + 0x1B8344), RESOURCE_HEAP_SIZE);
-	Write<uint32>((appBaseAddr + 0x1B835E), RESOURCE_HEAP_SIZE);
-	Write<uint32>((appBaseAddr + 0x1B8364), RESOURCE_BLOCK_SIZE);
+    if (!MemTest("noheap")) {
+        Write<uint32>((appBaseAddr + 0x1B8344), RESOURCE_HEAP_SIZE);
+        Write<uint32>((appBaseAddr + 0x1B835E), RESOURCE_HEAP_SIZE);
+    }
+    if (!MemTest("noblocks")) {
+        Write<uint32>((appBaseAddr + 0x1B8364), RESOURCE_BLOCK_SIZE);
+    }
+
+    if (MemTest("nopools")) {
+        return;
+    }
 
     // Patching individual pools 
     Write<uint32>((appBaseAddr + 0x301CD), 0x00020000);
@@ -152,7 +254,11 @@ bool Memory_Init() {
     }
 
     PatchArenaSizes();
-    PatchD3D();
+    if (!MemTest("nod3d")) {
+        PatchD3D();
+    }
+    Log("Memlimit: d3d %u heap %u blocks %u pools %u (1 = patch off)", MemTest("nod3d"), MemTest("noheap"), MemTest("noblocks"), MemTest("nopools"));
+    AddVectoredExceptionHandler(1, RenderHandleGuard);
     // 256 actually
 
     // Increase main memory from 260 MB to 512 MB.
@@ -169,25 +275,11 @@ bool Memory_Init() {
 // 		Write<uint32>((appBaseAddr + 0x2C6113), size);
 	}
 
-    // Increase section from 5 MB to 16 MB.
-    {
+    // Increase section from 5 MB to 128 MB (alloc size @ +2C6065, managed arena size @ +2C6082, both immediates).
+    if (!MemTest("noheap")) {
         constexpr uint32 size = (128 * 1024 * 1024);
         Write<uint32>((appBaseAddr + 0x2C6065), size);
         Write<uint32>((appBaseAddr + 0x2C6082), size);
-    }
-
-    // Increase internal allocation pools (enemies, textures, models).
-    {
-        constexpr uint32 size = (512 * 1024 * 1024);
-        
-        // mov edx, size  (2nd arg — allocation cap)
-        //Write<uint32>((appBaseAddr + 0x2C6030), size); -- crashes
-        //Write<uint32>((appBaseAddr + 0x2C6064), size); -- crashes
-        //Write<uint32>((appBaseAddr + 0x2C6098), size); -- crashes
-
-        // mov r9d, size  (4th arg — different pool param)
-        //Write<uint32>((appBaseAddr + 0x2C604C), size); // -- crashes
-        Write<uint32>((appBaseAddr + 0x2C6080), size);
     }
 
     {
