@@ -811,7 +811,6 @@ void __fastcall CockpitUpdateHook(uint8_t* cockpit) {
 		ResetHudIcons();
 	}
 	ApplyModelFlags(HUD_ActivatePlayerModels(player), player);
-	SyncHudIcons(actor, player);
 
 	constexpr size_t stateSize = COCKPIT_STATE_END - COCKPIT_STATE_BEGIN;
 	uint8_t* live = cockpit + COCKPIT_STATE_BEGIN;
@@ -821,6 +820,10 @@ void __fastcall CockpitUpdateHook(uint8_t* cockpit) {
 		s_cockpitSlots.valid[player] = true;
 	}
 	std::memcpy(live, s_cockpitSlots.state[player], stateSize);
+
+	// After the state is back: the style icon loader sets the icon effect byte (+0x690E) in this state, which the
+	// Quicksilver and Doppelganger icons need and which the restore above would overwrite with the old style's value.
+	SyncHudIcons(actor, player);
 
 	const uintptr_t mainPlayerActor = pool[3];
 	pool[3] = reinterpret_cast<uintptr_t>(actor);

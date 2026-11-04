@@ -19,6 +19,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <intrin.h>
 #include <iterator>
 #include <memory>
 
@@ -673,6 +674,98 @@ bool HUD_AuditModels(const char* where) {
 		}
 	}
 	return bad;
+}
+
+namespace {
+
+// Watches the game's kernel heap for blocks that a live HUD model still uses: a free through another handle, or an
+// allocation that overlaps a model block (the second owner is logged with its caller). CKernelHeap_Alloc_sub_1402C6150
+// and CKernelHeapHandle_Free_sub_140337710 are called from every loader, so the checks only read.
+using HeapAllocFn = void*(__fastcall*)(byte8*, uint32, int);
+using HeapFreeFn  = __int64(__fastcall*)(byte8*);
+std::unique_ptr<Utility::Detour_t> s_heapAllocHook;
+std::unique_ptr<Utility::Detour_t> s_heapFreeHook;
+constexpr uintptr_t HEAP_ALLOC_OFFSET = 0x2C6150;
+constexpr uintptr_t HEAP_FREE_OFFSET  = 0x337710;
+
+// Range of heap blocks a handle owns, false when it owns none.
+bool HandleRange(byte8* handle, byte8*& begin, byte8*& end) {
+	auto arena = *reinterpret_cast<byte8**>(handle + 8);
+	if (!arena) {
+		return false;
+	}
+	auto data      = *reinterpret_cast<byte8**>(handle + 0x10);
+	auto count     = *reinterpret_cast<int32*>(handle + 0x1C);
+	auto blockSize = *reinterpret_cast<int32*>(arena + 0x14);
+	if (!data || count <= 0 || blockSize <= 0 || count > 0x100000) {
+		return false;
+	}
+	begin = data;
+	end   = data + static_cast<size_t>(count) * blockSize;
+	return true;
+}
+
+// The live HUD model (other than ignoreHandle's own) whose blocks overlap [begin, end), or nullptr. Reads game memory
+// that other threads may release, so a fault counts as no match.
+const char* OverlappingHudModel(byte8* begin, byte8* end, byte8* ignoreHandle) {
+	__try {
+		HudModel models[32];
+		const size_t count = CollectHudModels(models);
+		for (size_t i = 0; i < count; i++) {
+			byte8* handle = models[i].model + DRAW_HEAP_HANDLE;
+			byte8* b      = nullptr;
+			byte8* e      = nullptr;
+			if (handle != ignoreHandle && HandleRange(handle, b, e) && begin < e && b < end) {
+				return models[i].name;
+			}
+		}
+	} __except (EXCEPTION_EXECUTE_HANDLER) {
+	}
+	return nullptr;
+}
+
+uint32 s_heapReports = 0;
+
+void* __fastcall HeapAllocHook(byte8* handle, uint32 size, int poolSel) {
+	const auto original = s_heapAllocHook->GetTrampoline<HeapAllocFn>();
+	void* const caller  = _ReturnAddress();
+	void* const result  = original(handle, size, poolSel);
+	byte8* begin        = nullptr;
+	byte8* end          = nullptr;
+	if (result && s_heapReports < 32 && HandleRange(handle, begin, end)) {
+		if (const char* name = OverlappingHudModel(begin, end, handle)) {
+			s_heapReports++;
+			Log("HeapWatch alloc overlaps %s: handle %p %p..%p size %X pool %d, caller dmc3.exe+%llX, serial %u, last reload %s", name, handle, begin,
+				end, size, poolSel, reinterpret_cast<uintptr_t>(caller) - reinterpret_cast<uintptr_t>(appBaseAddr), g_hudIconSerial, s_lastReload);
+		}
+	}
+	return result;
+}
+
+__int64 __fastcall HeapFreeHook(byte8* handle) {
+	const auto original = s_heapFreeHook->GetTrampoline<HeapFreeFn>();
+	void* const caller  = _ReturnAddress();
+	byte8* begin        = nullptr;
+	byte8* end          = nullptr;
+	if (s_heapReports < 32 && HandleRange(handle, begin, end)) {
+		if (const char* name = OverlappingHudModel(begin, end, handle)) {
+			s_heapReports++;
+			Log("HeapWatch free through another handle of %s's blocks: handle %p %p..%p, caller dmc3.exe+%llX, serial %u, last reload %s", name, handle,
+				begin, end, reinterpret_cast<uintptr_t>(caller) - reinterpret_cast<uintptr_t>(appBaseAddr), g_hudIconSerial, s_lastReload);
+		}
+	}
+	return original(handle);
+}
+
+} // namespace
+
+void HUD_InitHeapWatch() {
+	s_heapAllocHook = std::make_unique<Utility::Detour_t>(
+		(uintptr_t)appBaseAddr + HEAP_ALLOC_OFFSET, &HeapAllocHook, 0, "CKernelHeap_Alloc_sub_1402C6150");
+	s_heapAllocHook->Toggle(true);
+	s_heapFreeHook = std::make_unique<Utility::Detour_t>(
+		(uintptr_t)appBaseAddr + HEAP_FREE_OFFSET, &HeapFreeHook, 0, "CKernelHeapHandle_Free_sub_140337710");
+	s_heapFreeHook->Toggle(true);
 }
 
 namespace {
@@ -1340,6 +1433,7 @@ void __fastcall CockpitBottomDrawHook(uint8_t* cockpit) {
 } // namespace
 
 void HUD_InitAdjustmentHooks() {
+	HUD_InitHeapWatch();
 	s_lockOnDrawHook = std::make_unique<Utility::Detour_t>(
 		(uintptr_t)appBaseAddr + LOCKON_DRAW_OFFSET, &LockOnDrawHook, 0, "DrawCUIDLockOnCursor_sub_140297540");
 	s_lockOnDrawHook->Toggle(true);

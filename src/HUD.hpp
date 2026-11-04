@@ -90,6 +90,9 @@ struct HudSplitLayout {
 // Hooks the cockpit draws (CUIDCockpit00 / 02) to apply the adjustments.
 void HUD_InitAdjustmentHooks();
 
+// Watches the kernel heap for blocks shared with a live HUD model (logs HeapWatch lines).
+void HUD_InitHeapWatch();
+
 // "Single Player HUD" debug window.
 void HUD_SinglePlayerWindow(bool* open);
 
