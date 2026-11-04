@@ -36,7 +36,12 @@ constexpr unsigned HUD_MODELS_TOP_BLANK    = 1;
 constexpr unsigned HUD_MODELS_BOTTOM_BLANK = 2;
 constexpr unsigned HUD_MODELS_CURSOR_BLANK = 4;
 constexpr unsigned HUD_MODELS_REBUILT      = 8;
-unsigned HUD_ActivatePlayerModels(int player);
+// Model groups HUD_ActivatePlayerModels can swap: the cockpit top (HP / DT / style icon), bottom (weapon icons) and the lock-on cursor.
+constexpr unsigned HUD_GROUP_TOP    = 1;
+constexpr unsigned HUD_GROUP_BOTTOM = 2;
+constexpr unsigned HUD_GROUP_CURSOR = 4;
+constexpr unsigned HUD_GROUP_ALL    = 7;
+unsigned HUD_ActivatePlayerModels(int player, unsigned groups = HUD_GROUP_ALL);
 // Back to player 1's models only (splitscreen off); frees the other players' images.
 unsigned HUD_ReleasePlayerModels();
 
@@ -96,13 +101,25 @@ void HUD_InitHeapWatch();
 // "Single Player HUD" debug window.
 void HUD_SinglePlayerWindow(bool* open);
 
+// "Multiplayer HUD (non Splitscreen)" debug window: placement of every player's cockpit on the shared / single player camera.
+void HUD_MultiplayerWindow(bool* open);
+
 // Controls shared with the splitscreen window.
 void HUD_GeneralControls(HudGeneral& general, const HudGeneral& defaults, const HudPreset* presets, size_t presetCount);
 void HUD_CalibrationControls();
 void HUD_DrawPivotMarker();
 
+// Shared / single player camera multiplayer: one cockpit per player in the screen corners (player 1 top-left,
+// 2 top-right, 3 bottom-left, 4 bottom-right). Number of cockpits drawn this frame, 0 when they are not in use
+// (single player, splitscreen, or outside of normal play).
+int HUD_SeatCount();
+
 // Transform for the ImGui addons that sit on the top-left cockpit group, so they follow the game HUD:
 // position' = position * posScale + offset, size' = size * sizeScale, on the final screen.
-// view = splitscreen view (player index) or -1 for the whole screen (single player adjustment).
+// view = splitscreen view or multiplayer cockpit (player index), or -1 for the whole screen (single player adjustment).
 // False when no adjustment applies (untouched, syncing off, or the view does not exist).
 bool HUD_AddonTransform(int view, float screenWidth, float screenHeight, float& posScale, float& sizeScale, float& offsetX, float& offsetY);
+
+// Where a player's name tag goes beside their cockpit: top-left pixel (top-right when alignRight, the cockpit sits
+// on the right edge) and the size scale. False when the player has no cockpit on screen.
+bool HUD_PlayerTagAnchor(int player, float screenWidth, float screenHeight, float& x, float& y, float& scale, bool& alignRight);

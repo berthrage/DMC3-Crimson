@@ -22,6 +22,13 @@ enum {
 };
 }
 
+namespace HUDSCALE {
+enum {
+	DEFAULT,
+	SMALLER,
+};
+}
+
 namespace HUDELEMENTSHOWSTATE {
 enum {
 	OFF,
@@ -93,18 +100,15 @@ enum {
 }
 
 struct CrimsonConfig {
-	struct MultiplayerBars2D {
-		bool show = true;
-		uint8 show1PAttributes = HUDELEMENTSHOWSTATE::ONLY_IN_MP;
-
+	struct MultiplayerHUD {
+		uint8 showPlayerTags = HUDELEMENTSHOWSTATE::ONLY_IN_MP;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
-				std::make_pair("show", &MultiplayerBars2D::show),
-				std::make_pair("show1PAttributes", &MultiplayerBars2D::show1PAttributes)
+				std::make_pair("showPlayerTags", &MultiplayerHUD::showPlayerTags)
 			);
 		}
-	} MultiplayerBars2D;
+	} MultiplayerHUD;
 
 	struct MultiplayerBarsWorldSpace {
 		bool show = true;
@@ -215,6 +219,7 @@ struct CrimsonConfig {
 		bool forceVisibleHUD = false;
 		bool disableStyleRankHudFadeout = true;
 		std::string selectedHUD = "Crimson HUD";
+		uint8 hudScale = HUDSCALE::SMALLER; // single player only
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -224,7 +229,8 @@ struct CrimsonConfig {
 				std::make_pair("hideBossHUD", &HudOptions::hideBossHUD),
 				std::make_pair("forceVisibleHUD", &HudOptions::forceVisibleHUD),
 				std::make_pair("disableStyleRankHudFadeout", &HudOptions::disableStyleRankHudFadeout),
-				std::make_pair("selectedHUD", &HudOptions::selectedHUD)
+				std::make_pair("selectedHUD", &HudOptions::selectedHUD),
+				std::make_pair("hudScale", &HudOptions::hudScale)
 			);
 		}
 	} HudOptions;
@@ -703,7 +709,7 @@ struct CrimsonConfig {
 
 	static constexpr auto Metadata() {
 		return std::make_tuple(
-			std::make_pair("MultiplayerBars2D", &CrimsonConfig::MultiplayerBars2D),
+			std::make_pair("MultiplayerHUD", &CrimsonConfig::MultiplayerHUD),
 			std::make_pair("MultiplayerBarsWorldSpace", &CrimsonConfig::MultiplayerBarsWorldSpace),
 			std::make_pair("GUI", &CrimsonConfig::GUI),
 			std::make_pair("WeaponWheel", &CrimsonConfig::WeaponWheel),

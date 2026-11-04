@@ -1773,6 +1773,16 @@ constexpr uint8 hudElementScaleStateMap[2] = {
 	HUDELEMENTSCALESTATE::BIG,
 };
 
+const char* hudScaleNames[] = {
+	"Default",
+	"Smaller",
+};
+
+constexpr uint8 hudScaleMap[2] = {
+	HUDSCALE::DEFAULT,
+	HUDSCALE::SMALLER,
+};
+
 const char* hudElementShowStateNames[] = {
 	"Off",
 	"Only in Multiplayer",
@@ -2390,8 +2400,6 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 
 	float deltaTime = ImGui::GetIO().DeltaTime;
 	const float deltaTimeMs = g_deltaTime * 1000.0f;
-
-	if (!activeCrimsonConfig.MultiplayerBars2D.show) return;
 
 	for (uint8 playerIndex = 1; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
 		auto& playerData = GetPlayerData(playerIndex);
@@ -4371,35 +4379,26 @@ void RenderMissionResultCheatsUsed() {
 }
 
 
-void RenderMultiplayerBar(
-	float hitPoints, float magicPoints, const char* name, PlayerActorData& actorData) {
-	if (!showBars && !activeCrimsonConfig.MultiplayerBars2D.show) {
+void RenderPlayerTag(int playerIndex, PlayerActorData& actorData) {
+	if (playerIndex < 0 || playerIndex >= PLAYER_COUNT) {
 		return;
 	}
 
-	auto playerIndex = actorData.newPlayerIndex;
-
-	if (playerIndex == 0) {
+	const auto state = activeCrimsonConfig.MultiplayerHUD.showPlayerTags;
+	const bool inMultiplayer = showBars || activeConfig.Actor.playerCount > 1;
+	if (state == HUDELEMENTSHOWSTATE::OFF || (state == HUDELEMENTSHOWSTATE::ONLY_IN_MP && !inMultiplayer)) {
 		return;
 	}
-	const float alpha = ImLerp(0.27f, 1.0f, 1.0);
-	ImVec4 hitColor = CrimsonUtil::HexToImVec4(0x43fe65FF);
-	ImVec4 magicColor[4] = { CrimsonUtil::HexToImVec4(0xde1c4cFF),CrimsonUtil::HexToImVec4(0xde1c4cFF),CrimsonUtil::HexToImVec4(0xde1c4cFF),CrimsonUtil::HexToImVec4(0xde1c4cFF) };
-	float magicColorVergil[4] = { 0.06f, 0.74f, 0.81f, 1.0f };
 
-	const float baseSpacing = 0.37f;
-	const float barSpacing = g_renderSize.x * baseSpacing; // 37% of screen width per bar
-	const float baseX = g_renderSize.x * (0.02f - baseSpacing); // Corner of the screen
-	const float baseY = g_renderSize.y * 0.8962f; // Bottom of the screen
-	
+	float tagX = 0.0f;
+	float tagY = 0.0f;
+	float tagScale = 1.0f;
+	bool alignRight = false;
+	if (!HUD_PlayerTagAnchor(playerIndex, g_renderSize.x, g_renderSize.y, tagX, tagY, tagScale, alignRight)) {
+		return;
+	}
 
-	ImVec2 pos = ImVec2(
-		baseX + barSpacing * (playerIndex),
-		//baseY - barSpacing * (activeConfig.Actor.playerCount - playerIndex) // Inverted
-		baseY
-	);
-
-	ImGui::SetNextWindowPos(pos);
+	ImGui::SetNextWindowPos(ImVec2(tagX, tagY), ImGuiCond_Always, ImVec2(alignRight ? 1.0f : 0.0f, 0.0f));
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
@@ -4408,154 +4407,64 @@ void RenderMultiplayerBar(
 
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
 
-
 	ImGuiWindowFlags windowFlags =
 		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize |
 		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
 
-	std::string label = "2DMPBar " + std::to_string(playerIndex + 1);
+	std::string label = "PlayerTag " + std::to_string(playerIndex + 1);
 
+	if (ImGui::Begin(label.c_str(), nullptr, windowFlags)) {
+		// Splitscreen: keep the tag inside its own view.
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		float minX, minY, maxX, maxY;
+		const bool clipped = CrimsonSplitscreen::ViewRect(playerIndex, g_renderSize.x, g_renderSize.y, minX, minY, maxX, maxY);
+		if (clipped) {
+			drawList->PushClipRect(ImVec2(minX, minY), ImVec2(maxX, maxY), true);
+		}
 
-	if (ImGui::Begin(label.c_str(), &activeCrimsonConfig.MultiplayerBarsWorldSpace.show, windowFlags)) {
-		ImGui::SetWindowFontScale(scaleFactorY);
+		const float scale = scaleFactorY * tagScale;
+		ImGui::SetWindowFontScale(scale);
 
 		ImVec4 playerColor = ConvertColorFromUint8ToVec4(activeCrimsonConfig.PlayerProperties.playerColor[playerIndex]);
 		float luminance = 0.299f * playerColor.x + 0.587f * playerColor.y + 0.114f * playerColor.z;
 		ImVec4 textColor = (luminance > 0.4f) ? ImVec4(0.1f, 0.1f, 0.1f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-		
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0f]);
-		ImGui::Text("  ");
-		ImGui::SameLine();
-		//grabbing mission data real quick
-		auto name_6975 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
-		if (!name_6975) {
-			return;
-		}
-		auto& missionData = *reinterpret_cast<MissionData*>(name_6975);
-		//ImGui::SameLine();
-		if (actorData.dead && missionData.itemCounts[ITEM::GOLD_ORB] > 0) {
-			ImGui::Text("Hold start to revive");
-			ImGui::Text("  ");
-			ImGui::SameLine();
-			ImGui::Text("Gold orbs left: %u", missionData.itemCounts[ITEM::GOLD_ORB]);
-		}else
-		if (actorData.dead) {
-			ImGui::Text("Gold orbs left: %u", missionData.itemCounts[ITEM::GOLD_ORB]);
-		}
-		else
-		if (actorData.character == CHARACTER::DANTE || actorData.character == CHARACTER::VERGIL) {
 
-			if (actorData.character == CHARACTER::DANTE) {
-				ImGui::Text(styleNamesDanteGameplay[actorData.style]);
-			} else {
-				ImGui::Text(styleNamesVergilGameplay[actorData.style]);
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
+		ImGui::PushStyleColor(ImGuiCol_Button, playerColor);
+		ImGui::PushStyleColor(ImGuiCol_Text, textColor);
+		ImGui::Button(playerIndexNames[playerIndex], { 30.0f * scale, 30.0f * scale });
+		ImGui::PopStyleColor(2);
+		ImGui::PopFont();
+		ImGui::SameLine(0.0f, 0);
+		ImGui::Text("  ");
+
+		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[22.0f]);
+		ImGui::SameLine();
+		ImGui::Text(activeCrimsonConfig.PlayerProperties.playerName[playerIndex].c_str());
+
+		// Revive prompt of a fallen player.
+		if (actorData.dead) {
+			if (auto missionDataPtr = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30)) {
+				auto& missionData = *reinterpret_cast<MissionData*>(missionDataPtr);
+				ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0f]);
+				if (missionData.itemCounts[ITEM::GOLD_ORB] > 0) {
+					ImGui::Text("Hold start to revive");
+				}
+				ImGui::Text("Gold orbs left: %u", missionData.itemCounts[ITEM::GOLD_ORB]);
+				ImGui::PopFont();
 			}
 		}
 		ImGui::PopFont();
 
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0, 0, 0, alpha));
-		ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&hitColor));
-		ImGui::ProgressBar(hitPoints, ImVec2(200 * scaleFactorY, 10 * scaleFactorY), "");
-		ImGui::PopStyleColor(2);
-
-		if (actorData.character != CHARACTER::VERGIL) {
-			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&magicColor));
-		} else {
-			ImGui::PushStyleColor(ImGuiCol_PlotHistogram, *reinterpret_cast<ImVec4*>(&magicColorVergil));
+		if (clipped) {
+			drawList->PopClipRect();
 		}
-		ImGui::ProgressBar(magicPoints, ImVec2(200 * scaleFactorY, 10 * scaleFactorY), "");
-		ImGui::PopStyleColor();
-
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
-		ImGui::PushStyleColor(ImGuiCol_Button, playerColor);
-		ImGui::PushStyleColor(ImGuiCol_Text, textColor);
-		ImGui::Button(name, { 30.0f * scaleFactorY, 30.0f * scaleFactorY});
-		ImGui::PopStyleColor(2);
-		ImGui::PopFont();
-		ImGui::SameLine(0.0f, 0);
-		ImGui::Text("  ");
-
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[22.0f]);
-		ImGui::SameLine();
-		ImGui::Text(activeCrimsonConfig.PlayerProperties.playerName[playerIndex].c_str());
-		// 		ImGui::SameLine();
-		// 		ImGui::Text(" -");
-		ImGui::PopFont();
 	}
 
 	ImGui::End();
 	ImGui::PopStyleColor();
 	ImGui::PopStyleVar(4);
 }
-
-void Render1PAttributes(const char* name, PlayerActorData& actorData) {
-	if (!showBars && !activeCrimsonConfig.MultiplayerBars2D.show) {
-		return;
-	}
-
-	auto playerIndex = actorData.newPlayerIndex;
-
-	if (playerIndex != 0) {
-		return;
-	}
-
-	if ((activeCrimsonConfig.MultiplayerBars2D.show1PAttributes == HUDELEMENTSHOWSTATE::ONLY_IN_MP
-		&& activeConfig.Actor.playerCount == 1) ||
-		(activeCrimsonConfig.MultiplayerBars2D.show1PAttributes == HUDELEMENTSHOWSTATE::OFF)) {
-		return;
-	}
-
-	float baseX = g_renderSize.x * (0.3272f); 
-	float baseY = g_renderSize.y * 0.015f; 
-
-	ImVec2 pos = ImVec2(baseX,baseY);
-
-	ImGui::SetNextWindowPos(pos);
-
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(0, 0));
-
-	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
-
-
-	ImGuiWindowFlags windowFlags =
-		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize |
-		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMouseInputs;
-
-	std::string label = "1PAttributes " + std::to_string(playerIndex + 1);
-
-
-	if (ImGui::Begin(label.c_str(), &activeCrimsonConfig.MultiplayerBarsWorldSpace.show, windowFlags)) {
-		ImGui::SetWindowFontScale(scaleFactorY);
-
-		ImVec4 playerColor = ConvertColorFromUint8ToVec4(activeCrimsonConfig.PlayerProperties.playerColor[playerIndex]);
-		float luminance = 0.299f * playerColor.x + 0.587f * playerColor.y + 0.114f * playerColor.z;
-		ImVec4 textColor = (luminance > 0.4f) ? ImVec4(0.1f, 0.1f, 0.1f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[18.0 * 1.1f]);
-		ImGui::PushStyleColor(ImGuiCol_Button, playerColor);
-		ImGui::PushStyleColor(ImGuiCol_Text, textColor);
-		ImGui::Button(name, { 30.0f * scaleFactorY, 30.0f * scaleFactorY });
-		ImGui::PopStyleColor(2);
-		ImGui::PopFont();
-		ImGui::SameLine(0.0f, 0);
-		ImGui::Text("  ");
-
-		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[22.0f]);
-		ImGui::SameLine();
-		ImGui::Text(activeCrimsonConfig.PlayerProperties.playerName[playerIndex].c_str());
-		// 		ImGui::SameLine();
-		// 		ImGui::Text(" -");
-		ImGui::PopFont();
-	}
-
-	ImGui::End();
-	ImGui::PopStyleColor();
-	ImGui::PopStyleVar(4);
-}
-
 
 void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 	if (!showBars && !(activeConfig.Actor.enable && InGame())) {
@@ -4633,28 +4542,16 @@ void MultiplayerBars(IDXGISwapChain* pSwapChain) {
 				}();
 		}
 
-		float hit = 0.75f;
-		float magic = 0.5f;
-
 		auto& playerData = GetPlayerData(playerIndex);
-
-		auto& characterData = GetCharacterData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-		auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-
-		auto& activeCharacterData = GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
 		auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
 
 		if (!activeNewActorData.baseAddr) {
-			return;
+			continue;
 		}
 		auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
 
-		hit = (activeActorData.hitPoints / activeActorData.maxHitPoints);
-		magic = (activeActorData.magicPoints / activeActorData.maxMagicPoints);
-		RenderMultiplayerBar(hit, magic, playerIndexNames[playerIndex],
-			activeActorData);
-
-		Render1PAttributes(playerIndexNames[0], activeActorData);
+		// The cockpit of every player is the original HUD (HUD.cpp); only the name tag beside it is drawn here.
+		RenderPlayerTag(playerIndex, activeActorData);
 	}
 }
 
@@ -4762,19 +4659,16 @@ void BarsSection(size_t defaultFontSize) {
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
-			GUI_TitleCheckbox2("2D MULTIPLAYER BARS", activeCrimsonConfig.MultiplayerBars2D.show, 
-				queuedCrimsonConfig.MultiplayerBars2D.show, true, false, false,
-				"", defaultFontSize * 46.70f);
-			
-			ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
+			GUI_Title("PLAYER TAGS");
 
+			ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
 			ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 
 			ImGui::PushItemWidth(itemWidth);
-			UI::ComboMapValue2("Show 1P Attributes", hudElementShowStateNames, hudElementShowStateMap,
-				activeCrimsonConfig.MultiplayerBars2D.show1PAttributes,
-				queuedCrimsonConfig.MultiplayerBars2D.show1PAttributes);
+			UI::ComboMapValue2("Show Player Tags", hudElementShowStateNames, hudElementShowStateMap,
+				activeCrimsonConfig.MultiplayerHUD.showPlayerTags,
+				queuedCrimsonConfig.MultiplayerHUD.showPlayerTags);
 			ImGui::PopItemWidth();
 
 			ImGui::PopStyleColor();
@@ -6622,6 +6516,7 @@ void CloseShop() {
 bool showExpWindow = false;
 bool showSplitscreenHudWindow = false;
 bool showSinglePlayerHudWindow = false;
+bool showMultiplayerHudWindow = false;
 bool showMissionDataWindow = false;
 bool showFileDataWindow = false;
 bool showActorWindow = false;
@@ -7816,11 +7711,17 @@ void DebugSection() {
 		if (GUI_Button("Single Player HUD")) {
 			showSinglePlayerHudWindow = true;
 		}
+		ImGui::SameLine();
+
+		if (GUI_Button("Multiplayer HUD")) {
+			showMultiplayerHudWindow = true;
+		}
 		ImGui::Text("");
 
 		if (GUI_Button("Close All")) {
 			showSplitscreenHudWindow = false;
 			showSinglePlayerHudWindow = false;
+			showMultiplayerHudWindow = false;
 			showActorWindow = false;
 			showEventDataWindow = false;
 			showExpWindow = false;
@@ -9686,6 +9587,17 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 			ImGui::TableNextColumn();
 
 			GUI_Checkbox2("Disable Style Rank Fadeout", activeCrimsonConfig.HudOptions.disableStyleRankHudFadeout, queuedCrimsonConfig.HudOptions.disableStyleRankHudFadeout);
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth);
+			UI::ComboMapValue2("HUD Scale", hudScaleNames, hudScaleMap,
+				activeCrimsonConfig.HudOptions.hudScale,
+				queuedCrimsonConfig.HudOptions.hudScale);
+			ImGui::PopItemWidth();
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Size of the top-left HUD in single player. Multiplayer uses its own layout.");
+			}
 
 			ImGui::EndTable();
 		}
@@ -16537,6 +16449,9 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	}
 	if (showSinglePlayerHudWindow) {
 		HUD_SinglePlayerWindow(&showSinglePlayerHudWindow);
+	}
+	if (showMultiplayerHudWindow) {
+		HUD_MultiplayerWindow(&showMultiplayerHudWindow);
 	}
 	scaleFactorX = ImGui::GetIO().DisplaySize.x / 1920;
 	scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;

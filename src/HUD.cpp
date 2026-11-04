@@ -868,13 +868,15 @@ unsigned ActivateGroup(ModelGroup& group, int groupIndex, int player) {
 
 } // namespace
 
-unsigned HUD_ActivatePlayerModels(int player) {
+unsigned HUD_ActivatePlayerModels(int player, unsigned groups) {
 	if (player < 0 || player >= PLAYER_COUNT) {
 		return 0;
 	}
 	unsigned flags = 0;
 	for (int g = 0; g < 3; g++) {
-		flags |= ActivateGroup(s_modelGroups[g], g, player);
+		if (groups & (1u << g)) {
+			flags |= ActivateGroup(s_modelGroups[g], g, player);
+		}
 	}
 	return flags;
 }
@@ -1130,6 +1132,10 @@ void ToggleForceVisibleHUD(bool enable) {
 void HUD_ReloadIcons() {
     LogFunction();
 
+    // The other players' saved model images were loaded from the files that are being replaced: drop them (the next
+    // tick loads them again from the new files) before anything draws them.
+    HUD_ReleasePlayerModels();
+
     // Re-read file pointers from the game's static file cache.
     // Uses Crimson HUD 1.0 dedicated archives, dynamic custom HUD, or originals.
     InitIcons(activeCrimsonConfig.HudOptions.selectedHUD);
@@ -1261,6 +1267,7 @@ constexpr HudCalibration HUD_CALIBRATION = { 0.988f, 0.665f, -19.0f, -3.0f, 1.0f
 constexpr HudPreset HUD_PRESETS_SINGLE[] = {
 	{ "Default", { 1.000f, 0.0f, 0.0f } },
 	{ "Compact", { 0.810f, -2.0f, 4.0f } },
+	{ "Smaller", { 0.800f, -75.5f, -39.0f } },
 };
 
 HudGeneral s_singleHudGeneral = HUD_GENERAL_SINGLE;
@@ -1308,8 +1315,20 @@ bool SplitscreenActive() {
 	return CrimsonSplitscreen::ViewCount() >= 2;
 }
 
+// Interface option "HUD Scale: Smaller": the general adjustment single player runs with (the Single Player HUD window
+// values apply with "Default").
+constexpr HudGeneral HUD_GENERAL_SINGLE_SMALLER = { 0.800f, -75.5f, -39.0f };
+
+bool SmallerSinglePlayerHud() {
+	return activeCrimsonConfig.HudOptions.hudScale == HUDSCALE::SMALLER;
+}
+
+const HudGeneral& SinglePlayerGeneral() {
+	return SmallerSinglePlayerHud() ? HUD_GENERAL_SINGLE_SMALLER : s_singleHudGeneral;
+}
+
 bool SinglePlayerHudTouched() {
-	const HudGeneral& g = s_singleHudGeneral;
+	const HudGeneral& g = SinglePlayerGeneral();
 	return g.scale != 1.0f || g.offsetX != 0.0f || g.offsetY != 0.0f;
 }
 
@@ -1374,12 +1393,133 @@ bool IsRightHudElement(size_t i) {
 	return i >= 8 && i <= 10;
 }
 
+// Multiplayer cockpits (shared / single player camera): every player's top-left cockpit group sits in a screen corner
+// (player 1 top-left, 2 top-right, 3 bottom-left, 4 bottom-right), scaled around its own corner and then moved to the
+// screen corner, mirroring the margins of the original top-left position. The group's size is a measured guess (HUD
+// units, y up, from the HUD origin at the screen centre); the margins mirror the vanilla top-left ones.
+constexpr int SEAT_MAX = 4;
+struct SeatBounds {
+	float width;
+	float height;
+	float margin;    // gap between the group and the left / right screen edge
+	float topMargin; // gap between the group and the top / bottom screen edge
+};
+constexpr SeatBounds HUD_SEAT_BOUNDS = { 245.0f, 30.0f, 20.0f, 12.0f };
+constexpr HudGeneral HUD_SEAT_GENERAL[SEAT_MAX] = {
+	{ 0.700f, 1.5f, -17.5f },
+	{ 0.700f, -104.0f, -17.5f },
+	{ 0.700f, 1.5f, 90.0f },
+	{ 0.700f, -104.0f, 90.0f },
+};
+constexpr HudPreset HUD_PRESETS_SEAT[] = {
+	{ "Default", { 0.800f, 0.0f, 0.0f } },
+	{ "Large", { 1.000f, 0.0f, 0.0f } },
+};
+HudGeneral s_seatGeneral[SEAT_MAX] = { HUD_SEAT_GENERAL[0], HUD_SEAT_GENERAL[1], HUD_SEAT_GENERAL[2], HUD_SEAT_GENERAL[3] };
+SeatBounds s_seatBounds = HUD_SEAT_BOUNDS;
+
+// Anchor corner of a seat's group in HUD units (y up) and how far the scaling keeps it from its screen corner.
+struct SeatPlacement {
+	float cornerX, cornerY;
+	float moveX, moveY;
+	bool right, lower;
+};
+
+SeatPlacement ComputeSeatPlacement(int seat, const HudFrameInfo& frame) {
+	const float halfWidth  = frame.valid ? 0.5f * static_cast<float>(frame.frameWidth) * (frame.widescreen ? HUD_WIDESCREEN_WIDTH_FACTOR : 1.0f) : 416.0f;
+	const float halfHeight = frame.valid ? 0.5f * static_cast<float>(frame.frameHeight) : 224.0f;
+	const SeatBounds& b = s_seatBounds;
+	const float minX    = -halfWidth + b.margin;
+	const float maxX    = minX + b.width;
+	const float top     = halfHeight - b.topMargin;
+	const float bottom  = top - b.height;
+
+	SeatPlacement p;
+	p.right   = (seat & 1) != 0;
+	p.lower   = (seat & 2) != 0;
+	p.cornerX = p.right ? maxX : minX;
+	p.cornerY = p.lower ? bottom : top;
+	p.moveX   = p.right ? (halfWidth - b.margin - maxX) : 0.0f;
+	p.moveY   = p.lower ? (-halfHeight + b.topMargin - bottom) : 0.0f;
+	return p;
+}
+
+// Matrix transform of a seat's cockpit group: p' = S * (p - corner) + corner + move + nudge (S = the game HUD scale).
+HudGroupTuning SeatGroup(int seat, const HudFrameInfo& frame) {
+	const HudCalibration& c = s_hudCalibration;
+	const HudGeneral& g = s_seatGeneral[seat];
+	const SeatPlacement p = ComputeSeatPlacement(seat, frame);
+	const float unitX = frame.unitX * c.unitX;
+	const float unitY = frame.unitY * c.unitY;
+	const float gameScale = 1.0f + (g.scale - 1.0f) * c.scaleRate;
+	return {
+		gameScale,
+		gameScale,
+		(1.0f - gameScale) * p.cornerX + p.moveX + g.offsetX / unitX,
+		(1.0f - gameScale) * p.cornerY + p.moveY - g.offsetY / unitY,
+	};
+}
+
+// Draws the cockpit once with the seat's transform. Seats other than player 1 leave out the red orb counter group:
+// those models are shared (not per player), a second draw of one would overwrite the first.
+void DrawCockpitSeat(CockpitFn original, uint8_t* cockpit, int seat) {
+	auto matrix = [cockpit](size_t i) {
+		return reinterpret_cast<float*>(cockpit + COCKPIT_TOP_MATRIX_BASE + COCKPIT_TOP_MATRIX_STRIDE * i);
+	};
+	const HudFrameInfo frame = ReadHudFrameInfo(g_renderSize.x, g_renderSize.y);
+	const HudGroupTuning group = SeatGroup(seat, frame);
+
+	float backup[COCKPIT_TOP_MATRIX_COUNT][16];
+	for (size_t i = 0; i < COCKPIT_TOP_MATRIX_COUNT; ++i) {
+		std::memcpy(backup[i], matrix(i), sizeof(backup[i]));
+		if (!IsRightHudElement(i)) {
+			ShrinkHudMatrix(matrix(i), group);
+		}
+	}
+	constexpr size_t LOADED_FLAG = 0x18;
+	uint8 loaded[3] = {};
+	if (seat > 0) {
+		for (size_t k = 0; k < 3; ++k) {
+			uint8* flag = cockpit + hudTopOffs[8 + k] + LOADED_FLAG;
+			loaded[k] = *flag;
+			*flag = 0;
+		}
+	}
+	GuardedDraw(original, cockpit, "cockpit top");
+	if (seat > 0) {
+		for (size_t k = 0; k < 3; ++k) {
+			cockpit[hudTopOffs[8 + k] + LOADED_FLAG] = loaded[k];
+		}
+	}
+	for (size_t i = 0; i < COCKPIT_TOP_MATRIX_COUNT; ++i) {
+		std::memcpy(matrix(i), backup[i], sizeof(backup[i]));
+	}
+}
+
+// Player 1's cockpit is the game's own; for every other player the tick update kept their state, matrices and top
+// models, which CrimsonSplitscreen::SeatCockpitBegin swaps in for their draw.
+void DrawCockpitSeats(CockpitFn original, uint8_t* cockpit, int seats) {
+	DrawCockpitSeat(original, cockpit, 0);
+	for (int seat = 1; seat < seats; ++seat) {
+		if (!CrimsonSplitscreen::SeatCockpitBegin(cockpit, seat)) {
+			continue;
+		}
+		DrawCockpitSeat(original, cockpit, seat);
+		CrimsonSplitscreen::SeatCockpitEnd(cockpit);
+	}
+}
+
 // The draw copies the matrix, so it can be restored right after.
 // CUIDCockpit00 draw (vtable +0x20)
 void __fastcall CockpitTopDrawHook(uint8_t* cockpit) {
 	const auto original = s_cockpitTopDrawHook->GetTrampoline<CockpitFn>();
 	HudSplitLayout layout;
 	const bool split = CrimsonSplitscreen::HudLayoutInUse(layout);
+	const int seats = split ? 0 : HUD_SeatCount();
+	if (cockpit && seats >= 2) {
+		DrawCockpitSeats(original, cockpit, seats);
+		return;
+	}
 	if (!cockpit || (!split && !SinglePlayerHudTouched())) {
 		GuardedDraw(original, cockpit, "cockpit top");
 		return;
@@ -1390,7 +1530,7 @@ void __fastcall CockpitTopDrawHook(uint8_t* cockpit) {
 	};
 	const HudGroupTuning topLeftGroup = split
 		? ComposeTopLeftGroup(layout.topLeft, layout.general)
-		: ComposeTopLeftGroup(HUD_GROUP_IDENTITY, s_singleHudGeneral);
+		: ComposeTopLeftGroup(HUD_GROUP_IDENTITY, SinglePlayerGeneral());
 	float backup[COCKPIT_TOP_MATRIX_COUNT][16];
 	for (size_t i = 0; i < COCKPIT_TOP_MATRIX_COUNT; ++i) {
 		std::memcpy(backup[i], matrix(i), sizeof(backup[i]));
@@ -1447,9 +1587,47 @@ void HUD_InitAdjustmentHooks() {
 	s_cockpitBottomDrawHook->Toggle(true);
 }
 
+int HUD_SeatCount() {
+	if (!activeConfig.Actor.enable || activeConfig.Actor.playerCount < 2 || g_multiplayerCameraMode == MULTIPLAYERCAMERA::SPLITSCREEN) {
+		return 0;
+	}
+	if (!InGame() || g_inGameCutscene || InCutscene()) {
+		return 0;
+	}
+	return (activeConfig.Actor.playerCount > PLAYER_COUNT) ? PLAYER_COUNT : activeConfig.Actor.playerCount;
+}
+
+// Seat version of the addon transform, in screen pixels: P' = S * (P - corner) + corner + move + nudge, the pixel
+// counterpart of SeatGroup (same corner, move and nudge, converted with the calibrated pixels per HUD unit).
+static bool SeatAddonTransform(int seat, float screenWidth, float screenHeight, float& posScale, float& sizeScale, float& offsetX, float& offsetY) {
+	if (seat >= HUD_SeatCount()) {
+		return false;
+	}
+	const HudCalibration& c = s_hudCalibration;
+	const HudFrameInfo frame = ReadHudFrameInfo(screenWidth, screenHeight);
+	const SeatPlacement p = ComputeSeatPlacement(seat, frame);
+	const HudGeneral& g = s_seatGeneral[seat];
+	const float unit = screenHeight / HUD_HEIGHT;
+	const float kx = frame.unitX * c.unitX * unit;
+	const float ky = frame.unitY * c.unitY * unit;
+	const float pivotPxX = screenWidth * 0.5f + c.pivotX * unit;
+	const float pivotPxY = screenHeight * 0.5f + c.pivotY * unit;
+	const float cornerPxX = pivotPxX + p.cornerX * kx;
+	const float cornerPxY = pivotPxY - p.cornerY * ky;
+
+	posScale  = g.scale;
+	sizeScale = g.scale;
+	offsetX   = (1.0f - g.scale) * cornerPxX + p.moveX * kx + g.offsetX * unit;
+	offsetY   = (1.0f - g.scale) * cornerPxY - p.moveY * ky + g.offsetY * unit;
+	return true;
+}
+
 bool HUD_AddonTransform(int view, float screenWidth, float screenHeight, float& posScale, float& sizeScale, float& offsetX, float& offsetY) {
 	if (screenWidth <= 0.0f || screenHeight <= 0.0f) {
 		return false;
+	}
+	if (view >= 0 && !SplitscreenActive()) {
+		return SeatAddonTransform(view, screenWidth, screenHeight, posScale, sizeScale, offsetX, offsetY);
 	}
 	HudSplitLayout layout;
 	if (view < 0 ? (SplitscreenActive() || !s_singleHudSyncAddons || !SinglePlayerHudTouched())
@@ -1467,7 +1645,7 @@ bool HUD_AddonTransform(int view, float screenWidth, float screenHeight, float& 
 	// The matching matrix transform is ComposeTopLeftGroup; the base offset is in matrix units (y up).
 	const HudFrameInfo frame = ReadHudFrameInfo(screenWidth, screenHeight);
 	const HudGroupTuning& base = (view < 0) ? HUD_GROUP_IDENTITY : layout.topLeft;
-	const HudGeneral& g = (view < 0) ? s_singleHudGeneral : layout.general;
+	const HudGeneral& g = (view < 0) ? SinglePlayerGeneral() : layout.general;
 	const float baseOffsetPxX = base.offsetX * frame.unitX * c.unitX * unit;
 	const float baseOffsetPxY = -base.offsetY * frame.unitY * c.unitY * unit;
 	const float framePosScale = g.scale * base.posScale;
@@ -1493,6 +1671,45 @@ bool HUD_AddonTransform(int view, float screenWidth, float screenHeight, float& 
 	sizeScale = viewScale * frameSizeScale;
 	offsetX = viewScale * frameOffsetX + originX;
 	offsetY = viewScale * frameOffsetY + originY;
+	return true;
+}
+
+bool HUD_PlayerTagAnchor(int player, float screenWidth, float screenHeight, float& x, float& y, float& scale, bool& alignRight) {
+	alignRight = false;
+	int view = -1;
+	if (SplitscreenActive()) {
+		if (player >= CrimsonSplitscreen::ViewCount()) {
+			return false;
+		}
+		view = player;
+	} else if (HUD_SeatCount() >= 2) {
+		if (player >= HUD_SeatCount()) {
+			return false;
+		}
+		view = player;
+	} else if (player != 0) {
+		return false;
+	}
+
+	// Right of the cockpit group at its original top-left place; left of it for the seats on the right edge. The
+	// addon transform then moves it together with the group.
+	float baseX = screenWidth * 0.3272f;
+	const float baseY = screenHeight * 0.015f;
+	if (view >= 0 && !SplitscreenActive() && (view & 1)) {
+		const HudCalibration& c = s_hudCalibration;
+		const HudFrameInfo frame = ReadHudFrameInfo(screenWidth, screenHeight);
+		const SeatPlacement p = ComputeSeatPlacement(view, frame);
+		const float unit = screenHeight / HUD_HEIGHT;
+		const float leftEdge = screenWidth * 0.5f + c.pivotX * unit + (p.cornerX - s_seatBounds.width) * frame.unitX * c.unitX * unit;
+		baseX = leftEdge - screenWidth * 0.01f;
+		alignRight = true;
+	}
+
+	float posScale = 1.0f, sizeScale = 1.0f, offsetX = 0.0f, offsetY = 0.0f;
+	HUD_AddonTransform(view, screenWidth, screenHeight, posScale, sizeScale, offsetX, offsetY);
+	x = baseX * posScale + offsetX;
+	y = baseY * posScale + offsetY;
+	scale = sizeScale;
 	return true;
 }
 
@@ -1596,11 +1813,70 @@ void HUD_SinglePlayerWindow(bool* open) {
 	if (SplitscreenActive()) {
 		ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "Splitscreen is running: use the Splitscreen HUD window. These values are ignored.");
 	}
+	if (SmallerSinglePlayerHud()) {
+		ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "Interface > HUD Scale is Smaller: its own values are used (Default uses the ones below).");
+	}
 	ImGui::TextWrapped("General: moves and scales the top-left cockpit group and the style addons as one (x/y in HUD units, %.0f tall, "
 		"y grows downward). The calibration is shared with the Splitscreen HUD window.", HUD_HEIGHT);
 
 	ImGui::Checkbox("Sync style icons and names", &s_singleHudSyncAddons);
 	HUD_GeneralControls(s_singleHudGeneral, HUD_GENERAL_SINGLE, HUD_PRESETS_SINGLE, std::size(HUD_PRESETS_SINGLE));
+	HUD_CalibrationControls();
+	HUD_DrawPivotMarker();
+
+	ImGui::End();
+}
+
+// "Multiplayer HUD" debug window: where every player's cockpit goes on the shared / single player camera.
+void HUD_MultiplayerWindow(bool* open) {
+	ImGui::SetNextWindowSize(ImVec2(440, 0), ImGuiCond_FirstUseEver);
+	if (!ImGui::Begin("Multiplayer HUD (non Splitscreen)", open)) {
+		ImGui::End();
+		return;
+	}
+
+	const int seats = HUD_SeatCount();
+	ImGui::TextWrapped("Every player's cockpit sits in a screen corner (1P top-left, 2P top-right, 3P bottom-left, 4P bottom-right) and "
+		"is scaled around that corner; x / y nudge it from there (HUD units, %.0f tall, y grows downward). The player tags and the style "
+		"addons follow their cockpit. Splitscreen has its own window; the calibration is shared. %s",
+		HUD_HEIGHT, seats >= 2 ? "Running now." : "Not running (needs 2+ players on the shared or single player camera).");
+
+	for (int seat = 0; seat < SEAT_MAX; ++seat) {
+		ImGui::PushID(seat);
+		ImGui::Separator();
+		ImGui::Text("%dP", seat + 1);
+		HUD_GeneralControls(s_seatGeneral[seat], HUD_SEAT_GENERAL[seat], HUD_PRESETS_SEAT, std::size(HUD_PRESETS_SEAT));
+		ImGui::PopID();
+	}
+
+	ImGui::Separator();
+	ImGui::TextWrapped("Cockpit group size and screen margins (HUD units). The size only places the far corner of the group: raise the "
+		"margins if a cockpit touches the screen edge, change the width if the right cockpits are too far in or out.");
+	ImGui::DragFloat("group width", &s_seatBounds.width, 0.5f, 50.0f, 500.0f, "%.1f");
+	ImGui::DragFloat("group height", &s_seatBounds.height, 0.5f, 30.0f, 300.0f, "%.1f");
+	ImGui::DragFloat("side margin", &s_seatBounds.margin, 0.5f, -300.0f, 300.0f, "%.1f");
+	ImGui::DragFloat("top / bottom margin", &s_seatBounds.topMargin, 0.5f, -300.0f, 300.0f, "%.1f");
+	if (ImGui::Button("Reset all")) {
+		s_seatBounds = HUD_SEAT_BOUNDS;
+		for (int seat = 0; seat < SEAT_MAX; ++seat) {
+			s_seatGeneral[seat] = HUD_SEAT_GENERAL[seat];
+		}
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Copy all as code")) {
+		char text[768];
+		int n = snprintf(text, sizeof(text), "constexpr SeatBounds HUD_SEAT_BOUNDS = { %.1ff, %.1ff, %.1ff, %.1ff };\n"
+			"constexpr HudGeneral HUD_SEAT_GENERAL[SEAT_MAX] = {\n", s_seatBounds.width, s_seatBounds.height, s_seatBounds.margin, s_seatBounds.topMargin);
+		for (int seat = 0; seat < SEAT_MAX && n > 0 && n < static_cast<int>(sizeof(text)); ++seat) {
+			n += snprintf(text + n, sizeof(text) - n, "\t{ %.3ff, %.1ff, %.1ff },\n", s_seatGeneral[seat].scale, s_seatGeneral[seat].offsetX,
+				s_seatGeneral[seat].offsetY);
+		}
+		if (n > 0 && n < static_cast<int>(sizeof(text)) - 4) {
+			snprintf(text + n, sizeof(text) - n, "};\n");
+		}
+		ImGui::SetClipboardText(text);
+	}
+
 	HUD_CalibrationControls();
 	HUD_DrawPivotMarker();
 

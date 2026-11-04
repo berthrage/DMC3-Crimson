@@ -717,8 +717,9 @@ void ResetCockpitSmoothing(uint8_t* state) {
 	*reinterpret_cast<uint64_t*>(at(0x6988)) = 0;
 }
 
-// The loaders are expensive-ish, so only reload what differs from what is shown.
-void SyncHudIcons(uint8_t* actorAddr, int player) {
+// The loaders are expensive-ish, so only reload what differs from what is shown. topOnly: only the cockpit top
+// models are the player's (shared camera cockpits), the weapon icons and the lock-on cursor stay player 1's.
+void SyncHudIcons(uint8_t* actorAddr, int player, bool topOnly = false) {
 	auto& actor         = *reinterpret_cast<PlayerActorData*>(actorAddr);
 	auto& playerData    = GetPlayerData(static_cast<uint8>(player));
 	auto& characterData = GetCharacterData(static_cast<uint8>(player), playerData.activeCharacterIndex, ENTITY::MAIN);
@@ -741,24 +742,26 @@ void SyncHudIcons(uint8_t* actorAddr, int player) {
 		HUD_UpdateDevilTriggerExplosion(character);
 		icons.style = -1;
 	}
-	if (vergil != icons.lockOn) {
+	if (!topOnly && vergil != icons.lockOn) {
 		HUD_UpdateLockOn(character);
 	}
 	if (style != icons.style && style < STYLE::MAX) {
 		HUD_UpdateStyleIcon(static_cast<uint8>(style), character);
 	}
-	if (melee != icons.melee && melee >= 0) {
+	if (!topOnly && melee != icons.melee && melee >= 0) {
 		HUD_UpdateWeaponIcon(HUD_BOTTOM::MELEE_WEAPON_1, static_cast<uint8>(melee));
 	}
-	if (ranged != icons.ranged && ranged >= 0) {
+	if (!topOnly && ranged != icons.ranged && ranged >= 0) {
 		HUD_UpdateWeaponIcon(HUD_BOTTOM::RANGED_WEAPON_1, static_cast<uint8>(ranged));
 	}
 
 	icons.vergil  = vergil;
-	icons.lockOn  = vergil;
 	icons.style   = style;
-	icons.melee   = melee;
-	icons.ranged  = ranged;
+	if (!topOnly) {
+		icons.lockOn = vergil;
+		icons.melee  = melee;
+		icons.ranged = ranged;
+	}
 	s_hudSerial   = g_hudIconSerial;
 }
 
@@ -766,6 +769,85 @@ void SyncHudIcons(uint8_t* actorAddr, int player) {
 // The cockpit reads HP/DT/style from pool_10222[3], i.e. always player 1. Each frame is
 // built for one player, so point it at that player's actor and keep a cockpit state
 // (HP/DT smoothing, alpha timers) per player.
+
+// Shared / single player camera: one cockpit per player, all drawn in the same frame (HUD.cpp). The game's cockpit
+// object is player 1's; every tick it is also updated for the other players, and what that produced (state, element
+// matrices, top models) is kept per player and swapped in for their draw (SeatCockpitBegin).
+constexpr size_t COCKPIT_MATRIX_BEGIN = 0xB0;                 // 13 elements, 0x80 apart
+constexpr size_t COCKPIT_MATRIX_SIZE  = 13 * 0x80;
+constexpr size_t COCKPIT_STATE_SIZE   = COCKPIT_STATE_END - COCKPIT_STATE_BEGIN;
+
+struct SeatSlots {
+	uint8_t matrices[PLAYER_COUNT][COCKPIT_MATRIX_SIZE] = {};
+	bool ready[PLAYER_COUNT] = {}; // updated at least once since the cockpit object appeared
+};
+SeatSlots s_seatSlots;
+uint8_t s_seatLiveState[COCKPIT_STATE_SIZE];
+uint8_t s_seatLiveMatrices[COCKPIT_MATRIX_SIZE];
+bool s_seatLoaded = false;
+
+void ClearSeatReady() {
+	for (bool& ready : s_seatSlots.ready) {
+		ready = false;
+	}
+}
+
+void UpdateSeatCockpits(CockpitFn original, uint8_t* cockpit, uintptr_t* pool, int seats) {
+	s_hudWasSplit = true;
+	uint8_t* live = cockpit + COCKPIT_STATE_BEGIN;
+	uint8_t* liveMatrices = cockpit + COCKPIT_MATRIX_BEGIN;
+
+	ApplyModelFlags(HUD_ActivatePlayerModels(0, HUD_GROUP_TOP), 0);
+	original(cockpit);
+
+	uint8_t leadState[COCKPIT_STATE_SIZE];
+	uint8_t leadMatrices[COCKPIT_MATRIX_SIZE];
+	std::memcpy(leadState, live, COCKPIT_STATE_SIZE);
+	std::memcpy(leadMatrices, liveMatrices, COCKPIT_MATRIX_SIZE);
+
+	for (int player = 1; player < seats; ++player) {
+		uint8_t* actor = PlayerMainActor(player);
+		if (!actor) {
+			s_seatSlots.ready[player] = false;
+			continue;
+		}
+		if (s_hudSerial != g_hudIconSerial) {
+			ResetHudIcons();
+		}
+		ApplyModelFlags(HUD_ActivatePlayerModels(player, HUD_GROUP_TOP), player);
+		if (!s_cockpitSlots.valid[player]) {
+			std::memcpy(s_cockpitSlots.state[player], leadState, COCKPIT_STATE_SIZE);
+			ResetCockpitSmoothing(s_cockpitSlots.state[player]);
+			s_cockpitSlots.valid[player] = true;
+		}
+		std::memcpy(live, s_cockpitSlots.state[player], COCKPIT_STATE_SIZE);
+		// After the state is back, see CockpitUpdateHook.
+		SyncHudIcons(actor, player, true);
+
+		const uintptr_t mainPlayerActor = pool[3];
+		pool[3] = reinterpret_cast<uintptr_t>(actor);
+		original(cockpit);
+		pool[3] = mainPlayerActor;
+
+		std::memcpy(s_cockpitSlots.state[player], live, COCKPIT_STATE_SIZE);
+		std::memcpy(s_seatSlots.matrices[player], liveMatrices, COCKPIT_MATRIX_SIZE);
+		s_seatSlots.ready[player] = true;
+	}
+	for (int player = seats; player < PLAYER_COUNT; ++player) {
+		s_seatSlots.ready[player] = false;
+	}
+
+	const unsigned flags = HUD_ActivatePlayerModels(0, HUD_GROUP_TOP);
+	ApplyModelFlags(flags, 0);
+	std::memcpy(live, leadState, COCKPIT_STATE_SIZE);
+	std::memcpy(liveMatrices, leadMatrices, COCKPIT_MATRIX_SIZE);
+	if (flags & HUD_MODELS_TOP_BLANK) {
+		if (uint8_t* lead = PlayerMainActor(0)) {
+			SyncHudIcons(lead, 0, true);
+		}
+	}
+}
+
 void __fastcall CockpitUpdateHook(uint8_t* cockpit) {
 	const auto original = s_cockpitUpdateHook->GetTrampoline<CockpitFn>();
 	HUD_RunRepair();
@@ -778,12 +860,17 @@ void __fastcall CockpitUpdateHook(uint8_t* cockpit) {
 		for (bool& valid : s_cockpitSlots.valid) {
 			valid = false;
 		}
+		ClearSeatReady();
 		ResetHudIcons();
 		s_hudWasSplit = false;
 	}
 
 	if (!SplitscreenActive() || !cockpit || !pool) {
-		// The restore calls the HUD loaders, so wait until the game is back in normal play.
+		if (cockpit && pool && HUD_SeatCount() >= 2) {
+			UpdateSeatCockpits(original, cockpit, pool, HUD_SeatCount());
+			return;
+		}
+		ClearSeatReady();
 		if (s_hudWasSplit && cockpit && pool && !CrimsonSplitscreen::GateOpen() && InGame() && !g_inGameCutscene) {
 			s_hudWasSplit = false;
 			ResetCockpitSmoothing(cockpit + COCKPIT_STATE_BEGIN);
@@ -1011,6 +1098,39 @@ bool HudLayoutInUse(HudSplitLayout& out) {
 	const HudTuning& tuning = s_hudTuning[layout];
 	out = { tuning.topLeft, tuning.topRight, tuning.bottom, s_splitHudGeneral[layout] };
 	return true;
+}
+
+// Swaps player's cockpit (state, element matrices, top models) in for the draw that follows; SeatCockpitEnd gives the
+// cockpit back to player 1. False when that player has not been updated yet (nothing to draw).
+bool SeatCockpitBegin(uint8_t* cockpit, int player) {
+	if (!cockpit || player <= 0 || player >= PLAYER_COUNT || s_seatLoaded || !s_seatSlots.ready[player] || !s_cockpitSlots.valid[player]) {
+		return false;
+	}
+	std::memcpy(s_seatLiveState, cockpit + COCKPIT_STATE_BEGIN, COCKPIT_STATE_SIZE);
+	std::memcpy(s_seatLiveMatrices, cockpit + COCKPIT_MATRIX_BEGIN, COCKPIT_MATRIX_SIZE);
+	s_seatLoaded = true;
+
+	const unsigned flags = HUD_ActivatePlayerModels(player, HUD_GROUP_TOP);
+	if (flags) {
+		// The player's images are gone (the game rebuilt the HUD): the tick update loads them again.
+		ApplyModelFlags(flags, player);
+		s_seatSlots.ready[player] = false;
+		SeatCockpitEnd(cockpit);
+		return false;
+	}
+	std::memcpy(cockpit + COCKPIT_STATE_BEGIN, s_cockpitSlots.state[player], COCKPIT_STATE_SIZE);
+	std::memcpy(cockpit + COCKPIT_MATRIX_BEGIN, s_seatSlots.matrices[player], COCKPIT_MATRIX_SIZE);
+	return true;
+}
+
+void SeatCockpitEnd(uint8_t* cockpit) {
+	if (!s_seatLoaded) {
+		return;
+	}
+	s_seatLoaded = false;
+	std::memcpy(cockpit + COCKPIT_STATE_BEGIN, s_seatLiveState, COCKPIT_STATE_SIZE);
+	std::memcpy(cockpit + COCKPIT_MATRIX_BEGIN, s_seatLiveMatrices, COCKPIT_MATRIX_SIZE);
+	ApplyModelFlags(HUD_ActivatePlayerModels(0, HUD_GROUP_TOP), 0);
 }
 
 void HudTuningWindow(bool* open) {

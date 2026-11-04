@@ -590,10 +590,14 @@ static TopLeftHudSync GetTopLeftHudSync(int view) {
 	return sync;
 }
 
-// The style addons draw once per splitscreen view, or once on the whole screen.
+// The style addons draw once per splitscreen view, once per multiplayer cockpit (shared / single player camera), or
+// once on the whole screen.
 template <typename F>
 static void ForEachHudView(F&& draw) {
-	const int views = CrimsonSplitscreen::ViewCount();
+	int views = CrimsonSplitscreen::ViewCount();
+	if (views < 2) {
+		views = HUD_SeatCount();
+	}
 	if (views < 2) {
 		draw(-1);
 		return;

@@ -10,6 +10,12 @@ namespace CrimsonSplitscreen {
 	// The HUD layout of the running splitscreen (base groups + general adjustment); false when splitscreen is off.
 	bool HudLayoutInUse(HudSplitLayout& out);
 
+	// Shared / single player camera multiplayer (HUD.cpp draws one cockpit per player): the tick update keeps every
+	// player's cockpit (CockpitUpdateHook); SeatCockpitBegin swaps player's in for the draw that follows, SeatCockpitEnd
+	// hands the cockpit back to player 1. False when that player has nothing to draw yet.
+	bool SeatCockpitBegin(uint8_t* cockpit, int player);
+	void SeatCockpitEnd(uint8_t* cockpit);
+
 	// True while the game is in a state splitscreen can run in (playing, no cutscene); ignores the settle delay.
 	bool GateOpen();
 	// Splitscreen is the active multiplayer camera (2+ players), even while it is paused for a cutscene or load.
