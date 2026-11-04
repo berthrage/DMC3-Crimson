@@ -2,6 +2,7 @@
 #include "Event.hpp"
 #include "Core/Core.hpp"
 #include "File.hpp"
+#include "Memory.hpp"
 #include "Model.hpp"
 #include "Actor.hpp"
 #include "Arcade.hpp"
@@ -247,6 +248,7 @@ void EventHandler(EventData& eventData) {
             Log("Sub Event %u", eventData.subevent);
             Log("Screen %u", eventData.screen);
             Log("Next Screen %u", eventData.nextScreen);
+            Memory_LogFileSlots();
 
             DebugLog("flag 14 -  %X", eventFlags[14]);
             DebugLog("flag 15 -  %X", eventFlags[15]);

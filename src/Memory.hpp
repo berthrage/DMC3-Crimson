@@ -14,5 +14,6 @@ enum MEMORY_SIZE {
 extern byte8* Memory_main;
 
 bool Memory_Init();
+void Memory_LogFileSlots(bool always = false);
 void Memory_ToggleExtendVectors(bool enable);
 byte8* GetMasterPointer();

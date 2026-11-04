@@ -21,6 +21,187 @@ auto GetMemoryAddress() {
     return Memory_main;
 }
 
+// Game file slots (sub_140048B20): 100 slots of 0x20 bytes at dmc3.exe+C18E60, byte +0x18 = in use. When all are taken every
+// file open fails, which makes menu resource requests return NULL.
+void Memory_LogFileSlots(bool always) {
+    static int32 lastUsed = -1;
+    auto table            = appBaseAddr + 0xC18E60;
+    int32 used            = 0;
+    for (uint32 slot = 0; slot < 100; slot++) {
+        if (table[(slot * 0x20) + 0x18]) {
+            used++;
+        }
+    }
+    if (!always && used == lastUsed) {
+        return;
+    }
+    lastUsed = used;
+    Log("File slots used %d/100", used);
+    if (always) {
+        for (uint32 slot = 0; slot < 100; slot++) {
+            auto entry = table + (slot * 0x20);
+            if (entry[0x18]) {
+                Log("  slot %u handle %llX object %llX +10 %llX", slot, *reinterpret_cast<uint64*>(entry), *reinterpret_cast<uint64*>(entry + 8),
+                    *reinterpret_cast<uint64*>(entry + 0x10));
+            }
+        }
+    }
+}
+
+// Arena usage (CKernelManagedArena_t): used blocks and the largest free run, i.e. the biggest allocation that can still succeed.
+static void LogArena(const char* name, byte8* arena) {
+    auto memory     = *reinterpret_cast<byte8**>(arena);
+    auto blockCount = *reinterpret_cast<int32*>(arena + 0x10);
+    auto blockSize  = *reinterpret_cast<int32*>(arena + 0x14);
+    if (!memory || blockCount <= 0) {
+        Log("  %s: not initialised", name);
+        return;
+    }
+    uint32 used = 0, run = 0, best = 0;
+    for (int32 block = 0; block < blockCount; block++) {
+        if (memory[block]) {
+            used++;
+            run = 0;
+        } else if (++run > best) {
+            best = run;
+        }
+    }
+    Log("  %s: %u/%d blocks used, largest free run %u blocks = %llu bytes (block size %X)", name, used, blockCount, best,
+        static_cast<uint64>(best) * blockSize, blockSize);
+}
+
+// File read queues (EnqueueFileRead_sub_1402EF4D0 / ProcessFileReadQueue_sub_1402EF790), table at +CAF820, 0x18 bytes per queue:
+// +0x10 active, +0x11 progress, +0x14 head, +0x18 tail, +0x1C ring size, +0x20 ring of 0x88 byte entries (state dword at +0, path at +0x10).
+// An enqueue fails when the entry at the tail still has state > 0.
+static void LogReadQueues() {
+    for (uint32 queueIndex = 0; queueIndex < 2; queueIndex++) {
+        auto queue = appBaseAddr + 0xCAF820 + (queueIndex * 0x18);
+        auto ring  = *reinterpret_cast<byte8**>(queue + 0x20);
+        auto size  = *reinterpret_cast<int32*>(queue + 0x1C);
+        auto head  = *reinterpret_cast<int32*>(queue + 0x14);
+        auto tail  = *reinterpret_cast<int32*>(queue + 0x18);
+        Log("  read queue %u: active %u progress %u head %d tail %d size %d ring %llX", queueIndex, queue[0x10], queue[0x11], head, tail, size,
+            reinterpret_cast<uint64>(ring));
+        if (!ring || size <= 0 || size > 0x1000) {
+            continue;
+        }
+        uint32 busy = 0;
+        for (int32 entry = 0; entry < size; entry++) {
+            if (*reinterpret_cast<int32*>(ring + (entry * 0x88)) > 0) {
+                busy++;
+            }
+        }
+        Log("  read queue %u: %u/%d entries busy", queueIndex, busy, size);
+        for (int32 entry : {head, tail}) {
+            if (entry >= 0 && entry < size) {
+                auto data = ring + (entry * 0x88);
+                Log("    entry %d state %d path %.40s", entry, *reinterpret_cast<int32*>(data), reinterpret_cast<const char*>(data + 0x10));
+            }
+        }
+    }
+}
+
+static void LogHeapArenas() {
+    LogArena("heap arena 0", appBaseAddr + 0xCA8910);
+    LogArena("heap arena 1", appBaseAddr + 0xCA8938);
+    LogArena("heap arena 2", appBaseAddr + 0xCA8960);
+    // Resource request table (dmc3.exe+C99D30): scratch arena at +6718, scratch mode flag at +6760.
+    auto table = appBaseAddr + 0xC99D30;
+    Log("  resource table scratch mode %u", *reinterpret_cast<uint8*>(table + 0x6760));
+    LogArena("pac scratch arena", table + 0x6718);
+
+    LogReadQueues();
+
+    // Resource request slots (0x48 bytes, first index word at +581A2A, count word at +581A1A): state +4, entry +0x18 (path pointer at entry+8),
+    // buffer +0x20, heap handle +0x28 (arena at +0x30, data +0x38, first block +0x40, block count +0x44).
+    auto start = *reinterpret_cast<uint16*>(appBaseAddr + 0x581A2A);
+    auto count = *reinterpret_cast<uint16*>(appBaseAddr + 0x581A1A);
+    Log("  request slots start %u count %u", start, count);
+    uint32 shown = 0;
+    bool probed  = false;
+    for (uint32 index = start; index < static_cast<uint32>(start + count) && shown < 40; index++) {
+        auto slot  = table + (index * 0x48);
+        auto state = *reinterpret_cast<uint32*>(slot + 4);
+        auto entry = *reinterpret_cast<byte8**>(slot + 0x18);
+        if (!state && !entry) {
+            continue;
+        }
+        const char* name = "?";
+        if (entry >= appBaseAddr && entry < (appBaseAddr + appSize)) {
+            auto path = *reinterpret_cast<const char**>(entry + 8);
+            if (reinterpret_cast<byte8*>(const_cast<char*>(path)) >= appBaseAddr && reinterpret_cast<byte8*>(const_cast<char*>(path)) < (appBaseAddr + appSize)) {
+                name = path;
+            }
+        }
+        Log("  slot %u state %u flags %X entry %llX %s buffer %llX handle arena %llX data %llX first %d count %d", index, state, *reinterpret_cast<uint16*>(slot + 8),
+            reinterpret_cast<uint64>(entry), name, *reinterpret_cast<uint64*>(slot + 0x20), *reinterpret_cast<uint64*>(slot + 0x30),
+            *reinterpret_cast<uint64*>(slot + 0x38), *reinterpret_cast<int32*>(slot + 0x40), *reinterpret_cast<int32*>(slot + 0x44));
+        shown++;
+        if (!state && name[0] != '?' && !probed) {
+            // Ask the game's own file size lookup (GetFileSizeInSectors_sub_1402EF620) about the path that failed. 0 = it cannot open it.
+            probed         = true;
+            auto fileSize  = reinterpret_cast<uint32(__fastcall*)(void*, const char*)>(appBaseAddr + 0x2EF620)(appBaseAddr + 0xCAF820, name);
+            Log("  probe: GetFileSizeInSectors('%s') = %u", name, fileSize);
+        }
+    }
+}
+
+// Option screens: a menu resource request (RequestMenuResource_sub_1401B8EA0) returned NULL and its result is dereferenced without a check.
+// dmc3.exe+1C83B1 - mov eax,[rcx+04] (a1+0x58, id\id400\id450.pac) and dmc3.exe+1C8FF0 - mov ecx,[rax+04] (a1+0x40, id\id400\id430.pac)
+// Log only: the crash itself is left to happen.
+static LONG CALLBACK MenuResourceGuard(PEXCEPTION_POINTERS info) {
+    auto ctx = info->ContextRecord;
+    auto rip = ctx->Rip - reinterpret_cast<DWORD64>(appBaseAddr);
+    if (info->ExceptionRecord->ExceptionCode != EXCEPTION_ACCESS_VIOLATION || (rip != 0x1C83B1 && rip != 0x1C8FF0)) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    static bool logged = false;
+    if (!logged) {
+        logged = true;
+        Log("MenuResourceGuard: dmc3.exe+%llX option screen %llX state %u has no resource", rip, ctx->Rbx, *reinterpret_cast<uint32*>(ctx->Rbx + 4));
+        LogHeapArenas();
+        Memory_LogFileSlots(true);
+    }
+
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+// SubmitResourceLoad_sub_1401B84E0 returning false makes AllocResourceRequestSlot_sub_1401B8DF0 return NULL (the option screen crash).
+// This wrapper logs that moment: requested path, the allocation size the game computed, the slot's heap handle before and after, and the arenas.
+// dmc3.exe+1B8E4A - E8 91 F6 FF FF - call dmc3.exe+1B84E0
+static uint64 LoggedSubmitResourceLoad(byte8* table, byte8* slot, byte8* entry, uint64 arg4, uint64 arg5) {
+    auto handleArenaBefore = *reinterpret_cast<uint64*>(slot + 0x30);
+    auto result            = reinterpret_cast<uint64 (*)(byte8*, byte8*, byte8*, uint64, uint64)>(appBaseAddr + 0x1B84E0)(table, slot, entry, arg4, arg5);
+    static uint32 count    = 0;
+    if (!(result & 0xFF) && count++ < 16) {
+        auto path = *reinterpret_cast<const char**>(entry + 8);
+        auto size = reinterpret_cast<uint32 (*)(byte8*, byte8*)>(appBaseAddr + 0x1B7B90)(table, slot);
+        auto exists = reinterpret_cast<int32 (*)(byte8*, byte8*)>(appBaseAddr + 0x1B79E0)(table, slot);
+        Log("SubmitResourceLoad failed: '%s' alloc size %u exists %d scratch mode %u buffer %llX handle arena before %llX after %llX heap flags %u %u %u", path, size,
+            exists, table[0x6760], *reinterpret_cast<uint64*>(slot + 0x20), handleArenaBefore, *reinterpret_cast<uint64*>(slot + 0x30), appBaseAddr[0xCA8AB0],
+            appBaseAddr[0xCA8AB1], appBaseAddr[0xCA8AB2]);
+        LogHeapArenas();
+        LogReadQueues();
+    }
+    return result;
+}
+
+static void HookSubmitResourceLoad() {
+    auto thunk = HighAlloc(16);
+    if (!thunk) {
+        Log("HookSubmitResourceLoad: HighAlloc failed.");
+        return;
+    }
+    // mov rax,imm64 / jmp rax
+    byte8 code[] = {0x48, 0xB8, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xE0};
+    auto target  = reinterpret_cast<uint64>(&LoggedSubmitResourceLoad);
+    CopyMemory(code + 2, &target, 8);
+    CopyMemory(thunk, code, sizeof(code));
+    WriteCall((appBaseAddr + 0x1B8E4A), thunk);
+    Log("HookSubmitResourceLoad installed");
+}
+
 // Render handle dispatch (sub_14002CC10): table[(handle & 0x3FFF) >> 2] at dmc3.exe+5E1830 holds the object, then
 // dmc3.exe+2CC95 - FF 50 08 - call qword ptr [rax+08]. A stale/poisoned object has [obj] = -1 and faults here.
 static LONG CALLBACK RenderHandleGuard(PEXCEPTION_POINTERS info) {
@@ -259,6 +440,8 @@ bool Memory_Init() {
     }
     Log("Memlimit: d3d %u heap %u blocks %u pools %u (1 = patch off)", MemTest("nod3d"), MemTest("noheap"), MemTest("noblocks"), MemTest("nopools"));
     AddVectoredExceptionHandler(1, RenderHandleGuard);
+    AddVectoredExceptionHandler(1, MenuResourceGuard);
+    HookSubmitResourceLoad();
     // 256 actually
 
     // Increase main memory from 260 MB to 512 MB.
@@ -280,6 +463,15 @@ bool Memory_Init() {
         constexpr uint32 size = (128 * 1024 * 1024);
         Write<uint32>((appBaseAddr + 0x2C6065), size);
         Write<uint32>((appBaseAddr + 0x2C6082), size);
+    }
+
+    // Small heap (arena 2) from 4 MB to 128 MB (alloc size @ +2C6099, managed arena size @ +2C60B6, both immediates).
+    // CKernelHeap_Alloc_sub_1402C6150 routes every allocation to it while byte_140CA8AB1 is set, which hit the pause menu
+    // loading its 10 MB id430.pac and failing.
+    if (!MemTest("noheap")) {
+        constexpr uint32 size = (128 * 1024 * 1024);
+        Write<uint32>((appBaseAddr + 0x2C6099), size);
+        Write<uint32>((appBaseAddr + 0x2C60B6), size);
     }
 
     {
