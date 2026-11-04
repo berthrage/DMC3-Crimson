@@ -18,6 +18,28 @@ void HUD_UpdateHPBar(uint8 character);
 
 void HUD_UpdateLockOn(uint8 character);
 
+// Breadcrumb for the HUD model audit: which loader ran last.
+void HUD_NoteReload(const char* what);
+
+// Checks every HUD model's heap block (still allocated, command slots inside it, no overlap with another model) and logs the
+// first problem of each kind. True when something is wrong. See Splitscreen-Plan.md, crash in the reticle draw.
+bool HUD_AuditModels(const char* where);
+
+// Reloads all HUD models on the next tick; set after a HUD draw crash was caught.
+void HUD_RequestRepair();
+void HUD_RunRepair();
+
+// Per player images of the original HUD models the mod reloads (splitscreen). The returned flags say which groups
+// are empty for that player and have to be loaded (the loaders are HUD_Update*), or that the game rebuilt the HUD
+// objects so everything has to be loaded again.
+constexpr unsigned HUD_MODELS_TOP_BLANK    = 1;
+constexpr unsigned HUD_MODELS_BOTTOM_BLANK = 2;
+constexpr unsigned HUD_MODELS_CURSOR_BLANK = 4;
+constexpr unsigned HUD_MODELS_REBUILT      = 8;
+unsigned HUD_ActivatePlayerModels(int player);
+// Back to player 1's models only (splitscreen off); frees the other players' images.
+unsigned HUD_ReleasePlayerModels();
+
 // Bumped by every HUD_Update* loader so callers can tell when the icons changed under them.
 extern uint32 g_hudIconSerial;
 

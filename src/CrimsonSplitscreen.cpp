@@ -614,16 +614,43 @@ struct CockpitSlots {
 };
 CockpitSlots s_cockpitSlots;
 
-// What the HUD icon models currently show; -1 = unknown.
+// What each player's HUD icon models show; -1 = unknown. The models are per player images (HUD_ActivatePlayerModels).
 struct HudIcons {
 	int vergil  = -1;
+	int lockOn  = -1;
 	int style   = -1;
 	int melee   = -1;
 	int ranged  = -1;
-	uint32 serial = 0;
 };
-HudIcons s_hudIcons;
+HudIcons s_hudIcons[PLAYER_COUNT];
+uint32 s_hudSerial = 0; // g_hudIconSerial after our last sync; anything else means a loader ran elsewhere
 bool s_hudWasSplit = false;
+
+void ResetHudIcons() {
+	for (auto& icons : s_hudIcons) {
+		icons = {};
+	}
+}
+
+// What the swap of the live models found empty has to be loaded again.
+void ApplyModelFlags(unsigned flags, int player) {
+	if (flags & HUD_MODELS_REBUILT) {
+		ResetHudIcons();
+		return;
+	}
+	auto& icons = s_hudIcons[player];
+	if (flags & HUD_MODELS_TOP_BLANK) {
+		icons.vergil = -1;
+		icons.style  = -1;
+	}
+	if (flags & HUD_MODELS_BOTTOM_BLANK) {
+		icons.melee  = -1;
+		icons.ranged = -1;
+	}
+	if (flags & HUD_MODELS_CURSOR_BLANK) {
+		icons.lockOn = -1;
+	}
+}
 
 uint8_t* PlayerMainActor(int player) {
 	auto& playerData = GetPlayerData(static_cast<uint8>(player));
@@ -696,9 +723,10 @@ void SyncHudIcons(uint8_t* actorAddr, int player) {
 	auto& playerData    = GetPlayerData(static_cast<uint8>(player));
 	auto& characterData = GetCharacterData(static_cast<uint8>(player), playerData.activeCharacterIndex, ENTITY::MAIN);
 
-	if (s_hudIcons.serial != g_hudIconSerial) {
-		s_hudIcons = {};
+	if (s_hudSerial != g_hudIconSerial) {
+		ResetHudIcons();
 	}
+	auto& icons = s_hudIcons[player];
 
 	const uint8 character = actor.character;
 	const int vergil      = (character == CHARACTER::BOB || character == CHARACTER::VERGIL) ? 1 : 0;
@@ -706,29 +734,32 @@ void SyncHudIcons(uint8_t* actorAddr, int player) {
 	const int melee       = (characterData.meleeWeaponIndex < MELEE_WEAPON_COUNT) ? characterData.meleeWeapons[characterData.meleeWeaponIndex] : -1;
 	const int ranged      = (characterData.rangedWeaponIndex < RANGED_WEAPON_COUNT) ? characterData.rangedWeapons[characterData.rangedWeaponIndex] : -1;
 
-	if (vergil != s_hudIcons.vergil) {
+	if (vergil != icons.vergil) {
 		HUD_UpdateHPBar(character);
 		HUD_UpdateDevilTriggerGauge(character);
 		HUD_UpdateDevilTriggerLightning(character);
 		HUD_UpdateDevilTriggerExplosion(character);
-		HUD_UpdateLockOn(character);
-		s_hudIcons.style = -1;
+		icons.style = -1;
 	}
-	if (style != s_hudIcons.style && style < STYLE::MAX) {
+	if (vergil != icons.lockOn) {
+		HUD_UpdateLockOn(character);
+	}
+	if (style != icons.style && style < STYLE::MAX) {
 		HUD_UpdateStyleIcon(static_cast<uint8>(style), character);
 	}
-	if (melee != s_hudIcons.melee && melee >= 0) {
+	if (melee != icons.melee && melee >= 0) {
 		HUD_UpdateWeaponIcon(HUD_BOTTOM::MELEE_WEAPON_1, static_cast<uint8>(melee));
 	}
-	if (ranged != s_hudIcons.ranged && ranged >= 0) {
+	if (ranged != icons.ranged && ranged >= 0) {
 		HUD_UpdateWeaponIcon(HUD_BOTTOM::RANGED_WEAPON_1, static_cast<uint8>(ranged));
 	}
 
-	s_hudIcons.vergil  = vergil;
-	s_hudIcons.style   = style;
-	s_hudIcons.melee   = melee;
-	s_hudIcons.ranged  = ranged;
-	s_hudIcons.serial  = g_hudIconSerial;
+	icons.vergil  = vergil;
+	icons.lockOn  = vergil;
+	icons.style   = style;
+	icons.melee   = melee;
+	icons.ranged  = ranged;
+	s_hudSerial   = g_hudIconSerial;
 }
 
 // UpdateCUIDCockpit00_sub_14027C0F0
@@ -737,6 +768,7 @@ void SyncHudIcons(uint8_t* actorAddr, int player) {
 // (HP/DT smoothing, alpha timers) per player.
 void __fastcall CockpitUpdateHook(uint8_t* cockpit) {
 	const auto original = s_cockpitUpdateHook->GetTrampoline<CockpitFn>();
+	HUD_RunRepair();
 	auto* pool = *reinterpret_cast<uintptr_t**>(appBaseAddr + PLAYER_POOL_OFFSET);
 
 	// A new cockpit object (new room / mission) starts from clean state and icon models.
@@ -746,7 +778,7 @@ void __fastcall CockpitUpdateHook(uint8_t* cockpit) {
 		for (bool& valid : s_cockpitSlots.valid) {
 			valid = false;
 		}
-		s_hudIcons = {};
+		ResetHudIcons();
 		s_hudWasSplit = false;
 	}
 
@@ -755,6 +787,7 @@ void __fastcall CockpitUpdateHook(uint8_t* cockpit) {
 		if (s_hudWasSplit && cockpit && pool && !CrimsonSplitscreen::GateOpen() && InGame() && !g_inGameCutscene) {
 			s_hudWasSplit = false;
 			ResetCockpitSmoothing(cockpit + COCKPIT_STATE_BEGIN);
+			ApplyModelFlags(HUD_ReleasePlayerModels(), 0);
 			if (auto* mainActor = PlayerMainActor(0)) {
 				SyncHudIcons(mainActor, 0);
 			}
@@ -774,6 +807,10 @@ void __fastcall CockpitUpdateHook(uint8_t* cockpit) {
 	}
 	s_hudWasSplit = true;
 
+	if (s_hudSerial != g_hudIconSerial) {
+		ResetHudIcons();
+	}
+	ApplyModelFlags(HUD_ActivatePlayerModels(player), player);
 	SyncHudIcons(actor, player);
 
 	constexpr size_t stateSize = COCKPIT_STATE_END - COCKPIT_STATE_BEGIN;
@@ -806,6 +843,7 @@ LockOnCursorSlots s_lockOnSlots;
 // player's actor and keep the lists per player (the draw, vtable slot 2, only submits what the update just set).
 void __fastcall LockOnCursorUpdateHook(uint8_t* cursor) {
 	const auto original = s_lockOnCursorUpdateHook->GetTrampoline<CockpitFn>();
+	HUD_AuditModels("lock-on update");
 	auto* pool = *reinterpret_cast<uintptr_t**>(appBaseAddr + PLAYER_POOL_OFFSET);
 
 	static uint8_t* s_lastCursor = nullptr;
