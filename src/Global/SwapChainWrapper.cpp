@@ -35,6 +35,21 @@ SwapChainWrapper::~SwapChainWrapper() {
         m_real->Release();
 }
 
+void SwapChainWrapper::ReleaseReal() {
+    if (!m_real) {
+        return;
+    }
+
+    // The creator's reference and the one taken in the constructor are both ours.
+    for (int attempt = 0; attempt < 4; attempt++) {
+        if (m_real->Release() == 0) {
+            break;
+        }
+    }
+
+    m_real = nullptr;
+}
+
 // IUnknown
 
 HRESULT STDMETHODCALLTYPE SwapChainWrapper::QueryInterface(REFIID riid, void** ppv) {
@@ -287,14 +302,14 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
 
     // PresentFlags
     UINT presentFlags = Flags;
-    if (CrimsonResolution::StartedWithFlipModel()) {
+    if (CrimsonResolution::UsesFlipModel()) {
         if (SyncInterval == 0)
             presentFlags = DXGI_PRESENT_ALLOW_TEARING;
     }
 
     // Poll the frame latency waitable — non-blocking, just lets the
     // FPS limiter naturally back-pressure if the GPU is behind.
-    if (CrimsonResolution::StartedWithFlipModel() && g_frameLatencyWaitableObject != nullptr) {
+    if (CrimsonResolution::UsesFlipModel() && g_frameLatencyWaitableObject != nullptr) {
         WaitForSingleObject(g_frameLatencyWaitableObject, 0);
     }
 
@@ -361,7 +376,7 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
     }
 
     // Live resolution change, between frames so nothing is drawing into the old targets.
-    CrimsonResolution::ApplyPending(m_real, m_context);
+    CrimsonResolution::ApplyPending(this);
 
     // Occluded
     if (hr == 0x087A0001) {

@@ -10,7 +10,7 @@
 #include "Core/GUI.hpp"
 
 #include <string>
-#include <vector>
+#include <dxgi1_3.h>#include <vector>
 #include <map>
 #include <algorithm>
 #include <tuple>
@@ -24,7 +24,9 @@ uint32 g_gameWidth  = 0; // the game's own configured resolution
 uint32 g_gameHeight = 0;
 bool g_pending      = false;
 
-int32 g_startupMode = DISPLAYMODE::BORDERLESS_FULLSCREEN;
+bool g_flipActive = true;                                 // the swap chain in use is a flip model one
+int32 g_appliedMode = DISPLAYMODE::BORDERLESS_FULLSCREEN; // the display mode last applied successfully
+int g_exclusiveMonitor = 0; // monitor Legacy Fullscreen is currently on
 
 struct Monitor {
     std::wstring device;
@@ -309,10 +311,86 @@ void BuildResolutions(int monitorIndex) {
     }
 }
 
+// The DXGI output of a detected monitor, on the swap chain's adapter. Null when it belongs to another adapter.
+IDXGIOutput* FindOutput(IDXGISwapChain* swapChain, int monitorIndex) {
+    IDXGIDevice* dxgiDevice = nullptr;
+
+    if (FAILED(swapChain->GetDevice(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice))) || !dxgiDevice) {
+        return nullptr;
+    }
+
+    IDXGIAdapter* adapter = nullptr;
+    dxgiDevice->GetAdapter(&adapter);
+    dxgiDevice->Release();
+
+    if (!adapter) {
+        return nullptr;
+    }
+
+    IDXGIOutput* found = nullptr;
+    auto& device       = g_monitors[ClampMonitor(monitorIndex)].device;
+
+    for (UINT index = 0; !found; index++) {
+        IDXGIOutput* output = nullptr;
+
+        if (adapter->EnumOutputs(index, &output) == DXGI_ERROR_NOT_FOUND) {
+            break;
+        }
+
+        DXGI_OUTPUT_DESC desc = {};
+
+        if (SUCCEEDED(output->GetDesc(&desc)) && device == desc.DeviceName) {
+            found = output;
+        } else {
+            output->Release();
+        }
+    }
+
+    adapter->Release();
+
+    return found;
+}
+
+// Leaves exclusive fullscreen, moves the window and enters it again on the other monitor. Best effort: on failure it
+// tries to go back to the old monitor.
+bool MoveExclusiveToMonitor(IDXGISwapChain* swapChain, int newMonitor, int oldMonitor) {
+    auto output = FindOutput(swapChain, newMonitor);
+
+    if (!output) {
+        Log("%s no DXGI output for monitor %d", FUNC_NAME, newMonitor);
+        return false;
+    }
+
+    auto place = [](int monitor) {
+        auto rect = MonitorRect(monitor);
+        SetWindowPos(appWindow, HWND_TOP, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_NOOWNERZORDER);
+    };
+
+    swapChain->SetFullscreenState(FALSE, nullptr);
+    place(newMonitor);
+
+    HRESULT result = swapChain->SetFullscreenState(TRUE, output);
+    output->Release();
+
+    if (SUCCEEDED(result)) {
+        return true;
+    }
+
+    Log("%s SetFullscreenState on monitor %d failed: %X", FUNC_NAME, newMonitor, result);
+
+    if (auto previous = FindOutput(swapChain, oldMonitor)) {
+        place(oldMonitor);
+        swapChain->SetFullscreenState(TRUE, previous);
+        previous->Release();
+    }
+
+    return false;
+}
+
 } // namespace
 
-bool StartedWithFlipModel() {
-    return g_startupMode != DISPLAYMODE::EXCLUSIVE_FULLSCREEN;
+bool UsesFlipModel() {
+    return g_flipActive;
 }
 
 std::vector<std::string>& MonitorNames() {
@@ -429,10 +507,10 @@ static void ApplyWindowLayout(HWND window) {
         SetWindowPos(window, HWND_NOTOPMOST, monitor.left + std::max(0, (monitorW - width) / 2),
             monitor.top + std::max(0, (monitorH - height) / 2), width, height, SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
     } else {
-        if (system.Mode() == DISPLAYMODE::BORDERLESS_FULLSCREEN) {
-            SetWindowLongA(window, GWL_STYLE, WS_POPUP | WS_VISIBLE);
-            SetWindowLongA(window, GWL_EXSTYLE, WS_EX_APPWINDOW);
-        }
+        // Fullscreen and Legacy Fullscreen are both a monitor sized popup.
+        // WS_SYSMENU is needed for Alt+F4 to close the window.
+        SetWindowLongA(window, GWL_STYLE, WS_POPUP | WS_SYSMENU | WS_VISIBLE);
+        SetWindowLongA(window, GWL_EXSTYLE, WS_EX_APPWINDOW);
 
         SetWindowPos(window, HWND_TOP, monitor.left, monitor.top, monitorW, monitorH, SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
     }
@@ -449,7 +527,9 @@ void InitStartup() {
     auto& system = activeCrimsonConfig.System;
 
     system.windowMode = std::clamp<int32>(system.windowMode, 0, WINDOWMODE::COUNT - 1);
-    g_startupMode     = system.Mode();
+    g_appliedMode      = system.Mode();
+    g_flipActive       = (g_appliedMode != DISPLAYMODE::EXCLUSIVE_FULLSCREEN);
+    g_exclusiveMonitor = ClampMonitor(system.monitorIndex);
 
     auto userConfig    = appBaseAddr + userConfigRva;
     auto& configWidth  = *reinterpret_cast<uint32*>(userConfig + 0x670);
@@ -510,14 +590,15 @@ void PlaceWindowAtStartup(HWND window) {
 void ApplyDisplaySettings() {
     auto mode = activeCrimsonConfig.System.Mode();
 
-    // The swap chain type is fixed for the session, switching to or from Legacy Fullscreen needs a restart.
-    if (!appWindow || (mode == DISPLAYMODE::EXCLUSIVE_FULLSCREEN) == StartedWithFlipModel()) {
+    if (!appWindow) {
         return;
     }
 
-    // Legacy Fullscreen changes its display mode with the resolution instead of moving a window.
-    if (mode != DISPLAYMODE::EXCLUSIVE_FULLSCREEN) {
+    // Moving the window only applies to the swap chain in use. Switching between flip model and Legacy Fullscreen
+    // happens in ApplyPending, which lays the window out for the new mode itself.
+    if (mode != DISPLAYMODE::EXCLUSIVE_FULLSCREEN && g_flipActive) {
         ApplyWindowLayout(appWindow);
+        g_appliedMode = mode;
     }
 
     RequestApply();
@@ -526,7 +607,7 @@ void ApplyDisplaySettings() {
 void ToggleBorderless() {
     auto& active = activeCrimsonConfig.System;
 
-    if (!StartedWithFlipModel() || active.Mode() == DISPLAYMODE::EXCLUSIVE_FULLSCREEN) {
+    if (!g_flipActive || active.Mode() == DISPLAYMODE::EXCLUSIVE_FULLSCREEN) {
         return;
     }
 
@@ -557,16 +638,220 @@ void RequestApply() {
     g_pending = true;
 }
 
-void ApplyPending(IDXGISwapChain* swapChain, ID3D11DeviceContext* context) {
+enum class SwitchResult { Switched, Recovered, Failed };
+
+static IDXGIAdapter* GetAdapter(ID3D11Device* device) {
+    IDXGIDevice* dxgiDevice = nullptr;
+
+    if (FAILED(device->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice))) || !dxgiDevice) {
+        return nullptr;
+    }
+
+    IDXGIAdapter* adapter = nullptr;
+    dxgiDevice->GetAdapter(&adapter);
+    dxgiDevice->Release();
+
+    return adapter;
+}
+
+// A flip model swap chain for Fullscreen and Windowed.
+static IDXGISwapChain* CreateFlipSwapChain(ID3D11Device* device, HWND window, uint32 width, uint32 height) {
+    auto adapter = GetAdapter(device);
+
+    if (!adapter) {
+        return nullptr;
+    }
+
+    IDXGIFactory2* factory = nullptr;
+    adapter->GetParent(__uuidof(IDXGIFactory2), reinterpret_cast<void**>(&factory));
+    adapter->Release();
+
+    if (!factory) {
+        return nullptr;
+    }
+
+    DXGI_SWAP_CHAIN_DESC1 desc = {};
+    desc.Width                 = width;
+    desc.Height                = height;
+    desc.Format                = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.SampleDesc.Count      = 1;
+    desc.BufferUsage           = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    desc.BufferCount           = 2;
+    desc.Scaling               = DXGI_SCALING_STRETCH;
+    desc.SwapEffect            = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    desc.AlphaMode             = DXGI_ALPHA_MODE_UNSPECIFIED;
+    desc.Flags                 = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+
+    DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreen = {};
+    fullscreen.Windowed                        = TRUE;
+
+    IDXGISwapChain1* swapChain = nullptr;
+    HRESULT result             = factory->CreateSwapChainForHwnd(device, window, &desc, &fullscreen, nullptr, &swapChain);
+
+    if (SUCCEEDED(result)) {
+        factory->MakeWindowAssociation(window, DXGI_MWA_NO_ALT_ENTER | DXGI_MWA_NO_WINDOW_CHANGES);
+    }
+
+    factory->Release();
+
+    if (FAILED(result) || !swapChain) {
+        Log("%s CreateSwapChainForHwnd failed: %X", FUNC_NAME, result);
+        return nullptr;
+    }
+
+    // Same low latency setup as when the game starts in a flip model mode.
+    IDXGISwapChain2* swapChain2 = nullptr;
+
+    if (SUCCEEDED(swapChain->QueryInterface(__uuidof(IDXGISwapChain2), reinterpret_cast<void**>(&swapChain2))) && swapChain2) {
+        swapChain2->SetMaximumFrameLatency(1);
+
+        g_frameLatencyWaitableObject = swapChain2->GetFrameLatencyWaitableObject();
+        g_flipModelLatencyOptimized  = (g_frameLatencyWaitableObject != nullptr);
+
+        swapChain2->Release();
+    }
+
+    return swapChain;
+}
+
+// The game's own kind of swap chain, taken into exclusive fullscreen on the selected monitor.
+static IDXGISwapChain* CreateLegacySwapChain(ID3D11Device* device, HWND window, uint32 width, uint32 height, int monitor) {
+    auto adapter = GetAdapter(device);
+
+    if (!adapter) {
+        return nullptr;
+    }
+
+    IDXGIFactory* factory = nullptr;
+    adapter->GetParent(__uuidof(IDXGIFactory), reinterpret_cast<void**>(&factory));
+    adapter->Release();
+
+    if (!factory) {
+        return nullptr;
+    }
+
+    DXGI_SWAP_CHAIN_DESC desc         = {};
+    desc.BufferDesc.Width             = width;
+    desc.BufferDesc.Height            = height;
+    desc.BufferDesc.Format            = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.BufferDesc.RefreshRate       = {60, 1};
+    desc.BufferUsage                  = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    desc.SampleDesc.Count             = 1;
+    desc.BufferCount                  = 1;
+    desc.OutputWindow                 = window;
+    desc.Windowed                     = TRUE;
+    desc.SwapEffect                   = DXGI_SWAP_EFFECT_DISCARD;
+
+    IDXGISwapChain* swapChain = nullptr;
+    HRESULT result            = factory->CreateSwapChain(device, &desc, &swapChain);
+
+    if (SUCCEEDED(result)) {
+        factory->MakeWindowAssociation(window, DXGI_MWA_NO_ALT_ENTER | DXGI_MWA_NO_WINDOW_CHANGES);
+    }
+
+    factory->Release();
+
+    if (FAILED(result) || !swapChain) {
+        Log("%s CreateSwapChain failed: %X", FUNC_NAME, result);
+        return nullptr;
+    }
+
+    auto output = FindOutput(swapChain, monitor);
+
+    result = swapChain->SetFullscreenState(TRUE, output);
+
+    if (output) {
+        output->Release();
+    }
+
+    if (FAILED(result)) {
+        Log("%s SetFullscreenState failed: %X", FUNC_NAME, result);
+        swapChain->Release();
+        return nullptr;
+    }
+
+    // Switch the monitor to the resolution of the buffers.
+    DXGI_MODE_DESC mode = desc.BufferDesc;
+    mode.RefreshRate    = {0, 0};
+
+    swapChain->ResizeTarget(&mode);
+    swapChain->ResizeBuffers(1, width, height, DXGI_FORMAT_UNKNOWN, 0);
+
+    return swapChain;
+}
+
+// The mode the display settings were applied in last, put back into the active config after a failed switch.
+static void RevertActiveMode() {
+    auto& active = activeCrimsonConfig.System;
+
+    active.windowMode       = (g_appliedMode == DISPLAYMODE::WINDOWED) ? WINDOWMODE::WINDOWED : WINDOWMODE::FULLSCREEN;
+    active.legacyFullscreen = (g_appliedMode == DISPLAYMODE::EXCLUSIVE_FULLSCREEN);
+}
+
+// Replaces the wrapper's swap chain with one of the other kind. The window can only have one swap chain, so the old
+// one goes first. If the new one can't be created the old kind is created again.
+static SwitchResult SwitchSwapChain(SwapChainWrapper* wrapper, bool wantFlip, uint32 width, uint32 height, uint32 oldWidth, uint32 oldHeight) {
+    auto device = wrapper->GetD3D11Device();
+    auto window = wrapper->GetHWND();
+    auto old    = wrapper->GetReal();
+
+    BOOL fullscreen = FALSE;
+    old->GetFullscreenState(&fullscreen, nullptr);
+
+    if (fullscreen) {
+        old->SetFullscreenState(FALSE, nullptr);
+    }
+
+    g_frameLatencyWaitableObject = nullptr;
+    g_flipModelLatencyOptimized  = false;
+
+    wrapper->ReleaseReal();
+
+    auto create = [&](bool flip, uint32 createWidth, uint32 createHeight) -> IDXGISwapChain* {
+        // The window follows the active display mode.
+        ApplyWindowLayout(window);
+
+        if (flip) {
+            return CreateFlipSwapChain(device, window, createWidth, createHeight);
+        }
+
+        return CreateLegacySwapChain(device, window, createWidth, createHeight, activeCrimsonConfig.System.monitorIndex);
+    };
+
+    auto swapChain = create(wantFlip, width, height);
+    auto result    = SwitchResult::Switched;
+
+    if (!swapChain) {
+        Log("%s switching to %s failed, going back", FUNC_NAME, wantFlip ? "flip model" : "Legacy Fullscreen");
+
+        RevertActiveMode();
+
+        swapChain = create(!wantFlip, oldWidth, oldHeight);
+        result    = SwitchResult::Recovered;
+    }
+
+    if (!swapChain) {
+        Log("%s could not create a swap chain", FUNC_NAME);
+        return SwitchResult::Failed;
+    }
+
+    wrapper->SetReal(swapChain);
+
+    return result;
+}
+
+void ApplyPending(SwapChainWrapper* wrapper) {
     if (!g_pending) {
         return;
     }
 
     g_pending = false;
 
-    auto mode = activeCrimsonConfig.System.Mode();
+    auto context   = wrapper->GetD3D11Context();
+    auto swapChain = wrapper->GetReal();
+    auto mode      = activeCrimsonConfig.System.Mode();
 
-    if ((mode == DISPLAYMODE::EXCLUSIVE_FULLSCREEN) == StartedWithFlipModel() || !g_gameWidth || !g_gameHeight) {
+    if (!g_gameWidth || !g_gameHeight) {
         return;
     }
 
@@ -581,11 +866,19 @@ void ApplyPending(IDXGISwapChain* swapChain, ID3D11DeviceContext* context) {
     uint32 height = 0;
     GetRenderSize(width, height);
 
-    if (width == oldWidth && height == oldHeight) {
+    const bool wantFlip     = (mode != DISPLAYMODE::EXCLUSIVE_FULLSCREEN);
+    const bool switchChain  = (wantFlip != g_flipActive);
+
+    // Legacy Fullscreen can be moved to another monitor while playing.
+    const bool monitorChange = !switchChain && (mode == DISPLAYMODE::EXCLUSIVE_FULLSCREEN) &&
+                               ClampMonitor(activeCrimsonConfig.System.monitorIndex) != g_exclusiveMonitor;
+
+    if (width == oldWidth && height == oldHeight && !monitorChange && !switchChain) {
         return;
     }
 
-    Log("%s %ux%u -> %ux%u", FUNC_NAME, oldWidth, oldHeight, width, height);
+    Log("%s %ux%u -> %ux%u%s%s", FUNC_NAME, oldWidth, oldHeight, width, height, monitorChange ? " (monitor change)" : "",
+        switchChain ? " (swap chain change)" : "");
 
     // Nothing may reference the old buffers when the swap chain is resized.
     context->OMSetRenderTargets(0, nullptr, nullptr);
@@ -598,42 +891,72 @@ void ApplyPending(IDXGISwapChain* swapChain, ID3D11DeviceContext* context) {
     RemoveRenderTarget();
     ReleaseCom(render + backBufferTarget, targetTextureOffset);
 
-    DXGI_SWAP_CHAIN_DESC desc = {};
-    swapChain->GetDesc(&desc);
+    if (switchChain) {
+        auto outcome = SwitchSwapChain(wrapper, wantFlip, width, height, oldWidth, oldHeight);
 
-    HRESULT result = S_OK;
+        if (outcome == SwitchResult::Failed) {
+            return;
+        }
 
-    // In Exclusive Fullscreen the monitor's display mode has to change first.
-    if (mode == DISPLAYMODE::EXCLUSIVE_FULLSCREEN) {
-        DXGI_MODE_DESC target = desc.BufferDesc;
-        target.Width          = width;
-        target.Height         = height;
-        target.RefreshRate    = {0, 0};
+        swapChain = wrapper->GetReal();
 
-        result = swapChain->ResizeTarget(&target);
+        if (outcome == SwitchResult::Recovered) {
+            width  = oldWidth;
+            height = oldHeight;
+        } else {
+            g_flipActive       = wantFlip;
+            g_appliedMode      = mode;
+            g_exclusiveMonitor = ClampMonitor(activeCrimsonConfig.System.monitorIndex);
+        }
+    } else {
+        DXGI_SWAP_CHAIN_DESC desc = {};
+        swapChain->GetDesc(&desc);
+
+        if (monitorChange) {
+            const int newMonitor = ClampMonitor(activeCrimsonConfig.System.monitorIndex);
+
+            if (MoveExclusiveToMonitor(swapChain, newMonitor, g_exclusiveMonitor)) {
+                g_exclusiveMonitor = newMonitor;
+            } else {
+                // Back on the old monitor, the change waits for a restart.
+                activeCrimsonConfig.System.monitorIndex = g_exclusiveMonitor;
+            }
+        }
+
+        HRESULT result = S_OK;
+
+        // In Exclusive Fullscreen the monitor's display mode has to change first.
+        if (mode == DISPLAYMODE::EXCLUSIVE_FULLSCREEN) {
+            DXGI_MODE_DESC target = desc.BufferDesc;
+            target.Width          = width;
+            target.Height         = height;
+            target.RefreshRate    = {0, 0};
+
+            result = swapChain->ResizeTarget(&target);
+
+            if (FAILED(result)) {
+                Log("%s ResizeTarget failed: %X", FUNC_NAME, result);
+            }
+        }
+
+        if (SUCCEEDED(result)) {
+            result = swapChain->ResizeBuffers(desc.BufferCount, width, height, DXGI_FORMAT_UNKNOWN, desc.Flags);
+        }
 
         if (FAILED(result)) {
-            Log("%s ResizeTarget failed: %X", FUNC_NAME, result);
+            Log("%s resize failed: %X", FUNC_NAME, result);
+
+            if (mode == DISPLAYMODE::EXCLUSIVE_FULLSCREEN) {
+                DXGI_MODE_DESC previous = desc.BufferDesc;
+                swapChain->ResizeTarget(&previous);
+            }
+
+            swapChain->ResizeBuffers(desc.BufferCount, oldWidth, oldHeight, DXGI_FORMAT_UNKNOWN, desc.Flags);
+            AttachBackBuffer(render, swapChain, oldWidth, oldHeight);
+            CreateRenderTarget();
+
+            return;
         }
-    }
-
-    if (SUCCEEDED(result)) {
-        result = swapChain->ResizeBuffers(desc.BufferCount, width, height, DXGI_FORMAT_UNKNOWN, desc.Flags);
-    }
-
-    if (FAILED(result)) {
-        Log("%s resize failed: %X", FUNC_NAME, result);
-
-        if (mode == DISPLAYMODE::EXCLUSIVE_FULLSCREEN) {
-            DXGI_MODE_DESC previous = desc.BufferDesc;
-            swapChain->ResizeTarget(&previous);
-        }
-
-        swapChain->ResizeBuffers(desc.BufferCount, oldWidth, oldHeight, DXGI_FORMAT_UNKNOWN, desc.Flags);
-        AttachBackBuffer(render, swapChain, oldWidth, oldHeight);
-        CreateRenderTarget();
-
-        return;
     }
 
     *renderWidth  = width;

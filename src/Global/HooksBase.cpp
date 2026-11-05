@@ -398,7 +398,7 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
     }
 
     // Alt+Enter switches between Borderless Fullscreen and Windowed unless the game started in Exclusive Fullscreen
-    if (CrimsonResolution::StartedWithFlipModel()) {
+    if (CrimsonResolution::UsesFlipModel()) {
         // Handle Alt+Enter 
         if (message == WM_SYSKEYDOWN && wParameter == VK_RETURN && (lParameter & (1 << 29))) {
             if (GetForegroundWindow() == windowHandle && !g_window.borderless.altPressed) {
@@ -753,12 +753,12 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
 	// The window exists now: put it on the selected monitor before the swap chain (and exclusive fullscreen) picks its output.
 	CrimsonResolution::PlaceWindowAtStartup(pSwapChainDesc->OutputWindow);
 
-	if (CrimsonResolution::StartedWithFlipModel() && 
+	if (CrimsonResolution::UsesFlipModel() && 
 		modifiedSwapChainDesc.SampleDesc.Count == 1 && modifiedSwapChainDesc.SampleDesc.Quality == 0) {
 		flipModelEnabled = true;
 		SetProcessDPIAware();
 		Log("SetProcessDPIAware() called for consistent DPI scaling");
-	} else if (!CrimsonResolution::StartedWithFlipModel()) {
+	} else if (!CrimsonResolution::UsesFlipModel()) {
 		Log("Exclusive Fullscreen selected - using original swap chain settings");
 	} else {
 		Log("Cannot enable flip model - MSAA detected (Count: %u, Quality: %u)", 
@@ -981,7 +981,7 @@ HRESULT GetDeviceStateA(IDirectInputDevice8A* pDevice, DWORD BufferSize, LPVOID 
     HRESULT result = ::Base::DI8::GetDeviceStateA ? ::Base::DI8::GetDeviceStateA(pDevice, BufferSize, Buffer) : S_OK;
     
     // Only intercept Alt+Enter if flip model presentation is enabled
-    if (BufferSize == 256 && Buffer && result == S_OK && CrimsonResolution::StartedWithFlipModel()) {
+    if (BufferSize == 256 && Buffer && result == S_OK && CrimsonResolution::UsesFlipModel()) {
         BYTE* keys = static_cast<BYTE*>(Buffer);
         
         // DirectInput scan codes 

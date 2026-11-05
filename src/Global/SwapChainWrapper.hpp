@@ -45,6 +45,11 @@ public:
     ID3D11DeviceContext* GetD3D11Context()  const { return m_context; }
     HWND                 GetHWND()          const { return m_hWnd; }
 
+    // Swaps the real swap chain while the game keeps its pointer to the wrapper. ReleaseReal drops every reference
+    // the wrapper holds, SetReal takes over the one reference of a freshly created swap chain.
+    void ReleaseReal();
+    void SetReal(IDXGISwapChain* real) { m_real = real; }
+
 private:
     IDXGISwapChain*      m_real;
     ID3D11Device*        m_device;

@@ -10123,37 +10123,16 @@ const char* Graphics_windowModeNames[WINDOWMODE::COUNT] = {
     "Windowed",
 };
 
-// The display mode this session can apply right away. Legacy Fullscreen is fixed at startup, so turning it on or off
-// only takes effect after a restart and doesn't change what the options below do now.
-static int32 LiveDisplayMode() {
-    auto& queued = queuedCrimsonConfig.System;
-
-    if (queued.windowMode == WINDOWMODE::WINDOWED) {
-        return DISPLAYMODE::WINDOWED;
-    }
-
-    return CrimsonResolution::StartedWithFlipModel() ? DISPLAYMODE::BORDERLESS_FULLSCREEN : DISPLAYMODE::EXCLUSIVE_FULLSCREEN;
-}
-
-// Display settings changed in the GUI. They apply right away, except switching between Legacy Fullscreen
-// and Windowed (the swap chain type is fixed for the session) and changing the monitor in Legacy Fullscreen,
-// which wait for a restart.
+// Display settings changed in the GUI. They apply right away, including switching between Legacy Fullscreen
+// and Fullscreen/Windowed. Anything that can't be applied (a swap chain that can't be created, another monitor
+// in Legacy Fullscreen) is put back and waits for a restart.
 static void ApplyDisplayChange() {
     auto& active = activeCrimsonConfig.System;
     auto& queued = queuedCrimsonConfig.System;
 
-    const bool exclusiveSession = !CrimsonResolution::StartedWithFlipModel();
-
-    if (exclusiveSession && LiveDisplayMode() != DISPLAYMODE::EXCLUSIVE_FULLSCREEN) {
-        return;
-    }
-
-    active.windowMode = queued.windowMode;
-
-    if (!exclusiveSession) {
-        active.monitorIndex = queued.monitorIndex;
-    }
-
+    active.windowMode                = queued.windowMode;
+    active.legacyFullscreen          = queued.legacyFullscreen;
+    active.monitorIndex              = queued.monitorIndex;
     active.resolutionWidth           = queued.resolutionWidth;
     active.resolutionHeight          = queued.resolutionHeight;
     active.internalResolutionPercent = queued.internalResolutionPercent;
@@ -10327,7 +10306,7 @@ void SystemSection(size_t defaultFontSize) {
 		auto& queuedSystem  = queuedCrimsonConfig.System;
 		auto& defaultSystem = defaultCrimsonConfig.System;
 
-		const int32 liveMode  = LiveDisplayMode();
+		const int32 liveMode  = queuedSystem.Mode();
 		const bool borderless = (liveMode == DISPLAYMODE::BORDERLESS_FULLSCREEN);
 
 		static const char* resolutionTooltip =
@@ -10360,8 +10339,7 @@ void SystemSection(size_t defaultFontSize) {
 		}
 		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
 			ImGui::SetTooltip("Uses the game's original exclusive fullscreen mode instead of DXGI Flip Model, with the selected resolution.\n"
-				"Internal Resolution is not available. Changing the resolution applies right away.\n"
-				"Turning this on or off, or changing the monitor in it, requires a game restart.\n\n");
+				"Internal Resolution is not available. Anything that can't be applied waits for a game restart.");
 		}
 
 		GUI_PopDisable(queuedSystem.windowMode == WINDOWMODE::WINDOWED);
@@ -10400,9 +10378,8 @@ void SystemSection(size_t defaultFontSize) {
 
 		ImGui::Text("");
 
-		// Legacy Fullscreen renders at the display mode's resolution. Whether this is available is fixed for the session,
-		// turning Legacy Fullscreen on or off only changes it after a restart.
-		const bool legacySession = !CrimsonResolution::StartedWithFlipModel();
+		// Legacy Fullscreen renders at the display mode's resolution.
+		const bool legacySession = (liveMode == DISPLAYMODE::EXCLUSIVE_FULLSCREEN);
 		GUI_PushDisable(legacySession);
 
 		ImGui::PushItemWidth(itemWidth * 0.9f);
@@ -10415,7 +10392,7 @@ void SystemSection(size_t defaultFontSize) {
 		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
 			ImGui::SetTooltip("Resolution the game renders at, as a percentage of the resolution above.\n"
 				"Lower values boost performance, higher values supersample for a sharper image.\n"
-				"The image is stretched to fit the window. Not available in Legacy Fullscreen, which takes effect after a restart.\n\n%s", resolutionTooltip);
+				"The image is stretched to fit the window. Not available in Legacy Fullscreen.");
 		}
 
 		ImGui::PopItemWidth();

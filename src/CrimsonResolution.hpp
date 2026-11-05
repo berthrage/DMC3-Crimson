@@ -10,10 +10,12 @@
 // swap chain that is stretched to the window, which lets the internal resolution differ from the window resolution
 // and be changed while playing.
 
+class SwapChainWrapper;
+
 namespace CrimsonResolution {
 
-// True unless the game started in Exclusive Fullscreen. The swap chain type is fixed for the session.
-bool StartedWithFlipModel();
+// True while the swap chain in use is a flip model one, false in Legacy Fullscreen.
+bool UsesFlipModel();
 
 // Applies the display settings to the game's config before it creates its window. Call from the RegisterClassExW hook.
 void InitStartup();
@@ -49,7 +51,8 @@ void UpdateUiSize(uint32 bufferWidth, uint32 bufferHeight);
 // Queues a render resolution change, executed at the end of the next Present.
 void RequestApply();
 
-// Rebuilds the swap chain buffers and the game's render targets when a change was requested.
-void ApplyPending(IDXGISwapChain* swapChain, ID3D11DeviceContext* context);
+// Rebuilds the swap chain (or replaces it when switching to or from Legacy Fullscreen) and the game's render targets
+// when a change was requested.
+void ApplyPending(SwapChainWrapper* wrapper);
 
 } // namespace CrimsonResolution
