@@ -1177,6 +1177,12 @@ void HudTuningWindow(bool* open) {
 	HUD_DrawPivotMarker();
 
 	ImGui::Separator();
+	HUD_SplitWheelControls();
+	HUD_RedOrbControls();
+	HUD_StyleMeterControls(quads ? HUD_STYLE_QUADS : HUD_STYLE_HALVES);
+	HUD_VanillaStyleMeterControls(quads ? HUD_STYLE_QUADS : HUD_STYLE_HALVES);
+
+	ImGui::Separator();
 	ImGui::Text("Layout groups (raw)");
 	ImGui::TextWrapped("Raw matrix values: position = original * posScale + offset. Half of the frame width is %.1f units if the HUD is %.0f tall. "
 		"The top left group is the base the general controls adjust.", HUD_HEIGHT * s_frameAspect * 0.5f, HUD_HEIGHT);

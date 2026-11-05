@@ -37,6 +37,14 @@ enum {
 };
 }
 
+namespace SPLITSCREENWHEELS {
+enum {
+	NORMAL, // shows on a weapon switch / while switching, then fades out
+	PERSISTENT,
+	OFF,
+};
+}
+
 namespace STYLESDISPLAY {
 enum {
 	OFF,
@@ -156,6 +164,7 @@ struct CrimsonConfig {
 		bool hide = false;
 		uint8 worldSpaceWheels = HUDELEMENTSHOWSTATE::ONLY_IN_MP;
 		uint8 worldSpaceAlwaysShow = HUDELEMENTSHOWSTATE::OFF;
+		uint8 splitscreenWheels = SPLITSCREENWHEELS::PERSISTENT;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -167,7 +176,8 @@ struct CrimsonConfig {
 				std::make_pair("force1PMultiplayerPosScale", &WeaponWheel::force1PMultiplayerPosScale),
 				std::make_pair("hide", &WeaponWheel::hide),
 				std::make_pair("worldSpaceWheels", &WeaponWheel::worldSpaceWheels),
-				std::make_pair("worldSpaceAlwaysShow", &WeaponWheel::worldSpaceAlwaysShow)
+				std::make_pair("worldSpaceAlwaysShow", &WeaponWheel::worldSpaceAlwaysShow),
+				std::make_pair("splitscreenWheels", &WeaponWheel::splitscreenWheels)
 			);
 		}
 

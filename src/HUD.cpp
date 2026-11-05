@@ -17,6 +17,7 @@
 #include "Utility/Detour.hpp"
 #include "ImGui/imgui.h"
 
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <intrin.h>
@@ -782,6 +783,8 @@ constexpr uint32 TOP_SWAPPED[]    = {hudTopOffs[HUD_TOP::UPPER_HIT_POINTS_FRAME]
 	hudTopOffs[HUD_TOP::FLUX], hudTopOffs[HUD_TOP::DTEXPLOSION]};
 constexpr uint32 BOTTOM_SWAPPED[] = {hudBottomOffs[HUD_BOTTOM::RANGED_WEAPON_1], hudBottomOffs[HUD_BOTTOM::MELEE_WEAPON_1]};
 constexpr uint32 CURSOR_SWAPPED[] = {static_cast<uint32>(LOCKON_RETICLE)};
+// CUIDStylishCombo: the 7 rank models (0x780 apart from +0x6C0).
+constexpr uint32 COMBO_SWAPPED[]  = {0x6C0, 0xE40, 0x15C0, 0x1D40, 0x24C0, 0x2C40, 0x33C0};
 constexpr size_t MAX_SWAPPED = std::size(TOP_SWAPPED);
 
 struct ModelGroup {
@@ -794,10 +797,11 @@ struct ModelGroup {
 	alignas(16) uint8 saved[PLAYER_COUNT][MAX_SWAPPED][DRAW_MODEL_SIZE];
 };
 
-ModelGroup s_modelGroups[3] = {
+ModelGroup s_modelGroups[4] = {
 	{0x1B070, TOP_SWAPPED, std::size(TOP_SWAPPED)},
 	{0x1B078, BOTTOM_SWAPPED, std::size(BOTTOM_SWAPPED)},
 	{0x1B080, CURSOR_SWAPPED, std::size(CURSOR_SWAPPED)},
+	{0x1B090, COMBO_SWAPPED, std::size(COMBO_SWAPPED)},
 };
 
 byte8* GroupModel(ModelGroup& group, size_t i) {
@@ -829,7 +833,8 @@ void DetachModel(byte8* model) {
 	func_89270(modelData);
 }
 
-constexpr unsigned MODEL_GROUP_BLANK[3] = {HUD_MODELS_TOP_BLANK, HUD_MODELS_BOTTOM_BLANK, HUD_MODELS_CURSOR_BLANK};
+constexpr unsigned MODEL_GROUP_BLANK[4] = {HUD_MODELS_TOP_BLANK, HUD_MODELS_BOTTOM_BLANK, HUD_MODELS_CURSOR_BLANK, 16};
+constexpr unsigned MODEL_COMBO_BLANK = 16;
 
 // Makes player's images the live ones. Returns the blank flag when the player has no image yet, and HUD_MODELS_REBUILT
 // when the game made a new HUD object (all saved images are dropped).
@@ -866,6 +871,134 @@ unsigned ActivateGroup(ModelGroup& group, int groupIndex, int player) {
 	return flags;
 }
 
+// ---- Per player vanilla style meters (CUIDStylishCombo) ----
+// The meter draws its rank models through the display list, whose packets are linked into an intrusive list: drawing the
+// same model (the same packet memory) more than once in a frame links it into itself and the display list never ends,
+// which froze the game (the upload guard below turned the resulting buffer overflow into an endless wrap). So every extra
+// player gets their own set of images like the cockpit: the 7 rank models, the 49 blocks of 0x260 bytes the game hands
+// them (7 per model, a table at combo+0x3B40, allocated by the creation function sub_1402BA790) and a copy of the object
+// state that follows them (+0x3B40..+0x3D40: block table, draw matrix, rank / alpha / animation state). The extra images
+// are loaded with the game's own model loader (sub_1402BAAA0) and updated with the game's own update, once each per tick.
+constexpr size_t COMBO_BLOCK_TABLE = 0x3B40; // 7 models x 7 block pointers, 0x38 per model
+constexpr size_t COMBO_REGION_END  = 0x3D40;
+constexpr size_t COMBO_REGION_SIZE = COMBO_REGION_END - COMBO_BLOCK_TABLE;
+constexpr size_t COMBO_STYLE_POINTER = 0x3D10; // pointer to the style data it shows (set by the game, shared)
+constexpr size_t COMBO_BLOCKS      = 49;
+constexpr size_t COMBO_BLOCK_SIZE  = 0x260;
+constexpr size_t COMBO_MODEL_COUNT = 7;
+constexpr uintptr_t COMBO_LOAD_OFFSET       = 0x2BAAA0; // sub_1402BAAA0 (combo): loads the 7 rank models, returns 1 on success
+constexpr uintptr_t HEAP_HANDLE_INIT_OFFSET = 0x4C7A0;  // sub_14004C7A0 (handle)
+constexpr uintptr_t DRAW_BLOCK_INIT_OFFSET  = 0x30E270; // sub_14030E270 (block of 0x260 bytes)
+
+struct ComboSeat {
+	alignas(16) uint8 handles[COMBO_BLOCKS][0x20];
+	uint8* blocks[COMBO_BLOCKS] = {};
+	int allocated    = 0;
+	bool failed      = false;
+	bool stateValid  = false;
+	uint8 state[COMBO_REGION_SIZE] = {};
+};
+ComboSeat s_comboSeats[PLAYER_COUNT];
+
+void FreeComboSeatBlocks(ComboSeat& seat) {
+	for (int i = 0; i < seat.allocated; i++) {
+		func_337710(seat.handles[i]);
+		seat.blocks[i] = nullptr;
+	}
+	seat.allocated  = 0;
+	seat.failed     = false;
+	seat.stateValid = false;
+}
+
+bool AllocateComboSeatBlocks(ComboSeat& seat) {
+	using HandleInitFn = void(__fastcall*)(void*);
+	using BlockInitFn  = void*(__fastcall*)(void*);
+	const auto handleInit = reinterpret_cast<HandleInitFn>(appBaseAddr + HEAP_HANDLE_INIT_OFFSET);
+	const auto blockInit  = reinterpret_cast<BlockInitFn>(appBaseAddr + DRAW_BLOCK_INIT_OFFSET);
+	for (size_t i = 0; i < COMBO_BLOCKS; i++) {
+		handleInit(seat.handles[i]);
+	}
+	for (size_t i = 0; i < COMBO_BLOCKS; i++) {
+		if (!func_2C6150(seat.handles[i], COMBO_BLOCK_SIZE, 1)) {
+			return false;
+		}
+		seat.allocated = static_cast<int>(i + 1);
+		seat.blocks[i] = *reinterpret_cast<uint8**>(seat.handles[i] + 0x10);
+		blockInit(seat.blocks[i]);
+	}
+	return true;
+}
+
+// Makes player's combo (rank model images + object state) the live one. False when that player's set could not be made.
+bool ActivateComboSeat(uint8* combo, int player) {
+	if (!combo || player < 0 || player >= PLAYER_COUNT) {
+		return false;
+	}
+	ModelGroup& group  = s_modelGroups[3];
+	const int previous = group.owner;
+	const unsigned flags = ActivateGroup(group, 3, player);
+	uint8* live = combo + COMBO_BLOCK_TABLE;
+
+	if (flags & HUD_MODELS_REBUILT) {
+		for (auto& seat : s_comboSeats) {
+			FreeComboSeatBlocks(seat);
+		}
+	} else if (previous >= 0 && previous != player) {
+		const uint64 stylePointer = *reinterpret_cast<uint64*>(combo + COMBO_STYLE_POINTER);
+		ComboSeat& from = s_comboSeats[previous];
+		std::memcpy(from.state, live, COMBO_REGION_SIZE);
+		from.stateValid = true;
+		ComboSeat& to = s_comboSeats[player];
+		if (to.stateValid) {
+			std::memcpy(live, to.state, COMBO_REGION_SIZE);
+		}
+		*reinterpret_cast<uint64*>(combo + COMBO_STYLE_POINTER) = stylePointer;
+	}
+
+	ComboSeat& seat = s_comboSeats[player];
+	if (flags & MODEL_COMBO_BLANK) {
+		bool ok = !seat.failed && AllocateComboSeatBlocks(seat);
+		if (ok) {
+			// A fresh object starts with the rank / animation state zeroed (the update only runs the rank transition that makes
+			// a model visible when the rank changes), and these models are fresh, so they must not inherit the live state.
+			constexpr size_t animationState = 0x3D18;
+			std::memset(combo + animationState, 0, COMBO_REGION_END - animationState);
+			for (size_t m = 0; m < COMBO_MODEL_COUNT; m++) {
+				for (size_t j = 0; j < 7; j++) {
+					*reinterpret_cast<uint64*>(live + 0x38 * m + 8 * j) = reinterpret_cast<uint64>(seat.blocks[7 * m + j]);
+				}
+			}
+			using LoadFn = char(__fastcall*)(uint8*);
+			ok = reinterpret_cast<LoadFn>(appBaseAddr + COMBO_LOAD_OFFSET)(combo) != 0;
+		}
+		if (!ok) {
+			Log("Vanilla style meter: could not load the models for player %d", player + 1);
+			seat.failed = true;
+		}
+	}
+	return !seat.failed;
+}
+
+// Back to the game's own combo, the extra players' images and blocks are freed.
+void ReleaseComboSeats() {
+	ModelGroup& group = s_modelGroups[3];
+	bool any = group.owner > 0;
+	for (int p = 0; p < PLAYER_COUNT; p++) {
+		any = any || group.valid[p] || s_comboSeats[p].allocated > 0;
+	}
+	if (!any) {
+		return;
+	}
+	byte8* combo = HudObject(0x1B090);
+	if (combo && group.object == combo) {
+		ActivateComboSeat(combo, 0);
+	}
+	DiscardSavedImages(group);
+	for (auto& seat : s_comboSeats) {
+		FreeComboSeatBlocks(seat);
+	}
+}
+
 } // namespace
 
 unsigned HUD_ActivatePlayerModels(int player, unsigned groups) {
@@ -883,6 +1016,7 @@ unsigned HUD_ActivatePlayerModels(int player, unsigned groups) {
 
 // Back to a single set of models (player 1's), the other players' images are freed.
 unsigned HUD_ReleasePlayerModels() {
+	ReleaseComboSeats();
 	unsigned flags = 0;
 	for (int g = 0; g < 3; g++) {
 		auto& group = s_modelGroups[g];
@@ -1279,7 +1413,10 @@ using CockpitFn = void(__fastcall*)(uint8_t*);
 std::unique_ptr<Utility::Detour_t> s_cockpitTopDrawHook;
 std::unique_ptr<Utility::Detour_t> s_cockpitBottomDrawHook;
 std::unique_ptr<Utility::Detour_t> s_lockOnDrawHook;
+std::unique_ptr<Utility::Detour_t> s_styleComboDrawHook;
 constexpr uintptr_t LOCKON_DRAW_OFFSET = 0x297540; // DrawCUIDLockOnCursor_sub_140297540
+constexpr uintptr_t STYLE_COMBO_DRAW_OFFSET = 0x2BB160; // DrawCUIDStylishCombo_sub_1402BB160
+constexpr uintptr_t SCENE_STATE_CURSOR_OFFSET = 0xCF2330; // pSceneStateCursor_140CF2330
 
 // The original HUD draws go through the game's model code, which faults when a model's heap block is gone. Skip that
 // draw instead of taking the game down, log what is wrong and rebuild the HUD models on the next tick.
@@ -1327,9 +1464,27 @@ const HudGeneral& SinglePlayerGeneral() {
 	return SmallerSinglePlayerHud() ? HUD_GENERAL_SINGLE_SMALLER : s_singleHudGeneral;
 }
 
+// Red orb counter: one for all players (they share the count). Vanilla = the cockpit's right group, moved like the
+// top-left general (scale around the HUD origin, x / y in HUD units, y downward) in single player and on the shared /
+// single player camera. In splitscreen the game would draw it inside every view, so it is left out there and the
+// ImGui counter (vanilla orb texture when the Crimson addon is off) stands in for it. Crimson = that ImGui counter:
+// scale around its top-right corner, x / y in HUD units from its default place.
+constexpr HudGeneral HUD_RED_ORB_VANILLA = { 1.0f, 0.0f, 0.0f };
+constexpr HudGeneral HUD_RED_ORB_CRIMSON = { 1.0f, 0.0f, 0.0f };
+constexpr HudPreset HUD_PRESETS_RED_ORB[] = {
+	{ "Default", { 1.000f, 0.0f, 0.0f } },
+};
+HudGeneral s_redOrbVanilla = HUD_RED_ORB_VANILLA;
+HudGeneral s_redOrbCrimson = HUD_RED_ORB_CRIMSON;
+
+bool RedOrbVanillaTouched() {
+	const HudGeneral& g = s_redOrbVanilla;
+	return g.scale != 1.0f || g.offsetX != 0.0f || g.offsetY != 0.0f;
+}
+
 bool SinglePlayerHudTouched() {
 	const HudGeneral& g = SinglePlayerGeneral();
-	return g.scale != 1.0f || g.offsetX != 0.0f || g.offsetY != 0.0f;
+	return g.scale != 1.0f || g.offsetX != 0.0f || g.offsetY != 0.0f || RedOrbVanillaTouched();
 }
 
 // Pixels per HUD unit of the game HUD, relative to screenHeight / 448, before the calibration trim.
@@ -1418,6 +1573,79 @@ constexpr HudPreset HUD_PRESETS_SEAT[] = {
 HudGeneral s_seatGeneral[SEAT_MAX] = { HUD_SEAT_GENERAL[0], HUD_SEAT_GENERAL[1], HUD_SEAT_GENERAL[2], HUD_SEAT_GENERAL[3] };
 SeatBounds s_seatBounds = HUD_SEAT_BOUNDS;
 
+// Crimson style meter placement, see HUD.hpp. HUD units, y downward, one entry per player / view.
+constexpr HudGeneral HUD_STYLE_METER_SINGLE = { 1.0f, 0.0f, 0.0f };
+constexpr HudGeneral HUD_STYLE_METER_SEATS[SEAT_MAX] = {
+	{ 0.600f, -428.0f, 24.0f },
+	{ 0.600f, -2.5f, 24.5f },
+	{ 0.600f, -428.0f, 270.5f },
+	{ 0.600f, -2.5f, 270.5f },
+};
+constexpr HudGeneral HUD_STYLE_METER_HALVES[2] = {
+	{ 0.630f, -182.0f, 0.0f },
+	{ 0.630f, -182.0f, 0.0f },
+};
+constexpr HudGeneral HUD_STYLE_METER_QUADS[SEAT_MAX] = {
+	{ 1.0f, 0.0f, 0.0f },
+	{ 1.0f, 0.0f, 0.0f },
+	{ 1.0f, 0.0f, 0.0f },
+	{ 1.0f, 0.0f, 0.0f },
+};
+constexpr HudPreset HUD_PRESETS_STYLE_METER[] = {
+	{ "Default", { 1.000f, 0.0f, 0.0f } },
+	{ "Smaller", { 0.600f, 0.0f, 0.0f } },
+};
+HudGeneral s_styleMeterSingle = HUD_STYLE_METER_SINGLE;
+HudGeneral s_styleMeterSeats[SEAT_MAX] = { HUD_STYLE_METER_SEATS[0], HUD_STYLE_METER_SEATS[1], HUD_STYLE_METER_SEATS[2], HUD_STYLE_METER_SEATS[3] };
+HudGeneral s_styleMeterHalves[2] = { HUD_STYLE_METER_HALVES[0], HUD_STYLE_METER_HALVES[1] };
+HudGeneral s_styleMeterQuads[SEAT_MAX] = { HUD_STYLE_METER_QUADS[0], HUD_STYLE_METER_QUADS[1], HUD_STYLE_METER_QUADS[2], HUD_STYLE_METER_QUADS[3] };
+
+// Vanilla style meter (CUIDStylishCombo draw): the game draws it at the right edge of the frame, which the halves' centre
+// crop cuts off, and on the shared camera every player needs their own. Placement in HUD units: x / y move it (y downward),
+// scale scales it. The rank models are placed through the draw matrix the combo passes to them (combo + 0x3CD0), the bar
+// is a 2D rect that is moved / scaled in its own coordinates (see DrawHudRectHook).
+struct VanillaStyleShift {
+	float x, y;
+	float scale = 1.0f;
+	float barX = 0.0f, barY = 0.0f; // extra offset of the charge bar only
+};
+constexpr VanillaStyleShift HUD_VANILLA_STYLE_HALVES[2] = { { -187.5f, -14.0f, 0.720f, -13.0f, -4.0f }, { -187.5f, -14.0f, 0.720f, -13.0f, -4.0f } };
+constexpr VanillaStyleShift HUD_VANILLA_STYLE_QUADS[SEAT_MAX] = { { 0.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f } };
+// Shared / single player camera: one copy per player (the style meter is shared, so they all show the same). 1P is where
+// the game draws it.
+constexpr VanillaStyleShift HUD_VANILLA_STYLE_SEATS[SEAT_MAX] = { { -359.5f, 14.0f, 0.550f, -33.5f, -20.5f }, { 5.5f, 14.0f, 0.550f, 57.5f, -20.5f }, { -359.5f, 226.5f, 0.550f, -33.5f, -110.0f }, { 5.5f, 226.5f, 0.550f, 57.5f, -110.0f } };
+VanillaStyleShift s_vanillaStyleHalves[2] = { HUD_VANILLA_STYLE_HALVES[0], HUD_VANILLA_STYLE_HALVES[1] };
+VanillaStyleShift s_vanillaStyleQuads[SEAT_MAX] = { HUD_VANILLA_STYLE_QUADS[0], HUD_VANILLA_STYLE_QUADS[1], HUD_VANILLA_STYLE_QUADS[2], HUD_VANILLA_STYLE_QUADS[3] };
+VanillaStyleShift s_vanillaStyleSeats[SEAT_MAX] = { HUD_VANILLA_STYLE_SEATS[0], HUD_VANILLA_STYLE_SEATS[1], HUD_VANILLA_STYLE_SEATS[2], HUD_VANILLA_STYLE_SEATS[3] };
+// Pivot of the vanilla meter's scale, HUD units from the screen centre (y up): the models scale about it, so scaling keeps
+// the meter in place. A guess from the bar (x 592..621, y 54 in the 640 x 448 space); tune in the debug window.
+constexpr float HUD_VANILLA_STYLE_PIVOT_X = 286.0f;
+constexpr float HUD_VANILLA_STYLE_PIVOT_Y = 169.0f;
+float s_vanillaStylePivotX = HUD_VANILLA_STYLE_PIVOT_X;
+float s_vanillaStylePivotY = HUD_VANILLA_STYLE_PIVOT_Y;
+bool s_vanillaStyleAllSeats = true; // one vanilla style meter per player; off = a single one at the 1P position
+// On: the rank animation plays while shifted (the pose is re-evaluated with the shifted matrix). Off: the older path, which
+// clears the model's motion flag for the draw and shows the rest pose (static).
+bool s_vanillaStyleAnimate = true;
+
+// Weapon wheel placement. Splitscreen: one size for every view (fraction of the view height). Shared / single player
+// camera: one size (fraction of the screen height) and a top-left position per player (fraction of the screen).
+struct WheelSeat {
+	float meleeX, meleeY;
+	float rangedX, rangedY;
+};
+constexpr float HUD_WHEEL_SPLIT_SCALE = 0.300f;
+constexpr float HUD_WHEEL_SEAT_SCALE  = 0.132f;
+constexpr WheelSeat HUD_WHEEL_SEATS[SEAT_MAX] = {
+	{ 0.1433f, 0.1540f, 0.0853f, 0.1540f },
+	{ 0.6793f, 0.1540f, 0.6213f, 0.1540f },
+	{ 0.1433f, 0.7102f, 0.0853f, 0.7102f },
+	{ 0.6842f, 0.7102f, 0.6262f, 0.7102f },
+};
+float s_splitWheelScale = HUD_WHEEL_SPLIT_SCALE;
+float s_seatWheelScale  = HUD_WHEEL_SEAT_SCALE;
+WheelSeat s_wheelSeats[SEAT_MAX] = { HUD_WHEEL_SEATS[0], HUD_WHEEL_SEATS[1], HUD_WHEEL_SEATS[2], HUD_WHEEL_SEATS[3] };
+
 // Anchor corner of a seat's group in HUD units (y up) and how far the scaling keeps it from its screen corner.
 struct SeatPlacement {
 	float cornerX, cornerY;
@@ -1460,36 +1688,49 @@ HudGroupTuning SeatGroup(int seat, const HudFrameInfo& frame) {
 	};
 }
 
-// Draws the cockpit once with the seat's transform. Seats other than player 1 leave out the red orb counter group:
-// those models are shared (not per player), a second draw of one would overwrite the first.
+// The three red orb counter models of the cockpit (elements 8-10) are shared, not per player: hide them (clear their
+// loaded flag, the draw then skips them) for a draw that must not show the counter.
+constexpr size_t DRAW_LOADED_FLAG = 0x18;
+void HideRedOrbModels(uint8_t* cockpit, uint8 (&saved)[3]) {
+	for (size_t k = 0; k < 3; ++k) {
+		uint8* flag = cockpit + hudTopOffs[8 + k] + DRAW_LOADED_FLAG;
+		saved[k] = *flag;
+		*flag = 0;
+	}
+}
+
+void RestoreRedOrbModels(uint8_t* cockpit, const uint8 (&saved)[3]) {
+	for (size_t k = 0; k < 3; ++k) {
+		cockpit[hudTopOffs[8 + k] + DRAW_LOADED_FLAG] = saved[k];
+	}
+}
+
+// Draws the cockpit once with the seat's transform. Player 1's seat also draws the red orb counter (with its own
+// placement); the other seats leave it out, a second draw of the shared models would overwrite the first.
 void DrawCockpitSeat(CockpitFn original, uint8_t* cockpit, int seat) {
 	auto matrix = [cockpit](size_t i) {
 		return reinterpret_cast<float*>(cockpit + COCKPIT_TOP_MATRIX_BASE + COCKPIT_TOP_MATRIX_STRIDE * i);
 	};
 	const HudFrameInfo frame = ReadHudFrameInfo(g_renderSize.x, g_renderSize.y);
 	const HudGroupTuning group = SeatGroup(seat, frame);
+	const HudGroupTuning redOrbGroup = ComposeTopLeftGroup(HUD_GROUP_IDENTITY, s_redOrbVanilla);
 
 	float backup[COCKPIT_TOP_MATRIX_COUNT][16];
 	for (size_t i = 0; i < COCKPIT_TOP_MATRIX_COUNT; ++i) {
 		std::memcpy(backup[i], matrix(i), sizeof(backup[i]));
 		if (!IsRightHudElement(i)) {
 			ShrinkHudMatrix(matrix(i), group);
+		} else if (seat == 0) {
+			ShrinkHudMatrix(matrix(i), redOrbGroup);
 		}
 	}
-	constexpr size_t LOADED_FLAG = 0x18;
 	uint8 loaded[3] = {};
 	if (seat > 0) {
-		for (size_t k = 0; k < 3; ++k) {
-			uint8* flag = cockpit + hudTopOffs[8 + k] + LOADED_FLAG;
-			loaded[k] = *flag;
-			*flag = 0;
-		}
+		HideRedOrbModels(cockpit, loaded);
 	}
 	GuardedDraw(original, cockpit, "cockpit top");
 	if (seat > 0) {
-		for (size_t k = 0; k < 3; ++k) {
-			cockpit[hudTopOffs[8 + k] + LOADED_FLAG] = loaded[k];
-		}
+		RestoreRedOrbModels(cockpit, loaded);
 	}
 	for (size_t i = 0; i < COCKPIT_TOP_MATRIX_COUNT; ++i) {
 		std::memcpy(matrix(i), backup[i], sizeof(backup[i]));
@@ -1531,16 +1772,29 @@ void __fastcall CockpitTopDrawHook(uint8_t* cockpit) {
 	const HudGroupTuning topLeftGroup = split
 		? ComposeTopLeftGroup(layout.topLeft, layout.general)
 		: ComposeTopLeftGroup(HUD_GROUP_IDENTITY, SinglePlayerGeneral());
+	const HudGroupTuning redOrbGroup = ComposeTopLeftGroup(HUD_GROUP_IDENTITY, s_redOrbVanilla);
 	float backup[COCKPIT_TOP_MATRIX_COUNT][16];
 	for (size_t i = 0; i < COCKPIT_TOP_MATRIX_COUNT; ++i) {
 		std::memcpy(backup[i], matrix(i), sizeof(backup[i]));
 		if (split) {
-			ShrinkHudMatrix(matrix(i), IsRightHudElement(i) ? layout.topRight : topLeftGroup);
-		} else if (!IsRightHudElement(i)) {
+			if (!IsRightHudElement(i)) {
+				ShrinkHudMatrix(matrix(i), topLeftGroup);
+			}
+		} else if (IsRightHudElement(i)) {
+			ShrinkHudMatrix(matrix(i), redOrbGroup);
+		} else {
 			ShrinkHudMatrix(matrix(i), topLeftGroup);
 		}
 	}
+	// Splitscreen: the red orb counter is global, the ImGui counter stands in for it (see s_redOrbVanilla).
+	uint8 loaded[3] = {};
+	if (split) {
+		HideRedOrbModels(cockpit, loaded);
+	}
 	GuardedDraw(original, cockpit, "cockpit top");
+	if (split) {
+		RestoreRedOrbModels(cockpit, loaded);
+	}
 	for (size_t i = 0; i < COCKPIT_TOP_MATRIX_COUNT; ++i) {
 		std::memcpy(matrix(i), backup[i], sizeof(backup[i]));
 	}
@@ -1570,10 +1824,176 @@ void __fastcall CockpitBottomDrawHook(uint8_t* cockpit) {
 	}
 }
 
+// DrawCUIDStylishCombo_sub_1402BB160: the vanilla style meter. It draws the active rank model with the matrix at combo +0x3CD0
+// (CDraw vtbl +0x198) and a bar as a 2D rect in absolute HUD coordinates (DrawHudRect_sub_1402E32F0: x / y in the 640 x 448
+// HUD space, y downward). That matrix is the identity and the model ignores it: the loader attached a motion to each rank
+// model (CDraw vtbl +0x150, sub_14008A000), which sets the byte +0x19, and CDraw_DrawWithMatrix then only updates the
+// joints from the animation (the position lives in the joints). Shifting the scene HUD origin does not move the models
+// either. So while the combo draws, the active rank model's +0x19 is cleared (the matrix path: CDraw_SetMatrix, then the
+// same joint update) and the matrix is set to scale about the pivot and shift (x / y in HUD units, y downward). The same
+// shift and scale are applied to the rect (the bar scales about its left centre). One draw per splitscreen view, or one per
+// player on the shared / single player camera (the style meter is shared, every copy shows the same).
+using DrawHudRectFn = __int64(__fastcall*)(__int64, int16_t, int16_t, int, uint16_t, uint16_t, void*, int);
+std::unique_ptr<Utility::Detour_t> s_drawHudRectHook;
+constexpr uintptr_t DRAW_HUD_RECT_OFFSET = 0x2E32F0; // DrawHudRect_sub_1402E32F0
+constexpr size_t COMBO_DRAW_MATRIX = 0x3CD0;
+bool s_inStyleCombo = false;
+VanillaStyleShift s_comboShift = {};
+
+__int64 __fastcall DrawHudRectHook(__int64 list, int16_t x, int16_t y, int colour, uint16_t w, uint16_t h, void* colours, int count) {
+	const auto original = s_drawHudRectHook->GetTrampoline<DrawHudRectFn>();
+	if (s_inStyleCombo) {
+		static uint32 s_logged = 0;
+		if (s_logged++ < 6) {
+			Log("StyleCombo bar rect: x %d y %d w %u h %u, shift %.1f %.1f scale %.3f", x, y, w, h, s_comboShift.x, s_comboShift.y, s_comboShift.scale);
+		}
+		const float s = s_comboShift.scale;
+		const int newW = (std::max)(1, static_cast<int>(std::lround(w * s)));
+		const int newH = (std::max)(1, static_cast<int>(std::lround(h * s)));
+		x = static_cast<int16_t>(x + static_cast<int>(std::lround(s_comboShift.x + s_comboShift.barX)));
+		y = static_cast<int16_t>(y + static_cast<int>(std::lround(s_comboShift.y + s_comboShift.barY)) + (static_cast<int>(h) - newH) / 2);
+		w = static_cast<uint16_t>(newW);
+		h = static_cast<uint16_t>(newH);
+	}
+	return original(list, x, y, colour, w, h, colours, count);
+}
+
+void DrawStyleComboShifted(CockpitFn original, uint8_t* combo, uint8_t* scene, const VanillaStyleShift& shift) {
+	float* matrix = reinterpret_cast<float*>(combo + COMBO_DRAW_MATRIX);
+	float saved[16];
+	std::memcpy(saved, matrix, sizeof(saved));
+
+	// Only a meter that is moved or scaled leaves the game's own path.
+	uint8_t* model = nullptr;
+	uint8_t savedFlag = 0;
+	if (shift.x != 0.0f || shift.y != 0.0f || shift.scale != 1.0f) {
+		const int rank = *reinterpret_cast<int*>(combo + 0x3D18);
+		if (rank >= 1 && rank <= 7) {
+			model = combo + 0x6C0 + 0x780 * static_cast<size_t>(rank - 1);
+			savedFlag = model[0x19];
+		}
+	}
+
+	static uint32 s_logged = 0;
+	if (s_logged++ < 4) {
+		Log("StyleCombo matrix: diag %.3f %.3f %.3f translation %.1f %.1f %.1f, scene origin %.1f %.1f, shift %.1f %.1f scale %.3f, model +0x19 %d", matrix[0],
+			matrix[5], matrix[10], matrix[12], matrix[13], matrix[14], *reinterpret_cast<float*>(scene + 0x170),
+			*reinterpret_cast<float*>(scene + 0x174), shift.x, shift.y, shift.scale, model ? savedFlag : -1);
+	}
+
+	if (model) {
+		if (!s_vanillaStyleAnimate) {
+			model[0x19] = 0;
+		}
+		const float s = shift.scale;
+		for (int row = 0; row < 3; ++row) {
+			matrix[row * 4 + 0] *= s;
+			matrix[row * 4 + 1] *= s;
+		}
+		matrix[12] = matrix[12] * s + (1.0f - s) * s_vanillaStylePivotX + shift.x;
+		matrix[13] = matrix[13] * s + (1.0f - s) * s_vanillaStylePivotY - shift.y;
+		if (s_vanillaStyleAnimate && savedFlag) {
+			// Re-poses the animated model with the shifted matrix (CDraw vtbl +0x190, the call the update makes with the
+			// identity), the flagged draw then keeps that pose instead of resetting it to the rest pose.
+			using PoseFn = void(__fastcall*)(uint8_t*, float*);
+			(*reinterpret_cast<PoseFn*>(*reinterpret_cast<uint8_t**>(model) + 0x190))(model, matrix);
+		}
+	}
+
+	s_comboShift = shift;
+	s_inStyleCombo = true;
+	original(combo);
+	s_inStyleCombo = false;
+	if (model) {
+		model[0x19] = savedFlag;
+	}
+	std::memcpy(matrix, saved, sizeof(saved));
+}
+
+bool ComboSeatsWanted();
+
+void __fastcall StyleComboDrawHook(uint8_t* combo) {
+	const auto original = s_styleComboDrawHook->GetTrampoline<CockpitFn>();
+	const int views = CrimsonSplitscreen::ViewCount();
+	const int player = CrimsonSplitscreen::CameraPlayer();
+	auto* scene = *reinterpret_cast<uint8_t**>(appBaseAddr + SCENE_STATE_CURSOR_OFFSET);
+	if (!scene) {
+		original(combo);
+		return;
+	}
+	if (views >= 2) {
+		if (player < 0 || player >= views) {
+			original(combo);
+			return;
+		}
+		DrawStyleComboShifted(original, combo, scene, (views == 2) ? s_vanillaStyleHalves[player] : s_vanillaStyleQuads[player]);
+		return;
+	}
+	const int seats = HUD_SeatCount();
+	if (seats >= 2) {
+		// One draw per player, each with its own images (a model drawn twice in a frame loops the display list forever,
+		// see ActivateComboSeat).
+		const bool perPlayer = ComboSeatsWanted();
+		const int draws = perPlayer ? seats : 1;
+		for (int seat = 0; seat < draws; ++seat) {
+			if (seat > 0 && !ActivateComboSeat(combo, seat)) {
+				continue;
+			}
+			DrawStyleComboShifted(original, combo, scene, s_vanillaStyleSeats[seat]);
+		}
+		if (draws > 1) {
+			ActivateComboSeat(combo, 0);
+		}
+		return;
+	}
+	original(combo);
+}
+
+// CUIDStylishCombo update (vtable +0x08, sub_1402BAC10): animates the live rank model once per tick. With one vanilla meter
+// per player each player's combo is updated too (same style data, own images and state, see ActivateComboSeat).
+constexpr uintptr_t STYLE_COMBO_UPDATE_OFFSET = 0x2BAC10;
+std::unique_ptr<Utility::Detour_t> s_styleComboUpdateHook;
+
+bool ComboSeatsWanted() {
+	return s_vanillaStyleAllSeats && HUD_SeatCount() >= 2 && !activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter &&
+		!activeCrimsonConfig.HudOptions.hideStyleMeter;
+}
+
+void __fastcall StyleComboUpdateHook(uint8_t* combo) {
+	const auto original = s_styleComboUpdateHook->GetTrampoline<CockpitFn>();
+	if (!combo) {
+		original(combo);
+		return;
+	}
+	if (!ComboSeatsWanted()) {
+		ReleaseComboSeats();
+		original(combo);
+		return;
+	}
+	const int seats = HUD_SeatCount();
+	ActivateComboSeat(combo, 0);
+	original(combo);
+	for (int seat = 1; seat < seats; ++seat) {
+		if (ActivateComboSeat(combo, seat)) {
+			original(combo);
+		}
+	}
+	ActivateComboSeat(combo, 0);
+}
+
 } // namespace
 
 void HUD_InitAdjustmentHooks() {
 	HUD_InitHeapWatch();
+	s_styleComboUpdateHook = std::make_unique<Utility::Detour_t>(
+		(uintptr_t)appBaseAddr + STYLE_COMBO_UPDATE_OFFSET, &StyleComboUpdateHook, 0, "UpdateCUIDStylishCombo_sub_1402BAC10");
+	s_styleComboUpdateHook->Toggle(true);
+	s_drawHudRectHook = std::make_unique<Utility::Detour_t>(
+		(uintptr_t)appBaseAddr + DRAW_HUD_RECT_OFFSET, &DrawHudRectHook, 0, "DrawHudRect_sub_1402E32F0");
+	s_drawHudRectHook->Toggle(true);
+	s_styleComboDrawHook = std::make_unique<Utility::Detour_t>(
+		(uintptr_t)appBaseAddr + STYLE_COMBO_DRAW_OFFSET, &StyleComboDrawHook, 0, "DrawCUIDStylishCombo_sub_1402BB160");
+	s_styleComboDrawHook->Toggle(true);
 	s_lockOnDrawHook = std::make_unique<Utility::Detour_t>(
 		(uintptr_t)appBaseAddr + LOCKON_DRAW_OFFSET, &LockOnDrawHook, 0, "DrawCUIDLockOnCursor_sub_140297540");
 	s_lockOnDrawHook->Toggle(true);
@@ -1620,6 +2040,230 @@ static bool SeatAddonTransform(int seat, float screenWidth, float screenHeight, 
 	offsetX   = (1.0f - g.scale) * cornerPxX + p.moveX * kx + g.offsetX * unit;
 	offsetY   = (1.0f - g.scale) * cornerPxY - p.moveY * ky + g.offsetY * unit;
 	return true;
+}
+
+bool HUD_WheelPlacement(int player, bool melee, bool force1P, float screenWidth, float screenHeight, float& x, float& y, float& size) {
+	if (player < 0 || player >= SEAT_MAX || !activeConfig.Actor.enable || screenWidth <= 0.0f || screenHeight <= 0.0f) {
+		return false;
+	}
+	const int count = (activeConfig.Actor.playerCount > PLAYER_COUNT) ? PLAYER_COUNT : activeConfig.Actor.playerCount;
+
+	// Same view layout as CrimsonSplitscreen::ViewRect, without its settle delay so the wheels do not jump meanwhile.
+	if (CrimsonSplitscreen::Enabled()) {
+		if (player >= count) {
+			return false;
+		}
+		float minX, minY, maxX, maxY;
+		if (count == 2) {
+			minX = static_cast<float>(player) * screenWidth * 0.5f;
+			minY = 0.0f;
+			maxY = screenHeight;
+		} else {
+			minX = static_cast<float>(player & 1) * screenWidth * 0.5f;
+			minY = static_cast<float>(player >> 1) * screenHeight * 0.5f;
+			maxY = minY + screenHeight * 0.5f;
+		}
+		maxX = minX + screenWidth * 0.5f;
+		size = s_splitWheelScale * (maxY - minY);
+		x    = melee ? maxX - size : minX;
+		y    = maxY - size;
+		return true;
+	}
+
+	if (count >= 2 || (force1P && player == 0)) {
+		const WheelSeat& seat = s_wheelSeats[player];
+		size = s_seatWheelScale * screenHeight;
+		x    = (melee ? seat.meleeX : seat.rangedX) * screenWidth;
+		y    = (melee ? seat.meleeY : seat.rangedY) * screenHeight;
+		return true;
+	}
+	return false;
+}
+
+void HUD_SplitWheelControls() {
+	ImGui::DragFloat("weapon wheel size", &s_splitWheelScale, 0.002f, 0.05f, 0.8f, "%.3f of view height");
+	ImGui::SameLine();
+	if (ImGui::Button("Reset##splitWheel")) {
+		s_splitWheelScale = HUD_WHEEL_SPLIT_SCALE;
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Copy##splitWheel")) {
+		char text[96];
+		snprintf(text, sizeof(text), "constexpr float HUD_WHEEL_SPLIT_SCALE = %.3ff;\n", s_splitWheelScale);
+		ImGui::SetClipboardText(text);
+	}
+}
+
+bool HUD_RedOrbCrimsonPlacement(float& scale, float& offsetXPx, float& offsetYPx, float screenHeight) {
+	const float unit = screenHeight / HUD_HEIGHT;
+	scale     = s_redOrbCrimson.scale;
+	offsetXPx = s_redOrbCrimson.offsetX * unit;
+	offsetYPx = s_redOrbCrimson.offsetY * unit;
+	return true;
+}
+
+// Both red orb counters of the "Red Orb Counter" debug section: vanilla (cockpit group, single player and shared /
+// single player camera) and Crimson (ImGui counter, every mode; in splitscreen it also stands in for the vanilla one).
+void HUD_RedOrbControls() {
+	if (!ImGui::CollapsingHeader("Red Orb Counter (one for all players)")) {
+		return;
+	}
+	ImGui::TextWrapped("Vanilla: the game's counter, in single player and on the shared / single player camera (hidden in splitscreen, "
+		"where the Crimson counter with the vanilla orb stands in for it). Crimson: the overlay counter. Scale, x and y as in the "
+		"general controls (HUD units, y downward).");
+	ImGui::PushID("redOrbVanilla");
+	ImGui::Text("Vanilla");
+	HUD_GeneralControls(s_redOrbVanilla, HUD_RED_ORB_VANILLA, HUD_PRESETS_RED_ORB, std::size(HUD_PRESETS_RED_ORB));
+	ImGui::PopID();
+	ImGui::PushID("redOrbCrimson");
+	ImGui::Text("Crimson");
+	HUD_GeneralControls(s_redOrbCrimson, HUD_RED_ORB_CRIMSON, HUD_PRESETS_RED_ORB, std::size(HUD_PRESETS_RED_ORB));
+	ImGui::PopID();
+	if (ImGui::Button("Copy red orb counters as code")) {
+		char text[256];
+		snprintf(text, sizeof(text),
+			"constexpr HudGeneral HUD_RED_ORB_VANILLA = { %.3ff, %.1ff, %.1ff };\nconstexpr HudGeneral HUD_RED_ORB_CRIMSON = { %.3ff, %.1ff, %.1ff };\n",
+			s_redOrbVanilla.scale, s_redOrbVanilla.offsetX, s_redOrbVanilla.offsetY, s_redOrbCrimson.scale, s_redOrbCrimson.offsetX,
+			s_redOrbCrimson.offsetY);
+		ImGui::SetClipboardText(text);
+	}
+}
+
+bool HUD_StyleMeterTransform(int view, float screenWidth, float screenHeight, float& posScale, float& sizeScale, float& offsetX, float& offsetY) {
+	if (screenWidth <= 0.0f || screenHeight <= 0.0f) {
+		return false;
+	}
+	const HudGeneral* g = &s_styleMeterSingle;
+	float areaRight = screenWidth;
+	float areaTop = 0.0f;
+	float originX = 0.0f;
+	float originY = 0.0f;
+	float viewScale = 1.0f;
+
+	if (SplitscreenActive()) {
+		const int count = CrimsonSplitscreen::ViewCount();
+		float minX, minY, maxX, maxY;
+		if (view < 0 || view >= count || !CrimsonSplitscreen::ViewRect(view, screenWidth, screenHeight, minX, minY, maxX, maxY)) {
+			return false;
+		}
+		g = (count == 2) ? &s_styleMeterHalves[view] : &s_styleMeterQuads[view];
+		areaRight = maxX;
+		areaTop = minY;
+		// Frame pixels -> the view (crop for halves, 0.5 for downscaled quadrants), as the cockpit addons do.
+		float unitPointX = 1.0f, unitPointY = 1.0f;
+		CrimsonSplitscreen::MapPoint(view, screenWidth, screenHeight, originX, originY);
+		CrimsonSplitscreen::MapPoint(view, screenWidth, screenHeight, unitPointX, unitPointY);
+		viewScale = unitPointX - originX;
+	} else if (view >= 0) {
+		if (view >= HUD_SeatCount()) {
+			return false;
+		}
+		g = &s_styleMeterSeats[view];
+	}
+
+	// P' = S * (P_view - A) + A + G * unit with P_view = viewScale * P + origin and A the top-right corner of the area.
+	const float unit = screenHeight / HUD_HEIGHT * viewScale;
+	posScale  = g->scale * viewScale;
+	sizeScale = g->scale * viewScale;
+	offsetX   = g->scale * (originX - areaRight) + areaRight + g->offsetX * unit;
+	offsetY   = g->scale * (originY - areaTop) + areaTop + g->offsetY * unit;
+	return true;
+}
+
+void HUD_StyleMeterControls(int kind) {
+	if (!ImGui::CollapsingHeader("Crimson style meter (one per player)")) {
+		return;
+	}
+	ImGui::TextWrapped("The rank meter and the Stylish PTS counter move as one, scaled about the top-right corner of their screen (or "
+		"splitscreen view), x / y in HUD units (y downward). Not anchored to the cockpit.");
+
+	HudGeneral* entries = &s_styleMeterSingle;
+	const HudGeneral* defaults = &HUD_STYLE_METER_SINGLE;
+	int count = 1;
+	const char* codeName = "HUD_STYLE_METER_SINGLE";
+	switch (kind) {
+	case HUD_STYLE_SEATS:
+		entries = s_styleMeterSeats; defaults = HUD_STYLE_METER_SEATS; count = SEAT_MAX; codeName = "HUD_STYLE_METER_SEATS[SEAT_MAX]";
+		break;
+	case HUD_STYLE_HALVES:
+		entries = s_styleMeterHalves; defaults = HUD_STYLE_METER_HALVES; count = 2; codeName = "HUD_STYLE_METER_HALVES[2]";
+		break;
+	case HUD_STYLE_QUADS:
+		entries = s_styleMeterQuads; defaults = HUD_STYLE_METER_QUADS; count = SEAT_MAX; codeName = "HUD_STYLE_METER_QUADS[SEAT_MAX]";
+		break;
+	}
+
+	for (int i = 0; i < count; ++i) {
+		ImGui::PushID(2000 + kind * 10 + i);
+		if (count > 1) {
+			ImGui::Text("%dP", i + 1);
+		}
+		HUD_GeneralControls(entries[i], defaults[i], HUD_PRESETS_STYLE_METER, std::size(HUD_PRESETS_STYLE_METER));
+		ImGui::PopID();
+	}
+
+	if (ImGui::Button("Copy style meters as code")) {
+		char text[512];
+		int n = snprintf(text, sizeof(text), "constexpr HudGeneral %s = {\n", codeName);
+		for (int i = 0; i < count && n > 0 && n < static_cast<int>(sizeof(text)); ++i) {
+			n += snprintf(text + n, sizeof(text) - n, "\t{ %.3ff, %.1ff, %.1ff },\n", entries[i].scale, entries[i].offsetX, entries[i].offsetY);
+		}
+		if (n > 0 && n < static_cast<int>(sizeof(text)) - 4) {
+			snprintf(text + n, sizeof(text) - n, "};\n");
+		}
+		ImGui::SetClipboardText(text);
+	}
+}
+
+void HUD_VanillaStyleMeterControls(int kind) {
+	if (!ImGui::CollapsingHeader("Vanilla style meter (per view / player)")) {
+		return;
+	}
+	ImGui::TextWrapped("The game's own style meter, drawn at the right edge of the frame. x / y shift it (models and bar) in HUD units "
+		"(negative x moves it left, y grows downward), scale scales it. One copy per view or player, all showing the shared style meter. "
+		"Only visible while the Crimson rank meter is off.");
+	VanillaStyleShift* shifts = s_vanillaStyleSeats;
+	const VanillaStyleShift* defaults = HUD_VANILLA_STYLE_SEATS;
+	int count = SEAT_MAX;
+	const char* codeName = "HUD_VANILLA_STYLE_SEATS[SEAT_MAX]";
+	if (kind == HUD_STYLE_HALVES) {
+		shifts = s_vanillaStyleHalves; defaults = HUD_VANILLA_STYLE_HALVES; count = 2; codeName = "HUD_VANILLA_STYLE_HALVES[2]";
+	} else if (kind == HUD_STYLE_QUADS) {
+		shifts = s_vanillaStyleQuads; defaults = HUD_VANILLA_STYLE_QUADS; codeName = "HUD_VANILLA_STYLE_QUADS[SEAT_MAX]";
+	}
+	for (int i = 0; i < count; ++i) {
+		ImGui::PushID(3000 + kind * 10 + i);
+		ImGui::Text("%dP", i + 1);
+		ImGui::DragFloat("x", &shifts[i].x, 0.5f, -800.0f, 800.0f, "%.1f");
+		ImGui::DragFloat("y", &shifts[i].y, 0.5f, -800.0f, 800.0f, "%.1f");
+		ImGui::DragFloat("scale", &shifts[i].scale, 0.005f, 0.1f, 3.0f, "%.3f");
+		ImGui::DragFloat("charge bar x", &shifts[i].barX, 0.5f, -800.0f, 800.0f, "%.1f");
+		ImGui::DragFloat("charge bar y", &shifts[i].barY, 0.5f, -800.0f, 800.0f, "%.1f");
+		ImGui::PopID();
+	}
+	if (kind == HUD_STYLE_SEATS) {
+		ImGui::Checkbox("Draw one for every player", &s_vanillaStyleAllSeats);
+		ImGui::TextWrapped("Off: a single vanilla meter at the 1P position.");
+	}
+	ImGui::Checkbox("Play rank animation while moved / scaled", &s_vanillaStyleAnimate);
+	if (ImGui::Button("Reset vanilla style meters")) {
+		for (int i = 0; i < count; ++i) {
+			shifts[i] = defaults[i];
+		}
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Copy vanilla style meters as code")) {
+		char text[768];
+		int n = snprintf(text, sizeof(text), "constexpr VanillaStyleShift %s = {", codeName);
+		for (int i = 0; i < count && n > 0 && n < static_cast<int>(sizeof(text)); ++i) {
+			n += snprintf(text + n, sizeof(text) - n, " { %.1ff, %.1ff, %.3ff, %.1ff, %.1ff },", shifts[i].x, shifts[i].y, shifts[i].scale,
+				shifts[i].barX, shifts[i].barY);
+		}
+		if (n > 0 && n < static_cast<int>(sizeof(text)) - 4) {
+			snprintf(text + n, sizeof(text) - n, " };\n");
+		}
+		ImGui::SetClipboardText(text);
+	}
 }
 
 bool HUD_AddonTransform(int view, float screenWidth, float screenHeight, float& posScale, float& sizeScale, float& offsetX, float& offsetY) {
@@ -1821,13 +2465,15 @@ void HUD_SinglePlayerWindow(bool* open) {
 
 	ImGui::Checkbox("Sync style icons and names", &s_singleHudSyncAddons);
 	HUD_GeneralControls(s_singleHudGeneral, HUD_GENERAL_SINGLE, HUD_PRESETS_SINGLE, std::size(HUD_PRESETS_SINGLE));
+	HUD_RedOrbControls();
+	HUD_StyleMeterControls(HUD_STYLE_SINGLE);
 	HUD_CalibrationControls();
 	HUD_DrawPivotMarker();
 
 	ImGui::End();
 }
 
-// "Multiplayer HUD" debug window: where every player's cockpit goes on the shared / single player camera.
+// "Multiplayer HUD (non Splitscreen)" debug window: where every player's cockpit goes on the shared / single player camera.
 void HUD_MultiplayerWindow(bool* open) {
 	ImGui::SetNextWindowSize(ImVec2(440, 0), ImGuiCond_FirstUseEver);
 	if (!ImGui::Begin("Multiplayer HUD (non Splitscreen)", open)) {
@@ -1870,6 +2516,44 @@ void HUD_MultiplayerWindow(bool* open) {
 		for (int seat = 0; seat < SEAT_MAX && n > 0 && n < static_cast<int>(sizeof(text)); ++seat) {
 			n += snprintf(text + n, sizeof(text) - n, "\t{ %.3ff, %.1ff, %.1ff },\n", s_seatGeneral[seat].scale, s_seatGeneral[seat].offsetX,
 				s_seatGeneral[seat].offsetY);
+		}
+		if (n > 0 && n < static_cast<int>(sizeof(text)) - 4) {
+			snprintf(text + n, sizeof(text) - n, "};\n");
+		}
+		ImGui::SetClipboardText(text);
+	}
+
+	HUD_RedOrbControls();
+	HUD_StyleMeterControls(HUD_STYLE_SEATS);
+	HUD_VanillaStyleMeterControls(HUD_STYLE_SEATS);
+
+	ImGui::Separator();
+	ImGui::TextWrapped("Weapon wheels: one size for every player and a top-left position per wheel (fraction of the screen). "
+		"Splitscreen puts them in the bottom corners of each view (size in the Splitscreen HUD window); the Weapon Wheel scale option "
+		"only applies to single player.");
+	ImGui::DragFloat("wheel size", &s_seatWheelScale, 0.002f, 0.05f, 0.8f, "%.3f of screen height");
+	for (int seat = 0; seat < SEAT_MAX; ++seat) {
+		ImGui::PushID(1000 + seat);
+		WheelSeat& wheel = s_wheelSeats[seat];
+		ImGui::Text("%dP wheels", seat + 1);
+		ImGui::DragFloat2("melee x, y", &wheel.meleeX, 0.002f, -0.5f, 1.5f, "%.4f");
+		ImGui::DragFloat2("ranged x, y", &wheel.rangedX, 0.002f, -0.5f, 1.5f, "%.4f");
+		ImGui::PopID();
+	}
+	if (ImGui::Button("Reset wheels")) {
+		s_seatWheelScale = HUD_WHEEL_SEAT_SCALE;
+		for (int seat = 0; seat < SEAT_MAX; ++seat) {
+			s_wheelSeats[seat] = HUD_WHEEL_SEATS[seat];
+		}
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Copy wheels as code")) {
+		char text[640];
+		int n = snprintf(text, sizeof(text), "constexpr float HUD_WHEEL_SEAT_SCALE = %.3ff;\nconstexpr WheelSeat HUD_WHEEL_SEATS[SEAT_MAX] = {\n",
+			s_seatWheelScale);
+		for (int seat = 0; seat < SEAT_MAX && n > 0 && n < static_cast<int>(sizeof(text)); ++seat) {
+			const WheelSeat& w = s_wheelSeats[seat];
+			n += snprintf(text + n, sizeof(text) - n, "\t{ %.4ff, %.4ff, %.4ff, %.4ff },\n", w.meleeX, w.meleeY, w.rangedX, w.rangedY);
 		}
 		if (n > 0 && n < static_cast<int>(sizeof(text)) - 4) {
 			snprintf(text + n, sizeof(text) - n, "};\n");

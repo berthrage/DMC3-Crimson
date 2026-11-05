@@ -114,6 +114,37 @@ void HUD_DrawPivotMarker();
 // (single player, splitscreen, or outside of normal play).
 int HUD_SeatCount();
 
+// Weapon wheels (2D overlay) on the multiplayer layouts: splitscreen puts every player's wheels in the bottom corners of
+// their view (ranged left, melee right), the shared / single player camera uses the per seat positions of the
+// Multiplayer HUD window. One scale each (fraction of the view / screen height); the Weapon Wheel scale option only
+// applies to single player. force1P: use the multiplayer layout for player 1 even when playing alone.
+// x / y / size in screen pixels; false when single player's own placement applies.
+bool HUD_WheelPlacement(int player, bool melee, bool force1P, float screenWidth, float screenHeight, float& x, float& y, float& size);
+
+// Crimson style meter (rank meter + Stylish PTS, they move as one): one per player, placed per player. The addons are
+// drawn in screen pixels, scaled about the top-right corner of the area they belong to (the whole screen, or the
+// splitscreen view) and moved from there; scale / x / y in HUD units (y downward), no anchoring to the cockpit.
+// kind: HUD_STYLE_SINGLE (one player), HUD_STYLE_SEATS (shared / single player camera, one per player),
+// HUD_STYLE_HALVES / HUD_STYLE_QUADS (splitscreen, one per view).
+constexpr int HUD_STYLE_SINGLE = 0;
+constexpr int HUD_STYLE_SEATS  = 1;
+constexpr int HUD_STYLE_HALVES = 2;
+constexpr int HUD_STYLE_QUADS  = 3;
+void HUD_StyleMeterControls(int kind);
+// view = splitscreen view / player index on the shared camera, -1 = single player. False when that view does not exist.
+bool HUD_StyleMeterTransform(int view, float screenWidth, float screenHeight, float& posScale, float& sizeScale, float& offsetX, float& offsetY);
+
+// Vanilla style meter shift per splitscreen view / multiplayer player (kind = HUD_STYLE_*), see HUD.cpp (StyleComboDrawHook).
+void HUD_VanillaStyleMeterControls(int kind);
+
+// Splitscreen weapon wheel size, as a fraction of the view height ("Splitscreen HUD" window).
+void HUD_SplitWheelControls();
+
+// Red orb counter placement (see HUD.cpp): the Crimson (ImGui) counter's scale and pixel offset; the debug section
+// with both counters, shared by the Single Player, Multiplayer and Splitscreen HUD windows.
+bool HUD_RedOrbCrimsonPlacement(float& scale, float& offsetXPx, float& offsetYPx, float screenHeight);
+void HUD_RedOrbControls();
+
 // Transform for the ImGui addons that sit on the top-left cockpit group, so they follow the game HUD:
 // position' = position * posScale + offset, size' = size * sizeScale, on the final screen.
 // view = splitscreen view or multiplayer cockpit (player index), or -1 for the whole screen (single player adjustment).

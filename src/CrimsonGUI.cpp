@@ -1795,6 +1795,18 @@ constexpr uint8 hudElementShowStateMap[3] = {
 	HUDELEMENTSHOWSTATE::ALWAYS,
 };
 
+const char* splitscreenWheelsNames[] = {
+	"Normal (Fades Out)",
+	"Persistent",
+	"Off",
+};
+
+constexpr uint8 splitscreenWheelsMap[3] = {
+	SPLITSCREENWHEELS::NORMAL,
+	SPLITSCREENWHEELS::PERSISTENT,
+	SPLITSCREENWHEELS::OFF,
+};
+
 const char* stylesDisplayStateNames[] = {
 	"Off",
 	"With Broken Glass",
@@ -1935,6 +1947,21 @@ std::unique_ptr<WW::WeaponWheel> rangedWeaponWheel[PLAYER_COUNT];
 std::unique_ptr<WW::WeaponWheel>  meleeWorldSpaceWeaponWheel[PLAYER_COUNT];
 std::unique_ptr<WW::WeaponWheel>  rangedWorldSpaceWeaponWheel[PLAYER_COUNT];
 bool multiplayerWheelsLoaded = false;
+
+// On screen wheels (not the world space ones): splitscreen has its own setting, the other layouts use "Wheel Always Show".
+bool ScreenWheelsAlwaysShow() {
+	const auto& config = activeCrimsonConfig.WeaponWheel;
+	if (CrimsonSplitscreen::Enabled()) {
+		return config.splitscreenWheels == SPLITSCREENWHEELS::PERSISTENT;
+	}
+	return (config.alwaysShow == HUDELEMENTSHOWSTATE::ONLY_IN_MP && activeConfig.Actor.playerCount > 1) ||
+		config.alwaysShow == HUDELEMENTSHOWSTATE::ALWAYS;
+}
+
+bool ScreenWheelsHidden() {
+	return activeCrimsonConfig.WeaponWheel.hide ||
+		(CrimsonSplitscreen::Enabled() && activeCrimsonConfig.WeaponWheel.splitscreenWheels == SPLITSCREENWHEELS::OFF);
+}
 
 #pragma endregion
 
@@ -2292,14 +2319,10 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 		}
 	}
 	
-	if (pWeaponWheel->GetAlwaysVisible() != alwaysShow) {
-
-		pWeaponWheel->ToggleAlwaysVisible(alwaysShow);
-	}
-
-	if (pWeaponWheel->GetAlwaysVisible() != isSwitchingButtonDown) {
-
-		pWeaponWheel->ToggleAlwaysVisible(isSwitchingButtonDown);
+	// Kept visible by the setting or while the switch button is held; otherwise it fades out.
+	const bool keepVisible = alwaysShow || isSwitchingButtonDown;
+	if (pWeaponWheel->GetAlwaysVisible() != keepVisible) {
+		pWeaponWheel->ToggleAlwaysVisible(keepVisible);
 	}
 
 	state.startTime = ImGui::GetTime();
@@ -2311,7 +2334,7 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 		return false;
 	}
 
-	if (activeCrimsonConfig.WeaponWheel.hide && trackHide) {
+	if (ScreenWheelsHidden() && trackHide) {
 		return true;
 	}
 
@@ -2360,22 +2383,26 @@ void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 
 	const float deltaTimeMs = g_deltaTime * 1000.0f;
 
-	auto inMultiplayer = activeCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale || activeConfig.Actor.playerCount > 1;
 	auto& scale = activeCrimsonConfig.WeaponWheel.scale;
 	ImVec2 normalPos = ImVec2(g_renderSize.x - g_renderSize.y * 0.45f, g_renderSize.y - g_renderSize.y * 0.45f);
 	ImVec2 normalSize = initialized ? scale == HUDELEMENTSCALESTATE::BIG ? ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f) :
 		ImVec2(g_renderSize.y * 0.35f, g_renderSize.y * 0.35f) :
 		ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
 
-	ImVec2 multiplayerPosMelee = ImVec2(g_renderSize.x * 0.4853f, g_renderSize.y * 0.0f);
-	ImVec2 multiplayerPosRanged = ImVec2(g_renderSize.x * 0.4253f, g_renderSize.y * 0.0f);
-	ImVec2 multiplayerSize = initialized ? ImVec2(g_renderSize.y * 0.15f, g_renderSize.y * 0.15f) : normalSize;
+	// Splitscreen / multiplayer layouts (HUD.cpp) have their own placement and one size; only single player uses the scale option.
+	float meleeX = 0.0f, meleeY = 0.0f, rangedX = 0.0f, rangedY = 0.0f, wheelSizePx = 0.0f, ignoredSize = 0.0f;
+	const bool force1P = activeCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale;
+	const bool inMultiplayer = HUD_WheelPlacement(0, true, force1P, g_renderSize.x, g_renderSize.y, meleeX, meleeY, wheelSizePx)
+		&& HUD_WheelPlacement(0, false, force1P, g_renderSize.x, g_renderSize.y, rangedX, rangedY, ignoredSize);
+
+	ImVec2 multiplayerPosMelee = ImVec2(meleeX, meleeY);
+	ImVec2 multiplayerPosRanged = ImVec2(rangedX, rangedY);
+	ImVec2 multiplayerSize = initialized ? ImVec2(wheelSizePx, wheelSizePx) : normalSize;
 	// We need to initialize with the bigger size first to avoid the wheel from displaying on a lower quality if the user changes the setting at runtime. -- Berth
 
 	// Adjusts size dynamically based on the distance between Camera and Player
 
-	bool alwaysShow = (activeCrimsonConfig.WeaponWheel.alwaysShow == HUDELEMENTSHOWSTATE::ONLY_IN_MP
-		&& activeConfig.Actor.playerCount > 1) || activeCrimsonConfig.WeaponWheel.alwaysShow == HUDELEMENTSHOWSTATE::ALWAYS ? true : false;
+	bool alwaysShow = ScreenWheelsAlwaysShow();
 
 	if (WeaponWheelController(actorData, pSwapChain, meleeWeaponWheel[0], "MeleeWheel1P",
 		!inMultiplayer,
@@ -2417,29 +2444,26 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 
 		ImVec2 normalSize = ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
 
-		ImVec2 baseMultiplayerSize = ImVec2(g_renderSize.y * 0.15f, g_renderSize.y * 0.15f);
+		// Splitscreen: bottom corners of the player's view; otherwise the per player positions of the Multiplayer HUD window.
+		float meleeX = 0.0f, meleeY = 0.0f, rangedX = 0.0f, rangedY = 0.0f, wheelSizePx = 0.0f, ignoredSize = 0.0f;
+		if (!HUD_WheelPlacement(playerIndex, true, false, g_renderSize.x, g_renderSize.y, meleeX, meleeY, wheelSizePx) ||
+			!HUD_WheelPlacement(playerIndex, false, false, g_renderSize.x, g_renderSize.y, rangedX, rangedY, ignoredSize)) {
+			continue;
+		}
+
+		ImVec2 baseMultiplayerSize = ImVec2(wheelSizePx, wheelSizePx);
 		ImVec2 multiplayerSize = initializedMelee[playerIndex] ? baseMultiplayerSize : normalSize;
 
 		auto& meleeWheel = meleeWeaponWheel[playerIndex];
 		auto& rangedWheel = rangedWeaponWheel[playerIndex];
-		const float baseSpacing = 0.37f;
-		const float barSpacing = g_renderSize.x * baseSpacing;
 
-		const float baseXMelee = g_renderSize.x * (0.1722f - baseSpacing);
-		const float baseXRanged = g_renderSize.x * (0.1122f - baseSpacing);
-
-		
-		const float baseY = g_renderSize.y * 0.8462f; // Bottom of the screen
-
-
-		ImVec2 multiplayerPosMelee = ImVec2(baseXMelee + barSpacing * (playerIndex), baseY);
-		ImVec2 multiplayerPosRanged = ImVec2(baseXRanged + barSpacing * (playerIndex), baseY);
+		ImVec2 multiplayerPosMelee = ImVec2(meleeX, meleeY);
+		ImVec2 multiplayerPosRanged = ImVec2(rangedX, rangedY);
 
 		std::string meleeWheelName = "MeleeWheel " + std::to_string(playerIndex + 1);
 		std::string rangedWheelName = "RangedWheel " + std::to_string(playerIndex + 1);
 
-		bool alwaysShow = (activeCrimsonConfig.WeaponWheel.alwaysShow == HUDELEMENTSHOWSTATE::ONLY_IN_MP
-			&& activeConfig.Actor.playerCount > 1) || activeCrimsonConfig.WeaponWheel.alwaysShow == HUDELEMENTSHOWSTATE::ALWAYS ? true : false;
+		bool alwaysShow = ScreenWheelsAlwaysShow();
 
 		if (WeaponWheelController(actorData, pSwapChain, meleeWheel, meleeWheelName.c_str(),
 			false,
@@ -9794,14 +9818,14 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 			ImGui::TableNextRow(0, rowWidth * 0.5f);
 			ImGui::TableNextColumn();
 
-			UI::ComboMapValue2("Wheel Always Show", hudElementShowStateNames, hudElementShowStateMap,
+			UI::ComboMapValue2("Wheel Always Show (No Splitscreen)", hudElementShowStateNames, hudElementShowStateMap,
 				activeCrimsonConfig.WeaponWheel.alwaysShow,
 				queuedCrimsonConfig.WeaponWheel.alwaysShow);
 
 			ImGui::TableNextColumn();
 		
 			ImGui::PushItemWidth(itemWidth * 0.8f);
-			UI::ComboMapValue2("Scale", hudElementScaleStateNames, hudElementScaleStateMap,
+			UI::ComboMapValue2("Scale (Single Player)", hudElementScaleStateNames, hudElementScaleStateMap,
 				activeCrimsonConfig.WeaponWheel.scale,
 				queuedCrimsonConfig.WeaponWheel.scale);
 			ImGui::PopItemWidth();
@@ -9814,9 +9838,16 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 			ImGui::TableNextRow(0, rowWidth * 0.5f);
 
 			ImGui::TableNextColumn();
+			UI::ComboMapValue2("Splitscreen Wheels", splitscreenWheelsNames, splitscreenWheelsMap,
+				activeCrimsonConfig.WeaponWheel.splitscreenWheels,
+				queuedCrimsonConfig.WeaponWheel.splitscreenWheels);
+
+			ImGui::TableNextColumn();
 			GUI_Checkbox2("Hide Weapon Wheel HUD",
 				activeCrimsonConfig.WeaponWheel.hide,
 				queuedCrimsonConfig.WeaponWheel.hide);
+
+			ImGui::TableNextRow(0, rowWidth * 0.5f);
 
 			ImGui::TableNextColumn();
 			ImGui::PushItemWidth(itemWidth * 1.0f);

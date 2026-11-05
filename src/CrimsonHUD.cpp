@@ -756,12 +756,29 @@ struct StyleMeterAnimState {
 	bool animating = false;
 };
 
-// Global previous style rank for entrance animation logic
-static int prevGlobalStyleRank = -1;
+// Global previous style rank for entrance animation logic (one per view, index view + 1)
+static int prevGlobalStyleRanks[PLAYER_COUNT + 1] = { -1, -1, -1, -1, -1 };
 static constexpr float kStyleMeterScale = 0.76f;
 static float g_styleMeterOutOfCombatTimer = 0.0f;
 static bool g_styleMeterForceHidden = false;
 static float g_stylishPtsOutOfCombatTimer = 0.0f;
+// The view the style meter windows are being drawn for (-1 = the whole screen), see StyleMeterWindows.
+static int s_styleView = -1;
+
+// Position / size transform of the style meter of a view (HUD.cpp); identity when none applies.
+static TopLeftHudSync GetStyleMeterSync(int view) {
+	TopLeftHudSync sync;
+	HUD_StyleMeterTransform(view, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y,
+		sync.posScale, sync.scale, sync.offset.x, sync.offset.y);
+	return sync;
+}
+
+// The style data every view shows. The game's style meter is not per player yet: StyleMeterMultiplayer (CrimsonOnTick.cpp)
+// merges the highest rank / meter / points of all players into the main player's actor, so every view reads that one and
+// all the meters rise together. Switch to the view's own actor once the style meter logic is per player.
+static PlayerActorData* StyleMeterSourceActor(int /*view*/) {
+	return HudViewActor(-1);
+}
 
 void StyleMeterWindowRank(
 	int currentRank,
@@ -779,9 +796,10 @@ void StyleMeterWindowRank(
 	bool sSSStyle = false,
 	ImTextureID bgTexture2 = nullptr
 ) {
-	// Use a static map to store animation state per rank
-	static std::unordered_map<int, StyleMeterAnimState> animStates;
-	StyleMeterAnimState& state = animStates[currentRank];
+	// Use a static map to store animation state per rank (and per view)
+	static std::unordered_map<int, StyleMeterAnimState> animStatesPerView[PLAYER_COUNT + 1];
+	StyleMeterAnimState& state = animStatesPerView[s_styleView + 1][currentRank];
+	int& prevGlobalStyleRank = prevGlobalStyleRanks[s_styleView + 1];
 
 	const float animDuration = 0.32f;
 	const float textDelay = 0.64f;
@@ -795,9 +813,8 @@ void StyleMeterWindowRank(
 		return;
 
 	if (InGame() && !g_inGameCutscene) {
-		auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-		if (pool_10222 && pool_10222[3]) {
-			auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+		if (auto* mainActorPtr = StyleMeterSourceActor(s_styleView)) {
+			auto& mainActorData = *mainActorPtr;
 			if (activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter) {
 				auto& styleData = mainActorData.styleData;
 				if (styleData.rank == currentRank) {
@@ -859,6 +876,12 @@ void StyleMeterWindowRank(
 
 	windowPos.x += 50.0f * scaleFactorY;
 
+	// Per player placement (HUD.cpp): move / scale about the top-right corner of the player's screen or view. Everything
+	// below is sized with the scale that includes it.
+	const TopLeftHudSync styleSync = GetStyleMeterSync(s_styleView);
+	windowPos = styleSync.Pos(windowPos);
+	const float scaleFactorY = CrimsonGUI::scaleFactorY * styleSync.scale;
+
 	ImVec2 baseMeterSize = ImVec2(301.0f * scaleFactorY * 0.95f, 303.0f * scaleFactorY * 0.95f);
 	ImVec2 meterSize = ImVec2(baseMeterSize.x * kStyleMeterScale, baseMeterSize.y * kStyleMeterScale);
 	ImColor white = { 1.0f, 1.0f, 1.0f, state.fade.alpha };
@@ -904,7 +927,7 @@ void StyleMeterWindowRank(
 	ImGui::SetNextWindowPos(adjustedWindowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(adjustedWindowSize, ImGuiCond_Always);
 
-	ImGui::Begin("StyleMeter", nullptr,
+	ImGui::Begin(HudViewWindowName("StyleMeter", s_styleView), nullptr,
 		ImGuiWindowFlags_NoTitleBar |
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove |
@@ -912,6 +935,7 @@ void StyleMeterWindowRank(
 		ImGuiWindowFlags_NoSavedSettings |
 		ImGuiWindowFlags_NoInputs |
 		ImGuiWindowFlags_NoBackground);
+	HudViewClipGuard meterClip(s_styleView);
 
 	float animScale = 1.0f;
 	float animAngle = 0.0f;
@@ -1007,7 +1031,7 @@ void StyleMeterWindowRank(
 	ImGui::SetNextWindowPos(textWindowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(textSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
 
-	ImGui::Begin("StyleMeterText", nullptr,
+	ImGui::Begin(HudViewWindowName("StyleMeterText", s_styleView), nullptr,
 		ImGuiWindowFlags_NoTitleBar |
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove |
@@ -1015,6 +1039,7 @@ void StyleMeterWindowRank(
 		ImGuiWindowFlags_NoSavedSettings |
 		ImGuiWindowFlags_NoInputs |
 		ImGuiWindowFlags_NoBackground);
+	HudViewClipGuard textClip(s_styleView);
 
 	float textAnimT = 1.0f;
 	if (state.animating) {
@@ -1034,12 +1059,8 @@ void StyleMeterWindowRank(
 	ImGui::End();
 }
 
-void StyleMeterWindows() {
-
-	if (activeCrimsonConfig.HudOptions.hideStyleMeter) {
-		return;
-	}
-	
+static void StyleMeterWindowsView(int view) {
+	s_styleView = view;
 	// postponing this until we get better inCombat detection
 // 	float deltaTime = ImGui::GetIO().DeltaTime;
 // 	if (!InGame() || g_inGameCutscene) {
@@ -1183,10 +1204,18 @@ void StyleMeterWindows() {
 }
 
 
-void StylishPointsWindow() {
-	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!(pool_10222 && pool_10222[3])) return;
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+void StyleMeterWindows() {
+	if (activeCrimsonConfig.HudOptions.hideStyleMeter) {
+		return;
+	}
+	ForEachHudView(StyleMeterWindowsView);
+	s_styleView = -1;
+}
+
+static void StylishPointsWindowView(int view, float stylishPtsFadeAlpha, bool outOfCombatDone) {
+	auto* mainActorPtr = StyleMeterSourceActor(view);
+	if (!mainActorPtr) return;
+	auto& mainActorData = *mainActorPtr;
 	ImVec2 windowPos = ImVec2(g_renderSize.x - (320.0f * scaleFactorY), 395.0f * scaleFactorY);
 	ImVec2 windowPosClassic = ImVec2(g_renderSize.x - (415.0f * scaleFactorY), 290.0f * scaleFactorY);
 	ImVec2 windowSize = ImVec2(301.0f * 0.95f, 303.0f * scaleFactorY * 0.95f);
@@ -1195,36 +1224,33 @@ void StylishPointsWindow() {
 		: ImVec2(windowPos.x, windowPos.y);
 	ImVec2 adjustedWindowSize = windowSize + ImVec2(g_renderSize.x, g_renderSize.y); 
 
+	// Same per player placement as the rank meter (it is bound to it); sized with the scale that includes it.
+	const TopLeftHudSync styleSync = GetStyleMeterSync(view);
+	adjustedWindowPos = styleSync.Pos(adjustedWindowPos);
+	const float scaleFactorY = CrimsonGUI::scaleFactorY * styleSync.scale;
+
 	auto stylePoints = (mainActorData.styleData.quotient * 100.0f);
 
-	// Animation state for stylish points text
-	static float animTimer = 0.0f;
-	static bool animating = false;
-	static bool wasVisible = false;
-	static float prevStylePoints = 0.0f;
+	// Animation state for stylish points text, one per view
+	struct State {
+		float animTimer = 0.0f;
+		bool animating = false;
+		bool wasVisible = false;
+		float prevStylePoints = 0.0f;
+	};
+	static State states[PLAYER_COUNT + 1];
+	State& state = states[view + 1];
+	float& animTimer = state.animTimer;
+	bool& animating = state.animating;
+	bool& wasVisible = state.wasVisible;
+	float& prevStylePoints = state.prevStylePoints;
 
-	float deltaTime = ImGui::GetIO().DeltaTime;
-	if (!InGame() || g_inGameCutscene) {
-		g_stylishPtsOutOfCombatTimer = 0.0f;
-	} else if (g_inCombat) {
-		g_stylishPtsOutOfCombatTimer = 0.0f;
-	} else {
-		g_stylishPtsOutOfCombatTimer += deltaTime;
-	}
-	const float stylishPtsStayDuration = 3.5f;
-	const float stylishPtsFadeDuration = 2.0f;
-	float stylishPtsFadeAlpha = 1.0f;
-	if (g_stylishPtsOutOfCombatTimer > stylishPtsStayDuration) {
-		float fadeT = (g_stylishPtsOutOfCombatTimer - stylishPtsStayDuration) / stylishPtsFadeDuration;
-		stylishPtsFadeAlpha = ImClamp(1.0f - fadeT, 0.0f, 1.0f);
-	}
-	if (g_stylishPtsOutOfCombatTimer >= stylishPtsStayDuration + stylishPtsFadeDuration) {
+	if (outOfCombatDone) {
 		wasVisible = false;
 		animTimer = 0.0f;
 		animating = true;
 		return;
 	}
-
 	if (mainActorData.styleData.rank <= 0 || stylePoints <= 0 
 		|| !InGame() || g_inGameCutscene || !activeCrimsonConfig.CrimsonHudAddons.stylishPtsCounter) {
 		wasVisible = false;
@@ -1284,7 +1310,7 @@ void StylishPointsWindow() {
 	ImGui::SetNextWindowPos(adjustedWindowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(adjustedWindowSize, ImGuiCond_Always);
 
-	ImGui::Begin("StylishPointsWindow", nullptr,
+	ImGui::Begin(HudViewWindowName("StylishPointsWindow", view), nullptr,
 		ImGuiWindowFlags_NoTitleBar |
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove |
@@ -1292,6 +1318,7 @@ void StylishPointsWindow() {
 		ImGuiWindowFlags_NoSavedSettings |
 		ImGuiWindowFlags_NoInputs |
 		ImGuiWindowFlags_NoBackground);
+	HudViewClipGuard stylishClip(view);
 
 	
 	float fontSize = 44.0f;
@@ -1348,6 +1375,28 @@ void StylishPointsWindow() {
 	ImGui::End();
 }
 
+// The out of combat fade is global (combat is), so it advances once per frame here, not once per view.
+void StylishPointsWindow() {
+	float deltaTime = ImGui::GetIO().DeltaTime;
+	if (!InGame() || g_inGameCutscene) {
+		g_stylishPtsOutOfCombatTimer = 0.0f;
+	} else if (g_inCombat) {
+		g_stylishPtsOutOfCombatTimer = 0.0f;
+	} else {
+		g_stylishPtsOutOfCombatTimer += deltaTime;
+	}
+	const float stylishPtsStayDuration = 3.5f;
+	const float stylishPtsFadeDuration = 2.0f;
+	float stylishPtsFadeAlpha = 1.0f;
+	if (g_stylishPtsOutOfCombatTimer > stylishPtsStayDuration) {
+		float fadeT = (g_stylishPtsOutOfCombatTimer - stylishPtsStayDuration) / stylishPtsFadeDuration;
+		stylishPtsFadeAlpha = ImClamp(1.0f - fadeT, 0.0f, 1.0f);
+	}
+	const bool outOfCombatDone = g_stylishPtsOutOfCombatTimer >= stylishPtsStayDuration + stylishPtsFadeDuration;
+
+	ForEachHudView([&](int view) { StylishPointsWindowView(view, stylishPtsFadeAlpha, outOfCombatDone); });
+}
+
 void MissionTimerDisplay() {
 	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
 	if (!(pool_10222 && pool_10222[3])) return;
@@ -1370,7 +1419,8 @@ void MissionTimerDisplay() {
 		return;
 	}
 
-	ImVec2 windowPos = ImVec2(g_renderSize.x * 0.5f, 10.0f * scaleFactorY);
+	// Centred on the screen (display size, whatever the mode): the text width is measured at its final size.
+	const ImVec2 displaySize = ImGui::GetIO().DisplaySize;
 	ImVec2 windowSize = ImVec2(301.0f * scaleFactorY * 0.95f, 303.0f * scaleFactorY * 0.95f);
 
 	// Convert shown missionTimer to hours, minutes, seconds
@@ -1381,13 +1431,11 @@ void MissionTimerDisplay() {
 	float fontSize = 44.0f;
 	ImGui::PushFont(UI::g_ImGuiFont_RedOrbRusso[fontSize * 0.9f]);
 	char timeText[32];
-	snprintf(timeText, sizeof(timeText), " %02u:%02u:%02u", hours, minutes, seconds);
-	float textWidth = ImGui::CalcTextSize(timeText).x;
+	snprintf(timeText, sizeof(timeText), "%02u:%02u:%02u", hours, minutes, seconds);
 
-	ImVec2 adjustedWindowPos = ImVec2(windowPos.x - textWidth, windowPos.y);
-	ImVec2 adjustedWindowSize = windowSize + ImVec2(g_renderSize.x, g_renderSize.y);
+	ImVec2 adjustedWindowSize = windowSize + displaySize;
 
-	ImGui::SetNextWindowPos(adjustedWindowPos, ImGuiCond_Always);
+	ImGui::SetNextWindowPos(ImVec2(0.0f, 0.0f), ImGuiCond_Always);
 	ImGui::SetNextWindowSize(adjustedWindowSize, ImGuiCond_Always);
 
 	ImGui::Begin("MissionTimerDisplayWindow", nullptr,
@@ -1401,13 +1449,10 @@ void MissionTimerDisplay() {
 
 	ImGui::SetWindowFontScale(scaleFactorY);
 
-	ImVec2 cursorPos = ImGui::GetCursorScreenPos();
 	ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-	ImGui::SetCursorScreenPos(ImVec2(cursorPos.x, cursorPos.y + (02.0f * scaleFactorY)));
-
-	ImVec2 textPos = ImGui::GetCursorScreenPos();
-
+	const float textWidth = ImGui::CalcTextSize(timeText).x;
+	ImVec2 textPos = ImVec2(displaySize.x * 0.5f - textWidth * 0.5f, 12.0f * scaleFactorY);
 	ImU32 outlineColor = IM_COL32(100, 10, 10, 255); // #500812
 	ImU32 textColor = IM_COL32(255, 255, 255, 255);
 	float outlineThickness = 1.0f;
@@ -1527,7 +1572,11 @@ void RedOrbCounterWindow() {
 // 		queuedCrimsonConfig.CrimsonHudAddons.redOrbCounter = true;
 // 	}
 
-	if (activeCrimsonConfig.HudOptions.hideMainHUD || !activeCrimsonConfig.CrimsonHudAddons.redOrbCounter) {
+	// In splitscreen the game's own counter is left out of every view; this counter stands in for it (vanilla orb
+	// texture when the Crimson addon is off).
+	const bool standIn = CrimsonSplitscreen::ViewCount() >= 2;
+	const bool crimsonCounter = activeCrimsonConfig.CrimsonHudAddons.redOrbCounter;
+	if (activeCrimsonConfig.HudOptions.hideMainHUD || (!crimsonCounter && !standIn)) {
 		CrimsonDetours::RerouteRedOrbsCounterAlpha(false, crimsonHud.redOrbAlpha);
 		CrimsonPatches::SetRebOrbCounterDurationTillFadeOut(false, 90);
 		return;
@@ -1540,6 +1589,12 @@ void RedOrbCounterWindow() {
 
 	// Get the current display size
 	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+
+	// Placement from the debug windows (HUD.cpp): scale around the top-right corner, offset from the default place.
+	float placementScale = 1.0f, placementX = 0.0f, placementY = 0.0f;
+	HUD_RedOrbCrimsonPlacement(placementScale, placementX, placementY, displaySize.y);
+	const float scaleFactorY = CrimsonGUI::scaleFactorY * placementScale;
+	const float scaleFactorX = CrimsonGUI::scaleFactorX * placementScale;
 
 	// Define the orb count and cap it at 999999
 	int orbCount = (std::min)(999999, (int)missionData.redOrbs);
@@ -1560,7 +1615,7 @@ void RedOrbCounterWindow() {
 	ImVec2 windowSize = ImVec2(300.0f * scaleFactorX, 100.0f * scaleFactorY);
 	float edgeOffsetX = 38.0f * scaleFactorY;
 	float edgeOffsetY = 30.0f * scaleFactorY;
-	ImVec2 windowPos = ImVec2(displaySize.x - windowSize.x - edgeOffsetX, edgeOffsetY);
+	ImVec2 windowPos = ImVec2(displaySize.x - windowSize.x - edgeOffsetX + placementX, edgeOffsetY + placementY);
 
 	ImGui::SetNextWindowSize(windowSize);
 	ImGui::SetNextWindowPos(windowPos);
@@ -1600,6 +1655,11 @@ void RedOrbCounterWindow() {
 	default:
 		redOrbGameMode = RedOrbCrimsonTexture;
 		break;
+	}
+
+	// Stand-in for the vanilla counter: the vanilla orb.
+	if (!crimsonCounter && RedOrbVanillaTexture) {
+		redOrbGameMode = RedOrbVanillaTexture;
 	}
 
 	// Render the texture or a white square if the texture is not valid
@@ -1657,7 +1717,15 @@ void CheatsHUDIndicatorWindow() {
 		return;
 	}
 
-	auto CheatIndicatorWindow = [](ImVec2 windowSize, ImVec2 windowPos, std::vector<uint8> cheatIndices, const char* label) {
+	// The labels belong to the Crimson red orb counter: same scale (about the top-right corner) and offset from the debug
+	// windows (HUD.cpp), so they move and scale with it as one thing.
+	float placementScale = 1.0f, placementX = 0.0f, placementY = 0.0f;
+	HUD_RedOrbCrimsonPlacement(placementScale, placementX, placementY, ImGui::GetIO().DisplaySize.y);
+	const float scaleFactorY = CrimsonGUI::scaleFactorY * placementScale;
+	const float scaleFactorX = CrimsonGUI::scaleFactorX * placementScale;
+	const float scaledFontSize = CrimsonGUI::scaledFontSize * placementScale;
+
+	auto CheatIndicatorWindow = [&](ImVec2 windowSize, ImVec2 windowPos, std::vector<uint8> cheatIndices, const char* label) {
 		// Define the window size and position
 		float edgeOffsetX = 0.0f * scaleFactorY;
 		float edgeOffsetY = 15.0f * scaleFactorY;
@@ -1742,7 +1810,7 @@ void CheatsHUDIndicatorWindow() {
 	// Top window: TRAINING, DAMAGE, SPEED, MOBILITY
 	CheatIndicatorWindow(
 		ImVec2(367.0f * scaleFactorX, 100.0f * scaleFactorY),
-		ImVec2(g_renderSize.x - (367.0f * scaleFactorX) - (0.0f * scaleFactorY), 15.0f * scaleFactorY),
+		ImVec2(g_renderSize.x - (367.0f * scaleFactorX) + placementX, 15.0f * scaleFactorY + placementY),
 		{ CHEATS::TRAINING, CHEATS::DAMAGE, CHEATS::SPEED, CHEATS::MOBILITY },
 		"CheatsHUDIndicatorWindow1"
 	);
@@ -1750,7 +1818,7 @@ void CheatsHUDIndicatorWindow() {
 	// Bottom window: DEBUG, RMS
 	CheatIndicatorWindow(
 		ImVec2(367.0f * scaleFactorX, 100.0f * scaleFactorY),
-		ImVec2(g_renderSize.x - (367.0f * scaleFactorX) - (0.0f * scaleFactorY), 117.0f * scaleFactorY),
+		ImVec2(g_renderSize.x - (367.0f * scaleFactorX) + placementX, 117.0f * scaleFactorY + placementY),
 		{ CHEATS::DEBUG, CHEATS::RMS },
 		"CheatsHUDIndicatorWindow2"
 	);
