@@ -10344,6 +10344,15 @@ void SystemSection(size_t defaultFontSize) {
 
 		GUI_PopDisable(queuedSystem.windowMode == WINDOWMODE::WINDOWED);
 
+		ImGui::SameLine();
+
+		GUI_Checkbox2("Anti-Aliasing", activeCrimsonConfig.System.antiAliasing, queuedCrimsonConfig.System.antiAliasing);
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("The game's edge anti-aliasing, same as the Antialiasing option in the DMC HD Collection launcher.\n"
+				"It's a simple filter that gets blurrier as the resolution goes up, so it's recommended to be off\n"
+				"at resolutions above 1080p for a higher quality image.\n"
+				"Applies right away and replaces the launcher's setting.");
+		}
 		// Fullscreen always uses the monitor's own resolution.
 		GUI_PushDisable(borderless);
 

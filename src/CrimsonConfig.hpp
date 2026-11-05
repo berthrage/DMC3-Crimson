@@ -598,8 +598,10 @@ struct CrimsonConfig {
 
 		bool disableMenuFadeouts = false;
 
-		struct BlendingEffects {
-			bool ghosting = false;
+		// The game's edge based anti-aliasing pass (the launcher's Antialiasing option).
+		bool antiAliasing = true;
+
+		struct BlendingEffects {			bool ghosting = false;
 			bool colorFilter = true;
 			bool bloom = true;
 			bool fogMist = true;
@@ -636,6 +638,7 @@ struct CrimsonConfig {
 				std::make_pair("nvidiaReflex", &System::nvidiaReflex),
 				std::make_pair("nvidiaReflexBoost", &System::nvidiaReflexBoost),
 				std::make_pair("disableMenuFadeouts", &System::disableMenuFadeouts),
+				std::make_pair("antiAliasing", &System::antiAliasing),
 				std::make_pair("BlendingEffects", &System::BlendingEffects),
 				std::make_pair("windowSizeX",&System::windowSizeX),
 				std::make_pair("windowSizeY", &System::windowSizeY),

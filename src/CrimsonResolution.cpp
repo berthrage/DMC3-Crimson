@@ -46,6 +46,7 @@ constexpr uint32 uiBaseHeight = 1080;
 
 // sUserConfig_1405EA130: +0x670 width, +0x674 height, +0x678 fullscreen, +0x679 borderless
 constexpr uintptr_t userConfigRva = 0x5EA130;
+constexpr uintptr_t antiAliasingOffset = 0x67A;
 
 // Style CreateGameWindow_sub_140047B40 uses for its windowed window.
 constexpr DWORD windowedStyle = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
@@ -841,6 +842,9 @@ static SwitchResult SwitchSwapChain(SwapChainWrapper* wrapper, bool wantFlip, ui
 }
 
 void ApplyPending(SwapChainWrapper* wrapper) {
+    // The game reads its anti-aliasing flag every frame.
+    *reinterpret_cast<uint8*>(appBaseAddr + userConfigRva + antiAliasingOffset) = activeCrimsonConfig.System.antiAliasing ? 1 : 0;
+
     if (!g_pending) {
         return;
     }
