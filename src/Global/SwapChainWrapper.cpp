@@ -4,6 +4,7 @@
 #include "HooksBase.hpp"
 #include "../Core/Macros.h"
 #include "../CrimsonHUD.hpp"
+#include "../CrimsonResolution.hpp"
 #include "../CrimsonEfkPreload.hpp"
 #include "../NvApiReflex.hpp"
 #include "../CrimsonSDL.hpp"
@@ -113,9 +114,9 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::ResizeBuffers(UINT BufferCount, UINT
 
     if (SUCCEEDED(hr)) {
         CreateRenderTarget();
-        UpdateGlobalWindowSize();
         UpdateGlobalClientSize();
-        UpdateGlobalRenderSize(Width, Height);
+        UpdateGlobalWindowSize();
+        CrimsonResolution::UpdateUiSize(Width, Height);
     }
 
     return hr;
@@ -157,7 +158,7 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
 
         DXGI_SWAP_CHAIN_DESC initDesc = {};
         if (SUCCEEDED(m_real->GetDesc(&initDesc))) {
-            debug_draw_init((void*)m_device, (void*)m_context, initDesc.BufferDesc.Width, initDesc.BufferDesc.Height);
+            debug_draw_init((void*)m_device, (void*)m_context, g_uiSize.x, g_uiSize.y);
 
             bool efk = CrimsonEfk::EffekInit(m_device, m_context, initDesc.BufferDesc.Width, initDesc.BufferDesc.Height);
             if (efk) {
@@ -225,7 +226,7 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
     if (width != prevWidth || height != prevHeight) {
         prevWidth  = width;
         prevHeight = height;
-        UpdateGlobalRenderSize(width, height);
+        CrimsonResolution::UpdateUiSize(width, height);
         UpdateGlobalClientSize();
         UpdateGlobalWindowSize();
     }
@@ -242,14 +243,16 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
 
+    // The overlay is laid out in g_uiSize and scaled onto the (possibly lower or higher resolution) buffer.
     auto& io   = ImGui::GetIO();
-    io.DisplaySize = ImVec2((float)width, (float)height);
+    io.DisplaySize = ImVec2(g_uiSize.x, g_uiSize.y);
+    io.DisplayFramebufferScale = ImVec2(g_renderSize.x / g_uiSize.x, g_renderSize.y / g_uiSize.y);
 
     ImGui_ImplWin32_GetDpiScaleForHwnd(m_hWnd);
 
     if (g_clientSize.x > 0 && g_clientSize.y > 0) {
-        io.MousePos.x *= ((float)width  / g_clientSize.x);
-        io.MousePos.y *= ((float)height / g_clientSize.y);
+        io.MousePos.x *= (g_uiSize.x / g_clientSize.x);
+        io.MousePos.y *= (g_uiSize.y / g_clientSize.y);
     }
 
     Timestep();
@@ -284,14 +287,14 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
 
     // PresentFlags
     UINT presentFlags = Flags;
-    if (activeCrimsonConfig.System.flipModelPresentation) {
+    if (CrimsonResolution::StartedWithFlipModel()) {
         if (SyncInterval == 0)
             presentFlags = DXGI_PRESENT_ALLOW_TEARING;
     }
 
     // Poll the frame latency waitable — non-blocking, just lets the
     // FPS limiter naturally back-pressure if the GPU is behind.
-    if (activeCrimsonConfig.System.flipModelPresentation && g_frameLatencyWaitableObject != nullptr) {
+    if (CrimsonResolution::StartedWithFlipModel() && g_frameLatencyWaitableObject != nullptr) {
         WaitForSingleObject(g_frameLatencyWaitableObject, 0);
     }
 
@@ -351,11 +354,14 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
             CreateRenderTarget();
             UpdateGlobalWindowSize();
             UpdateGlobalClientSize();
-            UpdateGlobalRenderSize(desc.BufferDesc.Width, desc.BufferDesc.Height);
+            CrimsonResolution::UpdateUiSize(desc.BufferDesc.Width, desc.BufferDesc.Height);
 
             hr = m_real->Present(SyncInterval, presentFlags);
         }
     }
+
+    // Live resolution change, between frames so nothing is drawing into the old targets.
+    CrimsonResolution::ApplyPending(m_real, m_context);
 
     // Occluded
     if (hr == 0x087A0001) {

@@ -791,7 +791,7 @@ void StyleMeterWindowRank(
 	uint32 fillColor,
 	uint32 textColor,
 	float animIntensity = 1.0f,
-	ImVec2 windowPos = ImVec2(g_renderSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
+	ImVec2 windowPos = ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 	bool sSStyle = false,
 	bool sSSStyle = false,
 	ImTextureID bgTexture2 = nullptr
@@ -920,9 +920,9 @@ void StyleMeterWindowRank(
 	}
 	highlightColor.Value.w = state.fade.alpha;
 
-	float extraLeft = (g_renderSize.y - 100.0f * scaleFactorY);
+	float extraLeft = (g_uiSize.y - 100.0f * scaleFactorY);
 	ImVec2 adjustedWindowPos = ImVec2(windowPos.x - extraLeft, windowPos.y);
-	ImVec2 adjustedWindowSize = meterSize + ImVec2(g_renderSize.x, g_renderSize.y);
+	ImVec2 adjustedWindowSize = meterSize + ImVec2(g_uiSize.x, g_uiSize.y);
 
 	ImGui::SetNextWindowPos(adjustedWindowPos, ImGuiCond_Always);
 	ImGui::SetNextWindowSize(adjustedWindowSize, ImGuiCond_Always);
@@ -1088,7 +1088,7 @@ static void StyleMeterWindowsView(int view) {
 		0xFFFFFFFF,
 		0x93beb9FF,
 		1.0f,
-		ImVec2(g_renderSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
+		ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 		false,
 		false,
 		DStyleRankBackground2Texture->GetTexture()
@@ -1106,7 +1106,7 @@ static void StyleMeterWindowsView(int view) {
 		0xFFFFFFFF,
 		0x8de7c9FF,
 		1.0f,
-		ImVec2(g_renderSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
+		ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 		false,
 		false,
 		CStyleRankBackground2Texture->GetTexture()
@@ -1124,7 +1124,7 @@ static void StyleMeterWindowsView(int view) {
 		0xFFFFFFFF,
 		0xd8cb78FF,
 		1.0f,
-		ImVec2(g_renderSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
+		ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 		false,
 		false,
 		BStyleRankBackground2Texture->GetTexture()
@@ -1142,7 +1142,7 @@ static void StyleMeterWindowsView(int view) {
 		0xFFFFFFFF,
 		0xdea264FF,
 		1.0f,
-		ImVec2(g_renderSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
+		ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 		false,
 		false,
 		AStyleRankBackground2Texture->GetTexture()
@@ -1160,7 +1160,7 @@ static void StyleMeterWindowsView(int view) {
 		0xFFFFFFFF,
 		0xdb86d4FF,
 		1.5f,
-		ImVec2(g_renderSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
+		ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 		false,
 		false,
 		SStyleRankBackground2Texture->GetTexture()
@@ -1178,7 +1178,7 @@ static void StyleMeterWindowsView(int view) {
 		0xFFFFFFFF,
 		0xb303ceFF,
 		1.5f,
-		ImVec2(g_renderSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
+		ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 		true,
 		false,
 		SSStyleRankBackground2Texture->GetTexture()
@@ -1196,7 +1196,7 @@ static void StyleMeterWindowsView(int view) {
 		0xf6bbadFF,
 		0xeb0024FF,
 		1.5f,
-		ImVec2(g_renderSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
+		ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 		true,
 		true,
 		SSSStyleRankBackground2Texture->GetTexture()
@@ -1216,13 +1216,13 @@ static void StylishPointsWindowView(int view, float stylishPtsFadeAlpha, bool ou
 	auto* mainActorPtr = StyleMeterSourceActor(view);
 	if (!mainActorPtr) return;
 	auto& mainActorData = *mainActorPtr;
-	ImVec2 windowPos = ImVec2(g_renderSize.x - (320.0f * scaleFactorY), 395.0f * scaleFactorY);
-	ImVec2 windowPosClassic = ImVec2(g_renderSize.x - (415.0f * scaleFactorY), 290.0f * scaleFactorY);
+	ImVec2 windowPos = ImVec2(g_uiSize.x - (320.0f * scaleFactorY), 395.0f * scaleFactorY);
+	ImVec2 windowPosClassic = ImVec2(g_uiSize.x - (415.0f * scaleFactorY), 290.0f * scaleFactorY);
 	ImVec2 windowSize = ImVec2(301.0f * 0.95f, 303.0f * scaleFactorY * 0.95f);
-	float extraLeft = (g_renderSize.y - 100.0f * scaleFactorY);
+	float extraLeft = (g_uiSize.y - 100.0f * scaleFactorY);
 	ImVec2 adjustedWindowPos = !activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter ? ImVec2(windowPosClassic.x, windowPosClassic.y) 
 		: ImVec2(windowPos.x, windowPos.y);
-	ImVec2 adjustedWindowSize = windowSize + ImVec2(g_renderSize.x, g_renderSize.y); 
+	ImVec2 adjustedWindowSize = windowSize + ImVec2(g_uiSize.x, g_uiSize.y); 
 
 	// Same per player placement as the rank meter (it is bound to it); sized with the scale that includes it.
 	const TopLeftHudSync styleSync = GetStyleMeterSync(view);
@@ -1810,7 +1810,7 @@ void CheatsHUDIndicatorWindow() {
 	// Top window: TRAINING, DAMAGE, SPEED, MOBILITY
 	CheatIndicatorWindow(
 		ImVec2(367.0f * scaleFactorX, 100.0f * scaleFactorY),
-		ImVec2(g_renderSize.x - (367.0f * scaleFactorX) + placementX, 15.0f * scaleFactorY + placementY),
+		ImVec2(g_uiSize.x - (367.0f * scaleFactorX) + placementX, 15.0f * scaleFactorY + placementY),
 		{ CHEATS::TRAINING, CHEATS::DAMAGE, CHEATS::SPEED, CHEATS::MOBILITY },
 		"CheatsHUDIndicatorWindow1"
 	);
@@ -1818,7 +1818,7 @@ void CheatsHUDIndicatorWindow() {
 	// Bottom window: DEBUG, RMS
 	CheatIndicatorWindow(
 		ImVec2(367.0f * scaleFactorX, 100.0f * scaleFactorY),
-		ImVec2(g_renderSize.x - (367.0f * scaleFactorX) + placementX, 117.0f * scaleFactorY + placementY),
+		ImVec2(g_uiSize.x - (367.0f * scaleFactorX) + placementX, 117.0f * scaleFactorY + placementY),
 		{ CHEATS::DEBUG, CHEATS::RMS },
 		"CheatsHUDIndicatorWindow2"
 	);
@@ -1827,7 +1827,7 @@ void CheatsHUDIndicatorWindow() {
 void CheatHotkeysPopUpWindow() {
 	// Define the window size and position
 	ImVec2 windowSize = ImVec2(367.0f * scaleFactorX, 100.0f * scaleFactorY);
-	float edgeOffsetX = (g_renderSize.x * 0.7f) - (windowSize.x * 0.5f);
+	float edgeOffsetX = (g_uiSize.x * 0.7f) - (windowSize.x * 0.5f);
 	float edgeOffsetY = 15.0f * scaleFactorY;
 	ImVec2 windowPos = ImVec2(edgeOffsetX, edgeOffsetY);
 	auto& currentGameMode = activeCrimsonGameplay.GameMode.preset;
@@ -3943,9 +3943,9 @@ struct WorldHudView {
 
 static WorldHudView MakeWorldHudView(int viewer) {
 	WorldHudView view;
-	view.maxX = g_renderSize.x;
-	view.maxY = g_renderSize.y;
-	if (viewer >= 0 && CrimsonSplitscreen::ViewRect(viewer, g_renderSize.x, g_renderSize.y, view.minX, view.minY, view.maxX, view.maxY)) {
+	view.maxX = g_uiSize.x;
+	view.maxY = g_uiSize.y;
+	if (viewer >= 0 && CrimsonSplitscreen::ViewRect(viewer, g_uiSize.x, g_uiSize.y, view.minX, view.minY, view.maxX, view.maxY)) {
 		view.viewer = viewer;
 		view.scale = CrimsonSplitscreen::ViewScale(viewer);
 	}
@@ -4084,8 +4084,8 @@ static void RenderOutOfViewIcon(PlayerActorData actorData, SimpleVec3& screen_po
 	// Scale factor based on 1080p for responsiveness
 	float baseResX = 1920.0f;
 	float baseResY = 1080.0f;
-	float scaleFactorX = g_renderSize.x * view.scale / baseResX;
-	float scaleFactorY = g_renderSize.y * view.scale / baseResY;
+	float scaleFactorX = g_uiSize.x * view.scale / baseResX;
+	float scaleFactorY = g_uiSize.y * view.scale / baseResY;
 
 	ImVec2 buttonSize(80.0f * scaleFactorX, 80.0f * scaleFactorY);
 

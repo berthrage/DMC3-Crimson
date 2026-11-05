@@ -15,6 +15,24 @@
 #define NUM_KEYBINDS 24
 #define NUM_DIRECT_WEAPON_BINDS 10
 
+// What the game actually does. Derived from System::windowMode and System::legacyFullscreen.
+namespace DISPLAYMODE {
+enum {
+	EXCLUSIVE_FULLSCREEN,
+	BORDERLESS_FULLSCREEN,
+	WINDOWED,
+	COUNT,
+};
+}
+
+namespace WINDOWMODE {
+enum {
+	FULLSCREEN,
+	WINDOWED,
+	COUNT,
+};
+}
+
 namespace HUDELEMENTSCALESTATE {
 enum {
 	SMALL,
@@ -553,7 +571,24 @@ struct CrimsonConfig {
 	} PlayerProperties;
 
 	struct System {
-		bool flipModelPresentation = true;
+		// Fullscreen and Windowed use a DXGI flip model swap chain, Legacy Fullscreen keeps the game's own exclusive fullscreen.
+		int32 windowMode = WINDOWMODE::FULLSCREEN;
+		bool legacyFullscreen = false;
+
+		int32 Mode() const {
+			if (windowMode == WINDOWMODE::WINDOWED) {
+				return DISPLAYMODE::WINDOWED;
+			}
+
+			return legacyFullscreen ? DISPLAYMODE::EXCLUSIVE_FULLSCREEN : DISPLAYMODE::BORDERLESS_FULLSCREEN;
+		}
+		// Index into the detected monitors, 0 = primary.
+		int32 monitorIndex = 0;
+		// Resolution of Windowed and Legacy Fullscreen, Fullscreen uses the monitor's. Unset (0) starts at the game's own resolution.
+		int32 resolutionWidth = 0;
+		int32 resolutionHeight = 0;
+		// Render resolution as a percentage of the resolution above. Not used by Exclusive Fullscreen.
+		int32 internalResolutionPercent = 100;
 
 		float fpsCap = 120.0f;
 		bool fpsUnlocked = false;
@@ -587,9 +622,15 @@ struct CrimsonConfig {
 		float windowSizeY = 9999.0f;
 		float windowPosX = 9999.0f;
 		float windowPosY = 9999.0f;
+
 		static constexpr auto Metadata() {
 			return std::make_tuple(
-				std::make_pair("flipModelPresentation", &System::flipModelPresentation),
+				std::make_pair("windowMode", &System::windowMode),
+				std::make_pair("legacyFullscreen", &System::legacyFullscreen),
+				std::make_pair("monitorIndex", &System::monitorIndex),
+				std::make_pair("resolutionWidth", &System::resolutionWidth),
+				std::make_pair("resolutionHeight", &System::resolutionHeight),
+				std::make_pair("internalResolutionPercent", &System::internalResolutionPercent),
 				std::make_pair("fpsCap", &System::fpsCap),
 				std::make_pair("fpsUnlocked", &System::fpsUnlocked),
 				std::make_pair("nvidiaReflex", &System::nvidiaReflex),

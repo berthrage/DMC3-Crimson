@@ -382,6 +382,12 @@ public:
         return true;
     }
 
+    void EffekSetRenderSize(int width, int height)
+    {
+        g_windowDimensions[0] = static_cast<float>(width);
+        g_windowDimensions[1] = static_cast<float>(height);
+    }
+
     void EffekTerminate()
     {
         CrimsonEfk::StopAllEffects();

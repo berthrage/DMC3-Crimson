@@ -15,6 +15,7 @@
 #include "../CrimsonEfk.hpp"
 #include "../CrimsonEfkPreload.hpp"
 #include "../CrimsonHUD.hpp"
+#include "../CrimsonResolution.hpp"
 #include <dxgi1_3.h>
 #include <timeapi.h>
 #include <utility>
@@ -23,12 +24,12 @@
 void UpdateMousePositionMultiplier() {
     using namespace CoreImGui::DI8;
 
-    if ((g_clientSize.x < 1) || (g_clientSize.y < 1) || (g_renderSize.x < 1) || (g_renderSize.y < 1)) {
+    if ((g_clientSize.x < 1) || (g_clientSize.y < 1) || (g_uiSize.x < 1) || (g_uiSize.y < 1)) {
         mousePositionMultiplier.x = 1;
         mousePositionMultiplier.y = 1;
     } else {
-        mousePositionMultiplier.x = (g_renderSize.x / g_clientSize.x);
-        mousePositionMultiplier.y = (g_renderSize.y / g_clientSize.y);
+        mousePositionMultiplier.x = (g_uiSize.x / g_clientSize.x);
+        mousePositionMultiplier.y = (g_uiSize.y / g_clientSize.y);
     }
 
     Log("%s %g %g", FUNC_NAME, mousePositionMultiplier.x, mousePositionMultiplier.y);
@@ -384,188 +385,6 @@ static void ActivateWindow(HWND hWnd, bool active) {
     }
 }
 
-void ToggleBorderlessFullscreen() {
-    // Only allow borderless fullscreen if flip model presentation is enabled
-    if (!activeCrimsonConfig.System.flipModelPresentation) {
-        Log("ToggleBorderlessFullscreen: Disabled - flip model presentation is not enabled in configuration");
-        return;
-    }
-
-    if (!appWindow) {
-        Log("ToggleBorderlessFullscreen: appWindow is null");
-        return;
-    }
-
-    // Detect initial state on first call
-    static bool firstCall = true;
-    if (firstCall) {
-        firstCall = false;
-        
-        DWORD currentStyle = GetWindowLongA(appWindow, GWL_STYLE);
-        
-        // Check if we're already in borderless fullscreen mode
-        // Borderless fullscreen typically has WS_POPUP style and covers the monitor
-        bool isBorderless = (currentStyle & WS_POPUP) && !(currentStyle & WS_CAPTION);
-
-        if (!isBorderless && !(currentStyle & WS_CAPTION)) {
-            RECT wr;
-            GetWindowRect(appWindow, &wr);
-            HMONITOR hm = MonitorFromWindow(appWindow, MONITOR_DEFAULTTOPRIMARY);
-            MONITORINFO mi = { sizeof(MONITORINFO) };
-            GetMonitorInfo(hm, &mi);
-            if (wr.left <= mi.rcMonitor.left && wr.top <= mi.rcMonitor.top &&
-                wr.right >= mi.rcMonitor.right && wr.bottom >= mi.rcMonitor.bottom)
-                isBorderless = true;
-        }
-        
-        if (isBorderless) {
-            RECT windowRect;
-            GetWindowRect(appWindow, &windowRect);
-            
-            HMONITOR hMonitor = MonitorFromWindow(appWindow, MONITOR_DEFAULTTOPRIMARY);
-            MONITORINFO monitorInfo = {};
-            monitorInfo.cbSize = sizeof(MONITORINFO);
-            GetMonitorInfo(hMonitor, &monitorInfo);
-            
-            // Check if window covers the entire monitor
-            bool coversMonitor = (windowRect.left <= monitorInfo.rcMonitor.left) &&
-                               (windowRect.top <= monitorInfo.rcMonitor.top) &&
-                               (windowRect.right >= monitorInfo.rcMonitor.right) &&
-                               (windowRect.bottom >= monitorInfo.rcMonitor.bottom);
-            
-            if (coversMonitor) {
-                g_window.borderless.active = true;
-                // Set default windowed state (will be overridden when user switches to windowed)
-                g_window.borderless.style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
-                g_window.borderless.exStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-                
-                // Use a reasonable default windowed size (92% of monitor)
-                int defaultWidth = (monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left) * 0.92f;
-                int defaultHeight = (monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top) * 0.92f;
-                int centerX = monitorInfo.rcMonitor.left + (monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left - defaultWidth) / 2;
-                int centerY = monitorInfo.rcMonitor.top + (monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top - defaultHeight) / 2;
-                
-                g_window.borderless.windowRect.left = centerX;
-                g_window.borderless.windowRect.top = centerY;
-                g_window.borderless.windowRect.right = centerX + defaultWidth;
-                g_window.borderless.windowRect.bottom = centerY + defaultHeight;
-                
-                Log("Detected initial borderless fullscreen state - set default windowed size: %dx%d", defaultWidth, defaultHeight);
-            } else {
-                g_window.borderless.active = false;
-                Log("Detected initial windowed state");
-            }
-        } else {
-            g_window.borderless.active = false;
-            Log("Detected initial windowed state");
-        }
-    }
-
-    Log("Starting window transition - current state: %s", g_window.borderless.active ? "borderless" : "windowed");
-
-    if (!g_window.borderless.active) {
-        // Save current windowed state
-        g_window.borderless.style = GetWindowLongA(appWindow, GWL_STYLE);
-        g_window.borderless.exStyle = GetWindowLongA(appWindow, GWL_EXSTYLE);
-        GetWindowRect(appWindow, &g_window.borderless.windowRect);
-
-        if (!(g_window.borderless.style & WS_CAPTION)) {
-            g_window.borderless.style   = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
-            g_window.borderless.exStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-        }
-
-        HMONITOR hMonitor = MonitorFromWindow(appWindow, MONITOR_DEFAULTTOPRIMARY);
-        MONITORINFO monitorInfo = {};
-        monitorInfo.cbSize = sizeof(MONITORINFO);
-        GetMonitorInfo(hMonitor, &monitorInfo);
-
-        int monW = monitorInfo.rcMonitor.right  - monitorInfo.rcMonitor.left;
-        int monH = monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top;
-        int svW  = g_window.borderless.windowRect.right  - g_window.borderless.windowRect.left;
-        int svH  = g_window.borderless.windowRect.bottom - g_window.borderless.windowRect.top;
-
-        if (svW >= monW && svH >= monH) {
-            int defW = (int)(monW * 0.92f);
-            int defH = (int)(monH * 0.92f);
-            g_window.borderless.windowRect.left   = monitorInfo.rcMonitor.left + (monW - defW) / 2;
-            g_window.borderless.windowRect.top    = monitorInfo.rcMonitor.top  + (monH - defH) / 2;
-            g_window.borderless.windowRect.right  = g_window.borderless.windowRect.left + defW;
-            g_window.borderless.windowRect.bottom = g_window.borderless.windowRect.top  + defH;
-        }
-
-        Log("Transitioning to borderless fullscreen...");
-
-        // Set borderless fullscreen style
-        SetWindowLongA(appWindow, GWL_STYLE, WS_POPUP | WS_VISIBLE);
-        SetWindowLongA(appWindow, GWL_EXSTYLE, WS_EX_APPWINDOW);
-
-        // Move window to cover entire monitor
-        SetWindowPos(appWindow, HWND_TOP, 
-            monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top,
-            monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
-            monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top,
-            SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-
-        g_window.borderless.active = true;
-        
-        Log("Switched to borderless fullscreen: %dx%d", 
-            monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
-            monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top);
-    } else {
-        Log("Transitioning to windowed mode...");
-
-        // Validate saved windowed state
-        if (g_window.borderless.style == 0) {
-            g_window.borderless.style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
-            g_window.borderless.exStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-            Log("Using default windowed style (saved state was invalid)");
-        }
-        
-        if (g_window.borderless.windowRect.right <= g_window.borderless.windowRect.left || g_window.borderless.windowRect.bottom <= g_window.borderless.windowRect.top) {
-            // Invalid saved rect, create a reasonable default
-            HMONITOR hMonitor = MonitorFromWindow(appWindow, MONITOR_DEFAULTTOPRIMARY);
-            MONITORINFO monitorInfo = {};
-            monitorInfo.cbSize = sizeof(MONITORINFO);
-            GetMonitorInfo(hMonitor, &monitorInfo);
-            
-            int defaultWidth = (monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left) * 0.92f;
-            int defaultHeight = (monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top) * 0.92f;
-            int centerX = monitorInfo.rcMonitor.left + (monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left - defaultWidth) / 2;
-            int centerY = monitorInfo.rcMonitor.top + (monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top - defaultHeight) / 2;
-            
-            g_window.borderless.windowRect.left = centerX;
-            g_window.borderless.windowRect.top = centerY;
-            g_window.borderless.windowRect.right = centerX + defaultWidth;
-            g_window.borderless.windowRect.bottom = centerY + defaultHeight;
-            
-            Log("Using default windowed rect (saved rect was invalid): %dx%d", defaultWidth, defaultHeight);
-        }
-
-        SetWindowLongA(appWindow, GWL_STYLE, g_window.borderless.style);
-        SetWindowLongA(appWindow, GWL_EXSTYLE, g_window.borderless.exStyle);
-
-        SetWindowPos(appWindow, HWND_NOTOPMOST,
-            g_window.borderless.windowRect.left, g_window.borderless.windowRect.top,
-            g_window.borderless.windowRect.right - g_window.borderless.windowRect.left,
-            g_window.borderless.windowRect.bottom - g_window.borderless.windowRect.top,
-            SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
-
-        RECT verifyRect;
-        GetWindowRect(appWindow, &verifyRect);
-        DWORD verifyStyle = GetWindowLongA(appWindow, GWL_STYLE);
-            verifyStyle,
-            verifyRect.left, verifyRect.top,
-            verifyRect.right - verifyRect.left,
-            verifyRect.bottom - verifyRect.top;
-
-        g_window.borderless.active = false;
-        
-        Log("Switched to windowed mode: %dx%d", 
-            g_window.borderless.windowRect.right - g_window.borderless.windowRect.left,
-            g_window.borderless.windowRect.bottom - g_window.borderless.windowRect.top);
-    }
-}
-
 // Forward declaration for ImGui Win32 backend handler
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -578,15 +397,15 @@ LRESULT WindowProc(HWND windowHandle, UINT message, WPARAM wParameter, LPARAM lP
         return true;
     }
 
-    // Only handle Alt+Enter if flip model presentation is enabled
-    if (activeCrimsonConfig.System.flipModelPresentation) {
+    // Alt+Enter switches between Borderless Fullscreen and Windowed unless the game started in Exclusive Fullscreen
+    if (CrimsonResolution::StartedWithFlipModel()) {
         // Handle Alt+Enter 
         if (message == WM_SYSKEYDOWN && wParameter == VK_RETURN && (lParameter & (1 << 29))) {
             if (GetForegroundWindow() == windowHandle && !g_window.borderless.altPressed) {
                 // Key pressed down for the first time
                 g_window.borderless.altPressed = true;
                 Log("Alt+Enter pressed via WindowProc - triggering fullscreen toggle");
-                ToggleBorderlessFullscreen();
+                CrimsonResolution::ToggleBorderless();
                 return 0; // Consume the keydown message completely
             }
         } else if (message == WM_SYSKEYUP && wParameter == VK_RETURN && (lParameter & (1 << 29))) {
@@ -753,6 +572,9 @@ ATOM RegisterClassExW(const WNDCLASSEXW* windowClassAddr) {
             ::Base::Windows::WindowProc = windowClass.lpfnWndProc;
 
             windowClass.lpfnWndProc = ::Hook::Windows::WindowProc;
+
+            // Display mode, monitor and resolution go into the game's config before it creates its window.
+            CrimsonResolution::InitStartup();
         }
     }
 
@@ -928,13 +750,16 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
 	DXGI_SWAP_CHAIN_DESC modifiedSwapChainDesc = *pSwapChainDesc;
 	bool flipModelEnabled = false;
 
-	if (activeCrimsonConfig.System.flipModelPresentation && 
+	// The window exists now: put it on the selected monitor before the swap chain (and exclusive fullscreen) picks its output.
+	CrimsonResolution::PlaceWindowAtStartup(pSwapChainDesc->OutputWindow);
+
+	if (CrimsonResolution::StartedWithFlipModel() && 
 		modifiedSwapChainDesc.SampleDesc.Count == 1 && modifiedSwapChainDesc.SampleDesc.Quality == 0) {
 		flipModelEnabled = true;
 		SetProcessDPIAware();
 		Log("SetProcessDPIAware() called for consistent DPI scaling");
-	} else if (!activeCrimsonConfig.System.flipModelPresentation) {
-		Log("Flip model presentation disabled by configuration - using original swap chain settings");
+	} else if (!CrimsonResolution::StartedWithFlipModel()) {
+		Log("Exclusive Fullscreen selected - using original swap chain settings");
 	} else {
 		Log("Cannot enable flip model - MSAA detected (Count: %u, Quality: %u)", 
 			modifiedSwapChainDesc.SampleDesc.Count, modifiedSwapChainDesc.SampleDesc.Quality);
@@ -1026,10 +851,8 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
 
 	UpdateGlobalWindowSize();
 	UpdateGlobalClientSize();
-	// Make sure we inform rendering logic of our potentially higher/mutated resolution so drawing math adapts:
-	UpdateGlobalRenderSize(modifiedSwapChainDesc.BufferDesc.Width, modifiedSwapChainDesc.BufferDesc.Height);
-
-	CoreImGui::UpdateDisplaySize(modifiedSwapChainDesc.BufferDesc.Width, modifiedSwapChainDesc.BufferDesc.Height);
+	// The overlay is laid out in the unscaled size, not the internal resolution:
+	CrimsonResolution::UpdateUiSize(modifiedSwapChainDesc.BufferDesc.Width, modifiedSwapChainDesc.BufferDesc.Height);
 
 	UpdateMousePositionMultiplier();
 
@@ -1060,8 +883,14 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
     // Give the game our wrapper instead of the real swap chain.
     // No VTABLE patching — Present interception lives inside the wrapper.
     [&]() {
-        if ((result != 0) || !ppSwapChain || !*ppSwapChain) {
+        // Success codes other than S_OK are still a usable swap chain, for example DXGI statuses while entering fullscreen on another monitor.
+        if (FAILED(result) || !ppSwapChain || !*ppSwapChain) {
+            Log("SwapChainWrapper skipped, result %X", result);
             return;
+        }
+
+        if (result != S_OK) {
+            Log("D3D11CreateDeviceAndSwapChain returned status %X", result);
         }
 
         auto* wrapper = new SwapChainWrapper(*ppSwapChain, *ppDevice, *ppImmediateContext, appWindow);
@@ -1152,7 +981,7 @@ HRESULT GetDeviceStateA(IDirectInputDevice8A* pDevice, DWORD BufferSize, LPVOID 
     HRESULT result = ::Base::DI8::GetDeviceStateA ? ::Base::DI8::GetDeviceStateA(pDevice, BufferSize, Buffer) : S_OK;
     
     // Only intercept Alt+Enter if flip model presentation is enabled
-    if (BufferSize == 256 && Buffer && result == S_OK && activeCrimsonConfig.System.flipModelPresentation) {
+    if (BufferSize == 256 && Buffer && result == S_OK && CrimsonResolution::StartedWithFlipModel()) {
         BYTE* keys = static_cast<BYTE*>(Buffer);
         
         // DirectInput scan codes 

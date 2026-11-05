@@ -718,8 +718,8 @@ void ShowButtonConfigWindow() {
 
 	const float scaleY      = CrimsonGUI::scaleFactorY;
 	const float scaleF      = (CrimsonGUI::scaleFactorX + CrimsonGUI::scaleFactorY) * 0.5f;
-	float width             = g_renderSize.x / 1.40f;
-	float height            = g_renderSize.y / 1.10f;
+	float width             = g_uiSize.x / 1.40f;
+	float height            = g_uiSize.y / 1.10f;
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,  ImVec2(20.0f * scaleF, 20.0f * scaleF));
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 20.0f * scaleF);
@@ -728,7 +728,7 @@ void ShowButtonConfigWindow() {
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 0.85f));
 
 	ImGui::SetNextWindowSize(ImVec2(width, height));
-	ImGui::SetNextWindowPos(ImVec2(g_renderSize.x * 0.5f, g_renderSize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+	ImGui::SetNextWindowPos(ImVec2(g_uiSize.x * 0.5f, g_uiSize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
     auto& io = ImGui::GetIO();
     int keyboardBackKey = activeCrimsonInput.KeyboardConfig.keybinds[11];
@@ -1169,7 +1169,7 @@ void ShowButtonConfigWindow() {
 		float popupHeight = 260.0f * popupScale;
 
 		ImGui::SetNextWindowSize(ImVec2(popupWidth, popupHeight));
-		ImGui::SetNextWindowPos(ImVec2((g_renderSize.x - popupWidth) * 0.5f, (g_renderSize.y - popupHeight) * 0.5f));
+		ImGui::SetNextWindowPos(ImVec2((g_uiSize.x - popupWidth) * 0.5f, (g_uiSize.y - popupHeight) * 0.5f));
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,  ImVec2(20.0f * popupScale, 20.0f * popupScale));
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 20.0f * popupScale);
@@ -1231,7 +1231,7 @@ void ShowButtonConfigWindow() {
 		float popupHeight = 200.0f * popupScale;
 
 		ImGui::SetNextWindowSize(ImVec2(popupWidth, popupHeight));
-		ImGui::SetNextWindowPos(ImVec2((g_renderSize.x - popupWidth) * 0.5f, (g_renderSize.y - popupHeight) * 0.5f));
+		ImGui::SetNextWindowPos(ImVec2((g_uiSize.x - popupWidth) * 0.5f, (g_uiSize.y - popupHeight) * 0.5f));
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,  ImVec2(20.0f * popupScale, 20.0f * popupScale));
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 20.0f * popupScale);

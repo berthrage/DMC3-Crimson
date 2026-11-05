@@ -1421,6 +1421,7 @@ void GetWindowPos(HWND window, POINT& point) {
 vec2 g_windowSize = {};
 vec2 g_clientSize = {};
 vec2 g_renderSize = {};
+vec2 g_uiSize     = {};
 
 float g_frameRateMultiplier = 1.0f;
 
@@ -1494,6 +1495,12 @@ void UpdateGlobalRenderSize(uint32 width, uint32 height) {
     g_renderSize = {static_cast<float>(width), static_cast<float>(height)};
 
     Log("%s %g %g", FUNC_NAME, g_renderSize.x, g_renderSize.y);
+}
+
+void UpdateGlobalUiSize(uint32 width, uint32 height) {
+    g_uiSize = {static_cast<float>(width), static_cast<float>(height)};
+
+    Log("%s %g %g", FUNC_NAME, g_uiSize.x, g_uiSize.y);
 }
 
 #pragma endregion

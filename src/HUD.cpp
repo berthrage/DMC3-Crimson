@@ -1521,7 +1521,7 @@ HudFrameInfo ReadHudFrameInfo(float screenWidth, float screenHeight) {
 // player), then p' = p * S + G / k around the HUD origin (y up).
 HudGroupTuning ComposeTopLeftGroup(const HudGroupTuning& base, const HudGeneral& g) {
 	const HudCalibration& c = s_hudCalibration;
-	const HudFrameInfo frame = ReadHudFrameInfo(g_renderSize.x, g_renderSize.y);
+	const HudFrameInfo frame = ReadHudFrameInfo(g_uiSize.x, g_uiSize.y);
 	const float unitX = frame.unitX * c.unitX;
 	const float unitY = frame.unitY * c.unitY;
 	const float gameScale = 1.0f + (g.scale - 1.0f) * c.scaleRate;
@@ -1711,7 +1711,7 @@ void DrawCockpitSeat(CockpitFn original, uint8_t* cockpit, int seat) {
 	auto matrix = [cockpit](size_t i) {
 		return reinterpret_cast<float*>(cockpit + COCKPIT_TOP_MATRIX_BASE + COCKPIT_TOP_MATRIX_STRIDE * i);
 	};
-	const HudFrameInfo frame = ReadHudFrameInfo(g_renderSize.x, g_renderSize.y);
+	const HudFrameInfo frame = ReadHudFrameInfo(g_uiSize.x, g_uiSize.y);
 	const HudGroupTuning group = SeatGroup(seat, frame);
 	const HudGroupTuning redOrbGroup = ComposeTopLeftGroup(HUD_GROUP_IDENTITY, s_redOrbVanilla);
 

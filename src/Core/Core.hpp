@@ -1031,7 +1031,8 @@ enum {
 
 extern vec2 g_windowSize;
 extern vec2 g_clientSize;
-extern vec2 g_renderSize;
+extern vec2 g_renderSize; // swap chain buffer, i.e. the internal resolution
+extern vec2 g_uiSize;     // size the overlay and HUD are laid out in: 1080 tall, buffer aspect ratio
 
 extern "C" float g_frameRateMultiplier;
 
@@ -1040,5 +1041,6 @@ POINT GetClientSize(HWND windowHandle);
 void UpdateGlobalWindowSize();
 void UpdateGlobalClientSize();
 void UpdateGlobalRenderSize(uint32 width, uint32 height);
+void UpdateGlobalUiSize(uint32 width, uint32 height);
 
 #pragma endregion

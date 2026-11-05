@@ -10,6 +10,7 @@ struct ID3D11DeviceContext;
 namespace CrimsonEfk {
 	bool EffekInit(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, int windowWidth, int windowHeight);
 	void EffekTerminate();
+	void EffekSetRenderSize(int width, int height);
 
 	void EffekInitRenderHook();
 	void EffekDrawImgui();

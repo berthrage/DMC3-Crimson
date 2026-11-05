@@ -160,7 +160,7 @@ void CreditsWindow() {
         run = true;
 
 
-        ImGui::SetNextWindowSize(ImVec2(g_renderSize.x, g_renderSize.y));
+        ImGui::SetNextWindowSize(ImVec2(g_uiSize.x, g_uiSize.y));
 
         ImGui::SetNextWindowPos(ImVec2(0, 0));
     }
@@ -267,7 +267,7 @@ void Welcome() {
 
         ImGui::SetNextWindowSize(ImVec2(width, height));
 
-        ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
+        ImGui::SetNextWindowPos(ImVec2(((g_uiSize.x - width) / 2), ((g_uiSize.y - height) / 2)));
     }
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);

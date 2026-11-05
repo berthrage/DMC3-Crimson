@@ -121,12 +121,12 @@ namespace {
 
     // --------------------- Screen: Game Mode ---------------------
     void ScreenGameMode(ID3D11Device* pDevice) {
-        const float winW = g_renderSize.x * 0.78f;
-        const float winH = g_renderSize.y * 0.80f;
+        const float winW = g_uiSize.x * 0.78f;
+        const float winH = g_uiSize.y * 0.80f;
         const float sf   = CrimsonGUI::scaleFactorY;
 
         ImGui::SetNextWindowSize(ImVec2(winW, winH));
-        ImGui::SetNextWindowPos(ImVec2((g_renderSize.x - winW) * 0.5f, (g_renderSize.y - winH) * 0.5f));
+        ImGui::SetNextWindowPos(ImVec2((g_uiSize.x - winW) * 0.5f, (g_uiSize.y - winH) * 0.5f));
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f * sf);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -254,12 +254,12 @@ namespace {
 
     // --------------------- Screen: Visual Style ---------------------
     void ScreenVisualStyle(ID3D11Device* pDevice) {
-        const float winW = g_renderSize.x * 0.78f;
-        const float winH = g_renderSize.y * 0.80f;
+        const float winW = g_uiSize.x * 0.78f;
+        const float winH = g_uiSize.y * 0.80f;
         const float sf   = CrimsonGUI::scaleFactorY;
 
         ImGui::SetNextWindowSize(ImVec2(winW, winH));
-        ImGui::SetNextWindowPos(ImVec2((g_renderSize.x - winW) * 0.5f, (g_renderSize.y - winH) * 0.5f));
+        ImGui::SetNextWindowPos(ImVec2((g_uiSize.x - winW) * 0.5f, (g_uiSize.y - winH) * 0.5f));
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f * sf);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -366,12 +366,12 @@ namespace {
 
     // --------------------- Screen: Camera ---------------------
     void ScreenCamera(ID3D11Device* pDevice) {
-        const float winW = g_renderSize.x * 0.78f;
-        const float winH = g_renderSize.y * 0.80f;
+        const float winW = g_uiSize.x * 0.78f;
+        const float winH = g_uiSize.y * 0.80f;
         const float sf   = CrimsonGUI::scaleFactorY;
 
         ImGui::SetNextWindowSize(ImVec2(winW, winH));
-        ImGui::SetNextWindowPos(ImVec2((g_renderSize.x - winW) * 0.5f, (g_renderSize.y - winH) * 0.5f));
+        ImGui::SetNextWindowPos(ImVec2((g_uiSize.x - winW) * 0.5f, (g_uiSize.y - winH) * 0.5f));
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f * sf);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);

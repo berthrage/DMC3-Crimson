@@ -1710,7 +1710,7 @@ void PlayEcstasyHit(uintptr_t shlActorAddr) {
 	if (distance > 255) distance = 255;
 
 	// Angle: screen-relative X offset from center (matches playerScreenAngle).
-	const float screenCenterX = g_renderSize.x * 0.5f;
+	const float screenCenterX = g_uiSize.x * 0.5f;
 	const auto screenPos = debug_draw_world_to_screen((const float*)&shlActor.position, 1.0f);
 	const float normalizedOffset = (screenPos.x - screenCenterX) / screenCenterX;
 	constexpr float audioDeadzoneAngle = 15.0f;

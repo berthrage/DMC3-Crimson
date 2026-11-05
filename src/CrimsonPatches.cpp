@@ -605,8 +605,8 @@ void HandlePanoramicSPCameraDistance(float& cameraDistance, float groundDistance
 
 	const float baseResX = 1920.0f;
 	const float baseResY = 1080.0f;
-	float screenWidth = g_renderSize.x;
-	float screenHeight = g_renderSize.y;
+	float screenWidth = g_uiSize.x;
+	float screenHeight = g_uiSize.y;
 	float scaleFactorX = screenWidth / baseResX;
 	float scaleFactorY = screenWidth / baseResY;
 
@@ -820,8 +820,8 @@ void HandleMultiplayerCameraDistance(float& cameraDistance, float groundDistance
 
 	const float baseResX = 1920.0f;
 	const float baseResY = 1080.0f;
-	float screenWidth = g_renderSize.x;
-	float screenHeight = g_renderSize.y;
+	float screenWidth = g_uiSize.x;
+	float screenHeight = g_uiSize.y;
 	float scaleFactorX = screenWidth / baseResX;
 	float scaleFactorY = screenWidth / baseResY;
 

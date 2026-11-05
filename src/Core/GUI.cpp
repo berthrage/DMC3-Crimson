@@ -757,8 +757,8 @@ void KeyBinding::Popup() {
 	float height = 330 * scaleFactor;
 
 	// Calculate center position - don't apply scale factor twice to position
-	float centerX = (g_renderSize.x - width) / 2;
-	float centerY = (g_renderSize.y - height) / 2;
+	float centerX = (g_uiSize.x - width) / 2;
+	float centerY = (g_uiSize.y - height) / 2;
 
 	ImGui::SetNextWindowSize(ImVec2(width, height));
 	ImGui::SetNextWindowPos(ImVec2(centerX, centerY));

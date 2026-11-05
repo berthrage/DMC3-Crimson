@@ -14,6 +14,8 @@
 #include "Core/Core_ImGui.hpp"
 #include "Global/GlobalBase.hpp"
 #include "Global/GUIBase.hpp"
+#include "Global/HooksBase.hpp"
+#include "CrimsonResolution.hpp"
 #include "CrimsonUtil.hpp"
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonOnboarding.hpp"
@@ -145,7 +147,7 @@ void DrawCrimson(IDXGISwapChain* pSwapChain, const char* title, bool* pIsOpened)
 	// Scale style variables
 	ImGuiStyle& style = ImGui::GetStyle();
 
-	float scaleFactorUltrawideY = g_renderSize.y / 610;
+	float scaleFactorUltrawideY = g_uiSize.y / 610;
 	style.WindowPadding = ImVec2(6.0f * scaleFactorUltrawideY, 3.0f * scaleFactorUltrawideY);
 	style.WindowRounding = 0.0f * scaleFactorY;
 	style.WindowBorderSize = 1.0f * scaleFactorUltrawideY;
@@ -2247,7 +2249,7 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 
 	auto analogSwitchingAllowed = playerIndex == 0 ? activeCrimsonConfig.WeaponWheel.analogSwitching ? true : false : true;
 
-	static auto windowSize = ImVec2(g_renderSize.x, g_renderSize.y);
+	static auto windowSize = ImVec2(g_uiSize.x, g_uiSize.y);
 	auto cornerPos = isMelee ? windowSize - wheelSize : ImVec2(0, windowSize.y - wheelSize.y);
 	ImGui::SetNextWindowSize(wheelSize);
 	ImGui::SetNextWindowPos(cornerPositioning ? cornerPos : windowPos);
@@ -2384,16 +2386,16 @@ void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	const float deltaTimeMs = g_deltaTime * 1000.0f;
 
 	auto& scale = activeCrimsonConfig.WeaponWheel.scale;
-	ImVec2 normalPos = ImVec2(g_renderSize.x - g_renderSize.y * 0.45f, g_renderSize.y - g_renderSize.y * 0.45f);
-	ImVec2 normalSize = initialized ? scale == HUDELEMENTSCALESTATE::BIG ? ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f) :
-		ImVec2(g_renderSize.y * 0.35f, g_renderSize.y * 0.35f) :
-		ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
+	ImVec2 normalPos = ImVec2(g_uiSize.x - g_uiSize.y * 0.45f, g_uiSize.y - g_uiSize.y * 0.45f);
+	ImVec2 normalSize = initialized ? scale == HUDELEMENTSCALESTATE::BIG ? ImVec2(g_uiSize.y * 0.45f, g_uiSize.y * 0.45f) :
+		ImVec2(g_uiSize.y * 0.35f, g_uiSize.y * 0.35f) :
+		ImVec2(g_uiSize.y * 0.45f, g_uiSize.y * 0.45f);
 
 	// Splitscreen / multiplayer layouts (HUD.cpp) have their own placement and one size; only single player uses the scale option.
 	float meleeX = 0.0f, meleeY = 0.0f, rangedX = 0.0f, rangedY = 0.0f, wheelSizePx = 0.0f, ignoredSize = 0.0f;
 	const bool force1P = activeCrimsonConfig.WeaponWheel.force1PMultiplayerPosScale;
-	const bool inMultiplayer = HUD_WheelPlacement(0, true, force1P, g_renderSize.x, g_renderSize.y, meleeX, meleeY, wheelSizePx)
-		&& HUD_WheelPlacement(0, false, force1P, g_renderSize.x, g_renderSize.y, rangedX, rangedY, ignoredSize);
+	const bool inMultiplayer = HUD_WheelPlacement(0, true, force1P, g_uiSize.x, g_uiSize.y, meleeX, meleeY, wheelSizePx)
+		&& HUD_WheelPlacement(0, false, force1P, g_uiSize.x, g_uiSize.y, rangedX, rangedY, ignoredSize);
 
 	ImVec2 multiplayerPosMelee = ImVec2(meleeX, meleeY);
 	ImVec2 multiplayerPosRanged = ImVec2(rangedX, rangedY);
@@ -2442,12 +2444,12 @@ void WeaponWheelsMultiplayerController(IDXGISwapChain* pSwapChain) {
 		auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
 		auto activeGameSpeed = GetCurrentGameSpeed();
 
-		ImVec2 normalSize = ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
+		ImVec2 normalSize = ImVec2(g_uiSize.y * 0.45f, g_uiSize.y * 0.45f);
 
 		// Splitscreen: bottom corners of the player's view; otherwise the per player positions of the Multiplayer HUD window.
 		float meleeX = 0.0f, meleeY = 0.0f, rangedX = 0.0f, rangedY = 0.0f, wheelSizePx = 0.0f, ignoredSize = 0.0f;
-		if (!HUD_WheelPlacement(playerIndex, true, false, g_renderSize.x, g_renderSize.y, meleeX, meleeY, wheelSizePx) ||
-			!HUD_WheelPlacement(playerIndex, false, false, g_renderSize.x, g_renderSize.y, rangedX, rangedY, ignoredSize)) {
+		if (!HUD_WheelPlacement(playerIndex, true, false, g_uiSize.x, g_uiSize.y, meleeX, meleeY, wheelSizePx) ||
+			!HUD_WheelPlacement(playerIndex, false, false, g_uiSize.x, g_uiSize.y, rangedX, rangedY, ignoredSize)) {
 			continue;
 		}
 
@@ -2504,8 +2506,8 @@ void WorldSpaceWeaponWheels1PController(IDXGISwapChain* pSwapChain) {
 	auto& playerScreenPosition = crimsonPlayer[0].playerScreenPosition;
 	auto distanceClamped = crimsonPlayer[0].cameraPlayerDistanceClamped;
 
-	ImVec2 normalSize = ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
-	ImVec2 baseMultiplayerSize = ImVec2(g_renderSize.y * 0.17f, g_renderSize.y * 0.17f);
+	ImVec2 normalSize = ImVec2(g_uiSize.y * 0.45f, g_uiSize.y * 0.45f);
+	ImVec2 baseMultiplayerSize = ImVec2(g_uiSize.y * 0.17f, g_uiSize.y * 0.17f);
 	ImVec2 sizeDistance = { (baseMultiplayerSize.x * (1.0f / ((float)distanceClamped / 20))),
 							(baseMultiplayerSize.y * (1.0f / ((float)distanceClamped / 20))) };
 	ImVec2 multiplayerSize = initialized ? sizeDistance : normalSize;
@@ -2572,8 +2574,8 @@ void WorldSpaceWeaponWheelsController(IDXGISwapChain* pSwapChain) {
 		auto& playerScreenPosition = crimsonPlayer[playerIndex].playerScreenPosition;
 		auto distanceClamped = crimsonPlayer[playerIndex].cameraPlayerDistanceClamped;
 
-		ImVec2 normalSize = ImVec2(g_renderSize.y * 0.45f, g_renderSize.y * 0.45f);
-		ImVec2 baseMultiplayerSize = ImVec2(g_renderSize.y * 0.17f, g_renderSize.y * 0.17f);
+		ImVec2 normalSize = ImVec2(g_uiSize.y * 0.45f, g_uiSize.y * 0.45f);
+		ImVec2 baseMultiplayerSize = ImVec2(g_uiSize.y * 0.17f, g_uiSize.y * 0.17f);
 		ImVec2 sizeDistance = { (baseMultiplayerSize.x * (1.0f / ((float)distanceClamped / 20))),
 								(baseMultiplayerSize.y * (1.0f / ((float)distanceClamped / 20))) };
 		ImVec2 multiplayerSize = initializedMelee[playerIndex] ? sizeDistance : normalSize;
@@ -3869,7 +3871,7 @@ void RenderMissionResultGameModeStats() {
 	auto defaultFontSize = g_UIContext.DefaultFontSize;
 	ImVec2 windowSize = ImVec2(1800.0f * scaleFactorY, 200.0f * scaleFactorY);
 	ImVec2 windowPos = ImVec2(
-		(g_renderSize.x - windowSize.x) * 0.5f + (990.0f * scaleFactorY),
+		(g_uiSize.x - windowSize.x) * 0.5f + (990.0f * scaleFactorY),
 		scaleFactorY / 2 + (147.0f * scaleFactorY)
 	);
 
@@ -4011,7 +4013,7 @@ void RenderMissionResultGameModeStats() {
 	}
 
 	ImVec2 difficultyWindowPos = ImVec2(
-		(g_renderSize.x - windowSize.x) * 0.5f + (268.0f * scaleFactorY),
+		(g_uiSize.x - windowSize.x) * 0.5f + (268.0f * scaleFactorY),
 		scaleFactorY / 2 + (230.0f * scaleFactorY)
 	);
 
@@ -4272,7 +4274,7 @@ void RenderMissionResultCheatsUsed() {
 	auto defaultFontSize = g_UIContext.DefaultFontSize;
 	ImVec2 windowSize = ImVec2(1300.0f * scaleFactorY, 200.0f * scaleFactorY);
 	ImVec2 windowPos = ImVec2(
-		(g_renderSize.x - windowSize.x) * 0.5f + (1200.0f * scaleFactorY),
+		(g_uiSize.x - windowSize.x) * 0.5f + (1200.0f * scaleFactorY),
 		scaleFactorY / 2 + (347.0f * scaleFactorY)
 	);
 
@@ -4418,7 +4420,7 @@ void RenderPlayerTag(int playerIndex, PlayerActorData& actorData) {
 	float tagY = 0.0f;
 	float tagScale = 1.0f;
 	bool alignRight = false;
-	if (!HUD_PlayerTagAnchor(playerIndex, g_renderSize.x, g_renderSize.y, tagX, tagY, tagScale, alignRight)) {
+	if (!HUD_PlayerTagAnchor(playerIndex, g_uiSize.x, g_uiSize.y, tagX, tagY, tagScale, alignRight)) {
 		return;
 	}
 
@@ -4441,7 +4443,7 @@ void RenderPlayerTag(int playerIndex, PlayerActorData& actorData) {
 		// Splitscreen: keep the tag inside its own view.
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		float minX, minY, maxX, maxY;
-		const bool clipped = CrimsonSplitscreen::ViewRect(playerIndex, g_renderSize.x, g_renderSize.y, minX, minY, maxX, maxY);
+		const bool clipped = CrimsonSplitscreen::ViewRect(playerIndex, g_uiSize.x, g_uiSize.y, minX, minY, maxX, maxY);
 		if (clipped) {
 			drawList->PushClipRect(ImVec2(minX, minY), ImVec2(maxX, maxY), true);
 		}
@@ -5597,7 +5599,7 @@ void ShopWindow() {
 	float height = 1020 * scaleFactorY;
 
 	ImGui::SetNextWindowSize(ImVec2(width, height));
-	ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
+	ImGui::SetNextWindowPos(ImVec2(((g_uiSize.x - width) / 2), ((g_uiSize.y - height) / 2)));
 
 	if (io.NavInputs[ImGuiNavInput_Cancel] && (io.NavInputsDownDuration[ImGuiNavInput_Cancel] == 0.0f)) {
 		Log("controller back button");
@@ -6577,7 +6579,7 @@ void ExpWindow() {
         // );
 
         // Top Right
-        ImGui::SetNextWindowPos(ImVec2((g_renderSize.x - width), 0));
+        ImGui::SetNextWindowPos(ImVec2((g_uiSize.x - width), 0));
     }
 
 
@@ -8632,6 +8634,7 @@ void DebugOverlayWindow(size_t defaultFontSize) {
             ImGui::Text("g_windowSize %g %g", g_windowSize.x, g_windowSize.y);
             ImGui::Text("g_clientSize %g %g", g_clientSize.x, g_clientSize.y);
             ImGui::Text("g_renderSize %g %g", g_renderSize.x, g_renderSize.y);
+            ImGui::Text("g_uiSize %g %g", g_uiSize.x, g_uiSize.y);
         }
 
 
@@ -10115,6 +10118,58 @@ const char* Graphics_vSyncNames[] = {
     "Force On",
 };
 
+const char* Graphics_windowModeNames[WINDOWMODE::COUNT] = {
+    "Fullscreen",
+    "Windowed",
+};
+
+// The display mode this session can apply right away. Legacy Fullscreen is fixed at startup, so turning it on or off
+// only takes effect after a restart and doesn't change what the options below do now.
+static int32 LiveDisplayMode() {
+    auto& queued = queuedCrimsonConfig.System;
+
+    if (queued.windowMode == WINDOWMODE::WINDOWED) {
+        return DISPLAYMODE::WINDOWED;
+    }
+
+    return CrimsonResolution::StartedWithFlipModel() ? DISPLAYMODE::BORDERLESS_FULLSCREEN : DISPLAYMODE::EXCLUSIVE_FULLSCREEN;
+}
+
+// Display settings changed in the GUI. They apply right away, except switching between Legacy Fullscreen
+// and Windowed (the swap chain type is fixed for the session) and changing the monitor in Legacy Fullscreen,
+// which wait for a restart.
+static void ApplyDisplayChange() {
+    auto& active = activeCrimsonConfig.System;
+    auto& queued = queuedCrimsonConfig.System;
+
+    const bool exclusiveSession = !CrimsonResolution::StartedWithFlipModel();
+
+    if (exclusiveSession && LiveDisplayMode() != DISPLAYMODE::EXCLUSIVE_FULLSCREEN) {
+        return;
+    }
+
+    active.windowMode = queued.windowMode;
+
+    if (!exclusiveSession) {
+        active.monitorIndex = queued.monitorIndex;
+    }
+
+    active.resolutionWidth           = queued.resolutionWidth;
+    active.resolutionHeight          = queued.resolutionHeight;
+    active.internalResolutionPercent = queued.internalResolutionPercent;
+
+    CrimsonResolution::ApplyDisplaySettings();
+}
+
+static bool DisplayChangePending() {
+    auto& active = activeCrimsonConfig.System;
+    auto& queued = queuedCrimsonConfig.System;
+
+    return active.Mode() != queued.Mode() || active.monitorIndex != queued.monitorIndex ||
+           active.resolutionWidth != queued.resolutionWidth || active.resolutionHeight != queued.resolutionHeight ||
+           active.internalResolutionPercent != queued.internalResolutionPercent;
+}
+
 const char* Sound_channelNames[CHANNEL::MAX] = {
     "System",
     "Common",
@@ -10212,19 +10267,6 @@ void SystemSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
-			GUI_Checkbox("DXGI Flip Model Presentation", queuedCrimsonConfig.System.flipModelPresentation);
-			if (ImGui::IsItemHovered()) {
-				ImGui::SetTooltip("Alters how Exclusive Fullscreen works by forcing usage of Flip Model Presentation.\n"
-					"This setting may improve alt-tab issues, latency, enables quicker toggling between fullscreen/windowed with Alt + Enter,"
-					"\nand adds support for HDR and VRR/GSync.");
-			}
-
-			if (queuedCrimsonConfig.System.flipModelPresentation != activeCrimsonConfig.System.flipModelPresentation) {
-				ImGui::TextColored(CrimsonUtil::HexToImVec4(0x1DD6FFFF), "Requires Game Restart.");
-			}
-
-			ImGui::TableNextColumn();
-
 			// NVIDIA Reflex
 			bool nvReflexAvailable = GetNvApiReflex().IsNvApiLoaded();
 			GUI_PushDisable(!nvReflexAvailable);
@@ -10275,6 +10317,127 @@ void SystemSection(size_t defaultFontSize) {
 
 
 			ImGui::EndTable();
+		}
+	}
+
+
+	ImGui::Text("");
+
+	{
+		auto& queuedSystem  = queuedCrimsonConfig.System;
+		auto& defaultSystem = defaultCrimsonConfig.System;
+
+		const int32 liveMode  = LiveDisplayMode();
+		const bool borderless = (liveMode == DISPLAYMODE::BORDERLESS_FULLSCREEN);
+
+		static const char* resolutionTooltip =
+			"These settings differ from DMC HD Collection's own resolution options.";
+
+		ImGui::PushItemWidth(itemWidth * 1.3f);
+
+		auto& monitorNames = CrimsonResolution::MonitorNames();
+		queuedSystem.monitorIndex = std::clamp<int32>(queuedSystem.monitorIndex, 0, static_cast<int32>(monitorNames.size()) - 1);
+
+		if (UI::ComboVectorString("Monitor", monitorNames, queuedSystem.monitorIndex)) {
+			ApplyDisplayChange();
+		}
+
+		if (UI::Combo("Display Mode", Graphics_windowModeNames, queuedSystem.windowMode)) {
+			ApplyDisplayChange();
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("Fullscreen: a borderless fullscreen window at the monitor's resolution. Uses DXGI Flip Model, which improves\n"
+				"alt-tab, latency and adds HDR and VRR/GSync support. This is the recommended choice.\n"
+				"Windowed: a window at the selected resolution. Also uses DXGI Flip Model.\n"
+				"Alt + Enter switches between Fullscreen and Windowed.\n\n%s", resolutionTooltip);
+		}
+
+		// Legacy Fullscreen is the game's original exclusive fullscreen, an alternative to Fullscreen.
+		GUI_PushDisable(queuedSystem.windowMode == WINDOWMODE::WINDOWED);
+
+		if (GUI_Checkbox("Legacy Fullscreen", queuedSystem.legacyFullscreen)) {
+			ApplyDisplayChange();
+		}
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+			ImGui::SetTooltip("Uses the game's original exclusive fullscreen mode instead of DXGI Flip Model, with the selected resolution.\n"
+				"Internal Resolution is not available. Changing the resolution applies right away.\n"
+				"Turning this on or off, or changing the monitor in it, requires a game restart.\n\n");
+		}
+
+		GUI_PopDisable(queuedSystem.windowMode == WINDOWMODE::WINDOWED);
+
+		// Fullscreen always uses the monitor's own resolution.
+		GUI_PushDisable(borderless);
+
+		if (borderless) {
+			static std::vector<std::string> monitorResolutionName(1);
+			static int32 monitorResolutionIndex = 0;
+			monitorResolutionName[0] = CrimsonResolution::MonitorResolutionName(queuedSystem.monitorIndex);
+			UI::ComboVectorString("Resolution", monitorResolutionName, monitorResolutionIndex);
+		} else {
+			auto& resolutionNames = CrimsonResolution::ResolutionNames(queuedSystem.monitorIndex);
+			int32 resolutionIndex = CrimsonResolution::ResolutionIndex(queuedSystem.monitorIndex, queuedSystem.resolutionWidth, queuedSystem.resolutionHeight);
+
+			// Keep the setting on an entry of the list, for example after changing monitor.
+			int32 listWidth  = 0;
+			int32 listHeight = 0;
+			CrimsonResolution::ResolutionFromIndex(queuedSystem.monitorIndex, resolutionIndex, listWidth, listHeight);
+
+			if (listWidth != queuedSystem.resolutionWidth || listHeight != queuedSystem.resolutionHeight) {
+				queuedSystem.resolutionWidth  = listWidth;
+				queuedSystem.resolutionHeight = listHeight;
+				ApplyDisplayChange();
+			}
+			if (UI::ComboVectorString("Resolution", resolutionNames, resolutionIndex)) {
+				CrimsonResolution::ResolutionFromIndex(queuedSystem.monitorIndex, resolutionIndex, queuedSystem.resolutionWidth, queuedSystem.resolutionHeight);
+				ApplyDisplayChange();
+			}
+		}
+
+		GUI_PopDisable(borderless);
+
+		ImGui::PopItemWidth();
+
+		ImGui::Text("");
+
+		// Legacy Fullscreen renders at the display mode's resolution. Whether this is available is fixed for the session,
+		// turning Legacy Fullscreen on or off only changes it after a restart.
+		const bool legacySession = !CrimsonResolution::StartedWithFlipModel();
+		GUI_PushDisable(legacySession);
+
+		ImGui::PushItemWidth(itemWidth * 0.9f);
+
+		if (GUI_InputDefault<int32>("Internal Resolution %", queuedSystem.internalResolutionPercent,
+			defaultSystem.internalResolutionPercent, 5, "%d", ImGuiInputTextFlags_EnterReturnsTrue)) {
+			queuedSystem.internalResolutionPercent = std::clamp<int32>(queuedSystem.internalResolutionPercent, 25, 400);
+			ApplyDisplayChange();
+		}
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+			ImGui::SetTooltip("Resolution the game renders at, as a percentage of the resolution above.\n"
+				"Lower values boost performance, higher values supersample for a sharper image.\n"
+				"The image is stretched to fit the window. Not available in Legacy Fullscreen, which takes effect after a restart.\n\n%s", resolutionTooltip);
+		}
+
+		ImGui::PopItemWidth();
+
+		static constexpr int32 percentPresets[] = {50, 75, 100, 150, 200};
+
+		for (size_t index = 0; index < countof(percentPresets); index++) {
+			if (index > 0) {
+				ImGui::SameLine();
+			}
+			char label[16];
+			snprintf(label, sizeof(label), "%d%%", percentPresets[index]);
+			if (GUI_Button(label)) {
+				queuedSystem.internalResolutionPercent = percentPresets[index];
+				ApplyDisplayChange();
+			}
+		}
+
+		GUI_PopDisable(legacySession);
+
+		if (DisplayChangePending()) {
+			ImGui::TextColored(CrimsonUtil::HexToImVec4(0x1DD6FFFF), "Requires Game Restart.");
 		}
 	}
 
@@ -12892,7 +13055,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	auto logoWidth = (logo.GetWidth() * 0.68f) * scaleFactorY;
 	auto logoHeight = (logo.GetHeight() * 0.68f) * scaleFactorY;
 	ImVec2 logoWindowSize = ImVec2(logoWidth + 50.0f, logoHeight + 50.0f);
-	ImVec2 logoWindowPos = ImVec2((g_renderSize.x - (logoWidth)) * 0.5f, 310.0 * scaleFactorY);
+	ImVec2 logoWindowPos = ImVec2((g_uiSize.x - (logoWidth)) * 0.5f, 310.0 * scaleFactorY);
 	auto logoSize = ImVec2(logoWindowPos.x + logoWidth, logoWindowPos.y + logoHeight);
 
 	ImGui::SetNextWindowPos(logoWindowPos);
@@ -12980,7 +13143,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 		ImVec2 gameModeTextSizeWindowPos = ImVec2(-5.0f * scaleFactorY, 869.0f * scaleFactorY);
 
 		ImVec2 gameModeGradientSize = ImVec2((700.0f) * scaleFactorY, 69.0f * scaleFactorY);
-		ImVec2 gameModeGradientPos = ImVec2((g_renderSize.x) * 0.0f, 869.0f * scaleFactorY);
+		ImVec2 gameModeGradientPos = ImVec2((g_uiSize.x) * 0.0f, 869.0f * scaleFactorY);
 		if (gameModeTextSizeWindowSize.x < gameModeGradientSize.x) {
 			gameModeTextSizeWindowSize.x = gameModeGradientSize.x + 5.0f;
 		}
@@ -13053,7 +13216,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	ImVec2 versionTextSizeWindowSize = ImVec2((versionTextSize.x + 20.0f) * scaleFactorY, 100.0f * scaleFactorY);
 
 	// Clamp the render width to a maximum of 1920.0f
-	float clampedRenderWidth = (std::min)(g_renderSize.x, 1920.0f);
+	float clampedRenderWidth = (std::min)(g_uiSize.x, 1920.0f);
 
 	// Calculate the center position for a 16:9 aspect ratio
 	float aspectRatio = 16.0f / 9.0f;
@@ -13135,7 +13298,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 
 	// Calculate centered position in screen space
 	ImVec2 guiHotkeyTextScreenPos = ImVec2(
-		(g_renderSize.x - guiHotkeyTextFinalSize.x) * 0.97f,
+		(g_uiSize.x - guiHotkeyTextFinalSize.x) * 0.97f,
 		879.0f * scaleFactorY
 	);
 
@@ -13193,11 +13356,11 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	ImGui::PopFont();
 
 	ImVec2 creditsWindowSize = ImVec2(
-		g_renderSize.x,
+		g_uiSize.x,
 		180.0f * scaleFactorY
 	);
 	ImVec2 creditsWindowPos = ImVec2(
-		(g_renderSize.x - (creditsWindowSize.x)) * 0.5f,
+		(g_uiSize.x - (creditsWindowSize.x)) * 0.5f,
 		940.0f * scaleFactorY
 	);
 
@@ -13220,12 +13383,12 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 	);
 
 	ImVec2 OGcreditsTextScreenPos = ImVec2(
-		(g_renderSize.x - OGcreditsTextSizeScaled.x) * 0.5f,
+		(g_uiSize.x - OGcreditsTextSizeScaled.x) * 0.5f,
 		creditsWindowPos.y + ImGui::GetCursorPosY()
 	);
 
 	ImVec2 creditsTextScreenPos = ImVec2(
-		(g_renderSize.x - creditsTextSizeScaled.x) * 0.5f,
+		(g_uiSize.x - creditsTextSizeScaled.x) * 0.5f,
 		creditsWindowPos.y + ImGui::GetCursorPosY()+ OGcreditsTextSizeScaled.y
 	);
 
@@ -13275,7 +13438,7 @@ void RenderMainMenuInfo(IDXGISwapChain* pSwapChain) {
 		capcoScaledFontSize, FLT_MAX, 0.0f, creditsCapCo
 	);
 	ImVec2 capcoTextScreenPos = ImVec2(
-		(g_renderSize.x - capcoTextSizeScaled.x) * 0.5f,
+		(g_uiSize.x - capcoTextSizeScaled.x) * 0.5f,
 		creditsWindowPos.y + ImGui::GetCursorPosY() + OGcreditsTextSizeScaled.y + creditsTextSizeScaled.y
 	);
 
@@ -13651,7 +13814,7 @@ void TrainingWindow() {
 	float height = 900 * scaleFactorY;
 
 	ImGui::SetNextWindowSize(ImVec2(width, height));
-	ImGui::SetNextWindowPos(ImVec2(((g_renderSize.x - width) / 2), ((g_renderSize.y - height) / 2)));
+	ImGui::SetNextWindowPos(ImVec2(((g_uiSize.x - width) / 2), ((g_uiSize.y - height) / 2)));
 
 	if (io.NavInputs[ImGuiNavInput_Cancel] && (io.NavInputsDownDuration[ImGuiNavInput_Cancel] == 0.0f)) {
 		Log("controller back button");
@@ -13840,10 +14003,10 @@ void Main(IDXGISwapChain* pSwapChain) {
         doOnce = true;
 
         // Originally 800x725, or screenWidth / 2.4 x screenHeight / 1.4 for 1080p
-		float width = (activeCrimsonConfig.System.windowSizeX != 9999.0f) ? activeCrimsonConfig.System.windowSizeX :g_renderSize.x / 1.40;
-		float height = (activeCrimsonConfig.System.windowSizeY != 9999.0f) ? activeCrimsonConfig.System.windowSizeY : g_renderSize.y / 1.20;
-		float xpos = (activeCrimsonConfig.System.windowPosX != 9999.0f) ? activeCrimsonConfig.System.windowPosX : g_renderSize.x *0.5f;
-		float ypos = (activeCrimsonConfig.System.windowPosY != 9999.0f) ? activeCrimsonConfig.System.windowPosY : g_renderSize.y * 0.5f;
+		float width = (activeCrimsonConfig.System.windowSizeX != 9999.0f) ? activeCrimsonConfig.System.windowSizeX :g_uiSize.x / 1.40;
+		float height = (activeCrimsonConfig.System.windowSizeY != 9999.0f) ? activeCrimsonConfig.System.windowSizeY : g_uiSize.y / 1.20;
+		float xpos = (activeCrimsonConfig.System.windowPosX != 9999.0f) ? activeCrimsonConfig.System.windowPosX : g_uiSize.x *0.5f;
+		float ypos = (activeCrimsonConfig.System.windowPosY != 9999.0f) ? activeCrimsonConfig.System.windowPosY : g_uiSize.y * 0.5f;
 
 
         ImGui::SetNextWindowSize(ImVec2(width, height));
@@ -16362,8 +16525,8 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 					const float licenseScaleFactor = (scaleFactorY + (ImGui::GetIO().DisplaySize.x / 1920.0f)) * 0.5f;
 					const float licW = 650.0f * licenseScaleFactor;
 					const float licH = 500.0f * licenseScaleFactor;
-					const float licCenterX = (g_renderSize.x - licW) * 0.5f;
-					const float licCenterY = (g_renderSize.y - licH) * 0.5f;
+					const float licCenterX = (g_uiSize.x - licW) * 0.5f;
+					const float licCenterY = (g_uiSize.y - licH) * 0.5f;
 
 					ImGui::SetNextWindowSize(ImVec2(licW, licH));
 					ImGui::SetNextWindowPos(ImVec2(licCenterX, licCenterY));

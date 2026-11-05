@@ -1070,6 +1070,13 @@ int debug_draw_init(void* device, void* deviceCtx, float width, float height) {
     return 0;
 }
 
+void debug_draw_set_size(float width, float height) {
+    if (g_dd_ctx && g_dd_ctx->camera) {
+        g_dd_ctx->camera->windowDims[0] = width;
+        g_dd_ctx->camera->windowDims[1] = height;
+    }
+}
+
 void debug_draw_update(float dt) {
     g_dd_ctx->update(dt);
 }
