@@ -1499,7 +1499,6 @@ void SkyDanceInertiaFix(bool enable) {
         // Sky Dance 1
         // movzx edx,word ptr [rbx+00003ED0]
         _patch((char*)(appBaseAddr + 0x20978C), (char*)"\x0F\xB7\x93\xD0\x3E\x00\x00", 7); // swaps forward with inertia rotation
-        _nop((char*)(appBaseAddr + 0x209704), 5);                                          // kills "stop"
 
         // Sky Dance 2
         _patch((char*)(appBaseAddr + 0x20990C), (char*)"\x0F\xB7\x93\xD0\x3E\x00\x00", 7);
@@ -1512,8 +1511,6 @@ void SkyDanceInertiaFix(bool enable) {
         // Sky Dance 1
         // movzx edx,word ptr [rbx+00003ED0]
         _patch((char*)(appBaseAddr + 0x20978C), (char*)"\x0F\xB7\x93\xC0\x00\x00\x00", 7); // restores the forward only momentum
-        // dmc3.exe+209704 - E8 470DFFFF           - call dmc3.exe+1FA450
-        _patch((char*)(appBaseAddr + 0x209704), (char*)"\xE8\x47\x0D\xFF\xFF", 5);
 
         // Sky Dance 2
         _patch((char*)(appBaseAddr + 0x20990C), (char*)"\x0F\xB7\x93\xC0\x00\x00\x00", 7);
@@ -1567,7 +1564,30 @@ void TatsumakiInertiaFix(bool enable) {
     }
 }
 
+void SkyDanceTurnFix(bool killTurn) {
+    // Sky Dance 1 calls sub_1401FA450 every frame, which turns the character toward the soft lock target.
+    // It is only removed while Freeform Soft Lock is driving the rotation itself, otherwise
+    // Sky Dance 1 would never face the target and look reversed.
+    static int state = 2;
+    const int newState = killTurn ? 1 : 0;
+
+    if (state == newState) {
+        return;
+    }
+
+    if (killTurn) {
+        _nop((char*)(appBaseAddr + 0x209704), 5);
+    } else {
+        // dmc3.exe+209704 - E8 470DFFFF           - call dmc3.exe+1FA450
+        _patch((char*)(appBaseAddr + 0x209704), (char*)"\xE8\x47\x0D\xFF\xFF", 5);
+    }
+
+    state = newState;
+}
+
 void InertiaFixes() {
+
+    SkyDanceTurnFix(activeCrimsonGameplay.Gameplay.General.inertia && activeCrimsonGameplay.Gameplay.General.freeformSoftLock);
 
     if (toggle.inertiaFixes != (int)activeCrimsonGameplay.Gameplay.General.inertia) {
 

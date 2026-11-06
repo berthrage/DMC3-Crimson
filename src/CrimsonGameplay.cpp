@@ -3102,6 +3102,28 @@ void FreeformSoftLockController(byte8* actorBaseAddr) {
 		: 0.02f;
 
 	if (!activeCrimsonGameplay.Gameplay.General.freeformSoftLock && !backslide.performing) {
+		// Crimson's Air Dragon and Air Whirlwind only swap the action mid-air, and the game copies the facing at
+		// the first frame of the move as its launch direction. With Freeform on, the controller faces the enemy
+		// at that point; with it off nothing does, so the move launches along a stale (reversed) facing.
+		// lastAction can't tell these overrides apart (it ends up equal to action), so we record whether the
+		// action began airborne, which excludes the vanilla grounded Rising Dragon / Whirlwind launches.
+		static uint8 trackedAction[PLAYER_COUNT][ENTITY_COUNT] = {};
+		static bool startedInAir[PLAYER_COUNT][ENTITY_COUNT] = {};
+		auto entityIndex = actorData.newEntityIndex;
+
+		if (actorData.action != trackedAction[playerIndex][entityIndex]) {
+			trackedAction[playerIndex][entityIndex] = actorData.action;
+			startedInAir[playerIndex][entityIndex] = inAir;
+		}
+
+		bool inAirLaunchMove = actorData.character == CHARACTER::DANTE && startedInAir[playerIndex][entityIndex] &&
+			(actorData.action == BEOWULF_RISING_DRAGON_LAUNCH || actorData.action == AGNI_RUDRA_WHIRLWIND_LAUNCH);
+
+		if (inAirLaunchMove && lockOn && actionTimer < 0.1f && actorData.eventData[0].event == ACTOR_EVENT::ATTACK) {
+			actorData.rotation = (entityIndex == 0)
+				? crimsonPlayer[playerIndex].rotationTowardsEnemy
+				: crimsonPlayer[playerIndex].rotationCloneTowardsEnemy;
+		}
 		return;
 	}
 
