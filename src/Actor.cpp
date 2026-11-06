@@ -4519,6 +4519,8 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CrimsonFX::CalculateViewProperties(actorBaseAddr);
     CrimsonSDL::SetAllSFXDistance(playerIndex, crimsonPlayer[playerIndex].playerScreenAngle, crimsonPlayer[playerIndex].cameraPlayerDistanceClamped);
     
+	CrimsonGameplay::ArtemisAirLoopGuard(actorBaseAddr);
+
 	if (activeCrimsonGameplay.Gameplay.Dante.improvedCancels) {
 		CrimsonGameplay::ImprovedCancelsDanteController(actorBaseAddr);
         CrimsonGameplay::ImprovedCancelsRoyalguardController(actorBaseAddr);
@@ -9126,10 +9128,6 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 CrimsonGameplay::BackToForwardInputs(actorBaseAddr);
                 CrimsonGameplay::VergilAdjustAirMovesPos(actorBaseAddr);
                 CrimsonGameplay::GravityCorrections(actorBaseAddr);
-
-                if (activeCrimsonGameplay.Gameplay.Dante.artemisRework) {
-                    actorData.artemisCharge = 240;
-                }
 
                 if (activeCrimsonGameplay.Gameplay.Dante.shotgunAirShotTweaks) {
                     CrimsonGameplay::ShotgunAirShotTweaks(actorBaseAddr);

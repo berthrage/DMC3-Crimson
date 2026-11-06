@@ -63,6 +63,8 @@ void StoreAirCountsVergil(byte8* actorBaseAddr);
 void AirCancelCountsTrackerVergil(byte8* actorBaseAddr);
 void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr);
 void ImprovedCancelsDanteController(byte8* actorBaseAddr);
+void ArtemisAirLoopGuard(byte8* actorBaseAddr);
+bool IsArtemisAirShotLocked(byte8* actorBaseAddr);
 void DarkslayerCancelsVergilController(byte8* actorBaseAddr);
 void AirStingerJumpCancel(byte8* actorBaseAddr);
 void VergilTrackSwordFormationBuffer(byte8* actorBaseAddr);

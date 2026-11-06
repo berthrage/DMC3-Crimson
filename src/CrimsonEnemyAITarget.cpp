@@ -311,13 +311,12 @@ size_t RebaseLockOnEntries(uintptr_t actorAddr, const float (&origin)[3], LockOn
 }
 }
 
-static void __fastcall FetchPlayerLockOnTargetHook(uintptr_t actorAddr, __int64 a2) {
-	const auto original = s_fetchPlayerLockOnTargetHook->GetTrampoline<FetchPlayerLockOnTargetFn>();
-
+void RunInLockOnPerspective(uintptr_t actorAddr, const std::function<void()>& fn) {
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorAddr);
 	auto pool = *reinterpret_cast<uintptr_t**>(appBaseAddr + 0xC90E28);
 	if (!pool || actorData.newPlayerIndex == 0 || actorData.newEntityIndex != ENTITY::MAIN) {
-		return original(actorAddr, a2);
+		fn();
+		return;
 	}
 
 	uintptr_t& slot = pool[3 + actorData.id];
@@ -328,13 +327,18 @@ static void __fastcall FetchPlayerLockOnTargetHook(uintptr_t actorAddr, __int64 
 	LockOnEntrySaved saved[LOCK_ON_ENTRY_MAX];
 	const size_t savedCount = RebaseLockOnEntries(actorAddr, origin, saved);
 
-	original(actorAddr, a2);
+	fn();
 
 	for (size_t i = 0; i < savedCount; i++) {
 		*reinterpret_cast<float*>(saved[i].entry + 0x30) = saved[i].distance;
 		*reinterpret_cast<uint16*>(saved[i].entry + 4)   = saved[i].rangeFlags;
 	}
 	slot = previous;
+}
+
+static void __fastcall FetchPlayerLockOnTargetHook(uintptr_t actorAddr, __int64 a2) {
+	const auto original = s_fetchPlayerLockOnTargetHook->GetTrampoline<FetchPlayerLockOnTargetFn>();
+	RunInLockOnPerspective(actorAddr, [&]() { original(actorAddr, a2); });
 }
 
 void EnemyAIMultiplayerTargettingDetours(bool enable) {

@@ -93,8 +93,9 @@ void ShootRemapHoldDetour();
 void VergilNeutralTrickDetour();
 
 // ArtemisInstantFullCharge
-void ArtemisInstantFullChargeDetour1();
-void ArtemisInstantFullChargeDetour2();
+void ArtemisShotStartGroundDetour();
+void ArtemisShotStartAirDetour();
+void ArtemisAirFireGateDetour();
 
 // CameraSensitivity
 void CameraSensitivityDetour1();

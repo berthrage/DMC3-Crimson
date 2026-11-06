@@ -286,10 +286,15 @@ namespace CrimsonDetours {
 		//void VergilNeutralTrickDetour();
 
 		// Artemis Instant Full Charge
-		void ArtemisInstantFullChargeDetour1();
-		std::uint64_t g_ArtemisReworkJumpAddr1;
-		void ArtemisInstantFullChargeDetour2();
-		std::uint64_t g_ArtemisReworkJumpAddr2;
+		void ArtemisShotStartGroundDetour();
+		std::uint64_t g_ArtemisShotStartGround_ReturnAddr;
+		void ArtemisShotStartAirDetour();
+		std::uint64_t g_ArtemisShotStartAir_ReturnAddr;
+		void ArtemisAirFireGateDetour();
+		std::uint64_t g_ArtemisAirFireGate_ReturnAddr;
+		std::uint64_t g_ArtemisAirFireGate_SkipAddr;
+		void* g_ArtemisAirFireGate_Call;
+		void* g_ArtemisInstantCharge_FillCall;
 
 		// GreenOrbsMultiplayerRegen
 		void GreenOrbsMPRegenDetour();
@@ -1819,33 +1824,311 @@ void InitDetours() {
     // VergilNeutralTrickHook->Toggle(true);
 }
 
+// Set when an Artemis shot move starts, consumed by the first fire of the air shot (ArtemisAirFireGate).
+static std::unordered_map<uintptr_t, bool> s_artemisFireArmed;
+
+// Tops the lock-on table up to the most locks a full charge can reach, at the start of the Artemis shot move.
+// Count/acquire: LockOnGetTargetCount_sub_1401BA690, LockOnAcquireTarget_sub_1401BB950, LockOnAcquireTargetMulti_sub_1401BBA30
+void ArtemisInstantChargeFill(PlayerActorDataDante* actorData) {
+	s_artemisFireArmed[reinterpret_cast<uintptr_t>(actorData)] = true;
+	using LockOnCountFn = uint32(__fastcall*)(uint8*);
+	using LockOnAcquireFn = char(__fastcall*)(uint8*, uint8);
+
+	auto lockOn = reinterpret_cast<uint8*>(actorData) + 0x41C0;
+	auto getCount = reinterpret_cast<LockOnCountFn>(appBaseAddr + 0x1BA690);
+
+	// Style multi-lock stacks on a locked target, the normal shot locks one target each. The swap option inverts them.
+	bool multiLockAction = (actorData->action == ACTION_DANTE::ARTEMIS_MULTI_LOCK_SHOT) ||
+	                       (actorData->action == ACTION_DANTE::ARTEMIS_AIR_MULTI_LOCK_SHOT);
+	bool multiLock = multiLockAction != activeCrimsonGameplay.Gameplay.Dante.swapArtemisMultiLockNormalShot;
+	auto acquire = reinterpret_cast<LockOnAcquireFn>(appBaseAddr + (multiLock ? 0x1BBA30 : 0x1BB950));
+
+	// Same "busy" test the shot move uses before its own acquire (pool_10222_PlayerActorPool+0x40).
+	uint8 acquireFlag = 1;
+	if (auto pool = *reinterpret_cast<uint8**>(appBaseAddr + 0xC90E28)) {
+		if (auto state = *reinterpret_cast<uint8**>(pool + 0x40)) {
+			auto list = *reinterpret_cast<uint32**>(state + 0x10);
+			bool busy = (list && *list) || *reinterpret_cast<uint32*>(state + 0x28) != *reinterpret_cast<uint32*>(state + 0x2C) ||
+			            *(state + 0x26) == 1;
+			acquireFlag = busy ? 0 : 1;
+		}
+	}
+
+	// Weapon slots are relocated by the actor system, the game reads them from the new arrays.
+	const uint8* weapons = (activeConfig.Actor.enable) ? actorData->newWeapons : actorData->weapons;
+	const uint32* weaponLevels = (activeConfig.Actor.enable) ? actorData->newWeaponLevels : actorData->weaponLevels;
+	const uint8 weaponSlots = (activeConfig.Actor.enable) ? 10 : 5;
+
+	uint32 maxLocks = 3;
+	if (actorData->style == STYLE::GUNSLINGER) {
+		if (actorData->styleLevel == 1) {
+			maxLocks = 5;
+		} else if (actorData->styleLevel == 2) {
+			maxLocks = 8;
+		}
+	}
+	for (uint8 i = 0; i < weaponSlots; i++) {
+		if (weapons[i] == WEAPON::ARTEMIS) {
+			if (weaponLevels[i] == 1) {
+				maxLocks += 1;
+			} else if (weaponLevels[i] == 2) {
+				maxLocks += 2;
+			}
+			break;
+		}
+	}
+
+	const uint32 before = getCount(lockOn);
+
+	// The charge refills with time since the last shot, like holding the button would. A shot restarted right away
+	// (Trickster's dash cancels the shot, then Shoot again) only gets a part of the full volley.
+	constexpr float rechargeSeconds = 0.6f;
+	static std::unordered_map<uintptr_t, std::chrono::steady_clock::time_point> lastShot;
+	const auto now = std::chrono::steady_clock::now();
+	auto& last = lastShot[reinterpret_cast<uintptr_t>(actorData)];
+	const float charge = std::min(std::chrono::duration<float>(now - last).count() / rechargeSeconds, 1.0f);
+	last = now;
+	const uint32 targetLocks = std::max<uint32>(1, static_cast<uint32>(std::lround(maxLocks * charge)));
+
+	// Other players' lock-on entries carry the ranges seen from player 1, look from this actor instead.
+	std::string entries;
+	CrimsonEnemyAITarget::RunInLockOnPerspective(reinterpret_cast<uintptr_t>(actorData), [&]() {
+		// The lock table has 10 slots.
+		for (uint8 attempts = 0; attempts < 10 && getCount(lockOn) < targetLocks; attempts++) {
+			if (acquire(lockOn, acquireFlag) != 1) {
+				break;
+			}
+		}
+
+		// First few candidate entries after the fill: distance, range flags (+2 required, +4 current), locked, primary, on screen.
+		uintptr_t node = *reinterpret_cast<uintptr_t*>(lockOn + 0x2030);
+		for (int i = 0; i < 4 && node > 0x10000; i++) {
+			const uintptr_t entry = *reinterpret_cast<uintptr_t*>(node);
+			node = *reinterpret_cast<uintptr_t*>(node + 8);
+			if (entry < 0x10000) {
+				break;
+			}
+			char buf[128];
+			snprintf(buf, sizeof(buf), "[d %.0f f2 %02X f4 %02X lk %u pr %u sc %u] ", *reinterpret_cast<float*>(entry + 0x30),
+				*reinterpret_cast<uint16*>(entry + 2), *reinterpret_cast<uint16*>(entry + 4), *reinterpret_cast<uint32*>(entry + 0x38),
+				*reinterpret_cast<uint32*>(entry + 0x34), *reinterpret_cast<uint8*>(entry + 1));
+			entries += buf;
+		}
+	});
+
+	static uint32 logged = 0;
+	if (logged < 300) {
+		logged++;
+		Log("ArtemisInstantCharge actor %p player %u style %u action %u multi %u max %u charge %.2f target %u locks %u -> %u candidates %u flag %u %s",
+			actorData, actorData->newPlayerIndex, actorData->style, actorData->action, multiLock, maxLocks, charge, targetLocks, before,
+			getCount(lockOn), *reinterpret_cast<uint32*>(lockOn + 0x2048), acquireFlag, entries.c_str());
+	}
+}
+
+// Trickster's dash/trick (air trick above all) can be followed by an Artemis shot right away, and mashing that pair restarts
+// full-charge volleys, which the game never expected. The shot is refused while a Trickster move is the active event;
+// the trick itself stays free to use right after a shot.
+// CPlTryTriggerMove_sub_1401E6300(actor, record, flag): record+8 is the action the record starts.
+typedef char(__fastcall* CPlTryTriggerMoveFn)(uintptr_t, uint64_t, char);
+static std::unique_ptr<Utility::Detour_t> s_artemisShotCancelBlockHook;
+
+static char __fastcall ArtemisShotCancelBlockHook(uintptr_t actorAddr, uint64_t record, char flag) {
+	const auto original = s_artemisShotCancelBlockHook->GetTrampoline<CPlTryTriggerMoveFn>();
+
+	if (actorAddr && record) {
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorAddr);
+		const uint8 recordAction = *reinterpret_cast<uint8*>(record + 8);
+		const bool artemisShot = recordAction >= ACTION_DANTE::ARTEMIS_NORMAL_SHOT && recordAction <= ACTION_DANTE::ARTEMIS_AIR_MULTI_LOCK_SHOT;
+		if (artemisShot && actorData.character == CHARACTER::DANTE) {
+			const uint32 event = actorData.eventData[0].event;
+			// Sky Star is deliberately not here: a shot right after it is fine.
+			const bool inTrickEvent = event == ACTOR_EVENT::TRICKSTER_AIR_TRICK ||
+			                          event == ACTOR_EVENT::TRICKSTER_GROUND_TRICK;
+			// After shot -> air trick in the air, only one more shot per second (see ArtemisAirLoopGuard).
+			const bool airLoopLocked = CrimsonGameplay::IsArtemisAirShotLocked(reinterpret_cast<byte8*>(actorAddr));
+			if (inTrickEvent || airLoopLocked) {
+				static uint32 logged = 0;
+				if (logged < 100) {
+					logged++;
+					Log("ArtemisShotCancelBlock player %u event %u refused shot %u (air loop lock %u)", actorData.newPlayerIndex, event,
+						recordAction, airLoopLocked);
+				}
+				return 0;
+			}
+		}
+	}
+
+	return original(actorAddr, record, flag);
+}
+
+// The air shot's fire branch (volley + hover lift) runs again every frame when the game's "already fired" byte keeps getting
+// cleared, which spawns volleys continuously and keeps lifting the player. It may only run once per shot start.
+// Returns 1 when the branch may run.
+uint8 ArtemisAirFireGate(uintptr_t actorAddr) {
+	auto& armed = s_artemisFireArmed[actorAddr];
+	if (armed) {
+		armed = false;
+		return 1;
+	}
+
+	static uint32 logged = 0;
+	if (logged < 100) {
+		logged++;
+		Log("ArtemisAirFireGate refused repeated fire for actor %p", reinterpret_cast<void*>(actorAddr));
+	}
+	return 0;
+}
+
+// Style Meter repetition limit for the Artemis. Every volley raises a per-player "repetition level" that bleeds off while the
+// player isn't shooting; the style gained from a missile hit is scaled down by that level (see Research/Style-Meter.md).
+struct ArtemisStyleRepetition {
+	double level = 0.0;
+	std::chrono::steady_clock::time_point lastUpdate{};
+};
+static std::unordered_map<uintptr_t, ArtemisStyleRepetition> s_artemisStyleRepetition;
+
+constexpr double artemisStyleSecondsPerLevel = 2.5; // Time without shooting that forgives one level.
+constexpr double artemisStyleScaleStep = 0.25;      // Style lost per level above the first volley.
+constexpr double artemisStyleScaleFloor = 0.15;     // Spamming never drops the gain below this fraction.
+constexpr double artemisStyleMaxLevel = 8.0;
+
+static double ArtemisStyleDecayedLevel(ArtemisStyleRepetition& state, std::chrono::steady_clock::time_point now) {
+	if (state.lastUpdate.time_since_epoch().count() != 0) {
+		const double elapsed = std::chrono::duration<double>(now - state.lastUpdate).count();
+		state.level = std::max(0.0, state.level - elapsed / artemisStyleSecondsPerLevel);
+	}
+	state.lastUpdate = now;
+	return state.level;
+}
+
+static void ArtemisStyleRegisterVolley(uintptr_t actorAddr) {
+	auto& state = s_artemisStyleRepetition[actorAddr];
+	ArtemisStyleDecayedLevel(state, std::chrono::steady_clock::now());
+	state.level = std::min(state.level + 1.0, artemisStyleMaxLevel);
+}
+
+// CPl000Shl06 (Artemis missile) hit callback, vtable slot 0xB8: sub_1401D0930(missile, hitInfo, ...).
+// It forwards to the style hit function with the repetition check disabled, so every missile awards full style.
+typedef int64_t(__fastcall* ArtemisMissileHitFn)(uintptr_t, uintptr_t, float, float, float, uint8);
+static std::unique_ptr<Utility::Detour_t> s_artemisMissileHitHook;
+
+static int64_t __fastcall ArtemisMissileHitStyleHook(uintptr_t missile, uintptr_t hitInfo, float a3, float a4, float a5, uint8 a6) {
+	const auto original = s_artemisMissileHitHook->GetTrampoline<ArtemisMissileHitFn>();
+
+	const uintptr_t owner = *reinterpret_cast<uintptr_t*>(missile + 0x4C8);
+	if (!owner) {
+		return original(missile, hitInfo, a3, a4, a5, a6);
+	}
+
+	auto& style = *reinterpret_cast<StyleData*>(owner + 0x6510);
+	const uint32 rankBefore = style.rank;
+	const float meterBefore = style.meter;
+
+	const auto result = original(missile, hitInfo, a3, a4, a5, a6);
+
+	// A rank-up inside this hit is left alone, the meter is no longer comparable.
+	if (style.rank != rankBefore || style.meter <= meterBefore) {
+		return result;
+	}
+
+	auto& state = s_artemisStyleRepetition[owner];
+	const double level = ArtemisStyleDecayedLevel(state, std::chrono::steady_clock::now());
+	const double scale = std::max(artemisStyleScaleFloor, 1.0 - artemisStyleScaleStep * std::max(0.0, level - 1.0));
+	const float gain = style.meter - meterBefore;
+	style.meter = meterBefore + gain * static_cast<float>(scale);
+
+	static uint32 logged = 0;
+	if (logged < 200) {
+		logged++;
+		Log("ArtemisStyleHit owner %p rank %u level %.2f scale %.2f gain %.2f -> %.2f meter %.2f", reinterpret_cast<void*>(owner), rankBefore,
+			level, scale, gain, gain * scale, style.meter);
+	}
+	return result;
+}
+
+// Last line of defence against the mash barrage: the volley itself can only fire once in a short window per player, whichever
+// route re-entered the shot move. Genuine shots are at least ~0.4 s apart.
+// ArtemisSpawnShots_sub_1401D04E0(actor, position)
+typedef char(__fastcall* ArtemisSpawnShotsFn)(uintptr_t, void*);
+static std::unique_ptr<Utility::Detour_t> s_artemisSpawnShotsHook;
+
+static char __fastcall ArtemisSpawnShotsGuardHook(uintptr_t actorAddr, void* position) {
+	const auto original = s_artemisSpawnShotsHook->GetTrampoline<ArtemisSpawnShotsFn>();
+
+	constexpr auto minVolleyGap = std::chrono::milliseconds(250);
+	static std::unordered_map<uintptr_t, std::chrono::steady_clock::time_point> lastVolley;
+	const auto now = std::chrono::steady_clock::now();
+	auto& last = lastVolley[actorAddr];
+	const auto gap = std::chrono::duration_cast<std::chrono::milliseconds>(now - last).count();
+	const bool refused = (now - last) < minVolleyGap;
+
+	static uint32 logged = 0;
+	if (logged < 300) {
+		logged++;
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorAddr);
+		Log("ArtemisVolley player %u action %u event %u state %u counter %u gap %lld ms %s", actorData.newPlayerIndex, actorData.action,
+			actorData.eventData[0].event, *reinterpret_cast<uint8*>(actorAddr + 0x3E14), *reinterpret_cast<uint16*>(actorAddr + 0x3E1A),
+			gap, refused ? "REFUSED" : "fired");
+	}
+
+	if (refused) {
+		return 1;
+	}
+	last = now;
+	ArtemisStyleRegisterVolley(actorAddr);
+	return original(actorAddr, position);
+}
+
 void ToggleArtemisInstantFullCharge(bool enable) {
 	using namespace Utility;
 	static bool run = false;
 	if (run == enable) {
 		return;
 	}
-	// ArtemisInstantFullCharge
 
-	// dmc3.exe + 215DE7 - 44 0F 2F C1 - comiss xmm8, xmm1
-	// dmc3.exe + 215DEB - 0F 86 95 01 00 00 - jbe dmc3.exe + 215F86 --> jmp dmc3.exe + 215DF1
-	// dmc3.exe + 215DF1 - 8B 8F 38 63 00 00 - mov ecx, [rdi + 00006338]
-	static std::unique_ptr<Utility::Detour_t> ArtemisInstantFullChargeHook1 =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x215DE7, &ArtemisInstantFullChargeDetour1, 4);
-	g_ArtemisReworkJumpAddr1 = (uintptr_t)appBaseAddr + 0x215DF1;
-	ArtemisInstantFullChargeHook1->Toggle(enable);
+	g_ArtemisInstantCharge_FillCall = &ArtemisInstantChargeFill;
 
-	// dmc3.exe + 215E3E - 44 0F 2F C0 - comiss xmm8,xmm0
-	// dmc3.exe + 215E42 - 0F 82 00 00 00 00 - jb dmc3.exe + 215E48 --> jmp dmc3.exe + 215E51
-	static std::unique_ptr<Utility::Detour_t> ArtemisInstantFullChargeHook2 =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x215E3E, &ArtemisInstantFullChargeDetour2, 4);
-	g_ArtemisReworkJumpAddr2 = (uintptr_t)appBaseAddr + 0x215E51;
-	ArtemisInstantFullChargeHook2->Toggle(enable);
+	if (!s_artemisSpawnShotsHook) {
+		s_artemisSpawnShotsHook = std::make_unique<Detour_t>(
+			(uintptr_t)appBaseAddr + 0x1D04E0, &ArtemisSpawnShotsGuardHook, 0, "ArtemisSpawnShots_sub_1401D04E0");
+	}
+	s_artemisSpawnShotsHook->Toggle(enable);
 
-	// dmc3.exe + 215EA2 - 80 BC 38 E0C90100 07 - cmp byte ptr[rax + rdi + 0001C9E0], 07 { 7 }
-	// dmc3.exe + 215EAA - 74 20 - je dmc3.exe+215ECC --> jmp dmc3.exe + 215EE2
+	if (!s_artemisMissileHitHook) {
+		s_artemisMissileHitHook = std::make_unique<Detour_t>(
+			(uintptr_t)appBaseAddr + 0x1D0930, &ArtemisMissileHitStyleHook, 0, "ArtemisMissileHitStyle_sub_1401D0930");
+	}
+	s_artemisMissileHitHook->Toggle(enable);
 
-	CrimsonPatches::ToggleIncreasedArtemisInstantChargeResponsiveness(enable);
+	if (!s_artemisShotCancelBlockHook) {
+		s_artemisShotCancelBlockHook = std::make_unique<Detour_t>(
+			(uintptr_t)appBaseAddr + 0x1E6300, &ArtemisShotCancelBlockHook, 0, "CPlTryTriggerMove_sub_1401E6300");
+	}
+	s_artemisShotCancelBlockHook->Toggle(enable);
+
+	// CPlArtemisShotGround_sub_1402068D0, after the move's own single lock acquire
+	// dmc3.exe+206AA8 - 48 8D 8B C0410000 - lea rcx,[rbx+000041C0]
+	static std::unique_ptr<Utility::Detour_t> ArtemisShotStartGroundHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x206AA8, &ArtemisShotStartGroundDetour, 7);
+	g_ArtemisShotStartGround_ReturnAddr = ArtemisShotStartGroundHook->GetReturnAddress();
+	ArtemisShotStartGroundHook->Toggle(enable);
+
+	// CPlArtemisShotAir_sub_140206C30, same spot
+	// dmc3.exe+206DF1 - 48 8D 8B C0410000 - lea rcx,[rbx+000041C0]
+	static std::unique_ptr<Utility::Detour_t> ArtemisShotStartAirHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x206DF1, &ArtemisShotStartAirDetour, 7);
+	g_ArtemisShotStartAir_ReturnAddr = ArtemisShotStartAirHook->GetReturnAddress();
+	ArtemisShotStartAirHook->Toggle(enable);
+
+	// CPlArtemisShotAir_sub_140206C30, fire branch gate
+	// dmc3.exe+206CA4 - 80 BB 2A3E0000 00 - cmp byte ptr [rbx+00003E2A],00
+	// dmc3.exe+206CAB - 0F85 65020000     - jne dmc3.exe+206F16
+	g_ArtemisAirFireGate_Call = &ArtemisAirFireGate;
+	g_ArtemisAirFireGate_SkipAddr = (uintptr_t)appBaseAddr + 0x206F16;
+	static std::unique_ptr<Utility::Detour_t> ArtemisAirFireGateHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x206CA4, &ArtemisAirFireGateDetour, 13);
+	g_ArtemisAirFireGate_ReturnAddr = ArtemisAirFireGateHook->GetReturnAddress();
+	ArtemisAirFireGateHook->Toggle(enable);
 
 	run = enable;
 }

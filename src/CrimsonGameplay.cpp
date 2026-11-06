@@ -1170,6 +1170,66 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
 }
 
 
+// Air Artemis shots hover and Trickster's air moves cancel them, so shot -> trick -> shot -> trick could be repeated forever.
+// A shot right after an air trick is fine, but only once per ArtemisPostTrickShotCooldown in the air; landing resets it.
+namespace {
+struct ArtemisAirLoopState {
+    bool airShotSeen     = false; // an air Artemis shot happened this airtime
+    bool trickSinceShot  = false; // an Air Trick followed it
+    bool inShotPrev      = false;
+    std::chrono::steady_clock::time_point lastPostTrickShot = {};
+};
+ArtemisAirLoopState s_artemisAirLoop[PLAYER_COUNT][ENTITY_COUNT];
+constexpr auto ArtemisPostTrickShotCooldown = std::chrono::milliseconds(1000);
+} // namespace
+
+void ArtemisAirLoopGuard(byte8* actorBaseAddr) {
+    using namespace ACTION_DANTE;
+    if (!actorBaseAddr) {
+        return;
+    }
+    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    if (actorData.character != CHARACTER::DANTE || actorData.newPlayerIndex >= PLAYER_COUNT || actorData.newEntityIndex >= ENTITY_COUNT) {
+        return;
+    }
+    auto& state = s_artemisAirLoop[actorData.newPlayerIndex][actorData.newEntityIndex];
+
+    if (!(actorData.state & STATE::IN_AIR)) {
+        state = {};
+        return;
+    }
+
+    const uint32 event = actorData.eventData[0].event;
+    const bool inAirShot = (actorData.action == ARTEMIS_AIR_NORMAL_SHOT || actorData.action == ARTEMIS_AIR_MULTI_LOCK_SHOT) &&
+                           event == ACTOR_EVENT::ATTACK;
+    if (inAirShot && !state.inShotPrev) {
+        if (state.trickSinceShot) {
+            state.lastPostTrickShot = std::chrono::steady_clock::now();
+        }
+        state.trickSinceShot = false;
+    }
+    state.inShotPrev = inAirShot;
+
+    if (inAirShot) {
+        state.airShotSeen = true;
+    }
+    if (state.airShotSeen && event == ACTOR_EVENT::TRICKSTER_AIR_TRICK) {
+        state.trickSinceShot = true;
+    }
+}
+
+bool IsArtemisAirShotLocked(byte8* actorBaseAddr) {
+    if (!actorBaseAddr) {
+        return false;
+    }
+    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    if (actorData.newPlayerIndex >= PLAYER_COUNT || actorData.newEntityIndex >= ENTITY_COUNT) {
+        return false;
+    }
+    const auto& state = s_artemisAirLoop[actorData.newPlayerIndex][actorData.newEntityIndex];
+    return state.trickSinceShot && (std::chrono::steady_clock::now() - state.lastPostTrickShot) < ArtemisPostTrickShotCooldown;
+}
+
 void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
     using namespace ACTION_DANTE;
     using namespace NEXT_ACTION_REQUEST_POLICY;
