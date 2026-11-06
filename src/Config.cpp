@@ -33,15 +33,45 @@ Config activeConfig;
 
 // $GetDataStart
 
+// Legacy bosses (Boss Lady/Vergil) are enemy actors, so the indices read from them as if they were a
+// PlayerActorData are garbage (255). Out-of-range lookups get a neutral dummy instead of an out-of-bounds reference.
+
+static PlayerData& GetInvalidPlayerData() {
+    static PlayerData playerData;
+    playerData = {};
+
+    return playerData;
+}
+
+static CharacterData& GetInvalidCharacterData() {
+    static CharacterData characterData;
+    characterData = {};
+    characterData.character = CHARACTER::MAX;
+
+    return characterData;
+}
+
 PlayerData& GetDefaultPlayerData(uint8 playerIndex) {
+    if (playerIndex >= PLAYER_COUNT) {
+        return GetInvalidPlayerData();
+    }
+
     return defaultConfig.Actor.playerData[playerIndex];
 }
 
 PlayerData& GetActivePlayerData(uint8 playerIndex) {
+    if (playerIndex >= PLAYER_COUNT) {
+        return GetInvalidPlayerData();
+    }
+
     return activeConfig.Actor.playerData[playerIndex];
 }
 
 PlayerData& GetQueuedPlayerData(uint8 playerIndex) {
+    if (playerIndex >= PLAYER_COUNT) {
+        return GetInvalidPlayerData();
+    }
+
     return queuedConfig.Actor.playerData[playerIndex];
 }
 
@@ -52,11 +82,19 @@ PlayerData& GetPlayerData(uint8 playerIndex) {
 CharacterData& GetDefaultCharacterData(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
     auto& playerData = GetDefaultPlayerData(playerIndex);
 
+    if (characterIndex >= CHARACTER_COUNT || entityIndex >= ENTITY_COUNT) {
+        return GetInvalidCharacterData();
+    }
+
     return playerData.characterData[characterIndex][entityIndex];
 }
 
 CharacterData& GetActiveCharacterData(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
     auto& playerData = GetActivePlayerData(playerIndex);
+
+    if (characterIndex >= CHARACTER_COUNT || entityIndex >= ENTITY_COUNT) {
+        return GetInvalidCharacterData();
+    }
 
     return playerData.characterData[characterIndex][entityIndex];
 }
@@ -64,11 +102,19 @@ CharacterData& GetActiveCharacterData(uint8 playerIndex, uint8 characterIndex, u
 CharacterData& GetQueuedCharacterData(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
     auto& playerData = GetQueuedPlayerData(playerIndex);
 
+    if (characterIndex >= CHARACTER_COUNT || entityIndex >= ENTITY_COUNT) {
+        return GetInvalidCharacterData();
+    }
+
     return playerData.characterData[characterIndex][entityIndex];
 }
 
 CharacterData& GetCharacterData(uint8 playerIndex, uint8 characterIndex, uint8 entityIndex) {
     auto& playerData = GetPlayerData(playerIndex);
+
+    if (characterIndex >= CHARACTER_COUNT || entityIndex >= ENTITY_COUNT) {
+        return GetInvalidCharacterData();
+    }
 
     return playerData.characterData[characterIndex][entityIndex];
 }

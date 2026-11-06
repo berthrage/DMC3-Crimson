@@ -679,7 +679,12 @@ void HUD_ReloadIcons() {
 	auto& playerData = GetPlayerData(0);
 
 	if (activeConfig.Actor.enable) {
-		auto& activeNewActorData = GetNewActorData(0, playerData.activeCharacterIndex, ENTITY::MAIN);
+		// Legacy bosses are enemy actors, not a PlayerActorData: show the lead actor instead of reading garbage.
+		auto activeIndex = playerData.activeCharacterIndex;
+		if (GetCharacterData(0, activeIndex, ENTITY::MAIN).character >= CHARACTER::MAX) {
+			activeIndex = 0;
+		}
+		auto& activeNewActorData = GetNewActorData(0, activeIndex, ENTITY::MAIN);
 		if (activeNewActorData.baseAddr) {
 			actorDataPtr = reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
 		}

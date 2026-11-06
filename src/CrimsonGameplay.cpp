@@ -5721,6 +5721,9 @@ bool CanBeRevived(uint8 playerIndex) {
 	if (!activeNewActorData.baseAddr) {
 		return false;
 	}
+	if (GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN).character >= CHARACTER::MAX) {
+		return false; // Legacy boss (enemy actor), nothing to revive.
+	}
 	auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
 
 	//Can't revive cuz no gorb.
@@ -5751,6 +5754,9 @@ void RevivePlayer(uint8 playerIndex, bool ignoreGorbCost) {
 	if (!activeNewActorData.baseAddr) {
 		Log("Invalid actor base address");
 		return;
+	}
+	if (GetCharacterData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN).character >= CHARACTER::MAX) {
+		return; // Legacy boss (enemy actor), nothing to revive.
 	}
 
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
