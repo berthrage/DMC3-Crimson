@@ -341,6 +341,57 @@ static void __fastcall FetchPlayerLockOnTargetHook(uintptr_t actorAddr, __int64 
 	RunInLockOnPerspective(actorAddr, [&]() { original(actorAddr, a2); });
 }
 
+// CEm012DullahanOnHit_sub_1400D6A60 (Dullahan vtable +0x90) is the Dullahan's hit reaction.
+// It only lets the hit through when pool_10222[3] (always player 1) is inside the rear arc of
+// the Dullahan, via the cone test sub_1402C6870. That ignores who actually hit it, so secondary
+// players get parried from behind. Point the slot at the attacker while the reaction runs.
+typedef void(__fastcall* DullahanOnHitFn)(uintptr_t self, uintptr_t dmgData, uintptr_t attacker60, uintptr_t hitPos);
+static std::unique_ptr<Utility::Detour_t> s_dullahanOnHitHook;
+
+namespace {
+constexpr uintptr_t ACTOR_TO_BASE_60 = 0x60;
+constexpr uintptr_t ACTOR_TEAM_OFFSET = 0x14; // <= 2 for player-side attackers (see sub_1401AF880)
+constexpr uintptr_t ACTOR_POSITION_OFFSET = 0x80;
+
+// Attacker is either a player actor (main/clone) or something it spawned (shl); shl falls back to the closest player.
+uintptr_t ResolveAttackingPlayerActor(uintptr_t attackerActorAddr) {
+	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; playerIndex++) {
+		for (uint8 characterIndex = 0; characterIndex < CHARACTER_COUNT; characterIndex++) {
+			for (uint8 entityIndex = 0; entityIndex < ENTITY_COUNT; entityIndex++) {
+				if ((uintptr_t)GetNewActorData(playerIndex, characterIndex, entityIndex).baseAddr == attackerActorAddr) {
+					return attackerActorAddr;
+				}
+			}
+		}
+	}
+
+	const auto& position = *reinterpret_cast<glm::vec3*>(attackerActorAddr + ACTOR_POSITION_OFFSET);
+	return EnemyTargetPlayerSelection(position, true, 0);
+}
+}
+
+static void __fastcall DullahanOnHitHook(uintptr_t self, uintptr_t dmgData, uintptr_t attacker60, uintptr_t hitPos) {
+	const auto original = s_dullahanOnHitHook->GetTrampoline<DullahanOnHitFn>();
+	auto pool = *reinterpret_cast<uintptr_t**>(appBaseAddr + 0xC90E28);
+
+	if (!pool || !activeConfig.Actor.enable || activeConfig.Actor.playerCount < 2 || !IsPlausiblePtr(attacker60) ||
+		*reinterpret_cast<uint32*>(attacker60 + ACTOR_TEAM_OFFSET) > 2) {
+		original(self, dmgData, attacker60, hitPos);
+		return;
+	}
+
+	const uintptr_t attackerPlayerAddr = ResolveAttackingPlayerActor(attacker60 - ACTOR_TO_BASE_60);
+	if (!attackerPlayerAddr || attackerPlayerAddr == pool[3]) {
+		original(self, dmgData, attacker60, hitPos);
+		return;
+	}
+
+	const uintptr_t previous = pool[3];
+	pool[3] = attackerPlayerAddr;
+	original(self, dmgData, attacker60, hitPos);
+	pool[3] = previous;
+}
+
 void EnemyAIMultiplayerTargettingDetours(bool enable) {
 	using namespace Utility;
 
@@ -354,6 +405,12 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 			(uintptr_t)appBaseAddr + 0x1E8850, &FetchPlayerLockOnTargetHook, 0, "FetchPlayerLockOnTarget_sub_1401E8850");
 	}
 	s_fetchPlayerLockOnTargetHook->Toggle(enable);
+
+	if (!s_dullahanOnHitHook) {
+		s_dullahanOnHitHook = std::make_unique<Detour_t>(
+			(uintptr_t)appBaseAddr + 0xD6A60, &DullahanOnHitHook, 0, "CEm012DullahanOnHit_sub_1400D6A60");
+	}
+	s_dullahanOnHitHook->Toggle(enable);
 
 // 	// StandardEnemyTarget
 	// dmc3.exe + 616EB - 0F 28 82 80 00 00 00 - movaps xmm0, [rdx + 00000080] { Standard Enemy Set Target Position }
