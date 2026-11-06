@@ -2335,20 +2335,10 @@ bool HUD_PlayerTagAnchor(int player, float screenWidth, float screenHeight, floa
 		return false;
 	}
 
-	// Right of the cockpit group at its original top-left place; left of it for the seats on the right edge. The
-	// addon transform then moves it together with the group.
-	float baseX = screenWidth * 0.3272f;
+	// Right of the cockpit group at its original top-left place, for every seat; the addon transform then moves it together
+	// with the group (it scales about the same corner as the group, so the tag keeps its place relative to the cockpit).
+	const float baseX = screenWidth * 0.3272f;
 	const float baseY = screenHeight * 0.015f;
-	if (view >= 0 && !SplitscreenActive() && (view & 1)) {
-		const HudCalibration& c = s_hudCalibration;
-		const HudFrameInfo frame = ReadHudFrameInfo(screenWidth, screenHeight);
-		const SeatPlacement p = ComputeSeatPlacement(view, frame);
-		const float unit = screenHeight / HUD_HEIGHT;
-		const float leftEdge = screenWidth * 0.5f + c.pivotX * unit + (p.cornerX - s_seatBounds.width) * frame.unitX * c.unitX * unit;
-		baseX = leftEdge - screenWidth * 0.01f;
-		alignRight = true;
-	}
-
 	float posScale = 1.0f, sizeScale = 1.0f, offsetX = 0.0f, offsetY = 0.0f;
 	HUD_AddonTransform(view, screenWidth, screenHeight, posScale, sizeScale, offsetX, offsetY);
 	x = baseX * posScale + offsetX;
