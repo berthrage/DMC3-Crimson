@@ -37,6 +37,10 @@ constexpr uintptr_t INTERACT_CHECK_OFFSET     = 0x1FA750;
 constexpr uintptr_t INTERACT_LOCK_OFFSET      = 0x1FD100;
 constexpr uintptr_t SCRIPT_CONDITION_OFFSET   = 0x1A8320;
 constexpr uintptr_t ITEM_KEY_UPDATE_OFFSET    = 0x1B5720;
+constexpr uintptr_t ADJUDICATOR_HIT_OFFSET    = 0x24FCD0;
+
+// The attacker handed to a collision callback is the collision interface embedded in its actor.
+constexpr size_t COLLISION_INTERFACE_OFFSET = 0x60;
 
 constexpr size_t ZONE_MGR_BUSY_OFFSET = 0xAA8; // CRoomZoneMgr_t.transitionBusy
 
@@ -55,6 +59,7 @@ using ZoneTestFn     = bool(__fastcall*)(void*, const void*, const void*);
 using InteractTestFn = bool(__fastcall*)(void*);
 using InteractLockFn = void(__fastcall*)(void*);
 using ScriptFn       = __int64(__fastcall*)(void*);
+using HitCallbackFn  = void(__fastcall*)(void*, void*, void*, void*);
 
 enum class Zone { None, Door, Event, Catapult, Script, Item };
 
@@ -85,6 +90,7 @@ std::unique_ptr<Utility::Detour_t> s_interactTestHook;
 std::unique_ptr<Utility::Detour_t> s_interactLockHook;
 std::unique_ptr<Utility::Detour_t> s_scriptHook;
 std::unique_ptr<Utility::Detour_t> s_itemKeyHook;
+std::unique_ptr<Utility::Detour_t> s_adjudicatorHitHook;
 
 PlayerActorData* PlayerActor(int player) {
 	if (player == 0) {
@@ -354,6 +360,37 @@ void __fastcall ItemKeyUpdateHook(void* item) {
 	End();
 }
 
+// CStageSetCombo_OnHit_sub_14024FCD0: Combat Adjudicator hit callback. The weapon test
+// (CStageSetCombo_IsWeaponMatch_sub_14024F920) reads the equipped weapon of pool_10222[3], so give it the attacker.
+void __fastcall AdjudicatorHitHook(void* statueInterface, void* hitInfo, void* attacker, void* position) {
+	const auto original = s_adjudicatorHitHook->GetTrampoline<HitCallbackFn>();
+	if (!attacker || !activeConfig.Actor.enable || activeConfig.Actor.playerCount < 2) {
+		return original(statueInterface, hitInfo, attacker, position);
+	}
+	auto* pool = *reinterpret_cast<uintptr_t**>(appBaseAddr + PLAYER_POOL_OFFSET);
+	if (!pool || !pool[POOL_MAIN_ACTOR]) {
+		return original(statueInterface, hitInfo, attacker, position);
+	}
+
+	const auto attackerActor = reinterpret_cast<uintptr_t>(attacker) - COLLISION_INTERFACE_OFFSET;
+	const int playerCount    = (std::min)(static_cast<int>(activeConfig.Actor.playerCount), static_cast<int>(PLAYER_COUNT));
+	bool isOtherPlayer       = false;
+	for (int player = 1; player < playerCount; player++) {
+		if (reinterpret_cast<uintptr_t>(PlayerActor(player)) == attackerActor) {
+			isOtherPlayer = true;
+			break;
+		}
+	}
+	if (!isOtherPlayer) {
+		return original(statueInterface, hitInfo, attacker, position);
+	}
+
+	const uintptr_t mainActor = pool[POOL_MAIN_ACTOR];
+	pool[POOL_MAIN_ACTOR]     = attackerActor;
+	original(statueInterface, hitInfo, attacker, position);
+	pool[POOL_MAIN_ACTOR] = mainActor;
+}
+
 } // namespace
 
 void InitHooks() {
@@ -381,6 +418,8 @@ void InitHooks() {
 		(uintptr_t)appBaseAddr + SCRIPT_CONDITION_OFFSET, &ScriptConditionHook, 0, "EvalCEventMissionCondition_sub_1401A8320");
 	s_itemKeyHook = std::make_unique<Detour_t>(
 		(uintptr_t)appBaseAddr + ITEM_KEY_UPDATE_OFFSET, &ItemKeyUpdateHook, 0, "CItemKey_UpdateIdle_sub_1401B5720");
+	s_adjudicatorHitHook = std::make_unique<Detour_t>(
+		(uintptr_t)appBaseAddr + ADJUDICATOR_HIT_OFFSET, &AdjudicatorHitHook, 0, "CStageSetCombo_OnHit_sub_14024FCD0");
 
 	s_doorZonesHook->Toggle(true);
 	s_eventZonesHook->Toggle(true);
@@ -390,6 +429,7 @@ void InitHooks() {
 	s_interactLockHook->Toggle(true);
 	s_scriptHook->Toggle(true);
 	s_itemKeyHook->Toggle(true);
+	s_adjudicatorHitHook->Toggle(true);
 }
 
 } // namespace CrimsonStageInteraction
