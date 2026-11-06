@@ -1548,6 +1548,30 @@ void DrawRotatedImagePie(ImTextureID tex_id, ImVec2 pos, ImVec2 size, float angl
 	}
 }
 
+// The Crimson counter shows exactly when the vanilla one is drawn. DrawUILayers_sub_140326870 only draws UI objects whose
+// byte +0x5D is set; UpdateCWorkEntities_sub_1403265A0 clears it every frame and CUIDCockpit00_Tick_sub_14027DEA0 marks it
+// again (MarkUIObjectVisible_sub_140326C80), except while the HUD is hidden (pause, events: PlayerActorPool+0x12).
+// DrawCUIDCockpit00_sub_14027F1F0 then leaves the counter out during the credits (PlayerActorPool+0x11).
+static bool VanillaRedOrbCounterDrawn() {
+	constexpr size_t UI_OBJECT_VISIBLE = 0x5D;
+	constexpr size_t COCKPIT_ACTOR     = 0x6880; // set for a cockpit bound to a specific actor
+	constexpr size_t POOL_CREDITS      = 0x11;
+	constexpr size_t POOL_COCKPIT00    = 0x1B070 - 0x180; // CSceneGameMain+0x1B070, the pool sits at +0x180
+
+	auto pool = *reinterpret_cast<const byte8* const*>(appBaseAddr + 0xC90E28);
+	if (g_scene != SCENE::GAME || !pool) {
+		return false;
+	}
+	auto cockpit = *reinterpret_cast<const byte8* const*>(pool + POOL_COCKPIT00);
+	if (!cockpit || cockpit[UI_OBJECT_VISIBLE] != 1) {
+		return false;
+	}
+	if (*reinterpret_cast<const uintptr_t*>(cockpit + COCKPIT_ACTOR) == 0 && pool[POOL_CREDITS]) {
+		return false;
+	}
+	return true;
+}
+
 void RedOrbCounterWindow() {
 	assert(RedOrbTexture);
 
@@ -1586,6 +1610,10 @@ void RedOrbCounterWindow() {
 	hudData.orbsCountAlpha = 0;
 	CrimsonDetours::RerouteRedOrbsCounterAlpha(true, crimsonHud.redOrbAlpha);
 	CrimsonPatches::SetRebOrbCounterDurationTillFadeOut(true, crimsonHud.redOrbAlphaDurationToAlpha);
+
+	if (!VanillaRedOrbCounterDrawn()) {
+		return;
+	}
 
 	// Get the current display size
 	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
