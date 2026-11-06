@@ -35,7 +35,7 @@ constexpr uint64_t ALL_BITS   = ~0ull;
 
 // Not merged: gameplay code that is tied to one player.
 constexpr Range GAMEPLAY_RANGES[] = {
-	{ 0x04F000, 0x058000 }, // camera
+	{ 0x0501F0, 0x058000 }, // camera (the Yes/No prompt right below it, sub_14004FED0, must be merged)
 	{ 0x1E0000, 0x230000 }, // player actors: input update, controller, interact check
 	{ 0x296DB0, 0x296E93 }, // lock-on cursor
 };
