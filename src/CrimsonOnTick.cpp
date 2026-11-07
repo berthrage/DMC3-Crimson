@@ -1120,8 +1120,8 @@ void MultiplayerCameraPositioningController() {
 	auto mpCamNow = std::chrono::steady_clock::now();
 	bool canSwitchMPCam = std::chrono::duration<float>(mpCamNow - lastMPCamSwitchTime).count() >= 1.0f;
 
-	// Camera behavior based on player count, doppelganger, or Arkham2 fight
-	if (activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1 || arkhamFightData.fightActive) {
+	// Camera behavior based on player count or doppelganger (the Arkham 2 AI partner in singleplayer doesn't use the shared cam)
+	if (activeConfig.Actor.playerCount > 1 || mainActorData.doppelganger == 1) {
 		// MULTIPLAYER
 		if (triggerMPCam != g_isMPCamActive && canSwitchMPCam) {
 			g_isMPCamActive = triggerMPCam;
