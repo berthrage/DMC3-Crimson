@@ -94,6 +94,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	dante.airHikeCoreAbility = false;
 	dante.altNevanVortex = false;
 	dante.artemisRework = false;
+	dante.artemisFixCloseRange = false;
 	dante.groundTrick = false;
 	dante.swapDancePierceInputs = false;
 	dante.swapArtemisMultiLockNormalShot = false;
@@ -169,6 +170,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	dante.airHikeCoreAbility = true;
 	dante.altNevanVortex = true;
 	dante.artemisRework = true;
+	dante.artemisFixCloseRange = true;
 	dante.groundTrick = false;
 	//dante.swapDancePierceInputs = false;
 	dante.chargedShotgunLaunches = false;
@@ -258,6 +260,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	dante.airHikeCoreAbility = true;
 	dante.altNevanVortex = true;
 	dante.artemisRework = true;
+	dante.artemisFixCloseRange = true;
 	dante.groundTrick = true;
 	dante.swapDancePierceInputs = true;
 
@@ -326,6 +329,7 @@ const CrimsonConfigGameplayMask VANILLA_MASK = [] {
 	mask.Gameplay.General.vanillaWeaponSwitchDelay = false;
 	mask.Gameplay.General.multiplayerDamageScaling = false;
 	mask.Gameplay.Dante.swapArtemisMultiLockNormalShot = false;
+	mask.Gameplay.Dante.artemisFixCloseRange = false;
 	mask.Gameplay.Dante.swapHammerVocalnoInputs = false;
 
 	mask.Gameplay.ExtraDifficulty.ldkMode = false;
@@ -384,6 +388,7 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Gameplay.General.dmc4LockOnDirection = false;
 	mask.Gameplay.General.fasterTurnRate = false;
 	mask.Gameplay.Dante.swapArtemisMultiLockNormalShot = false;
+	mask.Gameplay.Dante.artemisFixCloseRange = false;
 	mask.Gameplay.Dante.swapDancePierceInputs = false;
 	mask.Gameplay.Dante.swapHammerVocalnoInputs = false;
 	
@@ -558,6 +563,7 @@ void UpdateCheatsPostPreset() {
 	ToggleArtemisSwapNormalShotAndMultiLock(activeCrimsonGameplay.Gameplay.Dante.swapArtemisMultiLockNormalShot);
 	CrimsonDetours::ToggleArtemisInstantFullCharge(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
 	CrimsonPatches::ReduceArtemisProjectileDamage(activeCrimsonGameplay.Gameplay.Dante.artemisRework);
+	CrimsonDetours::ToggleArtemisFixCloseRange(activeCrimsonGameplay.Gameplay.Dante.artemisFixCloseRange);
 	ToggleChronoSwords(activeCrimsonGameplay.Cheats.Vergil.chronoSwords);
 	UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
 	CrimsonGameModes::SetGameModeMasked(activeCrimsonGameplay.GameMode.preset);

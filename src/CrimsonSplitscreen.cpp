@@ -21,6 +21,7 @@
 #include "Config.hpp"
 #include "HUD.hpp"
 #include "Vars.hpp"
+#include "CrimsonEnemyAITarget.hpp"
 
 // Splitscreen works by multiplexing in time: each frame is a normal single-camera
 // frame, built for one player, and stored. The most recent frame of every player is
@@ -949,7 +950,7 @@ void __fastcall LockOnCursorUpdateHook(uint8_t* cursor) {
 		for (bool& valid : s_lockOnSlots.valid) {
 			valid = false;
 		}
-		original(cursor);
+		CrimsonEnemyAITarget::RunWithActorLockState(pool ? pool[3] : 0, [&]() { original(cursor); });
 		return;
 	}
 
@@ -979,7 +980,7 @@ void __fastcall LockOnCursorUpdateHook(uint8_t* cursor) {
 		std::memcpy(liveProjection, s_projectionSlots.matrix[player], SCENE_CAMERA_MATRIX_SIZE);
 	}
 
-	original(cursor);
+	CrimsonEnemyAITarget::RunWithActorLockState(reinterpret_cast<uintptr_t>(actor), [&]() { original(cursor); });
 
 	if (swapProjection) {
 		std::memcpy(liveProjection, projectionBackup, SCENE_CAMERA_MATRIX_SIZE);

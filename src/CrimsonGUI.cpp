@@ -89,6 +89,7 @@
 #include "ImGui/imgui.h"
 #include "CrimsonHUD.hpp"
 #include "CrimsonFX.hpp"
+#include "CrimsonMenuAnimation.hpp"
 #include "CrimsonReversedCalls.hpp"
 
 #define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
@@ -4989,7 +4990,7 @@ void CameraSection(size_t defaultFontSize) {
 			GUI_Checkbox2("Shared Camera in Single Player", activeCrimsonConfig.Camera.singlePlayerSharedCamera, queuedCrimsonConfig.Camera.singlePlayerSharedCamera);
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Uses the Shared Camera, which frames every playable character, while Doppelganger is summoned\n"
-				"(and during the Arkham fight) in Single Player.");
+				"in Single Player.");
 
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
@@ -10281,6 +10282,21 @@ void SystemSection(size_t defaultFontSize) {
 
 
 			GUI_Checkbox2("Disable Menu Fadeouts", activeCrimsonConfig.System.disableMenuFadeouts, queuedCrimsonConfig.System.disableMenuFadeouts);
+
+			GUI_Checkbox2("Menu Animation Fix", activeCrimsonConfig.System.menuAnimationFix, queuedCrimsonConfig.System.menuAnimationFix);
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Keeps menu panels animating at the same speed no matter your frame rate.\n"
+					"Turn off to compare against the original behaviour.");
+			}
+
+			ImGui::PushItemWidth(itemWidth * 0.8f);
+			GUI_Slider2FloatDefault("Menu Speed", activeCrimsonConfig.System.menuAnimationSpeed, queuedCrimsonConfig.System.menuAnimationSpeed,
+				defaultCrimsonConfig.System.menuAnimationSpeed, 50.0f, 200.0f, 1.0f, "%.0f%%");
+			ImGui::PopItemWidth();
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Speed of menu panels, scene breaks and mission results.\n"
+					"100%% is the original speed. The cockpit and credits always play at 100%%.");
+			}
 				
 			
 			ImGui::TableNextColumn();
@@ -12132,6 +12148,18 @@ void DanteGameplayOptions() {
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Makes Artemis' Multi-Lock and Normal Shot charge instantly.\n"
 				"Nerfs Artemis' Multi-Lock and Normal Shot projectile damage by 90-percent to compensate.");
+
+			ImGui::TableNextColumn();
+
+			if (GUI_Checkbox2("Artemis Fix Close Range",
+				activeCrimsonGameplay.Gameplay.Dante.artemisFixCloseRange,
+				queuedCrimsonGameplay.Gameplay.Dante.artemisFixCloseRange,
+				activeCrimsonGameplayMask.Gameplay.Dante.artemisFixCloseRange)) {
+				CrimsonDetours::ToggleArtemisFixCloseRange(activeCrimsonGameplay.Gameplay.Dante.artemisFixCloseRange);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Artemis projectiles no longer explode all at once when an enemy is right in front of you.\n"
+				"They only hit once they start flying, so close range volleys look and play like a full charge.");
 
 			ImGui::TableNextColumn();
 
@@ -16653,6 +16681,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	//ExperimentalInputUpdate();
 
 	CrimsonOnTick::FrameResponsiveGameSpeed();
+	CrimsonMenuAnimation::OnTick();
 	CrimsonOnTick::LevelFullyLoadedDelay();
 	CrimsonBetterArkham2::OnTick();
     // TIMERS

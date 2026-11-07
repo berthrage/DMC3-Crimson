@@ -1827,12 +1827,44 @@ void InitDetours() {
 // Set when an Artemis shot move starts, consumed by the first fire of the air shot (ArtemisAirFireGate).
 static std::unordered_map<uintptr_t, bool> s_artemisFireArmed;
 
+// What the shot move's fill acquired with, so the volley can rebuild the same locks.
+struct ArtemisFillInfo {
+	bool multiLock = false;
+	uint8 acquireFlag = 1;
+};
+static std::unordered_map<uintptr_t, ArtemisFillInfo> s_artemisFillInfo;
+
+// Acquires locks until the table holds targetLocks. The multi-lock acquire only stacks on an entry that is flagged as locked,
+// so when it refuses the plain one spreads to the next target. Returns one character per attempt: 1 acquired, s spread, 0 refused.
+static std::string ArtemisAcquireLocks(uint8* lockOn, uint32 targetLocks, bool multiLock, uint8 acquireFlag) {
+	using LockOnCountFn = uint32(__fastcall*)(uint8*);
+	using LockOnAcquireFn = char(__fastcall*)(uint8*, uint8);
+	auto getCount = reinterpret_cast<LockOnCountFn>(appBaseAddr + 0x1BA690);
+	auto acquire = reinterpret_cast<LockOnAcquireFn>(appBaseAddr + (multiLock ? 0x1BBA30 : 0x1BB950));
+	auto spreadAcquire = reinterpret_cast<LockOnAcquireFn>(appBaseAddr + 0x1BB950);
+
+	std::string results;
+	// The lock table has 10 slots.
+	for (uint8 attempts = 0; attempts < 10 && getCount(lockOn) < targetLocks; attempts++) {
+		char result = acquire(lockOn, acquireFlag);
+		char used = '1';
+		if (result != 1 && multiLock) {
+			result = spreadAcquire(lockOn, acquireFlag);
+			used = 's';
+		}
+		results += (result == 1) ? used : '0';
+		if (result != 1) {
+			break;
+		}
+	}
+	return results;
+}
+
 // Tops the lock-on table up to the most locks a full charge can reach, at the start of the Artemis shot move.
 // Count/acquire: LockOnGetTargetCount_sub_1401BA690, LockOnAcquireTarget_sub_1401BB950, LockOnAcquireTargetMulti_sub_1401BBA30
 void ArtemisInstantChargeFill(PlayerActorDataDante* actorData) {
 	s_artemisFireArmed[reinterpret_cast<uintptr_t>(actorData)] = true;
 	using LockOnCountFn = uint32(__fastcall*)(uint8*);
-	using LockOnAcquireFn = char(__fastcall*)(uint8*, uint8);
 
 	auto lockOn = reinterpret_cast<uint8*>(actorData) + 0x41C0;
 	auto getCount = reinterpret_cast<LockOnCountFn>(appBaseAddr + 0x1BA690);
@@ -1841,7 +1873,6 @@ void ArtemisInstantChargeFill(PlayerActorDataDante* actorData) {
 	bool multiLockAction = (actorData->action == ACTION_DANTE::ARTEMIS_MULTI_LOCK_SHOT) ||
 	                       (actorData->action == ACTION_DANTE::ARTEMIS_AIR_MULTI_LOCK_SHOT);
 	bool multiLock = multiLockAction != activeCrimsonGameplay.Gameplay.Dante.swapArtemisMultiLockNormalShot;
-	auto acquire = reinterpret_cast<LockOnAcquireFn>(appBaseAddr + (multiLock ? 0x1BBA30 : 0x1BB950));
 
 	// Same "busy" test the shot move uses before its own acquire (pool_10222_PlayerActorPool+0x40).
 	uint8 acquireFlag = 1;
@@ -1892,13 +1923,31 @@ void ArtemisInstantChargeFill(PlayerActorDataDante* actorData) {
 
 	// Other players' lock-on entries carry the ranges seen from player 1, look from this actor instead.
 	std::string entries;
-	CrimsonEnemyAITarget::RunInLockOnPerspective(reinterpret_cast<uintptr_t>(actorData), [&]() {
-		// The lock table has 10 slots.
-		for (uint8 attempts = 0; attempts < 10 && getCount(lockOn) < targetLocks; attempts++) {
-			if (acquire(lockOn, acquireFlag) != 1) {
+	std::string acquireResults;
+
+	// Multiplayer diagnostics: how many entries the actor has registered, how many are in the sorted candidate list
+	// and how many of those already carry a lock (the entry lock state is shared between the players).
+	auto countList = [](uintptr_t node, uint32& total, uint32& locked) {
+		total = 0;
+		locked = 0;
+		for (uint32 i = 0; i < 512 && node > 0x10000; i++) {
+			const uintptr_t entry = *reinterpret_cast<uintptr_t*>(node);
+			node = *reinterpret_cast<uintptr_t*>(node + 8);
+			if (entry < 0x10000) {
 				break;
 			}
+			total++;
+			if (*reinterpret_cast<uint32*>(entry + 0x38) == 1) {
+				locked++;
+			}
 		}
+	};
+	uint32 rawBefore = 0, rawLockedBefore = 0, sortedBefore = 0, sortedLockedBefore = 0;
+	countList(*reinterpret_cast<uintptr_t*>(reinterpret_cast<uint8*>(actorData) + 0x51D0), rawBefore, rawLockedBefore);
+	countList(*reinterpret_cast<uintptr_t*>(lockOn + 0x2030), sortedBefore, sortedLockedBefore);
+
+	CrimsonEnemyAITarget::RunInLockOnPerspective(reinterpret_cast<uintptr_t>(actorData), [&]() {
+		acquireResults = ArtemisAcquireLocks(lockOn, targetLocks, multiLock, acquireFlag);
 
 		// First few candidate entries after the fill: distance, range flags (+2 required, +4 current), locked, primary, on screen.
 		uintptr_t node = *reinterpret_cast<uintptr_t*>(lockOn + 0x2030);
@@ -1917,11 +1966,30 @@ void ArtemisInstantChargeFill(PlayerActorDataDante* actorData) {
 	});
 
 	static uint32 logged = 0;
+	s_artemisFillInfo[reinterpret_cast<uintptr_t>(actorData)] = {multiLock, acquireFlag};
 	if (logged < 300) {
 		logged++;
 		Log("ArtemisInstantCharge actor %p player %u style %u action %u multi %u max %u charge %.2f target %u locks %u -> %u candidates %u flag %u %s",
 			actorData, actorData->newPlayerIndex, actorData->style, actorData->action, multiLock, maxLocks, charge, targetLocks, before,
 			getCount(lockOn), *reinterpret_cast<uint32*>(lockOn + 0x2048), acquireFlag, entries.c_str());
+	}
+
+	static uint32 loggedMultiplayer = 0;
+	if (activeConfig.Actor.playerCount > 1 && loggedMultiplayer < 300) {
+		loggedMultiplayer++;
+		uint32 rawAfter = 0, rawLockedAfter = 0, sortedAfter = 0, sortedLockedAfter = 0;
+		countList(*reinterpret_cast<uintptr_t*>(reinterpret_cast<uint8*>(actorData) + 0x51D0), rawAfter, rawLockedAfter);
+		countList(*reinterpret_cast<uintptr_t*>(lockOn + 0x2030), sortedAfter, sortedLockedAfter);
+		uintptr_t poolSlot = 0;
+		uint8 poolFlag10 = 0;
+		if (auto pool = *reinterpret_cast<uint8**>(appBaseAddr + 0xC90E28)) {
+			poolSlot = *reinterpret_cast<uintptr_t*>(pool + 0x18 + 8 * actorData->id);
+			poolFlag10 = *(pool + 0x10);
+		}
+		Log("ArtemisMultiplayer actor %p player %u entity %u id %u poolSlot %p pool10 %u players %u | entries %u/%u locked -> %u/%u | sorted %u/%u locked -> %u/%u | acquire %s",
+			actorData, actorData->newPlayerIndex, actorData->newEntityIndex, actorData->id, reinterpret_cast<void*>(poolSlot), poolFlag10,
+			activeConfig.Actor.playerCount, rawBefore, rawLockedBefore, rawAfter, rawLockedAfter, sortedBefore, sortedLockedBefore,
+			sortedAfter, sortedLockedAfter, acquireResults.c_str());
 	}
 }
 
@@ -1958,7 +2026,28 @@ static char __fastcall ArtemisShotCancelBlockHook(uintptr_t actorAddr, uint64_t 
 		}
 	}
 
-	return original(actorAddr, record, flag);
+	const char result = original(actorAddr, record, flag);
+
+	// Diagnostic for the "enemy glued to the player" report: which move starts, how close the soft target is, what the lock table holds.
+	if (result == 1 && actorAddr && record) {
+		const uint8 recordAction = *reinterpret_cast<uint8*>(record + 8);
+		if (recordAction >= ACTION_DANTE::ARTEMIS_NORMAL_SHOT && recordAction <= ACTION_DANTE::ARTEMIS_ACID_RAIN) {
+			static uint32 logged = 0;
+			if (logged < 200) {
+				logged++;
+				auto& actorData = *reinterpret_cast<PlayerActorData*>(actorAddr);
+				const float* self = reinterpret_cast<const float*>(actorAddr + 0x80);
+				const float* soft = reinterpret_cast<const float*>(actorAddr + 0x6300);
+				const float dx = soft[0] - self[0], dy = soft[1] - self[1], dz = soft[2] - self[2];
+				auto* lockOn = reinterpret_cast<uint8*>(actorAddr) + 0x41C0;
+				Log("ArtemisMoveStart player %u record %u action %u event %u soft %u softDist %.0f locks %u candidates %u", actorData.newPlayerIndex,
+					recordAction, actorData.action, actorData.eventData[0].event, *reinterpret_cast<uint8*>(actorAddr + 0x6229),
+					sqrtf(dx * dx + dy * dy + dz * dz), reinterpret_cast<uint32(__fastcall*)(uint8*)>(appBaseAddr + 0x1BA690)(lockOn),
+					*reinterpret_cast<uint32*>(lockOn + 0x2048));
+			}
+		}
+	}
+	return result;
 }
 
 // The air shot's fire branch (volley + hover lift) runs again every frame when the game's "already fired" byte keeps getting
@@ -2011,6 +2100,7 @@ static void ArtemisStyleRegisterVolley(uintptr_t actorAddr) {
 // It forwards to the style hit function with the repetition check disabled, so every missile awards full style.
 typedef int64_t(__fastcall* ArtemisMissileHitFn)(uintptr_t, uintptr_t, float, float, float, uint8);
 static std::unique_ptr<Utility::Detour_t> s_artemisMissileHitHook;
+static std::unordered_map<uintptr_t, std::chrono::steady_clock::time_point> s_artemisVolleyTime;
 
 static int64_t __fastcall ArtemisMissileHitStyleHook(uintptr_t missile, uintptr_t hitInfo, float a3, float a4, float a5, uint8 a6) {
 	const auto original = s_artemisMissileHitHook->GetTrampoline<ArtemisMissileHitFn>();
@@ -2018,6 +2108,21 @@ static int64_t __fastcall ArtemisMissileHitStyleHook(uintptr_t missile, uintptr_
 	const uintptr_t owner = *reinterpret_cast<uintptr_t*>(missile + 0x4C8);
 	if (!owner) {
 		return original(missile, hitInfo, a3, a4, a5, a6);
+	}
+
+	// Diagnostic for the point-blank report: the missile phase (+9 of the object: 0 waiting, 1 pop-out delay, 2 flight), how long
+	// after the volley it hits and how far it is from the shooter.
+	{
+		static uint32 loggedHits = 0;
+		if (loggedHits < 120) {
+			loggedHits++;
+			const auto since = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - s_artemisVolleyTime[owner]).count();
+			const float* missilePos = reinterpret_cast<const float*>(missile + 0x20);
+			const float* ownerPos = reinterpret_cast<const float*>(owner + 0x80);
+			const float dx = missilePos[0] - ownerPos[0], dy = missilePos[1] - ownerPos[1], dz = missilePos[2] - ownerPos[2];
+			Log("ArtemisMissileHit owner %p phase %u msSinceVolley %lld distFromShooter %.0f", reinterpret_cast<void*>(owner),
+				*reinterpret_cast<uint8*>(missile - 0x57), static_cast<long long>(since), sqrtf(dx * dx + dy * dy + dz * dz));
+		}
 	}
 
 	auto& style = *reinterpret_cast<StyleData*>(owner + 0x6510);
@@ -2052,6 +2157,39 @@ static int64_t __fastcall ArtemisMissileHitStyleHook(uintptr_t missile, uintptr_
 typedef char(__fastcall* ArtemisSpawnShotsFn)(uintptr_t, void*);
 static std::unique_ptr<Utility::Detour_t> s_artemisSpawnShotsHook;
 
+// A lock lives in two places: the actor's own table (lockOn+0x205B, 0xFF when free) and the enemy entry it points at (flag at
+// entry+0x38, slot index at entry+0x3E+2*slot). Entries are shared between the players, and every player's candidate refresh
+// clears them, so by the time the volley spawns the entry side of another player's locks is usually gone while the table
+// still counts them. sub_1401BA730 finds no target then and the volley turns into one forward shot.
+// How many locks still find a target, the way the volley resolves them.
+static uint32 ArtemisCountResolvedLocks(uint8* lockOn) {
+	using CountFn = uint32(__fastcall*)(uint8*);
+	using ResolveFn = uintptr_t(__fastcall*)(uint8*, uint32, void*);
+	const uint32 count = reinterpret_cast<CountFn>(appBaseAddr + 0x1BA690)(lockOn);
+	uint32 resolved = 0;
+	for (uint32 i = 0; i < count; i++) {
+		if (reinterpret_cast<ResolveFn>(appBaseAddr + 0x1BA730)(lockOn, i, nullptr)) {
+			resolved++;
+		}
+	}
+	return resolved;
+}
+
+// Rebuilds the actor's locks from scratch, right before the volley reads them. LockOnClearTargets_sub_1401BA5E0.
+static std::string ArtemisRebuildLocks(uintptr_t actorAddr, uint32 locks) {
+	const auto info = s_artemisFillInfo.find(actorAddr);
+	if (info == s_artemisFillInfo.end()) {
+		return "";
+	}
+	auto* lockOn = reinterpret_cast<uint8*>(actorAddr) + 0x41C0;
+	std::string results;
+	CrimsonEnemyAITarget::RunInLockOnPerspective(actorAddr, [&]() {
+		reinterpret_cast<void(__fastcall*)(uint8*)>(appBaseAddr + 0x1BA5E0)(lockOn);
+		results = ArtemisAcquireLocks(lockOn, locks, info->second.multiLock, info->second.acquireFlag);
+	});
+	return results;
+}
+
 static char __fastcall ArtemisSpawnShotsGuardHook(uintptr_t actorAddr, void* position) {
 	const auto original = s_artemisSpawnShotsHook->GetTrampoline<ArtemisSpawnShotsFn>();
 
@@ -2062,21 +2200,68 @@ static char __fastcall ArtemisSpawnShotsGuardHook(uintptr_t actorAddr, void* pos
 	const auto gap = std::chrono::duration_cast<std::chrono::milliseconds>(now - last).count();
 	const bool refused = (now - last) < minVolleyGap;
 
+	auto* lockOn = reinterpret_cast<uint8*>(actorAddr) + 0x41C0;
+	const uint32 locks = reinterpret_cast<uint32(__fastcall*)(uint8*)>(appBaseAddr + 0x1BA690)(lockOn);
+	const uint32 resolvedBefore = ArtemisCountResolvedLocks(lockOn);
+	std::string rebuilt;
+	if (!refused && locks > 0 && resolvedBefore < locks) {
+		rebuilt = ArtemisRebuildLocks(actorAddr, locks);
+	}
+	const uint32 resolvedAfter = ArtemisCountResolvedLocks(lockOn);
+
 	static uint32 logged = 0;
 	if (logged < 300) {
 		logged++;
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(actorAddr);
-		Log("ArtemisVolley player %u action %u event %u state %u counter %u gap %lld ms %s", actorData.newPlayerIndex, actorData.action,
-			actorData.eventData[0].event, *reinterpret_cast<uint8*>(actorAddr + 0x3E14), *reinterpret_cast<uint16*>(actorAddr + 0x3E1A),
-			gap, refused ? "REFUSED" : "fired");
+		Log("ArtemisVolley player %u action %u event %u state %u counter %u locks %u resolved %u -> %u rebuild '%s' gap %lld ms %s", actorData.newPlayerIndex,
+			actorData.action, actorData.eventData[0].event, *reinterpret_cast<uint8*>(actorAddr + 0x3E14),
+			*reinterpret_cast<uint16*>(actorAddr + 0x3E1A), locks, resolvedBefore, resolvedAfter, rebuilt.c_str(), gap,
+			refused ? "REFUSED" : "fired");
 	}
 
 	if (refused) {
 		return 1;
 	}
 	last = now;
+	s_artemisVolleyTime[actorAddr] = now;
 	ArtemisStyleRegisterVolley(actorAddr);
 	return original(actorAddr, position);
+}
+
+// Point-blank shots (enemy overlapping the muzzle) used to blow up the whole volley on the first frame: the missiles' attack
+// collisions are live from the spawn, so every missile still waiting for its turn (phase 0) or popping out (phase 1) hits the
+// enemy right away and is destroyed (CPl000Shl06Update_sub_1401CFEA0). While the missile is in those phases its collision slot
+// table (collision data +0x88, 16 pointers) is emptied for the duration of the update: SpawnCollision_sub_14005C320 then has
+// nothing to register and the destroy-on-hit check has nothing to read. The table is put back right after.
+typedef char(__fastcall* ArtemisMissileUpdateFn)(uintptr_t);
+static std::unique_ptr<Utility::Detour_t> s_artemisMissileUpdateHook;
+
+static char __fastcall ArtemisMissileUpdateHook(uintptr_t missile) {
+	const auto original = s_artemisMissileUpdateHook->GetTrampoline<ArtemisMissileUpdateFn>();
+	if (*reinterpret_cast<uint8*>(missile + 9) >= 2) {
+		return original(missile);
+	}
+
+	auto* slots = reinterpret_cast<uint64*>(missile + 0x1E0 + 0x88);
+	uint64 saved[16];
+	memcpy(saved, slots, sizeof(saved));
+	memset(slots, 0, sizeof(saved));
+	const char result = original(missile);
+	for (int i = 0; i < 16; i++) {
+		if (slots[i] == 0) {
+			slots[i] = saved[i];
+		}
+	}
+	return result;
+}
+
+void ToggleArtemisFixCloseRange(bool enable) {
+	using namespace Utility;
+	if (!s_artemisMissileUpdateHook) {
+		s_artemisMissileUpdateHook = std::make_unique<Detour_t>(
+			(uintptr_t)appBaseAddr + 0x1CFEA0, &ArtemisMissileUpdateHook, 0, "CPl000Shl06Update_sub_1401CFEA0");
+	}
+	s_artemisMissileUpdateHook->Toggle(enable);
 }
 
 void ToggleArtemisInstantFullCharge(bool enable) {

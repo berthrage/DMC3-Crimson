@@ -1,6 +1,6 @@
 #include "../ThirdParty/glm/glm.hpp"
 #include <algorithm>
-#include "Core/Core.hpp"
+#include <unordered_map>
 #include <stdio.h>
 #include "Utility/Detour.hpp"
 #include <intrin.h>
@@ -341,6 +341,120 @@ static void __fastcall FetchPlayerLockOnTargetHook(uintptr_t actorAddr, __int64 
 	RunInLockOnPerspective(actorAddr, [&]() { original(actorAddr, a2); });
 }
 
+// A lock is stored twice: in the actor's own table (actor+0x41C0, +0x205B, 0xFF when free) and on the shared enemy entry it
+// points at (locked flag +0x38, lock count +0x3C, one slot per lock +0x3E). The entries are one object per enemy for every
+// player, and each player's candidate update clears their lock state, so with two players a lock only survives until the
+// other one updates. The table still counts it, but nothing resolves it any more: charging never shows or fires.
+// Each actor gets its own copy of that state, loaded onto the entries when its frame starts and saved when it ends.
+namespace {
+constexpr size_t LOCK_STATE_OFFSET = 0x38;
+constexpr size_t LOCK_STATE_SIZE   = 0x1A;
+constexpr uintptr_t RAW_ENTRY_LIST_OFFSET    = 0x51D0; // lockOn+0x1010
+constexpr uintptr_t SORTED_ENTRY_LIST_OFFSET = 0x61F0; // lockOn+0x2030
+
+struct LockStateBytes {
+	uint8 bytes[LOCK_STATE_SIZE];
+};
+
+std::unordered_map<uintptr_t, std::unordered_map<uintptr_t, LockStateBytes>> s_actorLockState;
+
+bool LockStateActive() {
+	return activeConfig.Actor.enable && activeConfig.Actor.playerCount > 1;
+}
+
+// Reading the lists and entries is guarded, an enemy can be gone by the time we look.
+size_t CollectListEntries(uintptr_t listHead, uintptr_t* out, size_t max) {
+	size_t count = 0;
+	__try {
+		uintptr_t node = *reinterpret_cast<uintptr_t*>(listHead);
+		while (IsPlausiblePtr(node) && count < max) {
+			const uintptr_t entry = *reinterpret_cast<uintptr_t*>(node);
+			node = *reinterpret_cast<uintptr_t*>(node + 8);
+			if (!IsPlausiblePtr(entry)) {
+				break;
+			}
+			out[count++] = entry;
+		}
+	} __except (EXCEPTION_EXECUTE_HANDLER) {
+	}
+	return count;
+}
+
+bool ReadLockState(uintptr_t entry, LockStateBytes& state) {
+	__try {
+		memcpy(state.bytes, reinterpret_cast<const void*>(entry + LOCK_STATE_OFFSET), LOCK_STATE_SIZE);
+		return true;
+	} __except (EXCEPTION_EXECUTE_HANDLER) {
+		return false;
+	}
+}
+
+void WriteLockState(uintptr_t entry, const LockStateBytes& state) {
+	__try {
+		memcpy(reinterpret_cast<void*>(entry + LOCK_STATE_OFFSET), state.bytes, LOCK_STATE_SIZE);
+	} __except (EXCEPTION_EXECUTE_HANDLER) {
+	}
+}
+
+LockStateBytes EmptyLockState() {
+	LockStateBytes state;
+	memset(state.bytes, 0, LOCK_STATE_SIZE);
+	memset(state.bytes + 6, 0xFF, 20); // +0x3E, ten slots, 0xFFFF when free
+	return state;
+}
+
+void LoadActorLockState(uintptr_t actorAddr, const uintptr_t* entries, size_t count) {
+	auto& saved = s_actorLockState[actorAddr];
+	const LockStateBytes empty = EmptyLockState();
+	for (size_t i = 0; i < count; i++) {
+		const auto it = saved.find(entries[i]);
+		WriteLockState(entries[i], (it != saved.end()) ? it->second : empty);
+	}
+}
+
+void SaveActorLockState(uintptr_t actorAddr, const uintptr_t* entries, size_t count) {
+	auto& saved = s_actorLockState[actorAddr];
+	saved.clear();
+	for (size_t i = 0; i < count; i++) {
+		LockStateBytes state;
+		if (ReadLockState(entries[i], state)) {
+			saved[entries[i]] = state;
+		}
+	}
+}
+}
+
+// The HUD lock-on cursor reads the entries after every actor has run, so they hold whoever ran last.
+void RunWithActorLockState(uintptr_t actorAddr, const std::function<void()>& fn) {
+	if (!actorAddr || !LockStateActive()) {
+		fn();
+		return;
+	}
+	uintptr_t entries[LOCK_ON_ENTRY_MAX];
+	const size_t count = CollectListEntries(actorAddr + SORTED_ENTRY_LIST_OFFSET, entries, LOCK_ON_ENTRY_MAX);
+	LoadActorLockState(actorAddr, entries, count);
+	fn();
+}
+
+// PreCPlController_sub_1401F83A0, the whole per-frame update of one actor: lock-on update, charge, shot moves.
+typedef int64_t(__fastcall* PreCPlControllerFn)(uintptr_t);
+static std::unique_ptr<Utility::Detour_t> s_preCPlControllerHook;
+
+static int64_t __fastcall PreCPlControllerHook(uintptr_t actorAddr) {
+	const auto original = s_preCPlControllerHook->GetTrampoline<PreCPlControllerFn>();
+	if (!LockStateActive()) {
+		return original(actorAddr);
+	}
+
+	// The raw list holds this frame's registrations, the sorted list may still carry last frame's.
+	uintptr_t entries[LOCK_ON_ENTRY_MAX];
+	const size_t count = CollectListEntries(actorAddr + RAW_ENTRY_LIST_OFFSET, entries, LOCK_ON_ENTRY_MAX);
+	LoadActorLockState(actorAddr, entries, count);
+	const auto result = original(actorAddr);
+	SaveActorLockState(actorAddr, entries, count);
+	return result;
+}
+
 // CEm012DullahanOnHit_sub_1400D6A60 (Dullahan vtable +0x90) is the Dullahan's hit reaction.
 // It only lets the hit through when pool_10222[3] (always player 1) is inside the rear arc of
 // the Dullahan, via the cone test sub_1402C6870. That ignores who actually hit it, so secondary
@@ -405,6 +519,12 @@ void EnemyAIMultiplayerTargettingDetours(bool enable) {
 			(uintptr_t)appBaseAddr + 0x1E8850, &FetchPlayerLockOnTargetHook, 0, "FetchPlayerLockOnTarget_sub_1401E8850");
 	}
 	s_fetchPlayerLockOnTargetHook->Toggle(enable);
+
+	if (!s_preCPlControllerHook) {
+		s_preCPlControllerHook = std::make_unique<Detour_t>(
+			(uintptr_t)appBaseAddr + 0x1F83A0, &PreCPlControllerHook, 0, "PreCPlController_sub_1401F83A0");
+	}
+	s_preCPlControllerHook->Toggle(enable);
 
 	if (!s_dullahanOnHitHook) {
 		s_dullahanOnHitHook = std::make_unique<Detour_t>(
