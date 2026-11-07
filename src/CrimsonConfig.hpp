@@ -277,6 +277,7 @@ struct CrimsonConfig {
 
 	struct Camera {
 		float fovMultiplier = 1.2f;
+		float cutsceneFovMultiplier = 1.0f;
 		uint8 sensitivity = 2;
 		uint8 followUpSpd = 0;
 		uint8 followUpSpdSplitscreen = 2;
@@ -297,6 +298,7 @@ struct CrimsonConfig {
 		static constexpr auto Metadata() {
 			return std::make_tuple(
 				std::make_pair("fovMultiplier", &Camera::fovMultiplier),
+				std::make_pair("cutsceneFovMultiplier", &Camera::cutsceneFovMultiplier),
 				std::make_pair("sensitivity", &Camera::sensitivity),
                 std::make_pair("followUpSpd", &Camera::followUpSpd),
                 std::make_pair("followUpSpdSplitscreen", &Camera::followUpSpdSplitscreen),

@@ -6,6 +6,7 @@ set(MASM_SRC
     masm/AirRisingDragonDetours.asm
     masm/CameraHittingWall.asm
     masm/CameraSensitivity.asm
+    masm/CutsceneCameraFOV.asm
     masm/ConfirmSetAction.asm
     masm/CreateEffect.asm
     masm/HoldToCrazyComboAsm.asm
@@ -58,6 +59,7 @@ set(MASM_SRC
     masm/FixCStaffRollCredits.asm
     masm/MenuAnimationStep.asm
     masm/CreditsAlphaStep.asm
+    masm/FrameCounterStep.asm
     masm/FixCStageSetSeal.asm
     masm/CheckTotalResultsScreen.asm
     masm/FixSummonedSwordsInitialTravel.asm

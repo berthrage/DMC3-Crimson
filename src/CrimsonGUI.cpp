@@ -4864,6 +4864,17 @@ void CameraSection(size_t defaultFontSize) {
 
 			ImGui::TableNextColumn();
 
+			ImGui::PushItemWidth(itemWidth * 0.7f);
+			GUI_InputDefault2("Cutscene FOV Multiplier", activeCrimsonConfig.Camera.cutsceneFovMultiplier,
+				queuedCrimsonConfig.Camera.cutsceneFovMultiplier, defaultCrimsonConfig.Camera.cutsceneFovMultiplier, 0.1f, "%g",
+				ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "FOV multiplier for the scripted camera used by cutscenes.\n"
+				"(Default: 1)");
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+
 			ImGui::PushItemWidth(itemWidth * 1.1f);
 			UI::Combo2("Sensitivity", cameraSensitivityNames, activeCrimsonConfig.Camera.sensitivity, queuedCrimsonConfig.Camera.sensitivity);
 			ImGui::PopItemWidth();

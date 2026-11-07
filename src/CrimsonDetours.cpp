@@ -225,6 +225,13 @@ namespace CrimsonDetours {
 		void CamHittingWallDetour();
 		bool* g_CamHittingWall_ConditionalAddr = nullptr;
 
+		// CutsceneCameraFOV
+		std::uint64_t g_CutsceneCameraFOV_ReturnAddr;
+		float* g_CutsceneCameraFOV_MultiplierAddr = nullptr;
+		std::uint64_t g_CutsceneCameraFOV_GameplayReturnAddr;
+		std::uint64_t g_CutsceneCameraFOV_PreviewReturnAddr;
+		void CutsceneCameraFOVDetour();
+
 		// ConfirmSetAction
 		std::uint64_t g_ConfirmSetAction_ReturnAddr;
 		std::uint64_t g_ConfirmSetAction_FuncCall;
@@ -1463,6 +1470,10 @@ bool CheckIfCanExecuteAction(uintptr_t playerAddr, uint32 event) {
 
 	// Here we can block certain actions from being performed.
 
+	if (CrimsonGameplay::IsEcstasyLocked(actorData)) {
+		return false;
+	}
+
 	if (actorData.lastAction == ACTION_DANTE::BEOWULF_RISING_DRAGON_LAUNCH && actorData.state & STATE::IN_AIR &&
 		actorData.action == ACTION_DANTE::BEOWULF_RISING_DRAGON_LAUNCH && animFrameUpper < 56.0f) {
 		return false;
@@ -1804,6 +1815,17 @@ void InitDetours() {
 	g_CamHittingWall_ReturnAddr = CamHittingWallHook->GetReturnAddress();
 	g_CamHittingWall_ConditionalAddr = &g_cameraHittingWall;
 	CamHittingWallHook->Toggle(true);
+
+	// CutsceneCameraFOV
+	// dmc3.exe+3250A0 - 40 53             - push rbx
+	// dmc3.exe+3250A2 - 48 83 EC 40       - sub rsp,40
+	static std::unique_ptr<Utility::Detour_t> cutsceneCameraFOVHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x3250A0, &CutsceneCameraFOVDetour, 6);
+	g_CutsceneCameraFOV_ReturnAddr = cutsceneCameraFOVHook->GetReturnAddress();
+	g_CutsceneCameraFOV_MultiplierAddr = &activeCrimsonConfig.Camera.cutsceneFovMultiplier;
+	g_CutsceneCameraFOV_GameplayReturnAddr = (uintptr_t)appBaseAddr + 0x5614D;
+	g_CutsceneCameraFOV_PreviewReturnAddr = (uintptr_t)appBaseAddr + 0x243EC7;
+	cutsceneCameraFOVHook->Toggle(true);
 
     // CreateEffect
     createEffectCallA  = (uintptr_t)appBaseAddr + 0x2E7CA0;
