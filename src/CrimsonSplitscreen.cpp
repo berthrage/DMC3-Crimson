@@ -1043,6 +1043,13 @@ bool CameraEye(int playerIndex, float out[3]) {
 	return true;
 }
 
+const uint8_t* ProjectionMatrix(int playerIndex) {
+	if (playerIndex < 0 || playerIndex >= PLAYER_COUNT || !s_projectionSlots.valid[playerIndex]) {
+		return nullptr;
+	}
+	return s_projectionSlots.matrix[playerIndex];
+}
+
 void MapPoint(int playerIndex, float frameW, float frameH, float& x, float& y) {
 	const int count = ViewCount();
 	if (count < 2) {

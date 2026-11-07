@@ -6544,6 +6544,7 @@ bool showExpWindow = false;
 bool showSplitscreenHudWindow = false;
 bool showSinglePlayerHudWindow = false;
 bool showMultiplayerHudWindow = false;
+bool showLockOnHudWindow = false;
 bool showMissionDataWindow = false;
 bool showFileDataWindow = false;
 bool showActorWindow = false;
@@ -7728,8 +7729,6 @@ void DebugSection() {
 		if (GUI_Button("Sound")) {
 			showSoundWindow = true;
 		}
-		ImGui::SameLine();
-
 		if (GUI_Button("Splitscreen HUD")) {
 			showSplitscreenHudWindow = true;
 		}
@@ -7743,12 +7742,18 @@ void DebugSection() {
 		if (GUI_Button("Multiplayer HUD")) {
 			showMultiplayerHudWindow = true;
 		}
+		ImGui::SameLine();
+
+		if (GUI_Button("Lock-On HUD")) {
+			showLockOnHudWindow = true;
+		}
 		ImGui::Text("");
 
 		if (GUI_Button("Close All")) {
 			showSplitscreenHudWindow = false;
 			showSinglePlayerHudWindow = false;
 			showMultiplayerHudWindow = false;
+			showLockOnHudWindow = false;
 			showActorWindow = false;
 			showEventDataWindow = false;
 			showExpWindow = false;
@@ -9734,9 +9739,7 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 
 			ImGui::TableNextColumn();
 			
-			if (GUI_Checkbox2("Lock-On", activeCrimsonConfig.CrimsonHudAddons.lockOn, queuedCrimsonConfig.CrimsonHudAddons.lockOn)) {
-				CrimsonPatches::ToggleHideLockOn(activeCrimsonConfig.CrimsonHudAddons.lockOn);
-			}
+			GUI_Checkbox2("Lock-On", activeCrimsonConfig.CrimsonHudAddons.lockOn, queuedCrimsonConfig.CrimsonHudAddons.lockOn);
 
 			ImGui::TableNextColumn();
 
@@ -16660,6 +16663,9 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	}
 	if (showMultiplayerHudWindow) {
 		HUD_MultiplayerWindow(&showMultiplayerHudWindow);
+	}
+	if (showLockOnHudWindow) {
+		HUD_LockOnWindow(&showLockOnHudWindow);
 	}
 	scaleFactorX = ImGui::GetIO().DisplaySize.x / 1920;
 	scaleFactorY = ImGui::GetIO().DisplaySize.y / 1080;

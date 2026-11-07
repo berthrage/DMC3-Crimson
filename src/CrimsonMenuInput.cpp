@@ -9,12 +9,13 @@
 #include "Utility/Detour.hpp"
 #include "Global.hpp"
 #include "Config.hpp"
+#include "DMC3Input.hpp"
 #include "Vars.hpp"
 
 // Every UI reader asks the pad block for pad 0 (GetPad* accessors at dmc3.exe+32CC10..32CCF0, ENGINE_GAMEPAD
 // array at PadInputHandle_140D54A10+0x550, 0x2C each). For callers outside gameplay code the accessors answer
 // with all players' pads combined, so any player can advance messages, skip cutscenes and drive menus.
-// Gameplay readers (camera, player input, interact) keep their own pad.
+// Gameplay readers (camera, player input, interact) keep their own pad, except the shared camera, which every player can rotate.
 
 namespace CrimsonMenuInput {
 
@@ -63,13 +64,33 @@ constexpr Target TARGETS[COUNT] = {
 	{ 0x32CCF0, "GetPadRepeatCombined_sub_14032CCF0" },
 };
 
+constexpr uintptr_t UPDATE_CAMERA_CTRL_OFFSET = 0x55B90;
+
+using CameraCtrlFn = int64_t(__fastcall*)(void*);
+
 std::unique_ptr<Utility::Detour_t> s_hooks[COUNT];
+std::unique_ptr<Utility::Detour_t> s_updateCameraCtrlHook;
+
+// True while the shared camera updates: its pad reads (including the Camera.cpp code caves) answer for all pads.
+bool s_sharedCameraUpdating = false;
+
+// A pad holding a weapon switch button uses its right stick for the wheel, not the camera.
+bool PadDrivesCamera(int pad) {
+	if (!s_sharedCameraUpdating || !activeCrimsonConfig.WeaponWheel.disableCameraRotation) {
+		return true;
+	}
+	const auto& gamepad = GetGamepad(static_cast<uint8>(pad));
+	return !(gamepad.buttons[0] & (GetBinding(BINDING::CHANGE_DEVIL_ARMS) | GetBinding(BINDING::CHANGE_GUN)));
+}
 
 // Number of pads to combine, 0 when the call must keep answering for pad 0 only.
 int MergeCount(uintptr_t returnAddress, int pad, uint64_t& mask) {
 	mask = ALL_BITS;
 	if (pad != 0 || !activeConfig.Actor.enable || activeConfig.Actor.playerCount < 2) {
 		return 0;
+	}
+	if (s_sharedCameraUpdating) {
+		return (std::min)(static_cast<int>(activeConfig.Actor.playerCount), static_cast<int>(PLAYER_COUNT));
 	}
 	const uintptr_t rva = returnAddress - reinterpret_cast<uintptr_t>(appBaseAddr);
 	if (rva >= IMAGE_SIZE) {
@@ -92,7 +113,9 @@ template <Accessor A> uint64_t __fastcall WordHook(uintptr_t pads, int pad) {
 	uint64_t mask;
 	const int count = MergeCount(reinterpret_cast<uintptr_t>(_ReturnAddress()), pad, mask);
 	for (int other = 1; other < count; other++) {
-		result |= original(pads, other) & mask;
+		if (PadDrivesCamera(other)) {
+			result |= original(pads, other) & mask;
+		}
 	}
 	return result;
 }
@@ -103,7 +126,9 @@ uint64_t __fastcall DirectionHook(uintptr_t pads, int pad, int kind) {
 	uint64_t mask;
 	const int count = MergeCount(reinterpret_cast<uintptr_t>(_ReturnAddress()), pad, mask);
 	for (int other = 1; other < count; other++) {
-		result |= original(pads, other, kind) & mask;
+		if (PadDrivesCamera(other)) {
+			result |= original(pads, other, kind) & mask;
+		}
 	}
 	return result;
 }
@@ -155,6 +180,15 @@ template <Accessor A, typename Hook> void Install(Hook hook) {
 	s_hooks[A]->Toggle(true);
 }
 
+// UpdateCameraCtrl_sub_140055B90: runs the active camera, which reads the right stick from pad 0 only.
+int64_t __fastcall UpdateCameraCtrlHook(void* cameraCtrl) {
+	const auto original = s_updateCameraCtrlHook->GetTrampoline<CameraCtrlFn>();
+	s_sharedCameraUpdating = g_multiplayerCameraMode == MULTIPLAYERCAMERA::SHARED_CAM;
+	const int64_t result = original(cameraCtrl);
+	s_sharedCameraUpdating = false;
+	return result;
+}
+
 } // namespace
 
 void InitHooks() {
@@ -163,6 +197,10 @@ void InitHooks() {
 		return;
 	}
 	run = true;
+
+	s_updateCameraCtrlHook = std::make_unique<Utility::Detour_t>(
+		reinterpret_cast<uintptr_t>(appBaseAddr) + UPDATE_CAMERA_CTRL_OFFSET, &UpdateCameraCtrlHook, 0, "UpdateCameraCtrl_sub_140055B90");
+	s_updateCameraCtrlHook->Toggle(true);
 
 	Install<POSITION>(&PositionHook);
 	Install<DIRECTION>(&DirectionHook);

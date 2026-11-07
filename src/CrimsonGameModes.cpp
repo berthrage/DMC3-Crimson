@@ -583,7 +583,7 @@ void UpdateCheatsPostPreset() {
 	//ToggleHideMainHUD(activeCrimsonConfig.HudOptions.hideMainHUD);
 
 
-	CrimsonPatches::ToggleHideLockOn(activeCrimsonConfig.HudOptions.hideLockOn || activeCrimsonConfig.CrimsonHudAddons.lockOn);
+	CrimsonPatches::ToggleHideLockOn(activeCrimsonConfig.HudOptions.hideLockOn);
 	CrimsonDetours::ToggleHideStyleRankHUD(activeCrimsonConfig.HudOptions.hideStyleMeter);
 
 	//ToggleHideBossHUD(false);

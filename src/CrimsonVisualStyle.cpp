@@ -147,8 +147,7 @@ void UpdateHUDPostPreset() {
 	CrimsonDetours::ToggleClassicHUDPositionings(!cfg.CrimsonHudAddons.positionings);
 	CrimsonDetours::ToggleHideStyleRankHUD(
 		cfg.HudOptions.hideStyleMeter || !cfg.CrimsonHudAddons.styleRanksMeter);
-	CrimsonPatches::ToggleHideLockOn(
-		cfg.HudOptions.hideLockOn || cfg.CrimsonHudAddons.lockOn);
+	CrimsonPatches::ToggleHideLockOn(cfg.HudOptions.hideLockOn);
 	ToggleHideMainHUD(cfg.HudOptions.hideMainHUD);
 	ToggleHideBossHUD(cfg.HudOptions.hideBossHUD);
 	ToggleForceVisibleHUD(cfg.HudOptions.forceVisibleHUD);

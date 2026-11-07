@@ -114,6 +114,49 @@ void HUD_DrawPivotMarker();
 // (single player, splitscreen, or outside of normal play).
 int HUD_SeatCount();
 
+// Where the original lock-on cursor puts a world point (the target's lock-on position): the game's own projection into
+// its HUD frame, then to screen pixels (the splitscreen view of `player` when it runs). False when it cannot be
+// projected (frame state unavailable, behind the camera).
+bool HUD_LockOnScreenPoint(int player, const float world[3], float screenWidth, float screenHeight, float& x, float& y);
+
+// "Lock-On HUD" debug window (HUD_LockOnWindow): the original lock-on cursor next to the Crimson rings, each moved by
+// hand. The ring fields are filled in by the Crimson draw (CrimsonHUD.cpp) for the readout and the ring boxes.
+constexpr int HUD_LOCKON_DEBUG_PLAYERS = 4;
+struct LockOnHudDebug {
+	bool showVanillaReticle = false;    // keep the original reticle while the Crimson lock-on is on
+	bool showProjectedPoint = true;     // cross on the point the rings are placed at, before the Crimson shift
+	bool showRingBox = false;           // box of every ring window and the centre it puts the texture at
+	bool centerRingsVertically = true;  // put the ring texture at 0.5 of the window instead of 0.47
+	float vanillaX = 0.0f;              // HUD units, y down: moves the original reticle and the Artemis markers
+	float vanillaY = 0.0f;
+	float crimsonX = 2.0f;              // pixels at 1080p, y down: moves every Crimson ring
+	float crimsonY = -3.3f;
+	float ringWindowOverride = 0.0f;    // pixels at 1080p, 0 = the addon's own
+	bool anchorOnReticle = true;        // anchor on the position the game projected for its reticle
+	float frameScaleX = 1.0f;           // frame units -> pixels, on top of the frame width
+	float frameScaleY = 1.0f;           // frame units -> pixels, on top of the frame height
+	float frameOffsetX = 0.0f;          // frame units (y down), constant with distance
+	float frameOffsetY = 0.0f;
+	int player = 0;
+	uint8_t* cursor = nullptr;          // last original cursor the update hooks saw
+	float projectedX[HUD_LOCKON_DEBUG_PLAYERS] = {};
+	float projectedY[HUD_LOCKON_DEBUG_PLAYERS] = {};
+	bool ringValid[HUD_LOCKON_DEBUG_PLAYERS] = {};
+	bool targetOnScreen[HUD_LOCKON_DEBUG_PLAYERS] = {}; // the game projected its reticle this tick (target on screen)
+	float ringWindowPos[HUD_LOCKON_DEBUG_PLAYERS][2] = {};
+	float ringWindowActual[HUD_LOCKON_DEBUG_PLAYERS][2] = {};
+	float ringWindowRequested[HUD_LOCKON_DEBUG_PLAYERS][2] = {};
+	float ringTexture[HUD_LOCKON_DEBUG_PLAYERS][2] = {};
+	float ringCentre[HUD_LOCKON_DEBUG_PLAYERS][2] = {};
+};
+LockOnHudDebug& HUD_LockOnDebug();
+
+// The original cursor projected its reticle for that player on the last tick, i.e. the locked target is on screen.
+bool HUD_LockOnTargetOnScreen(int player);
+
+// "Lock-On HUD" debug window: shows the original lock-on cursor next to the Crimson rings and moves each by hand.
+void HUD_LockOnWindow(bool* open);
+
 // Weapon wheels (2D overlay) on the multiplayer layouts: splitscreen puts every player's wheels in the bottom corners of
 // their view (ranged left, melee right), the shared / single player camera uses the per seat positions of the
 // Multiplayer HUD window. One scale each (fraction of the view / screen height); the Weapon Wheel scale option only

@@ -29,6 +29,8 @@ namespace CrimsonSplitscreen {
 	int CameraPlayer();
 	uint8_t* CameraActor();
 	bool CameraEye(int playerIndex, float out[3]);
+	// Scene projection matrix (0x40 bytes, the one the game's HUD projects with) playerIndex's last completed frame ended with.
+	const uint8_t* ProjectionMatrix(int playerIndex);
 	// Maps a full-frame pixel to the view of playerIndex (frame crop -> view cell).
 	void MapPoint(int playerIndex, float frameW, float frameH, float& x, float& y);
 	// Screen rect of playerIndex's view; false when splitscreen is off or the player has no view.

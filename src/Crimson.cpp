@@ -237,7 +237,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         ToggleHideMainHUD(activeCrimsonConfig.HudOptions.hideMainHUD);
 
         CrimsonPatches::ToggleHideLockOn(false);
-        CrimsonPatches::ToggleHideLockOn(activeCrimsonConfig.HudOptions.hideLockOn || activeCrimsonConfig.CrimsonHudAddons.lockOn);
+        CrimsonPatches::ToggleHideLockOn(activeCrimsonConfig.HudOptions.hideLockOn);
         CrimsonDetours::ToggleHideStyleRankHUD(activeCrimsonConfig.HudOptions.hideStyleMeter);
         CrimsonDetours::ToggleDTMustStyleArmor(true);
         CrimsonDetours::ToggleAllDetours(true);

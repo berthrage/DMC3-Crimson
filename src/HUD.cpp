@@ -14,6 +14,7 @@
 #include "Actor.hpp"
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonSplitscreen.hpp"
+#include "CrimsonEnemyAITarget.hpp"
 #include "Utility/Detour.hpp"
 #include "ImGui/imgui.h"
 
@@ -22,6 +23,7 @@
 #include <cstring>
 #include <intrin.h>
 #include <iterator>
+#include <limits>
 #include <memory>
 
 struct HUDIconHelper {
@@ -1413,8 +1415,20 @@ using CockpitFn = void(__fastcall*)(uint8_t*);
 std::unique_ptr<Utility::Detour_t> s_cockpitTopDrawHook;
 std::unique_ptr<Utility::Detour_t> s_cockpitBottomDrawHook;
 std::unique_ptr<Utility::Detour_t> s_lockOnDrawHook;
+std::unique_ptr<Utility::Detour_t> s_lockOnReticleUpdateHook;
+std::unique_ptr<Utility::Detour_t> s_lockOnMarkersUpdateHook;
 std::unique_ptr<Utility::Detour_t> s_styleComboDrawHook;
 constexpr uintptr_t LOCKON_DRAW_OFFSET = 0x297540; // DrawCUIDLockOnCursor_sub_140297540
+constexpr uintptr_t LOCKON_RETICLE_UPDATE_OFFSET = 0x297320; // CUIDLockOnCursor_UpdateTargetReticle_sub_140297320
+constexpr uintptr_t LOCKON_MARKERS_UPDATE_OFFSET = 0x296EA0; // CUIDLockOnCursor_UpdateTargetMarkers_sub_140296EA0
+constexpr uintptr_t LOCKON_PROJECT_MARKER_OFFSET = 0x296BA0; // CUIDLockOnCursor_ProjectMarker_sub_140296BA0
+constexpr uintptr_t PLAYER_LOCKON_COUNT_OFFSET = 0x1FAB70; // CPlGetLockOnCount_sub_1401FAB70
+constexpr uintptr_t PLAYER_LOCKON_TARGET_OFFSET = 0x1FAB80; // CPlGetLockOnTarget_sub_1401FAB80
+constexpr uintptr_t IS_OUTSIDE_HUD_FRAME_OFFSET = 0x32E790; // IsOutsideHudFrame_sub_14032E790
+constexpr uintptr_t MODEL_HIDE_ALL_JOINTS_OFFSET = 0x2F73A0; // ModelHideAllJoints_sub_1402F73A0
+constexpr uintptr_t MODEL_SHOW_JOINT_OFFSET = 0x2F74E0; // ModelShowJoint_sub_1402F74E0
+constexpr uintptr_t MODEL_HIDE_JOINT_OFFSET = 0x2F7350; // ModelHideJoint_sub_1402F7350
+constexpr uintptr_t MATRIX_SCALE_ROWS_OFFSET = 0x3304F0; // MatrixScaleRows_sub_1403304F0
 constexpr uintptr_t STYLE_COMBO_DRAW_OFFSET = 0x2BB160; // DrawCUIDStylishCombo_sub_1402BB160
 constexpr uintptr_t SCENE_STATE_CURSOR_OFFSET = 0xCF2330; // pSceneStateCursor_140CF2330
 
@@ -1446,6 +1460,233 @@ bool GuardedDraw(CockpitFn draw, uint8_t* object, const char* what) {
 // DrawCUIDLockOnCursor_sub_140297540
 void __fastcall LockOnDrawHook(uint8_t* cursor) {
 	GuardedDraw(s_lockOnDrawHook->GetTrampoline<CockpitFn>(), cursor, "lock-on cursor");
+}
+
+using LockOnReticleUpdateFn = __int64(__fastcall*)(uint8_t*);
+using LockOnMarkersUpdateFn = void(__fastcall*)(uint8_t*);
+using PlayerLockOnCountFn = uint32_t(__fastcall*)(uintptr_t);
+using PlayerLockOnTargetFn = void*(__fastcall*)(uintptr_t, uint32_t, float*);
+using IsOutsideHudFrameFn = int(__fastcall*)(float*, int, int);
+using ProjectMarkerFn = char(__fastcall*)(uint8_t*, float*, uint8_t*);
+using ModelHideAllJointsFn = void(__fastcall*)(uint8_t*);
+using ModelShowJointFn = void(__fastcall*)(uint8_t*, uint32_t);
+using ModelHideJointFn = void(__fastcall*)(uint8_t*, uint32_t);
+using MatrixScaleRowsFn = void(__fastcall*)(float*, float*, float*);
+
+// CUIDLockOnCursor: candidate marker lists and the pop-in scale, per marker slot (the model joint of a slot is its index).
+constexpr size_t LOCKON_MARKER_TARGETS = 0x10C0;
+constexpr size_t LOCKON_MARKER_SCALE   = 0x1160;
+constexpr size_t DRAW_MATRIX_BLOCK     = 0x188; // per joint matrices, joint i at (i + 1) * 0x40
+constexpr int    LOCKON_MARKER_MAX     = 10;
+constexpr size_t MARKER_ELEMENT_SIZE   = 0x80;  // flags, position +0x10, rotation +0x20, scale +0x30, matrix +0x40
+constexpr float  LOCKON_MARKER_POP     = 4.0f;
+constexpr float  LOCKON_MARKER_POP_STEP = 0.2f;
+
+uint8_t* PlayerMainActorForHud(int player) {
+	auto& playerData = GetPlayerData(static_cast<uint8>(player));
+	return reinterpret_cast<uint8_t*>(GetNewActorData(static_cast<uint8>(player), playerData.activeCharacterIndex, ENTITY::MAIN).baseAddr);
+}
+
+// Lock-on debug window ("Lock-On HUD"): the original cursor next to the Crimson rings, each placed by hand.
+LockOnHudDebug s_lockOnDebug;
+static_assert(PLAYER_COUNT == HUD_LOCKON_DEBUG_PLAYERS);
+
+// Row 3 of a cursor element matrix (x, y, z, w): the translation. y grows upward in the game's HUD.
+constexpr size_t MATRIX_TRANSLATION = 0x30;
+constexpr size_t LOCKON_TARGET_PTR = 0x800;          // locked target actor entry, set by the reticle update
+constexpr size_t LOCKON_RETICLE_MATRIX = 0x860;
+constexpr size_t LOCKON_RETICLE_ELEMENT_POS = 0x830; // element +0x10: HUD position the projection produced
+constexpr float  LOCKON_ELEMENT_Y_SCALE = 12.0f / 7.0f; // the cursor scales element y by this (ProjectMarker)
+
+void ShiftMatrixTranslation(float* matrix) {
+	matrix[MATRIX_TRANSLATION / sizeof(float)]     += s_lockOnDebug.vanillaX;
+	matrix[MATRIX_TRANSLATION / sizeof(float) + 1] -= s_lockOnDebug.vanillaY;
+}
+
+// The markers are rewritten every tick for the slots that are shown, so shifting them after the update does not pile up.
+void ShiftLockOnMarkers(uint8_t* cursor) {
+	if (s_lockOnDebug.vanillaX == 0.0f && s_lockOnDebug.vanillaY == 0.0f) {
+		return;
+	}
+	const auto* targets = reinterpret_cast<const uint64_t*>(cursor + LOCKON_MARKER_TARGETS);
+	uint8_t* matrices = *reinterpret_cast<uint8_t**>(cursor + LOCKON_MARKERS + DRAW_INTERNAL + DRAW_MATRIX_BLOCK);
+	if (!matrices) {
+		return;
+	}
+	for (int i = 0; i < LOCKON_MARKER_MAX; ++i) {
+		if (targets[i]) {
+			ShiftMatrixTranslation(reinterpret_cast<float*>(matrices + (i + 1) * 0x40));
+		}
+	}
+}
+
+// CUIDLockOnCursor_UpdateTargetReticle_sub_140297320
+// The Crimson lock-on addon draws its own reticle, so the original one is blanked while the cursor itself keeps
+// running for the Artemis charge markers.
+__int64 __fastcall LockOnReticleUpdateHook(uint8_t* cursor) {
+	s_lockOnDebug.cursor = cursor;
+	auto* matrix = reinterpret_cast<float*>(cursor + LOCKON_RETICLE_MATRIX);
+	float* translation = matrix + MATRIX_TRANSLATION / sizeof(float);
+	const float savedX = translation[0];
+	const float savedY = translation[1];
+	// The matrix is only rebuilt on a tick the reticle is shown; a sentinel tells whether that happened.
+	translation[0] = std::numeric_limits<float>::quiet_NaN();
+
+	const __int64 result = s_lockOnReticleUpdateHook->GetTrampoline<LockOnReticleUpdateFn>()(cursor);
+
+	// The sentinel also says whether the game projected the reticle this tick: it skips that when the target is off
+	// screen (IsOutsideHudFrame_sub_14032E790), so the Crimson ring has to disappear with it.
+	const bool projected = !std::isnan(translation[0]);
+	s_lockOnDebug.targetOnScreen[CrimsonSplitscreen::CameraPlayer()] = projected;
+
+	if (!projected) {
+		translation[0] = savedX;
+		translation[1] = savedY;
+	} else {
+		ShiftMatrixTranslation(matrix);
+	}
+	if (activeCrimsonConfig.CrimsonHudAddons.lockOn && !s_lockOnDebug.showVanillaReticle) {
+		reinterpret_cast<ModelHideAllJointsFn>(appBaseAddr + MODEL_HIDE_ALL_JOINTS_OFFSET)(cursor + LOCKON_RETICLE + DRAW_INTERNAL);
+	}
+	return result;
+}
+
+// CUIDLockOnCursor_UpdateTargetMarkers_sub_140296EA0 for every player. The original reads player 1's locks only
+// (pool_10222[3]); with a shared camera every player's locks go into the same 10 marker slots.
+void UpdateLockOnMarkersAllPlayers(uint8_t* cursor, int players) {
+	const auto hideAll = reinterpret_cast<ModelHideAllJointsFn>(appBaseAddr + MODEL_HIDE_ALL_JOINTS_OFFSET);
+	const auto showJoint = reinterpret_cast<ModelShowJointFn>(appBaseAddr + MODEL_SHOW_JOINT_OFFSET);
+	const auto getCount = reinterpret_cast<PlayerLockOnCountFn>(appBaseAddr + PLAYER_LOCKON_COUNT_OFFSET);
+	const auto getTarget = reinterpret_cast<PlayerLockOnTargetFn>(appBaseAddr + PLAYER_LOCKON_TARGET_OFFSET);
+	const auto isOutside = reinterpret_cast<IsOutsideHudFrameFn>(appBaseAddr + IS_OUTSIDE_HUD_FRAME_OFFSET);
+	const auto projectMarker = reinterpret_cast<ProjectMarkerFn>(appBaseAddr + LOCKON_PROJECT_MARKER_OFFSET);
+	const auto scaleRows = reinterpret_cast<MatrixScaleRowsFn>(appBaseAddr + MATRIX_SCALE_ROWS_OFFSET);
+
+	uint8_t* model = cursor + LOCKON_MARKERS + DRAW_INTERNAL;
+	auto* targets = reinterpret_cast<uint64_t*>(cursor + LOCKON_MARKER_TARGETS);
+	uint64_t* targetsPrev = targets + LOCKON_MARKER_MAX;
+	auto* popScale = reinterpret_cast<float*>(cursor + LOCKON_MARKER_SCALE);
+
+	hideAll(model);
+	std::memcpy(targetsPrev, targets, sizeof(uint64_t) * LOCKON_MARKER_MAX);
+	std::memset(targets, 0, sizeof(uint64_t) * LOCKON_MARKER_MAX);
+
+	uintptr_t actors[PLAYER_COUNT] = {};
+	int wanted[PLAYER_COUNT] = {};
+	int share[PLAYER_COUNT] = {};
+	for (int player = 0; player < players && player < PLAYER_COUNT; ++player) {
+		actors[player] = reinterpret_cast<uintptr_t>(PlayerMainActorForHud(player));
+		wanted[player] = actors[player] ? static_cast<int>(getCount(actors[player])) : 0;
+	}
+
+	// Hand the slots out one per player in turn so a player with many locks cannot take them all.
+	int used = 0;
+	for (bool progress = true; progress && used < LOCKON_MARKER_MAX;) {
+		progress = false;
+		for (int player = 0; player < PLAYER_COUNT && used < LOCKON_MARKER_MAX; ++player) {
+			if (share[player] < wanted[player]) {
+				++share[player];
+				++used;
+				progress = true;
+			}
+		}
+	}
+	if (used == 0) {
+		return;
+	}
+
+	uint8_t* matrices = *reinterpret_cast<uint8_t**>(model + DRAW_MATRIX_BLOCK);
+	alignas(16) uint8_t element[MARKER_ELEMENT_SIZE];
+	alignas(16) float lastScale[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	int slot = 0;
+	for (int player = 0; player < PLAYER_COUNT; ++player) {
+		if (!actors[player] || share[player] == 0) {
+			continue;
+		}
+		CrimsonEnemyAITarget::RunWithActorLockState(actors[player], [&]() {
+			for (int i = 0; i < share[player]; ++i, ++slot) {
+				alignas(16) float position[4] = {};
+				void* entry = getTarget(actors[player], static_cast<uint32_t>(i), position);
+				if (!entry || isOutside(position, 0, 0)) {
+					continue;
+				}
+				std::memset(element, 0, sizeof(element));
+				reinterpret_cast<float*>(element + 0x20)[3] = 1.0f;
+				const bool onScreen = projectMarker(cursor, position, element) == 1;
+				std::memcpy(lastScale, element + 0x30, sizeof(lastScale));
+				if (onScreen && matrices) {
+					showJoint(model, static_cast<uint32_t>(slot));
+					targets[slot] = reinterpret_cast<uint64_t>(entry);
+					std::memcpy(matrices + (slot + 1) * 0x40, element + 0x40, 0x40);
+				}
+			}
+		});
+	}
+	// Leave the lock state of player 1 loaded, like the original update expects.
+	if (actors[0]) {
+		CrimsonEnemyAITarget::RunWithActorLockState(actors[0], []() {});
+	}
+
+	// Pop-in animation: a new target in a slot starts big and eases to its size. The original scales every marker by
+	// the last projected one's distance scale.
+	for (int i = 0; i < LOCKON_MARKER_MAX; ++i) {
+		if (targets[i] && targetsPrev[i] != targets[i]) {
+			popScale[i] = LOCKON_MARKER_POP;
+		}
+	}
+	if (!matrices) {
+		return;
+	}
+	for (int i = 0; i < LOCKON_MARKER_MAX; ++i) {
+		if (!targets[i]) {
+			continue;
+		}
+		float scale = popScale[i];
+		if (scale > 1.0f) {
+			scale -= LOCKON_MARKER_POP_STEP;
+			popScale[i] = scale;
+		}
+		if (scale < 1.0f) {
+			scale = 1.0f;
+			popScale[i] = 1.0f;
+		}
+		alignas(16) float scaled[4] = { lastScale[0] * scale, lastScale[1] * scale, lastScale[2] * scale, lastScale[3] };
+		auto* matrix = reinterpret_cast<float*>(matrices + (i + 1) * 0x40);
+		scaleRows(matrix, matrix, scaled);
+	}
+}
+
+// The marker of the target the Crimson ring is drawn on would sit on top of that ring, so it is hidden while the lock-on
+// addon draws the ring (the "Show vanilla reticle" debug option brings it back). The other multi-lock markers stay.
+void HideDuplicateLockedMarker(uint8_t* cursor) {
+	if (!activeCrimsonConfig.CrimsonHudAddons.lockOn || s_lockOnDebug.showVanillaReticle) {
+		return;
+	}
+	const auto lockedTarget = *reinterpret_cast<const uint64_t*>(cursor + LOCKON_TARGET_PTR);
+	const auto* targets = reinterpret_cast<const uint64_t*>(cursor + LOCKON_MARKER_TARGETS);
+	uint8_t* model = cursor + LOCKON_MARKERS + DRAW_INTERNAL;
+	if (!lockedTarget || !model) {
+		return;
+	}
+	const auto hideJoint = reinterpret_cast<ModelHideJointFn>(appBaseAddr + MODEL_HIDE_JOINT_OFFSET);
+	for (int i = 0; i < LOCKON_MARKER_MAX; ++i) {
+		if (targets[i] == lockedTarget) {
+			hideJoint(model, static_cast<uint32_t>(i));
+		}
+	}
+}
+
+// CUIDLockOnCursor_UpdateTargetMarkers_sub_140296EA0
+void __fastcall LockOnMarkersUpdateHook(uint8_t* cursor) {
+	s_lockOnDebug.cursor = cursor;
+	const int players = HUD_SeatCount();
+	if (players < 2) {
+		s_lockOnMarkersUpdateHook->GetTrampoline<LockOnMarkersUpdateFn>()(cursor);
+	} else {
+		UpdateLockOnMarkersAllPlayers(cursor, players);
+	}
+	ShiftLockOnMarkers(cursor);
+	HideDuplicateLockedMarker(cursor);
 }
 
 bool SplitscreenActive() {
@@ -1997,6 +2238,12 @@ void HUD_InitAdjustmentHooks() {
 	s_lockOnDrawHook = std::make_unique<Utility::Detour_t>(
 		(uintptr_t)appBaseAddr + LOCKON_DRAW_OFFSET, &LockOnDrawHook, 0, "DrawCUIDLockOnCursor_sub_140297540");
 	s_lockOnDrawHook->Toggle(true);
+	s_lockOnReticleUpdateHook = std::make_unique<Utility::Detour_t>(
+		(uintptr_t)appBaseAddr + LOCKON_RETICLE_UPDATE_OFFSET, &LockOnReticleUpdateHook, 0, "CUIDLockOnCursor_UpdateTargetReticle_sub_140297320");
+	s_lockOnReticleUpdateHook->Toggle(true);
+	s_lockOnMarkersUpdateHook = std::make_unique<Utility::Detour_t>(
+		(uintptr_t)appBaseAddr + LOCKON_MARKERS_UPDATE_OFFSET, &LockOnMarkersUpdateHook, 0, "CUIDLockOnCursor_UpdateTargetMarkers_sub_140296EA0");
+	s_lockOnMarkersUpdateHook->Toggle(true);
 
 	s_cockpitTopDrawHook = std::make_unique<Utility::Detour_t>(
 		(uintptr_t)appBaseAddr + COCKPIT_TOP_DRAW_OFFSET, &CockpitTopDrawHook, 0, "DrawCUIDCockpit00_sub_14027F1F0");
@@ -2015,6 +2262,204 @@ int HUD_SeatCount() {
 		return 0;
 	}
 	return (activeConfig.Actor.playerCount > PLAYER_COUNT) ? PLAYER_COUNT : activeConfig.Actor.playerCount;
+}
+
+// ProjectToFixed_sub_140031130: (out int4, matrix, vec4, skipDepthWrite) row vector * matrix, perspective divide, 12.4 fixed point
+// around 0x800. The SSE code needs 16 byte aligned operands.
+using ProjectToFixedFn = void(__fastcall*)(int32_t*, const float*, const float*, int32_t);
+constexpr uintptr_t PROJECT_TO_FIXED_OFFSET = 0x31130;
+constexpr uintptr_t SCENE_PROJECTION_OFFSET = 0x140; // pSceneStateCursor_140CF2330 + 0x140
+
+LockOnHudDebug& HUD_LockOnDebug() {
+	return s_lockOnDebug;
+}
+
+bool HUD_LockOnTargetOnScreen(int player) {
+	return player >= 0 && player < PLAYER_COUNT && s_lockOnDebug.targetOnScreen[player];
+}
+
+bool HUD_LockOnScreenPoint(int player, const float world[3], float screenWidth, float screenHeight, float& x, float& y) {
+	const HudFrameInfo frame = ReadHudFrameInfo(screenWidth, screenHeight);
+	if (!frame.valid) {
+		return false;
+	}
+	LockOnHudDebug& lockOnDebug = s_lockOnDebug;
+
+	// Frame units from the frame centre (x right, y down), the space IsOutsideHudFrame_sub_14032E790 tests against.
+	float frameX = 0.0f;
+	float frameY = 0.0f;
+
+	// The vanilla reticle's own projected position: cursor + 0x830, element x and the element y divided back by the
+	// 12/7 the cursor bakes into it (see CUIDLockOnCursor_ProjectMarker_sub_140296BA0). One source only: the caller
+	// keeps the last position when this fails, so the ring never jumps between two anchors.
+	if (lockOnDebug.anchorOnReticle) {
+		if (!lockOnDebug.cursor || !HUD_LockOnTargetOnScreen(player)) {
+			return false;
+		}
+		__try {
+			const uint64_t lockedTarget = *reinterpret_cast<const uint64_t*>(lockOnDebug.cursor + LOCKON_TARGET_PTR);
+			const float* element = reinterpret_cast<const float*>(lockOnDebug.cursor + LOCKON_RETICLE_ELEMENT_POS);
+			if (!lockedTarget || !std::isfinite(element[0]) || !std::isfinite(element[1])) {
+				return false;
+			}
+			frameX = element[0];
+			frameY = -element[1] / LOCKON_ELEMENT_Y_SCALE;
+		} __except (EXCEPTION_EXECUTE_HANDLER) {
+			return false;
+		}
+	} else {
+		alignas(16) float matrix[16];
+		const bool splitscreen = SplitscreenActive();
+		if (splitscreen) {
+			const uint8_t* slot = CrimsonSplitscreen::ProjectionMatrix(player);
+			if (!slot) {
+				return false;
+			}
+			std::memcpy(matrix, slot, sizeof(matrix));
+		} else {
+			const auto scene = *reinterpret_cast<const uint8_t* const*>(appBaseAddr + SCENE_STATE_CURSOR_OFFSET);
+			if (!scene) {
+				return false;
+			}
+			std::memcpy(matrix, scene + SCENE_PROJECTION_OFFSET, sizeof(matrix));
+		}
+
+		alignas(16) float point[4] = { world[0], world[1], world[2], 1.0f };
+		alignas(16) int32_t fixedPoint[4] = {};
+		reinterpret_cast<ProjectToFixedFn>(appBaseAddr + PROJECT_TO_FIXED_OFFSET)(fixedPoint, matrix, point, 1);
+		if ((fixedPoint[2] >> 4) < 0) {
+			return false;
+		}
+		frameX = static_cast<float>((fixedPoint[0] >> 4) - 0x800);
+		frameY = static_cast<float>((fixedPoint[1] >> 4) - 0x800);
+	}
+
+	// 0x800 is the centre of the HUD frame, which is as wide as the frame * 1.3 in widescreen (IsOutsideHudFrame_sub_14032E790).
+	const float visibleWidth = static_cast<float>(frame.frameWidth) * (frame.widescreen ? HUD_WIDESCREEN_WIDTH_FACTOR : 1.0f);
+	x = screenWidth * 0.5f + (frameX + lockOnDebug.frameOffsetX) * (screenWidth / visibleWidth) * lockOnDebug.frameScaleX;
+	y = screenHeight * 0.5f + (frameY + lockOnDebug.frameOffsetY) * (screenHeight / static_cast<float>(frame.frameHeight)) * lockOnDebug.frameScaleY;
+	if (SplitscreenActive()) {
+		CrimsonSplitscreen::MapPoint(player, screenWidth, screenHeight, x, y);
+	}
+	if (player >= 0 && player < PLAYER_COUNT) {
+		lockOnDebug.projectedX[player] = x;
+		lockOnDebug.projectedY[player] = y;
+	}
+	const float pixelScale = (screenHeight / 1080.0f) * CrimsonSplitscreen::ViewScale(player);
+	x += lockOnDebug.crimsonX * pixelScale;
+	y += lockOnDebug.crimsonY * pixelScale;
+	return true;
+}
+
+// "Lock-On HUD" debug window: the original lock-on cursor (reticle + Artemis markers) next to the Crimson rings.
+void HUD_LockOnWindow(bool* open) {
+	ImGui::SetNextWindowSize(ImVec2(460, 0), ImGuiCond_FirstUseEver);
+	if (!ImGui::Begin("Lock-On HUD", open)) {
+		ImGui::End();
+		return;
+	}
+	LockOnHudDebug& d = s_lockOnDebug;
+	const LockOnHudDebug defaults;
+
+	ImGui::TextWrapped("Both are placed from the same projected point. Vanilla: the original reticle and Artemis markers, moved in HUD "
+		"units. Crimson: every ring, moved in pixels at 1080p (scales with the resolution). y grows downward.");
+	ImGui::Checkbox("Show vanilla reticle with the Crimson lock-on", &d.showVanillaReticle);
+	ImGui::SameLine();
+	ImGui::Checkbox("Projected point", &d.showProjectedPoint);
+	ImGui::SliderInt("Player", &d.player, 0, PLAYER_COUNT - 1);
+
+	ImGui::Separator();
+	ImGui::TextUnformatted("Vanilla (HUD units)");
+	ImGui::DragFloat("vanilla x", &d.vanillaX, 0.1f, -400.0f, 400.0f, "%.1f");
+	ImGui::DragFloat("vanilla y", &d.vanillaY, 0.1f, -400.0f, 400.0f, "%.1f");
+	ImGui::Separator();
+	ImGui::TextUnformatted("Crimson (pixels at 1080p)");
+	ImGui::DragFloat("crimson x", &d.crimsonX, 0.1f, -400.0f, 400.0f, "%.1f");
+	ImGui::DragFloat("crimson y", &d.crimsonY, 0.1f, -400.0f, 400.0f, "%.1f");
+
+	ImGui::Separator();
+	ImGui::TextUnformatted("Anchor mapping (frame units, y down)");
+	ImGui::Checkbox("Anchor on the vanilla reticle position", &d.anchorOnReticle);
+	ImGui::DragFloat("frame scale x", &d.frameScaleX, 0.002f, 0.1f, 3.0f, "%.3f");
+	ImGui::DragFloat("frame scale y", &d.frameScaleY, 0.002f, 0.1f, 3.0f, "%.3f");
+	ImGui::DragFloat("frame offset x", &d.frameOffsetX, 0.1f, -300.0f, 300.0f, "%.1f");
+	ImGui::DragFloat("frame offset y", &d.frameOffsetY, 0.1f, -300.0f, 300.0f, "%.1f");
+
+	ImGui::Separator();
+	ImGui::TextUnformatted("Crimson ring window");
+	ImGui::Checkbox("Centre vertically (0.5 instead of 0.47)", &d.centerRingsVertically);
+	ImGui::SameLine();
+	ImGui::Checkbox("Ring box", &d.showRingBox);
+	ImGui::DragFloat("ring window size (px at 1080p, 0 = default)", &d.ringWindowOverride, 0.5f, 0.0f, 2000.0f, "%.1f");
+
+	if (ImGui::Button("Reset")) {
+		d.vanillaX = defaults.vanillaX;
+		d.vanillaY = defaults.vanillaY;
+		d.crimsonX = defaults.crimsonX;
+		d.crimsonY = defaults.crimsonY;
+		d.ringWindowOverride = defaults.ringWindowOverride;
+		d.centerRingsVertically = defaults.centerRingsVertically;
+		d.anchorOnReticle = defaults.anchorOnReticle;
+		d.frameScaleX = defaults.frameScaleX;
+		d.frameScaleY = defaults.frameScaleY;
+		d.frameOffsetX = defaults.frameOffsetX;
+		d.frameOffsetY = defaults.frameOffsetY;
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Copy as code")) {
+		char text[384];
+		snprintf(text, sizeof(text), "// vanilla (HUD units) %.1ff, %.1ff; crimson (px at 1080p) %.1ff, %.1ff; ring window %.1ff; vertical centre %s; "
+			"anchor reticle %s; frame scale %.3ff, %.3ff; frame offset %.1ff, %.1ff\n",
+			d.vanillaX, d.vanillaY, d.crimsonX, d.crimsonY, d.ringWindowOverride, d.centerRingsVertically ? "on" : "off",
+			d.anchorOnReticle ? "on" : "off", d.frameScaleX, d.frameScaleY, d.frameOffsetX, d.frameOffsetY);
+		ImGui::SetClipboardText(text);
+	}
+
+	ImGui::Separator();
+	ImGui::TextUnformatted("Readout");
+	const SimpleVec3& crimsonPos = crimsonPlayer[d.player].lockedEnemyScreenPosition;
+	ImGui::Text("Projected point (screen px): %.1f, %.1f", d.projectedX[d.player], d.projectedY[d.player]);
+	ImGui::Text("Crimson ring centre (screen px): %.1f, %.1f", crimsonPos.x, crimsonPos.y);
+	if (d.ringValid[d.player]) {
+		ImGui::Text("Ring window requested: %.1f x %.1f", d.ringWindowRequested[d.player][0], d.ringWindowRequested[d.player][1]);
+		ImGui::Text("Ring window actual:    %.1f x %.1f", d.ringWindowActual[d.player][0], d.ringWindowActual[d.player][1]);
+		ImGui::Text("Ring window at:        %.1f, %.1f", d.ringWindowPos[d.player][0], d.ringWindowPos[d.player][1]);
+		ImGui::Text("Ring texture:          %.1f x %.1f", d.ringTexture[d.player][0], d.ringTexture[d.player][1]);
+		ImGui::Text("Ring texture centre:   %.1f, %.1f", d.ringCentre[d.player][0], d.ringCentre[d.player][1]);
+	} else {
+		ImGui::TextUnformatted("Crimson ring not drawn yet.");
+	}
+	if (d.cursor) {
+		__try {
+			const float* element = reinterpret_cast<const float*>(d.cursor + LOCKON_RETICLE_ELEMENT_POS);
+			const float* matrix = reinterpret_cast<const float*>(d.cursor + LOCKON_RETICLE_MATRIX);
+			ImGui::Text("Vanilla reticle element (HUD units): %.1f, %.1f", element[0], element[1]);
+			ImGui::Text("Vanilla reticle matrix (HUD units): %.1f, %.1f", matrix[MATRIX_TRANSLATION / sizeof(float)], matrix[MATRIX_TRANSLATION / sizeof(float) + 1]);
+		} __except (EXCEPTION_EXECUTE_HANDLER) {
+			ImGui::TextUnformatted("Vanilla cursor not readable.");
+		}
+	} else {
+		ImGui::TextUnformatted("Vanilla cursor not created yet.");
+	}
+
+	if (d.showProjectedPoint && (d.projectedX[d.player] != 0.0f || d.projectedY[d.player] != 0.0f)) {
+		ImDrawList* draw = ImGui::GetForegroundDrawList();
+		const ImVec2 centre(d.projectedX[d.player], d.projectedY[d.player]);
+		const ImU32 colour = IM_COL32(255, 255, 0, 255);
+		draw->AddLine(ImVec2(centre.x - 12.0f, centre.y), ImVec2(centre.x + 12.0f, centre.y), colour);
+		draw->AddLine(ImVec2(centre.x, centre.y - 12.0f), ImVec2(centre.x, centre.y + 12.0f), colour);
+	}
+	if (d.showRingBox && d.ringValid[d.player]) {
+		ImDrawList* draw = ImGui::GetForegroundDrawList();
+		const ImVec2 lowLeft(d.ringWindowPos[d.player][0], d.ringWindowPos[d.player][1]);
+		const ImVec2 upRight(lowLeft.x + d.ringWindowActual[d.player][0], lowLeft.y + d.ringWindowActual[d.player][1]);
+		draw->AddRect(lowLeft, upRight, IM_COL32(0, 190, 255, 255));
+		const ImVec2 centre(d.ringCentre[d.player][0], d.ringCentre[d.player][1]);
+		const ImU32 colour = IM_COL32(0, 255, 140, 255);
+		draw->AddLine(ImVec2(centre.x - 20.0f, centre.y), ImVec2(centre.x + 20.0f, centre.y), colour);
+		draw->AddLine(ImVec2(centre.x, centre.y - 20.0f), ImVec2(centre.x, centre.y + 20.0f), colour);
+	}
+	ImGui::End();
 }
 
 // Seat version of the addon transform, in screen pixels: P' = S * (P - corner) + corner + move + nudge, the pixel

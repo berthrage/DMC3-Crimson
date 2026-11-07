@@ -60,13 +60,37 @@ void DTReadySFX() {
     }
 }
 
+// The lock-on cursor projects the entry's position (entry + 0x20, what LockOnGetTargetBySlot_sub_1401BA730 returns) and
+// lockOnData.targetBaseAddr60 holds the selected entry itself. Only read for the projection anchor.
+static bool ReadLockOnEntryPosition(const byte8* entry, float out[3]) {
+	if (!entry) {
+		return false;
+	}
+	__try {
+		const float* position = reinterpret_cast<const float*>(entry + 0x20);
+		out[0] = position[0];
+		out[1] = position[1];
+		out[2] = position[2];
+	} __except (EXCEPTION_EXECUTE_HANDLER) {
+		return false;
+	}
+	return std::isfinite(out[0]) && std::isfinite(out[1]) && std::isfinite(out[2]);
+}
+
 void ComputeLockOnScreenData(PlayerActorData& actorData, const CameraData& cameraData, uint8 playerIndex) {
-	// Compute locked enemy screen position
-	auto lockedEnemyScreenPositionDD = debug_draw_world_to_screen_for_player((const float*)&actorData.lockOnData.targetPosition, 1.0f, playerIndex);
-	crimsonPlayer[playerIndex].lockedEnemyScreenPosition = lockedEnemyScreenPositionDD;
+	float lockOnWorld[3] = { actorData.lockOnData.targetPosition.x, actorData.lockOnData.targetPosition.y, actorData.lockOnData.targetPosition.z };
+	ReadLockOnEntryPosition(actorData.lockOnData.targetBaseAddr60, lockOnWorld);
+
+	// The ring sits where the vanilla cursor put its reticle. When that is not available this frame (no cursor yet, no
+	// locked target) the previous position is kept, so the ring never alternates between two anchors.
+	float screenX = 0.0f;
+	float screenY = 0.0f;
+	if (HUD_LockOnScreenPoint(playerIndex, lockOnWorld, g_uiSize.x, g_uiSize.y, screenX, screenY)) {
+		crimsonPlayer[playerIndex].lockedEnemyScreenPosition = { screenX, screenY, 0.0f };
+	}
 
 	// Compute camera-to-locked-enemy distance and clamped value
-	glm::vec3 lockedEnemyPosition = { actorData.lockOnData.targetPosition.x, actorData.lockOnData.targetPosition.y, actorData.lockOnData.targetPosition.z };
+	glm::vec3 lockedEnemyPosition = { lockOnWorld[0], lockOnWorld[1], lockOnWorld[2] };
 	glm::vec3 cameraPosition = { cameraData.data[0].x, cameraData.data[0].y, cameraData.data[0].z };
 	{
 		float splitEye[3];

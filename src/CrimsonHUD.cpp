@@ -1935,6 +1935,36 @@ inline float GetSmoothedLockOnDist(uint8 playerIndex, float rawDist, float delta
 
 const float g_capDistance = 29.0f; // max size cap distance for the lockOns
 
+// "Lock-On HUD" window (HUD.cpp): ring window size and vertical centring, and the readout of where a ring ends up.
+static ImVec2 LockOnRingWindow(float scaleFactorY) {
+	const float override = HUD_LockOnDebug().ringWindowOverride;
+	const float side = (override > 0.0f ? override : 700.0f) * scaleFactorY;
+	return ImVec2(side, side);
+}
+
+static float LockOnRingVertical() {
+	return HUD_LockOnDebug().centerRingsVertically ? 0.5f : 0.47f;
+}
+
+static void RecordLockOnRing(uint8 player, ImVec2 windowPos, ImVec2 requested, ImVec2 texture, ImVec2 centre) {
+	if (player >= HUD_LOCKON_DEBUG_PLAYERS) {
+		return;
+	}
+	auto& d = HUD_LockOnDebug();
+	const ImVec2 actual = ImGui::GetWindowSize();
+	d.ringValid[player] = true;
+	d.ringWindowPos[player][0] = windowPos.x;
+	d.ringWindowPos[player][1] = windowPos.y;
+	d.ringWindowRequested[player][0] = requested.x;
+	d.ringWindowRequested[player][1] = requested.y;
+	d.ringWindowActual[player][0] = actual.x;
+	d.ringWindowActual[player][1] = actual.y;
+	d.ringTexture[player][0] = texture.x;
+	d.ringTexture[player][1] = texture.y;
+	d.ringCentre[player][0] = centre.x;
+	d.ringCentre[player][1] = centre.y;
+}
+
 void LockOnWindows() {
 	static float lockOnAngle[PLAYER_COUNT] = { 0.0f };
 	static FadeState lockOnFade[PLAYER_COUNT];
@@ -1973,7 +2003,8 @@ void LockOnWindows() {
 		return;
 	}
 
-	CrimsonPatches::ToggleHideLockOn(activeCrimsonConfig.CrimsonHudAddons.lockOn);
+	// The original cursor stays on for its Artemis markers, the reticle is hidden by LockOnReticleUpdateHook (HUD.cpp).
+	CrimsonPatches::ToggleHideLockOn(false);
 
 	// Determine player count based on actor module state
 	uint8 playerCount = activeConfig.Actor.enable ? activeConfig.Actor.playerCount : 1;
@@ -2025,7 +2056,7 @@ void LockOnWindows() {
 		float textureWidth = sizeDistance.x * 0.25f;
 		float textureHeight = sizeDistance.y * 0.25f;
 
-		ImVec2 windowSize = ImVec2(700.0f * scaleFactorY, 700.0f * scaleFactorY);
+		ImVec2 windowSize = LockOnRingWindow(scaleFactorY);
 		float edgeOffsetX = 350.0f * scaleFactorY;
 		float edgeOffsetY = 350.0f * scaleFactorY;
 
@@ -2087,18 +2118,22 @@ void LockOnWindows() {
 		CrimsonGameplay::GetLockedOnEnemyHitPoints(actorData);
 		float healthFraction = crimsonPlayer[playerIndex].lockedOnEnemyHP / crimsonPlayer[playerIndex].lockedOnEnemyMaxHP; // Clamp to [0,1] as needed
 
-		bool lockOnActive = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON)) && actorData.lockOnData.targetBaseAddr60 != 0;
+		// The game skips its own reticle when the target leaves the frame; the ring goes with it.
+		bool lockOnActive = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON)) && actorData.lockOnData.targetBaseAddr60 != 0
+			&& HUD_LockOnTargetOnScreen(playerIndex);
 
 		const float fadeInDuration = 0.25f;
 		const float fadeOutDuration = 0.25f;
 		UpdateFade(lockOnFade[playerIndex], lockOnActive, fadeInDuration, fadeOutDuration, ImGui::GetIO().DeltaTime);
 
-		// Calculate centered texture position within the window
+		// Same centering as the stun / displacement / shield rings, so they stay concentric on every player
 		ImVec2 windowContentPos = ImGui::GetWindowPos();
 		ImVec2 centeredTexturePos = ImVec2(
-			windowContentPos.x + (windowSize.x - textureWidth) * (0.5f - ((0.010f * (sizeDistance.x / 400.0f)) * playerIndex)),
-			windowContentPos.y + (windowSize.y - textureHeight) * (0.47f - ((0.010f * (sizeDistance.y / 400.0f)) * playerIndex))
+			windowContentPos.x + (windowSize.x - textureWidth) * 0.5f,
+			windowContentPos.y + (windowSize.y - textureHeight) * LockOnRingVertical()
 		);
+		RecordLockOnRing(playerIndex, windowPos, windowSize, ImVec2(textureWidth, textureHeight),
+			ImVec2(centeredTexturePos.x + textureWidth * 0.5f, centeredTexturePos.y + textureHeight * 0.5f));
 
 		if (lockOnFade[playerIndex].alpha > 0.01f) {
 			if (LockOnTexture->IsValid()) {
@@ -2215,7 +2250,7 @@ void StunDisplacementLockOnWindows() {
 		float textureWidth = sizeDistance.x * 0.18f;
 		float textureHeight = sizeDistance.y * 0.18f;
 
-		ImVec2 windowSize = ImVec2(700.0f * scaleFactorY, 700.0f * scaleFactorY);
+		ImVec2 windowSize = LockOnRingWindow(scaleFactorY);
 		float edgeOffsetX = 350.0f * scaleFactorY;
 		float edgeOffsetY = 350.0f * scaleFactorY;
 
@@ -2272,7 +2307,9 @@ void StunDisplacementLockOnWindows() {
 
 		float displacementFraction = 1.0f - (lockedOnEnemyDisplacement / lockedOnEnemyMaxDisplacement);
 
-		bool lockOnActive = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON)) && actorData.lockOnData.targetBaseAddr60 != 0;
+		// The game skips its own reticle when the target leaves the frame; the ring goes with it.
+		bool lockOnActive = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON)) && actorData.lockOnData.targetBaseAddr60 != 0
+			&& HUD_LockOnTargetOnScreen(playerIndex);
 
 		const float fadeInDuration = 0.25f;
 		const float fadeOutDuration = 0.25f;
@@ -2282,8 +2319,10 @@ void StunDisplacementLockOnWindows() {
 		ImVec2 windowContentPos = ImGui::GetWindowPos();
 		ImVec2 centeredTexturePos = ImVec2(
 			windowContentPos.x + (windowSize.x - textureWidth) * 0.5f,
-			windowContentPos.y + (windowSize.y - textureHeight) * 0.47f
+			windowContentPos.y + (windowSize.y - textureHeight) * LockOnRingVertical()
 		);
+		RecordLockOnRing(playerIndex, windowPos, windowSize, ImVec2(textureWidth, textureHeight),
+			ImVec2(centeredTexturePos.x + textureWidth * 0.5f, centeredTexturePos.y + textureHeight * 0.5f));
 
 		if (lockOnFade[playerIndex].alpha > 0.01f) {
 			if (LockOnTexture->IsValid()) {
@@ -2321,7 +2360,7 @@ void StunDisplacementLockOnWindows() {
 				float textureWidth = sizeDistance.x * 0.18f;
 				float textureHeight = sizeDistance.y * 0.18f;
 
-				ImVec2 windowSize = ImVec2(700.0f * scaleFactorY, 700 * scaleFactorY);
+				ImVec2 windowSize = LockOnRingWindow(scaleFactorY);
 				float edgeOffsetX = 350.0f * scaleFactorY;
 				float edgeOffsetY = 350.0f * scaleFactorY;
 
@@ -2391,7 +2430,7 @@ void StunDisplacementLockOnWindows() {
 				ImVec2 windowContentPosStun = ImGui::GetWindowPos();
 				ImVec2 centeredTexturePosStun = ImVec2(
 					windowContentPosStun.x + (windowSize.x - textureWidthStun) * 0.5f,
-					windowContentPosStun.y + (windowSize.y - textureHeightStun) * 0.47f
+					windowContentPosStun.y + (windowSize.y - textureHeightStun) * LockOnRingVertical()
 				);
 
 
@@ -2559,7 +2598,7 @@ void ShieldLockOnWindows() {
 		float textureWidth = sizeDistance.x * 0.18f;
 		float textureHeight = sizeDistance.y * 0.18f;
 
-		ImVec2 windowSize = ImVec2(700.0f * scaleFactorY, 700.0f * scaleFactorY);
+		ImVec2 windowSize = LockOnRingWindow(scaleFactorY);
 		float edgeOffsetX = 350.0f * scaleFactorY;
 		float edgeOffsetY = 350.0f * scaleFactorY;
 
@@ -2612,7 +2651,9 @@ void ShieldLockOnWindows() {
 
 		float shieldFraction = lockedOnEnemyShield / lockedOnEnemyMaxShield;
 
-		bool lockOnActive = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON)) && actorData.lockOnData.targetBaseAddr60 != 0;
+		// The game skips its own reticle when the target leaves the frame; the ring goes with it.
+		bool lockOnActive = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON)) && actorData.lockOnData.targetBaseAddr60 != 0
+			&& HUD_LockOnTargetOnScreen(playerIndex);
 
 		const float fadeInDuration = 0.25f;
 		const float fadeOutDuration = 0.25f;
@@ -2622,8 +2663,10 @@ void ShieldLockOnWindows() {
 		ImVec2 windowContentPos = ImGui::GetWindowPos();
 		ImVec2 centeredTexturePos = ImVec2(
 			windowContentPos.x + (windowSize.x - textureWidth) * 0.5f,
-			windowContentPos.y + (windowSize.y - textureHeight) * 0.47f
+			windowContentPos.y + (windowSize.y - textureHeight) * LockOnRingVertical()
 		);
+		RecordLockOnRing(playerIndex, windowPos, windowSize, ImVec2(textureWidth, textureHeight),
+			ImVec2(centeredTexturePos.x + textureWidth * 0.5f, centeredTexturePos.y + textureHeight * 0.5f));
 
 		if (lockOnFade[playerIndex].alpha > 0.01f) {
 			if (LockOnTexture->IsValid()) {
