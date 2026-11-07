@@ -6128,6 +6128,7 @@ struct CrimsonPlayerData {
     bool roseSpawnPending = false;
     float roseSpawnTimer = 0;
     bool roseSpawnInProgress = false;
+    bool roseSpawnFired = false;
     bool inAirTauntRisingSun = false;
     bool lastInAirTauntRisingSun = false;
     bool inAirLunarPhase = false;
@@ -6214,6 +6215,7 @@ struct CrimsonPlayerData {
     bool roseSpawnPendingClone = false;
     float roseSpawnTimerClone = 0;
     bool roseSpawnInProgressClone = false;
+    bool roseSpawnFiredClone = false;
     bool inAirTauntRisingSunClone = false;
     bool lastInAirTauntRisingSunClone = false;
 	bool inAirTornadoClone = false;

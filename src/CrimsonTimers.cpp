@@ -352,6 +352,7 @@ void RoseSpawnTimers() {
 			roseSpawnInProgress = false;
 			auto& roseSpawnPending = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].roseSpawnPending : crimsonPlayer[playerIndex].roseSpawnPendingClone;
 			auto& roseSpawnTimer = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].roseSpawnTimer : crimsonPlayer[playerIndex].roseSpawnTimerClone;
+			auto& inAirTauntRose = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].inAirTauntRose : crimsonPlayer[playerIndex].inAirTauntRoseClone;
 			if (!roseSpawnPending) {
 				continue;
 			}
@@ -361,10 +362,8 @@ void RoseSpawnTimers() {
 			if (roseSpawnTimer >= ROSE_SPAWN_DELAY) {
 				roseSpawnPending = false;
 				roseSpawnTimer = 0;
-				// Ecstasy still running, or cancelled with a jump (no action left): the rose comes out.
-				// Any other action means another move took over before the delay elapsed, so it's dropped.
-				auto action = actorData.action;
-				if (action == ACTION_DANTE::CERBERUS_SWING || action == 0) {
+				// Only spawn while Ecstasy is still running: any cancel (jump cancel included) drops the rose.
+				if (inAirTauntRose) {
 					CrimsonDetours::SpawnDelayedRoseShl(reinterpret_cast<uintptr_t>(actorBaseAddr));
 				}
 				roseSpawnInProgress = false;

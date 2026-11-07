@@ -35,12 +35,25 @@ float GetEffectiveGlobalSpeed() {
 
 void ApplyRuntimeGlobalSpeed() {
 	auto pool_C90E10 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
+
+    auto speeds = reinterpret_cast<float*>(appBaseAddr + 0xCF2D90);
+
+	// No game scene yet (boot, title, loading screens): the UI and particle work still steps
+	// from the master channel, and nothing else writes it, so it silently stays at 1.0 and
+	// every animation there runs at the render rate.
 	if (!pool_C90E10 || !pool_C90E10[5]) {
+		speeds[SPEED::GLOBAL] = g_effectiveCutsceneSpeed;
+
+		static bool s_logged = false;
+
+		if (!s_logged) {
+			s_logged = true;
+			Log("No game scene: speed channel %.3f", g_effectiveCutsceneSpeed);
+		}
+
 		return;
 	}
 	auto& eventData = *reinterpret_cast<CSceneGameMain*>(pool_C90E10[5]);
-
-    auto speeds = reinterpret_cast<float*>(appBaseAddr + 0xCF2D90);
 
     // Handling menu speeds
 // 	if (activeCrimsonConfig.System.disableMenuFadeouts) {

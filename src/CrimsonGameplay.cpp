@@ -939,7 +939,7 @@ void ImprovedCancelsRoyalguardController(byte8* actorBaseAddr) {
         actorData.action == CERBERUS_COMBO_1_PART_3 || actorData.action == CERBERUS_COMBO_1_PART_4 ||
         actorData.action == CERBERUS_COMBO_1_PART_5 || actorData.action == CERBERUS_COMBO_2_PART_3 ||
         actorData.action == CERBERUS_COMBO_2_PART_4 || actorData.action == CERBERUS_WINDMILL || actorData.action == CERBERUS_FLICKER
-        || actorData.action == CERBERUS_SWING);
+        || (actorData.action == CERBERUS_SWING && !IsEcstasyLocked(actorData)));
 
     bool inCancellableActionCerberus =
         ((actorData.action == CERBERUS_REVOLVER_LEVEL_1 && actorCancels.revolverTimer > 1.1f) || (actorData.action == CERBERUS_REVOLVER_LEVEL_2 && actorCancels.revolverTimer > 1.1f)
@@ -1263,7 +1263,7 @@ void ImprovedCancelsDanteController(byte8* actorBaseAddr) {
             actorData.action == CERBERUS_COMBO_1_PART_5 || actorData.action == CERBERUS_COMBO_2_PART_3 ||
             actorData.action == CERBERUS_COMBO_2_PART_4 || actorData.action == CERBERUS_WINDMILL ||
             (actorData.action == CERBERUS_REVOLVER_LEVEL_1 && actionTimer > 1.25f) || (actorData.action == CERBERUS_REVOLVER_LEVEL_2 && actionTimer > 1.25f) ||
-            actorData.action == CERBERUS_SWING || actorData.action == CERBERUS_SATELLITE || actorData.action == CERBERUS_FLICKER ||
+            (actorData.action == CERBERUS_SWING && !IsEcstasyLocked(actorData)) || actorData.action == CERBERUS_SATELLITE || actorData.action == CERBERUS_FLICKER ||
             actorData.action == CERBERUS_CRYSTAL || actorData.action == CERBERUS_MILLION_CARATS);
 
     bool inCancellableActionAgni =
@@ -5274,16 +5274,48 @@ void DetectCloseToEnemy(byte8* actorBaseAddr) {
 
 #pragma region DanteAirTaunt
 
-// Drops a queued rose when Ecstasy ends for any reason but a jump cancel.
+// Ecstasy is locked in for its opening frames so it can't be cancelled into another move.
+bool IsEcstasyLocked(PlayerActorData& actorData) {
+	static constexpr float ECSTASY_LOCK_TIME = 0.3f;
+
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& inAirTauntRose = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].inAirTauntRose
+		: crimsonPlayer[playerIndex].inAirTauntRoseClone;
+	auto& actionTimer = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].actionTimer
+		: crimsonPlayer[playerIndex].actionTimerClone;
+	return inAirTauntRose && actionTimer < ECSTASY_LOCK_TIME;
+}
+
+// Eats the cancel inputs while the lock lasts. Must run before the game reads them (see WeaponSwitchController).
+void EcstasyLockController(byte8* actorBaseAddr) {
+	if (!actorBaseAddr || (uintptr_t)actorBaseAddr >= 0xFFFFFFFFFF) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	if (actorData.character != CHARACTER::DANTE) return;
+	if (!IsEcstasyLocked(actorData)) return;
+
+	// 0 is NEXT_ACTION_REQUEST_POLICY::IGNORE, shadowed by the Win32 IGNORE macro.
+	// Jump is left alone: jump cancelling Ecstasy stays available, it just won't throw the rose.
+	for (uint8 i = NEXT_ACTION_REQUEST_POLICY::MELEE_ATTACK; i < NEXT_ACTION_REQUEST_POLICY::END; ++i) {
+		if (i == NEXT_ACTION_REQUEST_POLICY::JUMP_ROLL) {
+			continue;
+		}
+		actorData.nextActionRequestPolicy[i] = 0;
+	}
+	actorData.bufferedAction = 0;
+	actorData.buttons[0] &= ~GetBinding(BINDING::MELEE_ATTACK);
+	actorData.buttons[0] &= ~GetBinding(BINDING::STYLE_ACTION);
+	// Style attacks are gated on this permission bit, so clearing it refuses the cancel outright.
+	actorData.permissions &= ~PERMISSION::INTERACTION_STYLE_ATTACK;
+}
+
+// Drops the queued rose — Ecstasy only throws it while the move is left running.
 void CancelPendingRoseSpawn(byte8* actorBaseAddr) {
 	if (!actorBaseAddr || (uintptr_t)actorBaseAddr >= 0xFFFFFFFFFF) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
-	auto event = actorData.eventData[0].event;
-	if (event == ACTOR_EVENT::JUMP_CANCEL || event == ACTOR_EVENT::JUMP) {
-		return;
-	}
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& roseSpawnPending = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].roseSpawnPending
 		: crimsonPlayer[playerIndex].roseSpawnPendingClone;

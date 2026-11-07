@@ -10297,6 +10297,12 @@ void SystemSection(size_t defaultFontSize) {
 
 			GUI_Checkbox2("Disable Menu Fadeouts", activeCrimsonConfig.System.disableMenuFadeouts, queuedCrimsonConfig.System.disableMenuFadeouts);
 
+			GUI_Checkbox2("Disable Cutscene Letterbox", activeCrimsonConfig.System.disableCutsceneLetterbox,
+				queuedCrimsonConfig.System.disableCutsceneLetterbox);
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Removes the black bars the game draws during cutscenes.");
+			}
+
 			GUI_Checkbox2("Menu Animation Fix", activeCrimsonConfig.System.menuAnimationFix, queuedCrimsonConfig.System.menuAnimationFix);
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Keeps menu panels animating at the same speed no matter your frame rate.\n"

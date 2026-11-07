@@ -50,10 +50,6 @@ bool inputtingFPS = false;
 CameraData* GetSafeCameraData();
 
 void FrameResponsiveGameSpeed() {
-	if (g_scene == SCENE::BOOT) {
-		return;
-	}
-
 	// Independent QPC timer — measures actual game-tick delta.
 	static LARGE_INTEGER s_freq = {};
 	static LARGE_INTEGER s_last = {};
@@ -74,6 +70,30 @@ void FrameResponsiveGameSpeed() {
 	}
 
 	float hitchThreshold = 0.06f;
+
+	if (g_scene == SCENE::BOOT) {
+		// Boot and loading screens have no game speed pipeline, but their UI and particle work
+		// still steps from the master speed channel. Nothing else writes it there, so it stays
+		// at 1.0 and the loading icon spin / now-loading blink advance once per rendered frame.
+		if (deltaTime <= hitchThreshold) {
+			float measuredFrameRate = 1.0f / deltaTime;
+			g_FrameRate = measuredFrameRate;
+			g_FrameRateTimeMultiplier = 60.0f / measuredFrameRate;
+		}
+
+		// Startup frames are hitches, so the multiplier can still be at its zero initialiser.
+		reinterpret_cast<float*>(appBaseAddr + 0xCF2D90)[SPEED::GLOBAL] = (g_FrameRateTimeMultiplier > 0.0f) ? g_FrameRateTimeMultiplier : 1.0f;
+
+		static bool s_loggedBoot = false;
+
+		if (!s_loggedBoot) {
+			s_loggedBoot = true;
+			Log("Boot frame scale %.3f (%.1f fps)", g_FrameRateTimeMultiplier, 1.0f / deltaTime);
+		}
+
+		return;
+	}
+
 	if (deltaTime > hitchThreshold || g_inGUIPause) {
 		return;
 	}

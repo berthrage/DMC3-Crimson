@@ -4480,6 +4480,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     CharacterSwitchController();
     CrimsonGameplay::CharSwitchTeleportController(actorBaseAddr);
     CrimsonGameplay::UpdateCrimsonPlayerData();
+    CrimsonGameplay::EcstasyLockController(actorBaseAddr);
     CrimsonPatches::DisableHeightRestriction(activeCrimsonGameplay.Gameplay.General.disableHeightRestriction);
     CrimsonPatches::ImprovedBufferedReversals(activeCrimsonGameplay.Gameplay.General.improvedBufferedReversals);
     CrimsonPatches::IncreasedJCSpheres(activeCrimsonGameplay.Gameplay.General.increasedJCSpheres);
@@ -10151,7 +10152,7 @@ void SetAction(byte8* actorBaseAddr) {
         // Resetting Swing anim
         if (inAirTauntRose && actorData.action == CERBERUS_SWING) {
             actorData.motionArchives[MOTION_GROUP_DANTE::CERBERUS] = File_staticFiles[pl000_00_4];
-            // The queued rose only comes out when Ecstasy is jump cancelled.
+            // Any cancel drops the rose: Ecstasy only throws it if the move runs on.
             CrimsonGameplay::CancelPendingRoseSpawn(actorBaseAddr);
 			inAirTauntRose = false;
         }

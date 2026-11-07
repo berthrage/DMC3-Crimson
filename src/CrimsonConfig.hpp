@@ -607,6 +607,9 @@ struct CrimsonConfig {
 		// The game's edge based anti-aliasing pass (the launcher's Antialiasing option).
 		bool antiAliasing = true;
 
+		// Removes the black bars the game draws during cutscenes.
+		bool disableCutsceneLetterbox = true;
+
 		struct BlendingEffects {			bool ghosting = false;
 			bool colorFilter = true;
 			bool bloom = true;
@@ -647,6 +650,7 @@ struct CrimsonConfig {
 				std::make_pair("menuAnimationFix", &System::menuAnimationFix),
 				std::make_pair("menuAnimationSpeed", &System::menuAnimationSpeed),
 				std::make_pair("antiAliasing", &System::antiAliasing),
+				std::make_pair("disableCutsceneLetterbox", &System::disableCutsceneLetterbox),
 				std::make_pair("BlendingEffects", &System::BlendingEffects),
 				std::make_pair("windowSizeX",&System::windowSizeX),
 				std::make_pair("windowSizeY", &System::windowSizeY),

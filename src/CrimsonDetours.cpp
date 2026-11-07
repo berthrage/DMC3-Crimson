@@ -788,6 +788,9 @@ bool CheckSkyLaunchEnabled(uintptr_t playerAddr) {
 	}
 
 	inAirTauntRose = true;
+	auto& roseSpawnFired = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].roseSpawnFired
+		: crimsonPlayer[playerIndex].roseSpawnFiredClone;
+	roseSpawnFired = false; // a new Ecstasy gets its own rose
 	actionTimer = 0.0f;
 	actorData.motionArchives[MOTION_GROUP_DANTE::CERBERUS] = newAirTauntRose_pl000_00_4;
 	bool canAirTaunt = (actorData.eventData[0].event == ACTOR_EVENT::ATTACK && CrimsonGameplay::CanQueueMeleeAttack(actorData)) || 
@@ -1531,10 +1534,12 @@ void StartRoseSpawnDelay(uintptr_t playerAddr) {
 		: crimsonPlayer[playerIndex].roseSpawnTimerClone;
 	auto& roseSpawnInProgress = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].roseSpawnInProgress
 		: crimsonPlayer[playerIndex].roseSpawnInProgressClone;
-	// Bail if the delay is already running, or a spawn is currently executing
-	// (the swing can re-fire while the game spawn call runs, which would
-	// otherwise re-arm the delay and spawn another rose).
-	if (roseSpawnPending || roseSpawnInProgress) {
+	auto& roseSpawnFired = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].roseSpawnFired
+		: crimsonPlayer[playerIndex].roseSpawnFiredClone;
+	// Bail if the delay is already running, a spawn is currently executing, or
+	// this Ecstasy already threw its rose (the swing can re-enter while the game
+	// spawn call runs, which would otherwise re-arm the delay).
+	if (roseSpawnPending || roseSpawnInProgress || roseSpawnFired) {
 		return;
 	}
 	roseSpawnPending = true;
@@ -1548,9 +1553,12 @@ void SpawnDelayedRoseShl(uintptr_t playerAddr) {
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& roseSpawnInProgress = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].roseSpawnInProgress
 		: crimsonPlayer[playerIndex].roseSpawnInProgressClone;
+	auto& roseSpawnFired = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].roseSpawnFired
+		: crimsonPlayer[playerIndex].roseSpawnFiredClone;
 	// The mark detour runs inside the spawn call, so the flag is only needed
 	// for the duration of SpawnNevanShlRose.
 	roseSpawnInProgress = true;
+	roseSpawnFired = true;
 	SpawnNevanShlRose(playerAddr);
 	roseSpawnInProgress = false;
 }
@@ -1782,6 +1790,19 @@ void UpdatePlayerIndexVibration(uintptr_t playerAddr) {
 	}
 }
 
+// DrawCutsceneLetterbox_sub_140329380: returning without calling the original skips both black bars.
+static Utility::Detour_t* s_cutsceneLetterboxHook = nullptr;
+
+static void __fastcall CutsceneLetterboxDetour(void* settings) {
+	if (activeCrimsonConfig.System.disableCutsceneLetterbox) {
+		return;
+	}
+
+	using DrawLetterboxFn = void(__fastcall*)(void*);
+	uintptr_t trampoline_raw = s_cutsceneLetterboxHook->GetTrampoline();
+	reinterpret_cast<DrawLetterboxFn>(trampoline_raw)(settings);
+}
+
 void InitDetours() {
     using namespace Utility;
     g_appBaseAddr = (uintptr_t)appBaseAddr;
@@ -1826,6 +1847,14 @@ void InitDetours() {
 	g_CutsceneCameraFOV_GameplayReturnAddr = (uintptr_t)appBaseAddr + 0x5614D;
 	g_CutsceneCameraFOV_PreviewReturnAddr = (uintptr_t)appBaseAddr + 0x243EC7;
 	cutsceneCameraFOVHook->Toggle(true);
+
+	// CutsceneLetterbox
+	// dmc3.exe+329380 - 48 89 5C 24 08       - mov [rsp+08],rbx { the two black bars, called from UpdateSessionInGame_sub_14004F260 }
+	// dmc3.exe+329385 - 55                   - push rbp
+	static std::unique_ptr<Utility::Detour_t> cutsceneLetterboxHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x329380, (uintptr_t)&CutsceneLetterboxDetour, NULL, "cutscene_letterbox");
+	s_cutsceneLetterboxHook = cutsceneLetterboxHook.get();
+	cutsceneLetterboxHook->Toggle(true);
 
     // CreateEffect
     createEffectCallA  = (uintptr_t)appBaseAddr + 0x2E7CA0;

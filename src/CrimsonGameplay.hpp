@@ -106,6 +106,8 @@ void CalculateLockedOnEnemyLastStunDisplacementValue(byte8* actorBaseAddr);
 void GetLockedOnEnemyShield(byte8* actorBaseAddr);
 void DetectCloseToEnemy(byte8* actorBaseAddr);
 void SkyLaunchAirTauntController(byte8* actorBaseAddr);
+bool IsEcstasyLocked(PlayerActorData& actorData);
+void EcstasyLockController(byte8* actorBaseAddr);
 void CancelPendingRoseSpawn(byte8* actorBaseAddr);
 void ToggleRebellionHoldDrive(bool enable);
 void DanteDriveRework(byte8* actorBaseAddr);

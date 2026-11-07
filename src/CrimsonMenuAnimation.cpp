@@ -19,6 +19,11 @@ extern "C" {
 	void CreditsAlphaStepDetour();
 	std::uint64_t g_CreditsAlphaStep_ReturnAddr;
 	int g_creditsAlphaStep;
+
+	void FrameCounterStepDetour();
+	std::uint64_t g_FrameCounterStep_ReturnAddr;
+	int g_frameCounterStep;
+	int g_frameCounterCarry;
 }
 
 // The shared step helper already returns the speed channels scaled by 60 / fps, so it
@@ -59,6 +64,11 @@ static constexpr StepSite kFixedTimerSites[] = {
 	{ 0x2A73FE, 1.0f },  // CUIDStaffRoll slot 1: credit panel timer
 	{ 0x2956A8, 1.0f },  // CUIDItemGet: motion step
 	{ 0x295751, 1.0f },  // CUIDItemGet: motion step
+	{ 0x2BC360, 1.0f },  // CUIDTitle: logo / sword motion step
+	{ 0x2BC405, 1.0f },  // CUIDTitle: logo / sword motion step
+	{ 0x28153A, 1.0f },  // CUIDComnBg: background model motion step
+	{ 0x2815AB, 1.0f },  // CUIDComnBg: background model motion step
+	{ 0x28B6B8, 1.0f },  // sub_14028AF70: model motion step
 };
 
 // Sine blink phases advance 3 degrees per frame: the DT-ready pulse, the cockpit
@@ -284,6 +294,16 @@ void InitHooks() {
 		std::make_unique<Utility::Detour_t>((uintptr_t)appBaseAddr + 0x326960, &MenuAnimationStepDetour);
 	menuAnimationStepHook->Toggle(true);
 
+	// dmc3.exe+337F15 - FF 40 54 - inc dword ptr [rax+54h]  (rax = pRenderFrameState)
+	// The UI screens time their blink and pulse phases from this counter, which the
+	// engine increments once per rendered frame.
+	static std::unique_ptr<Utility::Detour_t> frameCounterStepHook =
+		std::make_unique<Utility::Detour_t>((uintptr_t)appBaseAddr + 0x337F15, &FrameCounterStepDetour, 10);
+	g_FrameCounterStep_ReturnAddr = frameCounterStepHook->GetReturnAddress();
+	g_frameCounterStep = 0x10000;
+	g_frameCounterCarry = 0;
+	frameCounterStepHook->Toggle(true);
+
 	// dmc3.exe+245636 - 83 C0 02 - add eax,2  /  89 87 84 00 00 00 - mov [rdi+84h],eax
 	static std::unique_ptr<Utility::Detour_t> creditsAlphaStepHook =
 		std::make_unique<Utility::Detour_t>((uintptr_t)appBaseAddr + 0x245636, &CreditsAlphaStepDetour, 9);
@@ -339,6 +359,10 @@ void OnTick() {
 	const auto& system = activeCrimsonConfig.System;
 	const auto frameScale = FrameScale();
 
+	// The UI frame counter is a 60 Hz counter in the original game, so only the part
+	// above 60 fps is scaled back out of it.
+	g_frameCounterStep = (int)(65536.0f * std::min(1.0f, frameScale) + 0.5f);
+
 	const auto menuScale = system.menuAnimationFix ? frameScale * (system.menuAnimationSpeed / 100.0f) : 1.0f;
 	const auto fixedScale = system.menuAnimationFix ? frameScale : 1.0f;
 
@@ -357,8 +381,8 @@ void OnTick() {
 
 	if (!s_logged && CrimsonClock::Time() > 2.0) {
 		s_logged = true;
-		Log("MenuAnimation patched %u/%u sites, frameScale %.3f",
-			s_patchedSites, s_expectedSites, frameScale);
+		Log("MenuAnimation patched %u/%u sites, frameScale %.3f, UI counter %.3f/frame",
+			s_patchedSites, s_expectedSites, frameScale, (float)g_frameCounterStep / 65536.0f);
 	}
 }
 
