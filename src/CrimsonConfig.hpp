@@ -598,6 +598,10 @@ struct CrimsonConfig {
 
 		bool disableMenuFadeouts = false;
 
+		// Keeps menu animations on real time instead of per frame, and scales them by menuAnimationSpeed.
+		bool menuAnimationFix = true;
+		float menuAnimationSpeed = 100.0f;
+
 		// The game's edge based anti-aliasing pass (the launcher's Antialiasing option).
 		bool antiAliasing = true;
 
@@ -638,6 +642,8 @@ struct CrimsonConfig {
 				std::make_pair("nvidiaReflex", &System::nvidiaReflex),
 				std::make_pair("nvidiaReflexBoost", &System::nvidiaReflexBoost),
 				std::make_pair("disableMenuFadeouts", &System::disableMenuFadeouts),
+				std::make_pair("menuAnimationFix", &System::menuAnimationFix),
+				std::make_pair("menuAnimationSpeed", &System::menuAnimationSpeed),
 				std::make_pair("antiAliasing", &System::antiAliasing),
 				std::make_pair("BlendingEffects", &System::BlendingEffects),
 				std::make_pair("windowSizeX",&System::windowSizeX),

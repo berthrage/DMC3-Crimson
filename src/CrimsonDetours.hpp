@@ -139,6 +139,8 @@ bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
 bool DisableStaggerCheck(PlayerActorData& actorData);
 void InitDetours();
 void ToggleArtemisInstantFullCharge(bool enable);
+// Artemis missiles only register their collision once they fly, so a point-blank volley does not explode on the first frame.
+void ToggleArtemisFixCloseRange(bool enable);
 void ToggleGuardGravityAlteration(bool enable);
 void ToggleDisableDriveHold(bool enable);
 void ToggleHideStyleRankHUD(bool enable);

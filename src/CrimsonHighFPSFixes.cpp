@@ -16,6 +16,7 @@
 #include "CrimsonLDK.hpp"
 #include "Actor.hpp"
 #include "CrimsonHighFPSFixes.hpp"
+#include "CrimsonMenuAnimation.hpp"
 
 namespace CrimsonHighFPSFixes {
 
@@ -625,6 +626,19 @@ void FixWpNunchakuCerberusCollisions(bool enable) {
 	run = enable;
 }
 
+void MenuAnimationFixes(bool enable) {
+	static bool run = false;
+
+	// The menu animation hooks install once and stay in; their behaviour follows the System config.
+	if (!enable || run) {
+		return;
+	}
+
+	CrimsonMenuAnimation::InitHooks();
+
+	run = true;
+}
+
 void ToggleAllFixes(bool enable) {
 	BlendingEffectsSpeedFixes(enable);
 	BossCamFixes(enable);
@@ -637,6 +651,7 @@ void ToggleAllFixes(bool enable) {
 	FixCPl021Shl01SummonedSwordsInitialTravel(enable);
 	FixSecretMissionTimerFPS(enable);
 	FixWpNunchakuCerberusCollisions(enable);
+	MenuAnimationFixes(enable);
 }
 
 

@@ -9463,6 +9463,10 @@ float ApplyDamage(byte8* dest, float value) {
             value *= activeCrimsonGameplay.Cheats.Damage.playerReceivedDmgMult;
             if (activeCrimsonGameplay.Cheats.Damage.playerReceiveDmgDisable)
                 value = 0.0f;
+
+            // Better Arkham 2: the AI partner is invincible until 2P takes control (playerCount becomes 2).
+            if (activeConfig.Actor.playerCount == 1 && IsArkham2Actor(actorData))
+                value = 0.0f;
             break;
         }
     }

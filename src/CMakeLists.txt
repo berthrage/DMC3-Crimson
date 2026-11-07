@@ -56,6 +56,8 @@ set(MASM_SRC
     masm/FixEnemyAttackCooldowns.asm
     masm/FixBloodgoyleStormFormTime.asm
     masm/FixCStaffRollCredits.asm
+    masm/MenuAnimationStep.asm
+    masm/CreditsAlphaStep.asm
     masm/FixCStageSetSeal.asm
     masm/CheckTotalResultsScreen.asm
     masm/FixSummonedSwordsInitialTravel.asm
@@ -291,6 +293,8 @@ file(GLOB MAIN_SRC
     CrimsonSplitscreen.hpp
     CrimsonMenuInput.cpp
     CrimsonMenuInput.hpp
+    CrimsonMenuAnimation.cpp
+    CrimsonMenuAnimation.hpp
     CrimsonStageInteraction.cpp
     CrimsonStageInteraction.hpp
     NvApiReflex.cpp
