@@ -5733,6 +5733,7 @@ struct Sprint {
     bool isSprinting                = false;
     bool SFXPlayed                  = false;
     bool VFXPlayed                  = false;
+    float footstepFrame             = 0; // lower-body motion frame the last footstep was checked at
     float storedSpeedHuman          = 0;
     float storedSpeedDevilDante[6]  = {};
     float storedSpeedDevilVergil[5] = {};

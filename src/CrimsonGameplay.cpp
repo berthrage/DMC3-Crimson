@@ -4514,6 +4514,40 @@ void BackToForwardInputs(byte8* actorBaseAddr) {
 }
 
 
+// The sprint archive carries the sprint animation without the run's motion-sound events, so the
+// engine never fires its footfalls. Mirror the run motion's step events (frames 10 and 36 of its
+// 48-frame cycle) onto whichever sprint animation is playing.
+void UpdateSprintFootsteps(PlayerActorData& actorData, Sprint& sprintData) {
+
+    auto& motion         = actorData.newModelData[actorData.activeModelIndexMirror].Motion;
+    const float duration = motion.duration[0];
+    const float frame    = motion.timer[0];
+
+    if (duration <= 0.0f) {
+        sprintData.footstepFrame = 0.0f;
+        return;
+    }
+
+    float previous           = sprintData.footstepFrame;
+    sprintData.footstepFrame = frame;
+
+    if (frame < previous) {
+        previous = 0.0f; // cycle restarted, the last pass' steps are behind us
+    }
+
+    constexpr float runCycleFrames  = 48.0f;
+    constexpr float runStepFrames[] = {10.0f, 36.0f};
+
+    for (float runStepFrame : runStepFrames) {
+        const float stepFrame = runStepFrame * (duration / runCycleFrames);
+        if (previous < stepFrame && frame >= stepFrame) {
+            CrimsonReversedCalls::PlayStepSound_sub_1403389B0(
+                (uintptr_t)appBaseAddr + 0xD6DC90, 2, 1, (uintptr_t)&actorData.position);
+            break;
+        }
+    }
+}
+
 void SprintAbility(byte8* actorBaseAddr) {
 
     if (!actorBaseAddr) {
@@ -4549,6 +4583,7 @@ void SprintAbility(byte8* actorBaseAddr) {
             // Resets FX state
             sprintData.SFXPlayed = false;
             sprintData.VFXPlayed = false;
+            sprintData.footstepFrame = 0.0f;
         }
 
 
@@ -4670,6 +4705,8 @@ void SprintAbility(byte8* actorBaseAddr) {
                 sprintData.VFXPlayed = true;
             }
 
+            UpdateSprintFootsteps(actorData, sprintData);
+
             sprintData.isSprinting = true;
             sprintData.runTimer    = false;
 
@@ -4719,6 +4756,7 @@ void StopSprintAbility(byte8* actorBaseAddr) {
 	sprintData.isSprinting = false;
 	sprintData.SFXPlayed = false;
 	sprintData.VFXPlayed = false;
+	sprintData.footstepFrame = 0.0f;
 }
 
 #include <chrono>
@@ -5236,6 +5274,24 @@ void DetectCloseToEnemy(byte8* actorBaseAddr) {
 
 #pragma region DanteAirTaunt
 
+// Drops a queued rose when Ecstasy ends for any reason but a jump cancel.
+void CancelPendingRoseSpawn(byte8* actorBaseAddr) {
+	if (!actorBaseAddr || (uintptr_t)actorBaseAddr >= 0xFFFFFFFFFF) {
+		return;
+	}
+	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	auto event = actorData.eventData[0].event;
+	if (event == ACTOR_EVENT::JUMP_CANCEL || event == ACTOR_EVENT::JUMP) {
+		return;
+	}
+	auto playerIndex = actorData.newPlayerIndex;
+	auto& roseSpawnPending = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].roseSpawnPending
+		: crimsonPlayer[playerIndex].roseSpawnPendingClone;
+	auto& roseSpawnTimer = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].roseSpawnTimer
+		: crimsonPlayer[playerIndex].roseSpawnTimerClone;
+	roseSpawnPending = false;
+	roseSpawnTimer = 0;
+}
 
 void TrackRoyalReleaseAndSkyLaunch(byte8* actorBaseAddr) {
 	using namespace ACTION_DANTE;
@@ -5259,20 +5315,20 @@ void TrackRoyalReleaseAndSkyLaunch(byte8* actorBaseAddr) {
 	auto& actionTimer = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].actionTimer : crimsonPlayer[playerIndex].actionTimerClone;
 
 	// Reset apply flag when action changes away from CERBERUS_SWING
+	bool cancelledByTrickOrJump = (actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK ||
+		actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_GROUND_TRICK ||
+		actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_SKY_STAR ||
+		actorData.eventData[0].event == ACTOR_EVENT::JUMP ||
+		actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL ||
+		actorData.eventData[0].event == ACTOR_EVENT::AIR_HIKE);
 	if ((actorData.action == CERBERUS_SWING && actionTimer > 0.7f) ||
 		(actorData.action != CERBERUS_SWING) ||
-		(actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_AIR_TRICK ||
-			actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_GROUND_TRICK ||
-			actorData.eventData[0].event == ACTOR_EVENT::TRICKSTER_SKY_STAR ||
-			actorData.eventData[0].event == ACTOR_EVENT::JUMP ||
-			actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL ||
-			actorData.eventData[0].event == ACTOR_EVENT::AIR_HIKE
-			)) {
+		cancelledByTrickOrJump) {
 		actorData.motionArchives[MOTION_GROUP_DANTE::CERBERUS] = File_staticFiles[pl000_00_4]; // Revert to default pac motion archive after Rose Air Taunt finishes or is cancelled by a trick.
+		if (cancelledByTrickOrJump) {
+			CancelPendingRoseSpawn(actorBaseAddr);
+		}
 		inAirTauntRose = false;
-		// Deliberately NOT clearing roseSpawnPending/roseSpawnTimer here: a
-		// commanded rose must still spawn after the delay even if the move is
-		// cancelled (RoseSpawnTimers handles the rest).
 	}
 
 	// Sky Launch conditions

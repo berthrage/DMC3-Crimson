@@ -26,6 +26,7 @@ namespace CrimsonReversedCalls {
 	extern uintptr_t SpawnJDCShl_sub_1401DC320(uintptr_t shlAddr);
 	extern uintptr_t PlayVFX_sub_1402E7CA0(int group, uint16 index, uintptr_t matrixPtr, int a4);
 	extern uintptr_t PlaySFXWithPos_ByType_sub_140339930(uintptr_t fileAddr, uint32 index, uintptr_t posPtr, uint32 type);
+	extern void PlayStepSound_sub_1403389B0(uintptr_t fileAddr, uint32 stepSet, int groundMaterial, uintptr_t posPtr);
 	extern uint32 TriggerCPlayerEvent_sub_1401E0800(uintptr_t playerAddr, int eventIndex, int a3, int a4);
 	extern uint8 CPlayerSetSwordFormationTargetIndex_sub_140224180(uintptr_t playerActorAddr);
 	extern void PlayAnimation_sub_1401EFB90(uintptr_t actorAddr, uint32 group, int index, float initialFrame, uint8 a5, uint8 a6, uint8 nFrames);

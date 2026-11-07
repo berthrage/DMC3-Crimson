@@ -361,7 +361,12 @@ void RoseSpawnTimers() {
 			if (roseSpawnTimer >= ROSE_SPAWN_DELAY) {
 				roseSpawnPending = false;
 				roseSpawnTimer = 0;
-				CrimsonDetours::SpawnDelayedRoseShl(reinterpret_cast<uintptr_t>(actorBaseAddr));
+				// Ecstasy still running, or cancelled with a jump (no action left): the rose comes out.
+				// Any other action means another move took over before the delay elapsed, so it's dropped.
+				auto action = actorData.action;
+				if (action == ACTION_DANTE::CERBERUS_SWING || action == 0) {
+					CrimsonDetours::SpawnDelayedRoseShl(reinterpret_cast<uintptr_t>(actorBaseAddr));
+				}
 				roseSpawnInProgress = false;
 			}
 		}

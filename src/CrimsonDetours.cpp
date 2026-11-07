@@ -1567,7 +1567,8 @@ bool CheckIfShouldMarkRoseShl(uintptr_t shlActorAddr) {
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& roseSpawnInProgress = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].roseSpawnInProgress
 		: crimsonPlayer[playerIndex].roseSpawnInProgressClone;
-	bool shouldMark = CheckIfInAirTauntRose(playerAddr) || roseSpawnInProgress;
+	bool shouldMark = roseSpawnInProgress ||
+		(CheckIfInAirTauntRose(playerAddr) && actorData.action == ACTION_DANTE::CERBERUS_SWING);
 	if (shouldMark) {
 		// Fresh RoseShl: drop any stale per-address projectile state so a
 		// recycled actor address can't inherit a stopped handle from a

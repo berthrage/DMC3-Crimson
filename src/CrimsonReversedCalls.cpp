@@ -62,6 +62,10 @@ namespace CrimsonReversedCalls {
 		return GAME_CALL_SAFE(0x339930, uintptr_t, uintptr_t, uint32, uintptr_t, uint32)(fileAddr, index, posPtr, type);
 	}
 
+	void PlayStepSound_sub_1403389B0(uintptr_t fileAddr, uint32 stepSet, int groundMaterial, uintptr_t posPtr) {
+		GAME_CALL_SAFE(0x3389B0, void, uintptr_t, uint32, int, uintptr_t)(fileAddr, stepSet, groundMaterial, posPtr);
+	}
+
 	uint32 TriggerCPlayerEvent_sub_1401E0800(uintptr_t playerAddr, int eventIndex, int a3, int a4) {
 		return GAME_CALL_SAFE(0x1E0800, uint32, uintptr_t, int, int, int)(playerAddr, eventIndex, a3, a4);
 	}

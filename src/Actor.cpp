@@ -10151,6 +10151,8 @@ void SetAction(byte8* actorBaseAddr) {
         // Resetting Swing anim
         if (inAirTauntRose && actorData.action == CERBERUS_SWING) {
             actorData.motionArchives[MOTION_GROUP_DANTE::CERBERUS] = File_staticFiles[pl000_00_4];
+            // The queued rose only comes out when Ecstasy is jump cancelled.
+            CrimsonGameplay::CancelPendingRoseSpawn(actorBaseAddr);
 			inAirTauntRose = false;
         }
 
