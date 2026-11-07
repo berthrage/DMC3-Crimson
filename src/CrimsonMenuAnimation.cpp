@@ -242,6 +242,62 @@ static unsigned char __fastcall CountUpHook(int64_t a1, int64_t a2) {
 	return result;
 }
 
+// The result screens retrigger their counting SE every other rendered frame, so above
+// 60 fps the ticks bunch up into a buzz. These are the four sites that do it; every
+// other sound keeps the game's own timing.
+static constexpr uint32 kCountUpSeSites[] = {
+	0x2A0EC6,  // CUIDResult state 4: count tick
+	0x2A1DF7,  // CUIDResult state 2: count tick
+	0x2A201E,  // CUIDResult state 2: count tick, shared tail
+	0x2A4BA7,  // CUIDResultBP: count tick
+};
+
+// Every second frame at 60 Hz.
+static constexpr double kCountUpSeInterval = 1.0 / 30.0;
+
+using PlaySeFn = int64_t(__fastcall*)(void*, int32, uint32, int32, int32);
+static std::unique_ptr<Utility::Detour_t> s_playSeHook;
+static double s_countUpSeNext[countof(kCountUpSeSites)] = {};
+
+static int CountUpSeSite(uintptr_t returnAddress) {
+	const auto base = (uintptr_t)appBaseAddr;
+
+	if (returnAddress < base) {
+		return -1;
+	}
+
+	const auto offset = static_cast<uint32>(returnAddress - base);
+
+	for (int i = 0; i < (int)countof(kCountUpSeSites); ++i) {
+		if (kCountUpSeSites[i] == offset) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+// dmc3.exe+3391C0 PlaySe_sub_1403391C0(seManager, group, index, a4, a5).
+static int64_t __fastcall PlaySeHook(void* manager, int32 group, uint32 index, int32 a4, int32 a5) {
+	const auto original = s_playSeHook->GetTrampoline<PlaySeFn>();
+
+	if (activeCrimsonConfig.System.menuAnimationFix) {
+		const auto site = CountUpSeSite((uintptr_t)_ReturnAddress());
+
+		if (site >= 0) {
+			const auto now = CrimsonClock::Time();
+
+			if (now < s_countUpSeNext[site]) {
+				return 0;
+			}
+
+			s_countUpSeNext[site] = now + kCountUpSeInterval;
+		}
+	}
+
+	return original(manager, group, index, a4, a5);
+}
+
 // Re-points the RIP-relative float operand of one counter at our scale slot.
 static bool Retarget(const StepSite& site, float* scale) {
 	auto instruction = appBaseAddr + site.offset;
@@ -275,6 +331,7 @@ static bool Retarget(const StepSite& site, float* scale) {
 static uint8 s_patchedSites = 0;
 static uint8 s_expectedSites = 0;
 static bool s_logged = false;
+static bool s_playSeHooked = false;
 
 // Integer counters cannot carry a fractional step through an immediate, so the fraction
 // is carried across frames and only the whole part is applied.
@@ -326,6 +383,10 @@ void InitHooks() {
 	// dmc3.exe+2A09D0 - CUIDResult digit roll
 	s_countUpHook = std::make_unique<Utility::Detour_t>((uintptr_t)appBaseAddr + 0x2A09D0, &CountUpHook);
 	s_countUpHook->Toggle(true);
+
+	// dmc3.exe+3391C0 - PlaySe_sub_1403391C0
+	s_playSeHook = std::make_unique<Utility::Detour_t>((uintptr_t)appBaseAddr + 0x3391C0, &PlaySeHook);
+	s_playSeHooked = s_playSeHook->Toggle(true);
 
 	s_expectedSites = 0;
 	s_patchedSites = 0;
@@ -381,8 +442,8 @@ void OnTick() {
 
 	if (!s_logged && CrimsonClock::Time() > 2.0) {
 		s_logged = true;
-		Log("MenuAnimation patched %u/%u sites, frameScale %.3f, UI counter %.3f/frame",
-			s_patchedSites, s_expectedSites, frameScale, (float)g_frameCounterStep / 65536.0f);
+		Log("MenuAnimation patched %u/%u sites, frameScale %.3f, UI counter %.3f/frame, SE hook %d",
+			s_patchedSites, s_expectedSites, frameScale, (float)g_frameCounterStep / 65536.0f, s_playSeHooked);
 	}
 }
 
