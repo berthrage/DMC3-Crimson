@@ -13,7 +13,9 @@ namespace CrimsonOnTick {
 	void DivinityStatueSong();
 	void DisableBlendingEffectsController();
 	void UpdateMainPlayerMotionArchives();
-	void StyleMeterMultiplayer();
+	void TrackMultiplayerStylishPts();
+	void ApplyMultiplayerStylishPtsAverage();
+	float GetPlayerStylishPts(uint8 playerIndex);
 	void DetermineActiveEntitiesCount();
 	void MultiplayerCameraPositioningController();
 	void SplitscreenCameraPositioningController();

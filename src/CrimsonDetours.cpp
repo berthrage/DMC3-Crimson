@@ -394,6 +394,7 @@ namespace CrimsonDetours {
 		void CheckMissionResultScreenDetour2();
 		void CheckMissionResultScreenDetour3();
 		void CheckMissionResultScreenDetour4();
+		void* g_ApplyMultiplayerStylishPtsAverageCall;
 
 		// CheckMissionResultBPScreen
 		std::uint64_t g_CheckMissionResultBPScreen_ReturnAddr1;
@@ -3363,6 +3364,7 @@ void CheckMissionResultScreen(bool enable) {
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2A2718, &CheckMissionResultScreenDetour1, 5);
 	g_CheckMissionResultScreen_ReturnAddr1 = checkMissionResultScreenHook->GetReturnAddress();
 	g_CheckMissionResultScreen_TargetAddr1 = (uintptr_t)appBaseAddr + 0x2A27D0;
+	g_ApplyMultiplayerStylishPtsAverageCall = (void*)&CrimsonOnTick::ApplyMultiplayerStylishPtsAverage;
 	checkMissionResultScreenHook->Toggle(enable);
 
 	// dmc3.exe+2A2768 - E8 B30C0000           - call dmc3.sub_1402A3420 { process mission results screen }

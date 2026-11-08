@@ -17,10 +17,26 @@ EXTERN g_CheckMissionResultScreen_TargetAddr3:QWORD
 EXTERN g_CheckMissionResultScreen_TargetAddr4:QWORD
 EXTERN appBaseAddr:QWORD
 EXTERN g_inMissionResultScreen:WORD
+EXTERN g_ApplyMultiplayerStylishPtsAverageCall:QWORD
 
 .CODE
 CheckMissionResultScreenDetour1 PROC
     mov word ptr [g_inMissionResultScreen], 1
+    mov rax, qword ptr [g_ApplyMultiplayerStylishPtsAverageCall]
+    test rax, rax
+    jz SkipApplyStylishPtsAverage
+    push rcx
+    push rdx
+    push r8
+    push r9
+    sub rsp, 32
+    call rax
+    add rsp, 32
+    pop r9
+    pop r8
+    pop rdx
+    pop rcx
+SkipApplyStylishPtsAverage:
     call qword ptr [g_CheckMissionResultScreen_TargetAddr1]
     jmp qword ptr [g_CheckMissionResultScreen_ReturnAddr1]
 CheckMissionResultScreenDetour1 ENDP

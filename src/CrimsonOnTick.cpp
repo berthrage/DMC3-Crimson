@@ -684,64 +684,74 @@ void UpdateMainPlayerMotionArchives() {
 	}
 }
 
-void StyleMeterMultiplayer() {
-	// Adjusts the Style Meter to take all players into account in MP.
+// Per player Stylish Pts (styleData.quotient * 100, the value the HUD shows). Kept after the mission ends so the
+// mission result screen can list every player's total.
+static float s_playerStylishPts[PLAYER_COUNT] = {};
 
-	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
-	auto pool_11962 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
-	if (!pool_11962 || !pool_11962[8]) return;
-	auto& eventData = *reinterpret_cast<EventData*>(pool_11962[8]);
-	
-	auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (!pool_10222 || !pool_10222[3]) return;
-	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
+float GetPlayerStylishPts(uint8 playerIndex) {
+	return (playerIndex < PLAYER_COUNT) ? s_playerStylishPts[playerIndex] : 0.0f;
+}
+
+void TrackMultiplayerStylishPts() {
+	if (activeConfig.Actor.playerCount < 2) {
+		return;
+	}
+
+	auto name_10723 = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!name_10723) {
+		return;
+	}
+	auto& missionData = *reinterpret_cast<MissionData*>(name_10723);
+
+	if (g_scene == SCENE::MISSION_START || (g_scene == SCENE::GAME && missionData.frameCount == 0)) {
+		for (int playerIndex = 0; playerIndex < PLAYER_COUNT; ++playerIndex) {
+			s_playerStylishPts[playerIndex] = 0.0f;
+		}
+	}
 
 	if (g_scene != SCENE::GAME) {
 		return;
 	}
 
-	float highestStyleRank = 0;
-	float highestMeter = 0.0f;
-	float highestStyleQuotient = 0.0f;
-
 	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
-		PlayerActorData* actorDataPtr = nullptr;
-		if (activeConfig.Actor.enable) {
-			// CCS route: GetNewActorData 
-			auto& playerData = GetPlayerData(playerIndex);
-			auto& newActorData = GetNewActorData(playerIndex, playerData.characterIndex, ENTITY::MAIN);
-			if (!newActorData.baseAddr) {
-				continue; 
-			}
-			actorDataPtr = reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+		auto& playerData    = GetPlayerData(playerIndex);
+		auto& newActorData  = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+		if (!newActorData.baseAddr) {
+			continue;
 		}
-		else {
-			// Vanilla route: GetVanillaPlayerActor
-			if (playerIndex > 0) continue;
-			actorDataPtr = GetVanillaPlayerActor();
-			if (!actorDataPtr) continue;
-		}
-		auto& actorData = *actorDataPtr;
-		auto& cloneActorData = *reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr);
+		auto& actorData = *reinterpret_cast<PlayerActorData*>(newActorData.baseAddr);
+		s_playerStylishPts[playerIndex] = actorData.styleData.quotient * 100.0f;
+	}
+}
 
-		if (actorData.styleData.rank > highestStyleRank) {
-			highestStyleRank = actorData.styleData.rank;
-		}
-		if (actorData.styleData.meter > highestMeter) {
-			highestMeter = actorData.styleData.meter;
-		}
-		// Total Stylish PTS
-		if (actorData.styleData.quotient > highestStyleQuotient) {
-			highestStyleQuotient = actorData.styleData.quotient;
-		}
+// The mission result (sub_1402A27D0) shows Stylish Pts as (mission data + 0x1E0) / (+ 0x1E4) * 100, the style average
+// of the player whose mission data was committed. In multiplayer that is one player, so put the average of all of them
+// in its place before the screen reads it.
+void ApplyMultiplayerStylishPtsAverage() {
+	if (activeConfig.Actor.playerCount < 2) {
+		return;
 	}
-	// We take the highest values from all players and apply them to the main player, which is the shown one.
-	mainActorData.styleData.rank = highestStyleRank;
-	if (highestMeter > 400.0f) {
-		mainActorData.styleData.meter = highestMeter;
+
+	auto gameData = *reinterpret_cast<byte8**>(appBaseAddr + 0xC90E30);
+	if (!gameData) {
+		return;
 	}
-	mainActorData.styleData.quotient = highestStyleQuotient;
-	
+
+	float total = 0.0f;
+	int playerCount = 0;
+	for (int playerIndex = 0; playerIndex < activeConfig.Actor.playerCount && playerIndex < PLAYER_COUNT; ++playerIndex) {
+		total += s_playerStylishPts[playerIndex];
+		++playerCount;
+	}
+	if (playerCount == 0) {
+		return;
+	}
+
+	auto divisor  = reinterpret_cast<float*>(gameData + 0x1E4);
+	auto dividend = reinterpret_cast<float*>(gameData + 0x1E0);
+	float scale = (*divisor > 0.0f) ? *divisor : 1.0f;
+	*divisor  = scale;
+	*dividend = (total / (playerCount * 100.0f)) * scale;
 }
 
 void DetermineActiveEntitiesCount() {
@@ -2300,7 +2310,7 @@ void TriggerOnTickFuncs() {
 		activeCrimsonGameplay.Gameplay.General.extramoves);
 	CrimsonOnTick::UpdateMainPlayerMotionArchives();
  	CrimsonOnTick::TrackMissionStyleLevels();
- 	CrimsonOnTick::StyleMeterMultiplayer();
+ 	CrimsonOnTick::TrackMultiplayerStylishPts();
 	CrimsonOnTick::PairVanillaWeaponSlots();
 	CrimsonGameModes::TrackGameMode();
 	CrimsonGameModes::TrackCheats();

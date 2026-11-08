@@ -884,7 +884,7 @@ unsigned ActivateGroup(ModelGroup& group, int groupIndex, int player) {
 constexpr size_t COMBO_BLOCK_TABLE = 0x3B40; // 7 models x 7 block pointers, 0x38 per model
 constexpr size_t COMBO_REGION_END  = 0x3D40;
 constexpr size_t COMBO_REGION_SIZE = COMBO_REGION_END - COMBO_BLOCK_TABLE;
-constexpr size_t COMBO_STYLE_POINTER = 0x3D10; // pointer to the style data it shows (set by the game, shared)
+constexpr size_t COMBO_STYLE_POINTER = 0x3D10; // pointer to the style data it shows (set by the game, per seat)
 constexpr size_t COMBO_BLOCKS      = 49;
 constexpr size_t COMBO_BLOCK_SIZE  = 0x260;
 constexpr size_t COMBO_MODEL_COUNT = 7;
@@ -931,6 +931,17 @@ bool AllocateComboSeatBlocks(ComboSeat& seat) {
 	return true;
 }
 
+// Each player's own style data, so the game's meter shows that player's rank and meter instead of the last one set.
+StyleData* ComboSeatStyleData(int player) {
+	if (player <= 0) {
+		auto* mainActor = GetVanillaPlayerActor();
+		return mainActor ? &mainActor->styleData : nullptr;
+	}
+	auto& playerData = GetPlayerData(static_cast<uint8>(player));
+	auto& actorData  = GetNewActorData(static_cast<uint8>(player), playerData.activeCharacterIndex, ENTITY::MAIN);
+	return actorData.baseAddr ? &reinterpret_cast<PlayerActorData*>(actorData.baseAddr)->styleData : nullptr;
+}
+
 // Makes player's combo (rank model images + object state) the live one. False when that player's set could not be made.
 bool ActivateComboSeat(uint8* combo, int player) {
 	if (!combo || player < 0 || player >= PLAYER_COUNT) {
@@ -954,7 +965,11 @@ bool ActivateComboSeat(uint8* combo, int player) {
 		if (to.stateValid) {
 			std::memcpy(live, to.state, COMBO_REGION_SIZE);
 		}
-		*reinterpret_cast<uint64*>(combo + COMBO_STYLE_POINTER) = stylePointer;
+		if (StyleData* styleData = ComboSeatStyleData(player)) {
+			*reinterpret_cast<uint64*>(combo + COMBO_STYLE_POINTER) = reinterpret_cast<uint64>(styleData);
+		} else {
+			*reinterpret_cast<uint64*>(combo + COMBO_STYLE_POINTER) = stylePointer;
+		}
 	}
 
 	ComboSeat& seat = s_comboSeats[player];
@@ -1852,7 +1867,7 @@ struct VanillaStyleShift {
 };
 constexpr VanillaStyleShift HUD_VANILLA_STYLE_HALVES[2] = { { -187.5f, -14.0f, 0.720f, -13.0f, -4.0f }, { -187.5f, -14.0f, 0.720f, -13.0f, -4.0f } };
 constexpr VanillaStyleShift HUD_VANILLA_STYLE_QUADS[SEAT_MAX] = { { 0.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f } };
-// Shared / single player camera: one copy per player (the style meter is shared, so they all show the same). 1P is where
+// Shared / single player camera: one copy per player (each one shows its own player). 1P is where
 // the game draws it.
 constexpr VanillaStyleShift HUD_VANILLA_STYLE_SEATS[SEAT_MAX] = { { -359.5f, 14.0f, 0.550f, -33.5f, -20.5f }, { 5.5f, 14.0f, 0.550f, 57.5f, -20.5f }, { -359.5f, 226.5f, 0.550f, -33.5f, -110.0f }, { 5.5f, 226.5f, 0.550f, 57.5f, -110.0f } };
 VanillaStyleShift s_vanillaStyleHalves[2] = { HUD_VANILLA_STYLE_HALVES[0], HUD_VANILLA_STYLE_HALVES[1] };
@@ -2191,7 +2206,7 @@ void __fastcall StyleComboDrawHook(uint8_t* combo) {
 }
 
 // CUIDStylishCombo update (vtable +0x08, sub_1402BAC10): animates the live rank model once per tick. With one vanilla meter
-// per player each player's combo is updated too (same style data, own images and state, see ActivateComboSeat).
+// per player each player's combo is updated too (own style data, images and state, see ActivateComboSeat).
 constexpr uintptr_t STYLE_COMBO_UPDATE_OFFSET = 0x2BAC10;
 std::unique_ptr<Utility::Detour_t> s_styleComboUpdateHook;
 
@@ -2665,7 +2680,7 @@ void HUD_VanillaStyleMeterControls(int kind) {
 		return;
 	}
 	ImGui::TextWrapped("The game's own style meter, drawn at the right edge of the frame. x / y shift it (models and bar) in HUD units "
-		"(negative x moves it left, y grows downward), scale scales it. One copy per view or player, all showing the shared style meter. "
+		"(negative x moves it left, y grows downward), scale scales it. One copy per view or player, each showing its own player. "
 		"Only visible while the Crimson rank meter is off.");
 	VanillaStyleShift* shifts = s_vanillaStyleSeats;
 	const VanillaStyleShift* defaults = HUD_VANILLA_STYLE_SEATS;

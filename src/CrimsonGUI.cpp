@@ -1,5 +1,6 @@
 ﻿// UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "UI\WeaponWheel.hpp"
+#include <algorithm>
 
 #include "CrimsonEfk.hpp"
 #include "../ThirdParty/SDL3/SDL_gamepad.h"
@@ -3861,6 +3862,66 @@ void RoyalGaugeMainPlayer() {
 	ImGui::End();
 }
 
+// Mission result: each player's Stylish Pts, highest first. Placement in 1080p units.
+struct MissionResultStylishPtsPlacement {
+	float x;
+	float y;
+	float scale;
+};
+
+constexpr MissionResultStylishPtsPlacement HUD_MISSION_RESULT_STYLISH_PTS = {
+	268.0f,
+	892.5f,
+	0.890f,
+};
+
+void RenderMissionResultStylishPtsList(ImU32 textColor) {
+	if (activeConfig.Actor.playerCount < 2) {
+		return;
+	}
+
+	struct Entry {
+		uint8 player;
+		float points;
+	};
+	Entry entries[PLAYER_COUNT];
+	int count = 0;
+	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount && playerIndex < PLAYER_COUNT; ++playerIndex) {
+		float points = CrimsonOnTick::GetPlayerStylishPts(playerIndex);
+		if (points <= 0.0f) {
+			continue;
+		}
+		entries[count++] = { playerIndex, points };
+	}
+	if (count == 0) {
+		return;
+	}
+
+	std::sort(entries, entries + count, [](const Entry& a, const Entry& b) { return a.points > b.points; });
+
+	const auto& placement = HUD_MISSION_RESULT_STYLISH_PTS;
+	ImGui::SetNextWindowPos(ImVec2(placement.x * scaleFactorY, placement.y * scaleFactorY), ImGuiCond_Always);
+
+	if (ImGui::Begin("MissionResultStylishPts", nullptr,
+		ImGuiWindowFlags_NoTitleBar |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoScrollbar |
+		ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoInputs |
+		ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_AlwaysAutoResize)) {
+		ImGui::SetWindowFontScale(scaleFactorY * placement.scale);
+		ImGui::PushStyleColor(ImGuiCol_Text, textColor);
+		ImGui::Text("STYLISH PTS");
+		for (int i = 0; i < count; ++i) {
+			ImGui::Text("%dP    %.0f", entries[i].player + 1, entries[i].points);
+		}
+		ImGui::PopStyleColor();
+	}
+	ImGui::End();
+}
+
 void RenderMissionResultGameModeStats() {
 	using namespace UI;
 	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
@@ -4140,6 +4201,8 @@ void RenderMissionResultGameModeStats() {
 
 		ImGui::End();
 	}
+
+	RenderMissionResultStylishPtsList(applyAlpha(0xD5D9DBFF));
 
 	ImGui::PopFont();
 	ImGui::PopStyleColor(); // Pop the alpha style var

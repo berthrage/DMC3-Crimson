@@ -779,10 +779,13 @@ static TopLeftHudSync GetStyleMeterSync(int view) {
 	return sync;
 }
 
-// The style data every view shows. The game's style meter is not per player yet: StyleMeterMultiplayer (CrimsonOnTick.cpp)
-// merges the highest rank / meter / points of all players into the main player's actor, so every view reads that one and
-// all the meters rise together. Switch to the view's own actor once the style meter logic is per player.
-static PlayerActorData* StyleMeterSourceActor(int /*view*/) {
+// The style data each view shows: the view's own player, so every screen has its own rank meter and Stylish Pts.
+static PlayerActorData* StyleMeterSourceActor(int view) {
+	if (view >= 0 && activeConfig.Actor.enable) {
+		if (auto* actorData = HudViewActor(view)) {
+			return actorData;
+		}
+	}
 	return HudViewActor(-1);
 }
 
