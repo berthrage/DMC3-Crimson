@@ -605,7 +605,7 @@ struct CrimsonConfig {
 		float menuAnimationSpeed = 100.0f;
 
 		// The game's edge based anti-aliasing pass (the launcher's Antialiasing option).
-		bool antiAliasing = true;
+		bool antiAliasing = false;
 
 		// Removes the black bars the game draws during cutscenes.
 		bool disableCutsceneLetterbox = true;
