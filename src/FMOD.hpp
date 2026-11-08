@@ -45,4 +45,17 @@ typedef FMOD_RESULT(__fastcall* FMOD_Channel_SetVolume_t)(FMOD_CHANNEL* channel,
 
 extern FMOD_Channel_SetVolume_t FMOD_Channel_SetVolume;
 
+// FMOD Studio (2.x low level API), as the game uses it.
+typedef FMOD_RESULT(__fastcall* FMOD_System_PlaySound_t)(FMOD_SYSTEM* system, FMOD_SOUND* sound, void* channelGroup, int paused, FMOD_CHANNEL** channel);
+
+extern FMOD_System_PlaySound_t FMOD_System_PlaySound;
+
+typedef FMOD_RESULT(__fastcall* FMOD_Channel_SetFrequency_t)(FMOD_CHANNEL* channel, float frequency);
+
+extern FMOD_Channel_SetFrequency_t FMOD_Channel_SetFrequency;
+
+typedef FMOD_RESULT(__fastcall* FMOD_Channel_SetPaused_t)(FMOD_CHANNEL* channel, int paused);
+
+extern FMOD_Channel_SetPaused_t FMOD_Channel_SetPaused;
+
 bool FMOD_Init();

@@ -23,7 +23,7 @@ uint32_t GetTouchpadZone(SDL_Gamepad* gamepad);
 bool IsTouchpadBindingActive(int playerIndex, uint32_t slotA, uint32_t slotB);
 void CheckAndOpenControllers();
 void UpdateJoysticks();
-void VibrateController(int controllerIndex, Uint16 rumbleStrengthLowFreq, Uint16 rumbleStrengthHighFreq, int rumbleDuration);
+bool VibrateController(int controllerIndex, Uint16 rumbleStrengthLowFreq, Uint16 rumbleStrengthHighFreq, int rumbleDuration); // false: it didn't start
 void RemapSdlControllers();
 SDL_Gamepad* GetControllerForPlayer(int playerIndex);
 SDL_Gamepad* GetControllerByPhysicalSlot(int xiSlot);
@@ -54,6 +54,9 @@ void PlayQuicksilverIn();
 void PlayQuicksilverOut();
 void PlayJDC(int playerIndex, bool justFrame, float delay);
 void PlayJDCCharge(int playerIndex);
+int PlaySJCVoice(int playerIndex, bool devilForm); // returns the length of the line in ms, -1: the game's own taunt line is to be played by the caller
+bool PlayVergilTauntVoice(int playerIndex, bool devilForm); // true: a line of the boss was played, leave out the game's own
+bool PlaySJCSfx(int playerIndex, const std::string& name); // dt_in trick dt_out swing_a swing_b sheath
 void PlayDevilTriggerReady(int playerIndex);
 void PlayDelayedCombo1(int playerIndex);
 void PlayDelayedCombo2(int playerIndex);

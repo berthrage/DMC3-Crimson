@@ -70,6 +70,21 @@ namespace CrimsonReversedCalls {
 		return GAME_CALL_SAFE(0x1E0800, uint32, uintptr_t, int, int, int)(playerAddr, eventIndex, a3, a4);
 	}
 
+	// The two calls the taunt event makes every tick while it runs (dmc3.exe+21A220, state 1). The second one updates the motion
+	// layers and returns 4 when the motion is over, which is what ends the taunt event.
+	void CPlTauntTickA_sub_1401FC680(uintptr_t playerAddr, uint32 a2) {
+		GAME_CALL_SAFE(0x1FC680, void, uintptr_t, uint32)(playerAddr, a2);
+	}
+
+	uint32 CPlUpdateMotions_sub_1401EF8E0(uintptr_t playerAddr) {
+		return GAME_CALL_SAFE(0x1EF8E0, uint32, uintptr_t)(playerAddr);
+	}
+
+	// What the taunt event calls when the motion is over: the event goes on with event 0xA (ACTOR_EVENT::LOCK_ON, the neutral one).
+	void CPlChangeEvent_sub_1401E0030(uintptr_t playerAddr, uint8 eventIndex) {
+		GAME_CALL_SAFE(0x1E0030, void, uintptr_t, uint8)(playerAddr, eventIndex);
+	}
+
 	uint8 CPlayerSetSwordFormationTargetIndex_sub_140224180(uintptr_t playerActorAddr) {
 		return GAME_CALL_SAFE(0x224180, uint8, uintptr_t)(playerActorAddr);
 	}

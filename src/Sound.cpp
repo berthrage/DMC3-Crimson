@@ -3,6 +3,8 @@
 
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "Sound.hpp"
+#include <memory>
+#include "Utility/Detour.hpp"
 #include "Core/Core.hpp"
 #include "File.hpp"
 #include "Internal.hpp"
@@ -909,6 +911,41 @@ template <uint8 count> void Multi(const char* message, const uint8 helperIndex, 
 
 // };
 
+
+// Plays a wave of the sound bank of the boss Vergil (the FMOD sounds Crimson has created for it) at the given volume (0 - 1). The wave is
+// played at the sample rate of its entry in the Vagi table, the way the game plays it.
+bool PlayBossVergilWave(int wave, float volume) {
+    if (wave < 0 || !FMOD_init || !FMOD_System_PlaySound || !FMOD_Channel_SetFrequency || !FMOD_Channel_SetPaused || !FMOD_Channel_SetVolume) {
+        return false;
+    }
+
+    auto& soundHelper = g_soundHelper[HELPER_ENEMY_VERGIL];
+    auto& vagiHelper  = g_vagiHelper[HELPER_ENEMY_VERGIL];
+    if (!soundHelper.dataAddr || wave >= static_cast<int>(soundHelper.count) || wave >= static_cast<int>(vagiHelper.count)) {
+        return false;
+    }
+
+    auto sound = soundHelper[wave].fmodSoundAddr;
+    if (!sound) {
+        return false;
+    }
+
+    auto fmodSystem = *reinterpret_cast<FMOD_SYSTEM**>(appBaseAddr + 0x5DE3D0);
+    if (!fmodSystem) {
+        return false;
+    }
+
+    FMOD_CHANNEL* channel = 0;
+    if (FMOD_System_PlaySound(fmodSystem, sound, 0, 1, &channel) != FMOD_OK || !channel) {
+        return false;
+    }
+
+    FMOD_Channel_SetFrequency(channel, static_cast<float>(vagiHelper[wave].sampleRate));
+    FMOD_Channel_SetVolume(channel, volume);
+    FMOD_Channel_SetPaused(channel, 0);
+
+    return true;
+}
 
 void FMOD_InitComplete() {
     LogFunction();

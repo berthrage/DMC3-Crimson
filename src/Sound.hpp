@@ -109,6 +109,8 @@ struct DbstMetadata {
 
 void FMOD_PlaySound(int32 group, int32 index);
 
+bool PlayBossVergilWave(int wave, float volume);
+
 void PlayTrack(const char* filename);
 
 void SetVolume(uint8 channelIndex, float volume);

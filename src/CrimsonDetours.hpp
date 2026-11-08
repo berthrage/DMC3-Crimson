@@ -161,6 +161,8 @@ void ToggleGreenOrbsMPRegen(bool enable);
 void ToggleClassicHUDPositionings(bool enable);
 void ToggleHideAndMutePortals(bool enable);
 void ToggleStyleRankHudNoFadeout(bool enable);
+// Super Judgement Cut: the spheres it creates keep their own position (see SetJDCPositionAtMatrix).
+void RegisterSJCShl(uintptr_t shlBaseAddr);
 void ToggleDanteTrickAlterations(bool enable);
 void ToggleShotgunShlSpawnAnglePointBlank(bool enable);
 void ToggleJudgementCutDetours(bool enable);

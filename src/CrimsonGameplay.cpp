@@ -37,6 +37,7 @@
 #include <deque>
 #include "Training.hpp"
 #include "CrimsonDetours.hpp"
+#include "CrimsonFastcallDetours.hpp"
 #include "CrimsonSDL.hpp"
 #include "CrimsonPatches.hpp"
 #include "CrimsonTimers.hpp"
@@ -2396,6 +2397,17 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
     if (!IsActiveCharacterActor(actorData)) return;
 
+	// While the SJC plays, the Judgement Cut rework must not charge or fire (Y is down when the SJC starts, it would cancel the
+	// SJC with a Judgement Cut). The charge is reset so it starts clean when the SJC is over.
+	if (CrimsonFastcallDetours::SjcIsActive()) {
+		auto& sjcJCut = (actorData.newEntityIndex == 0) ? crimsonPlayer[actorData.newPlayerIndex].jCut :
+			crimsonPlayer[actorData.newPlayerIndex].jCutClone;
+		sjcJCut.meleeButtonHold         = 0.0f;
+		sjcJCut.isJustFrameCharged      = false;
+		sjcJCut.isAfterJustFrameCharged = false;
+		return;
+	}
+
 	if (!ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::YAMATO_JUDGEMENT_CUT_LEVEL_1])
 		return;
 
@@ -4474,6 +4486,22 @@ void BackToForwardInputs(byte8* actorBaseAddr) {
 
     if (actorData.character != CHARACTER::DANTE && actorData.character != CHARACTER::VERGIL) {
         return;
+    }
+
+    // Super Judgement Cut: Lock-On + back-forward + Y with Yamato (gamepad). It has to be bought in the shop, like the other moves of Crimson.
+    if (actorData.character == CHARACTER::VERGIL && actorData.newEntityIndex == ENTITY::MAIN && IsActiveCharacterActor(actorBaseAddr)) {
+        if (!CrimsonFastcallDetours::SjcIsActive()) {
+            bool yamato    = actorData.newWeapons[actorData.activeMeleeWeaponIndex] == WEAPON::YAMATO_VERGIL;
+            bool meleeDown = (gamepad.buttons[2] & GetBinding(BINDING::MELEE_ATTACK)) != 0;
+            const bool sjcUnlocked = activeCrimsonGameplay.Gameplay.General.extramoves &&
+                                     ExpConfig::missionExpDataVergil.unlocks[UNLOCK_VERGIL::YAMATO_SUPER_JUDGEMENT_CUT];
+            if (yamato && lockOn && b2F.forwardCommand && meleeDown && sjcUnlocked &&
+                CrimsonFastcallDetours::SjcCanStart((uintptr_t)&actorData)) {
+                CrimsonFastcallDetours::SjcStart((uintptr_t)&actorData);
+            }
+        } else {
+            CrimsonFastcallDetours::SjcPoll((uintptr_t)&actorData);
+        }
     }
 
     if (b2F.backBuffer <= 0) {
