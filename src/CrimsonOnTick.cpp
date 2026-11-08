@@ -2311,6 +2311,7 @@ void TriggerOnTickFuncs() {
 	CrimsonOnTick::UpdateMainPlayerMotionArchives();
  	CrimsonOnTick::TrackMissionStyleLevels();
  	CrimsonOnTick::TrackMultiplayerStylishPts();
+	HUD_SyncVanillaStyleMeters();
 	CrimsonOnTick::PairVanillaWeaponSlots();
 	CrimsonGameModes::TrackGameMode();
 	CrimsonGameModes::TrackCheats();

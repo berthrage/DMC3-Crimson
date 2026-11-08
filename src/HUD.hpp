@@ -95,6 +95,9 @@ struct HudSplitLayout {
 // Hooks the cockpit draws (CUIDCockpit00 / 02) to apply the adjustments.
 void HUD_InitAdjustmentHooks();
 
+// Creates / frees the per player vanilla style meters (one CUIDStylishCombo object each). Call every tick.
+void HUD_SyncVanillaStyleMeters();
+
 // Watches the kernel heap for blocks shared with a live HUD model (logs HeapWatch lines).
 void HUD_InitHeapWatch();
 

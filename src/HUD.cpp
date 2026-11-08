@@ -1,4 +1,4 @@
-// UNSTUPIFY(Disclaimer: by 5%)... POOOF
+﻿// UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "HUD.hpp"
 #include "Core/Core.hpp"
 #include "File.hpp"
@@ -785,8 +785,6 @@ constexpr uint32 TOP_SWAPPED[]    = {hudTopOffs[HUD_TOP::UPPER_HIT_POINTS_FRAME]
 	hudTopOffs[HUD_TOP::FLUX], hudTopOffs[HUD_TOP::DTEXPLOSION]};
 constexpr uint32 BOTTOM_SWAPPED[] = {hudBottomOffs[HUD_BOTTOM::RANGED_WEAPON_1], hudBottomOffs[HUD_BOTTOM::MELEE_WEAPON_1]};
 constexpr uint32 CURSOR_SWAPPED[] = {static_cast<uint32>(LOCKON_RETICLE)};
-// CUIDStylishCombo: the 7 rank models (0x780 apart from +0x6C0).
-constexpr uint32 COMBO_SWAPPED[]  = {0x6C0, 0xE40, 0x15C0, 0x1D40, 0x24C0, 0x2C40, 0x33C0};
 constexpr size_t MAX_SWAPPED = std::size(TOP_SWAPPED);
 
 struct ModelGroup {
@@ -799,11 +797,10 @@ struct ModelGroup {
 	alignas(16) uint8 saved[PLAYER_COUNT][MAX_SWAPPED][DRAW_MODEL_SIZE];
 };
 
-ModelGroup s_modelGroups[4] = {
+ModelGroup s_modelGroups[3] = {
 	{0x1B070, TOP_SWAPPED, std::size(TOP_SWAPPED)},
 	{0x1B078, BOTTOM_SWAPPED, std::size(BOTTOM_SWAPPED)},
 	{0x1B080, CURSOR_SWAPPED, std::size(CURSOR_SWAPPED)},
-	{0x1B090, COMBO_SWAPPED, std::size(COMBO_SWAPPED)},
 };
 
 byte8* GroupModel(ModelGroup& group, size_t i) {
@@ -835,8 +832,7 @@ void DetachModel(byte8* model) {
 	func_89270(modelData);
 }
 
-constexpr unsigned MODEL_GROUP_BLANK[4] = {HUD_MODELS_TOP_BLANK, HUD_MODELS_BOTTOM_BLANK, HUD_MODELS_CURSOR_BLANK, 16};
-constexpr unsigned MODEL_COMBO_BLANK = 16;
+constexpr unsigned MODEL_GROUP_BLANK[3] = {HUD_MODELS_TOP_BLANK, HUD_MODELS_BOTTOM_BLANK, HUD_MODELS_CURSOR_BLANK};
 
 // Makes player's images the live ones. Returns the blank flag when the player has no image yet, and HUD_MODELS_REBUILT
 // when the game made a new HUD object (all saved images are dropped).
@@ -874,149 +870,139 @@ unsigned ActivateGroup(ModelGroup& group, int groupIndex, int player) {
 }
 
 // ---- Per player vanilla style meters (CUIDStylishCombo) ----
-// The meter draws its rank models through the display list, whose packets are linked into an intrusive list: drawing the
-// same model (the same packet memory) more than once in a frame links it into itself and the display list never ends,
-// which froze the game (the upload guard below turned the resulting buffer overflow into an endless wrap). So every extra
-// player gets their own set of images like the cockpit: the 7 rank models, the 49 blocks of 0x260 bytes the game hands
-// them (7 per model, a table at combo+0x3B40, allocated by the creation function sub_1402BA790) and a copy of the object
-// state that follows them (+0x3B40..+0x3D40: block table, draw matrix, rank / alpha / animation state). The extra images
-// are loaded with the game's own model loader (sub_1402BAAA0) and updated with the game's own update, once each per tick.
-constexpr size_t COMBO_BLOCK_TABLE = 0x3B40; // 7 models x 7 block pointers, 0x38 per model
-constexpr size_t COMBO_REGION_END  = 0x3D40;
-constexpr size_t COMBO_REGION_SIZE = COMBO_REGION_END - COMBO_BLOCK_TABLE;
-constexpr size_t COMBO_STYLE_POINTER = 0x3D10; // pointer to the style data it shows (set by the game, per seat)
-constexpr size_t COMBO_BLOCKS      = 49;
-constexpr size_t COMBO_BLOCK_SIZE  = 0x260;
-constexpr size_t COMBO_MODEL_COUNT = 7;
-constexpr uintptr_t COMBO_LOAD_OFFSET       = 0x2BAAA0; // sub_1402BAAA0 (combo): loads the 7 rank models, returns 1 on success
-constexpr uintptr_t HEAP_HANDLE_INIT_OFFSET = 0x4C7A0;  // sub_14004C7A0 (handle)
-constexpr uintptr_t DRAW_BLOCK_INIT_OFFSET  = 0x30E270; // sub_14030E270 (block of 0x260 bytes)
+// One combo object per player: the game's factory (CUIDStylishCombo_Create_sub_1402BA790) allocates the object, links it
+// into the UI manager so the game updates and draws it, allocates its 49 draw blocks (7 per rank model) and loads its own
+// 7 rank models. Sharing the game's single object between players does not work: the rank models belong to it and their
+// animation is stepped for the style data it currently shows, so another player could only show ranks whose model had
+// already been animated.
+constexpr size_t COMBO_STYLE_POINTER = 0x3D10; // pointer to the style data the meter reads
+constexpr uintptr_t COMBO_CREATE_OFFSET  = 0x2BA790; // CUIDStylishCombo_Create_sub_1402BA790 (resource): one meter
+constexpr uintptr_t COMBO_CLEANUP_OFFSET = 0x2BA6E0; // destroys the rank models, the blocks and the object
+constexpr uintptr_t UI_UNLINK_OFFSET     = 0x326800; // UnlinkUIObject_sub_140326800 (manager, object)
+constexpr uintptr_t UI_MANAGER_ADDR      = 0xCF2520; // sCWorkManager
+constexpr uintptr_t PLAYTIME_ADDR        = 0x564590; // frame counter, one tick per increment
 
-struct ComboSeat {
-	alignas(16) uint8 handles[COMBO_BLOCKS][0x20];
-	uint8* blocks[COMBO_BLOCKS] = {};
-	int allocated    = 0;
-	bool failed      = false;
-	bool stateValid  = false;
-	uint8 state[COMBO_REGION_SIZE] = {};
+struct ComboMeter {
+	uint8* object = nullptr;
+	int player    = -1;
+	uint32 updatedFrame = 0;
 };
-ComboSeat s_comboSeats[PLAYER_COUNT];
+ComboMeter s_comboMeters[PLAYER_COUNT]; // extra meters (players 2..n), player 1 uses the game's own object
+int s_comboMeterCount = 0;
+uint8* s_comboMeterSource = nullptr;    // the game's combo those meters were created for
 
-void FreeComboSeatBlocks(ComboSeat& seat) {
-	for (int i = 0; i < seat.allocated; i++) {
-		func_337710(seat.handles[i]);
-		seat.blocks[i] = nullptr;
-	}
-	seat.allocated  = 0;
-	seat.failed     = false;
-	seat.stateValid = false;
-}
-
-bool AllocateComboSeatBlocks(ComboSeat& seat) {
-	using HandleInitFn = void(__fastcall*)(void*);
-	using BlockInitFn  = void*(__fastcall*)(void*);
-	const auto handleInit = reinterpret_cast<HandleInitFn>(appBaseAddr + HEAP_HANDLE_INIT_OFFSET);
-	const auto blockInit  = reinterpret_cast<BlockInitFn>(appBaseAddr + DRAW_BLOCK_INIT_OFFSET);
-	for (size_t i = 0; i < COMBO_BLOCKS; i++) {
-		handleInit(seat.handles[i]);
-	}
-	for (size_t i = 0; i < COMBO_BLOCKS; i++) {
-		if (!func_2C6150(seat.handles[i], COMBO_BLOCK_SIZE, 1)) {
-			return false;
-		}
-		seat.allocated = static_cast<int>(i + 1);
-		seat.blocks[i] = *reinterpret_cast<uint8**>(seat.handles[i] + 0x10);
-		blockInit(seat.blocks[i]);
-	}
-	return true;
-}
-
-// Each player's own style data, so the game's meter shows that player's rank and meter instead of the last one set.
-StyleData* ComboSeatStyleData(int player) {
-	if (player <= 0) {
-		auto* mainActor = GetVanillaPlayerActor();
-		return mainActor ? &mainActor->styleData : nullptr;
-	}
+// Each player's own style data, so the meter shows that player's rank and meter.
+PlayerActorData* ComboStyleActor(int player) {
 	auto& playerData = GetPlayerData(static_cast<uint8>(player));
 	auto& actorData  = GetNewActorData(static_cast<uint8>(player), playerData.activeCharacterIndex, ENTITY::MAIN);
-	return actorData.baseAddr ? &reinterpret_cast<PlayerActorData*>(actorData.baseAddr)->styleData : nullptr;
+	if (actorData.baseAddr) {
+		return reinterpret_cast<PlayerActorData*>(actorData.baseAddr);
+	}
+	return GetVanillaPlayerActor();
 }
 
-// Makes player's combo (rank model images + object state) the live one. False when that player's set could not be made.
-bool ActivateComboSeat(uint8* combo, int player) {
-	if (!combo || player < 0 || player >= PLAYER_COUNT) {
-		return false;
+void PointComboAtPlayer(uint8* combo, int player) {
+	if (PlayerActorData* styleActor = ComboStyleActor(player)) {
+		*reinterpret_cast<uint64*>(combo + COMBO_STYLE_POINTER) = reinterpret_cast<uint64>(&styleActor->styleData);
 	}
-	ModelGroup& group  = s_modelGroups[3];
-	const int previous = group.owner;
-	const unsigned flags = ActivateGroup(group, 3, player);
-	uint8* live = combo + COMBO_BLOCK_TABLE;
-
-	if (flags & HUD_MODELS_REBUILT) {
-		for (auto& seat : s_comboSeats) {
-			FreeComboSeatBlocks(seat);
-		}
-	} else if (previous >= 0 && previous != player) {
-		const uint64 stylePointer = *reinterpret_cast<uint64*>(combo + COMBO_STYLE_POINTER);
-		ComboSeat& from = s_comboSeats[previous];
-		std::memcpy(from.state, live, COMBO_REGION_SIZE);
-		from.stateValid = true;
-		ComboSeat& to = s_comboSeats[player];
-		if (to.stateValid) {
-			std::memcpy(live, to.state, COMBO_REGION_SIZE);
-		}
-		if (StyleData* styleData = ComboSeatStyleData(player)) {
-			*reinterpret_cast<uint64*>(combo + COMBO_STYLE_POINTER) = reinterpret_cast<uint64>(styleData);
-		} else {
-			*reinterpret_cast<uint64*>(combo + COMBO_STYLE_POINTER) = stylePointer;
-		}
-	}
-
-	ComboSeat& seat = s_comboSeats[player];
-	if (flags & MODEL_COMBO_BLANK) {
-		bool ok = !seat.failed && AllocateComboSeatBlocks(seat);
-		if (ok) {
-			// A fresh object starts with the rank / animation state zeroed (the update only runs the rank transition that makes
-			// a model visible when the rank changes), and these models are fresh, so they must not inherit the live state.
-			constexpr size_t animationState = 0x3D18;
-			std::memset(combo + animationState, 0, COMBO_REGION_END - animationState);
-			for (size_t m = 0; m < COMBO_MODEL_COUNT; m++) {
-				for (size_t j = 0; j < 7; j++) {
-					*reinterpret_cast<uint64*>(live + 0x38 * m + 8 * j) = reinterpret_cast<uint64>(seat.blocks[7 * m + j]);
-				}
-			}
-			using LoadFn = char(__fastcall*)(uint8*);
-			ok = reinterpret_cast<LoadFn>(appBaseAddr + COMBO_LOAD_OFFSET)(combo) != 0;
-		}
-		if (!ok) {
-			Log("Vanilla style meter: could not load the models for player %d", player + 1);
-			seat.failed = true;
-		}
-	}
-	return !seat.failed;
 }
 
-// Back to the game's own combo, the extra players' images and blocks are freed.
-void ReleaseComboSeats() {
-	ModelGroup& group = s_modelGroups[3];
-	bool any = group.owner > 0;
-	for (int p = 0; p < PLAYER_COUNT; p++) {
-		any = any || group.valid[p] || s_comboSeats[p].allocated > 0;
-	}
-	if (!any) {
+void DestroyComboMeter(int index) {
+	uint8* object = s_comboMeters[index].object;
+	s_comboMeters[index] = {};
+	if (!object) {
 		return;
 	}
-	byte8* combo = HudObject(0x1B090);
-	if (combo && group.object == combo) {
-		ActivateComboSeat(combo, 0);
+	using UnlinkFn  = void(__fastcall*)(void*, void*);
+	using CleanupFn = void(__fastcall*)(void*);
+	reinterpret_cast<UnlinkFn>(appBaseAddr + UI_UNLINK_OFFSET)(
+		reinterpret_cast<void*>(appBaseAddr + UI_MANAGER_ADDR), object);
+	reinterpret_cast<CleanupFn>(appBaseAddr + COMBO_CLEANUP_OFFSET)(object);
+}
+
+void DestroyComboMeters() {
+	for (int i = 0; i < s_comboMeterCount; ++i) {
+		DestroyComboMeter(i);
 	}
-	DiscardSavedImages(group);
-	for (auto& seat : s_comboSeats) {
-		FreeComboSeatBlocks(seat);
+	s_comboMeterCount  = 0;
+	s_comboMeterSource = nullptr;
+}
+
+// Player index the given combo object shows, -1 when it is not one of ours.
+int ComboMeterPlayer(const uint8* combo) {
+	for (int i = 0; i < s_comboMeterCount; ++i) {
+		if (s_comboMeters[i].object == combo) {
+			return s_comboMeters[i].player;
+		}
 	}
+	return (combo == HudObject(0x1B090)) ? 0 : -1;
+}
+
+// An extra meter is only usable while it holds the same HUD models as the game's own combo (the game rebuilds them on a
+// room / mission change; the tick then re-creates the extra meters).
+bool ComboMeterReady(const uint8* combo, int player) {
+	if (player <= 0) {
+		return true;
+	}
+	byte8* mainCombo = HudObject(0x1B090);
+	if (!mainCombo) {
+		return false;
+	}
+	return *reinterpret_cast<void* const*>(combo + 0x688) == *reinterpret_cast<void* const*>(mainCombo + 0x688);
+}
+
+// One vanilla meter per player, or 0 when the Crimson meter shows them instead.
+int ComboMeterPlayers() {
+	if (!activeConfig.Actor.enable || activeConfig.Actor.playerCount < 2) {
+		return 0;
+	}
+	if (activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter || activeCrimsonConfig.HudOptions.hideStyleMeter) {
+		return 0;
+	}
+	const int splitViews = CrimsonSplitscreen::ViewCount();
+	if (splitViews >= 2) {
+		return (splitViews > PLAYER_COUNT) ? PLAYER_COUNT : splitViews;
+	}
+	return (activeConfig.Actor.playerCount > PLAYER_COUNT) ? PLAYER_COUNT : activeConfig.Actor.playerCount;
 }
 
 } // namespace
+
+// Creates / frees the extra vanilla style meters (one combo object per player) and points each at its player's style data.
+void HUD_SyncVanillaStyleMeters() {
+	byte8* mainCombo = HudObject(0x1B090);
+	const int players = ComboMeterPlayers();
+	if (!mainCombo || players < 2) {
+		DestroyComboMeters();
+		return;
+	}
+	if (s_comboMeterSource != mainCombo) {
+		DestroyComboMeters();
+		s_comboMeterSource = mainCombo;
+	}
+	while (s_comboMeterCount > players - 1) {
+		DestroyComboMeter(--s_comboMeterCount);
+	}
+	for (int player = 1 + s_comboMeterCount; player < players; ++player) {
+		auto resource = *reinterpret_cast<void**>(mainCombo + 0x688);
+		if (!resource) {
+			return;
+		}
+		using CreateFn = uint8* (__fastcall*)(void*);
+		uint8* object = reinterpret_cast<CreateFn>(appBaseAddr + COMBO_CREATE_OFFSET)(resource);
+		if (!object) {
+			Log("Vanilla style meter: could not create the meter for player %d", player + 1);
+			return;
+		}
+		s_comboMeters[s_comboMeterCount].object = object;
+		s_comboMeters[s_comboMeterCount].player = player;
+		++s_comboMeterCount;
+	}
+	PointComboAtPlayer(mainCombo, 0);
+	for (int i = 0; i < s_comboMeterCount; ++i) {
+		PointComboAtPlayer(s_comboMeters[i].object, s_comboMeters[i].player);
+	}
+}
 
 unsigned HUD_ActivatePlayerModels(int player, unsigned groups) {
 	if (player < 0 || player >= PLAYER_COUNT) {
@@ -1033,7 +1019,6 @@ unsigned HUD_ActivatePlayerModels(int player, unsigned groups) {
 
 // Back to a single set of models (player 1's), the other players' images are freed.
 unsigned HUD_ReleasePlayerModels() {
-	ReleaseComboSeats();
 	unsigned flags = 0;
 	for (int g = 0; g < 3; g++) {
 		auto& group = s_modelGroups[g];
@@ -2114,7 +2099,7 @@ __int64 __fastcall DrawHudRectHook(__int64 list, int16_t x, int16_t y, int colou
 	return original(list, x, y, colour, w, h, colours, count);
 }
 
-void DrawStyleComboShifted(CockpitFn original, uint8_t* combo, uint8_t* scene, const VanillaStyleShift& shift) {
+void DrawStyleComboShifted(CockpitFn original, uint8_t* combo, const VanillaStyleShift& shift, bool useMotion = true) {
 	float* matrix = reinterpret_cast<float*>(combo + COMBO_DRAW_MATRIX);
 	float saved[16];
 	std::memcpy(saved, matrix, sizeof(saved));
@@ -2130,15 +2115,12 @@ void DrawStyleComboShifted(CockpitFn original, uint8_t* combo, uint8_t* scene, c
 		}
 	}
 
-	static uint32 s_logged = 0;
-	if (s_logged++ < 4) {
-		Log("StyleCombo matrix: diag %.3f %.3f %.3f translation %.1f %.1f %.1f, scene origin %.1f %.1f, shift %.1f %.1f scale %.3f, model +0x19 %d", matrix[0],
-			matrix[5], matrix[10], matrix[12], matrix[13], matrix[14], *reinterpret_cast<float*>(scene + 0x170),
-			*reinterpret_cast<float*>(scene + 0x174), shift.x, shift.y, shift.scale, model ? savedFlag : -1);
-	}
+	// The animation path needs the rank model's motion to have been stepped, which the game only does for player 1's
+	// meter; a meter the game does not tick is posed through the matrix instead.
+	const bool animate = s_vanillaStyleAnimate && useMotion;
 
 	if (model) {
-		if (!s_vanillaStyleAnimate) {
+		if (!animate) {
 			model[0x19] = 0;
 		}
 		const float s = shift.scale;
@@ -2148,7 +2130,7 @@ void DrawStyleComboShifted(CockpitFn original, uint8_t* combo, uint8_t* scene, c
 		}
 		matrix[12] = matrix[12] * s + (1.0f - s) * s_vanillaStylePivotX + shift.x;
 		matrix[13] = matrix[13] * s + (1.0f - s) * s_vanillaStylePivotY - shift.y;
-		if (s_vanillaStyleAnimate && savedFlag) {
+		if (animate && savedFlag) {
 			// Re-poses the animated model with the shifted matrix (CDraw vtbl +0x190, the call the update makes with the
 			// identity), the flagged draw then keeps that pose instead of resetting it to the rest pose.
 			using PoseFn = void(__fastcall*)(uint8_t*, float*);
@@ -2166,54 +2148,38 @@ void DrawStyleComboShifted(CockpitFn original, uint8_t* combo, uint8_t* scene, c
 	std::memcpy(matrix, saved, sizeof(saved));
 }
 
-bool ComboSeatsWanted();
-
 void __fastcall StyleComboDrawHook(uint8_t* combo) {
 	const auto original = s_styleComboDrawHook->GetTrampoline<CockpitFn>();
-	const int views = CrimsonSplitscreen::ViewCount();
-	const int player = CrimsonSplitscreen::CameraPlayer();
-	auto* scene = *reinterpret_cast<uint8_t**>(appBaseAddr + SCENE_STATE_CURSOR_OFFSET);
-	if (!scene) {
+	const int player = ComboMeterPlayer(combo);
+	if (player < 0 || !ComboMeterReady(combo, player)) {
 		original(combo);
 		return;
 	}
+	if (ComboMeterPlayers() < 2) {
+		original(combo); // single player: the game's own meter, where the game puts it
+		return;
+	}
+
+	const int views = CrimsonSplitscreen::ViewCount();
 	if (views >= 2) {
-		if (player < 0 || player >= views) {
-			original(combo);
+		// Each view shows its own player's meter only.
+		if (player != CrimsonSplitscreen::CameraPlayer()) {
 			return;
 		}
-		DrawStyleComboShifted(original, combo, scene, (views == 2) ? s_vanillaStyleHalves[player] : s_vanillaStyleQuads[player]);
+		DrawStyleComboShifted(original, combo, (views == 2) ? s_vanillaStyleHalves[player] : s_vanillaStyleQuads[player]);
 		return;
 	}
-	const int seats = HUD_SeatCount();
-	if (seats >= 2) {
-		// One draw per player, each with its own images (a model drawn twice in a frame loops the display list forever,
-		// see ActivateComboSeat).
-		const bool perPlayer = ComboSeatsWanted();
-		const int draws = perPlayer ? seats : 1;
-		for (int seat = 0; seat < draws; ++seat) {
-			if (seat > 0 && !ActivateComboSeat(combo, seat)) {
-				continue;
-			}
-			DrawStyleComboShifted(original, combo, scene, s_vanillaStyleSeats[seat]);
-		}
-		if (draws > 1) {
-			ActivateComboSeat(combo, 0);
-		}
-		return;
+	if (player > 0 && !s_vanillaStyleAllSeats) {
+		return; // a single meter at the 1P position
 	}
-	original(combo);
+	DrawStyleComboShifted(original, combo, s_vanillaStyleSeats[player]);
 }
 
-// CUIDStylishCombo update (vtable +0x08, sub_1402BAC10): animates the live rank model once per tick. With one vanilla meter
-// per player each player's combo is updated too (own style data, images and state, see ActivateComboSeat).
+// CUIDStylishCombo update (vtable +0x08, sub_1402BAC10): animates the rank model from the style data the object points at.
+// Every player owns one object (see HUD_SyncVanillaStyleMeters), so each is updated once per tick, whichever way the game
+// calls it (it runs the HUD update once per view in splitscreen).
 constexpr uintptr_t STYLE_COMBO_UPDATE_OFFSET = 0x2BAC10;
 std::unique_ptr<Utility::Detour_t> s_styleComboUpdateHook;
-
-bool ComboSeatsWanted() {
-	return s_vanillaStyleAllSeats && HUD_SeatCount() >= 2 && !activeCrimsonConfig.CrimsonHudAddons.styleRanksMeter &&
-		!activeCrimsonConfig.HudOptions.hideStyleMeter;
-}
 
 void __fastcall StyleComboUpdateHook(uint8_t* combo) {
 	const auto original = s_styleComboUpdateHook->GetTrampoline<CockpitFn>();
@@ -2221,20 +2187,30 @@ void __fastcall StyleComboUpdateHook(uint8_t* combo) {
 		original(combo);
 		return;
 	}
-	if (!ComboSeatsWanted()) {
-		ReleaseComboSeats();
+	const int player = ComboMeterPlayer(combo);
+	if (player < 0 || !ComboMeterReady(combo, player)) {
 		original(combo);
 		return;
 	}
-	const int seats = HUD_SeatCount();
-	ActivateComboSeat(combo, 0);
-	original(combo);
-	for (int seat = 1; seat < seats; ++seat) {
-		if (ActivateComboSeat(combo, seat)) {
-			original(combo);
+	PointComboAtPlayer(combo, player);
+
+	const uint32 frame = *reinterpret_cast<uint32*>(appBaseAddr + PLAYTIME_ADDR);
+	ComboMeter* meter = nullptr;
+	if (player > 0) {
+		for (int i = 0; i < s_comboMeterCount; ++i) {
+			if (s_comboMeters[i].object == combo) {
+				meter = &s_comboMeters[i];
+				break;
+			}
+		}
+		if (meter && meter->updatedFrame == frame) {
+			return;
 		}
 	}
-	ActivateComboSeat(combo, 0);
+	if (meter) {
+		meter->updatedFrame = frame;
+	}
+	original(combo);
 }
 
 } // namespace
