@@ -3453,10 +3453,7 @@ void CharacterSection(size_t defaultFontSize) {
 			ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 			ImGui::PushItemWidth(itemWidth);
 			if (GUI_Slider<uint8>("Number of Players", queuedConfig.Actor.playerCount, 1, PLAYER_COUNT)) {
-				if (queuedConfig.Actor.playerCount > 1) {
-					activeCrimsonConfig.Camera.thirdPersonCamera = true;
-					queuedCrimsonConfig.Camera.thirdPersonCamera = true;
-				} else {
+				if (queuedConfig.Actor.playerCount <= 1) {
 					activeConfig.enablePVPFixes = false;
 					queuedConfig.enablePVPFixes = false;
 				}
@@ -4977,12 +4974,10 @@ void CameraSection(size_t defaultFontSize) {
 			ImGui::TableNextRow(0, rowWidth);
 			ImGui::TableNextColumn();
 
-			GUI_PushDisable(activeConfig.Actor.playerCount > 1);
 			GUI_Checkbox2("Third Person Camera", activeCrimsonConfig.Camera.thirdPersonCamera, queuedCrimsonConfig.Camera.thirdPersonCamera);
 			ImGui::SameLine();
 			TooltipHelper("(?)", "Replaces (almost) every Fixed Camera with the Third Person Camera, switching to Fixed Angles when apropriate.\n"
-				"Will always be enabled on Multiplayer.");
-			GUI_PopDisable(activeConfig.Actor.playerCount > 1);
+				"The Shared Camera in Multiplayer always uses the Third Person Camera.");
 
 			ImGui::TableNextColumn();
 
@@ -5056,10 +5051,8 @@ void CameraSection(size_t defaultFontSize) {
 			activeCrimsonConfig.Camera.autoAdjust = 0;
 			queuedCrimsonConfig.Camera.autoAdjust = 0;
 
-			if (activeConfig.Actor.playerCount <= 1) {
-				activeCrimsonConfig.Camera.thirdPersonCamera = false;
-				queuedCrimsonConfig.Camera.thirdPersonCamera = false;
-			}
+			activeCrimsonConfig.Camera.thirdPersonCamera = false;
+			queuedCrimsonConfig.Camera.thirdPersonCamera = false;
 
 			activeCrimsonConfig.Camera.panoramicCam = false;
 			queuedCrimsonConfig.Camera.panoramicCam = false;

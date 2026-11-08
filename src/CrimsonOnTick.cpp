@@ -849,6 +849,12 @@ bool SharedCameraWanted() {
 	return activeCrimsonConfig.Camera.singlePlayerSharedCamera;
 }
 
+// The multiplayer shared camera frames every player itself, so it always needs the third person camera,
+// whatever the Third Person Camera option says.
+bool SharedCameraNeedsThirdPerson() {
+	return activeConfig.Actor.playerCount > 1 && g_multiplayerCameraMode == MULTIPLAYERCAMERA::SHARED_CAM;
+}
+
 void MultiplayerCameraPositioningController() {
 	UpdateMultiplayerCameraMode();
 
@@ -1396,7 +1402,7 @@ void ForceThirdPersonCameraController() {
 		}
 	}
 
-	if (activeCrimsonConfig.Camera.thirdPersonCamera) {
+	if (activeCrimsonConfig.Camera.thirdPersonCamera || SharedCameraNeedsThirdPerson()) {
 		// Disable Boss Camera Exceptions
 
 		if (activeConfig.Actor.playerCount <= 1 || g_multiplayerCameraMode != MULTIPLAYERCAMERA::SHARED_CAM) { // SINGLE PLAYER, or a multiplayer camera that does not frame every player (splitscreen, single player cam)

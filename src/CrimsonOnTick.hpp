@@ -18,6 +18,7 @@ namespace CrimsonOnTick {
 	void MultiplayerCameraPositioningController();
 	void SplitscreenCameraPositioningController();
 	void CameraShakeController();
+	bool SharedCameraNeedsThirdPerson();
 	void ForceThirdPersonCameraController();
 	void GeneralCameraOptionsController();
 	void AirTauntDetoursController();

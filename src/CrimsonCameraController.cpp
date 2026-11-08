@@ -8,6 +8,7 @@
 #include "Vars.hpp"
 #include "CrimsonConfig.hpp"
 #include "CrimsonPatches.hpp"
+#include "CrimsonOnTick.hpp"
 #include "Config.hpp"
 
 static std::unique_ptr<Utility::Detour_t> cameraControllerConstructionHook;
@@ -261,8 +262,11 @@ namespace CrimsonCameraController {
 		//get the TPS camera gui state
 		auto& cameraConfig = activeCrimsonConfig.Camera;
 
+		// The multiplayer shared camera frames every player itself, so it can never fall back to a room camera.
+		const bool thirdPersonWanted = cameraConfig.thirdPersonCamera || CrimsonOnTick::SharedCameraNeedsThirdPerson();
+
 		//if TPS is off, we're either turning the camera off or it's already off.
-		if (!cameraConfig.thirdPersonCamera){
+		if (!thirdPersonWanted){
 
 			if (!s_cameraEnable) {
 				return CAMERA_UPDATE_TYPE::ON_FIXED;
@@ -275,7 +279,7 @@ namespace CrimsonCameraController {
 			}
 		}
 
-		//from this point, we are dealing with scenarios where cameraConfig.thirdPersonCamera is true
+		//from this point, we are dealing with scenarios where the third person camera is wanted
 		else {
 			//this variable will have a value of true whenever we want to override third person camera without turning the mod off.
 			s_tpsException = CheckInternalException();

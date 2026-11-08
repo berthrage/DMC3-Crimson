@@ -291,12 +291,6 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
             CrimsonDetours::ToggleHoldToCrazyCombo(false);
         }
 
-		if (queuedConfig.Actor.playerCount > 1) {
-			activeCrimsonConfig.Camera.thirdPersonCamera = true;
-			queuedCrimsonConfig.Camera.thirdPersonCamera = true;
-		}
-
-        
         CrimsonPatches::HoldToAutoFire(activeCrimsonGameplay.Gameplay.General.holdToShoot);
         CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
         CrimsonDetours::ToggleStyleRankHudNoFadeout(activeCrimsonConfig.HudOptions.disableStyleRankHudFadeout);
