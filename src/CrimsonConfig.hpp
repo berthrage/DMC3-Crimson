@@ -182,7 +182,7 @@ struct CrimsonConfig {
 		bool hide = false;
 		uint8 worldSpaceWheels = HUDELEMENTSHOWSTATE::ONLY_IN_MP;
 		uint8 worldSpaceAlwaysShow = HUDELEMENTSHOWSTATE::OFF;
-		uint8 splitscreenWheels = SPLITSCREENWHEELS::PERSISTENT;
+		uint8 splitscreenWheels = SPLITSCREENWHEELS::NORMAL;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
