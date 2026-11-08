@@ -16,6 +16,10 @@ namespace CrimsonSplitscreen {
 	bool SeatCockpitBegin(uint8_t* cockpit, int player);
 	void SeatCockpitEnd(uint8_t* cockpit);
 
+	// 0..127 alpha a player's cockpit top-left group (HP / DT / style icon / flux) is fading with. The cockpit object
+	// only holds player 1's state outside its own draw, so this reads the state kept for that player's cockpit tick.
+	uint8_t CockpitTopLeftAlpha(int player);
+
 	// True while the game is in a state splitscreen can run in (playing, no cutscene); ignores the settle delay.
 	bool GateOpen();
 	// Splitscreen is the active multiplayer camera (2+ players), even while it is paused for a cutscene or load.

@@ -617,6 +617,12 @@ static PlayerActorData* HudViewActor(int view) {
 	return actorData.baseAddr ? reinterpret_cast<PlayerActorData*>(actorData.baseAddr) : nullptr;
 }
 
+// Fade the cockpit addons with the player's own top-left group, not with the alpha the shared cockpit object holds
+// between draws (always player 1's).
+static float HudViewTopLeftAlpha(int view) {
+	return CrimsonSplitscreen::CockpitTopLeftAlpha(view < 0 ? 0 : view) / 127.0f;
+}
+
 static const char* HudViewWindowName(const char* name, int view) {
 	if (view < 0) {
 		return name;
@@ -2717,11 +2723,6 @@ static void StyleDisplayWindowView(int view) {
 		return;
 	}
 	auto& mainActorData = *mainActorPtr;
-	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
-	if (!name_80) {
-		return;
-	}
-	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 	if (!(InGame() && !g_inGameCutscene)) {
 		return;
 	}
@@ -2776,7 +2777,7 @@ static void StyleDisplayWindowView(int view) {
 	ImColor& compassLastFlashColor = state.compassLastFlashColor;
 
 	auto& character = mainActorData.character;
-	float inGameAlpha = hudData.topLeftAlpha / 127.0f;
+	float inGameAlpha = HudViewTopLeftAlpha(view);
 
 	int currentStyle = mainActorData.style;
 	int currentCharacter = mainActorData.character;
@@ -3232,11 +3233,6 @@ static void StyleTextDisplayWindowView(int view) {
 		return;
 	}
 	auto& mainActorData = *mainActorPtr;
-	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
-	if (!name_80) {
-		return;
-	}
-	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 	if (!(InGame() && !g_inGameCutscene)) {
 		return;
 	}
@@ -3363,7 +3359,7 @@ static void StyleTextDisplayWindowView(int view) {
 			}
 		}
 
-		float alpha = hudData.topLeftAlpha / 127.0f;
+		float alpha = HudViewTopLeftAlpha(view);
 
 		// Blur logic: show blur for blurDuration after style change
 		bool blurActive = false;
@@ -3427,11 +3423,6 @@ static void StyleEXPDisplayWindowView(int view) {
 		return;
 	}
 	auto& mainActorData = *mainActorPtr;
-	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
-	if (!name_80) {
-		return;
-	}
-	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 	if (!(InGame() && !g_inGameCutscene)) {
 		return;
 	}
@@ -3443,7 +3434,7 @@ static void StyleEXPDisplayWindowView(int view) {
 
 	auto& character = mainActorData.character;
 	if (character != CHARACTER::DANTE && character != CHARACTER::VERGIL) return;
-	float alpha = hudData.topLeftAlpha / 127.0f;
+	float alpha = HudViewTopLeftAlpha(view);
 	float styleExpTextureSizeX = (80.0f * 0.23f) * scaleFactorY;
 	float styleExpTextureSizeY = (513.00f * 0.23f) * scaleFactorY;
 
@@ -3591,11 +3582,6 @@ static void StyleLvlDispWindowView(int view) {
 		return;
 	}
 	auto& actorData = *actorDataPtr;
-	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
-	if (!name_80) {
-		return;
-	}
-	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 	if (!(InGame() && !g_inGameCutscene)) {
 		return;
 	}
@@ -3607,7 +3593,7 @@ static void StyleLvlDispWindowView(int view) {
 
 	uint8 character = actorData.character;
 	if (character != CHARACTER::DANTE && character != CHARACTER::VERGIL) return;
-	float alpha = hudData.topLeftAlpha / 127.0f;
+	float alpha = HudViewTopLeftAlpha(view);
 	float styleLvlTextureSizeX = (76.0f * 0.17f) * scaleFactorY;
 	float styleLvlTextureSizeY = (97.0f * 0.17f) * scaleFactorY;
 
@@ -3724,11 +3710,6 @@ static void RoyalGaugeDispWindowView(int view) {
 		return;
 	}
 	auto& mainActorData = *mainActorPtr;
-	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
-	if (!name_80) {
-		return;
-	}
-	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 	if (!(InGame() && !g_inGameCutscene)) {
 		return;
 	}
@@ -3739,7 +3720,7 @@ static void RoyalGaugeDispWindowView(int view) {
 	auto& character = mainActorData.character;
 	if (character != CHARACTER::DANTE) return;
 
-	float alpha = hudData.topLeftAlpha / 127.0f;
+	float alpha = HudViewTopLeftAlpha(view);
 	float royalGaugeTextureSizeX = (200.0f * 0.5f) * scaleFactorY;
 	float royalGaugeTextureSizeY = (200.0f * 0.5f) * scaleFactorY;
 
@@ -3868,11 +3849,6 @@ static void MirageGaugeMainPlayerView(int view) {
 		return;
 	}
 	static bool show = true;
-	auto name_80 = *reinterpret_cast<byte8**>(appBaseAddr + 0xCF2680);
-	if (!name_80) {
-		return;
-	}
-	auto& hudData = *reinterpret_cast<HUDData*>(name_80);
 	auto* mainActorPtr = HudViewActor(view);
 	if (!mainActorPtr) {
 		return;
@@ -3936,10 +3912,11 @@ static void MirageGaugeMainPlayerView(int view) {
 	mirageGaugeColor.x = inactiveColor.x + (activeColor.x - inactiveColor.x) * fade;
 	mirageGaugeColor.y = inactiveColor.y + (activeColor.y - inactiveColor.y) * fade;
 	mirageGaugeColor.z = inactiveColor.z + (activeColor.z - inactiveColor.z) * fade;
-	mirageGaugeColor.w = (hudData.topLeftAlpha / 127.0f);
+	const float hudAlpha = HudViewTopLeftAlpha(view);
+	mirageGaugeColor.w = hudAlpha;
 
-	float miragePointsColor[4] = { 1.0f , 1.0f, 1.0, hudData.topLeftAlpha / 127.0f };
-	float progressBarBgColor[4] = { 0.2f , 0.2f, 0.2f, hudData.topLeftAlpha / 127.0f };
+	float miragePointsColor[4] = { 1.0f , 1.0f, 1.0, hudAlpha };
+	float progressBarBgColor[4] = { 0.2f , 0.2f, 0.2f, hudAlpha };
 
 	if (ImGui::Begin(HudViewWindowName("MirageMainPlayer", view), &show, windowFlags)) {
 		HudViewClipGuard mirageClip(view);

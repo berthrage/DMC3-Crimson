@@ -56,6 +56,7 @@ constexpr size_t SCENE_CAMERA_MATRIX_SIZE = 0x40;
 constexpr size_t SCENE_PROJECTION_MATRIX = 0x140; // 4x4 matrix the HUD projects world points with (session +0x160)
 constexpr uintptr_t PLAYER_POOL_OFFSET         = 0xC90E28;
 constexpr uintptr_t EVENT_POOL_OFFSET          = 0xC90E10;
+constexpr uintptr_t COCKPIT_PTR_OFFSET         = 0xCF2680; // the game's CUIDCockpit00 object (HUD.cpp draws it)
 constexpr uintptr_t COCKPIT_TOP_UPDATE_OFFSET  = 0x27C0F0;
 constexpr uintptr_t LOCKON_CURSOR_UPDATE_OFFSET = 0x296DB0; // CUIDLockOnCursorUpdate_sub_140296DB0 (vtable 0x1404E9CE0 slot 0)
 constexpr uintptr_t UPDATE_CAMERA_ORBIT_OFFSET = 0x57520;
@@ -68,6 +69,7 @@ static_assert(sizeof(ENGINE_GAMEPAD) == 0x2C);
 // CUIDCockpit00 per-frame state that follows the element ModelData array (HP/DT smoothing, alpha timers).
 constexpr size_t COCKPIT_STATE_BEGIN = 0x6880;
 constexpr size_t COCKPIT_STATE_END   = 0x7040;
+constexpr size_t COCKPIT_TOP_LEFT_ALPHA = 0x6920; // fade (0..127) of the top-left group: HP / DT / style icon / flux
 // CUIDLockOnCursor: locked target (+0x800), then the marker target lists and their scale animation. The lock-on
 // display toggle timer after them (+0x1188 / +0x118C) belongs to pad 0 and stays shared.
 constexpr size_t LOCKON_TARGET_PTR  = 0x800;
@@ -858,6 +860,9 @@ void UpdateSeatCockpits(CockpitFn original, uint8_t* cockpit, uintptr_t* pool, i
 	uint8_t leadMatrices[COCKPIT_MATRIX_SIZE];
 	std::memcpy(leadState, live, COCKPIT_STATE_SIZE);
 	std::memcpy(leadMatrices, liveMatrices, COCKPIT_MATRIX_SIZE);
+	// Player 1's state is what the cockpit object holds once the seats are done, so keep it for CockpitTopLeftAlpha.
+	std::memcpy(s_cockpitSlots.state[0], leadState, COCKPIT_STATE_SIZE);
+	s_cockpitSlots.valid[0] = true;
 
 	for (int player = 1; player < seats; ++player) {
 		uint8_t* actor = PlayerMainActor(player);
@@ -1192,6 +1197,14 @@ void SeatCockpitEnd(uint8_t* cockpit) {
 	std::memcpy(cockpit + COCKPIT_STATE_BEGIN, s_seatLiveState, COCKPIT_STATE_SIZE);
 	std::memcpy(cockpit + COCKPIT_MATRIX_BEGIN, s_seatLiveMatrices, COCKPIT_MATRIX_SIZE);
 	ApplyModelFlags(HUD_ActivatePlayerModels(0, HUD_GROUP_TOP), 0);
+}
+
+uint8_t CockpitTopLeftAlpha(int player) {
+	if (player >= 0 && player < PLAYER_COUNT && s_cockpitSlots.valid[player]) {
+		return s_cockpitSlots.state[player][COCKPIT_TOP_LEFT_ALPHA - COCKPIT_STATE_BEGIN];
+	}
+	auto cockpit = *reinterpret_cast<uint8_t**>(appBaseAddr + COCKPIT_PTR_OFFSET);
+	return cockpit ? cockpit[COCKPIT_TOP_LEFT_ALPHA] : 0;
 }
 
 void HudTuningWindow(bool* open) {
