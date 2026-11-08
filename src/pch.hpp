@@ -59,14 +59,9 @@
 #include <ImGui/Backend/imgui_impl_win32.h>
 #include <ImGui/Backend/imgui_impl_dx11.h>
 
-// --- SDL bridge (SDL3 + SDL2_mixer compat, mirrors SDL.hpp) ----------------
+// --- SDL bridge (SDL3 core + SDL_mixer 3) ----------------------------------
 #include <SDL3/SDL.h>
-typedef SDL_IOStream SDL_RWops;
-#define SDL_bool bool
-#define SDL_MIX_MAXVOLUME 128
-#define SDL_rwops_h_
-struct SDL_version;
-#include <SDL2/SDL_mixer.h>
+#include <SDL3/SDL_mixer.h>
 
 // --- GLM is intentionally NOT in the PCH ------------------------------------
 // Different translation units need different defines (GLM_FORCE_ROW_MAJOR,

@@ -39,7 +39,7 @@ template <typename F> F GetSDLMixerFunction(const char* name) {
     F func = reinterpret_cast<F>(GetProcAddress(g_SDL3Mixer, name));
     if (!func) {
         DWORD err = GetLastError();
-        OutputDebugStringA((std::string("GetProcAddress(SDL2_mixer, ") + name + ") failed: code " + std::to_string(err) + "\n").c_str());
+        OutputDebugStringA((std::string("GetProcAddress(SDL3_mixer, ") + name + ") failed: code " + std::to_string(err) + "\n").c_str());
     }
     return func;
 }

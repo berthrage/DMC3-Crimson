@@ -26,13 +26,13 @@ bool LoadSDLDLL() {
 bool LoadSDLMixerDLL() {
     if (g_SDL3MixerLoadAttempted) return g_SDL3Mixer != NULL;
     g_SDL3MixerLoadAttempted = true;
-    g_SDL3Mixer = LoadLibrary("SDL2_mixer.dll");
+    g_SDL3Mixer = LoadLibrary("SDL3_mixer.dll");
     if (!g_SDL3Mixer) {
         DWORD err = GetLastError();
         LPSTR msgBuf = nullptr;
         FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
                        nullptr, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&msgBuf, 0, nullptr);
-        Log("LoadLibrary(\"SDL2_mixer.dll\") failed: %s (code %lu)", msgBuf ? msgBuf : "Unknown error", err);
+        Log("LoadLibrary(\"SDL3_mixer.dll\") failed: %s (code %lu)", msgBuf ? msgBuf : "Unknown error", err);
         if (msgBuf) LocalFree(msgBuf);
     }
     return g_SDL3Mixer != NULL;

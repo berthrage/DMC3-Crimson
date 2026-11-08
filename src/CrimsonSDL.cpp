@@ -1,17 +1,6 @@
 #define SDL_MAIN_HANDLED
 #include "../ThirdParty/SDL3/SDL.h"
-/* SDL3 renamed SDL_RWops to SDL_IOStream. Alias for SDL2_mixer compatibility. */
-typedef SDL_IOStream SDL_RWops;
-/* SDL3 removed SDL_bool; SDL2_mixer.h still uses it. */
-#define SDL_bool bool
-/* SDL3 removed SDL_MIX_MAXVOLUME; SDL2_mixer.h uses it. */
-#define SDL_MIX_MAXVOLUME 128
-/* Skip SDL2's SDL_rwops.h (its SDL_ReadU8/SDL_WriteU8 conflict with SDL3's SDL_iostream.h).
-   The typedef above provides all SDL_mixer.h needs from it. */
-#define SDL_rwops_h_
-/* SDL3 removed the SDL_version struct; SDL2_mixer.h uses it as a pointer. Forward-declare. */
-struct SDL_version;
-#include "../ThirdParty/SDL2/SDL_mixer.h"
+#include "../ThirdParty/SDL3/SDL_mixer.h"
 #include <string>
 #include <thread>
 #include <chrono>
@@ -46,100 +35,146 @@ std::string MixerInitialization  = "";
 std::string MixerInitialization2 = "";
 bool SDL3Init                    = false;
 bool cacheAudioFiles             = false;
-Mix_Chunk* changeGun;
-Mix_Chunk* changeDevilArm;
-Mix_Chunk* changeWeaponDMC3;
-Mix_Chunk* styleChange;
-Mix_Chunk* tricksterVO;
-Mix_Chunk* swordmasterVO;
-Mix_Chunk* gunslingerVO;
-Mix_Chunk* royalguardVO;
-Mix_Chunk* quicksilverVO;
-Mix_Chunk* doppelganger1VO;
-Mix_Chunk* doppelganger2VO;
-Mix_Chunk* sprintL1;
-Mix_Chunk* sprintL2;
-Mix_Chunk* devilTriggerInL1;
-Mix_Chunk* devilTriggerInL2;
-Mix_Chunk* devilTriggerOut;
-Mix_Chunk* devilTriggerLoop;
-Mix_Chunk* devilTriggerReady;
-Mix_Chunk* dtExplosionStart;
-Mix_Chunk* dtExplosionLoop;
-Mix_Chunk* dtExplosionFinish;
-Mix_Chunk* dtExplosionRelease;
-Mix_Chunk* doppelgangerIn;
-Mix_Chunk* doppelgangerOut;
-Mix_Chunk* quicksilverIn;
-Mix_Chunk* quicksilverOut;
-Mix_Chunk* styleRankD1;
-Mix_Chunk* styleRankD2;
-Mix_Chunk* styleRankC1;
-Mix_Chunk* styleRankC2;
-Mix_Chunk* styleRankB1;
-Mix_Chunk* styleRankB2;
-Mix_Chunk* styleRankA1;
-Mix_Chunk* styleRankA2;
-Mix_Chunk* styleRankS1;
-Mix_Chunk* styleRankS2;
-Mix_Chunk* styleRankSS1;
-Mix_Chunk* styleRankSS2;
-Mix_Chunk* styleRankSSS1;
-Mix_Chunk* styleRankSSS2;
-Mix_Chunk* delayedCombo1;
-Mix_Chunk* delayedCombo2;
-Mix_Chunk* delayedDrive;
-Mix_Chunk* guard;
-Mix_Chunk* royalBlock;
-Mix_Chunk* normalBlock;
-Mix_Chunk* jdc;
-Mix_Chunk* jdcJustFrame;
-Mix_Chunk* jdcCharge;
-Mix_Chunk* driveStart;
-Mix_Chunk* driveLoop;
-Mix_Chunk* driveLevelUp;
-Mix_Chunk* snap;
-Mix_Chunk* ecstasyHit;
-Mix_Music* missionClearSong;
-Mix_Music* divinityStatueSong;
-Mix_Music* battleOfBrothersSong;
 
-// Mix Channels used
-namespace CHANNEL {
-    constexpr int initialDevilArm = 0; // to 79, 20 channels per player
-    constexpr int initialChangeGun = 80; // to 159, 20 channels per player
-    constexpr int initialStyleChange = 160; // to 239, 20 channels per player
-    constexpr int initialStyleChangeVO = 240; // to 319, 20 channels per player
-    constexpr int initialStyleRank = 320; // to 326
-    constexpr int initialSprint = 327; // to 334, 2 channels per player
-    constexpr int initialDTIn = 335; // to 342, 2 channels per player
-    constexpr int initialDTOut = 343; // to 346, 1 channel per player
-    constexpr int initialDTLoop = 347; // to 350, 1 channel per player
-    constexpr int initialDoppIn = 351; // to 354, 1 channel per player
-    constexpr int initialDoppOut = 355; // to 358, 1 channel per player
-    constexpr int quickIn = 359;
-    constexpr int quickOut = 360;
-    constexpr int initialDTReady = 361; // to 364, 1 channel per player
-    constexpr int initialDelayedCombo1 = 365; // to 368, 1 channel per player
-    constexpr int initialDelayedCombo2 = 369; // to 372, 1 channel per player
-    constexpr int initialDTEStart = 373; // to 376, 1 channel per player
-    constexpr int initialDTELoop = 377; // to 380, 1 channel per player
-    constexpr int initialDTEFinish = 381; // to 384, 1 channel per player
-    constexpr int initialDTERelease = 385; // to 388, 1 channel per player
-    constexpr int initialGuard = 389; // to 396, 2 channels per player
-    constexpr int initialRoyalBlock = 397; // to 421, 5 channels per player 
-    constexpr int initialBlock = 422; // to 441, 5 channels per player
-	constexpr int initialJDC = 442; // to 481, 10 channels per player
-    constexpr int initialJDCCharge = 482; // to 485, 1 channel per player
-    constexpr int initialSnap = 486; // to 525, 10 channels per player
-	constexpr int initialDrive = 526; // to 529, 1 channels per player
-	constexpr int initialDriveLevelUp = 530; // to 537, 2 channels per player
-	constexpr int initialDriveLoop = 538; // to 541, 1 channel per player
-	constexpr int initialDriveClone = 542; // to 545, 1 channel per player
-	constexpr int initialDriveLevelUpClone = 546; // to 553, 2 channels per player
-	constexpr int initialDriveLoopClone = 554; // to 557, 1 channel per player
-	constexpr int initialEcstasyHit = 558; // to 565, 2 channels per player
-}
+static MIX_Mixer* g_mixer        = NULL;
+static MIX_Track* g_musicTracks[2] = {NULL, NULL};
+static int g_nextMusicTrack      = 0;
+static SDL_PropertiesID g_playProperties = 0;
+static float g_musicGain         = 1.0f;
+static float g_musicDuck         = 1.0f;
+static std::unordered_map<std::string, MIX_Audio*> g_audioCache;
+
+MIX_Audio* changeGun;
+MIX_Audio* changeDevilArm;
+MIX_Audio* changeWeaponDMC3;
+MIX_Audio* styleChange;
+MIX_Audio* tricksterVO;
+MIX_Audio* swordmasterVO;
+MIX_Audio* gunslingerVO;
+MIX_Audio* royalguardVO;
+MIX_Audio* quicksilverVO;
+MIX_Audio* doppelganger1VO;
+MIX_Audio* doppelganger2VO;
+MIX_Audio* sprintL1;
+MIX_Audio* sprintL2;
+MIX_Audio* devilTriggerInL1;
+MIX_Audio* devilTriggerInL2;
+MIX_Audio* devilTriggerOut;
+MIX_Audio* devilTriggerLoop;
+MIX_Audio* devilTriggerReady;
+MIX_Audio* dtExplosionStart;
+MIX_Audio* dtExplosionLoop;
+MIX_Audio* dtExplosionFinish;
+MIX_Audio* dtExplosionRelease;
+MIX_Audio* doppelgangerIn;
+MIX_Audio* doppelgangerOut;
+MIX_Audio* quicksilverIn;
+MIX_Audio* quicksilverOut;
+MIX_Audio* styleRankD1;
+MIX_Audio* styleRankD2;
+MIX_Audio* styleRankC1;
+MIX_Audio* styleRankC2;
+MIX_Audio* styleRankB1;
+MIX_Audio* styleRankB2;
+MIX_Audio* styleRankA1;
+MIX_Audio* styleRankA2;
+MIX_Audio* styleRankS1;
+MIX_Audio* styleRankS2;
+MIX_Audio* styleRankSS1;
+MIX_Audio* styleRankSS2;
+MIX_Audio* styleRankSSS1;
+MIX_Audio* styleRankSSS2;
+MIX_Audio* delayedCombo1;
+MIX_Audio* delayedCombo2;
+MIX_Audio* guard;
+MIX_Audio* royalBlock;
+MIX_Audio* normalBlock;
+MIX_Audio* jdc;
+MIX_Audio* jdcJustFrame;
+MIX_Audio* jdcCharge;
+MIX_Audio* driveStart;
+MIX_Audio* driveLoop;
+MIX_Audio* driveLevelUp;
+MIX_Audio* snap;
+MIX_Audio* ecstasyHit;
+MIX_Audio* missionClearSong;
+MIX_Audio* divinityStatueSong;
+MIX_Audio* battleOfBrothersSong;
+
+// A named set of mixer tracks. Voice selection, polyphony and per-frame
+// spatialization live here, so call sites never compute an index.
+//
+//   Init          create voicesPerGroup * groups tracks; groups == 1 marks a
+//                 global sound, which then ignores the player index
+//   Play          voice 0, replacing whatever it held
+//   PlayVoice     caller picks the voice; for polyphonic effects where several
+//                 different files share a pool and must sound together
+//                 (sprint L1/L2, one voice per style rank)
+//   PlayFree      first idle voice, dropped when all are busy; a fadeOthersMs >= 0
+//                 also fades the group's other voices
+//   IsAnyPlaying  any voice of the group is playing
+//   SetPosition   apply angle/distance to every voice of the group; no-op when the
+//                 pool is not spatialized
+//   Stop          stop the group, optionally faded
+//   Pause/Resume  pause or resume the group
+class SfxVoicePool {
+public:
+    void Init(const char* poolName, int voicesPerGroup, int groupCount = PLAYER_COUNT, bool spatialized = true);
+
+    void Play(int group, MIX_Audio* audio, float volume, int loops = 0, int fadeInMs = 0);
+    void PlayVoice(int group, int voice, MIX_Audio* audio, float volume, int loops = 0, int fadeInMs = 0);
+    void PlayFree(int group, MIX_Audio* audio, float volume, int angle = 0, int distance = 0, int fadeOthersMs = -1);
+
+    bool IsAnyPlaying(int group) const;
+    void SetPosition(int group, int angle, int distance);
+    void Stop(int group, int fadeMs = 0);
+    void Pause(int group);
+    void Resume(int group);
+
+private:
+    MIX_Track* Track(int group, int voice) const;
+    int        Group(int group) const;
+
+    const char* name    = "";
+    int voicesPerGroup  = 1;
+    int groups          = PLAYER_COUNT;
+    bool spatialized    = true;
+    std::vector<MIX_Track*> tracks;
+};
+
+SfxVoicePool poolDevilArm{};
+SfxVoicePool poolChangeGun{};
+SfxVoicePool poolStyleChange{};
+SfxVoicePool poolStyleChangeVO{};
+SfxVoicePool poolStyleRank{};
+SfxVoicePool poolSprint{};
+SfxVoicePool poolDevilTriggerIn{};
+SfxVoicePool poolDevilTriggerOut{};
+SfxVoicePool poolDevilTriggerLoop{};
+SfxVoicePool poolDoppelgangerIn{};
+SfxVoicePool poolDoppelgangerOut{};
+SfxVoicePool poolQuicksilverIn{};
+SfxVoicePool poolQuicksilverOut{};
+SfxVoicePool poolDevilTriggerReady{};
+SfxVoicePool poolDelayedCombo1{};
+SfxVoicePool poolDelayedCombo2{};
+SfxVoicePool poolDteStart{};
+SfxVoicePool poolDteLoop{};
+SfxVoicePool poolDteFinish{};
+SfxVoicePool poolDteRelease{};
+SfxVoicePool poolGuard{};
+SfxVoicePool poolRoyalBlock{};
+SfxVoicePool poolNormalBlock{};
+SfxVoicePool poolJdc{};
+SfxVoicePool poolJdcCharge{};
+SfxVoicePool poolSnap{};
+SfxVoicePool poolDrive{};
+SfxVoicePool poolDriveLevelUp{};
+SfxVoicePool poolDriveLoop{};
+SfxVoicePool poolDriveClone{};
+SfxVoicePool poolDriveLevelUpClone{};
+SfxVoicePool poolDriveLoopClone{};
+SfxVoicePool poolEcstasyHit{};
 
 #define SDL_FUNCTION_DECLRATION(X) decltype(X)* fn_##X
 #define LOAD_SDL_FUNCTION(X) fn_##X = GetSDLFunction<decltype(X)*>(#X)
@@ -147,107 +182,441 @@ namespace CHANNEL {
 
 SDL_FUNCTION_DECLRATION(SDL_Init)                         = NULL;
 SDL_FUNCTION_DECLRATION(SDL_PollEvent)                    = NULL;
-SDL_FUNCTION_DECLRATION(Mix_OpenAudioDevice)              = NULL;
-SDL_FUNCTION_DECLRATION(Mix_OpenAudio)                    = NULL;
-SDL_FUNCTION_DECLRATION(Mix_Init)                         = NULL;
-SDL_FUNCTION_DECLRATION(SDL_GetGamepads)                 = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GetError)                     = NULL;
+SDL_FUNCTION_DECLRATION(SDL_free)                         = NULL;
+SDL_FUNCTION_DECLRATION(SDL_CreateProperties)             = NULL;
+SDL_FUNCTION_DECLRATION(SDL_SetNumberProperty)            = NULL;
+SDL_FUNCTION_DECLRATION(SDL_DestroyProperties)            = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GetGamepads)                  = NULL;
 SDL_FUNCTION_DECLRATION(SDL_OpenGamepad)                  = NULL;
 SDL_FUNCTION_DECLRATION(SDL_CloseGamepad)                 = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetGamepadPlayerIndex)        = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetGamepadJoystick)           = NULL;
-SDL_FUNCTION_DECLRATION(Mix_AllocateChannels)             = NULL;
-SDL_FUNCTION_DECLRATION(Mix_ReserveChannels)              = NULL;
-SDL_FUNCTION_DECLRATION(Mix_LoadWAV)                      = NULL;
-SDL_FUNCTION_DECLRATION(Mix_LoadMUS)                      = NULL;
-SDL_FUNCTION_DECLRATION(Mix_Playing)                      = NULL;
-SDL_FUNCTION_DECLRATION(Mix_Pause)                        = NULL;
-SDL_FUNCTION_DECLRATION(Mix_Resume)                       = NULL;
-SDL_FUNCTION_DECLRATION(Mix_Volume)                       = NULL;
-SDL_FUNCTION_DECLRATION(Mix_SetPosition)                  = NULL;
-SDL_FUNCTION_DECLRATION(Mix_PlayChannel)                  = NULL;
-SDL_FUNCTION_DECLRATION(Mix_HaltChannel)                  = NULL;
-SDL_FUNCTION_DECLRATION(Mix_FadeOutChannel)				  = NULL;
-SDL_FUNCTION_DECLRATION(Mix_FadeInChannel)                = NULL;
-SDL_FUNCTION_DECLRATION(Mix_VolumeMusic)                  = NULL;
-SDL_FUNCTION_DECLRATION(Mix_GetMusicVolume)               = NULL;
-SDL_FUNCTION_DECLRATION(Mix_FadeInMusic)                  = NULL;
-SDL_FUNCTION_DECLRATION(Mix_FadeOutMusic)                 = NULL;
-SDL_FUNCTION_DECLRATION(Mix_PlayingMusic)                 = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetGamepadButton)             = NULL;
-SDL_FUNCTION_DECLRATION(SDL_GetGamepadID)        = NULL;
-SDL_FUNCTION_DECLRATION(SDL_UpdateGamepads)              = NULL;
+SDL_FUNCTION_DECLRATION(SDL_GetGamepadID)                 = NULL;
+SDL_FUNCTION_DECLRATION(SDL_UpdateGamepads)               = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetGamepadName)               = NULL;
 SDL_FUNCTION_DECLRATION(SDL_IsGamepad)                    = NULL;
 SDL_FUNCTION_DECLRATION(SDL_RumbleGamepad)                = NULL;
-SDL_FUNCTION_DECLRATION(SDL_GetError)                     = NULL;
-SDL_FUNCTION_DECLRATION(SDL_free)                         = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetGamepadPath)               = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetGamepadPathForID)          = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetGamepadAxis)               = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetNumGamepadTouchpads)       = NULL;
 SDL_FUNCTION_DECLRATION(SDL_GetGamepadTouchpadFinger)     = NULL;
 
+SDL_FUNCTION_DECLRATION(MIX_Init)                         = NULL;
+SDL_FUNCTION_DECLRATION(MIX_Quit)                         = NULL;
+SDL_FUNCTION_DECLRATION(MIX_Version)                      = NULL;
+SDL_FUNCTION_DECLRATION(MIX_CreateMixerDevice)            = NULL;
+SDL_FUNCTION_DECLRATION(MIX_DestroyMixer)                 = NULL;
+SDL_FUNCTION_DECLRATION(MIX_LoadAudio)                    = NULL;
+SDL_FUNCTION_DECLRATION(MIX_DestroyAudio)                 = NULL;
+SDL_FUNCTION_DECLRATION(MIX_CreateTrack)                  = NULL;
+SDL_FUNCTION_DECLRATION(MIX_DestroyTrack)                 = NULL;
+SDL_FUNCTION_DECLRATION(MIX_SetTrackAudio)                = NULL;
+SDL_FUNCTION_DECLRATION(MIX_TagTrack)                     = NULL;
+SDL_FUNCTION_DECLRATION(MIX_PlayTrack)                    = NULL;
+SDL_FUNCTION_DECLRATION(MIX_StopTrack)                    = NULL;
+SDL_FUNCTION_DECLRATION(MIX_StopTag)                      = NULL;
+SDL_FUNCTION_DECLRATION(MIX_PauseTrack)                   = NULL;
+SDL_FUNCTION_DECLRATION(MIX_ResumeTrack)                  = NULL;
+SDL_FUNCTION_DECLRATION(MIX_TrackPlaying)                 = NULL;
+SDL_FUNCTION_DECLRATION(MIX_SetTrackGain)                 = NULL;
+SDL_FUNCTION_DECLRATION(MIX_SetTagGain)                   = NULL;
+SDL_FUNCTION_DECLRATION(MIX_SetTrack3DPosition)           = NULL;
+SDL_FUNCTION_DECLRATION(MIX_SetTrackStoppedCallback)      = NULL;
+SDL_FUNCTION_DECLRATION(MIX_TrackMSToFrames)              = NULL;
+
+constexpr const char* kMusicTag = "crimson.music";
+
+// Mix_Volume clamped to 128; MIX_SetTrackGain is linear, so keep the same ceiling.
+static float Gain(float volume128) {
+    if (volume128 <= 0.0f) {
+        return 0.0f;
+    }
+    if (volume128 > 128.0f) {
+        volume128 = 128.0f;
+    }
+
+    return volume128 / 128.0f;
+}
+
+// Constant power panning holds left² + right² at 1.0, so a centred sound lands on
+// 0.707 per channel; the sqrt(2) restores the level the linear pan produced.
+static float GainSpatialized(float volume128) {
+    return Gain(volume128 * 1.41421356f);
+}
+
+static bool TrackPlaying(MIX_Track* track) {
+    return track != NULL && fn_MIX_TrackPlaying != NULL && fn_MIX_TrackPlaying(track);
+}
+
+static void PlayOnTrack(MIX_Track* track, MIX_Audio* audio, int loops, int fadeInMs) {
+    if (track == NULL || audio == NULL || fn_MIX_SetTrackAudio == NULL || fn_MIX_PlayTrack == NULL) {
+        return;
+    }
+
+    // Reused so per-hit sounds do not allocate a property set each time.
+    if (g_playProperties == 0 && fn_SDL_CreateProperties != NULL) {
+        g_playProperties = fn_SDL_CreateProperties();
+    }
+    if (g_playProperties != 0) {
+        fn_SDL_SetNumberProperty(g_playProperties, MIX_PROP_PLAY_LOOPS_NUMBER, loops);
+        fn_SDL_SetNumberProperty(g_playProperties, MIX_PROP_PLAY_FADE_IN_MILLISECONDS_NUMBER, fadeInMs);
+    }
+
+    fn_MIX_SetTrackAudio(track, audio);
+    fn_MIX_PlayTrack(track, g_playProperties);
+}
+
+static void StopTrack(MIX_Track* track, int fadeOutMs) {
+    if (track == NULL || fn_MIX_StopTrack == NULL) {
+        return;
+    }
+
+    Sint64 fadeFrames = 0;
+    if (fadeOutMs > 0 && fn_MIX_TrackMSToFrames != NULL) {
+        fadeFrames = fn_MIX_TrackMSToFrames(track, fadeOutMs);
+    }
+
+    fn_MIX_StopTrack(track, fadeFrames);
+}
+
+// Pseudo-3D through the mixer's spatializer. Its listener is pinned at the origin
+// facing -Z and it attenuates as 1/max(|position|, 1), so the distance curve rides
+// in the magnitude and the direction drives constant power panning.
+// angle: 0 = front, 90 = right, 180 = back, 270 = left.
+static void SetTrackPan(MIX_Track* track, int angle, int distance) {
+    if (track == NULL || fn_MIX_SetTrack3DPosition == NULL) {
+        return;
+    }
+
+    float attenuation = 1.0f;
+    if (distance > 0) {
+        const float clamped = distance > 255 ? 255.0f : (float)distance;
+        attenuation         = 1.0f - (clamped / 255.0f);
+    }
+    if (attenuation < 0.001f) {
+        attenuation = 0.001f;
+    }
+
+    const float radius  = 1.0f / attenuation;
+    const float radians = angle * (3.14159265f / 180.0f);
+    MIX_Point3D position{ sinf(radians) * radius, 0.0f, -cosf(radians) * radius };
+    fn_MIX_SetTrack3DPosition(track, &position);
+}
+
+void SfxVoicePool::Init(const char* poolName, int voicesPerGroupCount, int groupCount, bool spatializedVoices) {
+    name           = poolName;
+    voicesPerGroup = voicesPerGroupCount;
+    groups         = groupCount;
+    spatialized    = spatializedVoices;
+
+    const int total = voicesPerGroup * groups;
+    tracks.assign(total, NULL);
+    if (g_mixer == NULL || fn_MIX_CreateTrack == NULL) {
+        return;
+    }
+
+    for (int i = 0; i < total; ++i) {
+        tracks[i] = fn_MIX_CreateTrack(g_mixer);
+        if (tracks[i] != NULL && fn_MIX_TagTrack != NULL) {
+            fn_MIX_TagTrack(tracks[i], "sfx");
+        }
+    }
+}
+
+int SfxVoicePool::Group(int group) const {
+    // Single-group pools are global sounds and ignore the player index.
+    if (groups <= 1) {
+        return 0;
+    }
+    if (group < 0) {
+        return 0;
+    }
+
+    return group >= groups ? groups - 1 : group;
+}
+
+MIX_Track* SfxVoicePool::Track(int group, int voice) const {
+    if (voice < 0 || voice >= voicesPerGroup) {
+        return NULL;
+    }
+
+    const int index = Group(group) * voicesPerGroup + voice;
+    if (index < 0 || index >= (int)tracks.size()) {
+        return NULL;
+    }
+
+    return tracks[index];
+}
+
+void SfxVoicePool::Play(int group, MIX_Audio* audio, float volume, int loops, int fadeInMs) {
+    PlayVoice(group, 0, audio, volume, loops, fadeInMs);
+}
+
+void SfxVoicePool::PlayVoice(int group, int voice, MIX_Audio* audio, float volume, int loops, int fadeInMs) {
+    MIX_Track* track = Track(group, voice);
+    if (track == NULL || fn_MIX_SetTrackGain == NULL) {
+        return;
+    }
+
+    fn_MIX_SetTrackGain(track, spatialized ? GainSpatialized(volume) : Gain(volume));
+    PlayOnTrack(track, audio, loops, fadeInMs);
+}
+
+void SfxVoicePool::PlayFree(int group, MIX_Audio* audio, float volume, int angle, int distance, int fadeOthersMs) {
+    if (fn_MIX_SetTrackGain == NULL) {
+        return;
+    }
+
+    const int g = Group(group);
+    for (int v = 0; v < voicesPerGroup; ++v) {
+        MIX_Track* track = Track(g, v);
+        if (track == NULL || TrackPlaying(track)) {
+            continue;
+        }
+
+        fn_MIX_SetTrackGain(track, spatialized ? GainSpatialized(volume) : Gain(volume));
+        if (spatialized) {
+            SetTrackPan(track, angle, distance);
+        }
+        PlayOnTrack(track, audio, 0, 0);
+
+        if (fadeOthersMs >= 0) {
+            for (int other = 0; other < voicesPerGroup; ++other) {
+                if (other != v) {
+                    StopTrack(Track(g, other), fadeOthersMs);
+                }
+            }
+        }
+        return;
+    }
+}
+
+bool SfxVoicePool::IsAnyPlaying(int group) const {
+    const int g = Group(group);
+    for (int v = 0; v < voicesPerGroup; ++v) {
+        if (TrackPlaying(Track(g, v))) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void SfxVoicePool::SetPosition(int group, int angle, int distance) {
+    if (!spatialized) {
+        return;
+    }
+
+    const int g = Group(group);
+    for (int v = 0; v < voicesPerGroup; ++v) {
+        SetTrackPan(Track(g, v), angle, distance);
+    }
+}
+
+void SfxVoicePool::Stop(int group, int fadeMs) {
+    const int g = Group(group);
+    for (int v = 0; v < voicesPerGroup; ++v) {
+        StopTrack(Track(g, v), fadeMs);
+    }
+}
+
+void SfxVoicePool::Pause(int group) {
+    if (fn_MIX_PauseTrack == NULL) {
+        return;
+    }
+
+    const int g = Group(group);
+    for (int v = 0; v < voicesPerGroup; ++v) {
+        MIX_Track* track = Track(g, v);
+        if (track != NULL) {
+            fn_MIX_PauseTrack(track);
+        }
+    }
+}
+
+void SfxVoicePool::Resume(int group) {
+    if (fn_MIX_ResumeTrack == NULL) {
+        return;
+    }
+
+    const int g = Group(group);
+    for (int v = 0; v < voicesPerGroup; ++v) {
+        MIX_Track* track = Track(g, v);
+        if (track != NULL) {
+            fn_MIX_ResumeTrack(track);
+        }
+    }
+}
+
+void InitAudioPools() {
+    poolDevilArm.Init("devilArm", 20, 1);
+    poolChangeGun.Init("changeGun", 20, 1);
+    poolStyleChange.Init("styleChange", 20);
+    poolStyleChangeVO.Init("styleChangeVO", 20);
+    poolStyleRank.Init("styleRank", 7, 1, false);
+    poolSprint.Init("sprint", 2);
+    poolDevilTriggerIn.Init("devilTriggerIn", 2);
+    poolDevilTriggerOut.Init("devilTriggerOut", 1);
+    poolDevilTriggerLoop.Init("devilTriggerLoop", 1);
+    poolDoppelgangerIn.Init("doppelgangerIn", 1);
+    poolDoppelgangerOut.Init("doppelgangerOut", 1);
+    poolQuicksilverIn.Init("quicksilverIn", 1, 1);
+    poolQuicksilverOut.Init("quicksilverOut", 1, 1);
+    poolDevilTriggerReady.Init("devilTriggerReady", 1);
+    poolDelayedCombo1.Init("delayedCombo1", 1);
+    poolDelayedCombo2.Init("delayedCombo2", 1);
+    poolDteStart.Init("dteStart", 1);
+    poolDteLoop.Init("dteLoop", 1);
+    poolDteFinish.Init("dteFinish", 1);
+    poolDteRelease.Init("dteRelease", 1);
+    poolGuard.Init("guard", 2);
+    poolRoyalBlock.Init("royalBlock", 5);
+    poolNormalBlock.Init("normalBlock", 5);
+    poolJdc.Init("jdc", 10);
+    poolJdcCharge.Init("jdcCharge", 1);
+    poolSnap.Init("snap", 10);
+    poolDrive.Init("drive", 1);
+    poolDriveLevelUp.Init("driveLevelUp", 2);
+    poolDriveLoop.Init("driveLoop", 1);
+    poolDriveClone.Init("driveClone", 1);
+    poolDriveLevelUpClone.Init("driveLevelUpClone", 2);
+    poolDriveLoopClone.Init("driveLoopClone", 1);
+    poolEcstasyHit.Init("ecstasyHit", 2);
+}
+
+static MIX_Audio* LoadAudioFile(const char* path, bool predecode) {
+    if (g_mixer == NULL || fn_MIX_LoadAudio == NULL) {
+        return NULL;
+    }
+
+    MIX_Audio* audio = fn_MIX_LoadAudio(g_mixer, path, predecode);
+    if (audio == NULL) {
+        Log("MIX_LoadAudio failed: %s", path);
+    }
+
+    return audio;
+}
+
+static void ApplyMusicGain() {
+    if (g_mixer != NULL && fn_MIX_SetTagGain != NULL) {
+        fn_MIX_SetTagGain(g_mixer, kMusicTag, g_musicGain * g_musicDuck);
+    }
+}
+
+static void PlayMusic(MIX_Audio* song, int fadeInMs) {
+    if (song == NULL) {
+        return;
+    }
+    if (g_musicTracks[0] == NULL && g_musicTracks[1] == NULL) {
+        return;
+    }
+
+    MIX_Track* track = NULL;
+    for (int i = 0; i < 2; ++i) {
+        const int index = (g_nextMusicTrack + i) % 2;
+        if (!TrackPlaying(g_musicTracks[index])) {
+            track = g_musicTracks[index];
+            g_nextMusicTrack = (index + 1) % 2;
+            break;
+        }
+    }
+    if (track == NULL) {
+        track             = g_musicTracks[g_nextMusicTrack];
+        g_nextMusicTrack  = (g_nextMusicTrack + 1) % 2;
+    }
+
+    ApplyMusicGain();
+    PlayOnTrack(track, song, -1, fadeInMs);
+}
+
+static MIX_Audio* LoadSfx(const char* path) {
+    return LoadAudioFile(path, true);
+}
+
+static MIX_Audio* LoadMusic(const char* path) {
+    return LoadAudioFile(path, false);
+}
+
+// Music is streamed, so a switcher would otherwise reload the same file on
+// every crossfade.
+static MIX_Audio* LoadMusicCached(const std::string& path) {
+    auto it = g_audioCache.find(path);
+    if (it != g_audioCache.end()) {
+        return it->second;
+    }
+
+    MIX_Audio* audio = LoadMusic(path.c_str());
+    if (audio != NULL) {
+        g_audioCache[path] = audio;
+    }
+
+    return audio;
+}
+
 void LoadAllSFX() {
 	if (!cacheAudioFiles) {
 
-		changeGun = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\changegun.wav").c_str());
-		changeDevilArm = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\changedevilarm.wav").c_str());
-		changeWeaponDMC3 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\changeweapondmc3.wav").c_str());
-		styleChange = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\stylechange.wav").c_str());
-		tricksterVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\trickster1.wav").c_str());
-		swordmasterVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\swordmaster1.wav").c_str());
-		gunslingerVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\gunslinger1.wav").c_str());
-		royalguardVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\royalguard1.wav").c_str());
-		quicksilverVO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\quicksilver1.wav").c_str());
-		doppelganger1VO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\doppelganger1.wav").c_str());
-        doppelganger2VO = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\doppelganger2.wav").c_str());
-		sprintL1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\sprint_l1.wav").c_str());
-		sprintL2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\sprint_l2.wav").c_str());
-		devilTriggerInL1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dt_activation_l1.wav").c_str());
-		devilTriggerInL2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dt_activation_l2.wav").c_str());
-		devilTriggerOut = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dt_deactivation.wav").c_str());
-		devilTriggerLoop = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dt_loop.wav").c_str());
-		dtExplosionStart = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dte_start.wav").c_str());
-		dtExplosionLoop = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dte_loop.wav").c_str());
-		dtExplosionFinish = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dte_finish.wav").c_str());
-		dtExplosionRelease = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dte_release.wav").c_str());
-		doppelgangerIn = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dopp_activation.wav").c_str());
-		doppelgangerOut = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dopp_deactivation.wav").c_str());
-		quicksilverIn = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\qs_activation.wav").c_str());
-        quicksilverOut = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\qs_deactivation.wav").c_str());
-		devilTriggerReady = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\dt_ready.wav").c_str());
-		styleRankD1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\d1.wav").c_str());
-		styleRankD2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\d2.wav").c_str());
-		styleRankC1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\c1.wav").c_str());
-		styleRankC2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\c2.wav").c_str());
-		styleRankB1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\b1.wav").c_str());
-		styleRankB2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\b2.wav").c_str());
-		styleRankA1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\a1.wav").c_str());
-		styleRankA2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\a2.wav").c_str());
-		styleRankS1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\s1.wav").c_str());
-		styleRankS2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\s2.wav").c_str());
-		styleRankSS1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\ss1.wav").c_str());
-		styleRankSS2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\ss2.wav").c_str());
-		styleRankSSS1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\sss1.wav").c_str());
-		styleRankSSS2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\styleranks\\sss2.wav").c_str());
-		delayedCombo1 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\delayedcombo1.wav").c_str());
-		delayedCombo2 = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\delayedcombo2.wav").c_str());
-        guard = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\guard.wav").c_str());
-        royalBlock = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\blockroyal.wav").c_str());
-        normalBlock = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\block.wav").c_str());
-		jdc = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\jdc.wav").c_str());
-		jdcJustFrame = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\jdc_justframe.wav").c_str());
-		jdcCharge = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\jdc_charge.wav").c_str());
-		driveStart = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\drive_start.wav").c_str());
-		driveLoop = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\drive_loop.wav").c_str());
-		driveLevelUp = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\drive_levelup.wav").c_str());
-		snap = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\snap.wav").c_str());
-		ecstasyHit = fn_Mix_LoadWAV(((std::string)Paths::sounds + "\\ecstasy_hit.wav").c_str());
+		changeGun = LoadSfx(((std::string)Paths::sounds + "\\changegun.wav").c_str());
+		changeDevilArm = LoadSfx(((std::string)Paths::sounds + "\\changedevilarm.wav").c_str());
+		changeWeaponDMC3 = LoadSfx(((std::string)Paths::sounds + "\\changeweapondmc3.wav").c_str());
+		styleChange = LoadSfx(((std::string)Paths::sounds + "\\stylechange.wav").c_str());
+		tricksterVO = LoadSfx(((std::string)Paths::sounds + "\\trickster1.wav").c_str());
+		swordmasterVO = LoadSfx(((std::string)Paths::sounds + "\\swordmaster1.wav").c_str());
+		gunslingerVO = LoadSfx(((std::string)Paths::sounds + "\\gunslinger1.wav").c_str());
+		royalguardVO = LoadSfx(((std::string)Paths::sounds + "\\royalguard1.wav").c_str());
+		quicksilverVO = LoadSfx(((std::string)Paths::sounds + "\\quicksilver1.wav").c_str());
+		doppelganger1VO = LoadSfx(((std::string)Paths::sounds + "\\doppelganger1.wav").c_str());
+        doppelganger2VO = LoadSfx(((std::string)Paths::sounds + "\\doppelganger2.wav").c_str());
+		sprintL1 = LoadSfx(((std::string)Paths::sounds + "\\sprint_l1.wav").c_str());
+		sprintL2 = LoadSfx(((std::string)Paths::sounds + "\\sprint_l2.wav").c_str());
+		devilTriggerInL1 = LoadSfx(((std::string)Paths::sounds + "\\dt_activation_l1.wav").c_str());
+		devilTriggerInL2 = LoadSfx(((std::string)Paths::sounds + "\\dt_activation_l2.wav").c_str());
+		devilTriggerOut = LoadSfx(((std::string)Paths::sounds + "\\dt_deactivation.wav").c_str());
+		devilTriggerLoop = LoadSfx(((std::string)Paths::sounds + "\\dt_loop.wav").c_str());
+		dtExplosionStart = LoadSfx(((std::string)Paths::sounds + "\\dte_start.wav").c_str());
+		dtExplosionLoop = LoadSfx(((std::string)Paths::sounds + "\\dte_loop.wav").c_str());
+		dtExplosionFinish = LoadSfx(((std::string)Paths::sounds + "\\dte_finish.wav").c_str());
+		dtExplosionRelease = LoadSfx(((std::string)Paths::sounds + "\\dte_release.wav").c_str());
+		doppelgangerIn = LoadSfx(((std::string)Paths::sounds + "\\dopp_activation.wav").c_str());
+		doppelgangerOut = LoadSfx(((std::string)Paths::sounds + "\\dopp_deactivation.wav").c_str());
+		quicksilverIn = LoadSfx(((std::string)Paths::sounds + "\\qs_activation.wav").c_str());
+        quicksilverOut = LoadSfx(((std::string)Paths::sounds + "\\qs_deactivation.wav").c_str());
+		devilTriggerReady = LoadSfx(((std::string)Paths::sounds + "\\dt_ready.wav").c_str());
+		styleRankD1 = LoadSfx(((std::string)Paths::sounds + "\\styleranks\\d1.wav").c_str());
+		styleRankD2 = LoadSfx(((std::string)Paths::sounds + "\\styleranks\\d2.wav").c_str());
+		styleRankC1 = LoadSfx(((std::string)Paths::sounds + "\\styleranks\\c1.wav").c_str());
+		styleRankC2 = LoadSfx(((std::string)Paths::sounds + "\\styleranks\\c2.wav").c_str());
+		styleRankB1 = LoadSfx(((std::string)Paths::sounds + "\\styleranks\\b1.wav").c_str());
+		styleRankB2 = LoadSfx(((std::string)Paths::sounds + "\\styleranks\\b2.wav").c_str());
+		styleRankA1 = LoadSfx(((std::string)Paths::sounds + "\\styleranks\\a1.wav").c_str());
+		styleRankA2 = LoadSfx(((std::string)Paths::sounds + "\\styleranks\\a2.wav").c_str());
+		styleRankS1 = LoadSfx(((std::string)Paths::sounds + "\\styleranks\\s1.wav").c_str());
+		styleRankS2 = LoadSfx(((std::string)Paths::sounds + "\\styleranks\\s2.wav").c_str());
+		styleRankSS1 = LoadSfx(((std::string)Paths::sounds + "\\styleranks\\ss1.wav").c_str());
+		styleRankSS2 = LoadSfx(((std::string)Paths::sounds + "\\styleranks\\ss2.wav").c_str());
+		styleRankSSS1 = LoadSfx(((std::string)Paths::sounds + "\\styleranks\\sss1.wav").c_str());
+		styleRankSSS2 = LoadSfx(((std::string)Paths::sounds + "\\styleranks\\sss2.wav").c_str());
+		delayedCombo1 = LoadSfx(((std::string)Paths::sounds + "\\delayedcombo1.wav").c_str());
+		delayedCombo2 = LoadSfx(((std::string)Paths::sounds + "\\delayedcombo2.wav").c_str());
+        guard = LoadSfx(((std::string)Paths::sounds + "\\guard.wav").c_str());
+        royalBlock = LoadSfx(((std::string)Paths::sounds + "\\blockroyal.wav").c_str());
+        normalBlock = LoadSfx(((std::string)Paths::sounds + "\\block.wav").c_str());
+		jdc = LoadSfx(((std::string)Paths::sounds + "\\jdc.wav").c_str());
+		jdcJustFrame = LoadSfx(((std::string)Paths::sounds + "\\jdc_justframe.wav").c_str());
+		jdcCharge = LoadSfx(((std::string)Paths::sounds + "\\jdc_charge.wav").c_str());
+		driveStart = LoadSfx(((std::string)Paths::sounds + "\\drive_start.wav").c_str());
+		driveLoop = LoadSfx(((std::string)Paths::sounds + "\\drive_loop.wav").c_str());
+		driveLevelUp = LoadSfx(((std::string)Paths::sounds + "\\drive_levelup.wav").c_str());
+		snap = LoadSfx(((std::string)Paths::sounds + "\\snap.wav").c_str());
+		ecstasyHit = LoadSfx(((std::string)Paths::sounds + "\\ecstasy_hit.wav").c_str());
 
 
-		missionClearSong = fn_Mix_LoadMUS(((std::string)Paths::sounds + "\\music\\missionclear.mp3").c_str());
-        divinityStatueSong = fn_Mix_LoadMUS(((std::string)Paths::sounds + "\\music\\divinitystatue.mp3").c_str());
-		battleOfBrothersSong = fn_Mix_LoadMUS(((std::string)Paths::sounds + "\\music\\battleofbrothers.mp3").c_str());
+		missionClearSong = LoadMusic(((std::string)Paths::sounds + "\\music\\missionclear.mp3").c_str());
+        divinityStatueSong = LoadMusic(((std::string)Paths::sounds + "\\music\\divinitystatue.mp3").c_str());
+		battleOfBrothersSong = LoadMusic(((std::string)Paths::sounds + "\\music\\battleofbrothers.mp3").c_str());
 
 
 		cacheAudioFiles = true;
@@ -816,7 +1185,9 @@ void InitSDL() {
 		}
 
 		// SDL3: SDL_Init returns bool; SDL_INIT_HAPTIC removed (merged into GAMEPAD)
-		if (!fn_SDL_Init(SDL_INIT_GAMEPAD)) {
+		// Audio is optional: a machine with no output device must still be able to
+		// start the game, so only a gamepad failure is fatal.
+		if (!fn_SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_AUDIO) && !fn_SDL_Init(SDL_INIT_GAMEPAD)) {
 			SDL3Initialization = std::string("SDL3 Error: ") + (fn_SDL_GetError ? fn_SDL_GetError() : "unknown");
 			MessageBoxA(NULL,
 				"SDL3.dll could not be loaded.\n\nPlease ensure SDL3.dll is present in the game folder.\n\nThe application will now close.",
@@ -844,72 +1215,71 @@ void InitSDL() {
         LOAD_SDL_FUNCTION(SDL_GetGamepadAxis);
         LOAD_SDL_FUNCTION(SDL_GetNumGamepadTouchpads);
         LOAD_SDL_FUNCTION(SDL_GetGamepadTouchpadFinger);
+        LOAD_SDL_FUNCTION(SDL_CreateProperties);
+        LOAD_SDL_FUNCTION(SDL_SetNumberProperty);
+        LOAD_SDL_FUNCTION(SDL_DestroyProperties);
 
        
 
-        // --- Phase 2: Load SDL2_mixer (only after SDL3 is initialized) ---
-        LOAD_MIXER_FUNCTION(Mix_AllocateChannels);
-        LOAD_MIXER_FUNCTION(Mix_ReserveChannels);
-        LOAD_MIXER_FUNCTION(Mix_LoadWAV);
-        LOAD_MIXER_FUNCTION(Mix_LoadMUS);
-        LOAD_MIXER_FUNCTION(Mix_FadeOutChannel);
-        LOAD_MIXER_FUNCTION(Mix_FadeInChannel);
-        LOAD_MIXER_FUNCTION(Mix_Playing);
-        LOAD_MIXER_FUNCTION(Mix_Pause);
-        LOAD_MIXER_FUNCTION(Mix_Resume);
-        LOAD_MIXER_FUNCTION(Mix_Volume);
-        LOAD_MIXER_FUNCTION(Mix_PlayChannel);
-        LOAD_MIXER_FUNCTION(Mix_SetPosition);
-        LOAD_MIXER_FUNCTION(Mix_HaltChannel);
-        LOAD_MIXER_FUNCTION(Mix_VolumeMusic);
-        LOAD_MIXER_FUNCTION(Mix_GetMusicVolume);
-        LOAD_MIXER_FUNCTION(Mix_FadeInMusic);
-        LOAD_MIXER_FUNCTION(Mix_FadeOutMusic);
-        LOAD_MIXER_FUNCTION(Mix_PlayingMusic);
-		LOAD_MIXER_FUNCTION(Mix_OpenAudio);
-        LOAD_MIXER_FUNCTION(Mix_OpenAudioDevice);
-        LOAD_MIXER_FUNCTION(Mix_Init);
+        // --- Phase 2: Load SDL3_mixer (only after SDL3 is initialized) ---
+        LOAD_MIXER_FUNCTION(MIX_Init);
+        LOAD_MIXER_FUNCTION(MIX_Quit);
+        LOAD_MIXER_FUNCTION(MIX_Version);
+        LOAD_MIXER_FUNCTION(MIX_CreateMixerDevice);
+        LOAD_MIXER_FUNCTION(MIX_DestroyMixer);
+        LOAD_MIXER_FUNCTION(MIX_LoadAudio);
+        LOAD_MIXER_FUNCTION(MIX_DestroyAudio);
+        LOAD_MIXER_FUNCTION(MIX_CreateTrack);
+        LOAD_MIXER_FUNCTION(MIX_DestroyTrack);
+        LOAD_MIXER_FUNCTION(MIX_SetTrackAudio);
+        LOAD_MIXER_FUNCTION(MIX_TagTrack);
+        LOAD_MIXER_FUNCTION(MIX_PlayTrack);
+        LOAD_MIXER_FUNCTION(MIX_StopTrack);
+        LOAD_MIXER_FUNCTION(MIX_StopTag);
+        LOAD_MIXER_FUNCTION(MIX_PauseTrack);
+        LOAD_MIXER_FUNCTION(MIX_ResumeTrack);
+        LOAD_MIXER_FUNCTION(MIX_TrackPlaying);
+        LOAD_MIXER_FUNCTION(MIX_SetTrackGain);
+        LOAD_MIXER_FUNCTION(MIX_SetTagGain);
+        LOAD_MIXER_FUNCTION(MIX_SetTrack3DPosition);
+        LOAD_MIXER_FUNCTION(MIX_SetTrackStoppedCallback);
+        LOAD_MIXER_FUNCTION(MIX_TrackMSToFrames);
 
-		Log("Mix_OpenAudioDevice: %p", fn_Mix_OpenAudioDevice);
-		Log("Mix_OpenAudio: %p", fn_Mix_OpenAudio);
-		Log("Mix_Init: %p", fn_Mix_Init);
-
-        // SDL2_mixer: returns 0 on success, -1 on error
-        if (fn_Mix_OpenAudioDevice != NULL) {
-            if (fn_Mix_OpenAudioDevice(44100, SDL_AUDIO_S16LE, 2, 512, NULL, 0) == -1) {
-                MixerInitialization = "Mixer Error";
-            } else {
-                MixerInitialization = "Mixer Success";
-            }
+        if (fn_MIX_Init == NULL) {
+            MixerInitialization = "Mixer3 Error: MIX_Init not found";
+        } else if (!fn_MIX_Init()) {
+            MixerInitialization = std::string("Mixer3 Error: ") + (fn_SDL_GetError ? fn_SDL_GetError() : "unknown");
         } else {
-            
-            if (fn_Mix_OpenAudio != NULL) {
-                if (fn_Mix_OpenAudio(44100, SDL_AUDIO_S16LE, 2, 512) == -1) {
-                    MixerInitialization = "Mixer Error (OpenAudio fallback)";
-                } else {
-                    MixerInitialization = "Mixer Success (OpenAudio fallback)";
-                }
-            } else {
-                MixerInitialization = "Mixer Error: OpenAudioDevice/OpenAudio not found";
-            }
+            MixerInitialization = "Mixer3 Success";
         }
 
 		Log((MixerInitialization).c_str());
 
-        // Mix_Init returns bitmask of loaded codecs (0 = nothing loaded = failure)
-        if (fn_Mix_Init != NULL) {
-            int flags = MIX_INIT_OGG | MIX_INIT_MP3;
-            int result = fn_Mix_Init(flags);
-            if (!result) {
-                MixerInitialization2 = "Mixer2 Error";
-            } else if ((result & flags) != flags) {
-                MixerInitialization2 = "Mixer2 Partial";
-            } else {
-                MixerInitialization2 = "Mixer2 Succes";
-            }
-        } else {
-            MixerInitialization2 = "Mixer2 Error: Mix_Init not found";
+        if (fn_MIX_Version != NULL) {
+            const int linked   = fn_MIX_Version();
+            const int expected = SDL_MIXER_VERSION;
+            Log("SDL3_mixer linked %d, headers %d", linked, expected);
         }
+
+        g_mixer = (fn_MIX_CreateMixerDevice != NULL)
+            ? fn_MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL)
+            : NULL;
+
+        if (g_mixer == NULL || fn_MIX_CreateTrack == NULL) {
+            MixerInitialization2 = "Mixer3 Error: mixer creation failed";
+        } else {
+            InitAudioPools();
+            for (int i = 0; i < 2; ++i) {
+                g_musicTracks[i] = fn_MIX_CreateTrack(g_mixer);
+                if (g_musicTracks[i] != NULL && fn_MIX_TagTrack != NULL) {
+                    fn_MIX_TagTrack(g_musicTracks[i], kMusicTag);
+                }
+            }
+
+            MixerInitialization2 = "Mixer3 Tracks OK";
+        }
+
+		Log((MixerInitialization2).c_str());
 
         mainController = NULL;
         if (fn_SDL_GetGamepads != NULL && fn_SDL_IsGamepad != NULL && fn_SDL_OpenGamepad != NULL && fn_SDL_free != NULL) {
@@ -943,7 +1313,7 @@ void InitSDL() {
 
         if (!g_SDL3Mixer) {
             MessageBoxA(NULL,
-                "SDL2.dll / SDL2_mixer.dll could not be loaded.\n\nPlease ensure both SDL2.dll and SDL2_mixer.dll are present in the game folder.\n\nThe application will now close.",
+                "SDL3_mixer.dll could not be loaded.\n\nPlease ensure both SDL3.dll and SDL3_mixer.dll are present in the game folder.\n\nThe application will now close.",
                 "Crimson - Missing Dependency", MB_OK | MB_ICONERROR);
             exit(1);
         }
@@ -952,42 +1322,7 @@ void InitSDL() {
     }
 
 
-    // CHUNKS OF SOUND
-    if (fn_Mix_AllocateChannels != NULL) {
-        fn_Mix_AllocateChannels(1000);
-    }
-
-    // RESERVES SELECT EFFECT SOUND FOR CHANNELS 100 AND ABOVE
-    if (fn_Mix_ReserveChannels != NULL) {
-        fn_Mix_ReserveChannels(100);
-    }
-
-    if (fn_Mix_LoadWAV != NULL && fn_Mix_LoadMUS != NULL) {
-        LoadAllSFX();
-    }
-}
-
-void PlayOnChannels(int initialChannel, int finalChannel, Mix_Chunk* sfx, int volume) {
-    if (!SDL3Init || fn_Mix_Playing == NULL || fn_Mix_Volume == NULL || fn_Mix_PlayChannel == NULL) return;
-
-	for (int i = initialChannel; i <= finalChannel; i++) {
-		if (!fn_Mix_Playing(i)) {
-			fn_Mix_Volume(i, volume);
-			fn_Mix_PlayChannel(i, sfx, 0);
-			break;
-		}
-	}
-}
-
-void InterruptChannels(int initialChannel, int finalChannel) {
-    if (!SDL3Init || fn_Mix_Playing == NULL || fn_Mix_HaltChannel == NULL) return;
-
-	for (int i = initialChannel; i <= finalChannel; i++) {
-		if (fn_Mix_Playing(i)) {
-			fn_Mix_HaltChannel(i);
-			break;
-		}
-	}
+    LoadAllSFX();
 }
 
 struct SnapEvent {
@@ -1015,12 +1350,11 @@ void TickSnapQueue() {
 		auto& actorData = *reinterpret_cast<PlayerActorData*>(ev.actorBaseAddr);
 		const auto style = actorData.style;
 		const bool canPlaySnap = (actorData.eventData[0].event == 1 && actorData.character == CHARACTER::DANTE);
-		const auto initialChannel = CHANNEL::initialSnap + (10 * ev.playerIndex);
 
 		if (!ev.secondSnapPending) {
 			// First snap
 			if (canPlaySnap && ev.initialStyle == style)
-				PlayOnChannels(initialChannel, initialChannel + 9, snap, ev.volume);
+				poolSnap.PlayFree(ev.playerIndex, snap, (float)ev.volume);
 			else
 				ev.playDouble = false;
 
@@ -1038,7 +1372,7 @@ void TickSnapQueue() {
 		else {
 			// Second snap
 			if (canPlaySnap && (style == STYLE::GUNSLINGER || style == STYLE::ROYALGUARD))
-				PlayOnChannels(initialChannel, initialChannel + 9, snap, ev.volume);
+				poolSnap.PlayFree(ev.playerIndex, snap, (float)ev.volume);
 		}
 
 		it = snapQueue.erase(it);
@@ -1193,112 +1527,65 @@ void VibrateControllerByPhysicalSlot(int xiSlot, Uint16 rumbleLow, Uint16 rumble
     }
 }
 
-void FadeOutChannels(int channelException, int initialChannel, int numChannels, int fadeOutms) {
-
-    for (int i = initialChannel; i < numChannels; i++) {
-
-        if (i != channelException) {
-
-            fn_Mix_FadeOutChannel(i, fadeOutms);
-        }
-    }
-}
-
-void PlayOnChannelsFadeOut(int initialChannel, int finalChannel, Mix_Chunk* sfx, int volume, int fadeOutms) {
-    if (!SDL3Init) return;
-    int channelBeingPlayed = 0;
-
-    for (int i = initialChannel; i <= finalChannel; i++) {
-        if (!fn_Mix_Playing(i)) {
-            fn_Mix_Volume(i, volume);
-            fn_Mix_PlayChannel(i, sfx, 0);
-            channelBeingPlayed = i;
-            break;
-        }
-    }
-
-    FadeOutChannels(channelBeingPlayed, initialChannel, finalChannel, fadeOutms);
-}
-
-void PlayOnChannelsFadeOutPosition(int initialChannel, int finalChannel, Mix_Chunk* sfx, int volume, int fadeOutms, int angle, int distance) {
-    if (!SDL3Init) return;
-	int channelBeingPlayed = 0;
-
-
-	for (int i = initialChannel; i <= finalChannel; i++) {
-		if (!fn_Mix_Playing(i)) {
-			fn_Mix_Volume(i, volume);
-			fn_Mix_SetPosition(i, angle, distance);
-			fn_Mix_PlayChannel(i, sfx, 0);
-			channelBeingPlayed = i;
-			break;
-		}
-	}
-
-	FadeOutChannels(channelBeingPlayed, initialChannel, finalChannel, fadeOutms);
-}
-
 void PlayChangeDevilArm() {
 	float slider = activeCrimsonConfig.SFX.changeWeaponEffectVolume / 100.0f;
 	int volume = (int)(30.0f * slider);
-    PlayOnChannelsFadeOutPosition(CHANNEL::initialDevilArm, CHANNEL::initialDevilArm + 19, changeDevilArm, volume, 400, 90, 0);
+    poolDevilArm.PlayFree(0, changeDevilArm, volume, 90, 0, 400);
 }
 
 void PlayChangeGun() {
 	float slider = activeCrimsonConfig.SFX.changeWeaponEffectVolume / 100.0f;
 	int volume = (int)(30.0f * slider);
-    PlayOnChannelsFadeOutPosition(CHANNEL::initialChangeGun, CHANNEL::initialChangeGun + 19, changeGun, volume, 400, 270, 0);
+    poolChangeGun.PlayFree(0, changeGun, volume, 270, 0, 400);
 }
 
 
 void PlayChangeDevilArmMP() {
 	float slider = activeCrimsonConfig.SFX.changeWeaponEffectVolume / 100.0f;
 	int volume = (int)(20.0f * slider);
-	PlayOnChannelsFadeOutPosition(CHANNEL::initialDevilArm, CHANNEL::initialDevilArm + 19, changeDevilArm, volume, 400, 0, 0);
+	poolDevilArm.PlayFree(0, changeDevilArm, volume, 0, 0, 400);
 }
 
 void PlayChangeGunMP() {
 	float slider = activeCrimsonConfig.SFX.changeWeaponEffectVolume / 100.0f;
 	int volume = (int)(20.0f * slider);
-	PlayOnChannelsFadeOutPosition(CHANNEL::initialChangeGun, CHANNEL::initialChangeGun + 19, changeGun, volume, 400, 0, 0);
+	poolChangeGun.PlayFree(0, changeGun, volume, 0, 0, 400);
 }
 
 void PlayChangeWeaponDMC3MP() {
 	float slider = activeCrimsonConfig.SFX.changeWeaponEffectVolume / 100.0f;
 	int volume = (int)(20.0f * slider);
-	PlayOnChannelsFadeOutPosition(CHANNEL::initialChangeGun, CHANNEL::initialChangeGun + 19, changeWeaponDMC3, volume, 400, 0, 0);
+	poolChangeGun.PlayFree(0, changeWeaponDMC3, volume, 0, 0, 400);
 }
 
 void PlayStyleChange(int playerIndex) {
 	float slider = activeCrimsonConfig.SFX.styleChangeVolume / 100.0f; 
 	int volume = (int)(10.0f * slider); 
-    auto initialChannel = CHANNEL::initialStyleChange + (20 * playerIndex);
-   
-    PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, styleChange, volume, 150);
+
+    poolStyleChange.PlayFree(playerIndex, styleChange, volume, 0, 0, 150);
 }
 
 void PlayStyleChangeVO(int playerIndex, int style, bool doppActive) {
 	float slider = activeCrimsonConfig.SFX.styleChangeVoiceOverVolume / 100.0f;
 	int volume = (int)(46.08f * slider);
-    auto initialChannel = CHANNEL::initialStyleChangeVO + (20 * playerIndex);
 
     if (style == 2) {
-        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, tricksterVO, volume, 150);
+        poolStyleChangeVO.PlayFree(playerIndex, tricksterVO, volume, 0, 0, 150);
     } else if (style == 0) {
-        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, swordmasterVO, volume, 150);
+        poolStyleChangeVO.PlayFree(playerIndex, swordmasterVO, volume, 0, 0, 150);
     } else if (style == 1) {
-        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, gunslingerVO, volume, 150);
+        poolStyleChangeVO.PlayFree(playerIndex, gunslingerVO, volume, 0, 0, 150);
     } else if (style == 3) {
-        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, royalguardVO, volume, 150);
+        poolStyleChangeVO.PlayFree(playerIndex, royalguardVO, volume, 0, 0, 150);
     } else if (style == 4) {
-        PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, quicksilverVO, volume, 150);
+        poolStyleChangeVO.PlayFree(playerIndex, quicksilverVO, volume, 0, 0, 150);
     } else if (style == 5) {
 
         if (doppActive) {
-            PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, doppelganger1VO, volume, 150);
+            poolStyleChangeVO.PlayFree(playerIndex, doppelganger1VO, volume, 0, 0, 150);
         }
         else {
-            PlayOnChannelsFadeOut(initialChannel, initialChannel + 19, doppelganger2VO, volume, 150);
+            poolStyleChangeVO.PlayFree(playerIndex, doppelganger2VO, volume, 0, 0, 150);
         }
     }
 }
@@ -1346,60 +1633,58 @@ void PlaySnap(byte8* actorBaseAddr) {
 		});
 }
 
-void SetSFXDistanceMultipleChannels(int playerIndex, int initialChannel, int numberChannelsPerPlayer, int angle, int distance) {
-    if (!SDL3Init || fn_Mix_SetPosition == NULL) return;
-    auto initialChannelPlayer = initialChannel + (numberChannelsPerPlayer * playerIndex);
+// Sounds whose spatialization is only applied in multiplayer, matching how the
+// old channel blocks were positioned.
+static SfxVoicePool* const kMultiplayerPositionedPools[] = {
+    &poolDevilArm,
+    &poolChangeGun,
+};
 
-    for (int i = initialChannelPlayer; i <= (initialChannelPlayer + (numberChannelsPerPlayer - 1)); i++) {
-        fn_Mix_SetPosition(i, angle, distance);
-    }
-
-}
+// Sounds positioned every frame for every player.
+static SfxVoicePool* const kPositionedPools[] = {
+    &poolStyleChange,
+    &poolStyleChangeVO,
+    &poolSprint,
+    &poolDevilTriggerIn,
+    &poolDevilTriggerOut,
+    &poolDevilTriggerLoop,
+    &poolDoppelgangerIn,
+    &poolDoppelgangerOut,
+    &poolQuicksilverIn,
+    &poolQuicksilverOut,
+    &poolDevilTriggerReady,
+    &poolDelayedCombo1,
+    &poolDelayedCombo2,
+    &poolDteStart,
+    &poolDteLoop,
+    &poolDteFinish,
+    &poolDteRelease,
+    &poolGuard,
+    &poolRoyalBlock,
+    &poolNormalBlock,
+    &poolJdc,
+    &poolJdcCharge,
+    &poolSnap,
+    &poolDrive,
+    &poolDriveLoop,
+    &poolDriveLevelUp,
+    &poolDriveClone,
+    &poolDriveLoopClone,
+    &poolDriveLevelUpClone,
+};
 
 void SetAllSFXDistance(int playerIndex, int angle, int distance) {
     // This will simulate a pseudo 3D effect for the SFX
 
-    if (activeConfig.Actor.playerCount > 1) {
-		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDevilArm, 20, angle, distance);
-		SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialChangeGun, 20, angle, distance);
+    if (activeConfig.Actor.playerCount > 1 && playerIndex == 0) {
+        for (SfxVoicePool* pool : kMultiplayerPositionedPools) {
+            pool->SetPosition(0, angle, distance);
+        }
     }
 
-	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChange, 20, angle, distance);
-	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialStyleChangeVO, 20, angle, distance);
-	
-    fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex, angle, distance);
-    fn_Mix_SetPosition(CHANNEL::initialSprint + playerIndex + 4, angle, distance); // L2
-    fn_Mix_SetPosition(CHANNEL::initialDTIn + playerIndex, angle, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDTIn + playerIndex + 4, angle, distance); // L2
-    fn_Mix_SetPosition(CHANNEL::initialDTOut + playerIndex, angle, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDTLoop + playerIndex, angle, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDoppIn + playerIndex, angle, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDoppOut + playerIndex, angle, distance);
-    fn_Mix_SetPosition(CHANNEL::quickIn, angle, distance);
-    fn_Mix_SetPosition(CHANNEL::quickOut, angle, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDTReady + playerIndex, angle, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDelayedCombo1 + playerIndex, angle, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDelayedCombo2 + playerIndex, angle, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDTEStart + playerIndex, angle, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDTELoop + playerIndex, angle, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDTEFinish + playerIndex, angle, distance);
-    fn_Mix_SetPosition(CHANNEL::initialDTERelease + playerIndex, angle, distance);
-	fn_Mix_SetPosition(CHANNEL::initialDTEStart + playerIndex, angle, distance);
-	fn_Mix_SetPosition(CHANNEL::initialDTELoop + playerIndex, angle, distance);
-	fn_Mix_SetPosition(CHANNEL::initialDTEFinish + playerIndex, angle, distance);
-
-    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialGuard, 2, angle, distance);
-    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialRoyalBlock, 5, angle, distance);
-    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialBlock, 5, angle, distance);
-    SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialJDC, 10, angle, distance);
-	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialJDCCharge, 1, angle, distance);
-	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialSnap, 10, angle, distance);
-	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDrive, 1, angle, distance);
-	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDriveLoop, 1, angle, distance);
-	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDriveLevelUp, 2, angle, distance);
-	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDriveClone, 1, angle, distance);
-	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDriveLoopClone, 1, angle, distance);
-	SetSFXDistanceMultipleChannels(playerIndex, CHANNEL::initialDriveLevelUpClone, 2, angle, distance);
+    for (SfxVoicePool* pool : kPositionedPools) {
+        pool->SetPosition(playerIndex, angle, distance);
+    }
 }
 
 void StyleRankCooldownTracker(int rank) {
@@ -1422,7 +1707,7 @@ void SetCurrentStyleRank(int currentStyleRank) {
     }
 }
 
-void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank) {
+void PlayStyleRank(MIX_Audio* styleRankWAV, MIX_Audio* styleRankWAVAlt, int rank) {
 	float slider = activeCrimsonConfig.SFX.announcerVolume / 100.0f;
 	int volume = (int)(255.0f * slider);
 
@@ -1431,16 +1716,14 @@ void PlayStyleRank(Mix_Chunk* styleRankWAV, Mix_Chunk* styleRankWAVAlt, int rank
     }
 
     if (rankAnnouncer[rank - 1].turn == 0 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
-        fn_Mix_Volume(CHANNEL::initialStyleRank + (rank - 1), volume);
-        fn_Mix_PlayChannel(CHANNEL::initialStyleRank + (rank - 1), styleRankWAV, 0);
+        poolStyleRank.PlayVoice(0, rank - 1, styleRankWAV, (float)volume);
         rankAnnouncer[rank - 1].turn++;
 
         rankAnnouncer[rank - 1].timer = activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSec;
 
 
     } else if (rankAnnouncer[rank - 1].turn == 1 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
-        fn_Mix_Volume(CHANNEL::initialStyleRank + (rank - 1), volume);
-        fn_Mix_PlayChannel(CHANNEL::initialStyleRank + (rank - 1), styleRankWAVAlt, 0);
+        poolStyleRank.PlayVoice(0, rank - 1, styleRankWAVAlt, (float)volume);
         rankAnnouncer[rank - 1].turn = 0;
 
         rankAnnouncer[rank - 1].timer = activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSec;
@@ -1480,10 +1763,8 @@ void PlaySprint(int playerIndex) {
 	float slider = activeCrimsonConfig.SFX.sprintEffectVolume / 100.0f;
 	int volume = (int)(20.0f * slider);
 
-    fn_Mix_Volume(CHANNEL::initialSprint + playerIndex, volume);
-    fn_Mix_Volume(CHANNEL::initialSprint + 4 + playerIndex, volume);
-    fn_Mix_PlayChannel(CHANNEL::initialSprint + playerIndex, sprintL1, 0);
-    fn_Mix_PlayChannel(CHANNEL::initialSprint + 4 + playerIndex, sprintL2, 0);
+    poolSprint.PlayVoice(playerIndex, 0, sprintL1, (float)volume);
+    poolSprint.PlayVoice(playerIndex, 1, sprintL2, (float)volume);
 }
 
 void PlayDevilTriggerIn(int playerIndex) {
@@ -1492,75 +1773,65 @@ void PlayDevilTriggerIn(int playerIndex) {
 	float sliderL2 = activeCrimsonConfig.SFX.dTInL2Volume / 100.0f;
 	int volumeL2 = (int)(20.0f * sliderL2);
 
-    fn_Mix_Volume(CHANNEL::initialDTIn + playerIndex, volumeL1);
-    fn_Mix_Volume(CHANNEL::initialDTIn +  4 + playerIndex, volumeL2);
-    fn_Mix_PlayChannel(CHANNEL::initialDTIn + playerIndex, devilTriggerInL1, 0);
-    fn_Mix_PlayChannel(CHANNEL::initialDTIn + 4 + playerIndex, devilTriggerInL2, 0);
+    poolDevilTriggerIn.PlayVoice(playerIndex, 0, devilTriggerInL1, (float)volumeL1);
+    poolDevilTriggerIn.PlayVoice(playerIndex, 1, devilTriggerInL2, (float)volumeL2);
 }
 
 void PlayDevilTriggerOut(int playerIndex) {
 	float slider = activeCrimsonConfig.SFX.dTOutVolume / 100.0f;
 	int volume = (int)(50.0f * slider);
 
-    fn_Mix_Volume(CHANNEL::initialDTOut + playerIndex, volume);
-    fn_Mix_PlayChannel(CHANNEL::initialDTOut + playerIndex, devilTriggerOut, 0);
+    poolDevilTriggerOut.Play(playerIndex, devilTriggerOut, (float)volume);
 }
 
 void PlayDevilTriggerLoop(int playerIndex) {
     // Currently unused. - Mia
 
-    fn_Mix_Volume(CHANNEL::initialDTLoop + playerIndex, 30);
-    fn_Mix_PlayChannel(CHANNEL::initialDTLoop + playerIndex, devilTriggerLoop, -1);
+    poolDevilTriggerLoop.Play(playerIndex, devilTriggerLoop, 30.0f, -1);
 }
 
 void StopDevilTriggerLoop(int playerIndex) {
 
-    fn_Mix_HaltChannel(CHANNEL::initialDTLoop + playerIndex);
+    poolDevilTriggerLoop.Stop(playerIndex);
 }
 
 void PlayDoppelgangerIn(int playerIndex) {
 	float slider = activeCrimsonConfig.SFX.doppelInVolume / 100.0f;
 	int volume = (int)(50.0f * slider);
 
-    fn_Mix_Volume(CHANNEL::initialDoppIn + playerIndex, volume);
-    fn_Mix_PlayChannel(CHANNEL::initialDoppIn + playerIndex, doppelgangerIn, 0);
+    poolDoppelgangerIn.Play(playerIndex, doppelgangerIn, (float)volume);
 }
 
 void PlayDoppelgangerOut(int playerIndex) {
 	float slider = activeCrimsonConfig.SFX.doppelOutVolume / 100.0f;
 	int volume = (int)(50.0f * slider);
 
-    fn_Mix_Volume(CHANNEL::initialDoppOut + playerIndex, volume);
-    fn_Mix_PlayChannel(CHANNEL::initialDoppOut + playerIndex, doppelgangerOut, 0);
+    poolDoppelgangerOut.Play(playerIndex, doppelgangerOut, (float)volume);
 }
 
 void PlayQuicksilverIn() {
 	float slider = activeCrimsonConfig.SFX.quickInVolume / 100.0f;
 	int volume = (int)(50.0f * slider);
 
-    fn_Mix_Volume(CHANNEL::quickIn, volume);
-    fn_Mix_PlayChannel(CHANNEL::quickIn, quicksilverIn, 0);
+    poolQuicksilverIn.Play(0, quicksilverIn, (float)volume);
 }
 
 void PlayQuicksilverOut() {
 	float slider = activeCrimsonConfig.SFX.quickOutVolume / 100.0f;
 	int volume = (int)(50.0f * slider);
 
-	fn_Mix_Volume(CHANNEL::quickOut, volume);
-	fn_Mix_PlayChannel(CHANNEL::quickOut, quicksilverOut, 0);
+	poolQuicksilverOut.Play(0, quicksilverOut, (float)volume);
 }
 
 void PlayJDC(int playerIndex, bool justFrame, float delay) {
-
-	auto initialChannel = CHANNEL::initialJDC + (10 * playerIndex);
 
 	auto playSound = [=]() {
 		float slider = 90 / 100.0f;
 		int volume = (int)(72.0f * slider);
 		if (justFrame) {
-			PlayOnChannels(initialChannel, initialChannel + 9, jdcJustFrame, volume);
+			poolJdc.PlayFree(playerIndex, jdcJustFrame, (float)volume);
 		} else {
-			PlayOnChannels(initialChannel, initialChannel + 9, jdc, volume);
+			poolJdc.PlayFree(playerIndex, jdc, (float)volume);
 		}
 	};
 
@@ -1575,118 +1846,96 @@ void PlayJDC(int playerIndex, bool justFrame, float delay) {
 }
 
 void PlayJDCCharge(int playerIndex) {
-    auto initialChannel = CHANNEL::initialJDCCharge + (playerIndex);
     float slider = 10 / 100.0f;
     int volume = (int)(65.0f * slider);
-    fn_Mix_Volume(CHANNEL::initialJDCCharge + playerIndex, volume);
-    fn_Mix_PlayChannel(CHANNEL::initialJDCCharge + playerIndex, jdcCharge, 0);
+    poolJdcCharge.Play(playerIndex, jdcCharge, (float)volume);
 }
 
 void PlayDevilTriggerReady(int playerIndex) {
 	float slider = activeCrimsonConfig.SFX.dTReadyVolume / 100.0f;
 	int volume = (int)(110.0f * slider);
 
-    fn_Mix_Volume(CHANNEL::initialDTReady + playerIndex, volume);
-    fn_Mix_PlayChannel(CHANNEL::initialDTReady + playerIndex, devilTriggerReady, 0);
+    poolDevilTriggerReady.Play(playerIndex, devilTriggerReady, (float)volume);
 }
 
 void PlayDelayedCombo1(int playerIndex) {
     // TYPE B - DmC ping
 	float slider = activeCrimsonConfig.SFX.delayedComboIndicatorVolume / 100.0f; // 1.0 to 0.0
 	int volumeDelayed1 = (int)(11.0f * slider); // 18 at 100%, 0 at 0%
-	fn_Mix_Volume(CHANNEL::initialDelayedCombo1 + playerIndex, volumeDelayed1);
-	fn_Mix_PlayChannel(CHANNEL::initialDelayedCombo1 + playerIndex, delayedCombo1, 0);
+	poolDelayedCombo1.Play(playerIndex, delayedCombo1, (float)volumeDelayed1);
 }
 
 void PlayDelayedCombo2(int playerIndex) {
     // TYPE A - Less Intrusive
 	float slider = activeCrimsonConfig.SFX.delayedComboIndicatorVolume / 100.0f; 
 	int volumeDelayed2 = (int)(50.0f * slider); 
-    fn_Mix_Volume(CHANNEL::initialDelayedCombo2 + playerIndex, volumeDelayed2);
-    fn_Mix_PlayChannel(CHANNEL::initialDelayedCombo2 + playerIndex, delayedCombo2, 0);
-}
-
-bool ChannelIsPlaying(int channel) {
-    if (!SDL3Init || fn_Mix_Playing == NULL) return false;
-    return fn_Mix_Playing(channel);
+    poolDelayedCombo2.Play(playerIndex, delayedCombo2, (float)volumeDelayed2);
 }
 
 bool DTEStartIsPlaying(int playerIndex) {
-    return ChannelIsPlaying(CHANNEL::initialDTEStart + playerIndex);
+    return SDL3Init && poolDteStart.IsAnyPlaying(playerIndex);
 }
 
 void PlayDTExplosionStart(int playerIndex) {
-    // starts at channel 312, to 315 for 4P
 	float slider = activeCrimsonConfig.SFX.dTEStartLoopVolume / 100.0f;
 	int volume = (int)(50.0f * slider);
-    fn_Mix_Volume(CHANNEL::initialDTEStart + playerIndex, volume);
-    fn_Mix_PlayChannel(CHANNEL::initialDTEStart + playerIndex, dtExplosionStart, 0);
+    poolDteStart.Play(playerIndex, dtExplosionStart, (float)volume);
 }
 
 void PlayDTExplosionLoop(int playerIndex) {
-	// starts at channel 316, to 319 for 4P
 	float slider = activeCrimsonConfig.SFX.dTEStartLoopVolume / 100.0f;
 	int volume = (int)(50.0f * slider);
-	fn_Mix_Volume(CHANNEL::initialDTELoop + playerIndex, volume);
-	fn_Mix_PlayChannel(CHANNEL::initialDTELoop + playerIndex, dtExplosionLoop, -1);
+	poolDteLoop.Play(playerIndex, dtExplosionLoop, (float)volume, -1);
 }
 
 void PlayDTExplosionFinish(int playerIndex) {
-    // starts at channel 320, to 323 for 4P
 	float slider = activeCrimsonConfig.SFX.dTEFinishVolume / 100.0f;
 	int volume = (int)(130.0f * slider);
-    fn_Mix_Volume(CHANNEL::initialDTEFinish + playerIndex, volume);
-    fn_Mix_PlayChannel(CHANNEL::initialDTEFinish + playerIndex, dtExplosionFinish, 0);
+    poolDteFinish.Play(playerIndex, dtExplosionFinish, (float)volume);
 }
 
 void PlayDTEExplosionRelease(int playerIndex, float volumeMultiplier) {
-    // starts at channel 324, to 327 for 4P
 	float slider = activeCrimsonConfig.SFX.dTEReleaseVolume / 100.0f;
 	int volume = (int)((85.0f * volumeMultiplier) * slider);
-	fn_Mix_Volume(CHANNEL::initialDTERelease + playerIndex, volume);
-	fn_Mix_PlayChannel(CHANNEL::initialDTERelease + playerIndex, dtExplosionRelease, 0);
+	poolDteRelease.Play(playerIndex, dtExplosionRelease, (float)volume);
 }
 
 void InterruptDTExplosionSFX(int playerIndex) {
-    fn_Mix_HaltChannel(CHANNEL::initialDTEStart + playerIndex);
-    fn_Mix_HaltChannel(CHANNEL::initialDTELoop + playerIndex);
+    poolDteStart.Stop(playerIndex);
+    poolDteLoop.Stop(playerIndex);
 }
 
 void PauseDTExplosionSFX(int playerIndex) {
-    fn_Mix_Pause(CHANNEL::initialDTEStart + playerIndex);
-	fn_Mix_Pause(CHANNEL::initialDTELoop + playerIndex);
+    poolDteStart.Pause(playerIndex);
+	poolDteLoop.Pause(playerIndex);
 }
 
 void ResumeDTExplosionSFX(int playerIndex) {
-	fn_Mix_Resume(CHANNEL::initialDTEStart + playerIndex);
-	fn_Mix_Resume(CHANNEL::initialDTELoop + playerIndex);
+	poolDteStart.Resume(playerIndex);
+	poolDteLoop.Resume(playerIndex);
 }
 
 
 void PlayGuard(int playerIndex) {
-	auto initialChannel = CHANNEL::initialGuard + (2 * playerIndex);
-
-	PlayOnChannels(initialChannel, initialChannel + 1, guard, 50);
+	poolGuard.PlayFree(playerIndex, guard, 50.0f);
 }
 
 void PlayRoyalBlock(int playerIndex) {
-	auto initialChannel = CHANNEL::initialRoyalBlock + (5 * playerIndex);
 	float slider = activeCrimsonConfig.SFX.royalBlockVolume / 100.0f;
 	int volume = (int)(44.0f * slider);
 
-	PlayOnChannels(initialChannel, initialChannel + 4, royalBlock, volume);
+	poolRoyalBlock.PlayFree(playerIndex, royalBlock, (float)volume);
 }
 
 void PlayNormalBlock(int playerIndex) {
-	auto initialChannel = CHANNEL::initialBlock + (5 * playerIndex);
 	float slider = activeCrimsonConfig.SFX.normalBlockVolume / 100.0f;
 	int volume = (int)(20.0f * slider);
 
-	PlayOnChannels(initialChannel, initialChannel + 4, normalBlock, volume);
+	poolNormalBlock.PlayFree(playerIndex, normalBlock, (float)volume);
 }
 
 void PlayEcstasyHit(uintptr_t shlActorAddr) {
-	if (!SDL3Init || fn_Mix_PlayChannel == NULL || fn_Mix_SetPosition == NULL) return;
+	if (!SDL3Init || fn_MIX_SetTrack3DPosition == NULL) return;
 	if (!shlActorAddr) return;
 
 	auto& shlActor = *reinterpret_cast<CPl000Shl10eActor*>(shlActorAddr);
@@ -1717,104 +1966,97 @@ void PlayEcstasyHit(uintptr_t shlActorAddr) {
 	float angle = normalizedOffset * 90.0f;
 	if (std::abs(angle) < audioDeadzoneAngle) angle = 0.0f;
 
-	auto initialChannel = CHANNEL::initialEcstasyHit + (2 * playerIndex);
-	PlayOnChannelsFadeOutPosition(initialChannel, initialChannel + 1, ecstasyHit, 15, 100, (int)std::round(angle), distance);
+	const int panAngle = (int)std::round(angle);
+
+	// Overlapping hits are meant to ring out, so this one just takes a free voice
+	// and never fades the instance already playing.
+	poolEcstasyHit.PlayFree(playerIndex, ecstasyHit, 15.0f, panAngle, distance);
 }
 
 void PlayDriveStart(int playerIndex, int entityIndex) {
-	auto initialChannel = (entityIndex == 0) ? CHANNEL::initialDrive + playerIndex : CHANNEL::initialDriveClone + playerIndex;
 	float slider = 7.0f / 100.0f;
 	int   volume = (int)(255.0f * slider);
-	fn_Mix_Volume(initialChannel, volume);
-	fn_Mix_FadeInChannel(initialChannel, driveStart, 0, 400);
+	(entityIndex == 0 ? poolDrive : poolDriveClone).Play(playerIndex, driveStart, (float)volume, 0, 400);
 }
 
 void PlayDriveLoop(int playerIndex, int entityIndex) {
-	auto initialChannel = (entityIndex == 0) ? CHANNEL::initialDriveLoop + playerIndex : CHANNEL::initialDriveLoopClone + playerIndex;
 	float slider = 7.0f / 100.0f;
 	int   volume = (int)(255.0f * slider);
-	fn_Mix_Volume(initialChannel, volume);
-	fn_Mix_PlayChannel(initialChannel, driveLoop, -1);
+	(entityIndex == 0 ? poolDriveLoop : poolDriveLoopClone).Play(playerIndex, driveLoop, (float)volume, -1);
 }
 
 void PlayDriveLevelUp(int playerIndex, int entityIndex) {
-	auto initialChannel = (entityIndex == 0) ? CHANNEL::initialDriveLevelUp + (2 * playerIndex) : 
-		CHANNEL::initialDriveLevelUpClone + (2 * playerIndex);
 	float slider = 10.0f / 100.0f;
 	int   volume = (int)(255.0f * slider);
-	PlayOnChannels(initialChannel, initialChannel + 1, driveLevelUp, volume);
+	(entityIndex == 0 ? poolDriveLevelUp : poolDriveLevelUpClone).PlayFree(playerIndex, driveLevelUp, (float)volume);
 }
 
 void InterruptDriveSFX(int playerIndex, int entityIndex) {
-	auto initialChannelStart = (entityIndex == 0) ? CHANNEL::initialDrive + playerIndex : CHANNEL::initialDriveClone + playerIndex;
-	auto initialChannelLoop = (entityIndex == 0) ? CHANNEL::initialDriveLoop + playerIndex : CHANNEL::initialDriveLoopClone + playerIndex;
-	fn_Mix_FadeOutChannel(initialChannelStart, 100);
-	fn_Mix_FadeOutChannel(initialChannelLoop, 100);
+	(entityIndex == 0 ? poolDrive : poolDriveClone).Stop(playerIndex, 100);
+	(entityIndex == 0 ? poolDriveLoop : poolDriveLoopClone).Stop(playerIndex, 100);
 }
 
 bool DriveStartIsPlaying(int playerIndex, int entityIndex) {
-	auto initialChannel = (entityIndex == 0) ? CHANNEL::initialDrive + playerIndex : CHANNEL::initialDriveClone + playerIndex;
-	return ChannelIsPlaying(initialChannel);
+	return SDL3Init && (entityIndex == 0 ? poolDrive : poolDriveClone).IsAnyPlaying(playerIndex);
 }
 
 void PlayNewMissionClearSong() {
-    if (!SDL3Init || fn_Mix_VolumeMusic == NULL || fn_Mix_FadeInMusic == NULL) return;
-    fn_Mix_VolumeMusic(60 * (activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f));
-    fn_Mix_FadeInMusic(missionClearSong, -1, 500);
+    if (!SDL3Init) return;
+    g_musicGain = Gain((int)(60 * (activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f)));
+    PlayMusic(missionClearSong, 500);
 }
 
 void PlayDivinityStatueSong() {
-    if (!SDL3Init || fn_Mix_VolumeMusic == NULL || fn_Mix_FadeInMusic == NULL) return;
-	fn_Mix_VolumeMusic(57 * (activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f));
-	fn_Mix_FadeInMusic(divinityStatueSong, -1, 500);
+    if (!SDL3Init) return;
+    g_musicGain = Gain((int)(57 * (activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f)));
+    PlayMusic(divinityStatueSong, 500);
 }
 
 void FadeOutMusic(int delayMs) {
-    if (!SDL3Init || fn_Mix_FadeOutMusic == NULL) return;
-    fn_Mix_FadeOutMusic(delayMs);
+    if (!SDL3Init || fn_MIX_StopTag == NULL || g_mixer == NULL) return;
+    fn_MIX_StopTag(g_mixer, kMusicTag, delayMs);
 }
 
 int IsMusicPlaying() {
-    if (!SDL3Init || fn_Mix_PlayingMusic == NULL) return 0;
-    return fn_Mix_PlayingMusic();
+    if (!SDL3Init) return 0;
+    return (TrackPlaying(g_musicTracks[0]) || TrackPlaying(g_musicTracks[1])) ? 1 : 0;
 }
 
 void PlayBattleOfBrothersSong() {
-    if (!SDL3Init || fn_Mix_VolumeMusic == NULL || fn_Mix_FadeInMusic == NULL) return;
-	fn_Mix_VolumeMusic(31 * (activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f));
-	fn_Mix_FadeInMusic(battleOfBrothersSong, -1, 500);
+    if (!SDL3Init) return;
+	g_musicGain = Gain((int)(31 * (activeCrimsonConfig.Sound.channelVolumes[9] / 100.0f)));
+	PlayMusic(battleOfBrothersSong, 500);
 }
 
-void FadeOutMusic(float fadeoutTime) {
-    if (!SDL3Init || fn_Mix_FadeOutMusic == NULL) return;
-    fn_Mix_FadeOutMusic(fadeoutTime);
+void CrossfadeCustomMusic(const char* relativePath, int volume, int fadeInMs, int fadeOutMs) {
+    if (!SDL3Init || relativePath == NULL || relativePath[0] == '\0') return;
+    if (fn_MIX_StopTag == NULL || g_mixer == NULL) return;
+
+    MIX_Audio* song = LoadMusicCached((std::string)Paths::sounds + "\\music\\" + relativePath);
+    if (song == NULL) return;
+
+    g_musicGain = Gain(volume);
+    ApplyMusicGain();
+
+    fn_MIX_StopTag(g_mixer, kMusicTag, fadeOutMs);
+    PlayMusic(song, fadeInMs);
 }
 
 void ReduceMusicVolumeInPause() {
-    if (!SDL3Init || fn_Mix_GetMusicVolume == NULL || fn_Mix_VolumeMusic == NULL) return;
+    if (!SDL3Init || fn_MIX_SetTagGain == NULL) return;
 	auto pool_19315 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E10);
 	if (!pool_19315 || !pool_19315[8]) {
 		return;
 	}
 	auto& eventData = *reinterpret_cast<EventData*>(pool_19315[8]);
-	static int previousVolume = -1; 
 
 	if (g_scene == SCENE::GAME) {
 		if (eventData.event == EVENT::PAUSE) {
-
-			// Save current volume if not already saved
-			if (previousVolume == -1) {
-				previousVolume = fn_Mix_GetMusicVolume(battleOfBrothersSong);
-			}
-			// Reduce volume to 30% of configured value
-			int reducedVolume = static_cast<int>(previousVolume * 0.5f);
-			fn_Mix_VolumeMusic(reducedVolume);
+			g_musicDuck = 0.5f;
+			ApplyMusicGain();
 		} else if (eventData.event == EVENT::MAIN) {
-			// Restore previous volume if it was changed
-			if (previousVolume != -1) {
-				fn_Mix_VolumeMusic(previousVolume);
-				previousVolume = -1;
-			}
+			g_musicDuck = 1.0f;
+			ApplyMusicGain();
 		}
 	}
 }

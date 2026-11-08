@@ -182,7 +182,7 @@ void CalculateViewProperties(byte8* actorBaseAddr) {
 	float screenOffsetX = playerScreenPosition.x - screenCenterX;
 	float normalizedOffset = screenOffsetX / (g_uiSize.x * 0.5f); // Range: -1.0 to 1.0
 
-	// Convert to angle range suitable for SDL Mix_SetPosition (typically -180 to 180)
+	// Convert to the angle convention used by the custom SFX panning (0 = center, 90 = right)
 	float angle = normalizedOffset * 90.0f; // Scale to -90 to +90 degrees
 
 	// Apply deadzone for center audio positioning

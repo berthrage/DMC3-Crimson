@@ -57,7 +57,6 @@ void PlayJDCCharge(int playerIndex);
 void PlayDevilTriggerReady(int playerIndex);
 void PlayDelayedCombo1(int playerIndex);
 void PlayDelayedCombo2(int playerIndex);
-bool ChannelIsPlaying(int channel);
 bool DTEStartIsPlaying(int playerIndex);
 void PlayDTExplosionStart(int playerIndex);
 void PlayDTExplosionLoop(int playerIndex);
@@ -78,7 +77,7 @@ void PlayNewMissionClearSong();
 void PlayDivinityStatueSong();
 void FadeOutMusic(int delayMs = 500);
 void PlayBattleOfBrothersSong();
-void FadeOutMusic(float fadeoutTime = 500);
+void CrossfadeCustomMusic(const char* relativePath, int volume, int fadeInMs = 500, int fadeOutMs = 500);
 void ReduceMusicVolumeInPause();
 int IsMusicPlaying();
 
